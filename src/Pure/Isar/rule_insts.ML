@@ -1,0 +1,363 @@
+(*  Title:      Pure/Isar/rule_insts.ML
+    ID:         $Id$
+    Author:     Makarius
+
+Rule instantiations -- operations within a rule/subgoal context.
+*)
+
+signature RULE_INSTS =
+sig
+  val bires_inst_tac: bool -> Proof.context -> (indexname * string) list ->
+    thm -> int -> tactic
+end;
+
+structure RuleInsts: RULE_INSTS =
+struct
+
+
+(** attributes **)
+
+(* read_instantiate: named instantiation of type and term variables *)
+
+local
+
+fun is_tvar (x, _) = (case Symbol.explode x of "'" :: _ => true | _ => false);
+
+fun error_var msg xi = error (msg ^ Syntax.string_of_vname xi);
+
+fun the_sort sorts xi = the (sorts xi)
+  handle Option.Option => error_var "No such type variable in theorem: " xi;
+
+fun the_type types xi = the (types xi)
+  handle Option.Option => error_var "No such variable in theorem: " xi;
+
+fun unify_types thy types (xi, u) (unifier, maxidx) =
+  let
+    val T = the_type types xi;
+    val U = Term.fastype_of u;
+    val maxidx' = Int.max (maxidx, Int.max (#2 xi, Term.maxidx_of_term u));
+  in
+    Sign.typ_unify thy (T, U) (unifier, maxidx')
+      handle Type.TUNIFY => error_var "Incompatible type for instantiation of " xi
+  end;
+
+fun typ_subst env = apsnd (Term.typ_subst_TVars env);
+fun subst env = apsnd (Term.subst_TVars env);
+
+fun instantiate thy envT env thm =
+  let
+    val (_, sorts) = Drule.types_sorts thm;
+    fun prepT (a, T) = (Thm.ctyp_of thy (TVar (a, the_sort sorts a)), Thm.ctyp_of thy T);
+    fun prep (xi, t) = pairself (Thm.cterm_of thy) (Var (xi, Term.fastype_of t), t);
+  in
+    Drule.instantiate (map prepT (distinct (op =) envT),
+      map prep (distinct (fn ((xi, t), (yj, u)) => xi = yj andalso t aconv u) env)) thm
+  end;
+
+in
+
+fun read_instantiate mixed_insts (context, thm) =
+  let
+    val thy = Context.theory_of context;
+    val ctxt = Context.proof_of context;
+
+    val (type_insts, term_insts) = List.partition (is_tvar o fst) (map snd mixed_insts);
+    val internal_insts = term_insts |> map_filter
+      (fn (xi, Args.Term t) => SOME (xi, t)
+      | (_, Args.Name _) => NONE
+      | (xi, _) => error_var "Term argument expected for " xi);
+    val external_insts = term_insts |> map_filter
+      (fn (xi, Args.Name s) => SOME (xi, s) | _ => NONE);
+
+
+    (* type instantiations *)
+
+    val sorts = #2 (Drule.types_sorts thm);
+
+    fun readT (xi, arg) =
+      let
+        val S = the_sort sorts xi;
+        val T =
+          (case arg of
+            Args.Name s => ProofContext.read_typ ctxt s
+          | Args.Typ T => T
+          | _ => error_var "Type argument expected for " xi);
+      in
+        if Sign.of_sort thy (T, S) then (xi, T)
+        else error_var "Incompatible sort for typ instantiation of " xi
+      end;
+
+    val type_insts' = map readT type_insts;
+    val thm' = instantiate thy type_insts' [] thm;
+
+
+    (* internal term instantiations *)
+
+    val types' = #1 (Drule.types_sorts thm');
+    val unifier = map (apsnd snd) (Vartab.dest (#1
+      (fold (unify_types thy types') internal_insts (Vartab.empty, 0))));
+
+    val type_insts'' = map (typ_subst unifier) type_insts';
+    val internal_insts'' = map (subst unifier) internal_insts;
+    val thm'' = instantiate thy unifier internal_insts'' thm';
+
+
+    (* external term instantiations *)
+
+    val types'' = #1 (Drule.types_sorts thm'');
+
+    val (xs, ss) = split_list external_insts;
+    val Ts = map (the_type types'') xs;
+    val (ts, inferred) = ProofContext.read_termTs ctxt (K false)
+        (K NONE) (K NONE) (Drule.add_used thm'' []) (ss ~~ Ts);
+
+    val type_insts''' = map (typ_subst inferred) type_insts'';
+    val internal_insts''' = map (subst inferred) internal_insts'';
+
+    val external_insts''' = xs ~~ ts;
+    val term_insts''' = internal_insts''' @ external_insts''';
+    val thm''' = instantiate thy inferred external_insts''' thm'';
+
+
+    (* assign internalized values *)
+
+    val _ =
+      mixed_insts |> List.app (fn (arg, (xi, _)) =>
+        if is_tvar xi then
+          Args.assign (SOME (Args.Typ (the (AList.lookup (op =) type_insts''' xi)))) arg
+        else
+          Args.assign (SOME (Args.Term (the (AList.lookup (op =) term_insts''' xi)))) arg);
+
+  in (context, thm''' |> RuleCases.save thm) end;
+
+end;
+
+
+(* where: named instantiation *)
+
+local
+
+val value =
+  Args.internal_typ >> Args.Typ ||
+  Args.internal_term >> Args.Term ||
+  Args.name >> Args.Name;
+
+val inst = Args.var -- (Args.$$$ "=" |-- Args.ahead -- value)
+  >> (fn (xi, (a, v)) => (a, (xi, v)));
+
+in
+
+val where_att = Attrib.syntax (Args.and_list (Scan.lift inst) >> read_instantiate);
+
+end;
+
+
+(* of: positional instantiation (term arguments only) *)
+
+local
+
+fun read_instantiate' (args, concl_args) (context, thm) =
+  let
+    fun zip_vars _ [] = []
+      | zip_vars (_ :: xs) ((_, NONE) :: rest) = zip_vars xs rest
+      | zip_vars ((x, _) :: xs) ((arg, SOME t) :: rest) = (arg, (x, t)) :: zip_vars xs rest
+      | zip_vars [] _ = error "More instantiations than variables in theorem";
+    val insts =
+      zip_vars (rev (Term.add_vars (Thm.full_prop_of thm) [])) args @
+      zip_vars (rev (Term.add_vars (Thm.concl_of thm) [])) concl_args;
+  in read_instantiate insts (context, thm) end;
+
+val value =
+  Args.internal_term >> Args.Term ||
+  Args.name >> Args.Name;
+
+val inst = Args.ahead -- Args.maybe value;
+val concl = Args.$$$ "concl" -- Args.colon;
+
+val insts =
+  Scan.repeat (Scan.unless concl inst) --
+  Scan.optional (concl |-- Scan.repeat inst) [];
+
+in
+
+val of_att = Attrib.syntax (Scan.lift insts >> read_instantiate');
+
+end;
+
+
+(* setup *)
+
+val _ = Context.add_setup (Attrib.add_attributes
+ [("where", where_att, "named instantiation of theorem"),
+  ("of", of_att, "rule applied to terms")]);
+
+
+
+(** methods **)
+
+(* rule_tac etc. -- refer to dynamic goal state!! *)   (* FIXME cleanup!! *)
+
+fun bires_inst_tac bires_flag ctxt insts thm =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    (* Separate type and term insts *)
+    fun has_type_var ((x, _), _) = (case Symbol.explode x of
+          "'"::cs => true | cs => false);
+    val Tinsts = List.filter has_type_var insts;
+    val tinsts = filter_out has_type_var insts;
+    (* Tactic *)
+    fun tac i st =
+      let
+        (* Preprocess state: extract environment information:
+           - variables and their types
+           - type variables and their sorts
+           - parameters and their types *)
+        val (types, sorts) = types_sorts st;
+    (* Process type insts: Tinsts_env *)
+    fun absent xi = error
+          ("No such variable in theorem: " ^ Syntax.string_of_vname xi);
+    val (rtypes, rsorts) = types_sorts thm;
+    fun readT (xi, s) =
+        let val S = case rsorts xi of SOME S => S | NONE => absent xi;
+            val T = Sign.read_typ (thy, sorts) s;
+            val U = TVar (xi, S);
+        in if Sign.typ_instance thy (T, U) then (U, T)
+           else error
+             ("Instantiation of " ^ Syntax.string_of_vname xi ^ " fails")
+        end;
+    val Tinsts_env = map readT Tinsts;
+    (* Preprocess rule: extract vars and their types, apply Tinsts *)
+    fun get_typ xi =
+      (case rtypes xi of
+           SOME T => typ_subst_atomic Tinsts_env T
+         | NONE => absent xi);
+    val (xis, ss) = Library.split_list tinsts;
+    val Ts = map get_typ xis;
+        val (_, _, Bi, _) = dest_state(st,i)
+        val params = Logic.strip_params Bi
+                             (* params of subgoal i as string typ pairs *)
+        val params = rev(Term.rename_wrt_term Bi params)
+                           (* as they are printed: bound variables with *)
+                           (* the same name are renamed during printing *)
+        fun types' (a, ~1) = (case AList.lookup (op =) params a of
+                NONE => types (a, ~1)
+              | some => some)
+          | types' xi = types xi;
+        fun internal x = is_some (types' (x, ~1));
+        val used = Drule.add_used thm (Drule.add_used st []);
+        val (ts, envT) =
+          ProofContext.read_termTs_schematic ctxt internal types' sorts used (ss ~~ Ts);
+        val envT' = map (fn (ixn, T) =>
+          (TVar (ixn, the (rsorts ixn)), T)) envT @ Tinsts_env;
+        val cenv =
+          map
+            (fn (xi, t) =>
+              pairself (Thm.cterm_of thy) (Var (xi, fastype_of t), t))
+            (distinct
+              (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2)
+              (xis ~~ ts));
+        (* Lift and instantiate rule *)
+        val {maxidx, ...} = rep_thm st;
+        val paramTs = map #2 params
+        and inc = maxidx+1
+        fun liftvar (Var ((a,j), T)) =
+              Var((a, j+inc), paramTs ---> Logic.incr_tvar inc T)
+          | liftvar t = raise TERM("Variable expected", [t]);
+        fun liftterm t = list_abs_free
+              (params, Logic.incr_indexes(paramTs,inc) t)
+        fun liftpair (cv,ct) =
+              (cterm_fun liftvar cv, cterm_fun liftterm ct)
+        val lifttvar = pairself (ctyp_of thy o Logic.incr_tvar inc);
+        val rule = Drule.instantiate
+              (map lifttvar envT', map liftpair cenv)
+              (Thm.lift_rule (Thm.cprem_of st i) thm)
+      in
+        if i > nprems_of st then no_tac st
+        else st |>
+          compose_tac (bires_flag, rule, nprems_of thm) i
+      end
+           handle TERM (msg,_)   => (warning msg; no_tac st)
+                | THM  (msg,_,_) => (warning msg; no_tac st);
+  in tac end;
+
+local
+
+fun gen_inst _ tac _ (quant, ([], thms)) =
+      Method.METHOD (fn facts => quant (Method.insert_tac facts THEN' tac thms))
+  | gen_inst inst_tac _ ctxt (quant, (insts, [thm])) =
+      Method.METHOD (fn facts =>
+        quant (Method.insert_tac facts THEN' inst_tac ctxt insts thm))
+  | gen_inst _ _ _ _ = error "Cannot have instantiations with multiple rules";
+
+in
+
+val res_inst_meth = gen_inst (bires_inst_tac false) Tactic.resolve_tac;
+
+val eres_inst_meth = gen_inst (bires_inst_tac true) Tactic.eresolve_tac;
+
+val cut_inst_meth =
+  gen_inst
+    (fn ctxt => fn insts => bires_inst_tac false ctxt insts o Tactic.make_elim_preserve)
+    Tactic.cut_rules_tac;
+
+val dres_inst_meth =
+  gen_inst
+    (fn ctxt => fn insts => bires_inst_tac true ctxt insts o Tactic.make_elim_preserve)
+    Tactic.dresolve_tac;
+
+val forw_inst_meth =
+  gen_inst
+    (fn ctxt => fn insts => fn rule =>
+       bires_inst_tac false ctxt insts (Tactic.make_elim_preserve rule) THEN'
+       assume_tac)
+    Tactic.forward_tac;
+
+fun subgoal_tac ctxt sprop =
+  DETERM o bires_inst_tac false ctxt [(("psi", 0), sprop)] cut_rl;
+
+fun subgoals_tac ctxt sprops = EVERY' (map (subgoal_tac ctxt) sprops);
+
+fun thin_tac ctxt s =
+  bires_inst_tac true ctxt [(("V", 0), s)] thin_rl;
+
+
+(* method syntax *)
+
+val insts =
+  Scan.optional
+    (Args.enum1 "and" (Scan.lift (Args.name -- (Args.$$$ "=" |-- Args.!!! Args.name))) --|
+      Scan.lift (Args.$$$ "in")) [] -- Attrib.thms;
+
+fun inst_args f src ctxt =
+  f ctxt (#2 (Method.syntax (Args.goal_spec HEADGOAL -- insts) src ctxt));
+
+val insts_var =
+  Scan.optional
+    (Args.enum1 "and" (Scan.lift (Args.var -- (Args.$$$ "=" |-- Args.!!! Args.name))) --|
+      Scan.lift (Args.$$$ "in")) [] -- Attrib.thms;
+
+fun inst_args_var f src ctxt =
+  f ctxt (#2 (Method.syntax (Args.goal_spec HEADGOAL -- insts_var) src ctxt));
+
+
+(* setup *)
+
+val _ = Context.add_setup (Method.add_methods
+ [("rule_tac", inst_args_var res_inst_meth,
+    "apply rule (dynamic instantiation)"),
+  ("erule_tac", inst_args_var eres_inst_meth,
+    "apply rule in elimination manner (dynamic instantiation)"),
+  ("drule_tac", inst_args_var dres_inst_meth,
+    "apply rule in destruct manner (dynamic instantiation)"),
+  ("frule_tac", inst_args_var forw_inst_meth,
+    "apply rule in forward manner (dynamic instantiation)"),
+  ("cut_tac", inst_args_var cut_inst_meth,
+    "cut rule (dynamic instantiation)"),
+  ("subgoal_tac", Method.goal_args_ctxt (Scan.repeat1 Args.name) subgoals_tac,
+    "insert subgoal (dynamic instantiation)"),
+  ("thin_tac", Method.goal_args_ctxt Args.name thin_tac,
+    "remove premise (dynamic instantiation)")]);
+
+end;
+
+end;
