@@ -283,24 +283,22 @@ end;
 ***)
 
 fun types_sorts thm =
-    let val {prop, hyps, tpairs, ...} = Thm.rep_thm thm;
-        (* bogus term! *)
-        val big = Term.list_comb
-                    (Term.list_comb (prop, hyps), Thm.terms_of_tpairs tpairs);
-        val vars = map dest_Var (term_vars big);
-        val frees = map dest_Free (term_frees big);
-        val tvars = term_tvars big;
-        val tfrees = term_tfrees big;
-        fun typ(a,i) = if i<0 then AList.lookup (op =) frees a else AList.lookup (op =) vars (a,i);
-        fun sort(a,i) = if i<0 then AList.lookup (op =) tfrees a else AList.lookup (op =) tvars (a,i);
-    in (typ,sort) end;
+  let
+    val vars = fold_terms Term.add_vars thm [];
+    val frees = fold_terms Term.add_frees thm [];
+    val tvars = fold_terms Term.add_tvars thm [];
+    val tfrees = fold_terms Term.add_tfrees thm [];
+    fun types (a, i) =
+      if i < 0 then AList.lookup (op =) frees a else AList.lookup (op =) vars (a, i);
+    fun sorts (a, i) =
+      if i < 0 then AList.lookup (op =) tfrees a else AList.lookup (op =) tvars (a, i);
+  in (types, sorts) end;
 
-fun add_used thm used =
-  let val {prop, hyps, tpairs, ...} = Thm.rep_thm thm in
-    add_term_tvarnames (prop, used)
-    |> fold (curry add_term_tvarnames) hyps
-    |> fold (curry add_term_tvarnames) (Thm.terms_of_tpairs tpairs)
-  end;
+val add_used =
+  (fold_terms o fold_types o fold_atyps)
+    (fn TFree (a, _) => insert (op =) a
+      | TVar ((a, _), _) => insert (op =) a
+      | _ => I);
 
 
 
