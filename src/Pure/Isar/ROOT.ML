@@ -61,6 +61,7 @@ use "../old_goals.ML";
 use "outer_syntax.ML";
 
 (*theory and proof operations*)
+use "rule_insts.ML";
 use "../simplifier.ML";
 use "find_theorems.ML";
 use "isar_thy.ML";
