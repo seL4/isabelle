@@ -48,7 +48,6 @@ end;
 signature OLD_GOALS =
 sig
   include GOALS
-  val legacy: bool ref
   type proof
   val chop: unit -> unit
   val reset_goals: unit -> unit
@@ -89,10 +88,6 @@ end;
 
 structure OldGoals: OLD_GOALS =
 struct
-
-val legacy = ref false;
-fun warn_obsolete () = if ! legacy then () else warning "Obsolete goal command encountered";
-
 
 (*** Goal package ***)
 
@@ -156,7 +151,7 @@ val result_error_fn = ref result_error_default;
 *)
 fun prepare_proof atomic rths chorn =
   let
-      val _ = warn_obsolete ();
+      val _ = warning "Obsolete goal command encountered";
       val {thy, t=horn,...} = rep_cterm chorn;
       val _ = Term.no_dummy_patterns horn handle TERM (msg, _) => error msg;
       val (As, B) = Logic.strip_horn horn;
@@ -377,7 +372,7 @@ val Goal = Goalw [];
 (*simple version with minimal amount of checking and postprocessing*)
 fun simple_prove_goal_cterm G f =
   let
-    val _ = warn_obsolete ();
+    val _ = warning "Obsolete goal command encountered";
     val As = Drule.strip_imp_prems G;
     val B = Drule.strip_imp_concl G;
     val asms = map Assumption.assume As;
