@@ -247,7 +247,7 @@ val opt_rule = Scan.option (rule_spec |-- Attrib.thm);
 val varss =
   Args.and_list (Scan.repeat (Scan.unless rule_spec (Scan.lift (Args.maybe Args.name))));
 
-val inst_tac = Method.bires_inst_tac false;
+val inst_tac = RuleInsts.bires_inst_tac false;
 
 fun induct_meth ctxt (varss, opt_rule) =
   gen_induct_tac (inst_tac ctxt) (varss, opt_rule);
