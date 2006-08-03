@@ -221,7 +221,7 @@ text {*
 *}
 
 definition
-  "access root path uid perms \<equiv>
+  "access root path uid perms =
     (case lookup root path of
       None \<Rightarrow> None
     | Some file \<Rightarrow>
@@ -641,7 +641,7 @@ text {*
 *}
 
 definition
-  "can_exec root xs \<equiv> \<exists>root'. root =xs\<Rightarrow> root'"
+  "can_exec root xs = (\<exists>root'. root =xs\<Rightarrow> root')"
 
 lemma can_exec_nil: "can_exec root []"
   unfolding can_exec_def by (blast intro: transitions.intros)
@@ -858,7 +858,7 @@ text {*
 *}
 
 definition (in situation)
-  "invariant root path \<equiv>
+  "invariant root path =
     (\<exists>att dir.
       access root path user\<^isub>1 {} = Some (Env att dir) \<and> dir \<noteq> empty \<and>
       user\<^isub>1 \<noteq> owner att \<and>
