@@ -481,11 +481,11 @@ end;
 (* specifications *)
 
 fun no_vars pp tm =
-  (case (Term.term_vars tm, Term.term_tvars tm) of
+  (case (Term.add_vars tm [], Term.add_tvars tm []) of
     ([], []) => tm
-  | (ts, ixns) => error (Pretty.string_of (Pretty.block (Pretty.breaks
+  | (vars, tvars) => error (Pretty.string_of (Pretty.block (Pretty.breaks
       (Pretty.str "Illegal schematic variable(s) in term:" ::
-       map (Pretty.term pp) ts @ map (Pretty.typ pp o TVar) ixns)))));
+       map (Pretty.term pp o Var) vars @ map (Pretty.typ pp o TVar) tvars)))));
 
 fun cert_def pp tm =
   let val ((lhs, rhs), _) = tm

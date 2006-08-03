@@ -1346,7 +1346,7 @@ fun rename_params_rule (cs, i) state =
     val newnames =
       if short < 0 then error "More names than abstractions!"
       else Name.variant_list cs (Library.take (short, iparams)) @ cs;
-    val freenames = map (#1 o dest_Free) (term_frees Bi);
+    val freenames = Term.fold_aterms (fn Free (x, _) => insert (op =) x | _ => I) Bi [];
     val newBi = Logic.list_rename_params (newnames, Bi);
   in
     case findrep cs of
@@ -1395,21 +1395,25 @@ fun strip_apply f =
   Preserves unknowns in tpairs and on lhs of dpairs. *)
 fun rename_bvs([],_,_,_) = I
   | rename_bvs(al,dpairs,tpairs,B) =
-    let val vars = foldr add_term_vars []
-                        (map fst dpairs @ map fst tpairs @ map snd tpairs)
+      let
+        val add_var = fold_aterms (fn Var ((x, _), _) => insert (op =) x | _ => I);
+        val vids = []
+          |> fold (add_var o fst) dpairs
+          |> fold (add_var o fst) tpairs
+          |> fold (add_var o snd) tpairs;
         (*unknowns appearing elsewhere be preserved!*)
-        val vids = map (#1 o #1 o dest_Var) vars;
         fun rename(t as Var((x,i),T)) =
-                (case AList.lookup (op =) al x of
-                   SOME(y) => if x mem_string vids orelse y mem_string vids then t
-                              else Var((y,i),T)
-                 | NONE=> t)
+              (case AList.lookup (op =) al x of
+                SOME y =>
+                  if member (op =) vids x orelse member (op =) vids y then t
+                  else Var((y,i),T)
+              | NONE=> t)
           | rename(Abs(x,T,t)) =
               Abs (the_default x (AList.lookup (op =) al x), T, rename t)
           | rename(f$t) = rename f $ rename t
           | rename(t) = t;
         fun strip_ren Ai = strip_apply rename (Ai,B)
-    in strip_ren end;
+      in strip_ren end;
 
 (*Function to rename bounds/unknowns in the argument, lifted over B*)
 fun rename_bvars(dpairs, tpairs, B) =

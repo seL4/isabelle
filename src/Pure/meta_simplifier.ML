@@ -408,7 +408,7 @@ all its Vars? Better: a dynamic check each time a rule is applied.
 fun rewrite_rule_extra_vars prems elhs erhs =
   not (Term.add_vars erhs [] subset fold Term.add_vars (elhs :: prems) [])
   orelse
-  not (term_tvars erhs subset (term_tvars elhs union maps term_tvars prems));
+  not (Term.add_tvars erhs [] subset (fold Term.add_tvars (elhs :: prems) []));
 
 (*simple test for looping rewrite rules and stupid orientations*)
 fun default_reorient thy prems lhs rhs =
@@ -465,7 +465,7 @@ fun mk_eq_True (Simpset (_, {mk_rews = {mk_eq_True, ...}, ...})) (thm, name) =
 fun rrule_eq_True (thm, name, lhs, elhs, rhs, ss, thm2) =
   let val rrule = {thm = thm, name = name, lhs = lhs, elhs = elhs, perm = false} in
     if Term.add_vars rhs [] subset Term.add_vars lhs [] andalso
-      term_tvars rhs subset term_tvars lhs then [rrule]
+      Term.add_tvars rhs [] subset Term.add_tvars lhs [] then [rrule]
     else mk_eq_True ss (thm2, name) @ [rrule]
   end;
 

@@ -579,7 +579,7 @@ fun gen_bind prep (xi as (x, _), raw_t) ctxt =
 
 in
 
-fun drop_schematic (b as (xi, SOME t)) = if null (Term.term_vars t) then b else (xi, NONE)
+fun drop_schematic (b as (xi, SOME t)) = if Term.exists_subterm is_Var t then (xi, NONE) else b
   | drop_schematic b = b;
 
 val add_binds = fold (gen_bind read_term);
