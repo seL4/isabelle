@@ -40,6 +40,7 @@ time_use_thy "Puzzle";
 time_use_thy "Lagrange";
 time_use_thy "Commutative_RingEx";
 time_use_thy "Commutative_Ring_Complete";
+time_use_thy "Reflection";
 
 time_use_thy "set";
 time_use_thy "MT";
