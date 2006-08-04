@@ -96,8 +96,10 @@ $SSH sunbroy2 "$MAKEALL $HOME/settings/sun-poly $HOME/settings/sun-sml-dev"
 # give test some time to copy settings and start
 sleep 5
 $SSH atbroy51 "$MAKEALL $HOME/settings/at-poly $HOME/settings/at-sml-dev"
+#sleep 5
+# $SSH atbroy98 "$MAKEALL $HOME/settings/at64-poly"
 sleep 5
-$SSH atbroy98 "$MAKEALL $HOME/settings/at64-poly"
+$SSH atbroy101 "$MAKEALL $HOME/settings/at64-poly2"
 sleep 5
 $SSH macbroy5 "$MAKEALL $HOME/settings/mac-poly $HOME/settings/mac-sml-dev"
 
