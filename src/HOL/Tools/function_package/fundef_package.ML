@@ -85,11 +85,6 @@ fun gen_add_fundef prep_att eqns_attss (preprocess : bool) thy =
       val spec = map prep_eqns eqns_attss
       val t_eqnss = map (flat o map snd) spec
 
-(*
- val t_eqns = if preprocess then map (FundefSplit.split_all_equations (ProofContext.init thy)) t_eqns
-              else t_eqns
-*)
-
       val congs = get_fundef_congs (Context.Theory thy)
 
       val (mutual_info, name, (data, thy)) = FundefMutual.prepare_fundef_mutual congs t_eqnss thy
@@ -218,16 +213,16 @@ val attribs_with_star = P.$$$ "[" |-- P.!!! ((P.list (star >> K NONE || P.attrib
 
 val opt_attribs_with_star = Scan.optional attribs_with_star ([], false);
 
-fun opt_thm_name_star s =
-  Scan.optional ((P.name -- opt_attribs_with_star || (attribs_with_star >> pair "")) --| P.$$$ s) ("", ([], false));
+val opt_thm_name_star =
+  Scan.optional ((P.name -- opt_attribs_with_star || (attribs_with_star >> pair "")) --| P.$$$ ":") ("", ([], false));
 
 
 val function_decl =
-    Scan.repeat1 (opt_thm_name_star ":" -- P.prop);
+    Scan.repeat1 (opt_thm_name_star -- P.prop);
 
 val functionP =
   OuterSyntax.command "function" "define general recursive functions" K.thy_goal
-  (((Scan.optional (P.$$$ "(" -- P.!!! (P.$$$ "pre" -- P.$$$ ")") >> K true) false) --    
+  (((Scan.optional (P.$$$ "(" -- P.!!! (P.$$$ "sequential" -- P.$$$ ")") >> K true) false) --    
   P.and_list1 function_decl) >> (fn (prepr, eqnss) =>
                                     Toplevel.print o Toplevel.theory_to_proof (add_fundef eqnss prepr)));
 
@@ -236,6 +231,8 @@ val terminationP =
   ((Scan.optional P.name "" -- Scan.option (P.$$$ "(" |-- Scan.optional (P.name --| P.$$$ ":") "dom" -- P.term --| P.$$$ ")"))
        >> (fn (name,dom) =>
 	      Toplevel.print o Toplevel.theory_to_proof (fundef_setup_termination_proof name dom)));
+
+val _ = OuterSyntax.add_keywords ["sequential", "otherwise"];
 
 val _ = OuterSyntax.add_parsers [functionP];
 val _ = OuterSyntax.add_parsers [terminationP];

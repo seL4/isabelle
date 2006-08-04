@@ -103,14 +103,13 @@ fun split_all_equations ctx eqns =
 end
 
 
-
 fun split_some_equations ctx eqns =
     let
-      fun split_aux prevs [] = []
+      fun split_aux prev [] = []
         | split_aux prev (((n, (att, true)), eq) :: es) = ((n, att), pattern_subtract_many ctx prev [eq])
                                                           :: split_aux (eq :: prev) es
         | split_aux prev (((n, (att, false)), eq) :: es) = ((n, att), [eq]) 
-                                                                :: split_aux (eq :: prev) es
+                                                           :: split_aux (eq :: prev) es
     in
       split_aux [] eqns
     end
