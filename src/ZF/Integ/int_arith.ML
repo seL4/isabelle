@@ -215,7 +215,7 @@ val int_mult_minus_simps =
     [zmult_assoc, zmult_zminus RS sym, int_minus_mult_eq_1_to_2];
 
 fun prep_simproc (name, pats, proc) =
-  Simplifier.simproc (Theory.sign_of (the_context ())) name pats proc;
+  Simplifier.simproc (the_context ()) name pats proc;
 
 structure CancelNumeralsCommon =
   struct

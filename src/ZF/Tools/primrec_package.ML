@@ -91,7 +91,7 @@ fun process_eqn thy (eq, rec_fn_opt) =
                              #big_rec_name con_info)
           else SOME (fname, ftype, ls, rs, con_info, new_eqn::eqns)
   end
-  handle RecError s => primrec_eq_err (sign_of thy) s eq;
+  handle RecError s => primrec_eq_err thy s eq;
 
 
 (*Instantiates a recursor equation with constructor arguments*)
@@ -132,11 +132,11 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
       in
           if !Ind_Syntax.trace then
               writeln ("recursor_rhs = " ^
-                       Sign.string_of_term (sign_of thy) recursor_rhs ^
-                       "\nabs = " ^ Sign.string_of_term (sign_of thy) abs)
+                       Sign.string_of_term thy recursor_rhs ^
+                       "\nabs = " ^ Sign.string_of_term thy abs)
           else();
           if Logic.occs (fconst, abs) then
-              primrec_eq_err (sign_of thy)
+              primrec_eq_err thy
                    ("illegal recursive occurrences of " ^ fname)
                    eq
           else abs :: cases
@@ -159,7 +159,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
   in
       if !Ind_Syntax.trace then
             writeln ("primrec def:\n" ^
-                     Sign.string_of_term (sign_of thy) def_tm)
+                     Sign.string_of_term thy def_tm)
       else();
       (Sign.base_name fname ^ "_" ^ Sign.base_name big_rec_name ^ "_def",
        def_tm)
@@ -197,7 +197,7 @@ fun add_primrec_i args thy =
 
 fun add_primrec args thy =
   add_primrec_i (map (fn ((name, s), srcs) =>
-    ((name, Sign.simple_read_term (sign_of thy) propT s), map (Attrib.attribute thy) srcs))
+    ((name, Sign.read_prop thy s), map (Attrib.attribute thy) srcs))
     args) thy;
 
 

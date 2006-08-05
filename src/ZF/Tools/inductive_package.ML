@@ -65,7 +65,6 @@ fun add_inductive_i verbose (rec_tms, dom_sum)
   intr_specs (monos, con_defs, type_intrs, type_elims) thy =
 let
   val _ = Theory.requires thy "Inductive" "(co)inductive definitions";
-  val sign = sign_of thy;
 
   val (intr_names, intr_tms) = split_list (map fst intr_specs);
   val case_names = RuleCases.case_names intr_names;
@@ -75,7 +74,7 @@ let
 
   val dummy = assert_all is_Const rec_hds
           (fn t => "Recursive set not previously declared as constant: " ^
-                   Sign.string_of_term sign t);
+                   Sign.string_of_term thy t);
 
   (*Now we know they are all Consts, so get their names, type and params*)
   val rec_names = map (#1 o dest_Const) rec_hds
@@ -86,18 +85,18 @@ let
     (fn a => "Base name of recursive set not an identifier: " ^ a);
 
   local (*Checking the introduction rules*)
-    val intr_sets = map (#2 o rule_concl_msg sign) intr_tms;
+    val intr_sets = map (#2 o rule_concl_msg thy) intr_tms;
     fun intr_ok set =
         case head_of set of Const(a,recT) => a mem rec_names | _ => false;
   in
     val dummy =  assert_all intr_ok intr_sets
        (fn t => "Conclusion of rule does not name a recursive set: " ^
-                Sign.string_of_term sign t);
+                Sign.string_of_term thy t);
   end;
 
   val dummy = assert_all is_Free rec_params
       (fn t => "Param in recursion term not a free variable: " ^
-               Sign.string_of_term sign t);
+               Sign.string_of_term thy t);
 
   (*** Construct the fixedpoint definition ***)
   val mk_variant = Name.variant (foldr add_term_names [] intr_tms);
@@ -106,7 +105,7 @@ let
 
   fun dest_tprop (Const("Trueprop",_) $ P) = P
     | dest_tprop Q = error ("Ill-formed premise of introduction rule: " ^
-                            Sign.string_of_term sign Q);
+                            Sign.string_of_term thy Q);
 
   (*Makes a disjunct from an introduction rule*)
   fun fp_part intr = (*quantify over rule's free vars except parameters*)
@@ -146,7 +145,7 @@ let
     If no mutual recursion then it equals the one recursive set.
     If mutual recursion then it differs from all the recursive sets. *)
   val big_rec_base_name = space_implode "_" rec_base_names;
-  val big_rec_name = Sign.intern_const sign big_rec_base_name;
+  val big_rec_name = Sign.intern_const thy big_rec_base_name;
 
 
   val dummy = conditional verbose (fn () =>
@@ -154,7 +153,7 @@ let
 
   (*Forbid the inductive definition structure from clashing with a theory
     name.  This restriction may become obsolete as ML is de-emphasized.*)
-  val dummy = deny (big_rec_base_name mem (Context.names_of sign))
+  val dummy = deny (big_rec_base_name mem (Context.names_of thy))
                ("Definition " ^ big_rec_base_name ^
                 " would clash with the theory of the same name!");
 
@@ -171,7 +170,7 @@ let
 
   (*tracing: print the fixedpoint definition*)
   val dummy = if !Ind_Syntax.trace then
-              List.app (writeln o Sign.string_of_term sign o #2) axpairs
+              List.app (writeln o Sign.string_of_term thy o #2) axpairs
           else ()
 
   (*add definitions of the inductive sets*)
@@ -188,13 +187,11 @@ let
                          | _   => big_rec_base_name::rec_names);
 
 
-  val sign1 = sign_of thy1;
-
   (********)
   val dummy = writeln "  Proving monotonicity...";
 
   val bnd_mono =
-    Goal.prove_global sign1 [] [] (FOLogic.mk_Trueprop (Fp.bnd_mono $ dom_sum $ fp_abs))
+    Goal.prove_global thy1 [] [] (FOLogic.mk_Trueprop (Fp.bnd_mono $ dom_sum $ fp_abs))
       (fn _ => EVERY
         [rtac (Collect_subset RS bnd_monoI) 1,
          REPEAT (ares_tac (basic_monos @ monos) 1)]);
@@ -252,7 +249,7 @@ let
   val intrs =
     (intr_tms, map intro_tacsf (mk_disj_rls (length intr_tms)))
     |> ListPair.map (fn (t, tacs) =>
-      Goal.prove_global sign1 [] [] t
+      Goal.prove_global thy1 [] [] t
         (fn _ => EVERY (rewrite_goals_tac part_rec_defs :: tacs)))
     handle MetaSimplifier.SIMPLIFIER (msg, thm) => (print_thm thm; error msg);
 
@@ -281,7 +278,7 @@ let
       (Thm.assume A RS elim)
       |> Drule.standard';
   fun mk_cases a = make_cases (*delayed evaluation of body!*)
-    (simpset ()) (read_cterm (Thm.sign_of_thm elim) (a, propT));
+    (simpset ()) (read_cterm (Thm.theory_of_thm elim) (a, propT));
 
   fun induction_rules raw_induct thy =
    let
@@ -328,7 +325,7 @@ let
 
      val dummy = if !Ind_Syntax.trace then
                  (writeln "ind_prems = ";
-                  List.app (writeln o Sign.string_of_term sign1) ind_prems;
+                  List.app (writeln o Sign.string_of_term thy1) ind_prems;
                   writeln "raw_induct = "; print_thm raw_induct)
              else ();
 
@@ -343,7 +340,7 @@ let
                                    ORELSE' etac FalseE));
 
      val quant_induct =
-       Goal.prove_global sign1 [] ind_prems
+       Goal.prove_global thy1 [] ind_prems
          (FOLogic.mk_Trueprop (Ind_Syntax.mk_all_imp (big_rec_tm, pred)))
          (fn prems => EVERY
            [rewrite_goals_tac part_rec_defs,
@@ -412,9 +409,9 @@ let
 
      val dummy = if !Ind_Syntax.trace then
                  (writeln ("induct_concl = " ^
-                           Sign.string_of_term sign1 induct_concl);
+                           Sign.string_of_term thy1 induct_concl);
                   writeln ("mutual_induct_concl = " ^
-                           Sign.string_of_term sign1 mutual_induct_concl))
+                           Sign.string_of_term thy1 mutual_induct_concl))
              else ();
 
 
@@ -427,7 +424,7 @@ let
      val lemma = (*makes the link between the two induction rules*)
        if need_mutual then
           (writeln "  Proving the mutual induction rule...";
-           Goal.prove_global sign1 [] []
+           Goal.prove_global thy1 [] []
              (Logic.mk_implies (induct_concl, mutual_induct_concl))
              (fn _ => EVERY
                [rewrite_goals_tac part_rec_defs,
@@ -486,7 +483,7 @@ let
 
      val mutual_induct_fsplit =
        if need_mutual then
-         Goal.prove_global sign1 [] (map (induct_prem (rec_tms~~preds)) intr_tms)
+         Goal.prove_global thy1 [] (map (induct_prem (rec_tms~~preds)) intr_tms)
            mutual_induct_concl
            (fn prems => EVERY
              [rtac (quant_induct RS lemma) 1,
@@ -500,8 +497,8 @@ let
        The name "x.1" comes from the "RS spec" !*)
      val inst =
          case elem_frees of [_] => I
-            | _ => instantiate ([], [(cterm_of sign1 (Var(("x",1), Ind_Syntax.iT)),
-                                      cterm_of sign1 elem_tuple)]);
+            | _ => instantiate ([], [(cterm_of thy1 (Var(("x",1), Ind_Syntax.iT)),
+                                      cterm_of thy1 elem_tuple)]);
 
      (*strip quantifier and the implication*)
      val induct0 = inst (quant_induct RS spec RSN (2,rev_mp));

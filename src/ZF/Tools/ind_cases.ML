@@ -42,7 +42,7 @@ fun smart_cases thy ss read_prop s =
   in
     (case Symtab.lookup (IndCasesData.get thy) c of
       NONE => error ("Unknown inductive cases rule for set " ^ quote c)
-    | SOME f => f ss (Thm.cterm_of (Theory.sign_of thy) A))
+    | SOME f => f ss (Thm.cterm_of thy A))
   end;
 
 
