@@ -26,9 +26,9 @@ local open Ind_Data in
 
 val _$(_$Var(a_ixname,aT)) = concl_of spec;
 
-fun add_term_frees tsig =
+fun add_term_frees thy =
 let fun add(tm, vars) = case tm of
-	Free(v,T) => if Type.typ_instance tsig (T,aT) then v ins vars
+	Free(v,T) => if Sign.typ_instance thy (T,aT) then v ins vars
 		     else vars
       | Abs (_,_,body) => add(body,vars)
       | rator$rand => add(rator, add(rand, vars))
@@ -40,8 +40,7 @@ fun qnt_tac i = fn (tac,var) => tac THEN Tactic.res_inst_tac' [(a_ixname,var)] s
 
 (*Generalizes over all free variables, with the named var outermost.*)
 fun all_frees_tac (var:string) i thm = 
-    let val tsig = Sign.tsig_of (Thm.sign_of_thm thm);
-        val frees = add_term_frees tsig (List.nth(prems_of thm,i-1),[var]);
+    let val frees = add_term_frees (Thm.theory_of_thm thm) (List.nth(prems_of thm,i-1),[var]);
         val frees' = sort (rev_order o string_ord) (remove (op =) var frees) @ [var]
     in Library.foldl (qnt_tac i) (all_tac,frees') thm end;
 

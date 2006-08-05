@@ -2,29 +2,29 @@
     ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 
-A package for general recursive function definitions. 
+A package for general recursive function definitions.
 
-Automatic splitting of overlapping constructor patterns. This is a preprocessing step which 
+Automatic splitting of overlapping constructor patterns. This is a preprocessing step which
 turns a specification with overlaps into an overlap-free specification.
 
 *)
 
-signature FUNDEF_SPLIT = 
+signature FUNDEF_SPLIT =
 sig
   val split_some_equations :
     Proof.context -> (('a * ('b * bool)) * term) list -> (('a * 'b) * term list) list
 
 end
 
-structure FundefSplit : FUNDEF_SPLIT = 
+structure FundefSplit : FUNDEF_SPLIT =
 struct
 
 
 (* We use proof context for the variable management *)
 (* FIXME: no __ *)
 
-fun new_var ctx vs T = 
-    let 
+fun new_var ctx vs T =
+    let
       val [v] = Variable.variant_frees ctx vs [("v", T)]
     in
       (Free v :: vs, Free v)
@@ -37,17 +37,17 @@ fun saturate ctx vs t =
 
 (* This is copied from "fundef_datatype.ML" *)
 fun inst_constrs_of thy (T as Type (name, _)) =
-	map (fn (Cn,CT) => Envir.subst_TVars (Type.typ_match (Sign.tsig_of thy) (body_type CT, T) Vartab.empty) (Const (Cn, CT)))
-	    (the (DatatypePackage.get_datatype_constrs thy name))
+        map (fn (Cn,CT) => Envir.subst_TVars (Sign.typ_match thy (body_type CT, T) Vartab.empty) (Const (Cn, CT)))
+            (the (DatatypePackage.get_datatype_constrs thy name))
   | inst_constrs_of thy t = (print t; sys_error "inst_constrs_of")
 
 
 
 fun pattern_subtract_subst ctx vs _ (Free v2) = []
   | pattern_subtract_subst ctx vs (v as (Free (_, T))) t' =
-    let 
-      fun foo constr = 
-          let 
+    let
+      fun foo constr =
+          let
             val (vs', t) = saturate ctx vs constr
             val substs = pattern_subtract_subst ctx vs' t t'
           in
@@ -95,7 +95,7 @@ fun pattern_subtract_many ctx ps' =
 
 
 fun split_all_equations ctx eqns =
-    let 
+    let
       fun split_aux prev [] = []
         | split_aux prev (e::es) = pattern_subtract_many ctx prev [e] @ split_aux (e::prev) es
     in
@@ -108,8 +108,8 @@ fun split_some_equations ctx eqns =
       fun split_aux prev [] = []
         | split_aux prev (((n, (att, true)), eq) :: es) = ((n, att), pattern_subtract_many ctx prev [eq])
                                                           :: split_aux (eq :: prev) es
-        | split_aux prev (((n, (att, false)), eq) :: es) = ((n, att), [eq]) 
-                                                           :: split_aux (eq :: prev) es
+        | split_aux prev (((n, (att, false)), eq) :: es) = ((n, att), [eq])
+                                                                :: split_aux (eq :: prev) es
     in
       split_aux [] eqns
     end

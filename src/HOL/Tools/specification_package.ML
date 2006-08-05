@@ -131,8 +131,7 @@ fun process_spec axiomatic cos alt_props thy =
         fun proc_single prop =
             let
                 val frees = Term.term_frees prop
-                val tsig = Sign.tsig_of (sign_of thy)
-                val _ = assert (forall (fn v => Type.of_sort tsig (type_of v,HOLogic.typeS)) frees)
+                val _ = assert (forall (fn v => Sign.of_sort thy (type_of v,HOLogic.typeS)) frees)
                                "Specificaton: Only free variables of sort 'type' allowed"
                 val prop_closed = foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) prop (map dest_Free frees)
             in
