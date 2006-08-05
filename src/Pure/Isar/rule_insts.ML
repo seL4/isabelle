@@ -15,123 +15,151 @@ structure RuleInsts: RULE_INSTS =
 struct
 
 
-(** attributes **)
-
-(* read_instantiate: named instantiation of type and term variables *)
+(** reading instantiations **)
 
 local
 
-fun is_tvar (x, _) = (case Symbol.explode x of "'" :: _ => true | _ => false);
+fun is_tvar (x, _) = String.isPrefix "'" x;
 
 fun error_var msg xi = error (msg ^ Syntax.string_of_vname xi);
 
-fun the_sort sorts xi = the (sorts xi)
+fun the_sort tvars xi = the (AList.lookup (op =) tvars xi)
   handle Option.Option => error_var "No such type variable in theorem: " xi;
 
-fun the_type types xi = the (types xi)
+fun the_type vars xi = the (AList.lookup (op =) vars xi)
   handle Option.Option => error_var "No such variable in theorem: " xi;
 
-fun unify_types thy types (xi, u) (unifier, maxidx) =
+fun unify_vartypes thy vars (xi, u) (unifier, maxidx) =
   let
-    val T = the_type types xi;
+    val T = the_type vars xi;
     val U = Term.fastype_of u;
-    val maxidx' = Int.max (maxidx, Int.max (#2 xi, Term.maxidx_of_term u));
+    val maxidx' = Term.maxidx_term u (Int.max (#2 xi, maxidx));
   in
     Sign.typ_unify thy (T, U) (unifier, maxidx')
       handle Type.TUNIFY => error_var "Incompatible type for instantiation of " xi
   end;
 
-fun typ_subst env = apsnd (Term.typ_subst_TVars env);
-fun subst env = apsnd (Term.subst_TVars env);
+fun instantiate inst =
+  Term.instantiate ([], map (fn (xi, t) => ((xi, Term.fastype_of t), t)) inst) #>
+  Envir.beta_norm;
 
-fun instantiate thy envT env thm =
+fun make_instT f v =
   let
-    val (_, sorts) = Drule.types_sorts thm;
-    fun prepT (a, T) = (Thm.ctyp_of thy (TVar (a, the_sort sorts a)), Thm.ctyp_of thy T);
-    fun prep (xi, t) = pairself (Thm.cterm_of thy) (Var (xi, Term.fastype_of t), t);
-  in
-    Drule.instantiate (map prepT (distinct (op =) envT),
-      map prep (distinct (fn ((xi, t), (yj, u)) => xi = yj andalso t aconv u) env)) thm
-  end;
+    val T = TVar v;
+    val T' = f T;
+  in if T = T' then NONE else SOME (T, T') end;
+
+fun make_inst f v =
+  let
+    val t = Var v;
+    val t' = f t;
+  in if t aconv t' then NONE else SOME (t, t') end;
 
 in
 
-fun read_instantiate mixed_insts (context, thm) =
+fun read_insts ctxt mixed_insts (tvars, vars) =
   let
-    val thy = Context.theory_of context;
-    val ctxt = Context.proof_of context;
+    val thy = ProofContext.theory_of ctxt;
+    val cert = Thm.cterm_of thy;
+    val certT = Thm.ctyp_of thy;
 
-    val (type_insts, term_insts) = List.partition (is_tvar o fst) (map snd mixed_insts);
+    val (type_insts, term_insts) = List.partition (is_tvar o fst) mixed_insts;
     val internal_insts = term_insts |> map_filter
       (fn (xi, Args.Term t) => SOME (xi, t)
-      | (_, Args.Name _) => NONE
-      | (xi, _) => error_var "Term argument expected for " xi);
+        | (_, Args.Name _) => NONE
+        | (xi, _) => error_var "Term argument expected for " xi);
     val external_insts = term_insts |> map_filter
       (fn (xi, Args.Name s) => SOME (xi, s) | _ => NONE);
 
 
-    (* type instantiations *)
-
-    val sorts = #2 (Drule.types_sorts thm);
+    (* mixed type instantiations *)
 
     fun readT (xi, arg) =
       let
-        val S = the_sort sorts xi;
+        val S = the_sort tvars xi;
         val T =
           (case arg of
             Args.Name s => ProofContext.read_typ ctxt s
           | Args.Typ T => T
           | _ => error_var "Type argument expected for " xi);
       in
-        if Sign.of_sort thy (T, S) then (xi, T)
+        if Sign.of_sort thy (T, S) then ((xi, S), T)
         else error_var "Incompatible sort for typ instantiation of " xi
       end;
 
-    val type_insts' = map readT type_insts;
-    val thm' = instantiate thy type_insts' [] thm;
+    val type_insts1 = map readT type_insts;
+    val instT1 = Term.instantiateT type_insts1;
+    val vars1 = map (apsnd instT1) vars;
 
 
     (* internal term instantiations *)
 
-    val types' = #1 (Drule.types_sorts thm');
-    val unifier = map (apsnd snd) (Vartab.dest (#1
-      (fold (unify_types thy types') internal_insts (Vartab.empty, 0))));
-
-    val type_insts'' = map (typ_subst unifier) type_insts';
-    val internal_insts'' = map (subst unifier) internal_insts;
-    val thm'' = instantiate thy unifier internal_insts'' thm';
+    val instT2 = Envir.norm_type
+      (#1 (fold (unify_vartypes thy vars1) internal_insts (Vartab.empty, 0)));
+    val vars2 = map (apsnd instT2) vars1;
+    val internal_insts2 = map (apsnd (map_term_types instT2)) internal_insts;
+    val inst2 = instantiate internal_insts2;
 
 
     (* external term instantiations *)
 
-    val types'' = #1 (Drule.types_sorts thm'');
+    val (xs, strs) = split_list external_insts;
+    val Ts = map (the_type vars2) xs;
+    val (ts, inferred) =   (* FIXME polymorphic!? schematic vs. 'for' context!? *)
+      ProofContext.read_termTs_schematic ctxt (K false) (K NONE) (K NONE) [] (strs ~~ Ts);
 
-    val (xs, ss) = split_list external_insts;
-    val Ts = map (the_type types'') xs;
-    val (ts, inferred) = ProofContext.read_termTs ctxt (K false)
-        (K NONE) (K NONE) (Drule.add_used thm'' []) (ss ~~ Ts);
-
-    val type_insts''' = map (typ_subst inferred) type_insts'';
-    val internal_insts''' = map (subst inferred) internal_insts'';
-
-    val external_insts''' = xs ~~ ts;
-    val term_insts''' = internal_insts''' @ external_insts''';
-    val thm''' = instantiate thy inferred external_insts''' thm'';
+    val instT3 = Term.typ_subst_TVars inferred;
+    val vars3 = map (apsnd instT3) vars2;
+    val internal_insts3 = map (apsnd (map_term_types instT3)) internal_insts2;
+    val external_insts3 = xs ~~ ts;
+    val inst3 = instantiate external_insts3;
 
 
-    (* assign internalized values *)
+    (* results *)
 
-    val _ =
+    val type_insts3 = map (fn ((a, _), T) => (a, instT3 (instT2 T))) type_insts1;
+    val term_insts3 = internal_insts3 @ external_insts3;
+
+    val inst_tvars = map_filter (make_instT (instT3 o instT2 o instT1)) tvars;
+    val inst_vars = map_filter (make_inst (inst3 o inst2)) vars3;
+  in
+    ((type_insts3, term_insts3),
+      (map (pairself certT) inst_tvars, map (pairself cert) inst_vars))
+  end;
+
+fun read_instantiate ctxt mixed_insts thm =
+  let
+    val ctxt' = ctxt |> Variable.declare_thm thm;
+    val tvars = Drule.fold_terms Term.add_tvars thm [];
+    val vars = Drule.fold_terms Term.add_vars thm [];
+    val ((type_insts, term_insts), insts) = read_insts ctxt' (map snd mixed_insts) (tvars, vars);
+
+    val _ = (*assign internalized values*)
       mixed_insts |> List.app (fn (arg, (xi, _)) =>
         if is_tvar xi then
-          Args.assign (SOME (Args.Typ (the (AList.lookup (op =) type_insts''' xi)))) arg
+          Args.assign (SOME (Args.Typ (the (AList.lookup (op =) type_insts xi)))) arg
         else
-          Args.assign (SOME (Args.Term (the (AList.lookup (op =) term_insts''' xi)))) arg);
+          Args.assign (SOME (Args.Term (the (AList.lookup (op =) term_insts xi)))) arg);
+  in
+    Drule.instantiate insts thm |> RuleCases.save thm
+  end;
 
-  in (context, thm''' |> RuleCases.save thm) end;
+fun read_instantiate' ctxt (args, concl_args) thm =
+  let
+    fun zip_vars _ [] = []
+      | zip_vars (_ :: xs) ((_, NONE) :: rest) = zip_vars xs rest
+      | zip_vars ((x, _) :: xs) ((arg, SOME t) :: rest) = (arg, (x, t)) :: zip_vars xs rest
+      | zip_vars [] _ = error "More instantiations than variables in theorem";
+    val insts =
+      zip_vars (rev (Term.add_vars (Thm.full_prop_of thm) [])) args @
+      zip_vars (rev (Term.add_vars (Thm.concl_of thm) [])) concl_args;
+  in read_instantiate ctxt insts thm end;
 
 end;
 
+
+
+(** attributes **)
 
 (* where: named instantiation *)
 
@@ -147,25 +175,15 @@ val inst = Args.var -- (Args.$$$ "=" |-- Args.ahead -- value)
 
 in
 
-val where_att = Attrib.syntax (Args.and_list (Scan.lift inst) >> read_instantiate);
+val where_att = Attrib.syntax (Args.and_list (Scan.lift inst) >> (fn args =>
+  Thm.rule_attribute (fn context => read_instantiate (Context.proof_of context) args)));
 
 end;
 
 
-(* of: positional instantiation (term arguments only) *)
+(* of: positional instantiation (terms only) *)
 
 local
-
-fun read_instantiate' (args, concl_args) (context, thm) =
-  let
-    fun zip_vars _ [] = []
-      | zip_vars (_ :: xs) ((_, NONE) :: rest) = zip_vars xs rest
-      | zip_vars ((x, _) :: xs) ((arg, SOME t) :: rest) = (arg, (x, t)) :: zip_vars xs rest
-      | zip_vars [] _ = error "More instantiations than variables in theorem";
-    val insts =
-      zip_vars (rev (Term.add_vars (Thm.full_prop_of thm) [])) args @
-      zip_vars (rev (Term.add_vars (Thm.concl_of thm) [])) concl_args;
-  in read_instantiate insts (context, thm) end;
 
 val value =
   Args.internal_term >> Args.Term ||
@@ -180,7 +198,8 @@ val insts =
 
 in
 
-val of_att = Attrib.syntax (Scan.lift insts >> read_instantiate');
+val of_att = Attrib.syntax (Scan.lift insts >> (fn args =>
+  Thm.rule_attribute (fn context => read_instantiate' (Context.proof_of context) args)));
 
 end;
 
@@ -189,7 +208,7 @@ end;
 
 val _ = Context.add_setup (Attrib.add_attributes
  [("where", where_att, "named instantiation of theorem"),
-  ("of", of_att, "rule applied to terms")]);
+  ("of", of_att, "positional instantiation of theorem")]);
 
 
 
