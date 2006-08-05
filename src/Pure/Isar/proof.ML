@@ -16,7 +16,6 @@ sig
   val assert_bottom: bool -> state -> state
   val context_of: state -> context
   val theory_of: state -> theory
-  val sign_of: state -> theory    (*obsolete*)
   val map_context: (context -> context) -> state -> state
   val add_binds_i: (indexname * term option) list -> state -> state
   val put_thms: bool -> string * thm list option -> state -> state
@@ -195,7 +194,6 @@ fun assert_bottom b state =
 
 val context_of = #context o current;
 val theory_of = ProofContext.theory_of o context_of;
-val sign_of = theory_of;
 
 fun map_context f =
   map_current (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
