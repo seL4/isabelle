@@ -1,4 +1,4 @@
-(*  Title:      HOL/Quadratic_Reciprocity/Quadratic_Reciprocity.thy
+(*  Title:      HOL/NumberTheory/Quadratic_Reciprocity.thy
     ID:         $Id$
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
