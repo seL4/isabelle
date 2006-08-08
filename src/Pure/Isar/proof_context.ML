@@ -17,7 +17,8 @@ sig
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
   val fact_index_of: Proof.context -> FactIndex.T
   val transfer: theory -> Proof.context -> Proof.context
-  val map_theory: (theory -> theory) -> Proof.context -> Proof.context
+  val theory: (theory -> theory) -> Proof.context -> Proof.context
+  val theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_typ: Proof.context -> typ -> Pretty.T
   val pretty_sort: Proof.context -> sort -> Pretty.T
@@ -230,7 +231,7 @@ val fact_index_of = #2 o thms_of;
 val cases_of = #cases o rep_context;
 
 
-(* transfer *)
+(* theory transfer *)
 
 fun transfer_syntax thy =
   map_syntax (LocalSyntax.rebuild thy) #>
@@ -242,7 +243,11 @@ fun transfer_syntax thy =
 
 fun transfer thy = Context.transfer_proof thy #> transfer_syntax thy;
 
-fun map_theory f ctxt = transfer (f (theory_of ctxt)) ctxt;
+fun theory f ctxt = transfer (f (theory_of ctxt)) ctxt;
+
+fun theory_result f ctxt =
+  let val (res, thy') = f (theory_of ctxt)
+  in (res, ctxt |> transfer thy') end;
 
 
 
@@ -1102,7 +1107,7 @@ val print_cases = Pretty.writeln o Pretty.chunks o pretty_cases;
 
 (* core context *)
 
-val prems_limit = ref 10;
+val prems_limit = ref ~1;
 
 fun pretty_ctxt ctxt =
   if ! prems_limit < 0 andalso not (! debug) then []
@@ -1128,12 +1133,12 @@ fun pretty_ctxt ctxt =
           Pretty.commas (map prt_fix fixes))];
 
       (*prems*)
-      val limit = ! prems_limit;
       val prems = Assumption.prems_of ctxt;
       val len = length prems;
+      val suppressed = len - ! prems_limit;
       val prt_prems = if null prems then []
-        else [Pretty.big_list "prems:" ((if len <= limit then [] else [Pretty.str "..."]) @
-          map (pretty_thm ctxt) (Library.drop (len - limit, prems)))];
+        else [Pretty.big_list "prems:" ((if suppressed <= 0 then [] else [Pretty.str "..."]) @
+          map (pretty_thm ctxt) (Library.drop (suppressed, prems)))];
     in prt_structs @ prt_fixes @ prt_prems end;
 
 
