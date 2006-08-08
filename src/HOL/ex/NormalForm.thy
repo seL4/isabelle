@@ -9,16 +9,8 @@ imports Main
 begin
 
 lemma "p \<longrightarrow> True" by normalization
-
-(* FIXME Eventually the code generator should be able to handle this
-by re-generating the existing code for "or":
-
-declare disj_assoc[code]
-
-normal_form "(P | Q) | R"
-
-*)
-
+declare disj_assoc [code fun]
+normal_form  "(P | Q) | R"
 
 lemma "0 + (n::nat) = n" by normalization
 lemma "0 + Suc(n) = Suc n" by normalization
@@ -104,7 +96,8 @@ normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> 
 normal_form "last[a,b,c]"
 normal_form "last([a,b,c]@xs)"
 
-normal_form "max 0 x"
+normal_form "min 0 x"
+normal_form "min 0 (x::nat)"
 
 text {*
   Numerals still take their time\<dots>
