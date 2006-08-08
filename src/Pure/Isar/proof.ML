@@ -94,19 +94,19 @@ sig
   val global_goal: (context -> (string * string) * (string * thm list) list -> unit) ->
     (theory -> 'a -> attribute) ->
     (context * 'b list -> context * (term list list * (context -> context))) ->
-    string -> Method.text option -> (thm list list -> theory -> theory) ->
+    string -> Method.text option -> (thm list list -> context -> context) ->
     string option -> string * 'a list -> ((string * 'a list) * 'b) list -> context -> state
-  val global_qed: Method.text option * bool -> state -> context * theory
+  val global_qed: Method.text option * bool -> state -> context
   val local_terminal_proof: Method.text * Method.text option -> state -> state Seq.seq
   val local_default_proof: state -> state Seq.seq
   val local_immediate_proof: state -> state Seq.seq
   val local_done_proof: state -> state Seq.seq
   val local_skip_proof: bool -> state -> state Seq.seq
-  val global_terminal_proof: Method.text * Method.text option -> state -> context * theory
-  val global_default_proof: state -> context * theory
-  val global_immediate_proof: state -> context * theory
-  val global_done_proof: state -> context * theory
-  val global_skip_proof: bool -> state -> context * theory
+  val global_terminal_proof: Method.text * Method.text option -> state -> context
+  val global_default_proof: state -> context
+  val global_immediate_proof: state -> context
+  val global_done_proof: state -> context
+  val global_skip_proof: bool -> state -> context
   val have: Method.text option -> (thm list list -> state -> state Seq.seq) ->
     ((string * Attrib.src list) * (string * string list) list) list -> bool -> state -> state
   val have_i: Method.text option -> (thm list list -> state -> state Seq.seq) ->
@@ -115,10 +115,10 @@ sig
     ((string * Attrib.src list) * (string * string list) list) list -> bool -> state -> state
   val show_i: Method.text option -> (thm list list -> state -> state Seq.seq) ->
     ((string * attribute list) * (term * term list) list) list -> bool -> state -> state
-  val theorem: string -> Method.text option -> (thm list list -> theory -> theory) ->
+  val theorem: string -> Method.text option -> (thm list list -> context -> context) ->
     string option -> string * Attrib.src list ->
     ((string * Attrib.src list) * (string * string list) list) list -> context -> state
-  val theorem_i: string -> Method.text option -> (thm list list -> theory -> theory) ->
+  val theorem_i: string -> Method.text option -> (thm list list -> context -> context) ->
     string option -> string * attribute list ->
     ((string * attribute list) * (term * term list) list) list -> context -> state
 end;
@@ -152,7 +152,7 @@ and goal =
     before_qed: Method.text option,
     after_qed:
       (thm list list -> state -> state Seq.seq) *
-      (thm list list -> theory -> theory)};
+      (thm list list -> context -> context)};
 
 fun make_goal (statement, using, goal, before_qed, after_qed) =
   Goal {statement = statement, using = using, goal = goal,
@@ -386,10 +386,6 @@ fun no_goal_cases st = map (rpair NONE) (goals st);
 fun goal_cases st =
   RuleCases.make_common true (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair []) (goals st));
 
-fun check_theory thy state =
-  if subthy (thy, theory_of state) then state
-  else error ("Bad theory of method result: " ^ Context.str_of_thy thy);
-
 fun apply_method current_context meth_fun state =
   let
     val (goal_ctxt, (_, {statement, using, goal, before_qed, after_qed})) = find_goal state;
@@ -397,7 +393,6 @@ fun apply_method current_context meth_fun state =
   in
     Method.apply meth using goal |> Seq.map (fn (meth_cases, goal') =>
       state
-      |> check_theory (Thm.theory_of_thm goal')
       |> map_goal
           (ProofContext.add_cases false (no_goal_cases goal @ goal_cases goal') #>
            ProofContext.add_cases true meth_cases)
@@ -881,10 +876,11 @@ fun global_goal print_results prep_att prepp
       #> Sign.restore_naming thy;
 
     fun after_qed' results =
-      (case target of NONE => I
-      | SOME prfx => store_results (NameSpace.base prfx)
-          (map (ProofContext.export_standard ctxt thy_ctxt
-            #> map Drule.strip_shyps_warning) results))
+      ProofContext.theory
+        (case target of NONE => I
+        | SOME prfx => store_results (NameSpace.base prfx)
+            (map (ProofContext.export_standard ctxt thy_ctxt
+              #> map Drule.strip_shyps_warning) results))
       #> after_qed results;
   in
     init ctxt
@@ -900,8 +896,7 @@ fun check_result msg sq =
 fun global_qeds txt =
   end_proof true txt
   #> Seq.map (generic_qed #> (fn (((_, after_qed), results), state) =>
-    after_qed results (theory_of state)
-    |> (fn thy => (ProofContext.transfer thy (context_of state), thy))))
+    after_qed results (context_of state)))
   |> Seq.DETERM;   (*backtracking may destroy theory!*)
 
 fun global_qed txt =

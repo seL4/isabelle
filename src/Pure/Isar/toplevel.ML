@@ -546,7 +546,8 @@ fun theory_to_proof f = app_current (fn int =>
         warning "Cannot skip proof of schematic goal statement"
       else ();
       if ! skip_proofs andalso not schematic then
-        SkipProof ((History.init (undo_limit int) 0, #2 (Proof.global_skip_proof int prf)), thy)
+        SkipProof ((History.init (undo_limit int) 0,
+          ProofContext.theory_of (Proof.global_skip_proof int prf)), thy)
       else Proof (ProofHistory.init (undo_limit int) prf, thy)
     end
   | _ => raise UNDEF));

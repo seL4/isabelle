@@ -80,12 +80,14 @@ fun theorems_i kind args =
 fun apply_theorems args = apfst (maps snd) o theorems "" [(("", []), args)];
 fun apply_theorems_i args = apfst (maps snd) o theorems_i "" [(("", []), args)];
 
+(* FIXME local_theory *)
 fun smart_theorems kind NONE args thy = thy
       |> theorems kind args
       |> tap (present_theorems kind)
       |> (fn (_, thy) => `ProofContext.init thy)
   | smart_theorems kind (SOME loc) args thy = thy
       |> Locale.note_thmss kind loc args
+      ||> (fn ctxt' => (ctxt', ProofContext.theory_of ctxt'))
       |> tap (fn ((_, res), (_, thy')) => present_theorems kind (res, thy'))
       |> #2;
 
@@ -131,7 +133,8 @@ val skip_local_qed =
 (* global endings *)
 
 fun global_ending ending = Toplevel.proof_to_theory_context (fn int => fn state =>
-  if can (Proof.assert_bottom true) state then ending int state
+  if can (Proof.assert_bottom true) state then
+    ending int state |> (fn ctxt' => (ctxt', ProofContext.theory_of ctxt'))
   else raise Toplevel.UNDEF);
 
 fun global_qed m = global_ending (K (Proof.global_qed (m, true)));
