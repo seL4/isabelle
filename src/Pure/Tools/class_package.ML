@@ -282,10 +282,15 @@ val _ = Context.add_setup (Method.add_methods
 local
 
 fun gen_instance mk_prop add_thm after_qed insts thy =
-  thy
-  |> ProofContext.init
-  |> Proof.theorem_i PureThy.internalK NONE (after_qed oo (fold o fold) add_thm) NONE ("", [])
-       ((map (fn t => (("", []), [(t, [])])) o maps (mk_prop thy)) insts);
+  let
+    fun after_qed' results =
+      ProofContext.theory ((fold o fold) add_thm results #> after_qed);
+  in
+    thy
+    |> ProofContext.init
+    |> Proof.theorem_i PureThy.internalK NONE after_qed' NONE ("", [])
+      ((map (fn t => (("", []), [(t, [])])) o maps (mk_prop thy)) insts)
+  end;
 
 in
 
@@ -310,24 +315,24 @@ fun add_axclass_i (name, supsort) params axs thy =
     val {intro, axioms, ...} = AxClass.get_definition thy' c;
   in ((c, (intro, axioms)), thy') end;
 
+(* FIXME proper locale interface *)
 fun prove_interpretation_i (prfx, atts) expr insts tac thy =
   let
-    fun ad_hoc_term NONE = NONE
-      | ad_hoc_term (SOME (Const (c, ty))) =
+    fun ad_hoc_term (Const (c, ty)) =
           let
             val p = setmp show_types true (setmp show_sorts true (setmp print_mode [] (Sign.pretty_typ thy))) ty;
             val s = c ^ "::" ^ Pretty.output p;
-          in SOME s end
-      | ad_hoc_term (SOME t) =
+          in s end
+      | ad_hoc_term t =
           let
             val p = setmp show_types true (setmp show_sorts true (setmp print_mode [] (Sign.pretty_term thy))) t;
             val s = Pretty.output p;
-          in SOME s end;
+          in s end;
   in
     thy
-    |> Locale.interpretation (prfx, atts) expr (map ad_hoc_term insts)
+    |> Locale.interpretation I (prfx, atts) expr (map (Option.map ad_hoc_term) insts)
     |> Proof.global_terminal_proof (Method.Basic (fn _ => Method.SIMPLE_METHOD tac), NONE)
-    |-> (fn _ => I)
+    |> ProofContext.theory_of
   end;
 
 fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
@@ -540,16 +545,12 @@ end; (* local *)
 
 local
 
-fun add_interpretation_in (after_qed : theory -> theory) (name, expr) thy =
+(* FIXME proper locale interface *)
+fun prove_interpretation_in tac after_qed (name, expr) thy =
   thy
-  |> Locale.interpretation_in_locale (name, expr);
-
-fun prove_interpretation_in tac (after_qed : theory -> theory) (name, expr) thy =
-  thy
-  |> Locale.interpretation_in_locale (name, expr)
+  |> Locale.interpretation_in_locale (ProofContext.theory after_qed) (name, expr)
   |> Proof.global_terminal_proof (Method.Basic (fn _ => Method.SIMPLE_METHOD tac), NONE)
-  |> snd
-  |> after_qed;
+  |> ProofContext.theory_of;
 
 fun gen_instance_sort prep_class prep_sort do_proof (raw_class, raw_sort) theory =
   let
@@ -583,7 +584,7 @@ fun gen_instance_sort prep_class prep_sort do_proof (raw_class, raw_sort) theory
 
 fun instance_sort' do_proof = gen_instance_sort intern_class read_sort do_proof;
 fun instance_sort_i' do_proof = gen_instance_sort certify_class certify_sort do_proof;
-val setup_proof = add_interpretation_in;
+val setup_proof = Locale.interpretation_in_locale o ProofContext.theory;
 val tactic_proof = prove_interpretation_in;
 
 in
