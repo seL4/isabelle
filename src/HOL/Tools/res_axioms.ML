@@ -347,19 +347,12 @@ val cnf_rules_pairs = cnf_rules_pairs_aux [];
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause, or ResHolClause.clause) ****)
 
-(*These should include any plausibly-useful theorems, especially if they need
-  Skolem functions. FIXME: this list is VERY INCOMPLETE*)
-val default_initial_thms = map pairname
-  [refl_def, antisym_def, sym_def, trans_def, single_valued_def,
-   subset_refl, Union_least, Inter_greatest];
-
 (*Setup function: takes a theory and installs ALL simprules and claset rules 
   into the clause cache*)
 fun clause_cache_setup thy =
   let val simps = simpset_rules_of_thy thy
       and clas  = claset_rules_of_thy thy
-      and thy0  = List.foldl skolem_cache thy default_initial_thms
-      val thy1  = List.foldl skolem_cache thy0 clas
+      val thy1  = List.foldl skolem_cache thy clas
   in List.foldl skolem_cache thy1 simps end;
 (*Could be duplicate theorem names, due to multiple attributes*)
   
