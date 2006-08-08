@@ -51,38 +51,43 @@ fun nat i = if i < 0 then 0 else i;
 *}
   int ("(_)")
 
+definition
+  "nat_plus m n = nat (int m + int n)"
+  "nat_minus m n = nat (int m - int n)"
+  "nat_mult m n = nat (int m * int n)"
+  "nat_div m n = nat (fst (divAlg (int m, int n)))"
+  "nat_mod m n = nat (snd (divAlg (int m, int n)))"
+  "nat_less m n = (int m < int n)"
+  "nat_less_equal m n = (int m <= int n)"
+  "nat_eq m n = (int m = int n)"
+
 code_typapp nat
   ml (target_atom "IntInf.int")
   haskell (target_atom "Integer")
 
-definition
-  "nat_of_int (k::int) = (if k < 0 then - k else k)"
-
-lemma
-  "nat_of_int = abs"
-by (simp add: expand_fun_eq nat_of_int_def zabs_def)
-
-code_generate (ml, haskell) "abs :: int \<Rightarrow> int"
-
 code_constapp
+  "0::nat" (* all constructors of nat must be hidden *)
+    ml (target_atom "(0 :: IntInf.int)")
+    haskell (target_atom "0")
+  Suc (* all constructors of nat must be hidden *)
+    ml ("IntInf.+ (_, 1)")
+    haskell ("(+) 1 _")
   nat
-    ml ("{* abs :: int \<Rightarrow> int *}")
-    haskell ("{* abs :: int \<Rightarrow> int *}")
+    ml (target_atom "(fn n : IntInf.int => if n < 0 then 0 else n)")
+    haskell (target_atom "(\\n :: Int -> if n < 0 then 0 else n)")
   int
     ml ("_")
     haskell ("_")
 
 text {*
-  Eliminate @{const "0::nat"} and @{const "Suc"}
+  Eliminate @{const "0::nat"} and @{const "1::nat"}
   by unfolding in place.
 *}
 
 lemma [code inline]:
   "0 = nat 0"
-  "Suc = (op +) 1"
+  "1 = nat 1"
 by (simp_all add: expand_fun_eq)
-
-declare elim_one_nat [code nofold]
 
 text {*
 Case analysis on natural numbers is rephrased using a conditional
@@ -112,9 +117,27 @@ lemma [code]: "m mod n = nat (int m mod int n)"
   by (simp add: zmod_int [symmetric])
 lemma [code]: "(m < n) = (int m < int n)"
   by simp
+
+lemma [code fun, code inline]: "m + n = nat_plus m n"
+  unfolding nat_plus_def by arith
+lemma [code fun, code inline]: "m - n = nat_minus m n"
+  unfolding nat_minus_def by arith
+lemma [code fun, code inline]: "m * n = nat_mult m n"
+  unfolding nat_mult_def by (simp add: zmult_int)
+lemma [code fun, code inline]: "m div n = nat_div m n"
+  unfolding nat_div_def div_def [symmetric] zdiv_int [symmetric] by simp
+lemma [code fun, code inline]: "m mod n = nat_mod m n"
+  unfolding nat_mod_def mod_def [symmetric] zmod_int [symmetric] by simp
+lemma [code fun, code inline]: "(m < n) = nat_less m n"
+  unfolding nat_less_def by simp
+lemma [code fun, code inline]: "(m <= n) = nat_less_equal m n"
+  unfolding nat_less_equal_def by simp
+lemma [code fun, code inline]: "(m = n) = nat_eq m n"
+  unfolding nat_eq_def by simp
 lemma [code fun]:
-  "(m = n) = (int m = int n)"
-  by simp
+  "int_aux i n = (if nat_eq n 0 then i else int_aux (i + 1) (nat_minus n 1))"
+  unfolding nat_eq_def nat_minus_def int_aux_def by simp
+
 
 subsection {* Preprocessors *}
 
