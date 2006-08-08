@@ -158,14 +158,9 @@ exception TERM_COMB of term;
 
 fun string_of_term (Const(c,t)) = c
   | string_of_term (Free(v,t)) = v
-  | string_of_term (Var((x,n),t)) =
-    let val xn = x ^ "_" ^ (string_of_int n)
-    in xn end
+  | string_of_term (Var((x,n),t)) = x ^ "_" ^ (string_of_int n)
   | string_of_term (P $ Q) =
-    let val P' = string_of_term P
-	val Q' = string_of_term Q
-    in
-	"(" ^ P' ^ " " ^ Q' ^ ")" end
+      "(" ^ string_of_term P ^ " " ^ string_of_term Q ^ ")" 
   | string_of_term t =  raise TERM_COMB (t);
 
 
@@ -189,6 +184,7 @@ fun find_typ_level () = !typ_level;
 
 type axiom_name = string;
 datatype kind = Axiom | Conjecture;
+
 fun name_of_kind Axiom = "axiom"
   | name_of_kind Conjecture = "conjecture";
 
@@ -210,9 +206,8 @@ datatype combterm = CombConst of string * ctyp * ctyp list
 		  | CombVar of string * ctyp
 		  | CombApp of combterm * combterm * ctyp
 		  | Bool of combterm;
+		  
 datatype literal = Literal of polarity * combterm;
-
-
 
 datatype clause = 
 	 Clause of {clause_id: clause_id,
@@ -223,7 +218,6 @@ datatype clause =
 		    ctypes_sorts: (ctyp_var * csort) list, 
                     ctvar_type_literals: ctype_literal list, 
                     ctfree_type_literals: ctype_literal list};
-
 
 
 fun string_of_kind (Clause cls) = name_of_kind (#kind cls);
@@ -238,8 +232,8 @@ fun get_literals (c as Clause(cls)) = #literals cls;
 (*********************************************************************)
 
 fun isFalse (Literal(pol,Bool(CombConst(c,_,_)))) =
-    (pol andalso c = "c_False") orelse
-    (not pol andalso c = "c_True")
+      (pol andalso c = "c_False") orelse
+      (not pol andalso c = "c_True")
   | isFalse _ = false;
 
 
@@ -429,7 +423,8 @@ fun occurs a (CombVar(b,_)) = a = b
 fun too_general_terms (CombVar(v,_), t) = not (occurs v t)
   | too_general_terms _ = false;
 
-fun too_general_lit (Literal(true,(Bool(CombApp(CombApp(CombConst("equal",tp,tps),t1,tp1),t2,tp2))))) = too_general_terms (t1,t2) orelse too_general_terms (t2,t1)
+fun too_general_lit (Literal(true,(Bool(CombApp(CombApp(CombConst("equal",tp,tps),t1,tp1),t2,tp2))))) =
+      too_general_terms (t1,t2) orelse too_general_terms (t2,t1)
   | too_general_lit _ = false;
 
 (* forbid a clause that contains hBOOL(V) *)
@@ -448,10 +443,13 @@ fun make_clause(clause_id,axiom_name,kind,thm,is_user) =
     in
 	if forall isFalse lits
 	then error "Problem too trivial for resolution (empty clause)"
-	else if too_general lits then (Output.debug ("Omitting " ^ axiom_name ^ ": clause contains universal predicates"); raise MAKE_CLAUSE)
+	else if too_general lits 
+	then (Output.debug ("Omitting " ^ axiom_name ^ ": clause contains universal predicates"); 
+	     raise MAKE_CLAUSE)
 	else
 	    if (!typ_level <> T_FULL) andalso kind=Axiom andalso forall too_general_lit lits 
-	    then (Output.debug ("Omitting " ^ axiom_name ^ ": equalities are too general"); raise MAKE_CLAUSE) 
+	    then (Output.debug ("Omitting " ^ axiom_name ^ ": equalities are too general"); 
+	          raise MAKE_CLAUSE) 
 	else
 	    Clause {clause_id = clause_id, axiom_name = axiom_name, th = thm, kind = kind,
 		    literals = lits, ctypes_sorts = ctypes_sorts, 
@@ -460,20 +458,24 @@ fun make_clause(clause_id,axiom_name,kind,thm,is_user) =
     end;
 
 
-fun make_axiom_clause thm (ax_name,cls_id,is_user) = make_clause(cls_id,ax_name,Axiom,thm,is_user);
+fun make_axiom_clause thm (ax_name,cls_id,is_user) = 
+      make_clause(cls_id,ax_name,Axiom,thm,is_user);
  
 fun make_axiom_clauses [] user_lemmas = []
   | make_axiom_clauses ((thm,(name,id))::thms) user_lemmas =
     let val is_user = name mem user_lemmas
-	val cls = SOME (make_axiom_clause thm (name,id,is_user)) handle MAKE_CLAUSE => NONE
+	val cls = SOME (make_axiom_clause thm (name,id,is_user)) 
+	          handle MAKE_CLAUSE => NONE
 	val clss = make_axiom_clauses thms user_lemmas
     in
 	case cls of NONE => clss
-		  | SOME(cls') => if isTaut cls' then clss else (name,cls')::clss
+		  | SOME(cls') => if isTaut cls' then clss 
+		                  else (name,cls')::clss
     end;
 
 
-fun make_conjecture_clause n thm = make_clause(n,"conjecture",Conjecture,thm,true);
+fun make_conjecture_clause n thm = 
+    make_clause(n,"conjecture",Conjecture,thm,true);
  
 
 fun make_conjecture_clauses_aux _ [] = []
@@ -613,10 +615,10 @@ fun tptp_type_lits (Clause cls) =
     let val lits = map tptp_literal (#literals cls)
 	val ctvar_lits_strs =
 	    case !typ_level of T_NONE => []
-			     | _ => (map ResClause.tptp_of_typeLit (#ctvar_type_literals cls)) 
+	      | _ => map ResClause.tptp_of_typeLit (#ctvar_type_literals cls)
 	val ctfree_lits = 
 	    case !typ_level of T_NONE => []
-			     | _ => (map ResClause.tptp_of_typeLit (#ctfree_type_literals cls)) 
+	      | _ => map ResClause.tptp_of_typeLit (#ctfree_type_literals cls)
     in
 	(ctvar_lits_strs @ lits, ctfree_lits)
     end; 
@@ -642,10 +644,10 @@ fun dfg_clause_aux (Clause{literals, ctypes_sorts, ...}) =
       val (tvar_lits,tfree_lits) = ResClause.add_typs_aux ctypes_sorts
       val tvar_lits_strs = 
 	  case !typ_level of T_NONE => [] 
-			    | _ => map ResClause.dfg_of_typeLit tvar_lits
+	      | _ => map ResClause.dfg_of_typeLit tvar_lits
       val tfree_lits =
           case !typ_level of T_NONE => []
-			    | _ => map ResClause.dfg_of_typeLit tfree_lits 
+	      | _ => map ResClause.dfg_of_typeLit tfree_lits 
   in
       (tvar_lits_strs @ lits, tfree_lits)
   end; 
@@ -673,13 +675,13 @@ fun clause2dfg (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
 
 fun init_combs (comb,funcs) =
     case !typ_level of T_CONST => 
-		       (case comb of "c_COMBK" => Symtab.update (comb,2) funcs
-				   | "c_COMBS" => Symtab.update (comb,3) funcs
-				   | "c_COMBI" => Symtab.update (comb,1) funcs
-				   | "c_COMBB" => Symtab.update (comb,3) funcs
-				   | "c_COMBC" => Symtab.update (comb,3) funcs
-				   | _ => funcs)
-		     | _ => Symtab.update (comb,0) funcs;
+	    (case comb of "c_COMBK" => Symtab.update (comb,2) funcs
+			| "c_COMBS" => Symtab.update (comb,3) funcs
+			| "c_COMBI" => Symtab.update (comb,1) funcs
+			| "c_COMBB" => Symtab.update (comb,3) funcs
+			| "c_COMBC" => Symtab.update (comb,3) funcs
+			| _ => funcs)
+	  | _ => Symtab.update (comb,0) funcs;
 
 fun init_funcs_tab funcs = 
     let val tp = !typ_level
