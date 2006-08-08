@@ -165,12 +165,12 @@ qed
 
 lemma neg_one_even_power: "[| x \<in> zEven; 0 \<le> x |] ==> (-1::int)^(nat x) = 1"
 proof -
-  assume 1: "x \<in> zEven" and 2: "0 \<le> x"
-  from 1 obtain a where 3: "x = 2 * a" ..
-  with 2 have "0 \<le> a" by simp
-  from 2 3 have "nat x = nat (2 * a)"
+  assume "x \<in> zEven" and "0 \<le> x"
+  from `x \<in> zEven` obtain a where "x = 2 * a" ..
+  with `0 \<le> x` have "0 \<le> a" by simp
+  from `0 \<le> x` and `x = 2 * a` have "nat x = nat (2 * a)"
     by simp
-  also from 3 have "nat (2 * a) = 2 * nat a"
+  also from `x = 2 * a` have "nat (2 * a) = 2 * nat a"
     by (simp add: nat_mult_distrib)
   finally have "(-1::int)^nat x = (-1)^(2 * nat a)"
     by simp
@@ -184,10 +184,10 @@ qed
 
 lemma neg_one_odd_power: "[| x \<in> zOdd; 0 \<le> x |] ==> (-1::int)^(nat x) = -1"
 proof -
-  assume 1: "x \<in> zOdd" and 2: "0 \<le> x"
-  from 1 obtain a where 3: "x = 2 * a + 1" ..
-  with 2 have a: "0 \<le> a" by simp
-  with 2 3 have "nat x = nat (2 * a + 1)"
+  assume "x \<in> zOdd" and "0 \<le> x"
+  from `x \<in> zOdd` obtain a where "x = 2 * a + 1" ..
+  with `0 \<le> x` have a: "0 \<le> a" by simp
+  with `0 \<le> x` and `x = 2 * a + 1` have "nat x = nat (2 * a + 1)"
     by simp
   also from a have "nat (2 * a + 1) = 2 * nat a + 1"
     by (auto simp add: nat_mult_distrib nat_add_distrib)
@@ -202,7 +202,7 @@ proof -
 qed
 
 lemma neg_one_power_parity: "[| 0 \<le> x; 0 \<le> y; (x \<in> zEven) = (y \<in> zEven) |] ==>
-  (-1::int)^(nat x) = (-1::int)^(nat y)"
+    (-1::int)^(nat x) = (-1::int)^(nat y)"
   using even_odd_disj [of x] even_odd_disj [of y]
   by (auto simp add: neg_one_even_power neg_one_odd_power)
 
@@ -212,9 +212,9 @@ lemma one_not_neg_one_mod_m: "2 < m ==> ~([1 = -1] (mod m))"
 
 lemma even_div_2_l: "[| y \<in> zEven; x < y |] ==> x div 2 < y div 2"
 proof -
-  assume 1: "y \<in> zEven" and 2: "x < y"
-  from 1 obtain k where k: "y = 2 * k" ..
-  with 2 have "x < 2 * k" by simp
+  assume "y \<in> zEven" and "x < y"
+  from `y \<in> zEven` obtain k where k: "y = 2 * k" ..
+  with `x < y` have "x < 2 * k" by simp
   then have "x div 2 < k" by (auto simp add: div_prop1)
   also have "k = (2 * k) div 2" by simp
   finally have "x div 2 < 2 * k div 2" by simp

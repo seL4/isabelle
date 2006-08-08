@@ -25,14 +25,14 @@ lemma MultInvPair_prop1a:
   apply (drule StandardRes_SRStar_prop1a)+ defer 1
   apply (drule StandardRes_SRStar_prop1a)+
   apply (auto simp add: MultInvPair_def StandardRes_prop2 zcong_sym)
-  apply (drule notE, rule MultInv_zcong_prop1, auto)
-  apply (drule notE, rule MultInv_zcong_prop2, auto simp add: zcong_sym)
-  apply (drule MultInv_zcong_prop2, auto simp add: zcong_sym)
-  apply (drule MultInv_zcong_prop3, auto simp add: zcong_sym)
-  apply (drule MultInv_zcong_prop1, auto)
-  apply (drule MultInv_zcong_prop2, auto simp add: zcong_sym)
-  apply (drule MultInv_zcong_prop2, auto simp add: zcong_sym)
-  apply (drule MultInv_zcong_prop3, auto simp add: zcong_sym)
+  apply (drule notE, rule MultInv_zcong_prop1, auto)[]
+  apply (drule notE, rule MultInv_zcong_prop2, auto simp add: zcong_sym)[]
+  apply (drule MultInv_zcong_prop2, auto simp add: zcong_sym)[]
+  apply (drule MultInv_zcong_prop3, auto simp add: zcong_sym)[]
+  apply (drule MultInv_zcong_prop1, auto)[]
+  apply (drule MultInv_zcong_prop2, auto simp add: zcong_sym)[]
+  apply (drule MultInv_zcong_prop2, auto simp add: zcong_sym)[]
+  apply (drule MultInv_zcong_prop3, auto simp add: zcong_sym)[]
   done
 
 lemma MultInvPair_prop1b:
@@ -60,8 +60,7 @@ lemma MultInvPair_distinct: "[| zprime p; 2 < p; ~([a = 0] (mod p));
                                 ~([j = 0] (mod p)); 
                                 ~(QuadRes p a) |]  ==> 
                              ~([j = a * MultInv p j] (mod p))"
-  apply auto
-proof -
+proof
   assume "zprime p" and "2 < p" and "~([a = 0] (mod p))" and 
     "~([j = 0] (mod p))" and "~(QuadRes p a)"
   assume "[j = a * MultInv p j] (mod p)"
@@ -93,7 +92,8 @@ lemma MultInvPair_card_two: "[| zprime p; 2 < p; ~([a = 0] (mod p));
   apply auto
   apply (simp only: StandardRes_prop2)
   apply (drule MultInvPair_distinct)
-by auto
+  apply auto back
+  done
 
 
 subsection {* Properties of SetS *}
@@ -313,8 +313,8 @@ text {* \medskip Finally show Euler's Criterion: *}
 theorem Euler_Criterion: "[| 2 < p; zprime p |] ==> [(Legendre a p) =
     a^(nat (((p) - 1) div 2))] (mod p)"
   apply (auto simp add: Legendre_def Euler_part2)
-  apply (frule Euler_part3, auto simp add: zcong_sym)
-  apply (frule Euler_part1, auto simp add: zcong_sym)
+  apply (frule Euler_part3, auto simp add: zcong_sym)[]
+  apply (frule Euler_part1, auto simp add: zcong_sym)[]
   done
 
 end

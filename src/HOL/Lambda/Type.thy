@@ -365,7 +365,7 @@ proof (induct T)
   show ?case by (rule prems) simp_all
 next
   case Fun
-  show ?case  by (rule prems) (insert Fun, simp_all)
+  show ?case by (rule prems) (insert Fun, simp_all)
 qed
 
 end

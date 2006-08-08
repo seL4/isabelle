@@ -98,10 +98,10 @@ qed
 
 lemma card_bdd_nat_set_l: "card {y::nat . y < x} = x"
 proof (induct x)
+  case 0
   show "card {y::nat . y < 0} = 0" by simp
 next
-  fix n::nat
-  assume "card {y. y < n} = n"
+  case (Suc n)
   have "{y. y < Suc n} = insert n {y. y < n}"
     by auto
   then have "card {y. y < Suc n} = card (insert n {y. y < n})"
@@ -109,7 +109,7 @@ next
   also have "... = Suc (card {y. y < n})"
     by (rule card_insert_disjoint) (auto simp add: bdd_nat_set_l_finite)
   finally show "card {y. y < Suc n} = Suc n"
-    by (simp add: prems)
+    using `card {y. y < n} = n` by simp
 qed
 
 lemma card_bdd_nat_set_le: "card { y::nat. y \<le> x} = Suc x"
@@ -126,7 +126,7 @@ proof -
     by (auto simp add: inj_on_def)
   hence "card (int ` {y. y < nat n}) = card {y. y < nat n}"
     by (rule card_image)
-  also from prems have "int ` {y. y < nat n} = {y. 0 \<le> y & y < n}"
+  also from `0 \<le> n` have "int ` {y. y < nat n} = {y. 0 \<le> y & y < n}"
     apply (auto simp add: zless_nat_eq_int_zless image_def)
     apply (rule_tac x = "nat x" in exI)
     apply (auto simp add: nat_0_le)
