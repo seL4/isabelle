@@ -552,6 +552,11 @@ means a goal is either solved or left unchanged, no simplification.
 
 * Pure/library:
 
+Semantically identical functions "equal_list" and "eq_list" have been
+unified to "eq_list".
+
+* Pure/library:
+
   val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
   val fold_burrow: ('a list -> 'c -> 'b list * 'd) -> 'a list list -> 'c -> 'b list list * 'd
 

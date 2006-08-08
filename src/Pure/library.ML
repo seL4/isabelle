@@ -142,7 +142,6 @@ sig
   val filter: ('a -> bool) -> 'a list -> 'a list
   val filter_out: ('a -> bool) -> 'a list -> 'a list
   val map_filter: ('a -> 'b option) -> 'a list -> 'b list
-  val equal_lists: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val is_prefix: ('a * 'a -> bool) -> 'a list -> 'a list -> bool
   val take_prefix: ('a -> bool) -> 'a list -> 'a list * 'a list
   val chop_prefix: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list * ('a list * 'b list)
@@ -568,6 +567,12 @@ fun foldl_map f =
 
 (* basic list functions *)
 
+fun eq_list eq (xs, ys) =
+  let
+    fun eq' [] [] = true
+      | eq' (x :: xs) (y :: ys) = eq (x, y) andalso eq' xs ys
+  in length xs = length ys andalso eq' xs ys end;
+
 fun maps f [] = []
   | maps f (x :: xs) = f x @ maps f xs;
 
@@ -645,10 +650,6 @@ fun get_index f =
            of NONE => get (i + 1) xs
             | SOME y => SOME (i, y)
   in get 0 end;
-
-fun eq_list _ ([], []) = true
-  | eq_list eq (x :: xs, y :: ys) = eq (x, y) andalso eq_list eq (xs, ys)
-  | eq_list _ _ = false;
 
 val flat = List.concat;
 
@@ -730,12 +731,6 @@ fun [] ~~ [] = []
 (*inverse of ~~; the old 'split':
   [(x1, y1), ..., (xn, yn)]  ===>  ([x1, ..., xn], [y1, ..., yn])*)
 val split_list = ListPair.unzip;
-
-fun equal_lists eq (xs, ys) =
-  let
-    fun eq' [] [] = true
-      | eq' (x :: xs) (y :: ys) = eq (x, y) andalso eq' xs ys
-  in length xs = length ys andalso eq' xs ys end;
 
 
 (* prefixes, suffixes *)
@@ -1034,7 +1029,7 @@ fun eq_set_string ((xs: string list), ys) =
 fun gen_subset eq (xs, ys) = forall (member eq ys) xs;
 
 fun gen_eq_set eq (xs, ys) =
-  equal_lists eq (xs, ys) orelse
+  eq_list eq (xs, ys) orelse
     (gen_subset eq (xs, ys) andalso gen_subset (eq o swap) (ys, xs));
 
 

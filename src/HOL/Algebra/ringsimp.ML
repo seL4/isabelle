@@ -18,7 +18,7 @@ struct
 (** Theory and context data **)
 
 fun struct_eq ((s1, ts1), (s2, ts2)) =
-  (s1 = s2) andalso equal_lists (op aconv) (ts1, ts2);
+  (s1 = s2) andalso eq_list (op aconv) (ts1, ts2);
 
 structure AlgebraData = GenericDataFun
 (struct

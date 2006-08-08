@@ -441,11 +441,11 @@ fun eq_thm (th1, th2) =
     Context.joinable (thy1, thy2) andalso
     Sorts.eq_set (shyps1, shyps2) andalso
     eq_set_hyps (hyps1, hyps2) andalso
-    equal_lists eq_tpairs (tpairs1, tpairs2) andalso
+    eq_list eq_tpairs (tpairs1, tpairs2) andalso
     prop1 aconv prop2
   end;
 
-val eq_thms = Library.equal_lists eq_thm;
+val eq_thms = eq_list eq_thm;
 
 fun theory_of_thm (Thm {thy_ref, ...}) = Theory.deref thy_ref;
 val sign_of_thm = theory_of_thm;
