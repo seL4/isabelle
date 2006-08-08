@@ -85,37 +85,42 @@ sig
   (* Storing results *)
   val note_thmss: string -> xstring ->
     ((string * Attrib.src list) * (thmref * Attrib.src list) list) list ->
-    theory -> ((string * thm list) list * (string * thm list) list) * (Proof.context * theory)
+    theory -> ((string * thm list) list * (string * thm list) list) * Proof.context
   val note_thmss_i: string -> string ->
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    theory -> ((string * thm list) list * (string * thm list) list) * (Proof.context * theory)
+    theory -> ((string * thm list) list * (string * thm list) list) * Proof.context
   val add_thmss: string -> string ->
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     Proof.context ->
     ((string * thm list) list * (string * thm list) list) * Proof.context
   val add_term_syntax: string -> (Proof.context -> Proof.context) -> Proof.context -> Proof.context
 
-  val theorem: string -> Method.text option -> (thm list list -> theory -> theory) ->
+  val theorem: string -> Method.text option ->
+    (thm list list -> Proof.context -> Proof.context) ->
     string * Attrib.src list -> Element.context element list -> Element.statement ->
     theory -> Proof.state
-  val theorem_i: string -> Method.text option -> (thm list list -> theory -> theory) ->
+  val theorem_i: string -> Method.text option ->
+    (thm list list -> Proof.context -> Proof.context) ->
     string * Attrib.src list -> Element.context_i element list -> Element.statement_i ->
     theory -> Proof.state
   val theorem_in_locale: string -> Method.text option ->
-    (thm list list -> thm list list -> theory -> theory) ->
+    (thm list list -> thm list list -> Proof.context -> Proof.context) ->
     xstring -> string * Attrib.src list -> Element.context element list -> Element.statement ->
     theory -> Proof.state
   val theorem_in_locale_i: string -> Method.text option ->
-    (thm list list -> thm list list -> theory -> theory) ->
+    (thm list list -> thm list list -> Proof.context -> Proof.context) ->
     string -> string * Attrib.src list -> Element.context_i element list ->
     Element.statement_i -> theory -> Proof.state
   val smart_theorem: string -> xstring option ->
     string * Attrib.src list -> Element.context element list -> Element.statement ->
     theory -> Proof.state
-  val interpretation: string * Attrib.src list -> expr -> string option list ->
+  val interpretation: (Proof.context -> Proof.context) ->
+    string * Attrib.src list -> expr -> string option list ->
     theory -> Proof.state
-  val interpretation_in_locale: xstring * expr -> theory -> Proof.state
-  val interpret: string * Attrib.src list -> expr -> string option list ->
+  val interpretation_in_locale: (Proof.context -> Proof.context) ->
+    xstring * expr -> theory -> Proof.state
+  val interpret: (Proof.state -> Proof.state Seq.seq) ->
+    string * Attrib.src list -> expr -> string option list ->
     bool -> Proof.state -> Proof.state
 end;
 
@@ -657,7 +662,7 @@ fun params_of_expr ctxt fixed_params expr (prev_parms, prev_types, prev_syn) =
         Symtab.merge (op = : mixfix * mixfix -> bool) (syn1, syn2)
         handle Symtab.DUPS xs => err_in_expr ctxt
           ("Conflicting syntax for parameter(s): " ^ commas_quote xs) expr;
-            
+
     fun params_of (expr as Locale name) =
           let
             val {import, params, ...} = the_locale thy name;
@@ -679,7 +684,7 @@ fun params_of_expr ctxt fixed_params expr (prev_parms, prev_types, prev_syn) =
                   err_in_expr ctxt ("Conflicting syntax for parameter: " ^ quote x) expr;
             val syn_types = map (apsnd (fn mx => SOME (Type.freeze_type (#1 (TypeInfer.paramify_dummies (TypeInfer.mixfixT mx) 0))))) (Symtab.dest new_syn);
             val ren_types = types' |> Symtab.dest |> map (apfst (Element.rename ren));
-            val (env :: _) = unify_parms ctxt [] 
+            val (env :: _) = unify_parms ctxt []
                 ((ren_types |> map (apsnd SOME)) :: map single syn_types);
             val new_types = fold (Symtab.insert (op =))
                 (map (apsnd (Element.instT_type env)) ren_types) Symtab.empty;
@@ -745,34 +750,34 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
         if member (fn (a, (b, _)) => a = b) visited (name, map #1 pTs)
         then (wits, ids, visited)
         else
-	  let
-	    val {params, regs, ...} = the_locale thy name;
-	    val pTs' = map #1 params;
-	    val ren = map #1 pTs' ~~ map (fn (x, _) => (x, NONE)) pTs;
-	      (* dummy syntax, since required by rename *)
-	    val pTs'' = map (fn ((p, _), (_, T)) => (p, T)) (pTs ~~ pTs');
-	    val [env] = unify_parms ctxt pTs [map (apsnd SOME) pTs''];
-	      (* propagate parameter types, to keep them consistent *)
-	    val regs' = map (fn ((name, ps), wits) =>
-		((name, map (Element.rename ren) ps),
-		 map (Element.transfer_witness thy) wits)) regs;
-	    val new_regs = regs';
-	    val new_ids = map fst new_regs;
-	    val new_idTs = map (apsnd (map (fn p => (p, (the o AList.lookup (op =) pTs) p)))) new_ids;
+          let
+            val {params, regs, ...} = the_locale thy name;
+            val pTs' = map #1 params;
+            val ren = map #1 pTs' ~~ map (fn (x, _) => (x, NONE)) pTs;
+              (* dummy syntax, since required by rename *)
+            val pTs'' = map (fn ((p, _), (_, T)) => (p, T)) (pTs ~~ pTs');
+            val [env] = unify_parms ctxt pTs [map (apsnd SOME) pTs''];
+              (* propagate parameter types, to keep them consistent *)
+            val regs' = map (fn ((name, ps), wits) =>
+                ((name, map (Element.rename ren) ps),
+                 map (Element.transfer_witness thy) wits)) regs;
+            val new_regs = regs';
+            val new_ids = map fst new_regs;
+            val new_idTs = map (apsnd (map (fn p => (p, (the o AList.lookup (op =) pTs) p)))) new_ids;
 
-	    val new_wits = new_regs |> map (#2 #> map
-	      (Element.instT_witness thy env #> Element.rename_witness ren #>
-		Element.satisfy_witness wits));
-	    val new_ids' = map (fn (id, wits) =>
-		(id, ([], Derived wits))) (new_ids ~~ new_wits);
-	    val new_idTs' = map (fn ((n, pTs), (_, ([], mode))) =>
-		((n, pTs), mode)) (new_idTs ~~ new_ids');
-	    val new_id = ((name, map #1 pTs), ([], mode));
-	    val (wits', ids', visited') = fold add_with_regs new_idTs'
+            val new_wits = new_regs |> map (#2 #> map
+              (Element.instT_witness thy env #> Element.rename_witness ren #>
+                Element.satisfy_witness wits));
+            val new_ids' = map (fn (id, wits) =>
+                (id, ([], Derived wits))) (new_ids ~~ new_wits);
+            val new_idTs' = map (fn ((n, pTs), (_, ([], mode))) =>
+                ((n, pTs), mode)) (new_idTs ~~ new_ids');
+            val new_id = ((name, map #1 pTs), ([], mode));
+            val (wits', ids', visited') = fold add_with_regs new_idTs'
               (wits @ flat new_wits, ids, visited @ [new_id]);
-	  in
-	    (wits', ids' @ [new_id], visited')
-	  end;
+          in
+            (wits', ids' @ [new_id], visited')
+          end;
 
     (* distribute top-level axioms over assumed ids *)
 
@@ -1532,7 +1537,7 @@ fun note_thmss_registrations kind target args thy =
 (* term syntax *)
 
 fun add_term_syntax loc syn =
-  syn #> ProofContext.map_theory (change_locale loc
+  syn #> ProofContext.theory (change_locale loc
     (fn (axiom, import, elems, params, lparams, term_syntax, regs, intros) =>
       (axiom, import, elems, params, lparams, (syn, stamp ()) :: term_syntax, regs, intros)));
 
@@ -1557,37 +1562,38 @@ fun theory_results kind prefix results ctxt thy =
 
 local
 
-fun gen_thmss prep_facts global_results kind loc args ctxt thy =
+(* FIXME tune *)
+
+fun gen_thmss prep_facts global_results kind loc args ctxt =
   let
     val (ctxt', ([(_, [Notes args'])], facts)) =
       activate_facts true prep_facts (ctxt, [((("", []), Assumed []), [Ext (Notes args)])]);
-    val (facts', thy') =
-      thy
-      |> change_locale loc (fn (axiom, import, elems, params, lparams, term_syntax, regs, intros) =>
-        (axiom, import, elems @ [(Notes args', stamp ())], params, lparams, term_syntax, regs, intros))
-      |> note_thmss_registrations kind loc args'
-      |> global_results (map (#1 o #1) args' ~~ map #2 facts) ctxt;
-  in ((facts, facts'), (ProofContext.transfer thy' ctxt', thy')) end;
+    val (facts', ctxt'') =
+      ctxt' |> ProofContext.theory_result
+        (change_locale loc
+          (fn (axiom, import, elems, params, lparams, term_syntax, regs, intros) =>
+            (axiom, import, elems @ [(Notes args', stamp ())],
+              params, lparams, term_syntax, regs, intros))
+        #> note_thmss_registrations kind loc args'
+        #> global_results (map (#1 o #1) args' ~~ map #2 facts) ctxt);
+  in ((facts, facts'), ctxt'') end;
 
 fun gen_note prep_locale prep_facts kind raw_loc args thy =
   let
     val loc = prep_locale thy raw_loc;
     val prefix = Sign.base_name loc;
-  in gen_thmss prep_facts (theory_results kind prefix) kind loc args (init loc thy) thy end;
+    val ctxt = init loc thy;
+  in gen_thmss prep_facts (theory_results kind prefix) kind loc args ctxt end;
 
 in
 
 val note_thmss = gen_note intern read_facts;
 val note_thmss_i = gen_note (K I) cert_facts;
 
-fun add_thmss kind loc args ctxt =
-  gen_thmss cert_facts (theory_results kind "")
-    kind loc args ctxt (ProofContext.theory_of ctxt)
-  ||> #1;
+fun add_thmss kind = gen_thmss cert_facts (theory_results kind "") kind;
 
-fun locale_results kind loc args (ctxt, thy) =
-  thy |> gen_thmss cert_facts (K (K (pair [])))
-    kind loc (map (apsnd Thm.simple_fact) args) ctxt
+fun locale_results kind loc args ctxt =
+  gen_thmss cert_facts (K (K (pair []))) kind loc (map (apsnd Thm.simple_fact) args) ctxt
   |>> #1;
 
 end;
@@ -1721,7 +1727,7 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
           val elemss' = change_assumes_elemss axioms elemss;
           val def_thy' = def_thy
             |> PureThy.note_thmss_qualified "" aname [((introN, []), [([intro], [])])]
-            |> snd
+            |> snd;
           val a_elem = [(("", []), [Assumes [((bname ^ "_" ^ axiomsN, []), [(statement, [])])]])];
         in ((elemss', [statement]), a_elem, [intro], def_thy') end;
     val (predicate, stmt', elemss'', b_intro, thy'') =
@@ -1860,8 +1866,10 @@ fun intern_attrib thy = map_elem (Element.map_ctxt
 val global_goal = Proof.global_goal ProofDisplay.present_results
   Attrib.attribute_i ProofContext.bind_propp_schematic_i;
 
-fun conclusion prep_att (Element.Shows concl) =
-      (([], concl), fn stmt => fn ctxt => ((Attrib.map_specs prep_att stmt, []), ctxt))
+fun mk_shows prep_att stmt ctxt =
+  ((Attrib.map_specs prep_att stmt, []), fold (fold (Variable.fix_frees o fst) o snd) stmt ctxt);
+
+fun conclusion prep_att (Element.Shows concl) = (([], concl), mk_shows prep_att)
   | conclusion _ (Element.Obtains cases) = apfst (apfst (map Elem)) (Obtain.statement cases);
 
 fun gen_theorem prep_src prep_elem prep_stmt
@@ -1869,12 +1877,18 @@ fun gen_theorem prep_src prep_elem prep_stmt
   let
     val atts = map (prep_src thy) raw_atts;
     val ((concl_elems, concl), mk_stmt) = conclusion (prep_src thy) raw_concl;
+
     val thy_ctxt = ProofContext.init thy;
     val elems = map (prep_elem thy) (raw_elems @ concl_elems);
-    val (_, _, ctxt, propp) = prep_stmt NONE elems (map snd concl) thy_ctxt;
-    val ((stmt, facts), goal_ctxt) = mk_stmt (map fst concl ~~ propp) ctxt;
+    val (_, _, elems_ctxt, propp) = prep_stmt NONE elems (map snd concl) thy_ctxt;
+    val ((stmt, facts), goal_ctxt) = mk_stmt (map fst concl ~~ propp) elems_ctxt;
+
+    fun after_qed' results goal_ctxt' =
+      thy_ctxt
+      |> ProofContext.transfer (ProofContext.theory_of goal_ctxt')
+      |> after_qed results;
   in
-    global_goal kind before_qed after_qed (SOME "") (name, atts) stmt goal_ctxt
+    global_goal kind before_qed after_qed' (SOME "") (name, atts) stmt goal_ctxt
     |> Proof.refine_insert facts
   end;
 
@@ -1892,19 +1906,19 @@ fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
     val thy_ctxt = init_term_syntax loc (ProofContext.init thy);
     val (_, loc_ctxt, elems_ctxt, propp) =
       prep_stmt (SOME raw_loc) elems (map snd concl) thy_ctxt;
+    val ((stmt, facts), goal_ctxt) = mk_stmt (map (apsnd (K []) o fst) concl ~~ propp) elems_ctxt;
 
-    val ((stmt, facts), goal_ctxt) =
-      mk_stmt (map (apsnd (K []) o fst) concl ~~ propp) elems_ctxt;
-
-    fun after_qed' results =
-      let val loc_results = results |> map
-          (ProofContext.export_standard goal_ctxt loc_ctxt) in
-        curry (locale_results kind loc ((names ~~ loc_attss) ~~ loc_results)) loc_ctxt
-        #-> (fn res =>
+    fun after_qed' results goal_ctxt' =
+      let
+        val loc_ctxt' = loc_ctxt |> ProofContext.transfer (ProofContext.theory_of goal_ctxt');
+        val loc_results = results |> burrow (ProofContext.export_standard goal_ctxt' loc_ctxt');
+      in
+        loc_ctxt'
+        |> locale_results kind loc ((names ~~ loc_attss) ~~ loc_results)
+        |-> (fn res =>
           if name = "" andalso null loc_atts then I
           else #2 o locale_results kind loc [((name, loc_atts), maps #2 res)])
-        #> #2
-        #> after_qed loc_results results
+        |> after_qed loc_results results
       end;
   in
     global_goal kind before_qed after_qed' target (name, []) stmt goal_ctxt
@@ -2281,44 +2295,48 @@ fun goal_name thy kind target propss =
 
 in
 
-fun interpretation (prfx, atts) expr insts thy =
+fun interpretation after_qed (prfx, atts) expr insts thy =
   let
     val (propss, activate) = prep_global_registration (prfx, atts) expr insts thy;
     val kind = goal_name thy "interpretation" NONE propss;
-    val after_qed = activate o prep_result propss;
+    fun after_qed' results =
+      ProofContext.theory (activate (prep_result propss results))
+      #> after_qed;
   in
     ProofContext.init thy
-    |> Proof.theorem_i kind NONE after_qed NONE ("", []) (prep_propp propss)
+    |> Proof.theorem_i kind NONE after_qed' NONE ("", []) (prep_propp propss)
     |> Element.refine_witness |> Seq.hd
   end;
 
-fun interpretation_in_locale (raw_target, expr) thy =
+fun interpretation_in_locale after_qed (raw_target, expr) thy =
   let
     val target = intern thy raw_target;
     val (propss, activate) = prep_registration_in_locale target expr thy;
     val kind = goal_name thy "interpretation" (SOME target) propss;
-    val after_qed = K (activate o prep_result propss);
+    fun after_qed' locale_results results =
+      ProofContext.theory (activate (prep_result propss results))
+      #> after_qed;
   in
     thy
-    |> theorem_in_locale_no_target kind NONE after_qed target ("", []) []
+    |> theorem_in_locale_no_target kind NONE after_qed' target ("", []) []
       (Element.Shows (prep_propp propss))
     |> Element.refine_witness |> Seq.hd
   end;
 
-fun interpret (prfx, atts) expr insts int state =
+fun interpret after_qed (prfx, atts) expr insts int state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
     val (propss, activate) = prep_local_registration (prfx, atts) expr insts ctxt;
     val kind = goal_name (Proof.theory_of state) "interpret" NONE propss;
-    fun after_qed results =
+    fun after_qed' results =
       Proof.map_context (K (ctxt |> activate (prep_result propss results)))
       #> Proof.put_facts NONE
-      #> Seq.single;
+      #> after_qed;
   in
     state
     |> Proof.local_goal (ProofDisplay.print_results int) (K I) ProofContext.bind_propp_i
-      kind NONE after_qed (prep_propp propss)
+      kind NONE after_qed' (prep_propp propss)
     |> Element.refine_witness |> Seq.hd
   end;
 
