@@ -178,7 +178,7 @@ fun nclauses (Const("Trueprop",_) $ t) = nclauses t
 (*Replaces universally quantified variables by FREE variables -- because
   assumptions may not contain scheme variables.  Later, call "generalize". *)
 fun freeze_spec th =
-  let val newname = gensym "A_"
+  let val newname = gensym "mes_"
       val spec' = read_instantiate [("x", newname)] spec
   in  th RS spec'  end;
 
