@@ -503,6 +503,9 @@ end;
 
 local
 
+fun signed_string_of_int i =
+  if i < 0 then "-" ^ string_of_int (~ i) else string_of_int i;
+
 val pgipint = XML.element "pgipint" [] [];
 val pgipnat = XML.element "pgipint" [("min", "0")] [];
 fun pgipnatmax max = XML.element "pgipint" [("min", "0"), ("max", string_of_int max)] [];
@@ -513,7 +516,7 @@ fun with_default f = (f (), f);
 in
 
 fun int_option r = (pgipint,
-  with_default (fn () => string_of_int (! r)),
+  with_default (fn () => signed_string_of_int (! r)),
   (fn s => (case Syntax.read_int s of
       NONE => error ("int_option: illegal value: " ^ s)
     | SOME i => r := i)));
