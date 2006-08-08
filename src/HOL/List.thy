@@ -2726,7 +2726,6 @@ in
 val list_codegen_setup =
   Codegen.add_codegen "list_codegen" list_codegen
   #> Codegen.add_codegen "char_codegen" char_codegen
-  #> CodegenPackage.add_appconst ("Numeral.number_of", appgen_number)
   #> fold (CodegenPackage.add_pretty_list "Nil" "Cons") [
        ("ml", (7, "::")),
        ("haskell", (5, ":"))

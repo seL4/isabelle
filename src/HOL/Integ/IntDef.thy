@@ -924,23 +924,6 @@ code_constapp
     haskell (infix 4 "<=")
 
 ML {*
-fun mk_int_to_nat bin =
-  Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT)
-  $ (Const ("Numeral.number_of", HOLogic.binT --> HOLogic.intT) $ bin);
-
-fun bin_to_int thy bin = HOLogic.dest_binum bin
-  handle TERM _
-    => error ("not a number: " ^ Sign.string_of_term thy bin);
-
-fun appgen_number thy tabs (app as ((_, ty), _)) =
-  let
-    val _ = case strip_type ty
-     of (_, Type (ty', [])) => if ty' = "IntDef.int" then ()
-       else error ("not integer type: " ^ quote ty');
-  in
-    CodegenPackage.appgen_number_of bin_to_int thy tabs app
-  end;
-
 fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",
       Type ("fun", [_, T as Type ("IntDef.int", [])])) $ bin) =
         (SOME (fst (Codegen.invoke_tycodegen thy defs dep module false (gr, T)),
@@ -951,12 +934,10 @@ fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",
           Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT) $
             (Const ("Numeral.number_of", HOLogic.binT --> HOLogic.intT) $ bin)))
   | number_of_codegen _ _ _ _ _ _ _ = NONE;
-
 *}
 
 setup {*
   Codegen.add_codegen "number_of_codegen" number_of_codegen
-  (* #> CodegenPackage.add_appconst ("Numeral.number_of", appgen_number) *)
 *}
 
 quickcheck_params [default_type = int]

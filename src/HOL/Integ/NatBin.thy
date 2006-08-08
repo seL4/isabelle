@@ -776,71 +776,13 @@ lemma nat_mult_div_cancel_disj:
      "(k*m) div (k*n) = (if k = (0::nat) then 0 else m div n)"
 by (simp add: nat_mult_div_cancel1)
 
+
 subsection {* code generator setup *}
 
-lemma elim_nat [code inline]:
-  "(number_of n :: nat) = nat (number_of n)"
-  by simp
+lemma number_of_is_nat_rep_bin [code inline]:
+  "(number_of b :: nat) = nat (Rep_Bin b)"
+  unfolding nat_number_of_def int_number_of_def by simp
 
-lemma elim_zero [code inline]:
-  "(0::int) = number_of (Numeral.Pls)" 
-  by simp
-
-lemma elim_one [code inline]:
-  "(1::int) = number_of (Numeral.Pls BIT bit.B1)" 
-  by simp
-
-lemma elim_one_nat [code inline]:
-  "1 = Suc 0"
-  by simp
-
-lemmas [code inline] =
-  bin_minus_Pls bin_minus_Min bin_minus_1 bin_minus_0
-  bin_pred_Pls  bin_pred_Min  bin_pred_1  bin_pred_0
-
-lemma elim_negate:
-  "(number_of n :: int) == - number_of (bin_minus n)"
-  unfolding number_of_minus IntDef.zminus_zminus by (rule reflexive)
-
-ML {*
-local
-  val elim_negate_thm = thm "elim_negate";
-in fun elim_negate thy thms =
-  let
-    fun bins_of (Const _) =
-          I
-      | bins_of (Var _) =
-          I
-      | bins_of (Free _) =
-          I
-      | bins_of (Bound _) =
-          I
-      | bins_of (Abs (_, _, t)) =
-          bins_of t
-      | bins_of (t as _ $ _) =
-          case strip_comb t
-           of (Const ("Numeral.number_of", _), [bin]) => cons bin
-            | (t', ts) => bins_of t' #> fold bins_of ts;
-    fun is_negative bin = case try HOLogic.dest_binum bin
-     of SOME i => i < 0
-      | _ => false;
-    fun instantiate_with bin =
-      Drule.instantiate' [] [(SOME o cterm_of thy) bin] elim_negate_thm;
-    val rewrites  =
-      []
-      |> fold (bins_of o prop_of) thms
-      |> filter is_negative
-      |> map instantiate_with
-  in
-    thms
-    |> map (rewrite_rule rewrites)
-  end;
-end; (*local*)
-*}
-
-setup {*
-  CodegenTheorems.add_preproc elim_negate
-*}
 
 subsection {* legacy ML bindings *}
 

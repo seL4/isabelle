@@ -1043,6 +1043,10 @@ lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = 1 | m = 0"
 
 subsection {* Code generator setup *}
 
+lemma one_is_suc_zero [code inline]:
+  "1 = Suc 0"
+  by simp
+
 code_alias
   "nat" "Nat.nat"
   "0" "Nat.Zero"

@@ -27,7 +27,6 @@ typedef (Bin)
   bin = "UNIV::int set"
     by (auto)
 
-
 text{*This datatype avoids the use of type @{typ bool}, which would make
 all of the rewrite rules higher-order. If the use of datatype causes
 problems, this two-element type can easily be formalized using typedef.*}
@@ -87,6 +86,9 @@ constdefs
   bin_mult  :: "[bin,bin]=>bin"
    "bin_mult v w == Abs_Bin(Rep_Bin v * Rep_Bin w)"
 
+lemma Abs_Bin_inverse':
+  "Rep_Bin (Abs_Bin x) = x"
+by (rule Abs_Bin_inverse) (auto simp add: Bin_def)
 
 lemmas Bin_simps = 
        bin_succ_def bin_pred_def bin_minus_def bin_add_def bin_mult_def

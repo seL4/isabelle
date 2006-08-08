@@ -361,6 +361,96 @@ apply (rule iffI)
  apply (frule pos_zmult_eq_1_iff_lemma, auto) 
 done
 
+
+subsection {* code generator setup *}
+
+code_alias
+  "Numeral.bin" "IntDef.bin"
+  "Numeral.bit" "IntDef.bit"
+  "Numeral.Pls" "IntDef.Pls"
+  "Numeral.Min" "IntDef.Min"
+  "Numeral.Bit" "IntDef.Bit"
+  "Numeral.Abs_Bin" "IntDef.Bin"
+  "Numeral.Rep_Bin" "IntDef.int_of_bin"
+  "Numeral.B0" "IntDef.B0"
+  "Numeral.B1" "IntDef.B1"
+
+lemma
+  number_of_is_rep_bin [code inline]: "number_of = Rep_Bin"
+proof
+  fix b
+  show "number_of b = Rep_Bin b" 
+  unfolding int_number_of_def by simp
+qed
+
+lemma zero_is_num_zero [code, code inline]:
+  "(0::int) = Rep_Bin Numeral.Pls" 
+  unfolding Pls_def Abs_Bin_inverse' ..
+
+lemma one_is_num_one [code, code inline]:
+  "(1::int) = Rep_Bin (Numeral.Pls BIT bit.B1)" 
+  unfolding Pls_def Bit_def Abs_Bin_inverse' by simp 
+
+lemma negate_bin_minus:
+  "(Rep_Bin b :: int) = - Rep_Bin (bin_minus b)"
+  unfolding bin_minus_def Abs_Bin_inverse' by simp
+
+lemmas [code inline] =
+  bin_minus_Pls bin_minus_Min bin_minus_1 bin_minus_0
+  bin_pred_Pls  bin_pred_Min  bin_pred_1  bin_pred_0
+
+ML {*
+structure Numeral =
+struct
+
+val negate_bin_minus_thm = eq_reflection OF [thm "negate_bin_minus"];
+val number_of_is_rep_bin_thm = eq_reflection OF [thm "number_of_is_rep_bin"];
+
+fun int_of_numeral thy num = HOLogic.dest_binum num
+  handle TERM _
+    => error ("not a number: " ^ Sign.string_of_term thy num);
+
+fun elim_negate thy thms =
+  let
+    val thms' = map (rewrite_rule [number_of_is_rep_bin_thm]) thms;
+    fun bins_of (Const _) =
+          I
+      | bins_of (Var _) =
+          I
+      | bins_of (Free _) =
+          I
+      | bins_of (Bound _) =
+          I
+      | bins_of (Abs (_, _, t)) =
+          bins_of t
+      | bins_of (t as _ $ _) =
+          case strip_comb t
+           of (Const ("Numeral.Rep_Bin", _), [bin]) => cons bin
+            | (t', ts) => bins_of t' #> fold bins_of ts;
+    fun is_negative bin = case try HOLogic.dest_binum bin
+     of SOME i => i < 0
+      | _ => false;
+    fun instantiate_with bin =
+      Drule.instantiate' [] [(SOME o cterm_of thy) bin] negate_bin_minus_thm;
+    val rewrites  =
+      []
+      |> fold (bins_of o prop_of) thms'
+      |> filter is_negative
+      |> map instantiate_with
+  in if null rewrites then thms' else
+    thms'
+    |> map (rewrite_rule rewrites)
+  end;
+
+end;
+*}
+
+setup {*
+  CodegenTheorems.add_preproc Numeral.elim_negate
+  #> CodegenPackage.add_appconst ("Numeral.Rep_Bin", CodegenPackage.appgen_rep_bin Numeral.int_of_numeral)
+*}
+
+
 subsection {* legacy ML bindings *}
 
 ML
