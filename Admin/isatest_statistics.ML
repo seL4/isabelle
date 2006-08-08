@@ -54,7 +54,7 @@ fun get_files dir year compiler =
 
 fun get_times f =
   let
-    val s = execute ("zcat " ^ f ^ " | grep Finished | grep \"cpu time\"");
+    val s = execute ("zcat " ^ f ^ " | grep Finished | grep \"elapsed time\"");
     val xs = filter_out (equal "") (space_explode "\n" s);
     fun get_time s =
       let
@@ -62,11 +62,14 @@ fun get_times f =
         val (_, _ :: xs1) = take_prefix (not o equal " ") xs;
         val (logic, _ :: _ :: h :: _ :: m1 :: m2 :: _ :: s1 :: s2 :: xs2) =
           take_prefix (not o equal " ") xs1;
-        val (_, _ :: _ :: h' :: _ :: m1' :: m2' :: _ :: s1' :: s2' :: _) =
-          take_prefix (not o equal ",") xs2
+        val cpu = case take_prefix (not o equal ",") xs2 of
+            (_, _ :: _ :: h' :: _ :: m1' :: m2' :: _ :: s1' :: s2' :: _) =>
+              SOME (int_of_string h',
+                int_of_string (m1' ^ m2'), int_of_string (s1' ^ s2'))
+          | _ => NONE
       in (implode logic,
         ((int_of_string h, int_of_string (m1 ^ m2), int_of_string (s1 ^ s2)),
-         (int_of_string h', int_of_string (m1' ^ m2'), int_of_string (s1' ^ s2'))))
+         cpu))
       end
   in
     map get_time xs
@@ -75,8 +78,9 @@ fun get_times f =
 fun mk_table tab logic =
   let
     fun mk_entry (times, (y, (M, D))) = (case AList.lookup op = times logic of
-        SOME (_, (h, m, s)) =>
+        SOME (t, t') =>
           let
+            val (h, m, s) = the_default t t';
             val date = (100 * ((M - 1) * 31 + D - 1)) div 31;
             val time = (100 * (h * 3600 + 60 * m + s)) div 60
           in
