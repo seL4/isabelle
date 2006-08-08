@@ -69,7 +69,6 @@ val casesN = "_cases";
 val ext_dest = "_sel";
 val updateN = "_update";
 val updN = "_upd";
-val schemeN = "_scheme";
 val makeN = "make";
 val fields_selN = "fields";
 val extendN = "extend";
