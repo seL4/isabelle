@@ -5,7 +5,7 @@
 header {* Test and Examples for code generator *}
 
 theory Codegenerator
-imports Main
+imports Main "~~/src/HOL/ex/Records"
 begin
 
 subsection {* booleans *}
@@ -14,8 +14,6 @@ definition
   xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"
   "xor p q = ((p | q) & \<not> (p & q))"
 
-code_generate (ml, haskell) xor
-
 subsection {* natural numbers *}
 
 definition
@@ -23,16 +21,6 @@ definition
   "one = 1"
   n :: nat
   "n = 42"
-
-code_generate (ml, haskell) n
-
-code_generate (ml, haskell)
-  "0::nat" "one" n
-  "op + :: nat \<Rightarrow> nat \<Rightarrow> nat"
-  "op - :: nat \<Rightarrow> nat \<Rightarrow> nat"
-  "op * :: nat \<Rightarrow> nat \<Rightarrow> nat"
-  "op < :: nat \<Rightarrow> nat \<Rightarrow> bool"
-  "op <= :: nat \<Rightarrow> nat \<Rightarrow> bool"
 
 subsection {* pairs *}
 
@@ -44,13 +32,11 @@ definition
   appl :: "('a \<Rightarrow> 'b) * 'a \<Rightarrow> 'b"
   "appl p = (let (f, x) = p in f x)"
 
-code_generate (ml, haskell) Pair fst snd Let split swap swapp appl
-
 subsection {* integers *}
 
 definition
   k :: "int"
-  "k = 42"
+  "k = -42"
 
 consts
   fac :: "int => int"
@@ -58,24 +44,9 @@ consts
 recdef fac "measure nat"
   "fac j = (if j <= 0 then 1 else j * (fac (j - 1)))"
 
-code_generate (ml, haskell)
-  "0::int" k
-  "op + :: int \<Rightarrow> int \<Rightarrow> int"
-  "op - :: int \<Rightarrow> int \<Rightarrow> int"
-  "op * :: int \<Rightarrow> int \<Rightarrow> int"
-  "op < :: int \<Rightarrow> int \<Rightarrow> bool"
-  "op <= :: int \<Rightarrow> int \<Rightarrow> bool"
-  fac
-  "op div :: int \<Rightarrow> int \<Rightarrow> int"
-  "op mod :: int \<Rightarrow> int \<Rightarrow> int"  
-
 subsection {* sums *}
 
-code_generate (ml, haskell) Inl Inr
-
 subsection {* options *}
-
-code_generate (ml, haskell) None Some
 
 subsection {* lists *}
 
@@ -84,8 +55,6 @@ definition
   "ps = [2, 3, 5, 7, 11]"
   qs :: "nat list"
   "qs == rev ps"
-
-code_generate (ml, haskell) hd tl "op @" ps qs
 
 subsection {* mutual datatypes *}
 
@@ -102,21 +71,9 @@ primrec
   "mut2 mut2.Tip = mut2.Tip"
   "mut2 (mut2.Top x) = mut2.Top (mut1 x)"
 
-code_generate (ml, haskell) mut1 mut2
+subsection {* records *}
 
 subsection {* equalities *}
-
-code_generate (ml, haskell)
-  "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"
-  "op = :: nat \<Rightarrow> nat \<Rightarrow> bool"
-  "op = :: int \<Rightarrow> int \<Rightarrow> bool"
-  "op = :: 'a * 'b \<Rightarrow> 'a * 'b \<Rightarrow> bool"
-  "op = :: 'a + 'b \<Rightarrow> 'a + 'b \<Rightarrow> bool"
-  "op = :: 'a option \<Rightarrow> 'a option \<Rightarrow> bool"
-  "op = :: 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
-  "op = :: mut1 \<Rightarrow> mut1 \<Rightarrow> bool"
-  "op = :: mut2 \<Rightarrow> mut2 \<Rightarrow> bool"
-
 
 subsection {* heavy usage of names *}
 
@@ -133,7 +90,73 @@ code_alias
   "Codegenerator.g" "Mymod.A.f"
   "Codegenerator.h" "Mymod.A.B.f"
 
-code_generate (ml, haskell) f g h
+code_generate (ml, haskell)
+  n one "0::int" "0::nat" "1::int" "1::nat"
+code_generate (ml, haskell)
+  fac
+code_generate (ml, haskell)
+  xor
+code_generate (ml, haskell)
+  "op + :: nat \<Rightarrow> nat \<Rightarrow> nat"
+  "op - :: nat \<Rightarrow> nat \<Rightarrow> nat"
+  "op * :: nat \<Rightarrow> nat \<Rightarrow> nat"
+  "op < :: nat \<Rightarrow> nat \<Rightarrow> bool"
+  "op <= :: nat \<Rightarrow> nat \<Rightarrow> bool"
+code_generate (ml, haskell)
+  Pair fst snd Let split swap swapp appl
+code_generate (ml, haskell)
+  k
+  "op + :: int \<Rightarrow> int \<Rightarrow> int"
+  "op - :: int \<Rightarrow> int \<Rightarrow> int"
+  "op * :: int \<Rightarrow> int \<Rightarrow> int"
+  "op < :: int \<Rightarrow> int \<Rightarrow> bool"
+  "op <= :: int \<Rightarrow> int \<Rightarrow> bool"
+  fac
+  "op div :: int \<Rightarrow> int \<Rightarrow> int"
+  "op mod :: int \<Rightarrow> int \<Rightarrow> int"  
+code_generate (ml, haskell)
+  Inl Inr
+code_generate (ml, haskell)
+  None Some
+code_generate (ml, haskell)
+  hd tl "op @" ps qs
+code_generate (ml, haskell)
+  mut1 mut2
+code_generate (ml, haskell)
+  "op @" filter concat foldl foldr hd tl
+  last butlast list_all2
+  map 
+  nth 
+  list_update
+  take
+  drop
+  takeWhile
+  dropWhile
+  rev
+  zip
+  upt
+  remdups
+  remove1
+  null
+  "distinct"
+  replicate
+  rotate1
+  rotate
+  splice
+code_generate (ml, haskell)
+  foo1 foo3
+code_generate (ml, haskell)
+  "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"
+  "op = :: nat \<Rightarrow> nat \<Rightarrow> bool"
+  "op = :: int \<Rightarrow> int \<Rightarrow> bool"
+  "op = :: 'a * 'b \<Rightarrow> 'a * 'b \<Rightarrow> bool"
+  "op = :: 'a + 'b \<Rightarrow> 'a + 'b \<Rightarrow> bool"
+  "op = :: 'a option \<Rightarrow> 'a option \<Rightarrow> bool"
+  "op = :: 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
+  "op = :: mut1 \<Rightarrow> mut1 \<Rightarrow> bool"
+  "op = :: mut2 \<Rightarrow> mut2 \<Rightarrow> bool"
+code_generate (ml, haskell)
+  f g h
 
 code_serialize ml (-)
 
