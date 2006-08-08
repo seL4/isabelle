@@ -61,15 +61,18 @@ struct
 
 fun instantiations_of thy (ty, ty') =
   let
+(*     val _ = writeln "A";  *)
     val vartab = typ_tvars ty;
+(*     val _ = writeln "B";  *)
     fun prep_vartab (v, (_, ty)) =
       case (the o AList.lookup (op =) vartab) v
        of [] => NONE
         | sort => SOME ((v, sort), ty);
+(*     val _ = writeln "C";  *)
   in case try (Sign.typ_match thy (ty, ty')) Vartab.empty
-   of NONE => NONE
+   of NONE => ((*writeln "D";*)NONE)
     | SOME vartab =>
-        SOME ((map_filter prep_vartab o Vartab.dest) vartab)
+        ((*writeln "E";*)SOME ((map_filter prep_vartab o Vartab.dest) vartab))
   end;
 
 
@@ -640,16 +643,25 @@ fun sortlookup thy (sort_decl, typ_ctxt) =
 
 fun sortlookups_const thy (c, typ_ctxt) =
   let
+(*     val _ = writeln c  *)
     val typ_decl = case AxClass.class_of_param thy c
      of NONE => Sign.the_const_type thy c
       | SOME class => case the_consts_sign thy class of (v, cs) =>
           (Logic.legacy_varifyT o subst_clsvar v (TFree (v, [class])))
           ((the o AList.lookup (op =) cs) c)
+(*     val _ = writeln "DECL"  *)
+(*     val _ = (writeln o Display.raw_string_of_typ) typ_decl;  *)
+(*     val _ = writeln "CTXT"  *)
+(*     val _ = (writeln o Display.raw_string_of_typ) typ_ctxt;  *)
+(*     val _ = writeln "(0)"  *)
   in
     instantiations_of thy (typ_decl, typ_ctxt)
     |> the
+(*     |> tap (fn _ => writeln "(1)")  *)
     |> map (fn ((_, sort), ty) => sortlookup thy (sort, ty))
+(*     |> tap (fn _ => writeln "(2)")  *)
     |> filter_out null
+(*     |> tap (fn _ => writeln "(3)")  *)
   end;
 
 

@@ -746,11 +746,13 @@ fun ml_from_defs is_cons
           in
             mk_memdefs (map from_supclass suparities) memdefs |> SOME
           end
-      | ml_from_def (name, CodegenThingol.Classinstmember) = NONE;
+      | ml_from_def (name, CodegenThingol.Classinstmember) = NONE
+      | ml_from_def (name, def) = error ("illegal definition for " ^ quote name ^ ": " ^
+          (Pretty.output o CodegenThingol.pretty_def) def);
   in case defs
-   of (_, CodegenThingol.Fun _)::_ => (SOME o ml_from_funs o map (fn (name, CodegenThingol.Fun info) => (name, info))) defs
-    | (_, CodegenThingol.Datatypecons _)::_ => (SOME o ml_from_datatypes o filter_datatype) defs
-    | (_, CodegenThingol.Datatype _)::_ => (SOME o ml_from_datatypes o filter_datatype) defs
+   of (_, CodegenThingol.Fun _)::_ => ((*writeln "FUN";*) (SOME o ml_from_funs o map (fn (name, CodegenThingol.Fun info) => (name, info))) defs)
+    | (_, CodegenThingol.Datatypecons _)::_ => ((*writeln "DTCO";*) (SOME o ml_from_datatypes o filter_datatype) defs)
+    | (_, CodegenThingol.Datatype _)::_ => ((*writeln "DT";*) (SOME o ml_from_datatypes o filter_datatype) defs)
     | (_, CodegenThingol.Class _)::_ => (SOME o ml_from_class o filter_class) defs
     | (_, CodegenThingol.Classmember _)::_ => (SOME o ml_from_class o filter_class) defs
     | [def] => ml_from_def def

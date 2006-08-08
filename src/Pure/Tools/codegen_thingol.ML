@@ -305,8 +305,8 @@ fun map_pure f (e as IConst _) =
       f e
   | map_pure f (e as _ `|-> _) =
       f e
-  | map_pure _ (INum _) =
-      error ("sorry, no pure representation for numerals so far")
+  | map_pure f (INum (_, e0)) =
+      f e0
   | map_pure f (IChar (_, e0)) =
       f e0
   | map_pure f (ICase (_, e0)) =
@@ -808,10 +808,10 @@ fun delete_garbage hidden modl =
         @ maps (fn (name, modl) => (map o pairself) (NameSpace.append name) (alldeps modl)) modls
       end;
     val names = subtract (op =) hidden (allnames modl);
-    (*val _ = writeln "HIDDEN";
-    val _ = (writeln o commas) hidden;
-    val _ = writeln "NAMES";
-    val _ = (writeln o commas) names;*)
+(*     val _ = writeln "HIDDEN";  *)
+(*     val _ = (writeln o commas) hidden;  *)
+(*     val _ = writeln "NAMES";  *)
+(*     val _ = (writeln o commas) names;  *)
     fun is_bot name =
       case get_def modl name of Bot => true | _ => false;
     val bots = filter is_bot names;
@@ -825,10 +825,10 @@ fun delete_garbage hidden modl =
     val selected = subtract (op =) bots' names;
 (*     val deps = filter (fn (x, y) => member (op =) selected x andalso member (op =) selected y)  *)
     val adddeps = maps (fn (n, ns) => map (pair n) ns) (expldeps |> Graph.del_nodes bots' |> Graph.dest);
-    (*val _ = writeln "SELECTED";
+(*    val _ = writeln "SELECTED";
     val _ = (writeln o commas) selected;
     val _ = writeln "DEPS";
-    val _ = (writeln o cat_lines o map (fn (x, y) => x ^ " -> " ^ y)) adddeps;*)
+    val _ = (writeln o cat_lines o map (fn (x, y) => x ^ " -> " ^ y)) adddeps; *)
   in
     empty_module
     |> fold (fn name => add_def (name, get_def modl name)) selected
