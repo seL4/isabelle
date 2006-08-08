@@ -112,7 +112,7 @@ fun typedef_type_extr thy tyco =
             UNIV_I
             |> Drule.instantiate' [SOME (ctyp_of thy ty_rep)] []
             |> rewrite_rule [symmetric def];
-        in case try (Tactic.rule_by_tactic ((ALLGOALS o match_tac) [exists_thm])) inject
+        in case try (op OF) (inject, [exists_thm, exists_thm])
          of SOME eq_thm => SOME (((Term.typ_tfrees o Type.no_tvars) ty_abs, [(c_abs, [ty_rep])]),
              (ALLGOALS o match_tac) [eq_reflection]
             THEN (ALLGOALS o match_tac) [eq_thm])
@@ -132,7 +132,7 @@ fun typedef_fun_extr thy (c, ty) =
                 UNIV_I
                 |> Drule.instantiate' [SOME (ctyp_of thy ty_rep)] []
                 |> rewrite_rule [symmetric def]
-            in case try (Tactic.rule_by_tactic ((ALLGOALS o match_tac) [exists_thm])) inverse
+            in case try (op OF) (inverse, [exists_thm, exists_thm])
              of SOME eq_thm => SOME [eq_thm]
               | NONE => NONE
             end
