@@ -119,7 +119,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   Tools/res_clause.ML Tools/rewrite_hol_proof.ML	\
   Tools/sat_funcs.ML					\
   Tools/sat_solver.ML Tools/specification_package.ML Tools/split_rule.ML	\
-  Tools/typedef_package.ML Transitive_Closure.ML Transitive_Closure.thy		\
+  Tools/typedef_package.ML Tools/typedef_codegen.ML	\
+  Transitive_Closure.ML Transitive_Closure.thy		\
   Typedef.thy Wellfounded_Recursion.thy Wellfounded_Relations.thy		\
   antisym_setup.ML arith_data.ML blastdata.ML cladata.ML			\
   document/root.tex hologic.ML simpdata.ML ResAtpMethods.thy 			\
