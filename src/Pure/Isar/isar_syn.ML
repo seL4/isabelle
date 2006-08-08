@@ -360,16 +360,16 @@ val interpretationP =
   OuterSyntax.command "interpretation"
     "prove and register interpretation of locale expression in theory or locale" K.thy_goal
     (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! P.locale_expr
-      >> (Toplevel.print oo (Toplevel.theory_to_proof o Locale.interpretation_in_locale)) ||
-     P.opt_thm_name ":" -- P.locale_expr -- P.locale_insts >> (fn ((x, y), z) =>
-      Toplevel.print o Toplevel.theory_to_proof (Locale.interpretation x y z)));
+      >> (Toplevel.print oo (Toplevel.theory_to_proof o Locale.interpretation_in_locale I)) ||
+      P.opt_thm_name ":" -- P.locale_expr -- P.locale_insts >> (fn ((x, y), z) =>
+        Toplevel.print o Toplevel.theory_to_proof (Locale.interpretation I x y z)));
 
 val interpretP =
   OuterSyntax.command "interpret"
     "prove and register interpretation of locale expression in proof context"
     (K.tag_proof K.prf_goal)
     (P.opt_thm_name ":" -- P.locale_expr -- P.locale_insts >> (fn ((x, y), z) =>
-      Toplevel.print o Toplevel.proof' (Locale.interpret x y z)));
+      Toplevel.print o Toplevel.proof' (Locale.interpret Seq.single x y z)));
 
 
 
