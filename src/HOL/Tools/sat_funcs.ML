@@ -300,8 +300,7 @@ in
 	  SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id)) => (
 		if !trace_sat then
 			tracing ("Proof trace from SAT solver:\n" ^
-				"clauses: [" ^ commas (map (fn (c, cs) =>
-					"(" ^ string_of_int c ^ ", [" ^ commas (map string_of_int cs) ^ "])") (Inttab.dest clause_table)) ^ "]\n" ^
+				"clauses: " ^ string_of_list (string_of_pair string_of_int (string_of_list string_of_int)) (Inttab.dest clause_table) ^ "\n" ^
 				"empty clause: " ^ string_of_int empty_id)
 		else ();
 		if !quick_and_dirty then
