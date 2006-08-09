@@ -39,6 +39,7 @@ sig
   val include_all: bool ref
   val run_relevance_filter: bool ref
   val run_blacklist_filter: bool ref
+  val blacklist: string list ref
   val add_all : unit -> unit
   val add_claset : unit -> unit
   val add_simpset : unit -> unit
@@ -304,7 +305,17 @@ val whitelist = ref [subsetI];
   FIXME: this blacklist needs to be maintained using theory data and added to using
   an attribute.*)
 val blacklist = ref
-  ["Datatype.prod.size",
+  ["Datatype.unit.split_asm",         (*These  "unit" thms cause unsound proofs*)
+                               (*Datatype.unit.nchotomy is caught automatically*)
+   "Datatype.unit.induct",
+   "Datatype.unit.inducts",
+   "Datatype.unit.split",
+   "Datatype.unit.splits_1",
+   "Datatype.unit.splits_2",
+   "Product_Type.unit_abs_eta_conv",
+   "Product_Type.unit_induct",
+
+   "Datatype.prod.size",
    "Divides.dvd_0_left_iff",
    "Finite_Set.card_0_eq",
    "Finite_Set.card_infinite",
