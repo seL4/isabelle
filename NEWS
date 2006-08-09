@@ -28,6 +28,13 @@ used here, which is not necessarily the same as the_context().
 
 * Command 'find_theorems': support "*" wildcard in "name:" criterion.
 
+* The ``prems limit'' option (cf. ProofContext.prems_limit) is now -1
+by default, which means that "prems" (and also "fixed variables") are
+suppressed from proof state output.  Note that the ProofGeneral
+settings mechanism allows to change and save options persistently, but
+older versions of Isabelle will fail to start up if a negative prems
+limit is imposed.
+
 
 *** Document preparation ***
 
