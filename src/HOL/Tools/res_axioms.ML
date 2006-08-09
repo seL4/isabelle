@@ -241,7 +241,7 @@ fun skolem_thm th =
 (*Declare Skolem functions for a theorem, supplied in nnf and with its name.
   It returns a modified theory, unless skolemization fails.*)
 fun skolem thy (name,th) =
-  let val cname = (case name of "" => gensym "sko" | s => Sign.base_name s)
+  let val cname = (case name of "" => gensym "sko_" | s => Sign.base_name s)
   in Option.map 
         (fn nnfth => 
           let val (thy',defs) = declare_skofuns cname nnfth thy
