@@ -1047,10 +1047,4 @@ lemma one_is_suc_zero [code inline]:
   "1 = Suc 0"
   by simp
 
-code_alias
-  "nat" "Nat.nat"
-  "0" "Nat.Zero"
-  "1" "Nat.One"
-  "Suc" "Nat.Suc"
-
 end

@@ -1420,17 +1420,6 @@ setup {*
   CodegenTheorems.init_obj ((TrueI, FalseE), (conjI, thm "HOL.atomize_eq" |> Thm.symmetric))
 *}
 
-code_alias
-  bool "HOL.bool"
-  True "HOL.True"
-  False "HOL.False"
-  "op =" "HOL.op_eq"
-  "op -->" "HOL.op_implies"
-  "op &" "HOL.op_and"
-  "op |" "HOL.op_or"
-  Not "HOL.not"
-  arbitrary "HOL.arbitrary"
-
 code_constapp
   "op =" (* an intermediate solution for polymorphic equality *)
     ml (infixl 6 "=")

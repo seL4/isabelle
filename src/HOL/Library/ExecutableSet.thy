@@ -256,7 +256,7 @@ consts_code
   "Ball"    ("{*Blall*}")
   "Bex"     ("{*Blex*}")
 
-code_alias
+code_constname
   "ExecutableSet.member" "List.member"
   "ExecutableSet.insertl" "List.insertl"
   "ExecutableSet.drop_first" "List.drop_first"

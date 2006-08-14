@@ -227,11 +227,4 @@ val Part_Collect = thm "Part_Collect";
 val basic_monos = thms "basic_monos";
 *}
 
-subsection {* Codegenerator setup *}
-
-code_alias
-  "+" "Sum_Type.sum"
-  "Inr" "Sum_Type.Inr"
-  "Inl" "Sum_Type.Inl"
-
 end

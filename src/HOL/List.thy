@@ -2761,10 +2761,6 @@ fun gen_char i = chr (random_range (ord "a") (Int.min (ord "a" + i, ord "z")));
 
 consts_code "Cons" ("(_ ::/ _)")
 
-code_alias
-  "List.op @" "List.append"
-  "List.op mem" "List.mem"
-
 code_typapp
   list
     ml ("_ list")
@@ -2784,7 +2780,5 @@ code_constapp Char
   ml (target_atom "(__,/ __)")
 
 setup list_codegen_setup
-
-setup CodegenPackage.rename_inconsistent
 
 end

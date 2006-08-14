@@ -772,12 +772,6 @@ fun gen_id_42 aG bG i = (aG i, bG i);
 consts_code
   "Pair"    ("(_,/ _)")
 
-code_alias
-  "*" "Product_Type.pair"
-  "Pair" "Product_Type.Pair"
-  "fst" "Product_Type.fst"
-  "snd" "Product_Type.snd"
-
 ML {*
 
 fun strip_abs_split 0 t = ([], t)

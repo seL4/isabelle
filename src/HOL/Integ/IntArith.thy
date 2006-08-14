@@ -364,16 +364,19 @@ done
 
 subsection {* code generator setup *}
 
-code_alias
+code_typename
   "Numeral.bin" "IntDef.bin"
   "Numeral.bit" "IntDef.bit"
-  "Numeral.Pls" "IntDef.Pls"
-  "Numeral.Min" "IntDef.Min"
-  "Numeral.Bit" "IntDef.Bit"
-  "Numeral.Abs_Bin" "IntDef.Bin"
+
+code_constname
+  "Numeral.Abs_Bin" "IntDef.bin"
   "Numeral.Rep_Bin" "IntDef.int_of_bin"
-  "Numeral.B0" "IntDef.B0"
-  "Numeral.B1" "IntDef.B1"
+  "Numeral.Pls" "IntDef.pls"
+  "Numeral.Min" "IntDef.min"
+  "Numeral.Bit" "IntDef.bit"
+  "Numeral.bit.bit_case" "IntDef.bit_case"
+  "Numeral.B0" "IntDef.b0"
+  "Numeral.B1" "IntDef.b1"
 
 lemma
   number_of_is_rep_bin [code inline]: "number_of = Rep_Bin"
