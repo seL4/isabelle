@@ -470,6 +470,76 @@ and locales
 \end{warn}
 
 
+\subsubsection{Classes}
+
+A special case of locales are type classes. Type classes
+consist of a locale with \emph{exactly one} type variable
+and an corresponding axclass.
+
+\indexisarcmd{class}\indexisarcmd{print-classes}
+\begin{matharray}{rcl}
+  \isarcmd{class} & : & \isartrans{theory}{local{\dsh}theory} \\
+  \isarcmd{instance} & : & \isartrans{theory}{proof(prove)} \\
+  \isarcmd{print_classes}^* & : & \isarkeep{theory~|~proof} \\
+\end{matharray}
+
+\begin{rail}
+  'class' name '=' classexpr
+  ;
+  'instance' (instarity | instsubsort)
+  ;
+  'print\_classes'
+  ;
+
+  classexpr: ((superclassexpr '+' (contextelem+)) | superclassexpr | (contextelem+))
+  ;
+  instarity: (axmdecl)? (nameref '::' arity + 'and') (axmdecl prop +)?
+  ;
+  instsubsort: nameref ('<' | subseteq) sort
+  ;
+  superclassexpr: nameref | (nameref '+' superclassexpr)
+  ;
+\end{rail}
+
+\begin{descr}
+
+\item [$\CLASS~c = superclasses~+~body$] defines a new class $c$,
+  inheriting from $superclasses$. Simultaneously, a locale
+  named $c$ is introduces, inheriting from the locales
+  corresponding to $superclasses$; also, an axclass
+  named $c$, inheriting from the axclasses corresponding to
+  $superclasses$. $\FIXESNAME$ in $body$ are lifted
+  to the theory toplevel, constraining
+  the free type variable to sort $c$ and stripping local syntax.
+  $\ASSUMESNAME$ in $body$ are also lifted, 
+  constraining
+  the free type variable to sort $c$.
+
+\item [$\INSTANCE~a: \vec{arity}~\vec{defs}$]
+  sets up a goal stating type arities.  The proof would usually
+  proceed by $intro_classes$, and then establish the characteristic theorems
+  of the type classes involved.
+  The $defs$, if given, must correspond to the class parameters
+  involved in the $arities$ and are introduces in the theory
+  before proof. Name and attributes given after the $\INSTANCE$
+  command refer to \emph{all} definitions as a whole.
+  After finishing the proof, the theory will be
+  augmented by a type signature declaration corresponding to the
+  resulting theorems.
+  
+\item [$\INSTANCE~c \subseteq \vec{c}$] sets up a
+  goal stating 
+  the interpretation of the locale corresponding to $c$
+  in the merge of all locales corresponding to $\vec{c}$.
+  After finishing the proof, it is automatically lifted to
+  prove the additional class relation $c \subseteq \vec{c}$.
+
+\item [$\isarkeyword{print_classes}$] prints the names of all classes
+  in the current theory together with some additonal data.
+
+\end{descr}
+
+
 \section{Derived proof schemes}
 
 \subsection{Generalized elimination}\label{sec:obtain}
@@ -1126,7 +1196,7 @@ to assumption 1, positions $i@1+1 \dots i@2$ to assumption 2, and so on.
   (\S\ref{sec:pure-meth-att}).
 
 \item [$contradiction$] solves some goal by contradiction, deriving any result
-  from both $\neg A$ and $A$.  Chained facts, which are guaranteed to
+  from both $\lnot A$ and $A$.  Chained facts, which are guaranteed to
   participate, may appear in either order.
 
 \item [$intro$ and $elim$] repeatedly refine some goal by intro- or
@@ -1265,7 +1335,7 @@ assumptions to be included as well.
   Classical reasoner at the same time.  Non-conditional rules result in a
   ``safe'' introduction and elimination pair; conditional ones are considered
   ``unsafe''.  Rules with negative conclusion are automatically inverted
-  (using $\neg$ elimination internally).
+  (using $\lnot$ elimination internally).
 
   The ``?'' version of $iff$ declares rules to the Isabelle/Pure context only,
   and omits the Simplifier declaration.
@@ -1284,7 +1354,7 @@ assumptions to be included as well.
 \begin{descr}
 
 \item [$swapped$] turns an introduction rule into an elimination, by resolving
-  with the classical swap principle $(\neg B \Imp A) \Imp (\neg A \Imp B)$.
+  with the classical swap principle $(\lnot B \Imp A) \Imp (\lnot A \Imp B)$.
 
 \end{descr}
 
