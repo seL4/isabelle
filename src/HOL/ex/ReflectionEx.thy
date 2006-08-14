@@ -257,4 +257,25 @@ lemma "(((Suc(Suc (Suc 0)))*((x::nat) + (Suc (Suc 0)))) + (Suc (Suc (Suc 0))) * 
   apply (reflection linaform Inum_eqs' aform.simps) 
 oops
 
+
+text{* And finally an example for binders. Here we have an existential quantifier. Binding is trough de Bruijn indices, the index of the varibles. *}
+
+datatype afm = LT num num | EQ num | AND afm afm | OR afm afm | E afm | A afm
+
+consts Iafm:: "nat list \<Rightarrow> afm \<Rightarrow> bool"
+
+primrec
+  "Iafm vs (LT s t) = (Inum vs s < Inum vs t)"
+  "Iafm vs (EQ t) = (Inum vs t = 0)"
+  "Iafm vs (AND p q) = (Iafm vs p \<and> Iafm vs q)"
+  "Iafm vs (OR p q) = (Iafm vs p \<or> Iafm vs q)"
+  "Iafm vs (E p) = (\<exists>x. Iafm (x#vs) p)"
+  "Iafm vs (A p) = (\<forall>x. Iafm (x#vs) p)"
+
+lemma " \<forall>(x::nat) y. \<exists> z. z < x + 3*y \<and> x + y = 0"
+apply (reify Inum_eqs' Iafm.simps)
+oops
+
+
+
 end
