@@ -536,6 +536,7 @@ If t is omitted, the subgoal itself is reified.
  reflection corr_thm eqs (t). The parameters eqs and (t) are as explained above. corr_thm is a theorem for 
 I vs (f t) = I vs t, where f is supposed to be a computable function (in the sense of code generattion). The method uses reify to compute s and xs as above then applies corr_thm and uses normalization by evaluation to "prove" f s = r and finally gets the theorem t = r, which is again applied to the subgoal. An Example is available in HOL/ex/ReflectionEx.thy.
 
+* Reflection: Automatic refification now handels binding, an example is available in HOL/ex/ReflectionEx.thy
 *** HOL-Algebra ***
 
 * Method algebra is now set up via an attribute.  For examples see CRing.thy.
