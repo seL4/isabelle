@@ -439,7 +439,7 @@ fun pretty_def Bot =
       Pretty.str ("cons " ^ dtname)
   | pretty_def (Class (supcls, (v, mems))) =
       Pretty.block [
-        Pretty.str ("class var " ^ v ^ "extending "),
+        Pretty.str ("class var " ^ v ^ " extending "),
         Pretty.enum "," "[" "]" (map Pretty.str supcls),
         Pretty.str " with ",
         Pretty.enum "," "[" "]"
@@ -865,7 +865,7 @@ fun check_samemodule names =
     in
      fn NONE => SOME modn
       | SOME mod' => if modn = mod' then SOME modn
-          else error "inconsistent name prefix for simultanous names"
+          else error ("Inconsistent name prefix for simultanous names: " ^ commas_quote names)
     end
   ) names NONE;
 

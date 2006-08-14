@@ -2,27 +2,24 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Name policies for code generation: dissolving ad-hoc overloaded
-constants, prefixing any name by corresponding theory name,
-conversion to alphanumeric representation.
-Mappings are incrementally cached.
+Name policies for code generation: prefixing any name by corresponding theory name,
+conversion to alphanumeric representation. Mappings are incrementally cached.
 *)
 
 signature CODEGEN_NAMES =
 sig
-  type tyco = string;
-  type const = string;
+  type tyco = string
+  type const = string
   val class: theory -> class -> class
   val class_rev: theory -> class -> class
   val tyco: theory -> tyco -> tyco
   val tyco_rev: theory -> tyco -> tyco
+  val tyco_force: tyco * string -> theory -> theory
   val instance: theory -> class * tyco -> string
   val instance_rev: theory -> string -> class * tyco
   val const: theory -> string * typ -> const
   val const_rev: theory -> const -> string * typ
-  val force: (string * typ) * const -> theory -> theory
-  val read_const_typ: theory -> string -> string * typ
-  val read_const: theory -> string -> const
+  val const_force: (string * typ) * const -> theory -> theory
   val purify_var: string -> string
 end;
 
@@ -36,19 +33,12 @@ type tyco = string;
 type const = string;
 val inst_ord = prod_ord fast_string_ord fast_string_ord;
 val eq_inst = is_equal o inst_ord;
-val const_ord = prod_ord fast_string_ord (list_ord Term.typ_ord);
-val eq_const = is_equal o const_ord;
+structure Consttab = CodegenConsts.Consttab;
 
 structure Insttab =
   TableFun(
     type key = class * tyco;
     val ord = inst_ord;
-  );
-
-structure Consttab =
-  TableFun(
-    type key = string * typ list;
-    val ord = const_ord;
   );
 
 datatype names = Names of {
@@ -79,7 +69,7 @@ in
     mk_names ((Symtab.merge eq_string (class1, class2), Symtab.merge eq_string (classrev1, classrev2)),
       (Symtab.merge eq_string (tyco1, tyco2), Symtab.merge eq_string (tycorev1, tycorev2)),
       (Insttab.merge eq_string (instance1, instance2), Symtab.merge eq_inst (instancerev1, instancerev2)),
-      (Consttab.merge eq_string (const1, const2), Symtab.merge eq_const (constrev1, constrev2)));
+      (Consttab.merge eq_string (const1, const2), Symtab.merge CodegenConsts.eq_const (constrev1, constrev2)));
   fun map_class f = map_names
     (fn (class, tyco, inst, const) => (f class, tyco, inst, const));
   fun map_tyco f = map_names
@@ -188,44 +178,6 @@ fun thyname_of_const thy =
     (fn c => "thyname_of_const: no such constant: " ^ quote c);
 
 
-(* dissolving of ad-hoc overloading *)
-
-fun typinst_of_typ thy (c, ty) =
-  let
-    fun disciplined _ [(Type (tyco, _))] =
-          [Type (tyco, map (fn v => TFree (v, Sign.defaultS thy)) (*for monotonicity*)
-            (Name.invents Name.context "'a" (Sign.arity_number thy tyco)))]
-      | disciplined sort _ =
-          [TFree ("'a", sort)];
-    fun ad_hoc c tys =
-      let
-        val def_tyinsts =
-          map (#lhs o snd) (Defs.specifications_of (Theory.defs_of thy) c);
-        val tyinst = find_first
-          (fn tys' => forall (Sign.typ_instance thy) (tys' ~~ tys)) def_tyinsts;
-      in case tyinst
-       of SOME tys => tys
-        | NONE => Consts.typargs (Sign.consts_of thy)
-            (c, (Logic.unvarifyT o Sign.the_const_type thy) c)
-      end;
-    val tyinsts = Consts.typargs (Sign.consts_of thy) (c, ty);
-  in if c = "op =" then (c, disciplined (Sign.defaultS thy) tyinsts)
-    else case AxClass.class_of_param thy c
-     of SOME class => (c, disciplined [class] tyinsts)
-      | _ => (c, ad_hoc c tyinsts)
-  end;
-
-fun get_overl_def_module thy ("op =", [Type (tyco, _)]) =
-      SOME (thyname_of_tyco thy tyco)
-  | get_overl_def_module thy (c, tys) =
-      get_first (fn (_, { lhs, module, ...}) =>
-        if forall (Sign.typ_instance thy) (lhs ~~ tys) then SOME module else NONE)
-        (Defs.specifications_of (Theory.defs_of thy) c);
-
-fun typ_of_typinst thy (c, tys) =
-  (c, Consts.instance (Sign.consts_of thy) (c, tys));
-
-
 (* purification of identifiers *)
 
 val purify_name =
@@ -255,7 +207,7 @@ fun purify_op "0" = "zero"
           | rep_op "@" = SOME "append"
           | rep_op s = NONE;
         val scan_valids = Symbol.scanner "Malformed input"
-          (Scan.repeat (Scan.some rep_op || Scan.one (K true)));
+           (Scan.repeat (Scan.some rep_op || Scan.one Symbol.not_eof));
       in (explode #> scan_valids #> implode) s end;
 
 val purify_lower = explode #> nth_map 0 Symbol.to_ascii_lower #> implode;
@@ -263,7 +215,7 @@ val purify_upper = explode #> nth_map 0 Symbol.to_ascii_upper #> implode;
 
 fun purify_var v =
   if nth (explode v) 0 = "'"
-  then "'" ^ (purify_name #> purify_lower #> unprefix "'") v
+  then (unprefix "'" #> purify_name #> purify_lower #> prefix "'") v
   else (purify_name #> purify_lower) v;
 
 val purify_idf = purify_op #> purify_name;
@@ -271,9 +223,35 @@ val purify_prefix = map (purify_idf #> purify_upper);
 val purify_base = purify_idf #> purify_lower;
 
 
-(* explicit given constant names with cache update *)
+(* explicit given names with cache update *)
 
-fun force (c_ty, name) thy =
+fun tyco_force (tyco, name) thy =
+  let
+    val names = NameSpace.unpack name;
+    val (prefix, base) = split_last (NameSpace.unpack name);
+    val prefix' = purify_prefix prefix;
+    val base' = purify_base base;
+    val _ = if (base' = base) andalso forall (op =) (prefix' ~~ prefix)
+      then ()
+      else
+        error ("name violates naming conventions: " ^ quote name
+          ^ "; perhaps try with " ^ quote (NameSpace.pack (prefix' @ [base'])))
+    val names_ref = CodegenNamesData.get thy;
+    val (Names names) = ! names_ref;
+    val (tycotab, tycorev) = #tyco names;
+    val _ = if Symtab.defined tycotab tyco
+      then error ("type constructor already named: " ^ quote tyco)
+      else ();
+    val _ = if Symtab.defined tycorev name
+      then error ("name already given to type constructor: " ^ quote name)
+      else ();
+    val _ = names_ref := map_tyco (K (Symtab.update_new (tyco, name) tycotab,
+          Symtab.update_new (name, tyco) tycorev)) (Names names);
+  in
+    thy
+  end;
+
+fun const_force (c_ty, name) thy =
   let
     val names = NameSpace.unpack name;
     val (prefix, base) = split_last (NameSpace.unpack name);
@@ -287,10 +265,9 @@ fun force (c_ty, name) thy =
     val names_ref = CodegenNamesData.get thy;
     val (Names names) = ! names_ref;
     val (const, constrev) = #const names;
-    val c_tys as (c, _) = typinst_of_typ thy c_ty;
+    val c_tys as (c, _) = CodegenConsts.norminst_of_typ thy c_ty;
     val _ = if Consttab.defined const c_tys
-      then error ("constant already named: " ^
-        quote (c ^ "::" ^ (Sign.string_of_typ thy o snd o typ_of_typinst thy) c_tys))
+      then error ("constant already named: " ^ quote (CodegenConsts.string_of_const thy c_tys))
       else ();
     val _ = if Symtab.defined constrev name
       then error ("name already given to constant: " ^ quote name)
@@ -315,15 +292,25 @@ fun tyco_policy thy = policy thy NameSpace.base thyname_of_tyco;
 fun instance_policy thy = policy thy (fn (class, tyco) => 
   NameSpace.base class ^ "_" ^ NameSpace.base tyco) thyname_of_instance;
 
+fun force_thyname thy ("op =", [Type (tyco, _)]) =
+      SOME (thyname_of_tyco thy tyco)
+  | force_thyname thy (c, tys) =
+      case CodegenConsts.find_norminst thy (c, tys)
+       of SOME (module, tys) => (case AxClass.class_of_param thy c
+           of SOME class => (case tys
+               of [Type (tyco, _)] => SOME (thyname_of_instance thy (class, tyco))
+                | _ => SOME module)
+            | NONE => SOME module)
+        | NONE => NONE;
+
 fun const_policy thy (c, tys) =
-  case get_overl_def_module thy (c, tys)
+  case force_thyname thy (c, tys)
    of NONE => policy thy NameSpace.base thyname_of_const c
     | SOME thyname => let
         val prefix = (purify_prefix o NameSpace.unpack) thyname;
-        val base = (purify_base o NameSpace.base) c;
         val tycos = map_filter (fn Type (tyco, _) => SOME tyco | _ => NONE) tys;
-        val base' = space_implode "_" (base :: tycos);
-      in NameSpace.pack (prefix @ [base']) end;
+        val base = map (purify_base o NameSpace.base) (c :: tycos);
+      in NameSpace.pack (prefix @ [space_implode "_" base]) end;
 
 
 (* external interfaces *)
@@ -336,12 +323,12 @@ fun instance thy =
   get thy #instance Insttab.lookup map_inst Insttab.update instance_policy;
 fun const thy =
   get thy #const Consttab.lookup map_const Consttab.update const_policy
-    o typinst_of_typ thy;
+    o CodegenConsts.norminst_of_typ thy;
 
 fun class_rev thy = rev thy #class "class";
 fun tyco_rev thy = rev thy #tyco "type constructor";
 fun instance_rev thy = rev thy #instance "instance";
-fun const_rev thy = rev thy #const "constant" #> typ_of_typinst thy;
+fun const_rev thy = rev thy #const "constant" #> CodegenConsts.typ_of_typinst thy;
 
 
 (* reading constants as terms *)
@@ -365,21 +352,31 @@ local
 structure P = OuterParse
 and K = OuterKeyword
 
-fun force_e (raw_c, name) thy =
-  force (read_const_typ thy raw_c, name) thy;
+fun const_force_e (raw_c, name) thy =
+  const_force (read_const_typ thy raw_c, name) thy;
 
-val constnameK = "code_constname";
+fun tyco_force_e (raw_tyco, name) thy =
+  tyco_force (Sign.intern_type thy raw_tyco, name) thy;
+
+val (constnameK, typenameK) = ("code_constname", "code_typename");
 
 val constnameP =
   OuterSyntax.command constnameK "declare code name for constant" K.thy_decl (
-    P.term -- P.name
-    >> (fn (raw_c, name) =>
-          Toplevel.theory (force_e (raw_c, name)))
+    Scan.repeat1 (P.term -- P.name)
+    >> (fn aliasses =>
+          Toplevel.theory (fold const_force_e aliasses))
+  );
+
+val typenameP =
+  OuterSyntax.command typenameK "declare code name for type constructor" K.thy_decl (
+    Scan.repeat1 (P.name -- P.name)
+    >> (fn aliasses =>
+          Toplevel.theory (fold tyco_force_e aliasses))
   );
 
 in
 
-val _ = OuterSyntax.add_parsers [constnameP];
+val _ = OuterSyntax.add_parsers [constnameP, typenameP];
 
 
 end; (*local*)

@@ -975,6 +975,16 @@ fun hs_from_defs (is_cons, with_typs) (class_syntax, tyco_syntax, const_syntax)
             Pretty.brk 1,
             hs_from_sctxt_type ([], ty)
           ] |> SOME
+      | hs_from_def (name, CodegenThingol.Datatype (sctxt, [(co, tys)])) =
+          (Pretty.block o Pretty.breaks) [
+            str "newtype",
+            hs_from_sctxt_tycoexpr (sctxt, (resolv_here name, map (ITyVar o fst) sctxt)),
+            str "=",
+            (Pretty.block o Pretty.breaks) (
+              (str o resolv_here) co
+              :: map (hs_from_type BR) tys
+            )
+          ] |> SOME
       | hs_from_def (name, CodegenThingol.Datatype (sctxt, constrs)) =
           let
             fun mk_cons (co, tys) =
