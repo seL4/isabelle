@@ -85,24 +85,24 @@ definition
   h :: nat
   "h = g"
 
-code_alias
-  "Codegenerator.f" "Mymod.f"
-  "Codegenerator.g" "Mymod.A.f"
-  "Codegenerator.h" "Mymod.A.B.f"
+code_constname
+  f "Mymod.f"
+  g "Mymod.A.f"
+  h "Mymod.A.B.f"
 
 code_generate (ml, haskell)
   n one "0::int" "0::nat" "1::int" "1::nat"
 code_generate (ml, haskell)
   fac
-code_generate (ml, haskell)
+code_generate
   xor
-code_generate (ml, haskell)
+code_generate
   "op + :: nat \<Rightarrow> nat \<Rightarrow> nat"
   "op - :: nat \<Rightarrow> nat \<Rightarrow> nat"
   "op * :: nat \<Rightarrow> nat \<Rightarrow> nat"
   "op < :: nat \<Rightarrow> nat \<Rightarrow> bool"
   "op <= :: nat \<Rightarrow> nat \<Rightarrow> bool"
-code_generate (ml, haskell)
+code_generate
   Pair fst snd Let split swap swapp appl
 code_generate (ml, haskell)
   k
@@ -114,13 +114,13 @@ code_generate (ml, haskell)
   fac
   "op div :: int \<Rightarrow> int \<Rightarrow> int"
   "op mod :: int \<Rightarrow> int \<Rightarrow> int"  
-code_generate (ml, haskell)
+code_generate
   Inl Inr
-code_generate (ml, haskell)
+code_generate
   None Some
-code_generate (ml, haskell)
+code_generate
   hd tl "op @" ps qs
-code_generate (ml, haskell)
+code_generate
   mut1 mut2
 code_generate (ml, haskell)
   "op @" filter concat foldl foldr hd tl
@@ -143,7 +143,7 @@ code_generate (ml, haskell)
   rotate1
   rotate
   splice
-code_generate (ml, haskell)
+code_generate
   foo1 foo3
 code_generate (ml, haskell)
   "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"
@@ -153,9 +153,10 @@ code_generate (ml, haskell)
   "op = :: 'a + 'b \<Rightarrow> 'a + 'b \<Rightarrow> bool"
   "op = :: 'a option \<Rightarrow> 'a option \<Rightarrow> bool"
   "op = :: 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
+  "op = :: point \<Rightarrow> point \<Rightarrow> bool"
   "op = :: mut1 \<Rightarrow> mut1 \<Rightarrow> bool"
   "op = :: mut2 \<Rightarrow> mut2 \<Rightarrow> bool"
-code_generate (ml, haskell)
+code_generate
   f g h
 
 code_serialize ml (-)

@@ -211,16 +211,10 @@ proof -
   with cancel show ?thesis ..
 qed
 
-interpretation group < monoid
-proof -
-  fix x :: "'a"
-  from neutr show "x \<^loc>\<otimes> \<^loc>\<one> = x" .
-qed
-
 instance group < monoid
-proof
-  fix x :: "'a\<Colon>group"
-  from group.neutr show "x \<otimes> \<one> = x" .
+proof -
+  fix x
+  from neutr show "x \<^loc>\<otimes> \<^loc>\<one> = x" .
 qed
 
 lemma (in group) all_inv [intro]:
@@ -305,12 +299,17 @@ instance group_comm_prod_def: (group_comm, group_comm) * :: group_comm
 by default (simp_all add: split_paired_all group_prod_def assoc neutl invl comm)
 
 definition
-  "x = ((2\<Colon>nat) \<otimes> \<one> \<otimes> 3, (2\<Colon>int) \<otimes> \<one> \<otimes> \<div> 3, [1\<Colon>nat, 2] \<otimes> \<one> \<otimes> [1, 2, 3])"
-  "y = (2 \<Colon> int, \<div> 2 \<Colon> int) \<otimes> \<one> \<otimes> (3, \<div> 3)"
+  "X a b c = (a \<otimes> \<one> \<otimes> b, a \<otimes> \<one> \<otimes> b, [a, b] \<otimes> \<one> \<otimes> [a, b, c])"
+  "Y a b c = (a, \<div> a) \<otimes> \<one> \<otimes> \<div> (b, \<div> c)"
+
+definition
+  "x1 = X (1::nat) 2 3"
+  "x2 = X (1::int) 2 3"
+  "y2 = Y (1::int) 2 3"
 
 code_generate "op \<otimes>" \<one> inv
-code_generate (ml, haskell) x
-code_generate (ml, haskell) y
+code_generate (ml, haskell) X Y
+code_generate (ml, haskell) x1 x2 y2
 
 code_serialize ml (-)
 
