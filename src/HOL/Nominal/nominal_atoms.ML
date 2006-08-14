@@ -770,7 +770,9 @@ fun create_nom_typedecls ak_names thy =
 		  val thms2 = inst_dj [at_fresh_ineq]
 	      in [(("fresh_atm", thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss
-	      let val thms1 = List.concat (List.concat perm_defs)
+	      let val thms1 = filter
+                (fn th => case prop_of th of _ $ _ $ Var _ => true | _ => false)
+                (List.concat (List.concat perm_defs))
               in [(("calc_atm", (inst_at at_calc) @ thms1),[])] end
             ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [abs_fun_pi]
