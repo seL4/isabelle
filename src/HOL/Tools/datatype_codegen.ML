@@ -15,6 +15,7 @@ sig
   val add_datatype_case_const: string -> theory -> theory
   val add_datatype_case_defs: string -> theory -> theory
   val datatypes_dependency: theory -> string list list
+  val add_hook_bootstrap: DatatypeHooks.hook -> theory -> theory
   val get_datatype_mut_specs: theory -> string list
     -> ((string * sort) list * (string * (string * typ list) list) list)
   val get_datatype_arities: theory -> string list -> sort
@@ -337,6 +338,11 @@ fun datatypes_dependency thy =
     |> Graph.strong_conn
   end;
 
+fun add_hook_bootstrap hook thy =
+  thy
+  |> fold hook (datatypes_dependency thy)
+  |> DatatypeHooks.add hook;
+
 fun get_datatype_mut_specs thy (tycos as tyco :: _) =
   let
     val tycos' = (map (#1 o snd) o #descr o DatatypePackage.the_datatype thy) tyco;
@@ -463,8 +469,6 @@ val setup =
   add_tycodegen "datatype" datatype_tycodegen #>
   CodegenTheorems.add_datatype_extr
     get_datatype_spec_thms #>
-  CodegenPackage.set_get_all_datatype_cons
-    get_all_datatype_cons #>
   DatatypeHooks.add (fold add_datatype_case_const) #>
   DatatypeHooks.add (fold add_datatype_case_defs)
 
