@@ -224,6 +224,12 @@ lemma supp_int:
   apply(simp add: supp_def perm_int_def)
   done
 
+lemma supp_nat:
+  fixes n::"nat"
+  shows "supp (n) = {}"
+  apply(simp add: supp_def perm_nat_def)
+  done
+
 lemma supp_char:
   fixes c::"char"
   shows "supp (c) = {}"
