@@ -410,11 +410,11 @@ fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arities (raw_na
      of [] => ()
       | dupl_tycos => error ("type constructors occur more than once in arities: "
         ^ (commas o map quote) dupl_tycos);
-    val name = case raw_name
-     of "" => Thm.def_name ((space_implode "_" o map NameSpace.base)
+    val (bind_always, name) = case raw_name
+     of "" => (false, Thm.def_name ((space_implode "_" o map NameSpace.base)
                 (maps (fn (tyco, _, sort) => sort @ [tyco])
-                (sort (fn ((tyco1, _, _), (tyco2, _, _)) => string_ord (tyco1, tyco2)) arities)))
-      | _ => raw_name;
+                (sort (fn ((tyco1, _, _), (tyco2, _, _)) => string_ord (tyco1, tyco2)) arities))))
+      | _ => (true, raw_name);
     val atts = map (prep_att theory) raw_atts;
     fun already_defined (c, ty_inst) = 
       is_some (find_first (fn (_, { lhs = [ty_inst'], ...}) =>
@@ -473,13 +473,16 @@ fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arities (raw_na
     fun note_all thy =
       (*FIXME: should avoid binding duplicated names*)
       let
+        val bind = bind_always orelse not (can (PureThy.get_thms thy) (Name name));
         val thms = maps (fn (tyco, _, sort) => maps (fn class =>
           Symtab.lookup_list
             ((snd o the_class_data thy) class) tyco) (the_ancestry thy sort)) arities;
-      in
+      in if bind then
         thy
         |> PureThy.note_thmss_i PureThy.internalK [((name, atts), [(thms, [])])]
         |> snd
+      else
+        thy
       end;
     fun after_qed cs thy =
       thy
@@ -567,7 +570,7 @@ end; (* local *)
 
 type sortcontext = (string * sort) list;
 
-fun sortcontext_of_typ thy ty = fold_atyps
+fun sortcontext_of_typ thy ty = (rev ooo fold_atyps)
   (fn TFree (v, S) =>
     (case operational_sort_of thy S of
       [] => I
