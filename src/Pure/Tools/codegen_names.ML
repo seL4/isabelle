@@ -140,7 +140,7 @@ fun rev thy get_tabs errname name =
     val tab = (snd o get_tabs) names;
   in case Symtab.lookup tab name
    of SOME x => x
-    | NONE => error ("no such " ^ errname ^ ": " ^ quote name)
+    | NONE => error ("No such " ^ errname ^ ": " ^ quote name)
   end;
 
 
@@ -213,10 +213,11 @@ fun purify_op "0" = "zero"
 val purify_lower = explode #> nth_map 0 Symbol.to_ascii_lower #> implode;
 val purify_upper = explode #> nth_map 0 Symbol.to_ascii_upper #> implode;
 
-fun purify_var v =
-  if nth (explode v) 0 = "'"
-  then (unprefix "'" #> purify_name #> purify_lower #> prefix "'") v
-  else (purify_name #> purify_lower) v;
+fun purify_var "" = "x"
+  | purify_var v =
+      if nth (explode v) 0 = "'"
+      then (unprefix "'" #> purify_name #> purify_lower #> prefix "'") v
+      else (purify_name #> purify_lower) v;
 
 val purify_idf = purify_op #> purify_name;
 val purify_prefix = map (purify_idf #> purify_upper);
@@ -234,16 +235,16 @@ fun tyco_force (tyco, name) thy =
     val _ = if (base' = base) andalso forall (op =) (prefix' ~~ prefix)
       then ()
       else
-        error ("name violates naming conventions: " ^ quote name
+        error ("Name violates naming conventions: " ^ quote name
           ^ "; perhaps try with " ^ quote (NameSpace.pack (prefix' @ [base'])))
     val names_ref = CodegenNamesData.get thy;
     val (Names names) = ! names_ref;
     val (tycotab, tycorev) = #tyco names;
     val _ = if Symtab.defined tycotab tyco
-      then error ("type constructor already named: " ^ quote tyco)
+      then error ("Type constructor already named: " ^ quote tyco)
       else ();
     val _ = if Symtab.defined tycorev name
-      then error ("name already given to type constructor: " ^ quote name)
+      then error ("Name already given to type constructor: " ^ quote name)
       else ();
     val _ = names_ref := map_tyco (K (Symtab.update_new (tyco, name) tycotab,
           Symtab.update_new (name, tyco) tycorev)) (Names names);
@@ -260,17 +261,17 @@ fun const_force (c_ty, name) thy =
     val _ = if (base' = base) andalso forall (op =) (prefix' ~~ prefix)
       then ()
       else
-        error ("name violates naming conventions: " ^ quote name
+        error ("Name violates naming conventions: " ^ quote name
           ^ "; perhaps try with " ^ quote (NameSpace.pack (prefix' @ [base'])))
     val names_ref = CodegenNamesData.get thy;
     val (Names names) = ! names_ref;
     val (const, constrev) = #const names;
     val c_tys as (c, _) = CodegenConsts.norminst_of_typ thy c_ty;
     val _ = if Consttab.defined const c_tys
-      then error ("constant already named: " ^ quote (CodegenConsts.string_of_const thy c_tys))
+      then error ("Constant already named: " ^ quote (CodegenConsts.string_of_const thy c_tys))
       else ();
     val _ = if Symtab.defined constrev name
-      then error ("name already given to constant: " ^ quote name)
+      then error ("Name already given to constant: " ^ quote name)
       else ();
     val _ = names_ref := map_const (K (Consttab.update_new (c_tys, name) const,
           Symtab.update_new (name, c_tys) constrev)) (Names names);
@@ -293,15 +294,16 @@ fun instance_policy thy = policy thy (fn (class, tyco) =>
   NameSpace.base class ^ "_" ^ NameSpace.base tyco) thyname_of_instance;
 
 fun force_thyname thy ("op =", [Type (tyco, _)]) =
+      (*will disappear finally*)
       SOME (thyname_of_tyco thy tyco)
   | force_thyname thy (c, tys) =
-      case CodegenConsts.find_norminst thy (c, tys)
-       of SOME (module, tys) => (case AxClass.class_of_param thy c
-           of SOME class => (case tys
-               of [Type (tyco, _)] => SOME (thyname_of_instance thy (class, tyco))
-                | _ => SOME module)
-            | NONE => SOME module)
-        | NONE => NONE;
+      case AxClass.class_of_param thy c
+       of SOME class => (case tys
+           of [Type (tyco, _)] => SOME (thyname_of_instance thy (class, tyco))
+            | _ => NONE)
+        | NONE => (case CodegenConsts.find_def thy (c, tys)
+       of SOME ((thyname, _), tys) => SOME thyname
+        | NONE => NONE);
 
 fun const_policy thy (c, tys) =
   case force_thyname thy (c, tys)
@@ -331,20 +333,6 @@ fun instance_rev thy = rev thy #instance "instance";
 fun const_rev thy = rev thy #const "constant" #> CodegenConsts.typ_of_typinst thy;
 
 
-(* reading constants as terms *)
-
-fun read_const_typ thy raw_t =
-  let
-    val t = Sign.read_term thy raw_t
-  in case try dest_Const t
-   of SOME c_ty => c_ty
-    | NONE => error ("not a constant: " ^ Sign.string_of_term thy t)
-  end;
-
-fun read_const thy =
-  const thy o read_const_typ thy;
-
-
 (* outer syntax *)
 
 local
@@ -353,7 +341,7 @@ structure P = OuterParse
 and K = OuterKeyword
 
 fun const_force_e (raw_c, name) thy =
-  const_force (read_const_typ thy raw_c, name) thy;
+  const_force (CodegenConsts.read_const_typ thy raw_c, name) thy;
 
 fun tyco_force_e (raw_tyco, name) thy =
   tyco_force (Sign.intern_type thy raw_tyco, name) thy;

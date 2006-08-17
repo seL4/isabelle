@@ -9,7 +9,8 @@ intermediate language ("Thin-gol").
 signature CODEGEN_PACKAGE =
 sig
   val codegen_term: term -> theory -> CodegenThingol.iterm * theory;
-  val eval_term: (string (*reference name!*) * 'a ref) * term -> theory -> 'a * theory;
+  val eval_term: (string (*reference name!*) * 'a ref) * term
+    -> theory -> 'a * theory;
   val is_dtcon: string -> bool;
   val consts_of_idfs: theory -> string list -> (string * typ) list;
   val idfs_of_consts: theory -> (string * typ) list -> string list;
@@ -93,25 +94,22 @@ val serializers = ref (
        #ml CodegenSerializer.serializers
        |> apsnd (fn seri => seri
             nsp_dtcon
-            [[nsp_module], [nsp_class, nsp_tyco], [nsp_const, nsp_dtcon, nsp_class, nsp_mem, nsp_inst, nsp_instmem]]
+            [[nsp_module], [nsp_class, nsp_tyco],
+              [nsp_const, nsp_dtcon, nsp_class, nsp_mem, nsp_inst, nsp_instmem]]
           )
      )
   |> Symtab.update (
        #haskell CodegenSerializer.serializers
        |> apsnd (fn seri => seri
             (nsp_dtcon, [nsp_module, nsp_class, nsp_tyco, nsp_dtcon])
-            [[nsp_module], [nsp_class], [nsp_tyco], [nsp_const,  nsp_mem], [nsp_dtcon], [nsp_inst], [nsp_instmem]]
+            [[nsp_module], [nsp_class], [nsp_tyco], [nsp_const,  nsp_mem],
+              [nsp_dtcon], [nsp_inst], [nsp_instmem]]
           )
      )
 );
 
 
 (* theory data for code generator *)
-
-fun merge_opt _ (x1, NONE) = x1
-  | merge_opt _ (NONE, x2) = x2
-  | merge_opt eq (SOME x1, SOME x2) =
-      if eq (x1, x2) then SOME x1 else error ("incompatible options during merge");
 
 type appgens = (int * (appgen * stamp)) Symtab.table
 
@@ -260,7 +258,8 @@ fun check_strict thy f x ((false, _), _) =
       false
   | check_strict thy f x ((_, SOME targets), _) =
       exists (
-        is_none o (fn tab => Symtab.lookup tab x) o f o the o (Symtab.lookup ((#target_data o CodegenData.get) thy))
+        is_none o (fn tab => Symtab.lookup tab x) o f o the
+          o (Symtab.lookup ((#target_data o CodegenData.get) thy))
       ) targets
   | check_strict thy f x ((true, _), _) =
       true;
@@ -281,8 +280,7 @@ fun sortlookups_const thy thmtab (c, typ_ctxt) =
     Vartab.empty
     |> Sign.typ_match thy (typ_decl, typ_ctxt) 
     |> Vartab.dest
-    |> map_filter (fn (_, ([], _)) => NONE
-                   | (_, (sort, ty)) => SOME (ClassPackage.sortlookup thy (ty, sort)))
+    |> map (fn (_, (sort, ty)) => ClassPackage.sortlookup thy (ty, sort))
     |> filter_out null
   end;
 
@@ -306,7 +304,7 @@ fun ensure_def_class thy tabs cls trns =
             end
         | _ =>
             trns
-            |> fail ("no class definition found for " ^ quote cls);
+            |> fail ("No class definition found for " ^ quote cls);
     val cls' = idf_of_class thy cls;
   in
     trns
@@ -333,14 +331,15 @@ and ensure_def_tyco thy (tabs as (_, thmtab)) tyco trns =
                        (vars, cos)))
               | NONE =>
                   trns
-                  |> fail ("no datatype found for " ^ quote dtco))
+                  |> fail ("No datatype found for " ^ quote dtco))
         | NONE =>
             trns
-            |> fail ("not a type constructor: " ^ quote dtco)
+            |> fail ("Not a type constructor: " ^ quote dtco)
   in
     trns
     |> debug_msg (fn _ => "generating type constructor " ^ quote tyco)
-    |> ensure_def (defgen_datatype thy tabs) strict ("generating type constructor " ^ quote tyco) tyco'
+    |> ensure_def (defgen_datatype thy tabs) strict
+        ("generating type constructor " ^ quote tyco) tyco'
     |> pair tyco'
   end
 and exprgen_tyvar_sort thy tabs (v, sort) trns =
@@ -348,7 +347,7 @@ and exprgen_tyvar_sort thy tabs (v, sort) trns =
   |> fold_map (ensure_def_class thy tabs) (ClassPackage.operational_sort_of thy sort)
   |-> (fn sort => pair (unprefix "'" v, sort))
 and exprgen_type thy tabs (TVar _) trns =
-      error "TVar encountered during code generation"
+      error "TVar encountered in typ during code generation"
   | exprgen_type thy tabs (TFree v_s) trns =
       trns
       |> exprgen_tyvar_sort thy tabs v_s
@@ -386,9 +385,9 @@ and mk_fun thy (tabs as (_, thmtab)) (c, ty) trns =
                 (apfst strip_comb o Logic.dest_equals o Logic.legacy_unvarify o prop_of) eq_thm;
             in case t
              of Const (c', _) => if c' = c then (args, rhs)
-                 else error ("illegal function equation for " ^ quote c
+                 else error ("Illegal function equation for " ^ quote c
                    ^ ", actually defining " ^ quote c')
-              | _ => error ("illegal function equation for " ^ quote c)
+              | _ => error ("Illegal function equation for " ^ quote c)
             end;
           fun exprgen_eq (args, rhs) trns =
             trns
@@ -396,7 +395,7 @@ and mk_fun thy (tabs as (_, thmtab)) (c, ty) trns =
             ||>> exprgen_term thy tabs rhs;
           fun checkvars (args, rhs) =
             if CodegenThingol.vars_distinct args then (args, rhs)
-            else error ("repeated variables on left hand side of function")
+            else error ("Repeated variables on left hand side of function")
         in
           trns
           |> message msg (fn trns => trns
@@ -404,7 +403,8 @@ and mk_fun thy (tabs as (_, thmtab)) (c, ty) trns =
           |-> (fn eqs => pair (map checkvars eqs))
           ||>> fold_map (exprgen_tyvar_sort thy tabs) sortcontext
           ||>> exprgen_type thy tabs ty
-          |-> (fn ((eqs, sortctxt), ty) => (pair o SOME) ((eqs, (sortctxt, ty)), map snd sortcontext)))
+          |-> (fn ((eqs, sortctxt), ty) => (pair o SOME) ((eqs, (sortctxt, ty)),
+            map snd sortcontext)))
         end
     | [] => (NONE, trns)
 and ensure_def_inst thy tabs (cls, tyco) trns =
@@ -414,11 +414,12 @@ and ensure_def_inst thy tabs (cls, tyco) trns =
        of SOME (class, tyco) =>
             let
               val (arity, memdefs) = ClassPackage.the_inst_sign thy (class, tyco);
-              val (_, memnames) = ClassPackage.the_consts_sign thy class;
+              val (_, members) = ClassPackage.the_consts_sign thy class;
               val arity_typ = Type (tyco, (map TFree arity));
-              val operational_arity = map_filter (fn (v, sort) => case ClassPackage.operational_sort_of thy sort
-               of [] => NONE
-                | sort => SOME (v, sort)) arity;
+              val operational_arity = map_filter (fn (v, sort) =>
+                case ClassPackage.operational_sort_of thy sort
+                 of [] => NONE
+                  | sort => SOME (v, sort)) arity;
               fun mk_instmemname (m, ty) =
                 NameSpace.append (NameSpace.append ((NameSpace.drop_base o NameSpace.drop_base)
                   inst) nsp_instmem) (NameSpace.base (idf_of_const thy thmtab (m, ty)));
@@ -429,16 +430,8 @@ and ensure_def_inst thy tabs (cls, tyco) trns =
                       (ClassPackage.sortlookup thy (arity_typ, [supclass]));
               fun gen_membr ((m0, ty0), (m, ty)) trns =
                 trns
-                |> mk_fun thy tabs (m, ty)
-                |-> (fn NONE => error ("could not derive definition for member "
-                          ^ quote m ^ " :: " ^ Sign.string_of_typ thy ty)
-                      | SOME (funn, sorts) => fold_map (fn (sort, sort_ctxt) =>
-                          fold_map (exprgen_classlookup thy tabs)
-                            (ClassPackage.sortlookup thy (TFree sort_ctxt, sort)))
-                            (sorts ~~ operational_arity)
-                #-> (fn lss =>
-                       pair (idf_of_const thy thmtab (m0, ty0),
-                         ((mk_instmemname (m0, ty0), funn), lss))));
+                |> ensure_def_const thy tabs (m0, ty0)
+                ||>> exprgen_term thy tabs (Const (m, ty));
             in
               trns
               |> debug_msg (fn _ => "trying defgen class instance for (" ^ quote cls
@@ -447,12 +440,12 @@ and ensure_def_inst thy tabs (cls, tyco) trns =
               ||>> ensure_def_tyco thy tabs tyco
               ||>> fold_map (exprgen_tyvar_sort thy tabs) arity
               ||>> fold_map gen_suparity (ClassPackage.the_superclasses thy class)
-              ||>> fold_map gen_membr (memnames ~~ memdefs)
+              ||>> fold_map gen_membr (members ~~ memdefs)
               |-> (fn ((((class, tyco), arity), suparities), memdefs) =>
-                     succeed (Classinst (((class, (tyco, arity)), suparities), memdefs)))
+                     succeed (Classinst ((class, (tyco, arity)), (suparities, memdefs))))
             end
         | _ =>
-            trns |> fail ("no class instance found for " ^ quote inst);
+            trns |> fail ("No class instance found for " ^ quote inst);
     val inst = idf_of_inst thy (cls, tyco);
   in
     trns
@@ -472,7 +465,8 @@ and ensure_def_const thy (tabs as (_, thmtab)) (c, ty) trns =
             |-> (fn _ => succeed Bot)
         | _ =>
             trns
-            |> fail ("not a datatype constructor: " ^ quote co);
+            |> fail ("Not a datatype constructor: "
+                ^ (quote o CodegenConsts.string_of_const_typ thy) (c, ty));
     fun defgen_clsmem thy (tabs as (_, thmtab)) m trns =
       case CodegenConsts.class_of_classop thy
         ((CodegenConsts.typinst_of_typ thy o the o const_of_idf thy) m)
@@ -482,13 +476,13 @@ and ensure_def_const thy (tabs as (_, thmtab)) (c, ty) trns =
             |> ensure_def_class thy tabs class
             |-> (fn _ => succeed Bot)
         | _ =>
-            trns |> fail ("no class found for " ^ quote m)
+            trns |> fail ("No class found for " ^ (quote o CodegenConsts.string_of_const_typ thy) (c, ty))
     fun defgen_funs thy (tabs as (_, thmtab)) c' trns =
         trns
         |> mk_fun thy tabs ((the o const_of_idf thy) c')
         |-> (fn SOME (funn, _) => succeed (Fun funn)
-              | NONE => fail ("no defining equations found for " ^
-                  (quote (c ^ " :: " ^ Sign.string_of_typ thy ty))))
+              | NONE => fail ("No defining equations found for "
+                   ^ (quote o CodegenConsts.string_of_const_typ thy) (c, ty)))
     fun get_defgen tabs idf strict =
       if (is_some oo dest_nsp) nsp_const idf
       then defgen_funs thy tabs strict
@@ -496,13 +490,15 @@ and ensure_def_const thy (tabs as (_, thmtab)) (c, ty) trns =
       then defgen_clsmem thy tabs strict
       else if (is_some oo dest_nsp) nsp_dtcon idf
       then defgen_datatypecons thy tabs strict
-      else error ("illegal shallow name space for constant: " ^ quote idf);
+      else error ("Illegal shallow name space for constant: " ^ quote idf);
     val idf = idf_of_const thy thmtab (c, ty);
     val strict = check_strict thy #syntax_const idf tabs;
   in
     trns
-    |> debug_msg (fn _ => "generating constant " ^ (quote (c ^ " :: " ^ Sign.string_of_typ thy ty)))
-    |> ensure_def (get_defgen tabs idf) strict ("generating constant " ^ quote c) idf
+    |> debug_msg (fn _ => "generating constant "
+        ^ (quote o CodegenConsts.string_of_const_typ thy) (c, ty))
+    |> ensure_def (get_defgen tabs idf) strict ("generating constant "
+         ^ CodegenConsts.string_of_const_typ thy (c, ty)) idf
     |> pair idf
   end
 and exprgen_term thy tabs (Const (f, ty)) trns =
@@ -510,7 +506,7 @@ and exprgen_term thy tabs (Const (f, ty)) trns =
       |> appgen thy tabs ((f, ty), [])
       |-> (fn e => pair e)
   | exprgen_term thy tabs (Var _) trns =
-      error "Var encountered during code generation"
+      error "Var encountered in term during code generation"
   | exprgen_term thy tabs (Free (v, ty)) trns =
       trns
       |> exprgen_type thy tabs ty
@@ -655,7 +651,7 @@ fun mk_tabs thy targets cs =
 fun get_serializer target =
   case Symtab.lookup (!serializers) target
    of SOME seri => seri
-    | NONE => Scan.fail_with (fn _ => "unknown code target language: " ^ quote target) ();
+    | NONE => Scan.fail_with (fn _ => "Unknown code target language: " ^ quote target) ();
 
 fun map_module f =
   map_codegen_data (fn (modl, gens, target_data) =>
@@ -712,6 +708,17 @@ fun get_root_module thy =
 
 fun eval_term (ref_spec, t) thy =
   let
+    fun preprocess_term t =
+      let
+        val x = Free (Name.variant (add_term_names (t, [])) "x", fastype_of t);
+        (* fake definition *)
+        val eq = setmp quick_and_dirty true (SkipProof.make_thm thy)
+          (Logic.mk_equals (x, t));
+        fun err () = error "preprocess_term: bad preprocessor"
+      in case map prop_of (CodegenTheorems.preprocess thy [eq])
+       of [Const ("==", _) $ x' $ t'] => if x = x' then t' else err ()
+        | _ => err ()
+      end;
     val target_data =
       ((fn data => (the o Symtab.lookup data) "ml") o #target_data o CodegenData.get) thy;
     val eval = CodegenSerializer.eval_term nsp_eval nsp_dtcon [[nsp_module], [nsp_class, nsp_tyco], [nsp_const, nsp_dtcon, nsp_class, nsp_mem, nsp_inst, nsp_instmem], [nsp_eval]]
@@ -720,7 +727,7 @@ fun eval_term (ref_spec, t) thy =
       (Symtab.keys (#syntax_tyco target_data) @ Symtab.keys (#syntax_const target_data))
   in
     thy
-    |> codegen_term t
+    |> codegen_term (preprocess_term t)
     ||>> `(#modl o CodegenData.get)
     |-> (fn (t', modl) => `(fn _ => eval (ref_spec, t') modl))
   end;

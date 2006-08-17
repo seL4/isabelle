@@ -9,7 +9,7 @@ signature DATATYPE_CODEGEN =
 sig
   val get_datatype_spec_thms: theory -> string
     -> (((string * sort) list * (string * typ list) list) * tactic) option
-  val get_all_datatype_cons: theory -> (string * string) list
+  val datatype_tac: theory -> string -> tactic
   val dest_case_expr: theory -> term
     -> ((string * typ) list * ((term * typ) * (term * term) list)) option
   val add_datatype_case_const: string -> theory -> theory
@@ -21,7 +21,7 @@ sig
   val get_datatype_arities: theory -> string list -> sort
     -> (string * (((string * sort list) * sort) * term list)) list option
   val prove_arities: (thm list -> tactic) -> string list -> sort
-    -> (((string * sort list) * sort) list -> (string * term list) list
+    -> (theory -> ((string * sort list) * sort) list -> (string * term list) list
     -> ((bstring * attribute list) * term) list) -> theory -> theory
   val setup: theory -> theory
 end;
@@ -392,7 +392,7 @@ fun prove_arities tac tycos sort f thy =
       in
         thy
         |> K ((not o null) arities) ? ClassPackage.prove_instance_arity tac
-             arities ("", []) (f arities css)
+             arities ("", []) (f thy arities css)
       end;
 
 fun dtyp_of_case_const thy c =
@@ -443,12 +443,6 @@ fun get_datatype_spec_thms thy dtco =
    of SOME vs_cos =>
         SOME (vs_cos, datatype_tac thy dtco)
     | NONE => NONE;
-
-fun get_all_datatype_cons thy =
-  Symtab.fold (fn (dtco, _) => fold
-    (fn (co, _) => cons (co, dtco))
-      ((snd o the oo DatatypePackage.get_datatype_spec) thy dtco))
-        (DatatypePackage.get_datatypes thy) [];
 
 fun add_datatype_case_const dtco thy =
   let

@@ -72,10 +72,9 @@ sig
     | Datatypecons of string
     | Class of class list * (vname * (string * (sortcontext * itype)) list)
     | Classmember of class
-    | Classinst of ((class * (string * (vname * sort) list))
-          * (class * iclasslookup list) list)
-        * (string * ((string * funn) * iclasslookup list list)) list
-    | Classinstmember;
+    | Classinst of (class * (string * (vname * sort) list))
+          * ((class * iclasslookup list) list
+        * (string * iterm) list);
   type module;
   type transact;
   type 'dst transact_fin;
@@ -97,6 +96,7 @@ sig
   val fail: string -> transact -> 'a transact_fin;
   val message: string -> (transact -> 'a) -> transact -> 'a;
   val start_transact: string option -> (transact -> 'a * transact) -> module -> 'a * module;
+  val elim_classes: module -> funn -> (iterm list * iterm) list * itype;
 
   val debug: bool ref;
   val debug_msg: ('a -> string) -> 'a -> 'a;
@@ -388,12 +388,11 @@ datatype def =
   | Typesyn of sortcontext * itype
   | Datatype of datatyp
   | Datatypecons of string
-| Class of class list * (vname * (string * (sortcontext * itype)) list)
+  | Class of class list * (vname * (string * (sortcontext * itype)) list)
   | Classmember of class
-  | Classinst of ((class * (string * (vname * sort) list))
-        * (class * iclasslookup list) list)
-      * (string * ((string * funn) * iclasslookup list list)) list
-  | Classinstmember;
+  | Classinst of (class * (string * (vname * sort) list))
+          * ((class * iclasslookup list) list
+        * (string * iterm) list);
 
 datatype node = Def of def | Module of node Graph.T;
 type module = node Graph.T;
@@ -451,7 +450,7 @@ fun pretty_def Bot =
         Pretty.str "class member belonging to ",
         Pretty.str clsname
       ]
-  | pretty_def (Classinst (((clsname, (tyco, arity)), _), _)) =
+  | pretty_def (Classinst ((clsname, (tyco, arity)), _)) =
       Pretty.block [
         Pretty.str "class instance (",
         Pretty.str clsname,
@@ -461,9 +460,7 @@ fun pretty_def Bot =
         Pretty.enum "," "[" "]" (map (Pretty.enum "," "{" "}" o
           map Pretty.str o snd) arity),
         Pretty.str "))"
-      ]
-  | pretty_def Classinstmember =
-      Pretty.str "class instance member";
+      ];
 
 fun pretty_module modl =
   let
@@ -517,7 +514,7 @@ fun dest_name name =
     val (name'', name_base) = split_last name'
     val (modl, shallow) = split_last name''
   in (modl, NameSpace.pack [shallow, name_base]) end
-  handle Empty => error ("not a qualified name: " ^ quote name);
+  handle Empty => error ("Not a qualified name: " ^ quote name);
 
 fun has_nsp name shallow =
   NameSpace.is_qualified name
@@ -578,7 +575,7 @@ fun ensure_bot name =
            of NONE =>
                 module
                 |> Graph.new_node (base, Def Bot)
-            | SOME (Module _) => error ("module already present: " ^ quote name)
+            | SOME (Module _) => error ("Module already present: " ^ quote name)
             | _ => module)
       | ensure (m::ms) module =
           module
@@ -588,9 +585,9 @@ fun ensure_bot name =
 
 fun add_def_incr strict (name, Bot) module =
       (case try (get_def module) name
-       of NONE => if strict then error "attempted to add Bot to module"
+       of NONE => if strict then error "Attempted to add Bot to module"
             else map_def name (K Bot) module
-        | SOME Bot => if strict then error "attempted to add Bot to module"
+        | SOME Bot => if strict then error "Attempted to add Bot to module"
             else map_def name (K Bot) module
         | SOME _ => module)
   | add_def_incr _ (name, def) module =
@@ -599,7 +596,7 @@ fun add_def_incr strict (name, Bot) module =
         | SOME Bot => map_def name (K def) module
         | SOME def' => if eq_def (def, def')
             then module
-            else error ("tried to overwrite definition " ^ quote name));
+            else error ("Tried to overwrite definition " ^ quote name));
 
 fun add_dep (name1, name2) modl =
   if name1 = name2 then modl
@@ -614,7 +611,7 @@ fun add_dep (name1, name2) modl =
         then Graph.add_edge
         else fn edge => fn gr => (Graph.add_edge_acyclic edge gr
           handle Graph.CYCLES _ =>
-            error ("adding dependency "
+            error ("Adding dependency "
               ^ quote name1 ^ " -> " ^ quote name2 ^ " would result in module dependency cycle"))
       fun add [] node =
             node
@@ -760,7 +757,7 @@ fun deps_of Bot =
       ) memdecls
   | deps_of (Classmember class) =
       [class]
-  | deps_of (Classinst (((class, (tyco, sctxt)), suparities), memdefs)) =
+  | deps_of (Classinst ((class, (tyco, sctxt)), (suparities, memdefs))) =
       []
       |> insert (op =) class
       |> insert (op =) tyco
@@ -769,15 +766,10 @@ fun deps_of Bot =
             insert (op =) supclass
             #> fold add_deps_of_classlookup ls
       ) suparities
-      |> fold (fn (name, ((_, (eqs, (sctxt, ty))), lss)) =>
+      |> fold (fn (name, e) =>
             insert (op =) name
-            #> add_deps_of_sortctxt sctxt
-            #> add_deps_of_type ty
-            #> fold (fn (lhs, rhs) => fold add_deps_of_term lhs #> add_deps_of_term rhs) eqs
-            #> (fold o fold) add_deps_of_classlookup lss
-      ) memdefs
-  | deps_of Classinstmember =
-      [];
+            #> add_deps_of_term e
+      ) memdefs;
 
 fun delete_garbage hidden modl =
   let
@@ -876,7 +868,7 @@ fun check_funeqs eqs =
     in
      fn NONE => SOME l
       | SOME l' => if l = l' then SOME l
-          else error "function definition with different number of arguments"
+          else error "Function definition with different number of arguments"
     end
   ) eqs NONE; eqs);
 
@@ -889,44 +881,24 @@ fun check_prep_def modl Bot =
   | check_prep_def modl (d as Datatype _) =
       d
   | check_prep_def modl (Datatypecons dtco) =
-      error "attempted to add bare datatype constructor"
+      error "Attempted to add bare datatype constructor"
   | check_prep_def modl (d as Class _) =
       d
   | check_prep_def modl (Classmember _) =
-      error "attempted to add bare class member"
-  | check_prep_def modl (Classinst ((d as ((class, (tyco, arity)), _), memdefs))) =
+      error "Attempted to add bare class member"
+  | check_prep_def modl (d as Classinst ((class, (tyco, arity)), (_, memdefs))) =
       let
         val Class (_, (v, membrs)) = get_def modl class;
         val _ = if length memdefs > length memdefs
-          then error "too many member definitions given"
+          then error "Too many member definitions given"
           else ();
-        fun instant (w, ty) v =
-          if v = w then ty else ITyVar v;
-        fun mk_memdef (m, (sortctxt, ty)) =
-          case AList.lookup (op =) memdefs m
-           of NONE => error ("missing definition for member " ^ quote m)
-            | SOME ((m', (eqs, (sortctxt', ty'))), lss) =>
-                let
-                  val sortctxt'' = sortctxt |> fold (fn v_sort => AList.update (op =) v_sort) arity;
-                  val ty'' = instant_itype (instant (v, tyco `%% map (ITyVar o fst) arity)) ty;
-                in if eq_ityp ((sortctxt'', ty''), (sortctxt', ty'))
-                then (m, ((m', (check_funeqs eqs, (sortctxt', ty'))), lss))
-                else
-       error ("inconsistent type for member definition " ^ quote m ^ " [" ^ v ^ "]: "
-                    ^ (Pretty.output o Pretty.block o Pretty.breaks) [
-                      pretty_sortcontext sortctxt'',
-                      Pretty.str "|=>",
-                      pretty_itype ty''
-                    ] ^ " vs. " ^ (Pretty.output o Pretty.block o Pretty.breaks) [
-                      pretty_sortcontext sortctxt',
-                      Pretty.str "|=>",
-                      pretty_itype ty'
-                    ]
-                  )
-                end
-      in Classinst (d, map mk_memdef membrs) end
+        fun check_memdef (m, _) =
+          if AList.defined (op =) memdefs m
+          then () else error ("Missing definition for member " ^ quote m);
+        val _ = map check_memdef memdefs;
+      in d end
   | check_prep_def modl Classinstmember =
-      error "attempted to add bare class instance member";
+      error "Attempted to add bare class instance member";
 
 fun postprocess_def (name, Datatype (_, constrs)) =
       (check_samemodule (name :: map fst constrs);
@@ -944,12 +916,6 @@ fun postprocess_def (name, Datatype (_, constrs)) =
         #> add_dep (name, m)
       ) membrs
       )
-  | postprocess_def (name, Classinst (_, memdefs)) =
-      (check_samemodule (name :: map (fst o fst o snd) memdefs);
-      fold (fn (_, ((m', _), _)) =>
-        add_def_incr true (m', Classinstmember)
-      ) memdefs
-      )
   | postprocess_def _ =
       I;
 
@@ -958,6 +924,7 @@ fun postprocess_def (name, Datatype (_, constrs)) =
 
 fun ensure_def defgen strict msg name (dep, modl) =
   let
+    (*FIXME represent dependencies as tuple (name, name -> string), for better error msgs*)
     val msg' = (case dep
      of NONE => msg
       | SOME dep => msg ^ ", required for " ^ quote dep)
@@ -1017,9 +984,9 @@ fun start_transact init f modl =
     fun handle_fail f x =
       (f x
       handle FAIL (msgs, NONE) =>
-        (error o cat_lines) ("code generation failed, while:" :: msgs))
+        (error o cat_lines) ("Code generation failed, while:" :: msgs))
       handle FAIL (msgs, SOME e) =>
-        ((Output.error_msg o cat_lines) ("code generation failed, while:" :: msgs); raise e);
+        ((Output.error_msg o cat_lines) ("Code generation failed, while:" :: msgs); raise e);
   in
     modl
     |> (if is_some init then ensure_bot (the init) else I)
@@ -1039,6 +1006,13 @@ fun add_eval_def (shallow, e) modl =
     |> pair name
   end;
 
+
+(** eliminating classes in definitions **)
+
+fun elim_classes modl (eqs, (sortctxt, ty)) =
+  let
+    fun elim_expr _ = ();
+  in (error ""; (eqs, ty)) end;
 
 (** generic serialization **)
 
@@ -1066,7 +1040,7 @@ structure NameMangler = NameManglerFun (
         |> perhaps validate;
   fun is_valid _ _ = true;
   fun maybe_unique _ _ = NONE;
-  fun re_mangle _ dst = error ("no such definition name: " ^ quote dst);
+  fun re_mangle _ dst = error ("No such definition name: " ^ quote dst);
 );
 
 fun mk_deresolver module nsp_conn postprocess validate =
@@ -1125,7 +1099,7 @@ fun mk_deresolver module nsp_conn postprocess validate =
         val (common, (_, rem)) = chop_prefix (op =) (prefix, NameSpace.unpack name);
         val (_, SOME tab') = get_path_name common tab;
         val (name', _) = get_path_name rem tab';
-      in NameSpace.pack name' end;
+      in NameSpace.pack name' end handle BIND => (error "Missing name: " ^ quote name);
   in deresolv (mk module (AList.make (K NameMangler.empty) nsp_conn) Symtab.empty) end;
 
 
