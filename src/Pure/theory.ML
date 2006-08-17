@@ -39,8 +39,6 @@ sig
   val axioms_of: theory -> (string * term) list
   val all_axioms_of: theory -> (string * term) list
   val defs_of : theory -> Defs.T
-  val definitions_of: theory -> string ->
-    {module: string, name: string, lhs: typ, rhs: (string * typ) list} list
   val self_ref: theory -> theory_ref
   val deref: theory_ref -> theory
   val merge: theory * theory -> theory                     (*exception TERM*)
@@ -151,18 +149,6 @@ val axioms_of = Symtab.dest o #2 o #axioms o rep_theory;
 fun all_axioms_of thy = maps axioms_of (thy :: ancestors_of thy);
 
 val defs_of = #defs o rep_theory;
-
-fun definitions_of thy c =
-  let
-    val inst = Consts.instance (Sign.consts_of thy);
-    val defs = defs_of thy;
-  in
-    Defs.specifications_of defs c
-    |> map_filter (fn (_, {is_def, module, name, lhs, rhs}) =>
-      if is_def then SOME {module = module, name = name, lhs = inst (c, lhs),
-        rhs = map (fn (d, Us) => (d, inst (d, Us))) rhs}
-      else NONE)
-  end;
 
 fun requires thy name what =
   if Context.exists_name name thy then ()
