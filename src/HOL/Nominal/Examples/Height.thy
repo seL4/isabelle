@@ -3,67 +3,114 @@
 (*  Simple, but artificial, problem suggested by D. Wang *)
 
 theory Height
-imports Lam_substs
-(* 
-   - inherit the type of alpha-equated lambda-terms, 
-     the iteration combinator for this type and the
-     definition of capture-avoiding substitution
-
-     (the iteration combinator is not yet derived 
-      automatically in the last stable version of 
-      the nominal package) 
-
-   - capture-avoiding substitution is written
-     
-        t[x::=t']
-
-     and is defined such that
-
-     (Var y)[x::=t'] = (if x=y then t' else Var y)
-     (App t1 t2)[x::=t'] = App (t1[x::=t']) (t2[x::=t'])
-     y\<sharp>x \<and> y\<sharp>t2 \<Longrightarrow> (Lam [y].t)[x::=t'] = Lam [y].(t[x::=t'])   
-*)
+imports Nominal
 begin
 
-text {* definition of the height-function by cases *} 
+atom_decl name
+
+nominal_datatype lam = Var "name"
+                     | App "lam" "lam"
+                     | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
+
+types 'a f1_ty  = "name\<Rightarrow>('a::pt_name)"
+      'a f2_ty  = "lam\<Rightarrow>lam\<Rightarrow>'a\<Rightarrow>'a\<Rightarrow>('a::pt_name)"
+      'a f3_ty  = "name\<Rightarrow>lam\<Rightarrow>'a\<Rightarrow>('a::pt_name)"
+
+constdefs
+  rfun :: "'a f1_ty \<Rightarrow> 'a f2_ty \<Rightarrow> 'a f3_ty \<Rightarrow> lam \<Rightarrow> ('a::pt_name)" 
+  "rfun f1 f2 f3 t \<equiv> (THE r. (t,r) \<in> lam_rec_set f1 f2 f3)"
+
+lemma rfun_Var:
+  assumes f1: "finite ((supp f1)::name set)"
+  and     f2: "finite ((supp f2)::name set)"
+  and     f3: "finite ((supp f3)::name set)"
+  and     fcb: "\<And>a t r. a\<sharp>f3 \<Longrightarrow> a\<sharp>f3 a t r"
+  shows "rfun f1 f2 f3 (Var a) = (f1 a)"
+apply(simp add: rfun_def)
+apply(rule trans)
+apply(rule the1_equality)
+apply(rule lam.rec_unique[where P="\<lambda>_. True"])
+apply(simp_all add: f1 f2 f3 fcb)
+apply(rule lam_rec_set.intros)
+done
+
+lemma rfun_App:
+  assumes f1: "finite ((supp f1)::name set)"
+  and     f2: "finite ((supp f2)::name set)"
+  and     f3: "finite ((supp f3)::name set)"
+  and     fcb: "\<And>a t r. a\<sharp>f3 \<Longrightarrow> a\<sharp>f3 a t r"
+  shows "rfun f1 f2 f3 (App t1 t2) = f2 t1 t2 (rfun f1 f2 f3 t1) (rfun f1 f2 f3 t2)"
+apply(simp add: rfun_def)
+apply(rule trans)
+apply(rule the1_equality)
+apply(rule lam.rec_unique[where P="\<lambda>_. True"])
+apply(simp_all add: f1 f2 f3 fcb)
+apply(rule lam_rec_set.intros)
+apply(rule theI')
+apply(rule lam.rec_unique[where P="\<lambda>_. True"])
+apply(simp_all add: f1 f2 f3 fcb)
+apply(rule theI')
+apply(rule lam.rec_unique[where P="\<lambda>_. True"])
+apply(simp_all add: f1 f2 f3 fcb)
+done
+
+lemma rfun_Lam:
+  assumes f1: "finite ((supp f1)::name set)"
+  and     f2: "finite ((supp f2)::name set)"
+  and     f3: "finite ((supp f3)::name set)"
+  and     fcb: "\<And>a t r. a\<sharp>f3 \<Longrightarrow> a\<sharp>f3 a t r"
+  and     fr: "a\<sharp>f1" "a\<sharp>f2" "a\<sharp>f3" 
+  shows "rfun f1 f2 f3 (Lam [a].t) = f3 a t (rfun f1 f2 f3 t)"
+apply(simp add: rfun_def)
+apply(rule trans)
+apply(rule the1_equality)
+apply(rule lam.rec_unique[where P="\<lambda>_. True"])
+apply(simp_all add: f1 f2 f3 fcb)
+apply(rule lam_rec_set.intros)
+apply(simp_all add: fr)
+apply(rule theI')
+apply(rule lam.rec_unique[where P="\<lambda>_. True"])
+apply(simp_all add: f1 f2 f3 fcb)
+done
+
+text {* definition of the height-function by "structural recursion" ;o) *} 
+
 constdefs 
   height_Var :: "name \<Rightarrow> int"
-  "height_Var \<equiv> \<lambda>(a::name). 1"
+  "height_Var \<equiv> \<lambda>_. 1"
   
-  height_App :: "int \<Rightarrow> int \<Rightarrow> int"
-  "height_App \<equiv> \<lambda>n1 n2. (max n1 n2)+1"
+  height_App :: "lam\<Rightarrow>lam\<Rightarrow>int\<Rightarrow>int\<Rightarrow>int"
+  "height_App \<equiv> \<lambda>_ _ n1 n2. (max n1 n2)+1"
 
-  height_Lam :: "name \<Rightarrow> int \<Rightarrow> int"
-  "height_Lam \<equiv> \<lambda>(a::name) n. n+1"
+  height_Lam :: "name\<Rightarrow>lam\<Rightarrow>int\<Rightarrow>int"
+  "height_Lam \<equiv> \<lambda>_ _ n. n+1"
 
   height :: "lam \<Rightarrow> int"
-  "height \<equiv> itfun height_Var height_App height_Lam"
+  "height \<equiv> rfun height_Var height_App height_Lam"
 
 text {* show that height is a function *}
-lemma supp_height_Lam:
-  shows "((supp height_Lam)::name set)={}"
-  apply(simp add: height_Lam_def supp_def perm_fun_def perm_int_def)
-  done
- 
 lemma fin_supp_height:
-  shows "finite ((supp (height_Var,height_App,height_Lam))::name set)"
-  by (finite_guess add: height_Var_def height_App_def height_Lam_def perm_int_def fs_name1)
+  shows "finite ((supp height_Var)::name set)"
+  and   "finite ((supp height_App)::name set)"
+  and   "finite ((supp height_Lam)::name set)"
+  by (finite_guess add: height_Var_def height_App_def height_Lam_def perm_int_def fs_name1)+
 
-lemma FCB_height_Lam:
-  shows "\<exists>(a::name). a\<sharp>height_Lam \<and> (\<forall>n. a\<sharp>height_Lam a n)"
-apply(simp add: height_Lam_def fresh_def supp_def perm_fun_def perm_int_def)
+lemma fcb_height_Lam:
+  assumes fr: "a\<sharp>height_Lam"
+  shows "a\<sharp>height_Lam a t n"
+apply(simp add: height_Lam_def perm_int_def fresh_def supp_int)
 done
 
 text {* derive the characteristic equations for height from the iteration combinator *}
 lemma height_Var:
   shows "height (Var c) = 1"
-apply(simp add: height_def itfun_Var[OF fin_supp_height, OF FCB_height_Lam])
+apply(simp add: height_def rfun_Var[OF fin_supp_height, OF fcb_height_Lam])
 apply(simp add: height_Var_def)
 done
 
 lemma height_App:
   shows "height (App t1 t2) = (max (height t1) (height t2))+1"
-apply(simp add: height_def itfun_App[OF fin_supp_height, OF FCB_height_Lam])
+apply(simp add: height_def rfun_App[OF fin_supp_height, OF fcb_height_Lam])
 apply(simp add: height_App_def)
 done
 
@@ -71,22 +118,84 @@ lemma height_Lam:
   shows "height (Lam [a].t) = (height t)+1"
 apply(simp add: height_def)
 apply(rule trans)
-apply(rule itfun_Lam[OF fin_supp_height, OF FCB_height_Lam])
-apply(simp add: fresh_def supp_prod supp_height_Lam)
-apply(simp add: supp_def height_Var_def height_App_def perm_fun_def perm_int_def) 
+apply(rule rfun_Lam[OF fin_supp_height, OF fcb_height_Lam], assumption)
+apply(fresh_guess add: height_Var_def perm_int_def)
+apply(fresh_guess add: height_App_def perm_int_def)
+apply(fresh_guess add: height_Lam_def perm_int_def)
 apply(simp add: height_Lam_def)
 done
 
 text {* add the characteristic equations of height to the simplifier *}
 declare height_Var[simp] height_App[simp] height_Lam[simp]
 
+text {* define capture-avoiding substitution *}
+constdefs 
+  subst_Var :: "name \<Rightarrow> lam \<Rightarrow> name \<Rightarrow> lam"
+  "subst_Var x t' \<equiv> \<lambda>y. (if y=x then t' else (Var y))"
+  
+  subst_App :: "name \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> lam"
+  "subst_App x t' \<equiv> \<lambda>_ _ r1 r2. App r1 r2"
+
+  subst_Lam :: "name \<Rightarrow> lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> lam"
+  "subst_Lam x t' \<equiv> \<lambda>a _ r. Lam [a].r"
+
+  subst_lam :: "name \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> lam" 
+  "subst_lam x t' \<equiv> rfun (subst_Var x t') (subst_App x t') (subst_Lam x t')"
+
+lemma supports_subst_Var:
+  shows "((supp (x,t))::name set) supports (subst_Var x t)"
+apply(supports_simp add: subst_Var_def)
+apply(rule impI)
+apply(drule pt_bij1[OF pt_name_inst, OF at_name_inst])
+apply(perm_simp)
+done
+
+lemma fin_supp_subst:
+  shows "finite ((supp (subst_Var x t))::name set)"
+  and   "finite ((supp (subst_App x t))::name set)"
+  and   "finite ((supp (subst_Lam x t))::name set)"
+proof -
+  case goal1
+  have f: "finite ((supp (x,t))::name set)" by (simp add: fs_name1)
+  then have "supp (subst_Var x t) \<subseteq> ((supp (x,t))::name set)"
+    using supp_is_subset[OF supports_subst_Var] by simp
+  then show "finite ((supp (subst_Var x t))::name set)" using f by (simp add: finite_subset)
+qed (finite_guess add: subst_App_def subst_Lam_def fs_name1)+
+
+lemma fcb_subst_Lam:
+  assumes fr: "a\<sharp>(subst_Lam y t')" 
+  shows "a\<sharp>(subst_Lam y t') a t r"
+  by (simp add: subst_Lam_def abs_fresh)
+
+syntax 
+ subst_lam_syn :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam" ("_[_::=_]" [100,100,100] 100)
+
+translations 
+  "t1[y::=t2]" \<rightleftharpoons> "subst_lam y t2 t1"
+
+lemma subst_lam[simp]:
+  shows "(Var x)[y::=t'] = (if x=y then t' else (Var x))"
+  and   "(App t1 t2)[y::=t'] = App (t1[y::=t']) (t2[y::=t'])"
+  and   "\<lbrakk>a\<sharp>y; a\<sharp>t'\<rbrakk> \<Longrightarrow> (Lam [a].t)[y::=t'] = Lam [a].(t[y::=t'])"
+apply(unfold subst_lam_def)
+apply(simp only: rfun_Var[OF fin_supp_subst, OF fcb_subst_Lam])
+apply(simp only: subst_Var_def)
+apply(simp only: rfun_App[OF fin_supp_subst, OF fcb_subst_Lam])
+apply(simp only: subst_App_def)
+apply(rule trans)
+apply(rule rfun_Lam[OF fin_supp_subst, OF fcb_subst_Lam])
+apply(assumption)
+apply(rule supports_fresh, rule supports_subst_Var, simp add: fs_name1, simp add: fresh_def supp_prod)
+apply(fresh_guess add: fresh_prod subst_App_def fs_name1)
+apply(fresh_guess add: fresh_prod subst_Lam_def fs_name1)
+apply(simp add: subst_Lam_def)
+done
 
 text{* the next lemma is needed in the Var-case of the theorem *}
 
 lemma height_ge_one: 
   shows "1 \<le> (height e)"
   by (nominal_induct e rule: lam.induct) (simp | arith)+
-
 
 text {* unlike the proplem suggested by Wang, the theorem is formulated 
         here entirely by using functions *}
@@ -107,7 +216,7 @@ next
   case (App e1 e2)
   hence ih1: "height (e1[x::=e']) \<le> (((height e1) - 1) + (height e'))" 
     and ih2: "height (e2[x::=e']) \<le> (((height e2) - 1) + (height e'))" by simp_all
-  then show "height ((App e1 e2)[x::=e']) \<le> height (App e1 e2) - 1 + height e'" by (simp, arith) 
+  then show "height ((App e1 e2)[x::=e']) \<le> height (App e1 e2) - 1 + height e'"  by simp 
 qed
 
 end
