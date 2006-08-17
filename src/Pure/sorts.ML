@@ -30,6 +30,7 @@ sig
     arities: (class * (class * sort list)) list Symtab.table}
   val classes: algebra -> class list
   val super_classes: algebra -> class -> class list
+  val all_super_classes: algebra -> class -> class list
   val class_less: algebra -> class * class -> bool
   val class_le: algebra -> class * class -> bool
   val sort_eq: algebra -> sort * sort -> bool
@@ -122,6 +123,7 @@ fun map_arities f (Algebra {classes, arities}) = make_algebra (classes, f aritie
 
 val classes = Graph.keys o classes_of;
 val super_classes = Graph.imm_succs o classes_of;
+fun all_super_classes algebra class = Graph.all_succs (classes_of algebra) [class];
 
 
 (* class relations *)
