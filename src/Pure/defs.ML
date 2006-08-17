@@ -11,7 +11,7 @@ sig
   val pretty_const: Pretty.pp -> string * typ list -> Pretty.T
   val plain_args: typ list -> bool
   type T
-  val specifications_of: T -> string -> (serial * {is_def: bool, module: string, name: string,
+  val specifications_of: T -> string -> (serial * {is_def: bool, thyname: string, name: string,
     lhs: typ list, rhs: (string * typ list) list}) list
   val dest: T ->
    {restricts: ((string * typ list) * string) list,
@@ -51,7 +51,7 @@ fun match_args (Ts, Us) =
 
 (* datatype defs *)
 
-type spec = {is_def: bool, module: string, name: string, lhs: args, rhs: (string * args) list};
+type spec = {is_def: bool, thyname: string, name: string, lhs: args, rhs: (string * args) list};
 
 type def =
  {specs: spec Inttab.table,                 (*source specifications*)
@@ -198,14 +198,14 @@ fun merge pp (Defs defs1, Defs defs2) =
 
 (* define *)
 
-fun define pp unchecked is_def module name (c, args) deps (Defs defs) =
+fun define pp unchecked is_def thyname name (c, args) deps (Defs defs) =
   let
     val restr =
       if plain_args args orelse
         (case args of [Type (a, rec_args)] => plain_args rec_args | _ => false)
       then [] else [(args, name)];
     val spec =
-      (serial (), {is_def = is_def, module = module, name = name, lhs = args, rhs = deps});
+      (serial (), {is_def = is_def, thyname = thyname, name = name, lhs = args, rhs = deps});
     val defs' = defs |> update_specs c spec;
   in Defs (defs' |> (if unchecked then I else dependencies pp (c, args) restr deps)) end;
 
