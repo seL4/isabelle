@@ -1336,8 +1336,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       Theory.add_path big_name |>
       PureThy.add_thms [(("induct'", induct_aux), [])] ||>>
       PureThy.add_thms [(("induct", induct), [case_names_induct])] ||>>
-      PureThy.add_thmss [(("inducts", projections induct), [case_names_induct])] ||>
-      Theory.parent_path;
+      PureThy.add_thmss [(("inducts", projections induct), [case_names_induct])];
 
     (**** recursion combinator ****)
 
@@ -1386,8 +1385,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                   rs) ys) @
           mk_fresh3 rs yss;
 
-    fun make_rec_intr T p rec_set
-          ((rec_intr_ts, rec_prems, rec_prems', l), ((cname, cargs), idxs)) =
+    fun make_rec_intr T p rec_set ((rec_intr_ts, rec_prems, rec_prems',
+          rec_eq_prems, l), ((cname, cargs), idxs)) =
       let
         val Ts = map (typ_of_dtyp descr'' sorts') cargs;
         val frees = map (fn i => "x" ^ string_of_int i) (1 upto length Ts) ~~ Ts;
@@ -1425,13 +1424,14 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
          else rec_prems' @ [list_all_free (frees @ frees'',
            Logic.list_implies (List.nth (prems2, l) @ prems3 @ prems5 @ [P],
              HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj result_freshs)))],
+         rec_eq_prems @ [List.concat prems2 @ prems3],
          l + 1)
       end;
 
-    val (rec_intr_ts, rec_prems, rec_prems', _) =
+    val (rec_intr_ts, rec_prems, rec_prems', rec_eq_prems, _) =
       Library.foldl (fn (x, ((((d, d'), T), p), rec_set)) =>
         Library.foldl (make_rec_intr T p rec_set) (x, #3 (snd d) ~~ snd d'))
-          (([], [], [], 0), descr'' ~~ ndescr ~~ recTs ~~ rec_preds ~~ rec_sets);
+          (([], [], [], [], 0), descr'' ~~ ndescr ~~ recTs ~~ rec_preds ~~ rec_sets);
 
     val (thy11, {intrs = rec_intrs, elims = rec_elims, raw_induct = rec_induct, ...}) =
       setmp InductivePackage.quiet_mode (!quiet_mode)
@@ -1596,6 +1596,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val fun_tupleT = fastype_of fun_tuple;
     val rec_unique_frees =
       DatatypeProp.indexify_names (replicate (length recTs) "x") ~~ recTs;
+    val rec_unique_frees'' = map (fn (s, T) => (s ^ "'", T)) rec_unique_frees;
     val rec_unique_frees' =
       DatatypeProp.indexify_names (replicate (length recTs) "y") ~~ rec_result_Ts;
     val rec_unique_concls = map (fn ((x as (_, T), U), R) =>
@@ -1635,8 +1636,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           [ex] ctxt
       in (freshs1 @ [term_of cx], freshs2 @ ths, ctxt') end;
 
-    val rec_unique = map standard (split_conj_thm (Goal.prove
-      (Context.init_proof thy11) []
+    val rec_unique_thms = split_conj_thm (Goal.prove
+      (Context.init_proof thy11) (map fst rec_unique_frees)
       (List.concat finite_premss @ rec_prems @ rec_prems')
       (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj rec_unique_concls))
       (fn {prems, context} =>
@@ -1647,11 +1648,11 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
            val (P_ind_ths, ths2) = chop k ths1;
            val P_ths = map (fn th => th RS mp) (split_conj_thm
              (Goal.prove context
-               (map fst (rec_unique_frees @ rec_unique_frees')) []
+               (map fst (rec_unique_frees'' @ rec_unique_frees')) []
                (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
                   (map (fn (((x, y), S), P) => HOLogic.mk_imp (HOLogic.mk_mem
                     (HOLogic.mk_prod (Free x, Free y), S), P $ (Free y)))
-                      (rec_unique_frees ~~ rec_unique_frees' ~~ rec_sets ~~ rec_preds))))
+                      (rec_unique_frees'' ~~ rec_unique_frees' ~~ rec_sets ~~ rec_preds))))
                (fn _ =>
                   rtac rec_induct 1 THEN
                   REPEAT ((resolve_tac P_ind_ths THEN_ALL_NEW assume_tac) 1))));
@@ -1661,20 +1662,19 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
            val fcbs = List.concat (map split_conj_thm ths2);
          in EVERY
            ([rtac induct_aux_rec 1] @
-            List.concat (map (fn (_, finite_ths) =>
+            maps (fn (_, finite_ths) =>
               [cut_facts_tac finite_ths 1,
-               asm_simp_tac (HOL_ss addsimps [supp_prod, finite_Un]) 1]) finite_thss) @
-            [ALLGOALS (EVERY'
-               [full_simp_tac (HOL_ss addsimps [symmetric fresh_def, supp_prod, Un_iff]),
-                REPEAT_DETERM o eresolve_tac [conjE, ex1E],
-                rtac ex1I,
-                resolve_tac rec_intrs THEN_ALL_NEW atac,
-                rotate_tac ~1,
-                (DETERM o eresolve_tac rec_elims) THEN_ALL_NEW full_simp_tac
-                  (HOL_ss addsimps (Pair_eq :: List.concat distinct_thms)),
-                TRY o (etac conjE THEN' hyp_subst_tac)])] @
-             map (fn idxs => SUBPROOF
-               (fn {asms, concl, prems = prems', params, context = context', ...} =>
+               asm_simp_tac (HOL_ss addsimps [supp_prod, finite_Un]) 1]) finite_thss @
+            maps (fn ((_, idxss), elim) => maps (fn idxs =>
+              [full_simp_tac (HOL_ss addsimps [symmetric fresh_def, supp_prod, Un_iff]) 1,
+               REPEAT_DETERM (eresolve_tac [conjE, ex1E] 1),
+               rtac ex1I 1,
+               (resolve_tac rec_intrs THEN_ALL_NEW atac) 1,
+               rotate_tac ~1 1,
+               ((DETERM o etac elim) THEN_ALL_NEW full_simp_tac
+                  (HOL_ss addsimps (Pair_eq :: List.concat distinct_thms))) 1] @
+               (if null idxs then [] else [etac conjE 1, hyp_subst_tac 1,
+                SUBPROOF (fn {asms, concl, prems = prems', params, context = context', ...} =>
                   let
                     val (_, prem) = split_last prems';
                     val _ $ (_ $ lhs $ rhs) = prop_of prem;
@@ -1909,22 +1909,70 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                     val _ = warning "finished!"
                   in
                     resolve_tac final' 1
-                  end) context 1) (filter_out null (List.concat (map snd ndescr))))
-         end)));
+                  end) context 1])) idxss) (ndescr ~~ rec_elims))
+         end));
+
+    val rec_total_thms = map (fn r => r RS theI') rec_unique_thms;
+
+    (* define primrec combinators *)
+
+    val big_reccomb_name = (space_implode "_" new_type_names) ^ "_rec";
+    val reccomb_names = map (Sign.full_name thy11)
+      (if length descr'' = 1 then [big_reccomb_name] else
+        (map ((curry (op ^) (big_reccomb_name ^ "_")) o string_of_int)
+          (1 upto (length descr''))));
+    val reccombs = map (fn ((name, T), T') => list_comb
+      (Const (name, rec_fn_Ts @ [T] ---> T'), rec_fns))
+        (reccomb_names ~~ recTs ~~ rec_result_Ts);
+
+    val (reccomb_defs, thy12) =
+      thy11
+      |> Theory.add_consts_i (map (fn ((name, T), T') =>
+          (Sign.base_name name, rec_fn_Ts @ [T] ---> T', NoSyn))
+          (reccomb_names ~~ recTs ~~ rec_result_Ts))
+      |> (PureThy.add_defs_i false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
+          ((Sign.base_name name) ^ "_def", Logic.mk_equals (comb, absfree ("x", T,
+           Const ("The", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
+             HOLogic.mk_mem (HOLogic.mk_prod (Free ("x", T), Free ("y", T')), set))))))
+               (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts));
+
+    (* prove characteristic equations for primrec combinators *)
+
+    val rec_thms = map (fn (prems, concl) =>
+      let
+        val _ $ (_ $ (_ $ x) $ _) = concl;
+        val (_, cargs) = strip_comb x;
+        val ps = map (fn (x as Free (_, T), i) =>
+          (Free ("x" ^ string_of_int i, T), x)) (cargs ~~ (1 upto length cargs));
+        val concl' = subst_atomic_types (rec_result_Ts' ~~ rec_result_Ts) concl;
+        val prems' = List.concat finite_premss @ rec_prems @ rec_prems' @
+          map (subst_atomic ps) prems;
+        fun solve rules prems = resolve_tac rules THEN_ALL_NEW
+          (resolve_tac prems THEN_ALL_NEW atac)
+      in
+        Goal.prove_global thy12 [] prems' concl'
+          (fn prems => EVERY
+            [rewrite_goals_tac reccomb_defs,
+             rtac the1_equality 1,
+             solve rec_unique_thms prems 1,
+             resolve_tac rec_intrs 1,
+             REPEAT (solve (prems @ rec_total_thms) prems 1)])
+      end) (rec_eq_prems ~~
+        DatatypeProp.make_primrecs new_type_names descr' sorts' thy12);
     
     (* FIXME: theorems are stored in database for testing only *)
-    val (_, thy12) = thy11 |>
-      Theory.add_path big_name |>
+    val (_, thy13) = thy12 |>
       PureThy.add_thmss
         [(("rec_equiv", List.concat rec_equiv_thms), []),
          (("rec_equiv'", List.concat rec_equiv_thms'), []),
          (("rec_fin_supp", List.concat rec_fin_supp_thms), []),
          (("rec_fresh", List.concat rec_fresh_thms), []),
-         (("rec_unique", rec_unique), [])] ||>
+         (("rec_unique", map standard rec_unique_thms), []),
+         (("recs", rec_thms), [])] ||>
       Theory.parent_path;
 
   in
-    thy12
+    thy13
   end;
 
 val add_nominal_datatype = gen_add_nominal_datatype read_typ true;
