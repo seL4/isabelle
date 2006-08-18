@@ -12,66 +12,11 @@ nominal_datatype lam = Var "name"
                      | App "lam" "lam"
                      | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
+thm lam.recs
+
 types 'a f1_ty  = "name\<Rightarrow>('a::pt_name)"
       'a f2_ty  = "lam\<Rightarrow>lam\<Rightarrow>'a\<Rightarrow>'a\<Rightarrow>('a::pt_name)"
       'a f3_ty  = "name\<Rightarrow>lam\<Rightarrow>'a\<Rightarrow>('a::pt_name)"
-
-constdefs
-  rfun :: "'a f1_ty \<Rightarrow> 'a f2_ty \<Rightarrow> 'a f3_ty \<Rightarrow> lam \<Rightarrow> ('a::pt_name)" 
-  "rfun f1 f2 f3 t \<equiv> (THE r. (t,r) \<in> lam_rec_set f1 f2 f3)"
-
-lemma rfun_Var:
-  assumes f1: "finite ((supp f1)::name set)"
-  and     f2: "finite ((supp f2)::name set)"
-  and     f3: "finite ((supp f3)::name set)"
-  and     fcb: "\<And>a t r. a\<sharp>f3 \<Longrightarrow> a\<sharp>f3 a t r"
-  shows "rfun f1 f2 f3 (Var a) = (f1 a)"
-apply(simp add: rfun_def)
-apply(rule trans)
-apply(rule the1_equality)
-apply(rule lam.rec_unique[where P="\<lambda>_. True"])
-apply(simp_all add: f1 f2 f3 fcb)
-apply(rule lam_rec_set.intros)
-done
-
-lemma rfun_App:
-  assumes f1: "finite ((supp f1)::name set)"
-  and     f2: "finite ((supp f2)::name set)"
-  and     f3: "finite ((supp f3)::name set)"
-  and     fcb: "\<And>a t r. a\<sharp>f3 \<Longrightarrow> a\<sharp>f3 a t r"
-  shows "rfun f1 f2 f3 (App t1 t2) = f2 t1 t2 (rfun f1 f2 f3 t1) (rfun f1 f2 f3 t2)"
-apply(simp add: rfun_def)
-apply(rule trans)
-apply(rule the1_equality)
-apply(rule lam.rec_unique[where P="\<lambda>_. True"])
-apply(simp_all add: f1 f2 f3 fcb)
-apply(rule lam_rec_set.intros)
-apply(rule theI')
-apply(rule lam.rec_unique[where P="\<lambda>_. True"])
-apply(simp_all add: f1 f2 f3 fcb)
-apply(rule theI')
-apply(rule lam.rec_unique[where P="\<lambda>_. True"])
-apply(simp_all add: f1 f2 f3 fcb)
-done
-
-lemma rfun_Lam:
-  assumes f1: "finite ((supp f1)::name set)"
-  and     f2: "finite ((supp f2)::name set)"
-  and     f3: "finite ((supp f3)::name set)"
-  and     fcb: "\<And>a t r. a\<sharp>f3 \<Longrightarrow> a\<sharp>f3 a t r"
-  and     fr: "a\<sharp>f1" "a\<sharp>f2" "a\<sharp>f3" 
-  shows "rfun f1 f2 f3 (Lam [a].t) = f3 a t (rfun f1 f2 f3 t)"
-apply(simp add: rfun_def)
-apply(rule trans)
-apply(rule the1_equality)
-apply(rule lam.rec_unique[where P="\<lambda>_. True"])
-apply(simp_all add: f1 f2 f3 fcb)
-apply(rule lam_rec_set.intros)
-apply(simp_all add: fr)
-apply(rule theI')
-apply(rule lam.rec_unique[where P="\<lambda>_. True"])
-apply(simp_all add: f1 f2 f3 fcb)
-done
 
 text {* definition of the height-function by "structural recursion" ;o) *} 
 
@@ -86,7 +31,7 @@ constdefs
   "height_Lam \<equiv> \<lambda>_ _ n. n+1"
 
   height :: "lam \<Rightarrow> int"
-  "height \<equiv> rfun height_Var height_App height_Lam"
+  "height \<equiv> lam_rec height_Var height_App height_Lam"
 
 text {* show that height is a function *}
 lemma fin_supp_height:
@@ -104,13 +49,15 @@ done
 text {* derive the characteristic equations for height from the iteration combinator *}
 lemma height_Var:
   shows "height (Var c) = 1"
-apply(simp add: height_def rfun_Var[OF fin_supp_height, OF fcb_height_Lam])
+apply(simp add: height_def)
+apply(simp add: lam.recs[where P="\<lambda>_. True", simplified, OF fin_supp_height, OF fcb_height_Lam])
 apply(simp add: height_Var_def)
 done
 
 lemma height_App:
   shows "height (App t1 t2) = (max (height t1) (height t2))+1"
-apply(simp add: height_def rfun_App[OF fin_supp_height, OF fcb_height_Lam])
+apply(simp add: height_def)
+apply(simp add: lam.recs[where P="\<lambda>_. True", simplified, OF fin_supp_height, OF fcb_height_Lam])
 apply(simp add: height_App_def)
 done
 
@@ -118,7 +65,8 @@ lemma height_Lam:
   shows "height (Lam [a].t) = (height t)+1"
 apply(simp add: height_def)
 apply(rule trans)
-apply(rule rfun_Lam[OF fin_supp_height, OF fcb_height_Lam], assumption)
+apply(rule lam.recs[where P="\<lambda>_. True", simplified, OF fin_supp_height, OF fcb_height_Lam])
+apply(assumption)
 apply(fresh_guess add: height_Var_def perm_int_def)
 apply(fresh_guess add: height_App_def perm_int_def)
 apply(fresh_guess add: height_Lam_def perm_int_def)
@@ -140,7 +88,7 @@ constdefs
   "subst_Lam x t' \<equiv> \<lambda>a _ r. Lam [a].r"
 
   subst_lam :: "name \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> lam" 
-  "subst_lam x t' \<equiv> rfun (subst_Var x t') (subst_App x t') (subst_Lam x t')"
+  "subst_lam x t' \<equiv> lam_rec (subst_Var x t') (subst_App x t') (subst_Lam x t')"
 
 lemma supports_subst_Var:
   shows "((supp (x,t))::name set) supports (subst_Var x t)"
@@ -178,12 +126,12 @@ lemma subst_lam[simp]:
   and   "(App t1 t2)[y::=t'] = App (t1[y::=t']) (t2[y::=t'])"
   and   "\<lbrakk>a\<sharp>y; a\<sharp>t'\<rbrakk> \<Longrightarrow> (Lam [a].t)[y::=t'] = Lam [a].(t[y::=t'])"
 apply(unfold subst_lam_def)
-apply(simp only: rfun_Var[OF fin_supp_subst, OF fcb_subst_Lam])
-apply(simp only: subst_Var_def)
-apply(simp only: rfun_App[OF fin_supp_subst, OF fcb_subst_Lam])
+apply(simp only: lam.recs[where P="\<lambda>_. True", simplified, OF fin_supp_subst, OF fcb_subst_Lam])
+apply(simp add: subst_Var_def)
+apply(simp only: lam.recs[where P="\<lambda>_. True", simplified, OF fin_supp_subst, OF fcb_subst_Lam])
 apply(simp only: subst_App_def)
 apply(rule trans)
-apply(rule rfun_Lam[OF fin_supp_subst, OF fcb_subst_Lam])
+apply(rule lam.recs[where P="\<lambda>_. True", simplified, OF fin_supp_subst, OF fcb_subst_Lam])
 apply(assumption)
 apply(rule supports_fresh, rule supports_subst_Var, simp add: fs_name1, simp add: fresh_def supp_prod)
 apply(fresh_guess add: fresh_prod subst_App_def fs_name1)
