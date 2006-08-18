@@ -232,94 +232,6 @@ qed
 
 section {* Size and Capture-Avoiding Substitution for Types *}
 
-text {* In the current version of the nominal datatype package even simple 
-  functions (such as size of types and capture-avoiding substitution) can 
-  only be defined manually via some laborious proof constructions. Therefore 
-  we just assume them here. Cheat! *}
-
-types 'a f1_ty  = "tyvrs\<Rightarrow>('a::pt_tyvrs)"
-      'a f2_ty  = "('a::pt_tyvrs)"
-      'a f3_ty  = "ty\<Rightarrow>ty\<Rightarrow>'a\<Rightarrow>'a\<Rightarrow>('a::pt_tyvrs)"
-      'a f4_ty  = "tyvrs\<Rightarrow>ty\<Rightarrow>ty\<Rightarrow>'a\<Rightarrow>'a\<Rightarrow>('a::pt_tyvrs)"
-
-constdefs
-  rfun :: "'a f1_ty \<Rightarrow> 'a f2_ty \<Rightarrow> 'a f3_ty \<Rightarrow> 'a f4_ty \<Rightarrow> ty \<Rightarrow> ('a::pt_tyvrs)" 
-  "rfun f1 f2 f3 f4 T \<equiv> (THE r. (T,r) \<in> ty_rec_set f1 f2 f3 f4)"
-
-lemma rfun_Tvar:
-  assumes f1: "finite ((supp f1)::tyvrs set)"
-  and     f2: "finite ((supp f2)::tyvrs set)"
-  and     f3: "finite ((supp f3)::tyvrs set)"
-  and     f4: "finite ((supp f4)::tyvrs set)"
-  and     fcb: "\<And>X T1 T2 r1 r2. \<lbrakk>X\<sharp>f4; X\<sharp>T2; X\<sharp>r2\<rbrakk> \<Longrightarrow> X\<sharp>f4 X T1 T2 r1 r2"
-  shows "rfun f1 f2 f3 f4 (Tvar X) = (f1 X)"
-apply(simp add: rfun_def)
-apply(rule trans)
-apply(rule the1_equality)
-apply(rule ty.rec_unique[where P="\<lambda>_. True"])
-apply(simp_all add: f1 f2 f3 f4 fcb)
-apply(rule ty_rec_set.intros)
-done
-
-lemma rfun_Top:
-  assumes f1: "finite ((supp f1)::tyvrs set)"
-  and     f2: "finite ((supp f2)::tyvrs set)"
-  and     f3: "finite ((supp f3)::tyvrs set)"
-  and     f4: "finite ((supp f4)::tyvrs set)"
-  and     fcb: "\<And>X T1 T2 r1 r2. \<lbrakk>X\<sharp>f4; X\<sharp>T2; X\<sharp>r2\<rbrakk> \<Longrightarrow> X\<sharp>f4 X T1 T2 r1 r2"
-  shows "rfun f1 f2 f3 f4 (Top) = f2"
-apply(simp add: rfun_def)
-apply(rule trans)
-apply(rule the1_equality)
-apply(rule ty.rec_unique[where P="\<lambda>_. True"])
-apply(simp_all add: f1 f2 f3 f4 fcb)
-apply(rule ty_rec_set.intros)
-done
-
-lemma rfun_Fun:
-  assumes f1: "finite ((supp f1)::tyvrs set)"
-  and     f2: "finite ((supp f2)::tyvrs set)"
-  and     f3: "finite ((supp f3)::tyvrs set)"
-  and     f4: "finite ((supp f4)::tyvrs set)"
-  and     fcb: "\<And>X T1 T2 r1 r2. \<lbrakk>X\<sharp>f4; X\<sharp>T2; X\<sharp>r2\<rbrakk> \<Longrightarrow> X\<sharp>f4 X T1 T2 r1 r2"
-  shows "rfun f1 f2 f3 f4 (T1\<rightarrow>T2) = f3 T1 T2 (rfun f1 f2 f3 f4 T1) (rfun f1 f2 f3 f4 T2)"
-apply(simp add: rfun_def)
-apply(rule trans)
-apply(rule the1_equality)
-apply(rule ty.rec_unique[where P="\<lambda>_. True"])
-apply(simp_all add: f1 f2 f3 f4 fcb)
-apply(rule ty_rec_set.intros)
-apply(rule theI')
-apply(rule ty.rec_unique[where P="\<lambda>_. True"])
-apply(simp_all add: f1 f2 f3 f4 fcb)
-apply(rule theI')
-apply(rule ty.rec_unique[where P="\<lambda>_. True"])
-apply(simp_all add: f1 f2 f3 f4 fcb)
-done
-
-lemma rfun_All:
-  assumes f1: "finite ((supp f1)::tyvrs set)"
-  and     f2: "finite ((supp f2)::tyvrs set)"
-  and     f3: "finite ((supp f3)::tyvrs set)"
-  and     f4: "finite ((supp f4)::tyvrs set)"
-  and     fcb: "\<And>X T1 T2 r1 r2. \<lbrakk>X\<sharp>f4; X\<sharp>T2; X\<sharp>r2\<rbrakk> \<Longrightarrow> X\<sharp>f4 X T1 T2 r1 r2"
-  and     fr: "X\<sharp>f1" "X\<sharp>f2" "X\<sharp>f3" "X\<sharp>f4" "X\<sharp>T2"
-  shows "rfun f1 f2 f3 f4 (\<forall>[X<:T2].T1) = f4 X T1 T2 (rfun f1 f2 f3 f4 T1) (rfun f1 f2 f3 f4 T2)"
-apply(simp add: rfun_def)
-apply(rule trans)
-apply(rule the1_equality)
-apply(rule ty.rec_unique[where P="\<lambda>_. True"])
-apply(simp_all add: f1 f2 f3 f4 fcb)
-apply(rule ty_rec_set.intros)
-apply(simp_all add: fr)
-apply(rule theI')
-apply(rule ty.rec_unique[where P="\<lambda>_. True"])
-apply(simp_all add: f1 f2 f3 f4 fcb)
-apply(rule theI')
-apply(rule ty.rec_unique[where P="\<lambda>_. True"])
-apply(simp_all add: f1 f2 f3 f4 fcb)
-done
-
 constdefs 
   size_ty_Tvar :: "tyvrs \<Rightarrow> nat"
   "size_ty_Tvar \<equiv> \<lambda>_. 1"
@@ -334,7 +246,7 @@ constdefs
   "size_ty_All \<equiv> \<lambda>_ _ _ r1 r2. r1 + r2 + 1"
 
   size_ty :: "ty \<Rightarrow> nat"
-  "size_ty \<equiv> rfun size_ty_Tvar size_ty_Top size_ty_Fun size_ty_All"
+  "size_ty \<equiv> ty_rec size_ty_Tvar size_ty_Top size_ty_Fun size_ty_All"
 
 lemma fin_size_ty:
   shows "finite ((supp size_ty_Tvar)::tyvrs set)"
@@ -354,16 +266,16 @@ lemma size_ty[simp]:
   and   "size_ty (T1 \<rightarrow> T2) = (size_ty T1) + (size_ty T2) + 1"
   and   "X\<sharp>T1 \<Longrightarrow> size_ty (\<forall>[X<:T1].T2) = (size_ty T1) + (size_ty T2) + 1"
 apply(unfold size_ty_def)
-apply(rule trans, rule rfun_Tvar)
+apply(rule trans, rule ty.recs[where P="\<lambda>_. True", simplified])
 apply(simp_all add: fin_size_ty fcb_size_ty_All)
 apply(simp add: size_ty_Tvar_def)
-apply(rule trans, rule rfun_Top)
+apply(rule trans, rule ty.recs[where P="\<lambda>_. True", simplified])
 apply(simp_all add: fin_size_ty fcb_size_ty_All)
 apply(simp add: size_ty_Top_def)
-apply(rule trans, rule rfun_Fun)
+apply(rule trans, rule ty.recs[where P="\<lambda>_. True", simplified])
 apply(simp_all add: fin_size_ty fcb_size_ty_All)
 apply(simp add: size_ty_Fun_def)
-apply(rule trans, rule rfun_All)
+apply(rule trans, rule ty.recs[where P="\<lambda>_. True", simplified])
 apply(simp_all add: fin_size_ty fcb_size_ty_All)
 apply(fresh_guess add: perm_nat_def size_ty_Tvar_def size_ty_Top_def size_ty_Fun_def size_ty_All_def)+
 apply(simp add: size_ty_All_def)
@@ -383,7 +295,7 @@ constdefs
   "subst_All X T \<equiv> \<lambda>Y _ _ r1 r2. \<forall>[Y<:r2].r1"
 
   subst_ty :: "tyvrs \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty" 
-  "subst_ty X T \<equiv> rfun (subst_Tvar X T) (subst_Top X T) (subst_Fun X T) (subst_All X T)"
+  "subst_ty X T \<equiv> ty_rec (subst_Tvar X T) (subst_Top X T) (subst_Fun X T) (subst_All X T)"
 
 lemma supports_subst_Tvar:
   shows "((supp (X,T))::tyvrs set) supports (subst_Tvar X T)"
@@ -440,19 +352,19 @@ lemma subst_ty[simp]:
 apply -
 apply(unfold subst_ty_def)
 apply(rule trans)
-apply(rule rfun_Tvar[OF fin_supp_subst, OF fcb_subst_All])
+apply(rule ty.recs[where P="\<lambda>_. True", simplified, OF fin_supp_subst, OF fcb_subst_All])
 apply(assumption)+
 apply(simp add: subst_Tvar_def)
 apply(rule trans)
-apply(rule rfun_Top[OF fin_supp_subst, OF fcb_subst_All])
+apply(rule ty.recs[where P="\<lambda>_. True", simplified, OF fin_supp_subst, OF fcb_subst_All])
 apply(assumption)+
 apply(simp add: subst_Top_def)
 apply(rule trans)
-apply(rule rfun_Fun[OF fin_supp_subst, OF fcb_subst_All])
+apply(rule ty.recs[where P="\<lambda>_. True", simplified, OF fin_supp_subst, OF fcb_subst_All])
 apply(assumption)+
 apply(simp add: subst_Fun_def)
 apply(rule trans)
-apply(rule rfun_All[OF fin_supp_subst, OF fcb_subst_All])
+apply(rule ty.recs[where P="\<lambda>_. True", simplified, OF fin_supp_subst, OF fcb_subst_All])
 apply(assumption)+
 apply(rule supports_fresh)
 apply(rule supports_subst_Tvar)
