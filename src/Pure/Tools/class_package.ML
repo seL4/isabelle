@@ -601,8 +601,8 @@ fun sortlookup thy (typ_ctxt, sort_decl) =
     fun constructor tyco lss class =
       Instance ((class, tyco), (map o map) fst lss);
     fun variable (TFree (v, sort)) =
-          map_index (fn (n, class) => (Lookup ([], (v, (n, length sort))), class))
-            (operational_sort_of thy sort);
+      let val op_sort = operational_sort_of thy sort
+      in map_index (fn (n, class) => (Lookup ([], (v, (n, length op_sort))), class)) op_sort end;
   in
     Sorts.of_sort_derivation pp algebra
       {classrel = classrel, constructor = constructor, variable = variable}
