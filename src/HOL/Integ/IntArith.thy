@@ -379,6 +379,15 @@ code_constname
   "Numeral.B1" "IntDef.b1"
 
 lemma
+  Numeral_Pls_refl [code fun]: "Numeral.Pls = Numeral.Pls" ..
+
+lemma
+  Numeral_Min_refl [code fun]: "Numeral.Min = Numeral.Min" ..
+
+lemma
+  Numeral_Bit_refl [code fun]: "Numeral.Bit = Numeral.Bit" ..
+
+lemma
   number_of_is_rep_bin [code inline]: "number_of = Rep_Bin"
 proof
   fix b
@@ -415,7 +424,7 @@ fun int_of_numeral thy num = HOLogic.dest_binum num
 
 fun elim_negate thy thms =
   let
-    val thms' = map (rewrite_rule [number_of_is_rep_bin_thm]) thms;
+    val thms' = map (CodegenTheorems.rewrite_fun [number_of_is_rep_bin_thm]) thms;
     fun bins_of (Const _) =
           I
       | bins_of (Var _) =
@@ -441,8 +450,7 @@ fun elim_negate thy thms =
       |> filter is_negative
       |> map instantiate_with
   in if null rewrites then thms' else
-    thms'
-    |> map (rewrite_rule rewrites)
+    map (CodegenTheorems.rewrite_fun rewrites) thms'
   end;
 
 end;
