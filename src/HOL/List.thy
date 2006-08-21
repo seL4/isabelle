@@ -2721,16 +2721,28 @@ fun char_codegen thy defs gr dep thyname b t =
         else NONE
     | NONE => NONE;
 
+val print_list = Pretty.enum "," "[" "]";
+
+fun print_char c =
+  let
+    val i = ord c
+  in if i < 32
+    then prefix "\\" (string_of_int i)
+    else c
+  end;
+
+val print_string = quote;
+
 in
 
 val list_codegen_setup =
   Codegen.add_codegen "list_codegen" list_codegen
   #> Codegen.add_codegen "char_codegen" char_codegen
-  #> fold (CodegenPackage.add_pretty_list "Nil" "Cons") [
-       ("ml", (7, "::")),
-       ("haskell", (5, ":"))
-     ]
-  #> CodegenPackage.add_appconst
+  #> CodegenPackage.add_pretty_list "ml" "Nil" "Cons"
+       print_list NONE (7, "::")
+  #> CodegenPackage.add_pretty_list "haskell" "Nil" "Cons"
+       print_list (SOME (print_char, print_string)) (5, ":")
+  #> CodegenPackage.add_appconst_i
        ("List.char.Char", CodegenPackage.appgen_char dest_char);
 
 end;
@@ -2776,8 +2788,10 @@ code_typapp
     ml (target_atom "char")
     haskell (target_atom "Char")
 
-code_constapp Char
-  ml (target_atom "(__,/ __)")
+code_constapp
+  Char
+    ml (target_atom "(__,/ __)")
+    haskell (target_atom "(__,/ __)")
 
 setup list_codegen_setup
 

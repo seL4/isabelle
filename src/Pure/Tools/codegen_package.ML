@@ -19,8 +19,11 @@ sig
     -> ((string * CodegenThingol.funn) list -> Pretty.T)
         * ((string * CodegenThingol.datatyp) list -> Pretty.T);
 
-  val add_pretty_list: string -> string -> string * (int * string)
-    -> theory -> theory;
+  val add_pretty_list: string -> string -> string -> (Pretty.T list -> Pretty.T)
+   -> ((string -> string) * (string -> string)) option -> int * string
+   -> theory -> theory;
+  val add_pretty_ml_string: string -> string -> string -> string
+   -> (string -> string) -> (string -> string) -> string -> theory -> theory;
   val purge_code: theory -> theory;
 
   type appgen;
@@ -708,6 +711,9 @@ fun get_root_module thy =
 
 fun eval_term (ref_spec, t) thy =
   let
+    val _ = Term.fold_atyps (fn _ =>
+      error ("Term" ^ Sign.string_of_term thy t ^ "is polymorhpic"))
+      (Term.fastype_of t);
     fun preprocess_term t =
       let
         val x = Free (Name.variant (add_term_names (t, [])) "x", fastype_of t);
@@ -845,7 +851,7 @@ fun parse_syntax_const raw_const =
     #-> (fn reader => pair (mk reader))
   end;
 
-fun add_pretty_list raw_nil raw_cons (target, seri) thy =
+fun add_pretty_list target raw_nil raw_cons mk_list mk_char_string target_cons thy =
   let
     val _ = get_serializer target;
     fun prep_const raw =
@@ -859,10 +865,28 @@ fun add_pretty_list raw_nil raw_cons (target, seri) thy =
       idf_of_const thy (snd tabs) c_ty;
     val nil'' = mk_const nil';
     val cons'' = mk_const cons';
-    val pr = CodegenSerializer.pretty_list nil'' cons'' seri;
+    val pr = CodegenSerializer.pretty_list nil'' cons'' mk_list mk_char_string target_cons;
   in
     thy
     |> add_pretty_syntax_const cons'' target pr
+  end;
+
+fun add_pretty_ml_string target raw_nil raw_cons raw_str mk_char mk_string target_implode thy =
+  let
+    val _ = get_serializer target;
+    fun prep_const raw =
+      let
+        val c = Sign.intern_const thy raw
+      in (c, Sign.the_const_type thy c) end;
+    val cs' = map prep_const [raw_nil, raw_cons, raw_str];
+    val tabs = mk_tabs thy NONE cs';
+    fun mk_const c_ty =
+      idf_of_const thy (snd tabs) c_ty;
+    val [nil', cons', str'] = map mk_const cs';
+    val pr = CodegenSerializer.pretty_ml_string nil' cons' mk_char mk_string target_implode;
+  in
+    thy
+    |> add_pretty_syntax_const str' target pr
   end;
 
 
