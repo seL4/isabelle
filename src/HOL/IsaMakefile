@@ -202,6 +202,7 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 $(LOG)/HOL-Library.gz: $(OUT)/HOL \
   Library/SetsAndFunctions.thy Library/BigO.thy Library/Ramsey.thy \
   Library/EfficientNat.thy Library/ExecutableSet.thy Library/ExecutableRat.thy \
+  Library/MLString.thy \
   Library/FuncSet.thy Library/Library.thy \
   Library/List_Prefix.thy Library/Multiset.thy Library/NatPair.thy \
   Library/Permutation.thy Library/Primes.thy Library/Quotient.thy \
@@ -638,7 +639,9 @@ HOL-ex: HOL $(LOG)/HOL-ex.gz
 
 $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy			\
   ex/Abstract_NAT.thy ex/Antiquote.thy ex/BT.thy ex/BinEx.thy			\
-  ex/Chinese.thy ex/Classical.thy ex/Commutative_RingEx.thy			\
+  ex/Chinese.thy ex/Classical.thy ex/Classpackage.thy                           \
+  ex/CodeEmbed.thy ex/CodeRandom.thy ex/CodeRevappl.thy			\
+  ex/Codegenerator.thy ex/Commutative_RingEx.thy               \
   ex/Commutative_Ring_Complete.thy ex/Guess.thy ex/Hebrew.thy			\
   ex/Higher_Order_Logic.thy ex/Hilbert_Classical.thy ex/InSort.thy		\
   ex/InductiveInvariant.thy ex/InductiveInvariant_examples.thy			\

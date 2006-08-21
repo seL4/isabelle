@@ -6,6 +6,7 @@ imports
   EfficientNat
   ExecutableSet
   ExecutableRat
+  MLString
   FuncSet
   Multiset
   NatPair
