@@ -116,7 +116,7 @@ struct
 (** auxiliary **)
 
 val debug = ref false;
-fun debug_msg f x = (if !debug then Output.debug (f x) else (); x);
+fun debug_msg f x = (if !debug then Output.tracing (f x) else (); x);
 val soft_exc = ref true;
 
 fun unfoldl dest x =
