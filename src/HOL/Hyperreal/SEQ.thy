@@ -828,20 +828,22 @@ by auto
 lemma less_Suc_cancel_iff: "(n < Suc M) = (n \<le> M)"
 by auto
 
-text{* FIXME: Long. Maximal element in subsequence *}
+text{* Maximal element in subsequence *}
+lemma SUP_subseq:
+     "\<exists>m \<le> M. \<forall>n \<le> M. (X::nat => 'a::linorder) n \<le> X m"
+apply (induct M, simp)
+apply clarify
+apply (rule_tac x="X (Suc M)" and y="X m" in linorder_le_cases)
+apply (rule_tac x="m" in exI)
+apply (simp add: le_Suc_eq)
+apply (rule_tac x="Suc M" in exI)
+apply (simp add: le_Suc_eq)
+apply (blast intro: order_trans)
+done
+
 lemma SUP_rabs_subseq:
      "\<exists>m \<le> M. \<forall>n \<le> M. \<bar>(X::nat=> real) n\<bar> \<le> \<bar>X m\<bar>"
-apply (induct M)
-apply (rule_tac x = 0 in exI, simp, safe)
-apply (cut_tac x = "\<bar>X (Suc M)\<bar>" and y = "\<bar>X m\<bar> " in linorder_less_linear)
-apply safe
-apply (rule_tac x = m in exI)
-apply (rule_tac [2] x = m in exI)
-apply (rule_tac [3] x = "Suc M" in exI, simp_all, safe)
-apply (erule_tac [!] m1 = n in le_imp_less_or_eq [THEN disjE]) 
-apply (simp_all add: less_Suc_cancel_iff)
-apply (blast intro: order_le_less_trans [THEN order_less_imp_le])
-done
+by (rule SUP_subseq)
 
 lemma lemma_Nat_covered:
      "[| \<forall>m::nat. m \<le> M --> P M m;
