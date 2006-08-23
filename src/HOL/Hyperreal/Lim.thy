@@ -93,9 +93,9 @@ by (simp add: LIM_def)
 lemma LIM_add:
   assumes f: "f -- a --> L" and g: "g -- a --> M"
   shows "(%x. f x + g(x)) -- a --> (L + M)"
-proof (simp add: LIM_eq, clarify)
+proof (unfold LIM_eq, clarify)
   fix r :: real
-  assume r: "0<r"
+  assume r: "0 < r"
   from LIM_D [OF f half_gt_zero [OF r]]
   obtain fs
     where fs:    "0 < fs"
@@ -111,8 +111,9 @@ proof (simp add: LIM_eq, clarify)
     show "0 < min fs gs"  by (simp add: fs gs)
     fix x :: real
     assume "x \<noteq> a \<and> \<bar>x-a\<bar> < min fs gs"
+    hence "x \<noteq> a \<and> \<bar>x-a\<bar> < fs \<and> \<bar>x-a\<bar> < gs" by simp
     with fs_lt gs_lt
-    have "\<bar>f x - L\<bar> < r/2" and "\<bar>g x - M\<bar> < r/2" by (auto simp add: fs_lt)
+    have "\<bar>f x - L\<bar> < r/2" and "\<bar>g x - M\<bar> < r/2" by blast+
     hence "\<bar>f x - L\<bar> + \<bar>g x - M\<bar> < r" by arith
     thus "\<bar>f x + g x - (L + M)\<bar> < r"
       by (blast intro: abs_diff_triangle_ineq order_le_less_trans)
@@ -194,8 +195,9 @@ proof (simp add: LIM_eq abs_mult, clarify)
     show "0 < min fs gs"  by (simp add: fs gs)
     fix x :: real
     assume "x \<noteq> a \<and> \<bar>x-a\<bar> < min fs gs"
+    hence  "x \<noteq> a \<and> \<bar>x-a\<bar> < fs \<and> \<bar>x-a\<bar> < gs" by simp
     with fs_lt gs_lt
-    have "\<bar>f x\<bar> < 1" and "\<bar>g x\<bar> < r" by (auto simp add: fs_lt)
+    have "\<bar>f x\<bar> < 1" and "\<bar>g x\<bar> < r" by blast+
     hence "\<bar>f x\<bar> * \<bar>g x\<bar> < 1*r" by (rule abs_mult_less)
     thus "\<bar>f x\<bar> * \<bar>g x\<bar> < r" by simp
   qed
