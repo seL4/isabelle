@@ -285,6 +285,10 @@ done
 
 subsection{* Set of Infinitesimals is a Subring of the Hyperreals*}
 
+lemma InfinitesimalI:
+  "(\<And>r. \<lbrakk>r \<in> \<real>; 0 < r\<rbrakk> \<Longrightarrow> \<bar>x\<bar> < r) \<Longrightarrow> x \<in> Infinitesimal"
+by (simp add: Infinitesimal_def)
+
 lemma InfinitesimalD:
       "x \<in> Infinitesimal ==> \<forall>r \<in> Reals. 0 < r --> abs x < r"
 by (simp add: Infinitesimal_def)
@@ -297,10 +301,10 @@ by auto
 
 lemma Infinitesimal_add:
      "[| x \<in> Infinitesimal; y \<in> Infinitesimal |] ==> (x+y) \<in> Infinitesimal"
-apply (auto simp add: Infinitesimal_def)
+apply (rule InfinitesimalI)
 apply (rule hypreal_sum_of_halves [THEN subst])
 apply (drule half_gt_zero)
-apply (blast intro: hrabs_add_less SReal_divide_number_of)
+apply (blast intro: hrabs_add_less SReal_divide_number_of dest: InfinitesimalD)
 done
 
 lemma Infinitesimal_minus_iff [simp]: "(-x:Infinitesimal) = (x:Infinitesimal)"
@@ -312,20 +316,25 @@ by (simp add: diff_def Infinitesimal_add)
 
 lemma Infinitesimal_mult:
      "[| x \<in> Infinitesimal; y \<in> Infinitesimal |] ==> (x * y) \<in> Infinitesimal"
-apply (auto simp add: Infinitesimal_def abs_mult)
-apply (case_tac "y=0", simp) 
-apply (cut_tac a = "abs x" and b = 1 and c = "abs y" and d = r 
-       in mult_strict_mono, auto)
+apply (rule InfinitesimalI)
+apply (simp only: abs_mult)
+apply (case_tac "y = 0", simp)
+apply (subgoal_tac "\<bar>x\<bar> * \<bar>y\<bar> < 1 * r", simp only: mult_1)
+apply (rule mult_strict_mono)
+apply (simp_all add: InfinitesimalD)
 done
 
 lemma Infinitesimal_HFinite_mult:
      "[| x \<in> Infinitesimal; y \<in> HFinite |] ==> (x * y) \<in> Infinitesimal"
-apply (auto dest!: HFiniteD simp add: Infinitesimal_def abs_mult)
-apply (frule hrabs_less_gt_zero)
-apply (drule_tac x = "r/t" in bspec)
-apply (blast intro: SReal_divide)
-apply (cut_tac a = "abs x" and b = "r/t" and c = "abs y" in mult_strict_mono)
-apply (auto simp add: zero_less_divide_iff)
+apply (rule InfinitesimalI)
+apply (drule HFiniteD, clarify)
+apply (simp only: abs_mult)
+apply (subgoal_tac "\<bar>x\<bar> * \<bar>y\<bar> < (r / t) * t", simp)
+apply (subgoal_tac "0 < r / t")
+apply (rule mult_strict_mono)
+apply (simp add: InfinitesimalD SReal_divide)
+apply (assumption, assumption, simp)
+apply (simp only: divide_pos_pos hrabs_less_gt_zero)
 done
 
 lemma Infinitesimal_HFinite_mult2:
@@ -343,13 +352,18 @@ apply (rule inverse_less_iff_less [THEN iffD1])
 apply (auto simp add: SReal_inverse)
 done
 
+lemma HInfiniteI: "(\<And>r. r \<in> \<real> \<Longrightarrow> r < \<bar>x\<bar>) \<Longrightarrow> x \<in> HInfinite"
+by (simp add: HInfinite_def)
+
+lemma HInfiniteD: "\<lbrakk>x \<in> HInfinite; r \<in> \<real>\<rbrakk> \<Longrightarrow> r < \<bar>x\<bar>"
+by (simp add: HInfinite_def)
+
 lemma HInfinite_mult: "[|x \<in> HInfinite;y \<in> HInfinite|] ==> (x*y) \<in> HInfinite"
-apply (auto simp add: HInfinite_def  abs_mult)
-apply (erule_tac x = 1 in ballE)
-apply (erule_tac x = r in ballE)
-apply (case_tac "y=0", simp)
-apply (cut_tac c = 1 and d = "abs x" and a = r and b = "abs y" in mult_strict_mono)
-apply (auto simp add: mult_ac)
+apply (rule HInfiniteI, simp only: abs_mult)
+apply (subgoal_tac "r * 1 < \<bar>x\<bar> * \<bar>y\<bar>", simp only: mult_1)
+apply (case_tac "x = 0", simp add: HInfinite_def)
+apply (rule mult_strict_mono)
+apply (simp_all add: HInfiniteD)
 done
 
 lemma hypreal_add_zero_less_le_mono: "[|r < x; (0::hypreal) \<le> y|] ==> r < x+y"
@@ -421,12 +435,13 @@ by (auto intro: Infinitesimal_interval simp add: order_le_less)
 
 lemma not_Infinitesimal_mult:
      "[| x \<notin> Infinitesimal;  y \<notin> Infinitesimal|] ==> (x*y) \<notin>Infinitesimal"
-apply (unfold Infinitesimal_def, clarify)
-apply (simp add: linorder_not_less abs_mult)
-apply (erule_tac x = "r*ra" in ballE)
-prefer 2 apply (fast intro: SReal_mult)
-apply (auto simp add: zero_less_mult_iff)
-apply (cut_tac c = ra and d = "abs y" and a = r and b = "abs x" in mult_mono, auto)
+apply (unfold Infinitesimal_def, clarify, rename_tac r s)
+apply (simp only: linorder_not_less abs_mult)
+apply (drule_tac x = "r * s" in bspec)
+apply (fast intro: SReal_mult)
+apply (drule mp, blast intro: mult_pos_pos)
+apply (drule_tac c = s and d = "abs y" and a = r and b = "abs x" in mult_mono)
+apply (simp_all (no_asm_simp))
 done
 
 lemma Infinitesimal_mult_disj:
