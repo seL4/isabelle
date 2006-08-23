@@ -135,19 +135,22 @@ end;
 structure Random : RANDOM =
 struct
 
+open IntInf;
+
 exception RANDOM;
 
-type seed = IntInf.int;
+type seed = int;
 
 local
-  val a = 16807;
-  val m = 2147483647;
+  val a = fromInt 16807;
+    (*greetings to SML/NJ*)
+  val m = (the o fromString) "2147483647";
 in
-  fun next s = IntInf.mod (a * s, m)
+  fun next s = (a * s) mod m;
 end;
 
 local
-  val seed_ref = ref 1;
+  val seed_ref = ref (fromInt 1);
 in
   fun seed () =
     let
@@ -159,7 +162,7 @@ end;
 
 fun value h s =
   if h < 1 then raise RANDOM
-  else (IntInf.mod (s, h - 1), seed ());
+  else (s mod (h - 1), seed ());
 
 end;
 *}
