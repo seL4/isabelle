@@ -346,18 +346,21 @@ by (simp add: summable_def sums_def convergent_def)
 lemma summable_Cauchy:
      "summable f =  
       (\<forall>e > 0. \<exists>N. \<forall>m \<ge> N. \<forall>n. abs(setsum f {m..<n}) < e)"
-apply (auto simp add: summable_convergent_sumr_iff Cauchy_convergent_iff [symmetric] Cauchy_def diff_minus[symmetric])
-apply (drule_tac [!] spec, auto)
-apply (rule_tac x = M in exI)
-apply (rule_tac [2] x = N in exI, auto)
-apply (cut_tac [!] m = m and n = n in less_linear, auto)
-apply (frule le_less_trans [THEN less_imp_le], assumption)
-apply (drule_tac x = n in spec, simp)
-apply (drule_tac x = m in spec)
-apply(simp add: setsum_diff[symmetric])
-apply(subst abs_minus_commute)
-apply(simp add: setsum_diff[symmetric])
-apply(simp add: setsum_diff[symmetric])
+apply (simp only: summable_convergent_sumr_iff Cauchy_convergent_iff [symmetric] Cauchy_def diff_minus [symmetric], safe)
+apply (drule spec, drule (1) mp)
+apply (erule exE, rule_tac x="M" in exI, clarify)
+apply (rule_tac x="m" and y="n" in linorder_le_cases)
+apply (frule (1) order_trans)
+apply (drule_tac x="n" in spec, drule (1) mp)
+apply (drule_tac x="m" in spec, drule (1) mp)
+apply (simp add: setsum_diff [symmetric])
+apply simp
+apply (drule spec, drule (1) mp)
+apply (erule exE, rule_tac x="N" in exI, clarify)
+apply (rule_tac x="m" and y="n" in linorder_le_cases)
+apply (subst abs_minus_commute)
+apply (simp add: setsum_diff [symmetric])
+apply (simp add: setsum_diff [symmetric])
 done
 
 text{*Comparison test*}
