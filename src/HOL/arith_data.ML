@@ -209,6 +209,8 @@ fun mk_arith_tactic name tactic = ArithTactic {name = name, tactic = tactic, id 
 
 fun eq_arith_tactic (ArithTactic {id = id1, ...}, ArithTactic {id = id2, ...}) = (id1 = id2);
 
+val merge_arith_tactics = gen_merge_lists eq_arith_tactic;
+
 structure ArithTheoryData = TheoryDataFun
 (struct
   val name = "HOL/arith";
@@ -224,7 +226,7 @@ structure ArithTheoryData = TheoryDataFun
    {splits = Drule.merge_rules (splits1, splits2),
     inj_consts = merge_lists inj_consts1 inj_consts2,
     discrete = merge_lists discrete1 discrete2,
-    tactics = gen_merge_lists eq_arith_tactic tactics1 tactics2};
+    tactics = merge_arith_tactics tactics1 tactics2};
   fun print _ _ = ();
 end);
 
@@ -239,7 +241,7 @@ fun arith_inj_const c = ArithTheoryData.map (fn {splits,inj_consts,discrete,tact
   {splits = splits, inj_consts = c :: inj_consts, discrete = discrete, tactics= tactics});
 
 fun arith_tactic_add tac = ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
-  {splits= splits, inj_consts= inj_consts, discrete= discrete, tactics= tactics @ [tac]});
+  {splits= splits, inj_consts= inj_consts, discrete= discrete, tactics= merge_arith_tactics tactics [tac]});
 
 
 signature HOL_LIN_ARITH_DATA =

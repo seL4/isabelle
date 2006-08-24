@@ -363,13 +363,15 @@ fun presburger_args meth =
 fun presburger_method q a i = Method.METHOD (fn facts =>
   Method.insert_tac facts 1 THEN presburger_tac q a i)
 
+val presburger_arith_tac = mk_arith_tactic "presburger" (fn i => fn st =>
+  (warning "Trying full Presburger arithmetic ...";
+   presburger_tac true true i st));
+
 val setup =
   Method.add_method ("presburger",
     presburger_args presburger_method,
     "decision procedure for Presburger arithmetic") #>
-  arith_tactic_add (mk_arith_tactic "presburger" (fn i => fn st =>
-    (warning "Trying full Presburger arithmetic ...";
-     presburger_tac true true i st)));
+  arith_tactic_add presburger_arith_tac;
 
 end;
 
