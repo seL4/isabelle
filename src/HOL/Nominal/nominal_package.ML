@@ -1391,6 +1391,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val Ts = map (typ_of_dtyp descr'' sorts') cargs;
         val frees = map (fn i => "x" ^ string_of_int i) (1 upto length Ts) ~~ Ts;
         val frees' = partition_cargs idxs frees;
+        val atomTs = distinct op = (maps (map snd o fst) frees');
         val recs = List.mapPartial
           (fn ((_, DtRec i), p) => SOME (i, p) | _ => NONE)
           (partition_cargs idxs cargs ~~ frees');
@@ -1409,6 +1410,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val prems4 = map (fn ((i, _), y) =>
           HOLogic.mk_Trueprop (List.nth (rec_preds, i) $ Free y)) (recs ~~ frees'');
         val prems5 = mk_fresh3 (recs ~~ frees'') frees';
+        val prems6 = maps (fn aT => map (fn y as (_, T) => HOLogic.mk_Trueprop
+          (HOLogic.mk_mem (Const ("Nominal.supp", T --> HOLogic.mk_setT aT) $ Free y,
+             Const ("Finite_Set.Finites", HOLogic.mk_setT (HOLogic.mk_setT aT)))))
+               frees'') atomTs;
         val result = list_comb (List.nth (rec_fns, l), map Free (frees @ frees''));
         val result_freshs = map (fn p as (_, T) =>
           Const ("Nominal.fresh", T --> fastype_of result --> HOLogic.boolT) $
@@ -1422,7 +1427,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
          rec_prems @ [list_all_free (frees @ frees'', Logic.list_implies (prems4, P))],
          if null result_freshs then rec_prems'
          else rec_prems' @ [list_all_free (frees @ frees'',
-           Logic.list_implies (List.nth (prems2, l) @ prems3 @ prems5 @ [P],
+           Logic.list_implies (List.nth (prems2, l) @ prems3 @ prems5 @ prems6 @ [P],
              HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj result_freshs)))],
          rec_eq_prems @ [List.concat prems2 @ prems3],
          l + 1)
@@ -1864,6 +1869,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                            [resolve_tac fcbs 1,
                             REPEAT_DETERM (resolve_tac
                               (fresh_prems @ rec_freshs1 @ rec_freshs2) 1),
+                            REPEAT_DETERM (resolve_tac (maps snd rec_fin_supp_thms') 1
+                              THEN resolve_tac rec_prems 1),
                             resolve_tac P_ind_ths 1,
                             REPEAT_DETERM (resolve_tac (P_ths @ rec_prems) 1)]);
         
