@@ -203,34 +203,43 @@ end;  (* LA_Logic *)
 
 (* arith theory data *)
 
+datatype arithtactic = ArithTactic of {name: string, tactic: int -> tactic, id: stamp};
+
+fun mk_arith_tactic name tactic = ArithTactic {name = name, tactic = tactic, id = stamp ()};
+
+fun eq_arith_tactic (ArithTactic {id = id1, ...}, ArithTactic {id = id2, ...}) = (id1 = id2);
+
 structure ArithTheoryData = TheoryDataFun
 (struct
   val name = "HOL/arith";
   type T = {splits: thm list,
             inj_consts: (string * typ) list,
             discrete: string list,
-            presburger: (int -> tactic) option};
-  val empty = {splits = [], inj_consts = [], discrete = [], presburger = NONE};
+            tactics: arithtactic list};
+  val empty = {splits = [], inj_consts = [], discrete = [], tactics = []};
   val copy = I;
   val extend = I;
-  fun merge _ ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1, presburger= presburger1},
-             {splits= splits2, inj_consts= inj_consts2, discrete= discrete2, presburger= presburger2}) =
+  fun merge _ ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1, tactics= tactics1},
+             {splits= splits2, inj_consts= inj_consts2, discrete= discrete2, tactics= tactics2}) =
    {splits = Drule.merge_rules (splits1, splits2),
     inj_consts = merge_lists inj_consts1 inj_consts2,
     discrete = merge_lists discrete1 discrete2,
-    presburger = (case presburger1 of NONE => presburger2 | p => p)};
+    tactics = gen_merge_lists eq_arith_tactic tactics1 tactics2};
   fun print _ _ = ();
 end);
 
 val arith_split_add = Thm.declaration_attribute (fn thm =>
-  Context.map_theory (ArithTheoryData.map (fn {splits,inj_consts,discrete,presburger} =>
-    {splits= thm::splits, inj_consts= inj_consts, discrete= discrete, presburger= presburger})));
+  Context.map_theory (ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
+    {splits= thm::splits, inj_consts= inj_consts, discrete= discrete, tactics= tactics})));
 
-fun arith_discrete d = ArithTheoryData.map (fn {splits,inj_consts,discrete,presburger} =>
-  {splits = splits, inj_consts = inj_consts, discrete = d :: discrete, presburger= presburger});
+fun arith_discrete d = ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
+  {splits = splits, inj_consts = inj_consts, discrete = d :: discrete, tactics= tactics});
 
-fun arith_inj_const c = ArithTheoryData.map (fn {splits,inj_consts,discrete,presburger} =>
-  {splits = splits, inj_consts = c :: inj_consts, discrete = discrete, presburger = presburger});
+fun arith_inj_const c = ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
+  {splits = splits, inj_consts = c :: inj_consts, discrete = discrete, tactics= tactics});
+
+fun arith_tactic_add tac = ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
+  {splits= splits, inj_consts= inj_consts, discrete= discrete, tactics= tactics @ [tac]});
 
 
 signature HOL_LIN_ARITH_DATA =
@@ -994,11 +1003,12 @@ fun raw_arith_tac ex i st =
     (fast_ex_arith_tac ex)
     i st;
 
-fun presburger_tac i st =
-  (case ArithTheoryData.get (Thm.theory_of_thm st) of
-     {presburger = SOME tac, ...} =>
-       (warning "Trying full Presburger arithmetic ..."; tac i st)
-   | _ => no_tac st);
+fun arith_theory_tac i st =
+let
+  val tactics = #tactics (ArithTheoryData.get (Thm.theory_of_thm st))
+in
+  FIRST' (map (fn ArithTactic {tactic, ...} => tactic) tactics) i st
+end;
 
 in
 
@@ -1007,11 +1017,11 @@ in
 
   val arith_tac = FIRST' [fast_arith_tac,
     ObjectLogic.atomize_tac THEN' raw_arith_tac true,
-    presburger_tac];
+    arith_theory_tac];
 
   val silent_arith_tac = FIRST' [fast_arith_tac,
     ObjectLogic.atomize_tac THEN' raw_arith_tac false,
-    presburger_tac];
+    arith_theory_tac];
 
   fun arith_method prems =
     Method.METHOD (fn facts => HEADGOAL (Method.insert_tac (prems @ facts) THEN' arith_tac));

@@ -367,9 +367,9 @@ val setup =
   Method.add_method ("presburger",
     presburger_args presburger_method,
     "decision procedure for Presburger arithmetic") #>
-  ArithTheoryData.map (fn {splits, inj_consts, discrete, presburger} =>
-    {splits = splits, inj_consts = inj_consts, discrete = discrete,
-      presburger = SOME (presburger_tac true true)});
+  arith_tactic_add (mk_arith_tactic "presburger" (fn i => fn st =>
+    (warning "Trying full Presburger arithmetic ...";
+     presburger_tac true true i st)));
 
 end;
 
