@@ -541,7 +541,8 @@ lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & split Q ab)"
    b) can lead to nontermination in the presence of split_def
 *)
 lemma split_comp_eq: 
-"(%u. f (g (fst u)) (snd u)) = (split (%x. f (g x)))"
+  fixes f :: "'a => 'b => 'c" and g :: "'d => 'a"
+  shows "(%u. f (g (fst u)) (snd u)) = (split (%x. f (g x)))"
   by (rule ext) auto
 
 lemma The_split_eq [simp]: "(THE (x',y'). x = x' & y = y') = (x, y)"
