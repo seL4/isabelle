@@ -15,6 +15,7 @@ signature BASIC_MESON =
 sig
   val size_of_subgoals	: thm -> int
   val make_cnf		: thm list -> thm -> thm list
+  val finish_cnf	: thm list -> thm list
   val make_nnf		: thm -> thm
   val make_nnf1		: thm -> thm
   val skolemize		: thm -> thm
@@ -36,7 +37,6 @@ sig
   val select_literal	: int -> thm -> thm
   val skolemize_tac	: int -> tactic
   val make_clauses_tac	: int -> tactic
-  val check_is_fol_term : term -> term
 end
 
 
@@ -66,13 +66,29 @@ val depth_limit = ref 2000;
 
 (**** Operators for forward proof ****)
 
-(*Like RS, but raises Option if there are no unifiers and allows multiple unifiers.*)
-fun resolve1 (tha,thb) = Seq.hd (biresolution false [(false,tha)] 1 thb);
+
+(** First-order Resolution **)
+
+fun typ_pair_of (ix, (sort,ty)) = (TVar (ix,sort), ty);
+fun term_pair_of (ix, (ty,t)) = (Var (ix,ty), t);
+
+val Envir.Envir {asol = tenv0, iTs = tyenv0, ...} = Envir.empty 0
+
+(*FIXME: currently does not "rename variables apart"*)
+fun first_order_resolve thA thB =
+  let val thy = theory_of_thm thA
+      val tmA = concl_of thA
+      fun match pat = Pattern.first_order_match thy (pat,tmA) (tyenv0,tenv0)
+      val Const("==>",_) $ tmB $ _ = prop_of thB
+      val (tyenv,tenv) = match tmB
+      val ct_pairs = map (pairself (cterm_of thy) o term_pair_of) (Vartab.dest tenv)
+  in  thA RS (cterm_instantiate ct_pairs thB)  end
+  handle _ => raise THM ("first_order_resolve", 0, [thA,thB]);
 
 (*raises exception if no rules apply -- unlike RL*)
 fun tryres (th, rls) = 
   let fun tryall [] = raise THM("tryres", 0, th::rls)
-        | tryall (rl::rls) = (resolve1(th,rl) handle Option.Option => tryall rls)
+        | tryall (rl::rls) = (th RS rl handle THM _ => tryall rls)
   in  tryall rls  end;
   
 (*Permits forward proof from rules that discharge assumptions*)
@@ -189,6 +205,11 @@ fun resop nf [prem] = resolve_tac (nf prem) 1;
 
 val has_meta_conn = 
     exists_Const (fn (c,_) => c mem_string ["==", "==>", "all", "prop"]);
+
+fun apply_skolem_ths (th, rls) = 
+  let fun tryall [] = raise THM("apply_skolem_ths", 0, th::rls)
+        | tryall (rl::rls) = (first_order_resolve th rl handle THM _ => tryall rls)
+  in  tryall rls  end;
   
 (*Conjunctive normal form, adding clauses from th in front of ths (for foldr).
   Strips universal quantifiers and breaks up conjunctions.
@@ -200,13 +221,12 @@ fun cnf skoths (th,ths) =
 	then th::ths (*no work to do, terminate*)
 	else case head_of (HOLogic.dest_Trueprop (concl_of th)) of
 	    Const ("op &", _) => (*conjunction*)
-		cnf_aux (th RS conjunct1,
-			      cnf_aux (th RS conjunct2, ths))
+		cnf_aux (th RS conjunct1, cnf_aux (th RS conjunct2, ths))
 	  | Const ("All", _) => (*universal quantifier*)
 	        cnf_aux (freeze_spec th,  ths)
 	  | Const ("Ex", _) => 
 	      (*existential quantifier: Insert Skolem functions*)
-	      cnf_aux (tryres (th,skoths), ths)
+	      cnf_aux (apply_skolem_ths (th,skoths), ths)
 	  | Const ("op |", _) => (*disjunction*)
 	      let val tac =
 		  (METAHYPS (resop cnf_nil) 1) THEN
@@ -224,9 +244,10 @@ fun cnf skoths (th,ths) =
   but don't discharge assumptions.*)
 fun generalize th = Thm.varifyT (forall_elim_vars 0 (forall_intr_frees th));
 
-fun make_cnf skoths th = 
-  filter (not o is_taut) 
-    (map (refl_clause o generalize) (cnf skoths (th, [])));
+fun make_cnf skoths th = cnf skoths (th, []);
+
+(*Generalization, removal of redundant equalities, removal of tautologies.*)
+fun finish_cnf ths = filter (not o is_taut) (map (refl_clause o generalize) ths);
 
 
 (**** Removal of duplicate literals ****)
@@ -302,13 +323,6 @@ fun is_fol_term t =
 	 not (Term.is_first_order ["all","All","Ex"] t) orelse
 	 has_bool_arg_const t  orelse  
 	 has_meta_conn t);
-
-(*FIXME: replace this by the boolean-valued version above!*)
-fun check_is_fol_term t =
-    if is_fol_term t then t else raise TERM("check_is_fol_term",[t]);
-
-fun check_is_fol th = (check_is_fol_term (prop_of th); th);
-
 
 (*Create a meta-level Horn clause*)
 fun make_horn crules th = make_horn crules (tryres(th,crules))
@@ -426,7 +440,6 @@ fun skolemize th =
 fun make_clauses ths =
     (sort_clauses (map (generalize o nodups) (foldr (cnf[]) [] ths)));
 
-
 (*Convert a list of clauses (disjunctions) to Horn clauses (contrapositives)*)
 fun make_horns ths =
     name_thms "Horn#"
@@ -461,7 +474,7 @@ fun MESON cltac i st =
 		      EVERY1 [skolemize_prems_tac negs,
 			      METAHYPS (cltac o make_clauses)]) 1,
             expand_defs_tac]) i st
-  handle TERM _ => no_tac st;	(*probably from check_is_fol*)		      
+  handle THM _ => no_tac st;	(*probably from make_meta_clause, not first-order*)		      
 
 (** Best-first search versions **)
 
@@ -531,7 +544,9 @@ fun negated_asm_of_head th =
 
 (*Converting one clause*)
 fun make_meta_clause th = 
-    negated_asm_of_head (make_horn resolution_clause_rules (check_is_fol th));
+  if is_fol_term (prop_of th) 
+  then negated_asm_of_head (make_horn resolution_clause_rules th)
+  else raise THM("make_meta_clause", 0, [th]);
 
 fun make_meta_clauses ths =
     name_thms "MClause#"
