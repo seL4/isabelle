@@ -440,14 +440,10 @@ fun get_tvar_strs [] = []
   | get_tvar_strs((FOLTFree x,s)::tss) = get_tvar_strs tss
 
 (* check if a clause is first-order before making a conjecture clause*)
-fun make_conjecture_clause n thm =
-    let val t = prop_of thm
-	val _ = check_is_fol_term t
-	    handle TERM("check_is_fol_term",_) => raise CLAUSE("Goal is not FOL",t)
-    in
-	make_clause(n, "conjecture", thm, Conjecture)
-    end;
-    
+fun make_conjecture_clause n th =
+  if Meson.is_fol_term (prop_of th) then make_clause(n, "conjecture", th, Conjecture)
+  else raise CLAUSE("Goal is not FOL", prop_of th);
+  
 fun make_conjecture_clauses_aux _ [] = []
   | make_conjecture_clauses_aux n (t::ts) =
       make_conjecture_clause n t :: make_conjecture_clauses_aux (n+1) ts
