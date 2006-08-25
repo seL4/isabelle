@@ -97,7 +97,7 @@ fun callResProvers (toWatcherStr,  []) =
        (*Uses a special character to separate items sent to watcher*)
        TextIO.output (toWatcherStr,
           space_implode (str command_sep) [prover, proverCmd, settings, probfile, "\n"]);
-       goals_being_watched := (!goals_being_watched) + 1;
+       inc goals_being_watched;
        TextIO.flushOut toWatcherStr;
        callResProvers (toWatcherStr,args))
                                                 

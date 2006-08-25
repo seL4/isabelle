@@ -173,7 +173,7 @@ end;
 	  val indx = index (hash, sz)
 	  fun look NIL = (
 		Array.update(arr, indx, B(hash, key, item, Array.sub(arr, indx)));
-		n_items := !n_items + 1;
+		inc n_items;
 		growTable tbl;
 		NIL)
 	    | look (B(h, k, v, r)) = if ((hash = h) andalso sameKey(key, k))
@@ -199,7 +199,7 @@ end;
 	    fun look NIL = 
 		(Array.update(arr, indx, B(hash, key, item, 
 					   Array.sub(arr, indx)));
-		 n_items := !n_items + 1;
+		 inc n_items;
 		 growTable tbl;
 		 NONE)
 	      | look (B(h, k, v, r)) = 
