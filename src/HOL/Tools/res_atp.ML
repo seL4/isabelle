@@ -63,7 +63,7 @@ struct
 (*** background linkup ***)
 val call_atp = ref false; 
 val hook_count = ref 0;
-val time_limit = ref 30;
+val time_limit = ref 80;
 val prover = ref "E";   (* use E as the default prover *)
 val custom_spass =   (*specialized options for SPASS*)
       ref ["-Auto=0","-FullRed=0","-IORe","-IOFc","-RTaut","-RFSub","-RBSub"];
@@ -735,7 +735,7 @@ fun write_problem_files probfile (ctxt,th)  =
 	      let val st = Seq.hd (EVERY' [rtac ccontr, ObjectLogic.atomize_tac, 
 	                                   skolemize_tac] n th)
 		  val negs = Option.valOf (metahyps_thms n st)
-		  val negs_clauses = make_clauses negs
+		  val negs_clauses = ResAxioms.assume_abstract (make_clauses negs)
 	      in
 		  negs_clauses :: get_neg_subgoals (n-1)
 	      end
@@ -809,7 +809,7 @@ fun invoke_atp_ml (ctxt, goal) =
 		  Pretty.string_of (ProofContext.pretty_term ctxt
 		    (Logic.mk_conjunction_list (Thm.prems_of goal))));
     Output.debug ("current theory: " ^ Context.theory_name thy);
-    hook_count := !hook_count +1;
+    inc hook_count;
     Output.debug ("in hook for time: " ^ Int.toString (!hook_count));
     ResClause.init thy;
     ResHolClause.init thy;
