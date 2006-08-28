@@ -42,7 +42,7 @@ sub dimacs2hol {
     s/(\s+0)?\s*\z//;                        # remove trailing whitespace, and possibly a last '0'
     s/-/~/g;                                 # replace '-' by '~' (negation in HOL)
     s/[1-9]\d*/v$&/g;                        # add 'v' before variables
-    s/(\s+)0(\s+)/\)$1&$2\(/g;               # replace ' 0 ' by ') & ('
+    s/\s+0\s+/\"\nand \"/g;                  # replace ' 0 ' by '"\nand "'
     s/(\d)(\s+[~v])/$1 |$2/g;                # insert ' |' between literals
 
     my ($filename) = $file;
@@ -62,9 +62,10 @@ sub dimacs2hol {
     print FILE "\\end{verbatim}\n";
     print FILE "*}\n";
     print FILE "\n";
-    print FILE "theorem \"~((";  # negate the whole CNF formula
-    print FILE;
-    print FILE "))\"\n";
+    print FILE "theorem assumes \""; print FILE;
+    print FILE "\"\n";
+    print FILE "shows \"False\"\n";  # negate the whole CNF formula
+    print FILE "using prems\n";
     print FILE "oops\n";
     print FILE "\n";
     print FILE "end\n";
