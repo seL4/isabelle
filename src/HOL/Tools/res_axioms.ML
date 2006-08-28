@@ -240,8 +240,7 @@ fun list_combination cf [] = cf
 fun list_cabs ([] ,     t) = t
   | list_cabs (v::vars, t) = Thm.cabs v (list_cabs(vars,t));
 
-(*FIXME DELETE*)
-fun check_eta ct = 
+fun assert_eta_free ct = 
   let val t = term_of ct 
   in if (t aconv Envir.eta_contract t) then ()  
      else error ("Eta redex in term: " ^ string_of_cterm ct)
@@ -253,7 +252,7 @@ fun declare_absfuns th =
   let fun abstract thy ct = case term_of ct of
           Abs (_,T,u) =>
 	    let val cname = gensym "abs_"
-	        val _ = check_eta ct;
+	        val _ = assert_eta_free ct;
 		val (cv,cta) = Thm.dest_abs NONE ct
 		val v = (#1 o dest_Free o term_of) cv
 		val (u'_th,defs) = abstract thy cta
@@ -292,7 +291,7 @@ fun assume_absfuns th =
       fun abstract vs ct = case term_of ct of
           Abs (_,T,u) =>
 	    let val (cv,cta) = Thm.dest_abs NONE ct
-	        val _ = check_eta ct;
+	        val _ = assert_eta_free ct;
 		val v = (#1 o dest_Free o term_of) cv
 		val (u'_th,defs) = abstract (v::vs) cta
                 val cu' = crhs u'_th
@@ -384,7 +383,7 @@ fun declare_abstract' (thy, []) = (thy, [])
 	  val (thy'', ths') = declare_abstract' (thy', ths)
       in  (thy'', th_defs @ ths')  end;
 
-(*FIXME DELETE*)
+(*FIXME DELETE if we decide to switch to abstractions*)
 fun declare_abstract (thy, ths) =
   if abstract_lambdas then declare_abstract' (thy, ths)
   else (thy, map eta_conversion_rule ths);

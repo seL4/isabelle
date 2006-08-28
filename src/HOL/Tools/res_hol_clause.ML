@@ -474,13 +474,10 @@ fun make_axiom_clauses [] user_lemmas = []
     end;
 
 
-fun make_conjecture_clause n thm = 
-    make_clause(n,"conjecture",Conjecture,thm,true);
- 
-
 fun make_conjecture_clauses_aux _ [] = []
-  | make_conjecture_clauses_aux n (t::ts) =
-    make_conjecture_clause n t :: make_conjecture_clauses_aux (n+1) ts;
+  | make_conjecture_clauses_aux n (th::ths) =
+      make_clause(n,"conjecture",Conjecture,th,true) ::
+      make_conjecture_clauses_aux (n+1) ths;
 
 val make_conjecture_clauses = make_conjecture_clauses_aux 0;
 
