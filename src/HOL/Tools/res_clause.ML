@@ -6,6 +6,7 @@ ML data structure for storing/printing FOL clauses and arity clauses.
 Typed equality is treated differently.
 *)
 
+(*FIXME: is this signature necessary? Or maybe define and open a Basic_ResClause?*)
 signature RES_CLAUSE =
   sig
   exception CLAUSE of string * term
@@ -76,7 +77,7 @@ signature RES_CLAUSE =
   val dfg_arity_clause: arityClause -> string
 end;
 
-structure ResClause : RES_CLAUSE =
+structure ResClause =
 struct
 
 (* Added for typed equality *)
@@ -879,9 +880,5 @@ fun tptp_write_file thms filename (ax_tuples,classrel_clauses,arity_clauses) =
     TextIO.closeOut out;
     clnames
   end;
-
-
-
-
 
 end;
