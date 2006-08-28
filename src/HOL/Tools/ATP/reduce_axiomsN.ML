@@ -7,7 +7,7 @@ struct
 
 val pass_mark = ref 0.6;
 val convergence = ref 2.4;   (*Higher numbers allow longer inference chains*)
-val follow_defs = ref true;  (*Follow definitions. Makes problems bigger.*)
+val follow_defs = ref false;  (*Follow definitions. Makes problems bigger.*)
 
 fun log_weight2 (x:real) = 1.0 + 2.0/Math.ln (x+1.0);
 

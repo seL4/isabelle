@@ -735,7 +735,7 @@ fun write_problem_files probfile (ctxt,th)  =
 	      let val st = Seq.hd (EVERY' [rtac ccontr, ObjectLogic.atomize_tac, 
 	                                   skolemize_tac] n th)
 		  val negs = Option.valOf (metahyps_thms n st)
-		  val negs_clauses = ResAxioms.assume_abstract (make_clauses negs)
+		  val negs_clauses = make_clauses (ResAxioms.assume_abstract negs)
 	      in
 		  negs_clauses :: get_neg_subgoals (n-1)
 	      end
