@@ -87,6 +87,7 @@ sig
   val diff_module: module * module -> (string * def) list;
   val project_module: string list -> module -> module;
   val purge_module: string list -> module -> module;
+(*   val flat_funs_datatypes: module -> (string * def) list;  *)
   val add_eval_def: string (*shallow name space*) * iterm -> module -> string * module;
   val delete_garbage: string list (*hidden definitions*) -> module -> module;
   val has_nsp: string -> string -> bool;
@@ -323,8 +324,8 @@ fun add_constnames (IConst (c, _)) =
       add_constnames e1 #> add_constnames e2
   | add_constnames (_ `|-> e) =
       add_constnames e
-  | add_constnames (INum _) =
-      I
+  | add_constnames (INum (_, e)) =
+      add_constnames e
   | add_constnames (IChar (_, e)) =
       add_constnames e
   | add_constnames (ICase (_, e)) =
@@ -338,10 +339,10 @@ fun add_varnames (IConst _) =
       add_varnames e1 #> add_varnames e2
   | add_varnames ((v, _) `|-> e) =
       insert (op =) v #> add_varnames e
-  | add_varnames (INum _) =
-      I
-  | add_varnames (IChar _) =
-      I
+  | add_varnames (INum (_, e)) =
+      add_varnames e
+  | add_varnames (IChar (_, e)) =
+      add_varnames e
   | add_varnames (ICase (((de, _), bses), _)) =
       add_varnames de #> fold (fn (be, se) => add_varnames be #> add_varnames se) bses;
 
@@ -693,6 +694,65 @@ fun purge_module names modl =
     |> purge (map dest_name names)
     |> dest_modl
   end;
+
+fun flat_module modl =
+  maps (
+   fn (name, Module modl) => map (apfst (NameSpace.append name)) (flat_module modl)
+    | (name, Def def) => [(name, def)]
+  ) ((AList.make (Graph.get_node modl) o flat o Graph.strong_conn) modl)
+
+(*
+fun flat_funs_datatypes modl =
+  map (
+   fn def as (_, Datatype _) => def
+    | (name, Fun (eqs, (sctxt, ty))) => let
+          val vs = fold (fn (rhs, lhs) => fold add_varnames rhs #> add_varnames lhs) eqs [];
+          fun fold_map_snd f (x, ys) = fold_map f ys #-> (fn zs => pair (x, zs));
+          fun all_ops_of class = [] : (class * (string * itype) list) list
+            (*FIXME; itype within current context*);
+          fun name_ops class = 
+            (fold_map o fold_map_snd)
+              (fn (c, ty) => Name.variants [c] #-> (fn [v] => pair (c, (ty, v)))) (all_ops_of class);
+          (*FIXME: should contain superclasses only once*)
+          val (octxt, _) = (fold_map o fold_map_snd) name_ops sctxt
+            (Name.make_context vs);
+          (* --> (iterm * itype) list *)
+          fun flat_classlookup (Instance (inst, lss)) =
+                (case get_def modl inst
+                 of (Classinst (_, (suparities, ops)))
+                      => maps (maps flat_classlookup o snd) suparities @ map (apsnd flat_iterm) ops
+                  | _ => error ("Bad instance: " ^ quote inst))
+            | flat_classlookup (Lookup (classes, (v, k))) =
+                let
+                  val parm_map = nth ((the o AList.lookup (op =) octxt) v)
+                    (if k = ~1 then 0 else k);
+                in map (apfst IVar o swap o snd) (case classes
+                 of class::_ => (the o AList.lookup (op =) parm_map) class
+                  | _ => (snd o hd) parm_map)
+                end
+          and flat_iterm (e as IConst (c, (lss, ty))) =
+                let
+                  val (es, tys) = split_list ((maps o maps) flat_classlookup lss)
+                in IConst (c, ([], tys `--> ty)) `$$ es end
+                (*FIXME Eliminierung von Projektionen*)
+            | flat_iterm (e as IVar _) =
+                e
+            | flat_iterm (e1 `$ e2) =
+                flat_iterm e1 `$ flat_iterm e2
+            | flat_iterm (v_ty `|-> e) =
+                v_ty `|-> flat_iterm e
+            | flat_iterm (INum (k, e)) =
+                INum (k, flat_iterm e)
+            | flat_iterm (IChar (s, e)) =
+                IChar (s, flat_iterm e)
+            | flat_iterm (ICase (((de, dty), es), e)) =
+                ICase (((flat_iterm de, dty), map (pairself flat_iterm) es), flat_iterm e);
+        in
+          (name, Fun (map (fn (lhs, rhs) => (map flat_iterm lhs, flat_iterm rhs)) eqs,
+            ([], maps ((maps o maps) (map (fst o snd) o snd) o snd) octxt `--> ty)))
+        end
+  ) (flat_module modl);
+*)
 
 val add_deps_of_sortctxt =
   fold (fn (v : vname, sort : sort) => fold (insert (op =)) sort);
@@ -1099,7 +1159,7 @@ fun mk_deresolver module nsp_conn postprocess validate =
         val (common, (_, rem)) = chop_prefix (op =) (prefix, NameSpace.unpack name);
         val (_, SOME tab') = get_path_name common tab;
         val (name', _) = get_path_name rem tab';
-      in NameSpace.pack name' end handle BIND => (error "Missing name: " ^ quote name);
+      in NameSpace.pack name' end handle BIND => (error ("Missing name: " ^ quote name ^ ", in " ^ quote (NameSpace.pack prefix)));
   in deresolv (mk module (AList.make (K NameMangler.empty) nsp_conn) Symtab.empty) end;
 
 

@@ -103,6 +103,7 @@ fun class_of_classop thy (c, [TVar _]) =
   | class_of_classop thy (c, _) = NONE;
 
 fun insts_of_classop thy (c_tys as (c, tys)) =
+  (*get rid of this finally*)
   case AxClass.class_of_param thy c
    of NONE => [c_tys]
     | SOME class => let

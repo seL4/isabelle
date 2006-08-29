@@ -7,10 +7,13 @@ Code generators for trivial typedefs.
 
 signature TYPEDEF_CODEGEN =
 sig
+  val get_triv_typedef: theory -> string
+    -> ((((string * sort) list * (string * typ list) list) * thm) *
+          ((string * typ) * thm)) option
   val typedef_fun_extr: theory -> string * typ -> thm list option
   val typedef_type_extr: theory -> string
-      -> (((string * sort) list * (string * typ list) list) * tactic) option
-  val setup: theory -> theory;
+    -> (((string * sort) list * (string * typ list) list) * tactic) option
+  val setup: theory -> theory
 end;
 
 structure TypedefCodegen: TYPEDEF_CODEGEN =
@@ -103,41 +106,36 @@ fun typedef_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
            end)
   | typedef_tycodegen thy defs gr dep module brack _ = NONE;
 
-fun typedef_type_extr thy tyco =
+fun get_triv_typedef thy tyco =
   case TypedefPackage.get_info thy tyco
    of SOME {abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs, Rep_name = c_rep,
-     set_def = SOME def, Abs_inject = inject, ...} =>
+     set_def = SOME def, Abs_inject = inject, Abs_inverse = inverse, ... } =>
         let
           val exists_thm =
             UNIV_I
-            |> Drule.instantiate' [SOME (ctyp_of thy ty_rep)] []
+            |> Drule.instantiate' [SOME (ctyp_of thy (Logic.varifyT ty_rep))] []
             |> rewrite_rule [symmetric def];
         in case try (op OF) (inject, [exists_thm, exists_thm])
-         of SOME eq_thm => SOME (((Term.typ_tfrees o Type.no_tvars) ty_abs, [(c_abs, [ty_rep])]),
-             (ALLGOALS o match_tac) [eq_reflection]
-            THEN (ALLGOALS o match_tac) [eq_thm])
+         of SOME eq_thm =>
+              SOME (((Term.add_tfreesT (Type.no_tvars ty_abs) [], [(c_abs, [ty_rep])]), eq_thm),
+                ((c_rep, ty_abs --> ty_rep), inverse OF [exists_thm]))
           | NONE => NONE
         end
     | _ => NONE;
 
+fun typedef_type_extr thy tyco =
+  case get_triv_typedef thy tyco
+   of SOME ((vs_cs, thm), _) => SOME (vs_cs,
+       (ALLGOALS o match_tac) [eq_reflection]
+            THEN (ALLGOALS o match_tac) [thm])
+    | NONE => NONE;
+
 fun typedef_fun_extr thy (c, ty) =
   case (fst o strip_type) ty
    of Type (tyco, _) :: _ =>
-    (case TypedefPackage.get_info thy tyco
-     of SOME {abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs, Rep_name = c_rep,
-       set_def = SOME def, Abs_inverse = inverse, ...} =>
-          if c = c_rep then
-            let
-              val exists_thm =
-                UNIV_I
-                |> Drule.instantiate' [SOME (ctyp_of thy ty_rep)] []
-                |> rewrite_rule [symmetric def]
-            in case try (op OF) (inverse, [exists_thm, exists_thm])
-             of SOME eq_thm => SOME [eq_thm]
-              | NONE => NONE
-            end
-          else NONE
-      | _ => NONE)
+        (case get_triv_typedef thy tyco
+         of SOME (_, ((c', _), thm)) => if c = c' then SOME [thm] else NONE
+          | NONE => NONE)
     | _ => NONE;
 
 val setup =

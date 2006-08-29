@@ -59,7 +59,6 @@ val nsp_const = "const";
 val nsp_dtcon = "dtcon";
 val nsp_mem = "mem";
 val nsp_inst = "inst";
-val nsp_instmem = "instmem";
 val nsp_eval = "EVAL"; (*only for evaluation*)
 
 fun add_nsp shallow name =
@@ -98,7 +97,7 @@ val serializers = ref (
        |> apsnd (fn seri => seri
             nsp_dtcon
             [[nsp_module], [nsp_class, nsp_tyco],
-              [nsp_const, nsp_dtcon, nsp_class, nsp_mem, nsp_inst, nsp_instmem]]
+              [nsp_const, nsp_dtcon, nsp_class, nsp_mem, nsp_inst]]
           )
      )
   |> Symtab.update (
@@ -106,7 +105,7 @@ val serializers = ref (
        |> apsnd (fn seri => seri
             (nsp_dtcon, [nsp_module, nsp_class, nsp_tyco, nsp_dtcon])
             [[nsp_module], [nsp_class], [nsp_tyco], [nsp_const,  nsp_mem],
-              [nsp_dtcon], [nsp_inst], [nsp_instmem]]
+              [nsp_dtcon], [nsp_inst]]
           )
      )
 );
@@ -121,25 +120,30 @@ fun merge_appgens (x : appgens * appgens) =
     bounds1 = bounds2 andalso stamp1 = stamp2) x
 
 type target_data = {
-  syntax_class: string Symtab.table,
+  syntax_class: ((string * (string -> string option)) * stamp) Symtab.table,
+  syntax_inst: unit Symtab.table,
   syntax_tyco: (itype CodegenSerializer.pretty_syntax * stamp) Symtab.table,
   syntax_const: (iterm CodegenSerializer.pretty_syntax * stamp) Symtab.table
 };
 
-fun map_target_data f { syntax_class, syntax_tyco, syntax_const } =
+fun map_target_data f { syntax_class, syntax_inst, syntax_tyco, syntax_const } =
   let
-    val (syntax_class, syntax_tyco, syntax_const) =
-      f (syntax_class, syntax_tyco, syntax_const)
+    val (syntax_class, syntax_inst, syntax_tyco, syntax_const) =
+      f (syntax_class, syntax_inst, syntax_tyco, syntax_const)
   in {
     syntax_class = syntax_class,
+    syntax_inst = syntax_inst,
     syntax_tyco = syntax_tyco,
     syntax_const = syntax_const } : target_data
   end;
 
 fun merge_target_data
-  ({ syntax_class = syntax_class1, syntax_tyco = syntax_tyco1, syntax_const = syntax_const1 },
-   { syntax_class = syntax_class2, syntax_tyco = syntax_tyco2, syntax_const = syntax_const2 }) =
-  { syntax_class = Symtab.merge (op =) (syntax_class1, syntax_class2),
+  ({ syntax_class = syntax_class1, syntax_inst = syntax_inst1,
+       syntax_tyco = syntax_tyco1, syntax_const = syntax_const1 },
+   { syntax_class = syntax_class2, syntax_inst = syntax_inst2,
+       syntax_tyco = syntax_tyco2, syntax_const = syntax_const2 }) =
+  { syntax_class = Symtab.merge (eq_snd (op =)) (syntax_class1, syntax_class2),
+    syntax_inst = Symtab.merge (op =) (syntax_inst1, syntax_inst2),
     syntax_tyco = Symtab.merge (eq_snd (op =)) (syntax_tyco1, syntax_tyco2),
     syntax_const = Symtab.merge (eq_snd (op =)) (syntax_const1, syntax_const2) } : target_data;
 
@@ -158,7 +162,8 @@ structure CodegenData = TheoryDataFun
       Symtab.empty
       |> Symtab.fold (fn (target, _) =>
            Symtab.update (target,
-             { syntax_class = Symtab.empty, syntax_tyco = Symtab.empty, syntax_const = Symtab.empty })
+             { syntax_class = Symtab.empty, syntax_inst = Symtab.empty,
+               syntax_tyco = Symtab.empty, syntax_const = Symtab.empty })
          ) (! serializers)
   } : T;
   val copy = I;
@@ -227,6 +232,10 @@ fun idf_of_const thy thmtab (c_ty as (c, ty)) =
   else
     CodegenNames.const thy c_ty
     |> add_nsp nsp_const;
+
+fun idf_of_classop thy c_ty =
+  CodegenNames.const thy c_ty
+  |> add_nsp nsp_mem;
 
 fun const_of_idf thy idf =
   case dest_nsp nsp_const idf
@@ -423,9 +432,6 @@ and ensure_def_inst thy tabs (cls, tyco) trns =
                 case ClassPackage.operational_sort_of thy sort
                  of [] => NONE
                   | sort => SOME (v, sort)) arity;
-              fun mk_instmemname (m, ty) =
-                NameSpace.append (NameSpace.append ((NameSpace.drop_base o NameSpace.drop_base)
-                  inst) nsp_instmem) (NameSpace.base (idf_of_const thy thmtab (m, ty)));
               fun gen_suparity supclass trns =
                 trns
                 |> ensure_def_class thy tabs supclass
@@ -689,11 +695,9 @@ fun consts_of t =
 fun codegen_term t thy =
   let
     val _ = Thm.cterm_of thy t;
-(*     val _ = writeln "STARTING GENERATION";  *)
-(*     val _ = (writeln o Sign.string_of_term thy) t;  *)
   in
     thy
-    |> expand_module (SOME [] (*(Symtab.keys (#target_data (CodegenData.get thy)))*)) (consts_of t) NONE exprgen_term t
+    |> expand_module (SOME []) (consts_of t) NONE exprgen_term t
   end;
 
 val is_dtcon = has_nsp nsp_dtcon;
@@ -727,7 +731,7 @@ fun eval_term (ref_spec, t) thy =
       end;
     val target_data =
       ((fn data => (the o Symtab.lookup data) "ml") o #target_data o CodegenData.get) thy;
-    val eval = CodegenSerializer.eval_term nsp_eval nsp_dtcon [[nsp_module], [nsp_class, nsp_tyco], [nsp_const, nsp_dtcon, nsp_class, nsp_mem, nsp_inst, nsp_instmem], [nsp_eval]]
+    val eval = CodegenSerializer.eval_term nsp_eval nsp_dtcon [[nsp_module], [nsp_class, nsp_tyco], [nsp_const, nsp_dtcon, nsp_class, nsp_mem, nsp_inst], [nsp_eval]]
       ((Option.map fst oo Symtab.lookup) (#syntax_tyco target_data),
        (Option.map fst oo Symtab.lookup) (#syntax_const target_data))
       (Symtab.keys (#syntax_tyco target_data) @ Symtab.keys (#syntax_const target_data))
@@ -768,18 +772,42 @@ fun read_quote get reader consts_of gen raw thy =
     |-> (fn [x] => pair x)
   end;
 
-fun gen_add_syntax_class prep_class class target pretty thy =
-  thy
-  |> map_codegen_data
-    (fn (modl, gens, target_data) =>
-       (modl, gens,
-        target_data |> Symtab.map_entry target
-          (map_target_data
-            (fn (syntax_class, syntax_tyco, syntax_const) =>
-             (syntax_class
-              |> Symtab.update (prep_class thy class, pretty), syntax_tyco, syntax_const)))));
+fun gen_add_syntax_class prep_class prep_const raw_class target (pretty, raw_ops) thy =
+  let
+    val class = (idf_of_class thy o prep_class thy) raw_class;
+    val ops = (map o apfst) (idf_of_classop thy o prep_const thy) raw_ops;
+    val syntax_ops = AList.lookup (op =) ops;
+  in
+    thy
+    |> map_codegen_data
+      (fn (modl, gens, target_data) =>
+         (modl, gens,
+          target_data |> Symtab.map_entry target
+            (map_target_data
+              (fn (syntax_class, syntax_inst, syntax_tyco, syntax_const) =>
+               (syntax_class
+                |> Symtab.update (class, ((pretty, syntax_ops), stamp ())), syntax_inst,
+                     syntax_tyco, syntax_const)))))
+  end;
 
-val add_syntax_class = gen_add_syntax_class Sign.intern_class;
+val add_syntax_class = gen_add_syntax_class Sign.intern_class CodegenConsts.read_const_typ;
+
+fun gen_add_syntax_inst prep_class prep_tyco (raw_class, raw_tyco) target thy =
+  let
+    val inst = idf_of_inst thy (prep_class thy raw_class, prep_tyco thy raw_tyco);
+  in
+    thy
+    |> map_codegen_data
+      (fn (modl, gens, target_data) =>
+         (modl, gens,
+          target_data |> Symtab.map_entry target
+            (map_target_data
+              (fn (syntax_class, syntax_inst, syntax_tyco, syntax_const) =>
+               (syntax_class, syntax_inst |> Symtab.update (inst, ()),
+                  syntax_tyco, syntax_const)))))
+  end;
+
+val add_syntax_inst = gen_add_syntax_inst Sign.intern_class Sign.intern_type;
 
 fun parse_syntax_tyco raw_tyco =
   let
@@ -803,8 +831,8 @@ fun parse_syntax_tyco raw_tyco =
              (modl, gens,
               target_data |> Symtab.map_entry target
                 (map_target_data
-                  (fn (syntax_class, syntax_tyco, syntax_const) =>
-                   (syntax_class, syntax_tyco |> Symtab.update
+                  (fn (syntax_class, syntax_inst, syntax_tyco, syntax_const) =>
+                   (syntax_class, syntax_inst, syntax_tyco |> Symtab.update
                       (tyco, (pretty, stamp ())),
                     syntax_const))))))
       end;
@@ -821,8 +849,8 @@ fun add_pretty_syntax_const c target pretty =
        (modl, gens,
         target_data |> Symtab.map_entry target
           (map_target_data
-            (fn (syntax_class, syntax_tyco, syntax_const) =>
-             (syntax_class, syntax_tyco,
+            (fn (syntax_class, syntax_inst, syntax_tyco, syntax_const) =>
+             (syntax_class, syntax_inst, syntax_tyco,
               syntax_const
               |> Symtab.update
                  (c, (pretty, stamp ())))))));
@@ -924,14 +952,16 @@ fun serialize_code target seri raw_consts thy =
           |> #target_data
           |> (fn data => (the oo Symtab.lookup) data target);
         val s_class = #syntax_class target_data
+        val s_inst = #syntax_inst target_data
         val s_tyco = #syntax_tyco target_data
         val s_const = #syntax_const target_data
       in
         (seri (
-          Symtab.lookup s_class,
+          (Option.map fst oo Symtab.lookup) s_class,
           (Option.map fst oo Symtab.lookup) s_tyco,
           (Option.map fst oo Symtab.lookup) s_const
-        ) (Symtab.keys s_class @ Symtab.keys s_tyco @ Symtab.keys s_const, cs) module : unit; thy)
+        ) (Symtab.keys s_class @ Symtab.keys s_inst
+             @ Symtab.keys s_tyco @ Symtab.keys s_const, cs) module : unit; thy)
       end;
   in
     thy
@@ -950,10 +980,10 @@ and K = OuterKeyword
 in
 
 val (generateK, serializeK,
-     syntax_classK, syntax_tycoK, syntax_constK,
+     syntax_classK, syntax_instK, syntax_tycoK, syntax_constK,
      purgeK) =
   ("code_generate", "code_serialize",
-   "code_classapp", "code_typapp", "code_constapp",
+   "code_class", "code_instance", "code_typapp", "code_constapp",
    "code_purge");
 
 val generateP =
@@ -983,11 +1013,22 @@ val syntax_classP =
     Scan.repeat1 (
       P.xname
       -- Scan.repeat1 (
-           P.name -- P.string
+           P.name -- (P.string -- Scan.optional
+             (P.$$$ "(" |-- Scan.repeat1 (P.term -- P.string) --| P.$$$ ")") [])
          )
     )
     >> (Toplevel.theory oo fold) (fn (raw_class, syns) =>
           fold (fn (target, p) => add_syntax_class raw_class target p) syns)
+  );
+
+val syntax_instP =
+  OuterSyntax.command syntax_instK "define code syntax for instance" K.thy_decl (
+    Scan.repeat1 (
+      P.$$$ "(" |-- P.xname --| P.$$$ "::" -- P.xname --| P.$$$ ")"
+      -- Scan.repeat1 P.name
+    )
+    >> (Toplevel.theory oo fold) (fn (raw_inst, targets) =>
+          fold (fn target => add_syntax_inst raw_inst target) targets)
   );
 
 val syntax_tycoP =
@@ -1019,7 +1060,7 @@ val purgeP =
     (Scan.succeed (Toplevel.theory purge_code));
 
 val _ = OuterSyntax.add_parsers [generateP, serializeP,
-  syntax_classP, syntax_tycoP, syntax_constP,
+  syntax_classP, syntax_instP, syntax_tycoP, syntax_constP,
   purgeP];
 
 end; (* local *)

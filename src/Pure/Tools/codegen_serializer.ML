@@ -12,7 +12,7 @@ sig
   type serializer =
       string list list
       -> OuterParse.token list ->
-      ((string -> string option)
+      ((string -> (string * (string -> string option)) option)
         * (string -> CodegenThingol.itype pretty_syntax option)
         * (string -> CodegenThingol.iterm pretty_syntax option)
       -> string list * string list option
@@ -31,11 +31,11 @@ sig
   };
   val mk_flat_ml_resolver: string list -> string -> string;
   val eval_term: string -> string -> string list list
-      -> (string -> CodegenThingol.itype pretty_syntax option)
-            * (string -> CodegenThingol.iterm pretty_syntax option)
-      -> string list
-      -> (string * 'a ref) * CodegenThingol.iterm -> CodegenThingol.module
-      -> 'a;
+    -> (string -> CodegenThingol.itype pretty_syntax option)
+          * (string -> CodegenThingol.iterm pretty_syntax option)
+    -> string list
+    -> (string * 'a ref) * CodegenThingol.iterm -> CodegenThingol.module
+    -> 'a;
   val eval_verbose: bool ref;
   val ml_fun_datatype: string
     -> ((string -> CodegenThingol.itype pretty_syntax option)
@@ -207,7 +207,7 @@ fun parse_syntax no_args reader =
 type serializer =
     string list list
     -> OuterParse.token list ->
-    ((string -> string option)
+    ((string -> (string * (string -> string option)) option)
       * (string -> itype pretty_syntax option)
       * (string -> iterm pretty_syntax option)
     -> string list * string list option
@@ -215,7 +215,7 @@ type serializer =
     * OuterParse.token list;
 
 fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, validator, postproc)
-    postprocess (class_syntax, tyco_syntax, const_syntax)
+    postprocess (class_syntax : string -> (string * (string -> string option)) option, tyco_syntax, const_syntax)
     (drop: string list, select) module =
   let
     fun from_module' resolv imps ((name_qual, name), defs) =
@@ -228,7 +228,7 @@ fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, vali
     |> debug_msg (fn _ => "selecting submodule...")
     |> (if is_some select then (CodegenThingol.project_module o the) select else I)
     |> debug_msg (fn _ => "serializing...")
-    |> CodegenThingol.serialize (from_defs (class_syntax : string -> string option, tyco_syntax, const_syntax))
+    |> CodegenThingol.serialize (from_defs (class_syntax, tyco_syntax, const_syntax))
          from_module' validator postproc nspgrp name_root
     |> K ()
   end;
@@ -382,13 +382,17 @@ structure NameMangler = NameManglerFun (
   fun re_mangle _ dst = error ("No such definition name: " ^ quote dst);
 );
 
+fun first_upper s =
+  implode (nth_map 0 (Symbol.to_ascii_upper) (explode s));
+
+fun ml_from_dictvar v = 
+  first_upper v ^ "_";
+
 fun ml_expr_seri is_cons (tyco_syntax, const_syntax) resolv =
   let
     val ml_from_label =
       str o translate_string (fn "_" => "__" | "." => "_" | c => c)
         o NameSpace.base o resolv;
-    fun ml_from_dictvar v = 
-      str (Symbol.to_ascii_upper v ^ "_");
     fun ml_from_tyvar (v, []) =
           str "()"
       | ml_from_tyvar (v, sort) =
@@ -398,7 +402,7 @@ fun ml_expr_seri is_cons (tyco_syntax, const_syntax) resolv =
           in
             Pretty.block [
               str "(",
-              ml_from_dictvar v,
+              (str o ml_from_dictvar) v,
               str ":",
               case sort
                of [class] => mk_class class
@@ -432,10 +436,10 @@ fun ml_expr_seri is_cons (tyco_syntax, const_syntax) resolv =
               )
           | from_classlookup fxy (Lookup (classes, (v, ~1))) =
               from_lookup BR classes
-                (ml_from_dictvar v)
+                ((str o ml_from_dictvar) v)
           | from_classlookup fxy (Lookup (classes, (v, i))) =
               from_lookup BR (string_of_int (i+1) :: classes)
-                (ml_from_dictvar v)
+                ((str o ml_from_dictvar) v)
       in case lss
        of [] => str "()"
         | [ls] => from_classlookup fxy ls
@@ -679,7 +683,7 @@ fun ml_from_defs is_cons
         | _ => error ("Class block without class: " ^ (commas o map (quote o fst)) defs)
     fun ml_from_class (name, (supclasses, (v, membrs))) =
       let
-        val w = (Char.toString o Char.toUpper o the o Char.fromString) v;
+        val w = ml_from_dictvar v;
         fun from_supclass class =
           Pretty.block [
             ml_from_label class,
@@ -860,15 +864,20 @@ fun hs_from_defs (is_cons, with_typs) (class_syntax, tyco_syntax, const_syntax)
   let
     val resolv = resolver "";
     val resolv_here = resolver prefix;
+    fun hs_from_class cls = case class_syntax cls
+     of NONE => resolv cls
+      | SOME (cls, _) => cls;
+    fun hs_from_classop_name cls clsop = case class_syntax cls
+     of NONE => NameSpace.base clsop
+      | SOME (_, classop_syntax) => case classop_syntax clsop
+         of NONE => NameSpace.base clsop
+          | SOME clsop => clsop;
     fun hs_from_sctxt vs =
       let
-        fun from_class cls =
-          class_syntax cls
-          |> the_default (resolv cls)
         fun from_sctxt [] = str ""
           | from_sctxt vs =
               vs
-              |> map (fn (v, cls) => str (from_class cls ^ " " ^ v))
+              |> map (fn (v, cls) => str (hs_from_class cls ^ " " ^ v))
               |> Pretty.enum "," "(" ")"
               |> (fn p => Pretty.block [p, str " => "])
       in
@@ -1048,13 +1057,13 @@ fun hs_from_defs (is_cons, with_typs) (class_syntax, tyco_syntax, const_syntax)
           Pretty.block [
             str "instance ",
             hs_from_sctxt arity,
-            str (resolv clsname ^ " "),
+            str (hs_from_class clsname ^ " "),
             hs_from_type BR (tyco `%% map (ITyVar o fst) arity),
             str " where",
             Pretty.fbrk,
             Pretty.chunks (map (fn (m, e) =>
               (Pretty.block o Pretty.breaks) [
-                (str o NameSpace.base o resolv) m,
+                (str o hs_from_classop_name clsname) m,
                 str "=",
                 hs_from_expr NOBR e
               ]

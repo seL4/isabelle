@@ -7,9 +7,9 @@ Type classes derived from primitive axclasses and locales.
 
 signature CLASS_PACKAGE =
 sig
-  val class: bstring -> class list -> Element.context list -> theory
+  val class: bstring -> class list -> Element.context Locale.element list -> theory
     -> Proof.context * theory
-  val class_i: bstring -> class list -> Element.context_i list -> theory
+  val class_i: bstring -> class list -> Element.context_i Locale.element list -> theory
     -> Proof.context * theory
   (*FIXME: in _i variants, bstring should be bstring option*)
   val instance_arity: ((xstring * string list) * string) list
@@ -165,7 +165,7 @@ fun the_inst_sign thy (class, tyco) =
       Name.context
       |> Name.declare clsvar
       |> fold (fn (_, ty) => fold Name.declare
-           ((map (fst o fst) o typ_tvars) ty @ (map fst o typ_tfrees) ty)) const_sign
+           ((map (fst o fst) o typ_tvars) ty @ map fst (Term.add_tfreesT  ty []))) const_sign
       |> fold_map add_var asorts;
     val ty_inst = Type (tyco, map TFree vsorts);
     val inst_signs = map (apsnd (subst_clsvar clsvar ty_inst)) const_sign;
@@ -305,20 +305,26 @@ fun prove_interpretation_i (prfx, atts) expr insts tac thy =
 
 fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
   let
+    val (elems, exprs) = fold_rev (fn Locale.Elem e => apfst (cons e)
+                                   | Locale.Expr e => apsnd (cons e))
+      raw_elems ([], []);
     val supclasses = map (prep_class thy) raw_supclasses;
     val supsort =
       supclasses
       |> map (#name_axclass o fst o the_class_data thy)
       |> Sign.certify_sort thy
       |> null ? K (Sign.defaultS thy);
-    val expr = (Locale.Merge o map (Locale.Locale o #name_locale o fst o the_class_data thy)) supclasses;
+    val expr_supclasses = Locale.Merge
+      (map (Locale.Locale o #name_locale o fst o the_class_data thy) supclasses);
+    val expr = Locale.Merge (map (Locale.Locale o #name_locale o fst o the_class_data thy) supclasses
+      @ exprs);
     val mapp_sup = AList.make
       (the o AList.lookup (op =) ((flat o map (the_parm_map thy) o the_ancestry thy) supclasses))
-      ((map (fst o fst) o Locale.parameters_of_expr thy) expr);
+      ((map (fst o fst) o Locale.parameters_of_expr thy) expr_supclasses);
     fun extract_tyvar_consts thy name_locale =
       let
         fun extract_classvar ((c, ty), _) w =
-          (case add_typ_tfrees (ty, [])
+          (case Term.add_tfreesT ty []
            of [(v, _)] => (case w
                of SOME u => if u = v then w else error ("Additonal type variable in type signature of constant " ^ quote c)
                 | NONE => SOME v)
@@ -357,7 +363,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
       Const (c, subst_clsvar v (TFree (v, [class])) ty);
   in
     thy
-    |> add_locale bname expr raw_elems
+    |> add_locale bname expr elems
     |-> (fn (name_locale, ctxt) =>
           `(fn thy => extract_tyvar_consts thy name_locale)
     #-> (fn (v, (raw_cs_sup, raw_cs_this)) =>
@@ -626,7 +632,7 @@ fun wrap_add_instance_sort (class, sort) thy =
   then instance_sort else axclass_instance_sort) (class, sort) thy;
 
 val class_subP = P.name -- Scan.repeat (P.$$$ "+" |-- P.name) >> (op ::);
-val class_bodyP = P.!!! (Scan.repeat1 P.context_element);
+val class_bodyP = P.!!! (Scan.repeat1 P.locale_element);
 
 val inst =
   (Scan.optional (P.$$$ "(" |-- P.!!! (P.list1 P.sort --| P.$$$ ")")) [] -- P.xname --| P.$$$ "::" -- P.sort)
