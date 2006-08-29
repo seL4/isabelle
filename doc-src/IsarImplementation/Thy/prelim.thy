@@ -119,6 +119,11 @@ text %mlref {*
 *}
 
 
+subsection {* Simple names *}
+
+text FIXME
+
+
 subsection {* Qualified names and name spaces *}
 
 text %FIXME {* Qualified names are constructed according to implicit naming
@@ -178,103 +183,103 @@ subsection {* Print modes *}
 text FIXME
 
 
-section {* Context \label{sec:context} *}
+section {* Contexts \label{sec:context} *}
 
-text %FIXME {* What is a context anyway?  A highly advanced
-technological and cultural achievement, which took humanity several
-thousands of years to be develop, is writing with pen-and-paper.  Here
-the paper is the context, or medium.  It accommodates a certain range
-of different kinds of pens, but also has some inherent limitations.
-For example, carved inscriptions are better done on solid material
-like wood or stone.
+text {*
+  A logical context represents the background that is taken for
+  granted when formulating statements and composing proofs.  It acts
+  as a medium to produce formal content, depending on earlier material
+  (declarations, results etc.).
 
-Isabelle/Isar distinguishes two key notions of context: \emph{theory
-context} and \emph{proof context}.  To motivate this fundamental
-division consider the very idea of logical reasoning which is about
-judgments $\Gamma \Drv{\Theta} \phi$, where $\Theta$ is the background
-theory with declarations of operators and axioms stating their
-properties, and $\Gamma$ a collection of hypotheses emerging
-temporarily during proof.  For example, the rule of
-implication-introduction \[ \infer{\Gamma \Drv{\Theta} A \Imp
-B}{\Gamma, A \Drv{\Theta} B} \] can be read as ``to show $A \Imp B$ we
-may assume $A$ as hypothesis and need to show $B$''.  It is
-characteristic that $\Theta$ is unchanged and $\Gamma$ is only
-modified according to some general patterns of ``assuming'' and
-``discharging'' hypotheses.  This admits the following abbreviated
-notation, where the fixed $\Theta$ and locally changed $\Gamma$ are
-left implicit: \[ \infer{A \Imp B}{\infer*{B}{[A]}} \]
+  In particular, derivations within the primitive Pure logic can be
+  described as a judgment @{text "\<Gamma> \<turnstile>\<^sub>\<Theta> \<phi>"}, meaning that a
+  proposition @{text "\<phi>"} is derivable from hypotheses @{text "\<Gamma>"}
+  within the theory @{text "\<Theta>"}.  There are logical reasons for
+  keeping @{text "\<Theta>"} and @{text "\<Gamma>"} separate: theories support type
+  constructors and schematic polymorphism of constants and axioms,
+  while the inner calculus of @{text "\<Gamma> \<turnstile> \<phi>"} is limited to Simple
+  Type Theory (with fixed type variables in the assumptions).
 
-In some logical traditions (e.g.\ Type Theory) there is a tendency to
-unify all kinds of declarations within a single notion of context.
-This is theoretically very nice, but also more demanding, because
-everything is internalized into the logical calculus itself.
-Isabelle/Pure is a very simple logic, but achieves many practically
-useful concepts by differentiating various basic elements.
+  \medskip Contexts and derivations are linked by the following key
+  principles:
 
-Take polymorphism, for example.  Instead of embarking on the
-adventurous enterprise of full higher-order logic with full
-type-quantification and polymorphic entities, Isabelle/Pure merely
-takes a stripped-down version of Church's Simple Type Theory
-\cite{church40}.  Then after the tradition of Gordon's HOL
-\cite{mgordon-hol} it is fairly easy to introduce syntactic notions of
-type variables and type-constructors, and require every theory
-$\Theta$ being closed by type instantiation.  Whenever we wish to
-reason with a polymorphic constant or axiom scheme at a particular
-type, we may assume that it has been referenced initially at that very
-instance (due to the Deduction Theorem).  Thus we achieve the
-following \emph{admissible
-  rule}\glossary{Admissible rule}{FIXME} of schematic type-instantiation:
+  \begin{itemize}
 
-\[
-\infer{\phi(\tau)}{\infer*{\phi(\alpha)}{[\alpha]}}
-\]
+  \item Transfer: monotonicity of derivations admits results to be
+  transferred into a larger context, i.e.\ @{text "\<Gamma> \<turnstile>\<^sub>\<Theta> \<phi>"}
+  implies @{text "\<Gamma>' \<turnstile>\<^sub>\<Theta>\<^sub>' \<phi>"} for contexts @{text "\<Theta>' \<supseteq>
+  \<Theta>"} and @{text "\<Gamma>' \<supseteq> \<Gamma>"}.
 
-Using this approach, the structured Isar proof language offers
-schematic polymorphism within nested sub-proofs -- similar to that of
-polymorphic let-bindings according to Hindley-Milner.\
-\cite{milner78}.  All of this is achieved without disintegrating the
-rather simplistic logical core.  On the other hand, the succinct rule
-presented above already involves rather delicate interaction of the
-theory and proof context (with side-conditions not mentioned here),
-and unwinding an admissible rule involves induction over derivations.
-All of this diversity needs to be accomodated by the system
-architecture and actual implementation.
+  \item Export: discharge of hypotheses admits results to be exported
+  into a smaller context, i.e.\ @{text "\<Gamma>' \<turnstile>\<^sub>\<Theta> \<phi>"} implies
+  @{text "\<Gamma> \<turnstile>\<^sub>\<Theta> \<Delta> \<Longrightarrow> \<phi>"} where @{text "\<Gamma>' \<supseteq> \<Gamma>"} and @{text "\<Delta> =
+  \<Gamma>' - \<Gamma>"}.  Note that @{text "\<Theta>"} remains unchanged here, only the
+  @{text "\<Gamma>"} part is affected.
 
-\medskip Despite these important observations, Isabelle/Isar is not just a
-logical calculus, there are further extra-logical aspects to be considered.
-Practical experience over the years suggests two context data structures which
-are used in rather dissimilar manners, even though there is a considerable
-overlap of underlying ideas.
+  \end{itemize}
 
-From the system's perspective the mode of use of theory vs.\ proof context is
-the key distinction.  The actual content is merely a generic slot for
-\emph{theory data} and \emph{proof data}, respectively.  There are generic
-interfaces to declare data entries at any time.  Even the core logic of
-Isabelle/Pure registers its very own notion of theory context data (types,
-constants, axioms etc.) like any other Isabelle tool out there.  Likewise, the
-essentials of Isar proof contexts are one proof data slot among many others,
-notably those of derived Isar concepts (e.g.\ calculational reasoning rules).
+  \medskip Isabelle/Isar provides two different notions of abstract
+  containers called \emph{theory context} and \emph{proof context},
+  respectively.  These model the main characteristics of the primitive
+  @{text "\<Theta>"} and @{text "\<Gamma>"} above, without subscribing to any
+  particular kind of content yet.  Instead, contexts merely impose a
+  certain policy of managing arbitrary \emph{context data}.  The
+  system provides strongly typed mechanisms to declare new kinds of
+  data at compile time.
 
-In that respect, a theory is more like a stone tablet to carve long-lasting
-inscriptions -- but take care not to break it!  While a proof context is like
-a block of paper to scribble and dispose quickly.  More recently Isabelle has
-started to cultivate the paper-based craftsmanship a bit further, by
-maintaining small collections of paper booklets, better known as locales.
+  Thus the internal bootstrap process of Isabelle/Pure eventually
+  reaches a stage where certain data slots provide the logical content
+  of @{text "\<Theta>"} and @{text "\<Gamma>"} sketched above, but this does not
+  stop there!  Various additional data slots support all kinds of
+  mechanisms that are not necessarily part of the core logic.
 
-Thus we achive ``thick'' augmented versions of {\boldmath$\Theta$} and
-{\boldmath$\Gamma$} to support realistic structured reasoning within a
-practically usable system.
+  For example, there would be data for canonical introduction and
+  elimination rules for arbitrary operators (depending on the
+  object-logic and application), which enables users to perform
+  standard proof steps implicitly (cf.\ the @{text "rule"} method).
+
+  Isabelle is able to bring forth more and more concepts successively.
+  In particular, an object-logic like Isabelle/HOL continues the
+  Isabelle/Pure setup by adding specific components for automated
+  reasoning (classical reasoner, tableau prover, structured induction
+  etc.) and derived specification mechanisms (inductive predicates,
+  recursive functions etc.).  All of this is based on the generic data
+  management by theory and proof contexts.
 *}
 
 
 subsection {* Theory context \label{sec:context-theory} *}
 
-text %FIXME {* A theory context consists of management information plus the
-actual data, which may be declared by other software modules later on.
-The management part is surprisingly complex, we illustrate it by the
-following typical situation of incremental theory development.
+text {*
+  Each theory is explicitly named and holds a unique identifier.
+  There is a separate \emph{theory reference} for pointing backwards
+  to the enclosing theory context of derived entities.  Theories are
+  related by a (nominal) sub-theory relation, which corresponds to the
+  canonical dependency graph: each theory is derived from a certain
+  sub-graph of ancestor theories.  The @{text "merge"} of two theories
+  refers to the least upper bound, which actually degenerates into
+  absorption of one theory into the other, due to the nominal
+  sub-theory relation this.
 
-\begin{tabular}{rcccl}
+  The @{text "begin"} operation starts a new theory by importing
+  several parent theories and entering a special @{text "draft"} mode,
+  which is sustained until the final @{text "end"} operation.  A draft
+  mode theory acts like a linear type, where updates invalidate
+  earlier drafts, but theory reference values will be propagated
+  automatically.  Thus derived entities that ``belong'' to a draft
+  might be transferred spontaneously to a larger context.  An
+  invalidated draft is called ``stale''.  The @{text "copy"} operation
+  produces an auxiliary version with the same data content, but is
+  unrelated to the original: updates of the copy do not affect the
+  original, neither does the sub-theory relation hold.
+
+  The example below shows a theory graph derived from @{text "Pure"}.
+  Theory @{text "Length"} imports @{text "Nat"} and @{text "List"}.
+  The linear draft mode is enabled during the ``@{text "\<dots>"}'' stage of
+  the theory body.
+
+  \bigskip
+  \begin{tabular}{rcccl}
         &            & $Pure$ \\
         &            & $\downarrow$ \\
         &            & $FOL$ \\
@@ -285,33 +290,56 @@ following typical situation of incremental theory development.
         &            & \multicolumn{3}{l}{~~$\isarkeyword{imports}$} \\
         &            & \multicolumn{3}{l}{~~$\isarkeyword{begin}$} \\
         &            & $\vdots$~~ \\
-        &            & $\bullet$~~ \\
-        &            & $\vdots$~~ \\
-        &            & $\bullet$~~ \\
-        &            & $\vdots$~~ \\
         &            & \multicolumn{3}{l}{~~$\isarkeyword{end}$} \\
-\end{tabular}
+  \end{tabular}
 
-\begin{itemize}
-\item \emph{name}, \emph{parents} and \emph{ancestors}
-\item \emph{identity}
-\item \emph{intermediate versions}
-\end{itemize}
+  \medskip In practice, derived theory operations mostly operate
+  drafts, namely the body of the current portion of theory that the
+  user happens to be composing.
 
-\begin{description}
-\item [draft]
-\item [intermediate]
-\item [finished]
-\end{description}
+ \medskip There is also a builtin theory history mechanism that amends for
+  the destructive behaviour of theory drafts.  The @{text
+  "checkpoint"} operation produces an intermediate stepping stone that
+  survives the next update unscathed: both the original and the
+  changed theory remain valid and are related by the sub-theory
+  relation.  This recovering of pure theory values comes at the cost
+  of extra internal bookeeping.  The cumulative effect of
+  checkpointing is purged by the @{text "finish"} operation.
 
-\emph{theory reference}
+  History operations are usually managed by the system, e.g.\ notably
+  in the Isar transaction loop.
+
+  \medskip
+  FIXME theory data
 *}
 
 
 subsection {* Proof context \label{sec:context-proof} *}
 
 text {*
-  FIXME
+  A proof context is an arbitrary container that is initialized from a
+  given theory.  The result contains a back-reference to the theory it
+  belongs to, together with pure data.  No further bookkeeping is
+  required here, thanks to the lack of destructive features.
+
+  There is no restriction on producing proof contexts, although the
+  usual discipline is to follow block structure as a mental model: a
+  given context is extended consecutively, results are exported back
+  into the original context.  In particular, the concept of Isar proof
+  state models block-structured reasoning explicitly, using a stack of
+  proof contexts.
+
+  Due to the lack of identification and back-referencing, entities
+  derived in a proof context need to record inherent logical
+  requirements explicitly.  For example, hypotheses used in a
+  derivation will be recorded separately within the sequent @{text "\<Gamma>
+  \<turnstile> \<phi>"}, just to make double sure.  Results could leak into an alien
+  proof context do to programming errors, but Isabelle/Isar
+  occasionally includes extra validity checks at the end of a
+  sub-proof.
+
+  \medskip
+  FIXME proof data
 
 \glossary{Proof context}{The static context of a structured proof,
 acts like a local ``theory'' of the current portion of Isar proof
@@ -321,5 +349,8 @@ generic notion of introducing and discharging hypotheses.  Arbritrary
 auxiliary context data may be adjoined.}
 
 *}
+
+
+subsection {* Generic contexts *}
 
 end
