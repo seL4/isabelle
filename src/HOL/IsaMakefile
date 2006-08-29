@@ -119,6 +119,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   Tools/res_clause.ML Tools/rewrite_hol_proof.ML	\
   Tools/sat_funcs.ML					\
   Tools/sat_solver.ML Tools/specification_package.ML Tools/split_rule.ML	\
+  Tools/typecopy_package.ML	\
   Tools/typedef_package.ML Tools/typedef_codegen.ML	\
   Transitive_Closure.ML Transitive_Closure.thy		\
   Typedef.thy Wellfounded_Recursion.thy Wellfounded_Relations.thy		\
@@ -641,7 +642,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy			\
   ex/Abstract_NAT.thy ex/Antiquote.thy ex/BT.thy ex/BinEx.thy			\
   ex/Chinese.thy ex/Classical.thy ex/Classpackage.thy                           \
   ex/CodeEmbed.thy ex/CodeRandom.thy ex/CodeRevappl.thy			\
-  ex/Codegenerator.thy ex/Commutative_RingEx.thy               \
+  ex/CodeOperationalEquality.thy ex/Codegenerator.thy ex/Commutative_RingEx.thy               \
   ex/Commutative_Ring_Complete.thy ex/Guess.thy ex/Hebrew.thy			\
   ex/Higher_Order_Logic.thy ex/Hilbert_Classical.thy ex/InSort.thy		\
   ex/InductiveInvariant.thy ex/InductiveInvariant_examples.thy			\
