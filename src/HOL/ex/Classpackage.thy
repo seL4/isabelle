@@ -288,15 +288,27 @@ lemma (in group) int_pow_one:
   "\<^loc>\<one> \<^loc>\<up> (k\<Colon>int) = \<^loc>\<one>"
 using pow_def nat_pow_one inv_one by simp
 
-instance group_prod_def: (group, group) * :: group
+instance semigroup_prod_def: (semigroup, semigroup) * :: semigroup
   mult_prod_def: "x \<otimes> y \<equiv> let (x1, x2) = x; (y1, y2) = y in
               (x1 \<otimes> y1, x2 \<otimes> y2)"
-  mult_one_def: "\<one> \<equiv> (\<one>, \<one>)"
-  mult_inv_def: "\<div> x \<equiv> let (x1, x2) = x in (\<div> x1, \<div> x2)"
-by default (simp_all add: split_paired_all group_prod_def assoc neutl invl)
+by default (simp_all add: split_paired_all semigroup_prod_def assoc)
+
+instance monoidl_prod_def: (monoidl, monoidl) * :: monoidl
+  one_prod_def: "\<one> \<equiv> (\<one>, \<one>)"
+by default (simp_all add: split_paired_all monoidl_prod_def neutl)
+
+instance monoid_prod_def: (monoid, monoid) * :: monoid
+by default (simp_all add: split_paired_all monoid_prod_def neutr)
+
+instance monoid_comm_prod_def: (monoid_comm, monoid_comm) * :: monoid_comm
+by default (simp_all add: split_paired_all monoidl_prod_def comm)
+
+instance group_prod_def: (group, group) * :: group
+  inv_prod_def: "\<div> x \<equiv> let (x1, x2) = x in (\<div> x1, \<div> x2)"
+by default (simp_all add: split_paired_all group_prod_def invl)
 
 instance group_comm_prod_def: (group_comm, group_comm) * :: group_comm
-by default (simp_all add: split_paired_all group_prod_def assoc neutl invl comm)
+by default (simp_all add: split_paired_all group_prod_def comm)
 
 definition
   "X a b c = (a \<otimes> \<one> \<otimes> b, a \<otimes> \<one> \<otimes> b, [a, b] \<otimes> \<one> \<otimes> [a, b, c])"
