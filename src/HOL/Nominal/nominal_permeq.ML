@@ -6,6 +6,25 @@ Methods for simplifying permutations and
 for analysing equations involving permutations.
 *)
 
+(*
+FIXMES:
+
+ - allow the user to give an explicit set S in the
+   fresh_guess tactic which is then verified
+
+ - the perm_compose tactic does not do an "outermost
+   rewriting" and can therefore not deal with goals
+   like
+
+      [(a,b)] o pi1 o pi2 = ....
+
+   rather it tries to permute pi1 over pi2, which 
+   results in a failure when used with the 
+   perm_(full)_simp tactics
+
+*)
+
+
 signature NOMINAL_PERMEQ =
 sig
   val perm_simp_tac : simpset -> int -> tactic
