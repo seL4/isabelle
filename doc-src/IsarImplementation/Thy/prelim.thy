@@ -313,6 +313,9 @@ text {*
   FIXME theory data
 *}
 
+text %mlref {*
+*}
+
 
 subsection {* Proof context \label{sec:context-proof} *}
 
@@ -350,7 +353,13 @@ auxiliary context data may be adjoined.}
 
 *}
 
+text %mlref {* FIXME *}
+
 
 subsection {* Generic contexts *}
+
+text FIXME
+
+text %mlref {* FIXME *}
 
 end
