@@ -2,11 +2,12 @@
     ID:         $Id$
     Author:     Stefan Berghofer & Florian Haftmann, TU Muenchen
 
-Code generator for inductive datatypes.
+Code generator for inductive datatypes and type copies ("code types").
 *)
 
 signature DATATYPE_CODEGEN =
 sig
+  val get_eq: theory -> string -> thm list
   val get_datatype_spec_thms: theory -> string
     -> (((string * sort) list * (string * typ list) list) * tactic) option
   val datatype_tac: theory -> string -> tactic
@@ -14,15 +15,19 @@ sig
     -> ((string * typ) list * ((term * typ) * (term * term) list)) option
   val add_datatype_case_const: string -> theory -> theory
   val add_datatype_case_defs: string -> theory -> theory
-  val datatypes_dependency: theory -> string list list
-  val add_hook_bootstrap: DatatypeHooks.hook -> theory -> theory
-  val get_datatype_mut_specs: theory -> string list
-    -> ((string * sort) list * (string * (string * typ list) list) list)
-  val get_datatype_arities: theory -> string list -> sort
+
+  type hook = (string * (bool * ((string * sort) list * (string * typ list) list))) list
+    -> theory -> theory
+  val codetypes_dependency: theory -> (string * bool) list list
+  val add_codetypes_hook_bootstrap: hook -> theory -> theory
+  val the_codetypes_mut_specs: theory -> (string * bool) list
+    -> ((string * sort) list * (string * (bool * (string * typ list) list)) list)
+  val get_codetypes_arities: theory -> (string * bool) list -> sort
     -> (string * (((string * sort list) * sort) * term list)) list option
-  val prove_arities: (thm list -> tactic) -> string list -> sort
+  val prove_codetypes_arities: (thm list -> tactic) -> (string * bool) list -> sort
     -> (theory -> ((string * sort list) * sort) list -> (string * term list) list
     -> ((bstring * attribute list) * term) list) -> theory -> theory
+
   val setup: theory -> theory
 end;
 
@@ -313,87 +318,7 @@ fun datatype_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
   | datatype_tycodegen _ _ _ _ _ _ _ = NONE;
 
 
-(** code 2nd generation **)
-
-fun datatypes_dependency thy =
-  let
-    val dtnames = DatatypePackage.get_datatypes thy;
-    fun add_node (dtname, _) =
-      let
-        fun add_tycos (Type (tyco, tys)) = insert (op =) tyco #> fold add_tycos tys
-          | add_tycos _ = I;
-        val deps = (filter (Symtab.defined dtnames) o maps (fn ty =>
-          add_tycos ty [])
-            o maps snd o snd o the o DatatypePackage.get_datatype_spec thy) dtname
-      in
-        Graph.default_node (dtname, ())
-        #> fold (fn dtname' =>
-             Graph.default_node (dtname', ())
-             #> Graph.add_edge (dtname', dtname)
-           ) deps
-      end
-  in
-    Graph.empty
-    |> Symtab.fold add_node dtnames
-    |> Graph.strong_conn
-  end;
-
-fun add_hook_bootstrap hook thy =
-  thy
-  |> fold hook (datatypes_dependency thy)
-  |> DatatypeHooks.add hook;
-
-fun get_datatype_mut_specs thy (tycos as tyco :: _) =
-  let
-    val tycos' = (map (#1 o snd) o #descr o DatatypePackage.the_datatype thy) tyco;
-    val _ = if gen_subset (op =) (tycos, tycos') then () else
-      error ("datatype constructors are not mutually recursive: " ^ (commas o map quote) tycos);
-    val (vs::_, css) = split_list (map (the o DatatypePackage.get_datatype_spec thy) tycos);
-  in (vs, tycos ~~ css) end;
-
-fun get_datatype_arities thy tycos sort =
-  let
-    val algebra = Sign.classes_of thy;
-    val (vs_proto, css_proto) = get_datatype_mut_specs thy tycos;
-    val vs = map (fn (v, vsort) => (v, Sorts.inter_sort algebra (vsort, sort))) vs_proto;
-    fun inst_type tyco (c, tys) =
-      let
-        val tys' = (map o map_atyps)
-          (fn TFree (v, _) => TFree (v, the (AList.lookup (op =) vs v))) tys
-      in (c, tys') end;
-    val css = map (fn (tyco, cs) => (tyco, (map (inst_type tyco) cs))) css_proto;
-    fun mk_arity tyco =
-      ((tyco, map snd vs), sort);
-    fun typ_of_sort ty =
-      let
-        val arities = map (fn (tyco, _) => ((tyco, map snd vs), sort)) css;
-      in ClassPackage.assume_arities_of_sort thy arities (ty, sort) end;
-    fun mk_cons tyco (c, tys) =
-      let
-        val ts = Name.names Name.context "a" tys;
-        val ty = tys ---> Type (tyco, map TFree vs);
-      in list_comb (Const (c, ty), map Free ts) end;
-  in if forall (fn (_, cs) => forall (fn (_, tys) => forall typ_of_sort tys) cs) css
-    then SOME (
-      map (fn (tyco, cs) => (tyco, (mk_arity tyco, map (mk_cons tyco) cs))) css
-    ) else NONE
-  end;
-
-fun prove_arities tac tycos sort f thy =
-  case get_datatype_arities thy tycos sort
-   of NONE => thy
-    | SOME insts => let
-        fun proven ((tyco, asorts), sort) =
-          Sorts.of_sort (Sign.classes_of thy)
-            (Type (tyco, map TFree (Name.names Name.context "'a" asorts)), sort);
-        val (arities, css) = (split_list o map_filter
-          (fn (tyco, (arity, cs)) => if proven arity
-            then NONE else SOME (arity, (tyco, cs)))) insts;
-      in
-        thy
-        |> K ((not o null) arities) ? ClassPackage.prove_instance_arity tac
-             arities ("", []) (f thy arities css)
-      end;
+(** datatypes for code 2nd generation **)
 
 fun dtyp_of_case_const thy c =
   get_first (fn (dtco, { case_name, ... }) => if case_name = c then SOME dtco else NONE)
@@ -422,6 +347,57 @@ fun dest_case_expr thy t =
               in SOME (dest_case_app cs ts (Library.take (length cs + 1, (fst o strip_type) ty))) end
           | _ => NONE)
     | _ => NONE;
+
+fun mk_distinct cos =
+  let
+    fun sym_product [] = []
+      | sym_product (x::xs) = map (pair x) xs @ sym_product xs;
+    fun mk_co_args (co, tys) ctxt =
+      let
+        val names = Name.invents ctxt "a" (length tys);
+        val ctxt' = fold Name.declare names ctxt;
+        val vs = map2 (curry Free) names tys;
+      in (vs, ctxt) end;
+    fun mk_dist ((co1, tys1), (co2, tys2)) =
+      let
+        val ((xs1, xs2), _) = Name.context
+          |> mk_co_args (co1, tys1)
+          ||>> mk_co_args (co2, tys2);
+        val prem = HOLogic.mk_eq
+          (list_comb (co1, xs1), list_comb (co2, xs2));
+        val t = HOLogic.mk_not prem;
+      in HOLogic.mk_Trueprop t end;
+  in map mk_dist (sym_product cos) end;
+
+local
+  val not_false_true = iffD2 OF [nth (thms "HOL.simp_thms") 7, TrueI];
+in fun get_eq thy dtco =
+  let
+    val SOME (vs, cs) = DatatypePackage.get_datatype_spec thy dtco;
+    fun mk_triv_inject co =
+      let
+        val ct' = Thm.cterm_of thy
+          (Const (co, Type (dtco, map (fn (v, sort) => TVar ((v, 0), sort)) vs)))
+        val cty' = Thm.ctyp_of_term ct';
+        val refl = Thm.prop_of HOL.refl;
+        val SOME (ct, cty) = fold_aterms (fn Var (v, ty) =>
+          (K o SOME) (Thm.cterm_of thy (Var (v, Thm.typ_of cty')), Thm.ctyp_of thy ty) | _ => I)
+          refl NONE;
+      in eqTrueI OF [Thm.instantiate ([(cty, cty')], [(ct, ct')]) HOL.refl] end;
+    val inject1 = map_filter (fn (co, []) => SOME (mk_triv_inject co) | _ => NONE) cs
+    val inject2 = (#inject o DatatypePackage.the_datatype thy) dtco;
+    val ctxt = Context.init_proof thy;
+    val simpset = Simplifier.context ctxt
+      (MetaSimplifier.empty_ss addsimprocs [distinct_simproc]);
+    val cos = map (fn (co, tys) =>
+        (Const (co, tys ---> Type (dtco, map TFree vs)), tys)) cs;
+    val tac = ALLGOALS (simp_tac simpset)
+      THEN ALLGOALS (ProofContext.fact_tac [not_false_true, TrueI]);
+    val distinct =
+      mk_distinct cos
+      |> map (fn t => Goal.prove_global thy [] [] t (K tac))
+  in inject1 @ inject2 @ distinct end;
+end (*local*);
 
 fun datatype_tac thy dtco =
   let
@@ -457,6 +433,126 @@ fun add_datatype_case_defs dtco thy =
   in
     fold CodegenTheorems.add_fun case_rewrites thy
   end;
+
+
+(** codetypes for code 2nd generation **)
+
+type hook = (string * (bool * ((string * sort) list * (string * typ list) list))) list
+  -> theory -> theory;
+
+fun codetypes_dependency thy =
+  let
+    val names =
+      map (rpair true) (Symtab.keys (DatatypePackage.get_datatypes thy))
+        @ map (rpair false) (TypecopyPackage.get_typecopies thy);
+    fun add_node (name, is_dt) =
+      let
+        fun add_tycos (Type (tyco, tys)) = insert (op =) tyco #> fold add_tycos tys
+          | add_tycos _ = I;
+        val tys = if is_dt then
+            (maps snd o snd o the o DatatypePackage.get_datatype_spec thy) name
+          else
+            [(#typ o the o TypecopyPackage.get_typecopy_info thy) name]
+        val deps = (filter (AList.defined (op =) names) o maps (fn ty =>
+          add_tycos ty [])) tys;
+      in
+        Graph.default_node (name, ())
+        #> fold (fn name' =>
+             Graph.default_node (name', ())
+             #> Graph.add_edge (name', name)
+           ) deps
+      end
+  in
+    Graph.empty
+    |> fold add_node names
+    |> Graph.strong_conn
+    |> map (AList.make (the o AList.lookup (op =) names))
+  end;
+
+fun mk_typecopy_spec ({ vs, constr, typ, ... } : TypecopyPackage.info) =
+  (vs, [(constr, [typ])]);
+
+fun get_spec thy (dtco, true) =
+      (the o DatatypePackage.get_datatype_spec thy) dtco
+  | get_spec thy (tyco, false) =
+      (mk_typecopy_spec o the o TypecopyPackage.get_typecopy_info thy) tyco;
+
+fun add_spec thy (tyco, is_dt) =
+  (tyco, (is_dt, get_spec thy (tyco, is_dt)));
+
+fun add_codetypes_hook_bootstrap hook thy =
+  let
+    fun datatype_hook dtcos thy =
+      hook (map (add_spec thy) (map (rpair true) dtcos)) thy;
+    fun typecopy_hook ((tyco, info )) thy =
+      hook ([(tyco, (false, mk_typecopy_spec info))]) thy;
+  in
+    thy
+    |> fold hook ((map o map) (add_spec thy) (codetypes_dependency thy))
+    |> DatatypeHooks.add datatype_hook
+    |> TypecopyPackage.add_hook typecopy_hook
+  end;
+
+fun the_codetypes_mut_specs thy ([(tyco, is_dt)]) =
+      let
+        val (vs, cs) = get_spec thy (tyco, is_dt)
+      in (vs, [(tyco, (is_dt, cs))]) end
+  | the_codetypes_mut_specs thy (tycos' as (tyco, true) :: _) =
+      let
+        val tycos = map fst tycos';
+        val tycos'' = (map (#1 o snd) o #descr o DatatypePackage.the_datatype thy) tyco;
+        val _ = if gen_subset (op =) (tycos, tycos'') then () else
+          error ("datatype constructors are not mutually recursive: " ^ (commas o map quote) tycos);
+        val (vs::_, css) = split_list (map (the o DatatypePackage.get_datatype_spec thy) tycos);
+      in (vs, map2 (fn (tyco, is_dt) => fn cs => (tyco, (is_dt, cs))) tycos' css) end;
+
+fun get_codetypes_arities thy tycos sort =
+  let
+    val algebra = Sign.classes_of thy;
+    val (vs_proto, css_proto) = the_codetypes_mut_specs thy tycos;
+    val vs = map (fn (v, vsort) => (v, Sorts.inter_sort algebra (vsort, sort))) vs_proto;
+    fun inst_type tyco (c, tys) =
+      let
+        val tys' = (map o map_atyps)
+          (fn TFree (v, _) => TFree (v, the (AList.lookup (op =) vs v))) tys
+      in (c, tys') end;
+    val css = map (fn (tyco, (_, cs)) => (tyco, (map (inst_type tyco) cs))) css_proto;
+    fun mk_arity tyco =
+      ((tyco, map snd vs), sort);
+    fun typ_of_sort ty =
+      let
+        val arities = map (fn (tyco, _) => ((tyco, map snd vs), sort)) css;
+      in ClassPackage.assume_arities_of_sort thy arities (ty, sort) end;
+    fun mk_cons tyco (c, tys) =
+      let
+        val ts = Name.names Name.context "a" tys;
+        val ty = tys ---> Type (tyco, map TFree vs);
+      in list_comb (Const (c, ty), map Free ts) end;
+  in if forall (fn (_, cs) => forall (fn (_, tys) => forall typ_of_sort tys) cs) css
+    then SOME (
+      map (fn (tyco, cs) => (tyco, (mk_arity tyco, map (mk_cons tyco) cs))) css
+    ) else NONE
+  end;
+
+fun prove_codetypes_arities tac tycos sort f thy =
+  case get_codetypes_arities thy tycos sort
+   of NONE => thy
+    | SOME insts => let
+        fun proven ((tyco, asorts), sort) =
+          Sorts.of_sort (Sign.classes_of thy)
+            (Type (tyco, map TFree (Name.names Name.context "'a" asorts)), sort);
+        val (arities, css) = (split_list o map_filter
+          (fn (tyco, (arity, cs)) => if proven arity
+            then NONE else SOME (arity, (tyco, cs)))) insts;
+      in
+        thy
+        |> K ((not o null) arities) ? ClassPackage.prove_instance_arity tac
+             arities ("", []) (f thy arities css)
+      end;
+
+
+
+(** theory setup **)
 
 val setup = 
   add_codegen "datatype" datatype_codegen #>

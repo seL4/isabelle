@@ -7,7 +7,10 @@ header {* HOL type definitions *}
 
 theory Typedef
 imports Set
-uses ("Tools/typedef_package.ML") ("Tools/typedef_codegen.ML")
+uses
+  ("Tools/typedef_package.ML")
+  ("Tools/typecopy_package.ML")
+  ("Tools/typedef_codegen.ML")
 begin
 
 locale type_definition =
@@ -83,8 +86,13 @@ proof -
 qed
 
 use "Tools/typedef_package.ML"
+use "Tools/typecopy_package.ML"
 use "Tools/typedef_codegen.ML"
 
-setup {* TypedefPackage.setup #> TypedefCodegen.setup *}
+setup {*
+  TypedefPackage.setup
+  #> TypecopyPackage.setup
+  #> TypedefCodegen.setup
+*}
 
 end
