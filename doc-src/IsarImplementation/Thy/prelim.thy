@@ -5,184 +5,6 @@ theory prelim imports base begin
 
 chapter {* Preliminaries *}
 
-section {* Named entities *}
-
-text {* Named entities of different kinds (logical constant, type,
-type class, theorem, method etc.) live in separate name spaces.  It is
-usually clear from the occurrence of a name which kind of entity it
-refers to.  For example, proof method @{text "foo"} vs.\ theorem
-@{text "foo"} vs.\ logical constant @{text "foo"} are easily
-distinguished by means of the syntactic context.  A notable exception
-are logical identifiers within a term (\secref{sec:terms}): constants,
-fixed variables, and bound variables all share the same identifier
-syntax, but are distinguished by their scope.
-
-Each name space is organized as a collection of \emph{qualified
-names}, which consist of a sequence of basic name components separated
-by dots: @{text "Bar.bar.foo"}, @{text "Bar.foo"}, and @{text "foo"}
-are examples for valid qualified names.  Name components are
-subdivided into \emph{symbols}, which constitute the smallest textual
-unit in Isabelle --- raw characters are normally not encountered
-directly. *}
-
-
-subsection {* Strings of symbols *}
-
-text {* Isabelle strings consist of a sequence of
-symbols\glossary{Symbol}{The smalles unit of text in Isabelle,
-subsumes plain ASCII characters as well as an infinite collection of
-named symbols (for greek, math etc.).}, which are either packed as an
-actual @{text "string"}, or represented as a list.  Each symbol is in
-itself a small string of the following form:
-
-\begin{enumerate}
-
-\item either a singleton ASCII character ``@{text "c"}'' (with
-character code 0--127), for example ``\verb,a,'',
-
-\item or a regular symbol ``\verb,\,\verb,<,@{text "ident"}\verb,>,'',
-for example ``\verb,\,\verb,<alpha>,'',
-
-\item or a control symbol ``\verb,\,\verb,<^,@{text
-"ident"}\verb,>,'', for example ``\verb,\,\verb,<^bold>,'',
-
-\item or a raw control symbol ``\verb,\,\verb,<^raw:,@{text
-"\<dots>"}\verb,>,'' where ``@{text "\<dots>"}'' refers to any
-printable ASCII character (excluding ``\verb,.,'' and ``\verb,>,'') or
-non-ASCII character, for example ``\verb,\,\verb,<^raw:$\sum_{i = 1}^n$>,'',
-
-\item or a numbered raw control symbol ``\verb,\,\verb,<^raw,@{text
-"nnn"}\verb,>, where @{text "nnn"} are digits, for example
-``\verb,\,\verb,<^raw42>,''.
-
-\end{enumerate}
-
-The @{text "ident"} syntax for symbol names is @{text "letter (letter
-| digit)\<^sup>*"}, where @{text "letter = A..Za..Z"} and @{text
-"digit = 0..9"}.  There are infinitely many regular symbols and
-control symbols available, but a certain collection of standard
-symbols is treated specifically.  For example,
-``\verb,\,\verb,<alpha>,'' is classified as a (non-ASCII) letter,
-which means it may occur within regular Isabelle identifier syntax.
-
-Output of symbols depends on the print mode (\secref{sec:print-mode}).
-For example, the standard {\LaTeX} setup of the Isabelle document
-preparation system would present ``\verb,\,\verb,<alpha>,'' as @{text
-"\<alpha>"}, and ``\verb,\,\verb,<^bold>,\verb,\,\verb,<alpha>,'' as @{text
-"\<^bold>\<alpha>"}.
-
-\medskip It is important to note that the character set underlying
-Isabelle symbols is plain 7-bit ASCII.  Since 8-bit characters are
-passed through transparently, Isabelle may easily process actual
-Unicode/UCS data (using the well-known UTF-8 encoding, for example).
-Unicode provides its own collection of mathematical symbols, but there
-is presently no link to Isabelle's named ones; both kinds of symbols
-coexist independently. *}
-
-text %mlref {*
-  \begin{mldecls}
-  @{index_ML_type "Symbol.symbol"} \\
-  @{index_ML Symbol.explode: "string -> Symbol.symbol list"} \\
-  @{index_ML Symbol.is_letter: "Symbol.symbol -> bool"} \\
-  @{index_ML Symbol.is_digit: "Symbol.symbol -> bool"} \\
-  @{index_ML Symbol.is_quasi: "Symbol.symbol -> bool"} \\
-  @{index_ML Symbol.is_blank: "Symbol.symbol -> bool"} \\
-  @{index_ML_type "Symbol.sym"} \\
-  @{index_ML Symbol.decode: "Symbol.symbol -> Symbol.sym"} \\
-  \end{mldecls}
-
-  \begin{description}
-
-  \item @{ML_type "Symbol.symbol"} represents Isabelle symbols; this type
-  is merely an alias for @{ML_type "string"}, but emphasizes the
-  specific format encountered here.
-
-  \item @{ML "Symbol.explode"}~@{text "s"} produces an actual symbol
-  list from the packed form usually encountered as user input.  This
-  function replaces @{ML "String.explode"} for virtually all purposes
-  of manipulating text in Isabelle!  Plain @{text "implode"} may be
-  used for the reverse operation.
-
-  \item @{ML "Symbol.is_letter"}, @{ML "Symbol.is_digit"}, @{ML
-  "Symbol.is_quasi"}, @{ML "Symbol.is_blank"} classify certain symbols
-  (both ASCII and several named ones) according to fixed syntactic
-  convections of Isabelle, e.g.\ see \cite{isabelle-isar-ref}.
-
-  \item @{ML_type "Symbol.sym"} is a concrete datatype that represents
-  the different kinds of symbols explicitly as @{ML "Symbol.Char"},
-  @{ML "Symbol.Sym"}, @{ML "Symbol.Ctrl"}, or @{ML "Symbol.Raw"}.
-
-  \item @{ML "Symbol.decode"} converts the string representation of a
-  symbol into the explicit datatype version.
-
-  \end{description}
-*}
-
-
-subsection {* Simple names *}
-
-text FIXME
-
-
-subsection {* Qualified names and name spaces *}
-
-text %FIXME {* Qualified names are constructed according to implicit naming
-principles of the present context.
-
-
-The last component is called \emph{base name}; the remaining prefix of
-qualification may be empty.
-
-Some practical conventions help to organize named entities more
-systematically:
-
-\begin{itemize}
-
-\item Names are qualified first by the theory name, second by an
-optional ``structure''.  For example, a constant @{text "c"} declared
-as part of a certain structure @{text "b"} (say a type definition) in
-theory @{text "A"} will be named @{text "A.b.c"} internally.
-
-\item
-
-\item
-
-\item
-
-\item
-
-\end{itemize}
-
-Names of different kinds of entities are basically independent, but
-some practical naming conventions relate them to each other.  For
-example, a constant @{text "foo"} may be accompanied with theorems
-@{text "foo.intro"}, @{text "foo.elim"}, @{text "foo.simps"} etc.  The
-same may happen for a type @{text "foo"}, which is then apt to cause
-clashes in the theorem name space!  To avoid this, we occasionally
-follow an additional convention of suffixes that determine the
-original kind of entity that a name has been derived.  For example,
-constant @{text "foo"} is associated with theorem @{text "foo.intro"},
-type @{text "foo"} with theorem @{text "foo_type.intro"}, and type
-class @{text "foo"} with @{text "foo_class.intro"}.
-
-*}
-
-
-section {* Structured output *}
-
-subsection {* Pretty printing *}
-
-text FIXME
-
-subsection {* Output channels *}
-
-text FIXME
-
-subsection {* Print modes *}
-
-text FIXME
-
-
 section {* Contexts \label{sec:context} *}
 
 text {*
@@ -361,5 +183,179 @@ subsection {* Generic contexts *}
 text FIXME
 
 text %mlref {* FIXME *}
+
+
+section {* Named entities *}
+
+text {* Named entities of different kinds (logical constant, type,
+type class, theorem, method etc.) live in separate name spaces.  It is
+usually clear from the occurrence of a name which kind of entity it
+refers to.  For example, proof method @{text "foo"} vs.\ theorem
+@{text "foo"} vs.\ logical constant @{text "foo"} are easily
+distinguished by means of the syntactic context.  A notable exception
+are logical identifiers within a term (\secref{sec:terms}): constants,
+fixed variables, and bound variables all share the same identifier
+syntax, but are distinguished by their scope.
+
+Each name space is organized as a collection of \emph{qualified
+names}, which consist of a sequence of basic name components separated
+by dots: @{text "Bar.bar.foo"}, @{text "Bar.foo"}, and @{text "foo"}
+are examples for valid qualified names.  Name components are
+subdivided into \emph{symbols}, which constitute the smallest textual
+unit in Isabelle --- raw characters are normally not encountered
+directly. *}
+
+
+subsection {* Strings of symbols *}
+
+text {* Isabelle strings consist of a sequence of
+symbols\glossary{Symbol}{The smalles unit of text in Isabelle,
+subsumes plain ASCII characters as well as an infinite collection of
+named symbols (for greek, math etc.).}, which are either packed as an
+actual @{text "string"}, or represented as a list.  Each symbol is in
+itself a small string of the following form:
+
+\begin{enumerate}
+
+\item either a singleton ASCII character ``@{text "c"}'' (with
+character code 0--127), for example ``\verb,a,'',
+
+\item or a regular symbol ``\verb,\,\verb,<,@{text "ident"}\verb,>,'',
+for example ``\verb,\,\verb,<alpha>,'',
+
+\item or a control symbol ``\verb,\,\verb,<^,@{text
+"ident"}\verb,>,'', for example ``\verb,\,\verb,<^bold>,'',
+
+\item or a raw control symbol ``\verb,\,\verb,<^raw:,@{text
+"\<dots>"}\verb,>,'' where ``@{text "\<dots>"}'' refers to any
+printable ASCII character (excluding ``\verb,.,'' and ``\verb,>,'') or
+non-ASCII character, for example ``\verb,\,\verb,<^raw:$\sum_{i = 1}^n$>,'',
+
+\item or a numbered raw control symbol ``\verb,\,\verb,<^raw,@{text
+"nnn"}\verb,>, where @{text "nnn"} are digits, for example
+``\verb,\,\verb,<^raw42>,''.
+
+\end{enumerate}
+
+The @{text "ident"} syntax for symbol names is @{text "letter (letter
+| digit)\<^sup>*"}, where @{text "letter = A..Za..Z"} and @{text
+"digit = 0..9"}.  There are infinitely many regular symbols and
+control symbols available, but a certain collection of standard
+symbols is treated specifically.  For example,
+``\verb,\,\verb,<alpha>,'' is classified as a (non-ASCII) letter,
+which means it may occur within regular Isabelle identifier syntax.
+
+Output of symbols depends on the print mode (\secref{sec:print-mode}).
+For example, the standard {\LaTeX} setup of the Isabelle document
+preparation system would present ``\verb,\,\verb,<alpha>,'' as @{text
+"\<alpha>"}, and ``\verb,\,\verb,<^bold>,\verb,\,\verb,<alpha>,'' as @{text
+"\<^bold>\<alpha>"}.
+
+\medskip It is important to note that the character set underlying
+Isabelle symbols is plain 7-bit ASCII.  Since 8-bit characters are
+passed through transparently, Isabelle may easily process actual
+Unicode/UCS data (using the well-known UTF-8 encoding, for example).
+Unicode provides its own collection of mathematical symbols, but there
+is presently no link to Isabelle's named ones; both kinds of symbols
+coexist independently. *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type "Symbol.symbol"} \\
+  @{index_ML Symbol.explode: "string -> Symbol.symbol list"} \\
+  @{index_ML Symbol.is_letter: "Symbol.symbol -> bool"} \\
+  @{index_ML Symbol.is_digit: "Symbol.symbol -> bool"} \\
+  @{index_ML Symbol.is_quasi: "Symbol.symbol -> bool"} \\
+  @{index_ML Symbol.is_blank: "Symbol.symbol -> bool"} \\
+  @{index_ML_type "Symbol.sym"} \\
+  @{index_ML Symbol.decode: "Symbol.symbol -> Symbol.sym"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_type "Symbol.symbol"} represents Isabelle symbols; this type
+  is merely an alias for @{ML_type "string"}, but emphasizes the
+  specific format encountered here.
+
+  \item @{ML "Symbol.explode"}~@{text "s"} produces an actual symbol
+  list from the packed form usually encountered as user input.  This
+  function replaces @{ML "String.explode"} for virtually all purposes
+  of manipulating text in Isabelle!  Plain @{text "implode"} may be
+  used for the reverse operation.
+
+  \item @{ML "Symbol.is_letter"}, @{ML "Symbol.is_digit"}, @{ML
+  "Symbol.is_quasi"}, @{ML "Symbol.is_blank"} classify certain symbols
+  (both ASCII and several named ones) according to fixed syntactic
+  convections of Isabelle, e.g.\ see \cite{isabelle-isar-ref}.
+
+  \item @{ML_type "Symbol.sym"} is a concrete datatype that represents
+  the different kinds of symbols explicitly as @{ML "Symbol.Char"},
+  @{ML "Symbol.Sym"}, @{ML "Symbol.Ctrl"}, or @{ML "Symbol.Raw"}.
+
+  \item @{ML "Symbol.decode"} converts the string representation of a
+  symbol into the explicit datatype version.
+
+  \end{description}
+*}
+
+
+subsection {* Qualified names and name spaces *}
+
+text %FIXME {* Qualified names are constructed according to implicit naming
+principles of the present context.
+
+
+The last component is called \emph{base name}; the remaining prefix of
+qualification may be empty.
+
+Some practical conventions help to organize named entities more
+systematically:
+
+\begin{itemize}
+
+\item Names are qualified first by the theory name, second by an
+optional ``structure''.  For example, a constant @{text "c"} declared
+as part of a certain structure @{text "b"} (say a type definition) in
+theory @{text "A"} will be named @{text "A.b.c"} internally.
+
+\item
+
+\item
+
+\item
+
+\item
+
+\end{itemize}
+
+Names of different kinds of entities are basically independent, but
+some practical naming conventions relate them to each other.  For
+example, a constant @{text "foo"} may be accompanied with theorems
+@{text "foo.intro"}, @{text "foo.elim"}, @{text "foo.simps"} etc.  The
+same may happen for a type @{text "foo"}, which is then apt to cause
+clashes in the theorem name space!  To avoid this, we occasionally
+follow an additional convention of suffixes that determine the
+original kind of entity that a name has been derived.  For example,
+constant @{text "foo"} is associated with theorem @{text "foo.intro"},
+type @{text "foo"} with theorem @{text "foo_type.intro"}, and type
+class @{text "foo"} with @{text "foo_class.intro"}.
+
+*}
+
+
+section {* Structured output *}
+
+subsection {* Pretty printing *}
+
+text FIXME
+
+subsection {* Output channels *}
+
+text FIXME
+
+subsection {* Print modes *}
+
+text FIXME
+
 
 end

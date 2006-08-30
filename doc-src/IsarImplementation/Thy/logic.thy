@@ -7,6 +7,13 @@ chapter {* Pure logic *}
 
 section {* Syntax *}
 
+subsection {* Variable names *}
+
+text {*
+  FIXME
+*}
+
+
 subsection {* Simply-typed lambda calculus *}
 
 text {*
