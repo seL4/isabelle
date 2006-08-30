@@ -394,7 +394,7 @@ lemma DERIV_ln: "0 < x ==> DERIV ln x :> 1 / x"
   apply (subgoal_tac "abs xa < min (x / 2) (r * x^2 / 2)")
   apply force
   apply assumption
-  apply (simp (asm_lr) add: power2_eq_square mult_compare_simps)
+  apply (simp add: power2_eq_square mult_compare_simps)
   apply (rule mult_imp_div_pos_less)
   apply (rule mult_pos_pos, assumption, assumption)
   apply (subgoal_tac "xa * xa = abs xa * abs xa")
@@ -408,7 +408,6 @@ lemma DERIV_ln: "0 < x ==> DERIV ln x :> 1 / x"
   apply (subst diff_minus [THEN sym])+
   apply (subst ln_div [THEN sym])
   apply arith
-  apply assumption
   apply (auto simp add: ring_eq_simps add_frac_eq frac_eq_eq 
     add_divide_distrib power2_eq_square)
   apply (rule mult_pos_pos, assumption)+

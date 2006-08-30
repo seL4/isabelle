@@ -173,10 +173,7 @@ apply (rule order_trans)
  prefer 2 apply assumption
 apply (subgoal_tac "psize D - n = Suc (psize D - Suc n)")
  prefer 2 apply arith
-apply (drule_tac x = "psize D - Suc n" in spec)
-ML {* fast_arith_split_limit := 0; *}  (* FIXME *)
-apply simp
-ML {* fast_arith_split_limit := 9; *}  (* FIXME *)
+apply (drule_tac x = "psize D - Suc n" in spec, simp) 
 done
 
 lemma partition_ub_lt: "[| partition(a,b) D; n < psize D |] ==> D(n) < b"
@@ -439,8 +436,6 @@ apply (auto simp add: abs_le_interval_iff)
 apply (simp add: right_diff_distrib)
 done
 
-ML {* fast_arith_split_limit := 0; *}  (* FIXME: rewrite proof *)
-
 lemma FTC1: "[|a \<le> b; \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x) |]
              ==> Integral(a,b) f' (f(b) - f(a))"
 apply (drule order_le_imp_less_or_eq, auto) 
@@ -472,7 +467,6 @@ apply (auto simp add: partition_rhs partition_lhs partition_lb partition_ub
           fine_def)
 done
 
-ML {* fast_arith_split_limit := 9; *}  (* FIXME *)
 
 lemma Integral_subst: "[| Integral(a,b) f k1; k2=k1 |] ==> Integral(a,b) f k2"
 by simp

@@ -400,6 +400,8 @@ apply (rule_tac x = 0 in exI, safe)
 apply (subgoal_tac "0 < \<bar>x ^ n\<bar> ")
 apply (rule_tac c="\<bar>x ^ n\<bar>" in mult_right_le_imp_le) 
 apply (auto simp add: mult_assoc power_abs abs_mult)
+ prefer 2
+ apply (drule_tac x = 0 in spec, force)
 apply (auto simp add: power_abs mult_ac)
 apply (rule_tac a2 = "z ^ n" 
        in abs_ge_zero [THEN real_le_imp_less_or_eq, THEN disjE])
@@ -576,6 +578,8 @@ done
 
 text{* FIXME: Long proofs*}
 
+ML {* fast_arith_split_limit := 0; *}  (* FIXME: rewrite proofs *)
+
 lemma termdiffs_aux:
      "[|summable (\<lambda>n. diffs (diffs c) n * K ^ n); \<bar>x\<bar> < \<bar>K\<bar> |]
     ==> (\<lambda>h. \<Sum>n. c n *
@@ -589,56 +593,53 @@ apply (drule_tac
      and g = "%h n. c (n) * ((( ((x + h) ^ n) - (x ^ n)) * inverse h) 
                              - (real n * (x ^ (n - Suc 0))))" 
        in lemma_termdiff5)
-  -- "3 subgoals"
-ML {* fast_arith_split_limit := 0; *}  (* FIXME: rewrite proof *)
-  apply (auto simp add: add_commute)
- apply (subgoal_tac "summable (%n. \<bar>diffs (diffs c) n\<bar> * (r ^ n))")
-  apply (rule_tac [2] x = K in powser_insidea, auto)
- apply (subgoal_tac [2] "\<bar>r\<bar> = r", auto)
-  apply (rule_tac [2] y1 = "\<bar>x\<bar>" in order_trans [THEN abs_of_nonneg], auto)
- apply (simp add: diffs_def mult_assoc [symmetric])
- apply (subgoal_tac
-         "\<forall>n. real (Suc n) * real (Suc (Suc n)) * \<bar>c (Suc (Suc n))\<bar> * (r ^ n) 
-               = diffs (diffs (%n. \<bar>c n\<bar>)) n * (r ^ n) ") 
-  apply (auto simp add: abs_mult)
-   apply (drule diffs_equiv)
-   apply (drule sums_summable)
-   apply (simp_all add: diffs_def)
- apply (simp add: diffs_def mult_ac)
- apply (subgoal_tac " (%n. real n * (real (Suc n) * (\<bar>c (Suc n)\<bar> * (r ^ (n - Suc 0))))) = (%n. diffs (%m. real (m - Suc 0) * \<bar>c m\<bar> * inverse r) n * (r ^ n))")
-  apply auto
+apply (auto simp add: add_commute)
+apply (subgoal_tac "summable (%n. \<bar>diffs (diffs c) n\<bar> * (r ^ n))")
+apply (rule_tac [2] x = K in powser_insidea, auto)
+apply (subgoal_tac [2] "\<bar>r\<bar> = r", auto)
+apply (rule_tac [2] y1 = "\<bar>x\<bar>" in order_trans [THEN abs_of_nonneg], auto)
+apply (simp add: diffs_def mult_assoc [symmetric])
+apply (subgoal_tac
+        "\<forall>n. real (Suc n) * real (Suc (Suc n)) * \<bar>c (Suc (Suc n))\<bar> * (r ^ n) 
+              = diffs (diffs (%n. \<bar>c n\<bar>)) n * (r ^ n) ") 
+apply (auto simp add: abs_mult)
+apply (drule diffs_equiv)
+apply (drule sums_summable)
+apply (simp_all add: diffs_def) 
+apply (simp add: diffs_def mult_ac)
+apply (subgoal_tac " (%n. real n * (real (Suc n) * (\<bar>c (Suc n)\<bar> * (r ^ (n - Suc 0))))) = (%n. diffs (%m. real (m - Suc 0) * \<bar>c m\<bar> * inverse r) n * (r ^ n))")
+apply auto
   prefer 2
   apply (rule ext)
-  apply (simp add: diffs_def)
+  apply (simp add: diffs_def) 
   apply (case_tac "n", auto)
 txt{*23*}
    apply (drule abs_ge_zero [THEN order_le_less_trans])
-   apply (simp add: mult_ac)
+   apply (simp add: mult_ac) 
   apply (drule abs_ge_zero [THEN order_le_less_trans])
-  apply (simp add: mult_ac)
+  apply (simp add: mult_ac) 
  apply (drule diffs_equiv)
  apply (drule sums_summable)
- apply (subgoal_tac
-           "summable
-             (\<lambda>n. real n * (real (n - Suc 0) * \<bar>c n\<bar> * inverse r) *
-                  r ^ (n - Suc 0)) =
-            summable
-             (\<lambda>n. real n * (\<bar>c n\<bar> * (real (n - Suc 0) * r ^ (n - 2))))")
-  apply simp
- apply (rule_tac f = summable in arg_cong, rule ext)
+apply (subgoal_tac
+          "summable
+            (\<lambda>n. real n * (real (n - Suc 0) * \<bar>c n\<bar> * inverse r) *
+                 r ^ (n - Suc 0)) =
+           summable
+            (\<lambda>n. real n * (\<bar>c n\<bar> * (real (n - Suc 0) * r ^ (n - 2))))")
+apply simp 
+apply (rule_tac f = summable in arg_cong, rule ext)
 txt{*33*}
- apply (case_tac "n", auto)
- apply (case_tac "nat", auto)
- apply (drule abs_ge_zero [THEN order_le_less_trans], auto)
+apply (case_tac "n", auto)
+apply (case_tac "nat", auto)
+apply (drule abs_ge_zero [THEN order_le_less_trans], auto) 
 apply (drule abs_ge_zero [THEN order_le_less_trans])
 apply (simp add: mult_assoc)
 apply (rule mult_left_mono)
- prefer 2 apply arith
+ prefer 2 apply arith 
 apply (subst add_commute)
 apply (simp (no_asm) add: mult_assoc [symmetric])
 apply (rule lemma_termdiff3)
-  apply (auto intro: abs_triangle_ineq [THEN order_trans])
-apply arith
+apply (auto intro: abs_triangle_ineq [THEN order_trans], arith)
 done
 
 ML {* fast_arith_split_limit := 9; *}  (* FIXME *)
@@ -655,7 +656,7 @@ apply (rule_tac g = "%h. \<Sum>n. ((c (n) * ( (x + h) ^ n)) - (c (n) * (x ^ n)))
 apply (simp add: LIM_def, safe)
 apply (rule_tac x = "\<bar>K\<bar> - \<bar>x\<bar>" in exI)
 apply (auto simp add: less_diff_eq)
-apply (frule abs_triangle_ineq [THEN order_le_less_trans])
+apply (drule abs_triangle_ineq [THEN order_le_less_trans])
 apply (rule_tac y = 0 in order_le_less_trans, auto)
 apply (subgoal_tac " (%n. (c n) * (x ^ n)) sums (\<Sum>n. (c n) * (x ^ n)) & (%n. (c n) * ((x + xa) ^ n)) sums (\<Sum>n. (c n) * ( (x + xa) ^ n))")
 apply (auto intro!: summable_sums)
@@ -667,11 +668,11 @@ apply (rule sums_unique)
 apply (simp add: diff_def divide_inverse add_ac mult_ac)
 apply (rule LIM_zero_cancel)
 apply (rule_tac g = "%h. \<Sum>n. c (n) * ((( ((x + h) ^ n) - (x ^ n)) * inverse h) - (real n * (x ^ (n - Suc 0))))" in LIM_trans)
- prefer 2 apply (blast intro: termdiffs_aux)
+ prefer 2 apply (blast intro: termdiffs_aux) 
 apply (simp add: LIM_def, safe)
 apply (rule_tac x = "\<bar>K\<bar> - \<bar>x\<bar>" in exI)
 apply (auto simp add: less_diff_eq)
-apply (frule abs_triangle_ineq [THEN order_le_less_trans])
+apply (drule abs_triangle_ineq [THEN order_le_less_trans])
 apply (rule_tac y = 0 in order_le_less_trans, auto)
 apply (subgoal_tac "summable (%n. (diffs c) (n) * (x ^ n))")
 apply (rule_tac [2] powser_inside, auto)
@@ -2580,5 +2581,5 @@ apply (drule LIM_fun_less_zero)
 apply (drule_tac [3] LIM_fun_gt_zero)
 apply force+
 done
-
+  
 end 

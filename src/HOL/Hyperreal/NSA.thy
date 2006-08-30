@@ -329,7 +329,7 @@ lemma Infinitesimal_HFinite_mult:
 apply (rule InfinitesimalI)
 apply (drule HFiniteD, clarify)
 apply (simp only: abs_mult)
-apply (subgoal_tac "\<bar>x\<bar> * \<bar>y\<bar> < (r / t) * t", simp)
+apply (subgoal_tac "\<bar>x\<bar> * \<bar>y\<bar> < (r / t) * t", simp add: split_if)
 apply (subgoal_tac "0 < r / t")
 apply (rule mult_strict_mono)
 apply (simp add: InfinitesimalD SReal_divide)

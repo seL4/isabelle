@@ -968,14 +968,14 @@ apply (rule_tac ?instrs0.0 = "(compStmt (gmb G CL S) c1)" in progression_transit
 apply fast
 apply (rule_tac ?instrs1.0 = "[]" in jump_fwd_progression)
 apply (simp, rule conjI, (rule HOL.refl)+)
-apply simp
+apply simp apply (rule conjI, simp) apply (simp add: nat_add_distrib)
 apply (rule progression_refl)
 
  (* case b= False *)
 apply simp
 apply (rule_tac ?instrs1.0 = "compStmt (gmb G CL S) c2" in jump_fwd_progression)
 apply (simp, rule conjI, (rule HOL.refl)+)
-apply simp
+apply (simp, rule conjI, rule HOL.refl, simp add: nat_add_distrib)
 apply fast
 
 (* case exit Loop *)
@@ -1003,7 +1003,7 @@ apply (rule_tac ?instrs0.0 = "compExpr (gmb G CL S) e" in progression_transitive
 apply fast
 apply (rule_tac ?instrs1.0 = "[]" in jump_fwd_progression)
 apply (simp, rule conjI, rule HOL.refl, rule HOL.refl)
-apply simp
+apply (simp, rule conjI, rule HOL.refl, simp add: nat_add_distrib)
 apply (rule progression_refl)
 
 

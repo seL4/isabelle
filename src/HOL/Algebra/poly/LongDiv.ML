@@ -24,8 +24,6 @@ val eucl_size_def = thm "eucl_size_def";
 
 val SUM_shrink_below_lemma = thm "SUM_shrink_below_lemma";
 
-fast_arith_split_limit := 0;  (* FIXME: rewrite proofs *)
-
 Goal
   "!! f::(nat=>'a::ring). \
 \    [| m <= n; !!i. i < m ==> f i = 0; P (setsum (%i. f (i+m)) {..n-m}) |] \
@@ -279,5 +277,3 @@ by (Simp_tac 1);
 by (rtac long_div_quo_unique 1);
 by (REPEAT (atac 1));
 qed "long_div_rem_unique";
-
-fast_arith_split_limit := 9;  (* FIXME *)

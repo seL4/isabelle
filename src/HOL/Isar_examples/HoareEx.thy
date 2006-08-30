@@ -317,6 +317,7 @@ lemma "|- .{i = \<acute>I & \<acute>time = 0}.
       apply simp
      apply clarsimp
     apply clarsimp
+   apply arith
    prefer 2
    apply clarsimp
   apply (clarsimp simp: nat_distrib)

@@ -426,6 +426,7 @@ lemma poly_add_length [rule_format]:
      "\<forall>p2. length (p1 +++ p2) =
              (if (length p1 < length p2) then length p2 else length p1)"
 apply (induct "p1", simp_all)
+apply arith
 done
 
 lemma poly_root_mult_length: "length([a,b] *** p) = Suc (length p)"

@@ -710,7 +710,7 @@ lemma split_div_lemma:
   apply (rule iffI)
   apply (rule_tac a=m and r = "m - n * q" and r' = "m mod n" in unique_quotient)
 prefer 3; apply assumption
-  apply (simp_all add: quorem_def)
+  apply (simp_all add: quorem_def) apply arith
   apply (rule conjI)
   apply (rule_tac P="%x. n * (m div n) \<le> x" in
     subst [OF mod_div_equality [of _ n]])

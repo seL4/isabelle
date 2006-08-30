@@ -2239,7 +2239,7 @@ proof -
   thus ?thesis by simp
 qed
 
-ML {* val old_fast_arith_split_limit = !fast_arith_split_limit; fast_arith_split_limit := 0; *}
+ML {* fast_arith_split_limit := 0; *}  (* FIXME *)
 
 lemma LIMSEQ_SEQ_conv2:
   assumes "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
@@ -2321,7 +2321,7 @@ proof (rule ccontr)
   ultimately show False by simp
 qed
 
-ML {* fast_arith_split_limit := old_fast_arith_split_limit; *}
+ML {* fast_arith_split_limit := 9; *}  (* FIXME *)
 
 lemma LIMSEQ_SEQ_conv:
   "(\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L) = (X -- a --> L)"

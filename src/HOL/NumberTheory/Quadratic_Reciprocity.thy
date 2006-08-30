@@ -193,8 +193,6 @@ proof -
   then show ?thesis by auto
 qed
 
-ML {* fast_arith_split_limit := 0; *} (*FIXME*)
-
 lemma (in QRTEMP) pb_neq_qa: "[|1 \<le> b; b \<le> (q - 1) div 2 |] ==>
     (p * b \<noteq> q * a)"
 proof
@@ -235,8 +233,6 @@ proof
   then have p1: "q \<le> -1" by arith
   with q_g_2 show False by auto
 qed
-
-ML {* fast_arith_split_limit := 9; *} (*FIXME*)
 
 lemma (in QRTEMP) P_set_finite: "finite (P_set)"
   using p_fact by (auto simp add: P_set_def bdd_int_set_l_le_finite)

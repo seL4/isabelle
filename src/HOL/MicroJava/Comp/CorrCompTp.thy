@@ -663,7 +663,7 @@ apply (simp add: eff_def)
   (* show P x of bspec *)
 apply simp
   apply (subgoal_tac "length mt_pre \<le> pc'")
-  apply (simp add: nth_append)
+  apply (simp add: nth_append) apply arith
 
   (* subgoals *)
 apply (simp add: eff_def xcpt_eff_def)
@@ -965,6 +965,7 @@ apply (subgoal_tac "((mt2 @ [Some sttp2]) ! length bc2) = Some sttp2")
 apply (simp only:)
 apply (rule check_type_mono) apply assumption
 apply (simp (no_asm_simp)  add: max_ssize_def max_of_list_append max_ac)
+apply arith
 apply (simp add: nth_append)
 
 apply (erule conjE)+
@@ -1282,7 +1283,6 @@ max_spec G cname (mname, pTsa) = {((md, T), pTs')} \<rbrakk>
   apply auto
   done
 
-ML {* fast_arith_split_limit := 0; *}  (* FIXME: rewrite proof *)
 
 lemma bc_mt_corresp_Invoke: "\<lbrakk> wf_prog wf_mb G; 
   max_spec G cname (mname, pTsa) = {((md, T), fpTs)};
@@ -1319,7 +1319,6 @@ apply (simp add: wf_mdecl_def wf_mhead_def)
 apply (simp add: max_def)
   done
 
-ML {* fast_arith_split_limit := 9; *}  (* FIXME *)
 
 lemma wt_instr_Ifcmpeq: "\<lbrakk>Suc pc < max_pc; 
   0 \<le> (int pc + i);  nat (int pc + i) < max_pc;
@@ -1644,7 +1643,7 @@ apply auto
 done
 
 
-ML {* fast_arith_split_limit := 0; *}  (* FIXME: rewrite proof *)
+
 
 lemma wt_method_compTpExpr_Exprs_corresp: "
   \<lbrakk> jmb = (pns,lvars,blk,res); 
@@ -1923,7 +1922,6 @@ apply simp
 
 done
 
-ML {* fast_arith_split_limit := 9; *}  (* FIXME *)
 
 lemmas wt_method_compTpExpr_corresp [rule_format (no_asm)] = 
   wt_method_compTpExpr_Exprs_corresp [THEN conjunct1]

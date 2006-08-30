@@ -329,7 +329,7 @@ apply(case_tac i,simp,simp)
 apply(rule_tac x=0 in exI,simp)
 done
 
-lemma Basic_sound:
+lemma Basic_sound: 
   " \<lbrakk>pre \<subseteq> {s. f s \<in> post}; {(s, t). s \<in> pre \<and> t = f s} \<subseteq> guar; 
   stable pre rely; stable post rely\<rbrakk>
   \<Longrightarrow> \<Turnstile> Basic f sat [pre, rely, guar, post]"
@@ -369,15 +369,16 @@ apply simp
 apply(drule_tac s="Some (Basic f)" in sym,simp)
 apply(case_tac "x!Suc j",simp)
 apply(rule ctran.elims,simp)
-       apply(simp_all)
+apply(simp_all)
 apply(drule_tac c=sa in subsetD,simp)
 apply clarify
 apply(frule_tac j="Suc j" and k="length x - 1" and p=post in stability,simp_all)
-  apply(case_tac x,simp+)
+ apply(case_tac x,simp+)
  apply(erule_tac x=i in allE)
- apply(erule_tac i=j and f=f in unique_ctran_Basic,simp_all)
+apply(erule_tac i=j and f=f in unique_ctran_Basic,simp_all)
+  apply arith+
 apply(case_tac x)
- apply(simp add:last_length)+
+apply(simp add:last_length)+
 done
 
 subsubsection{* Soundness of the Await rule *}
@@ -496,7 +497,7 @@ apply simp
 apply(drule_tac s="Some (Await b P)" in sym,simp)
 apply(case_tac "x!Suc j",simp)
 apply(rule ctran.elims,simp)
-       apply(simp_all)
+apply(simp_all)
 apply(drule Star_imp_cptn) 
 apply clarify
 apply(erule_tac x=sa in allE)
@@ -510,16 +511,15 @@ apply(drule_tac c=l in subsetD)
 apply simp
 apply clarify
 apply(frule_tac j="Suc j" and k="length x - 1" and p=post in stability,simp_all)
-  apply(case_tac x,simp+)
+ apply(case_tac x,simp+)
  apply(erule_tac x=i in allE)
- apply(erule_tac i=j in unique_ctran_Await,force,simp_all)
+apply(erule_tac i=j in unique_ctran_Await,force,simp_all)
+ apply arith+
 apply(case_tac x)
- apply(simp add:last_length)+
+apply(simp add:last_length)+
 done
 
 subsubsection{* Soundness of the Conditional rule *}
-
-ML {* fast_arith_split_limit := 0; *}  (* FIXME: rewrite proof *)
 
 lemma Cond_sound: 
   "\<lbrakk> stable pre rely; \<Turnstile> P1 sat [pre \<inter> b, rely, guar, post]; 
@@ -537,7 +537,6 @@ apply(case_tac "\<exists>i. Suc i<length x \<and> x!i -c\<rightarrow> x!Suc i")
     apply(simp add:assum_def)
    apply(simp add:assum_def)
   apply(erule_tac m="length x" in etran_or_ctran,simp+)
-  apply(case_tac x,simp+)
  apply(case_tac x, (simp add:last_length)+)
 apply(erule exE)
 apply(drule_tac n=i and P="\<lambda>i. ?H i \<and> (?J i,?I i)\<in> ctran" in Ex_first_occurrence)
@@ -549,18 +548,7 @@ apply(erule ctran.elims,simp_all)
  apply(erule_tac x="sa" in allE)
  apply(drule_tac c="drop (Suc m) x" in subsetD)
   apply simp
-  apply(rule conjI)
-   apply force
   apply clarify
-  apply(subgoal_tac "(Suc m) + i \<le> length x")
-   apply(subgoal_tac "(Suc m) + (Suc i) \<le> length x")
-    apply(rotate_tac -2)
-    apply simp
-    apply(erule_tac x="Suc (m + i)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> ?I j" in allE)
-    apply(subgoal_tac "Suc (Suc (m + i)) < length x",simp)
-    apply arith
-   apply arith
-  apply arith
  apply simp
  apply clarify
  apply(case_tac "i\<le>m")
@@ -569,51 +557,33 @@ apply(erule ctran.elims,simp_all)
    apply(erule_tac x=i in allE, erule impE, assumption)
    apply simp+
  apply(erule_tac x="i - (Suc m)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> (?I j)\<in>guar" in allE)
-  apply(subgoal_tac "(Suc m)+(i - Suc m) \<le> length x")
-   apply(subgoal_tac "(Suc m)+Suc (i - Suc m) \<le> length x")
-    apply(rotate_tac -2)
-    apply simp
-    apply(erule mp)
-    apply arith
-   apply arith
-  apply arith
-  apply(case_tac "length (drop (Suc m) x)",simp)
-  apply(erule_tac x="sa" in allE)
-  back
-  apply(drule_tac c="drop (Suc m) x" in subsetD,simp)
-   apply(rule conjI)
-    apply force
-   apply clarify
-   apply(subgoal_tac "(Suc m) + i \<le> length x")
-    apply(subgoal_tac "(Suc m) + (Suc i) \<le> length x")
-     apply(rotate_tac -2)
-     apply simp
-     apply(erule_tac x="Suc (m + i)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> ?I j" in allE)
-     apply(subgoal_tac "Suc (Suc (m + i)) < length x")
-      apply simp
-     apply arith
-    apply arith
-   apply arith
-  apply simp
-  apply clarify
-  apply(case_tac "i\<le>m")
-   apply(drule le_imp_less_or_eq)
-   apply(erule disjE)
-    apply(erule_tac x=i in allE, erule impE, assumption)
-    apply simp
+ apply(subgoal_tac "(Suc m)+(i - Suc m) \<le> length x")
+  apply(subgoal_tac "(Suc m)+Suc (i - Suc m) \<le> length x")
+   apply(rotate_tac -2)
    apply simp
-  apply(erule_tac x="i - (Suc m)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> (?I j)\<in>guar" in allE)
-  apply(subgoal_tac "(Suc m)+(i - Suc m) \<le> length x")
-   apply(subgoal_tac "(Suc m)+Suc (i - Suc m) \<le> length x")
-    apply(rotate_tac -2)
-    apply simp
-    apply(erule mp)
-   apply arith
   apply arith
  apply arith
+apply(case_tac "length (drop (Suc m) x)",simp)
+apply(erule_tac x="sa" in allE)
+back
+apply(drule_tac c="drop (Suc m) x" in subsetD,simp)
+ apply clarify
+apply simp
+apply clarify
+apply(case_tac "i\<le>m")
+ apply(drule le_imp_less_or_eq)
+ apply(erule disjE)
+  apply(erule_tac x=i in allE, erule impE, assumption)
+  apply simp
+ apply simp
+apply(erule_tac x="i - (Suc m)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> (?I j)\<in>guar" in allE)
+apply(subgoal_tac "(Suc m)+(i - Suc m) \<le> length x")
+ apply(subgoal_tac "(Suc m)+Suc (i - Suc m) \<le> length x")
+  apply(rotate_tac -2)
+  apply simp
+ apply arith
+apply arith
 done
-
-ML {* fast_arith_split_limit := 9; *}  (* FIXME *)
 
 subsubsection{* Soundness of the Sequential rule *}
 
@@ -656,7 +626,6 @@ apply(subgoal_tac "length xs < length ((Some P, sa) # xs)")
  apply(simp add:lift_def)
 apply simp
 done
-
 declare map_eq_Cons_conv [simp del] Cons_eq_map_conv [simp del]
 
 lemma Seq_sound2 [rule_format]: 
@@ -714,7 +683,6 @@ apply(subgoal_tac "lift Q (Some P2, ta) =(Some (Seq P2 Q), ta)")
   apply simp+
 apply(simp add:lift_def)
 done
-
 (*
 lemma last_lift_not_None3: "fst (last (map (lift Q) (x#xs))) \<noteq> None"
 apply(simp only:last_length [THEN sym])
@@ -736,8 +704,6 @@ apply(subgoal_tac "length xs<length (x # xs)")
  apply(case_tac "(x # xs) ! length xs",simp)
 apply simp
 done
-
-ML {* fast_arith_split_limit := 0; *}  (* FIXME: rewrite proof *)
 
 lemma Seq_sound: 
   "\<lbrakk>\<Turnstile> P sat [pre, rely, guar, mid]; \<Turnstile> Q sat [mid, rely, guar, post]\<rbrakk>
@@ -862,8 +828,6 @@ apply(rule conjI,clarify)
       apply simp
       apply(erule mp)
       apply(case_tac ys,simp+)
-     apply arith
-    apply arith
    apply force
   apply arith
  apply force
@@ -876,8 +840,6 @@ apply(case_tac "(map (lift Q) xs @ tl ys)\<noteq>[]")
  apply clarify
  apply(case_tac ys,simp+)
 done
-
-ML {* fast_arith_split_limit := 9; *}  (* FIXME *)
 
 subsubsection{* Soundness of the While rule *}
 
@@ -923,8 +885,6 @@ apply(case_tac i, simp add:nth_append Cons_lift_append snd_lift del:map.simps)
  apply(simp add:lift_def)
 apply(simp add:Cons_lift_append nth_append snd_lift del:map.simps)
 done
-
-ML {* fast_arith_split_limit := 0; *}  (* FIXME: rewrite proof *)
 
 lemma While_sound_aux [rule_format]: 
   "\<lbrakk> pre \<inter> - b \<subseteq> post; \<Turnstile> P sat [pre \<inter> b, rely, guar, pre]; \<forall>s. (s, s) \<in> guar;
@@ -1091,8 +1051,6 @@ apply(subgoal_tac "((Some (Seq P (While b P)), sa) # map (lift (While b P)) xs @
  apply simp
 apply simp
 done
-
-ML {* fast_arith_split_limit := 9; *}  (* FIXME *)
 
 lemma While_sound: 
   "\<lbrakk>stable pre rely; pre \<inter> - b \<subseteq> post; stable post rely;

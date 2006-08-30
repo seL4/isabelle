@@ -111,8 +111,6 @@ apply clarify
 apply(erule Ex_first_occurrence)
 done
 
-ML {* fast_arith_split_limit := 0; *}  (* FIXME: rewrite proof *)
-
 lemma Graph2: 
   "\<lbrakk>T \<in> Reach E; R<length E\<rbrakk> \<Longrightarrow> T \<in> Reach (E[R:=(fst(E!R), T)])"
 apply (unfold Reach_def)
@@ -128,7 +126,6 @@ apply(case_tac "\<forall>z<length path. fst(E!R)\<noteq>path!z")
  apply(case_tac "j=R")
   apply(erule_tac x = "Suc i" in allE)
   apply simp
-  apply arith
  apply (force simp add:nth_list_update)
 apply simp
 apply(erule exE)
@@ -156,7 +153,6 @@ apply(case_tac "i")
 apply simp
 apply(subgoal_tac "(length path - Suc m) + nata \<le> length path")
  prefer 2 apply arith
-apply simp
 apply(subgoal_tac "(length path - Suc m) + (Suc nata) \<le> length path")
  prefer 2 apply arith
 apply simp
@@ -177,25 +173,18 @@ apply(case_tac " length path - Suc 0 < m")
  prefer 2 apply arith
  apply(drule_tac n = "Suc nata" in Compl_lemma)
  apply clarify
+ ML {* fast_arith_split_limit := 0; *}  (*FIXME*)
  apply force
+ ML {* fast_arith_split_limit := 9; *}  (*FIXME*)
 apply(drule leI)
 apply(subgoal_tac "Suc (length path - Suc m + nata)=(length path - Suc 0) - (m - Suc nata)")
  apply(erule_tac x = "m - (Suc nata)" in allE)
  apply(case_tac "m")
   apply simp
  apply simp
- apply(subgoal_tac "natb - nata < Suc natb")
-  prefer 2 apply(erule thin_rl)+ apply arith
- apply simp
- apply(case_tac "length path")
-  apply force
-apply (erule_tac V = "Suc natb \<le> length path - Suc 0" in thin_rl)
 apply simp
-apply(frule_tac i1 = "length path" and j1 = "length path - Suc 0" and k1 = "m" in diff_diff_right [THEN mp])
-apply(erule_tac V = "length path - Suc m + nat = length path - Suc 0" in thin_rl)
-apply simp
-apply arith
 done
+
 
 subsubsection{* Graph 3 *}
 
@@ -254,8 +243,6 @@ apply(case_tac "\<exists>i<length path - 1. (fst(E!R),T)=(path!(Suc i),path!i)")
   apply(subgoal_tac "Suc (i - m)=(Suc i - m)" )
     prefer 2 apply arith
    apply simp
-  apply(erule mp)
-  apply arith
 --{* T is a root *}
  apply(case_tac "m=0")
   apply force
@@ -281,8 +268,6 @@ apply(case_tac "R=j")
  apply simp
 apply(force simp add: nth_list_update)
 done
-
-ML {* fast_arith_split_limit := 9; *}  (* FIXME *)
 
 subsubsection{* Graph 4 *}
 

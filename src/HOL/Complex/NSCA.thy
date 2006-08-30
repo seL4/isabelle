@@ -764,10 +764,8 @@ apply (subgoal_tac "0 < u")
 apply (subgoal_tac "0 < v")
  prefer 2 apply arith
 apply (subgoal_tac "sqrt (abs (Y x) ^ 2 + abs (Z x) ^ 2) < 2*u + 2*v")
+apply (rule_tac [2] lemma_sqrt_hcomplex_capprox, auto)
 apply (simp add: power2_eq_square)
-ML {* fast_arith_split_limit := 0; *}  (* FIXME: rewrite proof *)
-apply (rule_tac lemma_sqrt_hcomplex_capprox, auto)
-ML {* fast_arith_split_limit := 9; *}  (* FIXME *)
 done
 
 lemma CFinite_HFinite_iff:
