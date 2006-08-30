@@ -154,7 +154,6 @@ val oracle = ("Eval", fn (thy, Eval t) =>
 
 val oracle_name = NameSpace.pack [Context.theory_name (the_context ()), fst oracle];
 
-
 fun conv ct =
   let
     val {thy, t, ...} = rep_cterm ct;
@@ -206,6 +205,6 @@ lemma
   "rev [0, Suc 0, Suc 0] = [Suc 0, Suc 0, 0]" by eval
 
 lemma
-  "fst (snd (fst ( ((Some (2::nat), (Suc 0, ())), [0::nat]) ))) = Suc 0" by eval
+  "fst (snd (fst ( ((Some (2::nat), (Suc 0, ())), [0::nat]) ))) = Suc (Suc 0) - 1" by eval
 
 end

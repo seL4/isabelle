@@ -298,7 +298,7 @@ setup {*
 code_constapp
   wfrec
     ml (target_atom "(let fun wfrec f x = f (wfrec f) x in wfrec end)")
-    haskell (target_atom "(wfrec where wfrec f x = f (wfrec f) x)")
+    haskell (target_atom "(let wfrec f x = f (wfrec f) x in wfrec)")
 
 subsection{*Variants for TFL: the Recdef Package*}
 

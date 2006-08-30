@@ -370,6 +370,7 @@ fun mk_distinct cos =
   in map mk_dist (sym_product cos) end;
 
 local
+  val not_sym = thm "HOL.not_sym";
   val not_false_true = iffD2 OF [nth (thms "HOL.simp_thms") 7, TrueI];
 in fun get_eq thy dtco =
   let
@@ -396,6 +397,7 @@ in fun get_eq thy dtco =
     val distinct =
       mk_distinct cos
       |> map (fn t => Goal.prove_global thy [] [] t (K tac))
+      |> (fn thms => thms @ map (fn thm => not_sym OF [thm]) thms)
   in inject1 @ inject2 @ distinct end;
 end (*local*);
 

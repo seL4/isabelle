@@ -35,14 +35,12 @@ subsection {* preprocessor *}
 ML {*
 fun constrain_op_eq thy thms =
   let
-    fun dest_eq (Const ("op =", ty)) =
-          (SOME o hd o fst o strip_type) ty
-      | dest_eq _ = NONE
-    fun eqs_of t =
-      fold_aterms (fn t => case dest_eq t
-       of SOME (TVar v_sort) => cons v_sort
-        | _ => I) t [];
-    val eqs = maps (eqs_of o Thm.prop_of) thms;
+    fun add_eq (Const ("op =", ty)) =
+          fold (insert (eq_fst (op = : indexname * indexname -> bool)))
+            (Term.add_tvarsT ty [])
+      | add_eq _ =
+          I
+    val eqs = fold (fold_aterms add_eq o Thm.prop_of) thms [];
     val instT = map (fn (v_i, sort) =>
       (Thm.ctyp_of thy (TVar (v_i, sort)),
          Thm.ctyp_of thy (TVar (v_i, Sorts.inter_sort (Sign.classes_of thy) (sort, [class_eq]))))) eqs;
@@ -82,14 +80,24 @@ subsection {* extractor *}
 
 setup {*
 let
+  val lift_not_thm = thm "HOL.Eq_FalseI";
+  val lift_thm = thm "HOL.eq_reflection";
+  val eq_def_thm = Thm.symmetric (thm "eq_def");
   fun get_eq_thms thy tyco = case DatatypePackage.get_datatype thy tyco
    of SOME _ => DatatypeCodegen.get_eq thy tyco
     | NONE => case TypedefCodegen.get_triv_typedef thy tyco
        of SOME (_ ,(_, thm)) => [thm]
         | NONE => [];
-  fun get_eq_thms_eq thy ("OperationalEquality.eq", ty) = (case strip_type ty
+  fun get_eq_thms_eq thy ("CodeOperationalEquality.eq", ty) = (case strip_type ty
        of (Type (tyco, _) :: _, _) =>
              get_eq_thms thy tyco
+             |> map (perhaps (try (fn thm => lift_not_thm OF [thm])))
+             |> map (perhaps (try (fn thm => lift_thm OF [thm])))
+             (*|> tap (writeln o cat_lines o map string_of_thm)*)
+             |> constrain_op_eq thy
+             (*|> tap (writeln o cat_lines o map string_of_thm)*)
+             |> map (Tactic.rewrite_rule [eq_def_thm])
+             (*|> tap (writeln o cat_lines o map string_of_thm)*)
         | _ => [])
     | get_eq_thms_eq _ _ = [];
 in
@@ -138,8 +146,6 @@ code_instance
   (eq :: int) haskell
 
 code_constapp
-  "eq"
-    haskell (infixl 4 "==")
   "eq \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
     haskell (infixl 4 "==")
   "eq \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
@@ -153,6 +159,8 @@ code_constapp
   "eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
     haskell (infixl 4 "==")
   "eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+    haskell (infixl 4 "==")
+  "eq"
     haskell (infixl 4 "==")
 
 end
