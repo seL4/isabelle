@@ -642,12 +642,10 @@ fun appgen_wfrec thy (tabs as (_, thmtab)) ((c, ty), [_, tf, tx]) trns =
     trns
     |> ensure_def ((K o fail) "no extraction for wfrec") false ("generating wfrec") idf
     |> exprgen_type thy tabs ty'
-    ||>> (fold_map o fold_map) (exprgen_classlookup thy tabs)
-           (sortlookups_const thy thmtab (c, ty))
     ||>> exprgen_type thy tabs ty_def
     ||>> exprgen_term thy tabs tf
     ||>> exprgen_term thy tabs tx
-    |-> (fn ((((_, ls), ty), tf), tx) => pair (IConst (idf, (ls, ty)) `$ tf `$ tx))
+    |-> (fn (((_, ty), tf), tx) => pair (IConst (idf, ([], ty)) `$ tf `$ tx))
   end;
 
 
