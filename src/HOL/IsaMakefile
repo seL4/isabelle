@@ -640,7 +640,7 @@ HOL-ex: HOL $(LOG)/HOL-ex.gz
 
 $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy			\
   ex/Abstract_NAT.thy ex/Antiquote.thy ex/BT.thy ex/BinEx.thy			\
-  ex/Chinese.thy ex/Classical.thy ex/Classpackage.thy                           \
+  ex/Chinese.thy ex/Classical.thy ex/Classpackage.thy ex/CodeCollections.thy \
   ex/CodeEmbed.thy ex/CodeRandom.thy ex/CodeRevappl.thy			\
   ex/CodeOperationalEquality.thy ex/Codegenerator.thy ex/Commutative_RingEx.thy               \
   ex/Commutative_Ring_Complete.thy ex/Guess.thy ex/Hebrew.thy			\
