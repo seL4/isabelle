@@ -82,6 +82,9 @@ by sat
 ML {* reset sat.trace_sat; *}
 ML {* reset quick_and_dirty; *}
 
+method_setup rawsat = {* Method.no_args (Method.SIMPLE_METHOD (sat.rawsat_tac 1)) *}
+  "SAT solver (no preprocessing)"
+
 ML {* Toplevel.profiling := 1; *}
 
 (* Translated from TPTP problem library: PUZ015-2.006.dimacs *)
@@ -281,7 +284,10 @@ using 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159
 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179
 180 181 182 183 184
+(*
 by sat
+*)
+by rawsat  -- {* this is without CNF conversion time *}
 
 (* Translated from TPTP problem library: MSC007-1.008.dimacs *)
 
@@ -501,11 +507,23 @@ using 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179
 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199
 200 201 202 203 204
+(*
 by sat
+*)
+by rawsat  -- {* this is without CNF conversion time *}
 
-(* zchaff_with_proofs: 8705 resolution steps in +++ User 1.154  All 1.189 secs
-   minisat_with_proofs: 40790 resolution steps in +++ User 3.762  All 3.806 secs
-   (as of 2006-08-01, on a 2.5 GHz Pentium 4)
+(* Old sequent clause representation ("[c_i, p, ~q, \<dots>] \<turnstile> False"):
+   sat, zchaff_with_proofs: 8705 resolution steps in +++ User 1.154  All 1.189 secs
+   sat, minisat_with_proofs: 40790 resolution steps in +++ User 3.762  All 3.806 secs
+
+   rawsat, zchaff_with_proofs: 8705 resolution steps in +++ User 0.731  All 0.751 secs
+   rawsat, minisat_with_proofs: 40790 resolution steps in +++ User 3.514  All 3.550 secs
+
+   CNF clause representation ("[c_1 && \<dots> && c_n, p, ~q, \<dots>] \<turnstile> False"):
+   rawsat, zchaff_with_proofs: 8705 resolution steps in +++ User 0.653  All 0.670 secs
+   rawsat, minisat_with_proofs: 40790 resolution steps in +++ User 1.860  All 1.886 secs
+
+   (as of 2006-08-30, on a 2.5 GHz Pentium 4)
 *)
 
 ML {* Toplevel.profiling := 0; *}

@@ -14,11 +14,9 @@ Proof reconstruction from SAT solvers.
     We use a sequent presentation of clauses to speed up resolution
     proof reconstruction.
     We call such clauses "raw clauses", which are of the form
-          x1; ...; xn; c1; c2; ...; ck |- False
+          [x1, ..., xn, P] |- False
     (note the use of |- instead of ==>, i.e. of Isabelle's (meta-)hyps here),
-    where each clause ci is of the form
-          ~ (l1 | l2 | ... | lm) ==> False,
-    where each xi and each li is a literal (see also comments in cnf_funcs.ML).
+    where each xi is a literal (see also comments in cnf_funcs.ML).
 
     This does not work for goals containing schematic variables!
 
@@ -29,14 +27,17 @@ Proof reconstruction from SAT solvers.
       the empty clause (i.e. "False").  The tactic replays this proof
       in Isabelle and thus solves the overall goal.
 
-  There are two SAT tactics available.  They differ in the CNF transformation
+  There are three SAT tactics available.  They differ in the CNF transformation
   used. "sat_tac" uses naive CNF transformation to transform the theorem to be
   proved before giving it to the SAT solver.  The naive transformation in the
-  worst case can lead to an exponential blow up in formula size.  The other
+  worst case can lead to an exponential blow up in formula size.  Another
   tactic, "satx_tac", uses "definitional CNF transformation" which attempts to
   produce a formula of linear size increase compared to the input formula, at
   the cost of possibly introducing new variables.  See cnf_funcs.ML for more
-  comments on the CNF transformation.
+  comments on the CNF transformation.  "rawsat_tac" should be used with
+  caution: no CNF transformation is performed, and the tactic's behavior is
+  undefined if the subgoal is not already given as [| C1; ...; Cn |] ==> False,
+  where each Ci is a disjunction.
 
   The SAT solver to be used can be set via the "solver" reference.  See
   sat_solvers.ML for possible values, and etc/settings for required (solver-
@@ -50,11 +51,12 @@ Proof reconstruction from SAT solvers.
 
 signature SAT =
 sig
-	val trace_sat : bool ref    (* print trace messages *)
-	val solver    : string ref  (* name of SAT solver to be used *)
-	val counter   : int ref     (* number of resolution steps during last proof replay *)
-	val sat_tac   : int -> Tactical.tactic
-	val satx_tac  : int -> Tactical.tactic
+	val trace_sat  : bool ref    (* print trace messages *)
+	val solver     : string ref  (* name of SAT solver to be used *)
+	val counter    : int ref     (* number of resolution steps during last proof replay *)
+	val rawsat_tac : int -> Tactical.tactic
+	val sat_tac    : int -> Tactical.tactic
+	val satx_tac   : int -> Tactical.tactic
 end
 
 functor SATFunc (structure cnf : CNF) : SAT =
@@ -97,18 +99,18 @@ datatype CLAUSE = NO_CLAUSE
 (* resolve_raw_clauses: given a non-empty list of raw clauses, we fold       *)
 (*      resolution over the list (starting with its head), i.e. with two raw *)
 (*      clauses                                                              *)
-(*         x1; ... ; a; ...; xn |- False                                     *)
+(*        [P, x1, ..., a, ..., xn] |- False                                  *)
 (*      and                                                                  *)
-(*        y1; ... ; a'; ...; ym |- False                                     *)
+(*        [Q, y1, ..., a', ..., ym] |- False                                 *)
 (*      (where a and a' are dual to each other), we convert the first clause *)
 (*      to                                                                   *)
-(*        x1; ...; xn |- a ==> False ,                                       *)
+(*        [P, x1, ..., xn] |- a ==> False ,                                  *)
 (*      the second clause to                                                 *)
-(*        y1; ...; ym |- a' ==> False                                        *)
+(*        [Q, y1, ..., ym] |- a' ==> False                                   *)
 (*      and then perform resolution with                                     *)
 (*        [| ?P ==> False; ~?P ==> False |] ==> False                        *)
 (*      to produce                                                           *)
-(*        x1; ...; xn; y1; ...; ym |- False                                  *)
+(*        [P, Q, x1, ..., xn, y1, ..., ym] |- False                          *)
 (*      Each clause is accompanied with a table mapping integers (positive   *)
 (*      for positive literals, negative for negative literals, and the same  *)
 (*      absolute value for dual literals) to the actual literals as cterms.  *)
@@ -136,8 +138,8 @@ fun resolve_raw_clauses [] =
 		fun resolution (c1, hyp1_table) (c2, hyp2_table) =
 		let
 			val _ = if !trace_sat then
-					tracing ("Resolving clause: " ^ string_of_thm c1 ^ " (hyps: " ^ space_implode ", " (map (Sign.string_of_term (theory_of_thm c1)) (#hyps (rep_thm c1)))
-						^ ")\nwith clause: " ^ string_of_thm c2 ^ " (hyps: " ^ space_implode ", " (map (Sign.string_of_term (theory_of_thm c2)) (#hyps (rep_thm c2))) ^ ")")
+					tracing ("Resolving clause: " ^ string_of_thm c1 ^ " (hyps: " ^ string_of_list (Sign.string_of_term (theory_of_thm c1)) (#hyps (rep_thm c1))
+						^ ")\nwith clause: " ^ string_of_thm c2 ^ " (hyps: " ^ string_of_list (Sign.string_of_term (theory_of_thm c2)) (#hyps (rep_thm c2)) ^ ")")
 				else ()
 
 			(* the two literals used for resolution *)
@@ -158,15 +160,18 @@ fun resolve_raw_clauses [] =
 					tracing ("Resolution theorem: " ^ string_of_thm res_thm)
 				else ()
 
-			val c_new = Thm.implies_elim (Thm.implies_elim res_thm (if hyp1_is_neg then c2' else c1')) (if hyp1_is_neg then c1' else c2')  (* Gamma1, Gamma2 |- False *)
+			(* Gamma1, Gamma2 |- False *)
+			val c_new = Thm.implies_elim
+				(Thm.implies_elim res_thm (if hyp1_is_neg then c2' else c1'))
+				(if hyp1_is_neg then c1' else c2')
 
 			(* since the mapping from integers to literals should be injective *)
 			(* (over different clauses), 'K true' here should be equivalent to *)
-			(* 'op=' (but faster)                                              *)
+			(* 'op=' (but slightly faster)                                     *)
 			val hypnew_table = Inttab.merge (K true) (Inttab.delete i1 hyp1_table, Inttab.delete (~i1) hyp2_table)
 
 			val _ = if !trace_sat then
-					tracing ("Resulting clause: " ^ string_of_thm c_new ^ " (hyps: " ^ space_implode ", " (map (Sign.string_of_term (theory_of_thm c_new)) (#hyps (rep_thm c_new))) ^ ")")
+					tracing ("Resulting clause: " ^ string_of_thm c_new ^ " (hyps: " ^ string_of_list (Sign.string_of_term (theory_of_thm c_new)) (#hyps (rep_thm c_new)) ^ ")")
 				else ()
 			val _ = inc counter
 		in
@@ -307,15 +312,38 @@ in
 			make_quick_and_dirty_thm ()
 		else
 			let
+				(* optimization: convert the given clauses from "[c_i] |- c_i" to *)
+				(* "[c_1 && ... && c_n] |- c_i"; this avoids accumulation of      *)
+				(* hypotheses during resolution                                   *)
+				(* Thm.cterm list -> Thm.cterm *)
+				fun mk_conjunction_list [x]     = x
+				  | mk_conjunction_list (x::xs) = Conjunction.mk_conjunction (x, mk_conjunction_list xs)
+				(* [c_1 && ... && c_n] |- c_1 && ... && c_n *)
+				val cnf_cterm = mk_conjunction_list (map cprop_of non_triv_clauses)
+				val cnf_thm   = Thm.assume cnf_cterm
+				(* cf. Conjunction.elim_list *)
+				fun right_elim_list th =
+					let val (th1, th2) = Conjunction.elim th
+					in [th1] @ right_elim_list th2 end handle THM _ => [th]
+				(* [[c_1 && ... && c_n] |- c_1, ..., [c_1 && ... && c_n] |- c_n] *)
+				val converted_clauses = right_elim_list cnf_thm
 				(* initialize the clause array with the given clauses *)
-				val max_idx     = valOf (Inttab.max_key clause_table)
-				val clause_arr  = Array.array (max_idx + 1, NO_CLAUSE)
-				val _           = fold (fn thm => fn idx => (Array.update (clause_arr, idx, ORIG_CLAUSE thm); idx+1)) non_triv_clauses 0
+				val max_idx    = valOf (Inttab.max_key clause_table)
+				val clause_arr = Array.array (max_idx + 1, NO_CLAUSE)
+				val _          = fold (fn thm => fn idx => (Array.update (clause_arr, idx, ORIG_CLAUSE thm); idx+1)) converted_clauses 0
 				(* replay the proof to derive the empty clause *)
-				val FalseThm    = replay_proof atom_table clause_arr (clause_table, empty_id)
+				(* [c_1 && ... && c_n] |- False *)
+				val FalseThm   = replay_proof atom_table clause_arr (clause_table, empty_id)
 			in
-				(* convert the hyps back to the original format *)
-				cnf.rawhyps2clausehyps_thm FalseThm
+				(* convert the &&-hyp back to the original clauses format *)
+				FalseThm
+				(* [] |- c_1 && ... && c_n ==> False *)
+				|> Thm.implies_intr cnf_cterm
+				(* c_1 ==> ... ==> c_n ==> False *)
+				|> Conjunction.curry ~1
+				(* [c_1, ..., c_n] |- False *)
+				|> (fn thm => fold (fn cprem => fn thm' =>
+					Thm.implies_elim thm' (Thm.assume cprem)) (cprems_of thm) thm)
 			end)
 	| SatSolver.UNSATISFIABLE NONE =>
 		if !quick_and_dirty then (
