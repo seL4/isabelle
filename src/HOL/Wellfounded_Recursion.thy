@@ -292,7 +292,7 @@ fun wfrec f x = f (wfrec f) x;
 *}
 
 setup {*
-  CodegenPackage.add_appconst ("wfrec", CodegenPackage.appgen_wfrec)
+  CodegenPackage.add_appconst ("Wellfounded_Recursion.wfrec", CodegenPackage.appgen_wfrec)
 *}
 
 code_constapp

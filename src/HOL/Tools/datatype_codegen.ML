@@ -426,7 +426,7 @@ fun add_datatype_case_const dtco thy =
   let
     val {case_name, index, descr, ...} = DatatypePackage.the_datatype thy dtco;
   in
-    CodegenPackage.add_appconst_i (case_name, CodegenPackage.appgen_case dest_case_expr) thy
+    CodegenPackage.add_appconst (case_name, CodegenPackage.appgen_case dest_case_expr) thy
   end;
 
 fun add_datatype_case_defs dtco thy =

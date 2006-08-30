@@ -166,36 +166,34 @@ fun parse_mixfix reader s ctxt =
     | _ => error ("Malformed mixfix annotation: " ^ quote s)
   end;
 
-fun parse_nonatomic_mixfix reader s ctxt =
-  case parse_mixfix reader s ctxt
-   of ([Pretty _], _) =>
-        error ("Mixfix contains just one pretty element; either declare as "
-          ^ quote atomK ^ " or consider adding a break")
-    | x => x;
-
-fun parse_syntax_proto reader = OuterParse.$$$ "(" |-- (
-       OuterParse.$$$ infixK  |-- OuterParse.nat
-        >> (fn i => (parse_infix (INFX (i, X)), INFX (i, X)))
-    || OuterParse.$$$ infixlK |-- OuterParse.nat
-        >> (fn i => (parse_infix (INFX (i, L)), INFX (i, L)))
-    || OuterParse.$$$ infixrK |-- OuterParse.nat
-        >> (fn i => (parse_infix (INFX (i, R)), INFX (i, R)))
-    || OuterParse.$$$ atomK |-- pair (parse_mixfix reader, NOBR)
-    || pair (parse_nonatomic_mixfix reader, BR)
-  ) -- OuterParse.string --| OuterParse.$$$ ")" >> (fn ((p, fxy), s) => (p s, fxy));
-
-fun parse_syntax no_args reader =
+fun parse_syntax num_args reader =
   let
     fun is_arg (Arg _) = true
       | is_arg Ignore = true
       | is_arg _ = false;
+    fun parse_nonatomic s ctxt =
+      case parse_mixfix reader s ctxt
+       of ([Pretty _], _) =>
+            error ("Mixfix contains just one pretty element; either declare as "
+              ^ quote atomK ^ " or consider adding a break")
+        | x => x;
+    val parse = OuterParse.$$$ "(" |-- (
+           OuterParse.$$$ infixK  |-- OuterParse.nat
+            >> (fn i => (parse_infix (INFX (i, X)), INFX (i, X)))
+        || OuterParse.$$$ infixlK |-- OuterParse.nat
+            >> (fn i => (parse_infix (INFX (i, L)), INFX (i, L)))
+        || OuterParse.$$$ infixrK |-- OuterParse.nat
+            >> (fn i => (parse_infix (INFX (i, R)), INFX (i, R)))
+        || OuterParse.$$$ atomK |-- pair (parse_mixfix reader, NOBR)
+        || pair (parse_nonatomic, BR)
+      ) -- OuterParse.string --| OuterParse.$$$ ")" >> (fn ((p, fxy), s) => (p s, fxy));
     fun mk fixity mfx ctxt =
       let
         val i = (length o List.filter is_arg) mfx;
-        val _ = if i > no_args ctxt then error "Too many arguments in codegen syntax" else ();
+        val _ = if i > num_args ctxt then error "Too many arguments in codegen syntax" else ();
       in (((i, i), fillin_mixfix fixity mfx), ctxt) end;
   in
-    parse_syntax_proto reader
+    parse
     #-> (fn (mfx_reader, fixity) =>
       pair (mfx_reader #-> (fn mfx => mk fixity mfx))
     )

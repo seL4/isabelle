@@ -76,7 +76,7 @@ let
     end;
   val print_string = quote;
 in 
-  CodegenPackage.add_pretty_ml_string "ml" "Nil" "Cons" "STR"
+  CodegenPackage.add_pretty_ml_string "ml" "List.list.Nil" "List.list.Cons" "MLString.ml_string.STR"
     print_char print_string "String.implode"
 end
 *}

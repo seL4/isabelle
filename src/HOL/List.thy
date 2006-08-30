@@ -2738,11 +2738,11 @@ in
 val list_codegen_setup =
   Codegen.add_codegen "list_codegen" list_codegen
   #> Codegen.add_codegen "char_codegen" char_codegen
-  #> CodegenPackage.add_pretty_list "ml" "Nil" "Cons"
+  #> CodegenPackage.add_pretty_list "ml" "List.list.Nil" "List.list.Cons"
        print_list NONE (7, "::")
-  #> CodegenPackage.add_pretty_list "haskell" "Nil" "Cons"
+  #> CodegenPackage.add_pretty_list "haskell" "List.list.Nil" "List.list.Cons"
        print_list (SOME (print_char, print_string)) (5, ":")
-  #> CodegenPackage.add_appconst_i
+  #> CodegenPackage.add_appconst
        ("List.char.Char", CodegenPackage.appgen_char dest_char);
 
 end;
