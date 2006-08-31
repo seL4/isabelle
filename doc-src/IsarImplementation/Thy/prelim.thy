@@ -73,6 +73,8 @@ text {*
 subsection {* Theory context \label{sec:context-theory} *}
 
 text {*
+  \glossary{Theory}{FIXME}
+
   Each theory is explicitly named and holds a unique identifier.
   There is a separate \emph{theory reference} for pointing backwards
   to the enclosing theory context of derived entities.  Theories are
@@ -90,89 +92,132 @@ text {*
   earlier drafts, but theory reference values will be propagated
   automatically.  Thus derived entities that ``belong'' to a draft
   might be transferred spontaneously to a larger context.  An
-  invalidated draft is called ``stale''.  The @{text "copy"} operation
-  produces an auxiliary version with the same data content, but is
-  unrelated to the original: updates of the copy do not affect the
-  original, neither does the sub-theory relation hold.
+  invalidated draft is called ``stale''.
 
-  The example below shows a theory graph derived from @{text "Pure"}.
-  Theory @{text "Length"} imports @{text "Nat"} and @{text "List"}.
-  The linear draft mode is enabled during the ``@{text "\<dots>"}'' stage of
-  the theory body.
+  The @{text "checkpoint"} operation produces an intermediate stepping
+  stone that will survive the next update unscathed: both the original
+  and the changed theory remain valid and are related by the
+  sub-theory relation.  Checkpointing essentially recovers purely
+  functional theory values, at the expense of some extra internal
+  bookeeping.
 
-  \bigskip
+  The @{text "copy"} operation produces an auxiliary version that has
+  the same data content, but is unrelated to the original: updates of
+  the copy do not affect the original, neither does the sub-theory
+  relation hold.
+
+  \medskip The example in \figref{fig:ex-theory} below shows a theory
+  graph derived from @{text "Pure"}. Theory @{text "Length"} imports
+  @{text "Nat"} and @{text "List"}.  The theory body consists of a
+  sequence of updates, working mostly on drafts.  Intermediate
+  checkpoints may occur as well, due to the history mechanism provided
+  by the Isar toplevel, cf.\ \secref{sec:isar-toplevel}.
+
+  \begin{figure}[htb]
+  \begin{center}
   \begin{tabular}{rcccl}
-        &            & $Pure$ \\
-        &            & $\downarrow$ \\
-        &            & $FOL$ \\
+        &            & @{text "Pure"} \\
+        &            & @{text "\<down>"} \\
+        &            & @{text "FOL"} \\
         & $\swarrow$ &              & $\searrow$ & \\
-  $Nat$ &            &              &            & $List$ \\
+  $Nat$ &            &              &            & @{text "List"} \\
         & $\searrow$ &              & $\swarrow$ \\
-        &            & $Length$ \\
+        &            & @{text "Length"} \\
         &            & \multicolumn{3}{l}{~~$\isarkeyword{imports}$} \\
         &            & \multicolumn{3}{l}{~~$\isarkeyword{begin}$} \\
         &            & $\vdots$~~ \\
+        &            & @{text "\<bullet>"}~~ \\
+        &            & $\vdots$~~ \\
+        &            & @{text "\<bullet>"}~~ \\
+        &            & $\vdots$~~ \\
         &            & \multicolumn{3}{l}{~~$\isarkeyword{end}$} \\
   \end{tabular}
-
-  \medskip In practice, derived theory operations mostly operate
-  drafts, namely the body of the current portion of theory that the
-  user happens to be composing.
-
- \medskip There is also a builtin theory history mechanism that amends for
-  the destructive behaviour of theory drafts.  The @{text
-  "checkpoint"} operation produces an intermediate stepping stone that
-  survives the next update unscathed: both the original and the
-  changed theory remain valid and are related by the sub-theory
-  relation.  This recovering of pure theory values comes at the cost
-  of extra internal bookeeping.  The cumulative effect of
-  checkpointing is purged by the @{text "finish"} operation.
-
-  History operations are usually managed by the system, e.g.\ notably
-  in the Isar transaction loop.
-
-  \medskip
-  FIXME theory data
+  \caption{Theory definition depending on ancestors}\label{fig:ex-theory}
+  \end{center}
+  \end{figure}
 *}
 
 text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type theory} \\
+  @{index_ML Theory.subthy: "theory * theory -> bool"} \\
+  @{index_ML Theory.merge: "theory * theory -> theory"} \\
+  @{index_ML Theory.checkpoint: "theory -> theory"} \\
+  @{index_ML Theory.copy: "theory -> theory"} \\[1ex]
+  @{index_ML_type theory_ref} \\
+  @{index_ML Theory.self_ref: "theory -> theory_ref"} \\
+  @{index_ML Theory.deref: "theory_ref -> theory"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_type theory} represents theory contexts.  This is a
+  linear type!  Most operations destroy the old version, which then
+  becomes ``stale''.
+
+  \item @{ML "Theory.subthy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"}
+  compares theories according to the inherent graph structure of the
+  construction.  This sub-theory relation is a nominal approximation
+  of inclusion (@{text "\<subseteq>"}) of the corresponding content.
+
+  \item @{ML "Theory.merge"}~@{text "(thy\<^sub>1, thy\<^sub>2)"}
+  absorbs one theory into the other.  This fails for unrelated
+  theories!
+
+  \item @{ML "Theory.checkpoint"}~@{text "thy"} produces a safe
+  stepping stone in the linear development of @{text "thy"}.  The next
+  update will result in two related, valid theories.
+
+  \item @{ML "Theory.copy"}~@{text "thy"} produces a variant of @{text
+  "thy"} that holds a copy of the same data.  The copy is not related
+  to the original, which is not touched at all.
+
+  \item @{ML_type theory_ref} represents a sliding reference to a
+  valid theory --- updates on the original are propagated
+  automatically.
+
+  \item @{ML "Theory.self_ref"} and @{ML "Theory.deref"} convert
+  between @{ML_type "theory"} and @{ML_type "theory_ref"}.  As the
+  referenced theory evolves monotonically over time, later invocations
+  of @{ML "Theory.deref"} may refer to larger contexts.
+
+  \end{description}
 *}
 
 
 subsection {* Proof context \label{sec:context-proof} *}
 
 text {*
-  A proof context is an arbitrary container that is initialized from a
-  given theory.  The result contains a back-reference to the theory it
-  belongs to, together with pure data.  No further bookkeeping is
-  required here, thanks to the lack of destructive features.
+  \glossary{Proof context}{The static context of a structured proof,
+  acts like a local ``theory'' of the current portion of Isar proof
+  text, generalizes the idea of local hypotheses @{text "\<Gamma>"} in
+  judgments @{text "\<Gamma> \<turnstile> \<phi>"} of natural deduction calculi.  There is a
+  generic notion of introducing and discharging hypotheses.
+  Arbritrary auxiliary context data may be adjoined.}
 
-  There is no restriction on producing proof contexts, although the
-  usual discipline is to follow block structure as a mental model: a
-  given context is extended consecutively, results are exported back
-  into the original context.  In particular, the concept of Isar proof
-  state models block-structured reasoning explicitly, using a stack of
-  proof contexts.
+  A proof context is a container for pure data with a back-reference
+  to the theory it belongs to.  Modifications to draft theories are
+  propagated automatically as usual, but there is also an explicit
+  @{text "transfer"} operation to resynchronize with more substantial
+  updates to the underlying theory.  The actual context data does not
+  require any special bookkeeping, thanks to the lack of destructive
+  features.
 
-  Due to the lack of identification and back-referencing, entities
-  derived in a proof context need to record inherent logical
-  requirements explicitly.  For example, hypotheses used in a
-  derivation will be recorded separately within the sequent @{text "\<Gamma>
-  \<turnstile> \<phi>"}, just to make double sure.  Results could leak into an alien
-  proof context do to programming errors, but Isabelle/Isar
-  occasionally includes extra validity checks at the end of a
-  sub-proof.
+  Entities derived in a proof context need to record inherent logical
+  requirements explicitly, since there is no separate context
+  identification as for theories.  For example, hypotheses used in
+  primitive derivations (cf.\ \secref{sec:thm}) are recorded
+  separately within the sequent @{text "\<Gamma> \<turnstile> \<phi>"}, just to make double
+  sure.  Results could still leak into an alien proof context do to
+  programming errors, but Isabelle/Isar includes some extra validity
+  checks in critical positions, notably at the end of sub-proof.
 
-  \medskip
-  FIXME proof data
-
-\glossary{Proof context}{The static context of a structured proof,
-acts like a local ``theory'' of the current portion of Isar proof
-text, generalizes the idea of local hypotheses @{text "\<Gamma>"} in
-judgments @{text "\<Gamma> \<turnstile> \<phi>"} of natural deduction calculi.  There is a
-generic notion of introducing and discharging hypotheses.  Arbritrary
-auxiliary context data may be adjoined.}
-
+  Proof contexts may be produced in arbitrary ways, although the
+  common discipline is to follow block structure as a mental model: a
+  given context is extended consecutively, and results are exported
+  back into the original context.  Note that the Isar proof states
+  model block-structured reasoning explicitly, using a stack of proof
+  contexts, cf.\ \secref{isar-proof-state}.
 *}
 
 text %mlref {* FIXME *}
@@ -183,6 +228,12 @@ subsection {* Generic contexts *}
 text FIXME
 
 text %mlref {* FIXME *}
+
+
+subsection {* Context data *}
+
+text {*
+*}
 
 
 section {* Named entities *}
@@ -277,11 +328,11 @@ text %mlref {*
   is merely an alias for @{ML_type "string"}, but emphasizes the
   specific format encountered here.
 
-  \item @{ML "Symbol.explode"}~@{text "s"} produces an actual symbol
-  list from the packed form usually encountered as user input.  This
-  function replaces @{ML "String.explode"} for virtually all purposes
-  of manipulating text in Isabelle!  Plain @{text "implode"} may be
-  used for the reverse operation.
+  \item @{ML "Symbol.explode"}~@{text "s"} produces a symbol list from
+  the packed form usually encountered as user input.  This function
+  replaces @{ML "String.explode"} for virtually all purposes of
+  manipulating text in Isabelle!  Plain @{ML "implode"} may be used
+  for the reverse operation.
 
   \item @{ML "Symbol.is_letter"}, @{ML "Symbol.is_digit"}, @{ML
   "Symbol.is_quasi"}, @{ML "Symbol.is_blank"} classify certain symbols

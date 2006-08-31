@@ -5,7 +5,7 @@ theory integration imports base begin
 
 chapter {* System integration *}
 
-section {* Isar toplevel *}
+section {* Isar toplevel \label{sec:isar-toplevel} *}
 
 text {* The Isar toplevel may be considered the centeral hub of the
   Isabelle/Isar system, where all key components and sub-systems are

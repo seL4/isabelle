@@ -93,7 +93,9 @@ A logical context represents the background that is taken for
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Each theory is explicitly named and holds a unique identifier.
+\glossary{Theory}{FIXME}
+
+  Each theory is explicitly named and holds a unique identifier.
   There is a separate \emph{theory reference} for pointing backwards
   to the enclosing theory context of derived entities.  Theories are
   related by a (nominal) sub-theory relation, which corresponds to the
@@ -110,48 +112,49 @@ Each theory is explicitly named and holds a unique identifier.
   earlier drafts, but theory reference values will be propagated
   automatically.  Thus derived entities that ``belong'' to a draft
   might be transferred spontaneously to a larger context.  An
-  invalidated draft is called ``stale''.  The \isa{copy} operation
-  produces an auxiliary version with the same data content, but is
-  unrelated to the original: updates of the copy do not affect the
-  original, neither does the sub-theory relation hold.
+  invalidated draft is called ``stale''.
 
-  The example below shows a theory graph derived from \isa{Pure}.
-  Theory \isa{Length} imports \isa{Nat} and \isa{List}.
-  The linear draft mode is enabled during the ``\isa{{\isasymdots}}'' stage of
-  the theory body.
+  The \isa{checkpoint} operation produces an intermediate stepping
+  stone that will survive the next update unscathed: both the original
+  and the changed theory remain valid and are related by the
+  sub-theory relation.  Checkpointing essentially recovers purely
+  functional theory values, at the expense of some extra internal
+  bookeeping.
 
-  \bigskip
+  The \isa{copy} operation produces an auxiliary version that has
+  the same data content, but is unrelated to the original: updates of
+  the copy do not affect the original, neither does the sub-theory
+  relation hold.
+
+  \medskip The example in \figref{fig:ex-theory} below shows a theory
+  graph derived from \isa{Pure}. Theory \isa{Length} imports
+  \isa{Nat} and \isa{List}.  The theory body consists of a
+  sequence of updates, working mostly on drafts.  Intermediate
+  checkpoints may occur as well, due to the history mechanism provided
+  by the Isar toplevel, cf.\ \secref{sec:isar-toplevel}.
+
+  \begin{figure}[htb]
+  \begin{center}
   \begin{tabular}{rcccl}
-        &            & $Pure$ \\
-        &            & $\downarrow$ \\
-        &            & $FOL$ \\
+        &            & \isa{Pure} \\
+        &            & \isa{{\isasymdown}} \\
+        &            & \isa{FOL} \\
         & $\swarrow$ &              & $\searrow$ & \\
-  $Nat$ &            &              &            & $List$ \\
+  $Nat$ &            &              &            & \isa{List} \\
         & $\searrow$ &              & $\swarrow$ \\
-        &            & $Length$ \\
+        &            & \isa{Length} \\
         &            & \multicolumn{3}{l}{~~$\isarkeyword{imports}$} \\
         &            & \multicolumn{3}{l}{~~$\isarkeyword{begin}$} \\
         &            & $\vdots$~~ \\
+        &            & \isa{{\isasymbullet}}~~ \\
+        &            & $\vdots$~~ \\
+        &            & \isa{{\isasymbullet}}~~ \\
+        &            & $\vdots$~~ \\
         &            & \multicolumn{3}{l}{~~$\isarkeyword{end}$} \\
   \end{tabular}
-
-  \medskip In practice, derived theory operations mostly operate
-  drafts, namely the body of the current portion of theory that the
-  user happens to be composing.
-
- \medskip There is also a builtin theory history mechanism that amends for
-  the destructive behaviour of theory drafts.  The \isa{checkpoint} operation produces an intermediate stepping stone that
-  survives the next update unscathed: both the original and the
-  changed theory remain valid and are related by the sub-theory
-  relation.  This recovering of pure theory values comes at the cost
-  of extra internal bookeeping.  The cumulative effect of
-  checkpointing is purged by the \isa{finish} operation.
-
-  History operations are usually managed by the system, e.g.\ notably
-  in the Isar transaction loop.
-
-  \medskip
-  FIXME theory data%
+  \caption{Theory definition depending on ancestors}\label{fig:ex-theory}
+  \end{center}
+  \end{figure}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -162,7 +165,49 @@ Each theory is explicitly named and holds a unique identifier.
 \isatagmlref
 %
 \begin{isamarkuptext}%
-%
+\begin{mldecls}
+  \indexmltype{theory}\verb|type theory| \\
+  \indexml{Theory.subthy}\verb|Theory.subthy: theory * theory -> bool| \\
+  \indexml{Theory.merge}\verb|Theory.merge: theory * theory -> theory| \\
+  \indexml{Theory.checkpoint}\verb|Theory.checkpoint: theory -> theory| \\
+  \indexml{Theory.copy}\verb|Theory.copy: theory -> theory| \\[1ex]
+  \indexmltype{theory-ref}\verb|type theory_ref| \\
+  \indexml{Theory.self-ref}\verb|Theory.self_ref: theory -> theory_ref| \\
+  \indexml{Theory.deref}\verb|Theory.deref: theory_ref -> theory| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|theory| represents theory contexts.  This is a
+  linear type!  Most operations destroy the old version, which then
+  becomes ``stale''.
+
+  \item \verb|Theory.subthy|~\isa{{\isacharparenleft}thy\isactrlsub {\isadigit{1}}{\isacharcomma}\ thy\isactrlsub {\isadigit{2}}{\isacharparenright}}
+  compares theories according to the inherent graph structure of the
+  construction.  This sub-theory relation is a nominal approximation
+  of inclusion (\isa{{\isasymsubseteq}}) of the corresponding content.
+
+  \item \verb|Theory.merge|~\isa{{\isacharparenleft}thy\isactrlsub {\isadigit{1}}{\isacharcomma}\ thy\isactrlsub {\isadigit{2}}{\isacharparenright}}
+  absorbs one theory into the other.  This fails for unrelated
+  theories!
+
+  \item \verb|Theory.checkpoint|~\isa{thy} produces a safe
+  stepping stone in the linear development of \isa{thy}.  The next
+  update will result in two related, valid theories.
+
+  \item \verb|Theory.copy|~\isa{thy} produces a variant of \isa{thy} that holds a copy of the same data.  The copy is not related
+  to the original, which is not touched at all.
+
+  \item \verb|theory_ref| represents a sliding reference to a
+  valid theory --- updates on the original are propagated
+  automatically.
+
+  \item \verb|Theory.self_ref| and \verb|Theory.deref| convert
+  between \verb|theory| and \verb|theory_ref|.  As the
+  referenced theory evolves monotonically over time, later invocations
+  of \verb|Theory.deref| may refer to larger contexts.
+
+  \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -178,35 +223,36 @@ Each theory is explicitly named and holds a unique identifier.
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-A proof context is an arbitrary container that is initialized from a
-  given theory.  The result contains a back-reference to the theory it
-  belongs to, together with pure data.  No further bookkeeping is
-  required here, thanks to the lack of destructive features.
-
-  There is no restriction on producing proof contexts, although the
-  usual discipline is to follow block structure as a mental model: a
-  given context is extended consecutively, results are exported back
-  into the original context.  In particular, the concept of Isar proof
-  state models block-structured reasoning explicitly, using a stack of
-  proof contexts.
-
-  Due to the lack of identification and back-referencing, entities
-  derived in a proof context need to record inherent logical
-  requirements explicitly.  For example, hypotheses used in a
-  derivation will be recorded separately within the sequent \isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymphi}}, just to make double sure.  Results could leak into an alien
-  proof context do to programming errors, but Isabelle/Isar
-  occasionally includes extra validity checks at the end of a
-  sub-proof.
-
-  \medskip
-  FIXME proof data
-
 \glossary{Proof context}{The static context of a structured proof,
-acts like a local ``theory'' of the current portion of Isar proof
-text, generalizes the idea of local hypotheses \isa{{\isasymGamma}} in
-judgments \isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymphi}} of natural deduction calculi.  There is a
-generic notion of introducing and discharging hypotheses.  Arbritrary
-auxiliary context data may be adjoined.}%
+  acts like a local ``theory'' of the current portion of Isar proof
+  text, generalizes the idea of local hypotheses \isa{{\isasymGamma}} in
+  judgments \isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymphi}} of natural deduction calculi.  There is a
+  generic notion of introducing and discharging hypotheses.
+  Arbritrary auxiliary context data may be adjoined.}
+
+  A proof context is a container for pure data with a back-reference
+  to the theory it belongs to.  Modifications to draft theories are
+  propagated automatically as usual, but there is also an explicit
+  \isa{transfer} operation to resynchronize with more substantial
+  updates to the underlying theory.  The actual context data does not
+  require any special bookkeeping, thanks to the lack of destructive
+  features.
+
+  Entities derived in a proof context need to record inherent logical
+  requirements explicitly, since there is no separate context
+  identification as for theories.  For example, hypotheses used in
+  primitive derivations (cf.\ \secref{sec:thm}) are recorded
+  separately within the sequent \isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymphi}}, just to make double
+  sure.  Results could still leak into an alien proof context do to
+  programming errors, but Isabelle/Isar includes some extra validity
+  checks in critical positions, notably at the end of sub-proof.
+
+  Proof contexts may be produced in arbitrary ways, although the
+  common discipline is to follow block structure as a mental model: a
+  given context is extended consecutively, and results are exported
+  back into the original context.  Note that the Isar proof states
+  model block-structured reasoning explicitly, using a stack of proof
+  contexts, cf.\ \secref{isar-proof-state}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -254,6 +300,15 @@ FIXME%
 \isadelimmlref
 %
 \endisadelimmlref
+%
+\isamarkupsubsection{Context data%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsection{Named entities%
 }
@@ -355,11 +410,11 @@ coexist independently.%
   is merely an alias for \verb|string|, but emphasizes the
   specific format encountered here.
 
-  \item \verb|Symbol.explode|~\isa{s} produces an actual symbol
-  list from the packed form usually encountered as user input.  This
-  function replaces \verb|String.explode| for virtually all purposes
-  of manipulating text in Isabelle!  Plain \isa{implode} may be
-  used for the reverse operation.
+  \item \verb|Symbol.explode|~\isa{s} produces a symbol list from
+  the packed form usually encountered as user input.  This function
+  replaces \verb|String.explode| for virtually all purposes of
+  manipulating text in Isabelle!  Plain \verb|implode| may be used
+  for the reverse operation.
 
   \item \verb|Symbol.is_letter|, \verb|Symbol.is_digit|, \verb|Symbol.is_quasi|, \verb|Symbol.is_blank| classify certain symbols
   (both ASCII and several named ones) according to fixed syntactic
