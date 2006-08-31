@@ -35,8 +35,10 @@ sig
 
 	val eval : (int -> bool) -> prop_formula -> bool  (* semantics *)
 
+	(* propositional representation of HOL terms *)
 	val prop_formula_of_term : Term.term -> int Termtab.table -> prop_formula * int Termtab.table
-		(* propositional representation of HOL terms *)
+	(* HOL term representation of propositional formulae *)
+	val term_of_prop_formula : prop_formula -> Term.term
 end;
 
 structure PropLogic : PROP_LOGIC =
@@ -485,5 +487,29 @@ struct
 	in
 		aux t table
 	end;
+
+(* ------------------------------------------------------------------------- *)
+(* term_of_prop_formula: returns a HOL term that corresponds to a            *)
+(*      propositional formula, with Boolean variables replaced by Free's     *)
+(* ------------------------------------------------------------------------- *)
+
+(* Note: A more generic implementation should take another argument of type  *)
+(*       Term.term Inttab.table (or so) that specifies HOL terms for some    *)
+(*       Boolean variables in the formula, similar to 'prop_formula_of_term' *)
+(*       (but the other way round).                                          *)
+
+	(* prop_formula -> Term.term *)
+	fun term_of_prop_formula True             =
+			HOLogic.true_const
+		| term_of_prop_formula False            =
+			HOLogic.false_const
+		| term_of_prop_formula (BoolVar i)      =
+			Free ("v" ^ Int.toString i, HOLogic.boolT)
+		| term_of_prop_formula (Not fm)         =
+			HOLogic.mk_not (term_of_prop_formula fm)
+		| term_of_prop_formula (Or (fm1, fm2))  =
+			HOLogic.mk_disj (term_of_prop_formula fm1, term_of_prop_formula fm2)
+		| term_of_prop_formula (And (fm1, fm2)) =
+			HOLogic.mk_conj (term_of_prop_formula fm1, term_of_prop_formula fm2);
 
 end;
