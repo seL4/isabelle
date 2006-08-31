@@ -300,7 +300,10 @@ fun problem_logic_goals subgoals = problem_logic_goals_aux subgoals (FOL,[]);
 (*The rule subsetI is frequently omitted by the relevance filter.*)
 val whitelist = ref [subsetI]; 
 
-(*In general, these produce clauses that are prolific (match too many equality or
+(*Names of theorems and theorem lists to be banned. The final numeric suffix of
+  theorem lists is first removed.
+
+  These theorems typically produce clauses that are prolific (match too many equality or
   membership literals) and relate to seldom-used facts. Some duplicate other rules.
   FIXME: this blacklist needs to be maintained using theory data and added to using
   an attribute.*)
@@ -310,8 +313,7 @@ val blacklist = ref
    "Datatype.unit.induct",
    "Datatype.unit.inducts",
    "Datatype.unit.split",
-   "Datatype.unit.splits_1",
-   "Datatype.unit.splits_2",
+   "Datatype.unit.splits",
    "Product_Type.unit_abs_eta_conv",
    "Product_Type.unit_induct",
 
@@ -407,17 +409,15 @@ val blacklist = ref
    "Ring_and_Field.less_divide_eq_1_neg", (*obscure and prolific*)
    "Ring_and_Field.less_divide_eq_1_pos", (*obscure and prolific*)
    "Ring_and_Field.one_eq_divide_iff",  (*duplicate by symmetry*)
+   "Set.disjoint_insert",
+   "Set.insert_disjoint",
+   "Set.Inter_UNIV_conv",
+   "Set.ball_simps", "Set.bex_simps",   (*quantifier rewriting: useless*)
    "Set.Diff_eq_empty_iff", (*redundant with paramodulation*)
    "Set.Diff_insert0",
-   "Set.disjoint_insert_1",
-   "Set.disjoint_insert_2",
    "Set.empty_Union_conv", (*redundant with paramodulation*)
-   "Set.insert_disjoint_1",
-   "Set.insert_disjoint_2",
    "Set.Int_UNIV", (*redundant with paramodulation*)
    "Set.Inter_iff",              (*We already have InterI, InterE*)
-   "Set.Inter_UNIV_conv_1",
-   "Set.Inter_UNIV_conv_2",
    "Set.psubsetE",    (*too prolific and obscure*)
    "Set.psubsetI",
    "Set.singleton_insert_inj_eq'",
@@ -472,10 +472,23 @@ fun insert_suffixed_names ht x =
       Polyhash.insert ht (x^"_iff2", ()); 
       Polyhash.insert ht (x^"_dest", ())); 
 
+(*Are all characters in this string digits?*)
+fun all_numeric s = null (String.tokens Char.isDigit s);
+
+(*Delete a suffix of the form _\d+*)
+fun delete_numeric_suffix s =
+  case rev (String.fields (fn c => c = #"_") s) of
+      last::rest => 
+          if all_numeric last 
+          then [s, String.concatWith "_" (rev rest)]
+          else [s]
+    | [] => [s];
+
 fun make_banned_test xs = 
   let val ht = Polyhash.mkTable (Polyhash.hash_string, op =)
                                 (6000, HASH_STRING)
-      fun banned s = isSome (Polyhash.peek ht s)
+      fun banned s = exists (fn s' => isSome (Polyhash.peek ht s')) 
+                            (delete_numeric_suffix s)
   in  app (fn x => Polyhash.insert ht (x,())) (!blacklist);
       app (insert_suffixed_names ht) (!blacklist @ xs); 
       banned
@@ -616,6 +629,7 @@ fun dfg_writer logic goals filename (axioms,classrels,arities) user_lemmas =
 (*Called by the oracle-based methods declared in res_atp_methods.ML*)
 fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
     let val conj_cls = make_clauses conjectures 
+                         |> ResAxioms.assume_abstract_list |> Meson.finish_cnf
 	val hyp_cls = cnf_hyps_thms ctxt
 	val goal_cls = conj_cls@hyp_cls
 	val (included_thms,user_rules) = get_clasimp_atp_lemmas ctxt user_thms
@@ -735,7 +749,8 @@ fun write_problem_files probfile (ctxt,th)  =
 	      let val st = Seq.hd (EVERY' [rtac ccontr, ObjectLogic.atomize_tac, 
 	                                   skolemize_tac] n th)
 		  val negs = Option.valOf (metahyps_thms n st)
-		  val negs_clauses = make_clauses (ResAxioms.assume_abstract negs)
+		  val negs_clauses = make_clauses negs |> ResAxioms.assume_abstract_list
+		                       |> Meson.finish_cnf
 	      in
 		  negs_clauses :: get_neg_subgoals (n-1)
 	      end
