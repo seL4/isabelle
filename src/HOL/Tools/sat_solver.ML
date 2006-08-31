@@ -283,7 +283,7 @@ struct
 		fun filter_preamble [] =
 			error "problem line not found in DIMACS CNF file"
 		  | filter_preamble (line::lines) =
-			if String.isPrefix "c " line then
+			if String.isPrefix "c " line orelse line = "c" then
 				(* ignore comments *)
 				filter_preamble lines
 			else if String.isPrefix "p " line then
