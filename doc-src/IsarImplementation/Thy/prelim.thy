@@ -176,10 +176,11 @@ text %mlref {*
   valid theory --- updates on the original are propagated
   automatically.
 
-  \item @{ML "Theory.self_ref"} and @{ML "Theory.deref"} convert
-  between @{ML_type "theory"} and @{ML_type "theory_ref"}.  As the
-  referenced theory evolves monotonically over time, later invocations
-  of @{ML "Theory.deref"} may refer to larger contexts.
+  \item @{ML "Theory.self_ref"}~@{text "thy"} and @{ML
+  "Theory.deref"}~@{text "thy_ref"} convert between @{ML_type
+  "theory"} and @{ML_type "theory_ref"}.  As the referenced theory
+  evolves monotonically over time, later invocations of @{ML
+  "Theory.deref"} may refer to larger contexts.
 
   \end{description}
 *}
@@ -196,12 +197,13 @@ text {*
   Arbritrary auxiliary context data may be adjoined.}
 
   A proof context is a container for pure data with a back-reference
-  to the theory it belongs to.  Modifications to draft theories are
-  propagated automatically as usual, but there is also an explicit
-  @{text "transfer"} operation to resynchronize with more substantial
-  updates to the underlying theory.  The actual context data does not
-  require any special bookkeeping, thanks to the lack of destructive
-  features.
+  to the theory it belongs to.  The @{text "init"} operation creates a
+  proof context derived from a given theory.  Modifications to draft
+  theories are propagated to the proof context as usual, but there is
+  also an explicit @{text "transfer"} operation to force
+  resynchronization with more substantial updates to the underlying
+  theory.  The actual context data does not require any special
+  bookkeeping, thanks to the lack of destructive features.
 
   Entities derived in a proof context need to record inherent logical
   requirements explicitly, since there is no separate context
@@ -220,19 +222,153 @@ text {*
   contexts, cf.\ \secref{isar-proof-state}.
 *}
 
-text %mlref {* FIXME *}
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type Proof.context} \\
+  @{index_ML ProofContext.init: "theory -> Proof.context"} \\
+  @{index_ML ProofContext.theory_of: "Proof.context -> theory"} \\
+  @{index_ML ProofContext.transfer: "theory -> Proof.context -> Proof.context"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_type Proof.context} represents proof contexts.  Elements
+  of this type are essentially pure values, with a sliding reference
+  to the background theory.
+
+  \item @{ML ProofContext.init}~@{text "thy"} produces a proof context
+  derived from @{text "thy"}, initializing all data.
+
+  \item @{ML ProofContext.theory_of}~@{text "ctxt"} selects the
+  background theory from @{text "ctxt"}.
+
+  \item @{ML ProofContext.transfer}~@{text "thy ctxt"} promotes the
+  background theory of @{text "ctxt"} to the super theory @{text
+  "thy"}.
+
+  \end{description}
+*}
+
 
 
 subsection {* Generic contexts *}
 
-text FIXME
+text {*
+  A generic context is the disjoint sum of either a theory or proof
+  context.  Occasionally, this simplifies uniform treatment of generic
+  context data, typically extralogical information.  Operations on
+  generic contexts include the usual injections, partial selections,
+  and combinators for lifting operations on either component of the
+  disjoint sum.
 
-text %mlref {* FIXME *}
+  Moreover, there are total operations @{text "theory_of"} and @{text
+  "proof_of"} to convert a generic context into either kind: a theory
+  can always be selected, while a proof context may have to be
+  constructed by an ad-hoc @{text "init"} operation.
+*}
 
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type Context.generic} \\
+  @{index_ML Context.theory_of: "Context.generic -> theory"} \\
+  @{index_ML Context.proof_of: "Context.generic -> Proof.context"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_type Context.generic} is the direct sum of @{ML_type
+  "theory"} and @{ML_type "Proof.context"}, with datatype constructors
+  @{ML "Context.Theory"} and @{ML "Context.Proof"}.
+
+  \item @{ML Context.theory_of}~@{text "context"} always produces a
+  theory from the generic @{text "context"}, using @{ML
+  "ProofContext.theory_of"} as required.
+
+  \item @{ML Context.proof_of}~@{text "context"} always produces a
+  proof context from the generic @{text "context"}, using @{ML
+  "ProofContext.init"} as required.  Note that this re-initializes the
+  context data with each invocation.
+
+  \end{description}
+*}
 
 subsection {* Context data *}
 
 text {*
+  Both theory and proof contexts manage arbitrary data, which is the
+  main purpose of contexts in the first place.  Data can be declared
+  incrementally at compile --- Isabelle/Pure and major object-logics
+  are bootstrapped that way.
+
+  \paragraph{Theory data} may refer to destructive entities, which are
+  maintained in correspondence to the linear evolution of theory
+  values, or explicit copies.\footnote{Most existing instances of
+  destructive theory data are merely historical relics (e.g.\ the
+  destructive theorem storage, and destructive hints for the
+  Simplifier and Classical rules).}  A theory data declaration needs to
+  provide the following information:
+
+  \medskip
+  \begin{tabular}{ll}
+  @{text "name: string"} \\
+  @{text "T"} & the ML type \\
+  @{text "empty: T"} & initial value \\
+  @{text "copy: T \<rightarrow> T"} & refresh impure data \\
+  @{text "extend: T \<rightarrow> T"} & re-initialize on import \\
+  @{text "merge: T \<times> T \<rightarrow> T"} & join on import \\
+  @{text "print: T \<rightarrow> unit"} & diagnostic output \\
+  \end{tabular}
+  \medskip
+
+  \noindent The @{text "name"} acts as a comment for diagnostic
+  messages; @{text "copy"} is just the identity for pure data; @{text
+  "extend"} is acts like a unitary version of @{text "merge"}, both
+  should also include the functionality of @{text "copy"} for impure
+  data.
+
+  \paragraph{Proof context data} is purely functional.  It is declared
+  by providing the following information:
+
+  \medskip
+  \begin{tabular}{ll}
+  @{text "name: string"} \\
+  @{text "T"} & the ML type \\
+  @{text "init: theory \<rightarrow> T"} & produce initial value \\
+  @{text "print: T \<rightarrow> unit"} & diagnostic output \\
+  \end{tabular}
+  \medskip
+
+  \noindent The @{text "init"} operation is supposed to produce a pure
+  value from the given background theory.  The rest is analogous to
+  (pure) theory data.
+
+  \paragraph{Generic data} provides a hybrid interface for both kinds.
+  The declaration is essentially the same as for pure theory data,
+  without @{text "copy"} (it is always the identity).  The @{text
+  "init"} operation for proof contexts selects the current data value
+  from the background theory.
+
+  \bigskip In any case, a data declaration of type @{text "T"} results
+  in the following interface:
+
+  \medskip
+  \begin{tabular}{ll}
+  @{text "init: theory \<rightarrow> theory"} \\
+  @{text "get: context \<rightarrow> T"} \\
+  @{text "put: T \<rightarrow> context \<rightarrow> context"} \\
+  @{text "map: (T \<rightarrow> T) \<rightarrow> context \<rightarrow> context"} \\
+  @{text "print: context \<rightarrow> unit"}
+  \end{tabular}
+  \medskip
+
+  \noindent Here @{text "init"} needs to be applied to the current
+  theory context once, in order to register the initial setup.  The
+  other operations provide access for the particular kind of context
+  (theory, proof, or generic context).  Note that this is a safe
+  interface: there is no other way to access the corresponding data
+  slot within a context.  By keeping these operations private, a
+  component may maintain abstract values authentically, without other
+  components interfering.
 *}
 
 
