@@ -480,7 +480,7 @@ fun delete_numeric_suffix s =
   case rev (String.fields (fn c => c = #"_") s) of
       last::rest => 
           if all_numeric last 
-          then [s, String.concatWith "_" (rev rest)]
+          then [s, space_implode "_" (rev rest)]
           else [s]
     | [] => [s];
 
