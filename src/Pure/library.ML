@@ -543,10 +543,11 @@ fun foldr f (l, e) =
 
 (*  (op @) [x1, ..., xn]  ===>   x1 @ (x2 ... @ (x[n-1] @ xn))
     for n > 0, operators that associate to the right (not tail recursive)*)
-fun foldr1 f l =
-  let fun itr [x] = x
-        | itr (x::l) = f(x, itr l)
-  in  itr l  end;
+fun foldr1 f [] = raise Empty
+  | foldr1 f l = 
+      let fun itr [x] = x
+	    | itr (x::l) = f(x, itr l)
+      in  itr l  end;
 
 fun fold_index f =
   let
