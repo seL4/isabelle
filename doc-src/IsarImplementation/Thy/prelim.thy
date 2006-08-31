@@ -403,7 +403,7 @@ text %mlref {*
 *}
 
 
-section {* Named entities *}
+section {* Name spaces *}
 
 text {*
   By general convention, each kind of formal entities (logical
@@ -536,7 +536,7 @@ text %mlref {*
 *}
 
 
-subsection {* Qualified names and name spaces *}
+subsection {* Qualified names *}
 
 text {*
   A \emph{qualified name} essentially consists of a non-empty list of

@@ -5,7 +5,7 @@ theory "proof" imports base begin
 
 chapter {* Structured proofs *}
 
-section {* Local variables *}
+section {* Variables and schematic polymorphism *}
 
 text FIXME
 
@@ -65,11 +65,6 @@ text %mlref {*
 text FIXME
 
 
-section {* Schematic polymorphism *}
-
-text FIXME
-
-
 section {* Assumptions *}
 
 text FIXME
@@ -80,7 +75,7 @@ section {* Conclusions *}
 text FIXME
 
 
-section {* Structured proofs \label{sec:isar-proof-state} *}
+section {* Proof states \label{sec:isar-proof-state} *}
 
 text {*
   FIXME

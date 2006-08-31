@@ -3,7 +3,7 @@
 
 theory tactic imports base begin
 
-chapter {* Goal-directed reasoning *}
+chapter {* Tactical reasoning *}
 
 text {*
   The basic idea of tactical theorem proving is to refine the initial
