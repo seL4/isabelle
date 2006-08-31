@@ -3,7 +3,7 @@
 
 theory logic imports base begin
 
-chapter {* Pure logic *}
+chapter {* Primitive logic *}
 
 section {* Syntax *}
 

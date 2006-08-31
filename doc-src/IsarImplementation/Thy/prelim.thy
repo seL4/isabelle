@@ -99,7 +99,7 @@ text {*
   and the changed theory remain valid and are related by the
   sub-theory relation.  Checkpointing essentially recovers purely
   functional theory values, at the expense of some extra internal
-  bookeeping.
+  bookkeeping.
 
   The @{text "copy"} operation produces an auxiliary version that has
   the same data content, but is unrelated to the original: updates of
@@ -111,7 +111,7 @@ text {*
   @{text "Nat"} and @{text "List"}.  The theory body consists of a
   sequence of updates, working mostly on drafts.  Intermediate
   checkpoints may occur as well, due to the history mechanism provided
-  by the Isar toplevel, cf.\ \secref{sec:isar-toplevel}.
+  by the Isar top-level, cf.\ \secref{sec:isar-toplevel}.
 
   \begin{figure}[htb]
   \begin{center}
@@ -256,7 +256,7 @@ subsection {* Generic contexts *}
 text {*
   A generic context is the disjoint sum of either a theory or proof
   context.  Occasionally, this simplifies uniform treatment of generic
-  context data, typically extralogical information.  Operations on
+  context data, typically extra-logical information.  Operations on
   generic contexts include the usual injections, partial selections,
   and combinators for lifting operations on either component of the
   disjoint sum.
@@ -305,8 +305,8 @@ text {*
   values, or explicit copies.\footnote{Most existing instances of
   destructive theory data are merely historical relics (e.g.\ the
   destructive theorem storage, and destructive hints for the
-  Simplifier and Classical rules).}  A theory data declaration needs to
-  provide the following information:
+  Simplifier and Classical rules).}  A theory data declaration needs
+  to implement the following specification:
 
   \medskip
   \begin{tabular}{ll}
@@ -327,7 +327,7 @@ text {*
   data.
 
   \paragraph{Proof context data} is purely functional.  It is declared
-  by providing the following information:
+  by implementing the following specification:
 
   \medskip
   \begin{tabular}{ll}
@@ -371,6 +371,29 @@ text {*
   components interfering.
 *}
 
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_functor TheoryDataFun} \\
+  @{index_ML_functor ProofDataFun} \\
+  @{index_ML_functor GenericDataFun} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_functor TheoryDataFun}@{text "(spec)"} declares data for
+  type @{ML_type theory} according to the specification provided as
+  argument structure.  The result structure provides init and access
+  operations as described above.
+
+  \item @{ML_functor ProofDataFun}@{text "(spec)"} is analogous for
+  type @{ML_type Proof.context}.
+
+  \item @{ML_functor GenericDataFun}@{text "(spec)"} is analogous for
+  type @{ML_type Context.generic}.
+
+  \end{description}
+*}
+
 
 section {* Named entities *}
 
@@ -396,7 +419,7 @@ directly. *}
 subsection {* Strings of symbols *}
 
 text {* Isabelle strings consist of a sequence of
-symbols\glossary{Symbol}{The smalles unit of text in Isabelle,
+symbols\glossary{Symbol}{The smallest unit of text in Isabelle,
 subsumes plain ASCII characters as well as an infinite collection of
 named symbols (for greek, math etc.).}, which are either packed as an
 actual @{text "string"}, or represented as a list.  Each symbol is in
@@ -488,45 +511,49 @@ text %mlref {*
 
 subsection {* Qualified names and name spaces *}
 
-text %FIXME {* Qualified names are constructed according to implicit naming
-principles of the present context.
+text {*
+  FIXME
+
+  Qualified names are constructed according to implicit naming
+  principles of the present context.
 
 
-The last component is called \emph{base name}; the remaining prefix of
-qualification may be empty.
+  The last component is called \emph{base name}; the remaining prefix
+  of qualification may be empty.
 
-Some practical conventions help to organize named entities more
-systematically:
+  Some practical conventions help to organize named entities more
+  systematically:
 
-\begin{itemize}
+  \begin{itemize}
 
-\item Names are qualified first by the theory name, second by an
-optional ``structure''.  For example, a constant @{text "c"} declared
-as part of a certain structure @{text "b"} (say a type definition) in
-theory @{text "A"} will be named @{text "A.b.c"} internally.
+  \item Names are qualified first by the theory name, second by an
+  optional ``structure''.  For example, a constant @{text "c"}
+  declared as part of a certain structure @{text "b"} (say a type
+  definition) in theory @{text "A"} will be named @{text "A.b.c"}
+  internally.
 
-\item
+  \item
 
-\item
+  \item
 
-\item
+  \item
 
-\item
+  \item
 
-\end{itemize}
+  \end{itemize}
 
-Names of different kinds of entities are basically independent, but
-some practical naming conventions relate them to each other.  For
-example, a constant @{text "foo"} may be accompanied with theorems
-@{text "foo.intro"}, @{text "foo.elim"}, @{text "foo.simps"} etc.  The
-same may happen for a type @{text "foo"}, which is then apt to cause
-clashes in the theorem name space!  To avoid this, we occasionally
-follow an additional convention of suffixes that determine the
-original kind of entity that a name has been derived.  For example,
-constant @{text "foo"} is associated with theorem @{text "foo.intro"},
-type @{text "foo"} with theorem @{text "foo_type.intro"}, and type
-class @{text "foo"} with @{text "foo_class.intro"}.
-
+  Names of different kinds of entities are basically independent, but
+  some practical naming conventions relate them to each other.  For
+  example, a constant @{text "foo"} may be accompanied with theorems
+  @{text "foo.intro"}, @{text "foo.elim"}, @{text "foo.simps"} etc.
+  The same may happen for a type @{text "foo"}, which is then apt to
+  cause clashes in the theorem name space!  To avoid this, we
+  occasionally follow an additional convention of suffixes that
+  determine the original kind of entity that a name has been derived.
+  For example, constant @{text "foo"} is associated with theorem
+  @{text "foo.intro"}, type @{text "foo"} with theorem @{text
+  "foo_type.intro"}, and type class @{text "foo"} with @{text
+  "foo_class.intro"}.
 *}
 
 

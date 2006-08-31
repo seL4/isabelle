@@ -33,6 +33,7 @@ val _ = O.add_commands
   ("index_ML_type", arguments (index_ml "type" ml_type)),
   ("index_ML_structure", arguments (index_ml "structure" ml_structure)),
   ("index_ML_functor", arguments (index_ml "functor" ml_functor)),
+  ("ML_functor", O.args (Scan.lift Args.name) output_verbatim),
   ("verbatim", O.args (Scan.lift Args.name) output_verbatim)];
 
 in val _ = () end;

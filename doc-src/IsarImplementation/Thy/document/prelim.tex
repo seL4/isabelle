@@ -119,7 +119,7 @@ A logical context represents the background that is taken for
   and the changed theory remain valid and are related by the
   sub-theory relation.  Checkpointing essentially recovers purely
   functional theory values, at the expense of some extra internal
-  bookeeping.
+  bookkeeping.
 
   The \isa{copy} operation produces an auxiliary version that has
   the same data content, but is unrelated to the original: updates of
@@ -131,7 +131,7 @@ A logical context represents the background that is taken for
   \isa{Nat} and \isa{List}.  The theory body consists of a
   sequence of updates, working mostly on drafts.  Intermediate
   checkpoints may occur as well, due to the history mechanism provided
-  by the Isar toplevel, cf.\ \secref{sec:isar-toplevel}.
+  by the Isar top-level, cf.\ \secref{sec:isar-toplevel}.
 
   \begin{figure}[htb]
   \begin{center}
@@ -302,7 +302,7 @@ A logical context represents the background that is taken for
 \begin{isamarkuptext}%
 A generic context is the disjoint sum of either a theory or proof
   context.  Occasionally, this simplifies uniform treatment of generic
-  context data, typically extralogical information.  Operations on
+  context data, typically extra-logical information.  Operations on
   generic contexts include the usual injections, partial selections,
   and combinators for lifting operations on either component of the
   disjoint sum.
@@ -364,8 +364,8 @@ Both theory and proof contexts manage arbitrary data, which is the
   values, or explicit copies.\footnote{Most existing instances of
   destructive theory data are merely historical relics (e.g.\ the
   destructive theorem storage, and destructive hints for the
-  Simplifier and Classical rules).}  A theory data declaration needs to
-  provide the following information:
+  Simplifier and Classical rules).}  A theory data declaration needs
+  to implement the following specification:
 
   \medskip
   \begin{tabular}{ll}
@@ -385,7 +385,7 @@ Both theory and proof contexts manage arbitrary data, which is the
   data.
 
   \paragraph{Proof context data} is purely functional.  It is declared
-  by providing the following information:
+  by implementing the following specification:
 
   \medskip
   \begin{tabular}{ll}
@@ -429,6 +429,43 @@ Both theory and proof contexts manage arbitrary data, which is the
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexmlfunctor{TheoryDataFun}\verb|functor TheoryDataFun| \\
+  \indexmlfunctor{ProofDataFun}\verb|functor ProofDataFun| \\
+  \indexmlfunctor{GenericDataFun}\verb|functor GenericDataFun| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|TheoryDataFun|\isa{{\isacharparenleft}spec{\isacharparenright}} declares data for
+  type \verb|theory| according to the specification provided as
+  argument structure.  The result structure provides init and access
+  operations as described above.
+
+  \item \verb|ProofDataFun|\isa{{\isacharparenleft}spec{\isacharparenright}} is analogous for
+  type \verb|Proof.context|.
+
+  \item \verb|GenericDataFun|\isa{{\isacharparenleft}spec{\isacharparenright}} is analogous for
+  type \verb|Context.generic|.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
 \isamarkupsection{Named entities%
 }
 \isamarkuptrue%
@@ -460,7 +497,7 @@ directly.%
 %
 \begin{isamarkuptext}%
 Isabelle strings consist of a sequence of
-symbols\glossary{Symbol}{The smalles unit of text in Isabelle,
+symbols\glossary{Symbol}{The smallest unit of text in Isabelle,
 subsumes plain ASCII characters as well as an infinite collection of
 named symbols (for greek, math etc.).}, which are either packed as an
 actual \isa{string}, or represented as a list.  Each symbol is in
@@ -561,60 +598,49 @@ coexist independently.%
 }
 \isamarkuptrue%
 %
-\isadelimFIXME
-%
-\endisadelimFIXME
-%
-\isatagFIXME
-%
 \begin{isamarkuptext}%
-Qualified names are constructed according to implicit naming
-principles of the present context.
+FIXME
+
+  Qualified names are constructed according to implicit naming
+  principles of the present context.
 
 
-The last component is called \emph{base name}; the remaining prefix of
-qualification may be empty.
+  The last component is called \emph{base name}; the remaining prefix
+  of qualification may be empty.
 
-Some practical conventions help to organize named entities more
-systematically:
+  Some practical conventions help to organize named entities more
+  systematically:
 
-\begin{itemize}
+  \begin{itemize}
 
-\item Names are qualified first by the theory name, second by an
-optional ``structure''.  For example, a constant \isa{c} declared
-as part of a certain structure \isa{b} (say a type definition) in
-theory \isa{A} will be named \isa{A{\isachardot}b{\isachardot}c} internally.
+  \item Names are qualified first by the theory name, second by an
+  optional ``structure''.  For example, a constant \isa{c}
+  declared as part of a certain structure \isa{b} (say a type
+  definition) in theory \isa{A} will be named \isa{A{\isachardot}b{\isachardot}c}
+  internally.
 
-\item
+  \item
 
-\item
+  \item
 
-\item
+  \item
 
-\item
+  \item
 
-\end{itemize}
+  \end{itemize}
 
-Names of different kinds of entities are basically independent, but
-some practical naming conventions relate them to each other.  For
-example, a constant \isa{foo} may be accompanied with theorems
-\isa{foo{\isachardot}intro}, \isa{foo{\isachardot}elim}, \isa{foo{\isachardot}simps} etc.  The
-same may happen for a type \isa{foo}, which is then apt to cause
-clashes in the theorem name space!  To avoid this, we occasionally
-follow an additional convention of suffixes that determine the
-original kind of entity that a name has been derived.  For example,
-constant \isa{foo} is associated with theorem \isa{foo{\isachardot}intro},
-type \isa{foo} with theorem \isa{foo{\isacharunderscore}type{\isachardot}intro}, and type
-class \isa{foo} with \isa{foo{\isacharunderscore}class{\isachardot}intro}.%
+  Names of different kinds of entities are basically independent, but
+  some practical naming conventions relate them to each other.  For
+  example, a constant \isa{foo} may be accompanied with theorems
+  \isa{foo{\isachardot}intro}, \isa{foo{\isachardot}elim}, \isa{foo{\isachardot}simps} etc.
+  The same may happen for a type \isa{foo}, which is then apt to
+  cause clashes in the theorem name space!  To avoid this, we
+  occasionally follow an additional convention of suffixes that
+  determine the original kind of entity that a name has been derived.
+  For example, constant \isa{foo} is associated with theorem
+  \isa{foo{\isachardot}intro}, type \isa{foo} with theorem \isa{foo{\isacharunderscore}type{\isachardot}intro}, and type class \isa{foo} with \isa{foo{\isacharunderscore}class{\isachardot}intro}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-%
-\endisatagFIXME
-{\isafoldFIXME}%
-%
-\isadelimFIXME
-%
-\endisadelimFIXME
 %
 \isamarkupsection{Structured output%
 }
