@@ -9,19 +9,18 @@ section {* Isar toplevel \label{sec:isar-toplevel} *}
 
 text {* The Isar toplevel may be considered the centeral hub of the
   Isabelle/Isar system, where all key components and sub-systems are
-  integrated into a single read-eval-print loop of Isar commands.
-  Here we even incorporate the existing {\ML} toplevel of the compiler
+  integrated into a single read-eval-print loop of Isar commands.  We
+  shall even incorporate the existing {\ML} toplevel of the compiler
   and run-time system (cf.\ \secref{sec:ML-toplevel}).
 
-  Isabelle/Isar departs from original ``LCF system architecture''
+  Isabelle/Isar departs from the original ``LCF system architecture''
   where {\ML} was really The Meta Language for defining theories and
-  conducting proofs.  Instead, {\ML} merely serves as the
+  conducting proofs.  Instead, {\ML} now only serves as the
   implementation language for the system (and user extensions), while
-  our specific Isar toplevel supports particular notions of
-  incremental theory and proof development more directly.  This
-  includes the graph structure of theories and the block structure of
-  proofs, support for unlimited undo, facilities for tracing,
-  debugging, timing, profiling.
+  the specific Isar toplevel supports the concepts of theory and proof
+  development natively.  This includes the graph structure of theories
+  and the block structure of proofs, support for unlimited undo,
+  facilities for tracing, debugging, timing, profiling etc.
 
   \medskip The toplevel maintains an implicit state, which is
   transformed by a sequence of transitions -- either interactively or
@@ -29,9 +28,9 @@ text {* The Isar toplevel may be considered the centeral hub of the
   encapsulated as safe transactions, such that both failure and undo
   are handled conveniently without destroying the underlying draft
   theory (cf.~\secref{sec:context-theory}).  In batch mode,
-  transitions operate in a strictly linear (destructive) fashion, such
-  that error conditions abort the present attempt to construct a
-  theory altogether.
+  transitions operate in a linear (destructive) fashion, such that
+  error conditions abort the present attempt to construct a theory or
+  proof altogether.
 
   The toplevel state is a disjoint sum of empty @{text toplevel}, or
   @{text theory}, or @{text proof}.  On entering the main Isar loop we
@@ -69,22 +68,23 @@ text %mlref {*
   \begin{description}
 
   \item @{ML_type Toplevel.state} represents Isar toplevel states,
-  which are normally only manipulated through the toplevel transition
-  concept (\secref{sec:toplevel-transition}).  Also note that a
-  toplevel state is subject to the same linerarity restrictions as a
-  theory context (cf.~\secref{sec:context-theory}).
+  which are normally manipulated through the concept of toplevel
+  transitions only (\secref{sec:toplevel-transition}).  Also note that
+  a raw toplevel state is subject to the same linearity restrictions
+  as a theory context (cf.~\secref{sec:context-theory}).
 
   \item @{ML Toplevel.UNDEF} is raised for undefined toplevel
-  operations: @{ML_type Toplevel.state} is a sum type, many operations
-  work only partially for certain cases.
+  operations.  Many operations work only partially for certain cases,
+  since @{ML_type Toplevel.state} is a sum type.
 
-  \item @{ML Toplevel.is_toplevel} checks for an empty toplevel state.
+  \item @{ML Toplevel.is_toplevel}~@{text "state"} checks for an empty
+  toplevel state.
 
-  \item @{ML Toplevel.theory_of} gets the theory of a theory or proof
-  (!), otherwise raises @{ML Toplevel.UNDEF}.
+  \item @{ML Toplevel.theory_of}~@{text "state"} selects the theory of
+  a theory or proof (!), otherwise raises @{ML Toplevel.UNDEF}.
 
-  \item @{ML Toplevel.proof_of} gets the Isar proof state if
-  available, otherwise raises @{ML Toplevel.UNDEF}.
+  \item @{ML Toplevel.proof_of}~@{text "state"} selects the Isar proof
+  state if available, otherwise raises @{ML Toplevel.UNDEF}.
 
   \item @{ML "set Toplevel.debug"} makes the toplevel print further
   details about internal error conditions, exceptions being raised
@@ -93,36 +93,37 @@ text %mlref {*
   \item @{ML "set Toplevel.timing"} makes the toplevel print timing
   information for each Isar command being executed.
 
-  \item @{ML Toplevel.profiling} controls low-level profiling of the
-  underlying {\ML} runtime system.\footnote{For Poly/ML, 1 means time
-  and 2 space profiling.}
+  \item @{ML Toplevel.profiling}~@{verbatim ":="}~@{text "n"} controls
+  low-level profiling of the underlying {\ML} runtime system.  For
+  Poly/ML, @{text "n = 1"} means time and @{text "n = 2"} space
+  profiling.
 
   \end{description}
 *}
 
 
-subsection {* Toplevel transitions *}
+subsection {* Toplevel transitions \label{sec:toplevel-transition} *}
 
-text {* An Isar toplevel transition consists of a partial
-  function on the toplevel state, with additional information for
-  diagnostics and error reporting: there are fields for command name,
-  source position, optional source text, as well as flags for
-  interactive-only commands (which issue a warning in batch-mode),
-  printing of result state, etc.
+text {*
+  An Isar toplevel transition consists of a partial function on the
+  toplevel state, with additional information for diagnostics and
+  error reporting: there are fields for command name, source position,
+  optional source text, as well as flags for interactive-only commands
+  (which issue a warning in batch-mode), printing of result state,
+  etc.
 
-  The operational part is represented as a sequential union of a list
-  of partial functions, which are tried in turn until the first one
-  succeeds (i.e.\ does not raise @{ML Toplevel.UNDEF}).  For example,
-  a single Isar command like \isacommand{qed} consists of the union of
-  some function @{ML_type "Proof.state -> Proof.state"} for proofs
-  within proofs, plus @{ML_type "Proof.state -> theory"} for proofs at
-  the outer theory level.
+  The operational part is represented as the sequential union of a
+  list of partial functions, which are tried in turn until the first
+  one succeeds (i.e.\ does not raise @{ML Toplevel.UNDEF}).  This acts
+  like an outer case-expression for various alternative state
+  transitions.  For example, \isakeyword{qed} acts differently for a
+  local proofs vs.\ the global ending of the main proof.
 
   Toplevel transitions are composed via transition transformers.
   Internally, Isar commands are put together from an empty transition
   extended by name and source position (and optional source text).  It
   is then left to the individual command parser to turn the given
-  syntax body into a suitable transition transformer that adjoin
+  concrete syntax into a suitable transition transformer that adjoin
   actual operations on a theory or proof state etc.
 *}
 
@@ -146,32 +147,36 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML Toplevel.print} sets the print flag, which causes the
-  resulting state of the transition to be echoed in interactive mode.
+  \item @{ML Toplevel.print}~@{text "tr"} sets the print flag, which
+  causes the toplevel loop to echo the result state (in interactive
+  mode).
 
-  \item @{ML Toplevel.no_timing} indicates that the transition should
-  never show timing information, e.g.\ because it is merely a
-  diagnostic command.
+  \item @{ML Toplevel.no_timing}~@{text "tr"} indicates that the
+  transition should never show timing information, e.g.\ because it is
+  a diagnostic command.
 
-  \item @{ML Toplevel.keep} adjoins a diagnostic function.
+  \item @{ML Toplevel.keep}~@{text "tr"} adjoins a diagnostic
+  function.
 
-  \item @{ML Toplevel.theory} adjoins a theory transformer.
+  \item @{ML Toplevel.theory}~@{text "tr"} adjoins a theory
+  transformer.
 
-  \item @{ML Toplevel.theory_to_proof} adjoins a global goal function,
-  which turns a theory into a proof state.  The theory may be changed
-  before entering the proof; the generic Isar goal setup includes an
-  argument that specifies how to apply the proven result to the
-  theory, when the proof is finished.
+  \item @{ML Toplevel.theory_to_proof}~@{text "tr"} adjoins a global
+  goal function, which turns a theory into a proof state.  The theory
+  may be changed before entering the proof; the generic Isar goal
+  setup includes an argument that specifies how to apply the proven
+  result to the theory, when the proof is finished.
 
-  \item @{ML Toplevel.proof} adjoins a deterministic proof command,
-  with a singleton result state.
+  \item @{ML Toplevel.proof}~@{text "tr"} adjoins a deterministic
+  proof command, with a singleton result.
 
-  \item @{ML Toplevel.proofs} adjoins a general proof command, with
-  zero or more result states (represented as a lazy list).
+  \item @{ML Toplevel.proofs}~@{text "tr"} adjoins a general proof
+  command, with zero or more result states (represented as a lazy
+  list).
 
-  \item @{ML Toplevel.proof_to_theory} adjoins a concluding proof
-  command, that returns the resulting theory, after storing the
-  resulting facts etc.
+  \item @{ML Toplevel.proof_to_theory}~@{text "tr"} adjoins a
+  concluding proof command, that returns the resulting theory, after
+  storing the resulting facts etc.
 
   \end{description}
 *}
@@ -179,12 +184,12 @@ text %mlref {*
 
 subsection {* Toplevel control *}
 
-text {* Apart from regular toplevel transactions there are a few
-  special control commands that modify the behavior the toplevel
-  itself, and only make sense in interactive mode.  Under normal
-  circumstances, the user encounters these only implicitly as part of
-  the protocol between the Isabelle/Isar system and a user-interface
-  such as ProofGeneral.
+text {*
+  There are a few special control commands that modify the behavior
+  the toplevel itself, and only make sense in interactive mode.  Under
+  normal circumstances, the user encounters these only implicitly as
+  part of the protocol between the Isabelle/Isar system and a
+  user-interface such as ProofGeneral.
 
   \begin{description}
 
@@ -221,14 +226,15 @@ text {* The {\ML} toplevel provides a read-compile-eval-print loop for
   no clean way to undo {\ML} declarations, except for reverting to a
   previously saved state of the whole Isabelle process.  {\ML} input
   is either read interactively from a TTY, or from a string (usually
-  within a theory text), or from a source file (usually associated
-  with a theory).
+  within a theory text), or from a source file (usually loaded from a
+  theory).
 
   Whenever the {\ML} toplevel is active, the current Isabelle theory
   context is passed as an internal reference variable.  Thus {\ML}
   code may access the theory context during compilation, it may even
-  change the value of a theory being under construction --- following
-  the usual linearity restrictions (cf.~\secref{sec:context-theory}).
+  change the value of a theory being under construction --- while
+  observing the usual linearity restrictions
+  (cf.~\secref{sec:context-theory}).
 *}
 
 text %mlref {*
@@ -247,28 +253,29 @@ text %mlref {*
 
   \item @{ML "the_context ()"} refers to the theory context of the
   {\ML} toplevel --- at compile time!  {\ML} code needs to take care
-  to refer to @{ML "the_context ()"} correctly, recall that evaluation
-  of a function body is delayed until actual runtime.  Moreover,
-  persistent {\ML} toplevel bindings to an unfinished theory should be
-  avoided: code should either project out the desired information
-  immediately, or produce an explicit @{ML_type theory_ref} (cf.\
-  \secref{sec:context-theory}).
+  to refer to @{ML "the_context ()"} correctly.  Recall that
+  evaluation of a function body is delayed until actual runtime.
+  Moreover, persistent {\ML} toplevel bindings to an unfinished theory
+  should be avoided: code should either project out the desired
+  information immediately, or produce an explicit @{ML_type
+  theory_ref} (cf.\ \secref{sec:context-theory}).
 
   \item @{ML "Context.>>"}~@{text f} applies theory transformation
   @{text f} to the current theory of the {\ML} toplevel.  In order to
   work as expected, the theory should be still under construction, and
   the Isar language element that invoked the {\ML} compiler in the
-  first place shoule be ready to accept the changed theory value
+  first place should be ready to accept the changed theory value
   (e.g.\ \isakeyword{ML-setup}, but not plain \isakeyword{ML}).
-  Otherwise the theory may get destroyed!
+  Otherwise the theory becomes stale!
 
   \end{description}
 
   It is very important to note that the above functions are really
   restricted to the compile time, even though the {\ML} compiler is
   invoked at runtime!  The majority of {\ML} code uses explicit
-  functional arguments of a theory or proof context, as required.
-  Thus it may get run in an arbitrary context later on.
+  functional arguments of a theory or proof context instead.  Thus it
+  may be invoked for an arbitrary context later on, without having to
+  worry about any operational details.
 
   \bigskip
 
@@ -283,46 +290,46 @@ text %mlref {*
   \begin{description}
 
   \item @{ML "Isar.main ()"} invokes the Isar toplevel from {\ML},
-  initializing the state to empty toplevel state.
+  initializing an empty toplevel state.
 
   \item @{ML "Isar.loop ()"} continues the Isar toplevel with the
-  current state, after dropping out of the Isar toplevel loop.
+  current state, after having dropped out of the Isar toplevel loop.
 
   \item @{ML "Isar.state ()"} and @{ML "Isar.exn ()"} get current
-  toplevel state and optional error condition, respectively.  This
-  only works after dropping out of the Isar toplevel loop.
+  toplevel state and error condition, respectively.  This only works
+  after having dropped out of the Isar toplevel loop.
 
   \item @{ML "Isar.context ()"} produces the proof context from @{ML
-  "Isar.state ()"}.
+  "Isar.state ()"}, analogous to @{ML Context.proof_of}
+  (\secref{sec:generic-context}).
 
   \end{description}
 *}
 
 
-section {* Theory database *}
+section {* Theory database \label{sec:theory-database} *}
 
-text {* The theory database maintains a collection of theories,
-  together with some administrative information about the original
-  sources, which are held in an external store (i.e.\ a collection of
-  directories within the regular file system of the underlying
-  platform).
+text {*
+  The theory database maintains a collection of theories, together
+  with some administrative information about their original sources,
+  which are held in an external store (i.e.\ some directory within the
+  regular file system).
 
-  The theory database is organized as a directed acyclic graph, with
-  entries referenced by theory name.  Although some external
-  interfaces allow to include a directory specification, this is only
-  a hint to the underlying theory loader mechanism: the internal
-  theory name space is flat.
+  The theory database is organized as a directed acyclic graph;
+  entries are referenced by theory name.  Although some additional
+  interfaces allow to include a directory specification as well, this
+  is only a hint to the underlying theory loader.  The internal theory
+  name space is flat!
 
   Theory @{text A} is associated with the main theory file @{text
   A}\verb,.thy,, which needs to be accessible through the theory
-  loader path.  A number of optional {\ML} source files may be
+  loader path.  Any number of additional {\ML} source files may be
   associated with each theory, by declaring these dependencies in the
   theory header as @{text \<USES>}, and loading them consecutively
   within the theory context.  The system keeps track of incoming {\ML}
-  sources and associates them with the current theory.  The special
-  theory {\ML} file @{text A}\verb,.ML, is loaded after a theory has
-  been concluded, in order to support legacy proof {\ML} proof
-  scripts.
+  sources and associates them with the current theory.  The file
+  @{text A}\verb,.ML, is loaded after a theory has been concluded, in
+  order to support legacy proof {\ML} proof scripts.
 
   The basic internal actions of the theory database are @{text
   "update"}, @{text "outdate"}, and @{text "remove"}:
@@ -331,31 +338,30 @@ text {* The theory database maintains a collection of theories,
 
   \item @{text "update A"} introduces a link of @{text "A"} with a
   @{text "theory"} value of the same name; it asserts that the theory
-  sources are consistent with that value.
+  sources are now consistent with that value;
 
   \item @{text "outdate A"} invalidates the link of a theory database
-  entry to its sources, but retains the present theory value.
+  entry to its sources, but retains the present theory value;
 
-  \item @{text "remove A"} removes entry @{text "A"} from the theory
+  \item @{text "remove A"} deletes entry @{text "A"} from the theory
   database.
   
   \end{itemize}
 
   These actions are propagated to sub- or super-graphs of a theory
-  entry in the usual way, in order to preserve global consistency of
-  the state of all loaded theories with the sources of the external
-  store.  This implies causal dependencies of certain actions: @{text
-  "update"} or @{text "outdate"} of an entry will @{text "outdate"}
-  all descendants; @{text "remove"} will @{text "remove"} all
-  descendants.
+  entry as expected, in order to preserve global consistency of the
+  state of all loaded theories with the sources of the external store.
+  This implies certain causalities between actions: @{text "update"}
+  or @{text "outdate"} of an entry will @{text "outdate"} all
+  descendants; @{text "remove"} will @{text "remove"} all descendants.
 
   \medskip There are separate user-level interfaces to operate on the
   theory database directly or indirectly.  The primitive actions then
   just happen automatically while working with the system.  In
   particular, processing a theory header @{text "\<THEORY> A
-  \<IMPORTS> B\<^sub>1 \<dots> B\<^sub>n \<BEGIN>"} ensure that the
+  \<IMPORTS> B\<^sub>1 \<dots> B\<^sub>n \<BEGIN>"} ensures that the
   sub-graph of the collective imports @{text "B\<^sub>1 \<dots> B\<^sub>n"}
-  is up-to-date.  Earlier theories are reloaded as required, with
+  is up-to-date, too.  Earlier theories are reloaded as required, with
   @{text update} actions proceeding in topological order according to
   theory dependencies.  There may be also a wave of implied @{text
   outdate} actions for derived theory nodes until a stable situation
@@ -367,8 +373,6 @@ text %mlref {*
   @{index_ML theory: "string -> theory"} \\
   @{index_ML use_thy: "string -> unit"} \\
   @{index_ML update_thy: "string -> unit"} \\
-  @{index_ML use_thy_only: "string -> unit"} \\
-  @{index_ML update_thy_only: "string -> unit"} \\
   @{index_ML touch_thy: "string -> unit"} \\
   @{index_ML remove_thy: "string -> unit"} \\[1ex]
   @{index_ML ThyInfo.begin_theory}@{verbatim ": ... -> bool -> theory"} \\
@@ -381,8 +385,8 @@ text %mlref {*
   \begin{description}
 
   \item @{ML theory}~@{text A} retrieves the theory value presently
-  associated with @{text A}.  The result is not necessarily
-  up-to-date!
+  associated with name @{text A}.  Note that the result might be
+  outdated.
 
   \item @{ML use_thy}~@{text A} loads theory @{text A} if it is absent
   or out-of-date.  It ensures that all parent theories are available
@@ -390,20 +394,12 @@ text %mlref {*
   present.
 
   \item @{ML update_thy} is similar to @{ML use_thy}, but ensures that
-  the @{text A} and all of its ancestors are fully up-to-date.
+  theory @{text A} and all ancestors are fully up-to-date.
 
-  \item @{ML use_thy_only}~@{text A} is like @{ML use_thy}~@{text A},
-  but refrains from loading the attached @{text A}\verb,.ML, file.
-  This is occasionally useful in replaying legacy {\ML} proof scripts
-  by hand.
-  
-  \item @{ML update_thy_only} is analogous to @{ML use_thy_only}, but
-  proceeds like @{ML update_thy} for ancestors.
+  \item @{ML touch_thy}~@{text A} performs and @{text outdate} action
+  on theory @{text A} and all descendants.
 
-  \item @{ML touch_thy}~@{text A} performs @{text outdate} action on
-  theory @{text A} and all of its descendants.
-
-  \item @{ML remove_thy}~@{text A} removes @{text A} and all of its
+  \item @{ML remove_thy}~@{text A} deletes theory @{text A} and all
   descendants from the theory database.
 
   \item @{ML ThyInfo.begin_theory} is the basic operation behind a
@@ -414,28 +410,30 @@ text %mlref {*
   normally not invoked directly.
 
   \item @{ML ThyInfo.end_theory} concludes the loading of a theory
-  proper; an attached theory {\ML} file may be still loaded later on.
-  This is {\ML} functions is normally not invoked directly.
+  proper.  An attached theory {\ML} file may be still loaded later on.
+  This is function is normally not invoked directly.
 
-  \item @{ML ThyInfo.register_theory}~{text thy} registers an existing
-  theory value with the theory loader database.  There is no
-  management of associated sources; this is mainly for bootstrapping.
+  \item @{ML ThyInfo.register_theory}~@{text "text thy"} registers an
+  existing theory value with the theory loader database.  There is no
+  management of associated sources.
 
   \item @{ML "ThyInfo.add_hook"}~@{text f} registers function @{text
   f} as a hook for theory database actions.  The function will be
   invoked with the action and theory name being involved; thus derived
   actions may be performed in associated system components, e.g.\
-  maintaining the state of an editor for theory sources.
+  maintaining the state of an editor for the theory sources.
 
   The kind and order of actions occurring in practice depends both on
   user interactions and the internal process of resolving theory
   imports.  Hooks should not rely on a particular policy here!  Any
-  exceptions raised by the hook are ignored by the theory database.
+  exceptions raised by the hook are ignored.
 
   \end{description}
 *}
 
 
-(* FIXME section {* Sessions and document preparation *} *)
+section {* Sessions and document preparation *}
+
+text FIXME
 
 end

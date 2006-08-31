@@ -5,44 +5,41 @@ theory logic imports base begin
 
 chapter {* Primitive logic *}
 
-section {* Syntax *}
+section {* Variable names *}
 
-subsection {* Variable names *}
+text FIXME
+
+
+section {* Types \label{sec:types} *}
 
 text {*
-  FIXME
+  \glossary{Type class}{FIXME}
+
+  \glossary{Type arity}{FIXME}
+
+  \glossary{Sort}{FIXME}
+
+  FIXME classes and sorts
+
+
+  \glossary{Type}{FIXME}
+
+  \glossary{Type constructor}{FIXME}
+
+  \glossary{Type variable}{FIXME}
+
+  FIXME simple types
 *}
 
 
-subsection {* Simply-typed lambda calculus *}
+section {* Terms \label{sec:terms} *}
 
 text {*
+  \glossary{Term}{FIXME}
 
-FIXME
-
-\glossary{Type}{FIXME}
-\glossary{Term}{FIXME}
-
+  FIXME de-Bruijn representation of lambda terms
 *}
 
-subsection {* The order-sorted algebra of types *}
-
-text {*
-
-FIXME
-
-\glossary{Type constructor}{FIXME}
-
-\glossary{Type class}{FIXME}
-
-\glossary{Type arity}{FIXME}
-
-\glossary{Sort}{FIXME}
-
-*}
-
-
-subsection {* Type-inference and schematic polymorphism *}
 
 text {*
 
@@ -55,21 +52,7 @@ FIXME
 *}
 
 
-section {* Theory *}
-
-text {*
-
-FIXME
-
-\glossary{Constant}{Essentially a \seeglossary{fixed variable} of the
-theory context, but slightly more flexible since it may be used at
-different type-instances, due to \seeglossary{schematic
-polymorphism.}}
-
-*}
-
-
-section {* Deduction *}
+section {* Theorems \label{sec:thms} *}
 
 text {*
 
@@ -139,8 +122,21 @@ subsection {* Equational reasoning *}
 text FIXME
 
 
-section {* Proof terms *}
+section {* Low-level specifications *}
 
-text FIXME
+text {*
+
+FIXME
+
+\glossary{Constant}{Essentially a \seeglossary{fixed variable} of the
+theory context, but slightly more flexible since it may be used at
+different type-instances, due to \seeglossary{schematic
+polymorphism.}}
+
+\glossary{Axiom}{FIXME}
+
+\glossary{Primitive definition}{FIXME}
+
+*}
 
 end

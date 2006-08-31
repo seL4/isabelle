@@ -3,11 +3,9 @@
 
 theory "proof" imports base begin
 
-chapter {* Structured reasoning *}
+chapter {* Structured proofs *}
 
-section {* Proof context *}
-
-subsection {* Local variables *}
+section {* Local variables *}
 
 text FIXME
 
@@ -66,7 +64,23 @@ text %mlref {*
 
 text FIXME
 
-section {* Proof state *}
+
+section {* Schematic polymorphism *}
+
+text FIXME
+
+
+section {* Assumptions *}
+
+text FIXME
+
+
+section {* Conclusions *}
+
+text FIXME
+
+
+section {* Structured proofs \label{sec:isar-proof-state} *}
 
 text {*
   FIXME
@@ -85,12 +99,12 @@ occasionally called ``proof state'' as well.}
 
 *}
 
-section {* Methods *}
+section {* Proof methods *}
 
 text FIXME
 
 section {* Attributes *}
 
-text FIXME
+text "FIXME ?!"
 
 end

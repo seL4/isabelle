@@ -9,8 +9,18 @@ section {* Specification elements *}
 
 text FIXME
 
-section {* Locales *}
+
+section {* Type-checking specifications *}
 
 text FIXME
+
+
+section {* Localized theory specifications *}
+
+text {*
+  FIXME
+
+  \glossary{Local theory}{FIXME}
+*}
 
 end

@@ -3,57 +3,63 @@
 
 theory tactic imports base begin
 
-chapter {* Tactical theorem proving *}
+chapter {* Goal-directed reasoning *}
 
-text {* The basic idea of tactical theorem proving is to refine the
-initial claim in a backwards fashion, until a solved form is reached.
-An intermediate goal consists of several subgoals that need to be
-solved in order to achieve the main statement; zero subgoals means
-that the proof may be finished.  Goal refinement operations are called
-tactics; combinators for composing tactics are called tacticals.  *}
+text {*
+  The basic idea of tactical theorem proving is to refine the initial
+  claim in a backwards fashion, until a solved form is reached.  An
+  intermediate goal consists of several subgoals that need to be
+  solved in order to achieve the main statement; zero subgoals means
+  that the proof may be finished.  A @{text "tactic"} is a refinement
+  operation that maps a goal to a lazy sequence of potential
+  successors.  A @{text "tactical"} is a combinator for composing
+  tactics.
+*}
 
 
 section {* Goals \label{sec:tactical-goals} *}
 
-text {* Isabelle/Pure represents a goal\glossary{Tactical goal}{A
-theorem of \seeglossary{Horn Clause} form stating that a number of
-subgoals imply the main conclusion, which is marked as a protected
-proposition.} as a theorem stating that the subgoals imply the main
-goal: @{text "A\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> A\<^sub>n \<Longrightarrow> C"}.  The outermost goal
-structure is that of a Horn Clause\glossary{Horn Clause}{An iterated
-implication @{text "A\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> A\<^sub>n \<Longrightarrow> C"}, without any
-outermost quantifiers.  Strictly speaking, propositions @{text
-"A\<^sub>i"} need to be atomic in Horn Clauses, but Isabelle admits
-arbitrary substructure here (nested @{text "\<Longrightarrow>"} and @{text "\<And>"}
-connectives).}: an iterated implication without any
-quantifiers\footnote{Recall that outermost @{text "\<And>x. \<phi>[x]"} is
-always represented via schematic variables in the body: @{text
-"\<phi>[?x]"}.  These may get instantiated during the course of
-reasoning.}.  For @{text "n = 0"} a goal is solved.
+text {*
+  Isabelle/Pure represents a goal\glossary{Tactical goal}{A theorem of
+  \seeglossary{Horn Clause} form stating that a number of subgoals
+  imply the main conclusion, which is marked as a protected
+  proposition.} as a theorem stating that the subgoals imply the main
+  goal: @{text "A\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> A\<^sub>n \<Longrightarrow> C"}.  The outermost goal
+  structure is that of a Horn Clause\glossary{Horn Clause}{An iterated
+  implication @{text "A\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> A\<^sub>n \<Longrightarrow> C"}, without any
+  outermost quantifiers.  Strictly speaking, propositions @{text
+  "A\<^sub>i"} need to be atomic in Horn Clauses, but Isabelle admits
+  arbitrary substructure here (nested @{text "\<Longrightarrow>"} and @{text "\<And>"}
+  connectives).}: i.e.\ an iterated implication without any
+  quantifiers\footnote{Recall that outermost @{text "\<And>x. \<phi>[x]"} is
+  always represented via schematic variables in the body: @{text
+  "\<phi>[?x]"}.  These variables may get instantiated during the course of
+  reasoning.}.  For @{text "n = 0"} a goal is called ``solved''.
 
-The structure of each subgoal @{text "A\<^sub>i"} is that of a general
-Heriditary Harrop Formula @{text "\<And>x\<^sub>1 \<dots> \<And>x\<^sub>k. H\<^sub>1 \<Longrightarrow>
-\<dots> \<Longrightarrow> H\<^sub>m \<Longrightarrow> B"} according to the normal form where any local
-@{text \<And>} is pulled before @{text \<Longrightarrow>}.  Here @{text "x\<^sub>1, \<dots>,
-x\<^sub>k"} are goal parameters, i.e.\ arbitrary-but-fixed entities of
-certain types, and @{text "H\<^sub>1, \<dots>, H\<^sub>m"} are goal
-hypotheses, i.e.\ facts that may be assumed locally.  Together, this
-forms the goal context of the conclusion @{text B} to be established.
-The goal hypotheses may be again arbitrary Harrop Formulas, although
-the level of nesting rarely exceeds 1--2 in practice.
+  The structure of each subgoal @{text "A\<^sub>i"} is that of a
+  general Hereditary Harrop Formula @{text "\<And>x\<^sub>1 \<dots>
+  \<And>x\<^sub>k. H\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> H\<^sub>m \<Longrightarrow> B"} according to the normal
+  form where any local @{text \<And>} is pulled before @{text \<Longrightarrow>}.  Here
+  @{text "x\<^sub>1, \<dots>, x\<^sub>k"} are goal parameters, i.e.\
+  arbitrary-but-fixed entities of certain types, and @{text
+  "H\<^sub>1, \<dots>, H\<^sub>m"} are goal hypotheses, i.e.\ facts that may
+  be assumed locally.  Together, this forms the goal context of the
+  conclusion @{text B} to be established.  The goal hypotheses may be
+  again Hereditary Harrop Formulas, although the level of nesting
+  rarely exceeds 1--2 in practice.
 
-The main conclusion @{text C} is internally marked as a protected
-proposition\glossary{Protected proposition}{An arbitrarily structured
-proposition @{text "C"} which is forced to appear as atomic by
-wrapping it into a propositional identity operator; notation @{text
-"#C"}.  Protecting a proposition prevents basic inferences from
-entering into that structure for the time being.}, which is
-occasionally represented explicitly by the notation @{text "#C"}.
-This ensures that the decomposition into subgoals and main conclusion
-is well-defined for arbitrarily structured claims.
+  The main conclusion @{text C} is internally marked as a protected
+  proposition\glossary{Protected proposition}{An arbitrarily
+  structured proposition @{text "C"} which is forced to appear as
+  atomic by wrapping it into a propositional identity operator;
+  notation @{text "#C"}.  Protecting a proposition prevents basic
+  inferences from entering into that structure for the time being.},
+  which is occasionally represented explicitly by the notation @{text
+  "#C"}.  This ensures that the decomposition into subgoals and main
+  conclusion is well-defined for arbitrarily structured claims.
 
-\medskip Basic goal management is performed via the following
-Isabelle/Pure rules:
+  \medskip Basic goal management is performed via the following
+  Isabelle/Pure rules:
 
   \[
   \infer[@{text "(init)"}]{@{text "C \<Longrightarrow> #C"}}{} \qquad
@@ -79,14 +85,14 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML "Goal.init"}~@{text "\<phi>"} initializes a tactical goal with
+  \item @{ML "Goal.init"}~@{text "\<phi>"} initializes a tactical goal from
   the type-checked proposition @{text \<phi>}.
 
   \item @{ML "Goal.finish"}~@{text "th"} checks whether theorem @{text
-  "th"} is a solved goal configuration (zero subgoals), and concludes
+  "th"} is a solved goal configuration (no subgoals), and concludes
   the result by removing the goal protection.
 
-  \item @{ML "Goal.protect"}~@{text "th"} protects the whole statement
+  \item @{ML "Goal.protect"}~@{text "th"} protects the full statement
   of theorem @{text "th"}.
 
   \item @{ML "Goal.conclude"}~@{text "th"} removes the goal protection
@@ -139,12 +145,10 @@ text {*
   ill-behaved tactics could have destroyed that information.
 
   Several simultaneous claims may be handled within a single goal
-  statement by using meta-level conjunction internally.\footnote{This
-  is merely syntax for certain derived statements within
-  Isabelle/Pure, there is no need to introduce a separate conjunction
-  operator.}  The whole configuration may be considered within a
-  context of arbitrary-but-fixed parameters and hypotheses, which will
-  be available as local facts during the proof and discharged into
+  statement by using meta-level conjunction internally.  The whole
+  configuration may be considered within a context of
+  arbitrary-but-fixed parameters and hypotheses, which will be
+  available as local facts during the proof and discharged into
   implications in the result.
 
   All of these administrative tasks are packaged into a separate
