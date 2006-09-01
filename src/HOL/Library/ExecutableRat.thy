@@ -81,11 +81,12 @@ section {* type serializations *}
 types_code
   rat ("{*erat*}")
 
-code_generate (ml, haskell) Rat
+code_gen Rat
+  (SML) (Haskell)
 
-code_typapp rat
-  ml ("{*erat*}")
-  haskell ("{*erat*}")
+code_type rat
+  (SML "{*erat*}")
+  (Haskell "{*erat*}")
 
 
 section {* const serializations *}
@@ -103,12 +104,11 @@ consts_code
   Orderings.less_eq :: "rat \<Rightarrow> rat \<Rightarrow> bool" ("{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
   "op =" :: "rat \<Rightarrow> rat \<Rightarrow> bool" ("{*eq_rat*}")
 
-code_constapp
-  "arbitrary :: erat"
-    ml ("raise/ (Fail/ \"non-defined rational number\")")
-    haskell ("error/ \"non-defined rational number\"")
+code_const "arbitrary :: erat"
+  (SML "raise/ (Fail/ \"non-defined rational number\")")
+  (Haskell "error/ \"non-defined rational number\"")
 
-code_generate (ml, haskell)
+code_gen
   of_quotient
   "0::erat"
   "1::erat"
@@ -118,37 +118,46 @@ code_generate (ml, haskell)
   "inverse :: erat \<Rightarrow> erat"
   "op <= :: erat \<Rightarrow> erat \<Rightarrow> bool"
   eq_rat
+  (SML) (Haskell)
 
-code_constapp
-  Fract
-    ml ("{*of_quotient*}")
-    haskell ("{*of_quotient*}")
-  "0 :: rat"
-    ml ("{*0::erat*}")
-    haskell ("{*1::erat*}")
-  "1 :: rat"
-    ml ("{*1::erat*}")
-    haskell ("{*1::erat*}")
-  "op + :: rat \<Rightarrow> rat \<Rightarrow> rat"
-    ml ("{*op + :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
-    haskell ("{*op + :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
-  "uminus :: rat \<Rightarrow> rat"
-    ml ("{*uminus :: erat \<Rightarrow> erat*}")
-    haskell ("{*uminus :: erat \<Rightarrow> erat*}")
-  "op * :: rat \<Rightarrow> rat \<Rightarrow> rat"
-    ml ("{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
-    haskell ("{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
-  "inverse :: rat \<Rightarrow> rat"
-    ml ("{*inverse :: erat \<Rightarrow> erat*}")
-    haskell ("{*inverse :: erat \<Rightarrow> erat*}")
-  "divide :: rat \<Rightarrow> rat \<Rightarrow> rat"
-    ml ("{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}/ _/ ({*inverse :: erat \<Rightarrow> erat*}/ _)")
-    haskell ("{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}/ _/ ({*inverse :: erat \<Rightarrow> erat*}/ _)")
-  "op <= :: rat \<Rightarrow> rat \<Rightarrow> bool"
-    ml ("{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
-    haskell ("{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
-  "op = :: rat \<Rightarrow> rat \<Rightarrow> bool"
-    ml ("{*eq_rat*}")
-    haskell ("{*eq_rat*}")
+code_const Fract
+  (SML "{*of_quotient*}")
+  (Haskell "{*of_quotient*}")
+
+code_const "0 :: rat"
+  (SML "{*0::erat*}")
+  (Haskell "{*1::erat*}")
+
+code_const "1 :: rat"
+  (SML "{*1::erat*}")
+  (Haskell "{*1::erat*}")
+
+code_const "op + :: rat \<Rightarrow> rat \<Rightarrow> rat"
+  (SML "{*op + :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
+  (Haskell "{*op + :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
+
+code_const "uminus :: rat \<Rightarrow> rat"
+  (SML "{*uminus :: erat \<Rightarrow> erat*}")
+  (Haskell "{*uminus :: erat \<Rightarrow> erat*}")
+
+code_const "op * :: rat \<Rightarrow> rat \<Rightarrow> rat"
+  (SML "{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
+  (Haskell "{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
+
+code_const "inverse :: rat \<Rightarrow> rat"
+  (SML "{*inverse :: erat \<Rightarrow> erat*}")
+  (Haskell "{*inverse :: erat \<Rightarrow> erat*}")
+
+code_const "divide :: rat \<Rightarrow> rat \<Rightarrow> rat"
+  (SML "{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}/ _/ ({*inverse :: erat \<Rightarrow> erat*}/ _)")
+  (Haskell "{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}/ _/ ({*inverse :: erat \<Rightarrow> erat*}/ _)")
+
+code_const "op <= :: rat \<Rightarrow> rat \<Rightarrow> bool"
+  (SML "{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
+  (Haskell "{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
+
+code_const "op = :: rat \<Rightarrow> rat \<Rightarrow> bool"
+  (SML "{*eq_rat*}")
+  (Haskell "{*eq_rat*}")
 
 end

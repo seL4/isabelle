@@ -501,9 +501,9 @@ consts_code
   arbitrary :: "'a"       ("(error \"arbitrary\")")
   arbitrary :: "'a \<Rightarrow> 'b" ("(fn '_ => error \"arbitrary\")")
 
-code_constapp
-  "arbitrary :: 'a"       ml (target_atom "(error \"arbitrary\")")
-  "arbitrary :: 'a \<Rightarrow> 'b" ml (target_atom "(fn '_ => error \"arbitrary\")")
+code_const "arbitrary :: 'a" and "arbitrary :: 'a \<Rightarrow> 'b"
+  (SML target_atom "(error \"arbitrary\")"
+    and target_atom "(fn '_ => error \"arbitrary\")")
 
 code_module Norm
 contains

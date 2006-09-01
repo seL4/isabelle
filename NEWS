@@ -48,16 +48,45 @@ check the given source text as ML type/structure, printing verbatim.
 Haskell-like type classes in Isabelle. See HOL/ex/Classpackage.thy for examples.
 
 * Yet another code generator framework allows to generate executable code
-for ML and Haskell (including "class"es). Most basic use cases:
+for ML and Haskell (including "class"es). A short usage sketch:
 
     internal compilation:
-        code_serialize ml <list of constants (term syntax)> (-)
-    writing ML code to a file:
-        code_serialize ml <list of constants (term syntax)> (<filename>)
+        code_gen <list of constants (term syntax)> (SML -)
+    writing SML code to a file:
+        code_gen <list of constants (term syntax)> (SML <filename>)
     writing Haskell code to a bunch of files:
-        code_serialize haskell <list of constants (term syntax)> (<filename>)
+        code_gen <list of constants (term syntax)> (Haskell <filename>)
 
-See HOL/ex/Codegenerator.thy for examples.
+Reasonable default setup of framework in HOL/Main.
+
+See HOL/ex/Code*.thy for examples.
+
+Theorem attributs for selecting and transforming function equations theorems:
+
+    [code fun]:       select a theorem as function equation for a specific constant
+    [code nofun]:     deselect a theorem as function equation for a specific constant
+    [code inline]:    select an equation theorem for unfolding (inlining) in place
+    [code noinline]:  deselect an equation theorem for unfolding (inlining) in place
+
+User-defined serializations (target in {SML, Haskell}):
+
+    code_const <and-list of constants (term syntax)>
+      {(target) <and-list of const target syntax>}+
+
+    code_type <and-list of type constructors>
+      {(target) <and-list of type target syntax>}+
+
+    code_instance <and-list of instances>
+      {(target)}+
+        where instance ::= <type constructor> :: <class>
+
+    code_class <and_list of classes>
+      {(target) <and-list of class target syntax>}+
+        where class target syntax ::= <class name> {where {<classop> == <target syntax>}+}?
+
+For code_instance and code_class, target SML is silently ignored.
+
+See HOL theories and HOL/ex/Code*.thy for usage examples.
 
 * Command 'no_translations' removes translation rules from theory
 syntax.

@@ -2650,6 +2650,28 @@ fun int_of_nibble h =
 fun nibble_of_int i =
   if i <= 9 then chr (ord "0" + i) else chr (ord "A" + i - 10);
 
+fun dest_char (Const ("List.char.Char", _) $ c1 $ c2) =
+      let
+        fun dest_nibble (Const (s, _)) = (int_of_nibble o unprefix "List.nibble.Nibble") s
+          | dest_nibble _ = raise Match;
+      in
+        (SOME (dest_nibble c1 * 16 + dest_nibble c2)
+        handle Fail _ => NONE | Match => NONE)
+      end
+  | dest_char _ = NONE;
+
+val print_list = Pretty.enum "," "[" "]";
+
+fun print_char c =
+  let
+    val i = ord c
+  in if i < 32
+    then prefix "\\" (string_of_int i)
+    else c
+  end;
+
+val print_string = quote;
+
 fun term_string s =
   let
     val ty_n = Type ("List.nibble", []);
@@ -2693,60 +2715,8 @@ print_ast_translation {*
   in [("Char", char_ast_tr'), ("@list", list_ast_tr')] end;
 *}
 
+
 subsubsection {* Code generator setup *}
-
-ML {*
-local
-
-fun list_codegen thy defs gr dep thyname b t =
-  let val (gr', ps) = foldl_map (Codegen.invoke_codegen thy defs dep thyname false)
-    (gr, HOLogic.dest_list t)
-  in SOME (gr', Pretty.list "[" "]" ps) end handle TERM _ => NONE;
-
-fun dest_char (Const ("List.char.Char", _) $ c1 $ c2) =
-      let
-        fun dest_nibble (Const (s, _)) = (HOList.int_of_nibble o unprefix "List.nibble.Nibble") s
-          | dest_nibble _ = raise Match;
-      in
-        (SOME (dest_nibble c1 * 16 + dest_nibble c2)
-        handle Fail _ => NONE | Match => NONE)
-      end
-  | dest_char _ = NONE;
-
-fun char_codegen thy defs gr dep thyname b t =
-  case (Option.map chr o dest_char) t 
-   of SOME c =>
-        if Symbol.is_printable c
-        then SOME (gr, (Pretty.quote o Pretty.str) c)
-        else NONE
-    | NONE => NONE;
-
-val print_list = Pretty.enum "," "[" "]";
-
-fun print_char c =
-  let
-    val i = ord c
-  in if i < 32
-    then prefix "\\" (string_of_int i)
-    else c
-  end;
-
-val print_string = quote;
-
-in
-
-val list_codegen_setup =
-  Codegen.add_codegen "list_codegen" list_codegen
-  #> Codegen.add_codegen "char_codegen" char_codegen
-  #> CodegenPackage.add_pretty_list "ml" "List.list.Nil" "List.list.Cons"
-       print_list NONE (7, "::")
-  #> CodegenPackage.add_pretty_list "haskell" "List.list.Nil" "List.list.Cons"
-       print_list (SOME (print_char, print_string)) (5, ":")
-  #> CodegenPackage.add_appconst
-       ("List.char.Char", CodegenPackage.appgen_char dest_char);
-
-end;
-*}
 
 types_code
   "list" ("_ list")
@@ -2773,26 +2743,50 @@ fun gen_char i = chr (random_range (ord "a") (Int.min (ord "a" + i, ord "z")));
 
 consts_code "Cons" ("(_ ::/ _)")
 
-code_typapp
-  list
-    ml ("_ list")
-    haskell (target_atom "[_]")
+code_type list
+  (SML "_ list")
+  (Haskell target_atom "[_]")
 
-code_constapp
-  Nil
-    ml (target_atom "[]")
-    haskell (target_atom "[]")
+code_const Nil
+  (SML target_atom "[]")
+  (Haskell target_atom "[]")
 
-code_typapp
-  char
-    ml (target_atom "char")
-    haskell (target_atom "Char")
+code_type char
+  (SML target_atom "char")
+  (Haskell target_atom "Char")
 
-code_constapp
-  Char
-    ml (target_atom "(__,/ __)")
-    haskell (target_atom "(__,/ __)")
+code_const Char
+  (SML target_atom "(__,/ __)")
+  (Haskell target_atom "(__,/ __)")
 
-setup list_codegen_setup
+setup {*
+let
+
+fun list_codegen thy defs gr dep thyname b t =
+  let val (gr', ps) = foldl_map (Codegen.invoke_codegen thy defs dep thyname false)
+    (gr, HOLogic.dest_list t)
+  in SOME (gr', Pretty.list "[" "]" ps) end handle TERM _ => NONE;
+
+fun char_codegen thy defs gr dep thyname b t =
+  case (Option.map chr o HOList.dest_char) t 
+   of SOME c =>
+        if Symbol.is_printable c
+        then SOME (gr, (Pretty.quote o Pretty.str) c)
+        else NONE
+    | NONE => NONE;
+
+in
+
+  Codegen.add_codegen "list_codegen" list_codegen
+  #> Codegen.add_codegen "char_codegen" char_codegen
+  #> CodegenPackage.add_pretty_list "SML" "List.list.Nil" "List.list.Cons"
+       HOList.print_list NONE (7, "::")
+  #> CodegenPackage.add_pretty_list "Haskell" "List.list.Nil" "List.list.Cons"
+       HOList.print_list (SOME (HOList.print_char, HOList.print_string)) (5, ":")
+  #> CodegenPackage.add_appconst
+       ("List.char.Char", CodegenPackage.appgen_char HOList.dest_char)
+
+end;
+*}
 
 end

@@ -90,21 +90,19 @@ code_constname
   g "Mymod.A.f"
   h "Mymod.A.B.f"
 
-code_generate (ml, haskell)
-  n one "0::int" "0::nat" "1::int" "1::nat"
-code_generate (ml, haskell)
-  fac
-code_generate
-  xor
-code_generate
+code_gen xor
+code_gen one "0::nat" "1::nat"
+code_gen "0::int" "1::int" n fac
+  (SML) (Haskell)
+code_gen
   "op + :: nat \<Rightarrow> nat \<Rightarrow> nat"
   "op - :: nat \<Rightarrow> nat \<Rightarrow> nat"
   "op * :: nat \<Rightarrow> nat \<Rightarrow> nat"
   "op < :: nat \<Rightarrow> nat \<Rightarrow> bool"
   "op <= :: nat \<Rightarrow> nat \<Rightarrow> bool"
-code_generate
+code_gen
   Pair fst snd Let split swap swapp appl
-code_generate (ml, haskell)
+code_gen
   k
   "op + :: int \<Rightarrow> int \<Rightarrow> int"
   "op - :: int \<Rightarrow> int \<Rightarrow> int"
@@ -114,15 +112,16 @@ code_generate (ml, haskell)
   fac
   "op div :: int \<Rightarrow> int \<Rightarrow> int"
   "op mod :: int \<Rightarrow> int \<Rightarrow> int"  
-code_generate
+  (SML) (Haskell)
+code_gen
   Inl Inr
-code_generate
+code_gen
   None Some
-code_generate
+code_gen
   hd tl "op @" ps qs
-code_generate
+code_gen
   mut1 mut2
-code_generate (ml, haskell)
+code_gen
   "op @" filter concat foldl foldr hd tl
   last butlast list_all2
   map 
@@ -143,9 +142,10 @@ code_generate (ml, haskell)
   rotate1
   rotate
   splice
-code_generate
+  (SML) (Haskell)
+code_gen
   foo1 foo3
-code_generate (ml, haskell)
+code_gen
   "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"
   "op = :: nat \<Rightarrow> nat \<Rightarrow> bool"
   "op = :: int \<Rightarrow> int \<Rightarrow> bool"
@@ -156,9 +156,9 @@ code_generate (ml, haskell)
   "op = :: point \<Rightarrow> point \<Rightarrow> bool"
   "op = :: mut1 \<Rightarrow> mut1 \<Rightarrow> bool"
   "op = :: mut2 \<Rightarrow> mut2 \<Rightarrow> bool"
-code_generate
+code_gen
   f g h
 
-code_serialize ml (-)
+code_gen (SML -)
 
 end

@@ -194,7 +194,7 @@ datatype ('a, 'b) bair =
 and ('a, 'b) cair =
     Cair 'a 'b
 
-code_generate term_of
+code_gen term_of
 
 ML {* Eval.term "Shift (Cair (4::nat) [Suc 0])" *}
 

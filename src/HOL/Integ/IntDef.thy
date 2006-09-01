@@ -902,26 +902,29 @@ consts_code
   "Orderings.less_eq" :: "int => int => bool" ("(_ <=/ _)")
   "neg"                              ("(_ < 0)")
 
-code_typapp int
-  ml (target_atom "IntInf.int")
-  haskell (target_atom "Integer")
+code_type int
+  (SML target_atom "IntInf.int")
+  (Haskell target_atom "Integer")
 
-code_constapp
-  "op + :: int \<Rightarrow> int \<Rightarrow> int"
-    ml ("IntInf.+ (_, _)")
-    haskell (infixl 6 "+")
-  "op * :: int \<Rightarrow> int \<Rightarrow> int"
-    ml ("IntInf.* (_, _)")
-    haskell (infixl 7 "*")
-  "uminus :: int \<Rightarrow> int"
-    ml (target_atom "IntInf.~")
-    haskell (target_atom "negate")
-  "op = :: int \<Rightarrow> int \<Rightarrow> bool"
-    ml ("(op =) (_ : IntInf.int, _)")
-    haskell (infixl 4 "==")
-  "op <= :: int \<Rightarrow> int \<Rightarrow> bool"
-    ml ("IntInf.<= (_, _)")
-    haskell (infix 4 "<=")
+code_const "op + :: int \<Rightarrow> int \<Rightarrow> int"
+  (SML "IntInf.+ (_, _)")
+  (Haskell infixl 6 "+")
+
+code_const "op * :: int \<Rightarrow> int \<Rightarrow> int"
+  (SML "IntInf.* (_, _)")
+  (Haskell infixl 7 "*")
+
+code_const "uminus :: int \<Rightarrow> int"
+  (SML target_atom "IntInf.~")
+  (Haskell target_atom "negate")
+
+code_const "op = :: int \<Rightarrow> int \<Rightarrow> bool"
+  (SML "(op =) (_ : IntInf.int, _)")
+  (Haskell infixl 4 "==")
+
+code_const "op <= :: int \<Rightarrow> int \<Rightarrow> bool"
+  (SML "IntInf.<= (_, _)")
+  (Haskell infix 4 "<=")
 
 ML {*
 fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",

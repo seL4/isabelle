@@ -234,9 +234,9 @@ fun gen_set' aG i j = frequency
 and gen_set aG i = gen_set' aG i i;
 *}
 
-code_typapp set
-  ml ("_ list")
-  haskell (target_atom "[_]")
+code_type set
+  (SML "_ list")
+  (Haskell target_atom "[_]")
 
 
 subsection {* const serializations *}
@@ -261,46 +261,57 @@ code_constname
   "ExecutableSet.insertl" "List.insertl"
   "ExecutableSet.drop_first" "List.drop_first"
 
-code_generate (ml, haskell) 
+code_gen
   insertl unionl intersect flip subtract map_distinct
   unions intersects map_union map_inter Blall Blex
+  (SML) (Haskell) 
 
-code_constapp
-  "{}"
-    ml (target_atom "[]")
-    haskell (target_atom "[]")
-  insert
-    ml ("{*insertl*}")
-    haskell ("{*insertl*}")
-  "op \<union>"
-    ml ("{*unionl*}")
-    haskell ("{*unionl*}")
-  "op \<inter>"
-    ml ("{*intersect*}")
-    haskell ("{*intersect*}")
-  "op - :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
-    ml ("{*flip subtract*}")
-    haskell ("{*flip subtract*}")
-  image
-    ml ("{*map_distinct*}")
-    haskell ("{*map_distinct*}")
-  "Union"
-    ml ("{*unions*}")
-    haskell ("{*unions*}")
-  "Inter"
-    ml ("{*intersects*}")
-    haskell ("{*intersects*}")
-  UNION
-    ml ("{*map_union*}")
-    haskell ("{*map_union*}")
-  INTER
-    ml ("{*map_inter*}")
-    haskell ("{*map_inter*}")
-  Ball
-    ml ("{*Blall*}")
-    haskell ("{*Blall*}")
-  Bex
-    ml ("{*Blex*}")
-    haskell ("{*Blex*}")
+code_const "{}"
+  (SML target_atom "[]")
+  (Haskell target_atom "[]")
+
+code_const insert
+  (SML "{*insertl*}")
+  (Haskell "{*insertl*}")
+
+code_const "op \<union>"
+  (SML "{*unionl*}")
+  (Haskell "{*unionl*}")
+
+code_const "op \<inter>"
+  (SML "{*intersect*}")
+  (Haskell "{*intersect*}")
+
+code_const "op - :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
+  (SML "{*flip subtract*}")
+  (Haskell "{*flip subtract*}")
+
+code_const image
+  (SML "{*map_distinct*}")
+  (Haskell "{*map_distinct*}")
+
+code_const "Union"
+  (SML "{*unions*}")
+  (Haskell "{*unions*}")
+
+code_const "Inter"
+  (SML "{*intersects*}")
+  (Haskell "{*intersects*}")
+
+code_const UNION
+  (SML "{*map_union*}")
+  (Haskell "{*map_union*}")
+
+code_const INTER
+  (SML "{*map_inter*}")
+  (Haskell "{*map_inter*}")
+
+code_const Ball
+  (SML "{*Blall*}")
+  (Haskell "{*Blall*}")
+
+code_const Bex
+  (SML "{*Blex*}")
+  (Haskell "{*Blex*}")
 
 end

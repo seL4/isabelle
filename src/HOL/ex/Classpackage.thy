@@ -319,10 +319,10 @@ definition
   "x2 = X (1::int) 2 3"
   "y2 = Y (1::int) 2 3"
 
-code_generate "op \<otimes>" \<one> inv
-code_generate (ml, haskell) X Y
-code_generate (ml, haskell) x1 x2 y2
+code_gen "op \<otimes>" \<one> inv
+code_gen X Y (SML) (Haskell)
+code_gen x1 x2 y2 (SML) (Haskell)
 
-code_serialize ml (-)
+code_gen (SML -)
 
 end

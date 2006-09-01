@@ -61,23 +61,17 @@ definition
   "nat_less_equal m n = (int m <= int n)"
   "nat_eq m n = (int m = int n)"
 
-code_typapp nat
-  ml (target_atom "IntInf.int")
-  haskell (target_atom "Integer")
+code_type nat
+  (SML target_atom "IntInf.int")
+  (Haskell target_atom "Integer")
 
-code_constapp
-  "0::nat" (* all constructors of nat must be hidden *)
-    ml (target_atom "(0 :: IntInf.int)")
-    haskell (target_atom "0")
-  Suc (* all constructors of nat must be hidden *)
-    ml ("IntInf.+ (_, 1)")
-    haskell ("(+) 1 _")
-  nat
-    ml (target_atom "(fn n : IntInf.int => if n < 0 then 0 else n)")
-    haskell (target_atom "(\\n :: Int -> if n < 0 then 0 else n)")
-  int
-    ml ("_")
-    haskell ("_")
+code_const "0::nat" and Suc (*all constructors of nat must be hidden*)
+  (SML target_atom "(0 :: IntInf.int)" and "IntInf.+ (_, 1)")
+  (Haskell target_atom "0" and "(+) 1 _")
+
+code_const nat and int
+  (SML target_atom "(fn n : IntInf.int => if n < 0 then 0 else n)" and "_")
+  (Haskell target_atom "(\\n :: Int -> if n < 0 then 0 else n)" and "_")
 
 text {*
   Eliminate @{const "0::nat"} and @{const "1::nat"}

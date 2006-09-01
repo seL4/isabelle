@@ -5,7 +5,7 @@
 header {* Monolithic strings for ML  *}
 
 theory MLString
-imports Main
+imports List
 begin
 
 section {* Monolithic strings for ML *}
@@ -58,31 +58,20 @@ end;
 
 subsection {* Code serialization *}
 
-code_typapp ml_string
-  ml (target_atom "string")
-  haskell (target_atom "String")
+code_type ml_string
+  (SML target_atom "string")
+  (Haskell target_atom "String")
 
-code_constapp STR
-  haskell ("_")
+code_const STR
+  (Haskell "_")
 
 setup {*
-let
-  fun print_char c =
-    let
-      val i = ord c
-    in if i < 32
-      then prefix "\\" (string_of_int i)
-      else c
-    end;
-  val print_string = quote;
-in 
-  CodegenPackage.add_pretty_ml_string "ml" "List.list.Nil" "List.list.Cons" "MLString.ml_string.STR"
-    print_char print_string "String.implode"
-end
+  CodegenPackage.add_pretty_ml_string "SML" "List.list.Nil" "List.list.Cons" "MLString.ml_string.STR"
+    HOList.print_char HOList.print_string "String.implode"
 *}
 
-code_constapp explode
-  ml (target_atom "String.explode")
-  haskell ("_")
+code_const explode
+  (SML target_atom "String.explode")
+  (Haskell "_")
 
 end

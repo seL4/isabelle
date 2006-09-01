@@ -167,12 +167,13 @@ fun value h s =
 end;
 *}
 
-code_typapp randseed
-  ml (target_atom "Random.seed")
+code_type randseed
+  (SML target_atom "Random.seed")
 
-code_constapp random_int
-  ml (target_atom "Random.value")
+code_const random_int
+  (SML target_atom "Random.value")
 
-code_serialize ml select select_weight (-)
+code_gen select select_weight
+  (SML -)
 
 end

@@ -77,15 +77,12 @@ end;
 
 subsection {* Code serialization setup *}
 
-code_typapp
-  "typ"  ml (target_atom "Term.typ")
-  "term" ml (target_atom "Term.term")
+code_type "typ" and "term"
+  (SML target_atom "Term.typ" and target_atom "Term.term")
 
-code_constapp
-  Type  ml ("Term.Type (_, _)")
-  TFix  ml ("Term.TFree (_, _)")
-  Const ml ("Term.Const (_, _)")
-  App   ml ("Term.$ (_, _)")
-  Fix   ml ("Term.Free (_, _)")
+code_const Type and TFix
+  and Const and App and Fix
+  (SML "Term.Type (_, _)" and "Term.TFree (_, _)"
+    and "Term.Const (_, _)" and "Term.$ (_, _)" and "Term.Free (_, _)")
 
 end

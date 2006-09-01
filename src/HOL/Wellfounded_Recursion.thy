@@ -295,10 +295,9 @@ setup {*
   CodegenPackage.add_appconst ("Wellfounded_Recursion.wfrec", CodegenPackage.appgen_wfrec)
 *}
 
-code_constapp
-  wfrec
-    ml (target_atom "(let fun wfrec f x = f (wfrec f) x in wfrec end)")
-    haskell (target_atom "(let wfrec f x = f (wfrec f) x in wfrec)")
+code_const wfrec
+  (SML target_atom "(let fun wfrec f x = f (wfrec f) x in wfrec end)")
+  (Haskell target_atom "(let wfrec f x = f (wfrec f) x in wfrec)")
 
 subsection{*Variants for TFL: the Recdef Package*}
 

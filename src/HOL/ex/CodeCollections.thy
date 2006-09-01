@@ -402,16 +402,16 @@ definition
   "test1 = sum [None, Some True, None, Some False]"
   "test2 = (inf :: nat \<times> unit)"
 
-code_generate eq
-code_generate "op <<="
-code_generate "op <<"
-code_generate inf
-code_generate between
-code_generate index
-code_generate sum
-code_generate test1
-code_generate test2
+code_gen eq
+code_gen "op <<="
+code_gen "op <<"
+code_gen inf
+code_gen between
+code_gen index
+code_gen sum
+code_gen test1
+code_gen test2
 
-code_serialize ml (-)
+code_gen (SML -)
 
 end

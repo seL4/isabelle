@@ -261,61 +261,40 @@ lemma split_is_prod_case [code inline]:
   "split = prod_case"
 by (simp add: expand_fun_eq split_def prod.cases)
 
-code_typapp bool
-  ml (target_atom "bool")
-  haskell (target_atom "Bool")
+code_type bool
+  (SML target_atom "bool")
+  (Haskell target_atom "Bool")
 
-code_constapp
-  True
-    ml (target_atom "true")
-    haskell (target_atom "True")
-  False
-    ml (target_atom "false")
-    haskell (target_atom "False")
-  Not
-    ml (target_atom "not")
-    haskell (target_atom "not")
-  "op &"
-    ml (infixl 1 "andalso")
-    haskell (infixl 3 "&&")
-  "op |"
-    ml (infixl 0 "orelse")
-    haskell (infixl 2 "||")
-  If
-    ml (target_atom "(if __/ then __/ else __)")
-    haskell (target_atom "(if __/ then __/ else __)")
+code_const True and False and Not and "op &" and "op |" and If
+  (SML target_atom "true" and target_atom "false" and target_atom "not"
+    and infixl 1 "andalso" and infixl 0 "orelse"
+    and target_atom "(if __/ then __/ else __)")
+  (Haskell target_atom "True" and target_atom "False" and target_atom "not"
+    and infixl 3 "&&" and infixl 2 "||"
+    and target_atom "(if __/ then __/ else __)")
 
-code_typapp
-  *
-    ml (infix 2 "*")
-    haskell (target_atom "(__,/ __)")
+code_type *
+  (SML infix 2 "*")
+  (Haskell target_atom "(__,/ __)")
 
-code_constapp
-  Pair
-    ml (target_atom "(__,/ __)")
-    haskell (target_atom "(__,/ __)")
+code_const Pair
+  (SML target_atom "(__,/ __)")
+  (Haskell target_atom "(__,/ __)")
 
-code_typapp
-  unit
-    ml (target_atom "unit")
-    haskell (target_atom "()")
+code_type unit
+  (SML target_atom "unit")
+  (Haskell target_atom "()")
 
-code_constapp
-  Unity
-    ml (target_atom "()")
-    haskell (target_atom "()")
+code_const Unity
+  (SML target_atom "()")
+  (Haskell target_atom "()")
 
-code_typapp
-  option
-    ml ("_ option")
-    haskell ("Maybe _")
+code_type option
+  (SML "_ option")
+  (Haskell "Maybe _")
 
-code_constapp
-  None
-    ml (target_atom "NONE")
-    haskell (target_atom "Nothing")
-  Some
-    ml (target_atom "SOME")
-    haskell (target_atom "Just")
+code_const None and Some
+  (SML target_atom "NONE" and target_atom "SOME")
+  (Haskell target_atom "Nothing" and target_atom "Just")
 
 end

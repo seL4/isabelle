@@ -117,9 +117,9 @@ lemma [code fun]:
   "eq k l = eq_integer k l"
 unfolding eq_integer_def eq_def ..
 
-code_constapp eq_integer
-  ml (infixl 6 "=")
-  haskell (infixl 4 "==")
+code_const eq_integer
+  (SML infixl 6 "=")
+  (Haskell infixl 4 "==")
 
 
 subsection {* codegenerator setup *}
@@ -134,33 +134,34 @@ declare eq_def [symmetric, code inline]
 subsection {* haskell setup *}
 
 code_class eq
-  haskell "Eq" (eq "(==)")
+  (Haskell "Eq" where eq \<equiv> "(==)")
 
-code_instance
-  (eq :: bool) haskell
-  (eq :: unit) haskell
-  (eq :: *) haskell
-  (eq :: option) haskell
-  (eq :: list) haskell
-  (eq :: char) haskell
-  (eq :: int) haskell
+code_instance eq :: bool and eq :: unit and eq :: *
+  and eq :: option and eq :: list and eq :: char and eq :: int
+  (Haskell - and - and - and - and - and - and -)
 
-code_constapp
-  "eq \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
-    haskell (infixl 4 "==")
-  "eq \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
-    haskell (infixl 4 "==")
-  "eq \<Colon> 'a\<Colon>eq \<times> 'b\<Colon>eq \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
-    haskell (infixl 4 "==")
-  "eq \<Colon> 'a\<Colon>eq option \<Rightarrow> 'a option \<Rightarrow> bool"
-    haskell (infixl 4 "==")
-  "eq \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> bool"
-    haskell (infixl 4 "==")
-  "eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
-    haskell (infixl 4 "==")
-  "eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
-    haskell (infixl 4 "==")
-  "eq"
-    haskell (infixl 4 "==")
+code_const "eq \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_const "eq \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_const "eq \<Colon> 'a\<Colon>eq \<times> 'b\<Colon>eq \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_const "eq \<Colon> 'a\<Colon>eq option \<Rightarrow> 'a option \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_const "eq \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_const "eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_const "eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_const "eq"
+  (Haskell infixl 4 "==")
 
 end

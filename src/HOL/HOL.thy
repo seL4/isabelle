@@ -1420,9 +1420,8 @@ setup {*
   CodegenTheorems.init_obj ((TrueI, FalseE), (conjI, thm "HOL.atomize_eq" |> Thm.symmetric))
 *}
 
-code_constapp
-  "op =" (* an intermediate solution for polymorphic equality *)
-    ml (infixl 6 "=")
-    haskell (infixl 4 "==")
+code_const "op =" (* an intermediate solution for polymorphic equality *)
+  (SML infixl 6 "=")
+  (Haskell infixl 4 "==")
 
 end
