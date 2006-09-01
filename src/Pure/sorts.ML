@@ -30,7 +30,6 @@ sig
     arities: (class * (class * sort list)) list Symtab.table}
   val classes: algebra -> class list
   val super_classes: algebra -> class -> class list
-  val all_super_classes: algebra -> class -> class list
   val class_less: algebra -> class * class -> bool
   val class_le: algebra -> class * class -> bool
   val sort_eq: algebra -> sort * sort -> bool
@@ -44,7 +43,7 @@ sig
   val add_arities: Pretty.pp -> string * (class * sort list) list -> algebra -> algebra
   val empty_algebra: algebra
   val merge_algebra: Pretty.pp -> algebra * algebra -> algebra
-  val project_algebra: Pretty.pp -> (class -> bool) -> algebra -> algebra
+  val project_algebra: Pretty.pp -> (class -> bool) -> algebra -> algebra * (sort -> sort)
   type class_error
   val class_error: Pretty.pp -> class_error -> 'a
   exception CLASS_ERROR of class_error
@@ -58,7 +57,7 @@ sig
   val witness_sorts: algebra -> string list -> sort list -> sort list -> (typ * sort) list
 end;
 
-structure Sorts: SORTS =
+structure Sorts (*: SORTS *) =
 struct
 
 
@@ -123,7 +122,6 @@ fun map_arities f (Algebra {classes, arities}) = make_algebra (classes, f aritie
 
 val classes = Graph.keys o classes_of;
 val super_classes = Graph.imm_succs o classes_of;
-fun all_super_classes algebra class = Graph.all_succs (classes_of algebra) [class];
 
 
 (* class relations *)
@@ -283,13 +281,21 @@ fun merge_algebra pp
 
 fun project_algebra pp proj (algebra as Algebra {classes, arities}) =
   let
-    val proj_sort = norm_sort algebra o filter proj o Graph.all_succs classes;
-    fun proj_arity (c, (_, Ss)) =
-      if proj c then SOME (c, (c, map proj_sort Ss)) else NONE;
     val classes' = classes |> Graph.project proj;
+    val proj' = can (Graph.get_node classes');
+    fun proj_classes class =
+      if proj' class
+      then [class]
+      else (norm_sort algebra o maps proj_classes o super_classes algebra) class;
+    val class_subst = fold (fn class => Symtab.update (class, proj_classes class))
+      (Graph.keys classes) Symtab.empty;
+    fun proj_arity (c, (_, Ss)) =
+      if proj' c then SOME (c,
+        (c, map (norm_sort algebra o filter proj' o Graph.all_succs classes) Ss)) else NONE;
     val arities' = arities |> (Symtab.map o map_filter) proj_arity;
-  in rebuild_arities pp (make_algebra (classes', arities')) end;
-
+    val algebra' = rebuild_arities pp (make_algebra (classes', arities'));
+    val proj_sort = norm_sort algebra' o maps (the o Symtab.lookup class_subst);
+  in (rebuild_arities pp (make_algebra (classes', arities')), proj_sort) end;
 
 
 (** sorts of types **)
