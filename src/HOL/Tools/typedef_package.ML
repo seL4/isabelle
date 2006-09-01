@@ -24,7 +24,6 @@ sig
   val typedef_i: (bool * string) * (bstring * string list * mixfix) * term
     * (string * string) option -> theory -> Proof.state
   val setup: theory -> theory
-  structure TypedefData: THEORY_DATA
 end;
 
 structure TypedefPackage: TYPEDEF_PACKAGE =
