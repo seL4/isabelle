@@ -29,9 +29,7 @@ sig
   val certify_sort: theory -> sort -> sort
   val read_class: theory -> xstring -> class
   val read_sort: theory -> string -> sort
-  val operational_sort_of: theory -> sort -> sort
-  val operational_algebra: theory -> Sorts.algebra
-  val the_superclasses: theory -> class -> class list
+  val operational_algebra: theory -> Sorts.algebra * (sort -> sort)
   val the_consts_sign: theory -> class -> string * (string * typ) list
   val the_inst_sign: theory -> class * string -> (string * sort) list * (string * typ) list
   val assume_arities_of_sort: theory -> ((string * sort list) * sort) list -> typ * sort -> bool
@@ -41,19 +39,13 @@ sig
   val print_classes: theory -> unit
   val intro_classes_tac: thm list -> tactic
   val default_intro_classes_tac: thm list -> tactic
-
-  type sortcontext = (string * sort) list
-  datatype classlookup = Instance of (class * string) * classlookup list list
-                       | Lookup of class list * (string * (int * int))
-  val sortcontext_of_typ: theory -> typ -> sortcontext
-  val sortlookup: theory -> typ * sort -> classlookup list
 end;
 
 structure ClassPackage : CLASS_PACKAGE =
 struct
 
 
-(* theory data *)
+(** theory data **)
 
 datatype class_data = ClassData of {
   name_locale: string,
@@ -104,74 +96,33 @@ val lookup_class_data = Option.map rep_classdata oo Symtab.lookup o ClassData.ge
 
 fun the_class_data thy class =
   case lookup_class_data thy class
-    of NONE => error ("undeclared operational class " ^ quote class)
+    of NONE => error ("undeclared constructive class " ^ quote class)
      | SOME data => data;
-
-val is_class = is_some oo lookup_class_data;
 
 fun is_operational_class thy cls =
   lookup_class_data thy cls
   |> Option.map (not o null o #consts o fst)
   |> the_default false;
 
-fun operational_algebra thy =
-  Sorts.project_algebra (Sign.pp thy)
-    (is_operational_class thy) (Sign.classes_of thy);
-
-fun operational_sort_of thy =
-  let
-    fun get_sort class =
-      if is_operational_class thy class
-      then [class]
-      else operational_sort_of thy (Sign.super_classes thy class);
-  in Sign.certify_sort thy o maps get_sort end;
-
-fun the_superclasses thy class =
-  if is_class thy class
-  then
-    Sign.super_classes thy class
-    |> operational_sort_of thy
-  else
-    error ("no operational class: " ^ class);
-
 fun the_ancestry thy classes =
   let
+    fun proj_class class =
+      if is_operational_class thy class
+      then [class]
+      else (Sign.certify_sort thy o maps proj_class o Sign.super_classes thy) class;
     fun ancestry class anc =
       anc
       |> insert (op =) class
-      |> fold ancestry (the_superclasses thy class);
+      |> fold ancestry ((maps proj_class o Sign.super_classes thy) class);
   in fold ancestry classes [] end;
+
+val the_parm_map = #consts o fst oo the_class_data;
+
+val the_propnames = #propnames o fst oo the_class_data;
 
 fun subst_clsvar v ty_subst =
   map_type_tfree (fn u as (w, _) =>
     if w = v then ty_subst else TFree u);
-
-val the_parm_map = #consts o fst oo the_class_data;
-
-fun the_consts_sign thy class =
-  let
-    val data = (fst o the_class_data thy) class
-  in (#var data, (map snd o #consts) data) end;
-
-fun the_inst_sign thy (class, tyco) =
-  let
-    val _ = if is_operational_class thy class then () else error ("no operational class: " ^ class);
-    val asorts = Sign.arity_sorts thy tyco [class];
-    val (clsvar, const_sign) = the_consts_sign thy class;
-    fun add_var sort used =
-      let val v = hd (Name.invents used "'a" 1);
-      in ((v, sort), Name.declare v used) end;
-    val (vsorts, _) =
-      Name.context
-      |> Name.declare clsvar
-      |> fold (fn (_, ty) => fold Name.declare
-           ((map (fst o fst) o typ_tvars) ty @ map fst (Term.add_tfreesT  ty []))) const_sign
-      |> fold_map add_var asorts;
-    val ty_inst = Type (tyco, map TFree vsorts);
-    val inst_signs = map (apsnd (subst_clsvar clsvar ty_inst)) const_sign;
-  in (vsorts, inst_signs) end;
-
-val the_propnames = #propnames o fst oo the_class_data;
 
 
 (* updaters *)
@@ -208,7 +159,8 @@ fun read_sort thy =
   certify_sort thy o Sign.read_sort thy;
 
 
-(* contexts with arity assumptions *)
+
+(** contexts with arity assumptions **)
 
 fun assume_arities_of_sort thy arities ty_sort =
   let
@@ -224,7 +176,9 @@ fun assume_arities_thy thy arities f =
       => Sign.primitive_arity (tyco, asorts, sort)) arities o Theory.copy) thy
   in f thy_read end;
 
-(* tactics and methods *)
+
+
+(** tactics and methods **)
 
 fun intro_classes_tac facts st =
   (ALLGOALS (Method.insert_tac facts THEN'
@@ -245,7 +199,8 @@ val _ = Context.add_setup (Method.add_methods
     "apply some intro/elim rule")]);
 
 
-(* axclass instances *)
+
+(** axclass instances **)
 
 local
 
@@ -272,7 +227,8 @@ val axclass_instance_sort =
 end;
 
 
-(* classes and instances *)
+
+(** classes and instances **)
 
 local
 
@@ -388,7 +344,7 @@ in
 val class = gen_class (Locale.add_locale false) read_class;
 val class_i = gen_class (Locale.add_locale_i false) certify_class;
 
-end; (* local *)
+end; (*local*)
 
 local
 
@@ -517,7 +473,7 @@ val instance_arity = instance_arity' (K axclass_instance_arity_i);
 val instance_arity_i = instance_arity_i' (K axclass_instance_arity_i);
 val prove_instance_arity = instance_arity_i' o tactic_proof;
 
-end; (* local *)
+end; (*local*)
 
 local
 
@@ -572,51 +528,40 @@ val prove_instance_sort = instance_sort_i' o tactic_proof;
 end; (* local *)
 
 
-(* extracting dictionary obligations from types *)
 
-type sortcontext = (string * sort) list;
+(** code generation view **)
 
-fun sortcontext_of_typ thy ty = (rev ooo fold_atyps)
-  (fn TFree (v, S) =>
-    (case operational_sort_of thy S of
-      [] => I
-    | S' => insert (op =) (v, S'))) (Type.no_tvars ty) [];
+fun operational_algebra thy =
+  Sorts.project_algebra (Sign.pp thy)
+    (is_operational_class thy) (Sign.classes_of thy);
 
-datatype classlookup = Instance of (class * string) * classlookup list list
-                    | Lookup of class list * (string * (int * int));
-
-fun pretty_lookup' (Instance ((class, tyco), lss)) =
-      (Pretty.block o Pretty.breaks) (
-        Pretty.enum "," "{" "}" [Pretty.str class, Pretty.str tyco]
-        :: map pretty_lookup lss
-      )
-  | pretty_lookup' (Lookup (classes, (v, (i, j)))) =
-      Pretty.enum " <" "[" "]" (map Pretty.str classes @
-        [Pretty.str (v ^ "!" ^ string_of_int i ^ "/" ^ string_of_int j)])
-and pretty_lookup ls = (Pretty.enum "," "(" ")" o map pretty_lookup') ls;
-
-fun sortlookup thy (typ_ctxt, sort_decl) =
+fun the_consts_sign thy class =
   let
-    val pp = Sign.pp thy;
-    val algebra = Sorts.project_algebra pp (is_operational_class thy)
-      (Sign.classes_of thy);
-    fun classrel (l as Lookup (classes, p), _) class  =
-          Lookup (class :: classes, p)
-      | classrel (Instance ((_, tyco), lss), _) class =
-          Instance ((class, tyco), lss);
-    fun constructor tyco lss class =
-      Instance ((class, tyco), (map o map) fst lss);
-    fun variable (TFree (v, sort)) =
-      let val op_sort = operational_sort_of thy sort
-      in map_index (fn (n, class) => (Lookup ([], (v, (n, length op_sort))), class)) op_sort end;
-  in
-    Sorts.of_sort_derivation pp algebra
-      {classrel = classrel, constructor = constructor, variable = variable}
-      (Type.no_tvars typ_ctxt, operational_sort_of thy sort_decl)
-  end;
+    val _ = if is_operational_class thy class then () else error ("no operational class: " ^ quote class);
+    val data = (fst o the_class_data thy) class
+  in (#var data, (map snd o #consts) data) end;
+
+fun the_inst_sign thy (class, tyco) =
+  let
+    val _ = if is_operational_class thy class then () else error ("no operational class: " ^ quote class);
+    val asorts = Sign.arity_sorts thy tyco [class];
+    val (clsvar, const_sign) = the_consts_sign thy class;
+    fun add_var sort used =
+      let val v = hd (Name.invents used "'a" 1);
+      in ((v, sort), Name.declare v used) end;
+    val (vsorts, _) =
+      Name.context
+      |> Name.declare clsvar
+      |> fold (fn (_, ty) => fold Name.declare
+           ((map (fst o fst) o typ_tvars) ty @ map fst (Term.add_tfreesT  ty []))) const_sign
+      |> fold_map add_var asorts;
+    val ty_inst = Type (tyco, map TFree vsorts);
+    val inst_signs = map (apsnd (subst_clsvar clsvar ty_inst)) const_sign;
+  in (vsorts, inst_signs) end;
 
 
-(* toplevel interface *)
+
+(** toplevel interface **)
 
 local
 
@@ -665,6 +610,6 @@ val print_classesP =
 
 val _ = OuterSyntax.add_parsers [classP, instanceP, print_classesP];
 
-end; (* local *)
+end; (*local*)
 
-end; (* struct *)
+end;
