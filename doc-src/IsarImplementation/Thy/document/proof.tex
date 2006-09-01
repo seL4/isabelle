@@ -42,7 +42,8 @@ FIXME%
 \begin{mldecls}
   \indexml{Variable.declare-term}\verb|Variable.declare_term: term -> Proof.context -> Proof.context| \\
   \indexml{Variable.add-fixes}\verb|Variable.add_fixes: string list -> Proof.context -> string list * Proof.context| \\
-  \indexml{Variable.import}\verb|Variable.import: bool -> thm list -> Proof.context -> ((ctyp list * cterm list) * thm list) * Proof.context| \\
+  \indexml{Variable.import}\verb|Variable.import: bool ->|\isasep\isanewline%
+\verb|  thm list -> Proof.context -> ((ctyp list * cterm list) * thm list) * Proof.context| \\
   \indexml{Variable.export}\verb|Variable.export: Proof.context -> Proof.context -> thm list -> thm list| \\
   \indexml{Variable.trade}\verb|Variable.trade: Proof.context -> (thm list -> thm list) -> thm list -> thm list| \\
   \indexml{Variable.polymorphic}\verb|Variable.polymorphic: Proof.context -> term list -> term list| \\
@@ -119,17 +120,17 @@ An \emph{assumption} is a proposition that it is postulated in the
   and more explicit references to hypotheses: \isa{A\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlisub n\ {\isasymturnstile}\ B} where \isa{A\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlisub n} needs to
   be covered by the assumptions of the current context.
 
-  \medskip The \isa{add{\isacharunderscore}assm} operation augments the context by
-  local assumptions, parameterized by an \isa{export} rule (see
-  below).
+  \medskip The \isa{add{\isacharunderscore}assms} operation augments the context by
+  local assumptions, which are parameterized by an arbitrary \isa{export} rule (see below).
 
   The \isa{export} operation moves facts from a (larger) inner
   context into a (smaller) outer context, by discharging the
   difference of the assumptions as specified by the associated export
   rules.  Note that the discharged portion is determined by the
-  contexts, not the facts being exported!  There is a separate flag to
-  indicate a goal context, where the result is meant to refine an
-  enclosing sub-goal of a structured proof state (cf.\ FIXME).
+  difference contexts, not the facts being exported!  There is a
+  separate flag to indicate a goal context, where the result is meant
+  to refine an enclosing sub-goal of a structured proof state (cf.\
+  \secref{sec:isar-proof-state}).
 
   \medskip The most basic export rule discharges assumptions directly
   by means of the \isa{{\isasymLongrightarrow}} introduction rule:
@@ -144,13 +145,11 @@ An \emph{assumption} is a proposition that it is postulated in the
   \infer[(\isa{{\isacharhash}{\isasymLongrightarrow}{\isacharunderscore}intro})]{\isa{{\isasymGamma}\ {\isacharbackslash}\ A\ {\isasymturnstile}\ {\isacharhash}A\ {\isasymLongrightarrow}\ B}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B}}
   \]
 
-  \medskip Alternative versions of assumptions may perform arbitrary
-  transformations as long as a particular portion of hypotheses is
-  removed from the given facts.
-
-  For example, a local definition works by fixing \isa{x} and
-  assuming \isa{x\ {\isasymequiv}\ t}, with the following export rule to reverse
-  the effect:
+  \medskip Alternative assumptions may perform arbitrary
+  transformations on export, as long as a particular portion of
+  hypotheses is removed from the given facts.  For example, a local
+  definition works by fixing \isa{x} and assuming \isa{x\ {\isasymequiv}\ t},
+  with the following export rule to reverse the effect:
   \[
   \infer{\isa{{\isasymGamma}\ {\isacharbackslash}\ x\ {\isasymequiv}\ t\ {\isasymturnstile}\ B\ t}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B\ x}}
   \]
@@ -161,9 +160,9 @@ An \emph{assumption} is a proposition that it is postulated in the
 
   \medskip
   \begin{tabular}{l}
-  \isa{add{\isacharunderscore}assm\ e\isactrlisub {\isadigit{1}}\ A\isactrlisub {\isadigit{1}}} \\
+  \isa{add{\isacharunderscore}assms\ e\isactrlisub {\isadigit{1}}\ A\isactrlisub {\isadigit{1}}} \\
   \isa{{\isasymdots}} \\
-  \isa{add{\isacharunderscore}assm\ e\isactrlisub n\ A\isactrlisub n} \\
+  \isa{add{\isacharunderscore}assms\ e\isactrlisub n\ A\isactrlisub n} \\
   \isa{export} \\
   \end{tabular}
   \medskip
@@ -184,31 +183,36 @@ An \emph{assumption} is a proposition that it is postulated in the
 \begin{mldecls}
   \indexmltype{Assumption.export}\verb|type Assumption.export| \\
   \indexml{Assumption.assume}\verb|Assumption.assume: cterm -> thm| \\
-  \indexml{Assumption.add-assumes}\verb|Assumption.add_assumes: cterm list -> Proof.context -> thm list * Proof.context| \\
-  \indexml{Assumption.add-assms}\verb|Assumption.add_assms: Assumption.export -> cterm list -> Proof.context -> thm list * Proof.context| \\
+  \indexml{Assumption.add-assms}\verb|Assumption.add_assms: Assumption.export ->|\isasep\isanewline%
+\verb|  cterm list -> Proof.context -> thm list * Proof.context| \\
+  \indexml{Assumption.add-assumes}\verb|Assumption.add_assumes: |\isasep\isanewline%
+\verb|  cterm list -> Proof.context -> thm list * Proof.context| \\
   \indexml{Assumption.export}\verb|Assumption.export: bool -> Proof.context -> Proof.context -> thm -> thm| \\
   \end{mldecls}
 
   \begin{description}
 
-  \item \verb|Assumption.export|
+  \item \verb|Assumption.export| represents arbitrary export
+  rules, which is any function of type \verb|bool -> cterm list -> thm -> thm|,
+  where the \verb|bool| indicates goal mode, and the \verb|cterm list| the collection of assumptions to be discharged
+  simultaneously.
 
-  \item \verb|Assumption.assume|~\isa{A} produces a raw assumption
-  \isa{A\ {\isasymturnstile}\ A{\isacharprime}}, where the conclusion \isa{A{\isacharprime}} is in HHF normal
-  form.
-
-  \item \verb|Assumption.add_assumes|~\isa{As} augments the context
-  by plain assumptions that are discharged via \isa{{\isasymLongrightarrow}{\isacharunderscore}intro} or
-  \isa{{\isacharhash}{\isasymLongrightarrow}{\isacharunderscore}intro}, depending on goal mode.  The resulting facts are
-  hypothetical theorems as produced by \verb|Assumption.assume|.
+  \item \verb|Assumption.assume|~\isa{A} turns proposition \isa{A} into a raw assumption \isa{A\ {\isasymturnstile}\ A{\isacharprime}}, where the conclusion
+  \isa{A{\isacharprime}} is in HHF normal form.
 
   \item \verb|Assumption.add_assms|~\isa{e\ As} augments the context
-  by generic assumptions that are discharged via rule \isa{e}.
+  by assumptions \isa{As} with export rule \isa{e}.  The
+  resulting facts are hypothetical theorems as produced by \verb|Assumption.assume|.
+
+  \item \verb|Assumption.add_assumes|~\isa{As} is a special case of
+  \verb|Assumption.add_assms| where the export rule performs \isa{{\isasymLongrightarrow}{\isacharunderscore}intro} or \isa{{\isacharhash}{\isasymLongrightarrow}{\isacharunderscore}intro}, depending on goal mode.
 
   \item \verb|Assumption.export|~\isa{is{\isacharunderscore}goal\ inner\ outer\ th}
   exports result \isa{th} from the the \isa{inner} context
-  back into the \isa{outer} one.  The \isa{is{\isacharunderscore}goal} flag is
-  \isa{true} for goal mode.  The result is in HHF normal form.
+  back into the \isa{outer} one; \isa{is{\isacharunderscore}goal\ {\isacharequal}\ true} means
+  this is a goal context.  The result is in HHF normal form.  Note
+  that \verb|ProofContext.export| combines \verb|Variable.export|
+  and \verb|Assumption.export| in the canonical way.
 
   \end{description}%
 \end{isamarkuptext}%

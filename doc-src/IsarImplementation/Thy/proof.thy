@@ -13,7 +13,8 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML Variable.declare_term: "term -> Proof.context -> Proof.context"} \\
   @{index_ML Variable.add_fixes: "string list -> Proof.context -> string list * Proof.context"} \\
-  @{index_ML Variable.import: "bool -> thm list -> Proof.context -> ((ctyp list * cterm list) * thm list) * Proof.context"} \\
+  @{index_ML Variable.import: "bool ->
+  thm list -> Proof.context -> ((ctyp list * cterm list) * thm list) * Proof.context"} \\
   @{index_ML Variable.export: "Proof.context -> Proof.context -> thm list -> thm list"} \\
   @{index_ML Variable.trade: "Proof.context -> (thm list -> thm list) -> thm list -> thm list"} \\
   @{index_ML Variable.polymorphic: "Proof.context -> term list -> term list"} \\
@@ -83,17 +84,18 @@ text {*
   A\<^isub>n \<turnstile> B"} where @{text "A\<^isub>1, \<dots>, A\<^isub>n"} needs to
   be covered by the assumptions of the current context.
 
-  \medskip The @{text "add_assm"} operation augments the context by
-  local assumptions, parameterized by an @{text "export"} rule (see
-  below).
+  \medskip The @{text "add_assms"} operation augments the context by
+  local assumptions, which are parameterized by an arbitrary @{text
+  "export"} rule (see below).
 
   The @{text "export"} operation moves facts from a (larger) inner
   context into a (smaller) outer context, by discharging the
   difference of the assumptions as specified by the associated export
   rules.  Note that the discharged portion is determined by the
-  contexts, not the facts being exported!  There is a separate flag to
-  indicate a goal context, where the result is meant to refine an
-  enclosing sub-goal of a structured proof state (cf.\ FIXME).
+  difference contexts, not the facts being exported!  There is a
+  separate flag to indicate a goal context, where the result is meant
+  to refine an enclosing sub-goal of a structured proof state (cf.\
+  \secref{sec:isar-proof-state}).
 
   \medskip The most basic export rule discharges assumptions directly
   by means of the @{text "\<Longrightarrow>"} introduction rule:
@@ -108,13 +110,11 @@ text {*
   \infer[(@{text "#\<Longrightarrow>_intro"})]{@{text "\<Gamma> \\ A \<turnstile> #A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
   \]
 
-  \medskip Alternative versions of assumptions may perform arbitrary
-  transformations as long as a particular portion of hypotheses is
-  removed from the given facts.
-
-  For example, a local definition works by fixing @{text "x"} and
-  assuming @{text "x \<equiv> t"}, with the following export rule to reverse
-  the effect:
+  \medskip Alternative assumptions may perform arbitrary
+  transformations on export, as long as a particular portion of
+  hypotheses is removed from the given facts.  For example, a local
+  definition works by fixing @{text "x"} and assuming @{text "x \<equiv> t"},
+  with the following export rule to reverse the effect:
   \[
   \infer{@{text "\<Gamma> \\ x \<equiv> t \<turnstile> B t"}}{@{text "\<Gamma> \<turnstile> B x"}}
   \]
@@ -125,9 +125,9 @@ text {*
 
   \medskip
   \begin{tabular}{l}
-  @{text "add_assm e\<^isub>1 A\<^isub>1"} \\
+  @{text "add_assms e\<^isub>1 A\<^isub>1"} \\
   @{text "\<dots>"} \\
-  @{text "add_assm e\<^isub>n A\<^isub>n"} \\
+  @{text "add_assms e\<^isub>n A\<^isub>n"} \\
   @{text "export"} \\
   \end{tabular}
   \medskip
@@ -142,32 +142,41 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML_type Assumption.export} \\
   @{index_ML Assumption.assume: "cterm -> thm"} \\
-  @{index_ML Assumption.add_assumes: "cterm list -> Proof.context -> thm list * Proof.context"} \\
   @{index_ML Assumption.add_assms:
-    "Assumption.export -> cterm list -> Proof.context -> thm list * Proof.context"} \\
+    "Assumption.export ->
+  cterm list -> Proof.context -> thm list * Proof.context"} \\
+  @{index_ML Assumption.add_assumes: "
+  cterm list -> Proof.context -> thm list * Proof.context"} \\
   @{index_ML Assumption.export: "bool -> Proof.context -> Proof.context -> thm -> thm"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML_type Assumption.export}
+  \item @{ML_type Assumption.export} represents arbitrary export
+  rules, which is any function of type @{ML_type "bool -> cterm list -> thm -> thm"},
+  where the @{ML_type "bool"} indicates goal mode, and the @{ML_type
+  "cterm list"} the collection of assumptions to be discharged
+  simultaneously.
 
-  \item @{ML Assumption.assume}~@{text "A"} produces a raw assumption
-  @{text "A \<turnstile> A'"}, where the conclusion @{text "A'"} is in HHF normal
-  form.
-
-  \item @{ML Assumption.add_assumes}~@{text "As"} augments the context
-  by plain assumptions that are discharged via @{text "\<Longrightarrow>_intro"} or
-  @{text "#\<Longrightarrow>_intro"}, depending on goal mode.  The resulting facts are
-  hypothetical theorems as produced by @{ML Assumption.assume}.
+  \item @{ML Assumption.assume}~@{text "A"} turns proposition @{text
+  "A"} into a raw assumption @{text "A \<turnstile> A'"}, where the conclusion
+  @{text "A'"} is in HHF normal form.
 
   \item @{ML Assumption.add_assms}~@{text "e As"} augments the context
-  by generic assumptions that are discharged via rule @{text "e"}.
+  by assumptions @{text "As"} with export rule @{text "e"}.  The
+  resulting facts are hypothetical theorems as produced by @{ML
+  Assumption.assume}.
+
+  \item @{ML Assumption.add_assumes}~@{text "As"} is a special case of
+  @{ML Assumption.add_assms} where the export rule performs @{text
+  "\<Longrightarrow>_intro"} or @{text "#\<Longrightarrow>_intro"}, depending on goal mode.
 
   \item @{ML Assumption.export}~@{text "is_goal inner outer th"}
   exports result @{text "th"} from the the @{text "inner"} context
-  back into the @{text "outer"} one.  The @{text "is_goal"} flag is
-  @{text "true"} for goal mode.  The result is in HHF normal form.
+  back into the @{text "outer"} one; @{text "is_goal = true"} means
+  this is a goal context.  The result is in HHF normal form.  Note
+  that @{ML "ProofContext.export"} combines @{ML "Variable.export"}
+  and @{ML "Assumption.export"} in the canonical way.
 
   \end{description}
 *}
