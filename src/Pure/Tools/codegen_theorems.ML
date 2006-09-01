@@ -30,7 +30,6 @@ sig
 
   type thmtab;
   val mk_thmtab: theory -> (string * typ) list -> thmtab;
-  val get_sortalgebra: thmtab -> Sorts.algebra;
   val get_dtyp_of_cons: thmtab -> string * typ -> string option;
   val get_dtyp_spec: thmtab -> string
     -> ((string * sort) list * (string * typ list) list) option;
@@ -749,18 +748,15 @@ fun check_thms c thms =
 structure Consttab = CodegenConsts.Consttab;
 type thmtab = (theory * (thm list Consttab.table
   * string Consttab.table)
-  * (Sorts.algebra * ((string * sort) list * (string * typ list) list) Symtab.table));
+  * ((string * sort) list * (string * typ list) list) Symtab.table);
 
 fun thmtab_empty thy = (thy, (Consttab.empty, Consttab.empty),
-  (ClassPackage.operational_algebra thy, Symtab.empty));
-
-fun get_sortalgebra (_, _, (algebra, _)) =
-  algebra;
+  Symtab.empty);
 
 fun get_dtyp_of_cons (thy, (_, dtcotab), _) =
   Consttab.lookup dtcotab o CodegenConsts.norminst_of_typ thy;
 
-fun get_dtyp_spec (_, _, (_, dttab)) =
+fun get_dtyp_spec (_, _, dttab) =
   Symtab.lookup dttab;
 
 fun has_fun_thms (thy, (funtab, _), _) =
@@ -861,14 +857,14 @@ fun mk_thmtab thy cs =
       let
         val tycos = add_tycos ty [];
         val tycos_new = filter (is_none o get_dtyp_spec thmtab) tycos;
-        fun add_dtyp_spec dtco (dtyp_spec as (vs, cs)) ((thy, (funtab, dtcotab), (algebra, dttab))) =
+        fun add_dtyp_spec dtco (dtyp_spec as (vs, cs)) ((thy, (funtab, dtcotab), dttab)) =
           let
             fun mk_co (c, tys) =
               CodegenConsts.norminst_of_typ thy (c, Logic.varifyT (tys ---> Type (dtco, map TFree vs)));
           in
             (thy, (funtab, dtcotab |> fold (fn c_tys =>
               Consttab.update_new (mk_co c_tys, dtco)) cs),
-              (algebra, dttab |> Symtab.update_new (dtco, dtyp_spec)))
+              dttab |> Symtab.update_new (dtco, dtyp_spec))
           end;
       in
         thmtab

@@ -81,7 +81,7 @@ in
 
 end; (*local*)
 
-structure CodegenNamesData = TheoryDataFun
+structure CodeName = TheoryDataFun
 (struct
   val name = "Pure/codegen_names";
   type T = names ref;
@@ -92,14 +92,14 @@ structure CodegenNamesData = TheoryDataFun
   fun print _ _ = ();
 end);
 
-val _ = Context.add_setup CodegenNamesData.init;
+val _ = Context.add_setup CodeName.init;
 
 
 (* forward lookup with cache update *)
 
 fun get thy get_tabs get upd_names upd policy x =
   let
-    val names_ref = CodegenNamesData.get thy
+    val names_ref = CodeName.get thy
     val (Names names) = ! names_ref;
     fun mk_unique used name =
       let
@@ -135,7 +135,7 @@ fun get thy get_tabs get upd_names upd policy x =
 
 fun rev thy get_tabs errname name =
   let
-    val names_ref = CodegenNamesData.get thy
+    val names_ref = CodeName.get thy
     val (Names names) = ! names_ref;
     val tab = (snd o get_tabs) names;
   in case Symtab.lookup tab name
@@ -237,7 +237,7 @@ fun tyco_force (tyco, name) thy =
       else
         error ("Name violates naming conventions: " ^ quote name
           ^ "; perhaps try with " ^ quote (NameSpace.pack (prefix' @ [base'])))
-    val names_ref = CodegenNamesData.get thy;
+    val names_ref = CodeName.get thy;
     val (Names names) = ! names_ref;
     val (tycotab, tycorev) = #tyco names;
     val _ = if Symtab.defined tycotab tyco
@@ -263,7 +263,7 @@ fun const_force (c_ty, name) thy =
       else
         error ("Name violates naming conventions: " ^ quote name
           ^ "; perhaps try with " ^ quote (NameSpace.pack (prefix' @ [base'])))
-    val names_ref = CodegenNamesData.get thy;
+    val names_ref = CodeName.get thy;
     val (Names names) = ! names_ref;
     val (const, constrev) = #const names;
     val c_tys as (c, _) = CodegenConsts.norminst_of_typ thy c_ty;

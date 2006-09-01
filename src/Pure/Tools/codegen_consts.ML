@@ -108,7 +108,7 @@ fun insts_of_classop thy (c_tys as (c, tys)) =
    of NONE => [c_tys]
     | SOME class => let
         val cs = maps (AxClass.params_of thy)
-          (Sorts.all_super_classes (Sign.classes_of thy) class)
+          (Graph.all_succs ((#classes o Sorts.rep_algebra o Sign.classes_of) thy) [class])
         fun add_tyco (tyco, classes) =
           if member (op = o apsnd fst) classes class
           then cons tyco else I;

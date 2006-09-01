@@ -16,16 +16,15 @@ infixr 3 `|-->;
 signature BASIC_CODEGEN_THINGOL =
 sig
   type vname = string;
-  type sortcontext = ClassPackage.sortcontext;
-  datatype iclasslookup =
-      Instance of string * iclasslookup list list
-    | Lookup of class list * (vname * int);
+  datatype inst =
+      Instance of string * inst list list
+    | Context of class list * (vname * int);
   datatype itype =
       `%% of string * itype list
     | `-> of itype * itype
     | ITyVar of vname;
   datatype iterm =
-      IConst of string * (iclasslookup list list * itype)
+      IConst of string * (inst list list * itype)
     | IVar of vname
     | `$ of iterm * iterm
     | `|-> of (vname * itype) * iterm
@@ -52,28 +51,27 @@ sig
   val unfold_abs: iterm -> (iterm * itype) list * iterm;
   val unfold_let: iterm -> ((iterm * itype) * iterm) list * iterm;
   val unfold_const_app: iterm ->
-    ((string * (iclasslookup list list * itype)) * iterm list) option;
+    ((string * (inst list list * itype)) * iterm list) option;
   val add_constnames: iterm -> string list -> string list;
   val add_varnames: iterm -> string list -> string list;
   val is_pat: (string -> bool) -> iterm -> bool;
   val vars_distinct: iterm list -> bool;
   val map_pure: (iterm -> 'a) -> iterm -> 'a;
-  val eta_expand: (string * (iclasslookup list list * itype)) * iterm list -> int -> iterm;
+  val eta_expand: (string * (inst list list * itype)) * iterm list -> int -> iterm;
   val resolve_tycos: (string -> string) -> itype * iterm list -> itype * iterm list;
   val resolve_consts: (string -> string) -> iterm -> iterm;
 
-  type funn = (iterm list * iterm) list * (sortcontext * itype);
-  type datatyp = sortcontext * (string * itype list) list;
+  type typscheme = (vname * sort) list * itype;
   datatype def =
       Bot
-    | Fun of funn
-    | Typesyn of sortcontext * itype
-    | Datatype of datatyp
+    | Fun of (iterm list * iterm) list * typscheme
+    | Typesyn of typscheme
+    | Datatype of (vname * sort) list * (string * itype list) list
     | Datatypecons of string
-    | Class of class list * (vname * (string * (sortcontext * itype)) list)
+    | Class of class list * (vname * (string * itype) list)
     | Classmember of class
     | Classinst of (class * (string * (vname * sort) list))
-          * ((class * iclasslookup list) list
+          * ((class * inst list) list
         * (string * iterm) list);
   type module;
   type transact;
@@ -97,7 +95,7 @@ sig
   val fail: string -> transact -> 'a transact_fin;
   val message: string -> (transact -> 'a) -> transact -> 'a;
   val start_transact: string option -> (transact -> 'a * transact) -> module -> 'a * module;
-  val elim_classes: module -> funn -> (iterm list * iterm) list * itype;
+  val elim_classes: module -> (iterm list * iterm) list * typscheme -> (iterm list * iterm) list * itype;
 
   val debug: bool ref;
   val debug_msg: ('a -> string) -> 'a -> 'a;
@@ -140,10 +138,9 @@ fun unfoldr dest x =
 
 type vname = string;
 
-type sortcontext = ClassPackage.sortcontext;
-datatype iclasslookup =
-    Instance of string * iclasslookup list list
-  | Lookup of class list * (vname * int);
+datatype inst =
+    Instance of string * inst list list
+  | Context of class list * (vname * int);
 
 datatype itype =
     `%% of string * itype list
@@ -151,7 +148,7 @@ datatype itype =
   | ITyVar of vname;
 
 datatype iterm =
-    IConst of string * (iclasslookup list list * itype)
+    IConst of string * (inst list list * itype)
   | IVar of vname
   | `$ of iterm * iterm
   | `|-> of (vname * itype) * iterm
@@ -177,8 +174,9 @@ datatype iterm =
 
   constructs:
     sort                    sort
-    sort context            sctxt, vs (variables with sorts)
+    type parameters         vs
     type                    ty
+    type schemes            tysm
     term                    t
     (term as pattern)       p
     instance (classs, tyco) inst
@@ -188,7 +186,7 @@ val op `--> = Library.foldr (op `->);
 val op `$$ = Library.foldl (op `$);
 val op `|--> = Library.foldr (op `|->);
 
-val pretty_sortcontext =
+val pretty_typparms =
   Pretty.list "(" ")" o Pretty.commas o map (fn (v, sort) => (Pretty.block o Pretty.breaks)
     [Pretty.str v, Pretty.str "::", Pretty.enum "&" "" "" (map Pretty.str sort)]);
 
@@ -256,15 +254,15 @@ fun map_itype _ (ty as ITyVar _) =
   | map_itype f (ty1 `-> ty2) =
       f ty1 `-> f ty2;
 
-fun eq_ityp ((sctxt1, ty1), (sctxt2, ty2)) =
+fun eq_ityp ((vs1, ty1), (vs2, ty2)) =
   let
     exception NO_MATCH;
-    fun eq_sctxt subs sctxt1 sctxt2 =
+    fun eq_typparms subs vs1 vs2 =
       map (fn (v : string, sort : string list) => case AList.lookup (op =) subs v
        of NONE => raise NO_MATCH
-        | SOME (v' : string) => case AList.lookup (op =) sctxt2 v'
+        | SOME (v' : string) => case AList.lookup (op =) vs2 v'
            of NONE => raise NO_MATCH
-            | SOME sort' => if sort <> sort' then raise NO_MATCH else ()) sctxt1
+            | SOME sort' => if sort <> sort' then raise NO_MATCH else ()) vs1
     fun eq (ITyVar v1) (ITyVar v2) subs =
           (case AList.lookup (op =) subs v1
            of NONE => subs |> AList.update (op =) (v1, v2)
@@ -280,7 +278,7 @@ fun eq_ityp ((sctxt1, ty1), (sctxt2, ty2)) =
           subs |> eq ty11 ty21 |> eq ty12 ty22
       | eq _ _ _ = raise NO_MATCH;
   in
-    (eq ty1 ty2 []; true)
+    (eq_typparms vs1 vs2; eq ty1 ty2 []; true)
     handle NO_MATCH => false
   end;
 
@@ -290,7 +288,7 @@ fun instant_itype f =
       | instant ty = map_itype instant ty;
   in instant end;
 
-fun is_pat is_cons (IConst (c, ([], _))) = is_cons c
+fun is_pat is_cons (IConst (c, _)) = is_cons c
   | is_pat _ (IVar _) = true
   | is_pat is_cons (t1 `$ t2) =
       is_pat is_cons t1 andalso is_pat is_cons t2
@@ -380,20 +378,18 @@ fun eta_expand (c as (_, (_, ty)), ts) k =
 
 (* type definitions *)
 
-type funn = (iterm list * iterm) list * (sortcontext * itype);
-type datatyp = sortcontext * (string * itype list) list;
-
+type typscheme = (vname * sort) list * itype;
 datatype def =
     Bot
-  | Fun of funn
-  | Typesyn of sortcontext * itype
-  | Datatype of datatyp
+  | Fun of (iterm list * iterm) list * typscheme
+  | Typesyn of typscheme
+  | Datatype of (vname * sort) list * (string * itype list) list
   | Datatypecons of string
-  | Class of class list * (vname * (string * (sortcontext * itype)) list)
+  | Class of class list * (vname * (string * itype) list)
   | Classmember of class
   | Classinst of (class * (string * (vname * sort) list))
-          * ((class * iclasslookup list) list
-        * (string * iterm) list);
+        * ((class * inst list) list
+      * (string * iterm) list);
 
 datatype node = Def of def | Module of node Graph.T;
 type module = node Graph.T;
@@ -407,7 +403,7 @@ val eq_def = (op =) : def * def -> bool;
 
 fun pretty_def Bot =
       Pretty.str "<Bot>"
-  | pretty_def (Fun (eqs, (sortctxt, ty))) =
+  | pretty_def (Fun (eqs, (vs, ty))) =
       Pretty.enum " |" "" "" (
         map (fn (ps, body) =>
           Pretty.block [
@@ -416,20 +412,20 @@ fun pretty_def Bot =
             Pretty.brk 1,
             pretty_iterm body,
             Pretty.str "::",
-            pretty_sortcontext sortctxt,
+            pretty_typparms vs,
             Pretty.str "/",
             pretty_itype ty
           ]) eqs
         )
   | pretty_def (Typesyn (vs, ty)) =
       Pretty.block [
-        pretty_sortcontext vs,
+        pretty_typparms vs,
         Pretty.str " |=> ",
         pretty_itype ty
       ]
   | pretty_def (Datatype (vs, cs)) =
       Pretty.block [
-        pretty_sortcontext vs,
+        pretty_typparms vs,
         Pretty.str " |=> ",
         Pretty.enum " |" "" ""
           (map (fn (c, tys) => (Pretty.block o Pretty.breaks)
@@ -443,7 +439,7 @@ fun pretty_def Bot =
         Pretty.enum "," "[" "]" (map Pretty.str supcls),
         Pretty.str " with ",
         Pretty.enum "," "[" "]"
-          (map (fn (m, (_, ty)) => Pretty.block
+          (map (fn (m, ty) => Pretty.block
             [Pretty.str (m ^ "::"), pretty_itype ty]) mems)
       ]
   | pretty_def (Classmember clsname) =
@@ -705,7 +701,7 @@ fun flat_module modl =
 fun flat_funs_datatypes modl =
   map (
    fn def as (_, Datatype _) => def
-    | (name, Fun (eqs, (sctxt, ty))) => let
+    | (name, Fun (eqs, (vs, ty))) => let
           val vs = fold (fn (rhs, lhs) => fold add_varnames rhs #> add_varnames lhs) eqs [];
           fun fold_map_snd f (x, ys) = fold_map f ys #-> (fn zs => pair (x, zs));
           fun all_ops_of class = [] : (class * (string * itype) list) list
@@ -714,7 +710,7 @@ fun flat_funs_datatypes modl =
             (fold_map o fold_map_snd)
               (fn (c, ty) => Name.variants [c] #-> (fn [v] => pair (c, (ty, v)))) (all_ops_of class);
           (*FIXME: should contain superclasses only once*)
-          val (octxt, _) = (fold_map o fold_map_snd) name_ops sctxt
+          val (octxt, _) = (fold_map o fold_map_snd) name_ops vs
             (Name.make_context vs);
           (* --> (iterm * itype) list *)
           fun flat_classlookup (Instance (inst, lss)) =
@@ -722,7 +718,7 @@ fun flat_funs_datatypes modl =
                  of (Classinst (_, (suparities, ops)))
                       => maps (maps flat_classlookup o snd) suparities @ map (apsnd flat_iterm) ops
                   | _ => error ("Bad instance: " ^ quote inst))
-            | flat_classlookup (Lookup (classes, (v, k))) =
+            | flat_classlookup (Context (classes, (v, k))) =
                 let
                   val parm_map = nth ((the o AList.lookup (op =) octxt) v)
                     (if k = ~1 then 0 else k);
@@ -754,13 +750,13 @@ fun flat_funs_datatypes modl =
   ) (flat_module modl);
 *)
 
-val add_deps_of_sortctxt =
+val add_deps_of_typparms =
   fold (fn (v : vname, sort : sort) => fold (insert (op =)) sort);
 
 fun add_deps_of_classlookup (Instance (tyco, lss)) =
       insert (op =) tyco
       #> (fold o fold) add_deps_of_classlookup lss
-  | add_deps_of_classlookup (Lookup (clss, _)) =
+  | add_deps_of_classlookup (Context (clss, _)) =
       fold (insert (op =)) clss;
 
 fun add_deps_of_type (tyco `%% tys) =
@@ -792,36 +788,35 @@ fun add_deps_of_term (IConst (c, (lss, ty))) =
 
 fun deps_of Bot =
       []
-  | deps_of (Fun (eqs, (sctxt, ty))) =
+  | deps_of (Fun (eqs, (vs, ty))) =
       []
-      |> add_deps_of_sortctxt sctxt
+      |> add_deps_of_typparms vs
       |> add_deps_of_type ty
       |> fold (fn (lhs, rhs) => fold add_deps_of_term lhs #> add_deps_of_term rhs) eqs
-  | deps_of (Typesyn (sctxt, ty)) =
+  | deps_of (Typesyn (vs, ty)) =
       []
-      |> add_deps_of_sortctxt sctxt
+      |> add_deps_of_typparms vs
       |> add_deps_of_type ty
-  | deps_of (Datatype (sctxt, cos)) =
+  | deps_of (Datatype (vs, cos)) =
       []
-      |> add_deps_of_sortctxt sctxt
+      |> add_deps_of_typparms vs
       |> fold (fn (c, tys) => insert (op =) c #> fold add_deps_of_type tys) cos
   | deps_of (Datatypecons dtco) =
       [dtco]
   | deps_of (Class (supclss, (_, memdecls))) =
       []
       |> fold (insert (op =)) supclss
-      |> fold (fn (name, (sctxt, ty)) =>
+      |> fold (fn (name, ty) =>
             insert (op =) name
-            #> add_deps_of_sortctxt sctxt
             #> add_deps_of_type ty
       ) memdecls
   | deps_of (Classmember class) =
       [class]
-  | deps_of (Classinst ((class, (tyco, sctxt)), (suparities, memdefs))) =
+  | deps_of (Classinst ((class, (tyco, vs)), (suparities, memdefs))) =
       []
       |> insert (op =) class
       |> insert (op =) tyco
-      |> add_deps_of_sortctxt sctxt
+      |> add_deps_of_typparms vs
       |> fold (fn (supclass, ls) =>
             insert (op =) supclass
             #> fold add_deps_of_classlookup ls
@@ -1061,7 +1056,7 @@ fun add_eval_def (shallow, e) modl =
     val sname = NameSpace.pack [shallow, name];
   in
     modl
-    |> add_def (sname, Fun ([([], e)], ([("a", [])], ITyVar "a")))
+    |> add_def (sname, Fun ([([], e)], ([("_", [])], ITyVar "_")))
     |> fold (curry add_dep sname) (add_deps_of_term e [])
     |> pair name
   end;
@@ -1069,7 +1064,7 @@ fun add_eval_def (shallow, e) modl =
 
 (** eliminating classes in definitions **)
 
-fun elim_classes modl (eqs, (sortctxt, ty)) =
+fun elim_classes modl (eqs, (vs, ty)) =
   let
     fun elim_expr _ = ();
   in (error ""; (eqs, ty)) end;
