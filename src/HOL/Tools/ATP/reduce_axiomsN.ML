@@ -2,9 +2,16 @@
    ID: $Id$
    Filtering strategies *)
 
+(*A surprising number of theorems contain only a few significant constants.
+  These include all induction rules, and other general theorems. Filtering
+  theorems in clause form reveals these complexities in the form of Skolem 
+  functions. If we were instead to filter theorems in their natural form,
+  some other method of measuring theorem complexity would become necessary.*)
+
 structure ReduceAxiomsN =
 struct
 
+val run_relevance_filter = ref true;
 val pass_mark = ref 0.6;
 val convergence = ref 2.4;   (*Higher numbers allow longer inference chains*)
 val follow_defs = ref false;  (*Follow definitions. Makes problems bigger.*)
@@ -19,8 +26,8 @@ val weight_fn = ref log_weight2;
 (*Including equality in this list might be expected to stop rules like subset_antisym from
   being chosen, but for some reason filtering works better with them listed.*)
 val standard_consts =
-  ["Trueprop","==>","all","Ex","op &","op |","Not","All","op -->",
-   "op =","==","True","False"];
+  ["Trueprop","==>","all","==","All","Ex","Ball","Bex","op &","op |","Not","op -->",
+   "op =","True","False"];
 
 
 (*** constants with types ***)
@@ -74,7 +81,7 @@ fun add_standard_const (s,tab) = Symtab.update (s,[]) tab;
 val null_const_tab : const_typ list list Symtab.table = 
     foldl add_standard_const Symtab.empty standard_consts;
 
-fun get_goal_consts_typs thy cs = foldl (add_term_consts_typs_rm thy) null_const_tab cs;
+fun get_goal_consts_typs thy = foldl (add_term_consts_typs_rm thy) null_const_tab;
 
 
 (**** Constant / Type Frequencies ****)
@@ -201,8 +208,8 @@ fun relevance_filter_aux thy axioms goals =
   end;
 
 fun relevance_filter thy axioms goals =
-  if !pass_mark < 0.1 then axioms
-  else map #1 (relevance_filter_aux thy axioms goals);
-    
+  if !run_relevance_filter andalso !pass_mark >= 0.1
+  then map #1 (relevance_filter_aux thy axioms goals)
+  else axioms
 
 end;

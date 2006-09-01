@@ -5,6 +5,7 @@
 ATPs with TPTP format input.
 *)
 
+(*FIXME: Do we need this signature?*)
 signature RES_ATP =
 sig
   val prover: string ref
@@ -52,7 +53,7 @@ sig
   val rm_clasimp : unit -> unit
 end;
 
-structure ResAtp : RES_ATP =
+structure ResAtp =
 struct
 
 (********************************************************************)
@@ -159,7 +160,7 @@ fun rm_atpset() = include_atpset:=false;
 
 
 (**** relevance filter ****)
-val run_relevance_filter = ref true;
+val run_relevance_filter = ReduceAxiomsN.run_relevance_filter;
 val run_blacklist_filter = ref true;
 
 (******************************************************************)
@@ -173,10 +174,8 @@ fun string_of_logic FOL = "FOL"
   | string_of_logic HOLC = "HOLC"
   | string_of_logic HOLCS = "HOLCS";
 
-
 fun is_fol_logic FOL = true
   | is_fol_logic  _ = false
-
 
 (*HOLCS will not occur here*)
 fun upgrade_lg HOLC _ = HOLC
@@ -216,50 +215,46 @@ fun fn_lg (t as Const(f,tp)) (lg,seen) =
 
 fun term_lg [] (lg,seen) = (lg,seen)
   | term_lg (tm::tms) (FOL,seen) =
-    let val (f,args) = strip_comb tm
-	val (lg',seen') = if f mem seen then (FOL,seen) 
-			  else fn_lg f (FOL,seen)
-	val _ =
-          if is_fol_logic lg' then ()
-          else Output.debug ("Found a HOL term: " ^ Display.raw_string_of_term f)
-	 in
-	     term_lg (args@tms) (lg',seen')
-    end
+      let val (f,args) = strip_comb tm
+	  val (lg',seen') = if f mem seen then (FOL,seen) 
+			    else fn_lg f (FOL,seen)
+      in
+	if is_fol_logic lg' then ()
+        else Output.debug ("Found a HOL term: " ^ Display.raw_string_of_term f);
+        term_lg (args@tms) (lg',seen')
+      end
   | term_lg _ (lg,seen) = (lg,seen)
 
 exception PRED_LG of term;
 
 fun pred_lg (t as Const(P,tp)) (lg,seen)= 
-    if is_hol_pred tp then (upgrade_lg HOL lg, t ins seen) else (lg,t ins seen) 
+      if is_hol_pred tp then (upgrade_lg HOL lg, t ins seen) else (lg,t ins seen) 
   | pred_lg (t as Free(P,tp)) (lg,seen) =
-    if is_hol_pred tp then (upgrade_lg HOL lg, t ins seen) else (lg,t ins seen)
+      if is_hol_pred tp then (upgrade_lg HOL lg, t ins seen) else (lg,t ins seen)
   | pred_lg (t as Var(_,_)) (lg,seen) = (upgrade_lg HOL lg, t ins seen)
   | pred_lg P _ = raise PRED_LG(P);
 
 
 fun lit_lg (Const("Not",_) $ P) (lg,seen) = lit_lg P (lg,seen)
   | lit_lg P (lg,seen) =
-    let val (pred,args) = strip_comb P
-	val (lg',seen') = if pred mem seen then (lg,seen) 
-			  else pred_lg pred (lg,seen)
-	val _ =
-          if is_fol_logic lg' then ()
-          else Output.debug ("Found a HOL predicate: " ^ Display.raw_string_of_term pred)
-    in
+      let val (pred,args) = strip_comb P
+	  val (lg',seen') = if pred mem seen then (lg,seen) 
+			    else pred_lg pred (lg,seen)
+      in
+	if is_fol_logic lg' then ()
+	else Output.debug ("Found a HOL predicate: " ^ Display.raw_string_of_term pred);
 	term_lg args (lg',seen')
-    end;
+      end;
 
 fun lits_lg [] (lg,seen) = (lg,seen)
   | lits_lg (lit::lits) (FOL,seen) =
-    let val (lg,seen') = lit_lg lit (FOL,seen)
-	val _ =
-          if is_fol_logic lg then ()
-          else Output.debug ("Found a HOL literal: " ^ Display.raw_string_of_term lit)
-    in
+      let val (lg,seen') = lit_lg lit (FOL,seen)
+      in
+	if is_fol_logic lg then ()
+	else Output.debug ("Found a HOL literal: " ^ Display.raw_string_of_term lit);
 	lits_lg lits (lg,seen')
-    end
+      end
   | lits_lg lits (lg,seen) = (lg,seen);
-
 
 fun dest_disj_aux (Const ("op |", _) $ t $ t') disjs = 
     dest_disj_aux t (dest_disj_aux t' disjs)
@@ -314,11 +309,10 @@ val blacklist = ref
    "Datatype.unit.inducts",
    "Datatype.unit.split",
    "Datatype.unit.splits",
-   "Product_Type.unit_abs_eta_conv",
-   "Product_Type.unit_induct",
-
    "Datatype.prod.size",
+
    "Divides.dvd_0_left_iff",
+
    "Finite_Set.card_0_eq",
    "Finite_Set.card_infinite",
    "Finite_Set.Max_ge",
@@ -335,15 +329,22 @@ val blacklist = ref
    "Finite_Set.min_max.below_inf_sup_Inf_Sup.sup_Inf_absorb", 
    "Finite_Set.min.f_below_strict_below.below_f_conv",        (*duplicates in Orderings.*)
    "Finite_Set.min.f_below_strict_below.strict_below_f_conv", (*duplicates in Orderings.*)
+   
+   "HOL.split_if",         (*splitting theorem*)
+   "HOL.split_if_asm",     (*splitting theorem*)
+
    "IntDef.Integ.Abs_Integ_inject",
    "IntDef.Integ.Abs_Integ_inverse",
+   "IntDef.abs_split",
    "IntDiv.zdvd_0_left",
+   
    "List.append_eq_append_conv",
    "List.hd_Cons_tl",   (*Says everything is [] or Cons. Probably prolific.*)
    "List.in_listsD",
    "List.in_listsI",
    "List.lists.Cons",
    "List.listsE",
+
    "Nat.less_one", (*not directional? obscure*)
    "Nat.not_gr0",
    "Nat.one_eq_mult_iff", (*duplicate by symmetry*)
@@ -368,6 +369,7 @@ val blacklist = ref
    "NatSimprocs.mult_less_cancel_right_number_of", (*excessive case analysis*)
    "NatSimprocs.zero_le_divide_iff_number_of", (*excessive case analysis*)
    "NatSimprocs.zero_less_divide_iff_number_of",
+
    "OrderedGroup.abs_0_eq", (*duplicate by symmetry*)
    "OrderedGroup.diff_eq_0_iff_eq", (*prolific?*)
    "OrderedGroup.join_0_eq_0",
@@ -375,6 +377,9 @@ val blacklist = ref
    "OrderedGroup.pprt_eq_0",   (*obscure*)
    "OrderedGroup.pprt_eq_id",   (*obscure*)
    "OrderedGroup.pprt_mono",   (*obscure*)
+   "Orderings.split_min",      (*splitting theorem*)
+   "Orderings.split_max",      (*splitting theorem*)
+
    "Parity.even_nat_power",   (*obscure, somewhat prolilfic*)
    "Parity.power_eq_0_iff_number_of",
    "Parity.power_le_zero_eq_number_of",   (*obscure and prolific*)
@@ -382,6 +387,14 @@ val blacklist = ref
    "Parity.zero_le_power_eq_number_of",   (*obscure and prolific*)
    "Parity.zero_less_power_eq_number_of",   (*obscure and prolific*)
    "Power.zero_less_power_abs_iff",
+   "Product_Type.unit_abs_eta_conv",
+   "Product_Type.unit_induct",
+
+   "Product_Type.split_paired_Ball_Sigma",     (*splitting theorem*)
+   "Product_Type.split_paired_Bex_Sigma",      (*splitting theorem*)
+   "Product_Type.split_split",                 (*splitting theorem*)
+   "Product_Type.split_split_asm",             (*splitting theorem*)
+
    "Relation.diagI",
    "Relation.ImageI",
    "Ring_and_Field.divide_cancel_left", (*fields are seldom used & often prolific*)
@@ -446,18 +459,8 @@ Very prolific and somewhat obscure:
 
 (*** retrieve lemmas from clasimpset and atpset, may filter them ***)
 
-(*The "name" of a theorem is its statement, if nothing else is available.*)
-val plain_string_of_thm =
-    setmp show_question_marks false 
-      (setmp print_mode [] 
-	(Pretty.setmp_margin 999 string_of_thm));
-	
-(*Returns the first substring enclosed in quotation marks, typically omitting 
-  the [.] of meta-level assumptions.*)
-val firstquoted = hd o (String.tokens (fn c => c = #"\""))
-	
 fun fake_thm_name th = 
-    Context.theory_name (theory_of_thm th) ^ "." ^ firstquoted (plain_string_of_thm th);
+    Context.theory_name (theory_of_thm th) ^ "." ^ gensym"";
 
 fun put_name_pair ("",th) = (fake_thm_name th, th)
   | put_name_pair (a,th)  = (a,th);
@@ -484,11 +487,14 @@ fun delete_numeric_suffix s =
           else [s]
     | [] => [s];
 
+fun banned_thmlist s =
+  (Sign.base_name s) mem_string ["induct","inducts","split","splits","split_asm"];
+
 fun make_banned_test xs = 
   let val ht = Polyhash.mkTable (Polyhash.hash_string, op =)
                                 (6000, HASH_STRING)
-      fun banned s = exists (fn s' => isSome (Polyhash.peek ht s')) 
-                            (delete_numeric_suffix s)
+      fun banned_aux s = isSome (Polyhash.peek ht s) orelse banned_thmlist s
+      fun banned s = exists banned_aux (delete_numeric_suffix s)
   in  app (fn x => Polyhash.insert ht (x,())) (!blacklist);
       app (insert_suffixed_names ht) (!blacklist @ xs); 
       banned
@@ -519,27 +525,40 @@ fun get_literals (Const("Trueprop",_)$P) lits = get_literals P lits
   | get_literals lit lits = (lit::lits);
 
 
-fun hash_term term = Word.toIntX (xor_words (map hash_literal (get_literals term [])));
-
-fun hash_thm  thm = hash_term (prop_of thm);
+fun hash_term t = Word.toIntX (xor_words (map hash_literal (get_literals t [])));
 
 fun equal_thm (thm1,thm2) = Term.aconv(prop_of thm1, prop_of thm2);
+
 (*Create a hash table for clauses, of the given size*)
 fun mk_clause_table n =
-      Polyhash.mkTable (hash_thm, equal_thm)
+      Polyhash.mkTable (hash_term o prop_of, equal_thm)
                        (n, HASH_CLAUSE);
 
-(*Use a hash table to eliminate duplicates from xs*)
-fun make_unique ht xs = 
-      (app (ignore o Polyhash.peekInsert ht) xs;  Polyhash.listItems ht);
+(*Use a hash table to eliminate duplicates from xs. Argument is a list of
+  (name, theorem) pairs, but the theorems are hashed into the table. *)
+fun make_unique xs = 
+  let val ht = mk_clause_table 2200
+  in
+      (app (ignore o Polyhash.peekInsert ht) (map swap xs);  
+       map swap (Polyhash.listItems ht))
+  end;
 
+(*FIXME: SLOW!!!*)
 fun mem_thm th [] = false
   | mem_thm th ((th',_)::thms_names) = equal_thm (th,th') orelse mem_thm th thms_names;
 
+(*FIXME: SLOW!!! These two functions are called only by get_relevant_clauses.
+  It would be faster to compare names, rather than theorems, and to use
+  a symbol table or hash table.*)
 fun insert_thms [] thms_names = thms_names
   | insert_thms ((thm,name)::thms_names) thms_names' =
       if mem_thm thm thms_names' then insert_thms thms_names thms_names' 
       else insert_thms thms_names ((thm,name)::thms_names');
+
+(* filter axiom clauses, but keep supplied clauses and clauses in whitelist *)
+fun get_relevant_clauses thy cls_thms white_cls goals =
+  insert_thms white_cls (ReduceAxiomsN.relevance_filter thy cls_thms goals);
+
 
 fun display_thms [] = ()
   | display_thms ((name,thm)::nthms) = 
@@ -555,8 +574,8 @@ fun all_facts_of ctxt =
 fun get_clasimp_atp_lemmas ctxt user_thms = 
   let val included_thms =
 	if !include_all 
-	then (tap (fn ths => Output.debug ("Including all " ^ Int.toString (length ths) ^
-	                                   " theorems")) 
+	then (tap (fn ths => Output.debug
+	             ("Including all " ^ Int.toString (length ths) ^ " theorems")) 
 	          (all_facts_of ctxt @ PureThy.all_thms_of (ProofContext.theory_of ctxt)))
 	else 
 	let val claset_thms =
@@ -578,7 +597,7 @@ fun get_clasimp_atp_lemmas ctxt user_thms =
       (map put_name_pair included_thms, user_rules)
   end;
 
-(* remove lemmas that are banned from the backlist *)
+(*Remove lemmas that are banned from the backlist. Also remove duplicates. *)
 fun blacklist_filter thms = 
   if !run_blacklist_filter then 
       let val banned = make_banned_test (map #1 thms)
@@ -586,21 +605,9 @@ fun blacklist_filter thms =
       in  filter ok thms  end
   else thms;
 
-(* filter axiom clauses, but keep supplied clauses and clauses in whitelist *)
-fun get_relevant_clauses ctxt cls_thms white_cls goals =
- let val cls_thms_list = make_unique (mk_clause_table 2200) (List.concat (white_cls@cls_thms))
-     val relevant_cls_thms_list = 
-	 if !run_relevance_filter 
-	 then ReduceAxiomsN.relevance_filter (ProofContext.theory_of ctxt) cls_thms_list goals 
-	 else cls_thms_list
- in
-     insert_thms (List.concat white_cls) relevant_cls_thms_list 
- end;
-
 (***************************************************************)
 (* ATP invocation methods setup                                *)
 (***************************************************************)
-
 
 (**** prover-specific format: TPTP ****)
 
@@ -634,12 +641,12 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
 	val goal_cls = conj_cls@hyp_cls
 	val (included_thms,user_rules) = get_clasimp_atp_lemmas ctxt user_thms
 	val user_lemmas_names = map #1 user_rules
-	val rm_black_cls = blacklist_filter included_thms 
-	val cla_simp_atp_clauses = ResAxioms.cnf_rules_pairs rm_black_cls
+	val cla_simp_atp_clauses = included_thms |> blacklist_filter
+	                             |> make_unique |> ResAxioms.cnf_rules_pairs
 	val user_cls = ResAxioms.cnf_rules_pairs user_rules
-	val axclauses = get_relevant_clauses ctxt cla_simp_atp_clauses
-	                            user_cls (map prop_of goal_cls)
 	val thy = ProofContext.theory_of ctxt
+	val axclauses = get_relevant_clauses thy cla_simp_atp_clauses
+	                            user_cls (map prop_of goal_cls)
 	val prob_logic = case mode of 
                             Auto => problem_logic_goals [map prop_of goal_cls]
 			  | Fol => FOL
@@ -730,6 +737,13 @@ fun trace_array fname =
   let val path = File.tmp_path (Path.basic fname)
   in  Array.app (File.append path o (fn s => s ^ "\n"))  end;
 
+(*Converting a subgoal into negated conjecture clauses*)
+fun neg_clauses th n =
+  let val tacs = [rtac ccontr, ObjectLogic.atomize_tac, skolemize_tac]
+      val st = Seq.hd (EVERY' tacs n th)
+      val negs = Option.valOf (metahyps_thms n st)
+  in make_clauses negs |> ResAxioms.assume_abstract_list |> Meson.finish_cnf end;
+		                       
 (*We write out problem files for each subgoal. Argument probfile generates filenames,
   and allows the suppression of the suffix "_1" in problem-generation mode.
   FIXME: does not cope with &&, and it isn't easy because one could have multiple
@@ -738,38 +752,39 @@ fun write_problem_files probfile (ctxt,th)  =
   let val goals = Thm.prems_of th
       val _ = Output.debug ("number of subgoals = " ^ Int.toString (length goals))
       val (included_thms,white_thms) = get_clasimp_atp_lemmas ctxt []
-      val rm_blacklist_cls = blacklist_filter included_thms
-      val cla_simp_atp_clauses = ResAxioms.cnf_rules_pairs rm_blacklist_cls
-      val axclauses = get_relevant_clauses ctxt cla_simp_atp_clauses (ResAxioms.cnf_rules_pairs white_thms) goals 
-      val _ = Output.debug ("total clauses from thms = " ^ Int.toString (length axclauses))
+      val cla_simp_atp_clauses = included_thms |> blacklist_filter
+                                   |> make_unique |> ResAxioms.cnf_rules_pairs 
+      val white_cls = ResAxioms.cnf_rules_pairs white_thms
+      val _ = Output.debug ("clauses = " ^ Int.toString(length cla_simp_atp_clauses))
       val thy = ProofContext.theory_of ctxt
-      fun get_neg_subgoals n =
-	  if n=0 then []
-	  else
-	      let val st = Seq.hd (EVERY' [rtac ccontr, ObjectLogic.atomize_tac, 
-	                                   skolemize_tac] n th)
-		  val negs = Option.valOf (metahyps_thms n st)
-		  val negs_clauses = make_clauses negs |> ResAxioms.assume_abstract_list
-		                       |> Meson.finish_cnf
+      fun get_neg_subgoals [] _ = []
+        | get_neg_subgoals (gl::gls) n =
+	      let val axclauses = get_relevant_clauses thy cla_simp_atp_clauses
+	                            white_cls [gl]  (*relevant to goal*)
 	      in
-		  negs_clauses :: get_neg_subgoals (n-1)
+		  (neg_clauses th n, axclauses) :: get_neg_subgoals gls (n+1)
 	      end
-      val neg_subgoals = get_neg_subgoals (length goals) 
-      val goals_logic = case !linkup_logic_mode of
-                            Auto => problem_logic_goals (map (map prop_of) neg_subgoals)
-			  | Fol => FOL
-			  | Hol => HOL
-      val keep_types = if is_fol_logic goals_logic then !ResClause.keep_types else is_typed_hol ()
-      val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy else []
-      val _ = Output.debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
-      val arity_clauses = if keep_types then ResClause.arity_clause_thy thy else []
+      val goal_pairs = get_neg_subgoals goals 1
+      val logic = case !linkup_logic_mode of
+		Auto => problem_logic_goals (map ((map prop_of) o #1) goal_pairs)
+	      | Fol => FOL
+	      | Hol => HOL
+      val keep_types = if is_fol_logic logic then !ResClause.keep_types 
+                       else is_typed_hol ()
+      val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy
+                             else []
+      val _ = Output.debug ("classrel clauses = " ^ 
+                            Int.toString (length classrel_clauses))
+      val arity_clauses = if keep_types then ResClause.arity_clause_thy thy 
+                          else []
       val _ = Output.debug ("arity clauses = " ^ Int.toString (length arity_clauses))
       val writer = if !prover = "spass" then dfg_writer else tptp_writer 
       fun write_all [] _ = []
-	| write_all (sub::subgoals) k =
-	   (writer goals_logic sub (probfile k) (axclauses,classrel_clauses,arity_clauses) [],
-	    probfile k) :: write_all subgoals (k-1)
-      val (clnames::_, filenames) = ListPair.unzip (write_all neg_subgoals (length goals))
+	| write_all ((ccls,axcls)::subgoals) k =
+	   (writer logic ccls (probfile k) (axcls,classrel_clauses,arity_clauses) [],
+	    probfile k) 
+	   :: write_all subgoals (k+1)
+      val (clnames::_, filenames) = ListPair.unzip (write_all goal_pairs 1)
       val thm_names = Array.fromList clnames
       val _ = if !Output.show_debug_msgs 
               then trace_array "thm_names" thm_names else ()

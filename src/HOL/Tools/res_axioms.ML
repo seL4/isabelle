@@ -229,15 +229,13 @@ fun eta_conversion_rule th =
 fun crhs_of th =
   case Drule.strip_comb (cprop_of th) of
       (f, [_, rhs]) => 
-          (case term_of f of
-               Const ("==", _) => rhs
+          (case term_of f of Const ("==", _) => rhs
              | _ => raise THM ("crhs_of", 0, [th]))
     | _ => raise THM ("crhs_of", 1, [th]);
 
 fun rhs_of th =
-  case #prop (rep_thm th) of
-      (Const("==",_) $ _ $ rhs) => rhs
-   | _ => raise THM ("rhs_of", 1, [th]);
+  case prop_of th of (Const("==",_) $ _ $ rhs) => rhs
+    | _ => raise THM ("rhs_of", 1, [th]);
 
 (*Apply a function definition to an argument, beta-reducing the result.*)
 fun beta_comb cf x =
@@ -265,9 +263,7 @@ fun eq_absdef (th1, th2) =
 fun lambda_free (Abs _) = false
   | lambda_free (t $ u) = lambda_free t andalso lambda_free u
   | lambda_free _ = true;
-
-fun lambda_free_thm th = lambda_free (#prop (rep_thm th));
-  
+ 
 (*Traverse a theorem, declaring abstraction function definitions. String s is the suggested
   prefix for the constants. Resulting theory is returned in the first theorem. *)
 fun declare_absfuns th =
@@ -424,10 +420,12 @@ val clause_cache = ref (Symtab.empty : (thm * thm list) Symtab.table)
 fun skolem_of_nnf th =
   map (skolem_of_def o assume o (cterm_of (theory_of_thm th))) (assume_skofuns th);
 
+fun assert_lambda_free ths = assert (forall (lambda_free o prop_of) ths);
+
 fun assume_abstract th =
-  if lambda_free_thm th then [th]
+  if lambda_free (prop_of th) then [th]
   else th |> eta_conversion_rule |> assume_absfuns 
-          |> tap (fn ths => assert ((forall lambda_free_thm) ths) "assume_abstract: lambdas")
+          |> tap (fn ths => assert_lambda_free ths "assume_abstract: lambdas")
 
 (*Replace lambdas by assumed function definitions in the theorems*)
 fun assume_abstract_list ths =
@@ -438,11 +436,11 @@ fun assume_abstract_list ths =
 fun declare_abstract' (thy, []) = (thy, [])
   | declare_abstract' (thy, th::ths) =
       let val (thy', th_defs) = 
-            if lambda_free_thm th then (thy, [th])
+            if lambda_free (prop_of th) then (thy, [th])
             else
 		th |> zero_var_indexes |> Drule.freeze_thaw |> #1
 		   |> eta_conversion_rule |> transfer thy |> declare_absfuns
-	  val _ = assert ((forall lambda_free_thm) th_defs) "declare_abstract: lambdas"
+	  val _ = assert_lambda_free th_defs "declare_abstract: lambdas"
 	  val (thy'', ths') = declare_abstract' (thy', ths)
       in  (thy'', th_defs @ ths')  end;
 
@@ -494,9 +492,6 @@ fun skolem_cache_thm ((name,th), thy) =
 	      Output.debug (string_of_thm th');
 	      ([th],thy));
 	      
-fun skolem_cache ((name,th), thy) = #2 (skolem_cache_thm ((name,th), thy));
-
-
 (*Exported function to convert Isabelle theorems into axiom clauses*) 
 fun cnf_axiom (name,th) =
   case name of
@@ -565,7 +560,7 @@ fun pair_name_cls k (n, []) = []
  	    
 fun cnf_rules_pairs_aux pairs [] = pairs
   | cnf_rules_pairs_aux pairs ((name,th)::ths) =
-      let val pairs' = (pair_name_cls 0 (name, cnf_axiom(name,th))) :: pairs
+      let val pairs' = (pair_name_cls 0 (name, cnf_axiom(name,th))) @ pairs
 		       handle THM _ => pairs | ResClause.CLAUSE _ => pairs
 			    | ResHolClause.LAM2COMB _ => pairs
       in  cnf_rules_pairs_aux pairs' ths  end;
@@ -576,6 +571,15 @@ val cnf_rules_pairs = cnf_rules_pairs_aux [];
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause, or ResHolClause.clause) ****)
 
 (*Setup function: takes a theory and installs ALL known theorems into the clause cache*)
+
+fun skolem_cache ((name,th), thy) = 
+  let val prop = prop_of th 
+  in
+      if lambda_free prop orelse null (term_tvars prop) 
+      then thy    (*monomorphic theorems can be Skolemized on demand*)
+      else #2 (skolem_cache_thm ((name,th), thy))
+  end;
+
 fun clause_cache_setup thy = List.foldl skolem_cache thy (PureThy.all_thms_of thy);
   
 
@@ -598,8 +602,8 @@ val meson_method_setup =
 
 fun conj2_rule (th1,th2) = conjI OF [th1,th2];
 
-(*Conjoin a list of theorems to recreate a single theorem*)
-fun conj_rule []  = raise THM ("conj_rule", 0, []) 
+(*Conjoin a list of theorems to form a single theorem*)
+fun conj_rule []  = TrueI
   | conj_rule ths = foldr1 conj2_rule ths;
 
 fun skolem_attr (Context.Theory thy, th) =
