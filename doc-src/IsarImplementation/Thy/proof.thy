@@ -5,7 +5,7 @@ theory "proof" imports base begin
 
 chapter {* Structured proofs *}
 
-section {* Variables and schematic polymorphism *}
+section {* Variables *}
 
 text FIXME
 
@@ -16,7 +16,6 @@ text %mlref {*
   @{index_ML Variable.import: "bool ->
   thm list -> Proof.context -> ((ctyp list * cterm list) * thm list) * Proof.context"} \\
   @{index_ML Variable.export: "Proof.context -> Proof.context -> thm list -> thm list"} \\
-  @{index_ML Variable.trade: "Proof.context -> (thm list -> thm list) -> thm list -> thm list"} \\
   @{index_ML Variable.polymorphic: "Proof.context -> term list -> term list"} \\
   \end{mldecls}
 
@@ -49,10 +48,6 @@ text %mlref {*
 
   @{ML Variable.export} essentially reverses the effect of @{ML
   Variable.import} (up to renaming of schematic variables.
-
-  \item @{ML Variable.trade} composes @{ML Variable.import} and @{ML
-  Variable.export}, i.e.\ it provides a view on facts with all
-  variables being fixed in the current context.
 
   \item @{ML Variable.polymorphic}~@{text "ctxt ts"} generalizes type
   variables in @{text "ts"} as far as possible, even those occurring

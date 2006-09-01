@@ -1,5 +1,15 @@
 
 text {*
+
+  @{index_ML Variable.trade: "Proof.context -> (thm list -> thm list) -> thm list -> thm list"} \\
+
+
+
+  \item @{ML Variable.trade} composes @{ML Variable.import} and @{ML
+  Variable.export}, i.e.\ it provides a view on facts with all
+  variables being fixed in the current context.
+
+
   In practice, super-contexts emerge either by merging existing ones,
   or by adding explicit declarations.  For example, new theories are
   usually derived by importing existing theories from the library

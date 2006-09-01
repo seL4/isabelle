@@ -23,7 +23,7 @@
 }
 \isamarkuptrue%
 %
-\isamarkupsection{Variables and schematic polymorphism%
+\isamarkupsection{Variables%
 }
 \isamarkuptrue%
 %
@@ -45,7 +45,6 @@ FIXME%
   \indexml{Variable.import}\verb|Variable.import: bool ->|\isasep\isanewline%
 \verb|  thm list -> Proof.context -> ((ctyp list * cterm list) * thm list) * Proof.context| \\
   \indexml{Variable.export}\verb|Variable.export: Proof.context -> Proof.context -> thm list -> thm list| \\
-  \indexml{Variable.trade}\verb|Variable.trade: Proof.context -> (thm list -> thm list) -> thm list -> thm list| \\
   \indexml{Variable.polymorphic}\verb|Variable.polymorphic: Proof.context -> term list -> term list| \\
   \end{mldecls}
 
@@ -76,9 +75,6 @@ FIXME%
   that type variables occurring in term variables are still fixed.
 
   \verb|Variable.export| essentially reverses the effect of \verb|Variable.import| (up to renaming of schematic variables.
-
-  \item \verb|Variable.trade| composes \verb|Variable.import| and \verb|Variable.export|, i.e.\ it provides a view on facts with all
-  variables being fixed in the current context.
 
   \item \verb|Variable.polymorphic|~\isa{ctxt\ ts} generalizes type
   variables in \isa{ts} as far as possible, even those occurring
