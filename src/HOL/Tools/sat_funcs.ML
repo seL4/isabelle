@@ -324,7 +324,7 @@ in
 				(* cf. Conjunction.elim_list *)
 				fun right_elim_list th =
 					let val (th1, th2) = Conjunction.elim th
-					in [th1] @ right_elim_list th2 end handle THM _ => [th]
+					in th1 :: right_elim_list th2 end handle THM _ => [th]
 				(* [[c_1 && ... && c_n] |- c_1, ..., [c_1 && ... && c_n] |- c_n] *)
 				val converted_clauses = right_elim_list cnf_thm
 				(* initialize the clause array with the given clauses *)
