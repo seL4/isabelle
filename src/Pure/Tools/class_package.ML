@@ -29,7 +29,7 @@ sig
   val certify_sort: theory -> sort -> sort
   val read_class: theory -> xstring -> class
   val read_sort: theory -> string -> sort
-  val operational_algebra: theory -> Sorts.algebra * (sort -> sort)
+  val operational_algebra: theory -> (sort -> sort) * Sorts.algebra
   val the_consts_sign: theory -> class -> string * (string * typ) list
   val the_inst_sign: theory -> class * string -> (string * sort) list * (string * typ) list
   val assume_arities_of_sort: theory -> ((string * sort list) * sort) list -> typ * sort -> bool
