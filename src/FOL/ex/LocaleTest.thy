@@ -780,4 +780,18 @@ lemma (in Rpair_semi)
   shows "(x +++ y) +++ z = x +++ (y +++ z)"
   apply (rule r_assoc) done
 
+
+subsection {* Import of Locales with Predicates as Interpretation *}
+
+locale Ra =
+  assumes Ra: "True"
+
+locale Rb = Ra +
+  assumes Rb: "True"
+
+locale Rc = Rb +
+  assumes Rc: "True"
+
+print_locale! Rc
+
 end
