@@ -393,11 +393,11 @@ text %mlref {*
   argument structure.  The resulting structure provides data init and
   access operations as described above.
 
-  \item @{ML_functor ProofDataFun}@{text "(spec)"} is analogous for
-  type @{ML_type Proof.context}.
+  \item @{ML_functor ProofDataFun}@{text "(spec)"} is analogous to
+  @{ML_functor TheoryDataFun} for type @{ML_type Proof.context}.
 
-  \item @{ML_functor GenericDataFun}@{text "(spec)"} is analogous for
-  type @{ML_type Context.generic}.
+  \item @{ML_functor GenericDataFun}@{text "(spec)"} is analogous to
+  @{ML_functor TheoryDataFun} for type @{ML_type Context.generic}.
 
   \end{description}
 *}
@@ -406,6 +406,8 @@ text %mlref {*
 section {* Name spaces *}
 
 text {*
+  FIXME tune
+
   By general convention, each kind of formal entities (logical
   constant, type, type class, theorem, method etc.) lives in a
   separate name space.  It is usually clear from the syntactic context
@@ -443,6 +445,8 @@ text {*
 subsection {* Strings of symbols *}
 
 text {*
+  FIXME tune
+
   Isabelle strings consist of a sequence of
   symbols\glossary{Symbol}{The smallest unit of text in Isabelle,
   subsumes plain ASCII characters as well as an infinite collection of
@@ -539,6 +543,8 @@ text %mlref {*
 subsection {* Qualified names *}
 
 text {*
+  FIXME tune
+
   A \emph{qualified name} essentially consists of a non-empty list of
   basic name components.  The packad notation uses a dot as separator,
   as in @{text "A.b"}, for example.  The very last component is called

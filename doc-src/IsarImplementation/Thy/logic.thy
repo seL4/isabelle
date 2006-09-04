@@ -3,7 +3,7 @@
 
 theory logic imports base begin
 
-chapter {* Primitive logic *}
+chapter {* Primitive logic \label{ch:logic} *}
 
 section {* Variable names *}
 

@@ -7,53 +7,137 @@ chapter {* Structured proofs *}
 
 section {* Variables *}
 
-text FIXME
+text {*
+  Any variable that is not explicitly bound by @{text "\<lambda>"}-abstraction
+  is considered as ``free''.  Logically, free variables act like
+  outermost universal quantification (at the sequent level): @{text
+  "A\<^isub>1(x), \<dots>, A\<^isub>n(x) \<turnstile> B(x)"} means that the result
+  holds \emph{for all} values of @{text "x"}.  Free variables for
+  terms (not types) can be fully internalized into the logic: @{text
+  "\<turnstile> B(x)"} and @{text "\<turnstile> \<And>x. B(x)"} are interchangeable provided that
+  @{text "x"} does not occur elsewhere in the context.  Inspecting
+  @{text "\<turnstile> \<And>x. B(x)"} more closely, we see that inside the
+  quantifier, @{text "x"} is essentially ``arbitrary, but fixed'',
+  while from outside it appears as a place-holder for instantiation
+  (thanks to @{text "\<And>"}-elimination).
+
+  The Pure logic represents the notion of variables being either
+  inside or outside the current scope by providing separate syntactic
+  categories for \emph{fixed variables} (e.g.\ @{text "x"}) vs.\
+  \emph{schematic variables} (e.g.\ @{text "?x"}).  Incidently, a
+  universal result @{text "\<turnstile> \<And>x. B(x)"} has the canonical form @{text
+  "\<turnstile> B(?x)"}, which represents its generality nicely without requiring
+  an explicit quantifier.  The same principle works for type variables
+  as well: @{text "\<turnstile> B(?\<alpha>)"} expresses the idea of ``@{text "\<turnstile>
+  \<forall>\<alpha>. B(\<alpha>)"}'' without demanding a truly polymorphic framework.
+
+  \medskip Additional care is required to treat type variables in a
+  way that facilitates type-inference.  In principle, term variables
+  depend on type variables, which means that type variables would have
+  to be declared first.  For example, a raw type-theoretic framework
+  would demand the context to be constructed in stages as follows:
+  @{text "\<Gamma> = \<alpha>: type, x: \<alpha>, a: A(x\<^isub>\<alpha>)"}.
+
+  We allow a slightly less formalistic mode of operation: term
+  variables @{text "x"} are fixed without specifying a type yet
+  (essentially \emph{all} potential occurrences of some instance
+  @{text "x\<^isub>\<tau>"} will be fixed); the first occurrence of @{text
+  "x"} within a specific term assigns its most general type, which is
+  then maintained consistently in the context.  The above example
+  becomes @{text "\<Gamma> = x: term, \<alpha>: type, A(x\<^isub>\<alpha>)"}, where type
+  @{text "\<alpha>"} is fixed \emph{after} term @{text "x"}, and the
+  constraint @{text "x: \<alpha>"} is an implicit consequence of the
+  occurrence of @{text "x\<^isub>\<alpha>"} in the subsequent proposition.
+
+  This twist of dependencies is also accommodated by the reverse
+  operation of exporting results from a context: a type variable
+  @{text "\<alpha>"} is considered fixed as long as it occurs in some fixed
+  term variable of the context.  For example, exporting @{text "x:
+  term, \<alpha>: type \<turnstile> x\<^isub>\<alpha> = x\<^isub>\<alpha>"} produces @{text "x: term \<turnstile>
+  x\<^isub>\<alpha> = x\<^isub>\<alpha>"} for fixed @{text "\<alpha>"} in the first step,
+  and @{text "\<turnstile> ?x\<^isub>?\<^isub>\<alpha> = ?x\<^isub>?\<^isub>\<alpha>"} for
+  schematic @{text "?x"} and @{text "?\<alpha>"} only in the second step.
+
+  \medskip The Isabelle/Isar proof context manages the gory details of
+  term vs.\ type variables, with high-level principles for moving the
+  frontier between fixed and schematic variables.  By observing a
+  simple discipline of fixing variables and declaring terms
+  explicitly, the fine points are treated by the @{text "export"}
+  operation.
+
+  There is also a separate @{text "import"} operation makes a
+  generalized fact a genuine part of the context, by inventing fixed
+  variables for the schematic ones.  The effect can be reversed by
+  using @{text "export"} later, with a potentially extended context,
+  but the result will be only equivalent modulo renaming of schematic
+  variables.
+
+  The @{text "focus"} operation provides a variant of @{text "import"}
+  for nested propositions (with explicit quantification): @{text
+  "\<And>x. B(x)"} is decomposed by inventing a fixed variable @{text "x"}
+  and for the body @{text "B(x)"}.
+*}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML Variable.declare_term: "term -> Proof.context -> Proof.context"} \\
   @{index_ML Variable.add_fixes: "string list -> Proof.context -> string list * Proof.context"} \\
-  @{index_ML Variable.import: "bool ->
-  thm list -> Proof.context -> ((ctyp list * cterm list) * thm list) * Proof.context"} \\
+  @{index_ML Variable.invent_fixes: "string list -> Proof.context -> string list * Proof.context"} \\
+  @{index_ML Variable.declare_term: "term -> Proof.context -> Proof.context"} \\
+  @{index_ML Variable.declare_constraints: "term -> Proof.context -> Proof.context"} \\
   @{index_ML Variable.export: "Proof.context -> Proof.context -> thm list -> thm list"} \\
   @{index_ML Variable.polymorphic: "Proof.context -> term list -> term list"} \\
+  @{index_ML Variable.import: "bool ->
+  thm list -> Proof.context -> ((ctyp list * cterm list) * thm list) * Proof.context"} \\
+  @{index_ML Variable.focus: "cterm -> Proof.context -> (cterm list * cterm) * Proof.context"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML Variable.declare_term}~@{text "t ctxt"} declares term
-  @{text "t"} to belong to the context.  This fixes free type
-  variables, but not term variables.  Constraints for type and term
-  variables are declared uniformly.
-
   \item @{ML Variable.add_fixes}~@{text "xs ctxt"} fixes term
-  variables @{text "xs"} and returns the internal names of the
-  resulting Skolem constants.  Note that term fixes refer to
-  \emph{all} type instances that may occur in the future.
+  variables @{text "xs"}, returning the resulting internal names.  By
+  default, the internal representation coincides with the external
+  one, which also means that the given variables must not have been
+  fixed already.  Within a local proof body, the given names are just
+  hints for newly invented Skolem variables.
 
   \item @{ML Variable.invent_fixes} is similar to @{ML
-  Variable.add_fixes}, but the given names merely act as hints for
-  internal fixes produced here.
+  Variable.add_fixes}, but always produces fresh variants of the given
+  hints.
 
-  \item @{ML Variable.import}~@{text "open ths ctxt"} augments the
-  context by new fixes for the schematic type and term variables
-  occurring in @{text "ths"}.  The @{text "open"} flag indicates
-  whether the fixed names should be accessible to the user, otherwise
-  internal names are chosen.
+  \item @{ML Variable.declare_term}~@{text "t ctxt"} declares term
+  @{text "t"} to belong to the context.  This automatically fixes new
+  type variables, but not term variables.  Syntactic constraints for
+  type and term variables are declared uniformly.
 
-  \item @{ML Variable.export}~@{text "inner outer ths"} generalizes
-  fixed type and term variables in @{text "ths"} according to the
-  difference of the @{text "inner"} and @{text "outer"} context.  Note
-  that type variables occurring in term variables are still fixed.
+  \item @{ML Variable.declare_constraints}~@{text "t ctxt"} derives
+  type-inference information from term @{text "t"}, without making it
+  part of the context yet.
 
-  @{ML Variable.export} essentially reverses the effect of @{ML
-  Variable.import} (up to renaming of schematic variables.
+  \item @{ML Variable.export}~@{text "inner outer thms"} generalizes
+  fixed type and term variables in @{text "thms"} according to the
+  difference of the @{text "inner"} and @{text "outer"} context,
+  following the principles sketched above.
 
   \item @{ML Variable.polymorphic}~@{text "ctxt ts"} generalizes type
   variables in @{text "ts"} as far as possible, even those occurring
-  in fixed term variables.  This operation essentially reverses the
-  default policy of type-inference to introduce local polymorphism as
-  fixed types.
+  in fixed term variables.  The default policy of type-inference is to
+  fix newly introduced type variables; this is essentially reversed
+  with @{ML Variable.polymorphic}, the given terms are detached from
+  the context as far as possible.
+
+  \item @{ML Variable.import}~@{text "open thms ctxt"} augments the
+  context by new fixes for the schematic type and term variables
+  occurring in @{text "thms"}.  The @{text "open"} flag indicates
+  whether the fixed names should be accessible to the user, otherwise
+  internal names are chosen.
+
+  @{ML Variable.export} essentially reverses the effect of @{ML
+  Variable.import}, modulo renaming of schematic variables.
+
+  \item @{ML Variable.focus}~@{text "\<And>x\<^isub>1 \<dots>
+  x\<^isub>n. B(x\<^isub>1, \<dots>, x\<^isub>n)"} invents fixed variables
+  for @{text "x\<^isub>1, \<dots>, x\<^isub>n"} and replaces these in the
+  body.
 
   \end{description}
 *}

@@ -1,6 +1,17 @@
 
 text {*
 
+  
+
+  A \emph{fixed variable} acts like a local constant in the current
+  context, representing some simple type @{text "\<alpha>"}, or some value
+  @{text "x: \<tau>"} (for a fixed type expression @{text "\<tau>"}).  A
+  \emph{schematic variable} acts like a placeholder for arbitrary
+  elements, similar to outermost quantification.  The division between
+  fixed and schematic variables tells which abstract entities are
+  inside and outside the current context.
+
+
   @{index_ML Variable.trade: "Proof.context -> (thm list -> thm list) -> thm list -> thm list"} \\
 
 
