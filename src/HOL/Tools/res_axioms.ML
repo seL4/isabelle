@@ -483,11 +483,14 @@ fun skolem_cache_thm (name,th) thy =
       NONE =>
         (case skolem thy (name, Thm.transfer thy th) of
              NONE => ([th],thy)
-           | SOME (thy',cls) =>
-               (if null cls then warning ("skolem_cache: empty clause set for " ^ name)
-                else ();
-                change clause_cache (Symtab.update (name, (th, map Drule.close_derivation cls)));
-                (cls,thy')))
+           | SOME (thy',cls) => 
+               let val cls = map Drule.local_standard cls
+               in
+                  if null cls then warning ("skolem_cache: empty clause set for " ^ name)
+                  else ();
+                  change clause_cache (Symtab.update (name, (th, cls))); 
+                  (cls,thy')
+               end)
     | SOME (th',cls) =>
         if eq_thm(th,th') then (cls,thy)
         else (Output.debug ("skolem_cache: Ignoring variant of theorem " ^ name);
@@ -500,8 +503,8 @@ fun cnf_axiom (name,th) =
   case name of
         "" => skolem_thm th (*no name, so can't cache*)
       | s  => case Symtab.lookup (!clause_cache) s of
-                NONE =>
-                  let val cls = skolem_thm th
+                NONE => 
+                  let val cls = map Drule.local_standard (skolem_thm th)
                   in change clause_cache (Symtab.update (s, (th, cls))); cls end
               | SOME(th',cls) =>
                   if eq_thm(th,th') then cls
