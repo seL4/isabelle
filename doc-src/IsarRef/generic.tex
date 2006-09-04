@@ -204,6 +204,8 @@ specifications.
   \isarcmd{locale} & : & \isartrans{theory}{local{\dsh}theory} \\
   \isarcmd{print_locale}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{print_locales}^* & : & \isarkeep{theory~|~proof} \\
+  intro_locales & : & \isarmeth \\
+  unfold_locales & : & \isarmeth \\
 \end{matharray}
 
 \indexouternonterm{contextexpr}\indexouternonterm{contextelem}
@@ -329,6 +331,16 @@ specifications.
 
 \item [$\isarkeyword{print_locales}$] prints the names of all locales of the
   current theory.
+
+\item [$intro_locales$ and $unfold_locales$] repeatedly expand
+  all introduction rules of locale predicates of the theory.  While
+  $intro_locales$ only applies the $loc.intro$ introduction rules and
+  therefore does not decend to assumptions, $unfold_locales$ is more
+  aggressive and applies $loc_axioms.intro$ as well.  Both methods are
+  aware of locale specifications entailed by the context, both from
+  target and $\isarkeyword{includes}$ statements, and from
+  interpretations (see below).  New goals that are entailed by the
+  current context are discharged automatically.
 
 \end{descr}
 
@@ -470,7 +482,7 @@ and locales
 \end{warn}
 
 
-\subsubsection{Constructive type classes}
+\subsection{Constructive type classes}
 
 A special case of locales are constructive type classes.
 Constructive type classes
