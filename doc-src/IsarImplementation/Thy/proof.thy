@@ -263,34 +263,67 @@ text %mlref {*
 
 section {* Conclusions *}
 
-text FIXME
-
-
-section {* Proof states \label{sec:isar-proof-state} *}
-
 text {*
-  FIXME
+  Local results are established by monotonic reasoning from facts
+  within a context.  This admits arbitrary combination of theorems,
+  e.g.\ using @{text "\<And>/\<Longrightarrow>"} elimination, resolution rules, or
+  equational reasoning.  Unaccounted context manipulations should be
+  ruled out, such as raw @{text "\<And>/\<Longrightarrow>"} introduction or ad-hoc
+  references to free variables or assumptions not present in the proof
+  context.
 
-\glossary{Proof state}{The whole configuration of a structured proof,
-consisting of a \seeglossary{proof context} and an optional
-\seeglossary{structured goal}.  Internally, an Isar proof state is
-organized as a stack to accomodate block structure of proof texts.
-For historical reasons, a low-level \seeglossary{tactical goal} is
-occasionally called ``proof state'' as well.}
+  \medskip The @{text "prove"} operation provides a separate interface
+  for structured backwards reasoning under program control, with some
+  explicit sanity checks of the result.  The goal context can be
+  augmented locally by given fixed variables and assumptions, which
+  will be available as local facts during the proof and discharged
+  into implications in the result.
 
-\glossary{Structured goal}{FIXME}
+  The @{text "prove_multi"} operation handles several simultaneous
+  claims within a single goal statement, by using meta-level
+  conjunction internally.
 
-\glossary{Goal}{See \seeglossary{tactical goal} or \seeglossary{structured goal}. \norefpage}
-
-
+  \medskip The tactical proof of a local claim may be structured
+  further by decomposing a sub-goal: @{text "(\<And>x. A(x) \<Longrightarrow> B(x)) \<Longrightarrow> \<dots>"}
+  is turned into @{text "B(x) \<Longrightarrow> \<dots>"} after fixing @{text "x"} and
+  assuming @{text "A(x)"}.
 *}
 
-section {* Proof methods *}
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML Goal.prove: "Proof.context -> string list -> term list -> term ->
+  ({prems: thm list, context: Proof.context} -> tactic) -> thm"} \\
+  @{index_ML Goal.prove_multi: "Proof.context -> string list -> term list -> term list ->
+  ({prems: thm list, context: Proof.context} -> tactic) -> thm list"} \\
+  @{index_ML SUBPROOF:
+  "({context: Proof.context, schematics: ctyp list * cterm list,
+    params: cterm list, asms: cterm list, concl: cterm,
+    prems: thm list} -> tactic) -> Proof.context -> int -> tactic"}
+  \end{mldecls}
 
-text FIXME
+  \begin{description}
 
-section {* Attributes *}
+  \item @{ML Goal.prove}~@{text "ctxt xs As C tac"} states goal @{text
+  "C"} in the context of fixed variables @{text "xs"} and assumptions
+  @{text "As"} and applies tactic @{text "tac"} to solve it.  The
+  latter may depend on the local assumptions being presented as facts.
+  The result is essentially @{text "\<And>xs. As \<Longrightarrow> C"}, but is normalized
+  by pulling @{text "\<And>"} before @{text "\<Longrightarrow>"} (the conclusion @{text
+  "C"} itself may be a rule statement), turning the quantifier prefix
+  into schematic variables, and generalizing implicit type-variables.
 
-text "FIXME ?!"
+  \item @{ML Goal.prove_multi} is simular to @{ML Goal.prove}, but
+  states several conclusions simultaneously.  @{ML
+  Tactic.conjunction_tac} may be used to split these into individual
+  subgoals before commencing the actual proof.
+
+  \item @{ML SUBPROOF}~@{text "tac"} decomposes the structure of a
+  particular sub-goal, producing an extended context and a reduced
+  goal, which needs to be solved by the given tactic.  All schematic
+  parameters of the goal are imported into the context as fixed ones,
+  which may not be instantiated in the sub-proof.
+
+  \end{description}
+*}
 
 end

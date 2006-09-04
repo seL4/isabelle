@@ -299,47 +299,78 @@ An \emph{assumption} is a proposition that it is postulated in the
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-FIXME%
+Local results are established by monotonic reasoning from facts
+  within a context.  This admits arbitrary combination of theorems,
+  e.g.\ using \isa{{\isasymAnd}{\isacharslash}{\isasymLongrightarrow}} elimination, resolution rules, or
+  equational reasoning.  Unaccounted context manipulations should be
+  ruled out, such as raw \isa{{\isasymAnd}{\isacharslash}{\isasymLongrightarrow}} introduction or ad-hoc
+  references to free variables or assumptions not present in the proof
+  context.
+
+  \medskip The \isa{prove} operation provides a separate interface
+  for structured backwards reasoning under program control, with some
+  explicit sanity checks of the result.  The goal context can be
+  augmented locally by given fixed variables and assumptions, which
+  will be available as local facts during the proof and discharged
+  into implications in the result.
+
+  The \isa{prove{\isacharunderscore}multi} operation handles several simultaneous
+  claims within a single goal statement, by using meta-level
+  conjunction internally.
+
+  \medskip The tactical proof of a local claim may be structured
+  further by decomposing a sub-goal: \isa{{\isacharparenleft}{\isasymAnd}x{\isachardot}\ A{\isacharparenleft}x{\isacharparenright}\ {\isasymLongrightarrow}\ B{\isacharparenleft}x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymdots}}
+  is turned into \isa{B{\isacharparenleft}x{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymdots}} after fixing \isa{x} and
+  assuming \isa{A{\isacharparenleft}x{\isacharparenright}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Proof states \label{sec:isar-proof-state}%
-}
-\isamarkuptrue%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
 %
 \begin{isamarkuptext}%
-FIXME
+\begin{mldecls}
+  \indexml{Goal.prove}\verb|Goal.prove: Proof.context -> string list -> term list -> term ->|\isasep\isanewline%
+\verb|  ({prems: thm list, context: Proof.context} -> tactic) -> thm| \\
+  \indexml{Goal.prove-multi}\verb|Goal.prove_multi: Proof.context -> string list -> term list -> term list ->|\isasep\isanewline%
+\verb|  ({prems: thm list, context: Proof.context} -> tactic) -> thm list| \\
+  \indexml{SUBPROOF}\verb|SUBPROOF: ({context: Proof.context, schematics: ctyp list * cterm list,|\isasep\isanewline%
+\verb|    params: cterm list, asms: cterm list, concl: cterm,|\isasep\isanewline%
+\verb|    prems: thm list} -> tactic) -> Proof.context -> int -> tactic|
+  \end{mldecls}
 
-\glossary{Proof state}{The whole configuration of a structured proof,
-consisting of a \seeglossary{proof context} and an optional
-\seeglossary{structured goal}.  Internally, an Isar proof state is
-organized as a stack to accomodate block structure of proof texts.
-For historical reasons, a low-level \seeglossary{tactical goal} is
-occasionally called ``proof state'' as well.}
+  \begin{description}
 
-\glossary{Structured goal}{FIXME}
+  \item \verb|Goal.prove|~\isa{ctxt\ xs\ As\ C\ tac} states goal \isa{C} in the context of fixed variables \isa{xs} and assumptions
+  \isa{As} and applies tactic \isa{tac} to solve it.  The
+  latter may depend on the local assumptions being presented as facts.
+  The result is essentially \isa{{\isasymAnd}xs{\isachardot}\ As\ {\isasymLongrightarrow}\ C}, but is normalized
+  by pulling \isa{{\isasymAnd}} before \isa{{\isasymLongrightarrow}} (the conclusion \isa{C} itself may be a rule statement), turning the quantifier prefix
+  into schematic variables, and generalizing implicit type-variables.
 
-\glossary{Goal}{See \seeglossary{tactical goal} or \seeglossary{structured goal}. \norefpage}%
+  \item \verb|Goal.prove_multi| is simular to \verb|Goal.prove|, but
+  states several conclusions simultaneously.  \verb|Tactic.conjunction_tac| may be used to split these into individual
+  subgoals before commencing the actual proof.
+
+  \item \verb|SUBPROOF|~\isa{tac} decomposes the structure of a
+  particular sub-goal, producing an extended context and a reduced
+  goal, which needs to be solved by the given tactic.  All schematic
+  parameters of the goal are imported into the context as fixed ones,
+  which may not be instantiated in the sub-proof.
+
+  \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Proof methods%
-}
-\isamarkuptrue%
+\endisatagmlref
+{\isafoldmlref}%
 %
-\begin{isamarkuptext}%
-FIXME%
-\end{isamarkuptext}%
-\isamarkuptrue%
+\isadelimmlref
 %
-\isamarkupsection{Attributes%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-FIXME ?!%
-\end{isamarkuptext}%
-\isamarkuptrue%
+\endisadelimmlref
 %
 \isadelimtheory
 %
