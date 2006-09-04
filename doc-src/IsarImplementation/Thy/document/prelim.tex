@@ -456,11 +456,11 @@ The main purpose of theory and proof contexts is to manage arbitrary
   argument structure.  The resulting structure provides data init and
   access operations as described above.
 
-  \item \verb|ProofDataFun|\isa{{\isacharparenleft}spec{\isacharparenright}} is analogous for
-  type \verb|Proof.context|.
+  \item \verb|ProofDataFun|\isa{{\isacharparenleft}spec{\isacharparenright}} is analogous to
+  \verb|TheoryDataFun| for type \verb|Proof.context|.
 
-  \item \verb|GenericDataFun|\isa{{\isacharparenleft}spec{\isacharparenright}} is analogous for
-  type \verb|Context.generic|.
+  \item \verb|GenericDataFun|\isa{{\isacharparenleft}spec{\isacharparenright}} is analogous to
+  \verb|TheoryDataFun| for type \verb|Context.generic|.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -478,7 +478,9 @@ The main purpose of theory and proof contexts is to manage arbitrary
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-By general convention, each kind of formal entities (logical
+FIXME tune
+
+  By general convention, each kind of formal entities (logical
   constant, type, type class, theorem, method etc.) lives in a
   separate name space.  It is usually clear from the syntactic context
   of a name, which kind of entity it refers to.  For example, proof
@@ -514,7 +516,9 @@ By general convention, each kind of formal entities (logical
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Isabelle strings consist of a sequence of
+FIXME tune
+
+  Isabelle strings consist of a sequence of
   symbols\glossary{Symbol}{The smallest unit of text in Isabelle,
   subsumes plain ASCII characters as well as an infinite collection of
   named symbols (for greek, math etc.).}, which are either packed as
@@ -617,7 +621,9 @@ Isabelle strings consist of a sequence of
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-A \emph{qualified name} essentially consists of a non-empty list of
+FIXME tune
+
+  A \emph{qualified name} essentially consists of a non-empty list of
   basic name components.  The packad notation uses a dot as separator,
   as in \isa{A{\isachardot}b}, for example.  The very last component is called
   \emph{base} name, the remaining prefix \emph{qualifier} (which may

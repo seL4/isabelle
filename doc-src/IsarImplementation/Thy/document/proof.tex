@@ -28,7 +28,66 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-FIXME%
+Any variable that is not explicitly bound by \isa{{\isasymlambda}}-abstraction
+  is considered as ``free''.  Logically, free variables act like
+  outermost universal quantification (at the sequent level): \isa{A\isactrlisub {\isadigit{1}}{\isacharparenleft}x{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlisub n{\isacharparenleft}x{\isacharparenright}\ {\isasymturnstile}\ B{\isacharparenleft}x{\isacharparenright}} means that the result
+  holds \emph{for all} values of \isa{x}.  Free variables for
+  terms (not types) can be fully internalized into the logic: \isa{{\isasymturnstile}\ B{\isacharparenleft}x{\isacharparenright}} and \isa{{\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ B{\isacharparenleft}x{\isacharparenright}} are interchangeable provided that
+  \isa{x} does not occur elsewhere in the context.  Inspecting
+  \isa{{\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ B{\isacharparenleft}x{\isacharparenright}} more closely, we see that inside the
+  quantifier, \isa{x} is essentially ``arbitrary, but fixed'',
+  while from outside it appears as a place-holder for instantiation
+  (thanks to \isa{{\isasymAnd}}-elimination).
+
+  The Pure logic represents the notion of variables being either
+  inside or outside the current scope by providing separate syntactic
+  categories for \emph{fixed variables} (e.g.\ \isa{x}) vs.\
+  \emph{schematic variables} (e.g.\ \isa{{\isacharquery}x}).  Incidently, a
+  universal result \isa{{\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ B{\isacharparenleft}x{\isacharparenright}} has the canonical form \isa{{\isasymturnstile}\ B{\isacharparenleft}{\isacharquery}x{\isacharparenright}}, which represents its generality nicely without requiring
+  an explicit quantifier.  The same principle works for type variables
+  as well: \isa{{\isasymturnstile}\ B{\isacharparenleft}{\isacharquery}{\isasymalpha}{\isacharparenright}} expresses the idea of ``\isa{{\isasymturnstile}\ {\isasymforall}{\isasymalpha}{\isachardot}\ B{\isacharparenleft}{\isasymalpha}{\isacharparenright}}'' without demanding a truly polymorphic framework.
+
+  \medskip Additional care is required to treat type variables in a
+  way that facilitates type-inference.  In principle, term variables
+  depend on type variables, which means that type variables would have
+  to be declared first.  For example, a raw type-theoretic framework
+  would demand the context to be constructed in stages as follows:
+  \isa{{\isasymGamma}\ {\isacharequal}\ {\isasymalpha}{\isacharcolon}\ type{\isacharcomma}\ x{\isacharcolon}\ {\isasymalpha}{\isacharcomma}\ a{\isacharcolon}\ A{\isacharparenleft}x\isactrlisub {\isasymalpha}{\isacharparenright}}.
+
+  We allow a slightly less formalistic mode of operation: term
+  variables \isa{x} are fixed without specifying a type yet
+  (essentially \emph{all} potential occurrences of some instance
+  \isa{x\isactrlisub {\isasymtau}} will be fixed); the first occurrence of \isa{x} within a specific term assigns its most general type, which is
+  then maintained consistently in the context.  The above example
+  becomes \isa{{\isasymGamma}\ {\isacharequal}\ x{\isacharcolon}\ term{\isacharcomma}\ {\isasymalpha}{\isacharcolon}\ type{\isacharcomma}\ A{\isacharparenleft}x\isactrlisub {\isasymalpha}{\isacharparenright}}, where type
+  \isa{{\isasymalpha}} is fixed \emph{after} term \isa{x}, and the
+  constraint \isa{x{\isacharcolon}\ {\isasymalpha}} is an implicit consequence of the
+  occurrence of \isa{x\isactrlisub {\isasymalpha}} in the subsequent proposition.
+
+  This twist of dependencies is also accommodated by the reverse
+  operation of exporting results from a context: a type variable
+  \isa{{\isasymalpha}} is considered fixed as long as it occurs in some fixed
+  term variable of the context.  For example, exporting \isa{x{\isacharcolon}\ term{\isacharcomma}\ {\isasymalpha}{\isacharcolon}\ type\ {\isasymturnstile}\ x\isactrlisub {\isasymalpha}\ {\isacharequal}\ x\isactrlisub {\isasymalpha}} produces \isa{x{\isacharcolon}\ term\ {\isasymturnstile}\ x\isactrlisub {\isasymalpha}\ {\isacharequal}\ x\isactrlisub {\isasymalpha}} for fixed \isa{{\isasymalpha}} in the first step,
+  and \isa{{\isasymturnstile}\ {\isacharquery}x\isactrlisub {\isacharquery}\isactrlisub {\isasymalpha}\ {\isacharequal}\ {\isacharquery}x\isactrlisub {\isacharquery}\isactrlisub {\isasymalpha}} for
+  schematic \isa{{\isacharquery}x} and \isa{{\isacharquery}{\isasymalpha}} only in the second step.
+
+  \medskip The Isabelle/Isar proof context manages the gory details of
+  term vs.\ type variables, with high-level principles for moving the
+  frontier between fixed and schematic variables.  By observing a
+  simple discipline of fixing variables and declaring terms
+  explicitly, the fine points are treated by the \isa{export}
+  operation.
+
+  There is also a separate \isa{import} operation makes a
+  generalized fact a genuine part of the context, by inventing fixed
+  variables for the schematic ones.  The effect can be reversed by
+  using \isa{export} later, with a potentially extended context,
+  but the result will be only equivalent modulo renaming of schematic
+  variables.
+
+  The \isa{focus} operation provides a variant of \isa{import}
+  for nested propositions (with explicit quantification): \isa{{\isasymAnd}x{\isachardot}\ B{\isacharparenleft}x{\isacharparenright}} is decomposed by inventing a fixed variable \isa{x}
+  and for the body \isa{B{\isacharparenleft}x{\isacharparenright}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -40,47 +99,61 @@ FIXME%
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{Variable.declare-term}\verb|Variable.declare_term: term -> Proof.context -> Proof.context| \\
   \indexml{Variable.add-fixes}\verb|Variable.add_fixes: string list -> Proof.context -> string list * Proof.context| \\
-  \indexml{Variable.import}\verb|Variable.import: bool ->|\isasep\isanewline%
-\verb|  thm list -> Proof.context -> ((ctyp list * cterm list) * thm list) * Proof.context| \\
+  \indexml{Variable.invent-fixes}\verb|Variable.invent_fixes: string list -> Proof.context -> string list * Proof.context| \\
+  \indexml{Variable.declare-term}\verb|Variable.declare_term: term -> Proof.context -> Proof.context| \\
+  \indexml{Variable.declare-constraints}\verb|Variable.declare_constraints: term -> Proof.context -> Proof.context| \\
   \indexml{Variable.export}\verb|Variable.export: Proof.context -> Proof.context -> thm list -> thm list| \\
   \indexml{Variable.polymorphic}\verb|Variable.polymorphic: Proof.context -> term list -> term list| \\
+  \indexml{Variable.import}\verb|Variable.import: bool ->|\isasep\isanewline%
+\verb|  thm list -> Proof.context -> ((ctyp list * cterm list) * thm list) * Proof.context| \\
+  \indexml{Variable.focus}\verb|Variable.focus: cterm -> Proof.context -> (cterm list * cterm) * Proof.context| \\
   \end{mldecls}
 
   \begin{description}
 
-  \item \verb|Variable.declare_term|~\isa{t\ ctxt} declares term
-  \isa{t} to belong to the context.  This fixes free type
-  variables, but not term variables.  Constraints for type and term
-  variables are declared uniformly.
-
   \item \verb|Variable.add_fixes|~\isa{xs\ ctxt} fixes term
-  variables \isa{xs} and returns the internal names of the
-  resulting Skolem constants.  Note that term fixes refer to
-  \emph{all} type instances that may occur in the future.
+  variables \isa{xs}, returning the resulting internal names.  By
+  default, the internal representation coincides with the external
+  one, which also means that the given variables must not have been
+  fixed already.  Within a local proof body, the given names are just
+  hints for newly invented Skolem variables.
 
-  \item \verb|Variable.invent_fixes| is similar to \verb|Variable.add_fixes|, but the given names merely act as hints for
-  internal fixes produced here.
+  \item \verb|Variable.invent_fixes| is similar to \verb|Variable.add_fixes|, but always produces fresh variants of the given
+  hints.
 
-  \item \verb|Variable.import|~\isa{open\ ths\ ctxt} augments the
-  context by new fixes for the schematic type and term variables
-  occurring in \isa{ths}.  The \isa{open} flag indicates
-  whether the fixed names should be accessible to the user, otherwise
-  internal names are chosen.
+  \item \verb|Variable.declare_term|~\isa{t\ ctxt} declares term
+  \isa{t} to belong to the context.  This automatically fixes new
+  type variables, but not term variables.  Syntactic constraints for
+  type and term variables are declared uniformly.
 
-  \item \verb|Variable.export|~\isa{inner\ outer\ ths} generalizes
-  fixed type and term variables in \isa{ths} according to the
-  difference of the \isa{inner} and \isa{outer} context.  Note
-  that type variables occurring in term variables are still fixed.
+  \item \verb|Variable.declare_constraints|~\isa{t\ ctxt} derives
+  type-inference information from term \isa{t}, without making it
+  part of the context yet.
 
-  \verb|Variable.export| essentially reverses the effect of \verb|Variable.import| (up to renaming of schematic variables.
+  \item \verb|Variable.export|~\isa{inner\ outer\ thms} generalizes
+  fixed type and term variables in \isa{thms} according to the
+  difference of the \isa{inner} and \isa{outer} context,
+  following the principles sketched above.
 
   \item \verb|Variable.polymorphic|~\isa{ctxt\ ts} generalizes type
   variables in \isa{ts} as far as possible, even those occurring
-  in fixed term variables.  This operation essentially reverses the
-  default policy of type-inference to introduce local polymorphism as
-  fixed types.
+  in fixed term variables.  The default policy of type-inference is to
+  fix newly introduced type variables; this is essentially reversed
+  with \verb|Variable.polymorphic|, the given terms are detached from
+  the context as far as possible.
+
+  \item \verb|Variable.import|~\isa{open\ thms\ ctxt} augments the
+  context by new fixes for the schematic type and term variables
+  occurring in \isa{thms}.  The \isa{open} flag indicates
+  whether the fixed names should be accessible to the user, otherwise
+  internal names are chosen.
+
+  \verb|Variable.export| essentially reverses the effect of \verb|Variable.import|, modulo renaming of schematic variables.
+
+  \item \verb|Variable.focus|~\isa{{\isasymAnd}x\isactrlisub {\isadigit{1}}\ {\isasymdots}\ x\isactrlisub n{\isachardot}\ B{\isacharparenleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlisub n{\isacharparenright}} invents fixed variables
+  for \isa{x\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlisub n} and replaces these in the
+  body.
 
   \end{description}%
 \end{isamarkuptext}%
