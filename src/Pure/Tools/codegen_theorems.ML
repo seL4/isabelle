@@ -33,6 +33,7 @@ sig
   val get_dtyp_of_cons: thmtab -> string * typ -> string option;
   val get_dtyp_spec: thmtab -> string
     -> ((string * sort) list * (string * typ list) list) option;
+  val get_fun_typs: thmtab -> ((string * typ list) * typ) list;
   val get_fun_thms: thmtab -> string * typ -> thm list;
 
   val pretty_funtab: theory -> thm list CodegenConsts.Consttab.table -> Pretty.T;
@@ -765,6 +766,18 @@ fun has_fun_thms (thy, (funtab, _), _) =
 fun get_fun_thms (thy, (funtab, _), _) (c_ty as (c, _)) =
   (check_thms c o these o Consttab.lookup funtab
     o CodegenConsts.norminst_of_typ thy) c_ty;
+
+fun get_fun_typs (thy, (funtab, dtcotab), _) =
+  (Consttab.dest funtab
+  |> map (fn (c, thm :: _) => (c, extr_typ thy thm)
+           | (c as (name, _), []) => (c, case AxClass.class_of_param thy name
+         of SOME class => (case ClassPackage.the_consts_sign thy class of (v, cs) =>
+              (Logic.varifyT o map_type_tfree (fn u as (w, _) =>
+                if w = v then TFree (v, [class]) else TFree u))
+              ((the o AList.lookup (op =) cs) name))
+          | NONE => Sign.the_const_type thy name)))
+  @ (Consttab.keys dtcotab
+  |> AList.make (Sign.const_instance thy));
 
 fun pretty_funtab thy funtab =
   funtab

@@ -106,7 +106,7 @@ val serializers = ref (
 
 (* theory data  *)
 
-type appgen = theory -> Sorts.algebra * (sort -> sort) -> CodegenTheorems.thmtab
+type appgen = theory -> ((sort -> sort) * Sorts.algebra) * Consts.T -> CodegenTheorems.thmtab
   -> bool * string list option -> (string * typ) * term list -> transact -> iterm * transact;
 
 type appgens = (int * (appgen * stamp)) Symtab.table;
@@ -302,7 +302,7 @@ fun no_strict (_, targets) = (false, targets);
 
 fun ensure_def_class thy algbr thmtab strct cls trns =
   let
-    fun defgen_class thy (algbr as (_, proj_sort)) thmtab strct cls trns =
+    fun defgen_class thy (algbr as ((proj_sort, _), _)) thmtab strct cls trns =
       case class_of_idf thy cls
        of SOME cls =>
             let
@@ -356,7 +356,7 @@ and ensure_def_tyco thy algbr thmtab strct tyco trns =
         ("generating type constructor " ^ quote tyco) tyco'
     |> pair tyco'
   end
-and exprgen_tyvar_sort thy (algbr as (_, proj_sort)) thmtab strct (v, sort) trns =
+and exprgen_tyvar_sort thy (algbr as ((proj_sort, _), _)) thmtab strct (v, sort) trns =
   trns
   |> fold_map (ensure_def_class thy algbr thmtab strct) (proj_sort sort)
   |-> (fn sort => pair (unprefix "'" v, sort))
@@ -377,7 +377,7 @@ and exprgen_type thy algbr thmtab strct (TVar _) trns =
       ||>> fold_map (exprgen_type thy algbr thmtab strct) tys
       |-> (fn (tyco, tys) => pair (tyco `%% tys));
 
-fun exprgen_typinst thy (algbr as (algebra, proj_sort)) thmtab strct (ty_ctxt, sort_decl) trns =
+fun exprgen_typinst thy (algbr as ((proj_sort, algebra), consts)) thmtab strct (ty_ctxt, sort_decl) trns =
   let
     val pp = Sign.pp thy;
     datatype inst =
@@ -410,28 +410,19 @@ fun exprgen_typinst thy (algbr as (algebra, proj_sort)) thmtab strct (ty_ctxt, s
     trns
     |> fold_map mk_dict insts
   end
-and exprgen_typinst_const thy algbr thmtab strct (c, ty_ctxt) trns =
-  let
-    val ty_decl = case CodegenTheorems.get_fun_thms thmtab (c, ty_ctxt)
-     of thms as thm :: _ => CodegenTheorems.extr_typ thy thm
-      | [] => (case AxClass.class_of_param thy c
-         of SOME class => (case ClassPackage.the_consts_sign thy class of (v, cs) =>
-              (Logic.varifyT o map_type_tfree (fn u as (w, _) =>
-                if w = v then TFree (v, [class]) else TFree u))
-              ((the o AList.lookup (op =) cs) c))
-          | NONE => Sign.the_const_type thy c);
-    val insts =
-      Vartab.empty
-      |> Sign.typ_match thy (ty_decl, ty_ctxt)
-      |> Vartab.dest
-      |> map (fn (_, (sort, ty)) => (ty, sort))
+and exprgen_typinst_const thy (algbr as (_, consts)) thmtab strct (c, ty_ctxt) trns =
+  let 
+    val idf = idf_of_const thy thmtab (c, ty_ctxt)
+    val ty_decl = Consts.declaration consts idf;
+    val insts = (op ~~ o apsnd (map (snd o dest_TVar)) oo pairself)
+      (curry (Consts.typargs consts) idf) (ty_ctxt, ty_decl);
   in
     trns
     |> fold_map (exprgen_typinst thy algbr thmtab strct) insts
   end
 and ensure_def_inst thy algbr thmtab strct (cls, tyco) trns =
   let
-    fun defgen_inst thy (algbr as (_, proj_sort)) thmtab strct inst trns =
+    fun defgen_inst thy (algbr as ((proj_sort, _), _)) thmtab strct inst trns =
       case inst_of_idf thy inst
        of SOME (class, tyco) =>
             let
@@ -442,7 +433,8 @@ and ensure_def_inst thy algbr thmtab strct (cls, tyco) trns =
               fun gen_suparity supclass trns =
                 trns
                 |> ensure_def_class thy algbr thmtab strct supclass
-                ||>> exprgen_typinst thy algbr thmtab strct (arity_typ, [supclass]);
+                ||>> exprgen_typinst thy algbr thmtab strct (arity_typ, [supclass])
+                |-> (fn (supclass, [Instance (supints, lss)]) => pair (supclass, (supints, lss)));
               fun gen_membr ((m0, ty0), (m, ty)) trns =
                 trns
                 |> ensure_def_const thy algbr thmtab strct (m0, ty0)
@@ -492,18 +484,17 @@ and ensure_def_const thy algbr thmtab strct (c, ty) trns =
             |-> (fn _ => succeed Bot)
         | _ =>
             trns |> fail ("No class found for " ^ (quote o CodegenConsts.string_of_const_typ thy) (c, ty))
-    fun defgen_funs thy algbr thmtab strct c' trns =
+    fun defgen_funs thy (algbr as (_, consts)) thmtab strct c' trns =
       case CodegenTheorems.get_fun_thms thmtab ((the o const_of_idf thy) c')
        of eq_thms as eq_thm :: _ =>
             let
               val msg = cat_lines ("generating code for theorems " :: map string_of_thm eq_thms);
               val ty = (Logic.unvarifyT o CodegenTheorems.extr_typ thy) eq_thm;
-              val vs = (rev ooo fold_atyps)
-                (fn TFree v_sort => insert (op =) v_sort | _ => I) ty [];
+              val vs = (map dest_TFree o Consts.typargs consts) (c', ty);
               fun dest_eqthm eq_thm =
                 let
                   val ((t, args), rhs) =
-                    (apfst strip_comb o Logic.dest_equals o Logic.legacy_unvarify o prop_of) eq_thm;
+                    (apfst strip_comb o Logic.dest_equals o Logic.unvarify o prop_of) eq_thm;
                 in case t
                  of Const (c', _) => if c' = c then (args, rhs)
                      else error ("Illegal function equation for " ^ quote c
@@ -700,13 +691,35 @@ fun add_appconst (c, appgen) thy =
 (** code generation interfaces **)
 
 fun generate cs targets init gen it thy =
-  thy
-  |> CodegenTheorems.notify_dirty
-  |> `Code.get
-  |> (fn (modl, thy) =>
-        (start_transact init (gen thy (ClassPackage.operational_algebra thy) (CodegenTheorems.mk_thmtab thy cs)
-          (true, targets) it) modl, thy))
-  |-> (fn (x, modl) => Code.map (K modl) #> pair x);
+  let
+    val thmtab = CodegenTheorems.mk_thmtab thy cs;
+    val qnaming = NameSpace.qualified_names NameSpace.default_naming
+    val algebr = ClassPackage.operational_algebra thy;
+    fun ops_of_class class =
+      let
+        val (v, ops) = ClassPackage.the_consts_sign thy class;
+        val ops_tys = map (fn (c, ty) =>
+          (c, (Logic.varifyT o map_type_tfree (fn u as (w, _) =>
+            if w = v then TFree (v, [class]) else TFree u)) ty)) ops;
+      in
+        map (fn (c, ty) => (idf_of_const thy thmtab (c, ty), ty)) ops_tys
+      end;
+    val classops = maps ops_of_class (Sorts.classes (snd algebr));
+    val consttab = Consts.empty
+      |> fold (fn (c, ty) => Consts.declare qnaming
+           (((idf_of_const thy thmtab o CodegenConsts.typ_of_typinst thy) c, ty), true))
+           (CodegenTheorems.get_fun_typs thmtab)
+      |> fold (Consts.declare qnaming o rpair true) classops;
+    val algbr = (algebr, consttab);
+  in   
+    thy
+    |> CodegenTheorems.notify_dirty
+    |> `Code.get
+    |> (fn (modl, thy) =>
+          (start_transact init (gen thy algbr thmtab
+            (true, targets) it) modl, thy))
+    |-> (fn (x, modl) => Code.map (K modl) #> pair x)
+  end;
 
 fun consts_of t =
   fold_aterms (fn Const c => cons c | _ => I) t [];

@@ -71,7 +71,7 @@ sig
     | Class of class list * (vname * (string * itype) list)
     | Classmember of class
     | Classinst of (class * (string * (vname * sort) list))
-          * ((class * inst list) list
+          * ((class * (string * inst list list)) list
         * (string * iterm) list);
   type module;
   type transact;
@@ -388,7 +388,7 @@ datatype def =
   | Class of class list * (vname * (string * itype) list)
   | Classmember of class
   | Classinst of (class * (string * (vname * sort) list))
-        * ((class * inst list) list
+        * ((class * (string * inst list list)) list
       * (string * iterm) list);
 
 datatype node = Def of def | Module of node Graph.T;
@@ -698,56 +698,124 @@ fun flat_module modl =
   ) ((AList.make (Graph.get_node modl) o flat o Graph.strong_conn) modl)
 
 (*
+(*FIXME: graph-based approach is better.
+* build graph
+* implement flat_classops on sort level, not class level
+* flat_instances bleibt wie es ist
+*)
+fun flat_classops modl =
+  let
+    fun add_ancestry class anc =
+      let
+        val SOME (Class (super_classes, (v, ops))) = AList.lookup (op =) modl class
+        val super_classees' = filter (not o member (fn (c', (c, _)) => c = c') anc) super_classes;
+      in
+        [(class, ops)] @ anc
+        |> fold add_ancestry super_classees'
+      end;
+  in
+    Symtab.empty
+    |> fold (
+         fn (class, Class _) =>
+              Symtab.update_new (class, maps snd (add_ancestry class []))
+           | _ => I
+       ) modl
+    |> the oo Symtab.lookup
+  end;
+
+fun flat_instances modl =
+  let
+    fun add_ancestry instance instsss anc =
+      let
+        val SOME (Classinst (_, (super_instances, ops))) = AList.lookup (op =) modl instance;
+        val super_instances' = filter (not o member (eq_fst (op =)) anc) super_instances;
+        val ops' = map (apsnd (rpair instsss)) ops;
+        (*FIXME: build types*)
+      in
+        [(instance, ops')] @ anc
+        |> fold (fn (_, (instance, instss)) => add_ancestry instance (instss :: instsss)) super_instances'
+      end;
+  in
+    Symtab.empty
+    |> fold (
+         fn (instance, Classinst _) =>
+              Symtab.update_new (instance, maps snd (add_ancestry instance [] []))
+           | _ => I
+       ) modl
+    |> the oo Symtab.lookup
+  end;
+
+fun flat_fundef classops instdefs is_classop (eqs, (vs, ty)) =
+  let
+    fun fold_map_snd' f (x, ys) = fold_map (f x) ys;
+    fun fold_map_snd f (x, ys) = fold_map f ys #-> (fn zs => pair (x, zs));
+    val names =
+      Name.context
+      |> fold Name.declare
+           (fold (fn (rhs, lhs) => fold add_varnames rhs #> add_varnames lhs) eqs []);
+    val opmap = [] : (string * (string * (string * itype) list) list) list;
+    val (params, tys) = (split_list o maps snd o maps snd) opmap;
+    (*fun name_ops v' class = 
+      (fold_map o fold_map_snd')
+        (fn (class, v) => fn (c, ty) => Name.variants [c] #-> (fn [p] =>
+          pair (class, v') (c, (ty, p))))
+          (classops class);
+    val (opsmap, _) = (fold_map o fold_map_snd') name_ops vs names;
+    (* --> (iterm * itype) list *)*)
+    fun flat_inst (Instance (instance, instss)) =
+          let
+            val xs : (string * (iterm * (itype * inst list list list))) list = instdefs instance
+            fun mk_t (t, (ty, instsss)) =
+              (Library.foldl (fn (t, instss) => t `$$ map (fst o snd) ((maps o maps) flat_inst instss))
+                (t, instss :: instsss), ty)
+          in
+            map (apsnd mk_t) xs
+          end
+      | flat_inst (Context (classes, (v, k))) =
+          let
+            val _ : 'a = classops (hd classes);
+          in
+            []
+          end
+          (*
+            val parm_map = nth ((the o AList.lookup (op =) octxt) v)
+              (if k = ~1 then 0 else k);
+          in map (apfst IVar o swap o snd) (case classes
+           of class::_ => (the o AList.lookup (op =) parm_map) class
+            | _ => (snd o hd) parm_map)*)
+    and flat_iterm (e as IConst (c, (lss, ty))) =
+          if is_classop c then let
+            val tab = (maps o maps) flat_inst lss;
+            val SOME (t, _) = AList.lookup (op =) tab c;
+          in t end else let
+            val (es, tys) = (split_list o map snd) ((maps o maps) flat_inst lss)
+          in IConst (c, (replicate (length lss) [], tys `--> ty)) `$$ es end
+      | flat_iterm (e as IVar _) =
+          e
+      | flat_iterm (e1 `$ e2) =
+          flat_iterm e1 `$ flat_iterm e2
+      | flat_iterm (v_ty `|-> e) =
+          v_ty `|-> flat_iterm e
+      | flat_iterm (INum (k, e)) =
+          INum (k, flat_iterm e)
+      | flat_iterm (IChar (s, e)) =
+          IChar (s, flat_iterm e)
+      | flat_iterm (ICase (((de, dty), es), e)) =
+          ICase (((flat_iterm de, dty), map (pairself flat_iterm) es), flat_iterm e);
+    fun flat_eq (lhs, rhs) = (map IVar params @ lhs, flat_iterm rhs);
+  in (map flat_eq eqs, (map (apsnd (K [])) vs, tys `--> ty)) end;
+
 fun flat_funs_datatypes modl =
-  map (
-   fn def as (_, Datatype _) => def
-    | (name, Fun (eqs, (vs, ty))) => let
-          val vs = fold (fn (rhs, lhs) => fold add_varnames rhs #> add_varnames lhs) eqs [];
-          fun fold_map_snd f (x, ys) = fold_map f ys #-> (fn zs => pair (x, zs));
-          fun all_ops_of class = [] : (class * (string * itype) list) list
-            (*FIXME; itype within current context*);
-          fun name_ops class = 
-            (fold_map o fold_map_snd)
-              (fn (c, ty) => Name.variants [c] #-> (fn [v] => pair (c, (ty, v)))) (all_ops_of class);
-          (*FIXME: should contain superclasses only once*)
-          val (octxt, _) = (fold_map o fold_map_snd) name_ops vs
-            (Name.make_context vs);
-          (* --> (iterm * itype) list *)
-          fun flat_classlookup (Instance (inst, lss)) =
-                (case get_def modl inst
-                 of (Classinst (_, (suparities, ops)))
-                      => maps (maps flat_classlookup o snd) suparities @ map (apsnd flat_iterm) ops
-                  | _ => error ("Bad instance: " ^ quote inst))
-            | flat_classlookup (Context (classes, (v, k))) =
-                let
-                  val parm_map = nth ((the o AList.lookup (op =) octxt) v)
-                    (if k = ~1 then 0 else k);
-                in map (apfst IVar o swap o snd) (case classes
-                 of class::_ => (the o AList.lookup (op =) parm_map) class
-                  | _ => (snd o hd) parm_map)
-                end
-          and flat_iterm (e as IConst (c, (lss, ty))) =
-                let
-                  val (es, tys) = split_list ((maps o maps) flat_classlookup lss)
-                in IConst (c, ([], tys `--> ty)) `$$ es end
-                (*FIXME Eliminierung von Projektionen*)
-            | flat_iterm (e as IVar _) =
-                e
-            | flat_iterm (e1 `$ e2) =
-                flat_iterm e1 `$ flat_iterm e2
-            | flat_iterm (v_ty `|-> e) =
-                v_ty `|-> flat_iterm e
-            | flat_iterm (INum (k, e)) =
-                INum (k, flat_iterm e)
-            | flat_iterm (IChar (s, e)) =
-                IChar (s, flat_iterm e)
-            | flat_iterm (ICase (((de, dty), es), e)) =
-                ICase (((flat_iterm de, dty), map (pairself flat_iterm) es), flat_iterm e);
-        in
-          (name, Fun (map (fn (lhs, rhs) => (map flat_iterm lhs, flat_iterm rhs)) eqs,
-            ([], maps ((maps o maps) (map (fst o snd) o snd) o snd) octxt `--> ty)))
-        end
-  ) (flat_module modl);
+  let
+    val modl = flat_module modl;
+    val classops = flat_classops modl;
+    val instdefs = flat_instances modl;
+    val is_classop = is_some o AList.lookup (op =) modl;
+  in map_filter (
+   fn def as (_, Datatype _) => SOME def
+    | (name, Fun funn) => SOME (name, (Fun (flat_fundef classops instdefs is_classop funn)))
+    | _ => NONE
+  ) end;
 *)
 
 val add_deps_of_typparms =
@@ -817,9 +885,10 @@ fun deps_of Bot =
       |> insert (op =) class
       |> insert (op =) tyco
       |> add_deps_of_typparms vs
-      |> fold (fn (supclass, ls) =>
+      |> fold (fn (supclass, (supinst, lss)) =>
             insert (op =) supclass
-            #> fold add_deps_of_classlookup ls
+            #> insert (op =) supinst
+            #> (fold o fold) add_deps_of_classlookup lss
       ) suparities
       |> fold (fn (name, e) =>
             insert (op =) name

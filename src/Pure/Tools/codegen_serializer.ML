@@ -738,11 +738,11 @@ fun ml_from_defs is_cons
       | ml_from_def (name, CodegenThingol.Classinst ((class, (tyco, arity)), (suparities, memdefs))) =
           let
             val definer = if null arity then "val" else "fun"
-            fun from_supclass (supclass, ls) =
+            fun from_supclass (supclass, (supinst, lss)) =
               (Pretty.block o Pretty.breaks) [
                 ml_from_label supclass,
                 str "=",
-                ml_from_insts NOBR ls
+                ml_from_insts NOBR [Instance (supinst, lss)]
               ];
             fun from_memdef (m, e) =
               (Pretty.block o Pretty.breaks) [
