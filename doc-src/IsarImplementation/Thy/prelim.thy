@@ -405,7 +405,7 @@ text %mlref {*
 
 section {* Name spaces *}
 
-text {*
+text %FIXME {*
   FIXME tune
 
   By general convention, each kind of formal entities (logical
@@ -444,7 +444,7 @@ text {*
 
 subsection {* Strings of symbols *}
 
-text {*
+text %FIXME {*
   FIXME tune
 
   Isabelle strings consist of a sequence of
@@ -542,7 +542,7 @@ text %mlref {*
 
 subsection {* Qualified names *}
 
-text {*
+text %FIXME {*
   FIXME tune
 
   A \emph{qualified name} essentially consists of a non-empty list of

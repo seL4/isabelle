@@ -114,10 +114,10 @@ text {*
 
   The operational part is represented as the sequential union of a
   list of partial functions, which are tried in turn until the first
-  one succeeds (i.e.\ does not raise @{ML Toplevel.UNDEF}).  This acts
-  like an outer case-expression for various alternative state
-  transitions.  For example, \isakeyword{qed} acts differently for a
-  local proofs vs.\ the global ending of the main proof.
+  one succeeds.  This acts like an outer case-expression for various
+  alternative state transitions.  For example, \isakeyword{qed} acts
+  differently for a local proofs vs.\ the global ending of the main
+  proof.
 
   Toplevel transitions are composed via transition transformers.
   Internally, Isar commands are put together from an empty transition
@@ -219,9 +219,10 @@ text {*
 
 section {* ML toplevel \label{sec:ML-toplevel} *}
 
-text {* The {\ML} toplevel provides a read-compile-eval-print loop for
-  {\ML} values, types, structures, and functors.  {\ML} declarations
-  operate on the global system state, which consists of the compiler
+text {*
+  The {\ML} toplevel provides a read-compile-eval-print loop for {\ML}
+  values, types, structures, and functors.  {\ML} declarations operate
+  on the global system state, which consists of the compiler
   environment plus the values of {\ML} reference variables.  There is
   no clean way to undo {\ML} declarations, except for reverting to a
   previously saved state of the whole Isabelle process.  {\ML} input
