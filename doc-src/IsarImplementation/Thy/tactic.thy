@@ -6,14 +6,13 @@ theory tactic imports base begin
 chapter {* Tactical reasoning *}
 
 text {*
-  The basic idea of tactical theorem proving is to refine the initial
-  claim in a backwards fashion, until a solved form is reached.  An
-  intermediate goal consists of several subgoals that need to be
-  solved in order to achieve the main statement; zero subgoals means
-  that the proof may be finished.  A @{text "tactic"} is a refinement
-  operation that maps a goal to a lazy sequence of potential
-  successors.  A @{text "tactical"} is a combinator for composing
-  tactics.
+  Tactical reasoning works by refining the initial claim in a
+  backwards fashion, until a solved form is reached.  A @{text "goal"}
+  consists of several subgoals that need to be solved in order to
+  achieve the main statement; zero subgoals means that the proof may
+  be finished.  A @{text "tactic"} is a refinement operation that maps
+  a goal to a lazy sequence of potential successors.  A @{text
+  "tactical"} is a combinator for composing tactics.
 *}
 
 
@@ -38,15 +37,14 @@ text {*
 
   The structure of each subgoal @{text "A\<^sub>i"} is that of a
   general Hereditary Harrop Formula @{text "\<And>x\<^sub>1 \<dots>
-  \<And>x\<^sub>k. H\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> H\<^sub>m \<Longrightarrow> B"} according to the normal
-  form where any local @{text \<And>} is pulled before @{text \<Longrightarrow>}.  Here
-  @{text "x\<^sub>1, \<dots>, x\<^sub>k"} are goal parameters, i.e.\
+  \<And>x\<^sub>k. H\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> H\<^sub>m \<Longrightarrow> B"} in normal form where.
+  Here @{text "x\<^sub>1, \<dots>, x\<^sub>k"} are goal parameters, i.e.\
   arbitrary-but-fixed entities of certain types, and @{text
   "H\<^sub>1, \<dots>, H\<^sub>m"} are goal hypotheses, i.e.\ facts that may
   be assumed locally.  Together, this forms the goal context of the
   conclusion @{text B} to be established.  The goal hypotheses may be
-  again Hereditary Harrop Formulas, although the level of nesting
-  rarely exceeds 1--2 in practice.
+  again arbitrary Hereditary Harrop Formulas, although the level of
+  nesting rarely exceeds 1--2 in practice.
 
   The main conclusion @{text C} is internally marked as a protected
   proposition\glossary{Protected proposition}{An arbitrarily
@@ -54,9 +52,9 @@ text {*
   atomic by wrapping it into a propositional identity operator;
   notation @{text "#C"}.  Protecting a proposition prevents basic
   inferences from entering into that structure for the time being.},
-  which is occasionally represented explicitly by the notation @{text
-  "#C"}.  This ensures that the decomposition into subgoals and main
-  conclusion is well-defined for arbitrarily structured claims.
+  which is represented explicitly by the notation @{text "#C"}.  This
+  ensures that the decomposition into subgoals and main conclusion is
+  well-defined for arbitrarily structured claims.
 
   \medskip Basic goal management is performed via the following
   Isabelle/Pure rules:
@@ -85,18 +83,18 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML "Goal.init"}~@{text "\<phi>"} initializes a tactical goal from
-  the type-checked proposition @{text \<phi>}.
+  \item @{ML "Goal.init"}~@{text C} initializes a tactical goal from
+  the well-formed proposition @{text C}.
 
-  \item @{ML "Goal.finish"}~@{text "th"} checks whether theorem @{text
-  "th"} is a solved goal configuration (no subgoals), and concludes
-  the result by removing the goal protection.
+  \item @{ML "Goal.finish"}~@{text "thm"} checks whether theorem
+  @{text "thm"} is a solved goal (no subgoals), and concludes the
+  result by removing the goal protection.
 
-  \item @{ML "Goal.protect"}~@{text "th"} protects the full statement
-  of theorem @{text "th"}.
+  \item @{ML "Goal.protect"}~@{text "thm"} protects the full statement
+  of theorem @{text "thm"}.
 
-  \item @{ML "Goal.conclude"}~@{text "th"} removes the goal protection
-  for any number of pending subgoals.
+  \item @{ML "Goal.conclude"}~@{text "thm"} removes the goal
+  protection, even if there are pending subgoals.
 
   \end{description}
 *}

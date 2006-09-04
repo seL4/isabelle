@@ -1,6 +1,24 @@
 
 text {*
 
+
+  \medskip The general concept supports block-structured reasoning
+  nicely, with arbitrary mechanisms for introducing local assumptions.
+  The common reasoning pattern is as follows:
+
+  \medskip
+  \begin{tabular}{l}
+  @{text "add_assms e\<^isub>1 A\<^isub>1"} \\
+  @{text "\<dots>"} \\
+  @{text "add_assms e\<^isub>n A\<^isub>n"} \\
+  @{text "export"} \\
+  \end{tabular}
+  \medskip
+
+  \noindent The final @{text "export"} will turn any fact @{text
+  "A\<^isub>1, \<dots>, A\<^isub>n \<turnstile> B"} into some @{text "\<turnstile> B'"}, by
+  applying the export rules @{text "e\<^isub>1, \<dots>, e\<^isub>n"}
+  inside-out.
   
 
   A \emph{fixed variable} acts like a local constant in the current

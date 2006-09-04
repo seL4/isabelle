@@ -24,14 +24,12 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The basic idea of tactical theorem proving is to refine the initial
-  claim in a backwards fashion, until a solved form is reached.  An
-  intermediate goal consists of several subgoals that need to be
-  solved in order to achieve the main statement; zero subgoals means
-  that the proof may be finished.  A \isa{tactic} is a refinement
-  operation that maps a goal to a lazy sequence of potential
-  successors.  A \isa{tactical} is a combinator for composing
-  tactics.%
+Tactical reasoning works by refining the initial claim in a
+  backwards fashion, until a solved form is reached.  A \isa{goal}
+  consists of several subgoals that need to be solved in order to
+  achieve the main statement; zero subgoals means that the proof may
+  be finished.  A \isa{tactic} is a refinement operation that maps
+  a goal to a lazy sequence of potential successors.  A \isa{tactical} is a combinator for composing tactics.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -55,14 +53,13 @@ Isabelle/Pure represents a goal\glossary{Tactical goal}{A theorem of
   reasoning.}.  For \isa{n\ {\isacharequal}\ {\isadigit{0}}} a goal is called ``solved''.
 
   The structure of each subgoal \isa{A\isactrlsub i} is that of a
-  general Hereditary Harrop Formula \isa{{\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymAnd}x\isactrlsub k{\isachardot}\ H\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ H\isactrlsub m\ {\isasymLongrightarrow}\ B} according to the normal
-  form where any local \isa{{\isasymAnd}} is pulled before \isa{{\isasymLongrightarrow}}.  Here
-  \isa{x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub k} are goal parameters, i.e.\
+  general Hereditary Harrop Formula \isa{{\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymAnd}x\isactrlsub k{\isachardot}\ H\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ H\isactrlsub m\ {\isasymLongrightarrow}\ B} in normal form where.
+  Here \isa{x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub k} are goal parameters, i.e.\
   arbitrary-but-fixed entities of certain types, and \isa{H\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ H\isactrlsub m} are goal hypotheses, i.e.\ facts that may
   be assumed locally.  Together, this forms the goal context of the
   conclusion \isa{B} to be established.  The goal hypotheses may be
-  again Hereditary Harrop Formulas, although the level of nesting
-  rarely exceeds 1--2 in practice.
+  again arbitrary Hereditary Harrop Formulas, although the level of
+  nesting rarely exceeds 1--2 in practice.
 
   The main conclusion \isa{C} is internally marked as a protected
   proposition\glossary{Protected proposition}{An arbitrarily
@@ -70,8 +67,9 @@ Isabelle/Pure represents a goal\glossary{Tactical goal}{A theorem of
   atomic by wrapping it into a propositional identity operator;
   notation \isa{{\isacharhash}C}.  Protecting a proposition prevents basic
   inferences from entering into that structure for the time being.},
-  which is occasionally represented explicitly by the notation \isa{{\isacharhash}C}.  This ensures that the decomposition into subgoals and main
-  conclusion is well-defined for arbitrarily structured claims.
+  which is represented explicitly by the notation \isa{{\isacharhash}C}.  This
+  ensures that the decomposition into subgoals and main conclusion is
+  well-defined for arbitrarily structured claims.
 
   \medskip Basic goal management is performed via the following
   Isabelle/Pure rules:
@@ -107,17 +105,18 @@ Isabelle/Pure represents a goal\glossary{Tactical goal}{A theorem of
 
   \begin{description}
 
-  \item \verb|Goal.init|~\isa{{\isasymphi}} initializes a tactical goal from
-  the type-checked proposition \isa{{\isasymphi}}.
+  \item \verb|Goal.init|~\isa{C} initializes a tactical goal from
+  the well-formed proposition \isa{C}.
 
-  \item \verb|Goal.finish|~\isa{th} checks whether theorem \isa{th} is a solved goal configuration (no subgoals), and concludes
-  the result by removing the goal protection.
+  \item \verb|Goal.finish|~\isa{thm} checks whether theorem
+  \isa{thm} is a solved goal (no subgoals), and concludes the
+  result by removing the goal protection.
 
-  \item \verb|Goal.protect|~\isa{th} protects the full statement
-  of theorem \isa{th}.
+  \item \verb|Goal.protect|~\isa{thm} protects the full statement
+  of theorem \isa{thm}.
 
-  \item \verb|Goal.conclude|~\isa{th} removes the goal protection
-  for any number of pending subgoals.
+  \item \verb|Goal.conclude|~\isa{thm} removes the goal
+  protection, even if there are pending subgoals.
 
   \end{description}%
 \end{isamarkuptext}%
