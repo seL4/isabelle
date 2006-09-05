@@ -23,29 +23,158 @@
 }
 \isamarkuptrue%
 %
+\begin{isamarkuptext}%
+The logical foundations of Isabelle/Isar are that of the Pure logic,
+  which has been introduced as a natural-deduction framework in
+  \cite{paulson700}.  This is essentially the same logic as ``\isa{{\isasymlambda}HOL}'' in the more abstract framework of Pure Type Systems (PTS)
+  \cite{Barendregt-Geuvers:2001}, although there are some key
+  differences in the practical treatment of simple types.
+
+  Following type-theoretic parlance, the Pure logic consists of three
+  levels of \isa{{\isasymlambda}}-calculus with corresponding arrows: \isa{{\isasymRightarrow}} for syntactic function space (terms depending on terms), \isa{{\isasymAnd}} for universal quantification (proofs depending on terms), and
+  \isa{{\isasymLongrightarrow}} for implication (proofs depending on proofs).
+
+  Pure derivations are relative to a logical theory, which declares
+  type constructors, term constants, and axioms.  Term constants and
+  axioms support schematic polymorphism.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Types \label{sec:types}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\glossary{Type class}{FIXME}
+The language of types is an uninterpreted order-sorted first-order
+  algebra; types are qualified by ordered type classes.
 
-  \glossary{Type arity}{FIXME}
+  \medskip A \emph{type class} is an abstract syntactic entity
+  declared in the theory context.  The \emph{subclass relation} \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}} is specified by stating an acyclic
+  generating relation; the transitive closure maintained internally.
 
-  \glossary{Sort}{FIXME}
+  A \emph{sort} is a list of type classes written as \isa{{\isacharbraceleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlisub m{\isacharbraceright}}, which represents symbolic
+  intersection.  Notationally, the curly braces are omitted for
+  singleton intersections, i.e.\ any class \isa{c} may be read as
+  a sort \isa{{\isacharbraceleft}c{\isacharbraceright}}.  The ordering on type classes is extended to
+  sorts in the canonical fashion: \isa{{\isacharbraceleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}\ c\isactrlisub m{\isacharbraceright}\ {\isasymsubseteq}\ {\isacharbraceleft}d\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ d\isactrlisub n{\isacharbraceright}} iff \isa{{\isasymforall}j{\isachardot}\ {\isasymexists}i{\isachardot}\ c\isactrlisub i\ {\isasymsubseteq}\ d\isactrlisub j}.  The empty intersection \isa{{\isacharbraceleft}{\isacharbraceright}} refers to the
+  universal sort, which is the largest element wrt.\ the sort order.
+  The intersections of all (i.e.\ finitely many) classes declared in
+  the current theory are the minimal elements wrt.\ sort order.
 
-  FIXME classes and sorts
+  \medskip A \emph{fixed type variable} is pair of a basic name
+  (starting with \isa{{\isacharprime}} character) and a sort constraint.  For
+  example, \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ s{\isacharparenright}} which is usually printed as \isa{{\isasymalpha}\isactrlisub s}.  A \emph{schematic type variable} is a pair of an
+  indexname and a sort constraint.  For example, \isa{{\isacharparenleft}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}{\isacharcomma}\ s{\isacharparenright}} which is usually printed \isa{{\isacharquery}{\isasymalpha}\isactrlisub s}.
 
+  Note that \emph{all} syntactic components contribute to the identity
+  of a type variables, including the literal sort constraint.  The
+  core logic handles type variables with the same name but different
+  sorts as different, even though the outer layers of the system make
+  it hard to produce anything like this.
 
-  \glossary{Type}{FIXME}
+  A \emph{type constructor} is an \isa{k}-ary type operator
+  declared in the theory.
+  
+  A \emph{type} is defined inductively over type variables and type
+  constructors: \isa{{\isasymtau}\ {\isacharequal}\ {\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharquery}{\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharparenleft}{\isasymtau}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlsub k{\isacharparenright}c}.  Type constructor application is usually written
+  postfix.  For \isa{k\ {\isacharequal}\ {\isadigit{0}}} the argument tuple is omitted, e.g.\
+  \isa{prop} instead of \isa{{\isacharparenleft}{\isacharparenright}prop}.  For \isa{k\ {\isacharequal}\ {\isadigit{1}}} the
+  parentheses are omitted, e.g.\ \isa{{\isasymtau}\ list} instead of \isa{{\isacharparenleft}{\isasymtau}{\isacharparenright}\ list}.  Further notation is provided for specific
+  constructors, notably right-associative infix \isa{{\isasymtau}\isactrlisub {\isadigit{1}}\ {\isasymRightarrow}\ {\isasymtau}\isactrlisub {\isadigit{2}}} instead of \isa{{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymtau}\isactrlisub {\isadigit{2}}{\isacharparenright}fun}
+  constructor.
 
-  \glossary{Type constructor}{FIXME}
+  A \emph{type abbreviation} is a syntactic abbreviation of an
+  arbitrary type expression of the theory.  Type abbreviations looks
+  like type constructors at the surface, but are expanded before the
+  core logic encounters them.
 
-  \glossary{Type variable}{FIXME}
+  A \emph{type arity} declares the image behavior of a type
+  constructor wrt.\ the algebra of sorts: \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlisub n{\isacharparenright}s} means that \isa{{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub k{\isacharparenright}c} is
+  of sort \isa{s} if each argument type \isa{{\isasymtau}\isactrlisub i} is of
+  sort \isa{s\isactrlisub i}.  The sort algebra is always maintained as
+  \emph{coregular}, which means that type arities are consistent with
+  the subclass relation: for each type constructor \isa{c} and
+  classes \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}}, any arity \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{1}}{\isacharparenright}c\isactrlisub {\isadigit{1}}} has a corresponding arity \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{2}}{\isacharparenright}c\isactrlisub {\isadigit{2}}} where \isa{\isactrlvec s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ \isactrlvec s\isactrlisub {\isadigit{2}}} holds pointwise for all argument sorts.
 
-  FIXME simple types%
+  The key property of the order-sorted algebra of types is that sort
+  constraints may be always fulfilled in a most general fashion: for
+  each type constructor \isa{c} and sort \isa{s} there is a
+  most general vector of argument sorts \isa{{\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlisub k{\isacharparenright}} such that \isa{{\isacharparenleft}{\isasymtau}\isactrlbsub s\isactrlisub {\isadigit{1}}\isactrlesub {\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlbsub s\isactrlisub k\isactrlesub {\isacharparenright}} for arbitrary \isa{{\isasymtau}\isactrlisub i} of
+  sort \isa{s\isactrlisub i}.  This means the unification problem on
+  the algebra of types has most general solutions (modulo renaming and
+  equivalence of sorts).  As a consequence, type-inference is able to
+  produce primary types.%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexmltype{class}\verb|type class| \\
+  \indexmltype{sort}\verb|type sort| \\
+  \indexmltype{typ}\verb|type typ| \\
+  \indexmltype{arity}\verb|type arity| \\
+  \indexml{Sign.subsort}\verb|Sign.subsort: theory -> sort * sort -> bool| \\
+  \indexml{Sign.of-sort}\verb|Sign.of_sort: theory -> typ * sort -> bool| \\
+  \indexml{Sign.add-types}\verb|Sign.add_types: (bstring * int * mixfix) list -> theory -> theory| \\
+  \indexml{Sign.add-tyabbrs-i}\verb|Sign.add_tyabbrs_i: |\isasep\isanewline%
+\verb|  (bstring * string list * typ * mixfix) list -> theory -> theory| \\
+  \indexml{Sign.primitive-class}\verb|Sign.primitive_class: string * class list -> theory -> theory| \\
+  \indexml{Sign.primitive-classrel}\verb|Sign.primitive_classrel: class * class -> theory -> theory| \\
+  \indexml{Sign.primitive-arity}\verb|Sign.primitive_arity: arity -> theory -> theory| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|class| represents type classes; this is an alias for
+  \verb|string|.
+
+  \item \verb|sort| represents sorts; this is an alias for
+  \verb|class list|.
+
+  \item \verb|arity| represents type arities; this is an alias for
+  triples of the form \isa{{\isacharparenleft}c{\isacharcomma}\ \isactrlvec s{\isacharcomma}\ s{\isacharparenright}} for \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}s} described above.
+
+  \item \verb|typ| represents types; this is a datatype with
+  constructors \verb|TFree|, \verb|TVar|, \verb|Type|.
+
+  \item \verb|Sign.subsort|~\isa{thy\ {\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ s\isactrlisub {\isadigit{2}}{\isacharparenright}}
+  tests the subsort relation \isa{s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ s\isactrlisub {\isadigit{2}}}.
+
+  \item \verb|Sign.of_sort|~\isa{thy\ {\isacharparenleft}{\isasymtau}{\isacharcomma}\ s{\isacharparenright}} tests whether a type
+  expression of of a given sort.
+
+  \item \verb|Sign.add_types|~\isa{{\isacharbrackleft}{\isacharparenleft}c{\isacharcomma}\ k{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}} declares new
+  type constructors \isa{c} with \isa{k} arguments, and
+  optional mixfix syntax.
+
+  \item \verb|Sign.add_tyabbrs_i|~\isa{{\isacharbrackleft}{\isacharparenleft}c{\isacharcomma}\ \isactrlvec {\isasymalpha}{\isacharcomma}\ {\isasymtau}{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}}
+  defines type abbreviation \isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}c} (with optional
+  mixfix syntax) as \isa{{\isasymtau}}.
+
+  \item \verb|Sign.primitive_class|~\isa{{\isacharparenleft}c{\isacharcomma}\ {\isacharbrackleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlisub n{\isacharbrackright}{\isacharparenright}} declares new class \isa{c} derived together with
+  class relations \isa{c\ {\isasymsubseteq}\ c\isactrlisub i}.
+
+  \item \verb|Sign.primitive_classrel|~\isa{{\isacharparenleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ c\isactrlisub {\isadigit{2}}{\isacharparenright}} declares class relation \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}}.
+
+  \item \verb|Sign.primitive_arity|~\isa{{\isacharparenleft}c{\isacharcomma}\ \isactrlvec s{\isacharcomma}\ s{\isacharparenright}} declares
+  arity \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}s}.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
 %
 \isamarkupsection{Terms \label{sec:terms}%
 }
@@ -54,7 +183,14 @@
 \begin{isamarkuptext}%
 \glossary{Term}{FIXME}
 
-  FIXME de-Bruijn representation of lambda terms%
+  FIXME de-Bruijn representation of lambda terms
+
+  Term syntax provides explicit abstraction \isa{{\isasymlambda}x\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}{\isachardot}\ b{\isacharparenleft}x{\isacharparenright}}
+  and application \isa{t\ u}, while types are usually implicit
+  thanks to type-inference.
+
+  Terms of type \isa{prop} are called
+  propositions.  Logical statements are composed via \isa{{\isasymAnd}x\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}{\isachardot}\ B{\isacharparenleft}x{\isacharparenright}} and \isa{A\ {\isasymLongrightarrow}\ B}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -81,7 +217,20 @@ FIXME%
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-FIXME
+Primitive reasoning operates on judgments of the form \isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymphi}}, with standard introduction and elimination rules for \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} that refer to fixed parameters \isa{x} and
+  hypotheses \isa{A} from the context \isa{{\isasymGamma}}.  The
+  corresponding proof terms are left implicit in the classic
+  ``LCF-approach'', although they could be exploited separately
+  \cite{Berghofer-Nipkow:2000}.
+
+  The framework also provides definitional equality \isa{{\isasymequiv}\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ prop}, with \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-conversion rules.  The internal
+  conjunction \isa{{\isacharampersand}\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop\ {\isasymRightarrow}\ prop} enables the view of
+  assumptions and conclusions emerging uniformly as simultaneous
+  statements.
+
+
+
+  FIXME
 
 \glossary{Proposition}{A \seeglossary{term} of \seeglossary{type}
 \isa{prop}.  Internally, there is nothing special about
@@ -152,24 +301,6 @@ variables}, such that the top-level structure is merely that of a
 %
 \begin{isamarkuptext}%
 FIXME%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsection{Raw theories%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-FIXME
-
-\glossary{Constant}{Essentially a \seeglossary{fixed variable} of the
-theory context, but slightly more flexible since it may be used at
-different type-instances, due to \seeglossary{schematic
-polymorphism.}}
-
-\glossary{Axiom}{FIXME}
-
-\glossary{Primitive definition}{FIXME}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
