@@ -1,3 +1,16 @@
+section {* Structured output *}
+
+subsection {* Pretty printing *}
+
+text FIXME
+
+subsection {* Output channels *}
+
+text FIXME
+
+subsection {* Print modes \label{sec:print-mode} *}
+
+text FIXME
 
 text {*
 

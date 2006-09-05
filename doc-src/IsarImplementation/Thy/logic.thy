@@ -5,11 +5,6 @@ theory logic imports base begin
 
 chapter {* Primitive logic \label{ch:logic} *}
 
-section {* Names *}
-
-text FIXME
-
-
 section {* Types \label{sec:types} *}
 
 text {*
@@ -49,6 +44,13 @@ FIXME
 
 \glossary{Type variable}{FIXME}
 
+*}
+
+
+section {* Proof terms *}
+
+text {*
+  FIXME
 *}
 
 
@@ -122,7 +124,7 @@ subsection {* Equational reasoning *}
 text FIXME
 
 
-section {* Low-level specifications *}
+section {* Raw theories *}
 
 text {*
 

@@ -15,7 +15,7 @@ section {* Type-checking specifications *}
 text FIXME
 
 
-section {* Localized theory specifications *}
+section {* Local theories *}
 
 text {*
   FIXME
