@@ -601,7 +601,7 @@ text {*
 
   \begin{itemize}
 
-  \item @{text "?x"} if @{text "x"} does not end with a digit and @{text "i = 0"}.
+  \item @{text "?x"} if @{text "x"} does not end with a digit and @{text "i = 0"},
 
   \item @{text "?xi"} if @{text "x"} does not end with a digit,
 
@@ -644,33 +644,28 @@ text {*
   name components.  The packed representation a dot as separator, for
   example in ``@{text "A.b.c"}''.  The last component is called
   \emph{base} name, the remaining prefix \emph{qualifier} (which may
-  be empty).
+  be empty).  The basic idea of qualified names is to encode a
+  hierarchically structured name spaces by recording the access path
+  as part of the name.  For example, @{text "A.b.c"} may be understood
+  as a local entity @{text "c"} within a local structure @{text "b"}
+  of the enclosing structure @{text "A"}.  Typically, name space
+  hierarchies consist of 1--3 levels, but this need not be always so.
 
   The empty name is commonly used as an indication of unnamed
   entities, if this makes any sense.  The operations on qualified
   names are smart enough to pass through such improper names
   unchanged.
 
-  The basic idea of qualified names is to encode a hierarchically
-  structured name spaces by recording the access path as part of the
-  name.  For example, @{text "A.b.c"} may be understood as a local
-  entity @{text "c"} within a local structure @{text "b"} of the
-  enclosing structure @{text "A"}.  Typically, name space hierarchies
-  consist of 1--3 levels, but this need not be always so.
-
   \medskip A @{text "naming"} policy tells how to turn a name
   specification into a fully qualified internal name (by the @{text
   "full"} operation), and how to fully qualified names may be accessed
-  externally.
-
-  For example, the default naming prefixes an implicit path from the
-  context: @{text "x"} is becomes @{text "path.x"} internally; the
-  standard accesses include @{text "x"}, @{text "path.x"}, and further
-  partial @{text "path"} specifications.
-
+  externally.  For example, the default naming prefixes an implicit
+  path from the context: @{text "x"} is becomes @{text "path.x"}
+  internally; the standard accesses include @{text "x"}, @{text
+  "path.x"}, and further partial @{text "path"} specifications.
   Normally, the naming is implicit in the theory or proof context.
-  There are separate versions of the corresponding operations for these
-  context types.
+  There are separate versions of the corresponding operations for
+  these context types.
 
   \medskip A @{text "name space"} manages a collection of fully
   internalized names, together with a mapping between external names
@@ -683,20 +678,19 @@ text {*
   of formal entity, such as logical constant, type, type class,
   theorem etc.  It is usually clear from the occurrence in concrete
   syntax (or from the scope) which kind of entity a name refers to.
-
   For example, the very same name @{text "c"} may be used uniformly
   for a constant, type, type class, which are from separate syntactic
-  categories.  There is a common convention to name theorems
-  systematically, according to the name of the main logical entity
-  being involved, such as @{text "c.intro"} and @{text "c.elim"} for
-  theorems related to constant @{text "c"}.
+  categories.
 
-  This technique of mapping names from one space into another requires
-  some care in order to avoid conflicts.  In particular, theorem names
-  derived from type or class names are better suffixed in addition to
-  the usual qualification, e.g.\ @{text "c_type.intro"} and @{text
-  "c_class.intro"} for theorems related to type @{text "c"} and class
-  @{text "c"}, respectively.
+  There are common schemes to name theorems systematically, according
+  to the name of the main logical entity being involved, such as
+  @{text "c.intro"} and @{text "c.elim"} for theorems related to
+  constant @{text "c"}.  This technique of mapping names from one
+  space into another requires some care in order to avoid conflicts.
+  In particular, theorem names derived from type or class names are
+  better suffixed in addition to the usual qualification, e.g.\ @{text
+  "c_type.intro"} and @{text "c_class.intro"} for theorems related to
+  type @{text "c"} and class @{text "c"}, respectively.
 *}
 
 text %mlref {*
