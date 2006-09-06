@@ -101,7 +101,7 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
       ||> AxClass.prove_arity (full_tname, lhs_sorts, ["Porder.sq_ord"])
            (ClassPackage.intro_classes_tac [])
       ||>> PureThy.add_defs_i true [Thm.no_attributes less_def]
-      |-> (fn ({type_definition, set_def, ...}, [less_definition]) =>
+      |-> (fn ((_, {type_definition, set_def, ...}), [less_definition]) =>
           AxClass.prove_arity (full_tname, lhs_sorts, ["Porder.po"])
              (Tactic.rtac (typedef_po OF [type_definition, less_definition]) 1)
            #> rpair (type_definition, less_definition, set_def));

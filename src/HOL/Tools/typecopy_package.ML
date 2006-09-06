@@ -16,7 +16,7 @@ sig
     proj_def: thm
   }
   val add_typecopy: bstring * string list -> typ -> (bstring * bstring) option
-    -> theory -> info * theory
+    -> theory -> (string * info) * theory
   val get_typecopies: theory -> string list
   val get_typecopy_info: theory -> string -> info option
   type hook = string * info -> theory -> theory;
@@ -94,16 +94,15 @@ fun invoke_hooks tyco_info thy =
 
 local
 
-fun gen_add_typecopy prep_typ (tyco, raw_vs) raw_ty constr_proj thy =
+fun gen_add_typecopy prep_typ (raw_tyco, raw_vs) raw_ty constr_proj thy =
   let
     val ty = prep_typ thy raw_ty;
     val vs = AList.make (the_default HOLogic.typeS o AList.lookup (op =) (typ_tfrees ty)) raw_vs;
     val tac = Tactic.rtac UNIV_witness 1;
-    fun add_info ( { abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs,
+    fun add_info tyco ( { abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs,
       Rep_name = c_rep, Abs_inject = inject,
       Abs_inverse = inverse, ... } : TypedefPackage.info ) thy = 
         let
-          val Type (tyco', _) = ty_abs;
           val exists_thm =
             UNIV_I
             |> Drule.instantiate' [SOME (ctyp_of thy (Logic.varifyT ty_rep))] [];
@@ -119,15 +118,16 @@ fun gen_add_typecopy prep_typ (tyco, raw_vs) raw_ty constr_proj thy =
           };
         in
           thy
-          |> (TypecopyData.map o apfst o Symtab.update_new) (tyco', info)
-          |> invoke_hooks (tyco', info)
-          |> pair info
+          |> (TypecopyData.map o apfst o Symtab.update_new) (tyco, info)
+          |> invoke_hooks (tyco, info)
+          |> pair (tyco, info)
         end
   in
     thy
-    |> TypedefPackage.add_typedef_i false (SOME tyco) (tyco, map fst vs, NoSyn)
-          (HOLogic.mk_UNIV ty) (Option.map swap constr_proj) tac
-    |-> (fn info => add_info info)
+    |> setmp TypedefPackage.quiet_mode true
+        (TypedefPackage.add_typedef_i false (SOME raw_tyco) (raw_tyco, map fst vs, NoSyn)
+          (HOLogic.mk_UNIV ty) (Option.map swap constr_proj)) tac
+    |-> (fn (tyco, info) => add_info tyco info)
   end;
 
 in

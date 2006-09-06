@@ -16,9 +16,9 @@ sig
     Abs_cases: thm, Rep_induct: thm, Abs_induct: thm};
   val get_info: theory -> string -> info option
   val add_typedef: bool -> string option -> bstring * string list * mixfix ->
-    string -> (bstring * bstring) option -> tactic -> theory -> info * theory
+    string -> (bstring * bstring) option -> tactic -> theory -> (string * info) * theory
   val add_typedef_i: bool -> string option -> bstring * string list * mixfix ->
-    term -> (bstring * bstring) option -> tactic -> theory -> info * theory
+    term -> (bstring * bstring) option -> tactic -> theory -> (string * info) * theory
   val typedef: (bool * string) * (bstring * string list * mixfix) * string
     * (string * string) option -> theory -> Proof.state
   val typedef_i: (bool * string) * (bstring * string list * mixfix) * term
@@ -197,7 +197,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
               Rep_inject = Rep_inject, Abs_inject = Abs_inject, Rep_cases = Rep_cases,
             Abs_cases = Abs_cases, Rep_induct = Rep_induct, Abs_induct = Abs_induct};
           val thy3 = thy2 |> put_info full_tname info;
-        in (info, Context.Theory thy3) end);
+        in ((full_tname, info), Context.Theory thy3) end);
 
 
     (* errors *)
@@ -268,9 +268,12 @@ fun gen_typedef prep_term ((def, name), typ, set, opt_morphs) thy =
     val (_, goal, goal_pat, typedef_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;
     fun att (thy, th) =
-      let val ({type_definition, ...}, thy') = typedef_result th thy
+      let val ((name, {type_definition, ...}), thy') = typedef_result th thy
       in (thy', type_definition) end;
-  in IsarThy.theorem_i PureThy.internalK ("", [att]) (goal, [goal_pat]) thy end;
+  in
+    thy
+    |> IsarThy.theorem_i PureThy.internalK ("", [att]) (goal, [goal_pat])
+  end;
 
 in
 

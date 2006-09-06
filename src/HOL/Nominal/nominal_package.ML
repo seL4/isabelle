@@ -548,19 +548,20 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     (* FIXME: theorems are stored in database for testing only *)
     val perm_closed_thmss = map mk_perm_closed atoms;
-    val (_,thy5) = PureThy.add_thmss [(("perm_closed", List.concat perm_closed_thmss), [])] thy4;
+    val (_, thy5) = PureThy.add_thmss [(("perm_closed", List.concat perm_closed_thmss), [])] thy4;
 
     (**** typedef ****)
 
     val _ = warning "defining type...";
 
     val (typedefs, thy6) =
-      fold_map (fn ((((name, mx), tvs), c), name') => fn thy =>
+      thy5
+      |> fold_map (fn ((((name, mx), tvs), c), name') => fn thy =>
         setmp TypedefPackage.quiet_mode true
           (TypedefPackage.add_typedef_i false (SOME name') (name, tvs, mx) c NONE
             (rtac exI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
-              (resolve_tac rep_intrs 1))) thy |> (fn (r, thy) =>
+              (resolve_tac rep_intrs 1))) thy |> (fn ((_, r), thy) =>
         let
           val permT = mk_permT (TFree (Name.variant tvs "'a", HOLogic.typeS));
           val pi = Free ("pi", permT);
@@ -576,7 +577,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                    Free ("x", T))))), [])] thy)
         end))
           (types_syntax ~~ tyvars ~~
-            (List.take (ind_consts, length new_type_names)) ~~ new_type_names) thy5;
+            (List.take (ind_consts, length new_type_names)) ~~ new_type_names);
 
     val perm_defs = map snd typedefs;
     val Abs_inverse_thms = map (#Abs_inverse o fst) typedefs;
