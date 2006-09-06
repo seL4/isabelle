@@ -680,7 +680,7 @@ in
       end
     (* "?P ((?n::int) mod (number_of ?k)) =
          ((iszero (number_of ?k) --> ?P ?n) &
-          (neg (number_of (bin_minus ?k)) -->
+          (neg (number_of (uminus ?k)) -->
             (ALL i j. 0 <= j & j < number_of ?k & ?n = number_of ?k * i + j --> ?P j)) &
           (neg (number_of ?k) -->
             (ALL i j. number_of ?k < j & j <= 0 & ?n = number_of ?k * i + j --> ?P j))) *)
@@ -699,8 +699,8 @@ in
         val iszero_t2               = Const ("IntDef.iszero", split_type --> HOLogic.boolT) $ t2
         val neg_minus_k             = Const ("IntDef.neg", split_type --> HOLogic.boolT) $
                                         (number_of $
-                                          (Const ("Numeral.bin_minus",
-                                            HOLogic.binT --> HOLogic.binT) $ k'))
+                                          (Const ("HOL.uminus",
+                                            HOLogic.intT --> HOLogic.intT) $ k'))
         val zero_leq_j              = Const ("Orderings.less_eq",
                                         split_type --> split_type --> HOLogic.boolT) $ zero $ j
         val j_lt_t2                 = Const ("Orderings.less",
@@ -732,7 +732,7 @@ in
       end
     (* "?P ((?n::int) div (number_of ?k)) =
          ((iszero (number_of ?k) --> ?P 0) &
-          (neg (number_of (bin_minus ?k)) -->
+          (neg (number_of (uminus ?k)) -->
             (ALL i. (EX j. 0 <= j & j < number_of ?k & ?n = number_of ?k * i + j) --> ?P i)) &
           (neg (number_of ?k) -->
             (ALL i. (EX j. number_of ?k < j & j <= 0 & ?n = number_of ?k * i + j) --> ?P i))) *)
@@ -751,8 +751,8 @@ in
         val iszero_t2               = Const ("IntDef.iszero", split_type --> HOLogic.boolT) $ t2
         val neg_minus_k             = Const ("IntDef.neg", split_type --> HOLogic.boolT) $
                                         (number_of $
-                                          (Const ("Numeral.bin_minus",
-                                            HOLogic.binT --> HOLogic.binT) $ k'))
+                                          (Const ("Numeral.uminus",
+                                            HOLogic.intT --> HOLogic.intT) $ k'))
         val zero_leq_j              = Const ("Orderings.less_eq",
                                         split_type --> split_type --> HOLogic.boolT) $ zero $ j
         val j_lt_t2                 = Const ("Orderings.less",

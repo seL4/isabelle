@@ -11,6 +11,8 @@ begin
 
 text {* Axiomatic Natural Numbers (Peano) -- a monomorphic theory. *}
 
+hide (open) const succ
+
 locale NAT =
   fixes zero :: 'n
     and succ :: "'n \<Rightarrow> 'n"

@@ -2513,92 +2513,12 @@ lemmas [simp] = length_nat_non0
 lemma "nat_to_bv (number_of Numeral.Pls) = []"
   by simp
 
-(***NO LONGER WORKS
 consts
-  fast_nat_to_bv_helper :: "bin => bit list => bit list"
+  fast_bv_to_nat_helper :: "[bit list, int] => int"
 
 primrec
-  fast_nat_to_bv_Pls: "fast_nat_to_bv_helper Numeral.Pls res = res"
-  fast_nat_to_bv_Bit: "fast_nat_to_bv_helper (w BIT b) res = fast_nat_to_bv_helper w ((if b then \<one> else \<zero>) # res)"
-
-lemma fast_nat_to_bv_def:
-  assumes pos_w: "(0::int) \<le> number_of w"
-  shows "nat_to_bv (number_of w) == norm_unsigned (fast_nat_to_bv_helper w [])"
-proof -
-  have h [rule_format]: "(0::int) \<le> number_of w ==> \<forall> l. norm_unsigned (nat_to_bv_helper (number_of w) l) = norm_unsigned (fast_nat_to_bv_helper w l)"
-  proof (induct w,simp add: nat_to_bv_helper.simps,simp)
-    fix bin b
-    assume ind: "(0::int) \<le> number_of bin ==> \<forall> l. norm_unsigned (nat_to_bv_helper (number_of bin) l) = norm_unsigned (fast_nat_to_bv_helper bin l)"
-    def qq == "number_of bin::int"
-    assume posbb: "(0::int) \<le> number_of (bin BIT b)"
-    hence indq [rule_format]: "\<forall> l. norm_unsigned (nat_to_bv_helper qq l) = norm_unsigned (fast_nat_to_bv_helper bin l)"
-      apply (unfold qq_def)
-      apply (rule ind)
-      apply simp
-      done
-    from posbb
-    have "0 \<le> qq"
-      by (simp add: qq_def)
-    with posbb
-    show "\<forall> l. norm_unsigned (nat_to_bv_helper (number_of (bin BIT b)) l) = norm_unsigned (fast_nat_to_bv_helper (bin BIT b) l)"
-      apply (subst pos_number_of)
-      apply safe
-      apply (fold qq_def)
-      apply (cases "qq = 0")
-      apply (simp add: nat_to_bv_helper.simps)
-      apply (subst indq [symmetric])
-      apply (subst indq [symmetric])
-      apply (simp add: nat_to_bv_helper.simps)
-      apply (subgoal_tac "0 < qq")
-      prefer 2
-      apply simp
-      apply simp
-      apply (subst indq [symmetric])
-      apply (subst indq [symmetric])
-      apply auto
-      apply (simp only: nat_to_bv_helper.simps [of "2 * qq + 1"])
-      apply simp
-      apply safe
-      apply (subgoal_tac "2 * qq + 1 ~= 2 * q")
-      apply simp
-      apply arith
-      apply (subgoal_tac "(2 * qq + 1) div 2 = qq")
-      apply simp
-      apply (subst zdiv_zadd1_eq,simp)
-      apply (simp only: nat_to_bv_helper.simps [of "2 * qq"])
-      apply simp
-      done
-  qed
-  from pos_w
-  have "nat_to_bv (number_of w) = norm_unsigned (nat_to_bv (number_of w))"
-    by simp
-  also have "... = norm_unsigned (fast_nat_to_bv_helper w [])"
-    apply (unfold nat_to_bv_def)
-    apply (rule h)
-    apply (rule pos_w)
-    done
-  finally show "nat_to_bv (number_of w) == norm_unsigned (fast_nat_to_bv_helper w [])"
-    by simp
-qed
-
-lemma fast_nat_to_bv_Bit0: "fast_nat_to_bv_helper (w BIT False) res = fast_nat_to_bv_helper w (\<zero> # res)"
-  by simp
-
-lemma fast_nat_to_bv_Bit1: "fast_nat_to_bv_helper (w BIT True) res = fast_nat_to_bv_helper w (\<one> # res)"
-  by simp
-
-declare fast_nat_to_bv_Bit [simp del]
-declare fast_nat_to_bv_Bit0 [simp]
-declare fast_nat_to_bv_Bit1 [simp]
-****)
-
-
-consts
-  fast_bv_to_nat_helper :: "[bit list, bin] => bin"
-
-primrec
-  fast_bv_to_nat_Nil: "fast_bv_to_nat_helper [] bin = bin"
-  fast_bv_to_nat_Cons: "fast_bv_to_nat_helper (b#bs) bin = fast_bv_to_nat_helper bs (bin BIT (bit_case bit.B0 bit.B1 b))"
+  fast_bv_to_nat_Nil: "fast_bv_to_nat_helper [] k = k"
+  fast_bv_to_nat_Cons: "fast_bv_to_nat_helper (b#bs) k = fast_bv_to_nat_helper bs (k BIT (bit_case bit.B0 bit.B1 b))"
 
 lemma fast_bv_to_nat_Cons0: "fast_bv_to_nat_helper (\<zero>#bs) bin = fast_bv_to_nat_helper bs (bin BIT bit.B0)"
   by simp

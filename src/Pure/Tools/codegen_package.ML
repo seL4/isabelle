@@ -609,19 +609,18 @@ and appgen thy algbr thmtab strct ((f, ty), ts) trns =
 (* parametrized application generators, for instantiation in object logic *)
 (* (axiomatic extensions of extraction kernel *)
 
-fun appgen_rep_bin int_of_numeral thy algbr thmtab strct (app as (c as (_, ty), [bin])) trns =
-  case try (int_of_numeral thy) bin
+fun appgen_rep_bin int_of_numeral thy algbr thmtab strct (app as (c, ts)) trns =
+  case try (int_of_numeral thy) (list_comb (Const c, ts))
    of SOME i => if i < 0 then (*preprocessor eliminates negative numerals*)
         trns
         |> appgen_default thy algbr thmtab (no_strict strct) app
       else
         trns
-        |> exprgen_term thy algbr thmtab (no_strict strct) (Const c)
-        ||>> exprgen_term thy algbr thmtab (no_strict strct) bin
-        |-> (fn (e1, e2) => pair (CodegenThingol.INum (i, e1 `$ e2)))
+        |> appgen_default thy algbr thmtab (no_strict strct) app
+        |-> (fn e => pair (CodegenThingol.INum (i, e)))
     | NONE =>
         trns
-        |> appgen_default thy algbr thmtab strct app;
+        |> appgen_default thy algbr thmtab (no_strict strct) app;
 
 fun appgen_char char_to_index thy algbr thmtab strct (app as ((_, ty), _)) trns =
   case (char_to_index o list_comb o apfst Const) app

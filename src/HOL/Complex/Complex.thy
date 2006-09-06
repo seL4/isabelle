@@ -830,7 +830,7 @@ subsection{*Numerals and Arithmetic*}
 instance complex :: number ..
 
 defs (overloaded)
-  complex_number_of_def: "(number_of w :: complex) == of_int (Rep_Bin w)"
+  complex_number_of_def: "(number_of w :: complex) == of_int w"
     --{*the type constraint is essential!*}
 
 instance complex :: number_ring

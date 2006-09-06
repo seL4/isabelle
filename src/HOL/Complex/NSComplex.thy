@@ -783,7 +783,7 @@ by (transfer, rule refl)
 
 subsection{*Numerals and Arithmetic*}
 
-lemma hcomplex_number_of_def: "(number_of w :: hcomplex) == of_int (Rep_Bin w)"
+lemma hcomplex_number_of_def: "(number_of w :: hcomplex) == of_int w"
 by (transfer, rule number_of_eq [THEN eq_reflection])
 
 lemma hcomplex_of_hypreal_eq_hcomplex_of_complex: 

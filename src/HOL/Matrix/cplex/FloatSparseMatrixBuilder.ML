@@ -32,7 +32,7 @@ sig
     val v_only_elem : vector -> int option
     val v_fold : ('a * (int * string) -> 'a) -> 'a -> vector -> 'a
     val m_fold : ('a * (int * vector) -> 'a) -> 'a -> matrix -> 'a
-				   
+
     val transpose_matrix : matrix -> matrix
 
     val cut_vector : int -> vector -> vector
@@ -80,53 +80,27 @@ val empty_vector_const = Const (term_Nil, spvecT)
 
 val Cons_spvec_const = Const (term_Cons, spvec_elemT --> spvecT --> spvecT)
 val Cons_spmat_const = Const (term_Cons, spmat_elemT --> spmatT --> spmatT) 
-			 
+
 val float_const = Float.float_const
 
-(*val float_const = Const (readterm "float", HOLogic.mk_prodT (HOLogic.intT, HOLogic.intT) --> HOLogic.realT)*)
-		  
 val zero = IntInf.fromInt 0
 val minus_one = IntInf.fromInt ~1
 val two = IntInf.fromInt 2
-	  
+
 val mk_intinf = Float.mk_intinf
-(*    let
-	fun mk_bit n = if n = zero then HOLogic.false_const else HOLogic.true_const
-								 
-	fun bin_of n = 
-	    if n = zero then HOLogic.pls_const
-	    else if n = minus_one then HOLogic.min_const
-	    else 
-		let 
-		    (*val (q,r) = IntInf.divMod (n, two): doesn't work in SML 10.0.7, but in newer versions!!!*)
-	            val q = IntInf.div (n, two)
-		    val r = IntInf.mod (n, two)
-		in
-		    HOLogic.bit_const $ bin_of q $ mk_bit r
-		end
-    in 
-	HOLogic.number_of_const ty $ (bin_of n)
-    end*)
 
 val mk_float  = Float.mk_float 
-(*    float_const $ (HOLogic.mk_prod ((mk_intinf HOLogic.intT a), (mk_intinf HOLogic.intT b)))*)
 
 fun float2cterm (a,b) = cterm_of sg (mk_float (a,b))
 
 fun approx_value_term prec f = Float.approx_float prec (fn (x, y) => (f x, f y))
-(*    let
-	val (flower, fupper) = ExactFloatingPoint.approx_decstr_by_bin prec value
-	val (flower, fupper) = (f flower, f fupper)
-    in
-	(mk_float flower, mk_float fupper)
-    end*)
 
 fun approx_value prec pprt value = 
-    let
-	val (flower, fupper) = approx_value_term prec pprt value			       
-    in
-	(cterm_of sg flower, cterm_of sg fupper)
-    end
+  let
+    val (flower, fupper) = approx_value_term prec pprt value
+  in
+    (cterm_of sg flower, cterm_of sg fupper)
+  end
 
 fun sign_term t = cterm_of sg t
 

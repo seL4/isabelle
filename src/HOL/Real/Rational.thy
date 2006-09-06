@@ -451,7 +451,7 @@ subsection {* Numerals and Arithmetic *}
 instance rat :: number ..
 
 defs (overloaded)
-  rat_number_of_def: "(number_of w :: rat) == of_int (Rep_Bin w)"
+  rat_number_of_def: "(number_of w :: rat) == of_int w"
     --{*the type constraint is essential!*}
 
 instance rat :: number_ring

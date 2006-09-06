@@ -922,7 +922,7 @@ subsection{*Numerals and Arithmetic*}
 instance real :: number ..
 
 defs (overloaded)
-  real_number_of_def: "(number_of w :: real) == of_int (Rep_Bin w)"
+  real_number_of_def: "(number_of w :: real) == of_int w"
     --{*the type constraint is essential!*}
 
 instance real :: number_ring

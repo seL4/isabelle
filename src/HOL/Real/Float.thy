@@ -3,7 +3,9 @@
     Author: Steven Obua
 *)
 
-theory Float imports Real begin
+theory Float
+imports Real
+begin
 
 definition
   pow2 :: "int \<Rightarrow> real"
@@ -177,7 +179,7 @@ proof -
   ultimately show ?thesis by auto
 qed
 
-lemma real_is_int_number_of[simp]: "real_is_int ((number_of::bin\<Rightarrow>real) x)"
+lemma real_is_int_number_of[simp]: "real_is_int ((number_of \<Colon> int \<Rightarrow> real) x)"
 proof -
   have neg1: "real_is_int (-1::real)"
   proof -
@@ -187,11 +189,9 @@ proof -
   qed
 
   {
-    fix x::int
-    have "!! y. real_is_int ((number_of::bin\<Rightarrow>real) (Abs_Bin x))"
-      apply (simp add: number_of_eq)
-      apply (subst Abs_Bin_inverse)
-      apply (simp add: Bin_def)
+    fix x :: int
+    have "real_is_int ((number_of \<Colon> int \<Rightarrow> real) x)"
+      unfolding number_of_eq
       apply (induct x)
       apply (induct_tac n)
       apply (simp)
@@ -212,13 +212,13 @@ proof -
   }
   note Abs_Bin = this
   {
-    fix x :: bin
-    have "? u. x = Abs_Bin u"
-      apply (rule exI[where x = "Rep_Bin x"])
-      apply (simp add: Rep_Bin_inverse)
+    fix x :: int
+    have "? u. x = u"
+      apply (rule exI[where x = "x"])
+      apply (simp)
       done
   }
-  then obtain u::int where "x = Abs_Bin u" by auto
+  then obtain u::int where "x = u" by auto
   with Abs_Bin show ?thesis by auto
 qed
 
@@ -448,17 +448,17 @@ lemma not_false_eq_true: "(~ False) = True" by simp
 
 lemma not_true_eq_false: "(~ True) = False" by simp
 
-
 lemmas binarith =
   Pls_0_eq Min_1_eq
-  bin_pred_Pls bin_pred_Min bin_pred_1 bin_pred_0
-  bin_succ_Pls bin_succ_Min bin_succ_1 bin_succ_0
-  bin_add_Pls bin_add_Min bin_add_BIT_0 bin_add_BIT_10
-  bin_add_BIT_11 bin_minus_Pls bin_minus_Min bin_minus_1
-  bin_minus_0 bin_mult_Pls bin_mult_Min bin_mult_1 bin_mult_0
-  bin_add_Pls_right bin_add_Min_right
+  pred_Pls pred_Min pred_1 pred_0
+  succ_Pls succ_Min succ_1 succ_0
+  add_Pls add_Min add_BIT_0 add_BIT_10
+  add_BIT_11 minus_Pls minus_Min minus_1
+  minus_0 mult_Pls mult_Min mult_num1 mult_num0
+  add_Pls_right add_Min_right
 
-lemma int_eq_number_of_eq: "(((number_of v)::int)=(number_of w)) = iszero ((number_of (bin_add v (bin_minus w)))::int)"
+lemma int_eq_number_of_eq:
+  "(((number_of v)::int)=(number_of w)) = iszero ((number_of (v + uminus w))::int)"
   by simp
 
 lemma int_iszero_number_of_Pls: "iszero (Numeral0::int)"
@@ -473,7 +473,7 @@ lemma int_iszero_number_of_0: "iszero ((number_of (w BIT bit.B0))::int) = iszero
 lemma int_iszero_number_of_1: "\<not> iszero ((number_of (w BIT bit.B1))::int)"
   by simp
 
-lemma int_less_number_of_eq_neg: "(((number_of x)::int) < number_of y) = neg ((number_of (bin_add x (bin_minus y)))::int)"
+lemma int_less_number_of_eq_neg: "(((number_of x)::int) < number_of y) = neg ((number_of (x + (uminus y)))::int)"
   by simp
 
 lemma int_not_neg_number_of_Pls: "\<not> (neg (Numeral0::int))"
@@ -485,7 +485,7 @@ lemma int_neg_number_of_Min: "neg (-1::int)"
 lemma int_neg_number_of_BIT: "neg ((number_of (w BIT x))::int) = neg ((number_of w)::int)"
   by simp
 
-lemma int_le_number_of_eq: "(((number_of x)::int) \<le> number_of y) = (\<not> neg ((number_of (bin_add y (bin_minus x)))::int))"
+lemma int_le_number_of_eq: "(((number_of x)::int) \<le> number_of y) = (\<not> neg ((number_of (y + (uminus x)))::int))"
   by simp
 
 lemmas intarithrel =
@@ -494,16 +494,16 @@ lemmas intarithrel =
   lift_bool[OF int_iszero_number_of_1] int_less_number_of_eq_neg nlift_bool[OF int_not_neg_number_of_Pls] lift_bool[OF int_neg_number_of_Min]
   int_neg_number_of_BIT int_le_number_of_eq
 
-lemma int_number_of_add_sym: "((number_of v)::int) + number_of w = number_of (bin_add v w)"
+lemma int_number_of_add_sym: "((number_of v)::int) + number_of w = number_of (v + w)"
   by simp
 
-lemma int_number_of_diff_sym: "((number_of v)::int) - number_of w = number_of (bin_add v (bin_minus w))"
+lemma int_number_of_diff_sym: "((number_of v)::int) - number_of w = number_of (v + (uminus w))"
   by simp
 
-lemma int_number_of_mult_sym: "((number_of v)::int) * number_of w = number_of (bin_mult v w)"
+lemma int_number_of_mult_sym: "((number_of v)::int) * number_of w = number_of (v * w)"
   by simp
 
-lemma int_number_of_minus_sym: "- ((number_of v)::int) = number_of (bin_minus v)"
+lemma int_number_of_minus_sym: "- ((number_of v)::int) = number_of (uminus v)"
   by simp
 
 lemmas intarith = int_number_of_add_sym int_number_of_minus_sym int_number_of_diff_sym int_number_of_mult_sym

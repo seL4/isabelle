@@ -935,7 +935,7 @@ fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",
       Type ("fun", [_, Type ("nat", [])])) $ bin) =
         SOME (Codegen.invoke_codegen thy defs s thyname b (gr,
           Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT) $
-            (Const ("Numeral.number_of", HOLogic.binT --> HOLogic.intT) $ bin)))
+            (Const ("Numeral.number_of", HOLogic.intT --> HOLogic.intT) $ bin)))
   | number_of_codegen _ _ _ _ _ _ _ = NONE;
 *}
 

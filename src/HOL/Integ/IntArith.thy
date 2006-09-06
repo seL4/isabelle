@@ -20,7 +20,7 @@ instance
   int :: number ..
 
 defs (overloaded)
-  int_number_of_def: "(number_of w :: int) == of_int (Rep_Bin w)"
+  int_number_of_def: "(number_of w :: int) == of_int w"
     --{*the type constraint is essential!*}
 
 instance int :: number_ring
@@ -365,12 +365,9 @@ done
 subsection {* code generator setup *}
 
 code_typename
-  "Numeral.bin" "IntDef.bin"
   "Numeral.bit" "IntDef.bit"
 
 code_constname
-  "Numeral.Abs_Bin" "IntDef.bin"
-  "Numeral.Rep_Bin" "IntDef.int_of_bin"
   "Numeral.Pls" "IntDef.pls"
   "Numeral.Min" "IntDef.min"
   "Numeral.Bit" "IntDef.bit"
@@ -387,36 +384,29 @@ lemma
 lemma
   Numeral_Bit_refl [code fun]: "Numeral.Bit = Numeral.Bit" ..
 
-lemma
-  number_of_is_rep_bin [code inline]: "number_of = Rep_Bin"
-proof
-  fix b
-  show "number_of b = Rep_Bin b" 
+lemma zero_is_num_zero [code fun, code inline]:
+  "(0::int) = Numeral.Pls" 
+  unfolding Pls_def ..
+
+lemma one_is_num_one [code fun, code inline]:
+  "(1::int) = Numeral.Pls BIT bit.B1" 
+  unfolding Pls_def Bit_def by simp 
+
+lemma number_of_is_id [code fun, code inline]:
+  "number_of (k::int) = k"
   unfolding int_number_of_def by simp
-qed
 
-lemma zero_is_num_zero [code, code inline]:
-  "(0::int) = Rep_Bin Numeral.Pls" 
-  unfolding Pls_def Abs_Bin_inverse' ..
-
-lemma one_is_num_one [code, code inline]:
-  "(1::int) = Rep_Bin (Numeral.Pls BIT bit.B1)" 
-  unfolding Pls_def Bit_def Abs_Bin_inverse' by simp 
-
-lemma negate_bin_minus:
-  "(Rep_Bin b :: int) = - Rep_Bin (bin_minus b)"
-  unfolding bin_minus_def Abs_Bin_inverse' by simp
-
-lemmas [code inline] =
-  bin_minus_Pls bin_minus_Min bin_minus_1 bin_minus_0
-  bin_pred_Pls  bin_pred_Min  bin_pred_1  bin_pred_0
+lemma number_of_minus:
+  "number_of (b :: int) = (- number_of (- b) :: int)"
+  unfolding int_number_of_def by simp
 
 ML {*
 structure Numeral =
 struct
 
-val negate_bin_minus_thm = eq_reflection OF [thm "negate_bin_minus"];
-val number_of_is_rep_bin_thm = eq_reflection OF [thm "number_of_is_rep_bin"];
+val number_of_minus_thm = eq_reflection OF [thm "number_of_minus"];
+val minus_rewrites = map (fn thm => eq_reflection OF [thm])
+  [minus_1, minus_0, minus_Pls, minus_Min, pred_1, pred_0, pred_Pls, pred_Min];
 
 fun int_of_numeral thy num = HOLogic.dest_binum num
   handle TERM _
@@ -424,7 +414,6 @@ fun int_of_numeral thy num = HOLogic.dest_binum num
 
 fun elim_negate thy thms =
   let
-    val thms' = map (CodegenTheorems.rewrite_fun [number_of_is_rep_bin_thm]) thms;
     fun bins_of (Const _) =
           I
       | bins_of (Var _) =
@@ -437,28 +426,32 @@ fun elim_negate thy thms =
           bins_of t
       | bins_of (t as _ $ _) =
           case strip_comb t
-           of (Const ("Numeral.Rep_Bin", _), [bin]) => cons bin
+           of (Const ("Numeral.Bit", _), _) => cons t
             | (t', ts) => bins_of t' #> fold bins_of ts;
-    fun is_negative bin = case try HOLogic.dest_binum bin
+    fun is_negative num = case try HOLogic.dest_binum num
      of SOME i => i < 0
       | _ => false;
     fun instantiate_with bin =
-      Drule.instantiate' [] [(SOME o cterm_of thy) bin] negate_bin_minus_thm;
+      Drule.instantiate' [] [(SOME o cterm_of thy) bin] number_of_minus_thm;
     val rewrites  =
       []
-      |> fold (bins_of o prop_of) thms'
+      |> fold (bins_of o prop_of) thms
       |> filter is_negative
       |> map instantiate_with
-  in if null rewrites then thms' else
-    map (CodegenTheorems.rewrite_fun rewrites) thms'
+  in if null rewrites then thms else
+    map (CodegenTheorems.rewrite_fun (rewrites @ minus_rewrites)) thms
   end;
 
 end;
 *}
 
+code_const "Numeral.Pls" and "Numeral.Min"
+  (SML target_atom "(0 : IntInf.int)" and target_atom "(~1 : IntInf.int)")
+  (Haskell target_atom "0" and target_atom "(negate ~1)")
+
 setup {*
   CodegenTheorems.add_preproc Numeral.elim_negate
-  #> CodegenPackage.add_appconst ("Numeral.Rep_Bin", CodegenPackage.appgen_rep_bin Numeral.int_of_numeral)
+  #> CodegenPackage.add_appconst ("Numeral.Bit", CodegenPackage.appgen_rep_bin Numeral.int_of_numeral)
 *}
 
 

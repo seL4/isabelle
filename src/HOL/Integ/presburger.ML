@@ -33,12 +33,12 @@ fun trace_msg s = if !trace then tracing s else ();
 val presburger_ss = simpset ();
 val binarith = map thm
   ["Pls_0_eq", "Min_1_eq",
- "bin_pred_Pls","bin_pred_Min","bin_pred_1","bin_pred_0",
-  "bin_succ_Pls", "bin_succ_Min", "bin_succ_1", "bin_succ_0",
-  "bin_add_Pls", "bin_add_Min", "bin_add_BIT_0", "bin_add_BIT_10",
-  "bin_add_BIT_11", "bin_minus_Pls", "bin_minus_Min", "bin_minus_1", 
-  "bin_minus_0", "bin_mult_Pls", "bin_mult_Min", "bin_mult_1", "bin_mult_0", 
-  "bin_add_Pls_right", "bin_add_Min_right"];
+ "pred_Pls","pred_Min","pred_1","pred_0",
+  "succ_Pls", "succ_Min", "succ_1", "succ_0",
+  "add_Pls", "add_Min", "add_BIT_0", "add_BIT_10",
+  "add_BIT_11", "minus_Pls", "minus_Min", "minus_1", 
+  "minus_0", "mult_Pls", "mult_Min", "mult_num1", "mult_num0", 
+  "add_Pls_right", "add_Min_right"];
  val intarithrel = 
      (map thm ["int_eq_number_of_eq","int_neg_number_of_BIT", 
 		"int_le_number_of_eq","int_iszero_number_of_0",
@@ -116,7 +116,6 @@ fun term_typed_consts t = add_term_typed_consts(t,[]);
 val bT = HOLogic.boolT;
 val bitT = HOLogic.bitT;
 val iT = HOLogic.intT;
-val binT = HOLogic.binT;
 val nT = HOLogic.natT;
 
 (* Allowed Consts in formulae for presburger tactic*)
@@ -162,11 +161,11 @@ val allowed_consts =
 
    ("Numeral.bit.B0", bitT),
    ("Numeral.bit.B1", bitT),
-   ("Numeral.Bit", binT --> bitT --> binT),
-   ("Numeral.Pls", binT),
-   ("Numeral.Min", binT),
-   ("Numeral.number_of", binT --> iT),
-   ("Numeral.number_of", binT --> nT),
+   ("Numeral.Bit", iT --> bitT --> iT),
+   ("Numeral.Pls", iT),
+   ("Numeral.Min", iT),
+   ("Numeral.number_of", iT --> iT),
+   ("Numeral.number_of", iT --> nT),
    ("0", nT),
    ("0", iT),
    ("1", nT),

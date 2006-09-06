@@ -7,9 +7,9 @@ structure ExactFloatingPoint :
 sig
     exception Destruct_floatstr of string
     val destruct_floatstr : (char -> bool) -> (char -> bool) -> string -> bool * string * string * bool * string
-									  
+
     exception Floating_point of string
-				
+
     type floatrep = IntInf.int * IntInf.int
     val approx_dec_by_bin : IntInf.int -> floatrep -> floatrep * floatrep
     val approx_decstr_by_bin : int -> string -> floatrep * floatrep
@@ -351,23 +351,19 @@ exception Dest_intinf;
 exception Dest_float;
 
 fun mk_intinf ty n =
-    let
-	fun mk_bit n = if n = zero then HOLogic.B0_const else HOLogic.B1_const
-								 
-	fun bin_of n = 
-	    if n = zero then HOLogic.pls_const
-	    else if n = minus_one then HOLogic.min_const
-	    else 
-		let 
-		    (*val (q,r) = IntInf.divMod (n, two): doesn't work in SML 10.0.7, but in newer versions!!!*)
-	            val q = IntInf.div (n, two)
-		    val r = IntInf.mod (n, two)
-		in
-		    HOLogic.bit_const $ bin_of q $ mk_bit r
-		end
-    in 
-	HOLogic.number_of_const ty $ (bin_of n)
-    end
+  let
+    fun mk_bit n = if n = zero then HOLogic.B0_const else HOLogic.B1_const
+    fun bin_of n = 
+      if n = zero then HOLogic.pls_const
+      else if n = minus_one then HOLogic.min_const
+      else let 
+        val (q,r) = IntInf.divMod (n, two)
+      in
+        HOLogic.bit_const $ bin_of q $ mk_bit r
+      end
+  in 
+    HOLogic.number_of_const ty $ (bin_of n)
+  end
 
 fun dest_intinf n = 
     let

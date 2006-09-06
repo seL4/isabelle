@@ -16,15 +16,15 @@ end
 structure MatrixLP : MATRIX_LP =
 struct
 
-val sg = sign_of (theory "MatrixLP")
+val thy = theory "MatrixLP";
 
-fun inst_real thm = standard (Thm.instantiate ([(ctyp_of sg (TVar (hd (term_tvars (prop_of thm)))),
-						 ctyp_of sg HOLogic.realT)], []) thm)
+fun inst_real thm = standard (Thm.instantiate ([(ctyp_of thy (TVar (hd (term_tvars (prop_of thm)))),
+						 ctyp_of thy HOLogic.realT)], []) thm)
 
 fun lp_dual_estimate_prt_primitive (y, (A1, A2), (c1, c2), b, (r1, r2)) = 
     let
 	val th = inst_real (thm "SparseMatrix.spm_mult_le_dual_prts_no_let")
-	fun var s x = (cterm_of sg (Var ((s,0), FloatSparseMatrixBuilder.real_spmatT)), x)
+	fun var s x = (cterm_of thy (Var ((s,0), FloatSparseMatrixBuilder.real_spmatT)), x)
 	val th = Thm.instantiate ([], [var "A1" A1, var "A2" A2, var "y" y, var "c1" c1, var "c2" c2, 
 				       var "r1" r1, var "r2" r2, var "b" b]) th
     in
@@ -43,8 +43,8 @@ fun lp_dual_estimate_prt lptfile prec =
     in
 	lp_dual_estimate_prt_primitive certificate
     end
-	 
-fun read_ct s = read_cterm sg (s, TypeInfer.logicT);
+
+fun read_ct s = read_cterm thy (s, TypeInfer.logicT);
     
 fun is_meta_eq th =
     let
@@ -56,19 +56,19 @@ fun is_meta_eq th =
     
 fun prep ths = (Library.filter is_meta_eq ths) @ (map (standard o mk_meta_eq) (Library.filter (not o is_meta_eq) ths))
 
-fun make ths = Compute.basic_make sg ths
+fun make ths = Compute.basic_make thy ths
 	  
 fun inst_tvar ty thm = 
     let
 	val ord = prod_ord (prod_ord string_ord int_ord) (list_ord string_ord)
 	val v = TVar (hd (sort ord (term_tvars (prop_of thm))))
     in	
-	standard (Thm.instantiate ([(ctyp_of sg v, ctyp_of sg ty)], []) thm)
+	standard (Thm.instantiate ([(ctyp_of thy v, ctyp_of thy ty)], []) thm)
     end
     
 fun inst_tvars [] thms = thms
   | inst_tvars (ty::tys) thms = inst_tvars tys (map (inst_tvar ty) thms)
-				
+
 val matrix_compute =
     let 
 	val spvecT = FloatSparseMatrixBuilder.real_spvecT
@@ -117,8 +117,8 @@ fun prove_bound lptfile prec =
 	matrix_simplify th
     end
 
-fun realFromStr s = valOf (Real.fromString s)
-fun float2real (x,y) = (realFromStr x) * (Math.pow (2.0, realFromStr y))
+val realFromStr = the o Real.fromString;
+fun float2real (x, y) = realFromStr x * Math.pow (2.0, realFromStr y);
 
 end
 

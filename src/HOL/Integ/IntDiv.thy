@@ -9,7 +9,7 @@
 header{*The Division Operators div and mod; the Divides Relation dvd*}
 
 theory IntDiv
-imports SetInterval Recdef
+imports "../SetInterval" "../Recdef"
 uses ("IntDiv_setup.ML")
 begin
 
@@ -959,7 +959,7 @@ lemma zdiv_number_of_BIT[simp]:
           (if b=bit.B0 | (0::int) \<le> number_of w                    
            then number_of v div (number_of w)     
            else (number_of v + (1::int)) div (number_of w))"
-apply (simp only: number_of_eq Bin_simps UNIV_I split: split_if) 
+apply (simp only: number_of_eq numeral_simps UNIV_I split: split_if) 
 apply (simp add: zdiv_zmult_zmult1 pos_zdiv_mult_2 neg_zdiv_mult_2 add_ac 
             split: bit.split)
 done
@@ -1001,7 +1001,7 @@ lemma zmod_number_of_BIT [simp]:
         | bit.B1 => if (0::int) \<le> number_of w  
                 then 2 * (number_of v mod number_of w) + 1     
                 else 2 * ((number_of v + (1::int)) mod number_of w) - 1)"
-apply (simp only: number_of_eq Bin_simps UNIV_I split: bit.split) 
+apply (simp only: number_of_eq numeral_simps UNIV_I split: bit.split) 
 apply (simp add: zmod_zmult_zmult1 pos_zmod_mult_2 
                  not_0_le_lemma neg_zmod_mult_2 add_ac)
 done

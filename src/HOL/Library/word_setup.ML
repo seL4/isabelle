@@ -27,7 +27,7 @@ local
 	    val fast2_th = PureThy.get_thm thy (Name "Word.fast_bv_to_nat_def")
  (*lcp**	    fun f sg thms (Const("Word.nat_to_bv",_) $ (Const("Numeral.number_of",_) $ t)) =
 		if num_is_usable t
-		then SOME (Drule.cterm_instantiate [(cterm_of sg (Var(("w",0),Type("Numeral.bin",[]))),cterm_of sg t)] fast1_th)
+		then SOME (Drule.cterm_instantiate [(cterm_of sg (Var(("w",0),Type("IntDef.int",[]))),cterm_of sg t)] fast1_th)
 		else NONE
 	      | f _ _ _ = NONE **)
 	    fun g sg thms (Const("Word.bv_to_nat",_) $ (t as (Const("List.list.Cons",_) $ _ $ _))) =

@@ -992,7 +992,8 @@ lemma not_false_eq_true: "(~ False) = True" by simp
 lemma not_true_eq_false: "(~ True) = False" by simp
 
 
-lemma int_eq_number_of_eq: "(((number_of v)::int)=(number_of w)) = iszero ((number_of (bin_add v (bin_minus w)))::int)"
+lemma int_eq_number_of_eq:
+  "(((number_of v)::int) = (number_of w)) = iszero ((number_of (v + (uminus w)))::int)"
   by simp
 lemma int_iszero_number_of_Pls: "iszero (Numeral0::int)" 
   by (simp only: iszero_number_of_Pls)
@@ -1006,7 +1007,7 @@ lemma int_iszero_number_of_0: "iszero ((number_of (w BIT bit.B0))::int) = iszero
 lemma int_iszero_number_of_1: "\<not> iszero ((number_of (w BIT bit.B1))::int)" 
   by simp
 
-lemma int_less_number_of_eq_neg: "(((number_of x)::int) < number_of y) = neg ((number_of (bin_add x (bin_minus y)))::int)"
+lemma int_less_number_of_eq_neg: "(((number_of x)::int) < number_of y) = neg ((number_of (x + (uminus y)))::int)"
   by simp
 
 lemma int_not_neg_number_of_Pls: "\<not> (neg (Numeral0::int))" 
@@ -1018,18 +1019,20 @@ lemma int_neg_number_of_Min: "neg (-1::int)"
 lemma int_neg_number_of_BIT: "neg ((number_of (w BIT x))::int) = neg ((number_of w)::int)"
   by simp
 
-lemma int_le_number_of_eq: "(((number_of x)::int) \<le> number_of y) = (\<not> neg ((number_of (bin_add y (bin_minus x)))::int))"
+lemma int_le_number_of_eq: "(((number_of x)::int) \<le> number_of y) = (\<not> neg ((number_of (y + (uminus x)))::int))"
   by simp
-lemma int_number_of_add_sym: "((number_of v)::int) + number_of w = number_of (bin_add v w)"
-  by simp
-
-lemma int_number_of_diff_sym: "((number_of v)::int) - number_of w = number_of (bin_add v (bin_minus w))"
+lemma int_number_of_add_sym: "((number_of v)::int) + number_of w = number_of (v + w)"
   by simp
 
-lemma int_number_of_mult_sym: "((number_of v)::int) * number_of w = number_of (bin_mult v w)"
+lemma int_number_of_diff_sym:
+  "((number_of v)::int) - number_of w = number_of (v + (uminus w))"
   by simp
 
-lemma int_number_of_minus_sym: "- ((number_of v)::int) = number_of (bin_minus v)"
+lemma int_number_of_mult_sym:
+  "((number_of v)::int) * number_of w = number_of (v * w)"
+  by simp
+
+lemma int_number_of_minus_sym: "- ((number_of v)::int) = number_of (uminus v)"
   by simp
 lemma add_left_zero: "0 + a = (a::'a::comm_monoid_add)"
   by simp

@@ -76,7 +76,6 @@ sig
   val bitT: typ
   val B0_const: term
   val B1_const: term
-  val binT: typ
   val pls_const: term
   val min_const: term
   val bit_const: term
@@ -280,26 +279,25 @@ fun dest_nat (Const ("0", _)) = 0
   | dest_nat t = raise TERM ("dest_nat", [t]);
 
 
-(* binary numerals *)
+(* binary numerals and int *)
 
-val binT = Type ("Numeral.bin", []);
-
+val intT = Type ("IntDef.int", []);
 val bitT = Type ("Numeral.bit", []);
 
 val B0_const = Const ("Numeral.bit.B0", bitT);
 val B1_const =  Const ("Numeral.bit.B1", bitT);
 
-val pls_const = Const ("Numeral.Pls", binT)
-and min_const = Const ("Numeral.Min", binT)
-and bit_const = Const ("Numeral.Bit", [binT, bitT] ---> binT);
+val pls_const = Const ("Numeral.Pls", intT)
+and min_const = Const ("Numeral.Min", intT)
+and bit_const = Const ("Numeral.Bit", [intT, bitT] ---> intT);
 
-fun number_of_const T = Const ("Numeral.number_of", binT --> T);
+fun number_of_const T = Const ("Numeral.number_of", intT --> T);
 
 fun int_of [] = 0
   | int_of (b :: bs) = IntInf.fromInt b + (2 * int_of bs);
 
 (*When called from a print translation, the Numeral qualifier will probably have
-  been removed from Bit, bin.B0, etc.*)
+  been removed from Bit, bit.B0, etc.*)
 fun dest_bit (Const ("Numeral.bit.B0", _)) = 0
   | dest_bit (Const ("Numeral.bit.B1", _)) = 1
   | dest_bit (Const ("bit.B0", _)) = 0
@@ -333,11 +331,6 @@ fun mk_binum n =
           val r = IntInf.mod (n, 2);
         in bit_const $ bin_of q $ mk_bit r end;
   in bin_of n end;
-
-
-(* int *)
-
-val intT = Type ("IntDef.int", []);
 
 fun mk_int 0 = Const ("0", intT)
   | mk_int 1 = Const ("1", intT)
