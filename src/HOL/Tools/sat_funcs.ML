@@ -315,11 +315,8 @@ in
 				(* optimization: convert the given clauses from "[c_i] |- c_i" to *)
 				(* "[c_1 && ... && c_n] |- c_i"; this avoids accumulation of      *)
 				(* hypotheses during resolution                                   *)
-				(* Thm.cterm list -> Thm.cterm *)
-				fun mk_conjunction_list [x]     = x
-				  | mk_conjunction_list (x::xs) = Conjunction.mk_conjunction (x, mk_conjunction_list xs)
 				(* [c_1 && ... && c_n] |- c_1 && ... && c_n *)
-				val cnf_cterm = mk_conjunction_list (map cprop_of non_triv_clauses)
+				val cnf_cterm = Conjunction.mk_conjunction_list (map cprop_of non_triv_clauses)
 				val cnf_thm   = Thm.assume cnf_cterm
 				(* cf. Conjunction.elim_list *)
 				fun right_elim_list th =
