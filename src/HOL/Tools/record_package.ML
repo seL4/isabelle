@@ -1291,17 +1291,16 @@ fun ex_inst_tac i st =
 
 fun extension_typedef name repT alphas thy =
   let
-    val UNIV = HOLogic.mk_UNIV repT;
-
-    val ({set_def=SOME def, Abs_induct = abs_induct,
-               Abs_inject=abs_inject, Abs_inverse = abs_inverse,...}, thy') =
-        thy
-        |> setmp TypedefPackage.quiet_mode true
-           (TypedefPackage.add_typedef_i true NONE
-             (suffix ext_typeN (Sign.base_name name), alphas, Syntax.NoSyn) UNIV NONE
-             (Tactic.rtac UNIV_witness 1))
-    val rewrite_rule = Tactic.rewrite_rule [def, rec_UNIV_I, rec_True_simp];
-  in (map rewrite_rule [abs_inject, abs_inverse, abs_induct], thy')
+    fun get_thms thy name =
+      let
+        val SOME { Abs_induct = abs_induct,
+          Abs_inject=abs_inject, Abs_inverse = abs_inverse, ...} = TypedefPackage.get_info thy name;
+        val rewrite_rule = Tactic.rewrite_rule [rec_UNIV_I, rec_True_simp];
+      in map rewrite_rule [abs_inject, abs_inverse, abs_induct] end;
+  in
+    thy
+    |> TypecopyPackage.add_typecopy (suffix ext_typeN (Sign.base_name name), alphas) repT NONE
+    |-> (fn (name, _) => `(fn thy => get_thms thy name))
   end;
 
 fun mixit convs refls =
