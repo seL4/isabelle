@@ -137,8 +137,8 @@ text {*
 
   \medskip There is a separate notion of \emph{theory reference} for
   maintaining a live link to an evolving theory context: updates on
-  drafts are propagated automatically.  The dynamic stops after an
-  explicit @{text "end"} only.
+  drafts are propagated automatically.  Dynamic updating stops after
+  an explicit @{text "end"} only.
 
   Derived entities may store a theory reference in order to indicate
   the context they belong to.  This implicitly assumes monotonic
@@ -408,12 +408,11 @@ section {* Names *}
 
 text {*
   In principle, a name is just a string, but there are various
-  convention for encoding additional structure.
-
-  For example, the string ``@{text "Foo.bar.baz"}'' is considered as a
-  qualified name.  The most basic constituents of names may have their
-  own structure, e.g.\ the string ``\verb,\,\verb,<alpha>,'' is
-  considered as a single symbol (printed as ``@{text "\<alpha>"}'').
+  convention for encoding additional structure.  For example, ``@{text
+  "Foo.bar.baz"}'' is considered as a qualified name consisting of
+  three basic name components.  The individual constituents of a name
+  may have further substructure, e.g.\ the string
+  ``\verb,\,\verb,<alpha>,'' encodes as a single symbol.
 *}
 
 
@@ -425,28 +424,28 @@ text {*
   symbols (for greek, math etc.).}
 
   A \emph{symbol} constitutes the smallest textual unit in Isabelle
-  --- raw characters are normally not encountered.  Isabelle strings
-  consist of a sequence of symbols, represented as a packed string or
-  a list of symbols.  Each symbol is in itself a small string, which
-  is of one of the following forms:
+  --- raw characters are normally not encountered at all.  Isabelle
+  strings consist of a sequence of symbols, represented as a packed
+  string or a list of strings.  Each symbol is in itself a small
+  string, which has either one of the following forms:
 
   \begin{enumerate}
 
-  \item singleton ASCII character ``@{text "c"}'' (character code
-  0--127), for example ``\verb,a,'',
+  \item a single ASCII character ``@{text "c"}'', for example
+  ``\verb,a,'',
 
-  \item regular symbol ``\verb,\,\verb,<,@{text "ident"}\verb,>,'',
+  \item a regular symbol ``\verb,\,\verb,<,@{text "ident"}\verb,>,'',
   for example ``\verb,\,\verb,<alpha>,'',
 
-  \item control symbol ``\verb,\,\verb,<^,@{text "ident"}\verb,>,'',
+  \item a control symbol ``\verb,\,\verb,<^,@{text "ident"}\verb,>,'',
   for example ``\verb,\,\verb,<^bold>,'',
 
-  \item raw symbol ``\verb,\,\verb,<^raw:,@{text text}\verb,>,'' where
-  @{text text} is constists of printable characters excluding
+  \item a raw symbol ``\verb,\,\verb,<^raw:,@{text text}\verb,>,''
+  where @{text text} constists of printable characters excluding
   ``\verb,.,'' and ``\verb,>,'', for example
   ``\verb,\,\verb,<^raw:$\sum_{i = 1}^n$>,'',
 
-  \item numbered raw control symbol ``\verb,\,\verb,<^raw,@{text
+  \item a numbered raw control symbol ``\verb,\,\verb,<^raw,@{text
   n}\verb,>, where @{text n} consists of digits, for example
   ``\verb,\,\verb,<^raw42>,''.
 
@@ -457,15 +456,14 @@ text {*
   A..Za..z"} and @{text "digit = 0..9"}.  There are infinitely many
   regular symbols and control symbols, but a fixed collection of
   standard symbols is treated specifically.  For example,
-  ``\verb,\,\verb,<alpha>,'' is classified as a (non-ASCII) letter,
-  which means it may occur within regular Isabelle identifier syntax.
+  ``\verb,\,\verb,<alpha>,'' is classified as a letter, which means it
+  may occur within regular Isabelle identifiers.
 
-  Note that the character set underlying Isabelle symbols is plain
-  7-bit ASCII.  Since 8-bit characters are passed through
-  transparently, Isabelle may process Unicode/UCS data (in UTF-8
-  encoding) as well.  Unicode provides its own collection of
-  mathematical symbols, but there is no built-in link to the ones of
-  Isabelle.
+  Since the character set underlying Isabelle symbols is 7-bit ASCII
+  and 8-bit characters are passed through transparently, Isabelle may
+  also process Unicode/UCS data in UTF-8 encoding.  Unicode provides
+  its own collection of mathematical symbols, but there is no built-in
+  link to the standard collection of Isabelle.
 
   \medskip Output of Isabelle symbols depends on the print mode
   (\secref{FIXME}).  For example, the standard {\LaTeX} setup of the
@@ -489,12 +487,11 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type "Symbol.symbol"} represents Isabelle symbols.  This
-  type is an alias for @{ML_type "string"}, but emphasizes the
-  specific format encountered here.
+  \item @{ML_type "Symbol.symbol"} represents individual Isabelle
+  symbols; this is an alias for @{ML_type "string"}.
 
   \item @{ML "Symbol.explode"}~@{text "str"} produces a symbol list
-  from the packed form that.  This function supercedes @{ML
+  from the packed form.  This function supercedes @{ML
   "String.explode"} for virtually all purposes of manipulating text in
   Isabelle!
 
@@ -504,8 +501,8 @@ text %mlref {*
   \cite{isabelle-isar-ref}.
 
   \item @{ML_type "Symbol.sym"} is a concrete datatype that represents
-  the different kinds of symbols explicitly with constructors @{ML
-  "Symbol.Char"}, @{ML "Symbol.Sym"}, @{ML "Symbol.Ctrl"}, or @{ML
+  the different kinds of symbols explicitly, with constructors @{ML
+  "Symbol.Char"}, @{ML "Symbol.Sym"}, @{ML "Symbol.Ctrl"}, @{ML
   "Symbol.Raw"}.
 
   \item @{ML "Symbol.decode"} converts the string representation of a
@@ -529,27 +526,27 @@ text {*
   @{text "foo_"}, with Skolem versions @{text "foo__"} and @{text
   "foo___"}, respectively.
 
-  Such special versions are required for bookkeeping of names that are
-  apart from anything that may appear in the text given by the user.
-  In particular, system generated variables in high-level Isar proof
-  contexts are usually marked as internal, which prevents mysterious
-  name references such as @{text "xaa"} in the text.
+  These special versions provide copies of the basic name space, apart
+  from anything that normally appears in the user text.  For example,
+  system generated variables in Isar proof contexts are usually marked
+  as internal, which prevents mysterious name references like @{text
+  "xaa"} to appear in the text.
 
-  \medskip Basic manipulations of binding scopes requires names to be
-  modified.  A \emph{name context} contains a collection of already
-  used names, which is maintained by the @{text "declare"} operation.
+  \medskip Manipulating binding scopes often requires on-the-fly
+  renamings.  A \emph{name context} contains a collection of already
+  used names.  The @{text "declare"} operation adds names to the
+  context.
 
-  The @{text "invents"} operation derives a number of fresh names
-  derived from a given starting point.  For example, three names
-  derived from @{text "a"} are @{text "a"}, @{text "b"}, @{text "c"},
-  provided there are no clashes with already used names.
+  The @{text "invents"} operation derives a number of fresh names from
+  a given starting point.  For example, the first three names derived
+  from @{text "a"} are @{text "a"}, @{text "b"}, @{text "c"}.
 
   The @{text "variants"} operation produces fresh names by
-  incrementing given names as to base-26 numbers (with digits @{text
-  "a..z"}).  For example, name @{text "foo"} results in variants
-  @{text "fooa"}, @{text "foob"}, @{text "fooc"}, \dots, @{text
-  "fooaa"}, @{text "fooab"}, \dots; each renaming step picks the next
-  unused variant from this list.
+  incrementing tentative names as base-26 numbers (with digits @{text
+  "a..z"}) until all clashes are resolved.  For example, name @{text
+  "foo"} results in variants @{text "fooa"}, @{text "foob"}, @{text
+  "fooc"}, \dots, @{text "fooaa"}, @{text "fooab"} etc.; each renaming
+  step picks the next unused variant from this sequence.
 *}
 
 text %mlref {*
@@ -574,11 +571,14 @@ text %mlref {*
   \item @{ML_type Name.context} represents the context of already used
   names; the initial value is @{ML "Name.context"}.
 
-  \item @{ML Name.declare}~@{text "name"} declares @{text "name"} as
-  being used.
+  \item @{ML Name.declare}~@{text "name"} enters a used name into the
+  context.
 
-  \item @{ML Name.invents}~@{text "context base n"} produces @{text
-  "n"} fresh names derived from @{text "base"}.
+  \item @{ML Name.invents}~@{text "context name n"} produces @{text
+  "n"} fresh names derived from @{text "name"}.
+
+  \item @{ML Name.variants}~@{text "names context"} produces fresh
+  varians of @{text "names"}; the result is entered into the context.
 
   \end{description}
 *}
@@ -588,16 +588,20 @@ subsection {* Indexed names *}
 
 text {*
   An \emph{indexed name} (or @{text "indexname"}) is a pair of a basic
-  name with a natural number.  This representation allows efficient
-  renaming by incrementing the second component only.  To rename two
-  collections of indexnames apart from each other, first determine the
-  maximum index @{text "maxidx"} of the first collection, then
-  increment all indexes of the second collection by @{text "maxidx +
-  1"}.  Note that the maximum index of an empty collection is @{text
-  "-1"}.
+  name and a natural number.  This representation allows efficient
+  renaming by incrementing the second component only.  The canonical
+  way to rename two collections of indexnames apart from each other is
+  this: determine the maximum index @{text "maxidx"} of the first
+  collection, then increment all indexes of the second collection by
+  @{text "maxidx + 1"}; the maximum index of an empty collection is
+  @{text "-1"}.
 
-  Isabelle syntax observes the following rules for representing an
-  indexname @{text "(x, i)"} as a packed string:
+  Occasionally, basic names and indexed names are injected into the
+  same pair type: the (improper) indexname @{text "(x, -1)"} is used
+  to encode basic names.
+
+  \medskip Isabelle syntax observes the following rules for
+  representing an indexname @{text "(x, i)"} as a packed string:
 
   \begin{itemize}
 
@@ -605,20 +609,15 @@ text {*
 
   \item @{text "?xi"} if @{text "x"} does not end with a digit,
 
-  \item @{text "?x.i"} else.
+  \item @{text "?x.i"} otherwise.
 
   \end{itemize}
 
-  Occasionally, basic names and indexed names are injected into the
-  same pair type: the (improper) indexname @{text "(x, -1)"} is used
-  to encode basic names.
-
-  \medskip Indexnames may acquire arbitrary large index numbers over
-  time.  Results are usually normalized towards @{text "0"} at certain
-  checkpoints, such that the very end of a proof.  This works by
-  producing variants of the corresponding basic names
-  (\secref{sec:basic-names}).  For example, the collection @{text
-  "?x.1, ?x.7, ?x.42"} then becomes @{text "?x, ?xa, ?xb"}.
+  Indexnames may acquire large index numbers over time.  Results are
+  normalized towards @{text "0"} at certain checkpoints, notably at
+  the end of a proof.  This works by producing variants of the
+  corresponding basic name components.  For example, the collection
+  @{text "?x1, ?x7, ?x42"} becomes @{text "?x, ?xa, ?xb"}.
 *}
 
 text %mlref {*
@@ -631,7 +630,7 @@ text %mlref {*
   \item @{ML_type indexname} represents indexed names.  This is an
   abbreviation for @{ML_type "string * int"}.  The second component is
   usually non-negative, except for situations where @{text "(x, -1)"}
-  is used to embed plain names.
+  is used to embed basic names into this type.
 
   \end{description}
 *}
@@ -641,62 +640,61 @@ subsection {* Qualified names and name spaces *}
 
 text {*
   A \emph{qualified name} consists of a non-empty sequence of basic
-  name components.  The packed representation a dot as separator, for
-  example in ``@{text "A.b.c"}''.  The last component is called
-  \emph{base} name, the remaining prefix \emph{qualifier} (which may
-  be empty).  The basic idea of qualified names is to encode a
-  hierarchically structured name spaces by recording the access path
-  as part of the name.  For example, @{text "A.b.c"} may be understood
-  as a local entity @{text "c"} within a local structure @{text "b"}
-  of the enclosing structure @{text "A"}.  Typically, name space
-  hierarchies consist of 1--3 levels, but this need not be always so.
+  name components.  The packed representation uses a dot as separator,
+  as in ``@{text "A.b.c"}''.  The last component is called \emph{base}
+  name, the remaining prefix \emph{qualifier} (which may be empty).
+  The idea of qualified names is to encode nested structures by
+  recording the access paths as qualifiers.  For example, an item
+  named ``@{text "A.b.c"}'' may be understood as a local entity @{text
+  "c"}, within a local structure @{text "b"}, within a global
+  structure @{text "A"}.  Typically, name space hierarchies consist of
+  1--2 levels of qualification, but this need not be always so.
 
   The empty name is commonly used as an indication of unnamed
-  entities, if this makes any sense.  The operations on qualified
-  names are smart enough to pass through such improper names
+  entities, whenever this makes any sense.  The basic operations on
+  qualified names are smart enough to pass through such improper names
   unchanged.
 
   \medskip A @{text "naming"} policy tells how to turn a name
   specification into a fully qualified internal name (by the @{text
-  "full"} operation), and how to fully qualified names may be accessed
-  externally.  For example, the default naming prefixes an implicit
-  path from the context: @{text "x"} is becomes @{text "path.x"}
-  internally; the standard accesses include @{text "x"}, @{text
-  "path.x"}, and further partial @{text "path"} specifications.
-  Normally, the naming is implicit in the theory or proof context.
-  There are separate versions of the corresponding operations for
-  these context types.
+  "full"} operation), and how fully qualified names may be accessed
+  externally.  For example, the default naming policy is to prefix an
+  implicit path: @{text "full x"} produces @{text "path.x"}, and the
+  standard accesses for @{text "path.x"} include both @{text "x"} and
+  @{text "path.x"}.  Normally, the naming is implicit in the theory or
+  proof context; there are separate versions of the corresponding.
 
   \medskip A @{text "name space"} manages a collection of fully
   internalized names, together with a mapping between external names
   and internal names (in both directions).  The corresponding @{text
   "intern"} and @{text "extern"} operations are mostly used for
   parsing and printing only!  The @{text "declare"} operation augments
-  a name space according to a given naming policy.
+  a name space according to the accesses determined by the naming
+  policy.
 
-  By general convention, there are separate name spaces for each kind
-  of formal entity, such as logical constant, type, type class,
-  theorem etc.  It is usually clear from the occurrence in concrete
-  syntax (or from the scope) which kind of entity a name refers to.
-  For example, the very same name @{text "c"} may be used uniformly
-  for a constant, type, type class, which are from separate syntactic
-  categories.
+  \medskip As a general principle, there is a separate name space for
+  each kind of formal entity, e.g.\ logical constant, type
+  constructor, type class, theorem.  It is usually clear from the
+  occurrence in concrete syntax (or from the scope) which kind of
+  entity a name refers to.  For example, the very same name @{text
+  "c"} may be used uniformly for a constant, type constructor, and
+  type class.
 
   There are common schemes to name theorems systematically, according
-  to the name of the main logical entity being involved, such as
-  @{text "c.intro"} and @{text "c.elim"} for theorems related to
-  constant @{text "c"}.  This technique of mapping names from one
-  space into another requires some care in order to avoid conflicts.
-  In particular, theorem names derived from type or class names are
-  better suffixed in addition to the usual qualification, e.g.\ @{text
-  "c_type.intro"} and @{text "c_class.intro"} for theorems related to
-  type @{text "c"} and class @{text "c"}, respectively.
+  to the name of the main logical entity involved, e.g.\ @{text
+  "c.intro"} for a canonical theorem related to constant @{text "c"}.
+  This technique of mapping names from one space into another requires
+  some care in order to avoid conflicts.  In particular, theorem names
+  derived from a type constructor or type class are better suffixed in
+  addition to the usual qualification, e.g.\ @{text "c_type.intro"}
+  and @{text "c_class.intro"} for theorems related to type @{text "c"}
+  and class @{text "c"}, respectively.
 *}
 
 text %mlref {*
   \begin{mldecls}
   @{index_ML NameSpace.base: "string -> string"} \\
-  @{index_ML NameSpace.drop_base: "string -> string"} \\
+  @{index_ML NameSpace.drop_base: "string -> string"} \\  %FIXME qualifier
   @{index_ML NameSpace.append: "string -> string -> string"} \\
   @{index_ML NameSpace.pack: "string list -> string"} \\
   @{index_ML NameSpace.unpack: "string -> string list"} \\[1ex]
@@ -723,9 +721,9 @@ text %mlref {*
   \item @{ML NameSpace.append}~@{text "name\<^isub>1 name\<^isub>2"}
   appends two qualified names.
 
-  \item @{ML NameSpace.pack}~@{text "name"} and @{text
-  "NameSpace.unpack"}~@{text "names"} convert between the packed
-  string representation and explicit list form of qualified names.
+  \item @{ML NameSpace.pack}~@{text "name"} and @{ML
+  NameSpace.unpack}~@{text "names"} convert between the packed string
+  representation and the explicit list form of qualified names.
 
   \item @{ML_type NameSpace.naming} represents the abstract concept of
   a naming policy.
@@ -735,7 +733,7 @@ text %mlref {*
   consisting of the theory name.
 
   \item @{ML NameSpace.add_path}~@{text "path naming"} augments the
-  naming policy by extending its path.
+  naming policy by extending its path component.
 
   \item @{ML NameSpace.full}@{text "naming name"} turns a name
   specification (usually a basic name) into the fully qualified
@@ -744,26 +742,26 @@ text %mlref {*
   \item @{ML_type NameSpace.T} represents name spaces.
 
   \item @{ML NameSpace.empty} and @{ML NameSpace.merge}~@{text
-  "(space\<^isub>1, space\<^isub>2)"} provide basic operations for
-  building name spaces in accordance to the usual theory data
-  management (\secref{sec:context-data}).
+  "(space\<^isub>1, space\<^isub>2)"} are the canonical operations for
+  maintaining name spaces according to theory data management
+  (\secref{sec:context-data}).
 
   \item @{ML NameSpace.declare}~@{text "naming name space"} enters a
-  fully qualified name into the name space, with partial accesses
-  being derived from the given policy.
+  fully qualified name into the name space, with external accesses
+  determined by the naming policy.
 
   \item @{ML NameSpace.intern}~@{text "space name"} internalizes a
   (partially qualified) external name.
 
-  This operation is mostly for parsing.  Note that fully qualified
+  This operation is mostly for parsing!  Note that fully qualified
   names stemming from declarations are produced via @{ML
-  "NameSpace.full"} (or derivatives for @{ML_type theory} or @{ML_type
-  Proof.context}).
+  "NameSpace.full"} (or its derivatives for @{ML_type theory} and
+  @{ML_type Proof.context}).
 
   \item @{ML NameSpace.extern}~@{text "space name"} externalizes a
   (fully qualified) internal name.
 
-  This operation is mostly for printing.  Note unqualified names are
+  This operation is mostly for printing!  Note unqualified names are
   produced via @{ML NameSpace.base}.
 
   \end{description}
