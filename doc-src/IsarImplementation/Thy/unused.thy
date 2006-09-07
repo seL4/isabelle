@@ -1,3 +1,6 @@
+
+section {* Sessions and document preparation *}
+
 section {* Structured output *}
 
 subsection {* Pretty printing *}

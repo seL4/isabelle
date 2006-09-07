@@ -432,9 +432,4 @@ text %mlref {*
   \end{description}
 *}
 
-
-section {* Sessions and document preparation *}
-
-text FIXME
-
 end

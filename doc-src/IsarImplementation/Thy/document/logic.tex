@@ -28,15 +28,18 @@ The logical foundations of Isabelle/Isar are that of the Pure logic,
   which has been introduced as a natural-deduction framework in
   \cite{paulson700}.  This is essentially the same logic as ``\isa{{\isasymlambda}HOL}'' in the more abstract framework of Pure Type Systems (PTS)
   \cite{Barendregt-Geuvers:2001}, although there are some key
-  differences in the practical treatment of simple types.
+  differences in the specific treatment of simple types in
+  Isabelle/Pure.
 
   Following type-theoretic parlance, the Pure logic consists of three
   levels of \isa{{\isasymlambda}}-calculus with corresponding arrows: \isa{{\isasymRightarrow}} for syntactic function space (terms depending on terms), \isa{{\isasymAnd}} for universal quantification (proofs depending on terms), and
   \isa{{\isasymLongrightarrow}} for implication (proofs depending on proofs).
 
   Pure derivations are relative to a logical theory, which declares
-  type constructors, term constants, and axioms.  Term constants and
-  axioms support schematic polymorphism.%
+  type constructors, term constants, and axioms.  Theory declarations
+  support schematic polymorphism, which is strictly speaking outside
+  the logic.\footnote{Incidently, this is the main logical reason, why
+  the theory context \isa{{\isasymTheta}} is separate from the context \isa{{\isasymGamma}} of the core calculus.}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -50,38 +53,42 @@ The language of types is an uninterpreted order-sorted first-order
 
   \medskip A \emph{type class} is an abstract syntactic entity
   declared in the theory context.  The \emph{subclass relation} \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}} is specified by stating an acyclic
-  generating relation; the transitive closure maintained internally.
+  generating relation; the transitive closure is maintained
+  internally.  The resulting relation is an ordering: reflexive,
+  transitive, and antisymmetric.
 
   A \emph{sort} is a list of type classes written as \isa{{\isacharbraceleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlisub m{\isacharbraceright}}, which represents symbolic
   intersection.  Notationally, the curly braces are omitted for
   singleton intersections, i.e.\ any class \isa{c} may be read as
   a sort \isa{{\isacharbraceleft}c{\isacharbraceright}}.  The ordering on type classes is extended to
-  sorts in the canonical fashion: \isa{{\isacharbraceleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}\ c\isactrlisub m{\isacharbraceright}\ {\isasymsubseteq}\ {\isacharbraceleft}d\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ d\isactrlisub n{\isacharbraceright}} iff \isa{{\isasymforall}j{\isachardot}\ {\isasymexists}i{\isachardot}\ c\isactrlisub i\ {\isasymsubseteq}\ d\isactrlisub j}.  The empty intersection \isa{{\isacharbraceleft}{\isacharbraceright}} refers to the
-  universal sort, which is the largest element wrt.\ the sort order.
-  The intersections of all (i.e.\ finitely many) classes declared in
-  the current theory are the minimal elements wrt.\ sort order.
+  sorts according to the meaning of intersections: \isa{{\isacharbraceleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}\ c\isactrlisub m{\isacharbraceright}\ {\isasymsubseteq}\ {\isacharbraceleft}d\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ d\isactrlisub n{\isacharbraceright}} iff
+  \isa{{\isasymforall}j{\isachardot}\ {\isasymexists}i{\isachardot}\ c\isactrlisub i\ {\isasymsubseteq}\ d\isactrlisub j}.  The empty intersection
+  \isa{{\isacharbraceleft}{\isacharbraceright}} refers to the universal sort, which is the largest
+  element wrt.\ the sort order.  The intersections of all (finitely
+  many) classes declared in the current theory are the minimal
+  elements wrt.\ the sort order.
 
-  \medskip A \emph{fixed type variable} is pair of a basic name
+  \medskip A \emph{fixed type variable} is a pair of a basic name
   (starting with \isa{{\isacharprime}} character) and a sort constraint.  For
   example, \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ s{\isacharparenright}} which is usually printed as \isa{{\isasymalpha}\isactrlisub s}.  A \emph{schematic type variable} is a pair of an
-  indexname and a sort constraint.  For example, \isa{{\isacharparenleft}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}{\isacharcomma}\ s{\isacharparenright}} which is usually printed \isa{{\isacharquery}{\isasymalpha}\isactrlisub s}.
+  indexname and a sort constraint.  For example, \isa{{\isacharparenleft}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}{\isacharcomma}\ s{\isacharparenright}} which is usually printed as \isa{{\isacharquery}{\isasymalpha}\isactrlisub s}.
 
   Note that \emph{all} syntactic components contribute to the identity
-  of a type variables, including the literal sort constraint.  The
-  core logic handles type variables with the same name but different
-  sorts as different, even though the outer layers of the system make
-  it hard to produce anything like this.
+  of type variables, including the literal sort constraint.  The core
+  logic handles type variables with the same name but different sorts
+  as different, although some outer layers of the system make it hard
+  to produce anything like this.
 
-  A \emph{type constructor} is an \isa{k}-ary type operator
-  declared in the theory.
+  A \emph{type constructor} is a \isa{k}-ary operator on types
+  declared in the theory.  Type constructor application is usually
+  written postfix.  For \isa{k\ {\isacharequal}\ {\isadigit{0}}} the argument tuple is omitted,
+  e.g.\ \isa{prop} instead of \isa{{\isacharparenleft}{\isacharparenright}prop}.  For \isa{k\ {\isacharequal}\ {\isadigit{1}}} the parentheses are omitted, e.g.\ \isa{{\isasymalpha}\ list} instead of
+  \isa{{\isacharparenleft}{\isasymalpha}{\isacharparenright}list}.  Further notation is provided for specific
+  constructors, notably right-associative infix \isa{{\isasymalpha}\ {\isasymRightarrow}\ {\isasymbeta}}
+  instead of \isa{{\isacharparenleft}{\isasymalpha}{\isacharcomma}\ {\isasymbeta}{\isacharparenright}fun} constructor.
   
   A \emph{type} is defined inductively over type variables and type
-  constructors: \isa{{\isasymtau}\ {\isacharequal}\ {\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharquery}{\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharparenleft}{\isasymtau}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlsub k{\isacharparenright}c}.  Type constructor application is usually written
-  postfix.  For \isa{k\ {\isacharequal}\ {\isadigit{0}}} the argument tuple is omitted, e.g.\
-  \isa{prop} instead of \isa{{\isacharparenleft}{\isacharparenright}prop}.  For \isa{k\ {\isacharequal}\ {\isadigit{1}}} the
-  parentheses are omitted, e.g.\ \isa{{\isasymtau}\ list} instead of \isa{{\isacharparenleft}{\isasymtau}{\isacharparenright}\ list}.  Further notation is provided for specific
-  constructors, notably right-associative infix \isa{{\isasymtau}\isactrlisub {\isadigit{1}}\ {\isasymRightarrow}\ {\isasymtau}\isactrlisub {\isadigit{2}}} instead of \isa{{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymtau}\isactrlisub {\isadigit{2}}{\isacharparenright}fun}
-  constructor.
+  constructors as follows: \isa{{\isasymtau}\ {\isacharequal}\ {\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharquery}{\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharparenleft}{\isasymtau}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlsub k{\isacharparenright}c}.
 
   A \emph{type abbreviation} is a syntactic abbreviation of an
   arbitrary type expression of the theory.  Type abbreviations looks
@@ -89,21 +96,23 @@ The language of types is an uninterpreted order-sorted first-order
   core logic encounters them.
 
   A \emph{type arity} declares the image behavior of a type
-  constructor wrt.\ the algebra of sorts: \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlisub n{\isacharparenright}s} means that \isa{{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub k{\isacharparenright}c} is
+  constructor wrt.\ the algebra of sorts: \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlisub k{\isacharparenright}s} means that \isa{{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub k{\isacharparenright}c} is
   of sort \isa{s} if each argument type \isa{{\isasymtau}\isactrlisub i} is of
-  sort \isa{s\isactrlisub i}.  The sort algebra is always maintained as
-  \emph{coregular}, which means that type arities are consistent with
-  the subclass relation: for each type constructor \isa{c} and
-  classes \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}}, any arity \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{1}}{\isacharparenright}c\isactrlisub {\isadigit{1}}} has a corresponding arity \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{2}}{\isacharparenright}c\isactrlisub {\isadigit{2}}} where \isa{\isactrlvec s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ \isactrlvec s\isactrlisub {\isadigit{2}}} holds pointwise for all argument sorts.
+  sort \isa{s\isactrlisub i}.  Arity declarations are implicitly
+  completed, i.e.\ \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}c} entails \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}c{\isacharprime}} for any \isa{c{\isacharprime}\ {\isasymsupseteq}\ c}.
 
-  The key property of the order-sorted algebra of types is that sort
+  \medskip The sort algebra is always maintained as \emph{coregular},
+  which means that type arities are consistent with the subclass
+  relation: for each type constructor \isa{c} and classes \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}}, any arity \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{1}}{\isacharparenright}c\isactrlisub {\isadigit{1}}} has a corresponding arity \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{2}}{\isacharparenright}c\isactrlisub {\isadigit{2}}} where \isa{\isactrlvec s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ \isactrlvec s\isactrlisub {\isadigit{2}}} holds pointwise for all argument sorts.
+
+  The key property of a coregular order-sorted algebra is that sort
   constraints may be always fulfilled in a most general fashion: for
   each type constructor \isa{c} and sort \isa{s} there is a
-  most general vector of argument sorts \isa{{\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlisub k{\isacharparenright}} such that \isa{{\isacharparenleft}{\isasymtau}\isactrlbsub s\isactrlisub {\isadigit{1}}\isactrlesub {\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlbsub s\isactrlisub k\isactrlesub {\isacharparenright}} for arbitrary \isa{{\isasymtau}\isactrlisub i} of
-  sort \isa{s\isactrlisub i}.  This means the unification problem on
-  the algebra of types has most general solutions (modulo renaming and
-  equivalence of sorts).  As a consequence, type-inference is able to
-  produce primary types.%
+  most general vector of argument sorts \isa{{\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlisub k{\isacharparenright}} such that a type scheme \isa{{\isacharparenleft}{\isasymalpha}\isactrlbsub s\isactrlisub {\isadigit{1}}\isactrlesub {\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlbsub s\isactrlisub k\isactrlesub {\isacharparenright}c} is
+  of sort \isa{s}.  Consequently, the unification problem on the
+  algebra of types has most general solutions (modulo renaming and
+  equivalence of sorts).  Moreover, the usual type-inference algorithm
+  will produce primary types as expected \cite{nipkow-prehofer}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -147,18 +156,18 @@ The language of types is an uninterpreted order-sorted first-order
   tests the subsort relation \isa{s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ s\isactrlisub {\isadigit{2}}}.
 
   \item \verb|Sign.of_sort|~\isa{thy\ {\isacharparenleft}{\isasymtau}{\isacharcomma}\ s{\isacharparenright}} tests whether a type
-  expression of of a given sort.
+  is of a given sort.
 
   \item \verb|Sign.add_types|~\isa{{\isacharbrackleft}{\isacharparenleft}c{\isacharcomma}\ k{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}} declares new
-  type constructors \isa{c} with \isa{k} arguments, and
+  type constructors \isa{c} with \isa{k} arguments and
   optional mixfix syntax.
 
   \item \verb|Sign.add_tyabbrs_i|~\isa{{\isacharbrackleft}{\isacharparenleft}c{\isacharcomma}\ \isactrlvec {\isasymalpha}{\isacharcomma}\ {\isasymtau}{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}}
-  defines type abbreviation \isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}c} (with optional
-  mixfix syntax) as \isa{{\isasymtau}}.
+  defines a new type abbreviation \isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}c\ {\isacharequal}\ {\isasymtau}} with
+  optional mixfix syntax.
 
   \item \verb|Sign.primitive_class|~\isa{{\isacharparenleft}c{\isacharcomma}\ {\isacharbrackleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlisub n{\isacharbrackright}{\isacharparenright}} declares new class \isa{c} derived together with
-  class relations \isa{c\ {\isasymsubseteq}\ c\isactrlisub i}.
+  class relations \isa{c\ {\isasymsubseteq}\ c\isactrlisub i}, for \isa{i\ {\isacharequal}\ {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ n}.
 
   \item \verb|Sign.primitive_classrel|~\isa{{\isacharparenleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ c\isactrlisub {\isadigit{2}}{\isacharparenright}} declares class relation \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}}.
 
@@ -183,6 +192,13 @@ The language of types is an uninterpreted order-sorted first-order
 \begin{isamarkuptext}%
 \glossary{Term}{FIXME}
 
+  The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
+  with de-Bruijn indices for bound variables, and named free
+  variables, and constants.  Terms with loose bound variables are
+  usually considered malformed.  The types of variables and constants
+  is stored explicitly at each occurrence in the term (which is a
+  known performance issue).
+
   FIXME de-Bruijn representation of lambda terms
 
   Term syntax provides explicit abstraction \isa{{\isasymlambda}x\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}{\isachardot}\ b{\isacharparenleft}x{\isacharparenright}}
@@ -200,15 +216,6 @@ FIXME
 \glossary{Schematic polymorphism}{FIXME}
 
 \glossary{Type variable}{FIXME}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsection{Proof terms%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-FIXME%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -267,21 +274,52 @@ variables is their binding scope.}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Primitive inferences%
+\isamarkupsection{Proof terms%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-FIXME%
+FIXME !?%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Higher-order resolution%
+\isamarkupsection{Rules \label{sec:rules}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 FIXME
+
+  A \emph{rule} is any Pure theorem in HHF normal form; there is a
+  separate calculus for rule composition, which is modeled after
+  Gentzen's Natural Deduction \cite{Gentzen:1935}, but allows
+  rules to be nested arbitrarily, similar to \cite{extensions91}.
+
+  Normally, all theorems accessible to the user are proper rules.
+  Low-level inferences are occasional required internally, but the
+  result should be always presented in canonical form.  The higher
+  interfaces of Isabelle/Isar will always produce proper rules.  It is
+  important to maintain this invariant in add-on applications!
+
+  There are two main principles of rule composition: \isa{resolution} (i.e.\ backchaining of rules) and \isa{by{\isacharminus}assumption} (i.e.\ closing a branch); both principles are
+  combined in the variants of \isa{elim{\isacharminus}resosultion} and \isa{dest{\isacharminus}resolution}.  Raw \isa{composition} is occasionally
+  useful as well, also it is strictly speaking outside of the proper
+  rule calculus.
+
+  Rules are treated modulo general higher-order unification, which is
+  unification modulo the equational theory of \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-conversion
+  on \isa{{\isasymlambda}}-terms.  Moreover, propositions are understood modulo
+  the (derived) equivalence \isa{{\isacharparenleft}A\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ B\ x{\isacharparenright}{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ A\ {\isasymLongrightarrow}\ B\ x{\isacharparenright}}.
+
+  This means that any operations within the rule calculus may be
+  subject to spontaneous \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-HHF conversions.  It is common
+  practice not to contract or expand unnecessarily.  Some mechanisms
+  prefer an one form, others the opposite, so there is a potential
+  danger to produce some oscillation!
+
+  Only few operations really work \emph{modulo} HHF conversion, but
+  expect a normal form: quantifiers \isa{{\isasymAnd}} before implications
+  \isa{{\isasymLongrightarrow}} at each level of nesting.
 
 \glossary{Hereditary Harrop Formula}{The set of propositions in HHF
 format is defined inductively as \isa{H\ {\isacharequal}\ {\isacharparenleft}{\isasymAnd}x\isactrlsup {\isacharasterisk}{\isachardot}\ H\isactrlsup {\isacharasterisk}\ {\isasymLongrightarrow}\ A{\isacharparenright}}, for variables \isa{x} and atomic propositions \isa{A}.
@@ -292,15 +330,6 @@ variables}, such that the top-level structure is merely that of a
 \seeglossary{Horn Clause}}.
 
 \glossary{HHF}{See \seeglossary{Hereditary Harrop Formula}.}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Equational reasoning%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-FIXME%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

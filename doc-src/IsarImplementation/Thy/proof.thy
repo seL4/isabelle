@@ -196,7 +196,7 @@ text {*
   definition works by fixing @{text "x"} and assuming @{text "x \<equiv> t"},
   with the following export rule to reverse the effect:
   \[
-  \infer{@{text "\<Gamma> \\ x \<equiv> t \<turnstile> B t"}}{@{text "\<Gamma> \<turnstile> B x"}}
+  \infer[(@{text "\<equiv>-expand"})]{@{text "\<Gamma> \\ x \<equiv> t \<turnstile> B t"}}{@{text "\<Gamma> \<turnstile> B x"}}
   \]
   This works, because the assumption @{text "x \<equiv> t"} was introduced in
   a context with @{text "x"} being fresh, so @{text "x"} does not
@@ -258,38 +258,53 @@ text {*
   references to free variables or assumptions not present in the proof
   context.
 
-  \medskip The @{text "prove"} operation provides an interface for
-  structured backwards reasoning under program control, with some
-  explicit sanity checks of the result.  The goal context can be
-  augmented by additional fixed variables (cf.\
-  \secref{sec:variables}) and assumptions (cf.\
-  \secref{sec:assumptions}), which will be available as local facts
-  during the proof and discharged into implications in the result.
-  Type and term variables are generalized as usual, according to the
-  context.
+  \medskip The @{text "SUBPROOF"} combinator allows to structure a
+  tactical proof recursively by decomposing a selected sub-goal:
+  @{text "(\<And>x. A(x) \<Longrightarrow> B(x)) \<Longrightarrow> \<dots>"} is turned into @{text "B(x) \<Longrightarrow> \<dots>"}
+  after fixing @{text "x"} and assuming @{text "A(x)"}.  This means
+  the tactic needs to solve the conclusion, but may use the premise as
+  a local fact, for locally fixed variables.
 
-  The @{text "prove_multi"} operation handles several simultaneous
-  claims within a single goal, by using Pure conjunction internally.
+  The @{text "prove"} operation provides an interface for structured
+  backwards reasoning under program control, with some explicit sanity
+  checks of the result.  The goal context can be augmented by
+  additional fixed variables (cf.\ \secref{sec:variables}) and
+  assumptions (cf.\ \secref{sec:assumptions}), which will be available
+  as local facts during the proof and discharged into implications in
+  the result.  Type and term variables are generalized as usual,
+  according to the context.
 
-  \medskip Tactical proofs may be structured recursively by
-  decomposing a sub-goal: @{text "(\<And>x. A(x) \<Longrightarrow> B(x)) \<Longrightarrow> \<dots>"} is turned
-  into @{text "B(x) \<Longrightarrow> \<dots>"} after fixing @{text "x"} and assuming @{text
-  "A(x)"}.
+  The @{text "obtain"} operation produces results by eliminating
+  existing facts by means of a given tactic.  This acts like a dual
+  conclusion: the proof demonstrates that the context may be augmented
+  by certain fixed variables and assumptions.  See also
+  \cite{isabelle-isar-ref} for the user-level @{text "\<OBTAIN>"} and
+  @{text "\<GUESS>"} elements.  Final results, which may not refer to
+  the parameters in the conclusion, need to exported explicitly into
+  the original context.
 *}
 
 text %mlref {*
   \begin{mldecls}
+  @{index_ML SUBPROOF:
+  "({context: Proof.context, schematics: ctyp list * cterm list,
+    params: cterm list, asms: cterm list, concl: cterm,
+    prems: thm list} -> tactic) -> Proof.context -> int -> tactic"} \\
   @{index_ML Goal.prove: "Proof.context -> string list -> term list -> term ->
   ({prems: thm list, context: Proof.context} -> tactic) -> thm"} \\
   @{index_ML Goal.prove_multi: "Proof.context -> string list -> term list -> term list ->
   ({prems: thm list, context: Proof.context} -> tactic) -> thm list"} \\
-  @{index_ML SUBPROOF:
-  "({context: Proof.context, schematics: ctyp list * cterm list,
-    params: cterm list, asms: cterm list, concl: cterm,
-    prems: thm list} -> tactic) -> Proof.context -> int -> tactic"}
+  @{index_ML Obtain.result: "(Proof.context -> tactic) ->
+  thm list -> Proof.context -> (cterm list * thm list) * Proof.context"}
   \end{mldecls}
 
   \begin{description}
+
+  \item @{ML SUBPROOF}~@{text "tac"} decomposes the structure of a
+  particular sub-goal, producing an extended context and a reduced
+  goal, which needs to be solved by the given tactic.  All schematic
+  parameters of the goal are imported into the context as fixed ones,
+  which may not be instantiated in the sub-proof.
 
   \item @{ML Goal.prove}~@{text "ctxt xs As C tac"} states goal @{text
   "C"} in the context augmented by fixed variables @{text "xs"} and
@@ -298,15 +313,14 @@ text %mlref {*
   as facts.  The result is in HHF normal form.
 
   \item @{ML Goal.prove_multi} is simular to @{ML Goal.prove}, but
-  states several conclusions simultaneously.  @{ML
-  Tactic.conjunction_tac} may be used to split these into individual
-  subgoals before commencing the actual proof.
+  states several conclusions simultaneously.  The goal is encoded by
+  means of Pure conjunction; @{ML Tactic.conjunction_tac} will turn
+  this into a collection of individual subgoals.
 
-  \item @{ML SUBPROOF}~@{text "tac"} decomposes the structure of a
-  particular sub-goal, producing an extended context and a reduced
-  goal, which needs to be solved by the given tactic.  All schematic
-  parameters of the goal are imported into the context as fixed ones,
-  which may not be instantiated in the sub-proof.
+  \item @{ML Obtain.result}~@{text "tac thms ctxt"} eliminates the
+  given facts using a tactic, which results in additional fixed
+  variables and assumptions in the context.  Final results need to be
+  exported explicitly.
 
   \end{description}
 *}

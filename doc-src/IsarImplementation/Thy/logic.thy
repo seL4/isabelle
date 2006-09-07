@@ -11,7 +11,8 @@ text {*
   \cite{paulson700}.  This is essentially the same logic as ``@{text
   "\<lambda>HOL"}'' in the more abstract framework of Pure Type Systems (PTS)
   \cite{Barendregt-Geuvers:2001}, although there are some key
-  differences in the practical treatment of simple types.
+  differences in the specific treatment of simple types in
+  Isabelle/Pure.
 
   Following type-theoretic parlance, the Pure logic consists of three
   levels of @{text "\<lambda>"}-calculus with corresponding arrows: @{text
@@ -20,8 +21,11 @@ text {*
   @{text "\<Longrightarrow>"} for implication (proofs depending on proofs).
 
   Pure derivations are relative to a logical theory, which declares
-  type constructors, term constants, and axioms.  Term constants and
-  axioms support schematic polymorphism.
+  type constructors, term constants, and axioms.  Theory declarations
+  support schematic polymorphism, which is strictly speaking outside
+  the logic.\footnote{Incidently, this is the main logical reason, why
+  the theory context @{text "\<Theta>"} is separate from the context @{text
+  "\<Gamma>"} of the core calculus.}
 *}
 
 
@@ -34,46 +38,48 @@ text {*
   \medskip A \emph{type class} is an abstract syntactic entity
   declared in the theory context.  The \emph{subclass relation} @{text
   "c\<^isub>1 \<subseteq> c\<^isub>2"} is specified by stating an acyclic
-  generating relation; the transitive closure maintained internally.
+  generating relation; the transitive closure is maintained
+  internally.  The resulting relation is an ordering: reflexive,
+  transitive, and antisymmetric.
 
   A \emph{sort} is a list of type classes written as @{text
   "{c\<^isub>1, \<dots>, c\<^isub>m}"}, which represents symbolic
   intersection.  Notationally, the curly braces are omitted for
   singleton intersections, i.e.\ any class @{text "c"} may be read as
   a sort @{text "{c}"}.  The ordering on type classes is extended to
-  sorts in the canonical fashion: @{text "{c\<^isub>1, \<dots> c\<^isub>m} \<subseteq>
-  {d\<^isub>1, \<dots>, d\<^isub>n}"} iff @{text "\<forall>j. \<exists>i. c\<^isub>i \<subseteq>
-  d\<^isub>j"}.  The empty intersection @{text "{}"} refers to the
-  universal sort, which is the largest element wrt.\ the sort order.
-  The intersections of all (i.e.\ finitely many) classes declared in
-  the current theory are the minimal elements wrt.\ sort order.
+  sorts according to the meaning of intersections: @{text
+  "{c\<^isub>1, \<dots> c\<^isub>m} \<subseteq> {d\<^isub>1, \<dots>, d\<^isub>n}"} iff
+  @{text "\<forall>j. \<exists>i. c\<^isub>i \<subseteq> d\<^isub>j"}.  The empty intersection
+  @{text "{}"} refers to the universal sort, which is the largest
+  element wrt.\ the sort order.  The intersections of all (finitely
+  many) classes declared in the current theory are the minimal
+  elements wrt.\ the sort order.
 
-  \medskip A \emph{fixed type variable} is pair of a basic name
+  \medskip A \emph{fixed type variable} is a pair of a basic name
   (starting with @{text "'"} character) and a sort constraint.  For
   example, @{text "('a, s)"} which is usually printed as @{text
   "\<alpha>\<^isub>s"}.  A \emph{schematic type variable} is a pair of an
   indexname and a sort constraint.  For example, @{text "(('a, 0),
-  s)"} which is usually printed @{text "?\<alpha>\<^isub>s"}.
+  s)"} which is usually printed as @{text "?\<alpha>\<^isub>s"}.
 
   Note that \emph{all} syntactic components contribute to the identity
-  of a type variables, including the literal sort constraint.  The
-  core logic handles type variables with the same name but different
-  sorts as different, even though the outer layers of the system make
-  it hard to produce anything like this.
+  of type variables, including the literal sort constraint.  The core
+  logic handles type variables with the same name but different sorts
+  as different, although some outer layers of the system make it hard
+  to produce anything like this.
 
-  A \emph{type constructor} is an @{text "k"}-ary type operator
-  declared in the theory.
+  A \emph{type constructor} is a @{text "k"}-ary operator on types
+  declared in the theory.  Type constructor application is usually
+  written postfix.  For @{text "k = 0"} the argument tuple is omitted,
+  e.g.\ @{text "prop"} instead of @{text "()prop"}.  For @{text "k =
+  1"} the parentheses are omitted, e.g.\ @{text "\<alpha> list"} instead of
+  @{text "(\<alpha>)list"}.  Further notation is provided for specific
+  constructors, notably right-associative infix @{text "\<alpha> \<Rightarrow> \<beta>"}
+  instead of @{text "(\<alpha>, \<beta>)fun"} constructor.
   
   A \emph{type} is defined inductively over type variables and type
-  constructors: @{text "\<tau> = \<alpha>\<^isub>s | ?\<alpha>\<^isub>s | (\<tau>\<^sub>1, \<dots>,
-  \<tau>\<^sub>k)c"}.  Type constructor application is usually written
-  postfix.  For @{text "k = 0"} the argument tuple is omitted, e.g.\
-  @{text "prop"} instead of @{text "()prop"}.  For @{text "k = 1"} the
-  parentheses are omitted, e.g.\ @{text "\<tau> list"} instead of @{text
-  "(\<tau>) list"}.  Further notation is provided for specific
-  constructors, notably right-associative infix @{text "\<tau>\<^isub>1 \<Rightarrow>
-  \<tau>\<^isub>2"} instead of @{text "(\<tau>\<^isub>1, \<tau>\<^isub>2)fun"}
-  constructor.
+  constructors as follows: @{text "\<tau> = \<alpha>\<^isub>s | ?\<alpha>\<^isub>s |
+  (\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)c"}.
 
   A \emph{type abbreviation} is a syntactic abbreviation of an
   arbitrary type expression of the theory.  Type abbreviations looks
@@ -82,26 +88,30 @@ text {*
 
   A \emph{type arity} declares the image behavior of a type
   constructor wrt.\ the algebra of sorts: @{text "c :: (s\<^isub>1, \<dots>,
-  s\<^isub>n)s"} means that @{text "(\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>k)c"} is
+  s\<^isub>k)s"} means that @{text "(\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>k)c"} is
   of sort @{text "s"} if each argument type @{text "\<tau>\<^isub>i"} is of
-  sort @{text "s\<^isub>i"}.  The sort algebra is always maintained as
-  \emph{coregular}, which means that type arities are consistent with
-  the subclass relation: for each type constructor @{text "c"} and
-  classes @{text "c\<^isub>1 \<subseteq> c\<^isub>2"}, any arity @{text "c ::
+  sort @{text "s\<^isub>i"}.  Arity declarations are implicitly
+  completed, i.e.\ @{text "c :: (\<^vec>s)c"} entails @{text "c ::
+  (\<^vec>s)c'"} for any @{text "c' \<supseteq> c"}.
+
+  \medskip The sort algebra is always maintained as \emph{coregular},
+  which means that type arities are consistent with the subclass
+  relation: for each type constructor @{text "c"} and classes @{text
+  "c\<^isub>1 \<subseteq> c\<^isub>2"}, any arity @{text "c ::
   (\<^vec>s\<^isub>1)c\<^isub>1"} has a corresponding arity @{text "c
   :: (\<^vec>s\<^isub>2)c\<^isub>2"} where @{text "\<^vec>s\<^isub>1 \<subseteq>
   \<^vec>s\<^isub>2"} holds pointwise for all argument sorts.
 
-  The key property of the order-sorted algebra of types is that sort
+  The key property of a coregular order-sorted algebra is that sort
   constraints may be always fulfilled in a most general fashion: for
   each type constructor @{text "c"} and sort @{text "s"} there is a
   most general vector of argument sorts @{text "(s\<^isub>1, \<dots>,
-  s\<^isub>k)"} such that @{text "(\<tau>\<^bsub>s\<^isub>1\<^esub>, \<dots>,
-  \<tau>\<^bsub>s\<^isub>k\<^esub>)"} for arbitrary @{text "\<tau>\<^isub>i"} of
-  sort @{text "s\<^isub>i"}.  This means the unification problem on
-  the algebra of types has most general solutions (modulo renaming and
-  equivalence of sorts).  As a consequence, type-inference is able to
-  produce primary types.
+  s\<^isub>k)"} such that a type scheme @{text
+  "(\<alpha>\<^bsub>s\<^isub>1\<^esub>, \<dots>, \<alpha>\<^bsub>s\<^isub>k\<^esub>)c"} is
+  of sort @{text "s"}.  Consequently, the unification problem on the
+  algebra of types has most general solutions (modulo renaming and
+  equivalence of sorts).  Moreover, the usual type-inference algorithm
+  will produce primary types as expected \cite{nipkow-prehofer}.
 *}
 
 text %mlref {*
@@ -139,19 +149,19 @@ text %mlref {*
   tests the subsort relation @{text "s\<^isub>1 \<subseteq> s\<^isub>2"}.
 
   \item @{ML Sign.of_sort}~@{text "thy (\<tau>, s)"} tests whether a type
-  expression of of a given sort.
+  is of a given sort.
 
   \item @{ML Sign.add_types}~@{text "[(c, k, mx), \<dots>]"} declares new
-  type constructors @{text "c"} with @{text "k"} arguments, and
+  type constructors @{text "c"} with @{text "k"} arguments and
   optional mixfix syntax.
 
   \item @{ML Sign.add_tyabbrs_i}~@{text "[(c, \<^vec>\<alpha>, \<tau>, mx), \<dots>]"}
-  defines type abbreviation @{text "(\<^vec>\<alpha>)c"} (with optional
-  mixfix syntax) as @{text "\<tau>"}.
+  defines a new type abbreviation @{text "(\<^vec>\<alpha>)c = \<tau>"} with
+  optional mixfix syntax.
 
   \item @{ML Sign.primitive_class}~@{text "(c, [c\<^isub>1, \<dots>,
   c\<^isub>n])"} declares new class @{text "c"} derived together with
-  class relations @{text "c \<subseteq> c\<^isub>i"}.
+  class relations @{text "c \<subseteq> c\<^isub>i"}, for @{text "i = 1, \<dots>, n"}.
 
   \item @{ML Sign.primitive_classrel}~@{text "(c\<^isub>1,
   c\<^isub>2)"} declares class relation @{text "c\<^isub>1 \<subseteq>
@@ -169,6 +179,13 @@ section {* Terms \label{sec:terms} *}
 
 text {*
   \glossary{Term}{FIXME}
+
+  The language of terms is that of simply-typed @{text "\<lambda>"}-calculus
+  with de-Bruijn indices for bound variables, and named free
+  variables, and constants.  Terms with loose bound variables are
+  usually considered malformed.  The types of variables and constants
+  is stored explicitly at each occurrence in the term (which is a
+  known performance issue).
 
   FIXME de-Bruijn representation of lambda terms
 
@@ -190,13 +207,6 @@ FIXME
 
 \glossary{Type variable}{FIXME}
 
-*}
-
-
-section {* Proof terms *}
-
-text {*
-  FIXME
 *}
 
 
@@ -258,16 +268,53 @@ variables is their binding scope.}
 
 *}
 
-subsection {* Primitive inferences *}
 
-text FIXME
+section {* Proof terms *}
+
+text {*
+  FIXME !?
+*}
 
 
-subsection {* Higher-order resolution *}
+section {* Rules \label{sec:rules} *}
 
 text {*
 
 FIXME
+
+  A \emph{rule} is any Pure theorem in HHF normal form; there is a
+  separate calculus for rule composition, which is modeled after
+  Gentzen's Natural Deduction \cite{Gentzen:1935}, but allows
+  rules to be nested arbitrarily, similar to \cite{extensions91}.
+
+  Normally, all theorems accessible to the user are proper rules.
+  Low-level inferences are occasional required internally, but the
+  result should be always presented in canonical form.  The higher
+  interfaces of Isabelle/Isar will always produce proper rules.  It is
+  important to maintain this invariant in add-on applications!
+
+  There are two main principles of rule composition: @{text
+  "resolution"} (i.e.\ backchaining of rules) and @{text
+  "by-assumption"} (i.e.\ closing a branch); both principles are
+  combined in the variants of @{text "elim-resosultion"} and @{text
+  "dest-resolution"}.  Raw @{text "composition"} is occasionally
+  useful as well, also it is strictly speaking outside of the proper
+  rule calculus.
+
+  Rules are treated modulo general higher-order unification, which is
+  unification modulo the equational theory of @{text "\<alpha>\<beta>\<eta>"}-conversion
+  on @{text "\<lambda>"}-terms.  Moreover, propositions are understood modulo
+  the (derived) equivalence @{text "(A \<Longrightarrow> (\<And>x. B x)) \<equiv> (\<And>x. A \<Longrightarrow> B x)"}.
+
+  This means that any operations within the rule calculus may be
+  subject to spontaneous @{text "\<alpha>\<beta>\<eta>"}-HHF conversions.  It is common
+  practice not to contract or expand unnecessarily.  Some mechanisms
+  prefer an one form, others the opposite, so there is a potential
+  danger to produce some oscillation!
+
+  Only few operations really work \emph{modulo} HHF conversion, but
+  expect a normal form: quantifiers @{text "\<And>"} before implications
+  @{text "\<Longrightarrow>"} at each level of nesting.
 
 \glossary{Hereditary Harrop Formula}{The set of propositions in HHF
 format is defined inductively as @{text "H = (\<And>x\<^sup>*. H\<^sup>* \<Longrightarrow>
@@ -281,10 +328,5 @@ variables}, such that the top-level structure is merely that of a
 \glossary{HHF}{See \seeglossary{Hereditary Harrop Formula}.}
 
 *}
-
-subsection {* Equational reasoning *}
-
-text FIXME
-
 
 end

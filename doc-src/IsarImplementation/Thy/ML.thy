@@ -18,7 +18,7 @@ text {* FIXME beyond the basis library definition *}
 
 chapter {* Cookbook *}
 
-section {* Defining a method that depends on declarations in the context *}
+section {* A method that depends on declarations in the context *}
 
 text FIXME
 
