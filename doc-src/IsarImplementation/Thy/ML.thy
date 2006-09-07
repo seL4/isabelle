@@ -15,4 +15,11 @@ chapter {* Basic library functions *}
 
 text {* FIXME beyond the basis library definition *}
 
+
+chapter {* Cookbook *}
+
+section {* Defining a method that depends on declarations in the context *}
+
+text FIXME
+
 end
