@@ -9,7 +9,7 @@ text {*
   The logical foundations of Isabelle/Isar are that of the Pure logic,
   which has been introduced as a natural-deduction framework in
   \cite{paulson700}.  This is essentially the same logic as ``@{text
-  "\<lambda>HOL"}'' in the more abstract framework of Pure Type Systems (PTS)
+  "\<lambda>HOL"}'' in the more abstract setting of Pure Type Systems (PTS)
   \cite{Barendregt-Geuvers:2001}, although there are some key
   differences in the specific treatment of simple types in
   Isabelle/Pure.
@@ -56,26 +56,27 @@ text {*
   elements wrt.\ the sort order.
 
   \medskip A \emph{fixed type variable} is a pair of a basic name
-  (starting with @{text "'"} character) and a sort constraint.  For
+  (starting with a @{text "'"} character) and a sort constraint.  For
   example, @{text "('a, s)"} which is usually printed as @{text
   "\<alpha>\<^isub>s"}.  A \emph{schematic type variable} is a pair of an
   indexname and a sort constraint.  For example, @{text "(('a, 0),
   s)"} which is usually printed as @{text "?\<alpha>\<^isub>s"}.
 
   Note that \emph{all} syntactic components contribute to the identity
-  of type variables, including the literal sort constraint.  The core
-  logic handles type variables with the same name but different sorts
-  as different, although some outer layers of the system make it hard
-  to produce anything like this.
+  of type variables, including the sort constraint.  The core logic
+  handles type variables with the same name but different sorts as
+  different, although some outer layers of the system make it hard to
+  produce anything like this.
 
-  A \emph{type constructor} is a @{text "k"}-ary operator on types
-  declared in the theory.  Type constructor application is usually
-  written postfix.  For @{text "k = 0"} the argument tuple is omitted,
-  e.g.\ @{text "prop"} instead of @{text "()prop"}.  For @{text "k =
-  1"} the parentheses are omitted, e.g.\ @{text "\<alpha> list"} instead of
-  @{text "(\<alpha>)list"}.  Further notation is provided for specific
-  constructors, notably right-associative infix @{text "\<alpha> \<Rightarrow> \<beta>"}
-  instead of @{text "(\<alpha>, \<beta>)fun"} constructor.
+  A \emph{type constructor} @{text "\<kappa>"} is a @{text "k"}-ary operator
+  on types declared in the theory.  Type constructor application is
+  usually written postfix as @{text "(FIXME)\<kappa>"}.  For @{text "k = 0"}
+  the argument tuple is omitted, e.g.\ @{text "prop"} instead of
+  @{text "()prop"}.  For @{text "k = 1"} the parentheses are omitted,
+  e.g.\ @{text "\<alpha> list"} instead of @{text "(\<alpha>)list"}.  Further
+  notation is provided for specific constructors, notably
+  right-associative infix @{text "\<alpha> \<Rightarrow> \<beta>"} instead of @{text "(\<alpha>,
+  \<beta>)fun"} constructor.
   
   A \emph{type} is defined inductively over type variables and type
   constructors as follows: @{text "\<tau> = \<alpha>\<^isub>s | ?\<alpha>\<^isub>s |

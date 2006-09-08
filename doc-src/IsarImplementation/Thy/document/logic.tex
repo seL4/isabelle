@@ -26,7 +26,7 @@
 \begin{isamarkuptext}%
 The logical foundations of Isabelle/Isar are that of the Pure logic,
   which has been introduced as a natural-deduction framework in
-  \cite{paulson700}.  This is essentially the same logic as ``\isa{{\isasymlambda}HOL}'' in the more abstract framework of Pure Type Systems (PTS)
+  \cite{paulson700}.  This is essentially the same logic as ``\isa{{\isasymlambda}HOL}'' in the more abstract setting of Pure Type Systems (PTS)
   \cite{Barendregt-Geuvers:2001}, although there are some key
   differences in the specific treatment of simple types in
   Isabelle/Pure.
@@ -69,23 +69,24 @@ The language of types is an uninterpreted order-sorted first-order
   elements wrt.\ the sort order.
 
   \medskip A \emph{fixed type variable} is a pair of a basic name
-  (starting with \isa{{\isacharprime}} character) and a sort constraint.  For
+  (starting with a \isa{{\isacharprime}} character) and a sort constraint.  For
   example, \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ s{\isacharparenright}} which is usually printed as \isa{{\isasymalpha}\isactrlisub s}.  A \emph{schematic type variable} is a pair of an
   indexname and a sort constraint.  For example, \isa{{\isacharparenleft}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}{\isacharcomma}\ s{\isacharparenright}} which is usually printed as \isa{{\isacharquery}{\isasymalpha}\isactrlisub s}.
 
   Note that \emph{all} syntactic components contribute to the identity
-  of type variables, including the literal sort constraint.  The core
-  logic handles type variables with the same name but different sorts
-  as different, although some outer layers of the system make it hard
-  to produce anything like this.
+  of type variables, including the sort constraint.  The core logic
+  handles type variables with the same name but different sorts as
+  different, although some outer layers of the system make it hard to
+  produce anything like this.
 
-  A \emph{type constructor} is a \isa{k}-ary operator on types
-  declared in the theory.  Type constructor application is usually
-  written postfix.  For \isa{k\ {\isacharequal}\ {\isadigit{0}}} the argument tuple is omitted,
-  e.g.\ \isa{prop} instead of \isa{{\isacharparenleft}{\isacharparenright}prop}.  For \isa{k\ {\isacharequal}\ {\isadigit{1}}} the parentheses are omitted, e.g.\ \isa{{\isasymalpha}\ list} instead of
-  \isa{{\isacharparenleft}{\isasymalpha}{\isacharparenright}list}.  Further notation is provided for specific
-  constructors, notably right-associative infix \isa{{\isasymalpha}\ {\isasymRightarrow}\ {\isasymbeta}}
-  instead of \isa{{\isacharparenleft}{\isasymalpha}{\isacharcomma}\ {\isasymbeta}{\isacharparenright}fun} constructor.
+  A \emph{type constructor} \isa{{\isasymkappa}} is a \isa{k}-ary operator
+  on types declared in the theory.  Type constructor application is
+  usually written postfix as \isa{{\isacharparenleft}FIXME{\isacharparenright}{\isasymkappa}}.  For \isa{k\ {\isacharequal}\ {\isadigit{0}}}
+  the argument tuple is omitted, e.g.\ \isa{prop} instead of
+  \isa{{\isacharparenleft}{\isacharparenright}prop}.  For \isa{k\ {\isacharequal}\ {\isadigit{1}}} the parentheses are omitted,
+  e.g.\ \isa{{\isasymalpha}\ list} instead of \isa{{\isacharparenleft}{\isasymalpha}{\isacharparenright}list}.  Further
+  notation is provided for specific constructors, notably
+  right-associative infix \isa{{\isasymalpha}\ {\isasymRightarrow}\ {\isasymbeta}} instead of \isa{{\isacharparenleft}{\isasymalpha}{\isacharcomma}\ {\isasymbeta}{\isacharparenright}fun} constructor.
   
   A \emph{type} is defined inductively over type variables and type
   constructors as follows: \isa{{\isasymtau}\ {\isacharequal}\ {\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharquery}{\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharparenleft}{\isasymtau}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlsub k{\isacharparenright}c}.
