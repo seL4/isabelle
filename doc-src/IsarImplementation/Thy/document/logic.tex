@@ -81,35 +81,34 @@ The language of types is an uninterpreted order-sorted first-order
 
   A \emph{type constructor} \isa{{\isasymkappa}} is a \isa{k}-ary operator
   on types declared in the theory.  Type constructor application is
-  usually written postfix as \isa{{\isacharparenleft}FIXME{\isacharparenright}{\isasymkappa}}.  For \isa{k\ {\isacharequal}\ {\isadigit{0}}}
-  the argument tuple is omitted, e.g.\ \isa{prop} instead of
-  \isa{{\isacharparenleft}{\isacharparenright}prop}.  For \isa{k\ {\isacharequal}\ {\isadigit{1}}} the parentheses are omitted,
-  e.g.\ \isa{{\isasymalpha}\ list} instead of \isa{{\isacharparenleft}{\isasymalpha}{\isacharparenright}list}.  Further
-  notation is provided for specific constructors, notably
-  right-associative infix \isa{{\isasymalpha}\ {\isasymRightarrow}\ {\isasymbeta}} instead of \isa{{\isacharparenleft}{\isasymalpha}{\isacharcomma}\ {\isasymbeta}{\isacharparenright}fun} constructor.
+  usually written postfix as \isa{{\isacharparenleft}{\isasymalpha}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlisub k{\isacharparenright}{\isasymkappa}}.
+  For \isa{k\ {\isacharequal}\ {\isadigit{0}}} the argument tuple is omitted, e.g.\ \isa{prop} instead of \isa{{\isacharparenleft}{\isacharparenright}prop}.  For \isa{k\ {\isacharequal}\ {\isadigit{1}}} the
+  parentheses are omitted, e.g.\ \isa{{\isasymalpha}\ list} instead of \isa{{\isacharparenleft}{\isasymalpha}{\isacharparenright}list}.  Further notation is provided for specific constructors,
+  notably the right-associative infix \isa{{\isasymalpha}\ {\isasymRightarrow}\ {\isasymbeta}} instead of
+  \isa{{\isacharparenleft}{\isasymalpha}{\isacharcomma}\ {\isasymbeta}{\isacharparenright}fun}.
   
   A \emph{type} is defined inductively over type variables and type
-  constructors as follows: \isa{{\isasymtau}\ {\isacharequal}\ {\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharquery}{\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharparenleft}{\isasymtau}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlsub k{\isacharparenright}c}.
+  constructors as follows: \isa{{\isasymtau}\ {\isacharequal}\ {\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharquery}{\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharparenleft}{\isasymtau}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlsub k{\isacharparenright}k}.
 
-  A \emph{type abbreviation} is a syntactic abbreviation of an
-  arbitrary type expression of the theory.  Type abbreviations looks
-  like type constructors at the surface, but are expanded before the
-  core logic encounters them.
+  A \emph{type abbreviation} is a syntactic abbreviation \isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}{\isasymkappa}\ {\isacharequal}\ {\isasymtau}} of an arbitrary type expression \isa{{\isasymtau}} over
+  variables \isa{\isactrlvec {\isasymalpha}}.  Type abbreviations looks like type
+  constructors at the surface, but are fully expanded before entering
+  the logical core.
 
   A \emph{type arity} declares the image behavior of a type
-  constructor wrt.\ the algebra of sorts: \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlisub k{\isacharparenright}s} means that \isa{{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub k{\isacharparenright}c} is
-  of sort \isa{s} if each argument type \isa{{\isasymtau}\isactrlisub i} is of
-  sort \isa{s\isactrlisub i}.  Arity declarations are implicitly
-  completed, i.e.\ \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}c} entails \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}c{\isacharprime}} for any \isa{c{\isacharprime}\ {\isasymsupseteq}\ c}.
+  constructor wrt.\ the algebra of sorts: \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlisub k{\isacharparenright}s} means that \isa{{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub k{\isacharparenright}{\isasymkappa}} is
+  of sort \isa{s} if every argument type \isa{{\isasymtau}\isactrlisub i} is
+  of sort \isa{s\isactrlisub i}.  Arity declarations are implicitly
+  completed, i.e.\ \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}c} entails \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}c{\isacharprime}} for any \isa{c{\isacharprime}\ {\isasymsupseteq}\ c}.
 
   \medskip The sort algebra is always maintained as \emph{coregular},
   which means that type arities are consistent with the subclass
-  relation: for each type constructor \isa{c} and classes \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}}, any arity \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{1}}{\isacharparenright}c\isactrlisub {\isadigit{1}}} has a corresponding arity \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{2}}{\isacharparenright}c\isactrlisub {\isadigit{2}}} where \isa{\isactrlvec s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ \isactrlvec s\isactrlisub {\isadigit{2}}} holds pointwise for all argument sorts.
+  relation: for each type constructor \isa{{\isasymkappa}} and classes \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}}, any arity \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{1}}{\isacharparenright}c\isactrlisub {\isadigit{1}}} has a corresponding arity \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{2}}{\isacharparenright}c\isactrlisub {\isadigit{2}}} where \isa{\isactrlvec s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ \isactrlvec s\isactrlisub {\isadigit{2}}} holds componentwise.
 
   The key property of a coregular order-sorted algebra is that sort
-  constraints may be always fulfilled in a most general fashion: for
-  each type constructor \isa{c} and sort \isa{s} there is a
-  most general vector of argument sorts \isa{{\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlisub k{\isacharparenright}} such that a type scheme \isa{{\isacharparenleft}{\isasymalpha}\isactrlbsub s\isactrlisub {\isadigit{1}}\isactrlesub {\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlbsub s\isactrlisub k\isactrlesub {\isacharparenright}c} is
+  constraints may be always solved in a most general fashion: for each
+  type constructor \isa{{\isasymkappa}} and sort \isa{s} there is a most
+  general vector of argument sorts \isa{{\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlisub k{\isacharparenright}} such that a type scheme \isa{{\isacharparenleft}{\isasymalpha}\isactrlbsub s\isactrlisub {\isadigit{1}}\isactrlesub {\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlbsub s\isactrlisub k\isactrlesub {\isacharparenright}{\isasymkappa}} is
   of sort \isa{s}.  Consequently, the unification problem on the
   algebra of types has most general solutions (modulo renaming and
   equivalence of sorts).  Moreover, the usual type-inference algorithm
@@ -127,8 +126,9 @@ The language of types is an uninterpreted order-sorted first-order
 \begin{mldecls}
   \indexmltype{class}\verb|type class| \\
   \indexmltype{sort}\verb|type sort| \\
-  \indexmltype{typ}\verb|type typ| \\
   \indexmltype{arity}\verb|type arity| \\
+  \indexmltype{typ}\verb|type typ| \\
+  \indexml{fold-atyps}\verb|fold_atyps: (typ -> 'a -> 'a) -> typ -> 'a -> 'a| \\
   \indexml{Sign.subsort}\verb|Sign.subsort: theory -> sort * sort -> bool| \\
   \indexml{Sign.of-sort}\verb|Sign.of_sort: theory -> typ * sort -> bool| \\
   \indexml{Sign.add-types}\verb|Sign.add_types: (bstring * int * mixfix) list -> theory -> theory| \\
@@ -148,10 +148,13 @@ The language of types is an uninterpreted order-sorted first-order
   \verb|class list|.
 
   \item \verb|arity| represents type arities; this is an alias for
-  triples of the form \isa{{\isacharparenleft}c{\isacharcomma}\ \isactrlvec s{\isacharcomma}\ s{\isacharparenright}} for \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}s} described above.
+  triples of the form \isa{{\isacharparenleft}{\isasymkappa}{\isacharcomma}\ \isactrlvec s{\isacharcomma}\ s{\isacharparenright}} for \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}s} described above.
 
   \item \verb|typ| represents types; this is a datatype with
   constructors \verb|TFree|, \verb|TVar|, \verb|Type|.
+
+  \item \verb|fold_atyps|~\isa{f\ {\isasymtau}} iterates function \isa{f}
+  over all occurrences of atoms (\verb|TFree| or \verb|TVar|) of \isa{{\isasymtau}}; the type structure is traversed from left to right.
 
   \item \verb|Sign.subsort|~\isa{thy\ {\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ s\isactrlisub {\isadigit{2}}{\isacharparenright}}
   tests the subsort relation \isa{s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ s\isactrlisub {\isadigit{2}}}.
@@ -159,21 +162,21 @@ The language of types is an uninterpreted order-sorted first-order
   \item \verb|Sign.of_sort|~\isa{thy\ {\isacharparenleft}{\isasymtau}{\isacharcomma}\ s{\isacharparenright}} tests whether a type
   is of a given sort.
 
-  \item \verb|Sign.add_types|~\isa{{\isacharbrackleft}{\isacharparenleft}c{\isacharcomma}\ k{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}} declares new
-  type constructors \isa{c} with \isa{k} arguments and
+  \item \verb|Sign.add_types|~\isa{{\isacharbrackleft}{\isacharparenleft}{\isasymkappa}{\isacharcomma}\ k{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}} declares new
+  type constructors \isa{{\isasymkappa}} with \isa{k} arguments and
   optional mixfix syntax.
 
-  \item \verb|Sign.add_tyabbrs_i|~\isa{{\isacharbrackleft}{\isacharparenleft}c{\isacharcomma}\ \isactrlvec {\isasymalpha}{\isacharcomma}\ {\isasymtau}{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}}
-  defines a new type abbreviation \isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}c\ {\isacharequal}\ {\isasymtau}} with
+  \item \verb|Sign.add_tyabbrs_i|~\isa{{\isacharbrackleft}{\isacharparenleft}{\isasymkappa}{\isacharcomma}\ \isactrlvec {\isasymalpha}{\isacharcomma}\ {\isasymtau}{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}}
+  defines a new type abbreviation \isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}{\isasymkappa}\ {\isacharequal}\ {\isasymtau}} with
   optional mixfix syntax.
 
-  \item \verb|Sign.primitive_class|~\isa{{\isacharparenleft}c{\isacharcomma}\ {\isacharbrackleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlisub n{\isacharbrackright}{\isacharparenright}} declares new class \isa{c} derived together with
-  class relations \isa{c\ {\isasymsubseteq}\ c\isactrlisub i}, for \isa{i\ {\isacharequal}\ {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ n}.
+  \item \verb|Sign.primitive_class|~\isa{{\isacharparenleft}c{\isacharcomma}\ {\isacharbrackleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlisub n{\isacharbrackright}{\isacharparenright}} declares new class \isa{c}, together with class
+  relations \isa{c\ {\isasymsubseteq}\ c\isactrlisub i}, for \isa{i\ {\isacharequal}\ {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ n}.
 
   \item \verb|Sign.primitive_classrel|~\isa{{\isacharparenleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ c\isactrlisub {\isadigit{2}}{\isacharparenright}} declares class relation \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}}.
 
-  \item \verb|Sign.primitive_arity|~\isa{{\isacharparenleft}c{\isacharcomma}\ \isactrlvec s{\isacharcomma}\ s{\isacharparenright}} declares
-  arity \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}s}.
+  \item \verb|Sign.primitive_arity|~\isa{{\isacharparenleft}{\isasymkappa}{\isacharcomma}\ \isactrlvec s{\isacharcomma}\ s{\isacharparenright}} declares
+  arity \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}s}.
 
   \end{description}%
 \end{isamarkuptext}%

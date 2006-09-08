@@ -70,45 +70,46 @@ text {*
 
   A \emph{type constructor} @{text "\<kappa>"} is a @{text "k"}-ary operator
   on types declared in the theory.  Type constructor application is
-  usually written postfix as @{text "(FIXME)\<kappa>"}.  For @{text "k = 0"}
-  the argument tuple is omitted, e.g.\ @{text "prop"} instead of
-  @{text "()prop"}.  For @{text "k = 1"} the parentheses are omitted,
-  e.g.\ @{text "\<alpha> list"} instead of @{text "(\<alpha>)list"}.  Further
-  notation is provided for specific constructors, notably
-  right-associative infix @{text "\<alpha> \<Rightarrow> \<beta>"} instead of @{text "(\<alpha>,
-  \<beta>)fun"} constructor.
+  usually written postfix as @{text "(\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>k)\<kappa>"}.
+  For @{text "k = 0"} the argument tuple is omitted, e.g.\ @{text
+  "prop"} instead of @{text "()prop"}.  For @{text "k = 1"} the
+  parentheses are omitted, e.g.\ @{text "\<alpha> list"} instead of @{text
+  "(\<alpha>)list"}.  Further notation is provided for specific constructors,
+  notably the right-associative infix @{text "\<alpha> \<Rightarrow> \<beta>"} instead of
+  @{text "(\<alpha>, \<beta>)fun"}.
   
   A \emph{type} is defined inductively over type variables and type
   constructors as follows: @{text "\<tau> = \<alpha>\<^isub>s | ?\<alpha>\<^isub>s |
-  (\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)c"}.
+  (\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)k"}.
 
-  A \emph{type abbreviation} is a syntactic abbreviation of an
-  arbitrary type expression of the theory.  Type abbreviations looks
-  like type constructors at the surface, but are expanded before the
-  core logic encounters them.
+  A \emph{type abbreviation} is a syntactic abbreviation @{text
+  "(\<^vec>\<alpha>)\<kappa> = \<tau>"} of an arbitrary type expression @{text "\<tau>"} over
+  variables @{text "\<^vec>\<alpha>"}.  Type abbreviations looks like type
+  constructors at the surface, but are fully expanded before entering
+  the logical core.
 
   A \emph{type arity} declares the image behavior of a type
-  constructor wrt.\ the algebra of sorts: @{text "c :: (s\<^isub>1, \<dots>,
-  s\<^isub>k)s"} means that @{text "(\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>k)c"} is
-  of sort @{text "s"} if each argument type @{text "\<tau>\<^isub>i"} is of
-  sort @{text "s\<^isub>i"}.  Arity declarations are implicitly
-  completed, i.e.\ @{text "c :: (\<^vec>s)c"} entails @{text "c ::
+  constructor wrt.\ the algebra of sorts: @{text "\<kappa> :: (s\<^isub>1, \<dots>,
+  s\<^isub>k)s"} means that @{text "(\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>k)\<kappa>"} is
+  of sort @{text "s"} if every argument type @{text "\<tau>\<^isub>i"} is
+  of sort @{text "s\<^isub>i"}.  Arity declarations are implicitly
+  completed, i.e.\ @{text "\<kappa> :: (\<^vec>s)c"} entails @{text "\<kappa> ::
   (\<^vec>s)c'"} for any @{text "c' \<supseteq> c"}.
 
   \medskip The sort algebra is always maintained as \emph{coregular},
   which means that type arities are consistent with the subclass
-  relation: for each type constructor @{text "c"} and classes @{text
-  "c\<^isub>1 \<subseteq> c\<^isub>2"}, any arity @{text "c ::
-  (\<^vec>s\<^isub>1)c\<^isub>1"} has a corresponding arity @{text "c
+  relation: for each type constructor @{text "\<kappa>"} and classes @{text
+  "c\<^isub>1 \<subseteq> c\<^isub>2"}, any arity @{text "\<kappa> ::
+  (\<^vec>s\<^isub>1)c\<^isub>1"} has a corresponding arity @{text "\<kappa>
   :: (\<^vec>s\<^isub>2)c\<^isub>2"} where @{text "\<^vec>s\<^isub>1 \<subseteq>
-  \<^vec>s\<^isub>2"} holds pointwise for all argument sorts.
+  \<^vec>s\<^isub>2"} holds componentwise.
 
   The key property of a coregular order-sorted algebra is that sort
-  constraints may be always fulfilled in a most general fashion: for
-  each type constructor @{text "c"} and sort @{text "s"} there is a
-  most general vector of argument sorts @{text "(s\<^isub>1, \<dots>,
+  constraints may be always solved in a most general fashion: for each
+  type constructor @{text "\<kappa>"} and sort @{text "s"} there is a most
+  general vector of argument sorts @{text "(s\<^isub>1, \<dots>,
   s\<^isub>k)"} such that a type scheme @{text
-  "(\<alpha>\<^bsub>s\<^isub>1\<^esub>, \<dots>, \<alpha>\<^bsub>s\<^isub>k\<^esub>)c"} is
+  "(\<alpha>\<^bsub>s\<^isub>1\<^esub>, \<dots>, \<alpha>\<^bsub>s\<^isub>k\<^esub>)\<kappa>"} is
   of sort @{text "s"}.  Consequently, the unification problem on the
   algebra of types has most general solutions (modulo renaming and
   equivalence of sorts).  Moreover, the usual type-inference algorithm
@@ -119,8 +120,9 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML_type class} \\
   @{index_ML_type sort} \\
-  @{index_ML_type typ} \\
   @{index_ML_type arity} \\
+  @{index_ML_type typ} \\
+  @{index_ML fold_atyps: "(typ -> 'a -> 'a) -> typ -> 'a -> 'a"} \\
   @{index_ML Sign.subsort: "theory -> sort * sort -> bool"} \\
   @{index_ML Sign.of_sort: "theory -> typ * sort -> bool"} \\
   @{index_ML Sign.add_types: "(bstring * int * mixfix) list -> theory -> theory"} \\
@@ -140,11 +142,15 @@ text %mlref {*
   @{ML_type "class list"}.
 
   \item @{ML_type arity} represents type arities; this is an alias for
-  triples of the form @{text "(c, \<^vec>s, s)"} for @{text "c ::
+  triples of the form @{text "(\<kappa>, \<^vec>s, s)"} for @{text "\<kappa> ::
   (\<^vec>s)s"} described above.
 
   \item @{ML_type typ} represents types; this is a datatype with
   constructors @{ML TFree}, @{ML TVar}, @{ML Type}.
+
+  \item @{ML fold_atyps}~@{text "f \<tau>"} iterates function @{text "f"}
+  over all occurrences of atoms (@{ML TFree} or @{ML TVar}) of @{text
+  "\<tau>"}; the type structure is traversed from left to right.
 
   \item @{ML Sign.subsort}~@{text "thy (s\<^isub>1, s\<^isub>2)"}
   tests the subsort relation @{text "s\<^isub>1 \<subseteq> s\<^isub>2"}.
@@ -152,24 +158,24 @@ text %mlref {*
   \item @{ML Sign.of_sort}~@{text "thy (\<tau>, s)"} tests whether a type
   is of a given sort.
 
-  \item @{ML Sign.add_types}~@{text "[(c, k, mx), \<dots>]"} declares new
-  type constructors @{text "c"} with @{text "k"} arguments and
+  \item @{ML Sign.add_types}~@{text "[(\<kappa>, k, mx), \<dots>]"} declares new
+  type constructors @{text "\<kappa>"} with @{text "k"} arguments and
   optional mixfix syntax.
 
-  \item @{ML Sign.add_tyabbrs_i}~@{text "[(c, \<^vec>\<alpha>, \<tau>, mx), \<dots>]"}
-  defines a new type abbreviation @{text "(\<^vec>\<alpha>)c = \<tau>"} with
+  \item @{ML Sign.add_tyabbrs_i}~@{text "[(\<kappa>, \<^vec>\<alpha>, \<tau>, mx), \<dots>]"}
+  defines a new type abbreviation @{text "(\<^vec>\<alpha>)\<kappa> = \<tau>"} with
   optional mixfix syntax.
 
   \item @{ML Sign.primitive_class}~@{text "(c, [c\<^isub>1, \<dots>,
-  c\<^isub>n])"} declares new class @{text "c"} derived together with
-  class relations @{text "c \<subseteq> c\<^isub>i"}, for @{text "i = 1, \<dots>, n"}.
+  c\<^isub>n])"} declares new class @{text "c"}, together with class
+  relations @{text "c \<subseteq> c\<^isub>i"}, for @{text "i = 1, \<dots>, n"}.
 
   \item @{ML Sign.primitive_classrel}~@{text "(c\<^isub>1,
   c\<^isub>2)"} declares class relation @{text "c\<^isub>1 \<subseteq>
   c\<^isub>2"}.
 
-  \item @{ML Sign.primitive_arity}~@{text "(c, \<^vec>s, s)"} declares
-  arity @{text "c :: (\<^vec>s)s"}.
+  \item @{ML Sign.primitive_arity}~@{text "(\<kappa>, \<^vec>s, s)"} declares
+  arity @{text "\<kappa> :: (\<^vec>s)s"}.
 
   \end{description}
 *}
