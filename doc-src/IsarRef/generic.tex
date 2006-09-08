@@ -1,4 +1,3 @@
-
 \chapter{Generic tools and packages}\label{ch:gen-tools}
 
 \section{Theory specification commands}
@@ -101,59 +100,6 @@ making the parameters implicit and using the original short name.
 Outside the locale context, the specified entities are available in
 generalized form, with the parameters being open to explicit
 instantiation.
-
-
-\subsection{Axiomatic type classes}\label{sec:axclass}
-
-\indexisarcmd{axclass}\indexisarmeth{intro-classes}
-\begin{matharray}{rcl}
-  \isarcmd{axclass} & : & \isartrans{theory}{theory} \\
-  \isarcmd{instance} & : & \isartrans{theory}{proof(prove)} \\
-  intro_classes & : & \isarmeth \\
-\end{matharray}
-
-Axiomatic type classes are provided by Isabelle/Pure as a \emph{definitional}
-interface to type classes (cf.~\S\ref{sec:classes}).  Thus any object logic
-may make use of this light-weight mechanism of abstract theories
-\cite{Wenzel:1997:TPHOL}.  There is also a tutorial on using axiomatic type
-classes in Isabelle \cite{isabelle-axclass} that is part of the standard
-Isabelle documentation.
-
-\begin{rail}
-  'axclass' classdecl (axmdecl prop +)
-  ;
-  'instance' (nameref ('<' | subseteq) nameref | nameref '::' arity)
-  ;
-\end{rail}
-
-\begin{descr}
-  
-\item [$\AXCLASS~c \subseteq \vec c~~axms$] defines an axiomatic type class as
-  the intersection of existing classes, with additional axioms holding.  Class
-  axioms may not contain more than one type variable.  The class axioms (with
-  implicit sort constraints added) are bound to the given names.  Furthermore
-  a class introduction rule is generated (being bound as
-  $c_class{\dtt}intro$); this rule is employed by method $intro_classes$ to
-  support instantiation proofs of this class.
-  
-  The ``axioms'' are stored as theorems according to the given name
-  specifications, adding the class name $c$ as name space prefix; the same
-  facts are also stored collectively as $c_class{\dtt}axioms$.
-  
-\item [$\INSTANCE~c@1 \subseteq c@2$ and $\INSTANCE~t :: (\vec s)s$] setup a
-  goal stating a class relation or type arity.  The proof would usually
-  proceed by $intro_classes$, and then establish the characteristic theorems
-  of the type classes involved.  After finishing the proof, the theory will be
-  augmented by a type signature declaration corresponding to the resulting
-  theorem.
-
-\item [$intro_classes$] repeatedly expands all class introduction rules of
-  this theory.  Note that this method usually needs not be named explicitly,
-  as it is already included in the default proof step (of $\PROOFNAME$ etc.).
-  In particular, instantiation of trivial (syntactic) classes may be performed
-  by a single ``$\DDOT$'' proof step.
-
-\end{descr}
 
 
 \subsection{Locales and local contexts}\label{sec:locale}
@@ -482,10 +428,10 @@ and locales
 \end{warn}
 
 
-\subsection{Constructive type classes}
+\subsection{Type classes}
 
-A special case of locales are constructive type classes.
-Constructive type classes
+A special case of locales are type classes.
+Type classes
 consist of a locale with \emph{exactly one} type variable
 and an corresponding axclass.
 
@@ -553,6 +499,60 @@ and an corresponding axclass.
   in the current theory.
 
 \end{descr}
+
+
+\subsection{Axiomatic type classes}\label{sec:axclass}
+
+\indexisarcmd{axclass}\indexisarmeth{intro-classes}
+\begin{matharray}{rcl}
+  \isarcmd{axclass} & : & \isartrans{theory}{theory} \\
+  \isarcmd{instance} & : & \isartrans{theory}{proof(prove)} \\
+  intro_classes & : & \isarmeth \\
+\end{matharray}
+
+Axiomatic type classes are provided by Isabelle/Pure as a \emph{definitional}
+interface to type classes (cf.~\S\ref{sec:classes}).  Thus any object logic
+may make use of this light-weight mechanism of abstract theories
+\cite{Wenzel:1997:TPHOL}.  There is also a tutorial on using axiomatic type
+classes in Isabelle \cite{isabelle-axclass} that is part of the standard
+Isabelle documentation.
+
+\begin{rail}
+  'axclass' classdecl (axmdecl prop +)
+  ;
+  'instance' (nameref ('<' | subseteq) nameref | nameref '::' arity)
+  ;
+\end{rail}
+
+\begin{descr}
+  
+\item [$\AXCLASS~c \subseteq \vec c~~axms$] defines an axiomatic type class as
+  the intersection of existing classes, with additional axioms holding.  Class
+  axioms may not contain more than one type variable.  The class axioms (with
+  implicit sort constraints added) are bound to the given names.  Furthermore
+  a class introduction rule is generated (being bound as
+  $c_class{\dtt}intro$); this rule is employed by method $intro_classes$ to
+  support instantiation proofs of this class.
+  
+  The ``axioms'' are stored as theorems according to the given name
+  specifications, adding the class name $c$ as name space prefix; the same
+  facts are also stored collectively as $c_class{\dtt}axioms$.
+  
+\item [$\INSTANCE~c@1 \subseteq c@2$ and $\INSTANCE~t :: (\vec s)s$] setup a
+  goal stating a class relation or type arity.  The proof would usually
+  proceed by $intro_classes$, and then establish the characteristic theorems
+  of the type classes involved.  After finishing the proof, the theory will be
+  augmented by a type signature declaration corresponding to the resulting
+  theorem.
+
+\item [$intro_classes$] repeatedly expands all class introduction rules of
+  this theory.  Note that this method usually needs not be named explicitly,
+  as it is already included in the default proof step (of $\PROOFNAME$ etc.).
+  In particular, instantiation of trivial (syntactic) classes may be performed
+  by a single ``$\DDOT$'' proof step.
+
+\end{descr}
+
 
 
 \section{Derived proof schemes}
