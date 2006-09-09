@@ -35,9 +35,8 @@ definition
 
 
 lemma cut_of_rat: 
-  assumes q: "0 < q" shows "cut {r::rat. 0 < r & r < q}"
+  assumes q: "0 < q" shows "cut {r::rat. 0 < r & r < q}" (is "cut ?A")
 proof -
-  let ?A = "{r::rat. 0 < r & r < q}"
   from q have pos: "?A < {r. 0 < r}" by force
   have nonempty: "{} \<subset> ?A"
   proof
@@ -58,10 +57,10 @@ instance preal :: "{ord, plus, minus, times, inverse}" ..
 
 definition
   preal_of_rat :: "rat => preal"
-  "preal_of_rat q = Abs_preal({x::rat. 0 < x & x < q})"
+  "preal_of_rat q = Abs_preal {x::rat. 0 < x & x < q}"
 
-  psup       :: "preal set => preal"
-  "psup(P) = Abs_preal(\<Union>X \<in> P. Rep_preal(X))"
+  psup :: "preal set => preal"
+  "psup P = Abs_preal (\<Union>X \<in> P. Rep_preal X)"
 
   add_set :: "[rat set,rat set] => rat set"
   "add_set A B = {w. \<exists>x \<in> A. \<exists>y \<in> B. w = x + y}"
@@ -79,10 +78,10 @@ definition
 defs (overloaded)
 
   preal_less_def:
-    "R < (S::preal) == Rep_preal R < Rep_preal S"
+    "R < S == Rep_preal R < Rep_preal S"
 
   preal_le_def:
-    "R \<le> (S::preal) == Rep_preal R \<subseteq> Rep_preal S"
+    "R \<le> S == Rep_preal R \<subseteq> Rep_preal S"
 
   preal_add_def:
     "R + S == Abs_preal (add_set (Rep_preal R) (Rep_preal S))"
@@ -91,17 +90,24 @@ defs (overloaded)
     "R - S == Abs_preal (diff_set (Rep_preal R) (Rep_preal S))"
 
   preal_mult_def:
-    "R * S == Abs_preal(mult_set (Rep_preal R) (Rep_preal S))"
+    "R * S == Abs_preal (mult_set (Rep_preal R) (Rep_preal S))"
 
   preal_inverse_def:
-    "inverse R == Abs_preal(inverse_set (Rep_preal R))"
+    "inverse R == Abs_preal (inverse_set (Rep_preal R))"
 
 
 text{*Reduces equality on abstractions to equality on representatives*}
 declare Abs_preal_inject [simp]
+declare Abs_preal_inverse [simp]
+
+lemma rat_mem_preal: "0 < q ==> {r::rat. 0 < r & r < q} \<in> preal"
+by (simp add: preal_def cut_of_rat)
 
 lemma preal_nonempty: "A \<in> preal ==> \<exists>x\<in>A. 0 < x"
 by (unfold preal_def cut_def, blast)
+
+lemma preal_Ex_mem: "A \<in> preal \<Longrightarrow> \<exists>x. x \<in> A"
+by (drule preal_nonempty, fast)
 
 lemma preal_imp_psubset_positives: "A \<in> preal ==> A < {r. 0 < r}"
 by (force simp add: preal_def cut_def)
@@ -112,13 +118,6 @@ by (drule preal_imp_psubset_positives, auto)
 lemma preal_exists_greater: "[| A \<in> preal; y \<in> A |] ==> \<exists>u \<in> A. y < u"
 by (unfold preal_def cut_def, blast)
 
-lemma mem_Rep_preal_Ex: "\<exists>x. x \<in> Rep_preal X"
-apply (insert Rep_preal [of X])
-apply (unfold preal_def cut_def, blast)
-done
-
-declare Abs_preal_inverse [simp]
-
 lemma preal_downwards_closed: "[| A \<in> preal; y \<in> A; 0 < z; z < y |] ==> z \<in> A"
 by (unfold preal_def cut_def, blast)
 
@@ -128,36 +127,6 @@ lemma preal_downwards_closed':
 apply (simp add: order_le_less)
 apply (blast intro: preal_downwards_closed)
 done
-
-lemma Rep_preal_exists_bound: "\<exists>x. 0 < x & x \<notin> Rep_preal X"
-apply (cut_tac x = X in Rep_preal)
-apply (drule preal_imp_psubset_positives)
-apply (auto simp add: psubset_def)
-done
-
-
-subsection{*@{term preal_of_prat}: the Injection from prat to preal*}
-
-lemma rat_less_set_mem_preal: "0 < y ==> {u::rat. 0 < u & u < y} \<in> preal"
-apply (auto simp add: preal_def cut_def intro: order_less_trans)
-apply (blast dest:dense)
-apply (blast dest: dense intro: order_less_trans)
-done
-
-lemma rat_subset_imp_le:
-     "[|{u::rat. 0 < u & u < x} \<subseteq> {u. 0 < u & u < y}; 0<x|] ==> x \<le> y"
-apply (simp add: linorder_not_less [symmetric])
-apply (blast dest: dense intro: order_less_trans)
-done
-
-lemma rat_set_eq_imp_eq:
-     "[|{u::rat. 0 < u & u < x} = {u. 0 < u & u < y};
-        0 < x; 0 < y|] ==> x = y"
-by (blast intro: rat_subset_imp_le order_antisym)
-
-
-
-subsection{*Theorems for Ordering*}
 
 text{*A positive fraction not in a positive real is an upper bound.
  Gleason p. 122 - Remark (1)*}
@@ -177,13 +146,40 @@ next
   with notx and y show ?thesis by simp
 next
   assume "y<x"
-  thus ?thesis by assumption
+  thus ?thesis .
 qed
+
+text {* preal lemmas instantiated to @{term "Rep_preal X"} *}
+
+lemma mem_Rep_preal_Ex: "\<exists>x. x \<in> Rep_preal X"
+by (rule preal_Ex_mem [OF Rep_preal])
+
+lemma Rep_preal_exists_bound: "\<exists>x>0. x \<notin> Rep_preal X"
+by (rule preal_exists_bound [OF Rep_preal])
 
 lemmas not_in_Rep_preal_ub = not_in_preal_ub [OF Rep_preal]
 
 
-subsection{*The @{text "\<le>"} Ordering*}
+
+subsection{*@{term preal_of_prat}: the Injection from prat to preal*}
+
+lemma rat_less_set_mem_preal: "0 < y ==> {u::rat. 0 < u & u < y} \<in> preal"
+by (simp add: preal_def cut_of_rat)
+
+lemma rat_subset_imp_le:
+     "[|{u::rat. 0 < u & u < x} \<subseteq> {u. 0 < u & u < y}; 0<x|] ==> x \<le> y"
+apply (simp add: linorder_not_less [symmetric])
+apply (blast dest: dense intro: order_less_trans)
+done
+
+lemma rat_set_eq_imp_eq:
+     "[|{u::rat. 0 < u & u < x} = {u. 0 < u & u < y};
+        0 < x; 0 < y|] ==> x = y"
+by (blast intro: rat_subset_imp_le order_antisym)
+
+
+
+subsection{*Properties of Ordering*}
 
 lemma preal_le_refl: "w \<le> (w::preal)"
 by (simp add: preal_le_def)
@@ -237,18 +233,18 @@ by blast
 text{*Part 1 of Dedekind sections definition*}
 lemma add_set_not_empty:
      "[|A \<in> preal; B \<in> preal|] ==> {} \<subset> add_set A B"
-apply (insert preal_nonempty [of A] preal_nonempty [of B]) 
+apply (drule preal_nonempty)+
 apply (auto simp add: add_set_def)
 done
 
 text{*Part 2 of Dedekind sections definition.  A structured version of
 this proof is @{text preal_not_mem_mult_set_Ex} below.*}
 lemma preal_not_mem_add_set_Ex:
-     "[|A \<in> preal; B \<in> preal|] ==> \<exists>q. 0 < q & q \<notin> add_set A B"
+     "[|A \<in> preal; B \<in> preal|] ==> \<exists>q>0. q \<notin> add_set A B"
 apply (insert preal_exists_bound [of A] preal_exists_bound [of B], auto) 
 apply (rule_tac x = "x+xa" in exI)
 apply (simp add: add_set_def, clarify)
-apply (drule not_in_preal_ub, assumption+)+
+apply (drule (3) not_in_preal_ub)+
 apply (force dest: add_strict_mono)
 done
 
@@ -282,21 +278,18 @@ proof (unfold add_set_def, clarify)
   let ?f = "z/(x+y)"
   have fless: "?f < 1" by (simp add: zless pos_divide_less_eq)
   show "\<exists>x' \<in> A. \<exists>y'\<in>B. z = x' + y'"
-  proof
-    show "\<exists>y' \<in> B. z = x*?f + y'"
-    proof
-      show "z = x*?f + y*?f"
-	by (simp add: left_distrib [symmetric] divide_inverse mult_ac
-		      order_less_imp_not_eq2)
+  proof (intro bexI)
+    show "z = x*?f + y*?f"
+      by (simp add: left_distrib [symmetric] divide_inverse mult_ac
+          order_less_imp_not_eq2)
+  next
+    show "y * ?f \<in> B"
+    proof (rule preal_downwards_closed [OF B y])
+      show "0 < y * ?f"
+        by (simp add: divide_inverse zero_less_mult_iff)
     next
-      show "y * ?f \<in> B"
-      proof (rule preal_downwards_closed [OF B y])
-        show "0 < y * ?f"
-          by (simp add: divide_inverse zero_less_mult_iff)
-      next
-        show "y * ?f < y"
-          by (insert mult_strict_left_mono [OF fless ypos], simp)
-      qed
+      show "y * ?f < y"
+        by (insert mult_strict_left_mono [OF fless ypos], simp)
     qed
   next
     show "x * ?f \<in> A"
@@ -476,9 +469,6 @@ lemmas preal_mult_ac =
 
 text{* Positive real 1 is the multiplicative identity element *}
 
-lemma rat_mem_preal: "0 < q ==> {r::rat. 0 < r & r < q} \<in> preal"
-by (simp add: preal_def cut_of_rat)
-
 lemma preal_mult_1: "(preal_of_rat 1) * z = z"
 proof (induct z)
   fix A :: "rat set"
@@ -552,11 +542,6 @@ apply (auto simp add: Bex_def mem_Rep_preal_add_iff mem_Rep_preal_mult_iff)
 apply (force simp add: right_distrib)
 done
 
-lemma linorder_le_cases [case_names le ge]:
-    "((x::'a::linorder) <= y ==> P) ==> (y <= x ==> P) ==> P"
-  apply (insert linorder_linear, blast)
-  done
-
 lemma preal_add_mult_distrib_mean:
   assumes a: "a \<in> Rep_preal w"
     and b: "b \<in> Rep_preal w"
@@ -572,20 +557,20 @@ proof
   show "a * d + b * e = ?c * (d + e)"
     by (simp add: divide_inverse mult_assoc order_less_imp_not_eq2)
   show "?c \<in> Rep_preal w"
-    proof (cases rule: linorder_le_cases)
-      assume "a \<le> b"
-      hence "?c \<le> b"
-	by (simp add: pos_divide_le_eq right_distrib mult_right_mono
-                      order_less_imp_le)
-      thus ?thesis by (rule preal_downwards_closed' [OF Rep_preal b cpos])
-    next
-      assume "b \<le> a"
-      hence "?c \<le> a"
-	by (simp add: pos_divide_le_eq right_distrib mult_right_mono
-                      order_less_imp_le)
-      thus ?thesis by (rule preal_downwards_closed' [OF Rep_preal a cpos])
-    qed
+  proof (cases rule: linorder_le_cases)
+    assume "a \<le> b"
+    hence "?c \<le> b"
+      by (simp add: pos_divide_le_eq right_distrib mult_right_mono
+                    order_less_imp_le)
+    thus ?thesis by (rule preal_downwards_closed' [OF Rep_preal b cpos])
+  next
+    assume "b \<le> a"
+    hence "?c \<le> a"
+      by (simp add: pos_divide_le_eq right_distrib mult_right_mono
+                    order_less_imp_le)
+    thus ?thesis by (rule preal_downwards_closed' [OF Rep_preal a cpos])
   qed
+qed
 
 lemma distrib_subset2:
      "Rep_preal (w * x + w * y) \<subseteq> Rep_preal (w * (x + y))"
@@ -1204,7 +1189,7 @@ apply (auto simp add: preal_less_def)
 done
 
 
-subsection{*The Embadding from @{typ rat} into @{typ preal}*}
+subsection{*The Embedding from @{typ rat} into @{typ preal}*}
 
 lemma preal_of_rat_add_lemma1:
      "[|x < y + z; 0 < x; 0 < y|] ==> x * y * inverse (y + z) < (y::rat)"
