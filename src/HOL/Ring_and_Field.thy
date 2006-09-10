@@ -96,9 +96,24 @@ instance comm_ring_1 \<subseteq> comm_semiring_1_cancel ..
 
 axclass idom \<subseteq> comm_ring_1, axclass_no_zero_divisors
 
+axclass division_ring \<subseteq> ring_1, inverse
+  left_inverse [simp]:  "a \<noteq> 0 ==> inverse a * a = 1"
+  right_inverse [simp]: "a \<noteq> 0 ==> a * inverse a = 1"
+
 axclass field \<subseteq> comm_ring_1, inverse
-  left_inverse [simp]: "a \<noteq> 0 ==> inverse a * a = 1"
-  divide_inverse:      "a / b = a * inverse b"
+  field_left_inverse: "a \<noteq> 0 ==> inverse a * a = 1"
+  divide_inverse:     "a / b = a * inverse b"
+
+lemma field_right_inverse:
+      assumes not0: "a \<noteq> 0" shows "a * inverse (a::'a::field) = 1"
+proof -
+  have "a * inverse a = inverse a * a" by (rule mult_commute)
+  also have "... = 1" using not0 by (rule field_left_inverse)
+  finally show ?thesis .
+qed
+
+instance field \<subseteq> division_ring
+by (intro_classes, erule field_left_inverse, erule field_right_inverse)
 
 lemma mult_zero_left [simp]: "0 * a = (0::'a::semiring_0_cancel)"
 proof -
@@ -116,7 +131,8 @@ proof -
     by (simp only: add_left_cancel)
 qed
 
-lemma field_mult_eq_0_iff [simp]: "(a*b = (0::'a::field)) = (a = 0 | b = 0)"
+lemma field_mult_eq_0_iff [simp]:
+  "(a*b = (0::'a::division_ring)) = (a = 0 | b = 0)"
 proof cases
   assume "a=0" thus ?thesis by simp
 next
@@ -129,7 +145,7 @@ qed
 
 instance field \<subseteq> idom
 by (intro_classes, simp)
-  
+
 axclass division_by_zero \<subseteq> zero, inverse
   inverse_zero [simp]: "inverse 0 = 0"
 
@@ -677,14 +693,6 @@ lemmas ring_eq_simps =
     
 subsection {* Fields *}
 
-lemma right_inverse [simp]:
-      assumes not0: "a \<noteq> 0" shows "a * inverse (a::'a::field) = 1"
-proof -
-  have "a * inverse a = inverse a * a" by (simp add: mult_ac)
-  also have "... = 1" using not0 by simp
-  finally show ?thesis .
-qed
-
 lemma right_inverse_eq: "b \<noteq> 0 ==> (a / b = 1) = (a = (b::'a::field))"
 proof
   assume neq: "b \<noteq> 0"
@@ -723,7 +731,8 @@ by (simp add: divide_inverse left_distrib)
 
 text{*Compared with @{text mult_eq_0_iff}, this version removes the requirement
       of an ordering.*}
-lemma field_mult_eq_0_iff [simp]: "(a*b = (0::'a::field)) = (a = 0 | b = 0)"
+lemma field_mult_eq_0_iff [simp]:
+  "(a*b = (0::'a::division_ring)) = (a = 0 | b = 0)"
 proof cases
   assume "a=0" thus ?thesis by simp
 next
@@ -736,9 +745,9 @@ qed
 
 text{*Cancellation of equalities with a common factor*}
 lemma field_mult_cancel_right_lemma:
-      assumes cnz: "c \<noteq> (0::'a::field)"
-	  and eq:  "a*c = b*c"
-	 shows "a=b"
+      assumes cnz: "c \<noteq> (0::'a::division_ring)"
+         and eq:  "a*c = b*c"
+        shows "a=b"
 proof -
   have "(a * c) * inverse c = (b * c) * inverse c"
     by (simp add: eq)
@@ -747,48 +756,61 @@ proof -
 qed
 
 lemma field_mult_cancel_right [simp]:
-     "(a*c = b*c) = (c = (0::'a::field) | a=b)"
-proof cases
-  assume "c=0" thus ?thesis by simp
-next
-  assume "c\<noteq>0" 
-  thus ?thesis by (force dest: field_mult_cancel_right_lemma)
+     "(a*c = b*c) = (c = (0::'a::division_ring) | a=b)"
+proof -
+  have "(a*c = b*c) = (a*c - b*c = 0)"
+    by simp
+  also have "\<dots> = ((a - b)*c = 0)"
+     by (simp only: left_diff_distrib)
+  also have "\<dots> = (c = 0 \<or> a = b)"
+     by (simp add: disj_commute)
+  finally show ?thesis .
 qed
 
 lemma field_mult_cancel_left [simp]:
-     "(c*a = c*b) = (c = (0::'a::field) | a=b)"
-  by (simp add: mult_commute [of c] field_mult_cancel_right) 
+     "(c*a = c*b) = (c = (0::'a::division_ring) | a=b)"
+proof -
+  have "(c*a = c*b) = (c*a - c*b = 0)"
+    by simp
+  also have "\<dots> = (c*(a - b) = 0)"
+     by (simp only: right_diff_distrib)
+  also have "\<dots> = (c = 0 \<or> a = b)"
+     by simp
+  finally show ?thesis .
+qed
 
-lemma nonzero_imp_inverse_nonzero: "a \<noteq> 0 ==> inverse a \<noteq> (0::'a::field)"
+lemma nonzero_imp_inverse_nonzero:
+  "a \<noteq> 0 ==> inverse a \<noteq> (0::'a::division_ring)"
 proof
   assume ianz: "inverse a = 0"
   assume "a \<noteq> 0"
   hence "1 = a * inverse a" by simp
   also have "... = 0" by (simp add: ianz)
-  finally have "1 = (0::'a::field)" .
+  finally have "1 = (0::'a::division_ring)" .
   thus False by (simp add: eq_commute)
 qed
 
 
 subsection{*Basic Properties of @{term inverse}*}
 
-lemma inverse_zero_imp_zero: "inverse a = 0 ==> a = (0::'a::field)"
+lemma inverse_zero_imp_zero: "inverse a = 0 ==> a = (0::'a::division_ring)"
 apply (rule ccontr) 
 apply (blast dest: nonzero_imp_inverse_nonzero) 
 done
 
 lemma inverse_nonzero_imp_nonzero:
-   "inverse a = 0 ==> a = (0::'a::field)"
+   "inverse a = 0 ==> a = (0::'a::division_ring)"
 apply (rule ccontr) 
 apply (blast dest: nonzero_imp_inverse_nonzero) 
 done
 
 lemma inverse_nonzero_iff_nonzero [simp]:
-   "(inverse a = 0) = (a = (0::'a::{field,division_by_zero}))"
+   "(inverse a = 0) = (a = (0::'a::{division_ring,division_by_zero}))"
 by (force dest: inverse_nonzero_imp_nonzero) 
 
 lemma nonzero_inverse_minus_eq:
-      assumes [simp]: "a\<noteq>0"  shows "inverse(-a) = -inverse(a::'a::field)"
+      assumes [simp]: "a\<noteq>0"
+      shows "inverse(-a) = -inverse(a::'a::division_ring)"
 proof -
   have "-a * inverse (- a) = -a * - inverse a"
     by simp
@@ -797,7 +819,7 @@ proof -
 qed
 
 lemma inverse_minus_eq [simp]:
-   "inverse(-a) = -inverse(a::'a::{field,division_by_zero})"
+   "inverse(-a) = -inverse(a::'a::{division_ring,division_by_zero})"
 proof cases
   assume "a=0" thus ?thesis by (simp add: inverse_zero)
 next
@@ -809,7 +831,7 @@ lemma nonzero_inverse_eq_imp_eq:
       assumes inveq: "inverse a = inverse b"
 	  and anz:  "a \<noteq> 0"
 	  and bnz:  "b \<noteq> 0"
-	 shows "a = (b::'a::field)"
+	 shows "a = (b::'a::division_ring)"
 proof -
   have "a * inverse b = a * inverse a"
     by (simp add: inveq)
@@ -820,7 +842,7 @@ proof -
 qed
 
 lemma inverse_eq_imp_eq:
-     "inverse a = inverse b ==> a = (b::'a::{field,division_by_zero})"
+  "inverse a = inverse b ==> a = (b::'a::{division_ring,division_by_zero})"
 apply (case_tac "a=0 | b=0") 
  apply (force dest!: inverse_zero_imp_zero
               simp add: eq_commute [of "0::'a"])
@@ -828,11 +850,12 @@ apply (force dest!: nonzero_inverse_eq_imp_eq)
 done
 
 lemma inverse_eq_iff_eq [simp]:
-     "(inverse a = inverse b) = (a = (b::'a::{field,division_by_zero}))"
-by (force dest!: inverse_eq_imp_eq) 
+  "(inverse a = inverse b) = (a = (b::'a::{division_ring,division_by_zero}))"
+by (force dest!: inverse_eq_imp_eq)
 
 lemma nonzero_inverse_inverse_eq:
-      assumes [simp]: "a \<noteq> 0"  shows "inverse(inverse (a::'a::field)) = a"
+      assumes [simp]: "a \<noteq> 0"
+      shows "inverse(inverse (a::'a::division_ring)) = a"
   proof -
   have "(inverse (inverse a) * inverse a) * a = a" 
     by (simp add: nonzero_imp_inverse_nonzero)
@@ -841,7 +864,7 @@ lemma nonzero_inverse_inverse_eq:
   qed
 
 lemma inverse_inverse_eq [simp]:
-     "inverse(inverse (a::'a::{field,division_by_zero})) = a"
+     "inverse(inverse (a::'a::{division_ring,division_by_zero})) = a"
   proof cases
     assume "a=0" thus ?thesis by simp
   next
@@ -849,16 +872,16 @@ lemma inverse_inverse_eq [simp]:
     thus ?thesis by (simp add: nonzero_inverse_inverse_eq)
   qed
 
-lemma inverse_1 [simp]: "inverse 1 = (1::'a::field)"
+lemma inverse_1 [simp]: "inverse 1 = (1::'a::division_ring)"
   proof -
-  have "inverse 1 * 1 = (1::'a::field)" 
+  have "inverse 1 * 1 = (1::'a::division_ring)" 
     by (rule left_inverse [OF zero_neq_one [symmetric]])
   thus ?thesis  by simp
   qed
 
 lemma inverse_unique: 
   assumes ab: "a*b = 1"
-  shows "inverse a = (b::'a::field)"
+  shows "inverse a = (b::'a::division_ring)"
 proof -
   have "a \<noteq> 0" using ab by auto
   moreover have "inverse a * (a * b) = inverse a" by (simp add: ab) 
@@ -868,7 +891,7 @@ qed
 lemma nonzero_inverse_mult_distrib: 
       assumes anz: "a \<noteq> 0"
           and bnz: "b \<noteq> 0"
-      shows "inverse(a*b) = inverse(b) * inverse(a::'a::field)"
+      shows "inverse(a*b) = inverse(b) * inverse(a::'a::division_ring)"
   proof -
   have "inverse(a*b) * (a * b) * inverse(b) = inverse(b)" 
     by (simp add: field_mult_eq_0_iff anz bnz)
@@ -892,14 +915,21 @@ lemma inverse_mult_distrib [simp]:
     thus ?thesis  by force
   qed
 
+lemma division_ring_inverse_add:
+  "[|(a::'a::division_ring) \<noteq> 0; b \<noteq> 0|]
+   ==> inverse a + inverse b = inverse a * (a+b) * inverse b"
+by (simp add: right_distrib left_distrib mult_assoc)
+
+lemma division_ring_inverse_diff:
+  "[|(a::'a::division_ring) \<noteq> 0; b \<noteq> 0|]
+   ==> inverse a - inverse b = inverse a * (b-a) * inverse b"
+by (simp add: right_diff_distrib left_diff_distrib mult_assoc)
+
 text{*There is no slick version using division by zero.*}
 lemma inverse_add:
      "[|a \<noteq> 0;  b \<noteq> 0|]
       ==> inverse a + inverse b = (a+b) * inverse a * inverse (b::'a::field)"
-apply (simp add: left_distrib mult_assoc)
-apply (simp add: mult_commute [of "inverse a"]) 
-apply (simp add: mult_assoc [symmetric] add_commute)
-done
+by (simp add: division_ring_inverse_add mult_ac)
 
 lemma inverse_divide [simp]:
       "inverse (a/b) = b / (a::'a::{field,division_by_zero})"
