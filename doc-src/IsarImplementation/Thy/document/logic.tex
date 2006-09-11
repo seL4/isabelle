@@ -209,14 +209,13 @@ The language of types is an uninterpreted order-sorted first-order
   and application \isa{t\ u}, while types are usually implicit
   thanks to type-inference.
 
-  Terms of type \isa{prop} are called
-  propositions.  Logical statements are composed via \isa{{\isasymAnd}x\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}{\isachardot}\ B{\isacharparenleft}x{\isacharparenright}} and \isa{A\ {\isasymLongrightarrow}\ B}.
-
 
   \[
-  \infer{\isa{{\isacharparenleft}{\isasymlambda}x\isactrlsub {\isasymtau}{\isachardot}\ t{\isacharparenright}{\isacharcolon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymsigma}}}{\isa{t{\isacharcolon}\ {\isasymsigma}}}
+  \infer{\isa{a\isactrlisub {\isasymtau}\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}}{}
   \qquad
-  \infer{\isa{{\isacharparenleft}t\ u{\isacharparenright}{\isacharcolon}\ {\isasymsigma}}}{\isa{t{\isacharcolon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymsigma}} & \isa{u{\isacharcolon}\ {\isasymtau}}}
+  \infer{\isa{{\isacharparenleft}{\isasymlambda}x\isactrlsub {\isasymtau}{\isachardot}\ t{\isacharparenright}\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymsigma}}}{\isa{t\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}}}
+  \qquad
+  \infer{\isa{t\ u\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}}}{\isa{t\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymsigma}} & \isa{u\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}}
   \]%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -235,55 +234,60 @@ FIXME
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Primitive reasoning operates on judgments of the form \isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymphi}}, with standard introduction and elimination rules for \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} that refer to fixed parameters \isa{x} and
-  hypotheses \isa{A} from the context \isa{{\isasymGamma}}.  The
-  corresponding proof terms are left implicit in the classic
-  ``LCF-approach'', although they could be exploited separately
-  \cite{Berghofer-Nipkow:2000}.
-
-  The framework also provides definitional equality \isa{{\isasymequiv}\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ prop}, with \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-conversion rules.  The internal
-  conjunction \isa{{\isacharampersand}\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop\ {\isasymRightarrow}\ prop} enables the view of
-  assumptions and conclusions emerging uniformly as simultaneous
-  statements.
-
-
-
-  FIXME
-
 \glossary{Proposition}{A \seeglossary{term} of \seeglossary{type}
-\isa{prop}.  Internally, there is nothing special about
-propositions apart from their type, but the concrete syntax enforces a
-clear distinction.  Propositions are structured via implication \isa{A\ {\isasymLongrightarrow}\ B} or universal quantification \isa{{\isasymAnd}x{\isachardot}\ B\ x} --- anything
-else is considered atomic.  The canonical form for propositions is
-that of a \seeglossary{Hereditary Harrop Formula}.}
+  \isa{prop}.  Internally, there is nothing special about
+  propositions apart from their type, but the concrete syntax enforces
+  a clear distinction.  Propositions are structured via implication
+  \isa{A\ {\isasymLongrightarrow}\ B} or universal quantification \isa{{\isasymAnd}x{\isachardot}\ B\ x} ---
+  anything else is considered atomic.  The canonical form for
+  propositions is that of a \seeglossary{Hereditary Harrop Formula}. FIXME}
 
-\glossary{Theorem}{A proven proposition within a certain theory and
-proof context, formally \isa{{\isasymGamma}\ {\isasymturnstile}\isactrlsub {\isasymTheta}\ {\isasymphi}}; both contexts are
-rarely spelled out explicitly.  Theorems are usually normalized
-according to the \seeglossary{HHF} format.}
+  \glossary{Theorem}{A proven proposition within a certain theory and
+  proof context, formally \isa{{\isasymGamma}\ {\isasymturnstile}\isactrlsub {\isasymTheta}\ {\isasymphi}}; both contexts are
+  rarely spelled out explicitly.  Theorems are usually normalized
+  according to the \seeglossary{HHF} format. FIXME}
 
-\glossary{Fact}{Sometimes used interchangably for
-\seeglossary{theorem}.  Strictly speaking, a list of theorems,
-essentially an extra-logical conjunction.  Facts emerge either as
-local assumptions, or as results of local goal statements --- both may
-be simultaneous, hence the list representation.}
+  \glossary{Fact}{Sometimes used interchangably for
+  \seeglossary{theorem}.  Strictly speaking, a list of theorems,
+  essentially an extra-logical conjunction.  Facts emerge either as
+  local assumptions, or as results of local goal statements --- both
+  may be simultaneous, hence the list representation. FIXME}
 
-\glossary{Schematic variable}{FIXME}
+  \glossary{Schematic variable}{FIXME}
 
-\glossary{Fixed variable}{A variable that is bound within a certain
-proof context; an arbitrary-but-fixed entity within a portion of proof
-text.}
+  \glossary{Fixed variable}{A variable that is bound within a certain
+  proof context; an arbitrary-but-fixed entity within a portion of
+  proof text. FIXME}
 
-\glossary{Free variable}{Synonymous for \seeglossary{fixed variable}.}
+  \glossary{Free variable}{Synonymous for \seeglossary{fixed
+  variable}. FIXME}
 
-\glossary{Bound variable}{FIXME}
+  \glossary{Bound variable}{FIXME}
 
-\glossary{Variable}{See \seeglossary{schematic variable},
-\seeglossary{fixed variable}, \seeglossary{bound variable}, or
-\seeglossary{type variable}.  The distinguishing feature of different
-variables is their binding scope.}
+  \glossary{Variable}{See \seeglossary{schematic variable},
+  \seeglossary{fixed variable}, \seeglossary{bound variable}, or
+  \seeglossary{type variable}.  The distinguishing feature of
+  different variables is their binding scope. FIXME}
 
+  A \emph{proposition} is a well-formed term of type \isa{prop}.
+  The connectives of minimal logic are declared as constants of the
+  basic theory:
 
+  \smallskip
+  \begin{tabular}{ll}
+  \isa{all\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}{\isasymalpha}\ {\isasymRightarrow}\ prop{\isacharparenright}\ {\isasymRightarrow}\ prop} & universal quantification (binder \isa{{\isasymAnd}}) \\
+  \isa{{\isasymLongrightarrow}\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop\ {\isasymRightarrow}\ prop} & implication (right associative infix) \\
+  \end{tabular}
+
+  \medskip A \emph{theorem} is a proven proposition, depending on a
+  collection of assumptions, and axioms from the theory context.  The
+  judgment \isa{A\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlisub n\ {\isasymturnstile}\ B} is defined
+  inductively by the primitive inferences given in
+  \figref{fig:prim-rules}; there is a global syntactic restriction
+  that the hypotheses may not contain schematic variables.
+
+  \begin{figure}[htb]
+  \begin{center}
   \[
   \infer[\isa{{\isacharparenleft}axiom{\isacharparenright}}]{\isa{{\isasymturnstile}\ A}}{\isa{A\ {\isasymin}\ {\isasymTheta}}}
   \qquad
@@ -299,36 +303,96 @@ variables is their binding scope.}
   \qquad
   \infer[\isa{{\isacharparenleft}{\isasymLongrightarrow}{\isacharunderscore}elim{\isacharparenright}}]{\isa{{\isasymGamma}\isactrlsub {\isadigit{1}}\ {\isasymunion}\ {\isasymGamma}\isactrlsub {\isadigit{2}}\ {\isasymturnstile}\ B}}{\isa{{\isasymGamma}\isactrlsub {\isadigit{1}}\ {\isasymturnstile}\ A\ {\isasymLongrightarrow}\ B} & \isa{{\isasymGamma}\isactrlsub {\isadigit{2}}\ {\isasymturnstile}\ A}}
   \]
+  \caption{Primitive inferences of the Pure logic}\label{fig:prim-rules}
+  \end{center}
+  \end{figure}
 
+  The introduction and elimination rules for \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} are analogous to formation of (dependently typed) \isa{{\isasymlambda}}-terms representing the underlying proof objects.  Proof terms
+  are \emph{irrelevant} in the Pure logic, they may never occur within
+  propositions, i.e.\ the \isa{{\isasymLongrightarrow}} arrow of the framework is a
+  non-dependent one.
 
-  Admissible rules:
+  Also note that fixed parameters as in \isa{{\isasymAnd}{\isacharunderscore}intro} need not be
+  recorded in the context \isa{{\isasymGamma}}, since syntactic types are
+  always inhabitable.  An ``assumption'' \isa{x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}} is logically
+  vacuous, because \isa{{\isasymtau}} is always non-empty.  This is the deeper
+  reason why \isa{{\isasymGamma}} only consists of hypothetical proofs, but no
+  hypothetical terms.
+
+  The corresponding proof terms are left implicit in the classic
+  ``LCF-approach'', although they could be exploited separately
+  \cite{Berghofer-Nipkow:2000}.  The implementation provides a runtime
+  option to control the generation of full proof terms.
+
+  \medskip The axiomatization of a theory is implicitly closed by
+  forming all instances of type and term variables: \isa{{\isasymturnstile}\ A{\isasymtheta}} for
+  any substirution instance of axiom \isa{{\isasymturnstile}\ A}.  By pushing
+  substitution through derivations inductively, we get admissible
+  substitution rules for theorems shown in \figref{fig:subst-rules}.
+
+  \begin{figure}[htb]
+  \begin{center}
   \[
-  \infer[\isa{{\isacharparenleft}generalize{\isacharunderscore}type{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}{\isasymalpha}{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isasymalpha}{\isacharbrackright}} & \isa{{\isasymalpha}\ {\isasymnotin}\ {\isasymGamma}}}
-  \qquad
-  \infer[\isa{{\isacharparenleft}generalize{\isacharunderscore}term{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}x{\isacharbrackright}} & \isa{x\ {\isasymnotin}\ {\isasymGamma}}}
+  \infer{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}{\isasymalpha}{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isasymalpha}{\isacharbrackright}} & \isa{{\isasymalpha}\ {\isasymnotin}\ {\isasymGamma}}}
+  \quad
+  \infer[\quad\isa{{\isacharparenleft}generalize{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}x{\isacharbrackright}} & \isa{x\ {\isasymnotin}\ {\isasymGamma}}}
   \]
   \[
-  \infer[\isa{{\isacharparenleft}instantiate{\isacharunderscore}type{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isasymtau}{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}{\isasymalpha}{\isacharbrackright}}}
-  \qquad
-  \infer[\isa{{\isacharparenleft}instantiate{\isacharunderscore}term{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}t{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}}}
+  \infer{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isasymtau}{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}{\isasymalpha}{\isacharbrackright}}}
+  \quad
+  \infer[\quad\isa{{\isacharparenleft}instantiate{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}t{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}}}
   \]
+  \caption{Admissible substitution rules}\label{fig:subst-rules}
+  \end{center}
+  \end{figure}
 
   Note that \isa{instantiate{\isacharunderscore}term} could be derived using \isa{{\isasymAnd}{\isacharunderscore}intro{\isacharslash}elim}, but this is not how it is implemented.  The type
-  instantiation rule is a genuine admissible one, due to the lack of true
-  polymorphism in the logic.
+  instantiation rule is a genuine admissible one, due to the lack of
+  true polymorphism in the logic.
 
+  Since \isa{{\isasymGamma}} may never contain any schematic variables, the
+  \isa{instantiate} do not require an explicit side-condition.  In
+  principle, variables could be substituted in hypotheses as well, but
+  this could disrupt monotonicity of the basic calculus: derivations
+  could leave the current proof context.
 
-  Equality and logical equivalence:
+  \medskip The framework also provides builtin equality \isa{{\isasymequiv}},
+  which is conceptually axiomatized shown in \figref{fig:equality},
+  although the implementation provides derived rules directly:
 
-  \smallskip
+  \begin{figure}[htb]
+  \begin{center}
   \begin{tabular}{ll}
   \isa{{\isasymequiv}\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ prop} & equality relation (infix) \\
+  \isa{{\isasymturnstile}\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ b\ x{\isacharparenright}\ a\ {\isasymequiv}\ b\ a} & \isa{{\isasymbeta}}-conversion \\
   \isa{{\isasymturnstile}\ x\ {\isasymequiv}\ x} & reflexivity law \\
   \isa{{\isasymturnstile}\ x\ {\isasymequiv}\ y\ {\isasymLongrightarrow}\ P\ x\ {\isasymLongrightarrow}\ P\ y} & substitution law \\
   \isa{{\isasymturnstile}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ f\ x\ {\isasymequiv}\ g\ x{\isacharparenright}\ {\isasymLongrightarrow}\ f\ {\isasymequiv}\ g} & extensionality \\
   \isa{{\isasymturnstile}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}B\ {\isasymLongrightarrow}\ A{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymequiv}\ B} & coincidence with equivalence \\
   \end{tabular}
-  \smallskip%
+  \caption{Conceptual axiomatization of equality.}\label{fig:equality}
+  \end{center}
+  \end{figure}
+
+  Since the basic representation of terms already accounts for \isa{{\isasymalpha}}-conversion, Pure equality essentially acts like \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-equivalence on terms, while coinciding with bi-implication.
+
+
+  \medskip Conjunction is defined in Pure as a derived connective, see
+  \figref{fig:conjunction}.  This is occasionally useful to represent
+  simultaneous statements behind the scenes --- framework conjunction
+  is usually not exposed to the user.
+
+  \begin{figure}[htb]
+  \begin{center}
+  \begin{tabular}{ll}
+  \isa{{\isacharampersand}\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop\ {\isasymRightarrow}\ prop} & conjunction (hidden) \\
+  \isa{{\isasymturnstile}\ A\ {\isacharampersand}\ B\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}C{\isachardot}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isacharparenright}} \\
+  \end{tabular}
+  \caption{Definition of conjunction.}\label{fig:equality}
+  \end{center}
+  \end{figure}
+
+  The definition allows to derive the usual introduction \isa{{\isasymturnstile}\ A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ A\ {\isacharampersand}\ B}, and destructions \isa{A\ {\isacharampersand}\ B\ {\isasymLongrightarrow}\ A} and \isa{A\ {\isacharampersand}\ B\ {\isasymLongrightarrow}\ B}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
