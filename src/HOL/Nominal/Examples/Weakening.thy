@@ -213,7 +213,7 @@ lemma weakening_too_weak:
   and     c: "\<Gamma>1 \<lless> \<Gamma>2"
   shows "\<Gamma>2 \<turnstile> t:\<sigma>"
 using a b c
-proof (induct fixing: \<Gamma>2)
+proof (induct arbitrary: \<Gamma>2)
   case (t1 \<Gamma>1 \<tau> a) (* variable case *)
   have "\<Gamma>1 \<lless> \<Gamma>2" 
   and  "valid \<Gamma>2"

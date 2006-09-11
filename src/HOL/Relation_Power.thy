@@ -59,7 +59,7 @@ lemma rel_pow_Suc_I: "[| (x,y) : R^n; (y,z):R |] ==> (x,z):R^(Suc n)"
 
 lemma rel_pow_Suc_I2:
     "(x, y) : R \<Longrightarrow> (y, z) : R^n \<Longrightarrow> (x,z) : R^(Suc n)"
-  apply (induct n fixing: z)
+  apply (induct n arbitrary: z)
    apply simp
   apply fastsimp
   done
@@ -79,7 +79,7 @@ lemma rel_pow_E:
 
 lemma rel_pow_Suc_D2:
     "(x, z) : R^(Suc n) \<Longrightarrow> (\<exists>y. (x,y) : R & (y,z) : R^n)"
-  apply (induct n fixing: x z)
+  apply (induct n arbitrary: x z)
    apply (blast intro: rel_pow_0_I elim: rel_pow_0_E rel_pow_Suc_E)
   apply (blast intro: rel_pow_Suc_I elim: rel_pow_0_E rel_pow_Suc_E)
   done

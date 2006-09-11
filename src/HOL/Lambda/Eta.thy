@@ -45,18 +45,18 @@ inductive_cases eta_cases [elim!]:
 subsection "Properties of eta, subst and free"
 
 lemma subst_not_free [simp]: "\<not> free s i \<Longrightarrow> s[t/i] = s[u/i]"
-  by (induct s fixing: i t u) (simp_all add: subst_Var)
+  by (induct s arbitrary: i t u) (simp_all add: subst_Var)
 
 lemma free_lift [simp]:
     "free (lift t k) i = (i < k \<and> free t i \<or> k < i \<and> free t (i - 1))"
-  apply (induct t fixing: i k)
+  apply (induct t arbitrary: i k)
   apply (auto cong: conj_cong)
   done
 
 lemma free_subst [simp]:
     "free (s[t/k]) i =
       (free s k \<and> free t i \<or> free s (if i < k then i else i + 1))"
-  apply (induct s fixing: i k t)
+  apply (induct s arbitrary: i k t)
     prefer 2
     apply simp
     apply blast
@@ -66,7 +66,7 @@ lemma free_subst [simp]:
   done
 
 lemma free_eta: "s -e> t ==> free t i = free s i"
-  by (induct fixing: i set: eta) (simp_all cong: conj_cong)
+  by (induct arbitrary: i set: eta) (simp_all cong: conj_cong)
 
 lemma not_free_eta:
     "[| s -e> t; \<not> free s i |] ==> \<not> free t i"
@@ -74,10 +74,10 @@ lemma not_free_eta:
 
 lemma eta_subst [simp]:
     "s -e> t ==> s[u/i] -e> t[u/i]"
-  by (induct fixing: u i set: eta) (simp_all add: subst_subst [symmetric])
+  by (induct arbitrary: u i set: eta) (simp_all add: subst_subst [symmetric])
 
 theorem lift_subst_dummy: "\<not> free s i \<Longrightarrow> lift (s[dummy/i]) i = s"
-  by (induct s fixing: i dummy) simp_all
+  by (induct s arbitrary: i dummy) simp_all
 
 
 subsection "Confluence of eta"
@@ -121,19 +121,19 @@ subsection "Commutation of beta and eta"
 
 lemma free_beta:
     "s -> t ==> free t i \<Longrightarrow> free s i"
-  by (induct fixing: i set: beta) auto
+  by (induct arbitrary: i set: beta) auto
 
 lemma beta_subst [intro]: "s -> t ==> s[u/i] -> t[u/i]"
-  by (induct fixing: u i set: beta) (simp_all add: subst_subst [symmetric])
+  by (induct arbitrary: u i set: beta) (simp_all add: subst_subst [symmetric])
 
 lemma subst_Var_Suc [simp]: "t[Var i/i] = t[Var(i)/i + 1]"
-  by (induct t fixing: i) (auto elim!: linorder_neqE simp: subst_Var)
+  by (induct t arbitrary: i) (auto elim!: linorder_neqE simp: subst_Var)
 
 lemma eta_lift [simp]: "s -e> t ==> lift s i -e> lift t i"
-  by (induct fixing: i set: eta) simp_all
+  by (induct arbitrary: i set: eta) simp_all
 
 lemma rtrancl_eta_subst: "s -e> t \<Longrightarrow> u[s/i] -e>> u[t/i]"
-  apply (induct u fixing: s t i)
+  apply (induct u arbitrary: s t i)
     apply (simp_all add: subst_Var)
     apply blast
    apply (blast intro: rtrancl_eta_App)
@@ -165,7 +165,7 @@ text {* @{term "Abs (lift s 0 \<degree> Var 0) -e> s"} *}
 
 lemma not_free_iff_lifted:
     "(\<not> free s i) = (\<exists>t. s = lift t i)"
-  apply (induct s fixing: i)
+  apply (induct s arbitrary: i)
     apply simp
     apply (rule iffI)
      apply (erule linorder_neqE)
@@ -240,7 +240,7 @@ intros
 lemma free_par_eta [simp]:
   assumes eta: "s \<Rightarrow>\<^sub>\<eta> t"
   shows "free t i = free s i" using eta
-  by (induct fixing: i) (simp_all cong: conj_cong)
+  by (induct arbitrary: i) (simp_all cong: conj_cong)
 
 lemma par_eta_refl [simp]: "t \<Rightarrow>\<^sub>\<eta> t"
   by (induct t) simp_all
@@ -248,12 +248,12 @@ lemma par_eta_refl [simp]: "t \<Rightarrow>\<^sub>\<eta> t"
 lemma par_eta_lift [simp]:
   assumes eta: "s \<Rightarrow>\<^sub>\<eta> t"
   shows "lift s i \<Rightarrow>\<^sub>\<eta> lift t i" using eta
-  by (induct fixing: i) simp_all
+  by (induct arbitrary: i) simp_all
 
 lemma par_eta_subst [simp]:
   assumes eta: "s \<Rightarrow>\<^sub>\<eta> t"
   shows "u \<Rightarrow>\<^sub>\<eta> u' \<Longrightarrow> s[u/i] \<Rightarrow>\<^sub>\<eta> t[u'/i]" using eta
-  by (induct fixing: u u' i) (simp_all add: subst_subst [symmetric] subst_Var)
+  by (induct arbitrary: u u' i) (simp_all add: subst_subst [symmetric] subst_Var)
 
 theorem eta_subset_par_eta: "eta \<subseteq> par_eta"
   apply (rule subsetI)
@@ -289,7 +289,7 @@ primrec
 
 lemma eta_expand_Suc':
   "eta_expand (Suc n) t = eta_expand n (Abs (lift t 0 \<degree> Var 0))"
-  by (induct n fixing: t) simp_all
+  by (induct n arbitrary: t) simp_all
 
 theorem lift_eta_expand: "lift (eta_expand k t) i = eta_expand k (lift t i)"
   by (induct k) (simp_all add: lift_lift)
@@ -297,7 +297,7 @@ theorem lift_eta_expand: "lift (eta_expand k t) i = eta_expand k (lift t i)"
 theorem eta_expand_beta:
   assumes u: "u => u'"
   shows "t => t' \<Longrightarrow> eta_expand k (Abs t) \<degree> u => t'[u'/0]"
-proof (induct k fixing: t t')
+proof (induct k arbitrary: t t')
   case 0
   with u show ?case by simp
 next
@@ -313,7 +313,7 @@ theorem eta_expand_red:
   by (induct k) (simp_all add: t)
 
 theorem eta_expand_eta: "t \<Rightarrow>\<^sub>\<eta> t' \<Longrightarrow> eta_expand k t \<Rightarrow>\<^sub>\<eta> t'"
-proof (induct k fixing: t t')
+proof (induct k arbitrary: t t')
   case 0
   show ?case by simp
 next
@@ -329,7 +329,7 @@ subsection {* Elimination rules for parallel eta reduction *}
 theorem par_eta_elim_app: assumes eta: "t \<Rightarrow>\<^sub>\<eta> u"
   shows "u = u1' \<degree> u2' \<Longrightarrow>
     \<exists>u1 u2 k. t = eta_expand k (u1 \<degree> u2) \<and> u1 \<Rightarrow>\<^sub>\<eta> u1' \<and> u2 \<Rightarrow>\<^sub>\<eta> u2'" using eta
-proof (induct fixing: u1' u2')
+proof (induct arbitrary: u1' u2')
   case (app s s' t t')
   have "s \<degree> t = eta_expand 0 (s \<degree> t)" by simp
   with app show ?case by blast
@@ -359,7 +359,7 @@ qed
 theorem par_eta_elim_abs: assumes eta: "t \<Rightarrow>\<^sub>\<eta> t'"
   shows "t' = Abs u' \<Longrightarrow>
     \<exists>u k. t = eta_expand k (Abs u) \<and> u \<Rightarrow>\<^sub>\<eta> u'" using eta
-proof (induct fixing: u')
+proof (induct arbitrary: u')
   case (abs s t)
   have "Abs s = eta_expand 0 (Abs s)" by simp
   with abs show ?case by blast
@@ -390,7 +390,7 @@ text {*
 *}
 
 theorem par_eta_beta: "s \<Rightarrow>\<^sub>\<eta> t \<Longrightarrow> t => u \<Longrightarrow> \<exists>t'. s => t' \<and> t' \<Rightarrow>\<^sub>\<eta> u"
-proof (induct t fixing: s u taking: "size :: dB \<Rightarrow> nat" rule: measure_induct_rule)
+proof (induct t arbitrary: s u taking: "size :: dB \<Rightarrow> nat" rule: measure_induct_rule)
   case (less t)
   from `t => u`
   show ?case
@@ -439,7 +439,7 @@ theorem eta_postponement': assumes eta: "s -e>> t"
   shows "t => u \<Longrightarrow> \<exists>t'. s => t' \<and> t' -e>> u"
   using eta [simplified rtrancl_subset
     [OF eta_subset_par_eta par_eta_subset_eta, symmetric]]
-proof (induct fixing: u)
+proof (induct arbitrary: u)
   case 1
   thus ?case by blast
 next

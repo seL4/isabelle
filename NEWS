@@ -301,7 +301,7 @@ parameters:
     assumes a: "A n x"
     shows "P n x"
     using a                     -- {* make induct insert fact a *}
-  proof (induct n fixing: x)    -- {* generalize goal to "!!x. A n x ==> P n x" *}
+  proof (induct n arbitrary: x) -- {* generalize goal to "!!x. A n x ==> P n x" *}
     case 0
     show ?case sorry
   next
@@ -321,7 +321,7 @@ sufficiently flexible induction hypotheses):
     assumes a: "A (a x)"
     shows "P (a x)"
     using a
-  proof (induct n == "a x" fixing: x)
+  proof (induct n == "a x" arbitrary: x)
     ...
 
 See also HOL/Isar_examples/Puzzle.thy for an application of the this
@@ -334,7 +334,7 @@ encodings:
   lemma
     fixes n :: nat
     obtains x :: 'a where "P n x" and "Q n x"
-  proof (induct n fixing: thesis)
+  proof (induct n arbitrary: thesis)
     case 0
     obtain x where "P 0 x" and "Q 0 x" sorry
     then show thesis by (rule 0)
@@ -345,8 +345,8 @@ encodings:
     then show thesis by (rule Suc.prems)
   qed
 
-Here the 'fixing: thesis' specification essentially modifies the scope
-of the formal thesis parameter, in order to the get the whole
+Here the 'arbitrary: thesis' specification essentially modifies the
+scope of the formal thesis parameter, in order to the get the whole
 existence statement through the induction as expected.
 
 * Provers/induct: mutual induction rules are now specified as a list

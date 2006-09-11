@@ -192,7 +192,7 @@ lemma direction2:
  "rpq \<turnstile> \<langle>sp,s\<rangle> -1\<rightarrow> \<langle>sp',t\<rangle> \<Longrightarrow>
   rpq = rev p @ q & sp = size p & sp' = size p' \<longrightarrow>
           rev p' @ q' = rev p @ q \<longrightarrow> \<langle>q,p,s\<rangle> -1\<rightarrow> \<langle>q',p',t\<rangle>"
-apply(induct fixing: p q p' q' set: exec01)
+apply(induct arbitrary: p q p' q' set: exec01)
    apply(clarsimp simp add: neq_Nil_conv append_eq_conv_conj)
    apply(drule sym)
    apply simp

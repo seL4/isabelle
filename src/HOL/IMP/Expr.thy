@@ -135,10 +135,10 @@ lemma [simp]:
 
 
 lemma aexp_iff: "((a,s) -a-> n) = (A a s = n)"
-  by (induct a fixing: n) auto
+  by (induct a arbitrary: n) auto
 
 lemma bexp_iff:
   "((b,s) -b-> w) = (B b s = w)"
-  by (induct b fixing: w) (auto simp add: aexp_iff)
+  by (induct b arbitrary: w) (auto simp add: aexp_iff)
 
 end

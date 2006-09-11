@@ -439,7 +439,7 @@ primrec
      Ok ($u o $s2 o s1, $u (TVar m2), Suc m2))"
 
 theorem W_correct: "Ok (s, t, m) = \<W> e a n ==> $s a |- e :: t"
-proof (induct e fixing: a s t m n)
+proof (induct e arbitrary: a s t m n)
   case (Var i)
   from `Ok (s, t, m) = \<W> (Var i) a n`
   show "$s a |- Var i :: t" by (simp add: has_type.Var split: if_splits)

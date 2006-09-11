@@ -104,7 +104,7 @@ theorem lookup_append_none:
   assumes "lookup env xs = None"
   shows "lookup env (xs @ ys) = None"
   using prems
-proof (induct xs fixing: env)
+proof (induct xs arbitrary: env)
   case Nil
   then have False by simp
   then show ?case ..
@@ -141,7 +141,7 @@ theorem lookup_append_some:
   assumes "lookup env xs = Some e"
   shows "lookup env (xs @ ys) = lookup e ys"
   using prems
-proof (induct xs fixing: env e)
+proof (induct xs arbitrary: env e)
   case Nil
   then have "env = e" by simp
   then show "lookup env ([] @ ys) = lookup e ys" by simp
@@ -209,7 +209,7 @@ theorem lookup_some_upper:
     es' y = Some env' \<and>
     lookup env' ys = Some e"
   using prems
-proof (induct xs fixing: env e)
+proof (induct xs arbitrary: env e)
   case Nil
   from Nil.prems have "lookup env (y # ys) = Some e"
     by simp
@@ -329,7 +329,7 @@ theorem lookup_update_some:
   assumes "lookup env xs = Some e"
   shows "lookup (update xs (Some env') env) xs = Some env'"
   using prems
-proof (induct xs fixing: env e)
+proof (induct xs arbitrary: env e)
   case Nil
   then have "env = e" by simp
   then show ?case by simp
@@ -378,7 +378,7 @@ theorem update_append_none:
   assumes "lookup env xs = None"
   shows "update (xs @ y # ys) opt env = env"
   using prems
-proof (induct xs fixing: env)
+proof (induct xs arbitrary: env)
   case Nil
   then have False by simp
   then show ?case ..
@@ -421,7 +421,7 @@ theorem update_append_some:
   assumes "lookup env xs = Some e"
   shows "lookup (update (xs @ y # ys) opt env) xs = Some (update (y # ys) opt e)"
   using prems
-proof (induct xs fixing: env e)
+proof (induct xs arbitrary: env e)
   case Nil
   then have "env = e" by simp
   then show ?case by simp
@@ -472,7 +472,7 @@ theorem lookup_update_other:
   assumes neq: "y \<noteq> (z::'c)"
   shows "lookup (update (xs @ z # zs) opt env) (xs @ y # ys) =
     lookup env (xs @ y # ys)"
-proof (induct xs fixing: env)
+proof (induct xs arbitrary: env)
   case Nil
   show ?case
   proof (cases env)

@@ -746,7 +746,7 @@ lemma mem_set_multiset_eq: "x \<in> set xs = (x :# multiset_of xs)"
 
 lemma multiset_of_append [simp]:
     "multiset_of (xs @ ys) = multiset_of xs + multiset_of ys"
-  by (induct xs fixing: ys) (auto simp: union_ac)
+  by (induct xs arbitrary: ys) (auto simp: union_ac)
 
 lemma surj_multiset_of: "surj multiset_of"
   apply (unfold surj_def, rule allI)

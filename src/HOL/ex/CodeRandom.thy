@@ -72,7 +72,7 @@ next
     fix n
     assume "n < length xs"
     then show "pick (map (Pair 1) xs) n = nth xs n"
-    proof (induct xs fixing: n)
+    proof (induct xs arbitrary: n)
       case Nil then show ?case by simp
     next
       case (Cons x xs) show ?case

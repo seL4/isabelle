@@ -21,7 +21,7 @@ theorem
 proof (rule order_antisym)
   {
     fix n show "n \<le> f n"
-    proof (induct k \<equiv> "f n" fixing: n rule: less_induct)
+    proof (induct k \<equiv> "f n" arbitrary: n rule: less_induct)
       case (less k n)
       then have hyp: "\<And>m. f m < f n \<Longrightarrow> m \<le> f m" by (simp only:)
       show "n \<le> f n"

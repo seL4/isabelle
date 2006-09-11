@@ -530,7 +530,7 @@ lemma diamond[rule_format]:
   and     b: "M\<longrightarrow>\<^isub>1M2"
   shows "\<exists>M3. M1\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3"
   using a b
-proof (induct fixing: M2)
+proof (induct arbitrary: M2)
   case (o1 M) (* case 1 --- M1 = M *)
   thus "\<exists>M3. M\<longrightarrow>\<^isub>1M3 \<and>  M2\<longrightarrow>\<^isub>1M3" by blast
 next
@@ -766,7 +766,7 @@ lemma cr_one:
   and     b: "t\<longrightarrow>\<^isub>1t2"
   shows "\<exists>t3. t1\<longrightarrow>\<^isub>1t3 \<and> t2\<longrightarrow>\<^isub>1\<^sup>*t3"
   using a b
-proof (induct fixing: t2)
+proof (induct arbitrary: t2)
   case 1 thus ?case by force
 next
   case (2 s1 s2)

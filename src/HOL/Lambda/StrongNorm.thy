@@ -17,7 +17,7 @@ Felix Joachimski and Ralph Matthes \cite{Matthes-Joachimski-AML}.
 subsection {* Properties of @{text IT} *}
 
 lemma lift_IT [intro!]: "t \<in> IT \<Longrightarrow> lift t i \<in> IT"
-  apply (induct fixing: i set: IT)
+  apply (induct arbitrary: i set: IT)
     apply (simp (no_asm))
     apply (rule conjI)
      apply
@@ -38,7 +38,7 @@ lemma lifts_IT: "ts \<in> lists IT \<Longrightarrow> map (\<lambda>t. lift t 0) 
   by (induct ts) auto
 
 lemma subst_Var_IT: "r \<in> IT \<Longrightarrow> r[Var i/j] \<in> IT"
-  apply (induct fixing: i j set: IT)
+  apply (induct arbitrary: i j set: IT)
     txt {* Case @{term Var}: *}
     apply (simp (no_asm) add: subst_Var)
     apply

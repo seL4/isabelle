@@ -54,7 +54,7 @@ lemma inv_real_of_nat_fact_ge_zero [simp]: "0 \<le> inverse (real (fact n))"
 
 lemma fact_diff_Suc [rule_format]:
     "n < Suc m ==> fact (Suc m - n) = (Suc m - n) * fact (m - n)"
-  apply (induct n fixing: m)
+  apply (induct n arbitrary: m)
   apply auto
   apply (drule_tac x = "m - 1" in meta_spec, auto)
   done

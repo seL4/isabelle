@@ -114,7 +114,7 @@ lemma subst_terms_NF: "listall (\<lambda>t. t \<in> NF) ts \<Longrightarrow>
   by (induct ts) simp_all
 
 lemma subst_Var_NF: "t \<in> NF \<Longrightarrow> t[Var i/j] \<in> NF"
-  apply (induct fixing: i j set: NF)
+  apply (induct arbitrary: i j set: NF)
   apply simp
   apply (frule listall_conj1)
   apply (drule listall_conj2)
@@ -156,7 +156,7 @@ lemma lift_terms_NF: "listall (\<lambda>t. t \<in> NF) ts \<Longrightarrow>
   by (induct ts) simp_all
 
 lemma lift_NF: "t \<in> NF \<Longrightarrow> lift t i \<in> NF"
-  apply (induct fixing: i set: NF)
+  apply (induct arbitrary: i set: NF)
   apply (frule listall_conj1)
   apply (drule listall_conj2)
   apply (drule_tac i=i in lift_terms_NF)

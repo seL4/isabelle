@@ -223,7 +223,7 @@ text {*
 lemma semiD:
   "\<langle>c1; c2, s\<rangle> -n\<rightarrow>\<^sub>1 \<langle>s''\<rangle> \<Longrightarrow>
   \<exists>i j s'. \<langle>c1, s\<rangle> -i\<rightarrow>\<^sub>1 \<langle>s'\<rangle> \<and> \<langle>c2, s'\<rangle> -j\<rightarrow>\<^sub>1 \<langle>s''\<rangle> \<and> n = i+j"
-proof (induct n fixing: c1 c2 s s'')
+proof (induct n arbitrary: c1 c2 s s'')
   case 0
   then show ?case by simp
 next
@@ -269,7 +269,7 @@ qed
 
 lemma semiI:
   "\<langle>c0,s\<rangle> -n\<rightarrow>\<^sub>1 \<langle>s''\<rangle> \<Longrightarrow> \<langle>c1,s''\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>s'\<rangle> \<Longrightarrow> \<langle>c0; c1, s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>s'\<rangle>"
-proof (induct n fixing: c0 s s'')
+proof (induct n arbitrary: c0 s s'')
   case 0
   from `\<langle>c0,s\<rangle> -(0::nat)\<rightarrow>\<^sub>1 \<langle>s''\<rangle>`
   have False by simp
@@ -372,7 +372,7 @@ next
   then obtain n where "\<langle>c, s\<rangle> -n\<rightarrow>\<^sub>1 \<langle>s'\<rangle>" by (blast dest: rtrancl_imp_rel_pow)
   moreover
   have "\<langle>c, s\<rangle> -n\<rightarrow>\<^sub>1 \<langle>s'\<rangle> \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'"
-  proof (induct fixing: c s s' rule: less_induct)
+  proof (induct arbitrary: c s s' rule: less_induct)
     fix n
     assume IH: "\<And>m c s s'. m < n \<Longrightarrow> \<langle>c,s\<rangle> -m\<rightarrow>\<^sub>1 \<langle>s'\<rangle> \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'"
     fix c s s'
@@ -511,7 +511,7 @@ done
 
 lemma lemma2:
   "\<langle>c;d,s\<rangle> -n\<rightarrow>\<^sub>1 \<langle>u\<rangle> \<Longrightarrow> \<exists>t m. \<langle>c,s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>t\<rangle> \<and> \<langle>d,t\<rangle> -m\<rightarrow>\<^sub>1 \<langle>u\<rangle> \<and> m \<le> n"
-apply (induct n fixing: c d s u)
+apply (induct n arbitrary: c d s u)
  -- "case n = 0"
  apply fastsimp
 -- "induction step"
@@ -521,7 +521,7 @@ done
 
 lemma evalc1_impl_evalc:
   "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>t\<rangle> \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
-apply (induct c fixing: s t)
+apply (induct c arbitrary: s t)
 apply (safe dest!: rtrancl_imp_UN_rel_pow)
 
 -- SKIP
@@ -666,7 +666,7 @@ inductive_cases evalc1_term_cases: "\<langle>c,s\<rangle> \<longrightarrow>\<^su
 lemma FB_lemma3:
   "(c,s) \<longrightarrow>\<^sub>1 (c',s') \<Longrightarrow> c \<noteq> None \<Longrightarrow>
   \<langle>if c'=None then \<SKIP> else the c',s'\<rangle> \<longrightarrow>\<^sub>c t \<Longrightarrow> \<langle>the c,s\<rangle> \<longrightarrow>\<^sub>c t"
-  by (induct fixing: t set: evalc1)
+  by (induct arbitrary: t set: evalc1)
     (auto elim!: evalc1_term_cases equivD2 [OF unfold_while])
 
 lemma FB_lemma2:

@@ -68,11 +68,11 @@ subsection {* Misc properties of par-beta *}
 
 lemma par_beta_lift [simp]:
     "t => t' \<Longrightarrow> lift t n => lift t' n"
-  by (induct t fixing: t' n) fastsimp+
+  by (induct t arbitrary: t' n) fastsimp+
 
 lemma par_beta_subst:
     "s => s' \<Longrightarrow> t => t' \<Longrightarrow> t[s/n] => t'[s'/n]"
-  apply (induct t fixing: s s' t' n)
+  apply (induct t arbitrary: s s' t' n)
     apply (simp add: subst_Var)
    apply (erule par_beta_cases)
     apply simp
@@ -104,7 +104,7 @@ recdef "cd" "measure size"
   "cd (Abs s) = Abs (cd s)"
 
 lemma par_beta_cd: "s => t \<Longrightarrow> t => cd s"
-  apply (induct s fixing: t rule: cd.induct)
+  apply (induct s arbitrary: t rule: cd.induct)
       apply auto
   apply (fast intro!: par_beta_subst)
   done

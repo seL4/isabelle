@@ -176,7 +176,7 @@ into a sequence of its individual digits is always possible. *}
 
 lemma exp_exists:
   "m = (\<Sum>x<nlen m. (m div (10::nat)^x mod 10) * 10^x)"
-proof (induct nd \<equiv> "nlen m" fixing: m)
+proof (induct nd \<equiv> "nlen m" arbitrary: m)
   case 0 thus ?case by (simp add: nlen_zero)
 next
   case (Suc nd)

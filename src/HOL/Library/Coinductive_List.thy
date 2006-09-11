@@ -293,7 +293,7 @@ lemma EqLList_unfold:
 
 lemma EqLList_implies_ntrunc_equality:
     "(M, N) \<in> EqLList (diag A) \<Longrightarrow> ntrunc k M = ntrunc k N"
-  apply (induct k fixing: M N rule: nat_less_induct)
+  apply (induct k arbitrary: M N rule: nat_less_induct)
   apply (erule EqLList.cases)
    apply (safe del: equalityI)
   apply (case_tac n)

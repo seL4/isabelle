@@ -332,7 +332,7 @@ lemma update_nonempty [simp]: "update k v al \<noteq> []"
   by (induct al) auto
 
 lemma update_eqD: "update k v al = update k v' al' \<Longrightarrow> v=v'"
-proof (induct al fixing: al') 
+proof (induct al arbitrary: al') 
   case Nil thus ?case 
     by (cases al') (auto split: split_if_asm)
 next
@@ -364,7 +364,7 @@ subsection {* @{const updates} *}
 (* ******************************************************************************** *)
 
 lemma updates_conv: "map_of (updates ks vs al) k = ((map_of al)(ks[\<mapsto>]vs)) k"
-proof (induct ks fixing: vs al)
+proof (induct ks arbitrary: vs al)
   case Nil
   thus ?case by simp
 next
@@ -387,11 +387,11 @@ lemma distinct_updates:
   assumes "distinct (map fst al)"
   shows "distinct (map fst (updates ks vs al))"
   using prems
-by (induct ks fixing: vs al) (auto simp add: distinct_update split: list.splits)
+by (induct ks arbitrary: vs al) (auto simp add: distinct_update split: list.splits)
 
 lemma clearjunk_updates:
  "clearjunk (updates ks vs al) = updates ks vs (clearjunk al)"
-  by (induct ks fixing: vs al) (auto simp add: clearjunk_update split: list.splits)
+  by (induct ks arbitrary: vs al) (auto simp add: clearjunk_update split: list.splits)
 
 lemma updates_empty[simp]: "updates vs [] al = al"
   by (induct vs) auto 
@@ -401,12 +401,12 @@ lemma updates_Cons: "updates (k#ks) (v#vs) al = updates ks vs (update k v al)"
 
 lemma updates_append1[simp]: "size ks < size vs \<Longrightarrow>
   updates (ks@[k]) vs al = update k (vs!size ks) (updates ks vs al)"
-  by (induct ks fixing: vs al) (auto split: list.splits)
+  by (induct ks arbitrary: vs al) (auto split: list.splits)
 
 lemma updates_list_update_drop[simp]:
  "\<lbrakk>size ks \<le> i; i < size vs\<rbrakk>
    \<Longrightarrow> updates ks (vs[i:=v]) al = updates ks vs al"
-  by (induct ks fixing: al vs i) (auto split:list.splits nat.splits)
+  by (induct ks arbitrary: al vs i) (auto split:list.splits nat.splits)
 
 lemma update_updates_conv_if: "
  map_of (updates xs ys (update x y al)) =
@@ -425,11 +425,11 @@ lemma updates_apply_notin[simp]:
 
 lemma updates_append_drop[simp]:
   "size xs = size ys \<Longrightarrow> updates (xs@zs) ys al = updates xs ys al"
-  by (induct xs fixing: ys al) (auto split: list.splits)
+  by (induct xs arbitrary: ys al) (auto split: list.splits)
 
 lemma updates_append2_drop[simp]:
   "size xs = size ys \<Longrightarrow> updates xs (ys@zs) al = updates xs ys al"
-  by (induct xs fixing: ys al) (auto split: list.splits)
+  by (induct xs arbitrary: ys al) (auto split: list.splits)
 
 (* ******************************************************************************** *)
 subsection {* @{const map_ran} *}
@@ -455,13 +455,13 @@ subsection {* @{const merge} *}
 (* ******************************************************************************** *)
 
 lemma dom_merge: "fst ` set (merge xs ys) = fst ` set xs \<union> fst ` set ys"
-  by (induct ys fixing: xs) (auto simp add: dom_update)
+  by (induct ys arbitrary: xs) (auto simp add: dom_update)
 
 lemma distinct_merge:
   assumes "distinct (map fst xs)"
   shows "distinct (map fst (merge xs ys))"
   using prems
-by (induct ys fixing: xs) (auto simp add: dom_merge distinct_update)
+by (induct ys arbitrary: xs) (auto simp add: dom_merge distinct_update)
 
 lemma clearjunk_merge:
  "clearjunk (merge xs ys) = merge (clearjunk xs) ys"

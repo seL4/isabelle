@@ -357,7 +357,7 @@ fun find_inductS ctxt (fact :: _) = map single (InductAttrib.find_inductS ctxt (
 
 in
 
-fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
+fun induct_tac ctxt is_open def_insts arbitrary taking opt_rule facts =
   let
     val _ = warn_open is_open;
     val thy = ProofContext.theory_of ctxt;
@@ -396,7 +396,7 @@ fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
             (Method.insert_tac (more_facts @ nth_list atomized_defs (j - 1))
               THEN' fix_tac defs_ctxt
                 (nth concls (j - 1) + more_consumes)
-                (nth_list fixing (j - 1))))
+                (nth_list arbitrary (j - 1))))
           THEN' inner_atomize_tac) j))
         THEN' atomize_tac) i st |> Seq.maps (fn st' =>
             guess_instance (internalize more_consumes rule) i st'
@@ -467,7 +467,7 @@ end;
 (** concrete syntax **)
 
 val openN = "open";
-val fixingN = "fixing";
+val arbitraryN = "arbitrary";
 val takingN = "taking";
 val ruleN = "rule";
 
@@ -503,10 +503,10 @@ val free = Scan.state -- Args.term >> (fn (_, Free v) => v | (context, t) =>
   error ("Bad free variable: " ^ ProofContext.string_of_term (Context.proof_of context) t));
 
 fun unless_more_args scan = Scan.unless (Scan.lift
-  ((Args.$$$ fixingN || Args.$$$ takingN || Args.$$$ InductAttrib.typeN ||
+  ((Args.$$$ arbitraryN || Args.$$$ takingN || Args.$$$ InductAttrib.typeN ||
     Args.$$$ InductAttrib.setN || Args.$$$ ruleN) -- Args.colon)) scan;
 
-val fixing = Scan.optional (Scan.lift (Args.$$$ fixingN -- Args.colon) |--
+val arbitrary = Scan.optional (Scan.lift (Args.$$$ arbitraryN -- Args.colon) |--
   Args.and_list1 (Scan.repeat (unless_more_args free))) [];
 
 val taking = Scan.optional (Scan.lift (Args.$$$ takingN -- Args.colon) |--
@@ -524,10 +524,10 @@ fun cases_meth src =
 fun induct_meth src =
   Method.syntax (Args.mode openN --
     (Args.and_list (Scan.repeat (unless_more_args def_inst)) --
-    (fixing -- taking -- Scan.option induct_rule))) src
-  #> (fn (ctxt, (is_open, (insts, ((fixing, taking), opt_rule)))) =>
+    (arbitrary -- taking -- Scan.option induct_rule))) src
+  #> (fn (ctxt, (is_open, (insts, ((arbitrary, taking), opt_rule)))) =>
     Method.RAW_METHOD_CASES (fn facts =>
-      Seq.DETERM (HEADGOAL (induct_tac ctxt is_open insts fixing taking opt_rule facts))));
+      Seq.DETERM (HEADGOAL (induct_tac ctxt is_open insts arbitrary taking opt_rule facts))));
 
 fun coinduct_meth src =
   Method.syntax (Args.mode openN --

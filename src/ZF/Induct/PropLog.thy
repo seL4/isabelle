@@ -327,7 +327,7 @@ lemma logcon_Imp: "[| cons(p,H) |= q |] ==> H |= p=>q"
 
 lemma completeness:
      "H \<in> Fin(propn) ==> p \<in> propn \<Longrightarrow> H |= p \<Longrightarrow> H |- p"
-  apply (induct fixing: p set: Fin)
+  apply (induct arbitrary: p set: Fin)
    apply (safe intro!: completeness_0)
   apply (rule weaken_left_cons [THEN thms_MP])
    apply (blast intro!: logcon_Imp propn.intros)

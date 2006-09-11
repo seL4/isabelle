@@ -70,7 +70,7 @@ declare hoare.intros [intro]
 lemma l: "!s. P s --> P s" by fast
 
 lemma vc_sound: "(!s. vc c Q s) --> |- {awp c Q} astrip c {Q}"
-apply (induct c fixing: Q)
+apply (induct c arbitrary: Q)
     apply (simp_all (no_asm))
     apply fast
    apply fast
@@ -151,6 +151,6 @@ next
 qed
 
 lemma vcawp_vc_awp: "vcawp c Q = (vc c Q, awp c Q)"
-  by (induct c fixing: Q) (simp_all add: Let_def)
+  by (induct c arbitrary: Q) (simp_all add: Let_def)
 
 end

@@ -200,7 +200,7 @@ theorem com_det:
   assumes "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t" and "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c u"
   shows "u = t"
   using prems
-proof (induct fixing: u set: evalc)
+proof (induct arbitrary: u set: evalc)
   fix s u assume "\<langle>\<SKIP>,s\<rangle> \<longrightarrow>\<^sub>c u"
   thus "u = s" by simp
 next
@@ -261,7 +261,7 @@ theorem
   assumes "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t" and "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c u"
   shows "u = t"
   using prems
-proof (induct fixing: u)
+proof (induct arbitrary: u)
   -- "the simple @{text \<SKIP>} case for demonstration:"
   fix s u assume "\<langle>\<SKIP>,s\<rangle> \<longrightarrow>\<^sub>c u"
   thus "u = s" by simp

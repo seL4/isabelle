@@ -55,7 +55,7 @@ done
 (* Denotational Semantics implies Operational Semantics *)
 
 lemma com2: "(s,t) \<in> C(c) \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
-apply (induct c fixing: s t)
+apply (induct c arbitrary: s t)
 
 apply simp_all
 apply fast

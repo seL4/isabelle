@@ -131,7 +131,7 @@ done
 
 lemma Path_is_List:
   "\<lbrakk>Path h b Ps (Ref a); a \<notin> set Ps\<rbrakk> \<Longrightarrow> List (h(a := Null)) b (Ps @ [a])"
-apply (induct Ps fixing: b)
+apply (induct Ps arbitrary: b)
 apply (auto simp add:fun_upd_apply)
 done
 

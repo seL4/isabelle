@@ -99,7 +99,7 @@ subsection {* Lists of types *}
 
 lemma lists_typings:
     "e \<tturnstile> ts : Ts \<Longrightarrow> ts \<in> lists {t. \<exists>T. e \<turnstile> t : T}"
-  apply (induct ts fixing: Ts)
+  apply (induct ts arbitrary: Ts)
    apply (case_tac Ts)
      apply simp
      apply (rule lists.Nil)
@@ -113,7 +113,7 @@ lemma lists_typings:
   done
 
 lemma types_snoc: "e \<tturnstile> ts : Ts \<Longrightarrow> e \<turnstile> t : T \<Longrightarrow> e \<tturnstile> ts @ [t] : Ts @ [T]"
-  apply (induct ts fixing: Ts)
+  apply (induct ts arbitrary: Ts)
   apply simp
   apply (case_tac Ts)
   apply simp+
@@ -121,7 +121,7 @@ lemma types_snoc: "e \<tturnstile> ts : Ts \<Longrightarrow> e \<turnstile> t : 
 
 lemma types_snoc_eq: "e \<tturnstile> ts @ [t] : Ts @ [T] =
   (e \<tturnstile> ts : Ts \<and> e \<turnstile> t : T)"
-  apply (induct ts fixing: Ts)
+  apply (induct ts arbitrary: Ts)
   apply (case_tac Ts)
   apply simp+
   apply (case_tac Ts)
@@ -161,7 +161,7 @@ subsection {* n-ary function types *}
 
 lemma list_app_typeD:
     "e \<turnstile> t \<degree>\<degree> ts : T \<Longrightarrow> \<exists>Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<and> e \<tturnstile> ts : Ts"
-  apply (induct ts fixing: t T)
+  apply (induct ts arbitrary: t T)
    apply simp
   apply atomize
   apply simp
@@ -181,7 +181,7 @@ lemma list_app_typeE:
 
 lemma list_app_typeI:
     "e \<turnstile> t : Ts \<Rrightarrow> T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow> e \<turnstile> t \<degree>\<degree> ts : T"
-  apply (induct ts fixing: t T Ts)
+  apply (induct ts arbitrary: t T Ts)
    apply simp
   apply atomize
   apply (case_tac Ts)
@@ -206,7 +206,7 @@ for program extraction.
 
 theorem var_app_type_eq:
   "e \<turnstile> Var i \<degree>\<degree> ts : T \<Longrightarrow> e \<turnstile> Var i \<degree>\<degree> ts : U \<Longrightarrow> T = U"
-  apply (induct ts fixing: T U rule: rev_induct)
+  apply (induct ts arbitrary: T U rule: rev_induct)
   apply simp
   apply (ind_cases "e \<turnstile> Var i : T")
   apply (ind_cases "e \<turnstile> Var i : T")
@@ -226,7 +226,7 @@ theorem var_app_type_eq:
 
 lemma var_app_types: "e \<turnstile> Var i \<degree>\<degree> ts \<degree>\<degree> us : T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow>
   e \<turnstile> Var i \<degree>\<degree> ts : U \<Longrightarrow> \<exists>Us. U = Us \<Rrightarrow> T \<and> e \<tturnstile> us : Us"
-  apply (induct us fixing: ts Ts U)
+  apply (induct us arbitrary: ts Ts U)
   apply simp
   apply (erule var_app_type_eq)
   apply assumption
@@ -293,11 +293,11 @@ lemma abs_typeE: "e \<turnstile> Abs t : T \<Longrightarrow> (\<And>U V. e\<lang
 subsection {* Lifting preserves well-typedness *}
 
 lemma lift_type [intro!]: "e \<turnstile> t : T \<Longrightarrow> e\<langle>i:U\<rangle> \<turnstile> lift t i : T"
-  by (induct fixing: i U set: typing) auto
+  by (induct arbitrary: i U set: typing) auto
 
 lemma lift_types:
   "e \<tturnstile> ts : Ts \<Longrightarrow> e\<langle>i:U\<rangle> \<tturnstile> (map (\<lambda>t. lift t i) ts) : Ts"
-  apply (induct ts fixing: Ts)
+  apply (induct ts arbitrary: Ts)
    apply simp
   apply (case_tac Ts)
    apply auto
@@ -308,7 +308,7 @@ subsection {* Substitution lemmas *}
 
 lemma subst_lemma:
     "e \<turnstile> t : T \<Longrightarrow> e' \<turnstile> u : U \<Longrightarrow> e = e'\<langle>i:U\<rangle> \<Longrightarrow> e' \<turnstile> t[u/i] : T"
-  apply (induct fixing: e' i U u set: typing)
+  apply (induct arbitrary: e' i U u set: typing)
     apply (rule_tac x = x and y = i in linorder_cases)
       apply auto
   apply blast
@@ -317,7 +317,7 @@ lemma subst_lemma:
 lemma substs_lemma:
   "e \<turnstile> u : T \<Longrightarrow> e\<langle>i:T\<rangle> \<tturnstile> ts : Ts \<Longrightarrow>
      e \<tturnstile> (map (\<lambda>t. t[u/i]) ts) : Ts"
-  apply (induct ts fixing: Ts)
+  apply (induct ts arbitrary: Ts)
    apply (case_tac Ts)
     apply simp
    apply simp
@@ -334,7 +334,7 @@ lemma substs_lemma:
 subsection {* Subject reduction *}
 
 lemma subject_reduction: "e \<turnstile> t : T \<Longrightarrow> t -> t' \<Longrightarrow> e \<turnstile> t' : T"
-  apply (induct fixing: t' set: typing)
+  apply (induct arbitrary: t' set: typing)
     apply blast
    apply blast
   apply atomize

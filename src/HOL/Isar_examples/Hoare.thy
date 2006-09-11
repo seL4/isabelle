@@ -167,7 +167,7 @@ proof
   assume "Sem (While b X c) s s'"
   then obtain n where "iter n b (Sem c) s s'" by auto
   from this and s show "s' : P Int -b"
-  proof (induct n fixing: s)
+  proof (induct n arbitrary: s)
     case 0
     thus ?case by auto
   next

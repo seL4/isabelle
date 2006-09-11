@@ -173,7 +173,7 @@ recdef lin_mul "measure size "
   "lin_mul t = (\<lambda> i. Mul i t)"
 
 lemma lin_mul: "Inum bs (lin_mul t i) = Inum bs (Mul i t)"
-by (induct t fixing: i rule: lin_mul.induct, auto simp add: ring_eq_simps)
+by (induct t arbitrary: i rule: lin_mul.induct) (auto simp add: ring_eq_simps)
 
 consts linum:: "num \<Rightarrow> num"
 recdef linum "measure num_size"

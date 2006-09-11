@@ -57,7 +57,7 @@ lemma it_unique:
   and     c2: "(t,r')\<in>it f1 f2 f3"
   shows   "r=r'"
 using c1 c2
-proof (induct fixing: r')
+proof (induct arbitrary: r')
   case it1
   then show ?case by cases (simp_all add: lam.inject)
 next

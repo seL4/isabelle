@@ -114,7 +114,7 @@ text {*
 lemma exec_append:
   "exec (xs @ ys) stack env =
     exec ys (exec xs stack env) env"
-proof (induct xs fixing: stack)
+proof (induct xs arbitrary: stack)
   case Nil
   show ?case by simp
 next
@@ -153,7 +153,7 @@ text {*
 
 lemma exec_append':
   "exec (xs @ ys) stack env = exec ys (exec xs stack env) env"
-proof (induct xs fixing: stack)
+proof (induct xs arbitrary: stack)
   case (Nil s)
   have "exec ([] @ ys) s env = exec ys s env" by simp
   also have "... = exec ys (exec [] s env) env" by simp

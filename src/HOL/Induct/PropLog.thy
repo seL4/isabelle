@@ -259,7 +259,7 @@ lemma sat_imp: "insert p H |= q ==> H |= p->q"
 by (unfold sat_def, auto)
 
 theorem completeness: "finite H ==> H |= p ==> H |- p"
-apply (induct fixing: p rule: finite_induct)
+apply (induct arbitrary: p rule: finite_induct)
  apply (blast intro: completeness_0)
 apply (iprover intro: sat_imp thms.H insertI1 weaken_left_insert [THEN thms.MP])
 done

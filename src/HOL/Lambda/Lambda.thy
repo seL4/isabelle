@@ -114,24 +114,24 @@ lemma subst_lt [simp]: "j < i ==> (Var j)[u/i] = Var j"
 
 lemma lift_lift:
     "i < k + 1 \<Longrightarrow> lift (lift t i) (Suc k) = lift (lift t k) i"
-  by (induct t fixing: i k) auto
+  by (induct t arbitrary: i k) auto
 
 lemma lift_subst [simp]:
     "j < i + 1 \<Longrightarrow> lift (t[s/j]) i = (lift t (i + 1)) [lift s i / j]"
-  by (induct t fixing: i j s)
+  by (induct t arbitrary: i j s)
     (simp_all add: diff_Suc subst_Var lift_lift split: nat.split)
 
 lemma lift_subst_lt:
     "i < j + 1 \<Longrightarrow> lift (t[s/j]) i = (lift t i) [lift s i / j + 1]"
-  by (induct t fixing: i j s) (simp_all add: subst_Var lift_lift)
+  by (induct t arbitrary: i j s) (simp_all add: subst_Var lift_lift)
 
 lemma subst_lift [simp]:
     "(lift t k)[s/k] = t"
-  by (induct t fixing: k s) simp_all
+  by (induct t arbitrary: k s) simp_all
 
 lemma subst_subst:
     "i < j + 1 \<Longrightarrow> t[lift v i / Suc j][u[v/j]/i] = t[u/i][v/j]"
-  by (induct t fixing: i j u v)
+  by (induct t arbitrary: i j u v)
     (simp_all add: diff_Suc subst_Var lift_lift [symmetric] lift_subst_lt
       split: nat.split)
 
@@ -139,13 +139,13 @@ lemma subst_subst:
 subsection {* Equivalence proof for optimized substitution *}
 
 lemma liftn_0 [simp]: "liftn 0 t k = t"
-  by (induct t fixing: k) (simp_all add: subst_Var)
+  by (induct t arbitrary: k) (simp_all add: subst_Var)
 
 lemma liftn_lift [simp]: "liftn (Suc n) t k = lift (liftn n t k) k"
-  by (induct t fixing: k) (simp_all add: subst_Var)
+  by (induct t arbitrary: k) (simp_all add: subst_Var)
 
 lemma substn_subst_n [simp]: "substn t s n = t[liftn n s 0 / n]"
-  by (induct t fixing: n) (simp_all add: subst_Var)
+  by (induct t arbitrary: n) (simp_all add: subst_Var)
 
 theorem substn_subst_0: "substn t s 0 = t[s/0]"
   by simp
@@ -158,7 +158,7 @@ text {* Not used in Church-Rosser proof, but in Strong
 
 theorem subst_preserves_beta [simp]:
     "r \<rightarrow>\<^sub>\<beta> s ==> r[t/i] \<rightarrow>\<^sub>\<beta> s[t/i]"
-  by (induct fixing: t i set: beta) (simp_all add: subst_subst [symmetric])
+  by (induct arbitrary: t i set: beta) (simp_all add: subst_subst [symmetric])
 
 theorem subst_preserves_beta': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> r[t/i] \<rightarrow>\<^sub>\<beta>\<^sup>* s[t/i]"
   apply (induct set: rtrancl)
@@ -169,7 +169,7 @@ theorem subst_preserves_beta': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> r[t/
 
 theorem lift_preserves_beta [simp]:
     "r \<rightarrow>\<^sub>\<beta> s ==> lift r i \<rightarrow>\<^sub>\<beta> lift s i"
-  by (induct fixing: i set: beta) auto
+  by (induct arbitrary: i set: beta) auto
 
 theorem lift_preserves_beta': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> lift r i \<rightarrow>\<^sub>\<beta>\<^sup>* lift s i"
   apply (induct set: rtrancl)
@@ -179,7 +179,7 @@ theorem lift_preserves_beta': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> lift 
   done
 
 theorem subst_preserves_beta2 [simp]: "r \<rightarrow>\<^sub>\<beta> s ==> t[r/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t[s/i]"
-  apply (induct t fixing: r s i)
+  apply (induct t arbitrary: r s i)
     apply (simp add: subst_Var r_into_rtrancl)
    apply (simp add: rtrancl_beta_App)
   apply (simp add: rtrancl_beta_Abs)

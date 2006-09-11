@@ -156,7 +156,7 @@ using distnct set_remove1_eq by auto
 
 lemma iso_union:
   "set (unionl xs ys) = set xs \<union> set ys"
-  unfolding unionl_def by (induct xs fixing: ys) (simp_all add: iso_insert)
+  unfolding unionl_def by (induct xs arbitrary: ys) (simp_all add: iso_insert)
 
 lemma iso_intersect:
   "set (intersect xs ys) = set xs \<inter> set ys"
@@ -167,7 +167,7 @@ lemma iso_subtract:
   assumes distnct: "distinct ys"
   shows "set (subtract xs ys) = set ys - set xs"
   and "distinct (subtract xs ys)"
-unfolding subtract_def using distnct by (induct xs fixing: ys) (simp_all, auto)
+unfolding subtract_def using distnct by (induct xs arbitrary: ys) (simp_all, auto)
 
 corollary iso_subtract':
   fixes xs ys

@@ -801,7 +801,7 @@ that of @{term x} the property @{term "P y"} holds. *}
 lemma 
   shows trans: "\<Gamma>\<turnstile>S<:Q \<Longrightarrow> \<Gamma>\<turnstile>Q<:T \<Longrightarrow> \<Gamma>\<turnstile>S<:T" 
   and narrow: "(\<Delta>@[(X,Q)]@\<Gamma>)\<turnstile>M<:N \<Longrightarrow> \<Gamma>\<turnstile>P<:Q \<Longrightarrow> (\<Delta>@[(X,P)]@\<Gamma>)\<turnstile>M<:N"
-proof (induct Q fixing: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule: measure_induct_rule)
+proof (induct Q arbitrary: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule: measure_induct_rule)
   case (less Q)
     --{* \begin{minipage}[t]{0.9\textwidth}
     First we mention the induction hypotheses of the outer induction for later

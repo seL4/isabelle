@@ -133,7 +133,7 @@ declare C_while [simp del]
 lemmas [intro!] = hoare.skip hoare.ass hoare.semi hoare.If
 
 lemma wp_is_pre: "|- {wp c Q} c {Q}"
-apply (induct c fixing: Q)
+apply (induct c arbitrary: Q)
     apply (simp_all (no_asm))
     apply fast+
  apply (blast intro: hoare_conseq1)

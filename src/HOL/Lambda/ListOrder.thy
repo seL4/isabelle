@@ -90,7 +90,7 @@ lemma Snoc_step1_SnocD:
 
 lemma Cons_acc_step1I [intro!]:
     "x \<in> acc r ==> xs \<in> acc (step1 r) \<Longrightarrow> x # xs \<in> acc (step1 r)"
-  apply (induct fixing: xs set: acc)
+  apply (induct arbitrary: xs set: acc)
   apply (erule thin_rl)
   apply (erule acc_induct)
   apply (rule accI)

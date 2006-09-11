@@ -657,7 +657,7 @@ text {*
 
 lemma can_exec_snocD: "can_exec root (xs @ [y])
     \<Longrightarrow> \<exists>root' root''. root =xs\<Rightarrow> root' \<and> root' \<midarrow>y\<rightarrow> root''"
-proof (induct xs fixing: root)
+proof (induct xs arbitrary: root)
   case Nil
   then show ?case
     by (simp add: can_exec_def transitions_nil_eq transitions_cons_eq)

@@ -18,7 +18,7 @@ abbreviation
 
 lemma head_Var_reduction:
   "Var n \<degree>\<degree> rs -> v \<Longrightarrow> \<exists>ss. rs => ss \<and> v = Var n \<degree>\<degree> ss"
-  apply (induct u == "Var n \<degree>\<degree> rs" v fixing: rs set: beta)
+  apply (induct u == "Var n \<degree>\<degree> rs" v arbitrary: rs set: beta)
      apply simp
     apply (rule_tac xs = rs in rev_exhaust)
      apply simp
@@ -39,7 +39,7 @@ proof -
    "(\<exists>r'. r -> r' \<and> s = r' \<degree>\<degree> rs) \<or>
     (\<exists>rs'. rs => rs' \<and> s = r \<degree>\<degree> rs') \<or>
     (\<exists>t u us. r = Abs t \<and> rs = u # us \<and> s = t[u/0] \<degree>\<degree> us)"
-    apply (induct u == "r \<degree>\<degree> rs" s fixing: r rs set: beta)
+    apply (induct u == "r \<degree>\<degree> rs" s arbitrary: r rs set: beta)
        apply (case_tac r)
          apply simp
         apply (simp add: App_eq_foldl_conv)
@@ -78,7 +78,7 @@ lemma apps_preserves_beta2 [simp]:
 
 lemma apps_preserves_betas [simp]:
     "rs => ss \<Longrightarrow> r \<degree>\<degree> rs -> r \<degree>\<degree> ss"
-  apply (induct rs fixing: ss rule: rev_induct)
+  apply (induct rs arbitrary: ss rule: rev_induct)
    apply simp
   apply simp
   apply (rule_tac xs = ss in rev_exhaust)

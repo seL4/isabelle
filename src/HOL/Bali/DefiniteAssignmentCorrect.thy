@@ -2661,7 +2661,7 @@ proof -
         \<Longrightarrow> ?NormalAssigned s1 A \<and> ?BreakAssigned s0 s1 A \<and> ?ResAssigned s0 s1)"
   from eval and wt da G
   show ?thesis
-  proof (induct fixing: Env T A)
+  proof (induct arbitrary: Env T A)
     case (Abrupt s t xc Env T A)
     have da: "Env\<turnstile> dom (locals s) \<guillemotright>t\<guillemotright> A" using Abrupt.prems by simp 
     have "?NormalAssigned (Some xc,s) A" 

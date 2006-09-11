@@ -19,7 +19,7 @@ datatype "bt(A)" =
 declare bt.intros [simp]
 
 lemma Br_neq_left: "l \<in> bt(A) ==> Br(x, l, r) \<noteq> l"
-  by (induct fixing: x r set: bt) auto
+  by (induct arbitrary: x r set: bt) auto
 
 lemma Br_iff: "Br(a, l, r) = Br(a', l', r') <-> a = a' & l = l' & r = r'"
   -- "Proving a freeness theorem."
@@ -83,7 +83,7 @@ primrec
 
 lemma n_nodes_aux_eq:
     "t \<in> bt(A) ==> k \<in> nat ==> n_nodes_aux(t)`k = n_nodes(t) #+ k"
-  apply (induct fixing: k set: bt)
+  apply (induct arbitrary: k set: bt)
    apply simp
   apply (atomize, simp)
   done

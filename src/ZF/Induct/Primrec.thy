@@ -131,7 +131,7 @@ lemmas [simp] = ack_0 ack_succ_0 ack_succ_succ ack_type
 
 lemma lt_ack2: "i \<in> nat ==> j \<in> nat ==> j < ack(i,j)"
   -- {* PROPERTY A 4 *}
-  apply (induct i fixing: j set: nat)
+  apply (induct i arbitrary: j set: nat)
    apply simp
   apply (induct_tac j)
    apply (erule_tac [2] succ_leI [THEN lt_trans1])

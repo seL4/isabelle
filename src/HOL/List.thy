@@ -311,7 +311,8 @@ done
 
 lemma impossible_Cons [rule_format]: 
   "length xs <= length ys --> xs = x # ys = False"
-apply (induct xs, auto)
+apply (induct xs)
+apply auto
 done
 
 lemma list_induct2[consumes 1]: "\<And>ys.
@@ -1356,12 +1357,12 @@ done
 lemma takeWhile_cong [fundef_cong, recdef_cong]:
   "[| l = k; !!x. x : set l ==> P x = Q x |] 
   ==> takeWhile P l = takeWhile Q k"
-  by (induct k fixing: l, simp_all)
+  by (induct k arbitrary: l) (simp_all)
 
 lemma dropWhile_cong [fundef_cong, recdef_cong]:
   "[| l = k; !!x. x : set l ==> P x = Q x |] 
   ==> dropWhile P l = dropWhile Q k"
-  by (induct k fixing: l, simp_all)
+  by (induct k arbitrary: l, simp_all)
 
 
 subsubsection {* @{text zip} *}
@@ -1600,12 +1601,12 @@ by (induct xs) auto
 lemma foldl_cong [fundef_cong, recdef_cong]:
   "[| a = b; l = k; !!a x. x : set l ==> f a x = g a x |] 
   ==> foldl f a l = foldl g b k"
-  by (induct k fixing: a b l, simp_all)
+  by (induct k arbitrary: a b l) simp_all
 
 lemma foldr_cong [fundef_cong, recdef_cong]:
   "[| a = b; l = k; !!a x. x : set l ==> f x a = g x a |] 
   ==> foldr f l a = foldr g k b"
-  by (induct k fixing: a b l, simp_all)
+  by (induct k arbitrary: a b l) simp_all
 
 lemma foldr_foldl: "foldr f xs a = foldl (%x y. f y x) a (rev xs)"
 by (induct xs) auto

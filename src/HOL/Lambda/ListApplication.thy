@@ -16,11 +16,11 @@ lemma apps_eq_tail_conv [iff]: "(r \<degree>\<degree> ts = s \<degree>\<degree> 
   by (induct ts rule: rev_induct) auto
 
 lemma Var_eq_apps_conv [iff]: "(Var m = s \<degree>\<degree> ss) = (Var m = s \<and> ss = [])"
-  by (induct ss fixing: s) auto
+  by (induct ss arbitrary: s) auto
 
 lemma Var_apps_eq_Var_apps_conv [iff]:
     "(Var m \<degree>\<degree> rs = Var n \<degree>\<degree> ss) = (m = n \<and> rs = ss)"
-  apply (induct rs fixing: ss rule: rev_induct)
+  apply (induct rs arbitrary: ss rule: rev_induct)
    apply simp
    apply blast
   apply (induct_tac ss rule: rev_induct)
@@ -44,7 +44,7 @@ lemma apps_eq_Abs_conv [iff]: "(s \<degree>\<degree> ss = Abs r) = (s = Abs r \<
 
 lemma Abs_apps_eq_Abs_apps_conv [iff]:
     "(Abs r \<degree>\<degree> rs = Abs s \<degree>\<degree> ss) = (r = s \<and> rs = ss)"
-  apply (induct rs fixing: ss rule: rev_induct)
+  apply (induct rs arbitrary: ss rule: rev_induct)
    apply simp
    apply blast
   apply (induct_tac ss rule: rev_induct)
@@ -53,11 +53,11 @@ lemma Abs_apps_eq_Abs_apps_conv [iff]:
 
 lemma Abs_App_neq_Var_apps [iff]:
     "Abs s \<degree> t \<noteq> Var n \<degree>\<degree> ss"
-  by (induct ss fixing: s t rule: rev_induct) auto
+  by (induct ss arbitrary: s t rule: rev_induct) auto
 
 lemma Var_apps_neq_Abs_apps [iff]:
     "Var n \<degree>\<degree> ts \<noteq> Abs r \<degree>\<degree> ss"
-  apply (induct ss fixing: ts rule: rev_induct)
+  apply (induct ss arbitrary: ts rule: rev_induct)
    apply simp
   apply (induct_tac ts rule: rev_induct)
    apply auto
@@ -84,11 +84,11 @@ lemma lem0: "[| (0::nat) < k; m <= n |] ==> m < n + k"
 
 lemma lift_map [simp]:
     "lift (t \<degree>\<degree> ts) i = lift t i \<degree>\<degree> map (\<lambda>t. lift t i) ts"
-  by (induct ts fixing: t) simp_all
+  by (induct ts arbitrary: t) simp_all
 
 lemma subst_map [simp]:
     "subst (t \<degree>\<degree> ts) u i = subst t u i \<degree>\<degree> map (\<lambda>t. subst t u i) ts"
-  by (induct ts fixing: t) simp_all
+  by (induct ts arbitrary: t) simp_all
 
 lemma app_last: "(t \<degree>\<degree> ts) \<degree> u = t \<degree>\<degree> (ts @ [u])"
   by simp
@@ -100,7 +100,7 @@ lemma lem:
   assumes "!!n ts. \<forall>t \<in> set ts. P t ==> P (Var n \<degree>\<degree> ts)"
     and "!!u ts. [| P u; \<forall>t \<in> set ts. P t |] ==> P (Abs u \<degree>\<degree> ts)"
   shows "size t = n \<Longrightarrow> P t"
-  apply (induct n fixing: t rule: nat_less_induct)
+  apply (induct n arbitrary: t rule: nat_less_induct)
   apply (cut_tac t = t in ex_head_tail)
   apply clarify
   apply (erule disjE)

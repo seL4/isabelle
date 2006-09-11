@@ -1516,7 +1516,7 @@ object-logic.
 \begin{rail}
   'cases' open? (insts * 'and') rule?
   ;
-  'induct' open? (definsts * 'and') \\ fixing? taking? rule?
+  'induct' open? (definsts * 'and') \\ arbitrary? taking? rule?
   ;
   'coinduct' open? insts taking rule?
   ;
@@ -1529,7 +1529,7 @@ object-logic.
   ;
   definsts: ( definst *)
   ;
-  fixing: 'fixing' ':' ((term *) 'and' +)
+  arbitrary: 'arbitrary' ':' ((term *) 'and' +)
   ;
   taking: 'taking' ':' insts
   ;
@@ -1587,11 +1587,11 @@ object-logic.
   In order to achieve practically useful induction hypotheses, some variables
   occurring in $t$ need to be fixed (see below).
   
-  The optional ``$fixing\colon \vec x$'' specification generalizes variables
-  $\vec x$ of the original goal before applying induction.  Thus induction
-  hypotheses may become sufficiently general to get the proof through.
-  Together with definitional instantiations, one may effectively perform
-  induction over expressions of a certain structure.
+  The optional ``$arbitrary\colon \vec x$'' specification generalizes
+  variables $\vec x$ of the original goal before applying induction.  Thus
+  induction hypotheses may become sufficiently general to get the proof
+  through.  Together with definitional instantiations, one may effectively
+  perform induction over expressions of a certain structure.
   
   The optional ``$taking\colon \vec t$'' specification provides additional
   instantiations of a prefix of pending variables in the rule.  Such schematic
