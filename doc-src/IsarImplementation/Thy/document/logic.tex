@@ -210,7 +210,14 @@ The language of types is an uninterpreted order-sorted first-order
   thanks to type-inference.
 
   Terms of type \isa{prop} are called
-  propositions.  Logical statements are composed via \isa{{\isasymAnd}x\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}{\isachardot}\ B{\isacharparenleft}x{\isacharparenright}} and \isa{A\ {\isasymLongrightarrow}\ B}.%
+  propositions.  Logical statements are composed via \isa{{\isasymAnd}x\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}{\isachardot}\ B{\isacharparenleft}x{\isacharparenright}} and \isa{A\ {\isasymLongrightarrow}\ B}.
+
+
+  \[
+  \infer{\isa{{\isacharparenleft}{\isasymlambda}x\isactrlsub {\isasymtau}{\isachardot}\ t{\isacharparenright}{\isacharcolon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymsigma}}}{\isa{t{\isacharcolon}\ {\isasymsigma}}}
+  \qquad
+  \infer{\isa{{\isacharparenleft}t\ u{\isacharparenright}{\isacharcolon}\ {\isasymsigma}}}{\isa{t{\isacharcolon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymsigma}} & \isa{u{\isacharcolon}\ {\isasymtau}}}
+  \]%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -274,16 +281,54 @@ text.}
 \glossary{Variable}{See \seeglossary{schematic variable},
 \seeglossary{fixed variable}, \seeglossary{bound variable}, or
 \seeglossary{type variable}.  The distinguishing feature of different
-variables is their binding scope.}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsection{Proof terms%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-FIXME !?%
+variables is their binding scope.}
+
+
+  \[
+  \infer[\isa{{\isacharparenleft}axiom{\isacharparenright}}]{\isa{{\isasymturnstile}\ A}}{\isa{A\ {\isasymin}\ {\isasymTheta}}}
+  \qquad
+  \infer[\isa{{\isacharparenleft}assume{\isacharparenright}}]{\isa{A\ {\isasymturnstile}\ A}}{}
+  \]
+  \[
+  \infer[\isa{{\isacharparenleft}{\isasymAnd}{\isacharunderscore}intro{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ b\ x}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ b\ x} & \isa{x\ {\isasymnotin}\ {\isasymGamma}}}
+  \qquad
+  \infer[\isa{{\isacharparenleft}{\isasymAnd}{\isacharunderscore}elim{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ b\ a}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ b\ x}}
+  \]
+  \[
+  \infer[\isa{{\isacharparenleft}{\isasymLongrightarrow}{\isacharunderscore}intro{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isacharminus}\ A\ {\isasymturnstile}\ A\ {\isasymLongrightarrow}\ B}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B}}
+  \qquad
+  \infer[\isa{{\isacharparenleft}{\isasymLongrightarrow}{\isacharunderscore}elim{\isacharparenright}}]{\isa{{\isasymGamma}\isactrlsub {\isadigit{1}}\ {\isasymunion}\ {\isasymGamma}\isactrlsub {\isadigit{2}}\ {\isasymturnstile}\ B}}{\isa{{\isasymGamma}\isactrlsub {\isadigit{1}}\ {\isasymturnstile}\ A\ {\isasymLongrightarrow}\ B} & \isa{{\isasymGamma}\isactrlsub {\isadigit{2}}\ {\isasymturnstile}\ A}}
+  \]
+
+
+  Admissible rules:
+  \[
+  \infer[\isa{{\isacharparenleft}generalize{\isacharunderscore}type{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}{\isasymalpha}{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isasymalpha}{\isacharbrackright}} & \isa{{\isasymalpha}\ {\isasymnotin}\ {\isasymGamma}}}
+  \qquad
+  \infer[\isa{{\isacharparenleft}generalize{\isacharunderscore}term{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}x{\isacharbrackright}} & \isa{x\ {\isasymnotin}\ {\isasymGamma}}}
+  \]
+  \[
+  \infer[\isa{{\isacharparenleft}instantiate{\isacharunderscore}type{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isasymtau}{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}{\isasymalpha}{\isacharbrackright}}}
+  \qquad
+  \infer[\isa{{\isacharparenleft}instantiate{\isacharunderscore}term{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}t{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}}}
+  \]
+
+  Note that \isa{instantiate{\isacharunderscore}term} could be derived using \isa{{\isasymAnd}{\isacharunderscore}intro{\isacharslash}elim}, but this is not how it is implemented.  The type
+  instantiation rule is a genuine admissible one, due to the lack of true
+  polymorphism in the logic.
+
+
+  Equality and logical equivalence:
+
+  \smallskip
+  \begin{tabular}{ll}
+  \isa{{\isasymequiv}\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ prop} & equality relation (infix) \\
+  \isa{{\isasymturnstile}\ x\ {\isasymequiv}\ x} & reflexivity law \\
+  \isa{{\isasymturnstile}\ x\ {\isasymequiv}\ y\ {\isasymLongrightarrow}\ P\ x\ {\isasymLongrightarrow}\ P\ y} & substitution law \\
+  \isa{{\isasymturnstile}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ f\ x\ {\isasymequiv}\ g\ x{\isacharparenright}\ {\isasymLongrightarrow}\ f\ {\isasymequiv}\ g} & extensionality \\
+  \isa{{\isasymturnstile}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}B\ {\isasymLongrightarrow}\ A{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymequiv}\ B} & coincidence with equivalence \\
+  \end{tabular}
+  \smallskip%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -333,7 +378,43 @@ quantifier prefix is represented via \seeglossary{schematic
 variables}, such that the top-level structure is merely that of a
 \seeglossary{Horn Clause}}.
 
-\glossary{HHF}{See \seeglossary{Hereditary Harrop Formula}.}%
+\glossary{HHF}{See \seeglossary{Hereditary Harrop Formula}.}
+
+
+  \[
+  \infer[\isa{{\isacharparenleft}assumption{\isacharparenright}}]{\isa{C{\isasymvartheta}}}
+  {\isa{{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ A\ \isactrlvec x{\isacharparenright}\ {\isasymLongrightarrow}\ C} & \isa{A{\isasymvartheta}\ {\isacharequal}\ H\isactrlsub i{\isasymvartheta}}~~\text{(for some~\isa{i})}}
+  \]
+
+
+  \[
+  \infer[\isa{{\isacharparenleft}compose{\isacharparenright}}]{\isa{\isactrlvec A{\isasymvartheta}\ {\isasymLongrightarrow}\ C{\isasymvartheta}}}
+  {\isa{\isactrlvec A\ {\isasymLongrightarrow}\ B} & \isa{B{\isacharprime}\ {\isasymLongrightarrow}\ C} & \isa{B{\isasymvartheta}\ {\isacharequal}\ B{\isacharprime}{\isasymvartheta}}}
+  \]
+
+
+  \[
+  \infer[\isa{{\isacharparenleft}{\isasymAnd}{\isacharunderscore}lift{\isacharparenright}}]{\isa{{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec A\ {\isacharparenleft}{\isacharquery}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ B\ {\isacharparenleft}{\isacharquery}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}}}{\isa{\isactrlvec A\ {\isacharquery}\isactrlvec a\ {\isasymLongrightarrow}\ B\ {\isacharquery}\isactrlvec a}}
+  \]
+  \[
+  \infer[\isa{{\isacharparenleft}{\isasymLongrightarrow}{\isacharunderscore}lift{\isacharparenright}}]{\isa{{\isacharparenleft}\isactrlvec H\ {\isasymLongrightarrow}\ \isactrlvec A{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}\isactrlvec H\ {\isasymLongrightarrow}\ B{\isacharparenright}}}{\isa{\isactrlvec A\ {\isasymLongrightarrow}\ B}}
+  \]
+
+  The \isa{resolve} scheme is now acquired from \isa{{\isasymAnd}{\isacharunderscore}lift},
+  \isa{{\isasymLongrightarrow}{\isacharunderscore}lift}, and \isa{compose}.
+
+  \[
+  \infer[\isa{{\isacharparenleft}resolution{\isacharparenright}}]
+  {\isa{{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ \isactrlvec A\ {\isacharparenleft}{\isacharquery}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}{\isasymvartheta}\ {\isasymLongrightarrow}\ C{\isasymvartheta}}}
+  {\begin{tabular}{l}
+    \isa{\isactrlvec A\ {\isacharquery}\isactrlvec a\ {\isasymLongrightarrow}\ B\ {\isacharquery}\isactrlvec a} \\
+    \isa{{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ B{\isacharprime}\ \isactrlvec x{\isacharparenright}\ {\isasymLongrightarrow}\ C} \\
+    \isa{{\isacharparenleft}{\isasymlambda}\isactrlvec x{\isachardot}\ B\ {\isacharparenleft}{\isacharquery}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}{\isasymvartheta}\ {\isacharequal}\ B{\isacharprime}{\isasymvartheta}} \\
+   \end{tabular}}
+  \]
+
+
+  FIXME \isa{elim{\isacharunderscore}resolution}, \isa{dest{\isacharunderscore}resolution}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
