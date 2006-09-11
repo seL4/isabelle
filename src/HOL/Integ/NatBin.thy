@@ -112,14 +112,14 @@ done
 
 lemma Suc_nat_number_of_add:
      "Suc (number_of v + n) =  
-        (if neg (number_of v :: int) then 1+n else number_of (succ v) + n)" 
+        (if neg (number_of v :: int) then 1+n else number_of (Numeral.succ v) + n)" 
 by (simp del: nat_number_of 
          add: nat_number_of_def neg_nat
               Suc_nat_eq_nat_zadd1 number_of_succ) 
 
 lemma Suc_nat_number_of [simp]:
      "Suc (number_of v) =  
-        (if neg (number_of v :: int) then 1 else number_of (succ v))"
+        (if neg (number_of v :: int) then 1 else number_of (Numeral.succ v))"
 apply (cut_tac n = 0 in Suc_nat_number_of_add)
 apply (simp cong del: if_weak_cong)
 done
@@ -447,7 +447,7 @@ subsection{*Comparisons involving Suc *}
 
 lemma eq_number_of_Suc [simp]:
      "(number_of v = Suc n) =  
-        (let pv = number_of (pred v) in  
+        (let pv = number_of (Numeral.pred v) in  
          if neg pv then False else nat pv = n)"
 apply (simp only: simp_thms Let_def neg_eq_less_0 linorder_not_less 
                   number_of_pred nat_number_of_def 
@@ -458,13 +458,13 @@ done
 
 lemma Suc_eq_number_of [simp]:
      "(Suc n = number_of v) =  
-        (let pv = number_of (pred v) in  
+        (let pv = number_of (Numeral.pred v) in  
          if neg pv then False else nat pv = n)"
 by (rule trans [OF eq_sym_conv eq_number_of_Suc])
 
 lemma less_number_of_Suc [simp]:
      "(number_of v < Suc n) =  
-        (let pv = number_of (pred v) in  
+        (let pv = number_of (Numeral.pred v) in  
          if neg pv then True else nat pv < n)"
 apply (simp only: simp_thms Let_def neg_eq_less_0 linorder_not_less 
                   number_of_pred nat_number_of_def  
@@ -475,7 +475,7 @@ done
 
 lemma less_Suc_number_of [simp]:
      "(Suc n < number_of v) =  
-        (let pv = number_of (pred v) in  
+        (let pv = number_of (Numeral.pred v) in  
          if neg pv then False else n < nat pv)"
 apply (simp only: simp_thms Let_def neg_eq_less_0 linorder_not_less 
                   number_of_pred nat_number_of_def
@@ -486,13 +486,13 @@ done
 
 lemma le_number_of_Suc [simp]:
      "(number_of v <= Suc n) =  
-        (let pv = number_of (pred v) in  
+        (let pv = number_of (Numeral.pred v) in  
          if neg pv then True else nat pv <= n)"
 by (simp add: Let_def less_Suc_number_of linorder_not_less [symmetric])
 
 lemma le_Suc_number_of [simp]:
      "(Suc n <= number_of v) =  
-        (let pv = number_of (pred v) in  
+        (let pv = number_of (Numeral.pred v) in  
          if neg pv then False else n <= nat pv)"
 by (simp add: Let_def less_number_of_Suc linorder_not_less [symmetric])
 

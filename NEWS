@@ -466,8 +466,8 @@ for example "A -> B" => "Pi A (%_. B)".
 *** HOL ***
 
 * Numeral syntax: type 'bin' which was a mere type copy of 'int' has been
-abandoned in favour of plain 'int'. Significant changes for setting up numeral
-syntax for types:
+abandoned in favour of plain 'int'. INCOMPATIBILITY -- Significant changes
+for setting up numeral syntax for types:
 
   - new constants Numeral.pred and Numeral.succ instead
       of former Numeral.bin_pred and Numeral.bin_succ.
@@ -476,8 +476,6 @@ syntax for types:
   - ML structure Bin_Simprocs now named Int_Numeral_Base_Simprocs.
 
 See HOL/Integ/IntArith.thy for an example setup.
-
-INCOMPATIBILITY.
 
 * New top level command 'normal_form' computes the normal form of a term
 that may contain free variables. For example 'normal_form "rev[a,b,c]"'

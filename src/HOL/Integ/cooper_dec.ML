@@ -46,7 +46,7 @@ sig
   val integer_qelim : Term.term -> Term.term
 end;
 
-structure  CooperDec : COOPER_DEC =
+structure CooperDec : COOPER_DEC =
 struct
 
 (* ========================================================================= *) 
@@ -66,12 +66,10 @@ relation operations of Type : [IntInf.int,IntInf.int]---> bool *)
  
 (*Function is_arith_rel returns true if and only if the term is an atomar presburger 
 formula *) 
-fun is_arith_rel tm = case tm of 
-	 Const(p,Type ("fun",[Type ("Numeral.bin", []),Type ("fun",[Type ("Numeral.bin", 
-	 []),Type ("bool",[])] )])) $ _ $_ => true 
-	|Const(p,Type ("fun",[Type ("IntDef.int", []),Type ("fun",[Type ("IntDef.int", 
-	 []),Type ("bool",[])] )])) $ _ $_ => true 
-	|_ => false; 
+fun is_arith_rel tm = case tm
+ of Const(p, Type ("fun", [Type ("IntDef.int", []), Type ("fun", [Type ("IntDef.int", []),
+      Type ("bool", [])])])) $ _ $_ => true
+  | _ => false;
  
 (*Function is_arith_rel returns true if and only if the term is an operation of the 
 form [int,int]---> int*) 

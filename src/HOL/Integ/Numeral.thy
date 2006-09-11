@@ -533,6 +533,6 @@ apply (simp only: compare_rls)
 done
 
 
-hide (open) const Pls Min B0 B1
+hide (open) const Pls Min B0 B1 succ pred
 
 end
