@@ -203,6 +203,14 @@ text {*
   Terms of type @{text "prop"} are called
   propositions.  Logical statements are composed via @{text "\<And>x ::
   \<alpha>. B(x)"} and @{text "A \<Longrightarrow> B"}.
+
+
+  \[
+  \infer{@{text "(\<lambda>x\<^sub>\<tau>. t): \<tau> \<Rightarrow> \<sigma>"}}{@{text "t: \<sigma>"}}
+  \qquad
+  \infer{@{text "(t u): \<sigma>"}}{@{text "t: \<tau> \<Rightarrow> \<sigma>"} & @{text "u: \<tau>"}}
+  \]
+
 *}
 
 
@@ -273,13 +281,56 @@ text.}
 \seeglossary{type variable}.  The distinguishing feature of different
 variables is their binding scope.}
 
-*}
+
+  \[
+  \infer[@{text "(axiom)"}]{@{text "\<turnstile> A"}}{@{text "A \<in> \<Theta>"}}
+  \qquad
+  \infer[@{text "(assume)"}]{@{text "A \<turnstile> A"}}{}
+  \]
+  \[
+  \infer[@{text "(\<And>_intro)"}]{@{text "\<Gamma> \<turnstile> \<And>x. b x"}}{@{text "\<Gamma> \<turnstile> b x"} & @{text "x \<notin> \<Gamma>"}}
+  \qquad
+  \infer[@{text "(\<And>_elim)"}]{@{text "\<Gamma> \<turnstile> b a"}}{@{text "\<Gamma> \<turnstile> \<And>x. b x"}}
+  \]
+  \[
+  \infer[@{text "(\<Longrightarrow>_intro)"}]{@{text "\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
+  \qquad
+  \infer[@{text "(\<Longrightarrow>_elim)"}]{@{text "\<Gamma>\<^sub>1 \<union> \<Gamma>\<^sub>2 \<turnstile> B"}}{@{text "\<Gamma>\<^sub>1 \<turnstile> A \<Longrightarrow> B"} & @{text "\<Gamma>\<^sub>2 \<turnstile> A"}}
+  \]
 
 
-section {* Proof terms *}
+  Admissible rules:
+  \[
+  \infer[@{text "(generalize_type)"}]{@{text "\<Gamma> \<turnstile> B[?\<alpha>]"}}{@{text "\<Gamma> \<turnstile> B[\<alpha>]"} & @{text "\<alpha> \<notin> \<Gamma>"}}
+  \qquad
+  \infer[@{text "(generalize_term)"}]{@{text "\<Gamma> \<turnstile> B[?x]"}}{@{text "\<Gamma> \<turnstile> B[x]"} & @{text "x \<notin> \<Gamma>"}}
+  \]
+  \[
+  \infer[@{text "(instantiate_type)"}]{@{text "\<Gamma> \<turnstile> B[\<tau>]"}}{@{text "\<Gamma> \<turnstile> B[?\<alpha>]"}}
+  \qquad
+  \infer[@{text "(instantiate_term)"}]{@{text "\<Gamma> \<turnstile> B[t]"}}{@{text "\<Gamma> \<turnstile> B[?x]"}}
+  \]
 
-text {*
-  FIXME !?
+  Note that @{text "instantiate_term"} could be derived using @{text
+  "\<And>_intro/elim"}, but this is not how it is implemented.  The type
+  instantiation rule is a genuine admissible one, due to the lack of true
+  polymorphism in the logic.
+
+
+  Equality and logical equivalence:
+
+  \smallskip
+  \begin{tabular}{ll}
+  @{text "\<equiv> :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> prop"} & equality relation (infix) \\
+  @{text "\<turnstile> x \<equiv> x"} & reflexivity law \\
+  @{text "\<turnstile> x \<equiv> y \<Longrightarrow> P x \<Longrightarrow> P y"} & substitution law \\
+  @{text "\<turnstile> (\<And>x. f x \<equiv> g x) \<Longrightarrow> f \<equiv> g"} & extensionality \\
+  @{text "\<turnstile> (A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A \<equiv> B"} & coincidence with equivalence \\
+  \end{tabular}
+  \smallskip
+
+
+
 *}
 
 
@@ -334,6 +385,42 @@ variables}, such that the top-level structure is merely that of a
 
 \glossary{HHF}{See \seeglossary{Hereditary Harrop Formula}.}
 
+
+  \[
+  \infer[@{text "(assumption)"}]{@{text "C\<vartheta>"}}
+  {@{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> A \<^vec>x) \<Longrightarrow> C"} & @{text "A\<vartheta> = H\<^sub>i\<vartheta>"}~~\text{(for some~@{text i})}}
+  \]
+
+
+  \[
+  \infer[@{text "(compose)"}]{@{text "\<^vec>A\<vartheta> \<Longrightarrow> C\<vartheta>"}}
+  {@{text "\<^vec>A \<Longrightarrow> B"} & @{text "B' \<Longrightarrow> C"} & @{text "B\<vartheta> = B'\<vartheta>"}}
+  \]
+
+
+  \[
+  \infer[@{text "(\<And>_lift)"}]{@{text "(\<And>\<^vec>x. \<^vec>A (?\<^vec>a \<^vec>x)) \<Longrightarrow> (\<And>\<^vec>x. B (?\<^vec>a \<^vec>x))"}}{@{text "\<^vec>A ?\<^vec>a \<Longrightarrow> B ?\<^vec>a"}}
+  \]
+  \[
+  \infer[@{text "(\<Longrightarrow>_lift)"}]{@{text "(\<^vec>H \<Longrightarrow> \<^vec>A) \<Longrightarrow> (\<^vec>H \<Longrightarrow> B)"}}{@{text "\<^vec>A \<Longrightarrow> B"}}
+  \]
+
+  The @{text resolve} scheme is now acquired from @{text "\<And>_lift"},
+  @{text "\<Longrightarrow>_lift"}, and @{text compose}.
+
+  \[
+  \infer[@{text "(resolution)"}]
+  {@{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> \<^vec>A (?\<^vec>a \<^vec>x))\<vartheta> \<Longrightarrow> C\<vartheta>"}}
+  {\begin{tabular}{l}
+    @{text "\<^vec>A ?\<^vec>a \<Longrightarrow> B ?\<^vec>a"} \\
+    @{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> B' \<^vec>x) \<Longrightarrow> C"} \\
+    @{text "(\<lambda>\<^vec>x. B (?\<^vec>a \<^vec>x))\<vartheta> = B'\<vartheta>"} \\
+   \end{tabular}}
+  \]
+
+
+  FIXME @{text "elim_resolution"}, @{text "dest_resolution"}
 *}
+
 
 end
