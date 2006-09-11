@@ -200,15 +200,13 @@ text {*
   and application @{text "t u"}, while types are usually implicit
   thanks to type-inference.
 
-  Terms of type @{text "prop"} are called
-  propositions.  Logical statements are composed via @{text "\<And>x ::
-  \<alpha>. B(x)"} and @{text "A \<Longrightarrow> B"}.
-
 
   \[
-  \infer{@{text "(\<lambda>x\<^sub>\<tau>. t): \<tau> \<Rightarrow> \<sigma>"}}{@{text "t: \<sigma>"}}
+  \infer{@{text "a\<^isub>\<tau> :: \<tau>"}}{}
   \qquad
-  \infer{@{text "(t u): \<sigma>"}}{@{text "t: \<tau> \<Rightarrow> \<sigma>"} & @{text "u: \<tau>"}}
+  \infer{@{text "(\<lambda>x\<^sub>\<tau>. t) :: \<tau> \<Rightarrow> \<sigma>"}}{@{text "t :: \<sigma>"}}
+  \qquad
+  \infer{@{text "t u :: \<sigma>"}}{@{text "t :: \<tau> \<Rightarrow> \<sigma>"} & @{text "u :: \<tau>"}}
   \]
 
 *}
@@ -228,60 +226,60 @@ FIXME
 section {* Theorems \label{sec:thms} *}
 
 text {*
+  \glossary{Proposition}{A \seeglossary{term} of \seeglossary{type}
+  @{text "prop"}.  Internally, there is nothing special about
+  propositions apart from their type, but the concrete syntax enforces
+  a clear distinction.  Propositions are structured via implication
+  @{text "A \<Longrightarrow> B"} or universal quantification @{text "\<And>x. B x"} ---
+  anything else is considered atomic.  The canonical form for
+  propositions is that of a \seeglossary{Hereditary Harrop Formula}. FIXME}
 
-  Primitive reasoning operates on judgments of the form @{text "\<Gamma> \<turnstile>
-  \<phi>"}, with standard introduction and elimination rules for @{text
-  "\<And>"} and @{text "\<Longrightarrow>"} that refer to fixed parameters @{text "x"} and
-  hypotheses @{text "A"} from the context @{text "\<Gamma>"}.  The
-  corresponding proof terms are left implicit in the classic
-  ``LCF-approach'', although they could be exploited separately
-  \cite{Berghofer-Nipkow:2000}.
+  \glossary{Theorem}{A proven proposition within a certain theory and
+  proof context, formally @{text "\<Gamma> \<turnstile>\<^sub>\<Theta> \<phi>"}; both contexts are
+  rarely spelled out explicitly.  Theorems are usually normalized
+  according to the \seeglossary{HHF} format. FIXME}
 
-  The framework also provides definitional equality @{text "\<equiv> :: \<alpha> \<Rightarrow> \<alpha>
-  \<Rightarrow> prop"}, with @{text "\<alpha>\<beta>\<eta>"}-conversion rules.  The internal
-  conjunction @{text "& :: prop \<Rightarrow> prop \<Rightarrow> prop"} enables the view of
-  assumptions and conclusions emerging uniformly as simultaneous
-  statements.
+  \glossary{Fact}{Sometimes used interchangably for
+  \seeglossary{theorem}.  Strictly speaking, a list of theorems,
+  essentially an extra-logical conjunction.  Facts emerge either as
+  local assumptions, or as results of local goal statements --- both
+  may be simultaneous, hence the list representation. FIXME}
 
+  \glossary{Schematic variable}{FIXME}
 
+  \glossary{Fixed variable}{A variable that is bound within a certain
+  proof context; an arbitrary-but-fixed entity within a portion of
+  proof text. FIXME}
 
-  FIXME
+  \glossary{Free variable}{Synonymous for \seeglossary{fixed
+  variable}. FIXME}
 
-\glossary{Proposition}{A \seeglossary{term} of \seeglossary{type}
-@{text "prop"}.  Internally, there is nothing special about
-propositions apart from their type, but the concrete syntax enforces a
-clear distinction.  Propositions are structured via implication @{text
-"A \<Longrightarrow> B"} or universal quantification @{text "\<And>x. B x"} --- anything
-else is considered atomic.  The canonical form for propositions is
-that of a \seeglossary{Hereditary Harrop Formula}.}
+  \glossary{Bound variable}{FIXME}
 
-\glossary{Theorem}{A proven proposition within a certain theory and
-proof context, formally @{text "\<Gamma> \<turnstile>\<^sub>\<Theta> \<phi>"}; both contexts are
-rarely spelled out explicitly.  Theorems are usually normalized
-according to the \seeglossary{HHF} format.}
+  \glossary{Variable}{See \seeglossary{schematic variable},
+  \seeglossary{fixed variable}, \seeglossary{bound variable}, or
+  \seeglossary{type variable}.  The distinguishing feature of
+  different variables is their binding scope. FIXME}
 
-\glossary{Fact}{Sometimes used interchangably for
-\seeglossary{theorem}.  Strictly speaking, a list of theorems,
-essentially an extra-logical conjunction.  Facts emerge either as
-local assumptions, or as results of local goal statements --- both may
-be simultaneous, hence the list representation.}
+  A \emph{proposition} is a well-formed term of type @{text "prop"}.
+  The connectives of minimal logic are declared as constants of the
+  basic theory:
 
-\glossary{Schematic variable}{FIXME}
+  \smallskip
+  \begin{tabular}{ll}
+  @{text "all :: (\<alpha> \<Rightarrow> prop) \<Rightarrow> prop"} & universal quantification (binder @{text "\<And>"}) \\
+  @{text "\<Longrightarrow> :: prop \<Rightarrow> prop \<Rightarrow> prop"} & implication (right associative infix) \\
+  \end{tabular}
 
-\glossary{Fixed variable}{A variable that is bound within a certain
-proof context; an arbitrary-but-fixed entity within a portion of proof
-text.}
+  \medskip A \emph{theorem} is a proven proposition, depending on a
+  collection of assumptions, and axioms from the theory context.  The
+  judgment @{text "A\<^isub>1, \<dots>, A\<^isub>n \<turnstile> B"} is defined
+  inductively by the primitive inferences given in
+  \figref{fig:prim-rules}; there is a global syntactic restriction
+  that the hypotheses may not contain schematic variables.
 
-\glossary{Free variable}{Synonymous for \seeglossary{fixed variable}.}
-
-\glossary{Bound variable}{FIXME}
-
-\glossary{Variable}{See \seeglossary{schematic variable},
-\seeglossary{fixed variable}, \seeglossary{bound variable}, or
-\seeglossary{type variable}.  The distinguishing feature of different
-variables is their binding scope.}
-
-
+  \begin{figure}[htb]
+  \begin{center}
   \[
   \infer[@{text "(axiom)"}]{@{text "\<turnstile> A"}}{@{text "A \<in> \<Theta>"}}
   \qquad
@@ -297,40 +295,103 @@ variables is their binding scope.}
   \qquad
   \infer[@{text "(\<Longrightarrow>_elim)"}]{@{text "\<Gamma>\<^sub>1 \<union> \<Gamma>\<^sub>2 \<turnstile> B"}}{@{text "\<Gamma>\<^sub>1 \<turnstile> A \<Longrightarrow> B"} & @{text "\<Gamma>\<^sub>2 \<turnstile> A"}}
   \]
+  \caption{Primitive inferences of the Pure logic}\label{fig:prim-rules}
+  \end{center}
+  \end{figure}
 
+  The introduction and elimination rules for @{text "\<And>"} and @{text
+  "\<Longrightarrow>"} are analogous to formation of (dependently typed) @{text
+  "\<lambda>"}-terms representing the underlying proof objects.  Proof terms
+  are \emph{irrelevant} in the Pure logic, they may never occur within
+  propositions, i.e.\ the @{text "\<Longrightarrow>"} arrow of the framework is a
+  non-dependent one.
 
-  Admissible rules:
+  Also note that fixed parameters as in @{text "\<And>_intro"} need not be
+  recorded in the context @{text "\<Gamma>"}, since syntactic types are
+  always inhabitable.  An ``assumption'' @{text "x :: \<tau>"} is logically
+  vacuous, because @{text "\<tau>"} is always non-empty.  This is the deeper
+  reason why @{text "\<Gamma>"} only consists of hypothetical proofs, but no
+  hypothetical terms.
+
+  The corresponding proof terms are left implicit in the classic
+  ``LCF-approach'', although they could be exploited separately
+  \cite{Berghofer-Nipkow:2000}.  The implementation provides a runtime
+  option to control the generation of full proof terms.
+
+  \medskip The axiomatization of a theory is implicitly closed by
+  forming all instances of type and term variables: @{text "\<turnstile> A\<theta>"} for
+  any substirution instance of axiom @{text "\<turnstile> A"}.  By pushing
+  substitution through derivations inductively, we get admissible
+  substitution rules for theorems shown in \figref{fig:subst-rules}.
+
+  \begin{figure}[htb]
+  \begin{center}
   \[
-  \infer[@{text "(generalize_type)"}]{@{text "\<Gamma> \<turnstile> B[?\<alpha>]"}}{@{text "\<Gamma> \<turnstile> B[\<alpha>]"} & @{text "\<alpha> \<notin> \<Gamma>"}}
-  \qquad
-  \infer[@{text "(generalize_term)"}]{@{text "\<Gamma> \<turnstile> B[?x]"}}{@{text "\<Gamma> \<turnstile> B[x]"} & @{text "x \<notin> \<Gamma>"}}
+  \infer{@{text "\<Gamma> \<turnstile> B[?\<alpha>]"}}{@{text "\<Gamma> \<turnstile> B[\<alpha>]"} & @{text "\<alpha> \<notin> \<Gamma>"}}
+  \quad
+  \infer[\quad@{text "(generalize)"}]{@{text "\<Gamma> \<turnstile> B[?x]"}}{@{text "\<Gamma> \<turnstile> B[x]"} & @{text "x \<notin> \<Gamma>"}}
   \]
   \[
-  \infer[@{text "(instantiate_type)"}]{@{text "\<Gamma> \<turnstile> B[\<tau>]"}}{@{text "\<Gamma> \<turnstile> B[?\<alpha>]"}}
-  \qquad
-  \infer[@{text "(instantiate_term)"}]{@{text "\<Gamma> \<turnstile> B[t]"}}{@{text "\<Gamma> \<turnstile> B[?x]"}}
+  \infer{@{text "\<Gamma> \<turnstile> B[\<tau>]"}}{@{text "\<Gamma> \<turnstile> B[?\<alpha>]"}}
+  \quad
+  \infer[\quad@{text "(instantiate)"}]{@{text "\<Gamma> \<turnstile> B[t]"}}{@{text "\<Gamma> \<turnstile> B[?x]"}}
   \]
+  \caption{Admissible substitution rules}\label{fig:subst-rules}
+  \end{center}
+  \end{figure}
 
   Note that @{text "instantiate_term"} could be derived using @{text
   "\<And>_intro/elim"}, but this is not how it is implemented.  The type
-  instantiation rule is a genuine admissible one, due to the lack of true
-  polymorphism in the logic.
+  instantiation rule is a genuine admissible one, due to the lack of
+  true polymorphism in the logic.
 
+  Since @{text "\<Gamma>"} may never contain any schematic variables, the
+  @{text "instantiate"} do not require an explicit side-condition.  In
+  principle, variables could be substituted in hypotheses as well, but
+  this could disrupt monotonicity of the basic calculus: derivations
+  could leave the current proof context.
 
-  Equality and logical equivalence:
+  \medskip The framework also provides builtin equality @{text "\<equiv>"},
+  which is conceptually axiomatized shown in \figref{fig:equality},
+  although the implementation provides derived rules directly:
 
-  \smallskip
+  \begin{figure}[htb]
+  \begin{center}
   \begin{tabular}{ll}
   @{text "\<equiv> :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> prop"} & equality relation (infix) \\
+  @{text "\<turnstile> (\<lambda>x. b x) a \<equiv> b a"} & @{text "\<beta>"}-conversion \\
   @{text "\<turnstile> x \<equiv> x"} & reflexivity law \\
   @{text "\<turnstile> x \<equiv> y \<Longrightarrow> P x \<Longrightarrow> P y"} & substitution law \\
   @{text "\<turnstile> (\<And>x. f x \<equiv> g x) \<Longrightarrow> f \<equiv> g"} & extensionality \\
   @{text "\<turnstile> (A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A \<equiv> B"} & coincidence with equivalence \\
   \end{tabular}
-  \smallskip
+  \caption{Conceptual axiomatization of equality.}\label{fig:equality}
+  \end{center}
+  \end{figure}
+
+  Since the basic representation of terms already accounts for @{text
+  "\<alpha>"}-conversion, Pure equality essentially acts like @{text
+  "\<alpha>\<beta>\<eta>"}-equivalence on terms, while coinciding with bi-implication.
 
 
+  \medskip Conjunction is defined in Pure as a derived connective, see
+  \figref{fig:conjunction}.  This is occasionally useful to represent
+  simultaneous statements behind the scenes --- framework conjunction
+  is usually not exposed to the user.
 
+  \begin{figure}[htb]
+  \begin{center}
+  \begin{tabular}{ll}
+  @{text "& :: prop \<Rightarrow> prop \<Rightarrow> prop"} & conjunction (hidden) \\
+  @{text "\<turnstile> A & B \<equiv> (\<And>C. (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C)"} \\
+  \end{tabular}
+  \caption{Definition of conjunction.}\label{fig:equality}
+  \end{center}
+  \end{figure}
+
+  The definition allows to derive the usual introduction @{text "\<turnstile> A \<Longrightarrow>
+  B \<Longrightarrow> A & B"}, and destructions @{text "A & B \<Longrightarrow> A"} and @{text "A & B
+  \<Longrightarrow> B"}.
 *}
 
 
