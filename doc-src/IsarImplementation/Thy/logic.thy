@@ -78,11 +78,11 @@ text {*
   notably the right-associative infix @{text "\<alpha> \<Rightarrow> \<beta>"} instead of
   @{text "(\<alpha>, \<beta>)fun"}.
   
-  A \emph{type} is defined inductively over type variables and type
-  constructors as follows: @{text "\<tau> = \<alpha>\<^isub>s | ?\<alpha>\<^isub>s |
-  (\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)k"}.
+  A \emph{type} @{text "\<tau>"} is defined inductively over type variables
+  and type constructors as follows: @{text "\<tau> = \<alpha>\<^isub>s |
+  ?\<alpha>\<^isub>s | (\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)k"}.
 
-  A \emph{type abbreviation} is a syntactic abbreviation @{text
+  A \emph{type abbreviation} is a syntactic definition @{text
   "(\<^vec>\<alpha>)\<kappa> = \<tau>"} of an arbitrary type expression @{text "\<tau>"} over
   variables @{text "\<^vec>\<alpha>"}.  Type abbreviations looks like type
   constructors at the surface, but are fully expanded before entering
@@ -188,19 +188,63 @@ text {*
   \glossary{Term}{FIXME}
 
   The language of terms is that of simply-typed @{text "\<lambda>"}-calculus
-  with de-Bruijn indices for bound variables, and named free
-  variables, and constants.  Terms with loose bound variables are
-  usually considered malformed.  The types of variables and constants
-  is stored explicitly at each occurrence in the term (which is a
-  known performance issue).
+  with de-Bruijn indices for bound variables, and named free variables
+  and constants.  Terms with loose bound variables are usually
+  considered malformed.  The types of variables and constants is
+  stored explicitly at each occurrence in the term.
 
-  FIXME de-Bruijn representation of lambda terms
+  \medskip A \emph{bound variable} is a natural number @{text "b"},
+  which refers to the next binder that is @{text "b"} steps upwards
+  from the occurrence of @{text "b"} (counting from zero).  Bindings
+  may be introduced as abstractions within the term, or as a separate
+  context (an inside-out list).  This associates each bound variable
+  with a type, and a name that is maintained as a comment for parsing
+  and printing.  A \emph{loose variables} is a bound variable that is
+  outside the current scope of local binders or the context.  For
+  example, the de-Bruijn term @{text "\<lambda>\<^isub>\<tau>. \<lambda>\<^isub>\<tau>. 1 + 0"}
+  corresponds to @{text "\<lambda>x\<^isub>\<tau>. \<lambda>y\<^isub>\<tau>. x + y"} in a named
+  representation.  Also note that the very same bound variable may get
+  different numbers at different occurrences.
 
-  Term syntax provides explicit abstraction @{text "\<lambda>x :: \<alpha>. b(x)"}
-  and application @{text "t u"}, while types are usually implicit
-  thanks to type-inference.
+  A \emph{fixed variable} is a pair of a basic name and a type.  For
+  example, @{text "(x, \<tau>)"} which is usually printed @{text
+  "x\<^isub>\<tau>"}.  A \emph{schematic variable} is a pair of an
+  indexname and a type.  For example, @{text "((x, 0), \<tau>)"} which is
+  usually printed as @{text "?x\<^isub>\<tau>"}.
 
+  \medskip A \emph{constant} is a atomic terms consisting of a basic
+  name and a type.  Constants are declared in the context as
+  polymorphic families @{text "c :: \<sigma>"}, meaning that any @{text
+  "c\<^isub>\<tau>"} is a valid constant for all substitution instances
+  @{text "\<tau> \<le> \<sigma>"}.
 
+  The list of \emph{type arguments} of @{text "c\<^isub>\<tau>"} wrt.\ the
+  declaration @{text "c :: \<sigma>"} is the codomain of the type matcher
+  presented in canonical order (according to the left-to-right
+  occurrences of type variables in in @{text "\<sigma>"}).  Thus @{text
+  "c\<^isub>\<tau>"} can be represented more compactly as @{text
+  "c(\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>n)"}.  For example, the instance @{text
+  "plus\<^bsub>nat \<Rightarrow> nat \<Rightarrow> nat\<^esub>"} of some @{text "plus :: \<alpha> \<Rightarrow> \<alpha>
+  \<Rightarrow> \<alpha>"} has the singleton list @{text "nat"} as type arguments, the
+  constant may be represented as @{text "plus(nat)"}.
+
+  Constant declarations @{text "c :: \<sigma>"} may contain sort constraints
+  for type variables in @{text "\<sigma>"}.  These are observed by
+  type-inference as expected, but \emph{ignored} by the core logic.
+  This means the primitive logic is able to reason with instances of
+  polymorphic constants that the user-level type-checker would reject.
+
+  \medskip A \emph{term} @{text "t"} is defined inductively over
+  variables and constants, with abstraction and application as
+  follows: @{text "t = b | x\<^isub>\<tau> | ?x\<^isub>\<tau> | c\<^isub>\<tau> |
+  \<lambda>\<^isub>\<tau>. t | t\<^isub>1 t\<^isub>2"}.  Parsing and printing takes
+  care of converting between an external representation with named
+  bound variables.  Subsequently, we shall use the latter notation
+  instead of internal de-Bruijn representation.
+
+  The subsequent inductive relation @{text "t :: \<tau>"} assigns a
+  (unique) type to a term, using the special type constructor @{text
+  "(\<alpha>, \<beta>)fun"}, which is written @{text "\<alpha> \<Rightarrow> \<beta>"}.
   \[
   \infer{@{text "a\<^isub>\<tau> :: \<tau>"}}{}
   \qquad
@@ -208,18 +252,54 @@ text {*
   \qquad
   \infer{@{text "t u :: \<sigma>"}}{@{text "t :: \<tau> \<Rightarrow> \<sigma>"} & @{text "u :: \<tau>"}}
   \]
+  A \emph{well-typed term} is a term that can be typed according to these rules.
 
+  Typing information can be omitted: type-inference is able to
+  reconstruct the most general type of a raw term, while assigning
+  most general types to all of its variables and constants.
+  Type-inference depends on a context of type constraints for fixed
+  variables, and declarations for polymorphic constants.
+
+  The identity of atomic terms consists both of the name and the type.
+  Thus different entities @{text "c\<^bsub>\<tau>\<^isub>1\<^esub>"} and
+  @{text "c\<^bsub>\<tau>\<^isub>2\<^esub>"} may well identified by type
+  instantiation, by mapping @{text "\<tau>\<^isub>1"} and @{text
+  "\<tau>\<^isub>2"} to the same @{text "\<tau>"}.  Although,
+  different type instances of constants of the same basic name are
+  commonplace, this rarely happens for variables: type-inference
+  always demands ``consistent'' type constraints.
+
+  \medskip The \emph{hidden polymorphism} of a term @{text "t :: \<sigma>"}
+  is the set of type variables occurring in @{text "t"}, but not in
+  @{text "\<sigma>"}.  This means that the term implicitly depends on the
+  values of various type variables that are not visible in the overall
+  type, i.e.\ there are different type instances @{text "t\<vartheta>
+  :: \<sigma>"} and @{text "t\<vartheta>' :: \<sigma>"} with the same type.  This
+  slightly pathological situation is apt to cause strange effects.
+
+  \medskip A \emph{term abbreviation} is a syntactic definition @{text
+  "c\<^isub>\<sigma> \<equiv> t"} of an arbitrary closed term @{text "t"} of type
+  @{text "\<sigma>"} without any hidden polymorphism.  A term abbreviation
+  looks like a constant at the surface, but is fully expanded before
+  entering the logical core.  Abbreviations are usually reverted when
+  printing terms, using rules @{text "t \<rightarrow> c\<^isub>\<sigma>"} has a
+  higher-order term rewrite system.
 *}
 
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type term} \\
+  @{index_ML map_aterms: "(term -> term) -> term -> term"} \\
+  @{index_ML fold_aterms: "(term -> 'a -> 'a) -> term -> 'a -> 'a"} \\
+  @{index_ML fastype_of: "term -> typ"} \\
+  @{index_ML fold_types: "(typ -> 'a -> 'a) -> term -> 'a -> 'a"} \\
+  \end{mldecls}
 
-text {*
+  \begin{description}
 
-FIXME
+  \item @{ML_type term} FIXME
 
-\glossary{Schematic polymorphism}{FIXME}
-
-\glossary{Type variable}{FIXME}
-
+  \end{description}
 *}
 
 
@@ -320,7 +400,7 @@ text {*
 
   \medskip The axiomatization of a theory is implicitly closed by
   forming all instances of type and term variables: @{text "\<turnstile> A\<theta>"} for
-  any substirution instance of axiom @{text "\<turnstile> A"}.  By pushing
+  any substitution instance of axiom @{text "\<turnstile> A"}.  By pushing
   substitution through derivations inductively, we get admissible
   substitution rules for theorems shown in \figref{fig:subst-rules}.
 

@@ -87,10 +87,10 @@ The language of types is an uninterpreted order-sorted first-order
   notably the right-associative infix \isa{{\isasymalpha}\ {\isasymRightarrow}\ {\isasymbeta}} instead of
   \isa{{\isacharparenleft}{\isasymalpha}{\isacharcomma}\ {\isasymbeta}{\isacharparenright}fun}.
   
-  A \emph{type} is defined inductively over type variables and type
-  constructors as follows: \isa{{\isasymtau}\ {\isacharequal}\ {\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharquery}{\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharparenleft}{\isasymtau}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlsub k{\isacharparenright}k}.
+  A \emph{type} \isa{{\isasymtau}} is defined inductively over type variables
+  and type constructors as follows: \isa{{\isasymtau}\ {\isacharequal}\ {\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharquery}{\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharparenleft}{\isasymtau}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlsub k{\isacharparenright}k}.
 
-  A \emph{type abbreviation} is a syntactic abbreviation \isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}{\isasymkappa}\ {\isacharequal}\ {\isasymtau}} of an arbitrary type expression \isa{{\isasymtau}} over
+  A \emph{type abbreviation} is a syntactic definition \isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}{\isasymkappa}\ {\isacharequal}\ {\isasymtau}} of an arbitrary type expression \isa{{\isasymtau}} over
   variables \isa{\isactrlvec {\isasymalpha}}.  Type abbreviations looks like type
   constructors at the surface, but are fully expanded before entering
   the logical core.
@@ -197,37 +197,123 @@ The language of types is an uninterpreted order-sorted first-order
 \glossary{Term}{FIXME}
 
   The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
-  with de-Bruijn indices for bound variables, and named free
-  variables, and constants.  Terms with loose bound variables are
-  usually considered malformed.  The types of variables and constants
-  is stored explicitly at each occurrence in the term (which is a
-  known performance issue).
+  with de-Bruijn indices for bound variables, and named free variables
+  and constants.  Terms with loose bound variables are usually
+  considered malformed.  The types of variables and constants is
+  stored explicitly at each occurrence in the term.
 
-  FIXME de-Bruijn representation of lambda terms
+  \medskip A \emph{bound variable} is a natural number \isa{b},
+  which refers to the next binder that is \isa{b} steps upwards
+  from the occurrence of \isa{b} (counting from zero).  Bindings
+  may be introduced as abstractions within the term, or as a separate
+  context (an inside-out list).  This associates each bound variable
+  with a type, and a name that is maintained as a comment for parsing
+  and printing.  A \emph{loose variables} is a bound variable that is
+  outside the current scope of local binders or the context.  For
+  example, the de-Bruijn term \isa{{\isasymlambda}\isactrlisub {\isasymtau}{\isachardot}\ {\isasymlambda}\isactrlisub {\isasymtau}{\isachardot}\ {\isadigit{1}}\ {\isacharplus}\ {\isadigit{0}}}
+  corresponds to \isa{{\isasymlambda}x\isactrlisub {\isasymtau}{\isachardot}\ {\isasymlambda}y\isactrlisub {\isasymtau}{\isachardot}\ x\ {\isacharplus}\ y} in a named
+  representation.  Also note that the very same bound variable may get
+  different numbers at different occurrences.
 
-  Term syntax provides explicit abstraction \isa{{\isasymlambda}x\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}{\isachardot}\ b{\isacharparenleft}x{\isacharparenright}}
-  and application \isa{t\ u}, while types are usually implicit
-  thanks to type-inference.
+  A \emph{fixed variable} is a pair of a basic name and a type.  For
+  example, \isa{{\isacharparenleft}x{\isacharcomma}\ {\isasymtau}{\isacharparenright}} which is usually printed \isa{x\isactrlisub {\isasymtau}}.  A \emph{schematic variable} is a pair of an
+  indexname and a type.  For example, \isa{{\isacharparenleft}{\isacharparenleft}x{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}{\isacharcomma}\ {\isasymtau}{\isacharparenright}} which is
+  usually printed as \isa{{\isacharquery}x\isactrlisub {\isasymtau}}.
 
+  \medskip A \emph{constant} is a atomic terms consisting of a basic
+  name and a type.  Constants are declared in the context as
+  polymorphic families \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}}, meaning that any \isa{c\isactrlisub {\isasymtau}} is a valid constant for all substitution instances
+  \isa{{\isasymtau}\ {\isasymle}\ {\isasymsigma}}.
 
+  The list of \emph{type arguments} of \isa{c\isactrlisub {\isasymtau}} wrt.\ the
+  declaration \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} is the codomain of the type matcher
+  presented in canonical order (according to the left-to-right
+  occurrences of type variables in in \isa{{\isasymsigma}}).  Thus \isa{c\isactrlisub {\isasymtau}} can be represented more compactly as \isa{c{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub n{\isacharparenright}}.  For example, the instance \isa{plus\isactrlbsub nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat\isactrlesub } of some \isa{plus\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}} has the singleton list \isa{nat} as type arguments, the
+  constant may be represented as \isa{plus{\isacharparenleft}nat{\isacharparenright}}.
+
+  Constant declarations \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} may contain sort constraints
+  for type variables in \isa{{\isasymsigma}}.  These are observed by
+  type-inference as expected, but \emph{ignored} by the core logic.
+  This means the primitive logic is able to reason with instances of
+  polymorphic constants that the user-level type-checker would reject.
+
+  \medskip A \emph{term} \isa{t} is defined inductively over
+  variables and constants, with abstraction and application as
+  follows: \isa{t\ {\isacharequal}\ b\ {\isacharbar}\ x\isactrlisub {\isasymtau}\ {\isacharbar}\ {\isacharquery}x\isactrlisub {\isasymtau}\ {\isacharbar}\ c\isactrlisub {\isasymtau}\ {\isacharbar}\ {\isasymlambda}\isactrlisub {\isasymtau}{\isachardot}\ t\ {\isacharbar}\ t\isactrlisub {\isadigit{1}}\ t\isactrlisub {\isadigit{2}}}.  Parsing and printing takes
+  care of converting between an external representation with named
+  bound variables.  Subsequently, we shall use the latter notation
+  instead of internal de-Bruijn representation.
+
+  The subsequent inductive relation \isa{t\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}} assigns a
+  (unique) type to a term, using the special type constructor \isa{{\isacharparenleft}{\isasymalpha}{\isacharcomma}\ {\isasymbeta}{\isacharparenright}fun}, which is written \isa{{\isasymalpha}\ {\isasymRightarrow}\ {\isasymbeta}}.
   \[
   \infer{\isa{a\isactrlisub {\isasymtau}\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}}{}
   \qquad
   \infer{\isa{{\isacharparenleft}{\isasymlambda}x\isactrlsub {\isasymtau}{\isachardot}\ t{\isacharparenright}\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymsigma}}}{\isa{t\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}}}
   \qquad
   \infer{\isa{t\ u\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}}}{\isa{t\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymsigma}} & \isa{u\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}}
-  \]%
+  \]
+  A \emph{well-typed term} is a term that can be typed according to these rules.
+
+  Typing information can be omitted: type-inference is able to
+  reconstruct the most general type of a raw term, while assigning
+  most general types to all of its variables and constants.
+  Type-inference depends on a context of type constraints for fixed
+  variables, and declarations for polymorphic constants.
+
+  The identity of atomic terms consists both of the name and the type.
+  Thus different entities \isa{c\isactrlbsub {\isasymtau}\isactrlisub {\isadigit{1}}\isactrlesub } and
+  \isa{c\isactrlbsub {\isasymtau}\isactrlisub {\isadigit{2}}\isactrlesub } may well identified by type
+  instantiation, by mapping \isa{{\isasymtau}\isactrlisub {\isadigit{1}}} and \isa{{\isasymtau}\isactrlisub {\isadigit{2}}} to the same \isa{{\isasymtau}}.  Although,
+  different type instances of constants of the same basic name are
+  commonplace, this rarely happens for variables: type-inference
+  always demands ``consistent'' type constraints.
+
+  \medskip The \emph{hidden polymorphism} of a term \isa{t\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}}
+  is the set of type variables occurring in \isa{t}, but not in
+  \isa{{\isasymsigma}}.  This means that the term implicitly depends on the
+  values of various type variables that are not visible in the overall
+  type, i.e.\ there are different type instances \isa{t{\isasymvartheta}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} and \isa{t{\isasymvartheta}{\isacharprime}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} with the same type.  This
+  slightly pathological situation is apt to cause strange effects.
+
+  \medskip A \emph{term abbreviation} is a syntactic definition \isa{c\isactrlisub {\isasymsigma}\ {\isasymequiv}\ t} of an arbitrary closed term \isa{t} of type
+  \isa{{\isasymsigma}} without any hidden polymorphism.  A term abbreviation
+  looks like a constant at the surface, but is fully expanded before
+  entering the logical core.  Abbreviations are usually reverted when
+  printing terms, using rules \isa{t\ {\isasymrightarrow}\ c\isactrlisub {\isasymsigma}} has a
+  higher-order term rewrite system.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
 \begin{isamarkuptext}%
-FIXME
+\begin{mldecls}
+  \indexmltype{term}\verb|type term| \\
+  \indexml{map-aterms}\verb|map_aterms: (term -> term) -> term -> term| \\
+  \indexml{fold-aterms}\verb|fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a| \\
+  \indexml{fastype-of}\verb|fastype_of: term -> typ| \\
+  \indexml{fold-types}\verb|fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a| \\
+  \end{mldecls}
 
-\glossary{Schematic polymorphism}{FIXME}
+  \begin{description}
 
-\glossary{Type variable}{FIXME}%
+  \item \verb|term| FIXME
+
+  \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
 %
 \isamarkupsection{Theorems \label{sec:thms}%
 }
@@ -326,7 +412,7 @@ FIXME
 
   \medskip The axiomatization of a theory is implicitly closed by
   forming all instances of type and term variables: \isa{{\isasymturnstile}\ A{\isasymtheta}} for
-  any substirution instance of axiom \isa{{\isasymturnstile}\ A}.  By pushing
+  any substitution instance of axiom \isa{{\isasymturnstile}\ A}.  By pushing
   substitution through derivations inductively, we get admissible
   substitution rules for theorems shown in \figref{fig:subst-rules}.
 
