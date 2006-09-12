@@ -10,7 +10,7 @@ section {* Specification elements *}
 text FIXME
 
 
-section {* Type-checking specifications *}
+section {* Type-inference *}
 
 text FIXME
 

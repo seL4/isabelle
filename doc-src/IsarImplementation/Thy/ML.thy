@@ -13,7 +13,7 @@ text {* FIXME style guide, see also
 
 chapter {* Basic library functions *}
 
-text {* FIXME beyond the basis library definition *}
+text {* FIXME beyond the NJ basis library proposal *}
 
 
 chapter {* Cookbook *}

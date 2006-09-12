@@ -126,9 +126,9 @@ text %mlref {*
   @{index_ML fold_atyps: "(typ -> 'a -> 'a) -> typ -> 'a -> 'a"} \\
   @{index_ML Sign.subsort: "theory -> sort * sort -> bool"} \\
   @{index_ML Sign.of_sort: "theory -> typ * sort -> bool"} \\
-  @{index_ML Sign.add_types: "(bstring * int * mixfix) list -> theory -> theory"} \\
+  @{index_ML Sign.add_types: "(string * int * mixfix) list -> theory -> theory"} \\
   @{index_ML Sign.add_tyabbrs_i: "
-  (bstring * string list * typ * mixfix) list -> theory -> theory"} \\
+  (string * string list * typ * mixfix) list -> theory -> theory"} \\
   @{index_ML Sign.primitive_class: "string * class list -> theory -> theory"} \\
   @{index_ML Sign.primitive_classrel: "class * class -> theory -> theory"} \\
   @{index_ML Sign.primitive_arity: "arity -> theory -> theory"} \\
@@ -192,11 +192,11 @@ text {*
   \glossary{Term}{FIXME}
 
   The language of terms is that of simply-typed @{text "\<lambda>"}-calculus
-  with de-Bruijn indices for bound variables
-  \cite{debruijn72,paulson-ml2}, and named free variables and
-  constants.  Terms with loose bound variables are usually considered
-  malformed.  The types of variables and constants is stored
-  explicitly at each occurrence in the term.
+  with de-Bruijn indices for bound variables (cf.\ \cite{debruijn72}
+  or \cite{paulson-ml2}), and named free variables and constants.
+  Terms with loose bound variables are usually considered malformed.
+  The types of variables and constants is stored explicitly at each
+  occurrence in the term.
 
   \medskip A \emph{bound variable} is a natural number @{text "b"},
   which refers to the next binder that is @{text "b"} steps upwards
@@ -317,9 +317,9 @@ text %mlref {*
   @{index_ML fastype_of: "term -> typ"} \\
   @{index_ML lambda: "term -> term -> term"} \\
   @{index_ML betapply: "term * term -> term"} \\
-  @{index_ML Sign.add_consts_i: "(bstring * typ * mixfix) list -> theory -> theory"} \\
+  @{index_ML Sign.add_consts_i: "(string * typ * mixfix) list -> theory -> theory"} \\
   @{index_ML Sign.add_abbrevs: "string * bool ->
-  ((bstring * mixfix) * term) list -> theory -> theory"} \\
+  ((string * mixfix) * term) list -> theory -> theory"} \\
   @{index_ML Sign.const_typargs: "theory -> string * typ -> typ list"} \\
   @{index_ML Sign.const_instance: "theory -> string * typ list -> typ"} \\
   \end{mldecls}
@@ -358,11 +358,11 @@ text %mlref {*
 
   \item @{ML lambda}~@{text "a b"} produces an abstraction @{text
   "\<lambda>a. b"}, where occurrences of the original (atomic) term @{text
-  "a"} are replaced by bound variables.
+  "a"} in the body @{text "b"} are replaced by bound variables.
 
   \item @{ML betapply}~@{text "t u"} produces an application @{text "t
-  u"}, with topmost @{text "\<beta>"}-conversion @{text "t"} is an
-  abstraction.
+  u"}, with topmost @{text "\<beta>"}-conversion if @{text "t"} happens to
+  be an abstraction.
 
   \item @{ML Sign.add_consts_i}~@{text "[(c, \<sigma>, mx), \<dots>]"} declares a
   new constant @{text "c :: \<sigma>"} with optional mixfix syntax.
@@ -371,13 +371,11 @@ text %mlref {*
   declares a new term abbreviation @{text "c \<equiv> t"} with optional
   mixfix syntax.
 
-  \item @{ML Sign.const_typargs}~@{text "thy (c, \<tau>)"} produces the
-  type arguments of the instance @{text "c\<^isub>\<tau>"} wrt.\ its
-  declaration in the theory.
-
-  \item @{ML Sign.const_instance}~@{text "thy (c, [\<tau>\<^isub>1, \<dots>,
-  \<tau>\<^isub>n])"} produces the full instance @{text "c(\<tau>\<^isub>1, \<dots>,
-  \<tau>\<^isub>n)"} wrt.\ its declaration in the theory.
+  \item @{ML Sign.const_typargs}~@{text "thy (c, \<tau>)"} and @{ML
+  Sign.const_instance}~@{text "thy (c, [\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>n])"}
+  convert between the two representations of constants, namely full
+  type instance vs.\ compact type arguments form (depending on the
+  most general declaration given in the context).
 
   \end{description}
 *}
@@ -479,7 +477,7 @@ text {*
   option to control the generation of full proof terms.
 
   \medskip The axiomatization of a theory is implicitly closed by
-  forming all instances of type and term variables: @{text "\<turnstile> A\<theta>"} for
+  forming all instances of type and term variables: @{text "\<turnstile> A\<vartheta>"} for
   any substitution instance of axiom @{text "\<turnstile> A"}.  By pushing
   substitution through derivations inductively, we get admissible
   substitution rules for theorems shown in \figref{fig:subst-rules}.

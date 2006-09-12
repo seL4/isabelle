@@ -132,9 +132,9 @@ The language of types is an uninterpreted order-sorted first-order
   \indexml{fold-atyps}\verb|fold_atyps: (typ -> 'a -> 'a) -> typ -> 'a -> 'a| \\
   \indexml{Sign.subsort}\verb|Sign.subsort: theory -> sort * sort -> bool| \\
   \indexml{Sign.of-sort}\verb|Sign.of_sort: theory -> typ * sort -> bool| \\
-  \indexml{Sign.add-types}\verb|Sign.add_types: (bstring * int * mixfix) list -> theory -> theory| \\
+  \indexml{Sign.add-types}\verb|Sign.add_types: (string * int * mixfix) list -> theory -> theory| \\
   \indexml{Sign.add-tyabbrs-i}\verb|Sign.add_tyabbrs_i: |\isasep\isanewline%
-\verb|  (bstring * string list * typ * mixfix) list -> theory -> theory| \\
+\verb|  (string * string list * typ * mixfix) list -> theory -> theory| \\
   \indexml{Sign.primitive-class}\verb|Sign.primitive_class: string * class list -> theory -> theory| \\
   \indexml{Sign.primitive-classrel}\verb|Sign.primitive_classrel: class * class -> theory -> theory| \\
   \indexml{Sign.primitive-arity}\verb|Sign.primitive_arity: arity -> theory -> theory| \\
@@ -201,11 +201,11 @@ The language of types is an uninterpreted order-sorted first-order
 \glossary{Term}{FIXME}
 
   The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
-  with de-Bruijn indices for bound variables
-  \cite{debruijn72,paulson-ml2}, and named free variables and
-  constants.  Terms with loose bound variables are usually considered
-  malformed.  The types of variables and constants is stored
-  explicitly at each occurrence in the term.
+  with de-Bruijn indices for bound variables (cf.\ \cite{debruijn72}
+  or \cite{paulson-ml2}), and named free variables and constants.
+  Terms with loose bound variables are usually considered malformed.
+  The types of variables and constants is stored explicitly at each
+  occurrence in the term.
 
   \medskip A \emph{bound variable} is a natural number \isa{b},
   which refers to the next binder that is \isa{b} steps upwards
@@ -319,9 +319,9 @@ The language of types is an uninterpreted order-sorted first-order
   \indexml{fastype-of}\verb|fastype_of: term -> typ| \\
   \indexml{lambda}\verb|lambda: term -> term -> term| \\
   \indexml{betapply}\verb|betapply: term * term -> term| \\
-  \indexml{Sign.add-consts-i}\verb|Sign.add_consts_i: (bstring * typ * mixfix) list -> theory -> theory| \\
+  \indexml{Sign.add-consts-i}\verb|Sign.add_consts_i: (string * typ * mixfix) list -> theory -> theory| \\
   \indexml{Sign.add-abbrevs}\verb|Sign.add_abbrevs: string * bool ->|\isasep\isanewline%
-\verb|  ((bstring * mixfix) * term) list -> theory -> theory| \\
+\verb|  ((string * mixfix) * term) list -> theory -> theory| \\
   \indexml{Sign.const-typargs}\verb|Sign.const_typargs: theory -> string * typ -> typ list| \\
   \indexml{Sign.const-instance}\verb|Sign.const_instance: theory -> string * typ list -> typ| \\
   \end{mldecls}
@@ -356,10 +356,10 @@ The language of types is an uninterpreted order-sorted first-order
   well-formed term, while omitting any sanity checks.  This operation
   is relatively slow.
 
-  \item \verb|lambda|~\isa{a\ b} produces an abstraction \isa{{\isasymlambda}a{\isachardot}\ b}, where occurrences of the original (atomic) term \isa{a} are replaced by bound variables.
+  \item \verb|lambda|~\isa{a\ b} produces an abstraction \isa{{\isasymlambda}a{\isachardot}\ b}, where occurrences of the original (atomic) term \isa{a} in the body \isa{b} are replaced by bound variables.
 
-  \item \verb|betapply|~\isa{t\ u} produces an application \isa{t\ u}, with topmost \isa{{\isasymbeta}}-conversion \isa{t} is an
-  abstraction.
+  \item \verb|betapply|~\isa{t\ u} produces an application \isa{t\ u}, with topmost \isa{{\isasymbeta}}-conversion if \isa{t} happens to
+  be an abstraction.
 
   \item \verb|Sign.add_consts_i|~\isa{{\isacharbrackleft}{\isacharparenleft}c{\isacharcomma}\ {\isasymsigma}{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}} declares a
   new constant \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} with optional mixfix syntax.
@@ -368,11 +368,10 @@ The language of types is an uninterpreted order-sorted first-order
   declares a new term abbreviation \isa{c\ {\isasymequiv}\ t} with optional
   mixfix syntax.
 
-  \item \verb|Sign.const_typargs|~\isa{thy\ {\isacharparenleft}c{\isacharcomma}\ {\isasymtau}{\isacharparenright}} produces the
-  type arguments of the instance \isa{c\isactrlisub {\isasymtau}} wrt.\ its
-  declaration in the theory.
-
-  \item \verb|Sign.const_instance|~\isa{thy\ {\isacharparenleft}c{\isacharcomma}\ {\isacharbrackleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub n{\isacharbrackright}{\isacharparenright}} produces the full instance \isa{c{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub n{\isacharparenright}} wrt.\ its declaration in the theory.
+  \item \verb|Sign.const_typargs|~\isa{thy\ {\isacharparenleft}c{\isacharcomma}\ {\isasymtau}{\isacharparenright}} and \verb|Sign.const_instance|~\isa{thy\ {\isacharparenleft}c{\isacharcomma}\ {\isacharbrackleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub n{\isacharbrackright}{\isacharparenright}}
+  convert between the two representations of constants, namely full
+  type instance vs.\ compact type arguments form (depending on the
+  most general declaration given in the context).
 
   \end{description}%
 \end{isamarkuptext}%
@@ -481,7 +480,7 @@ The language of types is an uninterpreted order-sorted first-order
   option to control the generation of full proof terms.
 
   \medskip The axiomatization of a theory is implicitly closed by
-  forming all instances of type and term variables: \isa{{\isasymturnstile}\ A{\isasymtheta}} for
+  forming all instances of type and term variables: \isa{{\isasymturnstile}\ A{\isasymvartheta}} for
   any substitution instance of axiom \isa{{\isasymturnstile}\ A}.  By pushing
   substitution through derivations inductively, we get admissible
   substitution rules for theorems shown in \figref{fig:subst-rules}.

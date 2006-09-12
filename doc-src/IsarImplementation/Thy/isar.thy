@@ -5,7 +5,12 @@ theory isar imports base begin
 
 chapter {* Isar proof texts *}
 
-section {* Proof states \label{sec:isar-proof-state} *}
+section {* Proof context *}
+
+text FIXME
+
+
+section {* Proof state \label{sec:isar-proof-state} *}
 
 text {*
   FIXME
