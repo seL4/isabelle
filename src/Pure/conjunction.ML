@@ -74,8 +74,8 @@ fun conv 0 _ = reflexive
 
 local
 
-val A = read "PROP A";
-val B = read "PROP B";
+val A = read "PROP A" and vA = read "PROP ?A";
+val B = read "PROP B" and vB = read "PROP ?B";
 val C = read "PROP C";
 val ABC = read "PROP A ==> PROP B ==> PROP C";
 val A_B = read "PROP ProtoPure.conjunction(A, B)"
@@ -98,14 +98,25 @@ val conjunctionI = Drule.store_standard_thm "conjunctionI"
       (Thm.forall_intr C (Thm.implies_intr ABC
         (Drule.implies_elim_list (Thm.assume ABC) [Thm.assume A, Thm.assume B])))));
 
-fun intr tha thb = thb COMP (tha COMP Drule.incr_indexes2 tha thb conjunctionI);
+fun intr tha thb =
+  Thm.implies_elim
+    (Thm.implies_elim
+      (Thm.instantiate ([], [(vA, Thm.cprop_of tha), (vB, Thm.cprop_of thb)]) conjunctionI)
+    tha)
+  thb;
 
 fun intr_list [] = asm_rl
   | intr_list ths = foldr1 (uncurry intr) ths;
 
 fun elim th =
- (th COMP Drule.incr_indexes th conjunctionD1,
-  th COMP Drule.incr_indexes th conjunctionD2);
+  let
+    val (A, B) = dest_conjunction (Thm.cprop_of th)
+      handle TERM (msg, _) => raise THM (msg, 0, [th]);
+    val inst = Thm.instantiate ([], [(vA, A), (vB, B)]);
+  in
+   (Thm.implies_elim (inst conjunctionD1) th,
+    Thm.implies_elim (inst conjunctionD2) th)
+  end;
 
 (*((A && B) && C) && D && E -- flat*)
 fun elim_list th =
