@@ -158,7 +158,7 @@ lemmas UN_ratrel2 = UN_equiv_class2 [OF equiv_ratrel equiv_ratrel]
 
 subsubsection {* Standard operations on rational numbers *}
 
-instance rat :: "{ord, zero, one, plus, times, minus, inverse}" ..
+instance rat :: "{ord, zero, one, plus, times, minus, inverse, power}" ..
 
 defs (overloaded)
   Zero_rat_def:  "0 == Fract 0 1"
@@ -193,6 +193,10 @@ defs (overloaded)
   less_rat_def: "(z < (w::rat)) == (z \<le> w & z \<noteq> w)"
 
   abs_rat_def: "\<bar>q\<bar> == if q < 0 then -q else (q::rat)"
+
+primrec (rat)
+  rat_power_0:   "q ^ 0       = 1"
+  rat_power_Suc: "q ^ (Suc n) = (q::rat) * (q ^ n)"
 
 lemma zero_rat: "0 = Fract 0 1"
 by (simp add: Zero_rat_def)
@@ -392,6 +396,14 @@ proof
   show "inverse 0 = (0::rat)"
     by (simp add: zero_rat Fract_def inverse_rat_def
                   inverse_congruent UN_ratrel)
+qed
+
+instance rat :: recpower
+proof
+  fix q :: rat
+  fix n :: nat
+  show "q ^ 0 = 1" by simp
+  show "q ^ (Suc n) = q * (q ^ n)" by simp
 qed
 
 
