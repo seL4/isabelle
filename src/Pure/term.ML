@@ -76,7 +76,6 @@ sig
   val it_term_types: (typ * 'a -> 'a) -> term * 'a -> 'a
   val add_term_names: term * string list -> string list
   val aconv: term * term -> bool
-  val aconvs: term list * term list -> bool
   structure Vartab: TABLE
   structure Typtab: TABLE
   structure Termtab: TABLE
@@ -174,25 +173,12 @@ sig
   val eq_var: (indexname * typ) * (indexname * typ) -> bool
   val tvar_ord: (indexname * sort) * (indexname * sort) -> order
   val var_ord: (indexname * typ) * (indexname * typ) -> order
-  val generalize: string list * string list -> int -> term -> term
-  val generalizeT: string list -> int -> typ -> typ
-  val generalize_option: string list * string list -> int -> term -> term option
-  val generalizeT_option: string list -> int -> typ -> typ option
-  val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list
-    -> term -> term
-  val instantiateT: ((indexname * sort) * typ) list -> typ -> typ
-  val instantiate_option: ((indexname * sort) * typ) list * ((indexname * typ) * term) list
-    -> term -> term option
-  val instantiateT_option: ((indexname * sort) * typ) list -> typ -> typ option
   val maxidx_typ: typ -> int -> int
   val maxidx_typs: typ list -> int -> int
   val maxidx_term: term -> int -> int
   val dest_abs: string * typ * term -> string * term
   val declare_term_names: term -> Name.context -> Name.context
   val variant_frees: term -> (string * 'a) list -> (string * 'a) list
-  val zero_var_indexes: term -> term
-  val zero_var_indexes_inst: term ->
-    ((indexname * sort) * typ) list * ((indexname * typ) * term) list
   val dummy_patternN: string
   val dummy_pattern: typ -> term
   val no_dummy_patterns: term -> term
@@ -490,7 +476,17 @@ val add_frees = fold_aterms (fn Free v => insert (op =) v | _ => I);
 
 (** Comparing terms, types, sorts etc. **)
 
-(* fast syntactic comparison *)
+(* alpha equivalence -- tuned for equalities *)
+
+fun tm1 aconv tm2 =
+  pointer_eq (tm1, tm2) orelse
+    (case (tm1, tm2) of
+      (t1 $ u1, t2 $ u2) => t1 aconv t2 andalso u1 aconv u2
+    | (Abs (_, T1, t1), Abs (_, T2, t2)) => t1 aconv t2 andalso T1 = T2
+    | (a1, a2) => a1 = a2);
+
+
+(* fast syntactic ordering -- tuned for inequalities *)
 
 fun fast_indexname_ord ((x, i), (y, j)) =
   (case int_ord (i, j) of EQUAL => fast_string_ord (x, y) | ord => ord);
@@ -562,9 +558,6 @@ fun fast_term_ord tu =
     (case struct_ord tu of
       EQUAL => (case atoms_ord tu of EQUAL => types_ord tu | ord => ord)
     | ord => ord);
-
-fun op aconv tu = (fast_term_ord tu = EQUAL);
-fun aconvs ts_us = (list_ord fast_term_ord ts_us = EQUAL);
 
 structure Vartab = TableFun(type key = indexname val ord = fast_indexname_ord);
 structure Typtab = TableFun(type key = typ val ord = typ_ord);
@@ -955,97 +948,6 @@ fun subst_vars ([], []) tm = tm
       in subst tm end;
 
 
-(* generalization of fixed variables *)
-
-local exception SAME in
-
-fun generalizeT_same [] _ _ = raise SAME
-  | generalizeT_same tfrees idx ty =
-      let
-        fun gen_typ (Type (a, Ts)) = Type (a, gen_typs Ts)
-          | gen_typ (TFree (a, S)) =
-              if member (op =) tfrees a then TVar ((a, idx), S)
-              else raise SAME
-          | gen_typ _ = raise SAME
-        and gen_typs (T :: Ts) =
-            (gen_typ T :: (gen_typs Ts handle SAME => Ts)
-              handle SAME => T :: gen_typs Ts)
-          | gen_typs [] = raise SAME;
-      in gen_typ ty end;
-
-fun generalize_same ([], []) _ _ = raise SAME
-  | generalize_same (tfrees, frees) idx tm =
-      let
-        val genT = generalizeT_same tfrees idx;
-        fun gen (Free (x, T)) =
-              if member (op =) frees x then
-                Var (Name.clean_index (x, idx), genT T handle SAME => T)
-              else Free (x, genT T)
-          | gen (Var (xi, T)) = Var (xi, genT T)
-          | gen (Const (c, T)) = Const (c, genT T)
-          | gen (Bound _) = raise SAME
-          | gen (Abs (x, T, t)) =
-              (Abs (x, genT T, gen t handle SAME => t)
-                handle SAME => Abs (x, T, gen t))
-          | gen (t $ u) = (gen t $ (gen u handle SAME => u) handle SAME => t $ gen u);
-      in gen tm end;
-
-fun generalize names i tm = generalize_same names i tm handle SAME => tm;
-fun generalizeT names i ty = generalizeT_same names i ty handle SAME => ty;
-
-fun generalize_option names i tm = SOME (generalize_same names i tm) handle SAME => NONE;
-fun generalizeT_option names i ty = SOME (generalizeT_same names i ty) handle SAME => NONE;
-
-end;
-
-
-(* instantiation of schematic variables (types before terms) *)
-
-local exception SAME in
-
-fun instantiateT_same [] _ = raise SAME
-  | instantiateT_same instT ty =
-      let
-        fun subst_typ (Type (a, Ts)) = Type (a, subst_typs Ts)
-          | subst_typ (TVar v) =
-              (case AList.lookup eq_tvar instT v of
-                SOME T => T
-              | NONE => raise SAME)
-          | subst_typ _ = raise SAME
-        and subst_typs (T :: Ts) =
-            (subst_typ T :: (subst_typs Ts handle SAME => Ts)
-              handle SAME => T :: subst_typs Ts)
-          | subst_typs [] = raise SAME;
-      in subst_typ ty end;
-
-fun instantiate_same ([], []) _ = raise SAME
-  | instantiate_same (instT, inst) tm =
-      let
-        val substT = instantiateT_same instT;
-        fun subst (Const (c, T)) = Const (c, substT T)
-          | subst (Free (x, T)) = Free (x, substT T)
-          | subst (Var (xi, T)) =
-              let val (T', same) = (substT T, false) handle SAME => (T, true) in
-                (case AList.lookup eq_var inst (xi, T') of
-                   SOME t => t
-                 | NONE => if same then raise SAME else Var (xi, T'))
-              end
-          | subst (Bound _) = raise SAME
-          | subst (Abs (x, T, t)) =
-              (Abs (x, substT T, subst t handle SAME => t)
-                handle SAME => Abs (x, T, subst t))
-          | subst (t $ u) = (subst t $ (subst u handle SAME => u) handle SAME => t $ subst u);
-      in subst tm end;
-
-fun instantiate insts tm = instantiate_same insts tm handle SAME => tm;
-fun instantiateT insts ty = instantiateT_same insts ty handle SAME => ty;
-
-fun instantiate_option insts tm = SOME (instantiate_same insts tm) handle SAME => NONE;
-fun instantiateT_option insts ty = SOME (instantiateT_same insts ty) handle SAME => NONE;
-
-end;
-
-
 (** Identifying first-order terms **)
 
 (*Differs from proofterm/is_fun in its treatment of TVar*)
@@ -1240,25 +1142,6 @@ fun variant_frees t frees =
   fst (Name.variants (map fst frees) (declare_term_names t Name.context)) ~~ map snd frees;
 
 fun rename_wrt_term t frees = rev (variant_frees t frees);  (*reversed result!*)
-
-
-(* zero var indexes *)
-
-fun zero_var_inst vars =
-  fold (fn v as ((x, i), X) => fn (inst, used) =>
-    let
-      val ([x'], used') = Name.variants [if Name.is_bound x then "u" else x] used;
-    in if x = x' andalso i = 0 then (inst, used') else ((v, ((x', 0), X)) :: inst, used') end)
-  vars ([], Name.context) |> #1;
-
-fun zero_var_indexes_inst tm =
-  let
-    val instT = zero_var_inst (sort tvar_ord (add_tvars tm [])) |> map (apsnd TVar);
-    val inst = zero_var_inst (sort var_ord (map (apsnd (instantiateT instT)) (add_vars tm [])))
-      |> map (apsnd Var);
-  in (instT, inst) end;
-
-fun zero_var_indexes tm = instantiate (zero_var_indexes_inst tm) tm;
 
 
 (* dummy patterns *)
