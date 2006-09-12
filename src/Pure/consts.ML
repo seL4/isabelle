@@ -177,7 +177,7 @@ fun instance consts (c, Ts) =
   let
     val declT = declaration consts c;
     val vars = map Term.dest_TVar (typargs consts (c, declT));
-  in declT |> Term.instantiateT (vars ~~ Ts) end;
+  in declT |> TermSubst.instantiateT (vars ~~ Ts) end;
 
 
 

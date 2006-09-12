@@ -40,7 +40,7 @@ fun unify_vartypes thy vars (xi, u) (unifier, maxidx) =
   end;
 
 fun instantiate inst =
-  Term.instantiate ([], map (fn (xi, t) => ((xi, Term.fastype_of t), t)) inst) #>
+  TermSubst.instantiate ([], map (fn (xi, t) => ((xi, Term.fastype_of t), t)) inst) #>
   Envir.beta_norm;
 
 fun make_instT f v =
@@ -88,7 +88,7 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
       end;
 
     val type_insts1 = map readT type_insts;
-    val instT1 = Term.instantiateT type_insts1;
+    val instT1 = TermSubst.instantiateT type_insts1;
     val vars1 = map (apsnd instT1) vars;
 
 

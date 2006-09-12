@@ -322,19 +322,19 @@ fun export_inst inner outer =
 fun exportT_inst inner outer = #1 (export_inst inner outer);
 
 fun exportT_terms inner outer ts =
-  map (Term.generalize (exportT_inst (fold declare_type_occs ts inner) outer, [])
+  map (TermSubst.generalize (exportT_inst (fold declare_type_occs ts inner) outer, [])
     (fold (Term.fold_types Term.maxidx_typ) ts ~1 + 1)) ts;
 
 fun export_terms inner outer ts =
-  map (Term.generalize (export_inst (fold declare_type_occs ts inner) outer)
+  map (TermSubst.generalize (export_inst (fold declare_type_occs ts inner) outer)
     (fold Term.maxidx_term ts ~1 + 1)) ts;
 
 fun export_prf inner outer prf =
   let
     val insts = export_inst (declare_prf prf inner) outer;
     val idx = Proofterm.maxidx_proof prf ~1 + 1;
-    val gen_term = Term.generalize_option insts idx;
-    val gen_typ = Term.generalizeT_option (#1 insts) idx;
+    val gen_term = TermSubst.generalize_option insts idx;
+    val gen_typ = TermSubst.generalizeT_option (#1 insts) idx;
   in Proofterm.map_proof_terms_option gen_term gen_typ prf end;
 
 fun gen_export inst inner outer ths =
@@ -359,18 +359,18 @@ fun import_inst is_open ts ctxt =
   let
     val ren = if is_open then I else Name.internal;
     val (instT, ctxt') = importT_inst ts ctxt;
-    val vars = map (apsnd (Term.instantiateT instT)) (rev (fold Term.add_vars ts []));
+    val vars = map (apsnd (TermSubst.instantiateT instT)) (rev (fold Term.add_vars ts []));
     val (xs, ctxt'') = invent_fixes (map (ren o #1 o #1) vars) ctxt';
     val inst = vars ~~ map Free (xs ~~ map #2 vars);
   in ((instT, inst), ctxt'') end;
 
 fun importT_terms ts ctxt =
   let val (instT, ctxt') = importT_inst ts ctxt
-  in (map (Term.instantiate (instT, [])) ts, ctxt') end;
+  in (map (TermSubst.instantiate (instT, [])) ts, ctxt') end;
 
 fun import_terms is_open ts ctxt =
   let val (inst, ctxt') = import_inst is_open ts ctxt
-  in (map (Term.instantiate inst) ts, ctxt') end;
+  in (map (TermSubst.instantiate inst) ts, ctxt') end;
 
 fun importT ths ctxt =
   let
@@ -472,6 +472,6 @@ fun polymorphic ctxt ts =
     val occs' = type_occs_of ctxt';
     val types = Symtab.fold (fn (a, _) => if Symtab.defined occs a then I else cons a) occs' [];
     val idx = fold (Term.fold_types Term.maxidx_typ) ts ~1 + 1;
-  in map (Term.generalize (types, []) idx) ts end;
+  in map (TermSubst.generalize (types, []) idx) ts end;
 
 end;

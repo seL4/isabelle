@@ -396,7 +396,7 @@ fun zero_var_indexes th =
   let
     val thy = Thm.theory_of_thm th;
     val certT = Thm.ctyp_of thy and cert = Thm.cterm_of thy;
-    val (instT, inst) = Term.zero_var_indexes_inst (Thm.full_prop_of th);
+    val (instT, inst) = TermSubst.zero_var_indexes_inst (Thm.full_prop_of th);
     val cinstT = map (fn (v, T) => (certT (TVar v), certT T)) instT;
     val cinst = map (fn (v, t) => (cert (Var v), cert t)) inst;
   in Thm.adjust_maxidx_thm ~1 (Thm.instantiate (cinstT, cinst) th) end;
@@ -914,7 +914,7 @@ fun unvarify th =
     val instT0 = rev (Term.add_tvars prop []) |> map (fn v as ((a, _), S) => (v, TFree (a, S)));
     val instT = map (fn (v, T) => (certT (TVar v), certT T)) instT0;
     val inst = rev (Term.add_vars prop []) |> map (fn ((a, i), T) =>
-      let val T' = Term.instantiateT instT0 T
+      let val T' = TermSubst.instantiateT instT0 T
       in (cert (Var ((a, i), T')), cert (Free ((a, T')))) end);
   in Thm.instantiate (instT, inst) th end;
 
