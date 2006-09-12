@@ -544,9 +544,9 @@ fun foldr f (l, e) =
 (*  (op @) [x1, ..., xn]  ===>   x1 @ (x2 ... @ (x[n-1] @ xn))
     for n > 0, operators that associate to the right (not tail recursive)*)
 fun foldr1 f [] = raise Empty
-  | foldr1 f l = 
+  | foldr1 f l =
       let fun itr [x] = x
-	    | itr (x::l) = f(x, itr l)
+            | itr (x::l) = f(x, itr l)
       in  itr l  end;
 
 fun fold_index f =
@@ -568,11 +568,11 @@ fun foldl_map f =
 
 (* basic list functions *)
 
-fun eq_list eq (xs, ys) =
+fun eq_list eq (list1, list2) =
   let
-    fun eq' [] [] = true
-      | eq' (x :: xs) (y :: ys) = eq (x, y) andalso eq' xs ys
-  in length xs = length ys andalso eq' xs ys end;
+    fun eq_lst (x :: xs, y :: ys) = eq (x, y) andalso eq_lst (xs, ys)
+      | eq_lst _ = true;
+  in length list1 = length list2 andalso eq_lst (list1, list2) end;
 
 fun maps f [] = []
   | maps f (x :: xs) = f x @ maps f xs;
