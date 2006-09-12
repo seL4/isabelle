@@ -173,10 +173,10 @@ apply (auto dest: real_mult_inverse_cancel simp add: mult_ac)
 done
 
 lemma inverse_real_of_nat_gt_zero [simp]: "0 < inverse (real (Suc n))"
-by auto
+by simp
 
 lemma inverse_real_of_nat_ge_zero [simp]: "0 \<le> inverse (real (Suc n))"
-by auto
+by simp
 
 lemma real_sum_squares_not_zero: "x ~= 0 ==> x * x + y * y ~= (0::real)"
 by (blast dest!: real_sum_squares_cancel)
@@ -186,12 +186,6 @@ by (blast dest!: real_sum_squares_cancel2)
 
 
 subsection {*Various Other Theorems*}
-
-lemma realpow_divide: 
-    "(x/y) ^ n = ((x::real) ^ n/ y ^ n)"
-apply (unfold real_divide_def)
-apply (auto simp add: power_mult_distrib power_inverse)
-done
 
 lemma realpow_two_sum_zero_iff [simp]:
      "(x ^ 2 + y ^ 2 = (0::real)) = (x = 0 & y = 0)"
@@ -231,34 +225,18 @@ lemma real_sq_order:
   fixes x::real
   assumes xgt0: "0 \<le> x" and ygt0: "0 \<le> y" and sq: "x^2 \<le> y^2"
   shows "x \<le> y"
-proof (rule ccontr)
-  assume "\<not>(x \<le> y)"
-  then have ylx: "y < x" by simp
-  hence "y \<le> x" by simp
-  with xgt0 have "x*y \<le> x*x"
-    by (simp add: pordered_comm_semiring_class.mult_mono)
-  moreover
-  have "\<not> (y = 0)"
-  proof
-    assume "y = 0"
-    with ylx have xg0: "0 < x" by simp
-    from xg0 xg0 have "0 < x*x" by (rule real_mult_order)
-    moreover have "y*y = 0" by simp
-    ultimately show False using sq by auto
-  qed
-  with ygt0 have "0 < y" by simp
-  with ylx have "y*y < x*y" by auto
-  ultimately have "y*y < x*x" by simp
-  with sq show False by (auto simp add: power2_eq_square [symmetric])
+proof -
+  from sq have "x ^ Suc (Suc 0) \<le> y ^ Suc (Suc 0)"
+    by (simp only: numeral_2_eq_2)
+  thus "x \<le> y" using xgt0 ygt0
+    by (rule power_le_imp_le_base)
 qed
 
 lemma realpow_num_eq_if: "(m::real) ^ n = (if n=0 then 1 else m * m ^ (n - 1))"
 by (case_tac "n", auto)
 
 lemma real_num_zero_less_two_pow [simp]: "0 < (2::real) ^ (4*d)"
-apply (induct "d")
-apply (auto simp add: realpow_num_eq_if)
-done
+by (simp add: zero_less_power)
 
 lemma lemma_realpow_num_two_mono:
      "x * (4::real)   < y ==> x * (2 ^ 8) < y * (2 ^ 6)"
