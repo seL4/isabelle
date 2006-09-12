@@ -384,13 +384,14 @@ text %mlref {*
 section {* Theorems \label{sec:thms} *}
 
 text {*
-  \glossary{Proposition}{A \seeglossary{term} of \seeglossary{type}
-  @{text "prop"}.  Internally, there is nothing special about
-  propositions apart from their type, but the concrete syntax enforces
-  a clear distinction.  Propositions are structured via implication
-  @{text "A \<Longrightarrow> B"} or universal quantification @{text "\<And>x. B x"} ---
-  anything else is considered atomic.  The canonical form for
-  propositions is that of a \seeglossary{Hereditary Harrop Formula}. FIXME}
+  \glossary{Proposition}{FIXME A \seeglossary{term} of
+  \seeglossary{type} @{text "prop"}.  Internally, there is nothing
+  special about propositions apart from their type, but the concrete
+  syntax enforces a clear distinction.  Propositions are structured
+  via implication @{text "A \<Longrightarrow> B"} or universal quantification @{text
+  "\<And>x. B x"} --- anything else is considered atomic.  The canonical
+  form for propositions is that of a \seeglossary{Hereditary Harrop
+  Formula}. FIXME}
 
   \glossary{Theorem}{A proven proposition within a certain theory and
   proof context, formally @{text "\<Gamma> \<turnstile>\<^sub>\<Theta> \<phi>"}; both contexts are
@@ -419,22 +420,39 @@ text {*
   \seeglossary{type variable}.  The distinguishing feature of
   different variables is their binding scope. FIXME}
 
-  A \emph{proposition} is a well-formed term of type @{text "prop"}.
-  The connectives of minimal logic are declared as constants of the
-  basic theory:
+  A \emph{proposition} is a well-formed term of type @{text "prop"}, a
+  \emph{theorem} is a proven proposition (depending on a context of
+  hypotheses and the background theory).  Primitive inferences include
+  plain natural deduction rules for the primary connectives @{text
+  "\<And>"} and @{text "\<Longrightarrow>"} of the framework.  There are separate (derived)
+  rules for equality/equivalence @{text "\<equiv>"} and internal conjunction
+  @{text "&"}.
+*}
 
-  \smallskip
+subsection {* Standard connectives and rules *}
+
+text {*
+  The basic theory is called @{text "Pure"}, it contains declarations
+  for the standard logical connectives @{text "\<And>"}, @{text "\<Longrightarrow>"}, and
+  @{text "\<equiv>"} of the framework, see \figref{fig:pure-connectives}.
+  The derivability judgment @{text "A\<^isub>1, \<dots>, A\<^isub>n \<turnstile> B"} is
+  defined inductively by the primitive inferences given in
+  \figref{fig:prim-rules}, with the global syntactic restriction that
+  hypotheses may never contain schematic variables.  The builtin
+  equality is conceptually axiomatized shown in
+  \figref{fig:pure-equality}, although the implementation works
+  directly with (derived) inference rules.
+
+  \begin{figure}[htb]
+  \begin{center}
   \begin{tabular}{ll}
   @{text "all :: (\<alpha> \<Rightarrow> prop) \<Rightarrow> prop"} & universal quantification (binder @{text "\<And>"}) \\
   @{text "\<Longrightarrow> :: prop \<Rightarrow> prop \<Rightarrow> prop"} & implication (right associative infix) \\
+  @{text "\<equiv> :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> prop"} & equality relation (infix) \\
   \end{tabular}
-
-  \medskip A \emph{theorem} is a proven proposition, depending on a
-  collection of assumptions, and axioms from the theory context.  The
-  judgment @{text "A\<^isub>1, \<dots>, A\<^isub>n \<turnstile> B"} is defined
-  inductively by the primitive inferences given in
-  \figref{fig:prim-rules}; there is a global syntactic restriction
-  that the hypotheses may not contain schematic variables.
+  \caption{Standard connectives of Pure}\label{fig:pure-connectives}
+  \end{center}
+  \end{figure}
 
   \begin{figure}[htb]
   \begin{center}
@@ -453,7 +471,20 @@ text {*
   \qquad
   \infer[@{text "(\<Longrightarrow>_elim)"}]{@{text "\<Gamma>\<^sub>1 \<union> \<Gamma>\<^sub>2 \<turnstile> B"}}{@{text "\<Gamma>\<^sub>1 \<turnstile> A \<Longrightarrow> B"} & @{text "\<Gamma>\<^sub>2 \<turnstile> A"}}
   \]
-  \caption{Primitive inferences of the Pure logic}\label{fig:prim-rules}
+  \caption{Primitive inferences of Pure}\label{fig:prim-rules}
+  \end{center}
+  \end{figure}
+
+  \begin{figure}[htb]
+  \begin{center}
+  \begin{tabular}{ll}
+  @{text "\<turnstile> (\<lambda>x. b x) a \<equiv> b a"} & @{text "\<beta>"}-conversion \\
+  @{text "\<turnstile> x \<equiv> x"} & reflexivity \\
+  @{text "\<turnstile> x \<equiv> y \<Longrightarrow> P x \<Longrightarrow> P y"} & substitution \\
+  @{text "\<turnstile> (\<And>x. f x \<equiv> g x) \<Longrightarrow> f \<equiv> g"} & extensionality \\
+  @{text "\<turnstile> (A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A \<equiv> B"} & coincidence with equivalence \\
+  \end{tabular}
+  \caption{Conceptual axiomatization of builtin equality}\label{fig:pure-equality}
   \end{center}
   \end{figure}
 
@@ -461,26 +492,35 @@ text {*
   "\<Longrightarrow>"} are analogous to formation of (dependently typed) @{text
   "\<lambda>"}-terms representing the underlying proof objects.  Proof terms
   are \emph{irrelevant} in the Pure logic, they may never occur within
-  propositions, i.e.\ the @{text "\<Longrightarrow>"} arrow of the framework is a
-  non-dependent one.
+  propositions, i.e.\ the @{text "\<Longrightarrow>"} arrow is non-dependent.  The
+  system provides a runtime option to record explicit proof terms for
+  primitive inferences, cf.\ \cite{Berghofer-Nipkow:2000:TPHOL}.  Thus
+  the three-fold @{text "\<lambda>"}-structure can be made explicit.
 
-  Also note that fixed parameters as in @{text "\<And>_intro"} need not be
-  recorded in the context @{text "\<Gamma>"}, since syntactic types are
-  always inhabitable.  An ``assumption'' @{text "x :: \<tau>"} is logically
-  vacuous, because @{text "\<tau>"} is always non-empty.  This is the deeper
-  reason why @{text "\<Gamma>"} only consists of hypothetical proofs, but no
-  hypothetical terms.
+  Observe that locally fixed parameters (as used in rule @{text
+  "\<And>_intro"}) need not be recorded in the hypotheses, because the
+  simple syntactic types of Pure are always inhabitable.  The typing
+  ``assumption'' @{text "x :: \<tau>"} is logically vacuous, it disappears
+  automatically whenever the statement body ceases to mention variable
+  @{text "x\<^isub>\<tau>"}.\footnote{This greatly simplifies many basic
+  reasoning steps, and is the key difference to the formulation of
+  this logic as ``@{text "\<lambda>HOL"}'' in the PTS framework
+  \cite{Barendregt-Geuvers:2001}.}
 
-  The corresponding proof terms are left implicit in the classic
-  ``LCF-approach'', although they could be exploited separately
-  \cite{Berghofer-Nipkow:2000}.  The implementation provides a runtime
-  option to control the generation of full proof terms.
+  \medskip FIXME @{text "\<alpha>\<beta>\<eta>"}-equivalence and primitive definitions
+
+  Since the basic representation of terms already accounts for @{text
+  "\<alpha>"}-conversion, Pure equality essentially acts like @{text
+  "\<alpha>\<beta>\<eta>"}-equivalence on terms, while coinciding with bi-implication.
 
   \medskip The axiomatization of a theory is implicitly closed by
   forming all instances of type and term variables: @{text "\<turnstile> A\<vartheta>"} for
   any substitution instance of axiom @{text "\<turnstile> A"}.  By pushing
   substitution through derivations inductively, we get admissible
   substitution rules for theorems shown in \figref{fig:subst-rules}.
+  Alternatively, the term substitution rules could be derived from
+  @{text "\<And>_intro/elim"}.  The versions for types are genuine
+  admissible rules, due to the lack of true polymorphism in the logic.
 
   \begin{figure}[htb]
   \begin{center}
@@ -498,58 +538,105 @@ text {*
   \end{center}
   \end{figure}
 
-  Note that @{text "instantiate_term"} could be derived using @{text
-  "\<And>_intro/elim"}, but this is not how it is implemented.  The type
-  instantiation rule is a genuine admissible one, due to the lack of
-  true polymorphism in the logic.
-
   Since @{text "\<Gamma>"} may never contain any schematic variables, the
   @{text "instantiate"} do not require an explicit side-condition.  In
   principle, variables could be substituted in hypotheses as well, but
   this could disrupt monotonicity of the basic calculus: derivations
   could leave the current proof context.
+*}
 
-  \medskip The framework also provides builtin equality @{text "\<equiv>"},
-  which is conceptually axiomatized shown in \figref{fig:equality},
-  although the implementation provides derived rules directly:
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type ctyp} \\
+  @{index_ML_type cterm} \\
+  @{index_ML_type thm} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_type ctyp} FIXME
+
+  \item @{ML_type cterm} FIXME
+
+  \item @{ML_type thm} FIXME
+
+  \end{description}
+*}
+
+
+subsection {* Auxiliary connectives *}
+
+text {*
+  Pure also provides various auxiliary connectives based on primitive
+  definitions, see \figref{fig:pure-aux}.  These are normally not
+  exposed to the user, but appear in internal encodings only.
 
   \begin{figure}[htb]
   \begin{center}
   \begin{tabular}{ll}
-  @{text "\<equiv> :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> prop"} & equality relation (infix) \\
-  @{text "\<turnstile> (\<lambda>x. b x) a \<equiv> b a"} & @{text "\<beta>"}-conversion \\
-  @{text "\<turnstile> x \<equiv> x"} & reflexivity law \\
-  @{text "\<turnstile> x \<equiv> y \<Longrightarrow> P x \<Longrightarrow> P y"} & substitution law \\
-  @{text "\<turnstile> (\<And>x. f x \<equiv> g x) \<Longrightarrow> f \<equiv> g"} & extensionality \\
-  @{text "\<turnstile> (A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A \<equiv> B"} & coincidence with equivalence \\
+  @{text "conjunction :: prop \<Rightarrow> prop \<Rightarrow> prop"} & (infix @{text "&"}) \\
+  @{text "\<turnstile> A & B \<equiv> (\<And>C. (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C)"} \\[1ex]
+  @{text "prop :: prop \<Rightarrow> prop"} & (prefix @{text "#"}) \\
+  @{text "#A \<equiv> A"} \\[1ex]
+  @{text "term :: \<alpha> \<Rightarrow> prop"} & (prefix @{text "TERM"}) \\
+  @{text "term x \<equiv> (\<And>A. A \<Longrightarrow> A)"} \\[1ex]
+  @{text "TYPE :: \<alpha> itself"} & (prefix @{text "TYPE"}) \\
+  @{text "(unspecified)"} \\
   \end{tabular}
-  \caption{Conceptual axiomatization of equality.}\label{fig:equality}
+  \caption{Definitions of auxiliary connectives}\label{fig:pure-aux}
   \end{center}
   \end{figure}
 
-  Since the basic representation of terms already accounts for @{text
-  "\<alpha>"}-conversion, Pure equality essentially acts like @{text
-  "\<alpha>\<beta>\<eta>"}-equivalence on terms, while coinciding with bi-implication.
+  Conjunction as an explicit connective allows to treat both
+  simultaneous assumptions and conclusions uniformly.  The definition
+  allows to derive the usual introduction @{text "\<turnstile> A \<Longrightarrow> B \<Longrightarrow> A & B"},
+  and destructions @{text "A & B \<Longrightarrow> A"} and @{text "A & B \<Longrightarrow> B"}.  For
+  example, several claims may be stated at the same time, which is
+  intermediately represented as an assumption, but the user only
+  encounters several sub-goals, and several resulting facts in the
+  very end (cf.\ \secref{sec:tactical-goals}).
 
+  The @{text "#"} marker allows complex propositions (nested @{text
+  "\<And>"} and @{text "\<Longrightarrow>"}) to appear formally as atomic, without changing
+  the meaning: @{text "\<Gamma> \<turnstile> A"} and @{text "\<Gamma> \<turnstile> #A"} are
+  interchangeable.  See \secref{sec:tactical-goals} for specific
+  operations.
 
-  \medskip Conjunction is defined in Pure as a derived connective, see
-  \figref{fig:conjunction}.  This is occasionally useful to represent
-  simultaneous statements behind the scenes --- framework conjunction
-  is usually not exposed to the user.
+  The @{text "TERM"} marker turns any well-formed term into a
+  derivable proposition: @{text "\<turnstile> TERM t"} holds
+  unconditionally.  Despite its logically vacous meaning, this is
+  occasionally useful to treat syntactic terms and proven propositions
+  uniformly, as in a type-theoretic framework.
 
-  \begin{figure}[htb]
-  \begin{center}
-  \begin{tabular}{ll}
-  @{text "& :: prop \<Rightarrow> prop \<Rightarrow> prop"} & conjunction (hidden) \\
-  @{text "\<turnstile> A & B \<equiv> (\<And>C. (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C)"} \\
-  \end{tabular}
-  \caption{Definition of conjunction.}\label{fig:equality}
-  \end{center}
-  \end{figure}
+  The @{text "TYPE"} constructor (which is the canonical
+  representative of the unspecified type @{text "\<alpha> itself"}) injects
+  the language of types into that of terms.  There is specific
+  notation @{text "TYPE(\<tau>)"} for @{text "TYPE\<^bsub>\<tau>
+ itself\<^esub>"}.
+  Although being devoid of any particular meaning, the term @{text
+  "TYPE(\<tau>)"} is able to carry the type @{text "\<tau>"} formally.  @{text
+  "TYPE(\<alpha>)"} may be used as an additional formal argument in primitive
+  definitions, in order to avoid hidden polymorphism (cf.\
+  \secref{sec:terms}).  For example, @{text "c TYPE(\<alpha>) \<equiv> A[\<alpha>]"} turns
+  out as a formally correct definition of some proposition @{text "A"}
+  that depends on an additional type argument.
+*}
 
-  The definition allows to derive the usual introduction @{text "\<turnstile> A \<Longrightarrow>
-  B \<Longrightarrow> A & B"}, and destructions @{text "A & B \<Longrightarrow> A"} and @{text "A & B
-  \<Longrightarrow> B"}.
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML Conjunction.intr: "thm -> thm -> thm"} \\
+  @{index_ML Conjunction.elim: "thm -> thm * thm"} \\
+  @{index_ML Drule.mk_term: "cterm -> thm"} \\
+  @{index_ML Drule.dest_term: "thm -> cterm"} \\
+  @{index_ML Logic.mk_type: "typ -> term"} \\
+  @{index_ML Logic.dest_type: "term -> typ"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item FIXME
+
+  \end{description}
 *}
 
 

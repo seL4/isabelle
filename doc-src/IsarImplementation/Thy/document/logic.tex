@@ -389,13 +389,13 @@ The language of types is an uninterpreted order-sorted first-order
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\glossary{Proposition}{A \seeglossary{term} of \seeglossary{type}
-  \isa{prop}.  Internally, there is nothing special about
-  propositions apart from their type, but the concrete syntax enforces
-  a clear distinction.  Propositions are structured via implication
-  \isa{A\ {\isasymLongrightarrow}\ B} or universal quantification \isa{{\isasymAnd}x{\isachardot}\ B\ x} ---
-  anything else is considered atomic.  The canonical form for
-  propositions is that of a \seeglossary{Hereditary Harrop Formula}. FIXME}
+\glossary{Proposition}{FIXME A \seeglossary{term} of
+  \seeglossary{type} \isa{prop}.  Internally, there is nothing
+  special about propositions apart from their type, but the concrete
+  syntax enforces a clear distinction.  Propositions are structured
+  via implication \isa{A\ {\isasymLongrightarrow}\ B} or universal quantification \isa{{\isasymAnd}x{\isachardot}\ B\ x} --- anything else is considered atomic.  The canonical
+  form for propositions is that of a \seeglossary{Hereditary Harrop
+  Formula}. FIXME}
 
   \glossary{Theorem}{A proven proposition within a certain theory and
   proof context, formally \isa{{\isasymGamma}\ {\isasymturnstile}\isactrlsub {\isasymTheta}\ {\isasymphi}}; both contexts are
@@ -424,22 +424,41 @@ The language of types is an uninterpreted order-sorted first-order
   \seeglossary{type variable}.  The distinguishing feature of
   different variables is their binding scope. FIXME}
 
-  A \emph{proposition} is a well-formed term of type \isa{prop}.
-  The connectives of minimal logic are declared as constants of the
-  basic theory:
+  A \emph{proposition} is a well-formed term of type \isa{prop}, a
+  \emph{theorem} is a proven proposition (depending on a context of
+  hypotheses and the background theory).  Primitive inferences include
+  plain natural deduction rules for the primary connectives \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} of the framework.  There are separate (derived)
+  rules for equality/equivalence \isa{{\isasymequiv}} and internal conjunction
+  \isa{{\isacharampersand}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Standard connectives and rules%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The basic theory is called \isa{Pure}, it contains declarations
+  for the standard logical connectives \isa{{\isasymAnd}}, \isa{{\isasymLongrightarrow}}, and
+  \isa{{\isasymequiv}} of the framework, see \figref{fig:pure-connectives}.
+  The derivability judgment \isa{A\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlisub n\ {\isasymturnstile}\ B} is
+  defined inductively by the primitive inferences given in
+  \figref{fig:prim-rules}, with the global syntactic restriction that
+  hypotheses may never contain schematic variables.  The builtin
+  equality is conceptually axiomatized shown in
+  \figref{fig:pure-equality}, although the implementation works
+  directly with (derived) inference rules.
 
-  \smallskip
+  \begin{figure}[htb]
+  \begin{center}
   \begin{tabular}{ll}
   \isa{all\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}{\isasymalpha}\ {\isasymRightarrow}\ prop{\isacharparenright}\ {\isasymRightarrow}\ prop} & universal quantification (binder \isa{{\isasymAnd}}) \\
   \isa{{\isasymLongrightarrow}\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop\ {\isasymRightarrow}\ prop} & implication (right associative infix) \\
+  \isa{{\isasymequiv}\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ prop} & equality relation (infix) \\
   \end{tabular}
-
-  \medskip A \emph{theorem} is a proven proposition, depending on a
-  collection of assumptions, and axioms from the theory context.  The
-  judgment \isa{A\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlisub n\ {\isasymturnstile}\ B} is defined
-  inductively by the primitive inferences given in
-  \figref{fig:prim-rules}; there is a global syntactic restriction
-  that the hypotheses may not contain schematic variables.
+  \caption{Standard connectives of Pure}\label{fig:pure-connectives}
+  \end{center}
+  \end{figure}
 
   \begin{figure}[htb]
   \begin{center}
@@ -458,32 +477,51 @@ The language of types is an uninterpreted order-sorted first-order
   \qquad
   \infer[\isa{{\isacharparenleft}{\isasymLongrightarrow}{\isacharunderscore}elim{\isacharparenright}}]{\isa{{\isasymGamma}\isactrlsub {\isadigit{1}}\ {\isasymunion}\ {\isasymGamma}\isactrlsub {\isadigit{2}}\ {\isasymturnstile}\ B}}{\isa{{\isasymGamma}\isactrlsub {\isadigit{1}}\ {\isasymturnstile}\ A\ {\isasymLongrightarrow}\ B} & \isa{{\isasymGamma}\isactrlsub {\isadigit{2}}\ {\isasymturnstile}\ A}}
   \]
-  \caption{Primitive inferences of the Pure logic}\label{fig:prim-rules}
+  \caption{Primitive inferences of Pure}\label{fig:prim-rules}
+  \end{center}
+  \end{figure}
+
+  \begin{figure}[htb]
+  \begin{center}
+  \begin{tabular}{ll}
+  \isa{{\isasymturnstile}\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ b\ x{\isacharparenright}\ a\ {\isasymequiv}\ b\ a} & \isa{{\isasymbeta}}-conversion \\
+  \isa{{\isasymturnstile}\ x\ {\isasymequiv}\ x} & reflexivity \\
+  \isa{{\isasymturnstile}\ x\ {\isasymequiv}\ y\ {\isasymLongrightarrow}\ P\ x\ {\isasymLongrightarrow}\ P\ y} & substitution \\
+  \isa{{\isasymturnstile}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ f\ x\ {\isasymequiv}\ g\ x{\isacharparenright}\ {\isasymLongrightarrow}\ f\ {\isasymequiv}\ g} & extensionality \\
+  \isa{{\isasymturnstile}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}B\ {\isasymLongrightarrow}\ A{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymequiv}\ B} & coincidence with equivalence \\
+  \end{tabular}
+  \caption{Conceptual axiomatization of builtin equality}\label{fig:pure-equality}
   \end{center}
   \end{figure}
 
   The introduction and elimination rules for \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} are analogous to formation of (dependently typed) \isa{{\isasymlambda}}-terms representing the underlying proof objects.  Proof terms
   are \emph{irrelevant} in the Pure logic, they may never occur within
-  propositions, i.e.\ the \isa{{\isasymLongrightarrow}} arrow of the framework is a
-  non-dependent one.
+  propositions, i.e.\ the \isa{{\isasymLongrightarrow}} arrow is non-dependent.  The
+  system provides a runtime option to record explicit proof terms for
+  primitive inferences, cf.\ \cite{Berghofer-Nipkow:2000:TPHOL}.  Thus
+  the three-fold \isa{{\isasymlambda}}-structure can be made explicit.
 
-  Also note that fixed parameters as in \isa{{\isasymAnd}{\isacharunderscore}intro} need not be
-  recorded in the context \isa{{\isasymGamma}}, since syntactic types are
-  always inhabitable.  An ``assumption'' \isa{x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}} is logically
-  vacuous, because \isa{{\isasymtau}} is always non-empty.  This is the deeper
-  reason why \isa{{\isasymGamma}} only consists of hypothetical proofs, but no
-  hypothetical terms.
+  Observe that locally fixed parameters (as used in rule \isa{{\isasymAnd}{\isacharunderscore}intro}) need not be recorded in the hypotheses, because the
+  simple syntactic types of Pure are always inhabitable.  The typing
+  ``assumption'' \isa{x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}} is logically vacuous, it disappears
+  automatically whenever the statement body ceases to mention variable
+  \isa{x\isactrlisub {\isasymtau}}.\footnote{This greatly simplifies many basic
+  reasoning steps, and is the key difference to the formulation of
+  this logic as ``\isa{{\isasymlambda}HOL}'' in the PTS framework
+  \cite{Barendregt-Geuvers:2001}.}
 
-  The corresponding proof terms are left implicit in the classic
-  ``LCF-approach'', although they could be exploited separately
-  \cite{Berghofer-Nipkow:2000}.  The implementation provides a runtime
-  option to control the generation of full proof terms.
+  \medskip FIXME \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-equivalence and primitive definitions
+
+  Since the basic representation of terms already accounts for \isa{{\isasymalpha}}-conversion, Pure equality essentially acts like \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-equivalence on terms, while coinciding with bi-implication.
 
   \medskip The axiomatization of a theory is implicitly closed by
   forming all instances of type and term variables: \isa{{\isasymturnstile}\ A{\isasymvartheta}} for
   any substitution instance of axiom \isa{{\isasymturnstile}\ A}.  By pushing
   substitution through derivations inductively, we get admissible
   substitution rules for theorems shown in \figref{fig:subst-rules}.
+  Alternatively, the term substitution rules could be derived from
+  \isa{{\isasymAnd}{\isacharunderscore}intro{\isacharslash}elim}.  The versions for types are genuine
+  admissible rules, due to the lack of true polymorphism in the logic.
 
   \begin{figure}[htb]
   \begin{center}
@@ -501,55 +539,133 @@ The language of types is an uninterpreted order-sorted first-order
   \end{center}
   \end{figure}
 
-  Note that \isa{instantiate{\isacharunderscore}term} could be derived using \isa{{\isasymAnd}{\isacharunderscore}intro{\isacharslash}elim}, but this is not how it is implemented.  The type
-  instantiation rule is a genuine admissible one, due to the lack of
-  true polymorphism in the logic.
-
   Since \isa{{\isasymGamma}} may never contain any schematic variables, the
   \isa{instantiate} do not require an explicit side-condition.  In
   principle, variables could be substituted in hypotheses as well, but
   this could disrupt monotonicity of the basic calculus: derivations
-  could leave the current proof context.
-
-  \medskip The framework also provides builtin equality \isa{{\isasymequiv}},
-  which is conceptually axiomatized shown in \figref{fig:equality},
-  although the implementation provides derived rules directly:
-
-  \begin{figure}[htb]
-  \begin{center}
-  \begin{tabular}{ll}
-  \isa{{\isasymequiv}\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ prop} & equality relation (infix) \\
-  \isa{{\isasymturnstile}\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ b\ x{\isacharparenright}\ a\ {\isasymequiv}\ b\ a} & \isa{{\isasymbeta}}-conversion \\
-  \isa{{\isasymturnstile}\ x\ {\isasymequiv}\ x} & reflexivity law \\
-  \isa{{\isasymturnstile}\ x\ {\isasymequiv}\ y\ {\isasymLongrightarrow}\ P\ x\ {\isasymLongrightarrow}\ P\ y} & substitution law \\
-  \isa{{\isasymturnstile}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ f\ x\ {\isasymequiv}\ g\ x{\isacharparenright}\ {\isasymLongrightarrow}\ f\ {\isasymequiv}\ g} & extensionality \\
-  \isa{{\isasymturnstile}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}B\ {\isasymLongrightarrow}\ A{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymequiv}\ B} & coincidence with equivalence \\
-  \end{tabular}
-  \caption{Conceptual axiomatization of equality.}\label{fig:equality}
-  \end{center}
-  \end{figure}
-
-  Since the basic representation of terms already accounts for \isa{{\isasymalpha}}-conversion, Pure equality essentially acts like \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-equivalence on terms, while coinciding with bi-implication.
-
-
-  \medskip Conjunction is defined in Pure as a derived connective, see
-  \figref{fig:conjunction}.  This is occasionally useful to represent
-  simultaneous statements behind the scenes --- framework conjunction
-  is usually not exposed to the user.
-
-  \begin{figure}[htb]
-  \begin{center}
-  \begin{tabular}{ll}
-  \isa{{\isacharampersand}\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop\ {\isasymRightarrow}\ prop} & conjunction (hidden) \\
-  \isa{{\isasymturnstile}\ A\ {\isacharampersand}\ B\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}C{\isachardot}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isacharparenright}} \\
-  \end{tabular}
-  \caption{Definition of conjunction.}\label{fig:equality}
-  \end{center}
-  \end{figure}
-
-  The definition allows to derive the usual introduction \isa{{\isasymturnstile}\ A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ A\ {\isacharampersand}\ B}, and destructions \isa{A\ {\isacharampersand}\ B\ {\isasymLongrightarrow}\ A} and \isa{A\ {\isacharampersand}\ B\ {\isasymLongrightarrow}\ B}.%
+  could leave the current proof context.%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexmltype{ctyp}\verb|type ctyp| \\
+  \indexmltype{cterm}\verb|type cterm| \\
+  \indexmltype{thm}\verb|type thm| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|ctyp| FIXME
+
+  \item \verb|cterm| FIXME
+
+  \item \verb|thm| FIXME
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsubsection{Auxiliary connectives%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Pure also provides various auxiliary connectives based on primitive
+  definitions, see \figref{fig:pure-aux}.  These are normally not
+  exposed to the user, but appear in internal encodings only.
+
+  \begin{figure}[htb]
+  \begin{center}
+  \begin{tabular}{ll}
+  \isa{conjunction\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop\ {\isasymRightarrow}\ prop} & (infix \isa{{\isacharampersand}}) \\
+  \isa{{\isasymturnstile}\ A\ {\isacharampersand}\ B\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}C{\isachardot}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isacharparenright}} \\[1ex]
+  \isa{prop\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop} & (prefix \isa{{\isacharhash}}) \\
+  \isa{{\isacharhash}A\ {\isasymequiv}\ A} \\[1ex]
+  \isa{term\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ prop} & (prefix \isa{TERM}) \\
+  \isa{term\ x\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}A{\isachardot}\ A\ {\isasymLongrightarrow}\ A{\isacharparenright}} \\[1ex]
+  \isa{TYPE\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ itself} & (prefix \isa{TYPE}) \\
+  \isa{{\isacharparenleft}unspecified{\isacharparenright}} \\
+  \end{tabular}
+  \caption{Definitions of auxiliary connectives}\label{fig:pure-aux}
+  \end{center}
+  \end{figure}
+
+  Conjunction as an explicit connective allows to treat both
+  simultaneous assumptions and conclusions uniformly.  The definition
+  allows to derive the usual introduction \isa{{\isasymturnstile}\ A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ A\ {\isacharampersand}\ B},
+  and destructions \isa{A\ {\isacharampersand}\ B\ {\isasymLongrightarrow}\ A} and \isa{A\ {\isacharampersand}\ B\ {\isasymLongrightarrow}\ B}.  For
+  example, several claims may be stated at the same time, which is
+  intermediately represented as an assumption, but the user only
+  encounters several sub-goals, and several resulting facts in the
+  very end (cf.\ \secref{sec:tactical-goals}).
+
+  The \isa{{\isacharhash}} marker allows complex propositions (nested \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}}) to appear formally as atomic, without changing
+  the meaning: \isa{{\isasymGamma}\ {\isasymturnstile}\ A} and \isa{{\isasymGamma}\ {\isasymturnstile}\ {\isacharhash}A} are
+  interchangeable.  See \secref{sec:tactical-goals} for specific
+  operations.
+
+  The \isa{TERM} marker turns any well-formed term into a
+  derivable proposition: \isa{{\isasymturnstile}\ TERM\ t} holds
+  unconditionally.  Despite its logically vacous meaning, this is
+  occasionally useful to treat syntactic terms and proven propositions
+  uniformly, as in a type-theoretic framework.
+
+  The \isa{TYPE} constructor (which is the canonical
+  representative of the unspecified type \isa{{\isasymalpha}\ itself}) injects
+  the language of types into that of terms.  There is specific
+  notation \isa{TYPE{\isacharparenleft}{\isasymtau}{\isacharparenright}} for \isa{TYPE\isactrlbsub {\isasymtau}\ itself\isactrlesub }.
+  Although being devoid of any particular meaning, the term \isa{TYPE{\isacharparenleft}{\isasymtau}{\isacharparenright}} is able to carry the type \isa{{\isasymtau}} formally.  \isa{TYPE{\isacharparenleft}{\isasymalpha}{\isacharparenright}} may be used as an additional formal argument in primitive
+  definitions, in order to avoid hidden polymorphism (cf.\
+  \secref{sec:terms}).  For example, \isa{c\ TYPE{\isacharparenleft}{\isasymalpha}{\isacharparenright}\ {\isasymequiv}\ A{\isacharbrackleft}{\isasymalpha}{\isacharbrackright}} turns
+  out as a formally correct definition of some proposition \isa{A}
+  that depends on an additional type argument.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexml{Conjunction.intr}\verb|Conjunction.intr: thm -> thm -> thm| \\
+  \indexml{Conjunction.elim}\verb|Conjunction.elim: thm -> thm * thm| \\
+  \indexml{Drule.mk-term}\verb|Drule.mk_term: cterm -> thm| \\
+  \indexml{Drule.dest-term}\verb|Drule.dest_term: thm -> cterm| \\
+  \indexml{Logic.mk-type}\verb|Logic.mk_type: typ -> term| \\
+  \indexml{Logic.dest-type}\verb|Logic.dest_type: term -> typ| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item FIXME
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
 %
 \isamarkupsection{Rules \label{sec:rules}%
 }
