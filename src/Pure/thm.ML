@@ -15,6 +15,7 @@ signature BASIC_THM =
    {thy: theory,
     sign: theory,       (*obsolete*)
     T: typ,
+    maxidx: int,
     sorts: sort list}
   val theory_of_ctyp: ctyp -> theory
   val typ_of: ctyp -> typ
@@ -186,26 +187,34 @@ fun may_insert_env_sorts thy (env as Envir.Envir {iTs, ...}) =
 
 (** certified types **)
 
-datatype ctyp = Ctyp of {thy_ref: theory_ref, T: typ, sorts: sort list};
+datatype ctyp = Ctyp of
+ {thy_ref: theory_ref,
+  T: typ,
+  maxidx: int,
+  sorts: sort list};
 
-fun rep_ctyp (Ctyp {thy_ref, T, sorts}) =
+fun rep_ctyp (Ctyp {thy_ref, T, maxidx, sorts}) =
   let val thy = Theory.deref thy_ref
-  in {thy = thy, sign = thy, T = T, sorts = sorts} end;
+  in {thy = thy, sign = thy, T = T, maxidx = maxidx, sorts = sorts} end;
 
 fun theory_of_ctyp (Ctyp {thy_ref, ...}) = Theory.deref thy_ref;
 
 fun typ_of (Ctyp {T, ...}) = T;
 
 fun ctyp_of thy raw_T =
-  let val T = Sign.certify_typ thy raw_T
-  in Ctyp {thy_ref = Theory.self_ref thy, T = T, sorts = may_insert_typ_sorts thy T []} end;
+  let val T = Sign.certify_typ thy raw_T in
+    Ctyp {thy_ref = Theory.self_ref thy, T = T,
+      maxidx = Term.maxidx_of_typ T, sorts = may_insert_typ_sorts thy T []}
+  end;
 
 fun read_ctyp thy s =
-  let val T = Sign.read_typ (thy, K NONE) s
-  in Ctyp {thy_ref = Theory.self_ref thy, T = T, sorts = may_insert_typ_sorts thy T []} end;
+  let val T = Sign.read_typ (thy, K NONE) s in
+    Ctyp {thy_ref = Theory.self_ref thy, T = T,
+      maxidx = Term.maxidx_of_typ T, sorts = may_insert_typ_sorts thy T []}
+  end;
 
-fun dest_ctyp (Ctyp {thy_ref, T = Type (s, Ts), sorts}) =
-      map (fn T => Ctyp {thy_ref = thy_ref, T = T, sorts = sorts}) Ts
+fun dest_ctyp (Ctyp {thy_ref, T = Type (s, Ts), maxidx, sorts}) =
+      map (fn T => Ctyp {thy_ref = thy_ref, T = T, maxidx = maxidx, sorts = sorts}) Ts
   | dest_ctyp cT = raise TYPE ("dest_ctyp", [typ_of cT], []);
 
 
@@ -228,15 +237,16 @@ fun rep_cterm (Cterm {thy_ref, t, T, maxidx, sorts}) =
 
 fun crep_cterm (Cterm {thy_ref, t, T, maxidx, sorts}) =
   let val thy = Theory.deref thy_ref in
-   {thy = thy, sign = thy, t = t, T = Ctyp {thy_ref = thy_ref, T = T, sorts = sorts},
+   {thy = thy, sign = thy, t = t,
+      T = Ctyp {thy_ref = thy_ref, T = T, maxidx = maxidx, sorts = sorts},
     maxidx = maxidx, sorts = sorts}
   end;
 
 fun theory_of_cterm (Cterm {thy_ref, ...}) = Theory.deref thy_ref;
 fun term_of (Cterm {t, ...}) = t;
 
-fun ctyp_of_term (Cterm {thy_ref, T, sorts, ...}) =
-  Ctyp {thy_ref = thy_ref, T = T, sorts = sorts};
+fun ctyp_of_term (Cterm {thy_ref, T, maxidx, sorts, ...}) =
+  Ctyp {thy_ref = thy_ref, T = T, maxidx = maxidx, sorts = sorts};
 
 fun cterm_of thy tm =
   let
@@ -295,20 +305,19 @@ fun cabs
 
 (*Matching of cterms*)
 fun gen_cterm_match match
-    (ct1 as Cterm {t = t1, maxidx = maxidx1, sorts = sorts1, ...},
-     ct2 as Cterm {t = t2, maxidx = maxidx2, sorts = sorts2, ...}) =
+    (ct1 as Cterm {t = t1, sorts = sorts1, ...},
+     ct2 as Cterm {t = t2, sorts = sorts2, ...}) =
   let
     val thy_ref = merge_thys0 ct1 ct2;
     val (Tinsts, tinsts) = match (Theory.deref thy_ref) (t1, t2) (Vartab.empty, Vartab.empty);
-    val maxidx = Int.max (maxidx1, maxidx2);
     val sorts = Sorts.union sorts1 sorts2;
-    fun mk_cTinst (ixn, (S, T)) =
-      (Ctyp {T = TVar (ixn, S), thy_ref = thy_ref, sorts = sorts},
-       Ctyp {T = T, thy_ref = thy_ref, sorts = sorts});
-    fun mk_ctinst (ixn, (T, t)) =
+    fun mk_cTinst ((a, i), (S, T)) =
+      (Ctyp {T = TVar ((a, i), S), thy_ref = thy_ref, maxidx = i, sorts = sorts},
+       Ctyp {T = T, thy_ref = thy_ref, maxidx = Term.maxidx_of_typ T, sorts = sorts});
+    fun mk_ctinst ((x, i), (T, t)) =
       let val T = Envir.typ_subst_TVars Tinsts T in
-        (Cterm {t = Var (ixn, T), T = T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts},
-         Cterm {t = t, T = T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts})
+        (Cterm {t = Var ((x, i), T), T = T, thy_ref = thy_ref, maxidx = i, sorts = sorts},
+         Cterm {t = t, T = T, thy_ref = thy_ref, maxidx = Term.maxidx_of_term t, sorts = sorts})
       end;
   in (Vartab.fold (cons o mk_cTinst) Tinsts [], Vartab.fold (cons o mk_ctinst) tinsts []) end;
 
@@ -676,8 +685,8 @@ fun implies_elim thAB thA =
     fun err () = raise THM ("implies_elim: major premise", 0, [thAB, thA]);
   in
     case prop of
-      imp $ A $ B =>
-        if imp = Term.implies andalso A aconv propA then
+      Const ("==>", _) $ A $ B =>
+        if A aconv propA then
           Thm {thy_ref = merge_thys2 thAB thA,
             der = Pt.infer_derivs (curry Pt.%%) der derA,
             maxidx = Int.max (maxA, maxidx),
@@ -1001,7 +1010,7 @@ fun generalize ([], []) _ th = th
         val _ = exists bad_term hyps andalso
           raise THM ("generalize: variable free in assumptions", 0, [th]);
 
-        val gen = Term.generalize (tfrees, frees) idx;
+        val gen = TermSubst.generalize (tfrees, frees) idx;
         val prop' = gen prop;
         val tpairs' = map (pairself gen) tpairs;
         val maxidx' = maxidx_tpairs tpairs' (maxidx_of_term prop');
@@ -1031,12 +1040,12 @@ fun pretty_typing thy t T =
 fun add_inst (ct, cu) (thy_ref, sorts) =
   let
     val Cterm {t = t, T = T, ...} = ct
-    and Cterm {t = u, T = U, sorts = sorts_u, ...} = cu;
+    and Cterm {t = u, T = U, sorts = sorts_u, maxidx = maxidx_u, ...} = cu;
     val thy_ref' = Theory.merge_refs (thy_ref, merge_thys0 ct cu);
     val sorts' = Sorts.union sorts_u sorts;
   in
     (case t of Var v =>
-      if T = U then ((v, u), (thy_ref', sorts'))
+      if T = U then ((v, (u, maxidx_u)), (thy_ref', sorts'))
       else raise TYPE (Pretty.string_of (Pretty.block
        [Pretty.str "instantiate: type conflict",
         Pretty.fbrk, pretty_typing (Theory.deref thy_ref') t T,
@@ -1049,13 +1058,13 @@ fun add_inst (ct, cu) (thy_ref, sorts) =
 fun add_instT (cT, cU) (thy_ref, sorts) =
   let
     val Ctyp {T, thy_ref = thy_ref1, ...} = cT
-    and Ctyp {T = U, thy_ref = thy_ref2, sorts = sorts_U, ...} = cU;
+    and Ctyp {T = U, thy_ref = thy_ref2, sorts = sorts_U, maxidx = maxidx_U, ...} = cU;
     val thy_ref' = Theory.merge_refs (thy_ref, Theory.merge_refs (thy_ref1, thy_ref2));
     val thy' = Theory.deref thy_ref';
     val sorts' = Sorts.union sorts_U sorts;
   in
     (case T of TVar (v as (_, S)) =>
-      if Sign.of_sort thy' (U, S) then ((v, U), (thy_ref', sorts'))
+      if Sign.of_sort thy' (U, S) then ((v, (U, maxidx_U)), (thy_ref', sorts'))
       else raise TYPE ("Type not of sort " ^ Sign.string_of_sort thy' S, [U], [])
     | _ => raise TYPE (Pretty.string_of (Pretty.block
         [Pretty.str "instantiate: not a type variable",
@@ -1073,9 +1082,10 @@ fun instantiate ([], []) th = th
         val Thm {thy_ref, der, hyps, shyps, tpairs, prop, ...} = th;
         val (inst', (instT', (thy_ref', shyps'))) =
           (thy_ref, shyps) |> fold_map add_inst inst ||> fold_map add_instT instT;
-        val subst = Term.instantiate (instT', inst');
-        val prop' = subst prop;
-        val tpairs' = map (pairself subst) tpairs;
+        val subst = TermSubst.instantiate_maxidx (instT', inst');
+        val (prop', maxidx1) = subst prop ~1;
+        val (tpairs', maxidx') =
+          fold_map (fn (t, u) => fn i => subst t i ||>> subst u) tpairs maxidx1;
       in
         if has_duplicates (fn ((v, _), (v', _)) => Term.eq_var (v, v')) inst' then
           raise THM ("instantiate: variables not distinct", 0, [th])
@@ -1083,8 +1093,9 @@ fun instantiate ([], []) th = th
           raise THM ("instantiate: type variables not distinct", 0, [th])
         else
           Thm {thy_ref = thy_ref',
-            der = Pt.infer_derivs' (Pt.instantiate (instT', inst')) der,
-            maxidx = maxidx_tpairs tpairs' (maxidx_of_term prop'),
+            der = Pt.infer_derivs' (fn d =>
+              Pt.instantiate (map (apsnd #1) instT', map (apsnd #1) inst') d) der,
+            maxidx = maxidx',
             shyps = shyps',
             hyps = hyps,
             tpairs = tpairs',
