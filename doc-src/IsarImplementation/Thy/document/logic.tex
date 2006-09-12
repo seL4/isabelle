@@ -103,7 +103,7 @@ The language of types is an uninterpreted order-sorted first-order
 
   \medskip The sort algebra is always maintained as \emph{coregular},
   which means that type arities are consistent with the subclass
-  relation: for each type constructor \isa{{\isasymkappa}} and classes \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}}, any arity \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{1}}{\isacharparenright}c\isactrlisub {\isadigit{1}}} has a corresponding arity \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{2}}{\isacharparenright}c\isactrlisub {\isadigit{2}}} where \isa{\isactrlvec s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ \isactrlvec s\isactrlisub {\isadigit{2}}} holds componentwise.
+  relation: for each type constructor \isa{{\isasymkappa}} and classes \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}}, any arity \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{1}}{\isacharparenright}c\isactrlisub {\isadigit{1}}} has a corresponding arity \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{2}}{\isacharparenright}c\isactrlisub {\isadigit{2}}} where \isa{\isactrlvec s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ \isactrlvec s\isactrlisub {\isadigit{2}}} holds component-wise.
 
   The key property of a coregular order-sorted algebra is that sort
   constraints may be always solved in a most general fashion: for each
@@ -128,6 +128,7 @@ The language of types is an uninterpreted order-sorted first-order
   \indexmltype{sort}\verb|type sort| \\
   \indexmltype{arity}\verb|type arity| \\
   \indexmltype{typ}\verb|type typ| \\
+  \indexml{map-atyps}\verb|map_atyps: (typ -> typ) -> typ -> typ| \\
   \indexml{fold-atyps}\verb|fold_atyps: (typ -> 'a -> 'a) -> typ -> 'a -> 'a| \\
   \indexml{Sign.subsort}\verb|Sign.subsort: theory -> sort * sort -> bool| \\
   \indexml{Sign.of-sort}\verb|Sign.of_sort: theory -> typ * sort -> bool| \\
@@ -153,8 +154,11 @@ The language of types is an uninterpreted order-sorted first-order
   \item \verb|typ| represents types; this is a datatype with
   constructors \verb|TFree|, \verb|TVar|, \verb|Type|.
 
-  \item \verb|fold_atyps|~\isa{f\ {\isasymtau}} iterates function \isa{f}
-  over all occurrences of atoms (\verb|TFree| or \verb|TVar|) of \isa{{\isasymtau}}; the type structure is traversed from left to right.
+  \item \verb|map_atyps|~\isa{f\ {\isasymtau}} applies mapping \isa{f} to
+  all atomic types (\verb|TFree|, \verb|TVar|) occurring in \isa{{\isasymtau}}.
+
+  \item \verb|fold_atyps|~\isa{f\ {\isasymtau}} iterates operation \isa{f}
+  over all occurrences of atoms (\verb|TFree|, \verb|TVar|) in \isa{{\isasymtau}}; the type structure is traversed from left to right.
 
   \item \verb|Sign.subsort|~\isa{thy\ {\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ s\isactrlisub {\isadigit{2}}{\isacharparenright}}
   tests the subsort relation \isa{s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ s\isactrlisub {\isadigit{2}}}.
@@ -197,18 +201,18 @@ The language of types is an uninterpreted order-sorted first-order
 \glossary{Term}{FIXME}
 
   The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
-  with de-Bruijn indices for bound variables, and named free variables
-  and constants.  Terms with loose bound variables are usually
-  considered malformed.  The types of variables and constants is
-  stored explicitly at each occurrence in the term.
+  with de-Bruijn indices for bound variables
+  \cite{debruijn72,paulson-ml2}, and named free variables and
+  constants.  Terms with loose bound variables are usually considered
+  malformed.  The types of variables and constants is stored
+  explicitly at each occurrence in the term.
 
   \medskip A \emph{bound variable} is a natural number \isa{b},
   which refers to the next binder that is \isa{b} steps upwards
   from the occurrence of \isa{b} (counting from zero).  Bindings
   may be introduced as abstractions within the term, or as a separate
   context (an inside-out list).  This associates each bound variable
-  with a type, and a name that is maintained as a comment for parsing
-  and printing.  A \emph{loose variables} is a bound variable that is
+  with a type.  A \emph{loose variables} is a bound variable that is
   outside the current scope of local binders or the context.  For
   example, the de-Bruijn term \isa{{\isasymlambda}\isactrlisub {\isasymtau}{\isachardot}\ {\isasymlambda}\isactrlisub {\isasymtau}{\isachardot}\ {\isadigit{1}}\ {\isacharplus}\ {\isadigit{0}}}
   corresponds to \isa{{\isasymlambda}x\isactrlisub {\isasymtau}{\isachardot}\ {\isasymlambda}y\isactrlisub {\isasymtau}{\isachardot}\ x\ {\isacharplus}\ y} in a named
@@ -281,7 +285,20 @@ The language of types is an uninterpreted order-sorted first-order
   looks like a constant at the surface, but is fully expanded before
   entering the logical core.  Abbreviations are usually reverted when
   printing terms, using rules \isa{t\ {\isasymrightarrow}\ c\isactrlisub {\isasymsigma}} has a
-  higher-order term rewrite system.%
+  higher-order term rewrite system.
+
+  \medskip Canonical operations on \isa{{\isasymlambda}}-terms include \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-conversion. \isa{{\isasymalpha}}-conversion refers to capture-free
+  renaming of bound variables; \isa{{\isasymbeta}}-conversion contracts an
+  abstraction applied to some argument term, substituting the argument
+  in the body: \isa{{\isacharparenleft}{\isasymlambda}x{\isachardot}\ b{\isacharparenright}a} becomes \isa{b{\isacharbrackleft}a{\isacharslash}x{\isacharbrackright}}; \isa{{\isasymeta}}-conversion contracts vacuous application-abstraction: \isa{{\isasymlambda}x{\isachardot}\ f\ x} becomes \isa{f}, provided that the bound variable
+  \isa{{\isadigit{0}}} does not occur in \isa{f}.
+
+  Terms are almost always treated module \isa{{\isasymalpha}}-conversion, which
+  is implicit in the de-Bruijn representation.  The names in
+  abstractions of bound variables are maintained only as a comment for
+  parsing and printing.  Full \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-equivalence is usually
+  taken for granted higher rules (\secref{sec:rules}), anything
+  depending on higher-order unification or rewriting.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -294,15 +311,68 @@ The language of types is an uninterpreted order-sorted first-order
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexmltype{term}\verb|type term| \\
+  \indexml{op aconv}\verb|op aconv: term * term -> bool| \\
+  \indexml{map-term-types}\verb|map_term_types: (typ -> typ) -> term -> term| \\  %FIXME rename map_types
+  \indexml{fold-types}\verb|fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a| \\
   \indexml{map-aterms}\verb|map_aterms: (term -> term) -> term -> term| \\
   \indexml{fold-aterms}\verb|fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a| \\
   \indexml{fastype-of}\verb|fastype_of: term -> typ| \\
-  \indexml{fold-types}\verb|fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a| \\
+  \indexml{lambda}\verb|lambda: term -> term -> term| \\
+  \indexml{betapply}\verb|betapply: term * term -> term| \\
+  \indexml{Sign.add-consts-i}\verb|Sign.add_consts_i: (bstring * typ * mixfix) list -> theory -> theory| \\
+  \indexml{Sign.add-abbrevs}\verb|Sign.add_abbrevs: string * bool ->|\isasep\isanewline%
+\verb|  ((bstring * mixfix) * term) list -> theory -> theory| \\
+  \indexml{Sign.const-typargs}\verb|Sign.const_typargs: theory -> string * typ -> typ list| \\
+  \indexml{Sign.const-instance}\verb|Sign.const_instance: theory -> string * typ list -> typ| \\
   \end{mldecls}
 
   \begin{description}
 
-  \item \verb|term| FIXME
+  \item \verb|term| represents de-Bruijn terms with comments in
+  abstractions for bound variable names.  This is a datatype with
+  constructors \verb|Bound|, \verb|Free|, \verb|Var|, \verb|Const|, \verb|Abs|, \verb|op $|.
+
+  \item \isa{t}~\verb|aconv|~\isa{u} checks \isa{{\isasymalpha}}-equivalence of two terms.  This is the basic equality relation
+  on type \verb|term|; raw datatype equality should only be used
+  for operations related to parsing or printing!
+
+  \item \verb|map_term_types|~\isa{f\ t} applies mapping \isa{f}
+  to all types occurring in \isa{t}.
+
+  \item \verb|fold_types|~\isa{f\ t} iterates operation \isa{f}
+  over all occurrences of types in \isa{t}; the term structure is
+  traversed from left to right.
+
+  \item \verb|map_aterms|~\isa{f\ t} applies mapping \isa{f} to
+  all atomic terms (\verb|Bound|, \verb|Free|, \verb|Var|, \verb|Const|)
+  occurring in \isa{t}.
+
+  \item \verb|fold_aterms|~\isa{f\ t} iterates operation \isa{f}
+  over all occurrences of atomic terms in (\verb|Bound|, \verb|Free|,
+  \verb|Var|, \verb|Const|) \isa{t}; the term structure is traversed
+  from left to right.
+
+  \item \verb|fastype_of|~\isa{t} recomputes the type of a
+  well-formed term, while omitting any sanity checks.  This operation
+  is relatively slow.
+
+  \item \verb|lambda|~\isa{a\ b} produces an abstraction \isa{{\isasymlambda}a{\isachardot}\ b}, where occurrences of the original (atomic) term \isa{a} are replaced by bound variables.
+
+  \item \verb|betapply|~\isa{t\ u} produces an application \isa{t\ u}, with topmost \isa{{\isasymbeta}}-conversion \isa{t} is an
+  abstraction.
+
+  \item \verb|Sign.add_consts_i|~\isa{{\isacharbrackleft}{\isacharparenleft}c{\isacharcomma}\ {\isasymsigma}{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}} declares a
+  new constant \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} with optional mixfix syntax.
+
+  \item \verb|Sign.add_abbrevs|~\isa{print{\isacharunderscore}mode\ {\isacharbrackleft}{\isacharparenleft}{\isacharparenleft}c{\isacharcomma}\ t{\isacharparenright}{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}}
+  declares a new term abbreviation \isa{c\ {\isasymequiv}\ t} with optional
+  mixfix syntax.
+
+  \item \verb|Sign.const_typargs|~\isa{thy\ {\isacharparenleft}c{\isacharcomma}\ {\isasymtau}{\isacharparenright}} produces the
+  type arguments of the instance \isa{c\isactrlisub {\isasymtau}} wrt.\ its
+  declaration in the theory.
+
+  \item \verb|Sign.const_instance|~\isa{thy\ {\isacharparenleft}c{\isacharcomma}\ {\isacharbrackleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub n{\isacharbrackright}{\isacharparenright}} produces the full instance \isa{c{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub n{\isacharparenright}} wrt.\ its declaration in the theory.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -333,7 +403,7 @@ The language of types is an uninterpreted order-sorted first-order
   rarely spelled out explicitly.  Theorems are usually normalized
   according to the \seeglossary{HHF} format. FIXME}
 
-  \glossary{Fact}{Sometimes used interchangably for
+  \glossary{Fact}{Sometimes used interchangeably for
   \seeglossary{theorem}.  Strictly speaking, a list of theorems,
   essentially an extra-logical conjunction.  Facts emerge either as
   local assumptions, or as results of local goal statements --- both
@@ -501,7 +571,7 @@ FIXME
   important to maintain this invariant in add-on applications!
 
   There are two main principles of rule composition: \isa{resolution} (i.e.\ backchaining of rules) and \isa{by{\isacharminus}assumption} (i.e.\ closing a branch); both principles are
-  combined in the variants of \isa{elim{\isacharminus}resosultion} and \isa{dest{\isacharminus}resolution}.  Raw \isa{composition} is occasionally
+  combined in the variants of \isa{elim{\isacharminus}resolution} and \isa{dest{\isacharminus}resolution}.  Raw \isa{composition} is occasionally
   useful as well, also it is strictly speaking outside of the proper
   rule calculus.
 

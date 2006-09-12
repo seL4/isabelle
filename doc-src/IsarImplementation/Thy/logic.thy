@@ -102,7 +102,7 @@ text {*
   "c\<^isub>1 \<subseteq> c\<^isub>2"}, any arity @{text "\<kappa> ::
   (\<^vec>s\<^isub>1)c\<^isub>1"} has a corresponding arity @{text "\<kappa>
   :: (\<^vec>s\<^isub>2)c\<^isub>2"} where @{text "\<^vec>s\<^isub>1 \<subseteq>
-  \<^vec>s\<^isub>2"} holds componentwise.
+  \<^vec>s\<^isub>2"} holds component-wise.
 
   The key property of a coregular order-sorted algebra is that sort
   constraints may be always solved in a most general fashion: for each
@@ -122,6 +122,7 @@ text %mlref {*
   @{index_ML_type sort} \\
   @{index_ML_type arity} \\
   @{index_ML_type typ} \\
+  @{index_ML map_atyps: "(typ -> typ) -> typ -> typ"} \\
   @{index_ML fold_atyps: "(typ -> 'a -> 'a) -> typ -> 'a -> 'a"} \\
   @{index_ML Sign.subsort: "theory -> sort * sort -> bool"} \\
   @{index_ML Sign.of_sort: "theory -> typ * sort -> bool"} \\
@@ -148,8 +149,11 @@ text %mlref {*
   \item @{ML_type typ} represents types; this is a datatype with
   constructors @{ML TFree}, @{ML TVar}, @{ML Type}.
 
-  \item @{ML fold_atyps}~@{text "f \<tau>"} iterates function @{text "f"}
-  over all occurrences of atoms (@{ML TFree} or @{ML TVar}) of @{text
+  \item @{ML map_atyps}~@{text "f \<tau>"} applies mapping @{text "f"} to
+  all atomic types (@{ML TFree}, @{ML TVar}) occurring in @{text "\<tau>"}.
+
+  \item @{ML fold_atyps}~@{text "f \<tau>"} iterates operation @{text "f"}
+  over all occurrences of atoms (@{ML TFree}, @{ML TVar}) in @{text
   "\<tau>"}; the type structure is traversed from left to right.
 
   \item @{ML Sign.subsort}~@{text "thy (s\<^isub>1, s\<^isub>2)"}
@@ -188,18 +192,18 @@ text {*
   \glossary{Term}{FIXME}
 
   The language of terms is that of simply-typed @{text "\<lambda>"}-calculus
-  with de-Bruijn indices for bound variables, and named free variables
-  and constants.  Terms with loose bound variables are usually
-  considered malformed.  The types of variables and constants is
-  stored explicitly at each occurrence in the term.
+  with de-Bruijn indices for bound variables
+  \cite{debruijn72,paulson-ml2}, and named free variables and
+  constants.  Terms with loose bound variables are usually considered
+  malformed.  The types of variables and constants is stored
+  explicitly at each occurrence in the term.
 
   \medskip A \emph{bound variable} is a natural number @{text "b"},
   which refers to the next binder that is @{text "b"} steps upwards
   from the occurrence of @{text "b"} (counting from zero).  Bindings
   may be introduced as abstractions within the term, or as a separate
   context (an inside-out list).  This associates each bound variable
-  with a type, and a name that is maintained as a comment for parsing
-  and printing.  A \emph{loose variables} is a bound variable that is
+  with a type.  A \emph{loose variables} is a bound variable that is
   outside the current scope of local binders or the context.  For
   example, the de-Bruijn term @{text "\<lambda>\<^isub>\<tau>. \<lambda>\<^isub>\<tau>. 1 + 0"}
   corresponds to @{text "\<lambda>x\<^isub>\<tau>. \<lambda>y\<^isub>\<tau>. x + y"} in a named
@@ -284,20 +288,96 @@ text {*
   entering the logical core.  Abbreviations are usually reverted when
   printing terms, using rules @{text "t \<rightarrow> c\<^isub>\<sigma>"} has a
   higher-order term rewrite system.
+
+  \medskip Canonical operations on @{text "\<lambda>"}-terms include @{text
+  "\<alpha>\<beta>\<eta>"}-conversion. @{text "\<alpha>"}-conversion refers to capture-free
+  renaming of bound variables; @{text "\<beta>"}-conversion contracts an
+  abstraction applied to some argument term, substituting the argument
+  in the body: @{text "(\<lambda>x. b)a"} becomes @{text "b[a/x]"}; @{text
+  "\<eta>"}-conversion contracts vacuous application-abstraction: @{text
+  "\<lambda>x. f x"} becomes @{text "f"}, provided that the bound variable
+  @{text "0"} does not occur in @{text "f"}.
+
+  Terms are almost always treated module @{text "\<alpha>"}-conversion, which
+  is implicit in the de-Bruijn representation.  The names in
+  abstractions of bound variables are maintained only as a comment for
+  parsing and printing.  Full @{text "\<alpha>\<beta>\<eta>"}-equivalence is usually
+  taken for granted higher rules (\secref{sec:rules}), anything
+  depending on higher-order unification or rewriting.
 *}
 
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type term} \\
+  @{index_ML "op aconv": "term * term -> bool"} \\
+  @{index_ML map_term_types: "(typ -> typ) -> term -> term"} \\  %FIXME rename map_types
+  @{index_ML fold_types: "(typ -> 'a -> 'a) -> term -> 'a -> 'a"} \\
   @{index_ML map_aterms: "(term -> term) -> term -> term"} \\
   @{index_ML fold_aterms: "(term -> 'a -> 'a) -> term -> 'a -> 'a"} \\
   @{index_ML fastype_of: "term -> typ"} \\
-  @{index_ML fold_types: "(typ -> 'a -> 'a) -> term -> 'a -> 'a"} \\
+  @{index_ML lambda: "term -> term -> term"} \\
+  @{index_ML betapply: "term * term -> term"} \\
+  @{index_ML Sign.add_consts_i: "(bstring * typ * mixfix) list -> theory -> theory"} \\
+  @{index_ML Sign.add_abbrevs: "string * bool ->
+  ((bstring * mixfix) * term) list -> theory -> theory"} \\
+  @{index_ML Sign.const_typargs: "theory -> string * typ -> typ list"} \\
+  @{index_ML Sign.const_instance: "theory -> string * typ list -> typ"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML_type term} FIXME
+  \item @{ML_type term} represents de-Bruijn terms with comments in
+  abstractions for bound variable names.  This is a datatype with
+  constructors @{ML Bound}, @{ML Free}, @{ML Var}, @{ML Const}, @{ML
+  Abs}, @{ML "op $"}.
+
+  \item @{text "t"}~@{ML aconv}~@{text "u"} checks @{text
+  "\<alpha>"}-equivalence of two terms.  This is the basic equality relation
+  on type @{ML_type term}; raw datatype equality should only be used
+  for operations related to parsing or printing!
+
+  \item @{ML map_term_types}~@{text "f t"} applies mapping @{text "f"}
+  to all types occurring in @{text "t"}.
+
+  \item @{ML fold_types}~@{text "f t"} iterates operation @{text "f"}
+  over all occurrences of types in @{text "t"}; the term structure is
+  traversed from left to right.
+
+  \item @{ML map_aterms}~@{text "f t"} applies mapping @{text "f"} to
+  all atomic terms (@{ML Bound}, @{ML Free}, @{ML Var}, @{ML Const})
+  occurring in @{text "t"}.
+
+  \item @{ML fold_aterms}~@{text "f t"} iterates operation @{text "f"}
+  over all occurrences of atomic terms in (@{ML Bound}, @{ML Free},
+  @{ML Var}, @{ML Const}) @{text "t"}; the term structure is traversed
+  from left to right.
+
+  \item @{ML fastype_of}~@{text "t"} recomputes the type of a
+  well-formed term, while omitting any sanity checks.  This operation
+  is relatively slow.
+
+  \item @{ML lambda}~@{text "a b"} produces an abstraction @{text
+  "\<lambda>a. b"}, where occurrences of the original (atomic) term @{text
+  "a"} are replaced by bound variables.
+
+  \item @{ML betapply}~@{text "t u"} produces an application @{text "t
+  u"}, with topmost @{text "\<beta>"}-conversion @{text "t"} is an
+  abstraction.
+
+  \item @{ML Sign.add_consts_i}~@{text "[(c, \<sigma>, mx), \<dots>]"} declares a
+  new constant @{text "c :: \<sigma>"} with optional mixfix syntax.
+
+  \item @{ML Sign.add_abbrevs}~@{text "print_mode [((c, t), mx), \<dots>]"}
+  declares a new term abbreviation @{text "c \<equiv> t"} with optional
+  mixfix syntax.
+
+  \item @{ML Sign.const_typargs}~@{text "thy (c, \<tau>)"} produces the
+  type arguments of the instance @{text "c\<^isub>\<tau>"} wrt.\ its
+  declaration in the theory.
+
+  \item @{ML Sign.const_instance}~@{text "thy (c, [\<tau>\<^isub>1, \<dots>,
+  \<tau>\<^isub>n])"} produces the full instance @{text "c(\<tau>\<^isub>1, \<dots>,
+  \<tau>\<^isub>n)"} wrt.\ its declaration in the theory.
 
   \end{description}
 *}
@@ -319,7 +399,7 @@ text {*
   rarely spelled out explicitly.  Theorems are usually normalized
   according to the \seeglossary{HHF} format. FIXME}
 
-  \glossary{Fact}{Sometimes used interchangably for
+  \glossary{Fact}{Sometimes used interchangeably for
   \seeglossary{theorem}.  Strictly speaking, a list of theorems,
   essentially an extra-logical conjunction.  Facts emerge either as
   local assumptions, or as results of local goal statements --- both
@@ -495,7 +575,7 @@ FIXME
   There are two main principles of rule composition: @{text
   "resolution"} (i.e.\ backchaining of rules) and @{text
   "by-assumption"} (i.e.\ closing a branch); both principles are
-  combined in the variants of @{text "elim-resosultion"} and @{text
+  combined in the variants of @{text "elim-resolution"} and @{text
   "dest-resolution"}.  Raw @{text "composition"} is occasionally
   useful as well, also it is strictly speaking outside of the proper
   rule calculus.
