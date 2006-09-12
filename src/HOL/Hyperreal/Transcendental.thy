@@ -1971,7 +1971,7 @@ lemma tan_sec: "cos x \<noteq> 0 ==> 1 + tan(x) ^ 2 = inverse(cos x) ^ 2"
 apply (rule power_inverse [THEN subst])
 apply (rule_tac c1 = "(cos x)\<twosuperior>" in real_mult_right_cancel [THEN iffD1])
 apply (auto dest: realpow_not_zero 
-        simp add: power_mult_distrib left_distrib realpow_divide tan_def 
+        simp add: power_mult_distrib left_distrib power_divide tan_def 
                   mult_assoc power_inverse [symmetric] 
         simp del: realpow_Suc)
 done
@@ -2314,14 +2314,14 @@ lemma lemma_cos_sin_eq:
          1 - (sin xa)\<twosuperior> = (x / sqrt (x * x + y * y)) ^ 2 |] 
       ==> (sin xa)\<twosuperior> = (y / sqrt (x * x + y * y)) ^ 2"
 by (auto intro: lemma_divide_rearrange
-         simp add: realpow_divide power2_eq_square [symmetric])
+         simp add: power_divide power2_eq_square [symmetric])
 
 
 lemma lemma_sin_cos_eq:
      "[| 0 < x * x + y * y;  
          1 - (cos xa)\<twosuperior> = (y / sqrt (x * x + y * y)) ^ 2 |]
       ==> (cos xa)\<twosuperior> = (x / sqrt (x * x + y * y)) ^ 2"
-apply (auto simp add: realpow_divide power2_eq_square [symmetric])
+apply (auto simp add: power_divide power2_eq_square [symmetric])
 apply (subst add_commute)
 apply (rule lemma_divide_rearrange, simp add: real_add_eq_0_iff)
 apply (simp add: add_commute)
@@ -2459,7 +2459,7 @@ lemma lemma_sqrt_hcomplex_capprox:
 apply (rule_tac y = "u/sqrt 2" in order_le_less_trans)
 apply (erule_tac [2] lemma_real_divide_sqrt_less)
 apply (rule_tac n = 1 in realpow_increasing)
-apply (auto simp add: real_0_le_divide_iff realpow_divide numeral_2_eq_2 [symmetric] 
+apply (auto simp add: real_0_le_divide_iff power_divide numeral_2_eq_2 [symmetric] 
         simp del: realpow_Suc)
 apply (rule_tac t = "u\<twosuperior>" in real_sum_of_halves [THEN subst])
 apply (rule add_mono)
