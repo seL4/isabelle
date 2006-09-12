@@ -7,7 +7,7 @@
 header{*Existence of Nth Root*}
 
 theory NthRoot
-imports SEQ HSeries
+imports SEQ
 begin
 
 text {*
