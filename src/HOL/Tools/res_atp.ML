@@ -619,7 +619,7 @@ val linkup_logic_mode = ref Auto;
 
 (*Ensures that no higher-order theorems "leak out"*)
 fun restrict_to_logic logic cls =
-  if is_fol_logic logic then filter (Meson.is_fol_term o prop_of o #1) cls 
+  if is_fol_logic logic then filter (Meson.is_fol_term o prop_of o fst) cls 
 	                else cls;
 
 fun tptp_writer logic goals filename (axioms,classrels,arities) user_lemmas =
