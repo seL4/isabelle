@@ -219,9 +219,6 @@ fun strip_lambdas th =
 fun object_eq th = th RS def_imp_eq
     handle THM _ => error ("Theorem contains empty sort: " ^ string_of_thm th);
 
-fun valid_name vs (Free(x,T)) = x mem_string vs
-  | valid_name vs _ = false;
-
 (*Contract all eta-redexes in the theorem, lest they give rise to needless abstractions*)
 fun eta_conversion_rule th =
   equal_elim (eta_conversion (cprop_of th)) th;
@@ -232,6 +229,10 @@ fun crhs_of th =
           (case term_of f of Const ("==", _) => rhs
              | _ => raise THM ("crhs_of", 0, [th]))
     | _ => raise THM ("crhs_of", 1, [th]);
+
+fun lhs_of th =
+  case prop_of th of (Const("==",_) $ lhs $ _) => lhs
+    | _ => raise THM ("lhs_of", 1, [th]);
 
 fun rhs_of th =
   case prop_of th of (Const("==",_) $ _ $ rhs) => rhs
@@ -324,10 +325,14 @@ fun declare_absfuns th =
                 map (forall_intr_vars o strip_lambdas o object_eq) defs
   in  (theory_of_thm eqth, ths)  end;
 
+(*A name is valid provided it isn't the name of a defined abstraction.*)
+fun valid_name defs (Free(x,T)) = not (x mem_string (map (#1 o dest_Free o lhs_of) defs))
+  | valid_name defs _ = false;
+
 fun assume_absfuns th =
   let val thy = theory_of_thm th
       val cterm = cterm_of thy
-      fun abstract vs ct =
+      fun abstract ct =
         if lambda_free (term_of ct) then (reflexive ct, [])
         else
         case term_of ct of
@@ -335,15 +340,16 @@ fun assume_absfuns th =
             let val (cv,cta) = Thm.dest_abs NONE ct
                 val _ = assert_eta_free ct;
                 val v = (#1 o dest_Free o term_of) cv
-                val (u'_th,defs) = abstract (v::vs) cta
+                val (u'_th,defs) = abstract cta
                 val cu' = crhs_of u'_th
                 val abs_v_u = Thm.cabs cv cu'
-                (*get the formal parameters: bound variables also present in the term*)
-                val args = filter (valid_name vs) (term_frees (term_of abs_v_u))
+                (*get the formal parameters: free variables not present in the defs
+                  (to avoid taking abstraction function names as parameters) *)
+                val args = filter (valid_name defs) (term_frees (term_of abs_v_u))
                 val crhs = list_cabs (map cterm args, abs_v_u)
                       (*Forms a lambda-abstraction over the formal parameters*)
                 val rhs = term_of crhs
-                val def =  (*FIXME: can we also use the const-abstractions?*)
+                val def =  (*FIXME: can we also reuse the const-abstractions?*)
                  case List.find (fn ax => rhs aconv rhs_of ax andalso
                                           Context.joinable (thy, theory_of_thm ax))
                         (Net.match_term (!abstraction_cache) rhs) of
@@ -364,10 +370,10 @@ fun assume_absfuns th =
                 def :: defs) end
         | (t1$t2) =>
             let val (ct1,ct2) = Thm.dest_comb ct
-                val (t1',defs1) = abstract vs ct1
-                val (t2',defs2) = abstract vs ct2
+                val (t1',defs1) = abstract ct1
+                val (t2',defs2) = abstract ct2
             in  (combination t1' t2', defs1@defs2)  end
-      val (eqth,defs) = abstract [] (cprop_of th)
+      val (eqth,defs) = abstract (cprop_of th)
   in  equal_elim eqth th ::
       map (forall_intr_vars o strip_lambdas o object_eq) defs
   end;
