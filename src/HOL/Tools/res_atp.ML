@@ -303,16 +303,13 @@ val whitelist = ref [subsetI];
   FIXME: this blacklist needs to be maintained using theory data and added to using
   an attribute.*)
 val blacklist = ref
-  ["Datatype.unit.split_asm",         (*These  "unit" thms cause unsound proofs*)
-                               (*Datatype.unit.nchotomy is caught automatically*)
-   "Datatype.unit.induct",
+  ["Datatype.prod.size",
+   "Datatype.unit.induct", (*"unit" thms cause unsound proofs; unit.nchotomy is caught automatically*)
    "Datatype.unit.inducts",
+   "Datatype.unit.split_asm", 
    "Datatype.unit.split",
    "Datatype.unit.splits",
-   "Datatype.prod.size",
-
    "Divides.dvd_0_left_iff",
-
    "Finite_Set.card_0_eq",
    "Finite_Set.card_infinite",
    "Finite_Set.Max_ge",
@@ -329,22 +326,19 @@ val blacklist = ref
    "Finite_Set.min_max.below_inf_sup_Inf_Sup.sup_Inf_absorb", 
    "Finite_Set.min.f_below_strict_below.below_f_conv",        (*duplicates in Orderings.*)
    "Finite_Set.min.f_below_strict_below.strict_below_f_conv", (*duplicates in Orderings.*)
-   
-   "HOL.split_if",         (*splitting theorem*)
+   "Fun.vimage_image_eq",   (*involves an existential quantifier*)
    "HOL.split_if_asm",     (*splitting theorem*)
-
+   "HOL.split_if",         (*splitting theorem*)
+   "IntDef.abs_split",
    "IntDef.Integ.Abs_Integ_inject",
    "IntDef.Integ.Abs_Integ_inverse",
-   "IntDef.abs_split",
    "IntDiv.zdvd_0_left",
-   
    "List.append_eq_append_conv",
    "List.hd_Cons_tl",   (*Says everything is [] or Cons. Probably prolific.*)
    "List.in_listsD",
    "List.in_listsI",
    "List.lists.Cons",
    "List.listsE",
-
    "Nat.less_one", (*not directional? obscure*)
    "Nat.not_gr0",
    "Nat.one_eq_mult_iff", (*duplicate by symmetry*)
@@ -369,7 +363,6 @@ val blacklist = ref
    "NatSimprocs.mult_less_cancel_right_number_of", (*excessive case analysis*)
    "NatSimprocs.zero_le_divide_iff_number_of", (*excessive case analysis*)
    "NatSimprocs.zero_less_divide_iff_number_of",
-
    "OrderedGroup.abs_0_eq", (*duplicate by symmetry*)
    "OrderedGroup.diff_eq_0_iff_eq", (*prolific?*)
    "OrderedGroup.join_0_eq_0",
@@ -377,9 +370,8 @@ val blacklist = ref
    "OrderedGroup.pprt_eq_0",   (*obscure*)
    "OrderedGroup.pprt_eq_id",   (*obscure*)
    "OrderedGroup.pprt_mono",   (*obscure*)
-   "Orderings.split_min",      (*splitting theorem*)
    "Orderings.split_max",      (*splitting theorem*)
-
+   "Orderings.split_min",      (*splitting theorem*)
    "Parity.even_nat_power",   (*obscure, somewhat prolilfic*)
    "Parity.power_eq_0_iff_number_of",
    "Parity.power_le_zero_eq_number_of",   (*obscure and prolific*)
@@ -387,15 +379,16 @@ val blacklist = ref
    "Parity.zero_le_power_eq_number_of",   (*obscure and prolific*)
    "Parity.zero_less_power_eq_number_of",   (*obscure and prolific*)
    "Power.zero_less_power_abs_iff",
-   "Product_Type.unit_abs_eta_conv",
-   "Product_Type.unit_induct",
-
+   "Product_Type.split_eta_SetCompr",   (*involves an existential quantifier*)
    "Product_Type.split_paired_Ball_Sigma",     (*splitting theorem*)
    "Product_Type.split_paired_Bex_Sigma",      (*splitting theorem*)
-   "Product_Type.split_split",                 (*splitting theorem*)
    "Product_Type.split_split_asm",             (*splitting theorem*)
-
+   "Product_Type.split_split",                 (*splitting theorem*)
+   "Product_Type.unit_abs_eta_conv",
+   "Product_Type.unit_induct",
    "Relation.diagI",
+   "Relation.Domain_def",   (*involves an existential quantifier*)
+   "Relation.Image_def",   (*involves an existential quantifier*)
    "Relation.ImageI",
    "Ring_and_Field.divide_cancel_left", (*fields are seldom used & often prolific*)
    "Ring_and_Field.divide_cancel_right",
@@ -422,15 +415,20 @@ val blacklist = ref
    "Ring_and_Field.less_divide_eq_1_neg", (*obscure and prolific*)
    "Ring_and_Field.less_divide_eq_1_pos", (*obscure and prolific*)
    "Ring_and_Field.one_eq_divide_iff",  (*duplicate by symmetry*)
-   "Set.disjoint_insert",
-   "Set.insert_disjoint",
-   "Set.Inter_UNIV_conv",
    "Set.ball_simps", "Set.bex_simps",   (*quantifier rewriting: useless*)
+   "Set.Collect_bex_eq",   (*involves an existential quantifier*)
+   "Set.Collect_ex_eq",   (*involves an existential quantifier*)
    "Set.Diff_eq_empty_iff", (*redundant with paramodulation*)
    "Set.Diff_insert0",
-   "Set.empty_Union_conv", (*redundant with paramodulation*)
-   "Set.Int_UNIV", (*redundant with paramodulation*)
-   "Set.Inter_iff",              (*We already have InterI, InterE*)
+   "Set.disjoint_insert",
+   "Set.empty_Union_conv",   (*redundant with paramodulation*)
+   "Set.full_SetCompr_eq",   (*involves an existential quantifier*)
+   "Set.image_Collect",      (*involves an existential quantifier*)
+   "Set.image_def",          (*involves an existential quantifier*)
+   "Set.insert_disjoint",
+   "Set.Int_UNIV",  (*redundant with paramodulation*)
+   "Set.Inter_iff", (*We already have InterI, InterE*)
+   "Set.Inter_UNIV_conv",
    "Set.psubsetE",    (*too prolific and obscure*)
    "Set.psubsetI",
    "Set.singleton_insert_inj_eq'",
@@ -438,6 +436,7 @@ val blacklist = ref
    "Set.singletonD",  (*these two duplicate some "insert" lemmas*)
    "Set.singletonI",
    "Set.Un_empty", (*redundant with paramodulation*)
+   "Set.UNION_def",   (*involves an existential quantifier*)
    "Set.Union_empty_conv", (*redundant with paramodulation*)
    "Set.Union_iff",              (*We already have UnionI, UnionE*)
    "SetInterval.atLeastAtMost_iff", (*obscure and prolific*)
@@ -565,7 +564,6 @@ fun display_thms [] = ()
       let val nthm = name ^ ": " ^ (string_of_thm thm)
       in Output.debug nthm; display_thms nthms  end;
  
-
 fun all_facts_of ctxt =
   FactIndex.find (ProofContext.fact_index_of ctxt) ([], [])
   |> maps #2 |> map (`Thm.name_of_thm);
@@ -605,23 +603,24 @@ fun blacklist_filter thms =
       in  filter ok thms  end
   else thms;
 
+
 (***************************************************************)
 (* ATP invocation methods setup                                *)
 (***************************************************************)
-
-(**** prover-specific format: TPTP ****)
-
 
 fun cnf_hyps_thms ctxt = 
     let val ths = Assumption.prems_of ctxt
     in fold (fold (insert Thm.eq_thm) o ResAxioms.skolem_thm) ths [] end;
 
-
-(**** write to files ****)
-
+(*Translation mode can be auto-detected, or forced to be first-order or higher-order*)
 datatype mode = Auto | Fol | Hol;
 
 val linkup_logic_mode = ref Auto;
+
+(*Ensures that no higher-order theorems "leak out"*)
+fun restrict_to_logic logic cls =
+  if is_fol_logic logic then filter (Meson.is_fol_term o prop_of o #1) cls 
+	                else cls;
 
 fun tptp_writer logic goals filename (axioms,classrels,arities) user_lemmas =
     if is_fol_logic logic 
@@ -639,25 +638,26 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
                          |> ResAxioms.assume_abstract_list |> Meson.finish_cnf
 	val hyp_cls = cnf_hyps_thms ctxt
 	val goal_cls = conj_cls@hyp_cls
+	val logic = case mode of 
+                            Auto => problem_logic_goals [map prop_of goal_cls]
+			  | Fol => FOL
+			  | Hol => HOL
 	val (included_thms,user_rules) = get_clasimp_atp_lemmas ctxt user_thms
 	val user_lemmas_names = map #1 user_rules
 	val cla_simp_atp_clauses = included_thms |> blacklist_filter
 	                             |> make_unique |> ResAxioms.cnf_rules_pairs
+                                     |> restrict_to_logic logic 
 	val user_cls = ResAxioms.cnf_rules_pairs user_rules
 	val thy = ProofContext.theory_of ctxt
 	val axclauses = get_relevant_clauses thy cla_simp_atp_clauses
 	                            user_cls (map prop_of goal_cls)
-	val prob_logic = case mode of 
-                            Auto => problem_logic_goals [map prop_of goal_cls]
-			  | Fol => FOL
-			  | Hol => HOL
-	val keep_types = if is_fol_logic prob_logic then !fol_keep_types else is_typed_hol ()
+	val keep_types = if is_fol_logic logic then !fol_keep_types else is_typed_hol ()
 	val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy else []
 	val arity_clauses = if keep_types then ResClause.arity_clause_thy thy else []
         val writer = if dfg then dfg_writer else tptp_writer 
 	val file = atp_input_file()
     in
-	(writer prob_logic goal_cls file (axclauses,classrel_clauses,arity_clauses) user_lemmas_names;
+	(writer logic goal_cls file (axclauses,classrel_clauses,arity_clauses) user_lemmas_names;
 	 Output.debug ("Writing to " ^ file);
 	 file)
     end;
@@ -751,24 +751,23 @@ fun neg_clauses th n =
 fun write_problem_files probfile (ctxt,th)  =
   let val goals = Thm.prems_of th
       val _ = Output.debug ("number of subgoals = " ^ Int.toString (length goals))
-      val (included_thms,white_thms) = get_clasimp_atp_lemmas ctxt []
-      val cla_simp_atp_clauses = included_thms |> blacklist_filter
-                                   |> make_unique |> ResAxioms.cnf_rules_pairs 
-      val white_cls = ResAxioms.cnf_rules_pairs white_thms
-      val _ = Output.debug ("clauses = " ^ Int.toString(length cla_simp_atp_clauses))
       val thy = ProofContext.theory_of ctxt
       fun get_neg_subgoals [] _ = []
-        | get_neg_subgoals (gl::gls) n =
-	      let val axclauses = get_relevant_clauses thy cla_simp_atp_clauses
-	                            white_cls [gl]  (*relevant to goal*)
-	      in
-		  (neg_clauses th n, axclauses) :: get_neg_subgoals gls (n+1)
-	      end
-      val goal_pairs = get_neg_subgoals goals 1
+        | get_neg_subgoals (gl::gls) n = neg_clauses th n :: get_neg_subgoals gls (n+1)
+      val goal_cls = get_neg_subgoals goals 1
       val logic = case !linkup_logic_mode of
-		Auto => problem_logic_goals (map ((map prop_of) o #1) goal_pairs)
+		Auto => problem_logic_goals (map ((map prop_of)) goal_cls)
 	      | Fol => FOL
 	      | Hol => HOL
+      val (included_thms,white_thms) = get_clasimp_atp_lemmas ctxt []
+      val included_cls = included_thms |> blacklist_filter
+                                       |> make_unique |> ResAxioms.cnf_rules_pairs 
+                                       |> restrict_to_logic logic 
+      val white_cls = ResAxioms.cnf_rules_pairs white_thms
+      (*clauses relevant to goal gl*)
+      val axcls_list = map (fn gl => get_relevant_clauses thy included_cls white_cls [gl])
+                           goals
+      val _ = Output.debug ("clauses = " ^ Int.toString(length included_cls))
       val keep_types = if is_fol_logic logic then !ResClause.keep_types 
                        else is_typed_hol ()
       val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy
@@ -779,12 +778,12 @@ fun write_problem_files probfile (ctxt,th)  =
                           else []
       val _ = Output.debug ("arity clauses = " ^ Int.toString (length arity_clauses))
       val writer = if !prover = "spass" then dfg_writer else tptp_writer 
-      fun write_all [] _ = []
-	| write_all ((ccls,axcls)::subgoals) k =
+      fun write_all [] [] _ = []
+	| write_all (ccls::ccls_list) (axcls::axcls_list) k =
 	   (writer logic ccls (probfile k) (axcls,classrel_clauses,arity_clauses) [],
 	    probfile k) 
-	   :: write_all subgoals (k+1)
-      val (clnames::_, filenames) = ListPair.unzip (write_all goal_pairs 1)
+	   :: write_all ccls_list axcls_list (k+1)
+      val (clnames::_, filenames) = ListPair.unzip (write_all goal_cls axcls_list 1)
       val thm_names = Array.fromList clnames
       val _ = if !Output.show_debug_msgs 
               then trace_array "thm_names" thm_names else ()
