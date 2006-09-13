@@ -12,6 +12,7 @@ structure ReduceAxiomsN =
 struct
 
 val run_relevance_filter = ref true;
+val theory_const = ref false;
 val pass_mark = ref 0.6;
 val convergence = ref 2.4;   (*Higher numbers allow longer inference chains*)
 val follow_defs = ref false;  (*Follow definitions. Makes problems bigger.*)
@@ -24,10 +25,10 @@ val weight_fn = ref log_weight2;
 
 
 (*Including equality in this list might be expected to stop rules like subset_antisym from
-  being chosen, but for some reason filtering works better with them listed.*)
-val standard_consts =
-  ["Trueprop","==>","all","==","All","Ex","Ball","Bex","op &","op |","Not","op -->",
-   "op =","True","False"];
+  being chosen, but for some reason filtering works better with them listed. The
+  logical signs All, Ex, &, and --> are omitted because any remaining occurrrences
+  must be within comprehensions.*)
+val standard_consts = ["Trueprop","==>","all","==","op |","Not","op ="];
 
 
 (*** constants with types ***)
@@ -83,6 +84,14 @@ val null_const_tab : const_typ list list Symtab.table =
 
 fun get_goal_consts_typs thy = foldl (add_term_consts_typs_rm thy) null_const_tab;
 
+(*Inserts a dummy "constant" referring to the theory name, so that relevance
+  takes the given theory into account.*)
+fun const_prop_of th =
+ if !theory_const then
+  let val name = Context.theory_name (theory_of_thm th)
+      val t = Const (name ^ ". 1", HOLogic.boolT)
+  in  t $ prop_of th  end
+ else prop_of th;
 
 (**** Constant / Type Frequencies ****)
 
@@ -116,7 +125,7 @@ fun count_axiom_consts thy ((thm,_), tab) =
 	    count_term_consts (t, count_term_consts (u, tab))
 	| count_term_consts (Abs(_,_,t), tab) = count_term_consts (t, tab)
 	| count_term_consts (_, tab) = tab
-  in  count_term_consts (prop_of thm, tab)  end;
+  in  count_term_consts (const_prop_of thm, tab)  end;
 
 
 (******** filter clauses ********)
@@ -151,7 +160,7 @@ fun consts_typs_of_term thy t =
   in  Symtab.fold add_expand_pairs tab []  end;
 
 fun pair_consts_typs_axiom thy (thm,name) =
-    ((thm,name), (consts_typs_of_term thy (prop_of thm)));
+    ((thm,name), (consts_typs_of_term thy (const_prop_of thm)));
 
 exception ConstFree;
 fun dest_ConstFree (Const aT) = aT
