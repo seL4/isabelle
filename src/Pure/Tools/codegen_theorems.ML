@@ -918,7 +918,7 @@ local
       (Context.map_theory o f);
 in
   val _ = map (Context.add_setup o add_simple_attribute) [
-    ("fun", add_fun),
+    ("func", add_fun),
     ("nofun", del_fun),
     ("unfold", (fn thm => Codegen.add_unfold thm #> add_unfold thm)),
     ("inline", add_unfold),

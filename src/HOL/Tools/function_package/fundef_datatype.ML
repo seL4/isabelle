@@ -10,6 +10,7 @@ signature FUNDEF_DATATYPE =
 sig
     val pat_complete_tac: int -> tactic
 
+    val pat_completeness : method
     val setup : theory -> theory
 end
 
@@ -160,8 +161,48 @@ fun pat_complete_tac i thm =
     handle COMPLETENESS => Seq.empty
 
 
+val pat_completeness = Method.SIMPLE_METHOD (pat_complete_tac 1)
+
+val by_pat_completeness_simp =
+    Proof.global_terminal_proof
+      (Method.Basic (K pat_completeness),
+       SOME (Method.Source (Args.src (("simp_all", []), Position.none))))
+
 
 val setup =
-    Method.add_methods [("pat_completeness", Method.no_args (Method.SIMPLE_METHOD (pat_complete_tac 1)), "Completeness prover for datatype patterns")]
+    Method.add_methods [("pat_completeness", Method.no_args pat_completeness, "Completeness prover for datatype patterns")]
+
+
+
+
+
+
+local structure P = OuterParse and K = OuterKeyword in
+
+
+fun local_theory_to_proof f = 
+    Toplevel.theory_to_proof (f o LocalTheory.init NONE)
+
+fun or_list1 s = P.enum1 "|" s
+val otherwise = P.$$$ "(" |-- P.$$$ "otherwise" --| P.$$$ ")"
+val statement_ow = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 (P.prop -- Scan.optional (otherwise >> K true) false))
+val statements_ow = or_list1 statement_ow
+
+val funP =
+  OuterSyntax.command "fun" "define general recursive functions (short version)" K.thy_decl
+  ((P.opt_locale_target -- P.fixes --| P.$$$ "where" -- statements_ow)
+     >> (fn ((target, fixes), statements) =>
+            Toplevel.print o Toplevel.local_theory NONE (FundefPackage.add_fundef fixes statements true 
+                                                                                  #> by_pat_completeness_simp)));
+
+val _ = OuterSyntax.add_parsers [funP];
+end
+
+
+
+
+
+
+
 
 end

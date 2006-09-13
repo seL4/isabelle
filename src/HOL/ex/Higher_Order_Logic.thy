@@ -25,7 +25,7 @@ defaultsort type
 typedecl o
 arities
   o :: type
-  fun :: (type, type) type
+  "fun" :: (type, type) type
 
 
 subsubsection {* Basic logical connectives *}

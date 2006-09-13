@@ -376,23 +376,23 @@ code_constname
   "Numeral.B1" "IntDef.b1"
 
 lemma
-  Numeral_Pls_refl [code fun]: "Numeral.Pls = Numeral.Pls" ..
+  Numeral_Pls_refl [code func]: "Numeral.Pls = Numeral.Pls" ..
 
 lemma
-  Numeral_Min_refl [code fun]: "Numeral.Min = Numeral.Min" ..
+  Numeral_Min_refl [code func]: "Numeral.Min = Numeral.Min" ..
 
 lemma
-  Numeral_Bit_refl [code fun]: "Numeral.Bit = Numeral.Bit" ..
+  Numeral_Bit_refl [code func]: "Numeral.Bit = Numeral.Bit" ..
 
-lemma zero_is_num_zero [code fun, code inline]:
+lemma zero_is_num_zero [code func, code inline]:
   "(0::int) = Numeral.Pls" 
   unfolding Pls_def ..
 
-lemma one_is_num_one [code fun, code inline]:
+lemma one_is_num_one [code func, code inline]:
   "(1::int) = Numeral.Pls BIT bit.B1" 
   unfolding Pls_def Bit_def by simp 
 
-lemma number_of_is_id [code fun, code inline]:
+lemma number_of_is_id [code func, code inline]:
   "number_of (k::int) = k"
   unfolding int_number_of_def by simp
 

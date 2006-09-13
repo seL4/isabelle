@@ -17,6 +17,7 @@ sig
   val projr_inr: thm
 
   val mk_tree : typ list -> typ * sum_tree * sum_path list
+  val mk_tree_distinct : typ list -> typ * sum_tree * sum_path list
 
   val mk_proj: sum_tree -> sum_path -> term -> term
   val mk_inj: sum_tree -> sum_path -> term -> term
@@ -37,11 +38,8 @@ val projrN = "FunDef.rproj"
 val projl_inl = thm "FunDef.lproj_inl"
 val projr_inr = thm "FunDef.rproj_inr"
 
-
-
 fun mk_sumT LT RT = Type ("+", [LT, RT])
 fun mk_sumcase TL TR T l r = Const (sumcaseN, (TL --> T) --> (TR --> T) --> mk_sumT TL TR --> T) $ l $ r
-
 
 datatype sum_tree 
   = Leaf of typ
@@ -69,6 +67,23 @@ fun mk_tree Ts =
 	    end
     in
 	mk_tree' (length Ts) Ts
+    end
+
+
+fun mk_tree_distinct Ts =
+    let
+      fun insert_once T Ts =
+          let
+            val i = find_index_eq T Ts
+          in
+            if i = ~1 then (length Ts, Ts @ [T]) else (i, Ts)
+          end
+
+      val (idxs, dist_Ts) = fold_map insert_once Ts []
+
+      val (ST, tree, pths) = mk_tree dist_Ts
+    in
+      (ST, tree, map (nth pths) idxs)
     end
 
 

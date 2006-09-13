@@ -173,14 +173,14 @@ next
     case (Load adr)
     from Cons show ?case by simp -- {* same as above *}
   next
-    case (Apply fun)
-    have "exec ((Apply fun # xs) @ ys) s env =
-        exec (Apply fun # xs @ ys) s env" by simp
+    case (Apply fn)
+    have "exec ((Apply fn # xs) @ ys) s env =
+        exec (Apply fn # xs @ ys) s env" by simp
     also have "... =
-        exec (xs @ ys) (fun (hd s) (hd (tl s)) # (tl (tl s))) env" by simp
+        exec (xs @ ys) (fn (hd s) (hd (tl s)) # (tl (tl s))) env" by simp
     also from Cons have "... =
-        exec ys (exec xs (fun (hd s) (hd (tl s)) # tl (tl s)) env) env" .
-    also have "... = exec ys (exec (Apply fun # xs) s env) env" by simp
+        exec ys (exec xs (fn (hd s) (hd (tl s)) # tl (tl s)) env) env" .
+    also have "... = exec ys (exec (Apply fn # xs) s env) env" by simp
     finally show ?case .
   qed
 qed
@@ -199,19 +199,19 @@ proof -
     case (Constant val s)
     show ?case by simp -- {* same as above *}
   next
-    case (Binop fun e1 e2 s)
-    have "exec (compile (Binop fun e1 e2)) s env =
-        exec (compile e2 @ compile e1 @ [Apply fun]) s env" by simp
-    also have "... = exec [Apply fun]
+    case (Binop fn e1 e2 s)
+    have "exec (compile (Binop fn e1 e2)) s env =
+        exec (compile e2 @ compile e1 @ [Apply fn]) s env" by simp
+    also have "... = exec [Apply fn]
         (exec (compile e1) (exec (compile e2) s env) env) env"
       by (simp only: exec_append)
     also have "exec (compile e2) s env = eval e2 env # s" by fact
     also have "exec (compile e1) ... env = eval e1 env # ..." by fact
-    also have "exec [Apply fun] ... env =
-        fun (hd ...) (hd (tl ...)) # (tl (tl ...))" by simp
-    also have "... = fun (eval e1 env) (eval e2 env) # s" by simp
-    also have "fun (eval e1 env) (eval e2 env) =
-        eval (Binop fun e1 e2) env"
+    also have "exec [Apply fn] ... env =
+        fn (hd ...) (hd (tl ...)) # (tl (tl ...))" by simp
+    also have "... = fn (eval e1 env) (eval e2 env) # s" by simp
+    also have "fn (eval e1 env) (eval e2 env) =
+        eval (Binop fn e1 e2) env"
       by simp
     finally show ?case .
   qed

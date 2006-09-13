@@ -11,6 +11,7 @@ uses
 ("Tools/function_package/sum_tools.ML")
 ("Tools/function_package/fundef_common.ML")
 ("Tools/function_package/fundef_lib.ML")
+("Tools/function_package/inductive_wrap.ML")
 ("Tools/function_package/context_tree.ML")
 ("Tools/function_package/fundef_prep.ML")
 ("Tools/function_package/fundef_proof.ML")
@@ -23,20 +24,20 @@ uses
 begin
 
 lemma fundef_ex1_existence:
-assumes f_def: "\<And>x. f x \<equiv> THE y. (x,y)\<in>G"
+assumes f_def: "f \<equiv> \<lambda>x. THE y. (x,y)\<in>G"
 assumes ex1: "\<exists>!y. (x,y)\<in>G"
 shows "(x, f x)\<in>G"
   by (simp only:f_def, rule theI', rule ex1)
 
 lemma fundef_ex1_uniqueness:
-assumes f_def: "\<And>x. f x \<equiv> THE y. (x,y)\<in>G"
+assumes f_def: "f \<equiv> \<lambda>x. THE y. (x,y)\<in>G"
 assumes ex1: "\<exists>!y. (x,y)\<in>G"
 assumes elm: "(x, h x)\<in>G"
 shows "h x = f x"
   by (simp only:f_def, rule the1_equality[symmetric], rule ex1, rule elm)
 
 lemma fundef_ex1_iff:
-assumes f_def: "\<And>x. f x \<equiv> THE y. (x,y)\<in>G"
+assumes f_def: "f \<equiv> \<lambda>x. THE y. (x,y)\<in>G"
 assumes ex1: "\<exists>!y. (x,y)\<in>G"
 shows "((x, y)\<in>G) = (f x = y)"
   apply (auto simp:ex1 f_def the1_equality)
@@ -71,6 +72,7 @@ lemma rproj_inr:
 use "Tools/function_package/sum_tools.ML"
 use "Tools/function_package/fundef_common.ML"
 use "Tools/function_package/fundef_lib.ML"
+use "Tools/function_package/inductive_wrap.ML"
 use "Tools/function_package/context_tree.ML"
 use "Tools/function_package/fundef_prep.ML"
 use "Tools/function_package/fundef_proof.ML"

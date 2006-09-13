@@ -233,27 +233,27 @@ by (cases x) simp_all
 
 lemmas [code] = imp_conv_disj
 
-lemma [code fun]:
+lemma [code func]:
   "(\<not> True) = False" by (rule HOL.simp_thms)
 
-lemma [code fun]:
+lemma [code func]:
   "(\<not> False) = True" by (rule HOL.simp_thms)
 
-lemma [code fun]:
+lemma [code func]:
   shows "(False \<and> x) = False"
   and   "(True \<and> x) = x"
   and   "(x \<and> False) = False"
   and   "(x \<and> True) = x" by simp_all
 
-lemma [code fun]:
+lemma [code func]:
   shows "(False \<or> x) = x"
   and   "(True \<or> x) = True"
   and   "(x \<or> False) = x"
   and   "(x \<or> True) = True" by simp_all
 
 declare
-  if_True [code fun]
-  if_False [code fun]
+  if_True [code func]
+  if_False [code func]
   fst_conv [code]
   snd_conv [code]
 

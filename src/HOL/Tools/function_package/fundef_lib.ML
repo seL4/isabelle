@@ -7,14 +7,12 @@ Some fairly general functions that should probably go somewhere else...
 *)
 
 
+fun eq_str (s : string, t) = (s = t) (* monomorphic equality on strings *)
+
 fun mk_forall (var as Free (v,T)) t =
     all T $ Abs (v,T, abstract_over (var,t))
   | mk_forall v _ = let val _ = print v in sys_error "mk_forall" end
 
-(* Builds a quantification with a new name for the variable. *)
-fun mk_forall_rename (v as Free (_,T),newname) t =
-    all T $ Abs (newname, T, abstract_over (v, t))
-  | mk_forall_rename (v, _) _ = let val _ = print v in sys_error "mk_forall_rename" end
 
 (* Constructs a tupled abstraction from an arbitrarily nested tuple of variables and a term. *)
 fun tupled_lambda vars t =
@@ -75,9 +73,17 @@ fun map3 _ [] [] [] = []
   | map3 f (x :: xs) (y :: ys) (z :: zs) = f x y z :: map3 f xs ys zs
   | map3 _ _ _ _ = raise Library.UnequalLengths;
 
+fun map4 _ [] [] [] [] = []
+  | map4 f (x :: xs) (y :: ys) (z :: zs) (u :: us) = f x y z u :: map4 f xs ys zs us
+  | map4 _ _ _ _ _ = raise Library.UnequalLengths;
+
 fun map6 _ [] [] [] [] [] [] = []
   | map6 f (x :: xs) (y :: ys) (z :: zs) (u :: us) (v :: vs) (w :: ws) = f x y z u v w :: map6 f xs ys zs us vs ws
   | map6 _ _ _ _ _ _ _ = raise Library.UnequalLengths;
+
+fun map7 _ [] [] [] [] [] [] [] = []
+  | map7 f (x :: xs) (y :: ys) (z :: zs) (u :: us) (v :: vs) (w :: ws) (b :: bs) = f x y z u v w b :: map7 f xs ys zs us vs ws bs
+  | map7 _ _ _ _ _ _ _ _ = raise Library.UnequalLengths;
 
 
 
@@ -88,3 +94,36 @@ fun unordered_pairs [] = []
 
 fun the_single [x] = x
   | the_single _ = sys_error "the_single"
+
+
+(* Replaces Frees by name. Probably quicker than Pattern.rewrite_terms, and works with loose Bounds. *)
+fun replace_frees assoc =
+    map_aterms (fn c as Free (n, _) => (case AList.lookup (op =) assoc n of
+                                          NONE => c
+                                        | SOME t => t)
+                 | t => t)
+
+
+
+fun rename_bound n (Q $ Abs(_, T, b)) = (Q $ Abs(n, T, b))
+  | rename_bound n _ = raise Match
+
+fun mk_forall_rename (n, v) =
+    rename_bound n o mk_forall v 
+
+fun forall_intr_rename (n, cv) thm =
+    let
+      val allthm = forall_intr cv thm
+      val reflx = prop_of allthm
+                   |> rename_bound n
+                   |> cterm_of (theory_of_thm thm)
+                   |> reflexive
+    in
+      equal_elim reflx allthm
+    end
+
+
+(* Returns the frees in a term in canonical order, excluding the fixes from the context *)
+fun frees_in_term ctxt t =
+    rev (fold_aterms (fn  Free (v as (x, _)) =>
+                          if Variable.is_fixed ctxt x then I else insert (fn ((x, _),(y, _)) => x = y) v | _ => I) t [])

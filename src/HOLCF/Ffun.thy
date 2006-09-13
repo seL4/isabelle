@@ -15,7 +15,7 @@ begin
 
 subsection {* Full function space is a partial order *}
 
-instance fun  :: (type, sq_ord) sq_ord ..
+instance "fun"  :: (type, sq_ord) sq_ord ..
 
 defs (overloaded)
   less_fun_def: "(op \<sqsubseteq>) \<equiv> (\<lambda>f g. \<forall>x. f x \<sqsubseteq> g x)"  
@@ -36,7 +36,7 @@ apply (erule spec)
 apply (erule spec)
 done
 
-instance fun  :: (type, po) po
+instance "fun"  :: (type, po) po
 by intro_classes
   (assumption | rule refl_less_fun antisym_less_fun trans_less_fun)+
 
@@ -90,7 +90,7 @@ lemma cpo_fun:
   "chain (S::nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo) \<Longrightarrow> \<exists>x. range S <<| x"
 by (rule exI, erule lub_fun)
 
-instance fun  :: (type, cpo) cpo
+instance "fun"  :: (type, cpo) cpo
 by intro_classes (rule cpo_fun)
 
 subsection {* Full function space is pointed *}
@@ -103,7 +103,7 @@ apply (rule_tac x = "\<lambda>x. \<bottom>" in exI)
 apply (rule minimal_fun [THEN allI])
 done
 
-instance fun  :: (type, pcpo) pcpo
+instance "fun"  :: (type, pcpo) pcpo
 by intro_classes (rule least_fun)
 
 text {* for compatibility with old HOLCF-Version *}

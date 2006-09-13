@@ -113,7 +113,7 @@ definition
 
 instance int :: eq ..
 
-lemma [code fun]:
+lemma [code func]:
   "eq k l = eq_integer k l"
 unfolding eq_integer_def eq_def ..
 

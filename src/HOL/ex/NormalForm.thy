@@ -9,7 +9,7 @@ imports Main
 begin
 
 lemma "p \<longrightarrow> True" by normalization
-declare disj_assoc [code fun]
+declare disj_assoc [code func]
 normal_form  "(P | Q) | R"
 
 lemma "0 + (n::nat) = n" by normalization

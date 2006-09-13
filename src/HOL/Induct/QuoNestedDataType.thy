@@ -351,7 +351,7 @@ done
 subsection{*Injectivity of @{term FnCall}*}
 
 definition
-  fun :: "exp \<Rightarrow> nat"
+  "fun" :: "exp \<Rightarrow> nat"
   "fun X = contents (\<Union>U \<in> Rep_Exp X. {freefun U})"
 
 lemma fun_respects: "(%U. {freefun U}) respects exprel"

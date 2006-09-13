@@ -18,33 +18,33 @@ calculations. See the comments at the top of theory @{text BigO}.
 subsection {* Basic definitions *}
 
 instance set :: (plus) plus ..
-instance fun :: (type, plus) plus ..
+instance "fun" :: (type, plus) plus ..
 
 defs (overloaded)
   func_plus: "f + g == (%x. f x + g x)"
   set_plus: "A + B == {c. EX a:A. EX b:B. c = a + b}"
 
 instance set :: (times) times ..
-instance fun :: (type, times) times ..
+instance "fun" :: (type, times) times ..
 
 defs (overloaded)
   func_times: "f * g == (%x. f x * g x)"
   set_times:"A * B == {c. EX a:A. EX b:B. c = a * b}"
 
-instance fun :: (type, minus) minus ..
+instance "fun" :: (type, minus) minus ..
 
 defs (overloaded)
   func_minus: "- f == (%x. - f x)"
   func_diff: "f - g == %x. f x - g x"
 
-instance fun :: (type, zero) zero ..
+instance "fun" :: (type, zero) zero ..
 instance set :: (zero) zero ..
 
 defs (overloaded)
   func_zero: "0::(('a::type) => ('b::zero)) == %x. 0"
   set_zero: "0::('a::zero)set == {0}"
 
-instance fun :: (type, one) one ..
+instance "fun" :: (type, one) one ..
 instance set :: (one) one ..
 
 defs (overloaded)
@@ -62,29 +62,29 @@ abbreviation (input)
   elt_set_eq :: "'a => 'a set => bool"      (infix "=o" 50)
   "x =o A == x : A"
 
-instance fun :: (type,semigroup_add)semigroup_add
+instance "fun" :: (type,semigroup_add)semigroup_add
   by default (auto simp add: func_plus add_assoc)
 
-instance fun :: (type,comm_monoid_add)comm_monoid_add
+instance "fun" :: (type,comm_monoid_add)comm_monoid_add
   by default (auto simp add: func_zero func_plus add_ac)
 
-instance fun :: (type,ab_group_add)ab_group_add
+instance "fun" :: (type,ab_group_add)ab_group_add
   apply default
    apply (simp add: func_minus func_plus func_zero)
   apply (simp add: func_minus func_plus func_diff diff_minus)
   done
 
-instance fun :: (type,semigroup_mult)semigroup_mult
+instance "fun" :: (type,semigroup_mult)semigroup_mult
   apply default
   apply (auto simp add: func_times mult_assoc)
   done
 
-instance fun :: (type,comm_monoid_mult)comm_monoid_mult
+instance "fun" :: (type,comm_monoid_mult)comm_monoid_mult
   apply default
    apply (auto simp add: func_one func_times mult_ac)
   done
 
-instance fun :: (type,comm_ring_1)comm_ring_1
+instance "fun" :: (type,comm_ring_1)comm_ring_1
   apply default
    apply (auto simp add: func_plus func_times func_minus func_diff ext
      func_one func_zero ring_eq_simps)

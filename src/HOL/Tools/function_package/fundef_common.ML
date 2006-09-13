@@ -12,6 +12,8 @@ struct
 (* Theory Dependencies *)
 val acc_const_name = "Accessible_Part.acc"
 
+fun mk_acc domT R =
+    Const (acc_const_name, (fastype_of R) --> HOLogic.mk_setT domT) $ R 
 
 
 type depgraph = int IntGraph.T
@@ -25,17 +27,20 @@ datatype ctx_tree
 type glrs = (term list * term list * term * term) list
 
 
-(* A record containing all the relevant symbols and types needed during the proof.
-   This is set up at the beginning and does not change. *)
-datatype naming_context =
-   Names of { f: term, fvarname: string, fvar: term, domT: typ, ranT: typ,
-       G: term, R: term, acc_R: term, h: term, y: term, x: term, z: term, a:term, P: term, 
-       D: term, Pbool:term,
-       glrs: (term list * term list * term * term) list,
-       glrs': (term list * term list * term * term) list,
-       f_def: thm,
-       ctx: Proof.context
-     }
+datatype globals =
+   Globals of { 
+         fvar: term, 
+         domT: typ, 
+         ranT: typ,
+         h: term, 
+         y: term, 
+         x: term, 
+         z: term, 
+         a:term, 
+         P: term, 
+         D: term, 
+         Pbool:term
+}
 
 
 datatype rec_call_info = 
@@ -46,70 +51,91 @@ datatype rec_call_info =
    rcarg: term,                 (* The recursive argument *)
 
    llRI: thm,
-   Gh: thm, 
-   Gh': thm
+   h_assum: term
   } 
-     
+
+
+datatype clause_context =
+  ClauseContext of
+  {
+    ctxt : Proof.context,
+
+    qs : term list,
+    gs : term list,
+    lhs: term,
+    rhs: term,
+
+    cqs: cterm list,
+    ags: thm list,     
+    case_hyp : thm
+  }
+
+
+fun transfer_clause_ctx thy (ClauseContext { ctxt, qs, gs, lhs, rhs, cqs, ags, case_hyp }) =
+    ClauseContext { ctxt = ProofContext.transfer thy ctxt,
+                    qs = qs, gs = gs, lhs = lhs, rhs = rhs, cqs = cqs, ags = ags, case_hyp = case_hyp }
+
+
 datatype clause_info =
   ClauseInfo of 
      {
       no: int,
+      qglr : ((string * typ) list * term list * term * term),
+      cdata : clause_context,
 
       tree: ctx_tree,
-      case_hyp: thm,
-
-      qs: term list, 
-      gs: term list,
-      lhs: term,
-      rhs: term,
-
-      cqs: cterm list,
-      ags: thm list,
-      
-      cqs': cterm list, 
-      ags': thm list,
-      lhs': term,
-      rhs': term,
-
       lGI: thm,
-      RCs: rec_call_info list,
-
-      ordcqs': cterm list
+      RCs: rec_call_info list
      }
 
-type qgar = (string * typ) list * term list * term list * term
+
+
+
+type qgar = string * (string * typ) list * term list * term list * term
+
+fun name_of_fqgar (f, _, _, _, _) = f
 
 datatype mutual_part =
   MutualPart of 
 	 {
-          f_name: string,
-	  const: string * typ,
+          fvar : string * typ,
 	  cargTs: typ list,
 	  pthA: SumTools.sum_path,
 	  pthR: SumTools.sum_path,
-	  qgars: qgar list,
-	  f_def: thm
+	  f_def: term,
+
+	  f: term option,
+          f_defthm : thm option
 	 }
 	 
 
 datatype mutual_info =
   Mutual of 
 	 { 
-	  name: string, 
-	  sum_const: string * typ,
+	  defname: string,
+          fsum_var : string * typ,
+
 	  ST: typ,
 	  RST: typ,
 	  streeA: SumTools.sum_tree,
 	  streeR: SumTools.sum_tree,
+
 	  parts: mutual_part list,
-	  qglrss: (term list * term list * term * term) list list
+	  fqgars: qgar list,
+	  qglrs: ((string * typ) list * term list * term * term) list,
+
+          fsum : term option
 	 }
 
 
 datatype prep_result =
   Prep of
      {
-      names: naming_context, 
+      globals: globals,
+      f: term,
+      G: term,
+      R: term,
+ 
       goal: term,
       goalI: thm,
       values: thm list,
@@ -138,10 +164,10 @@ datatype fundef_mresult =
   FundefMResult of
      {
       f: term,
-      G : term,
-      R : term,
+      G: term,
+      R: term,
 
-      psimps : thm list list, 
+      psimps : thm list, 
       subset_pinducts : thm list, 
       simple_pinducts : thm list, 
       cases : thm,
@@ -150,10 +176,10 @@ datatype fundef_mresult =
      }
 
 
-type fundef_spec = ((string * attribute list) * term list) list list
+type fundef_spec = ((string * typ) * mixfix) list *((string * Attrib.src list) * term list) list list
 type result_with_names = fundef_mresult * mutual_info * fundef_spec
 
-structure FundefData = TheoryDataFun
+structure FundefData = GenericDataFun
 (struct
   val name = "HOL/function_def/data";
   type T = string * result_with_names Symtab.table
@@ -204,6 +230,7 @@ val boolT = HOLogic.boolT
 val mk_prod = HOLogic.mk_prod
 val mk_mem = HOLogic.mk_mem
 val mk_eq = HOLogic.mk_eq
+val eq_const = HOLogic.eq_const
 val Trueprop = HOLogic.mk_Trueprop
 
 val mk_relT = HOLogic.mk_setT o HOLogic.mk_prodT

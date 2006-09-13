@@ -5,7 +5,7 @@
 header {* Collection classes as examples for code generation *}
 
 theory CodeCollections
-imports CodeOperationalEquality
+imports "../FundefDebug" CodeOperationalEquality
 begin
 
 section {* Collection classes as examples for code generation *}
@@ -66,15 +66,15 @@ definition
   max :: "'a::ordered \<Rightarrow> 'a \<Rightarrow> 'a"
   "max x y = (if x <<= y then y else x)"
 
-consts
-  abs_sorted :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
-
-function
+fun abs_sorted :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
+where
   "abs_sorted cmp [] = True"
-  "abs_sorted cmp [x] = True"
-  "abs_sorted cmp (x#y#xs) = (cmp x y \<and> abs_sorted cmp (y#xs))"
-by pat_completeness simp_all
+| "abs_sorted cmp [x] = True"
+| "abs_sorted cmp (x#y#xs) = (cmp x y \<and> abs_sorted cmp (y#xs))"
+
 termination by (auto_term "measure (length o snd)")
+
+thm abs_sorted.simps
 
 abbreviation (in ordered)
   "sorted \<equiv> abs_sorted le"
@@ -90,7 +90,8 @@ using prems proof (induct xs)
 next
   case (Cons x' xs)
   from this(5) have "sorted (x # x' # xs)" .
-  then show "sorted (x' # xs)" by auto
+  then show "sorted (x' # xs)"
+    by auto
 qed
 
 instance bool :: ordered
@@ -109,14 +110,13 @@ instance unit :: ordered
   "u <<= v == True"
   by default (simp_all add:  ordered_unit_def)
 
-consts
-  le_option' :: "'a::ordered option \<Rightarrow> 'a option \<Rightarrow> bool"
 
-function
+fun le_option' :: "'a::ordered option \<Rightarrow> 'a option \<Rightarrow> bool"
+where
   "le_option' None y = True"
-  "le_option' (Some x) None = False"
-  "le_option' (Some x) (Some y) = x <<= y"
-  by pat_completeness simp_all
+| "le_option' (Some x) None = False"
+| "le_option' (Some x) (Some y) = x <<= y"
+
 termination by (auto_term "{}")
 
 instance (ordered) option :: ordered
@@ -144,12 +144,9 @@ lemma [simp, code]:
   "Some v <<= Some w = v <<= w"
   unfolding ordered_option_def le_option'.simps by rule+
 
-consts
-  le_pair' :: "'a::ordered \<times> 'b::ordered \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
-
-function
+fun le_pair' :: "'a::ordered \<times> 'b::ordered \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
+where
   "le_pair' (x1, y1) (x2, y2) = (x1 << x2 \<or> x1 = x2 \<and> y1 <<= y2)"
-  by pat_completeness simp_all
 termination by (auto_term "{}")
 
 instance (ordered, ordered) * :: ordered
@@ -164,14 +161,14 @@ lemma [simp, code]:
   "(x1, y1) <<= (x2, y2) = (x1 << x2 \<or> x1 = x2 \<and> y1 <<= y2)"
   unfolding "ordered_*_def" le_pair'.simps ..
 
-(* consts
-  le_list' :: "'a::ordered list \<Rightarrow> 'a list \<Rightarrow> bool"
+(*   
 
-function
+fun le_list' :: "'a::ordered list \<Rightarrow> 'a list \<Rightarrow> bool"
+where
   "le_list' [] ys = True"
-  "le_list' (x#xs) [] = False"
-  "le_list' (x#xs) (y#ys) = (x << y \<or> x = y \<and> le_list' xs ys)"
-    by pat_completeness simp_all
+| "le_list' (x#xs) [] = False"
+| "le_list' (x#xs) (y#ys) = (x << y \<or> x = y \<and> le_list' xs ys)"
+
 termination by (auto_term "measure (length o fst)")
 
 instance (ordered) list :: ordered
@@ -213,14 +210,13 @@ lemma (in infimum)
   shows no_smaller: "a = inf"
 using prem inf by (rule order_antisym)
 
-consts
-  abs_max_of :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a"
 
 ML {* set quick_and_dirty *}
-function
+function abs_max_of :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a"
+where
   "abs_max_of cmp inff [] = inff"
-  "abs_max_of cmp inff [x] = x"
-  "abs_max_of cmp inff (x#xs) =
+| "abs_max_of cmp inff [x] = x"
+| "abs_max_of cmp inff (x#xs) =
      ordered.max cmp x (abs_max_of cmp inff xs)"
 apply pat_completeness sorry
 

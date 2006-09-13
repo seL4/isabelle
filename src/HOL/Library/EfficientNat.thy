@@ -112,23 +112,23 @@ lemma [code]: "m mod n = nat (int m mod int n)"
 lemma [code]: "(m < n) = (int m < int n)"
   by simp
 
-lemma [code fun, code inline]: "m + n = nat_plus m n"
+lemma [code func, code inline]: "m + n = nat_plus m n"
   unfolding nat_plus_def by arith
-lemma [code fun, code inline]: "m - n = nat_minus m n"
+lemma [code func, code inline]: "m - n = nat_minus m n"
   unfolding nat_minus_def by arith
-lemma [code fun, code inline]: "m * n = nat_mult m n"
+lemma [code func, code inline]: "m * n = nat_mult m n"
   unfolding nat_mult_def by (simp add: zmult_int)
-lemma [code fun, code inline]: "m div n = nat_div m n"
+lemma [code func, code inline]: "m div n = nat_div m n"
   unfolding nat_div_def div_def [symmetric] zdiv_int [symmetric] by simp
-lemma [code fun, code inline]: "m mod n = nat_mod m n"
+lemma [code func, code inline]: "m mod n = nat_mod m n"
   unfolding nat_mod_def mod_def [symmetric] zmod_int [symmetric] by simp
-lemma [code fun, code inline]: "(m < n) = nat_less m n"
+lemma [code func, code inline]: "(m < n) = nat_less m n"
   unfolding nat_less_def by simp
-lemma [code fun, code inline]: "(m <= n) = nat_less_equal m n"
+lemma [code func, code inline]: "(m <= n) = nat_less_equal m n"
   unfolding nat_less_equal_def by simp
-lemma [code fun, code inline]: "(m = n) = nat_eq m n"
+lemma [code func, code inline]: "(m = n) = nat_eq m n"
   unfolding nat_eq_def by simp
-lemma [code fun]:
+lemma [code func]:
   "int_aux i n = (if nat_eq n 0 then i else int_aux (i + 1) (nat_minus n 1))"
   unfolding nat_eq_def nat_minus_def int_aux_def by simp
 

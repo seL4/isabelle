@@ -12,8 +12,10 @@ turns a specification with overlaps into an overlap-free specification.
 signature FUNDEF_SPLIT =
 sig
   val split_some_equations :
-    Proof.context -> (('a * ('b * bool)) * term) list -> (('a * 'b) * term list) list
+    Proof.context -> (bool * term) list -> term list list
 
+  val split_all_equations :
+    Proof.context -> term list -> term list list
 end
 
 structure FundefSplit : FUNDEF_SPLIT =
@@ -51,7 +53,7 @@ fun pattern_subtract_subst ctx vs _ (Free v2) = []
             val (vs', t) = saturate ctx vs constr
             val substs = pattern_subtract_subst ctx vs' t t'
           in
-            map (cons (v, t)) substs
+            map (fn (vs, subst) => (vs, (v,t)::subst)) substs
           end
     in
       flat (map foo (inst_constrs_of (ProofContext.theory_of ctx) T))
@@ -63,24 +65,29 @@ fun pattern_subtract_subst ctx vs _ (Free v2) = []
     in
       if C = C'
       then flat (map2 (pattern_subtract_subst ctx vs) ps qs)
-      else [[]]
+      else [(vs, [])]
     end
 
-fun pattern_subtract_parallel ctx vs ps qs =
-    flat (map2 (pattern_subtract_subst ctx vs) ps qs)
 
-
-
-(* ps - qs *)
+(* p - q *)
 fun pattern_subtract ctx eq2 eq1 =
     let
-      val _ $ (_ $ lhs1 $ _) = eq1
-      val _ $ (_ $ lhs2 $ _) = eq2
+      
+      val (vs, feq1 as (_ $ (_ $ lhs1 $ _))) = dest_all_all eq1
+      val (_,  _ $ (_ $ lhs2 $ _)) = dest_all_all eq2
 
       val thy = ProofContext.theory_of ctx
-      val vs = term_frees eq1
+
+      val substs = pattern_subtract_subst ctx vs lhs1 lhs2
+
+      fun instantiate (vs', sigma) =
+          let
+            val t = Pattern.rewrite_term thy sigma [] feq1
+          in
+            fold_rev mk_forall (map Free (frees_in_term ctx t) inter vs') t
+          end
     in
-      map (fn sigma => Pattern.rewrite_term thy sigma [] eq1) (pattern_subtract_subst ctx vs lhs1 lhs2)
+      map instantiate substs
     end
 
 
@@ -94,24 +101,21 @@ fun pattern_subtract_many ctx ps' =
 
 
 
-fun split_all_equations ctx eqns =
-    let
-      fun split_aux prev [] = []
-        | split_aux prev (e::es) = pattern_subtract_many ctx prev [e] @ split_aux (e::prev) es
-    in
-      split_aux [] eqns
-end
-
-
 fun split_some_equations ctx eqns =
     let
       fun split_aux prev [] = []
-        | split_aux prev (((n, (att, true)), eq) :: es) = ((n, att), pattern_subtract_many ctx prev [eq])
-                                                          :: split_aux (eq :: prev) es
-        | split_aux prev (((n, (att, false)), eq) :: es) = ((n, att), [eq])
-                                                                :: split_aux (eq :: prev) es
+        | split_aux prev ((true, eq) :: es) = pattern_subtract_many ctx prev [eq]
+                                              :: split_aux (eq :: prev) es
+        | split_aux prev ((false, eq) :: es) = [eq]
+                                               :: split_aux (eq :: prev) es
     in
       split_aux [] eqns
     end
+
+fun split_all_equations ctx =
+    split_some_equations ctx o map (pair true)
+
+
+
 
 end

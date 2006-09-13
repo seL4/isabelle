@@ -57,7 +57,7 @@ types subst = "nat => typ"
 
 instance "typ" :: type_struct ..
 instance list :: (type_struct) type_struct ..
-instance fun :: (type, type_struct) type_struct ..
+instance "fun" :: (type, type_struct) type_struct ..
 
 
 subsection {* Substitutions *}

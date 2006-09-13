@@ -15,8 +15,11 @@ sig
     val cong_deps : thm -> int IntGraph.T
     val add_congs : thm list
 
-    val mk_tree: theory -> (thm * FundefCommon.depgraph) list ->
-      term -> Proof.context -> term -> FundefCommon.ctx_tree
+    val mk_tree: (thm * FundefCommon.depgraph) list ->
+                 (string * typ) -> Proof.context -> term -> FundefCommon.ctx_tree
+
+    val inst_tree: theory -> term -> term -> FundefCommon.ctx_tree
+                   -> FundefCommon.ctx_tree
 
     val add_context_varnames : FundefCommon.ctx_tree -> string list -> string list
 
@@ -32,7 +35,7 @@ sig
    (((string * typ) list * thm list) * thm) list * 'b)
    -> FundefCommon.ctx_tree -> 'b -> 'b
 
-    val rewrite_by_tree : theory -> 'a -> term -> thm -> (thm * thm) list -> FundefCommon.ctx_tree -> thm * (thm * thm) list
+    val rewrite_by_tree : theory -> term -> thm -> (thm * thm) list -> FundefCommon.ctx_tree -> thm * (thm * thm) list
 end
 
 structure FundefCtxTree : FUNDEF_CTXTREE =
@@ -79,35 +82,61 @@ fun mk_branch ctx t =
       (ctx', fixes, assumes, rhs_of term)
     end
 
-fun find_cong_rule thy ctx ((r,dep)::rs) t =
+fun find_cong_rule ctx ((r,dep)::rs) t =
     (let
 	val (c, subs) = (meta_rhs_of (concl_of r), prems_of r)
 
-	val subst = Pattern.match thy (c, t) (Vartab.empty, Vartab.empty)
+	val subst = Pattern.match (ProofContext.theory_of ctx) (c, t) (Vartab.empty, Vartab.empty)
 
 	val branches = map (mk_branch ctx o Envir.beta_norm o Envir.subst_vars subst) subs
      in
 	 (r, dep, branches)
      end
-    handle Pattern.MATCH => find_cong_rule thy ctx rs t)
-  | find_cong_rule thy _ [] _ = sys_error "function_package/context_tree.ML: No cong rule found!"
+    handle Pattern.MATCH => find_cong_rule ctx rs t)
+  | find_cong_rule _ [] _ = sys_error "function_package/context_tree.ML: No cong rule found!"
 
 
-fun matchcall f (a $ b) = if a = f then SOME b else NONE
-  | matchcall f _ = NONE
+fun matchcall fvar (a $ b) = if a = Free fvar then SOME b else NONE
+  | matchcall fvar _ = NONE
 
-fun mk_tree thy congs f ctx t =
-    case matchcall f t of
-	SOME arg => RCall (t, mk_tree thy congs f ctx arg)
-      | NONE => 
-	if not (exists_Const (curry op = (dest_Const f)) t) then Leaf t
-	else 
-	    let val (r, dep, branches) = find_cong_rule thy ctx congs t in
-		Cong (t, r, dep, map (fn (ctx', fixes, assumes, st) => 
-					 (fixes, map (assume o cterm_of thy) assumes, mk_tree thy congs f ctx' st)) branches)
-	    end
+fun mk_tree congs fvar ctx t =
+    case matchcall fvar t of
+      SOME arg => RCall (t, mk_tree congs fvar ctx arg)
+    | NONE => 
+      if not (exists_subterm (fn Free v => v = fvar | _ => false) t) then Leaf t
+      else 
+	let val (r, dep, branches) = find_cong_rule ctx congs t in
+	  Cong (t, r, dep, 
+                map (fn (ctx', fixes, assumes, st) => 
+			(fixes, map (assume o cterm_of (ProofContext.theory_of ctx)) assumes, 
+                         mk_tree congs fvar ctx' st)) branches)
+	end
 		
-		
+
+fun inst_tree thy fvar f tr =
+    let
+      val cfvar = cterm_of thy fvar
+      val cf = cterm_of thy f
+               
+      fun inst_term t = 
+          subst_bound(f, abstract_over (fvar, t))
+
+      val inst_thm = forall_elim cf o forall_intr cfvar 
+
+      fun inst_tree_aux (Leaf t) = Leaf t
+        | inst_tree_aux (Cong (t, crule, deps, branches)) =
+          Cong (inst_term t, inst_thm crule, deps, map inst_branch branches)
+        | inst_tree_aux (RCall (t, str)) =
+          RCall (inst_term t, inst_tree_aux str)
+      and inst_branch (fxs, assms, str) = 
+          (fxs, map (assume o cterm_of thy o inst_term o prop_of) assms, inst_tree_aux str)
+    in
+      inst_tree_aux tr
+    end
+
+
+
+(* FIXME: remove *)		
 fun add_context_varnames (Leaf _) = I
   | add_context_varnames (Cong (_, _, _, sub)) = fold (fn (fs, _, st) => fold (curry op ins_string o fst) fs o add_context_varnames st) sub
   | add_context_varnames (RCall (_,st)) = add_context_varnames st
@@ -185,7 +214,7 @@ fun traverse_tree rcOp tr x =
 
 fun is_refl thm = let val (l,r) = Logic.dest_equals (prop_of thm) in l = r end
 
-fun rewrite_by_tree thy f h ih x tr =
+fun rewrite_by_tree thy h ih x tr =
     let
 	fun rewrite_help fix f_as h_as x (Leaf t) = (reflexive (cterm_of thy t), x)
 	  | rewrite_help fix f_as h_as x (RCall (_ $ arg, st)) =

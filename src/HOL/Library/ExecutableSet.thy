@@ -84,51 +84,55 @@ lemma foldr_remove1_empty [simp]:
 
 subsection {* Derived definitions *}
 
-consts
-  unionl :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
-  intersect :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
-  subtract :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
-  map_distinct :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"
-  unions :: "'a list list \<Rightarrow> 'a list"
-  intersects :: "'a list list \<Rightarrow> 'a list"
 
-function
+function unionl :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+where
   "unionl [] ys = ys"
-  "unionl xs ys = foldr insertl xs ys"
-  by pat_completeness auto
+| "unionl xs ys = foldr insertl xs ys"
+by pat_completeness auto
 termination unionl by (auto_term "{}")
 lemmas unionl_def = unionl.simps(2)
+declare unionl.simps[code]
 
-function
+function intersect :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+where
   "intersect [] ys = []"
-  "intersect xs [] = []"
-  "intersect xs ys = filter (member xs) ys"
-  by pat_completeness simp_all
+| "intersect xs [] = []"
+| "intersect xs ys = filter (member xs) ys"
+  by pat_completeness auto
 termination intersect by (auto_term "{}")
 lemmas intersect_def = intersect.simps(3)
+declare intersect.simps[code]
 
-function
+function subtract :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+where
   "subtract [] ys = ys"
-  "subtract xs [] = []"
-  "subtract xs ys = foldr remove1 xs ys"
-  by pat_completeness simp_all
+| "subtract xs [] = []"
+| "subtract xs ys = foldr remove1 xs ys"
+  by pat_completeness auto
 termination subtract by (auto_term "{}")
 lemmas subtract_def = subtract.simps(3)
+declare subtract.simps[code]
 
-function
+function map_distinct :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"
+where
   "map_distinct f [] = []"
-  "map_distinct f xs = foldr (insertl o f) xs []"
-  by pat_completeness simp_all
+| "map_distinct f xs = foldr (insertl o f) xs []"
+  by pat_completeness auto
 termination map_distinct by (auto_term "{}")
 lemmas map_distinct_def = map_distinct.simps(2)
+declare map_distinct.simps[code]
 
-function
+function unions :: "'a list list \<Rightarrow> 'a list"
+where
   "unions [] = []"
   "unions xs = foldr unionl xs []"
-  by pat_completeness simp_all
+  by pat_completeness auto
 termination unions by (auto_term "{}")
 lemmas unions_def = unions.simps(2)
+declare unions.simps[code]
 
+consts intersects :: "'a list list \<Rightarrow> 'a list"
 primrec
   "intersects (x#xs) = foldr intersect xs x"
 
@@ -156,7 +160,8 @@ using distnct set_remove1_eq by auto
 
 lemma iso_union:
   "set (unionl xs ys) = set xs \<union> set ys"
-  unfolding unionl_def by (induct xs arbitrary: ys) (simp_all add: iso_insert)
+  unfolding unionl_def
+ by (induct xs arbitrary: ys) (simp_all add: iso_insert)
 
 lemma iso_intersect:
   "set (intersect xs ys) = set xs \<inter> set ys"

@@ -28,25 +28,22 @@ val split_apply = thm "Product_Type.split"
 val wf_induct_rule = thm "wf_induct_rule";
 val Pair_inject = thm "Product_Type.Pair_inject";
 
-val acc_induct_rule = thm "acc_induct_rule" (* from: Accessible_Part *)
-val acc_downward = thm "acc_downward"
-val accI = thm "accI"
+val acc_induct_rule = thm "Accessible_Part.acc_induct_rule"
+val acc_downward = thm "Accessible_Part.acc_downward"
+val accI = thm "Accessible_Part.accI"
 
-val ex1_implies_ex = thm "fundef_ex1_existence"   (* from: Fundef.thy *) 
-val ex1_implies_un = thm "fundef_ex1_uniqueness"
-val ex1_implies_iff = thm "fundef_ex1_iff"
-val acc_subset_induct = thm "acc_subset_induct"
+val acc_subset_induct = thm "Accessible_Part.acc_subset_induct"
 
 val conjunctionD1 = thm "conjunctionD1"
 val conjunctionD2 = thm "conjunctionD2"
 
 
-    
-fun mk_psimp thy names f_iff graph_is_function clause valthm =
+fun mk_psimp thy globals R f_iff graph_is_function clause valthm =
     let
-	val Names {R, acc_R, domT, z, ...} = names
-	val ClauseInfo {qs, cqs, gs, lhs, rhs, ...} = clause
-	val lhs_acc = cterm_of thy (Trueprop (mk_mem (lhs, acc_R))) (* "lhs : acc R" *)
+	val Globals {domT, z, ...} = globals
+
+	val ClauseInfo {qglr = (oqs, _, _, _), cdata = ClauseContext {qs, cqs, gs, lhs, rhs, ags, ...}, ...} = clause
+	val lhs_acc = cterm_of thy (Trueprop (mk_mem (lhs, mk_acc domT R))) (* "lhs : acc R" *)
 	val z_smaller = cterm_of thy (Trueprop (mk_relmemT domT domT (z, lhs) R)) (* "(z, lhs) : R" *)
     in
 	((assume z_smaller) RS ((assume lhs_acc) RS acc_downward))
@@ -56,14 +53,16 @@ fun mk_psimp thy names f_iff graph_is_function clause valthm =
 	    |> (fn it => it COMP valthm)
 	    |> implies_intr lhs_acc 
 	    |> asm_simplify (HOL_basic_ss addsimps [f_iff])
+            |> fold_rev (implies_intr o cprop_of) ags
+            |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
     end
 
 
 
-
-fun mk_partial_induct_rule thy names complete_thm clauses =
+fun mk_partial_induct_rule thy globals R complete_thm clauses =
     let
-	val Names {domT, R, acc_R, x, z, a, P, D, ...} = names
+	val Globals {domT, x, z, a, P, D, ...} = globals
+        val acc_R = mk_acc domT R
 
 	val x_D = assume (cterm_of thy (Trueprop (mk_mem (x, D))))
 	val a_D = cterm_of thy (Trueprop (mk_mem (a, D)))
@@ -88,7 +87,8 @@ fun mk_partial_induct_rule thy names complete_thm clauses =
 
 	fun prove_case clause =
 	    let
-		val ClauseInfo {qs, cqs, ags, gs, lhs, rhs, case_hyp, RCs, ...} = clause
+		val ClauseInfo {cdata = ClauseContext {qs, cqs, ags, gs, lhs, rhs, case_hyp, ...}, RCs, 
+                                qglr = (oqs, _, _, _), ...} = clause
 								       
 		val replace_x_ss = HOL_basic_ss addsimps [case_hyp]
 		val lhs_D = simplify replace_x_ss x_D (* lhs : D *)
@@ -106,7 +106,7 @@ fun mk_partial_induct_rule thy names complete_thm clauses =
 				    |> fold_rev (curry Logic.mk_implies o prop_of) P_recs
 				    |> fold_rev (curry Logic.mk_implies) gs
 				    |> curry Logic.mk_implies (Trueprop (mk_mem (lhs, D)))
-				    |> fold_rev mk_forall qs
+				    |> fold_rev mk_forall_rename (map fst oqs ~~ qs)
 				    |> cterm_of thy
 			   
 		val P_lhs = assume step
@@ -130,10 +130,10 @@ fun mk_partial_induct_rule thy names complete_thm clauses =
 
 	val istep =  complete_thm
                        |> forall_elim_vars 0
-			 |> fold (curry op COMP) cases (*  P x  *)
-			 |> implies_intr ihyp
-			 |> implies_intr (cprop_of x_D)
-			 |> forall_intr (cterm_of thy x)
+		       |> fold (curry op COMP) cases (*  P x  *)
+		       |> implies_intr ihyp
+		       |> implies_intr (cprop_of x_D)
+		       |> forall_intr (cterm_of thy x)
 			   
 	val subset_induct_rule = 
 	    acc_subset_induct
@@ -166,189 +166,13 @@ fun mk_partial_induct_rule thy names complete_thm clauses =
 
 
 
-(***********************************************)
-(* Compat thms are stored in normal form (with vars) *)
-
-(* replace this by a table later*)
-fun store_compat_thms 0 cts = []
-  | store_compat_thms n cts =
-    let
-	val (cts1, cts2) = chop n cts
-    in
-	(cts1 :: store_compat_thms (n - 1) cts2)
-    end
-
-
-(* needs i <= j *)
-fun lookup_compat_thm i j cts =
-    nth (nth cts (i - 1)) (j - i)
-(***********************************************)
-
-
-(* recover the order of Vars *)
-fun get_var_order thy clauses =
-    map (fn (ClauseInfo {cqs,...}, ClauseInfo {cqs',...}) => map (cterm_of thy o free_to_var o term_of) (cqs @ cqs')) (unordered_pairs clauses)
-
-
-(* Returns "Gsi, Gsj', lhs_i = lhs_j' |-- rhs_j'_f = rhs_i_f" *)
-(* if j < i, then turn around *)
-fun get_compat_thm thy cts clausei clausej =
-    let 
-	val ClauseInfo {no=i, cqs=qsi, ags=gsi, lhs=lhsi, ...} = clausei
-	val ClauseInfo {no=j, cqs'=qsj', ags'=gsj', lhs'=lhsj', ...} = clausej
-
-	val lhsi_eq_lhsj' = cterm_of thy (Trueprop (mk_eq (lhsi, lhsj')))
-    in if j < i then
-	   let 
-	       val (var_ord, compat) = lookup_compat_thm j i cts
-	   in
-	       compat         (* "!!qj qi'. Gsj => Gsi' => lhsj = lhsi' ==> rhsj = rhsi'" *)
-		|> instantiate ([],(var_ord ~~ (qsj' @ qsi))) (* "Gsj' => Gsi => lhsj' = lhsi ==> rhsj' = rhsi" *)
-		|> fold implies_elim_swp gsj'
-		|> fold implies_elim_swp gsi
-		|> implies_elim_swp ((assume lhsi_eq_lhsj') RS sym) (* "Gsj', Gsi, lhsi = lhsj' |-- rhsj' = rhsi" *)
-	   end
-       else
-	   let
-	       val (var_ord, compat) = lookup_compat_thm i j cts
-	   in
-	       compat        (* "?Gsi => ?Gsj' => ?lhsi = ?lhsj' ==> ?rhsi = ?rhsj'" *)
-	         |> instantiate ([], (var_ord ~~ (qsi @ qsj'))) (* "Gsi => Gsj' => lhsi = lhsj' ==> rhsi = rhsj'" *)
-		 |> fold implies_elim_swp gsi
-		 |> fold implies_elim_swp gsj'
-		 |> implies_elim_swp (assume lhsi_eq_lhsj')
-		 |> (fn thm => thm RS sym) (* "Gsi, Gsj', lhsi = lhsj' |-- rhsj' = rhsi" *)
-	   end
-    end
-
-
-
-
-
-
-
-(* Generates the replacement lemma with primed variables. A problem here is that one should not do
-the complete requantification at the end to replace the variables. One should find a way to be more efficient
-here. *)
-fun mk_replacement_lemma thy (names:naming_context) ih_elim clause = 
-    let 
-	val Names {fvar, f, x, y, h, Pbool, G, ranT, domT, R, ...} = names 
-	val ClauseInfo {qs,cqs,ags,lhs,rhs,cqs',ags',case_hyp, RCs, tree, ...} = clause
-
-	val ih_elim_case = full_simplify (HOL_basic_ss addsimps [case_hyp]) ih_elim
-
-	val Ris = map (fn RCInfo {llRI, ...} => llRI) RCs
-	val h_assums = map (fn RCInfo {Gh, ...} => Gh) RCs
-	val h_assums' = map (fn RCInfo {Gh', ...} => Gh') RCs
-
-	val ih_elim_case_inst = instantiate' [] [NONE, SOME (cterm_of thy h)] ih_elim_case (* Should be done globally *)
-
-	val (eql, _) = FundefCtxTree.rewrite_by_tree thy f h ih_elim_case_inst (Ris ~~ h_assums) tree
-
-	val replace_lemma = (eql RS meta_eq_to_obj_eq)
-				|> implies_intr (cprop_of case_hyp)
-				|> fold_rev (implies_intr o cprop_of) h_assums
-				|> fold_rev (implies_intr o cprop_of) ags
-				|> fold_rev forall_intr cqs
-				|> fold forall_elim cqs'
-				|> fold implies_elim_swp ags'
-				|> fold implies_elim_swp h_assums'
-    in
-      replace_lemma
-    end
-
-
-
-
-fun mk_uniqueness_clause thy names compat_store clausei clausej RLj =
-    let
-	val Names {f, h, y, ...} = names
-	val ClauseInfo {no=i, lhs=lhsi, case_hyp, ...} = clausei
-	val ClauseInfo {no=j, ags'=gsj', lhs'=lhsj', rhs'=rhsj', RCs=RCsj, ordcqs'=ordcqs'j, ...} = clausej
-
-	val rhsj'h = Pattern.rewrite_term thy [(f,h)] [] rhsj'
-	val compat = get_compat_thm thy compat_store clausei clausej
-	val Ghsj' = map (fn RCInfo {Gh', ...} => Gh') RCsj
-
-	val y_eq_rhsj'h = assume (cterm_of thy (Trueprop (mk_eq (y, rhsj'h))))
-	val lhsi_eq_lhsj' = assume (cterm_of thy (Trueprop (mk_eq (lhsi, lhsj')))) (* lhs_i = lhs_j' |-- lhs_i = lhs_j'	*)
-
-	val eq_pairs = assume (cterm_of thy (Trueprop (mk_eq (mk_prod (lhsi, y), mk_prod (lhsj',rhsj'h)))))
-    in
-	(trans OF [case_hyp, lhsi_eq_lhsj']) (* lhs_i = lhs_j' |-- x = lhs_j' *)
-        |> implies_elim RLj (* Rj1' ... Rjk', lhs_i = lhs_j' |-- rhs_j'_h = rhs_j'_f *)
-	|> (fn it => trans OF [it, compat]) (* lhs_i = lhs_j', Gj', Rj1' ... Rjk' |-- rhs_j'_h = rhs_i_f *)
-	|> (fn it => trans OF [y_eq_rhsj'h, it]) (* lhs_i = lhs_j', Gj', Rj1' ... Rjk', y = rhs_j_h' |-- y = rhs_i_f *)
-	|> implies_intr (cprop_of y_eq_rhsj'h)
-	|> implies_intr (cprop_of lhsi_eq_lhsj') (* Gj', Rj1' ... Rjk' |-- [| lhs_i = lhs_j', y = rhs_j_h' |] ==> y = rhs_i_f *)
-	|> (fn it => Drule.compose_single(it, 2, Pair_inject)) (* Gj', Rj1' ... Rjk' |-- (lhs_i, y) = (lhs_j', rhs_j_h') ==> y = rhs_i_f *)
-	|> implies_elim_swp eq_pairs
-	|> fold_rev (implies_intr o cprop_of) Ghsj' 
-	|> fold_rev (implies_intr o cprop_of) gsj' (* Gj', Rj1', ..., Rjk' ==> (lhs_i, y) = (lhs_j', rhs_j_h') ==> y = rhs_i_f *)
-	|> implies_intr (cprop_of eq_pairs)
-	|> fold_rev forall_intr ordcqs'j
-    end
-
-
-
-fun mk_uniqueness_case thy names ihyp ih_intro G_cases compat_store clauses rep_lemmas clausei =
-    let
-	val Names {x, y, G, fvar, f, ranT, ...} = names
-	val ClauseInfo {lhs, rhs, qs, cqs, ags, case_hyp, lGI, RCs, ...} = clausei
-
-	val ih_intro_case = full_simplify (HOL_basic_ss addsimps [case_hyp]) ih_intro
-
-	fun prep_RC (RCInfo {llRI, RIvs, CCas, ...}) = (llRI RS ih_intro_case)
-                                                            |> fold_rev (implies_intr o cprop_of) CCas
-						            |> fold_rev (forall_intr o cterm_of thy o Free) RIvs
-
-	val existence = lGI |> instantiate ([], [(cterm_of thy (free_to_var fvar), cterm_of thy f)])
-			    |> fold (curry op COMP o prep_RC) RCs 
-
-
-	val a = cterm_of thy (mk_prod (lhs, y))
-	val P = cterm_of thy (mk_eq (y, rhs))
-	val a_in_G = assume (cterm_of thy (Trueprop (mk_mem (term_of a, G))))
-
-	val unique_clauses = map2 (mk_uniqueness_clause thy names compat_store clausei) clauses rep_lemmas
-
-	val uniqueness = G_cases 
-			     |> instantiate' [] [SOME a, SOME P]
-			     |> implies_elim_swp a_in_G
-			     |> fold implies_elim_swp unique_clauses
-			     |> implies_intr (cprop_of a_in_G)
-			     |> forall_intr (cterm_of thy y) 
-
-	val P2 = cterm_of thy (lambda y (mk_mem (mk_prod (lhs, y), G))) (* P2 y := (lhs, y): G *)
-
-	val exactly_one =
-	    ex1I |> instantiate' [SOME (ctyp_of thy ranT)] [SOME P2, SOME (cterm_of thy rhs)]
-		 |> curry (op COMP) existence
-		 |> curry (op COMP) uniqueness
-		 |> simplify (HOL_basic_ss addsimps [case_hyp RS sym])
-		 |> implies_intr (cprop_of case_hyp) 
-		 |> fold_rev (implies_intr o cprop_of) ags
-		 |> fold_rev forall_intr cqs
-	val function_value =
-	    existence 
-		|> fold_rev (implies_intr o cprop_of) ags
-		|> implies_intr ihyp
-		|> implies_intr (cprop_of case_hyp)
-		|> forall_intr (cterm_of thy x)
-		|> forall_elim (cterm_of thy lhs)
-		|> curry (op RS) refl
-    in
-	(exactly_one, function_value)
-    end
-
-
-
 (* Does this work with Guards??? *)
-fun mk_domain_intro thy names R_cases clause =
+fun mk_domain_intro thy globals R R_cases clause =
     let
-	val Names {z, R, acc_R, ...} = names
-	val ClauseInfo {qs, gs, lhs, rhs, ...} = clause
-	val goal = (HOLogic.mk_Trueprop (HOLogic.mk_mem (lhs,acc_R)))
+	val Globals {z, domT, ...} = globals
+	val ClauseInfo {cdata = ClauseContext {qs, gs, lhs, rhs, cqs, ...}, 
+                        qglr = (oqs, _, _, _), ...} = clause
+	val goal = (HOLogic.mk_Trueprop (HOLogic.mk_mem (lhs, mk_acc domT R)))
                      |> fold_rev (curry Logic.mk_implies) gs
                      |> cterm_of thy
     in
@@ -357,15 +181,17 @@ fun mk_domain_intro thy names R_cases clause =
 		  |> (SINGLE (eresolve_tac [forall_elim_vars 0 R_cases] 1))  |> the
 		  |> (SINGLE (CLASIMPSET auto_tac)) |> the
 		  |> Goal.conclude
+                  |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
     end
 
 
 
 
-fun mk_nest_term_case thy names R' ihyp clause =
+fun mk_nest_term_case thy globals R' ihyp clause =
     let
-	val Names {x, z, ...} = names
-	val ClauseInfo {qs,cqs,ags,lhs,rhs,tree,case_hyp,...} = clause
+	val Globals {x, z, ...} = globals
+	val ClauseInfo {cdata = ClauseContext {qs,cqs,ags,lhs,rhs,case_hyp,...},tree,
+                        qglr=(oqs, _, _, _), ...} = clause
 
 	val ih_case = full_simplify (HOL_basic_ss addsimps [case_hyp]) ihyp
 
@@ -377,7 +203,7 @@ fun mk_nest_term_case thy names R' ihyp clause =
 				    |> fold_rev (curry Logic.mk_implies o prop_of) used
 				    |> FundefCtxTree.export_term (fixes, map prop_of assumes) 
 				    |> fold_rev (curry Logic.mk_implies o prop_of) ags
-				    |> fold_rev mk_forall qs
+				    |> fold_rev mk_forall_rename (map fst oqs ~~ qs)
 				    |> cterm_of thy
 
 		val thm = assume hyp
@@ -398,16 +224,10 @@ fun mk_nest_term_case thy names R' ihyp clause =
 
 		val zx_eq_arg_lhs = cterm_of thy (Trueprop (mk_eq (mk_prod (z,x), mk_prod (arg,lhs))))
 
-		val z_acc' = (z_acc COMP (assume zx_eq_arg_lhs COMP Pair_inject))
-                               |> FundefCtxTree.export_thm thy ([], (term_of zx_eq_arg_lhs) :: map prop_of (ags @ assumes))
-
-                val occvars = fold (OrdList.insert Term.term_ord) (term_frees (prop_of z_acc')) [] 
-                val ordvars = fold (OrdList.insert Term.term_ord) (map Free fixes @ qs) [] (* FIXME... remove when inductive behaves nice *)
-                                   |> OrdList.inter Term.term_ord occvars
-
-		val ethm = z_acc'
-			       |> FundefCtxTree.export_thm thy (map dest_Free ordvars, [])
-
+		val ethm = (z_acc COMP (assume zx_eq_arg_lhs COMP Pair_inject))
+			       |> FundefCtxTree.export_thm thy (fixes, 
+                                                                (term_of zx_eq_arg_lhs) :: map prop_of (ags @ assumes))
+                               |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
 
 		val sub' = sub @ [(([],[]), acc)]
 	    in
@@ -419,11 +239,10 @@ fun mk_nest_term_case thy names R' ihyp clause =
     end
 
 
-fun mk_nest_term_rule thy names clauses =
+fun mk_nest_term_rule thy globals R R_cases clauses =
     let
-	val Names { R, acc_R, domT, x, z, ... } = names
-
-	val R_elim = hd (#elims (snd (the (InductivePackage.get_inductive thy (fst (dest_Const R))))))
+	val Globals { domT, x, z, ... } = globals
+        val acc_R = mk_acc domT R
 
 	val R' = Free ("R", fastype_of R)
 
@@ -439,13 +258,12 @@ fun mk_nest_term_rule thy names clauses =
 	val ihyp_a = assume ihyp |> forall_elim_vars 0
 
 	val z_ltR_x = cterm_of thy (mk_relmem (z, x) R) (* "(z, x) : R" *)
-	val z_acc = cterm_of thy (mk_mem (z, acc_R))
 
-	val (hyps,cases) = fold (mk_nest_term_case thy names R' ihyp_a) clauses ([],[])
+	val (hyps,cases) = fold (mk_nest_term_case thy globals R' ihyp_a) clauses ([],[])
     in
-	R_elim
-	    |> Thm.freezeT
-	    |> instantiate' [] [SOME (cterm_of thy (mk_prod (z,x))), SOME z_acc]
+	R_cases
+            |> forall_elim (cterm_of thy (mk_prod (z,x)))
+            |> forall_elim (cterm_of thy (mk_mem (z, acc_R)))
 	    |> curry op COMP (assume z_ltR_x)
 	    |> fold_rev (curry op COMP) cases
 	    |> implies_intr z_ltR_x
@@ -465,8 +283,7 @@ fun mk_nest_term_rule thy names clauses =
 
 fun mk_partial_rules thy data provedgoal =
     let
-	val Prep {names, clauses, values, R_cases, ex1_iff, ...} = data
-	val Names {G, R, acc_R, domT, ranT, f, f_def, x, z, fvarname, ...}:naming_context = names
+	val Prep {globals, G, f, R, clauses, values, R_cases, ex1_iff, ...} = data
 
         val _ = print "Closing Derivation"
 
@@ -486,16 +303,16 @@ fun mk_partial_rules thy data provedgoal =
 	val f_iff = (graph_is_function RS ex1_iff) 
 
 	val _ = Output.debug "Proving simplification rules"
-	val psimps  = map2 (mk_psimp thy names f_iff graph_is_function) clauses values
+	val psimps  = map2 (mk_psimp thy globals R f_iff graph_is_function) clauses values
 
 	val _ = Output.debug "Proving partial induction rule"
-	val (subset_pinduct, simple_pinduct) = mk_partial_induct_rule thy names complete_thm clauses
+	val (subset_pinduct, simple_pinduct) = mk_partial_induct_rule thy globals R complete_thm clauses
 
 	val _ = Output.debug "Proving nested termination rule"
-	val total_intro = mk_nest_term_rule thy names clauses
+	val total_intro = mk_nest_term_rule thy globals R R_cases clauses
 
 	val _ = Output.debug "Proving domain introduction rules"
-	val dom_intros = map (mk_domain_intro thy names R_cases) clauses
+	val dom_intros = map (mk_domain_intro thy globals R R_cases) clauses
     in 
 	FundefResult {f=f, G=G, R=R, completeness=complete_thm, 
 	 psimps=psimps, subset_pinduct=subset_pinduct, simple_pinduct=simple_pinduct, total_intro=total_intro,
