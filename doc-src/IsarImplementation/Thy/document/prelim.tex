@@ -802,7 +802,7 @@ A \emph{qualified name} consists of a non-empty sequence of basic
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexml{NameSpace.base}\verb|NameSpace.base: string -> string| \\
-  \indexml{NameSpace.drop-base}\verb|NameSpace.drop_base: string -> string| \\  %FIXME qualifier
+  \indexml{NameSpace.qualifier}\verb|NameSpace.qualifier: string -> string| \\
   \indexml{NameSpace.append}\verb|NameSpace.append: string -> string -> string| \\
   \indexml{NameSpace.pack}\verb|NameSpace.pack: string list -> string| \\
   \indexml{NameSpace.unpack}\verb|NameSpace.unpack: string -> string list| \\[1ex]
@@ -823,7 +823,7 @@ A \emph{qualified name} consists of a non-empty sequence of basic
   \item \verb|NameSpace.base|~\isa{name} returns the base name of a
   qualified name.
 
-  \item \verb|NameSpace.drop_base|~\isa{name} returns the qualifier
+  \item \verb|NameSpace.qualifier|~\isa{name} returns the qualifier
   of a qualified name.
 
   \item \verb|NameSpace.append|~\isa{name\isactrlisub {\isadigit{1}}\ name\isactrlisub {\isadigit{2}}}

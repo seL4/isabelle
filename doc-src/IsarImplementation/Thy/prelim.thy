@@ -694,7 +694,7 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML NameSpace.base: "string -> string"} \\
-  @{index_ML NameSpace.drop_base: "string -> string"} \\  %FIXME qualifier
+  @{index_ML NameSpace.qualifier: "string -> string"} \\
   @{index_ML NameSpace.append: "string -> string -> string"} \\
   @{index_ML NameSpace.pack: "string list -> string"} \\
   @{index_ML NameSpace.unpack: "string -> string list"} \\[1ex]
@@ -715,7 +715,7 @@ text %mlref {*
   \item @{ML NameSpace.base}~@{text "name"} returns the base name of a
   qualified name.
 
-  \item @{ML NameSpace.drop_base}~@{text "name"} returns the qualifier
+  \item @{ML NameSpace.qualifier}~@{text "name"} returns the qualifier
   of a qualified name.
 
   \item @{ML NameSpace.append}~@{text "name\<^isub>1 name\<^isub>2"}

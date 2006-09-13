@@ -27,7 +27,7 @@ sig
   val append: string -> string -> string
   val qualified: string -> string -> string
   val base: string -> string
-  val drop_base: string -> string
+  val qualifier: string -> string
   val map_base: (string -> string) -> string -> string
   val suffixes_prefixes: 'a list -> 'a list list
   val suffixes_prefixes_split: int -> int -> 'a list -> 'a list list
@@ -84,8 +84,8 @@ fun qualified path name =
 fun base "" = ""
   | base name = List.last (unpack name);
 
-fun drop_base "" = ""
-  | drop_base name = pack (#1 (split_last (unpack name)));
+fun qualifier "" = ""
+  | qualifier name = pack (#1 (split_last (unpack name)));
 
 fun map_base _ "" = ""
   | map_base f name =
@@ -248,7 +248,7 @@ val default_naming =
 fun add_path elems (Naming (path, policy)) =
   if elems = "//" then Naming ("", (qualified, #2 policy))
   else if elems = "/" then Naming ("", policy)
-  else if elems = ".." then Naming (drop_base path, policy)
+  else if elems = ".." then Naming (qualifier path, policy)
   else Naming (append path elems, policy);
 
 fun no_base_names (Naming (path, (qualify, accs))) =
