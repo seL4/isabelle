@@ -5,7 +5,7 @@
 header {* Collection classes as examples for code generation *}
 
 theory CodeCollections
-imports "../FundefDebug" CodeOperationalEquality
+imports CodeOperationalEquality
 begin
 
 section {* Collection classes as examples for code generation *}

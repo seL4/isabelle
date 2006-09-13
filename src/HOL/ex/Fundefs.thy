@@ -6,7 +6,7 @@ Examples of function definitions using the new "function" package.
 *)
 
 theory Fundefs 
-imports Main "../FundefDebug"
+imports Main
 begin
 
 
