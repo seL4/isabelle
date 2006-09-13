@@ -302,15 +302,14 @@ fun has_bool (Type("bool",_)) = true
   | has_bool (Type(_, Ts)) = exists has_bool Ts
   | has_bool _ = false;
   
-(*Is the string the name of a connective? It doesn't matter if this list is
-  incomplete, since when actually called, the only connectives likely to
-  remain are & | Not.*)  
+(*Is the string the name of a connective? Really only | and Not can remain, 
+  since this code expects to be called on a clause form.*)  
 val is_conn = member (op =)
-    ["Trueprop", "op &", "op |", "op -->", "op =", "Not", 
+    ["Trueprop", "op &", "op |", "op -->", "Not", 
      "All", "Ex", "Ball", "Bex"];
 
-(*True if the term contains a function where the type of any argument contains
-  bool.*)
+(*True if the term contains a function--not a logical connective--where the type 
+  of any argument contains bool.*)
 val has_bool_arg_const = 
     exists_Const
       (fn (c,T) => not(is_conn c) andalso exists (has_bool) (binder_types T));
