@@ -119,6 +119,7 @@ sig
   val add_term_consts: term * string list -> string list
   val term_consts: term -> string list
   val exists_subtype: (typ -> bool) -> typ -> bool
+  val exists_type: (typ -> bool) -> term -> bool
   val exists_subterm: (term -> bool) -> term -> bool
   val exists_Const: (string * typ -> bool) -> term -> bool
   val add_term_free_names: term * string list -> string list
@@ -1005,6 +1006,16 @@ fun exists_subtype P =
   let
     fun ex ty = P ty orelse
       (case ty of Type (_, Ts) => exists ex Ts | _ => false);
+  in ex end;
+
+fun exists_type P =
+  let
+    fun ex (Const (_, T)) = P T
+      | ex (Free (_, T)) = P T
+      | ex (Var (_, T)) = P T
+      | ex (Bound _) = false
+      | ex (Abs (_, T, t)) = P T orelse ex t
+      | ex (t $ u) = ex t orelse ex u;
   in ex end;
 
 fun exists_subterm P =
