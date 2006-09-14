@@ -300,6 +300,12 @@ instance star :: (ring_1) ring_1 ..
 instance star :: (comm_ring_1) comm_ring_1 ..
 instance star :: (idom) idom .. 
 
+instance star :: (division_ring) division_ring
+apply (intro_classes)
+apply (transfer, erule left_inverse)
+apply (transfer, erule right_inverse)
+done
+
 instance star :: (field) field
 apply (intro_classes)
 apply (transfer, erule left_inverse)
