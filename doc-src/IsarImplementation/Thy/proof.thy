@@ -295,7 +295,7 @@ text %mlref {*
   @{index_ML Goal.prove_multi: "Proof.context -> string list -> term list -> term list ->
   ({prems: thm list, context: Proof.context} -> tactic) -> thm list"} \\
   @{index_ML Obtain.result: "(Proof.context -> tactic) ->
-  thm list -> Proof.context -> (cterm list * thm list) * Proof.context"}
+  thm list -> Proof.context -> (cterm list * thm list) * Proof.context"} \\
   \end{mldecls}
 
   \begin{description}

@@ -489,7 +489,7 @@ text {*
   @{text "\<turnstile> (\<And>x. f x \<equiv> g x) \<Longrightarrow> f \<equiv> g"} & extensionality \\
   @{text "\<turnstile> (A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A \<equiv> B"} & logical equivalence \\
   \end{tabular}
-  \caption{Conceptual axiomatization of @{text "\<equiv>"}}\label{fig:pure-equality}
+  \caption{Conceptual axiomatization of Pure equality}\label{fig:pure-equality}
   \end{center}
   \end{figure}
 
@@ -511,12 +511,6 @@ text {*
   difference ``@{text "\<lambda>HOL"}'' in the PTS framework
   \cite{Barendregt-Geuvers:2001}, where @{text "x : A"} hypotheses are
   treated explicitly for types, in the same way as propositions.}
-
-  \medskip FIXME @{text "\<alpha>\<beta>\<eta>"}-equivalence and primitive definitions
-
-  Since the basic representation of terms already accounts for @{text
-  "\<alpha>"}-conversion, Pure equality essentially acts like @{text
-  "\<alpha>\<beta>\<eta>"}-equivalence on terms, while coinciding with bi-implication.
 
   \medskip The axiomatization of a theory is implicitly closed by
   forming all instances of type and term variables: @{text "\<turnstile>
@@ -550,6 +544,34 @@ text {*
   "\<Gamma>\<vartheta> \<turnstile> B\<vartheta>"} from @{text "\<Gamma> \<turnstile> B"} is correct, but
   @{text "\<Gamma>\<vartheta> \<supseteq> \<Gamma>"} does not necessarily hold --- the result
   belongs to a different proof context.
+
+  \medskip The system allows axioms to be stated either as plain
+  propositions, or as arbitrary functions (``oracles'') that produce
+  propositions depending on given arguments.  It is possible to trace
+  the used of axioms (and defined theorems) in derivations.
+  Invocations of oracles are recorded invariable.
+
+  Axiomatizations should be limited to the bare minimum, typically as
+  part of the initial logical basis of an object-logic formalization.
+  Normally, theories will be developed definitionally, by stating
+  restricted equalities over constants.
+
+  A \emph{simple definition} consists of a constant declaration @{text
+  "c :: \<sigma>"} together with an axiom @{text "\<turnstile> c \<equiv> t"}, where @{text
+  "t"} is a closed term without any hidden polymorphism.  The RHS may
+  depend on further defined constants, but not @{text "c"} itself.
+  Definitions of constants with function type may be presented
+  liberally as @{text "c \<^vec> \<equiv> t"} instead of the puristic @{text
+  "c \<equiv> \<lambda>\<^vec>x. t"}.
+
+  An \emph{overloaded definition} consists may give zero or one
+  equality axioms @{text "c((\<^vec>\<alpha>)\<kappa>) \<equiv> t"} for each type
+  constructor @{text "\<kappa>"}, with distinct variables @{text "\<^vec>\<alpha>"}
+  as formal arguments.  The RHS may mention previously defined
+  constants as above, or arbitrary constants @{text "d(\<alpha>\<^isub>i)"}
+  for some @{text "\<alpha>\<^isub>i"} projected from @{text "\<^vec>\<alpha>"}.
+  Thus overloaded definitions essentially work by primitive recursion
+  over the syntactic structure of a single type argument.
 *}
 
 text %mlref {*
@@ -557,15 +579,83 @@ text %mlref {*
   @{index_ML_type ctyp} \\
   @{index_ML_type cterm} \\
   @{index_ML_type thm} \\
+  @{index_ML proofs: "int ref"} \\
+  @{index_ML Thm.ctyp_of: "theory -> typ -> ctyp"} \\
+  @{index_ML Thm.cterm_of: "theory -> term -> cterm"} \\
+  @{index_ML Thm.assume: "cterm -> thm"} \\
+  @{index_ML Thm.forall_intr: "cterm -> thm -> thm"} \\
+  @{index_ML Thm.forall_elim: "cterm -> thm -> thm"} \\
+  @{index_ML Thm.implies_intr: "cterm -> thm -> thm"} \\
+  @{index_ML Thm.implies_elim: "thm -> thm -> thm"} \\
+  @{index_ML Thm.generalize: "string list * string list -> int -> thm -> thm"} \\
+  @{index_ML Thm.instantiate: "(ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm"} \\
+  @{index_ML Thm.get_axiom_i: "theory -> string -> thm"} \\
+  @{index_ML Thm.invoke_oracle_i: "theory -> string -> theory * Object.T -> thm"} \\
+  @{index_ML Theory.add_axioms_i: "(string * term) list -> theory -> theory"} \\
+  @{index_ML Theory.add_deps: "string -> string * typ -> (string * typ) list -> theory -> theory"} \\
+  @{index_ML Theory.add_oracle: "string * (theory * Object.T -> term) -> theory -> theory"} \\
+  @{index_ML Theory.add_defs_i: "bool -> bool -> (bstring * term) list -> theory -> theory"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML_type ctyp} FIXME
+  \item @{ML_type ctyp} and @{ML_type cterm} represent certified types
+  and terms, respectively.  These are abstract datatypes that
+  guarantee that its values have passed the full well-formedness (and
+  well-typedness) checks, relative to the declarations of type
+  constructors, constants etc. in the theory.
 
-  \item @{ML_type cterm} FIXME
+  This representation avoids syntactic rechecking in tight loops of
+  inferences.  There are separate operations to decompose certified
+  entities (including actual theorems).
 
-  \item @{ML_type thm} FIXME
+  \item @{ML_type thm} represents proven propositions.  This is an
+  abstract datatype that guarantees that its values have been
+  constructed by basic principles of the @{ML_struct Thm} module.
+
+  \item @{ML proofs} determines the detail of proof recording: @{ML 0}
+  records only oracles, @{ML 1} records oracles, axioms and named
+  theorems, @{ML 2} records full proof terms.
+
+  \item @{ML Thm.assume}, @{ML Thm.forall_intr}, @{ML
+  Thm.forall_elim}, @{ML Thm.implies_intr}, and @{ML Thm.implies_elim}
+  correspond to the primitive inferences of \figref{fig:prim-rules}.
+
+  \item @{ML Thm.generalize}~@{text "(\<^vec>\<alpha>, \<^vec>x)"}
+  corresponds to the @{text "generalize"} rules of
+  \figref{fig:subst-rules}.  A collection of type and term variables
+  is generalized simultaneously, according to the given basic names.
+
+  \item @{ML Thm.instantiate}~@{text "(\<^vec>\<alpha>\<^isub>s,
+  \<^vec>x\<^isub>\<tau>)"} corresponds to the @{text "instantiate"} rules
+  of \figref{fig:subst-rules}.  Type variables are substituted before
+  term variables.  Note that the types in @{text "\<^vec>x\<^isub>\<tau>"}
+  refer to the instantiated versions.
+
+  \item @{ML Thm.get_axiom_i}~@{text "thy name"} retrieves a named
+  axiom, cf.\ @{text "axiom"} in \figref{fig:prim-rules}.
+
+  \item @{ML Thm.invoke_oracle_i}~@{text "thy name arg"} invokes the
+  oracle function @{text "name"} of the theory.  Logically, this is
+  just another instance of @{text "axiom"} in \figref{fig:prim-rules},
+  but the system records an explicit trace of oracle invocations with
+  the @{text "thm"} value.
+
+  \item @{ML Theory.add_axioms_i}~@{text "[(name, A), \<dots>]"} adds
+  arbitrary axioms, without any checking of the proposition.
+
+  \item @{ML Theory.add_oracle}~@{text "(name, f)"} declares an
+  oracle, i.e.\ a function for generating arbitrary axioms.
+
+  \item @{ML Theory.add_deps}~@{text "name c\<^isub>\<tau>
+  \<^vec>d\<^isub>\<sigma>"} declares dependencies of a new specification for
+  constant @{text "c\<^isub>\<tau>"} from relative to existing ones for
+  constants @{text "\<^vec>d\<^isub>\<sigma>"}.
+
+  \item @{ML Theory.add_defs_i}~@{text "unchecked overloaded [(name, c
+  \<^vec>x \<equiv> t), \<dots>]"} states a definitional axiom for an already
+  declared constant @{text "c"}.  Dependencies are recorded using @{ML
+  Theory.add_deps}, unless the @{text "unchecked"} option is set.
 
   \end{description}
 *}
@@ -640,7 +730,22 @@ text %mlref {*
 
   \begin{description}
 
-  \item FIXME
+  \item @{ML Conjunction.intr} derives @{text "A & B"} from @{text
+  "A"} and @{text "B"}.
+
+  \item @{ML Conjunction.intr} derives @{text "A"} and @{text "B"}
+  from @{text "A & B"}.
+
+  \item @{ML Drule.mk_term}~@{text "t"} derives @{text "TERM t"}.
+
+  \item @{ML Drule.dest_term}~@{text "TERM t"} recovers term @{text
+  "t"}.
+
+  \item @{ML Logic.mk_type}~@{text "\<tau>"} produces the term @{text
+  "TYPE(\<tau>)"}.
+
+  \item @{ML Logic.dest_type}~@{text "TYPE(\<tau>)"} recovers the type
+  @{text "\<tau>"}.
 
   \end{description}
 *}

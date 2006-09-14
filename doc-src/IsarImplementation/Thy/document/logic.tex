@@ -493,7 +493,7 @@ The theory \isa{Pure} contains declarations for the standard
   \isa{{\isasymturnstile}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ f\ x\ {\isasymequiv}\ g\ x{\isacharparenright}\ {\isasymLongrightarrow}\ f\ {\isasymequiv}\ g} & extensionality \\
   \isa{{\isasymturnstile}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}B\ {\isasymLongrightarrow}\ A{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymequiv}\ B} & logical equivalence \\
   \end{tabular}
-  \caption{Conceptual axiomatization of \isa{{\isasymequiv}}}\label{fig:pure-equality}
+  \caption{Conceptual axiomatization of Pure equality}\label{fig:pure-equality}
   \end{center}
   \end{figure}
 
@@ -511,10 +511,6 @@ The theory \isa{Pure} contains declarations for the standard
   difference ``\isa{{\isasymlambda}HOL}'' in the PTS framework
   \cite{Barendregt-Geuvers:2001}, where \isa{x\ {\isacharcolon}\ A} hypotheses are
   treated explicitly for types, in the same way as propositions.}
-
-  \medskip FIXME \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-equivalence and primitive definitions
-
-  Since the basic representation of terms already accounts for \isa{{\isasymalpha}}-conversion, Pure equality essentially acts like \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-equivalence on terms, while coinciding with bi-implication.
 
   \medskip The axiomatization of a theory is implicitly closed by
   forming all instances of type and term variables: \isa{{\isasymturnstile}\ A{\isasymvartheta}} holds for any substitution instance of an axiom
@@ -544,7 +540,32 @@ The theory \isa{Pure} contains declarations for the standard
   In principle, variables could be substituted in hypotheses as well,
   but this would disrupt monotonicity reasoning: deriving \isa{{\isasymGamma}{\isasymvartheta}\ {\isasymturnstile}\ B{\isasymvartheta}} from \isa{{\isasymGamma}\ {\isasymturnstile}\ B} is correct, but
   \isa{{\isasymGamma}{\isasymvartheta}\ {\isasymsupseteq}\ {\isasymGamma}} does not necessarily hold --- the result
-  belongs to a different proof context.%
+  belongs to a different proof context.
+
+  \medskip The system allows axioms to be stated either as plain
+  propositions, or as arbitrary functions (``oracles'') that produce
+  propositions depending on given arguments.  It is possible to trace
+  the used of axioms (and defined theorems) in derivations.
+  Invocations of oracles are recorded invariable.
+
+  Axiomatizations should be limited to the bare minimum, typically as
+  part of the initial logical basis of an object-logic formalization.
+  Normally, theories will be developed definitionally, by stating
+  restricted equalities over constants.
+
+  A \emph{simple definition} consists of a constant declaration \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} together with an axiom \isa{{\isasymturnstile}\ c\ {\isasymequiv}\ t}, where \isa{t} is a closed term without any hidden polymorphism.  The RHS may
+  depend on further defined constants, but not \isa{c} itself.
+  Definitions of constants with function type may be presented
+  liberally as \isa{c\ \isactrlvec \ {\isasymequiv}\ t} instead of the puristic \isa{c\ {\isasymequiv}\ {\isasymlambda}\isactrlvec x{\isachardot}\ t}.
+
+  An \emph{overloaded definition} consists may give zero or one
+  equality axioms \isa{c{\isacharparenleft}{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}{\isasymkappa}{\isacharparenright}\ {\isasymequiv}\ t} for each type
+  constructor \isa{{\isasymkappa}}, with distinct variables \isa{\isactrlvec {\isasymalpha}}
+  as formal arguments.  The RHS may mention previously defined
+  constants as above, or arbitrary constants \isa{d{\isacharparenleft}{\isasymalpha}\isactrlisub i{\isacharparenright}}
+  for some \isa{{\isasymalpha}\isactrlisub i} projected from \isa{\isactrlvec {\isasymalpha}}.
+  Thus overloaded definitions essentially work by primitive recursion
+  over the syntactic structure of a single type argument.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -559,15 +580,78 @@ The theory \isa{Pure} contains declarations for the standard
   \indexmltype{ctyp}\verb|type ctyp| \\
   \indexmltype{cterm}\verb|type cterm| \\
   \indexmltype{thm}\verb|type thm| \\
+  \indexml{proofs}\verb|proofs: int ref| \\
+  \indexml{Thm.ctyp-of}\verb|Thm.ctyp_of: theory -> typ -> ctyp| \\
+  \indexml{Thm.cterm-of}\verb|Thm.cterm_of: theory -> term -> cterm| \\
+  \indexml{Thm.assume}\verb|Thm.assume: cterm -> thm| \\
+  \indexml{Thm.forall-intr}\verb|Thm.forall_intr: cterm -> thm -> thm| \\
+  \indexml{Thm.forall-elim}\verb|Thm.forall_elim: cterm -> thm -> thm| \\
+  \indexml{Thm.implies-intr}\verb|Thm.implies_intr: cterm -> thm -> thm| \\
+  \indexml{Thm.implies-elim}\verb|Thm.implies_elim: thm -> thm -> thm| \\
+  \indexml{Thm.generalize}\verb|Thm.generalize: string list * string list -> int -> thm -> thm| \\
+  \indexml{Thm.instantiate}\verb|Thm.instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm| \\
+  \indexml{Thm.get-axiom-i}\verb|Thm.get_axiom_i: theory -> string -> thm| \\
+  \indexml{Thm.invoke-oracle-i}\verb|Thm.invoke_oracle_i: theory -> string -> theory * Object.T -> thm| \\
+  \indexml{Theory.add-axioms-i}\verb|Theory.add_axioms_i: (string * term) list -> theory -> theory| \\
+  \indexml{Theory.add-deps}\verb|Theory.add_deps: string -> string * typ -> (string * typ) list -> theory -> theory| \\
+  \indexml{Theory.add-oracle}\verb|Theory.add_oracle: string * (theory * Object.T -> term) -> theory -> theory| \\
+  \indexml{Theory.add-defs-i}\verb|Theory.add_defs_i: bool -> bool -> (bstring * term) list -> theory -> theory| \\
   \end{mldecls}
 
   \begin{description}
 
-  \item \verb|ctyp| FIXME
+  \item \verb|ctyp| and \verb|cterm| represent certified types
+  and terms, respectively.  These are abstract datatypes that
+  guarantee that its values have passed the full well-formedness (and
+  well-typedness) checks, relative to the declarations of type
+  constructors, constants etc. in the theory.
 
-  \item \verb|cterm| FIXME
+  This representation avoids syntactic rechecking in tight loops of
+  inferences.  There are separate operations to decompose certified
+  entities (including actual theorems).
 
-  \item \verb|thm| FIXME
+  \item \verb|thm| represents proven propositions.  This is an
+  abstract datatype that guarantees that its values have been
+  constructed by basic principles of the \verb|Thm| module.
+
+  \item \verb|proofs| determines the detail of proof recording: \verb|0|
+  records only oracles, \verb|1| records oracles, axioms and named
+  theorems, \verb|2| records full proof terms.
+
+  \item \verb|Thm.assume|, \verb|Thm.forall_intr|, \verb|Thm.forall_elim|, \verb|Thm.implies_intr|, and \verb|Thm.implies_elim|
+  correspond to the primitive inferences of \figref{fig:prim-rules}.
+
+  \item \verb|Thm.generalize|~\isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharcomma}\ \isactrlvec x{\isacharparenright}}
+  corresponds to the \isa{generalize} rules of
+  \figref{fig:subst-rules}.  A collection of type and term variables
+  is generalized simultaneously, according to the given basic names.
+
+  \item \verb|Thm.instantiate|~\isa{{\isacharparenleft}\isactrlvec {\isasymalpha}\isactrlisub s{\isacharcomma}\ \isactrlvec x\isactrlisub {\isasymtau}{\isacharparenright}} corresponds to the \isa{instantiate} rules
+  of \figref{fig:subst-rules}.  Type variables are substituted before
+  term variables.  Note that the types in \isa{\isactrlvec x\isactrlisub {\isasymtau}}
+  refer to the instantiated versions.
+
+  \item \verb|Thm.get_axiom_i|~\isa{thy\ name} retrieves a named
+  axiom, cf.\ \isa{axiom} in \figref{fig:prim-rules}.
+
+  \item \verb|Thm.invoke_oracle_i|~\isa{thy\ name\ arg} invokes the
+  oracle function \isa{name} of the theory.  Logically, this is
+  just another instance of \isa{axiom} in \figref{fig:prim-rules},
+  but the system records an explicit trace of oracle invocations with
+  the \isa{thm} value.
+
+  \item \verb|Theory.add_axioms_i|~\isa{{\isacharbrackleft}{\isacharparenleft}name{\isacharcomma}\ A{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}} adds
+  arbitrary axioms, without any checking of the proposition.
+
+  \item \verb|Theory.add_oracle|~\isa{{\isacharparenleft}name{\isacharcomma}\ f{\isacharparenright}} declares an
+  oracle, i.e.\ a function for generating arbitrary axioms.
+
+  \item \verb|Theory.add_deps|~\isa{name\ c\isactrlisub {\isasymtau}\ \isactrlvec d\isactrlisub {\isasymsigma}} declares dependencies of a new specification for
+  constant \isa{c\isactrlisub {\isasymtau}} from relative to existing ones for
+  constants \isa{\isactrlvec d\isactrlisub {\isasymsigma}}.
+
+  \item \verb|Theory.add_defs_i|~\isa{unchecked\ overloaded\ {\isacharbrackleft}{\isacharparenleft}name{\isacharcomma}\ c\ \isactrlvec x\ {\isasymequiv}\ t{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}} states a definitional axiom for an already
+  declared constant \isa{c}.  Dependencies are recorded using \verb|Theory.add_deps|, unless the \isa{unchecked} option is set.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -653,7 +737,19 @@ Theory \isa{Pure} also defines a few auxiliary connectives, see
 
   \begin{description}
 
-  \item FIXME
+  \item \verb|Conjunction.intr| derives \isa{A\ {\isacharampersand}\ B} from \isa{A} and \isa{B}.
+
+  \item \verb|Conjunction.intr| derives \isa{A} and \isa{B}
+  from \isa{A\ {\isacharampersand}\ B}.
+
+  \item \verb|Drule.mk_term|~\isa{t} derives \isa{TERM\ t}.
+
+  \item \verb|Drule.dest_term|~\isa{TERM\ t} recovers term \isa{t}.
+
+  \item \verb|Logic.mk_type|~\isa{{\isasymtau}} produces the term \isa{TYPE{\isacharparenleft}{\isasymtau}{\isacharparenright}}.
+
+  \item \verb|Logic.dest_type|~\isa{TYPE{\isacharparenleft}{\isasymtau}{\isacharparenright}} recovers the type
+  \isa{{\isasymtau}}.
 
   \end{description}%
 \end{isamarkuptext}%
