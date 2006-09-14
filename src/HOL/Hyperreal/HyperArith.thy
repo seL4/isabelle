@@ -104,29 +104,6 @@ Addsimps [symmetric hypreal_diff_def]
 *)
 
 
-subsection{*Numerals and Arithmetic*}
-
-lemma star_of_zero: "star_of 0 = 0"
-  by simp
-
-lemma star_of_one: "star_of 1 = 1"
-  by simp
-
-lemma star_of_add: "star_of (x + y) = star_of x + star_of y"
-  by simp
-
-lemma star_of_minus: "star_of (- x) = - star_of x"
-  by simp
-
-lemma star_of_diff: "star_of (x - y) = star_of x - star_of y"
-  by simp
-
-lemma star_of_mult: "star_of (x * y) = star_of x * star_of y"
-  by simp
-
-lemma star_of_number_of: "star_of (number_of v) = number_of v"
-  by simp
-
 use "hypreal_arith.ML"
 
 setup hypreal_arith_setup
