@@ -88,54 +88,56 @@ lemmas scaleR_right_diff_distrib =
 subsection {* Real normed vector spaces *}
 
 axclass norm < type
-consts norm :: "'a::norm \<Rightarrow> real" ("\<parallel>_\<parallel>")
+consts norm :: "'a::norm \<Rightarrow> real"
 
 axclass real_normed_vector < real_vector, norm
-  norm_ge_zero [simp]: "0 \<le> \<parallel>x\<parallel>"
-  norm_eq_zero [simp]: "(\<parallel>x\<parallel> = 0) = (x = 0)"
-  norm_triangle_ineq: "\<parallel>x + y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>"
-  norm_scaleR: "\<parallel>a *# x\<parallel> = \<bar>a\<bar> * \<parallel>x\<parallel>"
+  norm_ge_zero [simp]: "0 \<le> norm x"
+  norm_eq_zero [simp]: "(norm x = 0) = (x = 0)"
+  norm_triangle_ineq: "norm (x + y) \<le> norm x + norm y"
+  norm_scaleR: "norm (a *# x) = \<bar>a\<bar> * norm x"
 
 axclass real_normed_algebra < real_normed_vector, real_algebra
-  norm_mult_ineq: "\<parallel>x * y\<parallel> \<le> \<parallel>x\<parallel> * \<parallel>y\<parallel>"
+  norm_mult_ineq: "norm (x * y) \<le> norm x * norm y"
 
 axclass real_normed_div_algebra
           < real_normed_vector, real_algebra, division_ring
-  norm_mult: "\<parallel>x * y\<parallel> = \<parallel>x\<parallel> * \<parallel>y\<parallel>"
-  norm_one [simp]: "\<parallel>1\<parallel> = 1"
+  norm_mult: "norm (x * y) = norm x * norm y"
+  norm_one [simp]: "norm 1 = 1"
 
 instance real_normed_div_algebra < real_normed_algebra
 by (intro_classes, simp add: norm_mult)
 
-lemma norm_zero [simp]: "\<parallel>0::'a::real_normed_vector\<parallel> = 0"
+lemma norm_zero [simp]: "norm (0::'a::real_normed_vector) = 0"
 by simp
 
 lemma zero_less_norm_iff [simp]:
-  fixes x :: "'a::real_normed_vector" shows "(0 < \<parallel>x\<parallel>) = (x \<noteq> 0)"
+  fixes x :: "'a::real_normed_vector" shows "(0 < norm x) = (x \<noteq> 0)"
 by (simp add: order_less_le)
 
 lemma norm_minus_cancel [simp]:
-  fixes x :: "'a::real_normed_vector" shows "\<parallel>- x\<parallel> = \<parallel>x\<parallel>"
+  fixes x :: "'a::real_normed_vector" shows "norm (- x) = norm x"
 proof -
-  have "\<parallel>- x\<parallel> = \<parallel>- 1 *# x\<parallel>"
+  have "norm (- x) = norm (- 1 *# x)"
     by (simp only: scaleR_minus_left scaleR_one)
-  also have "\<dots> = \<bar>- 1\<bar> * \<parallel>x\<parallel>"
+  also have "\<dots> = \<bar>- 1\<bar> * norm x"
     by (rule norm_scaleR)
   finally show ?thesis by simp
 qed
 
 lemma norm_minus_commute:
-  fixes a b :: "'a::real_normed_vector" shows "\<parallel>a - b\<parallel> = \<parallel>b - a\<parallel>"
+  fixes a b :: "'a::real_normed_vector" shows "norm (a - b) = norm (b - a)"
 proof -
-  have "\<parallel>a - b\<parallel> = \<parallel>-(a - b)\<parallel>" by (simp only: norm_minus_cancel)
-  also have "\<dots> = \<parallel>b - a\<parallel>" by simp
+  have "norm (a - b) = norm (- (a - b))"
+    by (simp only: norm_minus_cancel)
+  also have "\<dots> = norm (b - a)" by simp
   finally show ?thesis .
 qed
 
 lemma norm_triangle_ineq2:
-  fixes a :: "'a::real_normed_vector" shows "\<parallel>a\<parallel> - \<parallel>b\<parallel> \<le> \<parallel>a - b\<parallel>"
+  fixes a :: "'a::real_normed_vector"
+  shows "norm a - norm b \<le> norm (a - b)"
 proof -
-  have "\<parallel>a - b + b\<parallel> \<le> \<parallel>a - b\<parallel> + \<parallel>b\<parallel>"
+  have "norm (a - b + b) \<le> norm (a - b) + norm b"
     by (rule norm_triangle_ineq)
   also have "(a - b + b) = a"
     by simp
@@ -144,11 +146,12 @@ proof -
 qed
 
 lemma norm_triangle_ineq4:
-  fixes a :: "'a::real_normed_vector" shows "\<parallel>a - b\<parallel> \<le> \<parallel>a\<parallel> + \<parallel>b\<parallel>"
+  fixes a :: "'a::real_normed_vector"
+  shows "norm (a - b) \<le> norm a + norm b"
 proof -
-  have "\<parallel>a - b\<parallel> = \<parallel>a + - b\<parallel>"
+  have "norm (a - b) = norm (a + - b)"
     by (simp only: diff_minus)
-  also have "\<dots> \<le> \<parallel>a\<parallel> + \<parallel>- b\<parallel>"
+  also have "\<dots> \<le> norm a + norm (- b)"
     by (rule norm_triangle_ineq)
   finally show ?thesis
     by simp
@@ -156,14 +159,14 @@ qed
 
 lemma nonzero_norm_inverse:
   fixes a :: "'a::real_normed_div_algebra"
-  shows "a \<noteq> 0 \<Longrightarrow> \<parallel>inverse a\<parallel> = inverse \<parallel>a\<parallel>"
+  shows "a \<noteq> 0 \<Longrightarrow> norm (inverse a) = inverse (norm a)"
 apply (rule inverse_unique [symmetric])
 apply (simp add: norm_mult [symmetric])
 done
 
 lemma norm_inverse:
   fixes a :: "'a::{real_normed_div_algebra,division_by_zero}"
-  shows "\<parallel>inverse a\<parallel> = inverse \<parallel>a\<parallel>"
+  shows "norm (inverse a) = inverse (norm a)"
 apply (case_tac "a = 0", simp)
 apply (erule nonzero_norm_inverse)
 done
@@ -189,7 +192,7 @@ done
 instance real :: norm ..
 
 defs (overloaded)
-  real_norm_def: "\<parallel>r\<parallel> \<equiv> \<bar>r\<bar>"
+  real_norm_def: "norm r \<equiv> \<bar>r\<bar>"
 
 instance real :: real_normed_div_algebra
 apply (intro_classes, unfold real_norm_def real_scaleR_def)
