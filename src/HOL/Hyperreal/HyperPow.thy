@@ -86,12 +86,13 @@ subsection{*Literal Arithmetic Involving Powers and Type @{typ hypreal}*}
 lemma power_hypreal_of_real_number_of:
      "(number_of v :: hypreal) ^ n = hypreal_of_real ((number_of v) ^ n)"
 by simp
-(* why is this a simp rule? - BH *)
 declare power_hypreal_of_real_number_of [of _ "number_of w", standard, simp]
 
-lemma hrealpow_HFinite: "x \<in> HFinite ==> x ^ n \<in> HFinite"
+lemma hrealpow_HFinite:
+  fixes x :: "'a::{real_normed_algebra,recpower} star"
+  shows "x \<in> HFinite ==> x ^ n \<in> HFinite"
 apply (induct_tac "n")
-apply (auto intro: HFinite_mult)
+apply (auto simp add: power_Suc intro: HFinite_mult)
 done
 
 
@@ -229,7 +230,7 @@ apply (simp add: hrealpow hyperpow hypnat_of_nat_eq)
 done
 
 lemma Infinitesimal_hrealpow:
-     "[| x \<in> Infinitesimal; 0 < n |] ==> x ^ n \<in> Infinitesimal"
+     "[| (x::hypreal) \<in> Infinitesimal; 0 < n |] ==> x ^ n \<in> Infinitesimal"
 by (simp add: hrealpow_hyperpow_Infinitesimal_iff Infinitesimal_hyperpow)
 
 end
