@@ -23,25 +23,42 @@ uses
 ("Tools/function_package/auto_term.ML")
 begin
 
+
+definition
+  THE_default :: "'a \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a"
+  "THE_default d P = (if (\<exists>!x. P x) then (THE x. P x) else d)"
+
+lemma THE_defaultI': "\<exists>!x. P x \<Longrightarrow> P (THE_default d P)"
+  by (simp add:theI' THE_default_def)
+
+lemma THE_default1_equality: 
+  "\<lbrakk>\<exists>!x. P x; P a\<rbrakk> \<Longrightarrow> THE_default d P = a"
+  by (simp add:the1_equality THE_default_def)
+
+lemma THE_default_none:
+  "\<not>(\<exists>!x. P x) \<Longrightarrow> THE_default d P = d"
+by (simp add:THE_default_def)
+
+
 lemma fundef_ex1_existence:
-assumes f_def: "f \<equiv> \<lambda>x. THE y. (x,y)\<in>G"
+assumes f_def: "f \<equiv> \<lambda>x. THE_default d (\<lambda>y. (x,y)\<in>G)"
 assumes ex1: "\<exists>!y. (x,y)\<in>G"
 shows "(x, f x)\<in>G"
-  by (simp only:f_def, rule theI', rule ex1)
+  by (simp only:f_def, rule THE_defaultI', rule ex1)
 
 lemma fundef_ex1_uniqueness:
-assumes f_def: "f \<equiv> \<lambda>x. THE y. (x,y)\<in>G"
+assumes f_def: "f \<equiv> \<lambda>x. THE_default d (\<lambda>y. (x,y)\<in>G)"
 assumes ex1: "\<exists>!y. (x,y)\<in>G"
 assumes elm: "(x, h x)\<in>G"
 shows "h x = f x"
-  by (simp only:f_def, rule the1_equality[symmetric], rule ex1, rule elm)
+  by (simp only:f_def, rule THE_default1_equality[symmetric], rule ex1, rule elm)
 
 lemma fundef_ex1_iff:
-assumes f_def: "f \<equiv> \<lambda>x. THE y. (x,y)\<in>G"
+assumes f_def: "f \<equiv> \<lambda>x. THE_default d (\<lambda>y. (x,y)\<in>G)"
 assumes ex1: "\<exists>!y. (x,y)\<in>G"
 shows "((x, y)\<in>G) = (f x = y)"
-  apply (auto simp:ex1 f_def the1_equality)
-  by (rule theI', rule ex1)
+  apply (auto simp:ex1 f_def THE_default1_equality)
+  by (rule THE_defaultI', rule ex1)
 
 
 subsection {* Projections *}

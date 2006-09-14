@@ -422,7 +422,7 @@ fun define_graph Gname fvar domT ranT clauses RCss lthy =
 fun define_function fdefname (fname, mixfix) domT ranT G lthy =
     let
       val f_def = 
-          Abs ("x", domT, Const ("The", (ranT --> boolT) --> ranT) $
+          Abs ("x", domT, Const ("FunDef.THE_default", ranT --> (ranT --> boolT) --> ranT) $ Const ("arbitrary", ranT) $
                                 Abs ("y", ranT, mk_relmemT domT ranT (Bound 1, Bound 0) G))
           
       val ((f, (_, f_defthm)), lthy) = LocalTheory.def ((fname ^ "C", mixfix), ((fdefname, []), f_def)) lthy

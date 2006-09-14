@@ -9,10 +9,8 @@ theory Fundefs
 imports Main
 begin
 
-
 section {* Very basic *}
 
-ML "trace_simp := false"
 
 fun fib :: "nat \<Rightarrow> nat"
 where
@@ -58,7 +56,6 @@ fun nz :: "nat \<Rightarrow> nat"
 where
   "nz 0 = 0"
 | "nz (Suc x) = nz (nz x)"
-
 
 lemma nz_is_zero: -- {* A lemma we need to prove termination *}
   assumes trm: "x \<in> nz_dom"
@@ -122,7 +119,6 @@ termination
 
 thm gcd2.simps
 thm gcd2.induct
-
 
 subsection {* Guards *}
 
