@@ -65,8 +65,9 @@ fun split_def fnames geq =
       val (fc, args) = strip_comb f_args
       val f as (fname, _) = check_head fnames fc
 
-      val add_bvs = fold_aterms (fn Bound i => insert (op =) i | _ => I)
+      fun add_bvs t is = add_loose_bnos (t, 0, is)
       val rhs_only = (add_bvs rhs [] \\ fold add_bvs args [])
+                       |> print
                         |> map (fst o nth (rev qs))
       val _ = if null rhs_only then () 
 	      else raise ERROR "Variables occur on right hand side only." (* FIXME: Output vars *)
