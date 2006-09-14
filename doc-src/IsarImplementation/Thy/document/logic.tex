@@ -35,11 +35,12 @@ The logical foundations of Isabelle/Isar are that of the Pure logic,
   levels of \isa{{\isasymlambda}}-calculus with corresponding arrows: \isa{{\isasymRightarrow}} for syntactic function space (terms depending on terms), \isa{{\isasymAnd}} for universal quantification (proofs depending on terms), and
   \isa{{\isasymLongrightarrow}} for implication (proofs depending on proofs).
 
-  Pure derivations are relative to a logical theory, which declares
-  type constructors, term constants, and axioms.  Theory declarations
-  support schematic polymorphism, which is strictly speaking outside
-  the logic.\footnote{Incidently, this is the main logical reason, why
-  the theory context \isa{{\isasymTheta}} is separate from the context \isa{{\isasymGamma}} of the core calculus.}%
+  Derivations are relative to a logical theory, which declares type
+  constructors, constants, and axioms.  Theory declarations support
+  schematic polymorphism, which is strictly speaking outside the
+  logic.\footnote{This is the deeper logical reason, why the theory
+  context \isa{{\isasymTheta}} is separate from the proof context \isa{{\isasymGamma}}
+  of the core calculus.}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -57,7 +58,7 @@ The language of types is an uninterpreted order-sorted first-order
   internally.  The resulting relation is an ordering: reflexive,
   transitive, and antisymmetric.
 
-  A \emph{sort} is a list of type classes written as \isa{{\isacharbraceleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlisub m{\isacharbraceright}}, which represents symbolic
+  A \emph{sort} is a list of type classes written as \isa{s\ {\isacharequal}\ {\isacharbraceleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlisub m{\isacharbraceright}}, which represents symbolic
   intersection.  Notationally, the curly braces are omitted for
   singleton intersections, i.e.\ any class \isa{c} may be read as
   a sort \isa{{\isacharbraceleft}c{\isacharbraceright}}.  The ordering on type classes is extended to
@@ -69,9 +70,11 @@ The language of types is an uninterpreted order-sorted first-order
   elements wrt.\ the sort order.
 
   \medskip A \emph{fixed type variable} is a pair of a basic name
-  (starting with a \isa{{\isacharprime}} character) and a sort constraint.  For
-  example, \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ s{\isacharparenright}} which is usually printed as \isa{{\isasymalpha}\isactrlisub s}.  A \emph{schematic type variable} is a pair of an
-  indexname and a sort constraint.  For example, \isa{{\isacharparenleft}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}{\isacharcomma}\ s{\isacharparenright}} which is usually printed as \isa{{\isacharquery}{\isasymalpha}\isactrlisub s}.
+  (starting with a \isa{{\isacharprime}} character) and a sort constraint, e.g.\
+  \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ s{\isacharparenright}} which is usually printed as \isa{{\isasymalpha}\isactrlisub s}.
+  A \emph{schematic type variable} is a pair of an indexname and a
+  sort constraint, e.g.\ \isa{{\isacharparenleft}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}{\isacharcomma}\ s{\isacharparenright}} which is usually
+  printed as \isa{{\isacharquery}{\isasymalpha}\isactrlisub s}.
 
   Note that \emph{all} syntactic components contribute to the identity
   of type variables, including the sort constraint.  The core logic
@@ -81,19 +84,20 @@ The language of types is an uninterpreted order-sorted first-order
 
   A \emph{type constructor} \isa{{\isasymkappa}} is a \isa{k}-ary operator
   on types declared in the theory.  Type constructor application is
-  usually written postfix as \isa{{\isacharparenleft}{\isasymalpha}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlisub k{\isacharparenright}{\isasymkappa}}.
-  For \isa{k\ {\isacharequal}\ {\isadigit{0}}} the argument tuple is omitted, e.g.\ \isa{prop} instead of \isa{{\isacharparenleft}{\isacharparenright}prop}.  For \isa{k\ {\isacharequal}\ {\isadigit{1}}} the
-  parentheses are omitted, e.g.\ \isa{{\isasymalpha}\ list} instead of \isa{{\isacharparenleft}{\isasymalpha}{\isacharparenright}list}.  Further notation is provided for specific constructors,
-  notably the right-associative infix \isa{{\isasymalpha}\ {\isasymRightarrow}\ {\isasymbeta}} instead of
-  \isa{{\isacharparenleft}{\isasymalpha}{\isacharcomma}\ {\isasymbeta}{\isacharparenright}fun}.
+  written postfix as \isa{{\isacharparenleft}{\isasymalpha}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlisub k{\isacharparenright}{\isasymkappa}}.  For
+  \isa{k\ {\isacharequal}\ {\isadigit{0}}} the argument tuple is omitted, e.g.\ \isa{prop}
+  instead of \isa{{\isacharparenleft}{\isacharparenright}prop}.  For \isa{k\ {\isacharequal}\ {\isadigit{1}}} the parentheses
+  are omitted, e.g.\ \isa{{\isasymalpha}\ list} instead of \isa{{\isacharparenleft}{\isasymalpha}{\isacharparenright}list}.
+  Further notation is provided for specific constructors, notably the
+  right-associative infix \isa{{\isasymalpha}\ {\isasymRightarrow}\ {\isasymbeta}} instead of \isa{{\isacharparenleft}{\isasymalpha}{\isacharcomma}\ {\isasymbeta}{\isacharparenright}fun}.
   
-  A \emph{type} \isa{{\isasymtau}} is defined inductively over type variables
-  and type constructors as follows: \isa{{\isasymtau}\ {\isacharequal}\ {\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharquery}{\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharparenleft}{\isasymtau}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlsub k{\isacharparenright}k}.
+  A \emph{type} is defined inductively over type variables and type
+  constructors as follows: \isa{{\isasymtau}\ {\isacharequal}\ {\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharquery}{\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharparenleft}{\isasymtau}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlsub k{\isacharparenright}k}.
 
   A \emph{type abbreviation} is a syntactic definition \isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}{\isasymkappa}\ {\isacharequal}\ {\isasymtau}} of an arbitrary type expression \isa{{\isasymtau}} over
-  variables \isa{\isactrlvec {\isasymalpha}}.  Type abbreviations looks like type
-  constructors at the surface, but are fully expanded before entering
-  the logical core.
+  variables \isa{\isactrlvec {\isasymalpha}}.  Type abbreviations appear as type
+  constructors in the syntax, but are expanded before entering the
+  logical core.
 
   A \emph{type arity} declares the image behavior of a type
   constructor wrt.\ the algebra of sorts: \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlisub k{\isacharparenright}s} means that \isa{{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub k{\isacharparenright}{\isasymkappa}} is
@@ -103,16 +107,17 @@ The language of types is an uninterpreted order-sorted first-order
 
   \medskip The sort algebra is always maintained as \emph{coregular},
   which means that type arities are consistent with the subclass
-  relation: for each type constructor \isa{{\isasymkappa}} and classes \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}}, any arity \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{1}}{\isacharparenright}c\isactrlisub {\isadigit{1}}} has a corresponding arity \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{2}}{\isacharparenright}c\isactrlisub {\isadigit{2}}} where \isa{\isactrlvec s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ \isactrlvec s\isactrlisub {\isadigit{2}}} holds component-wise.
+  relation: for any type constructor \isa{{\isasymkappa}}, and classes \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}}, and arities \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{1}}{\isacharparenright}c\isactrlisub {\isadigit{1}}} and \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{2}}{\isacharparenright}c\isactrlisub {\isadigit{2}}} holds \isa{\isactrlvec s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ \isactrlvec s\isactrlisub {\isadigit{2}}} component-wise.
 
   The key property of a coregular order-sorted algebra is that sort
-  constraints may be always solved in a most general fashion: for each
-  type constructor \isa{{\isasymkappa}} and sort \isa{s} there is a most
-  general vector of argument sorts \isa{{\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlisub k{\isacharparenright}} such that a type scheme \isa{{\isacharparenleft}{\isasymalpha}\isactrlbsub s\isactrlisub {\isadigit{1}}\isactrlesub {\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlbsub s\isactrlisub k\isactrlesub {\isacharparenright}{\isasymkappa}} is
-  of sort \isa{s}.  Consequently, the unification problem on the
-  algebra of types has most general solutions (modulo renaming and
-  equivalence of sorts).  Moreover, the usual type-inference algorithm
-  will produce primary types as expected \cite{nipkow-prehofer}.%
+  constraints can be solved in a most general fashion: for each type
+  constructor \isa{{\isasymkappa}} and sort \isa{s} there is a most general
+  vector of argument sorts \isa{{\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlisub k{\isacharparenright}} such
+  that a type scheme \isa{{\isacharparenleft}{\isasymalpha}\isactrlbsub s\isactrlisub {\isadigit{1}}\isactrlesub {\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlbsub s\isactrlisub k\isactrlesub {\isacharparenright}{\isasymkappa}} is of sort \isa{s}.
+  Consequently, unification on the algebra of types has most general
+  solutions (modulo equivalence of sorts).  This means that
+  type-inference will produce primary types as expected
+  \cite{nipkow-prehofer}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -154,19 +159,19 @@ The language of types is an uninterpreted order-sorted first-order
   \item \verb|typ| represents types; this is a datatype with
   constructors \verb|TFree|, \verb|TVar|, \verb|Type|.
 
-  \item \verb|map_atyps|~\isa{f\ {\isasymtau}} applies mapping \isa{f} to
-  all atomic types (\verb|TFree|, \verb|TVar|) occurring in \isa{{\isasymtau}}.
+  \item \verb|map_atyps|~\isa{f\ {\isasymtau}} applies the mapping \isa{f}
+  to all atomic types (\verb|TFree|, \verb|TVar|) occurring in \isa{{\isasymtau}}.
 
-  \item \verb|fold_atyps|~\isa{f\ {\isasymtau}} iterates operation \isa{f}
-  over all occurrences of atoms (\verb|TFree|, \verb|TVar|) in \isa{{\isasymtau}}; the type structure is traversed from left to right.
+  \item \verb|fold_atyps|~\isa{f\ {\isasymtau}} iterates the operation \isa{f} over all occurrences of atomic types (\verb|TFree|, \verb|TVar|)
+  in \isa{{\isasymtau}}; the type structure is traversed from left to right.
 
   \item \verb|Sign.subsort|~\isa{thy\ {\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ s\isactrlisub {\isadigit{2}}{\isacharparenright}}
   tests the subsort relation \isa{s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ s\isactrlisub {\isadigit{2}}}.
 
-  \item \verb|Sign.of_sort|~\isa{thy\ {\isacharparenleft}{\isasymtau}{\isacharcomma}\ s{\isacharparenright}} tests whether a type
-  is of a given sort.
+  \item \verb|Sign.of_sort|~\isa{thy\ {\isacharparenleft}{\isasymtau}{\isacharcomma}\ s{\isacharparenright}} tests whether type
+  \isa{{\isasymtau}} is of sort \isa{s}.
 
-  \item \verb|Sign.add_types|~\isa{{\isacharbrackleft}{\isacharparenleft}{\isasymkappa}{\isacharcomma}\ k{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}} declares new
+  \item \verb|Sign.add_types|~\isa{{\isacharbrackleft}{\isacharparenleft}{\isasymkappa}{\isacharcomma}\ k{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}} declares a new
   type constructors \isa{{\isasymkappa}} with \isa{k} arguments and
   optional mixfix syntax.
 
@@ -174,13 +179,13 @@ The language of types is an uninterpreted order-sorted first-order
   defines a new type abbreviation \isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}{\isasymkappa}\ {\isacharequal}\ {\isasymtau}} with
   optional mixfix syntax.
 
-  \item \verb|Sign.primitive_class|~\isa{{\isacharparenleft}c{\isacharcomma}\ {\isacharbrackleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlisub n{\isacharbrackright}{\isacharparenright}} declares new class \isa{c}, together with class
+  \item \verb|Sign.primitive_class|~\isa{{\isacharparenleft}c{\isacharcomma}\ {\isacharbrackleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlisub n{\isacharbrackright}{\isacharparenright}} declares a new class \isa{c}, together with class
   relations \isa{c\ {\isasymsubseteq}\ c\isactrlisub i}, for \isa{i\ {\isacharequal}\ {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ n}.
 
   \item \verb|Sign.primitive_classrel|~\isa{{\isacharparenleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ c\isactrlisub {\isadigit{2}}{\isacharparenright}} declares class relation \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}}.
 
   \item \verb|Sign.primitive_arity|~\isa{{\isacharparenleft}{\isasymkappa}{\isacharcomma}\ \isactrlvec s{\isacharcomma}\ s{\isacharparenright}} declares
-  arity \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}s}.
+  the arity \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}s}.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -202,54 +207,56 @@ The language of types is an uninterpreted order-sorted first-order
 
   The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
   with de-Bruijn indices for bound variables (cf.\ \cite{debruijn72}
-  or \cite{paulson-ml2}), and named free variables and constants.
-  Terms with loose bound variables are usually considered malformed.
-  The types of variables and constants is stored explicitly at each
-  occurrence in the term.
+  or \cite{paulson-ml2}), with the types being determined determined
+  by the corresponding binders.  In contrast, free variables and
+  constants are have an explicit name and type in each occurrence.
 
   \medskip A \emph{bound variable} is a natural number \isa{b},
-  which refers to the next binder that is \isa{b} steps upwards
-  from the occurrence of \isa{b} (counting from zero).  Bindings
-  may be introduced as abstractions within the term, or as a separate
-  context (an inside-out list).  This associates each bound variable
-  with a type.  A \emph{loose variables} is a bound variable that is
-  outside the current scope of local binders or the context.  For
+  which accounts for the number of intermediate binders between the
+  variable occurrence in the body and its binding position.  For
   example, the de-Bruijn term \isa{{\isasymlambda}\isactrlisub {\isasymtau}{\isachardot}\ {\isasymlambda}\isactrlisub {\isasymtau}{\isachardot}\ {\isadigit{1}}\ {\isacharplus}\ {\isadigit{0}}}
-  corresponds to \isa{{\isasymlambda}x\isactrlisub {\isasymtau}{\isachardot}\ {\isasymlambda}y\isactrlisub {\isasymtau}{\isachardot}\ x\ {\isacharplus}\ y} in a named
-  representation.  Also note that the very same bound variable may get
-  different numbers at different occurrences.
+  would correspond to \isa{{\isasymlambda}x\isactrlisub {\isasymtau}{\isachardot}\ {\isasymlambda}y\isactrlisub {\isasymtau}{\isachardot}\ x\ {\isacharplus}\ y} in a
+  named representation.  Note that a bound variable may be represented
+  by different de-Bruijn indices at different occurrences, depending
+  on the nesting of abstractions.
 
-  A \emph{fixed variable} is a pair of a basic name and a type.  For
-  example, \isa{{\isacharparenleft}x{\isacharcomma}\ {\isasymtau}{\isacharparenright}} which is usually printed \isa{x\isactrlisub {\isasymtau}}.  A \emph{schematic variable} is a pair of an
-  indexname and a type.  For example, \isa{{\isacharparenleft}{\isacharparenleft}x{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}{\isacharcomma}\ {\isasymtau}{\isacharparenright}} which is
-  usually printed as \isa{{\isacharquery}x\isactrlisub {\isasymtau}}.
+  A \emph{loose variables} is a bound variable that is outside the
+  scope of local binders.  The types (and names) for loose variables
+  can be managed as a separate context, that is maintained inside-out
+  like a stack of hypothetical binders.  The core logic only operates
+  on closed terms, without any loose variables.
 
-  \medskip A \emph{constant} is a atomic terms consisting of a basic
-  name and a type.  Constants are declared in the context as
-  polymorphic families \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}}, meaning that any \isa{c\isactrlisub {\isasymtau}} is a valid constant for all substitution instances
-  \isa{{\isasymtau}\ {\isasymle}\ {\isasymsigma}}.
+  A \emph{fixed variable} is a pair of a basic name and a type, e.g.\
+  \isa{{\isacharparenleft}x{\isacharcomma}\ {\isasymtau}{\isacharparenright}} which is usually printed \isa{x\isactrlisub {\isasymtau}}.  A
+  \emph{schematic variable} is a pair of an indexname and a type,
+  e.g.\ \isa{{\isacharparenleft}{\isacharparenleft}x{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}{\isacharcomma}\ {\isasymtau}{\isacharparenright}} which is usually printed as \isa{{\isacharquery}x\isactrlisub {\isasymtau}}.
 
-  The list of \emph{type arguments} of \isa{c\isactrlisub {\isasymtau}} wrt.\ the
-  declaration \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} is the codomain of the type matcher
-  presented in canonical order (according to the left-to-right
-  occurrences of type variables in in \isa{{\isasymsigma}}).  Thus \isa{c\isactrlisub {\isasymtau}} can be represented more compactly as \isa{c{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub n{\isacharparenright}}.  For example, the instance \isa{plus\isactrlbsub nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat\isactrlesub } of some \isa{plus\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}} has the singleton list \isa{nat} as type arguments, the
-  constant may be represented as \isa{plus{\isacharparenleft}nat{\isacharparenright}}.
+  \medskip A \emph{constant} is a pair of a basic name and a type,
+  e.g.\ \isa{{\isacharparenleft}c{\isacharcomma}\ {\isasymtau}{\isacharparenright}} which is usually printed as \isa{c\isactrlisub {\isasymtau}}.  Constants are declared in the context as polymorphic
+  families \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}}, meaning that valid all substitution
+  instances \isa{c\isactrlisub {\isasymtau}} for \isa{{\isasymtau}\ {\isacharequal}\ {\isasymsigma}{\isasymvartheta}} are valid.
+
+  The vector of \emph{type arguments} of constant \isa{c\isactrlisub {\isasymtau}}
+  wrt.\ the declaration \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} is defined as the codomain of
+  the matcher \isa{{\isasymvartheta}\ {\isacharequal}\ {\isacharbraceleft}{\isacharquery}{\isasymalpha}\isactrlisub {\isadigit{1}}\ {\isasymmapsto}\ {\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isacharquery}{\isasymalpha}\isactrlisub n\ {\isasymmapsto}\ {\isasymtau}\isactrlisub n{\isacharbraceright}} presented in canonical order \isa{{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub n{\isacharparenright}}.  Within a given theory context,
+  there is a one-to-one correspondence between any constant \isa{c\isactrlisub {\isasymtau}} and the application \isa{c{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub n{\isacharparenright}} of its type arguments.  For example, with \isa{plus\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}}, the instance \isa{plus\isactrlbsub nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat\isactrlesub } corresponds to \isa{plus{\isacharparenleft}nat{\isacharparenright}}.
 
   Constant declarations \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} may contain sort constraints
   for type variables in \isa{{\isasymsigma}}.  These are observed by
   type-inference as expected, but \emph{ignored} by the core logic.
   This means the primitive logic is able to reason with instances of
-  polymorphic constants that the user-level type-checker would reject.
+  polymorphic constants that the user-level type-checker would reject
+  due to violation of type class restrictions.
 
-  \medskip A \emph{term} \isa{t} is defined inductively over
-  variables and constants, with abstraction and application as
-  follows: \isa{t\ {\isacharequal}\ b\ {\isacharbar}\ x\isactrlisub {\isasymtau}\ {\isacharbar}\ {\isacharquery}x\isactrlisub {\isasymtau}\ {\isacharbar}\ c\isactrlisub {\isasymtau}\ {\isacharbar}\ {\isasymlambda}\isactrlisub {\isasymtau}{\isachardot}\ t\ {\isacharbar}\ t\isactrlisub {\isadigit{1}}\ t\isactrlisub {\isadigit{2}}}.  Parsing and printing takes
-  care of converting between an external representation with named
-  bound variables.  Subsequently, we shall use the latter notation
-  instead of internal de-Bruijn representation.
+  \medskip A \emph{term} is defined inductively over variables and
+  constants, with abstraction and application as follows: \isa{t\ {\isacharequal}\ b\ {\isacharbar}\ x\isactrlisub {\isasymtau}\ {\isacharbar}\ {\isacharquery}x\isactrlisub {\isasymtau}\ {\isacharbar}\ c\isactrlisub {\isasymtau}\ {\isacharbar}\ {\isasymlambda}\isactrlisub {\isasymtau}{\isachardot}\ t\ {\isacharbar}\ t\isactrlisub {\isadigit{1}}\ t\isactrlisub {\isadigit{2}}}.  Parsing and printing takes care of
+  converting between an external representation with named bound
+  variables.  Subsequently, we shall use the latter notation instead
+  of internal de-Bruijn representation.
 
-  The subsequent inductive relation \isa{t\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}} assigns a
-  (unique) type to a term, using the special type constructor \isa{{\isacharparenleft}{\isasymalpha}{\isacharcomma}\ {\isasymbeta}{\isacharparenright}fun}, which is written \isa{{\isasymalpha}\ {\isasymRightarrow}\ {\isasymbeta}}.
+  The inductive relation \isa{t\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}} assigns a (unique) type to a
+  term according to the structure of atomic terms, abstractions, and
+  applicatins:
   \[
   \infer{\isa{a\isactrlisub {\isasymtau}\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}}{}
   \qquad
@@ -265,40 +272,40 @@ The language of types is an uninterpreted order-sorted first-order
   Type-inference depends on a context of type constraints for fixed
   variables, and declarations for polymorphic constants.
 
-  The identity of atomic terms consists both of the name and the type.
-  Thus different entities \isa{c\isactrlbsub {\isasymtau}\isactrlisub {\isadigit{1}}\isactrlesub } and
-  \isa{c\isactrlbsub {\isasymtau}\isactrlisub {\isadigit{2}}\isactrlesub } may well identified by type
-  instantiation, by mapping \isa{{\isasymtau}\isactrlisub {\isadigit{1}}} and \isa{{\isasymtau}\isactrlisub {\isadigit{2}}} to the same \isa{{\isasymtau}}.  Although,
-  different type instances of constants of the same basic name are
-  commonplace, this rarely happens for variables: type-inference
-  always demands ``consistent'' type constraints.
+  The identity of atomic terms consists both of the name and the type
+  component.  This means that different variables \isa{x\isactrlbsub {\isasymtau}\isactrlisub {\isadigit{1}}\isactrlesub } and \isa{x\isactrlbsub {\isasymtau}\isactrlisub {\isadigit{2}}\isactrlesub } may become the same after type
+  instantiation.  Some outer layers of the system make it hard to
+  produce variables of the same name, but different types.  In
+  particular, type-inference always demands ``consistent'' type
+  constraints for free variables.  In contrast, mixed instances of
+  polymorphic constants occur frequently.
 
   \medskip The \emph{hidden polymorphism} of a term \isa{t\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}}
   is the set of type variables occurring in \isa{t}, but not in
-  \isa{{\isasymsigma}}.  This means that the term implicitly depends on the
-  values of various type variables that are not visible in the overall
-  type, i.e.\ there are different type instances \isa{t{\isasymvartheta}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} and \isa{t{\isasymvartheta}{\isacharprime}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} with the same type.  This
-  slightly pathological situation is apt to cause strange effects.
+  \isa{{\isasymsigma}}.  This means that the term implicitly depends on type
+  arguments that are not accounted in result type, i.e.\ there are
+  different type instances \isa{t{\isasymvartheta}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} and \isa{t{\isasymvartheta}{\isacharprime}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} with the same type.  This slightly
+  pathological situation demands special care.
 
-  \medskip A \emph{term abbreviation} is a syntactic definition \isa{c\isactrlisub {\isasymsigma}\ {\isasymequiv}\ t} of an arbitrary closed term \isa{t} of type
-  \isa{{\isasymsigma}} without any hidden polymorphism.  A term abbreviation
-  looks like a constant at the surface, but is fully expanded before
-  entering the logical core.  Abbreviations are usually reverted when
-  printing terms, using rules \isa{t\ {\isasymrightarrow}\ c\isactrlisub {\isasymsigma}} has a
-  higher-order term rewrite system.
+  \medskip A \emph{term abbreviation} is a syntactic definition \isa{c\isactrlisub {\isasymsigma}\ {\isasymequiv}\ t} of a closed term \isa{t} of type \isa{{\isasymsigma}},
+  without any hidden polymorphism.  A term abbreviation looks like a
+  constant in the syntax, but is fully expanded before entering the
+  logical core.  Abbreviations are usually reverted when printing
+  terms, using the collective \isa{t\ {\isasymrightarrow}\ c\isactrlisub {\isasymsigma}} as rules for
+  higher-order rewriting.
 
-  \medskip Canonical operations on \isa{{\isasymlambda}}-terms include \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-conversion. \isa{{\isasymalpha}}-conversion refers to capture-free
+  \medskip Canonical operations on \isa{{\isasymlambda}}-terms include \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-conversion: \isa{{\isasymalpha}}-conversion refers to capture-free
   renaming of bound variables; \isa{{\isasymbeta}}-conversion contracts an
-  abstraction applied to some argument term, substituting the argument
+  abstraction applied to an argument term, substituting the argument
   in the body: \isa{{\isacharparenleft}{\isasymlambda}x{\isachardot}\ b{\isacharparenright}a} becomes \isa{b{\isacharbrackleft}a{\isacharslash}x{\isacharbrackright}}; \isa{{\isasymeta}}-conversion contracts vacuous application-abstraction: \isa{{\isasymlambda}x{\isachardot}\ f\ x} becomes \isa{f}, provided that the bound variable
-  \isa{{\isadigit{0}}} does not occur in \isa{f}.
+  does not occur in \isa{f}.
 
-  Terms are almost always treated module \isa{{\isasymalpha}}-conversion, which
-  is implicit in the de-Bruijn representation.  The names in
-  abstractions of bound variables are maintained only as a comment for
-  parsing and printing.  Full \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-equivalence is usually
-  taken for granted higher rules (\secref{sec:rules}), anything
-  depending on higher-order unification or rewriting.%
+  Terms are normally treated modulo \isa{{\isasymalpha}}-conversion, which is
+  implicit in the de-Bruijn representation.  Names for bound variables
+  in abstractions are maintained separately as (meaningless) comments,
+  mostly for parsing and printing.  Full \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-conversion is
+  commonplace in various higher operations (\secref{sec:rules}) that
+  are based on higher-order unification and matching.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -328,38 +335,35 @@ The language of types is an uninterpreted order-sorted first-order
 
   \begin{description}
 
-  \item \verb|term| represents de-Bruijn terms with comments in
-  abstractions for bound variable names.  This is a datatype with
-  constructors \verb|Bound|, \verb|Free|, \verb|Var|, \verb|Const|, \verb|Abs|, \verb|op $|.
+  \item \verb|term| represents de-Bruijn terms, with comments in
+  abstractions, and explicitly named free variables and constants;
+  this is a datatype with constructors \verb|Bound|, \verb|Free|, \verb|Var|, \verb|Const|, \verb|Abs|, \verb|op $|.
 
   \item \isa{t}~\verb|aconv|~\isa{u} checks \isa{{\isasymalpha}}-equivalence of two terms.  This is the basic equality relation
   on type \verb|term|; raw datatype equality should only be used
   for operations related to parsing or printing!
 
-  \item \verb|map_term_types|~\isa{f\ t} applies mapping \isa{f}
-  to all types occurring in \isa{t}.
+  \item \verb|map_term_types|~\isa{f\ t} applies the mapping \isa{f} to all types occurring in \isa{t}.
 
-  \item \verb|fold_types|~\isa{f\ t} iterates operation \isa{f}
-  over all occurrences of types in \isa{t}; the term structure is
+  \item \verb|fold_types|~\isa{f\ t} iterates the operation \isa{f} over all occurrences of types in \isa{t}; the term
+  structure is traversed from left to right.
+
+  \item \verb|map_aterms|~\isa{f\ t} applies the mapping \isa{f}
+  to all atomic terms (\verb|Bound|, \verb|Free|, \verb|Var|, \verb|Const|) occurring in \isa{t}.
+
+  \item \verb|fold_aterms|~\isa{f\ t} iterates the operation \isa{f} over all occurrences of atomic terms (\verb|Bound|, \verb|Free|,
+  \verb|Var|, \verb|Const|) in \isa{t}; the term structure is
   traversed from left to right.
 
-  \item \verb|map_aterms|~\isa{f\ t} applies mapping \isa{f} to
-  all atomic terms (\verb|Bound|, \verb|Free|, \verb|Var|, \verb|Const|)
-  occurring in \isa{t}.
+  \item \verb|fastype_of|~\isa{t} determines the type of a
+  well-typed term.  This operation is relatively slow, despite the
+  omission of any sanity checks.
 
-  \item \verb|fold_aterms|~\isa{f\ t} iterates operation \isa{f}
-  over all occurrences of atomic terms in (\verb|Bound|, \verb|Free|,
-  \verb|Var|, \verb|Const|) \isa{t}; the term structure is traversed
-  from left to right.
+  \item \verb|lambda|~\isa{a\ b} produces an abstraction \isa{{\isasymlambda}a{\isachardot}\ b}, where occurrences of the atomic term \isa{a} in the
+  body \isa{b} are replaced by bound variables.
 
-  \item \verb|fastype_of|~\isa{t} recomputes the type of a
-  well-formed term, while omitting any sanity checks.  This operation
-  is relatively slow.
-
-  \item \verb|lambda|~\isa{a\ b} produces an abstraction \isa{{\isasymlambda}a{\isachardot}\ b}, where occurrences of the original (atomic) term \isa{a} in the body \isa{b} are replaced by bound variables.
-
-  \item \verb|betapply|~\isa{t\ u} produces an application \isa{t\ u}, with topmost \isa{{\isasymbeta}}-conversion if \isa{t} happens to
-  be an abstraction.
+  \item \verb|betapply|~\isa{{\isacharparenleft}t{\isacharcomma}\ u{\isacharparenright}} produces an application \isa{t\ u}, with topmost \isa{{\isasymbeta}}-conversion if \isa{t} is an
+  abstraction.
 
   \item \verb|Sign.add_consts_i|~\isa{{\isacharbrackleft}{\isacharparenleft}c{\isacharcomma}\ {\isasymsigma}{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}} declares a
   new constant \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} with optional mixfix syntax.
@@ -369,9 +373,9 @@ The language of types is an uninterpreted order-sorted first-order
   mixfix syntax.
 
   \item \verb|Sign.const_typargs|~\isa{thy\ {\isacharparenleft}c{\isacharcomma}\ {\isasymtau}{\isacharparenright}} and \verb|Sign.const_instance|~\isa{thy\ {\isacharparenleft}c{\isacharcomma}\ {\isacharbrackleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub n{\isacharbrackright}{\isacharparenright}}
-  convert between the two representations of constants, namely full
-  type instance vs.\ compact type arguments form (depending on the
-  most general declaration given in the context).
+  convert between the representations of polymorphic constants: the
+  full type instance vs.\ the compact type arguments form (depending
+  on the most general declaration given in the context).
 
   \end{description}%
 \end{isamarkuptext}%
@@ -427,27 +431,26 @@ The language of types is an uninterpreted order-sorted first-order
   A \emph{proposition} is a well-formed term of type \isa{prop}, a
   \emph{theorem} is a proven proposition (depending on a context of
   hypotheses and the background theory).  Primitive inferences include
-  plain natural deduction rules for the primary connectives \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} of the framework.  There are separate (derived)
-  rules for equality/equivalence \isa{{\isasymequiv}} and internal conjunction
-  \isa{{\isacharampersand}}.%
+  plain natural deduction rules for the primary connectives \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} of the framework.  There is also a builtin
+  notion of equality/equivalence \isa{{\isasymequiv}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Standard connectives and rules%
+\isamarkupsubsection{Primitive connectives and rules%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The basic theory is called \isa{Pure}, it contains declarations
-  for the standard logical connectives \isa{{\isasymAnd}}, \isa{{\isasymLongrightarrow}}, and
-  \isa{{\isasymequiv}} of the framework, see \figref{fig:pure-connectives}.
-  The derivability judgment \isa{A\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlisub n\ {\isasymturnstile}\ B} is
-  defined inductively by the primitive inferences given in
-  \figref{fig:prim-rules}, with the global syntactic restriction that
-  hypotheses may never contain schematic variables.  The builtin
-  equality is conceptually axiomatized shown in
+The theory \isa{Pure} contains declarations for the standard
+  connectives \isa{{\isasymAnd}}, \isa{{\isasymLongrightarrow}}, and \isa{{\isasymequiv}} of the logical
+  framework, see \figref{fig:pure-connectives}.  The derivability
+  judgment \isa{A\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlisub n\ {\isasymturnstile}\ B} is defined
+  inductively by the primitive inferences given in
+  \figref{fig:prim-rules}, with the global restriction that hypotheses
+  \isa{{\isasymGamma}} may \emph{not} contain schematic variables.  The builtin
+  equality is conceptually axiomatized as shown in
   \figref{fig:pure-equality}, although the implementation works
-  directly with (derived) inference rules.
+  directly with derived inference rules.
 
   \begin{figure}[htb]
   \begin{center}
@@ -456,7 +459,7 @@ The basic theory is called \isa{Pure}, it contains declarations
   \isa{{\isasymLongrightarrow}\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop\ {\isasymRightarrow}\ prop} & implication (right associative infix) \\
   \isa{{\isasymequiv}\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ prop} & equality relation (infix) \\
   \end{tabular}
-  \caption{Standard connectives of Pure}\label{fig:pure-connectives}
+  \caption{Primitive connectives of Pure}\label{fig:pure-connectives}
   \end{center}
   \end{figure}
 
@@ -468,9 +471,9 @@ The basic theory is called \isa{Pure}, it contains declarations
   \infer[\isa{{\isacharparenleft}assume{\isacharparenright}}]{\isa{A\ {\isasymturnstile}\ A}}{}
   \]
   \[
-  \infer[\isa{{\isacharparenleft}{\isasymAnd}{\isacharunderscore}intro{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ b\ x}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ b\ x} & \isa{x\ {\isasymnotin}\ {\isasymGamma}}}
+  \infer[\isa{{\isacharparenleft}{\isasymAnd}{\isacharunderscore}intro{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ b{\isacharbrackleft}x{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ b{\isacharbrackleft}x{\isacharbrackright}} & \isa{x\ {\isasymnotin}\ {\isasymGamma}}}
   \qquad
-  \infer[\isa{{\isacharparenleft}{\isasymAnd}{\isacharunderscore}elim{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ b\ a}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ b\ x}}
+  \infer[\isa{{\isacharparenleft}{\isasymAnd}{\isacharunderscore}elim{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ b{\isacharbrackleft}a{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ b{\isacharbrackleft}x{\isacharbrackright}}}
   \]
   \[
   \infer[\isa{{\isacharparenleft}{\isasymLongrightarrow}{\isacharunderscore}intro{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isacharminus}\ A\ {\isasymturnstile}\ A\ {\isasymLongrightarrow}\ B}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B}}
@@ -484,44 +487,39 @@ The basic theory is called \isa{Pure}, it contains declarations
   \begin{figure}[htb]
   \begin{center}
   \begin{tabular}{ll}
-  \isa{{\isasymturnstile}\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ b\ x{\isacharparenright}\ a\ {\isasymequiv}\ b\ a} & \isa{{\isasymbeta}}-conversion \\
+  \isa{{\isasymturnstile}\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ b{\isacharbrackleft}x{\isacharbrackright}{\isacharparenright}\ a\ {\isasymequiv}\ b{\isacharbrackleft}a{\isacharbrackright}} & \isa{{\isasymbeta}}-conversion \\
   \isa{{\isasymturnstile}\ x\ {\isasymequiv}\ x} & reflexivity \\
   \isa{{\isasymturnstile}\ x\ {\isasymequiv}\ y\ {\isasymLongrightarrow}\ P\ x\ {\isasymLongrightarrow}\ P\ y} & substitution \\
   \isa{{\isasymturnstile}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ f\ x\ {\isasymequiv}\ g\ x{\isacharparenright}\ {\isasymLongrightarrow}\ f\ {\isasymequiv}\ g} & extensionality \\
-  \isa{{\isasymturnstile}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}B\ {\isasymLongrightarrow}\ A{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymequiv}\ B} & coincidence with equivalence \\
+  \isa{{\isasymturnstile}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}B\ {\isasymLongrightarrow}\ A{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymequiv}\ B} & logical equivalence \\
   \end{tabular}
-  \caption{Conceptual axiomatization of builtin equality}\label{fig:pure-equality}
+  \caption{Conceptual axiomatization of \isa{{\isasymequiv}}}\label{fig:pure-equality}
   \end{center}
   \end{figure}
 
-  The introduction and elimination rules for \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} are analogous to formation of (dependently typed) \isa{{\isasymlambda}}-terms representing the underlying proof objects.  Proof terms
-  are \emph{irrelevant} in the Pure logic, they may never occur within
-  propositions, i.e.\ the \isa{{\isasymLongrightarrow}} arrow is non-dependent.  The
-  system provides a runtime option to record explicit proof terms for
-  primitive inferences, cf.\ \cite{Berghofer-Nipkow:2000:TPHOL}.  Thus
-  the three-fold \isa{{\isasymlambda}}-structure can be made explicit.
+  The introduction and elimination rules for \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} are analogous to formation of dependently typed \isa{{\isasymlambda}}-terms representing the underlying proof objects.  Proof terms
+  are irrelevant in the Pure logic, though, they may never occur
+  within propositions.  The system provides a runtime option to record
+  explicit proof terms for primitive inferences.  Thus all three
+  levels of \isa{{\isasymlambda}}-calculus become explicit: \isa{{\isasymRightarrow}} for
+  terms, and \isa{{\isasymAnd}{\isacharslash}{\isasymLongrightarrow}} for proofs (cf.\
+  \cite{Berghofer-Nipkow:2000:TPHOL}).
 
-  Observe that locally fixed parameters (as used in rule \isa{{\isasymAnd}{\isacharunderscore}intro}) need not be recorded in the hypotheses, because the
-  simple syntactic types of Pure are always inhabitable.  The typing
-  ``assumption'' \isa{x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}} is logically vacuous, it disappears
-  automatically whenever the statement body ceases to mention variable
-  \isa{x\isactrlisub {\isasymtau}}.\footnote{This greatly simplifies many basic
-  reasoning steps, and is the key difference to the formulation of
-  this logic as ``\isa{{\isasymlambda}HOL}'' in the PTS framework
-  \cite{Barendregt-Geuvers:2001}.}
+  Observe that locally fixed parameters (as in \isa{{\isasymAnd}{\isacharunderscore}intro}) need
+  not be recorded in the hypotheses, because the simple syntactic
+  types of Pure are always inhabitable.  Typing ``assumptions'' \isa{x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}} are (implicitly) present only with occurrences of \isa{x\isactrlisub {\isasymtau}} in the statement body.\footnote{This is the key
+  difference ``\isa{{\isasymlambda}HOL}'' in the PTS framework
+  \cite{Barendregt-Geuvers:2001}, where \isa{x\ {\isacharcolon}\ A} hypotheses are
+  treated explicitly for types, in the same way as propositions.}
 
   \medskip FIXME \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-equivalence and primitive definitions
 
   Since the basic representation of terms already accounts for \isa{{\isasymalpha}}-conversion, Pure equality essentially acts like \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-equivalence on terms, while coinciding with bi-implication.
 
   \medskip The axiomatization of a theory is implicitly closed by
-  forming all instances of type and term variables: \isa{{\isasymturnstile}\ A{\isasymvartheta}} for
-  any substitution instance of axiom \isa{{\isasymturnstile}\ A}.  By pushing
-  substitution through derivations inductively, we get admissible
-  substitution rules for theorems shown in \figref{fig:subst-rules}.
-  Alternatively, the term substitution rules could be derived from
-  \isa{{\isasymAnd}{\isacharunderscore}intro{\isacharslash}elim}.  The versions for types are genuine
-  admissible rules, due to the lack of true polymorphism in the logic.
+  forming all instances of type and term variables: \isa{{\isasymturnstile}\ A{\isasymvartheta}} holds for any substitution instance of an axiom
+  \isa{{\isasymturnstile}\ A}.  By pushing substitution through derivations
+  inductively, we get admissible \isa{generalize} and \isa{instance} rules shown in \figref{fig:subst-rules}.
 
   \begin{figure}[htb]
   \begin{center}
@@ -539,11 +537,14 @@ The basic theory is called \isa{Pure}, it contains declarations
   \end{center}
   \end{figure}
 
-  Since \isa{{\isasymGamma}} may never contain any schematic variables, the
-  \isa{instantiate} do not require an explicit side-condition.  In
-  principle, variables could be substituted in hypotheses as well, but
-  this could disrupt monotonicity of the basic calculus: derivations
-  could leave the current proof context.%
+  Note that \isa{instantiate} does not require an explicit
+  side-condition, because \isa{{\isasymGamma}} may never contain schematic
+  variables.
+
+  In principle, variables could be substituted in hypotheses as well,
+  but this would disrupt monotonicity reasoning: deriving \isa{{\isasymGamma}{\isasymvartheta}\ {\isasymturnstile}\ B{\isasymvartheta}} from \isa{{\isasymGamma}\ {\isasymturnstile}\ B} is correct, but
+  \isa{{\isasymGamma}{\isasymvartheta}\ {\isasymsupseteq}\ {\isasymGamma}} does not necessarily hold --- the result
+  belongs to a different proof context.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -584,16 +585,16 @@ The basic theory is called \isa{Pure}, it contains declarations
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Pure also provides various auxiliary connectives based on primitive
-  definitions, see \figref{fig:pure-aux}.  These are normally not
-  exposed to the user, but appear in internal encodings only.
+Theory \isa{Pure} also defines a few auxiliary connectives, see
+  \figref{fig:pure-aux}.  These are normally not exposed to the user,
+  but appear in internal encodings only.
 
   \begin{figure}[htb]
   \begin{center}
   \begin{tabular}{ll}
   \isa{conjunction\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop\ {\isasymRightarrow}\ prop} & (infix \isa{{\isacharampersand}}) \\
   \isa{{\isasymturnstile}\ A\ {\isacharampersand}\ B\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}C{\isachardot}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isacharparenright}} \\[1ex]
-  \isa{prop\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop} & (prefix \isa{{\isacharhash}}) \\
+  \isa{prop\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop} & (prefix \isa{{\isacharhash}}, hidden) \\
   \isa{{\isacharhash}A\ {\isasymequiv}\ A} \\[1ex]
   \isa{term\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ prop} & (prefix \isa{TERM}) \\
   \isa{term\ x\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}A{\isachardot}\ A\ {\isasymLongrightarrow}\ A{\isacharparenright}} \\[1ex]
@@ -604,35 +605,33 @@ Pure also provides various auxiliary connectives based on primitive
   \end{center}
   \end{figure}
 
-  Conjunction as an explicit connective allows to treat both
-  simultaneous assumptions and conclusions uniformly.  The definition
-  allows to derive the usual introduction \isa{{\isasymturnstile}\ A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ A\ {\isacharampersand}\ B},
-  and destructions \isa{A\ {\isacharampersand}\ B\ {\isasymLongrightarrow}\ A} and \isa{A\ {\isacharampersand}\ B\ {\isasymLongrightarrow}\ B}.  For
-  example, several claims may be stated at the same time, which is
-  intermediately represented as an assumption, but the user only
-  encounters several sub-goals, and several resulting facts in the
-  very end (cf.\ \secref{sec:tactical-goals}).
+  Derived conjunction rules include introduction \isa{A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ A\ {\isacharampersand}\ B}, and destructions \isa{A\ {\isacharampersand}\ B\ {\isasymLongrightarrow}\ A} and \isa{A\ {\isacharampersand}\ B\ {\isasymLongrightarrow}\ B}.
+  Conjunction allows to treat simultaneous assumptions and conclusions
+  uniformly.  For example, multiple claims are intermediately
+  represented as explicit conjunction, but this is usually refined
+  into separate sub-goals before the user continues the proof; the
+  final result is projected into a list of theorems (cf.\
+  \secref{sec:tactical-goals}).
 
-  The \isa{{\isacharhash}} marker allows complex propositions (nested \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}}) to appear formally as atomic, without changing
-  the meaning: \isa{{\isasymGamma}\ {\isasymturnstile}\ A} and \isa{{\isasymGamma}\ {\isasymturnstile}\ {\isacharhash}A} are
-  interchangeable.  See \secref{sec:tactical-goals} for specific
-  operations.
+  The \isa{prop} marker (\isa{{\isacharhash}}) makes arbitrarily complex
+  propositions appear as atomic, without changing the meaning: \isa{{\isasymGamma}\ {\isasymturnstile}\ A} and \isa{{\isasymGamma}\ {\isasymturnstile}\ {\isacharhash}A} are interchangeable.  See
+  \secref{sec:tactical-goals} for specific operations.
 
-  The \isa{TERM} marker turns any well-formed term into a
-  derivable proposition: \isa{{\isasymturnstile}\ TERM\ t} holds
-  unconditionally.  Despite its logically vacous meaning, this is
-  occasionally useful to treat syntactic terms and proven propositions
-  uniformly, as in a type-theoretic framework.
+  The \isa{term} marker turns any well-formed term into a
+  derivable proposition: \isa{{\isasymturnstile}\ TERM\ t} holds unconditionally.
+  Although this is logically vacuous, it allows to treat terms and
+  proofs uniformly, similar to a type-theoretic framework.
 
-  The \isa{TYPE} constructor (which is the canonical
-  representative of the unspecified type \isa{{\isasymalpha}\ itself}) injects
-  the language of types into that of terms.  There is specific
-  notation \isa{TYPE{\isacharparenleft}{\isasymtau}{\isacharparenright}} for \isa{TYPE\isactrlbsub {\isasymtau}\ itself\isactrlesub }.
-  Although being devoid of any particular meaning, the term \isa{TYPE{\isacharparenleft}{\isasymtau}{\isacharparenright}} is able to carry the type \isa{{\isasymtau}} formally.  \isa{TYPE{\isacharparenleft}{\isasymalpha}{\isacharparenright}} may be used as an additional formal argument in primitive
-  definitions, in order to avoid hidden polymorphism (cf.\
-  \secref{sec:terms}).  For example, \isa{c\ TYPE{\isacharparenleft}{\isasymalpha}{\isacharparenright}\ {\isasymequiv}\ A{\isacharbrackleft}{\isasymalpha}{\isacharbrackright}} turns
-  out as a formally correct definition of some proposition \isa{A}
-  that depends on an additional type argument.%
+  The \isa{TYPE} constructor is the canonical representative of
+  the unspecified type \isa{{\isasymalpha}\ itself}; it essentially injects the
+  language of types into that of terms.  There is specific notation
+  \isa{TYPE{\isacharparenleft}{\isasymtau}{\isacharparenright}} for \isa{TYPE\isactrlbsub {\isasymtau}\ itself\isactrlesub }.
+  Although being devoid of any particular meaning, the \isa{TYPE{\isacharparenleft}{\isasymtau}{\isacharparenright}} accounts for the type \isa{{\isasymtau}} within the term
+  language.  In particular, \isa{TYPE{\isacharparenleft}{\isasymalpha}{\isacharparenright}} may be used as formal
+  argument in primitive definitions, in order to circumvent hidden
+  polymorphism (cf.\ \secref{sec:terms}).  For example, \isa{c\ TYPE{\isacharparenleft}{\isasymalpha}{\isacharparenright}\ {\isasymequiv}\ A{\isacharbrackleft}{\isasymalpha}{\isacharbrackright}} defines \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ itself\ {\isasymRightarrow}\ prop} in terms of
+  a proposition \isa{A} that depends on an additional type
+  argument, which is essentially a predicate on types.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

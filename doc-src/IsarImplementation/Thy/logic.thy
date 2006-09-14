@@ -20,12 +20,12 @@ text {*
   "\<And>"} for universal quantification (proofs depending on terms), and
   @{text "\<Longrightarrow>"} for implication (proofs depending on proofs).
 
-  Pure derivations are relative to a logical theory, which declares
-  type constructors, term constants, and axioms.  Theory declarations
-  support schematic polymorphism, which is strictly speaking outside
-  the logic.\footnote{Incidently, this is the main logical reason, why
-  the theory context @{text "\<Theta>"} is separate from the context @{text
-  "\<Gamma>"} of the core calculus.}
+  Derivations are relative to a logical theory, which declares type
+  constructors, constants, and axioms.  Theory declarations support
+  schematic polymorphism, which is strictly speaking outside the
+  logic.\footnote{This is the deeper logical reason, why the theory
+  context @{text "\<Theta>"} is separate from the proof context @{text "\<Gamma>"}
+  of the core calculus.}
 *}
 
 
@@ -42,8 +42,8 @@ text {*
   internally.  The resulting relation is an ordering: reflexive,
   transitive, and antisymmetric.
 
-  A \emph{sort} is a list of type classes written as @{text
-  "{c\<^isub>1, \<dots>, c\<^isub>m}"}, which represents symbolic
+  A \emph{sort} is a list of type classes written as @{text "s =
+  {c\<^isub>1, \<dots>, c\<^isub>m}"}, which represents symbolic
   intersection.  Notationally, the curly braces are omitted for
   singleton intersections, i.e.\ any class @{text "c"} may be read as
   a sort @{text "{c}"}.  The ordering on type classes is extended to
@@ -56,11 +56,11 @@ text {*
   elements wrt.\ the sort order.
 
   \medskip A \emph{fixed type variable} is a pair of a basic name
-  (starting with a @{text "'"} character) and a sort constraint.  For
-  example, @{text "('a, s)"} which is usually printed as @{text
-  "\<alpha>\<^isub>s"}.  A \emph{schematic type variable} is a pair of an
-  indexname and a sort constraint.  For example, @{text "(('a, 0),
-  s)"} which is usually printed as @{text "?\<alpha>\<^isub>s"}.
+  (starting with a @{text "'"} character) and a sort constraint, e.g.\
+  @{text "('a, s)"} which is usually printed as @{text "\<alpha>\<^isub>s"}.
+  A \emph{schematic type variable} is a pair of an indexname and a
+  sort constraint, e.g.\ @{text "(('a, 0), s)"} which is usually
+  printed as @{text "?\<alpha>\<^isub>s"}.
 
   Note that \emph{all} syntactic components contribute to the identity
   of type variables, including the sort constraint.  The core logic
@@ -70,23 +70,23 @@ text {*
 
   A \emph{type constructor} @{text "\<kappa>"} is a @{text "k"}-ary operator
   on types declared in the theory.  Type constructor application is
-  usually written postfix as @{text "(\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>k)\<kappa>"}.
-  For @{text "k = 0"} the argument tuple is omitted, e.g.\ @{text
-  "prop"} instead of @{text "()prop"}.  For @{text "k = 1"} the
-  parentheses are omitted, e.g.\ @{text "\<alpha> list"} instead of @{text
-  "(\<alpha>)list"}.  Further notation is provided for specific constructors,
-  notably the right-associative infix @{text "\<alpha> \<Rightarrow> \<beta>"} instead of
-  @{text "(\<alpha>, \<beta>)fun"}.
+  written postfix as @{text "(\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>k)\<kappa>"}.  For
+  @{text "k = 0"} the argument tuple is omitted, e.g.\ @{text "prop"}
+  instead of @{text "()prop"}.  For @{text "k = 1"} the parentheses
+  are omitted, e.g.\ @{text "\<alpha> list"} instead of @{text "(\<alpha>)list"}.
+  Further notation is provided for specific constructors, notably the
+  right-associative infix @{text "\<alpha> \<Rightarrow> \<beta>"} instead of @{text "(\<alpha>,
+  \<beta>)fun"}.
   
-  A \emph{type} @{text "\<tau>"} is defined inductively over type variables
-  and type constructors as follows: @{text "\<tau> = \<alpha>\<^isub>s |
-  ?\<alpha>\<^isub>s | (\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)k"}.
+  A \emph{type} is defined inductively over type variables and type
+  constructors as follows: @{text "\<tau> = \<alpha>\<^isub>s | ?\<alpha>\<^isub>s |
+  (\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)k"}.
 
   A \emph{type abbreviation} is a syntactic definition @{text
   "(\<^vec>\<alpha>)\<kappa> = \<tau>"} of an arbitrary type expression @{text "\<tau>"} over
-  variables @{text "\<^vec>\<alpha>"}.  Type abbreviations looks like type
-  constructors at the surface, but are fully expanded before entering
-  the logical core.
+  variables @{text "\<^vec>\<alpha>"}.  Type abbreviations appear as type
+  constructors in the syntax, but are expanded before entering the
+  logical core.
 
   A \emph{type arity} declares the image behavior of a type
   constructor wrt.\ the algebra of sorts: @{text "\<kappa> :: (s\<^isub>1, \<dots>,
@@ -98,22 +98,22 @@ text {*
 
   \medskip The sort algebra is always maintained as \emph{coregular},
   which means that type arities are consistent with the subclass
-  relation: for each type constructor @{text "\<kappa>"} and classes @{text
-  "c\<^isub>1 \<subseteq> c\<^isub>2"}, any arity @{text "\<kappa> ::
-  (\<^vec>s\<^isub>1)c\<^isub>1"} has a corresponding arity @{text "\<kappa>
-  :: (\<^vec>s\<^isub>2)c\<^isub>2"} where @{text "\<^vec>s\<^isub>1 \<subseteq>
-  \<^vec>s\<^isub>2"} holds component-wise.
+  relation: for any type constructor @{text "\<kappa>"}, and classes @{text
+  "c\<^isub>1 \<subseteq> c\<^isub>2"}, and arities @{text "\<kappa> ::
+  (\<^vec>s\<^isub>1)c\<^isub>1"} and @{text "\<kappa> ::
+  (\<^vec>s\<^isub>2)c\<^isub>2"} holds @{text "\<^vec>s\<^isub>1 \<subseteq>
+  \<^vec>s\<^isub>2"} component-wise.
 
   The key property of a coregular order-sorted algebra is that sort
-  constraints may be always solved in a most general fashion: for each
-  type constructor @{text "\<kappa>"} and sort @{text "s"} there is a most
-  general vector of argument sorts @{text "(s\<^isub>1, \<dots>,
-  s\<^isub>k)"} such that a type scheme @{text
-  "(\<alpha>\<^bsub>s\<^isub>1\<^esub>, \<dots>, \<alpha>\<^bsub>s\<^isub>k\<^esub>)\<kappa>"} is
-  of sort @{text "s"}.  Consequently, the unification problem on the
-  algebra of types has most general solutions (modulo renaming and
-  equivalence of sorts).  Moreover, the usual type-inference algorithm
-  will produce primary types as expected \cite{nipkow-prehofer}.
+  constraints can be solved in a most general fashion: for each type
+  constructor @{text "\<kappa>"} and sort @{text "s"} there is a most general
+  vector of argument sorts @{text "(s\<^isub>1, \<dots>, s\<^isub>k)"} such
+  that a type scheme @{text "(\<alpha>\<^bsub>s\<^isub>1\<^esub>, \<dots>,
+  \<alpha>\<^bsub>s\<^isub>k\<^esub>)\<kappa>"} is of sort @{text "s"}.
+  Consequently, unification on the algebra of types has most general
+  solutions (modulo equivalence of sorts).  This means that
+  type-inference will produce primary types as expected
+  \cite{nipkow-prehofer}.
 *}
 
 text %mlref {*
@@ -149,20 +149,21 @@ text %mlref {*
   \item @{ML_type typ} represents types; this is a datatype with
   constructors @{ML TFree}, @{ML TVar}, @{ML Type}.
 
-  \item @{ML map_atyps}~@{text "f \<tau>"} applies mapping @{text "f"} to
-  all atomic types (@{ML TFree}, @{ML TVar}) occurring in @{text "\<tau>"}.
+  \item @{ML map_atyps}~@{text "f \<tau>"} applies the mapping @{text "f"}
+  to all atomic types (@{ML TFree}, @{ML TVar}) occurring in @{text
+  "\<tau>"}.
 
-  \item @{ML fold_atyps}~@{text "f \<tau>"} iterates operation @{text "f"}
-  over all occurrences of atoms (@{ML TFree}, @{ML TVar}) in @{text
-  "\<tau>"}; the type structure is traversed from left to right.
+  \item @{ML fold_atyps}~@{text "f \<tau>"} iterates the operation @{text
+  "f"} over all occurrences of atomic types (@{ML TFree}, @{ML TVar})
+  in @{text "\<tau>"}; the type structure is traversed from left to right.
 
   \item @{ML Sign.subsort}~@{text "thy (s\<^isub>1, s\<^isub>2)"}
   tests the subsort relation @{text "s\<^isub>1 \<subseteq> s\<^isub>2"}.
 
-  \item @{ML Sign.of_sort}~@{text "thy (\<tau>, s)"} tests whether a type
-  is of a given sort.
+  \item @{ML Sign.of_sort}~@{text "thy (\<tau>, s)"} tests whether type
+  @{text "\<tau>"} is of sort @{text "s"}.
 
-  \item @{ML Sign.add_types}~@{text "[(\<kappa>, k, mx), \<dots>]"} declares new
+  \item @{ML Sign.add_types}~@{text "[(\<kappa>, k, mx), \<dots>]"} declares a new
   type constructors @{text "\<kappa>"} with @{text "k"} arguments and
   optional mixfix syntax.
 
@@ -171,7 +172,7 @@ text %mlref {*
   optional mixfix syntax.
 
   \item @{ML Sign.primitive_class}~@{text "(c, [c\<^isub>1, \<dots>,
-  c\<^isub>n])"} declares new class @{text "c"}, together with class
+  c\<^isub>n])"} declares a new class @{text "c"}, together with class
   relations @{text "c \<subseteq> c\<^isub>i"}, for @{text "i = 1, \<dots>, n"}.
 
   \item @{ML Sign.primitive_classrel}~@{text "(c\<^isub>1,
@@ -179,7 +180,7 @@ text %mlref {*
   c\<^isub>2"}.
 
   \item @{ML Sign.primitive_arity}~@{text "(\<kappa>, \<^vec>s, s)"} declares
-  arity @{text "\<kappa> :: (\<^vec>s)s"}.
+  the arity @{text "\<kappa> :: (\<^vec>s)s"}.
 
   \end{description}
 *}
@@ -193,62 +194,66 @@ text {*
 
   The language of terms is that of simply-typed @{text "\<lambda>"}-calculus
   with de-Bruijn indices for bound variables (cf.\ \cite{debruijn72}
-  or \cite{paulson-ml2}), and named free variables and constants.
-  Terms with loose bound variables are usually considered malformed.
-  The types of variables and constants is stored explicitly at each
-  occurrence in the term.
+  or \cite{paulson-ml2}), with the types being determined determined
+  by the corresponding binders.  In contrast, free variables and
+  constants are have an explicit name and type in each occurrence.
 
   \medskip A \emph{bound variable} is a natural number @{text "b"},
-  which refers to the next binder that is @{text "b"} steps upwards
-  from the occurrence of @{text "b"} (counting from zero).  Bindings
-  may be introduced as abstractions within the term, or as a separate
-  context (an inside-out list).  This associates each bound variable
-  with a type.  A \emph{loose variables} is a bound variable that is
-  outside the current scope of local binders or the context.  For
+  which accounts for the number of intermediate binders between the
+  variable occurrence in the body and its binding position.  For
   example, the de-Bruijn term @{text "\<lambda>\<^isub>\<tau>. \<lambda>\<^isub>\<tau>. 1 + 0"}
-  corresponds to @{text "\<lambda>x\<^isub>\<tau>. \<lambda>y\<^isub>\<tau>. x + y"} in a named
-  representation.  Also note that the very same bound variable may get
-  different numbers at different occurrences.
+  would correspond to @{text "\<lambda>x\<^isub>\<tau>. \<lambda>y\<^isub>\<tau>. x + y"} in a
+  named representation.  Note that a bound variable may be represented
+  by different de-Bruijn indices at different occurrences, depending
+  on the nesting of abstractions.
 
-  A \emph{fixed variable} is a pair of a basic name and a type.  For
-  example, @{text "(x, \<tau>)"} which is usually printed @{text
-  "x\<^isub>\<tau>"}.  A \emph{schematic variable} is a pair of an
-  indexname and a type.  For example, @{text "((x, 0), \<tau>)"} which is
-  usually printed as @{text "?x\<^isub>\<tau>"}.
+  A \emph{loose variables} is a bound variable that is outside the
+  scope of local binders.  The types (and names) for loose variables
+  can be managed as a separate context, that is maintained inside-out
+  like a stack of hypothetical binders.  The core logic only operates
+  on closed terms, without any loose variables.
 
-  \medskip A \emph{constant} is a atomic terms consisting of a basic
-  name and a type.  Constants are declared in the context as
-  polymorphic families @{text "c :: \<sigma>"}, meaning that any @{text
-  "c\<^isub>\<tau>"} is a valid constant for all substitution instances
-  @{text "\<tau> \<le> \<sigma>"}.
+  A \emph{fixed variable} is a pair of a basic name and a type, e.g.\
+  @{text "(x, \<tau>)"} which is usually printed @{text "x\<^isub>\<tau>"}.  A
+  \emph{schematic variable} is a pair of an indexname and a type,
+  e.g.\ @{text "((x, 0), \<tau>)"} which is usually printed as @{text
+  "?x\<^isub>\<tau>"}.
 
-  The list of \emph{type arguments} of @{text "c\<^isub>\<tau>"} wrt.\ the
-  declaration @{text "c :: \<sigma>"} is the codomain of the type matcher
-  presented in canonical order (according to the left-to-right
-  occurrences of type variables in in @{text "\<sigma>"}).  Thus @{text
-  "c\<^isub>\<tau>"} can be represented more compactly as @{text
-  "c(\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>n)"}.  For example, the instance @{text
-  "plus\<^bsub>nat \<Rightarrow> nat \<Rightarrow> nat\<^esub>"} of some @{text "plus :: \<alpha> \<Rightarrow> \<alpha>
-  \<Rightarrow> \<alpha>"} has the singleton list @{text "nat"} as type arguments, the
-  constant may be represented as @{text "plus(nat)"}.
+  \medskip A \emph{constant} is a pair of a basic name and a type,
+  e.g.\ @{text "(c, \<tau>)"} which is usually printed as @{text
+  "c\<^isub>\<tau>"}.  Constants are declared in the context as polymorphic
+  families @{text "c :: \<sigma>"}, meaning that valid all substitution
+  instances @{text "c\<^isub>\<tau>"} for @{text "\<tau> = \<sigma>\<vartheta>"} are valid.
+
+  The vector of \emph{type arguments} of constant @{text "c\<^isub>\<tau>"}
+  wrt.\ the declaration @{text "c :: \<sigma>"} is defined as the codomain of
+  the matcher @{text "\<vartheta> = {?\<alpha>\<^isub>1 \<mapsto> \<tau>\<^isub>1, \<dots>,
+  ?\<alpha>\<^isub>n \<mapsto> \<tau>\<^isub>n}"} presented in canonical order @{text
+  "(\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>n)"}.  Within a given theory context,
+  there is a one-to-one correspondence between any constant @{text
+  "c\<^isub>\<tau>"} and the application @{text "c(\<tau>\<^isub>1, \<dots>,
+  \<tau>\<^isub>n)"} of its type arguments.  For example, with @{text "plus
+  :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"}, the instance @{text "plus\<^bsub>nat \<Rightarrow> nat \<Rightarrow>
+  nat\<^esub>"} corresponds to @{text "plus(nat)"}.
 
   Constant declarations @{text "c :: \<sigma>"} may contain sort constraints
   for type variables in @{text "\<sigma>"}.  These are observed by
   type-inference as expected, but \emph{ignored} by the core logic.
   This means the primitive logic is able to reason with instances of
-  polymorphic constants that the user-level type-checker would reject.
+  polymorphic constants that the user-level type-checker would reject
+  due to violation of type class restrictions.
 
-  \medskip A \emph{term} @{text "t"} is defined inductively over
-  variables and constants, with abstraction and application as
-  follows: @{text "t = b | x\<^isub>\<tau> | ?x\<^isub>\<tau> | c\<^isub>\<tau> |
-  \<lambda>\<^isub>\<tau>. t | t\<^isub>1 t\<^isub>2"}.  Parsing and printing takes
-  care of converting between an external representation with named
-  bound variables.  Subsequently, we shall use the latter notation
-  instead of internal de-Bruijn representation.
+  \medskip A \emph{term} is defined inductively over variables and
+  constants, with abstraction and application as follows: @{text "t =
+  b | x\<^isub>\<tau> | ?x\<^isub>\<tau> | c\<^isub>\<tau> | \<lambda>\<^isub>\<tau>. t |
+  t\<^isub>1 t\<^isub>2"}.  Parsing and printing takes care of
+  converting between an external representation with named bound
+  variables.  Subsequently, we shall use the latter notation instead
+  of internal de-Bruijn representation.
 
-  The subsequent inductive relation @{text "t :: \<tau>"} assigns a
-  (unique) type to a term, using the special type constructor @{text
-  "(\<alpha>, \<beta>)fun"}, which is written @{text "\<alpha> \<Rightarrow> \<beta>"}.
+  The inductive relation @{text "t :: \<tau>"} assigns a (unique) type to a
+  term according to the structure of atomic terms, abstractions, and
+  applicatins:
   \[
   \infer{@{text "a\<^isub>\<tau> :: \<tau>"}}{}
   \qquad
@@ -264,46 +269,47 @@ text {*
   Type-inference depends on a context of type constraints for fixed
   variables, and declarations for polymorphic constants.
 
-  The identity of atomic terms consists both of the name and the type.
-  Thus different entities @{text "c\<^bsub>\<tau>\<^isub>1\<^esub>"} and
-  @{text "c\<^bsub>\<tau>\<^isub>2\<^esub>"} may well identified by type
-  instantiation, by mapping @{text "\<tau>\<^isub>1"} and @{text
-  "\<tau>\<^isub>2"} to the same @{text "\<tau>"}.  Although,
-  different type instances of constants of the same basic name are
-  commonplace, this rarely happens for variables: type-inference
-  always demands ``consistent'' type constraints.
+  The identity of atomic terms consists both of the name and the type
+  component.  This means that different variables @{text
+  "x\<^bsub>\<tau>\<^isub>1\<^esub>"} and @{text
+  "x\<^bsub>\<tau>\<^isub>2\<^esub>"} may become the same after type
+  instantiation.  Some outer layers of the system make it hard to
+  produce variables of the same name, but different types.  In
+  particular, type-inference always demands ``consistent'' type
+  constraints for free variables.  In contrast, mixed instances of
+  polymorphic constants occur frequently.
 
   \medskip The \emph{hidden polymorphism} of a term @{text "t :: \<sigma>"}
   is the set of type variables occurring in @{text "t"}, but not in
-  @{text "\<sigma>"}.  This means that the term implicitly depends on the
-  values of various type variables that are not visible in the overall
-  type, i.e.\ there are different type instances @{text "t\<vartheta>
-  :: \<sigma>"} and @{text "t\<vartheta>' :: \<sigma>"} with the same type.  This
-  slightly pathological situation is apt to cause strange effects.
+  @{text "\<sigma>"}.  This means that the term implicitly depends on type
+  arguments that are not accounted in result type, i.e.\ there are
+  different type instances @{text "t\<vartheta> :: \<sigma>"} and @{text
+  "t\<vartheta>' :: \<sigma>"} with the same type.  This slightly
+  pathological situation demands special care.
 
   \medskip A \emph{term abbreviation} is a syntactic definition @{text
-  "c\<^isub>\<sigma> \<equiv> t"} of an arbitrary closed term @{text "t"} of type
-  @{text "\<sigma>"} without any hidden polymorphism.  A term abbreviation
-  looks like a constant at the surface, but is fully expanded before
-  entering the logical core.  Abbreviations are usually reverted when
-  printing terms, using rules @{text "t \<rightarrow> c\<^isub>\<sigma>"} has a
-  higher-order term rewrite system.
+  "c\<^isub>\<sigma> \<equiv> t"} of a closed term @{text "t"} of type @{text "\<sigma>"},
+  without any hidden polymorphism.  A term abbreviation looks like a
+  constant in the syntax, but is fully expanded before entering the
+  logical core.  Abbreviations are usually reverted when printing
+  terms, using the collective @{text "t \<rightarrow> c\<^isub>\<sigma>"} as rules for
+  higher-order rewriting.
 
   \medskip Canonical operations on @{text "\<lambda>"}-terms include @{text
-  "\<alpha>\<beta>\<eta>"}-conversion. @{text "\<alpha>"}-conversion refers to capture-free
+  "\<alpha>\<beta>\<eta>"}-conversion: @{text "\<alpha>"}-conversion refers to capture-free
   renaming of bound variables; @{text "\<beta>"}-conversion contracts an
-  abstraction applied to some argument term, substituting the argument
+  abstraction applied to an argument term, substituting the argument
   in the body: @{text "(\<lambda>x. b)a"} becomes @{text "b[a/x]"}; @{text
   "\<eta>"}-conversion contracts vacuous application-abstraction: @{text
   "\<lambda>x. f x"} becomes @{text "f"}, provided that the bound variable
-  @{text "0"} does not occur in @{text "f"}.
+  does not occur in @{text "f"}.
 
-  Terms are almost always treated module @{text "\<alpha>"}-conversion, which
-  is implicit in the de-Bruijn representation.  The names in
-  abstractions of bound variables are maintained only as a comment for
-  parsing and printing.  Full @{text "\<alpha>\<beta>\<eta>"}-equivalence is usually
-  taken for granted higher rules (\secref{sec:rules}), anything
-  depending on higher-order unification or rewriting.
+  Terms are normally treated modulo @{text "\<alpha>"}-conversion, which is
+  implicit in the de-Bruijn representation.  Names for bound variables
+  in abstractions are maintained separately as (meaningless) comments,
+  mostly for parsing and printing.  Full @{text "\<alpha>\<beta>\<eta>"}-conversion is
+  commonplace in various higher operations (\secref{sec:rules}) that
+  are based on higher-order unification and matching.
 *}
 
 text %mlref {*
@@ -326,43 +332,43 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type term} represents de-Bruijn terms with comments in
-  abstractions for bound variable names.  This is a datatype with
-  constructors @{ML Bound}, @{ML Free}, @{ML Var}, @{ML Const}, @{ML
-  Abs}, @{ML "op $"}.
+  \item @{ML_type term} represents de-Bruijn terms, with comments in
+  abstractions, and explicitly named free variables and constants;
+  this is a datatype with constructors @{ML Bound}, @{ML Free}, @{ML
+  Var}, @{ML Const}, @{ML Abs}, @{ML "op $"}.
 
   \item @{text "t"}~@{ML aconv}~@{text "u"} checks @{text
   "\<alpha>"}-equivalence of two terms.  This is the basic equality relation
   on type @{ML_type term}; raw datatype equality should only be used
   for operations related to parsing or printing!
 
-  \item @{ML map_term_types}~@{text "f t"} applies mapping @{text "f"}
-  to all types occurring in @{text "t"}.
+  \item @{ML map_term_types}~@{text "f t"} applies the mapping @{text
+  "f"} to all types occurring in @{text "t"}.
 
-  \item @{ML fold_types}~@{text "f t"} iterates operation @{text "f"}
-  over all occurrences of types in @{text "t"}; the term structure is
+  \item @{ML fold_types}~@{text "f t"} iterates the operation @{text
+  "f"} over all occurrences of types in @{text "t"}; the term
+  structure is traversed from left to right.
+
+  \item @{ML map_aterms}~@{text "f t"} applies the mapping @{text "f"}
+  to all atomic terms (@{ML Bound}, @{ML Free}, @{ML Var}, @{ML
+  Const}) occurring in @{text "t"}.
+
+  \item @{ML fold_aterms}~@{text "f t"} iterates the operation @{text
+  "f"} over all occurrences of atomic terms (@{ML Bound}, @{ML Free},
+  @{ML Var}, @{ML Const}) in @{text "t"}; the term structure is
   traversed from left to right.
 
-  \item @{ML map_aterms}~@{text "f t"} applies mapping @{text "f"} to
-  all atomic terms (@{ML Bound}, @{ML Free}, @{ML Var}, @{ML Const})
-  occurring in @{text "t"}.
-
-  \item @{ML fold_aterms}~@{text "f t"} iterates operation @{text "f"}
-  over all occurrences of atomic terms in (@{ML Bound}, @{ML Free},
-  @{ML Var}, @{ML Const}) @{text "t"}; the term structure is traversed
-  from left to right.
-
-  \item @{ML fastype_of}~@{text "t"} recomputes the type of a
-  well-formed term, while omitting any sanity checks.  This operation
-  is relatively slow.
+  \item @{ML fastype_of}~@{text "t"} determines the type of a
+  well-typed term.  This operation is relatively slow, despite the
+  omission of any sanity checks.
 
   \item @{ML lambda}~@{text "a b"} produces an abstraction @{text
-  "\<lambda>a. b"}, where occurrences of the original (atomic) term @{text
-  "a"} in the body @{text "b"} are replaced by bound variables.
+  "\<lambda>a. b"}, where occurrences of the atomic term @{text "a"} in the
+  body @{text "b"} are replaced by bound variables.
 
-  \item @{ML betapply}~@{text "t u"} produces an application @{text "t
-  u"}, with topmost @{text "\<beta>"}-conversion if @{text "t"} happens to
-  be an abstraction.
+  \item @{ML betapply}~@{text "(t, u)"} produces an application @{text
+  "t u"}, with topmost @{text "\<beta>"}-conversion if @{text "t"} is an
+  abstraction.
 
   \item @{ML Sign.add_consts_i}~@{text "[(c, \<sigma>, mx), \<dots>]"} declares a
   new constant @{text "c :: \<sigma>"} with optional mixfix syntax.
@@ -373,9 +379,9 @@ text %mlref {*
 
   \item @{ML Sign.const_typargs}~@{text "thy (c, \<tau>)"} and @{ML
   Sign.const_instance}~@{text "thy (c, [\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>n])"}
-  convert between the two representations of constants, namely full
-  type instance vs.\ compact type arguments form (depending on the
-  most general declaration given in the context).
+  convert between the representations of polymorphic constants: the
+  full type instance vs.\ the compact type arguments form (depending
+  on the most general declaration given in the context).
 
   \end{description}
 *}
@@ -424,24 +430,23 @@ text {*
   \emph{theorem} is a proven proposition (depending on a context of
   hypotheses and the background theory).  Primitive inferences include
   plain natural deduction rules for the primary connectives @{text
-  "\<And>"} and @{text "\<Longrightarrow>"} of the framework.  There are separate (derived)
-  rules for equality/equivalence @{text "\<equiv>"} and internal conjunction
-  @{text "&"}.
+  "\<And>"} and @{text "\<Longrightarrow>"} of the framework.  There is also a builtin
+  notion of equality/equivalence @{text "\<equiv>"}.
 *}
 
-subsection {* Standard connectives and rules *}
+subsection {* Primitive connectives and rules *}
 
 text {*
-  The basic theory is called @{text "Pure"}, it contains declarations
-  for the standard logical connectives @{text "\<And>"}, @{text "\<Longrightarrow>"}, and
-  @{text "\<equiv>"} of the framework, see \figref{fig:pure-connectives}.
-  The derivability judgment @{text "A\<^isub>1, \<dots>, A\<^isub>n \<turnstile> B"} is
-  defined inductively by the primitive inferences given in
-  \figref{fig:prim-rules}, with the global syntactic restriction that
-  hypotheses may never contain schematic variables.  The builtin
-  equality is conceptually axiomatized shown in
+  The theory @{text "Pure"} contains declarations for the standard
+  connectives @{text "\<And>"}, @{text "\<Longrightarrow>"}, and @{text "\<equiv>"} of the logical
+  framework, see \figref{fig:pure-connectives}.  The derivability
+  judgment @{text "A\<^isub>1, \<dots>, A\<^isub>n \<turnstile> B"} is defined
+  inductively by the primitive inferences given in
+  \figref{fig:prim-rules}, with the global restriction that hypotheses
+  @{text "\<Gamma>"} may \emph{not} contain schematic variables.  The builtin
+  equality is conceptually axiomatized as shown in
   \figref{fig:pure-equality}, although the implementation works
-  directly with (derived) inference rules.
+  directly with derived inference rules.
 
   \begin{figure}[htb]
   \begin{center}
@@ -450,7 +455,7 @@ text {*
   @{text "\<Longrightarrow> :: prop \<Rightarrow> prop \<Rightarrow> prop"} & implication (right associative infix) \\
   @{text "\<equiv> :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> prop"} & equality relation (infix) \\
   \end{tabular}
-  \caption{Standard connectives of Pure}\label{fig:pure-connectives}
+  \caption{Primitive connectives of Pure}\label{fig:pure-connectives}
   \end{center}
   \end{figure}
 
@@ -462,9 +467,9 @@ text {*
   \infer[@{text "(assume)"}]{@{text "A \<turnstile> A"}}{}
   \]
   \[
-  \infer[@{text "(\<And>_intro)"}]{@{text "\<Gamma> \<turnstile> \<And>x. b x"}}{@{text "\<Gamma> \<turnstile> b x"} & @{text "x \<notin> \<Gamma>"}}
+  \infer[@{text "(\<And>_intro)"}]{@{text "\<Gamma> \<turnstile> \<And>x. b[x]"}}{@{text "\<Gamma> \<turnstile> b[x]"} & @{text "x \<notin> \<Gamma>"}}
   \qquad
-  \infer[@{text "(\<And>_elim)"}]{@{text "\<Gamma> \<turnstile> b a"}}{@{text "\<Gamma> \<turnstile> \<And>x. b x"}}
+  \infer[@{text "(\<And>_elim)"}]{@{text "\<Gamma> \<turnstile> b[a]"}}{@{text "\<Gamma> \<turnstile> \<And>x. b[x]"}}
   \]
   \[
   \infer[@{text "(\<Longrightarrow>_intro)"}]{@{text "\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
@@ -478,34 +483,34 @@ text {*
   \begin{figure}[htb]
   \begin{center}
   \begin{tabular}{ll}
-  @{text "\<turnstile> (\<lambda>x. b x) a \<equiv> b a"} & @{text "\<beta>"}-conversion \\
+  @{text "\<turnstile> (\<lambda>x. b[x]) a \<equiv> b[a]"} & @{text "\<beta>"}-conversion \\
   @{text "\<turnstile> x \<equiv> x"} & reflexivity \\
   @{text "\<turnstile> x \<equiv> y \<Longrightarrow> P x \<Longrightarrow> P y"} & substitution \\
   @{text "\<turnstile> (\<And>x. f x \<equiv> g x) \<Longrightarrow> f \<equiv> g"} & extensionality \\
-  @{text "\<turnstile> (A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A \<equiv> B"} & coincidence with equivalence \\
+  @{text "\<turnstile> (A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A \<equiv> B"} & logical equivalence \\
   \end{tabular}
-  \caption{Conceptual axiomatization of builtin equality}\label{fig:pure-equality}
+  \caption{Conceptual axiomatization of @{text "\<equiv>"}}\label{fig:pure-equality}
   \end{center}
   \end{figure}
 
   The introduction and elimination rules for @{text "\<And>"} and @{text
-  "\<Longrightarrow>"} are analogous to formation of (dependently typed) @{text
+  "\<Longrightarrow>"} are analogous to formation of dependently typed @{text
   "\<lambda>"}-terms representing the underlying proof objects.  Proof terms
-  are \emph{irrelevant} in the Pure logic, they may never occur within
-  propositions, i.e.\ the @{text "\<Longrightarrow>"} arrow is non-dependent.  The
-  system provides a runtime option to record explicit proof terms for
-  primitive inferences, cf.\ \cite{Berghofer-Nipkow:2000:TPHOL}.  Thus
-  the three-fold @{text "\<lambda>"}-structure can be made explicit.
+  are irrelevant in the Pure logic, though, they may never occur
+  within propositions.  The system provides a runtime option to record
+  explicit proof terms for primitive inferences.  Thus all three
+  levels of @{text "\<lambda>"}-calculus become explicit: @{text "\<Rightarrow>"} for
+  terms, and @{text "\<And>/\<Longrightarrow>"} for proofs (cf.\
+  \cite{Berghofer-Nipkow:2000:TPHOL}).
 
-  Observe that locally fixed parameters (as used in rule @{text
-  "\<And>_intro"}) need not be recorded in the hypotheses, because the
-  simple syntactic types of Pure are always inhabitable.  The typing
-  ``assumption'' @{text "x :: \<tau>"} is logically vacuous, it disappears
-  automatically whenever the statement body ceases to mention variable
-  @{text "x\<^isub>\<tau>"}.\footnote{This greatly simplifies many basic
-  reasoning steps, and is the key difference to the formulation of
-  this logic as ``@{text "\<lambda>HOL"}'' in the PTS framework
-  \cite{Barendregt-Geuvers:2001}.}
+  Observe that locally fixed parameters (as in @{text "\<And>_intro"}) need
+  not be recorded in the hypotheses, because the simple syntactic
+  types of Pure are always inhabitable.  Typing ``assumptions'' @{text
+  "x :: \<tau>"} are (implicitly) present only with occurrences of @{text
+  "x\<^isub>\<tau>"} in the statement body.\footnote{This is the key
+  difference ``@{text "\<lambda>HOL"}'' in the PTS framework
+  \cite{Barendregt-Geuvers:2001}, where @{text "x : A"} hypotheses are
+  treated explicitly for types, in the same way as propositions.}
 
   \medskip FIXME @{text "\<alpha>\<beta>\<eta>"}-equivalence and primitive definitions
 
@@ -514,13 +519,11 @@ text {*
   "\<alpha>\<beta>\<eta>"}-equivalence on terms, while coinciding with bi-implication.
 
   \medskip The axiomatization of a theory is implicitly closed by
-  forming all instances of type and term variables: @{text "\<turnstile> A\<vartheta>"} for
-  any substitution instance of axiom @{text "\<turnstile> A"}.  By pushing
-  substitution through derivations inductively, we get admissible
-  substitution rules for theorems shown in \figref{fig:subst-rules}.
-  Alternatively, the term substitution rules could be derived from
-  @{text "\<And>_intro/elim"}.  The versions for types are genuine
-  admissible rules, due to the lack of true polymorphism in the logic.
+  forming all instances of type and term variables: @{text "\<turnstile>
+  A\<vartheta>"} holds for any substitution instance of an axiom
+  @{text "\<turnstile> A"}.  By pushing substitution through derivations
+  inductively, we get admissible @{text "generalize"} and @{text
+  "instance"} rules shown in \figref{fig:subst-rules}.
 
   \begin{figure}[htb]
   \begin{center}
@@ -538,11 +541,15 @@ text {*
   \end{center}
   \end{figure}
 
-  Since @{text "\<Gamma>"} may never contain any schematic variables, the
-  @{text "instantiate"} do not require an explicit side-condition.  In
-  principle, variables could be substituted in hypotheses as well, but
-  this could disrupt monotonicity of the basic calculus: derivations
-  could leave the current proof context.
+  Note that @{text "instantiate"} does not require an explicit
+  side-condition, because @{text "\<Gamma>"} may never contain schematic
+  variables.
+
+  In principle, variables could be substituted in hypotheses as well,
+  but this would disrupt monotonicity reasoning: deriving @{text
+  "\<Gamma>\<vartheta> \<turnstile> B\<vartheta>"} from @{text "\<Gamma> \<turnstile> B"} is correct, but
+  @{text "\<Gamma>\<vartheta> \<supseteq> \<Gamma>"} does not necessarily hold --- the result
+  belongs to a different proof context.
 *}
 
 text %mlref {*
@@ -567,16 +574,16 @@ text %mlref {*
 subsection {* Auxiliary connectives *}
 
 text {*
-  Pure also provides various auxiliary connectives based on primitive
-  definitions, see \figref{fig:pure-aux}.  These are normally not
-  exposed to the user, but appear in internal encodings only.
+  Theory @{text "Pure"} also defines a few auxiliary connectives, see
+  \figref{fig:pure-aux}.  These are normally not exposed to the user,
+  but appear in internal encodings only.
 
   \begin{figure}[htb]
   \begin{center}
   \begin{tabular}{ll}
   @{text "conjunction :: prop \<Rightarrow> prop \<Rightarrow> prop"} & (infix @{text "&"}) \\
   @{text "\<turnstile> A & B \<equiv> (\<And>C. (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C)"} \\[1ex]
-  @{text "prop :: prop \<Rightarrow> prop"} & (prefix @{text "#"}) \\
+  @{text "prop :: prop \<Rightarrow> prop"} & (prefix @{text "#"}, hidden) \\
   @{text "#A \<equiv> A"} \\[1ex]
   @{text "term :: \<alpha> \<Rightarrow> prop"} & (prefix @{text "TERM"}) \\
   @{text "term x \<equiv> (\<And>A. A \<Longrightarrow> A)"} \\[1ex]
@@ -587,39 +594,38 @@ text {*
   \end{center}
   \end{figure}
 
-  Conjunction as an explicit connective allows to treat both
-  simultaneous assumptions and conclusions uniformly.  The definition
-  allows to derive the usual introduction @{text "\<turnstile> A \<Longrightarrow> B \<Longrightarrow> A & B"},
-  and destructions @{text "A & B \<Longrightarrow> A"} and @{text "A & B \<Longrightarrow> B"}.  For
-  example, several claims may be stated at the same time, which is
-  intermediately represented as an assumption, but the user only
-  encounters several sub-goals, and several resulting facts in the
-  very end (cf.\ \secref{sec:tactical-goals}).
+  Derived conjunction rules include introduction @{text "A \<Longrightarrow> B \<Longrightarrow> A &
+  B"}, and destructions @{text "A & B \<Longrightarrow> A"} and @{text "A & B \<Longrightarrow> B"}.
+  Conjunction allows to treat simultaneous assumptions and conclusions
+  uniformly.  For example, multiple claims are intermediately
+  represented as explicit conjunction, but this is usually refined
+  into separate sub-goals before the user continues the proof; the
+  final result is projected into a list of theorems (cf.\
+  \secref{sec:tactical-goals}).
 
-  The @{text "#"} marker allows complex propositions (nested @{text
-  "\<And>"} and @{text "\<Longrightarrow>"}) to appear formally as atomic, without changing
-  the meaning: @{text "\<Gamma> \<turnstile> A"} and @{text "\<Gamma> \<turnstile> #A"} are
-  interchangeable.  See \secref{sec:tactical-goals} for specific
-  operations.
+  The @{text "prop"} marker (@{text "#"}) makes arbitrarily complex
+  propositions appear as atomic, without changing the meaning: @{text
+  "\<Gamma> \<turnstile> A"} and @{text "\<Gamma> \<turnstile> #A"} are interchangeable.  See
+  \secref{sec:tactical-goals} for specific operations.
 
-  The @{text "TERM"} marker turns any well-formed term into a
-  derivable proposition: @{text "\<turnstile> TERM t"} holds
-  unconditionally.  Despite its logically vacous meaning, this is
-  occasionally useful to treat syntactic terms and proven propositions
-  uniformly, as in a type-theoretic framework.
+  The @{text "term"} marker turns any well-formed term into a
+  derivable proposition: @{text "\<turnstile> TERM t"} holds unconditionally.
+  Although this is logically vacuous, it allows to treat terms and
+  proofs uniformly, similar to a type-theoretic framework.
 
-  The @{text "TYPE"} constructor (which is the canonical
-  representative of the unspecified type @{text "\<alpha> itself"}) injects
-  the language of types into that of terms.  There is specific
-  notation @{text "TYPE(\<tau>)"} for @{text "TYPE\<^bsub>\<tau>
+  The @{text "TYPE"} constructor is the canonical representative of
+  the unspecified type @{text "\<alpha> itself"}; it essentially injects the
+  language of types into that of terms.  There is specific notation
+  @{text "TYPE(\<tau>)"} for @{text "TYPE\<^bsub>\<tau>
  itself\<^esub>"}.
-  Although being devoid of any particular meaning, the term @{text
-  "TYPE(\<tau>)"} is able to carry the type @{text "\<tau>"} formally.  @{text
-  "TYPE(\<alpha>)"} may be used as an additional formal argument in primitive
-  definitions, in order to avoid hidden polymorphism (cf.\
-  \secref{sec:terms}).  For example, @{text "c TYPE(\<alpha>) \<equiv> A[\<alpha>]"} turns
-  out as a formally correct definition of some proposition @{text "A"}
-  that depends on an additional type argument.
+  Although being devoid of any particular meaning, the @{text
+  "TYPE(\<tau>)"} accounts for the type @{text "\<tau>"} within the term
+  language.  In particular, @{text "TYPE(\<alpha>)"} may be used as formal
+  argument in primitive definitions, in order to circumvent hidden
+  polymorphism (cf.\ \secref{sec:terms}).  For example, @{text "c
+  TYPE(\<alpha>) \<equiv> A[\<alpha>]"} defines @{text "c :: \<alpha> itself \<Rightarrow> prop"} in terms of
+  a proposition @{text "A"} that depends on an additional type
+  argument, which is essentially a predicate on types.
 *}
 
 text %mlref {*
