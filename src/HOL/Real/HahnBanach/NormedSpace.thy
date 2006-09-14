@@ -15,8 +15,6 @@ text {*
   definite, absolute homogenous and subadditive.
 *}
 
-no_syntax norm :: "'a::norm \<Rightarrow> real" ("\<parallel>_\<parallel>")   (* FIXME clash with Real/RealVector.thy *)
-
 locale norm_syntax =
   fixes norm :: "'a \<Rightarrow> real"    ("\<parallel>_\<parallel>")
 
