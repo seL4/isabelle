@@ -290,10 +290,14 @@ text %mlref {*
   "({context: Proof.context, schematics: ctyp list * cterm list,
     params: cterm list, asms: cterm list, concl: cterm,
     prems: thm list} -> tactic) -> Proof.context -> int -> tactic"} \\
+  \end{mldecls}
+  \begin{mldecls}
   @{index_ML Goal.prove: "Proof.context -> string list -> term list -> term ->
   ({prems: thm list, context: Proof.context} -> tactic) -> thm"} \\
   @{index_ML Goal.prove_multi: "Proof.context -> string list -> term list -> term list ->
   ({prems: thm list, context: Proof.context} -> tactic) -> thm list"} \\
+  \end{mldecls}
+  \begin{mldecls}
   @{index_ML Obtain.result: "(Proof.context -> tactic) ->
   thm list -> Proof.context -> (cterm list * thm list) * Proof.context"} \\
   \end{mldecls}

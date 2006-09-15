@@ -8,7 +8,7 @@
 signature ALGEBRA =
 sig
   val print_structures: Context.generic -> unit
-  val setup: Theory.theory -> Theory.theory
+  val setup: theory -> theory
 end;
 
 structure Algebra: ALGEBRA =
@@ -17,7 +17,7 @@ struct
 
 (** Theory and context data **)
 
-fun struct_eq ((s1, ts1), (s2, ts2)) =
+fun struct_eq ((s1: string, ts1), (s2, ts2)) =
   (s1 = s2) andalso eq_list (op aconv) (ts1, ts2);
 
 structure AlgebraData = GenericDataFun

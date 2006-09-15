@@ -134,6 +134,8 @@ The language of types is an uninterpreted order-sorted first-order
   \indexmltype{typ}\verb|type typ| \\
   \indexml{map-atyps}\verb|map_atyps: (typ -> typ) -> typ -> typ| \\
   \indexml{fold-atyps}\verb|fold_atyps: (typ -> 'a -> 'a) -> typ -> 'a -> 'a| \\
+  \end{mldecls}
+  \begin{mldecls}
   \indexml{Sign.subsort}\verb|Sign.subsort: theory -> sort * sort -> bool| \\
   \indexml{Sign.of-sort}\verb|Sign.of_sort: theory -> typ * sort -> bool| \\
   \indexml{Sign.add-types}\verb|Sign.add_types: (string * int * mixfix) list -> theory -> theory| \\
@@ -317,10 +319,12 @@ The language of types is an uninterpreted order-sorted first-order
 \begin{mldecls}
   \indexmltype{term}\verb|type term| \\
   \indexml{op aconv}\verb|op aconv: term * term -> bool| \\
-  \indexml{map-term-types}\verb|map_term_types: (typ -> typ) -> term -> term| \\  %FIXME rename map_types
+  \indexml{map-types}\verb|map_types: (typ -> typ) -> term -> term| \\
   \indexml{fold-types}\verb|fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a| \\
   \indexml{map-aterms}\verb|map_aterms: (term -> term) -> term -> term| \\
   \indexml{fold-aterms}\verb|fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a| \\
+  \end{mldecls}
+  \begin{mldecls}
   \indexml{fastype-of}\verb|fastype_of: term -> typ| \\
   \indexml{lambda}\verb|lambda: term -> term -> term| \\
   \indexml{betapply}\verb|betapply: term * term -> term| \\
@@ -341,7 +345,7 @@ The language of types is an uninterpreted order-sorted first-order
   on type \verb|term|; raw datatype equality should only be used
   for operations related to parsing or printing!
 
-  \item \verb|map_term_types|~\isa{f\ t} applies the mapping \isa{f} to all types occurring in \isa{t}.
+  \item \verb|map_types|~\isa{f\ t} applies the mapping \isa{f} to all types occurring in \isa{t}.
 
   \item \verb|fold_types|~\isa{f\ t} iterates the operation \isa{f} over all occurrences of types in \isa{t}; the term
   structure is traversed from left to right.
@@ -574,10 +578,12 @@ The theory \isa{Pure} contains constant declarations for the
 \begin{mldecls}
   \indexmltype{ctyp}\verb|type ctyp| \\
   \indexmltype{cterm}\verb|type cterm| \\
-  \indexmltype{thm}\verb|type thm| \\
-  \indexml{proofs}\verb|proofs: int ref| \\
   \indexml{Thm.ctyp-of}\verb|Thm.ctyp_of: theory -> typ -> ctyp| \\
   \indexml{Thm.cterm-of}\verb|Thm.cterm_of: theory -> term -> cterm| \\
+  \end{mldecls}
+  \begin{mldecls}
+  \indexmltype{thm}\verb|type thm| \\
+  \indexml{proofs}\verb|proofs: int ref| \\
   \indexml{Thm.assume}\verb|Thm.assume: cterm -> thm| \\
   \indexml{Thm.forall-intr}\verb|Thm.forall_intr: cterm -> thm -> thm| \\
   \indexml{Thm.forall-elim}\verb|Thm.forall_elim: cterm -> thm -> thm| \\
@@ -587,6 +593,8 @@ The theory \isa{Pure} contains constant declarations for the
   \indexml{Thm.instantiate}\verb|Thm.instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm| \\
   \indexml{Thm.get-axiom-i}\verb|Thm.get_axiom_i: theory -> string -> thm| \\
   \indexml{Thm.invoke-oracle-i}\verb|Thm.invoke_oracle_i: theory -> string -> theory * Object.T -> thm| \\
+  \end{mldecls}
+  \begin{mldecls}
   \indexml{Theory.add-axioms-i}\verb|Theory.add_axioms_i: (string * term) list -> theory -> theory| \\
   \indexml{Theory.add-deps}\verb|Theory.add_deps: string -> string * typ -> (string * typ) list -> theory -> theory| \\
   \indexml{Theory.add-oracle}\verb|Theory.add_oracle: string * (theory * Object.T -> term) -> theory -> theory| \\
@@ -601,9 +609,13 @@ The theory \isa{Pure} contains constant declarations for the
   well-typedness) checks, relative to the declarations of type
   constructors, constants etc. in the theory.
 
-  This representation avoids syntactic rechecking in tight loops of
-  inferences.  There are separate operations to decompose certified
-  entities (including actual theorems).
+  \item \verb|ctyp_of|~\isa{thy\ {\isasymtau}} and \verb|cterm_of|~\isa{thy\ t} explicitly checks types and terms, respectively.  This also
+  involves some basic normalizations, such expansion of type and term
+  abbreviations from the theory context.
+
+  Re-certification is relatively slow and should be avoided in tight
+  reasoning loops.  There are separate operations to decompose
+  certified entities (including actual theorems).
 
   \item \verb|thm| represents proven propositions.  This is an
   abstract datatype that guarantees that its values have been

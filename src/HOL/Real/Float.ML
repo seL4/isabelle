@@ -458,7 +458,7 @@ fun float_op_oracle (sg, exn as Float_op_oracle_data t) =
 			 end
 		       | _ => raise exn
 		    )
-val th = ref ([]: Theory.theory list)
+val th = ref ([]: theory list)
 val sg = ref ([]: Sign.sg list)
 
 fun invoke_float_op c = 

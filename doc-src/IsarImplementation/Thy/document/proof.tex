@@ -329,10 +329,14 @@ Local results are established by monotonic reasoning from facts
   \indexml{SUBPROOF}\verb|SUBPROOF: ({context: Proof.context, schematics: ctyp list * cterm list,|\isasep\isanewline%
 \verb|    params: cterm list, asms: cterm list, concl: cterm,|\isasep\isanewline%
 \verb|    prems: thm list} -> tactic) -> Proof.context -> int -> tactic| \\
+  \end{mldecls}
+  \begin{mldecls}
   \indexml{Goal.prove}\verb|Goal.prove: Proof.context -> string list -> term list -> term ->|\isasep\isanewline%
 \verb|  ({prems: thm list, context: Proof.context} -> tactic) -> thm| \\
   \indexml{Goal.prove-multi}\verb|Goal.prove_multi: Proof.context -> string list -> term list -> term list ->|\isasep\isanewline%
 \verb|  ({prems: thm list, context: Proof.context} -> tactic) -> thm list| \\
+  \end{mldecls}
+  \begin{mldecls}
   \indexml{Obtain.result}\verb|Obtain.result: (Proof.context -> tactic) ->|\isasep\isanewline%
 \verb|  thm list -> Proof.context -> (cterm list * thm list) * Proof.context| \\
   \end{mldecls}

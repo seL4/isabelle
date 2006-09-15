@@ -84,7 +84,7 @@ structure GlobalAtpSet = TheoryDataFun
   val extend = copy;
   fun merge _ (ref atpst1, ref atpst2) =
       ref (merge_atpset (atpst1, atpst2));
-  fun print (thy: Theory.theory) (ref atpst) = print_atpset atpst;
+  fun print _ (ref atpst) = print_atpset atpst;
 end);
 
 val print_AtpSet = GlobalAtpSet.print; 

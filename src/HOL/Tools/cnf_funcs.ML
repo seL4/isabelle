@@ -42,8 +42,8 @@ sig
 
 	val weakening_tac : int -> Tactical.tactic  (* removes the first hypothesis of a subgoal *)
 
-	val make_cnf_thm  : Theory.theory -> Term.term -> Thm.thm
-	val make_cnfx_thm : Theory.theory -> Term.term ->  Thm.thm
+	val make_cnf_thm  : theory -> Term.term -> Thm.thm
+	val make_cnfx_thm : theory -> Term.term ->  Thm.thm
 	val cnf_rewrite_tac  : int -> Tactical.tactic  (* converts all prems of a subgoal to CNF *)
 	val cnfx_rewrite_tac : int -> Tactical.tactic  (* converts all prems of a subgoal to (almost) definitional CNF *)
 end;
@@ -175,8 +175,6 @@ end;
 (* ------------------------------------------------------------------------- *)
 (* inst_thm: instantiates a theorem with a list of terms                     *)
 (* ------------------------------------------------------------------------- *)
-
-(* Theory.theory -> Term.term list -> Thm.thm -> Thm.thm *)
 
 fun inst_thm thy ts thm =
 	instantiate' [] (map (SOME o cterm_of thy) ts) thm;

@@ -177,7 +177,9 @@ A logical context represents the background that is required for
   \indexml{Theory.subthy}\verb|Theory.subthy: theory * theory -> bool| \\
   \indexml{Theory.merge}\verb|Theory.merge: theory * theory -> theory| \\
   \indexml{Theory.checkpoint}\verb|Theory.checkpoint: theory -> theory| \\
-  \indexml{Theory.copy}\verb|Theory.copy: theory -> theory| \\[1ex]
+  \indexml{Theory.copy}\verb|Theory.copy: theory -> theory| \\
+  \end{mldecls}
+  \begin{mldecls}
   \indexmltype{theory-ref}\verb|type theory_ref| \\
   \indexml{Theory.self-ref}\verb|Theory.self_ref: theory -> theory_ref| \\
   \indexml{Theory.deref}\verb|Theory.deref: theory_ref -> theory| \\
@@ -555,7 +557,9 @@ In principle, a name is just a string, but there are various
   \indexml{Symbol.is-letter}\verb|Symbol.is_letter: Symbol.symbol -> bool| \\
   \indexml{Symbol.is-digit}\verb|Symbol.is_digit: Symbol.symbol -> bool| \\
   \indexml{Symbol.is-quasi}\verb|Symbol.is_quasi: Symbol.symbol -> bool| \\
-  \indexml{Symbol.is-blank}\verb|Symbol.is_blank: Symbol.symbol -> bool| \\[1ex]
+  \indexml{Symbol.is-blank}\verb|Symbol.is_blank: Symbol.symbol -> bool| \\
+  \end{mldecls}
+  \begin{mldecls}
   \indexmltype{Symbol.sym}\verb|type Symbol.sym| \\
   \indexml{Symbol.decode}\verb|Symbol.decode: Symbol.symbol -> Symbol.sym| \\
   \end{mldecls}
@@ -634,7 +638,9 @@ A \emph{basic name} essentially consists of a single Isabelle
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexml{Name.internal}\verb|Name.internal: string -> string| \\
-  \indexml{Name.skolem}\verb|Name.skolem: string -> string| \\[1ex]
+  \indexml{Name.skolem}\verb|Name.skolem: string -> string| \\
+  \end{mldecls}
+  \begin{mldecls}
   \indexmltype{Name.context}\verb|type Name.context| \\
   \indexml{Name.context}\verb|Name.context: Name.context| \\
   \indexml{Name.declare}\verb|Name.declare: string -> Name.context -> Name.context| \\
@@ -805,11 +811,15 @@ A \emph{qualified name} consists of a non-empty sequence of basic
   \indexml{NameSpace.qualifier}\verb|NameSpace.qualifier: string -> string| \\
   \indexml{NameSpace.append}\verb|NameSpace.append: string -> string -> string| \\
   \indexml{NameSpace.pack}\verb|NameSpace.pack: string list -> string| \\
-  \indexml{NameSpace.unpack}\verb|NameSpace.unpack: string -> string list| \\[1ex]
+  \indexml{NameSpace.unpack}\verb|NameSpace.unpack: string -> string list| \\
+  \end{mldecls}
+  \begin{mldecls}
   \indexmltype{NameSpace.naming}\verb|type NameSpace.naming| \\
   \indexml{NameSpace.default-naming}\verb|NameSpace.default_naming: NameSpace.naming| \\
   \indexml{NameSpace.add-path}\verb|NameSpace.add_path: string -> NameSpace.naming -> NameSpace.naming| \\
-  \indexml{NameSpace.full}\verb|NameSpace.full: NameSpace.naming -> string -> string| \\[1ex]
+  \indexml{NameSpace.full}\verb|NameSpace.full: NameSpace.naming -> string -> string| \\
+  \end{mldecls}
+  \begin{mldecls}
   \indexmltype{NameSpace.T}\verb|type NameSpace.T| \\
   \indexml{NameSpace.empty}\verb|NameSpace.empty: NameSpace.T| \\
   \indexml{NameSpace.merge}\verb|NameSpace.merge: NameSpace.T * NameSpace.T -> NameSpace.T| \\

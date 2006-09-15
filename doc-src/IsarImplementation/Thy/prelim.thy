@@ -152,7 +152,9 @@ text %mlref {*
   @{index_ML Theory.subthy: "theory * theory -> bool"} \\
   @{index_ML Theory.merge: "theory * theory -> theory"} \\
   @{index_ML Theory.checkpoint: "theory -> theory"} \\
-  @{index_ML Theory.copy: "theory -> theory"} \\[1ex]
+  @{index_ML Theory.copy: "theory -> theory"} \\
+  \end{mldecls}
+  \begin{mldecls}
   @{index_ML_type theory_ref} \\
   @{index_ML Theory.self_ref: "theory -> theory_ref"} \\
   @{index_ML Theory.deref: "theory_ref -> theory"} \\
@@ -480,7 +482,9 @@ text %mlref {*
   @{index_ML Symbol.is_letter: "Symbol.symbol -> bool"} \\
   @{index_ML Symbol.is_digit: "Symbol.symbol -> bool"} \\
   @{index_ML Symbol.is_quasi: "Symbol.symbol -> bool"} \\
-  @{index_ML Symbol.is_blank: "Symbol.symbol -> bool"} \\[1ex]
+  @{index_ML Symbol.is_blank: "Symbol.symbol -> bool"} \\
+  \end{mldecls}
+  \begin{mldecls}
   @{index_ML_type "Symbol.sym"} \\
   @{index_ML Symbol.decode: "Symbol.symbol -> Symbol.sym"} \\
   \end{mldecls}
@@ -552,7 +556,9 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML Name.internal: "string -> string"} \\
-  @{index_ML Name.skolem: "string -> string"} \\[1ex]
+  @{index_ML Name.skolem: "string -> string"} \\
+  \end{mldecls}
+  \begin{mldecls}
   @{index_ML_type Name.context} \\
   @{index_ML Name.context: Name.context} \\
   @{index_ML Name.declare: "string -> Name.context -> Name.context"} \\
@@ -697,11 +703,15 @@ text %mlref {*
   @{index_ML NameSpace.qualifier: "string -> string"} \\
   @{index_ML NameSpace.append: "string -> string -> string"} \\
   @{index_ML NameSpace.pack: "string list -> string"} \\
-  @{index_ML NameSpace.unpack: "string -> string list"} \\[1ex]
+  @{index_ML NameSpace.unpack: "string -> string list"} \\
+  \end{mldecls}
+  \begin{mldecls}
   @{index_ML_type NameSpace.naming} \\
   @{index_ML NameSpace.default_naming: NameSpace.naming} \\
   @{index_ML NameSpace.add_path: "string -> NameSpace.naming -> NameSpace.naming"} \\
-  @{index_ML NameSpace.full: "NameSpace.naming -> string -> string"} \\[1ex]
+  @{index_ML NameSpace.full: "NameSpace.naming -> string -> string"} \\
+  \end{mldecls}
+  \begin{mldecls}
   @{index_ML_type NameSpace.T} \\
   @{index_ML NameSpace.empty: NameSpace.T} \\
   @{index_ML NameSpace.merge: "NameSpace.T * NameSpace.T -> NameSpace.T"} \\

@@ -123,6 +123,8 @@ text %mlref {*
   @{index_ML_type typ} \\
   @{index_ML map_atyps: "(typ -> typ) -> typ -> typ"} \\
   @{index_ML fold_atyps: "(typ -> 'a -> 'a) -> typ -> 'a -> 'a"} \\
+  \end{mldecls}
+  \begin{mldecls}
   @{index_ML Sign.subsort: "theory -> sort * sort -> bool"} \\
   @{index_ML Sign.of_sort: "theory -> typ * sort -> bool"} \\
   @{index_ML Sign.add_types: "(string * int * mixfix) list -> theory -> theory"} \\
@@ -315,10 +317,12 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML_type term} \\
   @{index_ML "op aconv": "term * term -> bool"} \\
-  @{index_ML map_term_types: "(typ -> typ) -> term -> term"} \\  %FIXME rename map_types
+  @{index_ML map_types: "(typ -> typ) -> term -> term"} \\
   @{index_ML fold_types: "(typ -> 'a -> 'a) -> term -> 'a -> 'a"} \\
   @{index_ML map_aterms: "(term -> term) -> term -> term"} \\
   @{index_ML fold_aterms: "(term -> 'a -> 'a) -> term -> 'a -> 'a"} \\
+  \end{mldecls}
+  \begin{mldecls}
   @{index_ML fastype_of: "term -> typ"} \\
   @{index_ML lambda: "term -> term -> term"} \\
   @{index_ML betapply: "term * term -> term"} \\
@@ -341,7 +345,7 @@ text %mlref {*
   on type @{ML_type term}; raw datatype equality should only be used
   for operations related to parsing or printing!
 
-  \item @{ML map_term_types}~@{text "f t"} applies the mapping @{text
+  \item @{ML map_types}~@{text "f t"} applies the mapping @{text
   "f"} to all types occurring in @{text "t"}.
 
   \item @{ML fold_types}~@{text "f t"} iterates the operation @{text
@@ -576,10 +580,12 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML_type ctyp} \\
   @{index_ML_type cterm} \\
-  @{index_ML_type thm} \\
-  @{index_ML proofs: "int ref"} \\
   @{index_ML Thm.ctyp_of: "theory -> typ -> ctyp"} \\
   @{index_ML Thm.cterm_of: "theory -> term -> cterm"} \\
+  \end{mldecls}
+  \begin{mldecls}
+  @{index_ML_type thm} \\
+  @{index_ML proofs: "int ref"} \\
   @{index_ML Thm.assume: "cterm -> thm"} \\
   @{index_ML Thm.forall_intr: "cterm -> thm -> thm"} \\
   @{index_ML Thm.forall_elim: "cterm -> thm -> thm"} \\
@@ -589,6 +595,8 @@ text %mlref {*
   @{index_ML Thm.instantiate: "(ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm"} \\
   @{index_ML Thm.get_axiom_i: "theory -> string -> thm"} \\
   @{index_ML Thm.invoke_oracle_i: "theory -> string -> theory * Object.T -> thm"} \\
+  \end{mldecls}
+  \begin{mldecls}
   @{index_ML Theory.add_axioms_i: "(string * term) list -> theory -> theory"} \\
   @{index_ML Theory.add_deps: "string -> string * typ -> (string * typ) list -> theory -> theory"} \\
   @{index_ML Theory.add_oracle: "string * (theory * Object.T -> term) -> theory -> theory"} \\
@@ -603,9 +611,14 @@ text %mlref {*
   well-typedness) checks, relative to the declarations of type
   constructors, constants etc. in the theory.
 
-  This representation avoids syntactic rechecking in tight loops of
-  inferences.  There are separate operations to decompose certified
-  entities (including actual theorems).
+  \item @{ML ctyp_of}~@{text "thy \<tau>"} and @{ML cterm_of}~@{text "thy
+  t"} explicitly checks types and terms, respectively.  This also
+  involves some basic normalizations, such expansion of type and term
+  abbreviations from the theory context.
+
+  Re-certification is relatively slow and should be avoided in tight
+  reasoning loops.  There are separate operations to decompose
+  certified entities (including actual theorems).
 
   \item @{ML_type thm} represents proven propositions.  This is an
   abstract datatype that guarantees that its values have been

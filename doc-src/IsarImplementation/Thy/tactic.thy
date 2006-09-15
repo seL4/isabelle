@@ -61,7 +61,7 @@ text {*
 
   \[
   \infer[@{text "(init)"}]{@{text "C \<Longrightarrow> #C"}}{} \qquad
-  \infer[@{text "(finish)"}]{@{text "#C"}}{@{text "C"}}
+  \infer[@{text "(finish)"}]{@{text "C"}}{@{text "#C"}}
   \]
 
   \medskip The following low-level variants admit general reasoning
