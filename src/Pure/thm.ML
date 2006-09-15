@@ -1087,19 +1087,14 @@ fun instantiate ([], []) th = th
         val (tpairs', maxidx') =
           fold_map (fn (t, u) => fn i => subst t i ||>> subst u) tpairs maxidx1;
       in
-        if has_duplicates (fn ((v, _), (v', _)) => Term.eq_var (v, v')) inst' then
-          raise THM ("instantiate: variables not distinct", 0, [th])
-        else if has_duplicates (fn ((v, _), (v', _)) => Term.eq_tvar (v, v')) instT' then
-          raise THM ("instantiate: type variables not distinct", 0, [th])
-        else
-          Thm {thy_ref = thy_ref',
-            der = Pt.infer_derivs' (fn d =>
-              Pt.instantiate (map (apsnd #1) instT', map (apsnd #1) inst') d) der,
-            maxidx = maxidx',
-            shyps = shyps',
-            hyps = hyps,
-            tpairs = tpairs',
-            prop = prop'}
+        Thm {thy_ref = thy_ref',
+          der = Pt.infer_derivs' (fn d =>
+            Pt.instantiate (map (apsnd #1) instT', map (apsnd #1) inst') d) der,
+          maxidx = maxidx',
+          shyps = shyps',
+          hyps = hyps,
+          tpairs = tpairs',
+          prop = prop'}
       end
       handle TYPE (msg, _, _) => raise THM (msg, 0, [th]);
 
