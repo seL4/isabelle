@@ -114,15 +114,16 @@ struct
 
 (* rewrite rules *)
 
-type rrule = {thm: thm, name: string, lhs: term, elhs: cterm, fo: bool, perm: bool};
+type rrule =
+ {thm: thm,         (*the rewrite rule*)
+  name: string,     (*name of theorem from which rewrite rule was extracted*)
+  lhs: term,        (*the left-hand side*)
+  elhs: cterm,      (*the etac-contracted lhs*)
+  extra: bool,      (*extra variables outside of elhs*)
+  fo: bool,         (*use first-order matching*)
+  perm: bool};      (*the rewrite rule is permutative*)
 
-(*thm: the rewrite rule;
-  name: name of theorem from which rewrite rule was extracted;
-  lhs: the left-hand side;
-  elhs: the etac-contracted lhs;
-  fo: use first-order matching;
-  perm: the rewrite rule is permutative;
-
+(*
 Remarks:
   - elhs is used for matching,
     lhs only for preservation of bound variable names;
@@ -130,7 +131,8 @@ Remarks:
     either elhs is first-order (no Var is applied),
       in which case fo-matching is complete,
     or elhs is not a pattern,
-      in which case there is nothing better to do;*)
+      in which case there is nothing better to do;
+*)
 
 fun eq_rrule ({thm = thm1, ...}: rrule, {thm = thm2, ...}: rrule) =
   Drule.eq_thm_prop (thm1, thm2);
@@ -290,7 +292,7 @@ fun trace_named_thm a ss (th, name) =
 fun warn_thm a ss th = print_term true a ss (Thm.theory_of_thm th) (Thm.full_prop_of th);
 
 fun cond_warn_thm a (ss as Simpset ({context, ...}, _)) th =
-  if is_some context then () else warn_thm a ss th; 
+  if is_some context then () else warn_thm a ss th;
 
 end;
 
@@ -374,17 +376,38 @@ fun fallback_context _ (ss as Simpset ({context = SOME _, ...}, _)) = ss
 
 (* maintain simp rules *)
 
+(* FIXME: it seems that the conditions on extra variables are too liberal if
+prems are nonempty: does solving the prems really guarantee instantiation of
+all its Vars? Better: a dynamic check each time a rule is applied.
+*)
+fun rewrite_rule_extra_vars prems elhs erhs =
+  let
+    val elhss = elhs :: prems;
+    val tvars = fold Term.add_tvars elhss [];
+    val vars = fold Term.add_vars elhss [];
+  in
+    erhs |> Term.exists_type (Term.exists_subtype
+      (fn TVar v => not (member (op =) tvars v) | _ => false)) orelse
+    erhs |> Term.exists_subterm
+      (fn Var v => not (member (op =) vars v) | _ => false)
+  end;
+
+fun rrule_extra_vars elhs thm =
+  rewrite_rule_extra_vars [] (term_of elhs) (Thm.full_prop_of thm);
+
 fun mk_rrule2 {thm, name, lhs, elhs, perm} =
   let
-    val fo = Pattern.first_order (term_of elhs) orelse not (Pattern.pattern (term_of elhs))
-  in {thm = thm, name = name, lhs = lhs, elhs = elhs, fo = fo, perm = perm} end;
+    val t = term_of elhs;
+    val fo = Pattern.first_order t orelse not (Pattern.pattern t);
+    val extra = rrule_extra_vars elhs thm;
+  in {thm = thm, name = name, lhs = lhs, elhs = elhs, extra = extra, fo = fo, perm = perm} end;
 
 fun del_rrule (rrule as {thm, elhs, ...}) ss =
   ss |> map_simpset1 (fn (rules, prems, bounds, context) =>
     (Net.delete_term eq_rrule (term_of elhs, rrule) rules, prems, bounds, context))
   handle Net.DELETE => (cond_warn_thm "Rewrite rule not in simpset:" ss thm; ss);
 
-fun insert_rrule (rrule as {thm, name, lhs, elhs, perm}) ss =
+fun insert_rrule (rrule as {thm, name, elhs, ...}) ss =
  (trace_named_thm "Adding rewrite rule" ss (thm, name);
   ss |> map_simpset1 (fn (rules, prems, bounds, context) =>
     let
@@ -400,15 +423,6 @@ fun vperm (Var _, Var _) = true
 
 fun var_perm (t, u) =
   vperm (t, u) andalso gen_eq_set (op =) (Term.add_vars t [], Term.add_vars u []);
-
-(* FIXME: it seems that the conditions on extra variables are too liberal if
-prems are nonempty: does solving the prems really guarantee instantiation of
-all its Vars? Better: a dynamic check each time a rule is applied.
-*)
-fun rewrite_rule_extra_vars prems elhs erhs =
-  not (Term.add_vars erhs [] subset fold Term.add_vars (elhs :: prems) [])
-  orelse
-  not (Term.add_tvars erhs [] subset (fold Term.add_tvars (elhs :: prems) []));
 
 (*simple test for looping rewrite rules and stupid orientations*)
 fun default_reorient thy prems lhs rhs =
@@ -457,16 +471,18 @@ fun mk_eq_True (Simpset (_, {mk_rews = {mk_eq_True, ...}, ...})) (thm, name) =
   (case mk_eq_True thm of
     NONE => []
   | SOME eq_True =>
-      let val (_, _, lhs, elhs, _, _) = decomp_simp eq_True
+      let
+        val (_, _, lhs, elhs, _, _) = decomp_simp eq_True;
+        val extra = rrule_extra_vars elhs eq_True;
       in [{thm = eq_True, name = name, lhs = lhs, elhs = elhs, perm = false}] end);
 
 (*create the rewrite rule and possibly also the eq_True variant,
   in case there are extra vars on the rhs*)
 fun rrule_eq_True (thm, name, lhs, elhs, rhs, ss, thm2) =
   let val rrule = {thm = thm, name = name, lhs = lhs, elhs = elhs, perm = false} in
-    if Term.add_vars rhs [] subset Term.add_vars lhs [] andalso
-      Term.add_tvars rhs [] subset Term.add_tvars lhs [] then [rrule]
-    else mk_eq_True ss (thm2, name) @ [rrule]
+    if rewrite_rule_extra_vars [] lhs rhs then
+      mk_eq_True ss (thm2, name) @ [rrule]
+    else [rrule]
   end;
 
 fun mk_rrule ss (thm, name) =
@@ -832,10 +848,11 @@ fun rewritec (prover, thyt, maxt) ss t =
     val eta_thm = Thm.eta_conversion t;
     val eta_t' = rhs_of eta_thm;
     val eta_t = term_of eta_t';
-    fun rew {thm, name, lhs, elhs, fo, perm} =
+    fun rew {thm, name, lhs, elhs, extra, fo, perm} =
       let
         val {thy, prop, maxidx, ...} = rep_thm thm;
-        val (rthm, elhs') = if maxt = ~1 then (thm, elhs)
+        val (rthm, elhs') =
+          if maxt = ~1 orelse not extra then (thm, elhs)
           else (Thm.incr_indexes (maxt+1) thm, Thm.cterm_incr_indexes (maxt+1) elhs);
         val insts = if fo then Thm.cterm_first_order_match (elhs', eta_t')
                           else Thm.cterm_match (elhs', eta_t');
