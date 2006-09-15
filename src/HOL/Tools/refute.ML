@@ -351,7 +351,7 @@ struct
 		val minsize   = read_int (allparams, "minsize")
 		val maxsize   = read_int (allparams, "maxsize")
 		val maxvars   = read_int (allparams, "maxvars")
-      val maxtime   = read_int (allparams, "maxtime")
+		val maxtime   = read_int (allparams, "maxtime")
 		(* string *)
 		val satsolver = read_string (allparams, "satsolver")
 		(* all remaining parameters of the form "string=int" are collected in  *)
