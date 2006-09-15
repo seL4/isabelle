@@ -7,8 +7,6 @@ Logical theory content: axioms, definitions, oracles.
 
 signature BASIC_THEORY =
 sig
-  type theory
-  type theory_ref
   val sign_of: theory -> theory    (*obsolete*)
   val rep_theory: theory ->
    {axioms: term NameSpace.table,
@@ -62,9 +60,6 @@ struct
 (** type theory **)
 
 (* context operations *)
-
-type theory = Context.theory;
-type theory_ref = Context.theory_ref;
 
 val eq_thy = Context.eq_thy;
 val subthy = Context.subthy;
