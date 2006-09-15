@@ -120,7 +120,7 @@ fun map_to_alls f (Const("all",allty) $ Abs(n,ty,t)) =
 (* map a function f to each type variable in a term *)
 (* implicit arg: term *)
 fun map_to_term_tvars f =
-    Term.map_term_types (fn TVar(ix,ty) => f (ix,ty) | x => x);
+    Term.map_types (fn TVar(ix,ty) => f (ix,ty) | x => x);   (* FIXME map_atyps !? *)
 
 
 

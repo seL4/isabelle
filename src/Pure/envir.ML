@@ -268,7 +268,7 @@ fun typ_subst_TVars iTs T = if Vartab.is_empty iTs then T else
   in subst T end;
 
 (*Substitute for type Vars in a term*)
-val subst_TVars = map_term_types o typ_subst_TVars;
+val subst_TVars = map_types o typ_subst_TVars;
 
 (*Substitute for Vars in a term *)
 fun subst_Vars itms t = if Vartab.is_empty itms then t else

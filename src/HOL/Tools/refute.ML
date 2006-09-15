@@ -446,7 +446,7 @@ struct
 				  SOME x => x
 				| NONE   => raise Type.TYPE_MATCH (* no match found - perhaps due to sort constraints *))
 		in
-			map_term_types
+			map_types
 				(map_type_tvar
 					(fn v =>
 						case Type.lookup (typeSubs, v) of
@@ -461,7 +461,7 @@ struct
 		(* term 't'                                                            *)
 		(* (Term.sort * Term.typ) Term.Vartab.table -> Term.term -> Term.term *)
 		fun monomorphic_term typeSubs t =
-			map_term_types (map_type_tvar
+			map_types (map_type_tvar
 				(fn v =>
 					case Type.lookup (typeSubs, v) of
 					  NONE =>

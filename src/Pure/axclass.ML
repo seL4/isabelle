@@ -285,7 +285,7 @@ fun def_class prep_class prep_att prep_propp
             " needs to be weaker than " ^ Pretty.string_of_sort pp super)
       | [] => t
       | _ => error ("Multiple type variables in class axiom:\n" ^ Pretty.string_of_term pp t))
-      |> map_term_types (Term.map_atyps (fn TFree _ => Term.aT [] | U => U))
+      |> map_types (Term.map_atyps (fn TFree _ => Term.aT [] | U => U))
       |> Logic.close_form;
 
     val axiomss = prep_propp (ctxt, map (map (rpair []) o snd) raw_specs)

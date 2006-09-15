@@ -61,6 +61,6 @@ fun term thy =
           (case Termtab.lookup (! terms) t of
             SOME t' => t'
           | NONE => (change terms (Termtab.update (t, t)); t));
-  in compress o map_term_types (typ thy) end;
+  in compress o map_types (typ thy) end;
 
 end;

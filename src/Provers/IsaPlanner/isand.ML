@@ -173,7 +173,7 @@ fun allify_typ ts ty =
     in trec ty end;
 
 (* implicit types and term *)
-fun allify_term_typs ty = Term.map_term_types (allify_typ ty);
+fun allify_term_typs ty = Term.map_types (allify_typ ty);
 
 (* allified version of term, given frees to allify over. Note that we
 only allify over the types on the given allified cterm, we can't do

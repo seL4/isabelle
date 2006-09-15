@@ -250,7 +250,7 @@ in
 fun abbreviate pp tsig naming mode ((c, raw_rhs), authentic) consts =
   let
     val rhs = raw_rhs
-      |> Term.map_term_types (Type.cert_typ tsig)
+      |> Term.map_types (Type.cert_typ tsig)
       |> certify pp tsig (consts |> expand_abbrevs false);
     val rhs' = rhs
       |> certify pp tsig (consts |> expand_abbrevs true);

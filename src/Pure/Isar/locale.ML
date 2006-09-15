@@ -2119,7 +2119,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
             TFree ((the o AList.lookup (op =) (new_Tnames ~~ new_Tnames')) a, s));
     val rename =
           if is_local then I
-          else Term.map_term_types renameT;
+          else Term.map_types renameT;
 
     val tinst = Symtab.make (map
                 (fn ((x, 0), T) => (x, T |> renameT)

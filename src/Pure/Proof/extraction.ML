@@ -277,7 +277,7 @@ fun freeze (TVar ((a, i), S)) = TFree (a ^ ":" ^ string_of_int i, S)
   | freeze T = T;
 
 fun freeze_thaw f x =
-  map_term_types thaw (f (map_term_types freeze x));
+  map_types thaw (f (map_types freeze x));
 
 fun etype_of thy vs Ts t =
   let
@@ -324,7 +324,7 @@ fun prep_realizer thy =
       val T = etype_of thy' vs [] prop;
       val (T', thw) = Type.freeze_thaw_type
         (if T = nullT then nullT else map fastype_of vars' ---> T);
-      val t = map_term_types thw (term_of (read_cterm thy' (s1, T')));
+      val t = map_types thw (term_of (read_cterm thy' (s1, T')));
       val r' = freeze_thaw (condrew thy' eqns
         (procs @ [typeof_proc (Sign.defaultS thy') vs, rlz_proc]))
           (Const ("realizes", T --> propT --> propT) $

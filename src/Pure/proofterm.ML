@@ -604,7 +604,7 @@ fun varify_proof t fixed prf =
       (case AList.lookup (op =) fmap f of
         NONE => TFree f
       | SOME b => TVar ((b, 0), S));
-  in map_proof_terms (map_term_types (map_type_tfree thaw)) (map_type_tfree thaw) prf
+  in map_proof_terms (map_types (map_type_tfree thaw)) (map_type_tfree thaw) prf
   end;
 
 
@@ -630,7 +630,7 @@ fun freezeT t prf =
       [] => prf (*nothing to do!*)
     | _ =>
       let val frzT = map_type_tvar (freeze_one alist)
-      in map_proof_terms (map_term_types frzT) frzT prf end)
+      in map_proof_terms (map_types frzT) frzT prf end)
   end;
 
 end;

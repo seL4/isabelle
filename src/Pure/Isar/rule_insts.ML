@@ -97,7 +97,7 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
     val instT2 = Envir.norm_type
       (#1 (fold (unify_vartypes thy vars1) internal_insts (Vartab.empty, 0)));
     val vars2 = map (apsnd instT2) vars1;
-    val internal_insts2 = map (apsnd (map_term_types instT2)) internal_insts;
+    val internal_insts2 = map (apsnd (map_types instT2)) internal_insts;
     val inst2 = instantiate internal_insts2;
 
 
@@ -110,7 +110,7 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
 
     val instT3 = Term.typ_subst_TVars inferred;
     val vars3 = map (apsnd instT3) vars2;
-    val internal_insts3 = map (apsnd (map_term_types instT3)) internal_insts2;
+    val internal_insts3 = map (apsnd (map_types instT3)) internal_insts2;
     val external_insts3 = xs ~~ ts;
     val inst3 = instantiate external_insts3;
 

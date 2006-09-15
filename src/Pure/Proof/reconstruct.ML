@@ -379,7 +379,7 @@ fun expand_proof thy thms prf =
               if p mem tfrees then TVar ((a, ~1), S) else TFree p)
           in
             (maxidx', prfs', map_proof_terms (subst_TVars tye o
-               map_term_types varify) (typ_subst_TVars tye o varify) prf)
+               map_types varify) (typ_subst_TVars tye o varify) prf)
           end
       | expand maxidx prfs prf = (maxidx, prfs, prf);
 

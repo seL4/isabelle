@@ -1010,7 +1010,7 @@ fun test_goal ({size, iterations, default_type}, tvinsts) i st =
       | strip t = t;
     val (gi, frees) = Logic.goal_params
       (prop_of (snd (snd (Proof.get_goal (Toplevel.proof_of st))))) i;
-    val gi' = ObjectLogic.atomize_term thy (map_term_types
+    val gi' = ObjectLogic.atomize_term thy (map_types
       (map_type_tfree (fn p as (s, _) =>
         the_default (the_default (TFree p) default_type)
           (AList.lookup (op =) tvinsts s))) (subst_bounds (frees, strip gi)));

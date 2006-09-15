@@ -68,7 +68,7 @@ sig
   val map_aterms: (term -> term) -> term -> term
   val map_type_tvar: (indexname * sort -> typ) -> typ -> typ
   val map_type_tfree: (string * sort -> typ) -> typ -> typ
-  val map_term_types: (typ -> typ) -> term -> term
+  val map_types: (typ -> typ) -> term -> term
   val fold_atyps: (typ -> 'a -> 'a) -> typ -> 'a -> 'a
   val fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a
   val fold_term_types: (term -> typ -> 'a -> 'a) -> term -> 'a -> 'a
@@ -423,7 +423,7 @@ fun map_aterms f (t $ u) = map_aterms f t $ map_aterms f u
 fun map_type_tvar f = map_atyps (fn TVar x => f x | T => T);
 fun map_type_tfree f = map_atyps (fn TFree x => f x | T => T);
 
-fun map_term_types f =
+fun map_types f =
   let
     fun map_aux (Const (a, T)) = Const (a, f T)
       | map_aux (Free (a, T)) = Free (a, f T)
@@ -911,7 +911,7 @@ fun typ_subst_atomic [] ty = ty
       in subst ty end;
 
 fun subst_atomic_types [] tm = tm
-  | subst_atomic_types inst tm = map_term_types (typ_subst_atomic inst) tm;
+  | subst_atomic_types inst tm = map_types (typ_subst_atomic inst) tm;
 
 fun typ_subst_TVars [] ty = ty
   | typ_subst_TVars inst ty =
@@ -922,7 +922,7 @@ fun typ_subst_TVars [] ty = ty
       in subst ty end;
 
 fun subst_TVars [] tm = tm
-  | subst_TVars inst tm = map_term_types (typ_subst_TVars inst) tm;
+  | subst_TVars inst tm = map_types (typ_subst_TVars inst) tm;
 
 fun subst_Vars [] tm = tm
   | subst_Vars inst tm =

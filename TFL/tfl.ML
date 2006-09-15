@@ -389,8 +389,8 @@ fun wfrec_definition0 thy fid R (functional as Abs(x, Ty, _)) =
                                              quote fid ^ " but found one of " ^
                                       quote x)
                     else x ^ "_def"
-     val wfrec_R_M =  map_term_types poly_tvars
-                          (wfrec $ map_term_types poly_tvars R)
+     val wfrec_R_M =  map_types poly_tvars
+                          (wfrec $ map_types poly_tvars R)
                       $ functional
      val def_term = mk_const_def (Theory.sign_of thy) (x, Ty, wfrec_R_M)
      val ([def], thy') = PureThy.add_defs_i false [Thm.no_attributes (def_name, def_term)] thy

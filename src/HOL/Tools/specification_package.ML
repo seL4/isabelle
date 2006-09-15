@@ -108,7 +108,7 @@ fun unvarify t fmap =
                  NONE => TVar f
                | SOME (b, _) => TFree (b, S))
     in
-        map_term_types (map_type_tvar unthaw) t
+        map_types (map_type_tvar unthaw) t
     end
 
 (* The syntactic meddling needed to setup add_specification for work *)

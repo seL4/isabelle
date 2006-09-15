@@ -381,7 +381,7 @@ fun instT_type env =
 
 fun instT_term env =
   if Symtab.is_empty env then I
-  else Term.map_term_types (instT_type env);
+  else Term.map_types (instT_type env);
 
 fun instT_subst env th = (Drule.fold_terms o Term.fold_types o Term.fold_atyps)
   (fn T as TFree (a, _) =>

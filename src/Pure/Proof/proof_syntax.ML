@@ -128,7 +128,7 @@ fun proof_of_term thy tab ty =
     val thms = PureThy.all_thms_of thy;
     val axms = Theory.all_axioms_of thy;
 
-    fun mk_term t = (if ty then I else map_term_types (K dummyT))
+    fun mk_term t = (if ty then I else map_types (K dummyT))
       (Term.no_dummy_patterns t);
 
     fun prf_of [] (Bound i) = PBound i

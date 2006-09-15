@@ -238,7 +238,7 @@ fun varify (t, fixed) =
       (case AList.lookup (op =) fmap f of
         NONE => TFree f
       | SOME xi => TVar (xi, S));
-  in (map_term_types (map_type_tfree thaw) t, fmap) end;
+  in (map_types (map_type_tfree thaw) t, fmap) end;
 
 
 (* freeze_thaw: freeze TVars in a term; return the "thaw" inverse *)
@@ -277,8 +277,8 @@ fun freeze_thaw t =
   in
     (case alist of
       [] => (t, fn x => x) (*nothing to do!*)
-    | _ => (map_term_types (map_type_tvar (freeze_one alist)) t,
-      map_term_types (map_type_tfree (thaw_one (map swap alist)))))
+    | _ => (map_types (map_type_tvar (freeze_one alist)) t,
+      map_types (map_type_tfree (thaw_one (map swap alist)))))
   end;
 
 val freeze = #1 o freeze_thaw;

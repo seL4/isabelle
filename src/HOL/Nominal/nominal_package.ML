@@ -530,7 +530,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map
            (fn (S, x) =>
               let
-                val S = map_term_types (map_type_tfree
+                val S = map_types (map_type_tfree
                   (fn (s, cs) => TFree (s, cs union cp_classes))) S;
                 val T = HOLogic.dest_setT (fastype_of S);
                 val permT = mk_permT (Type (name, []))

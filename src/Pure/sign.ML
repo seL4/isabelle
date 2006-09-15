@@ -461,7 +461,7 @@ fun certify' normalize prop pp consts thy tm =
   let
     val _ = Context.check_thy thy;
     val _ = check_vars tm;
-    val tm' = Term.map_term_types (certify_typ thy) tm;
+    val tm' = Term.map_types (certify_typ thy) tm;
     val T = type_check pp tm';
     val _ = if prop andalso T <> propT then err "Term not of type prop" else ();
     val tm'' = Consts.certify pp (tsig_of thy) consts tm';

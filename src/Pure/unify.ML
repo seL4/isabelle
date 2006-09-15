@@ -636,7 +636,7 @@ fun matchers _ [] = Seq.single (Envir.empty ~1)
           Term.map_atyps (fn T as TVar ((x, i), S) =>
             if i > maxidx then TVar ((x, i - offset), S) else T | T => T);
         val decr_indexes =
-          Term.map_term_types decr_indexesT #>
+          Term.map_types decr_indexesT #>
           Term.map_aterms (fn t as Var ((x, i), T) =>
             if i > maxidx then Var ((x, i - offset), T) else t | t => t);
 
