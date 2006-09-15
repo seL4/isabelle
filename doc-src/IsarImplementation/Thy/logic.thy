@@ -15,7 +15,7 @@ text {*
   Isabelle/Pure.
 
   Following type-theoretic parlance, the Pure logic consists of three
-  levels of @{text "\<lambda>"}-calculus with corresponding arrows: @{text
+  levels of @{text "\<lambda>"}-calculus with corresponding arrows, @{text
   "\<Rightarrow>"} for syntactic function space (terms depending on terms), @{text
   "\<And>"} for universal quantification (proofs depending on terms), and
   @{text "\<Longrightarrow>"} for implication (proofs depending on proofs).
@@ -80,7 +80,7 @@ text {*
   
   A \emph{type} is defined inductively over type variables and type
   constructors as follows: @{text "\<tau> = \<alpha>\<^isub>s | ?\<alpha>\<^isub>s |
-  (\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)k"}.
+  (\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)\<kappa>"}.
 
   A \emph{type abbreviation} is a syntactic definition @{text
   "(\<^vec>\<alpha>)\<kappa> = \<tau>"} of an arbitrary type expression @{text "\<tau>"} over
@@ -110,10 +110,9 @@ text {*
   vector of argument sorts @{text "(s\<^isub>1, \<dots>, s\<^isub>k)"} such
   that a type scheme @{text "(\<alpha>\<^bsub>s\<^isub>1\<^esub>, \<dots>,
   \<alpha>\<^bsub>s\<^isub>k\<^esub>)\<kappa>"} is of sort @{text "s"}.
-  Consequently, unification on the algebra of types has most general
-  solutions (modulo equivalence of sorts).  This means that
-  type-inference will produce primary types as expected
-  \cite{nipkow-prehofer}.
+  Consequently, type unification has most general solutions (modulo
+  equivalence of sorts), so type-inference produces primary types as
+  expected \cite{nipkow-prehofer}.
 *}
 
 text %mlref {*
@@ -176,7 +175,7 @@ text %mlref {*
   relations @{text "c \<subseteq> c\<^isub>i"}, for @{text "i = 1, \<dots>, n"}.
 
   \item @{ML Sign.primitive_classrel}~@{text "(c\<^isub>1,
-  c\<^isub>2)"} declares class relation @{text "c\<^isub>1 \<subseteq>
+  c\<^isub>2)"} declares the class relation @{text "c\<^isub>1 \<subseteq>
   c\<^isub>2"}.
 
   \item @{ML Sign.primitive_arity}~@{text "(\<kappa>, \<^vec>s, s)"} declares
@@ -201,17 +200,19 @@ text {*
   \medskip A \emph{bound variable} is a natural number @{text "b"},
   which accounts for the number of intermediate binders between the
   variable occurrence in the body and its binding position.  For
-  example, the de-Bruijn term @{text "\<lambda>\<^isub>\<tau>. \<lambda>\<^isub>\<tau>. 1 + 0"}
-  would correspond to @{text "\<lambda>x\<^isub>\<tau>. \<lambda>y\<^isub>\<tau>. x + y"} in a
-  named representation.  Note that a bound variable may be represented
-  by different de-Bruijn indices at different occurrences, depending
-  on the nesting of abstractions.
+  example, the de-Bruijn term @{text
+  "\<lambda>\<^bsub>nat\<^esub>. \<lambda>\<^bsub>nat\<^esub>. 1 + 0"} would
+  correspond to @{text
+  "\<lambda>x\<^bsub>nat\<^esub>. \<lambda>y\<^bsub>nat\<^esub>. x + y"} in a named
+  representation.  Note that a bound variable may be represented by
+  different de-Bruijn indices at different occurrences, depending on
+  the nesting of abstractions.
 
-  A \emph{loose variables} is a bound variable that is outside the
+  A \emph{loose variable} is a bound variable that is outside the
   scope of local binders.  The types (and names) for loose variables
-  can be managed as a separate context, that is maintained inside-out
-  like a stack of hypothetical binders.  The core logic only operates
-  on closed terms, without any loose variables.
+  can be managed as a separate context, that is maintained as a stack
+  of hypothetical binders.  The core logic operates on closed terms,
+  without any loose variables.
 
   A \emph{fixed variable} is a pair of a basic name and a type, e.g.\
   @{text "(x, \<tau>)"} which is usually printed @{text "x\<^isub>\<tau>"}.  A
@@ -222,8 +223,8 @@ text {*
   \medskip A \emph{constant} is a pair of a basic name and a type,
   e.g.\ @{text "(c, \<tau>)"} which is usually printed as @{text
   "c\<^isub>\<tau>"}.  Constants are declared in the context as polymorphic
-  families @{text "c :: \<sigma>"}, meaning that valid all substitution
-  instances @{text "c\<^isub>\<tau>"} for @{text "\<tau> = \<sigma>\<vartheta>"} are valid.
+  families @{text "c :: \<sigma>"}, meaning that all substitution instances
+  @{text "c\<^isub>\<tau>"} for @{text "\<tau> = \<sigma>\<vartheta>"} are valid.
 
   The vector of \emph{type arguments} of constant @{text "c\<^isub>\<tau>"}
   wrt.\ the declaration @{text "c :: \<sigma>"} is defined as the codomain of
@@ -243,13 +244,14 @@ text {*
   polymorphic constants that the user-level type-checker would reject
   due to violation of type class restrictions.
 
-  \medskip A \emph{term} is defined inductively over variables and
-  constants, with abstraction and application as follows: @{text "t =
-  b | x\<^isub>\<tau> | ?x\<^isub>\<tau> | c\<^isub>\<tau> | \<lambda>\<^isub>\<tau>. t |
-  t\<^isub>1 t\<^isub>2"}.  Parsing and printing takes care of
-  converting between an external representation with named bound
-  variables.  Subsequently, we shall use the latter notation instead
-  of internal de-Bruijn representation.
+  \medskip An \emph{atomic} term is either a variable or constant.  A
+  \emph{term} is defined inductively over atomic terms, with
+  abstraction and application as follows: @{text "t = b | x\<^isub>\<tau> |
+  ?x\<^isub>\<tau> | c\<^isub>\<tau> | \<lambda>\<^isub>\<tau>. t | t\<^isub>1 t\<^isub>2"}.
+  Parsing and printing takes care of converting between an external
+  representation with named bound variables.  Subsequently, we shall
+  use the latter notation instead of internal de-Bruijn
+  representation.
 
   The inductive relation @{text "t :: \<tau>"} assigns a (unique) type to a
   term according to the structure of atomic terms, abstractions, and
@@ -275,25 +277,22 @@ text {*
   "x\<^bsub>\<tau>\<^isub>2\<^esub>"} may become the same after type
   instantiation.  Some outer layers of the system make it hard to
   produce variables of the same name, but different types.  In
-  particular, type-inference always demands ``consistent'' type
-  constraints for free variables.  In contrast, mixed instances of
-  polymorphic constants occur frequently.
+  contrast, mixed instances of polymorphic constants occur frequently.
 
   \medskip The \emph{hidden polymorphism} of a term @{text "t :: \<sigma>"}
   is the set of type variables occurring in @{text "t"}, but not in
   @{text "\<sigma>"}.  This means that the term implicitly depends on type
-  arguments that are not accounted in result type, i.e.\ there are
+  arguments that are not accounted in the result type, i.e.\ there are
   different type instances @{text "t\<vartheta> :: \<sigma>"} and @{text
   "t\<vartheta>' :: \<sigma>"} with the same type.  This slightly
-  pathological situation demands special care.
+  pathological situation notoriously demands additional care.
 
   \medskip A \emph{term abbreviation} is a syntactic definition @{text
   "c\<^isub>\<sigma> \<equiv> t"} of a closed term @{text "t"} of type @{text "\<sigma>"},
   without any hidden polymorphism.  A term abbreviation looks like a
-  constant in the syntax, but is fully expanded before entering the
-  logical core.  Abbreviations are usually reverted when printing
-  terms, using the collective @{text "t \<rightarrow> c\<^isub>\<sigma>"} as rules for
-  higher-order rewriting.
+  constant in the syntax, but is expanded before entering the logical
+  core.  Abbreviations are usually reverted when printing terms, using
+  @{text "t \<rightarrow> c\<^isub>\<sigma>"} as rules for higher-order rewriting.
 
   \medskip Canonical operations on @{text "\<lambda>"}-terms include @{text
   "\<alpha>\<beta>\<eta>"}-conversion: @{text "\<alpha>"}-conversion refers to capture-free
@@ -308,7 +307,7 @@ text {*
   implicit in the de-Bruijn representation.  Names for bound variables
   in abstractions are maintained separately as (meaningless) comments,
   mostly for parsing and printing.  Full @{text "\<alpha>\<beta>\<eta>"}-conversion is
-  commonplace in various higher operations (\secref{sec:rules}) that
+  commonplace in various standard operations (\secref{sec:rules}) that
   are based on higher-order unification and matching.
 *}
 
@@ -379,9 +378,8 @@ text %mlref {*
 
   \item @{ML Sign.const_typargs}~@{text "thy (c, \<tau>)"} and @{ML
   Sign.const_instance}~@{text "thy (c, [\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>n])"}
-  convert between the representations of polymorphic constants: the
-  full type instance vs.\ the compact type arguments form (depending
-  on the most general declaration given in the context).
+  convert between two representations of polymorphic constants: full
+  type instance vs.\ compact type arguments form.
 
   \end{description}
 *}
@@ -426,7 +424,7 @@ text {*
   \seeglossary{type variable}.  The distinguishing feature of
   different variables is their binding scope. FIXME}
 
-  A \emph{proposition} is a well-formed term of type @{text "prop"}, a
+  A \emph{proposition} is a well-typed term of type @{text "prop"}, a
   \emph{theorem} is a proven proposition (depending on a context of
   hypotheses and the background theory).  Primitive inferences include
   plain natural deduction rules for the primary connectives @{text
@@ -437,16 +435,16 @@ text {*
 subsection {* Primitive connectives and rules *}
 
 text {*
-  The theory @{text "Pure"} contains declarations for the standard
-  connectives @{text "\<And>"}, @{text "\<Longrightarrow>"}, and @{text "\<equiv>"} of the logical
-  framework, see \figref{fig:pure-connectives}.  The derivability
-  judgment @{text "A\<^isub>1, \<dots>, A\<^isub>n \<turnstile> B"} is defined
-  inductively by the primitive inferences given in
-  \figref{fig:prim-rules}, with the global restriction that hypotheses
-  @{text "\<Gamma>"} may \emph{not} contain schematic variables.  The builtin
-  equality is conceptually axiomatized as shown in
+  The theory @{text "Pure"} contains constant declarations for the
+  primitive connectives @{text "\<And>"}, @{text "\<Longrightarrow>"}, and @{text "\<equiv>"} of
+  the logical framework, see \figref{fig:pure-connectives}.  The
+  derivability judgment @{text "A\<^isub>1, \<dots>, A\<^isub>n \<turnstile> B"} is
+  defined inductively by the primitive inferences given in
+  \figref{fig:prim-rules}, with the global restriction that the
+  hypotheses must \emph{not} contain any schematic variables.  The
+  builtin equality is conceptually axiomatized as shown in
   \figref{fig:pure-equality}, although the implementation works
-  directly with derived inference rules.
+  directly with derived inferences.
 
   \begin{figure}[htb]
   \begin{center}
@@ -496,8 +494,8 @@ text {*
   The introduction and elimination rules for @{text "\<And>"} and @{text
   "\<Longrightarrow>"} are analogous to formation of dependently typed @{text
   "\<lambda>"}-terms representing the underlying proof objects.  Proof terms
-  are irrelevant in the Pure logic, though, they may never occur
-  within propositions.  The system provides a runtime option to record
+  are irrelevant in the Pure logic, though; they cannot occur within
+  propositions.  The system provides a runtime option to record
   explicit proof terms for primitive inferences.  Thus all three
   levels of @{text "\<lambda>"}-calculus become explicit: @{text "\<Rightarrow>"} for
   terms, and @{text "\<And>/\<Longrightarrow>"} for proofs (cf.\
@@ -505,19 +503,19 @@ text {*
 
   Observe that locally fixed parameters (as in @{text "\<And>_intro"}) need
   not be recorded in the hypotheses, because the simple syntactic
-  types of Pure are always inhabitable.  Typing ``assumptions'' @{text
-  "x :: \<tau>"} are (implicitly) present only with occurrences of @{text
-  "x\<^isub>\<tau>"} in the statement body.\footnote{This is the key
-  difference ``@{text "\<lambda>HOL"}'' in the PTS framework
-  \cite{Barendregt-Geuvers:2001}, where @{text "x : A"} hypotheses are
-  treated explicitly for types, in the same way as propositions.}
+  types of Pure are always inhabitable.  ``Assumptions'' @{text "x ::
+  \<tau>"} for type-membership are only present as long as some @{text
+  "x\<^isub>\<tau>"} occurs in the statement body.\footnote{This is the key
+  difference to ``@{text "\<lambda>HOL"}'' in the PTS framework
+  \cite{Barendregt-Geuvers:2001}, where hypotheses @{text "x : A"} are
+  treated uniformly for propositions and types.}
 
   \medskip The axiomatization of a theory is implicitly closed by
   forming all instances of type and term variables: @{text "\<turnstile>
   A\<vartheta>"} holds for any substitution instance of an axiom
-  @{text "\<turnstile> A"}.  By pushing substitution through derivations
-  inductively, we get admissible @{text "generalize"} and @{text
-  "instance"} rules shown in \figref{fig:subst-rules}.
+  @{text "\<turnstile> A"}.  By pushing substitutions through derivations
+  inductively, we also get admissible @{text "generalize"} and @{text
+  "instance"} rules as shown in \figref{fig:subst-rules}.
 
   \begin{figure}[htb]
   \begin{center}
@@ -540,38 +538,38 @@ text {*
   variables.
 
   In principle, variables could be substituted in hypotheses as well,
-  but this would disrupt monotonicity reasoning: deriving @{text
-  "\<Gamma>\<vartheta> \<turnstile> B\<vartheta>"} from @{text "\<Gamma> \<turnstile> B"} is correct, but
-  @{text "\<Gamma>\<vartheta> \<supseteq> \<Gamma>"} does not necessarily hold --- the result
-  belongs to a different proof context.
+  but this would disrupt the monotonicity of reasoning: deriving
+  @{text "\<Gamma>\<vartheta> \<turnstile> B\<vartheta>"} from @{text "\<Gamma> \<turnstile> B"} is
+  correct, but @{text "\<Gamma>\<vartheta> \<supseteq> \<Gamma>"} does not necessarily hold:
+  the result belongs to a different proof context.
 
-  \medskip The system allows axioms to be stated either as plain
-  propositions, or as arbitrary functions (``oracles'') that produce
-  propositions depending on given arguments.  It is possible to trace
-  the used of axioms (and defined theorems) in derivations.
-  Invocations of oracles are recorded invariable.
+  \medskip An \emph{oracle} is a function that produces axioms on the
+  fly.  Logically, this is an instance of the @{text "axiom"} rule
+  (\figref{fig:prim-rules}), but there is an operational difference.
+  The system always records oracle invocations within derivations of
+  theorems.  Tracing plain axioms (and named theorems) is optional.
 
   Axiomatizations should be limited to the bare minimum, typically as
   part of the initial logical basis of an object-logic formalization.
-  Normally, theories will be developed definitionally, by stating
-  restricted equalities over constants.
+  Later on, theories are usually developed in a strictly definitional
+  fashion, by stating only certain equalities over new constants.
 
   A \emph{simple definition} consists of a constant declaration @{text
-  "c :: \<sigma>"} together with an axiom @{text "\<turnstile> c \<equiv> t"}, where @{text
-  "t"} is a closed term without any hidden polymorphism.  The RHS may
-  depend on further defined constants, but not @{text "c"} itself.
-  Definitions of constants with function type may be presented
-  liberally as @{text "c \<^vec> \<equiv> t"} instead of the puristic @{text
-  "c \<equiv> \<lambda>\<^vec>x. t"}.
+  "c :: \<sigma>"} together with an axiom @{text "\<turnstile> c \<equiv> t"}, where @{text "t
+  :: \<sigma>"} is a closed term without any hidden polymorphism.  The RHS
+  may depend on further defined constants, but not @{text "c"} itself.
+  Definitions of functions may be presented as @{text "c \<^vec>x \<equiv>
+  t"} instead of the puristic @{text "c \<equiv> \<lambda>\<^vec>x. t"}.
 
-  An \emph{overloaded definition} consists may give zero or one
-  equality axioms @{text "c((\<^vec>\<alpha>)\<kappa>) \<equiv> t"} for each type
-  constructor @{text "\<kappa>"}, with distinct variables @{text "\<^vec>\<alpha>"}
-  as formal arguments.  The RHS may mention previously defined
-  constants as above, or arbitrary constants @{text "d(\<alpha>\<^isub>i)"}
-  for some @{text "\<alpha>\<^isub>i"} projected from @{text "\<^vec>\<alpha>"}.
-  Thus overloaded definitions essentially work by primitive recursion
-  over the syntactic structure of a single type argument.
+  An \emph{overloaded definition} consists of a collection of axioms
+  for the same constant, with zero or one equations @{text
+  "c((\<^vec>\<alpha>)\<kappa>) \<equiv> t"} for each type constructor @{text "\<kappa>"} (for
+  distinct variables @{text "\<^vec>\<alpha>"}).  The RHS may mention
+  previously defined constants as above, or arbitrary constants @{text
+  "d(\<alpha>\<^isub>i)"} for some @{text "\<alpha>\<^isub>i"} projected from @{text
+  "\<^vec>\<alpha>"}.  Thus overloaded definitions essentially work by
+  primitive recursion over the syntactic structure of a single type
+  argument.
 *}
 
 text %mlref {*
@@ -612,10 +610,13 @@ text %mlref {*
   \item @{ML_type thm} represents proven propositions.  This is an
   abstract datatype that guarantees that its values have been
   constructed by basic principles of the @{ML_struct Thm} module.
+  Every @{ML thm} value contains a sliding back-reference to the
+  enclosing theory, cf.\ \secref{sec:context-theory}.
 
-  \item @{ML proofs} determines the detail of proof recording: @{ML 0}
-  records only oracles, @{ML 1} records oracles, axioms and named
-  theorems, @{ML 2} records full proof terms.
+  \item @{ML proofs} determines the detail of proof recording within
+  @{ML_type thm} values: @{ML 0} records only oracles, @{ML 1} records
+  oracles, axioms and named theorems, @{ML 2} records full proof
+  terms.
 
   \item @{ML Thm.assume}, @{ML Thm.forall_intr}, @{ML
   Thm.forall_elim}, @{ML Thm.implies_intr}, and @{ML Thm.implies_elim}
@@ -623,8 +624,9 @@ text %mlref {*
 
   \item @{ML Thm.generalize}~@{text "(\<^vec>\<alpha>, \<^vec>x)"}
   corresponds to the @{text "generalize"} rules of
-  \figref{fig:subst-rules}.  A collection of type and term variables
-  is generalized simultaneously, according to the given basic names.
+  \figref{fig:subst-rules}.  Here collections of type and term
+  variables are generalized simultaneously, specified by the given
+  basic names.
 
   \item @{ML Thm.instantiate}~@{text "(\<^vec>\<alpha>\<^isub>s,
   \<^vec>x\<^isub>\<tau>)"} corresponds to the @{text "instantiate"} rules
@@ -635,45 +637,43 @@ text %mlref {*
   \item @{ML Thm.get_axiom_i}~@{text "thy name"} retrieves a named
   axiom, cf.\ @{text "axiom"} in \figref{fig:prim-rules}.
 
-  \item @{ML Thm.invoke_oracle_i}~@{text "thy name arg"} invokes the
-  oracle function @{text "name"} of the theory.  Logically, this is
-  just another instance of @{text "axiom"} in \figref{fig:prim-rules},
-  but the system records an explicit trace of oracle invocations with
-  the @{text "thm"} value.
+  \item @{ML Thm.invoke_oracle_i}~@{text "thy name arg"} invokes a
+  named oracle function, cf.\ @{text "axiom"} in
+  \figref{fig:prim-rules}.
 
-  \item @{ML Theory.add_axioms_i}~@{text "[(name, A), \<dots>]"} adds
-  arbitrary axioms, without any checking of the proposition.
+  \item @{ML Theory.add_axioms_i}~@{text "[(name, A), \<dots>]"} declares
+  arbitrary propositions as axioms.
 
-  \item @{ML Theory.add_oracle}~@{text "(name, f)"} declares an
-  oracle, i.e.\ a function for generating arbitrary axioms.
+  \item @{ML Theory.add_oracle}~@{text "(name, f)"} declares an oracle
+  function for generating arbitrary axioms on the fly.
 
   \item @{ML Theory.add_deps}~@{text "name c\<^isub>\<tau>
-  \<^vec>d\<^isub>\<sigma>"} declares dependencies of a new specification for
-  constant @{text "c\<^isub>\<tau>"} from relative to existing ones for
-  constants @{text "\<^vec>d\<^isub>\<sigma>"}.
+  \<^vec>d\<^isub>\<sigma>"} declares dependencies of a named specification
+  for constant @{text "c\<^isub>\<tau>"}, relative to existing
+  specifications for constants @{text "\<^vec>d\<^isub>\<sigma>"}.
 
   \item @{ML Theory.add_defs_i}~@{text "unchecked overloaded [(name, c
-  \<^vec>x \<equiv> t), \<dots>]"} states a definitional axiom for an already
-  declared constant @{text "c"}.  Dependencies are recorded using @{ML
-  Theory.add_deps}, unless the @{text "unchecked"} option is set.
+  \<^vec>x \<equiv> t), \<dots>]"} states a definitional axiom for an existing
+  constant @{text "c"}.  Dependencies are recorded (cf.\ @{ML
+  Theory.add_deps}), unless the @{text "unchecked"} option is set.
 
   \end{description}
 *}
 
 
-subsection {* Auxiliary connectives *}
+subsection {* Auxiliary definitions *}
 
 text {*
-  Theory @{text "Pure"} also defines a few auxiliary connectives, see
-  \figref{fig:pure-aux}.  These are normally not exposed to the user,
-  but appear in internal encodings only.
+  Theory @{text "Pure"} provides a few auxiliary definitions, see
+  \figref{fig:pure-aux}.  These special constants are normally not
+  exposed to the user, but appear in internal encodings.
 
   \begin{figure}[htb]
   \begin{center}
   \begin{tabular}{ll}
   @{text "conjunction :: prop \<Rightarrow> prop \<Rightarrow> prop"} & (infix @{text "&"}) \\
   @{text "\<turnstile> A & B \<equiv> (\<And>C. (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C)"} \\[1ex]
-  @{text "prop :: prop \<Rightarrow> prop"} & (prefix @{text "#"}, hidden) \\
+  @{text "prop :: prop \<Rightarrow> prop"} & (prefix @{text "#"}, suppressed) \\
   @{text "#A \<equiv> A"} \\[1ex]
   @{text "term :: \<alpha> \<Rightarrow> prop"} & (prefix @{text "TERM"}) \\
   @{text "term x \<equiv> (\<And>A. A \<Longrightarrow> A)"} \\[1ex]
@@ -688,9 +688,9 @@ text {*
   B"}, and destructions @{text "A & B \<Longrightarrow> A"} and @{text "A & B \<Longrightarrow> B"}.
   Conjunction allows to treat simultaneous assumptions and conclusions
   uniformly.  For example, multiple claims are intermediately
-  represented as explicit conjunction, but this is usually refined
-  into separate sub-goals before the user continues the proof; the
-  final result is projected into a list of theorems (cf.\
+  represented as explicit conjunction, but this is refined into
+  separate sub-goals before the user continues the proof; the final
+  result is projected into a list of theorems (cf.\
   \secref{sec:tactical-goals}).
 
   The @{text "prop"} marker (@{text "#"}) makes arbitrarily complex
@@ -698,10 +698,10 @@ text {*
   "\<Gamma> \<turnstile> A"} and @{text "\<Gamma> \<turnstile> #A"} are interchangeable.  See
   \secref{sec:tactical-goals} for specific operations.
 
-  The @{text "term"} marker turns any well-formed term into a
-  derivable proposition: @{text "\<turnstile> TERM t"} holds unconditionally.
-  Although this is logically vacuous, it allows to treat terms and
-  proofs uniformly, similar to a type-theoretic framework.
+  The @{text "term"} marker turns any well-typed term into a derivable
+  proposition: @{text "\<turnstile> TERM t"} holds unconditionally.  Although
+  this is logically vacuous, it allows to treat terms and proofs
+  uniformly, similar to a type-theoretic framework.
 
   The @{text "TYPE"} constructor is the canonical representative of
   the unspecified type @{text "\<alpha> itself"}; it essentially injects the
@@ -733,13 +733,13 @@ text %mlref {*
   \item @{ML Conjunction.intr} derives @{text "A & B"} from @{text
   "A"} and @{text "B"}.
 
-  \item @{ML Conjunction.intr} derives @{text "A"} and @{text "B"}
+  \item @{ML Conjunction.elim} derives @{text "A"} and @{text "B"}
   from @{text "A & B"}.
 
-  \item @{ML Drule.mk_term}~@{text "t"} derives @{text "TERM t"}.
+  \item @{ML Drule.mk_term} derives @{text "TERM t"}.
 
-  \item @{ML Drule.dest_term}~@{text "TERM t"} recovers term @{text
-  "t"}.
+  \item @{ML Drule.dest_term} recovers term @{text "t"} from @{text
+  "TERM t"}.
 
   \item @{ML Logic.mk_type}~@{text "\<tau>"} produces the term @{text
   "TYPE(\<tau>)"}.
