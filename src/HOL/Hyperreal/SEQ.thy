@@ -14,13 +14,15 @@ begin
 
 definition
 
-  LIMSEQ :: "[nat=>real,real] => bool"    ("((_)/ ----> (_))" [60, 60] 60)
+  LIMSEQ :: "[nat => 'a::real_normed_vector, 'a] => bool"
+    ("((_)/ ----> (_))" [60, 60] 60)
     --{*Standard definition of convergence of sequence*}
-  "X ----> L = (\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> \<bar>X n + -L\<bar> < r))"
+  "X ----> L = (\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> norm (X n + -L) < r))"
 
-  NSLIMSEQ :: "[nat=>real,real] => bool"    ("((_)/ ----NS> (_))" [60, 60] 60)
+  NSLIMSEQ :: "[nat => 'a::real_normed_vector, 'a] => bool"
+    ("((_)/ ----NS> (_))" [60, 60] 60)
     --{*Nonstandard definition of convergence of sequence*}
-  "X ----NS> L = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> hypreal_of_real L)"
+  "X ----NS> L = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
 
   lim :: "(nat => real) => real"
     --{*Standard definition of limit using choice operator*}
@@ -30,19 +32,19 @@ definition
     --{*Nonstandard definition of limit using choice operator*}
   "nslim X = (SOME L. (X ----NS> L))"
 
-  convergent :: "(nat => real) => bool"
+  convergent :: "(nat => 'a::real_normed_vector) => bool"
     --{*Standard definition of convergence*}
   "convergent X = (\<exists>L. (X ----> L))"
 
-  NSconvergent :: "(nat => real) => bool"
+  NSconvergent :: "(nat => 'a::real_normed_vector) => bool"
     --{*Nonstandard definition of convergence*}
   "NSconvergent X = (\<exists>L. (X ----NS> L))"
 
-  Bseq :: "(nat => real) => bool"
+  Bseq :: "(nat => 'a::real_normed_vector) => bool"
     --{*Standard definition for bounded sequence*}
-  "Bseq X = (\<exists>K>0.\<forall>n. \<bar>X n\<bar> \<le> K)"
+  "Bseq X = (\<exists>K>0.\<forall>n. norm (X n) \<le> K)"
 
-  NSBseq :: "(nat=>real) => bool"
+  NSBseq :: "(nat => 'a::real_normed_vector) => bool"
     --{*Nonstandard definition for bounded sequence*}
   "NSBseq X = (\<forall>N \<in> HNatInfinite. ( *f* X) N : HFinite)"
 
@@ -54,15 +56,16 @@ definition
     --{*Definition of subsequence*}
   "subseq f = (\<forall>m. \<forall>n>m. (f m) < (f n))"
 
-  Cauchy :: "(nat => real) => bool"
+  Cauchy :: "(nat => 'a::real_normed_vector) => bool"
     --{*Standard definition of the Cauchy condition*}
-  "Cauchy X = (\<forall>e>0. \<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. abs((X m) + -(X n)) < e)"
+  "Cauchy X = (\<forall>e>0. \<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. norm((X m) + -(X n)) < e)"
 
-  NSCauchy :: "(nat => real) => bool"
+  NSCauchy :: "(nat => 'a::real_normed_vector) => bool"
     --{*Nonstandard definition*}
   "NSCauchy X = (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite. ( *f* X) M \<approx> ( *f* X) N)"
 
 
+declare real_norm_def [simp]
 
 text{* Example of an hypersequence (i.e. an extended standard sequence)
    whose term with an hypernatural suffix is an infinitesimal i.e.
@@ -70,9 +73,8 @@ text{* Example of an hypersequence (i.e. an extended standard sequence)
 
 lemma SEQ_Infinitesimal:
       "( *f* (%n::nat. inverse(real(Suc n)))) whn : Infinitesimal"
-apply (simp add: hypnat_omega_def Infinitesimal_FreeUltrafilterNat_iff starfun)
-apply (simp add: star_n_inverse)
-apply (rule bexI [OF _ Rep_star_star_n])
+apply (simp add: hypnat_omega_def starfun star_n_inverse)
+apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
 apply (simp add: real_of_nat_Suc_gt_zero FreeUltrafilterNat_inverse_real_of_posnat)
 done
 
@@ -80,28 +82,26 @@ done
 subsection{*LIMSEQ and NSLIMSEQ*}
 
 lemma LIMSEQ_iff:
-      "(X ----> L) = (\<forall>r>0. \<exists>no. \<forall>n \<ge> no. \<bar>X n + -L\<bar> < r)"
+      "(X ----> L) = (\<forall>r>0. \<exists>no. \<forall>n \<ge> no. norm (X n + -L) < r)"
 by (simp add: LIMSEQ_def)
 
 lemma NSLIMSEQ_iff:
-    "(X ----NS> L) = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> hypreal_of_real L)"
+    "(X ----NS> L) = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
 by (simp add: NSLIMSEQ_def)
 
 
 text{*LIMSEQ ==> NSLIMSEQ*}
-
 lemma LIMSEQ_NSLIMSEQ:
       "X ----> L ==> X ----NS> L"
-apply (simp add: LIMSEQ_def NSLIMSEQ_def)
-apply (auto simp add: HNatInfinite_FreeUltrafilterNat_iff)
+apply (simp add: LIMSEQ_def NSLIMSEQ_def, safe)
 apply (rule_tac x = N in star_cases)
+apply (simp add: HNatInfinite_FreeUltrafilterNat_iff)
 apply (rule approx_minus_iff [THEN iffD2])
 apply (auto simp add: starfun mem_infmal_iff [symmetric] star_of_def
               star_n_minus star_n_add Infinitesimal_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ Rep_star_star_n], safe)
 apply (drule_tac x = u in spec, safe)
-apply (drule_tac x = no in spec, fuf)
-apply (blast dest: less_imp_le)
+apply (drule_tac x = no in spec)
+apply (erule ultra, simp add: less_imp_le)
 done
 
 
@@ -148,29 +148,24 @@ text{* thus, the sequence defines an infinite hypernatural! *}
 lemma HNatInfinite_NSLIMSEQ: "\<forall>n. n \<le> f n
           ==> star_n f : HNatInfinite"
 apply (auto simp add: HNatInfinite_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ Rep_star_star_n], safe)
 apply (erule FreeUltrafilterNat_NSLIMSEQ)
 done
 
 lemma lemmaLIM:
-     "{n. X (f n) + - L = Y n} Int {n. \<bar>Y n\<bar> < r} \<le>
-      {n. \<bar>X (f n) + - L\<bar> < r}"
+     "{n. X (f n) + - L = Y n} Int {n. norm (Y n) < r} \<le>
+      {n. norm (X (f n) + - L) < r}"
 by auto
 
 lemma lemmaLIM2:
-  "{n. \<bar>X (f n) + - L\<bar> < r} Int {n. r \<le> abs (X (f n) + - (L::real))} = {}"
+  "{n. norm (X (f n) + - L) < r} Int {n. r \<le> norm (X (f n) + - L)} = {}"
 by auto
 
-lemma lemmaLIM3: "[| 0 < r; \<forall>n. r \<le> \<bar>X (f n) + - L\<bar>;
+lemma lemmaLIM3: "[| 0 < r; \<forall>n. r \<le> norm (X (f n) + - L);
            ( *f* X) (star_n f) +
-           - hypreal_of_real  L \<approx> 0 |] ==> False"
+           - star_of L \<approx> 0 |] ==> False"
 apply (auto simp add: starfun mem_infmal_iff [symmetric] star_of_def star_n_minus star_n_add Infinitesimal_FreeUltrafilterNat_iff)
-apply (rename_tac "Y")
 apply (drule_tac x = r in spec, safe)
-apply (drule FreeUltrafilterNat_Int, assumption)
-apply (drule lemmaLIM [THEN [2] FreeUltrafilterNat_subset])
 apply (drule FreeUltrafilterNat_all)
-apply (erule_tac V = "{n. \<bar>Y n\<bar> < r} : FreeUltrafilterNat" in thin_rl)
 apply (drule FreeUltrafilterNat_Int, assumption)
 apply (simp add: lemmaLIM2)
 done
@@ -179,7 +174,7 @@ lemma NSLIMSEQ_LIMSEQ: "X ----NS> L ==> X ----> L"
 apply (simp add: LIMSEQ_def NSLIMSEQ_def)
 apply (rule ccontr, simp, safe)
 txt{* skolemization step *}
-apply (drule choice, safe)
+apply (drule no_choice, safe)
 apply (drule_tac x = "star_n f" in bspec)
 apply (drule_tac [2] approx_minus_iff [THEN iffD1])
 apply (simp_all add: linorder_not_less)
@@ -217,11 +212,14 @@ lemma NSLIMSEQ_add_const: "f ----NS> a ==> (%n.(f n + b)) ----NS> a + b"
 by (simp add: LIMSEQ_NSLIMSEQ_iff [THEN sym] LIMSEQ_add_const)
 
 lemma NSLIMSEQ_mult:
-      "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n * Y n) ----NS> a * b"
+  fixes a b :: "'a::real_normed_algebra"
+  shows "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n * Y n) ----NS> a * b"
 by (auto intro!: approx_mult_HFinite 
         simp add: NSLIMSEQ_def starfun_mult [symmetric])
 
-lemma LIMSEQ_mult: "[| X ----> a; Y ----> b |] ==> (%n. X n * Y n) ----> a * b"
+lemma LIMSEQ_mult:
+  fixes a b :: "'a::real_normed_algebra"
+  shows "[| X ----> a; Y ----> b |] ==> (%n. X n * Y n) ----> a * b"
 by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_mult)
 
 lemma NSLIMSEQ_minus: "X ----NS> a ==> (%n. -(X n)) ----NS> -a"
@@ -266,22 +264,26 @@ by (simp add: LIMSEQ_NSLIMSEQ_iff [THEN sym] LIMSEQ_diff_const)
 
 text{*Proof is like that of @{text NSLIM_inverse}.*}
 lemma NSLIMSEQ_inverse:
-     "[| X ----NS> a;  a ~= 0 |] ==> (%n. inverse(X n)) ----NS> inverse(a)"
-by (simp add: NSLIMSEQ_def starfun_inverse [symmetric] 
-              hypreal_of_real_approx_inverse)
+  fixes a :: "'a::{real_normed_div_algebra,division_by_zero}"
+  shows "[| X ----NS> a;  a ~= 0 |] ==> (%n. inverse(X n)) ----NS> inverse(a)"
+by (simp add: NSLIMSEQ_def star_of_approx_inverse)
 
 
 text{*Standard version of theorem*}
 lemma LIMSEQ_inverse:
-     "[| X ----> a; a ~= 0 |] ==> (%n. inverse(X n)) ----> inverse(a)"
+  fixes a :: "'a::{real_normed_div_algebra,division_by_zero}"
+  shows "[| X ----> a; a ~= 0 |] ==> (%n. inverse(X n)) ----> inverse(a)"
 by (simp add: NSLIMSEQ_inverse LIMSEQ_NSLIMSEQ_iff)
 
 lemma NSLIMSEQ_mult_inverse:
+  fixes a b :: "'a::{real_normed_div_algebra,field,division_by_zero}"
+  shows
      "[| X ----NS> a;  Y ----NS> b;  b ~= 0 |] ==> (%n. X n / Y n) ----NS> a/b"
 by (simp add: NSLIMSEQ_mult NSLIMSEQ_inverse divide_inverse)
 
 lemma LIMSEQ_divide:
-     "[| X ----> a;  Y ----> b;  b ~= 0 |] ==> (%n. X n / Y n) ----> a/b"
+  fixes a b :: "'a::{real_normed_div_algebra,field,division_by_zero}"
+  shows "[| X ----> a;  Y ----> b;  b ~= 0 |] ==> (%n. X n / Y n) ----> a/b"
 by (simp add: LIMSEQ_mult LIMSEQ_inverse divide_inverse)
 
 text{*Uniqueness of limit*}
@@ -316,6 +318,7 @@ next
 qed
 
 lemma LIMSEQ_setprod:
+  fixes L :: "'a \<Rightarrow> 'b::{real_normed_algebra,comm_ring_1}"
   assumes n: "\<And>n. n \<in> S \<Longrightarrow> X n ----> L n"
   shows "(\<lambda>m. \<Prod>n\<in>S. X n m) ----> (\<Prod>n\<in>S. L n)"
 proof (cases "finite S")
@@ -455,15 +458,15 @@ by (simp add: monoseq_Suc)
 
 subsection{*Bounded Sequence*}
 
-lemma BseqD: "Bseq X ==> \<exists>K. 0 < K & (\<forall>n. \<bar>X n\<bar> \<le> K)"
+lemma BseqD: "Bseq X ==> \<exists>K. 0 < K & (\<forall>n. norm (X n) \<le> K)"
 by (simp add: Bseq_def)
 
-lemma BseqI: "[| 0 < K; \<forall>n. \<bar>X n\<bar> \<le> K |] ==> Bseq X"
+lemma BseqI: "[| 0 < K; \<forall>n. norm (X n) \<le> K |] ==> Bseq X"
 by (auto simp add: Bseq_def)
 
 lemma lemma_NBseq_def:
-     "(\<exists>K > 0. \<forall>n. \<bar>X n\<bar> \<le> K) =
-      (\<exists>N. \<forall>n. \<bar>X n\<bar> \<le> real(Suc N))"
+     "(\<exists>K > 0. \<forall>n. norm (X n) \<le> K) =
+      (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
 apply auto
  prefer 2 apply force
 apply (cut_tac x = K in reals_Archimedean2, clarify)
@@ -473,13 +476,13 @@ apply (auto simp add: real_of_nat_Suc)
 done
 
 text{* alternative definition for Bseq *}
-lemma Bseq_iff: "Bseq X = (\<exists>N. \<forall>n. \<bar>X n\<bar> \<le> real(Suc N))"
+lemma Bseq_iff: "Bseq X = (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
 apply (simp add: Bseq_def)
 apply (simp (no_asm) add: lemma_NBseq_def)
 done
 
 lemma lemma_NBseq_def2:
-     "(\<exists>K > 0. \<forall>n. \<bar>X n\<bar> \<le> K) = (\<exists>N. \<forall>n. \<bar>X n\<bar> < real(Suc N))"
+     "(\<exists>K > 0. \<forall>n. norm (X n) \<le> K) = (\<exists>N. \<forall>n. norm (X n) < real(Suc N))"
 apply (subst lemma_NBseq_def, auto)
 apply (rule_tac x = "Suc N" in exI)
 apply (rule_tac [2] x = N in exI)
@@ -489,7 +492,7 @@ apply (drule_tac x = n in spec, simp)
 done
 
 (* yet another definition for Bseq *)
-lemma Bseq_iff1a: "Bseq X = (\<exists>N. \<forall>n. \<bar>X n\<bar> < real(Suc N))"
+lemma Bseq_iff1a: "Bseq X = (\<exists>N. \<forall>n. norm (X n) < real(Suc N))"
 by (simp add: Bseq_def lemma_NBseq_def2)
 
 lemma NSBseqD: "[| NSBseq X;  N: HNatInfinite |] ==> ( *f* X) N : HFinite"
@@ -500,7 +503,7 @@ by (simp add: NSBseq_def)
 
 text{*The standard definition implies the nonstandard definition*}
 
-lemma lemma_Bseq: "\<forall>n. \<bar>X n\<bar> \<le> K ==> \<forall>n. abs(X((f::nat=>nat) n)) \<le> K"
+lemma lemma_Bseq: "\<forall>n. norm (X n) \<le> K ==> \<forall>n. norm(X((f::nat=>nat) n)) \<le> K"
 by auto
 
 lemma Bseq_NSBseq: "Bseq X ==> NSBseq X"
@@ -508,7 +511,6 @@ apply (simp add: Bseq_def NSBseq_def, safe)
 apply (rule_tac x = N in star_cases)
 apply (auto simp add: starfun HFinite_FreeUltrafilterNat_iff 
                       HNatInfinite_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ Rep_star_star_n]) 
 apply (drule_tac f = Xa in lemma_Bseq)
 apply (rule_tac x = "K+1" in exI)
 apply (drule_tac P="%n. ?f n \<le> K" in FreeUltrafilterNat_all, ultra)
@@ -525,23 +527,22 @@ text{* We need to get rid of the real variable and do so by proving the
    which woulid be useless.*}
 
 lemma lemmaNSBseq:
-     "\<forall>K > 0. \<exists>n. K < \<bar>X n\<bar>
-      ==> \<forall>N. \<exists>n. real(Suc N) < \<bar>X n\<bar>"
+     "\<forall>K > 0. \<exists>n. K < norm (X n)
+      ==> \<forall>N. \<exists>n. real(Suc N) < norm (X n)"
 apply safe
 apply (cut_tac n = N in real_of_nat_Suc_gt_zero, blast)
 done
 
-lemma lemmaNSBseq2: "\<forall>K > 0. \<exists>n. K < \<bar>X n\<bar>
-                     ==> \<exists>f. \<forall>N. real(Suc N) < \<bar>X (f N)\<bar>"
+lemma lemmaNSBseq2: "\<forall>K > 0. \<exists>n::nat. K < norm (X n)
+                     ==> \<exists>f. \<forall>N. real(Suc N) < norm (X (f N))"
 apply (drule lemmaNSBseq)
-apply (drule choice, blast)
+apply (drule no_choice, blast)
 done
 
 lemma real_seq_to_hypreal_HInfinite:
-     "\<forall>N. real(Suc N) < \<bar>X (f N)\<bar>
+     "\<forall>N. real(Suc N) < norm (X (f N))
       ==>  star_n (X o f) : HInfinite"
 apply (auto simp add: HInfinite_FreeUltrafilterNat_iff o_def)
-apply (rule bexI [OF _ Rep_star_star_n], clarify)  
 apply (cut_tac u = u in FreeUltrafilterNat_nat_gt_real)
 apply (drule FreeUltrafilterNat_all)
 apply (erule FreeUltrafilterNat_Int [THEN FreeUltrafilterNat_subset])
@@ -552,29 +553,28 @@ text{* Now prove that we can get out an infinite hypernatural as well
      defined using the skolem function  @{term "f::nat=>nat"} above*}
 
 lemma lemma_finite_NSBseq:
-     "{n. f n \<le> Suc u & real(Suc n) < \<bar>X (f n)\<bar>} \<le>
-      {n. f n \<le> u & real(Suc n) < \<bar>X (f n)\<bar>} Un
-      {n. real(Suc n) < \<bar>X (Suc u)\<bar>}"
+     "{n. f n \<le> Suc u & real(Suc n) < norm (X (f n))} \<le>
+      {n. f n \<le> u & real(Suc n) < norm (X (f n))} Un
+      {n. real(Suc n) < norm (X (Suc u))}"
 by (auto dest!: le_imp_less_or_eq)
 
 lemma lemma_finite_NSBseq2:
-     "finite {n. f n \<le> (u::nat) &  real(Suc n) < \<bar>X(f n)\<bar>}"
+     "finite {n. f n \<le> (u::nat) &  real(Suc n) < norm (X(f n))}"
 apply (induct "u")
 apply (rule_tac [2] lemma_finite_NSBseq [THEN finite_subset])
-apply (rule_tac B = "{n. real (Suc n) < \<bar>X 0\<bar> }" in finite_subset)
+apply (rule_tac B = "{n. real (Suc n) < norm (X 0) }" in finite_subset)
 apply (auto intro: finite_real_of_nat_less_real 
             simp add: real_of_nat_Suc less_diff_eq [symmetric])
 done
 
 lemma HNatInfinite_skolem_f:
-     "\<forall>N. real(Suc N) < \<bar>X (f N)\<bar>
+     "\<forall>N. real(Suc N) < norm (X (f N))
       ==> star_n f : HNatInfinite"
 apply (auto simp add: HNatInfinite_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ Rep_star_star_n], safe)
 apply (rule ccontr, drule FreeUltrafilterNat_Compl_mem)
 apply (rule lemma_finite_NSBseq2 [THEN FreeUltrafilterNat_finite, THEN notE]) 
-apply (subgoal_tac "{n. f n \<le> u & real (Suc n) < \<bar>X (f n)\<bar>} =
-                    {n. f n \<le> u} \<inter> {N. real (Suc N) < \<bar>X (f N)\<bar>}")
+apply (subgoal_tac "{n. f n \<le> u & real (Suc n) < norm (X (f n))} =
+                    {n. f n \<le> u} \<inter> {N. real (Suc N) < norm (X (f N))}")
 apply (erule ssubst) 
  apply (auto simp add: linorder_not_less Compl_def)
 done
@@ -600,7 +600,7 @@ text{*A convergent sequence is bounded:
 
 lemma NSconvergent_NSBseq: "NSconvergent X ==> NSBseq X"
 apply (simp add: NSconvergent_def NSBseq_def NSLIMSEQ_def)
-apply (blast intro: HFinite_hypreal_of_real approx_sym approx_HFinite)
+apply (blast intro: HFinite_star_of approx_sym approx_HFinite)
 done
 
 text{*Standard Version: easily now proved using equivalence of NS and
@@ -624,10 +624,10 @@ lemma Bseq_isLub:
    \<exists>U. isLub (UNIV::real set) {x. \<exists>n. X n = x} U"
 by (blast intro: reals_complete Bseq_isUb)
 
-lemma NSBseq_isUb: "NSBseq X ==> \<exists>U. isUb UNIV {x. \<exists>n. X n = x} U"
+lemma NSBseq_isUb: "NSBseq X ==> \<exists>U::real. isUb UNIV {x. \<exists>n. X n = x} U"
 by (simp add: Bseq_NSBseq_iff [symmetric] Bseq_isUb)
 
-lemma NSBseq_isLub: "NSBseq X ==> \<exists>U. isLub UNIV {x. \<exists>n. X n = x} U"
+lemma NSBseq_isLub: "NSBseq X ==> \<exists>U::real. isLub UNIV {x. \<exists>n. X n = x} U"
 by (simp add: Bseq_NSBseq_iff [symmetric] Bseq_isLub)
 
 
@@ -686,7 +686,7 @@ done
 text{*A standard proof of the theorem for monotone increasing sequence*}
 
 lemma Bseq_mono_convergent:
-     "[| Bseq X; \<forall>m. \<forall>n \<ge> m. X m \<le> X n |] ==> convergent X"
+     "[| Bseq X; \<forall>m. \<forall>n \<ge> m. X m \<le> X n |] ==> convergent (X::nat=>real)"
 apply (simp add: convergent_def)
 apply (frule Bseq_isLub, safe)
 apply (case_tac "\<exists>m. X m = U", auto)
@@ -705,7 +705,7 @@ done
 text{*Nonstandard version of the theorem*}
 
 lemma NSBseq_mono_NSconvergent:
-     "[| NSBseq X; \<forall>m. \<forall>n \<ge> m. X m \<le> X n |] ==> NSconvergent X"
+     "[| NSBseq X; \<forall>m. \<forall>n \<ge> m. X m \<le> X n |] ==> NSconvergent (X::nat=>real)"
 by (auto intro: Bseq_mono_convergent 
          simp add: convergent_NSconvergent_iff [symmetric] 
                    Bseq_NSBseq_iff [symmetric])
@@ -731,26 +731,31 @@ done
 subsection{*A Few More Equivalence Theorems for Boundedness*}
 
 text{*alternative formulation for boundedness*}
-lemma Bseq_iff2: "Bseq X = (\<exists>k > 0. \<exists>x. \<forall>n. \<bar>X(n) + -x\<bar> \<le> k)"
+lemma Bseq_iff2: "Bseq X = (\<exists>k > 0. \<exists>x. \<forall>n. norm (X(n) + -x) \<le> k)"
 apply (unfold Bseq_def, safe)
-apply (rule_tac [2] x = "k + \<bar>x\<bar> " in exI)
+apply (rule_tac [2] x = "k + norm x" in exI)
 apply (rule_tac x = K in exI, simp)
 apply (rule exI [where x = 0], auto)
-apply (drule_tac x=n in spec, arith)+
+apply (erule order_less_le_trans, simp)
+apply (drule_tac x=n in spec, fold diff_def)
+apply (drule order_trans [OF norm_triangle_ineq2])
+apply simp
 done
 
 text{*alternative formulation for boundedness*}
-lemma Bseq_iff3: "Bseq X = (\<exists>k > 0. \<exists>N. \<forall>n. abs(X(n) + -X(N)) \<le> k)"
+lemma Bseq_iff3: "Bseq X = (\<exists>k > 0. \<exists>N. \<forall>n. norm(X(n) + -X(N)) \<le> k)"
 apply safe
 apply (simp add: Bseq_def, safe)
-apply (rule_tac x = "K + \<bar>X N\<bar> " in exI)
+apply (rule_tac x = "K + norm (X N)" in exI)
 apply auto
+apply (erule order_less_le_trans, simp)
 apply (rule_tac x = N in exI, safe)
-apply (drule_tac x = n in spec, arith)
+apply (drule_tac x = n in spec)
+apply (rule order_trans [OF norm_triangle_ineq], simp)
 apply (auto simp add: Bseq_iff2)
 done
 
-lemma BseqI2: "(\<forall>n. k \<le> f n & f n \<le> K) ==> Bseq f"
+lemma BseqI2: "(\<forall>n. k \<le> f n & f n \<le> (K::real)) ==> Bseq f"
 apply (simp add: Bseq_def)
 apply (rule_tac x = " (\<bar>k\<bar> + \<bar>K\<bar>) + 1" in exI, auto)
 apply (drule_tac x = n in spec, arith)
@@ -769,9 +774,9 @@ apply (drule_tac x = M in spec, ultra)
 done
 
 lemma lemmaCauchy2:
-     "{n. \<forall>m n. M \<le> m & M \<le> (n::nat) --> \<bar>X m + - X n\<bar> < u} Int
+     "{n. \<forall>m n. M \<le> m & M \<le> (n::nat) --> norm (X m + - X n) < u} Int
       {n. M \<le> xa n} Int {n. M \<le> x n} \<le>
-      {n. abs (X (xa n) + - X (x n)) < u}"
+      {n. norm (X (xa n) + - X (x n)) < u}"
 by blast
 
 lemma Cauchy_NSCauchy: "Cauchy X ==> NSCauchy X"
@@ -781,7 +786,6 @@ apply (rule_tac x = N in star_cases)
 apply (rule approx_minus_iff [THEN iffD2])
 apply (rule mem_infmal_iff [THEN iffD1])
 apply (auto simp add: starfun star_n_minus star_n_add Infinitesimal_FreeUltrafilterNat_iff)
-apply (rule bexI, auto)
 apply (drule spec, auto)
 apply (drule_tac M = M in lemmaCauchy1)
 apply (drule_tac M = M in lemmaCauchy1)
@@ -795,23 +799,14 @@ subsubsection{*Nonstandard Implies Standard*}
 lemma NSCauchy_Cauchy: "NSCauchy X ==> Cauchy X"
 apply (auto simp add: Cauchy_def NSCauchy_def)
 apply (rule ccontr, simp)
-apply (auto dest!: choice HNatInfinite_NSLIMSEQ simp add: all_conj_distrib)  
+apply (auto dest!: no_choice HNatInfinite_NSLIMSEQ
+            simp add: all_conj_distrib)
 apply (drule bspec, assumption)
 apply (drule_tac x = "star_n fa" in bspec); 
 apply (auto simp add: starfun)
 apply (drule approx_minus_iff [THEN iffD1])
 apply (drule mem_infmal_iff [THEN iffD2])
 apply (auto simp add: star_n_minus star_n_add Infinitesimal_FreeUltrafilterNat_iff)
-apply (rename_tac "Y")
-apply (drule_tac x = e in spec, auto)
-apply (drule FreeUltrafilterNat_Int, assumption)
-apply (subgoal_tac "{n. \<bar>X (f n) + - X (fa n)\<bar> < e} \<in> \<U>") 
- prefer 2 apply (erule FreeUltrafilterNat_subset, force) 
-apply (rule FreeUltrafilterNat_empty [THEN notE]) 
-apply (subgoal_tac
-         "{n. abs (X (f n) + - X (fa n)) < e} Int 
-          {M. ~ abs (X (f M) + - X (fa M)) < e}  =  {}")
-apply auto  
 done
 
 
@@ -821,9 +816,13 @@ by (blast intro!: NSCauchy_Cauchy Cauchy_NSCauchy)
 text{*A Cauchy sequence is bounded -- this is the standard
   proof mechanization rather than the nonstandard proof*}
 
-lemma lemmaCauchy: "\<forall>n \<ge> M. \<bar>X M + - X n\<bar> < (1::real)
-          ==>  \<forall>n \<ge> M. \<bar>X n\<bar> < 1 + \<bar>X M\<bar>"
-by auto
+lemma lemmaCauchy: "\<forall>n \<ge> M. norm (X M + - X n) < (1::real)
+          ==>  \<forall>n \<ge> M. norm (X n :: 'a::real_normed_vector) < 1 + norm (X M)"
+apply (clarify, drule spec, drule (1) mp)
+apply (fold diff_def, simp only: norm_minus_commute)
+apply (drule order_le_less_trans [OF norm_triangle_ineq2])
+apply simp
+done
 
 lemma less_Suc_cancel_iff: "(n < Suc M) = (n \<le> M)"
 by auto
@@ -842,7 +841,7 @@ apply (blast intro: order_trans)
 done
 
 lemma SUP_rabs_subseq:
-     "\<exists>m \<le> M. \<forall>n \<le> M. \<bar>(X::nat=> real) n\<bar> \<le> \<bar>X m\<bar>"
+     "\<exists>m::nat \<le> M. \<forall>n \<le> M. norm (X n) \<le> norm (X m)"
 by (rule SUP_subseq)
 
 lemma lemma_Nat_covered:
@@ -853,47 +852,52 @@ by (auto elim: less_asym simp add: le_def)
 
 
 lemma lemma_trans1:
-     "[| \<forall>n \<le> M. \<bar>(X::nat=>real) n\<bar> \<le> a;  a < b |]
-      ==> \<forall>n \<le> M. \<bar>X n\<bar> \<le> b"
+     "[| \<forall>n \<le> M. norm ((X::nat=>'a::real_normed_vector) n) \<le> a;  a < b |]
+      ==> \<forall>n \<le> M. norm (X n) \<le> b"
 by (blast intro: order_le_less_trans [THEN order_less_imp_le])
 
 lemma lemma_trans2:
-     "[| \<forall>n \<ge> M. \<bar>(X::nat=>real) n\<bar> < a; a < b |]
-      ==> \<forall>n \<ge> M. \<bar>X n\<bar>\<le> b"
+     "[| \<forall>n \<ge> M. norm ((X::nat=>'a::real_normed_vector) n) < a; a < b |]
+      ==> \<forall>n \<ge> M. norm (X n) \<le> b"
 by (blast intro: order_less_trans [THEN order_less_imp_le])
 
 lemma lemma_trans3:
-     "[| \<forall>n \<le> M. \<bar>X n\<bar> \<le> a; a = b |]
-      ==> \<forall>n \<le> M. \<bar>X n\<bar> \<le> b"
+     "[| \<forall>n \<le> M. norm (X n) \<le> a; a = b |]
+      ==> \<forall>n \<le> M. norm (X n) \<le> b"
 by auto
 
-lemma lemma_trans4: "\<forall>n \<ge> M. \<bar>(X::nat=>real) n\<bar> < a
-              ==>  \<forall>n \<ge> M. \<bar>X n\<bar> \<le> a"
+lemma lemma_trans4: "\<forall>n \<ge> M. norm ((X::nat=>'a::real_normed_vector) n) < a
+              ==>  \<forall>n \<ge> M. norm (X n) \<le> a"
 by (blast intro: order_less_imp_le)
 
 
 text{*Proof is more involved than outlines sketched by various authors
  would suggest*}
 
+lemma Bseq_Suc_imp_Bseq: "Bseq (\<lambda>n. X (Suc n)) \<Longrightarrow> Bseq X"
+apply (unfold Bseq_def, clarify)
+apply (rule_tac x="max K (norm (X 0))" in exI)
+apply (simp add: order_less_le_trans [OF _ le_maxI1])
+apply (clarify, case_tac "n", simp)
+apply (simp add: order_trans [OF _ le_maxI1])
+done
+
+lemma Bseq_shift_imp_Bseq: "Bseq (\<lambda>n. X (n + k)) \<Longrightarrow> Bseq X"
+apply (induct k, simp_all)
+apply (subgoal_tac "Bseq (\<lambda>n. X (n + k))", simp)
+apply (rule Bseq_Suc_imp_Bseq, simp)
+done
+
 lemma Cauchy_Bseq: "Cauchy X ==> Bseq X"
-apply (simp add: Cauchy_def Bseq_def)
-apply (drule_tac x = 1 in spec)
-apply (erule zero_less_one [THEN [2] impE], safe)
-apply (drule_tac x = M in spec, simp)
+apply (simp add: Cauchy_def)
+apply (drule spec, drule mp, rule zero_less_one, safe)
+apply (drule_tac x="M" in spec, simp)
 apply (drule lemmaCauchy)
-apply (cut_tac M = M and X = X in SUP_rabs_subseq, safe)
-apply (cut_tac x = "\<bar>X m\<bar> " and y = "1 + \<bar>X M\<bar> " in linorder_less_linear)
-apply safe
-apply (drule lemma_trans1, assumption)
-apply (drule_tac [3] lemma_trans2, erule_tac [3] asm_rl)
-apply (drule_tac [2] lemma_trans3, erule_tac [2] asm_rl)
-apply (drule_tac [3] abs_add_one_gt_zero [THEN order_less_trans])
-apply (drule lemma_trans4)
-apply (drule_tac [2] lemma_trans4)
-apply (rule_tac x = "1 + \<bar>X M\<bar> " in exI)
-apply (rule_tac [2] x = "1 + \<bar>X M\<bar> " in exI)
-apply (rule_tac [3] x = "\<bar>X m\<bar> " in exI)
-apply (auto elim!: lemma_Nat_covered)
+apply (rule_tac k="M" in Bseq_shift_imp_Bseq)
+apply (simp add: Bseq_def)
+apply (rule_tac x="1 + norm (X M)" in exI)
+apply (rule conjI, rule order_less_le_trans [OF zero_less_one], simp)
+apply (simp add: order_less_imp_le)
 done
 
 text{*A Cauchy sequence is bounded -- nonstandard version*}
@@ -912,7 +916,7 @@ text{*Equivalence of Cauchy criterion and convergence:
   instantiations for his 'espsilon-delta' proof(s) in this case
   since the NS formulations do not involve existential quantifiers.*}
 
-lemma NSCauchy_NSconvergent_iff: "NSCauchy X = NSconvergent X"
+lemma NSCauchy_NSconvergent_iff: "NSCauchy X = NSconvergent (X::nat=>real)"
 apply (simp add: NSconvergent_def NSLIMSEQ_def, safe)
 apply (frule NSCauchy_NSBseq)
 apply (auto intro: approx_trans2 simp add: NSBseq_def NSCauchy_def)
@@ -923,7 +927,7 @@ apply (blast intro: approx_trans3)
 done
 
 text{*Standard proof for free*}
-lemma Cauchy_convergent_iff: "Cauchy X = convergent X"
+lemma Cauchy_convergent_iff: "Cauchy X = convergent (X::nat=>real)"
 by (simp add: NSCauchy_Cauchy_iff [symmetric] convergent_NSconvergent_iff NSCauchy_NSconvergent_iff)
 
 
@@ -933,7 +937,7 @@ text{*We can now try and derive a few properties of sequences,
 lemma NSLIMSEQ_le:
        "[| f ----NS> l; g ----NS> m;
            \<exists>N. \<forall>n \<ge> N. f(n) \<le> g(n)
-        |] ==> l \<le> m"
+        |] ==> l \<le> (m::real)"
 apply (simp add: NSLIMSEQ_def, safe)
 apply (drule starfun_le_mono)
 apply (drule HNatInfinite_whn [THEN [2] bspec])+
@@ -946,23 +950,23 @@ done
 (* standard version *)
 lemma LIMSEQ_le:
      "[| f ----> l; g ----> m; \<exists>N. \<forall>n \<ge> N. f(n) \<le> g(n) |]
-      ==> l \<le> m"
+      ==> l \<le> (m::real)"
 by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_le)
 
-lemma LIMSEQ_le_const: "[| X ----> r; \<forall>n. a \<le> X n |] ==> a \<le> r"
+lemma LIMSEQ_le_const: "[| X ----> (r::real); \<forall>n. a \<le> X n |] ==> a \<le> r"
 apply (rule LIMSEQ_le)
 apply (rule LIMSEQ_const, auto)
 done
 
-lemma NSLIMSEQ_le_const: "[| X ----NS> r; \<forall>n. a \<le> X n |] ==> a \<le> r"
+lemma NSLIMSEQ_le_const: "[| X ----NS> (r::real); \<forall>n. a \<le> X n |] ==> a \<le> r"
 by (simp add: LIMSEQ_NSLIMSEQ_iff LIMSEQ_le_const)
 
-lemma LIMSEQ_le_const2: "[| X ----> r; \<forall>n. X n \<le> a |] ==> r \<le> a"
+lemma LIMSEQ_le_const2: "[| X ----> (r::real); \<forall>n. X n \<le> a |] ==> r \<le> a"
 apply (rule LIMSEQ_le)
 apply (rule_tac [2] LIMSEQ_const, auto)
 done
 
-lemma NSLIMSEQ_le_const2: "[| X ----NS> r; \<forall>n. X n \<le> a |] ==> r \<le> a"
+lemma NSLIMSEQ_le_const2: "[| X ----NS> (r::real); \<forall>n. X n \<le> a |] ==> r \<le> a"
 by (simp add: LIMSEQ_NSLIMSEQ_iff LIMSEQ_le_const2)
 
 text{*Shift a convergent series by 1:
@@ -970,12 +974,10 @@ text{*Shift a convergent series by 1:
   the successor of an infinite hypernatural is also infinite.*}
 
 lemma NSLIMSEQ_Suc: "f ----NS> l ==> (%n. f(Suc n)) ----NS> l"
-apply (frule NSconvergentI [THEN NSCauchy_NSconvergent_iff [THEN iffD2]])
-apply (auto simp add: NSCauchy_def NSLIMSEQ_def starfun_shift_one)
-apply (drule bspec, assumption)
-apply (drule bspec, assumption)
-apply (drule Nats_1 [THEN [2] HNatInfinite_SHNat_add])
-apply (blast intro: approx_trans3)
+apply (unfold NSLIMSEQ_def, safe)
+apply (drule_tac x="N + 1" in bspec)
+apply (erule Nats_1 [THEN [2] HNatInfinite_SHNat_add])
+apply (simp add: starfun_shift_one)
 done
 
 text{* standard version *}
@@ -983,13 +985,10 @@ lemma LIMSEQ_Suc: "f ----> l ==> (%n. f(Suc n)) ----> l"
 by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_Suc)
 
 lemma NSLIMSEQ_imp_Suc: "(%n. f(Suc n)) ----NS> l ==> f ----NS> l"
-apply (frule NSconvergentI [THEN NSCauchy_NSconvergent_iff [THEN iffD2]])
-apply (auto simp add: NSCauchy_def NSLIMSEQ_def starfun_shift_one)
-apply (drule bspec, assumption)
-apply (drule bspec, assumption)
-apply (frule Nats_1 [THEN [2] HNatInfinite_SHNat_diff])
+apply (unfold NSLIMSEQ_def, safe)
 apply (drule_tac x="N - 1" in bspec) 
-apply (auto intro: approx_trans3)
+apply (erule Nats_1 [THEN [2] HNatInfinite_SHNat_diff])
+apply (simp add: starfun_shift_one)
 done
 
 lemma LIMSEQ_imp_Suc: "(%n. f(Suc n)) ----> l ==> f ----> l"
@@ -1004,30 +1003,30 @@ lemma NSLIMSEQ_Suc_iff: "((%n. f(Suc n)) ----NS> l) = (f ----NS> l)"
 by (blast intro: NSLIMSEQ_imp_Suc NSLIMSEQ_Suc)
 
 text{*A sequence tends to zero iff its abs does*}
-lemma LIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) ----> 0) = (f ----> 0)"
+lemma LIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) ----> 0) = (f ----> (0::real))"
 by (simp add: LIMSEQ_def)
 
 text{*We prove the NS version from the standard one, since the NS proof
    seems more complicated than the standard one above!*}
-lemma NSLIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) ----NS> 0) = (f ----NS> 0)"
+lemma NSLIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) ----NS> 0) = (f ----NS> (0::real))"
 by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_rabs_zero)
 
 text{*Generalization to other limits*}
-lemma NSLIMSEQ_imp_rabs: "f ----NS> l ==> (%n. \<bar>f n\<bar>) ----NS> \<bar>l\<bar>"
+lemma NSLIMSEQ_imp_rabs: "f ----NS> (l::real) ==> (%n. \<bar>f n\<bar>) ----NS> \<bar>l\<bar>"
 apply (simp add: NSLIMSEQ_def)
 apply (auto intro: approx_hrabs 
             simp add: starfun_abs hypreal_of_real_hrabs [symmetric])
 done
 
 text{* standard version *}
-lemma LIMSEQ_imp_rabs: "f ----> l ==> (%n. \<bar>f n\<bar>) ----> \<bar>l\<bar>"
+lemma LIMSEQ_imp_rabs: "f ----> (l::real) ==> (%n. \<bar>f n\<bar>) ----> \<bar>l\<bar>"
 by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_imp_rabs)
 
 text{*An unbounded sequence's inverse tends to 0*}
 
 text{* standard proof seems easier *}
 lemma LIMSEQ_inverse_zero:
-      "\<forall>y. \<exists>N. \<forall>n \<ge> N. y < f(n) ==> (%n. inverse(f n)) ----> 0"
+      "\<forall>y::real. \<exists>N. \<forall>n \<ge> N. y < f(n) ==> (%n. inverse(f n)) ----> 0"
 apply (simp add: LIMSEQ_def, safe)
 apply (drule_tac x = "inverse r" in spec, safe)
 apply (rule_tac x = N in exI, safe)
@@ -1042,7 +1041,7 @@ apply (auto intro: inverse_less_iff_less [THEN iffD2]
 done
 
 lemma NSLIMSEQ_inverse_zero:
-     "\<forall>y. \<exists>N. \<forall>n \<ge> N. y < f(n)
+     "\<forall>y::real. \<exists>N. \<forall>n \<ge> N. y < f(n)
       ==> (%n. inverse(f n)) ----NS> 0"
 by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_zero)
 
@@ -1090,19 +1089,22 @@ by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat_add_min
 text{* Real Powers*}
 
 lemma NSLIMSEQ_pow [rule_format]:
-     "(X ----NS> a) --> ((%n. (X n) ^ m) ----NS> a ^ m)"
+  fixes a :: "'a::{real_normed_algebra,recpower}"
+  shows "(X ----NS> a) --> ((%n. (X n) ^ m) ----NS> a ^ m)"
 apply (induct "m")
-apply (auto intro: NSLIMSEQ_mult NSLIMSEQ_const)
+apply (auto simp add: power_Suc intro: NSLIMSEQ_mult NSLIMSEQ_const)
 done
 
-lemma LIMSEQ_pow: "X ----> a ==> (%n. (X n) ^ m) ----> a ^ m"
+lemma LIMSEQ_pow:
+  fixes a :: "'a::{real_normed_algebra,recpower}"
+  shows "X ----> a ==> (%n. (X n) ^ m) ----> a ^ m"
 by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_pow)
 
 text{*The sequence @{term "x^n"} tends to 0 if @{term "0\<le>x"} and @{term
 "x<1"}.  Proof will use (NS) Cauchy equivalence for convergence and
   also fact that bounded and monotonic sequence converges.*}
 
-lemma Bseq_realpow: "[| 0 \<le> x; x \<le> 1 |] ==> Bseq (%n. x ^ n)"
+lemma Bseq_realpow: "[| 0 \<le> (x::real); x \<le> 1 |] ==> Bseq (%n. x ^ n)"
 apply (simp add: Bseq_def)
 apply (rule_tac x = 1 in exI)
 apply (simp add: power_abs)
@@ -1114,12 +1116,14 @@ apply (clarify intro!: mono_SucI2)
 apply (cut_tac n = n and N = "Suc n" and a = x in power_decreasing, auto)
 done
 
-lemma convergent_realpow: "[| 0 \<le> x; x \<le> 1 |] ==> convergent (%n. x ^ n)"
+lemma convergent_realpow:
+  "[| 0 \<le> (x::real); x \<le> 1 |] ==> convergent (%n. x ^ n)"
 by (blast intro!: Bseq_monoseq_convergent Bseq_realpow monoseq_realpow)
 
 text{* We now use NS criterion to bring proof of theorem through *}
 
-lemma NSLIMSEQ_realpow_zero: "[| 0 \<le> x; x < 1 |] ==> (%n. x ^ n) ----NS> 0"
+lemma NSLIMSEQ_realpow_zero:
+  "[| 0 \<le> (x::real); x < 1 |] ==> (%n. x ^ n) ----NS> 0"
 apply (simp add: NSLIMSEQ_def)
 apply (auto dest!: convergent_realpow simp add: convergent_NSconvergent_iff)
 apply (frule NSconvergentD)
@@ -1135,10 +1139,12 @@ apply (auto simp del: star_of_mult simp add: star_of_mult [symmetric])
 done
 
 text{* standard version *}
-lemma LIMSEQ_realpow_zero: "[| 0 \<le> x; x < 1 |] ==> (%n. x ^ n) ----> 0"
+lemma LIMSEQ_realpow_zero:
+  "[| 0 \<le> (x::real); x < 1 |] ==> (%n. x ^ n) ----> 0"
 by (simp add: NSLIMSEQ_realpow_zero LIMSEQ_NSLIMSEQ_iff)
 
-lemma LIMSEQ_divide_realpow_zero: "1 < x ==> (%n. a / (x ^ n)) ----> 0"
+lemma LIMSEQ_divide_realpow_zero:
+  "1 < (x::real) ==> (%n. a / (x ^ n)) ----> 0"
 apply (cut_tac a = a and x1 = "inverse x" in
         LIMSEQ_mult [OF LIMSEQ_const LIMSEQ_realpow_zero])
 apply (auto simp add: divide_inverse power_inverse)
@@ -1147,18 +1153,18 @@ done
 
 text{*Limit of @{term "c^n"} for @{term"\<bar>c\<bar> < 1"}*}
 
-lemma LIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < 1 ==> (%n. \<bar>c\<bar> ^ n) ----> 0"
+lemma LIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < (1::real) ==> (%n. \<bar>c\<bar> ^ n) ----> 0"
 by (blast intro!: LIMSEQ_realpow_zero abs_ge_zero)
 
-lemma NSLIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < 1 ==> (%n. \<bar>c\<bar> ^ n) ----NS> 0"
+lemma NSLIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < (1::real) ==> (%n. \<bar>c\<bar> ^ n) ----NS> 0"
 by (simp add: LIMSEQ_rabs_realpow_zero LIMSEQ_NSLIMSEQ_iff [symmetric])
 
-lemma LIMSEQ_rabs_realpow_zero2: "\<bar>c\<bar> < 1 ==> (%n. c ^ n) ----> 0"
+lemma LIMSEQ_rabs_realpow_zero2: "\<bar>c\<bar> < (1::real) ==> (%n. c ^ n) ----> 0"
 apply (rule LIMSEQ_rabs_zero [THEN iffD1])
 apply (auto intro: LIMSEQ_rabs_realpow_zero simp add: power_abs)
 done
 
-lemma NSLIMSEQ_rabs_realpow_zero2: "\<bar>c\<bar> < 1 ==> (%n. c ^ n) ----NS> 0"
+lemma NSLIMSEQ_rabs_realpow_zero2: "\<bar>c\<bar> < (1::real) ==> (%n. c ^ n) ----NS> 0"
 by (simp add: LIMSEQ_rabs_realpow_zero2 LIMSEQ_NSLIMSEQ_iff [symmetric])
 
 subsection{*Hyperreals and Sequences*}

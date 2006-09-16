@@ -25,7 +25,8 @@ definition
   HInfinite :: "('a::real_normed_vector) star set"
   "HInfinite = {x. \<forall>r \<in> Reals. r < hnorm x}"
 
-  approx :: "[hypreal, hypreal] => bool"    (infixl "@=" 50)
+  approx :: "['a::real_normed_vector star, 'a star] => bool"
+    (infixl "@=" 50)
     --{*the `infinitely close' relation*}
   "(x @= y) = ((x + -y) \<in> Infinitesimal)"
 
@@ -33,10 +34,10 @@ definition
     --{*the standard part of a hyperreal*}
   "st = (%x. @r. x \<in> HFinite & r \<in> Reals & r @= x)"
 
-  monad     :: "hypreal => hypreal set"
+  monad     :: "'a::real_normed_vector star => 'a star set"
   "monad x = {y. x @= y}"
 
-  galaxy    :: "hypreal => hypreal set"
+  galaxy    :: "'a::real_normed_vector star => 'a star set"
   "galaxy x = {y. (x + -y) \<in> HFinite}"
 
 const_syntax (xsymbols)
@@ -609,7 +610,7 @@ by (simp add: approx_def add_commute)
 lemma approx_refl [iff]: "x @= x"
 by (simp add: approx_def Infinitesimal_def)
 
-lemma hypreal_minus_distrib1: "-(y + -(x::hypreal)) = x + -y"
+lemma hypreal_minus_distrib1: "-(y + -(x::'a::ab_group_add)) = x + -y"
 by (simp add: add_commute)
 
 lemma approx_sym: "x @= y ==> y @= x"
@@ -689,7 +690,7 @@ done
 lemma approx_add: "[| a @= b; c @= d |] ==> a+c @= b+d"
 proof (unfold approx_def)
   assume inf: "a + - b \<in> Infinitesimal" "c + - d \<in> Infinitesimal"
-  have "a + c + - (b + d) = (a + - b) + (c + - d)" by arith
+  have "a + c + - (b + d) = (a + - b) + (c + - d)" by simp
   also have "... \<in> Infinitesimal" using inf by (rule Infinitesimal_add)
   finally show "a + c + - (b + d) \<in> Infinitesimal" .
 qed
@@ -709,23 +710,38 @@ by (blast intro: approx_minus approx_minus2)
 lemma approx_add_minus: "[| a @= b; c @= d |] ==> a + -c @= b + -d"
 by (blast intro!: approx_add approx_minus)
 
-lemma approx_mult1: "[| a @= b; c: HFinite|] ==> a*c @= b*c"
+lemma approx_mult1:
+  fixes a b c :: "'a::real_normed_algebra star"
+  shows "[| a @= b; c: HFinite|] ==> a*c @= b*c"
 by (simp add: approx_def Infinitesimal_HFinite_mult minus_mult_left 
               left_distrib [symmetric] 
          del: minus_mult_left [symmetric])
 
-lemma approx_mult2: "[|a @= b; c: HFinite|] ==> c*a @= c*b"
-by (simp add: approx_mult1 mult_commute)
+lemma approx_mult2:
+  fixes a b c :: "'a::real_normed_algebra star"
+  shows "[|a @= b; c: HFinite|] ==> c*a @= c*b"
+by (simp add: approx_def Infinitesimal_HFinite_mult2 minus_mult_right 
+              right_distrib [symmetric] 
+         del: minus_mult_right [symmetric])
 
-lemma approx_mult_subst: "[|u @= v*x; x @= y; v \<in> HFinite|] ==> u @= v*y"
+lemma approx_mult_subst:
+  fixes u v x y :: "'a::real_normed_algebra star"
+  shows "[|u @= v*x; x @= y; v \<in> HFinite|] ==> u @= v*y"
 by (blast intro: approx_mult2 approx_trans)
 
-lemma approx_mult_subst2: "[| u @= x*v; x @= y; v \<in> HFinite |] ==> u @= y*v"
+lemma approx_mult_subst2:
+  fixes u v x y :: "'a::real_normed_algebra star"
+  shows "[| u @= x*v; x @= y; v \<in> HFinite |] ==> u @= y*v"
 by (blast intro: approx_mult1 approx_trans)
+
+lemma approx_mult_subst_star_of:
+  fixes u x y :: "'a::real_normed_algebra star"
+  shows "[| u @= x*star_of v; x @= y |] ==> u @= y*star_of v"
+by (auto intro: approx_mult_subst2)
 
 lemma approx_mult_subst_SReal:
      "[| u @= x*hypreal_of_real v; x @= y |] ==> u @= y*hypreal_of_real v"
-by (auto intro: approx_mult_subst2)
+by (rule approx_mult_subst_star_of)
 
 lemma approx_eq_imp: "a = b ==> a @= b"
 by (simp add: approx_def)
@@ -802,51 +818,60 @@ apply (drule HFinite_add)
 apply (auto simp add: add_assoc)
 done
 
-lemma approx_hypreal_of_real_HFinite: "x @= hypreal_of_real D ==> x \<in> HFinite"
+lemma approx_star_of_HFinite: "x @= star_of D ==> x \<in> HFinite"
 by (rule approx_sym [THEN [2] approx_HFinite], auto)
 
+lemma approx_hypreal_of_real_HFinite: "x @= hypreal_of_real D ==> x \<in> HFinite"
+by (rule approx_star_of_HFinite)
+
 lemma approx_mult_HFinite:
-     "[|a @= b; c @= d; b: HFinite; d: HFinite|] ==> a*c @= b*d"
+  fixes a b c d :: "'a::real_normed_algebra star"
+  shows "[|a @= b; c @= d; b: HFinite; d: HFinite|] ==> a*c @= b*d"
 apply (rule approx_trans)
 apply (rule_tac [2] approx_mult2)
 apply (rule approx_mult1)
 prefer 2 apply (blast intro: approx_HFinite approx_sym, auto)
 done
 
+lemma approx_mult_star_of:
+  fixes a c :: "'a::real_normed_algebra star"
+  shows "[|a @= star_of b; c @= star_of d |]
+      ==> a*c @= star_of b*star_of d"
+by (blast intro!: approx_mult_HFinite approx_star_of_HFinite HFinite_star_of)
+
 lemma approx_mult_hypreal_of_real:
      "[|a @= hypreal_of_real b; c @= hypreal_of_real d |]
       ==> a*c @= hypreal_of_real b*hypreal_of_real d"
-by (blast intro!: approx_mult_HFinite approx_hypreal_of_real_HFinite 
-                  HFinite_hypreal_of_real)
+by (rule approx_mult_star_of)
 
 lemma approx_SReal_mult_cancel_zero:
-     "[| a \<in> Reals; a \<noteq> 0; a*x @= 0 |] ==> x @= 0"
+     "[| (a::hypreal) \<in> Reals; a \<noteq> 0; a*x @= 0 |] ==> x @= 0"
 apply (drule SReal_inverse [THEN SReal_subset_HFinite [THEN subsetD]])
 apply (auto dest: approx_mult2 simp add: mult_assoc [symmetric])
 done
 
-lemma approx_mult_SReal1: "[| a \<in> Reals; x @= 0 |] ==> x*a @= 0"
+lemma approx_mult_SReal1: "[| (a::hypreal) \<in> Reals; x @= 0 |] ==> x*a @= 0"
 by (auto dest: SReal_subset_HFinite [THEN subsetD] approx_mult1)
 
-lemma approx_mult_SReal2: "[| a \<in> Reals; x @= 0 |] ==> a*x @= 0"
+lemma approx_mult_SReal2: "[| (a::hypreal) \<in> Reals; x @= 0 |] ==> a*x @= 0"
 by (auto dest: SReal_subset_HFinite [THEN subsetD] approx_mult2)
 
 lemma approx_mult_SReal_zero_cancel_iff [simp]:
-     "[|a \<in> Reals; a \<noteq> 0 |] ==> (a*x @= 0) = (x @= 0)"
+     "[|(a::hypreal) \<in> Reals; a \<noteq> 0 |] ==> (a*x @= 0) = (x @= 0)"
 by (blast intro: approx_SReal_mult_cancel_zero approx_mult_SReal2)
 
 lemma approx_SReal_mult_cancel:
-     "[| a \<in> Reals; a \<noteq> 0; a* w @= a*z |] ==> w @= z"
+     "[| (a::hypreal) \<in> Reals; a \<noteq> 0; a* w @= a*z |] ==> w @= z"
 apply (drule SReal_inverse [THEN SReal_subset_HFinite [THEN subsetD]])
 apply (auto dest: approx_mult2 simp add: mult_assoc [symmetric])
 done
 
 lemma approx_SReal_mult_cancel_iff1 [simp]:
-     "[| a \<in> Reals; a \<noteq> 0|] ==> (a* w @= a*z) = (w @= z)"
+     "[| (a::hypreal) \<in> Reals; a \<noteq> 0|] ==> (a* w @= a*z) = (w @= z)"
 by (auto intro!: approx_mult2 SReal_subset_HFinite [THEN subsetD]
          intro: approx_SReal_mult_cancel)
 
-lemma approx_le_bound: "[| z \<le> f; f @= g; g \<le> z |] ==> f @= z"
+lemma approx_le_bound: "[| (z::hypreal) \<le> f; f @= g; g \<le> z |] ==> f @= z"
 apply (simp add: bex_Infinitesimal_iff2 [symmetric], auto)
 apply (rule_tac x = "g+y-z" in bexI)
 apply (simp (no_asm))
@@ -905,6 +930,10 @@ apply (simp add: hnorm_def)
 apply simp
 done
 
+lemma star_of_HFinite_diff_Infinitesimal:
+     "x \<noteq> 0 ==> star_of x \<in> HFinite - Infinitesimal"
+by simp
+
 lemma hypreal_of_real_Infinitesimal_iff_0:
      "(hypreal_of_real x \<in> Infinitesimal) = (x=0)"
 by (rule star_of_Infinitesimal_iff_0)
@@ -920,7 +949,8 @@ apply (simp only: star_one_def star_of_Infinitesimal_iff_0)
 apply simp
 done
 
-lemma approx_SReal_not_zero: "[| y \<in> Reals; x @= y; y\<noteq> 0 |] ==> x \<noteq> 0"
+lemma approx_SReal_not_zero:
+  "[| (y::hypreal) \<in> Reals; x @= y; y\<noteq> 0 |] ==> x \<noteq> 0"
 apply (cut_tac x = 0 and y = y in linorder_less_linear, simp)
 apply (blast dest: approx_sym [THEN mem_infmal_iff [THEN iffD2]] SReal_not_Infinitesimal SReal_minus_not_Infinitesimal)
 done
@@ -958,7 +988,16 @@ done
 
 subsection{* Uniqueness: Two Infinitely Close Reals are Equal*}
 
-lemma SReal_approx_iff: "[|x \<in> Reals; y \<in> Reals|] ==> (x @= y) = (x = y)"
+lemma star_of_approx_iff [simp]: "(star_of x @= star_of y) = (x = y)"
+apply safe
+apply (simp add: approx_def)
+apply (simp only: star_of_minus [symmetric] star_of_add [symmetric])
+apply (simp only: star_of_Infinitesimal_iff_0)
+apply (simp only: diff_minus [symmetric] right_minus_eq)
+done
+
+lemma SReal_approx_iff:
+  "[|(x::hypreal) \<in> Reals; y \<in> Reals|] ==> (x @= y) = (x = y)"
 apply auto
 apply (simp add: approx_def)
 apply (drule_tac x = y in SReal_minus)
@@ -969,23 +1008,31 @@ apply (simp add: hypreal_eq_minus_iff [symmetric])
 done
 
 lemma number_of_approx_iff [simp]:
-     "(number_of v @= number_of w) = (number_of v = (number_of w :: hypreal))"
-by (auto simp add: SReal_approx_iff)
+     "(number_of v @= (number_of w :: 'a::{number,real_normed_vector} star)) =
+      (number_of v = (number_of w :: 'a))"
+apply (unfold star_number_def)
+apply (rule star_of_approx_iff)
+done
 
 (*And also for 0 @= #nn and 1 @= #nn, #nn @= 0 and #nn @= 1.*)
-lemma [simp]: "(0 @= number_of w) = ((number_of w :: hypreal) = 0)"
-              "(number_of w @= 0) = ((number_of w :: hypreal) = 0)"
-              "(1 @= number_of w) = ((number_of w :: hypreal) = 1)"
-              "(number_of w @= 1) = ((number_of w :: hypreal) = 1)"
-              "~ (0 @= 1)" "~ (1 @= 0)"
-by (auto simp only: SReal_number_of SReal_approx_iff Reals_0 Reals_1)
+lemma [simp]:
+  "(number_of w @= (0::'a::{number,real_normed_vector} star)) =
+   (number_of w = (0::'a))"
+  "((0::'a::{number,real_normed_vector} star) @= number_of w) =
+   (number_of w = (0::'a))"
+  "(number_of w @= (1::'b::{number,one,real_normed_vector} star)) =
+   (number_of w = (1::'b))"
+  "((1::'b::{number,one,real_normed_vector} star) @= number_of w) =
+   (number_of w = (1::'b))"
+  "~ (0 @= (1::'c::{axclass_0_neq_1,real_normed_vector} star))"
+  "~ (1 @= (0::'c::{axclass_0_neq_1,real_normed_vector} star))"
+apply (unfold star_number_def star_zero_def star_one_def)
+apply (unfold star_of_approx_iff)
+by (auto intro: sym)
 
-lemma hypreal_of_real_approx_iff [simp]:
+lemma hypreal_of_real_approx_iff:
      "(hypreal_of_real k @= hypreal_of_real m) = (k = m)"
-apply auto
-apply (rule inj_hypreal_of_real [THEN injD])
-apply (rule SReal_approx_iff [THEN iffD1], auto)
-done
+by (rule star_of_approx_iff)
 
 lemma hypreal_of_real_approx_number_of_iff [simp]:
      "(hypreal_of_real k @= number_of w) = (k = number_of w)"
@@ -998,7 +1045,7 @@ lemma [simp]: "(hypreal_of_real k @= 0) = (k = 0)"
   by (simp_all add:  hypreal_of_real_approx_iff [symmetric])
 
 lemma approx_unique_real:
-     "[| r \<in> Reals; s \<in> Reals; r @= x; s @= x|] ==> r = s"
+     "[| (r::hypreal) \<in> Reals; s \<in> Reals; r @= x; s @= x|] ==> r = s"
 by (blast intro: SReal_approx_iff [THEN iffD1] approx_trans2)
 
 
@@ -1171,13 +1218,13 @@ apply (blast dest: lemma_st_part_major2)
 done
 
 lemma st_part_Ex:
-     "x \<in> HFinite ==> \<exists>t \<in> Reals. x @= t"
+     "(x::hypreal) \<in> HFinite ==> \<exists>t \<in> Reals. x @= t"
 apply (simp add: approx_def Infinitesimal_def)
 apply (drule lemma_st_part_Ex, auto)
 done
 
 text{*There is a unique real infinitely close*}
-lemma st_part_Ex1: "x \<in> HFinite ==> EX! t. t \<in> Reals & x @= t"
+lemma st_part_Ex1: "x \<in> HFinite ==> EX! t::hypreal. t \<in> Reals & x @= t"
 apply (drule st_part_Ex, safe)
 apply (drule_tac [2] approx_sym, drule_tac [2] approx_sym, drule_tac [2] approx_sym)
 apply (auto intro!: approx_unique_real)
@@ -1247,6 +1294,8 @@ apply (simp add: not_Infinitesimal_not_zero right_inverse)
 done
 
 lemma approx_inverse:
+  fixes x y :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  shows
      "[| x @= y; y \<in>  HFinite - Infinitesimal |]
       ==> inverse x @= inverse y"
 apply (frule HFinite_diff_Infinitesimal_approx, assumption)
@@ -1259,15 +1308,20 @@ apply (auto intro: approx_sym simp add: mult_assoc)
 done
 
 (*Used for NSLIM_inverse, NSLIMSEQ_inverse*)
+lemmas star_of_approx_inverse = star_of_HFinite_diff_Infinitesimal [THEN [2] approx_inverse]
 lemmas hypreal_of_real_approx_inverse =  hypreal_of_real_HFinite_diff_Infinitesimal [THEN [2] approx_inverse]
 
 lemma inverse_add_Infinitesimal_approx:
+  fixes x h :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  shows
      "[| x \<in> HFinite - Infinitesimal;
          h \<in> Infinitesimal |] ==> inverse(x + h) @= inverse x"
 apply (auto intro: approx_inverse approx_sym Infinitesimal_add_approx_self)
 done
 
 lemma inverse_add_Infinitesimal_approx2:
+  fixes x h :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  shows
      "[| x \<in> HFinite - Infinitesimal;
          h \<in> Infinitesimal |] ==> inverse(h + x) @= inverse x"
 apply (rule add_commute [THEN subst])
@@ -1275,6 +1329,8 @@ apply (blast intro: inverse_add_Infinitesimal_approx)
 done
 
 lemma inverse_add_Infinitesimal_approx_Infinitesimal:
+  fixes x h :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  shows
      "[| x \<in> HFinite - Infinitesimal;
          h \<in> Infinitesimal |] ==> inverse(x + h) + -inverse x @= h"
 apply (rule approx_trans2)
@@ -1305,7 +1361,8 @@ lemma HInfinite_square_iff [simp]:
 by (auto simp add: HInfinite_HFinite_iff)
 
 lemma approx_HFinite_mult_cancel:
-     "[| a: HFinite-Infinitesimal; a* w @= a*z |] ==> w @= z"
+  fixes a w z :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  shows "[| a: HFinite-Infinitesimal; a* w @= a*z |] ==> w @= z"
 apply safe
 apply (frule HFinite_inverse, assumption)
 apply (drule not_Infinitesimal_not_zero)
@@ -1313,7 +1370,8 @@ apply (auto dest: approx_mult2 simp add: mult_assoc [symmetric])
 done
 
 lemma approx_HFinite_mult_cancel_iff1:
-     "a: HFinite-Infinitesimal ==> (a * w @= a * z) = (w @= z)"
+  fixes a w z :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  shows "a: HFinite-Infinitesimal ==> (a * w @= a * z) = (w @= z)"
 by (auto intro: approx_mult2 approx_HFinite_mult_cancel)
 
 lemma HInfinite_HFinite_add_cancel:
@@ -1376,13 +1434,13 @@ lemma not_HInfinite_one [simp]: "1 \<notin> HInfinite"
 apply (simp (no_asm) add: HInfinite_HFinite_iff)
 done
 
-lemma approx_hrabs_disj: "abs x @= x | abs x @= -x"
+lemma approx_hrabs_disj: "abs (x::hypreal) @= x | abs x @= -x"
 by (cut_tac x = x in hrabs_disj, auto)
 
 
 subsection{*Theorems about Monads*}
 
-lemma monad_hrabs_Un_subset: "monad (abs x) \<le> monad(x) Un monad(-x)"
+lemma monad_hrabs_Un_subset: "monad (abs x) \<le> monad(x::hypreal) Un monad(-x)"
 by (rule_tac x1 = x in hrabs_disj [THEN disjE], auto)
 
 lemma Infinitesimal_monad_eq: "e \<in> Infinitesimal ==> monad (x+e) = monad x"
@@ -1398,7 +1456,7 @@ lemma monad_zero_minus_iff: "(x \<in> monad 0) = (-x \<in> monad 0)"
 apply (simp (no_asm) add: Infinitesimal_monad_zero_iff [symmetric])
 done
 
-lemma monad_zero_hrabs_iff: "(x \<in> monad 0) = (abs x \<in> monad 0)"
+lemma monad_zero_hrabs_iff: "((x::hypreal) \<in> monad 0) = (abs x \<in> monad 0)"
 apply (rule_tac x1 = x in hrabs_disj [THEN disjE])
 apply (auto simp add: monad_zero_minus_iff [symmetric])
 done
@@ -1436,7 +1494,7 @@ apply (fast intro: approx_mem_monad approx_trans)
 done
 
 lemma Infinitesimal_approx_hrabs:
-     "[| x @= y; x \<in> Infinitesimal |] ==> abs x @= abs y"
+     "[| x @= y; (x::hypreal) \<in> Infinitesimal |] ==> abs x @= abs y"
 apply (drule Infinitesimal_monad_zero_iff [THEN iffD1])
 apply (blast intro: approx_mem_monad_zero monad_zero_hrabs_iff [THEN iffD1] mem_monad_approx approx_trans3)
 done
@@ -1449,28 +1507,28 @@ apply (auto intro: Infinitesimal_zero [THEN [2] Infinitesimal_interval]
 done
 
 lemma Ball_mem_monad_gt_zero:
-     "[| 0 < x;  x \<notin> Infinitesimal; u \<in> monad x |] ==> 0 < u"
+     "[| 0 < (x::hypreal);  x \<notin> Infinitesimal; u \<in> monad x |] ==> 0 < u"
 apply (drule mem_monad_approx [THEN approx_sym])
 apply (erule bex_Infinitesimal_iff2 [THEN iffD2, THEN bexE])
 apply (drule_tac e = "-xa" in less_Infinitesimal_less, auto)
 done
 
 lemma Ball_mem_monad_less_zero:
-     "[| x < 0; x \<notin> Infinitesimal; u \<in> monad x |] ==> u < 0"
+     "[| (x::hypreal) < 0; x \<notin> Infinitesimal; u \<in> monad x |] ==> u < 0"
 apply (drule mem_monad_approx [THEN approx_sym])
 apply (erule bex_Infinitesimal_iff [THEN iffD2, THEN bexE])
 apply (cut_tac x = "-x" and e = xa in less_Infinitesimal_less, auto)
 done
 
 lemma lemma_approx_gt_zero:
-     "[|0 < x; x \<notin> Infinitesimal; x @= y|] ==> 0 < y"
+     "[|0 < (x::hypreal); x \<notin> Infinitesimal; x @= y|] ==> 0 < y"
 by (blast dest: Ball_mem_monad_gt_zero approx_subset_monad)
 
 lemma lemma_approx_less_zero:
-     "[|x < 0; x \<notin> Infinitesimal; x @= y|] ==> y < 0"
+     "[|(x::hypreal) < 0; x \<notin> Infinitesimal; x @= y|] ==> y < 0"
 by (blast dest: Ball_mem_monad_less_zero approx_subset_monad)
 
-theorem approx_hrabs: "x @= y ==> abs x @= abs y"
+theorem approx_hrabs: "(x::hypreal) @= y ==> abs x @= abs y"
 apply (case_tac "x \<in> Infinitesimal") 
 apply (simp add: Infinitesimal_approx_hrabs)
 apply (rule linorder_cases [of 0 x])  
@@ -1478,20 +1536,21 @@ apply (frule lemma_approx_gt_zero [of x y])
 apply (auto simp add: lemma_approx_less_zero [of x y] abs_of_neg)
 done
 
-lemma approx_hrabs_zero_cancel: "abs(x) @= 0 ==> x @= 0"
+lemma approx_hrabs_zero_cancel: "abs(x::hypreal) @= 0 ==> x @= 0"
 apply (cut_tac x = x in hrabs_disj)
 apply (auto dest: approx_minus)
 done
 
-lemma approx_hrabs_add_Infinitesimal: "e \<in> Infinitesimal ==> abs x @= abs(x+e)"
+lemma approx_hrabs_add_Infinitesimal:
+  "(e::hypreal) \<in> Infinitesimal ==> abs x @= abs(x+e)"
 by (fast intro: approx_hrabs Infinitesimal_add_approx_self)
 
 lemma approx_hrabs_add_minus_Infinitesimal:
-     "e \<in> Infinitesimal ==> abs x @= abs(x + -e)"
+     "(e::hypreal) \<in> Infinitesimal ==> abs x @= abs(x + -e)"
 by (fast intro: approx_hrabs Infinitesimal_add_minus_approx_self)
 
 lemma hrabs_add_Infinitesimal_cancel:
-     "[| e \<in> Infinitesimal; e' \<in> Infinitesimal;
+     "[| (e::hypreal) \<in> Infinitesimal; e' \<in> Infinitesimal;
          abs(x+e) = abs(y+e')|] ==> abs x @= abs y"
 apply (drule_tac x = x in approx_hrabs_add_Infinitesimal)
 apply (drule_tac x = y in approx_hrabs_add_Infinitesimal)
@@ -1499,7 +1558,7 @@ apply (auto intro: approx_trans2)
 done
 
 lemma hrabs_add_minus_Infinitesimal_cancel:
-     "[| e \<in> Infinitesimal; e' \<in> Infinitesimal;
+     "[| (e::hypreal) \<in> Infinitesimal; e' \<in> Infinitesimal;
          abs(x + -e) = abs(y + -e')|] ==> abs x @= abs y"
 apply (drule_tac x = x in approx_hrabs_add_minus_Infinitesimal)
 apply (drule_tac x = y in approx_hrabs_add_minus_Infinitesimal)
@@ -1857,55 +1916,45 @@ done
 
 subsection{*Alternative Definitions for @{term HFinite} using Free Ultrafilter*}
 
-lemma FreeUltrafilterNat_Rep_hypreal:
-     "[| X \<in> Rep_star x; Y \<in> Rep_star x |]
-      ==> {n. X n = Y n} \<in> FreeUltrafilterNat"
-by (cases x, unfold star_n_def, auto, ultra)
-
 lemma HFinite_FreeUltrafilterNat:
-    "(x::hypreal) \<in> HFinite 
-     ==> \<exists>X \<in> Rep_star x. \<exists>u. {n. abs (X n) < u} \<in> FreeUltrafilterNat"
-apply (cases x)
-apply (auto simp add: HFinite_def abs_less_iff minus_less_iff [of x] 
-              star_of_def
-              star_n_less SReal_iff star_n_minus)
-apply (rule_tac x=X in bexI)
-apply (rule_tac x=y in exI, ultra)
-apply simp
+    "star_n X \<in> HFinite 
+     ==> \<exists>u. {n. norm (X n) < u} \<in> FreeUltrafilterNat"
+apply (auto simp add: HFinite_def SReal_def)
+apply (rule_tac x=r in exI)
+apply (simp add: hnorm_def star_of_def starfun_star_n)
+apply (simp add: star_less_def starP2_star_n)
 done
 
 lemma FreeUltrafilterNat_HFinite:
-     "\<exists>X \<in> Rep_star x.
-       \<exists>u. {n. abs (X n) < u} \<in> FreeUltrafilterNat
-       ==>  (x::hypreal) \<in> HFinite"
-apply (cases x)
-apply (auto simp add: HFinite_def abs_less_iff minus_less_iff [of x])
-apply (rule_tac x = "hypreal_of_real u" in bexI)
-apply (auto simp add: star_n_less SReal_iff star_n_minus star_of_def)
-apply ultra+
+     "\<exists>u. {n. norm (X n) < u} \<in> FreeUltrafilterNat
+       ==>  star_n X \<in> HFinite"
+apply (auto simp add: HFinite_def mem_Rep_star_iff)
+apply (rule_tac x="star_of u" in bexI)
+apply (simp add: hnorm_def starfun_star_n star_of_def)
+apply (simp add: star_less_def starP2_star_n)
+apply (simp add: SReal_def)
 done
 
 lemma HFinite_FreeUltrafilterNat_iff:
-     "((x::hypreal) \<in> HFinite) = (\<exists>X \<in> Rep_star x.
-           \<exists>u. {n. abs (X n) < u} \<in> FreeUltrafilterNat)"
+     "(star_n X \<in> HFinite) = (\<exists>u. {n. norm (X n) < u} \<in> FreeUltrafilterNat)"
 by (blast intro!: HFinite_FreeUltrafilterNat FreeUltrafilterNat_HFinite)
 
 
 subsection{*Alternative Definitions for @{term HInfinite} using Free Ultrafilter*}
 
-lemma lemma_Compl_eq: "- {n. (u::real) < abs (xa n)} = {n. abs (xa n) \<le> u}"
+lemma lemma_Compl_eq: "- {n. u < norm (xa n)} = {n. norm (xa n) \<le> u}"
 by auto
 
-lemma lemma_Compl_eq2: "- {n. abs (xa n) < (u::real)} = {n. u \<le> abs (xa n)}"
+lemma lemma_Compl_eq2: "- {n. norm (xa n) < u} = {n. u \<le> norm (xa n)}"
 by auto
 
 lemma lemma_Int_eq1:
-     "{n. abs (xa n) \<le> (u::real)} Int {n. u \<le> abs (xa n)}
-          = {n. abs(xa n) = u}"
+     "{n. norm (xa n) \<le> u} Int {n. u \<le> norm (xa n)}
+          = {n. norm(xa n) = u}"
 by auto
 
 lemma lemma_FreeUltrafilterNat_one:
-     "{n. abs (xa n) = u} \<le> {n. abs (xa n) < u + (1::real)}"
+     "{n. norm (xa n) = u} \<le> {n. norm (xa n) < u + (1::real)}"
 by auto
 
 (*-------------------------------------
@@ -1913,87 +1962,63 @@ by auto
   ultrafilter for Infinite numbers!
  -------------------------------------*)
 lemma FreeUltrafilterNat_const_Finite:
-     "[| xa: Rep_star x;
-                  {n. abs (xa n) = u} \<in> FreeUltrafilterNat
-               |] ==> (x::hypreal) \<in> HFinite"
+     "{n. norm (X n) = u} \<in> FreeUltrafilterNat ==> star_n X \<in> HFinite"
 apply (rule FreeUltrafilterNat_HFinite)
-apply (rule_tac x = xa in bexI)
 apply (rule_tac x = "u + 1" in exI)
-apply (ultra, assumption)
+apply (erule ultra, simp)
 done
 
 lemma HInfinite_FreeUltrafilterNat:
-     "(x::hypreal) \<in> HInfinite ==> \<exists>X \<in> Rep_star x.
-           \<forall>u. {n. u < abs (X n)} \<in> FreeUltrafilterNat"
-apply (frule HInfinite_HFinite_iff [THEN iffD1])
-apply (cut_tac x = x in Rep_hypreal_nonempty)
-apply (auto simp del: Rep_hypreal_nonempty simp add: HFinite_FreeUltrafilterNat_iff Bex_def)
-apply (drule spec)+
-apply auto
-apply (drule_tac x = u in spec)
-apply (drule FreeUltrafilterNat_Compl_mem)+
-apply (drule FreeUltrafilterNat_Int, assumption)
-apply (simp add: lemma_Compl_eq lemma_Compl_eq2 lemma_Int_eq1)
-apply (auto dest: FreeUltrafilterNat_const_Finite simp
-      add: HInfinite_HFinite_iff [THEN iffD1])
+     "star_n X \<in> HInfinite ==> \<forall>u. {n. u < norm (X n)} \<in> FreeUltrafilterNat"
+apply (drule HInfinite_HFinite_iff [THEN iffD1])
+apply (simp add: HFinite_FreeUltrafilterNat_iff)
+apply (rule allI, drule_tac x="u + 1" in spec)
+apply (drule FreeUltrafilterNat_Compl_mem)
+apply (simp add: Collect_neg_eq [symmetric] linorder_not_less)
+apply (erule ultra, simp)
 done
 
 lemma lemma_Int_HI:
-     "{n. abs (Xa n) < u} Int {n. X n = Xa n} \<subseteq> {n. abs (X n) < (u::real)}"
+     "{n. norm (Xa n) < u} Int {n. X n = Xa n} \<subseteq> {n. norm (X n) < (u::real)}"
 by auto
 
-lemma lemma_Int_HIa: "{n. u < abs (X n)} Int {n. abs (X n) < (u::real)} = {}"
+lemma lemma_Int_HIa: "{n. u < norm (X n)} Int {n. norm (X n) < u} = {}"
 by (auto intro: order_less_asym)
 
 lemma FreeUltrafilterNat_HInfinite:
-     "\<exists>X \<in> Rep_star x. \<forall>u.
-               {n. u < abs (X n)} \<in> FreeUltrafilterNat
-               ==>  (x::hypreal) \<in> HInfinite"
+     "\<forall>u. {n. u < norm (X n)} \<in> FreeUltrafilterNat ==> star_n X \<in> HInfinite"
 apply (rule HInfinite_HFinite_iff [THEN iffD2])
-apply (safe, drule HFinite_FreeUltrafilterNat, auto)
+apply (safe, drule HFinite_FreeUltrafilterNat, safe)
 apply (drule_tac x = u in spec)
-apply (drule FreeUltrafilterNat_Rep_hypreal, assumption)
-apply (drule_tac Y = "{n. X n = Xa n}" in FreeUltrafilterNat_Int, simp) 
-apply (drule lemma_Int_HI [THEN [2] FreeUltrafilterNat_subset])
-apply (drule_tac Y = "{n. abs (X n) < u}" in FreeUltrafilterNat_Int)
-apply (auto simp add: lemma_Int_HIa)
+apply ultra
 done
 
 lemma HInfinite_FreeUltrafilterNat_iff:
-     "((x::hypreal) \<in> HInfinite) = (\<exists>X \<in> Rep_star x.
-           \<forall>u. {n. u < abs (X n)} \<in> FreeUltrafilterNat)"
+     "(star_n X \<in> HInfinite) = (\<forall>u. {n. u < norm (X n)} \<in> FreeUltrafilterNat)"
 by (blast intro!: HInfinite_FreeUltrafilterNat FreeUltrafilterNat_HInfinite)
 
 
 subsection{*Alternative Definitions for @{term Infinitesimal} using Free Ultrafilter*}
 
+lemma ball_SReal_eq: "(\<forall>x::hypreal \<in> Reals. P x) = (\<forall>x::real. P (star_of x))"
+by (unfold SReal_def, auto)
+
 lemma Infinitesimal_FreeUltrafilterNat:
-          "(x::hypreal) \<in> Infinitesimal ==> \<exists>X \<in> Rep_star x.
-           \<forall>u. 0 < u --> {n. abs (X n) < u} \<in> FreeUltrafilterNat"
-apply (simp add: Infinitesimal_def)
-apply (auto simp add: abs_less_iff minus_less_iff [of x])
-apply (cases x)
-apply (auto, rule bexI [OF _ Rep_star_star_n], safe)
-apply (drule star_of_less [THEN iffD2])
-apply (drule_tac x = "hypreal_of_real u" in bspec, auto)
-apply (auto simp add: star_n_less star_n_minus star_of_def, ultra)
+     "star_n X \<in> Infinitesimal ==> \<forall>u>0. {n. norm (X n) < u} \<in> \<U>"
+apply (simp add: Infinitesimal_def ball_SReal_eq)
+apply (simp add: hnorm_def starfun_star_n star_of_def)
+apply (simp add: star_less_def starP2_star_n)
 done
 
 lemma FreeUltrafilterNat_Infinitesimal:
-     "\<exists>X \<in> Rep_star x.
-            \<forall>u. 0 < u --> {n. abs (X n) < u} \<in> FreeUltrafilterNat
-      ==> (x::hypreal) \<in> Infinitesimal"
-apply (simp add: Infinitesimal_def)
-apply (cases x)
-apply (auto simp add: abs_less_iff abs_interval_iff minus_less_iff [of x])
-apply (auto simp add: SReal_iff)
-apply (drule_tac [!] x=y in spec) 
-apply (auto simp add: star_n_less star_n_minus star_of_def, ultra+)
+     "\<forall>u>0. {n. norm (X n) < u} \<in> \<U> ==> star_n X \<in> Infinitesimal"
+apply (simp add: Infinitesimal_def ball_SReal_eq)
+apply (simp add: hnorm_def starfun_star_n star_of_def)
+apply (simp add: star_less_def starP2_star_n)
 done
 
 lemma Infinitesimal_FreeUltrafilterNat_iff:
-     "((x::hypreal) \<in> Infinitesimal) = (\<exists>X \<in> Rep_star x.
-           \<forall>u. 0 < u --> {n. abs (X n) < u} \<in> FreeUltrafilterNat)"
+     "(star_n X \<in> Infinitesimal) = (\<forall>u>0. {n. norm (X n) < u} \<in> \<U>)"
 by (blast intro!: Infinitesimal_FreeUltrafilterNat FreeUltrafilterNat_Infinitesimal)
 
 (*------------------------------------------------------------------------
@@ -2028,7 +2053,7 @@ done
 
 
 lemma Infinitesimal_hypreal_of_nat_iff:
-     "Infinitesimal = {x. \<forall>n. abs x < inverse (hypreal_of_nat (Suc n))}"
+     "Infinitesimal = {x. \<forall>n. hnorm x < inverse (hypreal_of_nat (Suc n))}"
 apply (simp add: Infinitesimal_def)
 apply (auto simp add: lemma_Infinitesimal2)
 done
@@ -2098,11 +2123,9 @@ apply (auto dest: FreeUltrafilterNat_Compl_mem simp add: Compl_real_le_eq)
 done
 
 theorem HInfinite_omega [simp]: "omega \<in> HInfinite"
-apply (simp add: omega_def star_n_def)
-apply (auto intro!: FreeUltrafilterNat_HInfinite)
-apply (rule bexI)
-apply (rule_tac [2] lemma_starrel_refl, auto)
-apply (simp (no_asm) add: real_of_nat_Suc diff_less_eq [symmetric] FreeUltrafilterNat_omega)
+apply (simp add: omega_def)
+apply (rule FreeUltrafilterNat_HInfinite)
+apply (simp (no_asm) add: real_norm_def real_of_nat_Suc diff_less_eq [symmetric] FreeUltrafilterNat_omega)
 done
 
 (*-----------------------------------------------
@@ -2202,27 +2225,30 @@ text{* Example where we get a hyperreal from a real sequence
     |X(n) - x| < 1/n ==> [<X n>] - hypreal_of_real x| \<in> Infinitesimal
  -----------------------------------------------------*)
 lemma real_seq_to_hypreal_Infinitesimal:
-     "\<forall>n. abs(X n + -x) < inverse(real(Suc n))
-     ==> star_n X + -hypreal_of_real x \<in> Infinitesimal"
+     "\<forall>n. norm(X n + -x) < inverse(real(Suc n))
+     ==> star_n X + -star_of x \<in> Infinitesimal"
 apply (auto intro!: bexI dest: FreeUltrafilterNat_inverse_real_of_posnat FreeUltrafilterNat_all FreeUltrafilterNat_Int intro: order_less_trans FreeUltrafilterNat_subset simp add: star_n_minus star_of_def star_n_add Infinitesimal_FreeUltrafilterNat_iff star_n_inverse)
 done
 
 lemma real_seq_to_hypreal_approx:
-     "\<forall>n. abs(X n + -x) < inverse(real(Suc n))
-      ==> star_n X @= hypreal_of_real x"
+     "\<forall>n. norm(X n + -x) < inverse(real(Suc n))
+      ==> star_n X @= star_of x"
 apply (subst approx_minus_iff)
 apply (rule mem_infmal_iff [THEN subst])
 apply (erule real_seq_to_hypreal_Infinitesimal)
 done
 
 lemma real_seq_to_hypreal_approx2:
-     "\<forall>n. abs(x + -X n) < inverse(real(Suc n))
-               ==> star_n X @= hypreal_of_real x"
-apply (simp add: abs_minus_add_cancel real_seq_to_hypreal_approx)
+     "\<forall>n. norm(x + -X n) < inverse(real(Suc n))
+               ==> star_n X @= star_of x"
+apply (rule real_seq_to_hypreal_approx)
+apply (subst norm_minus_cancel [symmetric])
+apply (simp del: norm_minus_cancel)
+apply (subst add_commute, assumption)
 done
 
 lemma real_seq_to_hypreal_Infinitesimal2:
-     "\<forall>n. abs(X n + -Y n) < inverse(real(Suc n))
+     "\<forall>n. norm(X n + -Y n) < inverse(real(Suc n))
       ==> star_n X + -star_n Y \<in> Infinitesimal"
 by (auto intro!: bexI
 	 dest: FreeUltrafilterNat_inverse_real_of_posnat 

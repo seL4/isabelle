@@ -242,27 +242,20 @@ subsubsection{*Alternative Characterization of @{term HNatInfinite} using
 Free Ultrafilter*}
 
 lemma HNatInfinite_FreeUltrafilterNat:
-     "x \<in> HNatInfinite 
-      ==> \<exists>X \<in> Rep_star x. \<forall>u. {n. u < X n}:  FreeUltrafilterNat"
-apply (cases x)
-apply (auto simp add: HNatInfinite_iff SHNat_eq hypnat_of_nat_eq)
-apply (rule bexI [OF _ Rep_star_star_n], clarify) 
-apply (auto simp add: hypnat_of_nat_def star_n_less)
+     "star_n X \<in> HNatInfinite ==> \<forall>u. {n. u < X n}:  FreeUltrafilterNat"
+apply (auto simp add: HNatInfinite_iff SHNat_eq)
+apply (drule_tac x="star_of u" in spec, simp)
+apply (simp add: star_of_def star_n_less)
 done
 
 lemma FreeUltrafilterNat_HNatInfinite:
-     "\<exists>X \<in> Rep_star x. \<forall>u. {n. u < X n}:  FreeUltrafilterNat
-      ==> x \<in> HNatInfinite"
-apply (cases x)
-apply (auto simp add: star_n_less HNatInfinite_iff SHNat_eq hypnat_of_nat_eq)
-apply (drule spec, ultra, auto) 
-done
+     "\<forall>u. {n. u < X n}:  FreeUltrafilterNat ==> star_n X \<in> HNatInfinite"
+by (auto simp add: star_n_less HNatInfinite_iff SHNat_eq hypnat_of_nat_eq)
 
 lemma HNatInfinite_FreeUltrafilterNat_iff:
-     "(x \<in> HNatInfinite) = 
-      (\<exists>X \<in> Rep_star x. \<forall>u. {n. u < X n}:  FreeUltrafilterNat)"
-by (blast intro: HNatInfinite_FreeUltrafilterNat 
-                 FreeUltrafilterNat_HNatInfinite)
+     "(star_n X \<in> HNatInfinite) = (\<forall>u. {n. u < X n}:  FreeUltrafilterNat)"
+by (rule iffI [OF HNatInfinite_FreeUltrafilterNat 
+                 FreeUltrafilterNat_HNatInfinite])
 
 lemma HNatInfinite_gt_one [simp]: "x \<in> HNatInfinite ==> (1::hypnat) < x"
 by (auto simp add: HNatInfinite_iff)
@@ -370,10 +363,11 @@ by (transfer, simp)
 lemma HNatInfinite_inverse_Infinitesimal [simp]:
      "n \<in> HNatInfinite ==> inverse (hypreal_of_hypnat n) \<in> Infinitesimal"
 apply (cases n)
-apply (auto simp add: hypreal_of_hypnat star_n_inverse 
-      HNatInfinite_FreeUltrafilterNat_iff Infinitesimal_FreeUltrafilterNat_iff2)
-apply (rule bexI [OF _ Rep_star_star_n], auto)
-apply (drule_tac x = "m + 1" in spec, ultra)
+apply (auto simp add: hypreal_of_hypnat star_n_inverse real_norm_def
+      HNatInfinite_FreeUltrafilterNat_iff
+      Infinitesimal_FreeUltrafilterNat_iff2)
+apply (drule_tac x="Suc m" in spec)
+apply (erule ultra, simp)
 done
 
 lemma HNatInfinite_hypreal_of_hypnat_gt_zero:

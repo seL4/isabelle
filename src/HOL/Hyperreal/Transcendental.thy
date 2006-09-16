@@ -2540,7 +2540,8 @@ apply (drule sym, auto)
 done
 
 lemma isCont_inv_fun_inv:
-     "[| 0 < d;  
+  fixes f g :: "real \<Rightarrow> real"
+  shows "[| 0 < d;  
          \<forall>z. \<bar>z - x\<bar> \<le> d --> g(f(z)) = z;  
          \<forall>z. \<bar>z - x\<bar> \<le> d --> isCont f z |]  
        ==> \<exists>e. 0 < e &  
@@ -2555,7 +2556,7 @@ done
 
 text{*Bartle/Sherbert: Introduction to Real Analysis, Theorem 4.2.9, p. 110*}
 lemma LIM_fun_gt_zero:
-     "[| f -- c --> l; 0 < l |]  
+     "[| f -- c --> (l::real); 0 < l |]  
          ==> \<exists>r. 0 < r & (\<forall>x. x \<noteq> c & \<bar>c - x\<bar> < r --> 0 < f x)"
 apply (auto simp add: LIM_def)
 apply (drule_tac x = "l/2" in spec, safe, force)
@@ -2564,7 +2565,7 @@ apply (auto simp only: abs_interval_iff)
 done
 
 lemma LIM_fun_less_zero:
-     "[| f -- c --> l; l < 0 |]  
+     "[| f -- c --> (l::real); l < 0 |]  
       ==> \<exists>r. 0 < r & (\<forall>x. x \<noteq> c & \<bar>c - x\<bar> < r --> f x < 0)"
 apply (auto simp add: LIM_def)
 apply (drule_tac x = "-l/2" in spec, safe, force)
@@ -2574,7 +2575,7 @@ done
 
 
 lemma LIM_fun_not_zero:
-     "[| f -- c --> l; l \<noteq> 0 |] 
+     "[| f -- c --> (l::real); l \<noteq> 0 |] 
       ==> \<exists>r. 0 < r & (\<forall>x. x \<noteq> c & \<bar>c - x\<bar> < r --> f x \<noteq> 0)"
 apply (cut_tac x = l and y = 0 in linorder_less_linear, auto)
 apply (drule LIM_fun_less_zero)

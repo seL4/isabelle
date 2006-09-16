@@ -656,35 +656,32 @@ by (blast intro: SComplex_capprox_iff [THEN iffD1] capprox_trans2)
 lemma hcomplex_capproxD1:
      "star_n X @c= star_n Y
       ==> star_n (%n. Re(X n)) @= star_n (%n. Re(Y n))"
-apply (auto simp add: approx_FreeUltrafilterNat_iff)
+apply (simp add: approx_FreeUltrafilterNat_iff2, safe)
 apply (drule capprox_minus_iff [THEN iffD1])
-apply (auto simp add: star_n_minus star_n_add mem_cinfmal_iff [symmetric] CInfinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff2)
-apply (drule_tac x = m in spec, ultra)
-apply (rename_tac Z x)
-apply (case_tac "X x")
-apply (case_tac "Y x")
+apply (simp add: star_n_minus star_n_add mem_cinfmal_iff [symmetric] CInfinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff2)
+apply (drule_tac x = m in spec)
+apply (erule ultra, rule FreeUltrafilterNat_all, clarify)
+apply (rule_tac y="cmod (X n + - Y n)" in order_le_less_trans)
+apply (case_tac "X n")
+apply (case_tac "Y n")
 apply (auto simp add: complex_minus complex_add complex_mod
-           simp del: realpow_Suc)
-apply (rule_tac y="abs(Z x)" in order_le_less_trans)
-apply (drule_tac t = "Z x" in sym)
-apply (auto simp del: realpow_Suc)
+            simp del: realpow_Suc)
 done
 
 (* same proof *)
 lemma hcomplex_capproxD2:
      "star_n X @c= star_n Y
       ==> star_n (%n. Im(X n)) @= star_n (%n. Im(Y n))"
-apply (auto simp add: approx_FreeUltrafilterNat_iff)
+apply (simp add: approx_FreeUltrafilterNat_iff2, safe)
 apply (drule capprox_minus_iff [THEN iffD1])
-apply (auto simp add: star_n_minus star_n_add mem_cinfmal_iff [symmetric] CInfinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff2)
-apply (drule_tac x = m in spec, ultra)
-apply (rename_tac Z x)
-apply (case_tac "X x")
-apply (case_tac "Y x")
-apply (auto simp add: complex_minus complex_add complex_mod simp del: realpow_Suc)
-apply (rule_tac y="abs(Z x)" in order_le_less_trans)
-apply (drule_tac t = "Z x" in sym)
-apply (auto simp del: realpow_Suc)
+apply (simp add: star_n_minus star_n_add mem_cinfmal_iff [symmetric] CInfinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff2)
+apply (drule_tac x = m in spec)
+apply (erule ultra, rule FreeUltrafilterNat_all, clarify)
+apply (rule_tac y="cmod (X n + - Y n)" in order_le_less_trans)
+apply (case_tac "X n")
+apply (case_tac "Y n")
+apply (auto simp add: complex_minus complex_add complex_mod
+            simp del: realpow_Suc)
 done
 
 lemma hcomplex_capproxI:
@@ -695,10 +692,8 @@ apply (drule approx_minus_iff [THEN iffD1])
 apply (drule approx_minus_iff [THEN iffD1])
 apply (rule capprox_minus_iff [THEN iffD2])
 apply (auto simp add: mem_cinfmal_iff [symmetric] mem_infmal_iff [symmetric] star_n_add star_n_minus CInfinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ Rep_star_star_n], auto)
 apply (drule_tac x = "u/2" in spec)
 apply (drule_tac x = "u/2" in spec, auto, ultra)
-apply (drule sym, drule sym)
 apply (case_tac "X x")
 apply (case_tac "Y x")
 apply (auto simp add: complex_minus complex_add complex_mod snd_conv fst_conv numeral_2_eq_2)
@@ -725,9 +720,8 @@ lemma CFinite_HFinite_Re:
      "star_n X \<in> CFinite  
       ==> star_n (%n. Re(X n)) \<in> HFinite"
 apply (auto simp add: CFinite_hcmod_iff hcmod HFinite_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ Rep_star_star_n])
 apply (rule_tac x = u in exI, ultra)
-apply (drule sym, case_tac "X x")
+apply (case_tac "X x")
 apply (auto simp add: complex_mod numeral_2_eq_2 simp del: realpow_Suc)
 apply (rule ccontr, drule linorder_not_less [THEN iffD1])
 apply (drule order_less_le_trans, assumption)
@@ -739,9 +733,8 @@ lemma CFinite_HFinite_Im:
      "star_n X \<in> CFinite  
       ==> star_n (%n. Im(X n)) \<in> HFinite"
 apply (auto simp add: CFinite_hcmod_iff hcmod HFinite_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ Rep_star_star_n])
 apply (rule_tac x = u in exI, ultra)
-apply (drule sym, case_tac "X x")
+apply (case_tac "X x")
 apply (auto simp add: complex_mod simp del: realpow_Suc)
 apply (rule ccontr, drule linorder_not_less [THEN iffD1])
 apply (drule order_less_le_trans, assumption)
@@ -753,17 +746,16 @@ lemma HFinite_Re_Im_CFinite:
          star_n (%n. Im(X n)) \<in> HFinite  
       |] ==> star_n X \<in> CFinite"
 apply (auto simp add: CFinite_hcmod_iff hcmod HFinite_FreeUltrafilterNat_iff)
-apply (rename_tac Y Z u v)
-apply (rule bexI [OF _ Rep_star_star_n])
+apply (rename_tac u v)
 apply (rule_tac x = "2* (u + v) " in exI)
 apply ultra
-apply (drule sym, case_tac "X x")
+apply (case_tac "X x")
 apply (auto simp add: complex_mod numeral_2_eq_2 simp del: realpow_Suc)
 apply (subgoal_tac "0 < u")
  prefer 2 apply arith
 apply (subgoal_tac "0 < v")
  prefer 2 apply arith
-apply (subgoal_tac "sqrt (abs (Y x) ^ 2 + abs (Z x) ^ 2) < 2*u + 2*v")
+apply (subgoal_tac "sqrt (abs (Re (X x)) ^ 2 + abs (Im (X x)) ^ 2) < 2*u + 2*v")
 apply (rule_tac [2] lemma_sqrt_hcomplex_capprox, auto)
 apply (simp add: power2_eq_square)
 done
@@ -1201,7 +1193,6 @@ lemma complex_seq_to_hcomplex_CInfinitesimal:
      "\<forall>n. cmod (X n - x) < inverse (real (Suc n)) ==>  
       star_n X - hcomplex_of_complex x \<in> CInfinitesimal"
 apply (simp add: star_n_diff CInfinitesimal_hcmod_iff star_of_def Infinitesimal_FreeUltrafilterNat_iff hcmod)
-apply (rule bexI, auto)
 apply (auto dest: FreeUltrafilterNat_inverse_real_of_posnat FreeUltrafilterNat_all FreeUltrafilterNat_Int intro: order_less_trans FreeUltrafilterNat_subset)
 done
 

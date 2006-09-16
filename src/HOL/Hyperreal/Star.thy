@@ -38,7 +38,7 @@ definition
    referee for the JCM Paper: let f(x) be least y such
    that  Q(x,y)
 *)
-lemma no_choice: "\<forall>x. \<exists>y. Q x y ==> \<exists>(f :: nat => nat). \<forall>x. Q x (f x)"
+lemma no_choice: "\<forall>x. \<exists>y. Q x y ==> \<exists>(f :: 'a => nat). \<forall>x. Q x (f x)"
 apply (rule_tac x = "%x. LEAST y. Q x y" in exI)
 apply (blast intro: LeastI)
 done
@@ -146,11 +146,6 @@ apply (unfold star_abs_def starfun_def star_of_def)
 apply (simp add: Ifun_star_n star_n_eq_iff)
 done
 
-lemma Rep_star_FreeUltrafilterNat:
-     "[| X \<in> Rep_star z; Y \<in> Rep_star z |]
-      ==> {n. X n = Y n} : FreeUltrafilterNat"
-by (rule FreeUltrafilterNat_Rep_hypreal)
-
 text{*Nonstandard extension of functions*}
 
 lemma starfun:
@@ -213,7 +208,7 @@ by (transfer, rule refl)
 
 (* this is trivial, given starfun_Id *)
 lemma starfun_Idfun_approx:
-  "x @= hypreal_of_real a ==> ( *f* (%x. x)) x @= hypreal_of_real a"
+  "x @= star_of a ==> ( *f* (%x. x)) x @= star_of a"
 by (simp only: starfun_Id)
 
 text{*The Star-function is a (nonstandard) extension of the function*}
@@ -243,10 +238,10 @@ by (blast intro: is_starfun_starext is_starext_starfun)
 text{*extented function has same solution as its standard
    version for real arguments. i.e they are the same
    for all real arguments*}
-lemma starfun_eq [simp]: "( *f* f) (star_of a) = star_of (f a)"
-by (transfer, rule refl)
+lemma starfun_eq: "( *f* f) (star_of a) = star_of (f a)"
+by (rule starfun_star_of)
 
-lemma starfun_approx: "( *f* f) (star_of a) @= hypreal_of_real (f a)"
+lemma starfun_approx: "( *f* f) (star_of a) @= star_of (f a)"
 by simp
 
 (* useful for NS definition of derivatives *)
@@ -258,7 +253,9 @@ lemma starfun_lambda_cancel2:
   "( *f* (%h. f(g(x + h)))) x' = ( *f* (f o g)) (star_of x + x')"
 by (unfold o_def, rule starfun_lambda_cancel)
 
-lemma starfun_mult_HFinite_approx: "[| ( *f* f) x @= l; ( *f* g) x @= m;
+lemma starfun_mult_HFinite_approx:
+  fixes l m :: "'a::real_normed_algebra star"
+  shows "[| ( *f* f) x @= l; ( *f* g) x @= m;
                   l: HFinite; m: HFinite
                |] ==>  ( *f* (%x. f x * g x)) x @= l * m"
 apply (drule (3) approx_mult_HFinite)
@@ -277,10 +274,10 @@ text{*Examples: hrabs is nonstandard extension of rabs
 (* use the theorem we proved above instead          *)
 
 lemma starfun_rabs_hrabs: "*f* abs = abs"
-by (rule hrabs_is_starext_rabs [THEN is_starext_starfun_iff [THEN iffD1], symmetric])
+by (simp only: star_abs_def)
 
 lemma starfun_inverse_inverse [simp]: "( *f* inverse) x = inverse(x)"
-by (unfold star_inverse_def, rule refl)
+by (simp only: star_inverse_def)
 
 lemma starfun_inverse: "!!x. inverse (( *f* f) x) = ( *f* (%x. inverse (f x))) x"
 by (transfer, rule refl)
@@ -312,36 +309,40 @@ text{*nonstandard extension of set through nonstandard extension
    by its NS extenson. See second NS set extension below.*}
 lemma STAR_rabs_add_minus:
    "*s* {x. abs (x + - y) < r} =
-     {x. abs(x + -hypreal_of_real y) < hypreal_of_real r}"
+     {x. abs(x + -star_of y) < star_of r}"
 by (transfer, rule refl)
 
 lemma STAR_starfun_rabs_add_minus:
   "*s* {x. abs (f x + - y) < r} =
-       {x. abs(( *f* f) x + -hypreal_of_real y) < hypreal_of_real r}"
+       {x. abs(( *f* f) x + -star_of y) < star_of r}"
 by (transfer, rule refl)
 
 text{*Another characterization of Infinitesimal and one of @= relation.
    In this theory since @{text hypreal_hrabs} proved here. Maybe
    move both theorems??*}
 lemma Infinitesimal_FreeUltrafilterNat_iff2:
-     "(x \<in> Infinitesimal) =
-      (\<exists>X \<in> Rep_star(x).
-        \<forall>m. {n. abs(X n) < inverse(real(Suc m))}
+     "(star_n X \<in> Infinitesimal) =
+      (\<forall>m. {n. norm(X n) < inverse(real(Suc m))}
                 \<in>  FreeUltrafilterNat)"
-apply (cases x)
-apply (auto intro!: bexI lemma_starrel_refl 
-            simp add: Infinitesimal_hypreal_of_nat_iff star_of_def
-     star_n_inverse star_n_abs star_n_less hypreal_of_nat_eq)
-apply (drule_tac x = n in spec, ultra)
-done
+by (simp add: Infinitesimal_hypreal_of_nat_iff star_of_def
+     hnorm_def star_of_nat_def starfun_star_n
+     star_n_inverse star_n_less hypreal_of_nat_eq)
 
 lemma approx_FreeUltrafilterNat_iff: "star_n X @= star_n Y =
-      (\<forall>m. {n. abs (X n + - Y n) <
+      (\<forall>r>0. {n. norm (X n + - Y n) < r} : FreeUltrafilterNat)"
+apply (subst approx_minus_iff)
+apply (rule mem_infmal_iff [THEN subst])
+apply (simp add: star_n_minus star_n_add)
+apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
+done
+
+lemma approx_FreeUltrafilterNat_iff2: "star_n X @= star_n Y =
+      (\<forall>m. {n. norm (X n + - Y n) <
                   inverse(real(Suc m))} : FreeUltrafilterNat)"
 apply (subst approx_minus_iff)
 apply (rule mem_infmal_iff [THEN subst])
-apply (auto simp add: star_n_minus star_n_add Infinitesimal_FreeUltrafilterNat_iff2)
-apply (drule_tac x = m in spec, ultra)
+apply (simp add: star_n_minus star_n_add)
+apply (simp add: Infinitesimal_FreeUltrafilterNat_iff2)
 done
 
 lemma inj_starfun: "inj starfun"

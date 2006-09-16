@@ -354,7 +354,7 @@ apply simp
 apply (drule spec, drule (1) mp)
 apply (erule exE, rule_tac x="N" in exI, clarify)
 apply (rule_tac x="m" and y="n" in linorder_le_cases)
-apply (subst abs_minus_commute)
+apply (subst norm_minus_commute)
 apply (simp add: setsum_diff [symmetric])
 apply (simp add: setsum_diff [symmetric])
 done

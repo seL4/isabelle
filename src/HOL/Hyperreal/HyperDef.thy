@@ -188,6 +188,9 @@ subsection{*@{term hypreal_of_real}:
 lemma inj_hypreal_of_real: "inj(hypreal_of_real)"
 by (rule inj_onI, simp)
 
+lemma mem_Rep_star_iff: "(X \<in> Rep_star x) = (x = star_n X)"
+by (cases x, simp add: star_n_def)
+
 lemma Rep_star_star_n_iff [simp]:
   "(X \<in> Rep_star (star_n Y)) = ({n. Y n = X n} \<in> \<U>)"
 by (simp add: star_n_def)

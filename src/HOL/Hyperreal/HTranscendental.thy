@@ -362,7 +362,6 @@ by (transfer, rule ln_inverse)
 lemma starfun_exp_HFinite: "x \<in> HFinite ==> ( *f* exp) x \<in> HFinite"
 apply (cases x)
 apply (auto simp add: starfun HFinite_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ Rep_star_star_n], auto)
 apply (rule_tac x = "exp u" in exI)
 apply ultra
 done

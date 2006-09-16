@@ -15,25 +15,24 @@ begin
 text{*Standard and Nonstandard Definitions*}
 
 definition
-  LIM :: "[real=>real,real,real] => bool"
+  LIM :: "[real => 'a::real_normed_vector, real, 'a] => bool"
         ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60)
   "f -- a --> L =
      (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & \<bar>x + -a\<bar> < s
-        --> \<bar>f x + -L\<bar> < r)"
+        --> norm (f x + -L) < r)"
 
-  NSLIM :: "[real=>real,real,real] => bool"
+  NSLIM :: "[real => 'a::real_normed_vector, real, 'a] => bool"
             ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60)
-  "f -- a --NS> L = (\<forall>x. (x \<noteq> hypreal_of_real a &
-          x @= hypreal_of_real a -->
-          ( *f* f) x @= hypreal_of_real L))"
+  "f -- a --NS> L =
+    (\<forall>x. (x \<noteq> star_of a & x @= star_of a --> ( *f* f) x @= star_of L))"
 
-  isCont :: "[real=>real,real] => bool"
+  isCont :: "[real => 'a::real_normed_vector, real] => bool"
   "isCont f a = (f -- a --> (f a))"
 
-  isNSCont :: "[real=>real,real] => bool"
+  isNSCont :: "[real => 'a::real_normed_vector, real] => bool"
     --{*NS definition dispenses with limit notions*}
-  "isNSCont f a = (\<forall>y. y @= hypreal_of_real a -->
-         ( *f* f) y @= hypreal_of_real (f a))"
+  "isNSCont f a = (\<forall>y. y @= star_of a -->
+         ( *f* f) y @= star_of (f a))"
 
   deriv:: "[real=>real,real,real] => bool"
     --{*Differentiation: D is derivative of function f at x*}
@@ -79,12 +78,17 @@ section{*Some Purely Standard Proofs*}
 
 lemma LIM_eq:
      "f -- a --> L =
-     (\<forall>r>0.\<exists>s>0.\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < s --> \<bar>f x - L\<bar> < r)"
+     (\<forall>r>0.\<exists>s>0.\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < s --> norm (f x - L) < r)"
 by (simp add: LIM_def diff_minus)
+
+lemma LIM_I:
+     "(!!r. 0<r ==> \<exists>s>0.\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < s --> norm (f x - L) < r)
+      ==> f -- a --> L"
+by (simp add: LIM_eq)
 
 lemma LIM_D:
      "[| f -- a --> L; 0<r |]
-      ==> \<exists>s>0.\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < s --> \<bar>f x - L\<bar> < r"
+      ==> \<exists>s>0.\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < s --> norm (f x - L) < r"
 by (simp add: LIM_eq)
 
 lemma LIM_const [simp]: "(%x. k) -- x --> k"
@@ -93,76 +97,55 @@ by (simp add: LIM_def)
 lemma LIM_add:
   assumes f: "f -- a --> L" and g: "g -- a --> M"
   shows "(%x. f x + g(x)) -- a --> (L + M)"
-proof (unfold LIM_eq, clarify)
+proof (rule LIM_I)
   fix r :: real
   assume r: "0 < r"
   from LIM_D [OF f half_gt_zero [OF r]]
   obtain fs
     where fs:    "0 < fs"
-      and fs_lt: "\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < fs --> \<bar>f x - L\<bar> < r/2"
+      and fs_lt: "\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < fs --> norm (f x - L) < r/2"
   by blast
   from LIM_D [OF g half_gt_zero [OF r]]
   obtain gs
     where gs:    "0 < gs"
-      and gs_lt: "\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < gs --> \<bar>g x - M\<bar> < r/2"
+      and gs_lt: "\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < gs --> norm (g x - M) < r/2"
   by blast
-  show "\<exists>s>0.\<forall>x. x \<noteq> a \<and> \<bar>x-a\<bar> < s \<longrightarrow> \<bar>f x + g x - (L + M)\<bar> < r"
+  show "\<exists>s>0.\<forall>x. x \<noteq> a \<and> \<bar>x-a\<bar> < s \<longrightarrow> norm (f x + g x - (L + M)) < r"
   proof (intro exI conjI strip)
     show "0 < min fs gs"  by (simp add: fs gs)
     fix x :: real
     assume "x \<noteq> a \<and> \<bar>x-a\<bar> < min fs gs"
     hence "x \<noteq> a \<and> \<bar>x-a\<bar> < fs \<and> \<bar>x-a\<bar> < gs" by simp
     with fs_lt gs_lt
-    have "\<bar>f x - L\<bar> < r/2" and "\<bar>g x - M\<bar> < r/2" by blast+
-    hence "\<bar>f x - L\<bar> + \<bar>g x - M\<bar> < r" by arith
-    thus "\<bar>f x + g x - (L + M)\<bar> < r"
-      by (blast intro: abs_diff_triangle_ineq order_le_less_trans)
+    have "norm (f x - L) < r/2" and "norm (g x - M) < r/2" by blast+
+    hence "norm (f x - L) + norm (g x - M) < r" by arith
+    thus "norm (f x + g x - (L + M)) < r"
+      by (blast intro: norm_diff_triangle_ineq order_le_less_trans)
   qed
 qed
 
+lemma minus_diff_minus:
+  fixes a b :: "'a::ab_group_add"
+  shows "(- a) - (- b) = - (a - b)"
+by simp
+
 lemma LIM_minus: "f -- a --> L ==> (%x. -f(x)) -- a --> -L"
-apply (simp add: LIM_eq)
-apply (subgoal_tac "\<forall>x. \<bar>- f x + L\<bar> = \<bar>f x - L\<bar>")
-apply (simp_all add: abs_if)
-done
+by (simp only: LIM_eq minus_diff_minus norm_minus_cancel)
 
 lemma LIM_add_minus:
     "[| f -- x --> l; g -- x --> m |] ==> (%x. f(x) + -g(x)) -- x --> (l + -m)"
-by (blast dest: LIM_add LIM_minus)
+by (intro LIM_add LIM_minus)
 
 lemma LIM_diff:
     "[| f -- x --> l; g -- x --> m |] ==> (%x. f(x) - g(x)) -- x --> l-m"
-by (simp add: diff_minus LIM_add_minus)
+by (simp only: diff_minus LIM_add LIM_minus)
 
 
 lemma LIM_const_not_eq: "k \<noteq> L ==> ~ ((%x. k) -- a --> L)"
-proof (simp add: linorder_neq_iff LIM_eq, elim disjE)
-  assume k: "k < L"
-  show "\<exists>r>0. \<forall>s>0. (\<exists>x. (x < a \<or> a < x) \<and> \<bar>x-a\<bar> < s) \<and> \<not> \<bar>k-L\<bar> < r"
-  proof (intro exI conjI strip)
-    show "0 < L-k" by (simp add: k compare_rls)
-    fix s :: real
-    assume s: "0<s"
-    { from s show "s/2 + a < a \<or> a < s/2 + a" by arith
-     next
-      from s show "\<bar>s / 2 + a - a\<bar> < s" by (simp add: abs_if)
-     next
-      from s show "~ \<bar>k-L\<bar> < L-k" by (simp add: abs_if) }
-  qed
-next
-  assume k: "L < k"
-  show "\<exists>r>0.\<forall>s>0. (\<exists>x. (x < a \<or> a < x) \<and> \<bar>x-a\<bar> < s) \<and> \<not> \<bar>k-L\<bar> < r"
-  proof (intro exI conjI strip)
-    show "0 < k-L" by (simp add: k compare_rls)
-    fix s :: real
-    assume s: "0<s"
-    { from s show "s/2 + a < a \<or> a < s/2 + a" by arith
-     next
-      from s show "\<bar>s / 2 + a - a\<bar> < s" by (simp add: abs_if)
-     next
-      from s show "~ \<bar>k-L\<bar> < k-L" by (simp add: abs_if) }
-  qed
-qed
+apply (simp add: LIM_eq)
+apply (rule_tac x="norm (k - L)" in exI, simp, safe)
+apply (rule_tac x="a + s/2" in exI, simp)
+done
 
 lemma LIM_const_eq: "(%x. k) -- x --> L ==> k = L"
 apply (rule ccontr)
@@ -175,31 +158,34 @@ apply (auto dest!: LIM_const_eq)
 done
 
 lemma LIM_mult_zero:
+  fixes f g :: "real \<Rightarrow> 'a::real_normed_algebra"
   assumes f: "f -- a --> 0" and g: "g -- a --> 0"
   shows "(%x. f(x) * g(x)) -- a --> 0"
-proof (simp add: LIM_eq abs_mult, clarify)
+proof (rule LIM_I, simp)
   fix r :: real
   assume r: "0<r"
   from LIM_D [OF f zero_less_one]
   obtain fs
     where fs:    "0 < fs"
-      and fs_lt: "\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < fs --> \<bar>f x\<bar> < 1"
+      and fs_lt: "\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < fs --> norm (f x) < 1"
   by auto
   from LIM_D [OF g r]
   obtain gs
     where gs:    "0 < gs"
-      and gs_lt: "\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < gs --> \<bar>g x\<bar> < r"
+      and gs_lt: "\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < gs --> norm (g x) < r"
   by auto
-  show "\<exists>s. 0 < s \<and> (\<forall>x. x \<noteq> a \<and> \<bar>x-a\<bar> < s \<longrightarrow> \<bar>f x\<bar> * \<bar>g x\<bar> < r)"
+  show "\<exists>s. 0 < s \<and> (\<forall>x. x \<noteq> a \<and> \<bar>x-a\<bar> < s \<longrightarrow> norm (f x * g x) < r)"
   proof (intro exI conjI strip)
     show "0 < min fs gs"  by (simp add: fs gs)
     fix x :: real
     assume "x \<noteq> a \<and> \<bar>x-a\<bar> < min fs gs"
     hence  "x \<noteq> a \<and> \<bar>x-a\<bar> < fs \<and> \<bar>x-a\<bar> < gs" by simp
     with fs_lt gs_lt
-    have "\<bar>f x\<bar> < 1" and "\<bar>g x\<bar> < r" by blast+
-    hence "\<bar>f x\<bar> * \<bar>g x\<bar> < 1*r" by (rule abs_mult_less)
-    thus "\<bar>f x\<bar> * \<bar>g x\<bar> < r" by simp
+    have "norm (f x) < 1" and "norm (g x) < r" by blast+
+    hence "norm (f x) * norm (g x) < 1*r"
+      by (rule mult_strict_mono' [OF _ _ norm_ge_zero norm_ge_zero])
+    thus "norm (f x * g x) < r"
+      by (simp add: order_le_less_trans [OF norm_mult_ineq])
   qed
 qed
 
@@ -223,61 +209,70 @@ subsection{*Relationships Between Standard and Nonstandard Concepts*}
 
 text{*Standard and NS definitions of Limit*} (*NEEDS STRUCTURING*)
 lemma LIM_NSLIM:
-      "f -- x --> L ==> f -- x --NS> L"
-apply (simp add: LIM_def NSLIM_def approx_def)
+      "f -- a --> L ==> f -- a --NS> L"
+apply (simp add: LIM_def NSLIM_def approx_def, safe)
+apply (rule_tac x="x" in star_cases)
+apply (simp add: star_of_def star_n_minus star_n_add starfun)
 apply (simp add: Infinitesimal_FreeUltrafilterNat_iff, safe)
-apply (rule_tac x = xa in star_cases)
-apply (auto simp add: real_add_minus_iff starfun star_n_minus star_of_def star_n_add star_n_eq_iff)
-apply (rule bexI [OF _ Rep_star_star_n], clarify)
+apply (simp add: star_n_eq_iff)
 apply (drule_tac x = u in spec, clarify)
 apply (drule_tac x = s in spec, clarify)
-apply (subgoal_tac "\<forall>n::nat. (Xa n) \<noteq> x & \<bar>(Xa n) + - x\<bar> < s --> \<bar>f (Xa n) + - L\<bar> < u")
-prefer 2 apply blast
-apply (drule FreeUltrafilterNat_all, ultra)
+apply (simp only: FUFNat.Collect_not [symmetric])
+apply (elim ultra, simp)
 done
 
 
 subsubsection{*Limit: The NS definition implies the standard definition.*}
 
-lemma lemma_LIM: "\<forall>s>0.\<exists>xa.  xa \<noteq> x &
-         \<bar>xa + - x\<bar> < s  & r \<le> \<bar>f xa + -L\<bar>
-      ==> \<forall>n::nat. \<exists>xa.  xa \<noteq> x &
-              \<bar>xa + -x\<bar> < inverse(real(Suc n)) & r \<le> \<bar>f xa + -L\<bar>"
+lemma lemma_LIM:
+  fixes L :: "'a::real_normed_vector"
+  shows "\<forall>s>0. \<exists>x. x \<noteq> a \<and> \<bar>x + - a\<bar> < s \<and> \<not> norm (f x + -L) < r
+      ==> \<forall>n::nat. \<exists>x. x \<noteq> a \<and>
+              \<bar>x + -a\<bar> < inverse(real(Suc n)) \<and> \<not> norm (f x + -L) < r"
 apply clarify
 apply (cut_tac n1 = n in real_of_nat_Suc_gt_zero [THEN positive_imp_inverse_positive], auto)
 done
 
 lemma lemma_skolemize_LIM2:
-     "\<forall>s>0.\<exists>xa.  xa \<noteq> x & \<bar>xa + - x\<bar> < s  & r \<le> \<bar>f xa + -L\<bar>
-      ==> \<exists>X. \<forall>n::nat. X n \<noteq> x &
-                \<bar>X n + -x\<bar> < inverse(real(Suc n)) & r \<le> abs(f (X n) + -L)"
+  fixes L :: "'a::real_normed_vector"
+  shows "\<forall>s>0. \<exists>x. x \<noteq> a \<and> \<bar>x + - a\<bar> < s \<and> \<not> norm (f x + -L) < r
+      ==> \<exists>X. \<forall>n::nat. X n \<noteq> a \<and>
+                \<bar>X n + -a\<bar> < inverse(real(Suc n)) \<and> \<not> norm(f (X n) + -L) < r"
 apply (drule lemma_LIM)
 apply (drule choice, blast)
 done
 
-lemma lemma_simp: "\<forall>n. X n \<noteq> x &
-          \<bar>X n + - x\<bar> < inverse (real(Suc n)) &
-          r \<le> abs (f (X n) + - L) ==>
-          \<forall>n. \<bar>X n + - x\<bar> < inverse (real(Suc n))"
+lemma FreeUltrafilterNat_most: "\<exists>N. \<forall>n\<ge>N. P n \<Longrightarrow> {n. P n} \<in> \<U>"
+apply (erule exE)
+apply (rule_tac u="{n. N \<le> n}" in FUFNat.subset)
+apply (rule cofinite_mem_FreeUltrafilterNat)
+apply (simp add: Collect_neg_eq [symmetric])
+apply (simp add: linorder_not_le finite_nat_segment)
+apply fast
+done
+
+lemma lemma_simp: "\<forall>n. X n \<noteq> a &
+          \<bar>X n + - a\<bar> < inverse (real(Suc n)) &
+          \<not> norm (f (X n) + - L) < r ==>
+          \<forall>n. \<bar>X n + - a\<bar> < inverse (real(Suc n))"
 by auto
 
 
 text{*NSLIM => LIM*}
 
-lemma NSLIM_LIM: "f -- x --NS> L ==> f -- x --> L"
+lemma NSLIM_LIM: "f -- a --NS> L ==> f -- a --> L"
 apply (simp add: LIM_def NSLIM_def approx_def)
-apply (simp add: Infinitesimal_FreeUltrafilterNat_iff, clarify)
-apply (rule ccontr, simp)
-apply (simp add: linorder_not_less)
+apply (rule ccontr, simp, clarify)
 apply (drule lemma_skolemize_LIM2, safe)
 apply (drule_tac x = "star_n X" in spec)
-apply (auto simp add: starfun star_n_minus star_of_def star_n_add star_n_eq_iff)
-apply (drule lemma_simp [THEN real_seq_to_hypreal_Infinitesimal])
-apply (simp add: Infinitesimal_FreeUltrafilterNat_iff star_of_def star_n_minus star_n_add star_n_eq_iff, blast)
-apply (drule spec, drule mp, assumption)
-apply (drule FreeUltrafilterNat_all, ultra)
+apply (drule mp, rule conjI)
+apply (simp add: star_of_def star_n_eq_iff)
+apply (rule real_seq_to_hypreal_Infinitesimal, simp)
+apply (simp add: starfun star_of_def star_n_minus star_n_add)
+apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
+apply (drule spec, drule (1) mp)
+apply simp
 done
-
 
 theorem LIM_NSLIM_iff: "(f -- x --> L) = (f -- x --NS> L)"
 by (blast intro: LIM_NSLIM NSLIM_LIM)
@@ -286,12 +281,15 @@ text{*Proving properties of limits using nonstandard definition.
       The properties hold for standard limits as well!*}
 
 lemma NSLIM_mult:
-     "[| f -- x --NS> l; g -- x --NS> m |]
+  fixes l m :: "'a::real_normed_algebra"
+  shows "[| f -- x --NS> l; g -- x --NS> m |]
       ==> (%x. f(x) * g(x)) -- x --NS> (l * m)"
 by (auto simp add: NSLIM_def intro!: approx_mult_HFinite)
 
 lemma LIM_mult2:
-     "[| f -- x --> l; g -- x --> m |] ==> (%x. f(x) * g(x)) -- x --> (l * m)"
+  fixes l m :: "'a::real_normed_algebra"
+  shows "[| f -- x --> l; g -- x --> m |]
+      ==> (%x. f(x) * g(x)) -- x --> (l * m)"
 by (simp add: LIM_NSLIM_iff NSLIM_mult)
 
 lemma NSLIM_add:
@@ -325,14 +323,18 @@ by (simp add: LIM_NSLIM_iff NSLIM_add_minus)
 
 
 lemma NSLIM_inverse:
-     "[| f -- a --NS> L;  L \<noteq> 0 |]
+  fixes L :: "'a::{real_normed_div_algebra,division_by_zero}"
+  shows "[| f -- a --NS> L;  L \<noteq> 0 |]
       ==> (%x. inverse(f(x))) -- a --NS> (inverse L)"
 apply (simp add: NSLIM_def, clarify)
 apply (drule spec)
-apply (auto simp add: hypreal_of_real_approx_inverse)
+apply (auto simp add: star_of_approx_inverse)
 done
 
-lemma LIM_inverse: "[| f -- a --> L; L \<noteq> 0 |] ==> (%x. inverse(f(x))) -- a --> (inverse L)"
+lemma LIM_inverse:
+  fixes L :: "'a::{real_normed_div_algebra,division_by_zero}"
+  shows "[| f -- a --> L; L \<noteq> 0 |]
+      ==> (%x. inverse(f(x))) -- a --> (inverse L)"
 by (simp add: LIM_NSLIM_iff NSLIM_inverse)
 
 
@@ -357,19 +359,15 @@ apply (drule_tac g = "%x. l" and M = l in LIM_add)
 apply (auto simp add: diff_minus add_assoc)
 done
 
-lemma NSLIM_not_zero: "k \<noteq> 0 ==> ~ ((%x. k) -- x --NS> 0)"
-apply (simp add: NSLIM_def)
-apply (rule_tac x = "hypreal_of_real x + epsilon" in exI)
-apply (auto intro: Infinitesimal_add_approx_self [THEN approx_sym]
-            simp add: hypreal_epsilon_not_zero)
-done
-
 lemma NSLIM_const_not_eq: "k \<noteq> L ==> ~ ((%x. k) -- x --NS> L)"
 apply (simp add: NSLIM_def)
 apply (rule_tac x = "hypreal_of_real x + epsilon" in exI)
 apply (auto intro: Infinitesimal_add_approx_self [THEN approx_sym]
             simp add: hypreal_epsilon_not_zero)
 done
+
+lemma NSLIM_not_zero: "k \<noteq> 0 ==> ~ ((%x. k) -- x --NS> 0)"
+by (rule NSLIM_const_not_eq)
 
 lemma NSLIM_const_eq: "(%x. k) -- x --NS> L ==> k = L"
 apply (rule ccontr)
@@ -381,19 +379,24 @@ lemma NSLIM_unique: "[| f -- x --NS> L; f -- x --NS> M |] ==> L = M"
 apply (drule NSLIM_minus)
 apply (drule NSLIM_add, assumption)
 apply (auto dest!: NSLIM_const_eq [symmetric])
+apply (simp add: diff_def [symmetric])
 done
 
 lemma LIM_unique2: "[| f -- x --> L; f -- x --> M |] ==> L = M"
 by (simp add: LIM_NSLIM_iff NSLIM_unique)
 
 
-lemma NSLIM_mult_zero: "[| f -- x --NS> 0; g -- x --NS> 0 |] ==> (%x. f(x)*g(x)) -- x --NS> 0"
+lemma NSLIM_mult_zero:
+  fixes f g :: "real \<Rightarrow> 'a::real_normed_algebra"
+  shows "[| f -- x --NS> 0; g -- x --NS> 0 |] ==> (%x. f(x)*g(x)) -- x --NS> 0"
 by (drule NSLIM_mult, auto)
 
 (* we can use the corresponding thm LIM_mult2 *)
 (* for standard definition of limit           *)
 
-lemma LIM_mult_zero2: "[| f -- x --> 0; g -- x --> 0 |] ==> (%x. f(x)*g(x)) -- x --> 0"
+lemma LIM_mult_zero2:
+  fixes f g :: "real \<Rightarrow> 'a::real_normed_algebra"
+  shows "[| f -- x --> 0; g -- x --> 0 |] ==> (%x. f(x)*g(x)) -- x --> 0"
 by (drule LIM_mult2, auto)
 
 
@@ -472,7 +475,9 @@ lemma isCont_add: "[| isCont f a; isCont g a |] ==> isCont (%x. f(x) + g(x)) a"
 by (auto intro: approx_add simp add: isNSCont_isCont_iff [symmetric] isNSCont_def)
 
 text{*mult continuous*}
-lemma isCont_mult: "[| isCont f a; isCont g a |] ==> isCont (%x. f(x) * g(x)) a"
+lemma isCont_mult:
+  fixes f g :: "real \<Rightarrow> 'a::real_normed_algebra"
+  shows "[| isCont f a; isCont g a |] ==> isCont (%x. f(x) * g(x)) a"
 by (auto intro!: starfun_mult_HFinite_approx
             simp del: starfun_mult [symmetric]
             simp add: isNSCont_isCont_iff [symmetric] isNSCont_def)
@@ -492,12 +497,15 @@ lemma isCont_minus: "isCont f a ==> isCont (%x. - f x) a"
 by (auto simp add: isNSCont_isCont_iff [symmetric] isNSCont_minus)
 
 lemma isCont_inverse:
-      "[| isCont f x; f x \<noteq> 0 |] ==> isCont (%x. inverse (f x)) x"
+  fixes f :: "real \<Rightarrow> 'a::{real_normed_div_algebra,division_by_zero}"
+  shows "[| isCont f x; f x \<noteq> 0 |] ==> isCont (%x. inverse (f x)) x"
 apply (simp add: isCont_def)
 apply (blast intro: LIM_inverse)
 done
 
-lemma isNSCont_inverse: "[| isNSCont f x; f x \<noteq> 0 |] ==> isNSCont (%x. inverse (f x)) x"
+lemma isNSCont_inverse:
+  fixes f :: "real \<Rightarrow> 'a::{real_normed_div_algebra,division_by_zero}"
+  shows "[| isNSCont f x; f x \<noteq> 0 |] ==> isNSCont (%x. inverse (f x)) x"
 by (auto intro: isCont_inverse simp add: isNSCont_isCont_iff)
 
 lemma isCont_diff:
@@ -578,17 +586,15 @@ by (simp add: isUCont_def isCont_def LIM_def, meson)
 
 lemma isUCont_isNSUCont: "isUCont f ==> isNSUCont f"
 apply (simp add: isNSUCont_def isUCont_def approx_def)
+apply (simp add: all_star_eq starfun star_n_minus star_n_add)
 apply (simp add: Infinitesimal_FreeUltrafilterNat_iff, safe)
-apply (rule_tac x = x in star_cases)
-apply (rule_tac x = y in star_cases)
-apply (auto simp add: starfun star_n_minus star_n_add)
-apply (rule bexI [OF _ Rep_star_star_n], safe)
+apply (rename_tac Xa Xb u)
 apply (drule_tac x = u in spec, clarify)
 apply (drule_tac x = s in spec, clarify)
 apply (subgoal_tac "\<forall>n::nat. abs ((Xa n) + - (Xb n)) < s --> abs (f (Xa n) + - f (Xb n)) < u")
 prefer 2 apply blast
 apply (erule_tac V = "\<forall>x y. \<bar>x + - y\<bar> < s --> \<bar>f x + - f y\<bar> < u" in thin_rl)
-apply (drule FreeUltrafilterNat_all, ultra)
+apply (erule ultra, simp)
 done
 
 lemma lemma_LIMu: "\<forall>s>0.\<exists>z y. \<bar>z + - y\<bar> < s & r \<le> \<bar>f z + -f y\<bar>
@@ -615,17 +621,17 @@ by auto
 
 lemma isNSUCont_isUCont:
      "isNSUCont f ==> isUCont f"
-apply (simp add: isNSUCont_def isUCont_def approx_def)
-apply (simp add: Infinitesimal_FreeUltrafilterNat_iff, safe)
+apply (simp add: isNSUCont_def isUCont_def approx_def, safe)
 apply (rule ccontr, simp)
 apply (simp add: linorder_not_less)
 apply (drule lemma_skolemize_LIM2u, safe)
 apply (drule_tac x = "star_n X" in spec)
 apply (drule_tac x = "star_n Y" in spec)
-apply (simp add: starfun star_n_minus star_n_add, auto)
-apply (drule lemma_simpu [THEN real_seq_to_hypreal_Infinitesimal2])
-apply (simp add: Infinitesimal_FreeUltrafilterNat_iff star_n_minus star_n_add, blast)
-apply (drule_tac x = r in spec, clarify)
+apply (drule mp)
+apply (rule real_seq_to_hypreal_Infinitesimal2, simp)
+apply (simp add: all_star_eq starfun star_n_minus star_n_add)
+apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
+apply (drule spec, drule (1) mp)
 apply (drule FreeUltrafilterNat_all, ultra)
 done
 
@@ -677,11 +683,6 @@ by (force simp add: NSdifferentiable_def)
 
 subsubsection{*Alternative definition for differentiability*}
 
-lemma LIM_I:
-     "(!!r. 0<r ==> \<exists>s>0.\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < s --> \<bar>f x - L\<bar> < r)
-      ==> f -- a --> L"
-by (simp add: LIM_eq)
-
 lemma DERIV_LIM_iff:
      "((%h. (f(a + h) - f(a)) / h) -- 0 --> D) =
       ((%x. (f(x)-f(a)) / (x-a)) -- a --> D)"
@@ -695,14 +696,14 @@ proof (intro iffI LIM_I)
       and s_lt: "\<forall>x. x \<noteq> 0 & \<bar>x\<bar> < s --> \<bar>(f (a + x) - f a) / x - D\<bar> < r"
   by auto
   show "\<exists>s. 0 < s \<and>
-            (\<forall>x. x \<noteq> a \<and> \<bar>x-a\<bar> < s \<longrightarrow> \<bar>(f x - f a) / (x-a) - D\<bar> < r)"
+            (\<forall>x. x \<noteq> a \<and> \<bar>x-a\<bar> < s \<longrightarrow> norm ((f x - f a) / (x-a) - D) < r)"
   proof (intro exI conjI strip)
     show "0 < s"  by (rule s)
   next
     fix x::real
     assume "x \<noteq> a \<and> \<bar>x-a\<bar> < s"
     with s_lt [THEN spec [where x="x-a"]]
-    show "\<bar>(f x - f a) / (x-a) - D\<bar> < r" by auto
+    show "norm ((f x - f a) / (x-a) - D) < r" by auto
   qed
 next
   fix r::real
@@ -714,14 +715,14 @@ next
       and s_lt: "\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < s --> \<bar>(f x - f a)/(x-a) - D\<bar> < r"
   by auto
   show "\<exists>s. 0 < s \<and>
-            (\<forall>x. x \<noteq> 0 & \<bar>x - 0\<bar> < s --> \<bar>(f (a + x) - f a) / x - D\<bar> < r)"
+            (\<forall>x. x \<noteq> 0 & \<bar>x - 0\<bar> < s --> norm ((f (a + x) - f a) / x - D) < r)"
   proof (intro exI conjI strip)
     show "0 < s"  by (rule s)
   next
     fix x::real
     assume "x \<noteq> 0 \<and> \<bar>x - 0\<bar> < s"
     with s_lt [THEN spec [where x="x+a"]]
-    show "\<bar>(f (a + x) - f a) / x - D\<bar> < r" by (auto simp add: add_ac)
+    show "norm ((f (a + x) - f a) / x - D) < r" by (auto simp add: add_ac)
   qed
 qed
 
@@ -1236,7 +1237,7 @@ done
 lemma f_inc_g_dec_Beq_f: "[| \<forall>n. f(n) \<le> f(Suc n);
          \<forall>n. g(Suc n) \<le> g(n);
          \<forall>n. f(n) \<le> g(n) |]
-      ==> Bseq f"
+      ==> Bseq (f :: nat \<Rightarrow> real)"
 apply (rule_tac k = "f 0" and K = "g 0" in BseqI2, rule allI)
 apply (induct_tac "n")
 apply (auto intro: order_trans)
@@ -1248,7 +1249,7 @@ done
 lemma f_inc_g_dec_Beq_g: "[| \<forall>n. f(n) \<le> f(Suc n);
          \<forall>n. g(Suc n) \<le> g(n);
          \<forall>n. f(n) \<le> g(n) |]
-      ==> Bseq g"
+      ==> Bseq (g :: nat \<Rightarrow> real)"
 apply (subst Bseq_minus_iff [symmetric])
 apply (rule_tac g = "%x. - (f x)" in f_inc_g_dec_Beq_f)
 apply auto
@@ -1282,7 +1283,7 @@ done
 lemma lemma_nest: "[| \<forall>n. f(n) \<le> f(Suc n);
          \<forall>n. g(Suc n) \<le> g(n);
          \<forall>n. f(n) \<le> g(n) |]
-      ==> \<exists>l m. l \<le> m &  ((\<forall>n. f(n) \<le> l) & f ----> l) &
+      ==> \<exists>l m :: real. l \<le> m &  ((\<forall>n. f(n) \<le> l) & f ----> l) &
                             ((\<forall>n. m \<le> g(n)) & g ----> m)"
 apply (subgoal_tac "monoseq f & monoseq g")
 prefer 2 apply (force simp add: LIMSEQ_iff monoseq_Suc)
@@ -1299,7 +1300,7 @@ lemma lemma_nest_unique: "[| \<forall>n. f(n) \<le> f(Suc n);
          \<forall>n. g(Suc n) \<le> g(n);
          \<forall>n. f(n) \<le> g(n);
          (%n. f(n) - g(n)) ----> 0 |]
-      ==> \<exists>l. ((\<forall>n. f(n) \<le> l) & f ----> l) &
+      ==> \<exists>l::real. ((\<forall>n. f(n) \<le> l) & f ----> l) &
                 ((\<forall>n. l \<le> g(n)) & g ----> l)"
 apply (drule lemma_nest, auto)
 apply (subgoal_tac "l = m")
@@ -1414,7 +1415,7 @@ done
 
 subsection{*Intermediate Value Theorem: Prove Contrapositive by Bisection*}
 
-lemma IVT: "[| f(a) \<le> y; y \<le> f(b);
+lemma IVT: "[| f(a) \<le> (y::real); y \<le> f(b);
          a \<le> b;
          (\<forall>x. a \<le> x & x \<le> b --> isCont f x) |]
       ==> \<exists>x. a \<le> x & x \<le> b & f(x) = y"
@@ -1441,7 +1442,7 @@ apply (drule_tac x = "aa-x" in spec)
 apply (case_tac "x \<le> aa", simp_all)
 done
 
-lemma IVT2: "[| f(b) \<le> y; y \<le> f(a);
+lemma IVT2: "[| f(b) \<le> (y::real); y \<le> f(a);
          a \<le> b;
          (\<forall>x. a \<le> x & x \<le> b --> isCont f x)
       |] ==> \<exists>x. a \<le> x & x \<le> b & f(x) = y"
@@ -1451,13 +1452,13 @@ apply (auto intro: isCont_minus)
 done
 
 (*HOL style here: object-level formulations*)
-lemma IVT_objl: "(f(a) \<le> y & y \<le> f(b) & a \<le> b &
+lemma IVT_objl: "(f(a) \<le> (y::real) & y \<le> f(b) & a \<le> b &
       (\<forall>x. a \<le> x & x \<le> b --> isCont f x))
       --> (\<exists>x. a \<le> x & x \<le> b & f(x) = y)"
 apply (blast intro: IVT)
 done
 
-lemma IVT2_objl: "(f(b) \<le> y & y \<le> f(a) & a \<le> b &
+lemma IVT2_objl: "(f(b) \<le> (y::real) & y \<le> f(a) & a \<le> b &
       (\<forall>x. a \<le> x & x \<le> b --> isCont f x))
       --> (\<exists>x. a \<le> x & x \<le> b & f(x) = y)"
 apply (blast intro: IVT2)
@@ -1467,7 +1468,7 @@ subsection{*By bisection, function continuous on closed interval is bounded abov
 
 lemma isCont_bounded:
      "[| a \<le> b; \<forall>x. a \<le> x & x \<le> b --> isCont f x |]
-      ==> \<exists>M. \<forall>x. a \<le> x & x \<le> b --> f(x) \<le> M"
+      ==> \<exists>M::real. \<forall>x. a \<le> x & x \<le> b --> f(x) \<le> M"
 apply (cut_tac P = "% (u,v) . a \<le> u & u \<le> v & v \<le> b --> (\<exists>M. \<forall>x. u \<le> x & x \<le> v --> f x \<le> M)" in lemma_BOLZANO2)
 apply safe
 apply simp_all
@@ -1497,7 +1498,7 @@ lemma lemma_reals_complete: "((\<exists>x. x \<in> S) & (\<exists>y. isUb UNIV S
 by (blast intro: reals_complete)
 
 lemma isCont_has_Ub: "[| a \<le> b; \<forall>x. a \<le> x & x \<le> b --> isCont f x |]
-         ==> \<exists>M. (\<forall>x. a \<le> x & x \<le> b --> f(x) \<le> M) &
+         ==> \<exists>M::real. (\<forall>x. a \<le> x & x \<le> b --> f(x) \<le> M) &
                    (\<forall>N. N < M --> (\<exists>x. a \<le> x & x \<le> b & N < f(x)))"
 apply (cut_tac S = "Collect (%y. \<exists>x. a \<le> x & x \<le> b & y = f x)"
         in lemma_reals_complete)
@@ -1513,7 +1514,7 @@ text{*Now show that it attains its upper bound*}
 lemma isCont_eq_Ub:
   assumes le: "a \<le> b"
       and con: "\<forall>x. a \<le> x & x \<le> b --> isCont f x"
-  shows "\<exists>M. (\<forall>x. a \<le> x & x \<le> b --> f(x) \<le> M) &
+  shows "\<exists>M::real. (\<forall>x. a \<le> x & x \<le> b --> f(x) \<le> M) &
              (\<exists>x. a \<le> x & x \<le> b & f(x) = M)"
 proof -
   from isCont_has_Ub [OF le con]
@@ -1553,7 +1554,7 @@ qed
 text{*Same theorem for lower bound*}
 
 lemma isCont_eq_Lb: "[| a \<le> b; \<forall>x. a \<le> x & x \<le> b --> isCont f x |]
-         ==> \<exists>M. (\<forall>x. a \<le> x & x \<le> b --> M \<le> f(x)) &
+         ==> \<exists>M::real. (\<forall>x. a \<le> x & x \<le> b --> M \<le> f(x)) &
                    (\<exists>x. a \<le> x & x \<le> b & f(x) = M)"
 apply (subgoal_tac "\<forall>x. a \<le> x & x \<le> b --> isCont (%x. - (f x)) x")
 prefer 2 apply (blast intro: isCont_minus)
@@ -1566,7 +1567,7 @@ done
 text{*Another version.*}
 
 lemma isCont_Lb_Ub: "[|a \<le> b; \<forall>x. a \<le> x & x \<le> b --> isCont f x |]
-      ==> \<exists>L M. (\<forall>x. a \<le> x & x \<le> b --> L \<le> f(x) & f(x) \<le> M) &
+      ==> \<exists>L M::real. (\<forall>x. a \<le> x & x \<le> b --> L \<le> f(x) & f(x) \<le> M) &
           (\<forall>y. L \<le> y & y \<le> M --> (\<exists>x. a \<le> x & x \<le> b & (f(x) = y)))"
 apply (frule isCont_eq_Lb)
 apply (frule_tac [2] isCont_eq_Ub)
@@ -1925,6 +1926,7 @@ text{*Dull lemma: an continuous injection on an interval must have a
 strict maximum at an end point, not in the middle.*}
 
 lemma lemma_isCont_inj:
+  fixes f :: "real \<Rightarrow> real"
   assumes d: "0 < d"
       and inj [rule_format]: "\<forall>z. \<bar>z-x\<bar> \<le> d --> g(f z) = z"
       and cont: "\<forall>z. \<bar>z-x\<bar> \<le> d --> isCont f z"
@@ -1966,7 +1968,8 @@ qed
 text{*Similar version for lower bound.*}
 
 lemma lemma_isCont_inj2:
-     "[|0 < d; \<forall>z. \<bar>z-x\<bar> \<le> d --> g(f z) = z;
+  fixes f g :: "real \<Rightarrow> real"
+  shows "[|0 < d; \<forall>z. \<bar>z-x\<bar> \<le> d --> g(f z) = z;
         \<forall>z. \<bar>z-x\<bar> \<le> d --> isCont f z |]
       ==> \<exists>z. \<bar>z-x\<bar> \<le> d & f z < f x"
 apply (insert lemma_isCont_inj
@@ -1978,6 +1981,7 @@ text{*Show there's an interval surrounding @{term "f(x)"} in
 @{text "f[[x - d, x + d]]"} .*}
 
 lemma isCont_inj_range:
+  fixes f :: "real \<Rightarrow> real"
   assumes d: "0 < d"
       and inj: "\<forall>z. \<bar>z-x\<bar> \<le> d --> g(f z) = z"
       and cont: "\<forall>z. \<bar>z-x\<bar> \<le> d --> isCont f z"
@@ -2205,35 +2209,35 @@ lemma LIMSEQ_SEQ_conv1:
   shows "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
 proof -
   {
-    from prems have Xdef: "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & \<bar>x + -a\<bar> < s --> \<bar>X x + -L\<bar> < r" by (unfold LIM_def)
+    from prems have Xdef: "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & \<bar>x + -a\<bar> < s --> norm (X x + -L) < r" by (unfold LIM_def)
     
     fix S
     assume as: "(\<forall>n. S n \<noteq> a) \<and> S ----> a"
     then have "S ----> a" by auto
-    then have Sdef: "(\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> \<bar>S n + -a\<bar> < r))" by (unfold LIMSEQ_def)
+    then have Sdef: "(\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> norm (S n + -a) < r))" by (unfold LIMSEQ_def)
     {
       fix r
-      from Xdef have Xdef2: "0 < r --> (\<exists>s > 0. \<forall>x. x \<noteq> a \<and> \<bar>x + -a\<bar> < s --> \<bar>X x + -L\<bar> < r)" by simp
+      from Xdef have Xdef2: "0 < r --> (\<exists>s > 0. \<forall>x. x \<noteq> a \<and> \<bar>x + -a\<bar> < s --> norm (X x + -L) < r)" by simp
       {
         assume rgz: "0 < r"
 
-        from Xdef2 rgz have "\<exists>s > 0. \<forall>x. x \<noteq> a \<and> \<bar>x + -a\<bar> < s --> \<bar>X x + -L\<bar> < r" by simp 
-        then obtain s where sdef: "s > 0 \<and> (\<forall>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < s \<longrightarrow> \<bar>X x + -L\<bar> < r)" by auto
-        then have aux: "\<forall>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < s \<longrightarrow> \<bar>X x + -L\<bar> < r" by auto
+        from Xdef2 rgz have "\<exists>s > 0. \<forall>x. x \<noteq> a \<and> \<bar>x + -a\<bar> < s --> norm (X x + -L) < r" by simp 
+        then obtain s where sdef: "s > 0 \<and> (\<forall>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < s \<longrightarrow> norm (X x + -L) < r)" by auto
+        then have aux: "\<forall>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < s \<longrightarrow> norm (X x + -L) < r" by auto
         {
           fix n
-          from aux have "S n \<noteq> a \<and> \<bar>S n + -a\<bar> < s \<longrightarrow> \<bar>X (S n) + -L\<bar> < r" by simp
-          with as have imp2: "\<bar>S n + -a\<bar> < s --> \<bar>X (S n) + -L\<bar> < r" by auto
+          from aux have "S n \<noteq> a \<and> \<bar>S n + -a\<bar> < s \<longrightarrow> norm (X (S n) + -L) < r" by simp
+          with as have imp2: "\<bar>S n + -a\<bar> < s --> norm (X (S n) + -L) < r" by auto
         }
-        hence "\<forall>n. \<bar>S n + -a\<bar> < s --> \<bar>X (S n) + -L\<bar> < r" ..
+        hence "\<forall>n. \<bar>S n + -a\<bar> < s --> norm (X (S n) + -L) < r" ..
         moreover
         from Sdef sdef have imp1: "\<exists>no. \<forall>n. no \<le> n --> \<bar>S n + -a\<bar> < s" by auto  
         then obtain no where "\<forall>n. no \<le> n --> \<bar>S n + -a\<bar> < s" by auto
-        ultimately have "\<forall>n. no \<le> n \<longrightarrow> \<bar>X (S n) + -L\<bar> < r" by simp
-        hence "\<exists>no. \<forall>n. no \<le> n \<longrightarrow> \<bar>X (S n) + -L\<bar> < r" by auto
+        ultimately have "\<forall>n. no \<le> n \<longrightarrow> norm (X (S n) + -L) < r" by simp
+        hence "\<exists>no. \<forall>n. no \<le> n \<longrightarrow> norm (X (S n) + -L) < r" by auto
       }
     }
-    hence "(\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> \<bar>X (S n) + -L\<bar> < r))" by simp
+    hence "(\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> norm (X (S n) + -L) < r))" by simp
     hence "(\<lambda>n. X (S n)) ----> L" by (fold LIMSEQ_def)
   }
   thus ?thesis by simp
@@ -2246,12 +2250,12 @@ lemma LIMSEQ_SEQ_conv2:
   shows "X -- a --> L"
 proof (rule ccontr)
   assume "\<not> (X -- a --> L)"
-  hence "\<not> (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & \<bar>x + -a\<bar> < s --> \<bar>X x + -L\<bar> < r)" by (unfold LIM_def)
-  hence "\<exists>r > 0. \<forall>s > 0. \<exists>x. \<not>(x \<noteq> a \<and> \<bar>x + -a\<bar> < s --> \<bar>X x + -L\<bar> < r)" by simp
-  hence "\<exists>r > 0. \<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x + -a\<bar> < s \<and> \<bar>X x + -L\<bar> \<ge> r)" by (simp add: linorder_not_less)
-  then obtain r where rdef: "r > 0 \<and> (\<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x + -a\<bar> < s \<and> \<bar>X x + -L\<bar> \<ge> r))" by auto
+  hence "\<not> (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & \<bar>x + -a\<bar> < s --> norm (X x + -L) < r)" by (unfold LIM_def)
+  hence "\<exists>r > 0. \<forall>s > 0. \<exists>x. \<not>(x \<noteq> a \<and> \<bar>x + -a\<bar> < s --> norm (X x + -L) < r)" by simp
+  hence "\<exists>r > 0. \<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x + -a\<bar> < s \<and> norm (X x + -L) \<ge> r)" by (simp add: linorder_not_less)
+  then obtain r where rdef: "r > 0 \<and> (\<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x + -a\<bar> < s \<and> norm (X x + -L) \<ge> r))" by auto
 
-  let ?F = "\<lambda>n::nat. SOME x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> \<bar>X x + -L\<bar> \<ge> r"
+  let ?F = "\<lambda>n::nat. SOME x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> norm (X x + -L) \<ge> r"
   have "?F ----> a"
   proof -
     {
@@ -2270,10 +2274,10 @@ proof (rule ccontr)
           "\<bar>?F n + -a\<bar> < inverse (real (Suc n))"
         proof -
           from rdef have
-            "\<exists>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> \<bar>X x + -L\<bar> \<ge> r"
+            "\<exists>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> norm (X x + -L) \<ge> r"
             by simp
           hence
-            "(?F n)\<noteq>a \<and> \<bar>(?F n) + -a\<bar> < inverse (real (Suc n)) \<and> \<bar>X (?F n) + -L\<bar> \<ge> r"
+            "(?F n)\<noteq>a \<and> \<bar>(?F n) + -a\<bar> < inverse (real (Suc n)) \<and> norm (X (?F n) + -L) \<ge> r"
             by (simp add: some_eq_ex [symmetric])
           thus ?thesis by simp
         qed
@@ -2291,7 +2295,7 @@ proof (rule ccontr)
     {
       fix n
       from rdef have
-        "\<exists>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> \<bar>X x + -L\<bar> \<ge> r"
+        "\<exists>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> norm (X x + -L) \<ge> r"
         by simp
       hence "?F n \<noteq> a" by (simp add: some_eq_ex [symmetric])
     }
@@ -2307,15 +2311,15 @@ proof (rule ccontr)
       obtain n where "n = no + 1" by simp
       then have nolen: "no \<le> n" by simp
         (* We prove this by showing that for any m there is an n\<ge>m such that |X (?F n) - L| \<ge> r *)
-      from rdef have "\<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x + -a\<bar> < s \<and> \<bar>X x + -L\<bar> \<ge> r)" ..
+      from rdef have "\<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x + -a\<bar> < s \<and> norm (X x + -L) \<ge> r)" ..
 
-      then have "\<exists>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> \<bar>X x + -L\<bar> \<ge> r" by simp
+      then have "\<exists>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> norm (X x + -L) \<ge> r" by simp
       
-      hence "\<bar>X (?F n) + -L\<bar> \<ge> r" by (simp add: some_eq_ex [symmetric])
-      with nolen have "\<exists>n. no \<le> n \<and> \<bar>X (?F n) + -L\<bar> \<ge> r" by auto
+      hence "norm (X (?F n) + -L) \<ge> r" by (simp add: some_eq_ex [symmetric])
+      with nolen have "\<exists>n. no \<le> n \<and> norm (X (?F n) + -L) \<ge> r" by auto
     }
-    then have "(\<forall>no. \<exists>n. no \<le> n \<and> \<bar>X (?F n) + -L\<bar> \<ge> r)" by simp
-    with rdef have "\<exists>e>0. (\<forall>no. \<exists>n. no \<le> n \<and> \<bar>X (?F n) + -L\<bar> \<ge> e)" by auto
+    then have "(\<forall>no. \<exists>n. no \<le> n \<and> norm (X (?F n) + -L) \<ge> r)" by simp
+    with rdef have "\<exists>e>0. (\<forall>no. \<exists>n. no \<le> n \<and> norm (X (?F n) + -L) \<ge> e)" by auto
     thus ?thesis by (unfold LIMSEQ_def, auto simp add: linorder_not_less)
   qed
   ultimately show False by simp
@@ -2352,26 +2356,26 @@ lemma LIM_offset:
 proof -
   have "f -- a --> L" .
   hence
-    fd: "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & \<bar>x + -a\<bar> < s --> \<bar>f x + -L\<bar> < r"
+    fd: "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & \<bar>x + -a\<bar> < s --> norm (f x + -L) < r"
     by (unfold LIM_def)
   {
     fix r::real
     assume rgz: "0 < r"
-    with fd have "\<exists>s > 0. \<forall>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < s --> \<bar>f x + -L\<bar> < r" by simp
-    then obtain s where sgz: "s > 0" and ax: "\<forall>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < s \<longrightarrow> \<bar>f x + -L\<bar> < r" by auto
-    from ax have ax2: "\<forall>x. (x+c)\<noteq>a \<and> \<bar>(x+c) + -a\<bar> < s \<longrightarrow> \<bar>f (x+c) + -L\<bar> < r" by auto
+    with fd have "\<exists>s > 0. \<forall>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < s --> norm (f x + -L) < r" by simp
+    then obtain s where sgz: "s > 0" and ax: "\<forall>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < s \<longrightarrow> norm (f x + -L) < r" by auto
+    from ax have ax2: "\<forall>x. (x+c)\<noteq>a \<and> \<bar>(x+c) + -a\<bar> < s \<longrightarrow> norm (f (x+c) + -L) < r" by auto
     {
       fix x::real
-      from ax2 have nt: "(x+c)\<noteq>a \<and> \<bar>(x+c) + -a\<bar> < s \<longrightarrow> \<bar>f (x+c) + -L\<bar> < r" ..
+      from ax2 have nt: "(x+c)\<noteq>a \<and> \<bar>(x+c) + -a\<bar> < s \<longrightarrow> norm (f (x+c) + -L) < r" ..
       moreover have "((x+c)\<noteq>a) = (x\<noteq>(a-c))" by auto
       moreover have "((x+c) + -a) = (x + -(a-c))" by simp
-      ultimately have "x\<noteq>(a-c) \<and> \<bar>x + -(a-c)\<bar> < s \<longrightarrow> \<bar>f (x+c) + -L\<bar> < r" by simp
+      ultimately have "x\<noteq>(a-c) \<and> \<bar>x + -(a-c)\<bar> < s \<longrightarrow> norm (f (x+c) + -L) < r" by simp
     }
-    then have "\<forall>x. x\<noteq>(a-c) \<and> \<bar>x + -(a-c)\<bar> < s \<longrightarrow> \<bar>f (x+c) + -L\<bar> < r" ..
-    with sgz have "\<exists>s > 0. \<forall>x. x\<noteq>(a-c) \<and> \<bar>x + -(a-c)\<bar> < s \<longrightarrow> \<bar>f (x+c) + -L\<bar> < r" by auto
+    then have "\<forall>x. x\<noteq>(a-c) \<and> \<bar>x + -(a-c)\<bar> < s \<longrightarrow> norm (f (x+c) + -L) < r" ..
+    with sgz have "\<exists>s > 0. \<forall>x. x\<noteq>(a-c) \<and> \<bar>x + -(a-c)\<bar> < s \<longrightarrow> norm (f (x+c) + -L) < r" by auto
   }
   then have
-    "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> (a-c) & \<bar>x + -(a-c)\<bar> < s --> \<bar>f (x+c) + -L\<bar> < r" by simp
+    "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> (a-c) & \<bar>x + -(a-c)\<bar> < s --> norm (f (x+c) + -L) < r" by simp
   thus ?thesis by (fold LIM_def)
 qed
 

@@ -126,10 +126,9 @@ apply (simp add: CLIM_def NSCLIM_def capprox_def, auto)
 apply (rule_tac x = xa in star_cases)
 apply (auto simp add: starfun star_n_diff star_of_def star_n_eq_iff
          CInfinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ Rep_star_star_n], safe)
 apply (drule_tac x = u in spec, auto)
 apply (drule_tac x = s in spec, auto, ultra)
-apply (drule sym, auto)
+apply (auto)
 done
 
 lemma eq_Abs_star_ALL: "(\<forall>t. P t) = (\<forall>X. P (star_n X))"
@@ -176,7 +175,7 @@ apply (drule lemma_skolemize_CLIM2, safe)
 apply (drule_tac x = X in spec, auto)
 apply (drule lemma_csimp [THEN complex_seq_to_hcomplex_CInfinitesimal])
 apply (simp add: CInfinitesimal_hcmod_iff star_of_def
-            Infinitesimal_FreeUltrafilterNat_iff star_n_diff hcmod,  blast)
+            Infinitesimal_FreeUltrafilterNat_iff star_n_diff hcmod)
 apply (drule_tac x = r in spec, clarify)
 apply (drule FreeUltrafilterNat_all, ultra)
 done
@@ -197,10 +196,9 @@ apply (auto simp add: starfun star_n_diff
               Infinitesimal_FreeUltrafilterNat_iff
               star_of_def star_n_eq_iff
               Infinitesimal_approx_minus [symmetric])
-apply (rule bexI [OF _ Rep_star_star_n], safe)
 apply (drule_tac x = u in spec, auto)
 apply (drule_tac x = s in spec, auto, ultra)
-apply (drule sym, auto)
+apply (auto)
 done
 
 lemma lemma_CRLIM:
@@ -242,7 +240,6 @@ apply (drule_tac x = X in spec, auto)
 apply (drule lemma_crsimp [THEN complex_seq_to_hcomplex_CInfinitesimal])
 apply (simp add: CInfinitesimal_hcmod_iff star_of_def
              Infinitesimal_FreeUltrafilterNat_iff star_n_diff hcmod)
-apply (auto simp add: star_of_def star_n_diff)
 apply (drule_tac x = r in spec, clarify)
 apply (drule FreeUltrafilterNat_all, ultra)
 done
