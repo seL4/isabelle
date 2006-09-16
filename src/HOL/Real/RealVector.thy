@@ -43,6 +43,11 @@ consts
 syntax (xsymbols)
   scaleR :: "real \<Rightarrow> 'a \<Rightarrow> 'a::scaleR" (infixr "*\<^sub>R" 75)
 
+instance real :: scaleR ..
+
+defs (overloaded)
+  real_scaleR_def: "a *# x \<equiv> a * x"
+
 axclass real_vector < scaleR, ab_group_add
   scaleR_right_distrib: "a *# (x + y) = a *# x + a *# y"
   scaleR_left_distrib: "(a + b) *# x = a *# x + b *# x"
@@ -52,6 +57,18 @@ axclass real_vector < scaleR, ab_group_add
 axclass real_algebra < real_vector, ring
   mult_scaleR_left: "a *# x * y = a *# (x * y)"
   mult_scaleR_right: "x * a *# y = a *# (x * y)"
+
+axclass real_algebra_1 < real_algebra, ring_1
+
+instance real :: real_algebra_1
+apply (intro_classes, unfold real_scaleR_def)
+apply (rule right_distrib)
+apply (rule left_distrib)
+apply (rule mult_assoc)
+apply (rule mult_1_left)
+apply (rule mult_assoc)
+apply (rule mult_left_commute)
+done
 
 lemmas scaleR_scaleR = scaleR_assoc [symmetric]
 
@@ -84,28 +101,209 @@ lemmas scaleR_left_diff_distrib =
 lemmas scaleR_right_diff_distrib =
   additive.diff [OF additive_scaleR_right, standard]
 
+lemma scaleR_eq_0_iff:
+  fixes x :: "'a::real_vector"
+  shows "(a *# x = 0) = (a = 0 \<or> x = 0)"
+proof cases
+  assume "a = 0" thus ?thesis by simp
+next
+  assume anz [simp]: "a \<noteq> 0"
+  { assume "a *# x = 0"
+    hence "inverse a *# a *# x = 0" by simp
+    hence "x = 0" by (simp (no_asm_use) add: scaleR_scaleR)}
+  thus ?thesis by force
+qed
+
+lemma scaleR_left_imp_eq:
+  fixes x y :: "'a::real_vector"
+  shows "\<lbrakk>a \<noteq> 0; a *# x = a *# y\<rbrakk> \<Longrightarrow> x = y"
+proof -
+  assume nonzero: "a \<noteq> 0"
+  assume "a *# x = a *# y"
+  hence "a *# (x - y) = 0"
+     by (simp add: scaleR_right_diff_distrib)
+  hence "x - y = 0"
+     by (simp add: scaleR_eq_0_iff nonzero)
+  thus "x = y" by simp
+qed
+
+lemma scaleR_right_imp_eq:
+  fixes x y :: "'a::real_vector"
+  shows "\<lbrakk>x \<noteq> 0; a *# x = b *# x\<rbrakk> \<Longrightarrow> a = b"
+proof -
+  assume nonzero: "x \<noteq> 0"
+  assume "a *# x = b *# x"
+  hence "(a - b) *# x = 0"
+     by (simp add: scaleR_left_diff_distrib)
+  hence "a - b = 0"
+     by (simp add: scaleR_eq_0_iff nonzero)
+  thus "a = b" by simp
+qed
+
+lemma scaleR_cancel_left:
+  fixes x y :: "'a::real_vector"
+  shows "(a *# x = a *# y) = (x = y \<or> a = 0)"
+by (auto intro: scaleR_left_imp_eq)
+
+lemma scaleR_cancel_right:
+  fixes x y :: "'a::real_vector"
+  shows "(a *# x = b *# x) = (a = b \<or> x = 0)"
+by (auto intro: scaleR_right_imp_eq)
+
+
+subsection {* Embedding of the Reals into any @{text real_algebra_1}:
+@{term of_real} *}
+
+definition
+  of_real :: "real \<Rightarrow> 'a::real_algebra_1"
+  "of_real r = r *# 1"
+
+lemma of_real_0 [simp]: "of_real 0 = 0"
+by (simp add: of_real_def)
+
+lemma of_real_1 [simp]: "of_real 1 = 1"
+by (simp add: of_real_def)
+
+lemma of_real_add [simp]: "of_real (x + y) = of_real x + of_real y"
+by (simp add: of_real_def scaleR_left_distrib)
+
+lemma of_real_minus [simp]: "of_real (- x) = - of_real x"
+by (simp add: of_real_def)
+
+lemma of_real_diff [simp]: "of_real (x - y) = of_real x - of_real y"
+by (simp add: of_real_def scaleR_left_diff_distrib)
+
+lemma of_real_mult [simp]: "of_real (x * y) = of_real x * of_real y"
+by (simp add: of_real_def mult_scaleR_left scaleR_scaleR)
+
+lemma of_real_eq_iff [simp]: "(of_real x = of_real y) = (x = y)"
+by (simp add: of_real_def scaleR_cancel_right)
+
+text{*Special cases where either operand is zero*}
+lemmas of_real_0_eq_iff = of_real_eq_iff [of 0, simplified]
+lemmas of_real_eq_0_iff = of_real_eq_iff [of _ 0, simplified]
+declare of_real_0_eq_iff [simp]
+declare of_real_eq_0_iff [simp]
+
+lemma of_real_eq_id [simp]: "of_real = (id :: real \<Rightarrow> real)"
+proof
+  fix r
+  show "of_real r = id r"
+    by (simp add: of_real_def real_scaleR_def)
+qed
+
+text{*Collapse nested embeddings*}
+lemma of_real_of_nat_eq [simp]: "of_real (of_nat n) = of_nat n"
+by (induct n, auto)
+
+lemma of_real_of_int_eq [simp]: "of_real (of_int z) = of_int z"
+by (cases z rule: int_diff_cases, simp)
+
+lemma of_real_number_of_eq:
+  "of_real (number_of w) = (number_of w :: 'a::{number_ring,real_algebra_1})"
+by (simp add: number_of_eq)
+
+
+subsection {* The Set of Real Numbers *}
+
+constdefs
+   Reals :: "'a::real_algebra_1 set"
+   "Reals \<equiv> range of_real"
+
+const_syntax (xsymbols)
+  Reals  ("\<real>")
+
+lemma of_real_in_Reals [simp]: "of_real r \<in> Reals"
+by (simp add: Reals_def)
+
+lemma Reals_0 [simp]: "0 \<in> Reals"
+apply (unfold Reals_def)
+apply (rule range_eqI)
+apply (rule of_real_0 [symmetric])
+done
+
+lemma Reals_1 [simp]: "1 \<in> Reals"
+apply (unfold Reals_def)
+apply (rule range_eqI)
+apply (rule of_real_1 [symmetric])
+done
+
+lemma Reals_add [simp]: "\<lbrakk>a \<in> Reals; b \<in> Reals\<rbrakk> \<Longrightarrow> a+b \<in> Reals"
+apply (auto simp add: Reals_def)
+apply (rule range_eqI)
+apply (rule of_real_add [symmetric])
+done
+
+lemma Reals_mult [simp]: "\<lbrakk>a \<in> Reals; b \<in> Reals\<rbrakk> \<Longrightarrow> a*b \<in> Reals"
+apply (auto simp add: Reals_def)
+apply (rule range_eqI)
+apply (rule of_real_mult [symmetric])
+done
+
+lemma Reals_cases [cases set: Reals]:
+  assumes "q \<in> \<real>"
+  obtains (of_real) r where "q = of_real r"
+  unfolding Reals_def
+proof -
+  from `q \<in> \<real>` have "q \<in> range of_real" unfolding Reals_def .
+  then obtain r where "q = of_real r" ..
+  then show thesis ..
+qed
+
+lemma Reals_induct [case_names of_real, induct set: Reals]:
+  "q \<in> \<real> \<Longrightarrow> (\<And>r. P (of_real r)) \<Longrightarrow> P q"
+  by (rule Reals_cases) auto
+
 
 subsection {* Real normed vector spaces *}
 
 axclass norm < type
 consts norm :: "'a::norm \<Rightarrow> real"
 
-axclass real_normed_vector < real_vector, norm
+instance real :: norm ..
+
+defs (overloaded)
+  real_norm_def: "norm r \<equiv> \<bar>r\<bar>"
+
+axclass normed < plus, zero, norm
   norm_ge_zero [simp]: "0 \<le> norm x"
   norm_eq_zero [simp]: "(norm x = 0) = (x = 0)"
   norm_triangle_ineq: "norm (x + y) \<le> norm x + norm y"
+
+axclass real_normed_vector < real_vector, normed
   norm_scaleR: "norm (a *# x) = \<bar>a\<bar> * norm x"
 
 axclass real_normed_algebra < real_normed_vector, real_algebra
   norm_mult_ineq: "norm (x * y) \<le> norm x * norm y"
 
-axclass real_normed_div_algebra
-          < real_normed_vector, real_algebra, division_ring
+axclass real_normed_div_algebra < normed, real_algebra_1, division_ring
+  norm_of_real: "norm (of_real r) = abs r"
   norm_mult: "norm (x * y) = norm x * norm y"
   norm_one [simp]: "norm 1 = 1"
 
 instance real_normed_div_algebra < real_normed_algebra
-by (intro_classes, simp add: norm_mult)
+proof
+  fix a :: real and x :: 'a
+  have "norm (a *# x) = norm (of_real a * x)"
+    by (simp add: of_real_def mult_scaleR_left)
+  also have "\<dots> = abs a * norm x"
+    by (simp add: norm_mult norm_of_real)
+  finally show "norm (a *# x) = abs a * norm x" .
+next
+  fix x y :: 'a
+  show "norm (x * y) \<le> norm x * norm y"
+    by (simp add: norm_mult)
+qed
+
+instance real :: real_normed_div_algebra
+apply (intro_classes, unfold real_norm_def)
+apply (rule abs_ge_zero)
+apply (rule abs_eq_0)
+apply (rule abs_triangle_ineq)
+apply simp
+apply (rule abs_mult)
+apply (rule abs_one)
+done
 
 lemma norm_zero [simp]: "norm (0::'a::real_normed_vector) = 0"
 by simp
@@ -180,39 +378,6 @@ lemma norm_inverse:
   shows "norm (inverse a) = inverse (norm a)"
 apply (case_tac "a = 0", simp)
 apply (erule nonzero_norm_inverse)
-done
-
-
-subsection {* Instances for type @{typ real} *}
-
-instance real :: scaleR ..
-
-defs (overloaded)
-  real_scaleR_def: "a *# x \<equiv> a * x"
-
-instance real :: real_algebra
-apply (intro_classes, unfold real_scaleR_def)
-apply (rule right_distrib)
-apply (rule left_distrib)
-apply (rule mult_assoc)
-apply (rule mult_1_left)
-apply (rule mult_assoc)
-apply (rule mult_left_commute)
-done
-
-instance real :: norm ..
-
-defs (overloaded)
-  real_norm_def: "norm r \<equiv> \<bar>r\<bar>"
-
-instance real :: real_normed_div_algebra
-apply (intro_classes, unfold real_norm_def real_scaleR_def)
-apply (rule abs_ge_zero)
-apply (rule abs_eq_0)
-apply (rule abs_triangle_ineq)
-apply (rule abs_mult)
-apply (rule abs_mult)
-apply (rule abs_one)
 done
 
 end

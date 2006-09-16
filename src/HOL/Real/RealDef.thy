@@ -30,15 +30,8 @@ definition
   "real_of_preal m = Abs_Real(realrel``{(m + preal_of_rat 1, preal_of_rat 1)})"
 
 consts
-   (*Overloaded constant denoting the Real subset of enclosing
-     types such as hypreal and complex*)
-   Reals :: "'a set"
-
    (*overloaded constant for injecting other types into "real"*)
    real :: "'a => real"
-
-const_syntax (xsymbols)
-  Reals  ("\<real>")
 
 
 defs (overloaded)
