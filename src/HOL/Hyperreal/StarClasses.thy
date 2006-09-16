@@ -380,13 +380,6 @@ by (rule eq_reflection, induct_tac n, simp_all)
 lemma star_of_of_nat [simp]: "star_of (of_nat n) = of_nat n"
 by transfer (rule refl)
 
-lemma int_diff_cases:
-assumes prem: "\<And>m n. z = int m - int n \<Longrightarrow> P" shows "P"
- apply (rule_tac z=z in int_cases)
-  apply (rule_tac m=n and n=0 in prem, simp)
- apply (rule_tac m=0 and n="Suc n" in prem, simp)
-done -- "Belongs in Integ/IntDef.thy"
-
 lemma star_of_int_def [transfer_unfold]: "of_int z \<equiv> star_of (of_int z)"
 by (rule eq_reflection, rule_tac z=z in int_diff_cases, simp)
 
