@@ -1119,7 +1119,8 @@ done
 
 lemma SComplex_SReal_hcomplex_of_hypreal:
      "x \<in> Reals ==>  hcomplex_of_hypreal x \<in> SComplex"
-by (auto simp add: SReal_def SComplex_def hcomplex_of_hypreal_def)
+by (auto simp add: SReal_def SComplex_def hcomplex_of_hypreal_def
+         simp del: star_of_of_real)
 
 lemma stc_hcomplex_of_hypreal: 
  "z \<in> HFinite ==> stc(hcomplex_of_hypreal z) = hcomplex_of_hypreal (st z)"
