@@ -259,6 +259,32 @@ proof
 qed
 
 
+subsection{*The real algebra of complex numbers*}
+
+instance complex :: scaleR ..
+
+defs (overloaded)
+  complex_scaleR_def: "r *# x == Complex r 0 * x"
+
+instance complex :: real_algebra_1
+proof
+  fix a b :: real
+  fix x y :: complex
+  show "a *# (x + y) = a *# x + a *# y"
+    by (simp add: complex_scaleR_def right_distrib)
+  show "(a + b) *# x = a *# x + b *# x"
+    by (simp add: complex_scaleR_def left_distrib [symmetric])
+  show "(a * b) *# x = a *# b *# x"
+    by (simp add: complex_scaleR_def mult_assoc [symmetric])
+  show "1 *# x = x"
+    by (simp add: complex_scaleR_def complex_one_def [symmetric])
+  show "a *# x * y = a *# (x * y)"
+    by (simp add: complex_scaleR_def mult_assoc)
+  show "x * a *# y = a *# (x * y)"
+    by (simp add: complex_scaleR_def mult_left_commute)
+qed
+
+
 subsection{*Embedding Properties for @{term complex_of_real} Map*}
 
 lemma Complex_add_complex_of_real [simp]:
@@ -552,6 +578,34 @@ apply (insert complex_mod_ge_zero [of z])
 apply (drule order_le_imp_less_or_eq, auto)
 done
 
+
+subsection{*The normed division algebra of complex numbers*}
+
+instance complex :: norm ..
+
+defs (overloaded)
+  complex_norm_def: "norm == cmod"
+
+lemma of_real_complex_of_real: "of_real r = complex_of_real r"
+by (simp add: complex_of_real_def of_real_def complex_scaleR_def)
+
+instance complex :: real_normed_div_algebra
+proof (intro_classes, unfold complex_norm_def)
+  fix r :: real
+  fix x y :: complex
+  show "0 \<le> cmod x"
+    by (rule complex_mod_ge_zero)
+  show "(cmod x = 0) = (x = 0)"
+    by (rule complex_mod_eq_zero_cancel)
+  show "cmod (x + y) \<le> cmod x + cmod y"
+    by (rule complex_mod_triangle_ineq)
+  show "cmod (of_real r) = abs r"
+    by (simp add: of_real_complex_of_real)
+  show "cmod (x * y) = cmod x * cmod y"
+    by (rule complex_mod_mult)
+  show "cmod 1 = 1"
+    by (rule complex_mod_one)
+qed
 
 subsection{*A Few More Theorems*}
 
