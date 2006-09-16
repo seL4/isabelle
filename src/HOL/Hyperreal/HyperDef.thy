@@ -34,6 +34,44 @@ const_syntax (HTML output)
   epsilon  ("\<epsilon>")
 
 
+subsection {* Real vector class instances *}
+
+instance star :: (scaleR) scaleR ..
+
+defs (overloaded)
+  star_scaleR_def [transfer_unfold]: "scaleR r \<equiv> *f* (scaleR r)"
+
+instance star :: (real_vector) real_vector
+proof
+  fix a b :: real
+  show "\<And>x y::'a star. a *# (x + y) = a *# x + a *# y"
+    by transfer (rule scaleR_right_distrib)
+  show "\<And>x::'a star. (a + b) *# x = a *# x + b *# x"
+    by transfer (rule scaleR_left_distrib)
+  show "\<And>x::'a star. (a * b) *# x = a *# b *# x"
+    by transfer (rule scaleR_assoc)
+  show "\<And>x::'a star. 1 *# x = x"
+    by transfer (rule scaleR_one)
+qed
+
+instance star :: (real_algebra) real_algebra
+proof
+  fix a :: real
+  show "\<And>x y::'a star. a *# x * y = a *# (x * y)"
+    by transfer (rule mult_scaleR_left)
+  show "\<And>x y::'a star. x * a *# y = a *# (x * y)"
+    by transfer (rule mult_scaleR_right)
+qed
+
+instance star :: (real_algebra_1) real_algebra_1 ..
+
+lemma star_of_real_def [transfer_unfold]: "of_real r \<equiv> star_of (of_real r)"
+by (rule eq_reflection, unfold of_real_def, transfer, rule refl)
+
+lemma star_of_of_real [simp]: "star_of (of_real r) = of_real r"
+by transfer (rule refl)
+
+
 subsection{*Existence of Free Ultrafilter over the Naturals*}
 
 text{*Also, proof of various properties of @{term FreeUltrafilterNat}: 
