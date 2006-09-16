@@ -13,7 +13,7 @@ text {*
   Additional lemmas that require the \texttt{HOL-Complex} logic image.
 *}
 
-lemma bigo_LIMSEQ1: "f =o O(g) ==> g ----> 0 ==> f ----> 0"
+lemma bigo_LIMSEQ1: "f =o O(g) ==> g ----> 0 ==> f ----> (0::real)"
   apply (simp add: LIMSEQ_def bigo_alt_def)
   apply clarify
   apply (drule_tac x = "r / c" in spec)
@@ -38,7 +38,7 @@ lemma bigo_LIMSEQ1: "f =o O(g) ==> g ----> 0 ==> f ----> 0"
 done
 
 lemma bigo_LIMSEQ2: "f =o g +o O(h) ==> h ----> 0 ==> f ----> a 
-    ==> g ----> a"
+    ==> g ----> (a::real)"
   apply (drule set_plus_imp_minus)
   apply (drule bigo_LIMSEQ1)
   apply assumption
