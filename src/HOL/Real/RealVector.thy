@@ -157,6 +157,17 @@ proof -
     by simp
 qed
 
+lemma norm_diff_triangle_ineq:
+  fixes a b c d :: "'a::real_normed_vector"
+  shows "norm ((a + b) - (c + d)) \<le> norm (a - c) + norm (b - d)"
+proof -
+  have "norm ((a + b) - (c + d)) = norm ((a - c) + (b - d))"
+    by (simp add: diff_minus add_ac)
+  also have "\<dots> \<le> norm (a - c) + norm (b - d)"
+    by (rule norm_triangle_ineq)
+  finally show ?thesis .
+qed
+
 lemma nonzero_norm_inverse:
   fixes a :: "'a::real_normed_div_algebra"
   shows "a \<noteq> 0 \<Longrightarrow> norm (inverse a) = inverse (norm a)"
