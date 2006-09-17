@@ -17,6 +17,9 @@ abbreviation
   hcomplex_of_complex :: "complex => complex star"
   "hcomplex_of_complex == star_of"
 
+  hcmod :: "complex star => real star"
+  "hcmod == hnorm"
+
 definition
 
   (*--- real and Imaginary parts ---*)
@@ -27,11 +30,6 @@ definition
   hIm :: "hcomplex => hypreal"
   "hIm = *f* Im"
 
-
-  (*----------- modulus ------------*)
-
-  hcmod :: "hcomplex => hypreal"
-  "hcmod = *f* cmod"
 
   (*------ imaginary unit ----------*)
 
@@ -76,8 +74,11 @@ definition
   "(z::hcomplex) hcpow (n::hypnat) = ( *f2* op ^) z n"
 
 lemmas hcomplex_defs [transfer_unfold] =
-  hRe_def hIm_def hcmod_def iii_def hcnj_def hsgn_def harg_def hcis_def
+  hRe_def hIm_def iii_def hcnj_def hsgn_def harg_def hcis_def
   hcomplex_of_hypreal_def hrcis_def hexpi_def HComplex_def hcpow_def
+
+lemma hcmod_def: "hcmod = *f* cmod"
+by (rule hnorm_def)
 
 
 subsection{*Properties of Nonstandard Real and Imaginary Parts*}
