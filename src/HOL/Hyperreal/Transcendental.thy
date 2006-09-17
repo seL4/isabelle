@@ -530,7 +530,7 @@ apply (auto intro!: power_mono zero_le_power simp add: power_abs)
 done
 
 lemma lemma_termdiff4: 
-  "[| 0 < k;  
+  "[| 0 < (k::real);  
       (\<forall>h. 0 < \<bar>h\<bar> & \<bar>h\<bar> < k --> \<bar>f h\<bar> \<le> K * \<bar>h\<bar>) |]  
    ==> f -- 0 --> 0"
 apply (simp add: LIM_def, auto)
@@ -2520,7 +2520,8 @@ done
 (* need to rename second isCont_inverse *)
 
 lemma isCont_inv_fun:
-     "[| 0 < d; \<forall>z. \<bar>z - x\<bar> \<le> d --> g(f(z)) = z;  
+  fixes f g :: "real \<Rightarrow> real"
+  shows "[| 0 < d; \<forall>z. \<bar>z - x\<bar> \<le> d --> g(f(z)) = z;  
          \<forall>z. \<bar>z - x\<bar> \<le> d --> isCont f z |]  
       ==> isCont g (f x)"
 apply (simp (no_asm) add: isCont_iff LIM_def)
@@ -2557,7 +2558,7 @@ done
 text{*Bartle/Sherbert: Introduction to Real Analysis, Theorem 4.2.9, p. 110*}
 lemma LIM_fun_gt_zero:
      "[| f -- c --> (l::real); 0 < l |]  
-         ==> \<exists>r. 0 < r & (\<forall>x. x \<noteq> c & \<bar>c - x\<bar> < r --> 0 < f x)"
+         ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> 0 < f x)"
 apply (auto simp add: LIM_def)
 apply (drule_tac x = "l/2" in spec, safe, force)
 apply (rule_tac x = s in exI)
@@ -2566,7 +2567,7 @@ done
 
 lemma LIM_fun_less_zero:
      "[| f -- c --> (l::real); l < 0 |]  
-      ==> \<exists>r. 0 < r & (\<forall>x. x \<noteq> c & \<bar>c - x\<bar> < r --> f x < 0)"
+      ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> f x < 0)"
 apply (auto simp add: LIM_def)
 apply (drule_tac x = "-l/2" in spec, safe, force)
 apply (rule_tac x = s in exI)
@@ -2576,7 +2577,7 @@ done
 
 lemma LIM_fun_not_zero:
      "[| f -- c --> (l::real); l \<noteq> 0 |] 
-      ==> \<exists>r. 0 < r & (\<forall>x. x \<noteq> c & \<bar>c - x\<bar> < r --> f x \<noteq> 0)"
+      ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> f x \<noteq> 0)"
 apply (cut_tac x = l and y = 0 in linorder_less_linear, auto)
 apply (drule LIM_fun_less_zero)
 apply (drule_tac [3] LIM_fun_gt_zero)
