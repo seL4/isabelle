@@ -32,26 +32,10 @@ apply (cases w)
 apply (simp add: star_of_def starfun star_n_eq_iff, ultra)
 done
 
-lemma starfun_capprox:
-    "( *f* f) (hcomplex_of_complex a) @c= hcomplex_of_complex (f a)"
-by auto
-
 lemma starfunC_hcpow: "( *f* (%z. z ^ n)) Z = Z hcpow hypnat_of_nat n"
 apply (cases Z)
 apply (simp add: hcpow starfun hypnat_of_nat_eq)
 done
-
-lemma starfun_mult_CFinite_capprox:
-    "[| ( *f* f) y @c= l; ( *f* g) y @c= m; l: CFinite; m: CFinite |]
-     ==>  ( *f* (%x. f x * g x)) y @c= l * m"
-apply (drule capprox_mult_CFinite, assumption+)
-apply (auto intro: capprox_sym [THEN [2] capprox_CFinite])
-done
-
-lemma starfun_add_capprox:
-    "[| ( *f* f) y @c= l; ( *f* g) y @c= m |]
-     ==>  ( *f* (%x. f x + g x)) y @c= l + m"
-by (auto intro: capprox_add)
 
 lemma starfunCR_cmod: "*f* cmod = hcmod"
 apply (rule ext)
@@ -79,14 +63,14 @@ apply (auto simp add: starfun hIm hRe complex_Re_Im_cancel_iff star_n_eq_iff, ul
 done
 
 lemma starfunC_approx_Re_Im_iff:
-    "(( *f* f) x @c= z) = ((( *f* (%x. Re(f x))) x @= hRe (z)) &
+    "(( *f* f) x @= z) = ((( *f* (%x. Re(f x))) x @= hRe (z)) &
                             (( *f* (%x. Im(f x))) x @= hIm (z)))"
 apply (cases x, cases z)
-apply (simp add: starfun hIm hRe capprox_approx_iff)
+apply (simp add: starfun hIm hRe approx_approx_iff)
 done
 
-lemma starfunC_Idfun_capprox:
-    "x @c= hcomplex_of_complex a ==> ( *f* (%x. x)) x @c= hcomplex_of_complex  a"
+lemma starfunC_Idfun_approx:
+    "x @= hcomplex_of_complex a ==> ( *f* (%x. x)) x @= hcomplex_of_complex  a"
 by simp
 
 end

@@ -45,8 +45,8 @@ definition
   NSCLIM :: "[complex=>complex,complex,complex] => bool"
 			      ("((_)/ -- (_)/ --NSC> (_))" [60, 0, 60] 60)
   "f -- a --NSC> L = (\<forall>x. (x \<noteq> hcomplex_of_complex a &
-           		         x @c= hcomplex_of_complex a
-                                   --> ( *f* f) x @c= hcomplex_of_complex L))"
+           		         x @= hcomplex_of_complex a
+                                   --> ( *f* f) x @= hcomplex_of_complex L))"
 
   (* f: C --> R *)
   CRLIM :: "[complex=>real,complex,real] => bool"
@@ -59,7 +59,7 @@ definition
   NSCRLIM :: "[complex=>real,complex,real] => bool"
 			      ("((_)/ -- (_)/ --NSCR> (_))" [60, 0, 60] 60)
   "f -- a --NSCR> L = (\<forall>x. (x \<noteq> hcomplex_of_complex a &
-           		         x @c= hcomplex_of_complex a
+           		         x @= hcomplex_of_complex a
                                    --> ( *f* f) x @= hypreal_of_real L))"
 
 
@@ -68,15 +68,15 @@ definition
 
   (* NS definition dispenses with limit notions *)
   isNSContc :: "[complex=>complex,complex] => bool"
-  "isNSContc f a = (\<forall>y. y @c= hcomplex_of_complex a -->
-			   ( *f* f) y @c= hcomplex_of_complex (f a))"
+  "isNSContc f a = (\<forall>y. y @= hcomplex_of_complex a -->
+			   ( *f* f) y @= hcomplex_of_complex (f a))"
 
   isContCR :: "[complex=>real,complex] => bool"
   "isContCR f a = (f -- a --CR> (f a))"
 
   (* NS definition dispenses with limit notions *)
   isNSContCR :: "[complex=>real,complex] => bool"
-  "isNSContCR f a = (\<forall>y. y @c= hcomplex_of_complex a -->
+  "isNSContCR f a = (\<forall>y. y @= hcomplex_of_complex a -->
 			   ( *f* f) y @= hypreal_of_real (f a))"
 
   (* differentiation: D is derivative of function f at x *)
@@ -86,9 +86,9 @@ definition
 
   nscderiv :: "[complex=>complex,complex,complex] => bool"
 			    ("(NSCDERIV (_)/ (_)/ :> (_))" [60, 0, 60] 60)
-  "NSCDERIV f x :> D = (\<forall>h \<in> CInfinitesimal - {0}.
+  "NSCDERIV f x :> D = (\<forall>h \<in> Infinitesimal - {0}.
 			      (( *f* f)(hcomplex_of_complex x + h)
-        			 - hcomplex_of_complex (f x))/h @c= hcomplex_of_complex D)"
+        			 - hcomplex_of_complex (f x))/h @= hcomplex_of_complex D)"
 
   cdifferentiable :: "[complex=>complex,complex] => bool"
                      (infixl "cdifferentiable" 60)
@@ -105,7 +105,7 @@ definition
 			    --> cmod(f x - f y) < r)))"
 
   isNSUContc :: "(complex=>complex) => bool"
-  "isNSUContc f = (\<forall>x y. x @c= y --> ( *f* f) x @c= ( *f* f) y)"
+  "isNSUContc f = (\<forall>x y. x @= y --> ( *f* f) x @= ( *f* f) y)"
 
 
 
@@ -122,10 +122,11 @@ by (simp add: NSCLIM_def NSCRLIM_def starfunC_approx_Re_Im_iff
 
 lemma CLIM_NSCLIM:
       "f -- x --C> L ==> f -- x --NSC> L"
-apply (simp add: CLIM_def NSCLIM_def capprox_def, auto)
+apply (simp add: CLIM_def NSCLIM_def approx_def, auto)
 apply (rule_tac x = xa in star_cases)
 apply (auto simp add: starfun star_n_diff star_of_def star_n_eq_iff
-         CInfinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff)
+         Infinitesimal_hcmod_iff hcmod diff_def [symmetric])
+apply (auto simp add: Infinitesimal_FreeUltrafilterNat_iff)
 apply (drule_tac x = u in spec, auto)
 apply (drule_tac x = s in spec, auto, ultra)
 apply (auto)
@@ -167,14 +168,15 @@ lemma NSCLIM_CLIM:
 apply (simp add: CLIM_def NSCLIM_def)
 apply (rule ccontr) 
 apply (auto simp add: eq_Abs_star_ALL starfun
-            CInfinitesimal_capprox_minus [symmetric] star_n_diff
-            CInfinitesimal_hcmod_iff star_of_def star_n_eq_iff
-            Infinitesimal_FreeUltrafilterNat_iff hcmod)
+            Infinitesimal_approx_minus [symmetric] star_n_diff
+            Infinitesimal_hcmod_iff star_of_def star_n_eq_iff
+            hcmod)
+apply (auto simp add: Infinitesimal_FreeUltrafilterNat_iff)
 apply (simp add: linorder_not_less)
 apply (drule lemma_skolemize_CLIM2, safe)
 apply (drule_tac x = X in spec, auto)
-apply (drule lemma_csimp [THEN complex_seq_to_hcomplex_CInfinitesimal])
-apply (simp add: CInfinitesimal_hcmod_iff star_of_def
+apply (drule lemma_csimp [THEN complex_seq_to_hcomplex_Infinitesimal])
+apply (simp add: Infinitesimal_hcmod_iff star_of_def
             Infinitesimal_FreeUltrafilterNat_iff star_n_diff hcmod)
 apply (drule_tac x = r in spec, clarify)
 apply (drule FreeUltrafilterNat_all, ultra)
@@ -189,13 +191,13 @@ by (blast intro: CLIM_NSCLIM NSCLIM_CLIM)
 subsection{*Limit of Complex to Real Function*}
 
 lemma CRLIM_NSCRLIM: "f -- x --CR> L ==> f -- x --NSCR> L"
-apply (simp add: CRLIM_def NSCRLIM_def capprox_def, auto)
+apply (simp add: CRLIM_def NSCRLIM_def approx_def, auto)
 apply (rule_tac x = xa in star_cases)
 apply (auto simp add: starfun star_n_diff
-              CInfinitesimal_hcmod_iff hcmod
-              Infinitesimal_FreeUltrafilterNat_iff
+              Infinitesimal_hcmod_iff hcmod
               star_of_def star_n_eq_iff
-              Infinitesimal_approx_minus [symmetric])
+              diff_def [symmetric])
+apply (auto simp add: Infinitesimal_FreeUltrafilterNat_iff)
 apply (drule_tac x = u in spec, auto)
 apply (drule_tac x = s in spec, auto, ultra)
 apply (auto)
@@ -227,18 +229,19 @@ lemma lemma_crsimp:
 by auto
 
 lemma NSCRLIM_CRLIM: "f -- x --NSCR> L ==> f -- x --CR> L"
-apply (simp add: CRLIM_def NSCRLIM_def capprox_def)
+apply (simp add: CRLIM_def NSCRLIM_def approx_def)
 apply (rule ccontr) 
 apply (auto simp add: eq_Abs_star_ALL starfun star_n_diff 
-             CInfinitesimal_hcmod_iff 
+             Infinitesimal_hcmod_iff 
              hcmod Infinitesimal_approx_minus [symmetric]
              star_of_def star_n_eq_iff
-             Infinitesimal_FreeUltrafilterNat_iff)
+             diff_def [symmetric])
+apply (auto simp add: Infinitesimal_FreeUltrafilterNat_iff)
 apply (simp add: linorder_not_less)
 apply (drule lemma_skolemize_CRLIM2, safe)
 apply (drule_tac x = X in spec, auto)
-apply (drule lemma_crsimp [THEN complex_seq_to_hcomplex_CInfinitesimal])
-apply (simp add: CInfinitesimal_hcmod_iff star_of_def
+apply (drule lemma_crsimp [THEN complex_seq_to_hcomplex_Infinitesimal])
+apply (simp add: Infinitesimal_hcmod_iff star_of_def
              Infinitesimal_FreeUltrafilterNat_iff star_n_diff hcmod)
 apply (drule_tac x = r in spec, clarify)
 apply (drule FreeUltrafilterNat_all, ultra)
@@ -266,7 +269,7 @@ by (simp add: CLIM_def complex_cnj_diff [symmetric])
 lemma NSCLIM_add:
      "[| f -- x --NSC> l; g -- x --NSC> m |]
       ==> (%x. f(x) + g(x)) -- x --NSC> (l + m)"
-by (auto simp: NSCLIM_def intro!: capprox_add)
+by (auto simp: NSCLIM_def intro!: approx_add)
 
 lemma CLIM_add:
      "[| f -- x --C> l; g -- x --C> m |]
@@ -278,7 +281,7 @@ by (simp add: CLIM_NSCLIM_iff NSCLIM_add)
 lemma NSCLIM_mult:
      "[| f -- x --NSC> l; g -- x --NSC> m |]
       ==> (%x. f(x) * g(x)) -- x --NSC> (l * m)"
-by (auto simp add: NSCLIM_def intro!: capprox_mult_CFinite)
+by (auto simp add: NSCLIM_def intro!: approx_mult_HFinite)
 
 lemma CLIM_mult:
      "[| f -- x --C> l; g -- x --C> m |]
@@ -320,7 +323,7 @@ lemma NSCLIM_inverse:
       ==> (%x. inverse(f(x))) -- a --NSC> (inverse L)"
 apply (simp add: NSCLIM_def, clarify)
 apply (drule spec)
-apply (force simp add: hcomplex_of_complex_capprox_inverse)
+apply (force simp add: hcomplex_of_complex_approx_inverse)
 done
 
 lemma CLIM_inverse:
@@ -350,7 +353,7 @@ by (drule_tac g = "%x. l" and m = l in CLIM_add, auto)
 lemma NSCLIM_not_zero: "k \<noteq> 0 ==> ~ ((%x. k) -- x --NSC> 0)"
 apply (auto simp del: star_of_zero simp add: NSCLIM_def)
 apply (rule_tac x = "hcomplex_of_complex x + hcomplex_of_hypreal epsilon" in exI)
-apply (auto intro: CInfinitesimal_add_capprox_self [THEN capprox_sym]
+apply (auto intro: Infinitesimal_add_approx_self [THEN approx_sym]
             simp del: star_of_zero)
 done
 
@@ -395,7 +398,7 @@ by (drule CLIM_mult, auto)
 (*** NSCLIM_self hence CLIM_self ***)
 
 lemma NSCLIM_self: "(%x. x) -- a --NSC> a"
-by (auto simp add: NSCLIM_def intro: starfunC_Idfun_capprox)
+by (auto simp add: NSCLIM_def intro: starfunC_Idfun_approx)
 
 lemma CLIM_self: "(%x. x) -- a --C> a"
 by (simp add: CLIM_NSCLIM_iff NSCLIM_self)
@@ -403,7 +406,7 @@ by (simp add: CLIM_NSCLIM_iff NSCLIM_self)
 (** another equivalence result **)
 lemma NSCLIM_NSCRLIM_iff:
    "(f -- x --NSC> L) = ((%y. cmod(f y - L)) -- x --NSCR> 0)"
-apply (auto simp add: NSCLIM_def NSCRLIM_def CInfinitesimal_capprox_minus [symmetric] CInfinitesimal_hcmod_iff)
+apply (auto simp add: NSCLIM_def NSCRLIM_def Infinitesimal_approx_minus [symmetric] Infinitesimal_hcmod_iff)
 apply (auto dest!: spec) 
 apply (rule_tac [!] x = xa in star_cases)
 apply (auto simp add: star_n_diff starfun hcmod mem_infmal_iff star_of_def)
@@ -425,7 +428,7 @@ apply (auto intro: NSCLIM_NSCRLIM_Re NSCLIM_NSCRLIM_Im)
 apply (auto simp add: NSCLIM_def NSCRLIM_def)
 apply (auto dest!: spec) 
 apply (rule_tac x = x in star_cases)
-apply (simp add: capprox_approx_iff starfun star_of_def)
+apply (simp add: approx_approx_iff starfun star_of_def)
 done
 
 lemma CLIM_CRLIM_Re_Im_iff:
@@ -437,8 +440,8 @@ by (simp add: CLIM_NSCLIM_iff CRLIM_NSCRLIM_iff NSCLIM_NSCRLIM_Re_Im_iff)
 subsection{*Continuity*}
 
 lemma isNSContcD:
-      "[| isNSContc f a; y @c= hcomplex_of_complex a |]
-       ==> ( *f* f) y @c= hcomplex_of_complex (f a)"
+      "[| isNSContc f a; y @= hcomplex_of_complex a |]
+       ==> ( *f* f) y @= hcomplex_of_complex (f a)"
 by (simp add: isNSContc_def)
 
 lemma isNSContc_NSCLIM: "isNSContc f a ==> f -- a --NSC> (f a) "
@@ -475,8 +478,8 @@ lemma NSCLIM_h_iff: "(f -- a --NSC> L) = ((%h. f(a + h)) -- 0 --NSC> L)"
 apply (simp add: NSCLIM_def, auto)
 apply (drule_tac x = "hcomplex_of_complex a + x" in spec)
 apply (drule_tac [2] x = "- hcomplex_of_complex a + x" in spec, safe, simp)
-apply (rule mem_cinfmal_iff [THEN iffD2, THEN CInfinitesimal_add_capprox_self [THEN capprox_sym]])
-apply (rule_tac [4] capprox_minus_iff2 [THEN iffD1])
+apply (rule mem_infmal_iff [THEN iffD2, THEN Infinitesimal_add_approx_self [THEN approx_sym]])
+apply (rule_tac [4] approx_minus_iff2 [THEN iffD1])
  prefer 3 apply (simp add: compare_rls add_commute)
 apply (rule_tac [2] x = x in star_cases)
 apply (rule_tac [4] x = x in star_cases)
@@ -495,11 +498,11 @@ by (simp add: isContc_def CLIM_isContc_iff)
 
 lemma isContc_add:
      "[| isContc f a; isContc g a |] ==> isContc (%x. f(x) + g(x)) a"
-by (auto intro: capprox_add simp add: isNSContc_isContc_iff [symmetric] isNSContc_def)
+by (auto intro: approx_add simp add: isNSContc_isContc_iff [symmetric] isNSContc_def)
 
 lemma isContc_mult:
      "[| isContc f a; isContc g a |] ==> isContc (%x. f(x) * g(x)) a"
-by (auto intro!: starfun_mult_CFinite_capprox
+by (auto intro!: starfun_mult_HFinite_approx
             [simplified starfun_mult [symmetric]]
             simp add: isNSContc_isContc_iff [symmetric] isNSContc_def)
 
@@ -541,7 +544,7 @@ by (simp add: isNSContc_def)
 subsection{*Functions from Complex to Reals*}
 
 lemma isNSContCRD:
-      "[| isNSContCR f a; y @c= hcomplex_of_complex a |]
+      "[| isNSContCR f a; y @= hcomplex_of_complex a |]
        ==> ( *f* f) y @= hypreal_of_real (f a)"
 by (simp add: isNSContCR_def)
 
@@ -570,7 +573,7 @@ lemma isNSContCR_isContCR: "isNSContCR f a ==> isContCR f a"
 by (erule isNSContCR_isContCR_iff [THEN iffD1])
 
 lemma isNSContCR_cmod [simp]: "isNSContCR cmod (a)"
-by (auto intro: capprox_hcmod_approx 
+by (auto intro: approx_hcmod_approx 
          simp add: starfunCR_cmod hcmod_hcomplex_of_complex [symmetric] 
                     isNSContCR_def) 
 
@@ -607,7 +610,7 @@ by (simp add: cderiv_def CLIM_unique)
 lemma NSCDeriv_unique: "[| NSCDERIV f x :> D; NSCDERIV f x :> E |] ==> D = E"
 apply (simp add: nscderiv_def)
 apply (auto dest!: bspec [where x = "hcomplex_of_hypreal epsilon"]
-            intro!: inj_hcomplex_of_complex [THEN injD] dest: capprox_trans3)
+            intro!: inj_hcomplex_of_complex [THEN injD] dest: approx_trans3)
 done
 
 
@@ -643,7 +646,7 @@ apply (simp add: nscderiv_def NSCLIM_def, auto)
 apply (drule_tac x = xa in bspec)
 apply (rule_tac [3] ccontr)
 apply (drule_tac [3] x = h in spec)
-apply (auto simp add: mem_cinfmal_iff starfun_lambda_cancel)
+apply (auto simp add: mem_infmal_iff starfun_lambda_cancel)
 done
 
 (*** 2nd equivalence ***)
@@ -653,8 +656,8 @@ by (simp add: NSCDERIV_NSCLIM_iff CDERIV_CLIM_iff CLIM_NSCLIM_iff [symmetric])
 
 lemma NSCDERIV_iff2:
      "(NSCDERIV f x :> D) =
-      (\<forall>xa. xa \<noteq> hcomplex_of_complex x & xa @c= hcomplex_of_complex x -->
-        ( *f* (%z. (f z - f x) / (z - x))) xa @c= hcomplex_of_complex D)"
+      (\<forall>xa. xa \<noteq> hcomplex_of_complex x & xa @= hcomplex_of_complex x -->
+        ( *f* (%z. (f z - f x) / (z - x))) xa @= hcomplex_of_complex D)"
 by (simp add: NSCDERIV_NSCLIM_iff2 NSCLIM_def)
 
 lemma NSCDERIV_CDERIV_iff: "(NSCDERIV f x :> D) = (CDERIV f x :> D)"
@@ -662,19 +665,19 @@ by (simp add: cderiv_def NSCDERIV_NSCLIM_iff CLIM_NSCLIM_iff)
 
 lemma NSCDERIV_isNSContc: "NSCDERIV f x :> D ==> isNSContc f x"
 apply (auto simp add: nscderiv_def isNSContc_NSCLIM_iff NSCLIM_def diff_minus)
-apply (drule capprox_minus_iff [THEN iffD1])
+apply (drule approx_minus_iff [THEN iffD1])
 apply (subgoal_tac "xa + - (hcomplex_of_complex x) \<noteq> 0")
  prefer 2 apply (simp add: compare_rls) 
 apply (drule_tac x = "- hcomplex_of_complex x + xa" in bspec)
  prefer 2 apply (simp add: add_assoc [symmetric]) 
-apply (auto simp add: mem_cinfmal_iff [symmetric] add_commute)
-apply (drule_tac c = "xa + - hcomplex_of_complex x" in capprox_mult1)
-apply (auto intro: CInfinitesimal_subset_CFinite [THEN subsetD]
+apply (auto simp add: mem_infmal_iff [symmetric] add_commute)
+apply (drule_tac c = "xa + - hcomplex_of_complex x" in approx_mult1)
+apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
             simp add: mult_assoc)
 apply (drule_tac x3 = D in 
-       CFinite_hcomplex_of_complex [THEN [2] CInfinitesimal_CFinite_mult,
-                                    THEN mem_cinfmal_iff [THEN iffD1]])
-apply (blast intro: capprox_trans mult_commute [THEN subst] capprox_minus_iff [THEN iffD2])
+       HFinite_hcomplex_of_complex [THEN [2] Infinitesimal_HFinite_mult,
+                                    THEN mem_infmal_iff [THEN iffD1]])
+apply (blast intro: approx_trans mult_commute [THEN subst] approx_minus_iff [THEN iffD2])
 done
 
 lemma CDERIV_isContc: "CDERIV f x :> D ==> isContc f x"
@@ -695,7 +698,7 @@ lemma NSCDERIV_add:
       ==> NSCDERIV (%x. f x + g x) x :> Da + Db"
 apply (simp add: NSCDERIV_NSCLIM_iff NSCLIM_def, clarify)
 apply (auto dest!: spec simp add: add_divide_distrib diff_minus)
-apply (drule_tac b = "hcomplex_of_complex Da" and d = "hcomplex_of_complex Db" in capprox_add)
+apply (drule_tac b = "hcomplex_of_complex Da" and d = "hcomplex_of_complex Db" in approx_add)
 apply (auto simp add: add_ac)
 done
 
@@ -712,13 +715,13 @@ by (simp add: right_diff_distrib)
 
 lemma lemma_nscderiv2:
      "[| (x + y) / z = hcomplex_of_complex D + yb; z \<noteq> 0;
-         z : CInfinitesimal; yb : CInfinitesimal |]
-      ==> x + y @c= 0"
+         z : Infinitesimal; yb : Infinitesimal |]
+      ==> x + y @= 0"
 apply (frule_tac c1 = z in hcomplex_mult_right_cancel [THEN iffD2], assumption)
 apply (erule_tac V = " (x + y) / z = hcomplex_of_complex D + yb" in thin_rl)
-apply (auto intro!: CInfinitesimal_CFinite_mult2 CFinite_add 
-            simp add: mem_cinfmal_iff [symmetric])
-apply (erule CInfinitesimal_subset_CFinite [THEN subsetD])
+apply (auto intro!: Infinitesimal_HFinite_mult2 HFinite_add 
+            simp add: mem_infmal_iff [symmetric])
+apply (erule Infinitesimal_subset_HFinite [THEN subsetD])
 done
 
 lemma NSCDERIV_mult:
@@ -728,18 +731,18 @@ apply (simp add: NSCDERIV_NSCLIM_iff NSCLIM_def, clarify)
 apply (auto dest!: spec
             simp add: starfun_lambda_cancel lemma_nscderiv1)
 apply (simp (no_asm) add: add_divide_distrib)
-apply (drule bex_CInfinitesimal_iff2 [THEN iffD2])+
+apply (drule bex_Infinitesimal_iff2 [THEN iffD2])+
 apply (auto simp del: times_divide_eq_right simp add: times_divide_eq_right [symmetric])
 apply (simp add: diff_minus)
 apply (drule_tac D = Db in lemma_nscderiv2)
 apply (drule_tac [4]
-        capprox_minus_iff [THEN iffD2, THEN bex_CInfinitesimal_iff2 [THEN iffD2]])
-apply (auto intro!: capprox_add_mono1 simp add: left_distrib right_distrib mult_commute add_assoc)
+        approx_minus_iff [THEN iffD2, THEN bex_Infinitesimal_iff2 [THEN iffD2]])
+apply (auto intro!: approx_add_mono1 simp add: left_distrib right_distrib mult_commute add_assoc)
 apply (rule_tac b1 = "hcomplex_of_complex Db * hcomplex_of_complex (f x) " in add_commute [THEN subst])
-apply (auto intro!: CInfinitesimal_add_capprox_self2 [THEN capprox_sym] 
-		    CInfinitesimal_add CInfinitesimal_mult
-		    CInfinitesimal_hcomplex_of_complex_mult
-		    CInfinitesimal_hcomplex_of_complex_mult2
+apply (auto intro!: Infinitesimal_add_approx_self2 [THEN approx_sym] 
+		    Infinitesimal_add Infinitesimal_mult
+		    Infinitesimal_hcomplex_of_complex_mult
+		    Infinitesimal_hcomplex_of_complex_mult2
             simp add: add_assoc [symmetric])
 done
 
@@ -796,18 +799,18 @@ subsection{*Chain Rule*}
 lemma NSCDERIV_zero:
       "[| NSCDERIV g x :> D;
           ( *f* g) (hcomplex_of_complex(x) + xa) = hcomplex_of_complex(g x);
-          xa : CInfinitesimal; xa \<noteq> 0
+          xa : Infinitesimal; xa \<noteq> 0
        |] ==> D = 0"
 apply (simp add: nscderiv_def)
 apply (drule bspec, auto)
 done
 
-lemma NSCDERIV_capprox:
-  "[| NSCDERIV f x :> D;  h: CInfinitesimal;  h \<noteq> 0 |]
-   ==> ( *f* f) (hcomplex_of_complex(x) + h) - hcomplex_of_complex(f x) @c= 0"
-apply (simp add: nscderiv_def mem_cinfmal_iff [symmetric])
-apply (rule CInfinitesimal_ratio)
-apply (rule_tac [3] capprox_hcomplex_of_complex_CFinite, auto)
+lemma NSCDERIV_approx:
+  "[| NSCDERIV f x :> D;  h: Infinitesimal;  h \<noteq> 0 |]
+   ==> ( *f* f) (hcomplex_of_complex(x) + h) - hcomplex_of_complex(f x) @= 0"
+apply (simp add: nscderiv_def mem_infmal_iff [symmetric])
+apply (rule Infinitesimal_ratio)
+apply (rule_tac [3] approx_hcomplex_of_complex_HFinite, auto)
 done
 
 
@@ -822,11 +825,11 @@ done
 lemma NSCDERIVD1:
    "[| NSCDERIV f (g x) :> Da;
        ( *f* g) (hcomplex_of_complex(x) + xa) \<noteq> hcomplex_of_complex (g x);
-       ( *f* g) (hcomplex_of_complex(x) + xa) @c= hcomplex_of_complex (g x)|]
+       ( *f* g) (hcomplex_of_complex(x) + xa) @= hcomplex_of_complex (g x)|]
     ==> (( *f* f) (( *f* g) (hcomplex_of_complex(x) + xa))
 	 - hcomplex_of_complex (f (g x))) /
 	(( *f* g) (hcomplex_of_complex(x) + xa) - hcomplex_of_complex (g x))
-	   @c= hcomplex_of_complex (Da)"
+	   @= hcomplex_of_complex (Da)"
 by (simp add: NSCDERIV_NSCLIM_iff2 NSCLIM_def)
 
 (*--------------------------------------------------*)
@@ -838,10 +841,10 @@ by (simp add: NSCDERIV_NSCLIM_iff2 NSCLIM_def)
 (*--------------------------------------------------*)
 
 lemma NSCDERIVD2:
-  "[| NSCDERIV g x :> Db; xa: CInfinitesimal; xa \<noteq> 0 |]
+  "[| NSCDERIV g x :> Db; xa: Infinitesimal; xa \<noteq> 0 |]
    ==> (( *f* g) (hcomplex_of_complex x + xa) - hcomplex_of_complex(g x)) / xa
-       @c= hcomplex_of_complex (Db)"
-by (simp add: NSCDERIV_NSCLIM_iff NSCLIM_def mem_cinfmal_iff starfun_lambda_cancel)
+       @= hcomplex_of_complex (Db)"
+by (simp add: NSCDERIV_NSCLIM_iff NSCLIM_def mem_infmal_iff starfun_lambda_cancel)
 
 lemma lemma_complex_chain: "(z::hcomplex) \<noteq> 0 ==> x*y = (x*inverse(z))*(z*y)"
 by auto
@@ -851,17 +854,17 @@ text{*Chain rule*}
 theorem NSCDERIV_chain:
      "[| NSCDERIV f (g x) :> Da; NSCDERIV g x :> Db |]
       ==> NSCDERIV (f o g) x :> Da * Db"
-apply (simp (no_asm_simp) add: NSCDERIV_NSCLIM_iff NSCLIM_def mem_cinfmal_iff [symmetric])
+apply (simp (no_asm_simp) add: NSCDERIV_NSCLIM_iff NSCLIM_def mem_infmal_iff [symmetric])
 apply safe
-apply (frule_tac f = g in NSCDERIV_capprox)
+apply (frule_tac f = g in NSCDERIV_approx)
 apply (auto simp add: starfun_lambda_cancel2 starfun_o [symmetric])
 apply (case_tac "( *f* g) (hcomplex_of_complex (x) + xa) = hcomplex_of_complex (g x) ")
 apply (drule_tac g = g in NSCDERIV_zero)
 apply (auto simp add: divide_inverse)
 apply (rule_tac z1 = "( *f* g) (hcomplex_of_complex (x) + xa) - hcomplex_of_complex (g x) " and y1 = "inverse xa" in lemma_complex_chain [THEN ssubst])
 apply (simp (no_asm_simp))
-apply (rule capprox_mult_hcomplex_of_complex)
-apply (auto intro!: NSCDERIVD1 intro: capprox_minus_iff [THEN iffD2] 
+apply (rule approx_mult_hcomplex_of_complex)
+apply (auto intro!: NSCDERIVD1 intro: approx_minus_iff [THEN iffD2] 
             simp add: diff_minus [symmetric] divide_inverse [symmetric])
 apply (blast intro: NSCDERIVD2)
 done
@@ -914,8 +917,8 @@ lemma lemma_CDERIV_subst:
 by auto
 
 (*used once, in NSCDERIV_inverse*)
-lemma CInfinitesimal_add_not_zero:
-     "[| h: CInfinitesimal; x \<noteq> 0 |] ==> hcomplex_of_complex x + h \<noteq> 0"
+lemma Infinitesimal_add_not_zero:
+     "[| h: Infinitesimal; x \<noteq> 0 |] ==> hcomplex_of_complex x + h \<noteq> 0"
 apply clarify
 apply (drule equals_zero_I, auto)
 done
@@ -924,7 +927,7 @@ text{*Can't relax the premise @{term "x \<noteq> 0"}: it isn't continuous at zer
 lemma NSCDERIV_inverse:
      "x \<noteq> 0 ==> NSCDERIV (%x. inverse(x)) x :> (- (inverse x ^ 2))"
 apply (simp add: nscderiv_def Ball_def, clarify) 
-apply (frule CInfinitesimal_add_not_zero [where x=x])
+apply (frule Infinitesimal_add_not_zero [where x=x])
 apply (auto simp add: starfun_inverse_inverse diff_minus 
            simp del: minus_mult_left [symmetric] minus_mult_right [symmetric])
 apply (simp add: add_commute numeral_2_eq_2 inverse_add
@@ -933,12 +936,12 @@ apply (simp add: add_commute numeral_2_eq_2 inverse_add
             del: inverse_minus_eq inverse_mult_distrib
                  minus_mult_right [symmetric] minus_mult_left [symmetric])
 apply (simp only: mult_assoc [symmetric] right_distrib)
-apply (rule_tac y = " inverse (- hcomplex_of_complex x * hcomplex_of_complex x) " in capprox_trans)
-apply (rule inverse_add_CInfinitesimal_capprox2)
-apply (auto dest!: hcomplex_of_complex_CFinite_diff_CInfinitesimal 
-            intro: CFinite_mult 
-            simp add: inverse_minus_eq [symmetric])
-apply (rule CInfinitesimal_CFinite_mult2, auto)
+apply (rule_tac y = " inverse (- hcomplex_of_complex x * hcomplex_of_complex x) " in approx_trans)
+apply (rule inverse_add_Infinitesimal_approx2)
+apply (auto dest!: hcomplex_of_complex_HFinite_diff_Infinitesimal 
+            intro: HFinite_mult 
+            simp add: inverse_minus_eq [symmetric] HFinite_minus_iff)
+apply (rule Infinitesimal_HFinite_mult2, auto)
 done
 
 lemma CDERIV_inverse:
