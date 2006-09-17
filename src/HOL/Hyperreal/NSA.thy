@@ -357,7 +357,8 @@ by (simp add: HFinite_def)
 lemma HFinite_hrabs_iff [iff]: "(abs (x::hypreal) \<in> HFinite) = (x \<in> HFinite)"
 by (simp add: HFinite_def)
 
-lemma HFinite_hnorm_iff [iff]: "(hnorm x \<in> HFinite) = (x \<in> HFinite)"
+lemma HFinite_hnorm_iff [iff]:
+  "(hnorm (x::hypreal) \<in> HFinite) = (x \<in> HFinite)"
 by (simp add: HFinite_def)
 
 lemma HFinite_number_of [simp]: "number_of w \<in> HFinite"
