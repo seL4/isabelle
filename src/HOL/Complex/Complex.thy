@@ -507,8 +507,6 @@ proof
     by (rule complex_mod_complex_of_real)
   show "cmod (x * y) = cmod x * cmod y"
     by (rule complex_mod_mult)
-  show "cmod 1 = 1"
-    by (rule complex_mod_one)
 qed
 
 lemma complex_mod_triangle_ineq2 [simp]: "cmod(b + a) - cmod b \<le> cmod a"

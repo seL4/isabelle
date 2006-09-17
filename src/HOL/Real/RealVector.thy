@@ -279,7 +279,6 @@ axclass real_normed_algebra < real_normed_vector, real_algebra
 axclass real_normed_div_algebra < normed, real_algebra_1, division_ring
   norm_of_real: "norm (of_real r) = abs r"
   norm_mult: "norm (x * y) = norm x * norm y"
-  norm_one [simp]: "norm 1 = 1"
 
 instance real_normed_div_algebra < real_normed_algebra
 proof
@@ -302,7 +301,6 @@ apply (rule abs_eq_0)
 apply (rule abs_triangle_ineq)
 apply simp
 apply (rule abs_mult)
-apply (rule abs_one)
 done
 
 lemma norm_zero [simp]: "norm (0::'a::real_normed_vector) = 0"
@@ -364,6 +362,13 @@ proof -
   also have "\<dots> \<le> norm (a - c) + norm (b - d)"
     by (rule norm_triangle_ineq)
   finally show ?thesis .
+qed
+
+lemma norm_one [simp]: "norm (1::'a::real_normed_div_algebra) = 1"
+proof -
+  have "norm (of_real 1 :: 'a) = abs 1"
+    by (rule norm_of_real)
+  thus ?thesis by simp
 qed
 
 lemma nonzero_norm_inverse:
