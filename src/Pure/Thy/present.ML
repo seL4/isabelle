@@ -17,6 +17,8 @@ sig
   val get_info: theory -> {name: string, session: string list, is_local: bool}
   val write_graph: {name: string, ID: string, dir: string, unfold: bool,
    path: string, parents: string list} list -> Path.T -> unit
+  val display_graph: {name: string, ID: string, dir: string, unfold: bool,
+   path: string, parents: string list} list -> unit
   val init: bool -> bool -> string -> bool -> string list -> string list ->
     string -> (bool * Path.T) option -> Url.T option * bool -> bool -> unit
   val finish: unit -> unit
@@ -102,6 +104,15 @@ fun write_graph gr path =
   File.write path (cat_lines (map (fn {name, ID, dir, unfold, path, parents} =>
     "\"" ^ name ^ "\" \"" ^ ID ^ "\" \"" ^ dir ^ (if unfold then "\" + \"" else "\" \"") ^
     path ^ "\" > " ^ space_implode " " (map Library.quote parents) ^ " ;") gr));
+
+fun display_graph gr =
+  let
+    val _ = writeln "Generating graph ...";
+    val path = File.tmp_path (Path.unpack "tmp.graph");
+    val _ = write_graph gr path;
+    val _ = File.isatool ("browser -c " ^ File.shell_path path ^ " &");
+  in () end;
+
 
 fun ID_of sess s = space_implode "/" (sess @ [s]);
 
