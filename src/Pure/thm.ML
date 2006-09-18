@@ -134,6 +134,7 @@ sig
   include BASIC_THM
   val dest_ctyp: ctyp -> ctyp list
   val dest_comb: cterm -> cterm * cterm
+  val dest_arg: cterm -> cterm
   val dest_abs: string option -> cterm -> cterm * cterm
   val adjust_maxidx_cterm: int -> cterm -> cterm
   val capply: cterm -> cterm -> cterm
@@ -257,7 +258,7 @@ fun cterm_of thy tm =
 fun merge_thys0 (Cterm {thy_ref = r1, t = t1, ...}) (Cterm {thy_ref = r2, t = t2, ...}) =
   Theory.merge_refs (r1, r2) handle TERM (msg, _) => raise TERM (msg, [t1, t2]);
 
-(*Destruct application in cterms*)
+
 fun dest_comb (Cterm {t = t $ u, T, thy_ref, maxidx, sorts}) =
       let val A = Term.argument_type_of t in
         (Cterm {t = t, T = A --> T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts},
@@ -265,7 +266,12 @@ fun dest_comb (Cterm {t = t $ u, T, thy_ref, maxidx, sorts}) =
       end
   | dest_comb _ = raise CTERM "dest_comb";
 
-(*Destruct abstraction in cterms*)
+fun dest_arg (Cterm {t = t $ u, T, thy_ref, maxidx, sorts}) =
+      let val A = Term.argument_type_of t in
+         Cterm {t = u, T = A, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts}
+      end
+  | dest_arg _ = raise CTERM "dest_arg";
+
 fun dest_abs a (Cterm {t = Abs (x, T, t), T = Type ("fun", [_, U]), thy_ref, maxidx, sorts}) =
       let val (y', t') = Term.dest_abs (the_default x a, T, t) in
         (Cterm {t = Free (y', T), T = T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts},
@@ -273,14 +279,6 @@ fun dest_abs a (Cterm {t = Abs (x, T, t), T = Type ("fun", [_, U]), thy_ref, max
       end
   | dest_abs _ _ = raise CTERM "dest_abs";
 
-fun adjust_maxidx_cterm i (ct as Cterm {thy_ref, t, T, maxidx, sorts}) =
-  if maxidx = i then ct
-  else if maxidx < i then
-    Cterm {maxidx = i, thy_ref = thy_ref, t = t, T = T, sorts = sorts}
-  else
-    Cterm {maxidx = Int.max (maxidx_of_term t, i), thy_ref = thy_ref, t = t, T = T, sorts = sorts};
-
-(*Form cterm out of a function and an argument*)
 fun capply
   (cf as Cterm {t = f, T = Type ("fun", [dty, rty]), maxidx = maxidx1, sorts = sorts1, ...})
   (cx as Cterm {t = x, T, maxidx = maxidx2, sorts = sorts2, ...}) =
@@ -302,6 +300,14 @@ fun cabs
         maxidx = Int.max (maxidx1, maxidx2),
         sorts = Sorts.union sorts1 sorts2}
     end;
+
+
+fun adjust_maxidx_cterm i (ct as Cterm {thy_ref, t, T, maxidx, sorts}) =
+  if maxidx = i then ct
+  else if maxidx < i then
+    Cterm {maxidx = i, thy_ref = thy_ref, t = t, T = T, sorts = sorts}
+  else
+    Cterm {maxidx = Int.max (maxidx_of_term t, i), thy_ref = thy_ref, t = t, T = T, sorts = sorts};
 
 (*Matching of cterms*)
 fun gen_cterm_match match
