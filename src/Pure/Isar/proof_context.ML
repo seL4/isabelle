@@ -296,7 +296,12 @@ fun pretty_thm_legacy quote th =
   in Display.pretty_thm_aux pp quote false [] th end;
 
 fun pretty_thm ctxt th =
-  Display.pretty_thm_aux (pp ctxt) false true (Assumption.assms_of ctxt) th;
+  let
+    val thy = theory_of ctxt;
+    val (pp, asms) =
+      if Theory.eq_thy (thy, ProtoPure.thy) then (Sign.pp thy, [])
+      else (pp ctxt, Assumption.assms_of ctxt);
+  in Display.pretty_thm_aux pp false true asms th end;
 
 fun pretty_thms ctxt [th] = pretty_thm ctxt th
   | pretty_thms ctxt ths = Pretty.blk (0, Pretty.fbreaks (map (pretty_thm ctxt) ths));
