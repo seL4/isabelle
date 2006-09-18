@@ -329,19 +329,19 @@ by (simp add: Infinitesimal_hypreal_of_nat_iff star_of_def
      star_n_inverse star_n_less hypreal_of_nat_eq)
 
 lemma approx_FreeUltrafilterNat_iff: "star_n X @= star_n Y =
-      (\<forall>r>0. {n. norm (X n + - Y n) < r} : FreeUltrafilterNat)"
+      (\<forall>r>0. {n. norm (X n - Y n) < r} : FreeUltrafilterNat)"
 apply (subst approx_minus_iff)
 apply (rule mem_infmal_iff [THEN subst])
-apply (simp add: star_n_minus star_n_add)
+apply (simp add: star_n_diff)
 apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
 done
 
 lemma approx_FreeUltrafilterNat_iff2: "star_n X @= star_n Y =
-      (\<forall>m. {n. norm (X n + - Y n) <
+      (\<forall>m. {n. norm (X n - Y n) <
                   inverse(real(Suc m))} : FreeUltrafilterNat)"
 apply (subst approx_minus_iff)
 apply (rule mem_infmal_iff [THEN subst])
-apply (simp add: star_n_minus star_n_add)
+apply (simp add: star_n_diff)
 apply (simp add: Infinitesimal_FreeUltrafilterNat_iff2)
 done
 

@@ -380,7 +380,7 @@ lemma DERIV_ln: "0 < x ==> DERIV ln x :> 1 / x"
   apply (rule conjI)
   prefer 2
   apply clarsimp
-  apply (subgoal_tac "(ln (x + xa) + - ln x) / xa + - (1 / x) = 
+  apply (subgoal_tac "(ln (x + xa) - ln x) / xa - (1 / x) = 
       (ln (1 + xa / x) - xa / x) / xa")
   apply (erule ssubst)
   apply (subst abs_divide)
@@ -405,7 +405,6 @@ lemma DERIV_ln: "0 < x ==> DERIV ln x :> 1 / x"
   apply (erule conjE, assumption)
   apply force
   apply simp
-  apply (subst diff_minus [THEN sym])+
   apply (subst ln_div [THEN sym])
   apply arith
   apply (auto simp add: ring_eq_simps add_frac_eq frac_eq_eq 

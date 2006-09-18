@@ -340,13 +340,13 @@ lemma hcomplex_approxD1:
       ==> star_n (%n. Re(X n)) @= star_n (%n. Re(Y n))"
 apply (simp (no_asm) add: approx_FreeUltrafilterNat_iff2, safe)
 apply (drule approx_minus_iff [THEN iffD1])
-apply (simp add: star_n_minus star_n_add mem_infmal_iff [symmetric] Infinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff2)
+apply (simp add: star_n_diff mem_infmal_iff [symmetric] Infinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff2)
 apply (drule_tac x = m in spec)
 apply (erule ultra, rule FreeUltrafilterNat_all, clarify)
-apply (rule_tac y="cmod (X n + - Y n)" in order_le_less_trans)
+apply (rule_tac y="cmod (X n - Y n)" in order_le_less_trans)
 apply (case_tac "X n")
 apply (case_tac "Y n")
-apply (auto simp add: complex_minus complex_add complex_mod
+apply (auto simp add: complex_diff complex_mod
             simp del: realpow_Suc)
 done
 
@@ -356,13 +356,13 @@ lemma hcomplex_approxD2:
       ==> star_n (%n. Im(X n)) @= star_n (%n. Im(Y n))"
 apply (simp (no_asm) add: approx_FreeUltrafilterNat_iff2, safe)
 apply (drule approx_minus_iff [THEN iffD1])
-apply (simp add: star_n_minus star_n_add mem_infmal_iff [symmetric] Infinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff2)
+apply (simp add: star_n_diff mem_infmal_iff [symmetric] Infinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff2)
 apply (drule_tac x = m in spec)
 apply (erule ultra, rule FreeUltrafilterNat_all, clarify)
-apply (rule_tac y="cmod (X n + - Y n)" in order_le_less_trans)
+apply (rule_tac y="cmod (X n - Y n)" in order_le_less_trans)
 apply (case_tac "X n")
 apply (case_tac "Y n")
-apply (auto simp add: complex_minus complex_add complex_mod
+apply (auto simp add: complex_diff complex_mod
             simp del: realpow_Suc)
 done
 
@@ -373,14 +373,14 @@ lemma hcomplex_approxI:
 apply (drule approx_minus_iff [THEN iffD1])
 apply (drule approx_minus_iff [THEN iffD1])
 apply (rule approx_minus_iff [THEN iffD2])
-apply (auto simp add: mem_infmal_iff [symmetric] mem_infmal_iff [symmetric] star_n_add star_n_minus Infinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff)
+apply (auto simp add: mem_infmal_iff [symmetric] mem_infmal_iff [symmetric] star_n_diff Infinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff)
 apply (drule_tac x = "u/2" in spec)
 apply (drule_tac x = "u/2" in spec, auto, ultra)
 apply (case_tac "X x")
 apply (case_tac "Y x")
-apply (auto simp add: complex_minus complex_add complex_mod snd_conv fst_conv numeral_2_eq_2)
+apply (auto simp add: complex_diff complex_mod snd_conv fst_conv numeral_2_eq_2)
 apply (rename_tac a b c d)
-apply (subgoal_tac "sqrt (abs (a + - c) ^ 2 + abs (b + - d) ^ 2) < u")
+apply (subgoal_tac "sqrt (abs (a - c) ^ 2 + abs (b - d) ^ 2) < u")
 apply (rule_tac [2] lemma_sqrt_hcomplex_capprox, auto)
 apply (simp add: power2_eq_square)
 done

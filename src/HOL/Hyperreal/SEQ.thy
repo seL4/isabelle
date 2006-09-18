@@ -17,7 +17,7 @@ definition
   LIMSEQ :: "[nat => 'a::real_normed_vector, 'a] => bool"
     ("((_)/ ----> (_))" [60, 60] 60)
     --{*Standard definition of convergence of sequence*}
-  "X ----> L = (\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> norm (X n + -L) < r))"
+  "X ----> L = (\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> norm (X n - L) < r))"
 
   NSLIMSEQ :: "[nat => 'a::real_normed_vector, 'a] => bool"
     ("((_)/ ----NS> (_))" [60, 60] 60)
@@ -58,7 +58,7 @@ definition
 
   Cauchy :: "(nat => 'a::real_normed_vector) => bool"
     --{*Standard definition of the Cauchy condition*}
-  "Cauchy X = (\<forall>e>0. \<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. norm((X m) + -(X n)) < e)"
+  "Cauchy X = (\<forall>e>0. \<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. norm (X m - X n) < e)"
 
   NSCauchy :: "(nat => 'a::real_normed_vector) => bool"
     --{*Nonstandard definition*}
@@ -82,7 +82,7 @@ done
 subsection{*LIMSEQ and NSLIMSEQ*}
 
 lemma LIMSEQ_iff:
-      "(X ----> L) = (\<forall>r>0. \<exists>no. \<forall>n \<ge> no. norm (X n + -L) < r)"
+      "(X ----> L) = (\<forall>r>0. \<exists>no. \<forall>n \<ge> no. norm (X n - L) < r)"
 by (simp add: LIMSEQ_def)
 
 lemma NSLIMSEQ_iff:
@@ -98,7 +98,7 @@ apply (rule_tac x = N in star_cases)
 apply (simp add: HNatInfinite_FreeUltrafilterNat_iff)
 apply (rule approx_minus_iff [THEN iffD2])
 apply (auto simp add: starfun mem_infmal_iff [symmetric] star_of_def
-              star_n_minus star_n_add Infinitesimal_FreeUltrafilterNat_iff)
+              star_n_diff Infinitesimal_FreeUltrafilterNat_iff)
 apply (drule_tac x = u in spec, safe)
 apply (drule_tac x = no in spec)
 apply (erule ultra, simp add: less_imp_le)
@@ -157,13 +157,13 @@ lemma lemmaLIM:
 by auto
 
 lemma lemmaLIM2:
-  "{n. norm (X (f n) + - L) < r} Int {n. r \<le> norm (X (f n) + - L)} = {}"
+  "{n. norm (X (f n) - L) < r} Int {n. r \<le> norm (X (f n) - L)} = {}"
 by auto
 
-lemma lemmaLIM3: "[| 0 < r; \<forall>n. r \<le> norm (X (f n) + - L);
-           ( *f* X) (star_n f) +
+lemma lemmaLIM3: "[| 0 < r; \<forall>n. r \<le> norm (X (f n) - L);
+           ( *f* X) (star_n f)
            - star_of L \<approx> 0 |] ==> False"
-apply (auto simp add: starfun mem_infmal_iff [symmetric] star_of_def star_n_minus star_n_add Infinitesimal_FreeUltrafilterNat_iff)
+apply (auto simp add: starfun mem_infmal_iff [symmetric] star_of_def star_n_diff Infinitesimal_FreeUltrafilterNat_iff)
 apply (drule_tac x = r in spec, safe)
 apply (drule FreeUltrafilterNat_all)
 apply (drule FreeUltrafilterNat_Int, assumption)
@@ -774,9 +774,9 @@ apply (drule_tac x = M in spec, ultra)
 done
 
 lemma lemmaCauchy2:
-     "{n. \<forall>m n. M \<le> m & M \<le> (n::nat) --> norm (X m + - X n) < u} Int
+     "{n. \<forall>m n. M \<le> m & M \<le> (n::nat) --> norm (X m - X n) < u} Int
       {n. M \<le> xa n} Int {n. M \<le> x n} \<le>
-      {n. norm (X (xa n) + - X (x n)) < u}"
+      {n. norm (X (xa n) - X (x n)) < u}"
 by blast
 
 lemma Cauchy_NSCauchy: "Cauchy X ==> NSCauchy X"
@@ -785,7 +785,7 @@ apply (rule_tac x = M in star_cases)
 apply (rule_tac x = N in star_cases)
 apply (rule approx_minus_iff [THEN iffD2])
 apply (rule mem_infmal_iff [THEN iffD1])
-apply (auto simp add: starfun star_n_minus star_n_add Infinitesimal_FreeUltrafilterNat_iff)
+apply (auto simp add: starfun star_n_diff Infinitesimal_FreeUltrafilterNat_iff)
 apply (drule spec, auto)
 apply (drule_tac M = M in lemmaCauchy1)
 apply (drule_tac M = M in lemmaCauchy1)
@@ -806,7 +806,7 @@ apply (drule_tac x = "star_n fa" in bspec);
 apply (auto simp add: starfun)
 apply (drule approx_minus_iff [THEN iffD1])
 apply (drule mem_infmal_iff [THEN iffD2])
-apply (auto simp add: star_n_minus star_n_add Infinitesimal_FreeUltrafilterNat_iff)
+apply (auto simp add: star_n_diff Infinitesimal_FreeUltrafilterNat_iff)
 done
 
 
@@ -816,10 +816,10 @@ by (blast intro!: NSCauchy_Cauchy Cauchy_NSCauchy)
 text{*A Cauchy sequence is bounded -- this is the standard
   proof mechanization rather than the nonstandard proof*}
 
-lemma lemmaCauchy: "\<forall>n \<ge> M. norm (X M + - X n) < (1::real)
+lemma lemmaCauchy: "\<forall>n \<ge> M. norm (X M - X n) < (1::real)
           ==>  \<forall>n \<ge> M. norm (X n :: 'a::real_normed_vector) < 1 + norm (X M)"
 apply (clarify, drule spec, drule (1) mp)
-apply (fold diff_def, simp only: norm_minus_commute)
+apply (simp only: norm_minus_commute)
 apply (drule order_le_less_trans [OF norm_triangle_ineq2])
 apply simp
 done

@@ -267,7 +267,7 @@ apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
             simp add: mult_assoc)
 apply (rule approx_add_right_cancel [where d="-1"])
 apply (rule approx_sym [THEN [2] approx_trans2])
-apply (auto simp add: mem_infmal_iff)
+apply (auto simp add: diff_def mem_infmal_iff)
 done
 
 lemma STAR_exp_epsilon [simp]: "( *f* exp) epsilon @= 1"
@@ -282,11 +282,11 @@ apply (rule st_hypreal_of_real [THEN subst])
 apply (rule approx_st_eq, auto)
 apply (rule approx_minus_iff [THEN iffD2])
 apply (simp only: mem_infmal_iff [symmetric])
-apply (auto simp add: mem_infmal_iff [symmetric] star_of_def star_n_zero_num hypnat_omega_def sumhr star_n_minus star_n_add)
+apply (auto simp add: mem_infmal_iff [symmetric] star_of_def star_n_zero_num hypnat_omega_def sumhr star_n_diff)
 apply (rule NSLIMSEQ_zero_Infinitesimal_hypreal)
 apply (insert exp_converges [of x]) 
 apply (simp add: sums_def) 
-apply (drule LIMSEQ_const [THEN [2] LIMSEQ_add, where b = "- exp x"])
+apply (drule LIMSEQ_const [THEN [2] LIMSEQ_diff, where b = "exp x"])
 apply (simp add: LIMSEQ_NSLIMSEQ_iff)
 done
 
@@ -467,7 +467,8 @@ apply auto
 apply (drule approx_mult1 [where c = x])
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
             simp add: mult_assoc)
-apply (rule approx_add_right_cancel [where d = "-1"], auto)
+apply (rule approx_add_right_cancel [where d = "-1"])
+apply (simp add: diff_def)
 done
 
 lemma STAR_tan_zero [simp]: "( *f* tan) 0 = 0"

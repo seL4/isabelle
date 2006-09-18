@@ -18,8 +18,8 @@ definition
   LIM :: "['a::real_normed_vector => 'b::real_normed_vector, 'a, 'b] => bool"
         ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60)
   "f -- a --> L =
-     (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & norm (x + -a) < s
-        --> norm (f x + -L) < r)"
+     (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & norm (x - a) < s
+        --> norm (f x - L) < r)"
 
   NSLIM :: "['a::real_normed_vector => 'b::real_normed_vector, 'a, 'b] => bool"
             ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60)
@@ -37,12 +37,12 @@ definition
   deriv:: "[real=>real,real,real] => bool"
     --{*Differentiation: D is derivative of function f at x*}
           ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
-  "DERIV f x :> D = ((%h. (f(x + h) + -f x)/h) -- 0 --> D)"
+  "DERIV f x :> D = ((%h. (f(x + h) - f x)/h) -- 0 --> D)"
 
   nsderiv :: "[real=>real,real,real] => bool"
           ("(NSDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
   "NSDERIV f x :> D = (\<forall>h \<in> Infinitesimal - {0}.
-      (( *f* f)(hypreal_of_real x + h) +
+      (( *f* f)(hypreal_of_real x + h)
        - hypreal_of_real (f x))/h @= hypreal_of_real D)"
 
   differentiable :: "[real=>real,real] => bool"   (infixl "differentiable" 60)
@@ -54,10 +54,10 @@ definition
 
   increment :: "[real=>real,real,hypreal] => hypreal"
   "increment f x h = (@inc. f NSdifferentiable x &
-           inc = ( *f* f)(hypreal_of_real x + h) + -hypreal_of_real (f x))"
+           inc = ( *f* f)(hypreal_of_real x + h) - hypreal_of_real (f x))"
 
   isUCont :: "(real=>real) => bool"
-  "isUCont f =  (\<forall>r > 0. \<exists>s > 0. \<forall>x y. \<bar>x + -y\<bar> < s --> \<bar>f x + -f y\<bar> < r)"
+  "isUCont f =  (\<forall>r > 0. \<exists>s > 0. \<forall>x y. \<bar>x - y\<bar> < s --> \<bar>f x - f y\<bar> < r)"
 
   isNSUCont :: "(real=>real) => bool"
   "isNSUCont f = (\<forall>x y. x @= y --> ( *f* f) x @= ( *f* f) y)"
@@ -219,7 +219,7 @@ lemma LIM_NSLIM:
       "f -- a --> L ==> f -- a --NS> L"
 apply (simp add: LIM_def NSLIM_def approx_def, safe)
 apply (rule_tac x="x" in star_cases)
-apply (simp add: star_of_def star_n_minus star_n_add starfun)
+apply (simp add: star_of_def star_n_diff starfun)
 apply (simp add: Infinitesimal_FreeUltrafilterNat_iff, safe)
 apply (simp add: star_n_eq_iff)
 apply (drule_tac x = u in spec, clarify)
@@ -233,18 +233,18 @@ subsubsection{*Limit: The NS definition implies the standard definition.*}
 
 lemma lemma_LIM:
   fixes L :: "'a::real_normed_vector"
-  shows "\<forall>s>0. \<exists>x. x \<noteq> a \<and> norm (x + - a) < s \<and> \<not> norm (f x + -L) < r
+  shows "\<forall>s>0. \<exists>x. x \<noteq> a \<and> norm (x - a) < s \<and> \<not> norm (f x - L) < r
       ==> \<forall>n::nat. \<exists>x. x \<noteq> a \<and>
-              norm (x + -a) < inverse(real(Suc n)) \<and> \<not> norm (f x + -L) < r"
+              norm (x - a) < inverse(real(Suc n)) \<and> \<not> norm (f x - L) < r"
 apply clarify
 apply (cut_tac n1 = n in real_of_nat_Suc_gt_zero [THEN positive_imp_inverse_positive], auto)
 done
 
 lemma lemma_skolemize_LIM2:
   fixes L :: "'a::real_normed_vector"
-  shows "\<forall>s>0. \<exists>x. x \<noteq> a \<and> norm (x + - a) < s \<and> \<not> norm (f x + -L) < r
+  shows "\<forall>s>0. \<exists>x. x \<noteq> a \<and> norm (x - a) < s \<and> \<not> norm (f x - L) < r
       ==> \<exists>X. \<forall>n::nat. X n \<noteq> a \<and>
-         norm (X n + -a) < inverse(real(Suc n)) \<and> \<not> norm(f (X n) + -L) < r"
+         norm (X n - a) < inverse(real(Suc n)) \<and> \<not> norm(f (X n) - L) < r"
 apply (drule lemma_LIM)
 apply (drule choice, blast)
 done
@@ -259,9 +259,9 @@ apply fast
 done
 
 lemma lemma_simp: "\<forall>n. X n \<noteq> a &
-          norm (X n + - a) < inverse (real(Suc n)) &
-          \<not> norm (f (X n) + - L) < r ==>
-          \<forall>n. norm (X n + - a) < inverse (real(Suc n))"
+          norm (X n - a) < inverse (real(Suc n)) &
+          \<not> norm (f (X n) - L) < r ==>
+          \<forall>n. norm (X n - a) < inverse (real(Suc n))"
 by auto
 
 
@@ -275,7 +275,7 @@ apply (drule_tac x = "star_n X" in spec)
 apply (drule mp, rule conjI)
 apply (simp add: star_of_def star_n_eq_iff)
 apply (rule real_seq_to_hypreal_Infinitesimal, simp)
-apply (simp add: starfun star_of_def star_n_minus star_n_add)
+apply (simp add: starfun star_of_def star_n_diff)
 apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
 apply (drule spec, drule (1) mp)
 apply simp
@@ -605,37 +605,37 @@ by (simp add: isUCont_def isCont_def LIM_def, meson)
 
 lemma isUCont_isNSUCont: "isUCont f ==> isNSUCont f"
 apply (simp add: isNSUCont_def isUCont_def approx_def)
-apply (simp add: all_star_eq starfun star_n_minus star_n_add)
+apply (simp add: all_star_eq starfun star_n_diff)
 apply (simp add: Infinitesimal_FreeUltrafilterNat_iff, safe)
 apply (rename_tac Xa Xb u)
 apply (drule_tac x = u in spec, clarify)
 apply (drule_tac x = s in spec, clarify)
-apply (subgoal_tac "\<forall>n::nat. abs ((Xa n) + - (Xb n)) < s --> abs (f (Xa n) + - f (Xb n)) < u")
+apply (subgoal_tac "\<forall>n::nat. abs ((Xa n) - (Xb n)) < s --> abs (f (Xa n) - f (Xb n)) < u")
 prefer 2 apply blast
-apply (erule_tac V = "\<forall>x y. \<bar>x + - y\<bar> < s --> \<bar>f x + - f y\<bar> < u" in thin_rl)
+apply (erule_tac V = "\<forall>x y. \<bar>x - y\<bar> < s --> \<bar>f x - f y\<bar> < u" in thin_rl)
 apply (erule ultra, simp)
 done
 
-lemma lemma_LIMu: "\<forall>s>0.\<exists>z y. \<bar>z + - y\<bar> < s & r \<le> \<bar>f z + -f y\<bar>
-      ==> \<forall>n::nat. \<exists>z y. \<bar>z + -y\<bar> < inverse(real(Suc n)) & r \<le> \<bar>f z + -f y\<bar>"
+lemma lemma_LIMu: "\<forall>s>0.\<exists>z y. \<bar>z - y\<bar> < s & r \<le> \<bar>f z - f y\<bar>
+      ==> \<forall>n::nat. \<exists>z y. \<bar>z - y\<bar> < inverse(real(Suc n)) & r \<le> \<bar>f z - f y\<bar>"
 apply clarify
 apply (cut_tac n1 = n
        in real_of_nat_Suc_gt_zero [THEN positive_imp_inverse_positive], auto)
 done
 
 lemma lemma_skolemize_LIM2u:
-     "\<forall>s>0.\<exists>z y. \<bar>z + - y\<bar> < s  & r \<le> \<bar>f z + -f y\<bar>
+     "\<forall>s>0.\<exists>z y. \<bar>z - y\<bar> < s  & r \<le> \<bar>f z - f y\<bar>
       ==> \<exists>X Y. \<forall>n::nat.
-               abs(X n + -(Y n)) < inverse(real(Suc n)) &
-               r \<le> abs(f (X n) + -f (Y n))"
+               abs(X n - Y n) < inverse(real(Suc n)) &
+               r \<le> abs(f (X n) - f (Y n))"
 apply (drule lemma_LIMu)
 apply (drule choice, safe)
 apply (drule choice, blast)
 done
 
-lemma lemma_simpu: "\<forall>n. \<bar>X n + -Y n\<bar> < inverse (real(Suc n)) &
-          r \<le> abs (f (X n) + - f(Y n)) ==>
-          \<forall>n. \<bar>X n + - Y n\<bar> < inverse (real(Suc n))"
+lemma lemma_simpu: "\<forall>n. \<bar>X n - Y n\<bar> < inverse (real(Suc n)) &
+          r \<le> abs (f (X n) - f(Y n)) ==>
+          \<forall>n. \<bar>X n - Y n\<bar> < inverse (real(Suc n))"
 by auto
 
 lemma isNSUCont_isUCont:
@@ -648,24 +648,24 @@ apply (drule_tac x = "star_n X" in spec)
 apply (drule_tac x = "star_n Y" in spec)
 apply (drule mp)
 apply (rule real_seq_to_hypreal_Infinitesimal2, simp)
-apply (simp add: all_star_eq starfun star_n_minus star_n_add)
+apply (simp add: all_star_eq starfun star_n_diff)
 apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
 apply (drule spec, drule (1) mp)
 apply (drule FreeUltrafilterNat_all, ultra)
 done
 
 text{*Derivatives*}
-lemma DERIV_iff: "(DERIV f x :> D) = ((%h. (f(x + h) + - f(x))/h) -- 0 --> D)"
+lemma DERIV_iff: "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) -- 0 --> D)"
 by (simp add: deriv_def)
 
 lemma DERIV_NS_iff:
-      "(DERIV f x :> D) = ((%h. (f(x + h) + - f(x))/h) -- 0 --NS> D)"
+      "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) -- 0 --NS> D)"
 by (simp add: deriv_def LIM_NSLIM_iff)
 
-lemma DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) + - f(x))/h) -- 0 --> D"
+lemma DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) - f(x))/h) -- 0 --> D"
 by (simp add: deriv_def)
 
-lemma NS_DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) + - f(x))/h) -- 0 --NS> D"
+lemma NS_DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) - f(x))/h) -- 0 --NS> D"
 by (simp add: deriv_def LIM_NSLIM_iff)
 
 
@@ -755,7 +755,7 @@ subsubsection{*First NSDERIV in terms of NSLIM*}
 
 text{*first equivalence *}
 lemma NSDERIV_NSLIM_iff:
-      "(NSDERIV f x :> D) = ((%h. (f(x + h) + - f(x))/h) -- 0 --NS> D)"
+      "(NSDERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) -- 0 --NS> D)"
 apply (simp add: nsderiv_def NSLIM_def, auto)
 apply (drule_tac x = xa in bspec)
 apply (rule_tac [3] ccontr)
@@ -778,7 +778,7 @@ lemma NSDERIV_iff2:
 by (simp add: NSDERIV_NSLIM_iff2 NSLIM_def)
 
 (*FIXME DELETE*)
-lemma hypreal_not_eq_minus_iff: "(x \<noteq> a) = (x + -a \<noteq> (0::hypreal))"
+lemma hypreal_not_eq_minus_iff: "(x \<noteq> a) = (x - a \<noteq> (0::hypreal))"
 by (auto dest: hypreal_eq_minus_iff [THEN iffD2])
 
 lemma NSDERIVD5:
@@ -791,7 +791,7 @@ apply (drule_tac x = u in spec, auto)
 apply (drule_tac c = "u - hypreal_of_real x" and b = "hypreal_of_real D" in approx_mult1)
 apply (drule_tac [!] hypreal_not_eq_minus_iff [THEN iffD1])
 apply (subgoal_tac [2] "( *f* (%z. z-x)) u \<noteq> (0::hypreal) ")
-apply (auto simp add: diff_minus
+apply (auto simp add:
          approx_minus_iff [THEN iffD1, THEN mem_infmal_iff [THEN iffD2]]
          Infinitesimal_subset_HFinite [THEN subsetD])
 done
@@ -832,10 +832,10 @@ lemma NSDERIV_isNSCont: "NSDERIV f x :> D ==> isNSCont f x"
 apply (auto simp add: nsderiv_def isNSCont_NSLIM_iff NSLIM_def)
 apply (drule approx_minus_iff [THEN iffD1])
 apply (drule hypreal_not_eq_minus_iff [THEN iffD1])
-apply (drule_tac x = "-hypreal_of_real x + xa" in bspec)
+apply (drule_tac x = "xa - hypreal_of_real x" in bspec)
  prefer 2 apply (simp add: add_assoc [symmetric])
 apply (auto simp add: mem_infmal_iff [symmetric] add_commute)
-apply (drule_tac c = "xa + -hypreal_of_real x" in approx_mult1)
+apply (drule_tac c = "xa - hypreal_of_real x" in approx_mult1)
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
             simp add: mult_assoc)
 apply (drule_tac x3=D in
@@ -869,9 +869,9 @@ text{*Sum of functions- proved easily*}
 lemma NSDERIV_add: "[| NSDERIV f x :> Da;  NSDERIV g x :> Db |]
       ==> NSDERIV (%x. f x + g x) x :> Da + Db"
 apply (auto simp add: NSDERIV_NSLIM_iff NSLIM_def)
-apply (auto simp add: add_divide_distrib dest!: spec)
+apply (auto simp add: add_divide_distrib diff_divide_distrib dest!: spec)
 apply (drule_tac b = "hypreal_of_real Da" and d = "hypreal_of_real Db" in approx_add)
-apply (auto simp add: add_ac)
+apply (auto simp add: diff_def add_ac)
 done
 
 (* Standard theorem *)
@@ -883,14 +883,14 @@ done
 text{*Product of functions - Proof is trivial but tedious
   and long due to rearrangement of terms*}
 
-lemma lemma_nsderiv1: "((a::hypreal)*b) + -(c*d) = (b*(a + -c)) + (c*(b + -d))"
-by (simp add: right_distrib)
+lemma lemma_nsderiv1: "((a::hypreal)*b) - (c*d) = (b*(a - c)) + (c*(b - d))"
+by (simp add: right_diff_distrib)
 
-lemma lemma_nsderiv2: "[| (x + y) / z = hypreal_of_real D + yb; z \<noteq> 0;
+lemma lemma_nsderiv2: "[| (x - y) / z = hypreal_of_real D + yb; z \<noteq> 0;
          z \<in> Infinitesimal; yb \<in> Infinitesimal |]
-      ==> x + y \<approx> 0"
+      ==> x - y \<approx> 0"
 apply (frule_tac c1 = z in hypreal_mult_right_cancel [THEN iffD2], assumption)
-apply (erule_tac V = "(x + y) / z = hypreal_of_real D + yb" in thin_rl)
+apply (erule_tac V = "(x - y) / z = hypreal_of_real D + yb" in thin_rl)
 apply (auto intro!: Infinitesimal_HFinite_mult2 HFinite_add
             simp add: mult_assoc mem_infmal_iff [symmetric])
 apply (erule Infinitesimal_subset_HFinite [THEN subsetD])
@@ -902,12 +902,12 @@ lemma NSDERIV_mult: "[| NSDERIV f x :> Da; NSDERIV g x :> Db |]
 apply (auto simp add: NSDERIV_NSLIM_iff NSLIM_def)
 apply (auto dest!: spec
       simp add: starfun_lambda_cancel lemma_nsderiv1)
-apply (simp (no_asm) add: add_divide_distrib)
+apply (simp (no_asm) add: add_divide_distrib diff_divide_distrib)
 apply (drule bex_Infinitesimal_iff2 [THEN iffD2])+
 apply (auto simp add: times_divide_eq_right [symmetric]
             simp del: times_divide_eq)
-apply (drule_tac D = Db in lemma_nsderiv2)
-apply (drule_tac [4]
+apply (drule_tac D = Db in lemma_nsderiv2, assumption+)
+apply (drule_tac
      approx_minus_iff [THEN iffD2, THEN bex_Infinitesimal_iff2 [THEN iffD2]])
 apply (auto intro!: approx_add_mono1
             simp add: left_distrib right_distrib mult_commute add_assoc)
@@ -929,7 +929,7 @@ text{*Multiplying by a constant*}
 lemma NSDERIV_cmult: "NSDERIV f x :> D
       ==> NSDERIV (%x. c * f x) x :> c*D"
 apply (simp only: times_divide_eq_right [symmetric] NSDERIV_NSLIM_iff
-                  minus_mult_right right_distrib [symmetric])
+                  minus_mult_right right_diff_distrib [symmetric])
 apply (erule NSLIM_const [THEN NSLIM_mult])
 done
 
@@ -939,17 +939,17 @@ done
 lemma DERIV_cmult:
       "DERIV f x :> D ==> DERIV (%x. c * f x) x :> c*D"
 apply (simp only: deriv_def times_divide_eq_right [symmetric]
-                  NSDERIV_NSLIM_iff minus_mult_right right_distrib [symmetric])
+                  NSDERIV_NSLIM_iff minus_mult_right right_diff_distrib [symmetric])
 apply (erule LIM_const [THEN LIM_mult2])
 done
 
 text{*Negation of function*}
 lemma NSDERIV_minus: "NSDERIV f x :> D ==> NSDERIV (%x. -(f x)) x :> -D"
 proof (simp add: NSDERIV_NSLIM_iff)
-  assume "(\<lambda>h. (f (x + h) + - f x) / h) -- 0 --NS> D"
-  hence deriv: "(\<lambda>h. - ((f(x+h) + - f x) / h)) -- 0 --NS> - D"
+  assume "(\<lambda>h. (f (x + h) - f x) / h) -- 0 --NS> D"
+  hence deriv: "(\<lambda>h. - ((f(x+h) - f x) / h)) -- 0 --NS> - D"
     by (rule NSLIM_minus)
-  have "\<forall>h. - ((f (x + h) + - f x) / h) = (- f (x + h) + f x) / h"
+  have "\<forall>h. - ((f (x + h) - f x) / h) = (- f (x + h) + f x) / h"
     by (simp add: minus_divide_left)
   with deriv
   show "(\<lambda>h. (- f (x + h) + f x) / h) -- 0 --NS> - D" by simp
@@ -983,13 +983,13 @@ done
 text{*(NS) Increment*}
 lemma incrementI:
       "f NSdifferentiable x ==>
-      increment f x h = ( *f* f) (hypreal_of_real(x) + h) +
-      -hypreal_of_real (f x)"
+      increment f x h = ( *f* f) (hypreal_of_real(x) + h) -
+      hypreal_of_real (f x)"
 by (simp add: increment_def)
 
 lemma incrementI2: "NSDERIV f x :> D ==>
-     increment f x h = ( *f* f) (hypreal_of_real(x) + h) +
-     -hypreal_of_real (f x)"
+     increment f x h = ( *f* f) (hypreal_of_real(x) + h) -
+     hypreal_of_real (f x)"
 apply (erule NSdifferentiableI [THEN incrementI])
 done
 
@@ -1001,7 +1001,7 @@ apply (drule bspec, auto)
 apply (drule bex_Infinitesimal_iff2 [THEN iffD2], clarify)
 apply (frule_tac b1 = "hypreal_of_real (D) + y"
         in hypreal_mult_right_cancel [THEN iffD2])
-apply (erule_tac [2] V = "(( *f* f) (hypreal_of_real (x) + h) + - hypreal_of_real (f x)) / h = hypreal_of_real (D) + y" in thin_rl)
+apply (erule_tac [2] V = "(( *f* f) (hypreal_of_real (x) + h) - hypreal_of_real (f x)) / h = hypreal_of_real (D) + y" in thin_rl)
 apply assumption
 apply (simp add: times_divide_eq_right [symmetric])
 apply (auto simp add: left_distrib)
@@ -1043,7 +1043,7 @@ done
 (* can be proved differently using NSLIM_isCont_iff *)
 lemma NSDERIV_approx:
      "[| NSDERIV f x :> D;  h \<in> Infinitesimal;  h \<noteq> 0 |]
-      ==> ( *f* f) (hypreal_of_real(x) + h) + -hypreal_of_real(f x) \<approx> 0"
+      ==> ( *f* f) (hypreal_of_real(x) + h) - hypreal_of_real(f x) \<approx> 0"
 apply (simp add: nsderiv_def)
 apply (simp add: mem_infmal_iff [symmetric])
 apply (rule Infinitesimal_ratio)
@@ -1061,8 +1061,8 @@ lemma NSDERIVD1: "[| NSDERIV f (g x) :> Da;
          ( *f* g) (hypreal_of_real(x) + xa) \<noteq> hypreal_of_real (g x);
          ( *f* g) (hypreal_of_real(x) + xa) \<approx> hypreal_of_real (g x)
       |] ==> (( *f* f) (( *f* g) (hypreal_of_real(x) + xa))
-                   + - hypreal_of_real (f (g x)))
-              / (( *f* g) (hypreal_of_real(x) + xa) + - hypreal_of_real (g x))
+                   - hypreal_of_real (f (g x)))
+              / (( *f* g) (hypreal_of_real(x) + xa) - hypreal_of_real (g x))
              \<approx> hypreal_of_real(Da)"
 by (auto simp add: NSDERIV_NSLIM_iff2 NSLIM_def diff_minus [symmetric])
 
@@ -1074,7 +1074,7 @@ by (auto simp add: NSDERIV_NSLIM_iff2 NSLIM_def diff_minus [symmetric])
                        h
  --------------------------------------------------------------*)
 lemma NSDERIVD2: "[| NSDERIV g x :> Db; xa \<in> Infinitesimal; xa \<noteq> 0 |]
-      ==> (( *f* g) (hypreal_of_real(x) + xa) + - hypreal_of_real(g x)) / xa
+      ==> (( *f* g) (hypreal_of_real(x) + xa) - hypreal_of_real(g x)) / xa
           \<approx> hypreal_of_real(Db)"
 by (auto simp add: NSDERIV_NSLIM_iff NSLIM_def mem_infmal_iff starfun_lambda_cancel)
 
@@ -1092,7 +1092,7 @@ apply (auto simp add: starfun_lambda_cancel2 starfun_o [symmetric])
 apply (case_tac "( *f* g) (hypreal_of_real (x) + xa) = hypreal_of_real (g x) ")
 apply (drule_tac g = g in NSDERIV_zero)
 apply (auto simp add: divide_inverse)
-apply (rule_tac z1 = "( *f* g) (hypreal_of_real (x) + xa) + -hypreal_of_real (g x) " and y1 = "inverse xa" in lemma_chain [THEN ssubst])
+apply (rule_tac z1 = "( *f* g) (hypreal_of_real (x) + xa) - hypreal_of_real (g x) " and y1 = "inverse xa" in lemma_chain [THEN ssubst])
 apply (erule hypreal_not_eq_minus_iff [THEN iffD1])
 apply (rule approx_mult_hypreal_of_real)
 apply (simp_all add: divide_inverse [symmetric])
@@ -1144,12 +1144,12 @@ lemma NSDERIV_inverse:
      "x \<noteq> 0 ==> NSDERIV (%x. inverse(x)) x :> (- (inverse x ^ Suc (Suc 0)))"
 apply (simp add: nsderiv_def)
 apply (rule ballI, simp, clarify)
-apply (frule Infinitesimal_add_not_zero)
-prefer 2 apply (simp add: add_commute)
-apply (auto simp add: starfun_inverse_inverse realpow_two
-        simp del: minus_mult_left [symmetric] minus_mult_right [symmetric])
+apply (frule (1) Infinitesimal_add_not_zero)
+apply (simp add: add_commute)
+(*apply (auto simp add: starfun_inverse_inverse realpow_two
+        simp del: minus_mult_left [symmetric] minus_mult_right [symmetric])*)
 apply (simp add: inverse_add inverse_mult_distrib [symmetric]
-              inverse_minus_eq [symmetric] add_ac mult_ac
+              inverse_minus_eq [symmetric] add_ac mult_ac diff_def
             del: inverse_mult_distrib inverse_minus_eq
                  minus_mult_left [symmetric] minus_mult_right [symmetric])
 apply (simp (no_asm_simp) add: mult_assoc [symmetric] right_distrib
@@ -1181,18 +1181,18 @@ by (simp add: NSDERIV_DERIV_iff DERIV_inverse_fun del: realpow_Suc)
 
 text{*Derivative of quotient*}
 lemma DERIV_quotient: "[| DERIV f x :> d; DERIV g x :> e; g(x) \<noteq> 0 |]
-       ==> DERIV (%y. f(y) / (g y)) x :> (d*g(x) + -(e*f(x))) / (g(x) ^ Suc (Suc 0))"
+       ==> DERIV (%y. f(y) / (g y)) x :> (d*g(x) - (e*f(x))) / (g(x) ^ Suc (Suc 0))"
 apply (drule_tac f = g in DERIV_inverse_fun)
 apply (drule_tac [2] DERIV_mult)
 apply (assumption+)
 apply (simp add: divide_inverse right_distrib power_inverse minus_mult_left
-                 mult_ac
+                 mult_ac diff_def
      del: realpow_Suc minus_mult_right [symmetric] minus_mult_left [symmetric])
 done
 
 lemma NSDERIV_quotient: "[| NSDERIV f x :> d; DERIV g x :> e; g(x) \<noteq> 0 |]
        ==> NSDERIV (%y. f(y) / (g y)) x :> (d*g(x)
-                            + -(e*f(x))) / (g(x) ^ Suc (Suc 0))"
+                            - (e*f(x))) / (g(x) ^ Suc (Suc 0))"
 by (simp add: NSDERIV_DERIV_iff DERIV_quotient del: realpow_Suc)
 
 (* ------------------------------------------------------------------------ *)
@@ -2230,35 +2230,35 @@ lemma LIMSEQ_SEQ_conv1:
   shows "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
 proof -
   {
-    from prems have Xdef: "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & norm (x + -a) < s --> norm (X x + -L) < r" by (unfold LIM_def)
+    from prems have Xdef: "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & norm (x - a) < s --> norm (X x - L) < r" by (unfold LIM_def)
     
     fix S
     assume as: "(\<forall>n. S n \<noteq> a) \<and> S ----> a"
     then have "S ----> a" by auto
-    then have Sdef: "(\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> norm (S n + -a) < r))" by (unfold LIMSEQ_def)
+    then have Sdef: "(\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> norm (S n - a) < r))" by (unfold LIMSEQ_def)
     {
       fix r
-      from Xdef have Xdef2: "0 < r --> (\<exists>s > 0. \<forall>x. x \<noteq> a \<and> \<bar>x + -a\<bar> < s --> norm (X x + -L) < r)" by simp
+      from Xdef have Xdef2: "0 < r --> (\<exists>s > 0. \<forall>x. x \<noteq> a \<and> \<bar>x - a\<bar> < s --> norm (X x - L) < r)" by simp
       {
         assume rgz: "0 < r"
 
-        from Xdef2 rgz have "\<exists>s > 0. \<forall>x. x \<noteq> a \<and> \<bar>x + -a\<bar> < s --> norm (X x + -L) < r" by simp 
-        then obtain s where sdef: "s > 0 \<and> (\<forall>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < s \<longrightarrow> norm (X x + -L) < r)" by auto
-        then have aux: "\<forall>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < s \<longrightarrow> norm (X x + -L) < r" by auto
+        from Xdef2 rgz have "\<exists>s > 0. \<forall>x. x \<noteq> a \<and> \<bar>x - a\<bar> < s --> norm (X x - L) < r" by simp 
+        then obtain s where sdef: "s > 0 \<and> (\<forall>x. x\<noteq>a \<and> \<bar>x - a\<bar> < s \<longrightarrow> norm (X x - L) < r)" by auto
+        then have aux: "\<forall>x. x\<noteq>a \<and> \<bar>x - a\<bar> < s \<longrightarrow> norm (X x - L) < r" by auto
         {
           fix n
-          from aux have "S n \<noteq> a \<and> \<bar>S n + -a\<bar> < s \<longrightarrow> norm (X (S n) + -L) < r" by simp
-          with as have imp2: "\<bar>S n + -a\<bar> < s --> norm (X (S n) + -L) < r" by auto
+          from aux have "S n \<noteq> a \<and> \<bar>S n - a\<bar> < s \<longrightarrow> norm (X (S n) - L) < r" by simp
+          with as have imp2: "\<bar>S n - a\<bar> < s --> norm (X (S n) - L) < r" by auto
         }
-        hence "\<forall>n. \<bar>S n + -a\<bar> < s --> norm (X (S n) + -L) < r" ..
+        hence "\<forall>n. \<bar>S n - a\<bar> < s --> norm (X (S n) - L) < r" ..
         moreover
-        from Sdef sdef have imp1: "\<exists>no. \<forall>n. no \<le> n --> \<bar>S n + -a\<bar> < s" by auto  
-        then obtain no where "\<forall>n. no \<le> n --> \<bar>S n + -a\<bar> < s" by auto
-        ultimately have "\<forall>n. no \<le> n \<longrightarrow> norm (X (S n) + -L) < r" by simp
-        hence "\<exists>no. \<forall>n. no \<le> n \<longrightarrow> norm (X (S n) + -L) < r" by auto
+        from Sdef sdef have imp1: "\<exists>no. \<forall>n. no \<le> n --> \<bar>S n - a\<bar> < s" by auto  
+        then obtain no where "\<forall>n. no \<le> n --> \<bar>S n - a\<bar> < s" by auto
+        ultimately have "\<forall>n. no \<le> n \<longrightarrow> norm (X (S n) - L) < r" by simp
+        hence "\<exists>no. \<forall>n. no \<le> n \<longrightarrow> norm (X (S n) - L) < r" by auto
       }
     }
-    hence "(\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> norm (X (S n) + -L) < r))" by simp
+    hence "(\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> norm (X (S n) - L) < r))" by simp
     hence "(\<lambda>n. X (S n)) ----> L" by (fold LIMSEQ_def)
   }
   thus ?thesis by simp
@@ -2272,12 +2272,12 @@ lemma LIMSEQ_SEQ_conv2:
   shows "X -- a --> L"
 proof (rule ccontr)
   assume "\<not> (X -- a --> L)"
-  hence "\<not> (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & norm (x + -a) < s --> norm (X x + -L) < r)" by (unfold LIM_def)
-  hence "\<exists>r > 0. \<forall>s > 0. \<exists>x. \<not>(x \<noteq> a \<and> \<bar>x + -a\<bar> < s --> norm (X x + -L) < r)" by simp
-  hence "\<exists>r > 0. \<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x + -a\<bar> < s \<and> norm (X x + -L) \<ge> r)" by (simp add: linorder_not_less)
-  then obtain r where rdef: "r > 0 \<and> (\<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x + -a\<bar> < s \<and> norm (X x + -L) \<ge> r))" by auto
+  hence "\<not> (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & norm (x - a) < s --> norm (X x - L) < r)" by (unfold LIM_def)
+  hence "\<exists>r > 0. \<forall>s > 0. \<exists>x. \<not>(x \<noteq> a \<and> \<bar>x - a\<bar> < s --> norm (X x - L) < r)" by simp
+  hence "\<exists>r > 0. \<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x - a\<bar> < s \<and> norm (X x - L) \<ge> r)" by (simp add: linorder_not_less)
+  then obtain r where rdef: "r > 0 \<and> (\<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x - a\<bar> < s \<and> norm (X x - L) \<ge> r))" by auto
 
-  let ?F = "\<lambda>n::nat. SOME x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> norm (X x + -L) \<ge> r"
+  let ?F = "\<lambda>n::nat. SOME x. x\<noteq>a \<and> \<bar>x - a\<bar> < inverse (real (Suc n)) \<and> norm (X x - L) \<ge> r"
   have "?F ----> a"
   proof -
     {
@@ -2293,21 +2293,21 @@ proof (rule ccontr)
           "inverse (real (Suc n)) \<le> inverse (real (Suc m))"
           by auto
         moreover have
-          "\<bar>?F n + -a\<bar> < inverse (real (Suc n))"
+          "\<bar>?F n - a\<bar> < inverse (real (Suc n))"
         proof -
           from rdef have
-            "\<exists>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> norm (X x + -L) \<ge> r"
+            "\<exists>x. x\<noteq>a \<and> \<bar>x - a\<bar> < inverse (real (Suc n)) \<and> norm (X x - L) \<ge> r"
             by simp
           hence
-            "(?F n)\<noteq>a \<and> \<bar>(?F n) + -a\<bar> < inverse (real (Suc n)) \<and> norm (X (?F n) + -L) \<ge> r"
+            "(?F n)\<noteq>a \<and> \<bar>(?F n) - a\<bar> < inverse (real (Suc n)) \<and> norm (X (?F n) - L) \<ge> r"
             by (simp add: some_eq_ex [symmetric])
           thus ?thesis by simp
         qed
         moreover from nodef have
           "inverse (real (Suc m)) < e" .
-        ultimately have "\<bar>?F n + -a\<bar> < e" by arith
+        ultimately have "\<bar>?F n - a\<bar> < e" by arith
       }
-      then have "\<exists>no. \<forall>n. no \<le> n --> \<bar>?F n + -a\<bar> < e" by auto
+      then have "\<exists>no. \<forall>n. no \<le> n --> \<bar>?F n - a\<bar> < e" by auto
     }
     thus ?thesis by (unfold LIMSEQ_def, simp)
   qed
@@ -2317,7 +2317,7 @@ proof (rule ccontr)
     {
       fix n
       from rdef have
-        "\<exists>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> norm (X x + -L) \<ge> r"
+        "\<exists>x. x\<noteq>a \<and> \<bar>x - a\<bar> < inverse (real (Suc n)) \<and> norm (X x - L) \<ge> r"
         by simp
       hence "?F n \<noteq> a" by (simp add: some_eq_ex [symmetric])
     }
@@ -2333,15 +2333,15 @@ proof (rule ccontr)
       obtain n where "n = no + 1" by simp
       then have nolen: "no \<le> n" by simp
         (* We prove this by showing that for any m there is an n\<ge>m such that |X (?F n) - L| \<ge> r *)
-      from rdef have "\<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x + -a\<bar> < s \<and> norm (X x + -L) \<ge> r)" ..
+      from rdef have "\<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x - a\<bar> < s \<and> norm (X x - L) \<ge> r)" ..
 
-      then have "\<exists>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> norm (X x + -L) \<ge> r" by simp
+      then have "\<exists>x. x\<noteq>a \<and> \<bar>x - a\<bar> < inverse (real (Suc n)) \<and> norm (X x - L) \<ge> r" by simp
       
-      hence "norm (X (?F n) + -L) \<ge> r" by (simp add: some_eq_ex [symmetric])
-      with nolen have "\<exists>n. no \<le> n \<and> norm (X (?F n) + -L) \<ge> r" by auto
+      hence "norm (X (?F n) - L) \<ge> r" by (simp add: some_eq_ex [symmetric])
+      with nolen have "\<exists>n. no \<le> n \<and> norm (X (?F n) - L) \<ge> r" by auto
     }
-    then have "(\<forall>no. \<exists>n. no \<le> n \<and> norm (X (?F n) + -L) \<ge> r)" by simp
-    with rdef have "\<exists>e>0. (\<forall>no. \<exists>n. no \<le> n \<and> norm (X (?F n) + -L) \<ge> e)" by auto
+    then have "(\<forall>no. \<exists>n. no \<le> n \<and> norm (X (?F n) - L) \<ge> r)" by simp
+    with rdef have "\<exists>e>0. (\<forall>no. \<exists>n. no \<le> n \<and> norm (X (?F n) - L) \<ge> e)" by auto
     thus ?thesis by (unfold LIMSEQ_def, auto simp add: linorder_not_less)
   qed
   ultimately show False by simp
@@ -2364,14 +2364,7 @@ lemma real_sqz:
   fixes a::real
   assumes "a < c"
   shows "\<exists>b. a < b \<and> b < c"
-proof
-  let ?b = "(a + c) / 2"
-  have "a < ?b" by simp
-  moreover
-  have "?b < c" by simp
-  ultimately
-  show "a < ?b \<and> ?b < c" by simp
-qed
+by (rule dense)
 
 lemma LIM_offset:
   assumes "(\<lambda>x. f x) -- a --> L"
@@ -2379,26 +2372,26 @@ lemma LIM_offset:
 proof -
   have "f -- a --> L" .
   hence
-    fd: "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & norm (x + -a) < s --> norm (f x + -L) < r"
+    fd: "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & norm (x - a) < s --> norm (f x - L) < r"
     by (unfold LIM_def)
   {
     fix r::real
     assume rgz: "0 < r"
-    with fd have "\<exists>s > 0. \<forall>x. x\<noteq>a \<and> norm (x + -a) < s --> norm (f x + -L) < r" by simp
-    then obtain s where sgz: "s > 0" and ax: "\<forall>x. x\<noteq>a \<and> norm (x + -a) < s \<longrightarrow> norm (f x + -L) < r" by auto
-    from ax have ax2: "\<forall>x. (x+c)\<noteq>a \<and> norm ((x+c) + -a) < s \<longrightarrow> norm (f (x+c) + -L) < r" by auto
+    with fd have "\<exists>s > 0. \<forall>x. x\<noteq>a \<and> norm (x - a) < s --> norm (f x - L) < r" by simp
+    then obtain s where sgz: "s > 0" and ax: "\<forall>x. x\<noteq>a \<and> norm (x - a) < s \<longrightarrow> norm (f x - L) < r" by auto
+    from ax have ax2: "\<forall>x. (x+c)\<noteq>a \<and> norm ((x+c) - a) < s \<longrightarrow> norm (f (x+c) - L) < r" by auto
     {
       fix x
-      from ax2 have nt: "(x+c)\<noteq>a \<and> norm ((x+c) + -a) < s \<longrightarrow> norm (f (x+c) + -L) < r" ..
+      from ax2 have nt: "(x+c)\<noteq>a \<and> norm ((x+c) - a) < s \<longrightarrow> norm (f (x+c) - L) < r" ..
       moreover have "((x+c)\<noteq>a) = (x\<noteq>(a-c))" by auto
-      moreover have "((x+c) + -a) = (x + -(a-c))" by simp
-      ultimately have "x\<noteq>(a-c) \<and> norm (x + -(a-c)) < s \<longrightarrow> norm (f (x+c) + -L) < r" by simp
+      moreover have "((x+c) - a) = (x - (a-c))" by simp
+      ultimately have "x\<noteq>(a-c) \<and> norm (x - (a-c)) < s \<longrightarrow> norm (f (x+c) - L) < r" by simp
     }
-    then have "\<forall>x. x\<noteq>(a-c) \<and> norm (x + -(a-c)) < s \<longrightarrow> norm (f (x+c) + -L) < r" ..
-    with sgz have "\<exists>s > 0. \<forall>x. x\<noteq>(a-c) \<and> norm (x + -(a-c)) < s \<longrightarrow> norm (f (x+c) + -L) < r" by auto
+    then have "\<forall>x. x\<noteq>(a-c) \<and> norm (x - (a-c)) < s \<longrightarrow> norm (f (x+c) - L) < r" ..
+    with sgz have "\<exists>s > 0. \<forall>x. x\<noteq>(a-c) \<and> norm (x - (a-c)) < s \<longrightarrow> norm (f (x+c) - L) < r" by auto
   }
   then have
-    "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> (a-c) & norm (x + -(a-c)) < s --> norm (f (x+c) + -L) < r" by simp
+    "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> (a-c) & norm (x - (a-c)) < s --> norm (f (x+c) - L) < r" by simp
   thus ?thesis by (fold LIM_def)
 qed
 

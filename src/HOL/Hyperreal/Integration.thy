@@ -380,8 +380,8 @@ lemma choice2: "\<forall>x. (\<exists>y. R(y) & (\<exists>z. Q x y z)) ==>
 (* new simplifications e.g. (y < x/n) = (y * n < x) are a real nuisance
    they break the original proofs and make new proofs longer!*)
 lemma strad1:
-       "\<lbrakk>\<forall>xa::real. xa \<noteq> x \<and> \<bar>xa + - x\<bar> < s \<longrightarrow>
-             \<bar>(f xa - f x) / (xa - x) + - f' x\<bar> * 2 < e;
+       "\<lbrakk>\<forall>xa::real. xa \<noteq> x \<and> \<bar>xa - x\<bar> < s \<longrightarrow>
+             \<bar>(f xa - f x) / (xa - x) - f' x\<bar> * 2 < e;
         0 < e; a \<le> x; x \<le> b; 0 < s\<rbrakk>
        \<Longrightarrow> \<forall>z. \<bar>z - x\<bar> < s -->\<bar>f z - f x - f' x * (z - x)\<bar> * 2 \<le> e * \<bar>z - x\<bar>"
 apply auto
@@ -427,7 +427,7 @@ apply (rule_tac t = "e* (v - u)" in real_sum_of_halves [THEN subst])
 apply (rule add_mono)
 apply (rule_tac y = "(e/2) * \<bar>v - x\<bar>" in order_trans)
  prefer 2 apply simp
-apply (erule_tac [!] V= "\<forall>x'. x' ~= x & \<bar>x' + - x\<bar> < s --> ?P x'" in thin_rl)
+apply (erule_tac [!] V= "\<forall>x'. x' ~= x & \<bar>x' - x\<bar> < s --> ?P x'" in thin_rl)
 apply (drule_tac x = v in spec, simp add: times_divide_eq)
 apply (drule_tac x = u in spec, auto)
 apply (subgoal_tac "\<bar>f u - f x - f' x * (u - x)\<bar> = \<bar>f x - f u - f' x * (x - u)\<bar>")
@@ -856,7 +856,7 @@ done
 
 lemma Cauchy_iff2:
      "Cauchy X =
-      (\<forall>j. (\<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. \<bar>X m + - X n\<bar> < inverse(real (Suc j))))"
+      (\<forall>j. (\<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. \<bar>X m - X n\<bar> < inverse(real (Suc j))))"
 apply (simp add: Cauchy_def, auto)
 apply (drule reals_Archimedean, safe)
 apply (drule_tac x = n in spec, auto)

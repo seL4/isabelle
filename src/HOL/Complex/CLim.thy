@@ -664,14 +664,15 @@ lemma NSCDERIV_CDERIV_iff: "(NSCDERIV f x :> D) = (CDERIV f x :> D)"
 by (simp add: cderiv_def NSCDERIV_NSCLIM_iff CLIM_NSCLIM_iff)
 
 lemma NSCDERIV_isNSContc: "NSCDERIV f x :> D ==> isNSContc f x"
-apply (auto simp add: nscderiv_def isNSContc_NSCLIM_iff NSCLIM_def diff_minus)
+apply (auto simp add: nscderiv_def isNSContc_NSCLIM_iff NSCLIM_def)
 apply (drule approx_minus_iff [THEN iffD1])
-apply (subgoal_tac "xa + - (hcomplex_of_complex x) \<noteq> 0")
+apply (subgoal_tac "xa - (hcomplex_of_complex x) \<noteq> 0")
  prefer 2 apply (simp add: compare_rls) 
-apply (drule_tac x = "- hcomplex_of_complex x + xa" in bspec)
- prefer 2 apply (simp add: add_assoc [symmetric]) 
+apply (drule_tac x = "xa - hcomplex_of_complex x" in bspec)
+apply (simp add: mem_infmal_iff)
+apply (simp add: add_assoc [symmetric]) 
 apply (auto simp add: mem_infmal_iff [symmetric] add_commute)
-apply (drule_tac c = "xa + - hcomplex_of_complex x" in approx_mult1)
+apply (drule_tac c = "xa - hcomplex_of_complex x" in approx_mult1)
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
             simp add: mult_assoc)
 apply (drule_tac x3 = D in 
@@ -714,11 +715,11 @@ lemma lemma_nscderiv1: "((a::hcomplex)*b) - (c*d) = (b*(a - c)) + (c*(b - d))"
 by (simp add: right_diff_distrib)
 
 lemma lemma_nscderiv2:
-     "[| (x + y) / z = hcomplex_of_complex D + yb; z \<noteq> 0;
+     "[| (x - y) / z = hcomplex_of_complex D + yb; z \<noteq> 0;
          z : Infinitesimal; yb : Infinitesimal |]
-      ==> x + y @= 0"
+      ==> x - y @= 0"
 apply (frule_tac c1 = z in hcomplex_mult_right_cancel [THEN iffD2], assumption)
-apply (erule_tac V = " (x + y) / z = hcomplex_of_complex D + yb" in thin_rl)
+apply (erule_tac V = " (x - y) / z = hcomplex_of_complex D + yb" in thin_rl)
 apply (auto intro!: Infinitesimal_HFinite_mult2 HFinite_add 
             simp add: mem_infmal_iff [symmetric])
 apply (erule Infinitesimal_subset_HFinite [THEN subsetD])
@@ -727,15 +728,15 @@ done
 lemma NSCDERIV_mult:
      "[| NSCDERIV f x :> Da; NSCDERIV g x :> Db |]
       ==> NSCDERIV (%x. f x * g x) x :> (Da * g(x)) + (Db * f(x))"
-apply (simp add: NSCDERIV_NSCLIM_iff NSCLIM_def, clarify) 
+apply (auto simp add: NSCDERIV_NSCLIM_iff NSCLIM_def)
 apply (auto dest!: spec
-            simp add: starfun_lambda_cancel lemma_nscderiv1)
-apply (simp (no_asm) add: add_divide_distrib)
+      simp add: starfun_lambda_cancel lemma_nscderiv1)
+apply (simp (no_asm) add: add_divide_distrib diff_divide_distrib)
 apply (drule bex_Infinitesimal_iff2 [THEN iffD2])+
-apply (auto simp del: times_divide_eq_right simp add: times_divide_eq_right [symmetric])
-apply (simp add: diff_minus)
-apply (drule_tac D = Db in lemma_nscderiv2)
-apply (drule_tac [4]
+apply (auto simp add: times_divide_eq_right [symmetric]
+            simp del: times_divide_eq)
+apply (drule_tac D = Db in lemma_nscderiv2, assumption+)
+apply (drule_tac
         approx_minus_iff [THEN iffD2, THEN bex_Infinitesimal_iff2 [THEN iffD2]])
 apply (auto intro!: approx_add_mono1 simp add: left_distrib right_distrib mult_commute add_assoc)
 apply (rule_tac b1 = "hcomplex_of_complex Db * hcomplex_of_complex (f x) " in add_commute [THEN subst])
