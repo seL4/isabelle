@@ -57,8 +57,8 @@ sig
   val print_trans_rules: Toplevel.transition -> Toplevel.transition
   val print_methods: Toplevel.transition -> Toplevel.transition
   val print_antiquotations: Toplevel.transition -> Toplevel.transition
-  val thm_deps: (thmref * Attrib.src list) list ->
-    Toplevel.transition -> Toplevel.transition
+  val class_deps: Toplevel.transition -> Toplevel.transition
+  val thm_deps: (thmref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
   val find_theorems: int option * (bool * string FindTheorems.criterion) list
     -> Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
@@ -268,6 +268,19 @@ val print_methods = Toplevel.unknown_theory o
   Toplevel.keep (Method.print_methods o Toplevel.theory_of);
 
 val print_antiquotations = Toplevel.imperative IsarOutput.print_antiquotations;
+
+val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
+  let
+    val thy = Toplevel.theory_of state;
+    val {classes = (space, algebra), ...} = Type.rep_tsig (Sign.tsig_of thy);
+    val {classes, ...} = Sorts.rep_algebra algebra;
+    fun entry (c, (i, (_, cs))) =
+      (i, {name = NameSpace.extern space c, ID = c, parents = cs,
+            dir = "", unfold = true, path = ""});
+    val gr =
+      Graph.fold (cons o entry) classes []
+      |> sort (int_ord o pairself #1) |> map #2;
+  in Present.display_graph gr end);
 
 
 (* retrieve theorems *)

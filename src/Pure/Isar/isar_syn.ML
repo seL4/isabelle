@@ -717,6 +717,10 @@ val print_antiquotationsP =
   OuterSyntax.improper_command "print_antiquotations" "print antiquotations (global)" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_antiquotations));
 
+val class_depsP =
+  OuterSyntax.improper_command "class_deps" "visualize class dependencies"
+    K.diag (Scan.succeed (Toplevel.no_timing o IsarCmd.class_deps));
+
 val thm_depsP =
   OuterSyntax.improper_command "thm_deps" "visualize theorem dependencies"
     K.diag (P.xthms1 >> (Toplevel.no_timing oo IsarCmd.thm_deps));
@@ -914,10 +918,10 @@ val _ = OuterSyntax.add_parsers [
   print_syntaxP, print_theoremsP, print_localesP, print_localeP,
   print_registrationsP, print_attributesP, print_simpsetP,
   print_rulesP, print_induct_rulesP, print_trans_rulesP,
-  print_methodsP, print_antiquotationsP, thm_depsP, find_theoremsP,
-  print_bindsP, print_lthmsP, print_casesP, print_stmtsP, print_thmsP,
-  print_prfsP, print_full_prfsP, print_propP, print_termP,
-  print_typeP,
+  print_methodsP, print_antiquotationsP, class_depsP, thm_depsP,
+  find_theoremsP, print_bindsP, print_lthmsP, print_casesP,
+  print_stmtsP, print_thmsP, print_prfsP, print_full_prfsP,
+  print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
   touch_thyP, touch_all_thysP, touch_child_thysP, remove_thyP,
