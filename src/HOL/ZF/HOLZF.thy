@@ -701,19 +701,19 @@ lemma implode_explode[simp]: "implode (explode x) = x"
 constdefs
   regular :: "(ZF * ZF) set \<Rightarrow> bool"
   "regular R == ! A. A \<noteq> Empty \<longrightarrow> (? x. Elem x A & (! y. (y, x) \<in> R \<longrightarrow> Not (Elem y A)))"
-  implodeable_Ext :: "(ZF * ZF) set \<Rightarrow> bool"
-  "implodeable_Ext R == ! y. Ext R y \<in> range explode"
+  set_like :: "(ZF * ZF) set \<Rightarrow> bool"
+  "set_like R == ! y. Ext R y \<in> range explode"
   wfzf :: "(ZF * ZF) set \<Rightarrow> bool"
-  "wfzf R == regular R & implodeable_Ext R"
+  "wfzf R == regular R & set_like R"
 
 lemma regular_Elem: "regular is_Elem_of"
   by (simp add: regular_def is_Elem_of_def Regularity)
 
-lemma implodeable_Elem: "implodeable_Ext is_Elem_of"
-  by (auto simp add: implodeable_Ext_def image_def Ext_Elem)
+lemma set_like_Elem: "set_like is_Elem_of"
+  by (auto simp add: set_like_def image_def Ext_Elem)
 
 lemma wfzf_is_Elem_of: "wfzf is_Elem_of"
-  by (auto simp add: wfzf_def regular_Elem implodeable_Elem)
+  by (auto simp add: wfzf_def regular_Elem set_like_Elem)
 
 constdefs
   SeqSum :: "(nat \<Rightarrow> ZF) \<Rightarrow> ZF"
@@ -734,10 +734,10 @@ lemma Elem_implode: "A \<in> range explode \<Longrightarrow> Elem x (implode A) 
   apply (simp_all add: explode_def)
   done
 
-lemma Elem_Ext_ZF: "implodeable_Ext R \<Longrightarrow> Elem x (Ext_ZF R s) = ((x,s) \<in> R)"
+lemma Elem_Ext_ZF: "set_like R \<Longrightarrow> Elem x (Ext_ZF R s) = ((x,s) \<in> R)"
   apply (simp add: Ext_ZF_def)
   apply (subst Elem_implode)
-  apply (simp add: implodeable_Ext_def)
+  apply (simp add: set_like_def)
   apply (simp add: Ext_def)
   done
 
@@ -753,25 +753,25 @@ constdefs
   "Ext_ZF_hull R s == SeqSum (Ext_ZF_n R s)"
 
 lemma Elem_Ext_ZF_hull:
-  assumes implodeable_R: "implodeable_Ext R" 
+  assumes set_like_R: "set_like R" 
   shows "Elem x (Ext_ZF_hull R S) = (? n. Elem x (Ext_ZF_n R S n))"
   by (simp add: Ext_ZF_hull_def SeqSum)
   
 lemma Elem_Elem_Ext_ZF_hull:
-  assumes implodeable_R: "implodeable_Ext R" 
+  assumes set_like_R: "set_like R" 
           and x_hull: "Elem x (Ext_ZF_hull R S)"
           and y_R_x: "(y, x) \<in> R"
   shows "Elem y (Ext_ZF_hull R S)"
 proof -
-  from Elem_Ext_ZF_hull[OF implodeable_R] x_hull 
+  from Elem_Ext_ZF_hull[OF set_like_R] x_hull 
   have "? n. Elem x (Ext_ZF_n R S n)" by auto
   then obtain n where n:"Elem x (Ext_ZF_n R S n)" ..
   with y_R_x have "Elem y (Ext_ZF_n R S (Suc n))"
     apply (auto simp add: Repl Sum)
     apply (rule_tac x="Ext_ZF R x" in exI) 
-    apply (auto simp add: Elem_Ext_ZF[OF implodeable_R])
+    apply (auto simp add: Elem_Ext_ZF[OF set_like_R])
     done
-  with Elem_Ext_ZF_hull[OF implodeable_R, where x=y] show ?thesis
+  with Elem_Ext_ZF_hull[OF set_like_R, where x=y] show ?thesis
     by (auto simp del: Ext_ZF_n.simps)
 qed
 
@@ -782,7 +782,7 @@ proof -
   from hyps have "\<exists>S. S \<in> C" by auto
   then obtain S where S:"S \<in> C" by auto  
   let ?T = "Sep (Ext_ZF_hull R S) (\<lambda> s. s \<in> C)"
-  from hyps have implodeable_R: "implodeable_Ext R" by (simp add: wfzf_def)
+  from hyps have set_like_R: "set_like R" by (simp add: wfzf_def)
   show ?thesis
   proof (cases "?T = Empty")
     case True
@@ -795,14 +795,14 @@ proof -
       apply (rule_tac exI[where x=S])
       apply (auto simp add: Sep Empty S)
       apply (erule_tac x=y in allE)
-      apply (simp add: implodeable_R Elem_Ext_ZF)
+      apply (simp add: set_like_R Elem_Ext_ZF)
       done
   next
     case False
     from hyps have regular_R: "regular R" by (simp add: wfzf_def)
     from 
       regular_R[simplified regular_def, rule_format, OF False, simplified Sep] 
-      Elem_Elem_Ext_ZF_hull[OF implodeable_R]
+      Elem_Elem_Ext_ZF_hull[OF set_like_R]
     show ?thesis by blast
   qed
 qed
@@ -836,7 +836,7 @@ lemma wf_is_Elem_of: "wf is_Elem_of"
   by (auto simp add: wfzf_is_Elem_of wfzf_implies_wf)
 
 lemma in_Ext_RTrans_implies_Elem_Ext_ZF_hull:  
-  "implodeable_Ext R \<Longrightarrow> x \<in> (Ext (R^+) s) \<Longrightarrow> Elem x (Ext_ZF_hull R s)"
+  "set_like R \<Longrightarrow> x \<in> (Ext (R^+) s) \<Longrightarrow> Elem x (Ext_ZF_hull R s)"
   apply (simp add: Ext_def Elem_Ext_ZF_hull)
   apply (erule converse_trancl_induct[where r="R"])
   apply (rule exI[where x=0])
@@ -848,8 +848,8 @@ lemma in_Ext_RTrans_implies_Elem_Ext_ZF_hull:
   apply (auto simp add: Elem_Ext_ZF)
   done
 
-lemma implodeable_Ext_trancl: "implodeable_Ext R \<Longrightarrow> implodeable_Ext (R^+)"
-  apply (subst implodeable_Ext_def)
+lemma implodeable_Ext_trancl: "set_like R \<Longrightarrow> set_like (R^+)"
+  apply (subst set_like_def)
   apply (auto simp add: image_def)
   apply (rule_tac x="Sep (Ext_ZF_hull R y) (\<lambda> z. z \<in> (Ext (R^+) y))" in exI)
   apply (auto simp add: explode_def Sep set_ext 
@@ -857,12 +857,12 @@ lemma implodeable_Ext_trancl: "implodeable_Ext R \<Longrightarrow> implodeable_E
   done
  
 lemma Elem_Ext_ZF_hull_implies_in_Ext_RTrans[rule_format]:
-  "implodeable_Ext R \<Longrightarrow> ! x. Elem x (Ext_ZF_n R s n) \<longrightarrow> x \<in> (Ext (R^+) s)"
+  "set_like R \<Longrightarrow> ! x. Elem x (Ext_ZF_n R s n) \<longrightarrow> x \<in> (Ext (R^+) s)"
   apply (induct_tac n)
   apply (auto simp add: Elem_Ext_ZF Ext_def Sum Repl)
   done
 
-lemma "implodeable_Ext R \<Longrightarrow> Ext_ZF (R^+) s = Ext_ZF_hull R s"
+lemma "set_like R \<Longrightarrow> Ext_ZF (R^+) s = Ext_ZF_hull R s"
   apply (frule implodeable_Ext_trancl)
   apply (auto simp add: Ext)
   apply (erule in_Ext_RTrans_implies_Elem_Ext_ZF_hull)
@@ -890,7 +890,7 @@ proof (simp add: regular_def, rule allI)
   qed
 qed
 
-lemma wf_eq_wfzf: "(wf R \<and> implodeable_Ext R) = wfzf R"
+lemma wf_eq_wfzf: "(wf R \<and> set_like R) = wfzf R"
   apply (auto simp add: wfzf_implies_wf)
   apply (auto simp add: wfzf_def wf_implies_regular)
   done
@@ -901,8 +901,8 @@ lemma wfzf_trancl: "wfzf R \<Longrightarrow> wfzf (R^+)"
 lemma Ext_subset_mono: "R \<subseteq> S \<Longrightarrow> Ext R y \<subseteq> Ext S y"
   by (auto simp add: Ext_def)
 
-lemma implodeable_Ext_subset: "implodeable_Ext R \<Longrightarrow> S \<subseteq> R \<Longrightarrow> implodeable_Ext S"
-  apply (auto simp add: implodeable_Ext_def)
+lemma set_like_subset: "set_like R \<Longrightarrow> S \<subseteq> R \<Longrightarrow> set_like S"
+  apply (auto simp add: set_like_def)
   apply (erule_tac x=y in allE)
   apply (drule_tac y=y in Ext_subset_mono)
   apply (auto simp add: image_def)
@@ -911,6 +911,6 @@ lemma implodeable_Ext_subset: "implodeable_Ext R \<Longrightarrow> S \<subseteq>
   done
 
 lemma wfzf_subset: "wfzf S \<Longrightarrow> R \<subseteq> S \<Longrightarrow> wfzf R"
-  by (auto intro: implodeable_Ext_subset wf_subset simp add: wf_eq_wfzf[symmetric])  
+  by (auto intro: set_like_subset wf_subset simp add: wf_eq_wfzf[symmetric])  
 
 end
