@@ -160,10 +160,12 @@ preceding the actual theory definition.
 \subsection{Type classes and sorts}\label{sec:classes}
 
 \indexisarcmd{classes}\indexisarcmd{classrel}\indexisarcmd{defaultsort}
+\indexisarcmd{class-deps}
 \begin{matharray}{rcll}
   \isarcmd{classes} & : & \isartrans{theory}{theory} \\
   \isarcmd{classrel} & : & \isartrans{theory}{theory} & (axiomatic!) \\
   \isarcmd{defaultsort} & : & \isartrans{theory}{theory} \\
+  \isarcmd{class_deps} & : & \isarkeep{theory~|~proof} \\
 \end{matharray}
 
 \begin{rail}
@@ -186,6 +188,8 @@ preceding the actual theory definition.
 \item [$\isarkeyword{defaultsort}~s$] makes sort $s$ the new default sort for
   any type variables given without sort constraints.  Usually, the default
   sort would be only changed when defining a new object-logic.
+\item [$\isarkeyword{class_deps}$] visualizes the subclass relation,
+  using Isabelle's graph browser tool (see also \cite{isabelle-sys}).
 \end{descr}
 
 
