@@ -13,8 +13,9 @@ struct
 
 val run_relevance_filter = ref true;
 val theory_const = ref false;
-val pass_mark = ref 0.6;
-val convergence = ref 2.4;   (*Higher numbers allow longer inference chains*)
+val pass_mark = ref 0.5;
+val convergence = ref 3.2;    (*Higher numbers allow longer inference chains*)
+val max_new = ref 60;         (*Limits how many clauses can be picked up per stage*)
 val follow_defs = ref false;  (*Follow definitions. Makes problems bigger.*)
 
 fun log_weight2 (x:real) = 1.0 + 2.0/Math.ln (x+1.0);
@@ -39,8 +40,7 @@ datatype const_typ =  CTVar | CType of string * const_typ list
 (*Is the second type an instance of the first one?*)
 fun match_type (CType(con1,args1)) (CType(con2,args2)) = 
       con1=con2 andalso match_types args1 args2
-  | match_type CTVar (CType _) = true
-  | match_type CTVar CTVar = true
+  | match_type CTVar _ = true
   | match_type _ CTVar = false
 and match_types [] [] = true
   | match_types (a1::as1) (a2::as2) = match_type a1 a2 andalso match_types as1 as2;
@@ -51,10 +51,12 @@ fun uni_mem gctab (c,c_typ) =
       NONE => false
     | SOME ctyps_list => exists (match_types c_typ) ctyps_list;
   
+(*Maps a "real" type to a const_typ*)
 fun const_typ_of (Type (c,typs)) = CType (c, map const_typ_of typs) 
   | const_typ_of (TFree _) = CTVar
   | const_typ_of (TVar _) = CTVar
 
+(*Pairs a constant with the list of its type instantiations (using const_typ)*)
 fun const_with_typ thy (c,typ) = 
     let val tvars = Sign.const_typargs thy (c,typ)
     in (c, map const_typ_of tvars) end
@@ -66,7 +68,7 @@ fun add_const_typ_table ((c,ctyps), tab) =
   Symtab.map_default (c, [ctyps]) (fn [] => [] | ctyps_list => ctyps ins ctyps_list) 
     tab;
 
-(*Free variables are counted, as well as constants, to handle locales*)
+(*Free variables are included, as well as constants, to handle locales*)
 fun add_term_consts_typs_rm thy (Const(c, typ), tab) =
       add_const_typ_table (const_with_typ thy (c,typ), tab) 
   | add_term_consts_typs_rm thy (Free(c, typ), tab) =
@@ -95,6 +97,10 @@ fun const_prop_of th =
 
 (**** Constant / Type Frequencies ****)
 
+(*A two-dimensional symbol table counts frequencies of constants. It's keyed first by
+  constant name and second by its list of type instantiations. For the latter, we need
+  a linear ordering on type const_typ list.*)
+  
 local
 
 fun cons_nr CTVar = 0
@@ -128,32 +134,30 @@ fun count_axiom_consts thy ((thm,_), tab) =
   in  count_term_consts (const_prop_of thm, tab)  end;
 
 
-(******** filter clauses ********)
+(**** Actual Filtering Code ****)
 
-fun const_weight ctab (c, cts) =
+(*The frequency of a constant is the sum of those of all instances of its type.*)
+fun const_frequency ctab (c, cts) =
   let val pairs = CTtab.dest (Option.valOf (Symtab.lookup ctab c))
       fun add ((cts',m), n) = if match_types cts cts' then m+n else n
   in  List.foldl add 0 pairs  end;
 
+(*Add in a constant's weight, as determined by its frequency.*)
 fun add_ct_weight ctab ((c,T), w) =
-  w + !weight_fn (real (const_weight ctab (c,T)));
-
-fun consts_typs_weight ctab =
-    List.foldl (add_ct_weight ctab) 0.0;
+  w + !weight_fn (real (const_frequency ctab (c,T)));
 
 (*Relevant constants are weighted according to frequency, 
   but irrelevant constants are simply counted. Otherwise, Skolem functions,
   which are rare, would harm a clause's chances of being picked.*)
 fun clause_weight ctab gctyps consts_typs =
     let val rel = filter (uni_mem gctyps) consts_typs
-        val rel_weight = consts_typs_weight ctab rel
+        val rel_weight = List.foldl (add_ct_weight ctab) 0.0 rel
     in
 	rel_weight / (rel_weight + real (length consts_typs - length rel))
     end;
     
 (*Multiplies out to a list of pairs: 'a * 'b list -> ('a * 'b) list -> ('a * 'b) list*)
-fun add_expand_pairs (c, ctyps_list) cpairs =
-      foldl (fn (ctyps,cpairs) => (c,ctyps)::cpairs) cpairs ctyps_list;
+fun add_expand_pairs (x,ys) xys = foldl (fn (y,acc) => (x,y)::acc) xys ys;
 
 fun consts_typs_of_term thy t = 
   let val tab = add_term_consts_typs_rm thy (t, null_const_tab)
@@ -184,41 +188,57 @@ fun defines thy (thm,(name,n)) gctypes =
 		 | _ => false
     end;
 
+(*For a reverse sort, putting the largest values first.*)
+fun compare_pairs ((_,w1),(_,w2)) = Real.compare (w2,w1);
+
+(*Limit the number of new clauses, to prevent runaway acceptance.*)
+fun take_best newpairs =
+  let val nnew = length newpairs
+  in
+    if nnew <= !max_new then (map #1 newpairs, [])
+    else 
+      let val cls = map #1 (sort compare_pairs newpairs)
+      in  Output.debug ("Number of candidates, " ^ Int.toString nnew ^ 
+			", exceeds the limit of " ^ Int.toString (!max_new));
+	  (List.take (cls, !max_new), List.drop (cls, !max_new))
+      end
+  end;
+
 fun relevant_clauses thy ctab p rel_consts =
-  let fun relevant (newrels,rejects) []  =
-	    if null newrels then [] 
-	    else 
-	      let val new_consts = List.concat (map #2 newrels)
-	          val rel_consts' = foldl add_const_typ_table rel_consts new_consts
-                  val newp = p + (1.0-p) / !convergence
-	      in Output.debug ("found relevant: " ^ Int.toString (length newrels));
-                 newrels @ relevant_clauses thy ctab newp rel_consts' rejects
-	      end
+  let fun relevant ([],rejects) [] = []     (*Nothing added this iteration, so stop*)
+	| relevant (newpairs,rejects) [] =
+	    let val (newrels,more_rejeccts) = take_best newpairs
+		val new_consts = List.concat (map #2 newrels)
+		val rel_consts' = foldl add_const_typ_table rel_consts new_consts
+		val newp = p + (1.0-p) / !convergence
+	    in Output.debug ("relevant this iteration: " ^ Int.toString (length newrels));
+	       (map #1 newrels) @ 
+	       (relevant_clauses thy ctab newp rel_consts' (more_rejeccts@rejects))
+	    end
 	| relevant (newrels,rejects) ((ax as (clsthm as (_,(name,n)),consts_typs)) :: axs) =
 	    let val weight = clause_weight ctab rel_consts consts_typs
 	    in
 	      if p <= weight orelse (!follow_defs andalso defines thy clsthm rel_consts)
-	      then (Output.debug name; Output.debug "\n";
-	            relevant (ax::newrels, rejects) axs)
+	      then (Output.debug name; 
+	            relevant ((ax,weight)::newrels, rejects) axs)
 	      else relevant (newrels, ax::rejects) axs
 	    end
     in  Output.debug ("relevant_clauses: " ^ Real.toString p);
-        relevant ([],[]) end;
+        relevant ([],[]) 
+    end;
 	
-     
-fun relevance_filter_aux thy axioms goals = 
-  let val const_tab = List.foldl (count_axiom_consts thy) Symtab.empty axioms
-      val goals_consts_typs = get_goal_consts_typs thy goals
-      val rels = relevant_clauses thy const_tab (!pass_mark) goals_consts_typs 
+fun relevance_filter thy axioms goals = 
+ if !run_relevance_filter andalso !pass_mark >= 0.1
+ then
+  let val _ = Output.debug "Start of relevance filtering";
+      val const_tab = List.foldl (count_axiom_consts thy) Symtab.empty axioms
+      val rels = relevant_clauses thy const_tab (!pass_mark) 
+                   (get_goal_consts_typs thy goals)
                    (map (pair_consts_typs_axiom thy) axioms)
   in
       Output.debug ("Total relevant: " ^ Int.toString (length rels));
       rels
-  end;
-
-fun relevance_filter thy axioms goals =
-  if !run_relevance_filter andalso !pass_mark >= 0.1
-  then map #1 (relevance_filter_aux thy axioms goals)
-  else axioms
+  end
+ else axioms;
 
 end;
