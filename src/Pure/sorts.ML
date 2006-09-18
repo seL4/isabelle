@@ -26,7 +26,7 @@ sig
   val insert_terms: term list -> sort list -> sort list
   type algebra
   val rep_algebra: algebra ->
-   {classes: stamp Graph.T,
+   {classes: serial Graph.T,
     arities: (class * (class * sort list)) list Symtab.table}
   val classes: algebra -> class list
   val super_classes: algebra -> class -> class list
@@ -57,7 +57,7 @@ sig
   val witness_sorts: algebra -> string list -> sort list -> sort list -> (typ * sort) list
 end;
 
-structure Sorts : SORTS =
+structure Sorts: SORTS =
 struct
 
 
@@ -103,7 +103,7 @@ fun insert_terms [] Ss = Ss
 *)
 
 datatype algebra = Algebra of
- {classes: stamp Graph.T,
+ {classes: serial Graph.T,
   arities: (class * (class * sort list)) list Symtab.table};
 
 fun rep_algebra (Algebra args) = args;
@@ -189,7 +189,7 @@ fun err_cyclic_classes pp css =
 
 fun add_class pp (c, cs) = map_classes (fn classes =>
   let
-    val classes' = classes |> Graph.new_node (c, stamp ())
+    val classes' = classes |> Graph.new_node (c, serial ())
       handle Graph.DUP dup => err_dup_classes [dup];
     val classes'' = classes' |> fold Graph.add_edge_trans_acyclic (map (pair c) cs)
       handle Graph.CYCLES css => err_cyclic_classes pp css;
