@@ -452,7 +452,7 @@ fun decomp_simp thm =
     val concl = Drule.strip_imp_concl (Thm.cprop_of thm);
     val (lhs, rhs) = Drule.dest_equals concl handle TERM _ =>
       raise SIMPLIFIER ("Rewrite rule not a meta-equality", thm);
-    val (_, elhs) = Drule.dest_equals (Thm.cprop_of (Thm.eta_conversion lhs));
+    val elhs = Thm.dest_arg (Thm.cprop_of (Thm.eta_conversion lhs));
     val elhs = if term_of elhs aconv term_of lhs then lhs else elhs;  (*share identical copies*)
     val erhs = Envir.eta_contract (term_of rhs);
     val perm =

@@ -412,8 +412,8 @@ val trade = gen_trade (import true) export;
 (* focus on outermost parameters *)
 
 fun forall_elim_prop t prop =
-  Thm.beta_conversion false (Thm.capply (#2 (Thm.dest_comb prop)) t)
-  |> Thm.cprop_of |> Thm.dest_comb |> #2;
+  Thm.beta_conversion false (Thm.capply (Thm.dest_arg prop) t)
+  |> Thm.cprop_of |> Thm.dest_arg;
 
 fun focus goal ctxt =
   let

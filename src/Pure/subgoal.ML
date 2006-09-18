@@ -47,7 +47,7 @@ fun SUBPROOF tac ctxt i st =
       fun export_closed th =
         let
           val (th' :: params') = ProofContext.export context ctxt (th :: map Drule.mk_term params);
-          val vs = map (#2 o Thm.dest_comb o Drule.strip_imp_concl o Thm.cprop_of) params';
+          val vs = map (Thm.dest_arg o Drule.strip_imp_concl o Thm.cprop_of) params';
         in Drule.forall_intr_list vs th' end;
       fun retrofit th = Thm.compose_no_flatten false (th, 0) i;
     in Seq.lifts retrofit (Seq.map (Goal.finish #> export_closed) (tac args st')) st end

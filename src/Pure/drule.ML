@@ -147,29 +147,29 @@ struct
 
 fun dest_binop ct =
   let val (ct1, ct2) = Thm.dest_comb ct
-  in (#2 (Thm.dest_comb ct1), ct2) end;
+  in (Thm.dest_arg ct1, ct2) end;
 
 fun dest_implies ct =
   (case Thm.term_of ct of
-    (Const ("==>", _) $ _ $ _) => dest_binop ct
+    Const ("==>", _) $ _ $ _ => dest_binop ct
   | _ => raise TERM ("dest_implies", [term_of ct]));
 
 fun dest_equals ct =
   (case Thm.term_of ct of
-    (Const ("==", _) $ _ $ _) => dest_binop ct
-    | _ => raise TERM ("dest_equals", [term_of ct]));
+    Const ("==", _) $ _ $ _ => dest_binop ct
+  | _ => raise TERM ("dest_equals", [term_of ct]));
 
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
 fun strip_imp_prems ct =
-    let val (cA,cB) = dest_implies ct
-    in  cA :: strip_imp_prems cB  end
-    handle TERM _ => [];
+  let val (cA, cB) = dest_implies ct
+  in cA :: strip_imp_prems cB end
+  handle TERM _ => [];
 
 (* A1==>...An==>B  goes to B, where B is not an implication *)
 fun strip_imp_concl ct =
-    case term_of ct of (Const("==>", _) $ _ $ _) =>
-        strip_imp_concl (#2 (Thm.dest_comb ct))
-  | _ => ct;
+  (case Thm.term_of ct of
+    Const ("==>", _) $ _ $ _ => strip_imp_concl (Thm.dest_arg ct)
+  | _ => ct);
 
 (*The premises of a theorem, as a cterm list*)
 val cprems_of = strip_imp_prems o cprop_of;
@@ -215,7 +215,7 @@ fun strip_type cT = (case Thm.typ_of cT of
 (*Beta-conversion for cterms, where x is an abstraction. Simply returns the rhs
   of the meta-equality returned by the beta_conversion rule.*)
 fun beta_conv x y =
-    #2 (Thm.dest_comb (cprop_of (Thm.beta_conversion false (Thm.capply x y))));
+  Thm.dest_arg (cprop_of (Thm.beta_conversion false (Thm.capply x y)));
 
 fun plain_prop_of raw_thm =
   let
@@ -606,7 +606,7 @@ fun symmetric_fun thm = thm RS symmetric_thm;
 
 fun extensional eq =
   let val eq' =
-    abstract_rule "x" (snd (Thm.dest_comb (fst (dest_equals (cprop_of eq))))) eq
+    abstract_rule "x" (Thm.dest_arg (fst (dest_equals (cprop_of eq)))) eq
   in equal_elim (eta_conversion (cprop_of eq')) eq' end;
 
 val equals_cong =
@@ -957,7 +957,7 @@ fun mk_term ct =
 fun dest_term th =
   let val cprop = Thm.cprop_of th in
     if can Logic.dest_term (Thm.term_of cprop) then
-      #2 (Thm.dest_comb cprop)
+      Thm.dest_arg cprop
     else raise THM ("dest_term", 0, [th])
   end;
 
@@ -995,7 +995,7 @@ fun instantiate' cTs cts thm =
       if forall is_none cTs then thm
       else Thm.instantiate
         (map tyinst_of (zip_vars (rev (fold_terms Term.add_tvars thm [])) cTs), []) thm;
-    val thm'' = 
+    val thm'' =
       if forall is_none cts then thm'
       else Thm.instantiate
         ([], map inst_of (zip_vars (rev (fold_terms Term.add_vars thm' [])) cts)) thm';
