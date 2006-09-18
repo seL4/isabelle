@@ -204,10 +204,9 @@ local
   val escape = fn "<" => "&lt;" | ">" => "&gt;" | "&" => "&amp;" | c => c;
 
   fun output_sym s =
-    if Symbol.is_raw s then (1.0, Symbol.decode_raw s)
-    else
-      (case Symtab.lookup html_syms s of SOME x => x
-      | NONE => (real (size s), translate_string escape s));
+    (case Symtab.lookup html_syms s of
+      SOME x => x
+    | NONE => (real (size s), translate_string escape s));
 
   fun output_sub s = apsnd (enclose "<sub>" "</sub>") (output_sym s);
   fun output_sup s = apsnd (enclose "<sup>" "</sup>") (output_sym s);
