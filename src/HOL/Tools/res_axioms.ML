@@ -325,8 +325,10 @@ fun declare_absfuns th =
                 map (forall_intr_vars o strip_lambdas o object_eq) defs
   in  (theory_of_thm eqth, ths)  end;
 
+fun name_of def = SOME (#1 (dest_Free (lhs_of def))) handle _ => NONE;
+
 (*A name is valid provided it isn't the name of a defined abstraction.*)
-fun valid_name defs (Free(x,T)) = not (x mem_string (map (#1 o dest_Free o lhs_of) defs))
+fun valid_name defs (Free(x,T)) = not (x mem_string (List.mapPartial name_of defs))
   | valid_name defs _ = false;
 
 fun assume_absfuns th =
