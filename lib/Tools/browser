@@ -14,7 +14,7 @@ function usage()
   echo "Usage: $PRG [OPTIONS] [GRAPHFILE]"
   echo
   echo "  Options are:"
-  echo "    -d           delete file after use"
+  echo "    -c           cleanup -- remove GRAPHFILE after use"
   echo "    -o FILE      output to FILE (ps, eps, pdf)"
   echo
   exit 1
@@ -31,14 +31,14 @@ function fail()
 
 # options
 
-DELETE=""
+CLEAN=""
 OUTFILE=""
 
-while getopts "do:" OPT
+while getopts "co:" OPT
 do
   case "$OPT" in
-    d)
-      DELETE=true
+    c)
+      CLEAN=true
       ;;
     o)
       OUTFILE="$OPTARG"
@@ -66,6 +66,13 @@ if [ -z "$GRAPHFILE" ]; then
   cd "$ISABELLE_BROWSER_INFO"
   exec java GraphBrowser.GraphBrowser
 else
+  PRIVATE_FILE="${ISABELLE_TMP:-/tmp}/$$"$(basename "$GRAPHFILE")
+  if [ -n "$CLEAN" ]; then
+    mv -f "$GRAPHFILE" "$PRIVATE_FILE" || fail "Cannot move file: $FILE"
+  else
+    cp -f "$GRAPHFILE" "$PRIVATE_FILE" || fail "Cannot copy file: $FILE"
+  fi
+
   PDF=""
   case "$OUTFILE" in
     *.pdf)
@@ -75,9 +82,9 @@ else
   esac
 
   if [ -z "$OUTFILE" ]; then
-    java GraphBrowser.GraphBrowser "$GRAPHFILE"
+    java GraphBrowser.GraphBrowser "$PRIVATE_FILE"
   else
-    java GraphBrowser.Console "$GRAPHFILE" "$OUTFILE"
+    java GraphBrowser.Console "$PRIVATE_FILE" "$OUTFILE"
   fi
   RC="$?"
 
@@ -85,7 +92,7 @@ else
     "$ISABELLE_EPSTOPDF" "$OUTFILE" || fail "Failed to produce pdf output"
   fi
 
-  [ -n "$DELETE" ] && rm -f "$GRAPHFILE"
+  rm -f "$PRIVATE_FILE"
 fi
 
 exit "$RC"
