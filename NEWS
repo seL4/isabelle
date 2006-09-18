@@ -462,6 +462,9 @@ constant "_idtdummy" in the binding position.
 parse translation.  INCOMPATIBILITY -- use dummy abstraction instead,
 for example "A -> B" => "Pi A (%_. B)".
 
+* Pure: 'class_deps' command visualizes the subclass relation, using
+the graph browser tool.
+
 
 *** HOL ***
 
