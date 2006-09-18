@@ -147,15 +147,13 @@ Isabelle tool called \tooldx{browser}:
 Usage: browser [OPTIONS] [GRAPHFILE]
 
   Options are:
-    -d           delete file after use
+    -c           cleanup -- remove GRAPHFILE after use
     -o FILE      output to FILE (ps, eps, pdf)
 \end{ttbox}
 When no filename is specified, the browser automatically changes to the
 directory \texttt{ISABELLE_BROWSER_INFO}.
 
-\medskip The \texttt{-d} option causes the source file (!)\ to be deleted
-after the browser terminates; this is mainly intended for detaching
-interactive graph views from a running Isabelle session.
+\medskip The \texttt{-c} option causes the input file to be removed after use.
 
 The \texttt{-o} option indicates batch-mode operation, with the output written
 to the indicated file; note that \texttt{pdf} produces an \texttt{eps} copy as
