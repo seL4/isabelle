@@ -67,14 +67,9 @@ fun make_deps_graph (AbsP (_, _, prf)) = make_deps_graph prf
       end);
 
 fun thm_deps thms =
-  let
-    val _ = writeln "Generating graph ...";
-    val gra = map snd (Symtab.dest (fst
-      (fold make_deps_graph (map Thm.proof_of thms) (Symtab.empty, []))));
-    val path = File.tmp_path (Path.unpack "theorems.graph");
-    val _ = Present.write_graph gra path;
-    val _ = File.isatool ("browser -d " ^ File.shell_path path ^ " &");
-  in () end;
+  Present.display_graph
+    (map snd (Symtab.dest (fst
+      (fold make_deps_graph (map Thm.proof_of thms) (Symtab.empty, [])))));
 
 end;
 
