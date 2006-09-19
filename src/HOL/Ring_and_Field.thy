@@ -52,16 +52,16 @@ axclass comm_semiring_0_cancel \<subseteq> comm_semiring_0, cancel_ab_semigroup_
 
 instance comm_semiring_0_cancel \<subseteq> semiring_0_cancel ..
 
-axclass axclass_0_neq_1 \<subseteq> zero, one
+axclass zero_neq_one \<subseteq> zero, one
   zero_neq_one [simp]: "0 \<noteq> 1"
 
-axclass semiring_1 \<subseteq> axclass_0_neq_1, semiring_0, monoid_mult
+axclass semiring_1 \<subseteq> zero_neq_one, semiring_0, monoid_mult
 
-axclass comm_semiring_1 \<subseteq> axclass_0_neq_1, comm_semiring_0, comm_monoid_mult (* previously almost_semiring *)
+axclass comm_semiring_1 \<subseteq> zero_neq_one, comm_semiring_0, comm_monoid_mult (* previously almost_semiring *)
 
 instance comm_semiring_1 \<subseteq> semiring_1 ..
 
-axclass axclass_no_zero_divisors \<subseteq> zero, times
+axclass no_zero_divisors \<subseteq> zero, times
   no_zero_divisors: "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a * b \<noteq> 0"
 
 axclass semiring_1_cancel \<subseteq> semiring_1, cancel_ab_semigroup_add
@@ -94,7 +94,7 @@ instance comm_ring_1 \<subseteq> ring_1 ..
 
 instance comm_ring_1 \<subseteq> comm_semiring_1_cancel ..
 
-axclass idom \<subseteq> comm_ring_1, axclass_no_zero_divisors
+axclass idom \<subseteq> comm_ring_1, no_zero_divisors
 
 axclass division_ring \<subseteq> ring_1, inverse
   left_inverse [simp]:  "a \<noteq> 0 ==> inverse a * a = 1"
@@ -438,7 +438,7 @@ proof
   thus "(0::'a) < 1" by (simp add: order_le_less) 
 qed
 
-instance ordered_ring_strict \<subseteq> axclass_no_zero_divisors 
+instance ordered_ring_strict \<subseteq> no_zero_divisors 
 by (intro_classes, simp)
 
 instance ordered_idom \<subseteq> idom ..
