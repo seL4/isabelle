@@ -25,7 +25,7 @@ typedecl bool
 
 arities
   bool :: type
-  fun :: (type, type) type
+  "fun" :: (type, type) type
 
 judgment
   Trueprop      :: "bool => prop"                   ("(_)" 5)
@@ -191,21 +191,23 @@ finalconsts
 
 subsubsection {* Generic algebraic operations *}
 
-axclass zero < type
-axclass one < type
-axclass plus < type
-axclass minus < type
-axclass times < type
-axclass inverse < type
+axclass zero \<subseteq> type
+axclass one \<subseteq> type
 
-consts
-  plus             :: "['a::plus, 'a]  => 'a"       (infixl "+" 65)
-  uminus           :: "'a::minus => 'a"             ("- _" [81] 80)
-  minus            :: "['a::minus, 'a] => 'a"       (infixl "-" 65)
-  abs              :: "'a::minus => 'a"
-  times            :: "['a::times, 'a] => 'a"       (infixl "*" 70)
-  inverse          :: "'a::inverse => 'a"
-  divide           :: "['a::inverse, 'a] => 'a"     (infixl "'/" 70)
+class plus =
+  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<^loc>+" 65)
+
+class minus =
+  fixes uminus :: "'a \<Rightarrow> 'a" 
+  fixes minus  :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<^loc>-" 65)
+  fixes abs    :: "'a \<Rightarrow> 'a"
+
+class times =
+  fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<^loc>*" 70)
+
+class inverse = 
+  fixes inverse :: "'a \<Rightarrow> 'a"
+  fixes divide :: "'a \<Rightarrow> 'a => 'a" (infixl "\<^loc>'/" 70)
 
 global
 
@@ -227,6 +229,9 @@ typed_print_translation {*
       else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
   in [tr' "0", tr' "1"] end;
 *} -- {* show types that are presumably too general *}
+
+syntax
+  uminus :: "'a\<Colon>minus \<Rightarrow> 'a" ("- _" [81] 80)
 
 syntax (xsymbols)
   abs :: "'a::minus => 'a"    ("\<bar>_\<bar>")
@@ -1228,8 +1233,8 @@ consts_code
   "op &"    ("(_ andalso/ _)")
   "HOL.If"      ("(if _/ then _/ else _)")
 
-ML {*
-local
+setup {*
+let
 
 fun eq_codegen thy defs gr dep thyname b t =
     (case strip_comb t of
@@ -1247,74 +1252,28 @@ fun eq_codegen thy defs gr dep thyname b t =
          thy defs dep thyname b (gr, Codegen.eta_expand t ts 2))
      | _ => NONE);
 
-exception Evaluation of term;
+in
 
-fun evaluation_oracle (thy, Evaluation t) =
-  Logic.mk_equals (t, Codegen.eval_term thy t);
+Codegen.add_codegen "eq_codegen" eq_codegen
 
-fun evaluation_conv ct =
-  let val {sign, t, ...} = rep_cterm ct
-  in Thm.invoke_oracle_i sign "HOL.Evaluation" (sign, Evaluation t) end;
+end
+*}
+
+setup {*
+let
 
 fun evaluation_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
-  (Drule.goals_conv (equal i) evaluation_conv));
+  (Drule.goals_conv (equal i) Codegen.evaluation_conv));
 
 val evaluation_meth =
   Method.no_args (Method.METHOD (fn _ => evaluation_tac 1 THEN rtac TrueI 1));
 
 in
 
-val evaluation_conv = evaluation_conv;
-
-val eq_codegen_setup = Codegen.add_codegen "eq_codegen" eq_codegen;
-
-val evaluation_oracle_setup =
-  Theory.add_oracle ("Evaluation", evaluation_oracle) #>
-  Method.add_method ("evaluation", evaluation_meth, "solve goal by evaluation");
+Method.add_method ("evaluation", evaluation_meth, "solve goal by evaluation")
 
 end;
 *}
-
-setup eq_codegen_setup
-setup evaluation_oracle_setup
-
-
-ML {*
-local
-
-exception Normalization of term;
-
-fun normalization_oracle (thy, Normalization t) =
-  Logic.mk_equals (t, NBE.norm_term thy t);
-
-fun normalization_conv ct =
-  let val {sign, t, ...} = rep_cterm ct
-  in Thm.invoke_oracle_i sign "HOL.Normalization" (sign, Normalization t) end;
-
-fun Trueprop_conv conv ct = (case term_of ct of
-    Const ("Trueprop", _) $ _ =>
-      let val (ct1, ct2) = Thm.dest_comb ct
-      in Thm.combination (Thm.reflexive ct1) (conv ct2) end
-  | _ => raise TERM ("Trueprop_conv", []));
-
-fun normalization_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
-  (Drule.goals_conv (equal i) (Trueprop_conv normalization_conv)));
-
-val normalization_meth =
-  Method.no_args (Method.METHOD (fn _ => normalization_tac 1 THEN resolve_tac [TrueI,refl] 1));
-
-in
-
-val normalization_conv = normalization_conv;
-
-val normalization_oracle_setup =
-  Theory.add_oracle ("Normalization", normalization_oracle) #>
-  Method.add_method ("normalization", normalization_meth, "solve goal by normalization");
-
-end;
-*}
-
-setup normalization_oracle_setup
 
 
 subsection {* Other simple lemmas *}
@@ -1414,14 +1373,20 @@ ML {*
 setup InductMethod.setup
 
 
-subsection {* Code generator setup *}
+text {* itself as a code generator datatype *}
 
 setup {*
-  CodegenTheorems.init_obj ((TrueI, FalseE), (conjI, thm "HOL.atomize_eq" |> Thm.symmetric))
-*}
-
-code_const "op =" (* an intermediate solution for polymorphic equality *)
-  (SML infixl 6 "=")
-  (Haskell infixl 4 "==")
+let fun add_itself thy =
+  let
+    val v = ("'a", []);
+    val t = Logic.mk_type (TFree v);
+    val Const (c, ty) = t;
+    val (_, Type (dtco, _)) = strip_type ty;
+  in
+    thy
+    |> CodegenData.add_datatype (dtco, (([v], [(c, [])]), CodegenData.lazy (fn () => [])))
+  end
+in add_itself end;
+*} 
 
 end
