@@ -465,6 +465,9 @@ for example "A -> B" => "Pi A (%_. B)".
 * Pure: 'class_deps' command visualizes the subclass relation, using
 the graph browser tool.
 
+* Pure: 'print_theory' now suppresses entities with internal name
+(trailing "_") by default; use '!' option for full details.
+
 
 *** HOL ***
 
