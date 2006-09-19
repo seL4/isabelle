@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Makarius
+#
+# DESCRIPTION: Produce statistics from isatest session logs.
+
+ISATEST_LOG=~isatest/log
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG PLATFORM TIMESPAN SESSIONS..."
+  echo
+  echo "  Produce statistics from isatest session logs,"
+  echo "  looking TIMESPAN days into the past."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## arguments
+
+[ "$1" = "-?" ] && usage
+[ "$#" -lt "3" ] && usage
+
+PLATFORM="$1"; shift
+TIMESPAN="$1"; shift
+SESSIONS="$@"
+
+
+## main
+
+ALL_DATA="/tmp/isatest-all$$.dat"
+SESSION_DATA="/tmp/isatest$$.dat"
+
+zgrep "^Finished .*elapsed" \
+  $(find -name "isatest-makeall-${PLATFORM}*" -ctime "-${TIMESPAN}") | \
+perl -e '
+  while (<>) {
+    if (m/isatest-makeall-\w+-\w+-(\d+)-(\d+)-(\d+)-.*:Finished (\S+) \(.*, (\d+):(\d+):(\d+) cpu time\)/) {
+        my $year = $1;
+        my $month = $2;
+        my $day = $3;
+        my $name = $4;
+        my $h = $5;
+        my $m = $6;
+        my $s = $7;
+
+        my $date = $month - 1 + ($day - 1) / 31;
+        my $time = ($h * 3600 + $m * 60 + $s) / 60;
+
+        printf "%s %.2f %.2f\n", $name, $date, $time;
+    }
+  }' > "$ALL_DATA"
+
+for SESSION in $SESSIONS
+do
+  fgrep "$SESSION " "$ALL_DATA" > "$SESSION_DATA"
+  gnuplot <<EOF
+set terminal png
+set output "${SESSION}.png"
+plot [] [0:40] "$SESSION_DATA" using 2:3 title "$SESSION" smooth sbezier, "$SESSION_DATA" using 2:3 title "$SESSION" smooth csplines
+EOF
+done
+
+rm -f "$ALL_DATA" "$SESSION_DATA"
