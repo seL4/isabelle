@@ -17,9 +17,9 @@ sig
   val tyco_force: tyco * string -> theory -> theory
   val instance: theory -> class * tyco -> string
   val instance_rev: theory -> string -> class * tyco
-  val const: theory -> string * typ -> const
-  val const_rev: theory -> const -> string * typ
-  val const_force: (string * typ) * const -> theory -> theory
+  val const: theory -> CodegenConsts.const -> const
+  val const_rev: theory -> const -> CodegenConsts.const
+  val const_force: CodegenConsts.const * const -> theory -> theory
   val purify_var: string -> string
 end;
 
@@ -252,7 +252,7 @@ fun tyco_force (tyco, name) thy =
     thy
   end;
 
-fun const_force (c_ty, name) thy =
+fun const_force (c_tys as (c, _), name) thy =
   let
     val names = NameSpace.unpack name;
     val (prefix, base) = split_last (NameSpace.unpack name);
@@ -266,7 +266,6 @@ fun const_force (c_ty, name) thy =
     val names_ref = CodeName.get thy;
     val (Names names) = ! names_ref;
     val (const, constrev) = #const names;
-    val c_tys as (c, _) = CodegenConsts.norminst_of_typ thy c_ty;
     val _ = if Consttab.defined const c_tys
       then error ("Constant already named: " ^ quote (CodegenConsts.string_of_const thy c_tys))
       else ();
@@ -293,17 +292,14 @@ fun tyco_policy thy = policy thy NameSpace.base thyname_of_tyco;
 fun instance_policy thy = policy thy (fn (class, tyco) => 
   NameSpace.base class ^ "_" ^ NameSpace.base tyco) thyname_of_instance;
 
-fun force_thyname thy ("op =", [Type (tyco, _)]) =
-      (*will disappear finally*)
-      SOME (thyname_of_tyco thy tyco)
-  | force_thyname thy (c, tys) =
-      case AxClass.class_of_param thy c
-       of SOME class => (case tys
-           of [Type (tyco, _)] => SOME (thyname_of_instance thy (class, tyco))
-            | _ => NONE)
-        | NONE => (case CodegenConsts.find_def thy (c, tys)
-       of SOME ((thyname, _), tys) => SOME thyname
-        | NONE => NONE);
+fun force_thyname thy (c, tys) =
+  case AxClass.class_of_param thy c
+   of SOME class => (case tys
+       of [Type (tyco, _)] => SOME (thyname_of_instance thy (class, tyco))
+        | _ => NONE)
+    | NONE => (case CodegenConsts.find_def thy (c, tys)
+   of SOME ((thyname, _), _) => SOME thyname
+    | NONE => NONE);
 
 fun const_policy thy (c, tys) =
   case force_thyname thy (c, tys)
@@ -325,12 +321,12 @@ fun instance thy =
   get thy #instance Insttab.lookup map_inst Insttab.update instance_policy;
 fun const thy =
   get thy #const Consttab.lookup map_const Consttab.update const_policy
-    o CodegenConsts.norminst_of_typ thy;
+    o CodegenConsts.norm thy;
 
 fun class_rev thy = rev thy #class "class";
 fun tyco_rev thy = rev thy #tyco "type constructor";
 fun instance_rev thy = rev thy #instance "instance";
-fun const_rev thy = rev thy #const "constant" #> CodegenConsts.typ_of_typinst thy;
+fun const_rev thy = rev thy #const "constant";
 
 
 (* outer syntax *)
@@ -341,7 +337,7 @@ structure P = OuterParse
 and K = OuterKeyword
 
 fun const_force_e (raw_c, name) thy =
-  const_force (CodegenConsts.read_const_typ thy raw_c, name) thy;
+  const_force (CodegenConsts.read_const thy raw_c, name) thy;
 
 fun tyco_force_e (raw_tyco, name) thy =
   tyco_force (Sign.intern_type thy raw_tyco, name) thy;
