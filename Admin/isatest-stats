@@ -32,7 +32,7 @@ do
   cat > "stats/$PLATFORM.html" <<EOF
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <html>
-<head><title> Development Snapshot -- Statistics</title></head>
+<head><title>Development Snapshot -- Performance Statistics</title></head>
 
 <body>
 <h1>$PLATFORM</h1>
