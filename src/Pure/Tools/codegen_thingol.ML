@@ -28,7 +28,7 @@ sig
     | IVar of vname
     | `$ of iterm * iterm
     | `|-> of (vname * itype) * iterm
-    | INum of IntInf.int (*non-negative!*) * iterm
+    | INum of IntInf.int * iterm
     | IChar of string (*length one!*) * iterm
     | ICase of ((iterm * itype) * (iterm * iterm) list) * iterm;
         (*((discriminendum term (td), discriminendum type (ty)),
@@ -821,8 +821,8 @@ fun flat_funs_datatypes modl =
 val add_deps_of_typparms =
   fold (fn (v : vname, sort : sort) => fold (insert (op =)) sort);
 
-fun add_deps_of_classlookup (Instance (tyco, lss)) =
-      insert (op =) tyco
+fun add_deps_of_classlookup (Instance (inst, lss)) =
+      insert (op =) inst
       #> (fold o fold) add_deps_of_classlookup lss
   | add_deps_of_classlookup (Context (clss, _)) =
       fold (insert (op =)) clss;

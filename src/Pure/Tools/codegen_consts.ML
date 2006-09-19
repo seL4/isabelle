@@ -12,18 +12,19 @@ sig
   val const_ord: const * const -> order
   val eq_const: const * const -> bool
   structure Consttab: TABLE
-  val typinst_of_typ: theory -> string * typ -> const
-  val typ_of_typinst: theory -> const -> string * typ
+  val inst_of_typ: theory -> string * typ -> const
+  val typ_of_inst: theory -> const -> string * typ
+  val norm: theory -> const -> const
+  val norm_of_typ: theory -> string * typ -> const
   val find_def: theory -> const
-    -> ((string (*theory name*) * string (*definition name*)) * typ list) option
+    -> ((string (*theory name*) * thm) * typ list) option
   val sortinsts: theory -> typ * typ -> (typ * sort) list
-  val norminst_of_typ: theory -> string * typ -> const
   val class_of_classop: theory -> const -> class option
   val insts_of_classop: theory -> const -> const list
   val typ_of_classop: theory -> const -> typ
   val read_const: theory -> string -> const
-  val read_const_typ: theory -> string -> string * typ
   val string_of_const: theory -> const -> string
+  val raw_string_of_const: const -> string
   val string_of_const_typ: theory -> string * typ -> string
 end;
 
@@ -46,10 +47,10 @@ structure Consttab =
 
 (* type instantiations and overloading *)
 
-fun typinst_of_typ thy (c_ty as (c, ty)) =
+fun inst_of_typ thy (c_ty as (c, ty)) =
   (c, Consts.typargs (Sign.consts_of thy) c_ty);
 
-fun typ_of_typinst thy (c_tys as (c, tys)) =
+fun typ_of_inst thy (c_tys as (c, tys)) =
   (c, Consts.instance (Sign.consts_of thy) c_tys);
 
 fun find_def thy (c, tys) =
@@ -61,11 +62,15 @@ fun find_def thy (c, tys) =
             | instance_tycos (_ , TVar _) = true
             | instance_tycos ty_ty = Sign.typ_instance thy ty_ty;
         in instance_tycos end
-      | NONE =>  Sign.typ_instance thy
+      | NONE =>  Sign.typ_instance thy;
+    fun get_def (_, { is_def, thyname, name, lhs, rhs }) =
+      if is_def andalso forall typ_instance (tys ~~ lhs) then
+        case try (Thm.get_axiom_i thy) name
+         of SOME thm => SOME ((thyname, thm), lhs)
+          | NONE => NONE
+      else NONE
   in
-    get_first (fn (_, { is_def, thyname, name, lhs, ... }) => if is_def
-      andalso forall typ_instance (tys ~~ lhs)
-      then SOME ((thyname, name), lhs) else NONE) specs
+    get_first get_def specs
   end;
 
 fun sortinsts thy (ty, ty_decl) =
@@ -78,7 +83,7 @@ fun mk_classop_typinst thy (c, tyco) =
   (c, [Type (tyco, map (fn v => TVar ((v, 0), Sign.defaultS thy (*for monotonicity*)))
     (Name.invents Name.context "'a" (Sign.arity_number thy tyco)))]);
 
-fun norminst_of_typ thy (c, ty) =
+fun norm thy (c, insts) =
   let
     fun disciplined _ [(Type (tyco, _))] =
           mk_classop_typinst thy (c, tyco)
@@ -87,14 +92,14 @@ fun norminst_of_typ thy (c, ty) =
     fun ad_hoc c tys =
       case find_def thy (c, tys)
        of SOME (_, tys) => (c, tys)
-        | NONE => typinst_of_typ thy (c, Sign.the_const_type thy c);
-    val tyinsts = Consts.typargs (Sign.consts_of thy) (c, ty);
-  in if c = "op =" then disciplined (Sign.defaultS thy) tyinsts
-    (*the distinction on op = will finally disappear!*)
-    else case AxClass.class_of_param thy c
-     of SOME class => disciplined [class] tyinsts
-      | _ => ad_hoc c tyinsts
+        | NONE => inst_of_typ thy (c, Sign.the_const_type thy c);
+  in case AxClass.class_of_param thy c
+     of SOME class => disciplined [class] insts
+      | _ => ad_hoc c insts
   end;
+
+fun norm_of_typ thy (c, ty) =
+  norm thy (c, Consts.typargs (Sign.consts_of thy) (c, ty));
 
 fun class_of_classop thy (c, [TVar _]) = 
       AxClass.class_of_param thy c
@@ -148,12 +153,12 @@ fun read_const_typ thy raw_t =
   let
     val t = Sign.read_term thy raw_t
   in case try dest_Const t
-   of SOME c_ty => c_ty
+   of SOME c_ty => (typ_of_inst thy o norm_of_typ thy) c_ty
     | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t)
   end;
 
 fun read_const thy =
-  typinst_of_typ thy o read_const_typ thy;
+  norm_of_typ thy o read_const_typ thy;
 
 
 (* printing constants *)
@@ -161,6 +166,10 @@ fun read_const thy =
 fun string_of_const thy (c, tys) =
   space_implode " " (Sign.extern_const thy c
     :: map (enclose "[" "]" o Sign.string_of_typ thy) tys);
+
+fun raw_string_of_const (c, tys) =
+  space_implode " " (c
+    :: map (enclose "[" "]" o Display.raw_string_of_typ) tys);
 
 fun string_of_const_typ thy (c, ty) =
   string_of_const thy (c, Consts.typargs (Sign.consts_of thy) (c, ty));

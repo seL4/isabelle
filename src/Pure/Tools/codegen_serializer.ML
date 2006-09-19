@@ -35,7 +35,7 @@ sig
     -> (string -> CodegenThingol.itype pretty_syntax option)
           * (string -> CodegenThingol.iterm pretty_syntax option)
     -> string list
-    -> (string * 'a ref) * CodegenThingol.iterm -> CodegenThingol.module
+    -> (string * 'a option ref) * CodegenThingol.iterm -> CodegenThingol.module
     -> 'a;
   val eval_verbose: bool ref;
   val ml_fun_datatype: string
@@ -152,7 +152,6 @@ fun parse_mixfix reader s ctxt =
     val parse = Scan.repeat (
          (sym "_" -- sym "_" >> K (Arg NOBR))
       || (sym "_" >> K (Arg BR))
-      || (sym "?" >> K Ignore)
       || (sym "/" |-- Scan.repeat (sym " ") >> (Pretty o Pretty.brk o length))
       || Scan.depend (fn ctxt => $$ "{" |-- $$ "*" |-- Scan.repeat1
            (   $$ "'" |-- Scan.one Symbol.not_eof
@@ -191,7 +190,7 @@ fun parse_syntax num_args reader =
     fun mk fixity mfx ctxt =
       let
         val i = (length o List.filter is_arg) mfx;
-        val _ = if i > num_args ctxt then error "Too many arguments in codegen syntax" else ();
+        val _ = if i > num_args ctxt then error "Too many arguments in code syntax" else ();
       in (((i, i), fillin_mixfix fixity mfx), ctxt) end;
   in
     parse
@@ -437,7 +436,7 @@ fun ml_expr_seri is_cons (tyco_syntax, const_syntax) resolv =
               from_lookup BR classes
                 ((str o ml_from_dictvar) v)
           | from_inst fxy (Context (classes, (v, i))) =
-              from_lookup BR (string_of_int (i+1) :: classes)
+              from_lookup BR (classes @ [string_of_int (i+1)])
                 ((str o ml_from_dictvar) v)
       in case lss
        of [] => str "()"
@@ -552,7 +551,7 @@ fun ml_expr_seri is_cons (tyco_syntax, const_syntax) resolv =
       else
         (str o resolv) f :: map (ml_from_expr BR) es
     and ml_from_app fxy (app_expr as ((c, (lss, ty)), es)) =
-      case (map (ml_from_insts BR) o filter_out null) lss
+      case if is_cons c then [] else (map (ml_from_insts BR) o filter_out null) lss
        of [] =>
             from_app ml_mk_app ml_from_expr const_syntax fxy app_expr
         | lss =>
@@ -643,7 +642,7 @@ fun ml_fun_datatyp is_cons (tyco_syntax, const_syntax) resolv =
                 str (resolv co),
                 str " of",
                 Pretty.brk 1,
-                Pretty.enum " *" "" "" (map (ml_from_type NOBR) tys)
+                Pretty.enum " *" "" "" (map (ml_from_type (INFX (2, L))) tys)
               ]
         fun mk_datatype definer (t, (vs, cs)) =
           (Pretty.block o Pretty.breaks) (
@@ -838,9 +837,13 @@ fun eval_term nsp_eval nsp_dtcon nspgrp (syntax_tyco, syntax_const) hidden ((ref
         | _ => SOME) (K NONE, syntax_tyco, syntax_const) (hidden, SOME [NameSpace.pack [nsp_eval, val_name]]);
     val _ = serializer modl';
     val val_name_struct = NameSpace.append struct_name val_name;
-    val _ = use_text Context.ml_output (!eval_verbose) ("val _ = (" ^ ref_name ^ " := " ^ val_name_struct ^ ")");
-    val value = ! reff;
-  in value end;
+    val _ = reff := NONE;
+    val _ = use_text Context.ml_output (!eval_verbose) ("val _ = (" ^ ref_name ^ " := SOME (" ^ val_name_struct ^ "))");
+  in case !reff
+   of NONE => error ("Could not retrieve value of ML reference " ^ quote ref_name
+        ^ " (reference probably has been shadowed)")
+    | SOME value => value
+  end;
 
 fun mk_flat_ml_resolver names =
   let
@@ -936,7 +939,10 @@ fun hs_from_defs (is_cons, with_typs) (class_syntax, tyco_syntax, const_syntax)
             ])
           end
       | hs_from_expr fxy (INum (n, _)) =
-          (str o IntInf.toString) n
+          if n > 0 then
+            (str o IntInf.toString) n
+          else
+            brackify BR [(str o Library.prefix "-" o IntInf.toString o IntInf.~) n]
       | hs_from_expr fxy (IChar (c, _)) =
           (str o enclose "'" "'")
             (let val i = (Char.ord o the o Char.fromString) c
