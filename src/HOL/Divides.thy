@@ -869,6 +869,38 @@ apply (rule mod_add1_eq, simp)
 apply (rule mod_add1_eq [symmetric])
 done
 
+
+subsection {* Code generation for div and mod *}
+
+definition
+  "divmod (m\<Colon>nat) n = (m div n, m mod n)"
+
+lemma divmod_zero [code]:
+  "divmod m 0 = (0, m)"
+  unfolding divmod_def by simp
+
+lemma divmod_succ [code]:
+  "divmod m (Suc k) = (if m < Suc k then (0, m) else
+    let
+      (p, q) = divmod (m - Suc k) (Suc k)
+    in (Suc p, q)
+  )"
+  unfolding divmod_def Let_def split_def
+  by (auto intro: div_geq mod_geq)
+
+lemma div_divmod [code]:
+  "m div n = fst (divmod m n)"
+  unfolding divmod_def by simp
+
+lemma mod_divmod [code]:
+  "m mod n = snd (divmod m n)"
+  unfolding divmod_def by simp
+
+hide (open) const divmod
+
+
+subsection {* Legacy bindings *}
+
 ML
 {*
 val div_def = thm "div_def"
