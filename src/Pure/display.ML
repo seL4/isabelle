@@ -39,7 +39,7 @@ sig
   val pretty_thms_sg: theory -> thm list -> Pretty.T
   val pretty_ctyp: ctyp -> Pretty.T
   val pretty_cterm: cterm -> Pretty.T
-  val pretty_full_theory: theory -> Pretty.T list
+  val pretty_full_theory: bool -> theory -> Pretty.T list
   val pretty_goals_aux: Pretty.pp -> string -> bool * bool -> int -> thm -> Pretty.T list
   val pretty_goals: int -> thm -> Pretty.T list
   val print_goals: int -> thm -> unit
@@ -148,7 +148,7 @@ val print_syntax = Syntax.print_syntax o Sign.syn_of;
 
 (* pretty_full_theory *)
 
-fun pretty_full_theory thy =
+fun pretty_full_theory verbose thy =
   let
     fun prt_cls c = Sign.pretty_sort thy [c];
     fun prt_sort S = Sign.pretty_sort thy S;
@@ -211,27 +211,33 @@ fun pretty_full_theory thy =
     val (class_space, class_algebra) = classes;
     val {classes, arities} = Sorts.rep_algebra class_algebra;
 
-    val clsses = NameSpace.dest_table (class_space, Symtab.make (Graph.dest classes));
-    val tdecls = NameSpace.dest_table types;
-    val arties = NameSpace.dest_table (Sign.type_space thy, arities);
-    val cnsts = NameSpace.extern_table constants;
+    fun prune xs = if verbose then xs else filter_out (can Name.dest_internal o fst) xs;
+    fun prune' xs = if verbose then xs else filter_out (can Name.dest_internal o fst o fst) xs;
+    fun dest_table tab = prune (NameSpace.dest_table tab);
+    fun extern_table tab = prune (NameSpace.extern_table tab);
+
+    val clsses = dest_table (class_space, Symtab.make (Graph.dest classes));
+    val tdecls = dest_table types;
+    val arties = dest_table (Sign.type_space thy, arities);
+    val cnsts = extern_table constants;
     val log_cnsts = map_filter (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
     val abbrevs = map_filter (fn (c, (ty, SOME t)) => SOME (c, (ty, t)) | _ => NONE) cnsts;
-    val cnstrs = NameSpace.extern_table constraints;
-    val axms = NameSpace.extern_table axioms;
-    val oras = NameSpace.extern_table oracles;
+    val cnstrs = extern_table constraints;
+    val axms = extern_table axioms;
+    val oras = extern_table oracles;
 
-    val (reds0, (reds1, reds2)) = reducts |> map (fn (lhs, rhs) =>
-        (apfst extern_const lhs, map (apfst extern_const) rhs))
+    val (reds0, (reds1, reds2)) = prune' reducts |> map (fn (lhs, rhs) =>
+        (apfst extern_const lhs, map (apfst extern_const) (prune rhs)))
       |> sort_wrt (#1 o #1)
       |> List.partition (null o #2)
       ||> List.partition (Defs.plain_args o #2 o #1);
     val rests = restricts |> map (apfst (apfst extern_const)) |> sort_wrt (#1 o #1);
   in
-    [Pretty.strs ("names:" :: Context.names_of thy),
-      Pretty.strs ("theory data:" :: Context.theory_data_of thy),
-      Pretty.strs ("proof data:" :: Context.proof_data_of thy),
-      Pretty.strs ["name prefix:", NameSpace.path_of naming],
+    [Pretty.strs ("names:" :: Context.names_of thy)] @
+    (if verbose then
+      [Pretty.strs ("theory data:" :: Context.theory_data_of thy),
+       Pretty.strs ("proof data:" :: Context.proof_data_of thy)] else []) @
+    [Pretty.strs ["name prefix:", NameSpace.path_of naming],
       Pretty.big_list "classes:" (map pretty_classrel clsses),
       pretty_default default,
       pretty_witness witness,
