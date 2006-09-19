@@ -279,7 +279,7 @@ fun genreif ctxt raw_eqs t =
 fun genreflect ctxt corr_thm raw_eqs t =
     let val th = FWD trans [genreif ctxt raw_eqs t, corr_thm RS sym]
         val ft = (snd o Thm.dest_comb o snd o Thm.dest_comb o snd o Thm.dest_comb o cprop_of) th
-        val rth = normalization_conv ft
+        val rth = NBE.normalization_conv ft
     in simplify (HOL_basic_ss addsimps raw_eqs addsimps [nth_Cons_0, nth_Cons_Suc])
                 (simplify (HOL_basic_ss addsimps [rth]) th)
     end

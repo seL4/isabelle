@@ -1086,4 +1086,137 @@ use "presburger.ML"
 
 setup "Presburger.setup"
 
+text {* Code generator setup *}
+
+text {*
+  Presburger arithmetic is neccesary to prove some
+  of the following code lemmas on integer numerals.
+*}
+
+lemma eq_number_of [code func]:
+  "OperationalEquality.eq ((number_of k)\<Colon>int) (number_of l) \<longleftrightarrow> OperationalEquality.eq k l"
+  unfolding number_of_is_id ..
+
+lemma less_eq_number_of [code func]:
+  "((number_of k)\<Colon>int) <= number_of l \<longleftrightarrow> k <= l"
+  unfolding number_of_is_id ..
+
+lemma eq_Pls_Pls:
+  "OperationalEquality.eq Numeral.Pls Numeral.Pls"
+  unfolding eq_def ..
+
+lemma eq_Pls_Min:
+  "\<not> OperationalEquality.eq Numeral.Pls Numeral.Min"
+  unfolding eq_def Pls_def Min_def by auto
+
+lemma eq_Pls_Bit0:
+  "OperationalEquality.eq Numeral.Pls (Numeral.Bit k bit.B0) \<longleftrightarrow> OperationalEquality.eq Numeral.Pls k"
+  unfolding eq_def Pls_def Bit_def bit.cases by auto
+
+lemma eq_Pls_Bit1:
+  "\<not> OperationalEquality.eq Numeral.Pls (Numeral.Bit k bit.B1)"
+  unfolding eq_def Pls_def Bit_def bit.cases by arith
+
+lemma eq_Min_Pls:
+  "\<not> OperationalEquality.eq Numeral.Min Numeral.Pls"
+  unfolding eq_def Pls_def Min_def by auto
+
+lemma eq_Min_Min:
+  "OperationalEquality.eq Numeral.Min Numeral.Min"
+  unfolding eq_def ..
+
+lemma eq_Min_Bit0:
+  "\<not> OperationalEquality.eq Numeral.Min (Numeral.Bit k bit.B0)"
+  unfolding eq_def Min_def Bit_def bit.cases by arith
+
+lemma eq_Min_Bit1:
+  "OperationalEquality.eq Numeral.Min (Numeral.Bit k bit.B1) \<longleftrightarrow> OperationalEquality.eq Numeral.Min k"
+  unfolding eq_def Min_def Bit_def bit.cases by auto
+
+lemma eq_Bit0_Pls:
+  "OperationalEquality.eq (Numeral.Bit k bit.B0) Numeral.Pls \<longleftrightarrow> OperationalEquality.eq Numeral.Pls k"
+  unfolding eq_def Pls_def Bit_def bit.cases by auto
+
+lemma eq_Bit1_Pls:
+  "\<not> OperationalEquality.eq (Numeral.Bit k bit.B1) Numeral.Pls"
+  unfolding eq_def Pls_def Bit_def bit.cases by arith
+
+lemma eq_Bit0_Min:
+  "\<not> OperationalEquality.eq (Numeral.Bit k bit.B0) Numeral.Min"
+  unfolding eq_def Min_def Bit_def bit.cases by arith
+
+lemma eq_Bit1_Min:
+  "OperationalEquality.eq (Numeral.Bit k bit.B1) Numeral.Min \<longleftrightarrow> OperationalEquality.eq Numeral.Min k"
+  unfolding eq_def Min_def Bit_def bit.cases by auto
+
+lemma eq_Bit_Bit:
+  "OperationalEquality.eq (Numeral.Bit k1 v1) (Numeral.Bit k2 v2) \<longleftrightarrow>
+    OperationalEquality.eq v1 v2 \<and> OperationalEquality.eq k1 k2"
+  unfolding eq_def Bit_def
+  apply (cases v1)
+  apply (cases v2)
+  apply auto
+  apply arith
+  apply (cases v2)
+  apply auto
+  apply arith
+  apply (cases v2)
+  apply auto
+done
+
+lemmas eq_numeral_code [code func] =
+  eq_Pls_Pls eq_Pls_Min eq_Pls_Bit0 eq_Pls_Bit1
+  eq_Min_Pls eq_Min_Min eq_Min_Bit0 eq_Min_Bit1
+  eq_Bit0_Pls eq_Bit1_Pls eq_Bit0_Min eq_Bit1_Min eq_Bit_Bit
+
+lemma less_eq_Pls_Pls:
+  "Numeral.Pls \<le> Numeral.Pls" ..
+
+lemma less_eq_Pls_Min:
+  "\<not> (Numeral.Pls \<le> Numeral.Min)"
+  unfolding Pls_def Min_def by auto
+
+lemma less_eq_Pls_Bit:
+  "Numeral.Pls \<le> Numeral.Bit k v \<longleftrightarrow> Numeral.Pls \<le> k"
+  unfolding Pls_def Bit_def by (cases v) auto
+
+lemma less_eq_Min_Pls:
+  "Numeral.Min \<le> Numeral.Pls"
+  unfolding Pls_def Min_def by auto
+
+lemma less_eq_Min_Min:
+  "Numeral.Min \<le> Numeral.Min" ..
+
+lemma less_eq_Min_Bit0:
+  "Numeral.Min \<le> Numeral.Bit k bit.B0 \<longleftrightarrow> Numeral.Min < k"
+  unfolding Min_def Bit_def by auto
+
+lemma less_eq_Min_Bit1:
+  "Numeral.Min \<le> Numeral.Bit k bit.B1 \<longleftrightarrow> Numeral.Min \<le> k"
+  unfolding Min_def Bit_def by auto
+
+lemma less_eq_Bit0_Pls:
+  "Numeral.Bit k bit.B0 \<le> Numeral.Pls \<longleftrightarrow> k \<le> Numeral.Pls"
+  unfolding Pls_def Bit_def by simp
+
+lemma less_eq_Bit1_Pls:
+  "Numeral.Bit k bit.B1 \<le> Numeral.Pls \<longleftrightarrow> k < Numeral.Pls"
+  unfolding Pls_def Bit_def by auto
+
+lemma less_eq_Bit_Min:
+  "Numeral.Bit k v \<le> Numeral.Min \<longleftrightarrow> k \<le> Numeral.Min"
+  unfolding Min_def Bit_def by (cases v) auto
+
+lemma less_eq_Bit0_Bit:
+  "Numeral.Bit k1 bit.B0 \<le> Numeral.Bit k2 v \<longleftrightarrow> k1 \<le> k2"
+  unfolding Min_def Bit_def bit.cases by (cases v) auto
+
+lemma less_eq_Bit_Bit1:
+  "Numeral.Bit k1 v \<le> Numeral.Bit k2 bit.B1 \<longleftrightarrow> k1 \<le> k2"
+  unfolding Min_def Bit_def bit.cases by (cases v) auto
+
+lemmas less_eq_numeral_code [code func] = less_eq_Pls_Pls less_eq_Pls_Min less_eq_Pls_Bit
+  less_eq_Min_Pls less_eq_Min_Min less_eq_Min_Bit0 less_eq_Min_Bit1
+  less_eq_Bit0_Pls less_eq_Bit1_Pls less_eq_Bit_Min less_eq_Bit0_Bit less_eq_Bit_Bit1
+
 end

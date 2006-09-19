@@ -368,90 +368,75 @@ code_typename
   "Numeral.bit" "IntDef.bit"
 
 code_constname
+  "number_of \<Colon> int \<Rightarrow> int" "IntDef.number_of"
+  "Numeral.pred" "IntDef.pred"
+  "Numeral.succ" "IntDef.succ"
   "Numeral.Pls" "IntDef.pls"
   "Numeral.Min" "IntDef.min"
   "Numeral.Bit" "IntDef.bit"
   "Numeral.bit.bit_case" "IntDef.bit_case"
+  "OperationalEquality.eq \<Colon> bit \<Rightarrow> bit \<Rightarrow> bool" "IntDef.eq_bit"
   "Numeral.B0" "IntDef.b0"
   "Numeral.B1" "IntDef.b1"
 
-lemma
-  Numeral_Pls_refl [code func]: "Numeral.Pls = Numeral.Pls" ..
+lemma Numeral_Pls_refl [code func]:
+  "Numeral.Pls = Numeral.Pls" ..
 
-lemma
-  Numeral_Min_refl [code func]: "Numeral.Min = Numeral.Min" ..
+lemma Numeral_Min_refl [code func]:
+  "Numeral.Min = Numeral.Min" ..
 
-lemma
-  Numeral_Bit_refl [code func]: "Numeral.Bit = Numeral.Bit" ..
+lemma Numeral_Bit_refl [code func]:
+  "Numeral.Bit = Numeral.Bit" ..
 
-lemma zero_is_num_zero [code func, code inline]:
-  "(0::int) = Numeral.Pls" 
-  unfolding Pls_def ..
+lemma zero_int_refl [code func]:
+  "(0\<Colon>int) = 0" ..
 
-lemma one_is_num_one [code func, code inline]:
-  "(1::int) = Numeral.Pls BIT bit.B1" 
-  unfolding Pls_def Bit_def by simp 
+lemma one_int_refl [code func]:
+  "(1\<Colon>int) = 1" ..
 
-lemma number_of_is_id [code func, code inline]:
+lemma number_of_int_refl [code func]:
+  "(number_of \<Colon> int \<Rightarrow> int) = number_of" ..
+
+lemma number_of_is_id:
   "number_of (k::int) = k"
   unfolding int_number_of_def by simp
 
-lemma number_of_minus:
-  "number_of (b :: int) = (- number_of (- b) :: int)"
-  unfolding int_number_of_def by simp
+lemma zero_is_num_zero [code inline]:
+  "(0::int) = number_of Numeral.Pls" 
+  by simp
+
+lemma one_is_num_one [code inline]:
+  "(1::int) = number_of  (Numeral.Pls BIT bit.B1)" 
+  by simp 
+
+lemmas int_code_rewrites =
+  arith_simps(5-27)
+  arith_extra_simps(1-4) [where ?'a1 = int]
+  arith_extra_simps(5) [where ?'a = int]
+
+declare int_code_rewrites [code func]
 
 ML {*
 structure Numeral =
 struct
-
-val number_of_minus_thm = eq_reflection OF [thm "number_of_minus"];
-val minus_rewrites = map (fn thm => eq_reflection OF [thm])
-  [minus_1, minus_0, minus_Pls, minus_Min, pred_1, pred_0, pred_Pls, pred_Min];
-
+ 
 fun int_of_numeral thy num = HOLogic.dest_binum num
   handle TERM _
     => error ("not a number: " ^ Sign.string_of_term thy num);
-
-fun elim_negate thy thms =
-  let
-    fun bins_of (Const _) =
-          I
-      | bins_of (Var _) =
-          I
-      | bins_of (Free _) =
-          I
-      | bins_of (Bound _) =
-          I
-      | bins_of (Abs (_, _, t)) =
-          bins_of t
-      | bins_of (t as _ $ _) =
-          case strip_comb t
-           of (Const ("Numeral.Bit", _), _) => cons t
-            | (t', ts) => bins_of t' #> fold bins_of ts;
-    fun is_negative num = case try HOLogic.dest_binum num
-     of SOME i => i < 0
-      | _ => false;
-    fun instantiate_with bin =
-      Drule.instantiate' [] [(SOME o cterm_of thy) bin] number_of_minus_thm;
-    val rewrites  =
-      []
-      |> fold (bins_of o prop_of) thms
-      |> filter is_negative
-      |> map instantiate_with
-  in if null rewrites then thms else
-    map (CodegenTheorems.rewrite_fun (rewrites @ minus_rewrites)) thms
-  end;
-
+ 
 end;
 *}
 
-code_const "Numeral.Pls" and "Numeral.Min"
-  (SML target_atom "(0 : IntInf.int)" and target_atom "(~1 : IntInf.int)")
-  (Haskell target_atom "0" and target_atom "(negate ~1)")
+code_const "number_of \<Colon> int \<Rightarrow> int" and "Numeral.Pls" and "Numeral.Min"
+  (SML "_"
+     and target_atom "(0 : IntInf.int)"
+     and target_atom "(~1 : IntInf.int)")
+  (Haskell "_"
+     and target_atom "0"
+     and target_atom "(negate 1)")
 
 setup {*
-  CodegenTheorems.add_preproc Numeral.elim_negate
-  #> CodegenPackage.add_appconst ("Numeral.Bit", CodegenPackage.appgen_rep_bin Numeral.int_of_numeral)
+  CodegenPackage.add_appconst ("Numeral.Bit", CodegenPackage.appgen_numeral Numeral.int_of_numeral)
 *}
 
 

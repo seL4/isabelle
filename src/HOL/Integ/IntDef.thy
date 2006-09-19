@@ -264,7 +264,7 @@ lemma zle_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::int)"
 by (cases w, cases z, simp add: le)
 
 (* Axiom 'order_less_le' of class 'order': *)
-lemma zless_le: "((w::int) < z) = (w \<le> z & w \<noteq> z)"
+lemma zless_le [code func]: "((w::int) < z) = (w \<le> z & w \<noteq> z)"
 by (simp add: less_int_def)
 
 instance int :: order
@@ -869,11 +869,11 @@ attach (test) {*
 fun gen_int i = one_of [~1, 1] * random_range 0 i;
 *}
 
-constdefs
+definition
   int_aux :: "int \<Rightarrow> nat \<Rightarrow> int"
-  "int_aux i n == (i + int n)"
+  "int_aux i n = (i + int n)"
   nat_aux :: "nat \<Rightarrow> int \<Rightarrow> nat"
-  "nat_aux n i == (n + nat i)"
+  "nat_aux n i = (n + nat i)"
 
 lemma [code]:
   "int_aux i 0 = i"
@@ -892,6 +892,10 @@ lemma [code inline]:
   "neg k = (k < 0)"
   unfolding neg_def ..
 
+lemma [code func]:
+  "\<bar>k\<Colon>int\<bar> = (if k \<le> 0 then - k else k)"
+  unfolding zabs_def by auto
+
 consts_code
   "0" :: "int"                       ("0")
   "1" :: "int"                       ("1")
@@ -902,29 +906,42 @@ consts_code
   "Orderings.less_eq" :: "int => int => bool" ("(_ <=/ _)")
   "neg"                              ("(_ < 0)")
 
+instance int :: eq ..
+
 code_type int
   (SML target_atom "IntInf.int")
   (Haskell target_atom "Integer")
 
-code_const "op + :: int \<Rightarrow> int \<Rightarrow> int"
-  (SML "IntInf.+ (_, _)")
-  (Haskell infixl 6 "+")
+code_instance int :: eq
+  (Haskell -)
 
-code_const "op * :: int \<Rightarrow> int \<Rightarrow> int"
-  (SML "IntInf.* (_, _)")
-  (Haskell infixl 7 "*")
-
-code_const "uminus :: int \<Rightarrow> int"
-  (SML target_atom "IntInf.~")
-  (Haskell target_atom "negate")
-
-code_const "op = :: int \<Rightarrow> int \<Rightarrow> bool"
+code_const "OperationalEquality.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "(op =) (_ : IntInf.int, _)")
   (Haskell infixl 4 "==")
 
-code_const "op <= :: int \<Rightarrow> int \<Rightarrow> bool"
+code_const "op <= \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "IntInf.<= (_, _)")
   (Haskell infix 4 "<=")
+
+code_const "op < \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+  (SML "IntInf.< (_, _)")
+  (Haskell infix 4 "<")
+
+code_const "op + \<Colon> int \<Rightarrow> int \<Rightarrow> int"
+  (SML "IntInf.+ (_, _)")
+  (Haskell infixl 6 "+")
+
+code_const "op - \<Colon> int \<Rightarrow> int \<Rightarrow> int"
+  (SML "IntInf.- (_, _)")
+  (Haskell infixl 6 "-")
+
+code_const "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
+  (SML "IntInf.* (_, _)")
+  (Haskell infixl 7 "*")
+
+code_const "uminus \<Colon> int \<Rightarrow> int"
+  (SML target_atom "IntInf.~")
+  (Haskell target_atom "negate")
 
 ML {*
 fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",

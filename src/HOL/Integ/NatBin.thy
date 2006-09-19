@@ -773,9 +773,56 @@ by (simp add: nat_mult_div_cancel1)
 
 subsection {* code generator setup *}
 
-lemma number_of_is_nat_rep_bin [code inline]:
-  "(number_of b :: nat) = nat (number_of b)"
-  unfolding nat_number_of_def int_number_of_def by simp
+lemma neg_number_of_Pls:
+  "\<not> neg ((number_of Numeral.Pls) \<Colon> int)"
+  by auto
+
+lemma neg_number_of_Min:
+  "neg ((number_of Numeral.Min) \<Colon> int)"
+  by auto
+
+lemmas nat_number_expand = nat_number Let_def if_def2 if_True if_False
+  neg_number_of_Pls neg_number_of_Min neg_number_of_BIT Nat.plus.simps
+
+ML {*
+structure NumeralNat =
+struct
+
+val nat_number_expand = thms "nat_number_expand";
+
+fun elim_number_of_nat thy thms =
+  let
+    fun bins_of (Const _) =
+          I
+      | bins_of (Var _) =
+          I
+      | bins_of (Free _) =
+          I
+      | bins_of (Bound _) =
+          I
+      | bins_of (Abs (_, _, t)) =
+          bins_of t
+      | bins_of (t as _ $ _) =
+          case strip_comb t
+           of (Const ("Numeral.number_of",
+               Type (_, [_, Type ("nat", [])])), _) => cons t
+            | (t', ts) => bins_of t' #> fold bins_of ts;
+    val simpset =
+      HOL_basic_ss addsimps nat_number_expand;
+    val rewrites  =
+      []
+      |> (fold o Drule.fold_terms) bins_of thms
+      |> map (Simplifier.rewrite simpset o Thm.cterm_of thy);
+  in if null rewrites then thms else
+    map (CodegenData.rewrite_func rewrites) thms
+  end;
+
+end;
+*}
+
+setup {*
+  CodegenData.add_preproc NumeralNat.elim_number_of_nat
+*}
 
 
 subsection {* legacy ML bindings *}

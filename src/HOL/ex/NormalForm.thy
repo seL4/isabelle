@@ -10,11 +10,10 @@ begin
 
 lemma "p \<longrightarrow> True" by normalization
 declare disj_assoc [code func]
-normal_form  "(P | Q) | R"
-
+lemma "((P | Q) | R) = (P | (Q | R))" by normalization
 lemma "0 + (n::nat) = n" by normalization
-lemma "0 + Suc(n) = Suc n" by normalization
-lemma "Suc(n) + Suc m = n + Suc(Suc m)" by normalization
+lemma "0 + Suc n = Suc n" by normalization
+lemma "Suc n + Suc m = n + Suc (Suc m)" by normalization
 lemma "~((0::nat) < (0::nat))" by normalization
 
 
@@ -93,14 +92,22 @@ normal_form "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f])"
 normal_form "%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True"
 normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()]"
 
-normal_form "last[a,b,c]"
-normal_form "last([a,b,c]@xs)"
+normal_form "last [a, b, c]"
+normal_form "last ([a, b, c] @ xs)"
 
 normal_form "min 0 x"
 normal_form "min 0 (x::nat)"
 
-text {*
-  Numerals still take their time\<dots>
-*}
+normal_form "(2::int) + 3 - 1 + (- k) * 2"
+normal_form "(4::int) * 2"
+normal_form "(-4::int) * 2"
+normal_form "abs ((-4::int) + 2 * 1)"
+normal_form "(2::int) + 3"
+normal_form "(2::int) + 3 * (- 4) * (- 1)"
+normal_form "(2::int) + 3 * (- 4) * 1 + 0"
+normal_form "(2::int) < 3"
+normal_form "(2::int) <= 3"
+normal_form "abs ((-4::int) + 2 * 1)"
+normal_form "4 - 42 * abs (3 + (-7\<Colon>int))"
 
 end
