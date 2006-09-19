@@ -60,7 +60,11 @@ axclass real_algebra < real_vector, ring
 
 axclass real_algebra_1 < real_algebra, ring_1
 
-instance real :: real_algebra_1
+axclass real_div_algebra < real_algebra_1, division_ring
+
+axclass real_field < real_div_algebra, field
+
+instance real :: real_field
 apply (intro_classes, unfold real_scaleR_def)
 apply (rule right_distrib)
 apply (rule left_distrib)
@@ -150,6 +154,21 @@ lemma scaleR_cancel_right:
   shows "(a *# x = b *# x) = (a = b \<or> x = 0)"
 by (auto intro: scaleR_right_imp_eq)
 
+lemma nonzero_inverse_scaleR_distrib:
+  fixes x :: "'a::real_div_algebra"
+  shows "\<lbrakk>a \<noteq> 0; x \<noteq> 0\<rbrakk> \<Longrightarrow> inverse (a *# x) = inverse a *# inverse x"
+apply (rule inverse_unique)
+apply (simp add: mult_scaleR_left mult_scaleR_right scaleR_scaleR)
+done
+
+lemma inverse_scaleR_distrib:
+  fixes x :: "'a::{real_div_algebra,division_by_zero}"
+  shows "inverse (a *# x) = inverse a *# inverse x"
+apply (case_tac "a = 0", simp)
+apply (case_tac "x = 0", simp)
+apply (erule (1) nonzero_inverse_scaleR_distrib)
+done
+
 
 subsection {* Embedding of the Reals into any @{text real_algebra_1}:
 @{term of_real} *}
@@ -176,14 +195,30 @@ by (simp add: of_real_def scaleR_left_diff_distrib)
 lemma of_real_mult [simp]: "of_real (x * y) = of_real x * of_real y"
 by (simp add: of_real_def mult_scaleR_left scaleR_scaleR)
 
+lemma nonzero_of_real_inverse:
+  "x \<noteq> 0 \<Longrightarrow> of_real (inverse x) =
+   inverse (of_real x :: 'a::real_div_algebra)"
+by (simp add: of_real_def nonzero_inverse_scaleR_distrib)
+
+lemma of_real_inverse [simp]:
+  "of_real (inverse x) =
+   inverse (of_real x :: 'a::{real_div_algebra,division_by_zero})"
+by (simp add: of_real_def inverse_scaleR_distrib)
+
+lemma nonzero_of_real_divide:
+  "y \<noteq> 0 \<Longrightarrow> of_real (x / y) =
+   (of_real x / of_real y :: 'a::real_field)"
+by (simp add: divide_inverse nonzero_of_real_inverse)
+  
+lemma of_real_divide:
+  "of_real (x / y) =
+   (of_real x / of_real y :: 'a::{real_field,division_by_zero})"
+by (simp add: divide_inverse)
+
 lemma of_real_eq_iff [simp]: "(of_real x = of_real y) = (x = y)"
 by (simp add: of_real_def scaleR_cancel_right)
 
-text{*Special cases where either operand is zero*}
-lemmas of_real_0_eq_iff = of_real_eq_iff [of 0, simplified]
-lemmas of_real_eq_0_iff = of_real_eq_iff [of _ 0, simplified]
-declare of_real_0_eq_iff [simp]
-declare of_real_eq_0_iff [simp]
+lemmas of_real_eq_0_iff [simp] = of_real_eq_iff [of _ 0, simplified]
 
 lemma of_real_eq_id [simp]: "of_real = (id :: real \<Rightarrow> real)"
 proof
@@ -228,16 +263,60 @@ apply (rule range_eqI)
 apply (rule of_real_1 [symmetric])
 done
 
-lemma Reals_add [simp]: "\<lbrakk>a \<in> Reals; b \<in> Reals\<rbrakk> \<Longrightarrow> a+b \<in> Reals"
+lemma Reals_add [simp]: "\<lbrakk>a \<in> Reals; b \<in> Reals\<rbrakk> \<Longrightarrow> a + b \<in> Reals"
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
 apply (rule of_real_add [symmetric])
 done
 
-lemma Reals_mult [simp]: "\<lbrakk>a \<in> Reals; b \<in> Reals\<rbrakk> \<Longrightarrow> a*b \<in> Reals"
+lemma Reals_minus [simp]: "a \<in> Reals \<Longrightarrow> - a \<in> Reals"
+apply (auto simp add: Reals_def)
+apply (rule range_eqI)
+apply (rule of_real_minus [symmetric])
+done
+
+lemma Reals_diff [simp]: "\<lbrakk>a \<in> Reals; b \<in> Reals\<rbrakk> \<Longrightarrow> a - b \<in> Reals"
+apply (auto simp add: Reals_def)
+apply (rule range_eqI)
+apply (rule of_real_diff [symmetric])
+done
+
+lemma Reals_mult [simp]: "\<lbrakk>a \<in> Reals; b \<in> Reals\<rbrakk> \<Longrightarrow> a * b \<in> Reals"
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
 apply (rule of_real_mult [symmetric])
+done
+
+lemma nonzero_Reals_inverse:
+  fixes a :: "'a::real_div_algebra"
+  shows "\<lbrakk>a \<in> Reals; a \<noteq> 0\<rbrakk> \<Longrightarrow> inverse a \<in> Reals"
+apply (auto simp add: Reals_def)
+apply (rule range_eqI)
+apply (erule nonzero_of_real_inverse [symmetric])
+done
+
+lemma Reals_inverse [simp]:
+  fixes a :: "'a::{real_div_algebra,division_by_zero}"
+  shows "a \<in> Reals \<Longrightarrow> inverse a \<in> Reals"
+apply (auto simp add: Reals_def)
+apply (rule range_eqI)
+apply (rule of_real_inverse [symmetric])
+done
+
+lemma nonzero_Reals_divide:
+  fixes a b :: "'a::real_field"
+  shows "\<lbrakk>a \<in> Reals; b \<in> Reals; b \<noteq> 0\<rbrakk> \<Longrightarrow> a / b \<in> Reals"
+apply (auto simp add: Reals_def)
+apply (rule range_eqI)
+apply (erule nonzero_of_real_divide [symmetric])
+done
+
+lemma Reals_divide [simp]:
+  fixes a b :: "'a::{real_field,division_by_zero}"
+  shows "\<lbrakk>a \<in> Reals; b \<in> Reals\<rbrakk> \<Longrightarrow> a / b \<in> Reals"
+apply (auto simp add: Reals_def)
+apply (rule range_eqI)
+apply (rule of_real_divide [symmetric])
 done
 
 lemma Reals_cases [cases set: Reals]:
@@ -273,12 +352,14 @@ axclass normed < plus, zero, norm
 axclass real_normed_vector < real_vector, normed
   norm_scaleR: "norm (a *# x) = \<bar>a\<bar> * norm x"
 
-axclass real_normed_algebra < real_normed_vector, real_algebra
+axclass real_normed_algebra < real_algebra, real_normed_vector
   norm_mult_ineq: "norm (x * y) \<le> norm x * norm y"
 
-axclass real_normed_div_algebra < normed, real_algebra_1, division_ring
+axclass real_normed_div_algebra < real_div_algebra, normed
   norm_of_real: "norm (of_real r) = abs r"
   norm_mult: "norm (x * y) = norm x * norm y"
+
+axclass real_normed_field < real_field, real_normed_div_algebra
 
 instance real_normed_div_algebra < real_normed_algebra
 proof
@@ -294,7 +375,7 @@ next
     by (simp add: norm_mult)
 qed
 
-instance real :: real_normed_div_algebra
+instance real :: real_normed_field
 apply (intro_classes, unfold real_norm_def)
 apply (rule abs_ge_zero)
 apply (rule abs_eq_0)
@@ -307,11 +388,13 @@ lemma norm_zero [simp]: "norm (0::'a::real_normed_vector) = 0"
 by simp
 
 lemma zero_less_norm_iff [simp]:
-  fixes x :: "'a::real_normed_vector" shows "(0 < norm x) = (x \<noteq> 0)"
+  fixes x :: "'a::real_normed_vector"
+  shows "(0 < norm x) = (x \<noteq> 0)"
 by (simp add: order_less_le)
 
 lemma norm_minus_cancel [simp]:
-  fixes x :: "'a::real_normed_vector" shows "norm (- x) = norm x"
+  fixes x :: "'a::real_normed_vector"
+  shows "norm (- x) = norm x"
 proof -
   have "norm (- x) = norm (- 1 *# x)"
     by (simp only: scaleR_minus_left scaleR_one)
@@ -321,7 +404,8 @@ proof -
 qed
 
 lemma norm_minus_commute:
-  fixes a b :: "'a::real_normed_vector" shows "norm (a - b) = norm (b - a)"
+  fixes a b :: "'a::real_normed_vector"
+  shows "norm (a - b) = norm (b - a)"
 proof -
   have "norm (a - b) = norm (- (a - b))"
     by (simp only: norm_minus_cancel)
@@ -330,7 +414,7 @@ proof -
 qed
 
 lemma norm_triangle_ineq2:
-  fixes a :: "'a::real_normed_vector"
+  fixes a b :: "'a::real_normed_vector"
   shows "norm a - norm b \<le> norm (a - b)"
 proof -
   have "norm (a - b + b) \<le> norm (a - b) + norm b"
@@ -341,8 +425,18 @@ proof -
     by (simp add: compare_rls)
 qed
 
+lemma norm_triangle_ineq3:
+  fixes a b :: "'a::real_normed_vector"
+  shows "\<bar>norm a - norm b\<bar> \<le> norm (a - b)"
+apply (subst abs_le_iff)
+apply auto
+apply (rule norm_triangle_ineq2)
+apply (subst norm_minus_commute)
+apply (rule norm_triangle_ineq2)
+done
+
 lemma norm_triangle_ineq4:
-  fixes a :: "'a::real_normed_vector"
+  fixes a b :: "'a::real_normed_vector"
   shows "norm (a - b) \<le> norm a + norm b"
 proof -
   have "norm (a - b) = norm (a + - b)"
@@ -384,5 +478,15 @@ lemma norm_inverse:
 apply (case_tac "a = 0", simp)
 apply (erule nonzero_norm_inverse)
 done
+
+lemma nonzero_norm_divide:
+  fixes a b :: "'a::real_normed_field"
+  shows "b \<noteq> 0 \<Longrightarrow> norm (a / b) = norm a / norm b"
+by (simp add: divide_inverse norm_mult nonzero_norm_inverse)
+
+lemma norm_divide:
+  fixes a b :: "'a::{real_normed_field,division_by_zero}"
+  shows "norm (a / b) = norm a / norm b"
+by (simp add: divide_inverse norm_mult norm_inverse)
 
 end

@@ -177,7 +177,6 @@ done
 
 lemma SReal_minus_iff [simp]: "(-x \<in> Reals) = ((x::hypreal) \<in> Reals)"
 apply auto
-apply (erule_tac [2] SReal_minus)
 apply (drule SReal_minus, auto)
 done
 

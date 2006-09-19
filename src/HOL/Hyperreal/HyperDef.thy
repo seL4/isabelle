@@ -65,6 +65,10 @@ qed
 
 instance star :: (real_algebra_1) real_algebra_1 ..
 
+instance star :: (real_div_algebra) real_div_algebra ..
+
+instance star :: (real_field) real_field ..
+
 lemma star_of_real_def [transfer_unfold]: "of_real r \<equiv> star_of (of_real r)"
 by (rule eq_reflection, unfold of_real_def, transfer, rule refl)
 
