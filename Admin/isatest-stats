@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Makarius
+#
+# DESCRIPTION: Standard statistics.
+
+THIS=$(cd "$(dirname "$0")"; pwd -P)
+
+"$THIS/isatest-statistics" stats/at-poly at-poly 100 \
+  HOL \
+  HOL-Algebra \
+  HOL-Auth \
+  HOL-Bali \
+  HOL-Complex \
+  HOL-Extraction \
+  HOL-Hoare \
+  HOL-HoareParallel \
+  HOL-Lambda \
+  HOL-MicroJava \
+  HOL-NumberTheory \
+  HOL-SET-Protocol \
+  HOL-UNITY \
+  HOL-ex \
+  ZF \
+  ZF-Constructible
