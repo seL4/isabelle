@@ -11,11 +11,10 @@ sig
     -> Proof.context * theory
   val class_i: bstring -> class list -> Element.context_i Locale.element list -> theory
     -> Proof.context * theory
-  (*FIXME: in _i variants, bstring should be bstring option*)
-  val instance_arity: ((xstring * string list) * string) list
+  val instance_arity: ((bstring * string list) * string) list
     -> bstring * Attrib.src list -> ((bstring * Attrib.src list) * string) list
     -> theory -> Proof.state
-  val instance_arity_i: ((string * sort list) * sort) list
+  val instance_arity_i: ((bstring * sort list) * sort) list
     -> bstring * attribute list -> ((bstring * attribute list) * term) list
     -> theory -> Proof.state
   val prove_instance_arity: (thm list -> tactic) -> ((string * sort list) * sort) list
@@ -332,7 +331,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
           fold (add_global_constraint v name_axclass) mapp_this
     #> add_class_data (name_locale, (name_locale, name_axclass, v, mapp_this,
          map (fst o fst) loc_axioms))
-    #> prove_interpretation_i (NameSpace.base name_locale, [])
+    #> prove_interpretation_i (bname, [])
           (Locale.Locale name_locale) (map (SOME o mk_const thy name_axclass v) (map snd (mapp_sup @ mapp_this)))
           ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
     #> pair ctxt
@@ -441,7 +440,7 @@ fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arities (raw_na
             ((snd o the_class_data thy) class) tyco) (the_ancestry thy sort)) arities;
       in if bind then
         thy
-        |> PureThy.note_thmss_i PureThy.internalK [((name, atts), [(thms, [])])]
+        |> PureThy.note_thmss_i (*qualified*) PureThy.internalK [((name, atts), [(thms, [])])]
         |> snd
       else
         thy
@@ -579,10 +578,8 @@ fun wrap_add_instance_sort (class, sort) thy =
 val class_subP = P.name -- Scan.repeat (P.$$$ "+" |-- P.name) >> (op ::);
 val class_bodyP = P.!!! (Scan.repeat1 P.locale_element);
 
-val inst =
-  (Scan.optional (P.$$$ "(" |-- P.!!! (P.list1 P.sort --| P.$$$ ")")) [] -- P.xname --| P.$$$ "::" -- P.sort)
-    >> (fn ((asorts, tyco), sort) => ((tyco, asorts), sort))
-  || (P.xname --| P.$$$ "::" -- P.!!! P.arity)
+val parse_arity =
+  (P.xname --| P.$$$ "::" -- P.!!! P.arity)
     >> (fn (tyco, (asorts, sort)) => ((tyco, asorts), sort));
 
 val classP =
@@ -598,7 +595,7 @@ val classP =
 val instanceP =
   OuterSyntax.command instanceK "prove type arity or subclass relation" K.thy_goal ((
       P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> wrap_add_instance_sort
-      || P.opt_thm_name ":" -- (P.and_list1 inst -- Scan.repeat (P.opt_thm_name ":" -- P.prop))
+      || P.opt_thm_name ":" -- (P.and_list1 parse_arity -- Scan.repeat (P.opt_thm_name ":" -- P.prop))
            >> (fn (("", []), ([((tyco, asorts), sort)], [])) => axclass_instance_arity I [(tyco, asorts, sort)]
                 | (natts, (arities, defs)) => instance_arity arities natts defs)
     ) >> (Toplevel.print oo Toplevel.theory_to_proof));
