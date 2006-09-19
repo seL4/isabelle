@@ -19,7 +19,7 @@ datatype 'a pol =
   | PX "'a pol" nat "'a pol"
 
 datatype 'a polex =
-  Pol "'a pol"
+    Pol "'a pol"
   | Add "'a polex" "'a polex"
   | Sub "'a polex" "'a polex"
   | Mul "'a polex" "'a polex"
@@ -139,7 +139,7 @@ primrec
     mkPX (mul (mul (Pc (1 + 1), A), mkPinj 1 B)) x (Pc 0))"
 
 text {* Fast Exponentation *}
-lemma pow_wf:"odd n \<Longrightarrow> (n::nat) div 2 < n" by (cases n) auto
+lemma pow_wf: "odd n \<Longrightarrow> (n::nat) div 2 < n" by (cases n) auto
 recdef pow "measure (\<lambda>(x, y). y)"
   "pow (p, 0) = Pc 1"
   "pow (p, n) = (if even n then (pow (sqr p, n div 2)) else mul (p, pow (sqr p, n div 2)))"
@@ -191,12 +191,12 @@ lemma mkPX_ci: "Ipol l (mkPX A b C) = Ipol l (PX A b C)"
 text {* Correctness theorems for the implemented operations *}
 
 text {* Negation *}
-lemma neg_ci: "\<And>l. Ipol l (neg P) = -(Ipol l P)"
-  by (induct P) auto
+lemma neg_ci: "Ipol l (neg P) = -(Ipol l P)"
+  by (induct P arbitrary: l) auto
 
 text {* Addition *}
-lemma add_ci: "\<And>l. Ipol l (add (P, Q)) = Ipol l P + Ipol l Q"
-proof (induct P Q rule: add.induct)
+lemma add_ci: "Ipol l (add (P, Q)) = Ipol l P + Ipol l Q"
+proof (induct P Q arbitrary: l rule: add.induct)
   case (6 x P y Q)
   show ?case
   proof (rule linorder_cases)
@@ -245,8 +245,8 @@ next
 qed (auto simp add: ring_eq_simps)
 
 text {* Multiplication *}
-lemma mul_ci: "\<And>l. Ipol l (mul (P, Q)) = Ipol l P * Ipol l Q"
-  by (induct P Q rule: mul.induct)
+lemma mul_ci: "Ipol l (mul (P, Q)) = Ipol l P * Ipol l Q"
+  by (induct P Q arbitrary: l rule: mul.induct)
     (simp_all add: mkPX_ci mkPinj_ci ring_eq_simps add_ci power_add)
 
 text {* Substraction *}
@@ -254,65 +254,72 @@ lemma sub_ci: "Ipol l (sub p q) = Ipol l p - Ipol l q"
   by (simp add: add_ci neg_ci sub_def)
 
 text {* Square *}
-lemma sqr_ci:"\<And>ls. Ipol ls (sqr p) = Ipol ls p * Ipol ls p"
-  by (induct p) (simp_all add: add_ci mkPinj_ci mkPX_ci mul_ci ring_eq_simps power_add)
+lemma sqr_ci: "Ipol ls (sqr p) = Ipol ls p * Ipol ls p"
+  by (induct p arbitrary: ls)
+    (simp_all add: add_ci mkPinj_ci mkPX_ci mul_ci ring_eq_simps power_add)
 
 
 text {* Power *}
-lemma even_pow:"even n \<Longrightarrow> pow (p, n) = pow (sqr p, n div 2)" by (induct n) simp_all
+lemma even_pow:"even n \<Longrightarrow> pow (p, n) = pow (sqr p, n div 2)"
+  by (induct n) simp_all
 
-lemma pow_ci: "\<And>p. Ipol ls (pow (p, n)) = (Ipol ls p) ^ n"
-proof (induct n rule: nat_less_induct)
+lemma pow_ci: "Ipol ls (pow (p, n)) = Ipol ls p ^ n"
+proof (induct n arbitrary: p rule: nat_less_induct)
   case (1 k)
-  have two:"2 = Suc (Suc 0)" by simp
+  have two: "2 = Suc (Suc 0)" by simp
   show ?case
   proof (cases k)
+    case 0
+    then show ?thesis by simp
+  next
     case (Suc l)
     show ?thesis
     proof cases
-      assume EL: "even l"
-      have "Suc l div 2 = l div 2"
-        by (simp add: nat_number even_nat_plus_one_div_two [OF EL])
+      assume "even l"
+      then have "Suc l div 2 = l div 2"
+        by (simp add: nat_number even_nat_plus_one_div_two)
       moreover
       from Suc have "l < k" by simp
-      with 1 have "\<forall>p. Ipol ls (pow (p, l)) = Ipol ls p ^ l" by simp
+      with 1 have "\<And>p. Ipol ls (pow (p, l)) = Ipol ls p ^ l" by simp
       moreover
-      note Suc EL even_nat_plus_one_div_two [OF EL]
+      note Suc `even l` even_nat_plus_one_div_two
       ultimately show ?thesis by (auto simp add: mul_ci power_Suc even_pow)
     next
-      assume OL: "odd l"
-      with prems have "\<lbrakk>\<forall>m<Suc l. \<forall>p. Ipol ls (pow (p, m)) = Ipol ls p ^ m; k = Suc l; odd l\<rbrakk> \<Longrightarrow> \<forall>p. Ipol ls (sqr p) ^ (Suc l div 2) = Ipol ls p ^ Suc l"
-      proof(cases l)
-        case (Suc w)
-        from prems have EW: "even w" by simp
-        from two have two_times:"(2 * (w div 2))= w"
-          by (simp only: even_nat_div_two_times_two[OF EW])
-        have A: "\<And>p. (Ipol ls p * Ipol ls p) = (Ipol ls p) ^ (Suc (Suc 0))"
-          by (simp add: power_Suc)
-        from A two [symmetric] have "ALL p.(Ipol ls p * Ipol ls p) = (Ipol ls p) ^ 2"
-          by simp
-        with prems show ?thesis
-          by (auto simp add: power_mult[symmetric, of _ 2 _] two_times mul_ci sqr_ci)
-      qed simp
-      with prems show ?thesis by simp
+      assume "odd l"
+      {
+        fix p
+        have "Ipol ls (sqr p) ^ (Suc l div 2) = Ipol ls p ^ Suc l"
+        proof (cases l)
+          case 0
+          with `odd l` show ?thesis by simp
+        next
+          case (Suc w)
+          with `odd l` have "even w" by simp
+          from two have two_times: "2 * (w div 2) = w"
+            by (simp only: even_nat_div_two_times_two [OF `even w`])
+          have "Ipol ls p * Ipol ls p = Ipol ls p ^ Suc (Suc 0)"
+            by (simp add: power_Suc)
+          from this and two [symmetric] have "Ipol ls p * Ipol ls p = Ipol ls p ^ 2"
+            by simp
+          with Suc show ?thesis
+            by (auto simp add: power_mult[symmetric, of _ 2 _] two_times mul_ci sqr_ci)
+        qed
+      } with 1 Suc `odd l` show ?thesis by simp
     qed
-  next
-    case 0
-    then show ?thesis by simp
   qed
 qed
 
 text {* Normalization preserves semantics  *}
-lemma norm_ci:"Ipolex l Pe = Ipol l (norm Pe)"
+lemma norm_ci: "Ipolex l Pe = Ipol l (norm Pe)"
   by (induct Pe) (simp_all add: add_ci sub_ci mul_ci neg_ci pow_ci)
 
 text {* Reflection lemma: Key to the (incomplete) decision procedure *}
 lemma norm_eq:
-  assumes eq: "norm P1  = norm P2"
+  assumes "norm P1 = norm P2"
   shows "Ipolex l P1 = Ipolex l P2"
 proof -
-  from eq have "Ipol l (norm P1) = Ipol l (norm P2)" by simp
-  thus ?thesis by (simp only: norm_ci)
+  from prems have "Ipol l (norm P1) = Ipol l (norm P2)" by simp
+  then show ?thesis by (simp only: norm_ci)
 qed
 
 
