@@ -40,7 +40,7 @@ EOF
 
 for SESSION in $SESSIONS
 do
-  echo "<br><img src="$PLATFORM/$SESSION.png">" >> "stats/$PLATFORM.html"
+  echo "<br><img src="$PLATFORM/$SESSION.png"><br>" >> "stats/$PLATFORM.html"
 done
 
 echo "</body>" >> "stats/$PLATFORM.html"
