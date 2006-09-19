@@ -7,23 +7,43 @@
 
 THIS=$(cd "$(dirname "$0")"; pwd -P)
 
-for PLATFORM in at-poly at-sml-dev
+PLATFORMS="at-poly at-sml-dev"
+SESSIONS="\
+  HOL \
+  HOL-Algebra \
+  HOL-Auth \
+  HOL-Bali \
+  HOL-Complex \
+  HOL-Extraction \
+  HOL-Hoare \
+  HOL-HoareParallel \
+  HOL-Lambda \
+  HOL-MicroJava \
+  HOL-NumberTheory \
+  HOL-SET-Protocol \
+  HOL-UNITY \
+  HOL-ex \
+  ZF \
+  ZF-Constructible"
+
+for PLATFORM in $PLATFORMS
 do
-  "$THIS/isatest-statistics" "stats/$PLATFORM" "$PLATFORM" 100 \
-    HOL \
-    HOL-Algebra \
-    HOL-Auth \
-    HOL-Bali \
-    HOL-Complex \
-    HOL-Extraction \
-    HOL-Hoare \
-    HOL-HoareParallel \
-    HOL-Lambda \
-    HOL-MicroJava \
-    HOL-NumberTheory \
-    HOL-SET-Protocol \
-    HOL-UNITY \
-    HOL-ex \
-    ZF \
-    ZF-Constructible
+  "$THIS/isatest-statistics" "stats/$PLATFORM" "$PLATFORM" 100 $SESSIONS
+  cat > "stats/$PLATFORM.html" <<EOF
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head><title> Development Snapshot -- Statistics</title></head>
+
+<body>
+<h1>$PLATFORM</h1>
+EOF
+
+for SESSION in $SESSIONS
+do
+  echo "<br><img src="$PLATFORM/$SESSION.png">" >> "stats/$PLATFORM.html"
+done
+
+echo "</body>" >> "stats/$PLATFORM.html"
+echo "</html>" >> "stats/$PLATFORM.html"
+
 done
