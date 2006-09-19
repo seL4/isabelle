@@ -51,7 +51,7 @@ zgrep "^Finished .*elapsed" \
   $(find "$ISATEST_LOG" -name "isatest-makeall-${PLATFORM}*" -ctime "-${TIMESPAN}") | \
 perl -e '
   while (<>) {
-    if (m/isatest-makeall-\w+-\w+-(\d+)-(\d+)-(\d+)-.*:Finished (\S+) \(.*, (\d+):(\d+):(\d+) cpu time\)/) {
+    if (m/isatest-makeall-.*-(\d+)-(\d+)-(\d+)-.*:Finished (\S+) \(.*, (\d+):(\d+):(\d+) cpu time\)/) {
         my $year = $1;
         my $month = $2;
         my $day = $3;
