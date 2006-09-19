@@ -169,7 +169,8 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML Library/Zorn.thy			\
   Real/ContNotDenum.thy Real/Ferrante_Rackoff.thy Real/Float.ML			\
   Real/Float.thy Real/Lubs.thy Real/PReal.thy Real/RComplete.thy		\
   Real/ROOT.ML Real/Rational.thy Real/Real.thy Real/RealDef.thy			\
-  Real/RealPow.thy Real/document/root.tex Real/ferrante_rackoff_proof.ML	\
+  Real/RealPow.thy Real/RealVector.thy Real/document/root.tex                   \
+  Real/ferrante_rackoff_proof.ML	                                        \
   Real/ferrante_rackoff.ML Real/rat_arith.ML Real/real_arith.ML			\
   Hyperreal/StarDef.thy Hyperreal/StarClasses.thy				\
   Hyperreal/EvenOdd.thy Hyperreal/Fact.thy Hyperreal/HLog.thy			\
