@@ -21,6 +21,7 @@ sig
   val pprint_cterm: cterm -> pprint_args -> unit
   val pprint_thm: thm -> pprint_args -> unit
   val print_theorems_diff: theory -> theory -> unit
+  val print_full_theory: bool -> theory -> unit
   val string_of_rule: Proof.context -> string -> thm -> string
   val print_results: bool -> Proof.context ->
     ((string * string) * (string * thm list) list) -> unit
@@ -65,8 +66,10 @@ fun pretty_theorems thy = pretty_theorems_diff Symtab.empty thy;
 
 val print_theorems = Pretty.writeln o pretty_theorems;
 
-fun print_theory thy =
-  Pretty.writeln (Pretty.chunks (Display.pretty_full_theory thy @ [pretty_theorems thy]));
+fun print_full_theory verbose thy =
+  Pretty.writeln (Pretty.chunks (Display.pretty_full_theory verbose thy @ [pretty_theorems thy]));
+
+val print_theory = print_full_theory false;
 
 
 (* refinement rule *)

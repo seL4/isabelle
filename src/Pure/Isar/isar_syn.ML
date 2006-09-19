@@ -647,7 +647,7 @@ val killP =
 (** diagnostic commands (for interactive mode only) **)
 
 val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
-
+val opt_bang = Scan.optional (P.$$$ "!" >> K true) false;
 
 val pretty_setmarginP =
   OuterSyntax.improper_command "pretty_setmargin" "change default margin for pretty printing"
@@ -663,7 +663,7 @@ val print_contextP =
 
 val print_theoryP =
   OuterSyntax.improper_command "print_theory" "print logical theory contents (verbose!)" K.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_theory));
+    (opt_bang >> (Toplevel.no_timing oo IsarCmd.print_theory));
 
 val print_syntaxP =
   OuterSyntax.improper_command "print_syntax" "print inner syntax of theory (verbose!)" K.diag
@@ -680,8 +680,7 @@ val print_localesP =
 
 val print_localeP =
   OuterSyntax.improper_command "print_locale" "print locale expression in this theory" K.diag
-    (Scan.optional (P.$$$ "!" >> K true) false -- locale_val
-      >> (Toplevel.no_timing oo IsarCmd.print_locale));
+    (opt_bang -- locale_val >> (Toplevel.no_timing oo IsarCmd.print_locale));
 
 val print_registrationsP =
   OuterSyntax.improper_command "print_interps"

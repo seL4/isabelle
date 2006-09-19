@@ -1519,9 +1519,10 @@ way to include formal items into the printed text document.
 \indexisarcmd{print-commands}\indexisarcmd{print-syntax}
 \indexisarcmd{print-methods}\indexisarcmd{print-attributes}
 \indexisarcmd{find-theorems}\indexisarcmd{thm-deps}
-\indexisarcmd{print-theorems}
+\indexisarcmd{print-theorems}\indexisarcmd{print-theory}
 \begin{matharray}{rcl}
   \isarcmd{print_commands}^* & : & \isarkeep{\cdot} \\
+  \isarcmd{print_theory}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{print_syntax}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{print_methods}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{print_attributes}^* & : & \isarkeep{theory~|~proof} \\
@@ -1533,6 +1534,9 @@ way to include formal items into the printed text document.
 \end{matharray}
 
 \begin{rail}
+  'print\_theory' ( '!'?)
+  ;
+
   'find\_theorems' (('(' nat ')')?) (criterion *)
   ;
   criterion: ('-'?) ('name' ':' nameref | 'intro' | 'elim' | 'dest' |
@@ -1551,6 +1555,9 @@ for simplifications.
 \item [$\isarkeyword{print_commands}$] prints Isabelle's outer theory syntax,
   including keywords and command.
   
+\item [$\isarkeyword{print_theory}$] prints the main logical content
+  of the theory context; the ``$!$'' option indicates extra verbosity.
+
 \item [$\isarkeyword{print_syntax}$] prints the inner syntax of types and
   terms, depending on the current context.  The output can be very verbose,
   including grammar tables and syntax translation rules.  See \cite[\S7,
@@ -1568,7 +1575,7 @@ for simplifications.
   In interactive mode this actually refers to the theorems left by the last
   transaction; this allows to inspect the result of advanced definitional
   packages, such as $\isarkeyword{datatype}$.
-  
+
 \item [$\isarkeyword{find_theorems}~\vec c$] retrieves facts from the theory
   or proof context matching all of the search criteria $\vec c$.  The
   criterion $name: p$ selects all theorems whose fully qualified name matches
