@@ -77,6 +77,7 @@ sig
   val test_term: theory -> int -> int -> term -> (string * term) list option
   val eval_result: term ref
   val eval_term: theory -> term -> term
+  val evaluation_conv: cterm -> thm
   val parse_mixfix: (string -> 'a) -> string -> 'a mixfix list
   val quotes_of: 'a mixfix list -> 'a list
   val num_args_of: 'a mixfix list -> int
@@ -1059,6 +1060,17 @@ fun print_evaluated_term s = Toplevel.keep (fn state =>
         Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt T)]))
   end);
 
+exception Evaluation of term;
+
+fun evaluation_oracle (thy, Evaluation t) =
+  Logic.mk_equals (t, eval_term thy t);
+
+fun evaluation_conv ct =
+  let val {sign, t, ...} = rep_cterm ct
+  in Thm.invoke_oracle_i sign "Pure.Evaluation" (sign, Evaluation t) end;
+
+val _ = Context.add_setup
+  (Theory.add_oracle ("Evaluation", evaluation_oracle));
 
 (**** Interface ****)
 
