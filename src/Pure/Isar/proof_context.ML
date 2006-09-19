@@ -67,6 +67,7 @@ sig
   val goal_export: Proof.context -> Proof.context -> thm list -> thm list
   val export: Proof.context -> Proof.context -> thm list -> thm list
   val export_standard: Proof.context -> Proof.context -> thm list -> thm list
+  val standard: Proof.context -> thm list -> thm list
   val add_binds: (indexname * string option) list -> Proof.context -> Proof.context
   val add_binds_i: (indexname * term option) list -> Proof.context -> Proof.context
   val auto_bind_goal: term list -> Proof.context -> Proof.context
@@ -567,6 +568,8 @@ val export = common_export false;
 
 fun export_standard inner outer =
   export inner outer #> map Drule.local_standard;
+
+fun standard ctxt = export_standard ctxt ctxt;
 
 
 
