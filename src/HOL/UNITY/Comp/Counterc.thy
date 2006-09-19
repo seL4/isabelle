@@ -16,7 +16,6 @@ header{*A Family of Similar Counters: Version with Compatibility*}
 theory Counterc imports "../UNITY_Main" begin
 
 typedecl state
-arities state :: type
 
 consts
   C :: "state=>int"

@@ -11,7 +11,6 @@ imports "../UNITY_Main"
 begin
 
 typedecl vertex
-arities vertex :: type
   
 constdefs
   symcl :: "(vertex*vertex)set=>(vertex*vertex)set"
