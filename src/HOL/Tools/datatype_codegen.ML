@@ -8,9 +8,11 @@ Code generator for inductive datatypes and type copies ("code types").
 signature DATATYPE_CODEGEN =
 sig
   val get_eq: theory -> string -> thm list
-  val get_datatype_spec_thms: theory -> string
-    -> (((string * sort) list * (string * typ list) list) * tactic) option
-  val datatype_tac: theory -> string -> tactic
+  val get_eq_datatype: theory -> string -> thm list
+  val get_eq_typecopy: theory -> string -> thm list
+  val get_cert: theory -> bool * string -> thm list
+  val get_cert_datatype: theory -> string -> thm list
+  val get_cert_typecopy: theory -> string -> thm list
   val dest_case_expr: theory -> term
     -> ((string * typ) list * ((term * typ) * (term * term) list)) option
   val add_datatype_case_const: string -> theory -> theory
@@ -18,6 +20,8 @@ sig
 
   type hook = (string * (bool * ((string * sort) list * (string * typ list) list))) list
     -> theory -> theory
+  val codetype_hook: hook
+  val eq_hook: hook
   val codetypes_dependency: theory -> (string * bool) list list
   val add_codetypes_hook_bootstrap: hook -> theory -> theory
   val the_codetypes_mut_specs: theory -> (string * bool) list
@@ -26,9 +30,10 @@ sig
     -> (string * (((string * sort list) * sort) * term list)) list option
   val prove_codetypes_arities: (thm list -> tactic) -> (string * bool) list -> sort
     -> (theory -> ((string * sort list) * sort) list -> (string * term list) list
-    -> ((bstring * attribute list) * term) list) -> theory -> theory
+    -> ((bstring * attribute list) * term) list) -> (theory -> theory) -> theory -> theory
 
   val setup: theory -> theory
+  val setup2: theory -> theory
 end;
 
 structure DatatypeCodegen : DATATYPE_CODEGEN =
@@ -370,26 +375,20 @@ fun mk_distinct cos =
   in map mk_dist (sym_product cos) end;
 
 local
-  val not_sym = thm "HOL.not_sym";
+  val bool_eq_implies = thm "iffD1";
+  val rew_eq = thm "HOL.atomize_eq" |> Thm.symmetric;
+  val rew_conj = thm "HOL.atomize_conj" |> Thm.symmetric;
   val not_false_true = iffD2 OF [nth (thms "HOL.simp_thms") 7, TrueI];
-in fun get_eq thy dtco =
+  val not_eq_quodlibet = thm "not_eq_quodlibet";
+in fun get_cert_datatype thy dtco =
   let
     val SOME (vs, cs) = DatatypePackage.get_datatype_spec thy dtco;
-    fun mk_triv_inject co =
-      let
-        val ct' = Thm.cterm_of thy
-          (Const (co, Type (dtco, map (fn (v, sort) => TVar ((v, 0), sort)) vs)))
-        val cty' = Thm.ctyp_of_term ct';
-        val refl = Thm.prop_of HOL.refl;
-        val SOME (ct, cty) = fold_aterms (fn Var (v, ty) =>
-          (K o SOME) (Thm.cterm_of thy (Var (v, Thm.typ_of cty')), Thm.ctyp_of thy ty) | _ => I)
-          refl NONE;
-      in eqTrueI OF [Thm.instantiate ([(cty, cty')], [(ct, ct')]) HOL.refl] end;
-    val inject1 = map_filter (fn (co, []) => SOME (mk_triv_inject co) | _ => NONE) cs
-    val inject2 = (#inject o DatatypePackage.the_datatype thy) dtco;
+    val inject = (#inject o DatatypePackage.the_datatype thy) dtco
+      |> map (fn thm => bool_eq_implies OF [thm] )
+      |> map (Tactic.rewrite_rule [rew_eq, rew_conj]);
     val ctxt = Context.init_proof thy;
     val simpset = Simplifier.context ctxt
-      (MetaSimplifier.empty_ss addsimprocs [distinct_simproc]);
+      (MetaSimplifier.empty_ss addsimprocs [DatatypePackage.distinct_simproc]);
     val cos = map (fn (co, tys) =>
         (Const (co, tys ---> Type (dtco, map TFree vs)), tys)) cs;
     val tac = ALLGOALS (simp_tac simpset)
@@ -397,30 +396,19 @@ in fun get_eq thy dtco =
     val distinct =
       mk_distinct cos
       |> map (fn t => Goal.prove_global thy [] [] t (K tac))
-      |> (fn thms => thms @ map (fn thm => not_sym OF [thm]) thms)
-  in inject1 @ inject2 @ distinct end;
+      |> map (fn thm => not_eq_quodlibet OF [thm])
+  in inject @ distinct end
+and get_cert_typecopy thy dtco =
+  let
+    val SOME { inject, ... } = TypecopyPackage.get_typecopy_info thy dtco;
+    val thm = Tactic.rewrite_rule [rew_eq] (bool_eq_implies OF [inject]);
+  in
+    [thm]
+  end;
 end (*local*);
 
-fun datatype_tac thy dtco =
-  let
-    val ctxt = Context.init_proof thy;
-    val inject = (#inject o DatatypePackage.the_datatype thy) dtco;
-    val simpset = Simplifier.context ctxt
-      (MetaSimplifier.empty_ss addsimprocs [distinct_simproc]);
-  in
-    (TRY o ALLGOALS o match_tac) [HOL.eq_reflection]
-    THEN (
-      (ALLGOALS o match_tac) (eqTrueI :: inject)
-      ORELSE (ALLGOALS o simp_tac) simpset
-    )
-    THEN (ALLGOALS o match_tac) [HOL.refl, Drule.reflexive_thm]
-  end;
-
-fun get_datatype_spec_thms thy dtco =
-  case DatatypePackage.get_datatype_spec thy dtco
-   of SOME vs_cos =>
-        SOME (vs_cos, datatype_tac thy dtco)
-    | NONE => NONE;
+fun get_cert thy (true, dtco) = get_cert_datatype thy dtco
+  | get_cert thy (false, dtco) = get_cert_typecopy thy dtco;
 
 fun add_datatype_case_const dtco thy =
   let
@@ -433,7 +421,7 @@ fun add_datatype_case_defs dtco thy =
   let
     val {case_rewrites, ...} = DatatypePackage.the_datatype thy dtco
   in
-    fold CodegenTheorems.add_fun case_rewrites thy
+    fold_rev CodegenData.add_func case_rewrites thy
   end;
 
 
@@ -536,7 +524,7 @@ fun get_codetypes_arities thy tycos sort =
     ) else NONE
   end;
 
-fun prove_codetypes_arities tac tycos sort f thy =
+fun prove_codetypes_arities tac tycos sort f after_qed thy =
   case get_codetypes_arities thy tycos sort
    of NONE => thy
     | SOME insts => let
@@ -548,20 +536,128 @@ fun prove_codetypes_arities tac tycos sort f thy =
             then NONE else SOME (arity, (tyco, cs)))) insts;
       in
         thy
-        |> K ((not o null) arities) ? ClassPackage.prove_instance_arity tac
-             arities ("", []) (f thy arities css)
+        |> K ((not o null) arities) ? (ClassPackage.prove_instance_arity tac
+             arities ("", []) (f thy arities css) #> after_qed)
       end;
+
+local
+  val class_eq = "OperationalEquality.eq";
+in fun add_eq_instance specs =
+  prove_codetypes_arities
+    (K (ClassPackage.intro_classes_tac []))
+    (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
+    [class_eq] ((K o K o K) [])
+end; (*local*)
+
+local
+  val not_sym = thm "HOL.not_sym";
+  val not_false_true = iffD2 OF [nth (thms "HOL.simp_thms") 7, TrueI];
+in fun get_eq_datatype thy dtco =
+  let
+    val _ = writeln "01";
+    val SOME (vs, cs) = DatatypePackage.get_datatype_spec (Context.check_thy thy) dtco;
+    val _ = writeln "02";
+    fun mk_triv_inject co =
+      let
+        val ct' = Thm.cterm_of (Context.check_thy thy)
+          (Const (co, Type (dtco, map (fn (v, sort) => TVar ((v, 0), sort)) vs)))
+        val cty' = Thm.ctyp_of_term ct';
+        val refl = Thm.prop_of HOL.refl;
+        val SOME (ct, cty) = fold_aterms (fn Var (v, ty) =>
+          (K o SOME) (Thm.cterm_of (Context.check_thy thy) (Var (v, Thm.typ_of cty')), Thm.ctyp_of (Context.check_thy thy) ty) | _ => I)
+          refl NONE;
+      in eqTrueI OF [Thm.instantiate ([(cty, cty')], [(ct, ct')]) HOL.refl] end;
+    val _ = writeln "03";
+    val inject1 = map_filter (fn (co, []) => SOME (mk_triv_inject co) | _ => NONE) cs
+    val _ = writeln "04";
+    val inject2 = (#inject o DatatypePackage.the_datatype (Context.check_thy thy)) dtco;
+    val _ = writeln "05";
+    val ctxt = Context.init_proof (Context.check_thy thy);
+    val _ = writeln "06";
+    val simpset = Simplifier.context ctxt
+      (MetaSimplifier.empty_ss addsimprocs [distinct_simproc]);
+    val _ = writeln "07";
+    val cos = map (fn (co, tys) =>
+        (Const (co, tys ---> Type (dtco, map TFree vs)), tys)) cs;
+    val tac = ALLGOALS (simp_tac simpset)
+      THEN ALLGOALS (ProofContext.fact_tac [not_false_true, TrueI]);
+    val _ = writeln "08";
+    val distinct =
+      mk_distinct cos
+      |> map (fn t => Goal.prove_global (Context.check_thy thy) [] [] t (K tac))
+      |> (fn thms => thms @ map (fn thm => not_sym OF [thm]) thms)
+    val _ = writeln "09";
+  in inject1 @ inject2 @ distinct end;
+
+fun get_eq_typecopy thy tyco =
+  case TypecopyPackage.get_typecopy_info thy tyco
+   of SOME { inject, ... } => [inject]
+    | NONE => [];
+
+local
+  val lift_not_thm = thm "HOL.Eq_FalseI";
+  val lift_thm = thm "HOL.eq_reflection";
+  val eq_def_sym = thm "eq_def" |> Thm.symmetric;
+  fun get_eq_thms thy tyco = case DatatypePackage.get_datatype (Context.check_thy thy) tyco
+   of SOME _ => get_eq_datatype (Context.check_thy thy) tyco
+    | NONE => case TypecopyPackage.get_typecopy_info thy tyco
+       of SOME _ => get_eq_typecopy thy tyco
+        | NONE => [];
+in
+  fun get_eq thy tyco =
+    get_eq_thms (Context.check_thy thy) tyco
+    |> tap (fn _ => writeln "10")
+    |> maps ((#mk o #mk_rews o snd o MetaSimplifier.rep_ss o Simplifier.simpset_of) (Context.check_thy thy))
+    |> tap (fn _ => writeln "11")
+    |> constrain_op_eq (Context.check_thy thy)
+    |> tap (fn _ => writeln "12")
+    |> map (Tactic.rewrite_rule [eq_def_sym])
+    |> tap (fn _ => writeln "13")
+end;
+
+end;
+
+fun add_eq_thms (dtco, (_, (vs, cs))) thy =
+  let
+    val thy_ref = Theory.self_ref thy;
+    val ty = Type (dtco, map TFree vs) |> Logic.varifyT;
+    val c = CodegenConsts.norm thy ("OperationalEquality.eq", [ty]);
+    val get_thms = (fn () => get_eq (Theory.deref thy_ref) dtco |> tap (fn _ => writeln "14x") |> rev |> tap (fn _ => writeln "15x"));
+  in
+    CodegenData.add_funcl
+      (c, CodegenData.lazy get_thms) thy
+  end;
+
+fun codetype_hook dtcos theory =
+  let
+    fun add (dtco, (flag, spec)) thy =
+      let
+        fun cert thy_ref = (fn () => get_cert (Theory.deref thy_ref) (flag, dtco));
+      in
+        CodegenData.add_datatype
+          (dtco, (spec, CodegenData.lazy (cert (Theory.self_ref thy)))) thy
+      end;
+  in
+    theory
+    |> fold add dtcos
+  end;
+
+fun eq_hook dtcos =
+  add_eq_instance dtcos (fold add_eq_thms dtcos);
 
 
 
 (** theory setup **)
 
 val setup = 
-  add_codegen "datatype" datatype_codegen #>
-  add_tycodegen "datatype" datatype_tycodegen #>
-  CodegenTheorems.add_datatype_extr
-    get_datatype_spec_thms #>
-  DatatypeHooks.add (fold add_datatype_case_const) #>
-  DatatypeHooks.add (fold add_datatype_case_defs)
+  add_codegen "datatype" datatype_codegen
+  #> add_tycodegen "datatype" datatype_tycodegen 
+  #> DatatypeHooks.add (fold add_datatype_case_const)
+  #> DatatypeHooks.add (fold add_datatype_case_defs)
+
+val setup2 =
+  add_codetypes_hook_bootstrap codetype_hook
+  #> add_codetypes_hook_bootstrap eq_hook
+
 
 end;

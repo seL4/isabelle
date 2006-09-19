@@ -21,9 +21,6 @@ sig
   val get_typecopy_info: theory -> string -> info option
   type hook = string * info -> theory -> theory;
   val add_hook: hook -> theory -> theory;
-  val typecopy_fun_extr: theory -> string * typ -> thm list option
-  val typecopy_type_extr: theory -> string
-    -> (((string * sort) list * (string * typ list) list) * tactic) option
   val print: theory -> unit
   val setup: theory -> theory
 end;
@@ -137,27 +134,13 @@ val add_typecopy = gen_add_typecopy Sign.certify_typ;
 end; (*local*)
 
 
-(* theory setup *)
+(* hooks for projection function code *)
 
-fun typecopy_type_extr thy tyco =
-  case get_typecopy_info thy tyco
-   of SOME { vs, constr, typ, inject, ... } => SOME ((vs, [(constr, [typ])]),
-       (ALLGOALS o match_tac) [eq_reflection]
-          THEN (ALLGOALS o match_tac) [inject])
-    | NONE => NONE;
-
-fun typecopy_fun_extr thy (c, ty) =
-  case (fst o strip_type) ty
-   of Type (tyco, _) :: _ =>
-        (case get_typecopy_info thy tyco
-          of SOME { proj_def, proj as (c', _), ... } =>
-              if c = c' then SOME [proj_def] else NONE
-           | NONE => NONE)
-    | _ => NONE;
+fun add_project (_ , { proj_def, ...} : info) =
+  CodegenData.add_func proj_def;
 
 val setup =
   TypecopyData.init
-  #> CodegenTheorems.add_fun_extr (these oo typecopy_fun_extr)
-  #> CodegenTheorems.add_datatype_extr typecopy_type_extr;
+  #> add_hook add_project;
 
 end; (*struct*)

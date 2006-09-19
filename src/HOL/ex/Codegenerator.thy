@@ -27,8 +27,6 @@ subsection {* pairs *}
 definition
   swap :: "'a * 'b \<Rightarrow> 'b * 'a"
   "swap p = (let (x, y) = p in (y, x))"
-  swapp :: "'a * 'b \<Rightarrow> 'c * 'd \<Rightarrow> ('a * 'c) * ('b * 'd)"
-  "swapp = (\<lambda>(x, y) (z, w). ((x, z), (y, w)))"
   appl :: "('a \<Rightarrow> 'b) * 'a \<Rightarrow> 'b"
   "appl p = (let (f, x) = p in f x)"
 
@@ -91,8 +89,14 @@ code_constname
   h "Mymod.A.B.f"
 
 code_gen xor
-code_gen one "0::nat" "1::nat"
-code_gen "0::int" "1::int" n fac
+code_gen one
+code_gen "0::int" "1::int"
+  (SML) (Haskell)
+code_gen n
+  (SML) (Haskell)
+code_gen fac
+  (SML) (Haskell)
+code_gen n
   (SML) (Haskell)
 code_gen
   "op + :: nat \<Rightarrow> nat \<Rightarrow> nat"
@@ -101,7 +105,9 @@ code_gen
   "op < :: nat \<Rightarrow> nat \<Rightarrow> bool"
   "op <= :: nat \<Rightarrow> nat \<Rightarrow> bool"
 code_gen
-  Pair fst snd Let split swap swapp appl
+  Pair fst snd Let split swap
+code_gen
+  appl
 code_gen
   k
   "op + :: int \<Rightarrow> int \<Rightarrow> int"
@@ -122,43 +128,31 @@ code_gen
 code_gen
   mut1 mut2
 code_gen
-  "op @" filter concat foldl foldr hd tl
-  last butlast list_all2
-  map 
-  nth 
-  list_update
-  take
-  drop
-  takeWhile
-  dropWhile
-  rev
-  zip
-  upt
-  remdups
   remove1
   null
-  "distinct"
   replicate
   rotate1
   rotate
   splice
-  (SML) (Haskell)
+code_gen
+  remdups
+  "distinct"
 code_gen
   foo1 foo3
 code_gen
-  "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"
-  "op = :: nat \<Rightarrow> nat \<Rightarrow> bool"
-  "op = :: int \<Rightarrow> int \<Rightarrow> bool"
-  "op = :: 'a * 'b \<Rightarrow> 'a * 'b \<Rightarrow> bool"
-  "op = :: 'a + 'b \<Rightarrow> 'a + 'b \<Rightarrow> bool"
-  "op = :: 'a option \<Rightarrow> 'a option \<Rightarrow> bool"
-  "op = :: 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
-  "op = :: point \<Rightarrow> point \<Rightarrow> bool"
-  "op = :: mut1 \<Rightarrow> mut1 \<Rightarrow> bool"
-  "op = :: mut2 \<Rightarrow> mut2 \<Rightarrow> bool"
+  "OperationalEquality.eq :: bool \<Rightarrow> bool \<Rightarrow> bool"
+  "OperationalEquality.eq :: nat \<Rightarrow> nat \<Rightarrow> bool"
+  "OperationalEquality.eq :: int \<Rightarrow> int \<Rightarrow> bool"
+  "OperationalEquality.eq :: ('a\<Colon>eq) * ('b\<Colon>eq) \<Rightarrow> 'a * 'b \<Rightarrow> bool"
+  "OperationalEquality.eq :: ('a\<Colon>eq) + ('b\<Colon>eq) \<Rightarrow> 'a + 'b \<Rightarrow> bool"
+  "OperationalEquality.eq :: ('a\<Colon>eq) option \<Rightarrow> 'a option \<Rightarrow> bool"
+  "OperationalEquality.eq :: ('a\<Colon>eq) list \<Rightarrow> 'a list \<Rightarrow> bool"
+  "OperationalEquality.eq :: mut1 \<Rightarrow> mut1 \<Rightarrow> bool"
+  "OperationalEquality.eq :: mut2 \<Rightarrow> mut2 \<Rightarrow> bool"
+  "OperationalEquality.eq :: ('a\<Colon>eq) point_scheme \<Rightarrow> 'a point_scheme \<Rightarrow> bool"
 code_gen
   f g h
 
-code_gen (SML -)
+code_gen (SML -) (SML _)
 
 end

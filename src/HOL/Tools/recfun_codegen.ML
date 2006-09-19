@@ -17,7 +17,7 @@ struct
 
 open Codegen;
 
-structure CodegenData = TheoryDataFun
+structure RecCodegenData = TheoryDataFun
 (struct
   val name = "HOL/recfun_codegen";
   type T = (thm * string option) list Symtab.table;
@@ -40,27 +40,27 @@ fun add optmod = Thm.declaration_attribute (fn thm => Context.map_theory
   let
     fun add thm =
       if Pattern.pattern (lhs_of thm) then
-        CodegenData.map
+        RecCodegenData.map
           (Symtab.update_list ((fst o const_of o prop_of) thm, (thm, optmod)))
       else tap (fn _ => warn thm)
       handle TERM _ => tap (fn _ => warn thm);
   in
     add thm
-    #> CodegenTheorems.add_fun thm
+    #> CodegenData.add_func thm
   end);
 
 fun del_thm thm thy =
   let
-    val tab = CodegenData.get thy;
+    val tab = RecCodegenData.get thy;
     val (s, _) = const_of (prop_of thm);
   in case Symtab.lookup tab s of
       NONE => thy
     | SOME thms =>
-        CodegenData.put (Symtab.update (s, gen_rem (eq_thm o apfst fst) (thms, thm)) tab) thy
+        RecCodegenData.put (Symtab.update (s, gen_rem (eq_thm o apfst fst) (thms, thm)) tab) thy
   end handle TERM _ => (warn thm; thy);
 
 val del = Thm.declaration_attribute
-  (fn thm => Context.map_theory (del_thm thm #> CodegenTheorems.del_fun thm))
+  (fn thm => Context.map_theory (del_thm thm #> CodegenData.del_func thm))
 
 fun del_redundant thy eqs [] = eqs
   | del_redundant thy eqs (eq :: eqs') =
@@ -70,7 +70,7 @@ fun del_redundant thy eqs [] = eqs
     in del_redundant thy (eq :: eqs) (filter_out (matches eq) eqs') end;
 
 fun get_equations thy defs (s, T) =
-  (case Symtab.lookup (CodegenData.get thy) s of
+  (case Symtab.lookup (RecCodegenData.get thy) s of
      NONE => ([], "")
    | SOME thms => 
        let val thms' = del_redundant thy []
@@ -172,10 +172,10 @@ fun recfun_codegen thy defs gr dep module brack t = (case strip_comb t of
 
 
 val setup =
-  CodegenData.init #>
+  RecCodegenData.init #>
   add_codegen "recfun" recfun_codegen #>
   add_attribute ""
     (Args.del |-- Scan.succeed del
-     || Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> add);
+     || Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> (fn name => setmp CodegenData.strict_functyp false (add name)));
 
 end;

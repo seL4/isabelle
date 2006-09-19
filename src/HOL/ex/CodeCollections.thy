@@ -5,7 +5,7 @@
 header {* Collection classes as examples for code generation *}
 
 theory CodeCollections
-imports CodeOperationalEquality
+imports Main
 begin
 
 section {* Collection classes as examples for code generation *}
@@ -119,7 +119,7 @@ where
 
 termination by (auto_term "{}")
 
-instance (ordered) option :: ordered
+instance option :: (ordered) ordered
   "x <<= y == le_option' x y"
 proof (default, unfold ordered_option_def)
   fix x
@@ -149,7 +149,7 @@ where
   "le_pair' (x1, y1) (x2, y2) = (x1 << x2 \<or> x1 = x2 \<and> y1 <<= y2)"
 termination by (auto_term "{}")
 
-instance (ordered, ordered) * :: ordered
+instance * :: (ordered, ordered) ordered
   "x <<= y == le_pair' x y"
 apply (default, unfold "ordered_*_def", unfold split_paired_all)
 apply simp_all
@@ -238,11 +238,11 @@ instance unit :: infimum
   "inf == ()"
   by default (simp add: infimum_unit_def)
 
-instance (ordered) option :: infimum
+instance option :: (ordered) infimum
   "inf == None"
   by default (simp add: infimum_option_def)
 
-instance (infimum, infimum) * :: infimum
+instance * :: (infimum, infimum) infimum
   "inf == (inf, inf)"
   by default (unfold "infimum_*_def", unfold split_paired_all, auto intro: inf)
 
@@ -333,7 +333,7 @@ apply (rule product_all)
 apply (rule member_enum)+
 sorry*)
 
-instance (enum) option :: enum
+instance option :: (enum) enum
   "_4": "enum == None # map Some enum"
 proof (default, unfold enum_option_def)
   fix x :: "'a::enum option"
@@ -398,13 +398,11 @@ definition
   "test1 = sum [None, Some True, None, Some False]"
   "test2 = (inf :: nat \<times> unit)"
 
-code_gen eq
 code_gen "op <<="
 code_gen "op <<"
 code_gen inf
 code_gen between
 code_gen index
-code_gen sum
 code_gen test1
 code_gen test2
 

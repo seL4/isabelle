@@ -126,8 +126,8 @@ lemma [code func, code inline]: "(m < n) = nat_less m n"
   unfolding nat_less_def by simp
 lemma [code func, code inline]: "(m <= n) = nat_less_equal m n"
   unfolding nat_less_equal_def by simp
-lemma [code func, code inline]: "(m = n) = nat_eq m n"
-  unfolding nat_eq_def by simp
+lemma [code func, code inline]: "OperationalEquality.eq m n = nat_eq m n"
+  unfolding nat_eq_def eq_def by simp
 lemma [code func]:
   "int_aux i n = (if nat_eq n 0 then i else int_aux (i + 1) (nat_minus n 1))"
   unfolding nat_eq_def nat_minus_def int_aux_def by simp
@@ -273,8 +273,8 @@ fun lift_obj_eq f thy =
 setup {*
   Codegen.add_preprocessor eqn_suc_preproc
   #> Codegen.add_preprocessor clause_suc_preproc
-  #> CodegenTheorems.add_preproc (lift_obj_eq eqn_suc_preproc)
-  #> CodegenTheorems.add_preproc (lift_obj_eq clause_suc_preproc)
+  #> CodegenData.add_preproc (lift_obj_eq eqn_suc_preproc)
+  #> CodegenData.add_preproc (lift_obj_eq clause_suc_preproc)
 *}
 (*>*)
 

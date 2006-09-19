@@ -48,8 +48,8 @@ definition
   to_rat :: "erat \<Rightarrow> rat"
   to_rat_def: "to_rat r = (case r of (Rat a p q) \<Rightarrow>
        if a then Fract p q else Fract (uminus p) q)"
-  eq_rat :: "erat \<Rightarrow> erat \<Rightarrow> bool"
-  "eq_rat r s = (norm r = norm s)"
+  eq_erat :: "erat \<Rightarrow> erat \<Rightarrow> bool"
+  "eq_erat r s = (norm r = norm s)"
 
 defs (overloaded)
   zero_rat_def: "0 == Rat True 0 1"
@@ -117,7 +117,7 @@ code_gen
   "op * :: erat \<Rightarrow> erat \<Rightarrow> erat"
   "inverse :: erat \<Rightarrow> erat"
   "op <= :: erat \<Rightarrow> erat \<Rightarrow> bool"
-  eq_rat
+  eq_erat
   (SML) (Haskell)
 
 code_const Fract
@@ -156,8 +156,12 @@ code_const "op <= :: rat \<Rightarrow> rat \<Rightarrow> bool"
   (SML "{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
   (Haskell "{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
 
-code_const "op = :: rat \<Rightarrow> rat \<Rightarrow> bool"
-  (SML "{*eq_rat*}")
-  (Haskell "{*eq_rat*}")
+instance rat :: eq ..
+
+code_const "OperationalEquality.eq :: rat \<Rightarrow> rat \<Rightarrow> bool"
+  (SML "{*eq_erat*}")
+  (Haskell "{*eq_erat*}")
+
+code_gen (SML -)
 
 end

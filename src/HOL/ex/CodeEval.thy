@@ -13,7 +13,7 @@ section {* A simple embedded term evaluation mechanism *}
 subsection {* The typ_of class *}
 
 class typ_of =
-  fixes typ_of :: "'a option \<Rightarrow> typ"
+  fixes typ_of :: "'a itself \<Rightarrow> typ"
 
 ML {*
 structure TypOf =
@@ -22,17 +22,15 @@ struct
 local
   val thy = the_context ();
   val const_typ_of = Sign.intern_const thy "typ_of";
-  val const_None = Sign.intern_const thy "None";
-  fun typ_option ty = Type (Sign.intern_type (the_context ()) "option", [ty]);
-  fun term_typ_of ty = Const (const_typ_of, typ_option ty --> Embed.typ_typ);
+  fun term_typ_of ty = Const (const_typ_of, Term.itselfT ty --> Embed.typ_typ);
 in
   val class_typ_of = Sign.intern_class thy "typ_of";
-  fun term_typ_of_None ty =
-    term_typ_of ty $ Const (const_None, typ_option ty);
+  fun term_typ_of_type ty =
+    term_typ_of ty $ Logic.mk_type ty;
   fun mk_typ_of_def ty =
     let
-      val lhs = term_typ_of ty $ Free ("x", typ_option ty)
-      val rhs = Embed.term_typ (fn v => term_typ_of_None (TFree v)) ty
+      val lhs = term_typ_of ty $ Free ("x", Term.itselfT ty)
+      val rhs = Embed.term_typ (fn v => term_typ_of_type (TFree v)) ty
     in Logic.mk_equals (lhs, rhs) end;
 end;
 
@@ -41,14 +39,15 @@ end;
 
 setup {*
 let
-  fun mk _ arities _ =
+  fun mk thy arities _ =
     maps (fn ((tyco, asorts), _) => [(("", []), TypOf.mk_typ_of_def
-      (Type (tyco, map TFree (Name.names Name.context "'a" asorts))))]) arities;
+      (Type (tyco, map TFree (Name.names Name.context "'a" asorts)))
+      |> tap (writeln o Sign.string_of_term thy))]) arities;
   fun tac _ = ClassPackage.intro_classes_tac [];
   fun hook specs =
     DatatypeCodegen.prove_codetypes_arities tac
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
-      [TypOf.class_typ_of] mk
+      [TypOf.class_typ_of] mk I
 in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
 *}
 
@@ -56,7 +55,7 @@ in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
 subsection {* term_of class *}
 
 class term_of = typ_of +
-  constrains typ_of :: "'a option \<Rightarrow> typ"
+  constrains typ_of :: "'a itself \<Rightarrow> typ"
   fixes term_of :: "'a \<Rightarrow> term"
 
 ML {*
@@ -77,7 +76,7 @@ in
           val lhs : term = term_term_of dty $ c;
           val rhs : term = Embed.term_term
             (fn (v, ty) => term_term_of ty $ Free (v, ty))
-            (Embed.term_typ (fn (v, sort) => TypOf.term_typ_of_None (TFree (v, sort)))) c
+            (Embed.term_typ (fn (v, sort) => TypOf.term_typ_of_type (TFree (v, sort)))) c
         in
           HOLogic.mk_eq (lhs, rhs)
         end;
@@ -103,7 +102,7 @@ let
     else
       DatatypeCodegen.prove_codetypes_arities tac
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
-      [TermOf.class_term_of] mk
+      [TermOf.class_term_of] mk I
 in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
 *}
 
@@ -116,10 +115,9 @@ lemma lift_eq_Trueprop:
 ML {*
 signature EVAL =
 sig
-  val eval_term: term -> theory -> term * theory
-  val eval_term' : theory -> term -> term
+  val eval_term: theory -> term -> term
   val term: string -> unit
-  val eval_ref: term ref
+  val eval_ref: term option ref
   val oracle: string * (theory * exn -> term)
   val method: Method.src -> Proof.context -> Method.method
 end;
@@ -127,30 +125,24 @@ end;
 structure Eval : EVAL =
 struct
 
-val eval_ref = ref Logic.protectC;
+val eval_ref = ref NONE;
 
-fun eval_term t =
+fun eval_term thy t =
   CodegenPackage.eval_term
-    (("Eval.eval_ref", eval_ref), TermOf.mk_term_of t);
-
-fun eval_term' thy t =
-  let
-    val thy' = Theory.copy thy;
-    val (t', _) = eval_term t thy';
-  in t' end;
+    thy (("Eval.eval_ref", eval_ref), TermOf.mk_term_of t);
 
 fun term t =
   let
     val thy = the_context ();
-    val t' = eval_term' thy (Sign.read_term thy t);
-  in () end;
+    val t = eval_term thy (Sign.read_term thy t);
+  in (writeln o Sign.string_of_term thy) t end;
 
 val lift_eq_Trueprop = thm "lift_eq_Trueprop";
 
 exception Eval of term;
 
 val oracle = ("Eval", fn (thy, Eval t) =>
-  Logic.mk_equals (t, eval_term' thy t));
+  Logic.mk_equals (t, eval_term thy t));
 
 val oracle_name = NameSpace.pack [Context.theory_name (the_context ()), fst oracle];
 
@@ -193,8 +185,6 @@ datatype ('a, 'b) bair =
   | Dummy unit
 and ('a, 'b) cair =
     Cair 'a 'b
-
-code_gen term_of
 
 ML {* Eval.term "Shift (Cair (4::nat) [Suc 0])" *}
 
