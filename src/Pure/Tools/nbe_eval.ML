@@ -88,9 +88,9 @@ datatype Univ =
   | Fun of (Univ list -> Univ) * (Univ list) * int * (unit -> nterm);
 
 fun to_term (Constr(name, args))    = apps (C name) (map to_term args)
-  |	to_term (Var   (name, args))    = apps (V name) (map to_term args)
-  |	to_term (BVar  (name, args))    = apps (B name) (map to_term args)
-  |	to_term (Fun(_,args,_,name_thunk)) = apps (name_thunk ()) (map to_term args);
+  | to_term (Var   (name, args))    = apps (V name) (map to_term args)
+  | to_term (BVar  (name, args))    = apps (B name) (map to_term args)
+  | to_term (Fun(_,args,_,name_thunk)) = apps (name_thunk ()) (map to_term args);
 
 (*
    A typical operation, why functions might be good for, is

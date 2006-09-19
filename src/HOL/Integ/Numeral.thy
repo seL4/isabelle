@@ -441,6 +441,7 @@ lemma neg_number_of_BIT:
   by (simp add: neg_def number_of_eq numeral_simps double_less_0_iff
     Ints_odd_less_0 Ints_def split: bit.split)
 
+
 text {* Less-Than or Equals *}
 
 text {* Reduces @{term "a\<le>b"} to @{term "~ (b<a)"} for ALL numerals. *}

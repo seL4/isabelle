@@ -10,7 +10,6 @@ begin
 
 setup  -- {* Common setup of internal components *}
 
-
 subsection {* Meta-level connectives in assumptions *}
 
 lemma meta_mp:
