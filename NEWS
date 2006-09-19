@@ -468,6 +468,9 @@ the graph browser tool.
 
 *** HOL ***
 
+* New theory OperationalEquality providing class 'eq' with constant 'eq',
+allowing for code generation with polymorphic equality.
+
 * Numeral syntax: type 'bin' which was a mere type copy of 'int' has been
 abandoned in favour of plain 'int'. INCOMPATIBILITY -- Significant changes
 for setting up numeral syntax for types:
@@ -601,6 +604,10 @@ means a goal is either solved or left unchanged, no simplification.
 
 
 *** ML ***
+
+* Pure/General/susp.ML:
+
+New module for delayed evaluations.
 
 * Pure/library:
 
