@@ -58,7 +58,7 @@ perl -e '
         my $m = $6;
         my $s = $7;
 
-        my $date = $month - 1 + ($day - 1) / 31;
+        my $date = $year + ($month - 1) / 31 + ($day - 1) / 365;
         my $time = ($h * 3600 + $m * 60 + $s) / 60;
 
         printf "%s %.2f %.2f\n", $name, $date, $time;
@@ -71,7 +71,7 @@ do
   gnuplot <<EOF
 set terminal png
 set output "${SESSION}.png"
-plot [] [0:40] "$SESSION_DATA" using 2:3 title "$SESSION" smooth sbezier, "$SESSION_DATA" using 2:3 title "$SESSION" smooth csplines
+plot [] [0:50] "$SESSION_DATA" using 2:3 title "$SESSION" smooth sbezier, "$SESSION_DATA" using 2:3 title "$SESSION" smooth csplines
 EOF
 done
 
