@@ -294,6 +294,9 @@ code_module Higman
 contains
   test = good_prefix
 
+declare barT.recs(2) [where ?fun = ?func, code func]
+code_gen good_prefix (SML _) (SML "~~/src/codegen/generated/higman.ML")
+
 ML {*
 local open Higman in
 

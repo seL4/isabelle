@@ -448,6 +448,9 @@ lemma [code]:
 consts_code
   "some_elem" ("hd")
 
+code_const some_elem
+  (SML "{*hd*}")
+
 lemma JVM_sup_unfold [code]:
  "JVMType.sup S m n = lift2 (Opt.sup
        (Product.sup (Listn.sup (JType.sup S))

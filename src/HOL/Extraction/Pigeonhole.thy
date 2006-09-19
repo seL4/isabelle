@@ -285,6 +285,9 @@ we generate ML code from them.
 consts_code
   arbitrary :: "nat \<times> nat" ("{* (0::nat, 0::nat) *}")
 
+code_const "arbitrary \<Colon> nat \<times> nat"
+  (SML "{* (0\<Colon>nat, 0\<Colon>nat) *}")
+
 code_module PH
 contains
   test = "\<lambda>n. pigeonhole n (\<lambda>m. m - 1)"

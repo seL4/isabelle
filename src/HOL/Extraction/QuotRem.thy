@@ -49,4 +49,6 @@ code_module Div
 contains
   test = "division 9 2"
 
+code_gen division (SML -)
+
 end
