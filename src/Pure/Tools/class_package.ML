@@ -410,7 +410,7 @@ fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arities (raw_na
              of NONE => error ("superfluous definition for constant " ^ quote c)
               | SOME class_ty => class_ty;
             val name = case name_opt
-             of NONE => Thm.def_name (NameSpace.base c ^ "_" ^ NameSpace.base tyco)
+             of NONE => Thm.def_name (Logic.name_arity (tyco, [], c))
               | SOME name => name;
             val t' = case mk_typnorm thy_read (ty', ty)
              of NONE => error ("superfluous definition for constant " ^

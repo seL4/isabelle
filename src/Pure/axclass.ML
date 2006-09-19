@@ -78,8 +78,8 @@ fun merge_axclasses pp ((tab1, params1), (tab2, params2)) : axclasses =
 
 (* instances *)
 
-val classrelN = "classrel";
-val arityN = "arity";
+val classrel_prefix = "classrel_";
+val arity_prefix = "arity_";
 
 type instances =
   ((class * class) * thm) list *
@@ -239,13 +239,14 @@ fun prove_classrel raw_rel tac thy =
         quote (Sign.string_of_classrel thy [c1, c2]));
   in
     thy
-    |> PureThy.add_thms [((classrelN ^ "_" ^ serial_string (), th), [])]
+    |> PureThy.add_thms [((prefix classrel_prefix (Logic.name_classrel (c1, c2)), th), [])]
     |-> (fn [th'] => add_classrel th')
   end;
 
 fun prove_arity raw_arity tac thy =
   let
     val arity = Sign.cert_arity thy raw_arity;
+    val names = map (prefix arity_prefix) (Logic.name_arities arity);
     val props = Logic.mk_arities arity;
     val ths = Goal.prove_multi (ProofContext.init thy) [] [] props
       (fn _ => Tactic.precise_conjunction_tac (length props) 1 THEN tac) handle ERROR msg =>
@@ -253,7 +254,7 @@ fun prove_arity raw_arity tac thy =
           quote (Sign.string_of_arity thy arity));
   in
     thy
-    |> PureThy.add_thms (ths |> map (fn th => ((arityN ^ "_" ^ serial_string (), th), [])))
+    |> PureThy.add_thms (map (rpair []) (names ~~ ths))
     |-> fold add_arity
   end;
 
@@ -345,15 +346,20 @@ end;
 
 local
 
-fun axiomatize kind add prep arg thy =
-  let val specs = arg |> prep thy |> map (fn prop => ((kind ^ "_" ^ serial_string (), prop), []))
-  in thy |> PureThy.add_axioms_i specs |-> fold add end;
+fun axiomatize prep mk name add raw_args thy =
+  let
+    val args = prep thy raw_args;
+    val specs = mk args;
+    val names = name args;
+  in thy |> PureThy.add_axioms_i (map (rpair []) (names ~~ specs)) |-> fold add end;
 
 fun ax_classrel prep =
-  axiomatize classrelN add_classrel (fn thy => map (prep thy #> Logic.mk_classrel));
+  axiomatize (map o prep) (map Logic.mk_classrel)
+    (map (prefix classrel_prefix o Logic.name_classrel)) add_classrel;
 
 fun ax_arity prep =
-  axiomatize arityN add_arity (fn thy => prep thy #> Logic.mk_arities);
+  axiomatize prep Logic.mk_arities
+    (map (prefix arity_prefix) o Logic.name_arities) add_arity;
 
 fun class_const c =
   (Logic.const_of_class c, Term.itselfT (Term.aT []) --> propT);
