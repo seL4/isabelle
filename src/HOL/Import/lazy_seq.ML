@@ -82,7 +82,7 @@ struct
 
 open Susp
 
-datatype 'a seq = Seq of ('a * 'a seq) option susp
+datatype 'a seq = Seq of ('a * 'a seq) option Susp.T
 
 exception Empty
 

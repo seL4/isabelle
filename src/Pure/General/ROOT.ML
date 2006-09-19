@@ -17,6 +17,7 @@ use "symbol.ML";
 use "name_space.ML";
 use "name_mangler.ML";
 use "seq.ML";
+use "susp.ML";
 use "rat.ML";
 use "position.ML";
 use "path.ML";
