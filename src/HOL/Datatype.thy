@@ -9,6 +9,8 @@ theory Datatype
 imports Datatype_Universe
 begin
 
+setup "DatatypeCodegen.setup2"
+
 subsection {* Representing primitive types *}
 
 rep_datatype bool
@@ -296,5 +298,11 @@ code_type option
 code_const None and Some
   (SML target_atom "NONE" and target_atom "SOME")
   (Haskell target_atom "Nothing" and target_atom "Just")
+
+code_instance option :: eq
+  (Haskell -)
+
+code_const "OperationalEquality.eq \<Colon> 'a\<Colon>eq option \<Rightarrow> 'a option \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
 
 end

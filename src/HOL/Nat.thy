@@ -1041,10 +1041,25 @@ lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = 1 | m = 0"
   apply (fastsimp dest: mult_less_mono2)
   done
 
+
 subsection {* Code generator setup *}
 
 lemma one_is_suc_zero [code inline]:
   "1 = Suc 0"
   by simp
+
+instance nat :: eq ..
+
+lemma [code func]:
+  "OperationalEquality.eq (0\<Colon>nat) 0 = True" unfolding eq_def by auto
+
+lemma [code func]:
+  "OperationalEquality.eq (Suc n) (Suc m) = OperationalEquality.eq n m" unfolding eq_def by auto
+
+lemma [code func]:
+  "OperationalEquality.eq (Suc n) 0 = False" unfolding eq_def by auto
+
+lemma [code func]:
+  "OperationalEquality.eq 0 (Suc m) = False" unfolding eq_def by auto
 
 end

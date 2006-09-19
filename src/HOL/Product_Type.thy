@@ -15,7 +15,7 @@ subsection {* Unit *}
 
 typedef unit = "{True}"
 proof
-  show "True : ?unit" by blast
+  show "True : ?unit" ..
 qed
 
 constdefs
@@ -760,6 +760,29 @@ setup SplitRule.setup
 
 
 subsection {* Code generator setup *}
+
+instance unit :: eq ..
+
+lemma [code func]:
+  "OperationalEquality.eq (u\<Colon>unit) v = True" unfolding eq_def unit_eq [of u] unit_eq [of v] by rule+
+
+code_instance unit :: eq
+  (Haskell -)
+
+instance * :: (eq, eq) eq ..
+
+lemma [code func]:
+  "OperationalEquality.eq (x1, y1) (x2, y2) = (OperationalEquality.eq x1 x2 \<and> OperationalEquality.eq y1 y2)"
+  unfolding eq_def by auto
+
+code_instance * :: eq
+  (Haskell -)
+
+code_const "OperationalEquality.eq \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_const "OperationalEquality.eq \<Colon> 'a\<Colon>eq \<times> 'b\<Colon>eq \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
 
 types_code
   "*"     ("(_ */ _)")

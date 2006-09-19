@@ -191,6 +191,27 @@ by blast
 lemma Part_Collect: "Part (A Int {x. P x}) h = (Part A h) Int {x. P x}"
 by blast
 
+
+subsection {* Code generator setup *}
+
+instance "+" :: (eq, eq) eq ..
+
+lemma [code func]:
+  "OperationalEquality.eq (Inl x) (Inl y) = OperationalEquality.eq x y"
+  unfolding eq_def Inl_eq ..
+
+lemma [code func]:
+  "OperationalEquality.eq (Inr x) (Inr y) = OperationalEquality.eq x y"
+  unfolding eq_def Inr_eq ..
+
+lemma [code func]:
+  "OperationalEquality.eq (Inl x) (Inr y) = False"
+  unfolding eq_def using Inl_not_Inr by auto
+
+lemma [code func]:
+  "OperationalEquality.eq (Inr x) (Inl y) = False"
+  unfolding eq_def using Inr_not_Inl by auto
+
 ML
 {*
 val Inl_RepI = thm "Inl_RepI";

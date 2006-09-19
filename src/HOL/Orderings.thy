@@ -8,18 +8,16 @@ FIXME: derive more of the min/max laws generically via semilattices
 header {* Type classes for $\le$ *}
 
 theory Orderings
-imports Lattice_Locales
+imports OperationalEquality Lattice_Locales
 uses ("antisym_setup.ML")
 begin
 
 subsection {* Order signatures and orders *}
 
-axclass
-  ord < type
-
-consts
-  less  :: "['a::ord, 'a] => bool"
-  less_eq  :: "['a::ord, 'a] => bool"
+class ord = eq +
+  constrains eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+  fixes less    :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 
 const_syntax
   less  ("op <")

@@ -2282,7 +2282,8 @@ subsubsection {* Code generation *}
 
 text{* Defaults for generating efficient code for some standard functions. *}
 
-lemmas in_set_code[code unfold] = mem_iff[symmetric, THEN eq_reflection]
+lemmas in_set_code [code unfold] =
+  mem_iff [symmetric, THEN eq_reflection]
 
 lemma rev_code[code unfold]: "rev xs == itrev xs []"
 by simp
@@ -2759,6 +2760,15 @@ code_type char
 code_const Char
   (SML target_atom "(__,/ __)")
   (Haskell target_atom "(__,/ __)")
+
+code_instance list :: eq and char :: eq
+  (Haskell - and -)
+
+code_const "OperationalEquality.eq \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_const "OperationalEquality.eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
 
 setup {*
 let
