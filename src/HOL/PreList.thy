@@ -4,14 +4,15 @@
     Copyright   2000 TU Muenchen
 *)
 
-header{*A Basis for Building the Theory of Lists*}
+header {* A Basis for Building the Theory of Lists *}
 
 theory PreList
 imports Wellfounded_Relations Presburger Relation_Power Binomial
 begin
 
 text {*
-  Is defined separately to serve as a basis for theory ToyList in the
-  documentation. *}
+  This is defined separately to serve as a basis for
+  theory ToyList in the documentation.
+*}
 
 end
