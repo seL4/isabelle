@@ -554,9 +554,9 @@ local
   val not_false_true = iffD2 OF [nth (thms "HOL.simp_thms") 7, TrueI];
 in fun get_eq_datatype thy dtco =
   let
-    val _ = writeln "01";
+(*     val _ = writeln "01";  *)
     val SOME (vs, cs) = DatatypePackage.get_datatype_spec (Context.check_thy thy) dtco;
-    val _ = writeln "02";
+(*     val _ = writeln "02";  *)
     fun mk_triv_inject co =
       let
         val ct' = Thm.cterm_of (Context.check_thy thy)
@@ -567,26 +567,26 @@ in fun get_eq_datatype thy dtco =
           (K o SOME) (Thm.cterm_of (Context.check_thy thy) (Var (v, Thm.typ_of cty')), Thm.ctyp_of (Context.check_thy thy) ty) | _ => I)
           refl NONE;
       in eqTrueI OF [Thm.instantiate ([(cty, cty')], [(ct, ct')]) HOL.refl] end;
-    val _ = writeln "03";
+(*     val _ = writeln "03";  *)
     val inject1 = map_filter (fn (co, []) => SOME (mk_triv_inject co) | _ => NONE) cs
-    val _ = writeln "04";
+(*     val _ = writeln "04";  *)
     val inject2 = (#inject o DatatypePackage.the_datatype (Context.check_thy thy)) dtco;
-    val _ = writeln "05";
+(*     val _ = writeln "05";  *)
     val ctxt = Context.init_proof (Context.check_thy thy);
-    val _ = writeln "06";
+(*     val _ = writeln "06";  *)
     val simpset = Simplifier.context ctxt
       (MetaSimplifier.empty_ss addsimprocs [distinct_simproc]);
-    val _ = writeln "07";
+(*     val _ = writeln "07";  *)
     val cos = map (fn (co, tys) =>
         (Const (co, tys ---> Type (dtco, map TFree vs)), tys)) cs;
     val tac = ALLGOALS (simp_tac simpset)
       THEN ALLGOALS (ProofContext.fact_tac [not_false_true, TrueI]);
-    val _ = writeln "08";
+(*     val _ = writeln "08";  *)
     val distinct =
       mk_distinct cos
       |> map (fn t => Goal.prove_global (Context.check_thy thy) [] [] t (K tac))
       |> (fn thms => thms @ map (fn thm => not_sym OF [thm]) thms)
-    val _ = writeln "09";
+(*     val _ = writeln "09";  *)
   in inject1 @ inject2 @ distinct end;
 
 fun get_eq_typecopy thy tyco =
@@ -606,13 +606,13 @@ local
 in
   fun get_eq thy tyco =
     get_eq_thms (Context.check_thy thy) tyco
-    |> tap (fn _ => writeln "10")
+(*     |> tap (fn _ => writeln "10")  *)
     |> maps ((#mk o #mk_rews o snd o MetaSimplifier.rep_ss o Simplifier.simpset_of) (Context.check_thy thy))
-    |> tap (fn _ => writeln "11")
+(*     |> tap (fn _ => writeln "11")  *)
     |> constrain_op_eq (Context.check_thy thy)
-    |> tap (fn _ => writeln "12")
+(*     |> tap (fn _ => writeln "12")  *)
     |> map (Tactic.rewrite_rule [eq_def_sym])
-    |> tap (fn _ => writeln "13")
+(*     |> tap (fn _ => writeln "13")  *)
 end;
 
 end;
@@ -622,7 +622,7 @@ fun add_eq_thms (dtco, (_, (vs, cs))) thy =
     val thy_ref = Theory.self_ref thy;
     val ty = Type (dtco, map TFree vs) |> Logic.varifyT;
     val c = CodegenConsts.norm thy ("OperationalEquality.eq", [ty]);
-    val get_thms = (fn () => get_eq (Theory.deref thy_ref) dtco |> tap (fn _ => writeln "14x") |> rev |> tap (fn _ => writeln "15x"));
+    val get_thms = (fn () => get_eq (Theory.deref thy_ref) dtco |> rev);
   in
     CodegenData.add_funcl
       (c, CodegenData.lazy get_thms) thy

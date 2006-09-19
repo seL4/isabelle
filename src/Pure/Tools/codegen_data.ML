@@ -180,9 +180,9 @@ type sdthms = lthms * thm list;
 
 fun add_drop_redundant thm thms =
   let
-    val _ = writeln "add_drop 01";
+(*     val _ = writeln "add_drop 01";  *)
     val thy = Context.check_thy (Thm.theory_of_thm thm);
-    val _ = writeln "add_drop 02";
+(*     val _ = writeln "add_drop 02";  *)
     val pattern = (fst o Logic.dest_equals o Drule.plain_prop_of) thm;
     fun matches thm' = if (curry (Pattern.matches thy) pattern o
       fst o Logic.dest_equals o Drule.plain_prop_of) thm'
