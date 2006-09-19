@@ -139,7 +139,7 @@ val rm_redundant_cls = List.filter (not o is_taut);
 fun declare_skofuns s th thy =
   let fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) (thy, axs) =
             (*Existential: declare a Skolem function, then insert into body and continue*)
-            let val cname = gensym ("sko_" ^ s ^ "_")
+            let val cname = Name.internal (gensym ("sko_" ^ s ^ "_"))
                 val args = term_frees xtp  (*get the formal parameter list*)
                 val Ts = map type_of args
                 val cT = Ts ---> T
@@ -276,7 +276,7 @@ fun declare_absfuns th =
         else
         case term_of ct of
           Abs (_,T,u) =>
-            let val cname = gensym "abs_"
+            let val cname = Name.internal (gensym "abs_");
                 val _ = assert_eta_free ct;
                 val (cv,cta) = Thm.dest_abs NONE ct
                 val v = (#1 o dest_Free o term_of) cv
