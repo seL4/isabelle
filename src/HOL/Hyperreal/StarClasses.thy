@@ -283,13 +283,13 @@ by (intro_classes, transfer, rule distrib)
 instance star :: (comm_semiring_0) comm_semiring_0 ..
 instance star :: (comm_semiring_0_cancel) comm_semiring_0_cancel ..
 
-instance star :: (axclass_0_neq_1) axclass_0_neq_1
+instance star :: (zero_neq_one) zero_neq_one
 by (intro_classes, transfer, rule zero_neq_one)
 
 instance star :: (semiring_1) semiring_1 ..
 instance star :: (comm_semiring_1) comm_semiring_1 ..
 
-instance star :: (axclass_no_zero_divisors) axclass_no_zero_divisors
+instance star :: (no_zero_divisors) no_zero_divisors
 by (intro_classes, transfer, rule no_zero_divisors)
 
 instance star :: (semiring_1_cancel) semiring_1_cancel ..
@@ -340,7 +340,7 @@ by (intro_classes, transfer, rule ordered_comm_semiring_strict_class.mult_strict
 instance star :: (pordered_ring) pordered_ring ..
 instance star :: (lordered_ring) lordered_ring ..
 
-instance star :: (axclass_abs_if) axclass_abs_if
+instance star :: (abs_if) abs_if
 by (intro_classes, transfer, rule abs_if)
 
 instance star :: (ordered_ring_strict) ordered_ring_strict ..

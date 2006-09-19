@@ -241,10 +241,10 @@ instance lordered_ring \<subseteq> lordered_ab_group_meet ..
 
 instance lordered_ring \<subseteq> lordered_ab_group_join ..
 
-axclass axclass_abs_if \<subseteq> minus, ord, zero
+axclass abs_if \<subseteq> minus, ord, zero
   abs_if: "abs a = (if (a < 0) then (-a) else a)"
 
-axclass ordered_ring_strict \<subseteq> ring, ordered_semiring_strict, axclass_abs_if
+axclass ordered_ring_strict \<subseteq> ring, ordered_semiring_strict, abs_if
 
 instance ordered_ring_strict \<subseteq> lordered_ab_group ..
 
@@ -256,7 +256,7 @@ axclass pordered_comm_ring \<subseteq> comm_ring, pordered_comm_semiring
 axclass ordered_semidom \<subseteq> comm_semiring_1_cancel, ordered_comm_semiring_strict (* previously ordered_semiring *)
   zero_less_one [simp]: "0 < 1"
 
-axclass ordered_idom \<subseteq> comm_ring_1, ordered_comm_semiring_strict, axclass_abs_if (* previously ordered_ring *)
+axclass ordered_idom \<subseteq> comm_ring_1, ordered_comm_semiring_strict, abs_if (* previously ordered_ring *)
 
 instance ordered_idom \<subseteq> ordered_ring_strict ..
 

@@ -954,7 +954,7 @@ by (fast dest: SReal_number_of [THEN SReal_Infinitesimal_zero])
 
 (*again: 1 is a special case, but not 0 this time*)
 lemma one_not_Infinitesimal [simp]:
-  "(1::'a::{real_normed_vector,axclass_0_neq_1} star) \<notin> Infinitesimal"
+  "(1::'a::{real_normed_vector,zero_neq_one} star) \<notin> Infinitesimal"
 apply (simp only: star_one_def star_of_Infinitesimal_iff_0)
 apply simp
 done
@@ -1032,8 +1032,8 @@ lemma [simp]:
    (number_of w = (1::'b))"
   "((1::'b::{number,one,real_normed_vector} star) @= number_of w) =
    (number_of w = (1::'b))"
-  "~ (0 @= (1::'c::{axclass_0_neq_1,real_normed_vector} star))"
-  "~ (1 @= (0::'c::{axclass_0_neq_1,real_normed_vector} star))"
+  "~ (0 @= (1::'c::{zero_neq_one,real_normed_vector} star))"
+  "~ (1 @= (0::'c::{zero_neq_one,real_normed_vector} star))"
 apply (unfold star_number_def star_zero_def star_one_def)
 apply (unfold star_of_approx_iff)
 by (auto intro: sym)

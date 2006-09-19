@@ -132,14 +132,14 @@ apply (simplesubst RepAbs_matrix)
 apply (rule exI[of _ n], simp add: split_if)+
 by (simp add: split_if)
 
-lemma nrows_one_matrix[simp]: "nrows ((one_matrix n) :: ('a::axclass_0_neq_1)matrix) = n" (is "?r = _")
+lemma nrows_one_matrix[simp]: "nrows ((one_matrix n) :: ('a::zero_neq_one)matrix) = n" (is "?r = _")
 proof -
   have "?r <= n" by (simp add: nrows_le)
   moreover have "n <= ?r" by (simp add:le_nrows, arith)
   ultimately show "?r = n" by simp
 qed
 
-lemma ncols_one_matrix[simp]: "ncols ((one_matrix n) :: ('a::axclass_0_neq_1)matrix) = n" (is "?r = _")
+lemma ncols_one_matrix[simp]: "ncols ((one_matrix n) :: ('a::zero_neq_one)matrix) = n" (is "?r = _")
 proof -
   have "?r <= n" by (simp add: ncols_le)
   moreover have "n <= ?r" by (simp add: le_ncols, arith)
