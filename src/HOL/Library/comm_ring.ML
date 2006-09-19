@@ -6,9 +6,7 @@ Tactic for solving equalities over commutative rings.
 
 signature COMM_RING =
 sig
-  val comm_ring_tac : int -> tactic
-  val comm_ring_method: int -> Proof.method
-  val algebra_method: int -> Proof.method
+  val comm_ring_tac : Proof.context -> int -> tactic
   val setup : theory -> theory
 end
 
@@ -25,7 +23,7 @@ fun cring_one T = Const("1",T);
 (* reification functions *)
 (* add two polynom expressions *)
 fun polT t = Type ("Commutative_Ring.pol",[t]);
-fun  polexT t = Type("Commutative_Ring.polex",[t]);
+fun polexT t = Type("Commutative_Ring.polex",[t]);
 val nT = HOLogic.natT;
 fun listT T = Type ("List.list",[T]);
 
@@ -40,7 +38,7 @@ fun reif_list T [] = Const("List.list.Nil",listT T)
   | reif_list T (x::xs) = Const("List.list.Cons",[T,listT T] ---> listT T)
                              $x$(reif_list T xs);
 
-(* pol*)
+(* pol *)
 fun pol_Pc t = Const("Commutative_Ring.pol.Pc",t --> polT t);
 fun pol_Pinj t = Const("Commutative_Ring.pol.Pinj",[nT,polT t] ---> polT t);
 fun pol_PX t = Const("Commutative_Ring.pol.PX",[polT t, nT, polT t] ---> polT t);
@@ -52,6 +50,7 @@ fun polex_mul t = Const("Commutative_Ring.polex.Mul",[polexT t,polexT t] ---> po
 fun polex_neg t = Const("Commutative_Ring.polex.Neg",polexT t --> polexT t);
 fun polex_pol t = Const("Commutative_Ring.polex.Pol",polT t --> polexT t);
 fun polex_pow t = Const("Commutative_Ring.polex.Pow",[polexT t, nT] ---> polexT t);
+
 (* reification of natural numbers *)
 fun reif_nat n =
     if n>0 then succ$(reif_nat (n-1))
@@ -91,52 +90,49 @@ fun reif_polex T vs t =
 
 (* reification of the equation *)
 val cr_sort = Sign.read_sort (the_context ()) "{comm_ring,recpower}";
-fun reif_eq sg (eq as Const("op =",Type("fun",a::_))$lhs$rhs) =
-    if Sign.of_sort (the_context()) (a,cr_sort)
+fun reif_eq thy (eq as Const("op =",Type("fun",a::_))$lhs$rhs) =
+    if Sign.of_sort thy (a,cr_sort)
     then
         let val fs = term_frees eq
-            val cvs = cterm_of sg (reif_list a fs)
-            val clhs = cterm_of sg (reif_polex a fs lhs)
-            val crhs = cterm_of sg (reif_polex a fs rhs)
-            val ca = ctyp_of sg a
+            val cvs = cterm_of thy (reif_list a fs)
+            val clhs = cterm_of thy (reif_polex a fs lhs)
+            val crhs = cterm_of thy (reif_polex a fs rhs)
+            val ca = ctyp_of thy a
         in (ca,cvs,clhs, crhs)
         end
     else raise CRing "reif_eq: not an equation over comm_ring + recpower"
-  | reif_eq sg _ = raise CRing "reif_eq: not an equation";
+  | reif_eq _ _ = raise CRing "reif_eq: not an equation";
 
 (*The cring tactic  *)
 (* Attention: You have to make sure that no t^0 is in the goal!! *)
 (* Use simply rewriting t^0 = 1 *)
-fun cring_ss sg = simpset_of sg
-                           addsimps
-                           (map thm ["mkPX_def", "mkPinj_def","sub_def",
-                                     "power_add","even_def","pow_if"])
-                           addsimps [sym OF [thm "power_add"]];
+val cring_simps =
+  map thm ["mkPX_def", "mkPinj_def","sub_def", "power_add","even_def","pow_if"] @
+  [sym OF [thm "power_add"]];
 
 val norm_eq = thm "norm_eq"
-fun comm_ring_tac i =(fn st =>
-    let
-        val g = List.nth (prems_of st, i - 1)
-        val sg = sign_of_thm st
-        val (ca,cvs,clhs,crhs) = reif_eq sg (HOLogic.dest_Trueprop g)
-        val norm_eq_th = simplify (cring_ss sg)
-                        (instantiate' [SOME ca] [SOME clhs, SOME crhs, SOME cvs]
-                                                norm_eq)
-    in ((cut_rules_tac [norm_eq_th] i)
-            THEN (simp_tac (cring_ss sg) i)
-            THEN (simp_tac (cring_ss sg) i)) st
-    end);
 
-fun comm_ring_method i = Method.METHOD (fn facts =>
-  Method.insert_tac facts 1 THEN comm_ring_tac i);
-val algebra_method = comm_ring_method;
+fun comm_ring_tac ctxt = SUBGOAL (fn (g, i) =>
+  let
+    val thy = ProofContext.theory_of ctxt
+    val cring_ss = Simplifier.local_simpset_of ctxt  (* FIXME really the full simpset!? *)
+      addsimps cring_simps
+    val (ca, cvs, clhs, crhs) = reif_eq thy (HOLogic.dest_Trueprop g)
+    val norm_eq_th =
+      simplify cring_ss (instantiate' [SOME ca] [SOME clhs, SOME crhs, SOME cvs] norm_eq)
+  in
+    cut_rules_tac [norm_eq_th] i
+    THEN (simp_tac cring_ss i)
+    THEN (simp_tac cring_ss i)
+  end);
+
+val comm_ring_meth =
+  Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD' HEADGOAL (comm_ring_tac ctxt));
 
 val setup =
-  Method.add_method ("comm_ring",
-     Method.no_args (comm_ring_method 1),
-     "reflective decision procedure for equalities over commutative rings") #>
-  Method.add_method ("algebra",
-     Method.no_args (algebra_method 1),
-     "Method for proving algebraic properties: for now only comm_ring");
+  Method.add_method ("comm_ring", comm_ring_meth,
+    "reflective decision procedure for equalities over commutative rings") #>
+  Method.add_method ("algebra", comm_ring_meth,
+    "method for proving algebraic properties (same as comm_ring)");
 
 end;
