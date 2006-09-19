@@ -70,6 +70,26 @@ theorems basic_monos [mono] =
   Ball_def Bex_def
   induct_rulify_fallback
 
+lemma False_meta_all:
+  "Trueprop False \<equiv> (\<And>P\<Colon>bool. P)"
+proof
+  fix P
+  assume False
+  then show P ..
+next
+  assume "\<And>P\<Colon>bool. P"
+  then show "False" ..
+qed
+
+lemma not_eq_False:
+  assumes not_eq: "x \<noteq> y"
+  and eq: "x == y"
+  shows False
+  using not_eq eq by auto
+
+lemmas not_eq_quodlibet =
+  not_eq_False [simplified False_meta_all]
+
 
 subsection {* Inductive datatypes and primitive recursion *}
 
