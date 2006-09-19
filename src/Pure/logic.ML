@@ -35,9 +35,12 @@ sig
   val class_of_const: string -> class
   val mk_inclass: typ * class -> term
   val dest_inclass: term -> typ * class
+  val name_classrel: string * string -> string
   val mk_classrel: class * class -> term
   val dest_classrel: term -> class * class
-  val mk_arities: string * sort list * sort -> term list
+  val name_arities: arity -> string list
+  val name_arity: string * sort list * class -> string
+  val mk_arities: arity -> term list
   val dest_arity: term -> string * sort list * class
   val dest_def: Pretty.pp -> (term -> bool) -> (string -> bool) -> (string -> bool) ->
     term -> (term * term) * term
@@ -221,6 +224,9 @@ fun dest_inclass (t as Const (c_class, _) $ ty) = (dest_type ty, class_of_const 
 
 (* class relations *)
 
+fun name_classrel (c1, c2) =
+  NameSpace.base c1 ^ "_" ^ NameSpace.base c2;
+
 fun mk_classrel (c1, c2) = mk_inclass (Term.aT [c1], c2);
 
 fun dest_classrel tm =
@@ -230,6 +236,12 @@ fun dest_classrel tm =
 
 
 (* type arities *)
+
+fun name_arities (t, _, S) =
+  let val b = NameSpace.base t
+  in S |> map (fn c => NameSpace.base c ^ "_" ^ b) end;
+
+fun name_arity (t, dom, c) = hd (name_arities (t, dom, [c]));
 
 fun mk_arities (t, Ss, S) =
   let val T = Type (t, ListPair.map TFree (Name.invent_list [] "'a" (length Ss), Ss))
