@@ -8,6 +8,7 @@ Preconditions: no Vars
 signature NBE =
 sig
   val norm_term: theory -> term -> term
+  val normalization_conv: cterm -> thm
   val lookup: string -> NBE_Eval.Univ
   val update: string * NBE_Eval.Univ -> unit
   val trace_nbe: bool ref
@@ -83,17 +84,18 @@ fun norm_print t thy =
     val _ = trace (fn () => "Input:\n" ^ Display.raw_string_of_term t);
     fun compile_term t thy =
       let
-        val thy' = CodegenPackage.purge_code thy;
-        val nbe_tab = NBE_Data.get thy';
-        val (t', thy'') = CodegenPackage.codegen_term t thy';
-        val (modl_new, thy''') = CodegenPackage.get_root_module thy'';
+        val _ = CodegenPackage.purge_code thy;
+        val nbe_tab = NBE_Data.get thy;
+        val (eq_thm, t'') = CodegenPackage.codegen_term thy t;
+        val t' = (snd o Logic.dest_equals o Drule.plain_prop_of) eq_thm;
+        val modl_new = CodegenPackage.get_root_module thy;
         val diff = CodegenThingol.diff_module (modl_new, CodegenThingol.empty_module);
         val _ = trace (fn () => "new definitions: " ^ (commas o map fst) diff);
         val _ = (tab := nbe_tab;
              Library.seq (use_code o NBE_Codegen.generate defined) diff);
-        val thy'''' = NBE_Data.put (!tab) thy''';
-        val nt' = NBE_Eval.nbe (!tab) t';
-      in (nt', thy'''') end;
+        val thy' = NBE_Data.put (!tab) thy;
+        val nt' = NBE_Eval.nbe (!tab) t'';
+      in ((t', nt'), thy') end;
     fun eval_term t nt thy =
       let
         val vtab = var_tab t;
@@ -114,13 +116,24 @@ fun norm_print t thy =
   in
     thy
     |> compile_term t
-    |-> (fn nt => eval_term t nt)
+    |-> (fn (t, nt) => eval_term t nt)
   end;
 
 fun norm_print' s thy = norm_print (Sign.read_term thy s) thy;
 
 fun norm_term thy t = fst (norm_print t (Theory.copy thy));
 
+exception Normalization of term;
+
+fun normalization_oracle (thy, Normalization t) =
+  Logic.mk_equals (t, norm_term thy t);
+
+fun normalization_conv ct =
+  let val {sign, t, ...} = rep_cterm ct
+  in Thm.invoke_oracle_i sign "Pure.Normalization" (sign, Normalization t) end;
+
+val _ = Context.add_setup
+  (Theory.add_oracle ("Normalization", normalization_oracle));
 
 (* Isar setup *)
 
