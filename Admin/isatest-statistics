@@ -12,9 +12,11 @@ ISATEST_LOG=~isatest/log
 case $(uname) in
 	SunOS)	
 		ZGREP=xgrep 
+		TE="png color"
 	;;
 	*)	
 		ZGREP=zgrep
+		TE="png"
 	;;
 esac
 
@@ -76,7 +78,7 @@ for SESSION in $SESSIONS
 do
   fgrep "$SESSION " "$ALL_DATA" > "$SESSION_DATA"
   gnuplot <<EOF
-set terminal png color
+set terminal $TE
 set output "$DIR/${SESSION}.png"
 set xdata time
 set timefmt "%Y-%m-%d"
