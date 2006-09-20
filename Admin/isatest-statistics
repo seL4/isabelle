@@ -7,6 +7,16 @@
 
 ISATEST_LOG=~isatest/log
 
+## platform settings
+
+case $(uname) in
+	SunOS)	
+		ZGREP=xgrep 
+	;;
+	*)	
+		ZGREP=zgrep
+	;;
+esac
 
 ## diagnostics
 
@@ -47,7 +57,7 @@ ALL_DATA="/tmp/isatest-all$$.dat"
 SESSION_DATA="/tmp/isatest$$.dat"
 mkdir -p "$DIR" || fail "Bad directory: $DIR"
 
-zgrep "^Finished .*elapsed" \
+$ZGREP "^Finished .*elapsed" \
   $(find "$ISATEST_LOG" -name "isatest-makeall-${PLATFORM}*" -ctime "-${TIMESPAN}") | \
 perl -e '
   while (<>) {
@@ -72,7 +82,7 @@ set xdata time
 set timefmt "%Y-%m-%d"
 set format x "%d-%b"
 set xlabel "$SESSION"
-plot [] [0:] "$SESSION_DATA" using 2:3 title "" smooth sbezier, "$SESSION_DATA" using 2:3 title "" smooth csplines
+plot [] [0:] "$SESSION_DATA" using 2:3 smooth sbezier notitle, "$SESSION_DATA" using 2:3 smooth csplines notitle
 EOF
 done
 
