@@ -135,7 +135,7 @@ fun total_termination_afterqed defname data [[totality]] lthy =
         lthy
           |> add_simps "simps" [] mutual_info fixes tsimps stmts
           |> with_local_path defname
-                (LocalTheory.note (("induct", [Attrib.internal (InductAttrib.induct_set "")]), tinduct) #> snd)
+                (LocalTheory.note (("induct", []), tinduct) #> snd)
     end
 
 
