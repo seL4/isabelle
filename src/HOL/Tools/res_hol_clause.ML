@@ -9,17 +9,41 @@ structure ResHolClause =
 
 struct
 
+(* a flag to set if we use extra combinators B',C',S' *)
+val use_combB'C'S' = ref true;
 
-val include_combS = ref false;
-val include_min_comb = ref false;
+val combI_count = ref 0;
+val combK_count = ref 0;
+val combB_count = ref 0;
+val combC_count = ref 0;
+val combS_count = ref 0;
 
-fun in_min_comb count_comb = if count_comb then include_min_comb:=true else ();
- 
-fun in_combS count_comb = if count_comb then include_combS:=true else (); 
+val combB'_count = ref 0;
+val combC'_count = ref 0;
+val combS'_count = ref 0; 
+
+
+fun increI count_comb =  if count_comb then combI_count := !combI_count + 1 else ();
+fun increK count_comb =  if count_comb then combK_count := !combK_count + 1 else ();
+fun increB count_comb =  if count_comb then combB_count := !combB_count + 1 else ();
+fun increC count_comb =  if count_comb then combC_count := !combC_count + 1 else ();
+fun increS count_comb =  if count_comb then combS_count := !combS_count + 1 else (); 
+fun increB' count_comb =  if count_comb then combB'_count := !combB'_count + 1 else (); 
+fun increC' count_comb =  if count_comb then combC'_count := !combC'_count + 1 else ();
+fun increS' count_comb =  if count_comb then combS'_count := !combS'_count + 1 else (); 
+
+
+exception DECRE_COMB of string;
+fun decreB count_comb n = if count_comb then (if !combB_count >= n then combB_count := !combB_count - n else raise (DECRE_COMB "COMBB")) else ();
+
+fun decreC count_comb n = if count_comb then (if !combC_count >= n then combC_count := !combC_count - n else raise (DECRE_COMB "COMBC")) else ();
+
+fun decreS count_comb n = if count_comb then (if !combS_count >= n then combS_count := !combS_count - n else raise (DECRE_COMB "COMBS")) else ();
+
 
 val const_typargs = ref (Library.K [] : (string*typ -> typ list));
 
-fun init thy = (include_combS:=false; include_min_comb:=false;
+fun init thy = (combI_count:=0; combK_count:=0;combB_count:=0;combC_count:=0;combS_count:=0;combB'_count:=0;combC'_count:=0;combS'_count:=0;
                 const_typargs := Sign.const_typargs thy);
 
 (**********************************************************************)
@@ -46,9 +70,48 @@ fun decre_bndVar (Bound n) = Bound (n-1)
 
 
 (*******************************************)
+fun mk_compact_comb (tm as (Const("COMBB",_)$p) $ (Const("COMBB",_)$q$r)) Bnds count_comb =
+    let val tp_p = Term.type_of1(Bnds,p)
+	val tp_q = Term.type_of1(Bnds,q)
+	val tp_r = Term.type_of1(Bnds,r)
+	val typ = Term.type_of1(Bnds,tm)
+	val typ_B' = [tp_p,tp_q,tp_r] ---> typ
+	val _ = increB' count_comb
+	val _ = decreB count_comb 2
+    in
+	Const("COMBB_e",typ_B') $ p $ q $ r
+    end
+  | mk_compact_comb (tm as (Const("COMBC",_) $ (Const("COMBB",_)$p$q) $ r)) Bnds count_comb =
+    let val tp_p = Term.type_of1(Bnds,p)
+	val tp_q = Term.type_of1(Bnds,q)
+	val tp_r = Term.type_of1(Bnds,r)
+	val typ = Term.type_of1(Bnds,tm)
+	val typ_C' = [tp_p,tp_q,tp_r] ---> typ
+	val _ = increC' count_comb
+	val _ = decreC count_comb 1
+	val _ = decreB count_comb 1
+    in
+	Const("COMBC_e",typ_C') $ p $ q $ r
+    end
+  | mk_compact_comb (tm as (Const("COMBS",_) $ (Const("COMBB",_)$p$q) $ r)) Bnds count_comb =
+    let val tp_p = Term.type_of1(Bnds,p)
+	val tp_q = Term.type_of1(Bnds,q)
+	val tp_r = Term.type_of1(Bnds,r)
+	val typ = Term.type_of1(Bnds,tm)
+	val typ_S' = [tp_p,tp_q,tp_r] ---> typ
+	val _ = increS' count_comb
+	val _ = decreS count_comb 1
+	val _ = decreB count_comb 1
+    in
+	Const("COMBS_e",typ_S') $ p $ q $ r
+    end
+  | mk_compact_comb tm _ _ = tm;
+
+fun compact_comb t Bnds count_comb = if !use_combB'C'S' then mk_compact_comb t Bnds count_comb else t;
+
 fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb = 
     let val tpI = Type("fun",[tp,tp])
-	val _ = in_min_comb count_comb
+	val _ = increI count_comb
     in 
 	Const("COMBI",tpI) 
     end
@@ -56,25 +119,25 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
     let val (Bound n') = decre_bndVar (Bound n)
 	val tb = List.nth(Bnds,n')
 	val tK = Type("fun",[tb,Type("fun",[tp,tb])])
-	val _ = in_min_comb count_comb 
+	val _ = increK count_comb 
     in
 	Const("COMBK",tK) $ (Bound n')
     end
   | lam2comb (Abs(x,t1,Const(c,t2))) _ count_comb = 
     let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
-	val _ = in_min_comb count_comb 
+	val _ = increK count_comb 
     in 
 	Const("COMBK",tK) $ Const(c,t2) 
     end
   | lam2comb (Abs(x,t1,Free(v,t2))) _ count_comb =
     let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
-	val _ = in_min_comb count_comb
+	val _ = increK count_comb
     in
 	Const("COMBK",tK) $ Free(v,t2)
     end
   | lam2comb (Abs(x,t1,Var(ind,t2))) _ count_comb =
     let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
-	val _ = in_min_comb count_comb 
+	val _ = increK count_comb 
     in
 	Const("COMBK",tK) $ Var(ind,t2)
     end
@@ -88,10 +151,10 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 		  val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
 		  val tp' = Term.type_of1(Bnds,P')
 		  val tS = Type("fun",[tp',Type("fun",[tI,tr])])
-		  val _ = in_min_comb count_comb
-		  val _ = in_combS count_comb
+		  val _ = increI count_comb
+		  val _ = increS count_comb
 	      in
-		  Const("COMBS",tS) $ P' $ Const("COMBI",tI)
+		  compact_comb (Const("COMBS",tS) $ P' $ Const("COMBI",tI)) Bnds count_comb
 	      end)
     end
 	    
@@ -102,7 +165,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 	if(nfreeP andalso nfreeQ) then (
 	    let val tK = Type("fun",[tpq,Type("fun",[t1,tpq])])
 		val PQ' = decre_bndVar(P $ Q)
-		val _ = in_min_comb count_comb
+		val _ = increK count_comb
 	    in 
 		Const("COMBK",tK) $ PQ'
 	    end)
@@ -113,9 +176,9 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 				   val tp = Term.type_of1(Bnds,P')
 				   val tq' = Term.type_of1(Bnds, Q')
 				   val tB = Type("fun",[tp,Type("fun",[tq',Type("fun",[t1,tpq])])])
-				   val _ = in_min_comb count_comb
+				   val _ = increB count_comb
 			       in
-				   Const("COMBB",tB) $ P' $ Q' 
+				   compact_comb (Const("COMBB",tB) $ P' $ Q') Bnds count_comb 
 			       end)
 	      else (
 		    if nfreeQ then (
@@ -124,9 +187,9 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 					val tq = Term.type_of1(Bnds,Q')
 					val tp' = Term.type_of1(Bnds, P')
 					val tC = Type("fun",[tp',Type("fun",[tq,Type("fun",[t1,tpq])])])
-					val _ = in_min_comb count_comb
+					val _ = increC count_comb
 				    in
-					Const("COMBC",tC) $ P' $ Q'
+					compact_comb (Const("COMBC",tC) $ P' $ Q') Bnds count_comb
 				    end)
 		    else(
 			 let val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
@@ -134,10 +197,9 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 			     val tp' = Term.type_of1(Bnds,P')
 			     val tq' = Term.type_of1(Bnds,Q')
 			     val tS = Type("fun",[tp',Type("fun",[tq',Type("fun",[t1,tpq])])])
-			     val _ = in_min_comb count_comb
-			     val _ = in_combS count_comb
+			     val _ = increS count_comb
 			 in
-			     Const("COMBS",tS) $ P' $ Q'
+			     compact_comb (Const("COMBS",tS) $ P' $ Q') Bnds count_comb
 			 end)))
     end
   | lam2comb (t as (Abs(x,t1,_))) _ _ = raise LAM2COMB (t);
@@ -150,9 +212,9 @@ fun to_comb (Abs(x,tp,b)) Bnds count_comb =
   | to_comb (P $ Q) Bnds count_comb = ((to_comb P Bnds count_comb) $ (to_comb Q Bnds count_comb))
   | to_comb t _ _ = t;
  
-    
+   
 fun comb_of t count_comb = to_comb t [] count_comb;
-
+ 
 (* print a term containing combinators, used for debugging *)
 exception TERM_COMB of term;
 
@@ -313,6 +375,34 @@ fun comb_typ ("COMBI",t) =
 	val c = range_type (range_type t1)
     in
 	map simp_type_of [a,b,c]
+    end
+  | comb_typ ("COMBB_e",t) =
+    let val t1 = domain_type t
+	val a = domain_type t1
+	val b = range_type t1
+	val t2 = domain_type (range_type(range_type t))
+	val c = domain_type t2
+	val d = range_type t2
+    in
+	map simp_type_of [a,b,c,d]
+    end
+  | comb_typ ("COMBC_e",t) =
+    let val t1 = domain_type t
+	val a = domain_type t1
+	val b = domain_type (range_type t1)
+	val c = range_type (range_type t1)
+	val d = domain_type (domain_type (range_type t))
+    in
+	map simp_type_of [a,b,c,d]
+    end
+  | comb_typ ("COMBS_e",t) = 
+    let val t1 = domain_type t
+	val a = domain_type t1
+	val b = domain_type (range_type t1)
+	val c = range_type (range_type t1)
+	val d = domain_type (domain_type (range_type t))
+    in
+	map simp_type_of [a,b,c,d]
     end;
 
 fun const_type_of ("COMBI",t) = 
@@ -345,6 +435,24 @@ fun const_type_of ("COMBI",t) =
     in
 	(tp,ts,C_var)
     end
+  | const_type_of ("COMBB_e",t) =
+    let val (tp,ts) = type_of t
+	val B'_var = comb_typ ("COMBB_e",t)
+    in
+	(tp,ts,B'_var)
+    end
+  | const_type_of ("COMBC_e",t) =
+    let val (tp,ts) = type_of t
+	val C'_var = comb_typ ("COMBC_e",t)
+    in
+	(tp,ts,C'_var)
+    end
+  | const_type_of ("COMBS_e",t) =
+    let val (tp,ts) = type_of t
+	val S'_var = comb_typ ("COMBS_e",t)
+    in
+	(tp,ts,S'_var)
+    end
   | const_type_of (c,t) =
     let val (tp,ts) = type_of t
 	val tvars = !const_typargs(c,t)
@@ -352,6 +460,7 @@ fun const_type_of ("COMBI",t) =
     in
 	(tp,ts,tvars')
     end;
+
 
 fun is_bool_type (Type("bool",[])) = true
   | is_bool_type _ = false;
@@ -677,12 +786,15 @@ fun init_combs (comb,funcs) =
 			| "c_COMBI" => Symtab.update (comb,1) funcs
 			| "c_COMBB" => Symtab.update (comb,3) funcs
 			| "c_COMBC" => Symtab.update (comb,3) funcs
+			| "c_COMBB_e" => Symtab.update (comb,4) funcs
+			| "c_COMBC_e" => Symtab.update (comb,4) funcs
+			| "c_COMBS_e" => Symtab.update (comb,4) funcs
 			| _ => funcs)
 	  | _ => Symtab.update (comb,0) funcs;
 
 fun init_funcs_tab funcs = 
     let val tp = !typ_level
-	val funcs0 = foldl init_combs funcs ["c_COMBK","c_COMBS","c_COMBI","c_COMBB","c_COMBC"]
+	val funcs0 = foldl init_combs funcs ["c_COMBK","c_COMBS","c_COMBI","c_COMBB","c_COMBC","c_COMBB_e","c_COMBC_e","c_COMBS_e"]
 	val funcs1 = case tp of T_PARTIAL => Symtab.update ("hAPP",3) funcs0
 				      | _ => Symtab.update ("hAPP",2) funcs0
 	val funcs2 = case tp of T_FULL => Symtab.update ("typeinfo",2) funcs1
@@ -732,6 +844,17 @@ fun preds_of clsrel_clauses arity_clauses =
 
 fun read_in fs = map (File.read o File.unpack_platform_path) fs; 
 
+fun get_helper_tptp () =
+    let val IK = if !combI_count > 0 orelse !combK_count > 0 then (Output.debug "Include combinator I K";["combIK.tptp"]) else []
+	val BC = if !combB_count > 0 orelse !combC_count > 0 then (Output.debug "Include combinator B C";["combBC.tptp"]) else []
+	val S = if !combS_count > 0 then (Output.debug "Include combinator S";["combS.tptp"]) else []
+	val B'C' = if !combB'_count > 0 orelse !combC'_count > 0 then (Output.debug "Include combinator B' C'"; ["combBC_e.tptp"]) else []
+	val S' = if !combS'_count > 0 then (Output.debug "Include combinator S'";["combS_e.tptp"]) else []
+    in
+	("helper1.tptp") :: (IK @ BC @ S @ B'C' @ S')
+    end;
+
+
 fun get_helper_clauses_tptp () =
   let val tlevel = case !typ_level of 
 		       T_FULL => (Output.debug "Fully-typed HOL"; 
@@ -742,13 +865,7 @@ fun get_helper_clauses_tptp () =
 				   "~~/src/HOL/Tools/atp-inputs/const_")
 		     | T_NONE => (Output.debug "Untyped HOL"; 
 				  "~~/src/HOL/Tools/atp-inputs/u_")
-      val helpers = if !include_combS 
-                    then (Output.debug "Include combinator S"; 
-                          ["helper1.tptp","comb_inclS.tptp"]) 
-                    else if !include_min_comb 
-                    then (Output.debug "Include min combinators"; 
-                          ["helper1.tptp","comb_noS.tptp"])
-		    else (Output.debug "No combinator is used"; ["helper1.tptp"])
+      val helpers = get_helper_tptp ()
       val t_helpers = map (curry (op ^) tlevel) helpers
   in
       read_in t_helpers
@@ -776,6 +893,17 @@ fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) use
     end;
 
 
+fun get_helper_dfg () =
+    let val IK = if !combI_count > 0 orelse !combK_count > 0 then (Output.debug "Include combinator I K";["combIK.dfg"]) else []
+	val BC = if !combB_count > 0 orelse !combC_count > 0 then (Output.debug "Include combinator B C";["combBC.dfg"]) else []
+	val S = if !combS_count > 0 then (Output.debug "Include combinator S";["combS.dfg"]) else []
+	val B'C' = if !combB'_count > 0 orelse !combC'_count > 0 then (Output.debug "Include combinator B' C'"; ["combBC_e.dfg"]) else []
+	val S' = if !combS'_count > 0 then (Output.debug "Include combinator S'";["combS_e.dfg"]) else []
+    in
+	("helper1.dfg") :: (IK @ BC @ S @ B'C' @ S')
+    end;
+
+
 (* dfg format *)
 fun get_helper_clauses_dfg () = 
  let val tlevel = case !typ_level of 
@@ -787,13 +915,7 @@ fun get_helper_clauses_dfg () =
 		                  "~~/src/HOL/Tools/atp-inputs/const_")
 		    | T_NONE => (Output.debug "Untyped HOL"; 
 		                 "~~/src/HOL/Tools/atp-inputs/u_")
-     val helpers = if !include_combS 
-                   then (Output.debug "Include combinator S"; 
-                         ["helper1.dfg","comb_inclS.dfg"]) else
-		   if !include_min_comb 
-		   then (Output.debug "Include min combinators"; 
-		         ["helper1.dfg","comb_noS.dfg"])
-		   else (Output.debug "No combinator is used"; ["helper1.dfg"])
+     val helpers = get_helper_dfg ()
      val t_helpers = map (curry (op ^) tlevel) helpers
  in
      read_in t_helpers
