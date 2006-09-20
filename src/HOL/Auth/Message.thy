@@ -941,8 +941,7 @@ lemma Fake_parts_sing:
      "X \<in> synth (analz H) ==> parts{X} \<subseteq> synth (analz H) \<union> parts H";
 apply (rule subset_trans) 
  apply (erule_tac [2] Fake_parts_insert)
-apply (rule parts_mono)  
-apply (blast intro: elim:); 
+apply (rule parts_mono, blast)
 done
 
 lemmas Fake_parts_sing_imp_Un = Fake_parts_sing [THEN [2] rev_subsetD]
