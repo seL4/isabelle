@@ -1,8 +1,16 @@
 %ID: $Id$
 %Author: Jia Meng, NICTA
-%extensionality for partial types
+%functional equality and extensionality for partial types
 
-input_clause(a18,axiom,
+input_clause(a9,axiom,
+[--hBOOL(hAPP(hAPP(fequal,X,tc_fun(A,tc_fun(A,tc_bool))),Y,tc_fun(A,tc_bool))),
+++equal(X,Y)]).
+
+input_clause(a10,axiom,
+[++hBOOL(hAPP(hAPP(fequal,X,tc_fun(A,tc_fun(A,tc_bool))),Y,tc_fun(A,tc_bool))),
+--equal(X,Y)]).
+
+input_clause(a11,axiom,
 [--equal(hAPP(F,hAPP(hAPP(hEXTENT,F,tc_fun(tc_fun(A,B),tc_fun(tc_fun(A,B),A))),G,tc_fun(tc_fun(A,B),A)),tc_fun(A,B)),hAPP(G,hAPP(hAPP(hEXTENT,F,tc_fun(tc_fun(A,B),tc_fun(tc_fun(A,B),A))),G,tc_fun(tc_fun(A,B),A)),tc_fun(A,B))),
 ++equal(F,G)]).
 

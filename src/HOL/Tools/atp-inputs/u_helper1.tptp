@@ -1,8 +1,14 @@
 %ID: $Id$
 %Author: Jia Meng, NICTA
-%extensionality, untyped
+%functional equality and extensionality, untyped
 
-input_clause(a18,axiom,
+input_clause(a9,axiom,
+[--hBOOL(hAPP(hAPP(fequal,X),Y)),++equal(X,Y)]).
+
+input_clause(a10,axiom,
+[++hBOOL(hAPP(hAPP(fequal,X),Y)),--equal(X,Y)]).
+
+input_clause(a11,axiom,
 [--equal(hAPP(F,hAPP(hAPP(hEXTENT,F),G)),hAPP(G,hAPP(hAPP(hEXTENT,F),G))),
 ++equal(F,G)]).
 

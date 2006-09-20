@@ -1,9 +1,21 @@
 %ID: $Id$
 %Author: Jia Meng, NICTA
-%extensionality for partial types
+%functional equality and extensionality for partial types
+
+clause(
+forall([A, X, Y],
+or( not(hBOOL(hAPP(hAPP(fequal,X,tc_fun(A,tc_fun(A,tc_bool))),Y,tc_fun(A,tc_bool)))),
+    equal(X,Y))),
+a9 ).
+
+clause(
+forall([A, X, Y],
+or( not(equal(X,Y)),
+    hBOOL(hAPP(hAPP(fequal,X,tc_fun(A,tc_fun(A,tc_bool))),Y,tc_fun(A,tc_bool))))),
+a10 ).
 
 clause(
 forall([A, B, F, G],
 or( not(equal(hAPP(F,hAPP(hAPP(hEXTENT,F,tc_fun(tc_fun(A,B),tc_fun(tc_fun(A,B),A))),G,tc_fun(tc_fun(A,B),A)),tc_fun(A,B)),hAPP(G,hAPP(hAPP(hEXTENT,F,tc_fun(tc_fun(A,B),tc_fun(tc_fun(A,B),A))),G,tc_fun(tc_fun(A,B),A)),tc_fun(A,B)))),
     equal(F,G))),
-a18 ).
+a11 ).
