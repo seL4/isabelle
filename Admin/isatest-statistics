@@ -76,7 +76,7 @@ for SESSION in $SESSIONS
 do
   fgrep "$SESSION " "$ALL_DATA" > "$SESSION_DATA"
   gnuplot <<EOF
-set terminal png
+set terminal png color
 set output "$DIR/${SESSION}.png"
 set xdata time
 set timefmt "%Y-%m-%d"
