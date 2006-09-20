@@ -125,8 +125,6 @@ fun is_typed_hol () =
     in
 	not (tp_level = ResHolClause.T_NONE)
     end;
-val include_combS = ResHolClause.include_combS;
-val include_min_comb = ResHolClause.include_min_comb;
 
 fun atp_input_file () =
     let val file = !problem_name 
