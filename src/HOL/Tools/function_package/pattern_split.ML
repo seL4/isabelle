@@ -45,38 +45,57 @@ fun inst_constrs_of thy (T as Type (name, _)) =
 
 
 
-fun pattern_subtract_subst ctx vs _ (Free v2) = []
-  | pattern_subtract_subst ctx vs (v as (Free (_, T))) t' =
+
+fun join ((vs1,sub1), (vs2,sub2)) = (merge (op aconv) (vs1,vs2), sub1 @ sub2)
+fun join_product (xs, ys) = map join (product xs ys)
+
+fun join_list [] = []
+  | join_list xs = foldr1 (join_product) xs
+
+
+exception DISJ
+
+fun pattern_subtract_subst ctx vs t t' =
     let
-      fun foo constr =
+      exception DISJ
+      fun pattern_subtract_subst_aux vs _ (Free v2) = []
+        | pattern_subtract_subst_aux vs (v as (Free (_, T))) t' =
           let
-            val (vs', t) = saturate ctx vs constr
-            val substs = pattern_subtract_subst ctx vs' t t'
+            fun foo constr =
+                let
+                  val (vs', t) = saturate ctx vs constr
+                  val substs = pattern_subtract_subst ctx vs' t t'
+                in
+                  map (fn (vs, subst) => (vs, (v,t)::subst)) substs
+                end
           in
-            map (fn (vs, subst) => (vs, (v,t)::subst)) substs
+            flat (map foo (inst_constrs_of (ProofContext.theory_of ctx) T))
+          end
+        | pattern_subtract_subst_aux vs t t' =
+          let
+            val (C, ps) = strip_comb t
+            val (C', qs) = strip_comb t'
+          in
+            if C = C'
+            then flat (map2 (pattern_subtract_subst_aux vs) ps qs)
+            else raise DISJ
           end
     in
-      flat (map foo (inst_constrs_of (ProofContext.theory_of ctx) T))
-    end
-  | pattern_subtract_subst ctx vs t t' =
-    let
-      val (C, ps) = strip_comb t
-      val (C', qs) = strip_comb t'
-    in
-      if C = C'
-      then flat (map2 (pattern_subtract_subst ctx vs) ps qs)
-      else [(vs, [])]
+      pattern_subtract_subst_aux vs t t'
+      handle DISJ => [(vs, [])]
     end
 
 
 (* p - q *)
 fun pattern_subtract ctx eq2 eq1 =
     let
+      val thy = ProofContext.theory_of ctx
       
       val (vs, feq1 as (_ $ (_ $ lhs1 $ _))) = dest_all_all eq1
       val (_,  _ $ (_ $ lhs2 $ _)) = dest_all_all eq2
 
-      val thy = ProofContext.theory_of ctx
+      val _ = print (cterm_of thy eq1)
+      val _ = print (cterm_of thy eq2)
 
       val substs = pattern_subtract_subst ctx vs lhs1 lhs2
 
@@ -86,8 +105,10 @@ fun pattern_subtract ctx eq2 eq1 =
           in
             fold_rev mk_forall (map Free (frees_in_term ctx t) inter vs') t
           end
+
+      fun prtrm t = let val _ = print (map (cterm_of thy) t) in t end
     in
-      map instantiate substs
+      prtrm (map instantiate substs)
     end
 
 
