@@ -1,0 +1,13 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%const-typed combinator reduction for B', C'
+
+%B' c f g x -->  c (f (g x))
+input_clause(a6,axiom,
+[++equal(hAPP(hAPP(hAPP(hAPP(c_COMBB_e(A,B,U,V),C),F),G),X),hAPP(C,hAPP(F,hAPP(G,X))))]).
+
+%C' c f g x --> c (f x) g
+input_clause(a7,axiom,
+[++equal(hAPP(hAPP(hAPP(hAPP(c_COMBC_e(A,B,U,V),C),F),G),X),hAPP(hAPP(C,hAPP(F,X)),G))]).
+
+

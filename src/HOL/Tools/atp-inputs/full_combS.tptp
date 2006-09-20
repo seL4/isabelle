@@ -1,0 +1,7 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%full-typed combinator reduction for S
+
+%S P Q R --> P R (Q R)
+input_clause(a2,axiom,
+[++equal(typeinfo(hAPP(typeinfo(hAPP(typeinfo(hAPP(typeinfo(c_COMBS,tc_fun(tc_fun(A,tc_fun(B,C)),tc_fun(tc_fun(A,B),tc_fun(A,C)))),typeinfo(P,tc_fun(A,tc_fun(B,C)))),tc_fun(tc_fun(A,B),tc_fun(A,C))),typeinfo(Q,tc_fun(A,B))),tc_fun(A,C)),typeinfo(R,A)),C),typeinfo(hAPP(typeinfo(hAPP(typeinfo(P,tc_fun(A,tc_fun(B,C))),typeinfo(R,A)),tc_fun(B,C)),typeinfo(hAPP(typeinfo(Q,tc_fun(A,B)),typeinfo(R,A)),B)),C))]).

@@ -1,0 +1,14 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%full-typed combinator reduction for B, C
+
+clause(
+forall([A, B, C, P, Q, R],
+or( equal(typeinfo(hAPP(typeinfo(hAPP(typeinfo(hAPP(typeinfo(c_COMBB,tc_fun(tc_fun(A,B),tc_fun(tc_fun(C,A),tc_fun(C,B)))),typeinfo(P,tc_fun(A,B))),tc_fun(tc_fun(C,A),tc_fun(C,B))),typeinfo(Q,tc_fun(C,A))),tc_fun(C,B)),typeinfo(R,C)),B),typeinfo(hAPP(typeinfo(P,tc_fun(A,B)),typeinfo(hAPP(typeinfo(Q,tc_fun(C,A)),typeinfo(R,C)),A)),B)))),
+a4 ).
+
+clause(
+forall([A, B, C, P, Q, R],
+or( equal(typeinfo(hAPP(typeinfo(hAPP(typeinfo(hAPP(typeinfo(c_COMBC,tc_fun(tc_fun(A,tc_fun(B,C)),tc_fun(B,tc_fun(A,C)))),typeinfo(P,tc_fun(A,tc_fun(B,C)))),tc_fun(B,tc_fun(A,C))),typeinfo(Q,B)),tc_fun(A,C)),typeinfo(R,A)),C),typeinfo(hAPP(typeinfo(hAPP(typeinfo(P,tc_fun(A,tc_fun(B,C))),typeinfo(R,A)),tc_fun(B,C)),typeinfo(Q,B)),C)))),
+a5 ).
+

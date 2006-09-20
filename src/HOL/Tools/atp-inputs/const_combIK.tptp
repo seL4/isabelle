@@ -1,0 +1,12 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%const-typed combinator reduction for I, K
+
+%K P Q --> P
+input_clause(a1,axiom,
+[++equal(hAPP(hAPP(c_COMBK(A,B),P),Q),P)]).
+
+%I P --> P
+input_clause(a3,axiom,
+[++equal(hAPP(c_COMBI(T),P),P)]).
+

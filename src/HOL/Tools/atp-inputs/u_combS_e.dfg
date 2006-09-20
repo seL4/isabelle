@@ -1,0 +1,8 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%untyped combinator reduction for S'
+
+clause(
+forall([C, F, G, X],
+or( equal(hAPP(hAPP(hAPP(hAPP(c_COMBS_e,C),F),G),X),hAPP(hAPP(C,hAPP(F,X)),hAPP(G,X))))),
+a8 ).

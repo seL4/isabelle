@@ -1,0 +1,9 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%untyped combinator reduction for S
+
+clause(
+forall([P, Q, R],
+or( equal(hAPP(hAPP(hAPP(c_COMBS,P),Q),R),hAPP(hAPP(P,R),hAPP(Q,R))))),
+a2 ).
+

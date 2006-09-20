@@ -1,0 +1,8 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%partial-typed combinator reduction for S
+
+%S P Q R --> P R (Q R)
+input_clause(a2,axiom,
+[++equal(hAPP(hAPP(hAPP(c_COMBS,P,tc_fun(tc_fun(A,tc_fun(B,C)),tc_fun(tc_fun(A,B),tc_fun(A,C)))),Q,tc_fun(tc_fun(A,B),tc_fun(A,C))),R,tc_fun(A,C)),hAPP(hAPP(P,R,tc_fun(A,tc_fun(B,C))),hAPP(Q,R,tc_fun(A,B)),tc_fun(B,C)))]).
+

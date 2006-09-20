@@ -1,0 +1,13 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%untyped combinator reduction for B', C'
+
+clause(
+forall([C, F, G, X],
+or( equal(hAPP(hAPP(hAPP(hAPP(c_COMBB_e,C),F),G),X),hAPP(C,hAPP(F,hAPP(G,X)))))),
+a6 ).
+
+clause(
+forall([C, F, G, X],
+or( equal(hAPP(hAPP(hAPP(hAPP(c_COMBC_e,C),F),G),X),hAPP(hAPP(C,hAPP(F,X)),G)))),
+a7 ).

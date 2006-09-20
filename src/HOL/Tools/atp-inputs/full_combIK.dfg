@@ -1,0 +1,13 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%full-typed combinator reduction for I, K
+
+clause(
+forall([A, B, P, Q],
+or( equal(typeinfo(hAPP(typeinfo(hAPP(typeinfo(c_COMBK,tc_fun(A,tc_fun(B,A))),typeinfo(P,A)),tc_fun(B,A)),typeinfo(Q,B)),A),typeinfo(P,A)))),
+a1 ).
+
+clause(
+forall([P, T],
+or( equal(typeinfo(hAPP(typeinfo(c_COMBI,tc_fun(T,T)),typeinfo(P,T)),T),typeinfo(P,T)))),
+a3 ).

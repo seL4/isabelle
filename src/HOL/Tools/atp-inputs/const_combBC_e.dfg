@@ -1,0 +1,13 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%const-typed combinator reduction for B', C'
+
+clause(
+forall([A, B, C, F, G, U, V, X],
+or( equal(hAPP(hAPP(hAPP(hAPP(c_COMBB_e(A,B,U,V),C),F),G),X),hAPP(C,hAPP(F,hAPP(G,X)))))),
+a6 ).
+
+clause(
+forall([A, B, C, F, G, U, V, X],
+or( equal(hAPP(hAPP(hAPP(hAPP(c_COMBC_e(A,B,U,V),C),F),G),X),hAPP(hAPP(C,hAPP(F,X)),G)))),
+a7 ).

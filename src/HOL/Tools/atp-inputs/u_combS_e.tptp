@@ -1,0 +1,7 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%untyped combinator reduction for S'
+
+%S' c f g x --> c (f x) (g x)
+input_clause(a8,axiom,
+[++equal(hAPP(hAPP(hAPP(hAPP(c_COMBS_e,C),F),G),X),hAPP(hAPP(C,hAPP(F,X)),hAPP(G,X)))]).

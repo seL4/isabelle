@@ -1,0 +1,13 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%partial-typed combinator reduction for B, C
+
+clause(
+forall([A, B, C, P, Q, R],
+or( equal(hAPP(hAPP(hAPP(c_COMBB,P,tc_fun(tc_fun(A,B),tc_fun(tc_fun(C,A),tc_fun(C,B)))),Q,tc_fun(tc_fun(C,A),tc_fun(C,B))),R,tc_fun(C,B)),hAPP(P,hAPP(Q,R,tc_fun(C,A)),tc_fun(A,B))))),
+a4 ).
+
+clause(
+forall([A, B, C, P, Q, R],
+or( equal(hAPP(hAPP(hAPP(c_COMBC,P,tc_fun(tc_fun(A,tc_fun(B,C)),tc_fun(B,tc_fun(A,C)))),Q,tc_fun(B,tc_fun(A,C))),R,tc_fun(A,C)),hAPP(hAPP(P,R,tc_fun(A,tc_fun(B,C))),Q,tc_fun(B,C))))),
+a5 ).

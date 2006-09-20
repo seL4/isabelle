@@ -1,0 +1,8 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%full-typed combinator reduction for S'
+
+
+%S' c f g x --> c (f x) (g x)
+input_clause(a8,axiom,
+[++equal(typeinfo(hAPP(typeinfo(hAPP(typeinfo(hAPP(typeinfo(hAPP(typeinfo(c_COMBS_e,tc_fun(tc_fun(A,tc_fun(B,U)),tc_fun(tc_fun(V,A),tc_fun(tc_fun(V,B),tc_fun(V,U))))),typeinfo(C,tc_fun(A,tc_fun(B,U)))),tc_fun(tc_fun(V,A),tc_fun(tc_fun(V,B),tc_fun(V,U)))),typeinfo(F,tc_fun(V,A))),tc_fun(tc_fun(V,B),tc_fun(V,U))),typeinfo(G,tc_fun(V,B))),tc_fun(V,U)),typeinfo(X,V)),U),typeinfo(hAPP(typeinfo(hAPP(typeinfo(C,tc_fun(A,tc_fun(B,U))),typeinfo(hAPP(typeinfo(F,tc_fun(V,A)),typeinfo(X,V)),A)),tc_fun(B,U)),typeinfo(hAPP(typeinfo(G,tc_fun(V,B)),typeinfo(X,V)),B)),U))]).
