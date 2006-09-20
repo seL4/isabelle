@@ -609,11 +609,13 @@ fun add_datatype (tyco, (vs_cos as (vs, cos), lthms)) thy =
 
 fun del_datatype tyco thy =
   let
-    val SOME ((_, cs), _) = Symtab.lookup ((the_dtyps o get_exec) thy) tyco
+    val SOME ((vs, cos), _) = Symtab.lookup ((the_dtyps o get_exec) thy) tyco;
+    val cs = mk_cos tyco vs cos;
+    val consts = map (CodegenConsts.norm_of_typ thy o dest_Const o fst) cs;
     val del =
       map_dtyps (Symtab.delete tyco)
-      #> map_dconstrs (fold Consttab.delete cs)
-  in map_exec_purge (SOME cs) del thy end;
+      #> map_dconstrs (fold Consttab.delete consts)
+  in map_exec_purge (SOME consts) del thy end;
 
 fun add_inline thm thy =
   map_exec_purge NONE (map_preproc (apfst (fold (insert eq_thm) (mk_rew thy thm)))) thy;
