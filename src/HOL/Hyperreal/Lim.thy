@@ -74,7 +74,7 @@ primrec
 
 
 
-section{*Some Purely Standard Proofs*}
+subsection{*Some Purely Standard Proofs*}
 
 lemma LIM_eq:
      "f -- a --> L =

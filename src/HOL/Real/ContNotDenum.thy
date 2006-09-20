@@ -9,7 +9,7 @@ theory ContNotDenum
 imports RComplete
 begin
 
-section {* Abstract *}
+subsection {* Abstract *}
 
 text {* The following document presents a proof that the Continuum is
 uncountable. It is formalised in the Isabelle/Isar theorem proving
@@ -30,17 +30,17 @@ last) is non-empty. We then assume a surjective function f:@{text
 "\<nat>\<Rightarrow>\<real>"} exists and find a real x such that x is not in the range of f
 by generating a sequence of closed intervals then using the NIP. *}
 
-section {* Closed Intervals *}
+subsection {* Closed Intervals *}
 
 text {* This section formalises some properties of closed intervals. *}
 
-subsection {* Definition *}
+subsubsection {* Definition *}
 
 definition
   closed_int :: "real \<Rightarrow> real \<Rightarrow> real set"
   "closed_int x y = {z. x \<le> z \<and> z \<le> y}"
 
-subsection {* Properties *}
+subsubsection {* Properties *}
 
 lemma closed_int_subset:
   assumes xy: "x1 \<ge> x0" "y1 \<le> y0"
@@ -99,7 +99,7 @@ proof -
 qed
 
 
-section {* Nested Interval Property *}
+subsection {* Nested Interval Property *}
 
 theorem NIP:
   fixes f::"nat \<Rightarrow> real set"
@@ -313,7 +313,7 @@ proof -
   thus ?thesis by auto
 qed
 
-section {* Generating the intervals *}
+subsection {* Generating the intervals *}
 
 subsubsection {* Existence of non-singleton closed intervals *}
 
@@ -560,7 +560,7 @@ proof -
 qed
 
 
-section {* Final Theorem *}
+subsection {* Final Theorem *}
 
 theorem real_non_denum:
   shows "\<not> (\<exists>f::nat\<Rightarrow>real. surj f)"
