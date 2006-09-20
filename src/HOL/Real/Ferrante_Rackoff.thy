@@ -1,9 +1,9 @@
 (*
     ID:         $Id$
     Author:     Amine Chaieb, TU Muenchen
-
-Ferrante and Rackoff Algorithm: LCF-proof-synthesis version.
 *)
+
+header {* Ferrante and Rackoff Algorithm: LCF-proof-synthesis version. *}
 
 theory Ferrante_Rackoff
 imports RealPow
