@@ -51,37 +51,22 @@ fun nat i = if i < 0 then 0 else i;
 *}
   int ("(_)")
 
-definition
-  "nat_plus m n = nat (int m + int n)"
-  "nat_minus m n = nat (int m - int n)"
-  "nat_mult m n = nat (int m * int n)"
-  "nat_div m n = nat (fst (divAlg (int m, int n)))"
-  "nat_mod m n = nat (snd (divAlg (int m, int n)))"
-  "nat_less m n = (int m < int n)"
-  "nat_less_equal m n = (int m <= int n)"
-  "nat_eq m n = (int m = int n)"
+ML {* set Toplevel.debug *}
+setup {*
+  CodegenData.del_datatype "nat"
+*}
 
 code_type nat
   (SML target_atom "IntInf.int")
   (Haskell target_atom "Integer")
 
-code_const "0::nat" and Suc (*all constructors of nat must be hidden*)
-  (SML target_atom "(0 :: IntInf.int)" and "IntInf.+ (_, 1)")
-  (Haskell target_atom "0" and "(+) 1 _")
+code_const int
+  (SML "_")
+  (Haskell "_")
 
-code_const nat and int
-  (SML target_atom "(fn n : IntInf.int => if n < 0 then 0 else n)" and "_")
-  (Haskell target_atom "(\\n :: Int -> if n < 0 then 0 else n)" and "_")
-
-text {*
-  Eliminate @{const "0::nat"} and @{const "1::nat"}
-  by unfolding in place.
-*}
-
-lemma [code inline]:
-  "0 = nat 0"
-  "1 = nat 1"
-by (simp_all add: expand_fun_eq)
+definition
+  nat_of_int :: "int \<Rightarrow> nat"
+  "k \<ge> 0 \<Longrightarrow> nat_of_int k = nat k"
 
 text {*
 Case analysis on natural numbers is rephrased using a conditional
@@ -99,38 +84,72 @@ Most standard arithmetic functions on natural numbers are implemented
 using their counterparts on the integers:
 *}
 
-lemma [code]: "m + n = nat (int m + int n)"
-  by arith
-lemma [code]: "m - n = nat (int m - int n)"
-  by arith
-lemma [code]: "m * n = nat (int m * int n)"
-  by (simp add: zmult_int)
-lemma [code]: "m div n = nat (int m div int n)"
-  by (simp add: zdiv_int [symmetric])
-lemma [code]: "m mod n = nat (int m mod int n)"
-  by (simp add: zmod_int [symmetric])
-lemma [code]: "(m < n) = (int m < int n)"
-  by simp
+code_constname
+  nat_of_int "IntDef.nat_of_int"
 
-lemma [code func, code inline]: "m + n = nat_plus m n"
-  unfolding nat_plus_def by arith
-lemma [code func, code inline]: "m - n = nat_minus m n"
-  unfolding nat_minus_def by arith
-lemma [code func, code inline]: "m * n = nat_mult m n"
-  unfolding nat_mult_def by (simp add: zmult_int)
-lemma [code func, code inline]: "m div n = nat_div m n"
-  unfolding nat_div_def div_def [symmetric] zdiv_int [symmetric] by simp
-lemma [code func, code inline]: "m mod n = nat_mod m n"
-  unfolding nat_mod_def mod_def [symmetric] zmod_int [symmetric] by simp
-lemma [code func, code inline]: "(m < n) = nat_less m n"
-  unfolding nat_less_def by simp
-lemma [code func, code inline]: "(m <= n) = nat_less_equal m n"
-  unfolding nat_less_equal_def by simp
-lemma [code func, code inline]: "OperationalEquality.eq m n = nat_eq m n"
-  unfolding nat_eq_def eq_def by simp
+code_const nat_of_int
+  (SML "_")
+  (Haskell "_")
+
+lemma [code func]: "0 = nat_of_int 0"
+  by (simp add: nat_of_int_def)
+lemma [code func, code inline]:  "1 = nat_of_int 1"
+  by (simp add: nat_of_int_def)
+lemma [code func]: "Suc n = n + 1"
+  by simp
+lemma [code, code inline]: "m + n = nat (int m + int n)"
+  by arith
+lemma [code func, code inline]: "m + n = nat_of_int (int m + int n)"
+  by (simp add: nat_of_int_def)
+lemma [code, code inline]: "m - n = nat (int m - int n)"
+  by arith
+lemma [code, code inline]: "m * n = nat (int m * int n)"
+  unfolding zmult_int by simp
+lemma [code func, code inline]: "m * n = nat_of_int (int m * int n)"
+proof -
+  have "int (m * n) = int m * int n"
+    by (induct m) (simp_all add: zadd_zmult_distrib)
+  then have "m * n = nat (int m * int n)" by auto
+  also have "\<dots> = nat_of_int (int m * int n)"
+  proof -
+    have "int m \<ge> 0" and "int n \<ge> 0" by auto
+    have "int m * int n \<ge> 0" by (rule split_mult_pos_le) auto
+    with nat_of_int_def show ?thesis by auto
+  qed
+  finally show ?thesis .
+qed  
+lemma [code]: "m div n = nat (int m div int n)"
+  unfolding zdiv_int [symmetric] by simp
+lemma [code func]: "m div n = fst (Divides.divmod m n)"
+  unfolding divmod_def by simp
+lemma [code]: "m mod n = nat (int m mod int n)"
+  unfolding zmod_int [symmetric] by simp
+lemma [code func]: "m mod n = snd (Divides.divmod m n)"
+  unfolding divmod_def by simp
+lemma [code, code inline]: "(m < n) \<longleftrightarrow> (int m < int n)"
+  by simp
+lemma [code func, code inline]: "(m \<le> n) \<longleftrightarrow> (int m \<le> int n)"
+  by simp
+lemma [code func, code inline]: "OperationalEquality.eq m n \<longleftrightarrow> OperationalEquality.eq (int m) (int n)"
+  unfolding eq_def by simp
+lemma [code func]: "nat k = (if k < 0 then 0 else nat_of_int k)"
+proof (cases "k < 0")
+  case True then show ?thesis by simp
+next
+  case False then show ?thesis by (simp add: nat_of_int_def)
+qed
 lemma [code func]:
-  "int_aux i n = (if nat_eq n 0 then i else int_aux (i + 1) (nat_minus n 1))"
-  unfolding nat_eq_def nat_minus_def int_aux_def by simp
+  "int_aux i n = (if int n = 0 then i else int_aux (i + 1) (nat_of_int (int n - 1)))"
+proof -
+  have "0 < n \<Longrightarrow> int n = 1 + int (nat_of_int (int n - 1))"
+  proof -
+    assume prem: "n > 0"
+    then have "int n - 1 \<ge> 0" by auto
+    then have "nat_of_int (int n - 1) = nat (int n - 1)" by (simp add: nat_of_int_def)
+    with prem show "int n = 1 + int (nat_of_int (int n - 1))" by simp
+  qed
+  then show ?thesis unfolding int_aux_def by simp
+qed
 
 
 subsection {* Preprocessors *}
