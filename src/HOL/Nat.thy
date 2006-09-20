@@ -1062,4 +1062,18 @@ lemma [code func]:
 lemma [code func]:
   "OperationalEquality.eq 0 (Suc m) = False" unfolding eq_def by auto
 
+code_typename
+  "nat" "IntDef.nat"
+
+code_constname
+  "0 \<Colon> nat" "IntDef.zero_nat"
+  "1 \<Colon> nat" "IntDef.one_nat"
+  Suc "IntDef.succ_nat"
+  "op + \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat" "IntDef.plus_nat"
+  "op - \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat" "IntDef.minus_nat"
+  "op * \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat" "IntDef.times_nat"
+  "op < \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool" "IntDef.less_nat"
+  "op \<le> \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool" "IntDef.less_eq_nat"
+  "OperationalEquality.eq \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool" "IntDef.eq_nat"
+
 end
