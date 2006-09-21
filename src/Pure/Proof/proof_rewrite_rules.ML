@@ -223,7 +223,7 @@ fun insert_refl defs Ts (prf1 %% prf2) =
       AbsP (s, t, insert_refl defs Ts prf)
   | insert_refl defs Ts prf = (case strip_combt prf of
         (PThm ((s, _), _, prop, SOME Ts), ts) =>
-          if s mem defs then
+          if member (op =) defs s then
             let
               val vs = vars_of prop;
               val tvars = term_tvars prop;
@@ -246,7 +246,7 @@ fun elim_defs thy r defs prf =
       let
         val cnames = map (fst o dest_Const o fst) defs';
         val thms = maps (fn (s, ps) =>
-            if s mem defnames then []
+            if member (op =) defnames s then []
             else map (pair s o SOME o fst) (filter_out (fn (p, _) =>
               null (term_consts p inter cnames)) ps))
           (Symtab.dest (thms_of_proof prf Symtab.empty))

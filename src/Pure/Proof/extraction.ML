@@ -54,10 +54,10 @@ fun mk_typ T =
 fun typeof_proc defaultS vs (Const ("typeof", _) $ u) =
       SOME (mk_typ (case strip_comb u of
           (Var ((a, i), _), _) =>
-            if a mem vs then TFree ("'" ^ a ^ ":" ^ string_of_int i, defaultS)
+            if member (op =) vs a then TFree ("'" ^ a ^ ":" ^ string_of_int i, defaultS)
             else nullT
         | (Free (a, _), _) =>
-            if a mem vs then TFree ("'" ^ a, defaultS) else nullT
+            if member (op =) vs a then TFree ("'" ^ a, defaultS) else nullT
         | _ => nullT))
   | typeof_proc _ _ _ = NONE;
 
@@ -147,7 +147,7 @@ fun prf_subst_TVars tye =
 
 fun relevant_vars types prop = foldr (fn
       (Var ((a, i), T), vs) => (case strip_type T of
-        (_, Type (s, _)) => if s mem types then a :: vs else vs
+        (_, Type (s, _)) => if member (op =) types s then a :: vs else vs
       | _ => vs)
     | (_, vs) => vs) [] (vars_of prop);
 
@@ -320,7 +320,7 @@ fun prep_realizer thy =
         (map (Logic.dest_equals o prop_of) defs) [] (prop_of thm);
       val vars = vars_of prop;
       val vars' = filter_out (fn v =>
-        tname_of (body_type (fastype_of v)) mem rtypes) vars;
+        member (op =) rtypes (tname_of (body_type (fastype_of v)))) vars;
       val T = etype_of thy' vs [] prop;
       val (T', thw) = Type.freeze_thaw_type
         (if T = nullT then nullT else map fastype_of vars' ---> T);
@@ -474,7 +474,7 @@ fun extract thms thy =
         val n = Int.min (length vars, length ts);
 
         fun add_args ((Var ((a, i), _), t), (vs', tye)) =
-          if a mem rvs then
+          if member (op =) rvs a then
             let val T = etype_of thy' vs Ts t
             in if T = nullT then (vs', tye)
                else (a :: vs', (("'" ^ a, i), T) :: tye)
@@ -483,7 +483,7 @@ fun extract thms thy =
 
       in foldr add_args ([], []) (Library.take (n, vars) ~~ Library.take (n, ts)) end;
 
-    fun find vs = Option.map snd o find_first (curry (gen_eq_set (op =)) vs o fst);
+    fun find (vs: string list) = Option.map snd o find_first (curry (gen_eq_set (op =)) vs o fst);
     fun find' s = map snd o List.filter (equal s o fst)
 
     fun app_rlz_rews Ts vs t = strip_abs (length Ts) (freeze_thaw
@@ -523,9 +523,9 @@ fun extract thms thy =
           let
             val (Us, T) = strip_type (fastype_of1 (Ts, t));
             val (defs', corr_prf) = corr d defs vs (t :: ts) Ts hs prf prf'
-              (if tname_of T mem rtypes then t'
+              (if member (op =) rtypes (tname_of T) then t'
                else (case t' of SOME (u $ _) => SOME u | _ => NONE));
-            val u = if not (tname_of T mem rtypes) then t else
+            val u = if not (member (op =) rtypes (tname_of T)) then t else
               let
                 val eT = etype_of thy' vs Ts t;
                 val (r, Us') = if eT = nullT then (nullt, Us) else
@@ -628,7 +628,7 @@ fun extract thms thy =
       | extr d defs vs ts Ts hs (prf % SOME t) =
           let val (defs', u) = extr d defs vs (t :: ts) Ts hs prf
           in (defs',
-            if tname_of (body_type (fastype_of1 (Ts, t))) mem rtypes then u
+            if member (op =) rtypes (tname_of (body_type (fastype_of1 (Ts, t)))) then u
             else u $ t)
           end
 
@@ -661,8 +661,8 @@ fun extract thms thy =
                       corr (d + 1) defs' vs' [] [] [] prf' prf' (SOME t);
 
                     val nt = Envir.beta_norm t;
-                    val args = filter_out (fn v => tname_of (body_type
-                      (fastype_of v)) mem rtypes) (vfs_of prop);
+                    val args = filter_out (fn v => member (op =) rtypes
+                      (tname_of (body_type (fastype_of v)))) (vfs_of prop);
                     val args' = List.filter (fn v => Logic.occs (v, nt)) args;
                     val t' = mkabs nt args';
                     val T = fastype_of t';

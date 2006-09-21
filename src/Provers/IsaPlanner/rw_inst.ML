@@ -179,7 +179,7 @@ fun mk_fixtvar_tyinsts ignore_insts ts =
                        Term.add_term_tfrees (t,tfrees)))
                   ([],[]) ts;
         val unfixed_tvars = 
-            List.filter (fn (ix,s) => not (ix mem ignore_ixs)) tvars;
+            List.filter (fn (ix,s) => not (member (op =) ignore_ixs ix)) tvars;
         val (fixtyinsts, _) = foldr new_tfree ([], map fst tfrees) unfixed_tvars
     in (fixtyinsts, tfrees) end;
 

@@ -867,7 +867,7 @@ local
                and even if we did, we'd have to mess around here a whole lot more first
                to pick out the terms from the syntax. *)
 
-            if (name mem plain_items) then plain_item
+            if member (op =) plain_items name then plain_item
             else case name of
                      "text"      => comment_item
                    | "text_raw"  => comment_item
@@ -1460,9 +1460,9 @@ fun init_pgip false = Output.panic "PGIP not supported for Isabelle/classic mode
 
 local
 
-val regexp_meta = explode ".*+?[]^$";
+val regexp_meta = member (op =) (explode ".*+?[]^$");
 val regexp_quote =
-  implode o map (fn c => if c mem_string regexp_meta then "\\\\" ^ c else c) o explode;
+  implode o map (fn c => if regexp_meta c then "\\\\" ^ c else c) o explode;
 
 fun defconst name strs =
   "\n(defconst isar-keywords-" ^ name ^

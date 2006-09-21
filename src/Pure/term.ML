@@ -964,7 +964,7 @@ fun has_not_funtype Ts t = not (is_funtype (fastype_of1 (Ts,t)));
 fun is_first_order quants =
   let fun first_order1 Ts (Abs (_,T,body)) = first_order1 (T::Ts) body
         | first_order1 Ts (Const(q,_) $ Abs(a,T,body)) =
-            q mem_string quants  andalso   (*it is a known quantifier*)
+            member (op =) quants q  andalso   (*it is a known quantifier*)
             not (is_funtype T)   andalso first_order1 (T::Ts) body
         | first_order1 Ts t =
             case strip_comb t of

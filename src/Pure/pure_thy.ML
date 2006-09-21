@@ -108,7 +108,7 @@ struct
 fun map_tags f thm =
   Thm.put_name_tags (Thm.name_of_thm thm, f (#2 (Thm.get_name_tags thm))) thm;
 
-fun tag_rule tg = map_tags (fn tgs => if tg mem tgs then tgs else tgs @ [tg]);
+fun tag_rule tg = map_tags (fn tgs => if member (op =) tgs tg then tgs else tgs @ [tg]);
 fun untag_rule s = map_tags (filter_out (fn (s', _) => s = s'));
 
 fun tag tg x = Thm.rule_attribute (K (tag_rule tg)) x;

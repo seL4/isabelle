@@ -145,8 +145,7 @@ val tidT = Type ("tid", []);
 val tvarT = Type ("tvar", []);
 
 val terminals = ["id", "longid", "var", "tid", "tvar", "num", "xnum", "xstr"];
-
-fun is_terminal s = s mem terminals;
+val is_terminal = member (op =) terminals;
 
 
 (* str_of_token *)

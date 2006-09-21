@@ -50,7 +50,7 @@ fun add_path reset s =
 (* init *)
 
 fun init reset parent name =
-  if not (parent mem_string (! session)) orelse not (! session_finished) then
+  if not (member (op =) (! session) parent) orelse not (! session_finished) then
     error ("Unfinished parent session " ^ quote parent ^ " for " ^ quote name)
   else (add_path reset name; session_finished := false);
 

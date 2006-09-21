@@ -462,7 +462,7 @@ fun read_pattern context is_logtype syn (root, str) =
 
     fun constify (ast as Ast.Constant _) = ast
       | constify (ast as Ast.Variable x) =
-          if x mem consts orelse NameSpace.is_qualified x then Ast.Constant x
+          if member (op =) consts x orelse NameSpace.is_qualified x then Ast.Constant x
           else ast
       | constify (Ast.Appl asts) = Ast.Appl (map constify asts);
   in

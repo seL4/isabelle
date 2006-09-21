@@ -619,7 +619,7 @@ fun app int (tr as Transition {trans, int_only, print, no_timing, ...}) state =
         |> (if ! profiling > 0 then do_profiling else I)
         |> (if ! profiling > 0 orelse ! timing andalso not no_timing then do_timing else I));
     val _ = conditional (int andalso not (! quiet) andalso
-        exists (fn m => m mem_string print) ("" :: ! print_mode))
+        exists (member (op =) print) ("" :: ! print_mode))
       (fn () => print_state false result);
   in (result, Option.map (fn UNDEF => type_error tr state | exn => exn) opt_exn) end;
 

@@ -278,7 +278,7 @@ val typ_instance = Type.typ_instance o tsig_of;
 fun typ_equiv thy (T, U) = typ_instance thy (T, U) andalso typ_instance thy (U, T);
 val typ_match = Type.typ_match o tsig_of;
 val typ_unify = Type.unify o tsig_of;
-fun is_logtype thy c = c mem_string Type.logical_types (tsig_of thy);
+val is_logtype = member (op =) o Type.logical_types o tsig_of;
 
 
 (* polymorphic constants *)
@@ -338,7 +338,7 @@ val add_consts = Term.fold_aterms (fn Const (c, _) => insert (op =) c | _ => I);
 
 fun mapping add_names f t =
   let
-    fun f' x = let val y = f x in if x = y then NONE else SOME (x, y) end;
+    fun f' (x: string) = let val y = f x in if x = y then NONE else SOME (x, y) end;
     val tab = map_filter f' (add_names t []);
     fun get x = the_default x (AList.lookup (op =) tab x);
   in get end;
@@ -663,7 +663,7 @@ fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
 
 fun add_typedecls decls thy =
   let
-    fun type_of (a, vs, mx) =
+    fun type_of (a, vs: string list, mx) =
       if not (has_duplicates (op =) vs) then (a, length vs, mx)
       else error ("Duplicate parameters in type declaration: " ^ quote a);
   in add_types (map type_of decls) thy end;

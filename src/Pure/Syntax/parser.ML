@@ -75,7 +75,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
       (*store chain if it does not already exist*)
       val (new_chain, chains') = case chain_from of NONE => (NONE, chains) | SOME from =>
         let val old_tos = these (AList.lookup (op =) chains from) in
-          if lhs mem old_tos then (NONE, chains)
+          if member (op =) old_tos lhs then (NONE, chains)
           else (SOME from, AList.update (op =) (from, lhs ins old_tos) chains)
         end;
 
@@ -101,13 +101,13 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
             val tos = connected_with chains' [lhs] [lhs];
         in (copy_lookahead tos [],
-            (if lhs mem lambdas then tos else []) union lambdas)
+            (if member (op =) lambdas lhs then tos else []) union lambdas)
         end;
 
       (*test if new production can produce lambda
         (rhs must either be empty or only consist of lambda NTs)*)
       val (new_lambda, lambdas') =
-        if forall (fn (Nonterminal (id, _)) => id mem lambdas'
+        if forall (fn (Nonterminal (id, _)) => member (op =) lambdas' id
                     | (Terminal _) => false) rhs then
           (true, lambdas' union (connected_with chains' [lhs] [lhs]))
         else
@@ -118,7 +118,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
       fun lookahead_dependency _ [] nts = (NONE, nts)
         | lookahead_dependency _ ((Terminal tk) :: _) nts = (SOME tk, nts)
         | lookahead_dependency lambdas ((Nonterminal (nt, _)) :: symbs) nts =
-            if nt mem lambdas then
+            if member (op =) lambdas nt then
               lookahead_dependency lambdas symbs (nt :: nts)
             else (NONE, nt :: nts);
 
@@ -145,7 +145,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       nt_dependencies added_tks nt_prods =
                     let val (tk, nts) = lookahead_dependency lambdas rhs [];
                     in
-                      if l mem nts then       (*update production's lookahead*)
+                      if member (op =) nts l then       (*update production's lookahead*)
                       let
                         val new_lambda = is_none tk andalso nts subset lambdas;
 
@@ -248,7 +248,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
           fun add_nts [] = ()
             | add_nts (nt :: nts) =
               let val ((old_nts, old_tks), ps) = Array.sub (prods, nt);
-              in if lhs mem old_nts then ()
+              in if member (op =) old_nts lhs then ()
                  else Array.update (prods, nt, ((lhs :: old_nts, old_tks), ps))
               end;
 
@@ -273,7 +273,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                           grammar does not contain new production already*)
                         val (tk_prods', is_new') =
                           if is_some prod_count then
-                            if new_prod mem tk_prods then (tk_prods, false)
+                            if member (op =) tk_prods new_prod then (tk_prods, false)
                             else (new_prod :: tk_prods, true)
                           else (new_prod :: tk_prods, true);
 
@@ -304,7 +304,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                 (*token under which old productions which
                   depend on changed_nt could be stored*)
                 val key =
-                 case find_first (fn t => not (t mem new_tks))
+                 case find_first (not o member (op =) new_tks)
                                  (starts_for_nt changed_nt) of
                       NONE => SOME UnknownStart
                     | t => t;
@@ -320,13 +320,13 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       val (tk, depends) = lookahead_dependency lambdas' rhs [];
 
                       (*test if this production has to be copied*)
-                      val update = changed_nt mem depends;
+                      val update = member (op =) depends changed_nt;
 
                       (*test if production could already be associated with
                         a member of new_tks*)
                       val lambda = length depends > 1 orelse
                                    not (null depends) andalso is_some tk
-                                   andalso the tk mem new_tks;
+                                   andalso member (op =) new_tks (the tk);
 
                       (*associate production with new starting tokens*)
                       fun copy [] nt_prods = nt_prods
@@ -811,7 +811,7 @@ fun produce prods chains stateset i indata prev_token =
                     else false
                 | reduction tk minPrec checked
                             (Nonterminal (nt, nt_prec) :: _, _, prec) =
-                  if prec >= minPrec andalso not (nt mem checked) then
+                  if prec >= minPrec andalso not (member (op =) checked nt) then
                     let val chained = connected_with chains [nt] [nt];
                     in exists
                          (reduction tk nt_prec (chained @ checked))

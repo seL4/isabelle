@@ -1644,7 +1644,7 @@ fun def_pred bname parms defs ts norm_ts thy =
 
     val (body, bodyT, body_eq) = atomize_spec thy norm_ts;
     val env = Term.add_term_free_names (body, []);
-    val xs = filter (fn (x, _) => x mem_string env) parms;
+    val xs = filter (member (op =) env o #1) parms;
     val Ts = map #2 xs;
     val extraTs = (Term.term_tfrees body \\ foldr Term.add_typ_tfrees [] Ts)
       |> Library.sort_wrt #1 |> map TFree;

@@ -352,8 +352,8 @@ fun require_thy really ml time strict keep_strict initiators prfx (visited, str)
     val path = Path.expand (Path.unpack str);
     val name = Path.pack (Path.base path);
   in
-    if name mem_string initiators then error (cycle_msg initiators) else ();
-    if known_thy name andalso is_finished name orelse name mem_string visited then
+    if member (op =) initiators name then error (cycle_msg initiators) else ();
+    if known_thy name andalso is_finished name orelse member (op =) visited name then
       (visited, (true, name))
     else
       let

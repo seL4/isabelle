@@ -88,7 +88,7 @@ end);
 val _ = Context.add_setup BrowserInfoData.init;
 
 fun get_info thy =
-  if Context.theory_name thy mem_string [Context.ProtoPureN, Context.PureN, Context.CPureN]
+  if member (op =) [Context.ProtoPureN, Context.PureN, Context.CPureN] (Context.theory_name thy)
   then {name = Context.PureN, session = [], is_local = false}
   else BrowserInfoData.get thy;
 
@@ -541,7 +541,7 @@ fun drafts doc_format src_paths =
 
     fun known name =
       let val ss = split_lines (File.read (Path.append doc_path (Path.basic name)))
-      in fn s => s mem_string ss end;
+      in member (op =) ss end;
     val known_syms = known "syms.lst";
     val known_ctrls = known "ctrls.lst";
 

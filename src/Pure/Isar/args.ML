@@ -349,10 +349,10 @@ fun goal_spec def = Scan.lift (Scan.optional goal def);
 
 local
 
-val exclude = explode "()[],";
+val exclude = member (op =) (explode "()[],");
 
 fun atomic blk = touch (Scan.one (fn Arg ((k, x, _), _) =>
-    k <> Keyword orelse not (x mem exclude) orelse blk andalso x = ","));
+    k <> Keyword orelse not (exclude x) orelse blk andalso x = ","));
 
 fun args blk x = Scan.optional (args1 blk) [] x
 and args1 blk x =

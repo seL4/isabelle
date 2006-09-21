@@ -293,7 +293,7 @@ fun wkNormAux t = case t of
   | Abs (a,body) =>     (*eta-contract if possible*)
         (case wkNormAux body of
              nb as (f $ t) =>
-                 if (0 mem_int loose_bnos f) orelse wkNorm t <> Bound 0
+                 if member (op =) (loose_bnos f) 0 orelse wkNorm t <> Bound 0
                  then Abs(a,nb)
                  else wkNorm (incr_boundvars ~1 f)
            | nb => Abs (a,nb))
@@ -385,7 +385,7 @@ fun fromTerm t =
         | from (Term.Abs (a,_,u)) =
               (case  from u  of
                 u' as (f $ Bound 0) =>
-                  if (0 mem_int loose_bnos f) then Abs(a,u')
+                  if member (op =) (loose_bnos f) 0 then Abs(a,u')
                   else incr_boundvars ~1 f
               | u' => Abs(a,u'))
         | from (Term.$ (f,u)) = from f $ from u
@@ -679,7 +679,7 @@ fun subst_atomic (old,new) t =
 (*Eta-contract a term from outside: just enough to reduce it to an atom*)
 fun eta_contract_atom (t0 as Abs(a, body)) =
       (case  eta_contract2 body  of
-        f $ Bound 0 => if (0 mem_int loose_bnos f) then t0
+        f $ Bound 0 => if member (op =) (loose_bnos f) 0 then t0
                        else eta_contract_atom (incr_boundvars ~1 f)
       | _ => t0)
   | eta_contract_atom t = t
@@ -1178,8 +1178,8 @@ end;
 
 (*List of variables not appearing as arguments to the given parameter*)
 fun getVars []                  i = []
-  | getVars ((_,(v,is))::alist) i =
-        if i mem is then getVars alist i
+  | getVars ((_,(v,is))::alist) (i: int) =
+        if member (op =) is i then getVars alist i
         else v :: getVars alist i;
 
 exception TRANS of string;

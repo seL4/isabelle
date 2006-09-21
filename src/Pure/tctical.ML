@@ -432,7 +432,7 @@ fun metahyps_aux_tac tacf (prem,gno) state =
       fun swap_ctpair (t,u) = (cterm u, cterm t)
       (*Subgoal variables: make Free; lift type over params*)
       fun mk_subgoal_inst concl_vars (var as Var(v,T)) =
-          if var mem concl_vars
+          if member (op =) concl_vars var
           then (var, true, free_of "METAHYP2_" (v,T))
           else (var, false,
                 free_of "METAHYP2_" (v, map #2 params --->T))

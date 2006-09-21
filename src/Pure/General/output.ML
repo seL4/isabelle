@@ -67,7 +67,7 @@ struct
 
 val print_mode = ref ([]: string list);
 
-fun has_mode s = s mem_string ! print_mode;
+fun has_mode s = member (op =) (! print_mode) s;
 
 type mode_fns =
  {output: string -> string * real,

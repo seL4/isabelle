@@ -190,8 +190,7 @@ val scan_blank =
 
 (* scan symbolic idents *)
 
-val sym_chars = explode "!#$%&*+-/<=>?@^_|~";
-fun is_sym_char s = s mem sym_chars;
+val is_sym_char = member (op =) (explode "!#$%&*+-/<=>?@^_|~");
 
 val scan_symid =
   Scan.any1 is_sym_char >> implode ||

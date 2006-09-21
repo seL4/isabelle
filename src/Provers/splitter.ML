@@ -165,7 +165,7 @@ fun add_lbnos (is,t) = add_loose_bnos (t,0,is);
    has a body of type T; otherwise the expansion thm will fail later on
 *)
 fun type_test (T,lbnos,apsns) =
-  let val (_,U,_) = List.nth(apsns, Library.foldl Int.min (hd lbnos, tl lbnos))
+  let val (_,U: typ,_) = List.nth(apsns, Library.foldl Int.min (hd lbnos, tl lbnos))
   in T=U end;
 
 (*************************************************************************
@@ -196,7 +196,7 @@ fun type_test (T,lbnos,apsns) =
           lifting is required before applying the split-theorem.
 ******************************************************************************)
 
-fun mk_split_pack (thm, T, T', n, ts, apsns, pos, TB, t) =
+fun mk_split_pack (thm, T: typ, T', n, ts, apsns, pos, TB, t) =
   if n > length ts then []
   else let val lev = length apsns
            val lbnos = Library.foldl add_lbnos ([],Library.take(n,ts))
@@ -398,9 +398,8 @@ fun split_asm_tac []     = K no_tac
   | split_asm_tac splits =
 
   let val cname_list = map (fst o fst o split_thm_info) splits;
-      fun is_case (a,_) = a mem cname_list;
       fun tac (t,i) =
-          let val n = find_index (exists_Const is_case)
+          let val n = find_index (exists_Const (member (op =) cname_list o #1))
                                  (Logic.strip_assums_hyp t);
               fun first_prem_is_disj (Const ("==>", _) $ (Const (c, _)
                     $ (Const (s, _) $ _ $ _ )) $ _ ) = c = const_Trueprop andalso s = const_or
