@@ -130,10 +130,10 @@ fun normalization_oracle (thy, Normalization t) =
 
 fun normalization_conv ct =
   let val {sign, t, ...} = rep_cterm ct
-  in Thm.invoke_oracle_i sign "Pure.Normalization" (sign, Normalization t) end;
+  in Thm.invoke_oracle_i sign "Pure.normalization" (sign, Normalization t) end;
 
 val _ = Context.add_setup
-  (Theory.add_oracle ("Normalization", normalization_oracle));
+  (Theory.add_oracle ("normalization", normalization_oracle));
 
 (* Isar setup *)
 
