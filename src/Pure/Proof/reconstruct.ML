@@ -232,23 +232,26 @@ fun make_constraints_cprf thy env cprf =
       | mk_cnstrts _ _ _ _ _ = error "reconstruct_proof: minimal proof object"
   in mk_cnstrts env [] [] Symtab.empty cprf end;
 
-fun add_term_ixns (is, t) = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I) t is;
-
 
 (**** update list of free variables of constraints ****)
+
+val add_term_ixns = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I);
+val add_typ_ixns = fold_atyps (fn TVar (ai, _) => insert (op =) ai | _ => I);
 
 fun upd_constrs env cs =
   let
     val Envir.Envir {asol, iTs, ...} = env;
-    val dom = Vartab.foldl (uncurry (cons o fst) o Library.swap)
-      (Vartab.foldl (uncurry (cons o fst) o Library.swap) ([], asol), iTs); 
-    val vran = Vartab.foldl (add_typ_ixns o apsnd (snd o snd))
-      (Vartab.foldl (add_term_ixns o apsnd (snd o snd)) ([], asol), iTs);
+    val dom = []
+      |> Vartab.fold (cons o #1) asol
+      |> Vartab.fold (cons o #1) iTs;
+    val vran = []
+      |> Vartab.fold (add_term_ixns o #2 o #2) asol
+      |> Vartab.fold (add_typ_ixns o #2 o #2) iTs;
     fun check_cs [] = []
       | check_cs ((u, p, vs)::ps) =
           let val vs' = subtract (op =) dom vs;
           in if vs = vs' then (u, p, vs)::check_cs ps
-             else (true, p, vs' union vran)::check_cs ps
+             else (true, p, fold (insert (op =)) vs' vran)::check_cs ps
           end
   in check_cs cs end;
 
@@ -376,7 +379,7 @@ fun expand_proof thy thms prf =
             val tye = map (fn ((s, j), _) => (s, maxidx + 1 + j))
               (term_tvars prop) @ map (rpair ~1 o fst) tfrees ~~ Ts;
             val varify = map_type_tfree (fn p as (a, S) =>
-              if p mem tfrees then TVar ((a, ~1), S) else TFree p)
+              if member (op =) tfrees p then TVar ((a, ~1), S) else TFree p)
           in
             (maxidx', prfs', map_proof_terms (subst_TVars tye o
                map_types varify) (typ_subst_TVars tye o varify) prf)

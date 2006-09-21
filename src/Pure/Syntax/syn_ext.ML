@@ -194,7 +194,7 @@ val typ_to_nonterm1 = typ_to_nt logic;
 
 local
 
-fun is_meta c = c mem ["(", ")", "/", "_", "\\<index>"];
+val is_meta = member (op =) ["(", ")", "/", "_", "\\<index>"];
 
 val scan_delim_char =
   $$ "'" |-- Scan.one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
@@ -308,7 +308,7 @@ fun mfix_to_xprod convert is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) 
     val (symbs, lhs) = add_args raw_symbs typ' pris;
 
     val copy_prod =
-      lhs mem ["prop", "logic"]
+      (lhs = "prop" orelse lhs = "logic")
         andalso const <> ""
         andalso not (null symbs)
         andalso not (exists is_delim symbs);
