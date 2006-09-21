@@ -101,7 +101,7 @@ fun fold_pretyps f (PConst (_, T)) x = f T x
 
 (** raw typs/terms to pretyps/preterms **)
 
-(* pretyp(s)_of *)
+(* pretyp_of *)
 
 fun anyT S = TFree ("'_dummy_", S);
 val logicT = anyT [];
@@ -113,15 +113,14 @@ fun mixfixT (Binder _) = (logicT --> logicT) --> logicT
 (*indicate polymorphic Vars*)
 fun polymorphicT T = Type ("_polymorphic_", [T]);
 
-fun pretyp_of is_param (params, typ) =
+fun pretyp_of is_param typ params =
   let
-    fun add_parms (TVar (xi as (x, _), S)) ps =
-          if is_param xi andalso not (AList.defined (op =) ps xi)
-          then (xi, mk_param S) :: ps else ps
-      | add_parms (TFree _) ps = ps
-      | add_parms (Type (_, Ts)) ps = fold add_parms Ts ps;
-
-    val params' = add_parms typ params;
+    val params' = fold_atyps
+      (fn TVar (xi as (x, _), S) =>
+          (fn ps =>
+            if is_param xi andalso not (AList.defined (op =) ps xi)
+            then (xi, mk_param S) :: ps else ps)
+        | _ => I) typ params;
 
     fun pre_of (TVar (v as (xi, _))) =
           (case AList.lookup (op =) params' xi of
@@ -132,65 +131,59 @@ fun pretyp_of is_param (params, typ) =
       | pre_of (T as Type (a, Ts)) =
           if T = dummyT then mk_param []
           else PType (a, map pre_of Ts);
-  in (params', pre_of typ) end;
-
-fun pretyps_of is_param = foldl_map (pretyp_of is_param);
+  in (pre_of typ, params') end;
 
 
-(* preterm(s)_of *)
+(* preterm_of *)
 
-fun preterm_of const_type is_param ((vparams, params), tm) =
+fun preterm_of const_type is_param tm (vparams, params) =
   let
-    fun add_vparm (ps, xi) =
-      if not (AList.defined (op =) ps xi) then
+    fun add_vparm xi ps =
+      if not (AList.defined Term.eq_ix ps xi) then
         (xi, mk_param []) :: ps
       else ps;
 
-    fun add_vparms (ps, Var (xi, Type ("_polymorphic_", _))) = ps
-      | add_vparms (ps, Var (xi, _)) = add_vparm (ps, xi)
-      | add_vparms (ps, Free (x, _)) = add_vparm (ps, (x, ~1))
-      | add_vparms (ps, Abs (_, _, t)) = add_vparms (ps, t)
-      | add_vparms (ps, t $ u) = add_vparms (add_vparms (ps, t), u)
-      | add_vparms (ps, _) = ps;
-
-    val vparams' = add_vparms (vparams, tm);
+    val vparams' = fold_aterms
+      (fn Var (_, Type ("_polymorphic_", _)) => I
+        | Var (xi, _) => add_vparm xi
+        | Free (x, _) => add_vparm (x, ~1)
+        | _ => I)
+      tm vparams;
     fun var_param xi = (the o AList.lookup (op =) vparams') xi;
 
 
     val preT_of = pretyp_of is_param;
 
-    fun constrain (ps, t) T =
-      if T = dummyT then (ps, t)
+    fun constrain T t ps =
+      if T = dummyT then (t, ps)
       else
-        let val (ps', T') = preT_of (ps, T)
-        in (ps', Constraint (t, T')) end;
+        let val (T', ps') = preT_of T ps
+        in (Constraint (t, T'), ps') end;
 
-    fun pre_of (ps, Const (c, T)) =
+    fun pre_of (Const (c, T)) ps =
           (case const_type c of
-            SOME U => constrain (ps, PConst (c, snd (pretyp_of (K true) ([], U)))) T
+            SOME U => constrain T (PConst (c, fst (pretyp_of (K true) U []))) ps
           | NONE => raise TYPE ("No such constant: " ^ quote c, [], []))
-      | pre_of (ps, Var (xi, Type ("_polymorphic_", [T]))) =
-          (ps, PVar (xi, snd (pretyp_of (K true) ([], T))))
-      | pre_of (ps, Var (xi, T)) = constrain (ps, PVar (xi, var_param xi)) T
-      | pre_of (ps, Free (x, T)) = constrain (ps, PFree (x, var_param (x, ~1))) T
-      | pre_of (ps, Const ("_type_constraint_", Type ("fun", [T, _])) $ t) =
-          constrain (pre_of (ps, t)) T
-      | pre_of (ps, Bound i) = (ps, PBound i)
-      | pre_of (ps, Abs (x, T, t)) =
+      | pre_of (Var (xi, Type ("_polymorphic_", [T]))) ps =
+          (PVar (xi, fst (pretyp_of (K true) T [])), ps)
+      | pre_of (Var (xi, T)) ps = constrain T (PVar (xi, var_param xi)) ps
+      | pre_of (Free (x, T)) ps = constrain T (PFree (x, var_param (x, ~1))) ps
+      | pre_of (Const ("_type_constraint_", Type ("fun", [T, _])) $ t) ps =
+          uncurry (constrain T) (pre_of t ps)
+      | pre_of (Bound i) ps = (PBound i, ps)
+      | pre_of (Abs (x, T, t)) ps =
           let
-            val (ps', T') = preT_of (ps, T);
-            val (ps'', t') = pre_of (ps', t);
-          in (ps'', PAbs (x, T', t')) end
-      | pre_of (ps, t $ u) =
+            val (T', ps') = preT_of T ps;
+            val (t', ps'') = pre_of t ps';
+          in (PAbs (x, T', t'), ps'') end
+      | pre_of (t $ u) ps =
           let
-            val (ps', t') = pre_of (ps, t);
-            val (ps'', u') = pre_of (ps', u);
-          in (ps'', PAppl (t', u')) end;
+            val (t', ps') = pre_of t ps;
+            val (u', ps'') = pre_of u ps';
+          in (PAppl (t', u'), ps'') end;
 
-    val (params', tm') = pre_of (params, tm);
-  in ((vparams', params'), tm') end;
-
-fun preterms_of const_type is_param = foldl_map (preterm_of const_type is_param);
+    val (tm', params') = pre_of tm params;
+  in (tm', (vparams', params')) end;
 
 
 
@@ -404,8 +397,8 @@ fun infer pp tsig =
 fun basic_infer_types pp tsig const_type used freeze is_param ts Ts =
   let
     (*convert to preterms/typs*)
-    val (Tps, Ts') = pretyps_of (K true) ([], Ts);
-    val ((vps, ps), ts') = preterms_of const_type is_param (([], Tps), ts);
+    val (Ts', Tps) = fold_map (pretyp_of (K true)) Ts [];
+    val (ts', (vps, ps)) = fold_map (preterm_of const_type is_param) ts ([], Tps);
 
     (*run type inference*)
     val tTs' = ListPair.map Constraint (ts', Ts');
@@ -457,8 +450,8 @@ val paramify_dummies =
 
 fun get_sort tsig def_sort map_sort raw_env =
   let
-    fun eq ((xi: indexname, S), (xi', S')) =
-      xi = xi' andalso Type.eq_sort tsig (S, S');
+    fun eq ((xi, S), (xi', S')) =
+      Term.eq_ix (xi, xi') andalso Type.eq_sort tsig (S, S');
 
     val env = distinct eq (map (apsnd map_sort) raw_env);
     val _ = (case duplicates (eq_fst (op =)) env of [] => ()

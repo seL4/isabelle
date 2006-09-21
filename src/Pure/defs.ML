@@ -140,12 +140,11 @@ fun reduction pp defs const deps =
       | SOME subst => SOME (map (apsnd (map subst)) rhs));
     fun reducts (d, Us) = get_first (reduct Us) (reducts_of defs d);
 
-    fun add (NONE, dp) = insert (op =) dp
-      | add (SOME dps, _) = fold (insert (op =)) dps;
     val reds = map (`reducts) deps;
     val deps' =
       if forall (is_none o #1) reds then NONE
-      else SOME (fold_rev add reds []);
+      else SOME (fold_rev
+        (fn (NONE, dp) => insert (op =) dp | (SOME dps, _) => fold (insert (op =)) dps) reds []);
     val _ = forall (acyclic pp defs const) (the_default deps deps');
   in deps' end;
 

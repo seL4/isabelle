@@ -106,12 +106,6 @@ fun print_rule (p, t) =
 	"lookup stack "^pattern^" = weak stack ("^term^")"
     end
 
-fun remove_dups (c::cs) = 
-    let val cs = remove_dups cs in
-	if (List.exists (fn x => x=c) cs) then cs else c::cs
-    end
-  | remove_dups [] = []
-
 fun constants_of PVar = []
   | constants_of (PConst (c, ps)) = c :: maps constants_of ps
 
@@ -133,7 +127,7 @@ fun load_rules sname name prog =
 		"structure "^name^" = struct",
 		"",
 		"datatype term = App of term * term | Abs of term | Var of int | Const of int | Closure of term list * term"]
-	val constants = remove_dups (maps (fn (p, r) => ((constants_of p)@(constants_of_term r))) prog)
+	val constants = distinct (op =) (maps (fn (p, r) => ((constants_of p)@(constants_of_term r))) prog)
 	val _ = map (fn x => write (" | c"^(str x))) constants
 	val _ = writelist [
 		"",
