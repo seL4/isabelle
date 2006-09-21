@@ -550,7 +550,7 @@ fun is_full_cong_prems [] [] = true
           let val (x, xs) = strip_comb lhs and (y, ys) = strip_comb rhs in
             is_Var x andalso forall is_Bound xs andalso
             null (findrep xs) andalso xs = ys andalso
-            (x, y) mem varpairs andalso
+            member (op =) varpairs (x, y) andalso
             is_full_cong_prems prems (remove (op =) (x, y) varpairs)
           end
       | _ => false);
@@ -779,7 +779,7 @@ fun merge_ss (ss1, ss2) =
 
 val dest_eq = Drule.dest_equals o Thm.cprop_of;
 val lhs_of = #1 o dest_eq;
-val rhs_of = #2 o dest_eq;
+val rhs_of = Drule.dest_equals_rhs o Thm.cprop_of;
 
 fun check_conv msg ss thm thm' =
   let
@@ -821,7 +821,7 @@ val skel0 = Bound 0;
 
 fun uncond_skel ((_, weak), (lhs, rhs)) =
   if null weak then rhs  (*optimization*)
-  else if exists_Const (fn (c, _) => c mem weak) lhs then skel0
+  else if exists_Const (member (op =) weak o #1) lhs then skel0
   else rhs;
 
 (*Behaves like unconditional rule if rhs does not contain vars not in the lhs.
@@ -1124,7 +1124,8 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
             in mut_impc prems concl rrss asms (prem' :: prems')
               (rrs' :: rrss') (asm' :: asms') (SOME (foldr (disch true)
                 (Drule.imp_cong_rule eqn (reflexive (Drule.list_implies
-                  (Library.drop (i, prems), concl)))) (Library.take (i, prems))) :: eqns) ss (length prems') ~1
+                  (Library.drop (i, prems), concl)))) (Library.take (i, prems))) :: eqns)
+                  ss (length prems') ~1
             end
 
      (*legacy code - only for backwards compatibility*)
