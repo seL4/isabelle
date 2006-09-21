@@ -207,7 +207,7 @@ fun head_norm env t =
       | hnorm (f $ t) = (case hnorm f of
           Abs (_, _, body) => head_norm env (subst_bound (t, body))
         | nf => nf $ t)
-	  | hnorm _ =  raise SAME
+          | hnorm _ =  raise SAME
   in hnorm t handle SAME => t end;
 
 
@@ -215,23 +215,26 @@ fun head_norm env t =
 
 fun eta_contract t =
   let
-    exception SAME;
+    fun decr lev (Bound i) = if i >= lev then Bound (i - 1) else raise SAME
+      | decr lev (Abs (a, T, body)) = Abs (a, T, decr (lev + 1) body)
+      | decr lev (t $ u) = (decr lev t $ decrh lev u handle SAME => t $ decr lev u)
+      | decr _ _ = raise SAME
+    and decrh lev t = (decr lev t handle SAME => t);
+
     fun eta (Abs (a, T, body)) =
-      ((case eta body of
-          body' as (f $ Bound 0) =>
-            if loose_bvar1 (f, 0) then Abs(a, T, body')
-            else incr_boundvars ~1 f
-        | body' => Abs (a, T, body')) handle SAME =>
-       (case body of
-          (f $ Bound 0) =>
-            if loose_bvar1 (f, 0) then raise SAME
-            else incr_boundvars ~1 f
-        | _ => raise SAME))
-      | eta (f $ t) =
-          (let val f' = eta f
-           in f' $ etah t end handle SAME => f $ eta t)
+        ((case eta body of
+            body' as (f $ Bound 0) =>
+              if loose_bvar1 (f, 0) then Abs (a, T, body')
+              else decrh 0 f
+         | body' => Abs (a, T, body')) handle SAME =>
+            (case body of
+              f $ Bound 0 =>
+                if loose_bvar1 (f, 0) then raise SAME
+                else decrh 0 f
+            | _ => raise SAME))
+      | eta (t $ u) = (eta t $ etah u handle SAME => t $ eta u)
       | eta _ = raise SAME
-    and etah t = (eta t handle SAME => t)
+    and etah t = (eta t handle SAME => t);
   in etah t end;
 
 val beta_eta_contract = eta_contract o beta_norm;
@@ -242,19 +245,19 @@ val beta_eta_contract = eta_contract o beta_norm;
 fun fastype (Envir {iTs, ...}) =
 let val funerr = "fastype: expected function type";
     fun fast Ts (f $ u) =
-	(case fast Ts f of
-	   Type ("fun", [_, T]) => T
-	 | TVar ixnS =>
-		(case Type.lookup (iTs, ixnS) of
-		   SOME (Type ("fun", [_, T])) => T
-		 | _ => raise TERM (funerr, [f $ u]))
-	 | _ => raise TERM (funerr, [f $ u]))
+        (case fast Ts f of
+           Type ("fun", [_, T]) => T
+         | TVar ixnS =>
+                (case Type.lookup (iTs, ixnS) of
+                   SOME (Type ("fun", [_, T])) => T
+                 | _ => raise TERM (funerr, [f $ u]))
+         | _ => raise TERM (funerr, [f $ u]))
       | fast Ts (Const (_, T)) = T
       | fast Ts (Free (_, T)) = T
       | fast Ts (Bound i) =
-	(List.nth (Ts, i)
-  	 handle Subscript => raise TERM ("fastype: Bound", [Bound i]))
-      | fast Ts (Var (_, T)) = T 
+        (List.nth (Ts, i)
+         handle Subscript => raise TERM ("fastype: Bound", [Bound i]))
+      | fast Ts (Var (_, T)) = T
       | fast Ts (Abs (_, T, u)) = T --> fast (T :: Ts) u
 in fast end;
 
