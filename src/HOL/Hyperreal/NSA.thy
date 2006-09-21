@@ -74,6 +74,10 @@ lemma hnorm_triangle_ineq:
   "\<And>x y::'a::real_normed_vector star. hnorm (x + y) \<le> hnorm x + hnorm y"
 by transfer (rule norm_triangle_ineq)
 
+lemma hnorm_triangle_ineq3:
+  "\<And>x y::'a::real_normed_vector star. \<bar>hnorm x - hnorm y\<bar> \<le> hnorm (x - y)"
+by transfer (rule norm_triangle_ineq3)
+
 lemma hnorm_scaleR:
   "\<And>a (x::'a::real_normed_vector star).
    hnorm (( *f2* scaleR) a x) = \<bar>a\<bar> * hnorm x"
@@ -412,6 +416,10 @@ apply (blast intro: hnorm_add_less SReal_divide_number_of dest: InfinitesimalD)
 done
 
 lemma Infinitesimal_minus_iff [simp]: "(-x:Infinitesimal) = (x:Infinitesimal)"
+by (simp add: Infinitesimal_def)
+
+lemma Infinitesimal_hnorm_iff:
+  "(hnorm x \<in> Infinitesimal) = (x \<in> Infinitesimal)"
 by (simp add: Infinitesimal_def)
 
 lemma Infinitesimal_diff:
@@ -889,6 +897,25 @@ apply (rule Infinitesimal_interval2)
 apply (rule_tac [2] Infinitesimal_zero, auto)
 done
 
+lemma approx_hnorm:
+  fixes x y :: "'a::real_normed_vector star"
+  shows "x \<approx> y \<Longrightarrow> hnorm x \<approx> hnorm y"
+proof (unfold approx_def)
+  assume "x - y \<in> Infinitesimal"
+  hence 1: "hnorm (x - y) \<in> Infinitesimal"
+    by (simp only: Infinitesimal_hnorm_iff)
+  moreover have 2: "(0::real star) \<in> Infinitesimal"
+    by (rule Infinitesimal_zero)
+  moreover have 3: "0 \<le> \<bar>hnorm x - hnorm y\<bar>"
+    by (rule abs_ge_zero)
+  moreover have 4: "\<bar>hnorm x - hnorm y\<bar> \<le> hnorm (x - y)"
+    by (rule hnorm_triangle_ineq3)
+  ultimately have "\<bar>hnorm x - hnorm y\<bar> \<in> Infinitesimal"
+    by (rule Infinitesimal_interval2)
+  thus "hnorm x - hnorm y \<in> Infinitesimal"
+    by (simp only: Infinitesimal_hrabs_iff)
+qed
+
 
 subsection{* Zero is the Only Infinitesimal that is also a Real*}
 
@@ -1274,27 +1301,29 @@ lemma HInfinite_diff_HFinite_Infinitesimal_disj:
 by (fast intro: not_HFinite_HInfinite)
 
 lemma HFinite_inverse:
-  fixes x :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  fixes x :: "'a::real_normed_div_algebra star"
   shows "[| x \<in> HFinite; x \<notin> Infinitesimal |] ==> inverse x \<in> HFinite"
+apply (subgoal_tac "x \<noteq> 0")
 apply (cut_tac x = "inverse x" in HInfinite_HFinite_disj)
-apply (auto dest!: HInfinite_inverse_Infinitesimal)
+apply (auto dest!: HInfinite_inverse_Infinitesimal
+            simp add: nonzero_inverse_inverse_eq)
 done
 
 lemma HFinite_inverse2:
-  fixes x :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  fixes x :: "'a::real_normed_div_algebra star"
   shows "x \<in> HFinite - Infinitesimal ==> inverse x \<in> HFinite"
 by (blast intro: HFinite_inverse)
 
 (* stronger statement possible in fact *)
 lemma Infinitesimal_inverse_HFinite:
-  fixes x :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  fixes x :: "'a::real_normed_div_algebra star"
   shows "x \<notin> Infinitesimal ==> inverse(x) \<in> HFinite"
 apply (drule HInfinite_diff_HFinite_Infinitesimal_disj)
 apply (blast intro: HFinite_inverse HInfinite_inverse_Infinitesimal Infinitesimal_subset_HFinite [THEN subsetD])
 done
 
 lemma HFinite_not_Infinitesimal_inverse:
-  fixes x :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  fixes x :: "'a::real_normed_div_algebra star"
   shows "x \<in> HFinite - Infinitesimal ==> inverse x \<in> HFinite - Infinitesimal"
 apply (auto intro: Infinitesimal_inverse_HFinite)
 apply (drule Infinitesimal_HFinite_mult2, assumption)
@@ -1302,7 +1331,7 @@ apply (simp add: not_Infinitesimal_not_zero right_inverse)
 done
 
 lemma approx_inverse:
-  fixes x y :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  fixes x y :: "'a::real_normed_div_algebra star"
   shows
      "[| x @= y; y \<in>  HFinite - Infinitesimal |]
       ==> inverse x @= inverse y"
@@ -1320,7 +1349,7 @@ lemmas star_of_approx_inverse = star_of_HFinite_diff_Infinitesimal [THEN [2] app
 lemmas hypreal_of_real_approx_inverse =  hypreal_of_real_HFinite_diff_Infinitesimal [THEN [2] approx_inverse]
 
 lemma inverse_add_Infinitesimal_approx:
-  fixes x h :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  fixes x h :: "'a::real_normed_div_algebra star"
   shows
      "[| x \<in> HFinite - Infinitesimal;
          h \<in> Infinitesimal |] ==> inverse(x + h) @= inverse x"
@@ -1328,7 +1357,7 @@ apply (auto intro: approx_inverse approx_sym Infinitesimal_add_approx_self)
 done
 
 lemma inverse_add_Infinitesimal_approx2:
-  fixes x h :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  fixes x h :: "'a::real_normed_div_algebra star"
   shows
      "[| x \<in> HFinite - Infinitesimal;
          h \<in> Infinitesimal |] ==> inverse(h + x) @= inverse x"
@@ -1337,7 +1366,7 @@ apply (blast intro: inverse_add_Infinitesimal_approx)
 done
 
 lemma inverse_add_Infinitesimal_approx_Infinitesimal:
-  fixes x h :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  fixes x h :: "'a::real_normed_div_algebra star"
   shows
      "[| x \<in> HFinite - Infinitesimal;
          h \<in> Infinitesimal |] ==> inverse(x + h) - inverse x @= h"
@@ -1347,7 +1376,7 @@ apply (auto intro: inverse_add_Infinitesimal_approx
 done
 
 lemma Infinitesimal_square_iff:
-  fixes x :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  fixes x :: "'a::real_normed_div_algebra star"
   shows "(x \<in> Infinitesimal) = (x*x \<in> Infinitesimal)"
 apply (auto intro: Infinitesimal_mult)
 apply (rule ccontr, frule Infinitesimal_inverse_HFinite)
@@ -1369,7 +1398,7 @@ lemma HInfinite_square_iff [simp]:
 by (auto simp add: HInfinite_HFinite_iff)
 
 lemma approx_HFinite_mult_cancel:
-  fixes a w z :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  fixes a w z :: "'a::real_normed_div_algebra star"
   shows "[| a: HFinite-Infinitesimal; a* w @= a*z |] ==> w @= z"
 apply safe
 apply (frule HFinite_inverse, assumption)
@@ -1378,7 +1407,7 @@ apply (auto dest: approx_mult2 simp add: mult_assoc [symmetric])
 done
 
 lemma approx_HFinite_mult_cancel_iff1:
-  fixes a w z :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  fixes a w z :: "'a::real_normed_div_algebra star"
   shows "a: HFinite-Infinitesimal ==> (a * w @= a * z) = (w @= z)"
 by (auto intro: approx_mult2 approx_HFinite_mult_cancel)
 
@@ -1407,7 +1436,7 @@ apply (auto dest: Infinitesimal_HFinite_mult2)
 done
 
 lemma HInfinite_HFinite_not_Infinitesimal_mult:
-  fixes x y :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  fixes x y :: "'a::real_normed_div_algebra star"
   shows "[| x \<in> HInfinite; y \<in> HFinite - Infinitesimal |]
       ==> x * y \<in> HInfinite"
 apply (rule ccontr, drule HFinite_HInfinite_iff [THEN iffD2])
@@ -1418,7 +1447,7 @@ apply (auto simp add: mult_assoc HFinite_HInfinite_iff)
 done
 
 lemma HInfinite_HFinite_not_Infinitesimal_mult2:
-  fixes x y :: "'a::{real_normed_div_algebra,division_by_zero} star"
+  fixes x y :: "'a::real_normed_div_algebra star"
   shows "[| x \<in> HInfinite; y \<in> HFinite - Infinitesimal |]
       ==> y * x \<in> HInfinite"
 apply (rule ccontr, drule HFinite_HInfinite_iff [THEN iffD2])
@@ -1537,12 +1566,7 @@ lemma lemma_approx_less_zero:
 by (blast dest: Ball_mem_monad_less_zero approx_subset_monad)
 
 theorem approx_hrabs: "(x::hypreal) @= y ==> abs x @= abs y"
-apply (case_tac "x \<in> Infinitesimal") 
-apply (simp add: Infinitesimal_approx_hrabs)
-apply (rule linorder_cases [of 0 x])  
-apply (frule lemma_approx_gt_zero [of x y]) 
-apply (auto simp add: lemma_approx_less_zero [of x y] abs_of_neg)
-done
+by (drule approx_hnorm, simp)
 
 lemma approx_hrabs_zero_cancel: "abs(x::hypreal) @= 0 ==> x @= 0"
 apply (cut_tac x = x in hrabs_disj)
