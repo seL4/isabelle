@@ -264,25 +264,25 @@ by (simp add: LIMSEQ_NSLIMSEQ_iff [THEN sym] LIMSEQ_diff_const)
 
 text{*Proof is like that of @{text NSLIM_inverse}.*}
 lemma NSLIMSEQ_inverse:
-  fixes a :: "'a::{real_normed_div_algebra,division_by_zero}"
+  fixes a :: "'a::real_normed_div_algebra"
   shows "[| X ----NS> a;  a ~= 0 |] ==> (%n. inverse(X n)) ----NS> inverse(a)"
 by (simp add: NSLIMSEQ_def star_of_approx_inverse)
 
 
 text{*Standard version of theorem*}
 lemma LIMSEQ_inverse:
-  fixes a :: "'a::{real_normed_div_algebra,division_by_zero}"
+  fixes a :: "'a::real_normed_div_algebra"
   shows "[| X ----> a; a ~= 0 |] ==> (%n. inverse(X n)) ----> inverse(a)"
 by (simp add: NSLIMSEQ_inverse LIMSEQ_NSLIMSEQ_iff)
 
 lemma NSLIMSEQ_mult_inverse:
-  fixes a b :: "'a::{real_normed_div_algebra,field,division_by_zero}"
+  fixes a b :: "'a::{real_normed_div_algebra,field}"
   shows
      "[| X ----NS> a;  Y ----NS> b;  b ~= 0 |] ==> (%n. X n / Y n) ----NS> a/b"
 by (simp add: NSLIMSEQ_mult NSLIMSEQ_inverse divide_inverse)
 
 lemma LIMSEQ_divide:
-  fixes a b :: "'a::{real_normed_div_algebra,field,division_by_zero}"
+  fixes a b :: "'a::{real_normed_div_algebra,field}"
   shows "[| X ----> a;  Y ----> b;  b ~= 0 |] ==> (%n. X n / Y n) ----> a/b"
 by (simp add: LIMSEQ_mult LIMSEQ_inverse divide_inverse)
 

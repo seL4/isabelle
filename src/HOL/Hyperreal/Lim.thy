@@ -330,7 +330,7 @@ by (simp add: LIM_NSLIM_iff NSLIM_add_minus)
 
 
 lemma NSLIM_inverse:
-  fixes L :: "'a::{real_normed_div_algebra,division_by_zero}"
+  fixes L :: "'a::real_normed_div_algebra"
   shows "[| f -- a --NS> L;  L \<noteq> 0 |]
       ==> (%x. inverse(f(x))) -- a --NS> (inverse L)"
 apply (simp add: NSLIM_def, clarify)
@@ -339,7 +339,7 @@ apply (auto simp add: star_of_approx_inverse)
 done
 
 lemma LIM_inverse:
-  fixes L :: "'a::{real_normed_div_algebra,division_by_zero}"
+  fixes L :: "'a::real_normed_div_algebra"
   shows "[| f -- a --> L; L \<noteq> 0 |]
       ==> (%x. inverse(f(x))) -- a --> (inverse L)"
 by (simp add: LIM_NSLIM_iff NSLIM_inverse)
@@ -514,16 +514,14 @@ lemma isCont_minus: "isCont f a ==> isCont (%x. - f x) a"
 by (auto simp add: isNSCont_isCont_iff [symmetric] isNSCont_minus)
 
 lemma isCont_inverse:
-  fixes f :: "'a::real_normed_vector \<Rightarrow>
-              'b::{real_normed_div_algebra,division_by_zero}"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_div_algebra"
   shows "[| isCont f x; f x \<noteq> 0 |] ==> isCont (%x. inverse (f x)) x"
 apply (simp add: isCont_def)
 apply (blast intro: LIM_inverse)
 done
 
 lemma isNSCont_inverse:
-  fixes f :: "'a::real_normed_vector \<Rightarrow>
-              'b::{real_normed_div_algebra,division_by_zero}"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_div_algebra"
   shows "[| isNSCont f x; f x \<noteq> 0 |] ==> isNSCont (%x. inverse (f x)) x"
 by (auto intro: isCont_inverse simp add: isNSCont_isCont_iff)
 
