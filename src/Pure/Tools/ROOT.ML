@@ -31,3 +31,6 @@ use "compute.ML";
 use "nbe_eval.ML";
 use "nbe_codegen.ML";
 use "nbe.ML";
+
+(*XML syntax for terms and types*)
+use "xml_syntax.ML";
