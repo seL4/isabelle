@@ -33,51 +33,86 @@ apply auto
 apply (drule sym [THEN diff_eq_eq [THEN iffD2]], auto)
 done
 
-definition
+abbreviation
 
   CLIM :: "[complex=>complex,complex,complex] => bool"
 				("((_)/ -- (_)/ --C> (_))" [60, 0, 60] 60)
-  "f -- a --C> L =
-     (\<forall>r. 0 < r -->
-	     (\<exists>s. 0 < s & (\<forall>x. (x \<noteq> a & (cmod(x - a) < s)
-			  --> cmod(f x - L) < r))))"
+  "CLIM == LIM"
 
   NSCLIM :: "[complex=>complex,complex,complex] => bool"
 			      ("((_)/ -- (_)/ --NSC> (_))" [60, 0, 60] 60)
-  "f -- a --NSC> L = (\<forall>x. (x \<noteq> hcomplex_of_complex a &
-           		         x @= hcomplex_of_complex a
-                                   --> ( *f* f) x @= hcomplex_of_complex L))"
+  "NSCLIM == NSLIM"
 
   (* f: C --> R *)
   CRLIM :: "[complex=>real,complex,real] => bool"
 				("((_)/ -- (_)/ --CR> (_))" [60, 0, 60] 60)
+  "CRLIM == LIM"
+
+  NSCRLIM :: "[complex=>real,complex,real] => bool"
+			      ("((_)/ -- (_)/ --NSCR> (_))" [60, 0, 60] 60)
+  "NSCRLIM == NSLIM"
+
+
+  isContc :: "[complex=>complex,complex] => bool"
+  "isContc == isCont"
+
+  (* NS definition dispenses with limit notions *)
+  isNSContc :: "[complex=>complex,complex] => bool"
+  "isNSContc == isNSCont"
+
+  isContCR :: "[complex=>real,complex] => bool"
+  "isContCR == isCont"
+
+  (* NS definition dispenses with limit notions *)
+  isNSContCR :: "[complex=>real,complex] => bool"
+  "isNSContCR == isNSCont"
+
+
+lemma CLIM_def:
+  "f -- a --C> L =
+     (\<forall>r. 0 < r -->
+	     (\<exists>s. 0 < s & (\<forall>x. (x \<noteq> a & (cmod(x - a) < s)
+			  --> cmod(f x - L) < r))))"
+by (rule LIM_def)
+
+lemma NSCLIM_def:
+  "f -- a --NSC> L = (\<forall>x. (x \<noteq> hcomplex_of_complex a &
+           		         x @= hcomplex_of_complex a
+                                   --> ( *f* f) x @= hcomplex_of_complex L))"
+by (rule NSLIM_def)
+
+lemma CRLIM_def:
   "f -- a --CR> L =
      (\<forall>r. 0 < r -->
 	     (\<exists>s. 0 < s & (\<forall>x. (x \<noteq> a & (cmod(x - a) < s)
 			  --> abs(f x - L) < r))))"
+by (simp add: LIM_def)
 
-  NSCRLIM :: "[complex=>real,complex,real] => bool"
-			      ("((_)/ -- (_)/ --NSCR> (_))" [60, 0, 60] 60)
+lemma NSCRLIM_def:
   "f -- a --NSCR> L = (\<forall>x. (x \<noteq> hcomplex_of_complex a &
            		         x @= hcomplex_of_complex a
                                    --> ( *f* f) x @= hypreal_of_real L))"
+by (rule NSLIM_def)
 
-
-  isContc :: "[complex=>complex,complex] => bool"
+lemma isContc_def:
   "isContc f a = (f -- a --C> (f a))"
+by (rule isCont_def)
 
-  (* NS definition dispenses with limit notions *)
-  isNSContc :: "[complex=>complex,complex] => bool"
+lemma isNSContc_def:
   "isNSContc f a = (\<forall>y. y @= hcomplex_of_complex a -->
 			   ( *f* f) y @= hcomplex_of_complex (f a))"
+by (rule isNSCont_def)
 
-  isContCR :: "[complex=>real,complex] => bool"
+lemma isContCR_def:
   "isContCR f a = (f -- a --CR> (f a))"
+by (rule isCont_def)
 
-  (* NS definition dispenses with limit notions *)
-  isNSContCR :: "[complex=>real,complex] => bool"
+lemma isNSContCR_def:
   "isNSContCR f a = (\<forall>y. y @= hcomplex_of_complex a -->
 			   ( *f* f) y @= hypreal_of_real (f a))"
+by (rule isNSCont_def)
+
+definition
 
   (* differentiation: D is derivative of function f at x *)
   cderiv:: "[complex=>complex,complex,complex] => bool"
@@ -112,25 +147,17 @@ definition
 subsection{*Limit of Complex to Complex Function*}
 
 lemma NSCLIM_NSCRLIM_Re: "f -- a --NSC> L ==> (%x. Re(f x)) -- a --NSCR> Re(L)"
-by (simp add: NSCLIM_def NSCRLIM_def starfunC_approx_Re_Im_iff 
+by (simp add: NSLIM_def starfunC_approx_Re_Im_iff 
               hRe_hcomplex_of_complex)
 
 
 lemma NSCLIM_NSCRLIM_Im: "f -- a --NSC> L ==> (%x. Im(f x)) -- a --NSCR> Im(L)"
-by (simp add: NSCLIM_def NSCRLIM_def starfunC_approx_Re_Im_iff 
+by (simp add: NSLIM_def starfunC_approx_Re_Im_iff 
               hIm_hcomplex_of_complex)
 
 lemma CLIM_NSCLIM:
       "f -- x --C> L ==> f -- x --NSC> L"
-apply (simp add: CLIM_def NSCLIM_def approx_def, auto)
-apply (rule_tac x = xa in star_cases)
-apply (auto simp add: starfun star_n_diff star_of_def star_n_eq_iff
-         Infinitesimal_hcmod_iff hcmod diff_def [symmetric])
-apply (auto simp add: Infinitesimal_FreeUltrafilterNat_iff)
-apply (drule_tac x = u in spec, auto)
-apply (drule_tac x = s in spec, auto, ultra)
-apply (auto)
-done
+by (rule LIM_NSLIM)
 
 lemma eq_Abs_star_ALL: "(\<forall>t. P t) = (\<forall>X. P (star_n X))"
 apply auto
@@ -165,43 +192,18 @@ by auto
 
 lemma NSCLIM_CLIM:
      "f -- x --NSC> L ==> f -- x --C> L"
-apply (simp add: CLIM_def NSCLIM_def)
-apply (rule ccontr) 
-apply (auto simp add: eq_Abs_star_ALL starfun
-            Infinitesimal_approx_minus [symmetric] star_n_diff
-            Infinitesimal_hcmod_iff star_of_def star_n_eq_iff
-            hcmod)
-apply (auto simp add: Infinitesimal_FreeUltrafilterNat_iff)
-apply (simp add: linorder_not_less)
-apply (drule lemma_skolemize_CLIM2, safe)
-apply (drule_tac x = X in spec, auto)
-apply (drule lemma_csimp [THEN complex_seq_to_hcomplex_Infinitesimal])
-apply (simp add: Infinitesimal_hcmod_iff star_of_def
-            Infinitesimal_FreeUltrafilterNat_iff star_n_diff hcmod)
-apply (drule_tac x = r in spec, clarify)
-apply (drule FreeUltrafilterNat_all, ultra)
-done
+by (rule NSLIM_LIM)
 
 
 text{*First key result*}
 theorem CLIM_NSCLIM_iff: "(f -- x --C> L) = (f -- x --NSC> L)"
-by (blast intro: CLIM_NSCLIM NSCLIM_CLIM)
+by (rule LIM_NSLIM_iff)
 
 
 subsection{*Limit of Complex to Real Function*}
 
 lemma CRLIM_NSCRLIM: "f -- x --CR> L ==> f -- x --NSCR> L"
-apply (simp add: CRLIM_def NSCRLIM_def approx_def, auto)
-apply (rule_tac x = xa in star_cases)
-apply (auto simp add: starfun star_n_diff
-              Infinitesimal_hcmod_iff hcmod
-              star_of_def star_n_eq_iff
-              diff_def [symmetric])
-apply (auto simp add: Infinitesimal_FreeUltrafilterNat_iff)
-apply (drule_tac x = u in spec, auto)
-apply (drule_tac x = s in spec, auto, ultra)
-apply (auto)
-done
+by (rule LIM_NSLIM)
 
 lemma lemma_CRLIM:
      "\<forall>s. 0 < s --> (\<exists>xa.  xa \<noteq> x &
@@ -229,27 +231,11 @@ lemma lemma_crsimp:
 by auto
 
 lemma NSCRLIM_CRLIM: "f -- x --NSCR> L ==> f -- x --CR> L"
-apply (simp add: CRLIM_def NSCRLIM_def approx_def)
-apply (rule ccontr) 
-apply (auto simp add: eq_Abs_star_ALL starfun star_n_diff 
-             Infinitesimal_hcmod_iff 
-             hcmod Infinitesimal_approx_minus [symmetric]
-             star_of_def star_n_eq_iff
-             diff_def [symmetric])
-apply (auto simp add: Infinitesimal_FreeUltrafilterNat_iff)
-apply (simp add: linorder_not_less)
-apply (drule lemma_skolemize_CRLIM2, safe)
-apply (drule_tac x = X in spec, auto)
-apply (drule lemma_crsimp [THEN complex_seq_to_hcomplex_Infinitesimal])
-apply (simp add: Infinitesimal_hcmod_iff star_of_def
-             Infinitesimal_FreeUltrafilterNat_iff star_n_diff hcmod)
-apply (drule_tac x = r in spec, clarify)
-apply (drule FreeUltrafilterNat_all, ultra)
-done
+by (rule NSLIM_LIM)
 
 text{*Second key result*}
 theorem CRLIM_NSCRLIM_iff: "(f -- x --CR> L) = (f -- x --NSCR> L)"
-by (blast intro: CRLIM_NSCRLIM NSCRLIM_CRLIM)
+by (rule LIM_NSLIM_iff)
 
 (** get this result easily now **)
 lemma CLIM_CRLIM_Re: "f -- a --C> L ==> (%x. Re(f x)) -- a --CR> Re(L)"
@@ -269,40 +255,40 @@ by (simp add: CLIM_def complex_cnj_diff [symmetric])
 lemma NSCLIM_add:
      "[| f -- x --NSC> l; g -- x --NSC> m |]
       ==> (%x. f(x) + g(x)) -- x --NSC> (l + m)"
-by (auto simp: NSCLIM_def intro!: approx_add)
+by (rule NSLIM_add)
 
 lemma CLIM_add:
      "[| f -- x --C> l; g -- x --C> m |]
       ==> (%x. f(x) + g(x)) -- x --C> (l + m)"
-by (simp add: CLIM_NSCLIM_iff NSCLIM_add)
+by (rule LIM_add)
 
 (*** NSLIM_mult hence CLIM_mult *)
 
 lemma NSCLIM_mult:
      "[| f -- x --NSC> l; g -- x --NSC> m |]
       ==> (%x. f(x) * g(x)) -- x --NSC> (l * m)"
-by (auto simp add: NSCLIM_def intro!: approx_mult_HFinite)
+by (rule NSLIM_mult)
 
 lemma CLIM_mult:
      "[| f -- x --C> l; g -- x --C> m |]
       ==> (%x. f(x) * g(x)) -- x --C> (l * m)"
-by (simp add: CLIM_NSCLIM_iff NSCLIM_mult)
+by (rule LIM_mult2)
 
 (*** NSCLIM_const and CLIM_const ***)
 
 lemma NSCLIM_const [simp]: "(%x. k) -- x --NSC> k"
-by (simp add: NSCLIM_def)
+by (rule NSLIM_const)
 
 lemma CLIM_const [simp]: "(%x. k) -- x --C> k"
-by (simp add: CLIM_def)
+by (rule LIM_const)
 
 (*** NSCLIM_minus and CLIM_minus ***)
 
 lemma NSCLIM_minus: "f -- a --NSC> L ==> (%x. -f(x)) -- a --NSC> -L"
-by (simp add: NSCLIM_def)
+by (rule NSLIM_minus)
 
 lemma CLIM_minus: "f -- a --C> L ==> (%x. -f(x)) -- a --C> -L"
-by (simp add: CLIM_NSCLIM_iff NSCLIM_minus)
+by (rule LIM_minus)
 
 (*** NSCLIM_diff hence CLIM_diff ***)
 
@@ -314,22 +300,19 @@ by (simp add: diff_minus NSCLIM_add NSCLIM_minus)
 lemma CLIM_diff:
      "[| f -- x --C> l; g -- x --C> m |]
       ==> (%x. f(x) - g(x)) -- x --C> (l - m)"
-by (simp add: CLIM_NSCLIM_iff NSCLIM_diff)
+by (rule LIM_diff)
 
 (*** NSCLIM_inverse and hence CLIM_inverse *)
 
 lemma NSCLIM_inverse:
      "[| f -- a --NSC> L;  L \<noteq> 0 |]
       ==> (%x. inverse(f(x))) -- a --NSC> (inverse L)"
-apply (simp add: NSCLIM_def, clarify)
-apply (drule spec)
-apply (force simp add: hcomplex_of_complex_approx_inverse)
-done
+by (rule NSLIM_inverse)
 
 lemma CLIM_inverse:
      "[| f -- a --C> L;  L \<noteq> 0 |]
       ==> (%x. inverse(f(x))) -- a --C> (inverse L)"
-by (simp add: CLIM_NSCLIM_iff NSCLIM_inverse)
+by (rule LIM_inverse)
 
 (*** NSCLIM_zero, CLIM_zero, etc. ***)
 
@@ -343,10 +326,10 @@ lemma CLIM_zero: "f -- a --C> l ==> (%x. f(x) - l) -- a --C> 0"
 by (simp add: CLIM_NSCLIM_iff NSCLIM_zero)
 
 lemma NSCLIM_zero_cancel: "(%x. f(x) - l) -- x --NSC> 0 ==> f -- x --NSC> l"
-by (drule_tac g = "%x. l" and m = l in NSCLIM_add, auto)
+by (rule NSLIM_zero_cancel)
 
 lemma CLIM_zero_cancel: "(%x. f(x) - l) -- x --C> 0 ==> f -- x --C> l"
-by (drule_tac g = "%x. l" and m = l in CLIM_add, auto)
+by (rule LIM_zero_cancel)
 
 (*** NSCLIM_not zero and hence CLIM_not_zero ***)
 
@@ -372,7 +355,7 @@ apply (rule NSCLIM_not_zeroE [of "k-L"], auto)
 done
 
 lemma CLIM_const_eq: "(%x. k) -- x --C> L ==> k = L"
-by (simp add: CLIM_NSCLIM_iff NSCLIM_const_eq)
+by (rule LIM_const_eq)
 
 (*** NSCLIM and hence CLIM are unique ***)
 
@@ -383,25 +366,25 @@ apply (auto dest!: NSCLIM_const_eq [symmetric])
 done
 
 lemma CLIM_unique: "[| f -- x --C> L; f -- x --C> M |] ==> L = M"
-by (simp add: CLIM_NSCLIM_iff NSCLIM_unique)
+by (rule LIM_unique)
 
 (***  NSCLIM_mult_zero and CLIM_mult_zero ***)
 
 lemma NSCLIM_mult_zero:
      "[| f -- x --NSC> 0; g -- x --NSC> 0 |] ==> (%x. f(x)*g(x)) -- x --NSC> 0"
-by (drule NSCLIM_mult, auto)
+by (rule NSLIM_mult_zero)
 
 lemma CLIM_mult_zero:
      "[| f -- x --C> 0; g -- x --C> 0 |] ==> (%x. f(x)*g(x)) -- x --C> 0"
-by (drule CLIM_mult, auto)
+by (rule LIM_mult_zero)
 
 (*** NSCLIM_self hence CLIM_self ***)
 
 lemma NSCLIM_self: "(%x. x) -- a --NSC> a"
-by (auto simp add: NSCLIM_def intro: starfunC_Idfun_approx)
+by (rule NSLIM_self)
 
 lemma CLIM_self: "(%x. x) -- a --C> a"
-by (simp add: CLIM_NSCLIM_iff NSCLIM_self)
+by (rule LIM_self)
 
 (** another equivalence result **)
 lemma NSCLIM_NSCRLIM_iff:
@@ -445,100 +428,85 @@ lemma isNSContcD:
 by (simp add: isNSContc_def)
 
 lemma isNSContc_NSCLIM: "isNSContc f a ==> f -- a --NSC> (f a) "
-by (simp add: isNSContc_def NSCLIM_def)
+by (rule isNSCont_NSLIM)
 
 lemma NSCLIM_isNSContc:
       "f -- a --NSC> (f a) ==> isNSContc f a"
-apply (simp add: isNSContc_def NSCLIM_def, auto)
-apply (case_tac "y = hcomplex_of_complex a", auto)
-done
+by (rule NSLIM_isNSCont)
 
 text{*Nonstandard continuity can be defined using NS Limit in 
 similar fashion to standard definition of continuity*}
 
 lemma isNSContc_NSCLIM_iff: "(isNSContc f a) = (f -- a --NSC> (f a))"
-by (blast intro: isNSContc_NSCLIM NSCLIM_isNSContc)
+by (rule isNSCont_NSLIM_iff)
 
 lemma isNSContc_CLIM_iff: "(isNSContc f a) = (f -- a --C> (f a))"
-by (simp add: CLIM_NSCLIM_iff isNSContc_NSCLIM_iff)
+by (rule isNSCont_LIM_iff)
 
 (*** key result for continuity ***)
 lemma isNSContc_isContc_iff: "(isNSContc f a) = (isContc f a)"
-by (simp add: isContc_def isNSContc_CLIM_iff)
+by (rule isNSCont_isCont_iff)
 
 lemma isContc_isNSContc: "isContc f a ==> isNSContc f a"
-by (erule isNSContc_isContc_iff [THEN iffD2])
+by (rule isCont_isNSCont)
 
 lemma isNSContc_isContc: "isNSContc f a ==> isContc f a"
-by (erule isNSContc_isContc_iff [THEN iffD1])
+by (rule isNSCont_isCont)
 
 
 text{*Alternative definition of continuity*}
 lemma NSCLIM_h_iff: "(f -- a --NSC> L) = ((%h. f(a + h)) -- 0 --NSC> L)"
-apply (simp add: NSCLIM_def, auto)
-apply (drule_tac x = "hcomplex_of_complex a + x" in spec)
-apply (drule_tac [2] x = "- hcomplex_of_complex a + x" in spec, safe, simp)
-apply (rule mem_infmal_iff [THEN iffD2, THEN Infinitesimal_add_approx_self [THEN approx_sym]])
-apply (rule_tac [4] approx_minus_iff2 [THEN iffD1])
- prefer 3 apply (simp add: compare_rls add_commute)
-apply (rule_tac [2] x = x in star_cases)
-apply (rule_tac [4] x = x in star_cases)
-apply (auto simp add: starfun star_n_minus star_n_add star_of_def)
-done
+by (rule NSLIM_h_iff)
 
 lemma NSCLIM_isContc_iff:
      "(f -- a --NSC> f a) = ((%h. f(a + h)) -- 0 --NSC> f a)"
 by (rule NSCLIM_h_iff)
 
 lemma CLIM_isContc_iff: "(f -- a --C> f a) = ((%h. f(a + h)) -- 0 --C> f(a))"
-by (simp add: CLIM_NSCLIM_iff NSCLIM_isContc_iff)
+by (rule LIM_isCont_iff)
 
 lemma isContc_iff: "(isContc f x) = ((%h. f(x + h)) -- 0 --C> f(x))"
-by (simp add: isContc_def CLIM_isContc_iff)
+by (rule isCont_iff)
 
 lemma isContc_add:
      "[| isContc f a; isContc g a |] ==> isContc (%x. f(x) + g(x)) a"
-by (auto intro: approx_add simp add: isNSContc_isContc_iff [symmetric] isNSContc_def)
+by (rule isCont_add)
 
 lemma isContc_mult:
      "[| isContc f a; isContc g a |] ==> isContc (%x. f(x) * g(x)) a"
-by (auto intro!: starfun_mult_HFinite_approx
-            [simplified starfun_mult [symmetric]]
-            simp add: isNSContc_isContc_iff [symmetric] isNSContc_def)
+by (rule isCont_mult)
 
 
 lemma isContc_o: "[| isContc f a; isContc g (f a) |] ==> isContc (g o f) a"
-by (simp add: isNSContc_isContc_iff [symmetric] isNSContc_def starfun_o [symmetric])
+by (rule isCont_o)
 
 lemma isContc_o2:
      "[| isContc f a; isContc g (f a) |] ==> isContc (%x. g (f x)) a"
-by (auto dest: isContc_o simp add: o_def)
+by (rule isCont_o2)
 
 lemma isNSContc_minus: "isNSContc f a ==> isNSContc (%x. - f x) a"
-by (simp add: isNSContc_def)
+by (rule isNSCont_minus)
 
 lemma isContc_minus: "isContc f a ==> isContc (%x. - f x) a"
-by (simp add: isNSContc_isContc_iff [symmetric] isNSContc_minus)
+by (rule isCont_minus)
 
 lemma isContc_inverse:
       "[| isContc f x; f x \<noteq> 0 |] ==> isContc (%x. inverse (f x)) x"
-by (simp add: isContc_def CLIM_inverse)
+by (rule isCont_inverse)
 
 lemma isNSContc_inverse:
      "[| isNSContc f x; f x \<noteq> 0 |] ==> isNSContc (%x. inverse (f x)) x"
-by (auto intro: isContc_inverse simp add: isNSContc_isContc_iff)
+by (rule isNSCont_inverse)
 
 lemma isContc_diff:
       "[| isContc f a; isContc g a |] ==> isContc (%x. f(x) - g(x)) a"
-apply (simp add: diff_minus)
-apply (auto intro: isContc_add isContc_minus)
-done
+by (rule isCont_diff)
 
 lemma isContc_const [simp]: "isContc (%x. k) a"
-by (simp add: isContc_def)
+by (rule isCont_const)
 
 lemma isNSContc_const [simp]: "isNSContc (%x. k) a"
-by (simp add: isNSContc_def)
+by (rule isNSCont_const)
 
 
 subsection{*Functions from Complex to Reals*}
@@ -549,28 +517,26 @@ lemma isNSContCRD:
 by (simp add: isNSContCR_def)
 
 lemma isNSContCR_NSCRLIM: "isNSContCR f a ==> f -- a --NSCR> (f a) "
-by (simp add: isNSContCR_def NSCRLIM_def)
+by (rule isNSCont_NSLIM)
 
 lemma NSCRLIM_isNSContCR: "f -- a --NSCR> (f a) ==> isNSContCR f a"
-apply (auto simp add: isNSContCR_def NSCRLIM_def)
-apply (case_tac "y = hcomplex_of_complex a", auto)
-done
+by (rule NSLIM_isNSCont)
 
 lemma isNSContCR_NSCRLIM_iff: "(isNSContCR f a) = (f -- a --NSCR> (f a))"
-by (blast intro: isNSContCR_NSCRLIM NSCRLIM_isNSContCR)
+by (rule isNSCont_NSLIM_iff)
 
 lemma isNSContCR_CRLIM_iff: "(isNSContCR f a) = (f -- a --CR> (f a))"
-by (simp add: CRLIM_NSCRLIM_iff isNSContCR_NSCRLIM_iff)
+by (rule isNSCont_LIM_iff)
 
 (*** another key result for continuity ***)
 lemma isNSContCR_isContCR_iff: "(isNSContCR f a) = (isContCR f a)"
-by (simp add: isContCR_def isNSContCR_CRLIM_iff)
+by (rule isNSCont_isCont_iff)
 
 lemma isContCR_isNSContCR: "isContCR f a ==> isNSContCR f a"
-by (erule isNSContCR_isContCR_iff [THEN iffD2])
+by (rule isCont_isNSCont)
 
 lemma isNSContCR_isContCR: "isNSContCR f a ==> isContCR f a"
-by (erule isNSContCR_isContCR_iff [THEN iffD1])
+by (rule isNSCont_isCont)
 
 lemma isNSContCR_cmod [simp]: "isNSContCR cmod (a)"
 by (auto intro: approx_hcmod_approx 
