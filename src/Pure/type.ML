@@ -17,7 +17,7 @@ sig
   val rep_tsig: tsig ->
    {classes: NameSpace.T * Sorts.algebra,
     default: sort,
-    types: (decl * stamp) NameSpace.table,
+    types: (decl * serial) NameSpace.table,
     log_types: string list,
     witness: (typ * sort) option}
   val empty_tsig: tsig
@@ -99,7 +99,7 @@ datatype tsig =
   TSig of {
     classes: NameSpace.T * Sorts.algebra,   (*order-sorted algebra of type classes*)
     default: sort,                          (*default sort on input*)
-    types: (decl * stamp) NameSpace.table,  (*declared types*)
+    types: (decl * serial) NameSpace.table, (*declared types*)
     log_types: string list,                 (*logical types sorted by number of arguments*)
     witness: (typ * sort) option};          (*witness for non-emptiness of strictest sort*)
 
@@ -527,7 +527,7 @@ fun new_decl naming (c, decl) (space, types) =
     val types' =
       (case Symtab.lookup types c' of
         SOME (decl', _) => err_in_decls c' decl decl'
-      | NONE => Symtab.update (c', (decl, stamp ())) types);
+      | NONE => Symtab.update (c', (decl, serial ())) types);
   in (space', types') end;
 
 fun the_decl (_, types) = fst o the o Symtab.lookup types;
@@ -568,8 +568,8 @@ val add_abbrevs = fold o add_abbrev;
 fun add_nonterminals naming = map_types o fold (new_decl naming) o map (rpair Nonterminal);
 
 fun merge_types (types1, types2) =
-  NameSpace.merge_tables (Library.eq_snd (op =)) (types1, types2) handle Symtab.DUPS (d :: _) =>
-    err_in_decls d (the_decl types1 d) (the_decl types2 d);
+  NameSpace.merge_tables (Library.eq_snd (op = : serial * serial -> bool)) (types1, types2)
+    handle Symtab.DUPS (d :: _) => err_in_decls d (the_decl types1 d) (the_decl types2 d);
 
 end;
 
