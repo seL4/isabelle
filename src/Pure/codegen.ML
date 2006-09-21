@@ -477,7 +477,7 @@ fun mk_const_id module cname (gr, (tab1, tab2)) =
   let
     val ((module, s), tab1') = mk_long_id tab1 module cname
     val s' = mk_id s;
-    val s'' = if s' mem ThmDatabase.ml_reserved then s' ^ "_const" else s'
+    val s'' = if ThmDatabase.is_ml_reserved s' then s' ^ "_const" else s'
   in ((gr, (tab1', tab2)), (module, s'')) end;
 
 fun get_const_id cname (gr, (tab1, tab2)) =
@@ -486,14 +486,14 @@ fun get_const_id cname (gr, (tab1, tab2)) =
   | SOME (module, s) =>
       let
         val s' = mk_id s;
-        val s'' = if s' mem ThmDatabase.ml_reserved then s' ^ "_const" else s'
+        val s'' = if ThmDatabase.is_ml_reserved s' then s' ^ "_const" else s'
       in (module, s'') end;
 
 fun mk_type_id module tyname (gr, (tab1, tab2)) =
   let
     val ((module, s), tab2') = mk_long_id tab2 module tyname
     val s' = mk_id s;
-    val s'' = if s' mem ThmDatabase.ml_reserved then s' ^ "_type" else s'
+    val s'' = if ThmDatabase.is_ml_reserved s' then s' ^ "_type" else s'
   in ((gr, (tab1, tab2')), (module, s'')) end;
 
 fun get_type_id tyname (gr, (tab1, tab2)) =
@@ -502,7 +502,7 @@ fun get_type_id tyname (gr, (tab1, tab2)) =
   | SOME (module, s) =>
       let
         val s' = mk_id s;
-        val s'' = if s' mem ThmDatabase.ml_reserved then s' ^ "_type" else s'
+        val s'' = if ThmDatabase.is_ml_reserved s' then s' ^ "_type" else s'
       in (module, s'') end;
 
 fun get_type_id' f tyname tab = apsnd f (get_type_id tyname tab);
@@ -565,7 +565,7 @@ fun get_assoc_code thy s T = Option.map snd (Library.find_first (fn ((s', T'), _
   s = s' andalso is_instance thy T T') (#consts (CodegenData.get thy)));
 
 fun get_aux_code xs = map_filter (fn (m, code) =>
-  if m = "" orelse m mem !mode then SOME code else NONE) xs;
+  if m = "" orelse member (op =) (!mode) m then SOME code else NONE) xs;
 
 fun mk_deftab thy =
   let
@@ -695,7 +695,7 @@ fun new_names t xs = Name.variant_list
 
 fun new_name t x = hd (new_names t [x]);
 
-fun if_library x y = if "library" mem !mode then x else y;
+fun if_library x y = if member (op =) (!mode) "library" then x else y;
 
 fun default_codegen thy defs gr dep module brack t =
   let
@@ -877,7 +877,7 @@ fun gen_generate_code prep_term thy modules module =
   setmp print_mode [] (Pretty.setmp_margin (!margin) (fn xs =>
   let
     val _ = assert (module <> "" orelse
-        "library" mem !mode andalso forall (equal "" o fst) xs)
+        member (op =) (!mode) "library" andalso forall (equal "" o fst) xs)
       "missing module name";
     val graphs = get_modules thy;
     val defs = mk_deftab thy;
@@ -903,7 +903,7 @@ fun gen_generate_code prep_term thy modules module =
     val code' = space_implode "\n\n" code ^ "\n\n";
     val code'' =
       map_filter (fn (name, s) =>
-          if "library" mem !mode andalso name = module andalso null code
+          if member (op =) (!mode) "library" andalso name = module andalso null code
           then NONE
           else SOME (name, mk_struct name s))
         ((if null code then I
@@ -952,9 +952,9 @@ fun mk_gen gr module p xs a (TVar ((s, i), _)) = Pretty.str
   | mk_gen gr module p xs a (Type (s, Ts)) = (if p then parens else I)
       (Pretty.block (separate (Pretty.brk 1)
         (Pretty.str (mk_qual_id module (get_type_id' (fn s' => "gen_" ^ s') s gr) ^
-          (if s mem xs then "'" else "")) ::
+          (if member (op =) xs s then "'" else "")) ::
          map (mk_gen gr module true xs a) Ts @
-         (if s mem xs then [Pretty.str a] else []))));
+         (if member (op =) xs s then [Pretty.str a] else []))));
 
 val test_fn : (int -> (string * term) list option) ref = ref (fn _ => NONE);
 
@@ -1067,10 +1067,10 @@ fun evaluation_oracle (thy, Evaluation t) =
 
 fun evaluation_conv ct =
   let val {sign, t, ...} = rep_cterm ct
-  in Thm.invoke_oracle_i sign "Pure.Evaluation" (sign, Evaluation t) end;
+  in Thm.invoke_oracle_i sign "Pure.evaluation" (sign, Evaluation t) end;
 
 val _ = Context.add_setup
-  (Theory.add_oracle ("Evaluation", evaluation_oracle));
+  (Theory.add_oracle ("evaluation", evaluation_oracle));
 
 (**** Interface ****)
 
