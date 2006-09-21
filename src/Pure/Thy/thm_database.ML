@@ -20,6 +20,7 @@ sig
   val ml_store_thm: string * thm -> unit
   val ml_store_thms: string * thm list -> unit
   val ml_reserved: string list
+  val is_ml_reserved: string -> bool
   val is_ml_identifier: string -> bool
 end;
 
@@ -51,8 +52,10 @@ val ml_reserved =
   "eqtype", "functor", "include", "sharing", "sig", "signature",
   "struct", "structure", "where"];
 
+val is_ml_reserved = member (op =) ml_reserved;
+
 fun is_ml_identifier name =
-  not (name mem_string ml_reserved) andalso Syntax.is_ascii_identifier name;
+  not (is_ml_reserved name) andalso Syntax.is_ascii_identifier name;
 
 fun warn_ml name =
   if is_ml_identifier name then false
