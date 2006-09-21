@@ -14,6 +14,7 @@ sig
   val list_implies: cterm list * cterm -> cterm
   val dest_implies: cterm -> cterm * cterm
   val dest_equals: cterm -> cterm * cterm
+  val dest_equals_rhs: cterm -> cterm
   val strip_imp_prems: cterm -> cterm list
   val strip_imp_concl: cterm -> cterm
   val cprems_of: thm -> cterm list
@@ -85,7 +86,6 @@ signature DRULE =
 sig
   include BASIC_DRULE
   val generalize: string list * string list -> thm -> thm
-  val dest_binop: cterm -> cterm * cterm
   val list_comb: cterm * cterm list -> cterm
   val strip_comb: cterm -> cterm * cterm list
   val strip_type: ctyp -> ctyp list * ctyp
@@ -145,19 +145,20 @@ struct
 
 (** some cterm->cterm operations: faster than calling cterm_of! **)
 
-fun dest_binop ct =
-  let val (ct1, ct2) = Thm.dest_comb ct
-  in (Thm.dest_arg ct1, ct2) end;
-
 fun dest_implies ct =
   (case Thm.term_of ct of
-    Const ("==>", _) $ _ $ _ => dest_binop ct
-  | _ => raise TERM ("dest_implies", [term_of ct]));
+    Const ("==>", _) $ _ $ _ => Thm.dest_binop ct
+  | _ => raise TERM ("dest_implies", [Thm.term_of ct]));
 
 fun dest_equals ct =
   (case Thm.term_of ct of
-    Const ("==", _) $ _ $ _ => dest_binop ct
-  | _ => raise TERM ("dest_equals", [term_of ct]));
+    Const ("==", _) $ _ $ _ => Thm.dest_binop ct
+  | _ => raise TERM ("dest_equals", [Thm.term_of ct]));
+
+fun dest_equals_rhs ct =
+  (case Thm.term_of ct of
+    Const ("==", _) $ _ $ _ => Thm.dest_arg ct
+  | _ => raise TERM ("dest_equals_rhs", [Thm.term_of ct]));
 
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
 fun strip_imp_prems ct =
