@@ -45,7 +45,7 @@ fun mk_conjunction_list [] = true_prop
 
 fun dest_conjunction ct =
   (case Thm.term_of ct of
-    (Const ("ProtoPure.conjunction", _) $ _ $ _) => Drule.dest_binop ct
+    (Const ("ProtoPure.conjunction", _) $ _ $ _) => Thm.dest_binop ct
   | _ => raise TERM ("dest_conjunction", [term_of ct]));
 
 
