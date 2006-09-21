@@ -12,6 +12,7 @@ sig
     val prepare_fundef : string (* defname *)
                          -> (string * typ * mixfix) (* defined symbol *)
                          -> ((string * typ) list * term list * term * term) list (* specification *)
+                         -> string (* default_value, not parsed yet *)
                          -> local_theory
                          -> FundefCommon.prep_result * term * local_theory
 
@@ -419,10 +420,10 @@ fun define_graph Gname fvar domT ranT clauses RCss lthy =
 
 
 
-fun define_function fdefname (fname, mixfix) domT ranT G lthy =
+fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
     let
       val f_def = 
-          Abs ("x", domT, Const ("FunDef.THE_default", ranT --> (ranT --> boolT) --> ranT) $ Const ("arbitrary", ranT) $
+          Abs ("x", domT, Const ("FunDef.THE_default", ranT --> (ranT --> boolT) --> ranT) $ (default $ Bound 0) $
                                 Abs ("y", ranT, mk_relmemT domT ranT (Bound 1, Bound 0) G))
           
       val ((f, (_, f_defthm)), lthy) = LocalTheory.def ((fname ^ "C", mixfix), ((fdefname, []), f_def)) lthy
@@ -486,11 +487,13 @@ fun inst_RC thy fvar f (rcfix, rcassm, rcarg) =
 
 
 
-fun prepare_fundef defname (fname, fT, mixfix) abstract_qglrs lthy =
+fun prepare_fundef defname (fname, fT, mixfix) abstract_qglrs default_str lthy =
     let
       val fvar = Free (fname, fT)
       val domT = domain_type fT
       val ranT = range_type fT
+                            
+      val [default] = fst (Variable.importT_terms (fst (ProofContext.read_termTs lthy (K false) (K NONE) (K NONE) [] [(default_str, fT)])) lthy) (* FIXME *)
 
       val congs = get_fundef_congs (Context.Proof lthy)
       val (globals, ctxt') = fix_globals domT ranT fvar lthy
@@ -510,7 +513,7 @@ fun prepare_fundef defname (fname, fT, mixfix) abstract_qglrs lthy =
       val RCss = map find_calls trees
 
       val ((G, GIntro_thms, G_elim), lthy) = define_graph (defname ^ "_graph") fvar domT ranT clauses RCss lthy
-      val ((f, f_defthm), lthy) = define_function (defname ^ "_sum_def") (fname, mixfix) domT ranT G lthy
+      val ((f, f_defthm), lthy) = define_function (defname ^ "_sum_def") (fname, mixfix) domT ranT G default lthy
 
       val RCss = map (map (inst_RC (ProofContext.theory_of lthy) fvar f)) RCss
       val trees = map (FundefCtxTree.inst_tree (ProofContext.theory_of lthy) fvar f) trees

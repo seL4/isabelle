@@ -11,7 +11,7 @@ signature FUNDEF_PACKAGE =
 sig
     val add_fundef :  (string * string option * mixfix) list 
                       -> ((bstring * Attrib.src list) * string list) list list
-                      -> bool 
+                      -> FundefCommon.fundef_config 
                       -> local_theory 
                       -> Proof.state
 
@@ -34,6 +34,7 @@ struct
 
 open FundefCommon
 
+(*fn (ctxt,s) => Variable.importT_terms (fst (ProofContext.read_termTs ctxt (K false) (K NONE) (K NONE) [] [s])) ctxt;*)
 
 fun burrow_snd f ps = (* ('a list -> 'b list) -> ('c * 'a) list -> ('c * 'b) list *)
     let val (xs, ys) = split_list ps
@@ -101,14 +102,16 @@ fun prep_with_flags prep fixspec eqnss_flags global_flag lthy =
     end
 
 
-fun gen_add_fundef prep_spec fixspec eqnss_flags preprocess lthy =
+fun gen_add_fundef prep_spec fixspec eqnss_flags config lthy =
     let
-      val ((fixes, spec), ctxt') = prep_with_flags prep_spec fixspec eqnss_flags preprocess lthy
+      val FundefConfig {sequential, default, ...} = config
+
+      val ((fixes, spec), ctxt') = prep_with_flags prep_spec fixspec eqnss_flags sequential lthy
       val t_eqns = spec
                      |> flat |> map snd |> flat (* flatten external structure *)
 
       val ((mutual_info, name, prep_result as Prep {goal, goalI, ...}), lthy) = 
-          FundefMutual.prepare_fundef_mutual fixes t_eqns lthy
+          FundefMutual.prepare_fundef_mutual fixes t_eqns default lthy
 
       val afterqed = fundef_afterqed fixes spec mutual_info name prep_result
     in
@@ -198,9 +201,9 @@ fun local_theory_to_proof f =
 
 val functionP =
   OuterSyntax.command "function" "define general recursive functions" K.thy_goal
-  ((opt_sequential -- P.opt_locale_target -- P.fixes --| P.$$$ "where" -- statements_ow)
-     >> (fn (((sequential, target), fixes), statements) =>
-            Toplevel.print o local_theory_to_proof (add_fundef fixes statements sequential)));
+  ((config_parser -- P.opt_locale_target -- P.fixes --| P.$$$ "where" -- statements_ow)
+     >> (fn (((config, target), fixes), statements) =>
+            Toplevel.print o local_theory_to_proof (add_fundef fixes statements config)));
 
 
 val terminationP =
@@ -211,7 +214,7 @@ val terminationP =
 
 val _ = OuterSyntax.add_parsers [functionP];
 val _ = OuterSyntax.add_parsers [terminationP];
-val _ = OuterSyntax.add_keywords ["sequential", "otherwise"]; (* currently unused *)
+val _ = OuterSyntax.add_keywords ["sequential", "otherwise"];
 
 end;
 

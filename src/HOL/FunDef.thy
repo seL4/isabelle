@@ -41,24 +41,44 @@ by (simp add:THE_default_def)
 
 
 lemma fundef_ex1_existence:
-assumes f_def: "f \<equiv> \<lambda>x. THE_default d (\<lambda>y. (x,y)\<in>G)"
+assumes f_def: "f \<equiv> \<lambda>x. THE_default (d x) (\<lambda>y. (x,y)\<in>G)"
 assumes ex1: "\<exists>!y. (x,y)\<in>G"
 shows "(x, f x)\<in>G"
   by (simp only:f_def, rule THE_defaultI', rule ex1)
 
 lemma fundef_ex1_uniqueness:
-assumes f_def: "f \<equiv> \<lambda>x. THE_default d (\<lambda>y. (x,y)\<in>G)"
+assumes f_def: "f \<equiv> \<lambda>x. THE_default (d x) (\<lambda>y. (x,y)\<in>G)"
 assumes ex1: "\<exists>!y. (x,y)\<in>G"
 assumes elm: "(x, h x)\<in>G"
 shows "h x = f x"
   by (simp only:f_def, rule THE_default1_equality[symmetric], rule ex1, rule elm)
 
 lemma fundef_ex1_iff:
-assumes f_def: "f \<equiv> \<lambda>x. THE_default d (\<lambda>y. (x,y)\<in>G)"
+assumes f_def: "f \<equiv> \<lambda>x. THE_default (d x) (\<lambda>y. (x,y)\<in>G)"
 assumes ex1: "\<exists>!y. (x,y)\<in>G"
 shows "((x, y)\<in>G) = (f x = y)"
   apply (auto simp:ex1 f_def THE_default1_equality)
   by (rule THE_defaultI', rule ex1)
+
+lemma fundef_default_value:
+assumes f_def: "f \<equiv> \<lambda>x. THE_default (d x) (\<lambda>y. (x,y)\<in>G)"
+assumes graph: "\<And>x y. (x,y) \<in> G \<Longrightarrow> x \<in> D"
+assumes "x \<notin> D"
+shows "f x = d x"
+proof -
+  have "\<not>(\<exists>y. (x, y) \<in> G)"
+  proof
+    assume "(\<exists>y. (x, y) \<in> G)"
+    with graph and `x\<notin>D` show False by blast
+  qed
+  hence "\<not>(\<exists>!y. (x, y) \<in> G)" by blast
+  
+  thus ?thesis
+    unfolding f_def
+    by (rule THE_default_none)
+qed
+
+
 
 
 subsection {* Projections *}

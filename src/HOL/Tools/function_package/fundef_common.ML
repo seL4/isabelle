@@ -214,6 +214,54 @@ fun get_last_fundef thy = fst (FundefData.get thy)
 val map_fundef_congs = FundefCongs.map 
 val get_fundef_congs = FundefCongs.get
 
+
+(* Configuration management *)
+datatype fundef_opt 
+  = Sequential
+  | Default of string
+  | Preprocessor of string
+
+datatype fundef_config
+  = FundefConfig of
+   {
+    sequential: bool,
+    default: string,
+    preprocessor: string option
+   }
+
+
+val default_config = FundefConfig { sequential=false, default="%x. arbitrary", preprocessor=NONE }
+val fun_config = FundefConfig { sequential=true, default="%x. arbitrary", preprocessor=NONE }
+
+fun apply_opt Sequential (FundefConfig {sequential, default, preprocessor}) = 
+    FundefConfig {sequential=true, default=default, preprocessor=preprocessor }
+  | apply_opt (Default d) (FundefConfig {sequential, default, preprocessor}) = 
+    FundefConfig {sequential=sequential, default=d, preprocessor=preprocessor }
+  | apply_opt (Preprocessor p) (FundefConfig {sequential, default, preprocessor}) = 
+    FundefConfig {sequential=sequential, default=default, preprocessor=SOME p }
+
+    
+local structure P = OuterParse and K = OuterKeyword in
+
+val opt_sequential = Scan.optional ((P.$$$ "(" |-- P.$$$ "sequential" --| P.$$$ ")") >> K true) false
+
+val option_parser = (P.$$$ "sequential" >> K Sequential)
+               || ((P.reserved "default" |-- P.term) >> Default)
+
+val config_parser = (Scan.optional (P.$$$ "(" |-- P.list1 option_parser --| P.$$$ ")") [])
+                      >> (fn opts => fold apply_opt opts default_config)
+end
+
+
+
+
+
+
+
+
+
+
+
 end
 
 

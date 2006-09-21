@@ -192,7 +192,7 @@ val funP =
   OuterSyntax.command "fun" "define general recursive functions (short version)" K.thy_decl
   ((P.opt_locale_target -- P.fixes --| P.$$$ "where" -- statements_ow)
      >> (fn ((target, fixes), statements) =>
-            Toplevel.print o Toplevel.local_theory NONE (FundefPackage.add_fundef fixes statements true 
+            Toplevel.print o Toplevel.local_theory NONE (FundefPackage.add_fundef fixes statements FundefCommon.fun_config 
                                                                                   #> by_pat_completeness_simp)));
 
 val _ = OuterSyntax.add_parsers [funP];

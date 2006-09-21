@@ -94,9 +94,6 @@ fun pattern_subtract ctx eq2 eq1 =
       val (vs, feq1 as (_ $ (_ $ lhs1 $ _))) = dest_all_all eq1
       val (_,  _ $ (_ $ lhs2 $ _)) = dest_all_all eq2
 
-      val _ = print (cterm_of thy eq1)
-      val _ = print (cterm_of thy eq2)
-
       val substs = pattern_subtract_subst ctx vs lhs1 lhs2
 
       fun instantiate (vs', sigma) =
@@ -105,10 +102,8 @@ fun pattern_subtract ctx eq2 eq1 =
           in
             fold_rev mk_forall (map Free (frees_in_term ctx t) inter vs') t
           end
-
-      fun prtrm t = let val _ = print (map (cterm_of thy) t) in t end
     in
-      prtrm (map instantiate substs)
+      map instantiate substs
     end
 
 
