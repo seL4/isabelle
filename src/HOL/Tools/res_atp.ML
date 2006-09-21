@@ -456,12 +456,6 @@ Very prolific and somewhat obscure:
 
 (*** retrieve lemmas from clasimpset and atpset, may filter them ***)
 
-fun fake_thm_name th = 
-    Context.theory_name (theory_of_thm th) ^ "." ^ gensym"";
-
-fun put_name_pair ("",th) = (fake_thm_name th, th)
-  | put_name_pair (a,th)  = (a,th);
-
 (*Hashing to detect duplicate and variant clauses, e.g. from the [iff] attribute*)
 
 exception HASH_CLAUSE and HASH_STRING;
@@ -501,9 +495,9 @@ fun make_banned_test xs =
 val xor_words = List.foldl Word.xorb 0w0;
 
 fun hashw_term ((Const(c,_)), w) = Polyhash.hashw_string (c,w)
-  | hashw_term ((Free(_,_)), w) = w
+  | hashw_term ((Free(a,_)), w) = Polyhash.hashw_string (a,w)
   | hashw_term ((Var(_,_)), w) = w
-  | hashw_term ((Bound _), w) = w
+  | hashw_term ((Bound i), w) = Polyhash.hashw_int(i,w)
   | hashw_term ((Abs(_,_,t)), w) = hashw_term (t, w)
   | hashw_term ((P$Q), w) = hashw_term (Q, (hashw_term (P, w)));
 
@@ -523,6 +517,26 @@ fun get_literals (Const("Trueprop",_)$P) lits = get_literals P lits
 
 
 fun hash_term t = Word.toIntX (xor_words (map hash_literal (get_literals t [])));
+
+(*Versions ONLY for "faking" a theorem name. Here we take variable names into account
+  so that similar theorems don't collide.  FIXME: this entire business of "faking" 
+  theorem names must end!*)
+fun hashw_typ (TVar ((a,i), _), w) = Polyhash.hashw_string (a, Polyhash.hashw_int(i,w))
+  | hashw_typ (TFree (a,_), w) = Polyhash.hashw_string (a,w)
+  | hashw_typ (Type (a, Ts), w) = Polyhash.hashw_string (a, List.foldl hashw_typ w Ts);
+
+fun full_hashw_term ((Const(c,T)), w) = Polyhash.hashw_string (c, hashw_typ(T,w))
+  | full_hashw_term ((Free(a,_)), w) = Polyhash.hashw_string (a,w)
+  | full_hashw_term ((Var((a,i),_)), w) = Polyhash.hashw_string (a, Polyhash.hashw_int(i,w))
+  | full_hashw_term ((Bound i), w) = Polyhash.hashw_int(i,w)
+  | full_hashw_term ((Abs(_,T,t)), w) = full_hashw_term (t, hashw_typ(T,w))
+  | full_hashw_term ((P$Q), w) = full_hashw_term (Q, (full_hashw_term (P, w)));
+
+fun full_hashw_thm (th,w) = 
+  let val {prop,hyps,...} = rep_thm th
+  in List.foldl full_hashw_term w (prop::hyps) end
+
+fun full_hash_thm th = full_hashw_thm (th,0w0);
 
 fun equal_thm (thm1,thm2) = Term.aconv(prop_of thm1, prop_of thm2);
 
@@ -556,6 +570,12 @@ fun insert_thms [] thms_names = thms_names
 fun get_relevant_clauses thy cls_thms white_cls goals =
   insert_thms white_cls (ReduceAxiomsN.relevance_filter thy cls_thms goals);
 
+(*This name is cryptic but short. Unlike gensym, we get the same name each time.*)
+fun fake_thm_name th = 
+    Context.theory_name (theory_of_thm th) ^ "." ^ Word.toString (full_hash_thm th);
+
+fun put_name_pair ("",th) = (fake_thm_name th, th)
+  | put_name_pair (a,th)  = (a,th);
 
 fun display_thms [] = ()
   | display_thms ((name,thm)::nthms) = 
