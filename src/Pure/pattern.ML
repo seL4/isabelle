@@ -121,7 +121,7 @@ val incr = mapbnd (fn i => i+1);
 fun ints_of []             = []
   | ints_of (Bound i ::bs) =
       let val is = ints_of bs
-      in if i mem_int is then raise Pattern else i::is end
+      in if member (op =) is i then raise Pattern else i::is end
   | ints_of _              = raise Pattern;
 
 fun ints_of' env ts = ints_of (map (Envir.head_norm env) ts);
@@ -425,13 +425,13 @@ fun first_order(Abs(_,_,t)) = first_order t
                          not(is_Var t)
   | first_order _ = true;
 
-fun pattern(Abs(_,_,t)) = pattern t
-  | pattern(t) = let val (head,args) = strip_comb t
-                 in if is_Var head
-                    then let val _ = ints_of args in true end
-                         handle Pattern => false
-                    else forall pattern args
-                 end;
+fun pattern (Abs (_, _, t)) = pattern t
+  | pattern t =
+      let val (head, args) = strip_comb t in
+        if is_Var head then
+          forall is_Bound args andalso not (has_duplicates (op aconv) args)
+        else forall pattern args
+      end;
 
 
 (* rewriting -- simple but fast *)
