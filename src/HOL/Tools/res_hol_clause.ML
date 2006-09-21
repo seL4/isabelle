@@ -794,7 +794,8 @@ fun init_combs (comb,funcs) =
 
 fun init_funcs_tab funcs = 
     let val tp = !typ_level
-	val funcs0 = foldl init_combs funcs ["c_COMBK","c_COMBS","c_COMBI","c_COMBB","c_COMBC","c_COMBB_e","c_COMBC_e","c_COMBS_e"]
+	val funcs0 = foldl init_combs funcs ["c_COMBK","c_COMBS","c_COMBI","c_COMBB","c_COMBC",
+	                                     "c_COMBB__e","c_COMBC__e","c_COMBS__e"]
 	val funcs1 = case tp of T_PARTIAL => Symtab.update ("hAPP",3) funcs0
 				      | _ => Symtab.update ("hAPP",2) funcs0
 	val funcs2 = case tp of T_FULL => Symtab.update ("typeinfo",2) funcs1

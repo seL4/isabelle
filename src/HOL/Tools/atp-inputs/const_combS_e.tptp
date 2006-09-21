@@ -4,4 +4,4 @@
 
 %S' c f g x --> c (f x) (g x)
 input_clause(a8,axiom,
-[++equal(hAPP(hAPP(hAPP(hAPP(c_COMBS_e(A,B,U,V),C),F),G),X),hAPP(hAPP(C,hAPP(F,X)),hAPP(G,X)))]).
+[++equal(hAPP(hAPP(hAPP(hAPP(c_COMBS__e(A,B,U,V),C),F),G),X),hAPP(hAPP(C,hAPP(F,X)),hAPP(G,X)))]).
