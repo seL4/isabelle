@@ -36,6 +36,7 @@ val bucketSizes : ('key, 'data) hash_table -> int list
 (*Additions due to L. C. Paulson and Jia Meng*)
 val hashw : word * word -> word
 val hashw_char : Char.char * word -> word
+val hashw_int : int * word -> word
 val hashw_vector : word Vector.vector * word -> word
 val hashw_string : string * word -> word
 val hashw_strings : string list * word -> word
@@ -391,6 +392,8 @@ end;
    fun hashw (u,w) = Word.+ (u, Word.*(0w65599,w))
 
    fun hashw_char (c,w) = hashw (Word.fromInt (Char.ord c), w);
+   
+   fun hashw_int (i,w) = hashw (Word.fromInt i, w);
    
    fun hashw_vector (v,w) = Vector.foldl hashw w v;
    
