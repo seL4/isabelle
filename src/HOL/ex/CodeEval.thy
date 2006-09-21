@@ -125,7 +125,7 @@ end;
 structure Eval : EVAL =
 struct
 
-val eval_ref = ref NONE;
+val eval_ref = ref (NONE : term option);
 
 fun eval_term thy t =
   CodegenPackage.eval_term
