@@ -135,6 +135,7 @@ sig
   val dest_ctyp: ctyp -> ctyp list
   val dest_comb: cterm -> cterm * cterm
   val dest_arg: cterm -> cterm
+  val dest_binop: cterm -> cterm * cterm
   val dest_abs: string option -> cterm -> cterm * cterm
   val adjust_maxidx_cterm: int -> cterm -> cterm
   val capply: cterm -> cterm -> cterm
@@ -271,6 +272,15 @@ fun dest_arg (Cterm {t = t $ u, T, thy_ref, maxidx, sorts}) =
          Cterm {t = u, T = A, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts}
       end
   | dest_arg _ = raise CTERM "dest_arg";
+
+fun dest_binop (Cterm {t = tm, T = _, thy_ref, maxidx, sorts}) =
+  let fun cterm t T = Cterm {t = t, T = T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts} in
+    (case tm of
+      Const (_, Type ("fun", [A, Type ("fun", [B, _])])) $ a $ b => (cterm a A, cterm b B)
+    |  Free (_, Type ("fun", [A, Type ("fun", [B, _])])) $ a $ b => (cterm a A, cterm b B)
+    |   Var (_, Type ("fun", [A, Type ("fun", [B, _])])) $ a $ b => (cterm a A, cterm b B)
+    | _ => raise CTERM "dest_binop")
+  end;
 
 fun dest_abs a (Cterm {t = Abs (x, T, t), T = Type ("fun", [_, U]), thy_ref, maxidx, sorts}) =
       let val (y', t') = Term.dest_abs (the_default x a, T, t) in
