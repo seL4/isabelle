@@ -266,7 +266,6 @@ lemma even_pow:"even n \<Longrightarrow> pow (p, n) = pow (sqr p, n div 2)"
 lemma pow_ci: "Ipol ls (pow (p, n)) = Ipol ls p ^ n"
 proof (induct n arbitrary: p rule: nat_less_induct)
   case (1 k)
-  have two: "2 = Suc (Suc 0)" by simp
   show ?case
   proof (cases k)
     case 0
@@ -295,14 +294,14 @@ proof (induct n arbitrary: p rule: nat_less_induct)
         next
           case (Suc w)
           with `odd l` have "even w" by simp
-          from two have two_times: "2 * (w div 2) = w"
-            by (simp only: even_nat_div_two_times_two [OF `even w`])
+          have two_times: "2 * (w div 2) = w"
+            by (simp only: numerals even_nat_div_two_times_two [OF `even w`])
           have "Ipol ls p * Ipol ls p = Ipol ls p ^ Suc (Suc 0)"
             by (simp add: power_Suc)
-          from this and two [symmetric] have "Ipol ls p * Ipol ls p = Ipol ls p ^ 2"
-            by simp
+	  then have "Ipol ls p * Ipol ls p = Ipol ls p ^ 2"
+	    by (simp add: numerals)
           with Suc show ?thesis
-            by (auto simp add: power_mult[symmetric, of _ 2 _] two_times mul_ci sqr_ci)
+            by (auto simp add: power_mult [symmetric, of _ 2 _] two_times mul_ci sqr_ci)
         qed
       } with 1 Suc `odd l` show ?thesis by simp
     qed
@@ -325,5 +324,7 @@ qed
 
 use "comm_ring.ML"
 setup CommRing.setup
+
+thm mkPX_def mkPinj_def sub_def power_add even_def pow_if power_add [symmetric]
 
 end
