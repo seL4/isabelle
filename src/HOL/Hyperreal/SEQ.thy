@@ -203,10 +203,7 @@ lemma LIMSEQ_add: "[| X ----> a; Y ----> b |] ==> (%n. X n + Y n) ----> a + b"
 by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_add)
 
 lemma LIMSEQ_add_const: "f ----> a ==> (%n.(f n + b)) ----> a + b"
-  apply (subgoal_tac "%n. (f n + b) == %n. (f n + (%n. b) n)")
-  apply (subgoal_tac "(%n. b) ----> b")
-  apply (auto simp add: LIMSEQ_add LIMSEQ_const)
-done
+by (simp add: LIMSEQ_add LIMSEQ_const)
 
 lemma NSLIMSEQ_add_const: "f ----NS> a ==> (%n.(f n + b)) ----NS> a + b"
 by (simp add: LIMSEQ_NSLIMSEQ_iff [THEN sym] LIMSEQ_add_const)
@@ -234,33 +231,28 @@ by (drule LIMSEQ_minus, simp)
 lemma NSLIMSEQ_minus_cancel: "(%n. -(X n)) ----NS> -a ==> X ----NS> a"
 by (drule NSLIMSEQ_minus, simp)
 
+(* FIXME: delete *)
 lemma NSLIMSEQ_add_minus:
      "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n + -Y n) ----NS> a + -b"
-by (simp add: NSLIMSEQ_add NSLIMSEQ_minus [of Y])
+by (simp add: NSLIMSEQ_add NSLIMSEQ_minus)
 
+(* FIXME: delete *)
 lemma LIMSEQ_add_minus:
      "[| X ----> a; Y ----> b |] ==> (%n. X n + -Y n) ----> a + -b"
 by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_add_minus)
 
 lemma LIMSEQ_diff: "[| X ----> a; Y ----> b |] ==> (%n. X n - Y n) ----> a - b"
-apply (simp add: diff_minus)
-apply (blast intro: LIMSEQ_add_minus)
-done
+by (simp add: diff_minus LIMSEQ_add LIMSEQ_minus)
 
 lemma NSLIMSEQ_diff:
      "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n - Y n) ----NS> a - b"
-apply (simp add: diff_minus)
-apply (blast intro: NSLIMSEQ_add_minus)
-done
+by (simp add: diff_minus NSLIMSEQ_add NSLIMSEQ_minus)
 
 lemma LIMSEQ_diff_const: "f ----> a ==> (%n.(f n  - b)) ----> a - b"
-  apply (subgoal_tac "%n. (f n - b) == %n. (f n - (%n. b) n)")
-  apply (subgoal_tac "(%n. b) ----> b")
-  apply (auto simp add: LIMSEQ_diff LIMSEQ_const)
-done
+by (simp add: LIMSEQ_diff LIMSEQ_const)
 
 lemma NSLIMSEQ_diff_const: "f ----NS> a ==> (%n.(f n - b)) ----NS> a - b"
-by (simp add: LIMSEQ_NSLIMSEQ_iff [THEN sym] LIMSEQ_diff_const)
+by (simp add: NSLIMSEQ_diff NSLIMSEQ_const)
 
 text{*Proof is like that of @{text NSLIM_inverse}.*}
 lemma NSLIMSEQ_inverse:
@@ -285,6 +277,23 @@ lemma LIMSEQ_divide:
   fixes a b :: "'a::{real_normed_div_algebra,field}"
   shows "[| X ----> a;  Y ----> b;  b ~= 0 |] ==> (%n. X n / Y n) ----> a/b"
 by (simp add: LIMSEQ_mult LIMSEQ_inverse divide_inverse)
+
+lemma starfun_hnorm: "\<And>x. hnorm (( *f* f) x) = ( *f* (\<lambda>x. norm (f x))) x"
+by transfer simp
+
+lemma star_of_norm [simp]: "star_of (norm x) = hnorm (star_of x)"
+by transfer simp
+
+lemma NSLIMSEQ_norm: "X ----NS> a \<Longrightarrow> (\<lambda>n. norm (X n)) ----NS> norm a"
+by (simp add: NSLIMSEQ_def starfun_hnorm [symmetric] approx_hnorm)
+
+lemma LIMSEQ_norm: "X ----> a \<Longrightarrow> (\<lambda>n. norm (X n)) ----> norm a"
+apply (simp add: LIMSEQ_def, safe)
+apply (drule_tac x="r" in spec, safe)
+apply (rule_tac x="no" in exI, safe)
+apply (drule_tac x="n" in spec, safe)
+apply (erule order_le_less_trans [OF norm_triangle_ineq3])
+done
 
 text{*Uniqueness of limit*}
 lemma NSLIMSEQ_unique: "[| X ----NS> a; X ----NS> b |] ==> a = b"
@@ -1003,11 +1012,17 @@ lemma NSLIMSEQ_Suc_iff: "((%n. f(Suc n)) ----NS> l) = (f ----NS> l)"
 by (blast intro: NSLIMSEQ_imp_Suc NSLIMSEQ_Suc)
 
 text{*A sequence tends to zero iff its abs does*}
+lemma LIMSEQ_norm_zero: "((\<lambda>n. norm (X n)) ----> 0) = (X ----> 0)"
+by (simp add: LIMSEQ_def)
+
 lemma LIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) ----> 0) = (f ----> (0::real))"
 by (simp add: LIMSEQ_def)
 
 text{*We prove the NS version from the standard one, since the NS proof
    seems more complicated than the standard one above!*}
+lemma NSLIMSEQ_norm_zero: "((\<lambda>n. norm (X n)) ----NS> 0) = (X ----NS> 0)"
+by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_norm_zero)
+
 lemma NSLIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) ----NS> 0) = (f ----NS> (0::real))"
 by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_rabs_zero)
 
@@ -1143,6 +1158,13 @@ lemma LIMSEQ_realpow_zero:
   "[| 0 \<le> (x::real); x < 1 |] ==> (%n. x ^ n) ----> 0"
 by (simp add: NSLIMSEQ_realpow_zero LIMSEQ_NSLIMSEQ_iff)
 
+lemma LIMSEQ_power_zero:
+  fixes x :: "'a::{real_normed_div_algebra,recpower}"
+  shows "norm x < 1 \<Longrightarrow> (\<lambda>n. x ^ n) ----> 0"
+apply (drule LIMSEQ_realpow_zero [OF norm_ge_zero])
+apply (simp add: norm_power [symmetric] LIMSEQ_norm_zero)
+done
+
 lemma LIMSEQ_divide_realpow_zero:
   "1 < (x::real) ==> (%n. a / (x ^ n)) ----> 0"
 apply (cut_tac a = a and x1 = "inverse x" in
@@ -1154,7 +1176,7 @@ done
 text{*Limit of @{term "c^n"} for @{term"\<bar>c\<bar> < 1"}*}
 
 lemma LIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < (1::real) ==> (%n. \<bar>c\<bar> ^ n) ----> 0"
-by (blast intro!: LIMSEQ_realpow_zero abs_ge_zero)
+by (rule LIMSEQ_realpow_zero [OF abs_ge_zero])
 
 lemma NSLIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < (1::real) ==> (%n. \<bar>c\<bar> ^ n) ----NS> 0"
 by (simp add: LIMSEQ_rabs_realpow_zero LIMSEQ_NSLIMSEQ_iff [symmetric])
