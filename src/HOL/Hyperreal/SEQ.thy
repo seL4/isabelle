@@ -26,19 +26,19 @@ definition
 
   lim :: "(nat => real) => real"
     --{*Standard definition of limit using choice operator*}
-  "lim X = (SOME L. (X ----> L))"
+  "lim X = (THE L. X ----> L)"
 
   nslim :: "(nat => real) => real"
     --{*Nonstandard definition of limit using choice operator*}
-  "nslim X = (SOME L. (X ----NS> L))"
+  "nslim X = (THE L. X ----NS> L)"
 
   convergent :: "(nat => 'a::real_normed_vector) => bool"
     --{*Standard definition of convergence*}
-  "convergent X = (\<exists>L. (X ----> L))"
+  "convergent X = (\<exists>L. X ----> L)"
 
   NSconvergent :: "(nat => 'a::real_normed_vector) => bool"
     --{*Nonstandard definition of convergence*}
-  "NSconvergent X = (\<exists>L. (X ----NS> L))"
+  "NSconvergent X = (\<exists>L. X ----NS> L)"
 
   Bseq :: "(nat => 'a::real_normed_vector) => bool"
     --{*Standard definition for bounded sequence*}
@@ -413,10 +413,10 @@ lemma convergent_NSconvergent_iff: "convergent X = NSconvergent X"
 by (simp add: convergent_def NSconvergent_def LIMSEQ_NSLIMSEQ_iff)
 
 lemma NSconvergent_NSLIMSEQ_iff: "NSconvergent X = (X ----NS> nslim X)"
-by (auto intro: someI simp add: NSconvergent_def nslim_def)
+by (auto intro: theI NSLIMSEQ_unique simp add: NSconvergent_def nslim_def)
 
 lemma convergent_LIMSEQ_iff: "convergent X = (X ----> lim X)"
-by (auto intro: someI simp add: convergent_def lim_def)
+by (auto intro: theI LIMSEQ_unique simp add: convergent_def lim_def)
 
 text{*Subsequence (alternative definition, (e.g. Hoskins)*}
 

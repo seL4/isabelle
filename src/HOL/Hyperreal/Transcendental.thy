@@ -13,7 +13,7 @@ begin
 
 definition
   root :: "[nat,real] => real"
-  "root n x = (SOME u. ((0::real) < x --> 0 < u) & (u ^ n = x))"
+  "root n x = (THE u. ((0::real) < x --> 0 < u) & (u ^ n = x))"
 
   sqrt :: "real => real"
   "sqrt x = root 2 x"
@@ -53,23 +53,23 @@ definition
 
 lemma real_root_zero [simp]: "root (Suc n) 0 = 0"
 apply (simp add: root_def)
-apply (safe intro!: some_equality power_0_Suc elim!: realpow_zero_zero)
+apply (safe intro!: the_equality power_0_Suc elim!: realpow_zero_zero)
 done
 
 lemma real_root_pow_pos: 
-     "0 < x ==> (root(Suc n) x) ^ (Suc n) = x"
-apply (simp add: root_def)
-apply (drule_tac n = n in realpow_pos_nth2)
-apply (auto intro: someI2)
+     "0 < x ==> (root (Suc n) x) ^ (Suc n) = x"
+apply (simp add: root_def del: realpow_Suc)
+apply (drule_tac n="Suc n" in realpow_pos_nth_unique, simp)
+apply (erule theI' [THEN conjunct2])
 done
 
-lemma real_root_pow_pos2: "0 \<le> x ==> (root(Suc n) x) ^ (Suc n) = x"
+lemma real_root_pow_pos2: "0 \<le> x ==> (root (Suc n) x) ^ (Suc n) = x"
 by (auto dest!: real_le_imp_less_or_eq dest: real_root_pow_pos)
 
 lemma real_root_pos: 
      "0 < x ==> root(Suc n) (x ^ (Suc n)) = x"
 apply (simp add: root_def)
-apply (rule some_equality)
+apply (rule the_equality)
 apply (frule_tac [2] n = n in zero_less_power)
 apply (auto simp add: zero_less_mult_iff)
 apply (rule_tac x = u and y = x in linorder_cases)
@@ -81,21 +81,23 @@ done
 lemma real_root_pos2: "0 \<le> x ==> root(Suc n) (x ^ (Suc n)) = x"
 by (auto dest!: real_le_imp_less_or_eq real_root_pos)
 
-lemma real_root_pos_pos: 
-     "0 < x ==> 0 \<le> root(Suc n) x"
-apply (simp add: root_def)
-apply (drule_tac n = n in realpow_pos_nth2)
-apply (safe, rule someI2)
-apply (auto intro!: order_less_imp_le dest: zero_less_power 
-            simp add: zero_less_mult_iff)
+lemma real_root_gt_zero:
+     "0 < x ==> 0 < root (Suc n) x"
+apply (simp add: root_def del: realpow_Suc)
+apply (drule_tac n="Suc n" in realpow_pos_nth_unique, simp)
+apply (erule theI' [THEN conjunct1])
 done
 
+lemma real_root_pos_pos: 
+     "0 < x ==> 0 \<le> root(Suc n) x"
+by (rule real_root_gt_zero [THEN order_less_imp_le])
+
 lemma real_root_pos_pos_le: "0 \<le> x ==> 0 \<le> root(Suc n) x"
-by (auto dest!: real_le_imp_less_or_eq dest: real_root_pos_pos)
+by (auto simp add: order_le_less real_root_gt_zero)
 
 lemma real_root_one [simp]: "root (Suc n) 1 = 1"
 apply (simp add: root_def)
-apply (rule some_equality, auto)
+apply (rule the_equality, auto)
 apply (rule ccontr)
 apply (rule_tac x = u and y = 1 in linorder_cases)
 apply (drule_tac n = n in realpow_Suc_less_one)
@@ -159,10 +161,7 @@ apply (simp add: zero_less_mult_iff)
 done
 
 lemma real_sqrt_gt_zero: "0 < x ==> 0 < sqrt(x)"
-apply (simp add: sqrt_def root_def)
-apply (drule realpow_pos_nth2 [where n=1], safe)
-apply (rule someI2, auto)
-done
+by (simp add: sqrt_def real_root_gt_zero)
 
 lemma real_sqrt_ge_zero: "0 \<le> x ==> 0 \<le> sqrt(x)"
 by (auto intro: real_sqrt_gt_zero simp add: order_le_less)
@@ -180,10 +179,9 @@ apply (auto simp del: realpow_Suc dest: power_inject_base)
 *)
 
 lemma sqrt_eqI: "[|r\<twosuperior> = a; 0 \<le> r|] ==> sqrt a = r"
-apply (unfold sqrt_def root_def) 
-apply (rule someI2 [of _ r], auto) 
-apply (auto simp add: numeral_2_eq_2 simp del: realpow_Suc 
-            dest: power_inject_base) 
+apply (erule subst)
+apply (simp add: sqrt_def numeral_2_eq_2 del: realpow_Suc)
+apply (erule real_root_pos2)
 done
 
 lemma real_sqrt_mult_distrib: 
