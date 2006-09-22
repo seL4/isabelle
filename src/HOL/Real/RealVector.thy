@@ -6,7 +6,7 @@
 header {* Vector Spaces and Algebras over the Reals *}
 
 theory RealVector
-imports RealDef
+imports RealPow
 begin
 
 subsection {* Locale for additive functions *}
@@ -488,5 +488,10 @@ lemma norm_divide:
   fixes a b :: "'a::{real_normed_field,division_by_zero}"
   shows "norm (a / b) = norm a / norm b"
 by (simp add: divide_inverse norm_mult norm_inverse)
+
+lemma norm_power:
+  fixes x :: "'a::{real_normed_div_algebra,recpower}"
+  shows "norm (x ^ n) = norm x ^ n"
+by (induct n, simp, simp add: power_Suc norm_mult)
 
 end
