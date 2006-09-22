@@ -200,7 +200,7 @@ fun add_dt_defs thy defs dep module gr (descr: DatatypeAux.descr) =
           end
 
   in
-    (add_edge_acyclic (node_id, dep) gr
+    ((add_edge_acyclic (node_id, dep) gr
         handle Graph.CYCLES _ => gr) handle Graph.UNDEF _ =>
          let
            val gr1 = add_edge (node_id, dep)
@@ -218,7 +218,8 @@ fun add_dt_defs thy defs dep module gr (descr: DatatypeAux.descr) =
                 Pretty.string_of (Pretty.blk (0, separate Pretty.fbrk
                   (mk_gen_of_def gr2 "fun " descr') @ [Pretty.str ";"])) ^ "\n\n"
               else ""))) gr2
-         end
+         end,
+     module')
   end;
 
 
@@ -314,11 +315,12 @@ fun datatype_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
            let
              val (gr', ps) = foldl_map
                (invoke_tycodegen thy defs dep module false) (gr, Ts);
-             val gr'' = add_dt_defs thy defs dep module gr' descr
-           in SOME (gr'',
+             val (gr'', module') = add_dt_defs thy defs dep module gr' descr;
+             val (gr''', tyid) = mk_type_id module' s gr''
+           in SOME (gr''',
              Pretty.block ((if null Ts then [] else
                [mk_tuple ps, Pretty.str " "]) @
-               [Pretty.str (mk_qual_id module (get_type_id s gr''))]))
+               [Pretty.str (mk_qual_id module tyid)]))
            end)
   | datatype_tycodegen _ _ _ _ _ _ _ = NONE;
 
