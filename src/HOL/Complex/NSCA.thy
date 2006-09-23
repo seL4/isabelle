@@ -112,7 +112,7 @@ done
 
 lemma SComplex_hcmod_SReal: 
       "z \<in> SComplex ==> hcmod z \<in> Reals"
-by (auto simp add: SComplex_def SReal_def hcmod_def)
+by (auto simp add: SComplex_def)
 
 lemma SComplex_zero [simp]: "0 \<in> SComplex"
 by (simp add: SComplex_def)
