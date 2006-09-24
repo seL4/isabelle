@@ -342,7 +342,7 @@ consts norm :: "'a::norm \<Rightarrow> real"
 instance real :: norm ..
 
 defs (overloaded)
-  real_norm_def: "norm r \<equiv> \<bar>r\<bar>"
+  real_norm_def [simp]: "norm r \<equiv> \<bar>r\<bar>"
 
 axclass normed < plus, zero, norm
   norm_ge_zero [simp]: "0 \<le> norm x"
