@@ -925,6 +925,16 @@ text{*Equivalence of Cauchy criterion and convergence:
   instantiations for his 'espsilon-delta' proof(s) in this case
   since the NS formulations do not involve existential quantifiers.*}
 
+lemma NSconvergent_NSCauchy: "NSconvergent X \<Longrightarrow> NSCauchy X"
+apply (simp add: NSconvergent_def NSLIMSEQ_def NSCauchy_def, safe)
+apply (auto intro: approx_trans2)
+done
+
+lemma convergent_Cauchy: "convergent X \<Longrightarrow> Cauchy X"
+apply (rule NSconvergent_NSCauchy [THEN NSCauchy_Cauchy])
+apply (simp add: convergent_NSconvergent_iff)
+done
+
 lemma NSCauchy_NSconvergent_iff: "NSCauchy X = NSconvergent (X::nat=>real)"
 apply (simp add: NSconvergent_def NSLIMSEQ_def, safe)
 apply (frule NSCauchy_NSBseq)
