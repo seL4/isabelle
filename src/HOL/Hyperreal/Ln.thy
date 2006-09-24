@@ -109,14 +109,14 @@ next
   qed
 qed
 
-lemma aux2: "(%n. x ^ 2 / 2 * (1 / 2) ^ n) sums x^2"
+lemma aux2: "(%n. (x::real) ^ 2 / 2 * (1 / 2) ^ n) sums x^2"
 proof -
-  have "(%n. (1 / 2)^n) sums (1 / (1 - (1/2)))"
+  have "(%n. (1 / 2::real)^n) sums (1 / (1 - (1/2)))"
     apply (rule geometric_sums)
     by (simp add: abs_interval_iff)
   also have "(1::real) / (1 - 1/2) = 2"
     by simp
-  finally have "(%n. (1 / 2)^n) sums 2" .
+  finally have "(%n. (1 / 2::real)^n) sums 2" .
   then have "(%n. x ^ 2 / 2 * (1 / 2) ^ n) sums (x^2 / 2 * 2)"
     by (rule sums_mult)
   also have "x^2 / 2 * 2 = x^2"

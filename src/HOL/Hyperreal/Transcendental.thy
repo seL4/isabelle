@@ -176,6 +176,8 @@ text{*Power series has a `circle` of convergence, i.e. if it sums for @{term
 x}, then it sums absolutely for @{term z} with @{term "\<bar>z\<bar> < \<bar>x\<bar>"}.*}
 
 lemma powser_insidea:
+  fixes f :: "nat \<Rightarrow> real"
+  shows
      "[| summable (%n. f(n) * (x ^ n)); \<bar>z\<bar> < \<bar>x\<bar> |]  
       ==> summable (%n. \<bar>f(n)\<bar> * (z ^ n))"
 apply (drule summable_LIMSEQ_zero)
@@ -207,6 +209,8 @@ apply (auto intro!: geometric_sums  simp add: power_abs inverse_eq_divide)
 done
 
 lemma powser_inside:
+  fixes f :: "nat \<Rightarrow> real"
+  shows
      "[| summable (%n. f(n) * (x ^ n)); \<bar>z\<bar> < \<bar>x\<bar> |]  
       ==> summable (%n. f(n) * (z ^ n))"
 apply (drule_tac z = "\<bar>z\<bar>" in powser_insidea)
@@ -342,7 +346,7 @@ apply (auto simp add: mult_ac)
 done
 
 lemma lemma_termdiff5:
-     "[| 0 < k;  
+     "[| 0 < (k::real);  
             summable f;  
             \<forall>h. 0 < \<bar>h\<bar> & \<bar>h\<bar> < k -->  
                     (\<forall>n. abs(g(h) (n::nat)) \<le> (f(n) * \<bar>h\<bar>)) |]  

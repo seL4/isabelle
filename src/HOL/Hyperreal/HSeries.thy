@@ -213,10 +213,6 @@ apply (drule_tac x = "N + 1 " in bspec)
 apply (auto intro: HNatInfinite_add_one approx_hrabs_zero_cancel)
 done
 
-text{* Easy to prove stsandard case now *}
-lemma summable_LIMSEQ_zero: "summable f ==> f ----> 0"
-by (simp add: summable_NSsummable_iff LIMSEQ_NSLIMSEQ_iff NSsummable_NSLIMSEQ_zero)
-
 text{*Nonstandard comparison test*}
 lemma NSsummable_comparison_test:
      "[| \<exists>N. \<forall>n. N \<le> n --> abs(f n) \<le> g n; NSsummable g |] ==> NSsummable f"

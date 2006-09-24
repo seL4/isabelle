@@ -13,21 +13,19 @@ theory Series
 imports SEQ Lim
 begin
 
-declare atLeastLessThan_iff[iff]
-declare setsum_op_ivl_Suc[simp]
-
 definition
-   sums  :: "(nat => real) => real => bool"     (infixr "sums" 80)
+   sums  :: "(nat \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> bool"
+     (infixr "sums" 80)
    "f sums s = (%n. setsum f {0..<n}) ----> s"
 
-   summable :: "(nat=>real) => bool"
+   summable :: "(nat \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> bool"
    "summable f = (\<exists>s. f sums s)"
 
-   suminf   :: "(nat=>real) => real"
+   suminf   :: "(nat \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> 'a"
    "suminf f = (THE s. f sums s)"
 
 syntax
-  "_suminf" :: "idt => real => real"    ("\<Sum>_. _" [0, 10] 10)
+  "_suminf" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a" ("\<Sum>_. _" [0, 10] 10)
 translations
   "\<Sum>i. b" == "suminf (%i. b)"
 
@@ -50,9 +48,7 @@ by (induct "n", auto)
 (* FIXME this is an awful lemma! *)
 lemma sumr_one_lb_realpow_zero [simp]:
   "(\<Sum>n=Suc 0..<n. f(n) * (0::real) ^ n) = 0"
-apply (induct "n")
-apply (case_tac [2] "n", auto)
-done
+by (rule setsum_0', simp)
 
 lemma sumr_group:
      "(\<Sum>m=0..<n::nat. setsum f {m * k ..< m*k + k}) = setsum f {0 ..< n * k}"
@@ -61,23 +57,24 @@ apply (induct "n")
 apply (simp_all add: setsum_add_nat_ivl add_commute)
 done
 
-(* FIXME generalize? *)
+lemma sumr_offset3:
+  "setsum f {0::nat..<n+k} = (\<Sum>m=0..<n. f (m+k)) + setsum f {0..<k}"
+apply (subst setsum_shift_bounds_nat_ivl [symmetric])
+apply (simp add: setsum_add_nat_ivl add_commute)
+done
+
 lemma sumr_offset:
- "(\<Sum>m=0..<n::nat. f(m+k)::real) = setsum f {0..<n+k} - setsum f {0..<k}"
-by (induct "n", auto)
+  fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
+  shows "(\<Sum>m=0..<n. f(m+k)) = setsum f {0..<n+k} - setsum f {0..<k}"
+by (simp add: sumr_offset3)
 
 lemma sumr_offset2:
  "\<forall>f. (\<Sum>m=0..<n::nat. f(m+k)::real) = setsum f {0..<n+k} - setsum f {0..<k}"
-by (induct "n", auto)
-
-lemma sumr_offset3:
-  "setsum f {0::nat..<n+k} = (\<Sum>m=0..<n. f (m+k)::real) + setsum f {0..<k}"
-by (simp  add: sumr_offset)
+by (simp add: sumr_offset)
 
 lemma sumr_offset4:
- "\<forall>n f. setsum f {0::nat..<n+k} =
-        (\<Sum>m=0..<n. f (m+k)::real) + setsum f {0..<k}"
-by (simp add: sumr_offset)
+  "\<forall>n f. setsum f {0::nat..<n+k} = (\<Sum>m=0..<n. f (m+k)::real) + setsum f {0..<k}"
+by (clarify, rule sumr_offset3)
 
 (*
 lemma sumr_from_1_from_0: "0 < n ==>
@@ -165,45 +162,61 @@ lemma suminf_zero: "suminf (%n. 0) = 0";
   apply (rule sums_zero);
 done;
   
-lemma sums_mult: "f sums a ==> (%n. c * f n) sums (c * a)"
+lemma sums_mult:
+  fixes c :: "'a::real_normed_algebra"
+  shows "f sums a \<Longrightarrow> (\<lambda>n. c * f n) sums (c * a)"
 by (auto simp add: sums_def setsum_right_distrib [symmetric]
          intro!: LIMSEQ_mult intro: LIMSEQ_const)
 
-lemma summable_mult: "summable f ==> summable (%n. c * f n)";
+lemma summable_mult:
+  fixes c :: "'a::real_normed_algebra"
+  shows "summable f \<Longrightarrow> summable (%n. c * f n)";
   apply (unfold summable_def);
   apply (auto intro: sums_mult);
 done;
 
-lemma suminf_mult: "summable f ==> suminf (%n. c * f n) = c * suminf f";
+lemma suminf_mult:
+  fixes c :: "'a::real_normed_algebra"
+  shows "summable f \<Longrightarrow> suminf (\<lambda>n. c * f n) = c * suminf f";
   apply (rule sym);
   apply (rule sums_unique);
   apply (rule sums_mult);
   apply (erule summable_sums);
 done;
 
-lemma sums_mult2: "f sums a ==> (%n. f n * c) sums (a * c)"
-apply (subst mult_commute)
-apply (subst mult_commute);back;
-apply (erule sums_mult)
-done
+lemma sums_mult2:
+  fixes c :: "'a::real_normed_algebra"
+  shows "f sums a \<Longrightarrow> (\<lambda>n. f n * c) sums (a * c)"
+by (auto simp add: sums_def setsum_left_distrib [symmetric]
+         intro!: LIMSEQ_mult LIMSEQ_const)
 
-lemma summable_mult2: "summable f ==> summable (%n. f n * c)"
+lemma summable_mult2:
+  fixes c :: "'a::real_normed_algebra"
+  shows "summable f \<Longrightarrow> summable (\<lambda>n. f n * c)"
   apply (unfold summable_def)
   apply (auto intro: sums_mult2)
 done
 
-lemma suminf_mult2: "summable f ==> suminf f * c = (\<Sum>n. f n * c)"
-by (auto intro!: sums_unique sums_mult summable_sums simp add: mult_commute)
+lemma suminf_mult2:
+  fixes c :: "'a::real_normed_algebra"
+  shows "summable f \<Longrightarrow> suminf f * c = (\<Sum>n. f n * c)"
+by (auto intro!: sums_unique sums_mult2 summable_sums)
 
-lemma sums_divide: "f sums a ==> (%n. (f n)/c) sums (a/c)"
-by (simp add: real_divide_def sums_mult mult_commute [of _ "inverse c"])
+lemma sums_divide:
+  fixes c :: "'a::real_normed_field"
+  shows "f sums a \<Longrightarrow> (\<lambda>n. f n / c) sums (a / c)"
+by (simp add: divide_inverse sums_mult2)
 
-lemma summable_divide: "summable f ==> summable (%n. (f n) / c)";
+lemma summable_divide:
+  fixes c :: "'a::real_normed_field"
+  shows "summable f \<Longrightarrow> summable (\<lambda>n. f n / c)"
   apply (unfold summable_def);
   apply (auto intro: sums_divide);
 done;
 
-lemma suminf_divide: "summable f ==> suminf (%n. (f n) / c) = (suminf f) / c";
+lemma suminf_divide:
+  fixes c :: "'a::real_normed_field"
+  shows "summable f \<Longrightarrow> suminf (\<lambda>n. f n / c) = suminf f / c"
   apply (rule sym);
   apply (rule sums_unique);
   apply (rule sums_divide);
@@ -258,78 +271,94 @@ done;
 lemma sums_group:
      "[|summable f; 0 < k |] ==> (%n. setsum f {n*k..<n*k+k}) sums (suminf f)"
 apply (drule summable_sums)
-apply (auto simp add: sums_def LIMSEQ_def sumr_group)
-apply (drule_tac x = r in spec, safe)
-apply (rule_tac x = no in exI, safe)
-apply (drule_tac x = "n*k" in spec)
-apply (auto dest!: not_leE)
-apply (drule_tac j = no in less_le_trans, auto)
-done
-
-lemma sumr_pos_lt_pair_lemma:
-  "[|\<forall>d. - f (n + (d + d)) < (f (Suc (n + (d + d))) :: real) |]
-   ==> setsum f {0..<n+Suc(Suc 0)} \<le> setsum f {0..<Suc(Suc 0) * Suc no + n}"
-apply (induct "no", auto)
-apply (drule_tac x = "Suc no" in spec)
-apply (simp add: add_ac)
-done
-
-lemma sumr_pos_lt_pair:
-     "[|summable f; 
-        \<forall>d. 0 < (f(n + (Suc(Suc 0) * d))) + f(n + ((Suc(Suc 0) * d) + 1))|]  
-      ==> setsum f {0..<n} < suminf f"
-apply (drule summable_sums)
-apply (auto simp add: sums_def LIMSEQ_def)
-apply (drule_tac x = "f (n) + f (n + 1)" in spec)
-apply (auto iff: real_0_less_add_iff)
-   --{*legacy proof: not necessarily better!*}
-apply (rule_tac [2] ccontr, drule_tac [2] linorder_not_less [THEN iffD1])
-apply (frule_tac [2] no=no in sumr_pos_lt_pair_lemma) 
-apply (drule_tac x = 0 in spec, simp)
-apply (rotate_tac 1, drule_tac x = "Suc (Suc 0) * (Suc no) + n" in spec)
-apply (safe, simp)
-apply (subgoal_tac "suminf f + (f (n) + f (n + 1)) \<le>
- setsum f {0 ..< Suc (Suc 0) * (Suc no) + n}")
-apply (rule_tac [2] y = "setsum f {0..<n+ Suc (Suc 0)}" in order_trans)
-prefer 3 apply assumption
-apply (rule_tac [2] y = "setsum f {0..<n} + (f (n) + f (n + 1))" in order_trans)
-apply simp_all
+apply (simp only: sums_def sumr_group)
+apply (unfold LIMSEQ_def, safe)
+apply (drule_tac x="r" in spec, safe)
+apply (rule_tac x="no" in exI, safe)
+apply (drule_tac x="n*k" in spec)
+apply (erule mp)
+apply (erule order_trans)
+apply simp
 done
 
 text{*A summable series of positive terms has limit that is at least as
 great as any partial sum.*}
 
-lemma series_pos_le: 
-     "[| summable f; \<forall>m \<ge> n. 0 \<le> f(m) |] ==> setsum f {0..<n} \<le> suminf f"
+lemma series_pos_le:
+  fixes f :: "nat \<Rightarrow> real"
+  shows "\<lbrakk>summable f; \<forall>m\<ge>n. 0 \<le> f m\<rbrakk> \<Longrightarrow> setsum f {0..<n} \<le> suminf f"
 apply (drule summable_sums)
 apply (simp add: sums_def)
 apply (cut_tac k = "setsum f {0..<n}" in LIMSEQ_const)
 apply (erule LIMSEQ_le, blast)
-apply (rule_tac x = n in exI, clarify)
+apply (rule_tac x="n" in exI, clarify)
 apply (rule setsum_mono2)
 apply auto
 done
 
 lemma series_pos_less:
-     "[| summable f; \<forall>m \<ge> n. 0 < f(m) |] ==> setsum f {0..<n} < suminf f"
-apply (rule_tac y = "setsum f {0..<Suc n}" in order_less_le_trans)
-apply (rule_tac [2] series_pos_le, auto)
-apply (drule_tac x = m in spec, auto)
+  fixes f :: "nat \<Rightarrow> real"
+  shows "\<lbrakk>summable f; \<forall>m\<ge>n. 0 < f m\<rbrakk> \<Longrightarrow> setsum f {0..<n} < suminf f"
+apply (rule_tac y="setsum f {0..<Suc n}" in order_less_le_trans)
+apply simp
+apply (erule series_pos_le)
+apply (simp add: order_less_imp_le)
+done
+
+lemma suminf_gt_zero:
+  fixes f :: "nat \<Rightarrow> real"
+  shows "\<lbrakk>summable f; \<forall>n. 0 < f n\<rbrakk> \<Longrightarrow> 0 < suminf f"
+by (drule_tac n="0" in series_pos_less, simp_all)
+
+lemma suminf_ge_zero:
+  fixes f :: "nat \<Rightarrow> real"
+  shows "\<lbrakk>summable f; \<forall>n. 0 \<le> f n\<rbrakk> \<Longrightarrow> 0 \<le> suminf f"
+by (drule_tac n="0" in series_pos_le, simp_all)
+
+lemma sumr_pos_lt_pair:
+  fixes f :: "nat \<Rightarrow> real"
+  shows "\<lbrakk>summable f;
+        \<forall>d. 0 < f (k + (Suc(Suc 0) * d)) + f (k + ((Suc(Suc 0) * d) + 1))\<rbrakk>
+      \<Longrightarrow> setsum f {0..<k} < suminf f"
+apply (subst suminf_split_initial_segment [where k="k"])
+apply assumption
+apply simp
+apply (drule_tac k="k" in summable_ignore_initial_segment)
+apply (drule_tac k="Suc (Suc 0)" in sums_group, simp)
+apply simp
+apply (frule sums_unique)
+apply (drule sums_summable)
+apply simp
+apply (erule suminf_gt_zero)
+apply (simp add: add_ac)
 done
 
 text{*Sum of a geometric progression.*}
 
 lemmas sumr_geometric = geometric_sum [where 'a = real]
 
-lemma geometric_sums: "abs(x) < 1 ==> (%n. x ^ n) sums (1/(1 - x))"
-apply (case_tac "x = 1")
-apply (auto dest!: LIMSEQ_rabs_realpow_zero2 
-        simp add: sumr_geometric sums_def diff_minus add_divide_distrib)
-apply (subgoal_tac "1 / (1 + -x) = 0/ (x - 1) + - 1/ (x - 1) ")
-apply (erule ssubst)
-apply (rule LIMSEQ_add, rule LIMSEQ_divide)
-apply (auto intro: LIMSEQ_const simp add: diff_minus minus_divide_right LIMSEQ_rabs_realpow_zero2)
-done
+lemma geometric_sums:
+  fixes x :: "'a::{real_normed_field,recpower,division_by_zero}"
+  shows "norm x < 1 \<Longrightarrow> (\<lambda>n. x ^ n) sums (1 / (1 - x))"
+proof -
+  assume less_1: "norm x < 1"
+  hence neq_1: "x \<noteq> 1" by auto
+  hence neq_0: "x - 1 \<noteq> 0" by simp
+  from less_1 have lim_0: "(\<lambda>n. x ^ n) ----> 0"
+    by (rule LIMSEQ_power_zero)
+  hence "(\<lambda>n. x ^ n / (x - 1) - 1 / (x - 1)) ----> 0 / (x - 1) - 1 / (x
+- 1)"
+    using neq_0 by (intro LIMSEQ_divide LIMSEQ_diff LIMSEQ_const)
+  hence "(\<lambda>n. (x ^ n - 1) / (x - 1)) ----> 1 / (1 - x)"
+    by (simp add: nonzero_minus_divide_right [OF neq_0] diff_divide_distrib)
+  thus "(\<lambda>n. x ^ n) sums (1 / (1 - x))"
+    by (simp add: sums_def geometric_sum neq_1)
+qed
+
+lemma summable_geometric:
+  fixes x :: "'a::{real_normed_field,recpower,division_by_zero}"
+  shows "norm x < 1 \<Longrightarrow> summable (\<lambda>n. x ^ n)"
+by (rule geometric_sums [THEN sums_summable])
 
 text{*Cauchy-type criterion for convergence of series (c.f. Harrison)*}
 
@@ -339,7 +368,7 @@ by (simp add: summable_def sums_def convergent_def)
 
 lemma summable_LIMSEQ_zero: "summable f \<Longrightarrow> f ----> 0"
 apply (drule summable_convergent_sumr_iff [THEN iffD1])
-apply (drule Cauchy_convergent_iff [THEN iffD2])
+apply (drule convergent_Cauchy)
 apply (simp only: Cauchy_def LIMSEQ_def, safe)
 apply (drule_tac x="r" in spec, safe)
 apply (rule_tac x="M" in exI, safe)
@@ -348,7 +377,7 @@ apply (drule_tac x="n" in spec, simp)
 done
 
 lemma summable_Cauchy:
-     "summable f =  
+     "summable (f::nat \<Rightarrow> real) =  
       (\<forall>e > 0. \<exists>N. \<forall>m \<ge> N. \<forall>n. abs(setsum f {m..<n}) < e)"
 apply (simp only: summable_convergent_sumr_iff Cauchy_convergent_iff [symmetric] Cauchy_def diff_minus [symmetric], safe)
 apply (drule spec, drule (1) mp)
@@ -369,11 +398,23 @@ done
 
 text{*Comparison test*}
 
+lemma norm_setsum:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  shows "norm (setsum f A) \<le> (\<Sum>i\<in>A. norm (f i))"
+apply (case_tac "finite A")
+apply (erule finite_induct)
+apply simp
+apply simp
+apply (erule order_trans [OF norm_triangle_ineq add_left_mono])
+apply simp
+done
+
 lemma summable_comparison_test:
-     "[| \<exists>N. \<forall>n \<ge> N. abs(f n) \<le> g n; summable g |] ==> summable f"
-apply (auto simp add: summable_Cauchy)
-apply (drule spec, auto)
-apply (rule_tac x = "N + Na" in exI, auto)
+  fixes f :: "nat \<Rightarrow> real"
+  shows "\<lbrakk>\<exists>N. \<forall>n\<ge>N. \<bar>f n\<bar> \<le> g n; summable g\<rbrakk> \<Longrightarrow> summable f"
+apply (simp add: summable_Cauchy, safe)
+apply (drule_tac x="e" in spec, safe)
+apply (rule_tac x = "N + Na" in exI, safe)
 apply (rotate_tac 2)
 apply (drule_tac x = m in spec)
 apply (auto, rotate_tac 2, drule_tac x = n in spec)
@@ -384,8 +425,8 @@ apply (auto intro: setsum_mono simp add: abs_interval_iff)
 done
 
 lemma summable_rabs_comparison_test:
-     "[| \<exists>N. \<forall>n \<ge> N. abs(f n) \<le> g n; summable g |] 
-      ==> summable (%k. abs (f k))"
+  fixes f :: "nat \<Rightarrow> real"
+  shows "\<lbrakk>\<exists>N. \<forall>n\<ge>N. \<bar>f n\<bar> \<le> g n; summable g\<rbrakk> \<Longrightarrow> summable (\<lambda>n. \<bar>f n\<bar>)"
 apply (rule summable_comparison_test)
 apply (auto)
 done
@@ -393,16 +434,17 @@ done
 text{*Limit comparison property for series (c.f. jrh)*}
 
 lemma summable_le:
-     "[|\<forall>n. f n \<le> g n; summable f; summable g |] ==> suminf f \<le> suminf g"
+  fixes f g :: "nat \<Rightarrow> real"
+  shows "\<lbrakk>\<forall>n. f n \<le> g n; summable f; summable g\<rbrakk> \<Longrightarrow> suminf f \<le> suminf g"
 apply (drule summable_sums)+
-apply (auto intro!: LIMSEQ_le simp add: sums_def)
+apply (simp only: sums_def, erule (1) LIMSEQ_le)
 apply (rule exI)
 apply (auto intro!: setsum_mono)
 done
 
 lemma summable_le2:
-     "[|\<forall>n. abs(f n) \<le> g n; summable g |]  
-      ==> summable f & suminf f \<le> suminf g"
+  fixes f g :: "nat \<Rightarrow> real"
+  shows "\<lbrakk>\<forall>n. \<bar>f n\<bar> \<le> g n; summable g\<rbrakk> \<Longrightarrow> summable f \<and> suminf f \<le> suminf g"
 apply (auto intro: summable_comparison_test intro!: summable_le)
 apply (simp add: abs_le_interval_iff)
 done
@@ -423,18 +465,21 @@ qed
 
 
 text{*Absolute convergence imples normal convergence*}
-lemma summable_rabs_cancel: "summable (%n. abs (f n)) ==> summable f"
-apply (auto simp add: summable_Cauchy)
-apply (drule spec, auto)
-apply (rule_tac x = N in exI, auto)
-apply (drule spec, auto)
-apply (rule_tac y = "\<Sum>n=m..<n. abs(f n)" in order_le_less_trans)
-apply (auto)
+lemma summable_rabs_cancel:
+  fixes f :: "nat \<Rightarrow> real"
+  shows "summable (\<lambda>n. \<bar>f n\<bar>) \<Longrightarrow> summable f"
+apply (simp only: summable_Cauchy, safe)
+apply (drule_tac x="e" in spec, safe)
+apply (rule_tac x="N" in exI, safe)
+apply (drule_tac x="m" in spec, safe)
+apply (rule order_le_less_trans [OF setsum_abs])
+apply simp
 done
 
 text{*Absolute convergence of series*}
 lemma summable_rabs:
-     "summable (%n. abs (f n)) ==> abs(suminf f) \<le> (\<Sum>n. abs(f n))"
+  fixes f :: "nat \<Rightarrow> real"
+  shows "summable (\<lambda>n. \<bar>f n\<bar>) \<Longrightarrow> \<bar>suminf f\<bar> \<le> (\<Sum>n. \<bar>f n\<bar>)"
 by (auto intro: LIMSEQ_le LIMSEQ_imp_rabs summable_rabs_cancel summable_sumr_LIMSEQ_suminf)
 
 
@@ -456,8 +501,8 @@ by (auto simp add: le_Suc_ex)
 
 (*All this trouble just to get 0<c *)
 lemma ratio_test_lemma2:
-     "[| \<forall>n \<ge> N. abs(f(Suc n)) \<le> c*abs(f n) |]  
-      ==> 0 < c | summable f"
+  fixes f :: "nat \<Rightarrow> real"
+  shows "\<lbrakk>\<forall>n\<ge>N. \<bar>f (Suc n)\<bar> \<le> c * \<bar>f n\<bar>\<rbrakk> \<Longrightarrow> 0 < c \<or> summable f"
 apply (simp (no_asm) add: linorder_not_le [symmetric])
 apply (simp add: summable_Cauchy)
 apply (safe, subgoal_tac "\<forall>n. N < n --> f (n) = 0")
@@ -471,8 +516,8 @@ apply(simp cong:setsum_ivl_cong)
 done
 
 lemma ratio_test:
-     "[| c < 1; \<forall>n \<ge> N. abs(f(Suc n)) \<le> c*abs(f n) |]  
-      ==> summable f"
+  fixes f :: "nat \<Rightarrow> real"
+  shows "\<lbrakk>c < 1; \<forall>n\<ge>N. \<bar>f (Suc n)\<bar> \<le> c * \<bar>f n\<bar>\<rbrakk> \<Longrightarrow> summable f"
 apply (frule ratio_test_lemma2, auto)
 apply (rule_tac g = "%n. (abs (f N) / (c ^ N))*c ^ n" 
        in summable_comparison_test)
