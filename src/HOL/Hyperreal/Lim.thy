@@ -1272,7 +1272,9 @@ apply (rule_tac g = "%x. - (f x)" in f_inc_g_dec_Beq_f)
 apply auto
 done
 
-lemma f_inc_imp_le_lim: "[| \<forall>n. f n \<le> f (Suc n);  convergent f |] ==> f n \<le> lim f"
+lemma f_inc_imp_le_lim:
+  fixes f :: "nat \<Rightarrow> real"
+  shows "\<lbrakk>\<forall>n. f n \<le> f (Suc n); convergent f\<rbrakk> \<Longrightarrow> f n \<le> lim f"
 apply (rule linorder_not_less [THEN iffD1])
 apply (auto simp add: convergent_LIMSEQ_iff LIMSEQ_iff monoseq_Suc)
 apply (drule real_less_sum_gt_zero)
@@ -1291,7 +1293,9 @@ apply (rule LIMSEQ_minus [THEN limI])
 apply (simp add: convergent_LIMSEQ_iff)
 done
 
-lemma g_dec_imp_lim_le: "[| \<forall>n. g(Suc n) \<le> g(n);  convergent g |] ==> lim g \<le> g n"
+lemma g_dec_imp_lim_le:
+  fixes g :: "nat \<Rightarrow> real"
+  shows "\<lbrakk>\<forall>n. g (Suc n) \<le> g(n); convergent g\<rbrakk> \<Longrightarrow> lim g \<le> g n"
 apply (subgoal_tac "- (g n) \<le> - (lim g) ")
 apply (cut_tac [2] f = "%x. - (g x)" in f_inc_imp_le_lim)
 apply (auto simp add: lim_uminus convergent_minus_iff [symmetric])

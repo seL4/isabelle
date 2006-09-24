@@ -24,11 +24,11 @@ definition
     --{*Nonstandard definition of convergence of sequence*}
   "X ----NS> L = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
 
-  lim :: "(nat => real) => real"
+  lim :: "(nat => 'a::real_normed_vector) => 'a"
     --{*Standard definition of limit using choice operator*}
   "lim X = (THE L. X ----> L)"
 
-  nslim :: "(nat => real) => real"
+  nslim :: "(nat => 'a::real_normed_vector) => 'a"
     --{*Nonstandard definition of limit using choice operator*}
   "nslim X = (THE L. X ----NS> L)"
 
