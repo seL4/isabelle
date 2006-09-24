@@ -23,7 +23,7 @@ definition
   "NSsummable f = (\<exists>s. f NSsums s)"
 
   NSsuminf   :: "(nat=>real) => real"
-  "NSsuminf f = (SOME s. f NSsums s)"
+  "NSsuminf f = (THE s. f NSsums s)"
 
 
 lemma sumhr:
@@ -179,8 +179,8 @@ lemma NSsums_NSsummable: "f NSsums l ==> NSsummable f"
 by (simp add: NSsums_def NSsummable_def, blast)
 
 lemma NSsummable_NSsums: "NSsummable f ==> f NSsums (NSsuminf f)"
-apply (simp add: NSsummable_def NSsuminf_def)
-apply (blast intro: someI2)
+apply (simp add: NSsummable_def NSsuminf_def NSsums_def)
+apply (blast intro: theI NSLIMSEQ_unique)
 done
 
 lemma NSsums_unique: "f NSsums s ==> (s = NSsuminf f)"

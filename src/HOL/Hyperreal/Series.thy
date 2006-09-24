@@ -24,7 +24,7 @@ definition
    "summable f = (\<exists>s. f sums s)"
 
    suminf   :: "(nat=>real) => real"
-   "suminf f = (SOME s. f sums s)"
+   "suminf f = (THE s. f sums s)"
 
 syntax
   "_suminf" :: "idt => real => real"    ("\<Sum>_. _" [0, 10] 10)
@@ -97,15 +97,13 @@ lemma sums_summable: "f sums l ==> summable f"
 by (simp add: sums_def summable_def, blast)
 
 lemma summable_sums: "summable f ==> f sums (suminf f)"
-apply (simp add: summable_def suminf_def)
-apply (blast intro: someI2)
+apply (simp add: summable_def suminf_def sums_def)
+apply (blast intro: theI LIMSEQ_unique)
 done
 
 lemma summable_sumr_LIMSEQ_suminf: 
      "summable f ==> (%n. setsum f {0..<n}) ----> (suminf f)"
-apply (simp add: summable_def suminf_def sums_def)
-apply (blast intro: someI2)
-done
+by (rule summable_sums [unfolded sums_def])
 
 (*-------------------
     sum is unique                    
