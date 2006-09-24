@@ -157,6 +157,16 @@ text{*Existence of infinite number not corresponding to any natural number
 follows because member @{term FreeUltrafilterNat} is not finite.
 See @{text HyperDef.thy} for similar argument.*}
 
+text{* Example of an hypersequence (i.e. an extended standard sequence)
+   whose term with an hypernatural suffix is an infinitesimal i.e.
+   the whn'nth term of the hypersequence is a member of Infinitesimal*}
+
+lemma SEQ_Infinitesimal:
+      "( *f* (%n::nat. inverse(real(Suc n)))) whn : Infinitesimal"
+apply (simp add: hypnat_omega_def starfun star_n_inverse)
+apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
+apply (simp add: real_of_nat_Suc_gt_zero FreeUltrafilterNat_inverse_real_of_posnat)
+done
 
 lemma lemma_unbounded_set [simp]: "{n::nat. m < n} \<in> FreeUltrafilterNat"
 apply (insert finite_atMost [of m]) 

@@ -65,20 +65,6 @@ definition
   "NSCauchy X = (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite. ( *f* X) M \<approx> ( *f* X) N)"
 
 
-declare real_norm_def [simp]
-
-text{* Example of an hypersequence (i.e. an extended standard sequence)
-   whose term with an hypernatural suffix is an infinitesimal i.e.
-   the whn'nth term of the hypersequence is a member of Infinitesimal*}
-
-lemma SEQ_Infinitesimal:
-      "( *f* (%n::nat. inverse(real(Suc n)))) whn : Infinitesimal"
-apply (simp add: hypnat_omega_def starfun star_n_inverse)
-apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
-apply (simp add: real_of_nat_Suc_gt_zero FreeUltrafilterNat_inverse_real_of_posnat)
-done
-
-
 subsection{*LIMSEQ and NSLIMSEQ*}
 
 lemma LIMSEQ_iff:
