@@ -337,6 +337,16 @@ lemma summable_convergent_sumr_iff:
  "summable f = convergent (%n. setsum f {0..<n})"
 by (simp add: summable_def sums_def convergent_def)
 
+lemma summable_LIMSEQ_zero: "summable f \<Longrightarrow> f ----> 0"
+apply (drule summable_convergent_sumr_iff [THEN iffD1])
+apply (drule Cauchy_convergent_iff [THEN iffD2])
+apply (simp only: Cauchy_def LIMSEQ_def, safe)
+apply (drule_tac x="r" in spec, safe)
+apply (rule_tac x="M" in exI, safe)
+apply (drule_tac x="Suc n" in spec, simp)
+apply (drule_tac x="n" in spec, simp)
+done
+
 lemma summable_Cauchy:
      "summable f =  
       (\<forall>e > 0. \<exists>N. \<forall>m \<ge> N. \<forall>n. abs(setsum f {m..<n}) < e)"
