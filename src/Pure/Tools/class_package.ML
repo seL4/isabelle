@@ -296,7 +296,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
         fun add_global_const ((c, ty), syn) thy =
           ((c, (Sign.full_name thy c, ty)),
             thy
-            |> Sign.add_consts_i [(c, ty |> subst_clsvar v (TFree (v, Sign.defaultS thy)), syn)]);
+            |> Sign.add_consts_authentic [(c, ty |> subst_clsvar v (TFree (v, Sign.defaultS thy)), syn)]);
       in
         thy
         |> fold_map add_global_const raw_cs_this
