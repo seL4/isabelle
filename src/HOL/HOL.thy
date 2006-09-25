@@ -1389,4 +1389,12 @@ let fun add_itself thy =
 in add_itself end;
 *} 
 
+text {* code generation for arbitrary as exception *}
+
+setup {*
+  CodegenSerializer.add_undefined "SML" "arbitrary" "raise Fail \"arbitrary\""
+*}
+code_const arbitrary
+  (Haskell target_atom "(error \"arbitrary\")")
+
 end
