@@ -44,29 +44,23 @@ val _ = Context.add_setup Funcgr.init;
 
 fun abs_norm thy thm =
   let
-    fun expvars t =
+    fun eta_expand thm =
       let
-        val lhs = (fst o Logic.dest_equals) t;
+        val lhs = (fst o Logic.dest_equals o Drule.plain_prop_of) thm;
         val tys = (fst o strip_type o fastype_of) lhs;
-        val used = fold_aterms (fn Var ((v, _), _) => insert (op =) v | _ => I) lhs [];
-        val vs = Name.invent_list used "x" (length tys);
+        val vs_ct = map (fn (v, ty) => cterm_of thy (Var ((v, 0), ty)))
+          (Name.names Name.context "a" tys);
       in
-        map2 (fn v => fn ty => Var ((v, 0), ty)) vs tys
+        fold (fn ct => fn thm => Thm.combination thm (Thm.reflexive ct)) vs_ct thm
       end;
-    fun expand ct thm =
-      Thm.combination thm (Thm.reflexive ct);
     fun beta_norm thm =
-      thm
-      |> prop_of
-      |> Logic.dest_equals
-      |> fst
-      |> cterm_of thy
-      |> Thm.beta_conversion true
-      |> Thm.symmetric
-      |> (fn thm' => Thm.transitive thm' thm);
+      let
+        val rhs = (snd o Logic.dest_equals o Drule.plain_prop_of) thm;
+        val thm' = Thm.beta_conversion true (cterm_of thy rhs);
+      in Thm.transitive thm thm' end;
   in
     thm
-    |> fold (expand o cterm_of thy) ((expvars o prop_of) thm)
+    |> eta_expand
     |> beta_norm
   end;
 
@@ -185,9 +179,8 @@ fun insts_of thy funcgr (c, ty) =
   let
     val tys = Sign.const_typargs thy (c, ty);
     val c' = CodegenConsts.norm thy (c, tys);
-    val ty_decl = if (is_none o AxClass.class_of_param thy) c
-      then (fst o Constgraph.get_node funcgr) (CodegenConsts.norm thy (c, tys))
-      else CodegenConsts.typ_of_classop thy (c, tys);
+    val ty_decl = CodegenConsts.disc_typ_of_const thy
+      (fst o Constgraph.get_node funcgr o CodegenConsts.norm thy) (c, tys);
     val tys_decl = Sign.const_typargs thy (c, ty_decl);
     val pp = Sign.pp thy;
     val algebra = Sign.classes_of thy;
@@ -210,7 +203,7 @@ fun insts_of thy funcgr (c, ty) =
 fun all_classops thy tyco class =
   maps (AxClass.params_of thy)
       (Graph.all_succs ((#classes o Sorts.rep_algebra o Sign.classes_of) thy) [class])
-  |> AList.make (fn c => CodegenConsts.typ_of_classop thy (c, [Type (tyco, [])]))
+  |> AList.make (fn c => CodegenConsts.disc_typ_of_classop thy (c, [Type (tyco, [])]))
         (*typ_of_classop is very liberal in its type arguments*)
   |> map (CodegenConsts.norm_of_typ thy);
 
@@ -316,9 +309,13 @@ fun merge_eqsyss thy raw_eqss funcgr =
           ensure_consts thy rhs_inst #> fold (curry Constgraph.add_edge c) rhs_inst) eqss rhs_insts)
     |> fold2 (fn (c, _) => fn rhs => fold (curry Constgraph.add_edge c) rhs) eqss rhss
   end
+and merge_new_eqsyss thy raw_eqss funcgr =
+  if exists (member CodegenConsts.eq_const (Constgraph.keys funcgr)) (map fst raw_eqss)
+  then funcgr
+  else merge_eqsyss thy raw_eqss funcgr
 and ensure_consts thy cs funcgr =
   fold (snd oo ensure_const thy funcgr) cs Constgraph.empty
-  |> (fn auxgr => fold (merge_eqsyss thy)
+  |> (fn auxgr => fold (merge_new_eqsyss thy)
        (map (AList.make (Constgraph.get_node auxgr))
        (rev (Constgraph.strong_conn auxgr))) funcgr);
 
