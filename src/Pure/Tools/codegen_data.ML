@@ -26,7 +26,6 @@ sig
   val get_datatype: theory -> string
     -> ((string * sort) list * (string * typ list) list) option
   val get_datatype_of_constr: theory -> CodegenConsts.const -> string option
-  val the_datatype_constrs: theory -> CodegenConsts.const list
 
   val print_thms: theory -> unit
 
@@ -130,9 +129,8 @@ fun mk_func thy raw_thm =
           let
             val is_classop = (is_some o AxClass.class_of_param thy) c;
             val const = CodegenConsts.norm_of_typ thy c_ty;
-            val ty_decl = if is_classop
-              then CodegenConsts.typ_of_classop thy const
-              else snd (CodegenConsts.typ_of_inst thy const);
+            val ty_decl = CodegenConsts.disc_typ_of_const thy
+                (snd o CodegenConsts.typ_of_inst thy) const;
             val string_of_typ = setmp show_sorts true (Sign.string_of_typ thy);
           in if Sign.typ_equiv thy (ty_decl, ty)
             then (const, thm)
@@ -154,7 +152,7 @@ fun get_prim_def_funcs thy c =
     fun constrain thm0 thm = case AxClass.class_of_param thy (fst c)
      of SOME _ =>
           let
-            val ty_decl = CodegenConsts.typ_of_classop thy c;
+            val ty_decl = CodegenConsts.disc_typ_of_classop thy c;
             val max = maxidx_of_typ ty_decl + 1;
             val thm = Thm.incr_indexes max thm;
             val ty = typ_func thy thm;
@@ -675,9 +673,6 @@ fun get_datatype thy tyco =
 fun get_datatype_of_constr thy c =
   Consttab.lookup ((the_dcontrs o get_exec) thy) c
   |> (Option.map o tap) (fn dtco => get_datatype thy dtco);
-
-fun the_datatype_constrs thy =
-  Consttab.keys ((the_dcontrs o get_exec) thy);
 
 
 

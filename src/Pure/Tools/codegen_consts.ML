@@ -18,10 +18,9 @@ sig
   val norm_of_typ: theory -> string * typ -> const
   val find_def: theory -> const
     -> ((string (*theory name*) * thm) * typ list) option
-  val sortinsts: theory -> typ * typ -> (typ * sort) list
-  val class_of_classop: theory -> const -> class option
-  val insts_of_classop: theory -> const -> const list
-  val typ_of_classop: theory -> const -> typ
+  val disc_typ_of_classop: theory -> const -> typ
+  val disc_typ_of_const: theory -> (const -> typ) -> const -> typ
+  val consts_of: theory -> term -> const list * (string * typ) list
   val read_const: theory -> string -> const
   val string_of_const: theory -> const -> string
   val raw_string_of_const: const -> string
@@ -73,12 +72,6 @@ fun find_def thy (c, tys) =
     get_first get_def specs
   end;
 
-fun sortinsts thy (ty, ty_decl) =
-  Vartab.empty
-  |> Sign.typ_match thy (ty_decl, ty) 
-  |> Vartab.dest
-  |> map (fn (_, (sort, ty)) => (ty, sort));
-
 fun mk_classop_typinst thy (c, tyco) =
   (c, [Type (tyco, map (fn v => TVar ((v, 0), Sign.defaultS thy (*for monotonicity*)))
     (Name.invents Name.context "'a" (Sign.arity_number thy tyco)))]);
@@ -101,28 +94,7 @@ fun norm thy (c, insts) =
 fun norm_of_typ thy (c, ty) =
   norm thy (c, Consts.typargs (Sign.consts_of thy) (c, ty));
 
-fun class_of_classop thy (c, [TVar _]) = 
-      AxClass.class_of_param thy c
-  | class_of_classop thy (c, [TFree _]) = 
-      AxClass.class_of_param thy c
-  | class_of_classop thy (c, _) = NONE;
-
-fun insts_of_classop thy (c_tys as (c, tys)) =
-  (*get rid of this finally*)
-  case AxClass.class_of_param thy c
-   of NONE => [c_tys]
-    | SOME class => let
-        val cs = maps (AxClass.params_of thy)
-          (Graph.all_succs ((#classes o Sorts.rep_algebra o Sign.classes_of) thy) [class])
-        fun add_tyco (tyco, classes) =
-          if member (op = o apsnd fst) classes class
-          then cons tyco else I;
-        val tycos =
-          Symtab.fold add_tyco
-            ((#arities o Sorts.rep_algebra o Sign.classes_of) thy) [];
-      in maps (fn c => map (fn tyco => mk_classop_typinst thy (c, tyco)) tycos) cs end;
-
-fun typ_of_classop thy (c, [TVar _]) = 
+fun disc_typ_of_classop thy (c, [TVar _]) = 
       let
         val class = (the o AxClass.class_of_param thy) c;
         val (v, cs) = ClassPackage.the_consts_sign thy class
@@ -130,7 +102,7 @@ fun typ_of_classop thy (c, [TVar _]) =
         (Logic.varifyT o map_type_tfree (fn u as (w, _) => if w = v then TFree (v, [class]) else TFree u))
           ((the o AList.lookup (op =) cs) c)
       end
-  | typ_of_classop thy (c, [TFree _]) = 
+  | disc_typ_of_classop thy (c, [TFree _]) = 
       let
         val class = (the o AxClass.class_of_param thy) c;
         val (v, cs) = ClassPackage.the_consts_sign thy class
@@ -138,13 +110,23 @@ fun typ_of_classop thy (c, [TVar _]) =
         (Logic.varifyT o map_type_tfree (fn u as (w, _) => if w = v then TFree (v, [class]) else TFree u))
           ((the o AList.lookup (op =) cs) c)
       end
-  | typ_of_classop thy (c, [Type (tyco, _)]) =
+  | disc_typ_of_classop thy (c, [Type (tyco, _)]) =
       let
         val class = (the o AxClass.class_of_param thy) c;
         val (_, cs) = ClassPackage.the_inst_sign thy (class, tyco);
       in
         Logic.varifyT ((the o AList.lookup (op =) cs) c)
       end;
+
+fun disc_typ_of_const thy f (const as (c, [ty])) =
+      if (is_some o AxClass.class_of_param thy) c
+      then disc_typ_of_classop thy const
+      else f const
+  | disc_typ_of_const thy f const = f const;
+
+fun consts_of thy t =
+  fold_aterms (fn Const c => cons (norm_of_typ thy c, c) | _ => I) t []
+  |> split_list;
 
 
 (* reading constants as terms *)
