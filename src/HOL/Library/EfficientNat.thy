@@ -17,79 +17,41 @@ code can be improved drastically by implementing natural numbers by
 integers. To do this, just include this theory.
 *}
 
-subsection {* Basic functions *}
+subsection {* Logical rewrites *}
 
 text {*
-The implementation of @{term "0::nat"} and @{term "Suc"} using the
-ML integers is straightforward. Since natural numbers are implemented
-using integers, the coercion function @{term "int"} of type
-@{typ "nat \<Rightarrow> int"} is simply implemented by the identity function.
-For the @{term "nat"} function for converting an integer to a natural
-number, we give a specific implementation using an ML function that
-returns its input value, provided that it is non-negative, and otherwise
-returns @{text "0"}.
+  A int-to-nat conversion with domain
+  restricted to non-negative ints (in contrast to @{const nat}).
 *}
-
-types_code
-  nat ("int")
-attach (term_of) {*
-fun term_of_nat 0 = Const ("0", HOLogic.natT)
-  | term_of_nat 1 = Const ("1", HOLogic.natT)
-  | term_of_nat i = HOLogic.number_of_const HOLogic.natT $
-      HOLogic.mk_binum (IntInf.fromInt i);
-*}
-attach (test) {*
-fun gen_nat i = random_range 0 i;
-*}
-
-consts_code
-  0 :: nat ("0")
-  Suc ("(_ + 1)")
-  nat ("\<module>nat")
-attach {*
-fun nat i = if i < 0 then 0 else i;
-*}
-  int ("(_)")
-
-ML {* set Toplevel.debug *}
-setup {*
-  CodegenData.del_datatype "nat"
-*}
-
-code_type nat
-  (SML target_atom "IntInf.int")
-  (Haskell target_atom "Integer")
-
-code_const int
-  (SML "_")
-  (Haskell "_")
 
 definition
   nat_of_int :: "int \<Rightarrow> nat"
   "k \<ge> 0 \<Longrightarrow> nat_of_int k = nat k"
 
-text {*
-Case analysis on natural numbers is rephrased using a conditional
-expression:
-*}
-
-lemma [code unfold]: "nat_case \<equiv> (\<lambda>f g n. if n = 0 then f else g (n - 1))"
-  apply (rule eq_reflection ext)+
-  apply (case_tac n)
-  apply simp_all
-  done
-
-text {*
-Most standard arithmetic functions on natural numbers are implemented
-using their counterparts on the integers:
-*}
-
 code_constname
   nat_of_int "IntDef.nat_of_int"
 
-code_const nat_of_int
-  (SML "_")
-  (Haskell "_")
+text {*
+  Case analysis on natural numbers is rephrased using a conditional
+  expression:
+*}
+
+lemma [code unfold]: "nat_case \<equiv> (\<lambda>f g n. if n = 0 then f else g (n - 1))"
+proof -
+  have rewrite: "\<And>f g n. nat_case f g n = (if n = 0 then f else g (n - 1))"
+  proof -
+    fix f g n
+    show "nat_case f g n = (if n = 0 then f else g (n - 1))"
+      by (cases n) simp_all
+  qed
+  show "nat_case \<equiv> (\<lambda>f g n. if n = 0 then f else g (n - 1))"
+    by (rule eq_reflection ext rewrite)+ 
+qed
+
+text {*
+  Most standard arithmetic functions on natural numbers are implemented
+  using their counterparts on the integers:
+*}
 
 lemma [code func]: "0 = nat_of_int 0"
   by (simp add: nat_of_int_def)
@@ -152,15 +114,72 @@ proof -
 qed
 
 
+subsection {* Code generator setup for basic functions *}
+
+text {*
+  @{typ nat} is no longer a datatype but embedded into the integers.
+*}
+
+setup {*
+  CodegenData.del_datatype "nat"
+*}
+
+types_code
+  nat ("int")
+attach (term_of) {*
+fun term_of_nat 0 = Const ("0", HOLogic.natT)
+  | term_of_nat 1 = Const ("1", HOLogic.natT)
+  | term_of_nat i = HOLogic.number_of_const HOLogic.natT $
+      HOLogic.mk_binum (IntInf.fromInt i);
+*}
+attach (test) {*
+fun gen_nat i = random_range 0 i;
+*}
+
+code_type nat
+  (SML target_atom "IntInf.int")
+  (Haskell target_atom "Integer")
+
+consts_code
+  0 :: nat ("0")
+  Suc ("(_ + 1)")
+
+text {*
+  Since natural numbers are implemented
+  using integers, the coercion function @{const "int"} of type
+  @{typ "nat \<Rightarrow> int"} is simply implemented by the identity function,
+  likewise @{const nat_of_int} of type @{typ "int \<Rightarrow> nat"}.
+  For the @{const "nat"} function for converting an integer to a natural
+  number, we give a specific implementation using an ML function that
+  returns its input value, provided that it is non-negative, and otherwise
+  returns @{text "0"}.
+*}
+
+consts_code
+  int ("(_)")
+  nat ("\<module>nat")
+attach {*
+fun nat i = if i < 0 then 0 else i;
+*}
+
+code_const int
+  (SML "_")
+  (Haskell "_")
+
+code_const nat_of_int
+  (SML "_")
+  (Haskell "_")
+
+
 subsection {* Preprocessors *}
 
 text {*
-In contrast to @{term "Suc n"}, the term @{term "n + (1::nat)"} is no longer
-a constructor term. Therefore, all occurrences of this term in a position
-where a pattern is expected (i.e.\ on the left-hand side of a recursion
-equation or in the arguments of an inductive relation in an introduction
-rule) must be eliminated.
-This can be accomplished by applying the following transformation rules:
+  In contrast to @{term "Suc n"}, the term @{term "n + (1::nat)"} is no longer
+  a constructor term. Therefore, all occurrences of this term in a position
+  where a pattern is expected (i.e.\ on the left-hand side of a recursion
+  equation or in the arguments of an inductive relation in an introduction
+  rule) must be eliminated.
+  This can be accomplished by applying the following transformation rules:
 *}
 
 theorem Suc_if_eq: "(\<And>n. f (Suc n) = h n) \<Longrightarrow> f 0 = g \<Longrightarrow>
@@ -171,10 +190,10 @@ theorem Suc_clause: "(\<And>n. P n (Suc n)) \<Longrightarrow> n \<noteq> 0 \<Lon
   by (case_tac n) simp_all
 
 text {*
-The rules above are built into a preprocessor that is plugged into
-the code generator. Since the preprocessor for introduction rules
-does not know anything about modes, some of the modes that worked
-for the canonical representation of natural numbers may no longer work.
+  The rules above are built into a preprocessor that is plugged into
+  the code generator. Since the preprocessor for introduction rules
+  does not know anything about modes, some of the modes that worked
+  for the canonical representation of natural numbers may no longer work.
 *}
 
 (*<*)
