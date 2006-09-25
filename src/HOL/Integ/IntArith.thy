@@ -385,9 +385,6 @@ lemma Numeral_Pls_refl [code func]:
 lemma Numeral_Min_refl [code func]:
   "Numeral.Min = Numeral.Min" ..
 
-lemma Numeral_Bit_refl [code func]:
-  "Numeral.Bit = Numeral.Bit" ..
-
 lemma zero_int_refl [code func]:
   "(0\<Colon>int) = 0" ..
 
@@ -427,13 +424,28 @@ fun int_of_numeral thy num = HOLogic.dest_binum num
 end;
 *}
 
-code_const "number_of \<Colon> int \<Rightarrow> int" and "Numeral.Pls" and "Numeral.Min"
+code_type bit
+  (SML target_atom "bool")
+  (Haskell target_atom "Bool")
+code_const "Numeral.bit.B0" and "Numeral.bit.B1"
+  (SML target_atom "false" and target_atom "true")
+  (Haskell target_atom "False" and target_atom "True")
+
+code_const "number_of \<Colon> int \<Rightarrow> int"
+  and "Numeral.Pls" and "Numeral.Min" and "Numeral.Bit"
+  and "Numeral.succ" and "Numeral.pred"
   (SML "_"
      and target_atom "(0 : IntInf.int)"
-     and target_atom "(~1 : IntInf.int)")
+     and target_atom "(~1 : IntInf.int)"
+     and target_atom "(_; _; raise FAIL \"BIT\")"
+     and target_atom "(IntInf.+ (_, 1))"
+     and target_atom "(IntInf.- (_, 1))")
   (Haskell "_"
      and target_atom "0"
-     and target_atom "(negate 1)")
+     and target_atom "(negate 1)"
+     and target_atom "(error \"BIT\")"
+     and target_atom "(_ + 1)"
+     and target_atom "(_ - 1)")
 
 setup {*
   CodegenPackage.add_appconst ("Numeral.Bit", CodegenPackage.appgen_numeral Numeral.int_of_numeral)

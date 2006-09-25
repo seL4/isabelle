@@ -66,7 +66,7 @@ code_const STR
   (Haskell "_")
 
 setup {*
-  CodegenPackage.add_pretty_ml_string "SML" "List.list.Nil" "List.list.Cons" "MLString.ml_string.STR"
+  CodegenSerializer.add_pretty_ml_string "SML" "List.list.Nil" "List.list.Cons" "MLString.ml_string.STR"
     HOList.print_char HOList.print_string "String.implode"
 *}
 

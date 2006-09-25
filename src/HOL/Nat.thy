@@ -1063,7 +1063,14 @@ lemma [code func]:
   "OperationalEquality.eq 0 (Suc m) = False" unfolding eq_def by auto
 
 code_typename
-  "nat" "IntDef.nat"
+  nat "IntDef.nat"
+
+code_instname
+  nat :: eq "IntDef.eq_nat"
+  nat :: ord "IntDef.ord_nat"
+  nat :: plus "IntDef.plus_nat"
+  nat :: minus "IntDef.minus_nat"
+  nat :: times "IntDef.times_nat"
 
 code_constname
   "0 \<Colon> nat" "IntDef.zero_nat"

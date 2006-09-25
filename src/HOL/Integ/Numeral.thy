@@ -74,11 +74,11 @@ lemmas numeral_simps =
 
 text {* Removal of leading zeroes *}
 
-lemma Pls_0_eq [simp]:
+lemma Pls_0_eq [simp, code func]:
   "Pls BIT B0 = Pls"
   unfolding numeral_simps by simp
 
-lemma Min_1_eq [simp]:
+lemma Min_1_eq [simp, code func]:
   "Min BIT B1 = Min"
   unfolding numeral_simps by simp
 

@@ -2790,9 +2790,9 @@ in
 
   Codegen.add_codegen "list_codegen" list_codegen
   #> Codegen.add_codegen "char_codegen" char_codegen
-  #> CodegenPackage.add_pretty_list "SML" "List.list.Nil" "List.list.Cons"
+  #> CodegenSerializer.add_pretty_list "SML" "List.list.Nil" "List.list.Cons"
        HOList.print_list NONE (7, "::")
-  #> CodegenPackage.add_pretty_list "Haskell" "List.list.Nil" "List.list.Cons"
+  #> CodegenSerializer.add_pretty_list "Haskell" "List.list.Nil" "List.list.Cons"
        HOList.print_list (SOME (HOList.print_char, HOList.print_string)) (5, ":")
   #> CodegenPackage.add_appconst
        ("List.char.Char", CodegenPackage.appgen_char HOList.dest_char)
