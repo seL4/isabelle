@@ -4,6 +4,7 @@
 Miscellaneous tools and packages for Pure Isabelle.
 *)
 
+
 (*derived theory and proof elements*)
 use "invoke.ML";
 use "class_package.ML";
@@ -13,12 +14,12 @@ use "../codegen.ML";
 
 (*code generator, 2nd generation*)
 use "codegen_consts.ML";
-use "codegen_names.ML";
+use "codegen_simtype.ML";
 use "codegen_data.ML";
+use "codegen_names.ML";
 use "codegen_funcgr.ML";
 use "codegen_thingol.ML";
 use "codegen_serializer.ML";
-use "codegen_simtype.ML";
 use "codegen_package.ML";
 
 (*Steven Obua's evaluator*)
