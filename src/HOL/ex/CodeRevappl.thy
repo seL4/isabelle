@@ -10,6 +10,9 @@ begin
 
 section {* Combinators for structured results *}
 
+
+subsection {* primitive definitions *}
+
 definition
   revappl :: "'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b" (infixl "\<triangleright>" 55)
   revappl_def: "x \<triangleright> f = f x"
@@ -19,6 +22,9 @@ definition
   revappl_swamp_split: "z |\<triangleright>\<triangleright> f = ((fst z, fst (f (snd z))), snd (f (snd z)))"
   revappl_uncurry :: "'c \<times> 'a \<Rightarrow> ('c \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'b" (infixl "\<turnstile>\<triangleright>" 55)
   revappl_uncurry_split: "z \<turnstile>\<triangleright> f = f (fst z) (snd z)"
+
+
+subsection {* lemmas *}
 
 lemma revappl_snd_def [code]:
   "(y, x) |\<triangleright> f = (y, f x)" unfolding revappl_snd_split by simp
