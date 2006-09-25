@@ -73,6 +73,11 @@ subsection {* records *}
 
 subsection {* equalities *}
 
+subsection {* strings *}
+
+definition
+  "mystring = ''my home is my castle''"
+
 subsection {* heavy usage of names *}
 
 definition
@@ -88,15 +93,27 @@ code_constname
   g "Mymod.A.f"
   h "Mymod.A.B.f"
 
+definition
+  "apply_tower = (\<lambda>x. x (\<lambda>x. x (\<lambda>x. x)))"
+
+definition
+  "keywords fun datatype class instance funa classa =
+    Suc fun + datatype * class mod instance - funa - classa"
+
+hide (open) const keywords
+
+definition
+  "shadow keywords = keywords @ [Codegenerator.keywords 0 0 0 0 0 0]"
+
 code_gen xor
 code_gen one
+code_gen
+  Pair fst snd Let split swap
 code_gen "0::int" "1::int"
   (SML) (Haskell)
 code_gen n
   (SML) (Haskell)
 code_gen fac
-  (SML) (Haskell)
-code_gen n
   (SML) (Haskell)
 code_gen
   "op + :: nat \<Rightarrow> nat \<Rightarrow> nat"
@@ -104,8 +121,6 @@ code_gen
   "op * :: nat \<Rightarrow> nat \<Rightarrow> nat"
   "op < :: nat \<Rightarrow> nat \<Rightarrow> bool"
   "op <= :: nat \<Rightarrow> nat \<Rightarrow> bool"
-code_gen
-  Pair fst snd Let split swap
 code_gen
   appl
 code_gen
@@ -151,8 +166,12 @@ code_gen
   "OperationalEquality.eq :: mut2 \<Rightarrow> mut2 \<Rightarrow> bool"
   "OperationalEquality.eq :: ('a\<Colon>eq) point_scheme \<Rightarrow> 'a point_scheme \<Rightarrow> bool"
 code_gen
+  mystring
+code_gen
   f g h
+code_gen
+  apply_tower Codegenerator.keywords shadow
 
-code_gen (SML -) (SML _)
+code_gen (SML -)
 
 end
