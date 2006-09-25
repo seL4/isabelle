@@ -54,12 +54,11 @@ sig
     ((string * (inst list list * itype)) * iterm list) option;
   val add_constnames: iterm -> string list -> string list;
   val add_varnames: iterm -> string list -> string list;
+  val add_unbound_varnames: iterm -> string list -> string list;
   val is_pat: (string -> bool) -> iterm -> bool;
   val vars_distinct: iterm list -> bool;
   val map_pure: (iterm -> 'a) -> iterm -> 'a;
   val eta_expand: (string * (inst list list * itype)) * iterm list -> int -> iterm;
-  val resolve_tycos: (string -> string) -> itype * iterm list -> itype * iterm list;
-  val resolve_consts: (string -> string) -> iterm -> iterm;
 
   type typscheme = (vname * sort) list * itype;
   datatype def =
@@ -88,7 +87,6 @@ sig
 (*   val flat_funs_datatypes: module -> (string * def) list;  *)
   val add_eval_def: string (*shallow name space*) * iterm -> module -> string * module;
   val delete_garbage: string list (*hidden definitions*) -> module -> module;
-  val has_nsp: string -> string -> bool;
   val ensure_def: (string -> transact -> def transact_fin) -> bool -> string
     -> string -> transact -> transact;
   val succeed: 'a -> transact -> 'a transact_fin;
@@ -311,9 +309,6 @@ fun map_pure f (t as IConst _) =
   | map_pure f (ICase (_, t0)) =
       f t0;
 
-fun resolve_tycos _ = error "";
-fun resolve_consts _ = error "";
-
 fun add_constnames (IConst (c, _)) =
       insert (op =) c
   | add_constnames (IVar _) =
@@ -343,6 +338,21 @@ fun add_varnames (IConst _) =
       add_varnames t
   | add_varnames (ICase (((td, _), bs), _)) =
       add_varnames td #> fold (fn (p, t) => add_varnames p #> add_varnames t) bs;
+
+fun add_unbound_varnames (IConst _) =
+      I
+  | add_unbound_varnames (IVar v) =
+      insert (op =) v
+  | add_unbound_varnames (t1 `$ t2) =
+      add_unbound_varnames t1 #> add_unbound_varnames t2
+  | add_unbound_varnames ((v, _) `|-> t) =
+      I
+  | add_unbound_varnames (INum (_, t)) =
+      add_unbound_varnames t
+  | add_unbound_varnames (IChar (_, t)) =
+      add_unbound_varnames t
+  | add_unbound_varnames (ICase (((td, _), bs), _)) =
+      add_unbound_varnames td #> fold (fn (p, t) => add_unbound_varnames p #> add_unbound_varnames t) bs;
 
 fun vars_distinct ts =
   let
@@ -512,14 +522,6 @@ fun dest_name name =
     val (modl, shallow) = split_last name''
   in (modl, NameSpace.pack [shallow, name_base]) end
   handle Empty => error ("Not a qualified name: " ^ quote name);
-
-fun has_nsp name shallow =
-  NameSpace.is_qualified name
-  andalso let
-    val name' = NameSpace.unpack name
-    val (name'', _) = split_last name'
-    val (_, shallow') = split_last name''
-  in shallow' = shallow end;
 
 fun dest_modl (Module m) = m;
 fun dest_def (Def d) = d;
