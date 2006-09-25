@@ -40,16 +40,19 @@ definition
   common_def: "common r = (case r of ((p1, q1), (p2, q2)) \<Rightarrow>
        let q' = q1 * q2 div int (gcd (nat q1, nat q2))
        in ((p1 * (q' div q1), p2 * (q' div q2)), q'))"
-  of_quotient :: "int * int \<Rightarrow> erat"
-  of_quotient_def: "of_quotient r = (case r of (a, b) \<Rightarrow>
-       norm (Rat True a b))"
+  of_quotient :: "int \<Rightarrow> int \<Rightarrow> erat"
+  of_quotient_def: "of_quotient a b =
+       norm (Rat True a b)"
   of_rat :: "rat \<Rightarrow> erat"
-  of_rat_def: "of_rat r = of_quotient (SOME s. s : Rep_Rat r)"
+  of_rat_def: "of_rat r = split of_quotient (SOME s. s : Rep_Rat r)"
   to_rat :: "erat \<Rightarrow> rat"
   to_rat_def: "to_rat r = (case r of (Rat a p q) \<Rightarrow>
        if a then Fract p q else Fract (uminus p) q)"
   eq_erat :: "erat \<Rightarrow> erat \<Rightarrow> bool"
   "eq_erat r s = (norm r = norm s)"
+
+axiomatization
+  div_zero :: erat
 
 defs (overloaded)
   zero_rat_def: "0 == Rat True 0 1"
@@ -66,7 +69,7 @@ defs (overloaded)
   times_rat_def: "r * s == case r of Rat a1 p1 q1 \<Rightarrow> case s of Rat a2 p2 q2 \<Rightarrow>
         norm (Rat (a1 = a2) (p1 * p2) (q1 * q2))"
   inverse_rat_def: "inverse r == case r of Rat a p q \<Rightarrow>
-        if p = 0 then arbitrary
+        if p = 0 then div_zero
         else Rat a q p"
   le_rat_def: "r <= s == case r of Rat a1 p1 q1 \<Rightarrow> case s of Rat a2 p2 q2 \<Rightarrow>
         (\<not> a1 \<and> a2) \<or>
@@ -74,6 +77,40 @@ defs (overloaded)
           (let
             ((r1, r2), dummy) = common ((p1, q1), (p2, q2))
           in if a1 then r1 <= r2 else r2 <= r1))"
+
+
+section {* code lemmas *}
+
+lemma
+  number_of_rat [code unfold]: "(number_of k \<Colon> rat) \<equiv> Fract k 1"
+  unfolding Fract_of_int_eq rat_number_of_def by simp
+
+instance rat :: eq ..
+
+
+section {* code names *}
+
+code_typename
+  erat "Rational.erat"
+
+code_constname
+  Rat "Rational.rat"
+  erat_case "Rational.erat_case"
+  norm "Rational.norm"
+  common "Rational.common"
+  of_quotient "Rational.of_quotient"
+  of_rat "Rational.of_rat"
+  to_rat "Rational.to_rat"
+  eq_erat "Rational.eq_erat"
+  div_zero "Rational.div_zero"
+  "0\<Colon>erat" "Rational.erat_zero"
+  "1\<Colon>erat" "Rational.erat_one"
+  "op + \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat" "Rational.erat_plus"
+  "uminus \<Colon> erat \<Rightarrow> erat" "Rational.erat_uminus"
+  "op * \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat" "Rational.erat_times"
+  "inverse  \<Colon> erat \<Rightarrow> erat" "Rational.erat_inverse"
+  "op \<le> \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool" "Rational.erat_le"
+  "OperationalEquality.eq \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool" "Rational.erat_eq"
 
 
 section {* type serializations *}
@@ -92,7 +129,7 @@ code_type rat
 section {* const serializations *}
 
 consts_code
-  arbitrary :: erat ("raise/ (Fail/ \"non-defined rational number\")")
+  div_zero ("raise/ (Fail/ \"non-defined rational number\")")
   Fract ("{*of_quotient*}")
   0 :: rat ("{*0::erat*}")
   1 :: rat ("{*1::erat*}")
@@ -104,9 +141,9 @@ consts_code
   Orderings.less_eq :: "rat \<Rightarrow> rat \<Rightarrow> bool" ("{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
   "op =" :: "rat \<Rightarrow> rat \<Rightarrow> bool" ("{*eq_rat*}")
 
-code_const "arbitrary :: erat"
-  (SML "raise/ (Fail/ \"non-defined rational number\")")
-  (Haskell "error/ \"non-defined rational number\"")
+code_const div_zero
+  (SML "raise/ (Fail/ \"Division by zero\")")
+  (Haskell "error/ \"Division by zero\"")
 
 code_gen
   of_quotient
@@ -155,8 +192,6 @@ code_const "divide :: rat \<Rightarrow> rat \<Rightarrow> rat"
 code_const "op <= :: rat \<Rightarrow> rat \<Rightarrow> bool"
   (SML "{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
   (Haskell "{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
-
-instance rat :: eq ..
 
 code_const "OperationalEquality.eq :: rat \<Rightarrow> rat \<Rightarrow> bool"
   (SML "{*eq_erat*}")
