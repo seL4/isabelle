@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
-Binary trees (based on the ZF version).
+Binary trees
 *)
 
 header {* Binary trees *}
@@ -35,7 +35,7 @@ primrec
 
 primrec
   "depth Lf = 0"
-  "depth (Br a t1 t2) = max (depth t1) (depth t2)"
+  "depth (Br a t1 t2) = Suc (max (depth t1) (depth t2))"
 
 primrec
   "reflect Lf = Lf"
@@ -75,8 +75,8 @@ lemma n_nodes_reflect: "n_nodes (reflect t) = n_nodes t"
   done
 
 lemma depth_reflect: "depth (reflect t) = depth t"
-  apply (induct t)
-   apply (simp_all add: max_ac)
+  apply (induct t) 
+   apply auto
   done
 
 text {*
