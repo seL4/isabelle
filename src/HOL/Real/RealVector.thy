@@ -209,11 +209,15 @@ lemma nonzero_of_real_divide:
   "y \<noteq> 0 \<Longrightarrow> of_real (x / y) =
    (of_real x / of_real y :: 'a::real_field)"
 by (simp add: divide_inverse nonzero_of_real_inverse)
-  
-lemma of_real_divide:
+
+lemma of_real_divide [simp]:
   "of_real (x / y) =
    (of_real x / of_real y :: 'a::{real_field,division_by_zero})"
 by (simp add: divide_inverse)
+
+lemma of_real_power [simp]:
+  "of_real (x ^ n) = (of_real x :: 'a::{real_algebra_1,recpower}) ^ n"
+by (induct n, simp_all add: power_Suc)
 
 lemma of_real_eq_iff [simp]: "(of_real x = of_real y) = (x = y)"
 by (simp add: of_real_def scaleR_cancel_right)
@@ -323,6 +327,14 @@ lemma Reals_divide [simp]:
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
 apply (rule of_real_divide [symmetric])
+done
+
+lemma Reals_power [simp]:
+  fixes a :: "'a::{real_algebra_1,recpower}"
+  shows "a \<in> Reals \<Longrightarrow> a ^ n \<in> Reals"
+apply (auto simp add: Reals_def)
+apply (rule range_eqI)
+apply (rule of_real_power [symmetric])
 done
 
 lemma Reals_cases [cases set: Reals]:
