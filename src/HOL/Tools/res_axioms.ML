@@ -268,6 +268,19 @@ fun lambda_free (Abs _) = false
 fun monomorphic t =
   Term.fold_types (Term.fold_atyps (fn TVar _ => K false | _ => I)) t true;
 
+fun dest_abs_list ct =
+  let val (cv,ct') = Thm.dest_abs NONE ct
+      val (cvs,cu) = dest_abs_list ct'
+  in (cv::cvs, cu) end
+  handle CTERM _ => ([],ct);
+
+fun lambda_list [] u = u
+  | lambda_list (v::vs) u = lambda v (lambda_list vs u);
+
+fun abstract_rule_list [] [] th = th
+  | abstract_rule_list (v::vs) (ct::cts) th = abstract_rule v ct (abstract_rule_list vs cts th)
+  | abstract_rule_list _ _ th = raise THM ("abstract_rule_list", 0, [th]);
+
 (*Traverse a theorem, declaring abstraction function definitions. String s is the suggested
   prefix for the constants. Resulting theory is returned in the first theorem. *)
 fun declare_absfuns th =
@@ -275,14 +288,14 @@ fun declare_absfuns th =
         if lambda_free (term_of ct) then (transfer thy (reflexive ct), [])
         else
         case term_of ct of
-          Abs (_,T,u) =>
+          Abs _ =>
             let val cname = Name.internal (gensym "abs_");
                 val _ = assert_eta_free ct;
-                val (cv,cta) = Thm.dest_abs NONE ct
-                val v = (#1 o dest_Free o term_of) cv
+                val (cvs,cta) = dest_abs_list ct
+                val (vs,Tvs) = ListPair.unzip (map (dest_Free o term_of) cvs)
                 val (u'_th,defs) = abstract thy cta
                 val cu' = crhs_of u'_th
-                val abs_v_u = lambda (term_of cv) (term_of cu')
+                val abs_v_u = lambda_list (map term_of cvs) (term_of cu')
                 (*get the formal parameters: ALL variables free in the term*)
                 val args = term_frees abs_v_u
                 val rhs = list_abs_free (map dest_Free args, abs_v_u)
@@ -294,7 +307,7 @@ fun declare_absfuns th =
                      SOME ax => (ax,thy)   (*cached axiom, current theory*)
                    | NONE =>
                       let val Ts = map type_of args
-                          val cT = Ts ---> (T --> typ_of (ctyp_of_term cu'))
+                          val cT = Ts ---> (Tvs ---> typ_of (ctyp_of_term cu'))
                           val thy = theory_of_thm u'_th
                           val c = Const (Sign.full_name thy cname, cT)
                           val thy = Theory.add_consts_i [(cname, cT, NoSyn)] thy
@@ -312,7 +325,7 @@ fun declare_absfuns th =
                 val _ = assert (v_rhs aconv rhs_of ax) "declare_absfuns: rhs mismatch"
                 val def = #1 (Drule.freeze_thaw ax)
                 val def_args = list_combination def (map (cterm_of thy) args)
-            in (transitive (abstract_rule v cv u'_th) (symmetric def_args),
+            in (transitive (abstract_rule_list vs cvs u'_th) (symmetric def_args),
                 def :: defs) end
         | (t1$t2) =>
             let val (ct1,ct2) = Thm.dest_comb ct
@@ -339,16 +352,17 @@ fun assume_absfuns th =
         else
         case term_of ct of
           Abs (_,T,u) =>
-            let val (cv,cta) = Thm.dest_abs NONE ct
-                val _ = assert_eta_free ct;
-                val v = (#1 o dest_Free o term_of) cv
+            let val _ = assert_eta_free ct;
+                val (cvs,cta) = dest_abs_list ct
+                val (vs,Tvs) = ListPair.unzip (map (dest_Free o term_of) cvs)
                 val (u'_th,defs) = abstract cta
                 val cu' = crhs_of u'_th
-                val abs_v_u = Thm.cabs cv cu'
+                (*Could use Thm.cabs instead of lambda to work at level of cterms*)
+                val abs_v_u = lambda_list (map term_of cvs) (term_of cu')
                 (*get the formal parameters: free variables not present in the defs
                   (to avoid taking abstraction function names as parameters) *)
-                val args = filter (valid_name defs) (term_frees (term_of abs_v_u))
-                val crhs = list_cabs (map cterm args, abs_v_u)
+                val args = filter (valid_name defs) (term_frees abs_v_u)
+                val crhs = list_cabs (map cterm args, cterm abs_v_u)
                       (*Forms a lambda-abstraction over the formal parameters*)
                 val rhs = term_of crhs
                 val def =  (*FIXME: can we also reuse the const-abstractions?*)
@@ -358,7 +372,7 @@ fun assume_absfuns th =
                      SOME ax => ax
                    | NONE =>
                       let val Ts = map type_of args
-                          val const_ty = Ts ---> (T --> typ_of (ctyp_of_term cu'))
+                          val const_ty = Ts ---> (Tvs ---> typ_of (ctyp_of_term cu'))
                           val c = Free (gensym "abs_", const_ty)
                           val ax = assume (Thm.capply (cterm (equals const_ty $ c)) crhs)
                           val _ = abstraction_cache := Net.insert_term eq_absdef (rhs,ax)
@@ -368,7 +382,7 @@ fun assume_absfuns th =
                       in ax end
                 val _ = assert (rhs aconv rhs_of def) "assume_absfuns: rhs mismatch"
                 val def_args = list_combination def (map cterm args)
-            in (transitive (abstract_rule v cv u'_th) (symmetric def_args),
+            in (transitive (abstract_rule_list vs cvs u'_th) (symmetric def_args),
                 def :: defs) end
         | (t1$t2) =>
             let val (ct1,ct2) = Thm.dest_comb ct
@@ -419,7 +433,7 @@ fun skolem_of_def def =
 fun to_nnf th =
     th |> transfer_to_Reconstruction
        |> transform_elim |> zero_var_indexes |> Drule.freeze_thaw |> #1
-       |> ObjectLogic.atomize_thm |> make_nnf;
+       |> ObjectLogic.atomize_thm |> make_nnf |> strip_lambdas;
 
 (*The cache prevents repeated clausification of a theorem,
   and also repeated declaration of Skolem functions*)
