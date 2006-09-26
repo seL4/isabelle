@@ -251,6 +251,12 @@ const_syntax (xsymbols)
 lemma of_real_in_Reals [simp]: "of_real r \<in> Reals"
 by (simp add: Reals_def)
 
+lemma of_int_in_Reals [simp]: "of_int z \<in> Reals"
+by (subst of_real_of_int_eq [symmetric], rule of_real_in_Reals)
+
+lemma of_nat_in_Reals [simp]: "of_nat n \<in> Reals"
+by (subst of_real_of_nat_eq [symmetric], rule of_real_in_Reals)
+
 lemma Reals_0 [simp]: "0 \<in> Reals"
 apply (unfold Reals_def)
 apply (rule range_eqI)
