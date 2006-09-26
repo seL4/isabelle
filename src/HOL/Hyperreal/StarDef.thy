@@ -160,12 +160,19 @@ definition
   star_of :: "'a \<Rightarrow> 'a star"
   "star_of x == star_n (\<lambda>n. x)"
 
+  Standard :: "'a star set"
+  "Standard = range star_of"
+
 text {* Transfer tactic should remove occurrences of @{term star_of} *}
 setup {* Transfer.add_const "StarDef.star_of" *}
+
 declare star_of_def [transfer_intro]
 
 lemma star_of_inject: "(star_of x = star_of y) = (x = y)"
 by (transfer, rule refl)
+
+lemma Standard_star_of [simp]: "star_of x \<in> Standard"
+by (simp add: Standard_def)
 
 
 subsection {* Internal functions *}
@@ -193,6 +200,10 @@ by (simp only: Ifun_star_n)
 lemma Ifun_star_of [simp]: "star_of f \<star> star_of x = star_of (f x)"
 by (transfer, rule refl)
 
+lemma Standard_Ifun [simp]:
+  "\<lbrakk>f \<in> Standard; x \<in> Standard\<rbrakk> \<Longrightarrow> f \<star> x \<in> Standard"
+by (auto simp add: Standard_def)
+
 text {* Nonstandard extensions of functions *}
 
 definition
@@ -219,6 +230,13 @@ by (transfer, rule refl)
 
 lemma starfun2_star_of [simp]: "( *f2* f) (star_of x) = *f* f x"
 by (transfer, rule refl)
+
+lemma Standard_starfun [simp]: "x \<in> Standard \<Longrightarrow> starfun f x \<in> Standard"
+by (simp add: starfun_def)
+
+lemma Standard_starfun2 [simp]:
+  "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> starfun2 f x y \<in> Standard"
+by (simp add: starfun2_def)
 
 
 subsection {* Internal predicates *}

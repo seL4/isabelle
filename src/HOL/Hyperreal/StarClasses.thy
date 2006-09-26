@@ -46,6 +46,54 @@ lemmas star_class_defs [transfer_unfold] =
   star_le_def       star_less_def     star_abs_def
   star_div_def      star_mod_def      star_power_def
 
+text {* Class operations preserve standard elements *}
+
+lemma Standard_zero: "0 \<in> Standard"
+by (simp add: star_zero_def)
+
+lemma Standard_one: "1 \<in> Standard"
+by (simp add: star_one_def)
+
+lemma Standard_number_of: "number_of b \<in> Standard"
+by (simp add: star_number_def)
+
+lemma Standard_add: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> x + y \<in> Standard"
+by (simp add: star_add_def)
+
+lemma Standard_diff: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> x - y \<in> Standard"
+by (simp add: star_diff_def)
+
+lemma Standard_minus: "x \<in> Standard \<Longrightarrow> - x \<in> Standard"
+by (simp add: star_minus_def)
+
+lemma Standard_mult: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> x * y \<in> Standard"
+by (simp add: star_mult_def)
+
+lemma Standard_divide: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> x / y \<in> Standard"
+by (simp add: star_divide_def)
+
+lemma Standard_inverse: "x \<in> Standard \<Longrightarrow> inverse x \<in> Standard"
+by (simp add: star_inverse_def)
+
+lemma Standard_abs: "x \<in> Standard \<Longrightarrow> abs x \<in> Standard"
+by (simp add: star_abs_def)
+
+lemma Standard_div: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> x div y \<in> Standard"
+by (simp add: star_div_def)
+
+lemma Standard_mod: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> x mod y \<in> Standard"
+by (simp add: star_mod_def)
+
+lemma Standard_power: "x \<in> Standard \<Longrightarrow> x ^ n \<in> Standard"
+by (simp add: star_power_def)
+
+lemmas Standard_simps [simp] =
+  Standard_zero  Standard_one  Standard_number_of
+  Standard_add  Standard_diff  Standard_minus
+  Standard_mult  Standard_divide  Standard_inverse
+  Standard_abs  Standard_div  Standard_mod
+  Standard_power
+
 text {* @{term star_of} preserves class operations *}
 
 lemma star_of_add: "star_of (x + y) = star_of x + star_of y"
@@ -162,7 +210,6 @@ done
 
 instance star :: (linorder) linorder
 by (intro_classes, transfer, rule linorder_linear)
-
 
 subsection {* Lattice ordering classes *}
 
