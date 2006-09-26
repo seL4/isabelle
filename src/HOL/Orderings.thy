@@ -15,7 +15,7 @@ begin
 subsection {* Order signatures and orders *}
 
 class ord = eq +
-  constrains eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+  constrains eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (*FIXME: class_package should do the job*)
   fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   fixes less    :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 
@@ -33,14 +33,43 @@ const_syntax (HTML output)
   less_eq  ("op \<le>")
   less_eq  ("(_/ \<le> _)"  [50, 51] 50)
 
+
+abbreviation (in ord)
+  "less_eq_syn \<equiv> less_eq"
+  "less_syn \<equiv> less"
+
+const_syntax (in ord) 
+  less_eq_syn  ("op \<^loc><=")
+  less_eq_syn  ("(_/ \<^loc><= _)" [50, 51] 50)
+  less_syn  ("op \<^loc><")
+  less_syn  ("(_/ \<^loc>< _)"  [50, 51] 50)
+  
+const_syntax (in ord) (xsymbols)
+  less_eq_syn  ("op \<^loc>\<le>")
+  less_eq_syn  ("(_/ \<^loc>\<le> _)"  [50, 51] 50)
+
+const_syntax (in ord) (HTML output)
+  less_eq_syn  ("op \<^loc>\<le>")
+  less_eq_syn  ("(_/ \<^loc>\<le> _)"  [50, 51] 50)
+
+
 abbreviation (input)
   greater  (infixl ">" 50)
-  "x > y == y < x"
+  "x > y \<equiv> y < x"
   greater_eq  (infixl ">=" 50)
-  "x >= y == y <= x"
-
+  "x >= y \<equiv> y <= x"
+  
 const_syntax (xsymbols)
   greater_eq  (infixl "\<ge>" 50)
+
+abbreviation (in ord) (input)
+  greater  (infix "\<^loc>>" 50)
+  "x \<^loc>> y \<equiv> y \<^loc>< x"
+  greater_eq  (infix "\<^loc>>=" 50)
+  "x \<^loc>>= y \<equiv> y \<^loc><= x"
+
+const_syntax (in ord) (xsymbols)
+  greater_eq  (infixl "\<^loc>\<ge>" 50)
 
 
 subsection {* Monotonicity *}
