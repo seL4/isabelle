@@ -404,8 +404,8 @@ fun case_tr context [t, u] =
       fun case_error s name ts = raise TERM ("Error in case expression" ^
         getOpt (Option.map (curry op ^ " for datatype ") name, "") ^ ":\n" ^ s, ts);
       fun dest_case1 (Const ("_case1", _) $ t $ u) = (case strip_comb t of
-            (Const (s, _), ts) => (Sign.intern_const thy s, ts)
-          | (Free (s, _), ts) => (Sign.intern_const thy s, ts)
+            (Const (s, _), ts) => (((perhaps o try o unprefix) Syntax.constN o Sign.intern_const thy) s, ts)
+          | (Free (s, _), ts) => (Sign.intern_const thy s, ts) (*FIXME?*)
           | _ => case_error "Head is not a constructor" NONE [t, u], u)
         | dest_case1 t = raise TERM ("dest_case1", [t]);
       fun dest_case2 (Const ("_case2", _) $ t $ u) = t :: dest_case2 u
@@ -817,12 +817,11 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       |> fold_map apply_theorems raw_distinct
       ||>> fold_map apply_theorems raw_inject
       ||>> apply_theorems [raw_induction];
-    val sign = Theory.sign_of thy1;
 
     val ((_, [induction']), _) = Variable.importT [induction] (Variable.thm_context induction);
 
     fun err t = error ("Ill-formed predicate in induction rule: " ^
-      Sign.string_of_term sign t);
+      Sign.string_of_term thy1 t);
 
     fun get_typ (t as _ $ Var (_, Type (tname, Ts))) =
           ((tname, map dest_TFree Ts) handle TERM _ => err t)
@@ -850,8 +849,12 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
     val sorts = add_term_tfrees (concl_of induction', []);
     val dt_info = get_datatypes thy1;
 
-    val case_names_induct = mk_case_names_induct descr;
-    val case_names_exhausts = mk_case_names_exhausts descr (map #1 dtnames);
+    val (case_names_induct, case_names_exhausts) = case RuleCases.get induction
+     of (("1", _) :: _, _) => (mk_case_names_induct descr, mk_case_names_exhausts descr (map #1 dtnames))
+      | (cases, _) => (RuleCases.case_names (map fst cases),
+          replicate (length ((List.filter (fn ((_, (name, _, _))) => member (op =)
+            (map #1 dtnames) name) descr)))
+            (RuleCases.case_names (map fst cases)));
     
 
     val _ = message ("Proofs for datatype(s) " ^ commas_quote new_type_names);
