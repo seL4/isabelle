@@ -76,14 +76,14 @@ form [int,int]---> int*)
  
 (*Transform a natural number to a term*) 
  
-fun mk_numeral 0 = Const("0",HOLogic.intT)
-   |mk_numeral 1 = Const("1",HOLogic.intT)
+fun mk_numeral 0 = Const("HOL.zero",HOLogic.intT)
+   |mk_numeral 1 = Const("HOL.one",HOLogic.intT)
    |mk_numeral n = (HOLogic.number_of_const HOLogic.intT) $ (HOLogic.mk_binum n); 
  
 (*Transform an Term to an natural number*)	  
 	  
-fun dest_numeral (Const("0",Type ("IntDef.int", []))) = 0
-   |dest_numeral (Const("1",Type ("IntDef.int", []))) = 1
+fun dest_numeral (Const("HOL.zero",Type ("IntDef.int", []))) = 0
+   |dest_numeral (Const("HOL.one",Type ("IntDef.int", []))) = 1
    |dest_numeral (Const ("Numeral.number_of",_) $ n) = 
        HOLogic.dest_binum n;
 (*Some terms often used for pattern matching*) 
@@ -659,8 +659,8 @@ fun mk_uni_vars T  (node $ rest) = (case node of
     |mk_uni_vars T (Free (v,_)) = Free (v,T) 
     |mk_uni_vars T tm = tm; 
  
-fun mk_uni_int T (Const ("0",T2)) = if T = T2 then (mk_numeral 0) else (Const ("0",T2)) 
-    |mk_uni_int T (Const ("1",T2)) = if T = T2 then (mk_numeral 1) else (Const ("1",T2)) 
+fun mk_uni_int T (Const ("HOL.zero",T2)) = if T = T2 then (mk_numeral 0) else (Const ("HOL.zero",T2)) 
+    |mk_uni_int T (Const ("HOL.one",T2)) = if T = T2 then (mk_numeral 1) else (Const ("HOL.one",T2)) 
     |mk_uni_int T (node $ rest) = (mk_uni_int T node) $ (mk_uni_int T rest )  
     |mk_uni_int T (Abs(AV,AT,p)) = Abs(AV,AT,mk_uni_int T p) 
     |mk_uni_int T tm = tm; 

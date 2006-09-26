@@ -28,7 +28,7 @@ open Data;
 
 (* FIXME dependent on abstract syntax *)
 
-fun zero t = Const ("0", t);
+fun zero t = Const ("HOL.zero", t);
 fun minus t = Const ("HOL.uminus", t --> t);
 
 fun add_terms pos (Const ("HOL.plus", _) $ x $ y, ts) =

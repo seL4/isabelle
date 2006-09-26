@@ -261,9 +261,9 @@ fun mk_tuple (Type ("*", [T1, T2])) tms =
 
 val natT = Type ("nat", []);
 
-val zero = Const ("0", natT);
+val zero = Const ("HOL.zero", natT);
 
-fun is_zero (Const ("0", _)) = true
+fun is_zero (Const ("HOL.zero", _)) = true
   | is_zero _ = false;
 
 fun mk_Suc t = Const ("Suc", natT --> natT) $ t;
@@ -274,7 +274,7 @@ fun dest_Suc (Const ("Suc", _) $ t) = t
 fun mk_nat 0 = zero
   | mk_nat n = mk_Suc (mk_nat (n - 1));
 
-fun dest_nat (Const ("0", _)) = 0
+fun dest_nat (Const ("HOL.zero", _)) = 0
   | dest_nat (Const ("Suc", _) $ t) = dest_nat t + 1
   | dest_nat t = raise TERM ("dest_nat", [t]);
 
@@ -319,21 +319,17 @@ fun mk_bit 0 = B0_const
 fun mk_binum n =
   let
     fun mk_bit n = if n = 0 then B0_const else B1_const;
-
     fun bin_of n =
       if n = 0 then pls_const
       else if n = ~1 then min_const
       else
         let
-          (*val (q,r) = IntInf.divMod (n, 2): doesn't work in SML 110.0.7,
-            but in newer versions!  FIXME: put this back after new SML released!*)
-          val q = IntInf.div (n, 2);
-          val r = IntInf.mod (n, 2);
+          val (q,r) = IntInf.divMod (n, 2);
         in bit_const $ bin_of q $ mk_bit r end;
   in bin_of n end;
 
-fun mk_int 0 = Const ("0", intT)
-  | mk_int 1 = Const ("1", intT)
+fun mk_int 0 = Const ("HOL.zero", intT)
+  | mk_int 1 = Const ("HOL.one", intT)
   | mk_int i = number_of_const intT $ mk_binum i;
 
 

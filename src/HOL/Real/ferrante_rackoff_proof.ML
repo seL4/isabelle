@@ -287,16 +287,16 @@ fun nnfp afnp vs p =
 
 
     (* Normalization of arithmetical expressions *)
-val rzero = Const("0",rT);
-val rone = Const("1",rT);
+val rzero = Const("HOL.zero",rT);
+val rone = Const("HOL.one",rT);
 fun mk_real i = 
     case i of 
         0 => rzero
       | 1 => rone
       | _ => (HOLogic.number_of_const rT)$(HOLogic.mk_binum i); 
 
-fun dest_real (Const("0",_)) = 0
-  | dest_real (Const("1",_)) = 1
+fun dest_real (Const("HOL.zero",_)) = 0
+  | dest_real (Const("HOL.one",_)) = 1
   | dest_real (Const("Numeral.number_of",_)$b) = HOLogic.dest_binum b;
 
         (* Normal form for terms is: 

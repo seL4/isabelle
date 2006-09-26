@@ -166,10 +166,10 @@ val allowed_consts =
    ("Numeral.Min", iT),
    ("Numeral.number_of", iT --> iT),
    ("Numeral.number_of", iT --> nT),
-   ("0", nT),
-   ("0", iT),
-   ("1", nT),
-   ("1", iT),
+   ("HOL.zero", nT),
+   ("HOL.zero", iT),
+   ("HOL.one", nT),
+   ("HOL.one", iT),
    ("False", bT),
    ("True", bT)];
 

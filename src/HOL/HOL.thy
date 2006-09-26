@@ -191,11 +191,16 @@ finalconsts
 
 subsubsection {* Generic algebraic operations *}
 
-axclass zero \<subseteq> type
-axclass one \<subseteq> type
+class zero =
+  fixes zero :: "'a"                       ("\<^loc>0")
+
+class one =
+  fixes one  :: "'a"                       ("\<^loc>1")
+
+hide (open) const zero one
 
 class plus =
-  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<^loc>+" 65)
+  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"   (infixl "\<^loc>+" 65)
 
 class minus =
   fixes uminus :: "'a \<Rightarrow> 'a" 
@@ -203,31 +208,25 @@ class minus =
   fixes abs    :: "'a \<Rightarrow> 'a"
 
 class times =
-  fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<^loc>*" 70)
+  fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>*" 70)
 
 class inverse = 
   fixes inverse :: "'a \<Rightarrow> 'a"
-  fixes divide :: "'a \<Rightarrow> 'a => 'a" (infixl "\<^loc>'/" 70)
-
-global
-
-consts
-  "0"           :: "'a::zero"                       ("0")
-  "1"           :: "'a::one"                        ("1")
+  fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<^loc>'/" 70)
 
 syntax
   "_index1"  :: index    ("\<^sub>1")
 translations
   (index) "\<^sub>1" => (index) "\<^bsub>\<struct>\<^esub>"
 
-local
-
 typed_print_translation {*
-  let
-    fun tr' c = (c, fn show_sorts => fn T => fn ts =>
-      if T = dummyT orelse not (! show_types) andalso can Term.dest_Type T then raise Match
-      else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
-  in [tr' "0", tr' "1"] end;
+let
+  fun tr' c = (c, fn show_sorts => fn T => fn ts =>
+    if T = dummyT orelse not (! show_types) andalso can Term.dest_Type T then raise Match
+    else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
+in
+  map (tr' o prefix Syntax.constN) ["HOL.one", "HOL.zero"]
+end;
 *} -- {* show types that are presumably too general *}
 
 syntax
@@ -1356,7 +1355,6 @@ qed
 lemmas induct_conj = induct_forall_conj induct_implies_conj induct_conj_curry
 
 hide const induct_forall induct_implies induct_equal induct_conj
-
 
 text {* Method setup. *}
 

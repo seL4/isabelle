@@ -127,8 +127,8 @@ setup {*
 types_code
   nat ("int")
 attach (term_of) {*
-fun term_of_nat 0 = Const ("0", HOLogic.natT)
-  | term_of_nat 1 = Const ("1", HOLogic.natT)
+fun term_of_nat 0 = Const ("HOL.zero", HOLogic.natT)
+  | term_of_nat 1 = Const ("HOL.one", HOLogic.natT)
   | term_of_nat i = HOLogic.number_of_const HOLogic.natT $
       HOLogic.mk_binum (IntInf.fromInt i);
 *}
@@ -141,7 +141,7 @@ code_type nat
   (Haskell target_atom "Integer")
 
 consts_code
-  0 :: nat ("0")
+  "HOL.zero" :: nat ("0")
   Suc ("(_ + 1)")
 
 text {*

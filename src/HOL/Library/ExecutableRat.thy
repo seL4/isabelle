@@ -131,8 +131,8 @@ section {* const serializations *}
 consts_code
   div_zero ("raise/ (Fail/ \"non-defined rational number\")")
   Fract ("{*of_quotient*}")
-  0 :: rat ("{*0::erat*}")
-  1 :: rat ("{*1::erat*}")
+  HOL.zero :: rat ("{*0::erat*}")
+  HOL.one :: rat ("{*1::erat*}")
   HOL.plus :: "rat \<Rightarrow> rat \<Rightarrow> rat" ("{*op + :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
   uminus :: "rat \<Rightarrow> rat" ("{*uminus :: erat \<Rightarrow> erat*}")
   HOL.times :: "rat \<Rightarrow> rat \<Rightarrow> rat" ("{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}")

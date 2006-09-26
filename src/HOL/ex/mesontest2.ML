@@ -985,11 +985,11 @@ val GRP168_1 = prove
   meson_tac 1);
 
 val HEN002_0_ax =
-  "(\\<forall>X Y. mless_equal(X::'a,Y) --> equal(Divide(X::'a,Y),zero)) &       \
-\  (\\<forall>X Y. equal(Divide(X::'a,Y),zero) --> mless_equal(X::'a,Y)) &       \
+  "(\\<forall>X Y. mless_equal(X::'a,Y) --> equal(Divide(X::'a,Y),Zero)) &       \
+\  (\\<forall>X Y. equal(Divide(X::'a,Y),Zero) --> mless_equal(X::'a,Y)) &       \
 \  (\\<forall>Y X. mless_equal(Divide(X::'a,Y),X)) & \
 \  (\\<forall>X Y Z. mless_equal(Divide(Divide(X::'a,Z),Divide(Y::'a,Z)),Divide(Divide(X::'a,Y),Z))) &       \
-\  (\\<forall>X. mless_equal(zero::'a,X)) &  \
+\  (\\<forall>X. mless_equal(Zero::'a,X)) &  \
 \  (\\<forall>X Y. mless_equal(X::'a,Y) & mless_equal(Y::'a,X) --> equal(X::'a,Y)) &  \
 \  (\\<forall>X. mless_equal(X::'a,identity))";
 
@@ -1002,18 +1002,18 @@ val HEN002_0_eq =
 (*250258 inferences so far.  Searching to depth 16.  406.2 secs*)
 val HEN003_3 = prove_hard
  (EQU001_0_ax ^ "&" ^ HEN002_0_ax ^ "&" ^ HEN002_0_eq ^ " &     \
-\  (~equal(Divide(a::'a,a),zero)) --> False",
+\  (~equal(Divide(a::'a,a),Zero)) --> False",
   meson_tac 1);
 
 
 (*202177 inferences so far.  Searching to depth 14.  451 secs*)
 val HEN007_2 = prove_hard
  (EQU001_0_ax ^ " &  \
-\  (\\<forall>X Y. mless_equal(X::'a,Y) --> quotient(X::'a,Y,zero)) &    \
-\  (\\<forall>X Y. quotient(X::'a,Y,zero) --> mless_equal(X::'a,Y)) &    \
+\  (\\<forall>X Y. mless_equal(X::'a,Y) --> quotient(X::'a,Y,Zero)) &    \
+\  (\\<forall>X Y. quotient(X::'a,Y,Zero) --> mless_equal(X::'a,Y)) &    \
 \  (\\<forall>Y Z X. quotient(X::'a,Y,Z) --> mless_equal(Z::'a,X)) &     \
 \  (\\<forall>Y X V3 V2 V1 Z V4 V5. quotient(X::'a,Y,V1) & quotient(Y::'a,Z,V2) & quotient(X::'a,Z,V3) & quotient(V3::'a,V2,V4) & quotient(V1::'a,Z,V5) --> mless_equal(V4::'a,V5)) &    \
-\  (\\<forall>X. mless_equal(zero::'a,X)) &  \
+\  (\\<forall>X. mless_equal(Zero::'a,X)) &  \
 \  (\\<forall>X Y. mless_equal(X::'a,Y) & mless_equal(Y::'a,X) --> equal(X::'a,Y)) &  \
 \  (\\<forall>X. mless_equal(X::'a,identity)) &      \
 \  (\\<forall>X Y. quotient(X::'a,Y,Divide(X::'a,Y))) & \
@@ -1025,10 +1025,10 @@ val HEN007_2 = prove_hard
 \  (\\<forall>X Y Z. equal(X::'a,Y) & mless_equal(X::'a,Z) --> mless_equal(Y::'a,Z)) &        \
 \  (\\<forall>X Y W. equal(X::'a,Y) --> equal(Divide(X::'a,W),Divide(Y::'a,W))) &   \
 \  (\\<forall>X W Y. equal(X::'a,Y) --> equal(Divide(W::'a,X),Divide(W::'a,Y))) &   \
-\  (\\<forall>X. quotient(X::'a,identity,zero)) &   \
-\  (\\<forall>X. quotient(zero::'a,X,zero)) &       \
-\  (\\<forall>X. quotient(X::'a,X,zero)) &  \
-\  (\\<forall>X. quotient(X::'a,zero,X)) &  \
+\  (\\<forall>X. quotient(X::'a,identity,Zero)) &   \
+\  (\\<forall>X. quotient(Zero::'a,X,Zero)) &       \
+\  (\\<forall>X. quotient(X::'a,X,Zero)) &  \
+\  (\\<forall>X. quotient(X::'a,Zero,X)) &  \
 \  (\\<forall>Y X Z. mless_equal(X::'a,Y) & mless_equal(Y::'a,Z) --> mless_equal(X::'a,Z)) &   \
 \  (\\<forall>W1 X Z W2 Y. quotient(X::'a,Y,W1) & mless_equal(W1::'a,Z) & quotient(X::'a,Z,W2) --> mless_equal(W2::'a,Y)) &       \
 \  (mless_equal(x::'a,y)) &  \
@@ -1040,10 +1040,10 @@ val HEN007_2 = prove_hard
 (*60026 inferences so far.  Searching to depth 12.  42.2 secs*)
 val HEN008_4 = prove_hard
  (EQU001_0_ax ^ "&" ^ HEN002_0_ax ^ "&" ^ HEN002_0_eq ^ " &     \
-\  (\\<forall>X. equal(Divide(X::'a,identity),zero)) &      \
-\  (\\<forall>X. equal(Divide(zero::'a,X),zero)) &  \
-\  (\\<forall>X. equal(Divide(X::'a,X),zero)) &     \
-\  (equal(Divide(a::'a,zero),a)) &  \
+\  (\\<forall>X. equal(Divide(X::'a,identity),Zero)) &      \
+\  (\\<forall>X. equal(Divide(Zero::'a,X),Zero)) &  \
+\  (\\<forall>X. equal(Divide(X::'a,X),Zero)) &     \
+\  (equal(Divide(a::'a,Zero),a)) &  \
 \  (\\<forall>Y X Z. mless_equal(X::'a,Y) & mless_equal(Y::'a,Z) --> mless_equal(X::'a,Z)) &   \
 \  (\\<forall>X Z Y. mless_equal(Divide(X::'a,Y),Z) --> mless_equal(Divide(X::'a,Z),Y)) & \
 \  (\\<forall>Y Z X. mless_equal(X::'a,Y) --> mless_equal(Divide(Z::'a,Y),Divide(Z::'a,X))) & \
@@ -1055,16 +1055,16 @@ val HEN008_4 = prove_hard
 (*3160 inferences so far.  Searching to depth 11.  3.5 secs*)
 val HEN009_5 = prove
  (EQU001_0_ax ^ " &  \
-\  (\\<forall>Y X. equal(Divide(Divide(X::'a,Y),X),zero)) & \
-\  (\\<forall>X Y Z. equal(Divide(Divide(Divide(X::'a,Z),Divide(Y::'a,Z)),Divide(Divide(X::'a,Y),Z)),zero)) &       \
-\  (\\<forall>X. equal(Divide(zero::'a,X),zero)) &  \
-\  (\\<forall>X Y. equal(Divide(X::'a,Y),zero) & equal(Divide(Y::'a,X),zero) --> equal(X::'a,Y)) &  \
-\  (\\<forall>X. equal(Divide(X::'a,identity),zero)) &      \
+\  (\\<forall>Y X. equal(Divide(Divide(X::'a,Y),X),Zero)) & \
+\  (\\<forall>X Y Z. equal(Divide(Divide(Divide(X::'a,Z),Divide(Y::'a,Z)),Divide(Divide(X::'a,Y),Z)),Zero)) &       \
+\  (\\<forall>X. equal(Divide(Zero::'a,X),Zero)) &  \
+\  (\\<forall>X Y. equal(Divide(X::'a,Y),Zero) & equal(Divide(Y::'a,X),Zero) --> equal(X::'a,Y)) &  \
+\  (\\<forall>X. equal(Divide(X::'a,identity),Zero)) &      \
 \  (\\<forall>A B C. equal(A::'a,B) --> equal(Divide(A::'a,C),Divide(B::'a,C))) &   \
 \  (\\<forall>D F' E. equal(D::'a,E) --> equal(Divide(F'::'a,D),Divide(F'::'a,E))) &        \
-\  (\\<forall>Y X Z. equal(Divide(X::'a,Y),zero) & equal(Divide(Y::'a,Z),zero) --> equal(Divide(X::'a,Z),zero)) &   \
-\  (\\<forall>X Z Y. equal(Divide(Divide(X::'a,Y),Z),zero) --> equal(Divide(Divide(X::'a,Z),Y),zero)) & \
-\  (\\<forall>Y Z X. equal(Divide(X::'a,Y),zero) --> equal(Divide(Divide(Z::'a,Y),Divide(Z::'a,X)),zero)) & \
+\  (\\<forall>Y X Z. equal(Divide(X::'a,Y),Zero) & equal(Divide(Y::'a,Z),Zero) --> equal(Divide(X::'a,Z),Zero)) &   \
+\  (\\<forall>X Z Y. equal(Divide(Divide(X::'a,Y),Z),Zero) --> equal(Divide(Divide(X::'a,Z),Y),Zero)) & \
+\  (\\<forall>Y Z X. equal(Divide(X::'a,Y),Zero) --> equal(Divide(Divide(Z::'a,Y),Divide(Z::'a,X)),Zero)) & \
 \  (~equal(Divide(identity::'a,a),Divide(identity::'a,Divide(identity::'a,Divide(identity::'a,a))))) &  \
 \  (equal(Divide(identity::'a,a),b)) &      \
 \  (equal(Divide(identity::'a,b),c)) &      \
@@ -1735,8 +1735,8 @@ val PRV003_1 = prove
 \  (mless_THAN(i::'a,n)) &   \
 \  (mless_THAN(a(j),a(k))) &     \
 \  (\\<forall>X. mless_THAN(X::'a,j) & mless_THAN(a(X),a(k)) --> mless_THAN(X::'a,i)) &    \
-\  (\\<forall>X. mless_THAN(one::'a,i) & mless_THAN(a(X),a(predecessor(i))) --> mless_THAN(X::'a,i) | mless_THAN(n::'a,X)) &   \
-\  (\\<forall>X. ~(mless_THAN(one::'a,X) & mless_THAN(X::'a,i) & mless_THAN(a(X),a(predecessor(X))))) &    \
+\  (\\<forall>X. mless_THAN(One::'a,i) & mless_THAN(a(X),a(predecessor(i))) --> mless_THAN(X::'a,i) | mless_THAN(n::'a,X)) &   \
+\  (\\<forall>X. ~(mless_THAN(One::'a,X) & mless_THAN(X::'a,i) & mless_THAN(a(X),a(predecessor(X))))) &    \
 \  (mless_THAN(j::'a,i)) --> False",
   meson_tac 1);
 
@@ -1747,11 +1747,11 @@ val PRV005_1 = prove
 \  (~mless_THAN(k::'a,l)) &  \
 \  (~mless_THAN(k::'a,i)) &  \
 \  (mless_THAN(l::'a,n)) &   \
-\  (mless_THAN(one::'a,l)) & \
+\  (mless_THAN(One::'a,l)) & \
 \  (mless_THAN(a(k),a(predecessor(l)))) &        \
 \  (\\<forall>X. mless_THAN(X::'a,successor(n)) & mless_THAN(a(X),a(k)) --> mless_THAN(X::'a,l)) & \
-\  (\\<forall>X. mless_THAN(one::'a,l) & mless_THAN(a(X),a(predecessor(l))) --> mless_THAN(X::'a,l) | mless_THAN(n::'a,X)) &   \
-\  (\\<forall>X. ~(mless_THAN(one::'a,X) & mless_THAN(X::'a,l) & mless_THAN(a(X),a(predecessor(X))))) --> False",
+\  (\\<forall>X. mless_THAN(One::'a,l) & mless_THAN(a(X),a(predecessor(l))) --> mless_THAN(X::'a,l) | mless_THAN(n::'a,X)) &   \
+\  (\\<forall>X. ~(mless_THAN(One::'a,X) & mless_THAN(X::'a,l) & mless_THAN(a(X),a(predecessor(X))))) --> False",
   meson_tac 1);
 
 (*2343 inferences so far.  Searching to depth 8.  3.5 secs*)
@@ -1760,11 +1760,11 @@ val PRV006_1 = prove
 \  (~mless_THAN(n::'a,m)) &  \
 \  (mless_THAN(i::'a,m)) &   \
 \  (mless_THAN(i::'a,n)) &   \
-\  (~mless_THAN(i::'a,one)) &        \
+\  (~mless_THAN(i::'a,One)) &        \
 \  (mless_THAN(a(i),a(m))) &     \
 \  (\\<forall>X. mless_THAN(X::'a,successor(n)) & mless_THAN(a(X),a(m)) --> mless_THAN(X::'a,i)) & \
-\  (\\<forall>X. mless_THAN(one::'a,i) & mless_THAN(a(X),a(predecessor(i))) --> mless_THAN(X::'a,i) | mless_THAN(n::'a,X)) &   \
-\  (\\<forall>X. ~(mless_THAN(one::'a,X) & mless_THAN(X::'a,i) & mless_THAN(a(X),a(predecessor(X))))) --> False",
+\  (\\<forall>X. mless_THAN(One::'a,i) & mless_THAN(a(X),a(predecessor(i))) --> mless_THAN(X::'a,i) | mless_THAN(n::'a,X)) &   \
+\  (\\<forall>X. ~(mless_THAN(One::'a,X) & mless_THAN(X::'a,i) & mless_THAN(a(X),a(predecessor(X))))) --> False",
   meson_tac 1);
 
 (*86 inferences so far.  Searching to depth 14.  0.1 secs*)
@@ -2166,9 +2166,9 @@ val ROB016_1 = prove_hard
 \  (\\<forall>M O_ N. equal(M::'a,N) --> equal(multiply(O_::'a,M),multiply(O_::'a,N))) &       \
 \  (\\<forall>P Q. equal(P::'a,Q) --> equal(successor(P),successor(Q))) &   \
 \  (\\<forall>R S'. equal(R::'a,S') & positive_integer(R) --> positive_integer(S')) &       \
-\  (\\<forall>X. equal(multiply(one::'a,X),X)) &    \
+\  (\\<forall>X. equal(multiply(One::'a,X),X)) &    \
 \  (\\<forall>V X. positive_integer(X) --> equal(multiply(successor(V),X),add(X::'a,multiply(V::'a,X)))) &      \
-\  (positive_integer(one)) &    \
+\  (positive_integer(One)) &    \
 \  (\\<forall>X. positive_integer(X) --> positive_integer(successor(X))) &      \
 \  (equal(negate(add(d::'a,e)),negate(e))) &        \
 \  (positive_integer(k)) &      \
@@ -2212,22 +2212,22 @@ val SET005_1 = prove_hard
 
 (*6450 inferences so far.  Searching to depth 14.  4.2 secs*)
 val SET009_1 = prove
- ("(\\<forall>Subset Element Superset. member(Element::'a,Subset) & subset(Subset::'a,Superset) --> member(Element::'a,Superset)) & \
-\  (\\<forall>Superset Subset. subset(Subset::'a,Superset) | member(member_of_1_not_of_2(Subset::'a,Superset),Subset)) &       \
-\  (\\<forall>Subset Superset. member(member_of_1_not_of_2(Subset::'a,Superset),Superset) --> subset(Subset::'a,Superset)) &    \
-\  (\\<forall>Subset Superset. equal_sets(Subset::'a,Superset) --> subset(Subset::'a,Superset)) &       \
-\  (\\<forall>Subset Superset. equal_sets(Superset::'a,Subset) --> subset(Subset::'a,Superset)) &       \
-\  (\\<forall>Set2 Set1. subset(Set1::'a,Set2) & subset(Set2::'a,Set1) --> equal_sets(Set2::'a,Set1)) &     \
+ ("(\\<forall>Subset Element Superset. member(Element::'a,Subset) & ssubset(Subset::'a,Superset) --> member(Element::'a,Superset)) & \
+\  (\\<forall>Superset Subset. ssubset(Subset::'a,Superset) | member(member_of_1_not_of_2(Subset::'a,Superset),Subset)) &       \
+\  (\\<forall>Subset Superset. member(member_of_1_not_of_2(Subset::'a,Superset),Superset) --> ssubset(Subset::'a,Superset)) &    \
+\  (\\<forall>Subset Superset. equal_sets(Subset::'a,Superset) --> ssubset(Subset::'a,Superset)) &       \
+\  (\\<forall>Subset Superset. equal_sets(Superset::'a,Subset) --> ssubset(Subset::'a,Superset)) &       \
+\  (\\<forall>Set2 Set1. ssubset(Set1::'a,Set2) & ssubset(Set2::'a,Set1) --> equal_sets(Set2::'a,Set1)) &     \
 \  (\\<forall>Set2 Difference Element Set1. difference(Set1::'a,Set2,Difference) & member(Element::'a,Difference) --> member(Element::'a,Set1)) &   \
 \  (\\<forall>Element A_set Set1 Set2. ~(member(Element::'a,Set1) & member(Element::'a,Set2) & difference(A_set::'a,Set1,Set2))) &  \
 \  (\\<forall>Set1 Difference Element Set2. member(Element::'a,Set1) & difference(Set1::'a,Set2,Difference) --> member(Element::'a,Difference) | member(Element::'a,Set2)) &   \
 \  (\\<forall>Set1 Set2 Difference. difference(Set1::'a,Set2,Difference) | member(k(Set1::'a,Set2,Difference),Set1) | member(k(Set1::'a,Set2,Difference),Difference)) &   \
 \  (\\<forall>Set1 Set2 Difference. member(k(Set1::'a,Set2,Difference),Set2) --> member(k(Set1::'a,Set2,Difference),Difference) | difference(Set1::'a,Set2,Difference)) &  \
 \  (\\<forall>Set1 Set2 Difference. member(k(Set1::'a,Set2,Difference),Difference) & member(k(Set1::'a,Set2,Difference),Set1) --> member(k(Set1::'a,Set2,Difference),Set2) | difference(Set1::'a,Set2,Difference)) &   \
-\  (subset(d::'a,a)) &      \
+\  (ssubset(d::'a,a)) &      \
 \  (difference(b::'a,a,bDa)) &      \
 \  (difference(b::'a,d,bDd)) &      \
-\  (~subset(bDa::'a,bDd)) --> False",
+\  (~ssubset(bDa::'a,bDd)) --> False",
   meson_tac 1);
 
 (*34726 inferences so far.  Searching to depth 6.  2420 secs: 40 mins! BIG*)
@@ -2299,14 +2299,14 @@ val SET025_4 = prove_hard
 \  (\\<forall>Z X. member(Z::'a,sigma(X)) --> member(Z::'a,f16(Z::'a,X))) & \
 \  (\\<forall>X Z Y. member(Y::'a,X) & member(Z::'a,Y) --> member(Z::'a,sigma(X))) &        \
 \  (\\<forall>U. little_set(U) --> little_set(sigma(U))) &      \
-\  (\\<forall>X U Y. subset(X::'a,Y) & member(U::'a,X) --> member(U::'a,Y)) &       \
-\  (\\<forall>Y X. subset(X::'a,Y) | member(f17(X::'a,Y),X)) & \
-\  (\\<forall>X Y. member(f17(X::'a,Y),Y) --> subset(X::'a,Y)) &        \
-\  (\\<forall>X Y. proper_subset(X::'a,Y) --> subset(X::'a,Y)) &        \
+\  (\\<forall>X U Y. ssubset(X::'a,Y) & member(U::'a,X) --> member(U::'a,Y)) &       \
+\  (\\<forall>Y X. ssubset(X::'a,Y) | member(f17(X::'a,Y),X)) & \
+\  (\\<forall>X Y. member(f17(X::'a,Y),Y) --> ssubset(X::'a,Y)) &        \
+\  (\\<forall>X Y. proper_subset(X::'a,Y) --> ssubset(X::'a,Y)) &        \
 \  (\\<forall>X Y. ~(proper_subset(X::'a,Y) & equal(X::'a,Y))) &        \
-\  (\\<forall>X Y. subset(X::'a,Y) --> proper_subset(X::'a,Y) | equal(X::'a,Y)) &  \
-\  (\\<forall>Z X. member(Z::'a,powerset(X)) --> subset(Z::'a,X)) &     \
-\  (\\<forall>Z X. little_set(Z) & subset(Z::'a,X) --> member(Z::'a,powerset(X))) &     \
+\  (\\<forall>X Y. ssubset(X::'a,Y) --> proper_subset(X::'a,Y) | equal(X::'a,Y)) &  \
+\  (\\<forall>Z X. member(Z::'a,powerset(X)) --> ssubset(Z::'a,X)) &     \
+\  (\\<forall>Z X. little_set(Z) & ssubset(Z::'a,X) --> member(Z::'a,powerset(X))) &     \
 \  (\\<forall>U. little_set(U) --> little_set(powerset(U))) &   \
 \  (\\<forall>Z X. relation(Z) & member(X::'a,Z) --> ordered_pair_predicate(X)) &   \
 \  (\\<forall>Z. relation(Z) | member(f18(Z),Z)) &     \
@@ -2354,8 +2354,8 @@ val SET025_4 = prove_hard
 \  (\\<forall>Xf X Y. equal(apply_to_two_arguments(Xf::'a,X,Y),apply(Xf::'a,ordered_pair(X::'a,Y)))) &      \
 \  (\\<forall>X Y Xf. maps(Xf::'a,X,Y) --> function(Xf)) &  \
 \  (\\<forall>Y Xf X. maps(Xf::'a,X,Y) --> equal(domain_of(Xf),X)) &        \
-\  (\\<forall>X Xf Y. maps(Xf::'a,X,Y) --> subset(range_of(Xf),Y)) &        \
-\  (\\<forall>X Xf Y. function(Xf) & equal(domain_of(Xf),X) & subset(range_of(Xf),Y) --> maps(Xf::'a,X,Y)) &        \
+\  (\\<forall>X Xf Y. maps(Xf::'a,X,Y) --> ssubset(range_of(Xf),Y)) &        \
+\  (\\<forall>X Xf Y. function(Xf) & equal(domain_of(Xf),X) & ssubset(range_of(Xf),Y) --> maps(Xf::'a,X,Y)) &        \
 \  (\\<forall>Xf Xs. closed(Xs::'a,Xf) --> little_set(Xs)) &        \
 \  (\\<forall>Xs Xf. closed(Xs::'a,Xf) --> little_set(Xf)) &        \
 \  (\\<forall>Xf Xs. closed(Xs::'a,Xf) --> maps(Xf::'a,cross_product(Xs::'a,Xs),Xs)) &      \
@@ -2494,8 +2494,8 @@ val SET025_4 = prove_hard
 \  (\\<forall>P15 R15 Q15. equal(P15::'a,Q15) & proper_subset(R15::'a,P15) --> proper_subset(R15::'a,Q15)) &        \
 \  (\\<forall>S15 T15. equal(S15::'a,T15) & relation(S15) --> relation(T15)) &      \
 \  (\\<forall>U15 V15. equal(U15::'a,V15) & single_valued_set(U15) --> single_valued_set(V15)) &    \
-\  (\\<forall>W15 X15 Y15. equal(W15::'a,X15) & subset(W15::'a,Y15) --> subset(X15::'a,Y15)) &      \
-\  (\\<forall>Z15 B16 A16. equal(Z15::'a,A16) & subset(B16::'a,Z15) --> subset(B16::'a,A16)) &      \
+\  (\\<forall>W15 X15 Y15. equal(W15::'a,X15) & ssubset(W15::'a,Y15) --> ssubset(X15::'a,Y15)) &      \
+\  (\\<forall>Z15 B16 A16. equal(Z15::'a,A16) & ssubset(B16::'a,Z15) --> ssubset(B16::'a,A16)) &      \
 \  (~little_set(ordered_pair(a::'a,b))) --> False",
   meson_tac 1);
 

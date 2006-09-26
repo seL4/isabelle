@@ -118,12 +118,12 @@ structure Int_Numeral_Base_Simprocs =
     0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a numeral.*)
   fun reorient_proc sg _ (_ $ t $ u) =
     case u of
-	Const("0", _) => NONE
-      | Const("1", _) => NONE
+	Const("HOL.zero", _) => NONE
+      | Const("HOL.one", _) => NONE
       | Const("Numeral.number_of", _) $ _ => NONE
       | _ => SOME (case t of
-		  Const("0", _) => meta_zero_reorient
-		| Const("1", _) => meta_one_reorient
+		  Const("HOL.zero", _) => meta_zero_reorient
+		| Const("HOL.one", _) => meta_one_reorient
 		| Const("Numeral.number_of", _) $ _ => meta_number_of_reorient)
 
   val reorient_simproc = 
@@ -184,8 +184,8 @@ val num_ss = HOL_ss settermless numtermless;
 fun mk_numeral T n = HOLogic.number_of_const T $ HOLogic.mk_binum n;
 
 (*Decodes a binary INTEGER*)
-fun dest_numeral (Const("0", _)) = 0
-  | dest_numeral (Const("1", _)) = 1
+fun dest_numeral (Const("HOL.zero", _)) = 0
+  | dest_numeral (Const("HOL.one", _)) = 1
   | dest_numeral (Const("Numeral.number_of", _) $ w) =
      (HOLogic.dest_binum w
       handle TERM _ => raise TERM("Int_Numeral_Simprocs.dest_numeral:1", [w]))

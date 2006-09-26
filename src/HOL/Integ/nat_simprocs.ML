@@ -26,7 +26,7 @@ fun rename_numerals th =
 fun mk_numeral n = HOLogic.number_of_const HOLogic.natT $ HOLogic.mk_binum n;
 
 (*Decodes a unary or binary numeral to a NATURAL NUMBER*)
-fun dest_numeral (Const ("0", _)) = 0
+fun dest_numeral (Const ("HOL.zero", _)) = 0
   | dest_numeral (Const ("Suc", _) $ t) = 1 + dest_numeral t
   | dest_numeral (Const("Numeral.number_of", _) $ w) =
       (IntInf.max (0, HOLogic.dest_binum w)

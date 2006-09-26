@@ -200,8 +200,8 @@ local
   fun reorient_proc sg _ (_ $ t $ u) =
     case u of
         Const("Pcpo.UU",_) => NONE
-      | Const("0", _) => NONE
-      | Const("1", _) => NONE
+      | Const("HOL.zero", _) => NONE
+      | Const("HOL.one", _) => NONE
       | Const("Numeral.number_of", _) $ _ => NONE
       | _ => SOME meta_UU_reorient;
 in

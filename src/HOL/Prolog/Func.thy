@@ -23,7 +23,7 @@ consts
   "and"   :: "tm => tm => tm"       (infixr 999)
   "eq"    :: "tm => tm => tm"       (infixr 999)
 
-  "0"     :: tm                   ("Z")
+  Z       :: tm                     ("Z")
   S       :: "tm => tm"
 (*
         "++", "--",

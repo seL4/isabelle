@@ -324,8 +324,8 @@ let
           demult (t, Rat.mult (m, Rat.inv (Rat.rat_of_intinf den)))
       end
         handle TERM _ => (SOME atom, m))
-    | demult (Const ("0", _), m) = (NONE, Rat.rat_of_int 0)
-    | demult (Const ("1", _), m) = (NONE, m)
+    | demult (Const ("HOL.zero", _), m) = (NONE, Rat.rat_of_int 0)
+    | demult (Const ("HOL.one", _), m) = (NONE, m)
     | demult (t as Const ("Numeral.number_of", _) $ n, m) =
         ((NONE, Rat.mult (m, Rat.rat_of_intinf (HOLogic.dest_binum n)))
           handle TERM _ => (SOME t,m))
@@ -350,9 +350,9 @@ let
         if nT T then add_atom all m pi else poly (s, m, poly (t, Rat.neg m, pi))
     | poly (all as Const ("HOL.uminus", T) $ t, m, pi) =
         if nT T then add_atom all m pi else poly (t, Rat.neg m, pi)
-    | poly (Const ("0", _), _, pi) =
+    | poly (Const ("HOL.zero", _), _, pi) =
         pi
-    | poly (Const ("1", _), m, (p, i)) =
+    | poly (Const ("HOL.one", _), m, (p, i)) =
         (p, Rat.add (i, m))
     | poly (Const ("Suc", _) $ t, m, (p, i)) =
         poly (t, m, (p, Rat.add (i, m)))
@@ -558,7 +558,7 @@ in
         val terms1      = map (subst_term [(split_term, t1)]) rev_terms
         val terms2      = map (subst_term [(split_term, Const ("HOL.uminus",
                             split_type --> split_type) $ t1)]) rev_terms
-        val zero        = Const ("0", split_type)
+        val zero        = Const ("HOL.zero", split_type)
         val zero_leq_t1 = Const ("Orderings.less_eq",
                             split_type --> split_type --> HOLogic.boolT) $ zero $ t1
         val t1_lt_zero  = Const ("Orderings.less",
@@ -575,7 +575,7 @@ in
         (* "d" in the above theorem becomes a new bound variable after NNF   *)
         (* transformation, therefore some adjustment of indices is necessary *)
         val rev_terms       = rev terms
-        val zero            = Const ("0", split_type)
+        val zero            = Const ("HOL.zero", split_type)
         val d               = Bound 0
         val terms1          = map (subst_term [(split_term, zero)]) rev_terms
         val terms2          = map (subst_term [(incr_boundvars 1 split_term, d)])
@@ -597,8 +597,8 @@ in
     | (Const ("IntDef.nat", _), [t1]) =>
       let
         val rev_terms   = rev terms
-        val zero_int    = Const ("0", HOLogic.intT)
-        val zero_nat    = Const ("0", HOLogic.natT)
+        val zero_int    = Const ("HOL.zero", HOLogic.intT)
+        val zero_nat    = Const ("HOL.zero", HOLogic.natT)
         val n           = Bound 0
         val terms1      = map (subst_term [(incr_boundvars 1 split_term, n)])
                             (map (incr_boundvars 1) rev_terms)
@@ -620,7 +620,7 @@ in
     | (Const ("Divides.op mod", Type ("fun", [Type ("nat", []), _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
-        val zero                    = Const ("0", split_type)
+        val zero                    = Const ("HOL.zero", split_type)
         val i                       = Bound 1
         val j                       = Bound 0
         val terms1                  = map (subst_term [(split_term, t1)]) rev_terms
@@ -652,7 +652,7 @@ in
     | (Const ("Divides.op div", Type ("fun", [Type ("nat", []), _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
-        val zero                    = Const ("0", split_type)
+        val zero                    = Const ("HOL.zero", split_type)
         val i                       = Bound 1
         val j                       = Bound 0
         val terms1                  = map (subst_term [(split_term, zero)]) rev_terms
@@ -688,7 +688,7 @@ in
         Type ("fun", [Type ("IntDef.int", []), _])), [t1, t2 as (number_of $ k)]) =>
       let
         val rev_terms               = rev terms
-        val zero                    = Const ("0", split_type)
+        val zero                    = Const ("HOL.zero", split_type)
         val i                       = Bound 1
         val j                       = Bound 0
         val terms1                  = map (subst_term [(split_term, t1)]) rev_terms
@@ -740,7 +740,7 @@ in
         Type ("fun", [Type ("IntDef.int", []), _])), [t1, t2 as (number_of $ k)]) =>
       let
         val rev_terms               = rev terms
-        val zero                    = Const ("0", split_type)
+        val zero                    = Const ("HOL.zero", split_type)
         val i                       = Bound 1
         val j                       = Bound 0
         val terms1                  = map (subst_term [(split_term, zero)]) rev_terms

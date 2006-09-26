@@ -17,8 +17,8 @@ struct
 exception CRing of string;
 
 (* Zero and One of the commutative ring *)
-fun cring_zero T = Const("0",T);
-fun cring_one T = Const("1",T);
+fun cring_zero T = Const("HOL.zero",T);
+fun cring_one T = Const("HOL.one",T);
 
 (* reification functions *)
 (* add two polynom expressions *)
@@ -30,8 +30,8 @@ fun listT T = Type ("List.list",[T]);
 (* Reification of the constructors *)
 (* Nat*)
 val succ = Const("Suc",nT --> nT);
-val zero = Const("0",nT);
-val one = Const("1",nT);
+val zero = Const("HOL.zero",nT);
+val one = Const("HOL.one",nT);
 
 (* Lists *)
 fun reif_list T [] = Const("List.list.Nil",listT T)

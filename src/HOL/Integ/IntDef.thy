@@ -897,8 +897,8 @@ lemma [code func]:
   unfolding zabs_def by auto
 
 consts_code
-  "0" :: "int"                       ("0")
-  "1" :: "int"                       ("1")
+  "HOL.zero" :: "int"                ("0")
+  "HOL.one" :: "int"                 ("1")
   "HOL.uminus" :: "int => int"       ("~")
   "HOL.plus" :: "int => int => int"  ("(_ +/ _)")
   "HOL.times" :: "int => int => int" ("(_ */ _)")

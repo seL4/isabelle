@@ -17,8 +17,6 @@ definition
 subsection {* natural numbers *}
 
 definition
-  one :: nat
-  "one = 1"
   n :: nat
   "n = 42"
 
@@ -105,8 +103,10 @@ hide (open) const keywords
 definition
   "shadow keywords = keywords @ [Codegenerator.keywords 0 0 0 0 0 0]"
 
-code_gen xor
-code_gen one
+code_gen
+  xor
+code_gen
+  "0::nat" "1::nat"
 code_gen
   Pair fst snd Let split swap
 code_gen "0::int" "1::int"

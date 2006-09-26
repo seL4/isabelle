@@ -13,8 +13,8 @@ fun i_of_term vs t =
 	Free(xn,xT) => (case AList.lookup (op =) vs t of 
 			   NONE   => error "Variable not found in the list!!"
 			 | SOME n => Var n)
-      | Const("0",iT) => Cst 0
-      | Const("1",iT) => Cst 1
+      | Const("HOL.zero",iT) => Cst 0
+      | Const("HOL.one",iT) => Cst 1
       | Bound i => Var (nat (IntInf.fromInt i))
       | Const("HOL.uminus",_)$t' => Neg (i_of_term vs t')
       | Const ("HOL.plus",_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)

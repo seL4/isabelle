@@ -112,7 +112,7 @@ text {* @{typ nat} is a datatype *}
 rep_datatype nat
   distinct  Suc_not_Zero Zero_not_Suc
   inject    Suc_Suc_eq
-  induction nat_induct
+  induction nat_induct [case_names 0 Suc]
 
 lemma n_not_Suc_n: "n \<noteq> Suc n"
   by (induct n) simp_all
@@ -1067,6 +1067,8 @@ code_typename
 
 code_instname
   nat :: eq "IntDef.eq_nat"
+  nat :: zero "IntDef.zero_nat"
+  nat :: one "IntDef.one_nat"
   nat :: ord "IntDef.ord_nat"
   nat :: plus "IntDef.plus_nat"
   nat :: minus "IntDef.minus_nat"

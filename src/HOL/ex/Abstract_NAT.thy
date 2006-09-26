@@ -31,11 +31,11 @@ text {*
 
 consts
   REC :: "'n \<Rightarrow> ('n \<Rightarrow> 'n) \<Rightarrow> 'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('n * 'a) set"
-inductive "REC zero succ e r"
+inductive "REC zer succ e r"
   intros
-    Rec_zero: "NAT zero succ \<Longrightarrow> (zero, e) \<in> REC zero succ e r"
-    Rec_succ: "NAT zero succ \<Longrightarrow> (m, n) \<in> REC zero succ e r \<Longrightarrow>
-      (succ m, r m n) \<in> REC zero succ e r"
+    Rec_zero: "NAT zer succ \<Longrightarrow> (zer, e) \<in> REC zer succ e r"
+    Rec_succ: "NAT zer succ \<Longrightarrow> (m, n) \<in> REC zer succ e r \<Longrightarrow>
+      (succ m, r m n) \<in> REC zer succ e r"
 
 abbreviation (in NAT)
   "Rec == REC zero succ"

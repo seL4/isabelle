@@ -155,7 +155,7 @@ val lf_dvd = thm "lf_dvd";
 
 (* ------------------------------------------------------------------------- *)
 (*This function norm_zero_one  replaces the occurences of Numeral1 and Numeral0*)
-(*Respectively by their abstract representation Const("1",..) and COnst("0",..)*)
+(*Respectively by their abstract representation Const("HOL.one",..) and Const("HOL.zero",..)*)
 (*this is necessary because the theorems use this representation.*)
 (* This function should be elminated in next versions...*)
 (* ------------------------------------------------------------------------- *)
@@ -251,7 +251,7 @@ fun thm_of sg decomp t =
 (*==================================================*)
 
 fun decomp_adjustcoeffeq sg x l fm = case fm of
-    (Const("Not",_)$(Const("Orderings.less",_) $(Const("0",_)) $(rt as (Const ("HOL.plus", _)$(Const ("HOL.times",_) $    c $ y ) $z )))) => 
+    (Const("Not",_)$(Const("Orderings.less",_) $(Const("HOL.zero",_)) $(rt as (Const ("HOL.plus", _)$(Const ("HOL.times",_) $    c $ y ) $z )))) => 
      let  
         val m = l div (dest_numeral c) 
         val n = if (x = y) then abs (m) else 1
@@ -264,7 +264,7 @@ fun decomp_adjustcoeffeq sg x l fm = case fm of
         val ct = cterm_of sg z
         val cx = cterm_of sg y
         val pre = prove_elementar sg "lf" 
-            (HOLogic.mk_binrel "Orderings.less" (Const("0",HOLogic.intT),(mk_numeral n)))
+            (HOLogic.mk_binrel "Orderings.less" (Const("HOL.zero",HOLogic.intT),(mk_numeral n)))
         val th1 = (pre RS (instantiate' [] [SOME ck,SOME cc, SOME cx, SOME ct] (ac_pi_eq)))
         in ([], fn [] => [th1,(prove_elementar sg "sa" (HOLogic.mk_eq (snd (qe_get_terms th1) ,rs)))] MRS trans)
         end
@@ -288,21 +288,21 @@ fun decomp_adjustcoeffeq sg x l fm = case fm of
 	case p of
 	  "Orderings.less" => 
 	let val pre = prove_elementar sg "lf" 
-	    (HOLogic.mk_binrel "Orderings.less" (Const("0",HOLogic.intT),(mk_numeral k)))
+	    (HOLogic.mk_binrel "Orderings.less" (Const("HOL.zero",HOLogic.intT),(mk_numeral k)))
             val th1 = (pre RS (instantiate' [] [SOME ck,SOME ca,SOME cc, SOME cx, SOME ct] (ac_lt_eq)))
 	in ([], fn [] => [th1,(prove_elementar sg "lf" (HOLogic.mk_eq (snd (qe_get_terms th1) ,rs)))] MRS trans)
          end
 
            |"op =" =>
 	     let val pre = prove_elementar sg "lf" 
-	    (HOLogic.Not $ (HOLogic.mk_binrel "op =" (Const("0",HOLogic.intT),(mk_numeral k))))
+	    (HOLogic.Not $ (HOLogic.mk_binrel "op =" (Const("HOL.zero",HOLogic.intT),(mk_numeral k))))
 	         val th1 = (pre RS(instantiate' [] [SOME ck,SOME ca,SOME cc, SOME cx, SOME ct] (ac_eq_eq)))
 	     in ([], fn [] => [th1,(prove_elementar sg "lf" (HOLogic.mk_eq (snd (qe_get_terms th1) ,rs)))] MRS trans)
              end
 
              |"Divides.op dvd" =>
 	       let val pre = prove_elementar sg "lf" 
-	   (HOLogic.Not $ (HOLogic.mk_binrel "op =" (Const("0",HOLogic.intT),(mk_numeral k))))
+	   (HOLogic.Not $ (HOLogic.mk_binrel "op =" (Const("HOL.zero",HOLogic.intT),(mk_numeral k))))
                    val th1 = (pre RS (instantiate' [] [SOME ck,SOME ca,SOME cc, SOME cx, SOME ct]) (ac_dvd_eq))
                in ([], fn [] => [th1,(prove_elementar sg "lf" (HOLogic.mk_eq (snd (qe_get_terms th1) ,rs)))] MRS trans)
                         
@@ -567,7 +567,7 @@ fun generate_atomic_not_bst_p sg (x as Free(xn,xT)) fm dlcm B at =
       if  (x=y) andalso (c1=zero) andalso (c2=one) 
 	 then let val th1 = prove_elementar sg "ss" (Const ("op :",HOLogic.intT --> (HOLogic.mk_setT HOLogic.intT) --> HOLogic.boolT) $ (norm_zero_one (linear_cmul ~1 z)) $ B)
 	          val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq ((norm_zero_one (linear_cmul ~1 z)),Const("HOL.uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one  z)))
-		  val th3 = prove_elementar sg "ss" (HOLogic.mk_binrel "Orderings.less" (Const("0",HOLogic.intT),dlcm))
+		  val th3 = prove_elementar sg "ss" (HOLogic.mk_binrel "Orderings.less" (Const("HOL.zero",HOLogic.intT),dlcm))
 	 in  (instantiate' [] [SOME cfma]([th3,th1,th2] MRS (not_bst_p_ne)))
 	 end
          else (instantiate' [] [SOME cfma,  SOME cdlcm, SOME cB,SOME cat] (not_bst_p_fm))
@@ -576,8 +576,8 @@ fun generate_atomic_not_bst_p sg (x as Free(xn,xT)) fm dlcm B at =
      if (is_arith_rel at) andalso (x=y)
 	then let val bst_z = norm_zero_one (linear_neg (linear_add [] z (mk_numeral 1)))
 	         in let val th1 = prove_elementar sg "ss" (Const ("op :",HOLogic.intT --> (HOLogic.mk_setT HOLogic.intT) --> HOLogic.boolT) $ bst_z $ B)
-	          val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq (bst_z,Const("HOL.minus",T) $ (Const("HOL.uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one z)) $ (Const("1",HOLogic.intT))))
-		  val th3 = prove_elementar sg "ss" (HOLogic.mk_binrel "Orderings.less" (Const("0",HOLogic.intT),dlcm))
+	          val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq (bst_z,Const("HOL.minus",T) $ (Const("HOL.uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one z)) $ (Const("HOL.one",HOLogic.intT))))
+		  val th3 = prove_elementar sg "ss" (HOLogic.mk_binrel "Orderings.less" (Const("HOL.zero",HOLogic.intT),dlcm))
 	 in  (instantiate' [] [SOME cfma] ([th3,th1,th2] MRS (not_bst_p_eq)))
 	 end
        end
@@ -590,7 +590,7 @@ fun generate_atomic_not_bst_p sg (x as Free(xn,xT)) fm dlcm B at =
               val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq ((norm_zero_one (linear_cmul ~1 z)),Const("HOL.uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one z)))
 	  in  (instantiate' [] [SOME cfma,  SOME cdlcm]([th1,th2] MRS (not_bst_p_gt)))
 	    end
-	 else let val th1 = prove_elementar sg "ss" (HOLogic.mk_binrel "Orderings.less" (Const("0",HOLogic.intT),dlcm))
+	 else let val th1 = prove_elementar sg "ss" (HOLogic.mk_binrel "Orderings.less" (Const("HOL.zero",HOLogic.intT),dlcm))
 	      in (instantiate' [] [SOME cfma, SOME cB,SOME (cterm_of sg (norm_zero_one z))] (th1 RS (not_bst_p_lt)))
 	      end
       else (instantiate' [] [SOME cfma,  SOME cdlcm, SOME cB,SOME cat] (not_bst_p_fm))
@@ -658,7 +658,7 @@ fun generate_atomic_not_ast_p sg (x as Free(xn,xT)) fm dlcm A at =
       if  (x=y) andalso (c1=zero) andalso (c2=one) 
 	 then let val th1 = prove_elementar sg "ss" (Const ("op :",HOLogic.intT --> (HOLogic.mk_setT HOLogic.intT) --> HOLogic.boolT) $ (norm_zero_one (linear_cmul ~1 z)) $ A)
 	          val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq ((norm_zero_one (linear_cmul ~1 z)),Const("HOL.uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one  z)))
-		  val th3 = prove_elementar sg "ss" (HOLogic.mk_binrel "Orderings.less" (Const("0",HOLogic.intT),dlcm))
+		  val th3 = prove_elementar sg "ss" (HOLogic.mk_binrel "Orderings.less" (Const("HOL.zero",HOLogic.intT),dlcm))
 	 in  (instantiate' [] [SOME cfma]([th3,th1,th2] MRS (not_ast_p_ne)))
 	 end
          else (instantiate' [] [SOME cfma,  SOME cdlcm, SOME cA,SOME cat] (not_ast_p_fm))
@@ -667,8 +667,8 @@ fun generate_atomic_not_ast_p sg (x as Free(xn,xT)) fm dlcm A at =
      if (is_arith_rel at) andalso (x=y)
 	then let val ast_z = norm_zero_one (linear_sub [] one z )
 	         val th1 = prove_elementar sg "ss" (Const ("op :",HOLogic.intT --> (HOLogic.mk_setT HOLogic.intT) --> HOLogic.boolT) $ ast_z $ A)
-	         val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq (ast_z,Const("HOL.plus",T) $ (Const("HOL.uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one z)) $ (Const("1",HOLogic.intT))))
-		 val th3 = prove_elementar sg "ss" (HOLogic.mk_binrel "Orderings.less" (Const("0",HOLogic.intT),dlcm))
+	         val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq (ast_z,Const("HOL.plus",T) $ (Const("HOL.uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one z)) $ (Const("HOL.one",HOLogic.intT))))
+		 val th3 = prove_elementar sg "ss" (HOLogic.mk_binrel "Orderings.less" (Const("HOL.zero",HOLogic.intT),dlcm))
 	 in  (instantiate' [] [SOME cfma] ([th3,th1,th2] MRS (not_ast_p_eq)))
        end
          else (instantiate' [] [SOME cfma,  SOME cdlcm, SOME cA,SOME cat] (not_ast_p_fm))
@@ -680,7 +680,7 @@ fun generate_atomic_not_ast_p sg (x as Free(xn,xT)) fm dlcm A at =
               val th2 =  prove_elementar sg "ss" (HOLogic.mk_binrel "Orderings.less" (zero,dlcm))
 	  in  (instantiate' [] [SOME cfma]([th2,th1] MRS (not_ast_p_lt)))
 	    end
-	 else let val th1 = prove_elementar sg "ss" (HOLogic.mk_binrel "Orderings.less" (Const("0",HOLogic.intT),dlcm))
+	 else let val th1 = prove_elementar sg "ss" (HOLogic.mk_binrel "Orderings.less" (Const("HOL.zero",HOLogic.intT),dlcm))
 	      in (instantiate' [] [SOME cfma, SOME cA,SOME (cterm_of sg (norm_zero_one z))] (th1 RS (not_ast_p_gt)))
 	      end
       else (instantiate' [] [SOME cfma,  SOME cdlcm, SOME cA,SOME cat] (not_ast_p_fm))
