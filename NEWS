@@ -471,6 +471,12 @@ the graph browser tool.
 
 *** HOL ***
 
+* Renamed constants in HOL.thy:
+    0      ~> HOL.zero
+    1      ~> HOL.one
+INCOMPATIBILITY: ML code directly refering to constant names may need adaption
+This in general only affects hand-written proof tactics, simprocs and so on.
+
 * New theory OperationalEquality providing class 'eq' with constant 'eq',
 allowing for code generation with polymorphic equality.
 
