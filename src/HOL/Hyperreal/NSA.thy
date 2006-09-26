@@ -58,7 +58,7 @@ lemma SReal_def: "Reals == {x. \<exists>r. x = hypreal_of_real r}"
 by (simp add: Reals_def image_def hypreal_of_real_of_real_eq)
 
 
-subsection{*Nonstandard extension of the norm function*}
+subsection {* Nonstandard Extension of the Norm Function *}
 
 declare hnorm_def [transfer_unfold]
 
@@ -274,59 +274,6 @@ apply (fast dest!: SReal_iff [THEN iffD1])
 apply (auto, frule subsetD, assumption)
 apply (drule SReal_iff [THEN iffD1])
 apply (auto, rule_tac x = ya in exI, auto)
-done
-
-
-subsection{*Lifting of the Ub and Lub Properties*}
-
-lemma hypreal_of_real_isUb_iff:
-      "(isUb (Reals) (hypreal_of_real ` Q) (hypreal_of_real Y)) =
-       (isUb (UNIV :: real set) Q Y)"
-by (simp add: isUb_def setle_def)
-
-lemma hypreal_of_real_isLub1:
-     "isLub Reals (hypreal_of_real ` Q) (hypreal_of_real Y)
-      ==> isLub (UNIV :: real set) Q Y"
-apply (simp add: isLub_def leastP_def)
-apply (auto intro: hypreal_of_real_isUb_iff [THEN iffD2]
-            simp add: hypreal_of_real_isUb_iff setge_def)
-done
-
-lemma hypreal_of_real_isLub2:
-      "isLub (UNIV :: real set) Q Y
-       ==> isLub Reals (hypreal_of_real ` Q) (hypreal_of_real Y)"
-apply (simp add: isLub_def leastP_def)
-apply (auto simp add: hypreal_of_real_isUb_iff setge_def)
-apply (frule_tac x2 = x in isUbD2a [THEN SReal_iff [THEN iffD1], THEN exE])
- prefer 2 apply assumption
-apply (drule_tac x = xa in spec)
-apply (auto simp add: hypreal_of_real_isUb_iff)
-done
-
-lemma hypreal_of_real_isLub_iff:
-     "(isLub Reals (hypreal_of_real ` Q) (hypreal_of_real Y)) =
-      (isLub (UNIV :: real set) Q Y)"
-by (blast intro: hypreal_of_real_isLub1 hypreal_of_real_isLub2)
-
-lemma lemma_isUb_hypreal_of_real:
-     "isUb Reals P Y ==> \<exists>Yo. isUb Reals P (hypreal_of_real Yo)"
-by (auto simp add: SReal_iff isUb_def)
-
-lemma lemma_isLub_hypreal_of_real:
-     "isLub Reals P Y ==> \<exists>Yo. isLub Reals P (hypreal_of_real Yo)"
-by (auto simp add: isLub_def leastP_def isUb_def SReal_iff)
-
-lemma lemma_isLub_hypreal_of_real2:
-     "\<exists>Yo. isLub Reals P (hypreal_of_real Yo) ==> \<exists>Y. isLub Reals P Y"
-by (auto simp add: isLub_def leastP_def isUb_def)
-
-lemma SReal_complete:
-     "[| P \<subseteq> Reals;  \<exists>x. x \<in> P;  \<exists>Y. isUb Reals P Y |]
-      ==> \<exists>t::hypreal. isLub Reals P t"
-apply (frule SReal_hypreal_of_real_image)
-apply (auto, drule lemma_isUb_hypreal_of_real)
-apply (auto intro!: reals_complete lemma_isLub_hypreal_of_real2
-            simp add: hypreal_of_real_isLub_iff hypreal_of_real_isUb_iff)
 done
 
 
@@ -1086,6 +1033,58 @@ by (blast intro: SReal_approx_iff [THEN iffD1] approx_trans2)
 
 subsection{* Existence of Unique Real Infinitely Close*}
 
+subsubsection{*Lifting of the Ub and Lub Properties*}
+
+lemma hypreal_of_real_isUb_iff:
+      "(isUb (Reals) (hypreal_of_real ` Q) (hypreal_of_real Y)) =
+       (isUb (UNIV :: real set) Q Y)"
+by (simp add: isUb_def setle_def)
+
+lemma hypreal_of_real_isLub1:
+     "isLub Reals (hypreal_of_real ` Q) (hypreal_of_real Y)
+      ==> isLub (UNIV :: real set) Q Y"
+apply (simp add: isLub_def leastP_def)
+apply (auto intro: hypreal_of_real_isUb_iff [THEN iffD2]
+            simp add: hypreal_of_real_isUb_iff setge_def)
+done
+
+lemma hypreal_of_real_isLub2:
+      "isLub (UNIV :: real set) Q Y
+       ==> isLub Reals (hypreal_of_real ` Q) (hypreal_of_real Y)"
+apply (simp add: isLub_def leastP_def)
+apply (auto simp add: hypreal_of_real_isUb_iff setge_def)
+apply (frule_tac x2 = x in isUbD2a [THEN SReal_iff [THEN iffD1], THEN exE])
+ prefer 2 apply assumption
+apply (drule_tac x = xa in spec)
+apply (auto simp add: hypreal_of_real_isUb_iff)
+done
+
+lemma hypreal_of_real_isLub_iff:
+     "(isLub Reals (hypreal_of_real ` Q) (hypreal_of_real Y)) =
+      (isLub (UNIV :: real set) Q Y)"
+by (blast intro: hypreal_of_real_isLub1 hypreal_of_real_isLub2)
+
+lemma lemma_isUb_hypreal_of_real:
+     "isUb Reals P Y ==> \<exists>Yo. isUb Reals P (hypreal_of_real Yo)"
+by (auto simp add: SReal_iff isUb_def)
+
+lemma lemma_isLub_hypreal_of_real:
+     "isLub Reals P Y ==> \<exists>Yo. isLub Reals P (hypreal_of_real Yo)"
+by (auto simp add: isLub_def leastP_def isUb_def SReal_iff)
+
+lemma lemma_isLub_hypreal_of_real2:
+     "\<exists>Yo. isLub Reals P (hypreal_of_real Yo) ==> \<exists>Y. isLub Reals P Y"
+by (auto simp add: isLub_def leastP_def isUb_def)
+
+lemma SReal_complete:
+     "[| P \<subseteq> Reals;  \<exists>x. x \<in> P;  \<exists>Y. isUb Reals P Y |]
+      ==> \<exists>t::hypreal. isLub Reals P t"
+apply (frule SReal_hypreal_of_real_image)
+apply (auto, drule lemma_isUb_hypreal_of_real)
+apply (auto intro!: reals_complete lemma_isLub_hypreal_of_real2
+            simp add: hypreal_of_real_isLub_iff hypreal_of_real_isUb_iff)
+done
+
 (* lemma about lubs *)
 lemma hypreal_isLub_unique:
      "[| isLub R S x; isLub R S y |] ==> x = (y::hypreal)"
@@ -1597,6 +1596,8 @@ apply (drule_tac x = y in approx_hrabs_add_minus_Infinitesimal)
 apply (auto intro: approx_trans2)
 done
 
+subsection {* More @{term HFinite} and @{term Infinitesimal} Theorems *}
+
 (* interesting slightly counterintuitive theorem: necessary
    for proving that an open interval is an NS open set
 *)
@@ -1946,7 +1947,9 @@ done
 
 
 
-subsection{*Alternative Definitions for @{term HFinite} using Free Ultrafilter*}
+subsection {* Alternative Definitions using Free Ultrafilter *}
+
+subsubsection {* @{term HFinite} *}
 
 lemma HFinite_FreeUltrafilterNat:
     "star_n X \<in> HFinite 
@@ -1971,8 +1974,7 @@ lemma HFinite_FreeUltrafilterNat_iff:
      "(star_n X \<in> HFinite) = (\<exists>u. {n. norm (X n) < u} \<in> FreeUltrafilterNat)"
 by (blast intro!: HFinite_FreeUltrafilterNat FreeUltrafilterNat_HFinite)
 
-
-subsection{*Alternative Definitions for @{term HInfinite} using Free Ultrafilter*}
+subsubsection {* @{term HInfinite} *}
 
 lemma lemma_Compl_eq: "- {n. u < norm (xa n)} = {n. norm (xa n) \<le> u}"
 by auto
@@ -2029,8 +2031,7 @@ lemma HInfinite_FreeUltrafilterNat_iff:
      "(star_n X \<in> HInfinite) = (\<forall>u. {n. u < norm (X n)} \<in> FreeUltrafilterNat)"
 by (blast intro!: HInfinite_FreeUltrafilterNat FreeUltrafilterNat_HInfinite)
 
-
-subsection{*Alternative Definitions for @{term Infinitesimal} using Free Ultrafilter*}
+subsubsection {* @{term Infinitesimal} *}
 
 lemma ball_SReal_eq: "(\<forall>x::hypreal \<in> Reals. P x) = (\<forall>x::real. P (star_of x))"
 by (unfold SReal_def, auto)
@@ -2063,11 +2064,6 @@ apply (auto simp add: real_of_nat_Suc_gt_zero)
 apply (blast dest!: reals_Archimedean intro: order_less_trans)
 done
 
-lemma of_nat_in_Reals [simp]: "(of_nat n::hypreal) \<in> \<real>"
-apply (induct n)
-apply (simp_all)
-done 
- 
 lemma lemma_Infinitesimal2:
      "(\<forall>r \<in> Reals. 0 < r --> x < r) =
       (\<forall>n. x < inverse(hypreal_of_nat (Suc n)))"
