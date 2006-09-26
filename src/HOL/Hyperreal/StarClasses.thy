@@ -211,6 +211,32 @@ done
 instance star :: (linorder) linorder
 by (intro_classes, transfer, rule linorder_linear)
 
+lemma star_max_def [transfer_unfold]: "max = *f2* max"
+apply (rule ext, rule ext)
+apply (unfold max_def, transfer, fold max_def)
+apply (rule refl)
+done
+
+lemma star_min_def [transfer_unfold]: "min = *f2* min"
+apply (rule ext, rule ext)
+apply (unfold min_def, transfer, fold min_def)
+apply (rule refl)
+done
+
+lemma Standard_max [simp]:
+  "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> max x y \<in> Standard"
+by (simp add: star_max_def)
+
+lemma Standard_min [simp]:
+  "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> min x y \<in> Standard"
+by (simp add: star_min_def)
+
+lemma star_of_max [simp]: "star_of (max x y) = max (star_of x) (star_of y)"
+by transfer (rule refl)
+
+lemma star_of_min [simp]: "star_of (min x y) = min (star_of x) (star_of y)"
+by transfer (rule refl)
+
 subsection {* Lattice ordering classes *}
 
 text {*
@@ -245,15 +271,29 @@ done
 
 instance star :: (lorder) lorder ..
 
-lemma star_join_def [transfer_unfold]: "join \<equiv> *f2* join"
- apply (rule is_join_unique [OF is_join_join, THEN eq_reflection])
- apply (transfer is_join_def, rule is_join_join)
+lemma star_meet_def [transfer_unfold]: "meet = *f2* meet"
+apply (rule is_meet_unique [OF is_meet_meet])
+apply (transfer is_meet_def, rule is_meet_meet)
 done
 
-lemma star_meet_def [transfer_unfold]: "meet \<equiv> *f2* meet"
- apply (rule is_meet_unique [OF is_meet_meet, THEN eq_reflection])
- apply (transfer is_meet_def, rule is_meet_meet)
+lemma star_join_def [transfer_unfold]: "join = *f2* join"
+apply (rule is_join_unique [OF is_join_join])
+apply (transfer is_join_def, rule is_join_join)
 done
+
+lemma Standard_meet [simp]:
+  "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> meet x y \<in> Standard"
+by (simp add: star_meet_def)
+
+lemma Standard_join [simp]:
+  "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> join x y \<in> Standard"
+by (simp add: star_join_def)
+
+lemma star_of_meet [simp]: "star_of (meet x y) = meet (star_of x) (star_of y)"
+by transfer (rule refl)
+
+lemma star_of_join [simp]: "star_of (join x y) = join (star_of x) (star_of y)"
+by transfer (rule refl)
 
 subsection {* Ordered group classes *}
 
@@ -421,14 +461,20 @@ qed
 
 subsection {* Number classes *}
 
-lemma star_of_nat_def [transfer_unfold]: "of_nat n \<equiv> star_of (of_nat n)"
-by (rule eq_reflection, induct_tac n, simp_all)
+lemma star_of_nat_def [transfer_unfold]: "of_nat n = star_of (of_nat n)"
+by (induct_tac n, simp_all)
+
+lemma Standard_of_nat [simp]: "of_nat n \<in> Standard"
+by (simp add: star_of_nat_def)
 
 lemma star_of_of_nat [simp]: "star_of (of_nat n) = of_nat n"
 by transfer (rule refl)
 
-lemma star_of_int_def [transfer_unfold]: "of_int z \<equiv> star_of (of_int z)"
-by (rule eq_reflection, rule_tac z=z in int_diff_cases, simp)
+lemma star_of_int_def [transfer_unfold]: "of_int z = star_of (of_int z)"
+by (rule_tac z=z in int_diff_cases, simp)
+
+lemma Standard_of_int [simp]: "of_int z \<in> Standard"
+by (simp add: star_of_int_def)
 
 lemma star_of_of_int [simp]: "star_of (of_int z) = of_int z"
 by transfer (rule refl)
