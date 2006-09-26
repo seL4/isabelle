@@ -20,7 +20,7 @@ const_syntax (xsymbols)
   converse  ("(_\<inverse>)" [1000] 999)
 
 definition
-  rel_comp  :: "[('b * 'c) set, ('a * 'b) set] => ('a * 'c) set"  (infixr "O" 60)
+  rel_comp  :: "[('b * 'c) set, ('a * 'b) set] => ('a * 'c) set"  (infixr "O" 75)
   "r O s == {(x,z). EX y. (x, y) : s & (y, z) : r}"
 
   Image :: "[('a * 'b) set, 'a set] => 'b set"                (infixl "``" 90)

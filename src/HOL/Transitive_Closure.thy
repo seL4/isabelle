@@ -208,7 +208,7 @@ lemma r_comp_rtrancl_eq: "r O r^* = r^* O r"
   by (blast elim: rtranclE converse_rtranclE
     intro: rtrancl_into_rtrancl converse_rtrancl_into_rtrancl)
 
-lemma rtrancl_unfold: "r^* = Id Un (r O r^*)"
+lemma rtrancl_unfold: "r^* = Id Un r O r^*"
   by (auto intro: rtrancl_into_rtrancl elim: rtranclE)
 
 
@@ -263,7 +263,7 @@ lemma trancl_trans_induct:
 
 inductive_cases tranclE: "(a, b) : r^+"
 
-lemma trancl_unfold: "r^+ = r Un (r O r^+)"
+lemma trancl_unfold: "r^+ = r Un r O r^+"
   by (auto intro: trancl_into_trancl elim: tranclE)
 
 lemma trans_trancl[simp]: "trans(r^+)"

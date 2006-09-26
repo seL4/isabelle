@@ -534,6 +534,9 @@ INCOMPATIBILITY: grep your sourcecode and replace names.
 
 * "LEAST x:A. P" expands to "LEAST x. x:A & P" (input only).
 
+* Relation composition operator "op O" now has precedence 75 and binds
+stronger than union and intersection. INCOMPATIBILITY.
+
 * The old set interval syntax "{m..n(}" (and relatives) has been removed.
   Use "{m..<n}" (and relatives) instead.
 
