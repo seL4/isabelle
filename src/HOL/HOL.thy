@@ -229,13 +229,13 @@ in
 end;
 *} -- {* show types that are presumably too general *}
 
-syntax
-  uminus :: "'a\<Colon>minus \<Rightarrow> 'a" ("- _" [81] 80)
+const_syntax
+  uminus  ("- _" [81] 80)
 
-syntax (xsymbols)
-  abs :: "'a::minus => 'a"    ("\<bar>_\<bar>")
-syntax (HTML output)
-  abs :: "'a::minus => 'a"    ("\<bar>_\<bar>")
+const_syntax (xsymbols)
+  abs  ("\<bar>_\<bar>")
+const_syntax (HTML output)
+  abs  ("\<bar>_\<bar>")
 
 
 subsection {*Equality*}
