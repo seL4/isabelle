@@ -29,38 +29,6 @@ primrec
   injf_max_Suc:  "injf_max (Suc n) E = choicefun({e. e:E & injf_max n E < e})"
 
 
-text{*A "choice" theorem for ultrafilters, like almost everywhere
-quantification*}
-
-lemma UF_choice: "{n. \<exists>m. Q n m} : FreeUltrafilterNat
-      ==> \<exists>f. {n. Q n (f n)} : FreeUltrafilterNat"
-apply (rule_tac x = "%n. (@x. Q n x) " in exI)
-apply (ultra, rule someI, auto)
-done
-
-lemma UF_if: "({n. P n} : FreeUltrafilterNat --> {n. Q n} : FreeUltrafilterNat) =
-      ({n. P n --> Q n} : FreeUltrafilterNat)"
-apply auto
-apply ultra+
-done
-
-lemma UF_conj: "({n. P n} : FreeUltrafilterNat & {n. Q n} : FreeUltrafilterNat) =
-      ({n. P n & Q n} : FreeUltrafilterNat)"
-apply auto
-apply ultra+
-done
-
-lemma UF_choice_ccontr: "(\<forall>f. {n. Q n (f n)} : FreeUltrafilterNat) =
-      ({n. \<forall>m. Q n m} : FreeUltrafilterNat)"
-apply auto
- prefer 2 apply ultra
-apply (rule ccontr)
-apply (rule contrapos_np)
- apply (erule_tac [2] asm_rl)
-apply (simp (no_asm) add: FreeUltrafilterNat_Compl_iff1 Collect_neg_eq [symmetric])
-apply (rule UF_choice, ultra)
-done
-
 lemma dvd_by_all: "\<forall>M. \<exists>N. 0 < N & (\<forall>m. 0 < m & (m::nat) <= M --> m dvd N)"
 apply (rule allI)
 apply (induct_tac "M", auto)
@@ -72,21 +40,6 @@ apply (force intro!: dvd_mult)
 done
 
 lemmas dvd_by_all2 = dvd_by_all [THEN spec, standard]
-
-lemma lemma_hypnat_P_EX: "(\<exists>(x::hypnat). P x) = (\<exists>f. P (star_n f))"
-apply auto
-apply (rule_tac x = x in star_cases, auto)
-done
-
-lemma lemma_hypnat_P_ALL: "(\<forall>(x::hypnat). P x) = (\<forall>f. P (star_n f))"
-apply auto
-apply (rule_tac x = x in star_cases, auto)
-done
-
-lemma hdvd:
-      "(star_n X hdvd star_n Y) =
-       ({n. X n dvd Y n} : FreeUltrafilterNat)"
-by (simp add: hdvd_def starP2)
 
 lemma hypnat_of_nat_le_zero_iff: "(hypnat_of_nat n <= 0) = (n = 0)"
 by (transfer, simp)
@@ -144,14 +97,7 @@ by (transfer, simp add: prime_factor_exists)
 
 (* Goldblatt Exercise 3.10(1) - p. 29 *)
 lemma NatStar_hypnat_of_nat: "finite A ==> *s* A = hypnat_of_nat ` A"
-apply (rule_tac P = "%x. *s* x = hypnat_of_nat ` x" in finite_induct)
-apply auto
-done
-
-(* proved elsewhere? *)
-lemma FreeUltrafilterNat_singleton_not_mem: "{x} \<notin> FreeUltrafilterNat"
-by (auto intro!: FreeUltrafilterNat_finite)
-declare FreeUltrafilterNat_singleton_not_mem [simp]
+by (rule starset_finite)
 
 
 subsection{*Another characterization of infinite set of natural numbers*}
@@ -194,18 +140,32 @@ apply (subgoal_tac "\<forall>n. (f n = f x) = (x = n) ")
 apply auto
 done
 
-lemma inj_fun_not_hypnat_in_SHNat: "inj (f::nat=>nat) ==> star_n f \<notin> Nats"
-apply (auto simp add: SHNat_eq hypnat_of_nat_eq star_n_eq_iff)
-apply (subgoal_tac "\<forall>m n. m \<noteq> n --> f n \<noteq> f m", auto)
-apply (drule_tac [2] injD)
-prefer 2 apply assumption
-apply (drule_tac N = N in lemma_infinite_set_singleton, auto)
-done
+lemma inj_fun_not_hypnat_in_SHNat:
+  assumes inj_f: "inj (f::nat=>nat)"
+  shows "starfun f whn \<notin> Nats"
+proof
+  from inj_f have inj_f': "inj (starfun f)"
+    by (transfer inj_on_def Ball_def UNIV_def)
+  assume "starfun f whn \<in> Nats"
+  then obtain N where N: "starfun f whn = hypnat_of_nat N"
+    by (auto simp add: Nats_def)
+  hence "\<exists>n. starfun f n = hypnat_of_nat N" ..
+  hence "\<exists>n. f n = N" by transfer
+  then obtain n where n: "f n = N" ..
+  hence "starfun f (hypnat_of_nat n) = hypnat_of_nat N"
+    by transfer
+  with N have "starfun f whn = starfun f (hypnat_of_nat n)"
+    by simp
+  with inj_f' have "whn = hypnat_of_nat n"
+    by (rule injD)
+  thus "False"
+    by (simp add: whn_neq_hypnat_of_nat)
+qed
 
 lemma range_subset_mem_starsetNat:
-   "range f <= A ==> star_n f \<in> *s* A"
-apply (simp add: starset_def star_of_def Iset_star_n)
-apply (subgoal_tac "\<forall>n. f n \<in> A", auto)
+   "range f <= A ==> starfun f whn \<in> *s* A"
+apply (rule_tac x="whn" in spec)
+apply (transfer, auto)
 done
 
 (*--------------------------------------------------------------------------------*)
