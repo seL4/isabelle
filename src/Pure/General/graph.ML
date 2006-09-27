@@ -224,15 +224,15 @@ fun irreducible_paths G (x, y) =
   in if eq_key (x, y) andalso not (is_edge G (x, x)) then [[]] else paths [] y [] end;
 
 
-(* find ALL paths from x to y *)
+(* all paths *)
 
 fun all_paths G (x, y) =
   let
     val (_, X) = reachable (imm_succs G) [x];
-    fun paths ps p =
-      if not (null ps) andalso eq_key (p, x) then [p :: ps]
-      else if member_keys X p andalso not (member_key ps p)
-      then List.concat (map (paths (p :: ps)) (imm_preds G p))
+    fun paths path z =
+      if not (null path) andalso eq_key (x, z) then [z :: path]
+      else if member_keys X z andalso not (member_key path z)
+      then maps (paths (z :: path)) (imm_preds G z)
       else [];
   in paths [] y end;
 
