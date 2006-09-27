@@ -645,7 +645,7 @@ local
   val take_stricts' = rewrite_rule copy_take_defs take_stricts;
   fun take_0 n dn =
     let
-      val goal = mk_trp ((dc_take dn $ %%:"0") `% x_name n === UU);
+      val goal = mk_trp ((dc_take dn $ %%:"HOL.zero") `% x_name n === UU);
     in pg axs_take_def goal [simp_tac iterate_Cprod_ss 1] end;
   val take_0s = mapn take_0 1 dnames;
   val c_UU_tac = case_UU_tac (take_stricts'::copy_con_rews) 1;
