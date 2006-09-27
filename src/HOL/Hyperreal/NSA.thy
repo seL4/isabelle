@@ -345,6 +345,14 @@ lemma InfinitesimalD:
       "x \<in> Infinitesimal ==> \<forall>r \<in> Reals. 0 < r --> hnorm x < r"
 by (simp add: Infinitesimal_def)
 
+lemma InfinitesimalI2:
+  "(\<And>r. 0 < r \<Longrightarrow> hnorm x < star_of r) \<Longrightarrow> x \<in> Infinitesimal"
+by (auto simp add: Infinitesimal_def SReal_def)
+
+lemma InfinitesimalD2:
+  "\<lbrakk>x \<in> Infinitesimal; 0 < r\<rbrakk> \<Longrightarrow> hnorm x < star_of r"
+by (auto simp add: Infinitesimal_def SReal_def)
+
 lemma Infinitesimal_zero [iff]: "0 \<in> Infinitesimal"
 by (simp add: Infinitesimal_def)
 
