@@ -690,14 +690,12 @@ by simp
 lemma hcis_hypreal_of_nat_Suc_mult:
    "!!a. hcis (hypreal_of_nat (Suc n) * a) =
      hcis a * hcis (hypreal_of_nat n * a)"
-apply (unfold hypreal_of_nat_def)
 apply transfer
 apply (fold real_of_nat_def)
 apply (rule cis_real_of_nat_Suc_mult)
 done
 
 lemma NSDeMoivre: "!!a. (hcis a) ^ n = hcis (hypreal_of_nat n * a)"
-apply (unfold hypreal_of_nat_def)
 apply transfer
 apply (fold real_of_nat_def)
 apply (rule DeMoivre)
@@ -714,7 +712,6 @@ by transfer (rule DeMoivre)
 
 lemma NSDeMoivre2:
   "!!a r. (hrcis r a) ^ n = hrcis (r ^ n) (hypreal_of_nat n * a)"
-apply (unfold hypreal_of_nat_def)
 apply transfer
 apply (fold real_of_nat_def)
 apply (rule DeMoivre2)

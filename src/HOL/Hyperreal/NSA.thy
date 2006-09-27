@@ -2020,10 +2020,10 @@ apply (drule_tac x = "inverse (hypreal_of_real (real (Suc n))) " in bspec)
 apply (simp (no_asm_use) add: SReal_inverse)
 apply (rule real_of_nat_Suc_gt_zero [THEN positive_imp_inverse_positive, THEN star_of_less [THEN iffD2], THEN [2] impE])
 prefer 2 apply assumption
-apply (simp add: real_of_nat_Suc_gt_zero hypreal_of_nat_eq)
+apply (simp add: real_of_nat_def)
 apply (auto dest!: reals_Archimedean simp add: SReal_iff)
 apply (drule star_of_less [THEN iffD2])
-apply (simp add: real_of_nat_Suc_gt_zero hypreal_of_nat_eq)
+apply (simp add: real_of_nat_def)
 apply (blast intro: order_less_trans)
 done
 

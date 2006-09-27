@@ -326,7 +326,7 @@ lemma Infinitesimal_FreeUltrafilterNat_iff2:
                 \<in>  FreeUltrafilterNat)"
 by (simp add: Infinitesimal_hypreal_of_nat_iff star_of_def
      hnorm_def star_of_nat_def starfun_star_n
-     star_n_inverse star_n_less hypreal_of_nat_eq)
+     star_n_inverse star_n_less real_of_nat_def)
 
 lemma approx_FreeUltrafilterNat_iff: "star_n X @= star_n Y =
       (\<forall>r>0. {n. norm (X n - Y n) < r} : FreeUltrafilterNat)"

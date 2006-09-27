@@ -334,9 +334,6 @@ definition
 
 declare hypreal_of_hypnat_def [transfer_unfold]
 
-lemma HNat_hypreal_of_nat [simp]: "hypreal_of_nat N \<in> Nats"
-by (simp add: hypreal_of_nat_def) 
-
 lemma hypreal_of_hypnat:
       "hypreal_of_hypnat (star_n X) = star_n (%n. real (X n))"
 by (simp add: hypreal_of_hypnat_def starfun)

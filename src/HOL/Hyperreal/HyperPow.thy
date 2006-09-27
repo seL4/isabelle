@@ -65,7 +65,7 @@ by (insert power_increasing [of 0 n "2::hypreal"], simp)
 
 lemma two_hrealpow_gt [simp]: "hypreal_of_nat n < 2 ^ n"
 apply (induct_tac "n")
-apply (auto simp add: hypreal_of_nat_Suc left_distrib)
+apply (auto simp add: left_distrib)
 apply (cut_tac n = n in two_hrealpow_ge_one, arith)
 done
 
@@ -78,7 +78,7 @@ done
 lemma hrealpow_sum_square_expand:
      "(x + (y::hypreal)) ^ Suc (Suc 0) =
       x ^ Suc (Suc 0) + y ^ Suc (Suc 0) + (hypreal_of_nat (Suc (Suc 0)))*x*y"
-by (simp add: right_distrib left_distrib hypreal_of_nat_Suc)
+by (simp add: right_distrib left_distrib)
 
 
 subsection{*Literal Arithmetic Involving Powers and Type @{typ hypreal}*}
