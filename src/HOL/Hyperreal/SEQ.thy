@@ -991,7 +991,7 @@ text{*Shift a convergent series by 1:
 lemma NSLIMSEQ_Suc: "f ----NS> l ==> (%n. f(Suc n)) ----NS> l"
 apply (unfold NSLIMSEQ_def, safe)
 apply (drule_tac x="N + 1" in bspec)
-apply (erule Nats_1 [THEN [2] HNatInfinite_SHNat_add])
+apply (erule HNatInfinite_add)
 apply (simp add: starfun_shift_one)
 done
 
@@ -1002,8 +1002,8 @@ by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_Suc)
 lemma NSLIMSEQ_imp_Suc: "(%n. f(Suc n)) ----NS> l ==> f ----NS> l"
 apply (unfold NSLIMSEQ_def, safe)
 apply (drule_tac x="N - 1" in bspec) 
-apply (erule Nats_1 [THEN [2] HNatInfinite_SHNat_diff])
-apply (simp add: starfun_shift_one)
+apply (erule Nats_1 [THEN [2] HNatInfinite_diff])
+apply (simp add: starfun_shift_one one_le_HNatInfinite)
 done
 
 lemma LIMSEQ_imp_Suc: "(%n. f(Suc n)) ----> l ==> f ----> l"

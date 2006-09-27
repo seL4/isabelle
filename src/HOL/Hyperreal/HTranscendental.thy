@@ -499,7 +499,7 @@ lemma lemma_split_hypreal_of_real:
      "N \<in> HNatInfinite  
       ==> hypreal_of_real a =  
           hypreal_of_hypnat N * (inverse(hypreal_of_hypnat N) * hypreal_of_real a)"
-by (simp add: mult_assoc [symmetric] HNatInfinite_not_eq_zero)
+by (simp add: mult_assoc [symmetric] zero_less_HNatInfinite)
 
 lemma STAR_sin_Infinitesimal_divide:
      "[|x \<in> Infinitesimal; x \<noteq> 0 |] ==> ( *f* sin) x/x @= 1"
@@ -515,7 +515,7 @@ lemma lemma_sin_pi:
      "n \<in> HNatInfinite  
       ==> ( *f* sin) (inverse (hypreal_of_hypnat n))/(inverse (hypreal_of_hypnat n)) @= 1"
 apply (rule STAR_sin_Infinitesimal_divide)
-apply (auto simp add: HNatInfinite_not_eq_zero)
+apply (auto simp add: zero_less_HNatInfinite)
 done
 
 lemma STAR_sin_inverse_HNatInfinite:
@@ -534,7 +534,7 @@ done
 
 lemma pi_divide_HNatInfinite_not_zero [simp]:
      "N \<in> HNatInfinite ==> hypreal_of_real pi/(hypreal_of_hypnat N) \<noteq> 0"
-by (simp add: HNatInfinite_not_eq_zero)
+by (simp add: zero_less_HNatInfinite)
 
 lemma STAR_sin_pi_divide_HNatInfinite_approx_pi:
      "n \<in> HNatInfinite  

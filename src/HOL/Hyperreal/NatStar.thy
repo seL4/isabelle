@@ -122,7 +122,7 @@ lemma starfun_inverse_real_of_nat_eq:
    ==> ( *f* (%x::nat. inverse(real x))) N = inverse(hypreal_of_hypnat N)"
 apply (rule_tac f1 = inverse in starfun_o2 [THEN subst])
 apply (subgoal_tac "hypreal_of_hypnat N ~= 0")
-apply (simp_all add: HNatInfinite_not_eq_zero starfunNat_real_of_nat starfun_inverse_inverse)
+apply (simp_all add: zero_less_HNatInfinite starfunNat_real_of_nat starfun_inverse_inverse)
 done
 
 text{*Internal functions - some redundancy with *f* now*}
@@ -179,7 +179,7 @@ lemma starfunNat_inverse_real_of_nat_Infinitesimal [simp]:
      "N \<in> HNatInfinite ==> ( *f* (%x. inverse (real x))) N \<in> Infinitesimal"
 apply (rule_tac f1 = inverse in starfun_o2 [THEN subst])
 apply (subgoal_tac "hypreal_of_hypnat N ~= 0")
-apply (simp_all add: HNatInfinite_not_eq_zero starfunNat_real_of_nat)
+apply (simp_all add: zero_less_HNatInfinite starfunNat_real_of_nat)
 done
 
 
