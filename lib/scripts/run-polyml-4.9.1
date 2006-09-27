@@ -61,7 +61,7 @@ else
   if [ -z "$COMPRESS" ]; then
     COMMIT="fun commit () = (PolyML.export (\"$OUTFILE\", PolyML.rootFunction); true);"
   else
-    COMMIT="fun commit () = (PolyML.export (\"$OUTFILE\", PolyML.shareCommonData PolyML.rootFunction); true);"
+    COMMIT="fun commit () = (PolyML.shareCommonData PolyML.rootFunction; PolyML.export (\"$OUTFILE\", PolyML.rootFunction); true);"
   fi
   [ -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out; }
   rm -f "${OUTFILE}.o" || fail_out
