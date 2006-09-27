@@ -1357,10 +1357,7 @@ in
 
   val xmlP = XML.scan_comment_whspc |-- XML.parse_elem >> single
 
-  fun pgip_src istrm = Source.source Symbol.stopper xmlP NONE 
-			      (Source.of_instream_slurp istrm);
-
-  val tty_src = pgip_src TextIO.stdIn;
+  val tty_src = Source.set_prompt "" (Source.source Symbol.stopper xmlP NONE Source.tty)
 
   fun pgip_toplevel x = loop true x
 end
