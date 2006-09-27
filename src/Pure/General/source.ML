@@ -110,10 +110,23 @@ fun exhausted src = of_list (exhaust src);
 
 (* stream source *)
 
+fun slurp_input instream =
+  let
+    fun slurp () =
+      (case TextIO.canInput (instream, 1) handle IO.Io _ => NONE of
+        NONE => []
+      | SOME 0 => []
+      | SOME _ => TextIO.input instream :: slurp ());
+  in maps explode (slurp ()) end;
+
 fun drain_stream instream outstream prompt () =
-  (TextIO.output (outstream, prompt);
-    TextIO.flushOut outstream;
-    (explode (TextIO.inputLine instream), ()));
+  let val input = slurp_input instream in
+    if exists (fn c => c = "\n") input then (input, ())
+    else
+      (TextIO.output (outstream, prompt);
+        TextIO.flushOut outstream;
+        (input @ explode (TextIO.inputLine instream), ()))
+  end;
 
 fun of_stream instream outstream =
   make_source [] () default_prompt (drain_stream instream outstream);
@@ -124,13 +137,13 @@ val tty = of_stream TextIO.stdIn TextIO.stdOut;
 (* no prompt output, slurp input eagerly *)
 (* NB: if canInput isn't supported, falls back to line input *)
 
-fun drain_stream' instream _ () = 
-    let fun lines xs = 
-	    (case TextIO.canInput (instream, 1) of
-		NONE => xs
+fun drain_stream' instream _ () =
+    let fun lines xs =
+          (case TextIO.canInput (instream, 1) of
+              NONE => xs
               | SOME 0 => ""::xs (* EOF *)
               | SOME _ => lines ((TextIO.inputLine instream) :: xs))
-	     handle Io => xs
+           handle Io => xs
     in (flat (map explode (rev (lines [TextIO.inputLine instream]))), ()) end;
 
 fun of_instream_slurp instream =
