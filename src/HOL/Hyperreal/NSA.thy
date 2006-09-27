@@ -494,13 +494,21 @@ lemma HFinite_diff_Infinitesimal_hrabs:
   "(x::hypreal) \<in> HFinite - Infinitesimal ==> abs x \<in> HFinite - Infinitesimal"
 by blast
 
-lemma hrabs_less_Infinitesimal:
-      "[| e \<in> Infinitesimal; abs (x::hypreal) < e |] ==> x \<in> Infinitesimal"
+lemma hnorm_le_Infinitesimal:
+  "\<lbrakk>e \<in> Infinitesimal; hnorm x \<le> e\<rbrakk> \<Longrightarrow> x \<in> Infinitesimal"
 by (auto simp add: Infinitesimal_def abs_less_iff)
+
+lemma hnorm_less_Infinitesimal:
+  "\<lbrakk>e \<in> Infinitesimal; hnorm x < e\<rbrakk> \<Longrightarrow> x \<in> Infinitesimal"
+by (erule hnorm_le_Infinitesimal, erule order_less_imp_le)
 
 lemma hrabs_le_Infinitesimal:
      "[| e \<in> Infinitesimal; abs (x::hypreal) \<le> e |] ==> x \<in> Infinitesimal"
-by (blast dest: order_le_imp_less_or_eq intro: hrabs_less_Infinitesimal)
+by (erule hnorm_le_Infinitesimal, simp)
+
+lemma hrabs_less_Infinitesimal:
+      "[| e \<in> Infinitesimal; abs (x::hypreal) < e |] ==> x \<in> Infinitesimal"
+by (erule hnorm_less_Infinitesimal, simp)
 
 lemma Infinitesimal_interval:
       "[| e \<in> Infinitesimal; e' \<in> Infinitesimal; e' < x ; x < e |] 
