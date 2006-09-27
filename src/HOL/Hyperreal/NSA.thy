@@ -46,17 +46,8 @@ const_syntax (xsymbols)
 const_syntax (HTML output)
   approx  (infixl "\<approx>" 50)
 
-
-lemma hypreal_of_real_of_real_eq: "hypreal_of_real r = of_real r"
-proof -
-  have "hypreal_of_real r = hypreal_of_real (of_real r)" by simp
-  also have "\<dots> = of_real r" by (rule star_of_of_real)
-  finally show ?thesis .
-qed
-
 lemma SReal_def: "Reals == {x. \<exists>r. x = hypreal_of_real r}"
-by (simp add: Reals_def image_def hypreal_of_real_of_real_eq)
-
+by (simp add: Reals_def image_def)
 
 subsection {* Nonstandard Extension of the Norm Function *}
 

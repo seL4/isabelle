@@ -84,6 +84,16 @@ by (simp add: star_of_real_def)
 lemma star_of_of_real [simp]: "star_of (of_real r) = of_real r"
 by transfer (rule refl)
 
+lemma of_real_eq_star_of [simp]: "of_real = star_of"
+proof
+  fix r :: real
+  show "of_real r = star_of r"
+    by transfer simp
+qed
+
+lemma Reals_eq_Standard: "(Reals :: hypreal set) = Standard"
+by (simp add: Reals_def Standard_def of_real_eq_star_of)
+
 
 subsection{*Existence of Free Ultrafilter over the Naturals*}
 
