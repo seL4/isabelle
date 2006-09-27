@@ -73,6 +73,14 @@ lemma LIMSEQ_iff:
       "(X ----> L) = (\<forall>r>0. \<exists>no. \<forall>n \<ge> no. norm (X n - L) < r)"
 by (simp add: LIMSEQ_def)
 
+lemma LIMSEQ_I:
+  "(\<And>r. 0 < r \<Longrightarrow> \<exists>no. \<forall>n\<ge>no. norm (X n - L) < r) \<Longrightarrow> X ----> L"
+by (simp add: LIMSEQ_def)
+
+lemma LIMSEQ_D:
+  "\<lbrakk>X ----> L; 0 < r\<rbrakk> \<Longrightarrow> \<exists>no. \<forall>n\<ge>no. norm (X n - L) < r"
+by (simp add: LIMSEQ_def)
+
 lemma LIMSEQ_const: "(%n. k) ----> k"
 by (simp add: LIMSEQ_def)
 
@@ -111,6 +119,14 @@ subsubsection {* Purely nonstandard proofs *}
 
 lemma NSLIMSEQ_iff:
     "(X ----NS> L) = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
+by (simp add: NSLIMSEQ_def)
+
+lemma NSLIMSEQ_I:
+  "(\<And>N. N \<in> HNatInfinite \<Longrightarrow> starfun X N \<approx> star_of L) \<Longrightarrow> X ----NS> L"
+by (simp add: NSLIMSEQ_def)
+
+lemma NSLIMSEQ_D:
+  "\<lbrakk>X ----NS> L; N \<in> HNatInfinite\<rbrakk> \<Longrightarrow> starfun X N \<approx> star_of L"
 by (simp add: NSLIMSEQ_def)
 
 lemma NSLIMSEQ_const: "(%n. k) ----NS> k"
@@ -179,101 +195,51 @@ done
 
 subsubsection {* Equivalence of @{term LIMSEQ} and @{term NSLIMSEQ} *}
 
-text{*LIMSEQ ==> NSLIMSEQ*}
-
 lemma LIMSEQ_NSLIMSEQ:
-      "X ----> L ==> X ----NS> L"
-apply (simp add: LIMSEQ_def NSLIMSEQ_def, safe)
-apply (rule_tac x = N in star_cases)
-apply (simp add: HNatInfinite_FreeUltrafilterNat_iff)
-apply (rule approx_minus_iff [THEN iffD2])
-apply (auto simp add: starfun mem_infmal_iff [symmetric] star_of_def
-              star_n_diff Infinitesimal_FreeUltrafilterNat_iff)
-apply (drule_tac x = u in spec, safe)
-apply (drule_tac x = no in spec)
-apply (erule ultra, simp add: less_imp_le)
-done
+  assumes X: "X ----> L" shows "X ----NS> L"
+proof (rule NSLIMSEQ_I)
+  fix N assume N: "N \<in> HNatInfinite"
+  have "starfun X N - star_of L \<in> Infinitesimal"
+  proof (rule InfinitesimalI2)
+    fix r::real assume r: "0 < r"
+    from LIMSEQ_D [OF X r]
+    obtain no where "\<forall>n\<ge>no. norm (X n - L) < r" ..
+    hence "\<forall>n\<ge>star_of no. hnorm (starfun X n - star_of L) < star_of r"
+      by transfer
+    thus "hnorm (starfun X N - star_of L) < star_of r"
+      using N by (simp add: star_of_le_HNatInfinite)
+  qed
+  thus "starfun X N \<approx> star_of L"
+    by (unfold approx_def)
+qed
 
-text{*NSLIMSEQ ==> LIMSEQ*}
+lemma NSLIMSEQ_LIMSEQ:
+  assumes X: "X ----NS> L" shows "X ----> L"
+proof (rule LIMSEQ_I)
+  fix r::real assume r: "0 < r"
+  have "\<exists>no. \<forall>n\<ge>no. hnorm (starfun X n - star_of L) < star_of r"
+  proof (intro exI allI impI)
+    fix n assume "whn \<le> n"
+    with HNatInfinite_whn have "n \<in> HNatInfinite"
+      by (rule HNatInfinite_upward_closed)
+    with X have "starfun X n \<approx> star_of L"
+      by (rule NSLIMSEQ_D)
+    hence "starfun X n - star_of L \<in> Infinitesimal"
+      by (unfold approx_def)
+    thus "hnorm (starfun X n - star_of L) < star_of r"
+      using r by (rule InfinitesimalD2)
+  qed
+  thus "\<exists>no. \<forall>n\<ge>no. norm (X n - L) < r"
+    by transfer
+qed
 
-lemma lemma_NSLIMSEQ1: "!!(f::nat=>nat). \<forall>n. n \<le> f n
-           ==> {n. f n = 0} = {0} | {n. f n = 0} = {}"
-apply auto
-apply (drule_tac x = xa in spec)
-apply (drule_tac [2] x = x in spec, auto)
-done
-
-lemma lemma_NSLIMSEQ2: "{n. f n \<le> Suc u} = {n. f n \<le> u} Un {n. f n = Suc u}"
-by (auto simp add: le_Suc_eq)
-
-lemma lemma_NSLIMSEQ3:
-     "!!(f::nat=>nat). \<forall>n. n \<le> f n ==> {n. f n = Suc u} \<le> {n. n \<le> Suc u}"
-apply auto
-apply (drule_tac x = x in spec, auto)
-done
-
-text{* the following sequence @{term "f(n)"} defines a hypernatural *}
-lemma NSLIMSEQ_finite_set:
-     "!!(f::nat=>nat). \<forall>n. n \<le> f n ==> finite {n. f n \<le> u}"
-apply (induct u)
-apply (auto simp add: lemma_NSLIMSEQ2)
-apply (auto intro: lemma_NSLIMSEQ3 [THEN finite_subset] finite_atMost [unfolded atMost_def])
-apply (drule lemma_NSLIMSEQ1, safe)
-apply (simp_all (no_asm_simp)) 
-done
-
-lemma Compl_less_set: "- {n. u < (f::nat=>nat) n} = {n. f n \<le> u}"
-by (auto dest: less_le_trans simp add: le_def)
-
-text{* the index set is in the free ultrafilter *}
-lemma FreeUltrafilterNat_NSLIMSEQ:
-     "!!(f::nat=>nat). \<forall>n. n \<le> f n ==> {n. u < f n} : FreeUltrafilterNat"
-apply (rule FreeUltrafilterNat_Compl_iff2 [THEN iffD2])
-apply (rule FreeUltrafilterNat_finite)
-apply (auto dest: NSLIMSEQ_finite_set simp add: Compl_less_set)
-done
-
-text{* thus, the sequence defines an infinite hypernatural! *}
-lemma HNatInfinite_NSLIMSEQ: "\<forall>n. n \<le> f n
-          ==> star_n f : HNatInfinite"
-apply (auto simp add: HNatInfinite_FreeUltrafilterNat_iff)
-apply (erule FreeUltrafilterNat_NSLIMSEQ)
-done
-
-lemma lemmaLIM:
-     "{n. X (f n) + - L = Y n} Int {n. norm (Y n) < r} \<le>
-      {n. norm (X (f n) + - L) < r}"
-by auto
-
-lemma lemmaLIM2:
-  "{n. norm (X (f n) - L) < r} Int {n. r \<le> norm (X (f n) - L)} = {}"
-by auto
-
-lemma lemmaLIM3: "[| 0 < r; \<forall>n. r \<le> norm (X (f n) - L);
-           ( *f* X) (star_n f)
-           - star_of L \<approx> 0 |] ==> False"
-apply (auto simp add: starfun mem_infmal_iff [symmetric] star_of_def star_n_diff Infinitesimal_FreeUltrafilterNat_iff)
-apply (drule_tac x = r in spec, safe)
-apply (drule FreeUltrafilterNat_all)
-apply (drule FreeUltrafilterNat_Int, assumption)
-apply (simp add: lemmaLIM2)
-done
-
-lemma NSLIMSEQ_LIMSEQ: "X ----NS> L ==> X ----> L"
-apply (simp add: LIMSEQ_def NSLIMSEQ_def)
-apply (rule ccontr, simp, safe)
-txt{* skolemization step *}
-apply (drule no_choice, safe)
-apply (drule_tac x = "star_n f" in bspec)
-apply (drule_tac [2] approx_minus_iff [THEN iffD1])
-apply (simp_all add: linorder_not_less)
-apply (blast intro: HNatInfinite_NSLIMSEQ)
-apply (blast intro: lemmaLIM3)
-done
-
-text{* Now, the all-important result is trivially proved! *}
 theorem LIMSEQ_NSLIMSEQ_iff: "(f ----> L) = (f ----NS> L)"
 by (blast intro: LIMSEQ_NSLIMSEQ NSLIMSEQ_LIMSEQ)
+
+(* Used once by Integration/Rats.thy in AFP *)
+lemma NSLIMSEQ_finite_set:
+     "!!(f::nat=>nat). \<forall>n. n \<le> f n ==> finite {n. f n \<le> u}"
+by (rule_tac B="{..u}" in finite_subset, auto intro: order_trans)
 
 subsubsection {* Derived theorems about @{term LIMSEQ} *}
 
@@ -762,53 +728,68 @@ done
 
 subsection {* Cauchy Sequences *}
 
+lemma CauchyI:
+  "(\<And>e. 0 < e \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. norm (X m - X n) < e) \<Longrightarrow> Cauchy X"
+by (simp add: Cauchy_def)
+
+lemma CauchyD:
+  "\<lbrakk>Cauchy X; 0 < e\<rbrakk> \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. norm (X m - X n) < e"
+by (simp add: Cauchy_def)
+
+lemma NSCauchyI:
+  "(\<And>M N. \<lbrakk>M \<in> HNatInfinite; N \<in> HNatInfinite\<rbrakk> \<Longrightarrow> starfun X M \<approx> starfun X N)
+   \<Longrightarrow> NSCauchy X"
+by (simp add: NSCauchy_def)
+
+lemma NSCauchyD:
+  "\<lbrakk>NSCauchy X; M \<in> HNatInfinite; N \<in> HNatInfinite\<rbrakk>
+   \<Longrightarrow> starfun X M \<approx> starfun X N"
+by (simp add: NSCauchy_def)
+
 subsubsection{*Equivalence Between NS and Standard*}
 
-text{*Standard Implies Nonstandard*}
+lemma Cauchy_NSCauchy:
+  assumes X: "Cauchy X" shows "NSCauchy X"
+proof (rule NSCauchyI)
+  fix M assume M: "M \<in> HNatInfinite"
+  fix N assume N: "N \<in> HNatInfinite"
+  have "starfun X M - starfun X N \<in> Infinitesimal"
+  proof (rule InfinitesimalI2)
+    fix r :: real assume r: "0 < r"
+    from CauchyD [OF X r]
+    obtain k where "\<forall>m\<ge>k. \<forall>n\<ge>k. norm (X m - X n) < r" ..
+    hence "\<forall>m\<ge>star_of k. \<forall>n\<ge>star_of k.
+           hnorm (starfun X m - starfun X n) < star_of r"
+      by transfer
+    thus "hnorm (starfun X M - starfun X N) < star_of r"
+      using M N by (simp add: star_of_le_HNatInfinite)
+  qed
+  thus "starfun X M \<approx> starfun X N"
+    by (unfold approx_def)
+qed
 
-lemma lemmaCauchy1:
-     "star_n x : HNatInfinite
-      ==> {n. M \<le> x n} : FreeUltrafilterNat"
-apply (auto simp add: HNatInfinite_FreeUltrafilterNat_iff)
-apply (drule_tac x = M in spec, ultra)
-done
-
-lemma lemmaCauchy2:
-     "{n. \<forall>m n. M \<le> m & M \<le> (n::nat) --> norm (X m - X n) < u} Int
-      {n. M \<le> xa n} Int {n. M \<le> x n} \<le>
-      {n. norm (X (xa n) - X (x n)) < u}"
-by blast
-
-lemma Cauchy_NSCauchy: "Cauchy X ==> NSCauchy X"
-apply (simp add: Cauchy_def NSCauchy_def, safe)
-apply (rule_tac x = M in star_cases)
-apply (rule_tac x = N in star_cases)
-apply (rule approx_minus_iff [THEN iffD2])
-apply (rule mem_infmal_iff [THEN iffD1])
-apply (auto simp add: starfun star_n_diff Infinitesimal_FreeUltrafilterNat_iff)
-apply (drule spec, auto)
-apply (drule_tac M = M in lemmaCauchy1)
-apply (drule_tac M = M in lemmaCauchy1)
-apply (rule_tac x1 = Xaa in lemmaCauchy2 [THEN [2] FreeUltrafilterNat_subset])
-apply (rule FreeUltrafilterNat_Int)
-apply (auto intro: FreeUltrafilterNat_Int)
-done
-
-text{*Nonstandard Implies Standard*}
-
-lemma NSCauchy_Cauchy: "NSCauchy X ==> Cauchy X"
-apply (auto simp add: Cauchy_def NSCauchy_def)
-apply (rule ccontr, simp)
-apply (auto dest!: no_choice HNatInfinite_NSLIMSEQ
-            simp add: all_conj_distrib)
-apply (drule bspec, assumption)
-apply (drule_tac x = "star_n fa" in bspec); 
-apply (auto simp add: starfun)
-apply (drule approx_minus_iff [THEN iffD1])
-apply (drule mem_infmal_iff [THEN iffD2])
-apply (auto simp add: star_n_diff Infinitesimal_FreeUltrafilterNat_iff)
-done
-
+lemma NSCauchy_Cauchy:
+  assumes X: "NSCauchy X" shows "Cauchy X"
+proof (rule CauchyI)
+  fix r::real assume r: "0 < r"
+  have "\<exists>k. \<forall>m\<ge>k. \<forall>n\<ge>k. hnorm (starfun X m - starfun X n) < star_of r"
+  proof (intro exI allI impI)
+    fix M assume "whn \<le> M"
+    with HNatInfinite_whn have M: "M \<in> HNatInfinite"
+      by (rule HNatInfinite_upward_closed)
+    fix N assume "whn \<le> N"
+    with HNatInfinite_whn have N: "N \<in> HNatInfinite"
+      by (rule HNatInfinite_upward_closed)
+    from X M N have "starfun X M \<approx> starfun X N"
+      by (rule NSCauchyD)
+    hence "starfun X M - starfun X N \<in> Infinitesimal"
+      by (unfold approx_def)
+    thus "hnorm (starfun X M - starfun X N) < star_of r"
+      using r by (rule InfinitesimalD2)
+  qed
+  thus "\<exists>k. \<forall>m\<ge>k. \<forall>n\<ge>k. norm (X m - X n) < r"
+    by transfer
+qed
 
 theorem NSCauchy_Cauchy_iff: "NSCauchy X = Cauchy X"
 by (blast intro!: NSCauchy_Cauchy Cauchy_NSCauchy)
