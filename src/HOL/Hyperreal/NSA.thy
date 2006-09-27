@@ -677,6 +677,9 @@ by (blast intro: approx_minus approx_minus2)
 lemma approx_add_minus: "[| a @= b; c @= d |] ==> a + -c @= b + -d"
 by (blast intro!: approx_add approx_minus)
 
+lemma approx_diff: "[| a @= b; c @= d |] ==> a - c @= b - d"
+by (simp only: diff_minus approx_add approx_minus)
+
 lemma approx_mult1:
   fixes a b c :: "'a::real_normed_algebra star"
   shows "[| a @= b; c: HFinite|] ==> a*c @= b*c"
@@ -1759,11 +1762,17 @@ done
 lemma st_HFinite: "x \<in> HFinite ==> st x \<in> HFinite"
 by (erule st_SReal [THEN SReal_subset_HFinite [THEN subsetD]])
 
-lemma st_SReal_eq: "x \<in> Reals ==> st x = x"
-apply (simp add: st_def)
+lemma st_unique: "\<lbrakk>r \<in> \<real>; r \<approx> x\<rbrakk> \<Longrightarrow> st x = r"
+apply (frule SReal_subset_HFinite [THEN subsetD])
+apply (drule (1) approx_HFinite)
+apply (unfold st_def)
 apply (rule some_equality)
-apply (fast intro: SReal_subset_HFinite [THEN subsetD])
-apply (blast dest: SReal_approx_iff [THEN iffD1])
+apply (auto intro: approx_unique_real)
+done
+
+lemma st_SReal_eq: "x \<in> Reals ==> st x = x"
+apply (erule st_unique)
+apply (rule approx_refl)
 done
 
 lemma st_hypreal_of_real [simp]: "st (hypreal_of_real x) = hypreal_of_real x"
@@ -1789,43 +1798,22 @@ by (blast intro: approx_st_eq st_eq_approx)
 
 lemma st_Infinitesimal_add_SReal:
      "[| x \<in> Reals; e \<in> Infinitesimal |] ==> st(x + e) = x"
-apply (frule st_SReal_eq [THEN subst])
-prefer 2 apply assumption
-apply (frule SReal_subset_HFinite [THEN subsetD])
-apply (frule Infinitesimal_subset_HFinite [THEN subsetD])
-apply (drule st_SReal_eq)
-apply (rule approx_st_eq)
-apply (auto intro: HFinite_add simp add: Infinitesimal_add_approx_self [THEN approx_sym])
+apply (erule st_unique)
+apply (erule Infinitesimal_add_approx_self)
 done
 
 lemma st_Infinitesimal_add_SReal2:
      "[| x \<in> Reals; e \<in> Infinitesimal |] ==> st(e + x) = x"
-apply (rule add_commute [THEN subst])
-apply (blast intro!: st_Infinitesimal_add_SReal)
+apply (erule st_unique)
+apply (erule Infinitesimal_add_approx_self2)
 done
 
 lemma HFinite_st_Infinitesimal_add:
      "x \<in> HFinite ==> \<exists>e \<in> Infinitesimal. x = st(x) + e"
 by (blast dest!: st_approx_self [THEN approx_sym] bex_Infinitesimal_iff2 [THEN iffD2])
 
-lemma st_add: 
-  assumes x: "x \<in> HFinite" and y: "y \<in> HFinite"
-  shows "st (x + y) = st(x) + st(y)"
-proof -
-  from HFinite_st_Infinitesimal_add [OF x]
-  obtain ex where ex: "ex \<in> Infinitesimal" "st x + ex = x" 
-    by (blast intro: sym)
-  from HFinite_st_Infinitesimal_add [OF y]
-  obtain ey where ey: "ey \<in> Infinitesimal" "st y + ey = y" 
-    by (blast intro: sym)
-  have "st (x + y) = st ((st x + ex) + (st y + ey))"
-    by (simp add: ex ey) 
-  also have "... = st ((ex + ey) + (st x + st y))" by (simp add: add_ac)
-  also have "... = st x + st y" 
-    by (simp add: prems st_SReal Infinitesimal_add 
-                  st_Infinitesimal_add_SReal2) 
-  finally show ?thesis .
-qed
+lemma st_add: "\<lbrakk>x \<in> HFinite; y \<in> HFinite\<rbrakk> \<Longrightarrow> st (x + y) = st x + st y"
+by (simp add: st_unique st_SReal st_approx_self approx_add)
 
 lemma st_number_of [simp]: "st (number_of w) = number_of w"
 by (rule SReal_number_of [THEN st_SReal_eq])
@@ -1834,55 +1822,17 @@ by (rule SReal_number_of [THEN st_SReal_eq])
 lemma [simp]: "st 0 = 0" "st 1 = 1"
 by (simp_all add: st_SReal_eq)
 
-lemma st_minus: assumes "y \<in> HFinite" shows "st(-y) = -st(y)"
-proof -
-  have "st (- y) + st y = 0"
-   by (simp add: prems st_add [symmetric] HFinite_minus_iff) 
-  thus ?thesis by arith
-qed
+lemma st_minus: "x \<in> HFinite \<Longrightarrow> st (- x) = - st x"
+by (simp add: st_unique st_SReal st_approx_self approx_minus)
 
-lemma st_diff: "[| x \<in> HFinite; y \<in> HFinite |] ==> st (x-y) = st(x) - st(y)"
-apply (simp add: diff_def)
-apply (frule_tac y1 = y in st_minus [symmetric])
-apply (drule_tac x1 = y in HFinite_minus_iff [THEN iffD2])
-apply (simp (no_asm_simp) add: st_add)
-done
+lemma st_diff: "\<lbrakk>x \<in> HFinite; y \<in> HFinite\<rbrakk> \<Longrightarrow> st (x - y) = st x - st y"
+by (simp add: st_unique st_SReal st_approx_self approx_diff)
 
-lemma lemma_st_mult:
-  fixes x y e ea :: "'a::real_normed_algebra star"
-  shows "[| x \<in> HFinite; y \<in> HFinite; e \<in> Infinitesimal; ea \<in> Infinitesimal |]
-      ==> e*y + x*ea + e*ea \<in> Infinitesimal"
-apply (intro Infinitesimal_add)
-apply (erule (1) Infinitesimal_HFinite_mult)
-apply (erule (1) Infinitesimal_HFinite_mult2)
-apply (erule (1) Infinitesimal_mult)
-done
-
-lemma st_mult: "[| x \<in> HFinite; y \<in> HFinite |] ==> st (x * y) = st(x) * st(y)"
-apply (frule HFinite_st_Infinitesimal_add)
-apply (frule_tac x = y in HFinite_st_Infinitesimal_add, safe)
-apply (subgoal_tac "st (x * y) = st ((st x + e) * (st y + ea))")
-apply (drule_tac [2] sym, drule_tac [2] sym)
- prefer 2 apply simp 
-apply (erule_tac V = "x = st x + e" in thin_rl)
-apply (erule_tac V = "y = st y + ea" in thin_rl)
-apply (simp add: left_distrib right_distrib)
-apply (drule st_SReal)+
-apply (simp (no_asm_use) add: add_assoc)
-apply (rule st_Infinitesimal_add_SReal)
-apply (blast intro!: SReal_mult)
-apply (drule SReal_subset_HFinite [THEN subsetD])+
-apply (rule add_assoc [THEN subst])
-apply (blast intro!: lemma_st_mult)
-done
+lemma st_mult: "\<lbrakk>x \<in> HFinite; y \<in> HFinite\<rbrakk> \<Longrightarrow> st (x * y) = st x * st y"
+by (simp add: st_unique st_SReal st_approx_self approx_mult_HFinite)
 
 lemma st_Infinitesimal: "x \<in> Infinitesimal ==> st x = 0"
-apply (subst numeral_0_eq_0 [symmetric])
-apply (rule st_number_of [THEN subst])
-apply (rule approx_st_eq)
-apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-            simp add: mem_infmal_iff [symmetric])
-done
+by (simp add: st_unique mem_infmal_iff)
 
 lemma st_not_Infinitesimal: "st(x) \<noteq> 0 ==> x \<notin> Infinitesimal"
 by (fast intro: st_Infinitesimal)
