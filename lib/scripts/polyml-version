@@ -7,6 +7,11 @@
 echo -n polyml
 
 if [ -x "$ML_HOME/poly" ]; then
-  "$ML_HOME/poly" -noDisplay -r /dev/null | head -n 1 | \
-    sed -n 's,^Poly/ML RTS version [^ ]*\(-[^ ]*\).*$,\1,p'
+  if [ -x "$ML_HOME/polyimport" ]; then
+    "$ML_HOME/poly" -v | \
+      sed -n 's,^Poly/ML.*RTS version: [^ ]*\(-[^ ]*\).*$,\1,p'
+  else
+    "$ML_HOME/poly" -noDisplay -r /dev/null | head -n 1 | \
+      sed -n 's,^Poly/ML RTS version [^ ]*\(-[^ ]*\).*$,\1,p'
+  fi
 fi
