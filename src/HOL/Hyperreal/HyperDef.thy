@@ -368,4 +368,7 @@ by (simp add: epsilon_def star_zero_def star_of_def star_n_eq_iff
 lemma hypreal_epsilon_inverse_omega: "epsilon = inverse(omega)"
 by (simp add: epsilon_def omega_def star_n_inverse)
 
+lemma hypreal_epsilon_gt_zero: "0 < epsilon"
+by (simp add: hypreal_epsilon_inverse_omega)
+
 end
