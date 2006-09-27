@@ -536,11 +536,17 @@ done
 lemma stc_HFinite: "x \<in> HFinite ==> stc x \<in> HFinite"
 by (erule stc_SComplex [THEN SComplex_subset_HFinite [THEN subsetD]])
 
-lemma stc_SComplex_eq [simp]: "x \<in> SComplex ==> stc x = x"
-apply (simp add: stc_def)
+lemma stc_unique: "\<lbrakk>y \<in> SComplex; y \<approx> x\<rbrakk> \<Longrightarrow> stc x = y"
+apply (frule SComplex_subset_HFinite [THEN subsetD])
+apply (drule (1) approx_HFinite)
+apply (unfold stc_def)
 apply (rule some_equality)
-apply (auto intro: SComplex_subset_HFinite [THEN subsetD])
-apply (blast dest: SComplex_approx_iff [THEN iffD1])
+apply (auto intro: approx_unique_complex)
+done
+
+lemma stc_SComplex_eq [simp]: "x \<in> SComplex ==> stc x = x"
+apply (erule stc_unique)
+apply (rule approx_refl)
 done
 
 lemma stc_hcomplex_of_complex:
@@ -562,19 +568,14 @@ by (blast intro: approx_stc_eq stc_eq_approx)
 
 lemma stc_Infinitesimal_add_SComplex:
      "[| x \<in> SComplex; e \<in> Infinitesimal |] ==> stc(x + e) = x"
-apply (frule stc_SComplex_eq [THEN subst])
-prefer 2 apply assumption
-apply (frule SComplex_subset_HFinite [THEN subsetD])
-apply (frule Infinitesimal_subset_HFinite [THEN subsetD])
-apply (drule stc_SComplex_eq)
-apply (rule approx_stc_eq)
-apply (auto intro: HFinite_add simp add: Infinitesimal_add_approx_self [THEN approx_sym])
+apply (erule stc_unique)
+apply (erule Infinitesimal_add_approx_self)
 done
 
 lemma stc_Infinitesimal_add_SComplex2:
      "[| x \<in> SComplex; e \<in> Infinitesimal |] ==> stc(e + x) = x"
-apply (rule add_commute [THEN subst])
-apply (blast intro!: stc_Infinitesimal_add_SComplex)
+apply (erule stc_unique)
+apply (erule Infinitesimal_add_approx_self2)
 done
 
 lemma HFinite_stc_Infinitesimal_add:
@@ -583,18 +584,7 @@ by (blast dest!: stc_approx_self [THEN approx_sym] bex_Infinitesimal_iff2 [THEN 
 
 lemma stc_add:
      "[| x \<in> HFinite; y \<in> HFinite |] ==> stc (x + y) = stc(x) + stc(y)"
-apply (frule HFinite_stc_Infinitesimal_add)
-apply (frule_tac x = y in HFinite_stc_Infinitesimal_add, safe)
-apply (subgoal_tac "stc (x + y) = stc ((stc x + e) + (stc y + ea))")
-apply (drule_tac [2] sym, drule_tac [2] sym)
- prefer 2 apply simp 
-apply (simp (no_asm_simp) add: add_ac)
-apply (drule stc_SComplex)+
-apply (drule SComplex_add, assumption)
-apply (drule Infinitesimal_add, assumption)
-apply (rule add_assoc [THEN subst])
-apply (blast intro!: stc_Infinitesimal_add_SComplex2)
-done
+by (simp add: stc_unique stc_SComplex stc_approx_self approx_add SComplex_add)
 
 lemma stc_number_of [simp]: "stc (number_of w) = number_of w"
 by (rule SComplex_number_of [THEN stc_SComplex_eq])
@@ -606,46 +596,19 @@ lemma stc_one [simp]: "stc 1 = 1"
 by simp
 
 lemma stc_minus: "y \<in> HFinite ==> stc(-y) = -stc(y)"
-apply (frule HFinite_minus_iff [THEN iffD2])
-apply (rule hcomplex_add_minus_eq_minus)
-apply (drule stc_add [symmetric], assumption)
-apply (simp add: add_commute)
-done
+by (simp add: stc_unique stc_SComplex stc_approx_self approx_minus)
 
 lemma stc_diff: 
      "[| x \<in> HFinite; y \<in> HFinite |] ==> stc (x-y) = stc(x) - stc(y)"
-apply (simp add: diff_minus)
-apply (frule_tac y1 = y in stc_minus [symmetric])
-apply (drule_tac x1 = y in HFinite_minus_iff [THEN iffD2])
-apply (auto intro: stc_add)
-done
+by (simp add: stc_unique stc_SComplex stc_approx_self approx_diff SComplex_diff)
 
 lemma stc_mult:
      "[| x \<in> HFinite; y \<in> HFinite |]  
                ==> stc (x * y) = stc(x) * stc(y)"
-apply (frule HFinite_stc_Infinitesimal_add)
-apply (frule_tac x = y in HFinite_stc_Infinitesimal_add, safe)
-apply (subgoal_tac "stc (x * y) = stc ((stc x + e) * (stc y + ea))")
-apply (drule_tac [2] sym, drule_tac [2] sym)
- prefer 2 apply simp 
-apply (erule_tac V = "x = stc x + e" in thin_rl)
-apply (erule_tac V = "y = stc y + ea" in thin_rl)
-apply (simp add: left_distrib right_distrib)
-apply (drule stc_SComplex)+
-apply (simp (no_asm_use) add: add_assoc)
-apply (rule stc_Infinitesimal_add_SComplex)
-apply (blast intro!: SComplex_mult)
-apply (drule SComplex_subset_HFinite [THEN subsetD])+
-apply (rule add_assoc [THEN subst])
-apply (blast intro!: lemma_st_mult)
-done
+by (simp add: stc_unique stc_SComplex stc_approx_self approx_mult_HFinite SComplex_mult)
 
 lemma stc_Infinitesimal: "x \<in> Infinitesimal ==> stc x = 0"
-apply (rule stc_zero [THEN subst])
-apply (rule approx_stc_eq)
-apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-                 simp add: mem_infmal_iff [symmetric])
-done
+by (simp add: stc_unique mem_infmal_iff)
 
 lemma stc_not_Infinitesimal: "stc(x) \<noteq> 0 ==> x \<notin> Infinitesimal"
 by (fast intro: stc_Infinitesimal)
@@ -653,9 +616,8 @@ by (fast intro: stc_Infinitesimal)
 lemma stc_inverse:
      "[| x \<in> HFinite; stc x \<noteq> 0 |]  
       ==> stc(inverse x) = inverse (stc x)"
-apply (rule_tac c1 = "stc x" in hcomplex_mult_left_cancel [THEN iffD1])
-apply (auto simp add: stc_mult [symmetric] stc_not_Infinitesimal HFinite_inverse)
-apply (subst right_inverse, auto)
+apply (drule stc_not_Infinitesimal)
+apply (simp add: stc_unique stc_SComplex stc_approx_self approx_inverse SComplex_inverse)
 done
 
 lemma stc_divide [simp]:
@@ -674,19 +636,15 @@ done
 
 lemma SComplex_SReal_hcomplex_of_hypreal:
      "x \<in> Reals ==>  hcomplex_of_hypreal x \<in> SComplex"
-by (auto simp add: SReal_def SComplex_def hcomplex_of_hypreal_def
+by (auto simp add: SReal_def Standard_def hcomplex_of_hypreal_def
          simp del: star_of_of_real)
 
 lemma stc_hcomplex_of_hypreal: 
  "z \<in> HFinite ==> stc(hcomplex_of_hypreal z) = hcomplex_of_hypreal (st z)"
-apply (simp add: st_def stc_def)
-apply (frule st_part_Ex, safe)
-apply (rule someI2)
-apply (auto intro: approx_sym)
-apply (drule HFinite_HFinite_hcomplex_of_hypreal)
-apply (frule stc_part_Ex, safe)
-apply (rule someI2)
-apply (auto intro: approx_sym intro!: approx_unique_complex dest: SComplex_SReal_hcomplex_of_hypreal)
+apply (rule stc_unique)
+apply (rule SComplex_SReal_hcomplex_of_hypreal)
+apply (erule st_SReal)
+apply (simp add: hcomplex_of_hypreal_approx_iff st_approx_self)
 done
 
 (*
