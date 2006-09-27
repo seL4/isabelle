@@ -41,6 +41,12 @@ instance star :: (scaleR) scaleR ..
 defs (overloaded)
   star_scaleR_def [transfer_unfold]: "scaleR r \<equiv> *f* (scaleR r)"
 
+lemma Standard_scaleR [simp]: "x \<in> Standard \<Longrightarrow> r *# x \<in> Standard"
+by (simp add: star_scaleR_def)
+
+lemma star_of_scaleR [simp]: "star_of (r *# x) = r *# star_of x"
+by transfer (rule refl)
+
 instance star :: (real_vector) real_vector
 proof
   fix a b :: real
@@ -69,8 +75,11 @@ instance star :: (real_div_algebra) real_div_algebra ..
 
 instance star :: (real_field) real_field ..
 
-lemma star_of_real_def [transfer_unfold]: "of_real r \<equiv> star_of (of_real r)"
-by (rule eq_reflection, unfold of_real_def, transfer, rule refl)
+lemma star_of_real_def [transfer_unfold]: "of_real r = star_of (of_real r)"
+by (unfold of_real_def, transfer, rule refl)
+
+lemma Standard_of_real [simp]: "of_real r \<in> Standard"
+by (simp add: star_of_real_def)
 
 lemma star_of_of_real [simp]: "star_of (of_real r) = of_real r"
 by transfer (rule refl)
