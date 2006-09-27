@@ -370,7 +370,7 @@ apply (erule conjE)
 apply (subgoal_tac "1 < N + 1")
 prefer 2 apply (blast intro: hypnat_add_one_gt_one)
 apply (drule hyperprime_factor_exists)
-apply (auto intro: STAR_mem)
+apply auto
 apply (subgoal_tac "k \<notin> hypnat_of_nat ` {p. prime p}")
 apply (force simp add: starprime_def, safe)
 apply (drule_tac x = x in bspec)
