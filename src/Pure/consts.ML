@@ -24,8 +24,6 @@ sig
   val syntax: T -> string * mixfix -> string * typ * mixfix
   val read_const: T -> string -> term
   val certify: Pretty.pp -> Type.tsig -> T -> term -> term          (*exception TYPE*)
-  val serial_of: T -> string -> serial
-  val name_of: T -> serial -> string
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
   val declare: NameSpace.naming -> (bstring * typ) * bool -> T -> T
@@ -165,19 +163,6 @@ fun certify pp tsig (consts as Consts ({expand_abbrevs, ...}, _)) =
         | _ => comb head)
       end;
   in cert end;
-
-
-
-(** efficient representations **)
-
-(* serial numbers *)
-
-fun serial_of consts c = #2 (the_const consts c);
-
-fun name_of (Consts ({decls = (_, tab), ...}, _)) i =
-  (case Symtab.fold (fn (c, (_, j)) => if i = j then K (SOME c) else I) tab NONE of
-    SOME c => c
-  | NONE => raise TYPE ("Bad serial number of constant", [], []));
 
 
 (* typargs -- view actual const type as instance of declaration *)
