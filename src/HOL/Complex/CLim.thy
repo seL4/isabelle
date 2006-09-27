@@ -985,6 +985,6 @@ by (simp add: NSCDERIV_CDERIV_iff isNSContc_isContc_iff CARAT_CDERIV)
 lemma CARAT_CDERIVD:
      "(\<forall>z. f z - f x = g z * (z - x)) & isNSContc g x & g x = l
       ==> NSCDERIV f x :> l"
-by (auto simp add: NSCDERIV_iff2 isNSContc_def cstarfun_if_eq); 
+by (auto simp add: NSCDERIV_iff2 isNSContc_def starfun_if_eq); 
 
 end

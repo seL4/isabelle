@@ -45,41 +45,11 @@ done
 
 subsection{*Properties of the Star-transform Applied to Sets of Reals*}
 
-lemma STAR_UNIV_set: "*s*(UNIV::'a set) = (UNIV::'a star set)"
-by (transfer UNIV_def, rule refl)
-
-lemma STAR_empty_set: "*s* {} = {}"
-by (transfer empty_def, rule refl)
-
-lemma STAR_Un: "*s* (A Un B) = *s* A Un *s* B"
-by (transfer Un_def, rule refl)
-
-lemma STAR_Int: "*s* (A Int B) = *s* A Int *s* B"
-by (transfer Int_def, rule refl)
-
-lemma STAR_Compl: "*s* -A = -( *s* A)"
-by (transfer Compl_def, rule refl)
-
-lemma STAR_mem_Compl: "!!x. x \<notin> *s* F ==> x : *s* (- F)"
-by (transfer Compl_def, simp)
-
-lemma STAR_diff: "*s* (A - B) = *s* A - *s* B"
-by (transfer set_diff_def, rule refl)
-
-lemma STAR_subset: "A <= B ==> *s* A <= *s* B"
-by (transfer subset_def, simp)
-
-lemma STAR_mem: "a \<in> A ==> star_of a : *s* A"
-by transfer
-
-lemma STAR_mem_iff: "(star_of x \<in> *s* A) = (x \<in> A)"
-by (transfer, rule refl)
-
 lemma STAR_star_of_image_subset: "star_of ` A <= *s* A"
-by (auto simp add: STAR_mem)
+by auto
 
 lemma STAR_hypreal_of_real_Int: "*s* X Int Reals = hypreal_of_real ` X"
-by (auto simp add: SReal_def STAR_mem_iff)
+by (auto simp add: SReal_def)
 
 lemma lemma_not_hyprealA: "x \<notin> hypreal_of_real ` A ==> \<forall>y \<in> A. x \<noteq> hypreal_of_real y"
 by auto
@@ -100,7 +70,7 @@ lemma STAR_not_mem: "x \<notin> F ==> star_of x \<notin> *s* F"
 by transfer
 
 lemma STAR_subset_closed: "[| x : *s* A; A <= B |] ==> x : *s* B"
-by (blast dest: STAR_subset)
+by (erule rev_subsetD, simp)
 
 text{*Nonstandard extension of a set (defined using a constant
    sequence) as a special case of an internal set*}
@@ -150,7 +120,7 @@ text{*Nonstandard extension of functions*}
 
 lemma starfun:
       "( *f* f) (star_n X) = star_n (%n. f (X n))"
-by (simp add: starfun_def star_of_def Ifun_star_n)
+by (rule starfun_star_n)
 
 lemma starfun_if_eq:
      "!!w. w \<noteq> star_of x

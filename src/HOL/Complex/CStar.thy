@@ -12,25 +12,15 @@ begin
 
 subsection{*Properties of the *-Transform Applied to Sets of Reals*}
 
-lemma STARC_SComplex_subset: "SComplex \<subseteq> *s* (UNIV:: complex set)"
-by simp
-
 lemma STARC_hcomplex_of_complex_Int:
      "*s* X Int SComplex = hcomplex_of_complex ` X"
-by (auto simp add: SComplex_def STAR_mem_iff)
+by (auto simp add: SComplex_def)
 
 lemma lemma_not_hcomplexA:
      "x \<notin> hcomplex_of_complex ` A ==> \<forall>y \<in> A. x \<noteq> hcomplex_of_complex y"
 by auto
 
 subsection{*Theorems about Nonstandard Extensions of Functions*}
-
-lemma cstarfun_if_eq:
-     "w \<noteq> hcomplex_of_complex x
-       ==> ( *f* (\<lambda>z. if z = x then a else g z)) w = ( *f* g) w"
-apply (cases w)
-apply (simp add: star_of_def starfun star_n_eq_iff, ultra)
-done
 
 lemma starfunC_hcpow: "( *f* (%z. z ^ n)) Z = Z hcpow hypnat_of_nat n"
 apply (cases Z)
@@ -68,9 +58,5 @@ lemma starfunC_approx_Re_Im_iff:
 apply (cases x, cases z)
 apply (simp add: starfun hIm hRe approx_approx_iff)
 done
-
-lemma starfunC_Idfun_approx:
-    "x @= hcomplex_of_complex a ==> ( *f* (%x. x)) x @= hcomplex_of_complex  a"
-by simp
 
 end

@@ -58,7 +58,7 @@ by simp
 
 lemma NatStar_hypreal_of_real_Int:
      "*s* X Int Nats = hypnat_of_nat ` X"
-by (auto simp add: SHNat_eq STAR_mem_iff)
+by (auto simp add: SHNat_eq)
 
 lemma starset_starset_n_eq: "*s* X = *sn* (%n. X)"
 by (simp add: starset_n_starset)
