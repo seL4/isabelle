@@ -20,7 +20,6 @@ sig
   val of_string: string -> (string, string list) source
   val exhausted: ('a, 'b) source -> ('a, 'a list) source
   val of_stream: TextIO.instream -> TextIO.outstream -> (string, unit) source
-  val of_instream_slurp: TextIO.instream -> (string, unit) source
   val tty: (string, unit) source
   val source': 'a -> 'b * ('b -> bool) -> ('a * 'b list -> 'c list * ('a * 'b list)) ->
     ('a * 'b list -> 'c list * ('a * 'b list)) option ->
@@ -133,21 +132,6 @@ fun of_stream instream outstream =
 
 val tty = of_stream TextIO.stdIn TextIO.stdOut;
 
-
-(* no prompt output, slurp input eagerly *)
-(* NB: if canInput isn't supported, falls back to line input *)
-
-fun drain_stream' instream _ () =
-    let fun lines xs =
-          (case TextIO.canInput (instream, 1) of
-              NONE => xs
-              | SOME 0 => ""::xs (* EOF *)
-              | SOME _ => lines ((TextIO.inputLine instream) :: xs))
-           handle Io => xs
-    in (flat (map explode (rev (lines [TextIO.inputLine instream]))), ()) end;
-
-fun of_instream_slurp instream =
-  make_source [] () default_prompt (drain_stream' instream);
 
 
 (** compose sources **)
