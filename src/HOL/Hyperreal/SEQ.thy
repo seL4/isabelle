@@ -160,9 +160,6 @@ by (simp add: NSLIMSEQ_mult NSLIMSEQ_inverse divide_inverse)
 lemma starfun_hnorm: "\<And>x. hnorm (( *f* f) x) = ( *f* (\<lambda>x. norm (f x))) x"
 by transfer simp
 
-lemma star_of_norm [simp]: "star_of (norm x) = hnorm (star_of x)"
-by transfer simp
-
 lemma NSLIMSEQ_norm: "X ----NS> a \<Longrightarrow> (\<lambda>n. norm (X n)) ----NS> norm a"
 by (simp add: NSLIMSEQ_def starfun_hnorm [symmetric] approx_hnorm)
 

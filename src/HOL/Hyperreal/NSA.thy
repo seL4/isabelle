@@ -62,6 +62,12 @@ subsection {* Nonstandard Extension of the Norm Function *}
 
 declare hnorm_def [transfer_unfold]
 
+lemma Standard_hnorm [simp]: "x \<in> Standard \<Longrightarrow> hnorm x \<in> Standard"
+by (simp add: hnorm_def)
+
+lemma star_of_norm [simp]: "star_of (norm x) = hnorm (star_of x)"
+by transfer (rule refl)
+
 lemma hnorm_ge_zero [simp]:
   "\<And>x::'a::real_normed_vector star. 0 \<le> hnorm x"
 by transfer (rule norm_ge_zero)
@@ -913,7 +919,8 @@ lemma star_of_Infinitesimal_iff_0 [iff]:
   "(star_of x \<in> Infinitesimal) = (x = 0)"
 apply (auto simp add: Infinitesimal_def)
 apply (drule_tac x="hnorm (star_of x)" in bspec)
-apply (simp add: hnorm_def)
+apply (simp add: SReal_def)
+apply (rule_tac x="norm x" in exI, simp)
 apply simp
 done
 
