@@ -67,6 +67,12 @@ abbreviation
   isNSContCR :: "[complex=>real,complex] => bool"
   "isNSContCR == isNSCont"
 
+  isUContc :: "(complex=>complex) => bool"
+  "isUContc == isUCont"
+
+  isNSUContc :: "(complex=>complex) => bool"
+  "isNSUContc == isNSUCont"
+
 
 lemma CLIM_def:
   "f -- a --C> L =
@@ -112,6 +118,17 @@ lemma isNSContCR_def:
 			   ( *f* f) y @= hypreal_of_real (f a))"
 by (rule isNSCont_def)
 
+lemma isUContc_def:
+  "isUContc f =  (\<forall>r. 0 < r -->
+		      (\<exists>s. 0 < s & (\<forall>x y. cmod(x - y) < s
+			    --> cmod(f x - f y) < r)))"
+by (rule isUCont_def)
+
+lemma isNSUContc_def:
+  "isNSUContc f = (\<forall>x y. x @= y --> ( *f* f) x @= ( *f* f) y)"
+by (rule isNSUCont_def)
+
+
 definition
 
   (* differentiation: D is derivative of function f at x *)
@@ -132,16 +149,6 @@ definition
   NSCdifferentiable :: "[complex=>complex,complex] => bool"
                         (infixl "NSCdifferentiable" 60)
   "f NSCdifferentiable x = (\<exists>D. NSCDERIV f x :> D)"
-
-
-  isUContc :: "(complex=>complex) => bool"
-  "isUContc f =  (\<forall>r. 0 < r -->
-		      (\<exists>s. 0 < s & (\<forall>x y. cmod(x - y) < s
-			    --> cmod(f x - f y) < r)))"
-
-  isNSUContc :: "(complex=>complex) => bool"
-  "isNSUContc f = (\<forall>x y. x @= y --> ( *f* f) x @= ( *f* f) y)"
-
 
 
 subsection{*Limit of Complex to Complex Function*}

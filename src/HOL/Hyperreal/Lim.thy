@@ -56,10 +56,10 @@ definition
   "increment f x h = (@inc. f NSdifferentiable x &
            inc = ( *f* f)(hypreal_of_real x + h) - hypreal_of_real (f x))"
 
-  isUCont :: "(real=>real) => bool"
-  "isUCont f =  (\<forall>r > 0. \<exists>s > 0. \<forall>x y. \<bar>x - y\<bar> < s --> \<bar>f x - f y\<bar> < r)"
+  isUCont :: "['a::real_normed_vector => 'b::real_normed_vector] => bool"
+  "isUCont f = (\<forall>r>0. \<exists>s>0. \<forall>x y. norm (x - y) < s \<longrightarrow> norm (f x - f y) < r)"
 
-  isNSUCont :: "(real=>real) => bool"
+  isNSUCont :: "['a::real_normed_vector => 'b::real_normed_vector] => bool"
   "isNSUCont f = (\<forall>x y. x @= y --> ( *f* f) x @= ( *f* f) y)"
 
 
@@ -608,32 +608,32 @@ apply (simp add: Infinitesimal_FreeUltrafilterNat_iff, safe)
 apply (rename_tac Xa Xb u)
 apply (drule_tac x = u in spec, clarify)
 apply (drule_tac x = s in spec, clarify)
-apply (subgoal_tac "\<forall>n::nat. abs ((Xa n) - (Xb n)) < s --> abs (f (Xa n) - f (Xb n)) < u")
+apply (subgoal_tac "\<forall>n::nat. norm ((Xa n) - (Xb n)) < s --> norm (f (Xa n) - f (Xb n)) < u")
 prefer 2 apply blast
-apply (erule_tac V = "\<forall>x y. \<bar>x - y\<bar> < s --> \<bar>f x - f y\<bar> < u" in thin_rl)
+apply (erule_tac V = "\<forall>x y. norm (x - y) < s --> norm (f x - f y) < u" in thin_rl)
 apply (erule ultra, simp)
 done
 
-lemma lemma_LIMu: "\<forall>s>0.\<exists>z y. \<bar>z - y\<bar> < s & r \<le> \<bar>f z - f y\<bar>
-      ==> \<forall>n::nat. \<exists>z y. \<bar>z - y\<bar> < inverse(real(Suc n)) & r \<le> \<bar>f z - f y\<bar>"
+lemma lemma_LIMu: "\<forall>s>0.\<exists>z y. norm (z - y) < s & r \<le> norm (f z - f y)
+      ==> \<forall>n::nat. \<exists>z y. norm (z - y) < inverse(real(Suc n)) & r \<le> norm (f z - f y)"
 apply clarify
 apply (cut_tac n1 = n
        in real_of_nat_Suc_gt_zero [THEN positive_imp_inverse_positive], auto)
 done
 
 lemma lemma_skolemize_LIM2u:
-     "\<forall>s>0.\<exists>z y. \<bar>z - y\<bar> < s  & r \<le> \<bar>f z - f y\<bar>
+     "\<forall>s>0.\<exists>z y. norm (z - y) < s  & r \<le> norm (f z - f y)
       ==> \<exists>X Y. \<forall>n::nat.
-               abs(X n - Y n) < inverse(real(Suc n)) &
-               r \<le> abs(f (X n) - f (Y n))"
+               norm (X n - Y n) < inverse(real(Suc n)) &
+               r \<le> norm (f (X n) - f (Y n))"
 apply (drule lemma_LIMu)
 apply (drule choice, safe)
 apply (drule choice, blast)
 done
 
-lemma lemma_simpu: "\<forall>n. \<bar>X n - Y n\<bar> < inverse (real(Suc n)) &
-          r \<le> abs (f (X n) - f(Y n)) ==>
-          \<forall>n. \<bar>X n - Y n\<bar> < inverse (real(Suc n))"
+lemma lemma_simpu: "\<forall>n. norm (X n - Y n) < inverse (real(Suc n)) &
+          r \<le> norm (f (X n) - f(Y n)) ==>
+          \<forall>n. norm (X n - Y n) < inverse (real(Suc n))"
 by auto
 
 lemma isNSUCont_isUCont:
