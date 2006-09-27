@@ -118,12 +118,12 @@ fun pretyp_of is_param typ params =
     val params' = fold_atyps
       (fn TVar (xi as (x, _), S) =>
           (fn ps =>
-            if is_param xi andalso not (AList.defined (op =) ps xi)
-            then (xi, mk_param S) :: ps else ps)
+            if is_param xi andalso not (Vartab.defined ps xi)
+            then Vartab.update (xi, mk_param S) ps else ps)
         | _ => I) typ params;
 
     fun pre_of (TVar (v as (xi, _))) =
-          (case AList.lookup (op =) params' xi of
+          (case Vartab.lookup params' xi of
             NONE => PTVar v
           | SOME p => p)
       | pre_of (TFree ("'_dummy_", S)) = mk_param S
@@ -139,8 +139,8 @@ fun pretyp_of is_param typ params =
 fun preterm_of const_type is_param tm (vparams, params) =
   let
     fun add_vparm xi ps =
-      if not (AList.defined Term.eq_ix ps xi) then
-        (xi, mk_param []) :: ps
+      if not (Vartab.defined ps xi) then
+        Vartab.update (xi, mk_param []) ps
       else ps;
 
     val vparams' = fold_aterms
@@ -149,10 +149,11 @@ fun preterm_of const_type is_param tm (vparams, params) =
         | Free (x, _) => add_vparm (x, ~1)
         | _ => I)
       tm vparams;
-    fun var_param xi = (the o AList.lookup (op =) vparams') xi;
+    fun var_param xi = the (Vartab.lookup vparams' xi);
 
 
     val preT_of = pretyp_of is_param;
+    fun polyT_of T = fst (pretyp_of (K true) T Vartab.empty);
 
     fun constrain T t ps =
       if T = dummyT then (t, ps)
@@ -162,10 +163,9 @@ fun preterm_of const_type is_param tm (vparams, params) =
 
     fun pre_of (Const (c, T)) ps =
           (case const_type c of
-            SOME U => constrain T (PConst (c, fst (pretyp_of (K true) U []))) ps
+            SOME U => constrain T (PConst (c, polyT_of U)) ps
           | NONE => raise TYPE ("No such constant: " ^ quote c, [], []))
-      | pre_of (Var (xi, Type ("_polymorphic_", [T]))) ps =
-          (PVar (xi, fst (pretyp_of (K true) T [])), ps)
+      | pre_of (Var (xi, Type ("_polymorphic_", [T]))) ps = (PVar (xi, polyT_of T), ps)
       | pre_of (Var (xi, T)) ps = constrain T (PVar (xi, var_param xi)) ps
       | pre_of (Free (x, T)) ps = constrain T (PFree (x, var_param (x, ~1))) ps
       | pre_of (Const ("_type_constraint_", Type ("fun", [T, _])) $ t) ps =
@@ -397,8 +397,8 @@ fun infer pp tsig =
 fun basic_infer_types pp tsig const_type used freeze is_param ts Ts =
   let
     (*convert to preterms/typs*)
-    val (Ts', Tps) = fold_map (pretyp_of (K true)) Ts [];
-    val (ts', (vps, ps)) = fold_map (preterm_of const_type is_param) ts ([], Tps);
+    val (Ts', Tps) = fold_map (pretyp_of (K true)) Ts Vartab.empty;
+    val (ts', (vps, ps)) = fold_map (preterm_of const_type is_param) ts (Vartab.empty, Tps);
 
     (*run type inference*)
     val tTs' = ListPair.map Constraint (ts', Ts');
@@ -407,7 +407,7 @@ fun basic_infer_types pp tsig const_type used freeze is_param ts Ts =
     (*collect result unifier*)
     fun ch_var (xi, Link (r as ref (Param S))) = (r := PTVar (xi, S); NONE)
       | ch_var xi_T = SOME xi_T;
-    val env = map_filter ch_var Tps;
+    val env = map_filter ch_var (Vartab.dest Tps);
 
     (*convert back to terms/typs*)
     val mk_var =
