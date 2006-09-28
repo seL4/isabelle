@@ -197,7 +197,7 @@ fun consts_restricted pred decls ctxt =
     (case locale_of ctxt of
       NONE => theory (Sign.add_consts_authentic (map (fn ((c, T), mx) => (c, T, mx)) decls))
     | SOME (loc, _) =>
-        theory (Sign.add_consts_i (map (fn ((c, T), _) => (c, Ps ---> T, NoSyn)) decls)) #>
+        theory (Sign.add_consts_authentic (map (fn ((c, T), _) => (c, Ps ---> T, NoSyn)) decls)) #>
         abbrevs Syntax.default_mode abbrs)
     |> pair (map #2 abbrs)
   end;
