@@ -29,7 +29,7 @@ HOL:
 
 $(OUT)/HOLCF: $(OUT)/HOL Adm.thy Cfun.thy Cont.thy	\
   Cprod.thy Discrete.thy Domain.thy Fix.thy Fixrec.thy	\
-  Ffun.thy HOLCF.ML HOLCF.thy Lift.thy One.thy	\
+  Ffun.thy HOLCF.thy Lift.thy One.thy	\
   Pcpo.thy Porder.thy ROOT.ML Sprod.thy	\
   Ssum.thy Tr.thy Pcpodef.thy pcpodef_package.ML	\
   Up.thy adm_tac.ML cont_consts.ML cont_proc.ML fixrec_package.ML	\
