@@ -54,8 +54,8 @@ proof
     by transfer (rule scaleR_right_distrib)
   show "\<And>x::'a star. (a + b) *# x = a *# x + b *# x"
     by transfer (rule scaleR_left_distrib)
-  show "\<And>x::'a star. (a * b) *# x = a *# b *# x"
-    by transfer (rule scaleR_assoc)
+  show "\<And>x::'a star. a *# b *# x = (a * b) *# x"
+    by transfer (rule scaleR_scaleR)
   show "\<And>x::'a star. 1 *# x = x"
     by transfer (rule scaleR_one)
 qed
@@ -92,7 +92,7 @@ proof
 qed
 
 lemma Reals_eq_Standard: "(Reals :: hypreal set) = Standard"
-by (simp add: Reals_def Standard_def of_real_eq_star_of)
+by (simp add: Reals_def Standard_def)
 
 
 subsection{*Existence of Free Ultrafilter over the Naturals*}
