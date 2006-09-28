@@ -481,10 +481,17 @@ fun delete_numeric_suffix s =
 fun banned_thmlist s =
   (Sign.base_name s) mem_string ["induct","inducts","split","splits","split_asm"];
 
+(*Reject theorems with names like "List.filter.filter_list_def" or
+  "Accessible_Part.acc.defs", as these are definitions arising from packages*)
+fun is_package_def a =
+  let val l = NameSpace.unpack a
+  in  length l > 2 andalso String.isSubstring "def" (List.last l)  end;
+
 fun make_banned_test xs = 
   let val ht = Polyhash.mkTable (Polyhash.hash_string, op =)
                                 (6000, HASH_STRING)
-      fun banned_aux s = isSome (Polyhash.peek ht s) orelse banned_thmlist s
+      fun banned_aux s = 
+            isSome (Polyhash.peek ht s) orelse banned_thmlist s orelse is_package_def s
       fun banned s = exists banned_aux (delete_numeric_suffix s)
   in  app (fn x => Polyhash.insert ht (x,())) (!blacklist);
       app (insert_suffixed_names ht) (!blacklist @ xs); 
@@ -661,7 +668,6 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
 			  | Fol => FOL
 			  | Hol => HOL
 	val (included_thms,user_rules) = get_clasimp_atp_lemmas ctxt user_thms
-	val user_lemmas_names = map #1 user_rules
 	val cla_simp_atp_clauses = included_thms |> blacklist_filter
 	                             |> make_unique |> ResAxioms.cnf_rules_pairs
                                      |> restrict_to_logic logic 
@@ -673,11 +679,12 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
 	val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy else []
 	val arity_clauses = if keep_types then ResClause.arity_clause_thy thy else []
         val writer = if dfg then dfg_writer else tptp_writer 
-	val file = atp_input_file()
+	and file = atp_input_file()
+	and user_lemmas_names = map #1 user_rules
     in
-	(writer logic goal_cls file (axclauses,classrel_clauses,arity_clauses) user_lemmas_names;
-	 Output.debug ("Writing to " ^ file);
-	 file)
+	writer logic goal_cls file (axclauses,classrel_clauses,arity_clauses) user_lemmas_names;
+	Output.debug ("Writing to " ^ file);
+	file
     end;
 
 
