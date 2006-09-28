@@ -567,13 +567,14 @@ fun rules_of_simpset ss =
 fun claset_rules_of_thy thy = rules_of_claset (claset_of thy);
 fun simpset_rules_of_thy thy = rules_of_simpset (simpset_of thy);
 
-fun atpset_rules_of_thy thy = map pairname (ResAtpSet.atp_rules_of_thy thy);
+fun atpset_rules_of_thy thy = map pairname (ResAtpset.get_atpset (Context.Theory thy));
 
 
 fun claset_rules_of_ctxt ctxt = rules_of_claset (local_claset_of ctxt);
 fun simpset_rules_of_ctxt ctxt = rules_of_simpset (local_simpset_of ctxt);
 
-fun atpset_rules_of_ctxt ctxt = map pairname (ResAtpSet.atp_rules_of_ctxt ctxt);
+fun atpset_rules_of_ctxt ctxt = map pairname (ResAtpset.get_atpset (Context.Proof ctxt));
+
 
 (**** Translate a set of classical/simplifier rules into CNF (still as type "thm")  ****)
 
