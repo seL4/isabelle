@@ -43,6 +43,8 @@ fun inst_subst sign subst cl =
       Seq.hd(distinct_subgoals_tac (cterm_instantiate subst' cl))
   end;
 
+fun getnewenv seq = fst (fst (the (Seq.pull seq)));
+
 fun factor_rule (cl, lit1, lit2) =
     let
        val prems = prems_of cl
@@ -50,7 +52,7 @@ fun factor_rule (cl, lit1, lit2) =
        val fac2 = List.nth (prems,lit2)
        val sign = sign_of_thm cl
        val unif_env = Unify.unifiers (sign, Envir.empty 0, [(fac1, fac2)])
-       val newenv = ReconTranslateProof.getnewenv unif_env
+       val newenv = getnewenv unif_env
        val envlist = Envir.alist_of newenv
      in
        inst_subst sign (mksubstlist envlist []) cl

@@ -9,7 +9,6 @@
 (***************************************************************************)
 signature ATP_COMMUNICATION =
   sig
-    val reconstruct : bool ref
     val checkEProofFound: 
           TextIO.instream * TextIO.outstream * Posix.Process.pid * 
           string * string Array.array -> bool
@@ -26,15 +25,134 @@ signature ATP_COMMUNICATION =
 structure AtpCommunication : ATP_COMMUNICATION =
 struct
 
-(* switch for whether to reconstruct a proof found, or just list the lemmas used *)
-val reconstruct = ref false;
-
 val trace_path = Path.basic "atp_trace";
 
 fun trace s = if !Output.show_debug_msgs then File.append (File.tmp_path trace_path) s 
               else ();
 
 exception EOF;
+
+
+(**** retrieve the axioms that were used in the proof ****)
+
+(*Get names of axioms used. Axioms are indexed from 1, while the array is indexed from 0*)
+fun get_axiom_names (names_arr: string array) step_nums = 
+    let fun is_axiom n = n <= Array.length names_arr 
+        fun index i = Array.sub(names_arr, i-1)
+        val axnums = List.filter is_axiom step_nums
+        val axnames = sort_distinct string_ord (map index axnums)
+    in
+	if length axnums = length step_nums then "UNSOUND!!" :: axnames
+	else axnames
+    end
+
+ (*String contains multiple lines. We want those of the form 
+     "253[0:Inp] et cetera..."
+  A list consisting of the first number in each line is returned. *)
+fun get_spass_linenums proofstr = 
+  let val toks = String.tokens (not o Char.isAlphaNum)
+      fun inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok
+        | inputno _ = NONE
+      val lines = String.tokens (fn c => c = #"\n") proofstr
+  in  List.mapPartial (inputno o toks) lines  end
+
+fun get_axiom_names_spass proofstr names_arr =
+   get_axiom_names names_arr (get_spass_linenums proofstr);
+    
+ (*String contains multiple lines. We want those of the form 
+   "number : ...: ...: initial..." *)
+fun get_e_linenums proofstr = 
+  let val fields = String.fields (fn c => c = #":")
+      val nospaces = String.translate (fn c => if c = #" " then "" else str c)
+      fun initial s = String.isPrefix "initial" (nospaces s)
+      fun firstno (line :: _ :: _ :: rule :: _) = 
+            if initial rule then Int.fromString line else NONE
+        | firstno _ = NONE
+      val lines = String.tokens (fn c => c = #"\n") proofstr
+  in  List.mapPartial (firstno o fields) lines  end
+
+fun get_axiom_names_e proofstr names_arr =
+   get_axiom_names names_arr (get_e_linenums proofstr);
+    
+ (*String contains multiple lines. We want those of the form 
+     "*********** [448, input] ***********".
+  A list consisting of the first number in each line is returned. *)
+fun get_vamp_linenums proofstr = 
+  let val toks = String.tokens (not o Char.isAlphaNum)
+      fun inputno [ntok,"input"] = Int.fromString ntok
+        | inputno _ = NONE
+      val lines = String.tokens (fn c => c = #"\n") proofstr
+  in  List.mapPartial (inputno o toks) lines  end
+
+fun get_axiom_names_vamp proofstr names_arr =
+   get_axiom_names names_arr (get_vamp_linenums proofstr);
+    
+fun rules_to_string [] = "NONE"
+  | rules_to_string xs = space_implode "  " xs
+
+
+(*The signal handler in watcher.ML must be able to read the output of this.*)
+fun prover_lemma_list_aux getax proofstr probfile toParent ppid names_arr = 
+ let val _ = trace
+               ("\n\nGetting lemma names. proofstr is " ^ proofstr ^
+                "\nprobfile is " ^ probfile ^
+                "  num of clauses is " ^ string_of_int (Array.length names_arr))
+     val axiom_names = getax proofstr names_arr
+     val ax_str = rules_to_string axiom_names
+    in 
+	 trace ("\nDone. Lemma list is " ^ ax_str);
+         TextIO.output (toParent, "Success. Lemmas used in automatic proof: " ^
+                  ax_str ^ "\n");
+	 TextIO.output (toParent, probfile ^ "\n");
+	 TextIO.flushOut toParent;
+	 Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2)
+    end
+    handle exn => (*FIXME: exn handler is too general!*)
+     (trace ("\nprover_lemma_list_aux: In exception handler: " ^ 
+             Toplevel.exn_message exn);
+      TextIO.output (toParent, "Translation failed for the proof: " ^ 
+                     String.toString proofstr ^ "\n");
+      TextIO.output (toParent, probfile);
+      TextIO.flushOut toParent;
+      Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2));
+
+val e_lemma_list = prover_lemma_list_aux get_axiom_names_e;
+
+val vamp_lemma_list = prover_lemma_list_aux get_axiom_names_vamp;
+
+val spass_lemma_list = prover_lemma_list_aux get_axiom_names_spass;
+
+
+(**** Cutting lines of text FIXME: TIDY UP|!! ****)
+
+exception NOCUT
+fun remove_prefix [] l = l
+  | remove_prefix (h::t) [] = error "can't remove prefix"
+  | remove_prefix (h::t) (h'::t') = remove_prefix t t'
+fun ccut t [] = raise NOCUT
+  | ccut t s =
+      if is_prefix (op =) t s then ([], remove_prefix t s) else
+        let val (a, b) = ccut t (tl s) in ((hd s)::a, b) end
+fun cut t s =
+  let
+    val t' = explode t
+    val s' = explode s
+    val (a, b) = ccut t' s'
+  in
+    (implode a, implode b)
+  end
+
+fun cut_exists t s
+    = let val (a, b) = cut t s in true end handle NOCUT => false
+
+fun cut_before t s = let val (a, b) = cut t s in (a, t ^ b) end
+fun cut_after t s = let val (a, b) = cut t s in (a ^ t, b) end
+
+fun kill_lines 0 = Library.I
+  | kill_lines n = kill_lines (n - 1) o snd o cut_after "\n";
+
+
+(**** Extracting proofs from an ATP's output ****)
 
 val start_E = "# Proof object starts here."
 val end_E   = "# Proof object ends here."
@@ -44,7 +162,6 @@ val start_V8 = "=========== Refutation =========="
 val end_V8 = "======= End of refutation ======="
 
 (*Identifies the start/end lines of an ATP's output*)
-local open Recon_Parse in
 fun extract_proof s =
   if cut_exists "Formulae used in the proof" s then  (*SPASS*)
     (kill_lines 0
@@ -56,7 +173,6 @@ fun extract_proof s =
     (kill_lines 0    (*eproof*)
      o fst o cut_before end_E) s
   else "??extract_proof failed" (*Couldn't find a proof*)
-end;
 
 
 (*********************************************************************************)
@@ -75,8 +191,8 @@ fun startTransfer (endS, fromChild, toParent, ppid, probfile, names_arr) =
 	else if String.isPrefix endS thisLine
 	then let val proofextract = extract_proof (currentString^thisLine)
 	         val lemma_list = if endS = end_V8 
-			  	  then Recon_Transfer.vamp_lemma_list
-			  	  else Recon_Transfer.e_lemma_list
+			  	  then vamp_lemma_list
+			  	  else e_lemma_list
 	     in
 	       trace ("\nExtracted proof:\n" ^ proofextract); 
 	       lemma_list proofextract probfile toParent ppid names_arr
@@ -136,21 +252,6 @@ fun checkEProofFound (fromChild, toParent, ppid, probfile, names_arr) =
 	checkEProofFound (fromChild, toParent, ppid, probfile, names_arr)
  end
 
-
-(**********************************************************************)
-(*  Reconstruct the Spass proof w.r.t. thmstring (string version of   *)
-(*  Isabelle goal to be proved), then transfer the reconstruction     *)
-(*  steps as a string to the input pipe of the main Isabelle process  *)
-(**********************************************************************)
-
-fun spass_reconstruct_tac proofextract toParent ppid probfile sg_num names_arr = 
- SELECT_GOAL
-  (EVERY1 [rtac ccontr, ObjectLogic.atomize_tac, skolemize_tac, 
-	   METAHYPS(fn negs => 
-		  Recon_Transfer.spass_reconstruct proofextract probfile 
-				toParent ppid negs names_arr)]) sg_num;
-
-
 fun transferSpassInput (fromChild, toParent, ppid, probfile,
                         currentString, thm, sg_num, names_arr) = 
  let val thisLine = TextIO.inputLine fromChild 
@@ -164,10 +265,7 @@ fun transferSpassInput (fromChild, toParent, ppid, probfile,
       let val proofextract = extract_proof (currentString^thisLine)
       in 
 	 trace ("\nextracted spass proof: " ^ proofextract);
-	 if !reconstruct 
-	 then (spass_reconstruct_tac proofextract toParent ppid probfile sg_num 
-		names_arr thm; ())
-	 else Recon_Transfer.spass_lemma_list proofextract probfile toParent
+	 spass_lemma_list proofextract probfile toParent
 	        ppid names_arr 
       end
     else transferSpassInput (fromChild, toParent, ppid, probfile,

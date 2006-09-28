@@ -371,10 +371,7 @@ fun createWatcher (th, names_arr) =
 	 Output.debug ("In signal handler. outcome = \"" ^ outcome ^ 
 		       "\"\nprobfile = " ^ probfile ^
 		       "\nGoals being watched: "^  Int.toString (!goals_being_watched));
-	 if String.isPrefix "[" outcome (*indicates a proof reconstruction*)
-	 then (priority (Recon_Transfer.apply_res_thm outcome);
-	       decr_watched())
-	 else if String.isPrefix "Invalid" outcome
+	 if String.isPrefix "Invalid" outcome
 	 then (report ("Subgoal is not provable:\n" ^ text);
 	       decr_watched())
 	 else if String.isPrefix "Failure" outcome
