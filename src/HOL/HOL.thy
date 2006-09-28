@@ -7,9 +7,7 @@ header {* The basis of Higher-Order Logic *}
 
 theory HOL
 imports CPure
-uses ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
-    "Tools/res_atpset.ML"
-
+uses ("cladata.ML") ("blastdata.ML") ("simpdata.ML") "Tools/res_atpset.ML"
 begin
 
 subsection {* Primitive logic *}
@@ -920,7 +918,7 @@ use "cladata.ML"
 setup hypsubst_setup
 setup {* ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac) *}
 setup Classical.setup
-setup ResAtpSet.setup
+setup ResAtpset.setup
 setup clasetup
 
 lemma contrapos_np: "~ Q ==> (~ P ==> Q) ==> P"
