@@ -214,72 +214,70 @@ done
 
 subsection{*Relationships Between Standard and Nonstandard Concepts*}
 
-text{*Standard and NS definitions of Limit*} (*NEEDS STRUCTURING*)
+lemma NSLIM_I:
+  "(\<And>x. \<lbrakk>x \<noteq> star_of a; x \<approx> star_of a\<rbrakk> \<Longrightarrow> starfun f x \<approx> star_of L)
+   \<Longrightarrow> f -- a --NS> L"
+by (simp add: NSLIM_def)
+
+lemma NSLIM_D:
+  "\<lbrakk>f -- a --NS> L; x \<noteq> star_of a; x \<approx> star_of a\<rbrakk>
+   \<Longrightarrow> starfun f x \<approx> star_of L"
+by (simp add: NSLIM_def)
+
 lemma LIM_NSLIM:
-      "f -- a --> L ==> f -- a --NS> L"
-apply (simp add: LIM_def NSLIM_def approx_def, safe)
-apply (rule_tac x="x" in star_cases)
-apply (simp add: star_of_def star_n_diff starfun)
-apply (simp add: Infinitesimal_FreeUltrafilterNat_iff, safe)
-apply (simp add: star_n_eq_iff)
-apply (drule_tac x = u in spec, clarify)
-apply (drule_tac x = s in spec, clarify)
-apply (simp only: FUFNat.Collect_not [symmetric])
-apply (elim ultra, simp)
-done
+  assumes f: "f -- a --> L" shows "f -- a --NS> L"
+proof (rule NSLIM_I)
+  fix x
+  assume neq: "x \<noteq> star_of a"
+  assume approx: "x \<approx> star_of a"
+  have "starfun f x - star_of L \<in> Infinitesimal"
+  proof (rule InfinitesimalI2)
+    fix r::real assume r: "0 < r"
+    from LIM_D [OF f r]
+    obtain s where s: "0 < s" and
+      less_r: "\<And>x. \<lbrakk>x \<noteq> a; norm (x - a) < s\<rbrakk> \<Longrightarrow> norm (f x - L) < r"
+      by fast
+    from less_r have less_r':
+       "\<And>x. \<lbrakk>x \<noteq> star_of a; hnorm (x - star_of a) < star_of s\<rbrakk>
+        \<Longrightarrow> hnorm (starfun f x - star_of L) < star_of r"
+      by transfer
+    from approx have "x - star_of a \<in> Infinitesimal"
+      by (unfold approx_def)
+    hence "hnorm (x - star_of a) < star_of s"
+      using s by (rule InfinitesimalD2)
+    with neq show "hnorm (starfun f x - star_of L) < star_of r"
+      by (rule less_r')
+  qed
+  thus "starfun f x \<approx> star_of L"
+    by (unfold approx_def)
+qed
 
-
-subsubsection{*Limit: The NS definition implies the standard definition.*}
-
-lemma lemma_LIM:
-  fixes L :: "'a::real_normed_vector"
-  shows "\<forall>s>0. \<exists>x. x \<noteq> a \<and> norm (x - a) < s \<and> \<not> norm (f x - L) < r
-      ==> \<forall>n::nat. \<exists>x. x \<noteq> a \<and>
-              norm (x - a) < inverse(real(Suc n)) \<and> \<not> norm (f x - L) < r"
-apply clarify
-apply (cut_tac n1 = n in real_of_nat_Suc_gt_zero [THEN positive_imp_inverse_positive], auto)
-done
-
-lemma lemma_skolemize_LIM2:
-  fixes L :: "'a::real_normed_vector"
-  shows "\<forall>s>0. \<exists>x. x \<noteq> a \<and> norm (x - a) < s \<and> \<not> norm (f x - L) < r
-      ==> \<exists>X. \<forall>n::nat. X n \<noteq> a \<and>
-         norm (X n - a) < inverse(real(Suc n)) \<and> \<not> norm(f (X n) - L) < r"
-apply (drule lemma_LIM)
-apply (drule choice, blast)
-done
-
-lemma FreeUltrafilterNat_most: "\<exists>N. \<forall>n\<ge>N. P n \<Longrightarrow> {n. P n} \<in> \<U>"
-apply (erule exE)
-apply (rule_tac u="{n. N \<le> n}" in FUFNat.subset)
-apply (rule cofinite_mem_FreeUltrafilterNat)
-apply (simp add: Collect_neg_eq [symmetric])
-apply (simp add: linorder_not_le finite_nat_segment)
-apply fast
-done
-
-lemma lemma_simp: "\<forall>n. X n \<noteq> a &
-          norm (X n - a) < inverse (real(Suc n)) &
-          \<not> norm (f (X n) - L) < r ==>
-          \<forall>n. norm (X n - a) < inverse (real(Suc n))"
-by auto
-
-
-text{*NSLIM => LIM*}
-
-lemma NSLIM_LIM: "f -- a --NS> L ==> f -- a --> L"
-apply (simp add: LIM_def NSLIM_def approx_def)
-apply (rule ccontr, simp, clarify)
-apply (drule lemma_skolemize_LIM2, safe)
-apply (drule_tac x = "star_n X" in spec)
-apply (drule mp, rule conjI)
-apply (simp add: star_of_def star_n_eq_iff)
-apply (rule real_seq_to_hypreal_Infinitesimal, simp)
-apply (simp add: starfun star_of_def star_n_diff)
-apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
-apply (drule spec, drule (1) mp)
-apply simp
-done
+lemma NSLIM_LIM:
+  assumes f: "f -- a --NS> L" shows "f -- a --> L"
+proof (rule LIM_I)
+  fix r::real assume r: "0 < r"
+  have "\<exists>s>0. \<forall>x. x \<noteq> star_of a \<and> hnorm (x - star_of a) < s
+        \<longrightarrow> hnorm (starfun f x - star_of L) < star_of r"
+  proof (rule exI, safe)
+    show "0 < epsilon" by (rule hypreal_epsilon_gt_zero)
+  next
+    fix x assume neq: "x \<noteq> star_of a"
+    assume "hnorm (x - star_of a) < epsilon"
+    with Infinitesimal_epsilon
+    have "x - star_of a \<in> Infinitesimal"
+      by (rule hnorm_less_Infinitesimal)
+    hence "x \<approx> star_of a"
+      by (unfold approx_def)
+    with f neq have "starfun f x \<approx> star_of L"
+      by (rule NSLIM_D)
+    hence "starfun f x - star_of L \<in> Infinitesimal"
+      by (unfold approx_def)
+    thus "hnorm (starfun f x - star_of L) < star_of r"
+      using r by (rule InfinitesimalD2)
+  qed
+  thus "\<exists>s>0. \<forall>x. x \<noteq> a \<and> norm (x - a) < s \<longrightarrow> norm (f x - L) < r"
+    by transfer
+qed
 
 theorem LIM_NSLIM_iff: "(f -- x --> L) = (f -- x --NS> L)"
 by (blast intro: LIM_NSLIM NSLIM_LIM)
@@ -601,56 +599,60 @@ by (simp add: isNSUCont_def)
 lemma isUCont_isCont: "isUCont f ==> isCont f x"
 by (simp add: isUCont_def isCont_def LIM_def, meson)
 
-lemma isUCont_isNSUCont: "isUCont f ==> isNSUCont f"
-apply (simp add: isNSUCont_def isUCont_def approx_def)
-apply (simp add: all_star_eq starfun star_n_diff)
-apply (simp add: Infinitesimal_FreeUltrafilterNat_iff, safe)
-apply (rename_tac Xa Xb u)
-apply (drule_tac x = u in spec, clarify)
-apply (drule_tac x = s in spec, clarify)
-apply (subgoal_tac "\<forall>n::nat. norm ((Xa n) - (Xb n)) < s --> norm (f (Xa n) - f (Xb n)) < u")
-prefer 2 apply blast
-apply (erule_tac V = "\<forall>x y. norm (x - y) < s --> norm (f x - f y) < u" in thin_rl)
-apply (erule ultra, simp)
-done
-
-lemma lemma_LIMu: "\<forall>s>0.\<exists>z y. norm (z - y) < s & r \<le> norm (f z - f y)
-      ==> \<forall>n::nat. \<exists>z y. norm (z - y) < inverse(real(Suc n)) & r \<le> norm (f z - f y)"
-apply clarify
-apply (cut_tac n1 = n
-       in real_of_nat_Suc_gt_zero [THEN positive_imp_inverse_positive], auto)
-done
-
-lemma lemma_skolemize_LIM2u:
-     "\<forall>s>0.\<exists>z y. norm (z - y) < s  & r \<le> norm (f z - f y)
-      ==> \<exists>X Y. \<forall>n::nat.
-               norm (X n - Y n) < inverse(real(Suc n)) &
-               r \<le> norm (f (X n) - f (Y n))"
-apply (drule lemma_LIMu)
-apply (drule choice, safe)
-apply (drule choice, blast)
-done
-
-lemma lemma_simpu: "\<forall>n. norm (X n - Y n) < inverse (real(Suc n)) &
-          r \<le> norm (f (X n) - f(Y n)) ==>
-          \<forall>n. norm (X n - Y n) < inverse (real(Suc n))"
-by auto
+lemma isUCont_isNSUCont:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes f: "isUCont f" shows "isNSUCont f"
+proof (unfold isNSUCont_def, safe)
+  fix x y :: "'a star"
+  assume approx: "x \<approx> y"
+  have "starfun f x - starfun f y \<in> Infinitesimal"
+  proof (rule InfinitesimalI2)
+    fix r::real assume r: "0 < r"
+    with f obtain s where s: "0 < s" and
+      less_r: "\<And>x y. norm (x - y) < s \<Longrightarrow> norm (f x - f y) < r"
+      by (auto simp add: isUCont_def)
+    from less_r have less_r':
+       "\<And>x y. hnorm (x - y) < star_of s
+        \<Longrightarrow> hnorm (starfun f x - starfun f y) < star_of r"
+      by transfer
+    from approx have "x - y \<in> Infinitesimal"
+      by (unfold approx_def)
+    hence "hnorm (x - y) < star_of s"
+      using s by (rule InfinitesimalD2)
+    thus "hnorm (starfun f x - starfun f y) < star_of r"
+      by (rule less_r')
+  qed
+  thus "starfun f x \<approx> starfun f y"
+    by (unfold approx_def)
+qed
 
 lemma isNSUCont_isUCont:
-     "isNSUCont f ==> isUCont f"
-apply (simp add: isNSUCont_def isUCont_def approx_def, safe)
-apply (rule ccontr, simp)
-apply (simp add: linorder_not_less)
-apply (drule lemma_skolemize_LIM2u, safe)
-apply (drule_tac x = "star_n X" in spec)
-apply (drule_tac x = "star_n Y" in spec)
-apply (drule mp)
-apply (rule real_seq_to_hypreal_Infinitesimal2, simp)
-apply (simp add: all_star_eq starfun star_n_diff)
-apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
-apply (drule spec, drule (1) mp)
-apply (drule FreeUltrafilterNat_all, ultra)
-done
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes f: "isNSUCont f" shows "isUCont f"
+proof (unfold isUCont_def, safe)
+  fix r::real assume r: "0 < r"
+  have "\<exists>s>0. \<forall>x y. hnorm (x - y) < s
+        \<longrightarrow> hnorm (starfun f x - starfun f y) < star_of r"
+  proof (rule exI, safe)
+    show "0 < epsilon" by (rule hypreal_epsilon_gt_zero)
+  next
+    fix x y :: "'a star"
+    assume "hnorm (x - y) < epsilon"
+    with Infinitesimal_epsilon
+    have "x - y \<in> Infinitesimal"
+      by (rule hnorm_less_Infinitesimal)
+    hence "x \<approx> y"
+      by (unfold approx_def)
+    with f have "starfun f x \<approx> starfun f y"
+      by (simp add: isNSUCont_def)
+    hence "starfun f x - starfun f y \<in> Infinitesimal"
+      by (unfold approx_def)
+    thus "hnorm (starfun f x - starfun f y) < star_of r"
+      using r by (rule InfinitesimalD2)
+  qed
+  thus "\<exists>s>0. \<forall>x y. norm (x - y) < s \<longrightarrow> norm (f x - f y) < r"
+    by transfer
+qed
 
 text{*Derivatives*}
 lemma DERIV_iff: "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) -- 0 --> D)"
