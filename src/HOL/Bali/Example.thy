@@ -86,28 +86,33 @@ axioms  (** tnam_, vnam_ and label are intended to be isomorphic
   surj_vnam_:  "\<exists>m. n = vnam_  m"
   surj_label_:" \<exists>m. n = label_ m"
 
-syntax
-
+abbreviation
   HasFoo :: qtname
-  Base   :: qtname
-  Ext    :: qtname
-  Main   :: qtname
-  arr :: ename
-  vee :: ename
-  z   :: ename
-  e   :: ename
-  lab1:: label
-translations
+  "HasFoo == \<lparr>pid=java_lang,tid=TName (tnam_ HasFoo_)\<rparr>"
 
-  "HasFoo" == "\<lparr>pid=java_lang,tid=TName (tnam_ HasFoo_)\<rparr>"
-  "Base"   == "\<lparr>pid=java_lang,tid=TName (tnam_ Base_)\<rparr>"
-  "Ext"    == "\<lparr>pid=java_lang,tid=TName (tnam_ Ext_)\<rparr>"
-  "Main"   == "\<lparr>pid=java_lang,tid=TName (tnam_ Main_)\<rparr>"
-  "arr"    ==        "(vnam_ arr_)"
-  "vee"    ==        "(vnam_ vee_)"
-  "z"      ==        "(vnam_ z_)"
-  "e"      ==        "(vnam_ e_)"
-  "lab1"   ==        "label_ lab1_"
+  Base :: qtname
+  "Base == \<lparr>pid=java_lang,tid=TName (tnam_ Base_)\<rparr>"
+
+  Ext :: qtname
+  "Ext == \<lparr>pid=java_lang,tid=TName (tnam_ Ext_)\<rparr>"
+
+  Main :: qtname
+  "Main == \<lparr>pid=java_lang,tid=TName (tnam_ Main_)\<rparr>"
+
+  arr :: vname
+  "arr == (vnam_ arr_)"
+
+  vee :: vname
+  "vee == (vnam_ vee_)"
+
+  z :: vname
+  "z == (vnam_ z_)"
+
+  e :: vname
+  "e == (vnam_ e_)"
+
+  lab1:: label
+  "lab1 == label_ lab1_"
 
 
 lemma neq_Base_Object [simp]: "Base\<noteq>Object"
@@ -255,11 +260,9 @@ done
 
 section "program"
 
-syntax
+abbreviation
   tprg :: prog
-
-translations
-  "tprg" == "\<lparr>ifaces=Ifaces,classes=Classes\<rparr>"
+  "tprg == \<lparr>ifaces=Ifaces,classes=Classes\<rparr>"
 
 constdefs
   test    :: "(ty)list \<Rightarrow> stmt"
@@ -1191,11 +1194,14 @@ consts
   a :: loc
   b :: loc
   c :: loc
-  
+
+abbreviation
+  "one == Suc 0"
+  "two == Suc one"
+  "tree == Suc two"
+  "four == Suc tree"
+
 syntax
-
-  tprg :: prog
-
   obj_a :: obj
   obj_b :: obj
   obj_c :: obj
@@ -1225,34 +1231,31 @@ syntax
   s8' :: state
 
 translations
-
-  "tprg"    == "\<lparr>ifaces=Ifaces,classes=Classes\<rparr>"
-  
-  "obj_a"   <= "\<lparr>tag=Arr (PrimT Boolean) two
-                ,values=empty(Inr 0\<mapsto>Bool False)(Inr one\<mapsto>Bool False)\<rparr>"
-  "obj_b"   <= "\<lparr>tag=CInst Ext
-                ,values=(empty(Inl (vee, Base)\<mapsto>Null   ) 
-			      (Inl (vee, Ext )\<mapsto>Intg 0))\<rparr>"
-  "obj_c"   == "\<lparr>tag=CInst (SXcpt NullPointer),values=empty\<rparr>"
-  "arr_N"   == "empty(Inl (arr, Base)\<mapsto>Null)"
-  "arr_a"   == "empty(Inl (arr, Base)\<mapsto>Addr a)"
-  "globs1"  == "empty(Inr Ext   \<mapsto>\<lparr>tag=arbitrary, values=empty\<rparr>)
-		     (Inr Base  \<mapsto>\<lparr>tag=arbitrary, values=arr_N\<rparr>)
-		     (Inr Object\<mapsto>\<lparr>tag=arbitrary, values=empty\<rparr>)"
-  "globs2"  == "empty(Inr Ext   \<mapsto>\<lparr>tag=arbitrary, values=empty\<rparr>)
-		     (Inr Object\<mapsto>\<lparr>tag=arbitrary, values=empty\<rparr>)
-		     (Inl a\<mapsto>obj_a)
-		     (Inr Base  \<mapsto>\<lparr>tag=arbitrary, values=arr_a\<rparr>)"
+  "obj_a"   <= "\<lparr>tag=Arr (PrimT Boolean) (CONST two)
+                ,values=CONST empty(Inr 0\<mapsto>Bool False)(Inr (CONST one)\<mapsto>Bool False)\<rparr>"
+  "obj_b"   <= "\<lparr>tag=CInst (CONST Ext)
+                ,values=(CONST empty(Inl (CONST vee, CONST Base)\<mapsto>Null   ) 
+                              (Inl (CONST vee, CONST Ext )\<mapsto>Intg 0))\<rparr>"
+  "obj_c"   == "\<lparr>tag=CInst (SXcpt NullPointer),values=CONST empty\<rparr>"
+  "arr_N"   == "CONST empty(Inl (CONST arr, CONST Base)\<mapsto>Null)"
+  "arr_a"   == "CONST empty(Inl (CONST arr, CONST Base)\<mapsto>Addr a)"
+  "globs1"  == "CONST empty(Inr (CONST Ext)   \<mapsto>\<lparr>tag=arbitrary, values=CONST empty\<rparr>)
+                     (Inr (CONST Base)  \<mapsto>\<lparr>tag=arbitrary, values=arr_N\<rparr>)
+                     (Inr Object\<mapsto>\<lparr>tag=arbitrary, values=CONST empty\<rparr>)"
+  "globs2"  == "CONST empty(Inr (CONST Ext)   \<mapsto>\<lparr>tag=arbitrary, values=CONST empty\<rparr>)
+                     (Inr Object\<mapsto>\<lparr>tag=arbitrary, values=CONST empty\<rparr>)
+                     (Inl a\<mapsto>obj_a)
+                     (Inr (CONST Base)  \<mapsto>\<lparr>tag=arbitrary, values=arr_a\<rparr>)"
   "globs3"  == "globs2(Inl b\<mapsto>obj_b)"
   "globs8"  == "globs3(Inl c\<mapsto>obj_c)"
-  "locs3"   == "empty(VName e\<mapsto>Addr b)"
-  "locs4"   == "empty(VName z\<mapsto>Null)(Inr()\<mapsto>Addr b)"
-  "locs8"   == "locs3(VName z\<mapsto>Addr c)"
-  "s0"  == "       st empty  empty"
+  "locs3"   == "CONST empty(VName (CONST e)\<mapsto>Addr b)"
+  "locs4"   == "CONST empty(VName (CONST z)\<mapsto>Null)(Inr()\<mapsto>Addr b)"
+  "locs8"   == "locs3(VName (CONST z)\<mapsto>Addr c)"
+  "s0"  == "       st (CONST empty) (CONST empty)"
   "s0'" == " Norm  s0"
-  "s1"  == "       st globs1 empty"
+  "s1"  == "       st globs1 (CONST empty)"
   "s1'" == " Norm  s1"
-  "s2"  == "       st globs2 empty"
+  "s2"  == "       st globs2 (CONST empty)"
   "s2'" == " Norm  s2"
   "s3"  == "       st globs3 locs3 "
   "s3'" == " Norm  s3"
@@ -1264,16 +1267,6 @@ translations
   "s8'" == " Norm  s8"
   "s9'" == "(Some (Xcpt (Std IndOutBound)), s8)"
 
-
-syntax "four"::nat
-       "tree"::nat
-       "two" ::nat
-       "one" ::nat
-translations 
-  "one"  == "Suc 0"
-  "two"  == "Suc one"
-  "tree" == "Suc two"
-  "four" == "Suc tree"
 
 declare Pair_eq [simp del]
 lemma exec_test: 
