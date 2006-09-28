@@ -221,7 +221,7 @@ by (simp add: divide_inverse)
 
 lemma of_real_power [simp]:
   "of_real (x ^ n) = (of_real x :: 'a::{real_algebra_1,recpower}) ^ n"
-by (induct n, simp_all add: power_Suc)
+by (induct n) (simp_all add: power_Suc)
 
 lemma of_real_eq_iff [simp]: "(of_real x = of_real y) = (x = y)"
 by (simp add: of_real_def scaleR_cancel_right)
@@ -237,7 +237,7 @@ qed
 
 text{*Collapse nested embeddings*}
 lemma of_real_of_nat_eq [simp]: "of_real (of_nat n) = of_nat n"
-by (induct n, auto)
+by (induct n) auto
 
 lemma of_real_of_int_eq [simp]: "of_real (of_int z) = of_int z"
 by (cases z rule: int_diff_cases, simp)
@@ -249,9 +249,9 @@ by (simp add: number_of_eq)
 
 subsection {* The Set of Real Numbers *}
 
-constdefs
-   Reals :: "'a::real_algebra_1 set"
-   "Reals \<equiv> range of_real"
+definition
+  Reals :: "'a::real_algebra_1 set"
+  "Reals \<equiv> range of_real"
 
 const_syntax (xsymbols)
   Reals  ("\<real>")
@@ -514,6 +514,6 @@ by (simp add: divide_inverse norm_mult norm_inverse)
 lemma norm_power:
   fixes x :: "'a::{real_normed_div_algebra,recpower}"
   shows "norm (x ^ n) = norm x ^ n"
-by (induct n, simp, simp add: power_Suc norm_mult)
+by (induct n) (simp_all add: power_Suc norm_mult)
 
 end
