@@ -733,7 +733,6 @@ fun gen_add_consts prep_typ authentic raw_args thy =
   in
     thy
     |> map_consts (fold (Consts.declare (naming_of thy) o #1) args)
-    |> map_syn (Syntax.extend_consts (map (#1 o #1 o #1) args))
     |> add_syntax_i (map #2 args)
   end;
 
@@ -761,7 +760,6 @@ fun add_abbrevs (mode, inout) = fold (fn ((raw_c, raw_mx), raw_t) => fn thy =>
   in
     thy
     |> map_consts (Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy) mode ((c, t), true))
-    |> map_syn (Syntax.extend_consts [c])
     |> add_modesyntax_i (mode, inout) [(c', T, mx)]
   end);
 
