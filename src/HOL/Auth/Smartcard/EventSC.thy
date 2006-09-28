@@ -24,10 +24,9 @@ consts
  cloned  :: "card set"   (* cloned smart cards*)
  secureM :: "bool"(*assumption of secure means between agents and their cards*)
 
-syntax
+abbreviation
   insecureM :: bool (*certain protocols make no assumption of secure means*)
-translations
-  "insecureM" == "\<not>secureM"
+  "insecureM == \<not>secureM"
 
 
 text{*Spy has access to his own key for spoof messages, but Server is secure*}

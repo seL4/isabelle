@@ -18,11 +18,6 @@ text{*From page 251 of
 (* Temporal modelization: session keys can be leaked
                           ONLY when they have expired *)
 
-syntax
-    CT :: "event list=>nat"
-    expiredK :: "[nat, event list] => bool"
-    expiredA :: "[nat, event list] => bool"
-
 consts
 
     (*Duration of the session key*)
@@ -44,12 +39,15 @@ specification (authlife)
     by blast
 
 
-translations
-   "CT" == "length "
+abbreviation
+  CT :: "event list=>nat"
+  "CT == length"
 
-   "expiredK T evs" == "sesKlife + T < CT evs"
+  expiredK :: "[nat, event list] => bool"
+  "expiredK T evs == sesKlife + T < CT evs"
 
-   "expiredA T evs" == "authlife + T < CT evs"
+  expiredA :: "[nat, event list] => bool"
+  "expiredA T evs == authlife + T < CT evs"
 
 
 constdefs

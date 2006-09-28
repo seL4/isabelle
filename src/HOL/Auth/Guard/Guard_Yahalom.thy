@@ -15,42 +15,34 @@ theory Guard_Yahalom imports Guard_Shared begin
 
 subsection{*messages used in the protocol*}
 
-syntax ya1 :: "agent => agent => nat => event"
+abbreviation (input)
+  ya1 :: "agent => agent => nat => event"
+  "ya1 A B NA == Says A B {|Agent A, Nonce NA|}"
 
-translations "ya1 A B NA" => "Says A B {|Agent A, Nonce NA|}"
+  ya1' :: "agent => agent => agent => nat => event"
+  "ya1' A' A B NA == Says A' B {|Agent A, Nonce NA|}"
 
-syntax ya1' :: "agent => agent => agent => nat => event"
+  ya2 :: "agent => agent => nat => nat => event"
+  "ya2 A B NA NB == Says B Server {|Agent B, Ciph B {|Agent A, Nonce NA, Nonce NB|}|}"
 
-translations "ya1' A' A B NA" => "Says A' B {|Agent A, Nonce NA|}"
+  ya2' :: "agent => agent => agent => nat => nat => event"
+  "ya2' B' A B NA NB == Says B' Server {|Agent B, Ciph B {|Agent A, Nonce NA, Nonce NB|}|}"
 
-syntax ya2 :: "agent => agent => nat => nat => event"
-
-translations "ya2 A B NA NB"
-=> "Says B Server {|Agent B, Ciph B {|Agent A, Nonce NA, Nonce NB|}|}"
-
-syntax ya2' :: "agent => agent => agent => nat => nat => event"
-
-translations "ya2' B' A B NA NB"
-=> "Says B' Server {|Agent B, Ciph B {|Agent A, Nonce NA, Nonce NB|}|}"
-
-syntax ya3 :: "agent => agent => nat => nat => key => event"
-
-translations "ya3 A B NA NB K"
-=> "Says Server A {|Ciph A {|Agent B, Key K, Nonce NA, Nonce NB|},
+  ya3 :: "agent => agent => nat => nat => key => event"
+  "ya3 A B NA NB K ==
+    Says Server A {|Ciph A {|Agent B, Key K, Nonce NA, Nonce NB|},
                     Ciph B {|Agent A, Key K|}|}"
 
-syntax ya3':: "agent => msg => agent => agent => nat => nat => key => event"
+  ya3':: "agent => msg => agent => agent => nat => nat => key => event"
+  "ya3' S Y A B NA NB K ==
+    Says S A {|Ciph A {|Agent B, Key K, Nonce NA, Nonce NB|}, Y|}"
 
-translations "ya3' S Y A B NA NB K"
-=> "Says S A {|Ciph A {|Agent B, Key K, Nonce NA, Nonce NB|}, Y|}"
+  ya4 :: "agent => agent => nat => nat => msg => event"
+  "ya4 A B K NB Y == Says A B {|Y, Crypt K (Nonce NB)|}"
 
-syntax ya4 :: "agent => agent => nat => nat => msg => event"
+  ya4' :: "agent => agent => nat => nat => msg => event"
+  "ya4' A' B K NB Y == Says A' B {|Y, Crypt K (Nonce NB)|}"
 
-translations "ya4 A B K NB Y" => "Says A B {|Y, Crypt K (Nonce NB)|}"
-
-syntax ya4' :: "agent => agent => nat => nat => msg => event"
-
-translations "ya4' A' B K NB Y" => "Says A' B {|Y, Crypt K (Nonce NB)|}"
 
 subsection{*definition of the protocol*}
 

@@ -7,13 +7,12 @@ header{*The Certified Electronic Mail Protocol by Abadi et al.*}
 
 theory CertifiedEmail imports Public begin
 
-syntax
-  TTP        :: agent
-  RPwd       :: "agent => key"
+abbreviation
+  TTP :: agent
+  "TTP == Server"
 
-translations
-  "TTP"   == "Server "
-  "RPwd"  == "shrK "
+  RPwd :: "agent => key"
+  "RPwd == shrK"
 
  
 (*FIXME: the four options should be represented by pairs of 0 or 1.

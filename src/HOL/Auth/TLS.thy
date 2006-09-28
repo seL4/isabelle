@@ -63,13 +63,13 @@ consts
     Session keys implicitly include MAC secrets.*)
   sessionK :: "(nat*nat*nat) * role => key"
 
-syntax
-    clientK :: "nat*nat*nat => key"
-    serverK :: "nat*nat*nat => key"
+abbreviation
+  clientK :: "nat*nat*nat => key"
+  "clientK X == sessionK(X, ClientRole)"
 
-translations
-  "clientK X" == "sessionK(X, ClientRole)"
-  "serverK X" == "sessionK(X, ServerRole)"
+  serverK :: "nat*nat*nat => key"
+  "serverK X == sessionK(X, ServerRole)"
+
 
 specification (PRF)
   inj_PRF: "inj PRF"

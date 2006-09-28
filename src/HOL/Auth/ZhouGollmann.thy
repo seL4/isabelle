@@ -12,23 +12,18 @@ The protocol of
 
 theory ZhouGollmann imports Public begin
 
-syntax
+abbreviation
   TTP :: agent
+  "TTP == Server"
 
-translations
-  "TTP" == " Server "
-
-syntax
   f_sub :: nat
+  "f_sub == 5"
   f_nro :: nat
+  "f_nro == 2"
   f_nrr :: nat
+  "f_nrr == 3"
   f_con :: nat
-
-translations
-  "f_sub" == " 5 "
-  "f_nro" == " 2 "
-  "f_nrr" == " 3 "
-  "f_con" == " 4 "
+  "f_con == 4"
 
 
 constdefs

@@ -17,15 +17,15 @@ subsection{*Implementation of Lists by Messages*}
 
 subsubsection{*nil is represented by any message which is not a pair*}
 
-syntax cons :: "msg => msg => msg"
-
-translations "cons x l" => "{|x,l|}"
+abbreviation (input)
+  cons :: "msg => msg => msg"
+  "cons x l == {|x,l|}"
 
 subsubsection{*induction principle*}
 
 lemma lmsg_induct: "[| !!x. not_MPair x ==> P x; !!x l. P l ==> P (cons x l) |]
 ==> P l"
-by (induct l, auto)
+by (induct l) auto
 
 subsubsection{*head*}
 
@@ -50,7 +50,7 @@ recdef len "measure size"
 "len other = 0"
 
 lemma len_not_empty: "n < len l ==> EX x l'. l = cons x l'"
-by (cases l, auto)
+by (cases l) auto
 
 subsubsection{*membership*}
 
@@ -69,10 +69,10 @@ recdef del "measure (%(x,l). size l)"
 "del (x, other) = other"
 
 lemma notin_del [simp]: "~ isin (x,l) ==> del (x,l) = l"
-by (induct l, auto)
+by (induct l) auto
 
 lemma isin_del [rule_format]: "isin (y, del (x,l)) --> isin (y,l)"
-by (induct l, auto)
+by (induct l) auto
 
 subsubsection{*concatenation*}
 
@@ -83,7 +83,7 @@ recdef app "measure (%(l,l'). size l)"
 "app (other, l') = l'"
 
 lemma isin_app [iff]: "isin (x, app(l,l')) = (isin (x,l) | isin (x,l'))"
-by (induct l, auto)
+by (induct l) auto
 
 subsubsection{*replacement*}
 
@@ -104,7 +104,7 @@ recdef ith "measure (%(l,i). i)"
 "ith (other, i) = other"
 
 lemma ith_head: "0 < len l ==> ith (l,0) = head l"
-by (cases l, auto)
+by (cases l) auto
 
 subsubsection{*insertion*}
 
@@ -115,7 +115,7 @@ recdef ins "measure (%(l,i,x). i)"
 "ins (l, 0, y) = cons y l"
 
 lemma ins_head [simp]: "ins (l,0,y) = cons y l"
-by (cases l, auto)
+by (cases l) auto
 
 subsubsection{*truncation*}
 
@@ -126,16 +126,16 @@ recdef trunc "measure (%(l,i). i)"
 "trunc (cons x l, Suc i) = trunc (l,i)"
 
 lemma trunc_zero [simp]: "trunc (l,0) = l"
-by (cases l, auto)
+by (cases l) auto
 
 
 subsection{*Agent Lists*}
 
 subsubsection{*set of well-formed agent-list messages*}
 
-syntax nil :: msg
-
-translations "nil" == "Number 0"
+abbreviation
+  nil :: msg
+  "nil == Number 0"
 
 consts agl :: "msg set"
 

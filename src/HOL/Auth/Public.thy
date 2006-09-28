@@ -20,33 +20,32 @@ datatype keymode = Signature | Encryption
 consts
   publicKey :: "[keymode,agent] => key"
 
-syntax
+abbreviation
   pubEK :: "agent => key"
+  "pubEK == publicKey Encryption"
+
   pubSK :: "agent => key"
+  "pubSK == publicKey Signature"
 
-  privateKey :: "[bool,agent] => key"
-  priEK :: "agent => key"
-  priSK :: "agent => key"
-
-translations
-  "pubEK"  == "publicKey Encryption"
-  "pubSK"  == "publicKey Signature"
+  privateKey :: "[keymode, agent] => key"
+  "privateKey b A == invKey (publicKey b A)"
 
   (*BEWARE!! priEK, priSK DON'T WORK with inj, range, image, etc.*)
-  "privateKey b A" == "invKey (publicKey b A)"
-  "priEK A"  == "privateKey Encryption A"
-  "priSK A"  == "privateKey Signature A"
+  priEK :: "agent => key"
+  "priEK A == privateKey Encryption A"
+  priSK :: "agent => key"
+  "priSK A == privateKey Signature A"
 
 
-text{*These translations give backward compatibility.  They represent the
+text{*These abbreviations give backward compatibility.  They represent the
 simple situation where the signature and encryption keys are the same.*}
-syntax
-  pubK :: "agent => key"
-  priK :: "agent => key"
 
-translations
-  "pubK A" == "pubEK A"
-  "priK A" == "invKey (pubEK A)"
+abbreviation
+  pubK :: "agent => key"
+  "pubK A == pubEK A"
+
+  priK :: "agent => key"
+  "priK A == invKey (pubEK A)"
 
 
 text{*By freeness of agents, no two agents have the same key.  Since

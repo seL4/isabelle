@@ -158,9 +158,9 @@ by (auto simp: GuardK_def dest: guardK_extand parts_sub)
 
 subsection{*set obtained by decrypting a message*}
 
-syntax decrypt :: "msg set => key => msg => msg set"
-
-translations "decrypt H K Y" => "insert Y (H - {Crypt K Y})"
+abbreviation (input)
+  decrypt :: "msg set => key => msg => msg set"
+  "decrypt H K Y == insert Y (H - {Crypt K Y})"
 
 lemma analz_decrypt: "[| Crypt K Y:H; Key (invKey K):H; Key n:analz H |]
 ==> Key n:analz (decrypt H K Y)"

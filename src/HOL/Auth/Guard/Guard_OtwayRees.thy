@@ -15,53 +15,42 @@ theory Guard_OtwayRees imports Guard_Shared begin
 
 subsection{*messages used in the protocol*}
 
-syntax nil :: "msg"
+abbreviation
+  nil :: "msg"
+  "nil == Number 0"
 
-translations "nil" == "Number 0"
+  or1 :: "agent => agent => nat => event"
+  "or1 A B NA ==
+    Says A B {|Nonce NA, Agent A, Agent B, Ciph A {|Nonce NA, Agent A, Agent B|}|}"
 
-syntax or1 :: "agent => agent => nat => event"
+  or1' :: "agent => agent => agent => nat => msg => event"
+  "or1' A' A B NA X == Says A' B {|Nonce NA, Agent A, Agent B, X|}"
 
-translations "or1 A B NA"
-=> "Says A B {|Nonce NA, Agent A, Agent B,
-               Ciph A {|Nonce NA, Agent A, Agent B|}|}"
-
-syntax or1' :: "agent => agent => agent => nat => msg => event"
-
-translations "or1' A' A B NA X"
-=> "Says A' B {|Nonce NA, Agent A, Agent B, X|}"
-
-syntax or2 :: "agent => agent => nat => nat => msg => event"
-
-translations "or2 A B NA NB X"
-=> "Says B Server {|Nonce NA, Agent A, Agent B, X,
+  or2 :: "agent => agent => nat => nat => msg => event"
+  "or2 A B NA NB X ==
+    Says B Server {|Nonce NA, Agent A, Agent B, X,
                     Ciph B {|Nonce NA, Nonce NB, Agent A, Agent B|}|}"
 
-syntax or2' :: "agent => agent => agent => nat => nat => event"
-
-translations "or2' B' A B NA NB"
-=> "Says B' Server {|Nonce NA, Agent A, Agent B,
+  or2' :: "agent => agent => agent => nat => nat => event"
+  "or2' B' A B NA NB ==
+    Says B' Server {|Nonce NA, Agent A, Agent B,
                      Ciph A {|Nonce NA, Agent A, Agent B|},
                      Ciph B {|Nonce NA, Nonce NB, Agent A, Agent B|}|}"
 
-syntax or3 :: "agent => agent => nat => nat => key => event"
-
-translations "or3 A B NA NB K"
-=> "Says Server B {|Nonce NA, Ciph A {|Nonce NA, Key K|},
+  or3 :: "agent => agent => nat => nat => key => event"
+  "or3 A B NA NB K ==
+    Says Server B {|Nonce NA, Ciph A {|Nonce NA, Key K|},
                     Ciph B {|Nonce NB, Key K|}|}"
 
-syntax or3':: "agent => msg => agent => agent => nat => nat => key => event"
+  or3':: "agent => msg => agent => agent => nat => nat => key => event"
+  "or3' S Y A B NA NB K ==
+    Says S B {|Nonce NA, Y, Ciph B {|Nonce NB, Key K|}|}"
 
-translations "or3' S Y A B NA NB K"
-=> "Says S B {|Nonce NA, Y, Ciph B {|Nonce NB, Key K|}|}"
+  or4 :: "agent => agent => nat => msg => event"
+  "or4 A B NA X == Says B A {|Nonce NA, X, nil|}"
 
-syntax or4 :: "agent => agent => nat => msg => event"
-
-translations "or4 A B NA X" => "Says B A {|Nonce NA, X, nil|}"
-
-syntax or4' :: "agent => agent => nat => msg => event"
-
-translations "or4' B' A NA K" =>
-"Says B' A {|Nonce NA, Ciph A {|Nonce NA, Key K|}, nil|}"
+  or4' :: "agent => agent => nat => key => event"
+  "or4' B' A NA K == Says B' A {|Nonce NA, Ciph A {|Nonce NA, Key K|}, nil|}"
 
 subsection{*definition of the protocol*}
 

@@ -9,8 +9,9 @@ header{*The Otway-Bull Recursive Authentication Protocol*}
 theory Recur imports Public begin
 
 text{*End marker for message bundles*}
-syntax        END :: "msg"
-translations "END" == "Number 0"
+abbreviation
+  END :: "msg"
+  "END == Number 0"
 
 (*Two session keys are distributed to each agent except for the initiator,
         who receives one.

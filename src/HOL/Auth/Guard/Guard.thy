@@ -162,9 +162,9 @@ by (auto dest: guard_invKey)
 
 subsection{*set obtained by decrypting a message*}
 
-syntax decrypt :: "msg set => key => msg => msg set"
-
-translations "decrypt H K Y" => "insert Y (H - {Crypt K Y})"
+abbreviation (input)
+  decrypt :: "msg set => key => msg => msg set"
+  "decrypt H K Y == insert Y (H - {Crypt K Y})"
 
 lemma analz_decrypt: "[| Crypt K Y:H; Key (invKey K):H; Nonce n:analz H |]
 ==> Nonce n:analz (decrypt H K Y)"

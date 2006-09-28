@@ -110,28 +110,20 @@ defs
                     Expr({Base}LAcc e..foo({[Class Base]}[Lit Null]))"
 
 
-syntax
-
+abbreviation
   NP  :: xcpt
+  "NP == NullPointer"
+
   tprg  ::"java_mb prog"
+  "tprg == [ObjectC, BaseC, ExtC, ClassCastC, NullPointerC, OutOfMemoryC]"
+
   obj1  :: obj
-  obj2  :: obj
-  s0  :: state
-  s1  :: state
-  s2  :: state
-  s3  :: state
-  s4  :: state
+  "obj1 == (Ext, empty((vee, Base)\<mapsto>Bool False) ((vee, Ext )\<mapsto>Intg 0))"
 
-translations
-  "NP"   == "NullPointer"
-  "tprg" == "[ObjectC, BaseC, ExtC, ClassCastC, NullPointerC, OutOfMemoryC]"
-  "obj1"    <= "(Ext, empty((vee, Base)\<mapsto>Bool False)
-         ((vee, Ext )\<mapsto>Intg 0))"
-  "s0" == " Norm    (empty, empty)"
-  "s1" == " Norm    (empty(a\<mapsto>obj1),empty(e\<mapsto>Addr a))"
-  "s2" == " Norm    (empty(a\<mapsto>obj1),empty(x\<mapsto>Null)(This\<mapsto>Addr a))"
-  "s3" == "(Some NP, empty(a\<mapsto>obj1),empty(e\<mapsto>Addr a))"
-
+  "s0 == Norm    (empty, empty)"
+  "s1 == Norm    (empty(a\<mapsto>obj1),empty(e\<mapsto>Addr a))"
+  "s2 == Norm    (empty(a\<mapsto>obj1),empty(x\<mapsto>Null)(This\<mapsto>Addr a))"
+  "s3 == (Some NP, empty(a\<mapsto>obj1),empty(e\<mapsto>Addr a))"
 
 ML {* bind_thm ("map_of_Cons", hd (tl (thms "map_of.simps"))) *}
 lemma map_of_Cons1 [simp]: "map_of ((aa,bb)#ps) aa = Some bb"

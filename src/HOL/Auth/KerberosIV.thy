@@ -10,32 +10,17 @@ theory KerberosIV imports Public begin
 
 text{*The "u" prefix indicates theorems referring to an updated version of the protocol. The "r" suffix indicates theorems where the confidentiality assumptions are relaxed by the corresponding arguments.*}
 
-syntax
+abbreviation
   Kas :: agent
-  Tgs :: agent  --{*the two servers are translations...*}
+  "Kas == Server"
 
-
-translations
-  "Kas"       == "Server "
-  "Tgs"       == "Friend 0"
+  Tgs :: agent
+  "Tgs == Friend 0"
 
 
 axioms
   Tgs_not_bad [iff]: "Tgs \<notin> bad"
    --{*Tgs is secure --- we already know that Kas is secure*}
-
-(*The current time is the length of the trace*)
-syntax
-    CT :: "event list=>nat"
-
-    expiredAK :: "[nat, event list] => bool"
-
-    expiredSK :: "[nat, event list] => bool"
-
-    expiredA :: "[nat, event list] => bool"
-
-    valid :: "[nat, nat] => bool" ("valid _ wrt _")
-
 
 constdefs
  (* authKeys are those contained in an authTicket *)
@@ -92,16 +77,22 @@ specification (replylife)
   replylife_LB [iff]: "Suc 0 \<le> replylife"
     by blast
 
-translations
-   "CT" == "length "
+abbreviation
+  (*The current time is the length of the trace*)
+  CT :: "event list=>nat"
+  "CT == length"
 
-   "expiredAK Ta evs" == "authKlife + Ta < CT evs"
+  expiredAK :: "[nat, event list] => bool"
+  "expiredAK Ta evs == authKlife + Ta < CT evs"
 
-   "expiredSK Ts evs" == "servKlife + Ts < CT evs"
+  expiredSK :: "[nat, event list] => bool"
+  "expiredSK Ts evs == servKlife + Ts < CT evs"
 
-   "expiredA T evs" == "authlife + T < CT evs"
+  expiredA :: "[nat, event list] => bool"
+  "expiredA T evs == authlife + T < CT evs"
 
-   "valid T1 wrt T2" == "T1 <= replylife + T2"
+  valid :: "[nat, nat] => bool" ("valid _ wrt _")
+  "valid T1 wrt T2 == T1 <= replylife + T2"
 
 (*---------------------------------------------------------------------*)
 
