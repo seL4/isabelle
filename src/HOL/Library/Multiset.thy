@@ -40,7 +40,7 @@ abbreviation
 syntax
   "_MCollect" :: "pttrn => 'a multiset => bool => 'a multiset"    ("(1{# _ : _./ _#})")
 translations
-  "{#x:M. P#}" == "MCollect M (\<lambda>x. P)"
+  "{#x:M. P#}" == "CONST MCollect M (\<lambda>x. P)"
 
 definition
   set_of :: "'a multiset => 'a set"

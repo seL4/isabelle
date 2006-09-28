@@ -94,7 +94,7 @@ syntax (xsymbols)
   "LUB "	:: "[idts, 'a] \<Rightarrow> 'a"		("(3\<Squnion>_./ _)" [0,10] 10)
 
 translations
-  "\<Squnion>n. t" == "lub(range(\<lambda>n. t))"
+  "\<Squnion>n. t" == "lub(CONST range(\<lambda>n. t))"
 
 text {* lubs are unique *}
 

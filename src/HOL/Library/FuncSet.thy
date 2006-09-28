@@ -39,8 +39,8 @@ syntax (HTML output)
   "_lam" :: "[pttrn, 'a set, 'a => 'b] => ('a=>'b)"  ("(3\<lambda>_\<in>_./ _)" [0,0,3] 3)
 
 translations
-  "PI x:A. B" == "Pi A (%x. B)"
-  "%x:A. f" == "restrict (%x. f) A"
+  "PI x:A. B" == "CONST Pi A (%x. B)"
+  "%x:A. f" == "CONST restrict (%x. f) A"
 
 definition
   "compose" :: "['a set, 'b => 'c, 'a => 'b] => ('a => 'c)"

@@ -255,7 +255,7 @@ syntax
   array_update :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a com"  ("(2_[_] :=/ _)" [70,65] 61)
 translations
   "P \<rightarrow> c" == "IF P THEN c ELSE Abort FI"
-  "a[i] := v" => "(i < length a) \<rightarrow> (a := list_update a i v)"
+  "a[i] := v" => "(i < CONST length a) \<rightarrow> (a := list_update a i v)"
   (* reverse translation not possible because of duplicate "a" *)
 
 text{* Note: there is no special syntax for guarded array access. Thus

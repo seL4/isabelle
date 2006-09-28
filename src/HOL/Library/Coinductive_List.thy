@@ -196,8 +196,12 @@ qed
 definition
   "llist_case c d l =
     List_case c (\<lambda>x y. d (inv Datatype_Universe.Leaf x) (Abs_llist y)) (Rep_llist l)"
+
+syntax  (* FIXME? *)
+  LNil :: logic
+  LCons :: logic
 translations
-  "case p of LNil \<Rightarrow> a | LCons x l \<Rightarrow> b" \<rightleftharpoons> "llist_case a (\<lambda>x l. b) p"
+  "case p of LNil \<Rightarrow> a | LCons x l \<Rightarrow> b" \<rightleftharpoons> "CONST llist_case a (\<lambda>x l. b) p"
 
 lemma llist_case_LNil [simp]: "llist_case c d LNil = c"
   by (simp add: llist_case_def LNil_def

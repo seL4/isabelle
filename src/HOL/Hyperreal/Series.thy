@@ -27,7 +27,7 @@ definition
 syntax
   "_suminf" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a" ("\<Sum>_. _" [0, 10] 10)
 translations
-  "\<Sum>i. b" == "suminf (%i. b)"
+  "\<Sum>i. b" == "CONST suminf (%i. b)"
 
 
 lemma sumr_diff_mult_const:

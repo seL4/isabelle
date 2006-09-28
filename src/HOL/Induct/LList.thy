@@ -95,8 +95,11 @@ definition
 
 
 text{* The case syntax for type @{text "'a llist"} *}
+syntax  (* FIXME proper case syntax!? *)
+  LNil :: logic
+  LCons :: logic
 translations
-  "case p of LNil => a | LCons x l => b" == "llist_case a (%x l. b) p"
+  "case p of LNil => a | LCons x l => b" == "CONST llist_case a (%x l. b) p"
 
 
 subsubsection{* Sample function definitions.  Item-based ones start with @{text L} *}

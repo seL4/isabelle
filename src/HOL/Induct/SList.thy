@@ -73,7 +73,7 @@ definition
 (*Declaring the abstract list constructors*)
 
 definition
-  Nil       :: "'a list"
+  Nil       :: "'a list"                               ("[]")
    "Nil  = Abs_List(NIL)"
 
   "Cons"       :: "['a, 'a list] => 'a list"           (infixr "#" 65)
@@ -88,19 +88,16 @@ definition
    "list_case a f xs = list_rec xs a (%x xs r. f x xs)"
 
 (* list Enumeration *)
-consts
-  "[]"      :: "'a list"                            ("[]")
 syntax
   "@list"   :: "args => 'a list"                    ("[(_)]")
 
 translations
   "[x, xs]" == "x#[xs]"
   "[x]"     == "x#[]"
-  "[]"      == "Nil"
 
-  "case xs of Nil => a | y#ys => b" == "list_case(a, %y ys. b, xs)"
+  "case xs of [] => a | y#ys => b" == "CONST list_case(a, %y ys. b, xs)"
 
-  
+
 (* *********************************************************************** *)
 (*                                                                         *)
 (* Generalized Map Functionals                                             *)
@@ -205,8 +202,8 @@ syntax
   "@filter"     :: "[idt, 'a list, bool] => 'a list"     ("(1[_:_ ./ _])")
 
 translations
-  "[x:xs. P]"   == "filter(%x. P) xs"
-  "Alls x:xs. P"== "list_all(%x. P)xs"
+  "[x:xs. P]" == "CONST filter(%x. P) xs"
+  "Alls x:xs. P" == "CONST list_all(%x. P)xs"
 
 
 lemma ListI: "x : list (range Leaf) ==> x : List"
