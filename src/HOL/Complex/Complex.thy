@@ -221,7 +221,7 @@ proof
     by (simp add: complex_scaleR_def right_distrib)
   show "(a + b) *# x = a *# x + b *# x"
     by (simp add: complex_scaleR_def left_distrib [symmetric])
-  show "(a * b) *# x = a *# b *# x"
+  show "a *# b *# x = (a * b) *# x"
     by (simp add: complex_scaleR_def mult_assoc [symmetric])
   show "1 *# x = x"
     by (simp add: complex_scaleR_def complex_one_def [symmetric])

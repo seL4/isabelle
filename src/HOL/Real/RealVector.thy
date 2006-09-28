@@ -40,8 +40,13 @@ axclass scaleR < type
 consts
   scaleR :: "real \<Rightarrow> 'a \<Rightarrow> 'a::scaleR" (infixr "*#" 75)
 
-syntax (xsymbols)
-  scaleR :: "real \<Rightarrow> 'a \<Rightarrow> 'a::scaleR" (infixr "*\<^sub>R" 75)
+abbreviation
+  divideR :: "'a \<Rightarrow> real \<Rightarrow> 'a::scaleR" (infixl "'/#" 70)
+  "x /# r == inverse r *# x"
+
+const_syntax (xsymbols)
+  scaleR (infixr "*\<^sub>R" 75)
+  divideR (infixl "'/\<^sub>R" 70)
 
 instance real :: scaleR ..
 
@@ -51,12 +56,12 @@ defs (overloaded)
 axclass real_vector < scaleR, ab_group_add
   scaleR_right_distrib: "a *# (x + y) = a *# x + a *# y"
   scaleR_left_distrib: "(a + b) *# x = a *# x + b *# x"
-  scaleR_assoc: "(a * b) *# x = a *# b *# x"
+  scaleR_scaleR [simp]: "a *# b *# x = (a * b) *# x"
   scaleR_one [simp]: "1 *# x = x"
 
 axclass real_algebra < real_vector, ring
-  mult_scaleR_left: "a *# x * y = a *# (x * y)"
-  mult_scaleR_right: "x * a *# y = a *# (x * y)"
+  mult_scaleR_left [simp]: "a *# x * y = a *# (x * y)"
+  mult_scaleR_right [simp]: "x * a *# y = a *# (x * y)"
 
 axclass real_algebra_1 < real_algebra, ring_1
 
@@ -68,18 +73,16 @@ instance real :: real_field
 apply (intro_classes, unfold real_scaleR_def)
 apply (rule right_distrib)
 apply (rule left_distrib)
-apply (rule mult_assoc)
+apply (rule mult_assoc [symmetric])
 apply (rule mult_1_left)
 apply (rule mult_assoc)
 apply (rule mult_left_commute)
 done
 
-lemmas scaleR_scaleR = scaleR_assoc [symmetric]
-
 lemma scaleR_left_commute:
   fixes x :: "'a::real_vector"
   shows "a *# b *# x = b *# a *# x"
-by (simp add: scaleR_scaleR mult_commute)
+by (simp add: mult_commute)
 
 lemma additive_scaleR_right: "additive (\<lambda>x. a *# x :: 'a::real_vector)"
 by (rule additive.intro, rule scaleR_right_distrib)
@@ -114,7 +117,7 @@ next
   assume anz [simp]: "a \<noteq> 0"
   { assume "a *# x = 0"
     hence "inverse a *# a *# x = 0" by simp
-    hence "x = 0" by (simp (no_asm_use) add: scaleR_scaleR)}
+    hence "x = 0" by simp }
   thus ?thesis by force
 qed
 
@@ -157,9 +160,7 @@ by (auto intro: scaleR_right_imp_eq)
 lemma nonzero_inverse_scaleR_distrib:
   fixes x :: "'a::real_div_algebra"
   shows "\<lbrakk>a \<noteq> 0; x \<noteq> 0\<rbrakk> \<Longrightarrow> inverse (a *# x) = inverse a *# inverse x"
-apply (rule inverse_unique)
-apply (simp add: mult_scaleR_left mult_scaleR_right scaleR_scaleR)
-done
+by (rule inverse_unique, simp)
 
 lemma inverse_scaleR_distrib:
   fixes x :: "'a::{real_div_algebra,division_by_zero}"
@@ -177,6 +178,9 @@ definition
   of_real :: "real \<Rightarrow> 'a::real_algebra_1"
   "of_real r = r *# 1"
 
+lemma scaleR_conv_of_real: "r *# x = of_real r * x"
+by (simp add: of_real_def)
+
 lemma of_real_0 [simp]: "of_real 0 = 0"
 by (simp add: of_real_def)
 
@@ -193,7 +197,7 @@ lemma of_real_diff [simp]: "of_real (x - y) = of_real x - of_real y"
 by (simp add: of_real_def scaleR_left_diff_distrib)
 
 lemma of_real_mult [simp]: "of_real (x * y) = of_real x * of_real y"
-by (simp add: of_real_def mult_scaleR_left scaleR_scaleR)
+by (simp add: of_real_def mult_commute)
 
 lemma nonzero_of_real_inverse:
   "x \<noteq> 0 \<Longrightarrow> of_real (inverse x) =
