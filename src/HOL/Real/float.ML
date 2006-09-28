@@ -306,8 +306,6 @@ sig
 
     val approx_float : int -> floatfunc -> string -> term * term
 
-    val sign_term : term -> cterm
-
 (*    exception Float_op_oracle_data of term
     exception Nat_op_oracle_data of term
 
@@ -325,9 +323,6 @@ structure Inttab = TableFun(type key = int val ord = (rev_order o int_ord));
 type float = IntInf.int*IntInf.int
 type floatfunc = float*float -> float*float
 
-val th = theory "Float"
-val sg = sign_of th
-		
 val float_const = Const ("Float.float", HOLogic.mk_prodT (HOLogic.intT, HOLogic.intT) --> HOLogic.realT)
 
 val float_add_const = Const ("HOL.plus", HOLogic.realT --> HOLogic.realT --> HOLogic.realT)
@@ -415,8 +410,6 @@ fun approx_float prec f value =
     in
 	(mk_float flower, mk_float fupper)
     end
-
-fun sign_term t = cterm_of sg t
 
 (*exception Float_op_oracle_data of term;
 

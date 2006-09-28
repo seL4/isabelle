@@ -162,11 +162,10 @@ $(LOG)/HOL-Complex-HahnBanach.gz: $(OUT)/HOL-Complex			\
 HOL-Complex: HOL $(OUT)/HOL-Complex
 
 $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML Library/Zorn.thy			\
-  Real/ContNotDenum.thy Real/Ferrante_Rackoff.thy Real/Float.ML			\
+  Real/ContNotDenum.thy Real/Ferrante_Rackoff.thy Real/float.ML			\
   Real/Float.thy Real/Lubs.thy Real/PReal.thy Real/RComplete.thy		\
   Real/ROOT.ML Real/Rational.thy Real/Real.thy Real/RealDef.thy			\
-  Real/RealPow.thy Real/RealVector.thy Real/document/root.tex                   \
-  Real/ferrante_rackoff_proof.ML	                                        \
+  Real/RealPow.thy Real/RealVector.thy Real/ferrante_rackoff_proof.ML           \
   Real/ferrante_rackoff.ML Real/rat_arith.ML Real/real_arith.ML			\
   Hyperreal/StarDef.thy Hyperreal/StarClasses.thy				\
   Hyperreal/EvenOdd.thy Hyperreal/Fact.thy Hyperreal/HLog.thy			\
@@ -665,7 +664,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy			\
 HOL-Isar_examples: HOL $(LOG)/HOL-Isar_examples.gz
 
 $(LOG)/HOL-Isar_examples.gz: $(OUT)/HOL Isar_examples/BasicLogic.thy \
-  Isar_examples/Cantor.ML Isar_examples/Cantor.thy Isar_examples/Drinker.thy \
+  Isar_examples/Cantor.thy Isar_examples/Drinker.thy \
   Isar_examples/ExprCompiler.thy Isar_examples/Fibonacci.thy \
   Isar_examples/Group.thy Isar_examples/Hoare.thy Isar_examples/HoareEx.thy \
   Isar_examples/KnasterTarski.thy Isar_examples/MutilatedCheckerboard.thy \
