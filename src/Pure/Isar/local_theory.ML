@@ -25,8 +25,8 @@ sig
   val naming: local_theory -> local_theory
   val mapping: xstring option -> (local_theory -> local_theory) -> theory -> local_theory * theory
   val term_syntax: (Context.generic -> Context.generic) -> local_theory -> local_theory
-  val syntax: string * bool -> (string * mixfix) list -> local_theory -> local_theory
-  val abbrevs: string * bool -> ((bstring * mixfix) * term) list -> local_theory -> local_theory
+  val syntax: Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
+  val abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> local_theory -> local_theory
   val consts: ((bstring * typ) * mixfix) list -> local_theory -> term list * local_theory
   val consts_restricted: (string * typ -> bool) ->
     ((bstring * typ) * mixfix) list -> local_theory -> term list * local_theory

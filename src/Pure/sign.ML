@@ -17,10 +17,10 @@ sig
   val add_tyabbrs_i: (bstring * string list * typ * mixfix) list -> theory -> theory
   val add_syntax: (bstring * string * mixfix) list -> theory -> theory
   val add_syntax_i: (bstring * typ * mixfix) list -> theory -> theory
-  val add_modesyntax: (string * bool) -> (bstring * string * mixfix) list -> theory -> theory
-  val add_modesyntax_i: (string * bool) -> (bstring * typ * mixfix) list -> theory -> theory
-  val del_modesyntax: (string * bool) -> (bstring * string * mixfix) list -> theory -> theory
-  val del_modesyntax_i: (string * bool) -> (bstring * typ * mixfix) list -> theory -> theory
+  val add_modesyntax: Syntax.mode -> (bstring * string * mixfix) list -> theory -> theory
+  val add_modesyntax_i: Syntax.mode -> (bstring * typ * mixfix) list -> theory -> theory
+  val del_modesyntax: Syntax.mode -> (bstring * string * mixfix) list -> theory -> theory
+  val del_modesyntax_i: Syntax.mode -> (bstring * typ * mixfix) list -> theory -> theory
   val add_consts: (bstring * string * mixfix) list -> theory -> theory
   val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
   val add_const_constraint: xstring * string option -> theory -> theory
@@ -190,8 +190,8 @@ sig
   val read_term: theory -> string -> term
   val read_prop: theory -> string -> term
   val add_consts_authentic: (bstring * typ * mixfix) list -> theory -> theory
-  val add_const_syntax: string * bool -> (string * mixfix) list -> theory -> theory
-  val add_abbrevs: string * bool -> ((bstring * mixfix) * term) list -> theory -> theory
+  val add_const_syntax: Syntax.mode -> (string * mixfix) list -> theory -> theory
+  val add_abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> theory -> theory
   include SIGN_THEORY
 end
 
@@ -696,11 +696,11 @@ val add_tyabbrs_i = fold (gen_add_tyabbr certify_typ_syntax);
 
 (* modify syntax *)
 
-fun gen_syntax change_gram prep_typ prmode args thy =
+fun gen_syntax change_gram prep_typ mode args thy =
   let
     fun prep (c, T, mx) = (c, prep_typ thy T, mx) handle ERROR msg =>
       cat_error msg ("in syntax declaration " ^ quote (Syntax.const_name c mx));
-  in thy |> map_syn (change_gram (is_logtype thy) prmode (map prep args)) end;
+  in thy |> map_syn (change_gram (is_logtype thy) mode (map prep args)) end;
 
 fun gen_add_syntax x = gen_syntax Syntax.extend_const_gram x;
 
@@ -711,8 +711,8 @@ val add_syntax_i = add_modesyntax_i Syntax.default_mode;
 val del_modesyntax = gen_syntax Syntax.remove_const_gram (read_typ_syntax o no_def_sort);
 val del_modesyntax_i = gen_syntax Syntax.remove_const_gram certify_typ_syntax;
 
-fun add_const_syntax prmode args thy =
-  thy |> add_modesyntax_i prmode (map (Consts.syntax (consts_of thy)) args);
+fun add_const_syntax mode args thy =
+  thy |> add_modesyntax_i mode (map (Consts.syntax (consts_of thy)) args);
 
 
 (* add constants *)

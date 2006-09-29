@@ -28,12 +28,12 @@ sig
   val definition_i:
     ((string * typ option * mixfix) option * ((string * Attrib.src list) * term)) list ->
     local_theory -> (term * (bstring * thm)) list * local_theory
-  val abbreviation: string * bool -> ((string * string option * mixfix) option * string) list ->
+  val abbreviation: Syntax.mode -> ((string * string option * mixfix) option * string) list ->
     local_theory -> local_theory
-  val abbreviation_i: string * bool -> ((string * typ option * mixfix) option * term) list ->
+  val abbreviation_i: Syntax.mode -> ((string * typ option * mixfix) option * term) list ->
     local_theory -> local_theory
-  val const_syntax: string * bool -> (xstring * mixfix) list -> local_theory -> local_theory
-  val const_syntax_i: string * bool -> (string * mixfix) list -> local_theory -> local_theory
+  val const_syntax: Syntax.mode -> (xstring * mixfix) list -> local_theory -> local_theory
+  val const_syntax_i: Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
 end;
 
 structure Specification: SPECIFICATION =

@@ -37,10 +37,11 @@ sig
   type syntax
   val eq_syntax: syntax * syntax -> bool
   val is_keyword: syntax -> string -> bool
-  val default_mode: string * bool
+  type mode
+  val default_mode: mode
   val extend_type_gram: (string * int * mixfix) list -> syntax -> syntax
   val extend_const_gram: (string -> bool) ->
-    string * bool -> (string * typ * mixfix) list -> syntax -> syntax
+    mode -> (string * typ * mixfix) list -> syntax -> syntax
   val extend_consts: string list -> syntax -> syntax
   val extend_trfuns:
     (string * ((ast list -> ast) * stamp)) list *
@@ -54,7 +55,7 @@ sig
     (string * ((Context.generic -> ast list -> ast) * stamp)) list -> syntax -> syntax
   val extend_tokentrfuns: (string * string * (string -> string * real)) list -> syntax -> syntax
   val remove_const_gram: (string -> bool) ->
-    string * bool -> (string * typ * mixfix) list -> syntax -> syntax
+    mode -> (string * typ * mixfix) list -> syntax -> syntax
   val extend_trrules: Context.generic -> (string -> bool) -> syntax ->
     (string * string) trrule list -> syntax -> syntax
   val remove_trrules: Context.generic -> (string -> bool) -> syntax ->
@@ -182,6 +183,7 @@ fun eq_syntax (Syntax (_, s1), Syntax (_, s2)) = s1 = s2;
 
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
 
+type mode = string * bool;
 val default_mode = ("", true);
 
 

@@ -13,7 +13,7 @@ sig
   val init: theory -> Proof.context
   val full_name: Proof.context -> bstring -> string
   val consts_of: Proof.context -> Consts.T
-  val set_syntax_mode: string * bool -> Proof.context -> Proof.context
+  val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
   val fact_index_of: Proof.context -> FactIndex.T
   val transfer: theory -> Proof.context -> Proof.context
@@ -137,8 +137,8 @@ sig
   val apply_case: RuleCases.T -> Proof.context -> (string * term list) list * Proof.context
   val get_case: Proof.context -> string -> string option list -> RuleCases.T
   val expand_abbrevs: bool -> Proof.context -> Proof.context
-  val add_const_syntax: string * bool -> (string * mixfix) list -> Proof.context -> Proof.context
-  val add_abbrevs: string * bool -> ((bstring * mixfix) * term) list ->
+  val add_const_syntax: Syntax.mode -> (string * mixfix) list -> Proof.context -> Proof.context
+  val add_abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list ->
     Proof.context -> Proof.context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
