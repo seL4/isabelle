@@ -5,6 +5,7 @@
 
 theory MatrixLP 
 imports Cplex
+uses ("matrixlp.ML")
 begin
 
 constdefs
@@ -62,5 +63,6 @@ lemmas sparse_row_matrix_arith_simps = SparseMatrix.sparse_row_matrix_arith_simp
 lemmas sorted_sp_simps = SparseMatrix.sorted_sp_simps
 lemmas fst_snd_conv = Product_Type.fst_conv Product_Type.snd_conv
 
-end
+use "matrixlp.ML"
 
+end
