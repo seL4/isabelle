@@ -701,7 +701,7 @@ $(OUT)/HOL-Complex-Matrix: $(OUT)/HOL-Complex \
   Matrix/cplex/Cplex.thy Matrix/cplex/CplexMatrixConverter.ML \
   Matrix/cplex/Cplex_tools.ML Matrix/cplex/FloatSparseMatrix.thy \
   Matrix/cplex/FloatSparseMatrixBuilder.ML Matrix/cplex/fspmlp.ML \
-  Matrix/cplex/MatrixLP.thy Matrix/cplex/MatrixLP.ML
+  Matrix/cplex/MatrixLP.thy Matrix/cplex/matrixlp.ML
 	@cd Matrix; $(ISATOOL) usedir -b -g true $(OUT)/HOL-Complex HOL-Complex-Matrix
 
 
