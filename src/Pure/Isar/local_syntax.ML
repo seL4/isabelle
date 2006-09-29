@@ -15,9 +15,9 @@ sig
   val init: theory -> T
   val rebuild: theory -> T -> T
   val add_syntax: theory -> (bool * (string * typ * mixfix)) list -> T -> T
-  val set_mode: string * bool -> T -> T
+  val set_mode: Syntax.mode -> T -> T
   val restore_mode: T -> T -> T
-  val add_modesyntax: theory -> string * bool -> (bool * (string * typ * mixfix)) list -> T -> T
+  val add_modesyntax: theory -> Syntax.mode -> (bool * (string * typ * mixfix)) list -> T -> T
   val extern_term: T -> term -> term
 end;
 
@@ -27,13 +27,13 @@ struct
 (* datatype T *)
 
 type local_mixfix =
-  ((string * bool) * string list list) *          (*name, fixed?, mixfix content*)
-  ((string * bool) * (string * typ * mixfix));    (*mode, mixfix syntax*)
+  (string * bool) *                           (*name, fixed?*)
+  (Syntax.mode * (string * typ * mixfix));    (*mode, declaration*)
 
 datatype T = Syntax of
  {thy_syntax: Syntax.syntax,
   local_syntax: Syntax.syntax,
-  mode: string * bool,
+  mode: Syntax.mode,
   mixfixes: local_mixfix list,
   idents: string list * string list};
 
@@ -81,17 +81,9 @@ local
 fun mixfix_nosyn (_, (_, _, mx)) = mx = NoSyn;
 fun mixfix_struct (_, (_, _, mx)) = mx = Structure;
 
-fun mixfix_conflict ((content1: string list list, inout1), ((_, content2), ((_, inout2), _))) =
-  inout1 andalso inout2 andalso exists (fn x => exists (fn y => x = y) content2) content1;
-
-fun add_mixfix (mode, inout) (fixed, (x, T, mx)) =
-  let
-    val content = Syntax.mixfix_content mx;
-    val c = if fixed then Syntax.fixedN ^ x else x;
-  in
-    remove mixfix_conflict (content, inout) #>
-    cons (((x, fixed), content), ((mode, inout), (c, T, mx)))
-  end;
+fun add_mixfix mode (fixed, (x, T, mx)) =
+  let val c = if fixed then Syntax.fixedN ^ x else x
+  in cons ((x, fixed), (mode, (c, T, mx))) end;
 
 fun prep_struct (fixed, (c, _, Structure)) =
       if fixed then SOME c
@@ -106,7 +98,7 @@ fun add_syntax thy raw_decls (syntax as (Syntax {mode, mixfixes, idents = (struc
   | decls =>
       let
         val mixfixes' = mixfixes |> fold (add_mixfix mode) (filter_out mixfix_struct decls);
-        val fixes' = fold (fn (((x, true), _), _) => cons x | _ => I) mixfixes' [];
+        val fixes' = fold (fn ((x, true), _) => cons x | _ => I) mixfixes' [];
         val structs' = structs @ map_filter prep_struct decls;
       in build_syntax thy mode mixfixes' (structs', fixes') end);
 
