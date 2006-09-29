@@ -484,8 +484,7 @@ fun banned_thmlist s =
 (*Reject theorems with names like "List.filter.filter_list_def" or
   "Accessible_Part.acc.defs", as these are definitions arising from packages*)
 fun is_package_def a =
-  let val l = NameSpace.unpack a
-  in  length l > 2 andalso String.isSubstring "def" (List.last l)  end;
+  String.isSuffix "_def" a orelse String.isSuffix "_defs" a;
 
 fun make_banned_test xs = 
   let val ht = Polyhash.mkTable (Polyhash.hash_string, op =)
