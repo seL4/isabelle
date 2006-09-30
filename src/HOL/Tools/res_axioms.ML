@@ -591,7 +591,6 @@ fun cnf_rules_pairs_aux pairs [] = pairs
   | cnf_rules_pairs_aux pairs ((name,th)::ths) =
       let val pairs' = (pair_name_cls 0 (name, cnf_axiom(name,th))) @ pairs
                        handle THM _ => pairs | ResClause.CLAUSE _ => pairs
-                            | ResHolClause.LAM2COMB _ => pairs
       in  cnf_rules_pairs_aux pairs' ths  end;
 
 val cnf_rules_pairs = cnf_rules_pairs_aux [];
