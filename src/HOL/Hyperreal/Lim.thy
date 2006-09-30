@@ -682,6 +682,33 @@ by (simp add: deriv_def)
 lemma DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) - f(x))/#h) -- 0 --> D"
 by (simp add: deriv_def)
 
+lemma DERIV_const [simp]: "DERIV (\<lambda>x. k) x :> 0"
+by (simp add: deriv_def)
+
+lemma DERIV_Id [simp]: "DERIV (\<lambda>x. x) x :> 1"
+by (simp add: deriv_def real_scaleR_def cong: LIM_equal [rule_format])
+
+lemma add_diff_add:
+  fixes a b c d :: "'a::ab_group_add"
+  shows "(a + c) - (b + d) = (a - b) + (c - d)"
+by simp
+
+lemma DERIV_add:
+  "\<lbrakk>DERIV f x :> D; DERIV g x :> E\<rbrakk> \<Longrightarrow> DERIV (\<lambda>x. f x + g x) x :> D + E"
+by (simp only: deriv_def add_diff_add scaleR_right_distrib LIM_add)
+
+lemma DERIV_minus:
+  "DERIV f x :> D \<Longrightarrow> DERIV (\<lambda>x. - f x) x :> - D"
+by (simp only: deriv_def minus_diff_minus scaleR_minus_right LIM_minus)
+
+lemma DERIV_diff:
+  "\<lbrakk>DERIV f x :> D; DERIV g x :> E\<rbrakk> \<Longrightarrow> DERIV (\<lambda>x. f x - g x) x :> D - E"
+by (simp only: diff_def DERIV_add DERIV_minus)
+
+lemma DERIV_add_minus:
+  "\<lbrakk>DERIV f x :> D; DERIV g x :> E\<rbrakk> \<Longrightarrow> DERIV (\<lambda>x. f x + - g x) x :> D + - E"
+by (simp only: DERIV_add DERIV_minus)
+
 lemma DERIV_unique:
       "[| DERIV f x :> D; DERIV f x :> E |] ==> D = E"
 apply (simp add: deriv_def)
@@ -1062,15 +1089,6 @@ lemma DERIV_isCont: "DERIV (f::real=>real) x :> D ==> isCont f x"
 by (simp add: NSDERIV_DERIV_iff [symmetric] isNSCont_isCont_iff [symmetric]
               NSDERIV_isNSCont)
 
-lemma DERIV_const [simp]: "(DERIV (%x. k::real) x :> 0)"
-by (simp add: NSDERIV_DERIV_iff [symmetric])
-
-(* Standard theorem *)
-lemma DERIV_add: "[| DERIV f x :> Da; DERIV g x :> Db |]
-      ==> DERIV (%x. f x + g x :: real) x :> (Da + Db)"
-apply (simp add: NSDERIV_add NSDERIV_DERIV_iff [symmetric])
-done
-
 lemma DERIV_mult:
      "[| DERIV f x :> Da; DERIV g x :> Db |]
       ==> DERIV (%x. f x * g x :: real) x :> (Da * g(x)) + (Db * f(x))"
@@ -1087,29 +1105,12 @@ apply (simp only: deriv_def times_divide_eq_right [symmetric]
 apply (erule LIM_const [THEN LIM_mult2])
 done
 
-lemma DERIV_minus: "DERIV f x :> D ==> DERIV (%x. -(f x)::real) x :> -D"
-by (simp add: NSDERIV_minus NSDERIV_DERIV_iff [symmetric])
-
-lemma DERIV_add_minus: "[| DERIV f x :> Da; DERIV g x :> Db |] ==> DERIV (%x. f x + -g x :: real) x :> Da + -Db"
-by (blast dest: DERIV_add DERIV_minus)
-
-lemma DERIV_diff:
-     "[| DERIV f x :> Da; DERIV g x :> Db |]
-       ==> DERIV (%x. f x - g x :: real) x :> Da-Db"
-apply (simp add: diff_minus)
-apply (blast intro: DERIV_add_minus)
-done
-
 (* standard version *)
 lemma DERIV_chain: "[| DERIV f (g x) :> Da; DERIV g x :> Db |] ==> DERIV (f o g) x :> Da * Db"
 by (simp add: NSDERIV_DERIV_iff [symmetric] NSDERIV_chain)
 
 lemma DERIV_chain2: "[| DERIV f (g x) :> Da; DERIV g x :> Db |] ==> DERIV (%x. f (g x)) x :> Da * Db"
 by (auto dest: DERIV_chain simp add: o_def)
-
-(*derivative of the identity function*)
-lemma DERIV_Id [simp]: "DERIV (%x. x) x :> 1"
-by (simp add: NSDERIV_DERIV_iff [symmetric])
 
 lemmas isCont_Id = DERIV_Id [THEN DERIV_isCont, standard]
 
