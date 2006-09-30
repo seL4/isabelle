@@ -170,10 +170,10 @@ lemma Rep_llist_LCons: "Rep_llist (LCons x l) =
     CONS (Datatype_Universe.Leaf x) (Rep_llist l)"
   by (simp add: LCons_def Abs_llist_inverse CONS_type Rep_llist)
 
-lemma llist_cases [case_names LNil LCons, cases type: llist]:
-  assumes LNil: "l = LNil \<Longrightarrow> C"
-    and LCons: "\<And>x l'. l = LCons x l' \<Longrightarrow> C"
-  shows C
+lemma llist_cases [cases type: llist]:
+  obtains
+    (LNil) "l = LNil"
+  | (LCons) x l' where "l = LCons x l'"
 proof (cases l)
   case (Abs_llist L)
   from `L \<in> llist` have "L \<in> LList (range Datatype_Universe.Leaf)" by (rule llistD)
