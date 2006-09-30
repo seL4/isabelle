@@ -19,7 +19,7 @@ sig
   val pr: string list * (int option * int option) -> Toplevel.transition -> Toplevel.transition
   val disable_pr: Toplevel.transition -> Toplevel.transition
   val enable_pr: Toplevel.transition -> Toplevel.transition
-  val cannot_undo: string -> Toplevel.transition -> Toplevel.transition
+  val undo_end: string -> Toplevel.transition -> Toplevel.transition
   val clear_undos_theory: int -> Toplevel.transition -> Toplevel.transition
   val redo: Toplevel.transition -> Toplevel.transition
   val undos_proof: int -> Toplevel.transition -> Toplevel.transition
@@ -136,7 +136,7 @@ val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
 
 (* history commands *)
 
-fun cannot_undo txt = Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt));
+fun undo_end txt = Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt));
 val clear_undos_theory = Toplevel.history o History.clear;
 
 val redo =

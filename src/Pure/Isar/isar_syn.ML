@@ -618,9 +618,13 @@ val backP =
 
 (* history *)
 
-val cannot_undoP =
-  OuterSyntax.improper_command "cannot_undo" "report 'cannot undo' error message" K.control
-    (P.name >> (Toplevel.no_timing oo IsarCmd.cannot_undo));
+val cannot_undoP =    (* FIXME ProofGeneral compatibility *)
+  OuterSyntax.improper_command "cannot_undo" "attempt to undo 'end'" K.control
+    (P.name >> (Toplevel.no_timing oo IsarCmd.undo_end));
+
+val undo_endP =
+  OuterSyntax.improper_command "undo_end" "attempt to undo 'end'" K.control
+    (P.name >> (Toplevel.no_timing oo IsarCmd.undo_end));
 
 val clear_undosP =
   OuterSyntax.improper_command "clear_undos" "clear theory-level undo information" K.control
@@ -910,8 +914,8 @@ val _ = OuterSyntax.add_parsers [
   terminal_proofP, default_proofP, immediate_proofP, done_proofP,
   skip_proofP, forget_proofP, deferP, preferP, applyP, apply_endP,
   proofP, alsoP, finallyP, moreoverP, ultimatelyP, backP,
-  cannot_undoP, clear_undosP, redoP, undos_proofP, undoP, killP,
-  interpretationP, interpretP,
+  cannot_undoP, undo_endP, clear_undosP, redoP, undos_proofP, undoP,
+  killP, interpretationP, interpretP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_localesP, print_localeP,
