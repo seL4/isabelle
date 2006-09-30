@@ -88,7 +88,7 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML Variable.add_fixes: "
   string list -> Proof.context -> string list * Proof.context"} \\
-  @{index_ML Variable.invent_fixes: "
+  @{index_ML Variable.variant_fixes: "
   string list -> Proof.context -> string list * Proof.context"} \\
   @{index_ML Variable.declare_term: "term -> Proof.context -> Proof.context"} \\
   @{index_ML Variable.declare_constraints: "term -> Proof.context -> Proof.context"} \\
@@ -108,7 +108,7 @@ text %mlref {*
   already.  There is a different policy within a local proof body: the
   given names are just hints for newly invented Skolem variables.
 
-  \item @{ML Variable.invent_fixes} is similar to @{ML
+  \item @{ML Variable.variant_fixes} is similar to @{ML
   Variable.add_fixes}, but always produces fresh variants of the given
   names.
 

@@ -215,7 +215,7 @@ fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
       val thy = ProofContext.theory_of ctxt
 
       val oqnames = map fst pre_qs
-      val (qs, ctxt') = Variable.invent_fixes oqnames ctxt
+      val (qs, ctxt') = Variable.variant_fixes oqnames ctxt
                                            |>> map2 (fn (_, T) => fn n => Free (n, T)) pre_qs
 
       fun inst t = subst_bounds (rev qs, t)

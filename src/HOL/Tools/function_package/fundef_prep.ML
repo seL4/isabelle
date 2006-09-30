@@ -84,7 +84,7 @@ fun mk_completeness globals clauses qglrs =
 
 fun mk_clause_context x ctxt (pre_qs,pre_gs,pre_lhs,pre_rhs) =
     let
-      val (qs, ctxt') = Variable.invent_fixes (map fst pre_qs) ctxt
+      val (qs, ctxt') = Variable.variant_fixes (map fst pre_qs) ctxt
                                            |>> map2 (fn (_, T) => fn n => Free (n, T)) pre_qs
 
       val thy = ProofContext.theory_of ctxt'
@@ -458,7 +458,7 @@ fun define_recursion_relation Rname domT ranT fvar f qglrs clauses RCss lthy =
 fun fix_globals domT ranT fvar ctxt =
     let
       val ([h, y, x, z, a, D, P, Pbool],ctxt') = 
-          Variable.invent_fixes ["h_fd", "y_fd", "x_fd", "z_fd", "a_fd", "D_fd", "P_fd", "Pb_fd"] ctxt
+          Variable.variant_fixes ["h_fd", "y_fd", "x_fd", "z_fd", "a_fd", "D_fd", "P_fd", "Pb_fd"] ctxt
     in
       (Globals {h = Free (h, domT --> ranT),
                 y = Free (y, ranT),

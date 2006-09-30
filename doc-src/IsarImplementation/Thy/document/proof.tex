@@ -106,7 +106,7 @@ Any variable that is not explicitly bound by \isa{{\isasymlambda}}-abstraction
 \begin{mldecls}
   \indexml{Variable.add-fixes}\verb|Variable.add_fixes: |\isasep\isanewline%
 \verb|  string list -> Proof.context -> string list * Proof.context| \\
-  \indexml{Variable.invent-fixes}\verb|Variable.invent_fixes: |\isasep\isanewline%
+  \indexml{Variable.variant-fixes}\verb|Variable.variant_fixes: |\isasep\isanewline%
 \verb|  string list -> Proof.context -> string list * Proof.context| \\
   \indexml{Variable.declare-term}\verb|Variable.declare_term: term -> Proof.context -> Proof.context| \\
   \indexml{Variable.declare-constraints}\verb|Variable.declare_constraints: term -> Proof.context -> Proof.context| \\
@@ -126,7 +126,7 @@ Any variable that is not explicitly bound by \isa{{\isasymlambda}}-abstraction
   already.  There is a different policy within a local proof body: the
   given names are just hints for newly invented Skolem variables.
 
-  \item \verb|Variable.invent_fixes| is similar to \verb|Variable.add_fixes|, but always produces fresh variants of the given
+  \item \verb|Variable.variant_fixes| is similar to \verb|Variable.add_fixes|, but always produces fresh variants of the given
   names.
 
   \item \verb|Variable.declare_term|~\isa{t\ ctxt} declares term

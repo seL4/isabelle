@@ -33,7 +33,7 @@ sig
   val add_fixes: string list -> Proof.context -> string list * Proof.context
   val add_fixes_direct: string list -> Proof.context -> Proof.context
   val fix_frees: term -> Proof.context -> Proof.context
-  val invent_fixes: string list -> Proof.context -> string list * Proof.context
+  val variant_fixes: string list -> Proof.context -> string list * Proof.context
   val invent_types: sort list -> Proof.context -> (string * sort) list * Proof.context
   val export_inst: Proof.context -> Proof.context -> string list * string list
   val exportT_inst: Proof.context -> Proof.context -> string list
@@ -199,7 +199,7 @@ fun declare_term t =
 
 val declare_prf = Proofterm.fold_proof_terms declare_internal (declare_internal o Logic.mk_type);
 
-fun declare_thm th = fold declare_internal (Thm.full_prop_of th :: Thm.hyps_of th);
+val declare_thm = Drule.fold_terms declare_internal;
 fun thm_context th = declare_thm th (Context.init_proof (Thm.theory_of_thm th));
 
 
@@ -274,7 +274,7 @@ fun add_fixes xs ctxt =
         (xs, fold Name.declare xs names));
   in ctxt |> new_fixes names' xs xs' end;
 
-fun invent_fixes raw_xs ctxt =
+fun variant_fixes raw_xs ctxt =
   let
     val names = names_of ctxt;
     val xs = map Name.clean raw_xs;
@@ -360,7 +360,7 @@ fun import_inst is_open ts ctxt =
     val ren = if is_open then I else Name.internal;
     val (instT, ctxt') = importT_inst ts ctxt;
     val vars = map (apsnd (TermSubst.instantiateT instT)) (rev (fold Term.add_vars ts []));
-    val (xs, ctxt'') = invent_fixes (map (ren o #1 o #1) vars) ctxt';
+    val (xs, ctxt'') = variant_fixes (map (ren o #1 o #1) vars) ctxt';
     val inst = vars ~~ map Free (xs ~~ map #2 vars);
   in ((instT, inst), ctxt'') end;
 
@@ -421,7 +421,7 @@ fun focus goal ctxt =
     val t = Thm.term_of goal;
     val ps = Term.variant_frees t (Term.strip_all_vars t);   (*as they are printed :-*)
     val (xs, Ts) = split_list ps;
-    val (xs', ctxt') = invent_fixes xs ctxt;
+    val (xs', ctxt') = variant_fixes xs ctxt;
     val ps' = ListPair.map (cert o Free) (xs', Ts);
     val goal' = fold forall_elim_prop ps' goal;
   in ((ps', goal'), ctxt') end;

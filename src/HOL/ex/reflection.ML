@@ -39,7 +39,7 @@ fun mk_congeq ctxt fs th =
        if (fN mem (term_consts t)) then (fn _ => [t]) else (fn _ => [])
      | add_fterms _ = I
    val fterms = add_fterms rhs []
-   val (xs, ctxt'') = Variable.invent_fixes (replicate (length fterms) "x") ctxt'
+   val (xs, ctxt'') = Variable.variant_fixes (replicate (length fterms) "x") ctxt'
    val tys = map fastype_of fterms
    val vs = map Free (xs ~~ tys)
    val env = fterms ~~ vs
@@ -111,7 +111,7 @@ fun decomp_genreif da cgns (t,ctxt) =
    (case s of 
      Abs(xn,xT,ta) => 
      (let
-       val ([xn],ctxt') = Variable.invent_fixes ["x"] ctxt
+       val ([xn],ctxt') = Variable.variant_fixes ["x"] ctxt
        val (xn,ta) = variant_abs (xn,xT,ta)
        val x = Free(xn,xT)
        val _ = (case AList.lookup (op =) (!bds) (HOLogic.listT xT)
@@ -164,7 +164,7 @@ fun mk_decompatom eqs (t,ctxt) =
    | t1$t2 => (get_nth t1 handle REIF "get_nth" => get_nth t2)
    | Abs(_,_,t') => get_nth t'
    | _ => raise REIF "get_nth"
-  val ([xn,vsn],ctxt') = Variable.invent_fixes ["x","vs"] ctxt
+  val ([xn,vsn],ctxt') = Variable.variant_fixes ["x","vs"] ctxt
   val thy = ProofContext.theory_of ctxt'
   val cert = cterm_of thy
   fun tryeqs [] = raise REIF "Can not find the atoms equation"
@@ -213,7 +213,7 @@ fun mk_decompatom eqs (t,ctxt) =
      ([],
       fn ths =>
         let 
-         val ([x], ctxt') = Variable.invent_fixes ["vs"] ctxt
+         val ([x], ctxt') = Variable.variant_fixes ["vs"] ctxt
 	 val cert = cterm_of (ProofContext.theory_of ctxt')
          val (Const("List.nth",_)$(vs as Var((vsn,vsi),_))$n) = 
              (snd o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) th
@@ -239,7 +239,7 @@ fun mk_congs ctxt raw_eqs =
   val tys = foldr (fn (f,ts) => (f |> fastype_of |> binder_types |> split_last |> fst) 
 				    union ts) [] fs
   val _ = bds := AList.make (fn _ => ([],[])) tys
-  val (vs, ctxt') = Variable.invent_fixes (replicate (length tys) "vs") ctxt
+  val (vs, ctxt') = Variable.variant_fixes (replicate (length tys) "vs") ctxt
   val thy = ProofContext.theory_of ctxt'
   val cert = cterm_of thy
   val vstys = map (fn (t,v) => (t,SOME (cert (Free(v,t))))) 
