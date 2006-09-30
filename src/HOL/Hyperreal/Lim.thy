@@ -240,6 +240,15 @@ lemma NSLIM_mult:
       ==> (%x. f(x) * g(x)) -- x --NS> (l * m)"
 by (auto simp add: NSLIM_def intro!: approx_mult_HFinite)
 
+lemma starfun_scaleR [simp]:
+  "starfun (\<lambda>x. f x *# g x) = (\<lambda>x. scaleHR (starfun f x) (starfun g x))"
+by transfer (rule refl)
+
+lemma NSLIM_scaleR:
+  "[| f -- x --NS> l; g -- x --NS> m |]
+      ==> (%x. f(x) *# g(x)) -- x --NS> (l *# m)"
+by (auto simp add: NSLIM_def intro!: approx_scaleR_HFinite)
+
 lemma NSLIM_add:
      "[| f -- x --NS> l; g -- x --NS> m |]
       ==> (%x. f(x) + g(x)) -- x --NS> (l + m)"
@@ -382,6 +391,11 @@ lemma LIM_mult2:
   shows "[| f -- x --> l; g -- x --> m |]
       ==> (%x. f(x) * g(x)) -- x --> (l * m)"
 by (simp add: LIM_NSLIM_iff NSLIM_mult)
+
+lemma LIM_scaleR:
+  "[| f -- x --> l; g -- x --> m |]
+      ==> (%x. f(x) *# g(x)) -- x --> (l *# m)"
+by (simp add: LIM_NSLIM_iff NSLIM_scaleR)
 
 lemma LIM_add2:
      "[| f -- x --> l; g -- x --> m |] ==> (%x. f(x) + g(x)) -- x --> (l + m)"

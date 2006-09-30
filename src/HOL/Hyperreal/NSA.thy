@@ -51,7 +51,12 @@ by (simp add: Reals_def image_def)
 
 subsection {* Nonstandard Extension of the Norm Function *}
 
+definition
+  scaleHR :: "real star \<Rightarrow> 'a star \<Rightarrow> 'a::real_normed_vector star"
+  "scaleHR = starfun2 scaleR"
+
 declare hnorm_def [transfer_unfold]
+declare scaleHR_def [transfer_unfold]
 
 lemma Standard_hnorm [simp]: "x \<in> Standard \<Longrightarrow> hnorm x \<in> Standard"
 by (simp add: hnorm_def)
@@ -76,8 +81,13 @@ lemma hnorm_triangle_ineq3:
 by transfer (rule norm_triangle_ineq3)
 
 lemma hnorm_scaleR:
+  "\<And>x::'a::real_normed_vector star.
+   hnorm (a *# x) = \<bar>star_of a\<bar> * hnorm x"
+by transfer (rule norm_scaleR)
+
+lemma hnorm_scaleHR:
   "\<And>a (x::'a::real_normed_vector star).
-   hnorm (( *f2* scaleR) a x) = \<bar>a\<bar> * hnorm x"
+   hnorm (scaleHR a x) = \<bar>a\<bar> * hnorm x"
 by transfer (rule norm_scaleR)
 
 lemma hnorm_mult_ineq:
@@ -142,6 +152,11 @@ apply (rule order_le_less_trans [OF hnorm_mult_ineq])
 apply (simp add: mult_strict_mono')
 done
 
+lemma hnorm_scaleHR_less:
+  "\<lbrakk>\<bar>x\<bar> < r; hnorm y < s\<rbrakk> \<Longrightarrow> hnorm (scaleHR x y) < r * s"
+apply (simp only: hnorm_scaleHR)
+apply (simp add: mult_strict_mono')
+done
 
 subsection{*Closure Laws for the Standard Reals*}
 
@@ -288,6 +303,12 @@ apply (simp add: HFinite_def)
 apply (blast intro!: SReal_mult hnorm_mult_less)
 done
 
+lemma HFinite_scaleHR:
+  "[|x \<in> HFinite; y \<in> HFinite|] ==> scaleHR x y \<in> HFinite"
+apply (simp add: HFinite_def)
+apply (blast intro!: SReal_mult hnorm_scaleHR_less)
+done
+
 lemma HFinite_minus_iff: "(-x \<in> HFinite) = (x \<in> HFinite)"
 by (simp add: HFinite_def)
 
@@ -382,7 +403,6 @@ lemma Infinitesimal_mult:
   fixes x y :: "'a::real_normed_algebra star"
   shows "[|x \<in> Infinitesimal; y \<in> Infinitesimal|] ==> (x * y) \<in> Infinitesimal"
 apply (rule InfinitesimalI)
-apply (case_tac "y = 0", simp)
 apply (subgoal_tac "hnorm (x * y) < 1 * r", simp only: mult_1)
 apply (rule hnorm_mult_less)
 apply (simp_all add: InfinitesimalD)
@@ -403,6 +423,20 @@ apply (simp only: divide_pos_pos)
 apply (erule order_le_less_trans [OF hnorm_ge_zero])
 done
 
+lemma Infinitesimal_HFinite_scaleHR:
+  "[| x \<in> Infinitesimal; y \<in> HFinite |] ==> scaleHR x y \<in> Infinitesimal"
+apply (rule InfinitesimalI)
+apply (drule HFiniteD, clarify)
+apply (drule InfinitesimalD)
+apply (simp add: hnorm_scaleHR)
+apply (subgoal_tac "0 < t")
+apply (subgoal_tac "\<bar>x\<bar> * hnorm y < (r / t) * t", simp)
+apply (subgoal_tac "0 < r / t")
+apply (rule mult_strict_mono', simp_all)
+apply (simp only: divide_pos_pos)
+apply (erule order_le_less_trans [OF hnorm_ge_zero])
+done
+
 lemma Infinitesimal_HFinite_mult2:
   fixes x y :: "'a::real_normed_algebra star"
   shows "[| x \<in> Infinitesimal; y \<in> HFinite |] ==> (y * x) \<in> Infinitesimal"
@@ -416,6 +450,17 @@ apply assumption
 apply (simp add: InfinitesimalD SReal_divide)
 apply (simp only: divide_pos_pos)
 apply (erule order_le_less_trans [OF hnorm_ge_zero])
+done
+
+lemma Infinitesimal_scaleR2:
+  "x \<in> Infinitesimal ==> a *# x \<in> Infinitesimal"
+apply (case_tac "a = 0", simp)
+apply (rule InfinitesimalI)
+apply (drule InfinitesimalD)
+apply (drule_tac x="r / \<bar>star_of a\<bar>" in bspec)
+apply (simp add: Reals_eq_Standard)
+apply (simp add: divide_pos_pos)
+apply (simp add: hnorm_scaleR pos_less_divide_eq mult_commute)
 done
 
 lemma Compl_HFinite: "- HFinite = HInfinite"
@@ -811,6 +856,31 @@ lemma approx_mult_HFinite:
 apply (rule approx_trans)
 apply (rule_tac [2] approx_mult2)
 apply (rule approx_mult1)
+prefer 2 apply (blast intro: approx_HFinite approx_sym, auto)
+done
+
+lemma scaleHR_left_diff_distrib:
+  "\<And>a b x. scaleHR (a - b) x = scaleHR a x - scaleHR b x"
+by transfer (rule scaleR_left_diff_distrib)
+
+lemma approx_scaleR1:
+  "[| a @= star_of b; c: HFinite|] ==> scaleHR a c @= b *# c"
+apply (unfold approx_def)
+apply (drule (1) Infinitesimal_HFinite_scaleHR)
+apply (simp only: scaleHR_left_diff_distrib)
+apply (simp add: scaleHR_def star_scaleR_def [symmetric])
+done
+
+lemma approx_scaleR2:
+  "a @= b ==> c *# a @= c *# b"
+by (simp add: approx_def Infinitesimal_scaleR2
+              scaleR_right_diff_distrib [symmetric])
+
+lemma approx_scaleR_HFinite:
+  "[|a @= star_of b; c @= d; d: HFinite|] ==> scaleHR a c @= b *# d"
+apply (rule approx_trans)
+apply (rule_tac [2] approx_scaleR2)
+apply (rule approx_scaleR1)
 prefer 2 apply (blast intro: approx_HFinite approx_sym, auto)
 done
 
