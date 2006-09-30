@@ -54,8 +54,8 @@ lemma fequal_imp_equal: "fequal X Y ==> X=Y"
 lemma equal_imp_fequal: "X=Y ==> fequal X Y"
   by (simp add: fequal_def)
 
-use "Tools/res_hol_clause.ML"
 use "Tools/res_axioms.ML"
+use "Tools/res_hol_clause.ML"
 use "Tools/res_atp.ML"
 use "Tools/reconstruction.ML"
 
