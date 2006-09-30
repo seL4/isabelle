@@ -32,23 +32,17 @@ rep_datatype sum
   inject Inl_eq Inr_eq
   induction sum_induct
 
-ML {*
-  val [sum_case_Inl, sum_case_Inr] = thms "sum.cases";
-  bind_thm ("sum_case_Inl", sum_case_Inl);
-  bind_thm ("sum_case_Inr", sum_case_Inr);
-*} -- {* compatibility *}
-
 lemma surjective_sum: "sum_case (%x::'a. f (Inl x)) (%y::'b. f (Inr y)) s = f(s)"
   apply (rule_tac s = s in sumE)
    apply (erule ssubst)
-   apply (rule sum_case_Inl)
+   apply (rule sum.cases(1))
   apply (erule ssubst)
-  apply (rule sum_case_Inr)
+  apply (rule sum.cases(2))
   done
 
 lemma sum_case_weak_cong: "s = t ==> sum_case f g s = sum_case f g t"
   -- {* Prevents simplification of @{text f} and @{text g}: much faster. *}
-  by (erule arg_cong)
+  by simp
 
 lemma sum_case_inject:
   "sum_case f1 f2 = sum_case g1 g2 ==> (f1 = g1 ==> f2 = g2 ==> P) ==> P"
@@ -77,61 +71,46 @@ lemma Suml_inject: "Suml f = Suml g ==> f = g"
 lemma Sumr_inject: "Sumr f = Sumr g ==> f = g"
   by (unfold Sumr_def) (erule sum_case_inject)
 
-
-subsection {* Finishing the datatype package setup *}
-
-text {* Belongs to theory @{text Datatype_Universe}; hides popular names. *}
-hide (open) const Push Node Atom Leaf Numb Lim Split Case Suml Sumr
-hide (open) type node item
+hide (open) const Suml Sumr
 
 
 subsection {* Further cases/induct rules for tuples *}
 
-lemma prod_cases3 [case_names fields, cases type]:
-    "(!!a b c. y = (a, b, c) ==> P) ==> P"
-  apply (cases y)
-  apply (case_tac b, blast)
-  done
+lemma prod_cases3 [cases type]:
+  obtains (fields) a b c where "y = (a, b, c)"
+  by (cases y, case_tac b) blast
 
 lemma prod_induct3 [case_names fields, induct type]:
     "(!!a b c. P (a, b, c)) ==> P x"
   by (cases x) blast
 
-lemma prod_cases4 [case_names fields, cases type]:
-    "(!!a b c d. y = (a, b, c, d) ==> P) ==> P"
-  apply (cases y)
-  apply (case_tac c, blast)
-  done
+lemma prod_cases4 [cases type]:
+  obtains (fields) a b c d where "y = (a, b, c, d)"
+  by (cases y, case_tac c) blast
 
 lemma prod_induct4 [case_names fields, induct type]:
     "(!!a b c d. P (a, b, c, d)) ==> P x"
   by (cases x) blast
 
-lemma prod_cases5 [case_names fields, cases type]:
-    "(!!a b c d e. y = (a, b, c, d, e) ==> P) ==> P"
-  apply (cases y)
-  apply (case_tac d, blast)
-  done
+lemma prod_cases5 [cases type]:
+  obtains (fields) a b c d e where "y = (a, b, c, d, e)"
+  by (cases y, case_tac d) blast
 
 lemma prod_induct5 [case_names fields, induct type]:
     "(!!a b c d e. P (a, b, c, d, e)) ==> P x"
   by (cases x) blast
 
-lemma prod_cases6 [case_names fields, cases type]:
-    "(!!a b c d e f. y = (a, b, c, d, e, f) ==> P) ==> P"
-  apply (cases y)
-  apply (case_tac e, blast)
-  done
+lemma prod_cases6 [cases type]:
+  obtains (fields) a b c d e f where "y = (a, b, c, d, e, f)"
+  by (cases y, case_tac e) blast
 
 lemma prod_induct6 [case_names fields, induct type]:
     "(!!a b c d e f. P (a, b, c, d, e, f)) ==> P x"
   by (cases x) blast
 
-lemma prod_cases7 [case_names fields, cases type]:
-    "(!!a b c d e f g. y = (a, b, c, d, e, f, g) ==> P) ==> P"
-  apply (cases y)
-  apply (case_tac f, blast)
-  done
+lemma prod_cases7 [cases type]:
+  obtains (fields) a b c d e f g where "y = (a, b, c, d, e, f, g)"
+  by (cases y, case_tac f) blast
 
 lemma prod_induct7 [case_names fields, induct type]:
     "(!!a b c d e f g. P (a, b, c, d, e, f, g)) ==> P x"
@@ -142,29 +121,22 @@ subsection {* The option type *}
 
 datatype 'a option = None | Some 'a
 
-lemma not_None_eq[iff]: "(x ~= None) = (EX y. x = Some y)"
+lemma not_None_eq [iff]: "(x ~= None) = (EX y. x = Some y)"
   by (induct x) auto
 
-lemma not_Some_eq[iff]: "(ALL y. x ~= Some y) = (x = None)"
+lemma not_Some_eq [iff]: "(ALL y. x ~= Some y) = (x = None)"
   by (induct x) auto
 
 text{*Although it may appear that both of these equalities are helpful
 only when applied to assumptions, in practice it seems better to give
 them the uniform iff attribute. *}
 
-(*
-lemmas not_None_eq_D = not_None_eq [THEN iffD1]
-declare not_None_eq_D [dest!]
-
-lemmas not_Some_eq_D = not_Some_eq [THEN iffD1]
-declare not_Some_eq_D [dest!]
-*)
-
 lemma option_caseE:
-  "(case x of None => P | Some y => Q y) ==>
-    (x = None ==> P ==> R) ==>
-    (!!y. x = Some y ==> Q y ==> R) ==> R"
-  by (cases x) simp_all
+  assumes c: "(case x of None => P | Some y => Q y)"
+  obtains
+    (None) "x = None" and P
+  | (Some) y where "x = Some y" and "Q y"
+  using c by (cases x) simp_all
 
 
 subsubsection {* Operations *}
@@ -202,23 +174,21 @@ lemma option_map_None [simp]: "option_map f None = None"
 lemma option_map_Some [simp]: "option_map f (Some x) = Some (f x)"
   by (simp add: option_map_def)
 
-lemma option_map_is_None[iff]:
- "(option_map f opt = None) = (opt = None)"
-by (simp add: option_map_def split add: option.split)
+lemma option_map_is_None [iff]:
+    "(option_map f opt = None) = (opt = None)"
+  by (simp add: option_map_def split add: option.split)
 
 lemma option_map_eq_Some [iff]:
     "(option_map f xo = Some y) = (EX z. xo = Some z & f z = y)"
-by (simp add: option_map_def split add: option.split)
+  by (simp add: option_map_def split add: option.split)
 
 lemma option_map_comp:
- "option_map f (option_map g opt) = option_map (f o g) opt"
-by (simp add: option_map_def split add: option.split)
+    "option_map f (option_map g opt) = option_map (f o g) opt"
+  by (simp add: option_map_def split add: option.split)
 
 lemma option_map_o_sum_case [simp]:
     "option_map f o sum_case g h = sum_case (option_map f o g) (option_map f o h)"
-  apply (rule ext)
-  apply (simp split add: sum.split)
-  done
+  by (rule ext) (simp split: sum.split)
 
 
 subsubsection {* Codegenerator setup *}
@@ -230,8 +200,8 @@ primrec
   "is_none (Some x) = False"
 
 lemma is_none_none [code inline]:
-  "(x = None) = (is_none x)" 
-by (cases x) simp_all
+    "(x = None) = (is_none x)" 
+  by (cases x) simp_all
 
 lemmas [code] = imp_conv_disj
 
@@ -243,15 +213,15 @@ lemma [code func]:
 
 lemma [code func]:
   shows "(False \<and> x) = False"
-  and   "(True \<and> x) = x"
-  and   "(x \<and> False) = False"
-  and   "(x \<and> True) = x" by simp_all
+    and "(True \<and> x) = x"
+    and "(x \<and> False) = False"
+    and "(x \<and> True) = x" by simp_all
 
 lemma [code func]:
   shows "(False \<or> x) = x"
-  and   "(True \<or> x) = True"
-  and   "(x \<or> False) = x"
-  and   "(x \<or> True) = True" by simp_all
+    and "(True \<or> x) = True"
+    and "(x \<or> False) = x"
+    and "(x \<or> True) = True" by simp_all
 
 declare
   if_True [code func]
@@ -260,8 +230,8 @@ declare
   snd_conv [code]
 
 lemma split_is_prod_case [code inline]:
-  "split = prod_case"
-by (simp add: expand_fun_eq split_def prod.cases)
+    "split = prod_case"
+  by (simp add: expand_fun_eq split_def prod.cases)
 
 code_type bool
   (SML target_atom "bool")
