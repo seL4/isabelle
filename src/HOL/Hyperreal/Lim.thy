@@ -34,10 +34,10 @@ definition
   "isNSCont f a = (\<forall>y. y @= star_of a -->
          ( *f* f) y @= star_of (f a))"
 
-  deriv:: "[real=>real,real,real] => bool"
+  deriv :: "[real \<Rightarrow> 'a::real_normed_vector, real, 'a] \<Rightarrow> bool"
     --{*Differentiation: D is derivative of function f at x*}
           ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
-  "DERIV f x :> D = ((%h. (f(x + h) - f x)/h) -- 0 --> D)"
+  "DERIV f x :> D = ((%h. (f(x + h) - f x) /# h) -- 0 --> D)"
 
   nsderiv :: "[real=>real,real,real] => bool"
           ("(NSDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
@@ -662,10 +662,10 @@ subsection {* Derivatives *}
 
 subsubsection {* Purely standard proofs *}
 
-lemma DERIV_iff: "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) -- 0 --> D)"
+lemma DERIV_iff: "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/#h) -- 0 --> D)"
 by (simp add: deriv_def)
 
-lemma DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) - f(x))/h) -- 0 --> D"
+lemma DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) - f(x))/#h) -- 0 --> D"
 by (simp add: deriv_def)
 
 lemma DERIV_unique:
@@ -686,8 +686,18 @@ apply (drule_tac k="a" in LIM_shift)
 apply (simp add: add_commute)
 done
 
-lemma DERIV_iff2: "(DERIV f x :> D) = ((%z. (f(z) - f(x)) / (z-x)) -- x --> D)"
-by (simp add: deriv_def diff_minus [symmetric] DERIV_LIM_iff)
+lemma DERIV_LIM_iff':
+     "((%h::real. (f(a + h) - f(a)) /# h) -- 0 --> D) =
+      ((%x. (f(x)-f(a)) /# (x-a)) -- a --> D)"
+apply (rule iffI)
+apply (drule_tac k="- a" in LIM_shift)
+apply (simp add: diff_minus)
+apply (drule_tac k="a" in LIM_shift)
+apply (simp add: add_commute)
+done
+
+lemma DERIV_iff2: "(DERIV f x :> D) = ((%z. (f(z) - f(x)) /# (z-x)) -- x --> D)"
+by (simp add: deriv_def diff_minus [symmetric] DERIV_LIM_iff')
 
 (* ------------------------------------------------------------------------ *)
 (* Caratheodory formulation of derivative at a point: standard proof        *)
@@ -695,14 +705,14 @@ by (simp add: deriv_def diff_minus [symmetric] DERIV_LIM_iff)
 
 lemma CARAT_DERIV:
      "(DERIV f x :> l) =
-      (\<exists>g. (\<forall>z. f z - f x = g z * (z-x)) & isCont g x & g x = l)"
+      (\<exists>g. (\<forall>z. f z - f x = (z-x) *# g z) & isCont g x & g x = l)"
       (is "?lhs = ?rhs")
 proof
   assume der: "DERIV f x :> l"
-  show "\<exists>g. (\<forall>z. f z - f x = g z * (z-x)) \<and> isCont g x \<and> g x = l"
+  show "\<exists>g. (\<forall>z. f z - f x = (z-x) *# g z) \<and> isCont g x \<and> g x = l"
   proof (intro exI conjI)
-    let ?g = "(%z. if z = x then l else (f z - f x) / (z-x))"
-    show "\<forall>z. f z - f x = ?g z * (z-x)" by (simp)
+    let ?g = "(%z. if z = x then l else (f z - f x) /# (z-x))"
+    show "\<forall>z. f z - f x = (z-x) *# ?g z" by (simp)
     show "isCont ?g x" using der
       by (simp add: isCont_iff DERIV_iff diff_minus
                cong: LIM_equal [rule_format])
@@ -711,7 +721,7 @@ proof
 next
   assume "?rhs"
   then obtain g where
-    "(\<forall>z. f z - f x = g z * (z-x))" and "isCont g x" and "g x = l" by blast
+    "(\<forall>z. f z - f x = (z-x) *# g z)" and "isCont g x" and "g x = l" by blast
   thus "(DERIV f x :> l)"
      by (auto simp add: isCont_iff DERIV_iff diff_minus
                cong: LIM_equal [rule_format])
@@ -719,13 +729,13 @@ qed
 
 
 
-subsubsection {* Purely nonstandard proofs *}
+subsubsection {* Nonstandard proofs *}
 
 lemma DERIV_NS_iff:
-      "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) -- 0 --NS> D)"
+      "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/#h) -- 0 --NS> D)"
 by (simp add: deriv_def LIM_NSLIM_iff)
 
-lemma NS_DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) - f(x))/h) -- 0 --NS> D"
+lemma NS_DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) - f(x))/#h) -- 0 --NS> D"
 by (simp add: deriv_def LIM_NSLIM_iff)
 
 lemma NSDeriv_unique:
@@ -1026,48 +1036,52 @@ done
 
 subsubsection {* Equivalence of NS and Standard definitions *}
 
+lemma divideR_eq_divide [simp]: "x /# y = x / y"
+by (simp add: real_scaleR_def divide_inverse mult_commute)
+
 text{*Now equivalence between NSDERIV and DERIV*}
 lemma NSDERIV_DERIV_iff: "(NSDERIV f x :> D) = (DERIV f x :> D)"
 by (simp add: deriv_def NSDERIV_NSLIM_iff LIM_NSLIM_iff)
 
 text{*Now Standard proof*}
-lemma DERIV_isCont: "DERIV f x :> D ==> isCont f x"
+lemma DERIV_isCont: "DERIV (f::real=>real) x :> D ==> isCont f x"
 by (simp add: NSDERIV_DERIV_iff [symmetric] isNSCont_isCont_iff [symmetric]
               NSDERIV_isNSCont)
 
-lemma DERIV_const [simp]: "(DERIV (%x. k) x :> 0)"
+lemma DERIV_const [simp]: "(DERIV (%x. k::real) x :> 0)"
 by (simp add: NSDERIV_DERIV_iff [symmetric])
 
 (* Standard theorem *)
 lemma DERIV_add: "[| DERIV f x :> Da; DERIV g x :> Db |]
-      ==> DERIV (%x. f x + g x) x :> Da + Db"
+      ==> DERIV (%x. f x + g x :: real) x :> (Da + Db)"
 apply (simp add: NSDERIV_add NSDERIV_DERIV_iff [symmetric])
 done
 
 lemma DERIV_mult:
      "[| DERIV f x :> Da; DERIV g x :> Db |]
-      ==> DERIV (%x. f x * g x) x :> (Da * g(x)) + (Db * f(x))"
+      ==> DERIV (%x. f x * g x :: real) x :> (Da * g(x)) + (Db * f(x))"
 by (simp add: NSDERIV_mult NSDERIV_DERIV_iff [symmetric])
 
 (* let's do the standard proof though theorem *)
 (* LIM_mult2 follows from a NS proof          *)
 
 lemma DERIV_cmult:
-      "DERIV f x :> D ==> DERIV (%x. c * f x) x :> c*D"
+      "DERIV f x :> D ==> DERIV (%x. c * f x :: real) x :> c*D"
 apply (simp only: deriv_def times_divide_eq_right [symmetric]
+                  divideR_eq_divide
                   NSDERIV_NSLIM_iff minus_mult_right right_diff_distrib [symmetric])
 apply (erule LIM_const [THEN LIM_mult2])
 done
 
-lemma DERIV_minus: "DERIV f x :> D ==> DERIV (%x. -(f x)) x :> -D"
+lemma DERIV_minus: "DERIV f x :> D ==> DERIV (%x. -(f x)::real) x :> -D"
 by (simp add: NSDERIV_minus NSDERIV_DERIV_iff [symmetric])
 
-lemma DERIV_add_minus: "[| DERIV f x :> Da; DERIV g x :> Db |] ==> DERIV (%x. f x + -g x) x :> Da + -Db"
+lemma DERIV_add_minus: "[| DERIV f x :> Da; DERIV g x :> Db |] ==> DERIV (%x. f x + -g x :: real) x :> Da + -Db"
 by (blast dest: DERIV_add DERIV_minus)
 
 lemma DERIV_diff:
      "[| DERIV f x :> Da; DERIV g x :> Db |]
-       ==> DERIV (%x. f x - g x) x :> Da-Db"
+       ==> DERIV (%x. f x - g x :: real) x :> Da-Db"
 apply (simp add: diff_minus)
 apply (blast intro: DERIV_add_minus)
 done
@@ -1109,7 +1123,7 @@ by (simp add: NSDERIV_inverse NSDERIV_DERIV_iff [symmetric] del: realpow_Suc)
 
 text{*Derivative of inverse*}
 lemma DERIV_inverse_fun: "[| DERIV f x :> d; f(x) \<noteq> 0 |]
-      ==> DERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ Suc (Suc 0))))"
+      ==> DERIV (%x. inverse(f x)::real) x :> (- (d * inverse(f(x) ^ Suc (Suc 0))))"
 apply (simp only: mult_commute [of d] minus_mult_left power_inverse)
 apply (fold o_def)
 apply (blast intro!: DERIV_chain DERIV_inverse)
@@ -1121,7 +1135,7 @@ by (simp add: NSDERIV_DERIV_iff DERIV_inverse_fun del: realpow_Suc)
 
 text{*Derivative of quotient*}
 lemma DERIV_quotient: "[| DERIV f x :> d; DERIV g x :> e; g(x) \<noteq> 0 |]
-       ==> DERIV (%y. f(y) / (g y)) x :> (d*g(x) - (e*f(x))) / (g(x) ^ Suc (Suc 0))"
+       ==> DERIV (%y. f(y) / (g y) :: real) x :> (d*g(x) - (e*f(x))) / (g(x) ^ Suc (Suc 0))"
 apply (drule_tac f = g in DERIV_inverse_fun)
 apply (drule_tac [2] DERIV_mult)
 apply (assumption+)
@@ -1137,7 +1151,8 @@ by (simp add: NSDERIV_DERIV_iff DERIV_quotient del: realpow_Suc)
 
 lemma CARAT_NSDERIV: "NSDERIV f x :> l ==>
       \<exists>g. (\<forall>z. f z - f x = g z * (z-x)) & isNSCont g x & g x = l"
-by (auto simp add: NSDERIV_DERIV_iff isNSCont_isCont_iff CARAT_DERIV)
+by (auto simp add: NSDERIV_DERIV_iff isNSCont_isCont_iff CARAT_DERIV
+                   real_scaleR_def mult_commute)
 
 lemma hypreal_eq_minus_iff3: "(x = y + z) = (x + -z = (y::hypreal))"
 by auto
@@ -1629,6 +1644,7 @@ done
 text{*If @{term "0 < f'(x)"} then @{term x} is Locally Strictly Increasing At The Right*}
 
 lemma DERIV_left_inc:
+  fixes f :: "real => real"
   assumes der: "DERIV f x :> l"
       and l:   "0 < l"
   shows "\<exists>d > 0. \<forall>h > 0. h < d --> f(x) < f(x + h)"
@@ -1658,6 +1674,7 @@ proof -
 qed
 
 lemma DERIV_left_dec:
+  fixes f :: "real => real"
   assumes der: "DERIV f x :> l"
       and l:   "l < 0"
   shows "\<exists>d > 0. \<forall>h > 0. h < d --> f(x) < f(x-h)"
@@ -1687,6 +1704,7 @@ proof -
 qed
 
 lemma DERIV_local_max:
+  fixes f :: "real => real"
   assumes der: "DERIV f x :> l"
       and d:   "0 < d"
       and le:  "\<forall>y. \<bar>x-y\<bar> < d --> f(y) \<le> f(x)"
@@ -1716,13 +1734,15 @@ qed
 
 text{*Similar theorem for a local minimum*}
 lemma DERIV_local_min:
-     "[| DERIV f x :> l; 0 < d; \<forall>y. \<bar>x-y\<bar> < d --> f(x) \<le> f(y) |] ==> l = 0"
+  fixes f :: "real => real"
+  shows "[| DERIV f x :> l; 0 < d; \<forall>y. \<bar>x-y\<bar> < d --> f(x) \<le> f(y) |] ==> l = 0"
 by (drule DERIV_minus [THEN DERIV_local_max], auto)
 
 
 text{*In particular, if a function is locally flat*}
 lemma DERIV_local_const:
-     "[| DERIV f x :> l; 0 < d; \<forall>y. \<bar>x-y\<bar> < d --> f(x) = f(y) |] ==> l = 0"
+  fixes f :: "real => real"
+  shows "[| DERIV f x :> l; 0 < d; \<forall>y. \<bar>x-y\<bar> < d --> f(x) = f(y) |] ==> l = 0"
 by (auto dest!: DERIV_local_max)
 
 text{*Lemma about introducing open ball in open interval*}
@@ -1888,7 +1908,9 @@ qed
 
 text{*A function is constant if its derivative is 0 over an interval.*}
 
-lemma DERIV_isconst_end: "[| a < b;
+lemma DERIV_isconst_end:
+  fixes f :: "real => real"
+  shows "[| a < b;
          \<forall>x. a \<le> x & x \<le> b --> isCont f x;
          \<forall>x. a < x & x < b --> DERIV f x :> 0 |]
         ==> f b = f a"
@@ -1897,7 +1919,9 @@ apply (blast intro: differentiableI)
 apply (auto dest!: DERIV_unique simp add: diff_eq_eq)
 done
 
-lemma DERIV_isconst1: "[| a < b;
+lemma DERIV_isconst1:
+  fixes f :: "real => real"
+  shows "[| a < b;
          \<forall>x. a \<le> x & x \<le> b --> isCont f x;
          \<forall>x. a < x & x < b --> DERIV f x :> 0 |]
         ==> \<forall>x. a \<le> x & x \<le> b --> f x = f a"
@@ -1906,7 +1930,9 @@ apply (drule_tac x = a in order_le_imp_less_or_eq, safe)
 apply (drule_tac b = x in DERIV_isconst_end, auto)
 done
 
-lemma DERIV_isconst2: "[| a < b;
+lemma DERIV_isconst2:
+  fixes f :: "real => real"
+  shows "[| a < b;
          \<forall>x. a \<le> x & x \<le> b --> isCont f x;
          \<forall>x. a < x & x < b --> DERIV f x :> 0;
          a \<le> x; x \<le> b |]
@@ -1914,7 +1940,9 @@ lemma DERIV_isconst2: "[| a < b;
 apply (blast dest: DERIV_isconst1)
 done
 
-lemma DERIV_isconst_all: "\<forall>x. DERIV f x :> 0 ==> f(x) = f(y)"
+lemma DERIV_isconst_all:
+  fixes f :: "real => real"
+  shows "\<forall>x. DERIV f x :> 0 ==> f(x) = f(y)"
 apply (rule linorder_cases [of x y])
 apply (blast intro: sym DERIV_isCont DERIV_isconst_end)+
 done
@@ -1942,6 +1970,7 @@ by (simp)
 text{*Gallileo's "trick": average velocity = av. of end velocities*}
 
 lemma DERIV_const_average:
+  fixes v :: "real => real"
   assumes neq: "a \<noteq> (b::real)"
       and der: "\<forall>x. DERIV v x :> k"
   shows "v ((a + b)/2) = (v a + v b)/2"
