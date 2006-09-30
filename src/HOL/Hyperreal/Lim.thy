@@ -212,6 +212,11 @@ lemma LIM_equal:
      "[| \<forall>x. x \<noteq> a --> (f x = g x) |] ==> (f -- a --> l) = (g -- a --> l)"
 by (simp add: LIM_def)
 
+lemma LIM_cong:
+  "\<lbrakk>a = b; \<And>x. x \<noteq> b \<Longrightarrow> f x = g x; l = m\<rbrakk>
+   \<Longrightarrow> (f -- a --> l) = (g -- b --> m)"
+by (simp add: LIM_def)
+
 text{*Two uses in Hyperreal/Transcendental.ML*}
 lemma LIM_trans:
      "[| (%x. f(x) + -g(x)) -- a --> 0;  g -- a --> l |] ==> f -- a --> l"
@@ -686,7 +691,7 @@ lemma DERIV_const [simp]: "DERIV (\<lambda>x. k) x :> 0"
 by (simp add: deriv_def)
 
 lemma DERIV_Id [simp]: "DERIV (\<lambda>x. x) x :> 1"
-by (simp add: deriv_def real_scaleR_def cong: LIM_equal [rule_format])
+by (simp add: deriv_def real_scaleR_def cong: LIM_cong)
 
 lemma add_diff_add:
   fixes a b c d :: "'a::ab_group_add"
@@ -708,6 +713,49 @@ by (simp only: diff_def DERIV_add DERIV_minus)
 lemma DERIV_add_minus:
   "\<lbrakk>DERIV f x :> D; DERIV g x :> E\<rbrakk> \<Longrightarrow> DERIV (\<lambda>x. f x + - g x) x :> D + - E"
 by (simp only: DERIV_add DERIV_minus)
+
+lemma DERIV_isCont: "DERIV f x :> D \<Longrightarrow> isCont f x"
+proof (unfold isCont_iff)
+  assume "DERIV f x :> D"
+  hence "(\<lambda>h. (f(x+h) - f(x)) /# h) -- 0 --> D"
+    by (rule DERIV_D)
+  hence "(\<lambda>h. h *# ((f(x+h) - f(x)) /# h)) -- 0 --> 0 *# D"
+    by (intro LIM_scaleR LIM_self)
+  hence "(\<lambda>h. (f(x+h) - f(x))) -- 0 --> 0"
+    by (simp cong: LIM_cong)
+  thus "(\<lambda>h. f(x+h)) -- 0 --> f(x)"
+    by (simp add: LIM_def)
+qed
+
+lemma DERIV_mult_lemma:
+  fixes a b c d :: "'a::real_algebra"
+  shows "(a * b - c * d) /# h = a * ((b - d) /# h) + ((a - c) /# h) * d"
+by (simp add: diff_minus scaleR_right_distrib [symmetric] ring_distrib)
+
+lemma DERIV_mult':
+  fixes f g :: "real \<Rightarrow> 'a::real_normed_algebra"
+  assumes f: "DERIV f x :> D"
+  assumes g: "DERIV g x :> E"
+  shows "DERIV (\<lambda>x. f x * g x) x :> f x * E + D * g x"
+proof (unfold deriv_def)
+  from f have "isCont f x"
+    by (rule DERIV_isCont)
+  hence "(\<lambda>h. f(x+h)) -- 0 --> f x"
+    by (simp only: isCont_iff)
+  hence "(\<lambda>h. f(x+h) * ((g(x+h) - g x) /# h) +
+              ((f(x+h) - f x) /# h) * g x)
+          -- 0 --> f x * E + D * g x"
+    by (intro LIM_add LIM_mult2 LIM_const DERIV_D f g)
+  thus "(\<lambda>h. (f(x+h) * g(x+h) - f x * g x) /# h)
+         -- 0 --> f x * E + D * g x"
+    by (simp only: DERIV_mult_lemma)
+qed
+
+lemma DERIV_mult:
+  fixes f g :: "real \<Rightarrow> 'a::{real_normed_algebra,comm_ring}" shows
+     "[| DERIV f x :> Da; DERIV g x :> Db |]
+      ==> DERIV (%x. f x * g x) x :> (Da * g(x)) + (Db * f(x))"
+by (drule (1) DERIV_mult', simp only: mult_commute add_commute)
 
 lemma DERIV_unique:
       "[| DERIV f x :> D; DERIV f x :> E |] ==> D = E"
@@ -1083,16 +1131,6 @@ by (simp add: real_scaleR_def divide_inverse mult_commute)
 text{*Now equivalence between NSDERIV and DERIV*}
 lemma NSDERIV_DERIV_iff: "(NSDERIV f x :> D) = (DERIV f x :> D)"
 by (simp add: deriv_def NSDERIV_NSLIM_iff LIM_NSLIM_iff)
-
-text{*Now Standard proof*}
-lemma DERIV_isCont: "DERIV (f::real=>real) x :> D ==> isCont f x"
-by (simp add: NSDERIV_DERIV_iff [symmetric] isNSCont_isCont_iff [symmetric]
-              NSDERIV_isNSCont)
-
-lemma DERIV_mult:
-     "[| DERIV f x :> Da; DERIV g x :> Db |]
-      ==> DERIV (%x. f x * g x :: real) x :> (Da * g(x)) + (Db * f(x))"
-by (simp add: NSDERIV_mult NSDERIV_DERIV_iff [symmetric])
 
 (* let's do the standard proof though theorem *)
 (* LIM_mult2 follows from a NS proof          *)
