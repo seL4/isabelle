@@ -7,7 +7,14 @@ S-expressions, general binary trees for defining recursive data
 structures by hand.
 *)
 
-theory Sexp imports Datatype_Universe Inductive begin
+theory Sexp imports Main begin
+
+types
+  'a item = "'a Datatype_Universe.item"
+abbreviation
+  "Leaf == Datatype_Universe.Leaf"
+  "Numb == Datatype_Universe.Numb"
+
 consts
   sexp      :: "'a item set"
 
@@ -18,12 +25,11 @@ inductive sexp
     SconsI: "[| M \<in> sexp;  N \<in> sexp |] ==> Scons M N \<in> sexp"
 
 definition
-
   sexp_case :: "['a=>'b, nat=>'b, ['a item, 'a item]=>'b, 
                 'a item] => 'b"
-   "sexp_case c d e M = (THE z. (EX x.   M=Leaf(x) & z=c(x))  
-                            | (EX k.   M=Numb(k) & z=d(k))  
-                            | (EX N1 N2. M = Scons N1 N2  & z=e N1 N2))"
+  "sexp_case c d e M = (THE z. (EX x.   M=Leaf(x) & z=c(x))  
+                             | (EX k.   M=Numb(k) & z=d(k))  
+                             | (EX N1 N2. M = Scons N1 N2  & z=e N1 N2))"
 
   pred_sexp :: "('a item * 'a item)set"
      "pred_sexp = (\<Union>M \<in> sexp. \<Union>N \<in> sexp. {(M, Scons M N), (N, Scons M N)})"

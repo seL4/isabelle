@@ -24,7 +24,7 @@ datatype 'a m = Node 'a * ('a m) list
 Tidied by lcp.  Still needs removal of nat_rec.
 *)
 
-theory SList imports NatArith Sexp Hilbert_Choice begin
+theory SList imports Sexp begin
 
 (*Hilbert_Choice is needed for the function "inv"*)
 
@@ -38,10 +38,10 @@ theory SList imports NatArith Sexp Hilbert_Choice begin
 (* Defining the Concrete Constructors *)
 definition
   NIL  :: "'a item"
-   "NIL = In0(Numb(0))"
+  "NIL = In0(Numb(0))"
 
   CONS :: "['a item, 'a item] => 'a item"
-   "CONS M N = In1(Scons M N)"
+  "CONS M N = In1(Scons M N)"
 
 consts
   list      :: "'a item set => 'a item set"
@@ -52,16 +52,20 @@ inductive "list(A)"
 
 
 typedef (List)
-  'a list = "list(range Leaf) :: 'a item set" 
+    'a list = "list(range Leaf) :: 'a item set" 
   by (blast intro: list.NIL_I)
+
+abbreviation
+  "Case == Datatype_Universe.Case"
+  "Split == Datatype_Universe.Split"
 
 definition
   List_case :: "['b, ['a item, 'a item]=>'b, 'a item] => 'b"
-   "List_case c d = Case(%x. c)(Split(d))"
+  "List_case c d = Case(%x. c)(Split(d))"
   
   List_rec  :: "['a item, 'b, ['a item, 'a item, 'b]=>'b] => 'b"
-   "List_rec M c d = wfrec (trancl pred_sexp)
-                            (%g. List_case c (%x y. d x y (g y))) M"
+  "List_rec M c d = wfrec (trancl pred_sexp)
+                           (%g. List_case c (%x y. d x y (g y))) M"
 
 
 (* *********************************************************************** *)
@@ -71,6 +75,13 @@ definition
 (* *********************************************************************** *)
 
 (*Declaring the abstract list constructors*)
+
+no_translations
+  "[x, xs]" == "x#[xs]"
+  "[x]" == "x#[]"
+no_syntax
+  Nil :: "'a list"  ("[]")
+  Cons :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixr "#" 65)
 
 definition
   Nil       :: "'a list"                               ("[]")
@@ -88,9 +99,6 @@ definition
    "list_case a f xs = list_rec xs a (%x xs r. f x xs)"
 
 (* list Enumeration *)
-syntax
-  "@list"   :: "args => 'a list"                    ("[(_)]")
-
 translations
   "[x, xs]" == "x#[xs]"
   "[x]"     == "x#[]"
@@ -196,10 +204,14 @@ primrec
   enum_Suc: "enum i (Suc j) = (if i <= j then enum i j @ [j] else [])"
 
 
+no_syntax
+  "@" :: "'a list => 'a list => 'a list"    (infixr 65)
+no_translations
+  "[x:xs . P]" == "filter (%x. P) xs"
+
 syntax
   (* Special syntax for list_all and filter *)
   "@Alls"       :: "[idt, 'a list, bool] => bool"        ("(2Alls _:_./ _)" 10)
-  "@filter"     :: "[idt, 'a list, bool] => 'a list"     ("(1[_:_ ./ _])")
 
 translations
   "[x:xs. P]" == "CONST filter(%x. P) xs"
