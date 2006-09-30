@@ -100,6 +100,7 @@ done
 
 
 lemma Maclaurin_lemma3:
+  fixes difg :: "nat => real => real" shows
      "[|\<forall>k t. k < Suc m \<and> 0\<le>t & t\<le>h \<longrightarrow> DERIV (difg k) t :> difg (Suc k) t;
         \<forall>k<Suc m. difg k 0 = 0; DERIV (difg n) t :> 0;  n < m; 0 < t;
         t < h|]

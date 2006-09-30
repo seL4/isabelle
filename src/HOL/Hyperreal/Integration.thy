@@ -871,6 +871,7 @@ lemma partition_exists2:
 by (blast dest: partition_exists) 
 
 lemma monotonic_anti_derivative:
+  fixes f g :: "real => real" shows
      "[| a \<le> b; \<forall>c. a \<le> c & c \<le> b --> f' c \<le> g' c;
          \<forall>x. DERIV f x :> f' x; \<forall>x. DERIV g x :> g' x |]
       ==> f b - f a \<le> g b - g a"

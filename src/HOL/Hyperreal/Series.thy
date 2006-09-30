@@ -539,7 +539,7 @@ text{*Differentiation of finite sum*}
 
 lemma DERIV_sumr [rule_format (no_asm)]:
      "(\<forall>r. m \<le> r & r < (m + n) --> DERIV (%x. f r x) x :> (f' r x))  
-      --> DERIV (%x. \<Sum>n=m..<n::nat. f n x) x :> (\<Sum>r=m..<n. f' r x)"
+      --> DERIV (%x. \<Sum>n=m..<n::nat. f n x :: real) x :> (\<Sum>r=m..<n. f' r x)"
 apply (induct "n")
 apply (auto intro: DERIV_add)
 done

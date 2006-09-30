@@ -224,7 +224,7 @@ declare pderiv_singleton [simp]
 lemma pderiv_Cons: "pderiv (h#t) = pderiv_aux 1 t"
 by (simp add: pderiv_def)
 
-lemma DERIV_cmult2: "DERIV f x :> D ==> DERIV (%x. (f x) * c) x :> D * c"
+lemma DERIV_cmult2: "DERIV f x :> D ==> DERIV (%x. (f x) * c :: real) x :> D * c"
 by (simp add: DERIV_cmult mult_commute [of _ c])
 
 lemma DERIV_pow2: "DERIV (%x. x ^ Suc n) x :> real (Suc n) * (x ^ n)"
@@ -246,7 +246,7 @@ lemma lemma_DERIV_poly: "DERIV (%x. (x ^ (Suc n) * poly p x)) x :>
         x ^ n * poly (pderiv_aux (Suc n) p) x "
 by (simp add: lemma_DERIV_poly1 del: realpow_Suc)
 
-lemma DERIV_add_const: "DERIV f x :> D ==>  DERIV (%x. a + f x) x :> D"
+lemma DERIV_add_const: "DERIV f x :> D ==>  DERIV (%x. a + f x :: real) x :> D"
 by (rule lemma_DERIV_subst, rule DERIV_add, auto)
 
 lemma poly_DERIV: "DERIV (%x. poly p x) x :> poly (pderiv p) x"
