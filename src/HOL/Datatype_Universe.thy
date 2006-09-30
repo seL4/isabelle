@@ -533,6 +533,13 @@ by auto
 lemma Domain_dsum [simp]: "Domain (dsum r s) = usum (Domain r) (Domain s)"
 by auto
 
+
+subsection {* Finishing the datatype package setup *}
+
+text {* Belongs to theory @{text Datatype_Universe}; hides popular names. *}
+hide (open) const Push Node Atom Leaf Numb Lim Split Case
+hide (open) type node item
+
 ML
 {*
 val apfst_conv = thm "apfst_conv";
