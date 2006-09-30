@@ -9,6 +9,20 @@ structure ResHolClause =
 
 struct
 
+(* theorems for combinators and function extensionality *)
+val ext = thm "HOL.ext";
+val comb_I = thm "Reconstruction.COMBI_def";
+val comb_K = thm "Reconstruction.COMBK_def";
+val comb_B = thm "Reconstruction.COMBB_def";
+val comb_C = thm "Reconstruction.COMBC_def";
+val comb_S = thm "Reconstruction.COMBS_def";
+val comb_B' = thm "Reconstruction.COMBB'_def";
+val comb_C' = thm "Reconstruction.COMBC'_def";
+val comb_S' = thm "Reconstruction.COMBS'_def";
+val fequal_imp_equal = thm "Reconstruction.fequal_imp_equal";
+val equal_imp_fequal = thm "Reconstruction.equal_imp_fequal";
+
+
 (* a flag to set if we use extra combinators B',C',S' *)
 val use_combB'C'S' = ref true;
 
@@ -55,8 +69,6 @@ fun is_free (Bound(a)) n = (a = n)
   | is_free (P $ Q) n = ((is_free P n) orelse (is_free Q n))
   | is_free _ _ = false;
 
-
-exception LAM2COMB of term;
 
 exception BND of term;
 
@@ -202,7 +214,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 			     compact_comb (Const("COMBS",tS) $ P' $ Q') Bnds count_comb
 			 end)))
     end
-  | lam2comb (t as (Abs(x,t1,_))) _ _ = raise LAM2COMB (t);
+  | lam2comb (t as (Abs(x,t1,_))) _ _ = raise ResClause.CLAUSE("HOL CLAUSE",t);
 
 (*********************)
 
@@ -841,37 +853,26 @@ fun preds_of clsrel_clauses arity_clauses =
 (* write clauses to files                                             *)
 (**********************************************************************)
 
-(* tptp format *)
+local
 
-fun read_in fs = map (File.read o File.unpack_platform_path) fs; 
+val cnf_helper_thms = ResAxioms.cnf_rules_pairs o (map ResAxioms.pairname)
 
-fun get_helper_tptp () =
-    let val IK = if !combI_count > 0 orelse !combK_count > 0 then (Output.debug "Include combinator I K";["combIK.tptp"]) else []
-	val BC = if !combB_count > 0 orelse !combC_count > 0 then (Output.debug "Include combinator B C";["combBC.tptp"]) else []
-	val S = if !combS_count > 0 then (Output.debug "Include combinator S";["combS.tptp"]) else []
-	val B'C' = if !combB'_count > 0 orelse !combC'_count > 0 then (Output.debug "Include combinator B' C'"; ["combBC_e.tptp"]) else []
-	val S' = if !combS'_count > 0 then (Output.debug "Include combinator S'";["combS_e.tptp"]) else []
+in
+
+fun get_helper_clauses () =
+    let val IK = if !combI_count > 0 orelse !combK_count > 0 then (Output.debug "Include combinator I K"; cnf_helper_thms [comb_I,comb_K]) else []
+	val BC = if !combB_count > 0 orelse !combC_count > 0 then (Output.debug "Include combinator B C"; cnf_helper_thms [comb_B,comb_C]) else []
+	val S = if !combS_count > 0 then (Output.debug "Include combinator S"; cnf_helper_thms [comb_S]) else []
+	val B'C' = if !combB'_count > 0 orelse !combC'_count > 0 then (Output.debug "Include combinator B' C'"; cnf_helper_thms [comb_B', comb_C']) else []
+	val S' = if !combS'_count > 0 then (Output.debug "Include combinator S'"; cnf_helper_thms [comb_S']) else []
+	val other = cnf_helper_thms [ext,fequal_imp_equal,equal_imp_fequal]
     in
-	("helper1.tptp") :: (IK @ BC @ S @ B'C' @ S')
-    end;
+	make_axiom_clauses (other @ IK @ BC @ S @ B'C' @ S') []
+    end
 
+end
 
-fun get_helper_clauses_tptp () =
-  let val tlevel = case !typ_level of 
-		       T_FULL => (Output.debug "Fully-typed HOL"; 
-				  "~~/src/HOL/Tools/atp-inputs/full_")
-		     | T_PARTIAL => (Output.debug "Partially-typed HOL"; 
-				     "~~/src/HOL/Tools/atp-inputs/par_")
-		     | T_CONST => (Output.debug "Const-only-typed HOL"; 
-				   "~~/src/HOL/Tools/atp-inputs/const_")
-		     | T_NONE => (Output.debug "Untyped HOL"; 
-				  "~~/src/HOL/Tools/atp-inputs/u_")
-      val helpers = get_helper_tptp ()
-      val t_helpers = map (curry (op ^) tlevel) helpers
-  in
-      read_in t_helpers
-  end;
-	
+(* tptp format *)
 						  
 (* write TPTP format to a single file *)
 (* when "get_helper_clauses" is called, "include_combS" and "include_min_comb" should have correct values already *)
@@ -881,47 +882,21 @@ fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) use
 	val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
 	val tfree_clss = map ResClause.tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
 	val out = TextIO.openOut filename
-	val helper_clauses = get_helper_clauses_tptp ()
+	val helper_clauses = (#2 o ListPair.unzip o get_helper_clauses) ()
     in
 	List.app (curry TextIO.output out o #1 o clause2tptp) axclauses';
 	ResClause.writeln_strs out tfree_clss;
 	ResClause.writeln_strs out tptp_clss;
 	List.app (curry TextIO.output out o ResClause.tptp_classrelClause) classrel_clauses;
 	List.app (curry TextIO.output out o ResClause.tptp_arity_clause) arity_clauses;
-	List.app (curry TextIO.output out) helper_clauses;
+	List.app (curry TextIO.output out o #1 o clause2tptp) helper_clauses;
 	TextIO.closeOut out;
 	clnames
     end;
 
 
-fun get_helper_dfg () =
-    let val IK = if !combI_count > 0 orelse !combK_count > 0 then (Output.debug "Include combinator I K";["combIK.dfg"]) else []
-	val BC = if !combB_count > 0 orelse !combC_count > 0 then (Output.debug "Include combinator B C";["combBC.dfg"]) else []
-	val S = if !combS_count > 0 then (Output.debug "Include combinator S";["combS.dfg"]) else []
-	val B'C' = if !combB'_count > 0 orelse !combC'_count > 0 then (Output.debug "Include combinator B' C'"; ["combBC_e.dfg"]) else []
-	val S' = if !combS'_count > 0 then (Output.debug "Include combinator S'";["combS_e.dfg"]) else []
-    in
-	("helper1.dfg") :: (IK @ BC @ S @ B'C' @ S')
-    end;
-
 
 (* dfg format *)
-fun get_helper_clauses_dfg () = 
- let val tlevel = case !typ_level of 
-                      T_FULL => (Output.debug "Fully-typed HOL"; 
-                                 "~~/src/HOL/Tools/atp-inputs/full_")
-		    | T_PARTIAL => (Output.debug "Partially-typed HOL"; 
-		                    "~~/src/HOL/Tools/atp-inputs/par_")
-		    | T_CONST => (Output.debug "Const-only-typed HOL"; 
-		                  "~~/src/HOL/Tools/atp-inputs/const_")
-		    | T_NONE => (Output.debug "Untyped HOL"; 
-		                 "~~/src/HOL/Tools/atp-inputs/u_")
-     val helpers = get_helper_dfg ()
-     val t_helpers = map (curry (op ^) tlevel) helpers
- in
-     read_in t_helpers
- end;
-
 
 fun dfg_write_file  thms filename (axclauses,classrel_clauses,arity_clauses) user_lemmas =
     let val _ = Output.debug ("Preparing to write the DFG file " ^ filename) 
@@ -935,7 +910,8 @@ fun dfg_write_file  thms filename (axclauses,classrel_clauses,arity_clauses) use
 	val (axstrs,_) =  ListPair.unzip (map clause2dfg axclauses')
 	val tfree_clss = map ResClause.dfg_tfree_clause (ResClause.union_all tfree_litss)
 	val out = TextIO.openOut filename
-	val helper_clauses = get_helper_clauses_dfg ()
+	val helper_clauses = (#2 o ListPair.unzip o get_helper_clauses) ()
+	val helper_clauses_strs = (#1 o ListPair.unzip o (map clause2dfg)) helper_clauses
     in
 	TextIO.output (out, ResClause.string_of_start probname); 
 	TextIO.output (out, ResClause.string_of_descrip probname); 
@@ -944,7 +920,7 @@ fun dfg_write_file  thms filename (axclauses,classrel_clauses,arity_clauses) use
 	ResClause.writeln_strs out axstrs;
 	List.app (curry TextIO.output out o ResClause.dfg_classrelClause) classrel_clauses;
 	List.app (curry TextIO.output out o ResClause.dfg_arity_clause) arity_clauses;
-	ResClause.writeln_strs out helper_clauses;
+	ResClause.writeln_strs out helper_clauses_strs;
 	TextIO.output (out, "end_of_list.\n\nlist_of_clauses(conjectures,cnf).\n");
 	ResClause.writeln_strs out tfree_clss;
 	ResClause.writeln_strs out dfg_clss;
