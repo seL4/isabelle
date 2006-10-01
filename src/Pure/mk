@@ -91,7 +91,6 @@ if [ -z "$RAW" ]; then
   "$ISABELLE" $COPY \
     -e "val ml_system = \"$ML_SYSTEM\";" \
     -e "val ml_platform = \"$ML_PLATFORM\";" \
-    -e "val share_data = NONE: ('a -> 'a) option;" \
     -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => exit 1;" \
     -f -c -q -w RAW_ML_SYSTEM Pure > "$LOG" 2>&1
   RC="$?"
