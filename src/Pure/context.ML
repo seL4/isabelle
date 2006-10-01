@@ -228,7 +228,8 @@ val draftN = "#";
 fun draft_id (_, name) = (name = draftN);
 val is_draft = draft_id o #id o identity_of;
 
-fun exists_name name (Theory ({id, ids, iids, ...}, _, _, _)) =
+fun exists_name name (thy as Theory ({id, ids, iids, ...}, _, _, _)) =
+  name = theory_name thy orelse
   name = #2 id orelse
   Inttab.exists (equal name o #2) ids orelse
   Inttab.exists (equal name o #2) iids;
