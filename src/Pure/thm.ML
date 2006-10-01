@@ -322,18 +322,18 @@ fun adjust_maxidx_cterm i (ct as Cterm {thy_ref, t, T, maxidx, sorts}) =
 (*Matching of cterms*)
 fun gen_cterm_match match
     (ct1 as Cterm {t = t1, sorts = sorts1, ...},
-     ct2 as Cterm {t = t2, sorts = sorts2, ...}) =
+     ct2 as Cterm {t = t2, sorts = sorts2, maxidx = maxidx2, ...}) =
   let
     val thy_ref = merge_thys0 ct1 ct2;
     val (Tinsts, tinsts) = match (Theory.deref thy_ref) (t1, t2) (Vartab.empty, Vartab.empty);
     val sorts = Sorts.union sorts1 sorts2;
     fun mk_cTinst ((a, i), (S, T)) =
       (Ctyp {T = TVar ((a, i), S), thy_ref = thy_ref, maxidx = i, sorts = sorts},
-       Ctyp {T = T, thy_ref = thy_ref, maxidx = Term.maxidx_of_typ T, sorts = sorts});
+       Ctyp {T = T, thy_ref = thy_ref, maxidx = maxidx2, sorts = sorts});
     fun mk_ctinst ((x, i), (T, t)) =
       let val T = Envir.typ_subst_TVars Tinsts T in
         (Cterm {t = Var ((x, i), T), T = T, thy_ref = thy_ref, maxidx = i, sorts = sorts},
-         Cterm {t = t, T = T, thy_ref = thy_ref, maxidx = Term.maxidx_of_term t, sorts = sorts})
+         Cterm {t = t, T = T, thy_ref = thy_ref, maxidx = maxidx2, sorts = sorts})
       end;
   in (Vartab.fold (cons o mk_cTinst) Tinsts [], Vartab.fold (cons o mk_ctinst) tinsts []) end;
 
