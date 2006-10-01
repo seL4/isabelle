@@ -10,10 +10,10 @@ structures by hand.
 theory Sexp imports Main begin
 
 types
-  'a item = "'a Datatype_Universe.item"
+  'a item = "'a Datatype.item"
 abbreviation
-  "Leaf == Datatype_Universe.Leaf"
-  "Numb == Datatype_Universe.Numb"
+  "Leaf == Datatype.Leaf"
+  "Numb == Datatype.Numb"
 
 consts
   sexp      :: "'a item set"

@@ -43,13 +43,13 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       new_type_names descr sorts types_syntax constr_syntax case_names_induct thy =
   let
     val Datatype_thy = ThyInfo.the_theory "Datatype" thy;
-    val node_name = "Datatype_Universe.node";
-    val In0_name = "Datatype_Universe.In0";
-    val In1_name = "Datatype_Universe.In1";
-    val Scons_name = "Datatype_Universe.Scons";
-    val Leaf_name = "Datatype_Universe.Leaf";
-    val Numb_name = "Datatype_Universe.Numb";
-    val Lim_name = "Datatype_Universe.Lim";
+    val node_name = "Datatype.node";
+    val In0_name = "Datatype.In0";
+    val In1_name = "Datatype.In1";
+    val Scons_name = "Datatype.Scons";
+    val Leaf_name = "Datatype.Leaf";
+    val Numb_name = "Datatype.Numb";
+    val Lim_name = "Datatype.Lim";
     val Suml_name = "Datatype.Suml";
     val Sumr_name = "Datatype.Sumr";
 

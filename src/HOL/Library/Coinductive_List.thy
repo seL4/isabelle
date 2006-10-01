@@ -12,8 +12,8 @@ begin
 subsection {* List constructors over the datatype universe *}
 
 definition
-  "NIL = Datatype_Universe.In0 (Datatype_Universe.Numb 0)"
-  "CONS M N = Datatype_Universe.In1 (Datatype_Universe.Scons M N)"
+  "NIL = Datatype.In0 (Datatype.Numb 0)"
+  "CONS M N = Datatype.In1 (Datatype.Scons M N)"
 
 lemma CONS_not_NIL [iff]: "CONS M N \<noteq> NIL"
   and NIL_not_CONS [iff]: "NIL \<noteq> CONS M N"
@@ -28,7 +28,7 @@ lemma CONS_UN1: "CONS M (\<Union>x. f x) = (\<Union>x. CONS M (f x))"
   by (simp add: CONS_def In1_UN1 Scons_UN1_y)
 
 definition
-  "List_case c h = Datatype_Universe.Case (\<lambda>_. c) (Datatype_Universe.Split h)"
+  "List_case c h = Datatype.Case (\<lambda>_. c) (Datatype.Split h)"
 
 lemma List_case_NIL [simp]: "List_case c h NIL = c"
   and List_case_CONS [simp]: "List_case c h (CONS M N) = h M N"
@@ -38,7 +38,7 @@ lemma List_case_NIL [simp]: "List_case c h NIL = c"
 subsection {* Corecursive lists *}
 
 consts
-  LList  :: "'a Datatype_Universe.item set \<Rightarrow> 'a Datatype_Universe.item set"
+  LList  :: "'a Datatype.item set \<Rightarrow> 'a Datatype.item set"
 
 coinductive "LList A"
   intros
@@ -50,8 +50,8 @@ lemma LList_mono: "A \<subseteq> B \<Longrightarrow> LList A \<subseteq> LList B
   unfolding LList.defs by (blast intro!: gfp_mono)
 
 consts
-  LList_corec_aux :: "nat \<Rightarrow> ('a \<Rightarrow> ('b Datatype_Universe.item \<times> 'a) option) \<Rightarrow>
-    'a \<Rightarrow> 'b Datatype_Universe.item"
+  LList_corec_aux :: "nat \<Rightarrow> ('a \<Rightarrow> ('b Datatype.item \<times> 'a) option) \<Rightarrow>
+    'a \<Rightarrow> 'b Datatype.item"
 primrec
   "LList_corec_aux 0 f x = {}"
   "LList_corec_aux (Suc k) f x =
@@ -117,7 +117,7 @@ qed
 subsection {* Abstract type definition *}
 
 typedef 'a llist =
-  "LList (range Datatype_Universe.Leaf) :: 'a Datatype_Universe.item set"
+  "LList (range Datatype.Leaf) :: 'a Datatype.item set"
 proof
   show "NIL \<in> ?llist" ..
 qed
@@ -125,20 +125,20 @@ qed
 lemma NIL_type: "NIL \<in> llist"
   unfolding llist_def by (rule LList.NIL)
 
-lemma CONS_type: "a \<in> range Datatype_Universe.Leaf \<Longrightarrow>
+lemma CONS_type: "a \<in> range Datatype.Leaf \<Longrightarrow>
     M \<in> llist \<Longrightarrow> CONS a M \<in> llist"
   unfolding llist_def by (rule LList.CONS)
 
-lemma llistI: "x \<in> LList (range Datatype_Universe.Leaf) \<Longrightarrow> x \<in> llist"
+lemma llistI: "x \<in> LList (range Datatype.Leaf) \<Longrightarrow> x \<in> llist"
   by (simp add: llist_def)
 
-lemma llistD: "x \<in> llist \<Longrightarrow> x \<in> LList (range Datatype_Universe.Leaf)"
+lemma llistD: "x \<in> llist \<Longrightarrow> x \<in> LList (range Datatype.Leaf)"
   by (simp add: llist_def)
 
 lemma Rep_llist_UNIV: "Rep_llist x \<in> LList UNIV"
 proof -
   have "Rep_llist x \<in> llist" by (rule Rep_llist)
-  then have "Rep_llist x \<in> LList (range Datatype_Universe.Leaf)"
+  then have "Rep_llist x \<in> LList (range Datatype.Leaf)"
     by (simp add: llist_def)
   also have "\<dots> \<subseteq> LList UNIV" by (rule LList_mono) simp
   finally show ?thesis .
@@ -146,7 +146,7 @@ qed
 
 definition
   "LNil = Abs_llist NIL"
-  "LCons x xs = Abs_llist (CONS (Datatype_Universe.Leaf x) (Rep_llist xs))"
+  "LCons x xs = Abs_llist (CONS (Datatype.Leaf x) (Rep_llist xs))"
 
 lemma LCons_not_LNil [iff]: "LCons x xs \<noteq> LNil"
   apply (simp add: LNil_def LCons_def)
@@ -167,7 +167,7 @@ lemma Rep_llist_LNil: "Rep_llist LNil = NIL"
   by (simp add: LNil_def add: Abs_llist_inverse NIL_type)
 
 lemma Rep_llist_LCons: "Rep_llist (LCons x l) =
-    CONS (Datatype_Universe.Leaf x) (Rep_llist l)"
+    CONS (Datatype.Leaf x) (Rep_llist l)"
   by (simp add: LCons_def Abs_llist_inverse CONS_type Rep_llist)
 
 lemma llist_cases [cases type: llist]:
@@ -176,7 +176,7 @@ lemma llist_cases [cases type: llist]:
   | (LCons) x l' where "l = LCons x l'"
 proof (cases l)
   case (Abs_llist L)
-  from `L \<in> llist` have "L \<in> LList (range Datatype_Universe.Leaf)" by (rule llistD)
+  from `L \<in> llist` have "L \<in> LList (range Datatype.Leaf)" by (rule llistD)
   then show ?thesis
   proof cases
     case NIL
@@ -195,7 +195,7 @@ qed
 
 definition
   "llist_case c d l =
-    List_case c (\<lambda>x y. d (inv Datatype_Universe.Leaf x) (Abs_llist y)) (Rep_llist l)"
+    List_case c (\<lambda>x y. d (inv Datatype.Leaf x) (Abs_llist y)) (Rep_llist l)"
 
 syntax  (* FIXME? *)
   LNil :: logic
@@ -217,17 +217,17 @@ definition
     Abs_llist (LList_corec a
       (\<lambda>z.
         case f z of None \<Rightarrow> None
-        | Some (v, w) \<Rightarrow> Some (Datatype_Universe.Leaf v, w)))"
+        | Some (v, w) \<Rightarrow> Some (Datatype.Leaf v, w)))"
 
 lemma LList_corec_type2:
   "LList_corec a
     (\<lambda>z. case f z of None \<Rightarrow> None
-      | Some (v, w) \<Rightarrow> Some (Datatype_Universe.Leaf v, w)) \<in> llist"
+      | Some (v, w) \<Rightarrow> Some (Datatype.Leaf v, w)) \<in> llist"
   (is "?corec a \<in> _")
 proof (unfold llist_def)
   let "LList_corec a ?g" = "?corec a"
   have "?corec a \<in> {?corec x | x. True}" by blast
-  then show "?corec a \<in> LList (range Datatype_Universe.Leaf)"
+  then show "?corec a \<in> LList (range Datatype.Leaf)"
   proof coinduct
     case (LList L)
     then obtain x where L: "L = ?corec x" by blast
@@ -241,7 +241,7 @@ proof (unfold llist_def)
     next
       case (Some p)
       then have "?corec x =
-          CONS (Datatype_Universe.Leaf (fst p)) (?corec (snd p))"
+          CONS (Datatype.Leaf (fst p)) (?corec (snd p))"
         by (simp add: split_def LList_corec)
       with L have ?CONS by auto
       then show ?thesis ..
@@ -263,12 +263,12 @@ next
   let "?rep_corec a" =
     "LList_corec a
       (\<lambda>z. case f z of None \<Rightarrow> None
-        | Some (v, w) \<Rightarrow> Some (Datatype_Universe.Leaf v, w))"
+        | Some (v, w) \<Rightarrow> Some (Datatype.Leaf v, w))"
 
   have "?corec a = Abs_llist (?rep_corec a)"
     by (simp only: llist_corec_def)
   also from Some have "?rep_corec a =
-      CONS (Datatype_Universe.Leaf (fst p)) (?rep_corec (snd p))"
+      CONS (Datatype.Leaf (fst p)) (?rep_corec (snd p))"
     by (simp add: split_def LList_corec)
   also have "?rep_corec (snd p) = Rep_llist (?corec (snd p))"
     by (simp only: llist_corec_def Abs_llist_inverse LList_corec_type2)
@@ -281,8 +281,8 @@ qed
 subsection {* Equality as greatest fixed-point; the bisimulation principle. *}
 
 consts
-  EqLList :: "('a Datatype_Universe.item \<times> 'a Datatype_Universe.item) set \<Rightarrow>
-    ('a Datatype_Universe.item \<times> 'a Datatype_Universe.item) set"
+  EqLList :: "('a Datatype.item \<times> 'a Datatype.item) set \<Rightarrow>
+    ('a Datatype.item \<times> 'a Datatype.item) set"
 
 coinductive "EqLList r"
   intros
@@ -291,7 +291,7 @@ coinductive "EqLList r"
       (CONS a M, CONS b N) \<in> EqLList r"
 
 lemma EqLList_unfold:
-    "EqLList r = dsum (diag {Datatype_Universe.Numb 0}) (dprod r (EqLList r))"
+    "EqLList r = dsum (diag {Datatype.Numb 0}) (dprod r (EqLList r))"
   by (fast intro!: EqLList.intros [unfolded NIL_def CONS_def]
            elim: EqLList.cases [unfolded NIL_def CONS_def])
 
@@ -612,7 +612,7 @@ proof -
   have "(?lhs M, ?rhs M) \<in> {(?lhs N, ?rhs N) | N. N \<in> LList A}"
     using M by blast
   then show ?thesis
-  proof (coinduct taking: "range (\<lambda>N :: 'a Datatype_Universe.item. N)"
+  proof (coinduct taking: "range (\<lambda>N :: 'a Datatype.item. N)"
       rule: LList_equalityI)
     case (EqLList q)
     then obtain N where q: "q = (?lhs N, ?rhs N)" and N: "N \<in> LList A" by blast
@@ -635,7 +635,7 @@ lemma Lmap_ident:
 proof -
   have "(?lmap M, M) \<in> {(?lmap N, N) | N. N \<in> LList A}" using M by blast
   then show ?thesis
-  proof (coinduct taking: "range (\<lambda>N :: 'a Datatype_Universe.item. N)"
+  proof (coinduct taking: "range (\<lambda>N :: 'a Datatype.item. N)"
       rule: LList_equalityI)
     case (EqLList q)
     then obtain N where q: "q = (?lmap N, N)" and N: "N \<in> LList A" by blast

@@ -927,7 +927,7 @@ val rep_datatype_i = gen_rep_datatype IsarThy.apply_theorems_i;
 
 fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
   let
-    val _ = Theory.requires thy "Datatype_Universe" "datatype definitions";
+    val _ = Theory.requires thy "Datatype" "datatype definitions";
 
     (* this theory is used just for parsing *)
 

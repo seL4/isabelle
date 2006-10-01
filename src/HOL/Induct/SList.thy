@@ -56,8 +56,8 @@ typedef (List)
   by (blast intro: list.NIL_I)
 
 abbreviation
-  "Case == Datatype_Universe.Case"
-  "Split == Datatype_Universe.Split"
+  "Case == Datatype.Case"
+  "Split == Datatype.Split"
 
 definition
   List_case :: "['b, ['a item, 'a item]=>'b, 'a item] => 'b"
