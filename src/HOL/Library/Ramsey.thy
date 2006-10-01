@@ -5,7 +5,7 @@
 
 header "Ramsey's Theorem"
 
-theory Ramsey imports Main begin
+theory Ramsey imports Main Infinite_Set begin
 
 
 subsection{*Preliminaries*}
@@ -138,13 +138,12 @@ next
       then obtain n where "x = ?gt n" ..
       with pg [of n] show "x \<in> {..<s}" by (cases "g n") auto
     qed
-    have "\<exists>s' \<in> range ?gt. infinite (?gt -` {s'})" 
-     by (rule inf_img_fin_dom [OF _ nat_infinite]) 
-        (simp add: finite_nat_iff_bounded rangeg)
+    have "finite (range ?gt)"
+      by (simp add: finite_nat_iff_bounded rangeg)
     then obtain s' and n'
-            where s':      "s' = ?gt n'"
-              and infeqs': "infinite {n. ?gt n = s'}"
-       by (auto simp add: vimage_def)
+      where s': "s' = ?gt n'"
+        and infeqs': "infinite {n. ?gt n = s'}"
+      by (rule inf_img_fin_domE) (auto simp add: vimage_def intro: nat_infinite)
     with pg [of n'] have less': "s'<s" by (cases "g n'") auto
     have inj_gy: "inj ?gy"
     proof (rule linorder_injI)
@@ -241,13 +240,13 @@ Andreas Podelski and Andrey Rybalchenko, Transition Invariants, 19th Annual
 IEEE Symposium on Logic in Computer Science (LICS'04), pages 32--41 (2004).
 *}
 
-constdefs
+definition
   disj_wf         :: "('a * 'a)set => bool"
-  "disj_wf(r) == \<exists>T. \<exists>n::nat. (\<forall>i<n. wf(T i)) & r = (\<Union>i<n. T i)"
+  "disj_wf r = (\<exists>T. \<exists>n::nat. (\<forall>i<n. wf(T i)) & r = (\<Union>i<n. T i))"
 
   transition_idx :: "[nat => 'a, nat => ('a*'a)set, nat set] => nat"
-  "transition_idx s T A ==
-     LEAST k. \<exists>i j. A = {i,j} & i<j & (s j, s i) \<in> T k"
+  "transition_idx s T A =
+    (LEAST k. \<exists>i j. A = {i,j} & i<j & (s j, s i) \<in> T k)"
 
 
 lemma transition_idx_less:
