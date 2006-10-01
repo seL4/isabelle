@@ -1,3 +1,4 @@
+(* $Id$ *)
 (*<*)
 theory Library
 imports
@@ -23,6 +24,7 @@ imports
   Commutative_Ring
   Coinductive_List
   AssocList
+  Infinite_Set
 begin
 end
 (*>*)

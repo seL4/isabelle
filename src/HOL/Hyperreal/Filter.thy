@@ -9,7 +9,7 @@
 header {* Filters and Ultrafilters *}
 
 theory Filter
-imports Zorn
+imports Zorn Infinite_Set
 begin
 
 subsection {* Definitions and basic properties *}

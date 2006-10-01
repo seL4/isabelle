@@ -7,7 +7,7 @@
 header{* Reconstructing external resolution proofs *}
 
 theory Reconstruction
-imports Hilbert_Choice Map Infinite_Set Extraction
+imports Hilbert_Choice Map Extraction
 uses 	 "Tools/polyhash.ML"
 	 "Tools/ATP/AtpCommunication.ML"
 	 "Tools/ATP/watcher.ML"

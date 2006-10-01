@@ -1,5 +1,6 @@
 (* $Id$ *)
 
+no_document use_thy "Infinite_Set";
 no_document use_thy "Permutation";
 no_document use_thy "Primes";
 

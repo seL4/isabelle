@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory Nominal 
-imports Main
+imports Main Infinite_Set
 uses
   ("nominal_atoms.ML")
   ("nominal_package.ML")
