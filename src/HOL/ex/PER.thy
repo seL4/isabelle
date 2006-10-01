@@ -49,10 +49,10 @@ definition
   "domain = {x. x \<sim> x}"
 
 lemma domainI [intro]: "x \<sim> x ==> x \<in> domain"
-  by (unfold domain_def) blast
+  unfolding domain_def by blast
 
 lemma domainD [dest]: "x \<in> domain ==> x \<sim> x"
-  by (unfold domain_def) blast
+  unfolding domain_def by blast
 
 theorem domainI' [elim?]: "x \<sim> y ==> x \<in> domain"
 proof
@@ -75,18 +75,18 @@ defs (overloaded)
 
 lemma partial_equiv_funI [intro?]:
     "(!!x y. x \<in> domain ==> y \<in> domain ==> x \<sim> y ==> f x \<sim> g y) ==> f \<sim> g"
-  by (unfold eqv_fun_def) blast
+  unfolding eqv_fun_def by blast
 
 lemma partial_equiv_funD [dest?]:
     "f \<sim> g ==> x \<in> domain ==> y \<in> domain ==> x \<sim> y ==> f x \<sim> g y"
-  by (unfold eqv_fun_def) blast
+  unfolding eqv_fun_def by blast
 
 text {*
   The class of partial equivalence relations is closed under function
   spaces (in \emph{both} argument positions).
 *}
 
-instance fun :: (partial_equiv, partial_equiv) partial_equiv
+instance "fun" :: (partial_equiv, partial_equiv) partial_equiv
 proof
   fix f g h :: "'a::partial_equiv => 'b::partial_equiv"
   assume fg: "f \<sim> g"
@@ -94,9 +94,9 @@ proof
   proof
     fix x y :: 'a
     assume x: "x \<in> domain" and y: "y \<in> domain"
-    assume "x \<sim> y" hence "y \<sim> x" ..
+    assume "x \<sim> y" then have "y \<sim> x" ..
     with fg y x have "f y \<sim> g x" ..
-    thus "g x \<sim> f y" ..
+    then show "g x \<sim> f y" ..
   qed
   assume gh: "g \<sim> h"
   show "f \<sim> h"
@@ -154,10 +154,10 @@ typedef 'a quot = "{{x. a \<sim> x}| a::'a. True}"
   by blast
 
 lemma quotI [intro]: "{x. a \<sim> x} \<in> quot"
-  by (unfold quot_def) blast
+  unfolding quot_def by blast
 
 lemma quotE [elim]: "R \<in> quot ==> (!!a. R = {x. a \<sim> x} ==> C) ==> C"
-  by (unfold quot_def) blast
+  unfolding quot_def by blast
 
 text {*
   \medskip Abstracted equivalence classes are the canonical
@@ -171,14 +171,14 @@ definition
 theorem quot_rep: "\<exists>a. A = \<lfloor>a\<rfloor>"
 proof (cases A)
   fix R assume R: "A = Abs_quot R"
-  assume "R \<in> quot" hence "\<exists>a. R = {x. a \<sim> x}" by blast
+  assume "R \<in> quot" then have "\<exists>a. R = {x. a \<sim> x}" by blast
   with R have "\<exists>a. A = Abs_quot {x. a \<sim> x}" by blast
-  thus ?thesis by (unfold eqv_class_def)
+  then show ?thesis by (unfold eqv_class_def)
 qed
 
-lemma quot_cases [case_names rep, cases type: quot]:
-    "(!!a. A = \<lfloor>a\<rfloor> ==> C) ==> C"
-  by (insert quot_rep) blast
+lemma quot_cases [cases type: quot]:
+  obtains (rep) a where "A = \<lfloor>a\<rfloor>"
+  using quot_rep by blast
 
 
 subsection {* Equality on quotients *}
@@ -204,17 +204,17 @@ proof -
       finally show "a \<sim> x" .
     qed
   qed
-  thus ?thesis by (simp only: eqv_class_def)
+  then show ?thesis by (simp only: eqv_class_def)
 qed
 
 theorem eqv_class_eqD' [dest?]: "\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor> ==> a \<in> domain ==> a \<sim> b"
 proof (unfold eqv_class_def)
   assume "Abs_quot {x. a \<sim> x} = Abs_quot {x. b \<sim> x}"
-  hence "{x. a \<sim> x} = {x. b \<sim> x}" by (simp only: Abs_quot_inject quotI)
-  moreover assume "a \<in> domain" hence "a \<sim> a" ..
+  then have "{x. a \<sim> x} = {x. b \<sim> x}" by (simp only: Abs_quot_inject quotI)
+  moreover assume "a \<in> domain" then have "a \<sim> a" ..
   ultimately have "a \<in> {x. b \<sim> x}" by blast
-  hence "b \<sim> a" by blast
-  thus "a \<sim> b" ..
+  then have "b \<sim> a" by blast
+  then show "a \<sim> b" ..
 qed
 
 theorem eqv_class_eqD [dest?]: "\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor> ==> a \<sim> (b::'a::equiv)"
@@ -223,10 +223,10 @@ proof (rule eqv_class_eqD')
 qed
 
 lemma eqv_class_eq' [simp]: "a \<in> domain ==> (\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<sim> b)"
-  by (insert eqv_class_eqI eqv_class_eqD') blast
+  using eqv_class_eqI eqv_class_eqD' by blast
 
 lemma eqv_class_eq [simp]: "(\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<sim> (b::'a::equiv))"
-  by (insert eqv_class_eqI eqv_class_eqD) blast
+  using eqv_class_eqI eqv_class_eqD by blast
 
 
 subsection {* Picking representing elements *}
@@ -242,8 +242,8 @@ proof (unfold pick_def)
   proof (rule someI2)
     show "\<lfloor>a\<rfloor> = \<lfloor>a\<rfloor>" ..
     fix x assume "\<lfloor>a\<rfloor> = \<lfloor>x\<rfloor>"
-    hence "a \<sim> x" ..
-    thus "x \<sim> a" ..
+    then have "a \<sim> x" ..
+    then show "x \<sim> a" ..
   qed
 qed
 
@@ -255,8 +255,8 @@ qed
 theorem pick_inverse: "\<lfloor>pick A\<rfloor> = (A::'a::equiv quot)"
 proof (cases A)
   fix a assume a: "A = \<lfloor>a\<rfloor>"
-  hence "pick A \<sim> a" by simp
-  hence "\<lfloor>pick A\<rfloor> = \<lfloor>a\<rfloor>" by simp
+  then have "pick A \<sim> a" by simp
+  then have "\<lfloor>pick A\<rfloor> = \<lfloor>a\<rfloor>" by simp
   with a show ?thesis by simp
 qed
 
