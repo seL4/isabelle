@@ -8,4 +8,4 @@ Compatibility wrapper for Poly/ML 4.9.1.
 use "ML-Systems/polyml-4.1.4-patch.ML";
 use "ML-Systems/polyml.ML";
 
-val share_data = SOME (fn x => (PolyML.shareCommonData x; x));
+val pointer_eq = PolyML.pointerEq;
