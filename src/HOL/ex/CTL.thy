@@ -23,12 +23,13 @@ text {*
 lemmas [intro!] = Int_greatest Un_upper2 Un_upper1 Int_lower1 Int_lower2
 
 types 'a ctl = "'a set"
-constdefs
-  imp :: "'a ctl \<Rightarrow> 'a ctl \<Rightarrow> 'a ctl"    (infixr "\<rightarrow>" 75)
-  "p \<rightarrow> q \<equiv> - p \<union> q"
 
-lemma [intro!]: "p \<inter> p \<rightarrow> q \<subseteq> q" by (unfold imp_def) auto
-lemma [intro!]: "p \<subseteq> (q \<rightarrow> p)" by (unfold imp_def) rule
+definition
+  imp :: "'a ctl \<Rightarrow> 'a ctl \<Rightarrow> 'a ctl"    (infixr "\<rightarrow>" 75)
+  "p \<rightarrow> q = - p \<union> q"
+
+lemma [intro!]: "p \<inter> p \<rightarrow> q \<subseteq> q" unfolding imp_def by auto
+lemma [intro!]: "p \<subseteq> (q \<rightarrow> p)" unfolding imp_def by rule
 
 
 text {*
@@ -37,7 +38,7 @@ text {*
   a transition relation over states @{typ "'a"}.
 *}
 
-consts model :: "('a \<times> 'a) set"    ("\<M>")
+axiomatization \<M> :: "('a \<times> 'a) set"
 
 text {*
   The operators @{text \<EX>}, @{text \<EF>}, @{text \<EG>} are taken
@@ -56,10 +57,10 @@ text {*
   \cite{McMillan-PhDThesis}.
 *}
 
-constdefs
-  EX :: "'a ctl \<Rightarrow> 'a ctl"    ("\<EX> _" [80] 90)    "\<EX> p \<equiv> {s. \<exists>s'. (s, s') \<in> \<M> \<and> s' \<in> p}"
-  EF :: "'a ctl \<Rightarrow> 'a ctl"    ("\<EF> _" [80] 90)    "\<EF> p \<equiv> lfp (\<lambda>s. p \<union> \<EX> s)"
-  EG :: "'a ctl \<Rightarrow> 'a ctl"    ("\<EG> _" [80] 90)    "\<EG> p \<equiv> gfp (\<lambda>s. p \<inter> \<EX> s)"
+definition
+  EX :: "'a ctl \<Rightarrow> 'a ctl"    ("\<EX> _" [80] 90)    "\<EX> p = {s. \<exists>s'. (s, s') \<in> \<M> \<and> s' \<in> p}"
+  EF :: "'a ctl \<Rightarrow> 'a ctl"    ("\<EF> _" [80] 90)    "\<EF> p = lfp (\<lambda>s. p \<union> \<EX> s)"
+  EG :: "'a ctl \<Rightarrow> 'a ctl"    ("\<EG> _" [80] 90)    "\<EG> p = gfp (\<lambda>s. p \<inter> \<EX> s)"
 
 text {*
   @{text "\<AX>"}, @{text "\<AF>"} and @{text "\<AG>"} are now defined
@@ -67,10 +68,10 @@ text {*
   "\<EG>"}.
 *}
 
-constdefs
-  AX :: "'a ctl \<Rightarrow> 'a ctl"    ("\<AX> _" [80] 90)    "\<AX> p \<equiv> - \<EX> - p"
-  AF :: "'a ctl \<Rightarrow> 'a ctl"    ("\<AF> _" [80] 90)    "\<AF> p \<equiv> - \<EG> - p"
-  AG :: "'a ctl \<Rightarrow> 'a ctl"    ("\<AG> _" [80] 90)    "\<AG> p \<equiv> - \<EF> - p"
+definition
+  AX :: "'a ctl \<Rightarrow> 'a ctl"    ("\<AX> _" [80] 90)    "\<AX> p = - \<EX> - p"
+  AF :: "'a ctl \<Rightarrow> 'a ctl"    ("\<AF> _" [80] 90)    "\<AF> p = - \<EG> - p"
+  AG :: "'a ctl \<Rightarrow> 'a ctl"    ("\<AG> _" [80] 90)    "\<AG> p = - \<EF> - p"
 
 lemmas [simp] = EX_def EG_def AX_def EF_def AF_def AG_def
 
@@ -162,8 +163,6 @@ proof -
   note AG_fp also have "p \<inter> \<AX> \<AG> p \<subseteq> p" by auto
   finally show ?thesis .
 qed
-
-text {**}
 
 lemma AG_fp_2: "\<AG> p \<subseteq> \<AX> \<AG> p"
 proof -

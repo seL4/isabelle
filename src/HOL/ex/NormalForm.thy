@@ -1,8 +1,8 @@
 (*  ID:         $Id$
     Authors:    Klaus Aehlig, Tobias Nipkow
-
-Test of normalization function
 *)
+
+header "Test of normalization function"
 
 theory NormalForm
 imports Main
@@ -32,11 +32,11 @@ primrec
 "add2 (S m) n = S(add2 m n)"
 
 lemma [code]: "add2 (add2 n m) k = add2 n (add2 m k)"
-by(induct n, auto)
+by(induct n) auto
 lemma [code]: "add2 n (S m) =  S(add2 n m)"
-by(induct n, auto)
+by(induct n) auto
 lemma [code]: "add2 n Z = n"
-by(induct n, auto)
+by(induct n) auto
 
 lemma "add2 (add2 n m) k = add2 n (add2 m k)" by normalization
 lemma "add2 (add2 (S n) (S m)) (S k) = S(S(S(add2 n (add2 m k))))" by normalization

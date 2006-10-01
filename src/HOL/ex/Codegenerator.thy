@@ -5,7 +5,7 @@
 header {* Test and Examples for code generator *}
 
 theory Codegenerator
-imports Main "~~/src/HOL/ex/Records"
+imports Main Records
 begin
 
 subsection {* booleans *}

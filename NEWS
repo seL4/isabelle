@@ -1,7 +1,7 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
-New in this Isabelle release
+New in this Isabelle version
 ----------------------------
 
 *** General ***
@@ -15,8 +15,8 @@ discontinued altogether.  Note that ML proof scripts may still be used
 with Isar theories; migration is usually quite simple with the ML
 function use_legacy_bindings.  INCOMPATIBILITY.
 
-* Theory syntax: some popular names (e.g. "class", "if") are now
-keywords.  INCOMPATIBILITY, use double quotes.
+* Theory syntax: some popular names (e.g. "class", "if", "fun") are
+now keywords.  INCOMPATIBILITY, use double quotes.
 
 * Legacy goal package: reduced interface to the bare minimum required
 to keep existing proof scripts running.  Most other user-level
@@ -44,11 +44,12 @@ check the given source text as ML type/structure, printing verbatim.
 
 *** Pure ***
 
-* class_package.ML offers a combination of axclasses and locales to achieve
-Haskell-like type classes in Isabelle. See HOL/ex/Classpackage.thy for examples.
+* class_package.ML offers a combination of axclasses and locales to
+achieve Haskell-like type classes in Isabelle. See
+HOL/ex/Classpackage.thy for examples.
 
-* Yet another code generator framework allows to generate executable code
-for ML and Haskell (including "class"es). A short usage sketch:
+* Yet another code generator framework allows to generate executable
+code for ML and Haskell (including "class"es). A short usage sketch:
 
     internal compilation:
         code_gen <list of constants (term syntax)> (SML -)
@@ -564,6 +565,8 @@ still supported as well.
 * inductive and datatype: provide projections of mutual rules, bundled
 as foo_bar.inducts;
 
+* Library: theory Infinite_Set has been moved to the library.
+
 * Library: theory Accessible_Part has been move to main HOL.
 
 * Library: added theory Coinductive_List of potentially infinite lists
@@ -572,30 +575,36 @@ as greatest fixed-point.
 * Library: added theory AssocList which implements (finite) maps as
 association lists.
 
-* New proof method "evaluation" for efficiently solving a goal
-  (i.e. a boolean expression) by compiling it to ML. The goal is
-  "proved" (via the oracle "Evaluation") if it evaluates to True.
+* New proof method "evaluation" for efficiently solving a goal (i.e. a
+boolean expression) by compiling it to ML. The goal is "proved" (via
+the oracle "Evaluation") if it evaluates to True.
 
-* Linear arithmetic now splits certain operators (e.g. min, max, abs) also
-when invoked by the simplifier.  This results in the simplifier being more
-powerful on arithmetic goals.
-INCOMPATIBILTY: rewrite proofs.  Set fast_arith_split_limit to 0 to obtain
-the old behavior.
+* Linear arithmetic now splits certain operators (e.g. min, max, abs)
+also when invoked by the simplifier.  This results in the simplifier
+being more powerful on arithmetic goals.  INCOMPATIBILTY.  Set
+fast_arith_split_limit to 0 to obtain the old behavior.
 
 * Support for hex (0x20) and binary (0b1001) numerals. 
 
-* New method:
-  reify eqs (t), where eqs are equations for an interpretation 
- I :: 'a list => 'b => 'c and t::'c is an optional parameter,
- computes a term s::'b and a list xs::'a list and proves the theorem
-  I xs s = t. This is also known as reification or quoting. The resulting theorem is applied to the subgoal to substitute t with I xs s.
-If t is omitted, the subgoal itself is reified.
+* New method: reify eqs (t), where eqs are equations for an
+interpretation I :: 'a list => 'b => 'c and t::'c is an optional
+parameter, computes a term s::'b and a list xs::'a list and proves the
+theorem I xs s = t. This is also known as reification or quoting. The
+resulting theorem is applied to the subgoal to substitute t with I xs
+s.  If t is omitted, the subgoal itself is reified.
 
-* New method:
- reflection corr_thm eqs (t). The parameters eqs and (t) are as explained above. corr_thm is a theorem for 
-I vs (f t) = I vs t, where f is supposed to be a computable function (in the sense of code generattion). The method uses reify to compute s and xs as above then applies corr_thm and uses normalization by evaluation to "prove" f s = r and finally gets the theorem t = r, which is again applied to the subgoal. An Example is available in HOL/ex/ReflectionEx.thy.
+* New method: reflection corr_thm eqs (t). The parameters eqs and (t)
+are as explained above. corr_thm is a theorem for I vs (f t) = I vs t,
+where f is supposed to be a computable function (in the sense of code
+generattion). The method uses reify to compute s and xs as above then
+applies corr_thm and uses normalization by evaluation to "prove" f s =
+r and finally gets the theorem t = r, which is again applied to the
+subgoal. An Example is available in HOL/ex/ReflectionEx.thy.
 
-* Reflection: Automatic refification now handels binding, an example is available in HOL/ex/ReflectionEx.thy
+* Reflection: Automatic refification now handels binding, an example
+is available in HOL/ex/ReflectionEx.thy
+
+
 *** HOL-Algebra ***
 
 * Method algebra is now set up via an attribute.  For examples see CRing.thy.
@@ -606,6 +615,7 @@ I vs (f t) = I vs t, where f is supposed to be a computable function (in the sen
   by Stephan Hohe.
 
 * Renamed `CRing.thy' to `Ring.thy'.  INCOMPATIBILITY.
+
 
 *** HOL-Complex ***
 

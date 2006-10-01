@@ -10,9 +10,6 @@ theory BinEx imports Main begin
 
 subsection {* Regression Testing for Cancellation Simprocs *}
 
-(*taken from HOL/Integ/int_arith1.ML *)
-
-
 lemma "l + 2 + 2 + 2 + (l + 2) + (oo + 2) = (uu::int)"
 apply simp  oops
 
@@ -283,7 +280,7 @@ text {* Successor *}
 
 lemma "Suc 99999 = 100000"
   by (simp add: Suc_nat_number_of)
-    -- {* not a default rewrite since sometimes we want to have @{text "Suc #nnn"} *}
+    -- {* not a default rewrite since sometimes we want to have @{text "Suc nnn"} *}
 
 
 text {* \medskip Addition *}
@@ -389,9 +386,5 @@ lemma "x + (y + (y + (y + (-y + -x)))) = y + (0::int) + y"
 
 lemma "x + y - x + z - x - y - z + x < (1::int)"
   by simp
-
-
-text{*The proofs about arithmetic yielding normal forms have been deleted:
- they are irrelevant with the new treatment of numerals.*}
 
 end
