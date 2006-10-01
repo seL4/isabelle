@@ -10,7 +10,7 @@ header {* Installing an oracle for SVC (Stanford Validity Checker) *}
 
 theory SVC_Oracle
 imports Main
-uses "svc_funcs.ML"
+uses "svc_funcs.ML" ("svc_oracle.ML")
 begin
 
 consts
@@ -21,5 +21,7 @@ hide const iff_keep iff_unfold
 
 oracle
   svc_oracle ("term") = Svc.oracle
+
+use "svc_oracle.ML"
 
 end
