@@ -1,8 +1,0 @@
-%ID: $Id$
-%Author: Jia Meng, NICTA
-%partial-typed combinator reduction for S'
-
-%S' c f g x --> c (f x) (g x)
-input_clause(a8,axiom,
-[++equal(hAPP(hAPP(hAPP(hAPP(c_COMBS__e,C,tc_fun(tc_fun(A,tc_fun(B,U)),tc_fun(tc_fun(V,A),tc_fun(tc_fun(V,B),tc_fun(V,U))))),F,tc_fun(tc_fun(V,A),tc_fun(tc_fun(V,B),tc_fun(V,U)))),G,tc_fun(tc_fun(V,B),tc_fun(V,U))),X,tc_fun(V,U)),hAPP(hAPP(C,hAPP(F,X,tc_fun(V,A)),tc_fun(A,tc_fun(B,U))),hAPP(G,X,tc_fun(V,B)),tc_fun(B,U)))]).
-

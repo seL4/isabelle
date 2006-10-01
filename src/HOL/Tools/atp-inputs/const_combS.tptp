@@ -1,7 +1,0 @@
-%ID: $Id$
-%Author: Jia Meng, NICTA
-%const-typed combinator reduction for S
-
-%S P Q R --> P R (Q R)
-input_clause(a2,axiom,
-[++equal(hAPP(hAPP(hAPP(c_COMBS(A,B,C),P),Q),R),hAPP(hAPP(P,R),hAPP(Q,R)))]).

@@ -1,8 +1,0 @@
-%ID: $Id$
-%Author: Jia Meng, NICTA
-%const-typed combinator reduction for S'
-
-clause(
-forall([A, B, C, F, G, U, V, X],
-or( equal(hAPP(hAPP(hAPP(hAPP(c_COMBS__e(A,B,U,V),C),F),G),X),hAPP(hAPP(C,hAPP(F,X)),hAPP(G,X))))),
-a8 ).

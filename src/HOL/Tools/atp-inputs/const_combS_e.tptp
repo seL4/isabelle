@@ -1,7 +1,0 @@
-%ID: $Id$
-%Author: Jia Meng, NICTA
-%const-typed combinator reduction for S'
-
-%S' c f g x --> c (f x) (g x)
-input_clause(a8,axiom,
-[++equal(hAPP(hAPP(hAPP(hAPP(c_COMBS__e(A,B,U,V),C),F),G),X),hAPP(hAPP(C,hAPP(F,X)),hAPP(G,X)))]).
