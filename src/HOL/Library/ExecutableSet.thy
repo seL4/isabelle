@@ -282,6 +282,10 @@ code_const insert
   (SML "{*insertl*}")
   (Haskell "{*insertl*}")
 
+code_const insert
+  (SML "{*insertl*}")
+  (Haskell "{*insertl*}")
+
 code_const "op \<union>"
   (SML "{*unionl*}")
   (Haskell "{*unionl*}")
