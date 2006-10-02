@@ -123,36 +123,13 @@ val vamp_lemma_list = prover_lemma_list_aux get_axiom_names_vamp;
 val spass_lemma_list = prover_lemma_list_aux get_axiom_names_spass;
 
 
-(**** Cutting lines of text FIXME: TIDY UP|!! ****)
-
-exception NOCUT
-fun remove_prefix [] l = l
-  | remove_prefix (h::t) [] = error "can't remove prefix"
-  | remove_prefix (h::t) (h'::t') = remove_prefix t t'
-fun ccut t [] = raise NOCUT
-  | ccut t s =
-      if is_prefix (op =) t s then ([], remove_prefix t s) else
-        let val (a, b) = ccut t (tl s) in ((hd s)::a, b) end
-fun cut t s =
-  let
-    val t' = explode t
-    val s' = explode s
-    val (a, b) = ccut t' s'
-  in
-    (implode a, implode b)
-  end
-
-fun cut_exists t s
-    = let val (a, b) = cut t s in true end handle NOCUT => false
-
-fun cut_before t s = let val (a, b) = cut t s in (a, t ^ b) end
-fun cut_after t s = let val (a, b) = cut t s in (a ^ t, b) end
-
-fun kill_lines 0 = Library.I
-  | kill_lines n = kill_lines (n - 1) o snd o cut_after "\n";
-
-
 (**** Extracting proofs from an ATP's output ****)
+
+(*Return everything in s that comes before the string t*)
+fun cut_before t s = 
+  let val (s1,s2) = Substring.position t (Substring.full s)
+      val _ = assert (Substring.size s2 <> 0) "cut_before: string not found" 
+  in Substring.string s2 end;
 
 val start_E = "# Proof object starts here."
 val end_E   = "# Proof object ends here."
@@ -160,20 +137,7 @@ val start_V6 = "%================== Proof: ======================"
 val end_V6   = "%==============  End of proof. =================="
 val start_V8 = "=========== Refutation =========="
 val end_V8 = "======= End of refutation ======="
-
-(*Identifies the start/end lines of an ATP's output*)
-fun extract_proof s =
-  if cut_exists "Formulae used in the proof" s then  (*SPASS*)
-    (kill_lines 0
-     o fst o cut_before "Formulae used in the proof") s
-  else if cut_exists end_V8 s then
-    (kill_lines 0    (*Vampire 8.0*)
-     o fst o cut_before end_V8) s
-  else if cut_exists end_E s then
-    (kill_lines 0    (*eproof*)
-     o fst o cut_before end_E) s
-  else "??extract_proof failed" (*Couldn't find a proof*)
-
+val end_SPASS = "Formulae used in the proof"
 
 (*********************************************************************************)
 (*  Inspect the output of an ATP process to see if it has found a proof,     *)
@@ -189,9 +153,8 @@ fun startTransfer (endS, fromChild, toParent, ppid, probfile, names_arr) =
 	             "\naccumulated text: " ^ currentString);
 	      raise EOF)                    
 	else if String.isPrefix endS thisLine
-	then let val proofextract = extract_proof (currentString^thisLine)
-	         val lemma_list = if endS = end_V8 
-			  	  then vamp_lemma_list
+	then let val proofextract = currentString ^ cut_before endS thisLine
+	         val lemma_list = if endS = end_V8 then vamp_lemma_list
 			  	  else e_lemma_list
 	     in
 	       trace ("\nExtracted proof:\n" ^ proofextract); 
@@ -227,31 +190,27 @@ fun checkVampProofFound (fromChild, toParent, ppid, probfile, names_arr) =
              (String.isPrefix "Refutation not found" thisLine)
      then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
-     else
-        checkVampProofFound  (fromChild, toParent, ppid, probfile, names_arr)
+     else checkVampProofFound  (fromChild, toParent, ppid, probfile, names_arr)
   end
-
 
 (*Called from watcher. Returns true if the E process has returned a verdict.*)
 fun checkEProofFound (fromChild, toParent, ppid, probfile, names_arr) = 
  let val thisLine = TextIO.inputLine fromChild  
  in   
      trace thisLine;
-     if thisLine = "" 
-     then (trace "\nNo proof output seen"; false)
+     if thisLine = "" then (trace "\nNo proof output seen"; false)
      else if String.isPrefix start_E thisLine
-     then      
-       startTransfer (end_E, fromChild, toParent, ppid, probfile, names_arr)
+     then startTransfer (end_E, fromChild, toParent, ppid, probfile, names_arr)
      else if String.isPrefix "# Problem is satisfiable" thisLine
      then (signal_parent (toParent, ppid, "Invalid\n", probfile);
 	   true)
      else if String.isPrefix "# Cannot determine problem status within resource limit" thisLine
      then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
-     else
-	checkEProofFound (fromChild, toParent, ppid, probfile, names_arr)
+     else checkEProofFound (fromChild, toParent, ppid, probfile, names_arr)
  end
 
+(*FIXME: can't these two functions be replaced by startTransfer above?*)
 fun transferSpassInput (fromChild, toParent, ppid, probfile,
                         currentString, thm, sg_num, names_arr) = 
  let val thisLine = TextIO.inputLine fromChild 
@@ -262,25 +221,18 @@ fun transferSpassInput (fromChild, toParent, ppid, probfile,
 	  raise EOF)                    
     else if String.isPrefix "Formulae used in the proof" thisLine
     then 
-      let val proofextract = extract_proof (currentString^thisLine)
+      let val proofextract = currentString ^ cut_before end_SPASS thisLine
       in 
 	 trace ("\nextracted spass proof: " ^ proofextract);
-	 spass_lemma_list proofextract probfile toParent
-	        ppid names_arr 
+	 spass_lemma_list proofextract probfile toParent ppid names_arr 
       end
     else transferSpassInput (fromChild, toParent, ppid, probfile,
-			     (currentString^thisLine), thm, sg_num, names_arr)
+			     currentString ^ thisLine, thm, sg_num, names_arr)
  end;
 
-
-(*********************************************************************************)
-(*  Inspect the output of a Spass   process to see if it has found a proof,     *)
-(*  and if so, transfer output to the input pipe of the main Isabelle process    *)
-(*********************************************************************************)
-
- 
-fun startSpassTransfer (fromChild, toParent, ppid, probfile,
-                        thm, sg_num,names_arr) = 
+(*Inspect the output of a SPASS process to see if it has found a proof,   
+  and if so, transfer output to the input pipe of the main Isabelle process*)
+fun startSpassTransfer (fromChild, toParent, ppid, probfile, thm, sg_num,names_arr) = 
    let val thisLine = TextIO.inputLine fromChild  
    in                 
       if thisLine = "" then false
@@ -294,8 +246,7 @@ fun startSpassTransfer (fromChild, toParent, ppid, probfile,
 
 
 (*Called from watcher. Returns true if the SPASS process has returned a verdict.*)
-fun checkSpassProofFound (fromChild, toParent, ppid, probfile,
-                          thm, sg_num, names_arr) = 
+fun checkSpassProofFound (fromChild, toParent, ppid, probfile, thm, sg_num, names_arr) = 
  let val thisLine = TextIO.inputLine fromChild  
  in    
      trace thisLine;
