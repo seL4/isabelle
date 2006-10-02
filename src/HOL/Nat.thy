@@ -1084,5 +1084,7 @@ code_constname
   "op < \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool" "IntDef.less_nat"
   "op \<le> \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool" "IntDef.less_eq_nat"
   "OperationalEquality.eq \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool" "IntDef.eq_nat"
+  nat_rec "IntDef.nat_rec"
+  nat_case "IntDef.nat_case"
 
 end
