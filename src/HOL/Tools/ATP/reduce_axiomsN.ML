@@ -12,7 +12,7 @@ structure ReduceAxiomsN =
 struct
 
 val run_relevance_filter = ref true;
-val theory_const = ref false;
+val theory_const = ref true;
 val pass_mark = ref 0.5;
 val convergence = ref 3.2;    (*Higher numbers allow longer inference chains*)
 val max_new = ref 60;         (*Limits how many clauses can be picked up per stage*)
