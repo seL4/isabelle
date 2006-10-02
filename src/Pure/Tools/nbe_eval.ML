@@ -25,8 +25,9 @@ sig
     | Fun of (Univ list -> Univ) * (Univ list) * int * (unit -> nterm)
                                          (*functions*);
 
-  val nbe: Univ Symtab.table -> CodegenThingol.iterm -> nterm
+  val nbe: theory -> Univ Symtab.table -> term -> nterm
   val apply: Univ -> Univ -> Univ
+  val prep_term: theory -> term -> term
 
   val to_term: Univ -> nterm
 
@@ -107,15 +108,17 @@ fun apply (Fun(f,xs,1,name))  x = f (x::xs)
 fun mk_Fun(name,v,0) = (name,v [])
   | mk_Fun(name,v,n) = (name,Fun(v,[],n, fn () => C name));
 
-(* ---------------- table with the meaning of constants -------------------- *)
-
-val xfun_tab: Univ Symtab.table ref = ref Symtab.empty;
-
-fun lookup s = case Symtab.lookup (!xfun_tab) s of
-    SOME x => x
-  | NONE   => Constr(s,[]);
 
 (* ------------------ evaluation with greetings to Tarski ------------------ *)
+
+fun prep_term thy (Const c) = Const (CodegenNames.const thy (CodegenConsts.norm_of_typ thy c), dummyT)
+  | prep_term thy (Free v_ty) = Free v_ty
+  | prep_term thy (s $ t) = prep_term thy s $ prep_term thy t
+  | prep_term thy (Abs (raw_v, ty, raw_t)) =
+      let
+        val (v, t) = Syntax.variant_abs (CodegenNames.purify_var raw_v, ty, raw_t);
+      in Abs (v, ty, prep_term thy t) end;
+
 
 (* generation of fresh names *)
 
@@ -125,24 +128,28 @@ fun new_name () = (counter := !counter +1; !counter);
 
 (* greetings to Tarski *)
 
-open BasicCodegenThingol;
-
-fun eval xs =
+fun eval lookup =
   let
-    fun evl (IConst (c, _)) = lookup c
-      | evl (IVar n) =
-          AList.lookup (op =) xs n
-          |> the_default (Var (n, []))
-      | evl (s `$ t) = apply (eval xs s) (eval xs t)
-      | evl ((n, _) `|-> t) =
-          Fun (fn [x] => eval (AList.update (op =) (n, x) xs) t,
-             [], 1,
-             fn () => let val var = new_name() in
-                 AbsN (var, to_term (eval (AList.update (op =) (n, BVar (var, [])) xs) t)) end)
-  in CodegenThingol.map_pure evl end;
+    fun evl vars (Const (s, _)) = lookup s
+      | evl vars (Free (v, _)) = 
+          AList.lookup (op =) vars v
+          |> the_default (Var (v, []))
+      | evl vars (s $ t) = apply (evl vars s) (evl vars t)
+      | evl vars (Abs (v, _, t)) =
+          Fun (fn [x] => evl (AList.update (op =) (v, x) vars) t,
+            [], 1,
+            fn () => let val var = new_name() in
+              AbsN (var, to_term (evl (AList.update (op =) (v, BVar (var, [])) vars) t)) end)
+  in evl end;
+
 
 (* finally... *)
 
-fun nbe tab t = (counter :=0; xfun_tab := tab; to_term(eval [] t));
+fun nbe thy tab t =
+  let
+    fun lookup s = case Symtab.lookup tab s
+       of SOME x => x
+        | NONE   => Constr (s, []);
+  in (counter := 0; to_term (eval lookup [] (prep_term thy t))) end;
 
 end;
