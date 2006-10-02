@@ -482,9 +482,11 @@ fun banned_thmlist s =
   (Sign.base_name s) mem_string ["induct","inducts","split","splits","split_asm"];
 
 (*Reject theorems with names like "List.filter.filter_list_def" or
-  "Accessible_Part.acc.defs", as these are definitions arising from packages*)
+  "Accessible_Part.acc.defs", as these are definitions arising from packages.
+  FIXME: this will also block definitions within locales*)
 fun is_package_def a =
-  String.isSuffix "_def" a orelse String.isSuffix "_defs" a;
+   length (NameSpace.unpack a) > 2 andalso 
+   String.isSuffix "_def" a  orelse  String.isSuffix "_defs" a;
 
 fun make_banned_test xs = 
   let val ht = Polyhash.mkTable (Polyhash.hash_string, op =)
