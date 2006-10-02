@@ -17,6 +17,7 @@ sig
   val dest_setT: typ -> typ
   val Trueprop: term
   val mk_Trueprop: term -> term
+  val is_Trueprop: term -> bool
   val dest_Trueprop: term -> term
   val conj: term
   val disj: term
@@ -118,6 +119,9 @@ fun dest_setT (Type ("set", [T])) = T
 val Trueprop = Const ("Trueprop", boolT --> propT);
 
 fun mk_Trueprop P = Trueprop $ P;
+
+fun is_Trueprop (Const ("Trueprop", _) $ _) = true
+  | is_Trueprop t = false;
 
 fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
   | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
