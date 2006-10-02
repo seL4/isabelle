@@ -58,7 +58,7 @@ structure CodegenSerializer: CODEGEN_SERIALIZER =
 struct
 
 open BasicCodegenThingol;
-val debug_msg = CodegenThingol.debug_msg;
+val tracing = CodegenThingol.tracing;
 
 (** precedences **)
 
@@ -292,11 +292,11 @@ fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, vali
       |> postprocess (resolv name_qual);
   in
     code
-    |> debug_msg (fn _ => "dropping shadowed defintions...")
+    |> tracing (fn _ => "dropping shadowed defintions...")
     |> CodegenThingol.delete_garbage drop
-    |> debug_msg (fn _ => "projecting...")
+    |> tracing (fn _ => "projecting...")
     |> (if is_some select then (CodegenThingol.project_module o the) select else I)
-    |> debug_msg (fn _ => "serializing...")
+    |> tracing (fn _ => "serializing...")
     |> CodegenThingol.serialize (from_defs (class_syntax, tyco_syntax, const_syntax))
          from_module' validator postproc nspgrp name_root
     |> K ()
@@ -463,8 +463,7 @@ fun ml_expr_seri (tyco_syntax, const_syntax) resolv =
     fun ml_from_dictvar v = 
       first_upper v ^ "_";
     val ml_from_label =
-      str o translate_string (fn "_" => "__" | "." => "_" | c => c)
-        o NameSpace.base o resolv;
+      str o translate_string (fn "." => "__" | c => c);
     fun ml_from_tyvar (v, []) =
           str "()"
       | ml_from_tyvar (v, sort) =
@@ -759,9 +758,9 @@ fun ml_fun_datatype init_ctxt (tyco_syntax, const_syntax) resolv =
   in (ml_from_funs, ml_from_datatypes) end;
 
 fun ml_from_defs init_ctxt
-    (_, tyco_syntax, const_syntax) resolver prefix defs =
+    (_, tyco_syntax, const_syntax) resolver prefx defs =
   let
-    val resolv = resolver prefix;
+    val resolv = resolver prefx;
     val (ml_from_dictvar, ml_from_label, ml_from_tyvar, ml_from_insts, ml_from_tycoexpr, ml_from_type, ml_from_expr) =
       ml_expr_seri (tyco_syntax, const_syntax) resolv;
     val (ml_from_funs, ml_from_datatypes) =
@@ -794,7 +793,7 @@ fun ml_from_defs init_ctxt
           ];
         fun from_membr (m, ty) =
           Pretty.block [
-            ml_from_label m,
+            (ml_from_label o suffix "_" o NameSpace.base) m,
             str ":",
             Pretty.brk 1,
             ml_from_type NOBR ty
@@ -805,7 +804,7 @@ fun ml_from_defs init_ctxt
             (str o resolv) m,
             Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ resolv name)],
             str "=",
-            Pretty.block [str "#", ml_from_label m],
+            Pretty.block [str "#", (ml_from_label o suffix "_" o NameSpace.base) m],
             str (w ^ ";")
           ];
       in
@@ -851,7 +850,7 @@ fun ml_from_defs init_ctxt
                   |> intro_ctxt consts;
               in
                 (Pretty.block o Pretty.breaks) [
-                  ml_from_label m,
+                  (ml_from_label o suffix "_" o NameSpace.base) m,
                   str "=",
                   ml_from_expr var_ctxt NOBR e
                 ]
@@ -1114,7 +1113,7 @@ fun hs_from_defs init_ctxt (class_syntax, tyco_syntax, const_syntax)
                   hs_from_expr var_ctxt' NOBR be
                 ]
               end
-          in Pretty.block [
+          in Pretty.enclose "(" ")" [
             str "case",
             Pretty.brk 1,
             hs_from_expr var_ctxt NOBR de,
@@ -1199,7 +1198,7 @@ fun hs_from_defs init_ctxt (class_syntax, tyco_syntax, const_syntax)
               str "data",
               hs_from_typparms_tycoexpr tyvar_ctxt (vs, (resolv_here name, map (ITyVar o fst) vs)),
               str "=",
-              Pretty.block (separate (Pretty.block [Pretty.brk 1, str "| "]) (map mk_cons constrs))
+              Pretty.block (separate (Pretty.block [Pretty.fbrk, str "| "]) (map mk_cons constrs))
             ]
           end |> SOME
       | hs_from_def (_, CodegenThingol.Datatypecons _) =
