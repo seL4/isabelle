@@ -377,9 +377,9 @@ apply (drule_tac x="n" in spec, simp)
 done
 
 lemma summable_Cauchy:
-     "summable (f::nat \<Rightarrow> real) =  
-      (\<forall>e > 0. \<exists>N. \<forall>m \<ge> N. \<forall>n. abs(setsum f {m..<n}) < e)"
-apply (simp only: summable_convergent_sumr_iff Cauchy_convergent_iff [symmetric] Cauchy_def diff_minus [symmetric], safe)
+     "summable (f::nat \<Rightarrow> 'a::banach) =  
+      (\<forall>e > 0. \<exists>N. \<forall>m \<ge> N. \<forall>n. norm (setsum f {m..<n}) < e)"
+apply (simp only: summable_convergent_sumr_iff Cauchy_convergent_iff [symmetric] Cauchy_def, safe)
 apply (drule spec, drule (1) mp)
 apply (erule exE, rule_tac x="M" in exI, clarify)
 apply (rule_tac x="m" and y="n" in linorder_le_cases)
@@ -410,18 +410,26 @@ apply simp
 done
 
 lemma summable_comparison_test:
-  fixes f :: "nat \<Rightarrow> real"
-  shows "\<lbrakk>\<exists>N. \<forall>n\<ge>N. \<bar>f n\<bar> \<le> g n; summable g\<rbrakk> \<Longrightarrow> summable f"
+  fixes f :: "nat \<Rightarrow> 'a::banach"
+  shows "\<lbrakk>\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n; summable g\<rbrakk> \<Longrightarrow> summable f"
 apply (simp add: summable_Cauchy, safe)
 apply (drule_tac x="e" in spec, safe)
 apply (rule_tac x = "N + Na" in exI, safe)
 apply (rotate_tac 2)
 apply (drule_tac x = m in spec)
 apply (auto, rotate_tac 2, drule_tac x = n in spec)
-apply (rule_tac y = "\<Sum>k=m..<n. abs(f k)" in order_le_less_trans)
-apply (rule setsum_abs)
+apply (rule_tac y = "\<Sum>k=m..<n. norm (f k)" in order_le_less_trans)
+apply (rule norm_setsum)
 apply (rule_tac y = "setsum g {m..<n}" in order_le_less_trans)
 apply (auto intro: setsum_mono simp add: abs_interval_iff)
+done
+
+lemma summable_norm_comparison_test:
+  fixes f :: "nat \<Rightarrow> 'a::banach"
+  shows "\<lbrakk>\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n; summable g\<rbrakk>
+         \<Longrightarrow> summable (\<lambda>n. norm (f n))"
+apply (rule summable_comparison_test)
+apply (auto)
 done
 
 lemma summable_rabs_comparison_test:
@@ -445,8 +453,10 @@ done
 lemma summable_le2:
   fixes f g :: "nat \<Rightarrow> real"
   shows "\<lbrakk>\<forall>n. \<bar>f n\<bar> \<le> g n; summable g\<rbrakk> \<Longrightarrow> summable f \<and> suminf f \<le> suminf g"
-apply (auto intro: summable_comparison_test intro!: summable_le)
+apply (subgoal_tac "summable f")
+apply (auto intro!: summable_le)
 apply (simp add: abs_le_interval_iff)
+apply (rule_tac g="g" in summable_comparison_test, simp_all)
 done
 
 (* specialisation for the common 0 case *)
@@ -465,31 +475,47 @@ qed
 
 
 text{*Absolute convergence imples normal convergence*}
-lemma summable_rabs_cancel:
-  fixes f :: "nat \<Rightarrow> real"
-  shows "summable (\<lambda>n. \<bar>f n\<bar>) \<Longrightarrow> summable f"
+lemma summable_norm_cancel:
+  fixes f :: "nat \<Rightarrow> 'a::banach"
+  shows "summable (\<lambda>n. norm (f n)) \<Longrightarrow> summable f"
 apply (simp only: summable_Cauchy, safe)
 apply (drule_tac x="e" in spec, safe)
 apply (rule_tac x="N" in exI, safe)
 apply (drule_tac x="m" in spec, safe)
-apply (rule order_le_less_trans [OF setsum_abs])
+apply (rule order_le_less_trans [OF norm_setsum])
+apply (rule order_le_less_trans [OF abs_ge_self])
 apply simp
 done
 
+lemma summable_rabs_cancel:
+  fixes f :: "nat \<Rightarrow> real"
+  shows "summable (\<lambda>n. \<bar>f n\<bar>) \<Longrightarrow> summable f"
+by (rule summable_norm_cancel, simp)
+
 text{*Absolute convergence of series*}
+lemma summable_norm:
+  fixes f :: "nat \<Rightarrow> 'a::banach"
+  shows "summable (\<lambda>n. norm (f n)) \<Longrightarrow> norm (suminf f) \<le> (\<Sum>n. norm (f n))"
+by (auto intro: LIMSEQ_le LIMSEQ_norm summable_norm_cancel
+                summable_sumr_LIMSEQ_suminf norm_setsum)
+
 lemma summable_rabs:
   fixes f :: "nat \<Rightarrow> real"
   shows "summable (\<lambda>n. \<bar>f n\<bar>) \<Longrightarrow> \<bar>suminf f\<bar> \<le> (\<Sum>n. \<bar>f n\<bar>)"
-by (auto intro: LIMSEQ_le LIMSEQ_imp_rabs summable_rabs_cancel summable_sumr_LIMSEQ_suminf)
-
+by (fold real_norm_def, rule summable_norm)
 
 subsection{* The Ratio Test*}
 
-lemma rabs_ratiotest_lemma: "[| c \<le> 0; abs x \<le> c * abs y |] ==> x = (0::real)"
-apply (drule order_le_imp_less_or_eq, auto)
-apply (subgoal_tac "0 \<le> c * abs y")
-apply (simp add: zero_le_mult_iff, arith)
+lemma norm_ratiotest_lemma:
+  fixes x y :: "'a::normed"
+  shows "\<lbrakk>c \<le> 0; norm x \<le> c * norm y\<rbrakk> \<Longrightarrow> x = 0"
+apply (subgoal_tac "norm x \<le> 0", simp)
+apply (erule order_trans)
+apply (simp add: mult_le_0_iff)
 done
+
+lemma rabs_ratiotest_lemma: "[| c \<le> 0; abs x \<le> c * abs y |] ==> x = (0::real)"
+by (erule norm_ratiotest_lemma, simp)
 
 lemma le_Suc_ex: "(k::nat) \<le> l ==> (\<exists>n. l = k + n)"
 apply (drule le_imp_less_or_eq)
@@ -501,8 +527,8 @@ by (auto simp add: le_Suc_ex)
 
 (*All this trouble just to get 0<c *)
 lemma ratio_test_lemma2:
-  fixes f :: "nat \<Rightarrow> real"
-  shows "\<lbrakk>\<forall>n\<ge>N. \<bar>f (Suc n)\<bar> \<le> c * \<bar>f n\<bar>\<rbrakk> \<Longrightarrow> 0 < c \<or> summable f"
+  fixes f :: "nat \<Rightarrow> 'a::banach"
+  shows "\<lbrakk>\<forall>n\<ge>N. norm (f (Suc n)) \<le> c * norm (f n)\<rbrakk> \<Longrightarrow> 0 < c \<or> summable f"
 apply (simp (no_asm) add: linorder_not_le [symmetric])
 apply (simp add: summable_Cauchy)
 apply (safe, subgoal_tac "\<forall>n. N < n --> f (n) = 0")
@@ -510,25 +536,25 @@ apply (safe, subgoal_tac "\<forall>n. N < n --> f (n) = 0")
  apply clarify
  apply(erule_tac x = "n - 1" in allE)
  apply (simp add:diff_Suc split:nat.splits)
- apply (blast intro: rabs_ratiotest_lemma)
+ apply (blast intro: norm_ratiotest_lemma)
 apply (rule_tac x = "Suc N" in exI, clarify)
 apply(simp cong:setsum_ivl_cong)
 done
 
 lemma ratio_test:
-  fixes f :: "nat \<Rightarrow> real"
-  shows "\<lbrakk>c < 1; \<forall>n\<ge>N. \<bar>f (Suc n)\<bar> \<le> c * \<bar>f n\<bar>\<rbrakk> \<Longrightarrow> summable f"
+  fixes f :: "nat \<Rightarrow> 'a::banach"
+  shows "\<lbrakk>c < 1; \<forall>n\<ge>N. norm (f (Suc n)) \<le> c * norm (f n)\<rbrakk> \<Longrightarrow> summable f"
 apply (frule ratio_test_lemma2, auto)
-apply (rule_tac g = "%n. (abs (f N) / (c ^ N))*c ^ n" 
+apply (rule_tac g = "%n. (norm (f N) / (c ^ N))*c ^ n" 
        in summable_comparison_test)
 apply (rule_tac x = N in exI, safe)
 apply (drule le_Suc_ex_iff [THEN iffD1])
 apply (auto simp add: power_add realpow_not_zero)
 apply (induct_tac "na", auto)
-apply (rule_tac y = "c*abs (f (N + n))" in order_trans)
+apply (rule_tac y = "c * norm (f (N + n))" in order_trans)
 apply (auto intro: mult_right_mono simp add: summable_def)
 apply (simp add: mult_ac)
-apply (rule_tac x = "abs (f N) * (1/ (1 - c)) / (c ^ N)" in exI)
+apply (rule_tac x = "norm (f N) * (1/ (1 - c)) / (c ^ N)" in exI)
 apply (rule sums_divide) 
 apply (rule sums_mult) 
 apply (auto intro!: geometric_sums)

@@ -216,8 +216,9 @@ done
 text{*Nonstandard comparison test*}
 lemma NSsummable_comparison_test:
      "[| \<exists>N. \<forall>n. N \<le> n --> abs(f n) \<le> g n; NSsummable g |] ==> NSsummable f"
-by (auto intro: summable_comparison_test 
-         simp add: summable_NSsummable_iff [symmetric])
+apply (fold summable_NSsummable_iff)
+apply (rule summable_comparison_test, simp, assumption)
+done
 
 lemma NSsummable_rabs_comparison_test:
      "[| \<exists>N. \<forall>n. N \<le> n --> abs(f n) \<le> g n; NSsummable g |]
