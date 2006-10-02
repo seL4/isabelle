@@ -19,8 +19,11 @@ sig
     -> theory -> (string * info) * theory
   val get_typecopies: theory -> string list
   val get_typecopy_info: theory -> string -> info option
-  type hook = string * info -> theory -> theory;
-  val add_hook: hook -> theory -> theory;
+  type hook = string * info -> theory -> theory
+  val add_hook: hook -> theory -> theory
+  val get_spec: theory -> string -> (string * sort) list * (string * typ list) list
+  val get_cert: theory -> string -> thm
+  val get_eq: theory -> string -> thm
   val print: theory -> unit
   val setup: theory -> theory
 end;
@@ -134,7 +137,28 @@ val add_typecopy = gen_add_typecopy Sign.certify_typ;
 end; (*local*)
 
 
-(* hooks for projection function code *)
+(* equality function equation *)
+
+fun get_eq thy tyco =
+  (#inject o the o get_typecopy_info thy) tyco;
+
+
+(* datatype specification and certificate *)
+
+fun get_spec thy tyco =
+  let
+    val SOME { vs, constr, typ, ... } = get_typecopy_info thy tyco
+  in (vs, [(constr, [typ])]) end;
+
+local
+  val bool_eq_implies = thm "iffD1";
+  val rew_eq = thm "HOL.atomize_eq" |> Thm.symmetric;
+in fun get_cert thy tyco =
+  Tactic.rewrite_rule [rew_eq] (bool_eq_implies OF [get_eq thy tyco])
+end; (*local*)
+
+
+(* hook for projection function code *)
 
 fun add_project (_ , { proj_def, ...} : info) =
   CodegenData.add_func proj_def;

@@ -790,7 +790,7 @@ struct
 
 val nat_number_expand = thms "nat_number_expand";
 
-fun elim_number_of_nat thy thms =
+fun elim_number_of_nat thy ts =
   let
     fun bins_of (Const _) =
           I
@@ -809,21 +809,18 @@ fun elim_number_of_nat thy thms =
             | (t', ts) => bins_of t' #> fold bins_of ts;
     val simpset =
       HOL_basic_ss addsimps nat_number_expand;
-    val rewrites  =
-      []
-      |> (fold o Drule.fold_terms) bins_of thms
-      |> map (Simplifier.rewrite simpset o Thm.cterm_of thy);
-  in if null rewrites then thms else
-    map (CodegenData.rewrite_func rewrites) thms
+  in
+    []
+    |> fold (bins_of o Thm.term_of) ts
+    |> map (Simplifier.rewrite simpset o Thm.cterm_of thy)
   end;
 
 end;
 *}
 
 setup {*
-  CodegenData.add_preproc NumeralNat.elim_number_of_nat
+  CodegenData.add_inline_proc NumeralNat.elim_number_of_nat
 *}
-
 
 subsection {* legacy ML bindings *}
 

@@ -95,8 +95,8 @@ sig
   val start_transact: string option -> (transact -> 'a * transact) -> module -> 'a * module;
   val elim_classes: module -> (iterm list * iterm) list * typscheme -> (iterm list * iterm) list * itype;
 
-  val debug: bool ref;
-  val debug_msg: ('a -> string) -> 'a -> 'a;
+  val trace: bool ref;
+  val tracing: ('a -> string) -> 'a -> 'a;
   val soft_exc: bool ref;
 
   val serialize:
@@ -112,8 +112,8 @@ struct
 
 (** auxiliary **)
 
-val debug = ref false;
-fun debug_msg f x = (if !debug then Output.tracing (f x) else (); x);
+val trace = ref false;
+fun tracing f x = (if !trace then Output.tracing (f x) else (); x);
 val soft_exc = ref true;
 
 fun unfoldl dest x =
@@ -1057,7 +1057,7 @@ fun ensure_def defgen strict msg name (dep, modl) =
       ^ (if strict then " (strict)" else " (non-strict)");
     fun add_dp NONE = I
       | add_dp (SOME dep) =
-          debug_msg (fn _ => "adding dependency " ^ quote dep ^ " -> " ^ quote name)
+          tracing (fn _ => "adding dependency " ^ quote dep ^ " -> " ^ quote name)
           #> add_dep (dep, name);
     fun prep_def def modl =
       (check_prep_def modl def, modl);
@@ -1077,22 +1077,22 @@ fun ensure_def defgen strict msg name (dep, modl) =
     modl
     |> (if can (get_def modl) name
         then
-          debug_msg (fn _ => "asserting node " ^ quote name)
+          tracing (fn _ => "asserting node " ^ quote name)
           #> add_dp dep
         else
-          debug_msg (fn _ => "allocating node " ^ quote name ^ (if strict then " (strict)" else " (non-strict)"))
+          tracing (fn _ => "allocating node " ^ quote name ^ (if strict then " (strict)" else " (non-strict)"))
           #> ensure_bot name
           #> add_dp dep
-          #> debug_msg (fn _ => "creating node " ^ quote name)
+          #> tracing (fn _ => "creating node " ^ quote name)
           #> invoke_generator name defgen
           #-> (fn def => prep_def def)
           #-> (fn def =>
-             debug_msg (fn _ => "addition of " ^ name ^ " := " ^ (Pretty.output o pretty_def) def)
-          #> debug_msg (fn _ => "adding")
+             tracing (fn _ => "addition of " ^ name ^ " := " ^ (Pretty.output o pretty_def) def)
+          #> tracing (fn _ => "adding")
           #> add_def_incr strict (name, def)
-          #> debug_msg (fn _ => "postprocessing")
+          #> tracing (fn _ => "postprocessing")
           #> postprocess_def (name, def)
-          #> debug_msg (fn _ => "adding done")
+          #> tracing (fn _ => "adding done")
        ))
     |> pair dep
   end;

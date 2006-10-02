@@ -18,17 +18,6 @@ class eq =
 defs
   eq_def: "eq x y \<equiv> (x = y)"
 
-ML {*
-local
-  val thy = the_context ();
-  val const_eq = Sign.intern_const thy "eq";
-  val type_bool = Type (Sign.intern_type thy "bool", []);
-in
-  val eq_def_sym = Thm.symmetric (thm "eq_def");
-  val class_eq = Sign.intern_class thy "eq";
-end
-*}
-
 
 subsection {* bool type *}
 
@@ -47,31 +36,24 @@ lemma [code func]:
   "eq p False = (\<not> p)" unfolding eq_def by auto
 
 
-subsection {* preprocessor *}
+subsection {* code generator setup *}
 
-ML {*
-fun constrain_op_eq thy thms =
-  let
-    fun add_eq (Const ("op =", ty)) =
-          fold (insert (eq_fst (op = : indexname * indexname -> bool)))
-            (Term.add_tvarsT ty [])
-      | add_eq _ =
-          I
-    val eqs = fold (fold_aterms add_eq o Thm.prop_of) thms [];
-    val instT = map (fn (v_i, sort) =>
-      (Thm.ctyp_of thy (TVar (v_i, sort)),
-         Thm.ctyp_of thy (TVar (v_i, Sorts.inter_sort (Sign.classes_of thy) (sort, [class_eq]))))) eqs;
-  in
-    thms
-    |> map (Thm.instantiate (instT, []))
-  end;
-*}
-
-
-subsection {* codegenerator setup *}
+subsubsection {* preprocessor *}
 
 setup {*
-  CodegenData.add_preproc constrain_op_eq
+let
+  val class_eq = "OperationalEquality.eq";
+  fun constrain_op_eq thy ts =
+    let
+      fun add_eq (Const ("op =", ty)) =
+            fold (insert (eq_fst (op = : indexname * indexname -> bool)))
+              (Term.add_tvarsT ty [])
+        | add_eq _ =
+            I
+      val eqs = (fold o fold_aterms) add_eq ts [];
+      val inst = map (fn (v_i, _) => (v_i, [class_eq])) eqs;
+    in inst end;
+in CodegenData.add_constrains constrain_op_eq end
 *}
 
 declare eq_def [symmetric, code inline]

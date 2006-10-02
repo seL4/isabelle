@@ -39,15 +39,14 @@ end;
 
 setup {*
 let
-  fun mk thy arities _ =
-    maps (fn ((tyco, asorts), _) => [(("", []), TypOf.mk_typ_of_def
-      (Type (tyco, map TFree (Name.names Name.context "'a" asorts)))
-      |> tap (writeln o Sign.string_of_term thy))]) arities;
+  fun mk arities _ thy =
+    (maps (fn ((tyco, asorts), _) => [(("", []), TypOf.mk_typ_of_def
+      (Type (tyco, map TFree (Name.names Name.context "'a" asorts))))]) arities, thy);
   fun tac _ = ClassPackage.intro_classes_tac [];
   fun hook specs =
     DatatypeCodegen.prove_codetypes_arities tac
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
-      [TypOf.class_typ_of] mk I
+      [TypOf.class_typ_of] mk ((K o K) I)
 in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
 *}
 
@@ -90,19 +89,27 @@ end;
 
 setup {*
 let
-  fun mk thy arities css =
+  fun thy_note ((name, atts), thms) =
+    PureThy.add_thmss [((name, thms), atts)] #-> (fn [thms] => pair (name, thms));
+  fun thy_def ((name, atts), t) =
+    PureThy.add_defs_i false [((name, t), atts)] #-> (fn [thm] => pair (name, thm));
+  fun mk arities css thy =
     let
       val vs = (Name.names Name.context "'a" o snd o fst o hd) arities;
-      val raw_defs = map (TermOf.mk_terms_of_defs vs) css;
-      fun mk' thy' = map (apfst (rpair [])) ((PrimrecPackage.mk_combdefs thy' o flat) raw_defs)
-    in ClassPackage.assume_arities_thy thy arities mk' end;
+      val defs = map (TermOf.mk_terms_of_defs vs) css;
+      val defs' = (map (pair ("", []) o ObjectLogic.ensure_propT thy) o flat) defs;
+    in
+      thy
+      |> PrimrecPackage.gen_primrec thy_note thy_def "" defs'
+      |> snd
+    end;
   fun tac _ = ClassPackage.intro_classes_tac [];
   fun hook specs =
     if (fst o hd) specs = (fst o dest_Type) Embed.typ_typ then I
     else
       DatatypeCodegen.prove_codetypes_arities tac
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
-      [TermOf.class_term_of] mk I
+      [TermOf.class_term_of] ((K o K o pair) []) mk
 in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
 *}
 

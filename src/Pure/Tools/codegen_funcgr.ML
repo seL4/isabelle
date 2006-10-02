@@ -9,9 +9,10 @@ signature CODEGEN_FUNCGR =
 sig
   type T;
   val mk_funcgr: theory -> CodegenConsts.const list -> (string * typ) list -> T
+  val all_deps_of: T -> CodegenConsts.const list -> CodegenConsts.const list list
   val get_funcs: T -> CodegenConsts.const -> thm list
   val get_func_typs: T -> (CodegenConsts.const * typ) list
-  val preprocess: theory -> thm list -> thm list
+  val normalize: theory -> thm list -> thm list
   val print_codethms: theory -> CodegenConsts.const list -> unit
 end;
 
@@ -98,7 +99,7 @@ fun canonical_vars thy thm =
     val (_, _, inst) = fold mk_inst (vars_of thm) (maxidx + 1, [], []);
   in Thm.instantiate ([], inst) thm end;
 
-fun preprocess thy thms =
+fun normalize thy thms =
   let
     fun burrow_thms f [] = []
       | burrow_thms f thms =
@@ -110,7 +111,6 @@ fun preprocess thy thms =
       #2 (#1 (Variable.import true thms (ProofContext.init thy)));
   in
     thms
-    |> CodegenData.preprocess thy
     |> map (abs_norm thy)
     |> burrow_thms (
         canonical_tvars thy
@@ -119,42 +119,24 @@ fun preprocess thy thms =
        )
   end;
 
-fun check_thms c thms =
-  let
-    fun check_head_lhs thm (lhs, rhs) =
-      case strip_comb lhs
-       of (Const (c', _), _) => if c' = c then ()
-           else error ("Illegal function equation for " ^ quote c
-             ^ ", actually defining " ^ quote c' ^ ": " ^ Display.string_of_thm thm)
-        | _ => error ("Illegal function equation: " ^ Display.string_of_thm thm);
-    fun check_vars_lhs thm (lhs, rhs) =
-      if has_duplicates (op =)
-          (fold_aterms (fn Free (v, _) => cons v | _ => I) lhs [])
-      then error ("Repeated variables on left hand side of function equation:"
-        ^ Display.string_of_thm thm)
-      else ();
-    fun check_vars_rhs thm (lhs, rhs) =
-      if null (subtract (op =)
-        (fold_aterms (fn Free (v, _) => cons v | _ => I) lhs [])
-        (fold_aterms (fn Free (v, _) => cons v | _ => I) rhs []))
-      then ()
-      else error ("Free variables on right hand side of function equation:"
-        ^ Display.string_of_thm thm)
-    val tts = map (Logic.dest_equals o Logic.unvarify o Thm.prop_of) thms;
-  in
-    (map2 check_head_lhs thms tts; map2 check_vars_lhs thms tts;
-      map2 check_vars_rhs thms tts; thms)
-  end;
-
 
 
 (** retrieval **)
 
 fun get_funcs funcgr (c_tys as (c, _)) =
-  (check_thms c o these o Option.map snd o try (Constgraph.get_node funcgr)) c_tys;
+  (these o Option.map snd o try (Constgraph.get_node funcgr)) c_tys;
 
 fun get_func_typs funcgr =
   AList.make (fst o Constgraph.get_node funcgr) (Constgraph.keys funcgr);
+
+fun all_deps_of funcgr cs =
+  let
+    val conn = Constgraph.strong_conn funcgr;
+    val order = rev conn;
+  in
+    (map o filter) (member (op =) (Constgraph.all_succs funcgr cs)) order
+    |> filter_out null
+  end;
 
 local
 
@@ -234,7 +216,7 @@ fun ensure_const thy funcgr c auxgr =
     |> Constgraph.new_node (c, [])
     |> pair (SOME c)
   else let
-    val thms = preprocess thy (CodegenData.these_funcs thy c);
+    val thms = normalize thy (CodegenData.these_funcs thy c);
     val rhs = rhs_of thy (c, thms);
   in
     auxgr
