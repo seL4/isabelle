@@ -50,8 +50,10 @@ datatype class_data = ClassData of {
   name_locale: string,
   name_axclass: string,
   var: string,
-  consts: (string * (string * typ)) list,
-    (*locale parameter ~> toplevel theory constant*)
+  consts: (string * (string * typ)) list
+    (*locale parameter ~> toplevel theory constant*),
+  operational: bool (* == at least one class operation,
+    or at least two operational superclasses *),
   propnames: string list
 } * thm list Symtab.table;
 
@@ -98,15 +100,10 @@ fun the_class_data thy class =
     of NONE => error ("undeclared constructive class " ^ quote class)
      | SOME data => data;
 
-fun is_operational_class thy cls =
-  lookup_class_data thy cls
-  |> Option.map (not o null o #consts o fst)
-  |> the_default false;
-
 fun the_ancestry thy classes =
   let
     fun proj_class class =
-      if is_operational_class thy class
+      if is_some (lookup_class_data thy class)
       then [class]
       else (Sign.certify_sort thy o maps proj_class o Sign.super_classes thy) class;
     fun ancestry class anc =
@@ -126,13 +123,14 @@ fun subst_clsvar v ty_subst =
 
 (* updaters *)
 
-fun add_class_data (class, (name_locale, name_axclass, var, consts, propnames)) =
+fun add_class_data (class, (name_locale, name_axclass, var, consts, operational, propnames)) =
   ClassData.map (
     Symtab.update_new (class, ClassData ({
       name_locale = name_locale,
       name_axclass = name_axclass,
       var = var,
       consts = consts,
+      operational = operational,
       propnames = propnames}, Symtab.empty))
   );
 
@@ -316,6 +314,9 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
       |> Sign.add_const_constraint_i (c, SOME (subst_clsvar v (TFree (v, [class])) ty));
     fun mk_const thy class v (c, ty) =
       Const (c, subst_clsvar v (TFree (v, [class])) ty);
+    fun is_operational thy mapp_this =
+      length mapp_this > 0 orelse
+        length (filter (#operational o fst o the o lookup_class_data thy) supclasses) > 1;
   in
     thy
     |> add_locale bname expr elems
@@ -329,8 +330,9 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
           add_axclass_i (bname, supsort) (map (fst o snd) mapp_this) loc_axioms
     #-> (fn (name_axclass, (_, ax_axioms)) =>
           fold (add_global_constraint v name_axclass) mapp_this
-    #> add_class_data (name_locale, (name_locale, name_axclass, v, mapp_this,
-         map (fst o fst) loc_axioms))
+    #> `(fn thy => is_operational thy mapp_this)
+    #-> (fn operational => add_class_data (name_locale, (name_locale, name_axclass, v, mapp_this,
+          operational, map (fst o fst) loc_axioms)))
     #> prove_interpretation_i (bname, [])
           (Locale.Locale name_locale) (map (SOME o mk_const thy name_axclass v) (map snd (mapp_sup @ mapp_this)))
           ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
@@ -529,6 +531,9 @@ end; (* local *)
 
 
 (** code generation view **)
+
+fun is_operational_class thy class =
+  the_default false ((Option.map (#operational o fst) o lookup_class_data thy) class);
 
 fun operational_algebra thy =
   Sorts.project_algebra (Sign.pp thy)
