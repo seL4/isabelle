@@ -203,6 +203,8 @@ fun freeze_spec th =
   presumably to instantiate a Boolean variable.*)
 fun resop nf [prem] = resolve_tac (nf prem) 1;
 
+(*Any need to extend this list with 
+  "HOL.type_class","OperationalEquality.eq_class","ProtoPure.term"?*)
 val has_meta_conn = 
     exists_Const (fn (c,_) => c mem_string ["==", "==>", "all", "prop"]);
 
@@ -216,7 +218,7 @@ fun apply_skolem_ths (th, rls) =
   Eliminates existential quantifiers using skoths: Skolemization theorems.*)
 fun cnf skoths (th,ths) =
   let fun cnf_aux (th,ths) =
-  	if has_meta_conn (prop_of th) then ths (*meta-level: ignore*)
+  	if not (HOLogic.is_Trueprop (prop_of th)) then ths (*meta-level: ignore*)
         else if not (has_conns ["All","Ex","op &"] (prop_of th))  
 	then th::ths (*no work to do, terminate*)
 	else case head_of (HOLogic.dest_Trueprop (concl_of th)) of
