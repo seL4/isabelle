@@ -406,13 +406,17 @@ apply simp
 apply (rule abs_mult)
 done
 
-lemma norm_zero [simp]: "norm (0::'a::real_normed_vector) = 0"
+lemma norm_zero [simp]: "norm (0::'a::normed) = 0"
 by simp
 
-lemma zero_less_norm_iff [simp]:
-  fixes x :: "'a::real_normed_vector"
-  shows "(0 < norm x) = (x \<noteq> 0)"
+lemma zero_less_norm_iff [simp]: "(0 < norm x) = (x \<noteq> (0::'a::normed))"
 by (simp add: order_less_le)
+
+lemma norm_not_less_zero [simp]: "\<not> norm (x::'a::normed) < 0"
+by (simp add: linorder_not_less)
+
+lemma norm_le_zero_iff [simp]: "(norm x \<le> 0) = (x = (0::'a::normed))"
+by (simp add: order_le_less)
 
 lemma norm_minus_cancel [simp]:
   fixes x :: "'a::real_normed_vector"
