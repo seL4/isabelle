@@ -1,20 +1,16 @@
-Learning Isabelle
+Learning and using Isabelle
   tutorial        Tutorial on Isabelle/HOL
   isar-overview   Tutorial on Isar
   locales         Tutorial on Locales
+  axclass         Tutorial on Axiomatic Type Classes
+  sugar           LaTeX sugar for proof documents
+  ind-defs        (Co)Inductive Definitions in ZF
 
 Reference Manuals
   isar-ref        The Isabelle/Isar Reference Manual
   implementation  The Isabelle/Isar Implementation
   system          The Isabelle System Manual
   ref             The Isabelle Reference Manual
-
-Logics
   logics          Isabelle's Logics: overview and misc logics
   logics-HOL      Isabelle's Logics: HOL
   logics-ZF       Isabelle's Logics: FOL and ZF
-
-Specific Topics
-  sugar           LaTeX sugar for proof documents
-  axclass         Tutorial on Axiomatic Type Classes
-  ind-defs        (Co)Inductive Definitions in ZF
