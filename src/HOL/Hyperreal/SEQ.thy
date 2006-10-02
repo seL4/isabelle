@@ -807,56 +807,6 @@ apply (drule order_le_less_trans [OF norm_triangle_ineq2])
 apply simp
 done
 
-lemma less_Suc_cancel_iff: "(n < Suc M) = (n \<le> M)"
-by auto
-
-text{* Maximal element in subsequence *}
-lemma SUP_subseq:
-     "\<exists>m \<le> M. \<forall>n \<le> M. (X::nat => 'a::linorder) n \<le> X m"
-apply (induct M, simp)
-apply clarify
-apply (rule_tac x="X (Suc M)" and y="X m" in linorder_le_cases)
-apply (rule_tac x="m" in exI)
-apply (simp add: le_Suc_eq)
-apply (rule_tac x="Suc M" in exI)
-apply (simp add: le_Suc_eq)
-apply (blast intro: order_trans)
-done
-
-lemma SUP_rabs_subseq:
-     "\<exists>m::nat \<le> M. \<forall>n \<le> M. norm (X n) \<le> norm (X m)"
-by (rule SUP_subseq)
-
-lemma lemma_Nat_covered:
-     "[| \<forall>m::nat. m \<le> M --> P M m;
-         \<forall>m \<ge> M. P M m |]
-      ==> \<forall>m. P M m"
-by (auto elim: less_asym simp add: le_def)
-
-
-lemma lemma_trans1:
-     "[| \<forall>n \<le> M. norm ((X::nat=>'a::real_normed_vector) n) \<le> a;  a < b |]
-      ==> \<forall>n \<le> M. norm (X n) \<le> b"
-by (blast intro: order_le_less_trans [THEN order_less_imp_le])
-
-lemma lemma_trans2:
-     "[| \<forall>n \<ge> M. norm ((X::nat=>'a::real_normed_vector) n) < a; a < b |]
-      ==> \<forall>n \<ge> M. norm (X n) \<le> b"
-by (blast intro: order_less_trans [THEN order_less_imp_le])
-
-lemma lemma_trans3:
-     "[| \<forall>n \<le> M. norm (X n) \<le> a; a = b |]
-      ==> \<forall>n \<le> M. norm (X n) \<le> b"
-by auto
-
-lemma lemma_trans4: "\<forall>n \<ge> M. norm ((X::nat=>'a::real_normed_vector) n) < a
-              ==>  \<forall>n \<ge> M. norm (X n) \<le> a"
-by (blast intro: order_less_imp_le)
-
-
-text{*Proof is more involved than outlines sketched by various authors
- would suggest*}
-
 lemma Bseq_Suc_imp_Bseq: "Bseq (\<lambda>n. X (Suc n)) \<Longrightarrow> Bseq X"
 apply (unfold Bseq_def, clarify)
 apply (rule_tac x="max K (norm (X 0))" in exI)
