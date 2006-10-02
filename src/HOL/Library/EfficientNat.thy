@@ -28,6 +28,10 @@ definition
   nat_of_int :: "int \<Rightarrow> nat"
   "k \<ge> 0 \<Longrightarrow> nat_of_int k = nat k"
 
+lemma nat_of_int_int:
+  "nat_of_int (int n) = n"
+  using zero_zle_int nat_of_int_def by simp
+
 code_constname
   nat_of_int "IntDef.nat_of_int"
 
@@ -36,7 +40,7 @@ text {*
   expression:
 *}
 
-lemma [code unfold]: "nat_case \<equiv> (\<lambda>f g n. if n = 0 then f else g (n - 1))"
+lemma [code unfold, code noinline]: "nat_case \<equiv> (\<lambda>f g n. if n = 0 then f else g (n - 1))"
 proof -
   have rewrite: "\<And>f g n. nat_case f g n = (if n = 0 then f else g (n - 1))"
   proof -
@@ -47,6 +51,10 @@ proof -
   show "nat_case \<equiv> (\<lambda>f g n. if n = 0 then f else g (n - 1))"
     by (rule eq_reflection ext rewrite)+ 
 qed
+
+lemma [code inline]:
+  "nat_case f g n = (if OperationalEquality.eq n 0 then f else g (nat_of_int (int n - 1)))"
+  by (cases n) (simp_all add: eq_def nat_of_int_int)
 
 text {*
   Most standard arithmetic functions on natural numbers are implemented
@@ -119,6 +127,14 @@ subsection {* Code generator setup for basic functions *}
 text {*
   @{typ nat} is no longer a datatype but embedded into the integers.
 *}
+
+code_const "0::nat"
+  (SML target_atom "(0 : IntInf.int)")
+  (Haskell target_atom "0")
+
+code_const "Suc"
+  (SML "IntInf.op + (__ + 1)")
+  (Haskell "(__ + 1)")
 
 setup {*
   CodegenData.del_datatype "nat"
