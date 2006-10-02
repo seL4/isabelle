@@ -12,7 +12,6 @@ theory Datatype
 imports NatArith Sum_Type
 begin
 
-
 typedef (Node)
   ('a,'b) node = "{p. EX f x k. p = (f::nat=>'b+nat, x::'a+nat) & f k = Inr 0}"
     --{*it is a subtype of @{text "(nat=>'b+nat) * ('a+nat)"}*}
@@ -537,13 +536,12 @@ by auto
 subsection {* Finishing the datatype package setup *}
 
 text {* Belongs to theory @{text Datatype_Universe}; hides popular names. *}
+setup "DatatypeCodegen.setup_hooks"
 hide (open) const Push Node Atom Leaf Numb Lim Split Case
 hide (open) type node item
 
 
 section {* Datatypes *}
-
-setup "DatatypeCodegen.setup2"
 
 subsection {* Representing primitive types *}
 
