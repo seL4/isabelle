@@ -285,9 +285,6 @@ we generate ML code from them.
 consts_code
   arbitrary :: "nat \<times> nat" ("{* (0::nat, 0::nat) *}")
 
-code_const "arbitrary \<Colon> nat \<times> nat"
-  (SML "{* (0\<Colon>nat, 0\<Colon>nat) *}")
-
 code_module PH
 contains
   test = "\<lambda>n. pigeonhole n (\<lambda>m. m - 1)"
@@ -303,5 +300,33 @@ ML "timeit (fn () => PH.test' 25)"
 ML "timeit (fn () => PH.test 500)"
 
 ML "PH.pigeonhole 8 (PH.sel [0,1,2,3,4,5,6,3,7,8])"
+
+definition
+  arbitrary_nat :: "nat \<times> nat"
+  "arbitrary_nat = arbitrary"
+
+lemma [code func]:
+  "arbitrary_nat = arbitrary_nat" ..
+
+declare arbitrary_nat_def [symmetric, code inline]
+
+code_const arbitrary_nat
+  (SML "{* (0\<Colon>nat, 0\<Colon>nat) *}")
+
+definition
+  "test n = pigeonhole n (\<lambda>m. m - 1)"
+  "test' n = pigeonhole_slow n (\<lambda>m. m - 1)"
+
+code_gen test test' "op !" (SML -)
+
+ML "timeit (fn () => ROOT.Pigeonhole.test 10)"
+ML "timeit (fn () => ROOT.Pigeonhole.test' 10)"
+ML "timeit (fn () => ROOT.Pigeonhole.test 20)"
+ML "timeit (fn () => ROOT.Pigeonhole.test' 20)"
+ML "timeit (fn () => ROOT.Pigeonhole.test 25)"
+ML "timeit (fn () => ROOT.Pigeonhole.test' 25)"
+ML "timeit (fn () => ROOT.Pigeonhole.test 500)"
+
+ML "ROOT.Pigeonhole.pigeonhole 8 (ROOT.List.nth [0,1,2,3,4,5,6,3,7,8])"
 
 end

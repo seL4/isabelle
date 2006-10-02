@@ -294,9 +294,6 @@ code_module Higman
 contains
   test = good_prefix
 
-declare barT.recs(2) [where ?fun = ?func, code func]
-code_gen good_prefix (SML -)
-
 ML {*
 local open Higman in
 
@@ -336,6 +333,54 @@ val xs1 = test g1;
 val xs2 = test g2;
 val xs3 = test f1;
 val xs4 = test f2;
+
+end;
+*}
+
+code_gen good_prefix (SML -)
+
+ML {*
+local
+  open ROOT.Higman
+  open ROOT.IntDef
+in
+
+val a = 16807.0;
+val m = 2147483647.0;
+
+fun nextRand seed =
+  let val t = a*seed
+  in  t - m * real (Real.floor(t/m)) end;
+
+fun mk_word seed l =
+  let
+    val r = nextRand seed;
+    val i = Real.round (r / m * 10.0);
+  in if i > 7 andalso l > 2 then (r, []) else
+    apsnd (cons (if i mod 2 = 0 then A else B)) (mk_word r (l+1))
+  end;
+
+fun f s id_0 = mk_word s 0
+  | f s (Succ_nat n) = f (fst (mk_word s 0)) n;
+
+val g1 = snd o (f 20000.0);
+
+val g2 = snd o (f 50000.0);
+
+fun f1 id_0 = [A,A]
+  | f1 (Succ_nat id_0) = [B]
+  | f1 (Succ_nat (Succ_nat id_0)) = [A,B]
+  | f1 _ = [];
+
+fun f2 id_0 = [A,A]
+  | f2 (Succ_nat id_0) = [B]
+  | f2 (Succ_nat (Succ_nat id_0)) = [B,A]
+  | f2 _ = [];
+
+val xs1 = good_prefix g1;
+val xs2 = good_prefix g2;
+val xs3 = good_prefix f1;
+val xs4 = good_prefix f2;
 
 end;
 *}
