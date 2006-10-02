@@ -40,9 +40,9 @@ fun prove_antisym_less sg ss (NotC $ ((less as Const(_,T)) $ r $ s)) =
   end
   handle THM _ => NONE;
 
-val antisym_le = Simplifier.simproc (Theory.sign_of (the_context()))
+val antisym_le = Simplifier.simproc (the_context())
   "antisym le" ["(x::'a::order) <= y"] prove_antisym_le;
-val antisym_less = Simplifier.simproc (Theory.sign_of (the_context()))
+val antisym_less = Simplifier.simproc (the_context())
   "antisym less" ["~ (x::'a::linorder) < y"] prove_antisym_less;
 
 in
