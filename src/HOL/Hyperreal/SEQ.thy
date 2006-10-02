@@ -840,6 +840,9 @@ by (simp add: Cauchy_Bseq Bseq_NSBseq_iff [symmetric] NSCauchy_Cauchy_iff)
 
 subsubsection {* Cauchy Sequences are Convergent *}
 
+axclass banach \<subseteq> real_normed_vector
+  Cauchy_convergent: "Cauchy X \<Longrightarrow> convergent X"
+
 text{*Equivalence of Cauchy criterion and convergence:
   We will prove this using our NS formulation which provides a
   much easier proof than using the standard definition. We do not
@@ -860,10 +863,12 @@ apply (rule NSconvergent_NSCauchy [THEN NSCauchy_Cauchy])
 apply (simp add: convergent_NSconvergent_iff)
 done
 
-lemma NSCauchy_NSconvergent_iff: "NSCauchy X = NSconvergent (X::nat=>real)"
-apply (simp add: NSconvergent_def NSLIMSEQ_def, safe)
+lemma real_NSCauchy_NSconvergent:
+  fixes X :: "nat \<Rightarrow> real"
+  shows "NSCauchy X \<Longrightarrow> NSconvergent X"
+apply (simp add: NSconvergent_def NSLIMSEQ_def)
 apply (frule NSCauchy_NSBseq)
-apply (auto intro: approx_trans2 simp add: NSBseq_def NSCauchy_def)
+apply (simp add: NSBseq_def NSCauchy_def)
 apply (drule HNatInfinite_whn [THEN [2] bspec])
 apply (drule HNatInfinite_whn [THEN [2] bspec])
 apply (auto dest!: st_part_Ex simp add: SReal_iff)
@@ -871,8 +876,32 @@ apply (blast intro: approx_trans3)
 done
 
 text{*Standard proof for free*}
-lemma Cauchy_convergent_iff: "Cauchy X = convergent (X::nat=>real)"
-by (simp add: NSCauchy_Cauchy_iff [symmetric] convergent_NSconvergent_iff NSCauchy_NSconvergent_iff)
+lemma real_Cauchy_convergent:
+  fixes X :: "nat \<Rightarrow> real"
+  shows "Cauchy X \<Longrightarrow> convergent X"
+apply (drule Cauchy_NSCauchy [THEN real_NSCauchy_NSconvergent])
+apply (erule convergent_NSconvergent_iff [THEN iffD2])
+done
+
+instance real :: banach
+by intro_classes (rule real_Cauchy_convergent)
+
+lemma NSCauchy_NSconvergent:
+  fixes X :: "nat \<Rightarrow> 'a::banach"
+  shows "NSCauchy X \<Longrightarrow> NSconvergent X"
+apply (drule NSCauchy_Cauchy [THEN Cauchy_convergent])
+apply (erule convergent_NSconvergent_iff [THEN iffD1])
+done
+
+lemma NSCauchy_NSconvergent_iff:
+  fixes X :: "nat \<Rightarrow> 'a::banach"
+  shows "NSCauchy X = NSconvergent X"
+by (fast intro: NSCauchy_NSconvergent NSconvergent_NSCauchy)
+
+lemma Cauchy_convergent_iff:
+  fixes X :: "nat \<Rightarrow> 'a::banach"
+  shows "Cauchy X = convergent X"
+by (fast intro: Cauchy_convergent convergent_Cauchy)
 
 
 subsection {* More Properties of Sequences *}
