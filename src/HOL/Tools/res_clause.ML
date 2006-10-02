@@ -11,9 +11,14 @@ signature RES_CLAUSE =
   sig
   exception CLAUSE of string * term
   type clause and arityClause and classrelClause
-  type fol_type
-  type typ_var
-  type type_literal
+  datatype fol_type = AtomV of string
+                    | AtomF of string
+                    | Comp of string * fol_type list;
+  datatype fol_term = UVar of string * fol_type
+                    | Fun of string * fol_type list * fol_term list;
+  datatype predicate = Predicate of string * fol_type list * fol_term list;
+  type typ_var and type_literal and literal
+  val literals_of_term: Term.term -> literal list * (typ_var * Term.sort) list
   val add_typs_aux : (typ_var * string list) list -> type_literal list * type_literal list
   val arity_clause_thy: theory -> arityClause list 
   val ascii_of : string -> string
@@ -28,6 +33,7 @@ signature RES_CLAUSE =
   val gen_tptp_cls : int * string * string * string -> string
   val gen_tptp_type_cls : int * string * string * string * int -> string
   val get_axiomName : clause ->  string
+  val get_literals : clause -> literal list
   val init : theory -> unit
   val isMeta : string -> bool
   val isTaut : clause -> bool
@@ -212,8 +218,6 @@ type polarity = bool;
 
 (**** Isabelle FOL clauses ****)
 
-type pred_name = string;
-
 datatype typ_var = FOLTVar of indexname | FOLTFree of string;
 
 (*FIXME: give the constructors more sensible names*)
@@ -236,7 +240,7 @@ datatype type_literal = LTVar of string * string | LTFree of string * string;
 
 datatype fol_term = UVar of string * fol_type
                   | Fun of string * fol_type list * fol_term list;
-datatype predicate = Predicate of pred_name * fol_type list * fol_term list;
+datatype predicate = Predicate of string * fol_type list * fol_term list;
 
 datatype literal = Literal of polarity * predicate;
 
@@ -254,6 +258,8 @@ datatype clause =
 		    types_sorts: (typ_var * sort) list};
 
 fun get_axiomName (Clause cls) = #axiom_name cls;
+
+fun get_literals (Clause cls) = #literals cls;
 
 exception CLAUSE of string * term;
 
