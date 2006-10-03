@@ -849,15 +849,18 @@ end;
 (* general form  [| Q1; ...; Qm |] ==> False.  Fails if more than            *)
 (* !fast_arith_split_limit splits are possible.                              *)
 
-fun split_once_tac (split_thms : thm list) (i : int) : tactic =
-let
+local
   val nnf_simpset =
     empty_ss setmkeqTrue mk_eq_True
     setmksimps (mksimps mksimps_pairs)
-    addsimps [imp_conv_disj, iff_conv_conj_imp, de_Morgan_disj, de_Morgan_conj, 
+    addsimps [imp_conv_disj, iff_conv_conj_imp, de_Morgan_disj, de_Morgan_conj,
       not_all, not_ex, not_not]
   fun prem_nnf_tac i st =
     full_simp_tac (Simplifier.theory_context (Thm.theory_of_thm st) nnf_simpset) i st
+in
+
+fun split_once_tac (split_thms : thm list) (i : int) : tactic =
+let
   fun cond_split_tac i st =
     let
       val subgoal = Logic.nth_prem (i, Thm.prop_of st)
@@ -879,7 +882,9 @@ in
     prem_nnf_tac,
     TRY o REPEAT_ALL_NEW (DETERM o (eresolve_tac [conjE, exE] ORELSE' etac disjE))
   ] i
-end;
+end
+
+end;  (* local *)
 
 (* remove irrelevant premises, then split the i-th subgoal (and all new      *)
 (* subgoals) by using 'split_once_tac' repeatedly.  Beta-eta-normalize new   *)
