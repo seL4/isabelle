@@ -46,7 +46,6 @@ definition
   "arctan y = (SOME x. -(pi/2) < x & x < pi/2 & tan x = y)"
 
 
-
 subsection{*Exponential Function*}
 
 lemma summable_exp: "summable (%n. inverse (real (fact n)) * x ^ n)"
@@ -54,13 +53,13 @@ apply (cut_tac 'a = real in zero_less_one [THEN dense], safe)
 apply (cut_tac x = r in reals_Archimedean3, auto)
 apply (drule_tac x = "\<bar>x\<bar>" in spec, safe)
 apply (rule_tac N = n and c = r in ratio_test)
-apply (auto simp add: abs_mult mult_assoc [symmetric] simp del: fact_Suc)
+apply (safe, simp add: abs_mult mult_assoc [symmetric] del: fact_Suc)
 apply (rule mult_right_mono)
 apply (rule_tac b1 = "\<bar>x\<bar>" in mult_commute [THEN ssubst])
 apply (subst fact_Suc)
 apply (subst real_of_nat_mult)
 apply (auto)
-apply (auto simp add: mult_assoc [symmetric] positive_imp_inverse_positive)
+apply (simp add: mult_assoc [symmetric] positive_imp_inverse_positive)
 apply (rule order_less_imp_le)
 apply (rule_tac z1 = "real (Suc na)" in real_mult_less_iff1 [THEN iffD1])
 apply (auto simp add: real_not_refl2 [THEN not_sym] mult_assoc)
@@ -176,45 +175,59 @@ text{*Power series has a `circle` of convergence, i.e. if it sums for @{term
 x}, then it sums absolutely for @{term z} with @{term "\<bar>z\<bar> < \<bar>x\<bar>"}.*}
 
 lemma powser_insidea:
-  fixes f :: "nat \<Rightarrow> real"
-  shows
-     "[| summable (%n. f(n) * (x ^ n)); \<bar>z\<bar> < \<bar>x\<bar> |]  
-      ==> summable (%n. \<bar>f(n)\<bar> * (z ^ n))"
-apply (drule summable_LIMSEQ_zero)
-apply (drule convergentI)
-apply (simp add: Cauchy_convergent_iff [symmetric])
-apply (drule Cauchy_Bseq)
-apply (simp add: Bseq_def, safe)
-apply (rule_tac g = "%n. K * \<bar>z ^ n\<bar> * inverse (\<bar>x ^ n\<bar>)" in summable_comparison_test)
-apply (rule_tac x = 0 in exI, safe)
-apply (subgoal_tac "0 < \<bar>x ^ n\<bar> ")
-apply (rule_tac c="\<bar>x ^ n\<bar>" in mult_right_le_imp_le) 
-apply (auto simp add: mult_assoc power_abs abs_mult)
- prefer 2
- apply (drule_tac x = 0 in spec, force)
-apply (auto simp add: power_abs mult_ac)
-apply (rule_tac a2 = "z ^ n" 
-       in abs_ge_zero [THEN real_le_imp_less_or_eq, THEN disjE])
-apply (auto intro!: mult_right_mono simp add: mult_assoc [symmetric] power_abs summable_def power_0_left)
-apply (rule_tac x = "K * inverse (1 - (\<bar>z\<bar> * inverse (\<bar>x\<bar>)))" in exI)
-apply (auto intro!: sums_mult simp add: mult_assoc)
-apply (subgoal_tac "\<bar>z ^ n\<bar> * inverse (\<bar>x\<bar> ^ n) = (\<bar>z\<bar> * inverse (\<bar>x\<bar>)) ^ n")
-apply (auto simp add: power_abs [symmetric])
-apply (subgoal_tac "x \<noteq> 0")
-apply (subgoal_tac [3] "x \<noteq> 0")
-apply (auto simp del: abs_inverse 
-            simp add: abs_inverse [symmetric] realpow_not_zero
-            abs_mult [symmetric] power_inverse power_mult_distrib [symmetric])
-apply (auto intro!: geometric_sums  simp add: power_abs inverse_eq_divide)
-done
+  fixes x z :: real
+  assumes 1: "summable (\<lambda>n. f n * x ^ n)"
+  assumes 2: "\<bar>z\<bar> < \<bar>x\<bar>"
+  shows "summable (\<lambda>n. \<bar>f n\<bar> * z ^ n)"
+proof -
+  from 2 have x_neq_0: "x \<noteq> 0" by clarsimp
+  from 1 have "(\<lambda>n. f n * x ^ n) ----> 0"
+    by (rule summable_LIMSEQ_zero)
+  hence "convergent (\<lambda>n. f n * x ^ n)"
+    by (rule convergentI)
+  hence "Cauchy (\<lambda>n. f n * x ^ n)"
+    by (simp add: Cauchy_convergent_iff)
+  hence "Bseq (\<lambda>n. f n * x ^ n)"
+    by (rule Cauchy_Bseq)
+  then obtain K where 3: "0 < K" and 4: "\<forall>n. \<bar>f n * x ^ n\<bar> \<le> K"
+    by (simp add: Bseq_def, safe)
+  have "\<exists>N. \<forall>n\<ge>N. norm (\<bar>f n\<bar> * z ^ n) \<le> K * \<bar>z ^ n\<bar> * inverse \<bar>x ^ n\<bar>"
+  proof (intro exI allI impI)
+    fix n::nat assume "0 \<le> n"
+    have "norm (\<bar>f n\<bar> * z ^ n) * \<bar>x ^ n\<bar> = \<bar>f n * x ^ n\<bar> * \<bar>z ^ n\<bar>"
+      by (simp add: abs_mult)
+    also have "\<dots> \<le> K * \<bar>z ^ n\<bar>"
+      by (simp only: mult_right_mono 4 abs_ge_zero)
+    also have "\<dots> = K * \<bar>z ^ n\<bar> * (inverse \<bar>x ^ n\<bar> * \<bar>x ^ n\<bar>)"
+      by (simp add: x_neq_0)
+    also have "\<dots> = K * \<bar>z ^ n\<bar> * inverse \<bar>x ^ n\<bar> * \<bar>x ^ n\<bar>"
+      by (simp only: mult_assoc)
+    finally show "norm (\<bar>f n\<bar> * z ^ n) \<le> K * \<bar>z ^ n\<bar> * inverse \<bar>x ^ n\<bar>"
+      by (simp add: mult_le_cancel_right x_neq_0)
+  qed
+  moreover have "summable (\<lambda>n. K * \<bar>z ^ n\<bar> * inverse \<bar>x ^ n\<bar>)"
+  proof -
+    from 2 have "norm \<bar>z * inverse x\<bar> < 1"
+      by (simp add: abs_mult divide_inverse [symmetric])
+    hence "summable (\<lambda>n. \<bar>z * inverse x\<bar> ^ n)"
+      by (rule summable_geometric)
+    hence "summable (\<lambda>n. K * \<bar>z * inverse x\<bar> ^ n)"
+      by (rule summable_mult)
+    thus "summable (\<lambda>n. K * \<bar>z ^ n\<bar> * inverse \<bar>x ^ n\<bar>)"
+      by (simp add: abs_mult power_mult_distrib power_abs
+                    power_inverse mult_assoc)
+  qed
+  ultimately show "summable (\<lambda>n. \<bar>f n\<bar> * z ^ n)"
+    by (rule summable_comparison_test)
+qed
 
 lemma powser_inside:
-  fixes f :: "nat \<Rightarrow> real"
-  shows
+  fixes f :: "nat \<Rightarrow> real" shows
      "[| summable (%n. f(n) * (x ^ n)); \<bar>z\<bar> < \<bar>x\<bar> |]  
       ==> summable (%n. f(n) * (z ^ n))"
-apply (drule_tac z = "\<bar>z\<bar>" in powser_insidea)
-apply (auto intro: summable_rabs_cancel simp add: abs_mult power_abs [symmetric])
+apply (drule_tac z = "\<bar>z\<bar>" in powser_insidea, simp)
+apply (rule summable_rabs_cancel)
+apply (simp add: abs_mult power_abs [symmetric])
 done
 
 
@@ -370,71 +383,80 @@ done
 
 text{* FIXME: Long proofs*}
 
-ML {* fast_arith_split_limit := 0; *}  (* FIXME: rewrite proofs *)
-
 lemma termdiffs_aux:
-     "[|summable (\<lambda>n. diffs (diffs c) n * K ^ n); \<bar>x\<bar> < \<bar>K\<bar> |]
-    ==> (\<lambda>h. \<Sum>n. c n *
+  assumes 1: "summable (\<lambda>n. diffs (diffs c) n * K ^ n)"
+  assumes 2: "\<bar>x\<bar> < \<bar>K\<bar>"
+  shows "(\<lambda>h. \<Sum>n. c n *
                   (((x + h) ^ n - x ^ n) * inverse h -
                    real n * x ^ (n - Suc 0)))
        -- 0 --> 0"
-apply (drule dense, safe)
-apply (frule real_less_sum_gt_zero)
-apply (drule_tac
-         f = "%n. \<bar>c n\<bar> * real n * real (n - Suc 0) * (r ^ (n - 2))" 
-     and g = "%h n. c (n) * ((( ((x + h) ^ n) - (x ^ n)) * inverse h) 
-                             - (real n * (x ^ (n - Suc 0))))" 
-       in lemma_termdiff5)
-apply (auto simp add: add_commute)
-apply (subgoal_tac "summable (%n. \<bar>diffs (diffs c) n\<bar> * (r ^ n))")
-apply (rule_tac [2] x = K in powser_insidea, auto)
-apply (subgoal_tac [2] "\<bar>r\<bar> = r", auto)
-apply (rule_tac [2] y1 = "\<bar>x\<bar>" in order_trans [THEN abs_of_nonneg], auto)
-apply (simp add: diffs_def mult_assoc [symmetric])
-apply (subgoal_tac
-        "\<forall>n. real (Suc n) * real (Suc (Suc n)) * \<bar>c (Suc (Suc n))\<bar> * (r ^ n) 
-              = diffs (diffs (%n. \<bar>c n\<bar>)) n * (r ^ n) ") 
-apply (auto simp add: abs_mult)
-apply (drule diffs_equiv)
-apply (drule sums_summable)
-apply (simp_all add: diffs_def) 
-apply (simp add: diffs_def mult_ac)
-apply (subgoal_tac " (%n. real n * (real (Suc n) * (\<bar>c (Suc n)\<bar> * (r ^ (n - Suc 0))))) = (%n. diffs (%m. real (m - Suc 0) * \<bar>c m\<bar> * inverse r) n * (r ^ n))")
-apply auto
-  prefer 2
-  apply (rule ext)
-  apply (simp add: diffs_def) 
-  apply (case_tac "n", auto)
-txt{*23*}
-   apply (drule abs_ge_zero [THEN order_le_less_trans])
-   apply (simp add: mult_ac) 
-  apply (drule abs_ge_zero [THEN order_le_less_trans])
-  apply (simp add: mult_ac) 
- apply (drule diffs_equiv)
- apply (drule sums_summable)
-apply (subgoal_tac
-          "summable
-            (\<lambda>n. real n * (real (n - Suc 0) * \<bar>c n\<bar> * inverse r) *
+proof -
+  from dense [OF 2] obtain r where 3: "\<bar>x\<bar> < r" and 4: "r < \<bar>K\<bar>" by fast
+  from 3 have r_neq_0: "r \<noteq> 0" by auto
+  show "(\<lambda>h. suminf (\<lambda>n. c n * (((x + h) ^ n - x ^ n) * inverse h - real n * x ^ (n - Suc 0)))) -- 0 --> 0"
+  proof (rule lemma_termdiff5)
+    show "0 < r + - \<bar>x\<bar>" using 3 by simp
+  next
+    have A: "summable (%n. \<bar>diffs (diffs c) n\<bar> * (r ^ n))"
+      apply (rule powser_insidea [OF 1])
+      apply (subgoal_tac "\<bar>r\<bar> = r", erule ssubst, rule 4)
+      apply (rule_tac y1 = "\<bar>x\<bar>" in order_trans [THEN abs_of_nonneg])
+       apply (rule abs_ge_zero)
+      apply (rule order_less_imp_le [OF 3])
+      done
+    have B: "\<forall>n. real (Suc n) * real (Suc (Suc n)) *
+      \<bar>c (Suc (Suc n))\<bar> * (r ^ n) = diffs (diffs (%n. \<bar>c n\<bar>)) n * (r ^ n)"
+      by (simp add: diffs_def mult_assoc)
+    have C: "(%n. real n * (real (Suc n) * (\<bar>c (Suc n)\<bar> * (r ^ (n - Suc 0)))))
+      = (%n. diffs (%m. real (m - Suc 0) * \<bar>c m\<bar> * inverse r) n * (r ^ n))"
+      apply (rule ext)
+      apply (simp add: diffs_def)
+      apply (case_tac n, simp_all add: r_neq_0)
+      done
+    have D:
+          "(\<lambda>n. real n * (real (n - Suc 0) * \<bar>c n\<bar> * inverse r) *
                  r ^ (n - Suc 0)) =
-           summable
-            (\<lambda>n. real n * (\<bar>c n\<bar> * (real (n - Suc 0) * r ^ (n - 2))))")
-apply simp 
-apply (rule_tac f = summable in arg_cong, rule ext)
-txt{*33*}
-apply (case_tac "n", auto)
-apply (case_tac "nat", auto)
-apply (drule abs_ge_zero [THEN order_le_less_trans], auto) 
-apply (drule abs_ge_zero [THEN order_le_less_trans])
-apply (simp add: mult_assoc)
-apply (rule mult_left_mono)
- prefer 2 apply arith 
-apply (subst add_commute)
-apply (simp (no_asm) add: mult_assoc [symmetric])
-apply (rule lemma_termdiff3)
-apply (auto intro: abs_triangle_ineq [THEN order_trans], arith)
-done
-
-ML {* fast_arith_split_limit := 9; *}  (* FIXME *)
+           (\<lambda>n. real n * (\<bar>c n\<bar> * (real (n - Suc 0) * r ^ (n - 2))))"
+      apply (rule ext)
+      apply (case_tac "n", simp)
+      apply (case_tac "nat", simp)
+      apply (simp add: r_neq_0)
+      done
+    show "summable (\<lambda>n. \<bar>c n\<bar> * real n * real (n - Suc 0) * r ^ (n - 2))"
+      apply (cut_tac A)
+      apply (simp add: diffs_def mult_assoc [symmetric])
+      apply (simp only: abs_mult abs_real_of_nat_cancel B)
+      apply (drule diffs_equiv)
+      apply (drule sums_summable)
+      apply (simp only: diffs_def mult_ac)
+      apply (simp only: C)
+      apply (drule diffs_equiv)
+      apply (drule sums_summable)
+      apply (simp only: D)
+      done
+  next
+    show "\<forall>h. 0 < \<bar>h\<bar> \<and> \<bar>h\<bar> < r + - \<bar>x\<bar> \<longrightarrow> (\<forall>n. \<bar>c n * (((x + h) ^ n - x ^ n) * inverse h - real n * x ^ (n - Suc 0))\<bar> \<le> \<bar>c n\<bar> * real n * real (n - Suc 0) * r ^ (n - 2) * \<bar>h\<bar>)"
+    proof (clarify)
+      fix h::real and n::nat
+      assume A: "0 < \<bar>h\<bar>" and B: "\<bar>h\<bar> < r + - \<bar>x\<bar>"
+      from A have C: "h \<noteq> 0" by simp
+      show "\<bar>c n * (((x + h) ^ n - x ^ n) * inverse h - real n * x ^ (n - Suc 0))\<bar> \<le> \<bar>c n\<bar> * real n * real (n - Suc 0) * r ^ (n - 2) * \<bar>h\<bar>"
+        apply (cut_tac 3 B C)
+        apply (subst abs_mult)
+        apply (drule abs_ge_zero [THEN order_le_less_trans])
+        apply (simp only: mult_assoc)
+        apply (rule mult_left_mono)
+        prefer 2 apply arith 
+        apply (simp (no_asm) add: mult_assoc [symmetric])
+        apply (rule lemma_termdiff3)
+        apply assumption
+        apply (rule 3 [THEN order_less_imp_le])
+        apply (rule abs_triangle_ineq [THEN order_trans])
+        apply arith
+        done
+    qed
+  qed
+qed
 
 lemma termdiffs: 
     "[| summable(%n. c(n) * (K ^ n));  
