@@ -364,9 +364,11 @@ let
         (case demult inj_consts (all, m) of
            (NONE,   m') => (p, Rat.add (i, m'))
          | (SOME u, m') => add_atom u m' pi)
-    | poly (all as Const ("Numeral.number_of", _) $ t, m, pi as (p, i)) =
-        ((p, Rat.add (i, Rat.mult (m, Rat.rat_of_intinf (HOLogic.dest_binum t))))
-         handle TERM _ => add_atom all m pi)
+    | poly (all as Const ("Numeral.number_of", Type(_,[_,T])) $ t, m, pi as (p, i)) =
+        (let val k = HOLogic.dest_binum t
+            val k2 = if k < 0 andalso T = HOLogic.natT then 0 else k
+        in (p, Rat.add (i, Rat.mult (m, Rat.rat_of_intinf k2))) end
+        handle TERM _ => add_atom all m pi)
     | poly (all as Const f $ x, m, pi) =
         if f mem inj_consts then poly (x, m, pi) else add_atom all m pi
     | poly (all, m, pi) =
