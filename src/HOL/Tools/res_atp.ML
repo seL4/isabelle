@@ -202,12 +202,12 @@ fun is_hol_pred tp =
 exception FN_LG of term;
 
 fun fn_lg (t as Const(f,tp)) (lg,seen) = 
-    if is_hol_fn tp then (upgrade_lg HOL lg, t ins seen) else (lg, t ins seen) 
+    if is_hol_fn tp then (upgrade_lg HOL lg, insert (op =) t seen) else (lg, insert (op =) t seen) 
   | fn_lg (t as Free(f,tp)) (lg,seen) = 
-    if is_hol_fn tp then (upgrade_lg HOL lg, t ins seen) else (lg, t ins seen) 
+    if is_hol_fn tp then (upgrade_lg HOL lg, insert (op =) t seen) else (lg, insert (op =) t seen) 
   | fn_lg (t as Var(f,tp)) (lg,seen) =
-    if is_hol_fn tp then (upgrade_lg HOL lg,t ins seen) else (lg,t ins seen)
-  | fn_lg (t as Abs(_,_,_)) (lg,seen) = (upgrade_lg HOLC lg,t ins seen)
+    if is_hol_fn tp then (upgrade_lg HOL lg,insert (op =) t seen) else (lg,insert (op =) t seen)
+  | fn_lg (t as Abs(_,_,_)) (lg,seen) = (upgrade_lg HOLC lg,insert (op =) t seen)
   | fn_lg f _ = raise FN_LG(f); 
 
 
@@ -226,10 +226,10 @@ fun term_lg [] (lg,seen) = (lg,seen)
 exception PRED_LG of term;
 
 fun pred_lg (t as Const(P,tp)) (lg,seen)= 
-      if is_hol_pred tp then (upgrade_lg HOL lg, t ins seen) else (lg,t ins seen) 
+      if is_hol_pred tp then (upgrade_lg HOL lg, insert (op =) t seen) else (lg,insert (op =) t seen) 
   | pred_lg (t as Free(P,tp)) (lg,seen) =
-      if is_hol_pred tp then (upgrade_lg HOL lg, t ins seen) else (lg,t ins seen)
-  | pred_lg (t as Var(_,_)) (lg,seen) = (upgrade_lg HOL lg, t ins seen)
+      if is_hol_pred tp then (upgrade_lg HOL lg, insert (op =) t seen) else (lg,insert (op =) t seen)
+  | pred_lg (t as Var(_,_)) (lg,seen) = (upgrade_lg HOL lg, insert (op =) t seen)
   | pred_lg P _ = raise PRED_LG(P);
 
 

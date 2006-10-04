@@ -59,9 +59,9 @@ fun make_deps_graph (AbsP (_, _, prf)) = make_deps_graph prf
                 {name = Sign.base_name name, ID = name,
                  dir = space_implode "/" (session @ prefx),
                  unfold = false, path = "", parents = parents'}) gra',
-               name ins parents)
+               insert (op =) name parents)
             end
-          else (gra, name ins parents)
+          else (gra, insert (op =) name parents)
         else
           make_deps_graph prf' (gra, parents)
       end);

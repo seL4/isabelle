@@ -728,7 +728,7 @@ fun rename_abs pat obj t =
 (*Accumulate all 'loose' bound vars referring to level 'lev' or beyond.
    (Bound 0) is loose at level 0 *)
 fun add_loose_bnos (Bound i, lev, js) =
-        if i<lev then js  else  (i-lev) ins_int js
+        if i<lev then js else insert (op =) (i - lev) js
   | add_loose_bnos (Abs (_,_,t), lev, js) = add_loose_bnos (t, lev+1, js)
   | add_loose_bnos (f$t, lev, js) =
         add_loose_bnos (f, lev, add_loose_bnos (t, lev, js))
@@ -1043,15 +1043,15 @@ fun exists_Const P = exists_subterm (fn Const c => P c | _ => false);
 (** TFrees and TVars **)
 
 (*Accumulates the names of Frees in the term, suppressing duplicates.*)
-fun add_term_free_names (Free(a,_), bs) = a ins_string bs
+fun add_term_free_names (Free(a,_), bs) = insert (op =) a bs
   | add_term_free_names (f$u, bs) = add_term_free_names (f, add_term_free_names(u, bs))
   | add_term_free_names (Abs(_,_,t), bs) = add_term_free_names(t,bs)
   | add_term_free_names (_, bs) = bs;
 
 (*Accumulates the names in the term, suppressing duplicates.
   Includes Frees and Consts.  For choosing unambiguous bound var names.*)
-fun add_term_names (Const(a,_), bs) = NameSpace.base a ins_string bs
-  | add_term_names (Free(a,_), bs) = a ins_string bs
+fun add_term_names (Const(a,_), bs) = insert (op =) (NameSpace.base a) bs
+  | add_term_names (Free(a,_), bs) = insert (op =) a bs
   | add_term_names (f$u, bs) = add_term_names (f, add_term_names(u, bs))
   | add_term_names (Abs(_,_,t), bs) = add_term_names(t,bs)
   | add_term_names (_, bs) = bs;
@@ -1063,7 +1063,7 @@ fun add_typ_tvars(Type(_,Ts),vs) = foldr add_typ_tvars vs Ts
 
 (*Accumulates the TFrees in a type, suppressing duplicates. *)
 fun add_typ_tfree_names(Type(_,Ts),fs) = foldr add_typ_tfree_names fs Ts
-  | add_typ_tfree_names(TFree(f,_),fs) = f ins_string fs
+  | add_typ_tfree_names(TFree(f,_),fs) = insert (op =) f fs
   | add_typ_tfree_names(TVar(_),fs) = fs;
 
 fun add_typ_tfrees(Type(_,Ts),fs) = foldr add_typ_tfrees fs Ts
@@ -1071,8 +1071,8 @@ fun add_typ_tfrees(Type(_,Ts),fs) = foldr add_typ_tfrees fs Ts
   | add_typ_tfrees(TVar(_),fs) = fs;
 
 fun add_typ_varnames(Type(_,Ts),nms) = foldr add_typ_varnames nms Ts
-  | add_typ_varnames(TFree(nm,_),nms) = nm ins_string nms
-  | add_typ_varnames(TVar((nm,_),_),nms) = nm ins_string nms;
+  | add_typ_varnames(TFree(nm,_),nms) = insert (op =) nm nms
+  | add_typ_varnames(TVar((nm,_),_),nms) = insert (op =) nm nms;
 
 (*Accumulates the TVars in a term, suppressing duplicates. *)
 val add_term_tvars = it_term_types add_typ_tvars;

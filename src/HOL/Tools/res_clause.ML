@@ -452,7 +452,7 @@ fun make_clause (clause_id, axiom_name, th, kind) =
 
 fun get_tvar_strs [] = []
   | get_tvar_strs ((FOLTVar indx,s)::tss) = 
-      (make_schematic_type_var indx) ins (get_tvar_strs tss)
+      insert (op =) (make_schematic_type_var indx) (get_tvar_strs tss)
   | get_tvar_strs((FOLTFree x,s)::tss) = get_tvar_strs tss
 
 (* check if a clause is first-order before making a conjecture clause*)

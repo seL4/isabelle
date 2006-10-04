@@ -28,7 +28,7 @@ fun check(extacts,intacts,string_of_a,startsI,string_of_s,
                                  string_of_s s; writeln"";
                                  string_of_a a; writeln"";
                                  string_of_s t;writeln"";writeln"" ));
-                     if t mem checked then unchecked else t ins unchecked)
+                     if t mem checked then unchecked else insert (op =) t unchecked)
               in Library.foldl check_sas (unchecked,nexts s a) end;
               val unchecked' = Library.foldl check_sa (unchecked,extacts @ intacts)
         in    (if s mem startsI then 

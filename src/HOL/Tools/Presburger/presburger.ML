@@ -104,7 +104,7 @@ val ZDIVISION_BY_ZERO_DIV = DIVISION_BY_ZERO RS conjunct1;
 
 
 (* extract all the constants in a term*)
-fun add_term_typed_consts (Const (c, T), cs) = (c,T) ins cs
+fun add_term_typed_consts (Const (c, T), cs) = insert (op =) (c, T) cs
   | add_term_typed_consts (t $ u, cs) =
       add_term_typed_consts (t, add_term_typed_consts (u, cs))
   | add_term_typed_consts (Abs (_, _, t), cs) = add_term_typed_consts (t, cs)

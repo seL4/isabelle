@@ -76,7 +76,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
       val (new_chain, chains') = case chain_from of NONE => (NONE, chains) | SOME from =>
         let val old_tos = these (AList.lookup (op =) chains from) in
           if member (op =) old_tos lhs then (NONE, chains)
-          else (SOME from, AList.update (op =) (from, lhs ins old_tos) chains)
+          else (SOME from, AList.update (op =) (from, insert (op =) lhs old_tos) chains)
         end;
 
       (*propagate new chain in lookahead and lambda lists;
@@ -336,7 +336,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
                             val tk_prods' =
                               if not lambda then p :: tk_prods
-                              else p ins tk_prods;
+                              else insert (op =) p tk_prods;
                                       (*if production depends on lambda NT we
                                         have to look for duplicates*)
                          in

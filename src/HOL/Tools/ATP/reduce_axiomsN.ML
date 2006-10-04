@@ -65,7 +65,7 @@ fun const_with_typ thy (c,typ) =
 (*Add a const/type pair to the table, but a [] entry means a standard connective,
   which we ignore.*)
 fun add_const_typ_table ((c,ctyps), tab) =
-  Symtab.map_default (c, [ctyps]) (fn [] => [] | ctyps_list => ctyps ins ctyps_list) 
+  Symtab.map_default (c, [ctyps]) (fn [] => [] | ctyps_list => insert (op =) ctyps ctyps_list) 
     tab;
 
 (*Free variables are included, as well as constants, to handle locales*)

@@ -124,10 +124,10 @@ fun add_fixdefs eqs thy =
 (*********** monadic notation and pattern matching compilation ***********)
 (*************************************************************************)
 
-fun add_names (Const(a,_), bs) = Sign.base_name a ins_string bs
-  | add_names (Free(a,_) , bs) = a ins_string bs
+fun add_names (Const(a,_), bs) = insert (op =) (Sign.base_name a) bs
+  | add_names (Free(a,_) , bs) = insert (op =) a bs
   | add_names (f $ u     , bs) = add_names (f, add_names(u, bs))
-  | add_names (Abs(a,_,t), bs) = add_names (t, a ins_string bs)
+  | add_names (Abs(a,_,t), bs) = add_names (t, insert (op =) a bs)
   | add_names (_         , bs) = bs;
 
 fun add_terms ts xs = foldr add_names xs ts;

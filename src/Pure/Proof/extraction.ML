@@ -378,7 +378,7 @@ fun add_expand_thm thm thy =
       else
         {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns, types = types,
          realizers = realizers, defs = defs,
-         expand = (name, prop_of thm) ins expand, prep = prep}) thy)
+         expand = insert (op =) (name, prop_of thm) expand, prep = prep}) thy)
   end;
 
 val add_expand_thms = fold add_expand_thm;

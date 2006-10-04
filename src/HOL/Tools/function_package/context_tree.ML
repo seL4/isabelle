@@ -138,7 +138,7 @@ fun inst_tree thy fvar f tr =
 
 (* FIXME: remove *)		
 fun add_context_varnames (Leaf _) = I
-  | add_context_varnames (Cong (_, _, _, sub)) = fold (fn (fs, _, st) => fold (curry op ins_string o fst) fs o add_context_varnames st) sub
+  | add_context_varnames (Cong (_, _, _, sub)) = fold (fn (fs, _, st) => fold (insert (op =) o fst) fs o add_context_varnames st) sub
   | add_context_varnames (RCall (_,st)) = add_context_varnames st
     
 

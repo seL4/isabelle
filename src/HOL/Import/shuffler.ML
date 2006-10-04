@@ -554,7 +554,7 @@ fun match_consts ignore t (* th *) =
 	fun add_consts (Const (c, _), cs) =
 	    if c mem_string ignore
 	    then cs
-	    else c ins_string cs
+	    else insert (op =) c cs
 	  | add_consts (t $ u, cs) = add_consts (t, add_consts (u, cs))
 	  | add_consts (Abs (_, _, t), cs) = add_consts (t, cs)
 	  | add_consts (_, cs) = cs
@@ -575,7 +575,7 @@ val collect_ignored =
 		  val ignore_lhs = term_consts lhs \\ term_consts rhs
 		  val ignore_rhs = term_consts rhs \\ term_consts lhs
 	      in
-		  foldr (op ins_string) cs (ignore_lhs @ ignore_rhs)
+		  fold_rev (insert (op =)) cs (ignore_lhs @ ignore_rhs)
 	      end)
 
 (* set_prop t thms tries to make a theorem with the proposition t from

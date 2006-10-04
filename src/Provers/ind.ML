@@ -28,7 +28,7 @@ val _$(_$Var(a_ixname,aT)) = concl_of spec;
 
 fun add_term_frees thy =
 let fun add(tm, vars) = case tm of
-	Free(v,T) => if Sign.typ_instance thy (T,aT) then v ins vars
+	Free(v,T) => if Sign.typ_instance thy (T,aT) then insert (op =) v vars
 		     else vars
       | Abs (_,_,body) => add(body,vars)
       | rator$rand => add(rator, add(rand, vars))

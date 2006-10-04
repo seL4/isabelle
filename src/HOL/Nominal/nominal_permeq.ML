@@ -245,9 +245,9 @@ fun supports_tac tactical ss i =
 (* it collects all free variables and tries to show       *)
 (* that the support of these free variables (op supports) *)
 (* the goal                                               *)
-fun collect_vars i (Bound j) vs = if j < i then vs else Bound (j - i) ins vs
-  | collect_vars i (v as Free _) vs = v ins vs
-  | collect_vars i (v as Var _) vs = v ins vs
+fun collect_vars i (Bound j) vs = if j < i then vs else insert (op =) (Bound (j - i)) vs
+  | collect_vars i (v as Free _) vs = insert (op =) v vs
+  | collect_vars i (v as Var _) vs = insert (op =) v vs
   | collect_vars i (Const _) vs = vs
   | collect_vars i (Abs (_, _, t)) vs = collect_vars (i+1) t vs
   | collect_vars i (t $ u) vs = collect_vars i u (collect_vars i t vs);

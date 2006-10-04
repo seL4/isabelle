@@ -192,7 +192,7 @@ fun preterm_of const_type is_param tm (vparams, params) =
 (* add_parms *)
 
 fun add_parmsT (PType (_, Ts)) rs = fold add_parmsT Ts rs
-  | add_parmsT (Link (r as ref (Param _))) rs = r ins rs
+  | add_parmsT (Link (r as ref (Param _))) rs = insert (op =) r rs
   | add_parmsT (Link (ref T)) rs = add_parmsT T rs
   | add_parmsT _ rs = rs;
 

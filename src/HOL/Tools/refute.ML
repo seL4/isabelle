@@ -785,7 +785,7 @@ struct
 									())
 							(* if the current type is a recursive IDT (i.e. a depth is required), add it to 'acc' *)
 							val acc' = (if Library.exists (fn (_, ds) => Library.exists DatatypeAux.is_rec_type ds) constrs then
-									T ins acc
+									insert (op =) T acc
 								else
 									acc)
 							(* collect argument types *)
@@ -796,9 +796,9 @@ struct
 							acc_constrs
 						end
 					| NONE =>  (* not an inductive datatype, e.g. defined via "typedef" or "typedecl" *)
-						T ins (foldr collect_types acc Ts))
-				| TFree _                => T ins acc
-				| TVar _                 => T ins acc)
+						insert (op =) T (foldr collect_types acc Ts))
+				| TFree _                => insert (op =) T acc
+				| TVar _                 => insert (op =) T acc)
 	in
 		it_term_types collect_types (t, [])
 	end;

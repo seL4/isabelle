@@ -1222,13 +1222,13 @@ fun match_consts t (* th *) =
     let
 	fun add_consts (Const (c, _), cs) =
 	    (case c of
-		 "op =" => "==" ins_string cs
-	       | "op -->" => "==>" ins_string cs
+		 "op =" => Library.insert (op =) "==" cs
+	       | "op -->" => Library.insert (op =) "==>" cs
 	       | "All" => cs
 	       | "all" => cs
 	       | "op &" => cs
 	       | "Trueprop" => cs
-	       | _ => c ins_string cs)
+	       | _ => Library.insert (op =) c cs)
 	  | add_consts (t $ u, cs) = add_consts (t, add_consts (u, cs))
 	  | add_consts (Abs (_, _, t), cs) = add_consts (t, cs)
 	  | add_consts (_, cs) = cs

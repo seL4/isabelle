@@ -251,7 +251,7 @@ fun incr_boundvars  0  t = t
 (*Accumulate all 'loose' bound vars referring to level 'lev' or beyond.
    (Bound 0) is loose at level 0 *)
 fun add_loose_bnos (Bound i, lev, js)   = if i<lev then js
-                                          else  (i-lev) ins_int js
+                                          else insert (op =) (i - lev) js
   | add_loose_bnos (Abs (_,t), lev, js) = add_loose_bnos (t, lev+1, js)
   | add_loose_bnos (f$t, lev, js)       =
                 add_loose_bnos (f, lev, add_loose_bnos (t, lev, js))

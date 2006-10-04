@@ -12,7 +12,7 @@ infix 2 ?;
 infix 3 o oo ooo oooo;
 
 infix 4 ~~ upto downto;
-infix orf andf \ \\ ins ins_string ins_int mem mem_int mem_string union union_int
+infix orf andf \ \\ mem mem_int mem_string union union_int
   union_string inter inter_int inter_string subset subset_int subset_string;
 
 signature BASIC_LIBRARY =
@@ -201,9 +201,6 @@ sig
   val mem: ''a * ''a list -> bool
   val mem_int: int * int list -> bool
   val mem_string: string * string list -> bool
-  val ins: ''a * ''a list -> ''a list
-  val ins_int: int * int list -> int list
-  val ins_string: string * string list -> string list
   val union: ''a list * ''a list -> ''a list
   val union_int: int list * int list -> int list
   val union_string: string list * string list -> string list
@@ -959,25 +956,21 @@ fun x mem xs = member (op =) xs x;
 fun (x: int) mem_int xs = member (op =) xs x;
 fun (x: string) mem_string xs = member (op =) xs x;
 
-fun x ins xs = insert (op =) x xs;
-fun (x: int) ins_int xs = insert (op =) x xs;
-fun (x: string) ins_string xs = insert (op =) x xs;
-
 
 (*union of sets represented as lists: no repetitions*)
 fun xs union [] = xs
   | [] union ys = ys
-  | (x :: xs) union ys = xs union (x ins ys);
+  | (x :: xs) union ys = xs union (insert (op =) x ys);
 
 (*union of sets, optimized version for ints*)
 fun (xs:int list) union_int [] = xs
   | [] union_int ys = ys
-  | (x :: xs) union_int ys = xs union_int (x ins_int ys);
+  | (x :: xs) union_int ys = xs union_int (insert (op =) x ys);
 
 (*union of sets, optimized version for strings*)
 fun (xs:string list) union_string [] = xs
   | [] union_string ys = ys
-  | (x :: xs) union_string ys = xs union_string (x ins_string ys);
+  | (x :: xs) union_string ys = xs union_string (insert (op =) x ys);
 
 (*generalized union*)
 fun gen_union eq (xs, []) = xs

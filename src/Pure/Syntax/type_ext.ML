@@ -55,13 +55,13 @@ fun sort_of_term tm =
 fun raw_term_sorts tm =
   let
     fun add_env (Const ("_ofsort", _) $ Free (x, _) $ cs) env =
-          ((x, ~1), sort_of_term cs) ins env
+          insert (op =) ((x, ~1), sort_of_term cs) env
       | add_env (Const ("_ofsort", _) $ (Const ("_tfree",_) $ Free (x, _)) $ cs) env =
-          ((x, ~1), sort_of_term cs) ins env
+          insert (op =) ((x, ~1), sort_of_term cs) env
       | add_env (Const ("_ofsort", _) $ Var (xi, _) $ cs) env =
-          (xi, sort_of_term cs) ins env
+          insert (op =) (xi, sort_of_term cs) env
       | add_env (Const ("_ofsort", _) $ (Const ("_tvar",_) $ Var (xi, _)) $ cs) env =
-          (xi, sort_of_term cs) ins env
+          insert (op =) (xi, sort_of_term cs) env
       | add_env (Abs (_, _, t)) env = add_env t env
       | add_env (t1 $ t2) env = add_env t1 (add_env t2 env)
       | add_env _ env = env;
