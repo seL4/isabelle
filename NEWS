@@ -627,6 +627,11 @@ means a goal is either solved or left unchanged, no simplification.
 
 *** ML ***
 
+* Pure/library:
+
+infixes ins ins_string ins_int have been abandoned in favour of insert.
+INCOMPATIBILITY: rewrite "x ins(_...) xs" to "insert (op =) x xs"
+
 * Pure/General/susp.ML:
 
 New module for delayed evaluations.
