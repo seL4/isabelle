@@ -1,12 +1,13 @@
-(*  ID:         $Id$
+(*  Title:      Pure/nbe.ML
+    ID:         $Id$
     Author:     Tobias Nipkow, Florian Haftmann, TU Muenchen
 
 Toplevel theory interface for "normalization by evaluation"
-Preconditions: no Vars
 *)
 
 signature NBE =
 sig
+  (*preconditions: no Vars/TVars in term*)
   val norm_term: theory -> term -> term
   val normalization_conv: cterm -> thm
   val lookup: string -> NBE_Eval.Univ
@@ -89,7 +90,7 @@ fun compile_term thy t =
       (fn c => (CodegenNames.const thy c, CodegenFuncgr.get_funcs funcgr c)) all_consts;
     val _ = tracing (fn () => "new definitions: " ^ (commas o maps (map fst)) funs);
     val _ = generate thy funs;
-    val nt = NBE_Eval.nbe thy (!tab) t';
+    val nt = NBE_Eval.eval thy (!tab) t';
   in nt end;
 
 fun subst_Frees [] = I

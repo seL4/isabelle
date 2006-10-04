@@ -1,4 +1,5 @@
-(*  ID:         $Id$
+(*  Title:      Pure/nbe_codegen.ML
+    ID:         $Id$
     Author:     Klaus Aehlig, LMU Muenchen; Tobias Nipkow, TU Muenchen
 
 Code generator for "normalization by evaluation".
@@ -145,21 +146,25 @@ fun generate thy defined [(_, [])] = NONE
 
 open NBE_Eval;
 
-val tcount = ref 0;
-
-fun varifyT ty =
-  let val ty' = map_type_tvar (fn ((s,i),S) => TypeInfer.param (!tcount + i) (s,S)) ty;
-      val _ = (tcount := !tcount + maxidx_of_typ ty + 1);
-  in tcount := !tcount+1; ty' end;
-
 fun nterm_to_term thy t =
   let
-   fun to_term bounds (C s) = Const ((apsnd varifyT o CodegenPackage.const_of_idf thy) s)
-     | to_term bounds (V s) = Free (s, dummyT)
-     | to_term bounds (B i) = Bound (find_index (fn j => i = j) bounds)
-     | to_term bounds (A (t1, t2)) = to_term bounds t1 $ to_term bounds t2
-     | to_term bounds (AbsN (i, t)) =
-          Abs("u", dummyT, to_term (i::bounds) t);
-  in tcount := 0; to_term [] t end;
+    fun to_term bounds (C s) tcount =
+          let
+            val (c, ty) = CodegenPackage.const_of_idf thy s;
+            val ty' = map_type_tvar (fn ((s,i),S) => TypeInfer.param (tcount + i) (s,S)) ty;
+            val tcount' = tcount + maxidx_of_typ ty + 1;
+          in (Const (c, ty'), tcount') end
+      | to_term bounds (V s) tcount = (Free (s, dummyT), tcount)
+      | to_term bounds (B i) tcount = (Bound (find_index (fn j => i = j) bounds), tcount)
+      | to_term bounds (A (t1, t2)) tcount =
+          tcount
+          |> to_term bounds t1
+          ||>> to_term bounds t2
+          |-> (fn (t1', t2') => pair (t1' $ t2'))
+      | to_term bounds (AbsN (i, t)) tcount =
+          tcount
+          |> to_term (i :: bounds) t
+          |-> (fn t' => pair (Abs ("u", dummyT, t')));
+  in fst (to_term [] t 0) end;
 
 end;

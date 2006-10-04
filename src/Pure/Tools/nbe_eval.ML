@@ -1,4 +1,5 @@
-(*  ID:         $Id$
+(*  Title:      Pure/nbe_eval.ML
+    ID:         $Id$
     Author:     Klaus Aehlig, LMU Muenchen; Tobias Nipkow, TU Muenchen
 
 Evaluator infrastructure for "normalization by evaluation".
@@ -25,7 +26,7 @@ sig
     | Fun of (Univ list -> Univ) * (Univ list) * int * (unit -> nterm)
                                          (*functions*);
 
-  val nbe: theory -> Univ Symtab.table -> term -> nterm
+  val eval: theory -> Univ Symtab.table -> term -> nterm
   val apply: Univ -> Univ -> Univ
   val prep_term: theory -> term -> term
 
@@ -123,33 +124,23 @@ fun prep_term thy (Const c) = Const (CodegenNames.const thy (CodegenConsts.norm_
 (* generation of fresh names *)
 
 val counter = ref 0;
-
 fun new_name () = (counter := !counter +1; !counter);
+
 
 (* greetings to Tarski *)
 
-fun eval lookup =
+fun eval thy tab t =
   let
-    fun evl vars (Const (s, _)) = lookup s
-      | evl vars (Free (v, _)) = 
-          AList.lookup (op =) vars v
-          |> the_default (Var (v, []))
-      | evl vars (s $ t) = apply (evl vars s) (evl vars t)
+    fun evl vars (Const (s, _)) =
+          the_default (Constr (s, [])) (Symtab.lookup tab s)
+      | evl vars (Free (v, _)) =
+          the_default (Var (v, [])) (AList.lookup (op =) vars v)
+      | evl vars (s $ t) =
+          apply (evl vars s) (evl vars t)
       | evl vars (Abs (v, _, t)) =
-          Fun (fn [x] => evl (AList.update (op =) (v, x) vars) t,
-            [], 1,
+          Fun (fn [x] => evl (AList.update (op =) (v, x) vars) t, [], 1,
             fn () => let val var = new_name() in
               AbsN (var, to_term (evl (AList.update (op =) (v, BVar (var, [])) vars) t)) end)
-  in evl end;
-
-
-(* finally... *)
-
-fun nbe thy tab t =
-  let
-    fun lookup s = case Symtab.lookup tab s
-       of SOME x => x
-        | NONE   => Constr (s, []);
-  in (counter := 0; to_term (eval lookup [] (prep_term thy t))) end;
+  in (counter := 0; to_term (evl [] (prep_term thy t))) end;
 
 end;
