@@ -41,44 +41,51 @@ fun mutual_induct_Pnames n =
     else map (fn i => "P" ^ string_of_int i) (1 upto n)
 	 
 
-fun check_head fs t =
-    if (case t of 
-          (Free (n, _)) => n mem (map fst fs)
-        | _ => false)
-    then dest_Free t
-    else raise ERROR "Head symbol of every left hand side must be the new function." (* FIXME: Output the equation here *)
-
-
 fun open_all_all (Const ("all", _) $ Abs (n, T, b)) = apfst (cons (n, T)) (open_all_all b)
   | open_all_all t = ([], t)
 
 
 
 (* Builds a curried clause description in abstracted form *)
-fun split_def fs geq arities =
+fun split_def ctxt fnames geq arities =
     let
+      fun input_error msg = error (cat_lines [msg, ProofContext.string_of_term ctxt geq])
+
       val (qs, imp) = open_all_all geq
 
       val gs = Logic.strip_imp_prems imp
       val eq = Logic.strip_imp_concl imp
 
       val (f_args, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop eq)
-      val (fc, args) = strip_comb f_args
-      val f as (fname, _) = check_head fs fc
+      val (head, args) = strip_comb f_args
 
+      val invalid_head_msg = "Head symbol of left hand side must be " ^ plural "" "one out of " fnames ^ commas_quote fnames                                    
+      val fname = fst (dest_Free head)
+          handle TERM _ => input_error invalid_head_msg
+
+      val _ = if fname mem fnames then ()
+              else input_error invalid_head_msg
+                   
       fun add_bvs t is = add_loose_bnos (t, 0, is)
-      val rhs_only = (add_bvs rhs [] \\ fold add_bvs args [])
-                       |> print
-                        |> map (fst o nth (rev qs))
-      val _ = if null rhs_only then () 
-	      else raise ERROR "Variables occur on right hand side only." (* FIXME: Output vars *)
+      val rvs = (add_bvs rhs [] \\ fold add_bvs args [])
+                  |> map (fst o nth (rev qs))
+
+      val _ = if null rvs then () 
+	      else input_error ("Variable" ^ plural " " "s " rvs ^ commas_quote rvs 
+                                ^ " occur" ^ plural "s" "" rvs ^ " on right hand side only:")
+
+      val _ = (fold o fold_aterms)
+                 (fn Free (n, _) => if n mem fnames
+				    then input_error "Recursive Calls not allowed in premises:"
+                                    else I
+                   | _ => I) gs ()
 
       val k = length args
 
       val arities' = case Symtab.lookup arities fname of
                    NONE => Symtab.update (fname, k) arities
                  | SOME i => if (i <> k) 
-                             then raise ERROR ("Function " ^ fname ^ " has different numbers of arguments in different equations")
+                             then input_error ("Function " ^ quote fname ^ " has different numbers of arguments in different equations")
                              else arities
     in
 	((fname, qs, gs, args, rhs), arities')
@@ -101,13 +108,7 @@ fun mk_prod_abs e (t1, t2) =
 fun analyze_eqs ctxt fs eqs =
     let
         val fnames = map fst fs 
-        val (fqgars, arities) = fold_map (split_def fs) eqs Symtab.empty
-
-	val check_rcs = exists_subterm (fn Free (n, _) => if n mem fnames
-						          then raise ERROR "Recursive Calls not allowed in premises." else false
-                                         | _ => false)
-                        
-	val _ = forall (fn (_, _, gs, _, _) => forall check_rcs gs) fqgars
+        val (fqgars, arities) = fold_map (split_def ctxt fnames) eqs Symtab.empty
 
 	fun curried_types (fname, fT) =
 	    let

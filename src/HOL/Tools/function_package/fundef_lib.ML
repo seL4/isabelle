@@ -127,3 +127,8 @@ fun forall_intr_rename (n, cv) thm =
 fun frees_in_term ctxt t =
     rev (fold_aterms (fn  Free (v as (x, _)) =>
                           if Variable.is_fixed ctxt x then I else insert (fn ((x, _),(y, _)) => x = y) v | _ => I) t [])
+
+
+fun plural sg pl [] = sys_error "plural"
+  | plural sg pl [x] = sg
+  | plural sg pl (x::y::ys) = pl
