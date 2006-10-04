@@ -67,7 +67,7 @@ fun DEPTH_FIRST satp tac =
 		then SOME(st, Seq.make
 			         (fn()=> depth (st::used) (stq::qs)))
 		else depth used (tac st :: stq :: qs)
-  in  traced_tac (fn st => depth [] ([Seq.single st]))  end;
+  in  traced_tac (fn st => depth [] [Seq.single st])  end;
 
 
 
