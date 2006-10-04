@@ -135,7 +135,7 @@ struct
     val nat_vars = ref ([] : string list)
     (*translation of a variable: record all natural numbers*)
     fun trans_var (a,T,is) =
-        (if T = HOLogic.natT then nat_vars := (a ins_string (!nat_vars))
+        (if T = HOLogic.natT then nat_vars := (insert (op =) a (!nat_vars))
                              else ();
          UnInterp (a ^ param_string is, []))
     (*A variable, perhaps applied to a series of parameters*)

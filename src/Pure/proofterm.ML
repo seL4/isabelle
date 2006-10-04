@@ -889,7 +889,8 @@ fun is_proj t =
   end;
 
 fun needed_vars prop = 
-  Library.foldl op union ([], map op ins (add_npvars true true [] ([], prop))) union
+  Library.foldl (op union)
+    ([], map (uncurry (insert (op =))) (add_npvars true true [] ([], prop))) union
   prop_vars prop;
 
 fun gen_axm_proof c name prop =

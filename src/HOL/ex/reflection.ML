@@ -233,9 +233,9 @@ fun mk_decompatom eqs (t,ctxt) =
 fun mk_congs ctxt raw_eqs = 
  let 
   val fs = foldr (fn (eq,fns) => 
-		     (eq |> prop_of |> HOLogic.dest_Trueprop 
+		     insert (op =) (eq |> prop_of |> HOLogic.dest_Trueprop 
 			 |> HOLogic.dest_eq |> fst |> strip_comb 
-			 |> fst) ins fns) [] raw_eqs
+			 |> fst) fns) [] raw_eqs
   val tys = foldr (fn (f,ts) => (f |> fastype_of |> binder_types |> split_last |> fst) 
 				    union ts) [] fs
   val _ = bds := AList.make (fn _ => ([],[])) tys
