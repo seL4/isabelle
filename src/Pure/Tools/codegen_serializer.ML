@@ -1126,41 +1126,34 @@ fun hs_from_defs init_ctxt (class_syntax, tyco_syntax, const_syntax)
       (str o resolv) c :: map (hs_from_expr var_ctxt BR) es
     and hs_from_app var_ctxt fxy =
       from_app (hs_mk_app var_ctxt) (hs_from_expr var_ctxt) const_syntax fxy
-    fun hs_from_funeqs (def as (name, _)) =
-      let
-        fun from_eq (args, rhs) =
+    fun hs_from_def (name, CodegenThingol.Fun (def as (eqs, (vs, ty)))) =
           let
-            val consts = map_filter
-              (fn c => if (is_some o const_syntax) c
-                then NONE else (SOME o NameSpace.base o resolv) c) (fold CodegenThingol.add_constnames (rhs :: args) []);
-            val vars = fold CodegenThingol.add_unbound_varnames (rhs :: args) [];
-            val var_ctxt = init_ctxt
-              |> intro_ctxt consts
-              |> intro_ctxt vars;
-          in
-            Pretty.block [
-              (str o resolv_here) name,
-              Pretty.block (map (fn p => Pretty.block [Pretty.brk 1, hs_from_expr var_ctxt BR p]) args),
-              Pretty.brk 1,
-              str ("="),
-              Pretty.brk 1,
-              hs_from_expr var_ctxt NOBR rhs
-            ]
-          end
-      in Pretty.chunks ((map from_eq o fst o snd o constructive_fun) def) end;
-    fun hs_from_def (name, CodegenThingol.Fun (def as (_, (vs, ty)))) =
-          let
+            fun from_eq (args, rhs) =
+              let
+                val consts = map_filter
+                  (fn c => if (is_some o const_syntax) c
+                    then NONE else (SOME o NameSpace.base o resolv) c) (fold CodegenThingol.add_constnames (rhs :: args) []);
+                val vars = fold CodegenThingol.add_unbound_varnames (rhs :: args) [];
+                val var_ctxt = init_ctxt
+                  |> intro_ctxt consts
+                  |> intro_ctxt vars;
+              in
+                (Pretty.block o Pretty.breaks) (
+                  (str o resolv_here) name
+                  :: map (hs_from_expr var_ctxt BR) args
+                  @ [str "=", hs_from_expr var_ctxt NOBR rhs]
+                )
+              end;
             val tyvar_ctxt = intro_ctxt (map fst vs) init_ctxt;
-            val body = hs_from_funeqs (name, def);
           in
-            Pretty.chunks [
+            Pretty.chunks (
               Pretty.block [
                 (str o suffix " ::" o resolv_here) name,
                 Pretty.brk 1,
                 hs_from_typparms_type tyvar_ctxt (vs, ty)
-              ],
-              body
-            ] |> SOME
+              ]
+              :: (map from_eq o fst o snd o constructive_fun) (name, def)
+            ) |> SOME
           end
       | hs_from_def (name, CodegenThingol.Typesyn (vs, ty)) =
           let
@@ -1185,7 +1178,7 @@ fun hs_from_defs init_ctxt (class_syntax, tyco_syntax, const_syntax)
               hs_from_type tyvar_ctxt BR ty
             ] |> SOME
           end
-      | hs_from_def (name, CodegenThingol.Datatype (vs, constrs)) =
+      | hs_from_def (name, CodegenThingol.Datatype (vs, constr :: constrs)) =
           let
             val tyvar_ctxt = intro_ctxt (map fst vs) init_ctxt;
             fun mk_cons (co, tys) =
@@ -1194,12 +1187,13 @@ fun hs_from_defs init_ctxt (class_syntax, tyco_syntax, const_syntax)
                 :: map (hs_from_type tyvar_ctxt BR) tys
               )
           in
-            (Pretty.block o Pretty.breaks) [
-              str "data",
-              hs_from_typparms_tycoexpr tyvar_ctxt (vs, (resolv_here name, map (ITyVar o fst) vs)),
-              str "=",
-              Pretty.block (separate (Pretty.block [Pretty.fbrk, str "| "]) (map mk_cons constrs))
-            ]
+            (Pretty.block o Pretty.breaks) (
+              str "data"
+              :: hs_from_typparms_tycoexpr tyvar_ctxt (vs, (resolv_here name, map (ITyVar o fst) vs))
+              :: str "="
+              :: mk_cons constr
+              :: map ((fn p => Pretty.block [str "| ", p]) o mk_cons) constrs
+            )
           end |> SOME
       | hs_from_def (_, CodegenThingol.Datatypecons _) =
           NONE
