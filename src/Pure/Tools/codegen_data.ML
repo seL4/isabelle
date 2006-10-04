@@ -2,7 +2,8 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Basic code generator data structures; abstract executable content of theory.
+Abstract executable content of theory. Management of data dependent on
+executabl content.
 *)
 
 signature CODEGEN_DATA =

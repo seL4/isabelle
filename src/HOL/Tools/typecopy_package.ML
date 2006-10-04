@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Introducing copies of types using trivial typedefs.
+Introducing copies of types using trivial typedefs; datatype-like abstraction.
 *)
 
 signature TYPECOPY_PACKAGE =

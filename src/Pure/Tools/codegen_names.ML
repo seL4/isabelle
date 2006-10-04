@@ -3,7 +3,8 @@
     Author:     Florian Haftmann, TU Muenchen
 
 Name policies for code generation: prefixing any name by corresponding theory name,
-conversion to alphanumeric representation. Mappings are incrementally cached.
+conversion to alphanumeric representation, shallow name spaces.
+Mappings are incrementally cached.
 *)
 
 signature CODEGEN_NAMES =

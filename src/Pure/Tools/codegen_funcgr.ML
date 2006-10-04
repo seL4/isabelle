@@ -2,7 +2,8 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Retrieving and structuring code function theorems.
+Retrieving, normalizing and structuring code function theorems
+in graph with explicit dependencies.
 *)
 
 signature CODEGEN_FUNCGR =

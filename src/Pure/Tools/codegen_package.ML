@@ -2,8 +2,7 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Code generator from Isabelle theories to
-intermediate language ("Thin-gol").
+Code generator extraction kernel. Code generator Isar setup.
 *)
 
 signature CODEGEN_PACKAGE =

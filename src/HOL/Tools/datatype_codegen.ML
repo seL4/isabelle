@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Stefan Berghofer & Florian Haftmann, TU Muenchen
 
-Code generator for inductive datatypes and type copies ("code types").
+Code generator for inductive datatypes.
 *)
 
 signature DATATYPE_CODEGEN =
