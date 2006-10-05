@@ -627,7 +627,7 @@ exception STRING_OF_COMBTERM of int;
 (* convert literals of clauses into strings *)
 fun string_of_combterm1_aux _ (CombConst(c,tp,_)) = 
     let val tp' = string_of_ctyp tp
-	val c' = if c = "equal" then "fequal" else c
+	val c' = if c = "equal" then "c_fequal" else c
     in
 	(wrap_type (c',tp'),tp')
     end
@@ -676,7 +676,7 @@ fun string_of_combterm1 is_pred term = fst (string_of_combterm1_aux is_pred term
 
 fun string_of_combterm2 _ (CombConst(c,tp,tvars)) = 
     let val tvars' = map string_of_ctyp tvars
-	val c' = if c = "equal" then "fequal" else c
+	val c' = if c = "equal" then "c_fequal" else c
     in
 	c' ^ (ResClause.paren_pack tvars')
     end
@@ -813,8 +813,8 @@ fun init_funcs_tab funcs =
 	val funcs2 = case tp of T_FULL => Symtab.update ("typeinfo",2) funcs1
 				      | _ => funcs1
     in
-	case tp of T_CONST => Symtab.update ("fequal",1) (Symtab.update ("hEXTENT",2) funcs2)
-			 | _ => Symtab.update ("fequal",0) (Symtab.update ("hEXTENT",0) funcs2)
+	case tp of T_CONST => Symtab.update ("c_fequal",1) funcs2
+			 | _ => Symtab.update ("c_fequal",0) funcs2
     end;
 
 
@@ -903,15 +903,14 @@ fun dfg_write_file  thms filename (axclauses,classrel_clauses,arity_clauses) use
 	val conjectures = make_conjecture_clauses thms
         val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses user_lemmas)
 	val (dfg_clss,tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
-	val clss = conjectures @ axclauses'
-	val funcs = funcs_of_clauses clss arity_clauses
-	and preds = preds_of classrel_clauses arity_clauses
 	and probname = Path.pack (Path.base (Path.unpack filename))
 	val (axstrs,_) =  ListPair.unzip (map clause2dfg axclauses')
 	val tfree_clss = map ResClause.dfg_tfree_clause (ResClause.union_all tfree_litss)
 	val out = TextIO.openOut filename
 	val helper_clauses = (#2 o ListPair.unzip o get_helper_clauses) ()
 	val helper_clauses_strs = (#1 o ListPair.unzip o (map clause2dfg)) helper_clauses
+	val funcs = funcs_of_clauses (helper_clauses @ conjectures @ axclauses') arity_clauses
+	and preds = preds_of classrel_clauses arity_clauses
     in
 	TextIO.output (out, ResClause.string_of_start probname); 
 	TextIO.output (out, ResClause.string_of_descrip probname); 
