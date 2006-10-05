@@ -352,120 +352,8 @@ fun simp_type_of (Type (a, Ts)) =
   | simp_type_of (TFree (a,s)) = ResClause.mk_fol_type("Fixed",ResClause.make_fixed_type_var a,[])
   | simp_type_of (TVar (v,s)) = ResClause.mk_fol_type("Var",ResClause.make_schematic_type_var v,[]);
 
-fun comb_typ ("COMBI",t) = 
-    let val t' = domain_type t
-    in
-	[simp_type_of t']
-    end
-  | comb_typ ("COMBK",t) = 
-    let val a = domain_type t
-	val b = domain_type (range_type t)
-    in
-	map simp_type_of [a,b]
-    end
-  | comb_typ ("COMBS",t) = 
-    let val t' = domain_type t
-	val a = domain_type t'
-	val b = domain_type (range_type t')
-	val c = range_type (range_type t')
-    in 
-	map simp_type_of [a,b,c]
-    end
-  | comb_typ ("COMBB",t) = 
-    let val ab = domain_type t
-	val ca = domain_type (range_type t)
-	val a = domain_type ab
-	val b = range_type ab
-	val c = domain_type ca
-    in
-	map simp_type_of [a,b,c]
-    end
-  | comb_typ ("COMBC",t) =
-    let val t1 = domain_type t
-	val a = domain_type t1
-	val b = domain_type (range_type t1)
-	val c = range_type (range_type t1)
-    in
-	map simp_type_of [a,b,c]
-    end
-  | comb_typ ("COMBB_e",t) =
-    let val t1 = domain_type t
-	val a = domain_type t1
-	val b = range_type t1
-	val t2 = domain_type (range_type(range_type t))
-	val c = domain_type t2
-	val d = range_type t2
-    in
-	map simp_type_of [a,b,c,d]
-    end
-  | comb_typ ("COMBC_e",t) =
-    let val t1 = domain_type t
-	val a = domain_type t1
-	val b = domain_type (range_type t1)
-	val c = range_type (range_type t1)
-	val d = domain_type (domain_type (range_type t))
-    in
-	map simp_type_of [a,b,c,d]
-    end
-  | comb_typ ("COMBS_e",t) = 
-    let val t1 = domain_type t
-	val a = domain_type t1
-	val b = domain_type (range_type t1)
-	val c = range_type (range_type t1)
-	val d = domain_type (domain_type (range_type t))
-    in
-	map simp_type_of [a,b,c,d]
-    end;
 
-fun const_type_of ("COMBI",t) = 
-    let val (tp,ts) = type_of t
-	val I_var = comb_typ ("COMBI",t)
-    in
-	(tp,ts,I_var)
-    end
-  | const_type_of ("COMBK",t) =
-    let val (tp,ts) = type_of t
-	val K_var = comb_typ ("COMBK",t)
-    in
-	(tp,ts,K_var)
-    end
-  | const_type_of ("COMBS",t) =
-    let val (tp,ts) = type_of t
-	val S_var = comb_typ ("COMBS",t)
-    in
-	(tp,ts,S_var)
-    end
-  | const_type_of ("COMBB",t) =
-    let val (tp,ts) = type_of t
-	val B_var = comb_typ ("COMBB",t)
-    in
-	(tp,ts,B_var)
-    end
-  | const_type_of ("COMBC",t) =
-    let val (tp,ts) = type_of t
-	val C_var = comb_typ ("COMBC",t)
-    in
-	(tp,ts,C_var)
-    end
-  | const_type_of ("COMBB_e",t) =
-    let val (tp,ts) = type_of t
-	val B'_var = comb_typ ("COMBB_e",t)
-    in
-	(tp,ts,B'_var)
-    end
-  | const_type_of ("COMBC_e",t) =
-    let val (tp,ts) = type_of t
-	val C'_var = comb_typ ("COMBC_e",t)
-    in
-	(tp,ts,C'_var)
-    end
-  | const_type_of ("COMBS_e",t) =
-    let val (tp,ts) = type_of t
-	val S'_var = comb_typ ("COMBS_e",t)
-    in
-	(tp,ts,S'_var)
-    end
-  | const_type_of (c,t) =
+fun const_type_of (c,t) =
     let val (tp,ts) = type_of t
 	val tvars = !const_typargs(c,t)
 	val tvars' = map simp_type_of tvars
@@ -791,30 +679,14 @@ fun clause2dfg (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
     in (cls_str, tfree_lits) end;
 
 
-fun init_combs (comb,funcs) =
-    case !typ_level of T_CONST => 
-	    (case comb of "c_COMBK" => Symtab.update (comb,2) funcs
-			| "c_COMBS" => Symtab.update (comb,3) funcs
-			| "c_COMBI" => Symtab.update (comb,1) funcs
-			| "c_COMBB" => Symtab.update (comb,3) funcs
-			| "c_COMBC" => Symtab.update (comb,3) funcs
-			| "c_COMBB_e" => Symtab.update (comb,4) funcs
-			| "c_COMBC_e" => Symtab.update (comb,4) funcs
-			| "c_COMBS_e" => Symtab.update (comb,4) funcs
-			| _ => funcs)
-	  | _ => Symtab.update (comb,0) funcs;
-
 fun init_funcs_tab funcs = 
     let val tp = !typ_level
-	val funcs0 = foldl init_combs funcs ["c_COMBK","c_COMBS","c_COMBI","c_COMBB","c_COMBC",
-	                                     "c_COMBB__e","c_COMBC__e","c_COMBS__e"]
-	val funcs1 = case tp of T_PARTIAL => Symtab.update ("hAPP",3) funcs0
-				      | _ => Symtab.update ("hAPP",2) funcs0
+	val funcs1 = case tp of T_PARTIAL => Symtab.update ("hAPP",3) funcs
+				      | _ => Symtab.update ("hAPP",2) funcs
 	val funcs2 = case tp of T_FULL => Symtab.update ("typeinfo",2) funcs1
 				      | _ => funcs1
     in
-	case tp of T_CONST => Symtab.update ("c_fequal",1) funcs2
-			 | _ => Symtab.update ("c_fequal",0) funcs2
+	funcs2
     end;
 
 
