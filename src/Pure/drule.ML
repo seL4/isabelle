@@ -89,6 +89,8 @@ sig
   val list_comb: cterm * cterm list -> cterm
   val strip_comb: cterm -> cterm * cterm list
   val strip_type: ctyp -> ctyp list * ctyp
+  val clhs_of: thm -> cterm
+  val crhs_of: thm -> cterm
   val beta_conv: cterm -> cterm -> cterm
   val plain_prop_of: thm -> term
   val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
@@ -107,6 +109,7 @@ sig
   val imp_cong_rule: thm -> thm -> thm
   val beta_eta_conversion: cterm -> thm
   val eta_long_conversion: cterm -> thm
+  val eta_contraction_rule: thm -> thm
   val forall_conv: int -> (cterm -> thm) -> cterm -> thm
   val concl_conv: int -> (cterm -> thm) -> cterm -> thm
   val prems_conv: int -> (int -> cterm -> thm) -> cterm -> thm
@@ -212,6 +215,18 @@ fun strip_type cT = (case Thm.typ_of cT of
         val (cTs, cT') = strip_type cT2
       in (cT1 :: cTs, cT') end
   | _ => ([], cT));
+
+fun clhs_of th =
+  case strip_comb (cprop_of th) of
+      (f, [x, _]) =>
+          (case term_of f of Const ("==", _) => x | _ => raise THM ("clhs_of", 0, [th]))
+    | _ => raise THM ("clhs_of", 1, [th]);
+
+fun crhs_of th =
+  case strip_comb (cprop_of th) of
+      (f, [_, x]) =>
+          (case term_of f of Const ("==", _) => x | _ => raise THM ("crhs_of", 0, [th]))
+    | _ => raise THM ("crhs_of", 1, [th]);
 
 (*Beta-conversion for cterms, where x is an abstraction. Simply returns the rhs
   of the meta-equality returned by the beta_conversion rule.*)
@@ -656,6 +671,10 @@ end;
 
 fun eta_long_conversion ct = transitive (beta_eta_conversion ct)
   (symmetric (beta_eta_conversion (cterm_fun (Pattern.eta_long []) ct)));
+
+(*Contract all eta-redexes in the theorem, lest they give rise to needless abstractions*)
+fun eta_contraction_rule th =
+  equal_elim (eta_conversion (cprop_of th)) th;
 
 val abs_def =
   let
