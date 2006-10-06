@@ -285,7 +285,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
             | _ => error ("More than one type variable in type signature of constant " ^ quote c));
         val consts1 =
           Locale.parameters_of thy name_locale
-          |> map (apsnd Syntax.unlocalize_mixfix)
+          |> map (apsnd (Syntax.unlocalize_mixfix true))
         val SOME v = fold extract_classvar consts1 NONE;
         val consts2 = map ((apfst o apsnd) (subst_clsvar v (TFree (v, [])))) consts1;
       in (v, chop (length mapp_sup) consts2) end;
