@@ -11,7 +11,9 @@ sig
   val abs_def: term -> (string * typ) * term
   val mk_def: Proof.context -> (string * term) list -> term list
   val def_export: Assumption.export
-  val add_def: string * term -> Proof.context -> ((string * typ) * thm) * Proof.context
+  val find_def: Proof.context -> string -> thm option
+  val add_defs: ((string * mixfix) * ((bstring * attribute list) * term)) list -> Proof.context ->
+    (term * (bstring * thm)) list * Proof.context
   val print_rules: Context.generic -> unit
   val defn_add: attribute
   val defn_del: attribute
@@ -56,34 +58,47 @@ fun mk_def ctxt args =
 (* export defs *)
 
 val head_of_def =
-  #1 o Term.dest_Free o Term.head_of o #1 o Logic.dest_equals o Term.strip_all_body o Thm.term_of;
+  #1 o Term.dest_Free o Term.head_of o #1 o Logic.dest_equals o Term.strip_all_body;
 
 
 (*
-  [x, x == t]
+  [x, x == a]
        :
       B x
   -----------
-      B t
+      B a
 *)
 fun def_export _ defs thm =
   thm
   |> Drule.implies_intr_list defs
-  |> Drule.generalize ([], map head_of_def defs)
+  |> Drule.generalize ([], map (head_of_def o Thm.term_of) defs)
   |> funpow (length defs) (fn th => Drule.reflexive_thm RS th);
+
+
+(* find def *)
+
+fun find_def ctxt x =
+  Assumption.prems_of ctxt |> find_first (fn th =>
+    (case try (head_of_def o Thm.prop_of) th of
+      SOME y => x = y
+    | NONE => false));
 
 
 (* add defs *)
 
-fun add_def (x, t) ctxt =
+fun add_defs defs ctxt =
   let
-    val [eq] = mk_def ctxt [(x, t)];
-    val x' = Term.dest_Free (fst (Logic.dest_equals eq));
+    val ((xs, mxs), specs) = defs |> split_list |>> split_list;
+    val ((names, atts), rhss) = specs |> split_list |>> split_list;
+    val names' = map2 Thm.def_name_optional xs names;
+    val eqs = mk_def ctxt (xs ~~ rhss);
+    val lhss = map (fst o Logic.dest_equals) eqs;
   in
     ctxt
-    |> ProofContext.add_fixes_i [(x, NONE, NoSyn)] |> snd
-    |> ProofContext.add_assms_i def_export [(("", []), [(eq, [])])]
-    |>> (fn [(_, [th])] => (x', th))
+    |> ProofContext.add_fixes_i (map2 (fn x => fn mx => (x, NONE, mx)) xs mxs) |> #2
+    |> ProofContext.add_assms_i def_export
+      (map2 (fn a => fn eq => (a, [(eq, [])])) (names' ~~ atts) eqs)
+    |>> map2 (fn lhs => fn (name, [th]) => (lhs, (name, th))) lhss
   end;
 
 
@@ -149,9 +164,9 @@ fun derived_def ctxt conditional prop =
       |> (snd o Logic.dest_equals o Thm.prop_of)
       |> K conditional ? Logic.strip_imp_concl
       |> (abs_def o #2 o cert_def ctxt);
-    fun prove ctxt' t def =
+    fun prove ctxt' lhs def =   (* FIXME check/simplify *)
       let
-        val prop' = Term.subst_atomic [(Free (c, T), t)] prop;
+        val prop' = Term.subst_atomic [(Free (c, T), lhs)] prop;   (* FIXME !? *)
         val frees = Term.fold_aterms (fn Free (x, _) =>
           if Variable.is_fixed ctxt' x then I else insert (op =) x | _ => I) prop' [];
       in
