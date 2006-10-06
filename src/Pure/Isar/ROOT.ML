@@ -33,11 +33,12 @@ use "net_rules.ML";
 use "induct_attrib.ML";
 
 (*derived theory and proof elements*)
+use "local_theory.ML";
 use "calculation.ML";
 use "obtain.ML";
 use "locale.ML";
 use "../axclass.ML";
-use "local_theory.ML";
+use "theory_target.ML";
 use "specification.ML";
 use "constdefs.ML";
 
