@@ -44,7 +44,7 @@ fun gen_constdef prep_vars prep_term prep_att
       else ());
 
     val def = Term.subst_atomic [(Free (c, T), Const (Sign.full_name thy c, T))] prop;
-    val name = if raw_name = "" then Thm.def_name c else raw_name;
+    val name = Thm.def_name_optional c raw_name;
     val atts = map (prep_att thy) raw_atts;
 
     val thy' =
@@ -58,7 +58,7 @@ fun gen_constdefs prep_vars prep_term prep_att (raw_structs, specs) thy =
     val ctxt = ProofContext.init thy;
     val (structs, _) = prep_vars (map (fn (x, T) => (x, T, Structure)) raw_structs) ctxt;
     val (decls, thy') = fold_map (gen_constdef prep_vars prep_term prep_att structs) specs thy;
-  in Pretty.writeln (LocalTheory.pretty_consts ctxt (K true) decls); thy' end;
+  in Pretty.writeln (ProofDisplay.pretty_consts ctxt (K true) decls); thy' end;
 
 val add_constdefs = gen_constdefs ProofContext.read_vars_legacy
   ProofContext.read_term_legacy Attrib.attribute;
