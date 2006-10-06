@@ -27,6 +27,7 @@ sig
     ((string * string) * (string * thm list) list) -> unit
   val present_results: Proof.context ->
     ((string * string) * (string * thm list) list) -> unit
+  val pretty_consts: Proof.context -> (string * typ -> bool) -> (string * typ) list -> Pretty.T
 end
 
 structure ProofDisplay: PROOF_DISPLAY =
@@ -124,6 +125,26 @@ fun present_results ctxt ((kind, name), res) =
   else (print_results true ctxt ((kind, name), res);
     Context.setmp (SOME (ProofContext.theory_of ctxt))
       (Present.results kind) (name_results name res));
+
+end;
+
+
+(* consts *)
+
+local
+
+fun pretty_var ctxt (x, T) =
+  Pretty.block [Pretty.str x, Pretty.str " ::", Pretty.brk 1,
+    Pretty.quote (ProofContext.pretty_typ ctxt T)];
+
+fun pretty_vars ctxt kind vs = Pretty.big_list kind (map (pretty_var ctxt) vs);
+
+in
+
+fun pretty_consts ctxt pred cs =
+  (case filter pred (#1 (ProofContext.inferred_fixes ctxt)) of
+    [] => pretty_vars ctxt "constants" cs
+  | ps => Pretty.chunks [pretty_vars ctxt "parameters" ps, pretty_vars ctxt "constants" cs]);
 
 end;
 
