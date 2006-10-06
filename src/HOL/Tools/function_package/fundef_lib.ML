@@ -65,7 +65,7 @@ fun dest_all_all_ctx ctx (Const ("all", _) $ Abs (a as (n,T,b))) =
 fun unfold P f g b x = if (P x) then ((f x)::(unfold P f g b (g x))) else (b x)
 
 val dest_implies_list = 
-    split_last o (unfold Logic.is_implies (fst o Logic.dest_implies) (snd o Logic.dest_implies) single)
+    split_last o (unfold (can Logic.dest_implies) (fst o Logic.dest_implies) (snd o Logic.dest_implies) single)
 
 fun implies_elim_swp a b = implies_elim b a
 
@@ -90,10 +90,6 @@ fun map7 _ [] [] [] [] [] [] [] = []
 (* forms all "unordered pairs": [1, 2, 3] ==> [(1, 1), (1, 2), (1, 3), (2, 2), (2, 3), (3, 3)] *)
 fun unordered_pairs [] = []
   | unordered_pairs (x::xs) = map (pair x) (x::xs) @ unordered_pairs xs
-
-
-fun the_single [x] = x
-  | the_single _ = sys_error "the_single"
 
 
 (* Replaces Frees by name. Probably quicker than Pattern.rewrite_terms, and works with loose Bounds. *)
