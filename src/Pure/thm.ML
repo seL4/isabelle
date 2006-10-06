@@ -90,6 +90,7 @@ signature BASIC_THM =
   val get_axiom_i: theory -> string -> thm
   val get_axiom: theory -> xstring -> thm
   val def_name: string -> string
+  val def_name_optional: string -> string -> string
   val get_def: theory -> xstring -> thm
   val axioms_of: theory -> (string * thm) list
 
@@ -594,7 +595,11 @@ fun get_axiom_i theory name =
 fun get_axiom thy =
   get_axiom_i thy o NameSpace.intern (Theory.axiom_space thy);
 
-fun def_name name = name ^ "_def";
+fun def_name c = c ^ "_def";
+
+fun def_name_optional c "" = def_name c
+  | def_name_optional _ name = name;
+
 fun get_def thy = get_axiom thy o def_name;
 
 
