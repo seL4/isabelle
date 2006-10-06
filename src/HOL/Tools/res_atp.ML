@@ -30,7 +30,6 @@ sig
   val atp_method: (Proof.context -> thm list -> int -> tactic) ->
     Method.src -> Proof.context -> Proof.method
   val cond_rm_tmp: string -> unit
-  val keep_atp_input: bool ref
   val fol_keep_types: bool ref
   val hol_full_types: unit -> unit
   val hol_partial_types: unit -> unit
@@ -113,7 +112,6 @@ fun vampireLimit () = !vampire_time;
 fun eproverLimit () = !eprover_time;
 fun spassLimit () = !spass_time;
 
-val keep_atp_input = ref false;
 val fol_keep_types = ResClause.keep_types;
 val hol_full_types = ResHolClause.full_types;
 val hol_partial_types = ResHolClause.partial_types;
@@ -690,9 +688,8 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
 
 (**** remove tmp files ****)
 fun cond_rm_tmp file = 
-    if !keep_atp_input then Output.debug "ATP input kept..." 
-    else if !destdir <> "" then Output.debug ("ATP input kept in directory " ^ (!destdir))
-    else (Output.debug "deleting ATP inputs..."; OS.FileSys.remove file);
+    if !Output.show_debug_msgs orelse !destdir <> "" then Output.debug "ATP input kept..." 
+    else OS.FileSys.remove file;
 
 
 (****** setup ATPs as Isabelle methods ******)
@@ -809,13 +806,13 @@ fun write_problem_files probfile (ctxt,th)  =
                 val axcls = make_unique axcls
                 val ccls = subtract_cls ccls axcls
                 val clnames = writer logic ccls fname (axcls,classrel_clauses,arity_clauses) []
-            in  (clnames,fname) :: write_all ccls_list axcls_list (k+1)  end
-      val (clnames::_, filenames) = ListPair.unzip (write_all goal_cls axcls_list 1)
-      val thm_names = Array.fromList clnames
-      val _ = if !Output.show_debug_msgs 
-              then trace_array "thm_names" thm_names else ()
+                val thm_names = Array.fromList clnames
+                val _ = if !Output.show_debug_msgs 
+                        then trace_array (fname ^ "_thm_names") thm_names else ()
+            in  (thm_names,fname) :: write_all ccls_list axcls_list (k+1)  end
+      val (thm_names_list, filenames) = ListPair.unzip (write_all goal_cls axcls_list 1)
   in
-      (filenames, thm_names)
+      (filenames, thm_names_list)
   end;
 
 val last_watcher_pid = ref (NONE : (TextIO.instream * TextIO.outstream * 
@@ -827,7 +824,7 @@ fun kill_last_watcher () =
        | SOME (_, _, pid, files) => 
 	  (Output.debug ("Killing old watcher, pid = " ^ string_of_pid pid);
 	   Watcher.killWatcher pid;  
-	   ignore (map (try OS.FileSys.remove) files)))
+	   ignore (map (try cond_rm_tmp) files)))
      handle OS.SysErr _ => Output.debug "Attempt to kill watcher failed";
 
 (*writes out the current clasimpset to a tptp file;
@@ -838,8 +835,8 @@ val isar_atp = setmp print_mode []
   else
     let
       val _ = kill_last_watcher()
-      val (files,thm_names) = write_problem_files prob_pathname (ctxt,th)
-      val (childin, childout, pid) = Watcher.createWatcher (th, thm_names)
+      val (files,thm_names_list) = write_problem_files prob_pathname (ctxt,th)
+      val (childin, childout, pid) = Watcher.createWatcher (th, thm_names_list)
     in
       last_watcher_pid := SOME (childin, childout, pid, files);
       Output.debug ("problem files: " ^ space_implode ", " files); 
