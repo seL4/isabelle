@@ -55,12 +55,17 @@ fun rhs_of th =
   extensionality in proofs.
   FIXME!  Store in theory data!!*)
 
+(*Populate the abstraction cache with common combinators.*)
 fun seed th net =
   let val (_,ct) = Thm.dest_abs NONE (Drule.crhs_of th)
-  in  Net.insert_term eq_thm (term_of ct, th) net end;
+      val t = Logic.legacy_varify (term_of ct)
+  in  Net.insert_term eq_thm (t, th) net end;
   
 val abstraction_cache = ref 
-  (seed (thm"COMBI1") (seed (thm"COMBB1") (seed (thm"COMBK1") Net.empty)));
+      (seed (thm"Reconstruction.I_simp") 
+       (seed (thm"Reconstruction.B_simp") 
+	(seed (thm"Reconstruction.K_simp") Net.empty)));
+
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
@@ -286,13 +291,11 @@ fun abstract_rule_list [] [] th = th
 val Envir.Envir {asol = tenv0, iTs = tyenv0, ...} = Envir.empty 0
 
 (*Does an existing abstraction definition have an RHS that matches the one we need now?*)
-fun match_rhs thy0 t th =
+fun match_rhs t th =
   let val thy = theory_of_thm th
       val _ = if !trace_abs then warning ("match_rhs: " ^ string_of_cterm (cterm_of thy t) ^ 
                                           " against\n" ^ string_of_thm th) else ();
-      val (tyenv,tenv) = if Context.joinable (thy0,thy) then
-                            Pattern.first_order_match thy (rhs_of th, t) (tyenv0,tenv0)
-                         else raise Pattern.MATCH
+      val (tyenv,tenv) = Pattern.first_order_match thy (rhs_of th, t) (tyenv0,tenv0)
       val term_insts = map Meson.term_pair_of (Vartab.dest tenv)
       val ct_pairs = if forall lambda_free (map #2 term_insts) then
                          map (pairself (cterm_of thy)) term_insts
@@ -325,10 +328,9 @@ fun declare_absfuns th =
                 val _ = if !trace_abs then warning (Int.toString (length args) ^ " arguments") else ();
                 val rhs = list_abs_free (map dest_Free args, abs_v_u)
                       (*Forms a lambda-abstraction over the formal parameters*)
-                val v_rhs = Logic.varify rhs
                 val _ = if !trace_abs then warning ("Looking up " ^ string_of_cterm cu') else ();
                 val (ax,ax',thy) =
-                 case List.mapPartial (match_rhs thy abs_v_u) (Net.match_term (!abstraction_cache) u')
+                 case List.mapPartial (match_rhs abs_v_u) (Net.match_term (!abstraction_cache) u')
                         of
                      (ax,ax')::_ => 
                        (if !trace_abs then warning ("Re-using axiom " ^ string_of_thm ax) else ();
@@ -351,7 +353,7 @@ fun declare_absfuns th =
                           val ax = get_axiom thy cdef |> freeze_thm
                                      |> mk_object_eq |> strip_lambdas (length args)
                                      |> mk_meta_eq |> Meson.generalize
-                          val (_,ax') = Option.valOf (match_rhs thy abs_v_u ax)
+                          val (_,ax') = Option.valOf (match_rhs abs_v_u ax)
                           val _ = if !trace_abs then 
                                     (warning ("Declaring: " ^ string_of_thm ax);
                                      warning ("Instance: " ^ string_of_thm ax')) 
@@ -403,7 +405,7 @@ fun assume_absfuns th =
                       (*Forms a lambda-abstraction over the formal parameters*)
                 val rhs = term_of crhs
                 val (ax,ax') =
-                 case List.mapPartial (match_rhs thy abs_v_u) 
+                 case List.mapPartial (match_rhs abs_v_u) 
                         (Net.match_term (!abstraction_cache) u') of
                      (ax,ax')::_ => 
                        (if !trace_abs then warning ("Re-using axiom " ^ string_of_thm ax) else ();
@@ -415,7 +417,7 @@ fun assume_absfuns th =
                           val ax = assume (Thm.capply (cterm (equals const_ty $ c)) crhs)
                                      |> mk_object_eq |> strip_lambdas (length args)
                                      |> mk_meta_eq |> Meson.generalize
-                          val (_,ax') = Option.valOf (match_rhs thy abs_v_u ax)
+                          val (_,ax') = Option.valOf (match_rhs abs_v_u ax)
                           val _ = abstraction_cache := Net.insert_term eq_absdef (rhs,ax)
                                     (!abstraction_cache)
                             handle Net.INSERT =>
@@ -645,8 +647,11 @@ val cnf_rules_pairs = cnf_rules_pairs_aux [];
 fun skolem_cache (name,th) thy =
   let val prop = Thm.prop_of th
   in
-      if lambda_free prop (*orelse monomorphic prop*)
-      then thy    (*monomorphic theorems can be Skolemized on demand*)
+      if lambda_free prop 
+         (*orelse monomorphic prop? Monomorphic theorems can be Skolemized on demand,
+           but there are problems with re-use of abstraction functions if we don't
+           do them now, even for monomorphic theorems.*)
+      then thy  
       else #2 (skolem_cache_thm (name,th) thy)
   end;
 
