@@ -21,10 +21,10 @@ val callResProvers : TextIO.outstream * (string*string*string*string) list -> un
 (* Send message to watcher to kill resolution provers *)
 val callSlayer : TextIO.outstream -> unit
 
-(* Start a watcher and set up signal handlers             *)
+(* Start a watcher and set up signal handlers*)
 val createWatcher : 
-    thm * string Array.array -> 
-    TextIO.instream * TextIO.outstream * Posix.Process.pid
+	thm * string Array.array list -> 
+	TextIO.instream * TextIO.outstream * Posix.Process.pid
 val killWatcher : Posix.Process.pid -> unit
 val killChild  : ('a, 'b) Unix.proc -> OS.Process.status
 val setting_sep : char
@@ -212,13 +212,13 @@ fun execCmds [] procList = procList
 			 Date.toString(Date.fromTimeLocal(Time.now())))
       in execCmds cmds newProcList end
 
-fun checkChildren (th, names_arr, toParentStr, children) = 
+fun checkChildren (th, thm_names_list, toParentStr, children) = 
   let fun check [] = []  (* no children to check *)
 	| check (child::children) = 
-	   let val {prover, file, proc_handle, instr=childIn, ...} : cmdproc =
-		   child
+	   let val {prover, file, proc_handle, instr=childIn, ...} : cmdproc = child
 	       val _ = trace ("\nprobfile = " ^ file)
-	       val sgno = number_from_filename file
+	       val sgno = number_from_filename file  (*subgoal number*)
+	       val thm_names = List.nth(thm_names_list, sgno-1);
 	       val ppid = Posix.ProcEnv.getppid()
 	   in 
 	     if pollChild childIn
@@ -226,15 +226,16 @@ fun checkChildren (th, names_arr, toParentStr, children) =
 	       let val _ = trace ("\nInput available from child: " ^ file)
 		   val childDone = (case prover of
 		       "vampire" => AtpCommunication.checkVampProofFound
-			    (childIn, toParentStr, ppid, file, names_arr)  
+			    (childIn, toParentStr, ppid, file, thm_names)  
 		     | "E" => AtpCommunication.checkEProofFound
-			    (childIn, toParentStr, ppid, file, names_arr)             
+			    (childIn, toParentStr, ppid, file, thm_names)             
 		     | "spass" => AtpCommunication.checkSpassProofFound
-			    (childIn, toParentStr, ppid, file, th, sgno,names_arr)  
+			    (childIn, toParentStr, ppid, file, th, sgno, thm_names)  
 		     | _ => (trace ("\nBad prover! " ^ prover); true) )
 		in
 		 if childDone (*ATP has reported back (with success OR failure)*)
-		 then (Unix.reap proc_handle;  OS.FileSys.remove file;
+		 then (Unix.reap proc_handle;  
+		       if !Output.show_debug_msgs then () else OS.FileSys.remove file;
 		       check children)
 		 else child :: check children
 	      end
@@ -246,7 +247,7 @@ fun checkChildren (th, names_arr, toParentStr, children) =
   end;
 
 
-fun setupWatcher (th,names_arr) = 
+fun setupWatcher (th,thm_names_list) = 
   let
     val p1 = Posix.IO.pipe()   (*pipes for communication between parent and watcher*)
     val p2 = Posix.IO.pipe()
@@ -283,16 +284,16 @@ fun setupWatcher (th,names_arr) =
 		    if length procList < 40 then    (* Execute locally  *)                    
 		      let val _ = trace("\nCommands from parent: " ^ 
 					Int.toString(length cmds))
-			  val newProcList' = checkChildren(th, names_arr, toParentStr, 
+			  val newProcList' = checkChildren(th, thm_names_list, toParentStr, 
 						execCmds cmds procList) 
 		      in trace "\nCommands executed"; keepWatching newProcList' end
 		    else  (* Execute remotely [FIXME: NOT REALLY]  *)
-		      let val newProcList' = checkChildren (th, names_arr, toParentStr, 
+		      let val newProcList' = checkChildren (th, thm_names_list, toParentStr, 
 						execCmds cmds procList) 
 		      in keepWatching newProcList' end
 		| NONE => (* No new input from Isabelle *)
 		    (trace "\nNothing from parent...";  
-		     keepWatching(checkChildren(th, names_arr, toParentStr, procList))))
+		     keepWatching(checkChildren(th, thm_names_list, toParentStr, procList))))
 	     handle exn => (*FIXME: exn handler is too general!*)
 	       (trace ("\nkeepWatching exception handler: " ^ Toplevel.exn_message exn);
 		keepWatching procList);
@@ -351,8 +352,8 @@ fun string_of_subgoal th i =
 
 fun prems_string_of th = space_implode "\n" (map string_of_cterm (cprems_of th))
 
-fun createWatcher (th, names_arr) =
- let val {pid=childpid, instr=childin, outstr=childout} = setupWatcher (th,names_arr)
+fun createWatcher (th, thm_names_list) =
+ let val {pid=childpid, instr=childin, outstr=childout} = setupWatcher (th,thm_names_list)
      fun decr_watched() =
 	  (goals_being_watched := !goals_being_watched - 1;
 	   if !goals_being_watched = 0
