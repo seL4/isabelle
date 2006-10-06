@@ -9,16 +9,16 @@ Isar commands.
 
 signature FUNDEF_PACKAGE =
 sig
-    val add_fundef :  (string * string option * mixfix) list 
+    val add_fundef :  (string * string option * mixfix) list
                       -> ((bstring * Attrib.src list) * string list) list list
-                      -> FundefCommon.fundef_config 
-                      -> local_theory 
+                      -> FundefCommon.fundef_config
+                      -> local_theory
                       -> Proof.state
 
-    val add_fundef_i:  (string * typ option * mixfix) list 
+    val add_fundef_i:  (string * typ option * mixfix) list
                        -> ((bstring * Attrib.src list) * term list) list list
-                       -> bool 
-                       -> local_theory 
+                       -> bool
+                       -> local_theory
                        -> Proof.state
 
     val cong_add: attribute
@@ -43,24 +43,13 @@ fun burrow_snd f ps = (* ('a list -> 'b list) -> ('c * 'a) list -> ('c * 'b) lis
 fun restore_spec_structure reps spec =
     (burrow o burrow_snd o burrow o K) reps spec
 
-fun with_local_path path f lthy =
-    let 
-      val restore = Theory.restore_naming (ProofContext.theory_of lthy)
-    in
-      lthy
-        |> LocalTheory.theory (Theory.add_path path)
-        |> f
-        |> LocalTheory.theory restore
-    end
-
 fun add_simps label moreatts mutual_info fixes psimps spec lthy =
     let
       val fnames = map (fst o fst) fixes
       val psimps_by_f = FundefMutual.sort_by_function mutual_info fnames psimps
 
       fun add_for_f fname psimps =
-          with_local_path fname
-                          (LocalTheory.note ((label, Attrib.internal Simplifier.simp_add :: moreatts), psimps) #> snd)
+          LocalTheory.note ((NameSpace.append fname label, Attrib.internal Simplifier.simp_add :: moreatts), psimps) #> snd
     in
       lthy
         |> fold_map (fold_map LocalTheory.note) (restore_spec_structure psimps spec) |> snd
@@ -72,15 +61,15 @@ fun fundef_afterqed fixes spec mutual_info defname data [[result]] lthy =
     let
         val fundef_data = FundefMutual.mk_partial_rules_mutual lthy mutual_info data result
         val FundefMResult {psimps, subset_pinducts, simple_pinducts, termination, domintros, cases, ...} = fundef_data
+        val qualify = NameSpace.append defname;
     in
       lthy
         |> add_simps "psimps" [] mutual_info fixes psimps spec
-        |> with_local_path defname
-                  (LocalTheory.note (("domintros", []), domintros) #> snd
-                   #> LocalTheory.note (("termination", []), [termination]) #> snd
-                   #> LocalTheory.note (("cases", []), [cases]) #> snd
-                   #> LocalTheory.note (("pinduct", [Attrib.internal (InductAttrib.induct_set "")]), simple_pinducts) #> snd)
-        |> LocalTheory.theory (Context.theory_map (add_fundef_data defname (fundef_data, mutual_info, (fixes,spec))))
+        |> LocalTheory.note ((qualify "domintros", []), domintros) |> snd
+        |> LocalTheory.note ((qualify "termination", []), [termination]) |> snd
+        |> LocalTheory.note ((qualify "cases", []), [cases]) |> snd
+        |> LocalTheory.note ((qualify "pinduct", [Attrib.internal (InductAttrib.induct_set "")]), simple_pinducts) |> snd
+        |> LocalTheory.declaration (add_fundef_data defname (fundef_data, mutual_info, (fixes,spec)))
     end (* FIXME: Add cases for induct and cases thm *)
 
 
@@ -94,7 +83,7 @@ fun prep_with_flags prep fixspec eqnss_flags global_flag lthy =
       val spec = map (fn eqns => snd (fst (prep [] eqns ctxt'))) eqnss
                      |> map (map (apsnd (map (fn t => fold_rev (mk_forall o Free) (frees_in_term ctxt' t) t)))) (* Add quantifiers *)
                      |> map2 (map2 (fn fs => fn (r, thms) => (r, fs ~~ thms))) flags
-                     |> (burrow o burrow_snd o burrow) 
+                     |> (burrow o burrow_snd o burrow)
                           (FundefSplit.split_some_equations lthy)
                      |> map (map (apsnd flat))
     in
@@ -110,7 +99,7 @@ fun gen_add_fundef prep_spec fixspec eqnss_flags config lthy =
       val t_eqns = spec
                      |> flat |> map snd |> flat (* flatten external structure *)
 
-      val ((mutual_info, name, prep_result as Prep {goal, goalI, ...}), lthy) = 
+      val ((mutual_info, name, prep_result as Prep {goal, goalI, ...}), lthy) =
           FundefMutual.prepare_fundef_mutual fixes t_eqns default lthy
 
       val afterqed = fundef_afterqed fixes spec mutual_info name prep_result
@@ -130,15 +119,15 @@ fun total_termination_afterqed defname data [[totality]] lthy =
         val tsimps = map remove_domain_condition psimps
         val tinduct = map remove_domain_condition simple_pinducts
 
-        (* FIXME: How to generate code from (possibly) local contexts 
+        (* FIXME: How to generate code from (possibly) local contexts
         val has_guards = exists ((fn (Const ("Trueprop", _) $ _) => false | _ => true) o prop_of) tsimps
         val allatts = if has_guards then [] else [Attrib.internal (RecfunCodegen.add NONE)]
         *)
+        val qualify = NameSpace.append defname;
     in
         lthy
           |> add_simps "simps" [] mutual_info fixes tsimps stmts
-          |> with_local_path defname
-                (LocalTheory.note (("induct", []), tinduct) #> snd)
+          |> LocalTheory.note ((qualify "induct", []), tinduct) |> snd
     end
 
 
@@ -151,9 +140,9 @@ fun fundef_setup_termination_proof name_opt lthy =
         val (res as FundefMResult {termination, ...}, _, _) = data
         val goal = FundefTermination.mk_total_termination_goal data
     in
-      lthy 
+      lthy
         |> ProofContext.note_thmss_i [(("termination",
-                                 [ContextRules.intro_query NONE]), [(ProofContext.export_standard lthy lthy [termination], [])])] |> snd
+                                 [ContextRules.intro_query NONE]), [(ProofContext.standard lthy [termination], [])])] |> snd
         |> Proof.theorem_i PureThy.internalK NONE
                            (total_termination_afterqed name data) NONE ("", [])
                            [(("", []), [(goal, [])])]
@@ -196,8 +185,8 @@ val statement_ow = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 (P.prop -- Sc
 val statements_ow = or_list1 statement_ow
 
 
-fun local_theory_to_proof f = 
-    Toplevel.theory_to_proof (f o LocalTheory.init NONE)
+fun local_theory_to_proof f =
+    Toplevel.theory_to_proof (f o TheoryTarget.init NONE)
 
 val functionP =
   OuterSyntax.command "function" "define general recursive functions" K.thy_goal
@@ -208,7 +197,7 @@ val functionP =
 
 val terminationP =
   OuterSyntax.command "termination" "prove termination of a recursive function" K.thy_goal
-  (Scan.option P.name 
+  (Scan.option P.name
     >> (fn name => Toplevel.print o local_theory_to_proof (fundef_setup_termination_proof name)));
 
 
