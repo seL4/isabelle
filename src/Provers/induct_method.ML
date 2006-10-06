@@ -329,8 +329,8 @@ end;
 fun add_defs def_insts =
   let
     fun add (SOME (SOME x, t)) ctxt =
-          let val ((lhs, def), ctxt') = LocalDefs.add_def (x, t) ctxt
-          in ((SOME (Free lhs), [def]), ctxt') end
+          let val ([(lhs, (_, th))], ctxt') = LocalDefs.add_defs [((x, NoSyn), (("", []), t))] ctxt
+          in ((SOME lhs, [th]), ctxt') end
       | add (SOME (NONE, t)) ctxt = ((SOME t, []), ctxt)
       | add NONE ctxt = ((NONE, []), ctxt);
   in fold_map add def_insts #> apfst (split_list #> apsnd flat) end;
