@@ -2,295 +2,164 @@
     ID:         $Id$
     Author:     Makarius
 
-Local theory operations, with optional target locale.
+Local theory operations, with abstract target context.
 *)
 
 type local_theory = Proof.context;
 
 signature LOCAL_THEORY =
 sig
-  val params_of: local_theory -> (string * typ) list
-  val hyps_of: local_theory -> term list
-  val standard: local_theory -> thm list -> thm list
-  val pretty_consts: local_theory -> (string * typ -> bool) -> (string * typ) list -> Pretty.T
-  val quiet_mode: bool ref
-  val print_consts: local_theory -> (string * typ -> bool) -> (string * typ) list -> unit
+  type operations
+  val target_of: local_theory -> Proof.context
+  val init: string option -> operations -> Proof.context -> local_theory
+  val reinit: local_theory -> local_theory
   val theory: (theory -> theory) -> local_theory -> local_theory
   val theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
-  val init: xstring option -> theory -> local_theory
-  val init_i: string option -> theory -> local_theory
-  val restore: local_theory -> local_theory
-  val exit: local_theory -> local_theory * theory
-  val restore_naming: local_theory -> local_theory
-  val naming: local_theory -> local_theory
-  val mapping: xstring option -> (local_theory -> local_theory) -> theory -> local_theory * theory
-  val term_syntax: (Context.generic -> Context.generic) -> local_theory -> local_theory
-  val syntax: Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
-  val abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> local_theory -> local_theory
-  val consts: ((bstring * typ) * mixfix) list -> local_theory -> term list * local_theory
-  val consts_restricted: (string * typ -> bool) ->
-    ((bstring * typ) * mixfix) list -> local_theory -> term list * local_theory
+  val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
+  val target_result: (Proof.context -> 'a * Proof.context) -> local_theory -> 'a * local_theory
+  val pretty: local_theory -> Pretty.T
+  val consts: (string * typ -> bool) ->
+    ((bstring * typ) * mixfix) list -> local_theory -> (term * thm) list * local_theory
   val axioms: ((bstring * Attrib.src list) * term list) list -> local_theory ->
     (bstring * thm list) list * local_theory
-  val axioms_finish: (local_theory -> thm -> thm) ->
-    ((bstring * Attrib.src list) * term list) list -> local_theory ->
-    (bstring * thm list) list * local_theory
-  val notes: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
+  val defs: ((bstring * mixfix) * ((bstring * Attrib.src list) * term)) list ->
+    local_theory -> (term * (bstring * thm)) list * local_theory
+  val notes: ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     local_theory -> (bstring * thm list) list * local_theory
-  val note: (bstring * Attrib.src list) * thm list -> local_theory ->
-    (bstring * thm list) * local_theory
+  val term_syntax: (Context.generic -> Context.generic) -> local_theory -> local_theory
+  val declaration: (Context.generic -> Context.generic) -> local_theory -> local_theory
   val def: (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
     local_theory -> (term * (bstring * thm)) * local_theory
-  val def_finish: (local_theory -> term -> thm -> thm) ->
-    (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
-    local_theory -> (term * (bstring * thm)) * local_theory
+  val note: (bstring * Attrib.src list) * thm list ->
+    local_theory -> (bstring * thm list) * Proof.context
+  val const_syntax: Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
+  val abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> local_theory -> local_theory
 end;
 
 structure LocalTheory: LOCAL_THEORY =
 struct
 
+(** local theory data **)
 
-(** local context data **)
+(* type lthy *)
+
+type operations =
+ {pretty: local_theory -> Pretty.T,
+  consts: (string * typ -> bool) -> ((bstring * typ) * mixfix) list -> local_theory ->
+    (term * thm) list * local_theory,
+  axioms: ((bstring * Attrib.src list) * term list) list -> local_theory ->
+    (bstring * thm list) list * local_theory,
+  defs: ((bstring * mixfix) * ((bstring * Attrib.src list) * term)) list -> local_theory ->
+    (term * (bstring * thm)) list * local_theory,
+  notes: ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list -> local_theory ->
+    (bstring * thm list) list * local_theory,
+  term_syntax: (Context.generic -> Context.generic) -> local_theory -> local_theory,
+  declaration: (Context.generic -> Context.generic) -> local_theory -> local_theory};
+
+datatype lthy = LThy of
+ {theory_prefix: string option,
+  operations: operations,
+  target: Proof.context};
+
+fun make_lthy (theory_prefix, operations, target) =
+  LThy {theory_prefix = theory_prefix, operations = operations, target = target};
+
+
+(* context data *)
 
 structure Data = ProofDataFun
 (
   val name = "Pure/local_theory";
-  type T =
-   {locale: (string * Proof.context) option,
-    params: (string * typ) list,
-    hyps: term list,
-    restore_naming: theory -> theory};
-  fun init thy = {locale = NONE, params = [], hyps = [], restore_naming = I};
+  type T = lthy option;
+  fun init _ = NONE;
   fun print _ _ = ();
 );
 val _ = Context.add_setup Data.init;
 
-fun map_locale f = Data.map (fn {locale, params, hyps, restore_naming} =>
-  {locale = Option.map (fn (loc, ctxt) => (loc, f ctxt)) locale,
-    params = params, hyps = hyps, restore_naming = restore_naming});
+fun get_lthy lthy =
+  (case Data.get lthy of
+    NONE => error "No local theory context"
+  | SOME (LThy data) => data);
 
-val locale_of = #locale o Data.get;
-val params_of = #params o Data.get;
-val hyps_of = #hyps o Data.get;
+fun map_lthy f lthy =
+  let val {theory_prefix, operations, target} = get_lthy lthy
+  in Data.put (SOME (make_lthy (f (theory_prefix, operations, target)))) lthy end;
 
-fun standard ctxt =
-  (case #locale (Data.get ctxt) of
-    NONE => map Drule.standard   (* FIXME !? *)
-  | SOME (_, loc_ctxt) => ProofContext.export_standard ctxt loc_ctxt);
+val target_of = #target o get_lthy;
 
-
-(* print consts *)
-
-val quiet_mode = ref false;
-
-local
-
-fun pretty_var ctxt (x, T) =
-  Pretty.block [Pretty.str x, Pretty.str " ::", Pretty.brk 1,
-    Pretty.quote (ProofContext.pretty_typ ctxt T)];
-
-fun pretty_vars ctxt kind vs = Pretty.big_list kind (map (pretty_var ctxt) vs);
-
-in
-
-fun pretty_consts ctxt pred cs =
-  (case filter pred (params_of ctxt) of
-    [] => pretty_vars ctxt "constants" cs
-  | ps => Pretty.chunks [pretty_vars ctxt "parameters" ps, pretty_vars ctxt "constants" cs]);
-
-fun print_consts _ _ [] = ()
-  | print_consts ctxt pred cs =
-      if ! quiet_mode then () else Pretty.writeln (pretty_consts ctxt pred cs);
-
-end;
+fun map_target f = map_lthy (fn (theory_prefix, operations, target) =>
+  (theory_prefix, operations, f target));
 
 
-(* theory/locale substructures *)
+(* init *)
 
-fun theory_result f ctxt =
-  let val (res, thy') = f (ProofContext.theory_of ctxt)
-  in (res, ctxt |> map_locale (ProofContext.transfer thy') |> ProofContext.transfer thy') end;
+fun init theory_prefix operations target = target |> Data.map
+  (fn NONE => SOME (make_lthy (theory_prefix, operations, target))
+    | SOME _ => error "Local theory already initialized");
 
-fun theory f ctxt = #2 (theory_result (f #> pair ()) ctxt);
+fun reinit lthy =
+  let val {theory_prefix, operations, target} = get_lthy lthy
+  in init theory_prefix operations target end;
 
-fun locale_result f ctxt =
-  (case locale_of ctxt of
-    NONE => error "Local theory: no locale context"
-  | SOME (_, loc_ctxt) =>
+
+(* substructure mappings *)
+
+fun theory_result f lthy =
+  (case #theory_prefix (get_lthy lthy) of
+    NONE => error "Cannot change background theory"
+  | SOME prefix =>
       let
-        val (res, loc_ctxt') = f loc_ctxt;
-        val thy' = ProofContext.theory_of loc_ctxt';
-      in (res, ctxt |> map_locale (K loc_ctxt') |> ProofContext.transfer thy') end);
+        val thy = ProofContext.theory_of lthy;
+        val (res, thy') = thy
+          |> Sign.sticky_prefix prefix
+          |> Sign.qualified_names
+          |> f
+          ||> Sign.restore_naming thy;
+        val lthy' = lthy
+          |> map_target (ProofContext.transfer thy')
+          |> ProofContext.transfer thy';
+      in (res, lthy') end);
 
-fun locale f ctxt =
-  if is_none (locale_of ctxt) then ctxt
-  else #2 (locale_result (f #> pair ()) ctxt);
+fun theory f = #2 o theory_result (f #> pair ());
 
-
-(* init -- restore -- exit *)
-
-fun init_i NONE thy = ProofContext.init thy
-  | init_i (SOME loc) thy =
-      thy
-      |> Locale.init loc
-      |> ProofContext.inferred_fixes
-      |> (fn (params, ctxt) => Data.put
-          {locale = SOME (loc, ctxt),
-           params = params,
-           hyps = Assumption.assms_of ctxt,
-           restore_naming = Sign.restore_naming thy} ctxt);
-
-fun init loc thy = init_i (Option.map (Locale.intern thy) loc) thy;
-
-fun restore ctxt =
-  (case locale_of ctxt of
-    NONE => ctxt
-  | SOME (_, loc_ctxt) => loc_ctxt |> Data.put (Data.get ctxt));
-
-fun exit ctxt = (ctxt, ProofContext.theory_of ctxt);
-
-
-(* local naming *)
-
-fun naming ctxt =
-  (case locale_of ctxt of
-    NONE => ctxt
-  | SOME (loc, _) => ctxt |> theory (Sign.sticky_prefix (Sign.base_name loc)));
-
-fun restore_naming ctxt = theory (#restore_naming (Data.get ctxt)) ctxt;
-
-fun mapping loc f =
-  init loc #> naming #> f #> restore_naming #> exit;
-
-
-
-(** local theory **)
-
-(* term syntax *)
-
-fun term_syntax f ctxt = ctxt |>
-  (case locale_of ctxt of
-    NONE => theory (Context.theory_map f)
-  | SOME (loc, _) =>
-      locale (Locale.add_term_syntax loc (Context.proof_map f)) #>
-      Context.proof_map f);
-
-fun syntax x y =
-  term_syntax (Context.mapping (Sign.add_const_syntax x y) (ProofContext.add_const_syntax x y));
-
-fun abbrevs x y =
-  term_syntax (Context.mapping (Sign.add_abbrevs x y) (ProofContext.add_abbrevs x y));
-
-
-(* consts *)
-
-fun consts_restricted pred decls ctxt =
+fun target_result f lthy =
   let
-    val thy = ProofContext.theory_of ctxt;
-    val params = filter pred (params_of ctxt);
-    val ps = map Free params;
-    val Ps = map #2 params;
-    val abbrs = decls |> map (fn ((c, T), mx) =>
-      ((c, mx), Term.list_comb (Const (Sign.full_name thy c, Ps ---> T), ps)));
-  in
-    ctxt |>
-    (case locale_of ctxt of
-      NONE => theory (Sign.add_consts_authentic (map (fn ((c, T), mx) => (c, T, mx)) decls))
-    | SOME (loc, _) =>
-        theory (Sign.add_consts_authentic (map (fn ((c, T), _) => (c, Ps ---> T, NoSyn)) decls)) #>
-        abbrevs Syntax.default_mode abbrs)
-    |> pair (map #2 abbrs)
-  end;
+    val (res, ctxt') = f (#target (get_lthy lthy));
+    val thy' = ProofContext.theory_of ctxt';
+    val lthy' = lthy
+      |> map_target (K ctxt')
+      |> ProofContext.transfer thy';
+  in (res, lthy') end;
 
-val consts = consts_restricted (K true);
+fun target f = #2 o target_result (f #> pair ());
 
 
-(* fact definitions *)
+(* primitive operations *)
 
-fun notes kind facts ctxt =
-  let
-    val attrib = Attrib.attribute_i (ProofContext.theory_of ctxt);
-    val facts' = map (apsnd (map (apfst (standard ctxt)))) facts;  (* FIXME burrow standard *)
-  in
-    ctxt |>
-    (case locale_of ctxt of
-      NONE => theory_result (PureThy.note_thmss_i kind (Attrib.map_facts attrib facts'))
-    | SOME (loc, _) =>
-        locale_result (apfst #1 o Locale.add_thmss kind loc facts'))
-    ||> (#2 o ProofContext.note_thmss_i (Attrib.map_facts attrib facts))
-  end;
+fun operation f lthy = f (#operations (get_lthy lthy)) lthy;
+fun operation1 f x = operation (fn ops => f ops x);
+fun operation2 f x y = operation (fn ops => f ops x y);
 
-fun note (a, ths) ctxt =
-  ctxt |> notes PureThy.theoremK [(a, [(ths, [])])] |>> hd;
+val pretty = operation #pretty;
+val consts = operation2 #consts;
+val axioms = operation1 #axioms;
+val defs = operation1 #defs;
+val notes = operation1 #notes;
+val term_syntax = operation1 #term_syntax;
+val declaration = operation1 #declaration;
 
 
-(* axioms *)
+(* derived operations *)
 
-local
+fun def arg lthy = lthy |> defs [arg] |>> hd;
 
-fun add_axiom hyps (name, prop) thy =
-  let
-    val name' = if name = "" then "axiom_" ^ serial_string () else name;
-    val frees = rev ([] |> Term.add_frees prop |> fold Term.add_frees hyps);
-    val prop' = Term.list_all_free (frees, Logic.list_implies (hyps, prop));
-    val thy' = thy |> Theory.add_axioms_i [(name', prop')];
+fun note (a, ths) lthy = lthy |> notes [(a, [(ths, [])])] |>> hd;
 
-    val cert = Thm.cterm_of thy';
-    fun all_polymorphic (x, T) th =
-      let val var = cert (Var ((x, 0), #1 (Logic.dest_all (Thm.prop_of th))))
-      in ((var, cert (Free (x, T))), Thm.forall_elim var th) end;
-    fun implies_polymorphic hyp th = Thm.assume (cert hyp) COMP th;
-    val th =
-      Thm.get_axiom_i thy' (Sign.full_name thy' name')
-      |> fold_map all_polymorphic frees |-> Drule.cterm_instantiate
-      |> fold implies_polymorphic hyps
-  in (th, thy') end;
+fun const_syntax mode args =
+  term_syntax
+    (Context.mapping (Sign.add_const_syntax mode args) (ProofContext.add_const_syntax mode args));
 
-in
-
-fun axioms_finish finish = fold_map (fn ((name, atts), props) =>
-  fold Variable.fix_frees props
-  #> (fn ctxt => ctxt
-    |> theory_result (fold_map (add_axiom (hyps_of ctxt)) (PureThy.name_multi name props))
-    |-> (fn ths => note ((name, atts), map (finish ctxt) ths))));
-
-val axioms = axioms_finish (K I);
-
-end;
-
-
-(* constant definitions *)
-
-local
-
-fun add_def (name, prop) =
-  Theory.add_defs_i false false [(name, prop)] #> (fn thy =>
-    let
-      val th = Thm.get_axiom_i thy (Sign.full_name thy name);
-      val cert = Thm.cterm_of thy;
-      val subst = map2 (fn var => fn free => (cert (Var var), cert (Free free)))
-        (Term.add_vars (Thm.prop_of th) []) (Term.add_frees prop []);
-    in (Drule.cterm_instantiate subst th, thy) end);
-
-in
-
-fun def_finish finish (var, spec) ctxt =
-  let
-    val (x, mx) = var;
-    val ((name, atts), rhs) = spec;
-    val name' = if name = "" then Thm.def_name x else name;
-    val rhs_frees = Term.add_frees rhs [];
-  in
-    ctxt
-    |> consts_restricted (member (op =) rhs_frees) [((x, Term.fastype_of rhs), mx)]
-    |-> (fn [lhs] =>
-      theory_result (add_def (name', Logic.mk_equals (lhs, rhs)))
-      #-> (fn th => fn ctxt' => note ((name', atts), [finish ctxt' lhs th]) ctxt')
-      #> apfst (fn (b, [th]) => (lhs, (b, th))))
-  end;
-
-val def = def_finish (K (K I));
-
-end;
+fun abbrevs mode args =
+  term_syntax (Context.mapping (Sign.add_abbrevs mode args) (ProofContext.add_abbrevs mode args));
 
 end;
