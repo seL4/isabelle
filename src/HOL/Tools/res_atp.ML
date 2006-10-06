@@ -135,7 +135,7 @@ fun atp_input_file () =
 	else error ("No such directory: " ^ !destdir)
     end;
 
-val include_all = ref false;
+val include_all = ref true;
 val include_simpset = ref false;
 val include_claset = ref false; 
 val include_atpset = ref true;
@@ -554,29 +554,28 @@ fun mk_clause_table n =
                        (n, HASH_CLAUSE);
 
 (*Use a hash table to eliminate duplicates from xs. Argument is a list of
-  (name, theorem) pairs, but the theorems are hashed into the table. *)
+  (thm * (string * int)) tuples. The theorems are hashed into the table. *)
 fun make_unique xs = 
-  let val ht = mk_clause_table 2200
+  let val ht = mk_clause_table 7000
   in
-      (app (ignore o Polyhash.peekInsert ht) (map swap xs);  
-       map swap (Polyhash.listItems ht))
+      app (ignore o Polyhash.peekInsert ht) xs;  
+      Polyhash.listItems ht
   end;
 
-(*FIXME: SLOW!!!*)
-fun mem_thm th [] = false
-  | mem_thm th ((th',_)::thms_names) = equal_thm (th,th') orelse mem_thm th thms_names;
+(*Remove existing axiom clauses from the conjecture clauses, as this can dramatically
+  boost an ATP's performance (for some reason)*)
+fun subtract_cls c_clauses ax_clauses = 
+  let val ht = mk_clause_table 2200
+      fun known x = isSome (Polyhash.peek ht x)
+  in
+      app (ignore o Polyhash.peekInsert ht) ax_clauses;  
+      filter (not o known) c_clauses 
+  end;
 
-(*FIXME: SLOW!!! These two functions are called only by get_relevant_clauses.
-  It would be faster to compare names, rather than theorems, and to use
-  a symbol table or hash table.*)
-fun insert_thms [] thms_names = thms_names
-  | insert_thms ((thm,name)::thms_names) thms_names' =
-      if mem_thm thm thms_names' then insert_thms thms_names thms_names' 
-      else insert_thms thms_names ((thm,name)::thms_names');
-
-(* filter axiom clauses, but keep supplied clauses and clauses in whitelist *)
+(*Filter axiom clauses, but keep supplied clauses and clauses in whitelist. 
+  Duplicates are removed later.*)
 fun get_relevant_clauses thy cls_thms white_cls goals =
-  insert_thms white_cls (ReduceAxiomsN.relevance_filter thy cls_thms goals);
+  white_cls @ (ReduceAxiomsN.relevance_filter thy cls_thms goals);
 
 (*This name is cryptic but short. Unlike gensym, we get the same name each time.*)
 fun fake_thm_name th = 
@@ -670,12 +669,12 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
 			  | Hol => HOL
 	val (included_thms,user_rules) = get_clasimp_atp_lemmas ctxt user_thms
 	val cla_simp_atp_clauses = included_thms |> blacklist_filter
-	                             |> make_unique |> ResAxioms.cnf_rules_pairs
+	                             |> ResAxioms.cnf_rules_pairs |> make_unique 
                                      |> restrict_to_logic logic 
 	val user_cls = ResAxioms.cnf_rules_pairs user_rules
 	val thy = ProofContext.theory_of ctxt
 	val axclauses = get_relevant_clauses thy cla_simp_atp_clauses
-	                            user_cls (map prop_of goal_cls)
+	                            user_cls (map prop_of goal_cls) |> make_unique
 	val keep_types = if is_fol_logic logic then !fol_keep_types else is_typed_hol ()
 	val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy else []
 	val arity_clauses = if keep_types then ResClause.arity_clause_thy thy else []
@@ -787,7 +786,7 @@ fun write_problem_files probfile (ctxt,th)  =
 	      | Hol => HOL
       val (included_thms,white_thms) = get_clasimp_atp_lemmas ctxt []
       val included_cls = included_thms |> blacklist_filter
-                                       |> make_unique |> ResAxioms.cnf_rules_pairs 
+                                       |> ResAxioms.cnf_rules_pairs |> make_unique 
                                        |> restrict_to_logic logic 
       val white_cls = ResAxioms.cnf_rules_pairs white_thms
       (*clauses relevant to goal gl*)
@@ -806,9 +805,11 @@ fun write_problem_files probfile (ctxt,th)  =
       val writer = if !prover = "spass" then dfg_writer else tptp_writer 
       fun write_all [] [] _ = []
 	| write_all (ccls::ccls_list) (axcls::axcls_list) k =
-	   (writer logic ccls (probfile k) (axcls,classrel_clauses,arity_clauses) [],
-	    probfile k) 
-	   :: write_all ccls_list axcls_list (k+1)
+            let val fname = probfile k
+                val axcls = make_unique axcls
+                val ccls = subtract_cls ccls axcls
+                val clnames = writer logic ccls fname (axcls,classrel_clauses,arity_clauses) []
+            in  (clnames,fname) :: write_all ccls_list axcls_list (k+1)  end
       val (clnames::_, filenames) = ListPair.unzip (write_all goal_cls axcls_list 1)
       val thm_names = Array.fromList clnames
       val _ = if !Output.show_debug_msgs 
