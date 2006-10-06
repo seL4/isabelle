@@ -12,10 +12,8 @@ sig
   val dest_all: term -> typ * term
   val mk_equals: term * term -> term
   val dest_equals: term -> term * term
-  val is_equals: term -> bool
   val mk_implies: term * term -> term
   val dest_implies: term -> term * term
-  val is_implies: term -> bool
   val list_implies: term list * term -> term
   val strip_imp_prems: term -> term list
   val strip_imp_concl: term -> term
@@ -99,28 +97,20 @@ fun dest_all (Const ("all", Type ("fun", [Type ("fun", [T, _]), _])) $ A) = (T, 
   | dest_all t = raise TERM ("dest_all", [t]);
 
 
-
 (** equality **)
 
-(*Make an equality.  DOES NOT CHECK TYPE OF u*)
-fun mk_equals(t,u) = equals(fastype_of t) $ t $ u;
+fun mk_equals (t, u) = Term.equals (Term.fastype_of t) $ t $ u;
 
-fun dest_equals (Const("==",_) $ t $ u)  =  (t,u)
-  | dest_equals t = raise TERM("dest_equals", [t]);
-
-fun is_equals (Const ("==", _) $ _ $ _) = true
-  | is_equals _ = false;
+fun dest_equals (Const ("==", _) $ t $ u) = (t, u)
+  | dest_equals t = raise TERM ("dest_equals", [t]);
 
 
 (** implies **)
 
-fun mk_implies(A,B) = implies $ A $ B;
+fun mk_implies (A, B) = implies $ A $ B;
 
-fun dest_implies (Const("==>",_) $ A $ B)  =  (A,B)
-  | dest_implies A = raise TERM("dest_implies", [A]);
-
-fun is_implies (Const ("==>", _) $ _ $ _) = true
-  | is_implies _ = false;
+fun dest_implies (Const ("==>", _) $ A $ B) = (A, B)
+  | dest_implies A = raise TERM ("dest_implies", [A]);
 
 
 (** nested implications **)
