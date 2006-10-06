@@ -128,6 +128,7 @@ sig
   val termI: thm
   val mk_term: cterm -> thm
   val dest_term: thm -> cterm
+  val term_rule: theory -> (thm -> thm) -> term -> term
   val sort_triv: theory -> typ * sort -> thm list
   val unconstrainTs: thm -> thm
   val rename_bvars: (string * string) list -> thm -> thm
@@ -980,6 +981,9 @@ fun dest_term th =
       Thm.dest_arg cprop
     else raise THM ("dest_term", 0, [th])
   end;
+
+fun term_rule thy f t =
+  Thm.term_of (dest_term (f (mk_term (Thm.cterm_of thy t))));
 
 
 
