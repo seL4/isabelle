@@ -181,7 +181,7 @@ local structure P = OuterParse and K = OuterKeyword in
 
 
 fun local_theory_to_proof f = 
-    Toplevel.theory_to_proof (f o LocalTheory.init NONE)
+    Toplevel.theory_to_proof (f o TheoryTarget.init NONE)
 
 fun or_list1 s = P.enum1 "|" s
 val otherwise = P.$$$ "(" |-- P.$$$ "otherwise" --| P.$$$ ")"
