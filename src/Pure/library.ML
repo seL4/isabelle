@@ -102,6 +102,7 @@ sig
   exception UnequalLengths
   val cons: 'a -> 'a list -> 'a list
   val single: 'a -> 'a list
+  val the_single: 'a list -> 'a
   val singleton: ('a list -> 'b list) -> 'a -> 'b
   val append: 'a list -> 'a list -> 'a list
   val apply: ('a -> 'a) list -> 'a -> 'a
@@ -488,9 +489,13 @@ fun conditional b f = if b then f () else ();
 exception UnequalLengths;
 
 fun cons x xs = x :: xs;
+
 fun single x = [x];
 
-fun singleton f x = (case f [x] of [y] => y | _ => raise Empty);
+fun the_single [x] = x
+  | the_single _ = raise Empty;
+
+fun singleton f x = the_single (f [x]);
 
 fun append xs ys = xs @ ys;
 
