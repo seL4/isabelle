@@ -200,6 +200,7 @@ structure FundefCongs = GenericDataFun
     val empty = []
     val extend = I
     fun merge _ (l1, l2) = l1 @ l2
+      (* FIXME exponential blowup! cf. Library.merge, Drule.merge_rules *)
     fun print  _ _ = ()
 end);
 
