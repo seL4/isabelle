@@ -133,8 +133,8 @@ fun cases_node f _ (Theory (thy, _)) = f thy
 
 fun body_context_node (SOME (Theory (_, SOME ctxt))) NONE = ctxt
   | body_context_node (SOME node) loc =
-      node |> cases_node (LocalTheory.init loc)
-       (if is_some loc then LocalTheory.init loc o Proof.theory_of
+      node |> cases_node (TheoryTarget.init loc)
+       (if is_some loc then TheoryTarget.init loc o Proof.theory_of
         else Proof.context_of)
   | body_context_node NONE _ = raise UNDEF;
 
@@ -534,7 +534,7 @@ fun theory' f = app_current (fn int =>
 fun theory_context f = app_current
   (K (fn Theory (thy, _) => Theory (swap (apfst SOME (f thy))) | _ => raise UNDEF));
 
-fun local_theory loc f = theory_context (LocalTheory.mapping loc f);
+fun local_theory loc f = theory_context (TheoryTarget.mapping loc f);
 
 fun theory_to_proof f = app_current (fn int =>
   (fn Theory (thy, _) =>
@@ -588,7 +588,7 @@ fun skip_proof_to_theory p = map_current (fn _ =>
   | _ => raise UNDEF));
 
 fun present_local_theory loc f = app_current (fn int =>
-  (fn Theory (thy, _) => Theory (swap (apfst SOME (LocalTheory.mapping loc I thy)))
+  (fn Theory (thy, _) => Theory (swap (apfst SOME (TheoryTarget.mapping loc I thy)))
     | _ => raise UNDEF) #> tap (f int));
 
 fun present_proof f = map_current (fn int =>
