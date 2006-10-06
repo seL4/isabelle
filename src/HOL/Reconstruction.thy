@@ -54,19 +54,19 @@ lemma fequal_imp_equal: "fequal X Y ==> X=Y"
 lemma equal_imp_fequal: "X=Y ==> fequal X Y"
   by (simp add: fequal_def)
 
-lemma COMBK1: "COMBK P == (%Q. P)"
+lemma K_simp: "COMBK P == (%Q. P)"
 apply (rule eq_reflection) 
 apply (rule ext) 
 apply (simp add: COMBK_def) 
 done
 
-lemma COMBI1: "COMBI == (%P. P)"
+lemma I_simp: "COMBI == (%P. P)"
 apply (rule eq_reflection) 
 apply (rule ext) 
 apply (simp add: COMBI_def) 
 done
 
-lemma COMBB1: "COMBB P Q == %R. P (Q R)"
+lemma B_simp: "COMBB P Q == %R. P (Q R)"
 apply (rule eq_reflection) 
 apply (rule ext) 
 apply (simp add: COMBB_def) 
