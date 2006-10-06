@@ -557,7 +557,7 @@ fun gen_def gen_fix prep_att prep_binds args state =
     val ((raw_names, raw_atts), (vars, raw_rhss)) =
       args |> split_list |>> split_list ||> split_list;
     val xs = map #1 vars;
-    val names = map (fn ("", x) => Thm.def_name x | (name, _) => name) (raw_names ~~ xs);
+    val names = map2 Thm.def_name_optional xs raw_names;
     val atts = map (map (prep_att thy)) raw_atts;
     val (rhss, state') = state |> map_context_result (prep_binds false (map swap raw_rhss));
     val eqs = LocalDefs.mk_def (context_of state') (xs ~~ rhss);

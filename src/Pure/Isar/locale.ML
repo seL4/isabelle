@@ -898,7 +898,7 @@ fun activate_elem _ _ ((ctxt, mode), Fixes fixes) =
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
         val asms = defs' |> map (fn ((name, atts), (t, ps)) =>
             let val ((c, _), t') = LocalDefs.cert_def ctxt t
-            in (t', ((if name = "" then Thm.def_name c else name, atts), [(t', ps)])) end);
+            in (t', ((Thm.def_name_optional c name, atts), [(t', ps)])) end);
         val (_, ctxt') =
           ctxt |> fold (Variable.fix_frees o #1) asms
           |> ProofContext.add_assms_i LocalDefs.def_export (map #2 asms);
@@ -1455,13 +1455,10 @@ end;
 (* print locale *)
 
 fun print_locale thy show_facts import body =
-  let
-    val (all_elems, ctxt) = read_expr import body (ProofContext.init thy);
-    val prt_elem = Element.pretty_ctxt ctxt;
-  in
+  let val (all_elems, ctxt) = read_expr import body (ProofContext.init thy) in
     Pretty.big_list "locale elements:" (all_elems
       |> (if show_facts then I else filter (fn Notes _ => false | _ => true))
-      |> map (Pretty.chunks o prt_elem))
+      |> map (Pretty.chunks o Element.pretty_ctxt ctxt))
     |> Pretty.writeln
   end;
 

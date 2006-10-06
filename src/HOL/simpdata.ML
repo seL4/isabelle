@@ -272,7 +272,7 @@ fun mk_meta_cong rl = zero_var_indexes
   (let val rl' = Seq.hd (TRYALL (fn i => fn st =>
      rtac (lift_meta_eq_to_obj_eq i st) i st) rl)
    in mk_meta_eq rl' handle THM _ =>
-     if Logic.is_equals (concl_of rl') then rl'
+     if can Logic.dest_equals (concl_of rl') then rl'
      else error "Conclusion of congruence rules must be =-equality"
    end);
 

@@ -138,7 +138,7 @@ fun mk_mono thm =
         | _ => [standard (thm' RS (thm' RS eq_to_mono2))]);
     val concl = concl_of thm
   in
-    if Logic.is_equals concl then
+    if can Logic.dest_equals concl then
       eq2mono (thm RS meta_eq_to_obj_eq)
     else if can (HOLogic.dest_eq o HOLogic.dest_Trueprop) concl then
       eq2mono thm
