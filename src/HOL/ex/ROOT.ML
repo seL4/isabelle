@@ -21,6 +21,7 @@ time_use_thy "Locales";
 time_use_thy "Records";
 time_use_thy "MonoidGroup";
 time_use_thy "BinEx";
+time_use_thy "Hex_Bin_Examples";
 setmp proofs 2 time_use_thy "Hilbert_Classical";
 time_use_thy "Antiquote";
 time_use_thy "Multiquote";
