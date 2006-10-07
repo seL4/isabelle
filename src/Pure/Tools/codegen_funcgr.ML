@@ -50,8 +50,9 @@ fun abs_norm thy thm =
       let
         val lhs = (fst o Logic.dest_equals o Drule.plain_prop_of) thm;
         val tys = (fst o strip_type o fastype_of) lhs;
+        val ctxt = Name.make_context (map (fst o fst) (Term.add_vars lhs []));
         val vs_ct = map (fn (v, ty) => cterm_of thy (Var ((v, 0), ty)))
-          (Name.names Name.context "a" tys);
+          (Name.names ctxt "a" tys);
       in
         fold (fn ct => fn thm => Thm.combination thm (Thm.reflexive ct)) vs_ct thm
       end;
