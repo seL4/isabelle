@@ -777,14 +777,10 @@ fun merge_ss (ss1, ss2) =
     Science of Computer Programming 3 (1983), pages 119-149.
 *)
 
-val dest_eq = Drule.dest_equals o Thm.cprop_of;
-val lhs_of = #1 o dest_eq;
-val rhs_of = Drule.dest_equals_rhs o Thm.cprop_of;
-
 fun check_conv msg ss thm thm' =
   let
     val thm'' = transitive thm (transitive
-      (symmetric (Drule.beta_eta_conversion (lhs_of thm'))) thm')
+      (symmetric (Drule.beta_eta_conversion (Drule.lhs_of thm'))) thm')
   in if msg then trace_thm "SUCCEEDED" ss thm' else (); SOME thm'' end
   handle THM _ =>
     let val {thy, prop = _ $ _ $ prop0, ...} = Thm.rep_thm thm in
@@ -846,7 +842,7 @@ fun rewritec (prover, thyt, maxt) ss t =
   let
     val Simpset ({rules, ...}, {congs, procs, termless, ...}) = ss;
     val eta_thm = Thm.eta_conversion t;
-    val eta_t' = rhs_of eta_thm;
+    val eta_t' = Drule.rhs_of eta_thm;
     val eta_t = term_of eta_t';
     fun rew {thm, name, lhs, elhs, extra, fo, perm} =
       let
@@ -964,15 +960,15 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
           else
           (case subc skel ss t of
              some as SOME thm1 =>
-               (case rewritec (prover, thy, maxidx) ss (rhs_of thm1) of
+               (case rewritec (prover, thy, maxidx) ss (Drule.rhs_of thm1) of
                   SOME (thm2, skel2) =>
                     transitive2 (transitive thm1 thm2)
-                      (botc skel2 ss (rhs_of thm2))
+                      (botc skel2 ss (Drule.rhs_of thm2))
                 | NONE => some)
            | NONE =>
                (case rewritec (prover, thy, maxidx) ss t of
                   SOME (thm2, skel2) => transitive2 thm2
-                    (botc skel2 ss (rhs_of thm2))
+                    (botc skel2 ss (Drule.rhs_of thm2))
                 | NONE => NONE))
 
     and try_botc ss t =
@@ -998,7 +994,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
              Const ("==>", _) $ _  => impc t0 ss
            | Abs _ =>
                let val thm = beta_conversion false t0
-               in case subc skel0 ss (rhs_of thm) of
+               in case subc skel0 ss (Drule.rhs_of thm) of
                     NONE => SOME thm
                   | SOME thm' => SOME (transitive thm thm')
                end
@@ -1030,7 +1026,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
     may be a redex. Example: map (%x. x) = (%xs. xs) wrt map_cong*)
                           (let
                              val thm = congc (prover ss) ss maxidx cong t0;
-                             val t = the_default t0 (Option.map rhs_of thm);
+                             val t = the_default t0 (Option.map Drule.rhs_of thm);
                              val (cl, cr) = Thm.dest_comb t
                              val dVar = Var(("", 0), dummyT)
                              val skel =
@@ -1060,7 +1056,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
 
     and disch r (prem, eq) =
       let
-        val (lhs, rhs) = dest_eq eq;
+        val (lhs, rhs) = Drule.dest_equals (Thm.cprop_of eq);
         val eq' = implies_elim (Thm.instantiate
           ([], [(cA, prem), (cB, lhs), (cC, rhs)]) Drule.imp_cong)
           (implies_intr prem eq)
@@ -1081,13 +1077,13 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
           let
             val ss' = add_rrules (rev rrss, rev asms) ss;
             val concl' =
-              Drule.mk_implies (prem, the_default concl (Option.map rhs_of eq));
+              Drule.mk_implies (prem, the_default concl (Option.map Drule.rhs_of eq));
             val dprem = Option.map (curry (disch false) prem)
           in case rewritec (prover, thy, maxidx) ss' concl' of
               NONE => rebuild prems concl' rrss asms ss (dprem eq)
             | SOME (eq', _) => transitive2 (Library.foldl (disch false o swap)
                   (the (transitive3 (dprem eq) eq'), prems))
-                (mut_impc0 (rev prems) (rhs_of eq') (rev rrss) (rev asms) ss)
+                (mut_impc0 (rev prems) (Drule.rhs_of eq') (rev rrss) (rev asms) ss)
           end
 
     and mut_impc0 prems concl rrss asms ss =
@@ -1116,7 +1112,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
               (if k = 0 then 0 else k - 1)
           | SOME eqn =>
             let
-              val prem' = rhs_of eqn;
+              val prem' = Drule.rhs_of eqn;
               val tprems = map term_of prems;
               val i = 1 + Library.foldl Int.max (~1, map (fn p =>
                 find_index (fn q => q aconv p) tprems) (#hyps (rep_thm eqn)));
@@ -1132,7 +1128,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
      and nonmut_impc ct ss =
        let val (prem, conc) = dest_implies ct;
            val thm1 = if simprem then botc skel0 ss prem else NONE;
-           val prem1 = the_default prem (Option.map rhs_of thm1);
+           val prem1 = the_default prem (Option.map Drule.rhs_of thm1);
            val ss1 = if not useprem then ss else add_rrules
              (apsnd single (apfst single (rules_of_prem ss prem1))) ss
        in (case botc skel0 ss1 conc of
