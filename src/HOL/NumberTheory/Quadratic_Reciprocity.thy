@@ -604,7 +604,7 @@ proof -
       nat(setsum (%x. ((x * q) div p)) P_set) =
         nat((setsum (%x. ((x * p) div q)) Q_set) +
           (setsum (%x. ((x * q) div p)) P_set))"
-    apply (rule_tac z1 = "setsum (%x. ((x * p) div q)) Q_set" in
+    apply (rule_tac z = "setsum (%x. ((x * p) div q)) Q_set" in
       nat_add_distrib [symmetric])
     apply (auto simp add: S1_carda [symmetric] S2_carda [symmetric])
     done

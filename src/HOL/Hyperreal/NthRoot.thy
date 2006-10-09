@@ -358,7 +358,7 @@ apply (auto simp add: numeral_2_eq_2)
 done
 
 lemma real_inv_sqrt_pow2: "0 < x ==> inverse (sqrt(x)) ^ 2 = inverse x"
-by (cut_tac n1 = 2 and a1 = "sqrt x" in power_inverse [symmetric], auto)
+by (cut_tac n = 2 and a = "sqrt x" in power_inverse [symmetric], auto)
 
 lemma real_sqrt_eq_zero_cancel: "[| 0 \<le> x; sqrt(x) = 0|] ==> x = 0"
 apply (drule real_le_imp_less_or_eq)

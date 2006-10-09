@@ -308,7 +308,7 @@ lemma (in GAUSS) C_prod_eq_D_times_E: "setprod id E * setprod id D = setprod id 
 lemma (in GAUSS) C_B_zcong_prod: "[setprod id C = setprod id B] (mod p)"
   apply (auto simp add: C_def)
   apply (insert finite_B SR_B_inj)
-  apply (frule_tac f1 = "StandardRes p" in setprod_reindex_id [symmetric], auto)
+  apply (frule_tac f = "StandardRes p" in setprod_reindex_id [symmetric], auto)
   apply (rule setprod_same_function_zcong)
   apply (auto simp add: StandardRes_prop1 zcong_sym p_g_0)
   done

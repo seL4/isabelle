@@ -964,7 +964,7 @@ lemma rsquarefree_decomp:
 apply (simp add: rsquarefree_def, safe)
 apply (frule_tac a = a in order_decomp)
 apply (drule_tac x = a in spec)
-apply (drule_tac a1 = a in order_root2 [symmetric])
+apply (drule_tac a = a in order_root2 [symmetric])
 apply (auto simp del: pmult_Cons)
 apply (rule_tac x = q in exI, safe)
 apply (simp add: poly_mult fun_eq)

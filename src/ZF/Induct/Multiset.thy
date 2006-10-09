@@ -637,8 +637,8 @@ lemma multiset_induct:
   shows "P(M)"
 apply (rule multiset_induct2 [OF M])
 apply (simp_all add: P0)
-apply (frule_tac [2] a1 = b in munion_single_case2 [symmetric])
-apply (frule_tac a1 = a in munion_single_case1 [symmetric])
+apply (frule_tac [2] a = b in munion_single_case2 [symmetric])
+apply (frule_tac a = a in munion_single_case1 [symmetric])
 apply (auto intro: step)
 done
 

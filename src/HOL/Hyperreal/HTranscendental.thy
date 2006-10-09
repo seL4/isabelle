@@ -71,7 +71,7 @@ done
 
 lemma hypreal_inverse_sqrt_pow2:
      "0 < x ==> inverse (( *f* sqrt)(x)) ^ 2 = inverse x"
-apply (cut_tac n1 = 2 and a1 = "( *f* sqrt) x" in power_inverse [symmetric])
+apply (cut_tac n = 2 and a = "( *f* sqrt) x" in power_inverse [symmetric])
 apply (auto dest: hypreal_sqrt_gt_zero_pow2)
 done
 

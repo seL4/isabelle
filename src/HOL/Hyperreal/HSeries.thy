@@ -83,7 +83,7 @@ apply (auto elim!: FreeUltrafilterNat_subset simp
 done
 
 lemma sumhr_split_diff: "n<p ==> sumhr(0,p,f) - sumhr(0,n,f) = sumhr(n,p,f)"
-by (drule_tac f1 = f in sumhr_split_add [symmetric], simp)
+by (drule_tac f = f in sumhr_split_add [symmetric], simp)
 
 lemma sumhr_hrabs: "abs(sumhr(m,n,f)) \<le> sumhr(m,n,%i. abs(f i))"
 apply (cases n, cases m)
