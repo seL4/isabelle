@@ -9,8 +9,8 @@ signature THEORY_TARGET =
 sig
   val init: xstring option -> theory -> local_theory
   val init_i: string option -> theory -> local_theory
-  val exit: local_theory -> local_theory * theory
-  val mapping: xstring option -> (local_theory -> local_theory) -> theory -> local_theory * theory
+  val exit: local_theory -> Proof.context * theory
+  val mapping: xstring option -> (local_theory -> local_theory) -> theory -> Proof.context * theory
 end;
 
 structure TheoryTarget: THEORY_TARGET =
@@ -84,19 +84,17 @@ fun add_axiom hyps (name, prop) thy =
 
 in
 
-fun axioms specs =
-  fold (fold Variable.fix_frees o snd) specs #>   (* FIXME !? *)
-  (fn lthy =>
-    let
-      val hyps = Assumption.assms_of lthy;
-      fun axiom ((name, atts), props) thy = thy
-        |> fold_map (add_axiom hyps) (PureThy.name_multi name props)
-        |-> (fn ths => pair ((name, atts), [(ths, [])]));
-    in
-      lthy
-      |> LocalTheory.theory_result (fold_map axiom specs)
-      |-> LocalTheory.notes
-    end);
+fun axioms specs lthy =
+  let
+    val hyps = Assumption.assms_of lthy;
+    fun axiom ((name, atts), props) thy = thy
+      |> fold_map (add_axiom hyps) (PureThy.name_multi name props)
+      |-> (fn ths => pair ((name, atts), [(ths, [])]));
+  in
+    lthy
+    |> LocalTheory.theory_result (fold_map axiom specs)
+    |-> LocalTheory.notes
+  end;
 
 end;
 
@@ -160,11 +158,11 @@ fun context_notes facts lthy =
     ||> ProofContext.restore_naming lthy
   end;
 
-fun theory_notes facts lthy = lthy |> LocalTheory.theory (fn thy =>
+fun theory_notes keep_atts facts lthy = lthy |> LocalTheory.theory (fn thy =>
   let
     val facts' = facts
       |> Element.export_standard_facts lthy (ProofContext.init thy)
-      |> Attrib.map_facts (Attrib.attribute_i thy);
+      |> Attrib.map_facts (if keep_atts then Attrib.attribute_i thy else K I);
   in
     thy
     |> Sign.qualified_names
@@ -175,8 +173,8 @@ fun theory_notes facts lthy = lthy |> LocalTheory.theory (fn thy =>
 fun locale_notes loc facts lthy = lthy |> LocalTheory.target (fn ctxt =>
   #2 (Locale.add_thmss "" loc (Element.export_standard_facts lthy ctxt facts) ctxt));
 
-fun notes "" facts = theory_notes facts #> context_notes facts
-  | notes loc facts = locale_notes loc facts #> context_notes facts
+fun notes "" facts = theory_notes true facts #> context_notes facts
+  | notes loc facts = theory_notes false facts #> locale_notes loc facts #> context_notes facts;
 
 
 (* declarations *)
@@ -191,22 +189,23 @@ fun declaration "" f = LocalTheory.theory (Context.theory_map f)
 
 (* init and exit *)
 
-fun target_operations loc : LocalTheory.operations =
+fun target_operations loc exit : LocalTheory.operations =
  {pretty = pretty loc,
   consts = consts loc,
   axioms = axioms,
   defs = defs,
   notes = notes loc,
   term_syntax = term_syntax loc,
-  declaration = declaration loc};
+  declaration = declaration loc,
+  exit = exit};
 
-fun init_i NONE thy = LocalTheory.init (SOME "") (target_operations "") (ProofContext.init thy)
+fun init_i NONE thy = LocalTheory.init (SOME "") (target_operations "" I) (ProofContext.init thy)
   | init_i (SOME loc) thy =
-      LocalTheory.init (SOME (NameSpace.base loc)) (target_operations loc) (Locale.init loc thy);
+      LocalTheory.init (SOME (NameSpace.base loc)) (target_operations loc I) (Locale.init loc thy);
 
 fun init loc thy = init_i (Option.map (Locale.intern thy) loc) thy;
 
-fun exit lthy = (lthy, ProofContext.theory_of lthy);
+val exit = LocalTheory.exit #> (fn lthy => (lthy, ProofContext.theory_of lthy));
 
 fun mapping loc f = init loc #> f #> exit;
 
