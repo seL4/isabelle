@@ -11,8 +11,6 @@ signature LOCAL_THEORY =
 sig
   type operations
   val target_of: local_theory -> Proof.context
-  val init: string option -> operations -> Proof.context -> local_theory
-  val reinit: local_theory -> local_theory
   val theory: (theory -> theory) -> local_theory -> local_theory
   val theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
@@ -34,6 +32,9 @@ sig
     local_theory -> (bstring * thm list) * Proof.context
   val const_syntax: Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> local_theory -> local_theory
+  val init: string option -> operations -> Proof.context -> local_theory
+  val reinit: local_theory -> local_theory
+  val exit: local_theory -> Proof.context
 end;
 
 structure LocalTheory: LOCAL_THEORY =
@@ -54,7 +55,8 @@ type operations =
   notes: ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list -> local_theory ->
     (bstring * thm list) list * local_theory,
   term_syntax: (Context.generic -> Context.generic) -> local_theory -> local_theory,
-  declaration: (Context.generic -> Context.generic) -> local_theory -> local_theory};
+  declaration: (Context.generic -> Context.generic) -> local_theory -> local_theory,
+  exit: local_theory -> local_theory};
 
 datatype lthy = LThy of
  {theory_prefix: string option,
@@ -89,17 +91,6 @@ val target_of = #target o get_lthy;
 
 fun map_target f = map_lthy (fn (theory_prefix, operations, target) =>
   (theory_prefix, operations, f target));
-
-
-(* init *)
-
-fun init theory_prefix operations target = target |> Data.map
-  (fn NONE => SOME (make_lthy (theory_prefix, operations, target))
-    | SOME _ => error "Local theory already initialized");
-
-fun reinit lthy =
-  let val {theory_prefix, operations, target} = get_lthy lthy
-  in init theory_prefix operations target end;
 
 
 (* substructure mappings *)
@@ -161,5 +152,18 @@ fun const_syntax mode args =
 
 fun abbrevs mode args =
   term_syntax (Context.mapping (Sign.add_abbrevs mode args) (ProofContext.add_abbrevs mode args));
+
+
+(* init -- exit *)
+
+fun init theory_prefix operations target = target |> Data.map
+  (fn NONE => SOME (make_lthy (theory_prefix, operations, target))
+    | SOME _ => error "Local theory already initialized");
+
+fun reinit lthy =
+  let val {theory_prefix, operations, target} = get_lthy lthy
+  in init theory_prefix operations target end;
+
+fun exit lthy = lthy |> operation #exit |> target_of;
 
 end;
