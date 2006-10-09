@@ -549,28 +549,28 @@ end;
 
 local
 
-fun gen_def gen_fix prep_att prep_binds args state =
+fun gen_def prep_att prep_vars prep_binds args state =
   let
     val _ = assert_forward state;
     val thy = theory_of state;
+    val ctxt = context_of state;
 
-    val ((raw_names, raw_atts), (vars, raw_rhss)) =
-      args |> split_list |>> split_list ||> split_list;
-    val xs = map #1 vars;
-    val names = map2 Thm.def_name_optional xs raw_names;
-    val atts = map (map (prep_att thy)) raw_atts;
-    val (rhss, state') = state |> map_context_result (prep_binds false (map swap raw_rhss));
-    val eqs = LocalDefs.mk_def (context_of state') (xs ~~ rhss);
+    val (raw_name_atts, (raw_vars, raw_rhss)) = args |> split_list ||> split_list;
+    val name_atts = map (apsnd (map (prep_att thy))) raw_name_atts;
   in
-    state'
-    |> gen_fix (map (fn (x, mx) => (x, NONE, mx)) vars)
-    |> assm_i LocalDefs.def_export ((names ~~ atts) ~~ map (fn eq => [(eq, [])]) eqs)
+    state
+    |> map_context_result (prep_vars (map (fn (x, mx) => (x, NONE, mx)) raw_vars))
+    |>> map (fn (x, _, mx) => (x, mx))
+    |-> (fn vars =>
+      map_context_result (prep_binds false (map swap raw_rhss))
+      #-> (fn rhss => map_context_result (LocalDefs.add_defs (vars ~~ (name_atts ~~ rhss)))))
+    |-> (put_facts o SOME o map (#2 o #2))
   end;
 
 in
 
-val def = gen_def fix Attrib.attribute ProofContext.match_bind;
-val def_i = gen_def fix_i (K I) ProofContext.match_bind_i;
+val def = gen_def Attrib.attribute ProofContext.read_vars ProofContext.match_bind;
+val def_i = gen_def (K I) ProofContext.cert_vars ProofContext.match_bind_i;
 
 end;
 
@@ -877,10 +877,10 @@ fun global_goal print_results prep_att prepp
 
     fun after_qed' results =
       ProofContext.theory
-        (case target of NONE => I
+        (case target of
+          NONE => I
         | SOME prfx => store_results (NameSpace.base prfx)
-            (map (ProofContext.export_standard ctxt thy_ctxt
-              #> map Drule.strip_shyps_warning) results))
+            (map (ProofContext.export_standard ctxt thy_ctxt) results))
       #> after_qed results;
   in
     init ctxt
