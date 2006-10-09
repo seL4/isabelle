@@ -241,7 +241,7 @@ val axiomatizationP =
 (* theorems *)
 
 fun theorems kind = P.opt_locale_target -- P.name_facts
-  >> (Toplevel.theory_context o uncurry (IsarThy.smart_theorems kind));
+  >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.theorems kind args));
 
 val theoremsP =
   OuterSyntax.command "theorems" "define theorems" K.thy_decl (theorems PureThy.theoremK);
@@ -252,7 +252,8 @@ val lemmasP =
 val declareP =
   OuterSyntax.command "declare" "declare theorems (improper)" K.thy_script
     (P.opt_locale_target -- (P.and_list1 P.xthms1 >> flat)
-      >> (Toplevel.theory_context o uncurry IsarThy.declare_theorems));
+      >> (fn (loc, args) => Toplevel.local_theory loc
+          (#2 o Specification.theorems "" [(("", []), args)])));
 
 
 (* name space entry path *)
