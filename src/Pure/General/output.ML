@@ -54,6 +54,7 @@ sig
   val info: string -> unit
   val debug: string -> unit
   val error_msg: string -> unit
+  val ml_output: (string -> unit) * (string -> unit)
   val add_mode: string ->
     (string -> string * real) * (bool -> string -> string * real) *
     (string * int -> string) * (string -> string) -> unit
@@ -133,6 +134,8 @@ fun error_msg s = ! error_fn (output s);
 
 fun panic_msg s = ! panic_fn (output s);
 fun panic s = (panic_msg ("## SYSTEM EXIT ##\n" ^ s); exit 1);
+
+val ml_output = (writeln, error_msg);
 
 
 (* toplevel errors *)

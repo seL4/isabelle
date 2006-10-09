@@ -1123,7 +1123,7 @@ fun parse_multi_file postprocess_module ext serializer =
 fun parse_internal serializer =
   parse_args (Args.name
   >> (fn "-" => serializer
-        (fn "" => (fn p => (use_text Context.ml_output false (Pretty.output p); NONE))
+        (fn "" => (fn p => (use_text Output.ml_output false (Pretty.output p); NONE))
           | _ => SOME)
        | _ => Scan.fail ()));
 
@@ -1241,13 +1241,13 @@ fun eval_term_proto thy data hidden ((ref_name, reff), e) code =
       else Pretty.output p;
     val serializer = ml_serializer struct_name "SML" [[nsp_module], [nsp_class, nsp_tyco],
       [nsp_fun, nsp_dtco, nsp_class, nsp_classop, nsp_inst], [nsp_eval]]
-      (fn "" => (fn p => (use_text Context.ml_output (!eval_verbose) (output p); NONE))
+      (fn "" => (fn p => (use_text Output.ml_output (!eval_verbose) (output p); NONE))
         | _ => SOME) data
         (hidden, SOME [NameSpace.pack [nsp_eval, val_name]]);
     val _ = serializer code';
     val val_name_struct = NameSpace.append struct_name val_name;
     val _ = reff := NONE;
-    val _ = use_text Context.ml_output (!eval_verbose) ("val _ = (" ^ ref_name ^ " := SOME (" ^ val_name_struct ^ "))");
+    val _ = use_text Output.ml_output (!eval_verbose) ("val _ = (" ^ ref_name ^ " := SOME (" ^ val_name_struct ^ "))");
   in case !reff
    of NONE => error ("Could not retrieve value of ML reference " ^ quote ref_name
         ^ " (reference probably has been shadowed)")

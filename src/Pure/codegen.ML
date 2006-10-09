@@ -993,7 +993,7 @@ fun test_term thy sz i t =
                   [Pretty.str "]"])]],
             Pretty.brk 1, Pretty.str "end"]), Pretty.str ");"]) ^
       "\n\nend;\n") ();
-    val _ = use_text Context.ml_output false s;
+    val _ = use_text Output.ml_output false s;
     fun iter f k = if k > i then NONE
       else (case (f () handle Match =>
           (warning "Exception Match raised in generated code"; NONE)) of
@@ -1045,7 +1045,7 @@ fun eval_term thy = setmp print_mode [] (fn t =>
             [Pretty.str "result"],
           Pretty.str ";"])  ^
       "\n\nend;\n";
-    val _ = use_text Context.ml_output false s
+    val _ = use_text Output.ml_output false s
   in !eval_result end);
 
 fun print_evaluated_term s = Toplevel.keep (fn state =>
@@ -1152,7 +1152,7 @@ fun parse_code lib =
        val mode'' = (if lib then insert (op =) "library" else I) (remove (op =) "library" mode');
        val (code, gr) = setmp mode mode'' (generate_code thy modules module) xs
      in ((case opt_fname of
-         NONE => use_text Context.ml_output false
+         NONE => use_text Output.ml_output false
            (space_implode "\n" (map snd code))
        | SOME fname =>
            if lib then

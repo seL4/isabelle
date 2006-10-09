@@ -58,7 +58,6 @@ sig
   val pass_theory: theory -> ('a -> 'b) -> 'a -> 'b * theory
   val save: ('a -> 'b) -> 'a -> 'b
   val >> : (theory -> theory) -> unit
-  val ml_output: (string -> unit) * (string -> unit)
   val use_mltext: string -> bool -> theory option -> unit
   val use_mltext_theory: string -> bool -> theory -> theory
   val use_let: string -> string -> string -> theory -> theory
@@ -482,10 +481,8 @@ fun >> f = set_context (SOME (f (the_context ())));
 
 (* use ML text *)
 
-val ml_output = (writeln, Output.error_msg);
-
 fun use_output verbose txt =
-  Output.ML_errors (use_text ml_output verbose) (Symbol.escape txt);
+  Output.ML_errors (use_text Output.ml_output verbose) (Symbol.escape txt);
 
 fun use_mltext txt verbose opt_thy = setmp opt_thy (fn () => use_output verbose txt) ();
 fun use_mltext_theory txt verbose thy = #2 (pass_theory thy (use_output verbose) txt);
