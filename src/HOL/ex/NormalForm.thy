@@ -118,6 +118,9 @@ definition delayed_if :: "bool \<Rightarrow> (unit \<Rightarrow> 'a) \<Rightarro
 lemma [normal_pre]: "(if b then x else y) == delayed_if b (%u. x) (%u. y)"
 unfolding delayed_if_def by simp
 
+lemma [normal_post]: "delayed_if b f g == (if b then f() else g())"
+unfolding delayed_if_def by simp
+
 lemma [code func]:
  shows "delayed_if True f g = f()" and "delayed_if False f g = g()"
 by (auto simp:delayed_if_def)
@@ -126,5 +129,11 @@ hide (open) const delayed_if
 
 normal_form "OperationalEquality.eq [2..<4] [2,3]"
 (*lemma "OperationalEquality.eq [2..<4] [2,3]" by normalization*)
+
+definition
+ andalso :: "bool \<Rightarrow> bool \<Rightarrow> bool"
+"andalso x y = (if x then y else False)"
+
+lemma "andalso a b = (if a then b else False)" by normalization
 
 end
