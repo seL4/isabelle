@@ -87,9 +87,6 @@ fun add_specification axiomatic cos arg =
         |> proc_exprop axiomatic cos
         |> apsnd standard
 
-fun add_spec x y (context, thm) =
-  (Context.the_theory context, thm) |> add_specification x y |>> Context.Theory;
-
 
 (* Collect all intances of constants in term *)
 
@@ -225,13 +222,15 @@ fun process_spec axiomatic cos alt_props thy =
                 arg |> apsnd Thm.freezeT
                     |> process_all (zip3 alt_names rew_imps frees)
             end
-            fun post_proc (context, th) =
-                post_process (Context.theory_of context, th) |>> Context.Theory;
+
+      fun after_qed [[thm]] = ProofContext.theory (fn thy =>
+        #1 (post_process (add_specification axiomatic (zip3 names cnames overloaded) (thy, thm))));
     in
-      IsarThy.theorem_i PureThy.internalK
-        ("", [add_spec axiomatic (zip3 names cnames overloaded), post_proc])
-        (HOLogic.mk_Trueprop ex_prop, []) thy
-    end
+      thy
+      |> ProofContext.init
+      |> Proof.theorem_i PureThy.internalK NONE after_qed
+        (SOME "") ("", []) [(("", []), [(HOLogic.mk_Trueprop ex_prop, [])])]
+    end;
 
 
 (* outer syntax *)
