@@ -269,6 +269,8 @@ Usage: isabelle [OPTIONS] [INPUT] [OUTPUT]
     -C           tell ML system to copy output image
     -I           startup Isar interaction mode
     -P           startup Proof General interaction mode
+    -S           secure mode -- disallow critical operations
+    -X           startup PGIP interaction mode
     -c           tell ML system to compress output image
     -e MLTEXT    pass MLTEXT to the ML session
     -f           pass 'Session.finish();' to the ML session
@@ -304,7 +306,7 @@ argument on the command line).
 
 The read-write state of sessions is determined at startup only, it cannot be
 changed intermediately. Also note that heap images may require considerable
-amounts of disk space (approximately 20--40~MB). Users are responsible for
+amounts of disk space (approximately 40--80~MB). Users are responsible for
 themselves to dispose their heap files when they are no longer needed.
 
 \medskip The \texttt{-w} option makes the output heap file read-only after
@@ -339,10 +341,15 @@ to enable output of proper mathematical symbols.
 processing the \texttt{-e} texts). The \texttt{-q} option inhibits
 interaction, thus providing a pure batch mode facility.
 
-\medskip The \texttt{-I} option makes Isabelle enter Isar interaction mode on
-startup, instead of the primitive {\ML} top-level.  The \texttt{-P} option
-configures the top-level loop for interaction with the Proof~General user
-interface; do not enable this in plain TTY sessions.
+\medskip The \texttt{-I} option makes Isabelle enter Isar interaction
+mode on startup, instead of the primitive {\ML} top-level.  The
+\texttt{-P} option configures the top-level loop for interaction with
+the Proof~General user interface, and the \texttt{-X} option enables
+XML-based PGIP communication.
+
+\medskip The \texttt{-S} option makes the Isabelle process more secure
+by disabling some critical operations, notably runtime compilation and
+evaluation of ML source code.
 
 
 \subsection*{Examples}
