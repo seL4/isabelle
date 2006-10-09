@@ -9,6 +9,7 @@ use "ord_list.ML";
 use "alist.ML";
 use "table.ML";
 use "output.ML";
+use "secure.ML";
 use "graph.ML";
 use "heap.ML";
 use "scan.ML";
