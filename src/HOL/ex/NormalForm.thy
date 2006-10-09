@@ -110,4 +110,21 @@ normal_form "min 0 x"
 normal_form "min 0 (x::nat)"
 lemma "(if (0\<Colon>nat) \<le> (x\<Colon>nat) then 0\<Colon>nat else x) = 0" by normalization
 
+(* Delaying if: FIXME move to HOL.thy(?) *)
+
+definition delayed_if :: "bool \<Rightarrow> (unit \<Rightarrow> 'a) \<Rightarrow> (unit \<Rightarrow> 'a) \<Rightarrow> 'a"
+"delayed_if b f g = (if b then f() else g())"
+
+lemma [normal_pre]: "(if b then x else y) == delayed_if b (%u. x) (%u. y)"
+unfolding delayed_if_def by simp
+
+lemma [code func]:
+ shows "delayed_if True f g = f()" and "delayed_if False f g = g()"
+by (auto simp:delayed_if_def)
+
+hide (open) const delayed_if
+
+normal_form "OperationalEquality.eq [2..<4] [2,3]"
+(*lemma "OperationalEquality.eq [2..<4] [2,3]" by normalization*)
+
 end
