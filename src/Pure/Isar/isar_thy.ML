@@ -11,17 +11,6 @@ sig
   val add_defs: (bool * bool) * ((bstring * string) * Attrib.src list) list -> theory -> theory
   val apply_theorems: (thmref * Attrib.src list) list -> theory -> thm list * theory
   val apply_theorems_i: (thm list * attribute list) list -> theory -> thm list * theory
-  val theorems: string ->
-    ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list
-    -> theory -> (string * thm list) list * theory
-  val theorems_i: string ->
-    ((bstring * attribute list) * (thm list * attribute list) list) list
-    -> theory -> (string * thm list) list * theory
-  val smart_theorems: string -> xstring option ->
-    ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list ->
-    theory -> Proof.context * theory
-  val declare_theorems: xstring option ->
-    (thmref * Attrib.src list) list -> theory -> Proof.context * theory
   val have: ((string * Attrib.src list) * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
   val hence: ((string * Attrib.src list) * (string * string list) list) list ->
@@ -51,7 +40,7 @@ end;
 structure IsarThy: ISAR_THY =
 struct
 
-(* axioms and defs *)
+(* axioms *)
 
 fun add_axms f args thy =
   f (map (fn (x, srcs) => (x, map (Attrib.attribute thy) srcs)) args) thy;
@@ -63,36 +52,13 @@ fun add_defs ((unchecked, overloaded), args) =
     (snd oo (if unchecked then PureThy.add_defs_unchecked else PureThy.add_defs) overloaded) args;
 
 
-(* theorems *)
+(* facts *)
 
-fun present_theorems kind (res, thy) =
-  conditional (kind <> "" andalso kind <> PureThy.internalK) (fn () =>
-    Context.setmp (SOME thy) (Present.results (kind ^ "s")) res);
+fun apply_theorems args thy =
+  let val facts = Attrib.map_facts (Attrib.attribute thy) [(("", []), args)]
+  in apfst (maps snd) (PureThy.note_thmss "" facts thy) end;
 
-fun theorems kind args thy = thy
-  |> PureThy.note_thmss kind (Attrib.map_facts (Attrib.attribute thy) args)
-  |> tap (present_theorems kind);
-
-fun theorems_i kind args =
-  PureThy.note_thmss_i kind args
-  #> tap (present_theorems kind);
-
-fun apply_theorems args = apfst (maps snd) o theorems "" [(("", []), args)];
-fun apply_theorems_i args = apfst (maps snd) o theorems_i "" [(("", []), args)];
-
-(* FIXME local_theory *)
-fun smart_theorems kind NONE args thy = thy
-      |> theorems kind args
-      |> tap (present_theorems kind)
-      |> (fn (_, thy) => `ProofContext.init thy)
-  | smart_theorems kind (SOME loc) args thy = thy
-      |> Locale.note_thmss kind loc args
-      ||> (fn ctxt' => (ctxt', ProofContext.theory_of ctxt'))
-      |> tap (fn ((_, res), (_, thy')) => present_theorems kind (res, thy'))
-      |> #2;
-
-fun declare_theorems opt_loc args =
-  smart_theorems "" opt_loc [(("", []), args)];
+fun apply_theorems_i args = apfst (maps snd) o PureThy.note_thmss_i "" [(("", []), args)];
 
 
 (* goals *)
