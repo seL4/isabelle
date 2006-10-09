@@ -24,7 +24,7 @@ sig
   val fold: Proof.context -> thm list -> thm -> thm
   val fold_tac: Proof.context -> thm list -> tactic
   val derived_def: Proof.context -> bool -> term ->
-    ((string * typ) * term) * (Proof.context -> term -> thm -> thm)
+    ((string * typ) * term) * (Proof.context -> thm -> thm)
 end;
 
 structure LocalDefs: LOCAL_DEFS =
@@ -164,13 +164,12 @@ fun derived_def ctxt conditional prop =
       |> (snd o Logic.dest_equals o Thm.prop_of)
       |> K conditional ? Logic.strip_imp_concl
       |> (abs_def o #2 o cert_def ctxt);
-    fun prove ctxt' lhs def =   (* FIXME check/simplify *)
+    fun prove ctxt' def =
       let
-        val prop' = Term.subst_atomic [(Free (c, T), lhs)] prop;   (* FIXME !? *)
         val frees = Term.fold_aterms (fn Free (x, _) =>
-          if Variable.is_fixed ctxt' x then I else insert (op =) x | _ => I) prop' [];
+          if Variable.is_fixed ctxt' x then I else insert (op =) x | _ => I) prop [];
       in
-        Goal.prove ctxt' frees [] prop' (K (ALLGOALS
+        Goal.prove ctxt' frees [] prop (K (ALLGOALS
           (meta_rewrite_tac ctxt' THEN'
             Tactic.rewrite_goal_tac [def] THEN'
             Tactic.resolve_tac [Drule.reflexive_thm])))
