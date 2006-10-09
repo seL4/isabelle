@@ -703,11 +703,17 @@ fun >>> [] = ()
 (*Spurious interrupts ahead!  Race condition?*)
 fun get_interrupt src = SOME (Source.get_single src) handle Interrupt => NONE;
 
+fun warn_secure () =
+  let val secure = Secure.is_secure ()
+  in if secure then warning "Cannot exit to ML in secure mode" else (); secure end;
+
 fun raw_loop src =
   (case get_interrupt (Source.set_prompt (prompt_state (get_state ())) src) of
     NONE => (writeln "\nInterrupt."; raw_loop src)
-  | SOME NONE => ()
-  | SOME (SOME (tr, src')) => if >> tr then raw_loop src' else ());
+  | SOME NONE => if warn_secure () then quit () else ()
+  | SOME (SOME (tr, src')) =>
+      if >> tr orelse warn_secure () then raw_loop src'
+      else ());
 
 fun loop src = ignore_interrupt raw_loop src;
 
