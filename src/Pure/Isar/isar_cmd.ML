@@ -179,8 +179,7 @@ val use_mltext_theory = Toplevel.theory' o Context.use_mltext_theory;
 fun use_mltext v txt = Toplevel.keep' (fn verb => fn state =>
   (Context.use_mltext txt (v andalso verb) (try Toplevel.theory_of state)));
 
-(*commit is dynamically bound!*)
-val use_commit = use_mltext false "commit();";
+val use_commit = Toplevel.imperative Secure.commit;
 
 
 (* current working directory *)
