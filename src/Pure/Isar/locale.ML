@@ -83,16 +83,9 @@ sig
     -> (string * Proof.context (*body context!*)) * theory
 
   (* Storing results *)
-  val note_thmss: string -> xstring ->
-    ((string * Attrib.src list) * (thmref * Attrib.src list) list) list ->
-    theory -> ((string * thm list) list * (string * thm list) list) * Proof.context
-  val note_thmss_i: string -> string ->
-    ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    theory -> ((string * thm list) list * (string * thm list) list) * Proof.context
   val add_thmss: string -> string ->
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    Proof.context ->
-    ((string * thm list) list * (string * thm list) list) * Proof.context
+    Proof.context -> (string * thm list) list * Proof.context
   val add_term_syntax: string -> (Proof.context -> Proof.context) -> Proof.context -> Proof.context
 
   val theorem: string -> Method.text option ->
@@ -1520,13 +1513,16 @@ fun note_thmss_registrations kind target args thy =
     fun activate (vts, ((prfx, atts2), _)) thy =
       let
         val (insts, prems) = collect_global_witnesses thy parms ids vts;
+        val attrib = Attrib.attribute_i thy;
         val inst_atts =
           Args.map_values I (Element.instT_type (#1 insts))
             (Element.inst_term insts) (Element.inst_thm thy insts);
-        val args' = args |> map (fn ((n, atts), [(ths, [])]) =>
-            ((n, map (Attrib.attribute_i thy) (map inst_atts atts @ atts2)),
-             [(map (Drule.standard o Element.satisfy_thm prems o
-            Element.inst_thm thy insts) ths, [])]));
+        val inst_thm =
+          Drule.standard o Element.satisfy_thm prems o Element.inst_thm thy insts;
+        val args' = args |> map (fn ((name, atts), bs) =>
+            ((name, map (attrib o inst_atts) atts),
+              bs |> map (fn (ths, more_atts) =>
+                (map inst_thm ths, map attrib (map inst_atts more_atts @ atts2)))));
       in global_note_prefix_i kind prfx args' thy |> snd end;
   in fold activate regs thy end;
 
@@ -1548,52 +1544,21 @@ fun init loc =
   #> (#2 o cert_context_statement (SOME loc) [] []);
 
 
-(* theory/locale results *)
+(* locale results *)
 
-fun theory_results kind prefix results ctxt thy =
-  let
-    val thy_ctxt = ProofContext.init thy;
-    val export = singleton (ProofContext.export_standard ctxt thy_ctxt);
-    val facts = map (fn (name, ths) => ((name, []), [(map export ths, [])])) results;
-  in thy |> PureThy.note_thmss_qualified kind prefix facts end;
-
-local
-
-(* FIXME tune *)
-
-fun gen_thmss prep_facts global_results kind loc args ctxt =
+fun add_thmss kind loc args ctxt =
   let
     val (ctxt', ([(_, [Notes args'])], facts)) =
-      activate_facts true prep_facts (ctxt, [((("", []), Assumed []), [Ext (Notes args)])]);
-    val (facts', ctxt'') =
-      ctxt' |> ProofContext.theory_result
-        (change_locale loc
-          (fn (axiom, import, elems, params, lparams, term_syntax, regs, intros) =>
-            (axiom, import, elems @ [(Notes args', stamp ())],
-              params, lparams, term_syntax, regs, intros))
-        #> note_thmss_registrations kind loc args'
-        #> global_results (map (#1 o #1) args' ~~ map #2 facts) ctxt);
-  in ((facts, facts'), ctxt'') end;
+      activate_facts true cert_facts (ctxt, [((("", []), Assumed []), [Ext (Notes args)])]);
+    val ctxt'' = ctxt' |> ProofContext.theory
+      (change_locale loc
+        (fn (axiom, import, elems, params, lparams, term_syntax, regs, intros) =>
+          (axiom, import, elems @ [(Notes args', stamp ())],
+            params, lparams, term_syntax, regs, intros))
+      #> note_thmss_registrations kind loc args');
+  in (facts, ctxt'') end;
 
-fun gen_note prep_locale prep_facts kind raw_loc args thy =
-  let
-    val loc = prep_locale thy raw_loc;
-    val prefix = Sign.base_name loc;
-    val ctxt = init loc thy;
-  in gen_thmss prep_facts (theory_results kind prefix) kind loc args ctxt end;
-
-in
-
-val note_thmss = gen_note intern read_facts;
-val note_thmss_i = gen_note (K I) cert_facts;
-
-fun add_thmss kind = gen_thmss cert_facts (theory_results kind "") kind;
-
-fun locale_results kind loc args ctxt =
-  gen_thmss cert_facts (K (K (pair []))) kind loc (map (apsnd Thm.simple_fact) args) ctxt
-  |>> #1;
-
-end;
+fun locale_results kind loc args = add_thmss kind loc (map (apsnd Thm.simple_fact) args);
 
 
 
@@ -2310,7 +2275,7 @@ fun interpretation_in_locale after_qed (raw_target, expr) thy =
     val target = intern thy raw_target;
     val (propss, activate) = prep_registration_in_locale target expr thy;
     val kind = goal_name thy "interpretation" (SOME target) propss;
-    fun after_qed' locale_results results =
+    fun after_qed' _ results =
       ProofContext.theory (activate (prep_result propss results))
       #> after_qed;
   in
