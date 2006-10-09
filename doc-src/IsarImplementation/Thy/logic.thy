@@ -766,7 +766,7 @@ text %mlref {*
 
 section {* Rules \label{sec:rules} *}
 
-text {*
+text %FIXME {*
 
 FIXME
 

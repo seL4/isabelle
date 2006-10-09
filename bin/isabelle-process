@@ -30,7 +30,7 @@ function usage()
   echo "    -C           tell ML system to copy output image"
   echo "    -I           startup Isar interaction mode"
   echo "    -P           startup Proof General interaction mode"
-  echo "    -S           secure mode -- disallow critical operations (e.g. ML evaluation)"
+  echo "    -S           secure mode -- disallow critical operations"
   echo "    -X           startup PGIP interaction mode"
   echo "    -c           tell ML system to compress output image"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
