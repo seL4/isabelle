@@ -36,6 +36,10 @@ sig
     local_theory -> local_theory
   val const_syntax: Syntax.mode -> (xstring * mixfix) list -> local_theory -> local_theory
   val const_syntax_i: Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
+  val theorems: string -> ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list
+    -> local_theory -> (bstring * thm list) list * local_theory
+  val theorems_i: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list
+    -> local_theory -> (bstring * thm list) list * local_theory
 end;
 
 structure Specification: SPECIFICATION =
@@ -48,6 +52,9 @@ val quiet_mode = ref false;
 fun print_consts _ _ [] = ()
   | print_consts ctxt pred cs =
       if ! quiet_mode then () else Pretty.writeln (ProofDisplay.pretty_consts ctxt pred cs);
+
+fun present_results ctxt kind res =
+  if ! quiet_mode then () else ProofDisplay.present_results ctxt ((kind, ""), res);
 
 
 (* prepare specification *)
@@ -84,6 +91,7 @@ fun gen_axioms prep raw_vars raw_specs lthy =
 
     val ((consts, axioms), lthy') = lthy
       |> LocalTheory.consts spec_frees vars
+      ||> fold (fold Variable.fix_frees o snd) specs   (* FIXME !? *)
       ||>> LocalTheory.axioms specs;
 
     (* FIXME generic target!? *)
@@ -114,7 +122,7 @@ fun gen_defs prep args lthy =
 (*          |> LocalTheory.def ((x, mx), ((name ^ "_raw", []), rhs));  FIXME *)
           |> LocalTheory.def ((x, mx), ((name, []), rhs));
         val ((b, [th']), lthy3) = lthy2
-          |> LocalTheory.note ((name, atts), [prove lthy2 lhs th]);
+          |> LocalTheory.note ((name, atts), [prove lthy2 th]);
       in (((x, T), (lhs, (b, th'))), LocalTheory.reinit lthy3) end;
 
     val ((cs, defs), lthy') = lthy |> fold_map define args |>> split_list;
@@ -164,5 +172,22 @@ fun gen_syntax intern_const mode raw_args lthy =
 
 val const_syntax = gen_syntax Consts.intern;
 val const_syntax_i = gen_syntax (K I);
+
+
+(* theorems *)
+
+fun gen_theorems prep_thms prep_att kind raw_facts lthy =
+  let
+    val k = if kind = "" then [] else [Attrib.kind kind];
+    val attrib = prep_att (ProofContext.theory_of lthy);
+    val facts = raw_facts |> map (fn ((name, atts), bs) =>
+      ((name, map attrib atts),
+        bs |> map (fn (b, more_atts) => (prep_thms lthy b, map attrib more_atts @ k))));
+    val (res, lthy') = lthy |> LocalTheory.notes facts;
+    val _ = present_results lthy' kind res;
+  in (res, lthy') end;
+
+val theorems = gen_theorems ProofContext.get_thms Attrib.intern_src;
+val theorems_i = gen_theorems (K I) (K I);
 
 end;
