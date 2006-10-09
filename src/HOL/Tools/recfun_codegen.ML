@@ -36,7 +36,7 @@ val const_of = dest_Const o head_of o fst o dest_eqn;
 fun warn thm = warning ("RecfunCodegen: Not a proper equation:\n" ^
   string_of_thm thm);
 
-fun add optmod = Thm.declaration_attribute (fn thm => Context.map_theory
+fun add optmod = Thm.declaration_attribute (fn thm => Context.mapping
   let
     fun add thm =
       if Pattern.pattern (lhs_of thm) then
@@ -47,7 +47,7 @@ fun add optmod = Thm.declaration_attribute (fn thm => Context.map_theory
   in
     add thm
     #> CodegenData.add_func thm
-  end);
+  end I);
 
 fun del_thm thm thy =
   let
@@ -60,7 +60,7 @@ fun del_thm thm thy =
   end handle TERM _ => (warn thm; thy);
 
 val del = Thm.declaration_attribute
-  (fn thm => Context.map_theory (del_thm thm #> CodegenData.del_func thm))
+  (fn thm => Context.mapping (del_thm thm #> CodegenData.del_func thm) I)
 
 fun del_redundant thy eqs [] = eqs
   | del_redundant thy eqs (eq :: eqs') =

@@ -467,7 +467,7 @@ fun add_ind_realizers name rsets thy =
     Library.foldl (add_ind_realizer rsets intrs induct raw_induct elims) (thy, vss)
   end
 
-fun rlz_attrib arg = Thm.declaration_attribute (fn thm => Context.map_theory
+fun rlz_attrib arg = Thm.declaration_attribute (fn thm => Context.mapping
   let
     fun err () = error "ind_realizer: bad rule";
     val sets =
@@ -480,7 +480,7 @@ fun rlz_attrib arg = Thm.declaration_attribute (fn thm => Context.map_theory
       (case arg of
         NONE => sets | SOME NONE => []
       | SOME (SOME sets') => sets \\ sets')
-  end);
+  end I);
 
 val ind_realizer = Attrib.syntax
  ((Scan.option (Scan.lift (Args.$$$ "irrelevant") |--

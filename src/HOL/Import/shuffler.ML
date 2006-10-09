@@ -681,7 +681,7 @@ fun add_shuffle_rule thm thy =
 	else ShuffleData.put (thm::shuffles) thy
     end
 
-val shuffle_attr = Thm.declaration_attribute (Context.map_theory o add_shuffle_rule);
+val shuffle_attr = Thm.declaration_attribute (fn th => Context.mapping (add_shuffle_rule th) I);
 
 val setup =
   Method.add_method ("shuffle_tac",Method.thms_ctxt_args shuffle_meth,"solve goal by shuffling terms around") #>

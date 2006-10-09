@@ -47,7 +47,7 @@ fun warn thm = warning ("InductiveCodegen: Not a proper clause:\n" ^
 
 fun add_node (g, x) = Graph.new_node (x, ()) g handle Graph.DUP _ => g;
 
-fun add optmod = Thm.declaration_attribute (fn thm => Context.map_theory (fn thy =>
+fun add optmod = Thm.declaration_attribute (fn thm => Context.mapping (fn thy =>
   let
     val {intros, graph, eqns} = CodegenData.get thy;
     fun thyname_of s = (case optmod of
@@ -71,7 +71,7 @@ fun add optmod = Thm.declaration_attribute (fn thm => Context.map_theory (fn thy
                (s, Symtab.lookup_list eqns s @ [(thm, thyname_of s)])} thy
       | _ => (warn thm; thy))
     | _ => (warn thm; thy))
-  end));
+  end) I);
 
 fun get_clauses thy s =
   let val {intros, graph, ...} = CodegenData.get thy

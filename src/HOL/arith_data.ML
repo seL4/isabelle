@@ -231,8 +231,8 @@ structure ArithTheoryData = TheoryDataFun
 end);
 
 val arith_split_add = Thm.declaration_attribute (fn thm =>
-  Context.map_theory (ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
-    {splits= thm::splits, inj_consts= inj_consts, discrete= discrete, tactics= tactics})));
+  Context.mapping (ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
+    {splits= thm::splits, inj_consts= inj_consts, discrete= discrete, tactics= tactics})) I);
 
 fun arith_discrete d = ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
   {splits = splits, inj_consts = inj_consts, discrete = d :: discrete, tactics= tactics});

@@ -384,7 +384,7 @@ fun add_expand_thm thm thy =
 val add_expand_thms = fold add_expand_thm;
 
 val extraction_expand =
-  Attrib.no_args (Thm.declaration_attribute (Context.map_theory o add_expand_thm));
+  Attrib.no_args (Thm.declaration_attribute (fn th => Context.mapping (add_expand_thm th) I));
 
 
 (** types with computational content **)

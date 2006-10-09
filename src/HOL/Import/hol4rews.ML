@@ -258,9 +258,8 @@ structure HOL4Rewrites = TheoryDataFun(HOL4RewritesArgs);
 val hol4_debug = ref false
 fun message s = if !hol4_debug then writeln s else ()
 
-fun add_hol4_rewrite (context, th) =
+fun add_hol4_rewrite (Context.Theory thy, th) =
     let
-        val thy = Context.the_theory context;
 	val _ = message "Adding HOL4 rewrite"
 	val th1 = th RS eq_reflection
 	val current_rews = HOL4Rewrites.get thy
@@ -268,7 +267,8 @@ fun add_hol4_rewrite (context, th) =
 	val updated_thy  = HOL4Rewrites.put new_rews thy
     in
 	(Context.Theory updated_thy,th1)
-    end;
+    end
+  | add_hol4_rewrite (context, th) = (context, th RS eq_reflection);
 
 fun ignore_hol4 bthy bthm thy =
     let

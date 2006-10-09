@@ -837,7 +837,7 @@ fun get_datatype_of_constr thy c =
 local
   fun add_simple_attribute (name, f) =
     (Codegen.add_attribute name o (Scan.succeed o Thm.declaration_attribute))
-      (Context.map_theory o f);
+      (fn th => Context.mapping (f th) I);
 in
   val _ = map (Context.add_setup o add_simple_attribute) [
     ("func", add_func),
