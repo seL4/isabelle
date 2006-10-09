@@ -473,7 +473,7 @@ lemma number_of_reorient:
 
 subsection {* Simplification of arithmetic operations on integer constants. *}
 
-lemmas arith_extra_simps = 
+lemmas arith_extra_simps [standard] =
   number_of_add [symmetric]
   number_of_minus [symmetric] numeral_m1_eq_minus_1 [symmetric]
   number_of_mult [symmetric]

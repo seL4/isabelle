@@ -408,8 +408,7 @@ lemma one_is_num_one [code inline]:
 
 lemmas int_code_rewrites =
   arith_simps(5-27)
-  arith_extra_simps(1-4) [where ?'a1 = int]
-  arith_extra_simps(5) [where ?'a = int]
+  arith_extra_simps(1-5) [where 'a = int]
 
 declare int_code_rewrites [code func]
 
