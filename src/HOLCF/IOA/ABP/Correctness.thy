@@ -61,7 +61,7 @@ declare let_weak_cong [cong]
 declare Let_def [simp] ioa_triple_proj [simp] starts_of_par [simp]
 
 lemmas env_ioas = env_ioa_def env_asig_def env_trans_def
-  and hom_ioas [simp] = env_ioas impl_ioas impl_trans impl_asigs asig_projections set_lemmas
+lemmas hom_ioas [simp] = env_ioas impl_ioas impl_trans impl_asigs asig_projections set_lemmas
 
 
 subsection {* lemmas about reduce *}
