@@ -14,6 +14,7 @@ sig
   val list_implies: cterm list * cterm -> cterm
   val dest_implies: cterm -> cterm * cterm
   val dest_equals: cterm -> cterm * cterm
+  val dest_equals_lhs: cterm -> cterm
   val dest_equals_rhs: cterm -> cterm
   val strip_imp_prems: cterm -> cterm list
   val strip_imp_concl: cterm -> cterm
@@ -24,7 +25,6 @@ sig
     (indexname -> typ option) * (indexname -> sort option) -> string list ->
     (indexname * string) list -> (ctyp * ctyp) list * (cterm * cterm) list
   val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
-  val strip_shyps_warning: thm -> thm
   val forall_intr_list: cterm list -> thm -> thm
   val forall_intr_frees: thm -> thm
   val forall_intr_vars: thm -> thm
@@ -89,8 +89,8 @@ sig
   val list_comb: cterm * cterm list -> cterm
   val strip_comb: cterm -> cterm * cterm list
   val strip_type: ctyp -> ctyp list * ctyp
-  val clhs_of: thm -> cterm
-  val crhs_of: thm -> cterm
+  val lhs_of: thm -> cterm
+  val rhs_of: thm -> cterm
   val beta_conv: cterm -> cterm -> cterm
   val plain_prop_of: thm -> term
   val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
@@ -159,10 +159,18 @@ fun dest_equals ct =
     Const ("==", _) $ _ $ _ => Thm.dest_binop ct
   | _ => raise TERM ("dest_equals", [Thm.term_of ct]));
 
+fun dest_equals_lhs ct =
+  (case Thm.term_of ct of
+    Const ("==", _) $ _ $ _ => #1 (Thm.dest_binop ct)
+  | _ => raise TERM ("dest_equals_lhs", [Thm.term_of ct]));
+
 fun dest_equals_rhs ct =
   (case Thm.term_of ct of
     Const ("==", _) $ _ $ _ => Thm.dest_arg ct
   | _ => raise TERM ("dest_equals_rhs", [Thm.term_of ct]));
+
+val lhs_of = dest_equals_lhs o Thm.cprop_of;
+val rhs_of = dest_equals_rhs o Thm.cprop_of;
 
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
 fun strip_imp_prems ct =
@@ -216,18 +224,6 @@ fun strip_type cT = (case Thm.typ_of cT of
         val (cTs, cT') = strip_type cT2
       in (cT1 :: cTs, cT') end
   | _ => ([], cT));
-
-fun clhs_of th =
-  case strip_comb (cprop_of th) of
-      (f, [x, _]) =>
-          (case term_of f of Const ("==", _) => x | _ => raise THM ("clhs_of", 0, [th]))
-    | _ => raise THM ("clhs_of", 1, [th]);
-
-fun crhs_of th =
-  case strip_comb (cprop_of th) of
-      (f, [_, x]) =>
-          (case term_of f of Const ("==", _) => x | _ => raise THM ("crhs_of", 0, [th]))
-    | _ => raise THM ("crhs_of", 1, [th]);
 
 (*Beta-conversion for cterms, where x is an abstraction. Simply returns the rhs
   of the meta-equality returned by the beta_conversion rule.*)
@@ -336,17 +332,6 @@ fun unconstrainTs th =
   fold (Thm.unconstrainT o Thm.ctyp_of (Thm.theory_of_thm th) o TVar)
     (fold_terms Term.add_tvars th []) th;
 
-fun strip_shyps_warning thm =
-  let
-    val str_of_sort = Pretty.str_of o Sign.pretty_sort (Thm.theory_of_thm thm);
-    val thm' = Thm.strip_shyps thm;
-    val xshyps = Thm.extra_shyps thm';
-  in
-    if null xshyps then ()
-    else warning ("Pending sort hypotheses: " ^ commas (map str_of_sort xshyps));
-    thm'
-  end;
-
 (*Generalization over a list of variables*)
 val forall_intr_list = fold_rev forall_intr;
 
@@ -445,7 +430,7 @@ val standard' =
   #> `Thm.maxidx_of
   #-> (fn maxidx =>
     forall_elim_vars (maxidx + 1)
-    #> strip_shyps_warning
+    #> Thm.strip_shyps
     #> zero_var_indexes
     #> Thm.varifyT
     #> Thm.compress);
@@ -456,7 +441,8 @@ val standard =
   #> close_derivation;
 
 val local_standard =
-  strip_shyps
+  flexflex_unique
+  #> Thm.strip_shyps
   #> zero_var_indexes
   #> Thm.compress
   #> close_derivation;
