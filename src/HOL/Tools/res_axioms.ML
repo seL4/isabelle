@@ -38,17 +38,12 @@ val abstract_lambdas = true;
 
 val trace_abs = ref false;
 
-(*FIXME: move some of these functions to Pure/drule.ML *)
-
+(* FIXME legacy *)
 fun freeze_thm th = #1 (Drule.freeze_thaw th);
 
-fun lhs_of th =
-  case prop_of th of (Const("==",_) $ lhs $ _) => lhs
-    | _ => raise THM ("lhs_of", 1, [th]);
+val lhs_of = #1 o Logic.dest_equals o Thm.prop_of;
+val rhs_of = #2 o Logic.dest_equals o Thm.prop_of;
 
-fun rhs_of th =
-  case prop_of th of (Const("==",_) $ _ $ rhs) => rhs
-    | _ => raise THM ("rhs_of", 1, [th]);
 
 (*Store definitions of abstraction functions, ensuring that identical right-hand
   sides are denoted by the same functions and thereby reducing the need for
@@ -57,7 +52,7 @@ fun rhs_of th =
 
 (*Populate the abstraction cache with common combinators.*)
 fun seed th net =
-  let val (_,ct) = Thm.dest_abs NONE (Drule.crhs_of th)
+  let val (_,ct) = Thm.dest_abs NONE (Drule.rhs_of th)
       val t = Logic.legacy_varify (term_of ct)
   in  Net.insert_term eq_thm (t, th) net end;
   
@@ -247,7 +242,7 @@ fun mk_object_eq th = th RS def_imp_eq
 (*Apply a function definition to an argument, beta-reducing the result.*)
 fun beta_comb cf x =
   let val th1 = combination cf (reflexive x)
-      val th2 = beta_conversion false (Drule.crhs_of th1)
+      val th2 = beta_conversion false (Drule.rhs_of th1)
   in  transitive th1 th2  end;
 
 (*Apply a function definition to arguments, beta-reducing along the way.*)
@@ -320,7 +315,7 @@ fun declare_absfuns th =
                 val _ = if !trace_abs then warning ("Nested lambda: " ^ string_of_cterm cta) else ();
                 val (u'_th,defs) = abstract thy cta
                 val _ = if !trace_abs then warning ("Returned " ^ string_of_thm u'_th) else ();
-                val cu' = Drule.crhs_of u'_th
+                val cu' = Drule.rhs_of u'_th
                 val u' = term_of cu'
                 val abs_v_u = lambda_list (map term_of cvs) u'
                 (*get the formal parameters: ALL variables free in the term*)
@@ -376,7 +371,7 @@ fun declare_absfuns th =
       val _ = if !trace_abs then warning ("declare_absfuns, Result: " ^ string_of_thm (hd ths)) else ();
   in  (theory_of_thm eqth, map Drule.eta_contraction_rule ths)  end;
 
-fun name_of def = SOME (#1 (dest_Free (lhs_of def))) handle _ => NONE;
+fun name_of def = try (#1 o dest_Free o lhs_of) def;
 
 (*A name is valid provided it isn't the name of a defined abstraction.*)
 fun valid_name defs (Free(x,T)) = not (x mem_string (List.mapPartial name_of defs))
@@ -394,7 +389,7 @@ fun assume_absfuns th =
                 val (cvs,cta) = dest_abs_list ct
                 val (vs,Tvs) = ListPair.unzip (map (dest_Free o term_of) cvs)
                 val (u'_th,defs) = abstract cta
-                val cu' = Drule.crhs_of u'_th
+                val cu' = Drule.rhs_of u'_th
                 val u' = term_of cu'
                 (*Could use Thm.cabs instead of lambda to work at level of cterms*)
                 val abs_v_u = lambda_list (map term_of cvs) (term_of cu')
