@@ -136,13 +136,11 @@ fun is_elim rule =
 val get_atomize = #1 o #2 o ObjectLogicData.get;
 val get_rulify = #2 o #2 o ObjectLogicData.get;
 
-val declare_atomize =
-  Thm.declaration_attribute (Context.map_theory o ObjectLogicData.map o
-    Library.apsnd o Library.apfst o Drule.add_rule);
+val declare_atomize = Thm.declaration_attribute (fn th =>
+  Context.mapping (ObjectLogicData.map (apsnd (apfst (Drule.add_rule th)))) I);
 
-val declare_rulify =
-  Thm.declaration_attribute (Context.map_theory o ObjectLogicData.map o
-    Library.apsnd o Library.apsnd o Drule.add_rule);
+val declare_rulify = Thm.declaration_attribute (fn th =>
+  Context.mapping (ObjectLogicData.map (apsnd (apsnd (Drule.add_rule th)))) I);
 
 
 (* atomize *)
@@ -177,7 +175,7 @@ fun rulify_tac i st = rewrite_goal_tac (get_rulify (Thm.theory_of_thm st)) i st;
 
 fun gen_rulify full thm =
   Tactic.simplify full (get_rulify (Thm.theory_of_thm thm)) thm
-  |> Drule.gen_all |> Drule.strip_shyps_warning |> Drule.zero_var_indexes;
+  |> Drule.gen_all |> Thm.strip_shyps |> Drule.zero_var_indexes;
 
 val rulify = gen_rulify true;
 val rulify_no_asm = gen_rulify false;
