@@ -34,6 +34,11 @@ sig
     attribute * (Context.generic * Args.T list)) -> src -> attribute
   val no_args: attribute -> src -> attribute
   val add_del_args: attribute -> attribute -> src -> attribute
+  val kind: string -> src
+  val kind_theorem: src
+  val kind_lemma: src
+  val kind_corollary: src
+  val kind_internal: src
   val internal: attribute -> src
 end;
 
@@ -192,6 +197,17 @@ fun tagged x = syntax (tag >> PureThy.tag) x;
 fun untagged x = syntax (Scan.lift Args.name >> PureThy.untag) x;
 
 
+(* kinds *)
+
+fun kind_att x = syntax (Scan.lift Args.name >> PureThy.kind) x;
+fun kind name = Args.src (("Pure.kind", [Args.mk_string (name, Position.none)]), Position.none);
+
+val kind_theorem = kind PureThy.theoremK;
+val kind_lemma = kind PureThy.lemmaK;
+val kind_corollary = kind PureThy.corollaryK;
+val kind_internal = kind PureThy.internalK;
+
+
 (* rule composition *)
 
 val COMP_att =
@@ -263,6 +279,7 @@ val _ = Context.add_setup
  (add_attributes
    [("tagged", tagged, "tagged theorem"),
     ("untagged", untagged, "untagged theorem"),
+    ("kind", kind_att, "theorem kind"),
     ("COMP", COMP_att, "direct composition with rules (no lifting)"),
     ("THEN", THEN_att, "resolution with rule"),
     ("OF", OF_att, "rule applied to facts"),
