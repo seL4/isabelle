@@ -309,17 +309,16 @@ end;
 bind_thms ("term_porews", term_porews);
 *}
 
-
 subsection {* Rewriting and Proving *}
-
-lemmas term_rews = termBs term_injs term_dstncts ccl_porews term_porews
 
 ML {*
   bind_thms ("term_injDs", XH_to_Ds term_injs);
 *}
 
+lemmas term_rews = termBs term_injs term_dstncts ccl_porews term_porews
+
 lemmas [simp] = term_rews
-  and [elim!] = term_dstncts [THEN notE]
-  and [dest!] = term_injDs
+lemmas [elim!] = term_dstncts [THEN notE]
+lemmas [dest!] = term_injDs
 
 end
