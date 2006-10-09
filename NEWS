@@ -434,6 +434,9 @@ lists of propositions separated by 'and':
 * Provers/induct: support coinduction as well.  See
 src/HOL/Library/Coinductive_List.thy for various examples.
 
+* Attribute "symmetric" produces result with standardized schematic
+variables (index 0).  Potential INCOMPATIBILITY.
+
 * Simplifier: by default the simplifier trace only shows top level rewrites
 now. That is, trace_simp_depth_limit is set to 1 by default. Thus there is
 less danger of being flooded by the trace. The trace indicates where parts
