@@ -212,6 +212,9 @@ lemma weakening_too_weak:
   and     b: "valid \<Gamma>2" 
   and     c: "\<Gamma>1 \<lless> \<Gamma>2"
   shows "\<Gamma>2 \<turnstile> t:\<sigma>"
+
+thm typing.induct[no_vars]
+
 using a b c
 proof (induct arbitrary: \<Gamma>2)
   case (t1 \<Gamma>1 \<tau> a) (* variable case *)

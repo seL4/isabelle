@@ -7,69 +7,74 @@ begin
 text {* The Church-Rosser proof from Barendregt's book *}
 
 lemma forget: 
-  assumes a: "a\<sharp>t1"
-  shows "t1[a::=t2] = t1"
-using a
-proof (nominal_induct t1 avoiding: a t2 rule: lam.induct)
-  case (Var b) 
-  thus ?case by (simp add: fresh_atm)
+  assumes asm: "x\<sharp>L"
+  shows "L[x::=P] = L"
+using asm
+proof (nominal_induct L avoiding: x P rule: lam.induct)
+  case (Var z)
+  have "x\<sharp>Var z" by fact
+  thus "(Var z)[x::=P] = (Var z)" by (simp add: fresh_atm)
 next 
-  case App
-  thus ?case by simp
+  case (App M1 M2)
+  have "x\<sharp>App M1 M2" by fact
+  moreover
+  have ih1: "x\<sharp>M1 \<Longrightarrow> M1[x::=P] = M1" by fact
+  moreover
+  have ih1: "x\<sharp>M2 \<Longrightarrow> M2[x::=P] = M2" by fact
+  ultimately show "(App M1 M2)[x::=P] = (App M1 M2)" by simp
 next
-  case (Lam c t)
-  have ih: "\<And>c t2. c\<sharp>t \<Longrightarrow>  t[c::=t2] = t" by fact
-  have a: "c\<sharp>t2" by fact
-  have "c\<sharp>a" by fact
-  hence b: "a\<noteq>c" by (simp add: fresh_atm)
-  have "a\<sharp>Lam [c].t" by fact 
-  hence "a\<sharp>t" using b by (simp add: abs_fresh)
-  hence "t[a::=t2] = t" using ih by simp
-  thus "(Lam [c].t)[a::=t2] = Lam [c].t" using a b by simp
+  case (Lam z M)
+  have vc: "z\<sharp>x" "z\<sharp>P" by fact
+  have ih: "x\<sharp>M \<Longrightarrow>  M[x::=P] = M" by fact
+  have asm: "x\<sharp>Lam [z].M" by fact
+  with vc have "x\<sharp>M" by (simp add: fresh_atm abs_fresh)
+  hence "M[x::=P] = M" using ih by simp
+  thus "(Lam [z].M)[x::=P] = Lam [z].M" using vc by simp
 qed
 
 lemma forget_automatic: 
-  assumes asm: "a\<sharp>t\<^isub>1"
-  shows "t\<^isub>1[a::=t\<^isub>2] = t\<^isub>1"
-  using asm by (nominal_induct t\<^isub>1 avoiding: a t\<^isub>2 rule: lam.induct)
+  assumes asm: "x\<sharp>L"
+  shows "L[x::=P] = L"
+  using asm by (nominal_induct L avoiding: x P rule: lam.induct)
                (auto simp add: abs_fresh fresh_atm)
 
 lemma fresh_fact: 
-  fixes a :: "name"
-  assumes a: "a\<sharp>t1"
-  and     b: "a\<sharp>t2"
-  shows "a\<sharp>(t1[b::=t2])"
-using a b
-proof (nominal_induct t1 avoiding: a b t2 rule: lam.induct)
-  case (Var c) 
-  thus ?case by simp
+  fixes z::"name"
+  assumes asms: "z\<sharp>N" "z\<sharp>L"
+  shows "z\<sharp>(N[y::=L])"
+using asms
+proof (nominal_induct N avoiding: z y L rule: lam.induct)
+  case (Var u)
+  have "z\<sharp>(Var u)" "z\<sharp>L" by fact
+  thus "z\<sharp>((Var u)[y::=L])" by simp
 next
-  case App thus ?case by simp 
+  case (App N1 N2)
+  have ih1: "\<lbrakk>z\<sharp>N1; z\<sharp>L\<rbrakk> \<Longrightarrow> z\<sharp>N1[y::=L]" by fact
+  moreover
+  have ih2: "\<lbrakk>z\<sharp>N2; z\<sharp>L\<rbrakk> \<Longrightarrow> z\<sharp>N2[y::=L]" by fact
+  moreover 
+  have "z\<sharp>App N1 N2" "z\<sharp>L" by fact
+  ultimately show "z\<sharp>((App N1 N2)[y::=L])" by simp 
 next
-  case (Lam c t)
-  have ih: "\<And>(a::name) b t2. a\<sharp>t \<Longrightarrow> a\<sharp>t2 \<Longrightarrow> a\<sharp>(t[b::=t2])" by fact
-  have fr: "c\<sharp>a" "c\<sharp>b" "c\<sharp>t2" by fact+
-  hence fr': "c\<noteq>a" by (simp add: fresh_atm) 
-  have a1: "a\<sharp>t2" by fact
-  have a2: "a\<sharp>Lam [c].t" by fact
-  hence "a\<sharp>t" using fr' by (simp add: abs_fresh)
-  hence "a\<sharp>t[b::=t2]" using a1 ih by simp
-  thus "a\<sharp>(Lam [c].t)[b::=t2]" using fr  by (simp add: abs_fresh)
+  case (Lam u N1)
+  have vc: "u\<sharp>z" "u\<sharp>y" "u\<sharp>L" by fact 
+  have "z\<sharp>Lam [u].N1" by fact
+  hence "z\<sharp>N1" using vc by (simp add: abs_fresh fresh_atm)
+  moreover
+  have ih: "\<lbrakk>z\<sharp>N1; z\<sharp>L\<rbrakk> \<Longrightarrow> z\<sharp>(N1[y::=L])" by fact
+  moreover
+  have  "z\<sharp>L" by fact
+  ultimately show "z\<sharp>(Lam [u].N1)[y::=L]" using vc by (simp add: abs_fresh)
 qed
 
 lemma fresh_fact_automatic: 
-  fixes a::"name"
-  assumes asm: "a\<sharp>t\<^isub>1" "a\<sharp>t\<^isub>2"
-  shows "a\<sharp>(t\<^isub>1[b::=t\<^isub>2])"
-using asm by (nominal_induct t\<^isub>1 avoiding: a b t\<^isub>2 rule: lam.induct)
-             (auto simp add: abs_fresh fresh_atm)
+  fixes z::"name"
+  assumes asms: "z\<sharp>N" "z\<sharp>L"
+  shows "z\<sharp>(N[y::=L])"
+using asms by (nominal_induct N avoiding: z y L rule: lam.induct)
+              (auto simp add: abs_fresh fresh_atm)
 
-lemma subs_lemma:  
-  fixes x::"name"
-  and   y::"name"
-  and   L::"lam"
-  and   M::"lam"
-  and   N::"lam"
+lemma substitution_lemma:  
   assumes a: "x\<noteq>y"
   and     b: "x\<sharp>L"
   shows "M[x::=N][y::=L] = M[y::=L][x::=N[y::=L]]"
@@ -88,7 +93,7 @@ proof (nominal_induct M avoiding: x y N L rule: lam.induct)
     }
     moreover 
     { (*Case 1.2*)
-      assume "z\<noteq>x" and "z=y"
+      assume "z=y" and "z\<noteq>x" 
       have "(1)": "?LHS = L"               using `z\<noteq>x` `z=y` by force
       have "(2)": "?RHS = L[x::=N[y::=L]]" using `z=y` by force
       have "(3)": "L[x::=N[y::=L]] = L"    using `x\<sharp>L` by (simp add: forget)
@@ -105,13 +110,13 @@ proof (nominal_induct M avoiding: x y N L rule: lam.induct)
   qed
 next
   case (Lam z M1) (* case 2: lambdas *)
-  have ih: "\<And>x y N L. \<lbrakk>x\<noteq>y; x\<sharp>L\<rbrakk> \<Longrightarrow> M1[x::=N][y::=L] = M1[y::=L][x::=N[y::=L]]" by fact
+  have ih: "\<lbrakk>x\<noteq>y; x\<sharp>L\<rbrakk> \<Longrightarrow> M1[x::=N][y::=L] = M1[y::=L][x::=N[y::=L]]" by fact
   have "x\<noteq>y" by fact
   have "x\<sharp>L" by fact
   have fs: "z\<sharp>x" "z\<sharp>y" "z\<sharp>N" "z\<sharp>L" by fact
   hence "z\<sharp>N[y::=L]" by (simp add: fresh_fact)
   show "(Lam [z].M1)[x::=N][y::=L] = (Lam [z].M1)[y::=L][x::=N[y::=L]]" (is "?LHS=?RHS") 
-  proof -
+  proof - 
     have "?LHS = Lam [z].(M1[x::=N][y::=L])" using `z\<sharp>x` `z\<sharp>y` `z\<sharp>N` `z\<sharp>L` by simp
     also from ih have "\<dots> = Lam [z].(M1[y::=L][x::=N[y::=L]])" using `x\<noteq>y` `x\<sharp>L` by simp
     also have "\<dots> = (Lam [z].(M1[y::=L]))[x::=N[y::=L]]" using `z\<sharp>x` `z\<sharp>N[y::=L]` by simp
@@ -123,7 +128,7 @@ next
   thus ?case by simp
 qed
 
-lemma subs_lemma_automatic:  
+lemma substitution_lemma_automatic:  
   assumes asm: "x\<noteq>y" "x\<sharp>L"
   shows "M[x::=N][y::=L] = M[y::=L][x::=N[y::=L]]"
 using asm by (nominal_induct M avoiding: x y N L rule: lam.induct)
@@ -509,7 +514,7 @@ next
     also have "App (Lam [a].(M1[x::=N])) (N1[x::=N]) \<longrightarrow>\<^isub>1 M2[x::=N'][a::=N2[x::=N']]" 
       using  o4 b by force
     also have "M2[x::=N'][a::=N2[x::=N']] = M2[a::=N2][x::=N']" 
-      using e3 by (simp add: subs_lemma fresh_atm)
+      using e3 by (simp add: substitution_lemma fresh_atm)
     ultimately show "(App (Lam [a].M1) N1)[x::=N] \<longrightarrow>\<^isub>1 M2[a::=N2][x::=N']" by simp
   qed
 qed
@@ -520,7 +525,7 @@ lemma one_subst_automatic:
   shows "M[x::=N]\<longrightarrow>\<^isub>1M'[x::=N']" 
 using a b
 apply(nominal_induct M M' avoiding: N N' x rule: one_induct)
-apply(auto simp add: one_subst_aux subs_lemma fresh_atm)
+apply(auto simp add: one_subst_aux substitution_lemma fresh_atm)
 done
 
 lemma diamond[rule_format]:
