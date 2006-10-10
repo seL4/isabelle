@@ -43,15 +43,16 @@
     "classes"
     "classrel"
     "clear_undos"
+    "code_abstype"
     "code_class"
     "code_const"
     "code_constname"
+    "code_constsubst"
     "code_gen"
     "code_instance"
     "code_instname"
     "code_library"
     "code_module"
-    "code_simtype"
     "code_type"
     "code_typename"
     "coinductive"
@@ -206,6 +207,7 @@
     "types_code"
     "ultimately"
     "undo"
+    "undo_end"
     "undos_proof"
     "unfolding"
     "update_thy"
@@ -283,6 +285,7 @@
     "quit"
     "redo"
     "undo"
+    "undo_end"
     "undos_proof"))
 
 (defconst isar-keywords-diag
@@ -373,9 +376,11 @@
     "class"
     "classes"
     "classrel"
+    "code_abstype"
     "code_class"
     "code_const"
     "code_constname"
+    "code_constsubst"
     "code_instance"
     "code_instname"
     "code_library"
@@ -439,7 +444,6 @@
 
 (defconst isar-keywords-theory-goal
   '("ax_specification"
-    "code_simtype"
     "corollary"
     "function"
     "instance"

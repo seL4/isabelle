@@ -9,35 +9,7 @@ target languages (like SML or Haskell).
 signature CODEGEN_SERIALIZER =
 sig
   include BASIC_CODEGEN_THINGOL;
-  val get_serializer: theory -> string * Args.T list
-    -> string list option -> CodegenThingol.code -> unit;
-  val eval_verbose: bool ref;
-  val eval_term: theory ->
-    (string * 'a option ref) * CodegenThingol.iterm -> CodegenThingol.code
-    -> 'a;
-  val const_has_serialization: theory -> string list -> string -> bool;
-  val tyco_has_serialization: theory -> string list -> string -> bool;
-  val add_syntax_class:
-    string -> string -> string * (string * string) list  -> theory -> theory;
-  val add_syntax_inst: string -> (string * string) -> theory -> theory;
-  val parse_syntax_tyco: (theory
-           -> CodegenConsts.const list * (string * typ) list
-              -> string
-                 -> CodegenNames.tyco
-                    -> typ list -> CodegenThingol.itype list)
-          -> Symtab.key
-             -> xstring
-                -> OuterParse.token list
-                   -> (theory -> theory) * OuterParse.token list;
-  val parse_syntax_const: (theory
-           -> CodegenConsts.const list * (string * typ) list
-              -> string
-                 -> CodegenNames.const
-                    -> term list -> CodegenThingol.iterm list)
-          -> Symtab.key
-             -> string
-                -> OuterParse.token list
-                   -> (theory -> theory) * OuterParse.token list;
+
   val add_pretty_list: string -> string -> string -> (Pretty.T list -> Pretty.T)
    -> ((string -> string) * (string -> string)) option -> int * string
    -> theory -> theory;
@@ -45,11 +17,20 @@ sig
    -> (string -> string) -> (string -> string) -> string -> theory -> theory;
   val add_undefined: string -> string -> string -> theory -> theory;
 
-  type fixity;
   type serializer;
   val add_serializer : string * serializer -> theory -> theory;
   val ml_from_thingol: serializer;
   val hs_from_thingol: serializer;
+  val get_serializer: theory -> string * Args.T list
+    -> string list option -> CodegenThingol.code -> unit;
+
+  val const_has_serialization: theory -> string list -> string -> bool;
+  val tyco_has_serialization: theory -> string list -> string -> bool;
+
+  val eval_verbose: bool ref;
+  val eval_term: theory ->
+    (string * 'a option ref) * CodegenThingol.iterm -> CodegenThingol.code
+    -> 'a;
 end;
 
 structure CodegenSerializer: CODEGEN_SERIALIZER =
@@ -120,8 +101,7 @@ val _ = OuterSyntax.add_keywords [atomK, infixK, infixlK, infixrK];
 
 datatype 'a mixfix =
     Arg of fixity
-  | Pretty of Pretty.T
-  | Quote of 'a;
+  | Pretty of Pretty.T;
 
 fun fillin_mixfix fxy_this ms fxy_ctxt pr args =
   let
@@ -131,8 +111,6 @@ fun fillin_mixfix fxy_this ms fxy_ctxt pr args =
           pr fxy a :: fillin ms args
       | fillin (Pretty p :: ms) args =
           p :: fillin ms args
-      | fillin (Quote q :: ms) args =
-          pr BR q :: fillin ms args
       | fillin [] _ =
           error ("Inconsistent mixfix: too many arguments")
       | fillin _ [] =
@@ -146,44 +124,40 @@ fun parse_infix (fixity as INFX (i, x)) s =
     val r = case x of R => fixity
                     | _ => INFX (i, X);
   in
-    pair [Arg l, (Pretty o Pretty.brk) 1, (Pretty o str) s, (Pretty o Pretty.brk) 1, Arg r]
+    [Arg l, (Pretty o Pretty.brk) 1, (Pretty o str) s, (Pretty o Pretty.brk) 1, Arg r]
   end;
 
-fun parse_mixfix reader s ctxt =
+fun parse_mixfix s =
   let
-    fun sym s = Scan.lift ($$ s);
-    fun lift_reader ctxt s =
-      ctxt
-      |> reader s
-      |-> (fn x => pair (Quote x));
-    val sym_any = Scan.lift (Scan.one Symbol.not_eof);
+    val sym_any = Scan.one Symbol.not_eof;
     val parse = Scan.repeat (
-         (sym "_" -- sym "_" >> K (Arg NOBR))
-      || (sym "_" >> K (Arg BR))
-      || (sym "/" |-- Scan.repeat (sym " ") >> (Pretty o Pretty.brk o length))
-      || Scan.depend (fn ctxt => $$ "{" |-- $$ "*" |-- Scan.repeat1
-           (   $$ "'" |-- Scan.one Symbol.not_eof
-            || Scan.unless ($$ "*" -- $$ "}") (Scan.one Symbol.not_eof)) --|
-         $$ "*" --| $$ "}" >> (implode #> lift_reader ctxt #> swap))
+         ($$ "_" -- $$ "_" >> K (Arg NOBR))
+      || ($$ "_" >> K (Arg BR))
+      || ($$ "/" |-- Scan.repeat ($$ " ") >> (Pretty o Pretty.brk o length))
       || (Scan.repeat1
-           (   sym "'" |-- sym_any
-            || Scan.unless (sym "_" || sym "?" || sym "/" || sym "{" |-- sym "*")
+           (   $$ "'" |-- sym_any
+            || Scan.unless ($$ "_" || $$ "/")
                  sym_any) >> (Pretty o str o implode)));
-  in case Scan.finite' Symbol.stopper parse (ctxt, Symbol.explode s)
-   of (p, (ctxt, [])) => (p, ctxt)
+  in case Scan.finite Symbol.stopper parse (Symbol.explode s)
+   of (p, []) => p
     | _ => error ("Malformed mixfix annotation: " ^ quote s)
   end;
 
-fun parse_syntax num_args reader =
+fun parse_syntax num_args =
   let
     fun is_arg (Arg _) = true
       | is_arg _ = false;
-    fun parse_nonatomic s ctxt =
-      case parse_mixfix reader s ctxt
-       of ([Pretty _], _) =>
+    fun parse_nonatomic s =
+      case parse_mixfix s
+       of [Pretty _] =>
             error ("Mixfix contains just one pretty element; either declare as "
               ^ quote atomK ^ " or consider adding a break")
         | x => x;
+    fun mk fixity mfx ctxt =
+      let
+        val i = (length o List.filter is_arg) mfx;
+        val _ = if i > num_args ctxt then error "Too many arguments in code syntax" else ();
+      in (i, fillin_mixfix fixity mfx) end;
     val parse = (
            OuterParse.$$$ infixK  |-- OuterParse.nat
             >> (fn i => (parse_infix (INFX (i, X)), INFX (i, X)))
@@ -191,19 +165,11 @@ fun parse_syntax num_args reader =
             >> (fn i => (parse_infix (INFX (i, L)), INFX (i, L)))
         || OuterParse.$$$ infixrK |-- OuterParse.nat
             >> (fn i => (parse_infix (INFX (i, R)), INFX (i, R)))
-        || OuterParse.$$$ atomK |-- pair (parse_mixfix reader, NOBR)
+        || OuterParse.$$$ atomK |-- pair (parse_mixfix, NOBR)
         || pair (parse_nonatomic, BR)
       ) -- OuterParse.string >> (fn ((p, fxy), s) => (p s, fxy));
-    fun mk fixity mfx ctxt =
-      let
-        val i = (length o List.filter is_arg) mfx;
-        val _ = if i > num_args ctxt then error "Too many arguments in code syntax" else ();
-      in ((i, fillin_mixfix fixity mfx), ctxt) end;
   in
-    parse
-    #-> (fn (mfx_reader, fixity) =>
-      pair (mfx_reader #-> (fn mfx => (mk fixity mfx)))
-    )
+    parse #-> (fn (mfx, fixity) => pair (mk fixity mfx))
   end;
 
 
@@ -858,7 +824,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
               ) classop_defs)
             ]
           end |> SOME
-  in pr_def def end;
+  in Pretty.setmp_margin 999999 pr_def def end;
 
 
 (** generic abstract serializer **)
@@ -1320,138 +1286,6 @@ fun hs_from_thingol target args =
   end;
 
 
-(** LEGACY DIAGNOSIS **)
-
-local
-
-open CodegenThingol;
-
-in
-
-val pretty_typparms =
-  Pretty.list "(" ")" o Pretty.commas o map (fn (v, sort) => (Pretty.block o Pretty.breaks)
-    [Pretty.str v, Pretty.str "::", Pretty.enum "&" "" "" (map Pretty.str sort)]);
-
-fun pretty_itype (tyco `%% tys) =
-      Pretty.enum "" "(" ")" (Pretty.str tyco :: map pretty_itype tys)
-  | pretty_itype (ty1 `-> ty2) =
-      Pretty.enum "" "(" ")" [pretty_itype ty1, Pretty.str "->", pretty_itype ty2]
-  | pretty_itype (ITyVar v) =
-      Pretty.str v;
-
-fun pretty_iterm (IConst (c, _)) =
-      Pretty.str c
-  | pretty_iterm (IVar v) =
-      Pretty.str ("?" ^ v)
-  | pretty_iterm (t1 `$ t2) =
-      (Pretty.enclose "(" ")" o Pretty.breaks)
-        [pretty_iterm t1, pretty_iterm t2]
-  | pretty_iterm ((v, ty) `|-> t) =
-      (Pretty.enclose "(" ")" o Pretty.breaks)
-        [Pretty.str v, Pretty.str "::", pretty_itype ty, Pretty.str "|->", pretty_iterm t]
-  | pretty_iterm (INum (n, _)) =
-      (Pretty.str o IntInf.toString) n
-  | pretty_iterm (IChar (h, _)) =
-      (Pretty.str o quote) h
-  | pretty_iterm (ICase (((t, _), bs), _)) =
-      (Pretty.enclose "(" ")" o Pretty.breaks) [
-        Pretty.str "case",
-        pretty_iterm t,
-        Pretty.enclose "(" ")" (map (fn (p, t) =>
-          (Pretty.block o Pretty.breaks) [
-            pretty_iterm p,
-            Pretty.str "=>",
-            pretty_iterm t
-          ]
-        ) bs)
-      ];
-
-fun pretty_def Bot =
-      Pretty.str "<Bot>"
-  | pretty_def (Fun (eqs, (vs, ty))) =
-      Pretty.enum " |" "" "" (
-        map (fn (ps, body) =>
-          Pretty.block [
-            Pretty.enum "," "[" "]" (map pretty_iterm ps),
-            Pretty.str " |->",
-            Pretty.brk 1,
-            pretty_iterm body,
-            Pretty.str "::",
-            pretty_typparms vs,
-            Pretty.str "/",
-            pretty_itype ty
-          ]) eqs
-        )
-  | pretty_def (Datatype (vs, cs)) =
-      Pretty.block [
-        pretty_typparms vs,
-        Pretty.str " |=> ",
-        Pretty.enum " |" "" ""
-          (map (fn (c, tys) => (Pretty.block o Pretty.breaks)
-            (Pretty.str c :: map pretty_itype tys)) cs)
-      ]
-  | pretty_def (Datatypecons dtname) =
-      Pretty.str ("cons " ^ dtname)
-  | pretty_def (Class (supcls, (v, mems))) =
-      Pretty.block [
-        Pretty.str ("class var " ^ v ^ " extending "),
-        Pretty.enum "," "[" "]" (map Pretty.str supcls),
-        Pretty.str " with ",
-        Pretty.enum "," "[" "]"
-          (map (fn (m, ty) => Pretty.block
-            [Pretty.str (m ^ "::"), pretty_itype ty]) mems)
-      ]
-  | pretty_def (Classmember clsname) =
-      Pretty.block [
-        Pretty.str "class member belonging to ",
-        Pretty.str clsname
-      ]
-  | pretty_def (Classinst ((clsname, (tyco, arity)), _)) =
-      Pretty.block [
-        Pretty.str "class instance (",
-        Pretty.str clsname,
-        Pretty.str ", (",
-        Pretty.str tyco,
-        Pretty.str ", ",
-        Pretty.enum "," "[" "]" (map (Pretty.enum "," "{" "}" o
-          map Pretty.str o snd) arity),
-        Pretty.str "))"
-      ];
-
-fun pretty_module code =
-  Pretty.chunks (map (fn (name, def) => Pretty.block
-    [Pretty.str name, Pretty.str " :=", Pretty.brk 1, pretty_def def])
-    (AList.make (Graph.get_node code) (Graph.strong_conn code |> flat |> rev)));
-
-fun pretty_deps code =
-  let
-    fun one_node key =
-      let
-        val preds_ = Graph.imm_preds code key;
-        val succs_ = Graph.imm_succs code key;
-        val mutbs = gen_inter (op =) (preds_, succs_);
-        val preds = subtract (op =) mutbs preds_;
-        val succs = subtract (op =) mutbs succs_;
-      in
-        (Pretty.block o Pretty.fbreaks) (
-          Pretty.str key
-          :: map (fn s => Pretty.str ("<-> " ^ s)) mutbs
-          @ map (fn s => Pretty.str ("<-- " ^ s)) preds
-          @ map (fn s => Pretty.str ("--> " ^ s)) succs
-        )
-      end
-  in
-    code
-    |> Graph.strong_conn
-    |> flat
-    |> rev
-    |> map one_node
-    |> Pretty.chunks
-  end;
-
-end; (*local*)
-
-
 
 (** theory data **)
 
@@ -1603,7 +1437,7 @@ fun eval_term thy =
 
 
 
-(** target syntax interfaces **)
+(** ML and toplevel interface **)
 
 local
 
@@ -1675,26 +1509,26 @@ fun idfs_of_const_names thy cs =
     val cs'' = map (CodegenConsts.norm_of_typ thy) cs';
   in AList.make (CodegenNames.const thy) cs'' end;
 
-fun read_quote reader consts_of target get_init gen raw_it thy =
-  let
-    val it = reader thy raw_it;
-    val cs = consts_of thy it;
-  in
-    gen thy cs target (get_init thy) [it]
-    |> (fn [it'] => (it', thy))
-  end;
+fun parse_quote num_of consts_of target get_init adder =
+  parse_syntax num_of #-> (fn mfx => pair (fn thy => adder target (mfx thy) thy));
 
-fun parse_quote num_of reader consts_of target get_init gen adder =
-  parse_syntax num_of
-    (read_quote reader consts_of target get_init gen)
-  #-> (fn modifier => pair (modifier #-> adder target));
+fun zip_list (x::xs) f g =
+  f x #-> (fn y => fold_map (fn x => g |-- f x >> pair x) xs
+    #-> (fn xys => pair ((x, y) :: xys)));
 
-in
+structure P = OuterParse
+and K = OuterKeyword
+
+fun parse_multi_syntax parse_thing parse_syntax =
+  P.and_list1 parse_thing
+  #-> (fn things => Scan.repeat1 (P.$$$ "(" |-- P.name :--
+      (fn target => zip_list things (parse_syntax target)
+        (P.$$$ "and")) --| P.$$$ ")"))
 
 val add_syntax_class = gen_add_syntax_class ClassPackage.read_class CodegenConsts.read_const;
 val add_syntax_inst = gen_add_syntax_inst ClassPackage.read_class read_type;
 
-fun parse_syntax_tyco generate target raw_tyco  =
+fun parse_syntax_tyco target raw_tyco  =
   let
     fun intern thy = read_type thy raw_tyco;
     fun num_of thy = Sign.arity_number thy (intern thy);
@@ -1702,19 +1536,60 @@ fun parse_syntax_tyco generate target raw_tyco  =
     fun read_typ thy =
       Sign.read_typ (thy, K NONE);
   in
-    parse_quote num_of read_typ ((K o K) ([], [])) target idf_of generate
+    parse_quote num_of ((K o K) ([], [])) target idf_of
       (gen_add_syntax_tyco read_type raw_tyco)
   end;
 
-fun parse_syntax_const generate target raw_const =
+fun parse_syntax_const target raw_const =
   let
     fun intern thy = CodegenConsts.read_const thy raw_const;
     fun num_of thy = (length o fst o strip_type o Sign.the_const_type thy o fst o intern) thy;
     fun idf_of thy = (CodegenNames.const thy o intern) thy;
   in
-    parse_quote num_of Sign.read_term CodegenConsts.consts_of target idf_of generate
+    parse_quote num_of CodegenConsts.consts_of target idf_of
       (gen_add_syntax_const CodegenConsts.read_const raw_const)
   end;
+
+val (code_classK, code_instanceK, code_typeK, code_constK) =
+  ("code_class", "code_instance", "code_type", "code_const");
+
+in
+
+val code_classP =
+  OuterSyntax.command code_classK "define code syntax for class" K.thy_decl (
+    parse_multi_syntax P.xname
+      (fn _ => fn _ => P.string -- Scan.optional (P.$$$ "where" |-- Scan.repeat1
+        (P.term --| (P.$$$ "\\<equiv>" || P.$$$ "==") -- P.string)) [])
+    >> (Toplevel.theory oo fold) (fn (target, syns) =>
+          fold (fn (raw_class, syn) => add_syntax_class target raw_class syn) syns)
+  );
+
+val code_instanceP =
+  OuterSyntax.command code_instanceK "define code syntax for instance" K.thy_decl (
+    parse_multi_syntax (P.xname --| P.$$$ "::" -- P.xname)
+      (fn _ => fn _ => P.name #->
+        (fn "-" => Scan.succeed () | _ => Scan.fail_with (fn _ => "\"-\" expected") ()))
+    >> (Toplevel.theory oo fold) (fn (target, syns) =>
+          fold (fn (raw_inst, ()) => add_syntax_inst target raw_inst) syns)
+  );
+
+val code_typeP =
+  OuterSyntax.command code_typeK "define code syntax for type constructor" K.thy_decl (
+    Scan.repeat1 (
+      parse_multi_syntax P.xname parse_syntax_tyco
+    )
+    >> (Toplevel.theory o (fold o fold) (fold snd o snd))
+  );
+
+val code_constP =
+  OuterSyntax.command code_constK "define code syntax for constant" K.thy_decl (
+    Scan.repeat1 (
+      parse_multi_syntax P.term parse_syntax_const
+    )
+    >> (Toplevel.theory o (fold o fold) (fold snd o snd))
+  );
+
+val _ = OuterSyntax.add_parsers [code_classP, code_instanceP, code_typeP, code_constP];
 
 fun add_pretty_list target nill cons mk_list mk_char_string target_cons thy =
   let

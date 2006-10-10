@@ -35,34 +35,53 @@ val fail = CodegenThingol.fail;
 
 (* theory data *)
 
-type appgen = theory -> ((sort -> sort) * Sorts.algebra) * Consts.T
-  -> CodegenFuncgr.T
-  -> bool * string list option
-  -> (string * typ) * term list -> CodegenThingol.transact -> iterm * CodegenThingol.transact;
-
-type appgens = (int * (appgen * stamp)) Symtab.table;
-
-fun merge_appgens (x : appgens * appgens) =
-  Symtab.merge (fn ((bounds1, (_, stamp1)), (bounds2, (_, stamp2))) =>
-    bounds1 = bounds2 andalso stamp1 = stamp2) x;
-
 structure Code = CodeDataFun
 (struct
   val name = "Pure/code";
   type T = CodegenThingol.code;
   val empty = CodegenThingol.empty_code;
   fun merge _ = CodegenThingol.merge_code;
-  fun purge _ _ = CodegenThingol.empty_code;
+  fun purge _ NONE _ = CodegenThingol.empty_code
+    | purge NONE _ _ = CodegenThingol.empty_code
+    | purge (SOME thy) (SOME cs) code =
+        let
+          val cs_exisiting =
+            map_filter (CodegenNames.const_rev thy) (Graph.keys code);
+        in
+          Graph.del_nodes
+            ((Graph.all_succs code
+              o map (CodegenNames.const thy)
+              o filter (member CodegenConsts.eq_const cs_exisiting)
+              ) cs)
+            code
+        end;
 end);
+
+type appgen = theory -> ((sort -> sort) * Sorts.algebra) * Consts.T
+  -> CodegenFuncgr.T
+  -> bool * string list option
+  -> (string * typ) * term list -> CodegenThingol.transact -> iterm * CodegenThingol.transact;
+
+type appgens = (int * (appgen * stamp)) Symtab.table;
+val merge_appgens : appgens * appgens -> appgens =
+  Symtab.merge (fn ((bounds1, (_, stamp1)), (bounds2, (_, stamp2))) =>
+    bounds1 = bounds2 andalso stamp1 = stamp2);
+
+structure Consttab = CodegenConsts.Consttab;
+type abstypes = typ Symtab.table * CodegenConsts.const Consttab.table;
+fun merge_abstypes ((typs1, consts1) : abstypes, (typs2, consts2) : abstypes) =
+  (Symtab.merge (Type.eq_type Vartab.empty) (typs1, typs2),
+    Consttab.merge CodegenConsts.eq_const (consts1, consts2));
 
 structure CodegenPackageData = TheoryDataFun
 (struct
   val name = "Pure/codegen_package";
-  type T = appgens;
-  val empty = Symtab.empty;
+  type T = appgens * abstypes;
+  val empty = (Symtab.empty, (Symtab.empty, Consttab.empty));
   val copy = I;
   val extend = I;
-  fun merge _ = merge_appgens;
+  fun merge _ ((appgens1, abstypes1), (appgens2, abstypes2)) =
+    (merge_appgens (appgens1, appgens2), merge_abstypes (abstypes1, abstypes2));
   fun print _ _ = ();
 end);
 
@@ -71,12 +90,16 @@ val _ = Context.add_setup (Code.init #> CodegenPackageData.init);
 
 (* extraction kernel *)
 
-fun check_strict has_seri x (false, _) =
+fun check_strict (false, _) has_seri x =
       false
-  | check_strict has_seri x (_, SOME targets) =
+  | check_strict (_, SOME targets) has_seri x =
       not (has_seri targets x)
-  | check_strict has_seri x (true, _) =
+  | check_strict (true, _) has_seri x =
       true;
+
+fun get_abstype thy (tyco, tys) = case Symtab.lookup ((fst o snd o CodegenPackageData.get) thy) tyco
+ of SOME ty => SOME ((map_atyps (fn TFree (n, _) => nth tys (the (Int.fromString n)))) ty)
+  | NONE => NONE;
 
 fun ensure_def_class thy (algbr as ((proj_sort, _), _)) funcgr strct class trns =
   let
@@ -115,7 +138,7 @@ and ensure_def_tyco thy algbr funcgr strct tyco trns =
             trns
             |> fail ("No such datatype: " ^ quote tyco)
     val tyco' = CodegenNames.tyco thy tyco;
-    val strict = check_strict (CodegenSerializer.tyco_has_serialization thy) tyco' strct;
+    val strict = check_strict strct (CodegenSerializer.tyco_has_serialization thy) tyco';
   in
     trns
     |> tracing (fn _ => "generating type constructor " ^ quote tyco)
@@ -139,10 +162,15 @@ and exprgen_type thy algbr funcgr strct (TVar _) trns =
       ||>> exprgen_type thy algbr funcgr strct t2
       |-> (fn (t1', t2') => pair (t1' `-> t2'))
   | exprgen_type thy algbr funcgr strct (Type (tyco, tys)) trns =
-      trns
-      |> ensure_def_tyco thy algbr funcgr strct tyco
-      ||>> fold_map (exprgen_type thy algbr funcgr strct) tys
-      |-> (fn (tyco, tys) => pair (tyco `%% tys));
+      case get_abstype thy (tyco, tys)
+       of SOME ty =>
+            trns
+            |> exprgen_type thy algbr funcgr strct ty
+        | NONE =>
+            trns
+            |> ensure_def_tyco thy algbr funcgr strct tyco
+            ||>> fold_map (exprgen_type thy algbr funcgr strct) tys
+            |-> (fn (tyco, tys) => pair (tyco `%% tys));
 
 exception CONSTRAIN of (string * typ) * typ;
 
@@ -239,7 +267,8 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr strct (c, tys) trns =
       |> ensure_def_class thy algbr funcgr strct ((the o AxClass.class_of_param thy) c)
       |-> (fn _ => succeed CodegenThingol.Bot);
     fun defgen_fun trns =
-      case CodegenFuncgr.get_funcs funcgr (c, tys)
+      case CodegenFuncgr.get_funcs funcgr
+        (perhaps (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy)) (c, tys))
        of eq_thms as eq_thm :: _ =>
             let
               val msg = cat_lines ("generating code for theorems " :: map string_of_thm eq_thms);
@@ -271,7 +300,7 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr strct (c, tys) trns =
       else if CodegenNames.has_nsp CodegenNames.nsp_dtco c'
       then defgen_datatypecons
       else error ("Illegal shallow name space for constant: " ^ quote c');
-    val strict = check_strict (CodegenSerializer.const_has_serialization thy) c' strct;
+    val strict = check_strict strct (CodegenSerializer.const_has_serialization thy) c';
   in
     trns
     |> tracing (fn _ => "generating constant "
@@ -318,7 +347,7 @@ and appgen_default thy algbr funcgr strct ((c, ty), ts) trns =
   |-> (fn (((c, ty), iss), ts) =>
          pair (IConst (c, (iss, ty)) `$$ ts))
 and select_appgen thy algbr funcgr strct ((c, ty), ts) trns =
-  case Symtab.lookup (CodegenPackageData.get thy) c
+  case Symtab.lookup (fst (CodegenPackageData.get thy)) c
    of SOME (i, (appgen, _)) =>
         if length ts < i then
           let
@@ -415,8 +444,96 @@ fun appgen_let thy algbr funcgr strct (app as (_, [st, ct])) trns =
 
 fun add_appconst (c, appgen) thy =
   let
-    val i = (length o fst o strip_type o Sign.the_const_type thy) c
-  in CodegenPackageData.map (Symtab.update (c, (i, (appgen, stamp ())))) thy end;
+    val i = (length o fst o strip_type o Sign.the_const_type thy) c;
+    val _ = Code.change thy (K CodegenThingol.empty_code);
+  in
+    (CodegenPackageData.map o apfst)
+      (Symtab.update (c, (i, (appgen, stamp ())))) thy
+  end;
+
+
+
+(** abstype and constsubst interface **)
+
+fun gen_abstyp prep_const prep_typ (raw_abstyp, raw_substtyp) raw_absconsts thy =
+  let
+    val abstyp = Type.no_tvars (prep_typ thy raw_abstyp);
+    val substtyp = Type.no_tvars (prep_typ thy raw_substtyp);
+    val absconsts = (map o pairself) (prep_const thy) raw_absconsts;
+    val Type (abstyco, tys) = abstyp handle BIND => error ("bad type: " ^ Sign.string_of_typ thy abstyp);
+    val typarms = map (fst o dest_TFree) tys handle MATCH => error ("bad type: " ^ Sign.string_of_typ thy abstyp);
+    fun mk_index v = 
+      let
+        val k = find_index (fn w => v = w) typarms;
+      in if k = ~1
+        then error ("free type variable: " ^ quote v)
+        else TFree (string_of_int k, [])
+      end;
+    val typpat = map_atyps (fn TFree (v, _) => mk_index v) substtyp;
+    fun apply_typpat (Type (tyco, tys)) =
+          let
+            val tys' = map apply_typpat tys;
+          in if tyco = abstyco then
+            (map_atyps (fn TFree (n, _) => nth tys' (the (Int.fromString n)))) typpat
+          else
+            Type (tyco, tys')
+          end
+      | apply_typpat ty = ty;
+    val string_of_typ = setmp show_sorts true (Sign.string_of_typ thy);
+    fun add_consts (c1, c2) =
+      let
+        val _ = if CodegenNames.has_nsp CodegenNames.nsp_fun (CodegenNames.const thy c2)
+          then ()
+          else error ("not a function: " ^ CodegenConsts.string_of_const thy c2);
+        val funcgr = CodegenFuncgr.mk_funcgr thy [c1, c2] [];
+        val ty_map = CodegenFuncgr.get_func_typs funcgr;
+        val ty1 = (apply_typpat o the o AList.lookup CodegenConsts.eq_const ty_map) c1;
+        val ty2 = (the o AList.lookup CodegenConsts.eq_const ty_map) c2;
+        val _ = if Sign.typ_equiv thy (ty1, ty2) then () else
+          error ("Incompatiable type signatures of " ^ CodegenConsts.string_of_const thy c1
+            ^ " and " ^ CodegenConsts.string_of_const thy c2 ^ ":\n"
+            ^ string_of_typ ty1 ^ "\n" ^ string_of_typ ty2);
+      in Consttab.update (c1, c2) end;
+    val _ = Code.change thy (K CodegenThingol.empty_code);
+  in
+    thy
+    |> (CodegenPackageData.map o apsnd) (fn (abstypes, abscs) =>
+          (abstypes
+          |> Symtab.update (abstyco, typpat),
+          abscs
+          |> fold add_consts absconsts)
+       )
+  end;
+
+fun gen_constsubst prep_const raw_constsubsts thy =
+  let
+    val constsubsts = (map o pairself) (prep_const thy) raw_constsubsts;
+    val string_of_typ = setmp show_sorts true (Sign.string_of_typ thy);
+    fun add_consts (c1, c2) =
+      let
+        val _ = if CodegenNames.has_nsp CodegenNames.nsp_fun (CodegenNames.const thy c2)
+          then ()
+          else error ("not a function: " ^ CodegenConsts.string_of_const thy c2);
+        val funcgr = CodegenFuncgr.mk_funcgr thy [c1, c2] [];
+        val ty_map = CodegenFuncgr.get_func_typs funcgr;
+        val ty1 = (the o AList.lookup CodegenConsts.eq_const ty_map) c1;
+        val ty2 = (the o AList.lookup CodegenConsts.eq_const ty_map) c2;
+        val _ = if Sign.typ_equiv thy (ty1, ty2) then () else
+          error ("Incompatiable type signatures of " ^ CodegenConsts.string_of_const thy c1
+            ^ " and " ^ CodegenConsts.string_of_const thy c2 ^ ":\n"
+            ^ string_of_typ ty1 ^ "\n" ^ string_of_typ ty2);
+      in Consttab.update (c1, c2) end;
+    val _ = Code.change thy (K CodegenThingol.empty_code);
+  in
+    thy
+    |> (CodegenPackageData.map o apsnd o apsnd) (fold add_consts constsubsts)
+  end;
+
+val abstyp = gen_abstyp CodegenConsts.norm Sign.certify_typ;
+val abstyp_e = gen_abstyp CodegenConsts.read_const (fn thy => Sign.read_typ (thy, K NONE));
+
+val constsubst = gen_constsubst CodegenConsts.norm;
+val constsubst_e = gen_constsubst CodegenConsts.read_const;
 
 
 
@@ -424,13 +541,16 @@ fun add_appconst (c, appgen) thy =
 
 fun generate thy (cs, rhss) targets init gen it =
   let
-    val funcgr = CodegenFuncgr.mk_funcgr thy cs rhss;
-    val qnaming = NameSpace.qualified_names NameSpace.default_naming
+    val raw_funcgr = CodegenFuncgr.mk_funcgr thy cs rhss;
+    val cs' = map_filter (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy))
+      (CodegenFuncgr.Constgraph.keys raw_funcgr);
+    val funcgr = CodegenFuncgr.mk_funcgr thy cs' [];
+    val qnaming = NameSpace.qualified_names NameSpace.default_naming;
     val algebr = ClassPackage.operational_algebra thy;
     val consttab = Consts.empty
       |> fold (fn (c, ty) => Consts.declare qnaming
            ((CodegenNames.const thy c, ty), true))
-           (CodegenFuncgr.get_func_typs funcgr)
+           (CodegenFuncgr.get_func_typs funcgr);
     val algbr = (algebr, consttab);
   in   
     Code.change_yield thy (CodegenThingol.start_transact init (gen thy algbr funcgr
@@ -504,29 +624,10 @@ fun code raw_cs seris thy =
     (map (serialize' cs code) seris'; ())
   end;
 
-fun reader_tyco thy rhss target dep =
-  generate thy rhss (SOME [target]) (SOME dep) (fold_map oooo exprgen_type);
-
-fun reader_const thy rhss target dep =
-  generate thy rhss (SOME [target]) (SOME dep) (fold_map oooo exprgen_term');
-
-fun zip_list (x::xs) f g =
-  f x #-> (fn y => fold_map (fn x => g |-- f x >> pair x) xs
-    #-> (fn xys => pair ((x, y) :: xys)));
-
-fun parse_multi_syntax parse_thing parse_syntax =
-  P.and_list1 parse_thing
-  #-> (fn things => Scan.repeat1 (P.$$$ "(" |-- P.name :--
-      (fn target => zip_list things (parse_syntax target)
-        (P.$$$ "and")) --| P.$$$ ")"))
-
+val (codeK, code_abstypeK, code_constsubstK) =
+  ("code_gen", "code_abstype", "code_constsubst");
 
 in
-
-val (codeK,
-     syntax_classK, syntax_instK, syntax_tycoK, syntax_constK) =
-  ("code_gen",
-   "code_class", "code_instance", "code_type", "code_const");
 
 val codeP =
   OuterSyntax.improper_command codeK "generate and serialize executable code for constants" K.diag (
@@ -537,42 +638,20 @@ val codeP =
     >> (fn (raw_cs, seris) => Toplevel.keep (code raw_cs seris o Toplevel.theory_of))
   );
 
-val syntax_classP =
-  OuterSyntax.command syntax_classK "define code syntax for class" K.thy_decl (
-    parse_multi_syntax P.xname
-      (fn _ => fn _ => P.string -- Scan.optional (P.$$$ "where" |-- Scan.repeat1
-        (P.term --| (P.$$$ "\\<equiv>" || P.$$$ "==") -- P.string)) [])
-    >> (Toplevel.theory oo fold) (fn (target, syns) =>
-          fold (fn (raw_class, syn) => CodegenSerializer.add_syntax_class target raw_class syn) syns)
+val code_abstypeP =
+  OuterSyntax.command code_abstypeK "axiomatic abstypes for code generation" K.thy_decl (
+    (P.typ -- P.typ -- Scan.optional (P.$$$ "where" |-- Scan.repeat1
+        (P.term --| (P.$$$ "\\<equiv>" || P.$$$ "==") -- P.term)) [])
+    >> (Toplevel.theory o uncurry abstyp_e)
   );
 
-val syntax_instP =
-  OuterSyntax.command syntax_instK "define code syntax for instance" K.thy_decl (
-    parse_multi_syntax (P.xname --| P.$$$ "::" -- P.xname)
-      (fn _ => fn _ => P.name #->
-        (fn "-" => Scan.succeed () | _ => Scan.fail_with (fn _ => "\"-\" expected") ()))
-    >> (Toplevel.theory oo fold) (fn (target, syns) =>
-          fold (fn (raw_inst, ()) => CodegenSerializer.add_syntax_inst target raw_inst) syns)
+val code_constsubstP =
+  OuterSyntax.command code_constsubstK "axiomatic constant substitutions for code generation" K.thy_decl (
+    Scan.repeat1 (P.term --| (P.$$$ "\\<equiv>" || P.$$$ "==") -- P.term)
+    >> (Toplevel.theory o constsubst_e)
   );
 
-val syntax_tycoP =
-  OuterSyntax.command syntax_tycoK "define code syntax for type constructor" K.thy_decl (
-    Scan.repeat1 (
-      parse_multi_syntax P.xname (CodegenSerializer.parse_syntax_tyco reader_tyco)
-    )
-    >> (Toplevel.theory o (fold o fold) (fold snd o snd))
-  );
-
-val syntax_constP =
-  OuterSyntax.command syntax_constK "define code syntax for constant" K.thy_decl (
-    Scan.repeat1 (
-      parse_multi_syntax P.term (CodegenSerializer.parse_syntax_const reader_const)
-    )
-    >> (Toplevel.theory o (fold o fold) (fold snd o snd))
-  );
-
-val _ = OuterSyntax.add_parsers [codeP,
-  syntax_classP, syntax_instP, syntax_tycoP, syntax_constP];
+val _ = OuterSyntax.add_parsers [codeP, code_abstypeP, code_constsubstP];
 
 end; (* local *)
 
