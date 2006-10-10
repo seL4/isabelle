@@ -5,7 +5,7 @@
 header {* Test and Examples for code generator *}
 
 theory Codegenerator
-imports Main Records
+imports (*"~~/src/codegen/CodegenSetup"*) Main Records
 begin
 
 subsection {* booleans *}
@@ -27,6 +27,14 @@ definition
   "swap p = (let (x, y) = p in (y, x))"
   appl :: "('a \<Rightarrow> 'b) * 'a \<Rightarrow> 'b"
   "appl p = (let (f, x) = p in f x)"
+
+lemma [code]:
+  "swap (x, y) = (y, x)"
+  unfolding swap_def Let_def by auto
+
+lemma [code]:
+  "appl (f, x) = f x"
+  unfolding appl_def Let_def by auto
 
 subsection {* integers *}
 
@@ -87,9 +95,9 @@ definition
   "h = g"
 
 code_constname
-  f "Mymod.f"
-  g "Mymod.A.f"
-  h "Mymod.A.B.f"
+  f "MymodA.f"
+  g "MymodB.f"
+  h "MymodC.f"
 
 definition
   "apply_tower = (\<lambda>x. x (\<lambda>x. x (\<lambda>x. x)))"
@@ -109,12 +117,6 @@ code_gen
   "0::nat" "1::nat"
 code_gen
   Pair fst snd Let split swap
-code_gen "0::int" "1::int"
-  (SML) (Haskell)
-code_gen n
-  (SML) (Haskell)
-code_gen fac
-  (SML) (Haskell)
 code_gen
   "op + :: nat \<Rightarrow> nat \<Rightarrow> nat"
   "op - :: nat \<Rightarrow> nat \<Rightarrow> nat"
@@ -123,17 +125,6 @@ code_gen
   "op <= :: nat \<Rightarrow> nat \<Rightarrow> bool"
 code_gen
   appl
-code_gen
-  k
-  "op + :: int \<Rightarrow> int \<Rightarrow> int"
-  "op - :: int \<Rightarrow> int \<Rightarrow> int"
-  "op * :: int \<Rightarrow> int \<Rightarrow> int"
-  "op < :: int \<Rightarrow> int \<Rightarrow> bool"
-  "op <= :: int \<Rightarrow> int \<Rightarrow> bool"
-  fac
-  "op div :: int \<Rightarrow> int \<Rightarrow> int"
-  "op mod :: int \<Rightarrow> int \<Rightarrow> int"  
-  (SML) (Haskell)
 code_gen
   Inl Inr
 code_gen
@@ -155,6 +146,29 @@ code_gen
 code_gen
   foo1 foo3
 code_gen
+  mystring
+code_gen
+  f g h
+code_gen
+  apply_tower Codegenerator.keywords shadow
+code_gen "0::int" "1::int"
+  (SML) (Haskell)
+code_gen n
+  (SML) (Haskell)
+code_gen fac
+  (SML) (Haskell)
+code_gen
+  k
+  "op + :: int \<Rightarrow> int \<Rightarrow> int"
+  "op - :: int \<Rightarrow> int \<Rightarrow> int"
+  "op * :: int \<Rightarrow> int \<Rightarrow> int"
+  "op < :: int \<Rightarrow> int \<Rightarrow> bool"
+  "op <= :: int \<Rightarrow> int \<Rightarrow> bool"
+  fac
+  "op div :: int \<Rightarrow> int \<Rightarrow> int"
+  "op mod :: int \<Rightarrow> int \<Rightarrow> int"  
+  (SML) (Haskell)
+code_gen
   "OperationalEquality.eq :: bool \<Rightarrow> bool \<Rightarrow> bool"
   "OperationalEquality.eq :: nat \<Rightarrow> nat \<Rightarrow> bool"
   "OperationalEquality.eq :: int \<Rightarrow> int \<Rightarrow> bool"
@@ -165,12 +179,6 @@ code_gen
   "OperationalEquality.eq :: mut1 \<Rightarrow> mut1 \<Rightarrow> bool"
   "OperationalEquality.eq :: mut2 \<Rightarrow> mut2 \<Rightarrow> bool"
   "OperationalEquality.eq :: ('a\<Colon>eq) point_scheme \<Rightarrow> 'a point_scheme \<Rightarrow> bool"
-code_gen
-  mystring
-code_gen
-  f g h
-code_gen
-  apply_tower Codegenerator.keywords shadow
 
 code_gen (SML -)
 
