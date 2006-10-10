@@ -17,12 +17,13 @@ val theoryP =
   OuterSyntax.command "theory" "begin theory" (K.tag_theory K.thy_begin)
     (ThyHeader.args >> (Toplevel.print oo IsarThy.theory));
 
-val end_excursionP =
-  OuterSyntax.command "end" "end current excursion" (K.tag_theory K.thy_end)
-    (Scan.succeed (Toplevel.print o Toplevel.exit));
+val endP =
+  OuterSyntax.command "end" "end (local) theory" (K.tag_theory K.thy_end)
+    (Scan.succeed (Toplevel.print o Toplevel.exit o Toplevel.exit_local_theory));
 
 val contextP =
-  OuterSyntax.improper_command "context" "switch theory context" (K.tag_theory K.thy_switch)
+  OuterSyntax.improper_command "context" "switch (local) theory context"
+    (K.tag_theory K.thy_switch)
     (P.name >> (Toplevel.print oo IsarThy.context));
 
 
@@ -354,8 +355,9 @@ val localeP =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
     ((P.opt_keyword "open" >> not) -- P.name
         -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
-      >> (Toplevel.theory_context o (fn ((is_open, name), (expr, elems)) =>
-             Locale.add_locale is_open name expr elems #> (fn ((_, ctxt), thy) => (ctxt, thy)))));
+        -- P.opt_begin
+      >> (fn (((is_open, name), (expr, elems)), begin) =>
+          Toplevel.begin_local_theory begin (Locale.add_locale is_open name expr elems)));
 
 val interpretationP =
   OuterSyntax.command "interpretation"
@@ -499,12 +501,12 @@ val caseP =
 
 (* proof structure *)
 
-val beginP =
+val begin_blockP =
   OuterSyntax.command "{" "begin explicit proof block"
     (K.tag_proof K.prf_open)
     (Scan.succeed (Toplevel.print o Toplevel.proof Proof.begin_block));
 
-val endP =
+val end_blockP =
   OuterSyntax.command "}" "end explicit proof block"
     (K.tag_proof K.prf_close)
     (Scan.succeed (Toplevel.print o Toplevel.proof Proof.end_block));
@@ -621,11 +623,11 @@ val backP =
 
 val cannot_undoP =    (* FIXME ProofGeneral compatibility *)
   OuterSyntax.improper_command "cannot_undo" "attempt to undo 'end'" K.control
-    (P.name >> (Toplevel.no_timing oo IsarCmd.undo_end));
+    (P.name >> K (Toplevel.no_timing o IsarCmd.undo_end));
 
 val undo_endP =
   OuterSyntax.improper_command "undo_end" "attempt to undo 'end'" K.control
-    (P.name >> (Toplevel.no_timing oo IsarCmd.undo_end));
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.undo_end));
 
 val clear_undosP =
   OuterSyntax.improper_command "clear_undos" "clear theory-level undo information" K.control
@@ -894,7 +896,7 @@ val _ = OuterSyntax.add_keywords
 
 val _ = OuterSyntax.add_parsers [
   (*theory structure*)
-  theoryP, end_excursionP, contextP,
+  theoryP, endP, contextP,
   (*markup commands*)
   headerP, chapterP, sectionP, subsectionP, subsubsectionP, textP,
   text_rawP, sectP, subsectP, subsubsectP, txtP, txt_rawP,
@@ -911,10 +913,10 @@ val _ = OuterSyntax.add_parsers [
   (*proof commands*)
   theoremP, lemmaP, corollaryP, haveP, henceP, showP, thusP, fixP,
   assumeP, presumeP, defP, obtainP, guessP, letP, caseP, thenP, fromP,
-  withP, noteP, usingP, unfoldingP, beginP, endP, nextP, qedP,
-  terminal_proofP, default_proofP, immediate_proofP, done_proofP,
-  skip_proofP, forget_proofP, deferP, preferP, applyP, apply_endP,
-  proofP, alsoP, finallyP, moreoverP, ultimatelyP, backP,
+  withP, noteP, usingP, unfoldingP, begin_blockP, end_blockP, nextP,
+  qedP, terminal_proofP, default_proofP, immediate_proofP,
+  done_proofP, skip_proofP, forget_proofP, deferP, preferP, applyP,
+  apply_endP, proofP, alsoP, finallyP, moreoverP, ultimatelyP, backP,
   cannot_undoP, undo_endP, clear_undosP, redoP, undos_proofP, undoP,
   killP, interpretationP, interpretP,
   (*diagnostic commands*)
