@@ -276,9 +276,9 @@ fun mk_meta_cong rl = zero_var_indexes
      else error "Conclusion of congruence rules must be =-equality"
    end);
 
-(* Elimination of True from asumptions: *)
+(* Elimination of True from assumptions: *)
 
-local fun rd s = read_cterm (sign_of (the_context())) (s, propT);
+local fun rd s = read_cterm (the_context()) (s, propT);
 in val True_implies_equals = standard' (equal_intr
   (implies_intr_hyps (implies_elim (assume (rd "True ==> PROP P")) TrueI))
   (implies_intr_hyps (implies_intr (rd "True") (assume (rd "PROP P")))));
