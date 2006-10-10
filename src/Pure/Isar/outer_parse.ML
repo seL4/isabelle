@@ -39,6 +39,7 @@ sig
   val tags: token list -> string list * token list
   val opt_unit: token list -> unit * token list
   val opt_keyword: string -> token list -> bool * token list
+  val opt_begin: token list -> bool * token list
   val nat: token list -> int * token list
   val enum: string -> (token list -> 'a * token list) -> token list -> 'a list * token list
   val enum1: string -> (token list -> 'a * token list) -> token list -> 'a list * token list
@@ -189,6 +190,8 @@ val tags = Scan.repeat ($$$ "%" |-- !!! tag_name);
 
 val opt_unit = Scan.optional ($$$ "(" -- $$$ ")" >> (K ())) ();
 fun opt_keyword s = Scan.optional ($$$ "(" |-- !!! (($$$ s >> K true) --| $$$ ")")) false;
+
+val opt_begin = Scan.optional ($$$ "begin" >> K true) false;
 
 
 (* enumerations *)
