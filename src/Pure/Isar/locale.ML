@@ -851,7 +851,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
     val all_params = map (fn p => (p, Symtab.lookup tenv p |> the)) all_params';
     (* compute identifiers and syntax, merge with previous ones *)
     val (ids, _) = identify true expr;
-    val idents = gen_rems (eq_fst (op =)) (ids, prev_idents);
+    val idents = subtract (eq_fst (op =)) prev_idents ids;
     val syntax = merge_syntax ctxt ids (syn, prev_syntax);
     (* type-instantiate elements *)
     val final_elemss = map (eval all_params tenv syntax) idents;

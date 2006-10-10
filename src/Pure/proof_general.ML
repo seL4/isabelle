@@ -385,7 +385,7 @@ local
 
 fun add_master_files name files =
   let val masters = [ThyLoad.thy_path name, ThyLoad.ml_path name]
-  in masters @ gen_rems (op = o pairself Path.base) (files, masters) end;
+  in masters @ subtract (op = o pairself Path.base) masters files end;
 
 fun trace_action action name =
   if action = ThyInfo.Update then

@@ -259,7 +259,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
               let
                 val ((old_nts, old_tks), nt_prods) = Array.sub (prods, nt);
 
-                val new_tks = gen_rems matching_tokens (start_tks, old_tks);
+                val new_tks = subtract matching_tokens old_tks start_tks;
 
                 (*store new production*)
                 fun store [] prods is_new =
@@ -370,7 +370,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                         |> (K (key = SOME UnknownStart)) ? AList.update (op =) (key, tk_prods')
 
                       val added_tks =
-                        gen_rems matching_tokens (new_tks, old_tks);
+                        subtract matching_tokens old_tks new_tks;
                     in if null added_tks then
                          (Array.update (prods, nt, (lookahead, nt_prods'));
                           process_nts nts added)

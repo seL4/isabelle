@@ -2078,7 +2078,7 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
       | dups => ["Duplicate parameter(s) " ^ commas dups]);
 
     val err_extra_frees =
-      (case gen_rems (op =) (envir_names, params) of
+      (case subtract (op =) params envir_names of
         [] => []
       | extras => ["Extra free type variable(s) " ^ commas extras]);
 

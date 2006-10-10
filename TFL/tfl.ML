@@ -767,7 +767,7 @@ fun build_ih f (P,SV) (pat,TCs) =
               of [] => (P_y, (tm,[]))
                | _  => let
                     val imp = S.list_mk_conj cntxt ==> P_y
-                    val lvs = gen_rems (op aconv) (S.free_vars_lr imp, globals)
+                    val lvs = subtract (op aconv) globals (S.free_vars_lr imp)
                     val locals = #2(U.pluck (curry (op aconv) P) lvs) handle U.ERR _ => lvs
                     in (S.list_mk_forall(locals,imp), (tm,locals)) end
          end
@@ -994,7 +994,7 @@ let val tych = Thry.typecheck theory
    fun loop ([],extras,R,ind) = (rev R, ind, extras)
      | loop ((r,ftcs)::rst, nthms, R, ind) =
         let val tcs = #1(strip_imp (concl r))
-            val extra_tcs = gen_rems (op aconv) (ftcs, tcs)
+            val extra_tcs = subtract (op aconv) tcs ftcs
             val extra_tc_thms = map simplify_nested_tc extra_tcs
             val (r1,ind1) = fold simplify_tc tcs (r,ind)
             val r2 = R.FILTER_DISCH_ALL(not o S.is_WFR) r1

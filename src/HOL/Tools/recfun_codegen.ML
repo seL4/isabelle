@@ -56,7 +56,7 @@ fun del_thm thm thy =
   in case Symtab.lookup tab s of
       NONE => thy
     | SOME thms =>
-        RecCodegenData.put (Symtab.update (s, gen_rem (eq_thm o apfst fst) (thms, thm)) tab) thy
+        RecCodegenData.put (Symtab.update (s, remove (eq_thm o apsnd fst) thm thms) tab) thy
   end handle TERM _ => (warn thm; thy);
 
 val del = Thm.declaration_attribute

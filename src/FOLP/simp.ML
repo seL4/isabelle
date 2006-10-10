@@ -282,7 +282,7 @@ fun delete_thm_warn (th,net) =
 val delete_thms = foldr delete_thm_warn;
 
 fun op delcongs(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thms) =
-let val congs' = Library.foldl (gen_rem Drule.eq_thm_prop) (congs,thms)
+let val congs' = fold (remove Drule.eq_thm_prop) thms congs
 in SS{auto_tac=auto_tac, congs= congs',
       cong_net= delete_thms cong_net (map mk_trans thms),
       mk_simps= normed_rews congs', simps=simps, simp_net=simp_net}

@@ -262,7 +262,7 @@ fun mk_realizer thy vs params ((rule, rrule), rt) =
     val vs1 = map Var (filter_out (fn ((a, _), _) => a mem rvs) xs);
     val rlzvs = rev (Term.add_vars (prop_of rrule) []);
     val vs2 = map (fn (ixn, _) => Var (ixn, (the o AList.lookup (op =) rlzvs) ixn)) xs;
-    val rs = gen_rems (op = o pairself fst) (rlzvs, xs);
+    val rs = subtract (op = o pairself fst) xs rlzvs;
 
     fun mk_prf _ [] prf = prf
       | mk_prf rs ((prem, rprem) :: prems) prf =

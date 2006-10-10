@@ -219,8 +219,6 @@ sig
   val gen_eq_set: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val \ : ''a list * ''a -> ''a list
   val \\ : ''a list * ''a list -> ''a list
-  val gen_rem: ('a * 'b -> bool) -> 'a list * 'b -> 'a list
-  val gen_rems: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list
   val findrep: ''a list -> ''a list
   val distinct: ('a * 'a -> bool) -> 'a list -> 'a list
   val duplicates: ('a * 'a -> bool) -> 'a list -> 'a list
@@ -1035,12 +1033,8 @@ fun gen_eq_set eq (xs, ys) =
 (*removing an element from a list WITHOUT duplicates*)
 fun (y :: ys) \ x = if x = y then ys else y :: (ys \ x)
   | [] \ x = [];
-
 fun ys \\ xs = foldl (op \) (ys,xs);
 
-(*removing an element from a list -- possibly WITH duplicates*)
-fun gen_rem eq (xs, y) = filter_out (fn x => eq (x, y)) xs;
-fun gen_rems eq (xs, ys) = filter_out (member eq ys) xs;
 
 (*returns the tail beginning with the first repeated element, or []*)
 fun findrep [] = []
@@ -1079,10 +1073,10 @@ fun has_duplicates eq =
 
 fun gen_merge_lists _ xs [] = xs
   | gen_merge_lists _ [] ys = ys
-  | gen_merge_lists eq xs ys = xs @ gen_rems eq (ys, xs);
+  | gen_merge_lists eq xs ys = xs @ filter_out (member eq xs) ys;
 
 fun merge_lists xs ys = gen_merge_lists (op =) xs ys;
-fun merge_alists al = gen_merge_lists (eq_fst (op =)) al;
+fun merge_alists xs = gen_merge_lists (eq_fst (op =)) xs;
 
 
 (** balanced trees **)

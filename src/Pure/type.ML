@@ -552,7 +552,7 @@ fun add_abbrev naming (a, vs, rhs) tsig = tsig |> map_types (fn types =>
     (case duplicates (op =) vs of
       [] => []
     | dups => err ("Duplicate variables on lhs: " ^ commas_quote dups));
-    (case gen_rems (op =) (map (#1 o #1) (typ_tvars rhs'), vs) of
+    (case subtract (op =) vs (map (#1 o #1) (typ_tvars rhs')) of
       [] => []
     | extras => err ("Extra variables on rhs: " ^ commas_quote extras));
     types |> new_decl naming (a, Abbreviation (vs, rhs', syntactic (#2 types) rhs'))

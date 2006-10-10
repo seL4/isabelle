@@ -763,8 +763,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               val dummy = print_thms "cntxt:" cntxt
               val {prop = Const("==>",_) $ (Const("Trueprop",_) $ A) $ _,
                    sign,...} = rep_thm thm
-              fun genl tm = let val vlist = gen_rems (op aconv)
-                                           (add_term_frees(tm,[]), globals)
+              fun genl tm = let val vlist = subtract (op aconv) globals
+                                           (add_term_frees(tm,[]))
                             in fold_rev Forall vlist tm
                             end
               (*--------------------------------------------------------------

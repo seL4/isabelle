@@ -258,7 +258,7 @@ fun remove_suc thy thms =
             [] => NONE
           | thps =>
               let val (ths1, ths2) = split_list thps
-              in SOME (gen_rems eq_thm (thms, th :: ths1) @ ths2) end
+              in SOME (subtract eq_thm (th :: ths1) thms @ ths2) end
       end
   in
     case get_first mk_thms eqs of
