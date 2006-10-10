@@ -5,7 +5,7 @@
 ATPs with TPTP format input.
 *)
 
-(*FIXME: Do we need this signature?*)
+(*Currently unused, during debugging*)
 signature RES_ATP =
 sig
   val prover: string ref
@@ -829,8 +829,7 @@ fun kill_last_watcher () =
 
 (*writes out the current clasimpset to a tptp file;
   turns off xsymbol at start of function, restoring it at end    *)
-val isar_atp = setmp print_mode [] 
- (fn (ctxt, th) =>
+fun isar_atp_body (ctxt, th) =
   if Thm.no_prems th then ()
   else
     let
@@ -842,7 +841,15 @@ val isar_atp = setmp print_mode []
       Output.debug ("problem files: " ^ space_implode ", " files); 
       Output.debug ("pid: " ^ string_of_pid pid);
       watcher_call_provers (sign_of_thm th) (Thm.prems_of th) (childin, childout, pid)
-    end);
+    end;
+
+val isar_atp = setmp print_mode [] isar_atp_body;
+
+(*For ML scripts, and primarily, for debugging*)
+fun callatp () = 
+  let val th = topthm()
+      val ctxt = ProofContext.init (theory_of_thm th)
+  in  isar_atp_body (ctxt, th)  end;
 
 val isar_atp_writeonly = setmp print_mode [] 
       (fn (ctxt,th) =>
