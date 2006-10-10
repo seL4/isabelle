@@ -57,7 +57,7 @@ signature HYPSUBST =
   val eq_var                 : bool -> bool -> term -> int * bool
   val inspect_pair           : bool -> bool -> term * term * typ -> bool
   val mk_eqs                 : bool -> thm -> thm list
-  val stac		     : thm -> int -> tactic
+  val stac                   : thm -> int -> tactic
   val hypsubst_setup         : theory -> theory
   end;
 
