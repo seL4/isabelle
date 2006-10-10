@@ -15,6 +15,7 @@ sig
   val get_func_typs: T -> (CodegenConsts.const * typ) list
   val normalize: theory -> thm list -> thm list
   val print_codethms: theory -> CodegenConsts.const list -> unit
+  structure Constgraph : GRAPH
 end;
 
 structure CodegenFuncgr: CODEGEN_FUNCGR =
@@ -36,7 +37,10 @@ structure Funcgr = CodeDataFun
   type T = T;
   val empty = Constgraph.empty;
   fun merge _ _ = Constgraph.empty;
-  fun purge _ _ = Constgraph.empty;
+  fun purge _ NONE _ = Constgraph.empty
+    | purge _ (SOME cs) funcgr =
+        Constgraph.del_nodes ((Constgraph.all_succs funcgr 
+          o filter (can (Constgraph.get_node funcgr))) cs) funcgr;
 end);
 
 val _ = Context.add_setup Funcgr.init;
@@ -277,13 +281,7 @@ fun specialize_typs thy funcgr eqss =
 fun merge_eqsyss thy raw_eqss funcgr =
   let
     val eqss = specialize_typs thy funcgr raw_eqss;
-    val tys = map (fn (c as (name, _), []) => (case AxClass.class_of_param thy name
-         of SOME class => (case ClassPackage.the_consts_sign thy class of (v, cs) =>
-              (Logic.varifyT o map_type_tfree (fn u as (w, _) =>
-                if w = v then TFree (v, [class]) else TFree u))
-              ((the o AList.lookup (op =) cs) name))
-          | NONE => Sign.the_const_type thy name)
-                   | (_, eq :: _) => CodegenData.typ_func thy eq) eqss;
+    val tys = map (CodegenData.typ_funcs thy) eqss;
     val rhss = map (rhs_of thy) eqss;
   in
     funcgr
