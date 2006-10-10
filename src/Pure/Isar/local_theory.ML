@@ -11,11 +11,13 @@ signature LOCAL_THEORY =
 sig
   type operations
   val target_of: local_theory -> Proof.context
-  val theory: (theory -> theory) -> local_theory -> local_theory
+  val raw_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
+  val raw_theory: (theory -> theory) -> local_theory -> local_theory
   val theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
-  val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
+  val theory: (theory -> theory) -> local_theory -> local_theory
   val target_result: (Proof.context -> 'a * Proof.context) -> local_theory -> 'a * local_theory
-  val pretty: local_theory -> Pretty.T
+  val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
+  val pretty: local_theory -> Pretty.T list
   val consts: (string * typ -> bool) ->
     ((bstring * typ) * mixfix) list -> local_theory -> (term * thm) list * local_theory
   val axioms: ((bstring * Attrib.src list) * term list) list -> local_theory ->
@@ -45,7 +47,7 @@ struct
 (* type lthy *)
 
 type operations =
- {pretty: local_theory -> Pretty.T,
+ {pretty: local_theory -> Pretty.T list,
   consts: (string * typ -> bool) -> ((bstring * typ) * mixfix) list -> local_theory ->
     (term * thm) list * local_theory,
   axioms: ((bstring * Attrib.src list) * term list) list -> local_theory ->
@@ -95,21 +97,24 @@ fun map_target f = map_lthy (fn (theory_prefix, operations, target) =>
 
 (* substructure mappings *)
 
+fun raw_theory_result f lthy =
+  let
+    val (res, thy') = f (ProofContext.theory_of lthy);
+    val lthy' = lthy
+      |> map_target (ProofContext.transfer thy')
+      |> ProofContext.transfer thy';
+  in (res, lthy') end;
+
+fun raw_theory f = #2 o raw_theory_result (f #> pair ());
+
 fun theory_result f lthy =
   (case #theory_prefix (get_lthy lthy) of
     NONE => error "Cannot change background theory"
-  | SOME prefix =>
-      let
-        val thy = ProofContext.theory_of lthy;
-        val (res, thy') = thy
-          |> Sign.sticky_prefix prefix
-          |> Sign.qualified_names
-          |> f
-          ||> Sign.restore_naming thy;
-        val lthy' = lthy
-          |> map_target (ProofContext.transfer thy')
-          |> ProofContext.transfer thy';
-      in (res, lthy') end);
+  | SOME prefix => lthy |> raw_theory_result (fn thy => thy
+      |> Sign.sticky_prefix prefix
+      |> Sign.qualified_names
+      |> f
+      ||> Sign.restore_naming thy));
 
 fun theory f = #2 o theory_result (f #> pair ());
 
