@@ -81,11 +81,14 @@ defs (overloaded)
 
 section {* code lemmas *}
 
-lemma
-  number_of_rat [code unfold]: "(number_of k \<Colon> rat) \<equiv> Fract k 1"
+lemma number_of_rat [code unfold]:
+  "(number_of k \<Colon> rat) \<equiv> Fract k 1"
   unfolding Fract_of_int_eq rat_number_of_def by simp
 
+declare divide_inverse [where ?'a = rat, code func]
+
 instance rat :: eq ..
+instance erat :: eq ..
 
 
 section {* code names *}
@@ -113,17 +116,40 @@ code_constname
   "OperationalEquality.eq \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool" "Rational.erat_eq"
 
 
+section {* rat as abstype *}
+
+code_abstype rat erat where
+  Fract \<equiv> of_quotient
+  "0 \<Colon> rat" \<equiv> "0 \<Colon> erat"
+  "1 \<Colon> rat" \<equiv> "1 \<Colon> erat"
+  "op + \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat" \<equiv> "op + \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat"
+  "uminus \<Colon> rat \<Rightarrow> rat" \<equiv> "uminus \<Colon> erat \<Rightarrow> erat"
+  "op * \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat" \<equiv> "op * \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat"
+  "inverse \<Colon> rat \<Rightarrow> rat" \<equiv> "inverse \<Colon> erat \<Rightarrow> erat"
+  "op \<le> \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" \<equiv>  "op \<le> \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool"
+   "OperationalEquality.eq \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" \<equiv> eq_erat
+
+code_const div_zero
+  (SML "raise/ (Fail/ \"Division by zero\")")
+  (Haskell "error/ \"Division by zero\"")
+
+code_gen
+  Fract
+  "0 \<Colon> rat"
+  "1 \<Colon> rat"
+  "op + \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat"
+  "uminus \<Colon> rat \<Rightarrow> rat"
+  "op * \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat"
+  "inverse \<Colon> rat \<Rightarrow> rat"
+  "op \<le> \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool"
+   "OperationalEquality.eq \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool"
+  (SML -)
+
+
 section {* type serializations *}
 
 types_code
   rat ("{*erat*}")
-
-code_gen Rat
-  (SML) (Haskell)
-
-code_type rat
-  (SML "{*erat*}")
-  (Haskell "{*erat*}")
 
 
 section {* const serializations *}
@@ -139,64 +165,12 @@ consts_code
   inverse :: "rat \<Rightarrow> rat" ("{*inverse :: erat \<Rightarrow> erat*}")
   divide :: "rat \<Rightarrow> rat \<Rightarrow> rat" ("{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}/ _/ ({*inverse :: erat \<Rightarrow> erat*}/ _)")
   Orderings.less_eq :: "rat \<Rightarrow> rat \<Rightarrow> bool" ("{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
-  "op =" :: "rat \<Rightarrow> rat \<Rightarrow> bool" ("{*eq_rat*}")
-
-code_const div_zero
-  (SML "raise/ (Fail/ \"Division by zero\")")
-  (Haskell "error/ \"Division by zero\"")
+  "op =" :: "rat \<Rightarrow> rat \<Rightarrow> bool" ("{*eq_erat*}")
 
 code_gen
   of_quotient
   "0::erat"
   "1::erat"
   "op + :: erat \<Rightarrow> erat \<Rightarrow> erat"
-  "uminus :: erat \<Rightarrow> erat"
-  "op * :: erat \<Rightarrow> erat \<Rightarrow> erat"
-  "inverse :: erat \<Rightarrow> erat"
-  "op <= :: erat \<Rightarrow> erat \<Rightarrow> bool"
-  eq_erat
-  (SML) (Haskell)
-
-code_const Fract
-  (SML "{*of_quotient*}")
-  (Haskell "{*of_quotient*}")
-
-code_const "0 :: rat"
-  (SML "{*0::erat*}")
-  (Haskell "{*1::erat*}")
-
-code_const "1 :: rat"
-  (SML "{*1::erat*}")
-  (Haskell "{*1::erat*}")
-
-code_const "op + :: rat \<Rightarrow> rat \<Rightarrow> rat"
-  (SML "{*op + :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
-  (Haskell "{*op + :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
-
-code_const "uminus :: rat \<Rightarrow> rat"
-  (SML "{*uminus :: erat \<Rightarrow> erat*}")
-  (Haskell "{*uminus :: erat \<Rightarrow> erat*}")
-
-code_const "op * :: rat \<Rightarrow> rat \<Rightarrow> rat"
-  (SML "{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
-  (Haskell "{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
-
-code_const "inverse :: rat \<Rightarrow> rat"
-  (SML "{*inverse :: erat \<Rightarrow> erat*}")
-  (Haskell "{*inverse :: erat \<Rightarrow> erat*}")
-
-code_const "divide :: rat \<Rightarrow> rat \<Rightarrow> rat"
-  (SML "{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}/ _/ ({*inverse :: erat \<Rightarrow> erat*}/ _)")
-  (Haskell "{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}/ _/ ({*inverse :: erat \<Rightarrow> erat*}/ _)")
-
-code_const "op <= :: rat \<Rightarrow> rat \<Rightarrow> bool"
-  (SML "{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
-  (Haskell "{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
-
-code_const "OperationalEquality.eq :: rat \<Rightarrow> rat \<Rightarrow> bool"
-  (SML "{*eq_erat*}")
-  (Haskell "{*eq_erat*}")
-
-code_gen (SML -)
 
 end

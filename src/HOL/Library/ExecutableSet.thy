@@ -31,9 +31,9 @@ subsection {* Basic definitions *}
 definition
   flip :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c"
   "flip f a b = f b a"
-  member :: "'a list \<Rightarrow> 'a\<Colon>eq \<Rightarrow> bool"
+  member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool"
   "member xs x = (x \<in> set xs)"
-  insertl :: "'a\<Colon>eq\<Rightarrow> 'a list \<Rightarrow> 'a list"
+  insertl :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"
   "insertl x xs = (if member xs x then xs else x#xs)"
 
 lemma
@@ -51,7 +51,6 @@ declare drop_first.simps [code del]
 declare drop_first.simps [code target: List]
 
 declare remove1.simps [code del]
-ML {* reset CodegenData.strict_functyp *}
 lemma [code target: List]:
   "remove1 x xs = (if member xs x then drop_first (\<lambda>y. y = x) xs else xs)"
 proof (cases "member xs x")
@@ -61,7 +60,6 @@ next
   have "remove1 x xs = drop_first (\<lambda>y. y = x) xs" by (induct xs) simp_all
   with True show ?thesis by simp
 qed
-ML {* set CodegenData.strict_functyp *}
 
 lemma member_nil [simp]:
   "member [] = (\<lambda>x. False)"
@@ -93,7 +91,7 @@ lemma foldr_remove1_empty [simp]:
 
 subsection {* Derived definitions *}
 
-function unionl :: "'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+function unionl :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
   "unionl [] ys = ys"
 | "unionl xs ys = foldr insertl xs ys"
@@ -102,7 +100,7 @@ termination unionl by (auto_term "{}")
 lemmas unionl_def = unionl.simps(2)
 declare unionl.simps[code]
 
-function intersect :: "'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+function intersect :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
   "intersect [] ys = []"
 | "intersect xs [] = []"
@@ -112,7 +110,7 @@ termination intersect by (auto_term "{}")
 lemmas intersect_def = intersect.simps(3)
 declare intersect.simps[code]
 
-function subtract :: "'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+function subtract :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
   "subtract [] ys = ys"
 | "subtract xs [] = []"
@@ -122,7 +120,7 @@ termination subtract by (auto_term "{}")
 lemmas subtract_def = subtract.simps(3)
 declare subtract.simps[code]
 
-function map_distinct :: "('a \<Rightarrow> 'b\<Colon>eq) \<Rightarrow> 'a list \<Rightarrow> 'b list"
+function map_distinct :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"
 where
   "map_distinct f [] = []"
 | "map_distinct f xs = foldr (insertl o f) xs []"
@@ -131,7 +129,7 @@ termination map_distinct by (auto_term "{}")
 lemmas map_distinct_def = map_distinct.simps(2)
 declare map_distinct.simps[code]
 
-function unions :: "'a\<Colon>eq list list \<Rightarrow> 'a list"
+function unions :: "'a list list \<Rightarrow> 'a list"
 where
   "unions [] = []"
   "unions xs = foldr unionl xs []"
@@ -140,14 +138,14 @@ termination unions by (auto_term "{}")
 lemmas unions_def = unions.simps(2)
 declare unions.simps[code]
 
-consts intersects :: "'a\<Colon>eq list list \<Rightarrow> 'a list"
+consts intersects :: "'a list list \<Rightarrow> 'a list"
 primrec
   "intersects (x#xs) = foldr intersect xs x"
 
 definition
-  map_union :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b\<Colon>eq list) \<Rightarrow> 'b list"
+  map_union :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b list) \<Rightarrow> 'b list"
   "map_union xs f = unions (map f xs)"
-  map_inter :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b\<Colon>eq list) \<Rightarrow> 'b list"
+  map_inter :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b list) \<Rightarrow> 'b list"
   "map_inter xs f = intersects (map f xs)"
 
 
@@ -232,6 +230,61 @@ lemma iso_Bex:
 
 section {* code generator setup *}
 
+code_constname
+  "ExecutableSet.member" "List.member"
+  "ExecutableSet.insertl" "List.insertl"
+  "ExecutableSet.drop_first" "List.drop_first"
+
+definition
+  "empty_list = []"
+
+declare empty_list_def [code inline]
+
+lemma [code func]:
+  "insert (x \<Colon> 'a\<Colon>eq) = insert x" ..
+
+lemma [code func]:
+  "(xs \<Colon> 'a\<Colon>eq set) \<union> ys = xs \<union> ys" ..
+
+lemma [code func]:
+  "(xs \<Colon> 'a\<Colon>eq set) \<inter> ys = xs \<inter> ys" ..
+
+definition
+  "subtract' = flip subtract"
+
+lemma [code func]:
+  "image (f \<Colon> 'a \<Rightarrow> 'b\<Colon>eq) = image f" ..
+
+lemma [code func]:
+  "UNION xs (f \<Colon> 'a \<Rightarrow> 'b\<Colon>eq set) = UNION xs f" ..
+
+lemma [code func]:
+  "INTER xs (f \<Colon> 'a \<Rightarrow> 'b\<Colon>eq set) = INTER xs f" ..
+
+lemma [code func]:
+  "Ball (xs \<Colon> 'a\<Colon>type set) = Ball xs" ..
+
+lemma [code func]:
+  "Bex (xs \<Colon> 'a\<Colon>type set) = Bex xs" ..
+
+code_abstype "'a set" "'a list" where
+  "{}" \<equiv> "empty_list"
+  insert \<equiv> insertl
+  "op \<union>" \<equiv> unionl
+  "op \<inter>" \<equiv> intersect
+  "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" \<equiv> subtract'
+  image \<equiv> map_distinct
+  Union \<equiv> unions
+  Inter \<equiv> intersects
+  UNION \<equiv> map_union
+  INTER \<equiv> map_inter
+  Ball \<equiv> Blall
+  Bex \<equiv> Blex
+
+code_gen "{}" insert "op \<union>" "op \<inter>" "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
+  image Union Inter UNION INTER Ball Bex (SML -)
+
+
 subsection {* type serializations *}
 
 types_code
@@ -246,10 +299,6 @@ fun gen_set' aG i j = frequency
   [(i, fn () => aG j :: gen_set' aG (i-1) j), (1, fn () => [])] ()
 and gen_set aG i = gen_set' aG i i;
 *}
-
-code_type set
-  (SML "_ list")
-  (Haskell target_atom "[_]")
 
 
 subsection {* const serializations *}
@@ -268,64 +317,5 @@ consts_code
   "INTER"   ("{*map_inter*}")
   "Ball"    ("{*Blall*}")
   "Bex"     ("{*Blex*}")
-
-code_constname
-  "ExecutableSet.member" "List.member"
-  "ExecutableSet.insertl" "List.insertl"
-  "ExecutableSet.drop_first" "List.drop_first"
-
-code_const "{}"
-  (SML target_atom "[]")
-  (Haskell target_atom "[]")
-
-code_const insert
-  (SML "{*insertl*}")
-  (Haskell "{*insertl*}")
-
-code_const insert
-  (SML "{*insertl*}")
-  (Haskell "{*insertl*}")
-
-code_const "op \<union>"
-  (SML "{*unionl*}")
-  (Haskell "{*unionl*}")
-
-code_const "op \<inter>"
-  (SML "{*intersect*}")
-  (Haskell "{*intersect*}")
-
-code_const "op - :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
-  (SML "{*flip subtract*}")
-  (Haskell "{*flip subtract*}")
-
-code_const image
-  (SML "{*map_distinct*}")
-  (Haskell "{*map_distinct*}")
-
-code_const "Union"
-  (SML "{*unions*}")
-  (Haskell "{*unions*}")
-
-code_const "Inter"
-  (SML "{*intersects*}")
-  (Haskell "{*intersects*}")
-
-code_const UNION
-  (SML "{*map_union*}")
-  (Haskell "{*map_union*}")
-
-code_const INTER
-  (SML "{*map_inter*}")
-  (Haskell "{*map_inter*}")
-
-code_const Ball
-  (SML "{*Blall*}")
-  (Haskell "{*Blall*}")
-
-code_const Bex
-  (SML "{*Blex*}")
-  (Haskell "{*Blex*}")
-
-code_gen (SML -) (SML _)
 
 end
