@@ -48,12 +48,20 @@ fun increS' count_comb =  if count_comb then combS'_count := !combS'_count + 1 e
 
 
 exception DECRE_COMB of string;
-fun decreB count_comb n = if count_comb then (if !combB_count >= n then combB_count := !combB_count - n else raise (DECRE_COMB "COMBB")) else ();
+fun decreB count_comb n = 
+  if count_comb then 
+    if !combB_count >= n then combB_count := !combB_count - n else raise DECRE_COMB "COMBB"
+  else ();
 
-fun decreC count_comb n = if count_comb then (if !combC_count >= n then combC_count := !combC_count - n else raise (DECRE_COMB "COMBC")) else ();
+fun decreC count_comb n =
+  if count_comb then 
+    if !combC_count >= n then combC_count := !combC_count - n else raise DECRE_COMB "COMBC"
+  else ();
 
-fun decreS count_comb n = if count_comb then (if !combS_count >= n then combS_count := !combS_count - n else raise (DECRE_COMB "COMBS")) else ();
-
+fun decreS count_comb n = 
+  if count_comb then 
+    if !combS_count >= n then combS_count := !combS_count - n else raise DECRE_COMB "COMBS"
+  else ();
 
 val const_typargs = ref (Library.K [] : (string*typ -> typ list));
 
@@ -82,7 +90,7 @@ fun decre_bndVar (Bound n) = Bound (n-1)
 
 
 (*******************************************)
-fun mk_compact_comb (tm as (Const("COMBB",_)$p) $ (Const("COMBB",_)$q$r)) Bnds count_comb =
+fun mk_compact_comb (tm as (Const("Reconstruction.COMBB",_)$p) $ (Const("Reconstruction.COMBB",_)$q$r)) Bnds count_comb =
     let val tp_p = Term.type_of1(Bnds,p)
 	val tp_q = Term.type_of1(Bnds,q)
 	val tp_r = Term.type_of1(Bnds,r)
@@ -91,9 +99,9 @@ fun mk_compact_comb (tm as (Const("COMBB",_)$p) $ (Const("COMBB",_)$q$r)) Bnds c
 	val _ = increB' count_comb
 	val _ = decreB count_comb 2
     in
-	Const("COMBB_e",typ_B') $ p $ q $ r
+	Const("Reconstruction.COMBB'",typ_B') $ p $ q $ r
     end
-  | mk_compact_comb (tm as (Const("COMBC",_) $ (Const("COMBB",_)$p$q) $ r)) Bnds count_comb =
+  | mk_compact_comb (tm as (Const("Reconstruction.COMBC",_) $ (Const("Reconstruction.COMBB",_)$p$q) $ r)) Bnds count_comb =
     let val tp_p = Term.type_of1(Bnds,p)
 	val tp_q = Term.type_of1(Bnds,q)
 	val tp_r = Term.type_of1(Bnds,r)
@@ -103,9 +111,9 @@ fun mk_compact_comb (tm as (Const("COMBB",_)$p) $ (Const("COMBB",_)$q$r)) Bnds c
 	val _ = decreC count_comb 1
 	val _ = decreB count_comb 1
     in
-	Const("COMBC_e",typ_C') $ p $ q $ r
+	Const("Reconstruction.COMBC'",typ_C') $ p $ q $ r
     end
-  | mk_compact_comb (tm as (Const("COMBS",_) $ (Const("COMBB",_)$p$q) $ r)) Bnds count_comb =
+  | mk_compact_comb (tm as (Const("Reconstruction.COMBS",_) $ (Const("Reconstruction.COMBB",_)$p$q) $ r)) Bnds count_comb =
     let val tp_p = Term.type_of1(Bnds,p)
 	val tp_q = Term.type_of1(Bnds,q)
 	val tp_r = Term.type_of1(Bnds,r)
@@ -115,7 +123,7 @@ fun mk_compact_comb (tm as (Const("COMBB",_)$p) $ (Const("COMBB",_)$q$r)) Bnds c
 	val _ = decreS count_comb 1
 	val _ = decreB count_comb 1
     in
-	Const("COMBS_e",typ_S') $ p $ q $ r
+	Const("Reconstruction.COMBS'",typ_S') $ p $ q $ r
     end
   | mk_compact_comb tm _ _ = tm;
 
@@ -125,7 +133,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
     let val tpI = Type("fun",[tp,tp])
 	val _ = increI count_comb
     in 
-	Const("COMBI",tpI) 
+	Const("Reconstruction.COMBI",tpI) 
     end
   | lam2comb (Abs(x,tp,Bound n)) Bnds count_comb = 
     let val (Bound n') = decre_bndVar (Bound n)
@@ -133,25 +141,25 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 	val tK = Type("fun",[tb,Type("fun",[tp,tb])])
 	val _ = increK count_comb 
     in
-	Const("COMBK",tK) $ (Bound n')
+	Const("Reconstruction.COMBK",tK) $ (Bound n')
     end
   | lam2comb (Abs(x,t1,Const(c,t2))) _ count_comb = 
     let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
 	val _ = increK count_comb 
     in 
-	Const("COMBK",tK) $ Const(c,t2) 
+	Const("Reconstruction.COMBK",tK) $ Const(c,t2) 
     end
   | lam2comb (Abs(x,t1,Free(v,t2))) _ count_comb =
     let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
 	val _ = increK count_comb
     in
-	Const("COMBK",tK) $ Free(v,t2)
+	Const("Reconstruction.COMBK",tK) $ Free(v,t2)
     end
   | lam2comb (Abs(x,t1,Var(ind,t2))) _ count_comb =
     let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
 	val _ = increK count_comb 
     in
-	Const("COMBK",tK) $ Var(ind,t2)
+	Const("Reconstruction.COMBK",tK) $ Var(ind,t2)
     end
   | lam2comb (t as (Abs(x,t1,P$(Bound 0)))) Bnds count_comb =
     let val nfreeP = not(is_free P 0)
@@ -166,7 +174,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 		  val _ = increI count_comb
 		  val _ = increS count_comb
 	      in
-		  compact_comb (Const("COMBS",tS) $ P' $ Const("COMBI",tI)) Bnds count_comb
+		  compact_comb (Const("Reconstruction.COMBS",tS) $ P' $ Const("Reconstruction.COMBI",tI)) Bnds count_comb
 	      end)
     end
 	    
@@ -179,7 +187,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 		val PQ' = decre_bndVar(P $ Q)
 		val _ = increK count_comb
 	    in 
-		Const("COMBK",tK) $ PQ'
+		Const("Reconstruction.COMBK",tK) $ PQ'
 	    end)
 	else (
 	      if nfreeP then (
@@ -190,7 +198,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 				   val tB = Type("fun",[tp,Type("fun",[tq',Type("fun",[t1,tpq])])])
 				   val _ = increB count_comb
 			       in
-				   compact_comb (Const("COMBB",tB) $ P' $ Q') Bnds count_comb 
+				   compact_comb (Const("Reconstruction.COMBB",tB) $ P' $ Q') Bnds count_comb 
 			       end)
 	      else (
 		    if nfreeQ then (
@@ -201,7 +209,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 					val tC = Type("fun",[tp',Type("fun",[tq,Type("fun",[t1,tpq])])])
 					val _ = increC count_comb
 				    in
-					compact_comb (Const("COMBC",tC) $ P' $ Q') Bnds count_comb
+					compact_comb (Const("Reconstruction.COMBC",tC) $ P' $ Q') Bnds count_comb
 				    end)
 		    else(
 			 let val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
@@ -211,7 +219,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 			     val tS = Type("fun",[tp',Type("fun",[tq',Type("fun",[t1,tpq])])])
 			     val _ = increS count_comb
 			 in
-			     compact_comb (Const("COMBS",tS) $ P' $ Q') Bnds count_comb
+			     compact_comb (Const("Reconstruction.COMBS",tS) $ P' $ Q') Bnds count_comb
 			 end)))
     end
   | lam2comb (t as (Abs(x,t1,_))) _ _ = raise ResClause.CLAUSE("HOL CLAUSE",t);
@@ -795,7 +803,10 @@ fun dfg_write_file  thms filename (axclauses,classrel_clauses,arity_clauses) use
 	TextIO.output (out, "end_of_list.\n\nlist_of_clauses(conjectures,cnf).\n");
 	ResClause.writeln_strs out tfree_clss;
 	ResClause.writeln_strs out dfg_clss;
-	TextIO.output (out, "end_of_list.\n\nend_problem.\n");
+	TextIO.output (out, "end_of_list.\n\n");
+	(*VarWeight=3 helps the HO problems, probably by counteracting the presence of hAPP*)
+	TextIO.output (out, "list_of_settings(SPASS).\n{*\nset_flag(VarWeight,3).\n*}\nend_of_list.\n\n");
+	TextIO.output (out, "end_problem.\n");
 	TextIO.closeOut out;
 	clnames
     end;
