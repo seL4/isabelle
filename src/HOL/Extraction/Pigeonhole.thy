@@ -304,14 +304,16 @@ ML "PH.pigeonhole 8 (PH.sel [0,1,2,3,4,5,6,3,7,8])"
 definition
   arbitrary_nat :: "nat \<times> nat"
   "arbitrary_nat = arbitrary"
+  arbitrary_nat_subst :: "nat \<times> nat"
+  "arbitrary_nat_subst = (0, 0)"
 
 lemma [code func]:
   "arbitrary_nat = arbitrary_nat" ..
 
 declare arbitrary_nat_def [symmetric, code inline]
 
-code_const arbitrary_nat
-  (SML "{* (0\<Colon>nat, 0\<Colon>nat) *}")
+code_constsubst
+  arbitrary_nat \<equiv> arbitrary_nat_subst
 
 definition
   "test n = pigeonhole n (\<lambda>m. m - 1)"
