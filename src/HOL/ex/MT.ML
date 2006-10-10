@@ -601,6 +601,9 @@ qed "hasty_elim_clos";
 (* The pointwise extension of hasty to environments             *)
 (* ############################################################ *)
 
+fun excluded_middle_tac sP =
+  res_inst_tac [("Q", sP)] (excluded_middle RS HOL.disjE);
+
 Goal "[| ve hastyenv te; v hasty t |] ==> \
 \        ve + {ev |-> v} hastyenv te + {ev |=> t}";
 by (rewtac hasty_env_def);
