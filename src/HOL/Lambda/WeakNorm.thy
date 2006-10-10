@@ -566,17 +566,17 @@ We now try out the extracted program @{text "type_NF"} on some example terms.
 *}
 
 ML {*
-val sg = sign_of (the_context());
-fun rd s = read_cterm sg (s, TypeInfer.logicT);
+val thy = the_context ();
+fun rd s = read_cterm thy (s, TypeInfer.logicT);
 
 val ct1 = rd "%f. ((%f x. f (f (f x))) ((%f x. f (f (f (f x)))) f))";
 val (dB1, _) = Norm.type_NF (typing_of_term [] dummyf (term_of ct1));
-val ct1' = cterm_of sg (term_of_dB [] (#T (rep_cterm ct1)) dB1);
+val ct1' = cterm_of thy (term_of_dB [] (#T (rep_cterm ct1)) dB1);
 
 val ct2 = rd
   "%f x. (%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) x)))))";
 val (dB2, _) = Norm.type_NF (typing_of_term [] dummyf (term_of ct2));
-val ct2' = cterm_of sg (term_of_dB [] (#T (rep_cterm ct2)) dB2);
+val ct2' = cterm_of thy (term_of_dB [] (#T (rep_cterm ct2)) dB2);
 *}
 
 end
