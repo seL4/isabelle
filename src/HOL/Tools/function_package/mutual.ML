@@ -278,15 +278,20 @@ fun mk_applied_form ctxt caTs thm =
 
 fun mutual_induct_rules thy induct all_f_defs (Mutual {RST, parts, streeA, ...}) =
     let
-        fun mk_P (MutualPart {cargTs, ...}) Pname =
+      val newPs = map2 (fn Pname => fn MutualPart {cargTs, ...} => 
+                                   Free (Pname, cargTs ---> HOLogic.boolT))
+                       (mutual_induct_Pnames (length parts))
+                       parts
+
+        fun mk_P (MutualPart {cargTs, ...}) P =
             let
                 val avars = map_index (fn (i,T) => Var (("a", i), T)) cargTs
                 val atup = foldr1 HOLogic.mk_prod avars
             in
-                tupled_lambda atup (list_comb (Free (Pname, cargTs ---> HOLogic.boolT), avars))
+                tupled_lambda atup (list_comb (P, avars))
             end
 
-        val Ps = map2 mk_P parts (mutual_induct_Pnames (length parts))
+        val Ps = map2 mk_P parts newPs
         val case_exp = SumTools.mk_sumcases streeA HOLogic.boolT Ps
 
         val induct_inst =
@@ -302,6 +307,7 @@ fun mutual_induct_rules thy induct all_f_defs (Mutual {RST, parts, streeA, ...})
                 rule
                     |> forall_elim (cterm_of thy inj)
                     |> full_simplify (HOL_basic_ss addsimps (split_apply :: sum_case_rules))
+                    |> fold_rev (forall_intr o cterm_of thy) (afs @ newPs)
             end
 
     in
