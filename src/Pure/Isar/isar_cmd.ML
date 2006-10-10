@@ -19,13 +19,13 @@ sig
   val pr: string list * (int option * int option) -> Toplevel.transition -> Toplevel.transition
   val disable_pr: Toplevel.transition -> Toplevel.transition
   val enable_pr: Toplevel.transition -> Toplevel.transition
-  val undo_end: string -> Toplevel.transition -> Toplevel.transition
   val clear_undos_theory: int -> Toplevel.transition -> Toplevel.transition
   val redo: Toplevel.transition -> Toplevel.transition
   val undos_proof: int -> Toplevel.transition -> Toplevel.transition
   val kill_proof_notify: (unit -> unit) -> Toplevel.transition -> Toplevel.transition
   val kill_proof: Toplevel.transition -> Toplevel.transition
   val undo_theory: Toplevel.transition -> Toplevel.transition
+  val undo_end: Toplevel.transition -> Toplevel.transition
   val undo: Toplevel.transition -> Toplevel.transition
   val kill: Toplevel.transition -> Toplevel.transition
   val back: Toplevel.transition -> Toplevel.transition
@@ -136,7 +136,6 @@ val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
 
 (* history commands *)
 
-fun undo_end txt = Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt));
 val clear_undos_theory = Toplevel.history o History.clear;
 
 val redo =
@@ -159,8 +158,12 @@ val kill_proof = kill_proof_notify (K ());
 val undo_theory = Toplevel.history (fn hist =>
   if History.is_initial hist then raise Toplevel.UNDEF else History.undo hist);
 
+val undo_end =
+  Toplevel.imperative (fn () => error "Cannot undo end of theory") o
+  undo_theory;
+
 val undo = Toplevel.kill o undo_theory o undos_proof 1;
-val kill = Toplevel.kill o kill_proof;
+val kill = Toplevel.kill o Toplevel.exit_local_theory o kill_proof;
 
 val back =
   Toplevel.actual_proof ProofHistory.back o
@@ -231,7 +234,7 @@ val print_theorems_proof = Toplevel.keep (fn state =>
 val print_theorems_theory = Toplevel.keep (fn state =>
   Toplevel.theory_of state |>
   (case Option.map Toplevel.theory_node (History.previous (Toplevel.node_history_of state)) of
-    SOME (SOME prev_thy) => ProofDisplay.print_theorems_diff prev_thy
+    SOME (SOME prev_thy) => ProofDisplay.print_theorems_diff (Context.theory_of prev_thy)
   | _ => ProofDisplay.print_theorems));
 
 val print_theorems = Toplevel.unknown_theory o print_theorems_theory o print_theorems_proof;
@@ -244,14 +247,17 @@ fun print_locale (show_facts, (import, body)) = Toplevel.unknown_theory o
     Locale.print_locale (Toplevel.theory_of state) show_facts import body);
 
 fun print_registrations show_wits name = Toplevel.unknown_context o
-  Toplevel.keep (Toplevel.node_case (Locale.print_global_registrations show_wits name)
+  Toplevel.keep (Toplevel.node_case
+      (Context.cases (Locale.print_global_registrations show_wits name)
+        (Locale.print_local_registrations show_wits name))
     (Locale.print_local_registrations show_wits name o Proof.context_of));
 
 val print_attributes = Toplevel.unknown_theory o
   Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);
 
 val print_simpset = Toplevel.unknown_context o
-  Toplevel.keep (Toplevel.node_case Simplifier.print_simpset
+  Toplevel.keep (Toplevel.node_case
+    (Context.cases Simplifier.print_simpset Simplifier.print_local_simpset)
     (Simplifier.print_local_simpset o Proof.context_of));
 
 val print_rules = Toplevel.unknown_context o
@@ -385,7 +391,7 @@ local
 
 fun present _ txt true node = OuterSyntax.check_text txt (SOME node)
   | present f (s, _) false node =
-      Context.setmp (try (Toplevel.cases_node I Proof.theory_of) node) f s;
+      Context.setmp (try (Toplevel.cases_node Context.theory_of Proof.theory_of) node) f s;
 
 fun present_local_theory f (loc, txt) = Toplevel.present_local_theory loc (present f txt);
 fun present_proof f txt = Toplevel.print o Toplevel.present_proof (present f txt);
