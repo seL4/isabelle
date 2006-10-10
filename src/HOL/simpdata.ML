@@ -6,93 +6,28 @@
 Instantiation of the generic simplifier for HOL.
 *)
 
-(* legacy ML bindings *)
+(* legacy ML bindings - FIXME get rid of this *)
 
 val Eq_FalseI = thm "Eq_FalseI";
 val Eq_TrueI = thm "Eq_TrueI";
-val all_conj_distrib = thm "all_conj_distrib";
-val all_simps = thms "all_simps";
-val cases_simp = thm "cases_simp";
-val conj_assoc = thm "conj_assoc";
-val conj_comms = thms "conj_comms";
-val conj_commute = thm "conj_commute";
-val conj_cong = thm "conj_cong";
-val conj_disj_distribL = thm "conj_disj_distribL";
-val conj_disj_distribR = thm "conj_disj_distribR";
-val conj_left_commute = thm "conj_left_commute";
 val de_Morgan_conj = thm "de_Morgan_conj";
 val de_Morgan_disj = thm "de_Morgan_disj";
-val disj_assoc = thm "disj_assoc";
-val disj_comms = thms "disj_comms";
-val disj_commute = thm "disj_commute";
-val disj_cong = thm "disj_cong";
-val disj_conj_distribL = thm "disj_conj_distribL";
-val disj_conj_distribR = thm "disj_conj_distribR";
-val disj_left_commute = thm "disj_left_commute";
-val disj_not1 = thm "disj_not1";
-val disj_not2 = thm "disj_not2";
-val eq_ac = thms "eq_ac";
-val eq_assoc = thm "eq_assoc";
-val eq_commute = thm "eq_commute";
-val eq_left_commute = thm "eq_left_commute";
-val eq_sym_conv = thm "eq_sym_conv";
-val eta_contract_eq = thm "eta_contract_eq";
-val ex_disj_distrib = thm "ex_disj_distrib";
-val ex_simps = thms "ex_simps";
-val if_False = thm "if_False";
-val if_P = thm "if_P";
-val if_True = thm "if_True";
-val if_bool_eq_conj = thm "if_bool_eq_conj";
-val if_bool_eq_disj = thm "if_bool_eq_disj";
-val if_cancel = thm "if_cancel";
-val if_def2 = thm "if_def2";
-val if_eq_cancel = thm "if_eq_cancel";
-val if_not_P = thm "if_not_P";
-val if_splits = thms "if_splits";
 val iff_conv_conj_imp = thm "iff_conv_conj_imp";
-val imp_all = thm "imp_all";
 val imp_cong = thm "imp_cong";
-val imp_conjL = thm "imp_conjL";
-val imp_conjR = thm "imp_conjR";
 val imp_conv_disj = thm "imp_conv_disj";
 val imp_disj1 = thm "imp_disj1";
 val imp_disj2 = thm "imp_disj2";
 val imp_disjL = thm "imp_disjL";
-val imp_disj_not1 = thm "imp_disj_not1";
-val imp_disj_not2 = thm "imp_disj_not2";
-val imp_ex = thm "imp_ex";
-val meta_eq_to_obj_eq = thm "meta_eq_to_obj_eq";
-val neq_commute = thm "neq_commute";
-val not_all = thm "not_all";
-val not_ex = thm "not_ex";
-val not_iff = thm "not_iff";
-val not_imp = thm "not_imp";
-val not_not = thm "not_not";
-val rev_conj_cong = thm "rev_conj_cong";
-val simp_impliesE = thm "simp_impliesI";
 val simp_impliesI = thm "simp_impliesI";
 val simp_implies_cong = thm "simp_implies_cong";
 val simp_implies_def = thm "simp_implies_def";
-val simp_thms = thms "simp_thms";
-val split_if = thm "split_if";
-val split_if_asm = thm "split_if_asm";
-val atomize_not = thm"atomize_not";
 
 local
-val uncurry = prove_goal (the_context()) "P --> Q --> R ==> P & Q --> R"
-              (fn prems => [cut_facts_tac prems 1, Blast_tac 1]);
-
-val iff_allI = allI RS
-    prove_goal (the_context()) "!x. P x = Q x ==> (!x. P x) = (!x. Q x)"
-               (fn prems => [cut_facts_tac prems 1, Blast_tac 1])
-val iff_exI = allI RS
-    prove_goal (the_context()) "!x. P x = Q x ==> (? x. P x) = (? x. Q x)"
-               (fn prems => [cut_facts_tac prems 1, Blast_tac 1])
-
-val all_comm = prove_goal (the_context()) "(!x y. P x y) = (!y x. P x y)"
-               (fn _ => [Blast_tac 1])
-val ex_comm = prove_goal (the_context()) "(? x y. P x y) = (? y x. P x y)"
-               (fn _ => [Blast_tac 1])
+  val uncurry = thm "uncurry"
+  val iff_allI = thm "iff_allI"
+  val iff_exI = thm "iff_exI"
+  val all_comm = thm "all_comm"
+  val ex_comm = thm "ex_comm"
 in
 
 (*** make simplification procedures for quantifier elimination ***)
@@ -109,16 +44,16 @@ structure Quantifier1 = Quantifier1Fun
   val conj = HOLogic.conj
   val imp  = HOLogic.imp
   (*rules*)
-  val iff_reflection = eq_reflection
-  val iffI = iffI
-  val iff_trans = trans
-  val conjI= conjI
-  val conjE= conjE
-  val impI = impI
-  val mp   = mp
+  val iff_reflection = HOL.eq_reflection
+  val iffI = HOL.iffI
+  val iff_trans = HOL.trans
+  val conjI= HOL.conjI
+  val conjE= HOL.conjE
+  val impI = HOL.impI
+  val mp   = HOL.mp
   val uncurry = uncurry
-  val exI  = exI
-  val exE  = exE
+  val exI  = HOL.exI
+  val exE  = HOL.exE
   val iff_allI = iff_allI
   val iff_exI = iff_exI
   val all_comm = all_comm
@@ -128,63 +63,59 @@ end);
 end;
 
 val defEX_regroup =
-  Simplifier.simproc (Theory.sign_of (the_context ()))
+  Simplifier.simproc (the_context ())
     "defined EX" ["EX x. P x"] Quantifier1.rearrange_ex;
 
 val defALL_regroup =
-  Simplifier.simproc (Theory.sign_of (the_context ()))
+  Simplifier.simproc (the_context ())
     "defined ALL" ["ALL x. P x"] Quantifier1.rearrange_all;
 
 
-(*** simproc for proving "(y = x) == False" from prmise "~(x = y)" ***)
+(* simproc for proving "(y = x) == False" from premise "~(x = y)" *)
 
 val use_neq_simproc = ref true;
 
 local
-
-val neq_to_EQ_False = thm "not_sym" RS Eq_FalseI;
-
-fun neq_prover sg ss (eq $ lhs $ rhs) =
-let
-  fun test thm = (case #prop(rep_thm thm) of
+  val neq_to_EQ_False = thm "not_sym" RS Eq_FalseI;
+  fun neq_prover sg ss (eq $ lhs $ rhs) =
+    let
+      fun test thm = (case #prop (rep_thm thm) of
                     _ $ (Not $ (eq' $ l' $ r')) =>
                       Not = HOLogic.Not andalso eq' = eq andalso
                       r' aconv lhs andalso l' aconv rhs
                   | _ => false)
-in
-  if !use_neq_simproc then
-    case Library.find_first test (prems_of_ss ss) of NONE => NONE
-    | SOME thm => SOME (thm RS neq_to_EQ_False)
-  else NONE
-end
-
+    in if !use_neq_simproc then case find_first test (prems_of_ss ss)
+     of NONE => NONE
+      | SOME thm => SOME (thm RS neq_to_EQ_False)
+     else NONE
+    end
 in
 
-val neq_simproc =
-  Simplifier.simproc (the_context ()) "neq_simproc" ["x = y"] neq_prover;
+val neq_simproc = Simplifier.simproc (the_context ())
+  "neq_simproc" ["x = y"] neq_prover;
 
 end;
 
 
-(*** Simproc for Let ***)
+(* Simproc for Let *)
 
 val use_let_simproc = ref true;
 
 local
-val Let_folded = thm "Let_folded";
-val Let_unfold = thm "Let_unfold";
-
-val (f_Let_unfold,x_Let_unfold) =
+  val Let_folded = thm "Let_folded";
+  val Let_unfold = thm "Let_unfold";
+  val (f_Let_unfold,x_Let_unfold) =
       let val [(_$(f$x)$_)] = prems_of Let_unfold
-      in (cterm_of (sign_of (the_context ())) f,cterm_of (sign_of (the_context ())) x) end
-val (f_Let_folded,x_Let_folded) =
+      in (cterm_of (the_context ()) f,cterm_of (the_context ()) x) end
+  val (f_Let_folded,x_Let_folded) =
       let val [(_$(f$x)$_)] = prems_of Let_folded
-      in (cterm_of (sign_of (the_context ())) f, cterm_of (sign_of (the_context ())) x) end;
-val g_Let_folded =
-      let val [(_$_$(g$_))] = prems_of Let_folded in cterm_of (sign_of (the_context ())) g end;
+      in (cterm_of (the_context ()) f, cterm_of (the_context ()) x) end;
+  val g_Let_folded =
+      let val [(_$_$(g$_))] = prems_of Let_folded in cterm_of (the_context ()) g end;
 in
+
 val let_simproc =
-  Simplifier.simproc (Theory.sign_of (the_context ())) "let_simp" ["Let x f"]
+  Simplifier.simproc (the_context ()) "let_simp" ["Let x f"]
    (fn sg => fn ss => fn t =>
      let val ctxt = Simplifier.the_context ss;
          val ([t'],ctxt') = Variable.import_terms false [t] ctxt;
@@ -192,7 +123,7 @@ val let_simproc =
       (case t' of (Const ("Let",_)$x$f) => (* x and f are already in normal form *)
          if not (!use_let_simproc) then NONE
          else if is_Free x orelse is_Bound x orelse is_Const x
-         then SOME Let_def
+         then SOME (thm "Let_def")
          else
           let
              val n = case f of (Abs (x,_,_)) => x | _ => "x";
@@ -221,13 +152,14 @@ val let_simproc =
            end
         | _ => NONE)
      end)
+
 end
 
 (*** Case splitting ***)
 
 (*Make meta-equalities.  The operator below is Trueprop*)
 
-fun mk_meta_eq r = r RS eq_reflection;
+fun mk_meta_eq r = r RS HOL.eq_reflection;
 fun safe_mk_meta_eq r = mk_meta_eq r handle Thm.THM _ => r;
 
 fun mk_eq th = case concl_of th of
@@ -238,7 +170,7 @@ fun mk_eq th = case concl_of th of
 (* Expects Trueprop(.) if not == *)
 
 fun mk_eq_True r =
-  SOME (r RS meta_eq_to_obj_eq RS Eq_TrueI) handle Thm.THM _ => NONE;
+  SOME (r RS HOL.meta_eq_to_obj_eq RS Eq_TrueI) handle Thm.THM _ => NONE;
 
 (* Produce theorems of the form
   (P1 =simp=> ... =simp=> Pn => x == y) ==> (P1 =simp=> ... =simp=> Pn => x = y)
@@ -249,7 +181,7 @@ fun lift_meta_eq_to_obj_eq i st =
     fun count_imp (Const ("HOL.simp_implies", _) $ P $ Q) = 1 + count_imp Q
       | count_imp _ = 0;
     val j = count_imp (Logic.strip_assums_concl (List.nth (prems_of st, i - 1)))
-  in if j = 0 then meta_eq_to_obj_eq
+  in if j = 0 then HOL.meta_eq_to_obj_eq
     else
       let
         val Ps = map (fn k => Free ("P" ^ string_of_int k, propT)) (1 upto j);
@@ -263,7 +195,7 @@ fun lift_meta_eq_to_obj_eq i st =
         (mk_simp_implies (HOLogic.mk_Trueprop (HOLogic.mk_eq (x, y))))
         (fn prems => EVERY
          [rewrite_goals_tac [simp_implies_def],
-          REPEAT (ares_tac (meta_eq_to_obj_eq :: map (rewrite_rule [simp_implies_def]) prems) 1)])
+          REPEAT (ares_tac (HOL.meta_eq_to_obj_eq :: map (rewrite_rule [simp_implies_def]) prems) 1)])
       end
   end;
 
@@ -276,28 +208,19 @@ fun mk_meta_cong rl = zero_var_indexes
      else error "Conclusion of congruence rules must be =-equality"
    end);
 
-(* Elimination of True from assumptions: *)
-
-local fun rd s = read_cterm (the_context()) (s, propT);
-in val True_implies_equals = standard' (equal_intr
-  (implies_intr_hyps (implies_elim (assume (rd "True ==> PROP P")) TrueI))
-  (implies_intr_hyps (implies_intr (rd "True") (assume (rd "PROP P")))));
-end;
-
-
 structure SplitterData =
-  struct
+struct
   structure Simplifier = Simplifier
   val mk_eq          = mk_eq
-  val meta_eq_to_iff = meta_eq_to_obj_eq
-  val iffD           = iffD2
-  val disjE          = disjE
-  val conjE          = conjE
-  val exE            = exE
-  val contrapos      = contrapos_nn
-  val contrapos2     = contrapos_pp
-  val notnotD        = notnotD
-  end;
+  val meta_eq_to_iff = HOL.meta_eq_to_obj_eq
+  val iffD           = HOL.iffD2
+  val disjE          = HOL.disjE
+  val conjE          = HOL.conjE
+  val exE            = HOL.exE
+  val contrapos      = HOL.contrapos_nn
+  val contrapos2     = HOL.contrapos_pp
+  val notnotD        = HOL.notnotD
+end;
 
 structure Splitter = SplitterFun(SplitterData);
 
@@ -310,9 +233,9 @@ val Addsplits        = Splitter.Addsplits;
 val Delsplits        = Splitter.Delsplits;
 
 val mksimps_pairs =
-  [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
-   ("All", [spec]), ("True", []), ("False", []),
-   ("HOL.If", [if_bool_eq_conj RS iffD1])];
+  [("op -->", [HOL.mp]), ("op &", [thm "conjunct1", thm "conjunct2"]),
+   ("All", [HOL.spec]), ("True", []), ("False", []),
+   ("HOL.If", [thm "if_bool_eq_conj" RS HOL.iffD1])];
 
 (*
 val mk_atomize:      (string * thm list) list -> thm -> thm list
@@ -336,14 +259,14 @@ fun mksimps pairs =
 
 fun unsafe_solver_tac prems =
   (fn i => REPEAT_DETERM (match_tac [simp_impliesI] i)) THEN'
-  FIRST'[resolve_tac(reflexive_thm::TrueI::refl::prems), atac, etac FalseE];
+  FIRST'[resolve_tac(reflexive_thm :: HOL.TrueI :: HOL.refl :: prems), atac, etac HOL.FalseE];
 val unsafe_solver = mk_solver "HOL unsafe" unsafe_solver_tac;
 
 (*No premature instantiation of variables during simplification*)
 fun safe_solver_tac prems =
   (fn i => REPEAT_DETERM (match_tac [simp_impliesI] i)) THEN'
-  FIRST'[match_tac(reflexive_thm::TrueI::refl::prems),
-         eq_assume_tac, ematch_tac [FalseE]];
+  FIRST'[match_tac(reflexive_thm :: HOL.TrueI :: HOL.refl :: prems),
+         eq_assume_tac, ematch_tac [HOL.FalseE]];
 val safe_solver = mk_solver "HOL safe" safe_solver_tac;
 
 val HOL_basic_ss =
@@ -365,65 +288,42 @@ fun unfold_tac ths =
   rewriting by "(P|Q --> R) = ((P-->R)&(Q-->R))" might be justified on the
   grounds that it allows simplification of R in the two cases.*)
 
+local
+  val ex_simps = thms "ex_simps";
+  val all_simps = thms "all_simps";
+  val simp_thms = thms "simp_thms";
+  val cases_simp = thm "cases_simp";
+  val conj_assoc = thm "conj_assoc";
+  val if_False = thm "if_False";
+  val if_True = thm "if_True";
+  val disj_assoc = thm "disj_assoc";
+  val disj_not1 = thm "disj_not1";
+  val if_cancel = thm "if_cancel";
+  val if_eq_cancel = thm "if_eq_cancel";
+  val True_implies_equals = thm "True_implies_equals";
+in
+
 val HOL_ss =
     HOL_basic_ss addsimps
      ([triv_forall_equality, (* prunes params *)
        True_implies_equals, (* prune asms `True' *)
        if_True, if_False, if_cancel, if_eq_cancel,
        imp_disjL, conj_assoc, disj_assoc,
-       de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2, not_imp,
-       disj_not1, not_all, not_ex, cases_simp,
-       thm "the_eq_trivial", the_sym_eq_trivial]
+       de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2, thm "not_imp",
+       disj_not1, thm "not_all", thm "not_ex", cases_simp,
+       thm "the_eq_trivial", HOL.the_sym_eq_trivial]
      @ ex_simps @ all_simps @ simp_thms)
      addsimprocs [defALL_regroup,defEX_regroup,neq_simproc,let_simproc]
      addcongs [imp_cong, simp_implies_cong]
-     addsplits [split_if];
+     addsplits [thm "split_if"];
+
+end;
 
 fun hol_simplify rews = Simplifier.full_simplify (HOL_basic_ss addsimps rews);
 
-
-(*Simplifies x assuming c and y assuming ~c*)
-val prems = Goalw [if_def]
-  "[| b=c; c ==> x=u; ~c ==> y=v |] ==> \
-\  (if b then x else y) = (if c then u else v)";
-by (asm_simp_tac (HOL_ss addsimps prems) 1);
-qed "if_cong";
-
-(*Prevents simplification of x and y: faster and allows the execution
-  of functional programs. NOW THE DEFAULT.*)
-Goal "b=c ==> (if b then x else y) = (if c then x else y)";
-by (etac arg_cong 1);
-qed "if_weak_cong";
-
-(*Prevents simplification of t: much faster*)
-Goal "a = b ==> (let x=a in t(x)) = (let x=b in t(x))";
-by (etac arg_cong 1);
-qed "let_weak_cong";
-
-(*To tidy up the result of a simproc.  Only the RHS will be simplified.*)
-Goal "u = u' ==> (t==u) == (t==u')";
-by (asm_simp_tac HOL_ss 1);
-qed "eq_cong2";
-
-Goal "f(if c then x else y) = (if c then f x else f y)";
-by (simp_tac (HOL_ss setloop (split_tac [split_if])) 1);
-qed "if_distrib";
-
-(*For expand_case_tac*)
-val prems = Goal "[| P ==> Q(True); ~P ==> Q(False) |] ==> Q(P)";
-by (case_tac "P" 1);
-by (ALLGOALS (asm_simp_tac (HOL_ss addsimps prems)));
-qed "expand_case";
-
-(*This lemma restricts the effect of the rewrite rule u=v to the left-hand
-  side of an equality.  Used in {Integ,Real}/simproc.ML*)
-Goal "x=y ==> (x=z) = (y=z)";
-by (asm_simp_tac HOL_ss 1);
-qed "restrict_to_left";
-
 (* default simpset *)
 val simpsetup =
-  (fn thy => (change_simpset_of thy (fn _ => HOL_ss addcongs [if_weak_cong]); thy));
+  (fn thy => (change_simpset_of thy (fn _ => HOL_ss); thy));
 
 
 (*** integration of simplifier with classical reasoner ***)
@@ -431,7 +331,7 @@ val simpsetup =
 structure Clasimp = ClasimpFun
  (structure Simplifier = Simplifier and Splitter = Splitter
   and Classical  = Classical and Blast = Blast
-  val iffD1 = iffD1 val iffD2 = iffD2 val notE = notE);
+  val iffD1 = HOL.iffD1 val iffD2 = HOL.iffD2 val notE = HOL.notE);
 open Clasimp;
 
 val HOL_css = (HOL_cs, HOL_ss);
@@ -462,20 +362,20 @@ local
     empty_ss setmkeqTrue mk_eq_True
     setmksimps (mksimps mksimps_pairs)
     addsimps [imp_conv_disj,iff_conv_conj_imp,de_Morgan_disj,de_Morgan_conj,
-      not_all,not_ex,not_not];
+      thm "not_all", thm "not_ex", thm "not_not"];
   fun prem_nnf_tac i st =
     full_simp_tac (Simplifier.theory_context (Thm.theory_of_thm st) nnf_simpset) i st;
 in
 fun refute_tac test prep_tac ref_tac =
   let val refute_prems_tac =
         REPEAT_DETERM
-              (eresolve_tac [conjE, exE] 1 ORELSE
+              (eresolve_tac [HOL.conjE, HOL.exE] 1 ORELSE
                filter_prems_tac test 1 ORELSE
-               etac disjE 1) THEN
-        ((etac notE 1 THEN eq_assume_tac 1) ORELSE
+               etac HOL.disjE 1) THEN
+        ((etac HOL.notE 1 THEN eq_assume_tac 1) ORELSE
          ref_tac 1);
   in EVERY'[TRY o filter_prems_tac test,
-            REPEAT_DETERM o etac rev_mp, prep_tac, rtac ccontr, prem_nnf_tac,
+            REPEAT_DETERM o etac HOL.rev_mp, prep_tac, rtac HOL.ccontr, prem_nnf_tac,
             SELECT_GOAL (DEPTH_SOLVE refute_prems_tac)]
   end;
 end;

@@ -150,17 +150,6 @@ axioms
   mp:             "[| P-->Q;  P |] ==> Q"
 
 
-text{*Thanks to Stephan Merz*}
-theorem subst:
-  assumes eq: "s = t" and p: "P(s)"
-  shows "P(t::'a)"
-proof -
-  from eq have meta: "s \<equiv> t"
-    by (rule eq_reflection)
-  from p show ?thesis
-    by (unfold meta)
-qed
-
 defs
   True_def:     "True      == ((%x::bool. x) = (%x. x))"
   All_def:      "All(P)    == (P = (%x. True))"
@@ -236,7 +225,20 @@ const_syntax (HTML output)
   abs  ("\<bar>_\<bar>")
 
 
-subsection {*Equality*}
+subsection {* Fundamental rules *}
+
+subsubsection {*Equality*}
+
+text {* Thanks to Stephan Merz *}
+lemma subst:
+  assumes eq: "s = t" and p: "P s"
+  shows "P t"
+proof -
+  from eq have meta: "s \<equiv> t"
+    by (rule eq_reflection)
+  from p show ?thesis
+    by (unfold meta)
+qed
 
 lemma sym: "s = t ==> t = s"
   by (erule subst) (rule refl)
@@ -247,12 +249,19 @@ lemma ssubst: "t = s ==> P s ==> P t"
 lemma trans: "[| r=s; s=t |] ==> r=t"
   by (erule subst)
 
-lemma def_imp_eq: assumes meq: "A == B" shows "A = B"
+lemma def_imp_eq:
+  assumes meq: "A == B"
+  shows "A = B"
   by (unfold meq) (rule refl)
 
+(*a mere copy*)
+lemma meta_eq_to_obj_eq: 
+  assumes meq: "A == B"
+  shows "A = B"
+  by (unfold meq) (rule refl)
 
-(*Useful with eresolve_tac for proving equalties from known equalities.
-        a = b
+text {* Useful with eresolve\_tac for proving equalties from known equalities. *}
+     (* a = b
         |   |
         c = d   *)
 lemma box_equals: "[| a=b;  a=c;  b=d |] ==> c=d"
@@ -271,7 +280,7 @@ lemma back_subst: "P a ==> a = b ==> P b"
   by (rule subst)
 
 
-subsection {*Congruence rules for application*}
+subsubsection {*Congruence rules for application*}
 
 (*similar to AP_THM in Gordon's HOL*)
 lemma fun_cong: "(f::'a=>'b) = g ==> f(x)=g(x)"
@@ -290,14 +299,13 @@ apply (erule ssubst)+
 apply (rule refl)
 done
 
-
 lemma cong: "[| f = g; (x::'a) = y |] ==> f(x) = g(y)"
 apply (erule subst)+
 apply (rule refl)
 done
 
 
-subsection {*Equality of booleans -- iff*}
+subsubsection {*Equality of booleans -- iff*}
 
 lemma iffI: assumes prems: "P ==> Q" "Q ==> P" shows "P=Q"
   by (iprover intro: iff [THEN mp, THEN mp] impI prems)
@@ -318,7 +326,7 @@ lemma iffE:
   by (iprover intro: minor impI major [THEN iffD2] major [THEN iffD1])
 
 
-subsection {*True*}
+subsubsection {*True*}
 
 lemma TrueI: "True"
   by (unfold True_def) (rule refl)
@@ -332,7 +340,7 @@ apply (rule TrueI)
 done
 
 
-subsection {*Universal quantifier*}
+subsubsection {*Universal quantifier*}
 
 lemma allI: assumes p: "!!x::'a. P(x)" shows "ALL x. P(x)"
 apply (unfold All_def)
@@ -358,7 +366,7 @@ lemma all_dupE:
 by (iprover intro: minor major major [THEN spec])
 
 
-subsection {*False*}
+subsubsection {*False*}
 (*Depends upon spec; it is impossible to do propositional logic before quantifiers!*)
 
 lemma FalseE: "False ==> P"
@@ -370,7 +378,7 @@ lemma False_neq_True: "False=True ==> P"
 by (erule eqTrueE [THEN FalseE])
 
 
-subsection {*Negation*}
+subsubsection {*Negation*}
 
 lemma notI:
   assumes p: "P ==> False"
@@ -400,7 +408,7 @@ done
 lemmas notI2 = notE [THEN notI, standard]
 
 
-subsection {*Implication*}
+subsubsection {*Implication*}
 
 lemma impE:
   assumes "P-->Q" "P" "Q ==> R"
@@ -438,7 +446,7 @@ apply (rule nq [THEN contrapos_nn])
 apply (erule pq)
 done
 
-subsection {*Existential quantifier*}
+subsubsection {*Existential quantifier*}
 
 lemma exI: "P x ==> EX x::'a. P x"
 apply (unfold Ex_def)
@@ -454,7 +462,7 @@ apply (iprover intro: impI [THEN allI] minor)
 done
 
 
-subsection {*Conjunction*}
+subsubsection {*Conjunction*}
 
 lemma conjI: "[| P; Q |] ==> P&Q"
 apply (unfold and_def)
@@ -485,7 +493,7 @@ lemma context_conjI:
 by (iprover intro: conjI prems)
 
 
-subsection {*Disjunction*}
+subsubsection {*Disjunction*}
 
 lemma disjI1: "P ==> P|Q"
 apply (unfold or_def)
@@ -506,8 +514,7 @@ by (iprover intro: minorP minorQ impI
                  major [unfolded or_def, THEN spec, THEN mp, THEN mp])
 
 
-subsection {*Classical logic*}
-
+subsubsection {*Classical logic*}
 
 lemma classical:
   assumes prem: "~P ==> P"
@@ -545,7 +552,7 @@ lemma contrapos_pp:
 by (iprover intro: classical p1 p2 notE)
 
 
-subsection {*Unique existence*}
+subsubsection {*Unique existence*}
 
 lemma ex1I:
   assumes prems: "P a" "!!x. P(x) ==> x=a"
@@ -575,7 +582,7 @@ apply assumption
 done
 
 
-subsection {*THE: definite description operator*}
+subsubsection {*THE: definite description operator*}
 
 lemma the_equality:
   assumes prema: "P a"
@@ -628,7 +635,7 @@ apply (erule sym)
 done
 
 
-subsection {*Classical intro rules for disjunction and existential quantifiers*}
+subsubsection {*Classical intro rules for disjunction and existential quantifiers*}
 
 lemma disjCI:
   assumes "~Q ==> P" shows "P|Q"
@@ -639,8 +646,10 @@ done
 lemma excluded_middle: "~P | P"
 by (iprover intro: disjCI)
 
-text{*case distinction as a natural deduction rule. Note that @{term "~P"}
-   is the second case, not the first.*}
+text {*
+  case distinction as a natural deduction rule.
+  Note that @{term "~P"} is the second case, not the first
+*}
 lemma case_split_thm:
   assumes prem1: "P ==> Q"
       and prem2: "~P ==> Q"
@@ -649,6 +658,7 @@ apply (rule excluded_middle [THEN disjE])
 apply (erule prem2)
 apply (erule prem1)
 done
+lemmas case_split = case_split_thm [case_names True False]
 
 (*Classical implies (-->) elimination. *)
 lemma impCE:
@@ -685,129 +695,6 @@ lemma exCI:
 apply (rule ccontr)
 apply (iprover intro: prems exI allI notI notE [of "\<exists>x. P x"])
 done
-
-
-
-subsection {* Theory and package setup *}
-
-ML
-{*
-val eq_reflection = thm "eq_reflection"
-val refl = thm "refl"
-val subst = thm "subst"
-val ext = thm "ext"
-val impI = thm "impI"
-val mp = thm "mp"
-val True_def = thm "True_def"
-val All_def = thm "All_def"
-val Ex_def = thm "Ex_def"
-val False_def = thm "False_def"
-val not_def = thm "not_def"
-val and_def = thm "and_def"
-val or_def = thm "or_def"
-val Ex1_def = thm "Ex1_def"
-val iff = thm "iff"
-val True_or_False = thm "True_or_False"
-val Let_def = thm "Let_def"
-val if_def = thm "if_def"
-val sym = thm "sym"
-val ssubst = thm "ssubst"
-val trans = thm "trans"
-val def_imp_eq = thm "def_imp_eq"
-val box_equals = thm "box_equals"
-val fun_cong = thm "fun_cong"
-val arg_cong = thm "arg_cong"
-val cong = thm "cong"
-val iffI = thm "iffI"
-val iffD2 = thm "iffD2"
-val rev_iffD2 = thm "rev_iffD2"
-val iffD1 = thm "iffD1"
-val rev_iffD1 = thm "rev_iffD1"
-val iffE = thm "iffE"
-val TrueI = thm "TrueI"
-val eqTrueI = thm "eqTrueI"
-val eqTrueE = thm "eqTrueE"
-val allI = thm "allI"
-val spec = thm "spec"
-val allE = thm "allE"
-val all_dupE = thm "all_dupE"
-val FalseE = thm "FalseE"
-val False_neq_True = thm "False_neq_True"
-val notI = thm "notI"
-val False_not_True = thm "False_not_True"
-val True_not_False = thm "True_not_False"
-val notE = thm "notE"
-val notI2 = thm "notI2"
-val impE = thm "impE"
-val rev_mp = thm "rev_mp"
-val contrapos_nn = thm "contrapos_nn"
-val contrapos_pn = thm "contrapos_pn"
-val not_sym = thm "not_sym"
-val rev_contrapos = thm "rev_contrapos"
-val exI = thm "exI"
-val exE = thm "exE"
-val conjI = thm "conjI"
-val conjunct1 = thm "conjunct1"
-val conjunct2 = thm "conjunct2"
-val conjE = thm "conjE"
-val context_conjI = thm "context_conjI"
-val disjI1 = thm "disjI1"
-val disjI2 = thm "disjI2"
-val disjE = thm "disjE"
-val classical = thm "classical"
-val ccontr = thm "ccontr"
-val rev_notE = thm "rev_notE"
-val notnotD = thm "notnotD"
-val contrapos_pp = thm "contrapos_pp"
-val ex1I = thm "ex1I"
-val ex_ex1I = thm "ex_ex1I"
-val ex1E = thm "ex1E"
-val ex1_implies_ex = thm "ex1_implies_ex"
-val the_equality = thm "the_equality"
-val theI = thm "theI"
-val theI' = thm "theI'"
-val theI2 = thm "theI2"
-val the1_equality = thm "the1_equality"
-val the_sym_eq_trivial = thm "the_sym_eq_trivial"
-val disjCI = thm "disjCI"
-val excluded_middle = thm "excluded_middle"
-val case_split_thm = thm "case_split_thm"
-val impCE = thm "impCE"
-val impCE = thm "impCE"
-val iffCE = thm "iffCE"
-val exCI = thm "exCI"
-
-(* combination of (spec RS spec RS ...(j times) ... spec RS mp) *)
-local
-  fun wrong_prem (Const ("All", _) $ (Abs (_, _, t))) = wrong_prem t
-  |   wrong_prem (Bound _) = true
-  |   wrong_prem _ = false
-  val filter_right = List.filter (fn t => not (wrong_prem (HOLogic.dest_Trueprop (hd (Thm.prems_of t)))))
-in
-  fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp])
-  fun smp_tac j = EVERY'[dresolve_tac (smp j), atac]
-end
-
-
-fun strip_tac i = REPEAT(resolve_tac [impI,allI] i)
-
-(*Obsolete form of disjunctive case analysis*)
-fun excluded_middle_tac sP =
-    res_inst_tac [("Q",sP)] (excluded_middle RS disjE)
-
-fun case_tac a = res_inst_tac [("P",a)] case_split_thm
-*}
-
-theorems case_split = case_split_thm [case_names True False]
-
-ML {*
-structure ProjectRule = ProjectRuleFun
-(struct
-  val conjunct1 = thm "conjunct1";
-  val conjunct2 = thm "conjunct2";
-  val mp = thm "mp";
-end)
-*}
 
 
 subsubsection {* Intuitionistic Reasoning *}
@@ -912,14 +799,75 @@ lemmas [symmetric, rulify] = atomize_all atomize_imp
   and [symmetric, defn] = atomize_all atomize_imp atomize_eq
 
 
+subsection {* Package setup *}
+
+subsubsection {* Fundamental ML bindings *}
+
+ML {*
+structure HOL =
+struct
+  (*FIXME reduce this to a minimum*)
+  val eq_reflection = thm "eq_reflection";
+  val def_imp_eq = thm "def_imp_eq";
+  val meta_eq_to_obj_eq = thm "meta_eq_to_obj_eq";
+  val ccontr = thm "ccontr";
+  val impI = thm "impI";
+  val impCE = thm "impCE";
+  val notI = thm "notI";
+  val notE = thm "notE";
+  val iffI = thm "iffI";
+  val iffCE = thm "iffCE";
+  val conjI = thm "conjI";
+  val conjE = thm "conjE";
+  val disjCI = thm "disjCI";
+  val disjE = thm "disjE";
+  val TrueI = thm "TrueI";
+  val FalseE = thm "FalseE";
+  val allI = thm "allI";
+  val allE = thm "allE";
+  val exI = thm "exI";
+  val exE = thm "exE";
+  val ex_ex1I = thm "ex_ex1I";
+  val the_equality = thm "the_equality";
+  val mp = thm "mp";
+  val rev_mp = thm "rev_mp"
+  val classical = thm "classical";
+  val subst = thm "subst";
+  val refl = thm "refl";
+  val sym = thm "sym";
+  val trans = thm "trans";
+  val arg_cong = thm "arg_cong";
+  val iffD1 = thm "iffD1";
+  val iffD2 = thm "iffD2";
+  val disjE = thm "disjE";
+  val conjE = thm "conjE";
+  val exE = thm "exE";
+  val contrapos_nn = thm "contrapos_nn";
+  val contrapos_pp = thm "contrapos_pp";
+  val notnotD = thm "notnotD";
+  val conjunct1 = thm "conjunct1";
+  val conjunct2 = thm "conjunct2";
+  val spec = thm "spec";
+  val imp_cong = thm "imp_cong";
+  val the_sym_eq_trivial = thm "the_sym_eq_trivial";
+  val triv_forall_equality = thm "triv_forall_equality";
+  val case_split = thm "case_split_thm";
+end
+*}
+
+
 subsubsection {* Classical Reasoner setup *}
 
+lemma thin_refl:
+  "\<And>X. \<lbrakk> x=x; PROP W \<rbrakk> \<Longrightarrow> PROP W" .
+
 use "cladata.ML"
-setup hypsubst_setup
-setup {* ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac) *}
+ML {* val HOL_cs = HOL.cs *}
+setup Hypsubst.hypsubst_setup
+setup {* ContextRules.addSWrapper (fn tac => HOL.hyp_subst_tac' ORELSE' tac) *}
 setup Classical.setup
 setup ResAtpset.setup
-setup clasetup
+setup {* fn thy => (Classical.change_claset_of thy (K HOL.cs); thy) *}
 
 lemma contrapos_np: "~ Q ==> (~ P ==> Q) ==> P"
   apply (erule swap)
@@ -932,17 +880,33 @@ declare ex_ex1I [rule del, intro! 2]
 lemmas [intro?] = ext
   and [elim?] = ex1_implies_ex
 
+(*Better then ex1E for classical reasoner: needs no quantifier duplication!*)
+lemma alt_ex1E:
+  assumes major: "\<exists>!x. P x"
+      and prem: "\<And>x. \<lbrakk> P x; \<forall>y y'. P y \<and> P y' \<longrightarrow> y = y' \<rbrakk> \<Longrightarrow> R"
+  shows R
+apply (rule ex1E [OF major])
+apply (rule prem)
+apply (tactic "ares_tac [HOL.allI] 1")+
+apply (tactic "etac (Classical.dup_elim HOL.allE) 1")
+by iprover
+
 use "blastdata.ML"
 setup Blast.setup
 
+ML {*
+structure HOL =
+struct
 
-subsubsection {* Simplifier setup *}
+open HOL;
 
-lemma meta_eq_to_obj_eq: "x == y ==> x = y"
-proof -
-  assume r: "x == y"
-  show "x = y" by (unfold r) (rule refl)
-qed
+fun case_tac a = res_inst_tac [("P", a)] case_split;
+
+end;
+*}
+
+
+subsubsection {* Simplifier *}
 
 lemma eta_contract_eq: "(%s. f s) = f" ..
 
@@ -953,9 +917,15 @@ lemma simp_thms:
     "(P ~= Q) = (P = (~Q))"
     "(P | ~P) = True"    "(~P | P) = True"
     "(x = x) = True"
-    "(~True) = False"  "(~False) = True"
+  and not_True_eq_False: "(\<not> True) = False"
+  and not_False_eq_True: "(\<not> False) = True"
+  and
     "(~P) ~= P"  "P ~= (~P)"
-    "(True=P) = P"  "(P=True) = P"  "(False=P) = (~P)"  "(P=False) = (~P)"
+    "(True=P) = P"
+  and eq_True: "(P = True) = P"
+  and "(False=P) = (~P)"
+  and eq_False: "(P = False) = (\<not> P)"
+  and
     "(True --> P) = P"  "(False --> P) = True"
     "(P --> True) = True"  "(P --> P) = True"
     "(P --> False) = (~P)"  "(P --> ~P) = (~P)"
@@ -1090,9 +1060,6 @@ lemma disj_cong:
     "(P = P') ==> (~P' ==> (Q = Q')) ==> ((P | Q) = (P' | Q'))"
   by blast
 
-lemma eq_sym_conv: "(x = y) = (y = x)"
-  by iprover
-
 
 text {* \medskip if-then-else rules *}
 
@@ -1118,9 +1085,6 @@ lemma split_if_asm: "P (if Q then x else y) = (~((Q & ~P x) | (~Q & ~P y)))"
 by (simplesubst split_if, blast)
 
 lemmas if_splits = split_if split_if_asm
-
-lemma if_def2: "(if Q then x else y) = ((Q --> x) & (~ Q --> y))"
-  by (rule split_if)
 
 lemma if_cancel: "(if c then x else x) = x"
 by (simplesubst split_if, blast)
@@ -1199,113 +1163,110 @@ qed
 
 text {* \medskip Actual Installation of the Simplifier. *}
 
+lemma True_implies_equals: "(True \<Longrightarrow> PROP P) \<equiv> PROP P"
+proof
+  assume prem: "True \<Longrightarrow> PROP P"
+  from prem [OF TrueI] show "PROP P" . 
+next
+  assume "PROP P"
+  show "PROP P" .
+qed
+
+lemma uncurry:
+  assumes "P \<longrightarrow> Q \<longrightarrow> R"
+  shows "P \<and> Q \<longrightarrow> R"
+  using prems by blast
+
+lemma iff_allI:
+  assumes "\<And>x. P x = Q x"
+  shows "(\<forall>x. P x) = (\<forall>x. Q x)"
+  using prems by blast
+
+lemma iff_exI:
+  assumes "\<And>x. P x = Q x"
+  shows "(\<exists>x. P x) = (\<exists>x. Q x)"
+  using prems by blast
+
+lemma all_comm:
+  "(\<forall>x y. P x y) = (\<forall>y x. P x y)"
+  by blast
+
+lemma ex_comm:
+  "(\<exists>x y. P x y) = (\<exists>y x. P x y)"
+  by blast
+
 use "simpdata.ML"
-setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
-setup Splitter.setup setup Clasimp.setup
+setup "Simplifier.method_setup Splitter.split_modifiers"
+setup simpsetup
+setup Splitter.setup
+setup Clasimp.setup
 setup EqSubst.setup
 
+text {* Simplifies x assuming c and y assuming ~c *}
+lemma if_cong:
+  assumes "b = c"
+      and "c \<Longrightarrow> x = u"
+      and "\<not> c \<Longrightarrow> y = v"
+  shows "(if b then x else y) = (if c then u else v)"
+  unfolding if_def using prems by simp
 
-subsubsection {* Code generator setup *}
+text {* Prevents simplification of x and y:
+  faster and allows the execution of functional programs. *}
+lemma if_weak_cong [cong]:
+  assumes "b = c"
+  shows "(if b then x else y) = (if c then x else y)"
+  using prems by (rule arg_cong)
 
-types_code
-  "bool"  ("bool")
-attach (term_of) {*
-fun term_of_bool b = if b then HOLogic.true_const else HOLogic.false_const;
+text {* Prevents simplification of t: much faster *}
+lemma let_weak_cong:
+  assumes "a = b"
+  shows "(let x = a in t x) = (let x = b in t x)"
+  using prems by (rule arg_cong)
+
+text {* To tidy up the result of a simproc.  Only the RHS will be simplified. *}
+lemma eq_cong2:
+  assumes "u = u'"
+  shows "(t \<equiv> u) \<equiv> (t \<equiv> u')"
+  using prems by simp
+
+lemma if_distrib:
+  "f (if c then x else y) = (if c then f x else f y)"
+  by simp
+
+text {* For expand\_case\_tac *}
+lemma expand_case:
+  assumes "P \<Longrightarrow> Q True"
+      and "~P \<Longrightarrow> Q False"
+  shows "Q P"
+proof (tactic {* HOL.case_tac "P" 1 *})
+  assume P
+  then show "Q P" by simp
+next
+  assume "\<not> P"
+  then have "P = False" by simp
+  with prems show "Q P" by simp
+qed
+
+text {* This lemma restricts the effect of the rewrite rule u=v to the left-hand
+  side of an equality.  Used in {Integ,Real}/simproc.ML *}
+lemma restrict_to_left:
+  assumes "x = y"
+  shows "(x = z) = (y = z)"
+  using prems by simp
+
+
+subsubsection {* Generic cases and induction *}
+
+text {* Rule projections: *}
+
+ML {*
+structure ProjectRule = ProjectRuleFun
+(struct
+  val conjunct1 = thm "conjunct1";
+  val conjunct2 = thm "conjunct2";
+  val mp = thm "mp";
+end)
 *}
-attach (test) {*
-fun gen_bool i = one_of [false, true];
-*}
-  "prop"  ("bool")
-attach (term_of) {*
-fun term_of_prop b =
-  HOLogic.mk_Trueprop (if b then HOLogic.true_const else HOLogic.false_const);
-*}
-
-consts_code
-  "Trueprop" ("(_)")
-  "True"    ("true")
-  "False"   ("false")
-  "Not"     ("not")
-  "op |"    ("(_ orelse/ _)")
-  "op &"    ("(_ andalso/ _)")
-  "HOL.If"      ("(if _/ then _/ else _)")
-
-setup {*
-let
-
-fun eq_codegen thy defs gr dep thyname b t =
-    (case strip_comb t of
-       (Const ("op =", Type (_, [Type ("fun", _), _])), _) => NONE
-     | (Const ("op =", _), [t, u]) =>
-          let
-            val (gr', pt) = Codegen.invoke_codegen thy defs dep thyname false (gr, t);
-            val (gr'', pu) = Codegen.invoke_codegen thy defs dep thyname false (gr', u);
-            val (gr''', _) = Codegen.invoke_tycodegen thy defs dep thyname false (gr'', HOLogic.boolT)
-          in
-            SOME (gr''', Codegen.parens
-              (Pretty.block [pt, Pretty.str " =", Pretty.brk 1, pu]))
-          end
-     | (t as Const ("op =", _), ts) => SOME (Codegen.invoke_codegen
-         thy defs dep thyname b (gr, Codegen.eta_expand t ts 2))
-     | _ => NONE);
-
-in
-
-Codegen.add_codegen "eq_codegen" eq_codegen
-
-end
-*}
-
-setup {*
-let
-
-fun evaluation_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
-  (Drule.goals_conv (equal i) Codegen.evaluation_conv));
-
-val evaluation_meth =
-  Method.no_args (Method.METHOD (fn _ => evaluation_tac 1 THEN rtac TrueI 1));
-
-in
-
-Method.add_method ("evaluation", evaluation_meth, "solve goal by evaluation")
-
-end;
-*}
-
-
-subsection {* Other simple lemmas *}
-
-declare disj_absorb [simp] conj_absorb [simp]
-
-lemma ex1_eq[iff]: "EX! x. x = t" "EX! x. t = x"
-by blast+
-
-
-theorem choice_eq: "(ALL x. EX! y. P x y) = (EX! f. ALL x. P x (f x))"
-  apply (rule iffI)
-  apply (rule_tac a = "%x. THE y. P x y" in ex1I)
-  apply (fast dest!: theI')
-  apply (fast intro: ext the1_equality [symmetric])
-  apply (erule ex1E)
-  apply (rule allI)
-  apply (rule ex1I)
-  apply (erule spec)
-  apply (erule_tac x = "%z. if z = x then y else f z" in allE)
-  apply (erule impE)
-  apply (rule allI)
-  apply (rule_tac P = "xa = x" in case_split_thm)
-  apply (drule_tac [3] x = x in fun_cong, simp_all)
-  done
-
-text{*Needs only HOL-lemmas:*}
-lemma mk_left_commute:
-  assumes a: "\<And>x y z. f (f x y) z = f x (f y z)" and
-          c: "\<And>x y. f x y = f y x"
-  shows "f x (f y z) = f y (f x z)"
-by(rule trans[OF trans[OF c a] arg_cong[OF c, of "f y"]])
-
-
-subsection {* Generic cases and induction *}
 
 constdefs
   induct_forall where "induct_forall P == \<forall>x. P x"
@@ -1369,6 +1330,74 @@ ML {*
 setup InductMethod.setup
 
 
+subsubsection {* Code generator setup *}
+
+types_code
+  "bool"  ("bool")
+attach (term_of) {*
+fun term_of_bool b = if b then HOLogic.true_const else HOLogic.false_const;
+*}
+attach (test) {*
+fun gen_bool i = one_of [false, true];
+*}
+  "prop"  ("bool")
+attach (term_of) {*
+fun term_of_prop b =
+  HOLogic.mk_Trueprop (if b then HOLogic.true_const else HOLogic.false_const);
+*}
+
+consts_code
+  "Trueprop" ("(_)")
+  "True"    ("true")
+  "False"   ("false")
+  "Not"     ("not")
+  "op |"    ("(_ orelse/ _)")
+  "op &"    ("(_ andalso/ _)")
+  "HOL.If"      ("(if _/ then _/ else _)")
+
+setup {*
+let
+
+fun eq_codegen thy defs gr dep thyname b t =
+    (case strip_comb t of
+       (Const ("op =", Type (_, [Type ("fun", _), _])), _) => NONE
+     | (Const ("op =", _), [t, u]) =>
+          let
+            val (gr', pt) = Codegen.invoke_codegen thy defs dep thyname false (gr, t);
+            val (gr'', pu) = Codegen.invoke_codegen thy defs dep thyname false (gr', u);
+            val (gr''', _) = Codegen.invoke_tycodegen thy defs dep thyname false (gr'', HOLogic.boolT)
+          in
+            SOME (gr''', Codegen.parens
+              (Pretty.block [pt, Pretty.str " =", Pretty.brk 1, pu]))
+          end
+     | (t as Const ("op =", _), ts) => SOME (Codegen.invoke_codegen
+         thy defs dep thyname b (gr, Codegen.eta_expand t ts 2))
+     | _ => NONE);
+
+in
+
+Codegen.add_codegen "eq_codegen" eq_codegen
+
+end
+*}
+
+setup {*
+let
+
+fun evaluation_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
+  (Drule.goals_conv (equal i) Codegen.evaluation_conv));
+
+val evaluation_meth =
+  Method.no_args (Method.METHOD (fn _ => evaluation_tac 1 THEN rtac HOL.TrueI 1));
+
+in
+
+Method.add_method ("evaluation", evaluation_meth, "solve goal by evaluation")
+
+end;
+*}
+
+
 text {* itself as a code generator datatype *}
 
 setup {*
@@ -1390,7 +1419,65 @@ text {* code generation for arbitrary as exception *}
 setup {*
   CodegenSerializer.add_undefined "SML" "arbitrary" "(raise Fail \"arbitrary\")"
 *}
+
 code_const arbitrary
   (Haskell target_atom "(error \"arbitrary\")")
+
+
+subsection {* Other simple lemmas and lemma duplicates *}
+
+lemmas eq_sym_conv = eq_commute
+lemmas if_def2 = if_bool_eq_conj
+
+lemma ex1_eq [iff]: "EX! x. x = t" "EX! x. t = x"
+  by blast+
+
+lemma choice_eq: "(ALL x. EX! y. P x y) = (EX! f. ALL x. P x (f x))"
+  apply (rule iffI)
+  apply (rule_tac a = "%x. THE y. P x y" in ex1I)
+  apply (fast dest!: theI')
+  apply (fast intro: ext the1_equality [symmetric])
+  apply (erule ex1E)
+  apply (rule allI)
+  apply (rule ex1I)
+  apply (erule spec)
+  apply (erule_tac x = "%z. if z = x then y else f z" in allE)
+  apply (erule impE)
+  apply (rule allI)
+  apply (rule_tac P = "xa = x" in case_split_thm)
+  apply (drule_tac [3] x = x in fun_cong, simp_all)
+  done
+
+text {* Needs only HOL-lemmas *}
+lemma mk_left_commute:
+  assumes a: "\<And>x y z. f (f x y) z = f x (f y z)" and
+          c: "\<And>x y. f x y = f y x"
+  shows "f x (f y z) = f y (f x z)"
+  by (rule trans [OF trans [OF c a] arg_cong [OF c, of "f y"]])
+
+
+subsection {* Conclude HOL structure *}
+
+ML {*
+structure HOL =
+struct
+
+open HOL;
+
+(* combination of (spec RS spec RS ...(j times) ... spec RS mp) *)
+local
+  fun wrong_prem (Const ("All", _) $ (Abs (_, _, t))) = wrong_prem t
+    | wrong_prem (Bound _) = true
+    | wrong_prem _ = false;
+  val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);
+in
+  fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp]);
+  fun smp_tac j = EVERY'[dresolve_tac (smp j), atac];
+end;
+
+fun strip_tac i = REPEAT (resolve_tac [impI, allI] i);
+
+end;
+*}
 
 end
