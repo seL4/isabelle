@@ -7,10 +7,10 @@ Type classes derived from primitive axclasses and locales.
 
 signature CLASS_PACKAGE =
 sig
-  val class: bstring -> class list -> Element.context Locale.element list -> theory
-    -> Proof.context * theory
-  val class_i: bstring -> class list -> Element.context_i Locale.element list -> theory
-    -> Proof.context * theory
+  val class: bstring -> class list -> Element.context Locale.element list -> theory ->
+    string * Proof.context
+  val class_i: bstring -> class list -> Element.context_i Locale.element list -> theory ->
+    string * Proof.context
   val instance_arity: ((bstring * string list) * string) list
     -> bstring * Attrib.src list -> ((bstring * Attrib.src list) * string) list
     -> theory -> Proof.state
@@ -320,8 +320,8 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
   in
     thy
     |> add_locale bname expr elems
-    |-> (fn (name_locale, ctxt) =>
-          `(fn thy => extract_tyvar_consts thy name_locale)
+    |-> (fn name_locale => ProofContext.theory
+          (`(fn thy => extract_tyvar_consts thy name_locale)
     #-> (fn (v, (raw_cs_sup, raw_cs_this)) =>
           add_consts v raw_cs_sup raw_cs_this
     #-> (fn mapp_this =>
@@ -336,8 +336,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
     #> prove_interpretation_i (bname, [])
           (Locale.Locale name_locale) (map (SOME o mk_const thy name_axclass v) (map snd (mapp_sup @ mapp_this)))
           ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
-    #> pair ctxt
-    )))))
+    ))))) #> pair name_locale)
   end;
 
 in
@@ -593,9 +592,10 @@ val classP =
     -- (
       class_subP --| P.$$$ "+" -- class_bodyP
       || class_subP >> rpair []
-      || class_bodyP >> pair []
-    ) >> (Toplevel.theory_context
-          o (fn (bname, (supclasses, elems)) => class bname supclasses elems)));
+      || class_bodyP >> pair [])
+    -- P.opt_begin
+    >> (fn ((bname, (supclasses, elems)), begin) =>
+        Toplevel.begin_local_theory begin (class bname supclasses elems)));
 
 val instanceP =
   OuterSyntax.command instanceK "prove type arity or subclass relation" K.thy_goal ((
