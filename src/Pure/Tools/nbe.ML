@@ -79,7 +79,7 @@ structure NBE_Data = CodeDataFun
   type T = NBE_Eval.Univ Symtab.table
   val empty = Symtab.empty
   fun merge _ = Symtab.merge (K true)
-  fun purge _ _ = Symtab.empty
+  fun purge _ _ _ = Symtab.empty
 end);
 
 val _ = Context.add_setup NBE_Data.init;

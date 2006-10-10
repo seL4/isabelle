@@ -31,6 +31,7 @@ sig
   val print_thms: theory -> unit
 
   val typ_func: theory -> thm -> typ
+  val typ_funcs: theory -> CodegenConsts.const * thm list -> typ
   val rewrite_func: thm list -> thm -> thm
   val preprocess_cterm: theory -> (string * typ -> typ) -> cterm -> thm * cterm
 
@@ -44,7 +45,7 @@ sig
   type data
   structure CodeData: THEORY_DATA
   val declare: string -> Object.T -> (Pretty.pp -> Object.T * Object.T -> Object.T)
-        -> (CodegenConsts.const list option -> Object.T -> Object.T) -> serial
+    -> (theory option -> CodegenConsts.const list option -> Object.T -> Object.T) -> serial
   val init: serial -> theory -> theory
   val get: serial -> (Object.T -> 'a) -> data -> 'a
   val put: serial -> ('a -> Object.T) -> 'a -> data -> data
@@ -392,7 +393,7 @@ type kind = {
   name: string,
   empty: Object.T,
   merge: Pretty.pp -> Object.T * Object.T -> Object.T,
-  purge: CodegenConsts.const list option -> Object.T -> Object.T
+  purge: theory option -> CodegenConsts.const list option -> Object.T -> Object.T
 };
 
 val kinds = ref (Datatab.empty: kind Datatab.table);
@@ -409,7 +410,7 @@ in
 fun invoke_name k   = invoke "name" (K o #name) k ();
 fun invoke_empty k  = invoke "empty" (K o #empty) k ();
 fun invoke_merge pp = invoke "merge" (fn kind => #merge kind pp);
-fun invoke_purge cs = invoke "purge" (fn kind => #purge kind cs);
+fun invoke_purge thy_opt cs = invoke "purge" (fn kind => #purge kind thy_opt cs);
 
 fun declare name empty merge purge =
   let
@@ -437,8 +438,8 @@ structure CodeData = TheoryDataFun
   fun merge pp ((exec1, data1), (exec2, data2)) =
     let
       val (touched, exec) = merge_exec (exec1, exec2);
-      val data1' = Datatab.map' (invoke_purge touched) (! data1);
-      val data2' = Datatab.map' (invoke_purge touched) (! data2);
+      val data1' = Datatab.map' (invoke_purge NONE touched) (! data1);
+      val data2' = Datatab.map' (invoke_purge NONE touched) (! data2);
       val data = Datatab.join (invoke_merge pp) (data1', data2');
     in (exec, ref data) end;
   fun print thy (exec, _) =
@@ -499,9 +500,9 @@ fun get k dest data =
 
 fun put k mk x = Datatab.update (k, mk x);
 
-fun map_exec_purge touched f =
+fun map_exec_purge touched f thy =
   CodeData.map (fn (exec, data) => 
-    (f exec, ref (Datatab.map' (invoke_purge touched) (! data))));
+    (f exec, ref (Datatab.map' (invoke_purge (SOME thy) touched) (! data)))) thy;
 
 val get_exec = fst o CodeData.get;
 
@@ -830,6 +831,12 @@ fun get_datatype_of_constr thy c =
   Consttab.lookup ((the_dcontrs o get_exec) thy) c
   |> (Option.map o tap) (fn dtco => get_datatype thy dtco);
 
+fun typ_funcs thy (c as (name, _), []) = (case AxClass.class_of_param thy name
+     of SOME class => CodegenConsts.disc_typ_of_classop thy c
+      | NONE => (case Option.map (Susp.force o fst) (Consttab.lookup ((the_funcs o get_exec) thy) c)
+         of SOME [eq] => typ_func thy eq
+          | _ => Sign.the_const_type thy name))
+  | typ_funcs thy (_, eq :: _) = typ_func thy eq;
 
 
 (** code attributes **)
@@ -860,7 +867,7 @@ sig
   type T
   val empty: T
   val merge: Pretty.pp -> T * T -> T
-  val purge: CodegenConsts.const list option -> T -> T
+  val purge: theory option -> CodegenConsts.const list option -> T -> T
 end;
 
 signature CODE_DATA =
@@ -881,7 +888,7 @@ fun dest (Data x) = x
 
 val kind = CodegenData.declare Data.name (Data Data.empty)
   (fn pp => fn (Data x1, Data x2) => Data (Data.merge pp (x1, x2)))
-  (fn cs => fn Data x => Data (Data.purge cs x));
+  (fn thy_opt => fn cs => fn Data x => Data (Data.purge thy_opt cs x));
 
 val init = CodegenData.init kind;
 fun get thy = CodegenData.get kind dest ((! o snd o CodegenData.CodeData.get) thy);
