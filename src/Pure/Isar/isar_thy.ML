@@ -98,17 +98,12 @@ val skip_local_qed =
 
 (* global endings *)
 
-fun global_ending ending = Toplevel.proof_to_theory_context (fn int => fn state =>
-  if can (Proof.assert_bottom true) state then
-    ending int state |> (fn ctxt' => (ctxt', ProofContext.theory_of ctxt'))
-  else raise Toplevel.UNDEF);
-
-fun global_qed m = global_ending (K (Proof.global_qed (m, true)));
-val global_terminal_proof = global_ending o K o Proof.global_terminal_proof;
-val global_default_proof = global_ending (K Proof.global_default_proof);
-val global_immediate_proof = global_ending (K Proof.global_immediate_proof);
-val global_skip_proof = global_ending Proof.global_skip_proof;
-val global_done_proof = global_ending (K Proof.global_done_proof);
+fun global_qed m = Toplevel.end_proof (K (Proof.global_qed (m, true)));
+val global_terminal_proof = Toplevel.end_proof o K o Proof.global_terminal_proof;
+val global_default_proof = Toplevel.end_proof (K Proof.global_default_proof);
+val global_immediate_proof = Toplevel.end_proof (K Proof.global_immediate_proof);
+val global_skip_proof = Toplevel.end_proof Proof.global_skip_proof;
+val global_done_proof = Toplevel.end_proof (K Proof.global_done_proof);
 
 val skip_global_qed = Toplevel.skip_proof_to_theory (equal 1);
 
