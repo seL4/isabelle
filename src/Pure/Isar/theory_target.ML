@@ -7,10 +7,12 @@ Common theory targets.
 
 signature THEORY_TARGET =
 sig
+  val begin: bstring -> Proof.context -> local_theory
   val init: xstring option -> theory -> local_theory
   val init_i: string option -> theory -> local_theory
   val exit: local_theory -> Proof.context * theory
-  val mapping: xstring option -> (local_theory -> local_theory) -> theory -> Proof.context * theory
+  val mapping: xstring option -> (local_theory -> local_theory) ->
+    theory -> Proof.context * theory
 end;
 
 structure TheoryTarget: THEORY_TARGET =
@@ -29,15 +31,14 @@ fun pretty loc ctxt =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);
   in
-    ([Pretty.block
+    [Pretty.block
       [Pretty.str "theory", Pretty.brk 1, Pretty.str (Context.theory_name thy),
         Pretty.str " =", Pretty.brk 1, ThyInfo.pretty_theory thy]] @
       (if loc = "" then []
        else if null elems then [Pretty.str ("locale " ^ Locale.extern thy loc)]
        else
          [Pretty.big_list ("locale " ^ Locale.extern thy loc ^ " =")
-           (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)]))
-    |> Pretty.chunks
+           (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)])
   end;
 
 
@@ -189,19 +190,19 @@ fun declaration "" f = LocalTheory.theory (Context.theory_map f)
 
 (* init and exit *)
 
-fun target_operations loc exit : LocalTheory.operations =
- {pretty = pretty loc,
-  consts = consts loc,
-  axioms = axioms,
-  defs = defs,
-  notes = notes loc,
-  term_syntax = term_syntax loc,
-  declaration = declaration loc,
-  exit = exit};
+fun begin loc =
+  LocalTheory.init (SOME (NameSpace.base loc))
+   {pretty = pretty loc,
+    consts = consts loc,
+    axioms = axioms,
+    defs = defs,
+    notes = notes loc,
+    term_syntax = term_syntax loc,
+    declaration = declaration loc,
+    exit = I};
 
-fun init_i NONE thy = LocalTheory.init (SOME "") (target_operations "" I) (ProofContext.init thy)
-  | init_i (SOME loc) thy =
-      LocalTheory.init (SOME (NameSpace.base loc)) (target_operations loc I) (Locale.init loc thy);
+fun init_i NONE thy = begin "" (ProofContext.init thy)
+  | init_i (SOME loc) thy = begin loc (Locale.init loc thy);
 
 fun init loc thy = init_i (Option.map (Locale.intern thy) loc) thy;
 
