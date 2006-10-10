@@ -824,7 +824,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
               ) classop_defs)
             ]
           end |> SOME
-  in Pretty.setmp_margin 999999 pr_def def end;
+  in pr_def def end;
 
 
 (** generic abstract serializer **)
@@ -1067,7 +1067,7 @@ fun mk_module_file postprocess_module ext path name p =
       | _ => (Path.ext ext o Path.unpack o implode o separate "/" o NameSpace.unpack) name;
   in
     p
-    |> write_file true (Path.append prfx name')
+    |> Pretty.setmp_margin 999999 (write_file true (Path.append prfx name'))
     |> postprocess_module name
   end;
 
