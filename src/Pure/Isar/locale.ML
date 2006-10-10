@@ -78,9 +78,9 @@ sig
   val print_local_registrations: bool -> string -> Proof.context -> unit
 
   val add_locale: bool -> bstring -> expr -> Element.context list -> theory
-    -> (string * Proof.context (*body context!*)) * theory
+    -> string * Proof.context
   val add_locale_i: bool -> bstring -> expr -> Element.context_i list -> theory
-    -> (string * Proof.context (*body context!*)) * theory
+    -> string * Proof.context
 
   (* Storing results *)
   val add_thmss: string -> string ->
@@ -1286,13 +1286,13 @@ end;
 
 local
 
-fun prep_name name =
+fun check_name name =
   if NameSpace.is_qualified name then error ("Illegal qualified name: " ^ quote name)
   else name;
 
-fun prep_facts _ _ ctxt (Int elem) =
+fun prep_facts _ _ _ ctxt (Int elem) =
       Element.map_ctxt_values I I (Thm.transfer (ProofContext.theory_of ctxt)) elem
-  | prep_facts get intern ctxt (Ext elem) = elem |> Element.map_ctxt
+  | prep_facts prep_name get intern ctxt (Ext elem) = elem |> Element.map_ctxt
      {var = I, typ = I, term = I,
       name = prep_name,
       fact = get ctxt,
@@ -1300,8 +1300,8 @@ fun prep_facts _ _ ctxt (Int elem) =
 
 in
 
-fun read_facts x = prep_facts ProofContext.get_thms Attrib.intern_src x;
-fun cert_facts x = prep_facts (K I) (K I) x;
+fun read_facts x = prep_facts check_name ProofContext.get_thms Attrib.intern_src x;
+fun cert_facts x = prep_facts I (K I) (K I) x;
 
 end;
 
@@ -1782,16 +1782,15 @@ fun gen_add_locale prep_ctxt prep_expr
                    val (axs1, axs2) = chop (length ts) axs;
                  in (axs2, ((id, Assumed axs1), elems)) end)
         |> snd;
-    val pred_ctxt = ProofContext.init pred_thy;
     val (ctxt, (_, facts)) = activate_facts true (K I)
-      (pred_ctxt, axiomify predicate_axioms elemss');
+      (ProofContext.init pred_thy, axiomify predicate_axioms elemss');
     val export = singleton (ProofContext.export_standard
         (Assumption.add_view thy_ctxt predicate_statement ctxt) thy_ctxt);
     val facts' = facts |> map (fn (a, ths) => ((a, []), [(map export ths, [])]));
     val elems' = maps #2 (filter (equal "" o #1 o #1) elemss');
     val elems'' = map_filter (fn (Fixes _) => NONE | e => SOME e) elems';
     val axs' = map (Element.assume_witness pred_thy) stmt';
-    val thy' = pred_thy
+    val ctxt' = ctxt |> ProofContext.theory (fn pred_thy => pred_thy
       |> PureThy.note_thmss_qualified "" bname facts' |> snd
       |> declare_locale name
       |> put_locale name
@@ -1802,8 +1801,8 @@ fun gen_add_locale prep_ctxt prep_expr
         lparams = map #1 (params_of' body_elemss),
         term_syntax = [],
         regs = regs,
-        intros = intros};
-  in ((name, ProofContext.transfer thy' body_ctxt), thy') end;
+        intros = intros});
+  in (name, ctxt') end;
 
 in
 
@@ -1813,8 +1812,10 @@ val add_locale_i = gen_add_locale cert_context (K I);
 end;
 
 val _ = Context.add_setup
- (add_locale_i true "var" empty [Fixes [(Name.internal "x", NONE, NoSyn)]] #> snd #>
-  add_locale_i true "struct" empty [Fixes [(Name.internal "S", NONE, Structure)]] #> snd);
+ (add_locale_i true "var" empty [Fixes [(Name.internal "x", NONE, NoSyn)]] #>
+  snd #> ProofContext.theory_of #>
+  add_locale_i true "struct" empty [Fixes [(Name.internal "S", NONE, Structure)]] #>
+  snd #> ProofContext.theory_of);
 
 
 
