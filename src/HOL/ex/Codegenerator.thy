@@ -5,7 +5,7 @@
 header {* Test and Examples for code generator *}
 
 theory Codegenerator
-imports (*"~~/src/codegen/CodegenSetup"*) Main Records
+imports Main Records
 begin
 
 subsection {* booleans *}
