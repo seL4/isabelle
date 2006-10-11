@@ -19,13 +19,13 @@ sig
   val pr: string list * (int option * int option) -> Toplevel.transition -> Toplevel.transition
   val disable_pr: Toplevel.transition -> Toplevel.transition
   val enable_pr: Toplevel.transition -> Toplevel.transition
+  val cannot_undo: string -> Toplevel.transition -> Toplevel.transition
   val clear_undos_theory: int -> Toplevel.transition -> Toplevel.transition
   val redo: Toplevel.transition -> Toplevel.transition
   val undos_proof: int -> Toplevel.transition -> Toplevel.transition
   val kill_proof_notify: (unit -> unit) -> Toplevel.transition -> Toplevel.transition
   val kill_proof: Toplevel.transition -> Toplevel.transition
   val undo_theory: Toplevel.transition -> Toplevel.transition
-  val undo_end: Toplevel.transition -> Toplevel.transition
   val undo: Toplevel.transition -> Toplevel.transition
   val kill: Toplevel.transition -> Toplevel.transition
   val back: Toplevel.transition -> Toplevel.transition
@@ -136,6 +136,8 @@ val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
 
 (* history commands *)
 
+fun cannot_undo txt = Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt));
+
 val clear_undos_theory = Toplevel.history o History.clear;
 
 val redo =
@@ -157,10 +159,6 @@ val kill_proof = kill_proof_notify (K ());
 
 val undo_theory = Toplevel.history (fn hist =>
   if History.is_initial hist then raise Toplevel.UNDEF else History.undo hist);
-
-val undo_end =
-  Toplevel.imperative (fn () => error "Cannot undo end of theory") o
-  undo_theory;
 
 val undo = Toplevel.kill o undo_theory o undos_proof 1;
 val kill = Toplevel.kill o Toplevel.exit_local_theory o kill_proof;
