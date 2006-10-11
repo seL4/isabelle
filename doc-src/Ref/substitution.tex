@@ -126,7 +126,7 @@ signature HYPSUBST_DATA =
   sig
   structure Simplifier : SIMPLIFIER
   val dest_Trueprop    : term -> term
-  val dest_eq          : term -> term*term*typ
+  val dest_eq          : term -> (term*term)*typ
   val dest_imp         : term -> term*term
   val eq_reflection    : thm         (* a=b ==> a==b *)
   val rev_eq_reflection: thm         (* a==b ==> a=b *)
@@ -146,7 +146,7 @@ Thus, the functor requires the following items:
   corresponding object-level one.  Typically, it should return $P$ when
   applied to the term $\texttt{Trueprop}\,P$ (see example below).
   
-\item[\ttindexbold{dest_eq}] should return the triple~$(t,u,T)$, where $T$ is
+\item[\ttindexbold{dest_eq}] should return the triple~$((t,u),T)$, where $T$ is
   the type of~$t$ and~$u$, when applied to the \ML{} term that
   represents~$t=u$.  For other terms, it should raise an exception.
   
@@ -188,7 +188,7 @@ For \texttt{FOL}, they are declared by
 fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
   | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
 
-fun dest_eq (Const("op =",T)  $ t $ u) = (t, u, domain_type T)
+fun dest_eq (Const("op =",T) $ t $ u) = ((t, u), domain_type T)
 
 fun dest_imp (Const("op -->",_) $ A $ B) = (A, B)
   | dest_imp  t = raise TERM ("dest_imp", [t]);
