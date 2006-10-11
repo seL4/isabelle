@@ -824,6 +824,12 @@ INCOMPATIBILITY.
 "Trueprop" etc.
 
 
+*** System ***
+
+* isabelle-process: option -S (secure mode) disables some critical
+operations, notably runtime compilation and evaluation of ML source
+code.
+
 
 New in Isabelle2005 (October 2005)
 ----------------------------------
