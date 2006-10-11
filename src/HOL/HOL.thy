@@ -227,7 +227,7 @@ const_syntax (HTML output)
 
 subsection {* Fundamental rules *}
 
-subsubsection {*Equality*}
+subsubsection {* Equality *}
 
 text {* Thanks to Stephan Merz *}
 lemma subst:
@@ -862,12 +862,11 @@ lemma thin_refl:
   "\<And>X. \<lbrakk> x=x; PROP W \<rbrakk> \<Longrightarrow> PROP W" .
 
 use "cladata.ML"
-ML {* val HOL_cs = HOL.cs *}
 setup Hypsubst.hypsubst_setup
 setup {* ContextRules.addSWrapper (fn tac => HOL.hyp_subst_tac' ORELSE' tac) *}
 setup Classical.setup
 setup ResAtpset.setup
-setup {* fn thy => (Classical.change_claset_of thy (K HOL.cs); thy) *}
+setup {* fn thy => (Classical.change_claset_of thy (K HOL.claset); thy) *}
 
 lemma contrapos_np: "~ Q ==> (~ P ==> Q) ==> P"
   apply (erule swap)
@@ -881,7 +880,7 @@ lemmas [intro?] = ext
   and [elim?] = ex1_implies_ex
 
 (*Better then ex1E for classical reasoner: needs no quantifier duplication!*)
-lemma alt_ex1E:
+lemma alt_ex1E [elim!]:
   assumes major: "\<exists>!x. P x"
       and prem: "\<And>x. \<lbrakk> P x; \<forall>y y'. P y \<and> P y' \<longrightarrow> y = y' \<rbrakk> \<Longrightarrow> R"
   shows R
@@ -1197,10 +1196,53 @@ lemma ex_comm:
 
 use "simpdata.ML"
 setup "Simplifier.method_setup Splitter.split_modifiers"
-setup simpsetup
+setup "(fn thy => (change_simpset_of thy (fn _ => HOL.simpset_simprocs); thy))"
 setup Splitter.setup
 setup Clasimp.setup
 setup EqSubst.setup
+
+declare triv_forall_equality [simp] (*prunes params*)
+  and True_implies_equals [simp] (*prune asms `True'*)
+  and if_True [simp]
+  and if_False [simp]
+  and if_cancel [simp]
+  and if_eq_cancel [simp]
+  and imp_disjL [simp]
+  (*In general it seems wrong to add distributive laws by default: they
+    might cause exponential blow-up.  But imp_disjL has been in for a while
+    and cannot be removed without affecting existing proofs.  Moreover,
+    rewriting by "(P|Q --> R) = ((P-->R)&(Q-->R))" might be justified on the
+    grounds that it allows simplification of R in the two cases.*)
+  and conj_assoc [simp]
+  and disj_assoc [simp]
+  and de_Morgan_conj [simp]
+  and de_Morgan_disj [simp]
+  and imp_disj1 [simp]
+  and imp_disj2 [simp]
+  and not_imp [simp]
+  and disj_not1 [simp]
+  and not_all [simp]
+  and not_ex [simp]
+  and cases_simp [simp]
+  and the_eq_trivial [simp]
+  and the_sym_eq_trivial [simp]
+  and ex_simps [simp]
+  and all_simps [simp]
+  and simp_thms [simp]
+  and imp_cong [cong]
+  and simp_implies_cong [cong]
+  and split_if [split]
+
+ML {*
+structure HOL =
+struct
+
+open HOL;
+
+val simpset = Simplifier.simpset_of (the_context ());
+
+end;
+*}
 
 text {* Simplifies x assuming c and y assuming ~c *}
 lemma if_cong:

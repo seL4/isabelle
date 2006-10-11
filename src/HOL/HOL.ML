@@ -1,6 +1,24 @@
 (* legacy ML bindings *)
 
+val HOL_cs = HOL.claset;
+val HOL_basic_ss = HOL.simpset_basic;
+val HOL_ss = HOL.simpset;
+val HOL_css = (HOL.claset, HOL.simpset);
+val hol_simplify = HOL.simplify;
+
+val split_tac        = Splitter.split_tac;
+val split_inside_tac = Splitter.split_inside_tac;
+val split_asm_tac    = Splitter.split_asm_tac;
+val op addsplits     = Splitter.addsplits;
+val op delsplits     = Splitter.delsplits;
+val Addsplits        = Splitter.Addsplits;
+val Delsplits        = Splitter.Delsplits;
+
 open HOL;
+val claset = Classical.claset;
+val simpset = Simplifier.simpset;
+val simplify = Simplifier.simplify;
+open Clasimp;
 
 val ext = thm "ext"
 val True_def = thm "True_def"

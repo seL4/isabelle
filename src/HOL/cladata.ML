@@ -9,7 +9,7 @@ Setting up the classical reasoner.
 structure Hypsubst_Data =
 struct
   structure Simplifier = Simplifier
-  fun dest_eq (Const ("op =", T) $ t $ u) = (t, u, domain_type T)
+  val dest_eq = HOLogic.dest_eq_typ
   val dest_Trueprop = HOLogic.dest_Trueprop
   val dest_imp = HOLogic.dest_imp
   val eq_reflection = HOL.eq_reflection
@@ -52,7 +52,7 @@ val prop_cs = empty_cs addSIs [HOL.refl, HOL.TrueI, HOL.conjI, HOL.disjCI, HOL.i
                        addSEs [HOL.conjE, HOL.disjE, HOL.impCE, HOL.FalseE, HOL.iffCE];
 
 (*Quantifier rules*)
-val cs = prop_cs addSIs [HOL.allI, HOL.ex_ex1I] addIs [HOL.exI, HOL.the_equality] 
+val claset = prop_cs addSIs [HOL.allI, HOL.ex_ex1I] addIs [HOL.exI, HOL.the_equality] 
                      addSEs [HOL.exE] addEs [HOL.allE];
 
 end;

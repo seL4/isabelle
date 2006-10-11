@@ -1,5 +1,3 @@
-Classical.AddSEs [thm "alt_ex1E"];
-
 structure Blast_Data = 
 struct
   type claset = Classical.claset
