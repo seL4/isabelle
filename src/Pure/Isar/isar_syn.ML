@@ -19,13 +19,14 @@ val theoryP =
 
 val endP =
   OuterSyntax.command "end" "end (local) theory" (K.tag_theory K.thy_end)
-    (Scan.succeed (Toplevel.print o Toplevel.exit o Toplevel.exit_local_theory));
+    (Scan.succeed (Toplevel.exit o Toplevel.exit_local_theory));
 
 val contextP =
   OuterSyntax.improper_command "context" "switch (local) theory context"
     (K.tag_theory K.thy_switch)
-    (P.name >> (Toplevel.print oo IsarThy.context));
-
+    (P.name --| P.begin >> (fn name =>
+      Toplevel.print o IsarThy.context name o
+      Toplevel.begin_local_theory true (TheoryTarget.init (SOME name))));
 
 
 (** markup commands **)
@@ -357,7 +358,8 @@ val localeP =
         -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
         -- P.opt_begin
       >> (fn (((is_open, name), (expr, elems)), begin) =>
-          Toplevel.begin_local_theory begin (Locale.add_locale is_open name expr elems)));
+          Toplevel.begin_local_theory begin
+            (Locale.add_locale is_open name expr elems #-> TheoryTarget.begin)));
 
 val interpretationP =
   OuterSyntax.command "interpretation"
@@ -621,13 +623,9 @@ val backP =
 
 (* history *)
 
-val cannot_undoP =    (* FIXME ProofGeneral compatibility *)
-  OuterSyntax.improper_command "cannot_undo" "attempt to undo 'end'" K.control
-    (P.name >> K (Toplevel.no_timing o IsarCmd.undo_end));
-
-val undo_endP =
-  OuterSyntax.improper_command "undo_end" "attempt to undo 'end'" K.control
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.undo_end));
+val cannot_undoP =
+  OuterSyntax.improper_command "cannot_undo" "report 'cannot undo' error message" K.control
+    (P.name >> (Toplevel.no_timing oo IsarCmd.cannot_undo));
 
 val clear_undosP =
   OuterSyntax.improper_command "clear_undos" "clear theory-level undo information" K.control
@@ -917,8 +915,8 @@ val _ = OuterSyntax.add_parsers [
   qedP, terminal_proofP, default_proofP, immediate_proofP,
   done_proofP, skip_proofP, forget_proofP, deferP, preferP, applyP,
   apply_endP, proofP, alsoP, finallyP, moreoverP, ultimatelyP, backP,
-  cannot_undoP, undo_endP, clear_undosP, redoP, undos_proofP, undoP,
-  killP, interpretationP, interpretP,
+  cannot_undoP, clear_undosP, redoP, undos_proofP, undoP, killP,
+  interpretationP, interpretP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_localesP, print_localeP,
