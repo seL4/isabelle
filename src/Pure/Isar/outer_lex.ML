@@ -202,7 +202,9 @@ fun is_symid str =
   | SOME ss => forall is_sym_char ss
   | _ => false);
 
-fun is_sid s = s = ":" orelse is_symid s orelse Syntax.is_identifier s;
+fun is_sid "begin" = false
+  | is_sid ":" = true
+  | is_sid s = is_symid s orelse Syntax.is_identifier s;
 
 
 (* scan strings *)
