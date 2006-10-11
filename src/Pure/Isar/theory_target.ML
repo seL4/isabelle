@@ -10,9 +10,7 @@ sig
   val begin: bstring -> Proof.context -> local_theory
   val init: xstring option -> theory -> local_theory
   val init_i: string option -> theory -> local_theory
-  val exit: local_theory -> Proof.context * theory
-  val mapping: xstring option -> (local_theory -> local_theory) ->
-    theory -> Proof.context * theory
+  val mapping: xstring option -> (local_theory -> local_theory) -> theory -> Proof.context * theory
 end;
 
 structure TheoryTarget: THEORY_TARGET =
@@ -31,14 +29,14 @@ fun pretty loc ctxt =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);
   in
-    [Pretty.block
-      [Pretty.str "theory", Pretty.brk 1, Pretty.str (Context.theory_name thy),
-        Pretty.str " =", Pretty.brk 1, ThyInfo.pretty_theory thy]] @
-      (if loc = "" then []
-       else if null elems then [Pretty.str ("locale " ^ Locale.extern thy loc)]
-       else
-         [Pretty.big_list ("locale " ^ Locale.extern thy loc ^ " =")
-           (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)])
+    if loc = "" then
+      [Pretty.block
+        [Pretty.str "theory", Pretty.brk 1, Pretty.str (Context.theory_name thy),
+          Pretty.str " =", Pretty.brk 1, ThyInfo.pretty_theory thy]]
+    else if null elems then [Pretty.str ("locale " ^ Locale.extern thy loc)]
+    else
+      [Pretty.big_list ("locale " ^ Locale.extern thy loc ^ " =")
+        (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)]
   end;
 
 
@@ -93,6 +91,7 @@ fun axioms specs lthy =
       |-> (fn ths => pair ((name, atts), [(ths, [])]));
   in
     lthy
+    |> fold (fold Variable.declare_term o snd) specs
     |> LocalTheory.theory_result (fold_map axiom specs)
     |-> LocalTheory.notes
   end;
@@ -199,15 +198,13 @@ fun begin loc =
     notes = notes loc,
     term_syntax = term_syntax loc,
     declaration = declaration loc,
-    exit = I};
+    exit = K I};
 
 fun init_i NONE thy = begin "" (ProofContext.init thy)
   | init_i (SOME loc) thy = begin loc (Locale.init loc thy);
 
 fun init loc thy = init_i (Option.map (Locale.intern thy) loc) thy;
 
-val exit = LocalTheory.exit #> (fn lthy => (lthy, ProofContext.theory_of lthy));
-
-fun mapping loc f = init loc #> f #> exit;
+fun mapping loc f = init loc #> f #> LocalTheory.exit false;
 
 end;
