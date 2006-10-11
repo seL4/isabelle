@@ -34,8 +34,8 @@ by (blast_hyp_subst_tac (ref true) 1);
 signature HYPSUBST_DATA =
   sig
   val dest_Trueprop    : term -> term
-  val dest_eq          : term -> term*term*typ
-  val dest_imp         : term -> term*term
+  val dest_eq          : term -> (term * term) *typ
+  val dest_imp         : term -> term * term
   val eq_reflection    : thm               (* a=b ==> a==b *)
   val rev_eq_reflection: thm               (* a==b ==> a=b *)
   val imp_intr         : thm               (* (P ==> Q) ==> P-->Q *)
@@ -55,7 +55,7 @@ signature HYPSUBST =
   val gen_hyp_subst_tac      : bool -> int -> tactic
   val vars_gen_hyp_subst_tac : bool -> int -> tactic
   val eq_var                 : bool -> bool -> term -> int * bool
-  val inspect_pair           : bool -> bool -> term * term * typ -> bool
+  val inspect_pair           : bool -> bool -> (term * term) * typ -> bool
   val mk_eqs                 : bool -> thm -> thm list
   val stac                   : thm -> int -> tactic
   val hypsubst_setup         : theory -> theory
@@ -89,7 +89,7 @@ fun has_vars t = maxidx_of_term t <> ~1;
         but we can't check for this -- hence bnd and bound_hyp_subst_tac
   Prefer to eliminate Bound variables if possible.
   Result:  true = use as is,  false = reorient first *)
-fun inspect_pair bnd novars (t,u,T) =
+fun inspect_pair bnd novars ((t, u), T) =
   if novars andalso maxidx_of_typ T <> ~1
   then raise Match   (*variables in the type!*)
   else
