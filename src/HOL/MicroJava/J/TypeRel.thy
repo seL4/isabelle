@@ -80,6 +80,37 @@ lemma class_rec_lemma: "wf ((subcls1 G)^-1) \<Longrightarrow> class G C = Some (
  class_rec G C t f = f C fs ms (if C=Object then t else class_rec G D t f)"
   by (simp add: class_rec_def wfrec cut_apply [OF converseI [OF subcls1I]])
 
+definition
+  "wf_class G = wf ((subcls1 G)^-1)"
+
+lemma class_rec_func [code func]:
+  "class_rec G C t f = (if wf_class G then
+    (case class G C
+      of None \<Rightarrow> arbitrary
+       | Some (D, fs, ms) \<Rightarrow> f C fs ms (if C = Object then t else class_rec G D t f))
+    else class_rec G C t f)"
+proof (cases "wf_class G")
+  case False then show ?thesis by auto
+next
+  case True
+  from `wf_class G` have wf: "wf ((subcls1 G)^-1)"
+    unfolding wf_class_def .
+  show ?thesis
+  proof (cases "class G C")
+    case None
+    with wf show ?thesis
+      by (simp add: class_rec_def wfrec cut_apply [OF converseI [OF subcls1I]])
+  next
+    case (Some x) show ?thesis
+    proof (cases x)
+      case (fields D fs ms)
+      then have is_some: "class G C = Some (D, fs, ms)" using Some by simp
+      note class_rec = class_rec_lemma [OF wf is_some]
+      show ?thesis unfolding class_rec by (simp add: is_some)
+    qed
+  qed
+qed
+
 consts
 
   method :: "'c prog \<times> cname => ( sig   \<rightharpoonup> cname \<times> ty \<times> 'c)" (* ###curry *)
