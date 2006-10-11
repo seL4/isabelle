@@ -285,15 +285,16 @@ fun abstract_rule_list [] [] th = th
 
 val Envir.Envir {asol = tenv0, iTs = tyenv0, ...} = Envir.empty 0
 
-(*Does an existing abstraction definition have an RHS that matches the one we need now?*)
-fun match_rhs t th =
-  let val thy = theory_of_thm th
-      val _ = if !trace_abs then warning ("match_rhs: " ^ string_of_cterm (cterm_of thy t) ^ 
+(*Does an existing abstraction definition have an RHS that matches the one we need now?
+  thy is the current theory, which must extend that of theorem th.*)
+fun match_rhs thy t th =
+  let val _ = if !trace_abs then warning ("match_rhs: " ^ string_of_cterm (cterm_of thy t) ^ 
                                           " against\n" ^ string_of_thm th) else ();
       val (tyenv,tenv) = Pattern.first_order_match thy (rhs_of th, t) (tyenv0,tenv0)
       val term_insts = map Meson.term_pair_of (Vartab.dest tenv)
-      val ct_pairs = if forall lambda_free (map #2 term_insts) then
-                         map (pairself (cterm_of thy)) term_insts
+      val ct_pairs = if subthy (theory_of_thm th, thy) andalso 
+                        forall lambda_free (map #2 term_insts) 
+                     then map (pairself (cterm_of thy)) term_insts
                      else raise Pattern.MATCH (*Cannot allow lambdas in the instantiation*)
       fun ctyp2 (ixn, (S, T)) = (ctyp_of thy (TVar (ixn, S)), ctyp_of thy T)
       val th' = cterm_instantiate ct_pairs th
@@ -324,9 +325,10 @@ fun declare_absfuns th =
                 val rhs = list_abs_free (map dest_Free args, abs_v_u)
                       (*Forms a lambda-abstraction over the formal parameters*)
                 val _ = if !trace_abs then warning ("Looking up " ^ string_of_cterm cu') else ();
+                val thy = theory_of_thm u'_th
                 val (ax,ax',thy) =
-                 case List.mapPartial (match_rhs abs_v_u) (Net.match_term (!abstraction_cache) u')
-                        of
+                 case List.mapPartial (match_rhs thy abs_v_u) 
+                         (Net.match_term (!abstraction_cache) u') of
                      (ax,ax')::_ => 
                        (if !trace_abs then warning ("Re-using axiom " ^ string_of_thm ax) else ();
                         (ax,ax',thy))
@@ -334,7 +336,6 @@ fun declare_absfuns th =
                       let val _ = if !trace_abs then warning "Lookup was empty" else ();
                           val Ts = map type_of args
                           val cT = Ts ---> (Tvs ---> typ_of (ctyp_of_term cu'))
-                          val thy = theory_of_thm u'_th
                           val c = Const (Sign.full_name thy cname, cT)
                           val thy = Sign.add_consts_authentic [(cname, cT, NoSyn)] thy
                                      (*Theory is augmented with the constant,
@@ -348,7 +349,7 @@ fun declare_absfuns th =
                           val ax = get_axiom thy cdef |> freeze_thm
                                      |> mk_object_eq |> strip_lambdas (length args)
                                      |> mk_meta_eq |> Meson.generalize
-                          val (_,ax') = Option.valOf (match_rhs abs_v_u ax)
+                          val (_,ax') = Option.valOf (match_rhs thy abs_v_u ax)
                           val _ = if !trace_abs then 
                                     (warning ("Declaring: " ^ string_of_thm ax);
                                      warning ("Instance: " ^ string_of_thm ax')) 
@@ -400,7 +401,7 @@ fun assume_absfuns th =
                       (*Forms a lambda-abstraction over the formal parameters*)
                 val rhs = term_of crhs
                 val (ax,ax') =
-                 case List.mapPartial (match_rhs abs_v_u) 
+                 case List.mapPartial (match_rhs thy abs_v_u) 
                         (Net.match_term (!abstraction_cache) u') of
                      (ax,ax')::_ => 
                        (if !trace_abs then warning ("Re-using axiom " ^ string_of_thm ax) else ();
@@ -412,7 +413,7 @@ fun assume_absfuns th =
                           val ax = assume (Thm.capply (cterm (equals const_ty $ c)) crhs)
                                      |> mk_object_eq |> strip_lambdas (length args)
                                      |> mk_meta_eq |> Meson.generalize
-                          val (_,ax') = Option.valOf (match_rhs abs_v_u ax)
+                          val (_,ax') = Option.valOf (match_rhs thy abs_v_u ax)
                           val _ = abstraction_cache := Net.insert_term eq_absdef (rhs,ax)
                                     (!abstraction_cache)
                             handle Net.INSERT =>
@@ -642,8 +643,8 @@ val cnf_rules_pairs = cnf_rules_pairs_aux [];
 fun skolem_cache (name,th) thy =
   let val prop = Thm.prop_of th
   in
-      if lambda_free prop 
-         (*orelse monomorphic prop? Monomorphic theorems can be Skolemized on demand,
+      if lambda_free prop orelse (not abstract_lambdas andalso monomorphic prop)
+         (*Monomorphic theorems can be Skolemized on demand,
            but there are problems with re-use of abstraction functions if we don't
            do them now, even for monomorphic theorems.*)
       then thy  
