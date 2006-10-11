@@ -42,11 +42,13 @@ definition
   k :: "int"
   "k = -42"
 
-consts
-  fac :: "int => int"
-
-recdef fac "measure nat"
+function
+  fac :: "int => int" where
   "fac j = (if j <= 0 then 1 else j * (fac (j - 1)))"
+  by pat_completeness auto
+termination by (auto_term "measure nat")
+
+declare fac.simps [code]
 
 subsection {* sums *}
 
@@ -83,6 +85,17 @@ subsection {* strings *}
 
 definition
   "mystring = ''my home is my castle''"
+
+subsection {* nested lets and such *}
+
+definition
+  "abs_let x = (let (y, z) = x in (\<lambda>u. case u of () \<Rightarrow> (y + y)))"
+
+definition
+  "nested_let x = (let (y, z) = x in let w = y z in w * w)"
+
+definition
+  "case_let x = (let (y, z) = x in case y of () => z)"
 
 subsection {* heavy usage of names *}
 
@@ -151,6 +164,8 @@ code_gen
   f g h
 code_gen
   apply_tower Codegenerator.keywords shadow
+code_gen
+  abs_let nested_let case_let
 code_gen "0::int" "1::int"
   (SML) (Haskell)
 code_gen n
