@@ -219,10 +219,10 @@ sig
   val gen_eq_set: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val \ : ''a list * ''a -> ''a list
   val \\ : ''a list * ''a list -> ''a list
-  val findrep: ''a list -> ''a list
   val distinct: ('a * 'a -> bool) -> 'a list -> 'a list
   val duplicates: ('a * 'a -> bool) -> 'a list -> 'a list
   val has_duplicates: ('a * 'a -> bool) -> 'a list -> bool
+  val first_duplicate: ('a * 'a -> bool) -> 'a list -> 'a option
 
   (*lists as tables -- see also Pure/General/alist.ML*)
   val gen_merge_lists: ('a * 'a -> bool) -> 'a list -> 'a list -> 'a list
@@ -1036,11 +1036,6 @@ fun (y :: ys) \ x = if x = y then ys else y :: (ys \ x)
 fun ys \\ xs = foldl (op \) (ys,xs);
 
 
-(*returns the tail beginning with the first repeated element, or []*)
-fun findrep [] = []
-  | findrep (x :: xs) = if x mem xs then x :: xs else findrep xs;
-
-
 (*makes a list of the distinct members of the input; preserves order, takes
   first of equal elements*)
 fun distinct eq lst =
@@ -1068,6 +1063,11 @@ fun has_duplicates eq =
       | dups (x :: xs) = member eq xs x orelse dups xs;
   in dups end;
 
+fun first_duplicate eq =
+  let
+    fun dup [] = NONE
+      | dup (x :: xs) = if member eq xs x then SOME x else dup xs;
+  in dup end;
 
 (** association lists -- legacy operations **)
 

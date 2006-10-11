@@ -273,8 +273,9 @@ fun nodups_aux rls th = nodups_aux rls (th RS disj_assoc)
 
 (*Remove duplicate literals, if there are any*)
 fun nodups th =
-    if null(findrep(literals(prop_of th))) then th
-    else nodups_aux [] th;
+  if has_duplicates (op =) (literals (prop_of th))
+    then nodups_aux [] th
+    else th;
 
 
 (**** Generation of contrapositives ****)

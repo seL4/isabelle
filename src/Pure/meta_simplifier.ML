@@ -549,7 +549,7 @@ fun is_full_cong_prems [] [] = true
         Const ("==", _) $ lhs $ rhs =>
           let val (x, xs) = strip_comb lhs and (y, ys) = strip_comb rhs in
             is_Var x andalso forall is_Bound xs andalso
-            null (findrep xs) andalso xs = ys andalso
+            not (has_duplicates (op =) xs) andalso xs = ys andalso
             member (op =) varpairs (x, y) andalso
             is_full_cong_prems prems (remove (op =) (x, y) varpairs)
           end
@@ -561,7 +561,7 @@ fun is_full_cong thm =
     val (lhs, rhs) = Logic.dest_equals concl;
     val (f, xs) = strip_comb lhs and (g, ys) = strip_comb rhs;
   in
-    f = g andalso null (findrep (xs @ ys)) andalso length xs = length ys andalso
+    f = g andalso not (has_duplicates (op =) (xs @ ys)) andalso length xs = length ys andalso
     is_full_cong_prems prems (xs ~~ ys)
   end;
 
