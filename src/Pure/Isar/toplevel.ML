@@ -75,7 +75,7 @@ sig
   val theory: (theory -> theory) -> transition -> transition
   val theory': (bool -> theory -> theory) -> transition -> transition
   val exit_local_theory: transition -> transition
-  val begin_local_theory: bool -> (theory -> string * local_theory) -> transition -> transition
+  val begin_local_theory: bool -> (theory -> local_theory) -> transition -> transition
   val local_theory: xstring option -> (local_theory -> local_theory) -> transition -> transition
   val present_local_theory: xstring option -> (bool -> node -> unit) -> transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
@@ -525,19 +525,19 @@ fun theory' f = app_current (fn int =>
 
 fun theory f = theory' (K f);
 
-val exit_local_theory = app_current (fn _ =>
+val exit_local_theory = app_current (fn int =>
   (fn Theory (Context.Proof lthy, _) =>
-      let val (ctxt', thy') = TheoryTarget.exit lthy
+      let val (ctxt', thy') = LocalTheory.exit int lthy
       in Theory (Context.Theory thy', SOME ctxt') end
     | _ => raise UNDEF));
 
-fun begin_local_theory begin f = app_current (fn _ =>
+fun begin_local_theory begin f = app_current (fn int =>
   (fn Theory (Context.Theory thy, _) =>
         let
-          val lthy = thy |> f |-> TheoryTarget.begin;
+          val lthy = f thy;
           val (ctxt, gthy) =
             if begin then (lthy, Context.Proof lthy)
-            else lthy |> TheoryTarget.exit ||> Context.Theory;
+            else lthy |> LocalTheory.exit int ||> Context.Theory;
         in Theory (gthy, SOME ctxt) end
     | _ => raise UNDEF));
 
