@@ -40,7 +40,7 @@ ML_DBASE=""
 #ML_PLATFORM=x86_64-linux
 #ML_HOME=/usr/local/polyml/x86_64-linux
 #ML_SYSTEM=polyml-4.9.1
-#ML_OPTIONS="-H 160"
+#ML_OPTIONS="-H 500"
 
 # Standard ML of New Jersey 110 or later
 #SMLNJ_CYGWIN_RUNTIME=1
