@@ -417,10 +417,31 @@ fun appgen_char char_to_index thy algbr funcgr strct (app as ((_, ty), _)) trns 
 fun appgen_case dest_case_expr thy algbr funcgr strct (app as (c_ty, ts)) trns =
   let
     val SOME ([], ((st, sty), ds)) = dest_case_expr thy (list_comb (Const c_ty, ts));
-    fun clausegen (dt, bt) trns =
-      trns
-      |> exprgen_term thy algbr funcgr strct dt
-      ||>> exprgen_term thy algbr funcgr strct bt;
+    fun fold_map_aterms f (t $ u) s =
+          s
+          |> fold_map_aterms f t
+          ||>> fold_map_aterms f u
+          |-> (fn (t1, t2) => pair (t1 $ t2))
+      | fold_map_aterms f (Abs (v, ty, t)) s =
+          s
+          |> fold_map_aterms f t
+          |-> (fn t' => pair (Abs (v, ty, t')))
+      | fold_map_aterms f a s = f a s;
+    fun purify_term_frees (Free (v, ty)) ctxt = 
+          let
+            val ([v'], ctxt') = Name.variants [CodegenNames.purify_var v] ctxt;
+          in (Free (v, ty), ctxt') end
+      | purify_term_frees t ctxt = (t, ctxt);
+    fun clausegen (raw_dt, raw_bt) trns =
+      let
+        val ((dt, bt), _) = Name.context
+          |> fold_map_aterms purify_term_frees raw_dt
+          ||>> fold_map_aterms purify_term_frees raw_bt;
+      in
+        trns
+        |> exprgen_term thy algbr funcgr strct dt
+        ||>> exprgen_term thy algbr funcgr strct bt
+      end;
   in
     trns
     |> exprgen_term thy algbr funcgr strct st

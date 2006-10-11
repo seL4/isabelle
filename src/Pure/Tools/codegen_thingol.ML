@@ -174,8 +174,8 @@ val unfold_app = unfoldl
     | _ => NONE);
 
 val unfold_abs = unfoldr
-  (fn (v, ty) `|-> (e as ICase (((IVar w, _), [(p, t)]), _)) =>
-        if v = w then SOME ((p, ty), t) else SOME ((IVar v, ty), t)
+  (fn (v, ty) `|-> (t as ICase (((IVar w, _), [(p, t')]), _)) =>
+        if v = w then SOME ((p, ty), t') else SOME ((IVar v, ty), t)
     | (v, ty) `|-> t => SOME ((IVar v, ty), t)
     | _ => NONE)
 

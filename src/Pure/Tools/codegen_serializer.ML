@@ -76,16 +76,16 @@ fun brackify fxy_ctxt ps =
 fun brackify_infix infx fxy_ctxt ps =
   gen_brackify (eval_fxy (INFX infx) fxy_ctxt) (Pretty.breaks ps);
 
-fun mk_app mk_app' from_expr const_syntax fxy (const as (c, (_, ty)), es) =
+fun mk_app mk_app' from_expr const_syntax fxy (app as ((c, (_, ty)), ts)) =
   case const_syntax c
-   of NONE => brackify fxy (mk_app' c es)
+   of NONE => brackify fxy (mk_app' app)
     | SOME (i, pr) =>
         let
           val k = if i < 0 then (length o fst o CodegenThingol.unfold_fun) ty else i
-        in if k <= length es
-          then case chop i es of (es1, es2) =>
-            brackify fxy (pr fxy from_expr es1 :: map (from_expr BR) es2)
-          else from_expr fxy (CodegenThingol.eta_expand (const, es) i)
+        in if k <= length ts
+          then case chop i ts of (ts1, ts2) =>
+            brackify fxy (pr fxy from_expr ts1 :: map (from_expr BR) ts2)
+          else from_expr fxy (CodegenThingol.eta_expand app k)
         end;
 
 val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
@@ -353,15 +353,19 @@ fun pr_sml_def tyco_syntax const_syntax keyword_vars deresolv ml_def =
           (case CodegenThingol.unfold_const_app t
            of SOME c_ts => pr_app vars fxy c_ts
             | NONE =>
-                brackify fxy [pr_term vars NOBR t1, pr_term vars BR t2 ])
+                brackify fxy [pr_term vars NOBR t1, pr_term vars BR t2])
       | pr_term vars fxy (t as _ `|-> _) =
           let
             val (ts, t') = CodegenThingol.unfold_abs t;
-            val vs = fold (CodegenThingol.fold_varnames (insert (op =)) o fst) ts [];
-            val vars' = intro_vars vs vars;
-            fun mk_abs (t, ty) = (Pretty.block o Pretty.breaks)
-              [str "fn", pr_term vars' NOBR t, str "=>"];
-          in brackify BR (map mk_abs ts @ [pr_term vars' NOBR t']) end
+            fun pr (p, _) vars =
+              let
+                val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
+                val vars' = intro_vars vs vars;
+              in
+                ((Pretty.block o Pretty.breaks) [str "fn", pr_term vars' NOBR p, str "=>"], vars')
+              end;
+            val (ps, vars') = fold_map pr ts vars;
+          in brackify BR (ps @ [pr_term vars' NOBR t']) end
       | pr_term vars fxy (INum (n, _)) =
           brackify BR [(str o IntInf.toString) n, str ":", str "IntInf.int"]
       | pr_term vars _ (IChar (c, _)) =
@@ -373,8 +377,8 @@ fun pr_sml_def tyco_syntax const_syntax keyword_vars deresolv ml_def =
               end)
       | pr_term vars fxy (t as ICase ((_, [_]), _)) =
           let
-            val (ts, t) = CodegenThingol.unfold_let t;
-            fun mk ((p, _), t) vars =
+            val (ts, t') = CodegenThingol.unfold_let t;
+            fun mk ((p, _), t'') vars =
               let
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
                 val vars' = intro_vars vs vars;
@@ -384,7 +388,7 @@ fun pr_sml_def tyco_syntax const_syntax keyword_vars deresolv ml_def =
                     str "val",
                     pr_term vars' NOBR p,
                     str "=",
-                    pr_term vars NOBR t
+                    pr_term vars NOBR t''
                   ],
                   str ";"
                 ], vars')
@@ -393,7 +397,7 @@ fun pr_sml_def tyco_syntax const_syntax keyword_vars deresolv ml_def =
           in
             Pretty.chunks [
               [str ("let"), Pretty.fbrk, binds |> Pretty.chunks] |> Pretty.block,
-              [str ("in"), Pretty.fbrk, pr_term vars' NOBR t] |> Pretty.block,
+              [str ("in"), Pretty.fbrk, pr_term vars' NOBR t'] |> Pretty.block,
               str ("end")
             ] end
       | pr_term vars fxy (ICase (((td, ty), b::bs), _)) =
@@ -418,15 +422,15 @@ fun pr_sml_def tyco_syntax const_syntax keyword_vars deresolv ml_def =
               :: map (pr "|") bs
             )
           end
-    and pr_app' vars c ts =
-      let
-        val p = (str o deresolv) c;
-        val ps = map (pr_term vars BR) ts;
-      in if is_cons c andalso length ts > 1 then
-        [p, Pretty.enum "," "(" ")" ps]
-      else
-        p :: ps
-      end
+    and pr_app' vars (app as ((c, (iss, ty)), ts)) =
+      if is_cons c then let
+        val k = (length o fst o CodegenThingol.unfold_fun) ty
+      in if k < 2 then 
+        (str o deresolv) c :: map (pr_term vars BR) ts
+      else if k = length ts then
+        [(str o deresolv) c, Pretty.enum "," "(" ")" (map (pr_term vars NOBR) ts)]
+      else [pr_term vars BR (CodegenThingol.eta_expand app k)] end else
+        (str o deresolv) c :: map (pr_term vars BR) ts
     and pr_app vars fxy (app as ((c, (iss, ty)), ts)) =
       case if is_cons c then [] else (map (pr_insts BR) o filter_out null) iss
        of [] =>
@@ -648,12 +652,16 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
       | pr_term vars fxy (t as _ `|-> _) =
           let
             val (ts, t') = CodegenThingol.unfold_abs t;
-            val vs = fold (CodegenThingol.fold_varnames (insert (op =)) o fst) ts [];
-            val vars' = intro_vars vs vars;
+            fun pr (p, _) vars =
+              let
+                val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
+                val vars' = intro_vars vs vars;
+              in (pr_term vars' BR p, vars') end;
+            val (ps, vars') = fold_map pr ts vars;
           in
             brackify BR (
               str "\\"
-              :: map (pr_term vars' BR o fst) ts @ [
+              :: ps @ [
               str "->",
               pr_term vars' NOBR t'
             ])
@@ -710,7 +718,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
               (Pretty.chunks o map pr) bs
             ]
           end
-    and pr_app' vars c ts =
+    and pr_app' vars ((c, _), ts) =
       (str o deresolv) c :: map (pr_term vars BR) ts
     and pr_app vars fxy =
       mk_app (pr_app' vars) (pr_term vars) const_syntax fxy;
