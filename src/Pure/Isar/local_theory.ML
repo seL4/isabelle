@@ -36,7 +36,7 @@ sig
   val abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> local_theory -> local_theory
   val init: string option -> operations -> Proof.context -> local_theory
   val reinit: local_theory -> local_theory
-  val exit: local_theory -> Proof.context
+  val exit: bool -> local_theory -> Proof.context * theory
 end;
 
 structure LocalTheory: LOCAL_THEORY =
@@ -58,7 +58,7 @@ type operations =
     (bstring * thm list) list * local_theory,
   term_syntax: (Context.generic -> Context.generic) -> local_theory -> local_theory,
   declaration: (Context.generic -> Context.generic) -> local_theory -> local_theory,
-  exit: local_theory -> local_theory};
+  exit: bool -> local_theory -> local_theory};
 
 datatype lthy = LThy of
  {theory_prefix: string option,
@@ -169,6 +169,8 @@ fun reinit lthy =
   let val {theory_prefix, operations, target} = get_lthy lthy
   in init theory_prefix operations target end;
 
-fun exit lthy = lthy |> operation #exit |> target_of;
+fun exit int lthy = lthy
+  |> operation1 #exit int |> target_of
+  |> (fn ctxt => (ctxt, ProofContext.theory_of ctxt));
 
 end;
