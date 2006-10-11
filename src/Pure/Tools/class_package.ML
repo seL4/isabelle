@@ -595,7 +595,7 @@ val classP =
       || class_bodyP >> pair [])
     -- P.opt_begin
     >> (fn ((bname, (supclasses, elems)), begin) =>
-        Toplevel.begin_local_theory begin (class bname supclasses elems)));
+        Toplevel.begin_local_theory begin (class bname supclasses elems #-> TheoryTarget.begin)));
 
 val instanceP =
   OuterSyntax.command instanceK "prove type arity or subclass relation" K.thy_goal ((
