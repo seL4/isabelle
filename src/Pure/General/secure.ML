@@ -7,7 +7,7 @@ Secure critical operations.
 
 signature SECURE =
 sig
-  val set_secure: unit -> bool
+  val set_secure: unit -> unit
   val is_secure: unit -> bool
   val deny_secure: string -> unit
   val use: string -> unit
@@ -22,7 +22,7 @@ struct
 
 val secure = ref false;
 
-fun set_secure () = set secure;
+fun set_secure () = secure := true;
 fun is_secure () = ! secure;
 
 fun deny_secure msg = deny (is_secure ()) msg;
