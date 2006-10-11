@@ -112,6 +112,66 @@ fun new_addr p none loc hp =
   "val_nam" ("\"val\"")
   "next_nam" ("\"next\"")
 
+code_type cnam and vnam and mname and loc_
+  (SML target_atom "string" and target_atom "string" and target_atom "string" and target_atom "IntInf.int")
+
+instance cnam :: eq
+  and cname :: eq
+  and vname :: eq
+  and mname :: eq
+  and ty :: eq
+  and instr :: eq ..
+
+definition
+  arbitrary_val :: val
+  "arbitrary_val = arbitrary"
+  arbitrary_cname :: cname
+  "arbitrary_cname = arbitrary"
+
+declare arbitrary_val_def [symmetric, code inline]
+declare arbitrary_cname_def [symmetric, code inline]
+
+definition
+  "unit' = Unit"
+  "object' = Object"
+
+code_constsubst
+  arbitrary_val \<equiv> unit'
+  arbitrary_cname \<equiv> object'
+
+code_const list_nam and test_nam and append_name and makelist_name and val_nam and next_nam
+  (SML target_atom "\"list\"" and target_atom "\"test\"" and target_atom "\"append\""
+    and target_atom "\"makelist\"" and target_atom "\"val\"" and target_atom "\"next\"")
+
+axiomatization
+  incr_loc :: "loc_ \<Rightarrow> loc_"
+  and zero_loc :: "loc_"
+
+code_const incr_loc and zero_loc
+  (SML target_atom "(_ + 1)" and target_atom "0")
+
+axiomatization
+  test_loc :: "(loc_ \<Rightarrow> bool) \<Rightarrow> (loc_ \<Rightarrow> 'a) \<Rightarrow> loc_ \<Rightarrow> 'a" where
+  "test_loc p v l = (if p l then v l else test_loc p v (incr l))"
+
+definition
+  new_addr' :: "(loc \<Rightarrow> (cname \<times> (vname \<times> cname \<Rightarrow> val option)) option) \<Rightarrow> loc \<times> val option"
+  "new_addr' hp =
+    test_loc (\<lambda>i. is_none (hp (Loc i) )) (\<lambda>i. (Loc i, None)) zero_loc"
+
+lemma [code func]:
+  "wf_class = wf_class" ..
+
+code_const
+  wf_class (SML target_atom "(fn _ => true)")
+
+code_constsubst
+  new_Addr \<equiv> new_addr'
+
+definition
+  "test = exec (E, start_state E test_name makelist_name)"
+
+
 subsection {* Single step execution *}
 
 code_module JVM
