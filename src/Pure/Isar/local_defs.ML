@@ -96,6 +96,7 @@ fun add_defs defs ctxt =
   in
     ctxt
     |> ProofContext.add_fixes_i (map2 (fn x => fn mx => (x, NONE, mx)) xs mxs) |> #2
+    |> fold Variable.declare_term eqs
     |> ProofContext.add_assms_i def_export
       (map2 (fn a => fn eq => (a, [(eq, [])])) (names' ~~ atts) eqs)
     |>> map2 (fn lhs => fn (name, [th]) => (lhs, (name, th))) lhss
