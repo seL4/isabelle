@@ -166,10 +166,10 @@ definition
       Val (att, text) \<Rightarrow> att
     | Env att dir \<Rightarrow> att)"
 
-  "attributes_update att file =
+  "map_attributes f file =
     (case file of
-      Val (att', text) \<Rightarrow> Val (att, text)
-    | Env att' dir \<Rightarrow> Env att dir)"
+      Val (att, text) \<Rightarrow> Val (f att, text)
+    | Env att dir \<Rightarrow> Env (f att) dir)"
 
 lemma [simp]: "attributes (Val (att, text)) = att"
   by (simp add: attributes_def)
@@ -177,15 +177,15 @@ lemma [simp]: "attributes (Val (att, text)) = att"
 lemma [simp]: "attributes (Env att dir) = att"
   by (simp add: attributes_def)
 
-lemma [simp]: "attributes (file \<lparr>attributes := att\<rparr>) = att"
-  by (cases "file") (simp_all add: attributes_def attributes_update_def
+lemma [simp]: "attributes (map_attributes f file) = f (attributes file)"
+  by (cases "file") (simp_all add: attributes_def map_attributes_def
     split_tupled_all)
 
-lemma [simp]: "(Val (att, text)) \<lparr>attributes := att'\<rparr> = Val (att', text)"
-  by (simp add: attributes_update_def)
+lemma [simp]: "map_attributes f (Val (att, text)) = Val (f att, text)"
+  by (simp add: map_attributes_def)
 
-lemma [simp]: "(Env att dir) \<lparr>attributes := att'\<rparr> = Env att' dir"
-  by (simp add: attributes_update_def)
+lemma [simp]: "map_attributes f (Env att dir) = Env (f att) dir"
+  by (simp add: map_attributes_def)
 
 
 subsection {* Initial file-systems *}
@@ -370,7 +370,7 @@ inductive transition
     "access root path uid {} = Some file \<Longrightarrow>
       uid = 0 \<or> uid = owner (attributes file) \<Longrightarrow>
       root \<midarrow>(Chmod uid perms path)\<rightarrow> update path
-        (Some (file \<lparr>attributes := attributes file \<lparr>others := perms\<rparr>\<rparr>)) root"
+        (Some (map_attributes (others_update perms) file)) root"
 
   creat:
     "path = parent_path @ [name] \<Longrightarrow>
