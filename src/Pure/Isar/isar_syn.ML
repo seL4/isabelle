@@ -19,7 +19,7 @@ val theoryP =
 
 val endP =
   OuterSyntax.command "end" "end (local) theory" (K.tag_theory K.thy_end)
-    (Scan.succeed (Toplevel.exit o Toplevel.exit_local_theory));
+    (Scan.succeed (Toplevel.exit o Toplevel.end_local_theory));
 
 val contextP =
   OuterSyntax.improper_command "context" "switch (local) theory context"
@@ -748,9 +748,9 @@ val print_bindsP =
   OuterSyntax.improper_command "print_binds" "print term bindings of proof context" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_binds));
 
-val print_lthmsP =
+val print_factsP =
   OuterSyntax.improper_command "print_facts" "print facts of proof context" K.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_lthms));
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_facts));
 
 val print_casesP =
   OuterSyntax.improper_command "print_cases" "print cases of proof context" K.diag
@@ -919,11 +919,11 @@ val _ = OuterSyntax.add_parsers [
   interpretationP, interpretP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
-  print_syntaxP, print_theoremsP, print_localesP, print_localeP,
-  print_registrationsP, print_attributesP, print_simpsetP,
-  print_rulesP, print_induct_rulesP, print_trans_rulesP,
-  print_methodsP, print_antiquotationsP, class_depsP, thm_depsP,
-  find_theoremsP, print_bindsP, print_lthmsP, print_casesP,
+  print_syntaxP, print_factsP, print_theoremsP, print_localesP,
+  print_localeP, print_registrationsP, print_attributesP,
+  print_simpsetP, print_rulesP, print_induct_rulesP,
+  print_trans_rulesP, print_methodsP, print_antiquotationsP,
+  class_depsP, thm_depsP, find_theoremsP, print_bindsP, print_casesP,
   print_stmtsP, print_thmsP, print_prfsP, print_full_prfsP,
   print_propP, print_termP, print_typeP,
   (*system commands*)
