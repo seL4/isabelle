@@ -23,8 +23,9 @@ val fequal_imp_equal = thm "Reconstruction.fequal_imp_equal";
 val equal_imp_fequal = thm "Reconstruction.equal_imp_fequal";
 
 
-(* a flag to set if we use extra combinators B',C',S' *)
-val use_combB'C'S' = ref true;
+(*A flag to set if we use extra combinators B',C',S', currently FALSE as the 5 standard
+  combinators appear to work best.*)
+val use_combB'C'S' = ref false;
 
 val combI_count = ref 0;
 val combK_count = ref 0;
