@@ -756,7 +756,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
   end
   
 fun trace_array fname =
-  let val path = File.tmp_path (Path.basic fname)
+  let val path = File.unpack_platform_path fname
   in  Array.app (File.append path o (fn s => s ^ "\n"))  end;
 
 (*Converting a subgoal into negated conjecture clauses*)
