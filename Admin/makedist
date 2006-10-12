@@ -44,6 +44,7 @@ Usage: $PRG VERSION [NAME]
 
   Checklist for official releases (before running this script):
 
+    * Symlink website to Admin/website
     * Check Admin/website contents.
     * Check ANNOUNCE, README.html, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS.
     * Try "isatool makeall all" with Poly/ML, SML/NJ, etc.
@@ -136,10 +137,10 @@ PDFLATEX=$(type -path pdflatex)
 
 for DOC in $(cat Contents)
 do
-  cd "$DOC"
+  pushd "$DOC" > /dev/null
   make dvi || fail "DVI document for $DOC failed!"
   { [ -n "$PDFLATEX" ] && make clean pdf; } || fail "PDF document for $DOC failed!"
-  cd ..
+  popd
 done
 
 
