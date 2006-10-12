@@ -36,7 +36,9 @@ if [ "$(basename "$ML_HOME")" = bin ]; then
 else
   POLYLIB="$ML_HOME"
 fi
+
 export LD_LIBRARY_PATH="$POLYLIB:$LD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="$POLYLIB:$DYLD_LIBRARY_PATH"
 
 
 ## prepare databases
