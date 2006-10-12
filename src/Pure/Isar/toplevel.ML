@@ -28,7 +28,7 @@ sig
   val theory_of: state -> theory
   val proof_of: state -> Proof.state
   val proof_position_of: state -> int
-  val enter_forward_proof: state -> Proof.state
+  val enter_proof_body: state -> Proof.state
   val prompt_state_default: state -> string
   val prompt_state_fn: (state -> string) ref
   val print_state_context: state -> unit
@@ -70,25 +70,27 @@ sig
   val keep: (state -> unit) -> transition -> transition
   val keep': (bool -> state -> unit) -> transition -> transition
   val imperative: (unit -> unit) -> transition -> transition
-  val init_theory: (bool -> theory) -> (theory -> unit) -> (theory -> unit)
-    -> transition -> transition
+  val init_theory: (bool -> theory) -> (theory -> unit) -> (theory -> unit) ->
+    transition -> transition
   val theory: (theory -> theory) -> transition -> transition
   val theory': (bool -> theory -> theory) -> transition -> transition
-  val exit_local_theory: transition -> transition
   val begin_local_theory: bool -> (theory -> local_theory) -> transition -> transition
+  val end_local_theory: transition -> transition
   val local_theory: xstring option -> (local_theory -> local_theory) -> transition -> transition
   val present_local_theory: xstring option -> (bool -> node -> unit) -> transition -> transition
+  val local_theory_to_proof: xstring option -> (local_theory -> Proof.state) ->
+    transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
+  val end_proof: (bool -> Proof.state -> Proof.context) -> transition -> transition
+  val forget_proof: transition -> transition
   val proof: (Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
   val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
   val proofs': (bool -> Proof.state -> Proof.state Seq.seq) -> transition -> transition
+  val present_proof: (bool -> node -> unit) -> transition -> transition
   val actual_proof: (ProofHistory.T -> ProofHistory.T) -> transition -> transition
   val skip_proof: (int History.T -> int History.T) -> transition -> transition
   val skip_proof_to_theory: (int -> bool) -> transition -> transition
-  val forget_proof: transition -> transition
-  val end_proof: (bool -> Proof.state -> Proof.context) -> transition -> transition
-  val present_proof: (bool -> node -> unit) -> transition -> transition
   val unknown_theory: transition -> transition
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
@@ -118,8 +120,9 @@ type generic_theory = Context.generic;    (*theory or local_theory*)
 
 datatype node =
   Theory of generic_theory * Proof.context option | (*theory with presentation context*)
-  Proof of ProofHistory.T * generic_theory |        (*history of proof states, original theory*)
-  SkipProof of (int History.T * generic_theory) * generic_theory;
+  Proof of ProofHistory.T * ((Proof.context -> generic_theory) * generic_theory) |
+    (*history of proof states, finish, original theory*)
+  SkipProof of int History.T * (generic_theory * generic_theory);
     (*history of proof depths, resulting theory, original theory*)
 
 val theory_node = fn Theory (gthy, _) => SOME gthy | _ => NONE;
@@ -127,7 +130,7 @@ val proof_node = fn Proof (prf, _) => SOME prf | _ => NONE;
 
 fun cases_node f _ (Theory (gthy, _)) = f gthy
   | cases_node _ g (Proof (prf, _)) = g (ProofHistory.current prf)
-  | cases_node f _ (SkipProof ((_, gthy), _)) = f gthy;
+  | cases_node f _ (SkipProof (_, (gthy, _))) = f gthy;
 
 fun presentation_context (SOME (Theory (_, SOME ctxt))) NONE = ctxt
   | presentation_context (SOME node) NONE = cases_node Context.proof_of Proof.context_of node
@@ -148,7 +151,7 @@ fun level (State NONE) = 0
         Theory (Context.Theory _, _) => 0
       | Theory (Context.Proof _, _) => 1
       | Proof (prf, _) => Proof.level (ProofHistory.current prf) + 1
-      | SkipProof ((h, _), _) => History.current h + 2);   (*different notion of proof depth!*)
+      | SkipProof (h, _) => History.current h + 2);   (*different notion of proof depth!*)
 
 fun str_of_state (State NONE) = "at top level"
   | str_of_state (State (SOME (node, _))) =
@@ -183,7 +186,7 @@ fun proof_position_of state =
     Proof (prf, _) => ProofHistory.position prf
   | _ => raise UNDEF);
 
-val enter_forward_proof = node_case (Proof.init o Context.proof_of) Proof.enter_forward;
+val enter_proof_body = node_case (Proof.init o Context.proof_of) Proof.enter_forward;
 
 
 (* prompt state *)
@@ -205,7 +208,7 @@ fun pretty_state_context state =
 fun pretty_node prf_only (Theory (gthy, _)) = if prf_only then [] else pretty_context gthy
   | pretty_node _ (Proof (prf, _)) =
       Proof.pretty_state (ProofHistory.position prf) (ProofHistory.current prf)
-  | pretty_node _ (SkipProof ((h, _), _)) =
+  | pretty_node _ (SkipProof (h, _)) =
       [Pretty.str ("skipped proof: depth " ^ string_of_int (History.current h))];
 
 fun pretty_state prf_only state =
@@ -497,7 +500,7 @@ val three_buffersN = "three_buffers";
 val print3 = print' three_buffersN;
 
 
-(* build transitions *)
+(* basic transitions *)
 
 val reset = add_trans Reset;
 fun init f exit kill = add_trans (Init (f, (exit, kill)));
@@ -516,20 +519,18 @@ fun init_theory f exit kill =
     (fn Theory (Context.Theory thy, _) => exit thy | _ => raise UNDEF)
     (fn Theory (Context.Theory thy, _) => kill thy | _ => raise UNDEF);
 
+val unknown_theory = imperative (fn () => warning "Unknown theory context");
+val unknown_proof = imperative (fn () => warning "Unknown proof context");
+val unknown_context = imperative (fn () => warning "Unknown context");
 
-(* typed transitions *)
+
+(* theory transitions *)
 
 fun theory' f = app_current (fn int =>
   (fn Theory (Context.Theory thy, _) => Theory (Context.Theory (f int thy), NONE)
     | _ => raise UNDEF));
 
 fun theory f = theory' (K f);
-
-val exit_local_theory = app_current (fn int =>
-  (fn Theory (Context.Proof lthy, _) =>
-      let val (ctxt', thy') = LocalTheory.exit int lthy
-      in Theory (Context.Theory thy', SOME ctxt') end
-    | _ => raise UNDEF));
 
 fun begin_local_theory begin f = app_current (fn int =>
   (fn Theory (Context.Theory thy, _) =>
@@ -540,6 +541,14 @@ fun begin_local_theory begin f = app_current (fn int =>
             else lthy |> LocalTheory.exit int ||> Context.Theory;
         in Theory (gthy, SOME ctxt) end
     | _ => raise UNDEF));
+
+val end_local_theory = app_current (fn int =>
+  (fn Theory (Context.Proof lthy, _) =>
+      let val (ctxt', thy') = LocalTheory.exit int lthy
+      in Theory (Context.Theory thy', SOME ctxt') end
+    | _ => raise UNDEF));
+
+local
 
 fun local_theory_presentation loc f g = app_current (fn int =>
   (fn Theory (Context.Theory thy, _) =>
@@ -552,76 +561,102 @@ fun local_theory_presentation loc f g = app_current (fn int =>
         in Theory (Context.Proof lthy', SOME ctxt') end
     | _ => raise UNDEF) #> tap (g int));
 
+in
+
 fun local_theory loc f = local_theory_presentation loc f (K I);
 fun present_local_theory loc g = local_theory_presentation loc I g;
 
-fun theory_to_proof f = app_current (fn int =>
-  (fn Theory (gthy as Context.Theory thy, _) =>
-    let
-      val prf = f thy;
+end;
+
+
+(* proof transitions *)
+
+local
+
+fun begin_proof init finish = app_current (fn int =>
+  (fn Theory (gthy, _) =>
+    let 
+      val prf = init gthy;
       val schematic = Proof.schematic_goal prf;
     in
       if ! skip_proofs andalso schematic then
         warning "Cannot skip proof of schematic goal statement"
       else ();
       if ! skip_proofs andalso not schematic then
-        SkipProof ((History.init (undo_limit int) 0,
-          Context.Theory (ProofContext.theory_of (Proof.global_skip_proof int prf))), gthy)
-      else Proof (ProofHistory.init (undo_limit int) prf, gthy)
+        SkipProof
+          (History.init (undo_limit int) 0, (finish gthy (Proof.global_skip_proof int prf), gthy))
+      else Proof (ProofHistory.init (undo_limit int) prf, (finish gthy, gthy))
     end
   | _ => raise UNDEF));
 
+val global_finish = Context.Theory o ProofContext.theory_of;
+val local_finish = Context.Proof o LocalTheory.reinit;
+
+fun mixed_finish (Context.Theory _) ctxt = global_finish ctxt
+  | mixed_finish (Context.Proof lthy) ctxt =
+      Context.Proof (LocalTheory.raw_theory (K (ProofContext.theory_of ctxt)) lthy);
+
+in
+
+fun local_theory_to_proof NONE f = begin_proof
+      (fn Context.Theory thy => f (TheoryTarget.init NONE thy)
+        | Context.Proof lthy => f lthy)
+      (fn Context.Theory _ => global_finish
+        | Context.Proof _ => local_finish)
+  | local_theory_to_proof loc f =
+      begin_proof (f o TheoryTarget.init loc o Context.theory_of) mixed_finish;
+
+fun theory_to_proof f =
+  begin_proof (fn Context.Theory thy => f thy | _ => raise UNDEF) (K global_finish);
+
+end;
+
+fun end_proof f = map_current (fn int =>
+  (fn Proof (prf, (finish, orig_gthy)) =>
+        let val state = ProofHistory.current prf in
+          if can (Proof.assert_bottom true) state then
+            let
+              val ctxt' = f int state;
+              val gthy' = finish ctxt';
+            in Theory (gthy', SOME ctxt') end
+          else raise UNDEF
+        end
+    | SkipProof (h, (gthy, _)) =>
+        if History.current h = 0 then Theory (gthy, NONE) else raise UNDEF
+    | _ => raise UNDEF));
+
+val forget_proof = map_current (fn _ =>
+  (fn Proof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
+    | SkipProof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
+    | _ => raise UNDEF));
+
 fun proofs' f = map_current (fn int =>
-  (fn Proof (prf, orig_gthy) => Proof (ProofHistory.applys (f int) prf, orig_gthy)
-    | SkipProof ((h, gthy), orig_gthy) => SkipProof ((History.apply I h, gthy), orig_gthy)
+  (fn Proof (prf, x) => Proof (ProofHistory.applys (f int) prf, x)
+    | SkipProof (h, x) => SkipProof (History.apply I h, x)
     | _ => raise UNDEF));
 
 fun proof' f = proofs' (Seq.single oo f);
 val proofs = proofs' o K;
 val proof = proof' o K;
 
+fun present_proof f = map_current (fn int =>
+  (fn node as Proof _ => node
+    | node as SkipProof _ => node
+    | _ => raise UNDEF) #> tap (f int));
+
 fun actual_proof f = map_current (fn _ =>
-  (fn Proof (prf, orig_gthy) => Proof (f prf, orig_gthy)
+  (fn Proof (prf, x) => Proof (f prf, x)
     | _ => raise UNDEF));
 
 fun skip_proof f = map_current (fn _ =>
-  (fn SkipProof ((h, gthy), orig_gthy) => SkipProof ((f h, gthy), orig_gthy)
+  (fn SkipProof (h, x) => SkipProof (f h, x)
     | _ => raise UNDEF));
 
 fun skip_proof_to_theory p = map_current (fn _ =>
-  (fn SkipProof ((h, thy), _) =>
-    if p (History.current h) then Theory (thy, NONE)
+  (fn SkipProof (h, (gthy, _)) =>
+    if p (History.current h) then Theory (gthy, NONE)
     else raise UNDEF
   | _ => raise UNDEF));
-
-val forget_proof = map_current (fn _ =>
-  (fn Proof (_, orig_gthy) => Theory (orig_gthy, NONE)
-    | SkipProof (_, orig_gthy) => Theory (orig_gthy, NONE)
-    | _ => raise UNDEF));
-
-fun end_proof f = map_current (fn int =>
-  (fn Proof (prf, orig_gthy) =>
-        let val state = ProofHistory.current prf in
-          if can (Proof.assert_bottom true) state then
-            let
-              val ctxt' = f int state;
-              val gthy' =
-                if can Context.the_theory orig_gthy
-                then Context.Theory (ProofContext.theory_of ctxt')
-                else Context.Proof (LocalTheory.reinit ctxt');
-            in Theory (gthy', SOME ctxt') end
-          else raise UNDEF
-        end
-    | SkipProof ((h, gthy), _) =>
-        if History.current h = 0 then Theory (gthy, NONE) else raise UNDEF
-    | _ => raise UNDEF));
-
-fun present_proof f = map_current (fn int =>
-  (fn node as Proof _ => node | _ => raise UNDEF) #> tap (f int));
-
-val unknown_theory = imperative (fn () => warning "Unknown theory context");
-val unknown_proof = imperative (fn () => warning "Unknown proof context");
-val unknown_context = imperative (fn () => warning "Unknown context");
 
 
 
