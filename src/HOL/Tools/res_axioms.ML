@@ -5,7 +5,7 @@
 Transformation of axiom rules (elim/intro/etc) into CNF forms.
 *)
 
-(*FIXME: does this signature serve any purpose?*)
+(*unused during debugging*)
 signature RES_AXIOMS =
   sig
   val elimRule_tac : thm -> Tactical.tactic
@@ -32,9 +32,11 @@ structure ResAxioms =
 
 struct
 
-(*FIXME DELETE: For running the comparison between combinators and abstractions.
-  CANNOT be a ref, as the setting is used while Isabelle is built.*)
-val abstract_lambdas = true;
+(*For running the comparison between combinators and abstractions.
+  CANNOT be a ref, as the setting is used while Isabelle is built.
+  Currently FALSE, i.e. all the "abstraction" code below is unused, but so far
+  it seems to be inferior to combinators...*)
+val abstract_lambdas = false;
 
 val trace_abs = ref false;
 
@@ -509,7 +511,6 @@ fun declare_abstract' (thy, []) = (thy, [])
           val (thy'', ths') = declare_abstract' (thy', ths)
       in  (thy'', th_defs @ ths')  end;
 
-(*FIXME DELETE if we decide to switch to abstractions*)
 fun declare_abstract (thy, ths) =
   if abstract_lambdas then declare_abstract' (thy, ths)
   else (thy, map Drule.eta_contraction_rule ths);
