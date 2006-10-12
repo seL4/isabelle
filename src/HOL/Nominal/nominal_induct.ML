@@ -123,7 +123,7 @@ fun nominal_induct_tac ctxt def_insts avoiding fixings rules facts =
 local
 
 val avoidingN = "avoiding";
-val fixingN = "fixing";
+val fixingN = "arbitrary";  (* to be consistent with induct; hopefully this changes again *)
 val ruleN = "rule";
 
 val inst = Scan.lift (Args.$$$ "_") >> K NONE || Args.term >> SOME;
