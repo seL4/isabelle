@@ -44,6 +44,9 @@ case $(uname -s) in
       Power* | power* | ppc)
         PLATFORM=ppc-darwin
         ;;
+      i?86)
+        PLATFORM=x86-darwin
+        ;;
     esac
     ;;
   Windows_NT)
