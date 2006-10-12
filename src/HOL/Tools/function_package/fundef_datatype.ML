@@ -14,8 +14,6 @@ sig
     val setup : theory -> theory
 end
 
-
-
 structure FundefDatatype : FUNDEF_DATATYPE =
 struct
 
@@ -167,6 +165,7 @@ val by_pat_completeness_simp =
     Proof.global_terminal_proof
       (Method.Basic (K pat_completeness),
        SOME (Method.Source (Args.src (("simp_all", []), Position.none))))
+         (* FIXME avoid dynamic scoping of method name! *)
 
 
 val setup =
@@ -175,13 +174,8 @@ val setup =
 
 
 
-
-
 local structure P = OuterParse and K = OuterKeyword in
 
-
-fun local_theory_to_proof f = 
-    Toplevel.theory_to_proof (f o TheoryTarget.init NONE)
 
 fun or_list1 s = P.enum1 "|" s
 val otherwise = P.$$$ "(" |-- P.$$$ "otherwise" --| P.$$$ ")"
@@ -192,17 +186,12 @@ val funP =
   OuterSyntax.command "fun" "define general recursive functions (short version)" K.thy_decl
   ((P.opt_locale_target -- P.fixes --| P.$$$ "where" -- statements_ow)
      >> (fn ((target, fixes), statements) =>
-            Toplevel.print o Toplevel.local_theory NONE (FundefPackage.add_fundef fixes statements FundefCommon.fun_config 
-                                                                                  #> by_pat_completeness_simp)));
+            Toplevel.print o
+            Toplevel.local_theory target
+              (FundefPackage.add_fundef fixes statements FundefCommon.fun_config
+               #> by_pat_completeness_simp)));
 
 val _ = OuterSyntax.add_parsers [funP];
 end
-
-
-
-
-
-
-
 
 end
