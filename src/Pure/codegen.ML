@@ -1050,9 +1050,9 @@ fun eval_term thy = setmp print_mode [] (fn t =>
 
 fun print_evaluated_term s = Toplevel.keep (fn state =>
   let
-    val state' = Toplevel.enter_forward_proof state;
-    val ctxt = Proof.context_of state';
-    val t = eval_term (Proof.theory_of state') (ProofContext.read_term ctxt s);
+    val ctxt = Context.proof_of (Toplevel.context_of state);
+    val thy = ProofContext.theory_of ctxt;
+    val t = eval_term thy (ProofContext.read_term ctxt s);
     val T = Term.type_of t;
   in
     writeln (Pretty.string_of

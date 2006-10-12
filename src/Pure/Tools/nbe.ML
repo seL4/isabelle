@@ -190,7 +190,7 @@ fun norm_print_term ctxt modes t =
 
 fun norm_print_term_e (modes, raw_t) state =
   let
-    val ctxt = (Proof.context_of o Toplevel.enter_forward_proof) state;
+    val ctxt = Context.proof_of (Toplevel.context_of state);
   in norm_print_term ctxt modes (ProofContext.read_term ctxt raw_t) end;
 
 end; (*local*)
