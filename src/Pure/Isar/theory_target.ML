@@ -7,6 +7,7 @@ Common theory targets.
 
 signature THEORY_TARGET =
 sig
+  val peek: local_theory -> string option
   val begin: bstring -> Proof.context -> local_theory
   val init: xstring option -> theory -> local_theory
   val init_i: string option -> theory -> local_theory
@@ -17,6 +18,20 @@ structure TheoryTarget: THEORY_TARGET =
 struct
 
 (** locale targets **)
+
+(* context data *)
+
+structure Data = ProofDataFun
+(
+  val name = "Isar/theory_target";
+  type T = string option;
+  fun init _ = NONE;
+  fun print _ _ = ();
+);
+
+val _ = Context.add_setup Data.init;
+val peek = Data.get;
+
 
 (* pretty *)
 
@@ -198,7 +213,8 @@ fun begin loc =
     notes = notes loc,
     term_syntax = term_syntax loc,
     declaration = declaration loc,
-    exit = K I};
+    exit = K I}
+  #> Data.put (SOME loc);
 
 fun init_i NONE thy = begin "" (ProofContext.init thy)
   | init_i (SOME loc) thy = begin loc (Locale.init loc thy);
