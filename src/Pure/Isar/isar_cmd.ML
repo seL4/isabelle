@@ -45,6 +45,7 @@ sig
   val print_context: Toplevel.transition -> Toplevel.transition
   val print_theory: bool -> Toplevel.transition -> Toplevel.transition
   val print_syntax: Toplevel.transition -> Toplevel.transition
+  val print_facts: Toplevel.transition -> Toplevel.transition
   val print_theorems: Toplevel.transition -> Toplevel.transition
   val print_locales: Toplevel.transition -> Toplevel.transition
   val print_locale: bool * (Locale.expr * Element.context list)
@@ -62,7 +63,6 @@ sig
   val find_theorems: int option * (bool * string FindTheorems.criterion) list
     -> Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
-  val print_lthms: Toplevel.transition -> Toplevel.transition
   val print_cases: Toplevel.transition -> Toplevel.transition
   val print_stmts: string list * (thmref * Attrib.src list) list
     -> Toplevel.transition -> Toplevel.transition
@@ -161,7 +161,7 @@ val undo_theory = Toplevel.history (fn hist =>
   if History.is_initial hist then raise Toplevel.UNDEF else History.undo hist);
 
 val undo = Toplevel.kill o undo_theory o undos_proof 1;
-val kill = Toplevel.kill o Toplevel.exit_local_theory o kill_proof;
+val kill = Toplevel.kill o kill_proof;
 
 val back =
   Toplevel.actual_proof ProofHistory.back o
@@ -224,6 +224,10 @@ fun print_theory verbose = Toplevel.unknown_theory o
 val print_syntax = Toplevel.unknown_theory o
   Toplevel.keep (Display.print_syntax o Toplevel.theory_of) o
   Toplevel.keep (ProofContext.print_syntax o Proof.context_of o Toplevel.proof_of);
+
+val print_facts = Toplevel.unknown_context o Toplevel.keep (fn state =>
+  ProofContext.setmp_verbose
+    ProofContext.print_lthms (Context.proof_of (Toplevel.context_of state)));
 
 val print_theorems_proof = Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
@@ -289,11 +293,11 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
 (* retrieve theorems *)
 
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  ThmDeps.thm_deps (Proof.get_thmss (Toplevel.enter_forward_proof state) args));
+  ThmDeps.thm_deps (Proof.get_thmss (Toplevel.enter_proof_body state) args));
 
 fun find_theorems (opt_lim, spec) = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
-    val proof_state = Toplevel.enter_forward_proof state;
+    val proof_state = Toplevel.enter_proof_body state;
     val ctxt = Proof.context_of proof_state;
     val opt_goal = try Proof.get_goal proof_state |> Option.map (Thm.prop_of o #2 o #2);
   in FindTheorems.print_theorems ctxt opt_goal opt_lim spec end);
@@ -304,8 +308,6 @@ fun find_theorems (opt_lim, spec) = Toplevel.unknown_theory o Toplevel.keep (fn 
 val print_binds = Toplevel.unknown_proof o Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
     ProofContext.print_binds (Proof.context_of (Toplevel.proof_of state)));
-
-val print_lthms = Toplevel.unknown_proof o print_theorems_proof;
 
 val print_cases = Toplevel.unknown_proof o Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
@@ -365,7 +367,7 @@ fun string_of_type state s =
   in Pretty.string_of (Pretty.quote (ProofContext.pretty_typ ctxt T)) end;
 
 fun print_item string_of (modes, arg) = Toplevel.keep (fn state => with_modes modes (fn () =>
-  writeln (string_of (Toplevel.enter_forward_proof state) arg)));
+  writeln (string_of (Toplevel.enter_proof_body state) arg)));
 
 in
 
