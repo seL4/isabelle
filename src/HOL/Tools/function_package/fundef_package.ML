@@ -185,20 +185,20 @@ val statement_ow = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 (P.prop -- Sc
 val statements_ow = or_list1 statement_ow
 
 
-fun local_theory_to_proof f =
-    Toplevel.theory_to_proof (f o TheoryTarget.init NONE)
-
 val functionP =
   OuterSyntax.command "function" "define general recursive functions" K.thy_goal
   ((config_parser -- P.opt_locale_target -- P.fixes --| P.$$$ "where" -- statements_ow)
      >> (fn (((config, target), fixes), statements) =>
-            Toplevel.print o local_theory_to_proof (add_fundef fixes statements config)));
+            Toplevel.print o
+            Toplevel.local_theory_to_proof target (add_fundef fixes statements config)));
 
 
 val terminationP =
   OuterSyntax.command "termination" "prove termination of a recursive function" K.thy_goal
-  (Scan.option P.name
-    >> (fn name => Toplevel.print o local_theory_to_proof (fundef_setup_termination_proof name)));
+  (P.opt_locale_target -- Scan.option P.name
+    >> (fn (target, name) =>
+           Toplevel.print o
+           Toplevel.local_theory_to_proof target (fundef_setup_termination_proof name)));
 
 
 val _ = OuterSyntax.add_parsers [functionP];
