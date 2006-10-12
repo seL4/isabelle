@@ -9,13 +9,7 @@ default: dvi
 
 ## dependencies
 
-include ../../Makefile.in
-
-isabelle_isar.eps:
-	test -r isabelle_isar.eps || ln -s ../../gfx/isabelle_isar.eps .
-
-isabelle_isar.pdf:
-	test -r isabelle_isar.pdf || ln -s ../../gfx/isabelle_isar.pdf .
+include ../Makefile.in
 
 NAME = classes
 
