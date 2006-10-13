@@ -28,12 +28,11 @@ sig
     | IVar of vname
     | `$ of iterm * iterm
     | `|-> of (vname * itype) * iterm
-    | INum of IntInf.int * iterm
-    | IChar of string (*length one!*) * iterm
-    | ICase of ((iterm * itype) * (iterm * iterm) list) * iterm;
-        (*((discriminendum term (td), discriminendum type (ty)),
-                [(selector pattern (p), body term (t))] (bs)),
-                pure term (t0))*)
+    | INum of IntInf.int
+    | IChar of string (*length one!*)
+    | ICase of (iterm * itype) * (iterm * iterm) list;
+        (*(discriminendum term (td), discriminendum type (ty)),
+                [(selector pattern (p), body term (t))] (bs))*)
   val `--> : itype list * itype -> itype;
   val `$$ : iterm * iterm list -> iterm;
   val `|--> : (vname * itype) list * iterm -> iterm;
@@ -47,11 +46,10 @@ sig
   val unfoldr: ('a -> ('b * 'a) option) -> 'a -> 'b list * 'a;
   val unfold_fun: itype -> itype list * itype;
   val unfold_app: iterm -> iterm * iterm list;
-  val unfold_abs: iterm -> (iterm * itype) list * iterm;
+  val unfold_abs: iterm -> ((vname * iterm option) * itype) list * iterm;
   val unfold_let: iterm -> ((iterm * itype) * iterm) list * iterm;
   val unfold_const_app: iterm ->
     ((string * (inst list list * itype)) * iterm list) option;
-  val map_pure: (iterm -> 'a) -> iterm -> 'a;
   val eta_expand: (string * (inst list list * itype)) * iterm list -> int -> iterm;
   val fold_constnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
   val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
@@ -72,9 +70,10 @@ sig
   val empty_code: code;
   val get_def: code -> string -> def;
   val merge_code: code * code -> code;
-  val project_code: string list -> code -> code;
+  val project_code: string list (*hidden*) -> string list option (*selected*)
+    -> code -> code;
   val add_eval_def: string (*shallow name space*) * iterm -> code -> string * code;
-  val delete_garbage: string list (*hidden definitions*) -> code -> code;
+
 
   val ensure_def: (transact -> def * code) -> bool -> string
     -> string -> transact -> transact;
@@ -85,7 +84,6 @@ sig
 
   val trace: bool ref;
   val tracing: ('a -> string) -> 'a -> 'a;
-  val soft_exc: bool ref;
 end;
 
 structure CodegenThingol: CODEGEN_THINGOL =
@@ -95,7 +93,6 @@ struct
 
 val trace = ref false;
 fun tracing f x = (if !trace then Output.tracing (f x) else (); x);
-val soft_exc = ref true;
 
 fun unfoldl dest x =
   case dest x
@@ -131,9 +128,9 @@ datatype iterm =
   | IVar of vname
   | `$ of iterm * iterm
   | `|-> of (vname * itype) * iterm
-  | INum of IntInf.int * iterm
-  | IChar of string * iterm
-  | ICase of ((iterm * itype) * (iterm * iterm) list) * iterm;
+  | INum of IntInf.int
+  | IChar of string
+  | ICase of (iterm * itype) * (iterm * iterm) list;
     (*see also signature*)
 
 (*
@@ -174,34 +171,19 @@ val unfold_app = unfoldl
     | _ => NONE);
 
 val unfold_abs = unfoldr
-  (fn (v, ty) `|-> (t as ICase (((IVar w, _), [(p, t')]), _)) =>
-        if v = w then SOME ((p, ty), t') else SOME ((IVar v, ty), t)
-    | (v, ty) `|-> t => SOME ((IVar v, ty), t)
+  (fn (v, ty) `|-> (t as ICase ((IVar w, _), [(p, t')])) =>
+        if v = w then SOME (((v, SOME p), ty), t') else SOME (((v, NONE), ty), t)
+    | (v, ty) `|-> t => SOME (((v, NONE), ty), t)
     | _ => NONE)
 
 val unfold_let = unfoldr
-  (fn ICase (((td, ty), [(p, t)]), _) => SOME (((p, ty), td), t)
+  (fn ICase ((td, ty), [(p, t)]) => SOME (((p, ty), td), t)
     | _ => NONE);
 
 fun unfold_const_app t =
  case unfold_app t
   of (IConst c, ts) => SOME (c, ts)
    | _ => NONE;
-
-fun map_pure f (t as IConst _) =
-      f t
-  | map_pure f (t as IVar _) =
-      f t
-  | map_pure f (t as _ `$ _) =
-      f t
-  | map_pure f (t as _ `|-> _) =
-      f t
-  | map_pure f (INum (_, t0)) =
-      f t0
-  | map_pure f (IChar (_, t0)) =
-      f t0
-  | map_pure f (ICase (_, t0)) =
-      f t0;
 
 fun fold_aiterms f (t as IConst _) =
       f t
@@ -211,12 +193,12 @@ fun fold_aiterms f (t as IConst _) =
       fold_aiterms f t1 #> fold_aiterms f t2
   | fold_aiterms f (t as _ `|-> t') =
       f t #> fold_aiterms f t'
-  | fold_aiterms f (INum (_, t0)) =
-      fold_aiterms f t0
-  | fold_aiterms f (IChar (_, t0)) =
-      fold_aiterms f t0
-  | fold_aiterms f (ICase (_, t0)) =
-      fold_aiterms f t0;
+  | fold_aiterms f (t as INum _) =
+      f t
+  | fold_aiterms f (t as IChar _) =
+      f t
+  | fold_aiterms f (ICase ((td, _), bs)) =
+      fold_aiterms f td #> fold (fn (p, t) => fold_aiterms f p #> fold_aiterms f t) bs;
 
 fun fold_constnames f =
   let
@@ -241,12 +223,12 @@ fun fold_unbound_varnames f =
           add vs t1 #> add vs t2
       | add vs ((v, _) `|-> t) =
           add (insert (op =) v vs) t
-      | add vs (INum (_, t)) =
-          add vs t
-      | add vs (IChar (_, t)) =
-          add vs t
-      | add vs (ICase (_, t0)) =
-          add vs t0
+      | add vs (INum _) =
+          I
+      | add vs (IChar _) =
+          I
+      | add vs (ICase ((td, _), bs)) =
+          add vs td #> fold (fn (p, t) => add vs p #> add vs t) bs;
   in add [] end;
 
 fun eta_expand (c as (_, (_, ty)), ts) k =
@@ -278,7 +260,7 @@ val eq_def = (op =) : def * def -> bool;
 
 type code = def Graph.T;
 type transact = Graph.key option * code;
-exception FAIL of string list * exn option;
+exception FAIL of string list;
 
 
 (* abstract code *)
@@ -307,19 +289,24 @@ fun add_dep (dep as (name1, name2)) =
 
 val merge_code = Graph.join (fn _ => fn def12 => if eq_def def12 then fst def12 else Bot);
 
-fun project_code names code =
-  Graph.project (member (op =) (Graph.all_succs code names)) code;
-
-fun delete_garbage hidden code =
+fun project_code hidden raw_selected code =
   let
     fun is_bot name = case get_def code name
      of Bot => true
       | _ => false;
     val names = subtract (op =) hidden (Graph.keys code);
-    val names' = subtract (op =)
-      (Graph.all_preds code (filter is_bot names)) names;
+    val deleted = Graph.all_preds code (filter is_bot names);
+    val selected = case raw_selected
+     of NONE => names |> subtract (op =) deleted 
+      | SOME sel => sel
+          |> subtract (op =) deleted
+          |> subtract (op =) hidden
+          |> Graph.all_succs code
+          |> subtract (op =) deleted
+          |> subtract (op =) hidden;
   in
-    Graph.project (member (op =) names') code
+    code
+    |> Graph.project (member (op =) selected)
   end;
 
 fun check_samemodule names =
@@ -406,17 +393,10 @@ fun ensure_def defgen strict msg name (dep, modl) =
     fun prep_def def modl =
       (check_prep_def modl def, modl);
     fun invoke_generator name defgen modl =
-      if ! soft_exc (*that "!" isn't a "not"...*)
-      then defgen (SOME name, modl)
-        handle FAIL (msgs, exc) =>
-                if strict then raise FAIL (msg' :: msgs, exc)
-                else (Bot, modl)
-             | e => raise
-                FAIL (["definition generator for " ^ quote name, msg'], SOME e)
-      else defgen (SOME name, modl)
-        handle FAIL (msgs, exc) =>
-              if strict then raise FAIL (msg' :: msgs, exc)
-              else (Bot, modl);
+      defgen (SOME name, modl)
+        handle FAIL msgs =>
+          if strict then raise FAIL (msg' :: msgs)
+          else (Bot, modl);
   in
     modl
     |> (if can (get_def modl) name
@@ -442,20 +422,18 @@ fun ensure_def defgen strict msg name (dep, modl) =
 
 fun succeed some (_, modl) = (some, modl);
 
-fun fail msg (_, modl) = raise FAIL ([msg], NONE);
+fun fail msg (_, modl) = raise FAIL [msg];
 
 fun message msg f trns =
-  f trns handle FAIL (msgs, exc) =>
-    raise FAIL (msg :: msgs, exc);
+  f trns handle FAIL msgs =>
+    raise FAIL (msg :: msgs);
 
 fun start_transact init f modl =
   let
     fun handle_fail f x =
       (f x
-      handle FAIL (msgs, NONE) =>
+      handle FAIL msgs =>
         (error o cat_lines) ("Code generation failed, while:" :: msgs))
-      handle FAIL (msgs, SOME e) =>
-        ((Output.error_msg o cat_lines) ("Code generation failed, while:" :: msgs); raise e);
   in
     modl
     |> (if is_some init then ensure_bot (the init) else I)

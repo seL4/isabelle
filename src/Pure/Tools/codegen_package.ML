@@ -21,6 +21,8 @@ sig
     -> ((string * typ) list * ((term * typ) * (term * term) list)) option)
     -> appgen;
   val appgen_let: appgen;
+
+  val timing: bool ref;
 end;
 
 structure CodegenPackage : CODEGEN_PACKAGE =
@@ -173,6 +175,7 @@ and exprgen_type thy algbr funcgr strct (TVar _) trns =
             |-> (fn (tyco, tys) => pair (tyco `%% tys));
 
 exception CONSTRAIN of (string * typ) * typ;
+val timing = ref false;
 
 fun exprgen_typinst thy (algbr as ((proj_sort, algebra), consts)) funcgr strct (ty_ctxt, sort_decl) trns =
   let
@@ -271,6 +274,8 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr strct (c, tys) trns =
         (perhaps (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy)) (c, tys))
        of eq_thms as eq_thm :: _ =>
             let
+              val timeap = if !timing then Output.timeap_msg ("time for " ^ c')
+                else I;
               val msg = cat_lines ("generating code for theorems " :: map string_of_thm eq_thms);
               val ty = (Logic.unvarifyT o CodegenData.typ_func thy) eq_thm;
               val vs = (map dest_TFree o Consts.typargs consts) (c', ty);
@@ -283,7 +288,7 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr strct (c, tys) trns =
             in
               trns
               |> CodegenThingol.message msg (fn trns => trns
-              |> fold_map (exprgen_eq o dest_eqthm) eq_thms
+              |> timeap (fold_map (exprgen_eq o dest_eqthm) eq_thms)
               ||>> fold_map (exprgen_tyvar_sort thy algbr funcgr strct) vs
               ||>> exprgen_type thy algbr funcgr strct ty
               |-> (fn ((eqs, vs), ty) => succeed (CodegenThingol.Fun (eqs, (vs, ty)))))
@@ -397,8 +402,7 @@ fun appgen_numeral int_of_numeral thy algbr funcgr strct (app as (c, ts)) trns =
   case try (int_of_numeral thy) (list_comb (Const c, ts))
    of SOME i =>
         trns
-        |> appgen_default thy algbr funcgr strct app
-        |-> (fn t => pair (CodegenThingol.INum (i, t)))
+        |> pair (CodegenThingol.INum i)
     | NONE =>
         trns
         |> appgen_default thy algbr funcgr strct app;
@@ -408,14 +412,16 @@ fun appgen_char char_to_index thy algbr funcgr strct (app as ((_, ty), _)) trns 
    of SOME i =>
         trns
         |> exprgen_type thy algbr funcgr strct ty
-        ||>> appgen_default thy algbr funcgr strct app
-        |-> (fn (_, t0) => pair (IChar (chr i, t0)))
+        |-> (fn _ => pair (IChar (chr i)))
     | NONE =>
         trns
         |> appgen_default thy algbr funcgr strct app;
 
+val debug_term = ref (Bound 0);
+
 fun appgen_case dest_case_expr thy algbr funcgr strct (app as (c_ty, ts)) trns =
   let
+    val _ = debug_term := list_comb (Const c_ty, ts);
     val SOME ([], ((st, sty), ds)) = dest_case_expr thy (list_comb (Const c_ty, ts));
     fun fold_map_aterms f (t $ u) s =
           s
@@ -427,16 +433,23 @@ fun appgen_case dest_case_expr thy algbr funcgr strct (app as (c_ty, ts)) trns =
           |> fold_map_aterms f t
           |-> (fn t' => pair (Abs (v, ty, t')))
       | fold_map_aterms f a s = f a s;
-    fun purify_term_frees (Free (v, ty)) ctxt = 
+    fun purify_term_frees (Free (v, ty)) (renaming, ctxt) = 
           let
             val ([v'], ctxt') = Name.variants [CodegenNames.purify_var v] ctxt;
-          in (Free (v, ty), ctxt') end
+            val renaming' = if v <> v' then Symtab.update (v, v') renaming else renaming;
+          in (Free (v', ty), (renaming', ctxt')) end
       | purify_term_frees t ctxt = (t, ctxt);
     fun clausegen (raw_dt, raw_bt) trns =
       let
-        val ((dt, bt), _) = Name.context
-          |> fold_map_aterms purify_term_frees raw_dt
-          ||>> fold_map_aterms purify_term_frees raw_bt;
+        val d_vs = map fst (Term.add_frees raw_dt []);
+        val b_vs = map fst (Term.add_frees raw_bt []);
+        val (dt, (renaming, ctxt)) =
+          Name.context
+          |> fold Name.declare (subtract (op =) d_vs b_vs)
+          |> pair Symtab.empty
+          |> fold_map_aterms purify_term_frees raw_dt;
+        val bt = map_aterms (fn t as Free (v, ty) => Free (perhaps (Symtab.lookup renaming) v, ty)
+                              | t => t) raw_bt;
       in
         trns
         |> exprgen_term thy algbr funcgr strct dt
@@ -447,21 +460,19 @@ fun appgen_case dest_case_expr thy algbr funcgr strct (app as (c_ty, ts)) trns =
     |> exprgen_term thy algbr funcgr strct st
     ||>> exprgen_type thy algbr funcgr strct sty
     ||>> fold_map clausegen ds
-    ||>> appgen_default thy algbr funcgr strct app
-    |-> (fn (((se, sty), ds), e0) => pair (ICase (((se, sty), ds), e0)))
+    |-> (fn ((se, sty), ds) => pair (ICase ((se, sty), ds)))
   end;
 
 fun appgen_let thy algbr funcgr strct (app as (_, [st, ct])) trns =
   trns
   |> exprgen_term thy algbr funcgr strct ct
   ||>> exprgen_term thy algbr funcgr strct st
-  ||>> appgen_default thy algbr funcgr strct app
-  |-> (fn (((v, ty) `|-> be, se), e0) =>
-            pair (ICase (((se, ty), case be
-              of ICase (((IVar w, _), ds), _) => if v = w then ds else [(IVar v, be)]
+  |-> (fn ((v, ty) `|-> be, se) =>
+            pair (ICase ((se, ty), case be
+              of ICase ((IVar w, _), ds) => if v = w then ds else [(IVar v, be)]
                | _ => [(IVar v, be)]
-            ), e0))
-        | (_, e0) => pair e0);
+            ))
+        | _ => appgen_default thy algbr funcgr strct app);
 
 fun add_appconst (c, appgen) thy =
   let
@@ -630,7 +641,7 @@ fun code raw_cs seris thy =
      of [] => NONE
       | xs => SOME xs;
     val seris' = map_filter (fn (target, args as _ :: _) =>
-      SOME (CodegenSerializer.get_serializer thy (target, args)) | _ => NONE) seris;
+      SOME (CodegenSerializer.get_serializer thy target args) | _ => NONE) seris;
     fun generate' thy = case cs
      of [] => []
       | _ =>

@@ -336,8 +336,6 @@ fun dest_case_app cs ts tys =
     val abs = Name.names Name.context "a" (Library.drop (length ts, tys));
     val (ts', t) = split_last (ts @ map Free abs);
     val (tys', sty) = split_last tys;
-    fun freenames_of t = fold_aterms
-      (fn Free (v, _) => insert (op =) v | _ => I) t [];
     fun dest_case ((c, tys_decl), ty) t =
       let
         val (vs, t') = Term.strip_abs_eta (length tys_decl) t;
