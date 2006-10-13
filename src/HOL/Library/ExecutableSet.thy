@@ -230,6 +230,11 @@ lemma iso_Bex:
 
 section {* code generator setup *}
 
+ML {*
+nonfix inter;
+nonfix union;
+*}
+
 code_constname
   "ExecutableSet.member" "List.member"
   "ExecutableSet.insertl" "List.insertl"
