@@ -27,6 +27,8 @@ open DatatypeAux;
 
 val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
+val collect_simp = rewrite_rule [mk_meta_eq mem_Collect_eq];
+
 
 (** theory context references **)
 
@@ -65,10 +67,11 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val big_name = space_implode "_" new_type_names;
     val thy1 = add_path flat_names big_name thy;
     val big_rec_name = big_name ^ "_rep_set";
-    val rep_set_names = map (Sign.full_name (Theory.sign_of thy1))
+    val rep_set_names' =
       (if length descr' = 1 then [big_rec_name] else
         (map ((curry (op ^) (big_rec_name ^ "_")) o string_of_int)
           (1 upto (length descr'))));
+    val rep_set_names = map (Sign.full_name (Theory.sign_of thy1)) rep_set_names';
 
     val tyvars = map (fn (_, (_, Ts, _)) => map dest_DtTFree Ts) (hd descr);
     val leafTs' = get_nonrec_types descr' sorts;
@@ -85,6 +88,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       else fold_bal (fn (T, U) => Type ("+", [T, U])) leafTs;
     val Univ_elT = HOLogic.mk_setT (Type (node_name, [sumT, branchT]));
     val UnivT = HOLogic.mk_setT Univ_elT;
+    val UnivT' = Univ_elT --> HOLogic.boolT;
+    val Collect = Const ("Collect", UnivT' --> UnivT);
 
     val In0 = Const (In0_name, Univ_elT --> Univ_elT);
     val In1 = Const (In1_name, Univ_elT --> Univ_elT);
@@ -149,8 +154,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
                 val free_t =
                   app_bnds (mk_Free "x" (Ts ---> Univ_elT) j) (length Ts)
               in (j + 1, list_all (map (pair "x") Ts,
-                  HOLogic.mk_Trueprop (HOLogic.mk_mem (free_t,
-                    Const (List.nth (rep_set_names, k), UnivT)))) :: prems,
+                  HOLogic.mk_Trueprop
+                    (Free (List.nth (rep_set_names', k), UnivT') $ free_t)) :: prems,
                 mk_lim free_t Ts :: ts)
               end
           | _ =>
@@ -159,32 +164,37 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
               end);
 
         val (_, prems, ts) = foldr mk_prem (1, [], []) cargs;
-        val concl = HOLogic.mk_Trueprop (HOLogic.mk_mem
-          (mk_univ_inj ts n i, Const (s, UnivT)))
+        val concl = HOLogic.mk_Trueprop
+          (Free (s, UnivT') $ mk_univ_inj ts n i)
       in Logic.list_implies (prems, concl)
       end;
 
-    val consts = map (fn s => Const (s, UnivT)) rep_set_names;
-
     val intr_ts = List.concat (map (fn ((_, (_, _, constrs)), rep_set_name) =>
       map (make_intr rep_set_name (length constrs))
-        ((1 upto (length constrs)) ~~ constrs)) (descr' ~~ rep_set_names));
+        ((1 upto (length constrs)) ~~ constrs)) (descr' ~~ rep_set_names'));
 
     val (thy2, {raw_induct = rep_induct, intrs = rep_intrs, ...}) =
       setmp InductivePackage.quiet_mode (!quiet_mode)
-        (InductivePackage.add_inductive_i false true big_rec_name false true false
-           consts (map (fn x => (("", x), [])) intr_ts) []) thy1;
+        (TheoryTarget.init NONE #>
+         InductivePackage.add_inductive_i false big_rec_name false true false
+           (map (fn s => (s, SOME UnivT', NoSyn)) rep_set_names') []
+           (map (fn x => (("", []), x)) intr_ts) [] #>
+         apfst (snd o LocalTheory.exit false)) thy1;
 
     (********************************* typedef ********************************)
 
-    val thy3 = add_path flat_names big_name (Library.foldl (fn (thy, ((((name, mx), tvs), c), name')) =>
-      setmp TypedefPackage.quiet_mode true
-        (TypedefPackage.add_typedef_i false (SOME name') (name, tvs, mx) c NONE
-          (rtac exI 1 THEN
-            QUIET_BREADTH_FIRST (has_fewer_prems 1)
-            (resolve_tac rep_intrs 1))) thy |> snd)
-              (parent_path flat_names thy2, types_syntax ~~ tyvars ~~
-                (Library.take (length newTs, consts)) ~~ new_type_names));
+    val (typedefs, thy3) = thy2 |>
+      parent_path flat_names |>
+      fold_map (fn ((((name, mx), tvs), c), name') =>
+        setmp TypedefPackage.quiet_mode true
+          (TypedefPackage.add_typedef_i false (SOME name') (name, tvs, mx)
+            (Collect $ Const (c, UnivT')) NONE
+            (rtac exI 1 THEN rtac CollectI 1 THEN
+              QUIET_BREADTH_FIRST (has_fewer_prems 1)
+              (resolve_tac rep_intrs 1))))
+                (types_syntax ~~ tyvars ~~
+                  (Library.take (length newTs, rep_set_names)) ~~ new_type_names) ||>
+      add_path flat_names big_name;
 
     (*********************** definition of constructors ***********************)
 
@@ -257,47 +267,12 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val _ = message "Proving isomorphism properties ...";
 
-    (* get axioms from theory *)
+    val newT_iso_axms = map (fn (_, td) =>
+      (collect_simp (#Abs_inverse td), #Rep_inverse td,
+       collect_simp (#Rep td))) typedefs;
 
-    val newT_iso_axms = map (fn s =>
-      (get_thm thy4 (Name ("Abs_" ^ s ^ "_inverse")),
-       get_thm thy4 (Name ("Rep_" ^ s ^ "_inverse")),
-       get_thm thy4 (Name ("Rep_" ^ s)))) new_type_names;
-
-    (*------------------------------------------------*)
-    (* prove additional theorems:                     *)
-    (*  inj_on dt_Abs_i rep_set_i  and  inj dt_Rep_i  *)
-    (*------------------------------------------------*)
-
-    fun prove_newT_iso_inj_thm (((s, (thm1, thm2, _)), T), rep_set_name) =
-      let
-        val sg = Theory.sign_of thy4;
-        val RepT = T --> Univ_elT;
-        val Rep_name = Sign.intern_const sg ("Rep_" ^ s);
-        val AbsT = Univ_elT --> T;
-        val Abs_name = Sign.intern_const sg ("Abs_" ^ s);
-
-        val inj_Abs_thm = 
-            Goal.prove_global sg [] []
-              (HOLogic.mk_Trueprop 
-                (Const ("Fun.inj_on", [AbsT, UnivT] ---> HOLogic.boolT) $
-                 Const (Abs_name, AbsT) $ Const (rep_set_name, UnivT)))
-              (fn _ => EVERY [rtac inj_on_inverseI 1, etac thm1 1]);
-
-        val setT = HOLogic.mk_setT T
-
-        val inj_Rep_thm =
-            Goal.prove_global sg [] []
-              (HOLogic.mk_Trueprop
-                (Const ("Fun.inj_on", [RepT, setT] ---> HOLogic.boolT) $
-                 Const (Rep_name, RepT) $ Const ("UNIV", setT)))
-              (fn _ => EVERY [rtac inj_inverseI 1, rtac thm2 1]);
-
-      in (inj_Abs_thm, inj_Rep_thm) end;
-
-    val newT_iso_inj_thms = map prove_newT_iso_inj_thm
-      (new_type_names ~~ newT_iso_axms ~~ newTs ~~
-        Library.take (length newTs, rep_set_names));
+    val newT_iso_inj_thms = map (fn (_, td) =>
+      (collect_simp (#Abs_inject td) RS iffD1, #Rep_inject td RS iffD1)) typedefs;
 
     (********* isomorphisms between existing types and "unfolded" types *******)
 
@@ -385,7 +360,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     fun mk_funs_inv thm =
       let
         val {sign, prop, ...} = rep_thm thm;
-        val _ $ (_ $ (Const (_, Type (_, [U, _])) $ _ $ S)) $
+        val _ $ (_ $ ((S as Const (_, Type (_, [U, _]))) $ _ )) $
           (_ $ (_ $ (r $ (a $ _)) $ _)) = Type.freeze prop;
         val used = add_term_tfree_names (a, []);
 
@@ -396,7 +371,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
             val f = Free ("f", Ts ---> U)
           in Goal.prove_global sign [] [] (Logic.mk_implies
             (HOLogic.mk_Trueprop (HOLogic.list_all
-               (map (pair "x") Ts, HOLogic.mk_mem (app_bnds f i, S))),
+               (map (pair "x") Ts, S $ app_bnds f i)),
              HOLogic.mk_Trueprop (HOLogic.mk_eq (list_abs (map (pair "x") Ts,
                r $ (a $ app_bnds f i)), f))))
             (fn _ => EVERY [REPEAT (rtac ext 1), REPEAT (etac allE 1), rtac thm 1, atac 1])
@@ -418,14 +393,14 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
           in (HOLogic.all_const T $ Abs ("y", T, HOLogic.imp $
                 HOLogic.mk_eq (Rep_t $ mk_Free "x" T i, Rep_t $ Bound 0) $
                   HOLogic.mk_eq (mk_Free "x" T i, Bound 0)),
-              HOLogic.mk_mem (Rep_t $ mk_Free "x" T i, Const (rep_set_name, UnivT)))
+              Const (rep_set_name, UnivT') $ (Rep_t $ mk_Free "x" T i))
           end;
 
         val (ind_concl1, ind_concl2) = ListPair.unzip (map mk_ind_concl ds);
 
         val rewrites = map mk_meta_eq iso_char_thms;
-        val inj_thms' = map (fn r => r RS injD)
-          (map snd newT_iso_inj_thms @ inj_thms);
+        val inj_thms' = map snd newT_iso_inj_thms @
+          map (fn r => r RS injD) inj_thms;
 
         val inj_thm = Goal.prove_global thy5 [] []
           (HOLogic.mk_Trueprop (mk_conj ind_concl1)) (fn _ => EVERY
@@ -465,14 +440,15 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val (iso_inj_thms_unfolded, iso_elem_thms) = foldr prove_iso_thms
       ([], map #3 newT_iso_axms) (tl descr);
-    val iso_inj_thms = map snd newT_iso_inj_thms @ iso_inj_thms_unfolded;
+    val iso_inj_thms = map snd newT_iso_inj_thms @
+      map (fn r => r RS injD) iso_inj_thms_unfolded;
 
-    (* prove  x : dt_rep_set_i --> x : range dt_Rep_i *)
+    (* prove  dt_rep_set_i x --> x : range dt_Rep_i *)
 
     fun mk_iso_t (((set_name, iso_name), i), T) =
       let val isoT = T --> Univ_elT
       in HOLogic.imp $ 
-        HOLogic.mk_mem (mk_Free "x" Univ_elT i, Const (set_name, UnivT)) $
+        (Const (set_name, UnivT') $ mk_Free "x" Univ_elT i) $
           (if i < length newTs then Const ("True", HOLogic.boolT)
            else HOLogic.mk_mem (mk_Free "x" Univ_elT i,
              Const ("image", [isoT, HOLogic.mk_setT T] ---> UnivT) $
@@ -517,12 +493,12 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     
     fun prove_constr_rep_thm eqn =
       let
-        val inj_thms = map (fn (r, _) => r RS inj_onD) newT_iso_inj_thms;
+        val inj_thms = map fst newT_iso_inj_thms;
         val rewrites = o_def :: constr_defs @ (map (mk_meta_eq o #2) newT_iso_axms)
       in Goal.prove_global thy5 [] [] eqn (fn _ => EVERY
         [resolve_tac inj_thms 1,
          rewrite_goals_tac rewrites,
-         rtac refl 1,
+         rtac refl 3,
          resolve_tac rep_intrs 2,
          REPEAT (resolve_tac iso_elem_thms 1)])
       end;
@@ -559,7 +535,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     fun prove_constr_inj_thm rep_thms t =
       let val inj_thms = Scons_inject :: (map make_elim
-        ((map (fn r => r RS injD) iso_inj_thms) @
+        (iso_inj_thms @
           [In0_inject, In1_inject, Leaf_inject, Inl_inject, Inr_inject,
            Lim_inject, Suml_inject, Sumr_inject]))
       in Goal.prove_global thy5 [] [] t (fn _ => EVERY
@@ -601,8 +577,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
           else Const ("Inductive.myinv", [T --> Univ_elT, Univ_elT] ---> T) $
             Const (List.nth (all_rep_names, i), T --> Univ_elT)
 
-      in (prems @ [HOLogic.imp $ HOLogic.mk_mem (Rep_t,
-            Const (List.nth (rep_set_names, i), UnivT)) $
+      in (prems @ [HOLogic.imp $
+            (Const (List.nth (rep_set_names, i), UnivT') $ Rep_t) $
               (mk_Free "P" (T --> HOLogic.boolT) (i + 1) $ (Abs_t $ Rep_t))],
           concls @ [mk_Free "P" (T --> HOLogic.boolT) (i + 1) $ mk_Free "x" T i])
       end;

@@ -108,24 +108,27 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
     val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
 
     val big_rec_name' = big_name ^ "_rec_set";
-    val rec_set_names = map (Sign.full_name (Theory.sign_of thy0))
-      (if length descr' = 1 then [big_rec_name'] else
-        (map ((curry (op ^) (big_rec_name' ^ "_")) o string_of_int)
-          (1 upto (length descr'))));
+    val rec_set_names' =
+      if length descr' = 1 then [big_rec_name'] else
+        map ((curry (op ^) (big_rec_name' ^ "_")) o string_of_int)
+          (1 upto (length descr'));
+    val rec_set_names = map (Sign.full_name (Theory.sign_of thy0)) rec_set_names';
 
     val (rec_result_Ts, reccomb_fn_Ts) = DatatypeProp.make_primrec_Ts descr sorts used;
 
-    val rec_set_Ts = map (fn (T1, T2) => reccomb_fn_Ts ---> HOLogic.mk_setT
-      (HOLogic.mk_prodT (T1, T2))) (recTs ~~ rec_result_Ts);
+    val rec_set_Ts = map (fn (T1, T2) =>
+      reccomb_fn_Ts @ [T1, T2] ---> HOLogic.boolT) (recTs ~~ rec_result_Ts);
 
     val rec_fns = map (uncurry (mk_Free "f"))
       (reccomb_fn_Ts ~~ (1 upto (length reccomb_fn_Ts)));
+    val rec_sets' = map (fn c => list_comb (Free c, rec_fns))
+      (rec_set_names' ~~ rec_set_Ts);
     val rec_sets = map (fn c => list_comb (Const c, rec_fns))
       (rec_set_names ~~ rec_set_Ts);
 
     (* introduction rules for graph of primrec function *)
 
-    fun make_rec_intr T set_name ((rec_intr_ts, l), (cname, cargs)) =
+    fun make_rec_intr T rec_set ((rec_intr_ts, l), (cname, cargs)) =
       let
         fun mk_prem ((dt, U), (j, k, prems, t1s, t2s)) =
           let val free1 = mk_Free "x" U j
@@ -135,9 +138,8 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
                  val free2 = mk_Free "y" (Us ---> List.nth (rec_result_Ts, m)) k;
                  val i = length Us
                in (j + 1, k + 1, HOLogic.mk_Trueprop (HOLogic.list_all
-                     (map (pair "x") Us, HOLogic.mk_mem (HOLogic.mk_prod
-                       (app_bnds free1 i, app_bnds free2 i),
-                         List.nth (rec_sets, m)))) :: prems,
+                     (map (pair "x") Us, List.nth (rec_sets', m) $
+                       app_bnds free1 i $ app_bnds free2 i)) :: prems,
                    free1::t1s, free2::t2s)
                end
            | _ => (j + 1, k, prems, free1::t1s, t2s))
@@ -146,19 +148,23 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
         val (_, _, prems, t1s, t2s) = foldr mk_prem (1, 1, [], [], []) (cargs ~~ Ts)
 
-      in (rec_intr_ts @ [Logic.list_implies (prems, HOLogic.mk_Trueprop (HOLogic.mk_mem
-        (HOLogic.mk_prod (list_comb (Const (cname, Ts ---> T), t1s),
-          list_comb (List.nth (rec_fns, l), t1s @ t2s)), set_name)))], l + 1)
+      in (rec_intr_ts @ [Logic.list_implies (prems, HOLogic.mk_Trueprop
+        (rec_set $ list_comb (Const (cname, Ts ---> T), t1s) $
+          list_comb (List.nth (rec_fns, l), t1s @ t2s)))], l + 1)
       end;
 
     val (rec_intr_ts, _) = Library.foldl (fn (x, ((d, T), set_name)) =>
       Library.foldl (make_rec_intr T set_name) (x, #3 (snd d)))
-        (([], 0), descr' ~~ recTs ~~ rec_sets);
+        (([], 0), descr' ~~ recTs ~~ rec_sets');
 
     val (thy1, {intrs = rec_intrs, elims = rec_elims, ...}) =
       setmp InductivePackage.quiet_mode (!quiet_mode)
-        (InductivePackage.add_inductive_i false true big_rec_name' false false true
-           rec_sets (map (fn x => (("", x), [])) rec_intr_ts) []) thy0;
+        (TheoryTarget.init NONE #>
+         InductivePackage.add_inductive_i false big_rec_name' false false true
+           (map (fn (s, T) => (s, SOME T, NoSyn)) (rec_set_names' ~~ rec_set_Ts))
+           (map (apsnd SOME o dest_Free) rec_fns)
+           (map (fn x => (("", []), x)) rec_intr_ts) [] #>
+         apfst (snd o LocalTheory.exit false)) thy0;
 
     (* prove uniqueness and termination of primrec combinators *)
 
@@ -166,7 +172,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
     fun mk_unique_tac ((tac, intrs), ((((i, (tname, _, constrs)), elim), T), T')) =
       let
-        val distinct_tac = (etac Pair_inject 1) THEN
+        val distinct_tac =
           (if i < length newTs then
              full_simp_tac (HOL_ss addsimps (List.nth (dist_rewrites, i))) 1
            else full_simp_tac dist_ss 1);
@@ -185,7 +191,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
                 REPEAT_DETERM_N k (etac thin_rl 1 THEN rotate_tac 1 1),
                 etac elim 1,
                 REPEAT_DETERM_N j distinct_tac,
-                etac Pair_inject 1, TRY (dresolve_tac inject 1),
+                TRY (dresolve_tac inject 1),
                 REPEAT (etac conjE 1), hyp_subst_tac 1,
                 REPEAT (EVERY [etac allE 1, dtac mp 1, atac 1]),
                 TRY (hyp_subst_tac 1),
@@ -203,9 +209,8 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
       let
         val rec_unique_ts = map (fn (((set_t, T1), T2), i) =>
           Const ("Ex1", (T2 --> HOLogic.boolT) --> HOLogic.boolT) $
-            absfree ("y", T2, HOLogic.mk_mem (HOLogic.mk_prod
-              (mk_Free "x" T1 i, Free ("y", T2)), set_t)))
-                (rec_sets ~~ recTs ~~ rec_result_Ts ~~ (1 upto length recTs));
+            absfree ("y", T2, set_t $ mk_Free "x" T1 i $ Free ("y", T2)))
+              (rec_sets ~~ recTs ~~ rec_result_Ts ~~ (1 upto length recTs));
         val cert = cterm_of thy1
         val insts = map (fn ((i, T), t) => absfree ("x" ^ (string_of_int i), T, t))
           ((1 upto length recTs) ~~ recTs ~~ rec_unique_ts);
@@ -241,7 +246,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
       |> (PureThy.add_defs_i false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
           ((Sign.base_name name) ^ "_def", Logic.mk_equals (comb, absfree ("x", T,
            Const ("The", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
-             HOLogic.mk_mem (HOLogic.mk_prod (Free ("x", T), Free ("y", T')), set))))))
+             set $ Free ("x", T) $ Free ("y", T'))))))
                (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
       ||> parent_path flat_names;
 

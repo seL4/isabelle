@@ -138,7 +138,7 @@ fun indtac indrule i st =
     fun abstr (t1, t2) = (case t1 of
         NONE => let val [Free (s, T)] = add_term_frees (t2, [])
           in absfree (s, T, t2) end
-      | SOME (_ $ t' $ _) => Abs ("x", fastype_of t', abstract_over (t', t2)))
+      | SOME (_ $ t') => Abs ("x", fastype_of t', abstract_over (t', t2)))
     val cert = cterm_of (Thm.sign_of_thm st);
     val Ps = map (cert o head_of o snd o getP) ts;
     val indrule' = cterm_instantiate (Ps ~~
