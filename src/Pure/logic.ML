@@ -424,9 +424,13 @@ fun lift_all inc =
   in lift [] end;
 
 (*Strips assumptions in goal, yielding list of hypotheses.   *)
-fun strip_assums_hyp (Const("==>", _) $ H $ B) = H :: strip_assums_hyp B
-  | strip_assums_hyp (Const("all",_)$Abs(a,T,t)) = strip_assums_hyp t
-  | strip_assums_hyp B = [];
+fun strip_assums_hyp B =
+  let
+    fun strip Hs (Const ("==>", _) $ H $ B) = strip (H :: Hs) B
+      | strip Hs (Const ("all", _) $ Abs (a, T, t)) =
+          strip (map (incr_boundvars 1) Hs) t
+      | strip Hs B = rev Hs
+  in strip [] B end;
 
 (*Strips assumptions in goal, yielding conclusion.   *)
 fun strip_assums_concl (Const("==>", _) $ H $ B) = strip_assums_concl B
