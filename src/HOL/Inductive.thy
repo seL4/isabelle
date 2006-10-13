@@ -9,6 +9,7 @@ theory Inductive
 imports FixedPoint Sum_Type Relation Record
 uses
   ("Tools/inductive_package.ML")
+  ("Tools/old_inductive_package.ML")
   ("Tools/inductive_realizer.ML")
   ("Tools/inductive_codegen.ML")
   ("Tools/datatype_aux.ML")
@@ -59,12 +60,22 @@ hide const myinv
 
 text {* Package setup. *}
 
-use "Tools/inductive_package.ML"
-setup InductivePackage.setup
+use "Tools/old_inductive_package.ML"
+setup OldInductivePackage.setup
 
 theorems basic_monos [mono] =
   subset_refl imp_refl disj_mono conj_mono ex_mono all_mono if_def2
   Collect_mono in_mono vimage_mono
+  imp_conv_disj not_not de_Morgan_disj de_Morgan_conj
+  not_all not_ex
+  Ball_def Bex_def
+  induct_rulify_fallback
+
+use "Tools/inductive_package.ML"
+setup InductivePackage.setup
+
+theorems [mono2] =
+  imp_refl disj_mono conj_mono ex_mono all_mono if_def2
   imp_conv_disj not_not de_Morgan_disj de_Morgan_conj
   not_all not_ex
   Ball_def Bex_def
