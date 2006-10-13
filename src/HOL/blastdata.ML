@@ -15,13 +15,3 @@ struct
 end;
 
 structure Blast = BlastFun(Blast_Data);
-
-structure HOL =
-struct
-
-open HOL;
-
-val Blast_tac = Blast.Blast_tac;
-val blast_tac = Blast.blast_tac;
-
-end;

@@ -863,10 +863,63 @@ lemma thin_refl:
 
 use "cladata.ML"
 setup Hypsubst.hypsubst_setup
-setup {* ContextRules.addSWrapper (fn tac => HOL.hyp_subst_tac' ORELSE' tac) *}
+setup {*
+let
+  (*prevent substitution on bool*)
+  fun hyp_subst_tac' i thm = if i <= Thm.nprems_of thm andalso
+    Term.exists_Const (fn ("op =", Type (_, [T, _])) => T <> Type ("bool", []) | _ => false)
+      (nth (Thm.prems_of thm) (i - 1)) then Hypsubst.hyp_subst_tac i thm else no_tac thm;
+in
+  ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac)
+end
+*}
 setup Classical.setup
 setup ResAtpset.setup
-setup {* fn thy => (Classical.change_claset_of thy (K HOL.claset); thy) *}
+
+declare iffI [intro!]
+  and notI [intro!]
+  and impI [intro!]
+  and disjCI [intro!]
+  and conjI [intro!]
+  and TrueI [intro!]
+  and refl [intro!]
+
+declare iffCE [elim!]
+  and FalseE [elim!]
+  and impCE [elim!]
+  and disjE [elim!]
+  and conjE [elim!]
+  and conjE [elim!]
+
+ML {*
+structure HOL =
+struct
+
+open HOL;
+
+val claset_prop = Classical.claset_of (the_context ());
+
+end;
+*}
+
+declare ex_ex1I [intro!]
+  and allI [intro!]
+  and the_equality [intro]
+  and exI [intro]
+
+declare exE [elim!]
+  allE [elim]
+
+ML {*
+structure HOL =
+struct
+
+open HOL;
+
+val claset = Classical.claset_of (the_context ());
+
+end;
+*}
 
 lemma contrapos_np: "~ Q ==> (~ P ==> Q) ==> P"
   apply (erule swap)
@@ -900,6 +953,9 @@ struct
 open HOL;
 
 fun case_tac a = res_inst_tac [("P", a)] case_split;
+
+val Blast_tac = Blast.Blast_tac;
+val blast_tac = Blast.blast_tac;
 
 end;
 *}
