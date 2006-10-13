@@ -56,6 +56,7 @@
     "code_type"
     "code_typename"
     "coinductive"
+    "coinductive2"
     "commit"
     "const_syntax"
     "constdefs"
@@ -98,7 +99,9 @@
     "hence"
     "hide"
     "inductive"
+    "inductive2"
     "inductive_cases"
+    "inductive_cases2"
     "init_toplevel"
     "instance"
     "interpret"
@@ -211,7 +214,6 @@
     "types_code"
     "ultimately"
     "undo"
-    "undo_end"
     "undos_proof"
     "unfolding"
     "update_thy"
@@ -306,7 +308,6 @@
     "quit"
     "redo"
     "undo"
-    "undo_end"
     "undos_proof"))
 
 (defconst isar-keywords-diag
@@ -409,6 +410,7 @@
     "code_type"
     "code_typename"
     "coinductive"
+    "coinductive2"
     "const_syntax"
     "constdefs"
     "consts"
@@ -428,6 +430,7 @@
     "global"
     "hide"
     "inductive"
+    "inductive2"
     "judgment"
     "lemmas"
     "local"
@@ -463,7 +466,8 @@
 
 (defconst isar-keywords-theory-script
   '("declare"
-    "inductive_cases"))
+    "inductive_cases"
+    "inductive_cases2"))
 
 (defconst isar-keywords-theory-goal
   '("ax_specification"
