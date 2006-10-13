@@ -38,7 +38,7 @@ lemma common_stable:
 apply (drule_tac M = "{t. t \<le> n}" in Elimination_sing)
 apply (simp add: atMost_def Stable_def common_def maxfg_def le_max_iff_disj)
 apply (erule Constrains_weaken_R)
-apply (blast intro: order_eq_refl fmono gmono le_trans)
+apply (blast intro: order_eq_refl le_trans dest: fmono gmono)
 done
 
 lemma common_safety:

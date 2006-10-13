@@ -70,7 +70,7 @@ val prems = goal (the_context ())
   " [| x:lfp(f); mono(f); !!y. y:f(lfp(f) Int {x. P(x)}) ==> P(y) |] ==> \
 \   P(x)";
 by (cut_facts_tac prems 1);
-by (etac lfp_induct 1);
+by (etac (thm "lfp_induct_set") 1);
 by (assume_tac 1);
 by (eresolve_tac prems 1);
 qed "lfp_ind2";

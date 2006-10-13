@@ -82,7 +82,7 @@ text {*
   First of all, we use the de-Morgan property of fixed points
 *}
 
-lemma lfp_gfp: "lfp f = - gfp (\<lambda>s . - (f (- s)))"
+lemma lfp_gfp: "lfp f = - gfp (\<lambda>s::'a set. - (f (- s)))"
 proof
   show "lfp f \<subseteq> - gfp (\<lambda>s. - f (- s))"
   proof
@@ -90,7 +90,8 @@ proof
     show "x \<in> - gfp (\<lambda>s. - f (- s))"
     proof
       assume "x \<in> gfp (\<lambda>s. - f (- s))"
-      then obtain u where "x \<in> u" and "u \<subseteq> - f (- u)" by (unfold gfp_def) auto
+      then obtain u where "x \<in> u" and "u \<subseteq> - f (- u)"
+	by (auto simp add: gfp_def Join_set_eq)
       then have "f (- u) \<subseteq> - u" by auto
       then have "lfp f \<subseteq> - u" by (rule lfp_lowerbound)
       from l and this have "x \<notin> u" by auto
@@ -107,10 +108,10 @@ proof
   qed
 qed
 
-lemma lfp_gfp': "- lfp f = gfp (\<lambda>s. - (f (- s)))"
+lemma lfp_gfp': "- lfp f = gfp (\<lambda>s::'a set. - (f (- s)))"
   by (simp add: lfp_gfp)
 
-lemma gfp_lfp': "- gfp f = lfp (\<lambda>s. - (f (- s)))"
+lemma gfp_lfp': "- gfp f = lfp (\<lambda>s::'a set. - (f (- s)))"
   by (simp add: lfp_gfp)
 
 text {*
