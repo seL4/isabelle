@@ -799,7 +799,7 @@ fun strip_abs_eta k t =
       | strip_abs (Abs (v, T, t)) (k, used) =
           let
             val ([v'], used') = Name.variants [v] used;
-            val t' = subst_bound (Free (v, T), t);
+            val t' = subst_bound (Free (v', T), t);
             val ((vs, t''), (k', used'')) = strip_abs t' (k - 1, used');
           in (((v', T) :: vs, t''), (k', used'')) end
       | strip_abs t (k, used) = (([], t), (k, used));
