@@ -51,6 +51,7 @@
     "code_instname"
     "code_library"
     "code_module"
+    "code_reserved"
     "code_type"
     "code_typename"
     "coinductive"
@@ -194,7 +195,6 @@
     "types_code"
     "ultimately"
     "undo"
-    "undo_end"
     "undos_proof"
     "unfolding"
     "update_thy"
@@ -271,7 +271,6 @@
     "quit"
     "redo"
     "undo"
-    "undo_end"
     "undos_proof"))
 
 (defconst isar-keywords-diag
@@ -370,6 +369,7 @@
     "code_instname"
     "code_library"
     "code_module"
+    "code_reserved"
     "code_type"
     "code_typename"
     "coinductive"
