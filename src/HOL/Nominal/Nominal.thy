@@ -97,7 +97,15 @@ lemma perm_boolE:
   shows "P"
   using a by (simp add: perm_bool)
 
+lemma perm_if:
+  fixes pi::"'a prm"
+  shows "pi\<bullet>(if b then c1 else c2) = (if (pi\<bullet>b) then (pi\<bullet>c1) else (pi\<bullet>c2))"
+apply(simp add: perm_fun_def)
+done
+
+
 (* permutation on options *)
+
 primrec (unchecked perm_option)
   perm_some_def:  "pi\<bullet>Some(x) = Some(pi\<bullet>x)"
   perm_none_def:  "pi\<bullet>None    = None"
@@ -298,6 +306,34 @@ lemma fresh_some:
   and   x :: "'a"
   shows "a\<sharp>(Some x) = a\<sharp>x"
   apply(simp add: fresh_def supp_some)
+  done
+
+lemma fresh_int:
+  fixes a :: "'x"
+  and   i :: "int"
+  shows "a\<sharp>i"
+  apply(simp add: fresh_def supp_int)
+  done
+
+lemma fresh_nat:
+  fixes a :: "'x"
+  and   n :: "nat"
+  shows "a\<sharp>n"
+  apply(simp add: fresh_def supp_nat)
+  done
+
+lemma fresh_char:
+  fixes a :: "'x"
+  and   c :: "char"
+  shows "a\<sharp>c"
+  apply(simp add: fresh_def supp_char)
+  done
+
+lemma fresh_string:
+  fixes a :: "'x"
+  and   s :: "string"
+  shows "a\<sharp>s"
+  apply(simp add: fresh_def supp_string)
   done
 
 text {* Normalization of freshness results; cf.\ @{text nominal_induct} *}
