@@ -23,6 +23,7 @@ sig
   val const_rev: theory -> const -> CodegenConsts.const option
   val const_force: CodegenConsts.const * const -> theory -> theory
   val purify_var: string -> string
+  val check_modulename: string -> string
   val has_nsp: string -> string -> bool
   val nsp_module: string
   val nsp_class: string
@@ -221,8 +222,23 @@ fun purify_op "0" = "zero"
            (Scan.repeat (Scan.some rep_op || Scan.one Symbol.not_eof));
       in (explode #> scan_valids #> implode) s end;
 
-val purify_lower = explode #> nth_map 0 Symbol.to_ascii_lower #> implode;
+val purify_lower =
+  explode
+  #> (fn cs => (if forall Symbol.is_ascii_upper cs
+        then map else nth_map 0) Symbol.to_ascii_lower cs)
+  #> implode;
+
 val purify_upper = explode #> nth_map 0 Symbol.to_ascii_upper #> implode;
+
+fun check_modulename mn =
+  let
+    val mns = NameSpace.unpack mn;
+    val mns' = map purify_upper mns;
+  in
+    if mns' = mns then mn else error ("Invalid module name: " ^ quote mn ^ "n"
+      ^ "perhaps try " ^ NameSpace.pack mns')
+  end
+
 
 fun purify_var "" = "x"
   | purify_var v =
