@@ -288,7 +288,7 @@ fun gen_primrec note def alt_name eqns thy =
       handle ERROR msg => cat_error msg ("The error(s) above occurred for " ^ s)) strings;
     val rec_ts = map (fn eq => head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop eq)))
       handle TERM _ => primrec_eq_err thy "not a proper equation" eq) eqn_ts;
-    val (_, eqn_ts') = InductivePackage.unify_consts thy rec_ts eqn_ts
+    val (_, eqn_ts') = OldInductivePackage.unify_consts thy rec_ts eqn_ts
   in
     gen_primrec_i note def alt_name (names ~~ eqn_ts' ~~ atts) thy
   end;

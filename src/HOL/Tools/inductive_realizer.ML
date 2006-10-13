@@ -347,7 +347,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     (** realizability predicate **)
 
     val (thy3', ind_info) = thy2 |>
-      InductivePackage.add_inductive_i false true "" false false false
+      OldInductivePackage.add_inductive_i false true "" false false false
         (map Logic.unvarify rlzsets) (map (fn (rintr, intr) =>
           ((Sign.base_name (Thm.name_of_thm intr), strip_all
             (Logic.unvarify rintr)), [])) (rintrs ~~ intrs)) [] |>>
@@ -457,7 +457,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
 fun add_ind_realizers name rsets thy =
   let
     val (_, {intrs, induct, raw_induct, elims, ...}) =
-      (case InductivePackage.get_inductive thy name of
+      (case OldInductivePackage.get_inductive thy name of
          NONE => error ("Unknown inductive set " ^ quote name)
        | SOME info => info);
     val _ $ (_ $ _ $ S) = concl_of (hd intrs);

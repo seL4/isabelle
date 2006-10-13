@@ -76,7 +76,7 @@ fun add optmod = Thm.declaration_attribute (fn thm => Context.mapping (fn thy =>
 fun get_clauses thy s =
   let val {intros, graph, ...} = CodegenData.get thy
   in case Symtab.lookup intros s of
-      NONE => (case InductivePackage.get_inductive thy s of
+      NONE => (case OldInductivePackage.get_inductive thy s of
         NONE => NONE
       | SOME ({names, ...}, {intrs, ...}) =>
           SOME (names, thyname_of_const s thy,
