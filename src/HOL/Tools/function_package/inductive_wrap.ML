@@ -64,7 +64,7 @@ fun inductive_def defs (((R, T), mixfix), lthy) =
             val qdefs = map dest_all_all cdefs
 
             val (thy, {intrs = intrs_gen, elims = [elim_gen], ...}) =
-                InductivePackage.add_inductive_i true (*verbose*)
+                OldInductivePackage.add_inductive_i true (*verbose*)
                                                  false (* dont add_consts *)
                                                  "" (* no altname *)
                                                  false (* no coind *)
