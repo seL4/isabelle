@@ -7,7 +7,7 @@ struct
   val elims = thms "Finites.cases";
   val elim = thm "Finites.cases";
   val induct = thm "Finites.induct";
-  val mk_cases = InductivePackage.the_mk_cases (the_context ()) "Finite_Set.Finites";
+  val mk_cases = OldInductivePackage.the_mk_cases (the_context ()) "Finite_Set.Finites";
   val [emptyI, insertI] = thms "Finites.intros";
 end;
 
@@ -17,7 +17,7 @@ struct
   val elims = thms "foldSet.cases";
   val elim = thm "foldSet.cases";
   val induct = thm "foldSet.induct";
-  val mk_cases = InductivePackage.the_mk_cases (the_context ()) "Finite_Set.foldSet";
+  val mk_cases = OldInductivePackage.the_mk_cases (the_context ()) "Finite_Set.foldSet";
   val [emptyI, insertI] = thms "foldSet.intros";
 end;
 
