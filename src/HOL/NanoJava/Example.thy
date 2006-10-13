@@ -92,17 +92,17 @@ primrec "s:x\<ge>0     = (x\<noteq>Null)"
         "s:x\<ge>Suc n = (\<exists>a. x=Addr a \<and> heap s a \<noteq> None \<and> s:get_field s a pred\<ge>n)"
 
 lemma Nat_atleast_lupd [rule_format, simp]: 
- "\<forall>s v. lupd(x\<mapsto>y) s:v \<ge> n = (s:v \<ge> n)"
+ "\<forall>s v::val. lupd(x\<mapsto>y) s:v \<ge> n = (s:v \<ge> n)"
 apply (induct n)
 by  auto
 
 lemma Nat_atleast_set_locs [rule_format, simp]: 
- "\<forall>s v. set_locs l s:v \<ge> n = (s:v \<ge> n)"
+ "\<forall>s v::val. set_locs l s:v \<ge> n = (s:v \<ge> n)"
 apply (induct n)
 by auto
 
 lemma Nat_atleast_del_locs [rule_format, simp]: 
- "\<forall>s v. del_locs s:v \<ge> n = (s:v \<ge> n)"
+ "\<forall>s v::val. del_locs s:v \<ge> n = (s:v \<ge> n)"
 apply (induct n)
 by auto
 
@@ -121,7 +121,7 @@ apply (induct n)
 by auto
 
 lemma Nat_atleast_newC [rule_format]: 
-  "heap s aa = None \<Longrightarrow> \<forall>v. s:v \<ge> n \<longrightarrow> hupd(aa\<mapsto>obj) s:v \<ge> n"
+  "heap s aa = None \<Longrightarrow> \<forall>v::val. s:v \<ge> n \<longrightarrow> hupd(aa\<mapsto>obj) s:v \<ge> n"
 apply (induct n)
 apply  auto
 apply  (case_tac "aa=a")

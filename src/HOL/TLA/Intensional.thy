@@ -180,7 +180,7 @@ axioms
   Valid_def:   "|- A    ==  ALL w. w |= A"
 
   unl_con:     "LIFT #c w  ==  c"
-  unl_lift:    "LIFT f<x> w == f (x w)"
+  unl_lift:    "lift f x w == f (x w)"
   unl_lift2:   "LIFT f<x, y> w == f (x w) (y w)"
   unl_lift3:   "LIFT f<x, y, z> w == f (x w) (y w) (z w)"
 

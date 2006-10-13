@@ -419,7 +419,7 @@ lemmas GreatestM_natI = GreatestM_nat_lemma [THEN conjunct1, standard]
 lemma GreatestM_nat_le:
   "P x ==> \<forall>y. P y --> m y < b
     ==> (m x::nat) <= m (GreatestM m P)"
-  apply (blast dest: GreatestM_nat_lemma [THEN conjunct2, THEN spec])
+  apply (blast dest: GreatestM_nat_lemma [THEN conjunct2, THEN spec, of P])
   done
 
 

@@ -1942,7 +1942,7 @@ done
 
 lemma real_root_eq_iff [simp]:
      "[| 0 \<le> x; 0 \<le> y |] ==> (root(Suc n) x = root(Suc n) y) = (x = y)"
-apply (auto intro!: order_antisym)
+apply (auto intro!: order_antisym [where 'a = real])
 apply (rule_tac n1 = n in real_root_le_iff [THEN iffD1])
 apply (rule_tac [4] n1 = n in real_root_le_iff [THEN iffD1], auto)
 done
