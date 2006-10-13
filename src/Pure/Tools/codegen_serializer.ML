@@ -21,7 +21,7 @@ sig
   val add_serializer : string * serializer -> theory -> theory;
   val ml_from_thingol: serializer;
   val hs_from_thingol: serializer;
-  val get_serializer: theory -> string * Args.T list
+  val get_serializer: theory -> string -> Args.T list
     -> string list option -> CodegenThingol.code -> unit;
 
   val const_has_serialization: theory -> string list -> string -> bool;
@@ -143,7 +143,7 @@ fun parse_mixfix s =
     | _ => error ("Malformed mixfix annotation: " ^ quote s)
   end;
 
-fun parse_syntax num_args =
+fun parse_syntax tokens =
   let
     fun is_arg (Arg _) = true
       | is_arg _ = false;
@@ -153,10 +153,9 @@ fun parse_syntax num_args =
             error ("Mixfix contains just one pretty element; either declare as "
               ^ quote atomK ^ " or consider adding a break")
         | x => x;
-    fun mk fixity mfx ctxt =
+    fun mk fixity mfx =
       let
         val i = (length o List.filter is_arg) mfx;
-        val _ = if i > num_args ctxt then error "Too many arguments in code syntax" else ();
       in (i, fillin_mixfix fixity mfx) end;
     val parse = (
            OuterParse.$$$ infixK  |-- OuterParse.nat
@@ -169,7 +168,7 @@ fun parse_syntax num_args =
         || pair (parse_nonatomic, BR)
       ) -- OuterParse.string >> (fn ((p, fxy), s) => (p s, fxy));
   in
-    parse #-> (fn (mfx, fixity) => pair (mk fixity mfx))
+    (parse >> (fn (mfx, fixity) => mk fixity mfx)) tokens
   end;
 
 
@@ -190,7 +189,7 @@ fun implode_list c_nil c_cons e =
 
 fun implode_string mk_char mk_string es =
   if forall (fn IChar _ => true | _ => false) es
-  then (SOME o str o mk_string o implode o map (fn IChar (c, _) => mk_char c)) es
+  then (SOME o str o mk_string o implode o map (fn IChar c => mk_char c)) es
   else NONE;
 
 fun pretty_ml_string c_nil c_cons mk_char mk_string target_implode =
@@ -226,7 +225,6 @@ fun pretty_list c_nil c_cons mk_list mk_char_string (target_fxy, target_cons) =
 
 (* variable name contexts *)
 
-(*FIXME could name.ML do th whole job?*)
 fun make_vars names = (fold (fn name => Symtab.update_new (name, name)) names Symtab.empty,
   Name.make_context names);
 
@@ -260,6 +258,7 @@ fun constructive_fun (name, (eqs, ty)) =
         ^ "executable function clauses found")
     | eqs => (name, (eqs, ty))
   end;
+
 
 
 (** SML serializer **)
@@ -356,26 +355,33 @@ fun pr_sml_def tyco_syntax const_syntax keyword_vars deresolv ml_def =
                 brackify fxy [pr_term vars NOBR t1, pr_term vars BR t2])
       | pr_term vars fxy (t as _ `|-> _) =
           let
-            val (ts, t') = CodegenThingol.unfold_abs t;
-            fun pr (p, _) vars =
-              let
-                val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = intro_vars vs vars;
-              in
-                ((Pretty.block o Pretty.breaks) [str "fn", pr_term vars' NOBR p, str "=>"], vars')
-              end;
-            val (ps, vars') = fold_map pr ts vars;
-          in brackify BR (ps @ [pr_term vars' NOBR t']) end
-      | pr_term vars fxy (INum (n, _)) =
+            val (ps, t') = CodegenThingol.unfold_abs t;
+            fun pr ((v, NONE), _) vars =
+                  let
+                    val vars' = intro_vars [v] vars;
+                  in
+                    ((Pretty.block o Pretty.breaks) [str "fn", str (lookup_var vars' v), str "=>"], vars')
+                  end
+              | pr ((v, SOME p), _) vars =
+                  let
+                    val vs = CodegenThingol.fold_varnames (insert (op =)) p [v];
+                    val vars' = intro_vars vs vars;
+                  in
+                    ((Pretty.block o Pretty.breaks) [str "fn", str (lookup_var vars' v), str "as",
+                      pr_term vars' NOBR p, str "=>"], vars')
+                  end;
+            val (ps', vars') = fold_map pr ps vars;
+          in brackify BR (ps' @ [pr_term vars' NOBR t']) end
+      | pr_term vars fxy (INum n) =
           brackify BR [(str o IntInf.toString) n, str ":", str "IntInf.int"]
-      | pr_term vars _ (IChar (c, _)) =
+      | pr_term vars _ (IChar c) =
           (str o prefix "#" o quote)
             (let val i = ord c
               in if i < 32
                 then prefix "\\" (string_of_int i)
                 else c
               end)
-      | pr_term vars fxy (t as ICase ((_, [_]), _)) =
+      | pr_term vars fxy (t as ICase (_, [_])) =
           let
             val (ts, t') = CodegenThingol.unfold_let t;
             fun mk ((p, _), t'') vars =
@@ -400,7 +406,7 @@ fun pr_sml_def tyco_syntax const_syntax keyword_vars deresolv ml_def =
               [str ("in"), Pretty.fbrk, pr_term vars' NOBR t'] |> Pretty.block,
               str ("end")
             ] end
-      | pr_term vars fxy (ICase (((td, ty), b::bs), _)) =
+      | pr_term vars fxy (ICase ((td, ty), b::bs)) =
           let
             fun pr definer (p, t) =
               let
@@ -651,34 +657,38 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
           (str o lookup_var vars) v
       | pr_term vars fxy (t as _ `|-> _) =
           let
-            val (ts, t') = CodegenThingol.unfold_abs t;
-            fun pr (p, _) vars =
-              let
-                val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = intro_vars vs vars;
-              in (pr_term vars' BR p, vars') end;
-            val (ps, vars') = fold_map pr ts vars;
+            val (ps, t') = CodegenThingol.unfold_abs t;
+            fun pr ((v, SOME p), _) vars =
+                  let
+                    val vs = CodegenThingol.fold_varnames (insert (op =)) p [v];
+                    val vars' = intro_vars vs vars;
+                  in ((Pretty.block o Pretty.breaks) [str (lookup_var vars' v), str "@", pr_term vars' BR p], vars') end
+              | pr ((v, NONE), _) vars =
+                  let
+                    val vars' = intro_vars [v] vars;
+                  in (str (lookup_var vars' v), vars') end;
+            val (ps', vars') = fold_map pr ps vars;
           in
             brackify BR (
               str "\\"
-              :: ps @ [
+              :: ps' @ [
               str "->",
               pr_term vars' NOBR t'
             ])
           end
-      | pr_term vars fxy (INum (n, _)) =
+      | pr_term vars fxy (INum n) =
           if n > 0 then
             (str o IntInf.toString) n
           else
             brackify BR [(str o Library.prefix "-" o IntInf.toString o IntInf.~) n]
-      | pr_term vars fxy (IChar (c, _)) =
+      | pr_term vars fxy (IChar c) =
           (str o enclose "'" "'")
             (let val i = (Char.ord o the o Char.fromString) c
               in if i < 32
                 then Library.prefix "\\" (string_of_int i)
                 else c
               end)
-      | pr_term vars fxy (t as ICase ((_, [_]), _)) =
+      | pr_term vars fxy (t as ICase (_, [_])) =
           let
             val (ts, t) = CodegenThingol.unfold_let t;
             fun pr ((p, _), t) vars =
@@ -697,7 +707,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
             [str ("let"), Pretty.fbrk, binds |> Pretty.chunks] |> Pretty.block,
             [str ("in "), pr_term vars' NOBR t] |> Pretty.block
           ] end
-      | pr_term vars fxy (ICase (((td, _), bs), _)) =
+      | pr_term vars fxy (ICase ((td, _), bs)) =
           let
             fun pr (p, t) =
               let
@@ -832,7 +842,39 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
               ) classop_defs)
             ]
           end |> SOME
+      | pr_def (_, CodegenThingol.Bot) =
+          NONE;
   in pr_def def end;
+
+val reserved_haskell = [
+  "hiding", "deriving", "where", "case", "of", "infix", "infixl", "infixr",
+  "import", "default", "forall", "let", "in", "class", "qualified", "data",
+  "newtype", "instance", "if", "then", "else", "type", "as", "do", "module"
+];
+
+fun seri_haskell module_prefix destination reserved_user module_alias module_prolog
+  class_syntax tyco_syntax const_syntax code =
+  let
+    val init_vars = make_vars (reserved_haskell @ reserved_user);
+  in () end;
+
+
+
+(** diagnosis serializer **)
+
+fun seri_diagnosis _ _ _ _ _ code =
+  let
+    val init_vars = make_vars reserved_haskell;
+    val pr = pr_haskell (K NONE) (K NONE) (K NONE) init_vars I I;
+  in
+    []
+    |> Graph.fold (fn (name, (def, _)) =>
+        case pr (name, def) of SOME p => cons p | NONE => I) code
+    |> separate (Pretty.str "")
+    |> Pretty.chunks
+    |> Pretty.writeln
+  end;
+
 
 
 (** generic abstract serializer **)
@@ -1011,32 +1053,17 @@ fun code_serialize seri_defs seri_module validate postprocess nsp_conn name_root
       (("", name_root), (mk_contents [] root_module))
   end;
 
-fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, validator, postproc)
-    postprocess (class_syntax, tyco_syntax, const_syntax)
-    (drop, select) code =
+fun abstract_serializer nspgrp name_root (from_defs, from_module, validator, postproc)
+    postprocess
+    reserved_user module_alias module_prolog class_syntax tyco_syntax const_syntax
+    code =
   let
-    fun project NONE code = code
-      | project (SOME names) code =
-          let
-            fun check name = if member (op =) drop name
-              then error ("shadowed definition " ^ quote name ^ " selected for serialization")
-              else if can (Graph.get_node code) name
-              then ()
-              else error ("dropped definition " ^ quote name ^ " selected for serialization")
-            val names' = (map o tap) check names;
-          in CodegenThingol.project_code names code end;
     fun from_module' resolv imps ((name_qual, name), defs) =
       from_module resolv imps ((name_qual, name), defs)
       |> postprocess (resolv name_qual);
   in
-    code
-    |> tracing (fn _ => "dropping shadowed definitions...")
-    |> CodegenThingol.delete_garbage drop
-    |> tracing (fn _ => "projecting...")
-    |> project select
-    |> tracing (fn _ => "serializing...")
-    |> code_serialize (from_defs (class_syntax, tyco_syntax, const_syntax))
-         from_module' validator postproc nspgrp name_root
+    code_serialize (from_defs (class_syntax, tyco_syntax, const_syntax))
+      from_module' validator postproc nspgrp name_root code
     |> K ()
   end;
 
@@ -1087,7 +1114,7 @@ fun parse_args f args =
 fun parse_single_file serializer =
   parse_args (Args.name
   >> (fn path => serializer
-        (fn "" => write_file false (Path.unpack path) #> K NONE
+        (fn "" => Pretty.setmp_margin 80 (write_file false (Path.unpack path)) #> K NONE
           | _ => SOME)));
 
 fun parse_multi_file postprocess_module ext serializer =
@@ -1163,7 +1190,7 @@ fun ml_from_defs (_, tyco_syntax, const_syntax) deresolver prefx defs =
     | defs => error ("Illegal mutual dependencies: " ^ (commas o map fst) defs)
   end;
 
-fun ml_serializer root_name target nspgrp =
+fun ml_serializer root_name nspgrp =
   let
     fun ml_from_module resolv _ ((_, name), ps) =
       Pretty.chunks ([
@@ -1181,15 +1208,15 @@ fun ml_serializer root_name target nspgrp =
         then ch_first Char.toUpper n
         else n
       end;
-  in abstract_serializer (target, nspgrp)
+  in abstract_serializer nspgrp
     root_name (ml_from_defs, ml_from_module,
      abstract_validator (ThmDatabase.ml_reserved @ reserved_ml'), postproc) end;
 
 in
 
-fun ml_from_thingol target args =
+fun ml_from_thingol args =
   let
-    val serializer = ml_serializer "ROOT" target [[nsp_module], [nsp_class, nsp_tyco],
+    val serializer = ml_serializer "ROOT" [[nsp_module], [nsp_class, nsp_tyco],
       [nsp_fun, nsp_dtco, nsp_class, nsp_classop, nsp_inst]]
     val parse_multi =
       Args.name
@@ -1207,18 +1234,18 @@ fun ml_from_thingol target args =
 
 val eval_verbose = ref false;
 
-fun eval_term_proto thy data hidden ((ref_name, reff), e) code =
+fun eval_term_proto thy data1 data2 data3 data4 data5 data6 hidden ((ref_name, reff), e) code =
   let
     val (val_name, code') = CodegenThingol.add_eval_def (nsp_eval, e) code;
+    val code'' = CodegenThingol.project_code hidden (SOME [NameSpace.pack [nsp_eval, val_name]]) code';
     val struct_name = "EVAL";
     fun output p = if !eval_verbose then (Pretty.writeln p; Pretty.output p)
       else Pretty.output p;
-    val serializer = ml_serializer struct_name "SML" [[nsp_module], [nsp_class, nsp_tyco],
+    val serializer = ml_serializer struct_name [[nsp_module], [nsp_class, nsp_tyco],
       [nsp_fun, nsp_dtco, nsp_class, nsp_classop, nsp_inst], [nsp_eval]]
       (fn "" => (fn p => (use_text Output.ml_output (!eval_verbose) (output p); NONE))
-        | _ => SOME) data
-        (hidden, SOME [NameSpace.pack [nsp_eval, val_name]]);
-    val _ = serializer code';
+        | _ => SOME) data1 data2 data3 data4 data5 data6;
+    val _ = serializer code'';
     val val_name_struct = NameSpace.append struct_name val_name;
     val _ = reff := NONE;
     val _ = use_text Output.ml_output (!eval_verbose) ("val _ = (" ^ ref_name ^ " := SOME (" ^ val_name_struct ^ "))");
@@ -1252,7 +1279,7 @@ end; (* local *)
 
 (** haskell serializer **)
 
-fun hs_from_thingol target args =
+fun hs_from_thingol args =
   let
     fun hs_from_defs keyword_vars (class_syntax, tyco_syntax, const_syntax) deresolver prefix defs =
       let
@@ -1286,8 +1313,8 @@ fun hs_from_thingol target args =
         then ch_first Char.toUpper n
         else ch_first Char.toLower n
       end;
-    val serializer = abstract_serializer (target, [[nsp_module],
-      [nsp_class], [nsp_tyco], [nsp_fun, nsp_classop], [nsp_dtco], [nsp_inst]])
+    val serializer = abstract_serializer [[nsp_module],
+      [nsp_class], [nsp_tyco], [nsp_fun, nsp_classop], [nsp_dtco], [nsp_inst]]
       "Main" (hs_from_defs (make_vars reserved_hs), hs_from_module, abstract_validator reserved_hs, postproc);
   in
     (parse_multi_file ((K o K) NONE) "hs" serializer) args
@@ -1318,55 +1345,48 @@ fun merge_syntax_expr (SyntaxExpr { class = class1, inst = inst1, tyco = tyco1, 
   );
 
 datatype syntax_modl = SyntaxModl of {
-  merge: string Symtab.table,
+  alias: string Symtab.table,
   prolog: Pretty.T Symtab.table
 };
 
-fun mk_syntax_modl (merge, prolog) =
-  SyntaxModl { merge = merge, prolog = prolog };
-fun map_syntax_modl f (SyntaxModl { merge, prolog }) =
-  mk_syntax_modl (f (merge, prolog));
-fun merge_syntax_modl (SyntaxModl { merge = merge1, prolog = prolog1 },
-    SyntaxModl { merge = merge2, prolog = prolog2 }) =
+fun mk_syntax_modl (alias, prolog) =
+  SyntaxModl { alias = alias, prolog = prolog };
+fun map_syntax_modl f (SyntaxModl { alias, prolog }) =
+  mk_syntax_modl (f (alias, prolog));
+fun merge_syntax_modl (SyntaxModl { alias = alias1, prolog = prolog1 },
+    SyntaxModl { alias = alias2, prolog = prolog2 }) =
   mk_syntax_modl (
-    Symtab.merge (op =) (merge1, merge2),
+    Symtab.merge (op =) (alias1, alias2),
     Symtab.merge (op =) (prolog1, prolog2)
   );
 
-type serializer = string -> Args.T list
--> (string -> (string * (string -> string option)) option)
-   * (string
-      -> (int
-          * (fixity
-             -> (fixity
-                 -> itype -> Pretty.T)
-                -> itype list -> Pretty.T)) 
-           option)
-   * (string
-      -> (int
-          * (fixity
-             -> (fixity
-                 -> iterm -> Pretty.T)
-                -> iterm list -> Pretty.T)) 
-           option)
-   -> string list * string list option
-      -> CodegenThingol.code -> unit;
+type serializer = Args.T list
+  -> string list
+  -> (string -> string option)
+  -> (string -> Pretty.T option)
+  -> (string -> (string * (string -> string option)) option)
+  -> (string -> (int * (fixity -> (fixity -> itype -> Pretty.T) -> itype list -> Pretty.T)) option)
+  -> (string -> (int * (fixity -> (fixity -> iterm -> Pretty.T) -> iterm list -> Pretty.T))  option)
+  -> CodegenThingol.code -> unit;
 
 datatype target = Target of {
   serial: serial,
   serializer: serializer,
   syntax_expr: syntax_expr,
-  syntax_modl: syntax_modl
+  syntax_modl: syntax_modl,
+  reserved: string list
 };
 
-fun mk_target (serial, (serializer, (syntax_expr, syntax_modl))) =
-  Target { serial = serial, serializer = serializer, syntax_expr = syntax_expr, syntax_modl = syntax_modl };
-fun map_target f ( Target { serial, serializer, syntax_expr, syntax_modl } ) =
-  mk_target (f (serial, (serializer, (syntax_expr, syntax_modl))));
-fun merge_target target (Target { serial = serial1, serializer = serializer, syntax_expr = syntax_expr1, syntax_modl = syntax_modl1 },
-    Target { serial = serial2, serializer = _, syntax_expr = syntax_expr2, syntax_modl = syntax_modl2 }) =
+fun mk_target (serial, ((serializer, reserved), (syntax_expr, syntax_modl))) =
+  Target { serial = serial, reserved = reserved, serializer = serializer, syntax_expr = syntax_expr, syntax_modl = syntax_modl };
+fun map_target f ( Target { serial, serializer, reserved, syntax_expr, syntax_modl } ) =
+  mk_target (f (serial, ((serializer, reserved), (syntax_expr, syntax_modl))));
+fun merge_target target (Target { serial = serial1, serializer = serializer, reserved = reserved1,
+  syntax_expr = syntax_expr1, syntax_modl = syntax_modl1 },
+    Target { serial = serial2, serializer = _, reserved = reserved2,
+      syntax_expr = syntax_expr2, syntax_modl = syntax_modl2 }) =
   if serial1 = serial2 then
-    mk_target (serial1, (serializer,
+    mk_target (serial1, ((serializer, merge (op =) (reserved1, reserved2)),
       (merge_syntax_expr (syntax_expr1, syntax_expr2),
         merge_syntax_modl (syntax_modl1, syntax_modl2))
     ))
@@ -1385,6 +1405,7 @@ structure CodegenSerializerData = TheoryDataFun
 end);
 
 fun the_serializer (Target { serializer, ... }) = serializer;
+fun the_reserved (Target { reserved, ... }) = reserved;
 fun the_syntax_expr (Target { syntax_expr = SyntaxExpr x, ... }) = x;
 fun the_syntax_modl (Target { syntax_modl = SyntaxModl x, ... }) = x;
 
@@ -1396,29 +1417,47 @@ fun add_serializer (target, seri) thy =
   in
     thy
     |> (CodegenSerializerData.map oo Symtab.map_default)
-          (target, mk_target (serial (), (seri,
+          (target, mk_target (serial (), ((seri, []),
             (mk_syntax_expr ((Symtab.empty, Symtab.empty), (Symtab.empty, Symtab.empty)),
               mk_syntax_modl (Symtab.empty, Symtab.empty)))))
-          (map_target (fn (serial, (_, syntax)) => (serial, (seri, syntax))))
+          (map_target (fn (serial, ((_, keywords), syntax)) => (serial, ((seri, keywords), syntax))))
   end;
+
+fun map_seri_data target f thy =
+  let
+    val _ = if is_some (Symtab.lookup (CodegenSerializerData.get thy) target)
+      then ()
+      else error ("Unknown code target language: " ^ quote target);
+  in
+    thy
+    |> (CodegenSerializerData.map o Symtab.map_entry target o map_target) f
+  end;
+
+val target_diag = "diag";
 
 val _ = Context.add_setup (
   CodegenSerializerData.init
   #> add_serializer ("SML", ml_from_thingol)
   #> add_serializer ("Haskell", hs_from_thingol)
+  #> add_serializer (target_diag, (fn _ => fn _ => seri_diagnosis))
 );
 
-fun get_serializer thy (target, args) cs =
+fun get_serializer thy target args cs =
   let
     val data = case Symtab.lookup (CodegenSerializerData.get thy) target
      of SOME data => data
       | NONE => error ("Unknown code target language: " ^ quote target);
     val seri = the_serializer data;
+    val reserved = the_reserved data;
+    val { alias, prolog } = the_syntax_modl data;
     val { class, inst, tyco, const } = the_syntax_expr data;
     fun fun_of sys = (Option.map fst oo Symtab.lookup) sys;
+    val project = if target = target_diag then I
+      else CodegenThingol.project_code
+        (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const) cs;
   in
-    seri target args (fun_of class, fun_of tyco, fun_of const)
-      (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const, cs)
+    project #> seri args reserved (Symtab.lookup alias) (Symtab.lookup prolog)
+      (fun_of class) (fun_of tyco) (fun_of const)
   end;
 
 fun has_serialization f thy targets name =
@@ -1436,10 +1475,12 @@ fun eval_term thy =
     val data = case Symtab.lookup (CodegenSerializerData.get thy) target
      of SOME data => data
       | NONE => error ("Unknown code target language: " ^ quote target);
+    val reserved = the_reserved data;
+    val { alias, prolog } = the_syntax_modl data;
     val { class, inst, tyco, const } = the_syntax_expr data;
     fun fun_of sys = (Option.map fst oo Symtab.lookup) sys;
   in
-    eval_term_proto thy (fun_of class, fun_of tyco, fun_of const)
+    eval_term_proto thy reserved (Symtab.lookup alias) (Symtab.lookup prolog) (fun_of class) (fun_of tyco) (fun_of const)
       (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const)
   end;
 
@@ -1449,16 +1490,12 @@ fun eval_term thy =
 
 local
 
-fun map_syntax_exprs target f thy =
-  let
-    val _ = if is_some (Symtab.lookup (CodegenSerializerData.get thy) target)
-      then ()
-      else error ("Unknown code target language: " ^ quote target);
-  in
-    thy
-    |> (CodegenSerializerData.map o Symtab.map_entry target o map_target
-          o apsnd o apsnd o apfst o map_syntax_expr) f
-  end;
+fun map_syntax_exprs target =
+  map_seri_data target o (apsnd o apsnd o apfst o map_syntax_expr);
+fun map_syntax_modls target =
+  map_seri_data target o (apsnd o apsnd o apsnd o map_syntax_modl);
+fun map_reserveds target =
+  map_seri_data target o (apsnd o apfst o apsnd);
 
 fun gen_add_syntax_class prep_class prep_const target raw_class (syntax, raw_ops) thy =
   let
@@ -1485,23 +1522,30 @@ fun gen_add_syntax_inst prep_class prep_tyco target (raw_tyco, raw_class) thy =
         (Symtab.update (inst, ()))
   end;
 
-fun gen_add_syntax_tyco prep_tyco raw_tyco target syntax thy =
+fun gen_add_syntax_tyco prep_tyco target raw_tyco (syntax as (n, _)) thy =
   let
-    val tyco = (CodegenNames.tyco thy o prep_tyco thy) raw_tyco;
+    val tyco = prep_tyco thy raw_tyco;
+    val tyco' = CodegenNames.tyco thy tyco;
+    val _ = if n > Sign.arity_number thy tyco
+      then error ("Too many arguments in syntax for type constructor " ^ quote tyco)
+      else ()
   in
     thy
     |> (map_syntax_exprs target o apsnd o apfst)
-         (Symtab.update (tyco, (syntax, serial ())))
+         (Symtab.update (tyco', (syntax, serial ())))
   end;
 
-fun gen_add_syntax_const prep_const raw_c target syntax thy =
+fun gen_add_syntax_const prep_const target raw_c (syntax as (n, _)) thy =
   let
-    val c' = prep_const thy raw_c;
-    val c'' = CodegenNames.const thy c';
+    val c = prep_const thy raw_c;
+    val c' = CodegenNames.const thy c;
+    val _ = if n > (length o fst o strip_type o Sign.the_const_type thy o fst) c
+      then error ("Too many arguments in syntax for constant " ^ (quote o fst) c)
+      else ()
   in
     thy
     |> (map_syntax_exprs target o apsnd o apsnd)
-         (Symtab.update (c'', (syntax, serial ())))
+         (Symtab.update (c', (syntax, serial ())))
   end;
 
 fun read_type thy raw_tyco =
@@ -1517,11 +1561,26 @@ fun idfs_of_const_names thy cs =
     val cs'' = map (CodegenConsts.norm_of_typ thy) cs';
   in AList.make (CodegenNames.const thy) cs'' end;
 
-fun parse_quote num_of consts_of target get_init adder =
-  parse_syntax num_of #-> (fn mfx => pair (fn thy => adder target (mfx thy) thy));
+val add_syntax_class = gen_add_syntax_class ClassPackage.read_class CodegenConsts.read_const;
+val add_syntax_inst = gen_add_syntax_inst ClassPackage.read_class read_type;
+val add_syntax_tyco = gen_add_syntax_tyco read_type;
+val add_syntax_const = gen_add_syntax_const CodegenConsts.read_const;
+
+fun add_reserved target =
+  map_reserveds target o insert (op =);
+
+fun add_modl_alias target =
+  map_syntax_modls target o apfst o Symtab.update o apsnd CodegenNames.check_modulename;
+
+fun add_modl_prolog target =
+  map_syntax_modls target o apsnd o
+    (fn (modl, NONE) => Symtab.delete modl | (modl, SOME prolog) =>
+      Symtab.update (modl, Pretty.str prolog));
 
 fun zip_list (x::xs) f g =
-  f x #-> (fn y => fold_map (fn x => g |-- f x >> pair x) xs
+  f
+  #-> (fn y =>
+    fold_map (fn x => g |-- f >> pair x) xs
     #-> (fn xys => pair ((x, y) :: xys)));
 
 structure P = OuterParse
@@ -1529,75 +1588,15 @@ and K = OuterKeyword
 
 fun parse_multi_syntax parse_thing parse_syntax =
   P.and_list1 parse_thing
-  #-> (fn things => Scan.repeat1 (P.$$$ "(" |-- P.name :--
-      (fn target => zip_list things (parse_syntax target)
-        (P.$$$ "and")) --| P.$$$ ")"))
+  #-> (fn things => Scan.repeat1 (P.$$$ "(" |-- P.name --
+        (zip_list things parse_syntax (P.$$$ "and")) --| P.$$$ ")"));
 
-val add_syntax_class = gen_add_syntax_class ClassPackage.read_class CodegenConsts.read_const;
-val add_syntax_inst = gen_add_syntax_inst ClassPackage.read_class read_type;
-
-fun parse_syntax_tyco target raw_tyco  =
-  let
-    fun intern thy = read_type thy raw_tyco;
-    fun num_of thy = Sign.arity_number thy (intern thy);
-    fun idf_of thy = CodegenNames.tyco thy (intern thy);
-    fun read_typ thy =
-      Sign.read_typ (thy, K NONE);
-  in
-    parse_quote num_of ((K o K) ([], [])) target idf_of
-      (gen_add_syntax_tyco read_type raw_tyco)
-  end;
-
-fun parse_syntax_const target raw_const =
-  let
-    fun intern thy = CodegenConsts.read_const thy raw_const;
-    fun num_of thy = (length o fst o strip_type o Sign.the_const_type thy o fst o intern) thy;
-    fun idf_of thy = (CodegenNames.const thy o intern) thy;
-  in
-    parse_quote num_of CodegenConsts.consts_of target idf_of
-      (gen_add_syntax_const CodegenConsts.read_const raw_const)
-  end;
-
-val (code_classK, code_instanceK, code_typeK, code_constK) =
-  ("code_class", "code_instance", "code_type", "code_const");
+val (code_classK, code_instanceK, code_typeK, code_constK,
+  code_reservedK, code_modulenameK, code_moduleprologK) =
+  ("code_class", "code_instance", "code_type", "code_const",
+    "code_reserved", "code_modulename", "code_moduleprolog");
 
 in
-
-val code_classP =
-  OuterSyntax.command code_classK "define code syntax for class" K.thy_decl (
-    parse_multi_syntax P.xname
-      (fn _ => fn _ => P.string -- Scan.optional (P.$$$ "where" |-- Scan.repeat1
-        (P.term --| (P.$$$ "\\<equiv>" || P.$$$ "==") -- P.string)) [])
-    >> (Toplevel.theory oo fold) (fn (target, syns) =>
-          fold (fn (raw_class, syn) => add_syntax_class target raw_class syn) syns)
-  );
-
-val code_instanceP =
-  OuterSyntax.command code_instanceK "define code syntax for instance" K.thy_decl (
-    parse_multi_syntax (P.xname --| P.$$$ "::" -- P.xname)
-      (fn _ => fn _ => P.name #->
-        (fn "-" => Scan.succeed () | _ => Scan.fail_with (fn _ => "\"-\" expected") ()))
-    >> (Toplevel.theory oo fold) (fn (target, syns) =>
-          fold (fn (raw_inst, ()) => add_syntax_inst target raw_inst) syns)
-  );
-
-val code_typeP =
-  OuterSyntax.command code_typeK "define code syntax for type constructor" K.thy_decl (
-    Scan.repeat1 (
-      parse_multi_syntax P.xname parse_syntax_tyco
-    )
-    >> (Toplevel.theory o (fold o fold) (fold snd o snd))
-  );
-
-val code_constP =
-  OuterSyntax.command code_constK "define code syntax for constant" K.thy_decl (
-    Scan.repeat1 (
-      parse_multi_syntax P.term parse_syntax_const
-    )
-    >> (Toplevel.theory o (fold o fold) (fold snd o snd))
-  );
-
-val _ = OuterSyntax.add_parsers [code_classP, code_instanceP, code_typeP, code_constP];
 
 fun add_pretty_list target nill cons mk_list mk_char_string target_cons thy =
   let
@@ -1605,7 +1604,7 @@ fun add_pretty_list target nill cons mk_list mk_char_string target_cons thy =
     val pr = pretty_list nil'' cons'' mk_list mk_char_string target_cons;
   in
     thy
-    |> gen_add_syntax_const (K I) cons' target pr
+    |> gen_add_syntax_const (K I) target cons' pr
   end;
 
 fun add_pretty_ml_string target nill cons str mk_char mk_string target_implode thy =
@@ -1614,7 +1613,7 @@ fun add_pretty_ml_string target nill cons str mk_char mk_string target_implode t
     val pr = pretty_ml_string nil'' cons'' mk_char mk_string target_implode;
   in
     thy
-    |> gen_add_syntax_const (K I) str' target pr
+    |> gen_add_syntax_const (K I) target str' pr
   end;
 
 fun add_undefined target undef target_undefined thy =
@@ -1623,8 +1622,61 @@ fun add_undefined target undef target_undefined thy =
     fun pretty _ _ _ = str target_undefined;
   in
     thy
-    |> gen_add_syntax_const (K I) undef' target (~1, pretty)
+    |> gen_add_syntax_const (K I) target undef' (~1, pretty)
   end;
+
+val code_classP =
+  OuterSyntax.command code_classK "define code syntax for class" K.thy_decl (
+    parse_multi_syntax P.xname
+      (P.string -- Scan.optional (P.$$$ "where" |-- Scan.repeat1
+        (P.term --| (P.$$$ "\\<equiv>" || P.$$$ "==") -- P.string)) [])
+    >> (Toplevel.theory oo fold) (fn (target, syns) =>
+          fold (fn (raw_class, syn) => add_syntax_class target raw_class syn) syns)
+  );
+
+val code_instanceP =
+  OuterSyntax.command code_instanceK "define code syntax for instance" K.thy_decl (
+    parse_multi_syntax (P.xname --| P.$$$ "::" -- P.xname)
+      (P.name #->
+        (fn "-" => Scan.succeed () | _ => Scan.fail_with (fn _ => "\"-\" expected") ()))
+    >> (Toplevel.theory oo fold) (fn (target, syns) =>
+          fold (fn (raw_inst, ()) => add_syntax_inst target raw_inst) syns)
+  );
+
+val code_typeP =
+  OuterSyntax.command code_typeK "define code syntax for type constructor" K.thy_decl (
+    parse_multi_syntax P.xname parse_syntax
+    >> (Toplevel.theory oo fold) (fn (target, syns) =>
+          fold (fn (raw_tyco, syn) => add_syntax_tyco target raw_tyco syn) syns)
+  );
+
+val code_constP =
+  OuterSyntax.command code_constK "define code syntax for constant" K.thy_decl (
+    parse_multi_syntax P.term parse_syntax
+    >> (Toplevel.theory oo fold) (fn (target, syns) =>
+          fold (fn (raw_const, syn) => add_syntax_const target raw_const syn) syns)
+  );
+
+val code_reservedP =
+  OuterSyntax.command code_reservedK "declare words as reserved for target language" K.thy_decl (
+    P.name -- Scan.repeat1 P.name
+    >> (fn (target, reserveds) => (Toplevel.theory o fold (add_reserved target)) reserveds)
+  )
+
+val code_modulenameP =
+  OuterSyntax.command code_reservedK "alias module to other name" K.thy_decl (
+    P.name -- Scan.repeat1 (P.name -- P.name)
+    >> (fn (target, modlnames) => (Toplevel.theory o fold (add_modl_alias target)) modlnames)
+  )
+
+val code_moduleprologP =
+  OuterSyntax.command code_reservedK "add prolog to module" K.thy_decl (
+    P.name -- Scan.repeat1 (P.name -- (P.string >> (fn "-" => NONE | s => SOME s)))
+    >> (fn (target, prologs) => (Toplevel.theory o fold (add_modl_prolog target)) prologs)
+  )
+
+val _ = OuterSyntax.add_parsers [code_classP, code_instanceP, code_typeP, code_constP,
+  code_reservedP, code_modulenameP, code_moduleprologP];
 
 end; (*local*)
 
