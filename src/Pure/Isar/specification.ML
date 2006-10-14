@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Makarius
 
-Common local_theory specifications --- with type-inference and
+Derived local theory specifications --- with type-inference and
 toplevel polymorphism.
 *)
 
@@ -40,6 +40,12 @@ sig
     -> local_theory -> (bstring * thm list) list * local_theory
   val theorems_i: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list
     -> local_theory -> (bstring * thm list) list * local_theory
+  val theorem: string -> Method.text option -> (thm list list -> local_theory -> local_theory) ->
+    string * Attrib.src list -> Element.context Locale.element list -> Element.statement ->
+    local_theory -> Proof.state
+  val theorem_i: string -> Method.text option -> (thm list list -> local_theory -> local_theory) ->
+    string * Attrib.src list -> Element.context_i Locale.element list -> Element.statement_i ->
+    local_theory -> Proof.state
 end;
 
 structure Specification: SPECIFICATION =
@@ -53,8 +59,10 @@ fun print_consts _ _ [] = ()
   | print_consts ctxt pred cs =
       if ! quiet_mode then () else Pretty.writeln (ProofDisplay.pretty_consts ctxt pred cs);
 
-fun present_results ctxt kind res =
-  if ! quiet_mode then () else ProofDisplay.present_results ctxt ((kind, ""), res);
+fun present_results ctxt res =
+  if ! quiet_mode then () else ProofDisplay.present_results ctxt res;
+
+fun present_results' ctxt kind res = present_results ctxt ((kind, ""), res);
 
 
 (* prepare specification *)
@@ -174,7 +182,7 @@ val const_syntax = gen_syntax Consts.intern;
 val const_syntax_i = gen_syntax (K I);
 
 
-(* theorems *)
+(* fact statements *)
 
 fun gen_theorems prep_thms prep_att kind raw_facts lthy =
   let
@@ -184,10 +192,76 @@ fun gen_theorems prep_thms prep_att kind raw_facts lthy =
       ((name, map attrib atts),
         bs |> map (fn (b, more_atts) => (prep_thms lthy b, map attrib more_atts @ k))));
     val (res, lthy') = lthy |> LocalTheory.notes facts;
-    val _ = present_results lthy' kind res;
+    val _ = present_results' lthy' kind res;
   in (res, lthy') end;
 
 val theorems = gen_theorems ProofContext.get_thms Attrib.intern_src;
 val theorems_i = gen_theorems (K I) (K I);
+
+
+(* goal statements *)
+
+local
+
+val global_goal =
+  Proof.global_goal (K (K ())) Attrib.attribute_i ProofContext.bind_propp_schematic_i;
+
+fun mk_shows prep_att stmt ctxt =
+  ((Attrib.map_specs prep_att stmt, []), fold (fold (Variable.fix_frees o fst) o snd) stmt ctxt);
+
+fun conclusion prep_att (Element.Shows concl) = (([], concl), mk_shows prep_att)
+  | conclusion _ (Element.Obtains cases) =
+      apfst (apfst (map Locale.Elem)) (Obtain.statement cases);
+
+in
+
+fun gen_theorem prep_att prep_stmt
+    kind before_qed after_qed (name, raw_atts) raw_elems raw_concl lthy0 =
+  let
+    val _ = LocalTheory.assert lthy0;
+    val thy = ProofContext.theory_of lthy0;
+    
+    val (loc, ctxt, lthy) =
+      (case (TheoryTarget.peek lthy0, exists (fn Locale.Expr _ => true | _ => false) raw_elems) of
+        (SOME loc, true) => (* workaround non-modularity of in/includes *)  (* FIXME *)
+          (warning "Re-initializing theory target for locale inclusion";
+            (SOME loc, ProofContext.init thy, LocalTheory.reinit lthy0))
+      | _ => (NONE, lthy0, lthy0));
+
+    val attrib = prep_att thy;
+    val elem_attrib = Locale.map_elem
+      (Element.map_ctxt {name = I, var = I, typ = I, term = I, fact = I, attrib = attrib});
+
+    val ((concl_elems, concl), mk_stmt) = conclusion attrib raw_concl;
+    val elems = map elem_attrib (raw_elems @ concl_elems);
+
+    val (_, _, elems_ctxt, propp) = prep_stmt loc elems (map snd concl) ctxt;
+    val ((stmt, facts), goal_ctxt) = mk_stmt (map (apsnd (K []) o fst) concl ~~ propp) elems_ctxt;
+
+    val k = if kind = "" then [] else [Attrib.kind kind];
+    val names = map (fst o fst) concl;
+    val attss = map (fn ((_, atts), _) => map attrib atts @ k) concl;
+    val atts = map attrib raw_atts @ k;
+
+    fun after_qed' results goal_ctxt' =
+      let val results' = burrow (ProofContext.export_standard goal_ctxt' lthy) results in
+        lthy
+        |> LocalTheory.notes ((names ~~ attss) ~~ map (fn ths => [(ths, [])]) results')
+        |> (fn (res, lthy') =>
+          (present_results lthy' ((kind, name), res);
+            if name = "" andalso null raw_atts then lthy'
+            else #2 (LocalTheory.notes [((name, atts), [(maps #2 res, [])])] lthy')))
+        |> after_qed results'
+      end;
+  in
+    goal_ctxt
+    |> global_goal kind before_qed after_qed' NONE (name, []) stmt
+    |> Proof.refine_insert facts
+  end;
+
+val theorem = gen_theorem Attrib.intern_src Locale.read_context_statement_i;
+val theorem_i = gen_theorem (K I) Locale.cert_context_statement;
+
+end;
 
 end;
