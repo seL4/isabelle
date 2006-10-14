@@ -148,7 +148,7 @@ fun pretty_items _ _ [] = []
 fun pretty_name_atts ctxt (name, atts) sep =
   if name = "" andalso null atts then []
   else [Pretty.block
-    (Pretty.breaks (Pretty.str name :: Args.pretty_attribs ctxt atts @ [Pretty.str sep]))];
+    (Pretty.breaks (Pretty.str name :: Attrib.pretty_attribs ctxt atts @ [Pretty.str sep]))];
 
 
 (* pretty_stmt *)
@@ -200,7 +200,7 @@ fun pretty_ctxt ctxt =
 
     fun prt_fact (ths, []) = map prt_thm ths
       | prt_fact (ths, atts) = Pretty.enclose "(" ")"
-          (Pretty.breaks (map prt_thm ths)) :: Args.pretty_attribs ctxt atts;
+          (Pretty.breaks (map prt_thm ths)) :: Attrib.pretty_attribs ctxt atts;
     fun prt_note (a, ths) =
       Pretty.block (Pretty.breaks (flat (prt_name_atts a "=" :: map prt_fact ths)));
   in
