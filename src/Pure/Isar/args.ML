@@ -26,6 +26,7 @@ sig
   type src
   val src: (string * T list) * Position.T -> src
   val dest_src: src -> (string * T list) * Position.T
+  val pretty_src: Proof.context -> src -> Pretty.T
   val map_name: (string -> string) -> src -> src
   val map_values: (string -> string) -> (typ -> typ) -> (term -> term) -> (thm -> thm)
     -> src -> src
@@ -85,8 +86,6 @@ sig
   val syntax: string -> ('b * T list -> 'a * ('b * T list)) -> src -> 'b -> 'b * 'a
   val context_syntax: string -> (Context.generic * T list -> 'a * (Context.generic * T list)) ->
     src -> Proof.context -> Proof.context * 'a
-  val pretty_src: Proof.context -> src -> Pretty.T
-  val pretty_attribs: Proof.context -> src list -> Pretty.T list
 end;
 
 structure Args: ARGS =
@@ -162,6 +161,16 @@ datatype src = Src of (string * T list) * Position.T;
 
 val src = Src;
 fun dest_src (Src src) = src;
+
+fun pretty_src ctxt src =
+  let
+    fun prt (Arg (_, Value (SOME (Name s)))) = Pretty.str (quote s)
+      | prt (Arg (_, Value (SOME (Typ T)))) = ProofContext.pretty_typ ctxt T
+      | prt (Arg (_, Value (SOME (Term t)))) = ProofContext.pretty_term ctxt t
+      | prt (Arg (_, Value (SOME (Fact ths)))) = ProofContext.pretty_thms ctxt ths
+      | prt arg = Pretty.str (string_of arg);
+    val (s, args) = #1 (dest_src src);
+  in Pretty.block (Pretty.breaks (Pretty.str s :: map prt args)) end;
 
 fun map_name f (Src ((s, args), pos)) = Src ((f s, args), pos);
 fun map_args f (Src ((s, args), pos)) = Src ((s, map f args), pos);
@@ -386,23 +395,5 @@ fun syntax kind scan (src as Src ((s, args), pos)) st =
         space_implode " " (map string_of args')));
 
 fun context_syntax kind scan src = apfst Context.the_proof o syntax kind scan src o Context.Proof;
-
-
-
-(** pretty printing **)
-
-fun pretty_src ctxt src =
-  let
-    fun prt (Arg (_, Value (SOME (Name s)))) = Pretty.str (quote s)
-      | prt (Arg (_, Value (SOME (Typ T)))) = ProofContext.pretty_typ ctxt T
-      | prt (Arg (_, Value (SOME (Term t)))) = ProofContext.pretty_term ctxt t
-      | prt (Arg (_, Value (SOME (Fact ths)))) = ProofContext.pretty_thms ctxt ths
-      | prt arg = Pretty.str (string_of arg);
-    val (s, args) = #1 (dest_src src);
-  in Pretty.block (Pretty.breaks (Pretty.str s :: map prt args)) end;
-
-fun pretty_attribs _ [] = []
-  | pretty_attribs ctxt srcs =
-      [Pretty.enclose "[" "]" (Pretty.commas (map (pretty_src ctxt) srcs))];
 
 end;
