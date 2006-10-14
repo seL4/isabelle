@@ -18,6 +18,7 @@ sig
   exception ATTRIB_FAIL of (string * Position.T) * exn
   val intern: theory -> xstring -> string
   val intern_src: theory -> src -> src
+  val pretty_attribs: Proof.context -> src list -> Pretty.T list
   val attribute: theory -> src -> attribute
   val attribute_i: theory -> src -> attribute
   val map_specs: ('a -> 'att) ->
@@ -79,10 +80,20 @@ val _ = Context.add_setup AttributesData.init;
 val print_attributes = AttributesData.print;
 
 
-(* interning *)
+(* name space *)
 
 val intern = NameSpace.intern o #1 o AttributesData.get;
 val intern_src = Args.map_name o intern;
+
+val extern = NameSpace.extern o #1 o AttributesData.get o ProofContext.theory_of;
+
+
+(* pretty printing *)
+
+fun pretty_attribs _ [] = []
+  | pretty_attribs ctxt srcs =
+      [Pretty.enclose "[" "]"
+        (Pretty.commas (map (Args.pretty_src ctxt o Args.map_name (extern ctxt)) srcs))];
 
 
 (* get attributes *)
