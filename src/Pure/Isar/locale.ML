@@ -42,6 +42,7 @@ sig
     Merge of expr list
   val empty: expr
   datatype 'a element = Elem of 'a | Expr of expr
+  val map_elem: ('a -> 'b) -> 'a element -> 'b element
 
   val intern: theory -> xstring -> string
   val extern: theory -> string -> xstring
@@ -60,6 +61,9 @@ sig
 
   (* Processing of locale statements *)
   val read_context_statement: xstring option -> Element.context element list ->
+    (string * string list) list list -> Proof.context ->
+    string option * Proof.context * Proof.context * (term * term list) list list
+  val read_context_statement_i: string option -> Element.context element list ->
     (string * string list) list list -> Proof.context ->
     string option * Proof.context * Proof.context * (term * term list) list list
   val cert_context_statement: string option -> Element.context_i element list ->
@@ -449,7 +453,7 @@ fun gen_print_registrations get_regs mk_ctxt msg show_wits loc thy_ctxt =
     fun prt_inst ts =
         Pretty.enclose "(" ")" (Pretty.breaks (map prt_term ts));
     fun prt_attn (prfx, atts) =
-        Pretty.breaks (Pretty.str prfx :: Args.pretty_attribs ctxt atts);
+        Pretty.breaks (Pretty.str prfx :: Attrib.pretty_attribs ctxt atts);
     fun prt_witns witns = Pretty.enclose "[" "]"
       (Pretty.breaks (map (prt_term o Element.witness_prop) witns));
     fun prt_reg (ts, (("", []), witns)) =
@@ -1440,8 +1444,9 @@ fun cert_context import body ctxt = #1 (cert_ctxt true [] import (map Elem body)
 val read_expr = prep_expr read_context;
 val cert_expr = prep_expr cert_context;
 
-fun read_context_statement raw_locale = prep_statement intern read_ctxt raw_locale ;
-fun cert_context_statement raw_locale = prep_statement (K I) cert_ctxt raw_locale ;
+fun read_context_statement loc = prep_statement intern read_ctxt loc;
+fun read_context_statement_i loc = prep_statement (K I) read_ctxt loc;
+fun cert_context_statement loc = prep_statement (K I) cert_ctxt loc;
 
 end;
 
