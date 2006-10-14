@@ -205,6 +205,7 @@ fun declaration "" f = LocalTheory.theory (Context.theory_map f)
 (* init and exit *)
 
 fun begin loc =
+  Data.put (if loc = "" then NONE else SOME loc) #>
   LocalTheory.init (SOME (NameSpace.base loc))
    {pretty = pretty loc,
     consts = consts loc,
@@ -213,8 +214,7 @@ fun begin loc =
     notes = notes loc,
     term_syntax = term_syntax loc,
     declaration = declaration loc,
-    exit = K I}
-  #> Data.put (SOME loc);
+    exit = K I};
 
 fun init_i NONE thy = begin "" (ProofContext.init thy)
   | init_i (SOME loc) thy = begin loc (Locale.init loc thy);
