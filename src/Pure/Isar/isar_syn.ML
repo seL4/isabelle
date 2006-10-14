@@ -386,8 +386,11 @@ fun gen_theorem kind =
   OuterSyntax.command kind ("state " ^ kind) K.thy_goal
     (P.opt_locale_target -- Scan.optional (P.opt_thm_name ":" --|
       Scan.ahead (P.locale_keyword || P.statement_keyword)) ("", []) --
-      P.general_statement >> (fn ((x, y), (z, w)) =>
-      (Toplevel.print o Toplevel.theory_to_proof (Locale.smart_theorem kind x y z w))));
+      P.general_statement >> (fn ((loc, a), (elems, concl)) =>
+      (Toplevel.print o
+       Toplevel.local_theory_to_proof loc
+         (Specification.theorem kind NONE (K I) a elems concl) o
+       Toplevel.theory_to_proof (Locale.smart_theorem kind loc a elems concl))));
 
 val theoremP = gen_theorem PureThy.theoremK;
 val lemmaP = gen_theorem PureThy.lemmaK;
