@@ -833,8 +833,9 @@ locale situation =
     and perms\<^isub>2_not_writable: "Writable \<notin> perms\<^isub>2"
   notes facts = user\<^isub>1_known user\<^isub>1_not_root users_neq
     perms\<^isub>1_writable perms\<^isub>2_not_writable
+begin
 
-definition (in situation)
+definition
   "bogus =
      [Mkdir user\<^isub>1 perms\<^isub>1 [user\<^isub>1, name\<^isub>1],
       Mkdir user\<^isub>2 perms\<^isub>2 [user\<^isub>1, name\<^isub>1, name\<^isub>2],
@@ -857,7 +858,7 @@ text {*
   neither owned and nor writable by @{term user\<^isub>1}.
 *}
 
-definition (in situation)
+definition
   "invariant root path =
     (\<exists>att dir.
       access root path user\<^isub>1 {} = Some (Env att dir) \<and> dir \<noteq> empty \<and>
@@ -896,7 +897,7 @@ text {*
   we just have to inspect rather special cases.
 *}
 
-lemma (in situation) cannot_rmdir:
+lemma cannot_rmdir:
   assumes inv: "invariant root bogus_path"
     and rmdir: "root \<midarrow>(Rmdir user\<^isub>1 [user\<^isub>1, name\<^isub>1])\<rightarrow> root'"
   shows False
@@ -912,7 +913,7 @@ proof -
   ultimately show False by (simp add: bogus_path_def)
 qed
 
-lemma (in situation)
+lemma
   assumes init: "init users =bogus\<Rightarrow> root"
   notes eval = facts access_def init_def
   shows init_invariant: "invariant root bogus_path"
@@ -935,7 +936,7 @@ text {*
   required here.
 *}
 
-lemma (in situation) preserve_invariant:
+lemma preserve_invariant:
   assumes tr: "root \<midarrow>x\<rightarrow> root'"
     and inv: "invariant root path"
     and uid: "uid_of x = user\<^isub>1"
@@ -1079,7 +1080,7 @@ text {*
   overall procedure (see \secref{sec:unix-inv-procedure}).
 *}
 
-corollary (in situation)
+corollary
   assumes bogus: "init users =bogus\<Rightarrow> root"
   shows "\<not> (\<exists>xs. (\<forall>x \<in> set xs. uid_of x = user\<^isub>1) \<and>
     can_exec root (xs @ [Rmdir user\<^isub>1 [user\<^isub>1, name\<^isub>1]]))"
@@ -1087,5 +1088,7 @@ proof -
   from cannot_rmdir init_invariant preserve_invariant
     and bogus show ?thesis by (rule general_procedure)
 qed
+
+end
 
 end
