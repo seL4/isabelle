@@ -103,7 +103,8 @@ sleep 5
 $SSH atbroy101 "$MAKEALL $HOME/settings/at64-poly-e"
 sleep 5
 $SSH macbroy5 "$MAKEALL $HOME/settings/mac-poly $HOME/settings/mac-sml-dev"
-
+sleep 5
+$SSH macbroy6 "$MAKEALL $HOME/settings/at-mac-poly-e"
 
 echo ------------------- spawned tests successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
 
