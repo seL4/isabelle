@@ -53,6 +53,8 @@ while [ -n "$(ls $RUNNING)" -a $i -lt 8 ]; do
     let "i = i+1"
 done
 
+FAIL=0
+
 # still running -> give up
 if [ -n "$(ls $RUNNING)" ]; then
     echo "Giving up waiting for test to finish at $(date)." > $TMP
@@ -74,12 +76,12 @@ if [ -n "$(ls $RUNNING)" ]; then
         LOGS=$ERRORDIR/isatest*.log
         $MAIL "isabelle test taking too long" $R $TMP $LOGS
     done
-    
-    exit 1
-fi
 
-# no tests running, check if there were errors
-if [ -e $ERRORLOG ]; then
+    rm $TMP
+    
+    FAIL=1
+elif [ -e $ERRORLOG ]; then
+  # no tests running, check if there were errors
     cat $ERRORLOG > $TMP
     echo "Have a nice day," >> $TMP
     echo "  isatest" >> $TMP
@@ -88,14 +90,16 @@ if [ -e $ERRORLOG ]; then
         LOGS=$ERRORDIR/isatest*.log
         $MAIL "isabelle test failed" $R $TMP $LOGS
     done
-
+    
     rm $TMP
-    exit 1
 fi
 
 # generate development snapshot page only for successful tests
-(cd $HOME/devel-page; env DISTNAME=`$DISTPREFIX/Isabelle/bin/isatool version` make)
-echo "$(date) $HOSTNAME $PRG: generated development snapshot web page." >> $MASTERLOG
+# (failures in experimental sessions ok)
+if [ "$FAIL"=="0" -a "$(echo $ERRORDIR/isatest*[^e].log)" == "$(echo)" ]; then
+  (cd $HOME/devel-page; env DISTNAME=`$DISTPREFIX/Isabelle/bin/isatool version` make)
+  echo "$(date) $HOSTNAME $PRG: generated development snapshot web page." >> $MASTERLOG
+fi
 
 exit 0
 ## end
