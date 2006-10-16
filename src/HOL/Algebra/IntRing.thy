@@ -71,9 +71,6 @@ constdefs
   int_ring :: "int ring" ("\<Z>")
   "int_ring \<equiv> \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = op +\<rparr>"
 
-  int_order :: "int order"
-  "int_order \<equiv> \<lparr>carrier = UNIV, le = op \<le>\<rparr>"
-
 lemma int_Zcarr[simp,intro!]:
   "k \<in> carrier \<Z>"
 by (simp add: int_ring_def)
@@ -99,14 +96,13 @@ done
 interpretation "domain" ["\<Z>"] by (rule int_is_domain)
 
 lemma int_le_total_order:
-  "total_order int_order"
-unfolding int_order_def
+  "total_order (UNIV::int set) (op \<le>)"
 apply (rule partial_order.total_orderI)
  apply (rule partial_order.intro, simp+)
 apply clarsimp
 done
 
-interpretation total_order ["int_order"] by (rule int_le_total_order)
+interpretation total_order ["UNIV::int set" "op \<le>"] by (rule int_le_total_order)
 
 
 subsubsection {* Generated Ideals of @{text "\<Z>"} *}
