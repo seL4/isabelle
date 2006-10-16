@@ -44,6 +44,7 @@ sig
   val list_all: (string * typ) list * term -> term
   val mk_exists: string * typ * term -> term
   val mk_Collect: string * typ * term -> term
+  val class_eq: string
   val mk_mem: term * term -> term
   val dest_mem: term -> term * term
   val mk_UNIV: typ -> term
@@ -173,6 +174,8 @@ fun choice_const T = Const("Hilbert_Choice.Eps", (T --> boolT) --> T)
 
 fun Collect_const T = Const ("Collect", [T --> boolT] ---> mk_setT T);
 fun mk_Collect (a, T, t) = Collect_const T $ absfree (a, T, t);
+
+val class_eq = "Code_Generator.eq";
 
 fun mk_mem (x, A) =
   let val setT = fastype_of A in

@@ -202,7 +202,7 @@ val neq_simproc = Simplifier.simproc thy "neq_simproc" ["x = y"] neq_prover;
 end; (*local*)
 
 
-(* Simproc for Let *)
+(* simproc for Let *)
 
 val use_let_simproc = ref true;
 
@@ -261,9 +261,9 @@ val let_simproc =
 
 end; (*local*)
 
-(* A general refutation procedure *)
+(* generic refutation procedure *)
 
-(* Parameters:
+(* parameters:
 
    test: term -> bool
    tests if a term is at all relevant to the refutation proof;
