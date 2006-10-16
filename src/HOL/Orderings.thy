@@ -8,7 +8,7 @@ FIXME: derive more of the min/max laws generically via semilattices
 header {* Type classes for $\le$ *}
 
 theory Orderings
-imports OperationalEquality Lattice_Locales
+imports Code_Generator Lattice_Locales
 uses ("antisym_setup.ML")
 begin
 
@@ -316,11 +316,11 @@ ML_setup {*
    class for quasi orders, the tactics Quasi_Tac.trans_tac and
    Quasi_Tac.quasi_tac are not of much use. *)
 
-fun decomp_gen sort sign (Trueprop $ t) =
+fun decomp_gen sort thy (Trueprop $ t) =
   let fun of_sort t = let val T = type_of t in
         (* exclude numeric types: linear arithmetic subsumes transitivity *)
         T <> HOLogic.natT andalso T <> HOLogic.intT andalso
-        T <> HOLogic.realT andalso Sign.of_sort sign (T, sort) end
+        T <> HOLogic.realT andalso Sign.of_sort thy (T, sort) end
   fun dec (Const ("Not", _) $ t) = (
 	  case dec t of
 	    NONE => NONE
@@ -551,55 +551,45 @@ syntax (HTML output)
   "_geEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<ge>_./ _)" [0, 0, 10] 10)
 
 translations
- "ALL x<y. P"   =>  "ALL x. x < y --> P"
- "EX x<y. P"    =>  "EX x. x < y  & P"
- "ALL x<=y. P"  =>  "ALL x. x <= y --> P"
- "EX x<=y. P"   =>  "EX x. x <= y & P"
- "ALL x>y. P"   =>  "ALL x. x > y --> P"
- "EX x>y. P"    =>  "EX x. x > y  & P"
- "ALL x>=y. P"  =>  "ALL x. x >= y --> P"
- "EX x>=y. P"   =>  "EX x. x >= y & P"
+  "ALL x<y. P"   =>  "ALL x. x < y \<longrightarrow> P"
+  "EX x<y. P"    =>  "EX x. x < y \<and> P"
+  "ALL x<=y. P"  =>  "ALL x. x <= y \<longrightarrow> P"
+  "EX x<=y. P"   =>  "EX x. x <= y \<and> P"
+  "ALL x>y. P"   =>  "ALL x. x > y \<longrightarrow> P"
+  "EX x>y. P"    =>  "EX x. x > y \<and> P"
+  "ALL x>=y. P"  =>  "ALL x. x >= y \<longrightarrow> P"
+  "EX x>=y. P"   =>  "EX x. x >= y \<and> P"
 
 print_translation {*
 let
-  fun mk v v' q n P =
-    if v=v' andalso not (v mem (map fst (Term.add_frees n [])))
-    then Syntax.const q $ Syntax.mark_bound v' $ n $ P else raise Match;
-  fun all_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op -->",_) $ (Const ("less",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
-    mk v v' "_lessAll" n P
-
-  | all_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op -->",_) $ (Const ("less_eq",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
-    mk v v' "_leAll" n P
-
-  | all_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op -->",_) $ (Const ("less",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
-    mk v v' "_gtAll" n P
-
-  | all_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op -->",_) $ (Const ("less_eq",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
-    mk v v' "_geAll" n P;
-
-  fun ex_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op &",_) $ (Const ("less",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
-    mk v v' "_lessEx" n P
-
-  | ex_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op &",_) $ (Const ("less_eq",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
-    mk v v' "_leEx" n P
-
-  | ex_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op &",_) $ (Const ("less",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
-    mk v v' "_gtEx" n P
-
-  | ex_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op &",_) $ (Const ("less_eq",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
-    mk v v' "_geEx" n P
+  fun mk v v' c n P =
+    if v = v' andalso not (member (op =) (map fst (Term.add_frees n [])) v)
+    then Syntax.const c $ Syntax.mark_bound v' $ n $ P else raise Match;
+  fun mk_all "\\<^const>Scratch.less" f =
+        f ("_lessAll", "_gtAll")
+    | mk_all "\\<^const>Scratch.less_eq" f =
+        f ("_leAll", "_geAll")
+  fun mk_ex "\\<^const>Scratch.less" f =
+        f ("_lessEx", "_gtEx")
+    | mk_ex "\\<^const>Scratch.less_eq" f =
+        f ("_leEx", "_geEx");
+  fun tr_all' [Const ("_bound", _) $ Free (v, _), Const("op -->", _)
+          $ (Const (c, _) $ (Const ("_bound", _) $ Free (v', _)) $ n) $ P] =
+        mk v v' (mk_all c fst) n P
+    | tr_all' [Const ("_bound", _) $ Free (v, _), Const("op -->", _)
+          $ (Const (c, _) $ n $ (Const ("_bound", _) $ Free (v', _))) $ P] =
+        mk v v' (mk_all c snd) n P;
+  fun tr_ex' [Const ("_bound", _) $ Free (v, _), Const("op &", _)
+          $ (Const (c, _) $ (Const ("_bound", _) $ Free (v', _)) $ n) $ P] =
+        mk v v' (mk_ex c fst) n P
+    | tr_ex' [Const ("_bound", _) $ Free (v, _), Const("op &", _)
+          $ (Const (c, _) $ n $ (Const ("_bound", _) $ Free (v', _))) $ P] =
+        mk v v' (mk_ex c snd) n P;
 in
-[("ALL ", all_tr'), ("EX ", ex_tr')]
+  [("ALL ", tr_all'), ("EX ", tr_ex')]
 end
 *}
+
 
 subsection {* Extra transitivity rules *}
 
