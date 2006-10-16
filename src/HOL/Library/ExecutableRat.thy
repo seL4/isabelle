@@ -113,7 +113,7 @@ code_constname
   "op * \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat" "Rational.erat_times"
   "inverse  \<Colon> erat \<Rightarrow> erat" "Rational.erat_inverse"
   "op \<le> \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool" "Rational.erat_le"
-  "OperationalEquality.eq \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool" "Rational.erat_eq"
+  "Code_Generator.eq \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool" "Rational.erat_eq"
 
 
 section {* rat as abstype *}
@@ -127,7 +127,7 @@ code_abstype rat erat where
   "op * \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat" \<equiv> "op * \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat"
   "inverse \<Colon> rat \<Rightarrow> rat" \<equiv> "inverse \<Colon> erat \<Rightarrow> erat"
   "op \<le> \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" \<equiv>  "op \<le> \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool"
-   "OperationalEquality.eq \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" \<equiv> eq_erat
+   "Code_Generator.eq \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" \<equiv> eq_erat
 
 code_const div_zero
   (SML "raise/ (Fail/ \"Division by zero\")")
@@ -142,7 +142,7 @@ code_gen
   "op * \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat"
   "inverse \<Colon> rat \<Rightarrow> rat"
   "op \<le> \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool"
-   "OperationalEquality.eq \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool"
+   "Code_Generator.eq \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool"
   (SML -)
 
 

@@ -10,8 +10,9 @@ header {* Presburger Arithmetic: Cooper's Algorithm *}
 
 theory Presburger
 imports NatSimprocs
-uses ("cooper_dec.ML") ("cooper_proof.ML") ("qelim.ML") 
-	("reflected_presburger.ML") ("reflected_cooper.ML") ("presburger.ML")
+uses
+  ("cooper_dec.ML") ("cooper_proof.ML") ("qelim.ML") 
+  ("reflected_presburger.ML") ("reflected_cooper.ML") ("presburger.ML")
 begin
 
 text {* Theorem for unitifying the coeffitients of @{text x} in an existential formula*}
@@ -1094,7 +1095,7 @@ text {*
 *}
 
 lemma eq_number_of [code func]:
-  "OperationalEquality.eq ((number_of k)\<Colon>int) (number_of l) \<longleftrightarrow> OperationalEquality.eq k l"
+  "Code_Generator.eq ((number_of k)\<Colon>int) (number_of l) \<longleftrightarrow> Code_Generator.eq k l"
   unfolding number_of_is_id ..
 
 lemma less_eq_number_of [code func]:
@@ -1102,56 +1103,56 @@ lemma less_eq_number_of [code func]:
   unfolding number_of_is_id ..
 
 lemma eq_Pls_Pls:
-  "OperationalEquality.eq Numeral.Pls Numeral.Pls"
+  "Code_Generator.eq Numeral.Pls Numeral.Pls"
   unfolding eq_def ..
 
 lemma eq_Pls_Min:
-  "\<not> OperationalEquality.eq Numeral.Pls Numeral.Min"
+  "\<not> Code_Generator.eq Numeral.Pls Numeral.Min"
   unfolding eq_def Pls_def Min_def by auto
 
 lemma eq_Pls_Bit0:
-  "OperationalEquality.eq Numeral.Pls (Numeral.Bit k bit.B0) \<longleftrightarrow> OperationalEquality.eq Numeral.Pls k"
+  "Code_Generator.eq Numeral.Pls (Numeral.Bit k bit.B0) \<longleftrightarrow> Code_Generator.eq Numeral.Pls k"
   unfolding eq_def Pls_def Bit_def bit.cases by auto
 
 lemma eq_Pls_Bit1:
-  "\<not> OperationalEquality.eq Numeral.Pls (Numeral.Bit k bit.B1)"
+  "\<not> Code_Generator.eq Numeral.Pls (Numeral.Bit k bit.B1)"
   unfolding eq_def Pls_def Bit_def bit.cases by arith
 
 lemma eq_Min_Pls:
-  "\<not> OperationalEquality.eq Numeral.Min Numeral.Pls"
+  "\<not> Code_Generator.eq Numeral.Min Numeral.Pls"
   unfolding eq_def Pls_def Min_def by auto
 
 lemma eq_Min_Min:
-  "OperationalEquality.eq Numeral.Min Numeral.Min"
+  "Code_Generator.eq Numeral.Min Numeral.Min"
   unfolding eq_def ..
 
 lemma eq_Min_Bit0:
-  "\<not> OperationalEquality.eq Numeral.Min (Numeral.Bit k bit.B0)"
+  "\<not> Code_Generator.eq Numeral.Min (Numeral.Bit k bit.B0)"
   unfolding eq_def Min_def Bit_def bit.cases by arith
 
 lemma eq_Min_Bit1:
-  "OperationalEquality.eq Numeral.Min (Numeral.Bit k bit.B1) \<longleftrightarrow> OperationalEquality.eq Numeral.Min k"
+  "Code_Generator.eq Numeral.Min (Numeral.Bit k bit.B1) \<longleftrightarrow> Code_Generator.eq Numeral.Min k"
   unfolding eq_def Min_def Bit_def bit.cases by auto
 
 lemma eq_Bit0_Pls:
-  "OperationalEquality.eq (Numeral.Bit k bit.B0) Numeral.Pls \<longleftrightarrow> OperationalEquality.eq Numeral.Pls k"
+  "Code_Generator.eq (Numeral.Bit k bit.B0) Numeral.Pls \<longleftrightarrow> Code_Generator.eq Numeral.Pls k"
   unfolding eq_def Pls_def Bit_def bit.cases by auto
 
 lemma eq_Bit1_Pls:
-  "\<not> OperationalEquality.eq (Numeral.Bit k bit.B1) Numeral.Pls"
+  "\<not> Code_Generator.eq (Numeral.Bit k bit.B1) Numeral.Pls"
   unfolding eq_def Pls_def Bit_def bit.cases by arith
 
 lemma eq_Bit0_Min:
-  "\<not> OperationalEquality.eq (Numeral.Bit k bit.B0) Numeral.Min"
+  "\<not> Code_Generator.eq (Numeral.Bit k bit.B0) Numeral.Min"
   unfolding eq_def Min_def Bit_def bit.cases by arith
 
 lemma eq_Bit1_Min:
-  "OperationalEquality.eq (Numeral.Bit k bit.B1) Numeral.Min \<longleftrightarrow> OperationalEquality.eq Numeral.Min k"
+  "Code_Generator.eq (Numeral.Bit k bit.B1) Numeral.Min \<longleftrightarrow> Code_Generator.eq Numeral.Min k"
   unfolding eq_def Min_def Bit_def bit.cases by auto
 
 lemma eq_Bit_Bit:
-  "OperationalEquality.eq (Numeral.Bit k1 v1) (Numeral.Bit k2 v2) \<longleftrightarrow>
-    OperationalEquality.eq v1 v2 \<and> OperationalEquality.eq k1 k2"
+  "Code_Generator.eq (Numeral.Bit k1 v1) (Numeral.Bit k2 v2) \<longleftrightarrow>
+    Code_Generator.eq v1 v2 \<and> Code_Generator.eq k1 k2"
   unfolding eq_def Bit_def
   apply (cases v1)
   apply (cases v2)

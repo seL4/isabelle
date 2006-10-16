@@ -18,7 +18,7 @@ lemma [code target: Set]:
   by blast
 
 lemma [code func]:
-  "OperationalEquality.eq A B = (A \<subseteq> B \<and> B \<subseteq> A)"
+  "Code_Generator.eq A B = (A \<subseteq> B \<and> B \<subseteq> A)"
   unfolding eq_def by blast
 
 declare bex_triv_one_point1 [symmetric, standard, code]

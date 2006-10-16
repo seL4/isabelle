@@ -490,30 +490,14 @@ fun get_cert thy (true, dtco) = get_cert_datatype thy dtco
 
 local
   val eq_def_sym = thm "eq_def" |> Thm.symmetric;
-  val class_eq = "OperationalEquality.eq";
   fun get_eq_thms thy tyco = case DatatypePackage.get_datatype thy tyco
    of SOME _ => get_eq_datatype thy tyco
     | NONE => [TypecopyPackage.get_eq thy tyco];
-  fun constrain_op_eq_thms thy thms =
-    let
-      fun add_eq (Const ("op =", ty)) =
-            fold (insert (eq_fst (op =)))
-              (Term.add_tvarsT ty [])
-        | add_eq _ =
-            I
-      val eqs = fold (fold_aterms add_eq o Thm.prop_of) thms [];
-      val instT = map (fn (v_i, sort) =>
-        (Thm.ctyp_of thy (TVar (v_i, sort)),
-           Thm.ctyp_of thy (TVar (v_i, Sorts.inter_sort (Sign.classes_of thy) (sort, [class_eq]))))) eqs;
-    in
-      thms
-      |> map (Thm.instantiate (instT, []))
-    end;
 in
   fun get_eq thy tyco =
     get_eq_thms thy tyco
     |> maps ((#mk o #mk_rews o snd o MetaSimplifier.rep_ss o Simplifier.simpset_of) thy)
-    |> constrain_op_eq_thms thy
+    |> HOL.constrain_op_eq_thms thy
     |> map (Tactic.rewrite_rule [eq_def_sym])
 end;
 
@@ -615,15 +599,13 @@ fun prove_codetypes_arities tac tycos sort f after_qed thy =
 
 (* operational equality *)
 
-local
-  val class_eq = "OperationalEquality.eq";
-in fun eq_hook specs =
+fun eq_hook specs =
   let
     fun add_eq_thms (dtco, (_, (vs, cs))) thy =
       let
         val thy_ref = Theory.self_ref thy;
         val ty = Type (dtco, map TFree vs) |> Logic.varifyT;
-        val c = CodegenConsts.norm thy ("OperationalEquality.eq", [ty]);
+        val c = CodegenConsts.norm thy ("Code_Generator.eq", [ty]);
         val get_thms = (fn () => get_eq (Theory.deref thy_ref) dtco |> rev);
       in
         CodegenData.add_funcl (c, CodegenData.lazy get_thms) thy
@@ -631,9 +613,8 @@ in fun eq_hook specs =
   in
     prove_codetypes_arities (K (ClassPackage.intro_classes_tac []))
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
-      [class_eq] ((K o K o pair) []) ((K o K) (fold add_eq_thms specs))
+      [HOLogic.class_eq] ((K o K o pair) []) ((K o K) (fold add_eq_thms specs))
   end;
-end; (*local*)
 
 
 

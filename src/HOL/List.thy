@@ -2764,10 +2764,10 @@ code_const Char
 code_instance list :: eq and char :: eq
   (Haskell - and -)
 
-code_const "OperationalEquality.eq \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> bool"
+code_const "Code_Generator.eq \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
-code_const "OperationalEquality.eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
+code_const "Code_Generator.eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 setup {*

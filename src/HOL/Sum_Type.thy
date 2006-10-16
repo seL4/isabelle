@@ -197,19 +197,19 @@ subsection {* Code generator setup *}
 instance "+" :: (eq, eq) eq ..
 
 lemma [code func]:
-  "OperationalEquality.eq (Inl x) (Inl y) = OperationalEquality.eq x y"
+  "Code_Generator.eq (Inl x) (Inl y) = Code_Generator.eq x y"
   unfolding eq_def Inl_eq ..
 
 lemma [code func]:
-  "OperationalEquality.eq (Inr x) (Inr y) = OperationalEquality.eq x y"
+  "Code_Generator.eq (Inr x) (Inr y) = Code_Generator.eq x y"
   unfolding eq_def Inr_eq ..
 
 lemma [code func]:
-  "OperationalEquality.eq (Inl x) (Inr y) = False"
+  "Code_Generator.eq (Inl x) (Inr y) = False"
   unfolding eq_def using Inl_not_Inr by auto
 
 lemma [code func]:
-  "OperationalEquality.eq (Inr x) (Inl y) = False"
+  "Code_Generator.eq (Inr x) (Inl y) = False"
   unfolding eq_def using Inr_not_Inl by auto
 
 ML

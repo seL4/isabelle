@@ -127,8 +127,8 @@ by (auto simp:delayed_if_def)
 
 hide (open) const delayed_if
 
-normal_form "OperationalEquality.eq [2..<4] [2,3]"
-(*lemma "OperationalEquality.eq [2..<4] [2,3]" by normalization*)
+normal_form "Code_Generator.eq [2..<4] [2,3]"
+(*lemma "Code_Generator.eq [2..<4] [2,3]" by normalization*)
 
 definition
  andalso :: "bool \<Rightarrow> bool \<Rightarrow> bool"

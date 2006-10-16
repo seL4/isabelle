@@ -1,0 +1,195 @@
+(*  ID:         $Id$
+    Author:     Florian Haftmann, TU Muenchen
+*)
+
+header {* Setup of code generator tools *}
+
+theory Code_Generator
+imports HOL
+begin
+
+subsection {* ML code generator *}
+
+types_code
+  "bool"  ("bool")
+attach (term_of) {*
+fun term_of_bool b = if b then HOLogic.true_const else HOLogic.false_const;
+*}
+attach (test) {*
+fun gen_bool i = one_of [false, true];
+*}
+  "prop"  ("bool")
+attach (term_of) {*
+fun term_of_prop b =
+  HOLogic.mk_Trueprop (if b then HOLogic.true_const else HOLogic.false_const);
+*}
+
+consts_code
+  "Trueprop" ("(_)")
+  "True"    ("true")
+  "False"   ("false")
+  "Not"     ("not")
+  "op |"    ("(_ orelse/ _)")
+  "op &"    ("(_ andalso/ _)")
+  "HOL.If"      ("(if _/ then _/ else _)")
+
+setup {*
+let
+
+fun eq_codegen thy defs gr dep thyname b t =
+    (case strip_comb t of
+       (Const ("op =", Type (_, [Type ("fun", _), _])), _) => NONE
+     | (Const ("op =", _), [t, u]) =>
+          let
+            val (gr', pt) = Codegen.invoke_codegen thy defs dep thyname false (gr, t);
+            val (gr'', pu) = Codegen.invoke_codegen thy defs dep thyname false (gr', u);
+            val (gr''', _) = Codegen.invoke_tycodegen thy defs dep thyname false (gr'', HOLogic.boolT)
+          in
+            SOME (gr''', Codegen.parens
+              (Pretty.block [pt, Pretty.str " =", Pretty.brk 1, pu]))
+          end
+     | (t as Const ("op =", _), ts) => SOME (Codegen.invoke_codegen
+         thy defs dep thyname b (gr, Codegen.eta_expand t ts 2))
+     | _ => NONE);
+
+in
+
+Codegen.add_codegen "eq_codegen" eq_codegen
+
+end
+*}
+
+text {* Evaluation *}
+
+setup {*
+let
+
+fun evaluation_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
+  (Drule.goals_conv (equal i) Codegen.evaluation_conv));
+
+val evaluation_meth =
+  Method.no_args (Method.METHOD (fn _ => evaluation_tac 1 THEN rtac HOL.TrueI 1));
+
+in
+
+Method.add_method ("evaluation", evaluation_meth, "solve goal by evaluation")
+
+end;
+*}
+
+
+subsection {* Generic code generator setup *}
+
+text {* itself as a code generator datatype *}
+
+setup {*
+let fun add_itself thy =
+  let
+    val v = ("'a", []);
+    val t = Logic.mk_type (TFree v);
+    val Const (c, ty) = t;
+    val (_, Type (dtco, _)) = strip_type ty;
+  in
+    thy
+    |> CodegenData.add_datatype (dtco, (([v], [(c, [])]), CodegenData.lazy (fn () => [])))
+  end
+in add_itself end;
+*} 
+
+
+text {* code generation for arbitrary as exception *}
+
+setup {*
+  CodegenSerializer.add_undefined "SML" "arbitrary" "(raise Fail \"arbitrary\")"
+*}
+
+code_const arbitrary
+  (Haskell target_atom "(error \"arbitrary\")")
+
+
+subsection {* Operational equality for code generation *}
+
+subsubsection {* eq class *}
+
+class eq =
+  fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+
+defs
+  eq_def: "eq x y \<equiv> (x = y)"
+
+
+subsubsection {* bool type *}
+
+instance bool :: eq ..
+
+lemma [code func]:
+  "eq True p = p" unfolding eq_def by auto
+
+lemma [code func]:
+  "eq False p = (\<not> p)" unfolding eq_def by auto
+
+lemma [code func]:
+  "eq p True = p" unfolding eq_def by auto
+
+lemma [code func]:
+  "eq p False = (\<not> p)" unfolding eq_def by auto
+
+code_constname
+  "eq \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool" "HOL.eq_bool"
+
+
+subsubsection {* preprocessors *}
+
+setup {*
+let
+  fun constrain_op_eq thy ts =
+    let
+      fun add_eq (Const ("op =", ty)) =
+            fold (insert (eq_fst (op = : indexname * indexname -> bool)))
+              (Term.add_tvarsT ty [])
+        | add_eq _ =
+            I
+      val eqs = (fold o fold_aterms) add_eq ts [];
+      val inst = map (fn (v_i, _) => (v_i, [HOLogic.class_eq])) eqs;
+    in inst end;
+in CodegenData.add_constrains constrain_op_eq end
+*}
+
+declare eq_def [symmetric, code inline]
+
+
+subsubsection {* Haskell *}
+
+code_class eq
+  (Haskell "Eq" where eq \<equiv> "(==)")
+
+code_const eq
+  (Haskell infixl 4 "==")
+
+code_instance bool :: eq
+  (Haskell -)
+
+code_const "eq \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+
+subsection {* normalization by evaluation *}
+
+lemma eq_refl: "eq x x"
+  unfolding eq_def ..
+
+setup {*
+let
+  val eq_refl = thm "eq_refl";
+  fun normalization_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
+    (Drule.goals_conv (equal i) (HOL.Trueprop_conv NBE.normalization_conv)));
+  val normalization_meth =
+    Method.no_args (Method.METHOD (fn _ => normalization_tac 1 THEN resolve_tac [TrueI, refl, eq_refl] 1));
+in
+  Method.add_method ("normalization", normalization_meth, "solve goal by normalization")
+end;
+*}
+
+hide (open) const eq
+
+end

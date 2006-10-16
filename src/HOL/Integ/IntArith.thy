@@ -375,7 +375,7 @@ code_constname
   "Numeral.Min" "IntDef.min"
   "Numeral.Bit" "IntDef.bit"
   "Numeral.bit.bit_case" "IntDef.bit_case"
-  "OperationalEquality.eq \<Colon> bit \<Rightarrow> bit \<Rightarrow> bool" "IntDef.eq_bit"
+  "Code_Generator.eq \<Colon> bit \<Rightarrow> bit \<Rightarrow> bool" "IntDef.eq_bit"
   "Numeral.B0" "IntDef.b0"
   "Numeral.B1" "IntDef.b1"
 

@@ -804,7 +804,7 @@ code_const None and Some
 code_instance option :: eq
   (Haskell -)
 
-code_const "OperationalEquality.eq \<Colon> 'a\<Colon>eq option \<Rightarrow> 'a option \<Rightarrow> bool"
+code_const "Code_Generator.eq \<Colon> 'a\<Colon>eq option \<Rightarrow> 'a option \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 ML

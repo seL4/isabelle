@@ -184,16 +184,16 @@ code_gen
   "op mod :: int \<Rightarrow> int \<Rightarrow> int"  
   (SML) (Haskell)
 code_gen
-  "OperationalEquality.eq :: bool \<Rightarrow> bool \<Rightarrow> bool"
-  "OperationalEquality.eq :: nat \<Rightarrow> nat \<Rightarrow> bool"
-  "OperationalEquality.eq :: int \<Rightarrow> int \<Rightarrow> bool"
-  "OperationalEquality.eq :: ('a\<Colon>eq) * ('b\<Colon>eq) \<Rightarrow> 'a * 'b \<Rightarrow> bool"
-  "OperationalEquality.eq :: ('a\<Colon>eq) + ('b\<Colon>eq) \<Rightarrow> 'a + 'b \<Rightarrow> bool"
-  "OperationalEquality.eq :: ('a\<Colon>eq) option \<Rightarrow> 'a option \<Rightarrow> bool"
-  "OperationalEquality.eq :: ('a\<Colon>eq) list \<Rightarrow> 'a list \<Rightarrow> bool"
-  "OperationalEquality.eq :: mut1 \<Rightarrow> mut1 \<Rightarrow> bool"
-  "OperationalEquality.eq :: mut2 \<Rightarrow> mut2 \<Rightarrow> bool"
-  "OperationalEquality.eq :: ('a\<Colon>eq) point_scheme \<Rightarrow> 'a point_scheme \<Rightarrow> bool"
+  "Code_Generator.eq :: bool \<Rightarrow> bool \<Rightarrow> bool"
+  "Code_Generator.eq :: nat \<Rightarrow> nat \<Rightarrow> bool"
+  "Code_Generator.eq :: int \<Rightarrow> int \<Rightarrow> bool"
+  "Code_Generator.eq :: ('a\<Colon>eq) * ('b\<Colon>eq) \<Rightarrow> 'a * 'b \<Rightarrow> bool"
+  "Code_Generator.eq :: ('a\<Colon>eq) + ('b\<Colon>eq) \<Rightarrow> 'a + 'b \<Rightarrow> bool"
+  "Code_Generator.eq :: ('a\<Colon>eq) option \<Rightarrow> 'a option \<Rightarrow> bool"
+  "Code_Generator.eq :: ('a\<Colon>eq) list \<Rightarrow> 'a list \<Rightarrow> bool"
+  "Code_Generator.eq :: mut1 \<Rightarrow> mut1 \<Rightarrow> bool"
+  "Code_Generator.eq :: mut2 \<Rightarrow> mut2 \<Rightarrow> bool"
+  "Code_Generator.eq :: ('a\<Colon>eq) point_scheme \<Rightarrow> 'a point_scheme \<Rightarrow> bool"
 
 code_gen (SML -)
 

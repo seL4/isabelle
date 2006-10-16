@@ -954,8 +954,43 @@ open HOL;
 
 fun case_tac a = res_inst_tac [("P", a)] case_split;
 
+(* combination of (spec RS spec RS ...(j times) ... spec RS mp) *)
+local
+  fun wrong_prem (Const ("All", _) $ (Abs (_, _, t))) = wrong_prem t
+    | wrong_prem (Bound _) = true
+    | wrong_prem _ = false;
+  val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);
+in
+  fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp]);
+  fun smp_tac j = EVERY'[dresolve_tac (smp j), atac];
+end;
+
+fun strip_tac i = REPEAT (resolve_tac [impI, allI] i);
+
 val Blast_tac = Blast.Blast_tac;
 val blast_tac = Blast.blast_tac;
+
+fun Trueprop_conv conv ct = (case term_of ct of
+    Const ("Trueprop", _) $ _ =>
+      let val (ct1, ct2) = Thm.dest_comb ct
+      in Thm.combination (Thm.reflexive ct1) (conv ct2) end
+  | _ => raise TERM ("Trueprop_conv", []));
+
+fun constrain_op_eq_thms thy thms =
+  let
+    fun add_eq (Const ("op =", ty)) =
+          fold (insert (eq_fst (op =)))
+            (Term.add_tvarsT ty [])
+      | add_eq _ =
+          I
+    val eqs = fold (fold_aterms add_eq o Thm.prop_of) thms [];
+    val instT = map (fn (v_i, sort) =>
+      (Thm.ctyp_of thy (TVar (v_i, sort)),
+         Thm.ctyp_of thy (TVar (v_i, Sorts.inter_sort (Sign.classes_of thy) (sort, [HOLogic.class_eq]))))) eqs;
+  in
+    thms
+    |> map (Thm.instantiate (instT, []))
+  end;
 
 end;
 *}
@@ -1428,99 +1463,6 @@ ML {*
 setup InductMethod.setup
 
 
-subsubsection {* Code generator setup *}
-
-types_code
-  "bool"  ("bool")
-attach (term_of) {*
-fun term_of_bool b = if b then HOLogic.true_const else HOLogic.false_const;
-*}
-attach (test) {*
-fun gen_bool i = one_of [false, true];
-*}
-  "prop"  ("bool")
-attach (term_of) {*
-fun term_of_prop b =
-  HOLogic.mk_Trueprop (if b then HOLogic.true_const else HOLogic.false_const);
-*}
-
-consts_code
-  "Trueprop" ("(_)")
-  "True"    ("true")
-  "False"   ("false")
-  "Not"     ("not")
-  "op |"    ("(_ orelse/ _)")
-  "op &"    ("(_ andalso/ _)")
-  "HOL.If"      ("(if _/ then _/ else _)")
-
-setup {*
-let
-
-fun eq_codegen thy defs gr dep thyname b t =
-    (case strip_comb t of
-       (Const ("op =", Type (_, [Type ("fun", _), _])), _) => NONE
-     | (Const ("op =", _), [t, u]) =>
-          let
-            val (gr', pt) = Codegen.invoke_codegen thy defs dep thyname false (gr, t);
-            val (gr'', pu) = Codegen.invoke_codegen thy defs dep thyname false (gr', u);
-            val (gr''', _) = Codegen.invoke_tycodegen thy defs dep thyname false (gr'', HOLogic.boolT)
-          in
-            SOME (gr''', Codegen.parens
-              (Pretty.block [pt, Pretty.str " =", Pretty.brk 1, pu]))
-          end
-     | (t as Const ("op =", _), ts) => SOME (Codegen.invoke_codegen
-         thy defs dep thyname b (gr, Codegen.eta_expand t ts 2))
-     | _ => NONE);
-
-in
-
-Codegen.add_codegen "eq_codegen" eq_codegen
-
-end
-*}
-
-setup {*
-let
-
-fun evaluation_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
-  (Drule.goals_conv (equal i) Codegen.evaluation_conv));
-
-val evaluation_meth =
-  Method.no_args (Method.METHOD (fn _ => evaluation_tac 1 THEN rtac HOL.TrueI 1));
-
-in
-
-Method.add_method ("evaluation", evaluation_meth, "solve goal by evaluation")
-
-end;
-*}
-
-
-text {* itself as a code generator datatype *}
-
-setup {*
-let fun add_itself thy =
-  let
-    val v = ("'a", []);
-    val t = Logic.mk_type (TFree v);
-    val Const (c, ty) = t;
-    val (_, Type (dtco, _)) = strip_type ty;
-  in
-    thy
-    |> CodegenData.add_datatype (dtco, (([v], [(c, [])]), CodegenData.lazy (fn () => [])))
-  end
-in add_itself end;
-*} 
-
-text {* code generation for arbitrary as exception *}
-
-setup {*
-  CodegenSerializer.add_undefined "SML" "arbitrary" "(raise Fail \"arbitrary\")"
-*}
-
-code_const arbitrary
-  (Haskell target_atom "(error \"arbitrary\")")
-
 
 subsection {* Other simple lemmas and lemma duplicates *}
 
@@ -1552,30 +1494,5 @@ lemma mk_left_commute:
           c: "\<And>x y. f x y = f y x"
   shows "f x (f y z) = f y (f x z)"
   by (rule trans [OF trans [OF c a] arg_cong [OF c, of "f y"]])
-
-
-subsection {* Conclude HOL structure *}
-
-ML {*
-structure HOL =
-struct
-
-open HOL;
-
-(* combination of (spec RS spec RS ...(j times) ... spec RS mp) *)
-local
-  fun wrong_prem (Const ("All", _) $ (Abs (_, _, t))) = wrong_prem t
-    | wrong_prem (Bound _) = true
-    | wrong_prem _ = false;
-  val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);
-in
-  fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp]);
-  fun smp_tac j = EVERY'[dresolve_tac (smp j), atac];
-end;
-
-fun strip_tac i = REPEAT (resolve_tac [impI, allI] i);
-
-end;
-*}
 
 end

@@ -53,7 +53,7 @@ proof -
 qed
 
 lemma [code inline]:
-  "nat_case f g n = (if OperationalEquality.eq n 0 then f else g (nat_of_int (int n - 1)))"
+  "nat_case f g n = (if Code_Generator.eq n 0 then f else g (nat_of_int (int n - 1)))"
   by (cases n) (simp_all add: eq_def nat_of_int_int)
 
 text {*
@@ -100,7 +100,7 @@ lemma [code, code inline]: "(m < n) \<longleftrightarrow> (int m < int n)"
   by simp
 lemma [code func, code inline]: "(m \<le> n) \<longleftrightarrow> (int m \<le> int n)"
   by simp
-lemma [code func, code inline]: "OperationalEquality.eq m n \<longleftrightarrow> OperationalEquality.eq (int m) (int n)"
+lemma [code func, code inline]: "Code_Generator.eq m n \<longleftrightarrow> Code_Generator.eq (int m) (int n)"
   unfolding eq_def by simp
 lemma [code func]: "nat k = (if k < 0 then 0 else nat_of_int k)"
 proof (cases "k < 0")
