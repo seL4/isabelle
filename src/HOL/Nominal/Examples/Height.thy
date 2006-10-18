@@ -3,7 +3,7 @@
 (*  Simple, but artificial, problem suggested by D. Wang *)
 
 theory Height
-imports Nominal
+imports "Nominal"
 begin
 
 atom_decl name
@@ -11,12 +11,6 @@ atom_decl name
 nominal_datatype lam = Var "name"
                      | App "lam" "lam"
                      | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
-
-thm lam.recs
-
-types 'a f1_ty  = "name\<Rightarrow>('a::pt_name)"
-      'a f2_ty  = "lam\<Rightarrow>lam\<Rightarrow>'a\<Rightarrow>'a\<Rightarrow>('a::pt_name)"
-      'a f3_ty  = "name\<Rightarrow>lam\<Rightarrow>'a\<Rightarrow>('a::pt_name)"
 
 text {* definition of the height-function by "structural recursion" ;o) *} 
 
@@ -47,22 +41,16 @@ apply(simp add: height_Lam_def perm_int_def fresh_def supp_int)
 done
 
 text {* derive the characteristic equations for height from the iteration combinator *}
-lemma height_Var:
+lemma height[simp]:
   shows "height (Var c) = 1"
+  and   "height (App t1 t2) = (max (height t1) (height t2))+1"
+  and   "height (Lam [a].t) = (height t)+1"
 apply(simp add: height_def)
 apply(simp add: lam.recs[where P="\<lambda>_. True", simplified, OF fin_supp_height, OF fcb_height_Lam])
 apply(simp add: height_Var_def)
-done
-
-lemma height_App:
-  shows "height (App t1 t2) = (max (height t1) (height t2))+1"
 apply(simp add: height_def)
 apply(simp add: lam.recs[where P="\<lambda>_. True", simplified, OF fin_supp_height, OF fcb_height_Lam])
 apply(simp add: height_App_def)
-done
-
-lemma height_Lam:
-  shows "height (Lam [a].t) = (height t)+1"
 apply(simp add: height_def)
 apply(rule trans)
 apply(rule lam.recs[where P="\<lambda>_. True", simplified, OF fin_supp_height, OF fcb_height_Lam])
@@ -73,10 +61,8 @@ apply(fresh_guess add: height_Lam_def perm_int_def)
 apply(simp add: height_Lam_def)
 done
 
-text {* add the characteristic equations of height to the simplifier *}
-declare height_Var[simp] height_App[simp] height_Lam[simp]
-
 text {* define capture-avoiding substitution *}
+
 constdefs 
   subst_Var :: "name \<Rightarrow> lam \<Rightarrow> name \<Rightarrow> lam"
   "subst_Var x t' \<equiv> \<lambda>y. (if y=x then t' else (Var y))"
@@ -87,8 +73,8 @@ constdefs
   subst_Lam :: "name \<Rightarrow> lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> lam"
   "subst_Lam x t' \<equiv> \<lambda>a _ r. Lam [a].r"
 
-  subst_lam :: "name \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> lam" 
-  "subst_lam x t' \<equiv> lam_rec (subst_Var x t') (subst_App x t') (subst_Lam x t')"
+  subst_lam :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam" ("_[_::=_]" [100,100,100] 100)
+  "t[x::=t'] \<equiv> (lam_rec (subst_Var x t') (subst_App x t') (subst_Lam x t')) t"
 
 lemma supports_subst_Var:
   shows "((supp (x,t))::name set) supports (subst_Var x t)"
@@ -115,12 +101,6 @@ lemma fcb_subst_Lam:
   shows "a\<sharp>(subst_Lam y t') a t r"
   by (simp add: subst_Lam_def abs_fresh)
 
-syntax 
- subst_lam_syn :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam" ("_[_::=_]" [100,100,100] 100)
-
-translations 
-  "t1[y::=t2]" \<rightleftharpoons> "subst_lam y t2 t1"
-
 lemma subst_lam[simp]:
   shows "(Var x)[y::=t'] = (if x=y then t' else (Var x))"
   and   "(App t1 t2)[y::=t'] = App (t1[y::=t']) (t2[y::=t'])"
@@ -143,10 +123,11 @@ text{* the next lemma is needed in the Var-case of the theorem *}
 
 lemma height_ge_one: 
   shows "1 \<le> (height e)"
-  by (nominal_induct e rule: lam.induct) (simp | arith)+
+  by (nominal_induct e rule: lam.induct) 
+     (simp | arith)+
 
-text {* unlike the proplem suggested by Wang, the theorem is formulated 
-        here entirely by using functions *}
+text {* unlike the proplem suggested by Wang, however, the 
+        theorem is formulated here entirely by using functions *}
 
 theorem height_subst:
   shows "height (e[x::=e']) \<le> (((height e) - 1) + (height e'))"
@@ -158,7 +139,7 @@ next
   case (Lam y e1)
   hence ih: "height (e1[x::=e']) \<le> (((height e1) - 1) + (height e'))" by simp
   moreover
-  have fresh: "y\<sharp>x" "y\<sharp>e'" by fact
+  have vc: "y\<sharp>x" "y\<sharp>e'" by fact (* usual variable convention *)
   ultimately show "height ((Lam [y].e1)[x::=e']) \<le> height (Lam [y].e1) - 1 + height e'" by simp 
 next    
   case (App e1 e2)
