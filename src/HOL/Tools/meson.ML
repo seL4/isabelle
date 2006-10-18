@@ -91,12 +91,22 @@ fun tryres (th, rls) =
         | tryall (rl::rls) = (th RS rl handle THM _ => tryall rls)
   in  tryall rls  end;
   
-(*Permits forward proof from rules that discharge assumptions*)
+(*Permits forward proof from rules that discharge assumptions. The supplied proof state st,
+  e.g. from conj_forward, should have the form
+    "[| P' ==> ?P; Q' ==> ?Q |] ==> ?P & ?Q"
+  and the effect should be to instantiate ?P and ?Q with normalized versions of P' and Q'.*)
 fun forward_res nf st =
-  case Seq.pull (ALLGOALS (METAHYPS (fn [prem] => rtac (nf prem) 1)) st)
-  of SOME(th,_) => th
-   | NONE => raise THM("forward_res", 0, [st]);
-
+  let fun forward_tacf [prem] = rtac (nf prem) 1
+        | forward_tacf prems = 
+            error ("Bad proof state in forward_res, please inform lcp@cl.cam.ac.uk:\n" ^
+                   string_of_thm st ^
+                   "\nPremises:\n" ^
+                   cat_lines (map string_of_thm prems))
+  in
+    case Seq.pull (ALLGOALS (METAHYPS forward_tacf) st)
+    of SOME(th,_) => th
+     | NONE => raise THM("forward_res", 0, [st])
+  end;
 
 (*Are any of the logical connectives in "bs" present in the term?*)
 fun has_conns bs =
@@ -421,9 +431,11 @@ val nnf_ss =
     HOL_basic_ss addsimps nnf_extra_simps 
                  addsimprocs [defALL_regroup,defEX_regroup,neq_simproc,let_simproc];
 
-fun make_nnf th = th |> rewrite_rule (map safe_mk_meta_eq nnf_simps)
-                     |> simplify nnf_ss  (*But this doesn't simplify premises...*)
-                     |> make_nnf1
+fun make_nnf th = case prems_of th of
+    [] => th |> rewrite_rule (map safe_mk_meta_eq nnf_simps)
+	     |> simplify nnf_ss  (*But this doesn't simplify premises...*)
+	     |> make_nnf1
+  | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
 
 (*Pull existential quantifiers to front. This accomplishes Skolemization for
   clauses that arise from a subgoal.*)
