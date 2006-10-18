@@ -17,6 +17,8 @@ end
 structure FundefDatatype : FUNDEF_DATATYPE =
 struct
 
+open FundefLib
+open FundefCommon
 
 fun mk_argvar i T = Free ("_av" ^ (string_of_int i), T)
 fun mk_patvar i T = Free ("_pv" ^ (string_of_int i), T)

@@ -27,6 +27,7 @@ end
 structure FundefMutual: FUNDEF_MUTUAL =
 struct
 
+open FundefLib
 open FundefCommon
 
 (* Theory dependencies *)

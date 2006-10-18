@@ -10,10 +10,10 @@ structure FundefCommon =
 struct
 
 (* Theory Dependencies *)
-val acc_const_name = "Accessible_Part.acc"
+val acc_const_name = "FunDef.accP"
 
 fun mk_acc domT R =
-    Const (acc_const_name, (fastype_of R) --> HOLogic.mk_setT domT) $ R 
+    Const (acc_const_name, (fastype_of R) --> domT --> HOLogic.boolT) $ R 
 
 
 type depgraph = int IntGraph.T
@@ -221,37 +221,43 @@ datatype fundef_opt
   = Sequential
   | Default of string
   | Preprocessor of string
+  | Target of xstring
 
 datatype fundef_config
   = FundefConfig of
    {
     sequential: bool,
     default: string,
-    preprocessor: string option
+    preprocessor: string option,
+    target: xstring option
    }
 
 
-val default_config = FundefConfig { sequential=false, default="%x. arbitrary", preprocessor=NONE }
-val fun_config = FundefConfig { sequential=true, default="%x. arbitrary", preprocessor=NONE }
+val default_config = FundefConfig { sequential=false, default="%x. arbitrary", preprocessor=NONE, target=NONE }
+val fun_config = FundefConfig { sequential=true, default="%x. arbitrary", preprocessor=NONE, target=NONE }
 
-fun apply_opt Sequential (FundefConfig {sequential, default, preprocessor}) = 
-    FundefConfig {sequential=true, default=default, preprocessor=preprocessor }
-  | apply_opt (Default d) (FundefConfig {sequential, default, preprocessor}) = 
-    FundefConfig {sequential=sequential, default=d, preprocessor=preprocessor }
-  | apply_opt (Preprocessor p) (FundefConfig {sequential, default, preprocessor}) = 
-    FundefConfig {sequential=sequential, default=default, preprocessor=SOME p }
+fun apply_opt Sequential (FundefConfig {sequential, default, preprocessor, target}) = 
+    FundefConfig {sequential=true, default=default, preprocessor=preprocessor, target=target }
+  | apply_opt (Default d) (FundefConfig {sequential, default, preprocessor, target}) = 
+    FundefConfig {sequential=sequential, default=d, preprocessor=preprocessor, target=target }
+  | apply_opt (Preprocessor p) (FundefConfig {sequential, default, preprocessor, target}) = 
+    FundefConfig {sequential=sequential, default=default, preprocessor=SOME p, target=target }
+  | apply_opt (Target t) (FundefConfig {sequential, default, preprocessor, target }) =
+    FundefConfig {sequential=sequential, default=default, preprocessor=preprocessor, target=SOME t }
 
-    
+
 local structure P = OuterParse and K = OuterKeyword in
 
 val opt_sequential = Scan.optional ((P.$$$ "(" |-- P.$$$ "sequential" --| P.$$$ ")") >> K true) false
 
 val option_parser = (P.$$$ "sequential" >> K Sequential)
                || ((P.reserved "default" |-- P.term) >> Default)
+               || ((P.$$$ "in" |-- P.xname) >> Target)
 
-val config_parser = (Scan.optional (P.$$$ "(" |-- P.list1 option_parser --| P.$$$ ")") [])
-                      >> (fn opts => fold apply_opt opts default_config)
+fun config_parser def = (Scan.optional (P.$$$ "(" |-- P.list1 option_parser --| P.$$$ ")") [])
+                          >> (fn opts => fold apply_opt opts def)
 end
+
 
 
 

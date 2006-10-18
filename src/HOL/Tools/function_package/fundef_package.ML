@@ -32,6 +32,7 @@ end
 structure FundefPackage  =
 struct
 
+open FundefLib
 open FundefCommon
 
 (*fn (ctxt,s) => Variable.importT_terms (fst (ProofContext.read_termTs ctxt (K false) (K NONE) (K NONE) [] [s])) ctxt;*)
@@ -187,10 +188,11 @@ val statements_ow = or_list1 statement_ow
 
 val functionP =
   OuterSyntax.command "function" "define general recursive functions" K.thy_goal
-  ((config_parser -- P.opt_locale_target -- P.fixes --| P.$$$ "where" -- statements_ow)
+  ((config_parser default_config -- P.opt_locale_target -- P.fixes --| P.$$$ "where" -- statements_ow)
      >> (fn (((config, target), fixes), statements) =>
             Toplevel.print o
             Toplevel.local_theory_to_proof target (add_fundef fixes statements config)));
+
 
 
 val terminationP =

@@ -22,13 +22,14 @@ structure FundefPrep : FUNDEF_PREP =
 struct
 
 
+open FundefLib
 open FundefCommon
 open FundefAbbrev
 
 (* Theory dependencies. *)
 val Pair_inject = thm "Product_Type.Pair_inject";
 
-val acc_induct_rule = thm "Accessible_Part.acc_induct_rule"
+val acc_induct_rule = thm "FunDef.accP_induct_rule"
 
 val ex1_implies_ex = thm "FunDef.fundef_ex1_existence"
 val ex1_implies_un = thm "FunDef.fundef_ex1_uniqueness"
@@ -143,7 +144,7 @@ fun mk_clause_info globals G f no cdata qglr tree RCs GIntro_thm RIntro_thms =
                              |> fold implies_elim_swp rcassm
 
                 val h_assum =
-                    mk_relmem (rcarg, h $ rcarg) G
+                    Trueprop (G $ rcarg $ (h $ rcarg))
                               |> fold_rev (curry Logic.mk_implies o prop_of) rcassm
                               |> fold_rev (mk_forall o Free) rcfix
                               |> Pattern.rewrite_term (ProofContext.theory_of ctxt) [(f, h)] []
@@ -272,20 +273,15 @@ fun mk_uniqueness_clause thy globals f compat_store clausei clausej RLj =
 
         val y_eq_rhsj'h = assume (cterm_of thy (Trueprop (mk_eq (y, rhsj'h))))
         val lhsi_eq_lhsj' = assume (cterm_of thy (Trueprop (mk_eq (lhsi, lhsj')))) (* lhs_i = lhs_j' |-- lhs_i = lhs_j' *)
-
-        val eq_pairs = assume (cterm_of thy (Trueprop (mk_eq (mk_prod (lhsi, y), mk_prod (lhsj',rhsj'h)))))
     in
         (trans OF [case_hyp, lhsi_eq_lhsj']) (* lhs_i = lhs_j' |-- x = lhs_j' *)
         |> implies_elim RLj_import (* Rj1' ... Rjk', lhs_i = lhs_j' |-- rhs_j'_h = rhs_j'_f *)
         |> (fn it => trans OF [it, compat]) (* lhs_i = lhs_j', Gj', Rj1' ... Rjk' |-- rhs_j'_h = rhs_i_f *)
         |> (fn it => trans OF [y_eq_rhsj'h, it]) (* lhs_i = lhs_j', Gj', Rj1' ... Rjk', y = rhs_j_h' |-- y = rhs_i_f *)
-        |> implies_intr (cprop_of y_eq_rhsj'h)
-        |> implies_intr (cprop_of lhsi_eq_lhsj') (* Gj', Rj1' ... Rjk' |-- [| lhs_i = lhs_j', y = rhs_j_h' |] ==> y = rhs_i_f *)
-        |> (fn it => Drule.compose_single(it, 2, Pair_inject)) (* Gj', Rj1' ... Rjk' |-- (lhs_i, y) = (lhs_j', rhs_j_h') ==> y = rhs_i_f *)
-        |> implies_elim_swp eq_pairs
         |> fold_rev (implies_intr o cprop_of) Ghsj'
-        |> fold_rev (implies_intr o cprop_of) agsj' (* Gj', Rj1', ..., Rjk' ==> (lhs_i, y) = (lhs_j', rhs_j_h') ==> y = rhs_i_f *)
-        |> implies_intr (cprop_of eq_pairs)
+        |> fold_rev (implies_intr o cprop_of) agsj' (* lhs_i = lhs_j' , y = rhs_j_h' |-- Gj', Rj1'...Rjk' ==> y = rhs_i_f *)
+        |> implies_intr (cprop_of y_eq_rhsj'h)
+        |> implies_intr (cprop_of lhsi_eq_lhsj')
         |> fold_rev forall_intr (cterm_of thy h :: cqsj')
     end
 
@@ -305,21 +301,21 @@ fun mk_uniqueness_case thy globals G f ihyp ih_intro G_cases compat_store clause
 
         val existence = fold (curry op COMP o prep_RC) RCs lGI
 
-        val a = cterm_of thy (mk_prod (lhs, y))
         val P = cterm_of thy (mk_eq (y, rhsC))
-        val a_in_G = assume (cterm_of thy (Trueprop (mk_mem (term_of a, G))))
+        val G_lhs_y = assume (cterm_of thy (Trueprop (G $ lhs $ y)))
 
         val unique_clauses = map2 (mk_uniqueness_clause thy globals f compat_store clausei) clauses rep_lemmas
 
         val uniqueness = G_cases
-                           |> forall_elim a
+                           |> forall_elim (cterm_of thy lhs)
+                           |> forall_elim (cterm_of thy y)
                            |> forall_elim P
-                           |> implies_elim_swp a_in_G
+                           |> implies_elim_swp G_lhs_y
                            |> fold implies_elim_swp unique_clauses
-                           |> implies_intr (cprop_of a_in_G)
+                           |> implies_intr (cprop_of G_lhs_y)
                            |> forall_intr (cterm_of thy y)
 
-        val P2 = cterm_of thy (lambda y (mk_mem (mk_prod (lhs, y), G))) (* P2 y := (lhs, y): G *)
+        val P2 = cterm_of thy (lambda y (G $ lhs $ y)) (* P2 y := (lhs, y): G *)
 
         val exactly_one =
             ex1I |> instantiate' [SOME (ctyp_of thy ranT)] [SOME P2, SOME (cterm_of thy rhsC)]
@@ -332,11 +328,11 @@ fun mk_uniqueness_case thy globals G f ihyp ih_intro G_cases compat_store clause
 
         val function_value =
             existence
-                |> implies_intr ihyp
-                |> implies_intr (cprop_of case_hyp)
-                |> forall_intr (cterm_of thy x)
-                |> forall_elim (cterm_of thy lhs)
-                |> curry (op RS) refl
+              |> implies_intr ihyp
+              |> implies_intr (cprop_of case_hyp)
+              |> forall_intr (cterm_of thy x)
+              |> forall_elim (cterm_of thy lhs)
+              |> curry (op RS) refl
     in
         (exactly_one, function_value)
     end
@@ -348,15 +344,15 @@ fun prove_stuff thy congs globals G f R clauses complete compat compat_store G_e
     let
         val Globals {h, domT, ranT, x, ...} = globals
 
-        val inst_ex1_ex = f_def RS ex1_implies_ex
-        val inst_ex1_un = f_def RS ex1_implies_un
+        val inst_ex1_ex =  f_def RS ex1_implies_ex
+        val inst_ex1_un =  f_def RS ex1_implies_un
         val inst_ex1_iff = f_def RS ex1_implies_iff
 
         (* Inductive Hypothesis: !!z. (z,x):R ==> EX!y. (z,y):G *)
         val ihyp = all domT $ Abs ("z", domT,
-                                   implies $ Trueprop (mk_relmemT domT domT (Bound 0, x) R)
+                                   implies $ Trueprop (R $ Bound 0 $ x)
                                            $ Trueprop (Const ("Ex1", (ranT --> boolT) --> boolT) $
-                                                             Abs ("y", ranT, mk_relmemT domT ranT (Bound 1, Bound 0) G)))
+                                                             Abs ("y", ranT, G $ Bound 1 $ Bound 0)))
                        |> cterm_of thy
 
         val ihyp_thm = assume ihyp |> forall_elim_vars 0
@@ -375,7 +371,7 @@ fun prove_stuff thy congs globals G f R clauses complete compat compat_store G_e
                                   |> forall_elim_vars 0
                                   |> fold (curry op COMP) ex1s
                                   |> implies_intr (ihyp)
-                                  |> implies_intr (cterm_of thy (Trueprop (mk_mem (x, mk_acc domT R))))
+                                  |> implies_intr (cterm_of thy (Trueprop (mk_acc domT R $ x)))
                                   |> forall_intr (cterm_of thy x)
                                   |> (fn it => Drule.compose_single (it, 2, acc_induct_rule)) (* "EX! y. (?x,y):G" *)
                                   |> (fn it => fold (forall_intr o cterm_of thy) (term_vars (prop_of it)) it)
@@ -394,17 +390,17 @@ fun prove_stuff thy congs globals G f R clauses complete compat compat_store G_e
 
 fun define_graph Gname fvar domT ranT clauses RCss lthy =
     let
-      val GT = mk_relT (domT, ranT)
+      val GT = domT --> ranT --> boolT
       val Gvar = Free (the_single (Variable.variant_frees lthy [] [(Gname, GT)]))
 
       fun mk_GIntro (ClauseContext {qs, gs, lhs, rhs, ...}) RCs =
           let
             fun mk_h_assm (rcfix, rcassm, rcarg) =
-                mk_relmem (rcarg, fvar $ rcarg) Gvar
+                Trueprop (Gvar $ rcarg $ (fvar $ rcarg))
                           |> fold_rev (curry Logic.mk_implies o prop_of) rcassm
                           |> fold_rev (mk_forall o Free) rcfix
           in
-            mk_relmem (lhs, rhs) Gvar
+            Trueprop (Gvar $ lhs $ rhs)
                       |> fold_rev (curry Logic.mk_implies o mk_h_assm) RCs
                       |> fold_rev (curry Logic.mk_implies) gs
                       |> fold_rev mk_forall (fvar :: qs)
@@ -424,7 +420,8 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
     let
       val f_def = 
           Abs ("x", domT, Const ("FunDef.THE_default", ranT --> (ranT --> boolT) --> ranT) $ (default $ Bound 0) $
-                                Abs ("y", ranT, mk_relmemT domT ranT (Bound 1, Bound 0) G))
+                                Abs ("y", ranT, G $ Bound 1 $ Bound 0))
+              |> Envir.beta_norm (* Fixme: LocalTheory.def does not work if not beta-normal *)
           
       val ((f, (_, f_defthm)), lthy) = LocalTheory.def ((fname ^ "C", mixfix), ((fdefname, []), f_def)) lthy
     in
@@ -435,11 +432,11 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
 fun define_recursion_relation Rname domT ranT fvar f qglrs clauses RCss lthy =
     let
 
-      val RT = mk_relT (domT, domT)
+      val RT = domT --> domT --> boolT
       val Rvar = Free (the_single (Variable.variant_frees lthy [] [(Rname, RT)]))
 
       fun mk_RIntro (ClauseContext {qs, gs, lhs, ...}, (oqs, _, _, _)) (rcfix, rcassm, rcarg) =
-          mk_relmem (rcarg, lhs) Rvar
+          Trueprop (Rvar $ rcarg $ lhs)
                     |> fold_rev (curry Logic.mk_implies o prop_of) rcassm
                     |> fold_rev (curry Logic.mk_implies) gs
                     |> fold_rev (mk_forall o Free) rcfix
@@ -465,7 +462,7 @@ fun fix_globals domT ranT fvar ctxt =
                 x = Free (x, domT),
                 z = Free (z, domT),
                 a = Free (a, domT),
-                D = Free (D, HOLogic.mk_setT domT),
+                D = Free (D, domT --> boolT),
                 P = Free (P, domT --> boolT),
                 Pbool = Free (Pbool, boolT),
                 fvar = fvar,
@@ -521,7 +518,7 @@ fun prepare_fundef defname (fname, fT, mixfix) abstract_qglrs default_str lthy =
       val ((R, RIntro_thmss, R_elim), lthy) = 
           define_recursion_relation (defname ^ "_rel") domT ranT fvar f abstract_qglrs clauses RCss lthy
 
-      val dom_abbrev = Logic.mk_equals (Free (defname ^ "_dom", fastype_of (mk_acc domT R)), mk_acc domT R)
+      val dom_abbrev = Logic.mk_equals (Free (defname ^ "_dom", domT --> boolT), mk_acc domT R)
       val lthy = Specification.abbreviation_i ("", false) [(NONE, dom_abbrev)] lthy
 
       val newthy = ProofContext.theory_of lthy

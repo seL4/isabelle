@@ -23,6 +23,89 @@ uses
 ("Tools/function_package/auto_term.ML")
 begin
 
+section {* Wellfoundedness and Accessibility: Predicate versions *}
+
+
+constdefs
+  wfP         :: "('a \<Rightarrow> 'a \<Rightarrow> bool) => bool"
+  "wfP(r) == (!P. (!x. (!y. r y x --> P(y)) --> P(x)) --> (!x. P(x)))"
+
+lemma wfP_induct: 
+    "[| wfP r;           
+        !!x.[| ALL y. r y x --> P(y) |] ==> P(x)  
+     |]  ==>  P(a)"
+by (unfold wfP_def, blast)
+
+lemmas wfP_induct_rule = wfP_induct [rule_format, consumes 1, case_names less]
+
+definition in_rel_def[simp]:
+  "in_rel R x y == (x, y) \<in> R"
+
+lemma wf_in_rel:
+  "wf R \<Longrightarrow> wfP (in_rel R)"
+  unfolding wfP_def wf_def in_rel_def .
+
+
+inductive2 accP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
+  for r :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+intros
+    accPI: "(!!y. r y x ==> accP r y) ==> accP r x"
+
+
+theorem accP_induct:
+  assumes major: "accP r a"
+  assumes hyp: "!!x. accP r x ==> \<forall>y. r y x --> P y ==> P x"
+  shows "P a"
+  apply (rule major [THEN accP.induct])
+  apply (rule hyp)
+   apply (rule accPI)
+   apply fast
+  apply fast
+  done
+
+theorems accP_induct_rule = accP_induct [rule_format, induct set: accP]
+
+theorem accP_downward: "accP r b ==> r a b ==> accP r a"
+  apply (erule accP.cases)
+  apply fast
+  done
+
+
+lemma accP_subset:
+  assumes sub: "\<And>x y. R1 x y \<Longrightarrow> R2 x y"
+  shows "\<And>x. accP R2 x \<Longrightarrow> accP R1 x"
+proof-
+  fix x assume "accP R2 x"
+  then show "accP R1 x"
+  proof (induct x)
+    fix x
+    assume ih: "\<And>y. R2 y x \<Longrightarrow> accP R1 y"
+    with sub show "accP R1 x"
+      by (blast intro:accPI)
+  qed
+qed
+
+
+lemma accP_subset_induct:
+  assumes subset: "\<And>x. D x \<Longrightarrow> accP R x"
+    and dcl: "\<And>x z. \<lbrakk>D x; R z x\<rbrakk> \<Longrightarrow> D z"
+    and "D x"
+    and istep: "\<And>x. \<lbrakk>D x; (\<And>z. R z x \<Longrightarrow> P z)\<rbrakk> \<Longrightarrow> P x"
+  shows "P x"
+proof -
+  from subset and `D x` 
+  have "accP R x" .
+  then show "P x" using `D x`
+  proof (induct x)
+    fix x
+    assume "D x"
+      and "\<And>y. R y x \<Longrightarrow> D y \<Longrightarrow> P y"
+    with dcl and istep show "P x" by blast
+  qed
+qed
+
+
+section {* Definitions with default value *}
 
 definition
   THE_default :: "'a \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a"
@@ -41,37 +124,41 @@ by (simp add:THE_default_def)
 
 
 lemma fundef_ex1_existence:
-assumes f_def: "f \<equiv> \<lambda>x. THE_default (d x) (\<lambda>y. (x,y)\<in>G)"
-assumes ex1: "\<exists>!y. (x,y)\<in>G"
-shows "(x, f x)\<in>G"
+assumes f_def: "f == (\<lambda>x::'a. THE_default (d x) (\<lambda>y. G x y))"
+assumes ex1: "\<exists>!y. G x y"
+shows "G x (f x)"
   by (simp only:f_def, rule THE_defaultI', rule ex1)
 
+
+
+
+
 lemma fundef_ex1_uniqueness:
-assumes f_def: "f \<equiv> \<lambda>x. THE_default (d x) (\<lambda>y. (x,y)\<in>G)"
-assumes ex1: "\<exists>!y. (x,y)\<in>G"
-assumes elm: "(x, h x)\<in>G"
+assumes f_def: "f == (\<lambda>x::'a. THE_default (d x) (\<lambda>y. G x y))"
+assumes ex1: "\<exists>!y. G x y"
+assumes elm: "G x (h x)"
 shows "h x = f x"
   by (simp only:f_def, rule THE_default1_equality[symmetric], rule ex1, rule elm)
 
 lemma fundef_ex1_iff:
-assumes f_def: "f \<equiv> \<lambda>x. THE_default (d x) (\<lambda>y. (x,y)\<in>G)"
-assumes ex1: "\<exists>!y. (x,y)\<in>G"
-shows "((x, y)\<in>G) = (f x = y)"
+assumes f_def: "f == (\<lambda>x::'a. THE_default (d x) (\<lambda>y. G x y))"
+assumes ex1: "\<exists>!y. G x y"
+shows "(G x y) = (f x = y)"
   apply (auto simp:ex1 f_def THE_default1_equality)
   by (rule THE_defaultI', rule ex1)
 
 lemma fundef_default_value:
-assumes f_def: "f \<equiv> \<lambda>x. THE_default (d x) (\<lambda>y. (x,y)\<in>G)"
-assumes graph: "\<And>x y. (x,y) \<in> G \<Longrightarrow> x \<in> D"
+assumes f_def: "f == (\<lambda>x::'a. THE_default (d x) (\<lambda>y. G x y))"
+assumes graph: "\<And>x y. G x y \<Longrightarrow> x \<in> D"
 assumes "x \<notin> D"
 shows "f x = d x"
 proof -
-  have "\<not>(\<exists>y. (x, y) \<in> G)"
+  have "\<not>(\<exists>y. G x y)"
   proof
-    assume "(\<exists>y. (x, y) \<in> G)"
+    assume "(\<exists>y. G x y)"
     with graph and `x\<notin>D` show False by blast
   qed
-  hence "\<not>(\<exists>!y. (x, y) \<in> G)" by blast
+  hence "\<not>(\<exists>!y. G x y)" by blast
   
   thus ?thesis
     unfolding f_def
@@ -80,8 +167,7 @@ qed
 
 
 
-
-subsection {* Projections *}
+section {* Projections *}
 consts
   lpg::"(('a + 'b) * 'a) set"
   rpg::"(('a + 'b) * 'b) set"
@@ -104,6 +190,8 @@ lemma rproj_inr:
   by (auto simp:rproj_def intro: the_equality rpg.intros elim: rpg.cases)
 
 
+
+lemma P_imp_P: "P \<Longrightarrow> P" .
 
 
 use "Tools/function_package/sum_tools.ML"

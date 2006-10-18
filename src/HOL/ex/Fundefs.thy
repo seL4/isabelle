@@ -11,7 +11,6 @@ begin
 
 section {* Very basic *}
 
-
 fun fib :: "nat \<Rightarrow> nat"
 where
   "fib 0 = 1"
@@ -58,7 +57,7 @@ where
 | "nz (Suc x) = nz (nz x)"
 
 lemma nz_is_zero: -- {* A lemma we need to prove termination *}
-  assumes trm: "x \<in> nz_dom"
+  assumes trm: "nz_dom x"
   shows "nz x = 0"
 using trm
 by induct auto
@@ -72,14 +71,14 @@ thm nz.induct
 
 text {* Here comes McCarthy's 91-function *}
 
+
 fun f91 :: "nat => nat"
 where
   "f91 n = (if 100 < n then n - 10 else f91 (f91 (n + 11)))"
 
-
 (* Prove a lemma before attempting a termination proof *)
 lemma f91_estimate: 
-  assumes trm: "n : f91_dom" 
+  assumes trm: "f91_dom n" 
   shows "n < f91 n + 11"
 using trm by induct auto
 
@@ -91,7 +90,7 @@ proof
   fix n::nat assume "~ 100 < n" (* Inner call *)
   thus "(n + 11, n) : ?R" by simp 
 
-  assume inner_trm: "n + 11 : f91_dom" (* Outer call *)
+  assume inner_trm: "f91_dom (n + 11)" (* Outer call *)
   with f91_estimate have "n + 11 < f91 (n + 11) + 11" .
   with `~ 100 < n` show "(f91 (n + 11), n) : ?R" by simp 
 qed

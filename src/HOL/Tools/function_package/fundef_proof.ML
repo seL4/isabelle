@@ -18,21 +18,24 @@ end
 structure FundefProof : FUNDEF_PROOF = 
 struct
 
+open FundefLib
 open FundefCommon
 open FundefAbbrev
 
 (* Theory dependencies *)
 val subsetD = thm "subsetD"
-val subset_refl = thm "subset_refl"
 val split_apply = thm "Product_Type.split"
-val wf_induct_rule = thm "wf_induct_rule";
+val wf_induct_rule = thm "FunDef.wfP_induct_rule";
 val Pair_inject = thm "Product_Type.Pair_inject";
 
-val acc_induct_rule = thm "Accessible_Part.acc_induct_rule"
-val acc_downward = thm "Accessible_Part.acc_downward"
-val accI = thm "Accessible_Part.accI"
+val wf_in_rel = thm "FunDef.wf_in_rel";
+val in_rel_def = thm "FunDef.in_rel_def";
 
-val acc_subset_induct = thm "Accessible_Part.acc_subset_induct"
+val acc_induct_rule = thm "FunDef.accP_induct_rule"
+val acc_downward = thm "FunDef.accP_downward"
+val accI = thm "FunDef.accPI"
+
+val acc_subset_induct = thm "FunDef.accP_subset_induct"
 
 val conjunctionD1 = thm "conjunctionD1"
 val conjunctionD2 = thm "conjunctionD2"
@@ -43,18 +46,18 @@ fun mk_psimp thy globals R f_iff graph_is_function clause valthm =
 	val Globals {domT, z, ...} = globals
 
 	val ClauseInfo {qglr = (oqs, _, _, _), cdata = ClauseContext {qs, cqs, gs, lhs, rhs, ags, ...}, ...} = clause
-	val lhs_acc = cterm_of thy (Trueprop (mk_mem (lhs, mk_acc domT R))) (* "lhs : acc R" *)
-	val z_smaller = cterm_of thy (Trueprop (mk_relmemT domT domT (z, lhs) R)) (* "(z, lhs) : R" *)
+	val lhs_acc = cterm_of thy (Trueprop (mk_acc domT R $ lhs)) (* "acc R lhs" *)
+	val z_smaller = cterm_of thy (Trueprop (R $ z $ lhs)) (* "R z lhs" *)
     in
 	((assume z_smaller) RS ((assume lhs_acc) RS acc_downward))
-	    |> (fn it => it COMP graph_is_function)
-	    |> implies_intr z_smaller
-	    |> forall_intr (cterm_of thy z)
-	    |> (fn it => it COMP valthm)
-	    |> implies_intr lhs_acc 
-	    |> asm_simplify (HOL_basic_ss addsimps [f_iff])
-            |> fold_rev (implies_intr o cprop_of) ags
-            |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
+	  |> (fn it => it COMP graph_is_function)
+	  |> implies_intr z_smaller
+	  |> forall_intr (cterm_of thy z)
+	  |> (fn it => it COMP valthm)
+	  |> implies_intr lhs_acc 
+	  |> asm_simplify (HOL_basic_ss addsimps [f_iff])
+          |> fold_rev (implies_intr o cprop_of) ags
+          |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
     end
 
 
@@ -64,22 +67,22 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
 	val Globals {domT, x, z, a, P, D, ...} = globals
         val acc_R = mk_acc domT R
 
-	val x_D = assume (cterm_of thy (Trueprop (mk_mem (x, D))))
-	val a_D = cterm_of thy (Trueprop (mk_mem (a, D)))
+	val x_D = assume (cterm_of thy (Trueprop (D $ x)))
+	val a_D = cterm_of thy (Trueprop (D $ a))
 
-	val D_subset = cterm_of thy (Trueprop (mk_subset domT D acc_R))
+	val D_subset = cterm_of thy (mk_forall x (implies $ Trueprop (D $ x) $ Trueprop (acc_R $ x)))
 
 	val D_dcl = (* "!!x z. [| x: D; (z,x):R |] ==> z:D" *)
 	    mk_forall x
-		      (mk_forall z (Logic.mk_implies (Trueprop (mk_mem (x, D)),
-						      Logic.mk_implies (mk_relmem (z, x) R,
-									Trueprop (mk_mem (z, D))))))
+		      (mk_forall z (Logic.mk_implies (Trueprop (D $ x),
+						      Logic.mk_implies (Trueprop (R $ z $ x),
+									Trueprop (D $ z)))))
 		      |> cterm_of thy
 
 
 	(* Inductive Hypothesis: !!z. (z,x):R ==> P z *)
 	val ihyp = all domT $ Abs ("z", domT, 
-				   implies $ Trueprop (mk_relmemT domT domT (Bound 0, x) R)
+				   implies $ Trueprop (R $ Bound 0 $ x)
 					   $ Trueprop (P $ Bound 0))
 		       |> cterm_of thy
 
@@ -105,7 +108,7 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
 		val step = Trueprop (P $ lhs)
 				    |> fold_rev (curry Logic.mk_implies o prop_of) P_recs
 				    |> fold_rev (curry Logic.mk_implies) gs
-				    |> curry Logic.mk_implies (Trueprop (mk_mem (lhs, D)))
+				    |> curry Logic.mk_implies (Trueprop (D $ lhs))
 				    |> fold_rev mk_forall_rename (map fst oqs ~~ qs)
 				    |> cterm_of thy
 			   
@@ -152,10 +155,10 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
 	    subset_induct_rule
 		|> forall_intr (cterm_of thy D)
 		|> forall_elim (cterm_of thy acc_R)
-		|> (curry op COMP) subset_refl
+		|> assume_tac 1 |> Seq.hd
 		|> (curry op COMP) (acc_downward
 					|> (instantiate' [SOME (ctyp_of thy domT)]
-							 (map (SOME o cterm_of thy) [x, R, z]))
+							 (map (SOME o cterm_of thy) [R, x, z]))
 					|> forall_intr (cterm_of thy z)
 					|> forall_intr (cterm_of thy x))
 		|> forall_intr (cterm_of thy a)
@@ -172,7 +175,7 @@ fun mk_domain_intro thy globals R R_cases clause =
 	val Globals {z, domT, ...} = globals
 	val ClauseInfo {cdata = ClauseContext {qs, gs, lhs, rhs, cqs, ...}, 
                         qglr = (oqs, _, _, _), ...} = clause
-	val goal = (HOLogic.mk_Trueprop (HOLogic.mk_mem (lhs, mk_acc domT R)))
+	val goal = Trueprop (mk_acc domT R $ lhs)
                      |> fold_rev (curry Logic.mk_implies) gs
                      |> cterm_of thy
     in
@@ -199,7 +202,7 @@ fun mk_nest_term_case thy globals R' ihyp clause =
 	    let
 		val used = map (fn ((f,a),thm) => FundefCtxTree.export_thm thy (f, map prop_of a) thm) (u @ sub)
 
-		val hyp = mk_relmem (arg, lhs) R'
+		val hyp = Trueprop (R' $ arg $ lhs)
 				    |> fold_rev (curry Logic.mk_implies o prop_of) used
 				    |> FundefCtxTree.export_term (fixes, map prop_of assumes) 
 				    |> fold_rev (curry Logic.mk_implies o prop_of) ags
@@ -222,11 +225,12 @@ fun mk_nest_term_case thy globals R' ihyp clause =
 				     |> implies_intr (cprop_of case_hyp)
 				     |> implies_intr z_eq_arg
 
-		val zx_eq_arg_lhs = cterm_of thy (Trueprop (mk_eq (mk_prod (z,x), mk_prod (arg,lhs))))
+                val z_eq_arg = assume (cterm_of thy (Trueprop (mk_eq (z, arg))))
+                val x_eq_lhs = assume (cterm_of thy (Trueprop (mk_eq (x, lhs))))
 
-		val ethm = (z_acc COMP (assume zx_eq_arg_lhs COMP Pair_inject))
+		val ethm = (z_acc OF [z_eq_arg, x_eq_lhs])
 			       |> FundefCtxTree.export_thm thy (fixes, 
-                                                                (term_of zx_eq_arg_lhs) :: map prop_of (ags @ assumes))
+                                                                prop_of z_eq_arg :: prop_of x_eq_lhs :: map prop_of (ags @ assumes))
                                |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
 
 		val sub' = sub @ [(([],[]), acc)]
@@ -246,36 +250,43 @@ fun mk_nest_term_rule thy globals R R_cases clauses =
 
 	val R' = Free ("R", fastype_of R)
 
-	val wfR' = cterm_of thy (Trueprop (Const ("Wellfounded_Recursion.wf", mk_relT (domT, domT) --> boolT) $ R')) (* "wf R'" *)
+        val Rrel = Free ("R", mk_relT (domT, domT))
+        val inrel_R = Const ("FunDef.in_rel", mk_relT (domT, domT) --> fastype_of R) $ Rrel
+
+	val wfR' = cterm_of thy (Trueprop (Const ("FunDef.wfP", (domT --> domT --> boolT) --> boolT) $ R')) (* "wf R'" *)
 
 	(* Inductive Hypothesis: !!z. (z,x):R' ==> z : acc R *)
 	val ihyp = all domT $ Abs ("z", domT, 
-				   implies $ Trueprop (mk_relmemT domT domT (Bound 0, x) R')
-					   $ Trueprop ((Const ("op :", [domT, HOLogic.mk_setT domT] ---> boolT))
-							   $ Bound 0 $ acc_R))
+				   implies $ Trueprop (R' $ Bound 0 $ x)
+					   $ Trueprop (acc_R $ Bound 0))
 		       |> cterm_of thy
 
 	val ihyp_a = assume ihyp |> forall_elim_vars 0
 
-	val z_ltR_x = cterm_of thy (mk_relmem (z, x) R) (* "(z, x) : R" *)
+	val R_z_x = cterm_of thy (Trueprop (R $ z $ x)) 
 
 	val (hyps,cases) = fold (mk_nest_term_case thy globals R' ihyp_a) clauses ([],[])
     in
 	R_cases
-            |> forall_elim (cterm_of thy (mk_prod (z,x)))
-            |> forall_elim (cterm_of thy (mk_mem (z, acc_R)))
-	    |> curry op COMP (assume z_ltR_x)
+            |> forall_elim (cterm_of thy z)
+            |> forall_elim (cterm_of thy x)
+            |> forall_elim (cterm_of thy (acc_R $ z))
+	    |> curry op COMP (assume R_z_x)
 	    |> fold_rev (curry op COMP) cases
-	    |> implies_intr z_ltR_x
+	    |> implies_intr R_z_x
 	    |> forall_intr (cterm_of thy z)
 	    |> (fn it => it COMP accI)
 	    |> implies_intr ihyp
 	    |> forall_intr (cterm_of thy x)
 	    |> (fn it => Drule.compose_single(it,2,wf_induct_rule))
-	    |> implies_elim_swp (assume wfR')
+	    |> curry op RS (assume wfR')
 	    |> fold implies_intr hyps
 	    |> implies_intr wfR'
 	    |> forall_intr (cterm_of thy R')
+            |> forall_elim (cterm_of thy (inrel_R))
+            |> curry op RS wf_in_rel
+            |> full_simplify (HOL_basic_ss addsimps [in_rel_def])
+	    |> forall_intr (cterm_of thy Rrel)
     end
 
 

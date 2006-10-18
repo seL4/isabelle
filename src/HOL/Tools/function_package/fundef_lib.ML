@@ -7,6 +7,9 @@ Some fairly general functions that should probably go somewhere else...
 *)
 
 
+
+structure FundefLib = struct
+
 fun eq_str (s : string, t) = (s = t) (* monomorphic equality on strings *)
 
 fun mk_forall (var as Free (v,T)) t =
@@ -128,3 +131,6 @@ fun frees_in_term ctxt t =
 fun plural sg pl [] = sys_error "plural"
   | plural sg pl [x] = sg
   | plural sg pl (x::y::ys) = pl
+
+
+end

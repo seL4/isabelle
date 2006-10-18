@@ -21,6 +21,7 @@ end
 structure FundefSplit : FUNDEF_SPLIT =
 struct
 
+open FundefLib
 
 (* We use proof context for the variable management *)
 (* FIXME: no __ *)

@@ -42,6 +42,7 @@ structure FundefCtxTree : FUNDEF_CTXTREE =
 struct
 
 open FundefCommon
+open FundefLib
 
 
 (* Maps "Trueprop A = B" to "A" *)

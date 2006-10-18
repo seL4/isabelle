@@ -30,81 +30,61 @@ end
 structure FundefInductiveWrap =
 struct
 
+open FundefLib
 
-fun inst_forall (Free (n,_)) (_ $ Abs (_, T, b)) = subst_bound (Free (n, T), b)
-  | inst_forall t1 t2 = sys_error ((Sign.string_of_term (the_context ()) t1))
-
-fun permute_bounds_in_premises thy [] impl = impl
-  | permute_bounds_in_premises thy ((oldvs, newvs) :: perms) impl =
+fun requantify ctxt lfix (qs, t) thm =
     let
-      val (prem, concl) = dest_implies (cprop_of impl)
-
-      val newprem = term_of prem
-                      |> fold inst_forall oldvs
-                      |> fold_rev mk_forall newvs
-                      |> cterm_of thy
+      val thy = theory_of_thm (print thm)
+      val frees = frees_in_term ctxt t 
+                                  |> remove (op =) lfix
+      val vars = Term.add_vars (prop_of thm) [] |> rev
+                 
+      val varmap = frees ~~ vars
     in
-      assume newprem
-             |> fold (forall_elim o cterm_of thy) newvs
-             |> fold_rev (forall_intr o cterm_of thy) oldvs
-             |> implies_elim impl
-             |> permute_bounds_in_premises thy perms
-             |> implies_intr newprem
-    end
-
+      fold_rev (fn Free (n, T) => 
+                   forall_intr_rename (n, cterm_of thy (Var (the_default (("",0), T) (AList.lookup (op =) varmap (n, T))))))
+               qs
+               thm
+    end             
+  
+  
 
 fun inductive_def defs (((R, T), mixfix), lthy) =
     let
-      fun wrap1 thy =
-          let
-            val thy = Sign.add_consts_i [(R, T, mixfix)] thy
-            val RC = Const (Sign.full_name thy R, T)
+      val qdefs = map dest_all_all defs
+                  
+      val (lthy, {intrs = intrs_gen, elims = [elim_gen], preds = [ Rdef ], ...}) =
+          InductivePackage.add_inductive_i true (*verbose*)
+                                           "" (* no altname *)
+                                           false (* no coind *)
+                                           false (* elims, please *)
+                                           false (* induction thm please *)
+                                           [(R, SOME T, NoSyn)] (* the relation *)
+                                           [] (* no parameters *)
+                                           (map (fn t => (("", []), t)) defs) (* the intros *)
+                                           [] (* no special monos *)
+                                           lthy
 
-            val cdefs = map (Pattern.rewrite_term thy [(Free (R, T), RC)] []) defs
-            val qdefs = map dest_all_all cdefs
-
-            val (thy, {intrs = intrs_gen, elims = [elim_gen], ...}) =
-                OldInductivePackage.add_inductive_i true (*verbose*)
-                                                 false (* dont add_consts *)
-                                                 "" (* no altname *)
-                                                 false (* no coind *)
-                                                 false (* elims, please *)
-                                                 false (* induction thm please *)
-                                                 [RC] (* the constant *)
-                                                 (map (fn (_,t) => (("", t),[])) qdefs) (* the intros *)
-                                                 [] (* no special monos *)
-                                                 thy
-
-            val perms = map (fn (qs, t) => ((term_frees t) inter qs, qs)) qdefs
-
-            fun inst (qs, _) intr_gen =
-                intr_gen
-                  |> Thm.freezeT
-                  |> fold_rev (forall_intr o (fn Free (n, T) => cterm_of thy (Var ((n,0), T)))) qs
-
-
-            val a = cterm_of thy (Free ("a0123", HOLogic.dest_setT T)) (* Let's just hope there are no clashes :-} *)
-            val P = cterm_of thy (Free ("P0123", HOLogic.boolT))
+      val thy = ProofContext.theory_of lthy
                 
-            val intrs = map2 inst qdefs intrs_gen
+      fun inst qdef intr_gen =
+          intr_gen
+            |> Thm.freezeT
+            |> requantify lthy (R, T) qdef 
+          
+      val intrs = map2 inst qdefs intrs_gen
+                  
+      val elim = elim_gen
+                   |> Thm.freezeT
+                   |> forall_intr_vars (* FIXME... *)
 
-            val elim = elim_gen
-                         |> Thm.freezeT
-                         |> forall_intr_vars (* FIXME... *)
-                         |> forall_elim a
-                         |> forall_elim P
-                         |> permute_bounds_in_premises thy (([],[]) :: perms)
-                         |> forall_intr P
-                         |> forall_intr a
-          in
-            ((RC, (intrs, elim)), thy)
-          end
-
-      val ((RC, (intrs, elim)), lthy) = LocalTheory.theory_result wrap1 lthy
+      val Rdef_real = prop_of (Thm.freezeT elim_gen)
+                       |> Logic.dest_implies |> fst
+                       |> Term.strip_comb |> snd |> hd (* Trueprop *)
+                       |> Term.strip_comb |> fst
     in
-      (intrs, (RC, elim, lthy))
+      (intrs, (Rdef_real, elim, lthy))
     end
-
-
+    
 end
 
