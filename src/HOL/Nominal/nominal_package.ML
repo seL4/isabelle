@@ -1436,13 +1436,16 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (([], [], [], [], 0), descr'' ~~ ndescr ~~ recTs ~~ rec_preds ~~ rec_sets');
 
     val (thy11, {intrs = rec_intrs, elims = rec_elims, raw_induct = rec_induct, ...}) =
+      thy10 |>
       setmp InductivePackage.quiet_mode (!quiet_mode)
         (TheoryTarget.init NONE #>
          InductivePackage.add_inductive_i false big_rec_name false false false
            (map (fn (s, T) => (s, SOME T, NoSyn)) (rec_set_names' ~~ rec_set_Ts))
            (map (apsnd SOME o dest_Free) rec_fns)
            (map (fn x => (("", []), x)) rec_intr_ts) [] #>
-         apfst (snd o LocalTheory.exit false)) thy10;
+         apfst (snd o LocalTheory.exit false)) |>>
+      PureThy.hide_thms true [NameSpace.append
+        (Sign.full_name thy10 big_rec_name) "induct"];
 
     (** equivariance **)
 
