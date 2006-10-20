@@ -2,7 +2,7 @@
     Authors:    Klaus Aehlig, Tobias Nipkow
 *)
 
-header "Test of normalization function"
+header {* Test of normalization function *}
 
 theory NormalForm
 imports Main
@@ -11,6 +11,7 @@ begin
 lemma "p \<longrightarrow> True" by normalization
 declare disj_assoc [code func]
 lemma "((P | Q) | R) = (P | (Q | R))" by normalization
+declare disj_assoc [code nofunc]
 lemma "0 + (n::nat) = n" by normalization
 lemma "0 + Suc n = Suc n" by normalization
 lemma "Suc n + Suc m = n + Suc (Suc m)" by normalization
@@ -110,30 +111,8 @@ normal_form "min 0 x"
 normal_form "min 0 (x::nat)"
 lemma "(if (0\<Colon>nat) \<le> (x\<Colon>nat) then 0\<Colon>nat else x) = 0" by normalization
 
-(* Delaying if: FIXME move to HOL.thy(?) *)
+lemma "nat 4 = Suc (Suc (Suc (Suc 0)))" by normalization
 
-definition delayed_if :: "bool \<Rightarrow> (unit \<Rightarrow> 'a) \<Rightarrow> (unit \<Rightarrow> 'a) \<Rightarrow> 'a"
-"delayed_if b f g = (if b then f() else g())"
-
-lemma [normal_pre]: "(if b then x else y) == delayed_if b (%u. x) (%u. y)"
-unfolding delayed_if_def by simp
-
-lemma [normal_post]: "delayed_if b f g == (if b then f() else g())"
-unfolding delayed_if_def by simp
-
-lemma [code func]:
- shows "delayed_if True f g = f()" and "delayed_if False f g = g()"
-by (auto simp:delayed_if_def)
-
-hide (open) const delayed_if
-
-normal_form "Code_Generator.eq [2..<4] [2,3]"
-(*lemma "Code_Generator.eq [2..<4] [2,3]" by normalization*)
-
-definition
- andalso :: "bool \<Rightarrow> bool \<Rightarrow> bool"
-"andalso x y = (if x then y else False)"
-
-lemma "andalso a b = (if a then b else False)" by normalization
+normal_form "Suc 0 \<in> set ms"
 
 end

@@ -115,7 +115,9 @@ class eq =
   fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 
 defs
-  eq_def: "eq x y \<equiv> (x = y)"
+  eq_def [normal post]: "eq \<equiv> (op =)"
+
+lemmas [symmetric, code inline] = eq_def
 
 
 subsubsection {* bool type *}
@@ -134,9 +136,6 @@ lemma [code func]:
 lemma [code func]:
   "eq p False = (\<not> p)" unfolding eq_def by auto
 
-code_constname
-  "eq \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool" "HOL.eq_bool"
-
 
 subsubsection {* preprocessors *}
 
@@ -154,8 +153,6 @@ let
     in inst end;
 in CodegenData.add_constrains constrain_op_eq end
 *}
-
-declare eq_def [symmetric, code inline]
 
 
 subsubsection {* Haskell *}
@@ -190,6 +187,22 @@ in
 end;
 *}
 
-hide (open) const eq
+text {* lazy @{const If} *}
+
+definition
+  if_delayed :: "bool \<Rightarrow> (bool \<Rightarrow> 'a) \<Rightarrow> (bool \<Rightarrow> 'a) \<Rightarrow> 'a"
+  "if_delayed b f g = (if b then f True else g False)"
+
+lemma [code func]:
+  shows "if_delayed True f g = f True"
+    and "if_delayed False f g = g False"
+  unfolding if_delayed_def by simp_all
+
+lemma [normal pre, symmetric, normal post]:
+  "(if b then x else y) = if_delayed b (\<lambda>_. x) (\<lambda>_. y)"
+  unfolding if_delayed_def ..
+
+
+hide (open) const eq if_delayed
 
 end
