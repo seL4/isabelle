@@ -257,13 +257,13 @@ and ensure_def_inst thy (algbr as ((proj_sort, _), _)) funcgr strct (class, tyco
          ("generating instance " ^ quote class ^ " / " ^ quote tyco) inst
     |> pair inst
   end
-and ensure_def_const thy (algbr as (_, consts)) funcgr strct (c, tys) trns =
+and ensure_def_const thy (algbr as (_, consts)) funcgr strct (c_tys as (c, tys)) trns =
   let
-    val c' = CodegenNames.const thy (c, tys);
+    val c' = CodegenNames.const thy c_tys;
     fun defgen_datatypecons trns =
       trns
       |> ensure_def_tyco thy algbr funcgr strct
-          ((the o CodegenData.get_datatype_of_constr thy) (c, tys))
+          ((the o CodegenData.get_datatype_of_constr thy) c_tys)
       |-> (fn _ => succeed CodegenThingol.Bot);
     fun defgen_classop trns =
       trns
@@ -271,7 +271,7 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr strct (c, tys) trns =
       |-> (fn _ => succeed CodegenThingol.Bot);
     fun defgen_fun trns =
       case CodegenFuncgr.get_funcs funcgr
-        (perhaps (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy)) (c, tys))
+        (perhaps (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy)) c_tys)
        of eq_thms as eq_thm :: _ =>
             let
               val timeap = if !timing then Output.timeap_msg ("time for " ^ c')
@@ -296,22 +296,20 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr strct (c, tys) trns =
         | [] =>
               trns
               |> fail ("No defining equations found for "
-                   ^ (quote o CodegenConsts.string_of_const thy) (c, tys));
-    val defgen =
-      if CodegenNames.has_nsp CodegenNames.nsp_fun c'
-      then defgen_fun
-      else if CodegenNames.has_nsp CodegenNames.nsp_classop c'
-      then defgen_classop
-      else if CodegenNames.has_nsp CodegenNames.nsp_dtco c'
+                   ^ (quote o CodegenConsts.string_of_const thy) c_tys);
+    val defgen = if (is_some o CodegenData.get_datatype_of_constr thy) c_tys
       then defgen_datatypecons
-      else error ("Illegal shallow name space for constant: " ^ quote c');
+      else if (is_some o AxClass.class_of_param thy) c andalso
+        case tys of [TFree _] => true | [TVar _] => true | _ => false
+      then defgen_classop
+      else defgen_fun
     val strict = check_strict strct (CodegenSerializer.const_has_serialization thy) c';
   in
     trns
     |> tracing (fn _ => "generating constant "
-        ^ (quote o CodegenConsts.string_of_const thy) (c, tys))
+        ^ (quote o CodegenConsts.string_of_const thy) c_tys)
     |> CodegenThingol.ensure_def defgen strict ("generating constant "
-         ^ CodegenConsts.string_of_const thy (c, tys)) c'
+         ^ CodegenConsts.string_of_const thy c_tys) c'
     |> pair c'
   end
 and exprgen_term thy algbr funcgr strct (Const (c, ty)) trns =
@@ -637,15 +635,14 @@ and K = OuterKeyword
 fun code raw_cs seris thy =
   let
     val cs = map (CodegenConsts.read_const thy) raw_cs;
-    val targets = case map fst seris
-     of [] => NONE
-      | xs => SOME xs;
-    val seris' = map_filter (fn (target, args as _ :: _) =>
-      SOME (CodegenSerializer.get_serializer thy target args) | _ => NONE) seris;
+    val seris' = map (fn (target, args as _ :: _) =>
+          (target, SOME (CodegenSerializer.get_serializer thy target args))
+      | (target, []) => (CodegenSerializer.assert_serializer thy target, NONE)) seris;
     fun generate' thy = case cs
      of [] => []
       | _ =>
-          generate thy (cs, []) targets NONE (fold_map oooo ensure_def_const') cs;
+          generate thy (cs, []) (case map fst seris' of [] => NONE | xs => SOME xs)
+            NONE (fold_map oooo ensure_def_const') cs;
     fun serialize' [] code seri =
           seri NONE code 
       | serialize' cs code seri =
@@ -653,7 +650,7 @@ fun code raw_cs seris thy =
     val cs = generate' thy;
     val code = Code.get thy;
   in
-    (map (serialize' cs code) seris'; ())
+    (map (serialize' cs code) (map_filter snd seris'); ())
   end;
 
 val (codeK, code_abstypeK, code_axiomsK) =

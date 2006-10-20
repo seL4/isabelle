@@ -30,7 +30,6 @@ sig
   val nsp_tyco: string
   val nsp_inst: string
   val nsp_fun: string
-  val nsp_classop: string
   val nsp_dtco: string
   val nsp_eval: string
 end;
@@ -326,7 +325,6 @@ val nsp_class = "class";
 val nsp_tyco = "tyco";
 val nsp_inst = "inst";
 val nsp_fun = "fun";
-val nsp_classop = "classop";
 val nsp_dtco = "dtco";
 val nsp_eval = "EVAL"; (*only for evaluation*)
 
@@ -369,9 +367,6 @@ fun instance thy =
 fun const thy c_ty = case CodegenConsts.norm thy c_ty
  of (c_tys as (c, tys)) => add_nsp (if (is_some o CodegenData.get_datatype_of_constr thy) c_tys
      then nsp_dtco
-   else if (is_some o AxClass.class_of_param thy) c andalso
-    case tys of [TFree _] => true | [TVar _] => true | _ => false
-     then nsp_classop
    else nsp_fun)
   (get thy #const Consttab.lookup map_const Consttab.update const_policy c_tys);
 
@@ -389,9 +384,7 @@ fun const_rev thy nspname =
    of name as SOME _ => name
     | _ => (case dest_nsp nsp_dtco nspname
    of name as SOME _ => name
-    | _ => (case dest_nsp nsp_classop nspname
-   of name as SOME _ => name
-    | _ => NONE)))
+    | _ => NONE))
   |> Option.map (rev thy #const "constant");
 
 
