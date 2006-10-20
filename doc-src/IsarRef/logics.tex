@@ -753,10 +753,18 @@ The other framework generates code from functional programs
 Conceptually, code generation is split up in three steps: \emph{selection}
 of code theorems, \emph{extraction} into an abstract executable view
 and \emph{serialization} to a specific \emph{target language}.
+See \cite{isabelle-codegen} for an introduction on how to use it.
 
 \indexisarcmd{code-gen}
-\indexisarcmd{code-const}\indexisarcmd{code-type}
-\indexisarcmd{code-class}\indexisarcmd{code-instance}
+\indexisarcmd{code-const}
+\indexisarcmd{code-type}
+\indexisarcmd{code-class}
+\indexisarcmd{code-instance}
+\indexisarcmd{code-reserved}
+\indexisarcmd{code-modulename}
+\indexisarcmd{code-moduleprolog}
+\indexisarcmd{code-axioms}
+\indexisarcmd{code-abstype}
 \indexisarcmd{print-codethms}
 \indexisaratt{code func}
 \indexisaratt{code nofunc}
@@ -769,6 +777,11 @@ and \emph{serialization} to a specific \emph{target language}.
   \isarcmd{code_type} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_class} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_instance} & : & \isartrans{theory}{theory} \\
+  \isarcmd{code_reserved} & : & \isartrans{theory}{theory} \\
+  \isarcmd{code_modulename} & : & \isartrans{theory}{theory} \\
+  \isarcmd{code_moduleprolog} & : & \isartrans{theory}{theory} \\
+  \isarcmd{code_axioms} & : & \isartrans{theory}{theory} \\
+  \isarcmd{code_abstype} & : & \isartrans{theory}{theory} \\
   \isarcmd{print_codethms}^* & : & \isarkeep{theory~|~proof} \\
   code\ func & : & \isaratt \\
   code\ nofunc & : & \isaratt \\
@@ -802,6 +815,16 @@ target : 'SML' | 'Haskell';
 'code\_instance' (( typeconstructor '::' class ) + 'and') \\
   ( ( '(' target ( '-' + 'and' ) ')' ) + );
 
+'code\_reserved' target ( string + );
+
+'code\_modulename' target ( ( string string ) + );
+
+'code\_moduleprolog' target ( ( string ( string | '-') ) + );
+
+'code\_axioms' ( const ( '==' | equiv ) const + );
+
+'code\_abstype' typ typ 'where' ( const ( '==' | equiv ) const + );
+
 syntax : ( 'target\_atom' ? string ) | ( 'infix' | 'infixl' | 'infixr' ) nat string;
 
 'print\_codethms' ( '(' ( const + ) ? ')' ) ?;
@@ -821,9 +844,9 @@ syntax : ( 'target\_atom' ? string ) | ( 'infix' | 'infixl' | 'infixr' ) nat str
   In the first case, code is written to the specified file, in the latter
   it is compiled internally in the context of the current ML session.
 
-  For \emph{Haskell}, also a filename is specified; different modules
-  are serialized to different files in the directory of the specified file, or
-  subdirectories.
+  For \emph{Haskell}, a directory name is specified; different modules
+  are serialized to different files in this directory or
+  subdirectories, reflecting the module hierarchy.
 
 \item [$\isarcmd{code_const}$] associates a list of constants
   with target-specific serializations.
@@ -839,6 +862,23 @@ syntax : ( 'target\_atom' ? string ) | ( 'infix' | 'infixl' | 'infixr' ) nat str
 \item [$\isarcmd{code_instance}$] declares a list of type constructor / class
   instance relations as ``already present'' for a given target.
   Applies only to \emph{Haskell}.
+
+\item [$\isarcmd{code_reserved}$] declares a list of names
+  as reserved for a given target, preventing it to be shadowed
+  by any generated code.
+
+\item [$\isarcmd{code_modulename}$] declares aliassings a module name
+  to another.
+
+\item [$\isarcmd{code_moduleprolog}$] adds any content (''prolog``)
+  to a specified module. A ``-'' will remove any already specified prolog.
+
+\item [$\isarcmd{code_axioms}$] uses the given equations for code generation
+  whenever possible. Both sides are required to be constants which are
+  mapped on functions in generated code.
+
+\item [$\isarcmd{code_abstype}$] offers an interface for implementing
+  an abstract type plus operations by executable counterparts.
 
 \item [$code\ func$ and $code\ nofunc$] select or deselect explicitly
   a function theorem for code generation.  Usually packages introducing
