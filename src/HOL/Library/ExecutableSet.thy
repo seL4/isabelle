@@ -13,7 +13,7 @@ section {* Definitional equality rewrites *}
 
 instance set :: (eq) eq ..
 
-lemma [code target: Set]:
+lemma [code target: Set, code nofunc]:
   "(A = B) = (A \<subseteq> B \<and> B \<subseteq> A)"
   by blast
 
@@ -240,10 +240,8 @@ code_constname
   "ExecutableSet.insertl" "List.insertl"
   "ExecutableSet.drop_first" "List.drop_first"
 
-definition
+definition [code inline]:
   "empty_list = []"
-
-declare empty_list_def [code inline]
 
 lemma [code func]:
   "insert (x \<Colon> 'a\<Colon>eq) = insert x" ..

@@ -120,22 +120,20 @@ instance cnam :: eq
   and vname :: eq
   and mname :: eq
   and ty :: eq
+  and val :: eq
   and instr :: eq ..
 
 definition
   arbitrary_val :: val
-  "arbitrary_val = arbitrary"
+  [symmetric, code inline]: "arbitrary_val = arbitrary"
   arbitrary_cname :: cname
-  "arbitrary_cname = arbitrary"
-
-declare arbitrary_val_def [symmetric, code inline]
-declare arbitrary_cname_def [symmetric, code inline]
+  [symmetric, code inline]: "arbitrary_cname = arbitrary"
 
 definition
   "unit' = Unit"
   "object' = Object"
 
-code_constsubst
+code_axioms
   arbitrary_val \<equiv> unit'
   arbitrary_cname \<equiv> object'
 
@@ -165,7 +163,7 @@ lemma [code func]:
 code_const
   wf_class (SML target_atom "(fn _ => true)")
 
-code_constsubst
+code_axioms
   new_Addr \<equiv> new_addr'
 
 definition
