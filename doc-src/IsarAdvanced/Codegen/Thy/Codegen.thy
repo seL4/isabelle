@@ -277,7 +277,7 @@ text {*
   Syntactic redundancies are implicitly dropped. For example,
   using a modified version of the @{const fac} function
   as function equation, the then redundant (since
-  syntactically more subsumed) original function equations
+  syntactically subsumed) original function equations
   are dropped, resulting in a warning:
 *}
 
@@ -306,7 +306,7 @@ subsection {* Type classes *}
 
 text {*
   Type classes enter the game via the Isar class package.
-  For a short introduction how to use it, see \fixme[ref];
+  For a short introduction how to use it, see \cite{isabelle-classes};
   here we just illustrate its relation on code generation.
 
   In a target language, type classes may be represented
@@ -346,14 +346,14 @@ definition
 text {*
   Type classes offer a suitable occassion to introduce
   the Haskell serializer.  Its usage is almost the same
-  as SML, but, in accordance with conventions some
-  common Haskell compilers enforce, each module ends
-  up in a single file which the file given by the user
-  then imports. The module hierarchy is reflected in
-  the file system.
+  as SML, but, in accordance with conventions
+  some Haskell systems enforce, each module ends
+  up in a single file. The module hierarchy is reflected in
+  the file system, with root given by the user.
 *}
 
-code_gen dummy (Haskell "examples/codegen.hs")
+ML {* set Toplevel.debug *}
+code_gen dummy (Haskell "examples/")
   (* NOTE: you may use Haskell only once in this document *)
 
 text {*
@@ -372,7 +372,33 @@ text {*
 
 subsection {* Incremental code generation *}
 
-(* print_codethms (\<dots>) and code_gen, 2 *)
+text {*
+  Code generation is \emph{incremental}: theorems
+  and abstract intermediate code are cached and extended on demand.
+  The cache may be partially or fully dropped if the underlying
+  executable content of the theory changes.
+  Implementation of caching is supposed to transparently
+  hid away the details from the user.  Anyway, caching
+  reaches the surface by using a slightly more general form
+  of the \isasymCODEGEN: either the list of constants or the
+  list of serialization expressions may be dropped.  If no
+  serialization expressions are given, only abstract code
+  is generated and cached; if no constants are given, the
+  current cache is serialized.
+
+  For explorative reasons, an extended version of the
+  \isasymCODEGEN command may prove useful:
+*}
+
+print_codethms ()
+
+text {*
+  \noindent print all cached function equations (i.e.~\emph{after}
+  any applied transformation. Inside the brackets a
+  list of constants may be given; their function
+  euqations are added to the cache if not already present.
+*}
+
 
 
 section {* Recipes and advanced topics \label{sec:advanced} *}
@@ -387,6 +413,7 @@ subsection {* Preprocessing *}
 
 subsection {* Customizing serialization  *}
 
+(* code_reserved *)
 (* existing libraries, understanding the type game, reflexive equations, code inline code_constsubst, code_abstype*)
 
 section {* ML interfaces \label{sec:ml} *}
