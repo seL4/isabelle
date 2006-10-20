@@ -26,7 +26,6 @@ sig
   val map': (key -> 'a -> 'b) -> 'a table -> 'b table
   val fold: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
   val fold_map: (key * 'b -> 'a -> 'c * 'a) -> 'b table -> 'a -> 'c table * 'a
-  val foldl: ('a * (key * 'b) -> 'a) -> 'a * 'b table -> 'a
   val dest: 'a table -> (key * 'a) list
   val keys: 'a table -> key list
   val min_key: 'a table -> key option
@@ -393,7 +392,6 @@ fun merge_list eq = join (fn _ => Library.merge eq);
 fun map f = map_table (K f);
 val map' = map_table;
 val fold = fold_table;
-fun foldl f (x, tab) = fold (fn p => fn x' => f (x', p)) tab x;
 val fold_map = fold_map_table;
 
 end;
