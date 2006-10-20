@@ -324,5 +324,6 @@ code_gen X Y (SML) (Haskell)
 code_gen x1 x2 y2 (SML) (Haskell)
 
 code_gen (SML -)
+code_gen (Haskell -)
 
 end

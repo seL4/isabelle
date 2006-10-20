@@ -196,5 +196,6 @@ code_gen
   "Code_Generator.eq :: ('a\<Colon>eq) point_scheme \<Rightarrow> 'a point_scheme \<Rightarrow> bool"
 
 code_gen (SML -)
+code_gen (Haskell -)
 
 end
