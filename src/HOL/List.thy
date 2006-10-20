@@ -26,7 +26,6 @@ consts
   last:: "'a list => 'a"
   butlast :: "'a list => 'a list"
   set :: "'a list => 'a set"
-  list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool"
   map :: "('a=>'b) => ('a list => 'b list)"
   nth :: "'a list => nat => 'a"    (infixl "!" 100)
   list_update :: "'a list => nat => 'a => 'a list"
@@ -39,21 +38,9 @@ consts
   upt :: "nat => nat => nat list" ("(1[_..</_'])")
   remdups :: "'a list => 'a list"
   remove1 :: "'a => 'a list => 'a list"
-  null:: "'a list => bool"
   "distinct":: "'a list => bool"
   replicate :: "nat => 'a => 'a list"
-  rotate1 :: "'a list \<Rightarrow> 'a list"
-  rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
   splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
-  sublist :: "'a list => nat set => 'a list"
-(* For efficiency *)
-  mem :: "'a => 'a list => bool"    (infixl 55)
-  list_inter :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
-  list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
-  list_all:: "('a => bool) => ('a list => bool)"
-  itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
-  filtermap :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list"
-  map_filter :: "('a => 'b) => ('a => bool) => 'a list => 'b list"
 
 abbreviation
   upto:: "nat => nat => nat list"    ("(1[_../_])")
@@ -104,10 +91,6 @@ primrec
 primrec
   "tl([]) = []"
   "tl(x#xs) = xs"
-
-primrec
-  "null([]) = True"
-  "null(x#xs) = False"
 
 primrec
   "last(x#xs) = (if xs=[] then x else last xs)"
@@ -203,56 +186,28 @@ primrec
   replicate_0: "replicate 0 x = []"
   replicate_Suc: "replicate (Suc n) x = x # replicate n x"
 
-defs
-rotate1_def: "rotate1 xs == (case xs of [] \<Rightarrow> [] | x#xs \<Rightarrow> xs @ [x])"
-rotate_def:  "rotate n == rotate1 ^ n"
-
-list_all2_def:
- "list_all2 P xs ys ==
-  length xs = length ys \<and> (\<forall>(x, y) \<in> set (zip xs ys). P x y)"
-
-sublist_def:
- "sublist xs A == map fst (filter (%p. snd p : A) (zip xs [0..<size xs]))"
-
-primrec
-"splice [] ys = ys"
-"splice (x#xs) ys = (if ys=[] then x#xs else x # hd ys # splice xs (tl ys))"
-  -- {*Warning: simpset does not contain the second eqn but a derived one. *}
+definition
+  rotate1 :: "'a list \<Rightarrow> 'a list"
+  rotate1_def: "rotate1 xs = (case xs of [] \<Rightarrow> [] | x#xs \<Rightarrow> xs @ [x])"
+  rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  rotate_def:  "rotate n = rotate1 ^ n"
+  list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool"
+  list_all2_def: "list_all2 P xs ys =
+    (length xs = length ys \<and> (\<forall>(x, y) \<in> set (zip xs ys). P x y))"
+  sublist :: "'a list => nat set => 'a list"
+  sublist_def: "sublist xs A =
+    map fst (filter (\<lambda>p. snd p \<in> A) (zip xs [0..<size xs]))"
 
 primrec
-  "x mem [] = False"
-  "x mem (y#ys) = (if y=x then True else x mem ys)"
-
-primrec
- "list_inter [] bs = []"
- "list_inter (a#as) bs =
-  (if a \<in> set bs then a#(list_inter as bs) else list_inter as bs)"
-
-primrec
-  "list_all P [] = True"
-  "list_all P (x#xs) = (P(x) \<and> list_all P xs)"
-
-primrec
-"list_ex P [] = False"
-"list_ex P (x#xs) = (P x \<or> list_ex P xs)"
-
-primrec
- "filtermap f [] = []"
- "filtermap f (x#xs) =
-    (case f x of None \<Rightarrow> filtermap f xs
-     | Some y \<Rightarrow> y # (filtermap f xs))"
-
-primrec
-  "map_filter f P [] = []"
-  "map_filter f P (x#xs) = (if P x then f x # map_filter f P xs else 
-               map_filter f P xs)"
-
-primrec
-"itrev [] ys = ys"
-"itrev (x#xs) ys = itrev xs (x#ys)"
+  "splice [] ys = ys"
+  "splice (x#xs) ys = (if ys=[] then x#xs else x # hd ys # splice xs (tl ys))"
+    -- {*Warning: simpset does not contain the second eqn but a derived one. *}
 
 
-lemma not_Cons_self [simp]: "xs \<noteq> x # xs"
+subsubsection {* @{const Nil} and @{const Cons} *}
+
+lemma not_Cons_self [simp]:
+  "xs \<noteq> x # xs"
 by (induct xs) auto
 
 lemmas not_Cons_self2 [simp] = not_Cons_self [symmetric]
@@ -261,24 +216,15 @@ lemma neq_Nil_conv: "(xs \<noteq> []) = (\<exists>y ys. xs = y # ys)"
 by (induct xs) auto
 
 lemma length_induct:
-"(!!xs. \<forall>ys. length ys < length xs --> P ys ==> P xs) ==> P xs"
+  "(\<And>xs. \<forall>ys. length ys < length xs \<longrightarrow> P ys \<Longrightarrow> P xs) \<Longrightarrow> P xs"
 by (rule measure_induct [of length]) iprover
 
 
-subsubsection {* @{text null} *}
-
-lemma null_empty: "null xs = (xs = [])"
-  by (cases xs) simp_all
-
-lemma empty_null [code inline]:
-  "(xs = []) = null xs"
-using null_empty [symmetric] .
-
-subsubsection {* @{text length} *}
+subsubsection {* @{const length} *}
 
 text {*
-Needs to come before @{text "@"} because of theorem @{text
-append_eq_append_conv}.
+  Needs to come before @{text "@"} because of theorem @{text
+  append_eq_append_conv}.
 *}
 
 lemma length_append [simp]: "length (xs @ ys) = length xs + length ys"
@@ -474,7 +420,7 @@ fun list_eq ss (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
 in
 
 val list_eq_simproc =
-  Simplifier.simproc (Theory.sign_of (the_context ())) "list_eq" ["(xs::'a list) = ys"] (K list_eq);
+  Simplifier.simproc (the_context ()) "list_eq" ["(xs::'a list) = ys"] (K list_eq);
 
 end;
 
@@ -618,8 +564,8 @@ by (cases xs) auto
 lemma singleton_rev_conv [simp]: "([x] = rev xs) = (xs = [x])"
 by (cases xs) auto
 
-lemma rev_is_rev_conv [iff]: "!!ys. (rev xs = rev ys) = (xs = ys)"
-apply (induct xs, force)
+lemma rev_is_rev_conv [iff]: "(rev xs = rev ys) = (xs = ys)"
+apply (induct xs arbitrary: ys, force)
 apply (case_tac ys, simp, force)
 done
 
@@ -2234,76 +2180,6 @@ by (rule in_lists_conv_set [THEN iffD2])
 lemma lists_UNIV [simp]: "lists UNIV = UNIV"
 by auto
 
-subsubsection {* For efficiency *}
-
-text{* Only use @{text mem} for generating executable code.  Otherwise
-use @{prop"x : set xs"} instead --- it is much easier to reason about.
-The same is true for @{const list_all} and @{const list_ex}: write
-@{text"\<forall>x\<in>set xs"} and @{text"\<exists>x\<in>set xs"} instead because the HOL
-quantifiers are aleady known to the automatic provers. In fact,
-the declarations in the code subsection make sure that @{text"\<in>"}, @{text"\<forall>x\<in>set xs"}
-and @{text"\<exists>x\<in>set xs"} are implemented efficiently.
-
-The functions @{const itrev}, @{const filtermap} and @{const
-map_filter} are just there to generate efficient code. Do not use them
-for modelling and proving. *}
-
-lemma mem_iff: "(x mem xs) = (x : set xs)"
-by (induct xs) auto
-
-lemma list_inter_conv: "set(list_inter xs ys) = set xs \<inter> set ys"
-by (induct xs) auto
-
-lemma list_all_iff: "list_all P xs = (\<forall>x \<in> set xs. P x)"
-by (induct xs) auto
-
-lemma list_all_append [simp]:
-"list_all P (xs @ ys) = (list_all P xs \<and> list_all P ys)"
-by (induct xs) auto
-
-lemma list_all_rev [simp]: "list_all P (rev xs) = list_all P xs"
-by (simp add: list_all_iff)
-
-lemma list_ex_iff: "list_ex P xs = (\<exists>x \<in> set xs. P x)"
-by (induct xs) simp_all
-
-lemma itrev[simp]: "ALL ys. itrev xs ys = rev xs @ ys"
-by (induct xs) simp_all
-
-lemma filtermap_conv:
-     "filtermap f xs = map (%x. the(f x)) (filter (%x. f x \<noteq> None) xs)"
-  by (induct xs) (simp_all split: option.split) 
-
-lemma map_filter_conv[simp]: "map_filter f P xs = map f (filter P xs)"
-by (induct xs) auto
-
-
-subsubsection {* Code generation *}
-
-text{* Defaults for generating efficient code for some standard functions. *}
-
-lemmas in_set_code [code unfold] =
-  mem_iff [symmetric, THEN eq_reflection]
-
-lemma rev_code[code unfold]: "rev xs == itrev xs []"
-by simp
-
-lemma distinct_Cons_mem[code]: "distinct (x#xs) = (~(x mem xs) \<and> distinct xs)"
-by (simp add:mem_iff)
-
-lemma remdups_Cons_mem[code]:
- "remdups (x#xs) = (if x mem xs then remdups xs else x # remdups xs)"
-by (simp add:mem_iff)
-
-lemma list_inter_Cons_mem[code]:  "list_inter (a#as) bs =
-  (if a mem bs then a#(list_inter as bs) else list_inter as bs)"
-by(simp add:mem_iff)
-
-text{* For implementing bounded quantifiers over lists by
-@{const list_ex}/@{const list_all}: *}
-
-lemmas list_bex_code[code unfold] = list_ex_iff[symmetric, THEN eq_reflection]
-lemmas list_ball_code[code unfold] = list_all_iff[symmetric, THEN eq_reflection]
 
 
 subsubsection{* Inductive definition for membership *}
@@ -2718,7 +2594,9 @@ print_ast_translation {*
 *}
 
 
-subsubsection {* Code generator setup *}
+subsection {* Code generator *}
+
+subsubsection {* Setup *}
 
 types_code
   "list" ("_ list")
@@ -2799,5 +2677,129 @@ in
 
 end;
 *}
+
+
+subsubsection {* Generation of efficient code *}
+
+consts
+  mem :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl 55)
+  null:: "'a list \<Rightarrow> bool"
+  list_inter :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
+  list_all :: "('a \<Rightarrow> bool) \<Rightarrow> ('a list \<Rightarrow> bool)"
+  itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  filtermap :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list"
+  map_filter :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list"
+
+primrec
+  "x mem [] = False"
+  "x mem (y#ys) = (if y = x then True else x mem ys)"
+
+primrec
+  "null [] = True"
+  "null (x#xs) = False"
+
+primrec
+  "list_inter [] bs = []"
+  "list_inter (a#as) bs =
+     (if a \<in> set bs then a # list_inter as bs else list_inter as bs)"
+
+primrec
+  "list_all P [] = True"
+  "list_all P (x#xs) = (P x \<and> list_all P xs)"
+
+primrec
+  "list_ex P [] = False"
+  "list_ex P (x#xs) = (P x \<or> list_ex P xs)"
+
+primrec
+  "filtermap f [] = []"
+  "filtermap f (x#xs) =
+     (case f x of None \<Rightarrow> filtermap f xs
+      | Some y \<Rightarrow> y # filtermap f xs)"
+
+primrec
+  "map_filter f P [] = []"
+  "map_filter f P (x#xs) =
+     (if P x then f x # map_filter f P xs else map_filter f P xs)"
+
+primrec
+  "itrev [] ys = ys"
+  "itrev (x#xs) ys = itrev xs (x#ys)"
+
+text {*
+  Only use @{text mem} for generating executable code.  Otherwise
+  use @{prop "x : set xs"} instead --- it is much easier to reason about.
+  The same is true for @{const list_all} and @{const list_ex}: write
+  @{text "\<forall>x\<in>set xs"} and @{text "\<exists>x\<in>set xs"} instead because the HOL
+  quantifiers are aleady known to the automatic provers. In fact,
+  the declarations in the code subsection make sure that @{text "\<in>"}, @{text "\<forall>x\<in>set xs"}
+  and @{text "\<exists>x\<in>set xs"} are implemented efficiently.
+
+  Efficient emptyness check is implemented by @{const null}.
+
+  The functions @{const itrev}, @{const filtermap} and @{const map_filter}
+  are just there to generate efficient code. Do not use them
+  for modelling and proving.
+*}
+
+lemma mem_iff [normal post]:
+  "(x mem xs) = (x \<in> set xs)"
+  by (induct xs) auto
+
+lemmas in_set_code [code unfold] =
+  mem_iff [symmetric, THEN eq_reflection]
+
+lemma empty_null [code inline]:
+  "(xs = []) = null xs"
+  by (cases xs) simp_all
+
+lemmas null_empty [normal post] =
+  empty_null [symmetric]
+
+lemma list_inter_conv:
+  "set (list_inter xs ys) = set xs \<inter> set ys"
+  by (induct xs) auto
+
+lemma list_all_iff [normal post]:
+  "list_all P xs = (\<forall>x \<in> set xs. P x)"
+  by (induct xs) auto
+
+lemmas list_ball_code [code unfold] =
+  list_all_iff [symmetric, THEN eq_reflection]
+
+lemma list_all_append [simp]:
+  "list_all P (xs @ ys) = (list_all P xs \<and> list_all P ys)"
+  by (induct xs) auto
+
+lemma list_all_rev [simp]:
+  "list_all P (rev xs) = list_all P xs"
+  by (simp add: list_all_iff)
+
+lemma list_ex_iff [normal post]:
+  "list_ex P xs = (\<exists>x \<in> set xs. P x)"
+  by (induct xs) simp_all
+
+lemmas list_bex_code [code unfold] =
+  list_ex_iff [symmetric, THEN eq_reflection]
+
+lemma itrev [simp]:
+  "itrev xs ys = rev xs @ ys"
+  by (induct xs arbitrary: ys) simp_all
+
+lemma filtermap_conv:
+   "filtermap f xs = map (\<lambda>x. the (f x)) (filter (\<lambda>x. f x \<noteq> None) xs)"
+  by (induct xs) (simp_all split: option.split) 
+
+lemma map_filter_conv [simp]:
+  "map_filter f P xs = map f (filter P xs)"
+  by (induct xs) auto
+
+lemma rev_code [code func, code unfold]:
+  "rev xs == itrev xs []"
+  by simp
+
+lemmas itrev_rev [normal post] =
+  rev_code [symmetric]
 
 end
