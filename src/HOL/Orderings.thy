@@ -1,18 +1,17 @@
 (*  Title:      HOL/Orderings.thy
     ID:         $Id$
     Author:     Tobias Nipkow, Markus Wenzel, and Larry Paulson
-
-FIXME: derive more of the min/max laws generically via semilattices
 *)
 
-header {* Type classes for $\le$ *}
+header {* Abstract orderings *}
 
 theory Orderings
 imports Code_Generator Lattice_Locales
-uses ("antisym_setup.ML")
 begin
 
-subsection {* Order signatures and orders *}
+section {* Abstract orderings *}
+
+subsection {* Order signatures *}
 
 class ord = eq +
   constrains eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (*FIXME: class_package should do the job*)
@@ -72,37 +71,7 @@ const_syntax (in ord) (xsymbols)
   greater_eq  (infixl "\<^loc>\<ge>" 50)
 
 
-subsection {* Monotonicity *}
-
-locale mono =
-  fixes f
-  assumes mono: "A <= B ==> f A <= f B"
-
-lemmas monoI [intro?] = mono.intro
-  and monoD [dest?] = mono.mono
-
-constdefs
-  min :: "['a::ord, 'a] => 'a"
-  "min a b == (if a <= b then a else b)"
-  max :: "['a::ord, 'a] => 'a"
-  "max a b == (if a <= b then b else a)"
-
-lemma min_leastL: "(!!x. least <= x) ==> min least x = least"
-  by (simp add: min_def)
-
-lemma min_of_mono:
-    "(!!x y. (f x <= f y) = (x <= y)) ==> min (f m) (f n) = f (min m n)"
-  by (simp add: min_def)
-
-lemma max_leastL: "(!!x. least <= x) ==> max least x = x"
-  by (simp add: max_def)
-
-lemma max_of_mono:
-    "(!!x y. (f x <= f y) = (x <= y)) ==> max (f m) (f n) = f (max m n)"
-  by (simp add: max_def)
-
-
-subsection "Orders"
+subsection {* Partial orderings *}
 
 axclass order < ord
   order_refl [iff]: "x <= x"
@@ -110,7 +79,7 @@ axclass order < ord
   order_antisym: "x <= y ==> y <= x ==> x = y"
   order_less_le: "(x < y) = (x <= y & x ~= y)"
 
-text{* Connection to locale: *}
+text {* Connection to locale: *}
 
 interpretation order:
   partial_order["op \<le> :: 'a::order \<Rightarrow> 'a \<Rightarrow> bool"]
@@ -139,7 +108,6 @@ lemmas order_le_imp_less_or_eq = order_le_less [THEN iffD1, standard]
 lemma order_less_imp_le: "!!x::'a::order. x < y ==> x <= y"
   by (simp add: order_less_le)
 
-
 text {* Asymmetry. *}
 
 lemma order_less_not_sym: "(x::'a::order) < y ==> ~ (y < x)"
@@ -155,6 +123,9 @@ by (blast intro: order_antisym)
 
 lemma order_antisym_conv: "(y::'a::order) <= x ==> (x <= y) = (x = y)"
 by(blast intro:order_antisym)
+
+lemma less_imp_neq: "[| (x::'a::order) < y |] ==> x ~= y"
+  by (erule contrapos_pn, erule subst, rule order_less_irrefl)
 
 text {* Transitivity. *}
 
@@ -173,6 +144,8 @@ lemma order_less_le_trans: "!!x::'a::order. [| x < y; y <= z |] ==> x < z"
   apply (blast intro: order_trans order_antisym)
   done
 
+lemma eq_neq_eq_imp_neq: "[| x = a ; a ~= b; b = y |] ==> x ~= y"
+  by (erule subst, erule ssubst, assumption)
 
 text {* Useful for simplification, but too risky to include by default. *}
 
@@ -188,22 +161,7 @@ lemma order_less_imp_not_eq: "(x::'a::order) < y ==>  (x = y) = False"
 lemma order_less_imp_not_eq2: "(x::'a::order) < y ==>  (y = x) = False"
   by auto
 
-
-text {* Other operators. *}
-
-lemma min_leastR: "(!!x::'a::order. least <= x) ==> min x least = least"
-  apply (simp add: min_def)
-  apply (blast intro: order_antisym)
-  done
-
-lemma max_leastR: "(!!x::'a::order. least <= x) ==> max x least = x"
-  apply (simp add: max_def)
-  apply (blast intro: order_antisym)
-  done
-
-
-subsection {* Transitivity rules for calculational reasoning *}
-
+text {* Transitivity rules for calculational reasoning *}
 
 lemma order_neq_le_trans: "a ~= b ==> (a::'a::order) <= b ==> a < b"
   by (simp add: order_less_le)
@@ -215,32 +173,7 @@ lemma order_less_asym': "(a::'a::order) < b ==> b < a ==> P"
   by (rule order_less_asym)
 
 
-subsection {* Least value operator *}
-
-constdefs
-  Least :: "('a::ord => bool) => 'a"               (binder "LEAST " 10)
-  "Least P == THE x. P x & (ALL y. P y --> x <= y)"
-    -- {* We can no longer use LeastM because the latter requires Hilbert-AC. *}
-
-lemma LeastI2_order:
-  "[| P (x::'a::order);
-      !!y. P y ==> x <= y;
-      !!x. [| P x; ALL y. P y --> x \<le> y |] ==> Q x |]
-   ==> Q (Least P)"
-  apply (unfold Least_def)
-  apply (rule theI2)
-    apply (blast intro: order_antisym)+
-  done
-
-lemma Least_equality:
-    "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k"
-  apply (simp add: Least_def)
-  apply (rule the_equality)
-  apply (auto intro!: order_antisym)
-  done
-
-
-subsection "Linear / total orders"
+subsection {* Total orderings *}
 
 axclass linorder < order
   linorder_linear: "x <= y | y <= x"
@@ -299,16 +232,61 @@ lemma leD: "y <= (x::'a::linorder) ==> ~ x < y"
 lemma not_leE: "~ y <= (x::'a::linorder) ==> x < y"
   by (simp only: linorder_not_le)
 
-use "antisym_setup.ML";
-setup antisym_setup
 
-subsection {* Setup of transitivity reasoner as Solver *}
+subsection {* Reasoning tools setup *}
 
-lemma less_imp_neq: "[| (x::'a::order) < y |] ==> x ~= y"
-  by (erule contrapos_pn, erule subst, rule order_less_irrefl)
+setup {*
+let
 
-lemma eq_neq_eq_imp_neq: "[| x = a ; a ~= b; b = y |] ==> x ~= y"
-  by (erule subst, erule ssubst, assumption)
+val order_antisym_conv = thm "order_antisym_conv"
+val linorder_antisym_conv1 = thm "linorder_antisym_conv1"
+val linorder_antisym_conv2 = thm "linorder_antisym_conv2"
+val linorder_antisym_conv3 = thm "linorder_antisym_conv3"
+
+fun prp t thm = (#prop (rep_thm thm) = t);
+
+fun prove_antisym_le sg ss ((le as Const(_,T)) $ r $ s) =
+  let val prems = prems_of_ss ss;
+      val less = Const("Orderings.less",T);
+      val t = HOLogic.mk_Trueprop(le $ s $ r);
+  in case find_first (prp t) prems of
+       NONE =>
+         let val t = HOLogic.mk_Trueprop(HOLogic.Not $ (less $ r $ s))
+         in case find_first (prp t) prems of
+              NONE => NONE
+            | SOME thm => SOME(mk_meta_eq(thm RS linorder_antisym_conv1))
+         end
+     | SOME thm => SOME(mk_meta_eq(thm RS order_antisym_conv))
+  end
+  handle THM _ => NONE;
+
+fun prove_antisym_less sg ss (NotC $ ((less as Const(_,T)) $ r $ s)) =
+  let val prems = prems_of_ss ss;
+      val le = Const("Orderings.less_eq",T);
+      val t = HOLogic.mk_Trueprop(le $ r $ s);
+  in case find_first (prp t) prems of
+       NONE =>
+         let val t = HOLogic.mk_Trueprop(NotC $ (less $ s $ r))
+         in case find_first (prp t) prems of
+              NONE => NONE
+            | SOME thm => SOME(mk_meta_eq(thm RS linorder_antisym_conv3))
+         end
+     | SOME thm => SOME(mk_meta_eq(thm RS linorder_antisym_conv2))
+  end
+  handle THM _ => NONE;
+
+val antisym_le = Simplifier.simproc (the_context())
+  "antisym le" ["(x::'a::order) <= y"] prove_antisym_le;
+val antisym_less = Simplifier.simproc (the_context())
+  "antisym less" ["~ (x::'a::linorder) < y"] prove_antisym_less;
+
+in
+
+ (fn thy => (Simplifier.change_simpset_of thy
+  (fn ss => ss addsimprocs [antisym_le, antisym_less]); thy))
+
+end
+*}
 
 ML_setup {*
 
@@ -409,7 +387,236 @@ can currently not be removed, abel_cancel relies on it.
 *)
 
 
-subsection "Min and max on (linear) orders"
+subsection {* Bounded quantifiers *}
+
+syntax
+  "_lessAll" :: "[idt, 'a, bool] => bool"   ("(3ALL _<_./ _)"  [0, 0, 10] 10)
+  "_lessEx"  :: "[idt, 'a, bool] => bool"   ("(3EX _<_./ _)"  [0, 0, 10] 10)
+  "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3ALL _<=_./ _)" [0, 0, 10] 10)
+  "_leEx"    :: "[idt, 'a, bool] => bool"   ("(3EX _<=_./ _)" [0, 0, 10] 10)
+
+  "_gtAll" :: "[idt, 'a, bool] => bool"   ("(3ALL _>_./ _)"  [0, 0, 10] 10)
+  "_gtEx"  :: "[idt, 'a, bool] => bool"   ("(3EX _>_./ _)"  [0, 0, 10] 10)
+  "_geAll"   :: "[idt, 'a, bool] => bool"   ("(3ALL _>=_./ _)" [0, 0, 10] 10)
+  "_geEx"    :: "[idt, 'a, bool] => bool"   ("(3EX _>=_./ _)" [0, 0, 10] 10)
+
+syntax (xsymbols)
+  "_lessAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_<_./ _)"  [0, 0, 10] 10)
+  "_lessEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_<_./ _)"  [0, 0, 10] 10)
+  "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<le>_./ _)" [0, 0, 10] 10)
+  "_leEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<le>_./ _)" [0, 0, 10] 10)
+
+  "_gtAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_>_./ _)"  [0, 0, 10] 10)
+  "_gtEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_>_./ _)"  [0, 0, 10] 10)
+  "_geAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<ge>_./ _)" [0, 0, 10] 10)
+  "_geEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<ge>_./ _)" [0, 0, 10] 10)
+
+syntax (HOL)
+  "_lessAll" :: "[idt, 'a, bool] => bool"   ("(3! _<_./ _)"  [0, 0, 10] 10)
+  "_lessEx"  :: "[idt, 'a, bool] => bool"   ("(3? _<_./ _)"  [0, 0, 10] 10)
+  "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3! _<=_./ _)" [0, 0, 10] 10)
+  "_leEx"    :: "[idt, 'a, bool] => bool"   ("(3? _<=_./ _)" [0, 0, 10] 10)
+
+syntax (HTML output)
+  "_lessAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_<_./ _)"  [0, 0, 10] 10)
+  "_lessEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_<_./ _)"  [0, 0, 10] 10)
+  "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<le>_./ _)" [0, 0, 10] 10)
+  "_leEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<le>_./ _)" [0, 0, 10] 10)
+
+  "_gtAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_>_./ _)"  [0, 0, 10] 10)
+  "_gtEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_>_./ _)"  [0, 0, 10] 10)
+  "_geAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<ge>_./ _)" [0, 0, 10] 10)
+  "_geEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<ge>_./ _)" [0, 0, 10] 10)
+
+translations
+  "ALL x<y. P"   =>  "ALL x. x < y \<longrightarrow> P"
+  "EX x<y. P"    =>  "EX x. x < y \<and> P"
+  "ALL x<=y. P"  =>  "ALL x. x <= y \<longrightarrow> P"
+  "EX x<=y. P"   =>  "EX x. x <= y \<and> P"
+  "ALL x>y. P"   =>  "ALL x. x > y \<longrightarrow> P"
+  "EX x>y. P"    =>  "EX x. x > y \<and> P"
+  "ALL x>=y. P"  =>  "ALL x. x >= y \<longrightarrow> P"
+  "EX x>=y. P"   =>  "EX x. x >= y \<and> P"
+
+print_translation {*
+let
+  fun mk v v' c n P =
+    if v = v' andalso not (member (op =) (map fst (Term.add_frees n [])) v)
+    then Syntax.const c $ Syntax.mark_bound v' $ n $ P else raise Match;
+  fun mk_all "\\<^const>Scratch.less" f =
+        f ("_lessAll", "_gtAll")
+    | mk_all "\\<^const>Scratch.less_eq" f =
+        f ("_leAll", "_geAll")
+  fun mk_ex "\\<^const>Scratch.less" f =
+        f ("_lessEx", "_gtEx")
+    | mk_ex "\\<^const>Scratch.less_eq" f =
+        f ("_leEx", "_geEx");
+  fun tr_all' [Const ("_bound", _) $ Free (v, _), Const("op -->", _)
+          $ (Const (c, _) $ (Const ("_bound", _) $ Free (v', _)) $ n) $ P] =
+        mk v v' (mk_all c fst) n P
+    | tr_all' [Const ("_bound", _) $ Free (v, _), Const("op -->", _)
+          $ (Const (c, _) $ n $ (Const ("_bound", _) $ Free (v', _))) $ P] =
+        mk v v' (mk_all c snd) n P;
+  fun tr_ex' [Const ("_bound", _) $ Free (v, _), Const("op &", _)
+          $ (Const (c, _) $ (Const ("_bound", _) $ Free (v', _)) $ n) $ P] =
+        mk v v' (mk_ex c fst) n P
+    | tr_ex' [Const ("_bound", _) $ Free (v, _), Const("op &", _)
+          $ (Const (c, _) $ n $ (Const ("_bound", _) $ Free (v', _))) $ P] =
+        mk v v' (mk_ex c snd) n P;
+in
+  [("ALL ", tr_all'), ("EX ", tr_ex')]
+end
+*}
+
+
+subsection {* Transitivity reasoning on decreasing inequalities *}
+
+text {* These support proving chains of decreasing inequalities
+    a >= b >= c ... in Isar proofs. *}
+
+lemma xt1:
+  "a = b ==> b > c ==> a > c"
+  "a > b ==> b = c ==> a > c"
+  "a = b ==> b >= c ==> a >= c"
+  "a >= b ==> b = c ==> a >= c"
+  "(x::'a::order) >= y ==> y >= x ==> x = y"
+  "(x::'a::order) >= y ==> y >= z ==> x >= z"
+  "(x::'a::order) > y ==> y >= z ==> x > z"
+  "(x::'a::order) >= y ==> y > z ==> x > z"
+  "(a::'a::order) > b ==> b > a ==> ?P"
+  "(x::'a::order) > y ==> y > z ==> x > z"
+  "(a::'a::order) >= b ==> a ~= b ==> a > b"
+  "(a::'a::order) ~= b ==> a >= b ==> a > b"
+  "a = f b ==> b > c ==> (!!x y. x > y ==> f x > f y) ==> a > f c" 
+  "a > b ==> f b = c ==> (!!x y. x > y ==> f x > f y) ==> f a > c"
+  "a = f b ==> b >= c ==> (!!x y. x >= y ==> f x >= f y) ==> a >= f c"
+  "a >= b ==> f b = c ==> (!! x y. x >= y ==> f x >= f y) ==> f a >= c"
+by auto
+
+lemma xt2:
+  "(a::'a::order) >= f b ==> b >= c ==> (!!x y. x >= y ==> f x >= f y) ==> a >= f c"
+by (subgoal_tac "f b >= f c", force, force)
+
+lemma xt3: "(a::'a::order) >= b ==> (f b::'b::order) >= c ==> 
+    (!!x y. x >= y ==> f x >= f y) ==> f a >= c"
+by (subgoal_tac "f a >= f b", force, force)
+
+lemma xt4: "(a::'a::order) > f b ==> (b::'b::order) >= c ==>
+  (!!x y. x >= y ==> f x >= f y) ==> a > f c"
+by (subgoal_tac "f b >= f c", force, force)
+
+lemma xt5: "(a::'a::order) > b ==> (f b::'b::order) >= c==>
+    (!!x y. x > y ==> f x > f y) ==> f a > c"
+by (subgoal_tac "f a > f b", force, force)
+
+lemma xt6: "(a::'a::order) >= f b ==> b > c ==>
+    (!!x y. x > y ==> f x > f y) ==> a > f c"
+by (subgoal_tac "f b > f c", force, force)
+
+lemma xt7: "(a::'a::order) >= b ==> (f b::'b::order) > c ==>
+    (!!x y. x >= y ==> f x >= f y) ==> f a > c"
+by (subgoal_tac "f a >= f b", force, force)
+
+lemma xt8: "(a::'a::order) > f b ==> (b::'b::order) > c ==>
+    (!!x y. x > y ==> f x > f y) ==> a > f c"
+by (subgoal_tac "f b > f c", force, force)
+
+lemma xt9: "(a::'a::order) > b ==> (f b::'b::order) > c ==>
+    (!!x y. x > y ==> f x > f y) ==> f a > c"
+by (subgoal_tac "f a > f b", force, force)
+
+lemmas xtrans = xt1 xt2 xt3 xt4 xt5 xt6 xt7 xt8 xt9
+
+(* 
+  Since "a >= b" abbreviates "b <= a", the abbreviation "..." stands
+  for the wrong thing in an Isar proof.
+
+  The extra transitivity rules can be used as follows: 
+
+lemma "(a::'a::order) > z"
+proof -
+  have "a >= b" (is "_ >= ?rhs")
+    sorry
+  also have "?rhs >= c" (is "_ >= ?rhs")
+    sorry
+  also (xtrans) have "?rhs = d" (is "_ = ?rhs")
+    sorry
+  also (xtrans) have "?rhs >= e" (is "_ >= ?rhs")
+    sorry
+  also (xtrans) have "?rhs > f" (is "_ > ?rhs")
+    sorry
+  also (xtrans) have "?rhs > z"
+    sorry
+  finally (xtrans) show ?thesis .
+qed
+
+  Alternatively, one can use "declare xtrans [trans]" and then
+  leave out the "(xtrans)" above.
+*)
+
+
+subsection {* Least value operator, monotonicity and min/max *}
+ 
+(*FIXME: derive more of the min/max laws generically via semilattices*)
+
+constdefs
+  Least :: "('a::ord => bool) => 'a"               (binder "LEAST " 10)
+  "Least P == THE x. P x & (ALL y. P y --> x <= y)"
+    -- {* We can no longer use LeastM because the latter requires Hilbert-AC. *}
+
+lemma LeastI2_order:
+  "[| P (x::'a::order);
+      !!y. P y ==> x <= y;
+      !!x. [| P x; ALL y. P y --> x \<le> y |] ==> Q x |]
+   ==> Q (Least P)"
+  apply (unfold Least_def)
+  apply (rule theI2)
+    apply (blast intro: order_antisym)+
+  done
+
+lemma Least_equality:
+    "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k"
+  apply (simp add: Least_def)
+  apply (rule the_equality)
+  apply (auto intro!: order_antisym)
+  done
+
+locale mono =
+  fixes f
+  assumes mono: "A <= B ==> f A <= f B"
+
+lemmas monoI [intro?] = mono.intro
+  and monoD [dest?] = mono.mono
+
+constdefs
+  min :: "['a::ord, 'a] => 'a"
+  "min a b == (if a <= b then a else b)"
+  max :: "['a::ord, 'a] => 'a"
+  "max a b == (if a <= b then b else a)"
+
+lemma min_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> min x least = least"
+  apply (simp add: min_def)
+  apply (blast intro: order_antisym)
+  done
+
+lemma max_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> max x least = x"
+  apply (simp add: max_def)
+  apply (blast intro: order_antisym)
+  done
+
+lemma min_leastL: "(!!x. least <= x) ==> min least x = least"
+  by (simp add: min_def)
+
+lemma max_leastL: "(!!x. least <= x) ==> max least x = x"
+  by (simp add: max_def)
+
+lemma min_of_mono:
+    "(!!x y. (f x <= f y) = (x <= y)) ==> min (f m) (f n) = f (min m n)"
+  by (simp add: min_def)
+
+lemma max_of_mono:
+    "(!!x y. (f x <= f y) = (x <= y)) ==> max (f m) (f n) = f (max m n)"
+  by (simp add: max_def)
 
 text{* Instantiate locales: *}
 
@@ -507,208 +714,5 @@ lemma split_min:
 lemma split_max:
     "P (max (i::'a::linorder) j) = ((i <= j --> P(j)) & (~ i <= j --> P(i)))"
   by (simp add: max_def)
-
-
-subsection "Bounded quantifiers"
-
-syntax
-  "_lessAll" :: "[idt, 'a, bool] => bool"   ("(3ALL _<_./ _)"  [0, 0, 10] 10)
-  "_lessEx"  :: "[idt, 'a, bool] => bool"   ("(3EX _<_./ _)"  [0, 0, 10] 10)
-  "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3ALL _<=_./ _)" [0, 0, 10] 10)
-  "_leEx"    :: "[idt, 'a, bool] => bool"   ("(3EX _<=_./ _)" [0, 0, 10] 10)
-
-  "_gtAll" :: "[idt, 'a, bool] => bool"   ("(3ALL _>_./ _)"  [0, 0, 10] 10)
-  "_gtEx"  :: "[idt, 'a, bool] => bool"   ("(3EX _>_./ _)"  [0, 0, 10] 10)
-  "_geAll"   :: "[idt, 'a, bool] => bool"   ("(3ALL _>=_./ _)" [0, 0, 10] 10)
-  "_geEx"    :: "[idt, 'a, bool] => bool"   ("(3EX _>=_./ _)" [0, 0, 10] 10)
-
-syntax (xsymbols)
-  "_lessAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_<_./ _)"  [0, 0, 10] 10)
-  "_lessEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_<_./ _)"  [0, 0, 10] 10)
-  "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<le>_./ _)" [0, 0, 10] 10)
-  "_leEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<le>_./ _)" [0, 0, 10] 10)
-
-  "_gtAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_>_./ _)"  [0, 0, 10] 10)
-  "_gtEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_>_./ _)"  [0, 0, 10] 10)
-  "_geAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<ge>_./ _)" [0, 0, 10] 10)
-  "_geEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<ge>_./ _)" [0, 0, 10] 10)
-
-syntax (HOL)
-  "_lessAll" :: "[idt, 'a, bool] => bool"   ("(3! _<_./ _)"  [0, 0, 10] 10)
-  "_lessEx"  :: "[idt, 'a, bool] => bool"   ("(3? _<_./ _)"  [0, 0, 10] 10)
-  "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3! _<=_./ _)" [0, 0, 10] 10)
-  "_leEx"    :: "[idt, 'a, bool] => bool"   ("(3? _<=_./ _)" [0, 0, 10] 10)
-
-syntax (HTML output)
-  "_lessAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_<_./ _)"  [0, 0, 10] 10)
-  "_lessEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_<_./ _)"  [0, 0, 10] 10)
-  "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<le>_./ _)" [0, 0, 10] 10)
-  "_leEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<le>_./ _)" [0, 0, 10] 10)
-
-  "_gtAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_>_./ _)"  [0, 0, 10] 10)
-  "_gtEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_>_./ _)"  [0, 0, 10] 10)
-  "_geAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<ge>_./ _)" [0, 0, 10] 10)
-  "_geEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<ge>_./ _)" [0, 0, 10] 10)
-
-translations
-  "ALL x<y. P"   =>  "ALL x. x < y \<longrightarrow> P"
-  "EX x<y. P"    =>  "EX x. x < y \<and> P"
-  "ALL x<=y. P"  =>  "ALL x. x <= y \<longrightarrow> P"
-  "EX x<=y. P"   =>  "EX x. x <= y \<and> P"
-  "ALL x>y. P"   =>  "ALL x. x > y \<longrightarrow> P"
-  "EX x>y. P"    =>  "EX x. x > y \<and> P"
-  "ALL x>=y. P"  =>  "ALL x. x >= y \<longrightarrow> P"
-  "EX x>=y. P"   =>  "EX x. x >= y \<and> P"
-
-print_translation {*
-let
-  fun mk v v' c n P =
-    if v = v' andalso not (member (op =) (map fst (Term.add_frees n [])) v)
-    then Syntax.const c $ Syntax.mark_bound v' $ n $ P else raise Match;
-  fun mk_all "\\<^const>Scratch.less" f =
-        f ("_lessAll", "_gtAll")
-    | mk_all "\\<^const>Scratch.less_eq" f =
-        f ("_leAll", "_geAll")
-  fun mk_ex "\\<^const>Scratch.less" f =
-        f ("_lessEx", "_gtEx")
-    | mk_ex "\\<^const>Scratch.less_eq" f =
-        f ("_leEx", "_geEx");
-  fun tr_all' [Const ("_bound", _) $ Free (v, _), Const("op -->", _)
-          $ (Const (c, _) $ (Const ("_bound", _) $ Free (v', _)) $ n) $ P] =
-        mk v v' (mk_all c fst) n P
-    | tr_all' [Const ("_bound", _) $ Free (v, _), Const("op -->", _)
-          $ (Const (c, _) $ n $ (Const ("_bound", _) $ Free (v', _))) $ P] =
-        mk v v' (mk_all c snd) n P;
-  fun tr_ex' [Const ("_bound", _) $ Free (v, _), Const("op &", _)
-          $ (Const (c, _) $ (Const ("_bound", _) $ Free (v', _)) $ n) $ P] =
-        mk v v' (mk_ex c fst) n P
-    | tr_ex' [Const ("_bound", _) $ Free (v, _), Const("op &", _)
-          $ (Const (c, _) $ n $ (Const ("_bound", _) $ Free (v', _))) $ P] =
-        mk v v' (mk_ex c snd) n P;
-in
-  [("ALL ", tr_all'), ("EX ", tr_ex')]
-end
-*}
-
-
-subsection {* Extra transitivity rules *}
-
-text {* These support proving chains of decreasing inequalities
-    a >= b >= c ... in Isar proofs. *}
-
-lemma xt1: "a = b ==> b > c ==> a > c"
-by simp
-
-lemma xt2: "a > b ==> b = c ==> a > c"
-by simp
-
-lemma xt3: "a = b ==> b >= c ==> a >= c"
-by simp
-
-lemma xt4: "a >= b ==> b = c ==> a >= c"
-by simp
-
-lemma xt5: "(x::'a::order) >= y ==> y >= x ==> x = y"
-by simp
-
-lemma xt6: "(x::'a::order) >= y ==> y >= z ==> x >= z"
-by simp
-
-lemma xt7: "(x::'a::order) > y ==> y >= z ==> x > z"
-by simp
-
-lemma xt8: "(x::'a::order) >= y ==> y > z ==> x > z"
-by simp
-
-lemma xt9: "(a::'a::order) > b ==> b > a ==> ?P"
-by simp
-
-lemma xt10: "(x::'a::order) > y ==> y > z ==> x > z"
-by simp
-
-lemma xt11: "(a::'a::order) >= b ==> a ~= b ==> a > b"
-by simp
-
-lemma xt12: "(a::'a::order) ~= b ==> a >= b ==> a > b"
-by simp
-
-lemma xt13: "a = f b ==> b > c ==> (!!x y. x > y ==> f x > f y) ==>
-    a > f c" 
-by simp
-
-lemma xt14: "a > b ==> f b = c ==> (!!x y. x > y ==> f x > f y) ==>
-    f a > c"
-by auto
-
-lemma xt15: "a = f b ==> b >= c ==> (!!x y. x >= y ==> f x >= f y) ==>
-    a >= f c"
-by simp
-
-lemma xt16: "a >= b ==> f b = c ==> (!! x y. x >= y ==> f x >= f y) ==>
-    f a >= c"
-by auto
-
-lemma xt17: "(a::'a::order) >= f b ==> b >= c ==> 
-    (!!x y. x >= y ==> f x >= f y) ==> a >= f c"
-by (subgoal_tac "f b >= f c", force, force)
-
-lemma xt18: "(a::'a::order) >= b ==> (f b::'b::order) >= c ==> 
-    (!!x y. x >= y ==> f x >= f y) ==> f a >= c"
-by (subgoal_tac "f a >= f b", force, force)
-
-lemma xt19: "(a::'a::order) > f b ==> (b::'b::order) >= c ==>
-  (!!x y. x >= y ==> f x >= f y) ==> a > f c"
-by (subgoal_tac "f b >= f c", force, force)
-
-lemma xt20: "(a::'a::order) > b ==> (f b::'b::order) >= c==>
-    (!!x y. x > y ==> f x > f y) ==> f a > c"
-by (subgoal_tac "f a > f b", force, force)
-
-lemma xt21: "(a::'a::order) >= f b ==> b > c ==>
-    (!!x y. x > y ==> f x > f y) ==> a > f c"
-by (subgoal_tac "f b > f c", force, force)
-
-lemma xt22: "(a::'a::order) >= b ==> (f b::'b::order) > c ==>
-    (!!x y. x >= y ==> f x >= f y) ==> f a > c"
-by (subgoal_tac "f a >= f b", force, force)
-
-lemma xt23: "(a::'a::order) > f b ==> (b::'b::order) > c ==>
-    (!!x y. x > y ==> f x > f y) ==> a > f c"
-by (subgoal_tac "f b > f c", force, force)
-
-lemma xt24: "(a::'a::order) > b ==> (f b::'b::order) > c ==>
-    (!!x y. x > y ==> f x > f y) ==> f a > c"
-by (subgoal_tac "f a > f b", force, force)
-
-
-lemmas xtrans = xt1 xt2 xt3 xt4 xt5 xt6 xt7 xt8 xt9 xt10 xt11 xt12
-    xt13 xt14 xt15 xt15 xt17 xt18 xt19 xt20 xt21 xt22 xt23 xt24
-
-(* 
-  Since "a >= b" abbreviates "b <= a", the abbreviation "..." stands
-  for the wrong thing in an Isar proof.
-
-  The extra transitivity rules can be used as follows: 
-
-lemma "(a::'a::order) > z"
-proof -
-  have "a >= b" (is "_ >= ?rhs")
-    sorry
-  also have "?rhs >= c" (is "_ >= ?rhs")
-    sorry
-  also (xtrans) have "?rhs = d" (is "_ = ?rhs")
-    sorry
-  also (xtrans) have "?rhs >= e" (is "_ >= ?rhs")
-    sorry
-  also (xtrans) have "?rhs > f" (is "_ > ?rhs")
-    sorry
-  also (xtrans) have "?rhs > z"
-    sorry
-  finally (xtrans) show ?thesis .
-qed
-
-  Alternatively, one can use "declare xtrans [trans]" and then
-  leave out the "(xtrans)" above.
-*)
 
 end
