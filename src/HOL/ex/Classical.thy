@@ -820,6 +820,9 @@ text{*Problem 71, as found in TPTP (SYN007+1.005)*}
 lemma "p1 = (p2 = (p3 = (p4 = (p5 = (p1 = (p2 = (p3 = (p4 = p5))))))))"
 by blast
 
+
+subsection{*Examples of proof reconstruction*}
+
 text{*A manual resolution proof of problem 19.*}
 lemma "\<exists>x. \<forall>y z. (P(y)-->Q(z)) --> (P(x)-->Q(x))"
 proof (rule ccontr, skolemize, make_clauses)
@@ -828,9 +831,83 @@ proof (rule ccontr, skolemize, make_clauses)
      and Q: "\<And>U. Q U \<Longrightarrow> False"
      and PQ: "\<lbrakk>P x; \<not> Q x\<rbrakk> \<Longrightarrow> False"
   have cl4: "\<And>U. \<not> Q x \<Longrightarrow> False"
-    by (rule P [binary 0 PQ 0])
+    by (meson P PQ)
   show "False"
-    by (rule Q [binary 0 cl4 0])
+    by (meson Q cl4)
 qed
+
+
+text{*A lengthy proof of a significant theorem.*}
+
+lemmas subsetI_0 = subsetI[skolem, clausify 0]
+lemmas subsetI_1 = subsetI[skolem, clausify 1]
+
+lemma singleton_example_1:
+     "\<And>S::'a set set. \<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
+proof (rule ccontr, skolemize, make_clauses)
+  fix S :: "'a set set"
+  assume CL1: "\<And>Z. S \<subseteq> {Z} \<Longrightarrow> False"
+     and CL2: "\<And>X Y. \<lbrakk>X \<in> S; Y \<in> S; \<not> X \<subseteq> Y\<rbrakk> \<Longrightarrow> False"
+  have CL10: "!!U V. [|U \<in> S; V \<in> S; V \<subseteq> U; V \<noteq> U|] ==> False"
+    by (iprover intro: equalityI CL2) 
+  have CL11: "!!U V. [|U \<in> S; V \<in> S; V \<noteq> U|] ==> False"
+    by (iprover intro: CL10 CL2) 
+  have CL13: "!!U V. [|U \<in> S; ~ (S \<subseteq> V); U \<noteq> Set_XsubsetI_sko1_ S V|] ==> False"
+    by (iprover intro: subsetI_0 CL11)
+  have CL14: "!!U V. [|~ (S \<subseteq> U); ~(S \<subseteq> V); Set_XsubsetI_sko1_ S U \<noteq> Set_XsubsetI_sko1_ S V|] ==> False"
+    by (iprover intro: subsetI_0 CL13)
+  have CL29: "!!U V. [|~ (S \<subseteq> U);  Set_XsubsetI_sko1_ S U \<noteq> Set_XsubsetI_sko1_ S {V}|] ==> False"
+    by (iprover intro: CL1 CL14)
+  have CL58: "!!U V. [| Set_XsubsetI_sko1_ S {U} \<noteq> Set_XsubsetI_sko1_ S {V}|] ==> False"
+    by (iprover intro: CL1 CL29)
+  have CL82: "!!U V. [| Set_XsubsetI_sko1_ S {U} \<in> {V}; ~ (S \<subseteq> {V})|] ==> False"
+    by (iprover intro: subsetI_1 CL58 elim: ssubst)
+  have CL85: "!!U V. [| Set_XsubsetI_sko1_ S {U} \<in> {V}|] ==> False"
+    by (blast intro: CL1 CL82)
+  show False
+    by (iprover intro: insertI1 CL85)
+qed
+
+
+(*Based on this SPASS proof:
+
+Here is a proof with depth 6, length 15 :
+1[0:Inp] ||  -> c_in(U,c_insert(U,V,W),W)*.
+2[0:Inp] ||  -> c_lessequals(U,V,tc_set(W)) c_in(c_Main_OsubsetI__1(U,V,W),U,W)*
+.
+3[0:Inp] || c_in(c_Main_OsubsetI__1(U,V,W),V,W)* -> c_lessequals(U,V,tc_set(W)).
+
+4[0:Inp] || c_lessequals(U,V,tc_set(W))* c_lessequals(V,U,tc_set(W))* -> equal(U
+,V).
+
+5[0:Inp] || c_lessequals(v_S,c_insert(U,c_emptyset,tc_set(t_a)),tc_set(tc_set(t_
+a)))* -> .
+
+6[0:Inp] || c_in(U,v_S,tc_set(t_a)) c_in(V,v_S,tc_set(t_a)) -> c_lessequals(U,V,
+tc_set(t_a))*.
+10[0:Res:6.2,4.1] || c_in(U,v_S,tc_set(t_a)) c_in(V,v_S,tc_set(t_a)) c_lessequal
+s(V,U,tc_set(t_a))* -> equal(V,U).
+11[0:MRR:10.2,6.2] || c_in(U,v_S,tc_set(t_a))*+ c_in(V,v_S,tc_set(t_a))* -> equa
+l(V,U)*.
+13[0:Res:2.1,11.0] || c_in(U,v_S,tc_set(t_a))*+ -> c_lessequals(v_S,V,tc_set(tc_set(t_a)))* equal(U,c_Main_OsubsetI__1(v_S,V,tc_set(t_a)))*.
+
+14[0:Res:2.1,13.0] ||  -> c_lessequals(v_S,U,tc_set(tc_set(t_a)))* c_lessequals(
+v_S,V,tc_set(tc_set(t_a)))* equal(c_Main_OsubsetI__1(v_S,U,tc_set(t_a)),c_Main_OsubsetI__1(v_S,V,tc_set(t_a)))*.
+
+29[0:Res:14.1,5.0] ||  -> c_lessequals(v_S,U,tc_set(tc_set(t_a)))* equal(c_Main_
+OsubsetI__1(v_S,U,tc_set(t_a)),c_Main_OsubsetI__1(v_S,c_insert(V,c_emptyset,tc_s
+et(t_a)),tc_set(t_a)))*.
+58[0:Res:29.0,5.0] ||  -> equal(c_Main_OsubsetI__1(v_S,c_insert(U,c_emptyset,tc_
+set(t_a)),tc_set(t_a)),c_Main_OsubsetI__1(v_S,c_insert(V,c_emptyset,tc_set(t_a))
+,tc_set(t_a)))*.
+
+82[0:SpL:58.0,3.0] || c_in(c_Main_OsubsetI__1(v_S,c_insert(U,c_emptyset,tc_set(t_a)),tc_set(t_a)),c_insert(V,c_emptyset,tc_set(t_a)),tc_set(t_a))* -> c_lessequals(v_S,c_insert(V,c_emptyset,tc_set(t_a)),tc_set(tc_set(t_a))).
+
+85[0:MRR:82.1,5.0] || c_in(c_Main_OsubsetI__1(v_S,c_insert(U,c_emptyset,tc_set(t
+_a)),tc_set(t_a)),c_insert(V,c_emptyset,tc_set(t_a)),tc_set(t_a))* -> .
+
+86[0:UnC:85.0,1.0] ||  -> .
+Formulae used in the proof :
+*)
 
 end
