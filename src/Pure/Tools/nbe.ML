@@ -22,7 +22,10 @@ val trace = ref false;
 fun tracing f = if !trace then Output.tracing (f ()) else ();
 
 
-(* theory data setup *)
+
+(** data setup **)
+
+(* preproc and postproc attributes *)
 
 structure NBE_Rewrite = TheoryDataFun
 (struct
@@ -39,39 +42,48 @@ structure NBE_Rewrite = TheoryDataFun
   fun print _ _ = ()
 end);
 
-val _ = Context.add_setup NBE_Rewrite.init;
+val _ =
+  let
+    fun map_data f = Context.mapping (NBE_Rewrite.map f) I;
+    fun attr_pre (thy, thm) =
+      ((map_data o apfst) (insert eq_thm thm) thy, thm)
+    fun attr_post (thy, thm) = 
+      ((map_data o apsnd) (insert eq_thm thm) thy, thm)
+    val attr = Attrib.syntax (Scan.lift (Args.$$$ "pre" >> K attr_pre
+      || Args.$$$ "post" >> K attr_post));
+  in
+    Context.add_setup (
+      NBE_Rewrite.init
+      #> Attrib.add_attributes
+          [("normal", attr, "declare rewrite theorems for normalization")]
+    )
+  end;
 
 fun consts_of_pres thy = 
-  let val pres = fst(NBE_Rewrite.get thy);
-      val rhss = map (snd o Logic.dest_equals o prop_of) pres;
-  in (fold o fold_aterms)
-        (fn Const c => insert (op =) (CodegenConsts.norm_of_typ thy c) | _ => I)
-        rhss []
-  end
-
-
-local
-
-fun attr_pre (thy,thm) =
- ((Context.map_theory o NBE_Rewrite.map o apfst) (insert eq_thm thm) thy, thm)
-fun attr_post (thy,thm) = 
- ((Context.map_theory o NBE_Rewrite.map o apsnd) (insert eq_thm thm) thy, thm)
-
-in
-val _ = Context.add_setup
-  (Attrib.add_attributes
-     [("normal_pre", Attrib.no_args attr_pre, "declare pre-theorems for normalization"),
-      ("normal_post", Attrib.no_args attr_post, "declare posy-theorems for normalization")]);
-end;
+  let
+    val pres = fst (NBE_Rewrite.get thy);
+    val rhss = map (snd o Logic.dest_equals o prop_of
+      o LocalDefs.meta_rewrite_rule (Context.Theory thy)) pres;
+  in
+    (fold o fold_aterms)
+      (fn Const c => insert (op =) (CodegenConsts.norm_of_typ thy c) | _ => I)
+      rhss []
+  end;
 
 fun apply_pres thy =
-  let val pres = fst(NBE_Rewrite.get thy)
+  let
+    val pres =
+      (map (LocalDefs.meta_rewrite_rule (Context.Theory thy)) o fst) (NBE_Rewrite.get thy)
   in map (CodegenData.rewrite_func pres) end
 
 fun apply_posts thy =
-  let val posts = snd(NBE_Rewrite.get thy)
+  let
+    val posts =
+      (map (LocalDefs.meta_rewrite_rule (Context.Theory thy)) o snd) (NBE_Rewrite.get thy)
   in Tactic.rewrite false posts end
 
+
+(* code store *)
 
 structure NBE_Data = CodeDataFun
 (struct
@@ -84,6 +96,8 @@ end);
 
 val _ = Context.add_setup NBE_Data.init;
 
+
+(** interface **)
 
 (* sandbox communication *)
 
@@ -196,7 +210,7 @@ fun norm_print_term_e (modes, raw_t) state =
 end; (*local*)
 
 
-(* normalization oracle *)
+(* oracle *)
 
 exception Normalization of term;
 
