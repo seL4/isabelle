@@ -31,6 +31,7 @@ sig
   val eval_term: theory ->
     (string * 'a option ref) * CodegenThingol.iterm -> CodegenThingol.code
     -> 'a;
+  val sml_code_width: int ref;
 end;
 
 structure CodegenSerializer: CODEGEN_SERIALIZER =
@@ -140,7 +141,7 @@ fun parse_mixfix s =
                  sym_any) >> (Pretty o str o implode)));
   in case Scan.finite Symbol.stopper parse (Symbol.explode s)
    of (p, []) => p
-    | _ => error ("Malformed mixfix annotation: " ^ quote s)
+    | _ => Scan.fail_with (fn _ => "Malformed mixfix annotation: " ^ quote s) ()
   end;
 
 fun parse_syntax tokens =
@@ -150,8 +151,8 @@ fun parse_syntax tokens =
     fun parse_nonatomic s =
       case parse_mixfix s
        of [Pretty _] =>
-            error ("Mixfix contains just one pretty element; either declare as "
-              ^ quote atomK ^ " or consider adding a break")
+            Scan.fail_with (fn _ => "Mixfix contains just one pretty element; either declare as "
+              ^ quote atomK ^ " or consider adding a break") ()
         | x => x;
     fun mk fixity mfx =
       let
@@ -1111,10 +1112,12 @@ fun parse_args f args =
    of (x, []) => x
     | (_, _) => error "bad serializer arguments";
 
+val sml_code_width = ref 80;
+
 fun parse_single_file serializer =
   parse_args (Args.name
   >> (fn path => serializer
-        (fn "" => Pretty.setmp_margin 80 (write_file false (Path.unpack path)) #> K NONE
+        (fn "" => Pretty.setmp_margin (!sml_code_width) (write_file false (Path.unpack path)) #> K NONE
           | _ => SOME)));
 
 fun parse_multi_file postprocess_module ext serializer =
