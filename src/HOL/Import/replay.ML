@@ -27,12 +27,12 @@ fun replay_proof int_thms thyname thmname prf thy =
 	    end
 	  | rp (PSubst(prfs,ctxt,prf)) thy =
 	    let
-		val (thy',ths) = foldr (fn (p,(thy,ths)) =>
+		val (thy',ths) = fold_rev (fn p => fn (thy, ths) =>
 					   let
 					       val (thy',th) = rp' p thy
 					   in
 					       (thy',th::ths)
-					   end) (thy,[]) prfs
+					   end) prfs (thy,[])
 		val (thy'',th) = rp' prf thy'
 	    in
 		P.SUBST ths ctxt th thy''

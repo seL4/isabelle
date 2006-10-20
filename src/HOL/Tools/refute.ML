@@ -421,8 +421,8 @@ struct
 		(* (string * Term.term) list *)
 		val axioms = Theory.all_axioms_of thy;
 		(* string list *)
-		val rec_names = Symtab.fold (fn (_, info) => fn acc =>
-			#rec_names info @ acc) (DatatypePackage.get_datatypes thy) []
+		val rec_names = Symtab.fold (append o #rec_names o snd)
+          (DatatypePackage.get_datatypes thy) [];
 		(* string list *)
 		val const_of_class_names = map Logic.const_of_class (Sign.classes thy)
 		(* given a constant 's' of type 'T', which is a subterm of 't', where  *)
@@ -677,7 +677,7 @@ struct
 					fun is_IDT_recursor () =
 						(* I'm not quite sure if checking the name 's' is sufficient, *)
 						(* or if we should also check the type 'T'                    *)
-						s mem rec_names
+						member (op =) rec_names s
 				in
 					if is_const_of_class () then
 						(* axiomatic type classes: add "OFCLASS(?'a::c, c_class)" and *)

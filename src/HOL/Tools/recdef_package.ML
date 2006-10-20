@@ -80,8 +80,6 @@ fun del_cong raw_thm congs =
     val (del, rest) = List.partition (Library.equal c o fst) congs;
   in if null del then (warning ("No recdef congruence rule for " ^ quote c); congs) else rest end;
 
-val add_congs = foldr (uncurry add_cong);
-
 end;
 
 

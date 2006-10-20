@@ -119,7 +119,7 @@ struct
    in #1 o tag end;
 
  (*Map expression e to 0<=a --> e, where "a" is the name of a nat variable*)
- fun add_nat_var (a, e) =
+ fun add_nat_var a e =
      Buildin("=>", [Buildin("<=", [Int 0, UnInterp (a, [])]),
                     e]);
 
@@ -240,7 +240,7 @@ struct
 
       val body_e = mt pos body  (*evaluate now to assign into !nat_vars*)
   in
-     foldr add_nat_var body_e (!nat_vars)
+     fold_rev add_nat_var (!nat_vars) body_e
   end;
 
 

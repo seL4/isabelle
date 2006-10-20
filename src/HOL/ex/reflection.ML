@@ -184,8 +184,8 @@ fun mk_decompatom eqs (t,ctxt) =
        val tml = Vartab.dest tmenv
        val SOME (_,t') = AList.lookup (op =) tml (xn,0)
        val cvs = 
-	   cert (foldr (fn (x,xs) => Const("List.list.Cons", ntT --> ntlT --> ntlT)$x$xs) 
-		       (Free(vsn,ntlT)) bsT)
+	   cert (fold_rev (fn x => fn xs => Const("List.list.Cons", ntT --> ntlT --> ntlT)$x$xs)
+		       bsT (Free (vsn, ntlT)))
        val cts = map (fn ((vn,vi),(tT,t)) => (cert(Var ((vn,vi),tT)), cert t)) 
 		     (AList.delete (op =) (xn,0) tml)
        val th = (instantiate 
@@ -232,12 +232,12 @@ fun mk_decompatom eqs (t,ctxt) =
 
 fun mk_congs ctxt raw_eqs = 
  let 
-  val fs = foldr (fn (eq,fns) => 
+  val fs = fold_rev (fn eq =>
 		     insert (op =) (eq |> prop_of |> HOLogic.dest_Trueprop 
 			 |> HOLogic.dest_eq |> fst |> strip_comb 
-			 |> fst) fns) [] raw_eqs
-  val tys = foldr (fn (f,ts) => (f |> fastype_of |> binder_types |> split_last |> fst) 
-				    union ts) [] fs
+			 |> fst)) raw_eqs []
+  val tys = fold_rev (fn f => fn ts => (f |> fastype_of |> binder_types |> split_last |> fst) 
+				    union ts) fs []
   val _ = bds := AList.make (fn _ => ([],[])) tys
   val (vs, ctxt') = Variable.variant_fixes (replicate (length tys) "vs") ctxt
   val thy = ProofContext.theory_of ctxt'

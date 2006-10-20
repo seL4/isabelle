@@ -83,7 +83,7 @@ val empty = []
 val copy = I
 val extend = I
 fun merge _ = Library.gen_union Thm.eq_thm
-fun print sg thms =
+fun print _ thms =
     Pretty.writeln (Pretty.big_list "Shuffle theorems:"
 				    (map Display.pretty_thm thms))
 end
@@ -92,7 +92,7 @@ structure ShuffleData = TheoryDataFun(ShuffleDataArgs)
 
 val weaken =
     let
-	val cert = cterm_of (sign_of ProtoPure.thy)
+	val cert = cterm_of ProtoPure.thy
 	val P = Free("P",propT)
 	val Q = Free("Q",propT)
 	val PQ = Logic.mk_implies(P,Q)
@@ -111,7 +111,7 @@ val weaken =
 
 val imp_comm =
     let
-	val cert = cterm_of (sign_of ProtoPure.thy)
+	val cert = cterm_of ProtoPure.thy
 	val P = Free("P",propT)
 	val Q = Free("Q",propT)
 	val R = Free("R",propT)
@@ -131,7 +131,7 @@ val imp_comm =
 
 val def_norm =
     let
-	val cert = cterm_of (sign_of ProtoPure.thy)
+	val cert = cterm_of ProtoPure.thy
 	val aT = TFree("'a",[])
 	val bT = TFree("'b",[])
 	val v = Free("v",aT)
@@ -158,7 +158,7 @@ val def_norm =
 
 val all_comm =
     let
-	val cert = cterm_of (sign_of ProtoPure.thy)
+	val cert = cterm_of ProtoPure.thy
 	val xT = TFree("'a",[])
 	val yT = TFree("'b",[])
 	val P = Free("P",xT-->yT-->propT)
@@ -182,7 +182,7 @@ val all_comm =
 
 val equiv_comm =
     let
-	val cert = cterm_of (sign_of ProtoPure.thy)
+	val cert = cterm_of ProtoPure.thy
 	val T    = TFree("'a",[])
 	val t    = Free("t",T)
 	val u    = Free("u",T)
@@ -216,28 +216,28 @@ fun swap_bound n (Bound i) = if i = n then Bound (n+1)
   | swap_bound n (Abs(x,xT,t)) = Abs(x,xT,swap_bound (n+1) t)
   | swap_bound n t = t
 
-fun rew_th sg (xv as (x,xT)) (yv as (y,yT)) t =
+fun rew_th thy (xv as (x,xT)) (yv as (y,yT)) t =
     let
 	val lhs = list_all ([xv,yv],t)
 	val rhs = list_all ([yv,xv],swap_bound 0 t)
 	val rew = Logic.mk_equals (lhs,rhs)
-	val init = trivial (cterm_of sg rew)
+	val init = trivial (cterm_of thy rew)
     in
 	(all_comm RS init handle e => (message "rew_th"; OldGoals.print_exn e))
     end
 
-fun quant_rewrite sg assumes (t as Const("all",T1) $ (Abs(x,xT,Const("all",T2) $ Abs(y,yT,body)))) =
+fun quant_rewrite thy assumes (t as Const("all",T1) $ (Abs(x,xT,Const("all",T2) $ Abs(y,yT,body)))) =
     let
 	val res = (find_bound 0 body;2) handle RESULT i => i
     in
 	case res of
-	    0 => SOME (rew_th sg (x,xT) (y,yT) body)
+	    0 => SOME (rew_th thy (x,xT) (y,yT) body)
 	  | 1 => if string_ord(y,x) = LESS
 		 then
 		     let
 			 val newt = Const("all",T1) $ (Abs(y,xT,Const("all",T2) $ Abs(x,yT,body)))
-			 val t_th    = reflexive (cterm_of sg t)
-			 val newt_th = reflexive (cterm_of sg newt)
+			 val t_th    = reflexive (cterm_of thy t)
+			 val newt_th = reflexive (cterm_of thy newt)
 		     in
 			 SOME (transitive t_th newt_th)
 		     end
@@ -264,10 +264,10 @@ fun freeze_thaw_term t =
 		  | _ => error "Internal error in Shuffler.freeze_thaw") type_inst)
     end
 
-fun inst_tfrees sg [] thm = thm
-  | inst_tfrees sg ((name,U)::rest) thm = 
+fun inst_tfrees thy [] thm = thm
+  | inst_tfrees thy ((name,U)::rest) thm = 
     let
-	val cU = ctyp_of sg U
+	val cU = ctyp_of thy U
 	val tfrees = add_term_tfrees (prop_of thm,[])
 	val (rens, thm') = Thm.varifyT'
     (remove (op = o apsnd fst) name tfrees) thm
@@ -275,10 +275,10 @@ fun inst_tfrees sg [] thm = thm
 	    case rens of
 		[] => thm'
 	      | [((_, S), idx)] => instantiate
-            ([(ctyp_of sg (TVar (idx, S)), cU)], []) thm'
+            ([(ctyp_of thy (TVar (idx, S)), cU)], []) thm'
 	      | _ => error "Shuffler.inst_tfrees internal error"
     in
-	inst_tfrees sg rest mid
+	inst_tfrees thy rest mid
     end
 
 fun is_Abs (Abs _) = true
@@ -295,11 +295,11 @@ fun eta_redex (t $ Bound 0) =
     end
   | eta_redex _ = false
 
-fun eta_contract sg assumes origt =
+fun eta_contract thy assumes origt =
     let
 	val (typet,Tinst) = freeze_thaw_term origt
-	val (init,thaw) = freeze_thaw (reflexive (cterm_of sg typet))
-	val final = inst_tfrees sg Tinst o thaw
+	val (init,thaw) = freeze_thaw (reflexive (cterm_of thy typet))
+	val final = inst_tfrees thy Tinst o thaw
 	val t = #1 (Logic.dest_equals (prop_of init))
 	val _ =
 	    let
@@ -307,11 +307,11 @@ fun eta_contract sg assumes origt =
 	    in
 		if not (lhs aconv origt)
 		then (writeln "Something is utterly wrong: (orig,lhs,frozen type,t,tinst)";
-		      writeln (string_of_cterm (cterm_of sg origt));
-		      writeln (string_of_cterm (cterm_of sg lhs));
-		      writeln (string_of_cterm (cterm_of sg typet));
-		      writeln (string_of_cterm (cterm_of sg t));
-		      app (fn (n,T) => writeln (n ^ ": " ^ (string_of_ctyp (ctyp_of sg T)))) Tinst;
+		      writeln (string_of_cterm (cterm_of thy origt));
+		      writeln (string_of_cterm (cterm_of thy lhs));
+		      writeln (string_of_cterm (cterm_of thy typet));
+		      writeln (string_of_cterm (cterm_of thy t));
+		      app (fn (n,T) => writeln (n ^ ": " ^ (string_of_ctyp (ctyp_of thy T)))) Tinst;
 		      writeln "done")
 		else ()
 	    end
@@ -321,7 +321,7 @@ fun eta_contract sg assumes origt =
 	    ((if eta_redex P andalso eta_redex Q
 	      then
 		  let
-		      val cert = cterm_of sg
+		      val cert = cterm_of thy
 		      val v = Free(Name.variant (add_term_free_names(t,[])) "v",xT)
 		      val cv = cert v
 		      val ct = cert t
@@ -347,21 +347,21 @@ fun eta_contract sg assumes origt =
 	  | _ => NONE
        end
 
-fun beta_fun sg assume t =
-    SOME (beta_conversion true (cterm_of sg t))
+fun beta_fun thy assume t =
+    SOME (beta_conversion true (cterm_of thy t))
 
 val meta_sym_rew = thm "refl"
 
-fun equals_fun sg assume t =
+fun equals_fun thy assume t =
     case t of
 	Const("op ==",_) $ u $ v => if Term.term_ord (u,v) = LESS then SOME (meta_sym_rew) else NONE
       | _ => NONE
 
-fun eta_expand sg assumes origt =
+fun eta_expand thy assumes origt =
     let
 	val (typet,Tinst) = freeze_thaw_term origt
-	val (init,thaw) = freeze_thaw (reflexive (cterm_of sg typet))
-	val final = inst_tfrees sg Tinst o thaw
+	val (init,thaw) = freeze_thaw (reflexive (cterm_of thy typet))
+	val final = inst_tfrees thy Tinst o thaw
 	val t = #1 (Logic.dest_equals (prop_of init))
 	val _ =
 	    let
@@ -369,11 +369,11 @@ fun eta_expand sg assumes origt =
 	    in
 		if not (lhs aconv origt)
 		then (writeln "Something is utterly wrong: (orig,lhs,frozen type,t,tinst)";
-		      writeln (string_of_cterm (cterm_of sg origt));
-		      writeln (string_of_cterm (cterm_of sg lhs));
-		      writeln (string_of_cterm (cterm_of sg typet));
-		      writeln (string_of_cterm (cterm_of sg t));
-		      app (fn (n,T) => writeln (n ^ ": " ^ (string_of_ctyp (ctyp_of sg T)))) Tinst;
+		      writeln (string_of_cterm (cterm_of thy origt));
+		      writeln (string_of_cterm (cterm_of thy lhs));
+		      writeln (string_of_cterm (cterm_of thy typet));
+		      writeln (string_of_cterm (cterm_of thy t));
+		      app (fn (n,T) => writeln (n ^ ": " ^ (string_of_ctyp (ctyp_of thy T)))) Tinst;
 		      writeln "done")
 		else ()
 	    end
@@ -384,7 +384,7 @@ fun eta_expand sg assumes origt =
 	    then (case domain_type T of
 		      Type("fun",[aT,bT]) =>
 		      let
-			  val cert = cterm_of sg
+			  val cert = cterm_of thy
 			  val vname = Name.variant (add_term_free_names(t,[])) "v"
 			  val v = Free(vname,aT)
 			  val cv = cert v
@@ -409,7 +409,7 @@ fun eta_expand sg assumes origt =
 		      end
 		    | _ => NONE)
 	    else NONE
-	  | _ => (error ("Bad eta_expand argument" ^ (string_of_cterm (cterm_of sg t))); NONE)
+	  | _ => (error ("Bad eta_expand argument" ^ (string_of_cterm (cterm_of thy t))); NONE)
     end
     handle e => (writeln "eta_expand internal error"; OldGoals.print_exn e)
 
@@ -423,30 +423,30 @@ val R  = mk_free "R" (xT-->yT)
 val S  = mk_free "S" xT
 val S'  = mk_free "S'" xT
 in
-fun beta_simproc sg = Simplifier.simproc_i
-		      sg
+fun beta_simproc thy = Simplifier.simproc_i
+		      thy
 		      "Beta-contraction"
 		      [Abs("x",xT,Q) $ S]
 		      beta_fun
 
-fun equals_simproc sg = Simplifier.simproc_i
-		      sg
+fun equals_simproc thy = Simplifier.simproc_i
+		      thy
 		      "Ordered rewriting of meta equalities"
 		      [Const("op ==",xT) $ S $ S']
 		      equals_fun
 
-fun quant_simproc sg = Simplifier.simproc_i
-			   sg
+fun quant_simproc thy = Simplifier.simproc_i
+			   thy
 			   "Ordered rewriting of nested quantifiers"
 			   [all xT $ (Abs("x",xT,all yT $ (Abs("y",yT,P $ Bound 1 $ Bound 0))))]
 			   quant_rewrite
-fun eta_expand_simproc sg = Simplifier.simproc_i
-			 sg
+fun eta_expand_simproc thy = Simplifier.simproc_i
+			 thy
 			 "Smart eta-expansion by equivalences"
 			 [Logic.mk_equals(Q,R)]
 			 eta_expand
-fun eta_contract_simproc sg = Simplifier.simproc_i
-			 sg
+fun eta_contract_simproc thy = Simplifier.simproc_i
+			 thy
 			 "Smart handling of eta-contractions"
 			 [all xT $ (Abs("x",xT,Logic.mk_equals(Q $ Bound 0,R $ Bound 0)))]
 			 eta_contract
@@ -455,7 +455,7 @@ end
 (* Disambiguates the names of bound variables in a term, returning t
 == t' where all the names of bound variables in t' are unique *)
 
-fun disamb_bound sg t =
+fun disamb_bound thy t =
     let
 	
 	fun F (t $ u,idx) =
@@ -474,8 +474,8 @@ fun disamb_bound sg t =
 	    end
 	  | F arg = arg
 	val (t',_) = F (t,0)
-	val ct = cterm_of sg t
-	val ct' = cterm_of sg t'
+	val ct = cterm_of thy t
+	val ct' = cterm_of thy t'
 	val res = transitive (reflexive ct) (reflexive ct')
 	val _ = message ("disamb_term: " ^ (string_of_thm res))
     in
@@ -488,12 +488,11 @@ be handy in its own right, for example for indexing terms. *)
 
 fun norm_term thy t =
     let
-	val sg = sign_of thy
 	val norms = ShuffleData.get thy
 	val ss = Simplifier.theory_context thy empty_ss
           setmksimps single
-	  addsimps (map (Thm.transfer sg) norms)
-          addsimprocs [quant_simproc sg, eta_expand_simproc sg,eta_contract_simproc sg]
+	  addsimps (map (Thm.transfer thy) norms)
+          addsimprocs [quant_simproc thy, eta_expand_simproc thy,eta_contract_simproc thy]
 	fun chain f th =
 	    let
                 val rhs = snd (dest_equals (cprop_of th))
@@ -501,7 +500,7 @@ fun norm_term thy t =
 		transitive th (f rhs)
 	    end
 	val th =
-            t |> disamb_bound sg
+            t |> disamb_bound thy
 	      |> chain (Simplifier.full_rewrite ss)
               |> chain eta_conversion
 	      |> strip_shyps
@@ -509,7 +508,7 @@ fun norm_term thy t =
     in
 	th
     end
-    handle e => (writeln "norm_term internal error"; print_sign_exn (sign_of thy) e)
+    handle e => (writeln "norm_term internal error"; print_sign_exn thy e)
 
 
 (* Closes a theorem with respect to free and schematic variables (does
@@ -517,11 +516,11 @@ not touch type variables, though). *)
 
 fun close_thm th =
     let
-	val sg = sign_of_thm th
+	val thy = sign_of_thm th
 	val c = prop_of th
 	val vars = add_term_frees (c,add_term_vars(c,[]))
     in
-	Drule.forall_intr_list (map (cterm_of sg) vars) th
+	Drule.forall_intr_list (map (cterm_of thy) vars) th
     end
     handle e => (writeln "close_thm internal error"; OldGoals.print_exn e)
 
@@ -534,14 +533,14 @@ fun norm_thm thy th =
 	equal_elim (norm_term thy c) th
     end
 
-(* make_equal sg t u tries to construct the theorem t == u under the
-signature sg.  If it succeeds, SOME (t == u) is returned, otherwise
+(* make_equal thy t u tries to construct the theorem t == u under the
+signature thy.  If it succeeds, SOME (t == u) is returned, otherwise
 NONE is returned. *)
 
-fun make_equal sg t u =
+fun make_equal thy t u =
     let
-	val t_is_t' = norm_term sg t
-	val u_is_u' = norm_term sg u
+	val t_is_t' = norm_term thy t
+	val u_is_u' = norm_term thy u
 	val th = transitive t_is_t' (symmetric u_is_u')
 	val _ = message ("make_equal: SOME " ^ (string_of_thm th))
     in
@@ -569,7 +568,7 @@ fun match_consts ignore t (* th *) =
     end
     
 val collect_ignored =
-    foldr (fn (thm,cs) =>
+    fold_rev (fn thm => fn cs =>
 	      let
 		  val (lhs,rhs) = Logic.dest_equals (prop_of thm)
 		  val ignore_lhs = term_consts lhs \\ term_consts rhs
@@ -584,10 +583,9 @@ succeeds, SOME theorem is returned, otherwise NONE.  *)
 
 fun set_prop thy t =
     let
-	val sg = sign_of thy
 	val vars = add_term_frees (t,add_term_vars (t,[]))
-	val closed_t = foldr (fn (v,body) => let val vT = type_of v
-					     in all vT $ (Abs("x",vT,abstract_over(v,body))) end) t vars
+	val closed_t = Library.foldr (fn (v, body) =>
+      let val vT = type_of v in all vT $ (Abs ("x", vT, abstract_over (v, body))) end) (vars, t)
 	val rew_th = norm_term thy closed_t
 	val rhs = snd (dest_equals (cprop_of rew_th))
 
@@ -595,7 +593,7 @@ fun set_prop thy t =
 	fun process [] = NONE
 	  | process ((name,th)::thms) =
 	    let
-		val norm_th = Thm.varifyT (norm_thm thy (close_thm (Thm.transfer sg th)))
+		val norm_th = Thm.varifyT (norm_thm thy (close_thm (Thm.transfer thy th)))
 		val triv_th = trivial rhs
 		val _ = message ("Shuffler.set_prop: Gluing together " ^ (string_of_thm norm_th) ^ " and " ^ (string_of_thm triv_th))
 		val mod_th = case Seq.pull (bicompose false (*true*) (false,norm_th,0) 1 triv_th) of
@@ -608,7 +606,7 @@ fun set_prop thy t =
 			val closed_th = equal_elim (symmetric rew_th) mod_th
 		    in
 			message ("Shuffler.set_prop succeeded by " ^ name);
-			SOME (name,forall_elim_list (map (cterm_of sg) vars) closed_th)
+			SOME (name,forall_elim_list (map (cterm_of thy) vars) closed_th)
 		    end
 		  | NONE => process thms
 	    end
@@ -626,7 +624,7 @@ fun set_prop thy t =
 fun find_potential thy t =
     let
 	val shuffles = ShuffleData.get thy
-	val ignored = collect_ignored [] shuffles
+	val ignored = collect_ignored shuffles []
 	val rel_consts = term_consts t \\ ignored
 	val pot_thms = PureThy.thms_containing_consts thy rel_consts
     in

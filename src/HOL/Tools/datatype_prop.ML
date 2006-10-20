@@ -64,24 +64,23 @@ fun make_tnames Ts =
 
 fun make_injs descr sorts =
   let
-    val descr' = List.concat descr;
-
-    fun make_inj T ((cname, cargs), injs) =
-      if null cargs then injs else
+    val descr' = flat descr;
+    fun make_inj T (cname, cargs) =
+      if null cargs then I else
         let
           val Ts = map (typ_of_dtyp descr' sorts) cargs;
           val constr_t = Const (cname, Ts ---> T);
           val tnames = make_tnames Ts;
           val frees = map Free (tnames ~~ Ts);
           val frees' = map Free ((map ((op ^) o (rpair "'")) tnames) ~~ Ts);
-        in (HOLogic.mk_Trueprop (HOLogic.mk_eq
+        in cons (HOLogic.mk_Trueprop (HOLogic.mk_eq
           (HOLogic.mk_eq (list_comb (constr_t, frees), list_comb (constr_t, frees')),
            foldr1 (HOLogic.mk_binop "op &")
-             (map HOLogic.mk_eq (frees ~~ frees')))))::injs
+             (map HOLogic.mk_eq (frees ~~ frees')))))
         end;
-
-  in map (fn (d, T) => foldr (make_inj T) [] (#3 (snd d)))
-    ((hd descr) ~~ Library.take (length (hd descr), get_rec_types descr' sorts))
+  in
+    map2 (fn d => fn T => fold_rev (make_inj T) (#3 (snd d)) [])
+      (hd descr) (Library.take (length (hd descr), get_rec_types descr' sorts))
   end;
 
 (********************************* induction **********************************)

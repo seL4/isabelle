@@ -64,7 +64,7 @@ val rhs_of = #3 o dest_red;
 
 (*** Indexing and filtering of theorems ***)
 
-fun eq_brl ((b1,th1),(b2,th2)) = b1=b2 andalso Drule.eq_thm_prop (th1,th2);
+fun eq_brl ((b1 : bool, th1), (b2, th2)) = b1 = b2 andalso Drule.eq_thm_prop (th1, th2);
 
 (*insert a thm in a discrimination net by its lhs*)
 fun lhs_insert_thm (th,net) =
@@ -155,25 +155,25 @@ val atomic = null o Logic.strip_assums_hyp;
 
 (*ccs contains the names of the constants possessing congruence rules*)
 fun add_hidden_vars ccs =
-  let fun add_hvars(tm,hvars) = case tm of
+  let fun add_hvars tm hvars = case tm of
               Abs(_,_,body) => add_term_vars(body,hvars)
             | _$_ => let val (f,args) = strip_comb tm 
                      in case f of
                             Const(c,T) => 
-                                if c mem ccs
-                                then foldr add_hvars hvars args
-                                else add_term_vars(tm,hvars)
-                          | _ => add_term_vars(tm,hvars)
+                                if member (op =) ccs c
+                                then fold_rev add_hvars args hvars
+                                else add_term_vars (tm, hvars)
+                          | _ => add_term_vars (tm, hvars)
                      end
             | _ => hvars;
   in add_hvars end;
 
 fun add_new_asm_vars new_asms =
-    let fun itf((tm,at),vars) =
+    let fun itf (tm, at) vars =
                 if at then vars else add_term_vars(tm,vars)
         fun add_list(tm,al,vars) = let val (_,tml) = strip_comb tm
                 in if length(tml)=length(al)
-                   then foldr itf vars (tml~~al)
+                   then fold_rev itf (tml ~~ al) vars
                    else vars
                 end
         fun add_vars (tm,vars) = case tm of
@@ -194,12 +194,12 @@ let val thm' = mk_trans2 thm;
     val lhs = rhs_of_eq 1 thm'
     val rhs = lhs_of_eq nops thm'
     val asms = tl(rev(tl(prems_of thm')))
-    val hvars = foldr (add_hidden_vars ccs) [] (lhs::rhs::asms)
+    val hvars = fold_rev (add_hidden_vars ccs) (lhs::rhs::asms) []
     val hvars = add_new_asm_vars new_asms (rhs,hvars)
-    fun it_asms (asm,hvars) =
+    fun it_asms asm hvars =
         if atomic asm then add_new_asm_vars new_asms (asm,hvars)
         else add_term_frees(asm,hvars)
-    val hvars = foldr it_asms hvars asms
+    val hvars = fold_rev it_asms asms hvars
     val hvs = map (#1 o dest_Var) hvars
     val refl1_tac = refl_tac 1
     fun norm_step_tac st = st |>
@@ -247,18 +247,18 @@ val empty_ss = SS{auto_tac= K no_tac, congs=[], cong_net=Net.empty,
 (** Insertion of congruences and rewrites **)
 
 (*insert a thm in a thm net*)
-fun insert_thm_warn (th,net) = 
+fun insert_thm_warn th net = 
   Net.insert_term Drule.eq_thm_prop (concl_of th, th) net
   handle Net.INSERT => 
     (writeln"\nDuplicate rewrite or congruence rule:"; print_thm th;
      net);
 
-val insert_thms = foldr insert_thm_warn;
+val insert_thms = fold_rev insert_thm_warn;
 
 fun addrew(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thm) =
 let val thms = mk_simps thm
 in SS{auto_tac=auto_tac,congs=congs, cong_net=cong_net, mk_simps=mk_simps,
-      simps = (thm,thms)::simps, simp_net = insert_thms simp_net thms}
+      simps = (thm,thms)::simps, simp_net = insert_thms thms simp_net}
 end;
 
 val op addrews = Library.foldl addrew;
@@ -266,25 +266,25 @@ val op addrews = Library.foldl addrew;
 fun op addcongs(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thms) =
 let val congs' = thms @ congs;
 in SS{auto_tac=auto_tac, congs= congs',
-      cong_net= insert_thms cong_net (map mk_trans thms),
+      cong_net= insert_thms (map mk_trans thms) cong_net,
       mk_simps= normed_rews congs', simps=simps, simp_net=simp_net}
 end;
 
 (** Deletion of congruences and rewrites **)
 
 (*delete a thm from a thm net*)
-fun delete_thm_warn (th,net) = 
+fun delete_thm_warn th net = 
   Net.delete_term Drule.eq_thm_prop (concl_of th, th) net
   handle Net.DELETE => 
     (writeln"\nNo such rewrite or congruence rule:";  print_thm th;
      net);
 
-val delete_thms = foldr delete_thm_warn;
+val delete_thms = fold_rev delete_thm_warn;
 
 fun op delcongs(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thms) =
 let val congs' = fold (remove Drule.eq_thm_prop) thms congs
 in SS{auto_tac=auto_tac, congs= congs',
-      cong_net= delete_thms cong_net (map mk_trans thms),
+      cong_net= delete_thms (map mk_trans thms) cong_net,
       mk_simps= normed_rews congs', simps=simps, simp_net=simp_net}
 end;
 
@@ -296,7 +296,7 @@ let fun find((p as (th,ths))::ps',ps) =
                            ([],simps'))
     val (thms,simps') = find(simps,[])
 in SS{auto_tac=auto_tac, congs=congs, cong_net=cong_net, mk_simps=mk_simps,
-      simps = simps', simp_net = delete_thms simp_net thms}
+      simps = simps', simp_net = delete_thms thms simp_net }
 end;
 
 val op delrews = Library.foldl delrew;

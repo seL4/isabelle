@@ -491,7 +491,7 @@ fun gen_fields_tr sep mark sfx (tm as Const (c, _) $ t $ u) =
 
 
 fun record_update_tr [t, u] =
-      foldr (op $) t (rev (gen_fields_tr "_updates" "_update" updateN u))
+      Library.foldr (op $) (rev (gen_fields_tr "_updates" "_update" updateN u), t)
   | record_update_tr ts = raise TERM ("record_update_tr", ts);
 
 fun update_name_tr (Free (x, T) :: ts) = Free (suffix updateN x, T) $$ ts
@@ -1547,8 +1547,8 @@ fun subst_last s []      = error "subst_last: list should not be empty"
 (* mk_recordT builds up the record type from the current extension tpye extT and a list
  * of parent extensions, starting with the root of the record hierarchy
 *)
-fun mk_recordT extT parent_exts =
-    foldr (fn ((parent,Ts),T) => Type (parent, subst_last T Ts)) extT parent_exts;
+fun mk_recordT extT =
+    fold_rev (fn (parent, Ts) => fn T => Type (parent, subst_last T Ts)) extT;
 
 
 
@@ -1646,12 +1646,12 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val extension_id = Library.foldl (op ^) ("",extension_names);
 
 
-    fun rec_schemeT n = mk_recordT extT (map #extension (prune n parents));
+    fun rec_schemeT n = mk_recordT (map #extension (prune n parents)) extT;
     val rec_schemeT0 = rec_schemeT 0;
 
     fun recT n =
       let val (c,Ts) = extension
-      in mk_recordT (Type (c,subst_last HOLogic.unitT Ts))(map #extension (prune n parents))
+      in mk_recordT (map #extension (prune n parents)) (Type (c,subst_last HOLogic.unitT Ts))
       end;
     val recT0 = recT 0;
 

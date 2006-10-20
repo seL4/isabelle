@@ -165,7 +165,7 @@ fun dest_eq_typ (Const ("op =", T) $ lhs $ rhs) = ((lhs, rhs), domain_type T)
 
 fun all_const T = Const ("All", [T --> boolT] ---> boolT);
 fun mk_all (x, T, P) = all_const T $ absfree (x, T, P);
-fun list_all (vs,x) = foldr (fn ((x, T), P) => all_const T $ Abs (x, T, P)) x vs;
+fun list_all (vs,x) = Library.foldr (fn ((x, T), P) => all_const T $ Abs (x, T, P)) (vs, x);
 
 fun exists_const T = Const ("Ex", [T --> boolT] ---> boolT);
 fun mk_exists (x, T, P) = exists_const T $ absfree (x, T, P);
