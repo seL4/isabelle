@@ -1711,6 +1711,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                     val pi1 = map perm_of_pair (boundsl ~~ freshs1);
                     val rpi1 = rev pi1;
                     val pi2 = map perm_of_pair (boundsr ~~ freshs1);
+                    val rpi2 = rev pi2;
 
                     fun mk_not_sym ths = List.concat (map (fn th =>
                       case prop_of th of
@@ -1804,42 +1805,38 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                     val ihs = filter (fn th => case prop_of th of
                       _ $ (Const ("All", _) $ _) => true | _ => false) prems';
 
-                    (** pi1 o rs = p2 o vs , rs = pi1^-1 o pi2 o vs **)
-                    val _ = warning "step 7: pi1 o rs = p2 o vs , rs = pi1^-1 o pi2 o vs";
-                    val (rec_eqns1, rec_eqns2) = ListPair.unzip (map (fn (th, ih) =>
+                    (** pi1 o rs = pi2 o vs , rs = pi1^-1 o pi2 o vs **)
+                    val _ = warning "step 7: pi1 o rs = pi2 o vs , rs = pi1^-1 o pi2 o vs";
+                    val rec_eqns = map (fn (th, ih) =>
                       let
                         val th' = th RS (ih RS spec RS mp) RS sym;
                         val _ $ (_ $ lhs $ rhs) = prop_of th';
                         fun strip_perm (_ $ _ $ t) = strip_perm t
                           | strip_perm t = t;
                       in
-                        (Goal.prove context'' [] []
+                        Goal.prove context'' [] []
                            (HOLogic.mk_Trueprop (HOLogic.mk_eq
                               (foldr (mk_perm []) lhs pi1,
                                foldr (mk_perm []) (strip_perm rhs) pi2)))
                            (fn _ => simp_tac (HOL_basic_ss addsimps
-                              (th' :: perm_swap)) 1),
-                         th')
-                      end) (rec_prems' ~~ ihs));
+                              (th' :: perm_swap)) 1)
+                      end) (rec_prems' ~~ ihs);
 
-                    (** as # rs , bs # vs **)
-                    val _ = warning "step 8: as # rs , bs # vs";
-                    val (rec_freshs1, rec_freshs2) = ListPair.unzip (List.concat
-                      (map (fn (((rec_prem, rec_prem'), eqn), ih) =>
+                    (** as # rs **)
+                    val _ = warning "step 8: as # rs";
+                    val rec_freshs = List.concat
+                      (map (fn (rec_prem, ih) =>
                         let
                           val _ $ (S $ x $ (y as Free (_, T))) =
                             prop_of rec_prem;
-                          val _ $ (_ $ _ $ y') = prop_of rec_prem';
                           val k = find_index (equal S) rec_sets;
-                          val atoms = List.concat (List.mapPartial
-                            (fn ((bs, z), (bs', _)) =>
-                              if z = x then NONE else SOME (bs ~~ bs'))
-                            (cargsl' ~~ cargsr'))
+                          val atoms = List.concat (List.mapPartial (fn (bs, z) =>
+                            if z = x then NONE else SOME bs) cargsl')
                         in
-                          map (fn (a as Free (_, aT), b) =>
-                            let
-                              val l = find_index (equal aT) dt_atomTs;
-                              val th = Goal.prove context'' [] []
+                          map (fn a as Free (_, aT) =>
+                            let val l = find_index (equal aT) dt_atomTs;
+                            in
+                              Goal.prove context'' [] []
                                 (HOLogic.mk_Trueprop (Const ("Nominal.fresh",
                                   aT --> T --> HOLogic.boolT) $ a $ y))
                                 (fn _ => EVERY
@@ -1847,35 +1844,49 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                                     map (fn th => rtac th 1)
                                       (snd (List.nth (finite_thss, l))) @
                                     [rtac rec_prem 1, rtac ih 1,
-                                     REPEAT_DETERM (resolve_tac fresh_prems 1)]));
-                              val th' = Goal.prove context'' [] []
-                                (HOLogic.mk_Trueprop (Const ("Nominal.fresh",
-                                  aT --> T --> HOLogic.boolT) $ b $ y'))
-                                (fn _ => cut_facts_tac [th] 1 THEN
-                                    asm_full_simp_tac (HOL_ss addsimps (eqn ::
-                                      fresh_left @ fresh_prems' @ freshs2' @
-                                      rev_simps @ app_simps @ calc_atm)) 1)
-                            in (th, th') end) atoms
-                        end) (rec_prems1 ~~ rec_prems2 ~~ rec_eqns2 ~~ ihs)));
+                                     REPEAT_DETERM (resolve_tac fresh_prems 1)]))
+                            end) atoms
+                        end) (rec_prems1 ~~ ihs));
 
                     (** as # fK as ts rs , bs # fK bs us vs **)
                     val _ = warning "step 9: as # fK as ts rs , bs # fK bs us vs";
-                    fun prove_fresh_result t (a as Free (_, aT)) =
+                    fun prove_fresh_result (a as Free (_, aT)) =
                       Goal.prove context'' [] []
                         (HOLogic.mk_Trueprop (Const ("Nominal.fresh",
-                          aT --> rT --> HOLogic.boolT) $ a $ t))
+                          aT --> rT --> HOLogic.boolT) $ a $ rhs'))
                         (fn _ => EVERY
                            [resolve_tac fcbs 1,
                             REPEAT_DETERM (resolve_tac
-                              (fresh_prems @ rec_freshs1 @ rec_freshs2) 1),
+                              (fresh_prems @ rec_freshs) 1),
                             REPEAT_DETERM (resolve_tac (maps snd rec_fin_supp_thms') 1
                               THEN resolve_tac rec_prems 1),
                             resolve_tac P_ind_ths 1,
                             REPEAT_DETERM (resolve_tac (P_ths @ rec_prems) 1)]);
         
-                    val fresh_results =
-                      map (prove_fresh_result rhs') (List.concat (map fst cargsl')) @
-                      map (prove_fresh_result lhs') (List.concat (map fst cargsr'));
+                    val fresh_results'' = map prove_fresh_result boundsl;
+
+                    fun prove_fresh_result'' ((a as Free (_, aT), b), th) =
+                      let val th' = Goal.prove context'' [] []
+                        (HOLogic.mk_Trueprop (Const ("Nominal.fresh",
+                          aT --> rT --> HOLogic.boolT) $
+                            foldr (mk_perm []) a (rpi2 @ pi1) $
+                            foldr (mk_perm []) rhs' (rpi2 @ pi1)))
+                        (fn _ => simp_tac (HOL_ss addsimps fresh_bij) 1 THEN
+                           rtac th 1)
+                      in
+                        Goal.prove context'' [] []
+                          (HOLogic.mk_Trueprop (Const ("Nominal.fresh",
+                            aT --> rT --> HOLogic.boolT) $ b $ lhs'))
+                          (fn _ => EVERY
+                             [cut_facts_tac [th'] 1,
+                              NominalPermeq.perm_simp_tac (HOL_ss addsimps
+                                (rec_eqns @ pi1_pi2_eqs @ perm_swap)) 1,
+                              full_simp_tac (HOL_ss addsimps (calc_atm @
+                                fresh_prems' @ freshs2' @ perm_fresh_fresh)) 1])
+                      end;
+
+                    val fresh_results = fresh_results'' @ map prove_fresh_result''
+                      (boundsl ~~ boundsr ~~ fresh_results'');
 
                     (** cs # fK as ts rs , cs # fK bs us vs **)
                     val _ = warning "step 10: cs # fK as ts rs , cs # fK bs us vs";
@@ -1902,7 +1913,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                       (HOLogic.mk_Trueprop (HOLogic.mk_eq
                         (foldr (mk_perm []) rhs' pi1, foldr (mk_perm []) lhs' pi2)))
                       (fn _ => NominalPermeq.perm_simp_tac (HOL_ss addsimps
-                           pi1_pi2_eqs @ rec_eqns1) 1 THEN
+                           pi1_pi2_eqs @ rec_eqns) 1 THEN
                          TRY (simp_tac (HOL_ss addsimps
                            (fresh_prems' @ freshs2' @ calc_atm @ perm_fresh_fresh)) 1));
 
