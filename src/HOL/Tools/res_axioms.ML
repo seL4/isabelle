@@ -12,6 +12,7 @@ signature RES_AXIOMS =
   val elimR2Fol : thm -> term
   val transform_elim : thm -> thm
   val cnf_axiom : (string * thm) -> thm list
+  val cnf_name : string -> thm list
   val meta_cnf_axiom : thm -> thm list
   val claset_rules_of_thy : theory -> (string * thm) list
   val simpset_rules_of_thy : theory -> (string * thm) list
@@ -96,7 +97,8 @@ fun strip_concl prems bvs concl (Const ("all", _) $ Abs (x,xtp,body)) =
       if (is_neg P concl) then (strip_concl' prems bvs Q)
       else strip_concl (HOLogic.dest_Trueprop P::prems) bvs  concl Q
   | strip_concl prems bvs concl Q =
-      if concl aconv Q then add_EX (foldr1 HOLogic.mk_conj prems) bvs
+      if concl aconv Q andalso not (null prems) 
+      then add_EX (foldr1 HOLogic.mk_conj prems) bvs
       else raise ELIMR2FOL (*expected conclusion not found!*)
 
 fun trans_elim (major,[],_) = HOLogic.Not $ major
@@ -123,11 +125,14 @@ fun elimR2Fol elimR =
 (* convert an elim-rule into an equivalent theorem that does not have the
    predicate variable.  Leave other theorems unchanged.*)
 fun transform_elim th =
-    let val ctm = cterm_of (sign_of_thm th) (HOLogic.mk_Trueprop (elimR2Fol th))
-    in Goal.prove_raw [] ctm (fn _ => elimRule_tac th) end
+    let val t = HOLogic.mk_Trueprop (elimR2Fol th)
+    in 
+        if Meson.too_many_clauses t then TrueI
+        else Goal.prove_raw [] (cterm_of (sign_of_thm th) t) (fn _ => elimRule_tac th) 
+    end
     handle ELIMR2FOL => th (*not an elimination rule*)
          | exn => (warning ("transform_elim failed: " ^ Toplevel.exn_message exn ^
-                            " for theorem " ^ string_of_thm th); th)
+                            " for theorem " ^ Thm.name_of_thm th ^ ": " ^ string_of_thm th); th)
 
 
 (**** Transformation of Clasets and Simpsets into First-Order Axioms ****)
@@ -157,9 +162,10 @@ val rm_redundant_cls = List.filter (not o is_taut);
 (*Traverse a theorem, declaring Skolem function definitions. String s is the suggested
   prefix for the Skolem constant. Result is a new theory*)
 fun declare_skofuns s th thy =
-  let fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) (thy, axs) =
+  let val nref = ref 0
+      fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) (thy, axs) =
             (*Existential: declare a Skolem function, then insert into body and continue*)
-            let val cname = Name.internal (gensym ("sko_" ^ s ^ "_"))
+            let val cname = Name.internal (s ^ "_sko" ^ Int.toString (inc nref))
                 val args = term_frees xtp  (*get the formal parameter list*)
                 val Ts = map type_of args
                 val cT = Ts ---> T
@@ -516,7 +522,6 @@ fun declare_abstract (thy, ths) =
   else (thy, map Drule.eta_contraction_rule ths);
 
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
-(*also works for HOL*)
 fun skolem_thm th =
   let val nnfth = to_nnf th
   in  Meson.make_cnf (skolem_of_nnf nnfth) nnfth
@@ -524,10 +529,13 @@ fun skolem_thm th =
   end
   handle THM _ => [];
 
+(*Keep the full complexity of the original name*)
+fun flatten_name s = space_implode "_X" (NameSpace.unpack s);
+
 (*Declare Skolem functions for a theorem, supplied in nnf and with its name.
   It returns a modified theory, unless skolemization fails.*)
 fun skolem thy (name,th) =
-  let val cname = (case name of "" => gensym "" | s => Sign.base_name s)
+  let val cname = (case name of "" => gensym "" | s => flatten_name s)
       val _ = Output.debug ("skolemizing " ^ name ^ ": ")
   in Option.map
         (fn nnfth =>
@@ -563,24 +571,32 @@ fun skolem_cache_thm (name,th) thy =
 
 (*Exported function to convert Isabelle theorems into axiom clauses*)
 fun cnf_axiom (name,th) =
+ (Output.debug ("cnf_axiom called, theorem name = " ^ name);
   case name of
         "" => skolem_thm th (*no name, so can't cache*)
       | s  => case Symtab.lookup (!clause_cache) s of
                 NONE => 
                   let val cls = map Drule.local_standard (skolem_thm th)
-                  in change clause_cache (Symtab.update (s, (th, cls))); cls end
+                  in Output.debug "inserted into cache";
+                     change clause_cache (Symtab.update (s, (th, cls))); cls 
+                  end
               | SOME(th',cls) =>
                   if eq_thm(th,th') then cls
                   else (Output.debug ("cnf_axiom: duplicate or variant of theorem " ^ name);
                         Output.debug (string_of_thm th);
                         Output.debug (string_of_thm th');
-                        cls);
+                        cls)
+ );
 
 fun pairname th = (Thm.name_of_thm th, th);
 
 fun meta_cnf_axiom th =
     map Meson.make_meta_clause (cnf_axiom (pairname th));
 
+(*Principally for debugging*)
+fun cnf_name s = 
+  let val th = thm s
+  in cnf_axiom (Thm.name_of_thm th, th) end;
 
 (**** Extract and Clausify theorems from a theory's claset and simpset ****)
 
@@ -644,7 +660,7 @@ val cnf_rules_pairs = cnf_rules_pairs_aux [];
 fun skolem_cache (name,th) thy =
   let val prop = Thm.prop_of th
   in
-      if lambda_free prop orelse (not abstract_lambdas andalso monomorphic prop)
+      if lambda_free prop 
          (*Monomorphic theorems can be Skolemized on demand,
            but there are problems with re-use of abstraction functions if we don't
            do them now, even for monomorphic theorems.*)
@@ -652,12 +668,23 @@ fun skolem_cache (name,th) thy =
       else #2 (skolem_cache_thm (name,th) thy)
   end;
 
+(*The cache can be kept smaller by augmenting the condition above with 
+    orelse (not abstract_lambdas andalso monomorphic prop).
+  However, while this step does not reduce the time needed to build HOL, 
+  it doubles the time taken by the first call to the ATP link-up.*)
+
 fun clause_cache_setup thy = fold skolem_cache (PureThy.all_thms_of thy) thy;
 
 
 (*** meson proof methods ***)
 
-fun cnf_rules_of_ths ths = List.concat (#1 (cnf_rules (map pairname ths) []));
+fun skolem_use_cache_thm th =
+  case Symtab.lookup (!clause_cache) (Thm.name_of_thm th) of
+      NONE => skolem_thm th
+    | SOME (th',cls) =>
+        if eq_thm(th,th') then cls else skolem_thm th;
+
+fun cnf_rules_of_ths ths = List.concat (map skolem_use_cache_thm ths);
 
 fun meson_meth ths ctxt =
   Method.SIMPLE_METHOD' HEADGOAL
@@ -682,7 +709,7 @@ fun skolem_attr (Context.Theory thy, th) =
       let val name = Thm.name_of_thm th
           val (cls, thy') = skolem_cache_thm (name, th) thy
       in (Context.Theory thy', conj_rule cls) end
-  | skolem_attr (context, th) = (context, conj_rule (skolem_thm th));
+  | skolem_attr (context, th) = (context, conj_rule (skolem_use_cache_thm th));
 
 val setup_attrs = Attrib.add_attributes
   [("skolem", Attrib.no_args skolem_attr, "skolemization of a theorem")];
