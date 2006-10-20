@@ -75,7 +75,7 @@ fun string_of_lthms r = case Susp.peek r
   | NONE => ["[...]"];
 
 fun pretty_lthms ctxt r = case Susp.peek r
- of SOME thms => (map (ProofContext.pretty_thm ctxt) o rev) thms
+ of SOME thms => map (ProofContext.pretty_thm ctxt) thms
   | NONE => [Pretty.str "[...]"];
 
 fun certificate thy f r =
@@ -642,7 +642,7 @@ fun add_func thm thy =
 
 fun del_func thm thy =
   let
-    val thms = mk_func thy thm;
+    val thms = setmp strict_functyp false (mk_func thy) thm;
     val cs = map fst thms;
   in
     map_exec_purge (SOME cs) (map_funcs
