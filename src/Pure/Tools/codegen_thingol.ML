@@ -61,7 +61,7 @@ sig
     | Datatype of (vname * sort) list * (string * itype list) list
     | Datatypecons of string
     | Class of class list * (vname * (string * itype) list)
-    | Classmember of class
+    | Classop of class
     | Classinst of (class * (string * (vname * sort) list))
           * ((class * (string * inst list list)) list
         * (string * iterm) list);
@@ -74,13 +74,17 @@ sig
     -> code -> code;
   val add_eval_def: string (*shallow name space*) * iterm -> code -> string * code;
 
-
   val ensure_def: (transact -> def * code) -> bool -> string
     -> string -> transact -> transact;
   val succeed: 'a -> transact -> 'a * code;
   val fail: string -> transact -> 'a * code;
   val message: string -> (transact -> 'a) -> transact -> 'a;
   val start_transact: string option -> (transact -> 'a * transact) -> code -> 'a * code;
+
+  type var_ctxt;
+  val make_vars: string list -> var_ctxt;
+  val intro_vars: string list -> var_ctxt -> var_ctxt;
+  val lookup_var: var_ctxt -> string -> string;
 
   val trace: bool ref;
   val tracing: ('a -> string) -> 'a -> 'a;
@@ -252,7 +256,7 @@ datatype def =
   | Datatype of (vname * sort) list * (string * itype list) list
   | Datatypecons of string
   | Class of class list * (vname * (string * itype) list)
-  | Classmember of class
+  | Classop of class
   | Classinst of (class * (string * (vname * sort) list))
         * ((class * (string * inst list list)) list
       * (string * iterm) list);
@@ -331,21 +335,21 @@ fun check_funeqs eqs =
     end
   ) eqs NONE; eqs);
 
-fun check_prep_def modl Bot =
+fun check_prep_def code Bot =
       Bot
-  | check_prep_def modl (Fun (eqs, d)) =
+  | check_prep_def code (Fun (eqs, d)) =
       Fun (check_funeqs eqs, d)
-  | check_prep_def modl (d as Datatype _) =
+  | check_prep_def code (d as Datatype _) =
       d
-  | check_prep_def modl (Datatypecons dtco) =
+  | check_prep_def code (Datatypecons dtco) =
       error "Attempted to add bare datatype constructor"
-  | check_prep_def modl (d as Class _) =
+  | check_prep_def code (d as Class _) =
       d
-  | check_prep_def modl (Classmember _) =
+  | check_prep_def code (Classop _) =
       error "Attempted to add bare class member"
-  | check_prep_def modl (d as Classinst ((class, (tyco, arity)), (_, memdefs))) =
+  | check_prep_def code (d as Classinst ((class, (tyco, arity)), (_, memdefs))) =
       let
-        val Class (_, (v, membrs)) = get_def modl class;
+        val Class (_, (v, membrs)) = get_def code class;
         val _ = if length memdefs > length memdefs
           then error "Too many member definitions given"
           else ();
@@ -354,7 +358,7 @@ fun check_prep_def modl Bot =
           then () else error ("Missing definition for member " ^ quote m);
         val _ = map check_memdef memdefs;
       in d end
-  | check_prep_def modl Classinstmember =
+  | check_prep_def code Classinstmember =
       error "Attempted to add bare class instance member";
 
 fun postprocess_def (name, Datatype (_, constrs)) =
@@ -368,7 +372,7 @@ fun postprocess_def (name, Datatype (_, constrs)) =
   | postprocess_def (name, Class (_, (_, membrs))) =
       (check_samemodule (name :: map fst membrs);
       fold (fn (m, _) =>
-        add_def_incr true (m, Classmember name)
+        add_def_incr true (m, Classop name)
         #> add_dep (m, name)
         #> add_dep (name, m)
       ) membrs
@@ -379,7 +383,7 @@ fun postprocess_def (name, Datatype (_, constrs)) =
 
 (* transaction protocol *)
 
-fun ensure_def defgen strict msg name (dep, modl) =
+fun ensure_def defgen strict msg name (dep, code) =
   let
     (*FIXME represent dependencies as tuple (name, name -> string), for better error msgs*)
     val msg' = (case dep
@@ -390,16 +394,16 @@ fun ensure_def defgen strict msg name (dep, modl) =
       | add_dp (SOME dep) =
           tracing (fn _ => "adding dependency " ^ quote dep ^ " -> " ^ quote name)
           #> add_dep (dep, name);
-    fun prep_def def modl =
-      (check_prep_def modl def, modl);
-    fun invoke_generator name defgen modl =
-      defgen (SOME name, modl)
+    fun prep_def def code =
+      (check_prep_def code def, code);
+    fun invoke_generator name defgen code =
+      defgen (SOME name, code)
         handle FAIL msgs =>
           if strict then raise FAIL (msg' :: msgs)
-          else (Bot, modl);
+          else (Bot, code);
   in
-    modl
-    |> (if can (get_def modl) name
+    code
+    |> (if can (get_def code) name
         then
           tracing (fn _ => "asserting node " ^ quote name)
           #> add_dp dep
@@ -420,26 +424,26 @@ fun ensure_def defgen strict msg name (dep, modl) =
     |> pair dep
   end;
 
-fun succeed some (_, modl) = (some, modl);
+fun succeed some (_, code) = (some, code);
 
-fun fail msg (_, modl) = raise FAIL [msg];
+fun fail msg (_, code) = raise FAIL [msg];
 
 fun message msg f trns =
   f trns handle FAIL msgs =>
     raise FAIL (msg :: msgs);
 
-fun start_transact init f modl =
+fun start_transact init f code =
   let
     fun handle_fail f x =
       (f x
       handle FAIL msgs =>
         (error o cat_lines) ("Code generation failed, while:" :: msgs))
   in
-    modl
+    code
     |> (if is_some init then ensure_bot (the init) else I)
     |> pair init
     |> handle_fail f
-    |-> (fn x => fn (_, modl) => (x, modl))
+    |-> (fn x => fn (_, code) => (x, code))
   end;
 
 fun add_eval_def (shallow, e) code =
@@ -452,6 +456,24 @@ fun add_eval_def (shallow, e) code =
     |> fold (curry Graph.add_edge sname) (Graph.keys code) (*FIXME*)
     |> pair name
   end;
+
+
+(** variable name contexts **)
+
+type var_ctxt = string Symtab.table * Name.context;
+
+fun make_vars names = (fold (fn name => Symtab.update_new (name, name)) names Symtab.empty,
+  Name.make_context names);
+
+fun intro_vars names (namemap, namectxt) =
+  let
+    val (names', namectxt') = Name.variants names namectxt;
+    val namemap' = fold2 (curry Symtab.update) names names' namemap;
+  in (namemap', namectxt') end;
+
+fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
+ of SOME name' => name'
+  | NONE => error ("invalid name in context: " ^ quote name);
 
 end; (*struct*)
 

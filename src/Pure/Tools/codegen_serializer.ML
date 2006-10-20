@@ -19,10 +19,9 @@ sig
 
   type serializer;
   val add_serializer : string * serializer -> theory -> theory;
-  val ml_from_thingol: serializer;
-  val hs_from_thingol: serializer;
   val get_serializer: theory -> string -> Args.T list
     -> string list option -> CodegenThingol.code -> unit;
+  val assert_serializer: theory -> string -> string;
 
   val const_has_serialization: theory -> string list -> string -> bool;
   val tyco_has_serialization: theory -> string list -> string -> bool;
@@ -172,6 +171,11 @@ fun parse_syntax tokens =
     (parse >> (fn (mfx, fixity) => mk fixity mfx)) tokens
   end;
 
+fun parse_args f args =
+  case f args
+   of (x, []) => x
+    | (_, _) => error "bad serializer arguments";
+
 
 (* list and string serializer *)
 
@@ -224,20 +228,7 @@ fun pretty_list c_nil c_cons mk_list mk_char_string (target_fxy, target_cons) =
   in (2, pretty) end;
 
 
-(* variable name contexts *)
-
-fun make_vars names = (fold (fn name => Symtab.update_new (name, name)) names Symtab.empty,
-  Name.make_context names);
-
-fun intro_vars names (namemap, namectxt) =
-  let
-    val (names', namectxt') = Name.variants names namectxt;
-    val namemap' = fold2 (curry Symtab.update) names names' namemap;
-  in (namemap', namectxt') end;
-
-fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
- of SOME name' => name'
-  | NONE => error ("invalid name in context: " ^ quote name);
+(* misc *)
 
 fun constructive_fun (name, (eqs, ty)) =
   let
@@ -259,6 +250,12 @@ fun constructive_fun (name, (eqs, ty)) =
         ^ "executable function clauses found")
     | eqs => (name, (eqs, ty))
   end;
+
+fun dest_name name =
+  let
+    val (names, name_base) = (split_last o NameSpace.unpack) name;
+    val (names_mod, name_shallow) = split_last names;
+  in (names_mod, (name_shallow, name_base)) end;
 
 
 
@@ -348,7 +345,7 @@ fun pr_sml_def tyco_syntax const_syntax keyword_vars deresolv ml_def =
     fun pr_term vars fxy (IConst c) =
           pr_app vars fxy (c, [])
       | pr_term vars fxy (IVar v) =
-          str (lookup_var vars v)
+          str (CodegenThingol.lookup_var vars v)
       | pr_term vars fxy (t as t1 `$ t2) =
           (case CodegenThingol.unfold_const_app t
            of SOME c_ts => pr_app vars fxy c_ts
@@ -359,16 +356,16 @@ fun pr_sml_def tyco_syntax const_syntax keyword_vars deresolv ml_def =
             val (ps, t') = CodegenThingol.unfold_abs t;
             fun pr ((v, NONE), _) vars =
                   let
-                    val vars' = intro_vars [v] vars;
+                    val vars' = CodegenThingol.intro_vars [v] vars;
                   in
-                    ((Pretty.block o Pretty.breaks) [str "fn", str (lookup_var vars' v), str "=>"], vars')
+                    ((Pretty.block o Pretty.breaks) [str "fn", str (CodegenThingol.lookup_var vars' v), str "=>"], vars')
                   end
               | pr ((v, SOME p), _) vars =
                   let
                     val vs = CodegenThingol.fold_varnames (insert (op =)) p [v];
-                    val vars' = intro_vars vs vars;
+                    val vars' = CodegenThingol.intro_vars vs vars;
                   in
-                    ((Pretty.block o Pretty.breaks) [str "fn", str (lookup_var vars' v), str "as",
+                    ((Pretty.block o Pretty.breaks) [str "fn", str (CodegenThingol.lookup_var vars' v), str "as",
                       pr_term vars' NOBR p, str "=>"], vars')
                   end;
             val (ps', vars') = fold_map pr ps vars;
@@ -388,7 +385,7 @@ fun pr_sml_def tyco_syntax const_syntax keyword_vars deresolv ml_def =
             fun mk ((p, _), t'') vars =
               let
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = intro_vars vs vars;
+                val vars' = CodegenThingol.intro_vars vs vars;
               in
                 (Pretty.block [
                   (Pretty.block o Pretty.breaks) [
@@ -412,7 +409,7 @@ fun pr_sml_def tyco_syntax const_syntax keyword_vars deresolv ml_def =
             fun pr definer (p, t) =
               let
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = intro_vars vs vars;
+                val vars' = CodegenThingol.intro_vars vs vars;
               in
                 (Pretty.block o Pretty.breaks) [
                   str definer,
@@ -485,8 +482,8 @@ fun pr_sml_def tyco_syntax const_syntax keyword_vars deresolv ml_def =
                         then NONE else (SOME o NameSpace.base o deresolv) c)
                         ((fold o CodegenThingol.fold_constnames) (insert (op =)) (t :: ts) []);
                     val vars = keyword_vars
-                      |> intro_vars consts
-                      |> intro_vars ((fold o CodegenThingol.fold_unbound_varnames) (insert (op =)) (t :: ts) []);
+                      |> CodegenThingol.intro_vars consts
+                      |> CodegenThingol.intro_vars ((fold o CodegenThingol.fold_unbound_varnames) (insert (op =)) (t :: ts) []);
                   in
                     (Pretty.block o Pretty.breaks) (
                       [str definer, (str o deresolv) name]
@@ -574,7 +571,7 @@ fun pr_sml_def tyco_syntax const_syntax keyword_vars deresolv ml_def =
                     then NONE else (SOME o NameSpace.base o deresolv) c)
                     (CodegenThingol.fold_constnames (insert (op =)) t []);
                 val vars = keyword_vars
-                  |> intro_vars consts;
+                  |> CodegenThingol.intro_vars consts;
               in
                 (Pretty.block o Pretty.breaks) [
                   (str o suffix "_" o NameSpace.base) classop,
@@ -599,7 +596,7 @@ fun pr_sml_def tyco_syntax const_syntax keyword_vars deresolv ml_def =
 
 (** Haskell serializer **)
 
-fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here deresolv def =
+fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here deresolv deriving_show def =
   let
     val is_cons = CodegenNames.has_nsp CodegenNames.nsp_dtco;
     fun class_name class = case class_syntax class
@@ -616,7 +613,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
         | xs => Pretty.block [
             Pretty.enum "," "(" ")" (
               map (fn (v, class) => str
-                (class_name class ^ " " ^ lookup_var tyvars v)) xs
+                (class_name class ^ " " ^ CodegenThingol.lookup_var tyvars v)) xs
             ),
             str " => "
           ];
@@ -639,7 +636,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
             pr_typ tyvars (INFX (1, R)) t2
           ]
       | pr_typ tyvars fxy (ITyVar v) =
-          (str o lookup_var tyvars) v;
+          (str o CodegenThingol.lookup_var tyvars) v;
     fun pr_typscheme_expr tyvars (vs, tycoexpr) =
       Pretty.block [pr_typparms tyvars vs, pr_tycoexpr tyvars NOBR tycoexpr];
     fun pr_typscheme tyvars (vs, ty) =
@@ -655,19 +652,19 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
                   pr_term vars BR t2
                 ])
       | pr_term vars fxy (IVar v) =
-          (str o lookup_var vars) v
+          (str o CodegenThingol.lookup_var vars) v
       | pr_term vars fxy (t as _ `|-> _) =
           let
             val (ps, t') = CodegenThingol.unfold_abs t;
             fun pr ((v, SOME p), _) vars =
                   let
                     val vs = CodegenThingol.fold_varnames (insert (op =)) p [v];
-                    val vars' = intro_vars vs vars;
-                  in ((Pretty.block o Pretty.breaks) [str (lookup_var vars' v), str "@", pr_term vars' BR p], vars') end
+                    val vars' = CodegenThingol.intro_vars vs vars;
+                  in ((Pretty.block o Pretty.breaks) [str (CodegenThingol.lookup_var vars' v), str "@", pr_term vars' BR p], vars') end
               | pr ((v, NONE), _) vars =
                   let
-                    val vars' = intro_vars [v] vars;
-                  in (str (lookup_var vars' v), vars') end;
+                    val vars' = CodegenThingol.intro_vars [v] vars;
+                  in (str (CodegenThingol.lookup_var vars' v), vars') end;
             val (ps', vars') = fold_map pr ps vars;
           in
             brackify BR (
@@ -695,7 +692,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
             fun pr ((p, _), t) vars =
               let
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = intro_vars vs vars;
+                val vars' = CodegenThingol.intro_vars vs vars;
               in
                 ((Pretty.block o Pretty.breaks) [
                   pr_term vars' BR p,
@@ -713,7 +710,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
             fun pr (p, t) =
               let
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = intro_vars vs vars;
+                val vars' = CodegenThingol.intro_vars vs vars;
               in
                 (Pretty.block o Pretty.breaks) [
                   pr_term vars' NOBR p,
@@ -735,7 +732,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
       mk_app (pr_app' vars) (pr_term vars) const_syntax fxy;
     fun pr_def (name, CodegenThingol.Fun (funn as (eqs, (vs, ty)))) =
           let
-            val tyvars = intro_vars (map fst vs) keyword_vars;
+            val tyvars = CodegenThingol.intro_vars (map fst vs) keyword_vars;
             fun pr_eq (ts, t) =
               let
                 val consts = map_filter
@@ -743,8 +740,8 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
                     then NONE else (SOME o NameSpace.base o deresolv) c)
                     ((fold o CodegenThingol.fold_constnames) (insert (op =)) (t :: ts) []);
                 val vars = keyword_vars
-                  |> intro_vars consts
-                  |> intro_vars ((fold o CodegenThingol.fold_unbound_varnames) (insert (op =)) (t :: ts) []);
+                  |> CodegenThingol.intro_vars consts
+                  |> CodegenThingol.intro_vars ((fold o CodegenThingol.fold_unbound_varnames) (insert (op =)) (t :: ts) []);
               in
                 (Pretty.block o Pretty.breaks) (
                   (str o deresolv_here) name
@@ -761,41 +758,39 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
               ]
               :: (map pr_eq o fst o snd o constructive_fun) (name, funn)
             )
-          end |> SOME
+          end
       | pr_def (name, CodegenThingol.Datatype (vs, [(co, [ty])])) =
           let
-            val tyvars = intro_vars (map fst vs) keyword_vars;
+            val tyvars = CodegenThingol.intro_vars (map fst vs) keyword_vars;
           in
-            (Pretty.block o Pretty.breaks) [
+            (Pretty.block o Pretty.breaks) ([
               str "newtype",
               pr_typscheme_expr tyvars (vs, (deresolv_here name, map (ITyVar o fst) vs)),
               str "=",
               (str o deresolv_here) co,
               pr_typ tyvars BR ty
-            ]
-          end |> SOME
+            ] @ (if deriving_show name then [str "deriving Read, Show"] else []))
+          end
       | pr_def (name, CodegenThingol.Datatype (vs, co :: cos)) =
           let
-            val tyvars = intro_vars (map fst vs) keyword_vars;
+            val tyvars = CodegenThingol.intro_vars (map fst vs) keyword_vars;
             fun pr_co (co, tys) =
               (Pretty.block o Pretty.breaks) (
                 (str o deresolv_here) co
                 :: map (pr_typ tyvars BR) tys
               )
           in
-            (Pretty.block o Pretty.breaks) (
+            (Pretty.block o Pretty.breaks) ((
               str "data"
               :: pr_typscheme_expr tyvars (vs, (deresolv_here name, map (ITyVar o fst) vs))
               :: str "="
               :: pr_co co
               :: map ((fn p => Pretty.block [str "| ", p]) o pr_co) cos
-            )
-          end |> SOME
-      | pr_def (_, CodegenThingol.Datatypecons _) =
-          NONE
+            ) @ (if deriving_show name then [str "deriving Read, Show"] else []))
+          end
       | pr_def (name, CodegenThingol.Class (superclasss, (v, classops))) =
           let
-            val tyvars = intro_vars [v] keyword_vars;
+            val tyvars = CodegenThingol.intro_vars [v] keyword_vars;
             fun pr_classop (classop, ty) =
               Pretty.block [
                 str (deresolv_here classop ^ " ::"),
@@ -806,17 +801,15 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
             Pretty.block [
               str "class ",
               pr_typparms tyvars [(v, superclasss)],
-              str (deresolv_here name ^ " " ^ v),
+              str (deresolv_here name ^ " " ^ CodegenThingol.lookup_var tyvars v),
               str " where",
               Pretty.fbrk,
               Pretty.chunks (map pr_classop classops)
             ]
-          end |> SOME
-      | pr_def (_, CodegenThingol.Classmember _) =
-          NONE
+          end
       | pr_def (_, CodegenThingol.Classinst ((class, (tyco, vs)), (_, classop_defs))) =
           let
-            val tyvars = intro_vars (map fst vs) keyword_vars;
+            val tyvars = CodegenThingol.intro_vars (map fst vs) keyword_vars;
           in
             Pretty.block [
               str "instance ",
@@ -832,7 +825,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
                       then NONE else (SOME o NameSpace.base o deresolv) c)
                       (CodegenThingol.fold_constnames (insert (op =)) t []);
                   val vars = keyword_vars
-                    |> intro_vars consts;
+                    |> CodegenThingol.intro_vars consts;
                 in
                   (Pretty.block o Pretty.breaks) [
                     (str o classop_name class) classop,
@@ -842,9 +835,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
                 end
               ) classop_defs)
             ]
-          end |> SOME
-      | pr_def (_, CodegenThingol.Bot) =
-          NONE;
+          end;
   in pr_def def end;
 
 val reserved_haskell = [
@@ -853,24 +844,108 @@ val reserved_haskell = [
   "newtype", "instance", "if", "then", "else", "type", "as", "do", "module"
 ];
 
-fun seri_haskell module_prefix destination reserved_user module_alias module_prolog
+fun seri_haskell module_prefix destination string_classes reserved_user module_alias module_prolog
   class_syntax tyco_syntax const_syntax code =
   let
-    val init_vars = make_vars (reserved_haskell @ reserved_user);
-  in () end;
+    val _ = Option.map File.assert destination;
+    val empty_names = Name.make_context (reserved_haskell @ reserved_user);
+    fun prefix_modlname modlname = case module_prefix
+     of NONE => modlname
+      | SOME module_prefix => NameSpace.append module_prefix modlname;
+    fun add_def (name, (def, deps)) =
+      let
+        val (modl, (shallow, base)) = dest_name name;
+        val base' = if member (op =)
+          [CodegenNames.nsp_class, CodegenNames.nsp_tyco, CodegenNames.nsp_dtco] shallow
+          then first_upper base else base;
+        fun mk name = (the_single o fst) (Name.variants [name] empty_names);
+        fun mk' name names = names |> Name.variants [name] |>> the_single;
+        val modlname = NameSpace.pack modl;
+        val modlname' = case module_alias modlname
+         of SOME modlname' => prefix_modlname modlname'
+          | NONE => NameSpace.pack (map_filter I (module_prefix :: map (SOME o mk) modl));
+        val deps' = remove (op =) modlname (map (NameSpace.qualifier o NameSpace.qualifier) deps);
+        fun add_def base' =
+          case def
+           of CodegenThingol.Datatypecons _ => I
+                cons (name, ((NameSpace.append modlname' base', base'), NONE))
+            | CodegenThingol.Classop _ =>
+                cons (name, ((NameSpace.append modlname' base', base'), NONE))
+            | CodegenThingol.Bot => I
+            | _ => cons (name, ((NameSpace.append modlname' base', base'), SOME def));
+      in
+        Symtab.map_default (modlname, (modlname', ([], ([], empty_names))))
+            ((apsnd o apfst) (fold (insert (op =)) deps'))
+        #> `(fn code => mk' base' ((snd o snd o snd o the o Symtab.lookup code) modlname))
+        #-> (fn (base', names) =>
+              Symtab.map_entry modlname ((apsnd o apsnd) (fn (defs, _) =>
+              (add_def base' defs, names))))
+      end;
+    val code' =
+      fold add_def (AList.make (fn name => (Graph.get_node code name, Graph.imm_succs code name))
+        (Graph.strong_conn code |> flat)) Symtab.empty;
+    val init_vars = CodegenThingol.make_vars (reserved_haskell @ reserved_user);
+    fun deresolv name =
+      (fst o fst o the o AList.lookup (op =) ((fst o snd o snd o the
+        o Symtab.lookup code') ((NameSpace.qualifier o NameSpace.qualifier) name))) name;
+    fun deresolv_here name =
+      (snd o fst o the o AList.lookup (op =) ((fst o snd o snd o the
+        o Symtab.lookup code') ((NameSpace.qualifier o NameSpace.qualifier) name))) name;
+    val deresolv_module = fst o the o Symtab.lookup code';
+    fun deriving_show tyco =
+      let
+        fun deriv tycos tyco = member (op =) tycos tyco orelse
+          case Graph.get_node code tyco
+           of CodegenThingol.Bot => true
+            | CodegenThingol.Datatype (_, cs) => forall (deriv' (tyco :: tycos))
+                (maps snd cs)
+        and deriv' tycos (tyco `%% tys) = deriv tycos tyco
+              andalso forall (deriv' tycos) tys
+          | deriv' _ (_ `-> _) = false
+          | deriv' _ (ITyVar _) = true
+      in deriv [] tyco end;
+    val seri_def = pr_haskell class_syntax tyco_syntax const_syntax init_vars
+      deresolv_here deresolv (if string_classes then deriving_show else K false);
+    fun write_module (SOME destination) modlname p =
+          let
+            val filename = case modlname
+             of "" => Path.unpack "Main.hs"
+              | _ => (Path.ext "hs" o Path.unpack o implode o separate "/" o NameSpace.unpack) modlname;
+            val pathname = Path.append destination filename;
+            val _ = File.mkdir (Path.dir pathname);
+          in File.write pathname (Pretty.setmp_margin 999999 Pretty.output p ^ "\n") end
+      | write_module NONE _ p =
+          writeln (Pretty.setmp_margin 999999 Pretty.output p ^ "\n");
+    fun seri_module (modlname, (modlname', (imports, (defs, _)))) =
+      Pretty.chunks (
+        str ("module " ^ modlname' ^ " where")
+        :: map str (distinct (op =) (map (prefix "import qualified " o deresolv_module) imports)) @ (
+        (case module_prolog modlname
+         of SOME prolog => [str "", prolog, str ""]
+          | NONE => [str ""])
+        @ separate (str "") (map_filter
+          (fn (name, (_, SOME def)) => SOME (seri_def (name, def))
+            | (_, (_, NONE)) => NONE) defs))
+      ) |> write_module destination modlname';
+  in Symtab.fold (fn modl => fn () => seri_module modl) code' () end;
 
+val isar_seri_haskell =
+  parse_args (Scan.option (Args.$$$ "root" -- Args.colon |-- Args.name)
+    -- Scan.optional (Args.$$$ "string_classes" >> K true) false
+    -- (Args.$$$ "-" >> K NONE || Args.name >> SOME)
+    >> (fn ((module_prefix, string_classes), destination) =>
+      seri_haskell module_prefix (Option.map Path.unpack destination) string_classes));
 
 
 (** diagnosis serializer **)
 
 fun seri_diagnosis _ _ _ _ _ code =
   let
-    val init_vars = make_vars reserved_haskell;
-    val pr = pr_haskell (K NONE) (K NONE) (K NONE) init_vars I I;
+    val init_vars = CodegenThingol.make_vars reserved_haskell;
+    val pr = pr_haskell (K NONE) (K NONE) (K NONE) init_vars I I (K false);
   in
     []
-    |> Graph.fold (fn (name, (def, _)) =>
-        case pr (name, def) of SOME p => cons p | NONE => I) code
+    |> Graph.fold (fn (name, (def, _)) => cons (pr (name, def))) code
     |> separate (Pretty.str "")
     |> Pretty.chunks
     |> Pretty.writeln
@@ -878,7 +953,7 @@ fun seri_diagnosis _ _ _ _ _ code =
 
 
 
-(** generic abstract serializer **)
+(** ML abstract serializer -- FIXME to be refactored **)
 
 structure NameMangler = NameManglerFun (
   type ctxt = (string * string -> string) * (string -> string option);
@@ -974,27 +1049,6 @@ fun code_serialize seri_defs seri_module validate postprocess nsp_conn name_root
             val (name', _) = get_path_name rem tab';
           in NameSpace.pack name' end handle BIND => (error ("Missing name: " ^ quote name ^ ", in " ^ quote (NameSpace.pack prefix)));
       in deresolv (mk module (AList.make (K NameMangler.empty) nsp_conn) Symtab.empty) end;
-    fun allimports_of modl =
-      let
-        fun imps_of prfx (Module modl) imps tab =
-              let
-                val this = NameSpace.pack prfx;
-                val name_con = (rev o Graph.strong_conn) modl;
-              in
-                tab
-                |> pair []
-                |> fold (fn names => fn (imps', tab) =>
-                    tab
-                    |> fold_map (fn name =>
-                         imps_of (prfx @ [name]) (Graph.get_node modl name) (imps' @ imps)) names
-                    |-> (fn imps'' => pair (flat imps'' @ imps'))) name_con
-                |-> (fn imps' =>
-                   Symtab.update_new (this, imps' @ imps)
-                #> pair (this :: imps'))
-              end
-          | imps_of prfx (Def _) imps tab =
-              ([], tab);
-      in snd (imps_of [] (Module modl) [] Symtab.empty) end;
     fun add_def ((names_mod, name_id), def) =
       let
         fun add [] =
@@ -1031,26 +1085,22 @@ fun code_serialize seri_defs seri_module validate postprocess nsp_conn name_root
       |> Graph.fold (fn (name, (_, (_, deps))) =>
           fold (curry add_dep name) deps) code;
     val names = map fst (Graph.dest root_module);
-    val imptab = allimports_of root_module;
     val resolver = mk_deresolver root_module nsp_conn postprocess validate;
     fun sresolver s = (resolver o NameSpace.unpack) s
     fun mk_name prfx name =
       let
         val name_qual = NameSpace.pack (prfx @ [name])
       in (name_qual, resolver prfx name_qual) end;
-    fun is_bot (_, (Def Bot)) = true
-      | is_bot _ = false;
     fun mk_contents prfx module =
       map_filter (seri prfx)
         ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)
     and seri prfx [(name, Module modl)] =
-          seri_module (resolver []) (map (resolver []) ((the o Symtab.lookup imptab) (NameSpace.pack (prfx @ [name]))))
-            (mk_name prfx name, mk_contents (prfx @ [name]) modl)
+          seri_module (resolver []) (mk_name prfx name, mk_contents (prfx @ [name]) modl)
       | seri prfx ds =
           seri_defs sresolver (NameSpace.pack prfx)
             (map (fn (name, Def def) => (fst (mk_name prfx name), def)) ds)
   in
-    seri_module (resolver []) (map (resolver []) ((the o Symtab.lookup imptab) ""))
+    seri_module (resolver [])
       (("", name_root), (mk_contents [] root_module))
   end;
 
@@ -1059,8 +1109,8 @@ fun abstract_serializer nspgrp name_root (from_defs, from_module, validator, pos
     reserved_user module_alias module_prolog class_syntax tyco_syntax const_syntax
     code =
   let
-    fun from_module' resolv imps ((name_qual, name), defs) =
-      from_module resolv imps ((name_qual, name), defs)
+    fun from_module' resolv ((name_qual, name), defs) =
+      from_module resolv ((name_qual, name), defs)
       |> postprocess (resolv name_qual);
   in
     code_serialize (from_defs (class_syntax, tyco_syntax, const_syntax))
@@ -1086,43 +1136,15 @@ fun abstract_validator keywords name =
     |> (fn name' => if name = name' then NONE else SOME name')
   end;
 
-fun write_file mkdir path p = (
-    if mkdir
-      then
-        File.mkdir (Path.dir path)
-      else ();
-      File.write path (Pretty.output p ^ "\n");
-      p
-  );
-
-fun mk_module_file postprocess_module ext path name p =
-  let
-    val prfx = Path.dir path;
-    val name' = case name
-     of "" => Path.base path
-      | _ => (Path.ext ext o Path.unpack o implode o separate "/" o NameSpace.unpack) name;
-  in
-    p
-    |> Pretty.setmp_margin 999999 (write_file true (Path.append prfx name'))
-    |> postprocess_module name
-  end;
-
-fun parse_args f args =
-  case f args
-   of (x, []) => x
-    | (_, _) => error "bad serializer arguments";
+fun write_file path p = (File.write path (Pretty.output p ^ "\n"); p);
 
 val sml_code_width = ref 80;
 
 fun parse_single_file serializer =
   parse_args (Args.name
   >> (fn path => serializer
-        (fn "" => Pretty.setmp_margin (!sml_code_width) (write_file false (Path.unpack path)) #> K NONE
+        (fn "" => Pretty.setmp_margin (!sml_code_width) (write_file (Path.unpack path)) #> K NONE
           | _ => SOME)));
-
-fun parse_multi_file postprocess_module ext serializer =
-  parse_args (Args.name
-  >> (fn path => (serializer o mk_module_file postprocess_module ext) (Path.unpack path)));
 
 fun parse_internal serializer =
   parse_args (Args.name
@@ -1143,7 +1165,6 @@ val nsp_class = CodegenNames.nsp_class;
 val nsp_tyco = CodegenNames.nsp_tyco;
 val nsp_inst = CodegenNames.nsp_inst;
 val nsp_fun = CodegenNames.nsp_fun;
-val nsp_classop = CodegenNames.nsp_classop;
 val nsp_dtco = CodegenNames.nsp_dtco;
 val nsp_eval = CodegenNames.nsp_eval;
 
@@ -1160,7 +1181,7 @@ val reserved_ml' = [
 fun ml_from_defs (_, tyco_syntax, const_syntax) deresolver prefx defs =
   let
     val seri = pr_sml_def tyco_syntax const_syntax
-      (make_vars (ThmDatabase.ml_reserved @ reserved_ml'))
+      (CodegenThingol.make_vars (ThmDatabase.ml_reserved @ reserved_ml'))
       (deresolver prefx) #> SOME;
     val filter_funs =
       map
@@ -1178,7 +1199,7 @@ fun ml_from_defs (_, tyco_syntax, const_syntax) deresolver prefx defs =
     fun filter_class defs =
       case map_filter
         (fn (name, CodegenThingol.Class info) => SOME (name, info)
-          | (name, CodegenThingol.Classmember _) => NONE
+          | (name, CodegenThingol.Classop _) => NONE
           | (name, def) => error ("Class block containing illegal def: " ^ quote name)
         ) defs
        of [class] => MLClass class
@@ -1188,14 +1209,14 @@ fun ml_from_defs (_, tyco_syntax, const_syntax) deresolver prefx defs =
     | (_, CodegenThingol.Datatypecons _)::_ => (seri o filter_datatype) defs
     | (_, CodegenThingol.Datatype _)::_ => (seri o filter_datatype) defs
     | (_, CodegenThingol.Class _)::_ => (seri o filter_class) defs
-    | (_, CodegenThingol.Classmember _)::_ => (seri o filter_class) defs
+    | (_, CodegenThingol.Classop _)::_ => (seri o filter_class) defs
     | [(inst, CodegenThingol.Classinst info)] => seri (MLClassinst (inst, info))
     | defs => error ("Illegal mutual dependencies: " ^ (commas o map fst) defs)
   end;
 
 fun ml_serializer root_name nspgrp =
   let
-    fun ml_from_module resolv _ ((_, name), ps) =
+    fun ml_from_module resolv ((_, name), ps) =
       Pretty.chunks ([
         str ("structure " ^ name ^ " = "),
         str "struct",
@@ -1205,12 +1226,9 @@ fun ml_serializer root_name nspgrp =
         str ("end; (* struct " ^ name ^ " *)")
       ]);
     fun postproc (shallow, n) =
-      let
-        fun ch_first f = String.implode o nth_map 0 f o String.explode;
-      in if shallow = CodegenNames.nsp_dtco
-        then ch_first Char.toUpper n
-        else n
-      end;
+      if shallow = CodegenNames.nsp_dtco
+        then first_upper n
+        else n;
   in abstract_serializer nspgrp
     root_name (ml_from_defs, ml_from_module,
      abstract_validator (ThmDatabase.ml_reserved @ reserved_ml'), postproc) end;
@@ -1220,17 +1238,9 @@ in
 fun ml_from_thingol args =
   let
     val serializer = ml_serializer "ROOT" [[nsp_module], [nsp_class, nsp_tyco],
-      [nsp_fun, nsp_dtco, nsp_class, nsp_classop, nsp_inst]]
-    val parse_multi =
-      Args.name
-      #-> (fn "dir" =>
-               parse_multi_file
-                 (K o SOME o str o suffix ";" o prefix "val _ = use "
-                  o quote o suffix ".ML" o translate_string (fn "." => "/" | s => s)) "ML" serializer
-            | _ => Scan.fail ());
+      [nsp_fun, nsp_dtco, nsp_class, nsp_inst]]
   in
-    (parse_multi
-    || parse_internal serializer
+    (parse_internal serializer
     || parse_stdout serializer
     || parse_single_file serializer) args
   end;
@@ -1245,7 +1255,7 @@ fun eval_term_proto thy data1 data2 data3 data4 data5 data6 hidden ((ref_name, r
     fun output p = if !eval_verbose then (Pretty.writeln p; Pretty.output p)
       else Pretty.output p;
     val serializer = ml_serializer struct_name [[nsp_module], [nsp_class, nsp_tyco],
-      [nsp_fun, nsp_dtco, nsp_class, nsp_classop, nsp_inst], [nsp_eval]]
+      [nsp_fun, nsp_dtco, nsp_class, nsp_inst], [nsp_eval]]
       (fn "" => (fn p => (use_text Output.ml_output (!eval_verbose) (output p); NONE))
         | _ => SOME) data1 data2 data3 data4 data5 data6;
     val _ = serializer code'';
@@ -1258,70 +1268,7 @@ fun eval_term_proto thy data1 data2 data3 data4 data5 data6 hidden ((ref_name, r
     | SOME value => value
   end;
 
-structure NameMangler = NameManglerFun (
-  type ctxt = string list;
-  type src = string;
-  val ord = string_ord;
-  fun mk reserved_ml (name, i) =
-    (Symbol.alphanum o NameSpace.base) name ^ replicate_string i "'";
-  fun is_valid (reserved_ml : string list) = not o member (op =) reserved_ml;
-  fun maybe_unique _ _ = NONE;
-  fun re_mangle _ dst = error ("No such definition name: " ^ quote dst);
-);
-
-fun mk_flat_ml_resolver names =
-  let
-    val mangler =
-      NameMangler.empty
-      |> fold_map (NameMangler.declare (ThmDatabase.ml_reserved @ reserved_ml')) names
-      |-> (fn _ => I)
-  in NameMangler.get (ThmDatabase.ml_reserved @ reserved_ml') mangler end;
-
 end; (* local *)
-
-
-(** haskell serializer **)
-
-fun hs_from_thingol args =
-  let
-    fun hs_from_defs keyword_vars (class_syntax, tyco_syntax, const_syntax) deresolver prefix defs =
-      let
-        val deresolv = deresolver "";
-        val deresolv_here = deresolver prefix;
-        val hs_from_def = pr_haskell class_syntax tyco_syntax const_syntax
-          keyword_vars deresolv_here deresolv;
-      in case map_filter hs_from_def defs
-       of [] => NONE
-        | ps => (SOME o Pretty.chunks o separate (str "")) ps
-      end;
-    val reserved_hs = [
-      "hiding", "deriving", "where", "case", "of", "infix", "infixl", "infixr",
-      "import", "default", "forall", "let", "in", "class", "qualified", "data",
-      "newtype", "instance", "if", "then", "else", "type", "as", "do", "module"
-    ] @ [
-      "Bool", "Integer", "Maybe", "True", "False", "Nothing", "Just", "not", "negate",
-      "String", "Char"
-    ];
-    fun hs_from_module resolv imps ((_, name), ps) =
-      (Pretty.chunks) (
-        str ("module " ^ name ^ " where")
-        :: map (str o prefix "import qualified ") imps @ (
-          str ""
-          :: separate (str "") ps
-      ));
-    fun postproc (shallow, n) =
-      let
-        fun ch_first f = String.implode o nth_map 0 f o String.explode;
-      in if member (op =) [nsp_module, nsp_class, nsp_tyco, nsp_dtco] shallow
-        then ch_first Char.toUpper n
-        else ch_first Char.toLower n
-      end;
-    val serializer = abstract_serializer [[nsp_module],
-      [nsp_class], [nsp_tyco], [nsp_fun, nsp_classop], [nsp_dtco], [nsp_inst]]
-      "Main" (hs_from_defs (make_vars reserved_hs), hs_from_module, abstract_validator reserved_hs, postproc);
-  in
-    (parse_multi_file ((K o K) NONE) "hs" serializer) args
-  end;
 
 
 
@@ -1441,7 +1388,7 @@ val target_diag = "diag";
 val _ = Context.add_setup (
   CodegenSerializerData.init
   #> add_serializer ("SML", ml_from_thingol)
-  #> add_serializer ("Haskell", hs_from_thingol)
+  #> add_serializer ("Haskell", isar_seri_haskell)
   #> add_serializer (target_diag, (fn _ => fn _ => seri_diagnosis))
 );
 
@@ -1462,6 +1409,11 @@ fun get_serializer thy target args cs =
     project #> seri args reserved (Symtab.lookup alias) (Symtab.lookup prolog)
       (fun_of class) (fun_of tyco) (fun_of const)
   end;
+
+fun assert_serializer thy target =
+  case Symtab.lookup (CodegenSerializerData.get thy) target
+   of SOME data => target
+    | NONE => error ("Unknown code target language: " ^ quote target);
 
 fun has_serialization f thy targets name =
   forall (
@@ -1667,19 +1619,21 @@ val code_reservedP =
   )
 
 val code_modulenameP =
-  OuterSyntax.command code_reservedK "alias module to other name" K.thy_decl (
+  OuterSyntax.command code_modulenameK "alias module to other name" K.thy_decl (
     P.name -- Scan.repeat1 (P.name -- P.name)
     >> (fn (target, modlnames) => (Toplevel.theory o fold (add_modl_alias target)) modlnames)
   )
 
 val code_moduleprologP =
-  OuterSyntax.command code_reservedK "add prolog to module" K.thy_decl (
+  OuterSyntax.command code_moduleprologK "add prolog to module" K.thy_decl (
     P.name -- Scan.repeat1 (P.name -- (P.string >> (fn "-" => NONE | s => SOME s)))
     >> (fn (target, prologs) => (Toplevel.theory o fold (add_modl_prolog target)) prologs)
   )
 
 val _ = OuterSyntax.add_parsers [code_classP, code_instanceP, code_typeP, code_constP,
   code_reservedP, code_modulenameP, code_moduleprologP];
+
+val _ = Context.add_setup (add_reserved "Haskell" "Show" #> add_reserved "Haskell" "Read")
 
 end; (*local*)
 
