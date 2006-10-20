@@ -2648,6 +2648,12 @@ code_const "Code_Generator.eq \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \
 code_const "Code_Generator.eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
+code_reserved SML
+  list char
+
+code_reserved Haskell
+  Char
+
 setup {*
 let
 
@@ -2682,7 +2688,7 @@ end;
 subsubsection {* Generation of efficient code *}
 
 consts
-  mem :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl 55)
+  memberl :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl "mem" 55)
   null:: "'a list \<Rightarrow> bool"
   list_inter :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
   list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
@@ -2693,7 +2699,7 @@ consts
 
 primrec
   "x mem [] = False"
-  "x mem (y#ys) = (if y = x then True else x mem ys)"
+  "x mem (y#ys) = (x = y \<or> x mem ys)"
 
 primrec
   "null [] = True"

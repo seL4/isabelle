@@ -943,6 +943,9 @@ code_const "uminus \<Colon> int \<Rightarrow> int"
   (SML target_atom "IntInf.~")
   (Haskell target_atom "negate")
 
+code_reserved SML IntInf
+code_reserved Haskell Integer negate
+
 ML {*
 fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",
       Type ("fun", [_, T as Type ("IntDef.int", [])])) $ bin) =

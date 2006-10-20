@@ -106,6 +106,8 @@ setup {*
 code_const arbitrary
   (Haskell target_atom "(error \"arbitrary\")")
 
+code_reserved SML Fail
+code_reserved Haskell error
 
 subsection {* Operational equality for code generation *}
 
@@ -169,6 +171,8 @@ code_instance bool :: eq
 code_const "eq \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
+code_reserved Haskell
+  Eq eq
 
 subsection {* normalization by evaluation *}
 

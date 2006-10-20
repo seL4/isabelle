@@ -85,4 +85,6 @@ code_const Type and TFix
   (SML "Term.Type (_, _)" and "Term.TFree (_, _)"
     and "Term.Const (_, _)" and "Term.$ (_, _)" and "Term.Free (_, _)")
 
+code_reserved SML Term
+
 end

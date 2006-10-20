@@ -74,4 +74,7 @@ code_const explode
   (SML target_atom "String.explode")
   (Haskell "_")
 
+code_reserved SML string explode
+code_reserved Haskell string
+
 end

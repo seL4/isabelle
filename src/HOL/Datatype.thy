@@ -807,6 +807,12 @@ code_instance option :: eq
 code_const "Code_Generator.eq \<Colon> 'a\<Colon>eq option \<Rightarrow> 'a option \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
+code_reserved SML
+  bool true false not unit option NONE SOME
+
+code_reserved Haskell
+  Bool True False not Maybe Nothing Just
+
 ML
 {*
 val apfst_conv = thm "apfst_conv";
