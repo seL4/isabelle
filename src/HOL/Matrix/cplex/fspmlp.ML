@@ -107,24 +107,15 @@ fun add_edge g src_key dest_key row_index coeff =
 	     VarGraph.update (dest_key, (sure_bound, Inttab.update (row_index, (row_bound, (coeff, src_key) :: sources)) f)) g)
 
 fun split_graph g = 
-    let
-	fun split ((r1, r2), (key, (sure_bound, _))) = 
-	    case sure_bound of
-		NONE => (r1, r2)
-	      | SOME bound => 
-		(case key of
-		     (u, UPPER) => (r1, Inttab.update (u, bound) r2)
-		   | (u, LOWER) => (Inttab.update (u, bound) r1, r2))
-    in
-	VarGraph.foldl split ((Inttab.empty, Inttab.empty), g)
-    end
+  let
+    fun split (key, (sure_bound, _)) (r1, r2) = case sure_bound
+     of NONE => (r1, r2)
+      | SOME bound =>  (case key
+         of (u, UPPER) => (r1, Inttab.update (u, bound) r2)
+          | (u, LOWER) => (Inttab.update (u, bound) r1, r2))
+  in VarGraph.fold split g (Inttab.empty, Inttab.empty) end
 
-fun it2list t = 
-    let
-	fun tolist (l, a) = a::l
-    in
-	Inttab.foldl tolist ([], t)
-    end
+fun it2list t = Inttab.fold cons t [];
 
 (* If safe is true, termination is guaranteed, but the sure bounds may be not optimal (relative to the algorithm).
    If safe is false, termination is not guaranteed, but on termination the sure bounds are optimal (relative to the algorithm) *)
@@ -147,9 +138,9 @@ fun propagate_sure_bounds safe names g =
 
 		val mult_btype = case btype of UPPER => mult_upper | LOWER => mult_lower
 
-		fun calc_sure_bound (sure_bound, (row_index, (row_bound, sources))) = 
+		fun calc_sure_bound (row_index, (row_bound, sources)) sure_bound = 
 		    let
-			fun add_src_bound (sum, (coeff, src_key)) = 
+			fun add_src_bound (coeff, src_key) sum = 
 			    case sum of 
 				NONE => NONE
 			      | SOME x => 
@@ -157,7 +148,7 @@ fun propagate_sure_bounds safe names g =
 				     NONE => NONE
 				   | SOME src_sure_bound => SOME (FloatArith.add x (mult_btype src_sure_bound coeff)))
 		    in
-			case Library.foldl add_src_bound (SOME row_bound, sources) of
+			case fold add_src_bound sources (SOME row_bound) of
 			    NONE => sure_bound
 			  | new_sure_bound as (SOME new_bound) => 
 			    (case sure_bound of 
@@ -172,13 +163,13 @@ fun propagate_sure_bounds safe names g =
 		    NONE => NONE
 		  | SOME (sure_bound, f) =>
 		    let
-			val x = Inttab.foldl calc_sure_bound (sure_bound, f) 
+			val x = Inttab.fold calc_sure_bound f sure_bound
 		    in
 			if x = sure_bound then NONE else x
 		    end		
     	    end
 
-	fun propagate ((g, b), (key, _)) = 
+	fun propagate (key, _) (g, b) = 
 	    case calc_sure_bound_from_sources g key of 
 		NONE => (g,b)
 	      | SOME bound => (update_sure_bound g key bound, 
@@ -189,7 +180,7 @@ fun propagate_sure_bounds safe names g =
 			       else
 				   true)
 
-	val (g, b) = VarGraph.foldl propagate ((g, false), g) 
+	val (g, b) = VarGraph.fold propagate g (g, false)
     in
 	if b then propagate_sure_bounds safe names g else g	
     end	    
@@ -212,15 +203,15 @@ fun calcr safe_propagation xlen names prec A b =
 		 else 0)
 	    else 0	
 
-	fun calcr (g, (row_index, a)) = 
-	    let				
+	fun calcr (row_index, a) g = 
+	    let
 		val b =  FloatSparseMatrixBuilder.v_elem_at b row_index
 		val (_, b2) = ExactFloatingPoint.approx_decstr_by_bin prec (case b of NONE => "0" | SOME b => b)
-		val approx_a = FloatSparseMatrixBuilder.v_fold (fn (l, (i,s)) => 
-								   (i, ExactFloatingPoint.approx_decstr_by_bin prec s)::l) [] a
+		val approx_a = FloatSparseMatrixBuilder.v_fold (fn (i, s) => fn l => 
+								   (i, ExactFloatingPoint.approx_decstr_by_bin prec s)::l) a []
 			       
-		fun fold_dest_nodes (g, (dest_index, dest_value)) = 
-		    let		
+		fun fold_dest_nodes (dest_index, dest_value) g = 
+		    let
 			val dest_test = test_1 dest_value
 		    in
 			if dest_test = 0 then
@@ -232,7 +223,7 @@ fun calcr safe_propagation xlen names prec A b =
 				    else
 					((dest_index, UPPER), b2)
 					
-				fun fold_src_nodes (g, (src_index, src_value as (src_lower, src_upper))) = 
+				fun fold_src_nodes (src_index, src_value as (src_lower, src_upper)) g = 
 				    if src_index = dest_index then g
 				    else
 					let
@@ -246,7 +237,7 @@ fun calcr safe_propagation xlen names prec A b =
 						add_edge g (src_index, LOWER) dest_key row_index coeff
 					end
 			    in	    
-				Library.foldl fold_src_nodes ((add_row_bound g dest_key row_index row_bound), approx_a)
+				fold fold_src_nodes approx_a (add_row_bound g dest_key row_index row_bound)
 			    end
 		    end
 	    in
@@ -263,10 +254,10 @@ fun calcr safe_propagation xlen names prec A b =
 			else
 			    g
 		    end
-		  | _ => Library.foldl fold_dest_nodes (g, approx_a)
+		  | _ => fold fold_dest_nodes approx_a g
 	    end
 	
-	val g = FloatSparseMatrixBuilder.m_fold calcr VarGraph.empty A
+	val g = FloatSparseMatrixBuilder.m_fold calcr A VarGraph.empty
 	val g = propagate_sure_bounds safe_propagation names g
 
 	val (r1, r2) = split_graph g

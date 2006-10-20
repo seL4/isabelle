@@ -561,7 +561,7 @@ val rename_term = hd o rename_terms o single;
 fun is_instance thy T1 T2 =
   Sign.typ_instance thy (T1, Logic.legacy_varifyT T2);
 
-fun get_assoc_code thy s T = Option.map snd (Library.find_first (fn ((s', T'), _) =>
+fun get_assoc_code thy s T = Option.map snd (find_first (fn ((s', T'), _) =>
   s = s' andalso is_instance thy T T') (#consts (CodegenData.get thy)));
 
 fun get_aux_code xs = map_filter (fn (m, code) =>
@@ -581,16 +581,14 @@ fun mk_deftab thy =
         val (s, T) = dest_Const c
       in if forall is_Var args then SOME (s, (T, (args, rhs))) else NONE
       end handle TERM _ => NONE;
-    fun add_def thyname (defs, (name, t)) = (case dest t of
-        NONE => defs
+    fun add_def thyname (name, t) = (case dest t of
+        NONE => I
       | SOME _ => (case dest (prep_def (Thm.get_axiom thy name)) of
-          NONE => defs
-        | SOME (s, (T, (args, rhs))) => Symtab.update
-            (s, (T, (thyname, split_last (rename_terms (args @ [rhs])))) ::
-            the_default [] (Symtab.lookup defs s)) defs))
+          NONE => I
+        | SOME (s, (T, (args, rhs))) => Symtab.map_default (s, [])
+            (cons (T, (thyname, split_last (rename_terms (args @ [rhs])))))))
   in
-    foldl (fn ((thyname, axms), defs) =>
-      Symtab.foldl (add_def thyname) (defs, axms)) Symtab.empty axmss
+    fold (fn (thyname, axms) => Symtab.fold (add_def thyname) axms) axmss Symtab.empty
   end;
 
 fun get_defn thy defs s T = (case Symtab.lookup defs s of
@@ -848,7 +846,7 @@ fun output_code gr module xs =
     fun string_of_cycle (a :: b :: cs) =
           let val SOME (x, y) = get_first (fn (x, (_, a', _)) =>
             if a = a' then Option.map (pair x)
-              (Library.find_first (equal b o #2 o Graph.get_node gr)
+              (find_first (equal b o #2 o Graph.get_node gr)
                 (Graph.imm_succs gr x))
             else NONE) code
           in x ^ " called by " ^ y ^ "\n" ^ string_of_cycle (b :: cs) end
@@ -987,7 +985,7 @@ fun test_term thy sz i t =
               Pretty.block [Pretty.str "SOME ", Pretty.block (Pretty.str "[" ::
                 flat (separate [Pretty.str ",", Pretty.brk 1]
                   (map (fn ((s, T), s') => [Pretty.block
-                    [Pretty.str ("(" ^ Library.quote (Symbol.escape s) ^ ","), Pretty.brk 1,
+                    [Pretty.str ("(" ^ quote (Symbol.escape s) ^ ","), Pretty.brk 1,
                      mk_app false (mk_term_of gr "Generated" false T)
                        [Pretty.str s'], Pretty.str ")"]]) frees')) @
                   [Pretty.str "]"])]],

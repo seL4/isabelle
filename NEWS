@@ -584,7 +584,7 @@ the oracle "Evaluation") if it evaluates to True.
 
 * Linear arithmetic now splits certain operators (e.g. min, max, abs)
 also when invoked by the simplifier.  This results in the simplifier
-being more powerful on arithmetic goals.  INCOMPATIBILTY.  Set
+being more powerful on arithmetic goals.  INCOMPATIBILITY.  Set
 fast_arith_split_limit to 0 to obtain the old behavior.
 
 * Support for hex (0x20) and binary (0b1001) numerals. 
@@ -632,9 +632,14 @@ means a goal is either solved or left unchanged, no simplification.
 
 *** ML ***
 
+* Pure/table:
+
+Function `...tab.foldl` removed.
+INCOMPATIBILITY: use `...tabfold` instead
+
 * Pure/library:
 
-gen_rem(s) abandoned in favour of remove / subtract.
+`gen_rem(s)` abandoned in favour of `remove` / `subtract`.
 INCOMPATIBILITY:
 rewrite "gen_rem eq (xs, x)" to "remove (eq o swap) x xs"
 rewrite "gen_rems eq (xs, ys)" to "subtract (eq o swap) ys xs"
@@ -642,7 +647,7 @@ drop "swap" if "eq" is symmetric.
 
 * Pure/library:
 
-infixes ins ins_string ins_int have been abandoned in favour of insert.
+infixes `ins` `ins_string` `ins_int` have been abandoned in favour of `insert`.
 INCOMPATIBILITY: rewrite "x ins(_...) xs" to "insert (op =) x xs"
 
 * Pure/General/susp.ML:

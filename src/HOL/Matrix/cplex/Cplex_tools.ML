@@ -729,13 +729,11 @@ fun singleton v = Symtab.update (v, ()) emptyset
 
 fun merge a b = Symtab.merge (op =) (a, b)
 
-fun mergemap f ts = Library.foldl
-			(fn (table, x) => merge table (f x))
-			(Symtab.empty, ts)
+fun mergemap f ts = fold (fn x => fn table => merge table (f x)) ts Symtab.empty
 
-fun diff a b = Symtab.foldl (fn (a, (k,v)) => 
+fun diff a b = Symtab.fold (fn (k, v) => fn a => 
 			 (Symtab.delete k a) handle UNDEF => a) 
-		     (a, b)
+		     b a
 		    
 fun collect_vars (cplexVar v) = singleton v
   | collect_vars (cplexNeg t) = collect_vars t
@@ -787,15 +785,13 @@ fun elim_nonfree_bounds (cplexProg (name, goal, constraints, bounds)) =
 			 cplexVar v, cplexLeq,
 			 cplexInf)
 	
-	val pos_constrs = rev(Symtab.foldl 
-			      (fn (l, (k,v)) => (make_pos_constr k) :: l)
-			      ([], positive_vars))
-        val bound_constrs = map (fn x => (NONE, x)) 
-				(Library.flat (map bound2constr bounds))
-	val constraints' = constraints @ pos_constrs @ bound_constrs	   
-	val bounds' = rev(Symtab.foldl (fn (l, (v,_)) => 
-					   (make_free_bound v)::l)
-				       ([], cvars))			  
+	val pos_constrs = rev (Symtab.fold
+			      (fn (k, v) => cons (make_pos_constr k))
+			      positive_vars [])
+        val bound_constrs = map (pair NONE)
+				(maps bound2constr bounds)
+	val constraints' = constraints @ pos_constrs @ bound_constrs
+	val bounds' = rev (Symtab.fold (fn (v, _) => cons (make_free_bound v)) cvars []);
     in
 	cplexProg (name, goal, constraints', bounds')
     end

@@ -421,10 +421,10 @@ struct
 		(* (string * Term.term) list *)
 		val axioms = Theory.all_axioms_of thy;
 		(* string list *)
-		val rec_names = Symtab.foldl (fn (acc, (_, info)) =>
-			#rec_names info @ acc) ([], DatatypePackage.get_datatypes thy)
+		val rec_names = Symtab.fold (fn (_, info) => fn acc =>
+			#rec_names info @ acc) (DatatypePackage.get_datatypes thy) []
 		(* string list *)
-		val const_of_class_names = map Logic.const_of_class (Sign.classes (sign_of thy))
+		val const_of_class_names = map Logic.const_of_class (Sign.classes thy)
 		(* given a constant 's' of type 'T', which is a subterm of 't', where  *)
 		(* 't' has a (possibly) more general type, the schematic type          *)
 		(* variables in 't' are instantiated to match the type 'T' (may raise  *)
@@ -1891,12 +1891,12 @@ struct
 		                      (* terms has had a chance to look at 't'               *)
 		  (Const (s, T), params) =>
 			(* iterate over all datatypes in 'thy' *)
-			Symtab.foldl (fn (result, (_, info)) =>
+			Symtab.fold (fn (_, info) => fn result =>
 				case result of
 				  SOME _ =>
 					result  (* just keep 'result' *)
 				| NONE =>
-					if s mem (#rec_names info) then
+					if member (op =) (#rec_names info) s then
 						(* we do have a recursion operator of the datatype given by 'info', *)
 						(* or of a mutually recursive datatype                              *)
 						let
@@ -2069,7 +2069,7 @@ struct
 						end
 					else
 						NONE  (* not a recursion operator of this datatype *)
-				) (NONE, DatatypePackage.get_datatypes thy)
+				) (DatatypePackage.get_datatypes thy) NONE
 		| _ =>  (* head of term is not a constant *)
 			NONE;
 

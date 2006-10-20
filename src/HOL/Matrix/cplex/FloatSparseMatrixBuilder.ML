@@ -30,8 +30,8 @@ sig
     val v_elem_at : vector -> int -> string option
     val m_elem_at : matrix -> int -> vector option
     val v_only_elem : vector -> int option
-    val v_fold : ('a * (int * string) -> 'a) -> 'a -> vector -> 'a
-    val m_fold : ('a * (int * vector) -> 'a) -> 'a -> matrix -> 'a
+    val v_fold : (int * string -> 'a -> 'a) -> vector -> 'a -> 'a
+    val m_fold : (int * vector -> 'a -> 'a) -> matrix -> 'a -> 'a
 
     val transpose_matrix : matrix -> matrix
 
@@ -129,7 +129,7 @@ fun cons_spmat h t = Cons_spmat_const $ h $ t
 
 fun approx_vector_term prec pprt vector = 
     let 	 
-	fun app ((vlower, vupper), (index, s)) = 
+	fun app (index, s) (vlower, vupper) = 
 	    let
 		val (flower, fupper) = approx_value_term prec pprt s
 		val index = mk_intinf HOLogic.natT (IntInf.fromInt index)
@@ -140,26 +140,22 @@ fun approx_vector_term prec pprt vector =
 		 Cons_spvec_const $ eupper $ vupper)	
 	    end
     in
-	Inttab.foldl app ((empty_vector_const, empty_vector_const), vector)	
+	Inttab.fold app vector (empty_vector_const, empty_vector_const)
     end
 
 fun approx_matrix_term prec pprt matrix =
-    let 	 
-	fun app ((mlower, mupper), (index, vector)) = 
-	    let
-		val (vlower, vupper) = approx_vector_term prec pprt vector  
-		val index = mk_intinf HOLogic.natT (IntInf.fromInt index)
-		val elower = HOLogic.mk_prod (index, vlower)
-		val eupper = HOLogic.mk_prod (index, vupper)
-	    in
-		(Cons_spmat_const $ elower $ mlower,
-		 Cons_spmat_const $ eupper $ mupper)		
-	    end
-		
-	val (mlower, mupper) = Inttab.foldl app ((empty_matrix_const, empty_matrix_const), matrix)
-    in
-	Inttab.foldl app ((empty_matrix_const, empty_matrix_const), matrix)	
-    end
+  let
+    fun app (index, vector) (mlower, mupper) =
+      let
+        val (vlower, vupper) = approx_vector_term prec pprt vector  
+        val index = mk_intinf HOLogic.natT (IntInf.fromInt index)
+        val elower = HOLogic.mk_prod (index, vlower)
+        val eupper = HOLogic.mk_prod (index, vupper)
+      in
+        (Cons_spmat_const $ elower $ mlower, Cons_spmat_const $ eupper $ mupper)
+      end
+    val (mlower, mupper) = Inttab.fold app matrix (empty_matrix_const, empty_matrix_const)
+  in Inttab.fold app matrix (empty_matrix_const, empty_matrix_const) end;
 
 fun approx_vector prec pprt vector =
     let
@@ -204,18 +200,11 @@ val empty_vector = Inttab.empty
 structure cplex = Cplex
 
 fun transpose_matrix matrix = 
-    let
-	fun upd m j i x =
-	    case Inttab.lookup m j of
-		SOME v => Inttab.update (j, Inttab.update (i, x) v) m
-	      | NONE => Inttab.update (j, Inttab.update (i, x) Inttab.empty) m
-
-	fun updv j (m, (i, s)) = upd m i j s
-
-	fun updm (m, (j, v)) = Inttab.foldl (updv j) (m, v)
-    in
-	Inttab.foldl updm (empty_matrix, matrix)
-    end
+  let
+    fun upd j (i, s) =
+      Inttab.map_default (i, Inttab.empty) (Inttab.update (j, s));
+    fun updm (j, v) = Inttab.fold (upd j) v;
+  in Inttab.fold updm matrix empty_matrix end;
 
 exception No_name of string;
 
@@ -251,7 +240,7 @@ fun cplexProg c A b =
 	    end
 
 	fun vec2sum vector =
-	    cplex.cplexSum (Inttab.foldl (fn (list, (index, s)) => (mk_term index s)::list) ([], vector))
+	    cplex.cplexSum (Inttab.fold (fn (index, s) => fn list => (mk_term index s) :: list) vector [])
 		       		       
 	fun mk_constr index vector c = 
 	    let 
@@ -264,16 +253,16 @@ fun cplexProg c A b =
 
 	fun delete index c = Inttab.delete index c handle Inttab.UNDEF _ => c
 
-	val (list, b) = Inttab.foldl 
-			    (fn ((list, c), (index, v)) => ((mk_constr index v c)::list, delete index c))
-			    (([], b), A)
+	val (list, b) = Inttab.fold
+			    (fn (index, v) => fn (list, c) => ((mk_constr index v c)::list, delete index c))
+			    A ([], b)
 	val _ = if Inttab.is_empty b then () else raise Superfluous_constr_right_hand_sides
 
 	fun mk_free y = cplex.cplexBounds (cplex.cplexNeg cplex.cplexInf, cplex.cplexLeq, 
 					   cplex.cplexVar y, cplex.cplexLeq,
 					   cplex.cplexInf)
 
-	val yvars = Inttab.foldl (fn (l, (i, y)) => (mk_free y)::l) ([], !ytable)
+	val yvars = Inttab.fold (fn (i, y) => fn l => (mk_free y)::l) (!ytable) []
 
 	val prog = cplex.cplexProg ("original", cplex.cplexMaximize (vec2sum c), list, yvars)
     in
@@ -304,7 +293,7 @@ fun dual_cplexProg c A b =
 	    end
 
 	fun vec2sum vector =
-	    cplex.cplexSum (Inttab.foldl (fn (list, (index, s)) => (mk_term index s)::list) ([], vector))
+	    cplex.cplexSum (Inttab.fold (fn (index, s) => fn list => (mk_term index s)::list) vector [])
 		       		       
 	fun mk_constr index vector c = 
 	    let 
@@ -317,9 +306,9 @@ fun dual_cplexProg c A b =
 
 	fun delete index c = Inttab.delete index c handle Inttab.UNDEF _ => c
 
-	val (list, c) = Inttab.foldl 
-			    (fn ((list, c), (index, v)) => ((mk_constr index v c)::list, delete index c))
-			    (([], c), transpose_matrix A)
+	val (list, c) = Inttab.fold 
+			    (fn (index, v) => fn (list, c) => ((mk_constr index v c)::list, delete index c))
+			    (transpose_matrix A) ([], c)
 	val _ = if Inttab.is_empty c then () else raise Superfluous_constr_right_hand_sides
 
 	val prog = cplex.cplexProg ("dual", cplex.cplexMinimize (vec2sum b), list, [])
@@ -328,30 +317,24 @@ fun dual_cplexProg c A b =
     end
 
 fun cut_vector size v = 
-    let
-	val count = ref 0 
-	fun app (v, (i, s)) = 
-	    if (!count < size) then
-		(count := !count +1 ; Inttab.update (i,s) v)
-	    else
-		v
-    in
-	Inttab.foldl app (empty_vector, v)
-    end
+  let
+    val count = ref 0;
+    fun app (i, s) =  if (!count < size) then
+        (count := !count +1 ; Inttab.update (i, s))
+      else I
+  in
+    Inttab.fold app v empty_vector
+  end
 
 fun cut_matrix vfilter vsize m = 
-    let 
-	fun app (m, (i, v)) = 
-	    if Inttab.lookup vfilter i = NONE then 
-		m 
-	    else 
-		case vsize of
-		    NONE => Inttab.update (i,v) m
-		  | SOME s => Inttab.update (i, cut_vector s v) m
-    in
-	Inttab.foldl app (empty_matrix, m)
-    end
-		 
+  let
+    fun app (i, v) = 
+      if is_none (Inttab.lookup vfilter i) then I
+      else case vsize
+       of NONE => Inttab.update (i, v)
+        | SOME s => Inttab.update (i, cut_vector s v)
+  in Inttab.fold app m empty_matrix end
+
 fun v_elem_at v i = Inttab.lookup v i
 fun m_elem_at m i = Inttab.lookup m i
 
@@ -362,8 +345,7 @@ fun v_only_elem v =
 			  NONE => SOME vmin
 			| SOME vmax => if vmin = vmax then SOME vmin else NONE)
 
-fun v_fold f a v = Inttab.foldl f (a,v) 
-
-fun m_fold f a m = Inttab.foldl f (a,m)
+fun v_fold f = Inttab.fold f;
+fun m_fold f = Inttab.fold f;
 
 end;

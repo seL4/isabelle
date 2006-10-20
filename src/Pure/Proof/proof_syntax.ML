@@ -96,13 +96,13 @@ fun disambiguate_names thy prf =
     val thms = thms_of_proof prf Symtab.empty;
     val thms' = map (apsnd Thm.full_prop_of) (PureThy.all_thms_of thy);
 
-    val tab = Symtab.foldl (fn (tab, (key, ps)) =>
+    val tab = Symtab.fold (fn (key, ps) => fn tab =>
       let val prop = the_default (Bound 0) (AList.lookup (op =) thms' key)
-      in fst (foldr (fn ((prop', prf), x as (tab, i)) =>
+      in fst (fold_rev (fn (prop', prf) => fn x as (tab, i) => 
         if prop <> prop' then
           (Symtab.update (key ^ "_" ^ string_of_int i, prf) tab, i+1)
-        else x) (tab, 1) ps)
-      end) (Symtab.empty, thms);
+        else x) ps (tab, 1))
+      end) thms Symtab.empty;
 
     fun rename (Abst (s, T, prf)) = Abst (s, T, rename prf)
       | rename (AbsP (s, t, prf)) = AbsP (s, t, rename prf)

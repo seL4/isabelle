@@ -21,7 +21,7 @@ val copy = I
 val extend = I
 fun merge _ (NoImport,NoImport) = NoImport
   | merge _ _ = (warning "Import status set during merge"; NoImport)
-fun print sg import_status =
+fun print _ import_status =
     Pretty.writeln (Pretty.str (case import_status of NoImport => "No current import" | Generating thyname => ("Generating " ^ thyname) | Replaying thyname => ("Replaying " ^ thyname)))
 end;
 
@@ -40,7 +40,7 @@ fun merge _ ("",arg) = arg
     if s1 = s2
     then s1
     else error "Trying to merge two different import segments"
-fun print sg import_segment =
+fun print _ import_segment =
     Pretty.writeln (Pretty.str ("Import segment: " ^ import_segment))
 end;
 
@@ -58,7 +58,7 @@ val copy = I
 val extend = I
 fun merge _ ([],[]) = []
   | merge _ _ = error "Used names not empty during merge"
-fun print sg used_names =
+fun print _ used_names =
     Pretty.writeln (Pretty.str "Printing of HOL4/used_names Not implemented")
 end;
 
@@ -73,7 +73,7 @@ val copy = I
 val extend = I
 fun merge _ (("","",[]),("","",[])) = ("","",[])
   | merge _ _ = error "Dump data not empty during merge"
-fun print sg dump_data =
+fun print _ dump_data =
     Pretty.writeln (Pretty.str "Printing of HOL4/dump_data Not implemented")
 end;
 
@@ -87,9 +87,9 @@ val empty = Symtab.empty
 val copy = I
 val extend = I
 fun merge _ : T * T -> T = Symtab.merge (K true)
-fun print sg tab =
-    Pretty.writeln (Pretty.big_list "HOL4 moves:"
-	(Symtab.foldl (fn (xl,(bef,aft)) => (Pretty.str (bef ^ " --> " ^ aft)::xl)) ([],tab)))
+fun print _ tab =
+  Pretty.writeln (Pretty.big_list "HOL4 moves:"
+    (Symtab.fold (fn (bef, aft) => fn xl => (Pretty.str (bef ^ " --> " ^ aft) :: xl)) tab []))
 end;
 
 structure HOL4Moves = TheoryDataFun(HOL4MovesArgs);
@@ -102,9 +102,9 @@ val empty = Symtab.empty
 val copy = I
 val extend = I
 fun merge _ : T * T -> T = Symtab.merge (K true)
-fun print sg tab =
-    Pretty.writeln (Pretty.big_list "HOL4 imports:"
-	(Symtab.foldl (fn (xl,(thyname,segname)) => (Pretty.str (thyname ^ " imported from segment " ^ segname)::xl)) ([],tab)))
+fun print _ tab =
+  Pretty.writeln (Pretty.big_list "HOL4 imports:"
+    (Symtab.fold (fn (thyname, segname) => fn xl => (Pretty.str (thyname ^ " imported from segment " ^ segname) :: xl)) tab []))
 end;
 
 structure HOL4Imports = TheoryDataFun(HOL4ImportsArgs);
@@ -128,9 +128,9 @@ val empty = Symtab.empty
 val copy = I
 val extend = I
 fun merge _ : T * T -> T = Symtab.merge (K true)
-fun print sg tab =
-    Pretty.writeln (Pretty.big_list "HOL4 constant moves:"
-	(Symtab.foldl (fn (xl,(bef,aft)) => (Pretty.str (bef ^ " --> " ^ aft)::xl)) ([],tab)))
+fun print _ tab =
+  Pretty.writeln (Pretty.big_list "HOL4 constant moves:"
+    (Symtab.fold (fn (bef, aft) => fn xl => (Pretty.str (bef ^ " --> " ^ aft) :: xl)) tab []))
 end;
 
 structure HOL4CMoves = TheoryDataFun(HOL4CMovesArgs);
@@ -143,9 +143,10 @@ val empty = StringPair.empty
 val copy = I
 val extend = I
 fun merge _ : T * T -> T = StringPair.merge (K true)
-fun print sg tab =
-    Pretty.writeln (Pretty.big_list "HOL4 mappings:"
-	(StringPair.foldl (fn (xl,((bthy,bthm),isathm)) => (Pretty.str (bthy ^ "." ^ bthm ^ (case isathm of SOME th => " --> " ^ th | NONE => "IGNORED"))::xl)) ([],tab)))
+fun print _ tab =
+  Pretty.writeln (Pretty.big_list "HOL4 mappings:"
+    (StringPair.fold (fn ((bthy, bthm), isathm) => fn xl =>
+      (Pretty.str (bthy ^ "." ^ bthm ^ (case isathm of SOME th => " --> " ^ th | NONE => "IGNORED")) :: xl)) tab []))
 end;
 
 structure HOL4Maps = TheoryDataFun(HOL4MapsArgs);
@@ -158,9 +159,9 @@ val empty = StringPair.empty
 val copy = I
 val extend = I
 fun merge _ : T * T -> T = StringPair.merge (K true)
-fun print sg tab =
-    Pretty.writeln (Pretty.big_list "HOL4 mappings:"
-	(StringPair.foldl (fn (xl,((bthy,bthm),(_,thm))) => (Pretty.str (bthy ^ "." ^ bthm ^ ":")::(Display.pretty_thm thm)::xl)) ([],tab)))
+fun print _ tab =
+  Pretty.writeln (Pretty.big_list "HOL4 mappings:"
+    (StringPair.fold (fn ((bthy, bthm), (_, thm)) => fn xl => (Pretty.str (bthy ^ "." ^ bthm ^ ":") :: Display.pretty_thm thm :: xl)) tab []))
 end;
 
 structure HOL4Thms = TheoryDataFun(HOL4ThmsArgs);
@@ -173,9 +174,10 @@ val empty = StringPair.empty
 val copy = I
 val extend = I
 fun merge _ : T * T -> T = StringPair.merge (K true)
-fun print sg tab =
-    Pretty.writeln (Pretty.big_list "HOL4 constant mappings:"
-	(StringPair.foldl (fn (xl,((bthy,bconst),(internal,isaconst,_))) => (Pretty.str (bthy ^ "." ^ bconst ^ " --> " ^ isaconst ^ (if internal then " (*)" else ""))::xl)) ([],tab)))
+fun print _ tab =
+  Pretty.writeln (Pretty.big_list "HOL4 constant mappings:"
+    (StringPair.fold (fn ((bthy, bconst), (internal, isaconst, _)) => fn xl =>
+      (Pretty.str (bthy ^ "." ^ bconst ^ " --> " ^ isaconst ^ (if internal then " (*)" else "")) :: xl)) tab []))
 end;
 
 structure HOL4ConstMaps = TheoryDataFun(HOL4ConstMapsArgs);
@@ -188,9 +190,9 @@ val empty = StringPair.empty
 val copy = I
 val extend = I
 fun merge _ : T * T -> T = StringPair.merge (K true)
-fun print sg tab =
-    Pretty.writeln (Pretty.big_list "HOL4 constant renamings:"
-	(StringPair.foldl (fn (xl,((bthy,bconst),newname)) => (Pretty.str (bthy ^ "." ^ bconst ^ " --> " ^ newname)::xl)) ([],tab)))
+fun print _ tab =
+  Pretty.writeln (Pretty.big_list "HOL4 constant renamings:"
+    (StringPair.fold (fn ((bthy,bconst),newname) => fn xl => (Pretty.str (bthy ^ "." ^ bconst ^ " --> " ^ newname)::xl)) tab []))
 end;
 
 structure HOL4Rename = TheoryDataFun(HOL4RenameArgs);
@@ -203,9 +205,9 @@ val empty = StringPair.empty
 val copy = I
 val extend = I
 fun merge _ : T * T -> T = StringPair.merge (K true)
-fun print sg tab =
-    Pretty.writeln (Pretty.big_list "HOL4 constant definitions:"
-	(StringPair.foldl (fn (xl,((bthy,bconst),newname)) => (Pretty.str (bthy ^ "." ^ bconst ^ ": " ^ newname)::xl)) ([],tab)))
+fun print _ tab =
+  Pretty.writeln (Pretty.big_list "HOL4 constant definitions:"
+    (StringPair.fold (fn ((bthy,bconst),newname) => fn xl => (Pretty.str (bthy ^ "." ^ bconst ^ ": " ^ newname)::xl)) tab []))
 end;
 
 structure HOL4DefMaps = TheoryDataFun(HOL4DefMapsArgs);
@@ -218,9 +220,10 @@ val empty = StringPair.empty
 val copy = I
 val extend = I
 fun merge _ : T * T -> T = StringPair.merge (K true)
-fun print sg tab =
-    Pretty.writeln (Pretty.big_list "HOL4 type mappings:"
-	(StringPair.foldl (fn (xl,((bthy,bconst),(internal,isaconst))) => (Pretty.str (bthy ^ "." ^ bconst ^ " --> " ^ isaconst ^ (if internal then " (*)" else ""))::xl)) ([],tab)))
+fun print _ tab =
+  Pretty.writeln (Pretty.big_list "HOL4 type mappings:"
+    (StringPair.fold (fn ((bthy, bconst), (internal, isaconst)) => fn xl =>
+      (Pretty.str (bthy ^ "." ^ bconst ^ " --> " ^ isaconst ^ (if internal then " (*)" else "")) :: xl)) tab []))
 end;
 
 structure HOL4TypeMaps = TheoryDataFun(HOL4TypeMapsArgs);
@@ -233,9 +236,9 @@ val empty = StringPair.empty
 val copy = I
 val extend = I
 fun merge _ : T * T -> T = StringPair.merge (K true)
-fun print sg tab =
+fun print _ tab =
     Pretty.writeln (Pretty.big_list "HOL4 pending theorems:"
-	(StringPair.foldl (fn (xl,((bthy,bthm),(_,th))) => (Pretty.chunks [Pretty.str (bthy ^ "." ^ bthm ^ ":"),Display.pretty_thm th]::xl)) ([],tab)))
+	(StringPair.fold (fn ((bthy,bthm),(_,th)) => fn xl => (Pretty.chunks [Pretty.str (bthy ^ "." ^ bthm ^ ":"),Display.pretty_thm th]::xl)) tab []))
 end;
 
 structure HOL4Pending = TheoryDataFun(HOL4PendingArgs);
@@ -248,7 +251,7 @@ val empty = []
 val copy = I
 val extend = I
 fun merge _ = Library.gen_union Thm.eq_thm
-fun print sg thms =
+fun print _ thms =
     Pretty.writeln (Pretty.big_list "HOL4 rewrite rules:"
 				    (map Display.pretty_thm thms))
 end;
@@ -261,14 +264,14 @@ fun message s = if !hol4_debug then writeln s else ()
 fun add_hol4_rewrite (Context.Theory thy, th) =
     let
 	val _ = message "Adding HOL4 rewrite"
-	val th1 = th RS eq_reflection
+	val th1 = th RS HOL.eq_reflection
 	val current_rews = HOL4Rewrites.get thy
 	val new_rews = insert Thm.eq_thm th1 current_rews
 	val updated_thy  = HOL4Rewrites.put new_rews thy
     in
 	(Context.Theory updated_thy,th1)
     end
-  | add_hol4_rewrite (context, th) = (context, th RS eq_reflection);
+  | add_hol4_rewrite (context, th) = (context, th RS HOL.eq_reflection);
 
 fun ignore_hol4 bthy bthm thy =
     let
@@ -449,43 +452,38 @@ fun add_hol4_pending bthy bthm hth thy =
     end;
 
 fun get_hol4_theorem thyname thmname thy =
-    let
-	val isathms = HOL4Thms.get thy
-    in
-	StringPair.lookup isathms (thyname,thmname)
-    end
+  let
+    val isathms = HOL4Thms.get thy
+  in
+    StringPair.lookup isathms (thyname,thmname)
+  end;
 
-fun add_hol4_theorem thyname thmname hth thy =
-    let
-	val _ = message ("Adding HOL4 theorem " ^ thyname ^ "." ^ thmname)
-	val isathms = HOL4Thms.get thy
-	val isathms' = StringPair.update_new ((thyname,thmname),hth) isathms
-	val thy' = HOL4Thms.put isathms' thy
-    in
-	thy'
-    end
+fun add_hol4_theorem thyname thmname hth =
+  let
+    val _ = message ("Adding HOL4 theorem " ^ thyname ^ "." ^ thmname)
+  in
+    HOL4Thms.map (StringPair.update_new ((thyname, thmname), hth))
+  end;
 
 fun export_hol4_pending thy =
-    let
-	val rews    = HOL4Rewrites.get thy
-	val outthy  = get_output_thy thy
-	fun process (thy,((bthy,bthm),hth as (_,thm))) =
-	    let
-		val sg      = sign_of thy
-		val thm1 = rewrite_rule (map (Thm.transfer sg) rews) (Thm.transfer sg thm)
-		val thm2 = standard thm1
-		val thy2 = PureThy.store_thm ((bthm, thm2), []) thy |> snd
-		val thy5 = add_hol4_theorem bthy bthm hth thy2
-	    in
-		thy5
-	    end
-
-	val pending = HOL4Pending.get thy
-	val thy1    = StringPair.foldl process (thy,pending)
-	val thy2    = HOL4Pending.put (StringPair.empty) thy1
-    in
-	thy2
-    end;
+  let
+    val rews = HOL4Rewrites.get thy;
+    val pending = HOL4Pending.get thy;
+    fun process ((bthy,bthm), hth as (_,thm)) thy =
+      let
+        val thm1 = rewrite_rule (map (Thm.transfer thy) rews) (Thm.transfer thy thm);
+        val thm2 = standard thm1;
+      in
+        thy
+        |> PureThy.store_thm ((bthm, thm2), [])
+        |> snd
+        |> add_hol4_theorem bthy bthm hth
+      end;
+  in
+    thy
+    |> StringPair.fold process pending
+    |> HOL4Pending.put StringPair.empty
+  end;
 
 fun setup_dump (dir,thyname) thy =
     HOL4Dump.put (dir,thyname,["(* AUTOMATICALLY GENERATED, DO NOT EDIT! *)"]) thy
@@ -562,46 +560,22 @@ fun dump_import_thy thyname thy =
 	val output_thy = get_output_thy thy
 	val input_thy = Context.theory_name thy
 	val import_segment = get_import_segment thy
-	val sg = sign_of thy
 	val os = TextIO.openOut (OS.Path.joinDirFile {dir=output_dir,
 						      file=thyname ^ ".imp"})
 	fun out s = TextIO.output(os,s)
-	val (ignored,mapped) =
-	    StringPair.foldl (fn ((ign,map),((bthy,bthm),v)) =>
-				 if bthy = thyname
-				 then (case v of
-					   NONE => (bthm::ign,map)
-					 | SOME w => (ign,(bthm,w)::map))
-				 else (ign,map))
-				 (([],[]),HOL4Maps.get thy)
-	val constmaps =
-	    StringPair.foldl (fn (map,((bthy,bthm),v)) =>
-				 if bthy = thyname
-				 then (bthm,v)::map
-				 else map)
-				 ([],HOL4ConstMaps.get thy)
-
-	val constrenames =
-	    StringPair.foldl (fn (map,((bthy,bthm),v)) =>
-				 if bthy = thyname
-				 then (bthm,v)::map
-				 else map)
-				 ([],HOL4Rename.get thy)
-
-	val typemaps =
-	    StringPair.foldl (fn (map,((bthy,bthm),v)) =>
-				 if bthy = thyname
-				 then (bthm,v)::map
-				 else map)
-				 ([],HOL4TypeMaps.get thy)
-
-	val defmaps =
-	    StringPair.foldl (fn (map,((bthy,bthm),v)) =>
-				 if bthy = thyname
-				 then (bthm,v)::map
-				 else map)
-				 ([],HOL4DefMaps.get thy)
-
+    val (ignored, mapped) = StringPair.fold
+      (fn ((bthy, bthm), v) => fn (ign, map) =>
+        if bthy = thyname
+        then case v
+         of NONE => (bthm :: ign, map)
+          | SOME w => (ign, (bthm, w) :: map)
+        else (ign, map)) (HOL4Maps.get thy) ([],[]);
+    fun mk init = StringPair.fold
+      (fn ((bthy, bthm), v) => if bthy = thyname then cons (bthm, v) else I) init [];
+    val constmaps = mk (HOL4ConstMaps.get thy);
+    val constrenames = mk (HOL4Rename.get thy);
+    val typemaps = mk (HOL4TypeMaps.get thy);
+    val defmaps = mk (HOL4DefMaps.get thy);
 	fun new_name internal isa =
 	    if internal
 	    then
@@ -643,7 +617,7 @@ fun dump_import_thy thyname thy =
 	val _ = app (fn (hol,(internal,isa,opt_ty)) =>
 			(out ("\n  " ^ (trans_string hol) ^ " > " ^ (trans_string (follow_cname isa thy)));
 			 case opt_ty of
-			     SOME ty => out (" :: \"" ^ (string_of_ctyp (ctyp_of sg ty)) ^ "\"")
+			     SOME ty => out (" :: \"" ^ (string_of_ctyp (ctyp_of thy ty)) ^ "\"")
 			   | NONE => ())) constmaps
 	val _ = if null constmaps
 		then ()
