@@ -398,11 +398,11 @@ lemma number_of_is_id:
   "number_of (k::int) = k"
   unfolding int_number_of_def by simp
 
-lemma zero_is_num_zero [code inline]:
+lemma zero_is_num_zero [code inline, symmetric, normal post]:
   "(0::int) = number_of Numeral.Pls" 
   by simp
 
-lemma one_is_num_one [code inline]:
+lemma one_is_num_one [code inline, symmetric, normal post]:
   "(1::int) = number_of  (Numeral.Pls BIT bit.B1)" 
   by simp 
 

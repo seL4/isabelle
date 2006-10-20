@@ -731,7 +731,7 @@ primrec
   "is_none None = True"
   "is_none (Some x) = False"
 
-lemma is_none_none [code inline]:
+lemma is_none_none [code inline, symmetric, normal post]:
     "(x = None) = (is_none x)" 
   by (cases x) simp_all
 
