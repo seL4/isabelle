@@ -3,6 +3,7 @@
 
 \documentclass[12pt,a4paper,fleqn]{report}
 \usepackage{latexsym,graphicx}
+\usepackage{listings}
 \usepackage[refpage]{nomencl}
 \usepackage{../../iman,../../extra,../../isar,../../proof}
 \usepackage{Thy/document/isabelle,Thy/document/isabellesym}
@@ -31,12 +32,22 @@
 \newcommand{\isasymSHOW}{\cmd{show}}
 \newcommand{\isasymNOTE}{\cmd{note}}
 \newcommand{\isasymIN}{\cmd{in}}
+\newcommand{\isasymCODEGEN}{\cmd{code\_gen}}
+\newcommand{\isasymPRINTCODETHMS}{\cmd{print\_codethms}}
+\newcommand{\isasymFUN}{\cmd{fun}}
+\newcommand{\isasymFUNCTION}{\cmd{function}}
+\newcommand{\isasymPRIMREC}{\cmd{primrec}}
+\newcommand{\isasymRECDEF}{\cmd{recdef}}
 
 \newcommand{\qt}[1]{``#1''}
 \newcommand{\qtt}[1]{"{}{#1}"{}}
 \newcommand{\qn}[1]{\emph{#1}}
 \newcommand{\strong}[1]{{\bfseries #1}}
 \newcommand{\fixme}[1][!]{\strong{FIXME: #1}}
+
+\lstset{basicstyle=\scriptsize\ttfamily, keywordstyle=\itshape, commentstyle=\itshape\sffamily, frame=shadowbox}
+\newcommand{\lstsml}[1]{\lstset{language=ML}\lstinputlisting{#1}}
+\newcommand{\lsthaskell}[1]{\lstset{language=Haskell}\lstinputlisting{#1}}
 
 \hyphenation{Isabelle}
 \hyphenation{Isar}
@@ -52,7 +63,10 @@
 \maketitle
 
 \begin{abstract}
-  \fixme
+  This tutorial gives a motivation-driven introduction
+  to a generic code generator framework in Isabelle
+  for generating executable code in functional
+  programming languages from logical specifications.
 \end{abstract}
 
 \thispagestyle{empty}\clearpage
