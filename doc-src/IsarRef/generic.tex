@@ -433,7 +433,8 @@ and locales
 A special case of locales are type classes.
 Type classes
 consist of a locale with \emph{exactly one} type variable
-and an corresponding axclass.
+and an corresponding axclass. \cite{isabelle-classes} gives a substantial
+introduction on type classes.
 
 \indexisarcmd{instance}\indexisarcmd{class}\indexisarcmd{print-classes}
 \begin{matharray}{rcl}
@@ -1331,7 +1332,7 @@ assumptions to be included as well.
 \begin{descr}
 
 \item [$\isarcmd{print_claset}$] prints the collection of rules declared to
-  the Classical Reasoner, which is also known as ``simpset'' internally
+  the Classical Reasoner, which is also known as ``claset'' internally
   \cite{isabelle-ref}.  This is a diagnostic command; $undo$ does not apply.
   
 \item [$intro$, $elim$, and $dest$] declare introduction, elimination, and
