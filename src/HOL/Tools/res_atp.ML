@@ -55,6 +55,8 @@ end;
 structure ResAtp =
 struct
 
+fun timestamp s = Output.debug ("At " ^ Time.toString (Time.now()) ^ ": " ^ s);
+
 (********************************************************************)
 (* some settings for both background automatic ATP calling procedure*)
 (* and also explicit ATP invocation methods                         *)
@@ -507,20 +509,13 @@ fun hashw_term ((Const(c,_)), w) = Polyhash.hashw_string (c,w)
   | hashw_term ((Abs(_,_,t)), w) = hashw_term (t, w)
   | hashw_term ((P$Q), w) = hashw_term (Q, (hashw_term (P, w)));
 
-fun hashw_pred (P,w) = 
-    let val (p,args) = strip_comb P
-    in
-	List.foldl hashw_term w (p::args)
-    end;
-
-fun hash_literal (Const("Not",_)$P) = Word.notb(hashw_pred(P,0w0))
-  | hash_literal P = hashw_pred(P,0w0);
+fun hash_literal (Const("Not",_)$P) = Word.notb(hashw_term(P,0w0))
+  | hash_literal P = hashw_term(P,0w0);
 
 
 fun get_literals (Const("Trueprop",_)$P) lits = get_literals P lits
   | get_literals (Const("op |",_)$P$Q) lits = get_literals Q (get_literals P lits)
   | get_literals lit lits = (lit::lits);
-
 
 fun hash_term t = Word.toIntX (xor_words (map hash_literal (get_literals t [])));
 
@@ -556,6 +551,7 @@ fun mk_clause_table n =
 fun make_unique xs = 
   let val ht = mk_clause_table 7000
   in
+      Output.debug("make_unique gets " ^ Int.toString (length xs) ^ " clauses");
       app (ignore o Polyhash.peekInsert ht) xs;  
       Polyhash.listItems ht
   end;
@@ -621,9 +617,12 @@ fun get_clasimp_atp_lemmas ctxt user_thms =
 (*Remove lemmas that are banned from the backlist. Also remove duplicates. *)
 fun blacklist_filter thms = 
   if !run_blacklist_filter then 
-      let val banned = make_banned_test (map #1 thms)
+      let val _ = Output.debug("blacklist filter gets " ^ Int.toString (length thms) ^ " theorems")
+          val banned = make_banned_test (map #1 thms)
 	  fun ok (a,_) = not (banned a)
-      in  filter ok thms  end
+	  val okthms = filter ok thms
+          val _ = Output.debug("...and returns " ^ Int.toString (length okthms))
+      in  okthms end
   else thms;
 
 
@@ -785,11 +784,13 @@ fun write_problem_files probfile (ctxt,th)  =
       val included_cls = included_thms |> blacklist_filter
                                        |> ResAxioms.cnf_rules_pairs |> make_unique 
                                        |> restrict_to_logic logic 
+      val _ = Output.debug ("clauses = " ^ Int.toString(length included_cls))
       val white_cls = ResAxioms.cnf_rules_pairs white_thms
       (*clauses relevant to goal gl*)
       val axcls_list = map (fn gl => get_relevant_clauses thy included_cls white_cls [gl])
                            goals
-      val _ = Output.debug ("clauses = " ^ Int.toString(length included_cls))
+      val _ = app (fn axcls => Output.debug ("filtered clauses = " ^ Int.toString(length axcls)))
+                  axcls_list
       val keep_types = if is_fol_logic logic then !ResClause.keep_types 
                        else is_typed_hol ()
       val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy
