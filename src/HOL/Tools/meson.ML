@@ -193,13 +193,35 @@ fun refl_clause th =
 
 (*** The basic CNF transformation ***)
 
+val max_clauses = ref 20;
+
+fun sum x y = if x < !max_clauses andalso y < !max_clauses then x+y else !max_clauses;
+fun prod x y = if x < !max_clauses andalso y < !max_clauses then x*y else !max_clauses;
+
 (*Estimate the number of clauses in order to detect infeasible theorems*)
-fun nclauses (Const("Trueprop",_) $ t) = nclauses t
-  | nclauses (Const("op &",_) $ t $ u) = nclauses t + nclauses u
-  | nclauses (Const("Ex", _) $ Abs (_,_,t)) = nclauses t
-  | nclauses (Const("All",_) $ Abs (_,_,t)) = nclauses t
-  | nclauses (Const("op |",_) $ t $ u) = nclauses t * nclauses u
-  | nclauses _ = 1; (* literal *)
+fun signed_nclauses b (Const("Trueprop",_) $ t) = signed_nclauses b t
+  | signed_nclauses b (Const("Not",_) $ t) = signed_nclauses (not b) t
+  | signed_nclauses b (Const("op &",_) $ t $ u) = 
+      if b then sum (signed_nclauses b t) (signed_nclauses b u)
+           else prod (signed_nclauses b t) (signed_nclauses b u)
+  | signed_nclauses b (Const("op |",_) $ t $ u) = 
+      if b then prod (signed_nclauses b t) (signed_nclauses b u)
+           else sum (signed_nclauses b t) (signed_nclauses b u)
+  | signed_nclauses b (Const("op -->",_) $ t $ u) = 
+      if b then prod (signed_nclauses (not b) t) (signed_nclauses b u)
+           else sum (signed_nclauses (not b) t) (signed_nclauses b u)
+  | signed_nclauses b (Const("op =",_) $ t $ u) = 
+      if b then sum (prod (signed_nclauses (not b) t) (signed_nclauses b u))
+                    (prod (signed_nclauses (not b) u) (signed_nclauses b t))
+           else sum (prod (signed_nclauses b t) (signed_nclauses b u))
+                    (prod (signed_nclauses (not b) t) (signed_nclauses (not b) u))
+  | signed_nclauses b (Const("Ex", _) $ Abs (_,_,t)) = signed_nclauses b t
+  | signed_nclauses b (Const("All",_) $ Abs (_,_,t)) = signed_nclauses b t
+  | signed_nclauses _ _ = 1; (* literal *)
+
+val nclauses = signed_nclauses true;
+
+fun too_many_clauses t = nclauses t >= !max_clauses;
 
 (*Replaces universally quantified variables by FREE variables -- because
   assumptions may not contain scheme variables.  Later, call "generalize". *)
@@ -247,7 +269,7 @@ fun cnf skoths (th,ths) =
 	  | _ => (*no work to do*) th::ths 
       and cnf_nil th = cnf_aux (th,[])
   in 
-    if nclauses (concl_of th) > 20 
+    if too_many_clauses (concl_of th) 
     then (Output.debug ("cnf is ignoring: " ^ string_of_thm th); ths)
     else cnf_aux (th,ths)
   end;
