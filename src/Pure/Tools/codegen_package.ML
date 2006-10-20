@@ -656,8 +656,8 @@ fun code raw_cs seris thy =
     (map (serialize' cs code) seris'; ())
   end;
 
-val (codeK, code_abstypeK, code_constsubstK) =
-  ("code_gen", "code_abstype", "code_constsubst");
+val (codeK, code_abstypeK, code_axiomsK) =
+  ("code_gen", "code_abstype", "code_axioms");
 
 in
 
@@ -677,13 +677,13 @@ val code_abstypeP =
     >> (Toplevel.theory o uncurry abstyp_e)
   );
 
-val code_constsubstP =
-  OuterSyntax.command code_constsubstK "axiomatic constant substitutions for code generation" K.thy_decl (
+val code_axiomsP =
+  OuterSyntax.command code_axiomsK "axiomatic constant equalities for code generation" K.thy_decl (
     Scan.repeat1 (P.term --| (P.$$$ "\\<equiv>" || P.$$$ "==") -- P.term)
     >> (Toplevel.theory o constsubst_e)
   );
 
-val _ = OuterSyntax.add_parsers [codeP, code_abstypeP, code_constsubstP];
+val _ = OuterSyntax.add_parsers [codeP, code_abstypeP, code_axiomsP];
 
 end; (* local *)
 
