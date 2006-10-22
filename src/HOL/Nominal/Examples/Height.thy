@@ -41,19 +41,25 @@ apply(simp add: height_Lam_def perm_int_def fresh_def supp_int)
 done
 
 text {* derive the characteristic equations for height from the iteration combinator *}
+
+lemmas lam_recs = lam.recs[where P="\<lambda>_. True" and z="()", simplified]
+
 lemma height[simp]:
   shows "height (Var c) = 1"
   and   "height (App t1 t2) = (max (height t1) (height t2))+1"
   and   "height (Lam [a].t) = (height t)+1"
 apply(simp add: height_def)
-apply(simp add: lam.recs[where P="\<lambda>_. True", simplified, OF fin_supp_height, OF fcb_height_Lam])
+apply(simp add: lam_recs fin_supp_height fcb_height_Lam supp_unit)
 apply(simp add: height_Var_def)
 apply(simp add: height_def)
-apply(simp add: lam.recs[where P="\<lambda>_. True", simplified, OF fin_supp_height, OF fcb_height_Lam])
+apply(simp add: lam_recs fin_supp_height fcb_height_Lam supp_unit)
 apply(simp add: height_App_def)
 apply(simp add: height_def)
 apply(rule trans)
-apply(rule lam.recs[where P="\<lambda>_. True", simplified, OF fin_supp_height, OF fcb_height_Lam])
+apply(rule lam_recs)
+apply(rule fin_supp_height)+
+apply(simp add: supp_unit)
+apply(rule fcb_height_Lam)
 apply(assumption)
 apply(fresh_guess add: height_Var_def perm_int_def)
 apply(fresh_guess add: height_App_def perm_int_def)
@@ -106,12 +112,15 @@ lemma subst_lam[simp]:
   and   "(App t1 t2)[y::=t'] = App (t1[y::=t']) (t2[y::=t'])"
   and   "\<lbrakk>a\<sharp>y; a\<sharp>t'\<rbrakk> \<Longrightarrow> (Lam [a].t)[y::=t'] = Lam [a].(t[y::=t'])"
 apply(unfold subst_lam_def)
-apply(simp only: lam.recs[where P="\<lambda>_. True", simplified, OF fin_supp_subst, OF fcb_subst_Lam])
+apply(simp add: lam_recs fin_supp_subst fcb_subst_Lam supp_unit)
 apply(simp add: subst_Var_def)
-apply(simp only: lam.recs[where P="\<lambda>_. True", simplified, OF fin_supp_subst, OF fcb_subst_Lam])
+apply(simp add: lam_recs fin_supp_subst fcb_subst_Lam supp_unit)
 apply(simp only: subst_App_def)
 apply(rule trans)
-apply(rule lam.recs[where P="\<lambda>_. True", simplified, OF fin_supp_subst, OF fcb_subst_Lam])
+apply(rule lam_recs)
+apply(rule fin_supp_subst)+
+apply(simp add: supp_unit)
+apply(rule fcb_subst_Lam)
 apply(assumption)
 apply(rule supports_fresh, rule supports_subst_Var, simp add: fs_name1, simp add: fresh_def supp_prod)
 apply(fresh_guess add: fresh_prod subst_App_def fs_name1)

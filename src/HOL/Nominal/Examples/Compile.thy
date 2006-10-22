@@ -1,4 +1,4 @@
-(* $Id: *)
+(* $Id$ *)
 
 (* A challenge suggested by Adam Chlipala *)
 
@@ -190,9 +190,12 @@ lemma fcb_subst_Lam:
 
 lemma fcb_subst_Case:
   assumes a: "x\<sharp>r" "x\<sharp>r2" "y\<sharp>r" "y\<sharp>r1"
-  shows "x\<sharp>(subst_Case z t') e x e1 y e2 r r1 r2 \<and> y\<sharp>(subst_Case z t') e x e1 y e2 r r1 r2"
+  shows "x\<sharp>(subst_Case z t') e x e1 y e2 r r1 r2"
+  and "y\<sharp>(subst_Case z t') e x e1 y e2 r r1 r2"
   using a
-  by (simp add: subst_Case_def abs_fresh)
+  by (simp_all add: subst_Case_def abs_fresh)
+
+lemmas trm_recs = trm.recs[where P="\<lambda>_. True", simplified]
 
 lemma subst:
   shows "(Var x)[y::=t'] = (if x=y then t' else (Var x))"
@@ -209,21 +212,24 @@ lemma subst:
                                     (Case (e[y::=t']) of inl x \<rightarrow> (e1[y::=t']) | inr z \<rightarrow> (e2[y::=t']))"
 apply(unfold subst_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_subst)+
 apply(simp add: fcb_subst_Lam)
+apply(simp add: fcb_subst_Case)
 apply(simp add: fcb_subst_Case)
 apply(simp add: subst_Var_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_subst)+
 apply(simp add: fcb_subst_Lam)
 apply(simp add: fcb_subst_Case)
+apply(simp add: fcb_subst_Case)
 apply(simp add: subst_App_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_subst)+
 apply(simp add: fcb_subst_Lam)
+apply(simp add: fcb_subst_Case)
 apply(simp add: fcb_subst_Case)
 apply(fresh_guess add: fs_name1 subst_Var_def perm_if eq_eqvt)
 apply(fresh_guess add: fs_name1 subst_Lam_def)
@@ -239,45 +245,52 @@ apply(perm_simp)
 apply(simp, simp)
 apply(simp add: subst_Lam_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_subst)+
 apply(simp add: fcb_subst_Lam)
+apply(simp add: fcb_subst_Case)
 apply(simp add: fcb_subst_Case)
 apply(simp add: subst_Const_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_subst)+
 apply(simp add: fcb_subst_Lam)
+apply(simp add: fcb_subst_Case)
 apply(simp add: fcb_subst_Case)
 apply(simp add: subst_Pr_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_subst)+
 apply(simp add: fcb_subst_Lam)
+apply(simp add: fcb_subst_Case)
 apply(simp add: fcb_subst_Case)
 apply(simp add: subst_Fst_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_subst)+
 apply(simp add: fcb_subst_Lam)
+apply(simp add: fcb_subst_Case)
 apply(simp add: fcb_subst_Case)
 apply(simp add: subst_Snd_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_subst)+
 apply(simp add: fcb_subst_Lam)
+apply(simp add: fcb_subst_Case)
 apply(simp add: fcb_subst_Case)
 apply(simp add: subst_InL_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_subst)+
 apply(simp add: fcb_subst_Lam)
 apply(simp add: fcb_subst_Case)
+apply(simp add: fcb_subst_Case)
 apply(simp add: subst_InR_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_subst)+
 apply(simp add: fcb_subst_Lam)
+apply(simp add: fcb_subst_Case)
 apply(simp add: fcb_subst_Case)
 apply(fresh_guess add: fs_name1 subst_Var_def perm_if eq_eqvt)
 apply(fresh_guess add: fs_name1 subst_Var_def perm_if eq_eqvt)
@@ -374,6 +387,8 @@ lemma fcb_subst_ILam:
   shows "x\<sharp>(subst_ILam y t') x t r"
   by (simp add: subst_ILam_def abs_fresh)
 
+lemmas trmI_recs = trmI.recs[where P="\<lambda>_. True", simplified]
+
 lemma Isubst:
   shows "(IVar x)[y::=t'] = (if x=y then t' else (IVar x))"
   and   "(IApp t1 t2)[y::=t'] = IApp (t1[y::=t']) (t2[y::=t'])"
@@ -387,17 +402,17 @@ lemma Isubst:
   and   "(Iif e e1 e2)[y::=t'] = Iif (e[y::=t']) (e1[y::=t']) (e2[y::=t'])"
 apply(unfold subst_trmI_def)
 apply(rule trans)
-apply(rule trmI.recs[where P="\<lambda>_. True", simplified])
+apply(rule trmI_recs)
 apply(rule fin_supp_Isubst)+
 apply(simp add: fcb_subst_ILam)
 apply(simp add: subst_IVar_def)
 apply(rule trans)
-apply(rule trmI.recs[where P="\<lambda>_. True", simplified])
+apply(rule trmI_recs)
 apply(rule fin_supp_Isubst)+
 apply(simp add: fcb_subst_ILam)
 apply(simp add: subst_IApp_def)
 apply(rule trans)
-apply(rule trmI.recs[where P="\<lambda>_. True", simplified])
+apply(rule trmI_recs)
 apply(rule fin_supp_Isubst)+
 apply(simp add: fcb_subst_ILam)
 apply(fresh_guess add: fs_name1 subst_IVar_def perm_if eq_eqvt)
@@ -414,37 +429,37 @@ apply(perm_simp)
 apply(simp, simp)
 apply(simp add: subst_ILam_def)
 apply(rule trans)
-apply(rule trmI.recs[where P="\<lambda>_. True", simplified])
+apply(rule trmI_recs)
 apply(rule fin_supp_Isubst)+
 apply(simp add: fcb_subst_ILam)
 apply(simp add: subst_INat_def)
 apply(rule trans)
-apply(rule trmI.recs[where P="\<lambda>_. True", simplified])
+apply(rule trmI_recs)
 apply(rule fin_supp_Isubst)+
 apply(simp add: fcb_subst_ILam)
 apply(simp add: subst_IUnit_def)
 apply(rule trans)
-apply(rule trmI.recs[where P="\<lambda>_. True", simplified])
+apply(rule trmI_recs)
 apply(rule fin_supp_Isubst)+
 apply(simp add: fcb_subst_ILam)
 apply(simp add: subst_ISucc_def)
 apply(rule trans)
-apply(rule trmI.recs[where P="\<lambda>_. True", simplified])
+apply(rule trmI_recs)
 apply(rule fin_supp_Isubst)+
 apply(simp add: fcb_subst_ILam)
 apply(simp add: subst_IAss_def)
 apply(rule trans)
-apply(rule trmI.recs[where P="\<lambda>_. True", simplified])
+apply(rule trmI_recs)
 apply(rule fin_supp_Isubst)+
 apply(simp add: fcb_subst_ILam)
 apply(simp add: subst_IRef_def)
 apply(rule trans)
-apply(rule trmI.recs[where P="\<lambda>_. True", simplified])
+apply(rule trmI_recs)
 apply(rule fin_supp_Isubst)+
 apply(simp add: fcb_subst_ILam)
 apply(simp add: subst_ISeq_def)
 apply(rule trans)
-apply(rule trmI.recs[where P="\<lambda>_. True", simplified])
+apply(rule trmI_recs)
 apply(rule fin_supp_Isubst)+
 apply(simp add: fcb_subst_ILam)
 apply(simp add: subst_Iif_def)
@@ -539,15 +554,17 @@ constdefs
   trans_type::"ty \<Rightarrow> tyI"  
   "trans_type \<tau> \<equiv> ty_rec (trans_data) (trans_arrow) \<tau>"
 
+lemmas ty_recs = ty.recs[where P="\<lambda>_. True", simplified]
+
 lemma trans_type:
   shows "trans_type (Data \<sigma>) = DataI(NatI)"
   and   "trans_type (\<tau>1\<rightarrow>\<tau>2) = (trans_type \<tau>1)\<rightarrow>(trans_type \<tau>2)"
 apply(unfold trans_type_def)
 apply(rule trans)
-apply(rule ty.recs[where P="\<lambda>_. True", simplified])
+apply(rule ty_recs)
 apply(simp add: trans_data_def)
 apply(rule trans)
-apply(rule ty.recs[where P="\<lambda>_. True", simplified])
+apply(rule ty_recs)
 apply(simp add: trans_arrow_def)
 done
 
@@ -631,9 +648,10 @@ lemma fcb_trans_Lam:
 
 lemma fcb_trans_Case:
   assumes a: "x\<sharp>r" "x\<sharp>r2" "y\<sharp>r" "y\<sharp>r1"
-  shows "x\<sharp>(trans_Case) e x e1 y e2 r r1 r2 \<and> y\<sharp>(trans_Case) e x e1 y e2 r r1 r2"
+  shows "x\<sharp>(trans_Case) e x e1 y e2 r r1 r2"
+  and "y\<sharp>(trans_Case) e x e1 y e2 r r1 r2"
   using a
-  by (simp add: trans_Case_def abs_fresh Isubst_fresh)
+  by (simp_all add: trans_Case_def abs_fresh Isubst_fresh)
   
 lemma trans:
   shows "trans (Var x) = (IVar x)"
@@ -663,21 +681,24 @@ lemma trans:
               Iif (IRef (ISucc v)) (v2[x2::=IRef (ISucc (ISucc v))]) (v1[x1::=IRef (ISucc (ISucc v))]))"
 apply(unfold trans_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_trans)+
 apply(simp add: fcb_trans_Lam)
+apply(simp add: fcb_trans_Case)
 apply(simp add: fcb_trans_Case)
 apply(simp add: trans_Var_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_trans)+
 apply(simp add: fcb_trans_Lam)
 apply(simp add: fcb_trans_Case)
+apply(simp add: fcb_trans_Case)
 apply(simp add: trans_App_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_trans)+
 apply(simp add: fcb_trans_Lam)
+apply(simp add: fcb_trans_Case)
 apply(simp add: fcb_trans_Case)
 apply(fresh_guess add: fs_name1 trans_Var_def perm_if eq_eqvt)
 apply(fresh_guess add: fs_name1 trans_Lam_def)
@@ -691,45 +712,52 @@ apply(fresh_guess add: fs_name1 trans_InR_def Let_def perm_nat_def)
 apply(fresh_guess add: fs_name1 trans_Case_def Let_def Isubst_eqvt)
 apply(simp add: trans_Lam_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_trans)+
 apply(simp add: fcb_trans_Lam)
+apply(simp add: fcb_trans_Case)
 apply(simp add: fcb_trans_Case)
 apply(simp add: trans_Const_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_trans)+
 apply(simp add: fcb_trans_Lam)
+apply(simp add: fcb_trans_Case)
 apply(simp add: fcb_trans_Case)
 apply(simp add: trans_Pr_def Let_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_trans)+
 apply(simp add: fcb_trans_Lam)
+apply(simp add: fcb_trans_Case)
 apply(simp add: fcb_trans_Case)
 apply(simp add: trans_Fst_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_trans)+
 apply(simp add: fcb_trans_Lam)
+apply(simp add: fcb_trans_Case)
 apply(simp add: fcb_trans_Case)
 apply(simp add: trans_Snd_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_trans)+
 apply(simp add: fcb_trans_Lam)
+apply(simp add: fcb_trans_Case)
 apply(simp add: fcb_trans_Case)
 apply(simp add: trans_InL_def Let_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_trans)+
 apply(simp add: fcb_trans_Lam)
 apply(simp add: fcb_trans_Case)
+apply(simp add: fcb_trans_Case)
 apply(simp add: trans_InR_def Let_def)
 apply(rule trans)
-apply(rule trm.recs[where P="\<lambda>_. True", simplified])
+apply(rule trm_recs)
 apply(rule fin_supp_trans)+
 apply(simp add: fcb_trans_Lam)
+apply(simp add: fcb_trans_Case)
 apply(simp add: fcb_trans_Case)
 apply(fresh_guess add: fs_name1 trans_Var_def perm_if eq_eqvt)
 apply(fresh_guess add: fs_name1 trans_Var_def perm_if eq_eqvt)

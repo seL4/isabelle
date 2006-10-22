@@ -260,23 +260,25 @@ lemma fcb_size_ty_All:
   shows "X\<sharp>(size_ty_All X T1 T2 r1 r2)"
 by (simp add: fresh_def supp_nat)
 
+lemmas ty_recs = ty.recs[where P="\<lambda>_. True" and z="()", simplified]
+
 lemma size_ty[simp]:
   shows "size_ty (Tvar X) = 1"
   and   "size_ty (Top) = 1"
   and   "size_ty (T1 \<rightarrow> T2) = (size_ty T1) + (size_ty T2) + 1"
   and   "X\<sharp>T1 \<Longrightarrow> size_ty (\<forall>[X<:T1].T2) = (size_ty T1) + (size_ty T2) + 1"
 apply(unfold size_ty_def)
-apply(rule trans, rule ty.recs[where P="\<lambda>_. True", simplified])
-apply(simp_all add: fin_size_ty fcb_size_ty_All)
+apply(rule trans, rule ty_recs)
+apply(simp_all add: fin_size_ty fcb_size_ty_All supp_unit)
 apply(simp add: size_ty_Tvar_def)
-apply(rule trans, rule ty.recs[where P="\<lambda>_. True", simplified])
-apply(simp_all add: fin_size_ty fcb_size_ty_All)
+apply(rule trans, rule ty_recs)
+apply(simp_all add: fin_size_ty fcb_size_ty_All supp_unit)
 apply(simp add: size_ty_Top_def)
-apply(rule trans, rule ty.recs[where P="\<lambda>_. True", simplified])
-apply(simp_all add: fin_size_ty fcb_size_ty_All)
+apply(rule trans, rule ty_recs)
+apply(simp_all add: fin_size_ty fcb_size_ty_All supp_unit)
 apply(simp add: size_ty_Fun_def)
-apply(rule trans, rule ty.recs[where P="\<lambda>_. True", simplified])
-apply(simp_all add: fin_size_ty fcb_size_ty_All)
+apply(rule trans, rule ty_recs)
+apply(simp_all add: fin_size_ty fcb_size_ty_All supp_unit)
 apply(fresh_guess add: perm_nat_def size_ty_Tvar_def size_ty_Top_def size_ty_Fun_def size_ty_All_def)+
 apply(simp add: size_ty_All_def)
 done
@@ -352,19 +354,27 @@ lemma subst_ty[simp]:
 apply -
 apply(unfold subst_ty_def)
 apply(rule trans)
-apply(rule ty.recs[where P="\<lambda>_. True", simplified, OF fin_supp_subst, OF fcb_subst_All])
+apply(rule ty_recs)
+apply(simp add: fin_supp_subst supp_unit)+
+apply(rule fcb_subst_All)
 apply(assumption)+
 apply(simp add: subst_Tvar_def)
 apply(rule trans)
-apply(rule ty.recs[where P="\<lambda>_. True", simplified, OF fin_supp_subst, OF fcb_subst_All])
+apply(rule ty_recs)
+apply(simp add: fin_supp_subst supp_unit)+
+apply(rule fcb_subst_All)
 apply(assumption)+
 apply(simp add: subst_Top_def)
 apply(rule trans)
-apply(rule ty.recs[where P="\<lambda>_. True", simplified, OF fin_supp_subst, OF fcb_subst_All])
+apply(rule ty_recs)
+apply(simp add: fin_supp_subst supp_unit)+
+apply(rule fcb_subst_All)
 apply(assumption)+
 apply(simp add: subst_Fun_def)
 apply(rule trans)
-apply(rule ty.recs[where P="\<lambda>_. True", simplified, OF fin_supp_subst, OF fcb_subst_All])
+apply(rule ty_recs)
+apply(simp add: fin_supp_subst supp_unit)+
+apply(rule fcb_subst_All)
 apply(assumption)+
 apply(rule supports_fresh)
 apply(rule supports_subst_Tvar)
