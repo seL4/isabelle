@@ -7,7 +7,9 @@ Various examples involving nominal datatypes.
 
 use_thy "CR";
 use_thy "Class";
-setmp quick_and_dirty true use_thy "Fsub"; (* FIXME *)
+use_thy "Compile";
+use_thy "Fsub";
+use_thy "Height";
 use_thy "Lambda_mu";
 use_thy "Recursion";
 use_thy "SN";
