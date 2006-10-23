@@ -187,8 +187,8 @@ struct
 		fun merge _
 			({interpreters = in1, printers = pr1, parameters = pa1},
 			 {interpreters = in2, printers = pr2, parameters = pa2}) =
-			{interpreters = rev (merge_alists (rev in1) (rev in2)),
-			 printers = rev (merge_alists (rev pr1) (rev pr2)),
+			{interpreters = AList.merge (op =) (K true) (in1, in2),
+			 printers = AList.merge (op =) (K true) (pr1, pr2),
 			 parameters = Symtab.merge (op=) (pa1, pa2)};
 		fun print sg {interpreters, printers, parameters} =
 			Pretty.writeln (Pretty.chunks

@@ -229,9 +229,9 @@ structure CodegenData = TheoryDataFun
       preprocs = preprocs2, modules = modules2, test_params = test_params2}) =
     {codegens = AList.merge (op =) (K true) (codegens1, codegens2),
      tycodegens = AList.merge (op =) (K true) (tycodegens1, tycodegens2),
-     consts = merge_alists consts1 consts2,
-     types = merge_alists types1 types2,
-     attrs = merge_alists attrs1 attrs2,
+     consts = AList.merge (op =) (K true) (consts1, consts2),
+     types = AList.merge (op =) (K true) (types1, types2),
+     attrs = AList.merge (op =) (K true) (attrs1, attrs2),
      preprocs = AList.merge (op =) (K true) (preprocs1, preprocs2),
      modules = Symtab.merge (K true) (modules1, modules2),
      test_params = merge_test_params test_params1 test_params2};
@@ -418,7 +418,7 @@ fun assoc_types xs thy = Library.foldl (fn (thy, (s, syn)) =>
     | _ => error ("Not a type constructor: " ^ s)
   end) (thy, xs);
 
-fun get_assoc_type thy s = AList.lookup (op =) ((#types o CodegenData.get) thy) s;
+fun get_assoc_type thy = AList.lookup (op =) ((#types o CodegenData.get) thy);
 
 
 (**** make valid ML identifiers ****)

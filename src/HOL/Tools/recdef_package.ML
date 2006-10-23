@@ -54,7 +54,7 @@ fun map_wfs f = map_hints (fn (simps, congs, wfs) => (simps, congs, f wfs));
 
 fun pretty_hints ({simps, congs, wfs}: hints) =
  [Pretty.big_list "recdef simp hints:" (map Display.pretty_thm simps),
-  Pretty.big_list "recdef cong hints:" (map Display.pretty_thm (map #2 congs)),
+  Pretty.big_list "recdef cong hints:" (map Display.pretty_thm (map snd congs)),
   Pretty.big_list "recdef wf hints:" (map Display.pretty_thm wfs)];
 
 
@@ -71,14 +71,20 @@ fun prep_cong raw_thm =
 in
 
 fun add_cong raw_thm congs =
-  let val (c, thm) = prep_cong raw_thm
-  in overwrite_warn (congs, (c, thm)) ("Overwriting recdef congruence rule for " ^ quote c) end;
+  let
+    val (c, thm) = prep_cong raw_thm;
+    val _ = if AList.defined (op =) congs c
+      then warning ("Overwriting recdef congruence rule for " ^ quote c)
+      else ();
+  in AList.update (op =) (c, thm) congs end;
 
 fun del_cong raw_thm congs =
   let
     val (c, thm) = prep_cong raw_thm;
-    val (del, rest) = List.partition (Library.equal c o fst) congs;
-  in if null del then (warning ("No recdef congruence rule for " ^ quote c); congs) else rest end;
+    val _ = if AList.defined (op =) congs c
+      then ()
+      else warning ("No recdef congruence rule for " ^ quote c);
+  in AList.delete (op =) c congs end;
 
 end;
 
@@ -103,7 +109,7 @@ structure GlobalRecdefData = TheoryDataFun
     (tab2, {simps = simps2, congs = congs2, wfs = wfs2})) : T =
       (Symtab.merge (K true) (tab1, tab2),
         mk_hints (Drule.merge_rules (simps1, simps2),
-          Library.merge_alists congs1 congs2,
+          AList.merge (op =) eq_thm (congs1, congs2),
           Drule.merge_rules (wfs1, wfs2)));
 
   fun print thy (tab, hints) =
@@ -194,13 +200,13 @@ fun prepare_hints thy opt_src =
     val {simps, congs, wfs} = get_local_hints ctxt;
     val cs = local_claset_of ctxt;
     val ss = local_simpset_of ctxt addsimps simps;
-  in (cs, ss, map #2 congs, wfs) end;
+  in (cs, ss, rev (map snd congs), wfs) end;
 
 fun prepare_hints_i thy () =
   let
     val ctxt0 = ProofContext.init thy;
     val {simps, congs, wfs} = get_global_hints thy;
-  in (local_claset_of ctxt0, local_simpset_of ctxt0 addsimps simps, map #2 congs, wfs) end;
+  in (local_claset_of ctxt0, local_simpset_of ctxt0 addsimps simps, rev (map snd congs), wfs) end;
 
 
 
@@ -226,7 +232,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
     val (thy, {rules = rules_idx, induct, tcs}) =
         tfl_fn not_permissive thy cs (ss delcongs [imp_cong])
                congs wfs name R eqs;
-    val rules = map (map #1) (Library.partition_eq (Library.eq_snd (op =)) rules_idx);
+    val rules = (map o map) fst (partition_eq (eq_snd (op = : int * int -> bool)) rules_idx);
     val simp_att = if null tcs then [Simplifier.simp_add, RecfunCodegen.add NONE] else [];
 
     val ((simps' :: rules', [induct']), thy) =
