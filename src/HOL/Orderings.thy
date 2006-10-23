@@ -235,6 +235,83 @@ lemma not_leE: "~ y <= (x::'a::linorder) ==> x < y"
 
 subsection {* Reasoning tools setup *}
 
+ML {*
+local
+
+fun decomp_gen sort thy (Trueprop $ t) =
+  let fun of_sort t = let val T = type_of t in
+        (* exclude numeric types: linear arithmetic subsumes transitivity *)
+        T <> HOLogic.natT andalso T <> HOLogic.intT andalso
+        T <> HOLogic.realT andalso Sign.of_sort thy (T, sort) end
+  fun dec (Const ("Not", _) $ t) = (
+	  case dec t of
+	    NONE => NONE
+	  | SOME (t1, rel, t2) => SOME (t1, "~" ^ rel, t2))
+	| dec (Const ("op =",  _) $ t1 $ t2) =
+	    if of_sort t1
+	    then SOME (t1, "=", t2)
+	    else NONE
+	| dec (Const ("Orderings.less_eq",  _) $ t1 $ t2) =
+	    if of_sort t1
+	    then SOME (t1, "<=", t2)
+	    else NONE
+	| dec (Const ("Orderings.less",  _) $ t1 $ t2) =
+	    if of_sort t1
+	    then SOME (t1, "<", t2)
+	    else NONE
+	| dec _ = NONE
+  in dec t end;
+
+in
+
+structure Quasi_Tac = Quasi_Tac_Fun (
+(* The setting up of Quasi_Tac serves as a demo.  Since there is no
+   class for quasi orders, the tactics Quasi_Tac.trans_tac and
+   Quasi_Tac.quasi_tac are not of much use. *)
+  struct
+    val le_trans = thm "order_trans";
+    val le_refl = thm "order_refl";
+    val eqD1 = thm "order_eq_refl";
+    val eqD2 = thm "sym" RS thm "order_eq_refl";
+    val less_reflE = thm "order_less_irrefl" RS thm "notE";
+    val less_imp_le = thm "order_less_imp_le";
+    val le_neq_trans = thm "order_le_neq_trans";
+    val neq_le_trans = thm "order_neq_le_trans";
+    val less_imp_neq = thm "less_imp_neq";
+    val decomp_trans = decomp_gen ["Orderings.order"];
+    val decomp_quasi = decomp_gen ["Orderings.order"];
+
+  end);
+
+structure Order_Tac = Order_Tac_Fun (
+  struct
+    val less_reflE = thm "order_less_irrefl" RS thm "notE";
+    val le_refl = thm "order_refl";
+    val less_imp_le = thm "order_less_imp_le";
+    val not_lessI = thm "linorder_not_less" RS thm "iffD2";
+    val not_leI = thm "linorder_not_le" RS thm "iffD2";
+    val not_lessD = thm "linorder_not_less" RS thm "iffD1";
+    val not_leD = thm "linorder_not_le" RS thm "iffD1";
+    val eqI = thm "order_antisym";
+    val eqD1 = thm "order_eq_refl";
+    val eqD2 = thm "sym" RS thm "order_eq_refl";
+    val less_trans = thm "order_less_trans";
+    val less_le_trans = thm "order_less_le_trans";
+    val le_less_trans = thm "order_le_less_trans";
+    val le_trans = thm "order_trans";
+    val le_neq_trans = thm "order_le_neq_trans";
+    val neq_le_trans = thm "order_neq_le_trans";
+    val less_imp_neq = thm "less_imp_neq";
+    val eq_neq_eq_imp_neq = thm "eq_neq_eq_imp_neq";
+    val not_sym = thm "not_sym";
+    val decomp_part = decomp_gen ["Orderings.order"];
+    val decomp_lin = decomp_gen ["Orderings.linorder"];
+
+  end);
+
+end;
+*}
+
 setup {*
 let
 
@@ -281,110 +358,17 @@ val antisym_less = Simplifier.simproc (the_context())
   "antisym less" ["~ (x::'a::linorder) < y"] prove_antisym_less;
 
 in
-
- (fn thy => (Simplifier.change_simpset_of thy
-  (fn ss => ss addsimprocs [antisym_le, antisym_less]); thy))
-
+  (fn thy => (Simplifier.change_simpset_of thy
+    (fn ss => ss
+       addsimprocs [antisym_le, antisym_less]
+       addSolver (mk_solver "Trans_linear" (fn _ => Order_Tac.linear_tac))
+       addSolver (mk_solver "Trans_partial" (fn _ => Order_Tac.partial_tac)))
+       (* Adding the transitivity reasoners also as safe solvers showed a slight
+          speed up, but the reasoning strength appears to be not higher (at least
+          no breaking of additional proofs in the entire HOL distribution, as
+          of 5 March 2004, was observed). *); thy))
 end
 *}
-
-ML_setup {*
-
-(* The setting up of Quasi_Tac serves as a demo.  Since there is no
-   class for quasi orders, the tactics Quasi_Tac.trans_tac and
-   Quasi_Tac.quasi_tac are not of much use. *)
-
-fun decomp_gen sort thy (Trueprop $ t) =
-  let fun of_sort t = let val T = type_of t in
-        (* exclude numeric types: linear arithmetic subsumes transitivity *)
-        T <> HOLogic.natT andalso T <> HOLogic.intT andalso
-        T <> HOLogic.realT andalso Sign.of_sort thy (T, sort) end
-  fun dec (Const ("Not", _) $ t) = (
-	  case dec t of
-	    NONE => NONE
-	  | SOME (t1, rel, t2) => SOME (t1, "~" ^ rel, t2))
-	| dec (Const ("op =",  _) $ t1 $ t2) =
-	    if of_sort t1
-	    then SOME (t1, "=", t2)
-	    else NONE
-	| dec (Const ("Orderings.less_eq",  _) $ t1 $ t2) =
-	    if of_sort t1
-	    then SOME (t1, "<=", t2)
-	    else NONE
-	| dec (Const ("Orderings.less",  _) $ t1 $ t2) =
-	    if of_sort t1
-	    then SOME (t1, "<", t2)
-	    else NONE
-	| dec _ = NONE
-  in dec t end;
-
-structure Quasi_Tac = Quasi_Tac_Fun (
-  struct
-    val le_trans = thm "order_trans";
-    val le_refl = thm "order_refl";
-    val eqD1 = thm "order_eq_refl";
-    val eqD2 = thm "sym" RS thm "order_eq_refl";
-    val less_reflE = thm "order_less_irrefl" RS thm "notE";
-    val less_imp_le = thm "order_less_imp_le";
-    val le_neq_trans = thm "order_le_neq_trans";
-    val neq_le_trans = thm "order_neq_le_trans";
-    val less_imp_neq = thm "less_imp_neq";
-    val decomp_trans = decomp_gen ["Orderings.order"];
-    val decomp_quasi = decomp_gen ["Orderings.order"];
-
-  end);  (* struct *)
-
-structure Order_Tac = Order_Tac_Fun (
-  struct
-    val less_reflE = thm "order_less_irrefl" RS thm "notE";
-    val le_refl = thm "order_refl";
-    val less_imp_le = thm "order_less_imp_le";
-    val not_lessI = thm "linorder_not_less" RS thm "iffD2";
-    val not_leI = thm "linorder_not_le" RS thm "iffD2";
-    val not_lessD = thm "linorder_not_less" RS thm "iffD1";
-    val not_leD = thm "linorder_not_le" RS thm "iffD1";
-    val eqI = thm "order_antisym";
-    val eqD1 = thm "order_eq_refl";
-    val eqD2 = thm "sym" RS thm "order_eq_refl";
-    val less_trans = thm "order_less_trans";
-    val less_le_trans = thm "order_less_le_trans";
-    val le_less_trans = thm "order_le_less_trans";
-    val le_trans = thm "order_trans";
-    val le_neq_trans = thm "order_le_neq_trans";
-    val neq_le_trans = thm "order_neq_le_trans";
-    val less_imp_neq = thm "less_imp_neq";
-    val eq_neq_eq_imp_neq = thm "eq_neq_eq_imp_neq";
-    val not_sym = thm "not_sym";
-    val decomp_part = decomp_gen ["Orderings.order"];
-    val decomp_lin = decomp_gen ["Orderings.linorder"];
-
-  end);  (* struct *)
-
-change_simpset (fn ss => ss
-    addSolver (mk_solver "Trans_linear" (fn _ => Order_Tac.linear_tac))
-    addSolver (mk_solver "Trans_partial" (fn _ => Order_Tac.partial_tac)));
-  (* Adding the transitivity reasoners also as safe solvers showed a slight
-     speed up, but the reasoning strength appears to be not higher (at least
-     no breaking of additional proofs in the entire HOL distribution, as
-     of 5 March 2004, was observed). *)
-*}
-
-(* Optional setup of methods *)
-
-(*
-method_setup trans_partial =
-  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (Order_Tac.partial_tac)) *}
-  {* transitivity reasoner for partial orders *}	
-method_setup trans_linear =
-  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (Order_Tac.linear_tac)) *}
-  {* transitivity reasoner for linear orders *}
-*)
-
-(*
-declare order.order_refl [simp del] order_less_irrefl [simp del]
-
-can currently not be removed, abel_cancel relies on it.
-*)
 
 
 subsection {* Bounded quantifiers *}
