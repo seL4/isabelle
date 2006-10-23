@@ -475,6 +475,14 @@ the graph browser tool.
 
 *** HOL ***
 
+* Constant "List.list_all2" in List.thy now uses authentic syntax.
+INCOMPATIBILITY: translations containing list_all2 may go wrong. On Isar
+level, use abbreviations instead.
+
+* Constant "List.op mem" in List.thy now has proper name: "List.memberl"
+INCOMPATIBILITY: rarely occuring name references (e.g. ``List.op mem.simps'')
+require renaming (e.g. ``List.memberl.simps'').
+
 * Renamed constants in HOL.thy:
     0      ~> HOL.zero
     1      ~> HOL.one
