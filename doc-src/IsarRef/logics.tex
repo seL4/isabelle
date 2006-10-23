@@ -798,7 +798,7 @@ typeconstructor : nameref;
 
 class : nameref;
 
-seri : target | 'SML' ( string | '-' | ()) | 'Haskell' (string | ());
+seri : target | 'SML' ( string | '-' ) | 'Haskell' ( 'root:' string ) ? 'string\_classes' ? string;
 
 target : 'SML' | 'Haskell';
 
@@ -846,7 +846,10 @@ syntax : ( 'target\_atom' ? string ) | ( 'infix' | 'infixl' | 'infixr' ) nat str
 
   For \emph{Haskell}, a directory name is specified; different modules
   are serialized to different files in this directory or
-  subdirectories, reflecting the module hierarchy.
+  subdirectories, reflecting the module hierarchy. Additionally
+  a module name prefix may be given using the ``root:'' argument;
+  ``string\_classes'' adds a ``deriving (Read, Show)'' clause
+  to each appropriate datatype declaration.
 
 \item [$\isarcmd{code_const}$] associates a list of constants
   with target-specific serializations.
