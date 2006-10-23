@@ -577,6 +577,7 @@ val (classK, instanceK, print_classesK) = ("class", "instance", "print_classes")
 
 fun wrap_add_instance_sort (class, sort) thy =
   (if forall (is_some o lookup_class_data thy) (Sign.read_sort thy sort)
+    andalso (is_some o lookup_class_data thy) (Sign.intern_class thy class)
   then instance_sort else axclass_instance_sort) (class, sort) thy;
 
 val class_subP = P.name -- Scan.repeat (P.$$$ "+" |-- P.name) >> (op ::);

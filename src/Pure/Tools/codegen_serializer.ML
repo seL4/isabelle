@@ -909,7 +909,7 @@ fun seri_haskell module_prefix destination string_classes reserved_user module_a
     fun deriving_show tyco =
       let
         fun deriv tycos tyco = member (op =) tycos tyco orelse
-          case Graph.get_node code tyco
+          case the_default CodegenThingol.Bot (try (Graph.get_node code) tyco)
            of CodegenThingol.Bot => true
             | CodegenThingol.Datatype (_, cs) => forall (deriv' (tyco :: tycos))
                 (maps snd cs)
