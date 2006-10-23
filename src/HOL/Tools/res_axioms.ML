@@ -688,7 +688,7 @@ fun cnf_rules_of_ths ths = List.concat (map skolem_use_cache_thm ths);
 
 fun meson_meth ths ctxt =
   Method.SIMPLE_METHOD' HEADGOAL
-    (CHANGED_PROP o Meson.meson_claset_tac (cnf_rules_of_ths ths) (local_claset_of ctxt));
+    (CHANGED_PROP o Meson.meson_claset_tac (cnf_rules_of_ths ths) HOL_cs);
 
 val meson_method_setup =
   Method.add_methods
