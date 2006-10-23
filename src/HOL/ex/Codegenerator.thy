@@ -27,6 +27,8 @@ definition
   "swap p = (let (x, y) = p in (y, x))"
   appl :: "('a \<Rightarrow> 'b) * 'a \<Rightarrow> 'b"
   "appl p = (let (f, x) = p in f x)"
+  snd_three :: "'a * 'b * 'c => 'b"
+  "snd_three a = id (\<lambda>(a, b, c). b) a"
 
 lemma [code]:
   "swap (x, y) = (y, x)"
@@ -129,7 +131,7 @@ code_gen
 code_gen
   "0::nat" "1::nat"
 code_gen
-  Pair fst snd Let split swap
+  Pair fst snd Let split swap snd_three
 code_gen
   "op + :: nat \<Rightarrow> nat \<Rightarrow> nat"
   "op - :: nat \<Rightarrow> nat \<Rightarrow> nat"
