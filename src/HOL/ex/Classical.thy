@@ -837,39 +837,68 @@ proof (rule ccontr, skolemize, make_clauses)
 qed
 
 
-text{*A lengthy proof of a significant theorem.*}
+text{*A lengthy proof of a significant theorem: @{text singleton_example_1}*}
 
 lemmas subsetI_0 = subsetI[skolem, clausify 0]
 lemmas subsetI_1 = subsetI[skolem, clausify 1]
 
+text{*Full single-step proof*}
+lemma "\<And>S::'a set set. \<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
+proof (rule ccontr, skolemize, make_clauses)
+  fix S :: "'a set set"
+  assume CL1: "\<And>Z. S \<subseteq> {Z} \<Longrightarrow> False"
+     and CL2: "\<And>X Y. \<lbrakk>X \<in> S; Y \<in> S; \<not> X \<subseteq> Y\<rbrakk> \<Longrightarrow> False"
+  have CL10: "!!U V. \<lbrakk>U \<in> S; V \<in> S; V \<subseteq> U; V \<noteq> U\<rbrakk> \<Longrightarrow> False"
+    by (meson equalityI CL2) 
+  have CL11: "!!U V. \<lbrakk>U \<in> S; V \<in> S; V \<noteq> U\<rbrakk> \<Longrightarrow> False"
+    by (meson CL10 CL2) 
+  have CL13: "!!U V. \<lbrakk>U \<in> S; ~ (S \<subseteq> V); U \<noteq> Set_XsubsetI_sko1_ S V\<rbrakk> \<Longrightarrow> False"
+    by (meson subsetI_0 CL11)
+  have CL14: "!!U V. \<lbrakk>~ (S \<subseteq> U); ~(S \<subseteq> V); Set_XsubsetI_sko1_ S U \<noteq> Set_XsubsetI_sko1_ S V\<rbrakk> \<Longrightarrow> False"
+    by (meson subsetI_0 CL13)
+  have CL29: "!!U V. \<lbrakk>~ (S \<subseteq> U);  Set_XsubsetI_sko1_ S U \<noteq> Set_XsubsetI_sko1_ S {V}\<rbrakk> \<Longrightarrow> False"
+    by (meson CL1 CL14)
+  have CL58: "!!U V. \<lbrakk>Set_XsubsetI_sko1_ S {U} \<noteq> Set_XsubsetI_sko1_ S {V}\<rbrakk> \<Longrightarrow> False"
+    by (meson CL1 CL29)
+  have CL82: "!!U V. \<lbrakk>Set_XsubsetI_sko1_ S {U} \<in> {V}; ~ (S \<subseteq> {V})\<rbrakk> \<Longrightarrow> False"
+    by (iprover intro: subsetI_1 CL58 elim: ssubst)
+  have CL85: "!!U V. \<lbrakk>Set_XsubsetI_sko1_ S {U} \<in> {V}\<rbrakk> \<Longrightarrow> False"
+    by (meson CL1 CL82)
+  show False
+    by (meson insertI1 CL85)
+qed
+
+text{*Partially condensed proof*}
 lemma singleton_example_1:
      "\<And>S::'a set set. \<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
 proof (rule ccontr, skolemize, make_clauses)
   fix S :: "'a set set"
   assume CL1: "\<And>Z. S \<subseteq> {Z} \<Longrightarrow> False"
      and CL2: "\<And>X Y. \<lbrakk>X \<in> S; Y \<in> S; \<not> X \<subseteq> Y\<rbrakk> \<Longrightarrow> False"
-  have CL10: "!!U V. [|U \<in> S; V \<in> S; V \<subseteq> U; V \<noteq> U|] ==> False"
-    by (iprover intro: equalityI CL2) 
-  have CL11: "!!U V. [|U \<in> S; V \<in> S; V \<noteq> U|] ==> False"
-    by (iprover intro: CL10 CL2) 
-  have CL13: "!!U V. [|U \<in> S; ~ (S \<subseteq> V); U \<noteq> Set_XsubsetI_sko1_ S V|] ==> False"
-    by (iprover intro: subsetI_0 CL11)
-  have CL14: "!!U V. [|~ (S \<subseteq> U); ~(S \<subseteq> V); Set_XsubsetI_sko1_ S U \<noteq> Set_XsubsetI_sko1_ S V|] ==> False"
-    by (iprover intro: subsetI_0 CL13)
-  have CL29: "!!U V. [|~ (S \<subseteq> U);  Set_XsubsetI_sko1_ S U \<noteq> Set_XsubsetI_sko1_ S {V}|] ==> False"
-    by (iprover intro: CL1 CL14)
-  have CL58: "!!U V. [| Set_XsubsetI_sko1_ S {U} \<noteq> Set_XsubsetI_sko1_ S {V}|] ==> False"
-    by (iprover intro: CL1 CL29)
-  have CL82: "!!U V. [| Set_XsubsetI_sko1_ S {U} \<in> {V}; ~ (S \<subseteq> {V})|] ==> False"
+  have CL13: "!!U V. \<lbrakk>U \<in> S; ~ (S \<subseteq> V); U \<noteq> Set_XsubsetI_sko1_ S V\<rbrakk> \<Longrightarrow> False"
+    by (meson subsetI_0 equalityI CL2)
+  have CL58: "!!U V. \<lbrakk>Set_XsubsetI_sko1_ S {U} \<noteq> Set_XsubsetI_sko1_ S {V}\<rbrakk> \<Longrightarrow> False"
+    by (meson CL1 subsetI_0 CL13)
+  have CL82: "!!U V. \<lbrakk>Set_XsubsetI_sko1_ S {U} \<in> {V}; ~ (S \<subseteq> {V})\<rbrakk> \<Longrightarrow> False"
     by (iprover intro: subsetI_1 CL58 elim: ssubst)
-  have CL85: "!!U V. [| Set_XsubsetI_sko1_ S {U} \<in> {V}|] ==> False"
-    by (blast intro: CL1 CL82)
   show False
-    by (iprover intro: insertI1 CL85)
+    by (meson insertI1 CL1 CL82)
+qed
+
+text{*More condensed proof*}
+lemma "\<And>S::'a set set. \<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
+proof (rule ccontr, skolemize, make_clauses)
+  fix S :: "'a set set"
+  assume CL1: "\<And>Z. S \<subseteq> {Z} \<Longrightarrow> False"
+     and CL2: "\<And>X Y. \<lbrakk>X \<in> S; Y \<in> S; \<not> X \<subseteq> Y\<rbrakk> \<Longrightarrow> False"
+  have CL58: "!!U V. \<lbrakk>Set_XsubsetI_sko1_ S {U} \<noteq> Set_XsubsetI_sko1_ S {V}\<rbrakk> \<Longrightarrow> False"
+    by (meson CL1 subsetI_0 equalityI CL2)
+  show False
+    by (iprover intro: subsetI_1 insertI1 CL1 CL58 elim: ssubst)
 qed
 
 
-(*Based on this SPASS proof:
+(*These are based on the following SPASS proof:
 
 Here is a proof with depth 6, length 15 :
 1[0:Inp] ||  -> c_in(U,c_insert(U,V,W),W)*.
