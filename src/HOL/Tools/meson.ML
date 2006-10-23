@@ -549,14 +549,21 @@ fun prolog_step_tac' horns =
 fun iter_deepen_prolog_tac horns =
     ITER_DEEPEN (has_fewer_prems 1) (prolog_step_tac' horns);
 
-fun iter_deepen_meson_tac ths =
-  MESON (fn cls =>
-           case (gocls (cls@ths)) of
-           	[] => no_tac  (*no goal clauses*)
-              | goes => 
-		 (THEN_ITER_DEEPEN (resolve_tac goes 1)
-				   (has_fewer_prems 1)
-				   (prolog_step_tac' (make_horns (cls@ths)))));
+fun iter_deepen_meson_tac ths = MESON 
+ (fn cls =>
+      case (gocls (cls@ths)) of
+	   [] => no_tac  (*no goal clauses*)
+	 | goes => 
+	     let val horns = make_horns (cls@ths)
+	         val _ = if !Output.show_debug_msgs 
+	                 then Output.debug ("meson method called:\n" ^ 
+	     	                  space_implode "\n" (map string_of_thm (cls@ths)) ^ 
+	     	                  "\nclauses:\n" ^ 
+	     	                  space_implode "\n" (map string_of_thm horns))
+	     	         else ()
+	     in THEN_ITER_DEEPEN (resolve_tac goes 1) (has_fewer_prems 1) (prolog_step_tac' horns)
+	     end
+ );
 
 fun meson_claset_tac ths cs =
   SELECT_GOAL (TRY (safe_tac cs) THEN TRYALL (iter_deepen_meson_tac ths));
