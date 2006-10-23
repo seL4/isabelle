@@ -495,7 +495,7 @@ fun prepare_fundef defname (fname, fT, mixfix) abstract_qglrs default_str lthy =
       val congs = get_fundef_congs (Context.Proof lthy)
       val (globals, ctxt') = fix_globals domT ranT fvar lthy
 
-      val Globals { x, ... } = globals
+      val Globals { x, h, ... } = globals
 
       val clauses = map (mk_clause_context x ctxt') abstract_qglrs 
 
@@ -504,7 +504,7 @@ fun prepare_fundef defname (fname, fT, mixfix) abstract_qglrs default_str lthy =
       val congs_deps = map (fn c => (c, FundefCtxTree.cong_deps c)) (congs @ FundefCtxTree.add_congs) (* FIXME: Save in theory *)
               
       fun build_tree (ClauseContext { ctxt, rhs, ...}) = 
-            FundefCtxTree.mk_tree congs_deps (fname, fT) ctxt rhs
+            FundefCtxTree.mk_tree congs_deps (fname, fT) h ctxt rhs
 
       val trees = map build_tree clauses
       val RCss = map find_calls trees

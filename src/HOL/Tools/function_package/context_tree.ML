@@ -16,7 +16,7 @@ sig
     val add_congs : thm list
 
     val mk_tree: (thm * FundefCommon.depgraph) list ->
-                 (string * typ) -> Proof.context -> term -> FundefCommon.ctx_tree
+                 (string * typ) -> term -> Proof.context -> term -> FundefCommon.ctx_tree
 
     val inst_tree: theory -> term -> term -> FundefCommon.ctx_tree
                    -> FundefCommon.ctx_tree
@@ -83,34 +83,38 @@ fun mk_branch ctx t =
       (ctx', fixes, assumes, rhs_of term)
     end
 
-fun find_cong_rule ctx ((r,dep)::rs) t =
+fun find_cong_rule ctx fvar h ((r,dep)::rs) t =
     (let
-	val (c, subs) = (meta_rhs_of (concl_of r), prems_of r)
+       val thy = ProofContext.theory_of ctx
+       val r = print (zero_var_indexes r)
 
-	val subst = Pattern.match (ProofContext.theory_of ctx) (c, t) (Vartab.empty, Vartab.empty)
+       val tt' = Logic.mk_equals (Pattern.rewrite_term thy [(Free fvar, h)] [] t, t)
+       val (c, subs) = (concl_of r, prems_of r)
 
-	val branches = map (mk_branch ctx o Envir.beta_norm o Envir.subst_vars subst) subs
+       val subst = Pattern.match (ProofContext.theory_of ctx) (c, tt') (Vartab.empty, Vartab.empty)
+       val branches = map (mk_branch ctx o Envir.beta_norm o Envir.subst_vars subst) subs
+       val inst = map (fn v => (cterm_of thy (Var v), cterm_of thy (Envir.subst_vars subst (Var v)))) (Term.add_vars c [])
      in
-	 (r, dep, branches)
+	 (cterm_instantiate inst r, dep, branches)
      end
-    handle Pattern.MATCH => find_cong_rule ctx rs t)
-  | find_cong_rule _ [] _ = sys_error "function_package/context_tree.ML: No cong rule found!"
+    handle Pattern.MATCH => find_cong_rule ctx fvar h rs t)
+  | find_cong_rule _ _ _ [] _ = sys_error "function_package/context_tree.ML: No cong rule found!"
 
 
 fun matchcall fvar (a $ b) = if a = Free fvar then SOME b else NONE
   | matchcall fvar _ = NONE
 
-fun mk_tree congs fvar ctx t =
+fun mk_tree congs fvar h ctx t =
     case matchcall fvar t of
-      SOME arg => RCall (t, mk_tree congs fvar ctx arg)
+      SOME arg => RCall (t, mk_tree congs fvar h ctx arg)
     | NONE => 
       if not (exists_subterm (fn Free v => v = fvar | _ => false) t) then Leaf t
       else 
-	let val (r, dep, branches) = find_cong_rule ctx congs t in
+	let val (r, dep, branches) = find_cong_rule ctx fvar h congs t in
 	  Cong (t, r, dep, 
                 map (fn (ctx', fixes, assumes, st) => 
 			(fixes, map (assume o cterm_of (ProofContext.theory_of ctx)) assumes, 
-                         mk_tree congs fvar ctx' st)) branches)
+                         mk_tree congs fvar h ctx' st)) branches)
 	end
 		
 
