@@ -352,7 +352,6 @@ text {*
   the file system, with root given by the user.
 *}
 
-ML {* set Toplevel.debug *}
 code_gen dummy (Haskell "examples/")
   (* NOTE: you may use Haskell only once in this document *)
 
@@ -400,14 +399,57 @@ text {*
 *}
 
 
-
 section {* Recipes and advanced topics \label{sec:advanced} *}
 
-(* no reference, IsarRef, but see paper *)
+text {*
+  In this tutorial, we do not attempt to give an exhaustive
+  description of the code generator framework; instead,
+  we cast a light on advanced topics by introducing
+  them together with practically motivated examples.  Concerning
+  further reading, see
+
+  \begin{itemize}
+
+  \item the Isabelle/Isar Reference Manual \cite{isabelle-isar-ref}
+    for exhaustive syntax diagrams.
+  \item or \fixme{ref} which deals with foundational issues
+    of the code generator framework.
+
+  \end{itemize}
+*}
 
 subsection {* Library theories *}
 
+text {*
+  The HOL \emph{Main} theory already provides a code generator setup
+  which should be suitable for most applications. Common extensions
+  and modifications are available by certain theories of the HOL
+  library; beside being useful in applications, they may serve
+  as a tutorial for cutomizing the code generator setup.
+
+  \begin{description}
+
+    \item[ExecutableSet] allows to generate code
+       for finite sets using lists.
+    \item[ExecutableRat] implements rational
+       numbers as triples @{text "(sign, enumerator, denominator)"}.
+    \item[EfficientNat] implements natural numbers by integers,
+       which in geneal will result in higher efficency; pattern
+       matching with @{const "0\<Colon>nat"} / @{const "Suc"}
+       is eliminated.
+    \item[MLString] provides an additional datatype @{text "mlstring"};
+       in the HOL default setup, strings in HOL are mapped to list
+       of chars in SML; values of type @{text "mlstring"} are
+       mapped to strings in SML.
+
+  \end{description}
+*}
+
 subsection {* Preprocessing *}
+
+text {*
+  
+*}
 
 (* preprocessing, print_codethms () *)
 
