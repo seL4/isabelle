@@ -2411,7 +2411,7 @@ text {* These are useful for termination proofs *}
 definition
   "measures fs = inv_image (lex less_than) (%a. map (%f. f a) fs)"
 
-lemma wf_measures: "wf (measures fs)"
+lemma wf_measures[recdef_wf, simp]: "wf (measures fs)"
   unfolding measures_def
   by blast
 
