@@ -312,9 +312,14 @@ fun nodups th =
 
 (**** Generation of contrapositives ****)
 
+fun is_left (Const ("Trueprop", _) $ 
+               (Const ("op |", _) $ (Const ("op |", _) $ _ $ _) $ _)) = true
+  | is_left _ = false;
+               
 (*Associate disjuctions to right -- make leftmost disjunct a LITERAL*)
-fun assoc_right th = assoc_right (th RS disj_assoc)
-	handle THM _ => th;
+fun assoc_right th = 
+  if is_left (prop_of th) then assoc_right (th RS disj_assoc)
+  else th;
 
 (*Must check for negative literal first!*)
 val clause_rules = [disj_assoc, make_neg_rule, make_pos_rule];
@@ -349,18 +354,25 @@ val has_bool_arg_const =
     exists_Const
       (fn (c,T) => not(is_conn c) andalso exists (has_bool) (binder_types T));
       
-(*Raises an exception if any Vars in the theorem mention type bool; they
-  could cause make_horn to loop! Also rejects functions whose arguments are 
-  Booleans or other functions.*)
+(*Raises an exception if any Vars in the theorem mention type bool. 
+  Also rejects functions whose arguments are Booleans or other functions.*)
 fun is_fol_term t =
     not (exists (has_bool o fastype_of) (term_vars t)  orelse
 	 not (Term.is_first_order ["all","All","Ex"] t) orelse
 	 has_bool_arg_const t  orelse  
 	 has_meta_conn t);
 
+fun rigid t = not (is_Var (head_of t));
+
+fun ok4horn (Const ("Trueprop",_) $ (Const ("op |", _) $ t $ _)) = rigid t
+  | ok4horn (Const ("Trueprop",_) $ t) = rigid t
+  | ok4horn _ = false;
+
 (*Create a meta-level Horn clause*)
-fun make_horn crules th = make_horn crules (tryres(th,crules))
-			  handle THM _ => th;
+fun make_horn crules th = 
+  if ok4horn (concl_of th) 
+  then make_horn crules (tryres(th,crules)) handle THM _ => th
+  else th;
 
 (*Generate Horn clauses for all contrapositives of a clause. The input, th,
   is a HOL disjunction.*)
@@ -434,11 +446,18 @@ fun size_of_subgoals st = foldr addconcl 0 (prems_of st);
 val nnf_rls = [imp_to_disjD, iff_to_disjD, not_conjD, not_disjD,
                not_impD, not_iffD, not_allD, not_exD, not_notD];
 
-fun make_nnf1 th = make_nnf1 (tryres(th, nnf_rls))
+fun ok4nnf (Const ("Trueprop",_) $ (Const ("Not", _) $ t)) = rigid t
+  | ok4nnf (Const ("Trueprop",_) $ t) = rigid t
+  | ok4nnf _ = false;
+
+fun make_nnf1 th = 
+  if ok4nnf (concl_of th) 
+  then make_nnf1 (tryres(th, nnf_rls))
     handle THM _ =>
         forward_res make_nnf1
            (tryres(th, [conj_forward,disj_forward,all_forward,ex_forward]))
-    handle THM _ => th;
+    handle THM _ => th
+  else th;
 
 (*The simplification removes defined quantifiers and occurrences of True and False. 
   nnf_ss also includes the one-point simprocs,
@@ -455,7 +474,7 @@ val nnf_ss =
 
 fun make_nnf th = case prems_of th of
     [] => th |> rewrite_rule (map safe_mk_meta_eq nnf_simps)
-	     |> simplify nnf_ss  (*But this doesn't simplify premises...*)
+	     |> simplify nnf_ss  
 	     |> make_nnf1
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
 
@@ -587,10 +606,8 @@ fun negated_asm_of_head th =
 
 (*Converting one clause*)
 fun make_meta_clause th = 
-  if is_fol_term (prop_of th) 
-  then negated_asm_of_head (make_horn resolution_clause_rules th)
-  else raise THM("make_meta_clause", 0, [th]);
-
+  negated_asm_of_head (make_horn resolution_clause_rules th);
+  
 fun make_meta_clauses ths =
     name_thms "MClause#"
       (distinct Drule.eq_thm_prop (map make_meta_clause ths));

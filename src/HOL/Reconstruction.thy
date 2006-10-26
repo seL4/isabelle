@@ -16,7 +16,6 @@ uses 	 "Tools/polyhash.ML"
 	 ("Tools/res_hol_clause.ML")
 	 ("Tools/res_axioms.ML")
 	 ("Tools/res_atp.ML")
-	 ("Tools/reconstruction.ML")
 
 begin
 
@@ -72,13 +71,10 @@ apply (rule ext)
 apply (simp add: COMBB_def) 
 done
 
-
 use "Tools/res_axioms.ML"
 use "Tools/res_hol_clause.ML"
 use "Tools/res_atp.ML"
-use "Tools/reconstruction.ML"
 
 setup ResAxioms.meson_method_setup
-setup Reconstruction.setup
 
 end

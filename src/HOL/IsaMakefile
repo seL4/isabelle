@@ -110,7 +110,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   Tools/numeral_syntax.ML Tools/primrec_package.ML Tools/prop_logic.ML		\
   Tools/polyhash.ML \
   Tools/recdef_package.ML Tools/recfun_codegen.ML				\
-  Tools/reconstruction.ML Tools/record_package.ML Tools/refute.ML		\
+  Tools/record_package.ML Tools/refute.ML		\
   Tools/refute_isar.ML Tools/res_atp.ML Tools/res_axioms.ML			\
   Tools/res_clause.ML Tools/rewrite_hol_proof.ML	\
   Tools/sat_funcs.ML					\

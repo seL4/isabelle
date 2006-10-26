@@ -590,9 +590,6 @@ fun cnf_axiom (name,th) =
 
 fun pairname th = (Thm.name_of_thm th, th);
 
-fun meta_cnf_axiom th =
-    map Meson.make_meta_clause (cnf_axiom (pairname th));
-
 (*Principally for debugging*)
 fun cnf_name s = 
   let val th = thm s
@@ -695,9 +692,16 @@ val meson_method_setup =
     [("meson", Method.thms_ctxt_args meson_meth,
       "MESON resolution proof procedure")];
 
+(** Attribute for converting a theorem into clauses **)
 
+fun meta_cnf_axiom th = map Meson.make_meta_clause (cnf_axiom (pairname th));
 
-(*** The Skolemization attribute ***)
+fun clausify_rule (th,i) = List.nth (meta_cnf_axiom th, i)
+
+val clausify = Attrib.syntax (Scan.lift Args.nat
+  >> (fn i => Thm.rule_attribute (fn _ => fn th => clausify_rule (th, i))));
+
+(** The Skolemization attribute **)
 
 fun conj2_rule (th1,th2) = conjI OF [th1,th2];
 
@@ -712,8 +716,9 @@ fun skolem_attr (Context.Theory thy, th) =
   | skolem_attr (context, th) = (context, conj_rule (skolem_use_cache_thm th));
 
 val setup_attrs = Attrib.add_attributes
-  [("skolem", Attrib.no_args skolem_attr, "skolemization of a theorem")];
-
+  [("skolem", Attrib.no_args skolem_attr, "skolemization of a theorem"),
+   ("clausify", clausify, "conversion to clauses")];
+     
 val setup = clause_cache_setup #> setup_attrs;
 
 end;
