@@ -26,7 +26,7 @@ fun mk_total_termination_goal (FundefMResult {R, f, ... }, _, _) =
 	val domT = domain_type (fastype_of f)
 	val x = Free ("x", domT)
     in
-      Trueprop (mk_acc domT R $ x)
+      mk_forall x (Trueprop (mk_acc domT R $ x))
     end
 
 fun mk_partial_termination_goal thy (FundefMResult {R, f, ... }, _, _) dom =

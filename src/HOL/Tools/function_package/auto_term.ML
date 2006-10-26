@@ -28,7 +28,7 @@ fun auto_term_tac ctxt rule rel wf_rules ss =
     val prem = #1 (Logic.dest_implies (Thm.prop_of rule'))
     val R' = cert (Var (the_single (Term.add_vars prem [])))
   in
-    resolve_tac [Drule.cterm_instantiate [(R', rel')] rule'] 1  (* produce the usual goals *)
+    rtac (Drule.cterm_instantiate [(R', rel')] rule') 1  (* instantiate termination rule *)
     THEN (ALLGOALS
       (fn 1 => REPEAT (ares_tac wf_rules 1)    (* Solve wellfoundedness *)
         | i => asm_simp_tac ss i))             (* Simplify termination conditions *)
@@ -42,9 +42,9 @@ fun termination_meth src = Method.syntax Args.term src #> (fn (ctxt, rel) =>
 
     val intro_rule = ProofContext.get_thm ctxt (Name "termination")
     (* FIXME avoid internal name lookup -- dynamic scoping! *)
-  in Method.RAW_METHOD (K (auto_term_tac ctxt intro_rule rel wfs ss)) end)
+  in Method.SIMPLE_METHOD (auto_term_tac ctxt intro_rule rel wfs ss) end)
 
 val setup = Method.add_methods
-  [("auto_term", termination_meth, "termination prover for recdef compatibility")]
+  [("auto_term", termination_meth, "proves termination using a user-specified wellfounded relation")]
 
 end
