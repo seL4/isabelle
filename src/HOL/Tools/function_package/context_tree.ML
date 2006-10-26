@@ -86,7 +86,6 @@ fun mk_branch ctx t =
 fun find_cong_rule ctx fvar h ((r,dep)::rs) t =
     (let
        val thy = ProofContext.theory_of ctx
-       val r = print (zero_var_indexes r)
 
        val tt' = Logic.mk_equals (Pattern.rewrite_term thy [(Free fvar, h)] [] t, t)
        val (c, subs) = (concl_of r, prems_of r)

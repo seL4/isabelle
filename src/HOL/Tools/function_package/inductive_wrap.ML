@@ -34,7 +34,7 @@ open FundefLib
 
 fun requantify ctxt lfix (qs, t) thm =
     let
-      val thy = theory_of_thm (print thm)
+      val thy = theory_of_thm thm
       val frees = frees_in_term ctxt t 
                                   |> remove (op =) lfix
       val vars = Term.add_vars (prop_of thm) [] |> rev
