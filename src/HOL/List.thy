@@ -2404,6 +2404,32 @@ lemma lexord_linear: "(! a b. (a,b)\<in> r | a = b | (b,a) \<in> r) \<Longrighta
   by blast
 
 
+subsection {* Lexicographic combination of measure functions *}
+
+text {* These are useful for termination proofs *}
+
+definition
+  "measures fs = inv_image (lex less_than) (%a. map (%f. f a) fs)"
+
+lemma wf_measures: "wf (measures fs)"
+  unfolding measures_def
+  by blast
+
+lemma in_measures[simp]: 
+  "(x, y) \<in> measures [] = False"
+  "(x, y) \<in> measures (f # fs)
+         = (f x < f y \<or> (f x = f y \<and> (x, y) \<in> measures fs))"  
+  unfolding measures_def
+  by auto
+
+lemma measures_less: "f x < f y ==> (x, y) \<in> measures (f#fs)"
+  by simp
+
+lemma measures_lesseq: "f x <= f y ==> (x, y) \<in> measures fs ==> (x, y) \<in> measures (f#fs)"
+  by auto
+
+
+
 subsubsection{*Lifting a Relation on List Elements to the Lists*}
 
 consts  listrel :: "('a * 'a)set => ('a list * 'a list)set"
