@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory SN
-imports Lam_substs
+imports Lam_Funs
 begin
 
 text {* Strong Normalisation proof from the Proofs and Types book *}
@@ -343,7 +343,7 @@ proof -
   thus "P x \<Gamma> t \<tau>" by simp
 qed
 
-constdefs
+abbreviation
   "sub" :: "(name\<times>ty) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" (" _ \<lless> _ " [80,80] 80)
   "\<Gamma>1 \<lless> \<Gamma>2 \<equiv> \<forall>a \<sigma>. (a,\<sigma>)\<in>set \<Gamma>1 \<longrightarrow>  (a,\<sigma>)\<in>set \<Gamma>2"
 
@@ -354,11 +354,9 @@ lemma weakening:
   shows "\<Gamma>2 \<turnstile> t:\<sigma>"
 using a b c
 apply(nominal_induct \<Gamma>1 t \<sigma> avoiding: \<Gamma>2 rule: typing_induct)
-apply(auto simp add: sub_def)
+apply(auto | atomize)+
 (* FIXME: before using meta-connectives and the new induction *)
 (* method, this was completely automatic *)
-apply(atomize)
-apply(auto)
 done
 
 lemma in_ctxt: 
@@ -456,7 +454,7 @@ next
     by (auto dest: valid_elim simp add: fresh_list_cons) 
   from c12 have c14: "((c,\<sigma>)#(a,\<tau>1)#\<Gamma>) \<turnstile> s : \<tau>2"
   proof -
-    have c2: "((a,\<tau>1)#(c,\<sigma>)#\<Gamma>) \<lless> ((c,\<sigma>)#(a,\<tau>1)#\<Gamma>)" by (force simp add: sub_def)
+    have c2: "((a,\<tau>1)#(c,\<sigma>)#\<Gamma>) \<lless> ((c,\<sigma>)#(a,\<tau>1)#\<Gamma>)" by force
     have c3: "valid ((c,\<sigma>)#(a,\<tau>1)#\<Gamma>)"
       by (rule v2, rule v2, auto simp add: fresh_list_cons fresh_prod ca cb cc f2' fresh_ty)
     from c12 c2 c3 show ?thesis by (force intro: weakening)
@@ -464,7 +462,7 @@ next
   assume c8: "\<Gamma> \<turnstile> t2 : \<sigma>"
   have c81: "((a,\<tau>1)#\<Gamma>)\<turnstile>t2 :\<sigma>"
   proof -
-    have c82: "\<Gamma> \<lless> ((a,\<tau>1)#\<Gamma>)" by (force simp add: sub_def)
+    have c82: "\<Gamma> \<lless> ((a,\<tau>1)#\<Gamma>)" by force
     have c83: "valid ((a,\<tau>1)#\<Gamma>)" using f1 ca by force
     with c8 c82 c83 show ?thesis by (force intro: weakening)
   qed
@@ -857,6 +855,7 @@ apply(simp)
 (*A*)
 apply(simp add: fresh_list_cons fresh_prod)
 done
+
 lemma all_RED: 
   assumes a: "\<Gamma>\<turnstile>t:\<tau>"
   and     b: "\<forall>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>) \<longrightarrow> (a\<in>set(domain \<theta>)\<and>\<theta><a>\<in>RED \<sigma>)" 
