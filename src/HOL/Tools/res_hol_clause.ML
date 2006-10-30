@@ -23,10 +23,12 @@ val fequal_imp_equal = thm "Reconstruction.fequal_imp_equal";
 val equal_imp_fequal = thm "Reconstruction.equal_imp_fequal";
 
 
-(*A flag to set if we use extra combinators B',C',S', currently FALSE as the 5 standard
+(*A flag to set if we use the Turner optimizations. Currently FALSE, as the 5 standard
   combinators appear to work best.*)
-val use_combB'C'S' = ref false;
+val use_Turner = ref false;
 
+(*FIXME: these refs should probaby replaced by code to count the combinators in the 
+  translated form of the term.*)
 val combI_count = ref 0;
 val combK_count = ref 0;
 val combB_count = ref 0;
@@ -128,101 +130,102 @@ fun mk_compact_comb (tm as (Const("Reconstruction.COMBB",_)$p) $ (Const("Reconst
     end
   | mk_compact_comb tm _ _ = tm;
 
-fun compact_comb t Bnds count_comb = if !use_combB'C'S' then mk_compact_comb t Bnds count_comb else t;
+fun compact_comb t Bnds count_comb = 
+  if !use_Turner then mk_compact_comb t Bnds count_comb else t;
 
 fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb = 
-    let val tpI = Type("fun",[tp,tp])
-	val _ = increI count_comb
-    in 
-	Const("Reconstruction.COMBI",tpI) 
-    end
+      let val tpI = Type("fun",[tp,tp])
+	  val _ = increI count_comb
+      in 
+	  Const("Reconstruction.COMBI",tpI) 
+      end
   | lam2comb (Abs(x,tp,Bound n)) Bnds count_comb = 
-    let val (Bound n') = decre_bndVar (Bound n)
-	val tb = List.nth(Bnds,n')
-	val tK = Type("fun",[tb,Type("fun",[tp,tb])])
-	val _ = increK count_comb 
-    in
-	Const("Reconstruction.COMBK",tK) $ (Bound n')
-    end
+      let val (Bound n') = decre_bndVar (Bound n)
+	  val tb = List.nth(Bnds,n')
+	  val tK = Type("fun",[tb,Type("fun",[tp,tb])])
+	  val _ = increK count_comb 
+      in
+	  Const("Reconstruction.COMBK",tK) $ (Bound n')
+      end
   | lam2comb (Abs(x,t1,Const(c,t2))) _ count_comb = 
-    let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
-	val _ = increK count_comb 
-    in 
-	Const("Reconstruction.COMBK",tK) $ Const(c,t2) 
-    end
+      let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
+	  val _ = increK count_comb 
+      in 
+	  Const("Reconstruction.COMBK",tK) $ Const(c,t2) 
+      end
   | lam2comb (Abs(x,t1,Free(v,t2))) _ count_comb =
-    let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
-	val _ = increK count_comb
-    in
-	Const("Reconstruction.COMBK",tK) $ Free(v,t2)
-    end
+      let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
+	  val _ = increK count_comb
+      in
+	  Const("Reconstruction.COMBK",tK) $ Free(v,t2)
+      end
   | lam2comb (Abs(x,t1,Var(ind,t2))) _ count_comb =
-    let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
-	val _ = increK count_comb 
-    in
-	Const("Reconstruction.COMBK",tK) $ Var(ind,t2)
-    end
+      let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
+	  val _ = increK count_comb 
+      in
+	  Const("Reconstruction.COMBK",tK) $ Var(ind,t2)
+      end
   | lam2comb (t as (Abs(x,t1,P$(Bound 0)))) Bnds count_comb =
-    let val nfreeP = not(is_free P 0)
-	val tr = Term.type_of1(t1::Bnds,P)
-    in
-	if nfreeP then (decre_bndVar P)
-	else (
-	      let val tI = Type("fun",[t1,t1])
-		  val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
-		  val tp' = Term.type_of1(Bnds,P')
-		  val tS = Type("fun",[tp',Type("fun",[tI,tr])])
-		  val _ = increI count_comb
-		  val _ = increS count_comb
-	      in
-		  compact_comb (Const("Reconstruction.COMBS",tS) $ P' $ Const("Reconstruction.COMBI",tI)) Bnds count_comb
-	      end)
-    end
+      let val nfreeP = not(is_free P 0)
+	  val tr = Term.type_of1(t1::Bnds,P)
+      in
+	  if nfreeP then (decre_bndVar P)
+	  else 
+	  let val tI = Type("fun",[t1,t1])
+	      val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
+	      val tp' = Term.type_of1(Bnds,P')
+	      val tS = Type("fun",[tp',Type("fun",[tI,tr])])
+	      val _ = increI count_comb
+	      val _ = increS count_comb
+	  in
+	      compact_comb (Const("Reconstruction.COMBS",tS) $ P' $ Const("Reconstruction.COMBI",tI)) Bnds count_comb
+	  end
+      end
 	    
   | lam2comb (t as (Abs(x,t1,P$Q))) Bnds count_comb =
-    let val (nfreeP,nfreeQ) = (not(is_free P 0),not(is_free Q 0))
-	val tpq = Term.type_of1(t1::Bnds, P$Q) 
-    in
-	if(nfreeP andalso nfreeQ) then (
+      let val nfreeP = not(is_free P 0)
+	  and nfreeQ = not(is_free Q 0)
+	  val tpq = Term.type_of1(t1::Bnds, P$Q) 
+      in
+	  if nfreeP andalso nfreeQ 
+	  then 
 	    let val tK = Type("fun",[tpq,Type("fun",[t1,tpq])])
 		val PQ' = decre_bndVar(P $ Q)
 		val _ = increK count_comb
 	    in 
 		Const("Reconstruction.COMBK",tK) $ PQ'
-	    end)
-	else (
-	      if nfreeP then (
-			       let val Q' = lam2comb (Abs(x,t1,Q)) Bnds count_comb
-				   val P' = decre_bndVar P
-				   val tp = Term.type_of1(Bnds,P')
-				   val tq' = Term.type_of1(Bnds, Q')
-				   val tB = Type("fun",[tp,Type("fun",[tq',Type("fun",[t1,tpq])])])
-				   val _ = increB count_comb
-			       in
-				   compact_comb (Const("Reconstruction.COMBB",tB) $ P' $ Q') Bnds count_comb 
-			       end)
-	      else (
-		    if nfreeQ then (
-				    let val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
-					val Q' = decre_bndVar Q
-					val tq = Term.type_of1(Bnds,Q')
-					val tp' = Term.type_of1(Bnds, P')
-					val tC = Type("fun",[tp',Type("fun",[tq,Type("fun",[t1,tpq])])])
-					val _ = increC count_comb
-				    in
-					compact_comb (Const("Reconstruction.COMBC",tC) $ P' $ Q') Bnds count_comb
-				    end)
-		    else(
-			 let val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
-			     val Q' = lam2comb (Abs(x,t1,Q)) Bnds count_comb 
-			     val tp' = Term.type_of1(Bnds,P')
-			     val tq' = Term.type_of1(Bnds,Q')
-			     val tS = Type("fun",[tp',Type("fun",[tq',Type("fun",[t1,tpq])])])
-			     val _ = increS count_comb
-			 in
-			     compact_comb (Const("Reconstruction.COMBS",tS) $ P' $ Q') Bnds count_comb
-			 end)))
-    end
+	    end
+	  else if nfreeP then 
+	    let val Q' = lam2comb (Abs(x,t1,Q)) Bnds count_comb
+		val P' = decre_bndVar P
+		val tp = Term.type_of1(Bnds,P')
+		val tq' = Term.type_of1(Bnds, Q')
+		val tB = Type("fun",[tp,Type("fun",[tq',Type("fun",[t1,tpq])])])
+		val _ = increB count_comb
+	    in
+		compact_comb (Const("Reconstruction.COMBB",tB) $ P' $ Q') Bnds count_comb 
+	    end
+	  else if nfreeQ then 
+	    let val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
+		val Q' = decre_bndVar Q
+		val tq = Term.type_of1(Bnds,Q')
+		val tp' = Term.type_of1(Bnds, P')
+		val tC = Type("fun",[tp',Type("fun",[tq,Type("fun",[t1,tpq])])])
+		val _ = increC count_comb
+	    in
+		compact_comb (Const("Reconstruction.COMBC",tC) $ P' $ Q') Bnds count_comb
+	    end
+          else
+	    let val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
+		val Q' = lam2comb (Abs(x,t1,Q)) Bnds count_comb 
+		val tp' = Term.type_of1(Bnds,P')
+		val tq' = Term.type_of1(Bnds,Q')
+		val tS = Type("fun",[tp',Type("fun",[tq',Type("fun",[t1,tpq])])])
+		val _ = increS count_comb
+	    in
+		compact_comb (Const("Reconstruction.COMBS",tS) $ P' $ Q') Bnds count_comb
+	    end
+      end
   | lam2comb (t as (Abs(x,t1,_))) _ _ = raise ResClause.CLAUSE("HOL CLAUSE",t);
 
 (*********************)
