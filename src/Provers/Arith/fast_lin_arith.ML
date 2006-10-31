@@ -223,18 +223,18 @@ fun choose2 d ((lb, exactl), (ub, exactu)) =
                     in if Rat.le (lb, ub') then ub' else raise NoEx end;
 
 fun findex1 discr (ex, (v, lineqs)) =
-  let val nz = List.filter (fn (Lineq(_,_,cs,_)) => el v cs <> 0) lineqs;
+  let val nz = filter (fn (Lineq (_, _, cs, _)) => el v cs <> 0) lineqs;
       val ineqs = Library.foldl elim_eqns ([],nz)
       val (ge,le) = List.partition (fn (_,_,cs) => el v cs > 0) ineqs
       val lb = ratrelmax (map (eval ex v) ge)
       val ub = ratrelmin (map (eval ex v) le)
-  in nth_update (v, choose2 (nth discr v) (lb, ub)) ex end;
+  in nth_map v (K (choose2 (nth discr v) (lb, ub))) ex end;
 
 fun findex discr = Library.foldl (findex1 discr);
 
 fun elim1 v x =
   map (fn (a,le,bs) => (Rat.add (a, Rat.neg (Rat.mult (el v bs, x))), le,
-                        nth_update (v, Rat.zero) bs));
+                        nth_map v (K Rat.zero) bs));
 
 fun single_var v (_,_,cs) = (filter_out (equal Rat.zero) cs = [el v cs]);
 
@@ -256,7 +256,7 @@ fun pick_vars discr (ineqs,ex) =
            val bnds = map (fn (a,le,bs) => (Rat.mult(a,Rat.inv(el v bs)),le)) sv
            val x = minmax((Rat.zero,if pos then true else false)::bnds)
            val ineqs' = elim1 v x nz
-           val ex' = nth_update (v, x) ex
+           val ex' = nth_map v (K x) ex
        in pick_vars discr (ineqs',ex') end
   end;
 

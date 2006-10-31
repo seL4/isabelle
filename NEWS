@@ -693,7 +693,6 @@ given more convenient names and signatures reminiscent of similar
 functions for alists, tables, etc:
 
   val nth: 'a list -> int -> 'a 
-  val nth_update: int * 'a -> 'a list -> 'a list
   val nth_map: int -> ('a -> 'a) -> 'a list -> 'a list
   val fold_index: (int * 'a -> 'b -> 'b) -> 'a list -> 'b -> 'b
 
@@ -703,7 +702,7 @@ used to.
 * Pure/library: general ``divide_and_conquer'' combinator on lists.
 
 * Pure/General/name_mangler.ML provides a functor for generic name
-mangling (bijective mapping from any expression values to strings).
+mangling (bijective mapping from expression values to strings).
 
 * Pure/General/rat.ML implements rational numbers.
 

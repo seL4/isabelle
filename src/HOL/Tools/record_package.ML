@@ -1410,7 +1410,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     (*updates*)
     fun mk_upd_prop (i,(c,T)) =
       let val x' = Free (Name.variant variants (base c ^ "'"),T)
-          val args' = nth_update (i, x') vars_more
+          val args' = nth_map i (K x') vars_more
       in mk_upd updN c x' ext === mk_ext args'  end;
     val upd_conv_props = ListPair.map mk_upd_prop (idxms, fields_more);
 
@@ -1788,7 +1788,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     (*updates*)
     fun mk_upd_prop (i,(c,T)) =
       let val x' = Free (Name.variant all_variants (base c ^ "'"),T)
-          val args' = nth_update (parent_fields_len + i, x') all_vars_more
+          val args' = nth_map (parent_fields_len + i) (K x') all_vars_more
       in mk_upd updateN c x' r_rec0 === mk_rec args' 0  end;
     val upd_conv_props = ListPair.map mk_upd_prop (idxms, fields_more);
 
