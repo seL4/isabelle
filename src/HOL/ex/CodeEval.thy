@@ -180,8 +180,8 @@ setup {*
 
 subsection {* Small examples *}
 
-ML {* Eval.term "[]::nat list" *}
 ML {* Eval.term "(Suc 2 + Suc 0) * Suc 3" *}
+ML {* Eval.term "[]::nat list" *}
 ML {* Eval.term "fst ([]::nat list, Suc 0) = []" *}
 
 text {* a fancy datatype *}
