@@ -46,7 +46,7 @@ fun add optmod = Thm.declaration_attribute (fn thm => Context.mapping
       handle TERM _ => tap (fn _ => warn thm);
   in
     add thm
-    #> CodegenData.add_func thm
+    #> CodegenData.add_func_legacy thm
   end I);
 
 fun del_thm thm thy =
@@ -176,6 +176,6 @@ val setup =
   add_codegen "recfun" recfun_codegen #>
   add_attribute ""
     (Args.del |-- Scan.succeed del
-     || Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> (fn name => setmp CodegenData.strict_functyp false (add name)));
+     || Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> add);
 
 end;

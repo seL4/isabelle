@@ -13,6 +13,7 @@ sig
   val eval_always: bool ref
 
   val add_func: thm -> theory -> theory
+  val add_func_legacy: thm -> theory -> theory
   val del_func: thm -> theory -> theory
   val add_funcl: CodegenConsts.const * lthms -> theory -> theory
   val add_datatype: string * (((string * sort) list * (string * typ list) list) * lthms)
@@ -35,7 +36,6 @@ sig
   val preprocess_cterm: theory -> cterm -> thm
 
   val trace: bool ref
-  val strict_functyp: bool ref
 end;
 
 signature PRIVATE_CODEGEN_DATA =
@@ -158,7 +158,7 @@ fun dest_func thy = apfst dest_Const o strip_comb
 fun mk_head thy thm =
   ((CodegenConsts.norm_of_typ thy o fst o dest_func thy) thm, thm);
 
-fun check_func verbose thy thm = case try (dest_func thy) thm
+fun check_func thy thm = case try (dest_func thy) thm
  of SOME (c_ty as (c, ty), args) =>
       let
         val _ =
@@ -172,15 +172,19 @@ fun check_func verbose thy thm = case try (dest_func thy) thm
           (snd o CodegenConsts.typ_of_inst thy) const;
         val string_of_typ = setmp show_sorts true (Sign.string_of_typ thy);
       in if Sign.typ_equiv thy (ty_decl, ty)
-        then (const, thm)
-        else (if is_classop orelse (!strict_functyp andalso not
-          (Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty)))
-          then error else (if verbose then warning else K ()) #> K (const, thm))
+        then SOME (const, thm)
+        else (if is_classop
+            then error
+          else if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty)
+            then warning #> (K o SOME) (const, thm)
+          else if !strict_functyp
+            then error
+          else warning #> K NONE)
           ("Type\n" ^ string_of_typ ty
            ^ "\nof function theorem\n"
            ^ string_of_thm thm
            ^ "\nis strictly less general than declared function type\n"
-           ^ string_of_typ ty_decl) 
+           ^ string_of_typ ty_decl)
       end
   | NONE => bad_thm "Not a function equation" thm;
 
@@ -207,7 +211,7 @@ fun check_typ_classop thy thm =
 
 fun mk_func thy raw_thm =
   mk_rew thy raw_thm
-  |> map (check_func true thy);
+  |> map_filter (check_func thy);
 
 fun get_prim_def_funcs thy c =
   let
@@ -639,6 +643,8 @@ fun add_func thm thy =
        (c, (Susp.value [], [])) (add_thm thm)) thms)) thy
   end;
 
+fun add_func_legacy thm = setmp strict_functyp false (add_func thm);
+
 fun del_func thm thy =
   let
     val thms = setmp strict_functyp false (mk_func thy) thm;
@@ -726,7 +732,7 @@ fun preprocess thy thms =
   |> fold (fn (_, f) => apply_preproc thy f) ((#preprocs o the_preproc o get_exec) thy)
   |> map (rewrite_func ((#inlines o the_preproc o get_exec) thy))
   |> fold (fn (_, f) => apply_inline_proc thy f) ((#inline_procs o the_preproc o get_exec) thy)
-  |> map (snd o check_func false thy)
+(*FIXME - must check: rewrite rule, function equation, proper constant |> map (snd o check_func false thy)  *)
   |> sort (cmp_thms thy)
   |> common_typ_funcs thy;
 
