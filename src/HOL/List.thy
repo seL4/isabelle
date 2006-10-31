@@ -2662,8 +2662,8 @@ code_type char
   (Haskell "Char")
 
 code_const Char
-  (SML "!(__,/ __)")
-  (Haskell "!(__,/ __)")
+  (SML "!((_),/ (_))")
+  (Haskell "!((_),/ (_))")
 
 code_instance list :: eq and char :: eq
   (Haskell - and -)

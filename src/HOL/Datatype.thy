@@ -773,18 +773,18 @@ code_type bool
 code_const True and False and Not and "op &" and "op |" and If
   (SML "true" and "false" and "not"
     and infixl 1 "andalso" and infixl 0 "orelse"
-    and "!(if __/ then __/ else __)")
+    and "!(if (_)/ then (_)/ else (_))")
   (Haskell "True" and "False" and "not"
     and infixl 3 "&&" and infixl 2 "||"
-    and "!(if __/ then __/ else __)")
+    and "!(if (_)/ then (_)/ else (_))")
 
 code_type *
   (SML infix 2 "*")
-  (Haskell "!(__,/ __)")
+  (Haskell "!((_),/ (_))")
 
 code_const Pair
-  (SML "!(__,/ __)")
-  (Haskell "!(__,/ __)")
+  (SML "!((_),/ (_))")
+  (Haskell "!((_),/ (_))")
 
 code_type unit
   (SML "unit")
