@@ -21,7 +21,7 @@ sig
     -> ((string (*theory name*) * thm) * typ list) option
   val disc_typ_of_classop: theory -> const -> typ
   val disc_typ_of_const: theory -> (const -> typ) -> const -> typ
-  val consts_of: theory -> term -> const list * (string * typ) list
+  val consts_of: theory -> term -> const list
   val read_const: theory -> string -> const
   val string_of_const: theory -> const -> string
   val raw_string_of_const: const -> string
@@ -126,8 +126,7 @@ fun disc_typ_of_const thy f (const as (c, [ty])) =
   | disc_typ_of_const thy f const = f const;
 
 fun consts_of thy t =
-  fold_aterms (fn Const c => cons (norm_of_typ thy c, c) | _ => I) t []
-  |> split_list;
+  fold_aterms (fn Const c => cons (norm_of_typ thy c) | _ => I) t []
 
 
 (* reading constants as terms *)

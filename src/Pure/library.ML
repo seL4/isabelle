@@ -46,7 +46,6 @@ sig
   val is_some: 'a option -> bool
   val is_none: 'a option -> bool
   val perhaps: ('a -> 'a option) -> 'a -> 'a
-  val merge_opt: ('a * 'a -> bool) -> 'a option * 'a option -> 'a option
 
   (*exceptions*)
   val try: ('a -> 'b) -> 'a -> 'b option
@@ -119,7 +118,6 @@ sig
   val chop: int -> 'a list -> 'a list * 'a list
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
   val nth: 'a list -> int -> 'a
-  val nth_update: int * 'a -> 'a list -> 'a list
   val nth_map: int -> ('a -> 'a) -> 'a list -> 'a list
   val nth_list: 'a list list -> int -> 'a list
   val map_index: (int * 'a -> 'b) -> 'a list -> 'b list
@@ -350,10 +348,6 @@ fun is_none (SOME _) = false
 
 fun perhaps f x = the_default x (f x);
 
-fun merge_opt _ (NONE, y) = y
-  | merge_opt _ (x, NONE) = x
-  | merge_opt eq (SOME x, SOME y) = if eq (x, y) then SOME y else raise Option;
-
 
 (* exceptions *)
 
@@ -549,12 +543,6 @@ fun foldr1 f [] = raise Empty
             | itr (x::l) = f(x, itr l)
       in  itr l  end;
 
-fun fold_index f =
-  let
-    fun fold_aux _ [] y = y
-      | fold_aux i (x :: xs) y = fold_aux (i+1) xs (f (i, x) y);
-  in fold_aux 0 end;
-
 fun foldl_map f =
   let
     fun fold_aux (x, []) = (x, [])
@@ -600,12 +588,6 @@ fun nth xs i = List.nth (xs, i);
 
 fun nth_list xss i = nth xss i handle Subscript => [];
 
-(*update nth element*)
-fun nth_update (n, x) xs =
-  (case chop n xs of
-    (_, []) => raise Subscript
-  | (prfx, _ :: sffx') => prfx @ (x :: sffx'));
-
 fun nth_map 0 f (x :: xs) = f x :: xs
   | nth_map n f (x :: xs) = x :: nth_map (n - 1) f xs
   | nth_map _ _ [] = raise Subscript;
@@ -615,6 +597,12 @@ fun map_index f =
     fun mapp _ [] = []
       | mapp i (x :: xs) = f (i, x) :: mapp (i+1) xs
   in mapp 0 end;
+
+fun fold_index f =
+  let
+    fun fold_aux _ [] y = y
+      | fold_aux i (x :: xs) y = fold_aux (i+1) xs (f (i, x) y);
+  in fold_aux 0 end;
 
 val last_elem = List.last;
 
