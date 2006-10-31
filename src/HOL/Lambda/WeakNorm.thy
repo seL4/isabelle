@@ -584,7 +584,7 @@ The same story again for code next generation.
 *}
 
 code_gen
-  type_NF (SML -) (SML _)
+  type_NF (SML *)
 
 ML {*
 structure Norm = ROOT.WeakNorm;

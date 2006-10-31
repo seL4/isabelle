@@ -285,7 +285,7 @@ code_abstype "'a set" "'a list" where
   Bex \<equiv> Blex
 
 code_gen "{}" insert "op \<union>" "op \<inter>" "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
-  image Union Inter UNION INTER Ball Bex (SML -)
+  image Union Inter UNION INTER Ball Bex (SML *)
 
 
 subsection {* type serializations *}

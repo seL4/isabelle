@@ -5,7 +5,7 @@
 header {* Test and Examples for code generator *}
 
 theory Codegenerator
-imports Main Records
+imports Main (*"~/projects/codegen/thy/CodegenSetup"*) Records
 begin
 
 subsection {* booleans *}
@@ -197,7 +197,7 @@ code_gen
   "Code_Generator.eq :: mut2 \<Rightarrow> mut2 \<Rightarrow> bool"
   "Code_Generator.eq :: ('a\<Colon>eq) point_scheme \<Rightarrow> 'a point_scheme \<Rightarrow> bool"
 
-code_gen (SML -)
+code_gen (SML *)
 code_gen (Haskell -)
 
 end

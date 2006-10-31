@@ -133,8 +133,8 @@ code_const "0::nat"
   (Haskell "0")
 
 code_const "Suc"
-  (SML "IntInf.+ (__, 1)")
-  (Haskell "!(__ + 1)")
+  (SML "IntInf.+ ((_), 1)")
+  (Haskell "!((_) + 1)")
 
 setup {*
   CodegenData.del_datatype "nat"

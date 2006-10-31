@@ -143,7 +143,7 @@ code_gen
   "inverse \<Colon> rat \<Rightarrow> rat"
   "op \<le> \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool"
    "Code_Generator.eq \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool"
-  (SML -)
+  (SML *)
 
 
 section {* type serializations *}

@@ -406,7 +406,7 @@ code_gen index
 code_gen test1
 code_gen test2
 
-code_gen (SML -)
+code_gen (SML *)
 code_gen (Haskell -)
 
 end
