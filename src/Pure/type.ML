@@ -40,7 +40,7 @@ sig
   (*special treatment of type vars*)
   val strip_sorts: typ -> typ
   val no_tvars: typ -> typ
-  val varify: term * (string * sort) list -> term * ((string * sort) * indexname) list
+  val varify: (string * sort) list -> term -> ((string * sort) * indexname) list * term
   val freeze_thaw_type: typ -> typ * (typ -> typ)
   val freeze_type: typ -> typ
   val freeze_thaw: term -> term * (term -> term)
@@ -228,7 +228,7 @@ fun no_tvars T =
 
 (* varify *)
 
-fun varify (t, fixed) =
+fun varify fixed t =
   let
     val fs = Term.fold_types (Term.fold_atyps
       (fn TFree v => if member (op =) fixed v then I else insert (op =) v | _ => I)) t [];
@@ -238,7 +238,7 @@ fun varify (t, fixed) =
       (case AList.lookup (op =) fmap f of
         NONE => TFree f
       | SOME xi => TVar (xi, S));
-  in (map_types (map_type_tfree thaw) t, fmap) end;
+  in (fmap, map_types (map_type_tfree thaw) t) end;
 
 
 (* freeze_thaw: freeze TVars in a term; return the "thaw" inverse *)

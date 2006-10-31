@@ -1176,7 +1176,7 @@ fun varifyT' fixed (Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) =
   let
     val tfrees = foldr add_term_tfrees fixed hyps;
     val prop1 = attach_tpairs tpairs prop;
-    val (prop2, al) = Type.varify (prop1, tfrees);
+    val (al, prop2) = Type.varify tfrees prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
   in
     (al, Thm {thy_ref = thy_ref,

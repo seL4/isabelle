@@ -140,7 +140,7 @@ fun process_spec axiomatic cos alt_props thy =
         val prop  = myfoldr HOLogic.mk_conj (map fst props'')
         val cprop = cterm_of thy (HOLogic.mk_Trueprop prop)
 
-        val (prop_thawed,vmap) = Type.varify (prop,[])
+        val (vmap, prop_thawed) = Type.varify [] prop
         val thawed_prop_consts = collect_consts (prop_thawed,[])
         val (altcos,overloaded) = Library.split_list cos
         val (names,sconsts) = Library.split_list altcos
@@ -150,7 +150,7 @@ fun process_spec axiomatic cos alt_props thy =
 
         fun proc_const c =
             let
-                val c' = fst (Type.varify (c,[]))
+                val (_, c') = Type.varify [] c
                 val (cname,ctyp) = dest_Const c'
             in
                 case List.filter (fn t => let val (name,typ) = dest_Const t

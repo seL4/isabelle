@@ -144,7 +144,7 @@ fun make_constraints_cprf thy env cprf =
           let
             val tvars = term_tvars prop;
             val tfrees = term_tfrees prop;
-            val (prop', fmap) = Type.varify (prop, []);
+            val (fmap, prop') = Type.varify [] prop;
             val (env', Ts) = (case opTs of
                 NONE => foldl_map mk_tvar (env, map snd tvars @ map snd tfrees)
               | SOME Ts => (env, Ts));
@@ -306,7 +306,7 @@ fun reconstruct_proof thy prop cprf =
   end;
 
 fun prop_of_atom prop Ts =
-  let val (prop', fmap) = Type.varify (prop, []);
+  let val (fmap, prop') = Type.varify [] prop;
   in subst_TVars (map fst (term_tvars prop) @ map snd fmap ~~ Ts)
     (forall_intr_vfs prop')
   end;
