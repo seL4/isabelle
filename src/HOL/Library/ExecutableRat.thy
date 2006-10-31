@@ -167,10 +167,4 @@ consts_code
   Orderings.less_eq :: "rat \<Rightarrow> rat \<Rightarrow> bool" ("{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
   "op =" :: "rat \<Rightarrow> rat \<Rightarrow> bool" ("{*eq_erat*}")
 
-code_gen
-  of_quotient
-  "0::erat"
-  "1::erat"
-  "op + :: erat \<Rightarrow> erat \<Rightarrow> erat"
-
 end

@@ -271,7 +271,7 @@ lemma [code func]:
   "Bex (xs \<Colon> 'a\<Colon>type set) = Bex xs" ..
 
 code_abstype "'a set" "'a list" where
-  "{}" \<equiv> "empty_list"
+  "{}" \<equiv> empty_list
   insert \<equiv> insertl
   "op \<union>" \<equiv> unionl
   "op \<inter>" \<equiv> intersect
