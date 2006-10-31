@@ -21,7 +21,6 @@ sig
     | Context of class list * (vname * int);
   datatype itype =
       `%% of string * itype list
-    | `-> of itype * itype
     | ITyVar of vname;
   datatype iterm =
       IConst of string * (inst list list * itype)
@@ -33,6 +32,7 @@ sig
     | ICase of (iterm * itype) * (iterm * iterm) list;
         (*(discriminendum term (td), discriminendum type (ty)),
                 [(selector pattern (p), body term (t))] (bs))*)
+  val `-> : itype * itype -> itype;
   val `--> : itype list * itype -> itype;
   val `$$ : iterm * iterm list -> iterm;
   val `|--> : (vname * itype) list * iterm -> iterm;
@@ -124,7 +124,6 @@ datatype inst =
 
 datatype itype =
     `%% of string * itype list
-  | `-> of itype * itype
   | ITyVar of vname;
 
 datatype iterm =
@@ -162,12 +161,13 @@ datatype iterm =
     instance (classs, tyco) inst
  *)
 
+fun ty1 `-> ty2 = "fun" `%% [ty1, ty2];
 val op `--> = Library.foldr (op `->);
 val op `$$ = Library.foldl (op `$);
 val op `|--> = Library.foldr (op `|->);
 
 val unfold_fun = unfoldr
-  (fn op `-> ty => SOME ty
+  (fn "fun" `%% [ty1, ty2] => SOME (ty1, ty2)
     | _ => NONE);
 
 val unfold_app = unfoldl
