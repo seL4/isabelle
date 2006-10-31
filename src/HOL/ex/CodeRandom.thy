@@ -23,8 +23,10 @@ declare pick.simps [simp del, code del]
 
 typedecl randseed
 
-consts
+axiomatization
   random_shift :: "randseed \<Rightarrow> randseed"
+
+axiomatization
   random_seed :: "randseed \<Rightarrow> nat"
 
 definition
@@ -124,6 +126,9 @@ lemma random_nat [code]:
   "random n s = (let (m, s') = random_int (int n) s in (nat m, s'))"
 unfolding random_int_def Let_def split_def random_def by simp
 
+axiomatization
+  run_random :: "(randseed \<Rightarrow> 'a * randseed) \<Rightarrow> 'a"
+
 ML {*
 signature RANDOM =
 sig
@@ -168,10 +173,13 @@ end;
 *}
 
 code_type randseed
-  (SML target_atom "Random.seed")
+  (SML "Random.seed")
 
 code_const random_int
-  (SML target_atom "Random.value")
+  (SML "Random.value")
+
+code_const run_random
+  (SML "case _ (Random.seed ()) of (x, '_) => x")
 
 code_gen select select_weight
   (SML -)

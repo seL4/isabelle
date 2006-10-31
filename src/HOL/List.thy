@@ -2651,19 +2651,19 @@ consts_code "Cons" ("(_ ::/ _)")
 
 code_type list
   (SML "_ list")
-  (Haskell target_atom "[_]")
+  (Haskell "![_]")
 
 code_const Nil
-  (SML target_atom "[]")
-  (Haskell target_atom "[]")
+  (SML "[]")
+  (Haskell "[]")
 
 code_type char
-  (SML target_atom "char")
-  (Haskell target_atom "Char")
+  (SML "char")
+  (Haskell "Char")
 
 code_const Char
-  (SML target_atom "(__,/ __)")
-  (Haskell target_atom "(__,/ __)")
+  (SML "!(__,/ __)")
+  (Haskell "!(__,/ __)")
 
 code_instance list :: eq and char :: eq
   (Haskell - and -)
@@ -2815,7 +2815,7 @@ lemma list_ex_iff [normal post]:
 lemmas list_bex_code [code unfold] =
   list_ex_iff [symmetric, THEN eq_reflection]
 
-lemma itrev [simp]:
+lemma itrev [simp, normal post]:
   "itrev xs ys = rev xs @ ys"
   by (induct xs arbitrary: ys) simp_all
 
@@ -2830,8 +2830,5 @@ lemma map_filter_conv [simp]:
 lemma rev_code [code func, code unfold]:
   "rev xs == itrev xs []"
   by simp
-
-lemmas itrev_rev [normal post] =
-  rev_code [symmetric]
 
 end

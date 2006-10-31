@@ -129,12 +129,12 @@ text {*
 *}
 
 code_const "0::nat"
-  (SML target_atom "(0 : IntInf.int)")
-  (Haskell target_atom "0")
+  (SML "!(0 : IntInf.int)")
+  (Haskell "0")
 
 code_const "Suc"
-  (SML "IntInf.op + (__ + 1)")
-  (Haskell "(__ + 1)")
+  (SML "IntInf.+ (__, 1)")
+  (Haskell "!(__ + 1)")
 
 setup {*
   CodegenData.del_datatype "nat"
@@ -153,8 +153,8 @@ fun gen_nat i = random_range 0 i;
 *}
 
 code_type nat
-  (SML target_atom "IntInf.int")
-  (Haskell target_atom "Integer")
+  (SML "IntInf.int")
+  (Haskell "Integer")
 
 consts_code
   "HOL.zero" :: nat ("0")

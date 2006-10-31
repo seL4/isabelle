@@ -59,8 +59,8 @@ end;
 subsection {* Code serialization *}
 
 code_type ml_string
-  (SML target_atom "string")
-  (Haskell target_atom "String")
+  (SML "string")
+  (Haskell "String")
 
 code_const STR
   (Haskell "_")
@@ -71,7 +71,7 @@ setup {*
 *}
 
 code_const explode
-  (SML target_atom "String.explode")
+  (SML "String.explode")
   (Haskell "_")
 
 code_reserved SML string explode

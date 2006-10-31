@@ -78,7 +78,7 @@ end;
 subsection {* Code serialization setup *}
 
 code_type "typ" and "term"
-  (SML target_atom "Term.typ" and target_atom "Term.term")
+  (SML "Term.typ" and "Term.term")
 
 code_const Type and TFix
   and Const and App and Fix

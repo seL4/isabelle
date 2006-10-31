@@ -909,14 +909,14 @@ consts_code
 instance int :: eq ..
 
 code_type int
-  (SML target_atom "IntInf.int")
-  (Haskell target_atom "Integer")
+  (SML "IntInf.int")
+  (Haskell "Integer")
 
 code_instance int :: eq
   (Haskell -)
 
 code_const "Code_Generator.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
-  (SML "(op =) (_ : IntInf.int, _)")
+  (SML "!((_ : IntInf.int) = _)")
   (Haskell infixl 4 "==")
 
 code_const "op <= \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
@@ -940,8 +940,8 @@ code_const "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
   (Haskell infixl 7 "*")
 
 code_const "uminus \<Colon> int \<Rightarrow> int"
-  (SML target_atom "IntInf.~")
-  (Haskell target_atom "negate")
+  (SML "IntInf.~")
+  (Haskell "negate")
 
 code_reserved SML IntInf
 code_reserved Haskell Integer negate
