@@ -976,6 +976,13 @@ fun Trueprop_conv conv ct = (case term_of ct of
       in Thm.combination (Thm.reflexive ct1) (conv ct2) end
   | _ => raise TERM ("Trueprop_conv", []));
 
+fun Equals_conv conv ct = (case term_of ct of
+    Const ("op =", _) $ _ $ _ =>
+      let
+        val ((ct1, ct2), ct3) = (apfst Thm.dest_comb o Thm.dest_comb) ct;
+      in Thm.combination (Thm.combination (Thm.reflexive ct1) (conv ct2)) (conv ct3) end
+  | _ => conv ct);
+
 fun constrain_op_eq_thms thy thms =
   let
     fun add_eq (Const ("op =", ty)) =
