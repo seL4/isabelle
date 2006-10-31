@@ -131,12 +131,12 @@ fun parse_mixfix s =
   let
     val sym_any = Scan.one Symbol.not_eof;
     val parse = Scan.optional ($$ "!" >> K true) false -- Scan.repeat (
-         ($$ "_" -- $$ "_" >> K (Arg NOBR))
+         ($$ "(" -- $$ "_" -- $$ ")" >> K (Arg NOBR))
       || ($$ "_" >> K (Arg BR))
       || ($$ "/" |-- Scan.repeat ($$ " ") >> (Pretty o Pretty.brk o length))
       || (Scan.repeat1
            (   $$ "'" |-- sym_any
-            || Scan.unless ($$ "_" || $$ "/")
+            || Scan.unless ($$ "_" || $$ "/" || $$ "(" |-- $$ "_" |-- $$ ")")
                  sym_any) >> (Pretty o str o implode)));
   in case Scan.finite Symbol.stopper parse (Symbol.explode s)
    of ((_, p as [_]), []) => mk_mixfix (NOBR, p)
@@ -601,37 +601,50 @@ fun seri_sml output reserved_user module_alias module_prolog
         val base' = if upper then first_upper base else base;
         val ([base''], nsp') = Name.variants [base'] nsp;
       in (base'', nsp') end;
-    fun mk_funs defs nsp =
-      (([], MLFuns (map
-        (fn (name, CodegenThingol.Fun info) => (name, info)
-          | (name, def) => error ("Function block containing illegal def: " ^ quote name)
-        ) defs)), nsp);
-    (*fun mk_funs defs =
+    fun map_nsp_fun f (nsp_fun, nsp_typ) =
+      let
+        val (x, nsp_fun') = f nsp_fun
+      in (x, (nsp_fun', nsp_typ)) end;
+    fun map_nsp_typ f (nsp_fun, nsp_typ) =
+      let
+        val (x, nsp_typ') = f nsp_typ
+      in (x, (nsp_fun, nsp_typ')) end;
+    fun mk_funs defs =
       fold_map
         (fn (name, CodegenThingol.Fun info) =>
-              name_def false (NameSpace.base name) >> (fn base => pair (base, (base, info)))
-          | (name, def) => error ("Function block containing illegal def: " ^ quote name)) defs
-      >> (fn xs : 'a => xs)(*split_list (#> apsnd MLFuns*);*)
-    fun mk_datatype defs nsp =
-      case map_filter
-        (fn (name, CodegenThingol.Datatype info) => SOME (name, info)
-          | (name, CodegenThingol.Datatypecons _) => NONE
+              map_nsp_fun (name_def false (NameSpace.base name)) >> (fn base => (base, (name, info)))
+          | (name, def) => error ("Function block containing illegal def: " ^ quote name)
+        ) defs
+      >> (split_list #> apsnd MLFuns);
+    fun mk_datatype defs =
+      fold_map
+        (fn (name, CodegenThingol.Datatype info) =>
+              map_nsp_typ (name_def false (NameSpace.base name)) >> (fn base => (base, SOME (name, info)))
+          | (name, CodegenThingol.Datatypecons _) =>
+              map_nsp_fun (name_def true (NameSpace.base name)) >> (fn base => (base, NONE))
           | (name, def) => error ("Datatype block containing illegal def: " ^ quote name)
         ) defs
-       of datas as _ :: _ => (([], MLDatas datas), nsp)
-        | _ => error ("Datatype block without data: " ^ (commas o map (quote o fst)) defs);
-    fun mk_class defs nsp =
-      case map_filter
-        (fn (name, CodegenThingol.Class info) => SOME (name, info)
-          | (name, CodegenThingol.Classop _) => NONE
+      >> (split_list #> apsnd (map_filter I
+        #> (fn [] => error ("Datatype block without data: " ^ (commas o map (quote o fst)) defs)
+             | infos => MLDatas infos)));
+    fun mk_class defs =
+      fold_map
+        (fn (name, CodegenThingol.Class info) =>
+              map_nsp_typ (name_def false (NameSpace.base name)) >> (fn base => (base, SOME (name, info)))
+          | (name, CodegenThingol.Classop _) =>
+              map_nsp_fun (name_def true (NameSpace.base name)) >> (fn base => (base, NONE))
           | (name, def) => error ("Class block containing illegal def: " ^ quote name)
         ) defs
-       of [class] => (([], MLClass class), nsp)
-        | _ => error ("Class block without class: " ^ (commas o map (quote o fst)) defs);
+      >> (split_list #> apsnd (map_filter I
+        #> (fn [] => error ("Class block without class: " ^ (commas o map (quote o fst)) defs)
+             | [info] => MLClass info)));
+    fun mk_inst [(name, CodegenThingol.Classinst info)] =
+      map_nsp_fun (name_def false (NameSpace.base name))
+      >> (fn base => ([base], MLClassinst (name, info)));
     fun add_group mk defs nsp_nodes =
       let
         val names as (name :: names') = map fst defs;
-        val _ = writeln ("adding " ^ commas names);
+(*         val _ = writeln ("adding " ^ commas names);  *)
         val deps =
           []
           |> fold (fold (insert (op =)) o Graph.imm_succs code) names
@@ -644,7 +657,7 @@ fun seri_sml output reserved_user module_alias module_prolog
         fun add_dep defname name'' =
           let
             val (modl'', defname'') = (apfst name_modl o dest_name) name'';
-            val _ = writeln (uncurry NameSpace.append defname ^ " -> " ^ name'');
+(*             val _ = writeln (uncurry NameSpace.append defname ^ " -> " ^ name'');  *)
           in if modl' = modl'' then
             map_node modl'
               (Graph.add_edge (NameSpace.pack (modl @ [fst defname, snd defname]), name''))
@@ -677,20 +690,32 @@ fun seri_sml output reserved_user module_alias module_prolog
           add_group mk_class defs
       | group_defs ((defs as (_, CodegenThingol.Classop _)::_)) =
           add_group mk_class defs
-      | group_defs [(name, CodegenThingol.Classinst info)] =
-          add_group (fn [def] => fn nsp => (([], MLClassinst def), nsp)) [(name, info)]
+      | group_defs ((defs as [(_, CodegenThingol.Classinst _)])) =
+          add_group mk_inst defs
       | group_defs defs = error ("Illegal mutual dependencies: " ^ (commas o map fst) defs)
-    fun dummy_deresolver prefix name = 
+    val (_, nodes) =
+      empty_module
+      |> fold group_defs (map (AList.make (Graph.get_node code))
+          (rev (Graph.strong_conn code)))
+    fun deresolver prefix name = 
       let
-        val name' = (op @ o apfst name_modl o apsnd (single o snd) o dest_name) name;
-      in (NameSpace.pack o snd o snd o chop_prefix (op =)) (prefix, name') end;
+(*         val _ = writeln ("resolving " ^ name)  *)
+        val (modl, _) = apsnd (uncurry NameSpace.append) (dest_name name);
+        val modl' = name_modl modl;
+        val (_, (_, remainder)) = chop_prefix (op =) (prefix, modl');
+        val defname' =
+          nodes
+          |> fold (fn m => fn g => case Graph.get_node g m
+              of Module (_, (_, g)) => g) modl'
+          |> (fn g => case Graph.get_node g name of Def (defname, _) => defname);
+      in NameSpace.pack (remainder @ [defname']) end;
     fun the_prolog modlname = case module_prolog modlname
      of NONE => []
-      | SOME p => [p, str ""]
+      | SOME p => [p, str ""];
     fun pr_node prefix (Def (_, NONE)) =
           NONE
       | pr_node prefix (Def (_, SOME def)) =
-          SOME (pr_sml_def tyco_syntax const_syntax init_vars (dummy_deresolver prefix) def)
+          SOME (pr_sml_def tyco_syntax const_syntax init_vars (deresolver prefix) def)
       | pr_node prefix (Module (dmodlname, (_, nodes))) =
           (SOME o Pretty.chunks) ([
             str ("structure " ^ dmodlname ^ " = "),
@@ -702,10 +727,6 @@ fun seri_sml output reserved_user module_alias module_prolog
             str "",
             str ("end; (*struct " ^ dmodlname ^ "*)")
           ]);
-    val (_, nodes) =
-      empty_module
-      |> fold group_defs (map (AList.make (Graph.get_node code))
-          (rev (Graph.strong_conn code)))
     val p = Pretty.chunks ([
         str ("structure ROOT = "),
         str "struct",
@@ -1536,8 +1557,8 @@ val target_diag = "diag";
 
 val _ = Context.add_setup (
   CodegenSerializerData.init
-  #> add_serializer ("SML", ml_from_thingol)
-  #> add_serializer ("sml", isar_seri_sml)
+  #> add_serializer ("SML", isar_seri_sml)
+  #> add_serializer ("sml", ml_from_thingol)
   #> add_serializer ("Haskell", isar_seri_haskell)
   #> add_serializer (target_diag, (fn _ => fn _ => seri_diagnosis))
 );
