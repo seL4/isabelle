@@ -104,88 +104,21 @@ setup {*
 *}
 
 code_const arbitrary
-  (Haskell target_atom "(error \"arbitrary\")")
+  (Haskell "error/ \"arbitrary\"")
 
 code_reserved SML Fail
 code_reserved Haskell error
 
-subsection {* Operational equality for code generation *}
-
-subsubsection {* eq class *}
-
-class eq =
-  fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-
-defs
-  eq_def [normal post]: "eq \<equiv> (op =)"
-
-lemmas [symmetric, code inline] = eq_def
-
-
-subsubsection {* bool type *}
-
-instance bool :: eq ..
-
-lemma [code func]:
-  "eq True p = p" unfolding eq_def by auto
-
-lemma [code func]:
-  "eq False p = (\<not> p)" unfolding eq_def by auto
-
-lemma [code func]:
-  "eq p True = p" unfolding eq_def by auto
-
-lemma [code func]:
-  "eq p False = (\<not> p)" unfolding eq_def by auto
-
-
-subsubsection {* preprocessors *}
-
-setup {*
-let
-  fun constrain_op_eq thy ts =
-    let
-      fun add_eq (Const ("op =", ty)) =
-            fold (insert (eq_fst (op = : indexname * indexname -> bool)))
-              (Term.add_tvarsT ty [])
-        | add_eq _ =
-            I
-      val eqs = (fold o fold_aterms) add_eq ts [];
-      val inst = map (fn (v_i, _) => (v_i, [HOLogic.class_eq])) eqs;
-    in inst end;
-in CodegenData.add_constrains constrain_op_eq end
-*}
-
-
-subsubsection {* Haskell *}
-
-code_class eq
-  (Haskell "Eq" where eq \<equiv> "(==)")
-
-code_const eq
-  (Haskell infixl 4 "==")
-
-code_instance bool :: eq
-  (Haskell -)
-
-code_const "eq \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
-  (Haskell infixl 4 "==")
-
-code_reserved Haskell
-  Eq eq
 
 subsection {* normalization by evaluation *}
 
-lemma eq_refl: "eq x x"
-  unfolding eq_def ..
-
 setup {*
 let
-  val eq_refl = thm "eq_refl";
   fun normalization_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
-    (Drule.goals_conv (equal i) (HOL.Trueprop_conv NBE.normalization_conv)));
+    (Drule.goals_conv (equal i) (HOL.Trueprop_conv
+      (HOL.Equals_conv NBE.normalization_conv))));
   val normalization_meth =
-    Method.no_args (Method.METHOD (fn _ => normalization_tac 1 THEN resolve_tac [TrueI, refl, eq_refl] 1));
+    Method.no_args (Method.METHOD (fn _ => normalization_tac 1 THEN resolve_tac [TrueI, refl] 1));
 in
   Method.add_method ("normalization", normalization_meth, "solve goal by normalization")
 end;
@@ -205,6 +138,54 @@ lemma [code func]:
 lemma [normal pre, symmetric, normal post]:
   "(if b then x else y) = if_delayed b (\<lambda>_. x) (\<lambda>_. y)"
   unfolding if_delayed_def ..
+
+
+subsection {* Operational equality for code generation *}
+
+subsubsection {* eq class *}
+
+class eq =
+  fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+
+defs
+  eq_def [normal post]: "eq \<equiv> (op =)"
+
+lemmas [symmetric, code inline, code func] = eq_def
+
+
+subsubsection {* bool type *}
+
+instance bool :: eq ..
+
+lemma [code func]:
+  "eq True p = p" unfolding eq_def by auto
+
+lemma [code func]:
+  "eq False p = (\<not> p)" unfolding eq_def by auto
+
+lemma [code func]:
+  "eq p True = p" unfolding eq_def by auto
+
+lemma [code func]:
+  "eq p False = (\<not> p)" unfolding eq_def by auto
+
+
+subsubsection {* Haskell *}
+
+code_class eq
+  (Haskell "Eq" where eq \<equiv> "(==)")
+
+code_const eq
+  (Haskell infixl 4 "==")
+
+code_instance bool :: eq
+  (Haskell -)
+
+code_const "eq \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_reserved Haskell
+  Eq eq
 
 
 hide (open) const eq if_delayed
