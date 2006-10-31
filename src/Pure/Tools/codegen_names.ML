@@ -234,8 +234,8 @@ fun check_modulename mn =
     val mns = NameSpace.unpack mn;
     val mns' = map purify_upper mns;
   in
-    if mns' = mns then mn else error ("Invalid module name: " ^ quote mn ^ "n"
-      ^ "perhaps try " ^ NameSpace.pack mns')
+    if mns' = mns then mn else error ("Invalid module name: " ^ quote mn ^ "\n"
+      ^ "perhaps try " ^ quote (NameSpace.pack mns'))
   end
 
 

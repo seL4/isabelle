@@ -8,7 +8,7 @@ Code generator extraction kernel. Code generator Isar setup.
 signature CODEGEN_PACKAGE =
 sig
   include BASIC_CODEGEN_THINGOL;
-  val codegen_term: theory -> term -> thm * iterm;
+  val codegen_term: theory -> term -> iterm;
   val eval_term: theory -> (string (*reference name!*) * 'a option ref) * term -> 'a;
   val const_of_idf: theory -> string -> string * typ;
   val get_root_module: theory -> CodegenThingol.code;
@@ -270,7 +270,7 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr strct (c_tys as (c, tys))
       |> ensure_def_class thy algbr funcgr strct ((the o AxClass.class_of_param thy) c)
       |-> (fn _ => succeed CodegenThingol.Bot);
     fun defgen_fun trns =
-      case CodegenFuncgr.get_funcs funcgr
+      case CodegenFuncgr.funcs funcgr
         (perhaps (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy)) c_tys)
        of eq_thms as eq_thm :: _ =>
             let
@@ -515,10 +515,9 @@ fun gen_abstyp prep_const prep_typ (raw_abstyp, raw_substtyp) raw_absconsts thy 
         val _ = if CodegenNames.has_nsp CodegenNames.nsp_fun (CodegenNames.const thy c2)
           then ()
           else error ("not a function: " ^ CodegenConsts.string_of_const thy c2);
-        val funcgr = CodegenFuncgr.mk_funcgr thy [c1, c2] [];
-        val ty_map = CodegenFuncgr.get_func_typs funcgr;
-        val ty1 = (apply_typpat o the o AList.lookup CodegenConsts.eq_const ty_map) c1;
-        val ty2 = (the o AList.lookup CodegenConsts.eq_const ty_map) c2;
+        val funcgr = CodegenFuncgr.make thy [c1, c2];
+        val ty1 = (apply_typpat o CodegenFuncgr.typ funcgr) c1;
+        val ty2 = CodegenFuncgr.typ funcgr c2;
         val _ = if Sign.typ_equiv thy (ty1, ty2) then () else
           error ("Incompatiable type signatures of " ^ CodegenConsts.string_of_const thy c1
             ^ " and " ^ CodegenConsts.string_of_const thy c2 ^ ":\n"
@@ -544,10 +543,9 @@ fun gen_constsubst prep_const raw_constsubsts thy =
         val _ = if CodegenNames.has_nsp CodegenNames.nsp_fun (CodegenNames.const thy c2)
           then ()
           else error ("not a function: " ^ CodegenConsts.string_of_const thy c2);
-        val funcgr = CodegenFuncgr.mk_funcgr thy [c1, c2] [];
-        val ty_map = CodegenFuncgr.get_func_typs funcgr;
-        val ty1 = (the o AList.lookup CodegenConsts.eq_const ty_map) c1;
-        val ty2 = (the o AList.lookup CodegenConsts.eq_const ty_map) c2;
+        val funcgr = CodegenFuncgr.make thy [c1, c2];
+        val ty1 = CodegenFuncgr.typ funcgr c1;
+        val ty2 = CodegenFuncgr.typ funcgr c2;
         val _ = if Sign.typ_equiv thy (ty1, ty2) then () else
           error ("Incompatiable type signatures of " ^ CodegenConsts.string_of_const thy c1
             ^ " and " ^ CodegenConsts.string_of_const thy c2 ^ ":\n"
@@ -569,43 +567,30 @@ val constsubst_e = gen_constsubst CodegenConsts.read_const;
 
 (** code generation interfaces **)
 
-fun generate thy (cs, rhss) targets init gen it =
+fun generate thy funcgr targets init gen it =
   let
-    val raw_funcgr = CodegenFuncgr.mk_funcgr thy cs rhss;
-    val cs' = map_filter (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy))
-      (CodegenFuncgr.Constgraph.keys raw_funcgr);
-    val funcgr = CodegenFuncgr.mk_funcgr thy cs' [];
+    val cs = map_filter (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy))
+      (CodegenFuncgr.all funcgr);
+    val funcgr' = CodegenFuncgr.make thy cs;
     val qnaming = NameSpace.qualified_names NameSpace.default_naming;
     val algebr = ClassPackage.operational_algebra thy;
     val consttab = Consts.empty
-      |> fold (fn (c, ty) => Consts.declare qnaming
-           ((CodegenNames.const thy c, ty), true))
-           (CodegenFuncgr.get_func_typs funcgr);
+      |> fold (fn c => Consts.declare qnaming
+           ((CodegenNames.const thy c, CodegenFuncgr.typ funcgr' c), true))
+           (CodegenFuncgr.all funcgr');
     val algbr = (algebr, consttab);
   in   
-    Code.change_yield thy (CodegenThingol.start_transact init (gen thy algbr funcgr
+    Code.change_yield thy (CodegenThingol.start_transact init (gen thy algbr funcgr'
         (true, targets) it))
-    |> (fn (x, modl) => x)
+    |> fst
   end;
 
 fun codegen_term thy t =
   let
-    fun const_typ (c, ty) =
-      let
-        val const = CodegenConsts.norm_of_typ thy (c, ty);
-        val funcgr = CodegenFuncgr.mk_funcgr thy [const] [];
-      in case CodegenFuncgr.get_funcs funcgr const
-       of (thm :: _) => CodegenData.typ_func thy thm
-        | [] => Sign.the_const_type thy c
-      end;
     val ct = Thm.cterm_of thy t;
-    val (thm, ct') = CodegenData.preprocess_cterm thy
-      (const_typ) ct;
+    val ((ct', _), funcgr) = CodegenFuncgr.make_term thy ct;
     val t' = Thm.term_of ct';
-    val cs_rhss = CodegenConsts.consts_of thy t';
-  in
-    (thm, generate thy cs_rhss (SOME []) NONE exprgen_term' t')
-  end;
+  in generate thy funcgr (SOME []) NONE exprgen_term' t' end;
 
 fun const_of_idf thy =
   CodegenConsts.typ_of_inst thy o the o CodegenNames.const_rev thy;
@@ -618,10 +603,8 @@ fun eval_term thy (ref_spec, t) =
     val _ = Term.fold_atyps (fn _ =>
       error ("Term" ^ Sign.string_of_term thy t ^ "is polymorhpic"))
       (Term.fastype_of t);
-    val (_, t') = codegen_term thy t;
-  in
-    CodegenSerializer.eval_term thy (ref_spec, t') (Code.get thy)
-  end;
+    val t' = codegen_term thy t;
+  in CodegenSerializer.eval_term thy (ref_spec, t') (Code.get thy) end;
 
 
 
@@ -641,7 +624,7 @@ fun code raw_cs seris thy =
     fun generate' thy = case cs
      of [] => []
       | _ =>
-          generate thy (cs, []) (case map fst seris' of [] => NONE | xs => SOME xs)
+          generate thy (CodegenFuncgr.make thy cs) (case map fst seris' of [] => NONE | xs => SOME xs)
             NONE (fold_map oooo ensure_def_const') cs;
     fun serialize' [] code seri =
           seri NONE code 
