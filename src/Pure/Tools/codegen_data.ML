@@ -21,7 +21,6 @@ sig
   val add_inline: thm -> theory -> theory
   val del_inline: thm -> theory -> theory
   val add_inline_proc: (theory -> cterm list -> thm list) -> theory -> theory
-  val add_constrains: (theory -> term list -> (indexname * sort) list) -> theory -> theory
   val add_preproc: (theory -> thm list -> thm list) -> theory -> theory
   val these_funcs: theory -> CodegenConsts.const -> thm list
   val get_datatype: theory -> string
@@ -33,7 +32,7 @@ sig
   val typ_func: theory -> thm -> typ
   val typ_funcs: theory -> CodegenConsts.const * thm list -> typ
   val rewrite_func: thm list -> thm -> thm
-  val preprocess_cterm: theory -> (string * typ -> typ) -> cterm -> thm * cterm
+  val preprocess_cterm: theory -> cterm -> thm
 
   val trace: bool ref
   val strict_functyp: bool ref
@@ -98,7 +97,8 @@ fun merge_alist eq_key eq (xys as (xs, ys)) =
 val merge_thms = merge' eq_thm;
 
 fun merge_lthms (r1, r2) =
-  if Susp.same (r1, r2) then (false, r1)
+  if Susp.same (r1, r2)
+    then (false, r1)
   else case Susp.peek r1
    of SOME [] => (true, r2)
     | _ => case Susp.peek r2
@@ -146,13 +146,14 @@ fun mk_rew thy thm =
 
 (* making function theorems *)
 
-fun typ_func thy = snd o dest_Const o fst o strip_comb o fst 
-  o Logic.dest_equals o ObjectLogic.drop_judgment thy o Drule.plain_prop_of;
+fun typ_func thy = snd o dest_Const o fst o strip_comb
+  o fst o Logic.dest_equals o ObjectLogic.drop_judgment thy o Drule.plain_prop_of;
 
 val strict_functyp = ref true;
 
-fun dest_func thy = apfst dest_Const o strip_comb o Envir.beta_eta_contract
-  o fst o Logic.dest_equals o ObjectLogic.drop_judgment thy o Drule.plain_prop_of;
+fun dest_func thy = apfst dest_Const o strip_comb
+  o fst o Logic.dest_equals o ObjectLogic.drop_judgment thy o Drule.plain_prop_of
+  o Drule.fconv_rule Drule.beta_eta_conversion;
 
 fun mk_head thy thm =
   ((CodegenConsts.norm_of_typ thy o fst o dest_func thy) thm, thm);
@@ -261,7 +262,7 @@ fun del_thm thm (sels, dels) =
 
 fun pretty_sdthms ctxt (sels, _) = pretty_lthms ctxt sels;
 
-fun merge_sdthms c ((sels1, dels1), (sels2, dels2)) =
+fun merge_sdthms ((sels1, dels1), (sels2, dels2)) =
   let
     val (dels_t, dels) = merge_thms (dels1, dels2);
   in if dels_t
@@ -282,23 +283,21 @@ structure Consttab = CodegenConsts.Consttab;
 datatype preproc = Preproc of {
   inlines: thm list,
   inline_procs: (serial * (theory -> cterm list -> thm list)) list,
-  constrains: (serial * (theory -> term list -> (indexname * sort) list)) list,
   preprocs: (serial * (theory -> thm list -> thm list)) list
 };
 
-fun mk_preproc ((inlines, inline_procs), (constrains, preprocs)) =
-  Preproc { inlines = inlines, inline_procs = inline_procs, constrains = constrains, preprocs = preprocs };
-fun map_preproc f (Preproc { inlines, inline_procs, constrains, preprocs }) =
-  mk_preproc (f ((inlines, inline_procs), (constrains, preprocs)));
-fun merge_preproc (Preproc { inlines = inlines1, inline_procs = inline_procs1, constrains = constrains1 , preprocs = preprocs1 },
-  Preproc { inlines = inlines2, inline_procs = inline_procs2, constrains = constrains2 , preprocs = preprocs2 }) =
+fun mk_preproc ((inlines, inline_procs), preprocs) =
+  Preproc { inlines = inlines, inline_procs = inline_procs, preprocs = preprocs };
+fun map_preproc f (Preproc { inlines, inline_procs, preprocs }) =
+  mk_preproc (f ((inlines, inline_procs), preprocs));
+fun merge_preproc (Preproc { inlines = inlines1, inline_procs = inline_procs1, preprocs = preprocs1 },
+  Preproc { inlines = inlines2, inline_procs = inline_procs2, preprocs = preprocs2 }) =
     let
       val (touched1, inlines) = merge_thms (inlines1, inlines2);
       val (touched2, inline_procs) = merge_alist (op =) (K true) (inline_procs1, inline_procs2);
-      val (touched3, constrains) = merge_alist (op =) (K true) (constrains1, constrains2);
-      val (touched4, preprocs) = merge_alist (op =) (K true) (preprocs1, preprocs2);
-    in (touched1 orelse touched2 orelse touched3 orelse touched4,
-      mk_preproc ((inlines, inline_procs), (constrains, preprocs))) end;
+      val (touched3, preprocs) = merge_alist (op =) (K true) (preprocs1, preprocs2);
+    in (touched1 orelse touched2 orelse touched3,
+      mk_preproc ((inlines, inline_procs), preprocs)) end;
 
 fun join_func_thms (tabs as (tab1, tab2)) =
   let
@@ -307,7 +306,7 @@ fun join_func_thms (tabs as (tab1, tab2)) =
     val cs' = filter (member CodegenConsts.eq_const cs2) cs1;
     val cs'' = subtract (op =) cs' cs1 @ subtract (op =) cs' cs2;
     val cs''' = ref [] : CodegenConsts.const list ref;
-    fun merge c x = let val (touched, thms') = merge_sdthms c x in
+    fun merge c x = let val (touched, thms') = merge_sdthms x in
       (if touched then cs''' := cons c (!cs''') else (); thms') end;
   in (cs'' @ !cs''', Consttab.join merge tabs) end;
 fun merge_funcs (thms1, thms2) =
@@ -365,7 +364,7 @@ fun merge_exec (Exec { preproc = preproc1, spec = spec1 },
     val (touched_cs, spec) = merge_spec (spec1, spec2);
     val touched = if touched' then NONE else touched_cs;
   in (touched, mk_exec (preproc, spec)) end;
-val empty_exec = mk_exec (mk_preproc (([], []), ([], [])),
+val empty_exec = mk_exec (mk_preproc (([], []), []),
   mk_spec ((Consttab.empty, Consttab.empty), Symtab.empty));
 
 fun the_preproc (Exec { preproc = Preproc x, ...}) = x;
@@ -533,10 +532,10 @@ fun common_typ_funcs thy [] = []
         fun incr_thm thm max =
           let
             val thm' = incr_indexes max thm;
-            val max' = (maxidx_of_typ o fastype_of o Drule.plain_prop_of) thm' + 1;
+            val max' = Thm.maxidx_of thm' + 1;
           in (thm', max') end;
         val (thms', maxidx) = fold_map incr_thm thms 0;
-        val (ty1::tys) = map (typ_func thy) thms;
+        val (ty1::tys) = map (typ_func thy) thms';
         fun unify ty env = Sign.typ_unify thy (ty1, ty) env
           handle Type.TUNIFY =>
             error ("Type unificaton failed, while unifying function equations\n"
@@ -546,7 +545,7 @@ fun common_typ_funcs thy [] = []
         val (env, _) = fold unify tys (Vartab.empty, maxidx)
         val instT = Vartab.fold (fn (x_i, (sort, ty)) =>
           cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
-      in map (Thm.instantiate (instT, [])) thms end;
+      in map (Thm.instantiate (instT, [])) thms' end;
 
 fun certify_const thy c c_thms =
   let
@@ -688,57 +687,10 @@ fun del_inline thm thy =
 fun add_inline_proc f =
   (map_exec_purge NONE o map_preproc o apfst o apsnd) (cons (serial (), f));
 
-fun add_constrains f =
-  (map_exec_purge NONE o map_preproc o apsnd o apfst) (cons (serial (), f));
-
 fun add_preproc f =
-  (map_exec_purge NONE o map_preproc o apsnd o apsnd) (cons (serial (), f));
+  (map_exec_purge NONE o map_preproc o apsnd) (cons (serial (), f));
 
 local
-
-fun gen_apply_constrain prep post const_typ thy fs x =
-  let
-    val ts = prep x;
-    val tvars = (fold o fold_aterms) Term.add_tvars ts [];
-    val consts = (fold o fold_aterms) (fn Const c => cons c | _ => I) ts [];
-    fun insts_of const_typ (c, ty) =
-      let
-        val ty_decl = const_typ (c, ty);
-        val env = Vartab.dest (Type.raw_match (ty_decl, ty) Vartab.empty);
-        val insts = map_filter
-         (fn (v, (sort, TVar (_, sort'))) =>
-                if Sorts.sort_le (Sign.classes_of thy) (sort, sort')
-                then NONE else SOME (v, sort)
-           | _ => NONE) env
-      in 
-        insts
-      end
-    val const_insts = case const_typ
-     of NONE => []
-      | SOME const_typ => maps (insts_of const_typ) consts;
-    fun add_inst (v, sort') =
-      let
-        val sort = (the o AList.lookup (op =) tvars) v
-      in
-        AList.map_default (op =) (v, (sort, sort))
-          (apsnd (fn sort => Sorts.inter_sort (Sign.classes_of thy) (sort, sort')))
-      end;
-    val inst =
-      []
-      |> fold (fn f => fold add_inst (f thy ts)) fs
-      |> fold add_inst const_insts;
-  in
-    post thy inst x
-  end;
-
-val apply_constrain = gen_apply_constrain (maps
-  ((fn (args, rhs) => rhs :: (snd o strip_comb) args) o Logic.dest_equals o Thm.prop_of))
-  (fn thy => fn inst => map (check_typ_classop thy o Thm.instantiate (map (fn (v, (sort, sort')) =>
-    (Thm.ctyp_of thy (TVar (v, sort)), Thm.ctyp_of thy (TVar (v, sort')))
-  ) inst, []))) NONE;
-fun apply_constrain_cterm thy const_typ = gen_apply_constrain (single o Thm.term_of)
-  (fn thy => fn inst => pair inst o Thm.cterm_of thy o map_types
-    (TermSubst.instantiateT (map (fn (v, (sort, sort')) => ((v, sort), TVar (v, sort'))) inst)) o Thm.term_of) (SOME const_typ) thy;
 
 fun gen_apply_inline_proc prep post thy f x =
   let
@@ -767,41 +719,22 @@ fun rhs_conv conv thm =
     val thm' = (conv o snd o Drule.dest_equals o Thm.cprop_of) thm;
   in Thm.transitive thm thm' end
 
-fun drop_classes thy inst thm =
-  let
-    val unconstr = map (fn (v, (_, sort')) =>
-      (Thm.ctyp_of thy o TVar) (v, sort')) inst;
-    val instmap = map (fn (v, (sort, _)) =>
-      pairself (Thm.ctyp_of thy o TVar) ((v, []), (v, sort))) inst;
-  in
-    thm
-    |> fold Thm.unconstrainT unconstr
-    |> Thm.instantiate (instmap, [])
-    |> Tactic.rule_by_tactic ((REPEAT o CHANGED o ALLGOALS o Tactic.resolve_tac) (AxClass.class_intros thy))
-  end;
-
 in
 
 fun preprocess thy thms =
   thms
   |> fold (fn (_, f) => apply_preproc thy f) ((#preprocs o the_preproc o get_exec) thy)
   |> map (rewrite_func ((#inlines o the_preproc o get_exec) thy))
-  |> apply_constrain thy ((map snd o #constrains o the_preproc o get_exec) thy)
-  |> map (rewrite_func ((#inlines o the_preproc o get_exec) thy))
   |> fold (fn (_, f) => apply_inline_proc thy f) ((#inline_procs o the_preproc o get_exec) thy)
   |> map (snd o check_func false thy)
   |> sort (cmp_thms thy)
   |> common_typ_funcs thy;
 
-fun preprocess_cterm thy const_typ ct =
+fun preprocess_cterm thy ct =
   ct
-  |> apply_constrain_cterm thy const_typ ((map snd o #constrains o the_preproc o get_exec) thy)
-  |-> (fn inst =>
-     Thm.reflexive
-  #> fold (rhs_conv o Tactic.rewrite false o single) ((#inlines o the_preproc o get_exec) thy)
-  #> fold (fn (_, f) => rhs_conv (apply_inline_proc_cterm thy f)) ((#inline_procs o the_preproc o get_exec) thy)
-  #> (fn thm => (drop_classes thy inst thm, ((fn xs => nth xs 1) o snd o Drule.strip_comb o Thm.cprop_of) thm))
-  );
+  |> Thm.reflexive
+  |> fold (rhs_conv o Tactic.rewrite false o single) ((#inlines o the_preproc o get_exec) thy)
+  |> fold (fn (_, f) => rhs_conv (apply_inline_proc_cterm thy f)) ((#inline_procs o the_preproc o get_exec) thy)
 
 end; (*local*)
 
@@ -913,3 +846,5 @@ struct
 open CodegenData;
 
 end;
+
+set Toplevel.debug;
