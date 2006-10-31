@@ -723,17 +723,18 @@ lemma option_map_o_sum_case [simp]:
   by (rule ext) (simp split: sum.split)
 
 
-subsubsection {* Codegenerator setup *}
+subsubsection {* Code generator setup *}
 
-consts
+definition
   is_none :: "'a option \<Rightarrow> bool"
-primrec
-  "is_none None = True"
-  "is_none (Some x) = False"
+  is_none_none [normal post, symmetric, code inline]: "is_none x \<longleftrightarrow> x = None"
 
-lemma is_none_none [code inline, symmetric, normal post]:
-    "(x = None) = (is_none x)" 
-  by (cases x) simp_all
+lemma is_none_code [code]:
+  shows "is_none None \<longleftrightarrow> True"
+    and "is_none (Some x) \<longleftrightarrow> False"
+  unfolding is_none_none [symmetric] by simp_all
+
+hide (open) const is_none
 
 lemmas [code] = imp_conv_disj
 
@@ -766,40 +767,40 @@ lemma split_is_prod_case [code inline]:
   by (simp add: expand_fun_eq split_def prod.cases)
 
 code_type bool
-  (SML target_atom "bool")
-  (Haskell target_atom "Bool")
+  (SML "bool")
+  (Haskell "Bool")
 
 code_const True and False and Not and "op &" and "op |" and If
-  (SML target_atom "true" and target_atom "false" and target_atom "not"
+  (SML "true" and "false" and "not"
     and infixl 1 "andalso" and infixl 0 "orelse"
-    and target_atom "(if __/ then __/ else __)")
-  (Haskell target_atom "True" and target_atom "False" and target_atom "not"
+    and "!(if __/ then __/ else __)")
+  (Haskell "True" and "False" and "not"
     and infixl 3 "&&" and infixl 2 "||"
-    and target_atom "(if __/ then __/ else __)")
+    and "!(if __/ then __/ else __)")
 
 code_type *
   (SML infix 2 "*")
-  (Haskell target_atom "(__,/ __)")
+  (Haskell "!(__,/ __)")
 
 code_const Pair
-  (SML target_atom "(__,/ __)")
-  (Haskell target_atom "(__,/ __)")
+  (SML "!(__,/ __)")
+  (Haskell "!(__,/ __)")
 
 code_type unit
-  (SML target_atom "unit")
-  (Haskell target_atom "()")
+  (SML "unit")
+  (Haskell "()")
 
 code_const Unity
-  (SML target_atom "()")
-  (Haskell target_atom "()")
+  (SML "()")
+  (Haskell "()")
 
 code_type option
   (SML "_ option")
   (Haskell "Maybe _")
 
 code_const None and Some
-  (SML target_atom "NONE" and target_atom "SOME")
-  (Haskell target_atom "Nothing" and target_atom "Just")
+  (SML "NONE" and "SOME")
+  (Haskell "Nothing" and "Just")
 
 code_instance option :: eq
   (Haskell -)
