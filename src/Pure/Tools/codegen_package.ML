@@ -588,7 +588,7 @@ fun generate thy funcgr targets init gen it =
 fun codegen_term thy t =
   let
     val ct = Thm.cterm_of thy t;
-    val ((ct', _), funcgr) = CodegenFuncgr.make_term thy ct;
+    val (ct', funcgr) = CodegenFuncgr.make_term thy (K K) ct;
     val t' = Thm.term_of ct';
   in generate thy funcgr (SOME []) NONE exprgen_term' t' end;
 

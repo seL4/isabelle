@@ -10,7 +10,7 @@ signature CODEGEN_FUNCGR =
 sig
   type T;
   val make: theory -> CodegenConsts.const list -> T
-  val make_term: theory -> cterm -> (cterm * (thm * (thm -> thm))) * T
+  val make_term: theory -> ((thm -> thm) -> cterm -> thm -> 'a) -> cterm -> 'a * T
   val funcs: T -> CodegenConsts.const -> thm list
   val typ: T -> CodegenConsts.const -> typ
   val deps: T -> CodegenConsts.const list -> CodegenConsts.const list list
@@ -337,7 +337,7 @@ val ensure_consts = ensure_consts;
 fun make thy consts =
   Funcgr.change thy (ensure_consts thy consts);
 
-fun make_term thy ct =
+fun make_term thy f ct =
   let
     val _ = Sign.no_vars (Sign.pp thy) (Thm.term_of ct);
     val _ = Term.fold_types (Type.no_tvars #> K I) (Thm.term_of ct) ();
@@ -373,7 +373,7 @@ fun make_term thy ct =
 (*     val _ = writeln "ADD INST";  *)
     val funcgr' = ensure_consts thy
       (instdefs_of thy (fold (fold (insert (op =)) o insts_of thy funcgr) cs [])) funcgr
-  in ((ct'', (thm5, drop)), Funcgr.change thy (K funcgr')) end;
+  in (f drop ct'' thm5, Funcgr.change thy (K funcgr')) end;
 
 end; (*local*)
 

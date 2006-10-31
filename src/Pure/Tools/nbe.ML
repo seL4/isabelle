@@ -188,15 +188,18 @@ in
 fun normalization_conv ct =
   let
     val thy = Thm.theory_of_cterm ct;
-    val ((ct', (thm1, drop_classes)), _) = CodegenFuncgr.make_term thy ct;
-    val t = Thm.term_of ct';
-    val thm2 = normalization_invoke thy t;
-    val thm3 = apply_posts thy ((snd o Drule.dest_equals o Thm.cprop_of) thm2);
-  in
-    Thm.transitive thm1 (drop_classes (Thm.transitive thm2 thm3)) handle
-      THM _ => error ("normalization_conv - could not construct proof:\n"
-        ^ (cat_lines o map string_of_thm) [thm1, thm2, thm3])
-  end;
+    fun mk drop_classes ct thm1 =
+      let
+        val t = Thm.term_of ct;
+        val thm2 = normalization_invoke thy t;
+        val thm3 = apply_posts thy ((snd o Drule.dest_equals o Thm.cprop_of) thm2);
+        val thm23 = drop_classes (Thm.transitive thm2 thm3);
+      in
+        Thm.transitive thm1 thm23 handle THM _ =>
+          error ("normalization_conv - could not construct proof:\n"
+          ^ (cat_lines o map string_of_thm) [thm1, thm2, thm3])
+      end;
+  in fst (CodegenFuncgr.make_term thy mk ct) end;
 
 fun norm_print_term ctxt modes t =
   let
