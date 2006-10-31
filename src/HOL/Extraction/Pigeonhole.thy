@@ -16,8 +16,8 @@ Aleksey Nogin \cite{Nogin-ENTCS-2000}.
 We need decidability of equality on natural numbers:
 *}
 
-lemma nat_eq_dec: "\<And>n::nat. m = n \<or> m \<noteq> n"
-  apply (induct m)
+lemma nat_eq_dec: "(m\<Colon>nat) = n \<or> m \<noteq> n"
+  apply (induct m arbitrary: n)
   apply (case_tac n)
   apply (case_tac [3] n)
   apply (simp only: nat.simps, iprover?)+
@@ -307,9 +307,6 @@ definition
   arbitrary_nat_subst :: "nat \<times> nat"
   "arbitrary_nat_subst = (0, 0)"
 
-lemma [code func]:
-  "arbitrary_nat = arbitrary_nat" ..
-
 code_axioms
   arbitrary_nat \<equiv> arbitrary_nat_subst
 
@@ -317,7 +314,7 @@ definition
   "test n = pigeonhole n (\<lambda>m. m - 1)"
   "test' n = pigeonhole_slow n (\<lambda>m. m - 1)"
 
-code_gen test test' "op !" (SML -)
+code_gen test test' "op !" (SML *)
 
 ML "timeit (fn () => ROOT.Pigeonhole.test 10)"
 ML "timeit (fn () => ROOT.Pigeonhole.test' 10)"

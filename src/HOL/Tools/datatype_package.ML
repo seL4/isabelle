@@ -305,13 +305,14 @@ fun name_notE th =
       
 fun add_rules simps case_thms size_thms rec_thms inject distinct
                   weak_case_congs cong_att =
-  (snd o PureThy.add_thmss [(("simps", simps), []),
+  PureThy.add_thmss [(("simps", simps), []),
     (("", flat case_thms @ size_thms @ 
           flat distinct @ rec_thms), [Simplifier.simp_add]),
-    (("", size_thms @ rec_thms),             [setmp CodegenData.strict_functyp false (RecfunCodegen.add NONE)]),
-    (("", flat inject),               [iff_add]),
-    (("", map name_notE (flat distinct)),  [Classical.safe_elim NONE]),
-    (("", weak_case_congs),                  [cong_att])]);
+    (("", size_thms @ rec_thms), [RecfunCodegen.add NONE]),
+    (("", flat inject), [iff_add]),
+    (("", map name_notE (flat distinct)), [Classical.safe_elim NONE]),
+    (("", weak_case_congs), [cong_att])]
+  #> snd;
 
 
 (* add_cases_induct *)
