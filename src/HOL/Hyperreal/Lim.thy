@@ -551,6 +551,9 @@ apply (simp add: diff_minus)
 apply (auto intro: isCont_add isCont_minus)
 done
 
+lemma isCont_Id: "isCont (\<lambda>x. x) a"
+by (simp only: isCont_def LIM_self)
+
 lemma isCont_const [simp]: "isCont (%x. k) a"
 by (simp add: isCont_def)
 
@@ -1280,8 +1283,6 @@ by (drule (1) DERIV_chain', simp add: o_def real_scaleR_def mult_commute)
 
 lemma DERIV_chain2: "[| DERIV f (g x) :> Da; DERIV g x :> Db |] ==> DERIV (%x. f (g x)) x :> Da * Db"
 by (auto dest: DERIV_chain simp add: o_def)
-
-lemmas isCont_Id = DERIV_Id [THEN DERIV_isCont, standard]
 
 (*derivative of linear multiplication*)
 lemma DERIV_cmult_Id [simp]: "DERIV (op * c) x :> c"
