@@ -2428,7 +2428,8 @@ lemma measures_less: "f x < f y ==> (x, y) \<in> measures (f#fs)"
 lemma measures_lesseq: "f x <= f y ==> (x, y) \<in> measures fs ==> (x, y) \<in> measures (f#fs)"
   by auto
 
-
+use "Tools/function_package/lexicographic_order.ML"
+setup {* LexicographicOrder.setup *}
 
 subsubsection{*Lifting a Relation on List Elements to the Lists*}
 
