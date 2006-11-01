@@ -71,6 +71,16 @@ apply (rule ext)
 apply (simp add: COMBB_def) 
 done
 
+text{*These two represent the equivalence between Boolean equality and iff.
+They can't be converted to clauses automatically, as the iff would be 
+expanded...*}
+
+lemma iff_positive: "P | Q | P=Q"
+by blast
+
+lemma iff_negative: "~P | ~Q | P=Q"
+by blast
+
 use "Tools/res_axioms.ML"
 use "Tools/res_hol_clause.ML"
 use "Tools/res_atp.ML"
