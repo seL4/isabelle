@@ -766,6 +766,15 @@ apply (simp add: deriv_def)
 apply (blast intro: LIM_unique)
 done
 
+text{*Differentiation of finite sum*}
+
+lemma DERIV_sumr [rule_format (no_asm)]:
+     "(\<forall>r. m \<le> r & r < (m + n) --> DERIV (%x. f r x) x :> (f' r x))
+      --> DERIV (%x. \<Sum>n=m..<n::nat. f n x :: real) x :> (\<Sum>r=m..<n. f' r x)"
+apply (induct "n")
+apply (auto intro: DERIV_add)
+done
+
 text{*Alternative definition for differentiability*}
 
 lemma DERIV_LIM_iff:

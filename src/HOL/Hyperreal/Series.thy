@@ -10,7 +10,7 @@ Additional contributions by Jeremy Avigad
 header{*Finite Summation and Infinite Series*}
 
 theory Series
-imports SEQ Lim
+imports SEQ
 begin
 
 definition
@@ -558,16 +558,6 @@ apply (rule_tac x = "norm (f N) * (1/ (1 - c)) / (c ^ N)" in exI)
 apply (rule sums_divide) 
 apply (rule sums_mult) 
 apply (auto intro!: geometric_sums)
-done
-
-
-text{*Differentiation of finite sum*}
-
-lemma DERIV_sumr [rule_format (no_asm)]:
-     "(\<forall>r. m \<le> r & r < (m + n) --> DERIV (%x. f r x) x :> (f' r x))  
-      --> DERIV (%x. \<Sum>n=m..<n::nat. f n x :: real) x :> (\<Sum>r=m..<n. f' r x)"
-apply (induct "n")
-apply (auto intro: DERIV_add)
 done
 
 end
