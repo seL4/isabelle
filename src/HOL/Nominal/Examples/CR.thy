@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory CR
-imports Lam_substs
+imports Lam_Funs
 begin
 
 text {* The Church-Rosser proof from Barendregt's book *}
