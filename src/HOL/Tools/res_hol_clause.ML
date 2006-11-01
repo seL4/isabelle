@@ -22,7 +22,6 @@ val comb_S' = thm "Reconstruction.COMBS'_def";
 val fequal_imp_equal = thm "Reconstruction.fequal_imp_equal";
 val equal_imp_fequal = thm "Reconstruction.equal_imp_fequal";
 
-
 (*A flag to set if we use the Turner optimizations. Currently FALSE, as the 5 standard
   combinators appear to work best.*)
 val use_Turner = ref false;
@@ -81,17 +80,6 @@ fun is_free (Bound(a)) n = (a = n)
   | is_free _ _ = false;
 
 
-exception BND of term;
-
-fun decre_bndVar (Bound n) = Bound (n-1)
-  | decre_bndVar (P $ Q) = (decre_bndVar P) $ (decre_bndVar Q)
-  | decre_bndVar t =
-    case t of Const(_,_) => t
-	    | Free(_,_) => t
-	    | Var(_,_) => t
-	    | Abs(_,_,_) => raise BND(t); (*should not occur*)
-
-
 (*******************************************)
 fun mk_compact_comb (tm as (Const("Reconstruction.COMBB",_)$p) $ (Const("Reconstruction.COMBB",_)$q$r)) Bnds count_comb =
     let val tp_p = Term.type_of1(Bnds,p)
@@ -134,54 +122,47 @@ fun compact_comb t Bnds count_comb =
   if !use_Turner then mk_compact_comb t Bnds count_comb else t;
 
 fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb = 
-      let val tpI = Type("fun",[tp,tp])
-	  val _ = increI count_comb
+      let val _ = increI count_comb
       in 
-	  Const("Reconstruction.COMBI",tpI) 
+	  Const("Reconstruction.COMBI",tp-->tp) 
       end
   | lam2comb (Abs(x,tp,Bound n)) Bnds count_comb = 
-      let val (Bound n') = decre_bndVar (Bound n)
-	  val tb = List.nth(Bnds,n')
-	  val tK = Type("fun",[tb,Type("fun",[tp,tb])])
+      let val tb = List.nth(Bnds,n-1)
 	  val _ = increK count_comb 
       in
-	  Const("Reconstruction.COMBK",tK) $ (Bound n')
+	  Const("Reconstruction.COMBK", [tb,tp] ---> tb) $ (Bound (n-1))
       end
   | lam2comb (Abs(x,t1,Const(c,t2))) _ count_comb = 
-      let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
-	  val _ = increK count_comb 
+      let val _ = increK count_comb 
       in 
-	  Const("Reconstruction.COMBK",tK) $ Const(c,t2) 
+	  Const("Reconstruction.COMBK",[t2,t1] ---> t2) $ Const(c,t2) 
       end
   | lam2comb (Abs(x,t1,Free(v,t2))) _ count_comb =
-      let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
-	  val _ = increK count_comb
+      let val _ = increK count_comb
       in
-	  Const("Reconstruction.COMBK",tK) $ Free(v,t2)
+	  Const("Reconstruction.COMBK",[t2,t1] ---> t2) $ Free(v,t2)
       end
   | lam2comb (Abs(x,t1,Var(ind,t2))) _ count_comb =
-      let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
-	  val _ = increK count_comb 
+      let val _ = increK count_comb 
       in
-	  Const("Reconstruction.COMBK",tK) $ Var(ind,t2)
+	  Const("Reconstruction.COMBK", [t2,t1] ---> t2) $ Var(ind,t2)
       end
   | lam2comb (t as (Abs(x,t1,P$(Bound 0)))) Bnds count_comb =
-      let val nfreeP = not(is_free P 0)
-	  val tr = Term.type_of1(t1::Bnds,P)
+      let val tr = Term.type_of1(t1::Bnds,P)
       in
-	  if nfreeP then (decre_bndVar P)
+	  if not(is_free P 0) then (incr_boundvars ~1 P)
 	  else 
-	  let val tI = Type("fun",[t1,t1])
+	  let val tI = [t1] ---> t1
 	      val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
 	      val tp' = Term.type_of1(Bnds,P')
-	      val tS = Type("fun",[tp',Type("fun",[tI,tr])])
+	      val tS = [tp',tI] ---> tr
 	      val _ = increI count_comb
 	      val _ = increS count_comb
 	  in
-	      compact_comb (Const("Reconstruction.COMBS",tS) $ P' $ Const("Reconstruction.COMBI",tI)) Bnds count_comb
+	      compact_comb (Const("Reconstruction.COMBS",tS) $ P' $ 
+	                     Const("Reconstruction.COMBI",tI)) Bnds count_comb
 	  end
-      end
-	    
+      end	    
   | lam2comb (t as (Abs(x,t1,P$Q))) Bnds count_comb =
       let val nfreeP = not(is_free P 0)
 	  and nfreeQ = not(is_free Q 0)
@@ -189,28 +170,28 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
       in
 	  if nfreeP andalso nfreeQ 
 	  then 
-	    let val tK = Type("fun",[tpq,Type("fun",[t1,tpq])])
-		val PQ' = decre_bndVar(P $ Q)
+	    let val tK = [tpq,t1] ---> tpq
+		val PQ' = incr_boundvars ~1(P $ Q)
 		val _ = increK count_comb
 	    in 
 		Const("Reconstruction.COMBK",tK) $ PQ'
 	    end
 	  else if nfreeP then 
 	    let val Q' = lam2comb (Abs(x,t1,Q)) Bnds count_comb
-		val P' = decre_bndVar P
+		val P' = incr_boundvars ~1 P
 		val tp = Term.type_of1(Bnds,P')
 		val tq' = Term.type_of1(Bnds, Q')
-		val tB = Type("fun",[tp,Type("fun",[tq',Type("fun",[t1,tpq])])])
+		val tB = [tp,tq',t1] ---> tpq
 		val _ = increB count_comb
 	    in
 		compact_comb (Const("Reconstruction.COMBB",tB) $ P' $ Q') Bnds count_comb 
 	    end
 	  else if nfreeQ then 
 	    let val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
-		val Q' = decre_bndVar Q
+		val Q' = incr_boundvars ~1 Q
 		val tq = Term.type_of1(Bnds,Q')
 		val tp' = Term.type_of1(Bnds, P')
-		val tC = Type("fun",[tp',Type("fun",[tq,Type("fun",[t1,tpq])])])
+		val tC = [tp',tq,t1] ---> tpq
 		val _ = increC count_comb
 	    in
 		compact_comb (Const("Reconstruction.COMBC",tC) $ P' $ Q') Bnds count_comb
@@ -220,7 +201,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 		val Q' = lam2comb (Abs(x,t1,Q)) Bnds count_comb 
 		val tp' = Term.type_of1(Bnds,P')
 		val tq' = Term.type_of1(Bnds,Q')
-		val tS = Type("fun",[tp',Type("fun",[tq',Type("fun",[t1,tpq])])])
+		val tS = [tp',tq',t1] ---> tpq
 		val _ = increS count_comb
 	    in
 		compact_comb (Const("Reconstruction.COMBS",tS) $ P' $ Q') Bnds count_comb
@@ -444,15 +425,13 @@ fun occurs a (CombVar(b,_)) = a = b
 fun too_general_terms (CombVar(v,_), t) = not (occurs v t)
   | too_general_terms _ = false;
 
-fun too_general_lit (Literal(true,(Bool(CombApp(CombApp(CombConst("equal",tp,tps),t1,tp1),t2,tp2))))) =
+fun too_general_equality (Literal(true,(Bool(CombApp(CombApp(CombConst("equal",tp,tps),t1,tp1),t2,tp2))))) =
       too_general_terms (t1,t2) orelse too_general_terms (t2,t1)
-  | too_general_lit _ = false;
+  | too_general_equality _ = false;
 
-(* forbid a clause that contains hBOOL(V) *)
-fun too_general [] = false
-  | too_general (lit::lits) = 
-    case lit of Literal(_,Bool(CombVar(_,_))) => true
-	      | _ => too_general lits;
+(* forbid the literal hBOOL(V) *)
+fun too_general_bool (Literal(_,Bool(CombVar _))) = true
+  | too_general_bool _ = false;
 
 (* making axiom and conjecture clauses *)
 exception MAKE_CLAUSE
@@ -464,12 +443,9 @@ fun make_clause(clause_id,axiom_name,kind,thm,is_user) =
     in
 	if forall isFalse lits
 	then error "Problem too trivial for resolution (empty clause)"
-	else if too_general lits 
-	then (Output.debug ("Omitting " ^ axiom_name ^ ": clause contains universal predicates"); 
-	     raise MAKE_CLAUSE)
-	else
-	    if (!typ_level <> T_FULL) andalso kind=Axiom andalso forall too_general_lit lits 
-	    then (Output.debug ("Omitting " ^ axiom_name ^ ": equalities are too general"); 
+	else if (!typ_level <> T_FULL) andalso kind=Axiom andalso 
+	        (forall too_general_equality lits orelse exists too_general_bool lits)
+	    then (Output.debug ("Omitting " ^ axiom_name ^ ": clause is too prolific"); 
 	          raise MAKE_CLAUSE) 
 	else
 	    Clause {clause_id = clause_id, axiom_name = axiom_name, th = thm, kind = kind,
@@ -512,7 +488,7 @@ val make_conjecture_clauses = make_conjecture_clauses_aux 0;
 val type_wrapper = "typeinfo";
 
 fun wrap_type (c,t) = 
-    case !typ_level of T_FULL => type_wrapper ^ (ResClause.paren_pack [c,t])
+    case !typ_level of T_FULL => type_wrapper ^ ResClause.paren_pack [c,t]
 		     | _ => c;
     
 
@@ -545,19 +521,18 @@ fun string_of_combterm1_aux _ (CombConst(c,tp,_)) =
     let val (s1,tp1) = string_of_combterm1_aux is_pred t1
 	val (s2,tp2) = string_of_combterm1_aux is_pred t2
 	val tp' = ResClause.string_of_fol_type tp
-	val r =	case !typ_level of T_FULL => type_wrapper ^  (ResClause.paren_pack [(app_str ^ (ResClause.paren_pack [s1,s2])),tp'])
-				 | T_PARTIAL => app_str ^ (ResClause.paren_pack [s1,s2,tp1])
-				 | T_NONE => app_str ^ (ResClause.paren_pack [s1,s2])
-				 | T_CONST => raise STRING_OF_COMBTERM (1) (*should not happen, if happened may be a bug*)
-    in	(r,tp')
-
-    end
+	val r =	case !typ_level of
+	            T_FULL => type_wrapper ^ ResClause.paren_pack [(app_str ^ ResClause.paren_pack [s1,s2]),tp']
+		  | T_PARTIAL => app_str ^ ResClause.paren_pack [s1,s2,tp1]
+		  | T_NONE => app_str ^ ResClause.paren_pack [s1,s2]
+		  | T_CONST => raise STRING_OF_COMBTERM 1 (*should not happen, if happened may be a bug*)
+    in	(r,tp')   end
   | string_of_combterm1_aux is_pred (Bool(CombApp(CombApp(CombConst("equal",tp,tps),t1,tp1),t2,tp2))) =
     if is_pred then 
 	let val (s1,_) = string_of_combterm1_aux false t1
 	    val (s2,_) = string_of_combterm1_aux false t2
 	in
-	    ("equal" ^ (ResClause.paren_pack [s1,s2]),bool_tp)
+	    ("equal" ^ ResClause.paren_pack [s1,s2], bool_tp)
 	end
     else
 	let val (t,_) = string_of_combterm1_aux false (CombApp(CombApp(CombConst("equal",tp,tps),t1,tp1),t2,tp2))
@@ -566,7 +541,7 @@ fun string_of_combterm1_aux _ (CombConst(c,tp,_)) =
 	end
   | string_of_combterm1_aux is_pred (Bool(t)) = 
     let val (t',_) = string_of_combterm1_aux false t
-	val r = if is_pred then bool_str ^ (ResClause.paren_pack [t'])
+	val r = if is_pred then bool_str ^ ResClause.paren_pack [t']
 		else t'
     in
 	(r,bool_tp)
@@ -578,7 +553,7 @@ fun string_of_combterm2 _ (CombConst(c,tp,tvars)) =
     let val tvars' = map string_of_ctyp tvars
 	val c' = if c = "equal" then "c_fequal" else c
     in
-	c' ^ (ResClause.paren_pack tvars')
+	c' ^ ResClause.paren_pack tvars'
     end
   | string_of_combterm2 _ (CombFree(v,tp)) = v
   | string_of_combterm2 _ (CombVar(v,tp)) = v
@@ -586,14 +561,14 @@ fun string_of_combterm2 _ (CombConst(c,tp,tvars)) =
     let val s1 = string_of_combterm2 is_pred t1
 	val s2 = string_of_combterm2 is_pred t2
     in
-	app_str ^ (ResClause.paren_pack [s1,s2])
+	app_str ^ ResClause.paren_pack [s1,s2]
     end
   | string_of_combterm2 is_pred (Bool(CombApp(CombApp(CombConst("equal",tp,tps),t1,tp1),t2,tp2))) =
     if is_pred then 
 	let val s1 = string_of_combterm2 false t1
 	    val s2 = string_of_combterm2 false t2
 	in
-	    ("equal" ^ (ResClause.paren_pack [s1,s2]))
+	    ("equal" ^ ResClause.paren_pack [s1,s2])
 	end
     else
 	string_of_combterm2 false (CombApp(CombApp(CombConst("equal",tp,tps),t1,tp1),t2,tp2))
@@ -601,16 +576,13 @@ fun string_of_combterm2 _ (CombConst(c,tp,tvars)) =
   | string_of_combterm2 is_pred (Bool(t)) = 
     let val t' = string_of_combterm2 false t
     in
-	if is_pred then bool_str ^ (ResClause.paren_pack [t'])
+	if is_pred then bool_str ^ ResClause.paren_pack [t']
 	else t'
     end;
-
-
 
 fun string_of_combterm is_pred term = 
     case !typ_level of T_CONST => string_of_combterm2 is_pred term
 		     | _ => string_of_combterm1 is_pred term;
-
 
 fun string_of_clausename (cls_id,ax_name) = 
     ResClause.clause_prefix ^ ResClause.ascii_of ax_name ^ "_" ^ Int.toString cls_id;
@@ -737,24 +709,39 @@ fun preds_of clsrel_clauses arity_clauses =
 (* write clauses to files                                             *)
 (**********************************************************************)
 
-local
-
 val cnf_helper_thms = ResAxioms.cnf_rules_pairs o (map ResAxioms.pairname)
 
-in
+(*Simulate the result of conversion to CNF*)
+fun pretend_cnf s = (thm s, (s,0));
+
+(*These theorems allow the proof of P=Q from P-->Q and Q-->P, so they are necessary for
+  completeness. Unfortunately, they are very prolific, causing greatly increased runtimes.
+  They also lead to many unsound proofs. Thus it is well that the "exists too_general_bool"
+  test deletes them except with the full-typed translation.*)
+val iff_thms = [pretend_cnf "Reconstruction.iff_positive", 
+                pretend_cnf "Reconstruction.iff_negative"];
 
 fun get_helper_clauses () =
-    let val IK = if !combI_count > 0 orelse !combK_count > 0 then (Output.debug "Include combinator I K"; cnf_helper_thms [comb_I,comb_K]) else []
-	val BC = if !combB_count > 0 orelse !combC_count > 0 then (Output.debug "Include combinator B C"; cnf_helper_thms [comb_B,comb_C]) else []
-	val S = if !combS_count > 0 then (Output.debug "Include combinator S"; cnf_helper_thms [comb_S]) else []
-	val B'C' = if !combB'_count > 0 orelse !combC'_count > 0 then (Output.debug "Include combinator B' C'"; cnf_helper_thms [comb_B', comb_C']) else []
-	val S' = if !combS'_count > 0 then (Output.debug "Include combinator S'"; cnf_helper_thms [comb_S']) else []
+    let val IK = if !combI_count > 0 orelse !combK_count > 0 
+                 then (Output.debug "Include combinator I K"; cnf_helper_thms [comb_I,comb_K]) 
+                 else []
+	val BC = if !combB_count > 0 orelse !combC_count > 0 
+	         then (Output.debug "Include combinator B C"; cnf_helper_thms [comb_B,comb_C]) 
+	         else []
+	val S = if !combS_count > 0 
+	        then (Output.debug "Include combinator S"; cnf_helper_thms [comb_S]) 
+	        else []
+	val B'C' = if !combB'_count > 0 orelse !combC'_count > 0 
+	           then (Output.debug "Include combinator B' C'"; cnf_helper_thms [comb_B', comb_C']) 
+	           else []
+	val S' = if !combS'_count > 0 
+	         then (Output.debug "Include combinator S'"; cnf_helper_thms [comb_S']) 
+	         else []
 	val other = cnf_helper_thms [ext,fequal_imp_equal,equal_imp_fequal]
     in
-	make_axiom_clauses (other @ IK @ BC @ S @ B'C' @ S') []
+	make_axiom_clauses (iff_thms @ other @ IK @ BC @ S @ B'C' @ S') []
     end
 
-end
 
 (* tptp format *)
 						  
