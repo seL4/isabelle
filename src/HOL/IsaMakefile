@@ -767,9 +767,8 @@ HOL-Nominal-Examples: HOL-Nominal $(LOG)/HOL-Nominal-Examples.gz
 $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
   Nominal/Examples/ROOT.ML Nominal/Examples/CR.thy Nominal/Examples/Class.thy	\
   Nominal/Examples/Compile.thy Nominal/Examples/Fsub.thy	\
-  Nominal/Examples/Height.thy Nominal/Examples/Iteration.thy	\
-  Nominal/Examples/Lambda_mu.thy Nominal/Examples/Lam_substs.thy	\
-  Nominal/Examples/Recursion.thy Nominal/Examples/SN.thy			\
+  Nominal/Examples/Lambda_mu.thy Nominal/Examples/Lam_Funs.thy	\
+  Nominal/Examples/SN.thy			\
   Nominal/Examples/Weakening.thy
 	@cd Nominal; $(ISATOOL) usedir $(OUT)/HOL-Nominal Examples
 
