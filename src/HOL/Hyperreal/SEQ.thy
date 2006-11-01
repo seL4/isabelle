@@ -479,14 +479,16 @@ lemma lemma_Bseq: "\<forall>n. norm (X n) \<le> K ==> \<forall>n. norm(X((f::nat
 by auto
 
 lemma Bseq_NSBseq: "Bseq X ==> NSBseq X"
-apply (simp add: Bseq_def NSBseq_def, safe)
-apply (rule_tac x = N in star_cases)
-apply (auto simp add: starfun HFinite_FreeUltrafilterNat_iff 
-                      HNatInfinite_FreeUltrafilterNat_iff)
-apply (drule_tac f = Xa in lemma_Bseq)
-apply (rule_tac x = "K+1" in exI)
-apply (drule_tac P="%n. ?f n \<le> K" in FreeUltrafilterNat_all, ultra)
-done
+proof (unfold NSBseq_def, safe)
+  assume X: "Bseq X"
+  fix N assume N: "N \<in> HNatInfinite"
+  from BseqD [OF X] obtain K where "\<forall>n. norm (X n) \<le> K" by fast
+  hence "\<forall>N. hnorm (starfun X N) \<le> star_of K" by transfer
+  hence "hnorm (starfun X N) \<le> star_of K" by simp
+  also have "star_of K < star_of (K + 1)" by simp
+  finally have "\<exists>x\<in>Reals. hnorm (starfun X N) < x" by (rule bexI, simp)
+  thus "starfun X N \<in> HFinite" by (simp add: HFinite_def)
+qed
 
 text{*The nonstandard definition implies the standard definition*}
 
