@@ -531,9 +531,9 @@ next
   show ?case
   proof -
     have "(App (Lam [a].M1) N1)[x::=N] = App (Lam [a].(M1[x::=N])) (N1[x::=N])" using e3 by simp
-    also have "App (Lam [a].(M1[x::=N])) (N1[x::=N]) \<longrightarrow>\<^isub>1 M2[x::=N'][a::=N2[x::=N']]" 
+    moreover have "App (Lam [a].(M1[x::=N])) (N1[x::=N]) \<longrightarrow>\<^isub>1 M2[x::=N'][a::=N2[x::=N']]" 
       using  o4 b by force
-    also have "M2[x::=N'][a::=N2[x::=N']] = M2[a::=N2][x::=N']" 
+    moreover have "M2[x::=N'][a::=N2[x::=N']] = M2[a::=N2][x::=N']" 
       using e3 by (simp add: substitution_lemma fresh_atm)
     ultimately show "(App (Lam [a].M1) N1)[x::=N] \<longrightarrow>\<^isub>1 M2[a::=N2][x::=N']" by simp
   qed
