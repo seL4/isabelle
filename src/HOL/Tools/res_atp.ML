@@ -302,6 +302,7 @@ val whitelist = ref [subsetI];
   an attribute.*)
 val blacklist = ref
   ["Datatype.prod.size",
+   "Datatype.unit.exhaust", (*"unit" thms cause unsound proofs; unit.nchotomy is caught automatically*)
    "Datatype.unit.induct", (*"unit" thms cause unsound proofs; unit.nchotomy is caught automatically*)
    "Datatype.unit.inducts",
    "Datatype.unit.split_asm", 
@@ -732,8 +733,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
             else if !prover = "vampire"
 	    then 
               let val vampire = helper_path "VAMPIRE_HOME" "vampire"
-                  val casc = if !time_limit > 70 then "--mode casc%" else ""
-                  val vopts = casc ^ "-m 100000%-t " ^ time
+                  val vopts = "--mode casc%-t " ^ time  (*what about -m 100000?*)
               in
                   ("vampire", vampire, vopts, probfile) :: make_atp_list xs (n+1)
               end
@@ -874,8 +874,8 @@ fun invoke_atp_ml (ctxt, goal) =
     Output.debug ("in hook for time: " ^ Int.toString (!hook_count));
     ResClause.init thy;
     ResHolClause.init thy;
-    if !destdir = "" andalso !time_limit > 0 then isar_atp (ctxt, goal)
-    else isar_atp_writeonly (ctxt, goal)
+    if !time_limit > 0 then isar_atp (ctxt, goal)
+    else (warning "Writing problem file only"; isar_atp_writeonly (ctxt, goal))
   end;
 
 val invoke_atp = Toplevel.no_timing o Toplevel.unknown_proof o Toplevel.keep
