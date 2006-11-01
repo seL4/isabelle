@@ -11,6 +11,5 @@ use_thy "Compile";
 use_thy "Fsub";
 use_thy "Height";
 use_thy "Lambda_mu";
-use_thy "Recursion";
 use_thy "SN";
 use_thy "Weakening";
