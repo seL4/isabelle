@@ -331,8 +331,8 @@ functor ZipperFUN(C : TRM_CTXT)
   (* implicit arguments: C.D.dtrm list, then T *)
   val zipto = 
       C.fold (fn C.D.Abs _ => move_down_abs 
-               | C.D.AppL _ => move_down_left
-               | C.D.AppR _ => move_down_right) 
+               | C.D.AppL _ => move_down_right
+               | C.D.AppR _ => move_down_left);
 
   (* Note: interpretted as being examined depth first *)
   datatype zsearch = Here of T | LookIn of T;
