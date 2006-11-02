@@ -62,6 +62,22 @@ lemma sum_of_cubes:
     "4 * (\<Sum>i=0..n. i * i * i) = n * n * Suc n * Suc n"
   by (induct n) auto
 
+text{* \medskip A cute identity: *}
+
+lemma sum_squared: "(\<Sum>i=0..n. i)^2 = (\<Sum>i=0..n::nat. i^3)"
+proof(induct n)
+  case 0 show ?case by simp
+next
+  case (Suc n)
+  have "(\<Sum>i = 0..Suc n. i)^2 =
+        (\<Sum>i = 0..n. i^3) + (2*(\<Sum>i = 0..n. i)*(n+1) + (n+1)^2)"
+    (is "_ = ?A + ?B")
+    using Suc by(simp add:nat_number)
+  also have "?B = (n+1)^3"
+    using sum_of_naturals by(simp add:nat_number)
+  also have "?A + (n+1)^3 = (\<Sum>i=0..Suc n. i^3)" by simp
+  finally show ?case .
+qed
 
 text {*
   \medskip Sum of fourth powers: three versions.
