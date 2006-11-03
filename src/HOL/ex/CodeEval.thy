@@ -116,9 +116,6 @@ in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
 
 subsection {* Evaluation infrastructure *}
 
-lemma lift_eq_Trueprop:
-  "p == q \<Longrightarrow> Trueprop p == Trueprop q" by auto
-
 ML {*
 signature EVAL =
 sig
@@ -144,8 +141,6 @@ fun term t =
     val t = eval_term thy (Sign.read_term thy t);
   in (writeln o Sign.string_of_term thy) t end;
 
-val lift_eq_Trueprop = thm "lift_eq_Trueprop";
-
 exception Eval of term;
 
 val oracle = ("Eval", fn (thy, Eval t) =>
@@ -156,14 +151,10 @@ val oracle_name = NameSpace.pack [Context.theory_name (the_context ()), fst orac
 fun conv ct =
   let
     val {thy, t, ...} = rep_cterm ct;
-    val t' = HOLogic.dest_Trueprop t;
-    val thm' = Thm.invoke_oracle_i thy oracle_name (thy, Eval t');
-  in
-    lift_eq_Trueprop OF [thm']
-  end;
+  in Thm.invoke_oracle_i thy oracle_name (thy, Eval t) end;
 
 fun tac i = Tactical.PRIMITIVE (Drule.fconv_rule
-  (Drule.goals_conv (equal i) conv));
+  (Drule.goals_conv (equal i) (HOL.Trueprop_conv conv)));
 
 val method =
   Method.no_args (Method.METHOD (fn _ =>
