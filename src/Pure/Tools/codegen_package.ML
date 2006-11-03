@@ -354,8 +354,11 @@ and select_appgen thy algbr funcgr strct ((c, ty), ts) trns =
    of SOME (i, (appgen, _)) =>
         if length ts < i then
           let
-            val tys = Library.take (i - length ts, ((fst o strip_type) ty));
-            val vs = Name.names (Name.declare c Name.context) "a" tys;
+            val k = length ts;
+            val tys = (curry Library.take (i - k) o curry Library.drop k o fst o strip_type) ty;
+            val ctxt = (fold o fold_aterms)
+              (fn Free (v, _) => Name.declare v | _ => I) ts Name.context;
+            val vs = Name.names ctxt "a" tys;
           in
             trns
             |> fold_map (exprgen_type thy algbr funcgr strct) tys
@@ -419,12 +422,11 @@ val debug_term = ref (Bound 0);
 
 fun appgen_case dest_case_expr thy algbr funcgr strct (app as (c_ty, ts)) trns =
   let
-    val _ = debug_term := list_comb (Const c_ty, ts);
     val SOME ([], ((st, sty), ds)) = dest_case_expr thy (list_comb (Const c_ty, ts));
-    fun fold_map_aterms f (t $ u) s =
+    fun fold_map_aterms f (t1 $ t2) s =
           s
-          |> fold_map_aterms f t
-          ||>> fold_map_aterms f u
+          |> fold_map_aterms f t1
+          ||>> fold_map_aterms f t2
           |-> (fn (t1, t2) => pair (t1 $ t2))
       | fold_map_aterms f (Abs (v, ty, t)) s =
           s
