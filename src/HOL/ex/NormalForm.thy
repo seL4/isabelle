@@ -70,13 +70,10 @@ lemma "[a, b, c] @ xs = a # b # c # xs" by normalization
 lemma "[%a::'x. a, %b. b, c] @ xs = (%x. x) # (%x. x) # c # xs" by normalization
 lemma "[%a::'x. a, %b. b, c] @ [u, v] = [%x. x, %x. x, c, u, v]" by normalization
 lemma "map f [x,y,z::'x] = [f x, f y, f z]" by normalization
-lemma "map (%f. f True) [id, g, Not] = [True, g True, False]" by normalization
-lemma "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs" by normalization
+normal_form "map (%f. f True) [id, g, Not] = [True, g True, False]"
+normal_form "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs"
 lemma "rev [a, b, c] = [c, b, a]" by normalization
-(*normal_form "rev (a#b#cs)"
-normal_form "rev cs @ [b, a]"*)
-(*lemma "rev (a#b#cs) = rev cs @ [b, a]" by normalization*)
-lemma "map map [f, g, h] = [map f, map g, map h]" by normalization
+normal_form "rev (a#b#cs) = rev cs @ [b, a]"
 normal_form "map (%F. F [a,b,c::'x]) (map map [f,g,h])"
 normal_form "map (%F. F ([a,b,c] @ ds)) (map map ([f,g,h]@fs))"
 normal_form "map (%F. F [Z,S Z,S(S Z)]) (map map [S,add (S Z),mul (S(S Z)),id])"
@@ -91,11 +88,8 @@ normal_form "filter (%x. x) ([True,False,x]@xs)"
 normal_form "filter Not ([True,False,x]@xs)"
 
 lemma "[x,y,z] @ [a,b,c] = [x, y, z, a, b ,c]" by normalization
-lemma "(%(xs, ys). xs @ ys) = split op @" by normalization
 lemma "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f]) = [a, b, c, d, e, f]" by normalization
-normal_form "%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True"
-lemma "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()] = [False, True]"
-  by normalization
+normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()] = [False, True]"
 
 lemma "last [a, b, c] = c"
   by normalization
