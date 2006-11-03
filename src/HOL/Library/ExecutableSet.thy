@@ -13,7 +13,7 @@ section {* Definitional equality rewrites *}
 
 instance set :: (eq) eq ..
 
-lemma [code target: Set, code nofunc]:
+lemma [code target: Set]:
   "(A = B) = (A \<subseteq> B \<and> B \<subseteq> A)"
   by blast
 
