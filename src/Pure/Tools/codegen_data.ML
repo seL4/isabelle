@@ -163,7 +163,10 @@ fun check_func thy thm = case try (dest_func thy) thm
       let
         val _ =
           if has_duplicates (op =)
-            ((fold o fold_aterms) (fn Var (v, _) => cons v | _ => I) args [])
+            ((fold o fold_aterms) (fn Var (v, _) => cons v
+              | Abs _ => bad_thm "Abstraction on left hand side of function equation" thm
+              | _ => I
+            ) args [])
           then bad_thm "Repeated variables on left hand side of function equation" thm
           else ()
         val is_classop = (is_some o AxClass.class_of_param thy) c;
@@ -647,7 +650,7 @@ fun add_func_legacy thm = setmp strict_functyp false (add_func thm);
 
 fun del_func thm thy =
   let
-    val thms = setmp strict_functyp false (mk_func thy) thm;
+    val thms = mk_func thy thm;
     val cs = map fst thms;
   in
     map_exec_purge (SOME cs) (map_funcs
@@ -852,5 +855,3 @@ struct
 open CodegenData;
 
 end;
-
-set Toplevel.debug;
