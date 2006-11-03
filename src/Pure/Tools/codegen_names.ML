@@ -25,13 +25,11 @@ sig
   val purify_var: string -> string
   val check_modulename: string -> string
   val has_nsp: string -> string -> bool
-  val nsp_module: string
   val nsp_class: string
   val nsp_tyco: string
   val nsp_inst: string
   val nsp_fun: string
   val nsp_dtco: string
-  val nsp_eval: string
 end;
 
 structure CodegenNames: CODEGEN_NAMES =
@@ -320,13 +318,11 @@ fun const_policy thy (c, tys) =
 
 (* shallow name spaces *)
 
-val nsp_module = ""; (*a dummy by convention*)
 val nsp_class = "class";
 val nsp_tyco = "tyco";
 val nsp_inst = "inst";
 val nsp_fun = "fun";
 val nsp_dtco = "dtco";
-val nsp_eval = "EVAL"; (*only for evaluation*)
 
 fun add_nsp shallow name =
   name

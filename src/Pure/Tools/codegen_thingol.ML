@@ -72,7 +72,7 @@ sig
   val merge_code: code * code -> code;
   val project_code: string list (*hidden*) -> string list option (*selected*)
     -> code -> code;
-  val add_eval_def: string (*shallow name space*) * iterm -> code -> string * code;
+  val add_eval_def: string (*bind name*) * iterm -> code -> code;
 
   val ensure_def: (transact -> def * code) -> bool -> string
     -> string -> transact -> transact;
@@ -446,16 +446,10 @@ fun start_transact init f code =
     |-> (fn x => fn (_, code) => (x, code))
   end;
 
-fun add_eval_def (shallow, e) code =
-  let
-    val name = "VALUE";
-    val sname = NameSpace.pack [shallow, name];
-  in
-    code
-    |> Graph.new_node (sname, Fun ([([], e)], ([("_", [])], ITyVar "_")))
-    |> fold (curry Graph.add_edge sname) (Graph.keys code) (*FIXME*)
-    |> pair name
-  end;
+fun add_eval_def (name, t) code =
+  code
+  |> Graph.new_node (name, Fun ([([], t)], ([("_", [])], ITyVar "_")))
+  |> fold (curry Graph.add_edge name) (Graph.keys code);
 
 
 (** variable name contexts **)
