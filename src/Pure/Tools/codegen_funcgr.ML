@@ -71,36 +71,38 @@ fun abs_norm thy thm =
 
 fun canonical_tvars thy thm =
   let
-    fun mk_inst (v_i as (v, i), (v', sort)) (s as (maxidx, set, acc)) =
-      if v = v' orelse member (op =) set v then s
-        else let
-          val ty = TVar (v_i, sort)
-        in
-          (maxidx + 1, v :: set,
-            (ctyp_of thy ty, ctyp_of thy (TVar ((v', maxidx), sort))) :: acc)
-        end;
-    fun tvars_of thm = (fold_types o fold_atyps)
-      (fn TVar (v_i as (v, i), sort) => cons (v_i, (CodegenNames.purify_var v, sort))
+    fun tvars_subst_for thm = (fold_types o fold_atyps)
+      (fn TVar (v_i as (v, _), sort) => let
+            val v' = CodegenNames.purify_var v
+          in if v = v' then I
+          else insert (op =) (v_i, (v', sort)) end
         | _ => I) (prop_of thm) [];
+    fun mk_inst (v_i, (v', sort)) (maxidx, acc) =
+      let
+        val ty = TVar (v_i, sort)
+      in
+        (maxidx + 1, (ctyp_of thy ty, ctyp_of thy (TVar ((v', maxidx), sort))) :: acc)
+      end;
     val maxidx = Thm.maxidx_of thm + 1;
-    val (_, _, inst) = fold mk_inst (tvars_of thm) (maxidx + 1, [], []);
+    val (_, inst) = fold mk_inst (tvars_subst_for thm) (maxidx + 1, []);
   in Thm.instantiate (inst, []) thm end;
 
 fun canonical_vars thy thm =
   let
-    fun mk_inst (v_i as (v, i), (v', ty)) (s as (maxidx, set, acc)) =
-      if v = v' orelse member (op =) set v then s
-        else let
-          val t = if i = ~1 then Free (v, ty) else Var (v_i, ty)
-        in
-          (maxidx + 1,  v :: set,
-            (cterm_of thy t, cterm_of thy (Var ((v', maxidx), ty))) :: acc)
-        end;
-    fun vars_of thm = fold_aterms
-      (fn Var (v_i as (v, i), ty) => cons (v_i, (CodegenNames.purify_var v, ty))
+    fun vars_subst_for thm = fold_aterms
+      (fn Var (v_i as (v, _), ty) => let
+            val v' = CodegenNames.purify_var v
+          in if v = v' then I
+          else insert (op =) (v_i, (v', ty)) end
         | _ => I) (prop_of thm) [];
+    fun mk_inst (v_i as (v, i), (v', ty)) (maxidx, acc) =
+      let
+        val t = Var (v_i, ty)
+      in
+        (maxidx + 1, (cterm_of thy t, cterm_of thy (Var ((v', maxidx), ty))) :: acc)
+      end;
     val maxidx = Thm.maxidx_of thm + 1;
-    val (_, _, inst) = fold mk_inst (vars_of thm) (maxidx + 1, [], []);
+    val (_, inst) = fold mk_inst (vars_subst_for thm) (maxidx + 1, []);
   in Thm.instantiate ([], inst) thm end;
 
 fun norm_vars thy thms =
@@ -111,16 +113,12 @@ fun norm_vars thy thms =
           |> Conjunction.intr_list
           |> f
           |> Conjunction.elim_list;
-    fun unvarify thms =
-      #2 (#1 (Variable.import true thms (ProofContext.init thy)));
   in
     thms
     |> map (abs_norm thy)
-    |> burrow_thms (
-        canonical_tvars thy
-        #> canonical_vars thy
-        #> Drule.zero_var_indexes
-       )
+    |> burrow_thms (canonical_tvars thy)
+    |> map (canonical_vars thy)
+    |> map Drule.zero_var_indexes
   end;
 
 
