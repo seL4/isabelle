@@ -1,6 +1,5 @@
 (* legacy ML bindings *)
 
-val prop_cs = HOL.claset_prop;
 val HOL_cs = HOL.claset;
 val HOL_basic_ss = HOL.simpset_basic;
 val HOL_ss = HOL.simpset;
