@@ -7,7 +7,7 @@ header {* The basis of Higher-Order Logic *}
 
 theory HOL
 imports CPure
-uses ("cladata.ML") ("blastdata.ML") ("simpdata.ML") "Tools/res_atpset.ML"
+uses ("simpdata.ML") "Tools/res_atpset.ML"
 begin
 
 subsection {* Primitive logic *}
@@ -861,8 +861,34 @@ subsubsection {* Classical Reasoner setup *}
 lemma thin_refl:
   "\<And>X. \<lbrakk> x=x; PROP W \<rbrakk> \<Longrightarrow> PROP W" .
 
-use "cladata.ML"
-setup Hypsubst.hypsubst_setup
+ML {*
+structure Hypsubst = HypsubstFun(
+struct
+  structure Simplifier = Simplifier
+  val dest_eq = HOLogic.dest_eq_typ
+  val dest_Trueprop = HOLogic.dest_Trueprop
+  val dest_imp = HOLogic.dest_imp
+  val eq_reflection = HOL.eq_reflection
+  val rev_eq_reflection = HOL.def_imp_eq
+  val imp_intr = HOL.impI
+  val rev_mp = HOL.rev_mp
+  val subst = HOL.subst
+  val sym = HOL.sym
+  val thin_refl = thm "thin_refl";
+end);
+
+structure Classical = ClassicalFun(
+struct
+  val mp = HOL.mp
+  val not_elim = HOL.notE
+  val classical = HOL.classical
+  val sizef = Drule.size_of_thm
+  val hyp_subst_tacs = [Hypsubst.hyp_subst_tac]
+end);
+
+structure BasicClassical: BASIC_CLASSICAL = Classical; 
+*}
+
 setup {*
 let
   (*prevent substitution on bool*)
@@ -870,11 +896,12 @@ let
     Term.exists_Const (fn ("op =", Type (_, [T, _])) => T <> Type ("bool", []) | _ => false)
       (nth (Thm.prems_of thm) (i - 1)) then Hypsubst.hyp_subst_tac i thm else no_tac thm;
 in
-  ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac)
+  Hypsubst.hypsubst_setup
+  #> ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac)
+  #> Classical.setup
+  #> ResAtpset.setup
 end
 *}
-setup Classical.setup
-setup ResAtpset.setup
 
 declare iffI [intro!]
   and notI [intro!]
@@ -890,17 +917,6 @@ declare iffCE [elim!]
   and disjE [elim!]
   and conjE [elim!]
   and conjE [elim!]
-
-ML {*
-structure HOL =
-struct
-
-open HOL;
-
-val claset_prop = Classical.claset_of (the_context ());
-
-end;
-*}
 
 declare ex_ex1I [intro!]
   and allI [intro!]
@@ -943,14 +959,30 @@ apply (tactic "ares_tac [HOL.allI] 1")+
 apply (tactic "etac (Classical.dup_elim HOL.allE) 1")
 by iprover
 
-use "blastdata.ML"
-setup Blast.setup
-
 ML {*
+structure Blast = BlastFun(
+struct
+  type claset = Classical.claset
+  val equality_name = "op ="
+  val not_name = "Not"
+  val notE = HOL.notE
+  val ccontr = HOL.ccontr
+  val contr_tac = Classical.contr_tac
+  val dup_intr = Classical.dup_intr
+  val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
+  val claset	= Classical.claset
+  val rep_cs = Classical.rep_cs
+  val cla_modifiers = Classical.cla_modifiers
+  val cla_meth' = Classical.cla_meth'
+end);
+
 structure HOL =
 struct
 
 open HOL;
+
+val Blast_tac = Blast.Blast_tac;
+val blast_tac = Blast.blast_tac;
 
 fun case_tac a = res_inst_tac [("P", a)] case_split;
 
@@ -966,9 +998,6 @@ in
 end;
 
 fun strip_tac i = REPEAT (resolve_tac [impI, allI] i);
-
-val Blast_tac = Blast.Blast_tac;
-val blast_tac = Blast.blast_tac;
 
 fun Trueprop_conv conv ct = (case term_of ct of
     Const ("Trueprop", _) $ _ =>
@@ -1001,6 +1030,8 @@ fun constrain_op_eq_thms thy thms =
 
 end;
 *}
+
+setup Blast.setup
 
 
 subsubsection {* Simplifier *}
@@ -1041,29 +1072,6 @@ lemma simp_thms:
     "!!P. (ALL x. x=t --> P(x)) = P(t)"
     "!!P. (ALL x. t=x --> P(x)) = P(t)"
   by (blast, blast, blast, blast, blast, iprover+)
-
-lemma imp_cong: "(P = P') ==> (P' ==> (Q = Q')) ==> ((P --> Q) = (P' --> Q'))"
-  by iprover
-
-lemma ex_simps:
-  "!!P Q. (EX x. P x & Q)   = ((EX x. P x) & Q)"
-  "!!P Q. (EX x. P & Q x)   = (P & (EX x. Q x))"
-  "!!P Q. (EX x. P x | Q)   = ((EX x. P x) | Q)"
-  "!!P Q. (EX x. P | Q x)   = (P | (EX x. Q x))"
-  "!!P Q. (EX x. P x --> Q) = ((ALL x. P x) --> Q)"
-  "!!P Q. (EX x. P --> Q x) = (P --> (EX x. Q x))"
-  -- {* Miniscoping: pushing in existential quantifiers. *}
-  by (iprover | blast)+
-
-lemma all_simps:
-  "!!P Q. (ALL x. P x & Q)   = ((ALL x. P x) & Q)"
-  "!!P Q. (ALL x. P & Q x)   = (P & (ALL x. Q x))"
-  "!!P Q. (ALL x. P x | Q)   = ((ALL x. P x) | Q)"
-  "!!P Q. (ALL x. P | Q x)   = (P | (ALL x. Q x))"
-  "!!P Q. (ALL x. P x --> Q) = ((EX x. P x) --> Q)"
-  "!!P Q. (ALL x. P --> Q x) = (P --> (ALL x. Q x))"
-  -- {* Miniscoping: pushing in universal quantifiers. *}
-  by (iprover | blast)+
 
 lemma disj_absorb: "(A | A) = A"
   by blast
@@ -1113,6 +1121,9 @@ lemma imp_disj_not2: "(P --> Q | R) = (~R --> P --> Q)" by blast
 
 lemma imp_disj1: "((P-->Q)|R) = (P--> Q|R)" by blast
 lemma imp_disj2: "(Q|(P-->R)) = (P--> Q|R)" by blast
+
+lemma imp_cong: "(P = P') ==> (P' ==> (Q = Q')) ==> ((P --> Q) = (P' --> Q'))"
+  by iprover
 
 lemma de_Morgan_disj: "(~(P | Q)) = (~P & ~Q)" by iprover
 lemma de_Morgan_conj: "(~(P & Q)) = (~P | ~Q)" by blast
@@ -1257,18 +1268,6 @@ next
     by (rule equal_elim_rule1)
 qed
 
-
-text {* \medskip Actual Installation of the Simplifier. *}
-
-lemma True_implies_equals: "(True \<Longrightarrow> PROP P) \<equiv> PROP P"
-proof
-  assume prem: "True \<Longrightarrow> PROP P"
-  from prem [OF TrueI] show "PROP P" . 
-next
-  assume "PROP P"
-  show "PROP P" .
-qed
-
 lemma uncurry:
   assumes "P \<longrightarrow> Q \<longrightarrow> R"
   shows "P \<and> Q \<longrightarrow> R"
@@ -1293,11 +1292,42 @@ lemma ex_comm:
   by blast
 
 use "simpdata.ML"
-setup "Simplifier.method_setup Splitter.split_modifiers"
-setup "(fn thy => (change_simpset_of thy (fn _ => HOL.simpset_simprocs); thy))"
-setup Splitter.setup
-setup Clasimp.setup
-setup EqSubst.setup
+setup {*
+  Simplifier.method_setup Splitter.split_modifiers
+  #> (fn thy => (change_simpset_of thy (fn _ => HOL.simpset_simprocs); thy))
+  #> Splitter.setup
+  #> Clasimp.setup
+  #> EqSubst.setup
+*}
+
+lemma True_implies_equals: "(True \<Longrightarrow> PROP P) \<equiv> PROP P"
+proof
+  assume prem: "True \<Longrightarrow> PROP P"
+  from prem [OF TrueI] show "PROP P" . 
+next
+  assume "PROP P"
+  show "PROP P" .
+qed
+
+lemma ex_simps:
+  "!!P Q. (EX x. P x & Q)   = ((EX x. P x) & Q)"
+  "!!P Q. (EX x. P & Q x)   = (P & (EX x. Q x))"
+  "!!P Q. (EX x. P x | Q)   = ((EX x. P x) | Q)"
+  "!!P Q. (EX x. P | Q x)   = (P | (EX x. Q x))"
+  "!!P Q. (EX x. P x --> Q) = ((ALL x. P x) --> Q)"
+  "!!P Q. (EX x. P --> Q x) = (P --> (EX x. Q x))"
+  -- {* Miniscoping: pushing in existential quantifiers. *}
+  by (iprover | blast)+
+
+lemma all_simps:
+  "!!P Q. (ALL x. P x & Q)   = ((ALL x. P x) & Q)"
+  "!!P Q. (ALL x. P & Q x)   = (P & (ALL x. Q x))"
+  "!!P Q. (ALL x. P x | Q)   = ((ALL x. P x) | Q)"
+  "!!P Q. (ALL x. P | Q x)   = (P | (ALL x. Q x))"
+  "!!P Q. (ALL x. P x --> Q) = ((EX x. P x) --> Q)"
+  "!!P Q. (ALL x. P --> Q x) = (P --> (ALL x. Q x))"
+  -- {* Miniscoping: pushing in universal quantifiers. *}
+  by (iprover | blast)+
 
 declare triv_forall_equality [simp] (*prunes params*)
   and True_implies_equals [simp] (*prune asms `True'*)
