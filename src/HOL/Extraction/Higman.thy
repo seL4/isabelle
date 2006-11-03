@@ -337,7 +337,7 @@ val xs4 = test f2;
 end;
 *}
 
-(*code_gen good_prefix (SML "~/gen_code/higman.ML")
+code_gen good_prefix (SML *)
 
 ML {*
 local
@@ -383,6 +383,6 @@ val xs3 = good_prefix f1;
 val xs4 = good_prefix f2;
 
 end;
-*}*)
+*}
 
 end
