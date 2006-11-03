@@ -5,7 +5,7 @@
 header {* Test and Examples for code generator *}
 
 theory Codegenerator
-imports Main (*"~/projects/codegen/thy/CodegenSetup"*) Records
+imports Main Records
 begin
 
 subsection {* booleans *}
@@ -99,6 +99,9 @@ definition
 definition
   "case_let x = (let (y, z) = x in case y of () => z)"
 
+definition
+  "base_case f = f list_case"
+
 subsection {* heavy usage of names *}
 
 definition
@@ -158,6 +161,7 @@ code_gen
 code_gen
   remdups
   "distinct"
+  filter
 code_gen
   foo1 foo3
 code_gen
@@ -165,7 +169,7 @@ code_gen
 code_gen
   f g h
 code_gen
-  apply_tower Codegenerator.keywords shadow
+  apply_tower Codegenerator.keywords shadow base_case
 code_gen
   abs_let nested_let case_let
 code_gen "0::int" "1::int"
