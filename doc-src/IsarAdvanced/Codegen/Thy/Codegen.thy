@@ -1,9 +1,17 @@
 
 (* $Id$ *)
 
+(*<*)
 theory Codegen
 imports Main
+uses "../../../IsarImplementation/Thy/setup.ML"
 begin
+
+ML {*
+CodegenSerializer.sml_code_width := 74;
+*}
+
+(*>*)
 
 chapter {* Code generation from Isabelle theories *}
 
@@ -48,7 +56,7 @@ text {*
   The code generator aims to be usable with no further ado
   in most cases while allowing for detailed customization.
   This manifests in the structure of this tutorial: this introduction
-  continous with a short introduction of concepts.  Section
+  continues with a short introduction of concepts.  Section
   \secref{sec:basics} explains how to use the framework naivly,
   presuming a reasonable default setup.  Then, section
   \secref{sec:advanced} deals with advanced topics,
@@ -60,7 +68,7 @@ text {*
     Ultimately, the code generator which this tutorial deals with
     is supposed to replace the already established code generator
     by Stefan Berghofer \cite{Berghofer-Nipkow:2002}.
-    So, for the momennt, there are two distinct code generators
+    So, for the moment, there are two distinct code generators
     in Isabelle.
     Also note that while the framework itself is largely
     object-logic independent, only HOL provides a reasonable
@@ -307,12 +315,12 @@ subsection {* Type classes *}
 text {*
   Type classes enter the game via the Isar class package.
   For a short introduction how to use it, see \cite{isabelle-classes};
-  here we just illustrate its relation on code generation.
+  here we just illustrate its impact on code generation.
 
   In a target language, type classes may be represented
   nativly (as in the case of Haskell). For languages
   like SML, they are implemented using \emph{dictionaries}.
-  Our following example specified a class \qt{null},
+  Our following example specifiedsa class \qt{null},
   assigning to each of its inhabitants a \qt{null} value:
 *}
 
@@ -353,7 +361,8 @@ text {*
 *}
 
 code_gen dummy (Haskell "examples/")
-  (* NOTE: you may use Haskell only once in this document *)
+  (* NOTE: you may use Haskell only once in this document, otherwise
+  you have to work in distinct subdirectories *)
 
 text {*
   \lsthaskell{Thy/examples/Codegen.hs}
@@ -436,7 +445,7 @@ text {*
     \item[EfficientNat] implements natural numbers by integers,
        which in geneal will result in higher efficency; pattern
        matching with @{const "0\<Colon>nat"} / @{const "Suc"}
-       is eliminated.
+       is eliminated. \label{eff_nat}
     \item[MLString] provides an additional datatype @{text "mlstring"};
        in the HOL default setup, strings in HOL are mapped to list
        of chars in SML; values of type @{text "mlstring"} are
@@ -448,24 +457,507 @@ text {*
 subsection {* Preprocessing *}
 
 text {*
-  
+  Before selected function theorems are turned into abstract
+  code, a chain of definitional transformation steps is carried
+  out: \emph{preprocessing}. There are three possibilites
+  to customize preprocessing: \emph{inline theorems},
+  \emph{inline procedures} and \emph{generic preprocessors}.
+
+  \emph{Inline theorems} are rewriting rules applied to each
+  function equation.  Due to the interpretation of theorems
+  of function equations, rewrites are applied to the right
+  hand side and the arguments of the left hand side of an
+  equation, but never to the constant heading the left hand side.
+  Inline theorems may be declared an undeclared using the
+  \emph{code inline} or \emph{code noinline} attribute respectivly.
+
+  Some common applications:
 *}
 
-(* preprocessing, print_codethms () *)
+text_raw {*
+  \begin{itemize}
+     \item replacing non-executable constructs by executable ones: \\
+*}     
+
+lemma [code inline]:
+  "x \<in> set xs \<longleftrightarrow> x mem xs" by (induct xs) simp_all
+
+text_raw {*
+     \item eliminating superfluous constants: \\
+*}
+
+lemma [code inline]:
+  "1 = Suc 0" by simp
+
+text_raw {*
+     \item replacing executable but inconvenient constructs: \\
+*}
+
+lemma [code inline]:
+  "xs = [] \<longleftrightarrow> List.null xs" by (induct xs) simp_all
+
+text_raw {*
+  \end{itemize}
+*}
+
+text {*
+  The current set of inline theorems may be inspected using
+  the \isasymPRINTCODETHMS command.
+
+  \emph{Inline procedures} are a generalized version of inline
+  theorems written in ML -- rewrite rules are generated dependent
+  on the function theorems for a certain function.  One
+  application is the implicit expanding of @{typ nat} numerals
+  to @{const "0\<Colon>nat"} / @{const Suc} representation.  See further
+  \secref{sec:ml}
+
+  \emph{Generic preprocessors} provide a most general interface,
+  transforming a list of function theorems to another
+  list of function theorems, provided that neither the heading
+  constant nor its type change.  The @{const "0\<Colon>nat"} / @{const Suc}
+  pattern elimination implemented in \secref{eff_nat} uses this
+  interface.
+
+  \begin{warn}
+    The order in which single preprocessing steps are carried
+    out currently is not specified; in particular, preprocessing
+    is \emph{no} fixpoint process.  Keep this in mind when
+    setting up the preprocessor.
+
+    Further, the attribute \emph{code unfold}
+    associated with the existing code generator also applies to
+    the new one: \emph{code unfold} implies \emph{code inline}.
+  \end{warn}
+*}
 
 subsection {* Customizing serialization  *}
 
-(* code_reserved *)
-(* existing libraries, understanding the type game, reflexive equations, code inline code_constsubst, code_abstype*)
+text {*
+  Consider the following function and its corresponding
+  SML code:
+*}
+
+fun
+  in_interval :: "nat \<times> nat \<Rightarrow> nat \<Rightarrow> bool" where
+  "in_interval (k, l) n \<longleftrightarrow> k \<le> n \<and> n \<le> l"
+termination by (auto_term "{}")
+(*<*)
+declare in_interval.simps [code func]
+(*>*)
+
+(*<*)
+code_type bool
+  (SML)
+code_const True and False and "op \<and>" and Not
+  (SML and and and)
+(*>*)
+
+code_gen in_interval (SML "examples/bool1.ML")
+
+text {*
+  \lstsml{Thy/examples/bool1.ML}
+
+  Though this is correct code, it is a little bit unsatisfactory:
+  boolean values and operators are materialized as distinguished
+  entities with have nothing to do with the SML-builtin notion
+  of \qt{bool}.  This results in less readable code;
+  additionally, eager evaluation may cause programs to
+  loop or break which would perfectly terminate when
+  the existing SML \qt{bool} would be used.  To map
+  the HOL \qt{bool} on SML \qt{bool}, we may use
+  \qn{custom serializations}:
+*}
+
+code_type bool
+  (SML "bool")
+code_const True and False and "op \<and>"
+  (SML "true" and "false" and "_ andalso _")
+
+text {*
+  The \isasymCODETYPE commad takes a type constructor
+  as arguments together with a list of custom serializations.
+  Each custom serialization starts with a target language
+  identifier followed by an expression, which during
+  code serialization is inserted whenever the type constructor
+  would occur.  For constants, \isasymCODECONST implements
+  the corresponding mechanism.  Each \qt{\_} in
+  a serialization expression is treated as a placeholder
+  for the type constructor's (the constant's) arguments.
+*}
+
+code_reserved SML
+  bool true false
+
+text {*
+  To assert that the existing \qt{bool}, \qt{true} and \qt{false}
+  is not used for generated code, we use \isasymCODERESERVED.
+
+  After this setup, code looks quite more readable:
+*}
+
+code_gen in_interval (SML "examples/bool2.ML")
+
+text {*
+  \lstsml{Thy/examples/bool2.ML}
+
+  This still is not perfect: the parentheses
+  around \qt{andalso} are superfluos.  Though the serializer
+  by no means attempts to imitate the rich Isabelle syntax
+  framework, it provides some common idioms, notably
+  associative infixes with precedences which may be used here:
+*}
+
+code_const "op \<and>"
+  (SML infixl 1 "andalso")
+
+code_gen in_interval (SML "examples/bool3.ML")
+
+text {*
+  \lstsml{Thy/examples/bool3.ML}
+
+  Next, we try to map HOL pairs to SML pairs, using the
+  infix \qt{ * } type constructor and parentheses:
+*}
+
+(*<*)
+code_type *
+  (SML)
+code_const Pair
+  (SML)
+(*>*)
+
+code_type *
+  (SML infix 2 "*")
+
+code_const Pair
+  (SML "!((_),/ (_))")
+
+text {*
+  The initial bang \qt{!} tells the serializer to never put
+  parentheses around the whole expression (they are already present),
+  while the parentheses around argument place holders
+  tell not to put parentheses around the arguments.
+  The slash \qt{/} (followed by arbitrary white space)
+  inserts a space which may be used as a break if necessary
+  during pretty printing.
+
+  So far, 
+*}
+
+code_type int
+  (SML "IntInf.int")
+  (Haskell "Integer")
+
+code_const "op + \<Colon> int \<Rightarrow> int \<Rightarrow> int"
+    and "op - \<Colon> int \<Rightarrow> int \<Rightarrow> int"
+    and "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
+  (SML "IntInf.+ (_, _)" and "IntInf.- (_, _)" and "IntInf.* (_, _)")
+  (Haskell infixl 6 "+" and infixl 6 "-" and infixl 7 "*")
+
+(* quote with ' HOL Setup, careful *)
+
+
+(* Better ops, code_moduleprolog *)
+(* code_modulename *)
+
+
+subsection {* Types matter  *}
+
+(* shadowing by user-defined serilizations, understanding the type game,
+reflexive equations, dangerous equations *)
+
+subsection {* Concerning operational equality *}
+
+text {*
+  Surely you have already noticed how equality is treated
+  by the code generator:
+*}
+
+fun
+  collect_duplicates :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+  "collect_duplicates xs ys [] = xs"
+  "collect_duplicates xs ys (z#zs) = (if z \<in> set xs
+    then if z \<in> set ys
+      then collect_duplicates xs ys zs
+      else collect_duplicates xs (z#ys) zs
+    else collect_duplicates (z#xs) (z#ys) zs)"
+termination by (auto_term "measure (length o snd o snd)")
+(*<*)
+lemmas [code func] = collect_duplicates.simps
+(*>*)
+
+text {*
+  The membership test during preprocessing is rewritting,
+  resulting in @{const List.memberl}, which itself
+  performs an explicit equality check.
+*}
+
+code_gen collect_duplicates (SML "examples/collect_duplicates.ML")
+
+text {*
+  \lstsml{Thy/examples/collect_duplicates.ML}
+*}
+
+text {*
+  Obviously, polymorphic equality is implemented the Haskell
+  way using a type class.  How is this achieved?  By an
+  almost trivial definition in the HOL setup:
+*}
+
+(*<*)
+setup {* Sign.add_path "foo" *}
+(*>*)
+
+class eq =
+  fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+
+defs
+  eq [symmetric(*, code inline, code func*)]: "eq \<equiv> (op =)"
+
+text {*
+  This merely introduces a class @{text eq} with corresponding
+  operation @{const eq}, which by definition is isomorphic
+  to @{const "op ="}; the preprocessing framework does the rest.
+*}
+
+(*<*)
+lemmas [code noinline] = eq
+
+hide (open) "class" eq
+hide (open) const eq
+
+lemmas [symmetric, code func] = eq_def
+
+setup {* Sign.parent_path *}
+(*>*)
+
+text {*
+  For datatypes, instances of @{text eq} are implicitly derived
+  when possible.
+
+  Though this class is designed to get rarely in the way, there
+  are some cases when it suddenly comes to surface:
+*}
+
+text_raw {*
+  \begin {description}
+    \item[code lemmas and customary serializations for equality]
+      Examine the following: \\
+*}
+
+code_const "op = \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+  (SML "!(_ : IntInf.int = _)")
+
+text_raw {*
+  \\ What is wrong here? Since @{const "op ="} is nothing else then
+  a plain constant, this customary serialization will refer
+  to polymorphic equality @{const "op = \<Colon> 'a \<Rightarrow> 'a \<Rightarrow> bool"}.
+  Instead, we want the specific equality on @{typ int},
+  by using the overloaded constant @{const "Code_Generator.eq"}: \\
+*}
+
+code_const "Code_Generator.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+  (SML "!(_ : IntInf.int = _)")
+
+text_raw {*
+  \\ \item[typedecls interpretated by customary serializations] A
+  common idiom is to use unspecified types for formalizations
+  and interpret them for a specific target language: \\
+*}
+
+typedecl key
+
+fun
+  lookup :: "(key \<times> 'a) list \<Rightarrow> key \<Rightarrow> 'a option" where
+  "lookup [] l = None"
+  "lookup ((k, v) # xs) l = (if k = l then Some v else lookup xs l)"
+termination by (auto_term "measure (length o fst)")
+(*<*)
+lemmas [code func] = lookup.simps
+(*>*)
+
+code_type key
+  (SML "string")
+
+text_raw {*
+  \\ This, though, is not sufficient: @{typ key} is no instance
+  of @{text eq} since @{typ key} is no datatype; the instance
+  has to be declared manually, including a serialization
+  for the particular instance of @{const "Code_Generator.eq"}: \\
+*}
+
+instance key :: eq ..
+
+code_const "Code_Generator.eq \<Colon> key \<Rightarrow> key \<Rightarrow> bool"
+  (SML "!(_ : string = _)")
+
+text_raw {*
+  \\ Then everything goes fine: \\
+*}
+
+code_gen lookup (SML "examples/lookup.ML")
+
+text {*
+  \lstsml{Thy/examples/lookup.ML}
+*}
+
+text_raw {*
+  \item[lexicographic orderings and corregularity] Another sublety
+  enters the stage when definitions of overloaded constants
+  are dependent on operational equality.  For example, let
+  us define a lexicographic ordering on tuples: \\
+*}
+
+(*<*)
+(*setup {* Sign.add_path "foo" *}
+
+class ord = ord*)
+(*>*)
+
+(*
+instance * :: ("{eq, ord}", ord) ord
+  "p1 < p2 \<equiv> let (x1, y1) = p1; (x2, y2) = p2 in
+    x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
+  "p1 \<le> p2 \<equiv> p1 < p2 \<or> p1 = p2" ..
+*)
+
+(*<*)
+(*hide (open) "class" ord
+setup {* Sign.parent_path *}*)
+(*>*)
+
+text_raw {*
+  \\ Then code generation will fail.  Why?  The definition
+  of @{const "op \<le>"} depends on equality on both arguments,
+  which are polymorhpic and impose an additional @{text eq}
+  class constraint, thus violating the type discipline
+  for class operations.
+
+  The solution is to add @{text eq} to both sort arguments: \\
+*}
+
+instance * :: ("{eq, ord}", "{eq, ord}") ord
+  "p1 < p2 \<equiv> let (x1, y1) = p1; (x2, y2) = p2 in
+    x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
+  "p1 \<le> p2 \<equiv> p1 < p2 \<or> p1 = p2" ..
+
+text_raw {*
+  \\ Then code generation succeeds: \\
+*}
+
+code_gen "op \<le> \<Colon> 'a\<Colon>{eq, ord} \<times> 'b\<Colon>{eq, ord} \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
+  (SML "examples/lexicographic.ML")
+
+text {*
+  \lstsml{Thy/examples/lexicographic.ML}
+*}
+
+text_raw {*
+  \item[Haskell serialization]
+*}
+
+text_raw {*
+  \end {description}
+*}
+
+
+subsection {* Axiomatic extensions *}
+
+text {*
+  \begin{warn}
+    The extensions introduced in this section, though working
+    in practice, are not the cream of the crop.  They will
+    eventually be replaced by more mature approaches.
+  \end{warn}
+*}
+
+(* existing libraries, code inline code_constsubst, code_abstype*)
 
 section {* ML interfaces \label{sec:ml} *}
 
-(* under developement *)
+subsection {* Constants with type discipline: codegen\_consts.ML *}
 
-subsection {* codegen\_data.ML *}
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type CodegenConsts.const} \\
+  @{index_ML CodegenConsts.inst_of_typ: "theory -> string * typ -> CodegenConsts.const"} \\
+  @{index_ML CodegenConsts.typ_of_inst: "theory -> CodegenConsts.const -> string * typ"} \\
+  @{index_ML CodegenConsts.norm: "theory -> CodegenConsts.const -> CodegenConsts.const"} \\
+  @{index_ML CodegenConsts.norm_of_typ: "theory -> string * typ -> CodegenConsts.const"}
+  \end{mldecls}
+*}
+
+subsection {* Executable theory content: codegen\_data.ML *}
+
+text {*
+  This Pure module implements the core notions of
+  executable content of a theory.
+*}
+
+subsubsection {* Suspended theorems *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type CodegenData.lthms} \\
+  @{index_ML CodegenData.lazy: "(unit -> thm list) -> CodegenData.lthms"}
+  \end{mldecls}
+*}
+
+subsubsection {* Executable content *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML CodegenData.add_func: "thm -> theory -> theory"} \\
+  @{index_ML CodegenData.del_func: "thm -> theory -> theory"} \\
+  @{index_ML CodegenData.add_funcl: "CodegenConsts.const * CodegenData.lthms -> theory -> theory"} \\
+  @{index_ML CodegenData.add_datatype: "string * (((string * sort) list * (string * typ list) list) * CodegenData.lthms) -> theory -> theory"} \\
+  @{index_ML CodegenData.del_datatype: "string -> theory -> theory"} \\
+  @{index_ML CodegenData.add_inline: "thm -> theory -> theory"} \\
+  @{index_ML CodegenData.del_inline: "thm -> theory -> theory"} \\
+  @{index_ML CodegenData.add_inline_proc: "(theory -> cterm list -> thm list) -> theory -> theory"} \\
+  @{index_ML CodegenData.add_preproc: "(theory -> thm list -> thm list) -> theory -> theory"} \\
+  @{index_ML CodegenData.these_funcs: "theory -> CodegenConsts.const -> thm list"} \\
+  @{index_ML CodegenData.get_datatype: "theory -> string -> ((string * sort) list * (string * typ list) list) option"} \\
+  @{index_ML CodegenData.get_datatype_of_constr: "theory -> CodegenConsts.const -> string option"}
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML CodegenData.add_func}~@{text "thm"}
+
+  \end{description}
+*}
+
+subsection {* Further auxiliary *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML CodegenConsts.const_ord: "CodegenConsts.const * CodegenConsts.const -> order"} \\
+  @{index_ML CodegenConsts.eq_const: "CodegenConsts.const * CodegenConsts.const -> bool"} \\
+  @{index_ML CodegenConsts.consts_of: "theory -> term -> CodegenConsts.const list"} \\
+  @{index_ML CodegenConsts.read_const: "theory -> string -> CodegenConsts.const"} \\
+  @{index_ML_structure CodegenConsts.Consttab} \\
+  @{index_ML CodegenData.typ_func: "theory -> thm -> typ"} \\
+  @{index_ML CodegenData.rewrite_func: "thm list -> thm -> thm"} \\
+  \end{mldecls}
+*}
 
 subsection {* Implementing code generator applications *}
 
-(* hooks *)
+text {*
+  \begin{warn}
+    Some interfaces discussed here have not reached
+    a final state yet.
+    Changes likely to occur in future.
+  \end{warn}
+*}
+
+subsubsection {* Data depending on the theory's executable content *}
+
+subsubsection {* Datatype hooks *}
+
+text {*
+  \emph{Happy proving, happy hacking!}
+*}
 
 end
