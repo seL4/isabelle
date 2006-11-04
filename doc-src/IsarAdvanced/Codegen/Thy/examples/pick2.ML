@@ -7,11 +7,11 @@ struct
 datatype nat = Zero_nat | Succ_nat of nat;
 
 fun less_nat Zero_nat (Succ_nat n) = true
-  | less_nat na Zero_nat = false
-  | less_nat (Succ_nat m) (Succ_nat nb) = less_nat m nb;
+  | less_nat n Zero_nat = false
+  | less_nat (Succ_nat m) (Succ_nat n) = less_nat m n;
 
 fun minus_nat (Succ_nat m) (Succ_nat n) = minus_nat m n
-  | minus_nat Zero_nat na = Zero_nat
+  | minus_nat Zero_nat n = Zero_nat
   | minus_nat y Zero_nat = y;
 
 end; (*struct IntDef*)

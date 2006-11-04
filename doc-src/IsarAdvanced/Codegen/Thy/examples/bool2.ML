@@ -15,8 +15,8 @@ struct
 datatype nat = Zero_nat | Succ_nat of nat;
 
 fun less_nat Zero_nat (Succ_nat n) = true
-  | less_nat na Zero_nat = false
-  | less_nat (Succ_nat m) (Succ_nat nb) = less_nat m nb;
+  | less_nat n Zero_nat = false
+  | less_nat (Succ_nat m) (Succ_nat n) = less_nat m n;
 
 fun less_eq_nat m n = HOL.nota (less_nat n m);
 

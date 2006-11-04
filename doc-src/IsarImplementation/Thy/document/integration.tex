@@ -184,7 +184,7 @@ An Isar toplevel transition consists of a partial function on the
 \verb|  Toplevel.transition -> Toplevel.transition| \\
   \indexml{Toplevel.proofs}\verb|Toplevel.proofs: (Proof.state -> Proof.state Seq.seq) ->|\isasep\isanewline%
 \verb|  Toplevel.transition -> Toplevel.transition| \\
-  \indexml{Toplevel.proof-to-theory}\verb|Toplevel.proof_to_theory: (Proof.state -> theory) ->|\isasep\isanewline%
+  \indexml{Toplevel.end-proof}\verb|Toplevel.end_proof: (bool -> Proof.state -> Proof.context) ->|\isasep\isanewline%
 \verb|  Toplevel.transition -> Toplevel.transition| \\
   \end{mldecls}
 
@@ -217,9 +217,9 @@ An Isar toplevel transition consists of a partial function on the
   command, with zero or more result states (represented as a lazy
   list).
 
-  \item \verb|Toplevel.proof_to_theory|~\isa{tr} adjoins a
-  concluding proof command, that returns the resulting theory, after
-  storing the resulting facts etc.
+  \item \verb|Toplevel.end_proof|~\isa{tr} adjoins a concluding
+  proof command, that returns the resulting theory, after storing the
+  resulting facts in the context etc.
 
   \end{description}%
 \end{isamarkuptext}%
