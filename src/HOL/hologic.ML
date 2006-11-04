@@ -17,7 +17,6 @@ sig
   val dest_setT: typ -> typ
   val Trueprop: term
   val mk_Trueprop: term -> term
-  val is_Trueprop: term -> bool
   val dest_Trueprop: term -> term
   val conj: term
   val disj: term
@@ -122,9 +121,6 @@ val Trueprop = Const ("Trueprop", boolT --> propT);
 
 fun mk_Trueprop P = Trueprop $ P;
 
-fun is_Trueprop (Const ("Trueprop", _) $ _) = true
-  | is_Trueprop t = false;
-
 fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
   | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
 
@@ -165,7 +161,7 @@ fun dest_eq_typ (Const ("op =", T) $ lhs $ rhs) = ((lhs, rhs), domain_type T)
 
 fun all_const T = Const ("All", [T --> boolT] ---> boolT);
 fun mk_all (x, T, P) = all_const T $ absfree (x, T, P);
-fun list_all (vs,x) = Library.foldr (fn ((x, T), P) => all_const T $ Abs (x, T, P)) (vs, x);
+fun list_all (xs, t) = fold_rev (fn (x, T) => fn P => all_const T $ Abs (x, T, P)) xs t;
 
 fun exists_const T = Const ("Ex", [T --> boolT] ---> boolT);
 fun mk_exists (x, T, P) = exists_const T $ absfree (x, T, P);
