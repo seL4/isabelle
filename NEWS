@@ -618,14 +618,14 @@ is available in HOL/ex/ReflectionEx.thy
 
 *** HOL-Algebra ***
 
-* Formalisation of ideals and the quotient construction over rings, contributed
-  by Stephan Hohe.
+* Formalisation of ideals and the quotient construction over rings.
 
-* Order and lattice theory no longer based on records.  INCOMPATIBILITY.
+* Order and lattice theory no longer based on records.
+INCOMPATIBILITY.
 
-* Method algebra is now set up via an attribute.  For examples see CRing.thy.
-  INCOMPATIBILITY: the method is now weaker on combinations of algebraic
-  structures.
+* Method algebra is now set up via an attribute.  For examples see
+CRing.thy.  INCOMPATIBILITY: the method is now weaker on combinations
+of algebraic structures.
 
 * Renamed `CRing.thy' to `Ring.thy'.  INCOMPATIBILITY.
 
