@@ -250,7 +250,7 @@ fun apply_skolem_ths (th, rls) =
   Eliminates existential quantifiers using skoths: Skolemization theorems.*)
 fun cnf skoths (th,ths) =
   let fun cnf_aux (th,ths) =
-  	if not (HOLogic.is_Trueprop (prop_of th)) then ths (*meta-level: ignore*)
+  	if not (can HOLogic.dest_Trueprop (prop_of th)) then ths (*meta-level: ignore*)
         else if not (has_conns ["All","Ex","op &"] (prop_of th))  
 	then th::ths (*no work to do, terminate*)
 	else case head_of (HOLogic.dest_Trueprop (concl_of th)) of
