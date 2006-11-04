@@ -2,6 +2,9 @@
 Contributions to Isabelle
 -------------------------
 
+* October 2006: Stefan Hohe, TUM
+  HOL-Algebra: ideals and quotients over rings.
+
 * August 2006: Amine Chaieb, TUM
   Experimental support for generic reflection and reification in HOL.
 
