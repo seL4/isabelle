@@ -141,7 +141,7 @@ text %mlref {*
   Toplevel.transition -> Toplevel.transition"} \\
   @{index_ML Toplevel.proofs: "(Proof.state -> Proof.state Seq.seq) ->
   Toplevel.transition -> Toplevel.transition"} \\
-  @{index_ML Toplevel.proof_to_theory: "(Proof.state -> theory) ->
+  @{index_ML Toplevel.end_proof: "(bool -> Proof.state -> Proof.context) ->
   Toplevel.transition -> Toplevel.transition"} \\
   \end{mldecls}
 
@@ -174,9 +174,9 @@ text %mlref {*
   command, with zero or more result states (represented as a lazy
   list).
 
-  \item @{ML Toplevel.proof_to_theory}~@{text "tr"} adjoins a
-  concluding proof command, that returns the resulting theory, after
-  storing the resulting facts etc.
+  \item @{ML Toplevel.end_proof}~@{text "tr"} adjoins a concluding
+  proof command, that returns the resulting theory, after storing the
+  resulting facts in the context etc.
 
   \end{description}
 *}
