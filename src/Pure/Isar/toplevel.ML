@@ -47,7 +47,6 @@ sig
   exception RESTART
   val exn_message: exn -> string
   val program: (unit -> 'a) -> 'a
-  val checkpoint: state -> state
   type transition
   val undo_limit: bool -> int option
   val empty: transition
@@ -83,11 +82,11 @@ sig
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val end_proof: (bool -> Proof.state -> Proof.context) -> transition -> transition
   val forget_proof: transition -> transition
-  val proof: (Proof.state -> Proof.state) -> transition -> transition
-  val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
-  val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
-  val proofs': (bool -> Proof.state -> Proof.state Seq.seq) -> transition -> transition
   val present_proof: (bool -> node -> unit) -> transition -> transition
+  val proofs': (bool -> Proof.state -> Proof.state Seq.seq) -> transition -> transition
+  val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
+  val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
+  val proof: (Proof.state -> Proof.state) -> transition -> transition
   val actual_proof: (ProofHistory.T -> ProofHistory.T) -> transition -> transition
   val skip_proof: (int History.T -> int History.T) -> transition -> transition
   val skip_proof_to_theory: (int -> bool) -> transition -> transition
@@ -343,9 +342,9 @@ fun is_stale state = Context.is_stale (theory_of state) handle UNDEF => false;
 
 val stale_theory = ERROR "Stale theory encountered after succesful execution!";
 
-fun checkpoint_node (Theory (gthy, _)) = Theory
-      (Context.mapping Theory.checkpoint (LocalTheory.raw_theory Theory.checkpoint) gthy, NONE)
-  | checkpoint_node node = node;
+fun map_theory f = History.map
+  (fn Theory (gthy, _) => Theory (Context.mapping f (LocalTheory.raw_theory f) gthy, NONE)
+    | node => node);
 
 fun return (result, NONE) = result
   | return (result, SOME exn) = raise FAILURE (result, exn);
@@ -354,8 +353,8 @@ in
 
 fun transaction hist f (node, term) =
   let
-    val cont_node = History.map checkpoint_node node;
-    val back_node = History.map checkpoint_node cont_node;
+    val cont_node = map_theory Theory.checkpoint node;
+    val back_node = map_theory Theory.copy cont_node;
     fun state nd = State (SOME (nd, term));
     fun normal_state nd = (state nd, NONE);
     fun error_state nd exn = (state nd, SOME exn);
@@ -363,7 +362,7 @@ fun transaction hist f (node, term) =
     val (result, err) =
       cont_node
       |> (f
-          |> (if hist then History.apply_copy checkpoint_node else History.map)
+          |> (if hist then History.apply' (History.current back_node) else History.map)
           |> controlled_execution)
       |> normal_state
       handle exn => error_state cont_node exn;
@@ -372,11 +371,6 @@ fun transaction hist f (node, term) =
     then return (error_state back_node (the_default stale_theory err))
     else return (result, err)
   end;
-
-fun mapping f (State (SOME (node, term))) = State (SOME (History.map f node, term))
-  | mapping _ state = state;
-
-val checkpoint = mapping checkpoint_node;
 
 end;
 
@@ -630,6 +624,11 @@ val forget_proof = map_current (fn _ =>
     | SkipProof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
     | _ => raise UNDEF));
 
+fun present_proof f = map_current (fn int =>
+  (fn Proof (prf, x) => Proof (ProofHistory.apply I prf, x)
+    | SkipProof (h, x) => SkipProof (History.apply I h, x)
+    | _ => raise UNDEF) #> tap (f int));
+
 fun proofs' f = map_current (fn int =>
   (fn Proof (prf, x) => Proof (ProofHistory.applys (f int) prf, x)
     | SkipProof (h, x) => SkipProof (History.apply I h, x)
@@ -638,11 +637,6 @@ fun proofs' f = map_current (fn int =>
 fun proof' f = proofs' (Seq.single oo f);
 val proofs = proofs' o K;
 val proof = proof' o K;
-
-fun present_proof f = map_current (fn int =>
-  (fn node as Proof _ => node
-    | node as SkipProof _ => node
-    | _ => raise UNDEF) #> tap (f int));
 
 fun actual_proof f = map_current (fn _ =>
   (fn Proof (prf, x) => Proof (f prf, x)
