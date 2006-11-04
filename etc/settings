@@ -70,7 +70,7 @@ ML_DBASE=""
 ISABELLE_USEDIR_OPTIONS="-v true -V outline=/proof,/ML"
 
 # Specifically for the HOL image
-HOL_USEDIR_OPTIONS=""
+HOL_USEDIR_OPTIONS="-p 1"
 
 
 ###
