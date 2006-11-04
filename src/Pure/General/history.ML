@@ -15,16 +15,13 @@ sig
   val clear: int -> 'a T -> 'a T
   val undo: 'a T -> 'a T
   val redo: 'a T -> 'a T
-  val apply_copy: ('a -> 'a) -> ('a -> 'a) -> 'a T -> 'a T
+  val apply': 'a -> ('a -> 'a) -> 'a T -> 'a T
   val apply: ('a -> 'a) -> 'a T -> 'a T
   val map: ('a -> 'a) -> 'a T -> 'a T
 end;
 
 structure History: HISTORY =
 struct
-
-
-(* datatype history *)
 
 datatype 'a T =
   History of 'a * (int option * int * 'a list * 'a list);
@@ -53,13 +50,11 @@ fun push NONE _ x xs = x :: xs
   | push (SOME 0) _ _ _ = []
   | push (SOME n) len x xs = if len < n then x :: xs else Library.take (n, x :: xs);
 
-fun apply_copy cp f (History (x, (lim, len, undo_list, _))) =
-  let val x' = cp x
-  in History (f x, (lim, len + 1, push lim len x' undo_list, [])) end;
+fun apply' x' f (History (x, (lim, len, undo_list, _))) =
+  History (f x, (lim, len + 1, push lim len x' undo_list, []));
 
-fun apply f = apply_copy I f;
+fun apply f hist = apply' (current hist) f hist;
 
 fun map f (History (x, hist)) = History (f x, hist);
-
 
 end;
