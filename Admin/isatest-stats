@@ -30,7 +30,7 @@ SESSIONS="\
 
 for PLATFORM in $PLATFORMS
 do
-  "$THIS/isatest-statistics" "stats/$PLATFORM" "$PLATFORM" 100 $SESSIONS
+  "$THIS/isatest-statistics" "stats/$PLATFORM" "$PLATFORM" ${1:-100} $SESSIONS
   cat > "stats/$PLATFORM.html" <<EOF
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <html>
