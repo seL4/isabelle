@@ -13,6 +13,7 @@ sig
   val init: theory -> Proof.context
   val full_name: Proof.context -> bstring -> string
   val consts_of: Proof.context -> Consts.T
+  val const_syntax_name: Proof.context -> string -> string
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
   val fact_index_of: Proof.context -> FactIndex.T
@@ -225,6 +226,7 @@ val set_syntax_mode = map_syntax o LocalSyntax.set_mode;
 val restore_syntax_mode = map_syntax o LocalSyntax.restore_mode o syntax_of;
 
 val consts_of = #2 o #consts o rep_context;
+val const_syntax_name = Consts.syntax_name o consts_of;
 
 val thms_of = #thms o rep_context;
 val fact_index_of = #2 o thms_of;

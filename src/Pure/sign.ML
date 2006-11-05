@@ -114,6 +114,7 @@ sig
   val declared_tyname: theory -> string -> bool
   val declared_const: theory -> string -> bool
   val const_monomorphic: theory -> string -> bool
+  val const_syntax_name: theory -> string -> string
   val const_typargs: theory -> string * typ -> typ list
   val const_instance: theory -> string * typ list -> typ
   val class_space: theory -> NameSpace.T
@@ -289,6 +290,7 @@ val const_constraint = try o the_const_constraint;
 val the_const_type = Consts.declaration o consts_of;
 val const_type = try o the_const_type;
 val const_monomorphic = Consts.monomorphic o consts_of;
+val const_syntax_name = Consts.syntax_name o consts_of;
 val const_typargs = Consts.typargs o consts_of;
 val const_instance = Consts.instance o consts_of;
 
