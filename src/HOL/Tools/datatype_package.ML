@@ -402,8 +402,12 @@ fun case_tr context [t, u] =
       val thy = Context.theory_of context;
       fun case_error s name ts = raise TERM ("Error in case expression" ^
         getOpt (Option.map (curry op ^ " for datatype ") name, "") ^ ":\n" ^ s, ts);
-      fun dest_case1 (Const ("_case1", _) $ t $ u) = (case strip_comb t of
-            (Const (s, _), ts) => (((perhaps o try o unprefix) Syntax.constN o Sign.intern_const thy) s, ts)
+      fun dest_case1 (Const ("_case1", _) $ t $ u) =
+          (case strip_comb t of
+            (Const (s, _), ts) =>
+              (case try (unprefix Syntax.constN) s of
+                SOME c => (c, ts)
+              | NONE => (Sign.intern_const thy s, ts))
           | (Free (s, _), ts) => (Sign.intern_const thy s, ts) (*FIXME?*)
           | _ => case_error "Head is not a constructor" NONE [t, u], u)
         | dest_case1 t = raise TERM ("dest_case1", [t]);
