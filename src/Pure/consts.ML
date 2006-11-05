@@ -22,6 +22,7 @@ sig
   val extern: T -> string -> xstring
   val extern_early: T -> string -> xstring
   val syntax: T -> string * mixfix -> string * typ * mixfix
+  val syntax_name: T -> string -> string
   val read_const: T -> string -> term
   val certify: Pretty.pp -> Type.tsig -> T -> term -> term          (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
@@ -122,6 +123,8 @@ fun syntax consts (c, mx) =
     val ((T, _), authentic) = #1 (the_const consts c) handle TYPE (msg, _, _) => error msg;
     val c' = if authentic then Syntax.constN ^ c else NameSpace.base c;
   in (c', T, mx) end;
+
+fun syntax_name consts c = #1 (syntax consts (c, NoSyn));
 
 
 (* read_const *)
