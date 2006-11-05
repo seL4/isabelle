@@ -81,17 +81,16 @@ end;
 
 local
 
-val maxidx = ref ~1;
-fun maxify i = if i > ! maxidx then maxidx := i else ();
-
 fun no_index (x, y) = (x, (y, ~1));
 fun no_indexes1 inst = map no_index inst;
 fun no_indexes2 (inst1, inst2) = (map no_index inst1, map no_index inst2);
 
 exception SAME;
 
-fun instantiateT_same instT ty =
+fun instantiateT_same maxidx instT ty =
   let
+    fun maxify i = if i > ! maxidx then maxidx := i else ();
+
     fun subst_typ (Type (a, Ts)) = Type (a, subst_typs Ts)
       | subst_typ (TVar ((a, i), S)) =
           (case AList.lookup Term.eq_tvar instT ((a, i), S) of
@@ -104,9 +103,11 @@ fun instantiateT_same instT ty =
       | subst_typs [] = raise SAME;
   in subst_typ ty end;
 
-fun instantiate_same (instT, inst) tm =
+fun instantiate_same maxidx (instT, inst) tm =
   let
-    val substT = instantiateT_same instT;
+    fun maxify i = if i > ! maxidx then maxidx := i else ();
+
+    val substT = instantiateT_same maxidx instT;
     fun subst (Const (c, T)) = Const (c, substT T)
       | subst (Free (x, T)) = Free (x, substT T)
       | subst (Var ((x, i), T)) =
@@ -125,19 +126,24 @@ fun instantiate_same (instT, inst) tm =
 in
 
 fun instantiateT_maxidx instT ty i =
-  (maxidx := i; (instantiateT_same instT ty handle SAME => ty, ! maxidx));
+  let val maxidx = ref i
+  in (instantiateT_same maxidx instT ty handle SAME => ty, ! maxidx) end;
 
 fun instantiate_maxidx insts tm i =
-  (maxidx := i; (instantiate_same insts tm handle SAME => tm, ! maxidx));
+  let val maxidx = ref i
+  in (instantiate_same maxidx insts tm handle SAME => tm, ! maxidx) end;
 
-fun instantiateT instT ty = instantiateT_same (no_indexes1 instT) ty handle SAME => ty;
-fun instantiate insts tm = instantiate_same (no_indexes2 insts) tm handle SAME => tm;
+fun instantiateT instT ty =
+  instantiateT_same (ref ~1) (no_indexes1 instT) ty handle SAME => ty;
+
+fun instantiate insts tm =
+  instantiate_same (ref ~1) (no_indexes2 insts) tm handle SAME => tm;
 
 fun instantiateT_option instT ty =
-  SOME (instantiateT_same (no_indexes1 instT) ty) handle SAME => NONE;
+  SOME (instantiateT_same (ref ~1) (no_indexes1 instT) ty) handle SAME => NONE;
 
 fun instantiate_option insts tm =
-  SOME (instantiate_same (no_indexes2 insts) tm) handle SAME => NONE;
+  SOME (instantiate_same (ref ~1) (no_indexes2 insts) tm) handle SAME => NONE;
 
 end;
 
