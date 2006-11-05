@@ -57,7 +57,7 @@ text {*
   in most cases while allowing for detailed customization.
   This manifests in the structure of this tutorial: this introduction
   continues with a short introduction of concepts.  Section
-  \secref{sec:basics} explains how to use the framework naivly,
+  \secref{sec:basics} explains how to use the framework naively,
   presuming a reasonable default setup.  Then, section
   \secref{sec:advanced} deals with advanced topics,
   introducing further aspects of the code generator framework
@@ -152,15 +152,15 @@ text {*
 code_gen fac (SML "examples/fac.ML")
 
 text {*
-  The \isasymCODEGEN command takes a space-seperated list of
+  The \isasymCODEGEN command takes a space-separated list of
   constants together with \qn{serialization directives}
   in parentheses. These start with a \qn{target language}
-  identifer, followed by arguments, their semantics
+  identifier, followed by arguments, their semantics
   depending on the target. In the SML case, a filename
   is given where to write the generated code to.
 
   Internally, the function equations for all selected
-  constants are taken, including any tranitivly required
+  constants are taken, including any transitively required
   constants, datatypes and classes, resulting in the following
   code:
 
@@ -237,7 +237,7 @@ text {*
   function equations (the additional stuff displayed
   shall not bother us for the moment). If this table does
   not provide at least one function
-  equation, the table of primititve definitions is searched
+  equation, the table of primitive definitions is searched
   whether it provides one.
 
   The typical HOL tools are already set up in a way that
@@ -318,9 +318,9 @@ text {*
   here we just illustrate its impact on code generation.
 
   In a target language, type classes may be represented
-  nativly (as in the case of Haskell). For languages
+  natively (as in the case of Haskell). For languages
   like SML, they are implemented using \emph{dictionaries}.
-  Our following example specifiedsa class \qt{null},
+  Our following example specifies a class \qt{null},
   assigning to each of its inhabitants a \qt{null} value:
 *}
 
@@ -352,7 +352,7 @@ definition
   "dummy = head [Some (Suc 0), None]"
 
 text {*
-  Type classes offer a suitable occassion to introduce
+  Type classes offer a suitable occasion to introduce
   the Haskell serializer.  Its usage is almost the same
   as SML, but, in accordance with conventions
   some Haskell systems enforce, each module ends
@@ -404,7 +404,7 @@ text {*
   \noindent print all cached function equations (i.e.~\emph{after}
   any applied transformation. Inside the brackets a
   list of constants may be given; their function
-  euqations are added to the cache if not already present.
+  equations are added to the cache if not already present.
 *}
 
 
@@ -434,7 +434,7 @@ text {*
   which should be suitable for most applications. Common extensions
   and modifications are available by certain theories of the HOL
   library; beside being useful in applications, they may serve
-  as a tutorial for cutomizing the code generator setup.
+  as a tutorial for customizing the code generator setup.
 
   \begin{description}
 
@@ -443,7 +443,7 @@ text {*
     \item[ExecutableRat] implements rational
        numbers as triples @{text "(sign, enumerator, denominator)"}.
     \item[EfficientNat] implements natural numbers by integers,
-       which in geneal will result in higher efficency; pattern
+       which in general will result in higher efficency; pattern
        matching with @{const "0\<Colon>nat"} / @{const "Suc"}
        is eliminated. \label{eff_nat}
     \item[MLString] provides an additional datatype @{text "mlstring"};
@@ -459,7 +459,7 @@ subsection {* Preprocessing *}
 text {*
   Before selected function theorems are turned into abstract
   code, a chain of definitional transformation steps is carried
-  out: \emph{preprocessing}. There are three possibilites
+  out: \emph{preprocessing}. There are three possibilities
   to customize preprocessing: \emph{inline theorems},
   \emph{inline procedures} and \emph{generic preprocessors}.
 
@@ -469,7 +469,7 @@ text {*
   hand side and the arguments of the left hand side of an
   equation, but never to the constant heading the left hand side.
   Inline theorems may be declared an undeclared using the
-  \emph{code inline} or \emph{code noinline} attribute respectivly.
+  \emph{code inline} or \emph{code noinline} attribute respectively.
 
   Some common applications:
 *}
@@ -521,7 +521,7 @@ text {*
   \begin{warn}
     The order in which single preprocessing steps are carried
     out currently is not specified; in particular, preprocessing
-    is \emph{no} fixpoint process.  Keep this in mind when
+    is \emph{no} fix point process.  Keep this in mind when
     setting up the preprocessor.
 
     Further, the attribute \emph{code unfold}
@@ -601,7 +601,7 @@ text {*
   \lstsml{Thy/examples/bool2.ML}
 
   This still is not perfect: the parentheses
-  around \qt{andalso} are superfluos.  Though the serializer
+  around \qt{andalso} are superfluous.  Though the serializer
   by no means attempts to imitate the rich Isabelle syntax
   framework, it provides some common idioms, notably
   associative infixes with precedences which may be used here:
@@ -641,30 +641,59 @@ text {*
   inserts a space which may be used as a break if necessary
   during pretty printing.
 
-  So far, 
+  So far, we did only provide more idiomatic serializations for
+  constructs which would be executable on their own.  Target-specific
+  serializations may also be used to \emph{implement} constructs
+  which have no implicit notion of executability.  For example,
+  take the HOL integers:
+*}
+
+definition
+  double_inc :: "int \<Rightarrow> int"
+  "double_inc k = 2 * k + 1"
+
+code_gen double_inc (SML "examples/integers.ML")
+
+text {*
+  will fail: @{typ int} in HOL is implemented using a quotient
+  type, which does not provide any notion of executability.
+  \footnote{Eventually, we also want to provide executability
+  for quotients.}.  However, we could use the SML builtin
+  integers:
 *}
 
 code_type int
   (SML "IntInf.int")
-  (Haskell "Integer")
 
 code_const "op + \<Colon> int \<Rightarrow> int \<Rightarrow> int"
-    and "op - \<Colon> int \<Rightarrow> int \<Rightarrow> int"
     and "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
-  (SML "IntInf.+ (_, _)" and "IntInf.- (_, _)" and "IntInf.* (_, _)")
-  (Haskell infixl 6 "+" and infixl 6 "-" and infixl 7 "*")
+  (SML "IntInf.+ (_, _)" and "IntInf.* (_, _)")
 
-(* quote with ' HOL Setup, careful *)
+code_gen double_inc (SML "examples/integers.ML")
 
+text {*
+  resulting in:
 
-(* Better ops, code_moduleprolog *)
-(* code_modulename *)
+  \lstsml{Thy/examples/integers.ML}
+*}
 
+text {*
+  These examples give a glimpse what powerful mechanisms
+  custom serializations provide; however their usage
+  requires careful thinking in order not to introduce
+  inconsistencies -- or, in other words:
+  custom serializations are completely axiomatic.
 
-subsection {* Types matter  *}
+  A further noteworthy details is that any special
+  character in a custom serialization may be quoted
+  using \qt{'}; thus, in \qt{fn '\_ => \_} the first
+  \qt{'\_} is a proper underscore while the
+  second \qt{\_} is a placeholder.
 
-(* shadowing by user-defined serilizations, understanding the type game,
-reflexive equations, dangerous equations *)
+  The HOL theories provide further
+  examples for custom serializations and form
+  a recommended tutorial on how to use them properly.
+*}
 
 subsection {* Concerning operational equality *}
 
@@ -687,7 +716,7 @@ lemmas [code func] = collect_duplicates.simps
 (*>*)
 
 text {*
-  The membership test during preprocessing is rewritting,
+  The membership test during preprocessing is rewriting,
   resulting in @{const List.memberl}, which itself
   performs an explicit equality check.
 *}
@@ -712,7 +741,7 @@ class eq =
   fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 
 defs
-  eq [symmetric(*, code inline, code func*)]: "eq \<equiv> (op =)"
+  eq (*[symmetric, code inline, code func]*): "eq \<equiv> (op =)"
 
 text {*
   This merely introduces a class @{text eq} with corresponding
@@ -739,30 +768,31 @@ text {*
   are some cases when it suddenly comes to surface:
 *}
 
-text_raw {*
-  \begin {description}
-    \item[code lemmas and customary serializations for equality]
-      Examine the following: \\
+subsubsection {* code lemmas and customary serializations for equality *}
+
+text {*
+  Examine the following:
 *}
 
 code_const "op = \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "!(_ : IntInf.int = _)")
 
-text_raw {*
-  \\ What is wrong here? Since @{const "op ="} is nothing else then
+text {*
+  What is wrong here? Since @{const "op ="} is nothing else then
   a plain constant, this customary serialization will refer
   to polymorphic equality @{const "op = \<Colon> 'a \<Rightarrow> 'a \<Rightarrow> bool"}.
   Instead, we want the specific equality on @{typ int},
-  by using the overloaded constant @{const "Code_Generator.eq"}: \\
+  by using the overloaded constant @{const "Code_Generator.eq"}:
 *}
 
 code_const "Code_Generator.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "!(_ : IntInf.int = _)")
 
-text_raw {*
-  \\ \item[typedecls interpretated by customary serializations] A
-  common idiom is to use unspecified types for formalizations
-  and interpret them for a specific target language: \\
+subsubsection {* typedecls interpretated by customary serializations *}
+
+text {*
+  A common idiom is to use unspecified types for formalizations
+  and interpret them for a specific target language:
 *}
 
 typedecl key
@@ -779,11 +809,11 @@ lemmas [code func] = lookup.simps
 code_type key
   (SML "string")
 
-text_raw {*
-  \\ This, though, is not sufficient: @{typ key} is no instance
+text {*
+  This, though, is not sufficient: @{typ key} is no instance
   of @{text eq} since @{typ key} is no datatype; the instance
   has to be declared manually, including a serialization
-  for the particular instance of @{const "Code_Generator.eq"}: \\
+  for the particular instance of @{const "Code_Generator.eq"}:
 *}
 
 instance key :: eq ..
@@ -791,8 +821,8 @@ instance key :: eq ..
 code_const "Code_Generator.eq \<Colon> key \<Rightarrow> key \<Rightarrow> bool"
   (SML "!(_ : string = _)")
 
-text_raw {*
-  \\ Then everything goes fine: \\
+text {*
+  Then everything goes fine:
 *}
 
 code_gen lookup (SML "examples/lookup.ML")
@@ -801,48 +831,52 @@ text {*
   \lstsml{Thy/examples/lookup.ML}
 *}
 
-text_raw {*
-  \item[lexicographic orderings and corregularity] Another sublety
+subsubsection {* lexicographic orderings and coregularity *}
+
+text {*
+  Another subtlety
   enters the stage when definitions of overloaded constants
   are dependent on operational equality.  For example, let
   us define a lexicographic ordering on tuples: \\
 *}
 
 (*<*)
-(*setup {* Sign.add_path "foo" *}
+setup {* Sign.add_path "foobar" *}
 
-class ord = ord*)
+class eq = fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+class ord =
+  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" ("(_/ \<^loc>\<le> _)" [50, 51] 50)
+  fixes less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" ("(_/ \<^loc>< _)" [50, 51] 50)
 (*>*)
 
-(*
-instance * :: ("{eq, ord}", ord) ord
-  "p1 < p2 \<equiv> let (x1, y1) = p1; (x2, y2) = p2 in
+instance * :: (ord, ord) ord
+  "p1 < p2 \<equiv> let (x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) = p1; (x2, y2) = p2 in
     x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
-  "p1 \<le> p2 \<equiv> p1 < p2 \<or> p1 = p2" ..
-*)
+  "p1 \<le> p2 \<equiv> p1 < p2 \<or> (p1 \<Colon> 'a\<Colon>ord \<times> 'b\<Colon>ord)  = p2" ..
 
 (*<*)
-(*hide (open) "class" ord
-setup {* Sign.parent_path *}*)
+hide "class" eq ord
+hide const eq less_eq less
+setup {* Sign.parent_path *}
 (*>*)
 
-text_raw {*
-  \\ Then code generation will fail.  Why?  The definition
+text {*
+  Then code generation will fail.  Why?  The definition
   of @{const "op \<le>"} depends on equality on both arguments,
-  which are polymorhpic and impose an additional @{text eq}
+  which are polymorphic and impose an additional @{text eq}
   class constraint, thus violating the type discipline
   for class operations.
 
-  The solution is to add @{text eq} to both sort arguments: \\
+  The solution is to add @{text eq} to both sort arguments:
 *}
 
 instance * :: ("{eq, ord}", "{eq, ord}") ord
-  "p1 < p2 \<equiv> let (x1, y1) = p1; (x2, y2) = p2 in
+  "p1 < p2 \<equiv> let (x1 \<Colon> 'a\<Colon>{eq, ord}, y1 \<Colon> 'b\<Colon>{eq, ord}) = p1; (x2, y2) = p2 in
     x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
-  "p1 \<le> p2 \<equiv> p1 < p2 \<or> p1 = p2" ..
+  "p1 \<le> p2 \<equiv> p1 < p2 \<or> (p1 \<Colon> 'a\<Colon>{eq, ord} \<times> 'b\<Colon>{eq, ord})  = p2" ..
 
-text_raw {*
-  \\ Then code generation succeeds: \\
+text {*
+  Then code generation succeeds:
 *}
 
 code_gen "op \<le> \<Colon> 'a\<Colon>{eq, ord} \<times> 'b\<Colon>{eq, ord} \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
@@ -852,13 +886,79 @@ text {*
   \lstsml{Thy/examples/lexicographic.ML}
 *}
 
-text_raw {*
-  \item[Haskell serialization]
+subsubsection {* Haskell serialization *}
+
+text {*
+  For convenience, the default
+  HOL setup for Haskell maps the @{text eq} class to
+  its counterpart in Haskell, giving custom serializations
+  for the class (\isasymCODECLASS) and its operation:
 *}
 
-text_raw {*
-  \end {description}
+(*<*)
+setup {* Sign.add_path "bar" *}
+class eq = fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+(*>*)
+
+code_class eq
+  (Haskell "Eq" where eq \<equiv> "(==)")
+
+code_const eq
+  (Haskell infixl 4 "==")
+
+(*<*)
+hide "class" eq
+hide const eq
+setup {* Sign.parent_path *}
+(*>*)
+
+text {*
+  A problem now occurs whenever a type which
+  is an instance of @{text eq} in HOL is mapped
+  on a Haskell-builtin type which is also an instance
+  of Haskell @{text Eq}:
 *}
+
+typedecl bar
+
+instance bar :: eq ..
+
+code_type bar
+  (Haskell "Integer")
+
+text {*
+    The code generator would produce
+    an additional instance, which of course is rejected.
+    To suppress this additional instance, use
+    \isasymCODEINSTANCE:
+*}
+
+code_instance bar :: eq
+  (Haskell -)
+
+subsection {* Types matter *}
+
+text {*
+  Imagine the following quick-and-dirty setup for implementing
+  some sets as lists:
+*}
+
+code_type set
+  (SML "_ list")
+
+code_const "{}" and insert
+  (SML "![]" and infixl 7 "::")
+
+definition
+  dummy_set :: "nat set"
+  "dummy_set = {1, 2, 3}"
+
+(*print_codethms (dummy_set)
+code_gen dummy_set (SML -)*)
+
+
+(* shadowing by user-defined serializations, understanding the type game,
+reflexive equations, dangerous equations *)
 
 
 subsection {* Axiomatic extensions *}
@@ -871,6 +971,7 @@ text {*
   \end{warn}
 *}
 
+(* code_modulename *)
 (* existing libraries, code inline code_constsubst, code_abstype*)
 
 section {* ML interfaces \label{sec:ml} *}
