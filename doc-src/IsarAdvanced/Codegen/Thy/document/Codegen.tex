@@ -82,7 +82,7 @@ The code generator aims to be usable with no further ado
   in most cases while allowing for detailed customization.
   This manifests in the structure of this tutorial: this introduction
   continues with a short introduction of concepts.  Section
-  \secref{sec:basics} explains how to use the framework naivly,
+  \secref{sec:basics} explains how to use the framework naively,
   presuming a reasonable default setup.  Then, section
   \secref{sec:advanced} deals with advanced topics,
   introducing further aspects of the code generator framework
@@ -183,15 +183,15 @@ This executable specification is now turned to SML code:%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
 \ fac\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}fac{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
 \begin{isamarkuptext}%
-The \isasymCODEGEN command takes a space-seperated list of
+The \isasymCODEGEN command takes a space-separated list of
   constants together with \qn{serialization directives}
   in parentheses. These start with a \qn{target language}
-  identifer, followed by arguments, their semantics
+  identifier, followed by arguments, their semantics
   depending on the target. In the SML case, a filename
   is given where to write the generated code to.
 
   Internally, the function equations for all selected
-  constants are taken, including any tranitivly required
+  constants are taken, including any transitively required
   constants, datatypes and classes, resulting in the following
   code:
 
@@ -296,7 +296,7 @@ The list of all function equations in a theory may be inspected
   function equations (the additional stuff displayed
   shall not bother us for the moment). If this table does
   not provide at least one function
-  equation, the table of primititve definitions is searched
+  equation, the table of primitive definitions is searched
   whether it provides one.
 
   The typical HOL tools are already set up in a way that
@@ -412,9 +412,9 @@ Type classes enter the game via the Isar class package.
   here we just illustrate its impact on code generation.
 
   In a target language, type classes may be represented
-  nativly (as in the case of Haskell). For languages
+  natively (as in the case of Haskell). For languages
   like SML, they are implemented using \emph{dictionaries}.
-  Our following example specifiedsa class \qt{null},
+  Our following example specifies a class \qt{null},
   assigning to each of its inhabitants a \qt{null} value:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -477,7 +477,7 @@ Constructing a dummy example:%
 \isanewline
 \ \ {\isachardoublequoteopen}dummy\ {\isacharequal}\ head\ {\isacharbrackleft}Some\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}{\isacharcomma}\ None{\isacharbrackright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-Type classes offer a suitable occassion to introduce
+Type classes offer a suitable occasion to introduce
   the Haskell serializer.  Its usage is almost the same
   as SML, but, in accordance with conventions
   some Haskell systems enforce, each module ends
@@ -530,7 +530,7 @@ Code generation is \emph{incremental}: theorems
 \noindent print all cached function equations (i.e.~\emph{after}
   any applied transformation. Inside the brackets a
   list of constants may be given; their function
-  euqations are added to the cache if not already present.%
+  equations are added to the cache if not already present.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -565,7 +565,7 @@ The HOL \emph{Main} theory already provides a code generator setup
   which should be suitable for most applications. Common extensions
   and modifications are available by certain theories of the HOL
   library; beside being useful in applications, they may serve
-  as a tutorial for cutomizing the code generator setup.
+  as a tutorial for customizing the code generator setup.
 
   \begin{description}
 
@@ -574,7 +574,7 @@ The HOL \emph{Main} theory already provides a code generator setup
     \item[ExecutableRat] implements rational
        numbers as triples \isa{{\isacharparenleft}sign{\isacharcomma}\ enumerator{\isacharcomma}\ denominator{\isacharparenright}}.
     \item[EfficientNat] implements natural numbers by integers,
-       which in geneal will result in higher efficency; pattern
+       which in general will result in higher efficency; pattern
        matching with \isa{{\isadigit{0}}} / \isa{Suc}
        is eliminated. \label{eff_nat}
     \item[MLString] provides an additional datatype \isa{mlstring};
@@ -593,7 +593,7 @@ The HOL \emph{Main} theory already provides a code generator setup
 \begin{isamarkuptext}%
 Before selected function theorems are turned into abstract
   code, a chain of definitional transformation steps is carried
-  out: \emph{preprocessing}. There are three possibilites
+  out: \emph{preprocessing}. There are three possibilities
   to customize preprocessing: \emph{inline theorems},
   \emph{inline procedures} and \emph{generic preprocessors}.
 
@@ -603,7 +603,7 @@ Before selected function theorems are turned into abstract
   hand side and the arguments of the left hand side of an
   equation, but never to the constant heading the left hand side.
   Inline theorems may be declared an undeclared using the
-  \emph{code inline} or \emph{code noinline} attribute respectivly.
+  \emph{code inline} or \emph{code noinline} attribute respectively.
 
   Some common applications:%
 \end{isamarkuptext}%
@@ -687,7 +687,7 @@ The current set of inline theorems may be inspected using
   \begin{warn}
     The order in which single preprocessing steps are carried
     out currently is not specified; in particular, preprocessing
-    is \emph{no} fixpoint process.  Keep this in mind when
+    is \emph{no} fix point process.  Keep this in mind when
     setting up the preprocessor.
 
     Further, the attribute \emph{code unfold}
@@ -776,7 +776,7 @@ To assert that the existing \qt{bool}, \qt{true} and \qt{false}
 \lstsml{Thy/examples/bool2.ML}
 
   This still is not perfect: the parentheses
-  around \qt{andalso} are superfluos.  Though the serializer
+  around \qt{andalso} are superfluous.  Though the serializer
   by no means attempts to imitate the rich Isabelle syntax
   framework, it provides some common idioms, notably
   associative infixes with precedences which may be used here:%
@@ -812,22 +812,63 @@ The initial bang \qt{!} tells the serializer to never put
   inserts a space which may be used as a break if necessary
   during pretty printing.
 
-  So far,%
+  So far, we did only provide more idiomatic serializations for
+  constructs which would be executable on their own.  Target-specific
+  serializations may also be used to \emph{implement} constructs
+  which have no implicit notion of executability.  For example,
+  take the HOL integers:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{definition}\isamarkupfalse%
+\isanewline
+\ \ double{\isacharunderscore}inc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}int\ {\isasymRightarrow}\ int{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}double{\isacharunderscore}inc\ k\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ k\ {\isacharplus}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
+\ double{\isacharunderscore}inc\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}integers{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\begin{isamarkuptext}%
+will fail: \isa{int} in HOL is implemented using a quotient
+  type, which does not provide any notion of executability.
+  \footnote{Eventually, we also want to provide executability
+  for quotients.}.  However, we could use the SML builtin
+  integers:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{code{\isacharunderscore}type}\isamarkupfalse%
 \ int\isanewline
 \ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}IntInf{\isachardot}int{\isachardoublequoteclose}{\isacharparenright}\isanewline
-\ \ {\isacharparenleft}Haskell\ {\isachardoublequoteopen}Integer{\isachardoublequoteclose}{\isacharparenright}\isanewline
 \isanewline
 \isacommand{code{\isacharunderscore}const}\isamarkupfalse%
 \ {\isachardoublequoteopen}op\ {\isacharplus}\ {\isasymColon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ int{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}op\ {\isacharminus}\ {\isasymColon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ int{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}op\ {\isacharasterisk}\ {\isasymColon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ int{\isachardoublequoteclose}\isanewline
-\ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}IntInf{\isachardot}{\isacharplus}\ {\isacharparenleft}{\isacharunderscore}{\isacharcomma}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}IntInf{\isachardot}{\isacharminus}\ {\isacharparenleft}{\isacharunderscore}{\isacharcomma}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}IntInf{\isachardot}{\isacharasterisk}\ {\isacharparenleft}{\isacharunderscore}{\isacharcomma}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}\isanewline
-\ \ {\isacharparenleft}Haskell\ \isakeyword{infixl}\ {\isadigit{6}}\ {\isachardoublequoteopen}{\isacharplus}{\isachardoublequoteclose}\ \isakeyword{and}\ \isakeyword{infixl}\ {\isadigit{6}}\ {\isachardoublequoteopen}{\isacharminus}{\isachardoublequoteclose}\ \isakeyword{and}\ \isakeyword{infixl}\ {\isadigit{7}}\ {\isachardoublequoteopen}{\isacharasterisk}{\isachardoublequoteclose}{\isacharparenright}%
-\isamarkupsubsection{Types matter%
-}
+\ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}IntInf{\isachardot}{\isacharplus}\ {\isacharparenleft}{\isacharunderscore}{\isacharcomma}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}IntInf{\isachardot}{\isacharasterisk}\ {\isacharparenleft}{\isacharunderscore}{\isacharcomma}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\isanewline
+\isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
+\ double{\isacharunderscore}inc\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}integers{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\begin{isamarkuptext}%
+resulting in:
+
+  \lstsml{Thy/examples/integers.ML}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+These examples give a glimpse what powerful mechanisms
+  custom serializations provide; however their usage
+  requires careful thinking in order not to introduce
+  inconsistencies -- or, in other words:
+  custom serializations are completely axiomatic.
+
+  A further noteworthy details is that any special
+  character in a custom serialization may be quoted
+  using \qt{'}; thus, in \qt{fn '\_ => \_} the first
+  \qt{'\_} is a proper underscore while the
+  second \qt{\_} is a placeholder.
+
+  The HOL theories provide further
+  examples for custom serializations and form
+  a recommended tutorial on how to use them properly.%
+\end{isamarkuptext}%
 \isamarkuptrue%
 %
 \isamarkupsubsection{Concerning operational equality%
@@ -865,7 +906,7 @@ Surely you have already noticed how equality is treated
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-The membership test during preprocessing is rewritting,
+The membership test during preprocessing is rewriting,
   resulting in \isa{op\ mem}, which itself
   performs an explicit equality check.%
 \end{isamarkuptext}%
@@ -903,7 +944,7 @@ Obviously, polymorphic equality is implemented the Haskell
 \isanewline
 \isacommand{defs}\isamarkupfalse%
 \isanewline
-\ \ eq\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}eq\ {\isasymequiv}\ {\isacharparenleft}op\ {\isacharequal}{\isacharparenright}{\isachardoublequoteclose}%
+\ \ eq\ {\isacharcolon}\ {\isachardoublequoteopen}eq\ {\isasymequiv}\ {\isacharparenleft}op\ {\isacharequal}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 This merely introduces a class \isa{eq} with corresponding
   operation \isa{eq}, which by definition is isomorphic
@@ -933,23 +974,37 @@ For datatypes, instances of \isa{eq} are implicitly derived
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\begin {description}
-    \item[code lemmas and customary serializations for equality]
-      Examine the following: \\
+\isamarkupsubsubsection{code lemmas and customary serializations for equality%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Examine the following:%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{code{\isacharunderscore}const}\isamarkupfalse%
 \ {\isachardoublequoteopen}op\ {\isacharequal}\ {\isasymColon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}{\isacharbang}{\isacharparenleft}{\isacharunderscore}\ {\isacharcolon}\ IntInf{\isachardot}int\ {\isacharequal}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
-\\ What is wrong here? Since \isa{op\ {\isacharequal}} is nothing else then
+\begin{isamarkuptext}%
+What is wrong here? Since \isa{op\ {\isacharequal}} is nothing else then
   a plain constant, this customary serialization will refer
   to polymorphic equality \isa{op\ {\isacharequal}}.
   Instead, we want the specific equality on \isa{int},
-  by using the overloaded constant \isa{Code{\isacharunderscore}Generator{\isachardot}eq}: \\
+  by using the overloaded constant \isa{Code{\isacharunderscore}Generator{\isachardot}eq}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{code{\isacharunderscore}const}\isamarkupfalse%
 \ {\isachardoublequoteopen}Code{\isacharunderscore}Generator{\isachardot}eq\ {\isasymColon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}{\isacharbang}{\isacharparenleft}{\isacharunderscore}\ {\isacharcolon}\ IntInf{\isachardot}int\ {\isacharequal}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
-\\ \item[typedecls interpretated by customary serializations] A
-  common idiom is to use unspecified types for formalizations
-  and interpret them for a specific target language: \\
+\isamarkupsubsubsection{typedecls interpretated by customary serializations%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+A common idiom is to use unspecified types for formalizations
+  and interpret them for a specific target language:%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{typedecl}\isamarkupfalse%
 \ key\isanewline
 \isanewline
@@ -977,10 +1032,13 @@ For datatypes, instances of \isa{eq} are implicitly derived
 \isacommand{code{\isacharunderscore}type}\isamarkupfalse%
 \ key\isanewline
 \ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}string{\isachardoublequoteclose}{\isacharparenright}%
-\\ This, though, is not sufficient: \isa{key} is no instance
+\begin{isamarkuptext}%
+This, though, is not sufficient: \isa{key} is no instance
   of \isa{eq} since \isa{key} is no datatype; the instance
   has to be declared manually, including a serialization
-  for the particular instance of \isa{Code{\isacharunderscore}Generator{\isachardot}eq}: \\
+  for the particular instance of \isa{Code{\isacharunderscore}Generator{\isachardot}eq}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{instance}\isamarkupfalse%
 \ key\ {\isacharcolon}{\isacharcolon}\ eq%
 \isadelimproof
@@ -1001,7 +1059,10 @@ For datatypes, instances of \isa{eq} are implicitly derived
 \isacommand{code{\isacharunderscore}const}\isamarkupfalse%
 \ {\isachardoublequoteopen}Code{\isacharunderscore}Generator{\isachardot}eq\ {\isasymColon}\ key\ {\isasymRightarrow}\ key\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}{\isacharbang}{\isacharparenleft}{\isacharunderscore}\ {\isacharcolon}\ string\ {\isacharequal}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
-\\ Then everything goes fine: \\
+\begin{isamarkuptext}%
+Then everything goes fine:%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
 \ lookup\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}lookup{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
 \begin{isamarkuptext}%
@@ -1009,25 +1070,79 @@ For datatypes, instances of \isa{eq} are implicitly derived
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\item[lexicographic orderings and corregularity] Another sublety
+\isamarkupsubsubsection{lexicographic orderings and coregularity%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Another subtlety
   enters the stage when definitions of overloaded constants
   are dependent on operational equality.  For example, let
-  us define a lexicographic ordering on tuples: \\
+  us define a lexicographic ordering on tuples: \\%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
 \isanewline
+\isacommand{instance}\isamarkupfalse%
+\ {\isacharasterisk}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}ord{\isacharcomma}\ ord{\isacharparenright}\ ord\isanewline
+\ \ {\isachardoublequoteopen}p{\isadigit{1}}\ {\isacharless}\ p{\isadigit{2}}\ {\isasymequiv}\ let\ {\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}ord{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}ord{\isacharparenright}\ {\isacharequal}\ p{\isadigit{1}}{\isacharsemicolon}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ p{\isadigit{2}}\ in\isanewline
+\ \ \ \ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isacharless}\ y{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}p{\isadigit{1}}\ {\isasymle}\ p{\isadigit{2}}\ {\isasymequiv}\ p{\isadigit{1}}\ {\isacharless}\ p{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}p{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}ord\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}ord{\isacharparenright}\ \ {\isacharequal}\ p{\isadigit{2}}{\isachardoublequoteclose}%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
 \isanewline
 %
-\\ Then code generation will fail.  Why?  The definition
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+Then code generation will fail.  Why?  The definition
   of \isa{op\ {\isasymle}} depends on equality on both arguments,
-  which are polymorhpic and impose an additional \isa{eq}
+  which are polymorphic and impose an additional \isa{eq}
   class constraint, thus violating the type discipline
   for class operations.
 
-  The solution is to add \isa{eq} to both sort arguments: \\
+  The solution is to add \isa{eq} to both sort arguments:%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{instance}\isamarkupfalse%
 \ {\isacharasterisk}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}{\isachardoublequoteopen}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}{\isachardoublequoteclose}{\isacharcomma}\ {\isachardoublequoteopen}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}{\isachardoublequoteclose}{\isacharparenright}\ ord\isanewline
-\ \ {\isachardoublequoteopen}p{\isadigit{1}}\ {\isacharless}\ p{\isadigit{2}}\ {\isasymequiv}\ let\ {\isacharparenleft}x{\isadigit{1}}{\isacharcomma}\ y{\isadigit{1}}{\isacharparenright}\ {\isacharequal}\ p{\isadigit{1}}{\isacharsemicolon}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ p{\isadigit{2}}\ in\isanewline
+\ \ {\isachardoublequoteopen}p{\isadigit{1}}\ {\isacharless}\ p{\isadigit{2}}\ {\isasymequiv}\ let\ {\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}{\isacharparenright}\ {\isacharequal}\ p{\isadigit{1}}{\isacharsemicolon}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ p{\isadigit{2}}\ in\isanewline
 \ \ \ \ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isacharless}\ y{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}p{\isadigit{1}}\ {\isasymle}\ p{\isadigit{2}}\ {\isasymequiv}\ p{\isadigit{1}}\ {\isacharless}\ p{\isadigit{2}}\ {\isasymor}\ p{\isadigit{1}}\ {\isacharequal}\ p{\isadigit{2}}{\isachardoublequoteclose}%
+\ \ {\isachardoublequoteopen}p{\isadigit{1}}\ {\isasymle}\ p{\isadigit{2}}\ {\isasymequiv}\ p{\isadigit{1}}\ {\isacharless}\ p{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}p{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}{\isacharparenright}\ \ {\isacharequal}\ p{\isadigit{2}}{\isachardoublequoteclose}%
 \isadelimproof
 \ %
 \endisadelimproof
@@ -1042,7 +1157,10 @@ For datatypes, instances of \isa{eq} are implicitly derived
 %
 \endisadelimproof
 %
-\\ Then code generation succeeds: \\
+\begin{isamarkuptext}%
+Then code generation succeeds:%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
 \ {\isachardoublequoteopen}op\ {\isasymle}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}lexicographic{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
@@ -1051,10 +1169,113 @@ For datatypes, instances of \isa{eq} are implicitly derived
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\item[Haskell serialization]
+\isamarkupsubsubsection{Haskell serialization%
+}
+\isamarkuptrue%
 %
-\end {description}
+\begin{isamarkuptext}%
+For convenience, the default
+  HOL setup for Haskell maps the \isa{eq} class to
+  its counterpart in Haskell, giving custom serializations
+  for the class (\isasymCODECLASS) and its operation:%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+\isanewline
+\isacommand{code{\isacharunderscore}class}\isamarkupfalse%
+\ eq\isanewline
+\ \ {\isacharparenleft}Haskell\ {\isachardoublequoteopen}Eq{\isachardoublequoteclose}\ \isakeyword{where}\ eq\ {\isasymequiv}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharequal}{\isacharequal}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\isanewline
+\isacommand{code{\isacharunderscore}const}\isamarkupfalse%
+\ eq\isanewline
+\ \ {\isacharparenleft}Haskell\ \isakeyword{infixl}\ {\isadigit{4}}\ {\isachardoublequoteopen}{\isacharequal}{\isacharequal}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+A problem now occurs whenever a type which
+  is an instance of \isa{eq} in HOL is mapped
+  on a Haskell-builtin type which is also an instance
+  of Haskell \isa{Eq}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{typedecl}\isamarkupfalse%
+\ bar\isanewline
+\isanewline
+\isacommand{instance}\isamarkupfalse%
+\ bar\ {\isacharcolon}{\isacharcolon}\ eq%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{code{\isacharunderscore}type}\isamarkupfalse%
+\ bar\isanewline
+\ \ {\isacharparenleft}Haskell\ {\isachardoublequoteopen}Integer{\isachardoublequoteclose}{\isacharparenright}%
+\begin{isamarkuptext}%
+The code generator would produce
+    an additional instance, which of course is rejected.
+    To suppress this additional instance, use
+    \isasymCODEINSTANCE:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{code{\isacharunderscore}instance}\isamarkupfalse%
+\ bar\ {\isacharcolon}{\isacharcolon}\ eq\isanewline
+\ \ {\isacharparenleft}Haskell\ {\isacharminus}{\isacharparenright}%
+\isamarkupsubsection{Types matter%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Imagine the following quick-and-dirty setup for implementing
+  some sets as lists:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{code{\isacharunderscore}type}\isamarkupfalse%
+\ set\isanewline
+\ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}{\isacharunderscore}\ list{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\isanewline
+\isacommand{code{\isacharunderscore}const}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\ \isakeyword{and}\ insert\isanewline
+\ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}{\isacharbang}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ \isakeyword{and}\ \isakeyword{infixl}\ {\isadigit{7}}\ {\isachardoublequoteopen}{\isacharcolon}{\isacharcolon}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\isanewline
+\ \ dummy{\isacharunderscore}set\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}dummy{\isacharunderscore}set\ {\isacharequal}\ {\isacharbraceleft}{\isadigit{1}}{\isacharcomma}\ {\isadigit{2}}{\isacharcomma}\ {\isadigit{3}}{\isacharbraceright}{\isachardoublequoteclose}%
 \isamarkupsubsection{Axiomatic extensions%
 }
 \isamarkuptrue%
