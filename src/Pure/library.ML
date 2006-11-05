@@ -220,7 +220,6 @@ sig
   val distinct: ('a * 'a -> bool) -> 'a list -> 'a list
   val duplicates: ('a * 'a -> bool) -> 'a list -> 'a list
   val has_duplicates: ('a * 'a -> bool) -> 'a list -> bool
-  val first_duplicate: ('a * 'a -> bool) -> 'a list -> 'a option
 
   (*lists as tables -- see also Pure/General/alist.ML*)
   val gen_merge_lists: ('a * 'a -> bool) -> 'a list -> 'a list -> 'a list
@@ -1051,11 +1050,6 @@ fun has_duplicates eq =
       | dups (x :: xs) = member eq xs x orelse dups xs;
   in dups end;
 
-fun first_duplicate eq =
-  let
-    fun dup [] = NONE
-      | dup (x :: xs) = if member eq xs x then SOME x else dup xs;
-  in dup end;
 
 (** association lists -- legacy operations **)
 

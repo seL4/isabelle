@@ -1376,9 +1376,9 @@ fun rename_params_rule (cs, i) state =
     val freenames = Term.fold_aterms (fn Free (x, _) => insert (op =) x | _ => I) Bi [];
     val newBi = Logic.list_rename_params (newnames, Bi);
   in
-    case first_duplicate (op =) cs of
-      SOME c => (warning ("Can't rename.  Bound variables not distinct: " ^ c); state)
-    | NONE =>
+    (case duplicates (op =) cs of
+      a :: _ => (warning ("Can't rename.  Bound variables not distinct: " ^ a); state)
+    | [] =>
       (case cs inter_string freenames of
         a :: _ => (warning ("Can't rename.  Bound/Free variable clash: " ^ a); state)
       | [] =>
@@ -1388,7 +1388,7 @@ fun rename_params_rule (cs, i) state =
           shyps = shyps,
           hyps = hyps,
           tpairs = tpairs,
-          prop = Logic.list_implies (Bs @ [newBi], C)})
+          prop = Logic.list_implies (Bs @ [newBi], C)}))
   end;
 
 
