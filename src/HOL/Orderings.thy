@@ -374,43 +374,43 @@ end
 subsection {* Bounded quantifiers *}
 
 syntax
-  "_lessAll" :: "[idt, 'a, bool] => bool"   ("(3ALL _<_./ _)"  [0, 0, 10] 10)
-  "_lessEx"  :: "[idt, 'a, bool] => bool"   ("(3EX _<_./ _)"  [0, 0, 10] 10)
-  "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3ALL _<=_./ _)" [0, 0, 10] 10)
-  "_leEx"    :: "[idt, 'a, bool] => bool"   ("(3EX _<=_./ _)" [0, 0, 10] 10)
+  "_All_less" :: "[idt, 'a, bool] => bool"    ("(3ALL _<_./ _)"  [0, 0, 10] 10)
+  "_Ex_less" :: "[idt, 'a, bool] => bool"    ("(3EX _<_./ _)"  [0, 0, 10] 10)
+  "_All_less_eq" :: "[idt, 'a, bool] => bool"    ("(3ALL _<=_./ _)" [0, 0, 10] 10)
+  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    ("(3EX _<=_./ _)" [0, 0, 10] 10)
 
-  "_gtAll" :: "[idt, 'a, bool] => bool"   ("(3ALL _>_./ _)"  [0, 0, 10] 10)
-  "_gtEx"  :: "[idt, 'a, bool] => bool"   ("(3EX _>_./ _)"  [0, 0, 10] 10)
-  "_geAll"   :: "[idt, 'a, bool] => bool"   ("(3ALL _>=_./ _)" [0, 0, 10] 10)
-  "_geEx"    :: "[idt, 'a, bool] => bool"   ("(3EX _>=_./ _)" [0, 0, 10] 10)
+  "_All_greater" :: "[idt, 'a, bool] => bool"    ("(3ALL _>_./ _)"  [0, 0, 10] 10)
+  "_Ex_greater" :: "[idt, 'a, bool] => bool"    ("(3EX _>_./ _)"  [0, 0, 10] 10)
+  "_All_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3ALL _>=_./ _)" [0, 0, 10] 10)
+  "_Ex_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3EX _>=_./ _)" [0, 0, 10] 10)
 
 syntax (xsymbols)
-  "_lessAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_<_./ _)"  [0, 0, 10] 10)
-  "_lessEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_<_./ _)"  [0, 0, 10] 10)
-  "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<le>_./ _)" [0, 0, 10] 10)
-  "_leEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<le>_./ _)" [0, 0, 10] 10)
+  "_All_less" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_<_./ _)"  [0, 0, 10] 10)
+  "_Ex_less" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_<_./ _)"  [0, 0, 10] 10)
+  "_All_less_eq" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_\<le>_./ _)" [0, 0, 10] 10)
+  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_\<le>_./ _)" [0, 0, 10] 10)
 
-  "_gtAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_>_./ _)"  [0, 0, 10] 10)
-  "_gtEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_>_./ _)"  [0, 0, 10] 10)
-  "_geAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<ge>_./ _)" [0, 0, 10] 10)
-  "_geEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<ge>_./ _)" [0, 0, 10] 10)
+  "_All_greater" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_>_./ _)"  [0, 0, 10] 10)
+  "_Ex_greater" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_>_./ _)"  [0, 0, 10] 10)
+  "_All_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_\<ge>_./ _)" [0, 0, 10] 10)
+  "_Ex_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_\<ge>_./ _)" [0, 0, 10] 10)
 
 syntax (HOL)
-  "_lessAll" :: "[idt, 'a, bool] => bool"   ("(3! _<_./ _)"  [0, 0, 10] 10)
-  "_lessEx"  :: "[idt, 'a, bool] => bool"   ("(3? _<_./ _)"  [0, 0, 10] 10)
-  "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3! _<=_./ _)" [0, 0, 10] 10)
-  "_leEx"    :: "[idt, 'a, bool] => bool"   ("(3? _<=_./ _)" [0, 0, 10] 10)
+  "_All_less" :: "[idt, 'a, bool] => bool"    ("(3! _<_./ _)"  [0, 0, 10] 10)
+  "_Ex_less" :: "[idt, 'a, bool] => bool"    ("(3? _<_./ _)"  [0, 0, 10] 10)
+  "_All_less_eq" :: "[idt, 'a, bool] => bool"    ("(3! _<=_./ _)" [0, 0, 10] 10)
+  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    ("(3? _<=_./ _)" [0, 0, 10] 10)
 
 syntax (HTML output)
-  "_lessAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_<_./ _)"  [0, 0, 10] 10)
-  "_lessEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_<_./ _)"  [0, 0, 10] 10)
-  "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<le>_./ _)" [0, 0, 10] 10)
-  "_leEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<le>_./ _)" [0, 0, 10] 10)
+  "_All_less" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_<_./ _)"  [0, 0, 10] 10)
+  "_Ex_less" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_<_./ _)"  [0, 0, 10] 10)
+  "_All_less_eq" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_\<le>_./ _)" [0, 0, 10] 10)
+  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_\<le>_./ _)" [0, 0, 10] 10)
 
-  "_gtAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_>_./ _)"  [0, 0, 10] 10)
-  "_gtEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_>_./ _)"  [0, 0, 10] 10)
-  "_geAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<ge>_./ _)" [0, 0, 10] 10)
-  "_geEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<ge>_./ _)" [0, 0, 10] 10)
+  "_All_greater" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_>_./ _)"  [0, 0, 10] 10)
+  "_Ex_greater" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_>_./ _)"  [0, 0, 10] 10)
+  "_All_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_\<ge>_./ _)" [0, 0, 10] 10)
+  "_Ex_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_\<ge>_./ _)" [0, 0, 10] 10)
 
 translations
   "ALL x<y. P"   =>  "ALL x. x < y \<longrightarrow> P"
@@ -424,36 +424,39 @@ translations
 
 print_translation {*
 let
+  val syntax_name = Sign.const_syntax_name (the_context ());
+  val impl = syntax_name "op -->";
+  val conj = syntax_name "op &";
+  val less = syntax_name "Orderings.less";
+  val less_eq = syntax_name "Orderings.less_eq";
+
+  val trans =
+   [(("ALL ", impl, less), ("_All_less", "_All_greater")),
+    (("ALL ", impl, less_eq), ("_All_less_eq", "_All_greater_eq")),
+    (("EX ", conj, less), ("_Ex_less", "_Ex_greater")),
+    (("EX ", conj, less_eq), ("_Ex_less_eq", "_Ex_greater_eq"))];
+
   fun mk v v' c n P =
-    if v = v' andalso not (member (op =) (map fst (Term.add_frees n [])) v)
+    if v = v' andalso not (Term.exists_subterm (fn Free (x, _) => x = v | _ => false) n)
     then Syntax.const c $ Syntax.mark_bound v' $ n $ P else raise Match;
-  fun mk_all "\\<^const>Scratch.less" f =
-        f ("_lessAll", "_gtAll")
-    | mk_all "\\<^const>Scratch.less_eq" f =
-        f ("_leAll", "_geAll")
-  fun mk_ex "\\<^const>Scratch.less" f =
-        f ("_lessEx", "_gtEx")
-    | mk_ex "\\<^const>Scratch.less_eq" f =
-        f ("_leEx", "_geEx");
-  fun tr_all' [Const ("_bound", _) $ Free (v, _), Const("op -->", _)
-          $ (Const (c, _) $ (Const ("_bound", _) $ Free (v', _)) $ n) $ P] =
-        mk v v' (mk_all c fst) n P
-    | tr_all' [Const ("_bound", _) $ Free (v, _), Const("op -->", _)
-          $ (Const (c, _) $ n $ (Const ("_bound", _) $ Free (v', _))) $ P] =
-        mk v v' (mk_all c snd) n P;
-  fun tr_ex' [Const ("_bound", _) $ Free (v, _), Const("op &", _)
-          $ (Const (c, _) $ (Const ("_bound", _) $ Free (v', _)) $ n) $ P] =
-        mk v v' (mk_ex c fst) n P
-    | tr_ex' [Const ("_bound", _) $ Free (v, _), Const("op &", _)
-          $ (Const (c, _) $ n $ (Const ("_bound", _) $ Free (v', _))) $ P] =
-        mk v v' (mk_ex c snd) n P;
-in
-  [("ALL ", tr_all'), ("EX ", tr_ex')]
-end
+
+  fun tr' q = (q,
+    fn [Const ("_bound", _) $ Free (v, _), Const (c, _) $ (Const (d, _) $ t $ u) $ P] =>
+      (case AList.lookup (op =) trans (q, c, d) of
+        NONE => raise Match
+      | SOME (l, g) =>
+          (case (t, u) of
+            (Const ("_bound", _) $ Free (v', _), n) => mk v v' l n P
+          | (n, Const ("_bound", _) $ Free (v', _)) => mk v v' g n P
+          | _ => raise Match))
+     | _ => raise Match);
+in [tr' "ALL ", tr' "EX "] end
 *}
 
 
 subsection {* Transitivity reasoning on decreasing inequalities *}
+
+(* FIXME cleanup *)
 
 text {* These support proving chains of decreasing inequalities
     a >= b >= c ... in Isar proofs. *}
