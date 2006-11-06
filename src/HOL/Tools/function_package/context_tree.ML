@@ -55,8 +55,11 @@ val meta_rhs_of = snd o Logic.dest_equals
 (*** Dependency analysis for congruence rules ***)
 
 fun branch_vars t = 
-    let	val (assumes, term) = dest_implies_list (snd (dest_all_all t))
-    in (fold (curry add_term_vars) assumes [], term_vars term)
+    let	
+      val t' = snd (dest_all_all t)
+      val assumes = Logic.strip_imp_prems t'
+      val concl = Logic.strip_imp_concl t'
+    in (fold (curry add_term_vars) assumes [], term_vars concl)
     end
 
 fun cong_deps crule =
@@ -78,9 +81,8 @@ val add_congs = map (fn c => c RS eq_reflection) [cong, ext]
 fun mk_branch ctx t = 
     let
 	val (ctx', fixes, impl) = dest_all_all_ctx ctx t
-	val (assumes, term) = dest_implies_list impl
     in
-      (ctx', fixes, assumes, rhs_of term)
+      (ctx', fixes, Logic.strip_imp_prems impl, rhs_of (Logic.strip_imp_concl impl))
     end
 
 fun find_cong_rule ctx fvar h ((r,dep)::rs) t =

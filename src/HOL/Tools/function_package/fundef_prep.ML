@@ -48,33 +48,31 @@ fun find_calls tree =
     end
 
 
-
-(* !!qs' qs. Gs ==> Gs' ==> lhs = lhs' ==> rhs = rhs' *)
-(* Takes bound form of qglrs tuples *)
-fun mk_compat_impl domT ranT fvar f ((qs, gs, lhs, rhs),(qs', gs', lhs', rhs')) =
+fun mk_compat_proof_obligations domT ranT fvar f glrs =
     let
-      val shift = incr_boundvars (length qs')
+      fun mk_impl ((qs, gs, lhs, rhs),(qs', gs', lhs', rhs')) =
+          let
+            val shift = incr_boundvars (length qs')
+          in
+            (implies $ Trueprop (eq_const domT $ shift lhs $ lhs')
+                     $ Trueprop (eq_const ranT $ shift rhs $ rhs'))
+              |> fold_rev (curry Logic.mk_implies) (map shift gs @ gs')
+              |> fold_rev (fn (n,T) => fn b => all T $ Abs(n,T,b)) (qs @ qs')
+              |> curry abstract_over fvar
+              |> curry subst_bound f
+          end
     in
-      (implies $ Trueprop (eq_const domT $ shift lhs $ lhs')
-               $ Trueprop (eq_const ranT $ shift rhs $ rhs'))
-        |> fold_rev (curry Logic.mk_implies) (map shift gs @ gs')
-        |> fold_rev (fn (n,T) => fn b => all T $ Abs(n,T,b)) (qs @ qs')
-        |> curry abstract_over fvar
-        |> curry subst_bound f
+      map mk_impl (unordered_pairs glrs)
     end
 
-fun mk_compat_proof_obligations domT ranT fvar f glrs =
-    map (mk_compat_impl domT ranT fvar f) (unordered_pairs glrs)
 
-
-fun mk_completeness globals clauses qglrs =
+fun mk_completeness (Globals {x, Pbool, ...}) clauses qglrs =
     let
-        val Globals {x, Pbool, ...} = globals
-
-        fun mk_case (ClauseContext {qs, gs, lhs, ...}, (oqs, _, _, _)) = Trueprop Pbool
-                                                |> curry Logic.mk_implies (Trueprop (mk_eq (x, lhs)))
-                                                |> fold_rev (curry Logic.mk_implies) gs
-                                                |> fold_rev mk_forall_rename (map fst oqs ~~ qs)
+        fun mk_case (ClauseContext {qs, gs, lhs, ...}, (oqs, _, _, _)) =
+            Trueprop Pbool
+                     |> curry Logic.mk_implies (Trueprop (mk_eq (x, lhs)))
+                     |> fold_rev (curry Logic.mk_implies) gs
+                     |> fold_rev mk_forall_rename (map fst oqs ~~ qs)
     in
         Trueprop Pbool
                  |> fold_rev (curry Logic.mk_implies o mk_case) (clauses ~~ qglrs)
@@ -241,15 +239,6 @@ fun mk_replacement_lemma thy h ih_elim clause =
                                 |> fold_rev forall_intr cqs
     in
       replace_lemma
-    end
-
-
-
-
-fun pr (s:string) x =
-    let val _ = print s
-    in
-      x
     end
 
 

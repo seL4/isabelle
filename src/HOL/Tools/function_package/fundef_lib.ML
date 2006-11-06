@@ -12,29 +12,26 @@ structure FundefLib = struct
 
 fun eq_str (s : string, t) = (s = t) (* monomorphic equality on strings *)
 
-fun mk_forall (var as Free (v,T)) t =
-    all T $ Abs (v,T, abstract_over (var,t))
-  | mk_forall v _ = let val _ = print v in sys_error "mk_forall" end
-
+fun mk_forall v t = all (fastype_of v) $ lambda v t
 
 (* Constructs a tupled abstraction from an arbitrarily nested tuple of variables and a term. *)
 fun tupled_lambda vars t =
     case vars of
-	(Free v) => lambda (Free v) t
-      | (Var v) => lambda (Var v) t
-      | (Const ("Pair", Type ("fun", [Ta, Type ("fun", [Tb, _])]))) $ us $ vs =>  
-	(HOLogic.split_const (Ta,Tb, fastype_of t)) $ (tupled_lambda us (tupled_lambda vs t))
-      | _ => raise Match
-
-
+	    (Free v) => lambda (Free v) t
+    | (Var v) => lambda (Var v) t
+    | (Const ("Pair", Type ("fun", [Ta, Type ("fun", [Tb, _])]))) $ us $ vs =>  
+	    (HOLogic.split_const (Ta,Tb, fastype_of t)) $ (tupled_lambda us (tupled_lambda vs t))
+    | _ => raise Match
+                 
+                 
 fun dest_all (Const ("all", _) $ Abs (a as (_,T,_))) =
     let
-	val (n, body) = Term.dest_abs a
+	    val (n, body) = Term.dest_abs a
     in
-	(Free (n, T), body)
+	    (Free (n, T), body)
     end
   | dest_all _ = raise Match
-
+                         
 
 (* Removes all quantifiers from a term, replacing bound variables by frees. *)
 fun dest_all_all (t as (Const ("all",_) $ _)) = 
@@ -62,13 +59,6 @@ fun dest_all_all_ctx ctx (Const ("all", _) $ Abs (a as (n,T,b))) =
   | dest_all_all_ctx ctx t = 
     (ctx, [], t)
 
-
-
-(* unfold *)
-fun unfold P f g b x = if (P x) then ((f x)::(unfold P f g b (g x))) else (b x)
-
-val dest_implies_list = 
-    split_last o (unfold (can Logic.dest_implies) (fst o Logic.dest_implies) (snd o Logic.dest_implies) single)
 
 fun implies_elim_swp a b = implies_elim b a
 
