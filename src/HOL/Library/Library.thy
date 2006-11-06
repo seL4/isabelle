@@ -25,6 +25,7 @@ imports
   Coinductive_List
   AssocList
   Infinite_Set
+  State_Monad
 begin
 end
 (*>*)

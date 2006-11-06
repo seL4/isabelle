@@ -5,7 +5,7 @@
 header {* A simple random engine *}
 
 theory CodeRandom
-imports CodeRevappl
+imports State_Monad
 begin
 
 section {* A simple random engine *}
@@ -46,20 +46,20 @@ lemma random_random_seed [simp]:
 
 definition
   select :: "'a list \<Rightarrow> randseed \<Rightarrow> 'a \<times> randseed"
-  [simp]: "select xs s =
-    s
-    \<triangleright> random (length xs)
-    \<turnstile>\<triangleright> (\<lambda>n. Pair (nth xs n))"
+  [simp]: "select xs = (do
+      n \<leftarrow> random (length xs);
+      return (nth xs n)
+    done)"
   select_weight :: "(nat \<times> 'a) list \<Rightarrow> randseed \<Rightarrow> 'a \<times> randseed"
-  [simp]: "select_weight xs s =
-    s
-    \<triangleright> random (foldl (op +) 0 (map fst xs))
-    \<turnstile>\<triangleright> (\<lambda>n. Pair (pick xs n))"
+  [simp]: "select_weight xs = (do
+      n \<leftarrow> random (foldl (op +) 0 (map fst xs));
+      return (pick xs n)
+    done)"
 
 lemma
   "select (x#xs) s = select_weight (map (Pair 1) (x#xs)) s"
 proof (induct xs)
-  case Nil show ?case by (simp add: revappl random_def)
+  case Nil show ?case by (simp add: monad_collapse random_def)
 next
   have map_fst_Pair: "!!xs y. map fst (map (Pair y) xs) = replicate (length xs) y"
   proof -
@@ -113,18 +113,22 @@ next
     from pick_nth [OF bound] show
       "pick (map (Pair 1) (x#xs)) (fst (random (length (x#xs)) s)) = nth (x#xs) (fst (random (length (x#xs)) s))" .
   qed
+  have pick_nth_random_do:
+    "!!x xs s. (do n \<leftarrow> random (length (x#xs)); return (pick (map (Pair 1) (x#xs)) n) done) s =
+      (do n \<leftarrow> random (length (x#xs)); return (nth (x#xs) n) done) s"
+  unfolding monad_collapse split_def unfolding pick_nth_random ..
   case (Cons x xs) then show ?case
-    unfolding select_weight_def sum_length revappl_split pick_nth_random
-    by (simp add: revappl_split)
+    unfolding select_weight_def sum_length pick_nth_random_do
+    by simp
 qed
 
 definition
   random_int :: "int \<Rightarrow> randseed \<Rightarrow> int * randseed"
-  "random_int k s = (let (l, s') = random (nat k) s in (int l, s'))"
+  "random_int k = (do n \<leftarrow> random (nat k); return (int n) done)"
 
 lemma random_nat [code]:
-  "random n s = (let (m, s') = random_int (int n) s in (nat m, s'))"
-unfolding random_int_def Let_def split_def random_def by simp
+  "random n = (do k \<leftarrow> random_int (int n); return (nat k) done)"
+unfolding random_int_def by simp
 
 axiomatization
   run_random :: "(randseed \<Rightarrow> 'a * randseed) \<Rightarrow> 'a"
@@ -183,5 +187,7 @@ code_const run_random
 
 code_gen select select_weight
   (SML *)
+
+code_gen (SML -)
 
 end
