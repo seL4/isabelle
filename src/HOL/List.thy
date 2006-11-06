@@ -2816,7 +2816,7 @@ lemma list_ex_iff [normal post]:
 lemmas list_bex_code [code unfold] =
   list_ex_iff [symmetric, THEN eq_reflection]
 
-lemma itrev [simp, normal post]:
+lemma itrev [simp]:
   "itrev xs ys = rev xs @ ys"
   by (induct xs arbitrary: ys) simp_all
 
@@ -2828,7 +2828,7 @@ lemma map_filter_conv [simp]:
   "map_filter f P xs = map f (filter P xs)"
   by (induct xs) auto
 
-lemma rev_code [code func, code unfold]:
+lemma rev_code [code func, code unfold, code noinline]:
   "rev xs == itrev xs []"
   by simp
 
