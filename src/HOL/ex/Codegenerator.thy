@@ -102,21 +102,6 @@ definition
 definition
   "base_case f = f list_case"
 
-subsection {* heavy usage of names *}
-
-definition
-  f :: nat
-  "f = 2"
-  g :: nat
-  "g = f"
-  h :: nat
-  "h = g"
-
-code_constname
-  f "MymodA.f"
-  g "MymodB.f"
-  h "MymodC.f"
-
 definition
   "apply_tower = (\<lambda>x. x (\<lambda>x. x (\<lambda>x. x)))"
 
@@ -166,8 +151,6 @@ code_gen
   foo1 foo3
 code_gen
   mystring
-code_gen
-  f g h
 code_gen
   apply_tower Codegenerator.keywords shadow base_case
 code_gen

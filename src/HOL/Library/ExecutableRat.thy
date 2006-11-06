@@ -93,30 +93,15 @@ instance erat :: eq ..
 
 section {* code names *}
 
-code_typename
-  erat "Rational.erat"
-
-code_constname
-  Rat "Rational.rat"
-  erat_case "Rational.erat_case"
-  norm "Rational.norm"
-  common "Rational.common"
-  of_quotient "Rational.of_quotient"
-  of_rat "Rational.of_rat"
-  to_rat "Rational.to_rat"
-  eq_erat "Rational.eq_erat"
-  div_zero "Rational.div_zero"
-  "0\<Colon>erat" "Rational.erat_zero"
-  "1\<Colon>erat" "Rational.erat_one"
-  "op + \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat" "Rational.erat_plus"
-  "uminus \<Colon> erat \<Rightarrow> erat" "Rational.erat_uminus"
-  "op * \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat" "Rational.erat_times"
-  "inverse  \<Colon> erat \<Rightarrow> erat" "Rational.erat_inverse"
-  "op \<le> \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool" "Rational.erat_le"
-  "Code_Generator.eq \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool" "Rational.erat_eq"
+code_modulename SML
+  ExecutableRat Rational
 
 
 section {* rat as abstype *}
+
+lemma [code func]: -- {* prevents eq constraint *}
+  shows "All = All"
+    and "contents = contents" by rule+
 
 code_abstype rat erat where
   Fract \<equiv> of_quotient
@@ -127,7 +112,7 @@ code_abstype rat erat where
   "op * \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat" \<equiv> "op * \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat"
   "inverse \<Colon> rat \<Rightarrow> rat" \<equiv> "inverse \<Colon> erat \<Rightarrow> erat"
   "op \<le> \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" \<equiv>  "op \<le> \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool"
-   "Code_Generator.eq \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" \<equiv> eq_erat
+  "Code_Generator.eq \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" \<equiv> eq_erat
 
 code_const div_zero
   (SML "raise/ (Fail/ \"Division by zero\")")

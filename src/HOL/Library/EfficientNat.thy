@@ -32,9 +32,6 @@ lemma nat_of_int_int:
   "nat_of_int (int n) = n"
   using zero_zle_int nat_of_int_def by simp
 
-code_constname
-  nat_of_int "IntDef.nat_of_int"
-
 text {*
   Case analysis on natural numbers is rephrased using a conditional
   expression:
@@ -331,5 +328,11 @@ setup {*
   #> CodegenData.add_preproc (lift_obj_eq clause_suc_preproc)
 *}
 (*>*)
+
+subsection {* Module names *}
+
+code_modulename SML
+  Nat Integer
+  EfficientNat Integer
 
 end

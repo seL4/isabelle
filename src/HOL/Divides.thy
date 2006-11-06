@@ -896,10 +896,8 @@ lemma mod_divmod [code]:
   "m mod n = snd (divmod m n)"
   unfolding divmod_def by simp
 
-code_constname
-  "op div \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat" "IntDef.div_nat"
-  "op mod \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat" "IntDef.mod_nat"
-  Divides.divmod "IntDef.divmod_nat"
+code_modulename SML
+  Divides Integer
 
 hide (open) const divmod
 

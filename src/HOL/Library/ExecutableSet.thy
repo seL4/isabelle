@@ -235,10 +235,8 @@ nonfix inter;
 nonfix union;
 *}
 
-code_constname
-  "ExecutableSet.member" "List.member"
-  "ExecutableSet.insertl" "List.insertl"
-  "ExecutableSet.drop_first" "List.drop_first"
+code_modulename SML
+  ExecutableSet List
 
 definition [code inline]:
   "empty_list = []"
@@ -285,7 +283,7 @@ code_abstype "'a set" "'a list" where
   Bex \<equiv> Blex
 
 code_gen "{}" insert "op \<union>" "op \<inter>" "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
-  image Union Inter UNION INTER Ball Bex (SML *)
+  image Union Inter UNION INTER Ball Bex (SML -)
 
 
 subsection {* type serializations *}

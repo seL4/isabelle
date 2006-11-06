@@ -15,13 +15,10 @@ sig
   val class_rev: theory -> class -> class option
   val tyco: theory -> tyco -> tyco
   val tyco_rev: theory -> tyco -> tyco option
-  val tyco_force: tyco * string -> theory -> theory
   val instance: theory -> class * tyco -> string
   val instance_rev: theory -> string -> (class * tyco) option
-  val instance_force: (class * tyco) * string -> theory -> theory
   val const: theory -> CodegenConsts.const -> const
   val const_rev: theory -> const -> CodegenConsts.const option
-  val const_force: CodegenConsts.const * const -> theory -> theory
   val purify_var: string -> string
   val check_modulename: string -> string
   val has_nsp: string -> string -> bool
@@ -248,42 +245,6 @@ val purify_prefix = map (purify_idf #> purify_upper);
 val purify_base = purify_idf #> purify_lower;
 
 
-(* explicit given names with cache update *)
-
-fun force get defined upd_names upd errname string_of (x, name) thy =
-  let
-    val names = NameSpace.unpack name;
-    val (prefix, base) = split_last (NameSpace.unpack name);
-    val prefix' = purify_prefix prefix;
-    val base' = purify_base base;
-    val _ = if (base' = base) andalso forall (op =) (prefix' ~~ prefix)
-      then ()
-      else
-        error ("Name violates naming conventions: " ^ quote name
-          ^ "; perhaps try with " ^ quote (NameSpace.pack (prefix' @ [base'])))
-    val names_ref = CodeName.get thy;
-    val (Names names) = ! names_ref;
-    val (tab, rev) = get names;
-    val _ = if defined tab x
-      then error ("Already named " ^ errname  ^ ": " ^ string_of thy x)
-      else ();
-    val _ = if Symtab.defined rev name
-      then error ("Name already given to other " ^ errname ^ ": " ^ quote name)
-      else ();
-    val _ = names_ref := upd_names (K (upd (x, name) tab,
-          Symtab.update_new (name, x) rev)) (Names names);
-  in
-    thy
-  end;
-
-val tyco_force = force #tyco Symtab.defined map_tyco Symtab.update_new
-  "type constructor" (K quote);
-val instance_force = force #instance Insttab.defined map_inst Insttab.update_new
-  "instance" (fn _ => fn (class, tyco) => quote class ^ ", " ^ quote tyco);
-val const_force = force #const Consttab.defined map_const Consttab.update_new
-  "constant" (quote oo CodegenConsts.string_of_const);
-
-
 (* naming policies *)
 
 fun policy thy get_basename get_thyname name =
@@ -382,52 +343,5 @@ fun const_rev thy nspname =
    of name as SOME _ => name
     | _ => NONE))
   |> Option.map (rev thy #const "constant");
-
-
-(* outer syntax *)
-
-local
-
-structure P = OuterParse
-and K = OuterKeyword
-
-fun const_force_e (raw_c, name) thy =
-  const_force (CodegenConsts.read_const thy raw_c, name) thy;
-
-fun tyco_force_e (raw_tyco, name) thy =
-  tyco_force (Sign.intern_type thy raw_tyco, name) thy;
-
-fun instance_force_e ((raw_tyco, raw_class), name) thy =
-  instance_force ((Sign.intern_class thy raw_class, Sign.intern_type thy raw_tyco), name) thy;
-
-val (constnameK, typenameK, instnameK) = ("code_constname", "code_typename", "code_instname");
-
-val constnameP =
-  OuterSyntax.improper_command constnameK "declare code name for constant" K.thy_decl (
-    Scan.repeat1 (P.term -- P.name)
-    >> (fn aliasses =>
-          Toplevel.theory (fold const_force_e aliasses))
-  );
-
-val typenameP =
-  OuterSyntax.improper_command typenameK "declare code name for type constructor" K.thy_decl (
-    Scan.repeat1 (P.xname -- P.name)
-    >> (fn aliasses =>
-          Toplevel.theory (fold tyco_force_e aliasses))
-  );
-
-val instnameP =
-  OuterSyntax.improper_command instnameK "declare code name for instance relation" K.thy_decl (
-    Scan.repeat1 ((P.xname --| P.$$$ "::" -- P.xname) -- P.name)
-    >> (fn aliasses =>
-          Toplevel.theory (fold instance_force_e aliasses))
-  );
-
-in
-
-val _ = OuterSyntax.add_parsers [constnameP, typenameP, instnameP];
-
-
-end; (*local*)
 
 end;

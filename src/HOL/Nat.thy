@@ -1121,29 +1121,4 @@ lemma [code func]:
 lemma [code func]:
   "Code_Generator.eq 0 (Suc m) = False" unfolding eq_def by auto
 
-code_typename
-  nat "IntDef.nat"
-
-code_instname
-  nat :: eq "IntDef.eq_nat"
-  nat :: zero "IntDef.zero_nat"
-  nat :: one "IntDef.one_nat"
-  nat :: ord "IntDef.ord_nat"
-  nat :: plus "IntDef.plus_nat"
-  nat :: minus "IntDef.minus_nat"
-  nat :: times "IntDef.times_nat"
-
-code_constname
-  "0 \<Colon> nat" "IntDef.zero_nat"
-  "1 \<Colon> nat" "IntDef.one_nat"
-  Suc "IntDef.succ_nat"
-  "op + \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat" "IntDef.plus_nat"
-  "op - \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat" "IntDef.minus_nat"
-  "op * \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat" "IntDef.times_nat"
-  "op < \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool" "IntDef.less_nat"
-  "op \<le> \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool" "IntDef.less_eq_nat"
-  "Code_Generator.eq \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool" "IntDef.eq_nat"
-  nat_rec "IntDef.nat_rec"
-  nat_case "IntDef.nat_case"
-
 end

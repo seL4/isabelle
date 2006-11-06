@@ -364,20 +364,8 @@ done
 
 subsection {* code generator setup *}
 
-code_typename
-  "Numeral.bit" "IntDef.bit"
-
-code_constname
-  "number_of \<Colon> int \<Rightarrow> int" "IntDef.number_of"
-  "Numeral.pred" "IntDef.pred"
-  "Numeral.succ" "IntDef.succ"
-  "Numeral.Pls" "IntDef.pls"
-  "Numeral.Min" "IntDef.min"
-  "Numeral.Bit" "IntDef.bit"
-  "Numeral.bit.bit_case" "IntDef.bit_case"
-  "Code_Generator.eq \<Colon> bit \<Rightarrow> bit \<Rightarrow> bool" "IntDef.eq_bit"
-  "Numeral.B0" "IntDef.b0"
-  "Numeral.B1" "IntDef.b1"
+code_modulename SML
+  Numeral Integer
 
 lemma Numeral_Pls_refl [code func]:
   "Numeral.Pls = Numeral.Pls" ..
