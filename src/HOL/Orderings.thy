@@ -13,8 +13,7 @@ section {* Abstract orderings *}
 
 subsection {* Order signatures *}
 
-class ord = eq +
-  constrains eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (*FIXME: class_package should do the job*)
+class ord =
   fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   fixes less    :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 
