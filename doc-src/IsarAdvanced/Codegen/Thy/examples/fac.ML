@@ -1,24 +1,24 @@
 structure ROOT = 
 struct
 
-structure IntDef = 
+structure Nat = 
 struct
 
-datatype nat = Zero_nat | Succ_nat of nat;
+datatype nat = Zero_nat | Suc of nat;
 
-fun plus_nat (Succ_nat m) n = plus_nat m (Succ_nat n)
+fun plus_nat (Suc m) n = plus_nat m (Suc n)
   | plus_nat Zero_nat y = y;
 
-fun times_nat (Succ_nat m) n = plus_nat n (times_nat m n)
+fun times_nat (Suc m) n = plus_nat n (times_nat m n)
   | times_nat Zero_nat n = Zero_nat;
 
-end; (*struct IntDef*)
+end; (*struct Nat*)
 
 structure Codegen = 
 struct
 
-fun fac (IntDef.Succ_nat n) = IntDef.times_nat (IntDef.Succ_nat n) (fac n)
-  | fac IntDef.Zero_nat = IntDef.Succ_nat IntDef.Zero_nat;
+fun fac (Nat.Suc n) = Nat.times_nat (Nat.Suc n) (fac n)
+  | fac Nat.Zero_nat = Nat.Suc Nat.Zero_nat;
 
 end; (*struct Codegen*)
 

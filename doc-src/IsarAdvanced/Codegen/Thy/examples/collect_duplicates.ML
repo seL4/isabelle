@@ -5,14 +5,14 @@ structure Code_Generator =
 struct
 
 type 'a eq = {eq_ : 'a -> 'a -> bool};
-fun Eq (A_:'a eq) = #eq_ A_;
+fun eq (A_:'a eq) = #eq_ A_;
 
 end; (*struct Code_Generator*)
 
 structure HOL = 
 struct
 
-fun op_eq (A_:'a Code_Generator.eq) a b = Code_Generator.Eq A_ a b;
+fun op_eq (A_:'a Code_Generator.eq) a b = Code_Generator.eq A_ a b;
 
 end; (*struct HOL*)
 

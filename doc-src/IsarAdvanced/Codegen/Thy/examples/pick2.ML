@@ -1,26 +1,26 @@
 structure ROOT = 
 struct
 
-structure IntDef = 
+structure Nat = 
 struct
 
-datatype nat = Zero_nat | Succ_nat of nat;
+datatype nat = Zero_nat | Suc of nat;
 
-fun less_nat Zero_nat (Succ_nat n) = true
+fun less_nat Zero_nat (Suc n) = true
   | less_nat n Zero_nat = false
-  | less_nat (Succ_nat m) (Succ_nat n) = less_nat m n;
+  | less_nat (Suc m) (Suc n) = less_nat m n;
 
-fun minus_nat (Succ_nat m) (Succ_nat n) = minus_nat m n
+fun minus_nat (Suc m) (Suc n) = minus_nat m n
   | minus_nat Zero_nat n = Zero_nat
   | minus_nat y Zero_nat = y;
 
-end; (*struct IntDef*)
+end; (*struct Nat*)
 
 structure Codegen = 
 struct
 
 fun pick ((k, v) :: xs) n =
-  (if IntDef.less_nat n k then v else pick xs (IntDef.minus_nat n k));
+  (if Nat.less_nat n k then v else pick xs (Nat.minus_nat n k));
 
 end; (*struct Codegen*)
 
