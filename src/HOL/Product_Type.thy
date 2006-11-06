@@ -759,6 +759,17 @@ use "Tools/split_rule.ML"
 setup SplitRule.setup
 
 
+subsection {* Further lemmas *}
+
+lemma
+  split_Pair: "split Pair x = x"
+  unfolding split_def by auto
+
+lemma
+  split_comp: "split (f \<circ> g) x = f (g (fst x)) (snd x)"
+  by (cases x, simp)
+
+
 subsection {* Code generator setup *}
 
 instance unit :: eq ..
