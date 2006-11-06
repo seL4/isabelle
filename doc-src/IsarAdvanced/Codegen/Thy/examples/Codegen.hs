@@ -1,5 +1,5 @@
 module Codegen where
-import qualified IntDef
+import qualified Nat
 
 class Null a where
   null :: a
@@ -14,5 +14,5 @@ null_option = Nothing
 instance Codegen.Null (Maybe b) where
   null = Codegen.null_option
 
-dummy :: Maybe IntDef.Nat
-dummy = Codegen.head [Just (IntDef.Succ_nat IntDef.Zero_nat), Nothing]
+dummy :: Maybe Nat.Nat
+dummy = Codegen.head [Just (Nat.Suc Nat.Zero_nat), Nothing]

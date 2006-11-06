@@ -47,6 +47,10 @@ text {*
   of code generation into a small set of orthogonal principles
   while achieving a big coverage of application areas
   with maximum flexibility.
+
+  For readers, some familiarity and experience
+  with the the ingredients
+  of the HOL \emph{Main} theory is assumed.
 *}
 
 
@@ -80,6 +84,13 @@ text {*
 subsection {* Code generation process *}
 
 text {*
+  \begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\textwidth]{codegen_process}
+  \caption{code generator -- processing overview}
+  \label{fig:process}
+  \end{figure}
+
   The code generator employs a notion of executability
   for three foundational executable ingredients known
   from functional programming:
@@ -113,13 +124,6 @@ text {*
       code in the desired \qn{target language} is \qn{serialized}.
 
   \end{itemize}
-
-  \begin{figure}[h]
-  \centering
-  \includegraphics[width=0.3\textwidth]{codegen_process}
-  \caption{code generator -- processing overview}
-  \label{fig:process}
-  \end{figure}
 
   From these steps, only the two last are carried out
   outside the logic; by keeping this layer as
@@ -440,12 +444,12 @@ text {*
 
     \item[ExecutableSet] allows to generate code
        for finite sets using lists.
-    \item[ExecutableRat] implements rational
+    \item[ExecutableRat] \label{exec_rat} implements rational
        numbers as triples @{text "(sign, enumerator, denominator)"}.
-    \item[EfficientNat] implements natural numbers by integers,
+    \item[EfficientNat] \label{eff_nat} implements natural numbers by integers,
        which in general will result in higher efficency; pattern
        matching with @{const "0\<Colon>nat"} / @{const "Suc"}
-       is eliminated. \label{eff_nat}
+       is eliminated.
     \item[MLString] provides an additional datatype @{text "mlstring"};
        in the HOL default setup, strings in HOL are mapped to list
        of chars in SML; values of type @{text "mlstring"} are
@@ -837,7 +841,7 @@ text {*
   Another subtlety
   enters the stage when definitions of overloaded constants
   are dependent on operational equality.  For example, let
-  us define a lexicographic ordering on tuples: \\
+  us define a lexicographic ordering on tuples:
 *}
 
 (*<*)
@@ -940,7 +944,7 @@ subsection {* Types matter *}
 
 text {*
   Imagine the following quick-and-dirty setup for implementing
-  some sets as lists:
+  some kind of sets as lists in SML:
 *}
 
 code_type set
@@ -950,42 +954,219 @@ code_const "{}" and insert
   (SML "![]" and infixl 7 "::")
 
 definition
-  dummy_set :: "nat set"
-  "dummy_set = {1, 2, 3}"
+  dummy_set :: "(nat \<Rightarrow> nat) set"
+  "dummy_set = {Suc}"
 
-(*print_codethms (dummy_set)
-code_gen dummy_set (SML -)*)
+text {*
+  Then code generation for @{const dummy_set} will fail.
+  Why? A glimpse at the function equations will offer:
+*}
 
+print_codethms (insert)
 
-(* shadowing by user-defined serializations, understanding the type game,
-reflexive equations, dangerous equations *)
+text {*
+  This reveals the function equation @{thm insert_def}
+  for @{const insert}, which is operationally meaningsless
+  but forces an equality constraint on the set members
+  (which is not fullfiable if the set members are functions).
+  Even when using set of natural numbers (which are an instance
+  of \emph{eq}), we run into a problem:
+*}
 
+definition
+  foobar_set :: "nat set"
+  "foobar_set = {0, 1, 2}"
+
+text {*
+  In this case the serializer would complain that @{const insert}
+  expects dictionaries (namely an \emph{eq} dictionary) but
+  has also been given a customary serialization.
+
+  The solution to this dilemma:
+*}
+
+lemma [code func]:
+  "insert = insert" ..
+
+code_gen dummy_set foobar_set (SML "examples/dirty_set.ML")
+
+text {*
+  \lstsml{Thy/examples/dirty_set.ML}
+
+  Reflexive function equations by convention are dropped.
+  But their presence prevents primitive definitions to be
+  used as function equations:
+*}
+
+print_codethms (insert)
+
+text {*
+  will show \emph{no} function equations for insert.
+
+  Note that the sort constraints of reflexive equations
+  are considered; so
+*}
+
+lemma [code func]:
+  "(insert \<Colon> 'a\<Colon>eq \<Rightarrow> 'a set \<Rightarrow> 'a set) = insert" ..
+
+text {*
+  would mean nothing else than to introduce the evil
+  sort constraint by hand.
+*}
+
+subsection {* Cyclic module dependencies *}
+
+text {*
+  Sometimes the awkward situation occurs that dependencies
+  between definitions introduce cyclic dependencies
+  between modules, which in the Haskell world leaves
+  you to the mercy of the Haskell implementation you are using,
+  while for SML code generation is not possible.
+
+  A solution is to declare module names explicitly.
+  Let use assume the three cyclically dependent
+  modules are named \emph{A}, \emph{B} and \emph{C}.
+  Then, by stating
+*}
+
+code_modulename SML
+  A ABC
+  B ABC
+  C ABC
+
+text {*
+  we explicitly map all those modules on \emph{ABC},
+  resulting in an ad-hoc merge of this three modules
+  at serialization time.
+*}
 
 subsection {* Axiomatic extensions *}
 
 text {*
   \begin{warn}
     The extensions introduced in this section, though working
-    in practice, are not the cream of the crop.  They will
+    in practice, are not the cream of the crop, as you
+    will notice during reading.  They will
     eventually be replaced by more mature approaches.
   \end{warn}
+
+  Sometimes equalities are taken for granted which are
+  not derivable inside the HOL logic but are silently assumed
+  to hold for executable code.  For example, we may want
+  to identify the famous HOL constant @{const arbitrary}
+  of type @{typ "'a option"} with @{const None}.
+  By brute force:
 *}
 
-(* code_modulename *)
-(* existing libraries, code inline code_constsubst, code_abstype*)
+axioms
+  arbitrary_option: "arbitrary = None"
+
+text {*
+  However this has to be considered harmful since this axiom,
+  though probably justifiable for generated code, could
+  introduce serious inconsistencies into the logic.
+
+  So, there is a distinguished construct for stating axiomatic
+  equalities of constants which apply only for code generation.
+  Before introducing this, here is a convenient place to describe
+  shortly how to deal with some restrictions the type discipline
+  imposes.
+
+  By itself, the constant @{const arbitrary} is a non-overloaded
+  polymorphic constant.  So, there is no way to distinguish
+  different versions of @{const arbitrary} for different types
+  inside the code generator framework.  However, inlining
+  theorems together with auxiliary constants provide a solution:
+*}
+
+definition
+  arbitrary_option :: "'a option"
+  [symmetric, code inline]: "arbitrary_option = arbitrary"
+
+text {*
+  By that, we replace any @{const arbitrary} with option type
+  by @{const arbitrary_option} in function equations.
+
+  For technical reasons, we further have to provide a
+  synonym for @{const None} which in code generator view
+  is a function rather than a datatype constructor
+*}
+
+definition
+  "None' = None"
+
+text {*
+  Then finally we are enabled to use \isasymCODEAXIOMS:
+*}
+
+code_axioms
+  arbitrary_option \<equiv> None'
+
+text {*
+  A dummy example:
+*}
+
+fun
+  dummy_option :: "'a list \<Rightarrow> 'a option" where
+  "dummy_option (x#xs) = Some x"
+  "dummy_option [] = arbitrary"
+termination by (auto_term "{}")
+(*<*)
+declare dummy_option.simps [code func]
+(*>*)
+
+code_gen dummy_option (SML "examples/arbitrary.ML")
+
+text {*
+  \lstsml{Thy/examples/arbitrary.ML}
+
+  Another axiomatic extension is code generation
+  for abstracted types.  For this, the  
+  \emph{ExecutableRat} (see \secref{exec_rat})
+  forms a good example.
+*}
+
 
 section {* ML interfaces \label{sec:ml} *}
 
+text {*
+  Since the code generator framework not only aims to provide
+  a nice Isar interface but also to form a base for
+  code-generation-based applications, here a short
+  description of the most important ML interfaces.
+*}
+
 subsection {* Constants with type discipline: codegen\_consts.ML *}
+
+text {*
+  This Pure module manages identification of (probably overloaded)
+  constants by unique identifiers.
+*}
 
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type CodegenConsts.const} \\
-  @{index_ML CodegenConsts.inst_of_typ: "theory -> string * typ -> CodegenConsts.const"} \\
+  @{index_ML CodegenConsts.norm_of_typ: "theory -> string * typ -> CodegenConsts.const"} \\
   @{index_ML CodegenConsts.typ_of_inst: "theory -> CodegenConsts.const -> string * typ"} \\
-  @{index_ML CodegenConsts.norm: "theory -> CodegenConsts.const -> CodegenConsts.const"} \\
-  @{index_ML CodegenConsts.norm_of_typ: "theory -> string * typ -> CodegenConsts.const"}
-  \end{mldecls}
+ \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_type CodegenConsts.const} is the identifier type:
+     the product of a \emph{string} with a list of \emph{typs}.
+     The \emph{string} is the constant name as represented inside Isabelle;
+     the \emph{typs} are a type instantion in the sense of System F,
+     with canonical names for type variables.
+
+  \item @{ML CodegenConsts.norm_of_typ}~@{text thy}~@{text "(constname, typ)"}
+     maps a constant expression @{text "(constname, typ)"} to its canonical identifier.
+
+  \item @{ML CodegenConsts.typ_of_inst}~@{text thy}~@{text const}
+     maps a canonical identifier @{text const} to a constant
+     expression with appropriate type.
+
+  \end{description}
 *}
 
 subsection {* Executable theory content: codegen\_data.ML *}
@@ -1002,31 +1183,107 @@ text %mlref {*
   @{index_ML_type CodegenData.lthms} \\
   @{index_ML CodegenData.lazy: "(unit -> thm list) -> CodegenData.lthms"}
   \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_type CodegenData.lthms} is an abstract view
+     on suspended theorems.  Suspensions are evaluated on demand.
+
+  \item @{ML CodegenData.lazy}~@{text f} turns an abstract
+     theorem computation @{text f} into suspended theorems.
+
+  \end{description}
 *}
 
 subsubsection {* Executable content *}
 
 text %mlref {*
   \begin{mldecls}
+  @{index_ML_type CodegenData.lthms} \\
   @{index_ML CodegenData.add_func: "thm -> theory -> theory"} \\
   @{index_ML CodegenData.del_func: "thm -> theory -> theory"} \\
   @{index_ML CodegenData.add_funcl: "CodegenConsts.const * CodegenData.lthms -> theory -> theory"} \\
-  @{index_ML CodegenData.add_datatype: "string * (((string * sort) list * (string * typ list) list) * CodegenData.lthms) -> theory -> theory"} \\
-  @{index_ML CodegenData.del_datatype: "string -> theory -> theory"} \\
   @{index_ML CodegenData.add_inline: "thm -> theory -> theory"} \\
   @{index_ML CodegenData.del_inline: "thm -> theory -> theory"} \\
-  @{index_ML CodegenData.add_inline_proc: "(theory -> cterm list -> thm list) -> theory -> theory"} \\
-  @{index_ML CodegenData.add_preproc: "(theory -> thm list -> thm list) -> theory -> theory"} \\
-  @{index_ML CodegenData.these_funcs: "theory -> CodegenConsts.const -> thm list"} \\
-  @{index_ML CodegenData.get_datatype: "theory -> string -> ((string * sort) list * (string * typ list) list) option"} \\
+  @{index_ML CodegenData.add_inline_proc: "(theory -> cterm list -> thm list)
+    -> theory -> theory"} \\
+  @{index_ML CodegenData.add_preproc: "(theory -> thm list -> thm list)
+    -> theory -> theory"} \\
+  @{index_ML CodegenData.add_datatype: "string * (((string * sort) list * (string * typ list) list)
+    * CodegenData.lthms) -> theory -> theory"} \\
+  @{index_ML CodegenData.del_datatype: "string -> theory -> theory"} \\
+  @{index_ML CodegenData.get_datatype: "theory -> string
+    -> ((string * sort) list * (string * typ list) list) option"} \\
   @{index_ML CodegenData.get_datatype_of_constr: "theory -> CodegenConsts.const -> string option"}
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML CodegenData.add_func}~@{text "thm"}
+  \item @{ML CodegenData.add_func}~@{text "thm"}~@{text "thy"} adds function
+     theorem @{text "thm"} to executable content.
+
+  \item @{ML CodegenData.del_func}~@{text "thm"}~@{text "thy"} removes function
+     theorem @{text "thm"} from executable content, if present.
+
+  \item @{ML CodegenData.add_funcl}~@{text "(const, lthms)"}~@{text "thy"} adds
+     suspended function equations @{text lthms} for constant
+     @{text const} to executable content.
+
+  \item @{ML CodegenData.add_inline}~@{text "thm"}~@{text "thy"} adds
+     inlineing theorem @{text thm} to executable content.
+
+  \item @{ML CodegenData.del_inline}~@{text "thm"}~@{text "thy"} remove
+     inlining theorem @{text thm} from executable content, if present.
+
+  \item @{ML CodegenData.add_inline_proc}~@{text "f"}~@{text "thy"} adds
+     inline procedure @{text f} to executable content;
+     @{text f} is a computation of rewrite rules dependent on
+     the current theory context and the list of all arguments
+     and right hand sides of the function equations belonging
+     to a certain function definition.
+
+  \item @{ML CodegenData.add_preproc}~@{text "f"}~@{text "thy"} adds
+     generic preprocessor @{text f} to executable content;
+     @{text f} is a transformation of the function equations belonging
+     to a certain function definition, depending on the
+     current theory context.
+
+  \item @{ML CodegenData.add_datatype}~@{text "(name, (spec, cert))"}~@{text "thy"} adds
+     a datatype to executable content, with type constructor
+     @{text name} and specification @{text spec}; @{text spec} is
+     a pair consisting of a list of type variable with sort
+     contraints and a list of constructors with name
+     and types of arguments.  The addition as datatype
+     has to be justified giving a certificate of suspended
+     theorems as wittnesses for injectiveness and distincness.
+
+  \item @{ML CodegenData.del_datatype}~@{text "name"}~@{text "thy"}
+     remove a datatype from executable content, if present.
+
+  \item @{ML CodegenData.get_datatype_of_constr}~@{text "thy"}~@{text "const"}
+     returns type constructor corresponding to
+     constructor @{text const}; returns @{text NONE}
+     if @{text const} is no constructor.
 
   \end{description}
+*}
+
+subsection {* Function equation systems: codegen\_funcgr.ML *}
+
+text {*
+  
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type CodegenFuncgr.T} \\
+  @{index_ML CodegenFuncgr.make: "theory -> CodegenConsts.const list -> CodegenFuncgr.T"} \\
+  @{index_ML CodegenFuncgr.funcs: "CodegenFuncgr.T -> CodegenConsts.const -> thm list"} \\
+  @{index_ML CodegenFuncgr.typ: "CodegenFuncgr.T -> CodegenConsts.const -> typ"} \\
+  @{index_ML CodegenFuncgr.deps: "CodegenFuncgr.T
+    -> CodegenConsts.const list -> CodegenConsts.const list list"} \\
+  @{index_ML CodegenFuncgr.all: "CodegenFuncgr.T -> CodegenConsts.const list"}
+  \end{mldecls}
 *}
 
 subsection {* Further auxiliary *}
@@ -1038,6 +1295,7 @@ text %mlref {*
   @{index_ML CodegenConsts.consts_of: "theory -> term -> CodegenConsts.const list"} \\
   @{index_ML CodegenConsts.read_const: "theory -> string -> CodegenConsts.const"} \\
   @{index_ML_structure CodegenConsts.Consttab} \\
+  @{index_ML_structure CodegenFuncgr.Constgraph} \\
   @{index_ML CodegenData.typ_func: "theory -> thm -> typ"} \\
   @{index_ML CodegenData.rewrite_func: "thm list -> thm -> thm"} \\
   \end{mldecls}
