@@ -591,11 +591,11 @@ structure Norm = ROOT.WeakNorm;
 structure Type = ROOT.Type;
 structure Lambda = ROOT.Lambda;
 
-fun nat_of_int 0 = ROOT.IntDef.Zero_nat
-  | nat_of_int n = ROOT.IntDef.Succ_nat (nat_of_int (n-1));
+fun nat_of_int 0 = ROOT.Nat.Zero_nat
+  | nat_of_int n = ROOT.Nat.Suc (nat_of_int (n-1));
 
-fun int_of_nat ROOT.IntDef.Zero_nat = 0
-  | int_of_nat (ROOT.IntDef.Succ_nat n) = 1 + int_of_nat n;
+fun int_of_nat ROOT.Nat.Zero_nat = 0
+  | int_of_nat (ROOT.Nat.Suc n) = 1 + int_of_nat n;
 
 fun dBtype_of_typ (Type ("fun", [T, U])) =
       Type.Fun (dBtype_of_typ T, dBtype_of_typ U)
@@ -632,7 +632,7 @@ fun typing_of_term Ts e (Bound i) =
       let val dBT = dBtype_of_typ T
       in Norm.Abs_1 (e, dBT, dB_of_term t,
         dBtype_of_typ (fastype_of1 (T :: Ts, t)),
-        typing_of_term (T :: Ts) (Type.shift e ROOT.IntDef.Zero_nat dBT) t)
+        typing_of_term (T :: Ts) (Type.shift e ROOT.Nat.Zero_nat dBT) t)
       end
   | typing_of_term _ _ _ = error "typing_of_term: bad term";
 

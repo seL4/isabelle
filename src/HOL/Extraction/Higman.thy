@@ -342,7 +342,7 @@ code_gen good_prefix (SML *)
 ML {*
 local
   open ROOT.Higman
-  open ROOT.IntDef
+  open ROOT.Nat
 in
 
 val a = 16807.0;
@@ -361,20 +361,20 @@ fun mk_word seed l =
   end;
 
 fun f s id_0 = mk_word s 0
-  | f s (Succ_nat n) = f (fst (mk_word s 0)) n;
+  | f s (Suc n) = f (fst (mk_word s 0)) n;
 
 val g1 = snd o (f 20000.0);
 
 val g2 = snd o (f 50000.0);
 
 fun f1 id_0 = [A,A]
-  | f1 (Succ_nat id_0) = [B]
-  | f1 (Succ_nat (Succ_nat id_0)) = [A,B]
+  | f1 (Suc id_0) = [B]
+  | f1 (Suc (Suc id_0)) = [A,B]
   | f1 _ = [];
 
 fun f2 id_0 = [A,A]
-  | f2 (Succ_nat id_0) = [B]
-  | f2 (Succ_nat (Succ_nat id_0)) = [B,A]
+  | f2 (Suc id_0) = [B]
+  | f2 (Suc (Suc id_0)) = [B,A]
   | f2 _ = [];
 
 val xs1 = good_prefix g1;

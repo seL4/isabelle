@@ -67,8 +67,6 @@ lemma "case Z of Z \<Rightarrow> True | S x \<Rightarrow> False" by normalizatio
 lemma "[] @ [] = []" by normalization
 lemma "[] @ xs = xs" by normalization
 lemma "[a, b, c] @ xs = a # b # c # xs" by normalization
-lemma "[%a::'x. a, %b. b, c] @ xs = (%x. x) # (%x. x) # c # xs" by normalization
-lemma "[%a::'x. a, %b. b, c] @ [u, v] = [%x. x, %x. x, c, u, v]" by normalization
 lemma "map f [x,y,z::'x] = [f x, f y, f z]" by normalization
 normal_form "map (%f. f True) [id, g, Not] = [True, g True, False]"
 normal_form "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs"

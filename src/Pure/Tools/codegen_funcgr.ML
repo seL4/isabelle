@@ -250,7 +250,7 @@ fun specialize_typs thy funcgr eqss =
             val ty_decl' = Logic.incr_tvar maxidx ty_decl;
             val maxidx' = Int.max (Term.maxidx_of_typ ty_decl' + 1, maxidx);
           in Type.unify tsig (ty_decl', ty) (env, maxidx')
-          handle TUNIFY => error ("Failed to instantiate\n"
+          handle TUNIFY => setmp show_sorts true error ("Failed to instantiate\n"
             ^ (Sign.string_of_typ thy o Envir.norm_type env) ty_decl' ^ "\nto\n"
             ^ (Sign.string_of_typ thy o Envir.norm_type env) ty ^ ",\n"
             ^ "in function theorems\n"
