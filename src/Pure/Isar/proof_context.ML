@@ -138,7 +138,8 @@ sig
   val apply_case: RuleCases.T -> Proof.context -> (string * term list) list * Proof.context
   val get_case: Proof.context -> string -> string option list -> RuleCases.T
   val expand_abbrevs: bool -> Proof.context -> Proof.context
-  val add_const_syntax: Syntax.mode -> (string * mixfix) list -> Proof.context -> Proof.context
+  val add_notation: Syntax.mode -> (term * mixfix) list ->
+    Proof.context -> Proof.context
   val add_abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list ->
     Proof.context -> Proof.context
   val verbose: bool ref
@@ -554,7 +555,7 @@ fun read_tyname ctxt c =
 
 fun read_const ctxt c =
   (case lookup_skolem ctxt c of
-    SOME c' => Free (c', dummyT)
+    SOME x => Free (x, infer_type ctxt x)
   | NONE => Consts.read_const (consts_of ctxt) c);
 
 
@@ -839,10 +840,13 @@ end;
 
 (* authentic constants *)
 
-fun add_const_syntax prmode args ctxt =
+fun const_syntax ctxt (Free (x, T), mx) = SOME (true, (x, T, mx))
+  | const_syntax ctxt (Const (c, _), mx) = SOME (false, Consts.syntax (consts_of ctxt) (c, mx))
+  | const_syntax _ _ = NONE;
+
+fun add_notation prmode args ctxt =
   ctxt |> map_syntax
-    (LocalSyntax.add_modesyntax (theory_of ctxt) prmode
-      (map (pair false o Consts.syntax (consts_of ctxt)) args));
+    (LocalSyntax.add_modesyntax (theory_of ctxt) prmode (map_filter (const_syntax ctxt) args));
 
 fun context_const_ast_tr context [Syntax.Variable c] =
       let
