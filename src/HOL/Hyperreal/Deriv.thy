@@ -241,7 +241,7 @@ apply (simp add: mult_ac)
 done
 
 lemma DERIV_power_Suc:
-  fixes f :: "real \<Rightarrow> 'a::{real_normed_algebra,recpower}"
+  fixes f :: "real \<Rightarrow> 'a::{real_normed_algebra,recpower,comm_monoid_mult}"
   assumes f: "DERIV f x :> D"
   shows "DERIV (\<lambda>x. f x ^ Suc n) x :> (of_nat n + 1) *# (D * f x ^ n)"
 proof (induct n)
@@ -255,7 +255,7 @@ case (Suc k)
 qed
 
 lemma DERIV_power:
-  fixes f :: "real \<Rightarrow> 'a::{real_normed_algebra,recpower}"
+  fixes f :: "real \<Rightarrow> 'a::{real_normed_algebra,recpower,comm_monoid_mult}"
   assumes f: "DERIV f x :> D"
   shows "DERIV (\<lambda>x. f x ^ n) x :> of_nat n *# (D * f x ^ (n - Suc 0))"
 by (cases "n", simp, simp add: DERIV_power_Suc f)

@@ -1645,7 +1645,7 @@ apply (auto simp add: ring_distrib add_ac)
 done
 
 
-lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::recpower)) = y^(card A)"
+lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::{recpower, comm_monoid_mult})) = y^(card A)"
   apply (erule finite_induct)
   apply (auto simp add: power_Suc)
   done

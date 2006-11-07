@@ -334,7 +334,7 @@ apply (auto simp add: power_Suc power_add power2_minus)
 done
 
 lemma power_even_eq: "(a::'a::recpower) ^ (2*n) = (a^n)^2"
-by (simp add: power_mult power_mult_distrib power2_eq_square)
+by (subst mult_commute) (simp add: power_mult)
 
 lemma power_odd_eq: "(a::int) ^ Suc(2*n) = a * (a^n)^2"
 by (simp add: power_even_eq) 

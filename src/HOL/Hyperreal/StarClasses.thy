@@ -361,7 +361,9 @@ apply (transfer, rule left_distrib)
 apply (transfer, rule right_distrib)
 done
 
-instance star :: (semiring_0) semiring_0 ..
+instance star :: (semiring_0) semiring_0 
+by intro_classes (transfer, simp)+
+
 instance star :: (semiring_0_cancel) semiring_0_cancel ..
 
 instance star :: (comm_semiring) comm_semiring
@@ -417,7 +419,7 @@ apply (transfer, erule (1) mult_strict_right_mono)
 done
 
 instance star :: (pordered_comm_semiring) pordered_comm_semiring
-by (intro_classes, transfer, rule pordered_comm_semiring_class.mult_mono)
+by (intro_classes, transfer, rule mult_mono1_class.mult_mono)
 
 instance star :: (pordered_cancel_comm_semiring) pordered_cancel_comm_semiring ..
 

@@ -11,17 +11,17 @@ theory Power
 imports Divides
 begin
 
-subsection{*Powers for Arbitrary Semirings*}
+subsection{*Powers for Arbitrary Monoids*}
 
-axclass recpower \<subseteq> comm_semiring_1_cancel, power
+axclass recpower \<subseteq> monoid_mult, power
   power_0 [simp]: "a ^ 0       = 1"
   power_Suc:      "a ^ (Suc n) = a * (a ^ n)"
 
-lemma power_0_Suc [simp]: "(0::'a::recpower) ^ (Suc n) = 0"
+lemma power_0_Suc [simp]: "(0::'a::{recpower,semiring_0}) ^ (Suc n) = 0"
 by (simp add: power_Suc)
 
 text{*It looks plausible as a simprule, but its effect can be strange.*}
-lemma power_0_left: "0^n = (if n=0 then 1 else (0::'a::recpower))"
+lemma power_0_left: "0^n = (if n=0 then 1 else (0::'a::{recpower,semiring_0}))"
 by (induct "n", auto)
 
 lemma power_one [simp]: "1^n = (1::'a::recpower)"
@@ -32,17 +32,20 @@ done
 lemma power_one_right [simp]: "(a::'a::recpower) ^ 1 = a"
 by (simp add: power_Suc)
 
+lemma power_commutes: "(a::'a::recpower) ^ n * a = a * a ^ n"
+by (induct "n") (simp_all add:power_Suc mult_assoc)
+
 lemma power_add: "(a::'a::recpower) ^ (m+n) = (a^m) * (a^n)"
-apply (induct "n")
+apply (induct "m")
 apply (simp_all add: power_Suc mult_ac)
 done
 
 lemma power_mult: "(a::'a::recpower) ^ (m*n) = (a^m) ^ n"
-apply (induct "n")
+apply (induct "n") 
 apply (simp_all add: power_Suc power_add)
 done
 
-lemma power_mult_distrib: "((a::'a::recpower) * b) ^ n = (a^n) * (b^n)"
+lemma power_mult_distrib: "((a::'a::{recpower,comm_monoid_mult}) * b) ^ n = (a^n) * (b^n)"
 apply (induct "n")
 apply (auto simp add: power_Suc mult_ac)
 done
