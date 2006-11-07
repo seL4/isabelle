@@ -191,7 +191,7 @@ sig
   val read_term: theory -> string -> term
   val read_prop: theory -> string -> term
   val add_consts_authentic: (bstring * typ * mixfix) list -> theory -> theory
-  val add_const_syntax: Syntax.mode -> (string * mixfix) list -> theory -> theory
+  val add_notation: Syntax.mode -> (term * mixfix) list -> theory -> theory
   val add_abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> theory -> theory
   include SIGN_THEORY
 end
@@ -713,8 +713,11 @@ val add_syntax_i = add_modesyntax_i Syntax.default_mode;
 val del_modesyntax = gen_syntax Syntax.remove_const_gram (read_typ_syntax o no_def_sort);
 val del_modesyntax_i = gen_syntax Syntax.remove_const_gram certify_typ_syntax;
 
-fun add_const_syntax mode args thy =
-  thy |> add_modesyntax_i mode (map (Consts.syntax (consts_of thy)) args);
+fun const_syntax thy (Const (c, _), mx) = SOME (Consts.syntax (consts_of thy) (c, mx))
+  | const_syntax _ _ = NONE;
+
+fun add_notation mode args thy =
+  thy |> add_modesyntax_i mode (map_filter (const_syntax thy) args);
 
 
 (* add constants *)

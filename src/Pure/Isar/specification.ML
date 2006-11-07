@@ -34,8 +34,8 @@ sig
     local_theory -> local_theory
   val abbreviation_i: Syntax.mode -> ((string * typ option * mixfix) option * term) list ->
     local_theory -> local_theory
-  val const_syntax: Syntax.mode -> (xstring * mixfix) list -> local_theory -> local_theory
-  val const_syntax_i: Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
+  val notation: Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
+  val notation_i: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val theorems: string -> ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list
     -> local_theory -> (bstring * thm list) list * local_theory
   val theorems_i: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list
@@ -174,12 +174,11 @@ val abbreviation_i = gen_abbrevs cert_specification;
 
 (* const syntax *)
 
-fun gen_syntax intern_const mode raw_args lthy =
-  let val args = raw_args |> map (apfst (intern_const (ProofContext.consts_of lthy)))
-  in lthy |> LocalTheory.const_syntax mode args end;
+fun gen_notation prep_const mode args lthy =
+  lthy |> LocalTheory.notation mode (map (apfst (prep_const lthy)) args);
 
-val const_syntax = gen_syntax Consts.intern;
-val const_syntax_i = gen_syntax (K I);
+val notation = gen_notation ProofContext.read_const;
+val notation_i = gen_notation (K I);
 
 
 (* fact statements *)
@@ -220,7 +219,7 @@ fun gen_theorem prep_att prep_stmt
   let
     val _ = LocalTheory.assert lthy0;
     val thy = ProofContext.theory_of lthy0;
-    
+
     val (loc, ctxt, lthy) =
       (case (TheoryTarget.peek lthy0, exists (fn Locale.Expr _ => true | _ => false) raw_elems) of
         (SOME loc, true) => (* workaround non-modularity of in/includes *)  (* FIXME *)

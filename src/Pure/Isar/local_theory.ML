@@ -33,7 +33,7 @@ sig
     local_theory -> (term * (bstring * thm)) * local_theory
   val note: (bstring * Attrib.src list) * thm list ->
     local_theory -> (bstring * thm list) * Proof.context
-  val const_syntax: Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
+  val notation: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> local_theory -> local_theory
   val init: string option -> operations -> Proof.context -> local_theory
   val reinit: local_theory -> local_theory
@@ -153,12 +153,11 @@ fun def arg lthy = lthy |> defs [arg] |>> hd;
 
 fun note (a, ths) lthy = lthy |> notes [(a, [(ths, [])])] |>> hd;
 
-fun const_syntax mode args =
-  term_syntax
-    (Context.mapping (Sign.add_const_syntax mode args) (ProofContext.add_const_syntax mode args));
+fun notation mode args = term_syntax
+  (Context.mapping (Sign.add_notation mode args) (ProofContext.add_notation mode args));
 
-fun abbrevs mode args =
-  term_syntax (Context.mapping (Sign.add_abbrevs mode args) (ProofContext.add_abbrevs mode args));
+fun abbrevs mode args = term_syntax
+  (Context.mapping (Sign.add_abbrevs mode args) (ProofContext.add_abbrevs mode args));
 
 
 (* init -- exit *)
