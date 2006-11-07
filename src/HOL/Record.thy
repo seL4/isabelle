@@ -17,6 +17,17 @@ lemma rec_UNIV_I: "\<And>x. x\<in>UNIV \<equiv> True"
 lemma rec_True_simp: "(True \<Longrightarrow> PROP P) \<equiv> PROP P"
   by simp
 
+constdefs K_record:: "'a \<Rightarrow> 'b \<Rightarrow> 'a"
+"K_record c x \<equiv> c"
+
+lemma K_record_apply [simp]: "K_record c x = c"
+  by (simp add: K_record_def)
+
+lemma K_record_comp [simp]: "(K_record c \<circ> f) = K_record c"
+  by (rule ext) (simp add: K_record_apply comp_def)
+
+lemma K_record_cong [cong]: "K_record c x = K_record c x"
+  by (rule refl)
 
 subsection {* Concrete record syntax *}
 

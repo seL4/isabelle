@@ -476,6 +476,12 @@ the graph browser tool.
 
 *** HOL ***
 
+* Records: generalised field-update to take a function on the field 
+rather than the new value: r(|A := x|) is translated to A_update (K x) r
+The K-combinator that is internally used is called K_record.
+INCOMPATIBILITY: Usage of the plain update functions has to be
+adapted.
+ 
 * axclass "semiring_0" now contains annihilation axioms 
 ("x * 0 = 0","0 * x = 0"), which are required for a semiring. Richer 
 structures do not inherit from semiring_0 anymore, because this property 
