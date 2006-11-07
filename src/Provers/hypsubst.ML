@@ -32,9 +32,9 @@ by (blast_hyp_subst_tac (ref true) 1);
 *)
 
 signature HYPSUBST_DATA =
-  sig
+sig
   val dest_Trueprop    : term -> term
-  val dest_eq          : term -> (term * term) *typ
+  val dest_eq          : term -> term * term
   val dest_imp         : term -> term * term
   val eq_reflection    : thm               (* a=b ==> a==b *)
   val rev_eq_reflection: thm               (* a==b ==> a=b *)
@@ -43,25 +43,16 @@ signature HYPSUBST_DATA =
   val subst            : thm               (* [| a=b;  P(a) |] ==> P(b) *)
   val sym              : thm               (* a=b ==> b=a *)
   val thin_refl        : thm               (* [|x=x; PROP W|] ==> PROP W *)
-  end;
-
+end;
 
 signature HYPSUBST =
-  sig
+sig
   val bound_hyp_subst_tac    : int -> tactic
   val hyp_subst_tac          : int -> tactic
   val blast_hyp_subst_tac    : bool ref -> int -> tactic
-    (*exported purely for debugging purposes*)
-  val gen_hyp_subst_tac      : bool -> int -> tactic
-  val vars_gen_hyp_subst_tac : bool -> int -> tactic
-  val eq_var                 : bool -> bool -> term -> int * bool
-  val inspect_pair           : bool -> bool -> (term * term) * typ -> bool
-  val mk_eqs                 : bool -> thm -> thm list
   val stac                   : thm -> int -> tactic
   val hypsubst_setup         : theory -> theory
-  end;
-
-
+end;
 
 functor HypsubstFun(Data: HYPSUBST_DATA): HYPSUBST =
 struct
@@ -77,7 +68,8 @@ fun contract t =
     Free (a, T) => if Name.is_bound a then Bound 0 else Free (a, T)
   | t' => t');
 
-fun has_vars t = maxidx_of_term t <> ~1;
+val has_vars = Term.exists_subterm Term.is_Var;
+val has_tvars = Term.exists_type (Term.exists_subtype Term.is_TVar);
 
 (*If novars then we forbid Vars in the equality.
   If bnd then we only look for Bound variables to eliminate.
@@ -89,8 +81,8 @@ fun has_vars t = maxidx_of_term t <> ~1;
         but we can't check for this -- hence bnd and bound_hyp_subst_tac
   Prefer to eliminate Bound variables if possible.
   Result:  true = use as is,  false = reorient first *)
-fun inspect_pair bnd novars ((t, u), T) =
-  if novars andalso maxidx_of_typ T <> ~1
+fun inspect_pair bnd novars (t, u) =
+  if novars andalso (has_tvars t orelse has_tvars u)
   then raise Match   (*variables in the type!*)
   else
   case (contract t, contract u) of
@@ -203,7 +195,7 @@ fun all_imp_intr_tac hyps i =
                case Seq.pull(tac st) of
                    NONE       => Seq.single(st)
                  | SOME(st',_) => imptac (r',hyps) st'
-           end handle _ => error "?? in blast_hyp_subst_tac"
+           end
   in  imptac (0, rev hyps)  end;
 
 
