@@ -222,10 +222,10 @@ according to the current context.  This is particularly useful for
 syntax translations that should refer to internal constant
 representations independently of name spaces.
 
-* Isar/locales: 'const_syntax' provides a robust interface to the
-'syntax' primitive that also works in a locale context.  Type
-declaration and internal syntactic representation of given constants
-retrieved from the context.
+* Isar/locales: 'notation' provides a robust interface to the 'syntax'
+primitive that also works in a locale context (both for constants and
+fixed variables).  Type declaration and internal syntactic
+representation of given constants retrieved from the context.
 
 * Isar/locales: new derived specification elements 'axiomatization',
 'definition', 'abbreviation', which support type-inference, admit
@@ -259,7 +259,7 @@ not inherited by general import expressions.  Also note that
 
 Concrete syntax is attached to specified constants in internal form,
 independently of name spaces.  The parse tree representation is
-slightly different -- use 'const_syntax' instead of raw 'syntax', and
+slightly different -- use 'notation' instead of raw 'syntax', and
 'translations' with explicit "CONST" markup to accommodate this.
 
 * Isar/locales: improved parameter handling:

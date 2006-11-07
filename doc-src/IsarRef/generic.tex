@@ -7,13 +7,13 @@
 \indexisarcmd{axiomatization}
 \indexisarcmd{definition}\indexisaratt{defn}
 \indexisarcmd{abbreviation}
-\indexisarcmd{const-syntax}
+\indexisarcmd{notation}
 \begin{matharray}{rcll}
   \isarcmd{axiomatization} & : & \isarkeep{local{\dsh}theory} & (axiomatic!)\\
   \isarcmd{definition} & : & \isarkeep{local{\dsh}theory} \\
   defn & : & \isaratt \\
   \isarcmd{abbreviation} & : & \isarkeep{local{\dsh}theory} \\
-  \isarcmd{const_syntax} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{notation} & : & \isarkeep{local{\dsh}theory} \\
 \end{matharray}
 
 These specification mechanisms provide a slightly more abstract view
@@ -29,7 +29,7 @@ available, and result names need not be given.
   ;
   'abbreviation' locale? mode? (constdecl? prop +)
   ;
-  'const\_syntax' locale? mode? (nameref mixfix +)
+  'notation' locale? mode? (nameref mixfix +)
   ;
 
   consts: ((name ('::' type)? structmixfix? | vars) + 'and')
@@ -83,11 +83,11 @@ available, and result names need not be given.
   that affects the concrete syntax declared for abbreviations, cf.\ 
   $\isarkeyword{syntax}$ in \S\ref{sec:syn-trans}.
   
-\item $\isarkeyword{const_syntax}~c~mx$ associates mixfix syntax with
-  an existing constant $c$.  This is a robust interface to the
-  underlying $\isarkeyword{syntax}$ primitive (\S\ref{sec:syn-trans}).
-  Type declaration and internal syntactic representation of given
-  constants is retrieved from the context.
+\item $\isarkeyword{notation}~c~mx$ associates mixfix syntax with an
+  existing constant or fixed variable.  This is a robust interface to
+  the underlying $\isarkeyword{syntax}$ primitive
+  (\S\ref{sec:syn-trans}).  Type declaration and internal syntactic
+  representation of the given entity is retrieved from the context.
   
 \end{descr}
 
