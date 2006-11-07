@@ -14,7 +14,10 @@ text {*
   Zuckerman's presentation.
 *}
 
-lemma (in GAUSS) QRLemma1: "a * setsum id A =
+context GAUSS
+begin
+
+lemma QRLemma1: "a * setsum id A =
   p * setsum (%x. ((x * a) div p)) A + setsum id D + setsum id E"
 proof -
   from finite_A have "a * setsum id A = setsum (%x. a * x) A"
@@ -44,7 +47,7 @@ proof -
   finally show ?thesis by arith
 qed
 
-lemma (in GAUSS) QRLemma2: "setsum id A = p * int (card E) - setsum id E +
+lemma QRLemma2: "setsum id A = p * int (card E) - setsum id E +
   setsum id D"
 proof -
   from F_Un_D_eq_A have "setsum id A = setsum id (D \<union> F)"
@@ -65,7 +68,7 @@ proof -
     by arith
 qed
 
-lemma (in GAUSS) QRLemma3: "(a - 1) * setsum id A =
+lemma QRLemma3: "(a - 1) * setsum id A =
     p * (setsum (%x. ((x * a) div p)) A - int(card E)) + 2 * setsum id E"
 proof -
   have "(a - 1) * setsum id A = a * setsum id A - setsum id A"
@@ -83,7 +86,7 @@ proof -
     by (auto simp only: zdiff_zmult_distrib2)
 qed
 
-lemma (in GAUSS) QRLemma4: "a \<in> zOdd ==>
+lemma QRLemma4: "a \<in> zOdd ==>
     (setsum (%x. ((x * a) div p)) A \<in> zEven) = (int(card E): zEven)"
 proof -
   assume a_odd: "a \<in> zOdd"
@@ -108,7 +111,7 @@ proof -
     by (auto simp only: even_diff [symmetric])
 qed
 
-lemma (in GAUSS) QRLemma5: "a \<in> zOdd ==>
+lemma QRLemma5: "a \<in> zOdd ==>
    (-1::int)^(card E) = (-1::int)^(nat(setsum (%x. ((x * a) div p)) A))"
 proof -
   assume "a \<in> zOdd"
@@ -138,6 +141,8 @@ proof -
   finally show ?thesis .
 qed
 
+end
+
 lemma MainQRLemma: "[| a \<in> zOdd; 0 < a; ~([a = 0] (mod p)); zprime p; 2 < p;
   A = {x. 0 < x & x \<le> (p - 1) div 2} |] ==>
   (Legendre a p) = (-1::int)^(nat(setsum (%x. ((x * a) div p)) A))"
@@ -145,6 +150,7 @@ lemma MainQRLemma: "[| a \<in> zOdd; 0 < a; ~([a = 0] (mod p)); zprime p; 2 < p;
   apply (auto simp add: GAUSS_def)
   apply (subst GAUSS.QRLemma5)
   apply (auto simp add: GAUSS_def)
+  apply (simp add: GAUSS.A_def [OF GAUSS.intro] GAUSS_def)
   done
 
 
@@ -153,47 +159,51 @@ subsection {* Stuff about S, S1 and S2 *}
 locale QRTEMP =
   fixes p     :: "int"
   fixes q     :: "int"
-  fixes P_set :: "int set"
-  fixes Q_set :: "int set"
-  fixes S     :: "(int * int) set"
-  fixes S1    :: "(int * int) set"
-  fixes S2    :: "(int * int) set"
-  fixes f1    :: "int => (int * int) set"
-  fixes f2    :: "int => (int * int) set"
 
   assumes p_prime: "zprime p"
   assumes p_g_2: "2 < p"
   assumes q_prime: "zprime q"
   assumes q_g_2: "2 < q"
   assumes p_neq_q:      "p \<noteq> q"
+begin
 
-  defines P_set_def: "P_set == {x. 0 < x & x \<le> ((p - 1) div 2) }"
-  defines Q_set_def: "Q_set == {x. 0 < x & x \<le> ((q - 1) div 2) }"
-  defines S_def:     "S     == P_set <*> Q_set"
-  defines S1_def:    "S1    == { (x, y). (x, y):S & ((p * y) < (q * x)) }"
-  defines S2_def:    "S2    == { (x, y). (x, y):S & ((q * x) < (p * y)) }"
-  defines f1_def:    "f1 j  == { (j1, y). (j1, y):S & j1 = j &
-                                 (y \<le> (q * j) div p) }"
-  defines f2_def:    "f2 j  == { (x, j1). (x, j1):S & j1 = j &
-                                 (x \<le> (p * j) div q) }"
+definition
+  P_set :: "int set"
+  "P_set = {x. 0 < x & x \<le> ((p - 1) div 2) }"
 
-lemma (in QRTEMP) p_fact: "0 < (p - 1) div 2"
+  Q_set :: "int set"
+  "Q_set = {x. 0 < x & x \<le> ((q - 1) div 2) }"
+  
+  S :: "(int * int) set"
+  "S = P_set <*> Q_set"
+
+  S1 :: "(int * int) set"
+  "S1 = { (x, y). (x, y):S & ((p * y) < (q * x)) }"
+
+  S2 :: "(int * int) set"
+  "S2 = { (x, y). (x, y):S & ((q * x) < (p * y)) }"
+
+  f1 :: "int => (int * int) set"
+  "f1 j = { (j1, y). (j1, y):S & j1 = j & (y \<le> (q * j) div p) }"
+
+  f2 :: "int => (int * int) set"
+  "f2 j = { (x, j1). (x, j1):S & j1 = j & (x \<le> (p * j) div q) }"
+
+lemma p_fact: "0 < (p - 1) div 2"
 proof -
-  from prems have "2 < p" by (simp add: QRTEMP_def)
-  then have "2 \<le> p - 1" by arith
+  from p_g_2 have "2 \<le> p - 1" by arith
   then have "2 div 2 \<le> (p - 1) div 2" by (rule zdiv_mono1, auto)
   then show ?thesis by auto
 qed
 
-lemma (in QRTEMP) q_fact: "0 < (q - 1) div 2"
+lemma q_fact: "0 < (q - 1) div 2"
 proof -
-  from prems have "2 < q" by (simp add: QRTEMP_def)
-  then have "2 \<le> q - 1" by arith
+  from q_g_2 have "2 \<le> q - 1" by arith
   then have "2 div 2 \<le> (q - 1) div 2" by (rule zdiv_mono1, auto)
   then show ?thesis by auto
 qed
 
-lemma (in QRTEMP) pb_neq_qa: "[|1 \<le> b; b \<le> (q - 1) div 2 |] ==>
+lemma pb_neq_qa: "[|1 \<le> b; b \<le> (q - 1) div 2 |] ==>
     (p * b \<noteq> q * a)"
 proof
   assume "p * b = q * a" and "1 \<le> b" and "b \<le> (q - 1) div 2"
@@ -234,43 +244,43 @@ proof
   with q_g_2 show False by auto
 qed
 
-lemma (in QRTEMP) P_set_finite: "finite (P_set)"
+lemma P_set_finite: "finite (P_set)"
   using p_fact by (auto simp add: P_set_def bdd_int_set_l_le_finite)
 
-lemma (in QRTEMP) Q_set_finite: "finite (Q_set)"
+lemma Q_set_finite: "finite (Q_set)"
   using q_fact by (auto simp add: Q_set_def bdd_int_set_l_le_finite)
 
-lemma (in QRTEMP) S_finite: "finite S"
+lemma S_finite: "finite S"
   by (auto simp add: S_def  P_set_finite Q_set_finite finite_cartesian_product)
 
-lemma (in QRTEMP) S1_finite: "finite S1"
+lemma S1_finite: "finite S1"
 proof -
   have "finite S" by (auto simp add: S_finite)
   moreover have "S1 \<subseteq> S" by (auto simp add: S1_def S_def)
   ultimately show ?thesis by (auto simp add: finite_subset)
 qed
 
-lemma (in QRTEMP) S2_finite: "finite S2"
+lemma S2_finite: "finite S2"
 proof -
   have "finite S" by (auto simp add: S_finite)
   moreover have "S2 \<subseteq> S" by (auto simp add: S2_def S_def)
   ultimately show ?thesis by (auto simp add: finite_subset)
 qed
 
-lemma (in QRTEMP) P_set_card: "(p - 1) div 2 = int (card (P_set))"
+lemma P_set_card: "(p - 1) div 2 = int (card (P_set))"
   using p_fact by (auto simp add: P_set_def card_bdd_int_set_l_le)
 
-lemma (in QRTEMP) Q_set_card: "(q - 1) div 2 = int (card (Q_set))"
+lemma Q_set_card: "(q - 1) div 2 = int (card (Q_set))"
   using q_fact by (auto simp add: Q_set_def card_bdd_int_set_l_le)
 
-lemma (in QRTEMP) S_card: "((p - 1) div 2) * ((q - 1) div 2) = int (card(S))"
+lemma S_card: "((p - 1) div 2) * ((q - 1) div 2) = int (card(S))"
   using P_set_card Q_set_card P_set_finite Q_set_finite
   by (auto simp add: S_def zmult_int setsum_constant)
 
-lemma (in QRTEMP) S1_Int_S2_prop: "S1 \<inter> S2 = {}"
+lemma S1_Int_S2_prop: "S1 \<inter> S2 = {}"
   by (auto simp add: S1_def S2_def)
 
-lemma (in QRTEMP) S1_Union_S2_prop: "S = S1 \<union> S2"
+lemma S1_Union_S2_prop: "S = S1 \<union> S2"
   apply (auto simp add: S_def P_set_def Q_set_def S1_def S2_def)
 proof -
   fix a and b
@@ -280,7 +290,7 @@ proof -
   ultimately show "p * b < q * a" by auto
 qed
 
-lemma (in QRTEMP) card_sum_S1_S2: "((p - 1) div 2) * ((q - 1) div 2) =
+lemma card_sum_S1_S2: "((p - 1) div 2) * ((q - 1) div 2) =
     int(card(S1)) + int(card(S2))"
 proof -
   have "((p - 1) div 2) * ((q - 1) div 2) = int (card(S))"
@@ -293,7 +303,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in QRTEMP) aux1a: "[| 0 < a; a \<le> (p - 1) div 2;
+lemma aux1a: "[| 0 < a; a \<le> (p - 1) div 2;
                              0 < b; b \<le> (q - 1) div 2 |] ==>
                           (p * b < q * a) = (b \<le> q * a div p)"
 proof -
@@ -327,7 +337,7 @@ proof -
   ultimately show ?thesis ..
 qed
 
-lemma (in QRTEMP) aux1b: "[| 0 < a; a \<le> (p - 1) div 2;
+lemma aux1b: "[| 0 < a; a \<le> (p - 1) div 2;
                              0 < b; b \<le> (q - 1) div 2 |] ==>
                           (q * a < p * b) = (a \<le> p * b div q)"
 proof -
@@ -361,6 +371,8 @@ proof -
   ultimately show ?thesis ..
 qed
 
+end
+
 lemma aux2: "[| zprime p; zprime q; 2 < p; 2 < q |] ==>
              (q * ((p - 1) div 2)) div p \<le> (q - 1) div 2"
 proof-
@@ -390,7 +402,10 @@ proof-
     using prems by auto
 qed
 
-lemma (in QRTEMP) aux3a: "\<forall>j \<in> P_set. int (card (f1 j)) = (q * j) div p"
+context QRTEMP
+begin
+
+lemma aux3a: "\<forall>j \<in> P_set. int (card (f1 j)) = (q * j) div p"
 proof
   fix j
   assume j_fact: "j \<in> P_set"
@@ -422,7 +437,7 @@ proof
         by (auto simp add: mult_le_cancel_left)
       with p_g_2 have "q * j div p \<le> q * ((p - 1) div 2) div p"
         by (auto simp add: zdiv_mono1)
-      also from prems have "... \<le> (q - 1) div 2"
+      also from prems P_set_def have "... \<le> (q - 1) div 2"
         apply simp
         apply (insert aux2)
         apply (simp add: QRTEMP_def)
@@ -446,7 +461,7 @@ proof
   finally show "int (card (f1 j)) = q * j div p" .
 qed
 
-lemma (in QRTEMP) aux3b: "\<forall>j \<in> Q_set. int (card (f2 j)) = (p * j) div q"
+lemma aux3b: "\<forall>j \<in> Q_set. int (card (f2 j)) = (p * j) div q"
 proof
   fix j
   assume j_fact: "j \<in> Q_set"
@@ -499,7 +514,7 @@ proof
   finally show "int (card (f2 j)) = p * j div q" .
 qed
 
-lemma (in QRTEMP) S1_card: "int (card(S1)) = setsum (%j. (q * j) div p) P_set"
+lemma S1_card: "int (card(S1)) = setsum (%j. (q * j) div p) P_set"
 proof -
   have "\<forall>x \<in> P_set. finite (f1 x)"
   proof
@@ -522,7 +537,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in QRTEMP) S2_card: "int (card(S2)) = setsum (%j. (p * j) div q) Q_set"
+lemma S2_card: "int (card(S2)) = setsum (%j. (p * j) div q) Q_set"
 proof -
   have "\<forall>x \<in> Q_set. finite (f2 x)"
   proof
@@ -546,15 +561,15 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in QRTEMP) S1_carda: "int (card(S1)) =
+lemma S1_carda: "int (card(S1)) =
     setsum (%j. (j * q) div p) P_set"
   by (auto simp add: S1_card zmult_ac)
 
-lemma (in QRTEMP) S2_carda: "int (card(S2)) =
+lemma S2_carda: "int (card(S2)) =
     setsum (%j. (j * p) div q) Q_set"
   by (auto simp add: S2_card zmult_ac)
 
-lemma (in QRTEMP) pq_sum_prop: "(setsum (%j. (j * p) div q) Q_set) +
+lemma pq_sum_prop: "(setsum (%j. (j * p) div q) Q_set) +
     (setsum (%j. (j * q) div p) P_set) = ((p - 1) div 2) * ((q - 1) div 2)"
 proof -
   have "(setsum (%j. (j * p) div q) Q_set) +
@@ -567,6 +582,8 @@ proof -
   finally show ?thesis .
 qed
 
+end
+
 lemma pq_prime_neq: "[| zprime p; zprime q; p \<noteq> q |] ==> (~[p = 0] (mod q))"
   apply (auto simp add: zcong_eq_zdvd_prop zprime_def)
   apply (drule_tac x = q in allE)
@@ -574,12 +591,15 @@ lemma pq_prime_neq: "[| zprime p; zprime q; p \<noteq> q |] ==> (~[p = 0] (mod q
   apply auto
   done
 
-lemma (in QRTEMP) QR_short: "(Legendre p q) * (Legendre q p) =
+context QRTEMP
+begin
+
+lemma QR_short: "(Legendre p q) * (Legendre q p) =
     (-1::int)^nat(((p - 1) div 2)*((q - 1) div 2))"
 proof -
   from prems have "~([p = 0] (mod q))"
     by (auto simp add: pq_prime_neq QRTEMP_def)
-  with prems have a1: "(Legendre p q) = (-1::int) ^
+  with prems Q_set_def have a1: "(Legendre p q) = (-1::int) ^
       nat(setsum (%x. ((x * p) div q)) Q_set)"
     apply (rule_tac p = q in  MainQRLemma)
     apply (auto simp add: zprime_zOdd_eq_grt_2 QRTEMP_def)
@@ -588,7 +608,7 @@ proof -
     apply (rule_tac p = q and q = p in pq_prime_neq)
     apply (simp add: QRTEMP_def)+
     done
-  with prems have a2: "(Legendre q p) =
+  with prems P_set_def have a2: "(Legendre q p) =
       (-1::int) ^ nat(setsum (%x. ((x * q) div p)) P_set)"
     apply (rule_tac p = p in  MainQRLemma)
     apply (auto simp add: zprime_zOdd_eq_grt_2 QRTEMP_def)
@@ -612,6 +632,8 @@ proof -
     by (auto simp add: pq_sum_prop)
   finally show ?thesis .
 qed
+
+end
 
 theorem Quadratic_Reciprocity:
      "[| p \<in> zOdd; zprime p; q \<in> zOdd; zprime q;

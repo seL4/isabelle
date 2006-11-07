@@ -9,7 +9,7 @@ theory Relative imports Main begin
 
 subsection{* Relativized versions of standard set-theoretic concepts *}
 
-constdefs
+definition
   empty :: "[i=>o,i] => o"
     "empty(M,z) == \<forall>x[M]. x \<notin> z"
 
@@ -236,7 +236,7 @@ by (simp add: Relation2_def)
 
 
 subsection {*The relativized ZF axioms*}
-constdefs
+definition
 
   extensionality :: "(i=>o) => o"
     "extensionality(M) ==
@@ -441,7 +441,7 @@ by (simp add: separation_def)
 
 
 text{*More constants, for order types*}
-constdefs
+definition
 
   order_isomorphism :: "[i=>o,i,i,i,i,i] => o"
     "order_isomorphism(M,A,r,B,s,f) ==
@@ -712,7 +712,7 @@ done
 
 subsubsection {*Absoluteness for @{term Lambda}*}
 
-constdefs
+definition
  is_lambda :: "[i=>o, i, [i,i]=>o, i] => o"
     "is_lambda(M, A, is_b, z) ==
        \<forall>p[M]. p \<in> z <->
@@ -893,7 +893,7 @@ text{*Kunen continued to 20...*}
 	   (\<lambda>x\<in>nat. if (\<exists>y[M]. natnumber_aux(M,n)`y=1 & successor(M,y,x))
 		     then 1 else 0)"
 
-  constdefs
+  definition
     natnumber :: "[i=>o,i,i] => o"
       "natnumber(M,n,x) == natnumber_aux(M,n)`x = 1"
 
@@ -1312,7 +1312,7 @@ done
 
 subsection{*Relativization and Absoluteness for Boolean Operators*}
 
-constdefs
+definition
   is_bool_of_o :: "[i=>o, o, i] => o"
    "is_bool_of_o(M,P,z) == (P & number1(M,z)) | (~P & empty(M,z))"
 
@@ -1365,7 +1365,7 @@ by (simp add: Bool.not_def cond_def)
 
 subsection{*Relativization and Absoluteness for List Operators*}
 
-constdefs
+definition
 
   is_Nil :: "[i=>o, i] => o"
      --{* because @{term "[] \<equiv> Inl(0)"}*}
@@ -1390,7 +1390,7 @@ lemma (in M_trivial) Cons_abs [simp]:
 by (simp add: is_Cons_def Cons_def)
 
 
-constdefs
+definition
 
   quasilist :: "i => o"
     "quasilist(xs) == xs=Nil | (\<exists>x l. xs = Cons(x,l))"

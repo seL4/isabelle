@@ -136,7 +136,7 @@ apply (simp add: left_inverse_bij [OF ord_iso_is_bij])
 done
 
 
-constdefs
+definition
   
   obase :: "[i=>o,i,i] => i"
        --{*the domain of @{text om}, eventually shown to equal @{text A}*}
@@ -414,7 +414,7 @@ text{*Note: the remainder of this theory is not needed elsewhere.*}
 subsubsection{*Ordinal Addition*}
 
 (*FIXME: update to use new techniques!!*)
-constdefs
+definition
  (*This expresses ordinal addition in the language of ZF.  It also 
    provides an abbreviation that can be used in the instance of strong
    replacement below.  Here j is used to define the relation, namely
@@ -725,7 +725,7 @@ done
 
 text{*This function, defined using replacement, is a rank function for
 well-founded relations within the class M.*}
-constdefs
+definition
  wellfoundedrank :: "[i=>o,i,i] => i"
     "wellfoundedrank(M,r,A) ==
         {p. x\<in>A, \<exists>y[M]. \<exists>f[M]. 

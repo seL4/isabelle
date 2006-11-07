@@ -16,7 +16,7 @@ text{*We define functions analogous to @{term ordermap} @{term ordertype}
 
 subsection{*Wellorderings*}
 
-constdefs
+definition
   irreflexive :: "[i=>o,i,i]=>o"
     "irreflexive(M,A,r) == \<forall>x[M]. x\<in>A --> <x,x> \<notin> r"
   

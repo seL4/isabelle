@@ -10,12 +10,12 @@ theory MetaExists imports Main begin
 text{*Allows quantification over any term having sort @{text logic}.  Used to
 quantify over classes.  Yields a proposition rather than a FOL formula.*}
 
-constdefs
+definition
   ex :: "(('a::{}) => prop) => prop"            (binder "?? " 0)
   "ex(P) == (!!Q. (!!x. PROP P(x) ==> PROP Q) ==> PROP Q)"
 
-syntax (xsymbols)
-  "?? "        :: "[idts, o] => o"             ("(3\<Or>_./ _)" [0, 0] 0)
+notation (xsymbols)
+  ex  (binder "\<Or>" 0)
 
 lemma meta_exI: "PROP P(x) ==> (?? x. PROP P(x))"
 proof (unfold ex_def)

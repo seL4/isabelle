@@ -13,15 +13,15 @@ record ring = monoid +
   zero :: i ("\<zero>\<index>")
 *)
 
-constdefs
+definition
   add_field :: "i => i"
-   "add_field(M) == fst(snd(snd(snd(M))))"
+  "add_field(M) = fst(snd(snd(snd(M))))"
 
   ring_add :: "[i, i, i] => i" (infixl "\<oplus>\<index>" 65)
-   "ring_add(M,x,y) == add_field(M) ` <x,y>"
+  "ring_add(M,x,y) = add_field(M) ` <x,y>"
 
   zero :: "i => i" ("\<zero>\<index>")
-   "zero(M) == fst(snd(snd(snd(snd(M)))))"
+  "zero(M) = fst(snd(snd(snd(snd(M)))))"
 
 
 lemma add_field_eq [simp]: "add_field(<C,M,I,A,z>) = A"
@@ -36,12 +36,12 @@ lemma zero_eq [simp]: "zero(<C,M,I,A,Z,z>) = Z"
 
 text {* Derived operations. *}
 
-constdefs (structure R)
+definition
   a_inv :: "[i,i] => i" ("\<ominus>\<index> _" [81] 80)
   "a_inv(R) == m_inv (<carrier(R), add_field(R), zero(R), 0>)"
 
   minus :: "[i,i,i] => i" (infixl "\<ominus>\<index>" 65)
-  "\<lbrakk>x \<in> carrier(R); y \<in> carrier(R)\<rbrakk> \<Longrightarrow> x \<ominus> y == x \<oplus> (\<ominus> y)"
+  "\<lbrakk>x \<in> carrier(R); y \<in> carrier(R)\<rbrakk> \<Longrightarrow> x \<ominus>\<^bsub>R\<^esub> y = x \<oplus>\<^bsub>R\<^esub> (\<ominus>\<^bsub>R\<^esub> y)"
 
 locale abelian_monoid = struct G +
   assumes a_comm_monoid: 
@@ -170,8 +170,10 @@ text {*
   The following proofs are from Jacobson, Basic Algebra I, pp.~88--89
 *}
 
-lemma (in ring) l_null [simp]:
-  "x \<in> carrier(R) \<Longrightarrow> \<zero> \<cdot> x = \<zero>"
+context ring
+begin
+
+lemma l_null [simp]: "x \<in> carrier(R) \<Longrightarrow> \<zero> \<cdot> x = \<zero>"
 proof -
   assume R: "x \<in> carrier(R)"
   then have "\<zero> \<cdot> x \<oplus> \<zero> \<cdot> x = (\<zero> \<oplus> \<zero>) \<cdot> x"
@@ -181,8 +183,7 @@ proof -
   with R show ?thesis by (simp del: r_zero)
 qed
 
-lemma (in ring) r_null [simp]:
-  "x \<in> carrier(R) \<Longrightarrow> x \<cdot> \<zero> = \<zero>"
+lemma r_null [simp]: "x \<in> carrier(R) \<Longrightarrow> x \<cdot> \<zero> = \<zero>"
 proof -
   assume R: "x \<in> carrier(R)"
   then have "x \<cdot> \<zero> \<oplus> x \<cdot> \<zero> = x \<cdot> (\<zero> \<oplus> \<zero>)"
@@ -192,7 +193,7 @@ proof -
   with R show ?thesis by (simp del: r_zero)
 qed
 
-lemma (in ring) l_minus:
+lemma l_minus:
   "\<lbrakk>x \<in> carrier(R); y \<in> carrier(R)\<rbrakk> \<Longrightarrow> \<ominus> x \<cdot> y = \<ominus> (x \<cdot> y)"
 proof -
   assume R: "x \<in> carrier(R)" "y \<in> carrier(R)"
@@ -203,7 +204,7 @@ proof -
   with R show ?thesis by (simp add: a_assoc r_neg)
 qed
 
-lemma (in ring) r_minus:
+lemma r_minus:
   "\<lbrakk>x \<in> carrier(R); y \<in> carrier(R)\<rbrakk> \<Longrightarrow> x \<cdot> \<ominus> y = \<ominus> (x \<cdot> y)"
 proof -
   assume R: "x \<in> carrier(R)" "y \<in> carrier(R)"
@@ -214,16 +215,18 @@ proof -
   with R show ?thesis by (simp add: a_assoc r_neg)
 qed
 
-lemma (in ring) minus_eq:
+lemma minus_eq:
   "\<lbrakk>x \<in> carrier(R); y \<in> carrier(R)\<rbrakk> \<Longrightarrow> x \<ominus> y = x \<oplus> \<ominus> y"
   by (simp only: minus_def)
+
+end
 
 
 subsection {* Morphisms *}
 
-constdefs
+definition
   ring_hom :: "[i,i] => i"
-  "ring_hom(R,S) == 
+  "ring_hom(R,S) ==
     {h \<in> carrier(R) -> carrier(S).
       (\<forall>x y. x \<in> carrier(R) & y \<in> carrier(R) -->
         h ` (x \<cdot>\<^bsub>R\<^esub> y) = (h ` x) \<cdot>\<^bsub>S\<^esub> (h ` y) &
@@ -287,4 +290,3 @@ apply (auto simp add: id_type)
 done
 
 end
-

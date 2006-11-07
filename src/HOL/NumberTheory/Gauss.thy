@@ -10,37 +10,45 @@ theory Gauss imports Euler begin
 locale GAUSS =
   fixes p :: "int"
   fixes a :: "int"
-  fixes A :: "int set"
-  fixes B :: "int set"
-  fixes C :: "int set"
-  fixes D :: "int set"
-  fixes E :: "int set"
-  fixes F :: "int set"
 
   assumes p_prime: "zprime p"
   assumes p_g_2: "2 < p"
   assumes p_a_relprime: "~[a = 0](mod p)"
   assumes a_nonzero:    "0 < a"
+begin
 
-  defines A_def: "A == {(x::int). 0 < x & x \<le> ((p - 1) div 2)}"
-  defines B_def: "B == (%x. x * a) ` A"
-  defines C_def: "C == (StandardRes p) ` B"
-  defines D_def: "D == C \<inter> {x. x \<le> ((p - 1) div 2)}"
-  defines E_def: "E == C \<inter> {x. ((p - 1) div 2) < x}"
-  defines F_def: "F == (%x. (p - x)) ` E"
+definition
+  A :: "int set"
+  "A = {(x::int). 0 < x & x \<le> ((p - 1) div 2)}"
+
+  B :: "int set"
+  "B = (%x. x * a) ` A"
+
+  C :: "int set"
+  "C = StandardRes p ` B"
+
+  D :: "int set"
+  "D = C \<inter> {x. x \<le> ((p - 1) div 2)}"
+
+  E :: "int set"
+  "E = C \<inter> {x. ((p - 1) div 2) < x}"
+
+  F :: "int set"
+  "F = (%x. (p - x)) ` E"
+
 
 subsection {* Basic properties of p *}
 
-lemma (in GAUSS) p_odd: "p \<in> zOdd"
+lemma p_odd: "p \<in> zOdd"
   by (auto simp add: p_prime p_g_2 zprime_zOdd_eq_grt_2)
 
-lemma (in GAUSS) p_g_0: "0 < p"
+lemma p_g_0: "0 < p"
   using p_g_2 by auto
 
-lemma (in GAUSS) int_nat: "int (nat ((p - 1) div 2)) = (p - 1) div 2"
+lemma int_nat: "int (nat ((p - 1) div 2)) = (p - 1) div 2"
   using insert p_g_2 by (auto simp add: pos_imp_zdiv_nonneg_iff)
 
-lemma (in GAUSS) p_minus_one_l: "(p - 1) div 2 < p"
+lemma p_minus_one_l: "(p - 1) div 2 < p"
 proof -
   have "(p - 1) div 2 \<le> (p - 1) div 1"
     by (rule zdiv_mono2) (auto simp add: p_g_0)
@@ -48,8 +56,10 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma (in GAUSS) p_eq: "p = (2 * (p - 1) div 2) + 1"
+lemma p_eq: "p = (2 * (p - 1) div 2) + 1"
   using zdiv_zmult_self2 [of 2 "p - 1"] by auto
+
+end
 
 lemma zodd_imp_zdiv_eq: "x \<in> zOdd ==> 2 * (x - 1) div 2 = 2 * ((x - 1) div 2)"
   apply (frule odd_minus_one_even)
@@ -59,54 +69,58 @@ lemma zodd_imp_zdiv_eq: "x \<in> zOdd ==> 2 * (x - 1) div 2 = 2 * ((x - 1) div 2
   apply (auto simp add: even_div_2_prop2)
   done
 
-lemma (in GAUSS) p_eq2: "p = (2 * ((p - 1) div 2)) + 1"
+context GAUSS
+begin
+
+lemma p_eq2: "p = (2 * ((p - 1) div 2)) + 1"
   apply (insert p_eq p_prime p_g_2 zprime_zOdd_eq_grt_2 [of p], auto)
   apply (frule zodd_imp_zdiv_eq, auto)
   done
 
+
 subsection {* Basic Properties of the Gauss Sets *}
 
-lemma (in GAUSS) finite_A: "finite (A)"
+lemma finite_A: "finite (A)"
   apply (auto simp add: A_def)
   apply (subgoal_tac "{x. 0 < x & x \<le> (p - 1) div 2} \<subseteq> {x. 0 \<le> x & x < 1 + (p - 1) div 2}")
   apply (auto simp add: bdd_int_set_l_finite finite_subset)
   done
 
-lemma (in GAUSS) finite_B: "finite (B)"
+lemma finite_B: "finite (B)"
   by (auto simp add: B_def finite_A finite_imageI)
 
-lemma (in GAUSS) finite_C: "finite (C)"
+lemma finite_C: "finite (C)"
   by (auto simp add: C_def finite_B finite_imageI)
 
-lemma (in GAUSS) finite_D: "finite (D)"
+lemma finite_D: "finite (D)"
   by (auto simp add: D_def finite_Int finite_C)
 
-lemma (in GAUSS) finite_E: "finite (E)"
+lemma finite_E: "finite (E)"
   by (auto simp add: E_def finite_Int finite_C)
 
-lemma (in GAUSS) finite_F: "finite (F)"
+lemma finite_F: "finite (F)"
   by (auto simp add: F_def finite_E finite_imageI)
 
-lemma (in GAUSS) C_eq: "C = D \<union> E"
+lemma C_eq: "C = D \<union> E"
   by (auto simp add: C_def D_def E_def)
 
-lemma (in GAUSS) A_card_eq: "card A = nat ((p - 1) div 2)"
+lemma A_card_eq: "card A = nat ((p - 1) div 2)"
   apply (auto simp add: A_def)
   apply (insert int_nat)
   apply (erule subst)
   apply (auto simp add: card_bdd_int_set_l_le)
   done
 
-lemma (in GAUSS) inj_on_xa_A: "inj_on (%x. x * a) A"
+lemma inj_on_xa_A: "inj_on (%x. x * a) A"
   using a_nonzero by (simp add: A_def inj_on_def)
 
-lemma (in GAUSS) A_res: "ResSet p A"
+lemma A_res: "ResSet p A"
   apply (auto simp add: A_def ResSet_def)
   apply (rule_tac m = p in zcong_less_eq)
   apply (insert p_g_2, auto)
   done
 
-lemma (in GAUSS) B_res: "ResSet p B"
+lemma B_res: "ResSet p B"
   apply (insert p_g_2 p_a_relprime p_minus_one_l)
   apply (auto simp add: B_def)
   apply (rule ResSet_image)
@@ -128,7 +142,7 @@ proof -
     by (simp add: prems p_minus_one_l p_g_0)
 qed
 
-lemma (in GAUSS) SR_B_inj: "inj_on (StandardRes p) B"
+lemma SR_B_inj: "inj_on (StandardRes p) B"
   apply (auto simp add: B_def StandardRes_def inj_on_def A_def prems)
 proof -
   fix x fix y
@@ -153,23 +167,23 @@ proof -
     by simp
 qed
 
-lemma (in GAUSS) inj_on_pminusx_E: "inj_on (%x. p - x) E"
+lemma inj_on_pminusx_E: "inj_on (%x. p - x) E"
   apply (auto simp add: E_def C_def B_def A_def)
   apply (rule_tac g = "%x. -1 * (x - p)" in inj_on_inverseI)
   apply auto
   done
 
-lemma (in GAUSS) A_ncong_p: "x \<in> A ==> ~[x = 0](mod p)"
+lemma A_ncong_p: "x \<in> A ==> ~[x = 0](mod p)"
   apply (auto simp add: A_def)
   apply (frule_tac m = p in zcong_not_zero)
   apply (insert p_minus_one_l)
   apply auto
   done
 
-lemma (in GAUSS) A_greater_zero: "x \<in> A ==> 0 < x"
+lemma A_greater_zero: "x \<in> A ==> 0 < x"
   by (auto simp add: A_def)
 
-lemma (in GAUSS) B_ncong_p: "x \<in> B ==> ~[x = 0](mod p)"
+lemma B_ncong_p: "x \<in> B ==> ~[x = 0](mod p)"
   apply (auto simp add: B_def)
   apply (frule A_ncong_p)
   apply (insert p_a_relprime p_prime a_nonzero)
@@ -177,10 +191,10 @@ lemma (in GAUSS) B_ncong_p: "x \<in> B ==> ~[x = 0](mod p)"
   apply (auto simp add: A_greater_zero)
   done
 
-lemma (in GAUSS) B_greater_zero: "x \<in> B ==> 0 < x"
+lemma B_greater_zero: "x \<in> B ==> 0 < x"
   using a_nonzero by (auto simp add: B_def mult_pos_pos A_greater_zero)
 
-lemma (in GAUSS) C_ncong_p: "x \<in> C ==>  ~[x = 0](mod p)"
+lemma C_ncong_p: "x \<in> C ==>  ~[x = 0](mod p)"
   apply (auto simp add: C_def)
   apply (frule B_ncong_p)
   apply (subgoal_tac "[x = StandardRes p x](mod p)")
@@ -189,7 +203,7 @@ lemma (in GAUSS) C_ncong_p: "x \<in> C ==>  ~[x = 0](mod p)"
   apply auto
   done
 
-lemma (in GAUSS) C_greater_zero: "y \<in> C ==> 0 < y"
+lemma C_greater_zero: "y \<in> C ==> 0 < y"
   apply (auto simp add: C_def)
 proof -
   fix x
@@ -204,13 +218,13 @@ proof -
     by (simp add: order_le_less)
 qed
 
-lemma (in GAUSS) D_ncong_p: "x \<in> D ==> ~[x = 0](mod p)"
+lemma D_ncong_p: "x \<in> D ==> ~[x = 0](mod p)"
   by (auto simp add: D_def C_ncong_p)
 
-lemma (in GAUSS) E_ncong_p: "x \<in> E ==> ~[x = 0](mod p)"
+lemma E_ncong_p: "x \<in> E ==> ~[x = 0](mod p)"
   by (auto simp add: E_def C_ncong_p)
 
-lemma (in GAUSS) F_ncong_p: "x \<in> F ==> ~[x = 0](mod p)"
+lemma F_ncong_p: "x \<in> F ==> ~[x = 0](mod p)"
   apply (auto simp add: F_def)
 proof -
   fix x assume a: "x \<in> E" assume b: "[p - x = 0] (mod p)"
@@ -225,7 +239,7 @@ proof -
   from this show False by (simp add: b)
 qed
 
-lemma (in GAUSS) F_subset: "F \<subseteq> {x. 0 < x & x \<le> ((p - 1) div 2)}"
+lemma F_subset: "F \<subseteq> {x. 0 < x & x \<le> ((p - 1) div 2)}"
   apply (auto simp add: F_def E_def)
   apply (insert p_g_0)
   apply (frule_tac x = xa in StandardRes_ubound)
@@ -241,19 +255,19 @@ proof -
     by simp
 qed
 
-lemma (in GAUSS) D_subset: "D \<subseteq> {x. 0 < x & x \<le> ((p - 1) div 2)}"
+lemma D_subset: "D \<subseteq> {x. 0 < x & x \<le> ((p - 1) div 2)}"
   by (auto simp add: D_def C_greater_zero)
 
-lemma (in GAUSS) F_eq: "F = {x. \<exists>y \<in> A. ( x = p - (StandardRes p (y*a)) & (p - 1) div 2 < StandardRes p (y*a))}"
+lemma F_eq: "F = {x. \<exists>y \<in> A. ( x = p - (StandardRes p (y*a)) & (p - 1) div 2 < StandardRes p (y*a))}"
   by (auto simp add: F_def E_def D_def C_def B_def A_def)
 
-lemma (in GAUSS) D_eq: "D = {x. \<exists>y \<in> A. ( x = StandardRes p (y*a) & StandardRes p (y*a) \<le> (p - 1) div 2)}"
+lemma D_eq: "D = {x. \<exists>y \<in> A. ( x = StandardRes p (y*a) & StandardRes p (y*a) \<le> (p - 1) div 2)}"
   by (auto simp add: D_def C_def B_def A_def)
 
-lemma (in GAUSS) D_leq: "x \<in> D ==> x \<le> (p - 1) div 2"
+lemma D_leq: "x \<in> D ==> x \<le> (p - 1) div 2"
   by (auto simp add: D_eq)
 
-lemma (in GAUSS) F_ge: "x \<in> F ==> x \<le> (p - 1) div 2"
+lemma F_ge: "x \<in> F ==> x \<le> (p - 1) div 2"
   apply (auto simp add: F_eq A_def)
 proof -
   fix y
@@ -268,24 +282,25 @@ proof -
     using zless_add1_eq [of "p - StandardRes p (y * a)" "(p - 1) div 2"] by auto
 qed
 
-lemma (in GAUSS) all_A_relprime: "\<forall>x \<in> A. zgcd(x, p) = 1"
+lemma all_A_relprime: "\<forall>x \<in> A. zgcd(x, p) = 1"
   using p_prime p_minus_one_l by (auto simp add: A_def zless_zprime_imp_zrelprime)
 
-lemma (in GAUSS) A_prod_relprime: "zgcd((setprod id A),p) = 1"
+lemma A_prod_relprime: "zgcd((setprod id A),p) = 1"
   using all_A_relprime finite_A by (simp add: all_relprime_prod_relprime)
+
 
 subsection {* Relationships Between Gauss Sets *}
 
-lemma (in GAUSS) B_card_eq_A: "card B = card A"
+lemma B_card_eq_A: "card B = card A"
   using finite_A by (simp add: finite_A B_def inj_on_xa_A card_image)
 
-lemma (in GAUSS) B_card_eq: "card B = nat ((p - 1) div 2)"
+lemma B_card_eq: "card B = nat ((p - 1) div 2)"
   by (simp add: B_card_eq_A A_card_eq)
 
-lemma (in GAUSS) F_card_eq_E: "card F = card E"
+lemma F_card_eq_E: "card F = card E"
   using finite_E by (simp add: F_def inj_on_pminusx_E card_image)
 
-lemma (in GAUSS) C_card_eq_B: "card C = card B"
+lemma C_card_eq_B: "card C = card B"
   apply (insert finite_B)
   apply (subgoal_tac "inj_on (StandardRes p) B")
   apply (simp add: B_def C_def card_image)
@@ -293,19 +308,19 @@ lemma (in GAUSS) C_card_eq_B: "card C = card B"
   apply (simp add: B_res)
   done
 
-lemma (in GAUSS) D_E_disj: "D \<inter> E = {}"
+lemma D_E_disj: "D \<inter> E = {}"
   by (auto simp add: D_def E_def)
 
-lemma (in GAUSS) C_card_eq_D_plus_E: "card C = card D + card E"
+lemma C_card_eq_D_plus_E: "card C = card D + card E"
   by (auto simp add: C_eq card_Un_disjoint D_E_disj finite_D finite_E)
 
-lemma (in GAUSS) C_prod_eq_D_times_E: "setprod id E * setprod id D = setprod id C"
+lemma C_prod_eq_D_times_E: "setprod id E * setprod id D = setprod id C"
   apply (insert D_E_disj finite_D finite_E C_eq)
   apply (frule setprod_Un_disjoint [of D E id])
   apply auto
   done
 
-lemma (in GAUSS) C_B_zcong_prod: "[setprod id C = setprod id B] (mod p)"
+lemma C_B_zcong_prod: "[setprod id C = setprod id B] (mod p)"
   apply (auto simp add: C_def)
   apply (insert finite_B SR_B_inj)
   apply (frule_tac f = "StandardRes p" in setprod_reindex_id [symmetric], auto)
@@ -313,15 +328,12 @@ lemma (in GAUSS) C_B_zcong_prod: "[setprod id C = setprod id B] (mod p)"
   apply (auto simp add: StandardRes_prop1 zcong_sym p_g_0)
   done
 
-lemma (in GAUSS) F_Un_D_subset: "(F \<union> D) \<subseteq> A"
+lemma F_Un_D_subset: "(F \<union> D) \<subseteq> A"
   apply (rule Un_least)
   apply (auto simp add: A_def F_subset D_subset)
   done
 
-lemma two_eq: "2 * (x::int) = x + x"
-  by arith
-
-lemma (in GAUSS) F_D_disj: "(F \<inter> D) = {}"
+lemma F_D_disj: "(F \<inter> D) = {}"
   apply (simp add: F_eq D_eq)
   apply (auto simp add: F_eq D_eq)
 proof -
@@ -366,8 +378,7 @@ proof -
     done
 qed
 
-lemma (in GAUSS) F_Un_D_card: "card (F \<union> D) = nat ((p - 1) div 2)"
-  apply (insert F_D_disj finite_F finite_D)
+lemma F_Un_D_card: "card (F \<union> D) = nat ((p - 1) div 2)"
 proof -
   have "card (F \<union> D) = card E + card D"
     by (auto simp add: finite_F finite_D F_D_disj
@@ -378,17 +389,17 @@ proof -
     by (simp add: C_card_eq_B B_card_eq)
 qed
 
-lemma (in GAUSS) F_Un_D_eq_A: "F \<union> D = A"
+lemma F_Un_D_eq_A: "F \<union> D = A"
   using finite_A F_Un_D_subset A_card_eq F_Un_D_card by (auto simp add: card_seteq)
 
-lemma (in GAUSS) prod_D_F_eq_prod_A:
+lemma prod_D_F_eq_prod_A:
     "(setprod id D) * (setprod id F) = setprod id A"
   apply (insert F_D_disj finite_D finite_F)
   apply (frule setprod_Un_disjoint [of F D id])
   apply (auto simp add: F_Un_D_eq_A)
   done
 
-lemma (in GAUSS) prod_F_zcong:
+lemma prod_F_zcong:
   "[setprod id F = ((-1) ^ (card E)) * (setprod id E)] (mod p)"
 proof -
   have "setprod id F = setprod id (op - p ` E)"
@@ -438,12 +449,13 @@ proof -
     by simp
 qed
 
+
 subsection {* Gauss' Lemma *}
 
-lemma (in GAUSS) aux: "setprod id A * -1 ^ card E * a ^ card A * -1 ^ card E = setprod id A * a ^ card A"
+lemma aux: "setprod id A * -1 ^ card E * a ^ card A * -1 ^ card E = setprod id A * a ^ card A"
   by (auto simp add: finite_E neg_one_special)
 
-theorem (in GAUSS) pre_gauss_lemma:
+theorem pre_gauss_lemma:
   "[a ^ nat((p - 1) div 2) = (-1) ^ (card E)] (mod p)"
 proof -
   have "[setprod id A = setprod id F * setprod id D](mod p)"
@@ -499,7 +511,7 @@ proof -
     by (simp add: A_card_eq zcong_sym)
 qed
 
-theorem (in GAUSS) gauss_lemma: "(Legendre a p) = (-1) ^ (card E)"
+theorem gauss_lemma: "(Legendre a p) = (-1) ^ (card E)"
 proof -
   from Euler_Criterion p_prime p_g_2 have
       "[(Legendre a p) = a^(nat (((p) - 1) div 2))] (mod p)"
@@ -514,5 +526,7 @@ proof -
   ultimately show ?thesis
     by (auto simp add: p_g_2 one_not_neg_one_mod_m zcong_sym)
 qed
+
+end
 
 end

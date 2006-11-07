@@ -9,7 +9,7 @@ theory WF_absolute imports WFrec begin
 
 subsection{*Transitive closure without fixedpoints*}
 
-constdefs
+definition
   rtrancl_alt :: "[i,i]=>i"
     "rtrancl_alt(A,r) ==
        {p \<in> A*A. \<exists>n\<in>nat. \<exists>f \<in> succ(n) -> A.
@@ -59,7 +59,7 @@ by (blast del: subsetI
 	  intro: rtrancl_alt_subset_rtrancl rtrancl_subset_rtrancl_alt)
 
 
-constdefs
+definition
 
   rtran_closure_mem :: "[i=>o,i,i,i] => o"
     --{*The property of belonging to @{text "rtran_closure(r)"}*}

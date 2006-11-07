@@ -27,7 +27,8 @@ fun ram 0 j = 1
 *)
 
 theory Ramsey imports Main begin
-constdefs
+
+definition
   Symmetric :: "i=>o"
     "Symmetric(E) == (\<forall>x y. <x,y>:E --> <y,x>:E)"
 

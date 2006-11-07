@@ -23,7 +23,7 @@ text{*The three arguments of @{term p} are always 2, 1, 0.  It is buried
              successor(M,dp,i) & fun_apply(M,f,p,z) & is_transrec(M,MH,i,f)"
 *)
 
-constdefs formula_rec_fm :: "[i, i, i]=>i"
+definition formula_rec_fm :: "[i, i, i]=>i"
  "formula_rec_fm(mh,p,z) == 
     Exists(Exists(Exists(
       And(finite_ordinal_fm(2),
@@ -80,7 +80,7 @@ done
 subsubsection{*The Operator @{term is_satisfies}*}
 
 (* is_satisfies(M,A,p,z) == is_formula_rec (M, satisfies_MH(M,A), p, z) *)
-constdefs satisfies_fm :: "[i,i,i]=>i"
+definition satisfies_fm :: "[i,i,i]=>i"
     "satisfies_fm(x) == formula_rec_fm (satisfies_MH_fm(x#+5#+6, 2, 1, 0))"
 
 lemma is_satisfies_type [TC]:
@@ -119,7 +119,7 @@ by (simp add: DPow'_def, blast)
 
 text{*Relativize the use of @{term sats} within @{term DPow'}
 (the comprehension).*}
-constdefs
+definition
   is_DPow_sats :: "[i=>o,i,i,i,i] => o"
    "is_DPow_sats(M,A,env,p,x) ==
       \<forall>n1[M]. \<forall>e[M]. \<forall>sp[M]. 
@@ -148,7 +148,7 @@ subsubsection{*The Operator @{term is_DPow_sats}, Internalized*}
              is_satisfies(M,A,p,sp) --> is_Cons(M,x,env,e) --> 
              fun_apply(M, sp, e, n1) --> number1(M, n1) *)
 
-constdefs DPow_sats_fm :: "[i,i,i,i]=>i"
+definition DPow_sats_fm :: "[i,i,i,i]=>i"
  "DPow_sats_fm(A,env,p,x) ==
    Forall(Forall(Forall(
      Implies(satisfies_fm(A#+3,p#+3,0), 
@@ -218,7 +218,7 @@ apply (fast intro: rep' sep' univalent_pair_eq)
 done
 
 text{*Relativization of the Operator @{term DPow'}*}
-constdefs 
+definition 
   is_DPow' :: "[i=>o,i,i] => o"
     "is_DPow'(M,A,Z) == 
        \<forall>X[M]. X \<in> Z <-> 
@@ -310,7 +310,7 @@ enclosed within a single quantifier.*}
 (* is_Collect :: "[i=>o,i,i=>o,i] => o"
     "is_Collect(M,A,P,z) == \<forall>x[M]. x \<in> z <-> x \<in> A & P(x)" *)
 
-constdefs Collect_fm :: "[i, i, i]=>i"
+definition Collect_fm :: "[i, i, i]=>i"
  "Collect_fm(A,is_P,z) == 
         Forall(Iff(Member(0,succ(z)),
                    And(Member(0,succ(A)), is_P)))"
@@ -360,7 +360,7 @@ text{*BEWARE!  The formula @{term is_P} has free variables 0, 1
 (*  is_Replace :: "[i=>o,i,[i,i]=>o,i] => o"
     "is_Replace(M,A,P,z) == \<forall>u[M]. u \<in> z <-> (\<exists>x[M]. x\<in>A & P(x,u))" *)
 
-constdefs Replace_fm :: "[i, i, i]=>i"
+definition Replace_fm :: "[i, i, i]=>i"
  "Replace_fm(A,is_P,z) == 
         Forall(Iff(Member(0,succ(z)),
                    Exists(And(Member(0,A#+2), is_P))))"
@@ -413,7 +413,7 @@ subsubsection{*The Operator @{term is_DPow'}, Internalized*}
            (\<exists>env[M]. \<exists>p[M]. mem_formula(M,p) & mem_list(M,A,env) &
                     is_Collect(M, A, is_DPow_sats(M,A,env,p), X))" *)
 
-constdefs DPow'_fm :: "[i,i]=>i"
+definition DPow'_fm :: "[i,i]=>i"
     "DPow'_fm(A,Z) == 
       Forall(
        Iff(Member(0,succ(Z)),
@@ -451,7 +451,7 @@ done
 
 subsection{*A Locale for Relativizing the Operator @{term Lset}*}
 
-constdefs
+definition
   transrec_body :: "[i=>o,i,i,i,i] => o"
     "transrec_body(M,g,x) ==
       \<lambda>y z. \<exists>gy[M]. y \<in> x & fun_apply(M,g,y,gy) & is_DPow'(M,gy,z)"
@@ -503,7 +503,7 @@ done
 
 text{*Relativization of the Operator @{term Lset}*}
 
-constdefs
+definition
   is_Lset :: "[i=>o, i, i] => o"
    --{*We can use the term language below because @{term is_Lset} will
        not have to be internalized: it isn't used in any instance of
@@ -609,7 +609,7 @@ lemmas Lset_closed = M_Lset.Lset_closed [OF M_Lset_L]
 subsection{*The Notion of Constructible Set*}
 
 
-constdefs
+definition
   constructible :: "[i=>o,i] => o"
     "constructible(M,x) ==
        \<exists>i[M]. \<exists>Li[M]. ordinal(M,i) & is_Lset(M,i,Li) & x \<in> Li"

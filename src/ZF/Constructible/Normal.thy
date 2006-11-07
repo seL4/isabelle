@@ -18,7 +18,7 @@ North-Holland, 1974.
 
 subsection {*Closed and Unbounded (c.u.) Classes of Ordinals*}
 
-constdefs
+definition
   Closed :: "(i=>o) => o"
     "Closed(P) == \<forall>I. I \<noteq> 0 --> (\<forall>i\<in>I. Ord(i) \<and> P(i)) --> P(\<Union>(I))"
 
@@ -200,7 +200,7 @@ done
 
 subsection {*Normal Functions*} 
 
-constdefs
+definition
   mono_le_subset :: "(i=>i) => o"
     "mono_le_subset(M) == \<forall>i j. i\<le>j --> M(i) \<subseteq> M(j)"
 
@@ -372,7 +372,7 @@ text{*Function @{text normalize} maps a function @{text F} to a
       only if @{text F} is continuous: succ is not bounded above by any 
       normal function, by @{thm [source] Normal_imp_fp_Unbounded}.
 *}
-constdefs
+definition
   normalize :: "[i=>i, i] => i"
     "normalize(F,a) == transrec2(a, F(0), \<lambda>x r. F(succ(x)) Un succ(r))"
 
@@ -424,12 +424,12 @@ subsection {*The Alephs*}
 text {*This is the well-known transfinite enumeration of the cardinal 
 numbers.*}
 
-constdefs
+definition
   Aleph :: "i => i"
     "Aleph(a) == transrec2(a, nat, \<lambda>x r. csucc(r))"
 
-syntax (xsymbols)
-  Aleph :: "i => i"   ("\<aleph>_" [90] 90)
+notation (xsymbols)
+  Aleph  ("\<aleph>_" [90] 90)
 
 lemma Card_Aleph [simp, intro]:
      "Ord(a) ==> Card(Aleph(a))"
@@ -458,4 +458,3 @@ apply (simp add: def_transrec2 [OF Aleph_def])
 done
 
 end
-

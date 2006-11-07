@@ -222,7 +222,7 @@ formulas.  The order type of the resulting wellordering gives us a map from
 (environment, formula) pairs into the ordinals.  For each member of @{term
 "DPow(A)"}, we take the minimum such ordinal.*}
 
-constdefs
+definition
   env_form_r :: "[i,i,i]=>i"
     --{*wellordering on (environment, formula) pairs*}
    "env_form_r(f,r,A) ==
@@ -317,7 +317,7 @@ text{*Now we work towards the transfinite definition of wellorderings for
 @{term "Lset(i)"}.  We assume as an inductive hypothesis that there is a family
 of wellorderings for smaller ordinals.*}
 
-constdefs
+definition
   rlimit :: "[i,i=>i]=>i"
   --{*Expresses the wellordering at limit ordinals.  The conditional
       lets us remove the premise @{term "Limit(i)"} from some theorems.*}
@@ -400,7 +400,7 @@ done
 
 subsection{*Transfinite Definition of the Wellordering on @{term "L"}*}
 
-constdefs
+definition
  L_r :: "[i, i] => i"
   "L_r(f) == %i.
       transrec3(i, 0, \<lambda>x r. DPow_r(f, r, Lset(x)), 

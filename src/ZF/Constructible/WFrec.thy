@@ -271,7 +271,7 @@ done
 
 subsection{*Relativization of the ZF Predicate @{term is_recfun}*}
 
-constdefs
+definition
   M_is_recfun :: "[i=>o, [i,i,i]=>o, i, i, i] => o"
    "M_is_recfun(M,MH,r,a,f) == 
      \<forall>z[M]. z \<in> f <-> 

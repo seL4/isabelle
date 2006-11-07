@@ -10,7 +10,7 @@ subsection{*Internalized Forms of Data Structuring Operators*}
 subsubsection{*The Formula @{term is_Inl}, Internalized*}
 
 (*  is_Inl(M,a,z) == \<exists>zero[M]. empty(M,zero) & pair(M,zero,a,z) *)
-constdefs Inl_fm :: "[i,i]=>i"
+definition Inl_fm :: "[i,i]=>i"
     "Inl_fm(a,z) == Exists(And(empty_fm(0), pair_fm(0,succ(a),succ(z))))"
 
 lemma Inl_type [TC]:
@@ -39,7 +39,7 @@ done
 subsubsection{*The Formula @{term is_Inr}, Internalized*}
 
 (*  is_Inr(M,a,z) == \<exists>n1[M]. number1(M,n1) & pair(M,n1,a,z) *)
-constdefs Inr_fm :: "[i,i]=>i"
+definition Inr_fm :: "[i,i]=>i"
     "Inr_fm(a,z) == Exists(And(number1_fm(0), pair_fm(0,succ(a),succ(z))))"
 
 lemma Inr_type [TC]:
@@ -69,7 +69,7 @@ subsubsection{*The Formula @{term is_Nil}, Internalized*}
 
 (* is_Nil(M,xs) == \<exists>zero[M]. empty(M,zero) & is_Inl(M,zero,xs) *)
 
-constdefs Nil_fm :: "i=>i"
+definition Nil_fm :: "i=>i"
     "Nil_fm(x) == Exists(And(empty_fm(0), Inl_fm(0,succ(x))))"
 
 lemma Nil_type [TC]: "x \<in> nat ==> Nil_fm(x) \<in> formula"
@@ -97,7 +97,7 @@ subsubsection{*The Formula @{term is_Cons}, Internalized*}
 
 
 (*  "is_Cons(M,a,l,Z) == \<exists>p[M]. pair(M,a,l,p) & is_Inr(M,p,Z)" *)
-constdefs Cons_fm :: "[i,i,i]=>i"
+definition Cons_fm :: "[i,i,i]=>i"
     "Cons_fm(a,l,Z) ==
        Exists(And(pair_fm(succ(a),succ(l),0), Inr_fm(0,succ(Z))))"
 
@@ -128,7 +128,7 @@ subsubsection{*The Formula @{term is_quasilist}, Internalized*}
 
 (* is_quasilist(M,xs) == is_Nil(M,z) | (\<exists>x[M]. \<exists>l[M]. is_Cons(M,x,l,z))" *)
 
-constdefs quasilist_fm :: "i=>i"
+definition quasilist_fm :: "i=>i"
     "quasilist_fm(x) ==
        Or(Nil_fm(x), Exists(Exists(Cons_fm(1,0,succ(succ(x))))))"
 
@@ -162,7 +162,7 @@ subsubsection{*The Formula @{term is_hd}, Internalized*}
        (is_Nil(M,xs) --> empty(M,H)) &
        (\<forall>x[M]. \<forall>l[M]. ~ is_Cons(M,x,l,xs) | H=x) &
        (is_quasilist(M,xs) | empty(M,H))" *)
-constdefs hd_fm :: "[i,i]=>i"
+definition hd_fm :: "[i,i]=>i"
     "hd_fm(xs,H) == 
        And(Implies(Nil_fm(xs), empty_fm(H)),
            And(Forall(Forall(Or(Neg(Cons_fm(1,0,xs#+2)), Equal(H#+2,1)))),
@@ -198,7 +198,7 @@ subsubsection{*The Formula @{term is_tl}, Internalized*}
        (is_Nil(M,xs) --> T=xs) &
        (\<forall>x[M]. \<forall>l[M]. ~ is_Cons(M,x,l,xs) | T=l) &
        (is_quasilist(M,xs) | empty(M,T))" *)
-constdefs tl_fm :: "[i,i]=>i"
+definition tl_fm :: "[i,i]=>i"
     "tl_fm(xs,T) ==
        And(Implies(Nil_fm(xs), Equal(T,xs)),
            And(Forall(Forall(Or(Neg(Cons_fm(1,0,xs#+2)), Equal(T#+2,0)))),
@@ -234,7 +234,7 @@ subsubsection{*The Operator @{term is_bool_of_o}*}
    "is_bool_of_o(M,P,z) == (P & number1(M,z)) | (~P & empty(M,z))" *)
 
 text{*The formula @{term p} has no free variables.*}
-constdefs bool_of_o_fm :: "[i, i]=>i"
+definition bool_of_o_fm :: "[i, i]=>i"
  "bool_of_o_fm(p,z) == 
     Or(And(p,number1_fm(z)),
        And(Neg(p),empty_fm(z)))"
@@ -276,7 +276,7 @@ text{*The two arguments of @{term p} are always 1, 0. Remember that
     "is_lambda(M, A, is_b, z) == 
        \<forall>p[M]. p \<in> z <->
         (\<exists>u[M]. \<exists>v[M]. u\<in>A & pair(M,u,v,p) & is_b(u,v))" *)
-constdefs lambda_fm :: "[i, i, i]=>i"
+definition lambda_fm :: "[i, i, i]=>i"
  "lambda_fm(p,A,z) == 
     Forall(Iff(Member(0,succ(z)),
             Exists(Exists(And(Member(1,A#+3),
@@ -315,7 +315,7 @@ subsubsection{*The Operator @{term is_Member}, Internalized*}
 
 (*    "is_Member(M,x,y,Z) ==
 	\<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inl(M,u,Z)" *)
-constdefs Member_fm :: "[i,i,i]=>i"
+definition Member_fm :: "[i,i,i]=>i"
     "Member_fm(x,y,Z) ==
        Exists(Exists(And(pair_fm(x#+2,y#+2,1), 
                       And(Inl_fm(1,0), Inl_fm(0,Z#+2)))))"
@@ -347,7 +347,7 @@ subsubsection{*The Operator @{term is_Equal}, Internalized*}
 
 (*    "is_Equal(M,x,y,Z) ==
 	\<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inr(M,p,u) & is_Inl(M,u,Z)" *)
-constdefs Equal_fm :: "[i,i,i]=>i"
+definition Equal_fm :: "[i,i,i]=>i"
     "Equal_fm(x,y,Z) ==
        Exists(Exists(And(pair_fm(x#+2,y#+2,1), 
                       And(Inr_fm(1,0), Inl_fm(0,Z#+2)))))"
@@ -379,7 +379,7 @@ subsubsection{*The Operator @{term is_Nand}, Internalized*}
 
 (*    "is_Nand(M,x,y,Z) ==
 	\<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inr(M,u,Z)" *)
-constdefs Nand_fm :: "[i,i,i]=>i"
+definition Nand_fm :: "[i,i,i]=>i"
     "Nand_fm(x,y,Z) ==
        Exists(Exists(And(pair_fm(x#+2,y#+2,1), 
                       And(Inl_fm(1,0), Inr_fm(0,Z#+2)))))"
@@ -410,7 +410,7 @@ done
 subsubsection{*The Operator @{term is_Forall}, Internalized*}
 
 (* "is_Forall(M,p,Z) == \<exists>u[M]. is_Inr(M,p,u) & is_Inr(M,u,Z)" *)
-constdefs Forall_fm :: "[i,i]=>i"
+definition Forall_fm :: "[i,i]=>i"
     "Forall_fm(x,Z) ==
        Exists(And(Inr_fm(succ(x),0), Inr_fm(0,succ(Z))))"
 
@@ -442,7 +442,7 @@ subsubsection{*The Operator @{term is_and}, Internalized*}
 
 (* is_and(M,a,b,z) == (number1(M,a)  & z=b) | 
                        (~number1(M,a) & empty(M,z)) *)
-constdefs and_fm :: "[i,i,i]=>i"
+definition and_fm :: "[i,i,i]=>i"
     "and_fm(a,b,z) ==
        Or(And(number1_fm(a), Equal(z,b)),
           And(Neg(number1_fm(a)),empty_fm(z)))"
@@ -476,7 +476,7 @@ subsubsection{*The Operator @{term is_or}, Internalized*}
 (* is_or(M,a,b,z) == (number1(M,a)  & number1(M,z)) | 
                      (~number1(M,a) & z=b) *)
 
-constdefs or_fm :: "[i,i,i]=>i"
+definition or_fm :: "[i,i,i]=>i"
     "or_fm(a,b,z) ==
        Or(And(number1_fm(a), number1_fm(z)),
           And(Neg(number1_fm(a)), Equal(z,b)))"
@@ -510,7 +510,7 @@ subsubsection{*The Operator @{term is_not}, Internalized*}
 
 (* is_not(M,a,z) == (number1(M,a)  & empty(M,z)) | 
                      (~number1(M,a) & number1(M,z)) *)
-constdefs not_fm :: "[i,i]=>i"
+definition not_fm :: "[i,i]=>i"
     "not_fm(a,z) ==
        Or(And(number1_fm(a), empty_fm(z)),
           And(Neg(number1_fm(a)), number1_fm(z)))"
@@ -576,7 +576,7 @@ new def     (\<exists>x[M]. \<exists>f_r_sx[M]. \<exists>y[M].
 *)
 
 text{*The three arguments of @{term p} are always 2, 1, 0 and z*}
-constdefs is_recfun_fm :: "[i, i, i, i]=>i"
+definition is_recfun_fm :: "[i, i, i, i]=>i"
  "is_recfun_fm(p,r,a,f) == 
    Forall(Iff(Member(0,succ(f)),
     Exists(Exists(Exists(
@@ -638,7 +638,7 @@ text{*The three arguments of @{term p} are always 2, 1, 0;
 (* is_wfrec :: "[i=>o, i, [i,i,i]=>o, i, i] => o"
     "is_wfrec(M,MH,r,a,z) == 
       \<exists>f[M]. M_is_recfun(M,MH,r,a,f) & MH(a,f,z)" *)
-constdefs is_wfrec_fm :: "[i, i, i, i]=>i"
+definition is_wfrec_fm :: "[i, i, i, i]=>i"
  "is_wfrec_fm(p,r,a,z) == 
     Exists(And(is_recfun_fm(p, succ(r), succ(a), 0),
            Exists(Exists(Exists(Exists(
@@ -696,7 +696,7 @@ subsection{*For Datatypes*}
 
 subsubsection{*Binary Products, Internalized*}
 
-constdefs cartprod_fm :: "[i,i,i]=>i"
+definition cartprod_fm :: "[i,i,i]=>i"
 (* "cartprod(M,A,B,z) ==
         \<forall>u[M]. u \<in> z <-> (\<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>B & pair(M,x,y,u)))" *)
     "cartprod_fm(A,B,z) ==
@@ -736,7 +736,7 @@ subsubsection{*Binary Sums, Internalized*}
          3      2       1        0
        number1(M,n1) & cartprod(M,n1,A,A0) & upair(M,n1,n1,s1) &
        cartprod(M,s1,B,B1) & union(M,A0,B1,Z)"  *)
-constdefs sum_fm :: "[i,i,i]=>i"
+definition sum_fm :: "[i,i,i]=>i"
     "sum_fm(A,B,Z) ==
        Exists(Exists(Exists(Exists(
         And(number1_fm(2),
@@ -771,7 +771,7 @@ done
 subsubsection{*The Operator @{term quasinat}*}
 
 (* "is_quasinat(M,z) == empty(M,z) | (\<exists>m[M]. successor(M,m,z))" *)
-constdefs quasinat_fm :: "i=>i"
+definition quasinat_fm :: "i=>i"
     "quasinat_fm(z) == Or(empty_fm(z), Exists(succ_fm(0,succ(z))))"
 
 lemma quasinat_type [TC]:
@@ -808,7 +808,7 @@ text{*I could not get it to work with the more natural assumption that
        (\<forall>m[M]. successor(M,m,k) --> is_b(m,z)) &
        (is_quasinat(M,k) | empty(M,z))" *)
 text{*The formula @{term is_b} has free variables 1 and 0.*}
-constdefs is_nat_case_fm :: "[i, i, i, i]=>i"
+definition is_nat_case_fm :: "[i, i, i, i]=>i"
  "is_nat_case_fm(a,is_b,k,z) == 
     And(Implies(empty_fm(k), Equal(z,a)),
         And(Forall(Implies(succ_fm(0,succ(k)), 
@@ -863,7 +863,7 @@ subsection{*The Operator @{term iterates_MH}, Needed for Iteration*}
    "iterates_MH(M,isF,v,n,g,z) ==
         is_nat_case(M, v, \<lambda>m u. \<exists>gm[M]. fun_apply(M,g,m,gm) & isF(gm,u),
                     n, z)" *)
-constdefs iterates_MH_fm :: "[i, i, i, i, i]=>i"
+definition iterates_MH_fm :: "[i, i, i, i, i]=>i"
  "iterates_MH_fm(isF,v,n,g,z) == 
     is_nat_case_fm(v, 
       Exists(And(fun_apply_fm(succ(succ(succ(g))),2,0), 
@@ -928,7 +928,7 @@ text{*The three arguments of @{term p} are always 2, 1, 0;
       \<exists>sn[M]. \<exists>msn[M]. successor(M,n,sn) & membership(M,sn,msn) &
        1       0       is_wfrec(M, iterates_MH(M,isF,v), msn, n, Z)"*)
 
-constdefs is_iterates_fm :: "[i, i, i, i]=>i"
+definition is_iterates_fm :: "[i, i, i, i]=>i"
  "is_iterates_fm(p,v,n,Z) == 
      Exists(Exists(
       And(succ_fm(n#+2,1),
@@ -998,7 +998,7 @@ subsubsection{*The Formula @{term is_eclose_n}, Internalized*}
 
 (* is_eclose_n(M,A,n,Z) == is_iterates(M, big_union(M), A, n, Z) *)
 
-constdefs eclose_n_fm :: "[i,i,i]=>i"
+definition eclose_n_fm :: "[i,i,i]=>i"
   "eclose_n_fm(A,n,Z) == is_iterates_fm(big_union_fm(1,0), A, n, Z)"
 
 lemma eclose_n_fm_type [TC]:
@@ -1034,7 +1034,7 @@ subsubsection{*Membership in @{term "eclose(A)"}*}
 (* mem_eclose(M,A,l) == 
       \<exists>n[M]. \<exists>eclosen[M]. 
        finite_ordinal(M,n) & is_eclose_n(M,A,n,eclosen) & l \<in> eclosen *)
-constdefs mem_eclose_fm :: "[i,i]=>i"
+definition mem_eclose_fm :: "[i,i]=>i"
     "mem_eclose_fm(x,y) ==
        Exists(Exists(
          And(finite_ordinal_fm(1),
@@ -1066,7 +1066,7 @@ done
 subsubsection{*The Predicate ``Is @{term "eclose(A)"}''*}
 
 (* is_eclose(M,A,Z) == \<forall>l[M]. l \<in> Z <-> mem_eclose(M,A,l) *)
-constdefs is_eclose_fm :: "[i,i]=>i"
+definition is_eclose_fm :: "[i,i]=>i"
     "is_eclose_fm(A,Z) ==
        Forall(Iff(Member(0,succ(Z)), mem_eclose_fm(succ(A),0)))"
 
@@ -1095,7 +1095,7 @@ done
 
 subsubsection{*The List Functor, Internalized*}
 
-constdefs list_functor_fm :: "[i,i,i]=>i"
+definition list_functor_fm :: "[i,i,i]=>i"
 (* "is_list_functor(M,A,X,Z) ==
         \<exists>n1[M]. \<exists>AX[M].
          number1(M,n1) & cartprod(M,A,X,AX) & is_sum(M,n1,AX,Z)" *)
@@ -1135,7 +1135,7 @@ subsubsection{*The Formula @{term is_list_N}, Internalized*}
       \<exists>zero[M]. empty(M,zero) & 
                 is_iterates(M, is_list_functor(M,A), zero, n, Z)" *)
 
-constdefs list_N_fm :: "[i,i,i]=>i"
+definition list_N_fm :: "[i,i,i]=>i"
   "list_N_fm(A,n,Z) == 
      Exists(
        And(empty_fm(0),
@@ -1175,7 +1175,7 @@ subsubsection{*The Predicate ``Is A List''*}
 (* mem_list(M,A,l) == 
       \<exists>n[M]. \<exists>listn[M]. 
        finite_ordinal(M,n) & is_list_N(M,A,n,listn) & l \<in> listn *)
-constdefs mem_list_fm :: "[i,i]=>i"
+definition mem_list_fm :: "[i,i]=>i"
     "mem_list_fm(x,y) ==
        Exists(Exists(
          And(finite_ordinal_fm(1),
@@ -1207,7 +1207,7 @@ done
 subsubsection{*The Predicate ``Is @{term "list(A)"}''*}
 
 (* is_list(M,A,Z) == \<forall>l[M]. l \<in> Z <-> mem_list(M,A,l) *)
-constdefs is_list_fm :: "[i,i]=>i"
+definition is_list_fm :: "[i,i]=>i"
     "is_list_fm(A,Z) ==
        Forall(Iff(Member(0,succ(Z)), mem_list_fm(succ(A),0)))"
 
@@ -1236,7 +1236,7 @@ done
 
 subsubsection{*The Formula Functor, Internalized*}
 
-constdefs formula_functor_fm :: "[i,i]=>i"
+definition formula_functor_fm :: "[i,i]=>i"
 (*     "is_formula_functor(M,X,Z) ==
         \<exists>nat'[M]. \<exists>natnat[M]. \<exists>natnatsum[M]. \<exists>XX[M]. \<exists>X3[M].
            4           3               2       1       0
@@ -1282,7 +1282,7 @@ subsubsection{*The Formula @{term is_formula_N}, Internalized*}
 (*  "is_formula_N(M,n,Z) == 
       \<exists>zero[M]. empty(M,zero) & 
                 is_iterates(M, is_formula_functor(M), zero, n, Z)" *) 
-constdefs formula_N_fm :: "[i,i]=>i"
+definition formula_N_fm :: "[i,i]=>i"
   "formula_N_fm(n,Z) == 
      Exists(
        And(empty_fm(0),
@@ -1322,7 +1322,7 @@ subsubsection{*The Predicate ``Is A Formula''*}
 (*  mem_formula(M,p) == 
       \<exists>n[M]. \<exists>formn[M]. 
        finite_ordinal(M,n) & is_formula_N(M,n,formn) & p \<in> formn *)
-constdefs mem_formula_fm :: "i=>i"
+definition mem_formula_fm :: "i=>i"
     "mem_formula_fm(x) ==
        Exists(Exists(
          And(finite_ordinal_fm(1),
@@ -1354,7 +1354,7 @@ done
 subsubsection{*The Predicate ``Is @{term "formula"}''*}
 
 (* is_formula(M,Z) == \<forall>p[M]. p \<in> Z <-> mem_formula(M,p) *)
-constdefs is_formula_fm :: "i=>i"
+definition is_formula_fm :: "i=>i"
     "is_formula_fm(Z) == Forall(Iff(Member(0,succ(Z)), mem_formula_fm(0)))"
 
 lemma is_formula_type [TC]:
@@ -1392,7 +1392,7 @@ text{*The three arguments of @{term p} are always 2, 1, 0.  It is buried
        2       1         0
        upair(M,a,a,sa) & is_eclose(M,sa,esa) & membership(M,esa,mesa) &
        is_wfrec(M,MH,mesa,a,z)" *)
-constdefs is_transrec_fm :: "[i, i, i]=>i"
+definition is_transrec_fm :: "[i, i, i]=>i"
  "is_transrec_fm(p,a,z) == 
     Exists(Exists(Exists(
       And(upair_fm(a#+3,a#+3,2),

@@ -20,22 +20,22 @@ record monoid =
   one :: i ("\<one>\<index>")
 *)
 
-constdefs
+definition
   carrier :: "i => i"
-   "carrier(M) == fst(M)"
+  "carrier(M) == fst(M)"
 
   mmult :: "[i, i, i] => i" (infixl "\<cdot>\<index>" 70)
-   "mmult(M,x,y) == fst(snd(M)) ` <x,y>"
+  "mmult(M,x,y) == fst(snd(M)) ` <x,y>"
 
   one :: "i => i" ("\<one>\<index>")
-   "one(M) == fst(snd(snd(M)))"
+  "one(M) == fst(snd(snd(M)))"
 
   update_carrier :: "[i,i] => i"
-   "update_carrier(M,A) == <A,snd(M)>"
+  "update_carrier(M,A) == <A,snd(M)>"
 
-constdefs (structure G)
+definition
   m_inv :: "i => i => i" ("inv\<index> _" [81] 80)
-  "inv x == (THE y. y \<in> carrier(G) & y \<cdot> x = \<one> & x \<cdot> y = \<one>)"
+  "inv\<^bsub>G\<^esub> x == (THE y. y \<in> carrier(G) & y \<cdot>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub> & x \<cdot>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub>)"
 
 locale monoid = struct G +
   assumes m_closed [intro, simp]:
@@ -294,7 +294,7 @@ lemma subgroup_nonempty:
 
 subsection {* Direct Products *}
 
-constdefs
+definition
   DirProdGroup :: "[i,i] => i"  (infixr "\<Otimes>" 80)
   "G \<Otimes> H == <carrier(G) \<times> carrier(H),
               (\<lambda><<g,h>, <g', h'>>
@@ -332,7 +332,7 @@ lemma inv_DirProdGroup [simp]:
 
 subsection {* Isomorphisms *}
 
-constdefs
+definition
   hom :: "[i,i] => i"
   "hom(G,H) ==
     {h \<in> carrier(G) -> carrier(H).
@@ -358,7 +358,7 @@ lemma hom_is_fun:
 
 subsection {* Isomorphisms *}
 
-constdefs
+definition
   iso :: "[i,i] => i"  (infixr "\<cong>" 60)
   "G \<cong> H == hom(G,H) \<inter> bij(carrier(G), carrier(H))"
 
@@ -478,7 +478,7 @@ qed
 
 subsection {* Bijections of a Set, Permutation Groups, Automorphism Groups *}
 
-constdefs
+definition
   BijGroup :: "i=>i"
   "BijGroup(S) ==
     <bij(S,S),
@@ -513,7 +513,7 @@ lemma iso_is_bij: "h \<in> G \<cong> H ==> h \<in> bij(carrier(G), carrier(H))"
 by (simp add: iso_def)
 
 
-constdefs
+definition
   auto :: "i=>i"
   "auto(G) == iso(G,G)"
 
@@ -551,32 +551,28 @@ by (simp add: AutoGroup_def subgroup.is_group subgroup_auto group_BijGroup)
 
 subsection{*Cosets and Quotient Groups*}
 
-constdefs (structure G)
+definition
   r_coset  :: "[i,i,i] => i"    (infixl "#>\<index>" 60)
-   "H #> a == \<Union>h\<in>H. {h \<cdot> a}"
+  "H #>\<^bsub>G\<^esub> a == \<Union>h\<in>H. {h \<cdot>\<^bsub>G\<^esub> a}"
 
   l_coset  :: "[i,i,i] => i"    (infixl "<#\<index>" 60)
-   "a <# H == \<Union>h\<in>H. {a \<cdot> h}"
+  "a <#\<^bsub>G\<^esub> H == \<Union>h\<in>H. {a \<cdot>\<^bsub>G\<^esub> h}"
 
   RCOSETS  :: "[i,i] => i"          ("rcosets\<index> _" [81] 80)
-   "rcosets H == \<Union>a\<in>carrier(G). {H #> a}"
+  "rcosets\<^bsub>G\<^esub> H == \<Union>a\<in>carrier(G). {H #>\<^bsub>G\<^esub> a}"
 
   set_mult :: "[i,i,i] => i"    (infixl "<#>\<index>" 60)
-   "H <#> K == \<Union>h\<in>H. \<Union>k\<in>K. {h \<cdot> k}"
+  "H <#>\<^bsub>G\<^esub> K == \<Union>h\<in>H. \<Union>k\<in>K. {h \<cdot>\<^bsub>G\<^esub> k}"
 
   SET_INV  :: "[i,i] => i"  ("set'_inv\<index> _" [81] 80)
-   "set_inv H == \<Union>h\<in>H. {inv h}"
+  "set_inv\<^bsub>G\<^esub> H == \<Union>h\<in>H. {inv\<^bsub>G\<^esub> h}"
 
 
 locale normal = subgroup + group +
   assumes coset_eq: "(\<forall>x \<in> carrier(G). H #> x = x <# H)"
 
-
-syntax
-  "@normal" :: "[i,i] => i"  (infixl "\<lhd>" 60)
-
-translations
-  "H \<lhd> G" == "normal(H,G)"
+notation
+  normal  (infixl "\<lhd>" 60)
 
 
 subsection {*Basic Properties of Cosets*}
@@ -836,9 +832,9 @@ lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H <#> M 
 
 subsubsection{*Two distinct right cosets are disjoint*}
 
-constdefs (structure G)
+definition
   r_congruent :: "[i,i] => i" ("rcong\<index> _" [60] 60)
-   "rcong H == {<x,y> \<in> carrier(G) * carrier(G). inv x \<cdot> y \<in> H}"
+  "rcong\<^bsub>G\<^esub> H == {<x,y> \<in> carrier(G) * carrier(G). inv\<^bsub>G\<^esub> x \<cdot>\<^bsub>G\<^esub> y \<in> H}"
 
 
 lemma (in subgroup) equiv_rcong:
@@ -903,7 +899,7 @@ done
 
 subsection {*Order of a Group and Lagrange's Theorem*}
 
-constdefs
+definition
   order :: "i => i"
   "order(S) == |carrier(S)|"
 
@@ -975,11 +971,11 @@ done
 
 subsection {*Quotient Groups: Factorization of a Group*}
 
-constdefs (structure G)
+definition
   FactGroup :: "[i,i] => i" (infixl "Mod" 65)
     --{*Actually defined for groups rather than monoids*}
   "G Mod H == 
-     <rcosets\<^bsub>G\<^esub> H, \<lambda><K1,K2> \<in> (rcosets\<^bsub>G\<^esub> H) \<times> (rcosets\<^bsub>G\<^esub> H). K1 <#> K2, H, 0>"
+     <rcosets\<^bsub>G\<^esub> H, \<lambda><K1,K2> \<in> (rcosets\<^bsub>G\<^esub> H) \<times> (rcosets\<^bsub>G\<^esub> H). K1 <#>\<^bsub>G\<^esub> K2, H, 0>"
 
 lemma (in normal) setmult_closed:
      "\<lbrakk>K1 \<in> rcosets H; K2 \<in> rcosets H\<rbrakk> \<Longrightarrow> K1 <#> K2 \<in> rcosets H"
@@ -1038,7 +1034,7 @@ subsection{*The First Isomorphism Theorem*}
 text{*The quotient by the kernel of a homomorphism is isomorphic to the 
   range of that homomorphism.*}
 
-constdefs
+definition
   kernel :: "[i,i,i] => i" 
     --{*the kernel of a homomorphism*}
   "kernel(G,H,h) == {x \<in> carrier(G). h ` x = \<one>\<^bsub>H\<^esub>}";
