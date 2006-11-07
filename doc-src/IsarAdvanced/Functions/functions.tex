@@ -1,0 +1,93 @@
+
+%% $Id$
+
+\documentclass[12pt,a4paper,fleqn]{report}
+\usepackage{latexsym,graphicx}
+\usepackage{listings}
+\usepackage[refpage]{nomencl}
+\usepackage{../../iman,../../extra,../../isar,../../proof}
+\usepackage{Thy/document/isabelle,Thy/document/isabellesym}
+\usepackage{style}
+\usepackage{Thy/document/pdfsetup}
+
+\newcommand{\cmd}[1]{\isacommand{#1}}
+
+\newcommand{\isasymINFIX}{\cmd{infix}}
+\newcommand{\isasymLOCALE}{\cmd{locale}}
+\newcommand{\isasymINCLUDES}{\cmd{includes}}
+\newcommand{\isasymDATATYPE}{\cmd{datatype}}
+\newcommand{\isasymAXCLASS}{\cmd{axclass}}
+\newcommand{\isasymFIXES}{\cmd{fixes}}
+\newcommand{\isasymASSUMES}{\cmd{assumes}}
+\newcommand{\isasymDEFINES}{\cmd{defines}}
+\newcommand{\isasymNOTES}{\cmd{notes}}
+\newcommand{\isasymSHOWS}{\cmd{shows}}
+\newcommand{\isasymCLASS}{\cmd{class}}
+\newcommand{\isasymINSTANCE}{\cmd{instance}}
+\newcommand{\isasymLEMMA}{\cmd{lemma}}
+\newcommand{\isasymPROOF}{\cmd{proof}}
+\newcommand{\isasymQED}{\cmd{qed}}
+\newcommand{\isasymFIX}{\cmd{fix}}
+\newcommand{\isasymASSUME}{\cmd{assume}}
+\newcommand{\isasymSHOW}{\cmd{show}}
+\newcommand{\isasymNOTE}{\cmd{note}}
+\newcommand{\isasymIN}{\cmd{in}}
+\newcommand{\isasymCODEGEN}{\cmd{code\_gen}}
+\newcommand{\isasymPRINTCODETHMS}{\cmd{print\_codethms}}
+\newcommand{\isasymFUN}{\cmd{fun}}
+\newcommand{\isasymFUNCTION}{\cmd{function}}
+\newcommand{\isasymPRIMREC}{\cmd{primrec}}
+\newcommand{\isasymRECDEF}{\cmd{recdef}}
+
+\newcommand{\qt}[1]{``#1''}
+\newcommand{\qtt}[1]{"{}{#1}"{}}
+\newcommand{\qn}[1]{\emph{#1}}
+\newcommand{\strong}[1]{{\bfseries #1}}
+\newcommand{\fixme}[1][!]{\strong{FIXME: #1}}
+
+\lstset{basicstyle=\scriptsize\ttfamily, keywordstyle=\itshape, commentstyle=\itshape\sffamily, frame=shadowbox}
+\newcommand{\lstsml}[1]{\lstset{language=ML}\lstinputlisting{#1}}
+\newcommand{\lsthaskell}[1]{\lstset{language=Haskell}\lstinputlisting{#1}}
+
+\hyphenation{Isabelle}
+\hyphenation{Isar}
+
+\isadroptag{theory}
+\title{\includegraphics[scale=0.5]{isabelle_isar}
+  \\[4ex] Defining Recursive Functions in Isabelle/HOL}
+\author{\emph{Alexander Krauss}}
+
+
+\isabellestyle{tt}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  This tutorial describes the use of the new \emph{function} package,
+  starting with very simple examples and the proceeding to the more
+  intricate ones. No familiarity with other definition facilities is
+  assumed.
+\end{abstract}
+
+\thispagestyle{empty}\clearpage
+
+\pagenumbering{roman}
+\clearfirst
+
+\input{Thy/document/Functions.tex}
+
+\begingroup
+%\tocentry{\bibname}
+\bibliographystyle{plain} \small\raggedright\frenchspacing
+\bibliography{../../manual}
+\endgroup
+
+\end{document}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

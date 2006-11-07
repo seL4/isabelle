@@ -1,0 +1,456 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Functions}%
+%
+\isadelimtheory
+\isanewline
+\isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Functions\isanewline
+\isakeyword{imports}\ Main\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{Defining Recursive Functions in Isabelle/HOL%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\cite{isa-tutorial}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Function Definition for Dummies%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In most cases, defining a recursive function is just as simple as other definitions:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{fun}\isamarkupfalse%
+\ fib\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}fib\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}fib\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}fib\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ fib\ n\ {\isacharplus}\ fib\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+The function always terminates, since the argument of gets smaller in every
+  recursive call. Termination is an
+  important requirement, since it prevents inconsistencies: From
+  the "definition" \isa{f{\isacharparenleft}n{\isacharparenright}\ {\isacharequal}\ f{\isacharparenleft}n{\isacharparenright}\ {\isacharplus}\ {\isadigit{1}}} we could prove 
+  \isa{{\isadigit{0}}\ \ {\isacharequal}\ {\isadigit{1}}} by subtracting \isa{f{\isacharparenleft}n{\isacharparenright}} on both sides.
+
+  Isabelle tries to prove termination automatically when a function is
+  defined. We will later look at cases where this fails and see what to
+  do then.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Pattern matching%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Like in functional programming, functions can be defined by pattern
+  matching. At the moment we will only consider \emph{datatype
+  patterns}, which only consist of datatype constructors and
+  variables.
+
+  If patterns overlap, the order of the equations is taken into
+  account. The following function inserts a fixed element between any
+  two elements of a list:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{fun}\isamarkupfalse%
+\ sep\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}sep\ a\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ x\ {\isacharhash}\ a\ {\isacharhash}\ sep\ a\ {\isacharparenleft}y\ {\isacharhash}\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}sep\ a\ xs\ \ \ \ \ \ \ {\isacharequal}\ xs{\isachardoublequoteclose}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Overlapping patterns are interpreted as "increments" to what is
+  already there: The second equation is only meant for the cases where
+  the first one does not match. Consequently, Isabelle replaces it
+  internally by the remaining cases, making the patterns disjoint.
+  This results in the equations \begin{isabelle}%
+sep\ a\ {\isacharparenleft}x\ {\isacharhash}\ y\ {\isacharhash}\ xs{\isacharparenright}\ {\isacharequal}\ x\ {\isacharhash}\ a\ {\isacharhash}\ sep\ a\ {\isacharparenleft}y\ {\isacharhash}\ xs{\isacharparenright}\isasep\isanewline%
+sep\ a\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\isasep\isanewline%
+sep\ a\ {\isacharbrackleft}v{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}v{\isacharbrackright}%
+\end{isabelle}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The equations from function definitions are automatically used in
+  simplification:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}fib\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isamarkupsubsection{Induction%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{If it does not work%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Up to now, we were using the \cmd{fun} command, which provides a
+  convenient shorthand notation for simple function definitions. In
+  this mode, Isabelle tries to solve all the necessary proof obligations
+  automatically. If a proof does not go through, the definition is
+  rejected. This can mean that the definition is indeed faulty, like,
+  or that the default proof procedures are not smart enough (or
+  rather: not designed) to handle the specific definition.
+.
+  By expanding the abbreviation to the full \cmd{function} command, the
+  proof obligations become visible and can be analyzed and solved manually.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{fun}\isamarkupfalse%
+\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymtau}{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ %
+\begin{isamarkuptext}%
+\vspace{-0.8cm}\emph{equations}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\noindent abbreviates%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{function}\isamarkupfalse%
+\ {\isacharparenleft}\isakeyword{sequential}{\isacharparenright}\ fo\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymtau}{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ %
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+\vspace{-0.8cm}\emph{equations}%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\isacommand{by}\isamarkupfalse%
+\ pat{\isacharunderscore}completeness\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\ \isanewline
+\isacommand{termination}\isamarkupfalse%
+%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ lexicographic{\isacharunderscore}order%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Some declarations and proofs have now become explicit:
+
+  \begin{enumerate}
+  \item The "sequential" option enables the preprocessing of
+  pattern overlaps we already saw. Without this option, the equations
+  must already be disjoint and complete. The automatic completion only
+  works with datatype patterns.
+
+  \item A function definition now produces a proof obligation which
+  expresses completeness and compatibility of patterns (We talk about
+  this later). The combination of the methods {\tt pat\_completeness} and
+  {\tt auto} is used to solve this proof obligation.
+
+  \item A termination proof follows the definition, started by the
+  \cmd{termination} command. The {\tt lexicographic\_order} method can prove termination of a
+  certain class of functions by searching for a suitable lexicographic combination of size
+  measures.
+  \end{enumerate}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Proving termination%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Consider the following function, which sums up natural numbers up to
+  \isa{N}, using a counter \isa{i}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{function}\isamarkupfalse%
+\ sum\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}sum\ i\ N\ {\isacharequal}\ {\isacharparenleft}if\ i\ {\isachargreater}\ N\ then\ {\isadigit{0}}\ else\ i\ {\isacharplus}\ sum\ {\isacharparenleft}Suc\ i{\isacharparenright}\ N{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ pat{\isacharunderscore}completeness\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+The {\tt lexicographic\_order} method fails on this example, because none of the
+  arguments decreases in the recursive call.
+
+  A more general method for termination proofs is to supply a wellfounded
+  relation on the argument type, and to show that the argument
+  decreases in every recursive call. 
+
+  The termination argument for \isa{sum} is based on the fact that
+  the \emph{difference} between \isa{i} and \isa{N} gets
+  smaller in every step, and that the recursion stops when \isa{i}
+  is greater then \isa{n}. Phrased differently, the expression 
+  \isa{N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i} decreases in every recursive call.
+
+  We can use this expression as a measure function to construct a
+  wellfounded relation, which is a proof of termination:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{termination}\isamarkupfalse%
+\ \isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto{\isacharunderscore}term\ {\isachardoublequoteopen}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}i{\isacharcomma}N{\isacharparenright}{\isachardot}\ N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Note that the two (curried) function arguments appear as a pair in
+  the measure function. The \cmd{function} command packs together curried
+  arguments into a tuple to simplify its internal operation. Hence,
+  measure functions and termination relations always work on the
+  tupled type.
+
+  Let us complicate the function a little, by adding some more recursive calls:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{function}\isamarkupfalse%
+\ foo\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}foo\ i\ N\ {\isacharequal}\ {\isacharparenleft}if\ i\ {\isachargreater}\ N\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ then\ {\isacharparenleft}if\ N\ {\isacharequal}\ {\isadigit{0}}\ then\ {\isadigit{0}}\ else\ foo\ {\isadigit{0}}\ {\isacharparenleft}N\ {\isacharminus}\ {\isadigit{1}}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ else\ i\ {\isacharplus}\ foo\ {\isacharparenleft}Suc\ i{\isacharparenright}\ N{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ pat{\isacharunderscore}completeness\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+When \isa{i} has reached \isa{N}, it starts at zero again
+  and \isa{N} is decremented.
+  This corresponds to a nested
+  loop where one index counts up and the other down. Termination can
+  be proved using a lexicographic combination of two measures, namely
+  the value of \isa{N} and the above difference. The \isa{measures}
+  combinator generalizes \isa{measure} by taking a list of measure functions.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{termination}\isamarkupfalse%
+\ \isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto{\isacharunderscore}term\ {\isachardoublequoteopen}measures\ {\isacharbrackleft}{\isasymlambda}{\isacharparenleft}i{\isacharcomma}\ N{\isacharparenright}{\isachardot}\ N{\isacharcomma}\ {\isasymlambda}{\isacharparenleft}i{\isacharcomma}N{\isacharparenright}{\isachardot}\ N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i{\isacharbrackright}{\isachardoublequoteclose}{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isamarkupsection{Mutual Recursion%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+If two or more functions call one another mutually, they have to be defined
+  in one step. The simplest example are probably \isa{even} and \isa{odd}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isanewline
+\isacommand{function}\isamarkupfalse%
+\ even\ odd\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}even\ {\isadigit{0}}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}odd\ {\isadigit{0}}\ {\isacharequal}\ False{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}even\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ odd\ n{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}odd\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ even\ n{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ pat{\isacharunderscore}completeness\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+To solve the problem of mutual dependencies, Isabelle internally
+  creates a single function operating on the sum
+  type. Then the original functions are defined as
+  projections. Consequently, termination has to be proved
+  simultaneously for both functions, by specifying a measure on the
+  sum type:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{termination}\isamarkupfalse%
+\ \isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto{\isacharunderscore}term\ {\isachardoublequoteopen}measure\ {\isacharparenleft}sum{\isacharunderscore}case\ {\isacharparenleft}{\isacharpercent}n{\isachardot}\ n{\isacharparenright}\ {\isacharparenleft}{\isacharpercent}n{\isachardot}\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isamarkupsection{Nested recursion%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{More general patterns%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
