@@ -2411,7 +2411,7 @@ apply(auto simp:max_def)
 done
 
 interpretation min_max:
-  Lattice ["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max" "Min" "Max"]
+  Lattice ["op \<le>" "op <" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max" "Min" "Max"]
 apply -
 apply(rule Min_def)
 apply(rule Max_def)
@@ -2420,7 +2420,7 @@ done
 
 
 interpretation min_max:
-  Distrib_Lattice ["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max" "Min" "Max"]
+  Distrib_Lattice ["op \<le>" "op <" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max" "Min" "Max"]
   by unfold_locales
 
 
@@ -2588,7 +2588,7 @@ qed
 lemma inj_graph: "inj (%f. {(x, y). y = f x})"
 by (rule inj_onI, auto simp add: expand_set_eq expand_fun_eq)
 
-instance fun :: (finite, finite) finite
+instance "fun" :: (finite, finite) finite
 proof
   show "finite (UNIV :: ('a => 'b) set)"
   proof (rule finite_imageD)

@@ -87,7 +87,8 @@ User-defined serializations (target in {SML, Haskell}):
 
 For code_instance and code_class, target SML is silently ignored.
 
-See HOL theories and HOL/ex/Code*.thy for usage examples.
+See HOL theories and HOL/ex/Code*.thy for usage examples.  Doc/Isar/Advanced/Codegen/
+provides a tutorial.
 
 * Command 'no_translations' removes translation rules from theory
 syntax.
@@ -487,6 +488,12 @@ commutative semirings.
 INCOMPATIBILITY: If you use recpower and need commutativity or a semiring
 property, add the corresponding classes.
 
+* Locale Lattic_Locales.partial_order changed (to achieve consistency with
+  axclass order):
+  - moved to Orderings.partial_order
+  - additional parameter ``less''
+  INCOMPATIBILITY.
+
 * Constant "List.list_all2" in List.thy now uses authentic syntax.
 INCOMPATIBILITY: translations containing list_all2 may go wrong. On Isar
 level, use abbreviations instead.
@@ -501,7 +508,7 @@ require renaming (e.g. ``List.memberl.simps'').
 INCOMPATIBILITY: ML code directly refering to constant names may need adaption
 This in general only affects hand-written proof tactics, simprocs and so on.
 
-* New theory OperationalEquality providing class 'eq' with constant 'eq',
+* New theory Code_Generator providing class 'eq' with constant 'eq',
 allowing for code generation with polymorphic equality.
 
 * Numeral syntax: type 'bin' which was a mere type copy of 'int' has been
