@@ -14,6 +14,7 @@ sig
   val helper_path: string -> string -> string
   val problem_name: string ref
   val time_limit: int ref
+  val set_prover: string -> unit
    
   datatype mode = Auto | Fol | Hol
   val linkup_logic_mode : mode ref
@@ -65,8 +66,27 @@ fun timestamp s = Output.debug ("At " ^ Time.toString (Time.now()) ^ ": " ^ s);
 (*** background linkup ***)
 val call_atp = ref false; 
 val hook_count = ref 0;
-val time_limit = ref 80;
-val prover = ref "E";   (* use E as the default prover *)
+val time_limit = ref 60;
+val prover = ref "";   
+
+fun set_prover atp = 
+  case String.map Char.toLower atp of
+      "e" => 
+          (ReduceAxiomsN.max_new := 80;
+           ReduceAxiomsN.theory_const := false;
+           prover := "E")
+    | "spass" => 
+          (ReduceAxiomsN.max_new := 40;
+           ReduceAxiomsN.theory_const := true;
+           prover := "spass")
+    | "vampire" => 
+          (ReduceAxiomsN.max_new := 60;
+           ReduceAxiomsN.theory_const := false;
+           prover := "vampire")
+    | _ => error ("No such prover: " ^ atp);
+
+val _ = set_prover "E"; (* use E as the default prover *)
+
 val custom_spass =   (*specialized options for SPASS*)
       ref ["-Auto=0","-FullRed=0","-IORe","-IOFc","-RTaut","-RFSub","-RBSub"];
 val destdir = ref "";   (*Empty means write files to /tmp*)
@@ -303,7 +323,7 @@ val whitelist = ref [subsetI];
 val blacklist = ref
   ["Datatype.prod.size",
    "Datatype.unit.exhaust", (*"unit" thms cause unsound proofs; unit.nchotomy is caught automatically*)
-   "Datatype.unit.induct", (*"unit" thms cause unsound proofs; unit.nchotomy is caught automatically*)
+   "Datatype.unit.induct", 
    "Datatype.unit.inducts",
    "Datatype.unit.split_asm", 
    "Datatype.unit.split",
@@ -520,26 +540,6 @@ fun get_literals (Const("Trueprop",_)$P) lits = get_literals P lits
 
 fun hash_term t = Word.toIntX (xor_words (map hash_literal (get_literals t [])));
 
-(*Versions ONLY for "faking" a theorem name. Here we take variable names into account
-  so that similar theorems don't collide.  FIXME: this entire business of "faking" 
-  theorem names must end!*)
-fun hashw_typ (TVar ((a,i), _), w) = Polyhash.hashw_string (a, Polyhash.hashw_int(i,w))
-  | hashw_typ (TFree (a,_), w) = Polyhash.hashw_string (a,w)
-  | hashw_typ (Type (a, Ts), w) = Polyhash.hashw_string (a, List.foldl hashw_typ w Ts);
-
-fun full_hashw_term ((Const(c,T)), w) = Polyhash.hashw_string (c, hashw_typ(T,w))
-  | full_hashw_term ((Free(a,_)), w) = Polyhash.hashw_string (a,w)
-  | full_hashw_term ((Var((a,i),_)), w) = Polyhash.hashw_string (a, Polyhash.hashw_int(i,w))
-  | full_hashw_term ((Bound i), w) = Polyhash.hashw_int(i,w)
-  | full_hashw_term ((Abs(_,T,t)), w) = full_hashw_term (t, hashw_typ(T,w))
-  | full_hashw_term ((P$Q), w) = full_hashw_term (Q, (full_hashw_term (P, w)));
-
-fun full_hashw_thm (th,w) = 
-  let val {prop,hyps,...} = rep_thm th
-  in List.foldl full_hashw_term w (prop::hyps) end
-
-fun full_hash_thm th = full_hashw_thm (th,0w0);
-
 fun equal_thm (thm1,thm2) = Term.aconv(prop_of thm1, prop_of thm2);
 
 (*Create a hash table for clauses, of the given size*)
@@ -572,21 +572,27 @@ fun subtract_cls c_clauses ax_clauses =
 fun get_relevant_clauses thy cls_thms white_cls goals =
   white_cls @ (ReduceAxiomsN.relevance_filter thy cls_thms goals);
 
-(*This name is cryptic but short. Unlike gensym, we get the same name each time.*)
-fun fake_thm_name th = 
-    Context.theory_name (theory_of_thm th) ^ "." ^ Word.toString (full_hash_thm th);
-
-fun put_name_pair ("",th) = (fake_thm_name th, th)
-  | put_name_pair (a,th)  = (a,th);
-
 fun display_thms [] = ()
   | display_thms ((name,thm)::nthms) = 
       let val nthm = name ^ ": " ^ (string_of_thm thm)
       in Output.debug nthm; display_thms nthms  end;
  
-fun all_facts_of ctxt =
-  FactIndex.find (ProofContext.fact_index_of ctxt) ([], [])
-  |> maps #2 |> map (`Thm.name_of_thm);
+fun all_valid_thms ctxt =
+  PureThy.thms_containing (ProofContext.theory_of ctxt) ([], []) @
+  filter (ProofContext.valid_thms ctxt)
+    (FactIndex.find (ProofContext.fact_index_of ctxt) ([], []));
+
+fun multi_name a (th, (n,pairs)) = 
+  (n+1, (a ^ "(" ^ Int.toString n ^ ")", th) :: pairs)
+
+fun multi_names ((a, []), pairs) = pairs
+  | multi_names ((a, [th]), pairs) = (a,th)::pairs
+  | multi_names ((a, ths), pairs) = #2 (foldl (multi_name a) (1,pairs) ths);
+
+fun name_thm_pairs ctxt = foldl multi_names [] (all_valid_thms ctxt);
+
+fun check_named ("",th) = (warning ("No name for theorem " ^ string_of_thm th); false)
+  | check_named (_,th) = true;
 
 (* get lemmas from claset, simpset, atpset and extra supplied rules *)
 fun get_clasimp_atp_lemmas ctxt user_thms = 
@@ -594,7 +600,7 @@ fun get_clasimp_atp_lemmas ctxt user_thms =
 	if !include_all 
 	then (tap (fn ths => Output.debug
 	             ("Including all " ^ Int.toString (length ths) ^ " theorems")) 
-	          (all_facts_of ctxt @ PureThy.all_thms_of (ProofContext.theory_of ctxt)))
+	          (name_thm_pairs ctxt))
 	else 
 	let val claset_thms =
 		if !include_claset then ResAxioms.claset_rules_of_ctxt ctxt
@@ -609,10 +615,11 @@ fun get_clasimp_atp_lemmas ctxt user_thms =
 		    then (Output.debug "ATP theorems: "; display_thms atpset_thms) 
 		    else ()		 
 	in  claset_thms @ simpset_thms @ atpset_thms  end
-      val user_rules = map (put_name_pair o ResAxioms.pairname)
-			   (if null user_thms then !whitelist else user_thms)
+      val user_rules = filter check_named 
+                         (map (ResAxioms.pairname)
+			   (if null user_thms then !whitelist else user_thms))
   in
-      (map put_name_pair included_thms, user_rules)
+      (filter check_named included_thms, user_rules)
   end;
 
 (*Remove lemmas that are banned from the backlist. Also remove duplicates. *)
@@ -742,7 +749,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
 	       let val Eprover = helper_path "E_HOME" "eproof"
 	       in
 		  ("E", Eprover, 
-		     "--tptp-in%-l5%-xAuto%-tAuto%--silent%--cpu-limit=" ^ time, probfile) ::
+		     "--tptp-in%-l5%-xAutoDev%-tAutoDev%--silent%--cpu-limit=" ^ time, probfile) ::
 		   make_atp_list xs (n+1)
 	       end
 	     else error ("Invalid prover name: " ^ !prover)
