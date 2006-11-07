@@ -1,5 +1,5 @@
 (*  Title:       HOL/Tools/function_package/lexicographic_order.ML
-    ID:
+    ID:          $Id$
     Author:      Lukas Bulwahn, TU Muenchen
 
 Method for termination proofs with lexicographic orderings.
@@ -7,6 +7,7 @@ Method for termination proofs with lexicographic orderings.
 
 signature LEXICOGRAPHIC_ORDER =
 sig
+    val lexicographic_order : Method.method
     val setup: theory -> theory
 end
 
@@ -238,6 +239,8 @@ fun lexicographic_order_tac (st: thm) =
             end
     end
 
-val setup = Method.add_methods [("lexicographic_order", Method.no_args (Method.SIMPLE_METHOD lexicographic_order_tac), "termination prover for lexicographic orderings")]
+val lexicographic_order = Method.SIMPLE_METHOD lexicographic_order_tac
+
+val setup = Method.add_methods [("lexicographic_order", Method.no_args lexicographic_order, "termination prover for lexicographic orderings")]
 
 end
