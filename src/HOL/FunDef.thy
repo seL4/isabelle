@@ -189,11 +189,6 @@ lemma rproj_inr:
   "rproj (Inr x) = x"
   by (auto simp:rproj_def intro: the_equality rpg.intros elim: rpg.cases)
 
-
-
-lemma P_imp_P: "P \<Longrightarrow> P" .
-
-
 use "Tools/function_package/sum_tools.ML"
 use "Tools/function_package/fundef_common.ML"
 use "Tools/function_package/fundef_lib.ML"
@@ -205,15 +200,10 @@ use "Tools/function_package/termination.ML"
 use "Tools/function_package/mutual.ML"
 use "Tools/function_package/pattern_split.ML"
 use "Tools/function_package/fundef_package.ML"
+use "Tools/function_package/auto_term.ML"
 
 setup FundefPackage.setup
-
-use "Tools/function_package/fundef_datatype.ML"
-setup FundefDatatype.setup
-
-use "Tools/function_package/auto_term.ML"
 setup FundefAutoTerm.setup
-
 
 lemmas [fundef_cong] = 
   let_cong if_cong image_cong INT_cong UN_cong bex_cong ball_cong imp_cong

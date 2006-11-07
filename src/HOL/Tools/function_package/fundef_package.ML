@@ -13,13 +13,15 @@ sig
                       -> ((bstring * Attrib.src list) * string list) list list
                       -> FundefCommon.fundef_config
                       -> local_theory
-                      -> Proof.state
+                      -> string * Proof.state
 
     val add_fundef_i:  (string * typ option * mixfix) list
                        -> ((bstring * Attrib.src list) * term list) list list
                        -> bool
                        -> local_theory
-                       -> Proof.state
+                       -> string * Proof.state
+
+    val setup_termination_proof : string option -> local_theory -> Proof.state
 
     val cong_add: attribute
     val cong_del: attribute
@@ -105,9 +107,9 @@ fun gen_add_fundef prep_spec fixspec eqnss_flags config lthy =
 
       val afterqed = fundef_afterqed fixes spec mutual_info name prep_result
     in
-        lthy
-          |> Proof.theorem_i PureThy.internalK NONE afterqed NONE ("", []) [(("", []), [(goal, [])])]
-          |> Proof.refine (Method.primitive_text (fn _ => goalI)) |> Seq.hd
+      (name, lthy
+         |> Proof.theorem_i PureThy.internalK NONE afterqed NONE ("", []) [(("", []), [(goal, [])])]
+         |> Proof.refine (Method.primitive_text (fn _ => goalI)) |> Seq.hd)
     end
 
 
@@ -132,7 +134,7 @@ fun total_termination_afterqed defname data [[totality]] lthy =
     end
 
 
-fun fundef_setup_termination_proof name_opt lthy =
+fun setup_termination_proof name_opt lthy =
     let
         val name = the_default (get_last_fundef (Context.Proof lthy)) name_opt
         val data = the (get_fundef_data name (Context.Proof lthy))
@@ -190,8 +192,8 @@ val functionP =
   OuterSyntax.command "function" "define general recursive functions" K.thy_goal
   ((config_parser default_config -- P.opt_locale_target -- P.fixes --| P.$$$ "where" -- statements_ow)
      >> (fn (((config, target), fixes), statements) =>
-            Toplevel.print o
-            Toplevel.local_theory_to_proof target (add_fundef fixes statements config)));
+            Toplevel.local_theory_to_proof target (add_fundef fixes statements config #> snd)
+            #> Toplevel.print));
 
 
 
@@ -200,7 +202,7 @@ val terminationP =
   (P.opt_locale_target -- Scan.option P.name
     >> (fn (target, name) =>
            Toplevel.print o
-           Toplevel.local_theory_to_proof target (fundef_setup_termination_proof name)));
+           Toplevel.local_theory_to_proof target (setup_termination_proof name)));
 
 
 val _ = OuterSyntax.add_parsers [functionP];

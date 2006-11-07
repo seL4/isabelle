@@ -169,6 +169,9 @@ val by_pat_completeness_simp =
        SOME (Method.Source (Args.src (("simp_all", []), Position.none))))
          (* FIXME avoid dynamic scoping of method name! *)
 
+fun termination_by_lexicographic_order name =
+    FundefPackage.setup_termination_proof (SOME name)
+    #> Proof.global_terminal_proof (Method.Basic (K LexicographicOrder.lexicographic_order), NONE)
 
 val setup =
     Method.add_methods [("pat_completeness", Method.no_args pat_completeness, "Completeness prover for datatype patterns")]
@@ -184,14 +187,19 @@ val otherwise = P.$$$ "(" |-- P.$$$ "otherwise" --| P.$$$ ")"
 val statement_ow = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 (P.prop -- Scan.optional (otherwise >> K true) false))
 val statements_ow = or_list1 statement_ow
 
+
+fun fun_cmd fixes statements lthy =
+    lthy
+      |> FundefPackage.add_fundef fixes statements FundefCommon.fun_config
+      ||> by_pat_completeness_simp
+      (*|-> termination_by_lexicographic_order*) |> snd
+
+
 val funP =
   OuterSyntax.command "fun" "define general recursive functions (short version)" K.thy_decl
   ((P.opt_locale_target -- P.fixes --| P.$$$ "where" -- statements_ow)
      >> (fn ((target, fixes), statements) =>
-            Toplevel.print o
-            Toplevel.local_theory target
-              (FundefPackage.add_fundef fixes statements FundefCommon.fun_config
-               #> by_pat_completeness_simp)));
+            (Toplevel.local_theory target (fun_cmd fixes statements))));
 
 val _ = OuterSyntax.add_parsers [funP];
 end
