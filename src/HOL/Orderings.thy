@@ -15,41 +15,47 @@ subsection {* Order signatures *}
 
 class ord =
   fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-  fixes less    :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+begin
 
-const_syntax
-  less  ("op <")
-  less  ("(_/ < _)"  [50, 51] 50)
+notation
+  less_eq  ("op \<^loc><=")
+  less_eq  ("(_/ \<^loc><= _)" [50, 51] 50)
+  less  ("op \<^loc><")
+  less  ("(_/ \<^loc>< _)"  [50, 51] 50)
+
+notation (xsymbols)
+  less_eq  ("op \<^loc>\<le>")
+  less_eq  ("(_/ \<^loc>\<le> _)"  [50, 51] 50)
+
+notation (HTML output)
+  less_eq  ("op \<^loc>\<le>")
+  less_eq  ("(_/ \<^loc>\<le> _)"  [50, 51] 50)
+
+abbreviation (input)
+  greater  (infix "\<^loc>>" 50)
+  "x \<^loc>> y \<equiv> y \<^loc>< x"
+  greater_eq  (infix "\<^loc>>=" 50)
+  "x \<^loc>>= y \<equiv> y \<^loc><= x"
+
+notation (xsymbols)
+  greater_eq  (infixl "\<^loc>\<ge>" 50)
+
+end
+
+notation
   less_eq  ("op <=")
   less_eq  ("(_/ <= _)" [50, 51] 50)
-
-const_syntax (xsymbols)
-  less_eq  ("op \<le>")
-  less_eq  ("(_/ \<le> _)"  [50, 51] 50)
-
-const_syntax (HTML output)
-  less_eq  ("op \<le>")
-  less_eq  ("(_/ \<le> _)"  [50, 51] 50)
-
-
-abbreviation (in ord)
-  "less_eq_syn \<equiv> less_eq"
-  "less_syn \<equiv> less"
-
-const_syntax (in ord) 
-  less_eq_syn  ("op \<^loc><=")
-  less_eq_syn  ("(_/ \<^loc><= _)" [50, 51] 50)
-  less_syn  ("op \<^loc><")
-  less_syn  ("(_/ \<^loc>< _)"  [50, 51] 50)
+  less  ("op <")
+  less  ("(_/ < _)"  [50, 51] 50)
   
-const_syntax (in ord) (xsymbols)
-  less_eq_syn  ("op \<^loc>\<le>")
-  less_eq_syn  ("(_/ \<^loc>\<le> _)"  [50, 51] 50)
+notation (xsymbols)
+  less_eq  ("op \<le>")
+  less_eq  ("(_/ \<le> _)"  [50, 51] 50)
 
-const_syntax (in ord) (HTML output)
-  less_eq_syn  ("op \<^loc>\<le>")
-  less_eq_syn  ("(_/ \<^loc>\<le> _)"  [50, 51] 50)
-
+notation (HTML output)
+  less_eq  ("op \<le>")
+  less_eq  ("(_/ \<le> _)"  [50, 51] 50)
 
 abbreviation (input)
   greater  (infixl ">" 50)
@@ -57,17 +63,8 @@ abbreviation (input)
   greater_eq  (infixl ">=" 50)
   "x >= y \<equiv> y <= x"
   
-const_syntax (xsymbols)
+notation (xsymbols)
   greater_eq  (infixl "\<ge>" 50)
-
-abbreviation (in ord) (input)
-  greater  (infix "\<^loc>>" 50)
-  "x \<^loc>> y \<equiv> y \<^loc>< x"
-  greater_eq  (infix "\<^loc>>=" 50)
-  "x \<^loc>>= y \<equiv> y \<^loc><= x"
-
-const_syntax (in ord) (xsymbols)
-  greater_eq  (infixl "\<^loc>\<ge>" 50)
 
 
 subsection {* Partial orderings *}
