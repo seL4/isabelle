@@ -199,7 +199,7 @@ lemma (in reflection) Closed_Unbounded_ClEx:
      "(!!a. [| Cl(a); Ord(a) |] ==> \<forall>x\<in>Mset(a). P(x) <-> Q(a,x))
       ==> Closed_Unbounded(ClEx(P))"
 apply (unfold ClEx_eq FF_def F0_def M_def) 
-apply (rule Reflection.ZF_Closed_Unbounded_ClEx [of Mset _ _ Cl])
+apply (rule ex_reflection.ZF_Closed_Unbounded_ClEx [of Mset _ _ Cl])
 apply (rule ex_reflection.intro, assumption)
 apply (blast intro: ex_reflection_axioms.intro)
 done

@@ -229,9 +229,9 @@ by (simp add: PartialOrder_def CompleteLattice_def, fast)
 
 lemmas CL_imp_PO = CL_subset_PO [THEN subsetD]
 
-declare CL_imp_PO [THEN Tarski.PO_imp_refl, simp]
-declare CL_imp_PO [THEN Tarski.PO_imp_sym, simp]
-declare CL_imp_PO [THEN Tarski.PO_imp_trans, simp]
+declare CL_imp_PO [THEN PO.PO_imp_refl, simp]
+declare CL_imp_PO [THEN PO.PO_imp_sym, simp]
+declare CL_imp_PO [THEN PO.PO_imp_trans, simp]
 
 lemma (in CL) CO_refl: "refl A r"
 by (rule PO_imp_refl)
@@ -382,7 +382,7 @@ lemma (in CL) glb_in_lattice: "S \<subseteq> A ==> glb S cl \<in> A"
 apply (subst glb_dual_lub)
 apply (simp add: A_def)
 apply (rule dualA_iff [THEN subst])
-apply (rule Tarski.lub_in_lattice)
+apply (rule CL.lub_in_lattice)
 apply (rule dualPO)
 apply (rule CL_dualCL)
 apply (simp add: dualA_iff)
@@ -392,7 +392,7 @@ lemma (in CL) glb_lower: "[|S \<subseteq> A; x \<in> S|] ==> (glb S cl, x) \<in>
 apply (subst glb_dual_lub)
 apply (simp add: r_def)
 apply (rule dualr_iff [THEN subst])
-apply (rule Tarski.lub_upper)
+apply (rule CL.lub_upper)
 apply (rule dualPO)
 apply (rule CL_dualCL)
 apply (simp add: dualA_iff A_def, assumption)
@@ -520,7 +520,7 @@ lemma (in CLF) glbH_is_fixp: "H = {x. (f x, x) \<in> r & x \<in> A} ==> glb H cl
   -- {* Tarski for glb *}
 apply (simp add: glb_dual_lub P_def A_def r_def)
 apply (rule dualA_iff [THEN subst])
-apply (rule Tarski.lubH_is_fixp)
+apply (rule CLF.lubH_is_fixp)
 apply (rule dualPO)
 apply (rule CL_dualCL)
 apply (rule f_cl [THEN CLF_dual])
@@ -530,7 +530,7 @@ done
 lemma (in CLF) T_thm_1_glb: "glb P cl = glb {x. (f x, x) \<in> r & x \<in> A} cl"
 apply (simp add: glb_dual_lub P_def A_def r_def)
 apply (rule dualA_iff [THEN subst])
-apply (simp add: Tarski.T_thm_1_lub [of _ f, OF dualPO CL_dualCL]
+apply (simp add: CLF.T_thm_1_lub [of _ f, OF dualPO CL_dualCL]
                  dualPO CL_dualCL CLF_dual dualr_iff)
 done
 
@@ -590,7 +590,7 @@ lemma (in CLF) G_in_interval:
      "[| a \<in> A; b \<in> A; interval r a b \<noteq> {}; S \<subseteq> interval r a b; isGlb S cl G;
          S \<noteq> {} |] ==> G \<in> interval r a b"
 apply (simp add: interval_dual)
-apply (simp add: Tarski.L_in_interval [of _ f]
+apply (simp add: CLF.L_in_interval [of _ f]
                  dualA_iff A_def dualPO CL_dualCL CLF_dual isGlb_dual_isLub)
 done
 
@@ -687,7 +687,7 @@ done
 lemma (in CLF) Top_in_lattice: "Top cl \<in> A"
 apply (simp add: Top_dual_Bot A_def)
 apply (rule dualA_iff [THEN subst])
-apply (blast intro!: Tarski.Bot_in_lattice dualPO CL_dualCL CLF_dual f_cl)
+apply (blast intro!: CLF.Bot_in_lattice dualPO CL_dualCL CLF_dual f_cl)
 done
 
 lemma (in CLF) Top_prop: "x \<in> A ==> (x, Top cl) \<in> r"
@@ -701,7 +701,7 @@ done
 lemma (in CLF) Bot_prop: "x \<in> A ==> (Bot cl, x) \<in> r"
 apply (simp add: Bot_dual_Top r_def)
 apply (rule dualr_iff [THEN subst])
-apply (simp add: Tarski.Top_prop [of _ f]
+apply (simp add: CLF.Top_prop [of _ f]
                  dualA_iff A_def dualPO CL_dualCL CLF_dual)
 done
 
@@ -718,9 +718,9 @@ apply (subst interval_dual)
 prefer 2 apply assumption
 apply (simp add: A_def)
 apply (rule dualA_iff [THEN subst])
-apply (blast intro!: Tarski.Top_in_lattice
+apply (blast intro!: CLF.Top_in_lattice
                  f_cl dualPO CL_dualCL CLF_dual)
-apply (simp add: Tarski.Top_intv_not_empty [of _ f]
+apply (simp add: CLF.Top_intv_not_empty [of _ f]
                  dualA_iff A_def dualPO CL_dualCL CLF_dual)
 done
 
@@ -805,7 +805,7 @@ lemma (in Tarski) v_in_P: "v \<in> P"
 apply (unfold P_def)
 apply (rule_tac A = "intY1" in fixf_subset)
 apply (rule intY1_subset)
-apply (simp add: Tarski.glbH_is_fixp [OF _ intY1_is_cl, simplified]
+apply (simp add: CLF.glbH_is_fixp [OF _ intY1_is_cl, simplified]
                  v_def CL_imp_PO intY1_is_cl CLF_def intY1_func intY1_mono)
 done
 
@@ -847,7 +847,7 @@ apply (rule Y_subset_A, assumption)
 apply (rule_tac b = "Top cl" in interval_imp_mem)
 apply (simp add: v_def)
 apply (fold intY1_def)
-apply (rule Tarski.glb_in_lattice [OF _ intY1_is_cl, simplified])
+apply (rule CL.glb_in_lattice [OF _ intY1_is_cl, simplified])
  apply (simp add: CL_imp_PO intY1_is_cl, force)
 -- {* @{text v} is LEAST ub *}
 apply clarify
@@ -857,7 +857,7 @@ apply (rule indI)
 apply (unfold v_def)
 apply (rule indE)
 apply (rule_tac [2] intY1_subset)
-apply (rule Tarski.glb_lower [OF _ intY1_is_cl, simplified])
+apply (rule CL.glb_lower [OF _ intY1_is_cl, simplified])
   apply (simp add: CL_imp_PO intY1_is_cl)
  apply force
 apply (simp add: induced_def intY1_f_closed z_in_interval)
