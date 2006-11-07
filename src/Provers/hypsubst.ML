@@ -109,8 +109,8 @@ fun eq_var bnd novars =
         | eq_var_aux k (Const("==>",_) $ A $ B) =
               ((k, inspect_pair bnd novars
                     (Data.dest_eq (Data.dest_Trueprop A)))
-                      (*Exception comes from inspect_pair or dest_eq*)
-               handle _ => eq_var_aux (k+1) B)
+               handle TERM _ => eq_var_aux (k+1) B
+                 | Match => eq_var_aux (k+1) B)
         | eq_var_aux k _ = raise EQ_VAR
   in  eq_var_aux 0  end;
 
@@ -121,7 +121,7 @@ fun mk_eqs bnd th =
                                    (Data.dest_Trueprop (#prop (rep_thm th))))
       then th RS Data.eq_reflection
       else symmetric(th RS Data.eq_reflection) (*reorient*) ]
-    handle _ => [];  (*Exception comes from inspect_pair or dest_eq*)
+    handle TERM _ => [] | Match => [];
 
 local
 in
