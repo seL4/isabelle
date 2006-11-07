@@ -86,6 +86,9 @@ sig
   val add_locale_i: bool -> bstring -> expr -> Element.context_i list -> theory
     -> string * Proof.context
 
+  (* Tactics *)
+  val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
+
   (* Storing results *)
   val add_thmss: string -> string ->
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
