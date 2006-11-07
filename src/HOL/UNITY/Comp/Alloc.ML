@@ -348,7 +348,7 @@ by (dres_inst_tac [("w1", "rel")] (impOfSubs subset_preserves_o) 1);
 by (dres_inst_tac [("w1", "ask")] (impOfSubs subset_preserves_o) 2);
 by (auto_tac (claset(), simpset() addsimps [o_def, split_def]));  
 qed "OK_lift_rename_Client";
-Addsimps [OK_lift_rename_Client]; (*needed in rename_client_map_tac*
+Addsimps [OK_lift_rename_Client]; (*needed in rename_client_map_tac*)
 
 (*The proofs of rename_Client_Increasing, rename_Client_Bounded and
   rename_Client_Progress are similar.  All require copying out the original
@@ -385,6 +385,8 @@ val rename_client_map_tac =
         (simpset() addsimps [o_def, non_dummy_def, guarantees_Int_right]) 1];
 
 						     
+(* FIXME no longer works -- had been commented out unintentially for a long time
+
 (*Lifting Client_Increasing to systemState*)
 Goal "i : I \
 \     ==> rename sysOfClient (plam x: I. rename client_map Client) : \
@@ -740,3 +742,4 @@ by (res_inst_tac [("f","%z. (f z, ?h z)")] surjI 1);
 by (asm_full_simp_tac (simpset() addsimps [bij_is_inj, inv_f_f]) 1); 
 by (asm_full_simp_tac (simpset() addsimps [bij_is_surj, surj_f_inv_f]) 1); 
 qed "bij_fst_inv_inv_eq";
+*)
