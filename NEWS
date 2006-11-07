@@ -475,6 +475,18 @@ the graph browser tool.
 
 *** HOL ***
 
+* axclass "semiring_0" now contains annihilation axioms 
+("x * 0 = 0","0 * x = 0"), which are required for a semiring. Richer 
+structures do not inherit from semiring_0 anymore, because this property 
+is a theorem there, not an axiom.
+INCOMPATIBILITY: In instances of semiring_0, there is more to prove, but 
+this is mostly trivial.
+
+* axclass "recpower" was generalized to arbitrary monoids, not just 
+commutative semirings.
+INCOMPATIBILITY: If you use recpower and need commutativity or a semiring
+property, add the corresponding classes.
+
 * Constant "List.list_all2" in List.thy now uses authentic syntax.
 INCOMPATIBILITY: translations containing list_all2 may go wrong. On Isar
 level, use abbreviations instead.
