@@ -792,7 +792,7 @@ text {*
 code_const "Code_Generator.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "!(_ : IntInf.int = _)")
 
-subsubsection {* typedecls interpretated by customary serializations *}
+subsubsection {* typedecls interpreted by customary serializations *}
 
 text {*
   A common idiom is to use unspecified types for formalizations
@@ -966,9 +966,9 @@ print_codethms (insert)
 
 text {*
   This reveals the function equation @{thm insert_def}
-  for @{const insert}, which is operationally meaningsless
+  for @{const insert}, which is operationally meaningless
   but forces an equality constraint on the set members
-  (which is not fullfiable if the set members are functions).
+  (which is not satisfiable if the set members are functions).
   Even when using set of natural numbers (which are an instance
   of \emph{eq}), we run into a problem:
 *}
@@ -1156,7 +1156,7 @@ text %mlref {*
   \item @{ML_type CodegenConsts.const} is the identifier type:
      the product of a \emph{string} with a list of \emph{typs}.
      The \emph{string} is the constant name as represented inside Isabelle;
-     the \emph{typs} are a type instantion in the sense of System F,
+     the \emph{typs} are a type instantiation in the sense of System F,
      with canonical names for type variables.
 
   \item @{ML CodegenConsts.norm_of_typ}~@{text thy}~@{text "(constname, typ)"}
@@ -1230,7 +1230,7 @@ text %mlref {*
      @{text const} to executable content.
 
   \item @{ML CodegenData.add_inline}~@{text "thm"}~@{text "thy"} adds
-     inlineing theorem @{text thm} to executable content.
+     inlining theorem @{text thm} to executable content.
 
   \item @{ML CodegenData.del_inline}~@{text "thm"}~@{text "thy"} remove
      inlining theorem @{text thm} from executable content, if present.
@@ -1252,10 +1252,10 @@ text %mlref {*
      a datatype to executable content, with type constructor
      @{text name} and specification @{text spec}; @{text spec} is
      a pair consisting of a list of type variable with sort
-     contraints and a list of constructors with name
+     constraints and a list of constructors with name
      and types of arguments.  The addition as datatype
      has to be justified giving a certificate of suspended
-     theorems as wittnesses for injectiveness and distincness.
+     theorems as witnesses for injectiveness and distinctness.
 
   \item @{ML CodegenData.del_datatype}~@{text "name"}~@{text "thy"}
      remove a datatype from executable content, if present.
@@ -1296,7 +1296,7 @@ text %mlref {*
   \item @{ML CodegenFuncgr.make}~@{text thy}~@{text cs}
     returns a normalized function equation system,
     with the assertion that it contains any function
-    definition for constants @{text cs} (if exisiting).
+    definition for constants @{text cs} (if existing).
 
   \item @{ML CodegenFuncgr.funcs}~@{text funcgr}~@{text c}
     retrieves function definition for constant @{text c}.
