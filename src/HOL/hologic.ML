@@ -38,7 +38,6 @@ sig
   val Collect_const: typ -> term
   val mk_eq: term * term -> term
   val dest_eq: term -> term * term
-  val dest_eq_typ: term -> (term * term) * typ
   val mk_all: string * typ * term -> term
   val list_all: (string * typ) list * term -> term
   val mk_exists: string * typ * term -> term
@@ -155,9 +154,6 @@ fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;
 
 fun dest_eq (Const ("op =", _) $ lhs $ rhs) = (lhs, rhs)
   | dest_eq t = raise TERM ("dest_eq", [t])
-
-fun dest_eq_typ (Const ("op =", T) $ lhs $ rhs) = ((lhs, rhs), domain_type T)
-  | dest_eq_typ t = raise TERM ("dest_eq_typ", [t])
 
 fun all_const T = Const ("All", [T --> boolT] ---> boolT);
 fun mk_all (x, T, P) = all_const T $ absfree (x, T, P);
