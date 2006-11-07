@@ -720,7 +720,7 @@ lemmas [code func] = collect_duplicates.simps
 (*>*)
 
 text {*
-  The membership test during preprocessing is rewriting,
+  The membership test during preprocessing is rewritten,
   resulting in @{const List.memberl}, which itself
   performs an explicit equality check.
 *}
@@ -1271,7 +1271,10 @@ text %mlref {*
 subsection {* Function equation systems: codegen\_funcgr.ML *}
 
 text {*
-  
+  Out of the executable content of a theory, a normalized
+  function equation systems may be constructed containing
+  function definitions for constants.  The system is cached
+  until its underlying executable content changes.
 *}
 
 text %mlref {*
@@ -1284,6 +1287,34 @@ text %mlref {*
     -> CodegenConsts.const list -> CodegenConsts.const list list"} \\
   @{index_ML CodegenFuncgr.all: "CodegenFuncgr.T -> CodegenConsts.const list"}
   \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_type CodegenFuncgr.T} represents
+    a normalized function equation system.
+
+  \item @{ML CodegenFuncgr.make}~@{text thy}~@{text cs}
+    returns a normalized function equation system,
+    with the assertion that it contains any function
+    definition for constants @{text cs} (if exisiting).
+
+  \item @{ML CodegenFuncgr.funcs}~@{text funcgr}~@{text c}
+    retrieves function definition for constant @{text c}.
+
+  \item @{ML CodegenFuncgr.typ}~@{text funcgr}~@{text c}
+    retrieves function type for constant @{text c}.
+
+  \item @{ML CodegenFuncgr.deps}~@{text funcgr}~@{text cs}
+    returns the transitive closure of dependencies for
+    constants @{text cs} as a partitioning where each partition
+    corresponds to a strongly connected component of
+    dependencies and any partition does \emph{not}
+    depend on partitions further left.
+
+  \item @{ML CodegenFuncgr.all}~@{text funcgr}
+    returns all currently represented constants.
+
+  \end{description}
 *}
 
 subsection {* Further auxiliary *}
@@ -1299,11 +1330,42 @@ text %mlref {*
   @{index_ML CodegenData.typ_func: "theory -> thm -> typ"} \\
   @{index_ML CodegenData.rewrite_func: "thm list -> thm -> thm"} \\
   \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML CodegenConsts.const_ord},~@{ML CodegenConsts.eq_const}
+     provide order and equality on constant identifiers.
+
+  \item @{ML_struct CodegenConsts.Consttab},~@{ML_struct CodegenFuncgr.Constgraph}
+     provide advanced data structures with constant identifiers as keys.
+
+  \item @{ML CodegenConsts.consts_of}~@{text thy}~@{text t}
+     returns all constant identifiers mentioned in a term @{text t}.
+
+  \item @{ML CodegenConsts.read_const}~@{text thy}~@{text s}
+     reads a constant as a concrete term expression @{text s}.
+
+  \item @{ML CodegenData.typ_func}~@{text thy}~@{text thm}
+     extracts the type of a constant in a function equation @{text thm}.
+
+  \item @{ML CodegenData.rewrite_func}~@{text rews}~@{text thm}
+     rewrites a function equation @{text thm} with a set of rewrite
+     rules @{text rews}; only arguments and right hand side are rewritten,
+     not the head of the function equation.
+
+  \end{description}
+
 *}
 
 subsection {* Implementing code generator applications *}
 
 text {*
+  Implementing code generator applications on top
+  of the framework set out so far usually not only
+  involves using those primitive interfaces
+  but also storing code-dependent data and various
+  other things.
+
   \begin{warn}
     Some interfaces discussed here have not reached
     a final state yet.
@@ -1313,10 +1375,76 @@ text {*
 
 subsubsection {* Data depending on the theory's executable content *}
 
+text {*
+  \medskip
+  \begin{tabular}{l}
+  @{text "val name: string"} \\
+  @{text "type T"} \\
+  @{text "val empty: T"} \\
+  @{text "val merge: Pretty.pp \<rightarrow> T * T \<rightarrow> T"} \\
+  @{text "val purge: theory option \<rightarrow> CodegenConsts.const list option \<rightarrow> T \<rightarrow> T"}
+  \end{tabular}
+
+  \medskip
+
+  \begin{tabular}{l}
+  @{text "init: theory \<rightarrow> theory"} \\
+  @{text "get: theory \<rightarrow> T"} \\
+  @{text "change: theory \<rightarrow> (T \<rightarrow> T) \<rightarrow> T"} \\
+  @{text "change_yield: theory \<rightarrow> (T \<rightarrow> 'a * T) \<rightarrow> 'a * T"}
+  \end{tabular}
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_functor CodeDataFun}
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_functor CodeDataFun}@{text "(spec)"} declares code
+  dependent data according to the specification provided as
+  argument structure.  The resulting structure provides data init and
+  access operations as described above.
+
+  \end{description}
+*}
+
 subsubsection {* Datatype hooks *}
 
-text {*
-  \emph{Happy proving, happy hacking!}
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type DatatypeHooks.hook} \\
+  @{index_ML DatatypeHooks.add: "DatatypeHooks.hook -> theory -> theory"}
+  \end{mldecls}
 *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type TypecopyPackage.info} \\
+  @{index_ML TypecopyPackage.add_typecopy: "
+    bstring * string list -> typ -> (bstring * bstring) option
+    -> theory -> (string * TypecopyPackage.info) * theory"} \\
+  @{index_ML TypecopyPackage.get_typecopies: "theory -> string list"} \\
+  @{index_ML TypecopyPackage.get_typecopy_info: "theory
+    -> string -> TypecopyPackage.info option"} \\
+  @{index_ML_type TypecopyPackage.hook} \\
+  @{index_ML TypecopyPackage.add_hook: "TypecopyPackage.hook -> theory -> theory"} \\
+  @{index_ML TypecopyPackage.get_spec: "theory -> string
+    -> (string * sort) list * (string * typ list) list"}
+  \end{mldecls}
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type DatatypeCodegen.hook} \\
+  @{index_ML DatatypeCodegen.add_codetypes_hook_bootstrap: "
+      DatatypeCodegen.hook -> theory -> theory"}
+  \end{mldecls}
+*}
+
+(*text {*
+  \emph{Happy proving, happy hacking!}
+*}*)
 
 end
