@@ -203,55 +203,60 @@ val theorems_i = gen_theorems (K I) (K I);
 
 local
 
-fun conclusion prep_att (Element.Shows concl) =
+fun prep_statement prep_att prep_stmt elems concl ctxt =
+  (case concl of
+    Element.Shows shows =>
       let
-        fun mk_stmt propp ctxt =
-          ((Attrib.map_specs prep_att (map fst concl ~~ propp), []),
-            fold (fold (Variable.fix_frees o fst)) propp ctxt);
-      in (([], map snd concl), mk_stmt) end
-  | conclusion _ (Element.Obtains cases) =
+        val (_, _, elems_ctxt, propp) = prep_stmt elems (map snd shows) ctxt;
+        val goal_ctxt = fold (fold (Variable.fix_frees o fst)) propp elems_ctxt;
+        val stmt = Attrib.map_specs prep_att (map fst shows ~~ propp);
+      in ((stmt, []), goal_ctxt) end
+  | Element.Obtains obtains =>
       let
-        val names =
-          cases |> map_index (fn (i, ("", _)) => string_of_int (i + 1) | (_, (name, _)) => name);
-        val elems = cases |> map (fn (_, (vars, _)) =>
-          Element.Constrains (vars |> map_filter (fn (x, SOME T) => SOME (x, T) | _ => NONE)));
-        val concl = cases |> map (fn (_, (_, props)) => map (rpair []) props);
+        val case_names = obtains |> map_index
+          (fn (i, ("", _)) => string_of_int (i + 1) | (_, (name, _)) => name);
+        val constraints = obtains |> map (fn (_, (vars, _)) =>
+          Locale.Elem (Element.Constrains
+            (vars |> map_filter (fn (x, SOME T) => SOME (x, T) | _ => NONE))));
 
-        fun mk_stmt propp ctxt =
+        val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
+        val (_, _, elems_ctxt, propp) = prep_stmt (elems @ constraints) raw_propp ctxt;
+
+        val thesis = ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) AutoBind.thesisN;
+
+        fun assume_case ((name, (vars, _)), asms) ctxt' =
           let
-            val thesis =
-              ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) AutoBind.thesisN;
-            val atts = map Attrib.internal
-              [RuleCases.consumes (~ (length cases)), RuleCases.case_names names];
+            val xs = map fst vars;
+            val props = map fst asms;
+            val (parms, _) = ctxt'
+              |> fold Variable.declare_term props
+              |> fold_map ProofContext.inferred_param xs;
+            val asm = Term.list_all_free (parms, Logic.list_implies (props, thesis));
+          in
+            ctxt' |> (snd o ProofContext.add_fixes_i (map (fn x => (x, NONE, NoSyn)) xs));
+            ctxt' |> Variable.fix_frees asm
+            |> ProofContext.add_assms_i Assumption.assume_export
+              [((name, [ContextRules.intro_query NONE]), [(asm, [])])]
+            |>> (fn [(_, [th])] => th)
+          end;
 
-            fun assume_case ((name, (vars, _)), asms) ctxt' =
-              let
-                val xs = map fst vars;
-                val props = map fst asms;
-                val (parms, _) = ctxt'
-                  |> fold Variable.declare_term props
-                  |> fold_map ProofContext.inferred_param xs;
-                val asm = Term.list_all_free (parms, Logic.list_implies (props, thesis));
-              in
-                ctxt' |> (snd o ProofContext.add_fixes_i (map (fn x => (x, NONE, NoSyn)) xs));
-                ctxt' |> Variable.fix_frees asm
-                |> ProofContext.add_assms_i Assumption.assume_export
-                  [((name, [ContextRules.intro_query NONE]), [(asm, [])])]
-                |>> (fn [(_, [th])] => th)
-              end;
-            val (ths, ctxt') = ctxt
-              |> (snd o ProofContext.add_fixes_i [(AutoBind.thesisN, NONE, NoSyn)])
-              |> fold_map assume_case (cases ~~ propp)
-              |-> (fn ths =>
-                ProofContext.note_thmss_i [((Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
-          in (([(("", atts), [(thesis, [])])], ths), ctxt') end;
-      in ((map Locale.Elem elems, concl), mk_stmt) end;
+        val atts = map Attrib.internal
+          [RuleCases.consumes (~ (length obtains)), RuleCases.case_names case_names];
+        val stmt = [(("", atts), [(thesis, [])])];
+
+        val (facts, goal_ctxt) = elems_ctxt
+          |> (snd o ProofContext.add_fixes_i [(AutoBind.thesisN, NONE, NoSyn)])
+          |> fold_map assume_case (obtains ~~ propp)
+          |-> (fn ths =>
+            ProofContext.note_thmss_i [((Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
+      in ((stmt, facts), goal_ctxt) end);
 
 fun gen_theorem prep_att prep_stmt
     kind before_qed after_qed (name, raw_atts) raw_elems raw_concl lthy0 =
   let
     val _ = LocalTheory.assert lthy0;
     val thy = ProofContext.theory_of lthy0;
+    val attrib = prep_att thy;
 
     val (loc, ctxt, lthy) =
       (case (TheoryTarget.peek lthy0, exists (fn Locale.Expr _ => true | _ => false) raw_elems) of
@@ -259,19 +264,13 @@ fun gen_theorem prep_att prep_stmt
           (SOME loc, ProofContext.init thy, LocalTheory.reinit lthy0)
       | _ => (NONE, lthy0, lthy0));
 
-    val attrib = prep_att thy;
-    val elem_attrib = Locale.map_elem
+    val elems = raw_elems |> (map o Locale.map_elem)
       (Element.map_ctxt {name = I, var = I, typ = I, term = I, fact = I, attrib = attrib});
-
-    val ((concl_elems, concl), mk_stmt) = conclusion attrib raw_concl;
-    val elems = map elem_attrib (raw_elems @ concl_elems);
-
-    val (_, _, elems_ctxt, propp) = prep_stmt loc elems concl ctxt;
-    val ((stmt, facts), goal_ctxt) = mk_stmt propp elems_ctxt;
+    val ((stmt, facts), goal_ctxt) = prep_statement attrib (prep_stmt loc) elems raw_concl ctxt;
 
     val k = if kind = "" then [] else [Attrib.kind kind];
     val names = map (fst o fst) stmt;
-    val attss = map (fn ((_, atts), _) => map attrib atts @ k) stmt;
+    val attss = map (fn ((_, atts), _) => atts @ k) stmt;
     val atts = map attrib raw_atts @ k;
 
     fun after_qed' results goal_ctxt' =
