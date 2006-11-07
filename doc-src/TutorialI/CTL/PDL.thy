@@ -102,7 +102,7 @@ Simplification leaves us with the following first subgoal
 which is proved by @{term lfp}-induction:
 *}
 
- apply(erule lfp_induct)
+ apply(erule lfp_induct_set)
   apply(rule mono_ef)
  apply(simp)
 (*pr(latex xsymbols symbols);*)
