@@ -10,8 +10,8 @@ sig
   structure Isar:
     sig
       val state: unit -> Toplevel.state
-      val context: unit -> Proof.context
       val exn: unit -> (exn * string) option
+      val context: unit -> Proof.context
       val main: unit -> unit
       val loop: unit -> unit
       val sync_main: unit -> unit
@@ -324,8 +324,10 @@ fun gen_main term no_pos =
 structure Isar =
 struct
   val state = Toplevel.get_state;
-  val context = Context.proof_of o Toplevel.context_of o state;
   val exn = Toplevel.exn;
+  fun context () =
+    Context.proof_of (Toplevel.context_of (state ()))
+      handle Toplevel.UNDEF => error "Unknown context";
   fun main () = gen_main false false;
   fun loop () = gen_loop false false;
   fun sync_main () = gen_main true true;
