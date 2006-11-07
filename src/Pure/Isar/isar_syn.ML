@@ -389,8 +389,7 @@ fun gen_theorem kind =
       P.general_statement >> (fn ((loc, a), (elems, concl)) =>
       (Toplevel.print o
        Toplevel.local_theory_to_proof loc
-         (Specification.theorem kind NONE (K I) a elems concl) o
-       Toplevel.theory_to_proof (Locale.smart_theorem kind loc a elems concl))));
+         (Specification.theorem kind NONE (K I) a elems concl))));
 
 val theoremP = gen_theorem PureThy.theoremK;
 val lemmaP = gen_theorem PureThy.lemmaK;
