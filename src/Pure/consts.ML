@@ -132,8 +132,8 @@ fun syntax_name consts c = #1 (syntax consts (c, NoSyn));
 fun read_const consts raw_c =
   let
     val c = intern consts raw_c;
-    val _ = the_const consts c handle TYPE (msg, _, _) => error msg;
-  in Const (c, dummyT) end;
+    val (((T, _), _), _) = the_const consts c handle TYPE (msg, _, _) => error msg;
+  in Const (c, T) end;
 
 
 (* certify *)
