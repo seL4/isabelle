@@ -27,6 +27,7 @@ sig
     val cong_del: attribute
 
     val setup : theory -> theory
+    val setup_case_cong_hook : theory -> theory
     val get_congs : theory -> thm list
 end
 
@@ -162,15 +163,33 @@ val add_fundef_i = gen_add_fundef Specification.cert_specification
 val cong_add = Thm.declaration_attribute (map_fundef_congs o Drule.add_rule o safe_mk_meta_eq);
 val cong_del = Thm.declaration_attribute (map_fundef_congs o Drule.del_rule o safe_mk_meta_eq);
 
+(* Datatype hook to declare datatype congs as "fundef_congs" *)
+
+
+fun add_case_cong n thy = 
+    Context.theory_map (map_fundef_congs (Drule.add_rule 
+                          (DatatypePackage.get_datatype thy n |> the
+                           |> #case_cong
+                           |> safe_mk_meta_eq))) 
+                       thy
+
+val case_cong_hook = fold add_case_cong
+
+val setup_case_cong_hook = 
+    DatatypeHooks.add case_cong_hook
+    #> (fn thy => case_cong_hook (Symtab.keys (DatatypePackage.get_datatypes thy)) thy)
 
 (* setup *)
 
-val setup = FundefData.init #> FundefCongs.init
-        #>  Attrib.add_attributes
-                [("fundef_cong", Attrib.add_del_args cong_add cong_del, "declaration of congruence rule for function definitions")]
-
+val setup = 
+    FundefData.init 
+      #> FundefCongs.init
+      #>  Attrib.add_attributes
+            [("fundef_cong", Attrib.add_del_args cong_add cong_del, "declaration of congruence rule for function definitions")]
+      #> setup_case_cong_hook
 
 val get_congs = FundefCommon.get_fundef_congs o Context.Theory
+
 
 
 (* outer syntax *)
