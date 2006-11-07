@@ -33,7 +33,6 @@ sig
   val prompt_state_fn: (state -> string) ref
   val print_state_context: state -> unit
   val print_state_default: bool -> state -> unit
-  val print_state_hook: (bool -> state -> unit) -> unit
   val print_state_fn: (bool -> state -> unit) ref
   val print_state: bool -> state -> unit
   val pretty_state: bool -> state -> Pretty.T list
@@ -222,13 +221,8 @@ fun pretty_state prf_only state =
 val print_state_context = Pretty.writelns o pretty_state_context;
 fun print_state_default prf_only state = Pretty.writelns (pretty_state prf_only state);
 
-val print_state_hooks = ref ([]: (bool -> state -> unit) list);
-fun print_state_hook f = change print_state_hooks (cons f);
 val print_state_fn = ref print_state_default;
-
-fun print_state prf_only state =
- (List.app (fn f => (try (fn () => f prf_only state) (); ())) (! print_state_hooks);
-  ! print_state_fn prf_only state);
+fun print_state prf_only state = ! print_state_fn prf_only state;
 
 
 
