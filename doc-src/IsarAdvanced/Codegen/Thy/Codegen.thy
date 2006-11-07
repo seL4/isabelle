@@ -425,7 +425,7 @@ text {*
 
   \item the Isabelle/Isar Reference Manual \cite{isabelle-isar-ref}
     for exhaustive syntax diagrams.
-  \item or \fixme{ref} which deals with foundational issues
+  \item or \fixme[ref] which deals with foundational issues
     of the code generator framework.
 
   \end{itemize}
@@ -1371,6 +1371,8 @@ text {*
     a final state yet.
     Changes likely to occur in future.
   \end{warn}
+
+  \fixme
 *}
 
 subsubsection {* Data depending on the theory's executable content *}
@@ -1443,8 +1445,9 @@ text %mlref {*
   \end{mldecls}
 *}
 
-(*text {*
-  \emph{Happy proving, happy hacking!}
-*}*)
+text {*
+  \fixme
+%  \emph{Happy proving, happy hacking!}
+*}
 
 end
