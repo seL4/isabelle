@@ -103,26 +103,6 @@ sig
   val interpret: (Proof.state -> Proof.state Seq.seq) ->
     string * Attrib.src list -> expr -> string option list ->
     bool -> Proof.state -> Proof.state
-
-  val theorem: string -> Method.text option ->
-    (thm list list -> Proof.context -> Proof.context) ->
-    string * Attrib.src list -> Element.context element list -> Element.statement ->
-    theory -> Proof.state
-  val theorem_i: string -> Method.text option ->
-    (thm list list -> Proof.context -> Proof.context) ->
-    string * Attrib.src list -> Element.context_i element list -> Element.statement_i ->
-    theory -> Proof.state
-  val theorem_in_locale: string -> Method.text option ->
-    (thm list list -> thm list list -> Proof.context -> Proof.context) ->
-    xstring -> string * Attrib.src list -> Element.context element list -> Element.statement ->
-    theory -> Proof.state
-  val theorem_in_locale_i: string -> Method.text option ->
-    (thm list list -> thm list list -> Proof.context -> Proof.context) ->
-    string -> string * Attrib.src list -> Element.context_i element list ->
-    Element.statement_i -> theory -> Proof.state
-  val smart_theorem: string -> xstring option ->
-    string * Attrib.src list -> Element.context element list -> Element.statement ->
-    theory -> Proof.state
 end;
 
 structure Locale: LOCALE =
@@ -2227,96 +2207,6 @@ fun interpret after_qed (prfx, atts) expr insts int state =
       kind NONE after_qed' (prep_propp propss)
     |> Element.refine_witness |> Seq.hd
   end;
-
-end;
-
-
-
-(** locale goals **)
-
-local
-
-val global_goal = Proof.global_goal ProofDisplay.present_results
-  Attrib.attribute_i ProofContext.bind_propp_schematic_i;
-
-fun intern_attrib thy = map_elem (Element.map_ctxt
-  {name = I, var = I, typ = I, term = I, fact = I, attrib = Attrib.intern_src thy});
-
-fun mk_shows prep_att stmt ctxt =
-  ((Attrib.map_specs prep_att stmt, []), fold (fold (Variable.fix_frees o fst) o snd) stmt ctxt);
-
-fun conclusion prep_att (Element.Shows concl) = (([], concl), mk_shows prep_att)
-  | conclusion _ (Element.Obtains cases) = apfst (apfst (map Elem)) (Obtain.statement cases);
-
-fun gen_theorem prep_src prep_elem prep_stmt
-    kind before_qed after_qed (name, raw_atts) raw_elems raw_concl thy =
-  let
-    val atts = map (prep_src thy) raw_atts;
-    val ((concl_elems, concl), mk_stmt) = conclusion (prep_src thy) raw_concl;
-
-    val thy_ctxt = ProofContext.init thy;
-    val elems = map (prep_elem thy) (raw_elems @ concl_elems);
-    val (_, _, elems_ctxt, propp) = prep_stmt NONE elems (map snd concl) thy_ctxt;
-    val ((stmt, facts), goal_ctxt) = mk_stmt (map fst concl ~~ propp) elems_ctxt;
-
-    fun after_qed' results goal_ctxt' =
-      thy_ctxt
-      |> ProofContext.transfer (ProofContext.theory_of goal_ctxt')
-      |> after_qed results;
-  in
-    global_goal kind before_qed after_qed' (SOME "") (name, atts) stmt goal_ctxt
-    |> Proof.refine_insert facts
-  end;
-
-fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt
-    kind before_qed after_qed raw_loc (name, atts) raw_elems raw_concl thy =
-  let
-    val ((concl_elems, concl), mk_stmt) = conclusion (prep_src thy) raw_concl;
-    val loc = prep_locale thy raw_loc;
-    val loc_atts = map (prep_src thy) atts;
-    val loc_attss = map (map (prep_src thy) o snd o fst) concl;
-    val elems = map (prep_elem thy) (raw_elems @ concl_elems);
-    val names = map (fst o fst) concl;
-
-    val thy_ctxt = init_term_syntax loc (ProofContext.init thy);
-    val (_, loc_ctxt, elems_ctxt, propp) =
-      prep_stmt (SOME raw_loc) elems (map snd concl) thy_ctxt;
-    val ((stmt, facts), goal_ctxt) = mk_stmt (map (apsnd (K []) o fst) concl ~~ propp) elems_ctxt;
-
-    fun after_qed' results goal_ctxt' =
-      let
-        val loc_ctxt' = loc_ctxt |> ProofContext.transfer (ProofContext.theory_of goal_ctxt');
-        val loc_results = results |> burrow (ProofContext.export_standard goal_ctxt' loc_ctxt');
-      in
-        loc_ctxt'
-        |> locale_results kind loc ((names ~~ loc_attss) ~~ loc_results)
-        |-> (fn res =>
-          if name = "" andalso null loc_atts then I
-          else #2 o locale_results kind loc [((name, loc_atts), maps #2 res)])
-        |> after_qed loc_results results
-      end;
-  in
-    global_goal kind before_qed after_qed' (SOME (extern thy loc)) (name, []) stmt goal_ctxt
-    |> Proof.refine_insert facts
-  end;
-
-in
-
-val theorem = gen_theorem Attrib.intern_src intern_attrib read_context_statement;
-val theorem_i = gen_theorem (K I) (K I) cert_context_statement;
-
-val theorem_in_locale =
-  gen_theorem_in_locale intern Attrib.intern_src intern_attrib read_context_statement;
-
-val theorem_in_locale_i =
-  gen_theorem_in_locale (K I) (K I) (K I) cert_context_statement;
-
-fun smart_theorem kind NONE a [] (Element.Shows concl) =
-      Proof.theorem kind NONE (K I) (SOME "") a concl o ProofContext.init
-  | smart_theorem kind NONE a elems concl =
-      theorem kind NONE (K I) a elems concl
-  | smart_theorem kind (SOME loc) a elems concl =
-      theorem_in_locale kind NONE (K (K I)) loc a elems concl;
 
 end;
 
