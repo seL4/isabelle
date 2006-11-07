@@ -259,11 +259,11 @@ lemma multiset_inter_count:
 
 lemma multiset_inter_commute: "A #\<inter> B = B #\<inter> A"
   by (simp add: multiset_eq_conv_count_eq multiset_inter_count
-    min_max.below_inf.inf_commute)
+    min_max.inf_commute)
 
 lemma multiset_inter_assoc: "A #\<inter> (B #\<inter> C) = A #\<inter> B #\<inter> C"
   by (simp add: multiset_eq_conv_count_eq multiset_inter_count
-    min_max.below_inf.inf_assoc)
+    min_max.inf_assoc)
 
 lemma multiset_inter_left_commute: "A #\<inter> (B #\<inter> C) = B #\<inter> (A #\<inter> C)"
   by (simp add: multiset_eq_conv_count_eq multiset_inter_count min_def)
