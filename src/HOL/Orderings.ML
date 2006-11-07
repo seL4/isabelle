@@ -1,18 +1,5 @@
 (* legacy ML bindings *)
 
-val Least_def = thm "Least_def";
-val Least_equality = thm "Least_equality";
-val mono_def = thm "mono_def";
-val monoI = thm "monoI";
-val monoD = thm "monoD";
-val min_def = thm "min_def";
-val min_of_mono = thm "min_of_mono";
-val max_def = thm "max_def";
-val max_of_mono = thm "max_of_mono";
-val min_leastL = thm "min_leastL";
-val max_leastL = thm "max_leastL";
-val min_leastR = thm "min_leastR";
-val max_leastR = thm "max_leastR";
 val order_eq_refl = thm "order_eq_refl";
 val order_less_irrefl = thm "order_less_irrefl";
 val order_le_less = thm "order_le_less";
@@ -33,22 +20,11 @@ val linorder_not_less = thm "linorder_not_less";
 val linorder_not_le = thm "linorder_not_le";
 val linorder_neq_iff = thm "linorder_neq_iff";
 val linorder_neqE = thm "linorder_neqE";
-(*
-val min_same = thm "min_same";
-val max_same = thm "max_same";
-*)
-val le_max_iff_disj = thm "le_max_iff_disj";
-val le_maxI1 = thm "le_maxI1";
-val le_maxI2 = thm "le_maxI2";
-val less_max_iff_disj = thm "less_max_iff_disj";
-val max_less_iff_conj = thm "max_less_iff_conj";
-val min_less_iff_conj = thm "min_less_iff_conj";
-val min_le_iff_disj = thm "min_le_iff_disj";
-val min_less_iff_disj = thm "min_less_iff_disj";
-val split_min = thm "split_min";
-val split_max = thm "split_max";
 val order_refl = thm "order_refl";
 val order_trans = thm "order_trans";
 val order_antisym = thm "order_antisym";
 val order_less_le = thm "order_less_le";
 val linorder_linear = thm "linorder_linear";
+val mono_def = thm "mono_def";
+val monoI = thm "monoI";
+val monoD = thm "monoD";

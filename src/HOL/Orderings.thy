@@ -6,7 +6,7 @@
 header {* Abstract orderings *}
 
 theory Orderings
-imports Code_Generator Lattice_Locales
+imports Code_Generator
 begin
 
 section {* Abstract orderings *}
@@ -69,23 +69,29 @@ notation (xsymbols)
 
 subsection {* Partial orderings *}
 
+locale partial_order =
+  fixes below :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubseteq>" 50)
+  fixes less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubset>" 50)
+  assumes refl [iff]: "x \<sqsubseteq> x"
+  and trans: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
+  and antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
+  and less_le: "(x \<sqsubset> y) = (x \<sqsubseteq> y \<and> x \<noteq> y)"
+
 axclass order < ord
   order_refl [iff]: "x <= x"
   order_trans: "x <= y ==> y <= z ==> x <= z"
   order_antisym: "x <= y ==> y <= x ==> x = y"
   order_less_le: "(x < y) = (x <= y & x ~= y)"
 
-text {* Connection to locale: *}
-
 interpretation order:
-  partial_order["op \<le> :: 'a::order \<Rightarrow> 'a \<Rightarrow> bool"]
+  partial_order ["op \<le> \<Colon> 'a\<Colon>order \<Rightarrow> 'a \<Rightarrow> bool" "op < \<Colon> 'a\<Colon>order \<Rightarrow> 'a \<Rightarrow> bool"]
 apply(rule partial_order.intro)
-apply(rule order_refl, erule (1) order_trans, erule (1) order_antisym)
+apply(rule order_refl, erule (1) order_trans, erule (1) order_antisym, rule order_less_le)
 done
 
 text {* Reflexivity. *}
 
-lemma order_eq_refl: "!!x::'a::order. x = y ==> x <= y"
+lemma order_eq_refl: "(x \<Colon> 'a\<Colon>order) = y \<Longrightarrow> x \<le> y"
     -- {* This form is useful with the classical reasoner. *}
   apply (erule ssubst)
   apply (rule order_refl)
@@ -169,10 +175,17 @@ lemma order_less_asym': "(a::'a::order) < b ==> b < a ==> P"
   by (rule order_less_asym)
 
 
-subsection {* Total orderings *}
+subsection {* Linear (total) orderings *}
+
+locale linear_order = partial_order +
+  assumes linear: "x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
 
 axclass linorder < order
   linorder_linear: "x <= y | y <= x"
+
+interpretation linorder:
+  linear_order ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op < \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool"]
+  by unfold_locales (rule linorder_linear)
 
 lemma linorder_less_linear: "!!x::'a::linorder. x<y | x=y | y<x"
   apply (simp add: order_less_le)
@@ -537,165 +550,24 @@ qed
   leave out the "(xtrans)" above.
 *)
 
+subsection {* Monotonicity, syntactic least value operator and syntactic min/max *}
 
-subsection {* Least value operator, monotonicity and min/max *}
- 
-(*FIXME: derive more of the min/max laws generically via semilattices*)
+locale mono =
+  fixes f
+  assumes mono: "A \<le> B \<Longrightarrow> f A \<le> f B"
+
+lemmas monoI [intro?] = mono.intro
+  and monoD [dest?] = mono.mono
 
 constdefs
   Least :: "('a::ord => bool) => 'a"               (binder "LEAST " 10)
   "Least P == THE x. P x & (ALL y. P y --> x <= y)"
     -- {* We can no longer use LeastM because the latter requires Hilbert-AC. *}
 
-lemma LeastI2_order:
-  "[| P (x::'a::order);
-      !!y. P y ==> x <= y;
-      !!x. [| P x; ALL y. P y --> x \<le> y |] ==> Q x |]
-   ==> Q (Least P)"
-  apply (unfold Least_def)
-  apply (rule theI2)
-    apply (blast intro: order_antisym)+
-  done
-
-lemma Least_equality:
-    "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k"
-  apply (simp add: Least_def)
-  apply (rule the_equality)
-  apply (auto intro!: order_antisym)
-  done
-
-locale mono =
-  fixes f
-  assumes mono: "A <= B ==> f A <= f B"
-
-lemmas monoI [intro?] = mono.intro
-  and monoD [dest?] = mono.mono
-
 constdefs
   min :: "['a::ord, 'a] => 'a"
   "min a b == (if a <= b then a else b)"
   max :: "['a::ord, 'a] => 'a"
   "max a b == (if a <= b then b else a)"
-
-lemma min_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> min x least = least"
-  apply (simp add: min_def)
-  apply (blast intro: order_antisym)
-  done
-
-lemma max_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> max x least = x"
-  apply (simp add: max_def)
-  apply (blast intro: order_antisym)
-  done
-
-lemma min_leastL: "(!!x. least <= x) ==> min least x = least"
-  by (simp add: min_def)
-
-lemma max_leastL: "(!!x. least <= x) ==> max least x = x"
-  by (simp add: max_def)
-
-lemma min_of_mono:
-    "(!!x y. (f x <= f y) = (x <= y)) ==> min (f m) (f n) = f (min m n)"
-  by (simp add: min_def)
-
-lemma max_of_mono:
-    "(!!x y. (f x <= f y) = (x <= y)) ==> max (f m) (f n) = f (max m n)"
-  by (simp add: max_def)
-
-text{* Instantiate locales: *}
-
-interpretation min_max:
-  lower_semilattice["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply unfold_locales
-apply(simp add:min_def linorder_not_le order_less_imp_le)
-apply(simp add:min_def linorder_not_le order_less_imp_le)
-apply(simp add:min_def linorder_not_le order_less_imp_le)
-done
-
-interpretation min_max:
-  upper_semilattice["op \<le>" "max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply unfold_locales
-apply(simp add: max_def linorder_not_le order_less_imp_le)
-apply(simp add: max_def linorder_not_le order_less_imp_le)
-apply(simp add: max_def linorder_not_le order_less_imp_le)
-done
-
-interpretation min_max:
-  lattice["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
-  by unfold_locales
-
-interpretation min_max:
-  distrib_lattice["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
-apply unfold_locales
-apply(rule_tac x=x and y=y in linorder_le_cases)
-apply(rule_tac x=x and y=z in linorder_le_cases)
-apply(rule_tac x=y and y=z in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
-apply(rule_tac x=y and y=z in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
-apply(rule_tac x=x and y=z in linorder_le_cases)
-apply(rule_tac x=y and y=z in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
-apply(rule_tac x=y and y=z in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
-done
-
-lemma le_max_iff_disj: "!!z::'a::linorder. (z <= max x y) = (z <= x | z <= y)"
-  apply(simp add:max_def)
-  apply (insert linorder_linear)
-  apply (blast intro: order_trans)
-  done
-
-lemmas le_maxI1 = min_max.sup_ge1
-lemmas le_maxI2 = min_max.sup_ge2
-
-lemma less_max_iff_disj: "!!z::'a::linorder. (z < max x y) = (z < x | z < y)"
-  apply (simp add: max_def order_le_less)
-  apply (insert linorder_less_linear)
-  apply (blast intro: order_less_trans)
-  done
-
-lemma max_less_iff_conj [simp]:
-    "!!z::'a::linorder. (max x y < z) = (x < z & y < z)"
-  apply (simp add: order_le_less max_def)
-  apply (insert linorder_less_linear)
-  apply (blast intro: order_less_trans)
-  done
-
-lemma min_less_iff_conj [simp]:
-    "!!z::'a::linorder. (z < min x y) = (z < x & z < y)"
-  apply (simp add: order_le_less min_def)
-  apply (insert linorder_less_linear)
-  apply (blast intro: order_less_trans)
-  done
-
-lemma min_le_iff_disj: "!!z::'a::linorder. (min x y <= z) = (x <= z | y <= z)"
-  apply (simp add: min_def)
-  apply (insert linorder_linear)
-  apply (blast intro: order_trans)
-  done
-
-lemma min_less_iff_disj: "!!z::'a::linorder. (min x y < z) = (x < z | y < z)"
-  apply (simp add: min_def order_le_less)
-  apply (insert linorder_less_linear)
-  apply (blast intro: order_less_trans)
-  done
-
-lemmas max_ac = min_max.sup_assoc min_max.sup_commute
-               mk_left_commute[of max,OF min_max.sup_assoc min_max.sup_commute]
-
-lemmas min_ac = min_max.inf_assoc min_max.inf_commute
-               mk_left_commute[of min,OF min_max.inf_assoc min_max.inf_commute]
-
-lemma split_min:
-    "P (min (i::'a::linorder) j) = ((i <= j --> P(i)) & (~ i <= j --> P(j)))"
-  by (simp add: min_def)
-
-lemma split_max:
-    "P (max (i::'a::linorder) j) = ((i <= j --> P(j)) & (~ i <= j --> P(i)))"
-  by (simp add: max_def)
 
 end
