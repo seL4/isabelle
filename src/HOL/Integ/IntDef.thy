@@ -564,7 +564,7 @@ by (simp add: linorder_not_less neg_def)
 subsection{*The Set of Natural Numbers*}
 
 constdefs
-  Nats  :: "'a::comm_semiring_1_cancel set"
+  Nats  :: "'a::semiring_1_cancel set"
   "Nats == range of_nat"
 
 notation (xsymbols)
@@ -611,11 +611,11 @@ proof
 qed
 
 
-subsection{*Embedding of the Integers into any @{text comm_ring_1}:
+subsection{*Embedding of the Integers into any @{text ring_1}:
 @{term of_int}*}
 
 constdefs
-   of_int :: "int => 'a::comm_ring_1"
+   of_int :: "int => 'a::ring_1"
    "of_int z == contents (\<Union>(i,j) \<in> Rep_Integ z. { of_nat i - of_nat j })"
 
 
@@ -673,7 +673,7 @@ lemmas of_int_less_0_iff = of_int_less_iff [of _ 0, simplified]
 declare of_int_0_less_iff [simp]
 declare of_int_less_0_iff [simp]
 
-text{*The ordering on the @{text comm_ring_1} is necessary.
+text{*The ordering on the @{text ring_1} is necessary.
  See @{text of_nat_eq_iff} above.*}
 lemma of_int_eq_iff [simp]:
      "(of_int w = (of_int z::'a::ordered_idom)) = (w = z)"
@@ -697,7 +697,7 @@ qed
 subsection{*The Set of Integers*}
 
 constdefs
-  Ints  :: "'a::comm_ring_1 set"
+  Ints  :: "'a::ring_1 set"
   "Ints == range of_int"
 
 notation (xsymbols)

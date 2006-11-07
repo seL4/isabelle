@@ -164,9 +164,9 @@ val diff_Suc_diff_eq2 = thm "diff_Suc_diff_eq2";
 *}
 
 subsection{*Embedding of the Naturals into any @{text
-comm_semiring_1_cancel}: @{term of_nat}*}
+semiring_1_cancel}: @{term of_nat}*}
 
-consts of_nat :: "nat => 'a::comm_semiring_1_cancel"
+consts of_nat :: "nat => 'a::semiring_1_cancel"
 
 primrec
   of_nat_0:   "of_nat 0 = 0"
@@ -182,7 +182,7 @@ done
 
 lemma of_nat_mult [simp]: "of_nat (m*n) = of_nat m * of_nat n"
 apply (induct m)
-apply (simp_all add: mult_ac add_ac right_distrib)
+apply (simp_all add: add_ac left_distrib)
 done
 
 lemma zero_le_imp_of_nat: "0 \<le> (of_nat m::'a::ordered_semidom)"
@@ -224,7 +224,7 @@ lemmas of_nat_le_0_iff = of_nat_le_iff [of _ 0, simplified]
 declare of_nat_0_le_iff [simp]
 declare of_nat_le_0_iff [simp]
 
-text{*The ordering on the @{text comm_semiring_1_cancel} is necessary
+text{*The ordering on the @{text semiring_1_cancel} is necessary
 to exclude the possibility of a finite field, which indeed wraps back to
 zero.*}
 lemma of_nat_eq_iff [simp]:
@@ -238,7 +238,7 @@ declare of_nat_0_eq_iff [simp]
 declare of_nat_eq_0_iff [simp]
 
 lemma of_nat_diff [simp]:
-     "n \<le> m ==> of_nat (m - n) = of_nat m - (of_nat n :: 'a::comm_ring_1)"
+     "n \<le> m ==> of_nat (m - n) = of_nat m - (of_nat n :: 'a::ring_1)"
 by (simp del: of_nat_add
 	 add: compare_rls of_nat_add [symmetric] split add: nat_diff_split)
 
