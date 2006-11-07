@@ -438,11 +438,11 @@ definition
   ceiling :: "real => int"
   "ceiling r = - floor (- r)"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   floor  ("\<lfloor>_\<rfloor>")
   ceiling  ("\<lceil>_\<rceil>")
 
-const_syntax (HTML output)
+notation (HTML output)
   floor  ("\<lfloor>_\<rfloor>")
   ceiling  ("\<lceil>_\<rceil>")
 

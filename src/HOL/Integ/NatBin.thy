@@ -23,10 +23,10 @@ abbreviation (xsymbols)
   square :: "'a::power => 'a"  ("(_\<twosuperior>)" [1000] 999)
   "x\<twosuperior> == x^2"
 
-const_syntax (latex output)
+notation (latex output)
   square  ("(_\<twosuperior>)" [1000] 999)
 
-const_syntax (HTML output)
+notation (HTML output)
   square  ("(_\<twosuperior>)" [1000] 999)
 
 

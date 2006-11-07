@@ -10,7 +10,7 @@ imports Main
 begin
 
 (* LOGIC *)
-const_syntax (latex output)
+notation (latex output)
   If  ("(\<^raw:\textsf{>if\<^raw:}> (_)/ \<^raw:\textsf{>then\<^raw:}> (_)/ \<^raw:\textsf{>else\<^raw:}> (_))" 10)
 
 syntax (latex output)
@@ -52,15 +52,15 @@ translations
 (* LISTS *)
 
 (* Cons *)
-const_syntax (latex)
+notation (latex)
   Cons  ("_\<cdot>/_" [66,65] 65)
 
 (* length *)
-const_syntax (latex output)
+notation (latex output)
   length  ("|_|")
 
 (* nth *)
-const_syntax (latex output)
+notation (latex output)
   nth  ("_\<^raw:\ensuremath{_{[\mathit{>_\<^raw:}]}}>" [1000,0] 1000)
 
 (* DUMMY *)

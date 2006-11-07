@@ -22,7 +22,7 @@ locale subspace = var U + var V +
     and add_closed [iff]: "x \<in> U \<Longrightarrow> y \<in> U \<Longrightarrow> x + y \<in> U"
     and mult_closed [iff]: "x \<in> U \<Longrightarrow> a \<cdot> x \<in> U"
 
-const_syntax (symbols)
+notation (symbols)
   subspace  (infix "\<unlhd>" 50)
 
 declare vectorspace.intro [intro?] subspace.intro [intro?]

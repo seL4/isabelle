@@ -354,11 +354,11 @@ definition
   Alm_all  :: "('a \<Rightarrow> bool) \<Rightarrow> bool"      (binder "MOST " 10)
   "Alm_all P = (\<not> (INF x. \<not> P x))"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10)
   Alm_all  (binder "\<forall>\<^sub>\<infinity>" 10)
 
-const_syntax (HTML output)
+notation (HTML output)
   Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10)
   Alm_all  (binder "\<forall>\<^sub>\<infinity>" 10)
 

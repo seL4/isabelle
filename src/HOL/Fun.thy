@@ -48,10 +48,10 @@ constdefs
   comp :: "['b => 'c, 'a => 'b, 'a] => 'c"   (infixl "o" 55)
   "f o g == %x. f(g(x))"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   comp  (infixl "\<circ>" 55)
 
-const_syntax (HTML output)
+notation (HTML output)
   comp  (infixl "\<circ>" 55)
 
 text{*compatibility*}

@@ -37,7 +37,7 @@ definition
   Join :: "'a::complete_lattice set \<Rightarrow> 'a"
   "Join A = (THE sup. is_Sup A sup)"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   Meet  ("\<Sqinter>_" [90] 90)
   Join  ("\<Squnion>_" [90] 90)
 

@@ -44,7 +44,7 @@ abbreviation
   divideR :: "'a \<Rightarrow> real \<Rightarrow> 'a::scaleR" (infixl "'/#" 70)
   "x /# r == inverse r *# x"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   scaleR (infixr "*\<^sub>R" 75)
   divideR (infixl "'/\<^sub>R" 70)
 
@@ -253,7 +253,7 @@ definition
   Reals :: "'a::real_algebra_1 set"
   "Reals \<equiv> range of_real"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   Reals  ("\<real>")
 
 lemma of_real_in_Reals [simp]: "of_real r \<in> Reals"

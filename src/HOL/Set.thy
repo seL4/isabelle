@@ -37,7 +37,7 @@ consts
   image         :: "('a => 'b) => 'a set => 'b set"      (infixr "`" 90)
   "op :"        :: "'a => 'a set => bool"                -- "membership"
 
-const_syntax
+notation
   "op :"  ("op :")
   "op :"  ("(_/ : _)" [50, 51] 50)
 
@@ -55,11 +55,11 @@ abbreviation
 abbreviation
   "not_mem x A == ~ (x : A)"                  -- "non-membership"
 
-const_syntax
+notation
   not_mem  ("op ~:")
   not_mem  ("(_/ ~: _)" [50, 51] 50)
 
-const_syntax (xsymbols)
+notation (xsymbols)
   "op Int"  (infixl "\<inter>" 70)
   "op Un"  (infixl "\<union>" 65)
   "op :"  ("op \<in>")
@@ -69,7 +69,7 @@ const_syntax (xsymbols)
   Union  ("\<Union>_" [90] 90)
   Inter  ("\<Inter>_" [90] 90)
 
-const_syntax (HTML output)
+notation (HTML output)
   "op Int"  (infixl "\<inter>" 70)
   "op Un"  (infixl "\<union>" 65)
   "op :"  ("op \<in>")
@@ -83,19 +83,19 @@ abbreviation
   subset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
   "subset_eq == less_eq"
 
-const_syntax (output)
+notation (output)
   subset  ("op <")
   subset  ("(_/ < _)" [50, 51] 50)
   subset_eq  ("op <=")
   subset_eq  ("(_/ <= _)" [50, 51] 50)
 
-const_syntax (xsymbols)
+notation (xsymbols)
   subset  ("op \<subset>")
   subset  ("(_/ \<subset> _)" [50, 51] 50)
   subset_eq  ("op \<subseteq>")
   subset_eq  ("(_/ \<subseteq> _)" [50, 51] 50)
 
-const_syntax (HTML output)
+notation (HTML output)
   subset  ("op \<subset>")
   subset  ("(_/ \<subset> _)" [50, 51] 50)
   subset_eq  ("op \<subseteq>")

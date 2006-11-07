@@ -18,7 +18,7 @@ definition
   the_lub :: "'a::order set \<Rightarrow> 'a"
   "the_lub A = The (lub A)"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   the_lub  ("\<Squnion>_" [90] 90)
 
 lemma the_lub_equality [elim?]:

@@ -30,7 +30,7 @@ definition
   join :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "||" 65)
   "x || y = (THE sup. is_sup x y sup)"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   meet  (infixl "\<sqinter>" 70)
   join  (infixl "\<squnion>" 65)
 

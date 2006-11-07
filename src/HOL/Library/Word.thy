@@ -56,13 +56,13 @@ consts
   bitor  :: "bit => bit => bit" (infixr "bitor"  30)
   bitxor :: "bit => bit => bit" (infixr "bitxor" 30)
 
-const_syntax (xsymbols)
+notation (xsymbols)
   bitnot ("\<not>\<^sub>b _" [40] 40)
   bitand (infixr "\<and>\<^sub>b" 35)
   bitor  (infixr "\<or>\<^sub>b" 30)
   bitxor (infixr "\<oplus>\<^sub>b" 30)
 
-const_syntax (HTML output)
+notation (HTML output)
   bitnot ("\<not>\<^sub>b _" [40] 40)
   bitand (infixr "\<and>\<^sub>b" 35)
   bitor  (infixr "\<or>\<^sub>b" 30)

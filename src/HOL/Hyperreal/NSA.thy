@@ -40,10 +40,10 @@ definition
   galaxy    :: "'a::real_normed_vector star => 'a star set"
   "galaxy x = {y. (x + -y) \<in> HFinite}"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   approx  (infixl "\<approx>" 50)
 
-const_syntax (HTML output)
+notation (HTML output)
   approx  (infixl "\<approx>" 50)
 
 lemma SReal_def: "Reals == {x. \<exists>r. x = hypreal_of_real r}"

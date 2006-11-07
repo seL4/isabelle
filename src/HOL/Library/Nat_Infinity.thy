@@ -19,10 +19,10 @@ text {*
 
 datatype inat = Fin nat | Infty
 
-const_syntax (xsymbols)
+notation (xsymbols)
   Infty  ("\<infinity>")
 
-const_syntax (HTML output)
+notation (HTML output)
   Infty  ("\<infinity>")
 
 instance inat :: "{ord, zero}" ..

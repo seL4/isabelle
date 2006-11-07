@@ -62,7 +62,7 @@ abbreviation
   beta_reds :: "[dB, dB] => bool"  (infixl "->>" 50)
   "s ->> t == (s, t) \<in> beta^*"
 
-const_syntax (latex)
+notation (latex)
   beta_red  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
   beta_reds  (infixl "\<rightarrow>\<^sub>\<beta>\<^sup>*" 50)
 

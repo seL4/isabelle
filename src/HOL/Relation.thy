@@ -16,7 +16,7 @@ definition
   converse :: "('a * 'b) set => ('b * 'a) set"    ("(_^-1)" [1000] 999)
   "r^-1 == {(y, x). (x, y) : r}"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   converse  ("(_\<inverse>)" [1000] 999)
 
 definition

@@ -15,10 +15,10 @@ definition
   shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"    ("_<_:_>" [90, 0, 0] 91)
   "e<i:a> = (\<lambda>j. if j < i then e j else if j = i then a else e (j - 1))"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   shift  ("_\<langle>_:_\<rangle>" [90, 0, 0] 91)
 
-const_syntax (HTML output)
+notation (HTML output)
   shift  ("_\<langle>_:_\<rangle>" [90, 0, 0] 91)
 
 lemma shift_eq [simp]: "i = j \<Longrightarrow> (e\<langle>i:T\<rangle>) j = T"
@@ -60,10 +60,10 @@ abbreviation
     ("_ ||- _ : _" [50, 50, 50] 50)
   "env ||- ts : Ts == typings env ts Ts"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   typing_rel  ("_ \<turnstile> _ : _" [50, 50, 50] 50)
 
-const_syntax (latex)
+notation (latex)
   funs  (infixr "\<Rrightarrow>" 200)
   typings_rel  ("_ \<tturnstile> _ : _" [50, 50, 50] 50)
 

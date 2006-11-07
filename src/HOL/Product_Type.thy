@@ -113,10 +113,10 @@ abbreviation
   Times :: "['a set, 'b set] => ('a * 'b) set"  (infixr "<*>" 80)
   "A <*> B == Sigma A (%_. B)"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   Times  (infixr "\<times>" 80)
 
-const_syntax (HTML output)
+notation (HTML output)
   Times  (infixr "\<times>" 80)
 
 

@@ -26,9 +26,9 @@ abbreviation
   msg_rel :: "[freemsg, freemsg] => bool"  (infixl "~~" 50)
   "X ~~ Y == (X,Y) \<in> msgrel"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   msg_rel  (infixl "\<sim>" 50)
-const_syntax (HTML output)
+notation (HTML output)
   msg_rel  (infixl "\<sim>" 50)
 
 text{*The first two rules are the desired equations. The next four rules

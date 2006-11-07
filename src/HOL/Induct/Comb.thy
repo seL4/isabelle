@@ -25,7 +25,7 @@ datatype comb = K
               | S
               | Ap comb comb (infixl "##" 90)
 
-const_syntax (xsymbols)
+notation (xsymbols)
   Ap  (infixl "\<bullet>" 90)
 
 

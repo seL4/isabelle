@@ -39,7 +39,7 @@ abbreviation
   fsfilter' :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"	("(_'(C')_)" [64,63] 63)
   "A(C)s == fsfilter A\<cdot>s"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   fsfilter'  ("(_\<copyright>_)" [64,63] 63)
 
 

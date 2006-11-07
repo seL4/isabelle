@@ -25,11 +25,11 @@ definition
   epsilon :: hypreal   -- {*an infinitesimal number @{text "= [<1,1/2,1/3,...>]"} *}
   "epsilon = star_n (%n. inverse (real (Suc n)))"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   omega  ("\<omega>")
   epsilon  ("\<epsilon>")
 
-const_syntax (HTML output)
+notation (HTML output)
   omega  ("\<omega>")
   epsilon  ("\<epsilon>")
 

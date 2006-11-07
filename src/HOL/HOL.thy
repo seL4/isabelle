@@ -54,24 +54,24 @@ consts
 
 subsubsection {* Additional concrete syntax *}
 
-const_syntax (output)
+notation (output)
   "op ="  (infix "=" 50)
 
 abbreviation
   not_equal     :: "['a, 'a] => bool"               (infixl "~=" 50)
   "x ~= y == ~ (x = y)"
 
-const_syntax (output)
+notation (output)
   not_equal  (infix "~=" 50)
 
-const_syntax (xsymbols)
+notation (xsymbols)
   Not  ("\<not> _" [40] 40)
   "op &"  (infixr "\<and>" 35)
   "op |"  (infixr "\<or>" 30)
   "op -->"  (infixr "\<longrightarrow>" 25)
   not_equal  (infix "\<noteq>" 50)
 
-const_syntax (HTML output)
+notation (HTML output)
   Not  ("\<not> _" [40] 40)
   "op &"  (infixr "\<and>" 35)
   "op |"  (infixr "\<or>" 30)
@@ -81,7 +81,7 @@ abbreviation (iff)
   iff :: "[bool, bool] => bool"  (infixr "<->" 25)
   "A <-> B == A = B"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   iff  (infixr "\<longleftrightarrow>" 25)
 
 
@@ -215,12 +215,12 @@ let
 in map (tr' o Sign.const_syntax_name (the_context ())) ["HOL.one", "HOL.zero"] end;
 *} -- {* show types that are presumably too general *}
 
-const_syntax
+notation
   uminus  ("- _" [81] 80)
 
-const_syntax (xsymbols)
+notation (xsymbols)
   abs  ("\<bar>_\<bar>")
-const_syntax (HTML output)
+notation (HTML output)
   abs  ("\<bar>_\<bar>")
 
 

@@ -48,10 +48,10 @@ abbreviation
   not_equal     :: "['a, 'a] => o"              (infixl "~=" 50)
   "x ~= y == ~ (x = y)"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   not_equal  (infixl "\<noteq>" 50)
 
-const_syntax (HTML output)
+notation (HTML output)
   not_equal  (infixl "\<noteq>" 50)
 
 syntax (xsymbols)

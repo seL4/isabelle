@@ -40,12 +40,12 @@ abbreviation
   reflcl :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_^=)" [1000] 999)
   "r^= == r \<union> Id"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   rtrancl  ("(_\<^sup>*)" [1000] 999)
   trancl  ("(_\<^sup>+)" [1000] 999)
   reflcl  ("(_\<^sup>=)" [1000] 999)
 
-const_syntax (HTML output)
+notation (HTML output)
   rtrancl  ("(_\<^sup>*)" [1000] 999)
   trancl  ("(_\<^sup>+)" [1000] 999)
   reflcl  ("(_\<^sup>=)" [1000] 999)

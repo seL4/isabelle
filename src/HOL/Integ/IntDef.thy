@@ -567,7 +567,7 @@ constdefs
   Nats  :: "'a::comm_semiring_1_cancel set"
   "Nats == range of_nat"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   Nats  ("\<nat>")
 
 lemma of_nat_in_Nats [simp]: "of_nat n \<in> Nats"
@@ -700,7 +700,7 @@ constdefs
   Ints  :: "'a::comm_ring_1 set"
   "Ints == range of_int"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   Ints  ("\<int>")
 
 lemma Ints_0 [simp]: "0 \<in> Ints"

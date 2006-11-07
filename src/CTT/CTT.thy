@@ -70,13 +70,13 @@ abbreviation
   Times     :: "[t,t]=>t"           (infixr "*" 50)
   "A * B == SUM _:A. B"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   Elem  ("(_ /\<in> _)" [10,10] 5)
   Eqelem  ("(2_ =/ _ \<in>/ _)" [10,10,10] 5)
   Arrow  (infixr "\<longrightarrow>" 30)
   Times  (infixr "\<times>" 50)
 
-const_syntax (HTML output)
+notation (HTML output)
   Elem  ("(_ /\<in> _)" [10,10] 5)
   Eqelem  ("(2_ =/ _ \<in>/ _)" [10,10,10] 5)
   Times  (infixr "\<times>" 50)

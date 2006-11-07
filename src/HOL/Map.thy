@@ -26,7 +26,7 @@ definition
   map_comp :: "('b ~=> 'c)  => ('a ~=> 'b) => ('a ~=> 'c)"  (infixl "o'_m" 55)
   "f o_m g = (\<lambda>k. case g k of None \<Rightarrow> None | Some v \<Rightarrow> f v)"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   map_comp  (infixl "\<circ>\<^sub>m" 55)
 
 definition
@@ -36,7 +36,7 @@ definition
   restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)"  (infixl "|`"  110)
   "m|`A = (\<lambda>x. if x : A then m x else None)"
 
-const_syntax (latex output)
+notation (latex output)
   restrict_map  ("_\<restriction>\<^bsub>_\<^esub>" [111,110] 110)
 
 definition

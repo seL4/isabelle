@@ -32,10 +32,10 @@ definition
   "a div b == rec(a, 0, %u v. rec(succ(u) mod b, succ(v), %x y. v))"
 
 
-const_syntax (xsymbols)
+notation (xsymbols)
   mult  (infixr "#\<times>" 70)
 
-const_syntax (HTML output)
+notation (HTML output)
   mult (infixr "#\<times>" 70)
 
 

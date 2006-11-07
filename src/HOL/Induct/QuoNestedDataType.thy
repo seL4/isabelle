@@ -24,9 +24,9 @@ abbreviation
   exp_rel :: "[freeExp, freeExp] => bool"  (infixl "~~" 50)
   "X ~~ Y == (X,Y) \<in> exprel"
 
-const_syntax (xsymbols)
+notation (xsymbols)
   exp_rel  (infixl "\<sim>" 50)
-const_syntax (HTML output)
+notation (HTML output)
   exp_rel  (infixl "\<sim>" 50)
 
 text{*The first rule is the desired equation. The next three rules
