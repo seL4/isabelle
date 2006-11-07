@@ -465,8 +465,7 @@ fun fix_globals domT ranT fvar ctxt =
 
 fun inst_RC thy fvar f (rcfix, rcassm, rcarg) =
     let
-      fun inst_term t = 
-          subst_bound(f, abstract_over (fvar, t))
+      fun inst_term t = subst_bound(f, abstract_over (fvar, t))
     in
       (rcfix, map (assume o cterm_of thy o inst_term o prop_of) rcassm, inst_term rcarg)
     end

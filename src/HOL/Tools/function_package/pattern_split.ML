@@ -12,10 +12,10 @@ turns a specification with overlaps into an overlap-free specification.
 signature FUNDEF_SPLIT =
 sig
   val split_some_equations :
-    Proof.context -> (bool * term) list -> term list list
+      Proof.context -> (bool * term) list -> term list list
 
   val split_all_equations :
-    Proof.context -> term list -> term list list
+      Proof.context -> term list -> term list list
 end
 
 structure FundefSplit : FUNDEF_SPLIT =
@@ -36,16 +36,16 @@ fun new_var ctx vs T =
 fun saturate ctx vs t =
     fold (fn T => fn (vs, t) => new_var ctx vs T |> apsnd (curry op $ t))
          (binder_types (fastype_of t)) (vs, t)
-
-
+         
+         
 (* This is copied from "fundef_datatype.ML" *)
 fun inst_constrs_of thy (T as Type (name, _)) =
-        map (fn (Cn,CT) => Envir.subst_TVars (Sign.typ_match thy (body_type CT, T) Vartab.empty) (Const (Cn, CT)))
-            (the (DatatypePackage.get_datatype_constrs thy name))
+    map (fn (Cn,CT) => Envir.subst_TVars (Sign.typ_match thy (body_type CT, T) Vartab.empty) (Const (Cn, CT)))
+        (the (DatatypePackage.get_datatype_constrs thy name))
   | inst_constrs_of thy t = (print t; sys_error "inst_constrs_of")
-
-
-
+                            
+                            
+                            
 
 fun join ((vs1,sub1), (vs2,sub2)) = (merge (op aconv) (vs1,vs2), sub1 @ sub2)
 fun join_product (xs, ys) = map join (product xs ys)
@@ -91,12 +91,12 @@ fun pattern_subtract_subst ctx vs t t' =
 fun pattern_subtract ctx eq2 eq1 =
     let
       val thy = ProofContext.theory_of ctx
-      
+                
       val (vs, feq1 as (_ $ (_ $ lhs1 $ _))) = dest_all_all eq1
       val (_,  _ $ (_ $ lhs2 $ _)) = dest_all_all eq2
-
+                                     
       val substs = pattern_subtract_subst ctx vs lhs1 lhs2
-
+                   
       fun instantiate (vs', sigma) =
           let
             val t = Pattern.rewrite_term thy sigma [] feq1
@@ -106,7 +106,7 @@ fun pattern_subtract ctx eq2 eq1 =
     in
       map instantiate substs
     end
-
+      
 
 (* ps - p' *)
 fun pattern_subtract_from_many ctx p'=
@@ -128,7 +128,7 @@ fun split_some_equations ctx eqns =
     in
       split_aux [] eqns
     end
-
+    
 fun split_all_equations ctx =
     split_some_equations ctx o map (pair true)
 

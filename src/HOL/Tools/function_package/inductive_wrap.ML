@@ -3,21 +3,8 @@
     Author:     Alexander Krauss, TU Muenchen
 
 
-This is a wrapper around the inductive package which corrects some of its
-slightly annoying behaviours and makes the whole business more controllable.
-
-Specifically:
-
-- Following newer Isar conventions, declaration and definition are done in one step
-
-- The specification is expected in fully quantified form. This allows the client to 
-  control the variable order. The variables will appear in the result in the same order.
-  This is especially relevant for the elimination rule, where the order usually *does* matter.
-
-
-All this will probably become obsolete in the near future, when the new "predicate" package
-is in place.
-
+A wrapper around the inductive package, restoring the quantifiers in
+the introduction and elimination rules.
 *)
 
 signature FUNDEF_INDUCTIVE_WRAP =
@@ -36,7 +23,7 @@ fun requantify ctxt lfix (qs, t) thm =
     let
       val thy = theory_of_thm thm
       val frees = frees_in_term ctxt t 
-                                  |> remove (op =) lfix
+                  |> remove (op =) lfix
       val vars = Term.add_vars (prop_of thm) [] |> rev
                  
       val varmap = frees ~~ vars

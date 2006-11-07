@@ -17,18 +17,18 @@ fun mk_forall v t = all (fastype_of v) $ lambda v t
 (* Constructs a tupled abstraction from an arbitrarily nested tuple of variables and a term. *)
 fun tupled_lambda vars t =
     case vars of
-	    (Free v) => lambda (Free v) t
+      (Free v) => lambda (Free v) t
     | (Var v) => lambda (Var v) t
     | (Const ("Pair", Type ("fun", [Ta, Type ("fun", [Tb, _])]))) $ us $ vs =>  
-	    (HOLogic.split_const (Ta,Tb, fastype_of t)) $ (tupled_lambda us (tupled_lambda vs t))
+      (HOLogic.split_const (Ta,Tb, fastype_of t)) $ (tupled_lambda us (tupled_lambda vs t))
     | _ => raise Match
                  
                  
 fun dest_all (Const ("all", _) $ Abs (a as (_,T,_))) =
     let
-	    val (n, body) = Term.dest_abs a
+      val (n, body) = Term.dest_abs a
     in
-	    (Free (n, T), body)
+      (Free (n, T), body)
     end
   | dest_all _ = raise Match
                          
@@ -36,10 +36,10 @@ fun dest_all (Const ("all", _) $ Abs (a as (_,T,_))) =
 (* Removes all quantifiers from a term, replacing bound variables by frees. *)
 fun dest_all_all (t as (Const ("all",_) $ _)) = 
     let
-	val (v,b) = dest_all t
-	val (vs, b') = dest_all_all b
+  val (v,b) = dest_all t
+  val (vs, b') = dest_all_all b
     in
-	(v :: vs, b')
+  (v :: vs, b')
     end
   | dest_all_all t = ([],t)
 
@@ -54,7 +54,7 @@ fun dest_all_all_ctx ctx (Const ("all", _) $ Abs (a as (n,T,b))) =
 
       val (ctx'', vs, bd) = dest_all_all_ctx ctx' body
     in
-	(ctx'', (n', T) :: vs, bd)
+      (ctx'', (n', T) :: vs, bd)
     end
   | dest_all_all_ctx ctx t = 
     (ctx, [], t)

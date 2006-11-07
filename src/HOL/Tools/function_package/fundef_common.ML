@@ -97,35 +97,35 @@ fun name_of_fqgar (f, _, _, _, _) = f
 
 datatype mutual_part =
   MutualPart of 
-	 {
-          fvar : string * typ,
-	  cargTs: typ list,
-	  pthA: SumTools.sum_path,
-	  pthR: SumTools.sum_path,
-	  f_def: term,
+   {
+    fvar : string * typ,
+    cargTs: typ list,
+    pthA: SumTools.sum_path,
+    pthR: SumTools.sum_path,
+    f_def: term,
 
-	  f: term option,
-          f_defthm : thm option
-	 }
-	 
+    f: term option,
+    f_defthm : thm option
+   }
+   
 
 datatype mutual_info =
   Mutual of 
-	 { 
-	  defname: string,
-          fsum_var : string * typ,
+   { 
+    defname: string,
+    fsum_var : string * typ,
 
-	  ST: typ,
-	  RST: typ,
-	  streeA: SumTools.sum_tree,
-	  streeR: SumTools.sum_tree,
+    ST: typ,
+    RST: typ,
+    streeA: SumTools.sum_tree,
+    streeR: SumTools.sum_tree,
 
-	  parts: mutual_part list,
-	  fqgars: qgar list,
-	  qglrs: ((string * typ) list * term list * term * term) list,
+    parts: mutual_part list,
+    fqgars: qgar list,
+    qglrs: ((string * typ) list * term list * term * term) list,
 
-          fsum : term option
-	 }
+    fsum : term option
+   }
 
 
 datatype prep_result =
@@ -299,12 +299,12 @@ fun mk_subset T A B =
 (* with explicit types: Needed with loose bounds *)
 fun mk_relmemT xT yT (x,y) R = 
     let 
-	val pT = HOLogic.mk_prodT (xT, yT)
-	val RT = HOLogic.mk_setT pT
+  val pT = HOLogic.mk_prodT (xT, yT)
+  val RT = HOLogic.mk_setT pT
     in
-	Const ("op :", [pT, RT] ---> boolT)
-	      $ (HOLogic.pair_const xT yT $ x $ y)
-	      $ R
+  Const ("op :", [pT, RT] ---> boolT)
+        $ (HOLogic.pair_const xT yT $ x $ y)
+        $ R
     end
 
 fun free_to_var (Free (v,T)) = Var ((v,0),T)

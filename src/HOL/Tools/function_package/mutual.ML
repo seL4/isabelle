@@ -50,7 +50,7 @@ fun open_all_all (Const ("all", _) $ Abs (n, T, b)) = apfst (cons (n, T)) (open_
 fun split_def ctxt fnames geq arities =
     let
       fun input_error msg = error (cat_lines [msg, ProofContext.string_of_term ctxt geq])
-
+                            
       val (qs, imp) = open_all_all geq
 
       val gs = Logic.strip_imp_prems imp
@@ -69,7 +69,7 @@ fun split_def ctxt fnames geq arities =
       fun add_bvs t is = add_loose_bnos (t, 0, is)
       val rvs = (add_bvs rhs [] \\ fold add_bvs args [])
                   |> map (fst o nth (rev qs))
-
+                
       val _ = if null rvs then ()
               else input_error ("Variable" ^ plural " " "s " rvs ^ commas_quote rvs
                                 ^ " occur" ^ plural "s" "" rvs ^ " on right hand side only:")
@@ -83,17 +83,17 @@ fun split_def ctxt fnames geq arities =
       val k = length args
 
       val arities' = case Symtab.lookup arities fname of
-                   NONE => Symtab.update (fname, k) arities
-                 | SOME i => if (i <> k)
-                             then input_error ("Function " ^ quote fname ^ " has different numbers of arguments in different equations")
-                             else arities
+                       NONE => Symtab.update (fname, k) arities
+                     | SOME i => if (i <> k)
+                                 then input_error ("Function " ^ quote fname ^ " has different numbers of arguments in different equations")
+                                 else arities
     in
-        ((fname, qs, gs, args, rhs), arities')
+      ((fname, qs, gs, args, rhs), arities')
     end
-
+    
 fun get_part fname =
     the o find_first (fn (MutualPart {fvar=(n,_), ...}) => n = fname)
-
+                     
 (* FIXME *)
 fun mk_prod_abs e (t1, t2) =
     let
@@ -141,7 +141,7 @@ fun analyze_eqs ctxt fs eqs =
             in
                 (MutualPart {fvar=fvar,cargTs=caTs,pthA=pthA,pthR=pthR,f_def=def,f=NONE,f_defthm=NONE}, rew)
             end
-
+            
         val (parts, rews) = split_list (map4 define fs caTss pthsA pthsR)
 
         fun convert_eqs (f, qs, gs, args, rhs) =
@@ -171,10 +171,10 @@ fun define_projections fixes mutual fsum lthy =
                                                               lthy
           in
             (MutualPart {fvar=(fname, fT), cargTs=cargTs, pthA=pthA, pthR=pthR, f_def=f_def,
-                        f=SOME f, f_defthm=SOME f_defthm },
+                         f=SOME f, f_defthm=SOME f_defthm },
              lthy')
           end
-
+          
       val Mutual { defname, fsum_var, ST, RST, streeA, streeR, parts, fqgars, qglrs, ... } = mutual
       val (parts', lthy') = fold_map def (parts ~~ fixes) lthy
     in
@@ -186,39 +186,39 @@ fun define_projections fixes mutual fsum lthy =
 
 fun prepare_fundef_mutual fixes eqss default lthy =
     let
-        val mutual = analyze_eqs lthy (map fst fixes) eqss
-        val Mutual {defname, fsum_var=(n, T), qglrs, ...} = mutual
-
-        val (prep_result, fsum, lthy') =
-            FundefPrep.prepare_fundef defname (n, T, NoSyn) qglrs default lthy
-
-        val (mutual', lthy'') = define_projections fixes mutual fsum lthy'
+      val mutual = analyze_eqs lthy (map fst fixes) eqss
+      val Mutual {defname, fsum_var=(n, T), qglrs, ...} = mutual
+          
+      val (prep_result, fsum, lthy') =
+          FundefPrep.prepare_fundef defname (n, T, NoSyn) qglrs default lthy
+          
+      val (mutual', lthy'') = define_projections fixes mutual fsum lthy'
     in
       ((mutual', defname, prep_result), lthy'')
     end
-
+      
 
 (* Beta-reduce both sides of a meta-equality *)
 fun beta_norm_eq thm =
     let
-        val (lhs, rhs) = dest_equals (cprop_of thm)
-        val lhs_conv = beta_conversion false lhs
-        val rhs_conv = beta_conversion false rhs
+      val (lhs, rhs) = dest_equals (cprop_of thm)
+      val lhs_conv = beta_conversion false lhs
+      val rhs_conv = beta_conversion false rhs
     in
-        transitive (symmetric lhs_conv) (transitive thm rhs_conv)
+      transitive (symmetric lhs_conv) (transitive thm rhs_conv)
     end
-
+    
 fun beta_reduce thm = Thm.equal_elim (Thm.beta_conversion true (cprop_of thm)) thm
-
-
+                      
+                      
 fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
     let
       val thy = ProofContext.theory_of ctxt
-
+                
       val oqnames = map fst pre_qs
       val (qs, ctxt') = Variable.variant_fixes oqnames ctxt
-                                           |>> map2 (fn (_, T) => fn n => Free (n, T)) pre_qs
-
+                        |>> map2 (fn (_, T) => fn n => Free (n, T)) pre_qs
+                        
       fun inst t = subst_bounds (rev qs, t)
       val gs = map inst pre_gs
       val args = map inst pre_args
@@ -240,7 +240,7 @@ fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
 fun recover_mutual_psimp thy RST streeR all_f_defs parts (f, _, _, args, _) import (export : thm -> thm) sum_psimp_eq =
     let
       val (MutualPart {f_defthm=SOME f_def, pthR, ...}) = get_part f parts
-
+          
       val psimp = import sum_psimp_eq
       val (simp, restore_cond) = case cprems_of psimp of
                                    [] => (psimp, I)
@@ -275,46 +275,46 @@ fun mk_applied_form ctxt caTs thm =
            |> fold_rev forall_intr xs
            |> forall_elim_vars 0
     end
-
+    
 
 fun mutual_induct_rules thy induct all_f_defs (Mutual {RST, parts, streeA, ...}) =
     let
       val newPs = map2 (fn Pname => fn MutualPart {cargTs, ...} => 
-                                   Free (Pname, cargTs ---> HOLogic.boolT))
+                                       Free (Pname, cargTs ---> HOLogic.boolT))
                        (mutual_induct_Pnames (length parts))
                        parts
-
-        fun mk_P (MutualPart {cargTs, ...}) P =
-            let
-                val avars = map_index (fn (i,T) => Var (("a", i), T)) cargTs
-                val atup = foldr1 HOLogic.mk_prod avars
-            in
-                tupled_lambda atup (list_comb (P, avars))
-            end
-
-        val Ps = map2 mk_P parts newPs
-        val case_exp = SumTools.mk_sumcases streeA HOLogic.boolT Ps
-
-        val induct_inst =
-            forall_elim (cterm_of thy case_exp) induct
-                        |> full_simplify (HOL_basic_ss addsimps (split_apply :: sum_case_rules))
-                        |> full_simplify (HOL_basic_ss addsimps all_f_defs)
-
-        fun mk_proj rule (MutualPart {cargTs, pthA, ...}) =
-            let
-                val afs = map_index (fn (i,T) => Free ("a" ^ string_of_int i, T)) cargTs
-                val inj = SumTools.mk_inj streeA pthA (foldr1 HOLogic.mk_prod afs)
-            in
-                rule
-                    |> forall_elim (cterm_of thy inj)
-                    |> full_simplify (HOL_basic_ss addsimps (split_apply :: sum_case_rules))
-                    |> fold_rev (forall_intr o cterm_of thy) (afs @ newPs)
-            end
-
+                       
+      fun mk_P (MutualPart {cargTs, ...}) P =
+          let
+            val avars = map_index (fn (i,T) => Var (("a", i), T)) cargTs
+            val atup = foldr1 HOLogic.mk_prod avars
+          in
+            tupled_lambda atup (list_comb (P, avars))
+          end
+          
+      val Ps = map2 mk_P parts newPs
+      val case_exp = SumTools.mk_sumcases streeA HOLogic.boolT Ps
+                     
+      val induct_inst =
+          forall_elim (cterm_of thy case_exp) induct
+                      |> full_simplify (HOL_basic_ss addsimps (split_apply :: sum_case_rules))
+                      |> full_simplify (HOL_basic_ss addsimps all_f_defs)
+          
+      fun mk_proj rule (MutualPart {cargTs, pthA, ...}) =
+          let
+            val afs = map_index (fn (i,T) => Free ("a" ^ string_of_int i, T)) cargTs
+            val inj = SumTools.mk_inj streeA pthA (foldr1 HOLogic.mk_prod afs)
+          in
+            rule
+              |> forall_elim (cterm_of thy inj)
+              |> full_simplify (HOL_basic_ss addsimps (split_apply :: sum_case_rules))
+              |> fold_rev (forall_intr o cterm_of thy) (afs @ newPs)
+          end
+          
     in
       map (mk_proj induct_inst) parts
     end
-
+    
 
 
 
@@ -322,44 +322,44 @@ fun mutual_induct_rules thy induct all_f_defs (Mutual {RST, parts, streeA, ...})
 fun mk_partial_rules_mutual lthy (m as Mutual {RST, parts, streeR, fqgars, ...}) data prep_result =
     let
       val thy = ProofContext.theory_of lthy
-
+                                       
       (* FIXME !? *)
-      val expand = Assumption.export false lthy (LocalTheory.target_of lthy);
-      val expand_term = Drule.term_rule thy expand;
-
+      val expand = Assumption.export false lthy (LocalTheory.target_of lthy)
+      val expand_term = Drule.term_rule thy expand
+                        
       val result = FundefProof.mk_partial_rules thy data prep_result
       val FundefResult {f, G, R, completeness, psimps, subset_pinduct,simple_pinduct,total_intro,dom_intros} = result
-
+                                                                                                               
       val all_f_defs = map (fn MutualPart {f_defthm = SOME f_def, cargTs, ...} =>
                                mk_applied_form lthy cargTs (symmetric (Thm.freezeT f_def)))
                            parts
-
+                           
       fun mk_mpsimp fqgar sum_psimp =
           in_context lthy fqgar (recover_mutual_psimp thy RST streeR all_f_defs parts) sum_psimp
-
+          
       val mpsimps = map2 mk_mpsimp fqgars psimps
-
+                    
       val minducts = mutual_induct_rules thy simple_pinduct all_f_defs m
       val termination = full_simplify (HOL_basic_ss addsimps all_f_defs) total_intro
     in
       FundefMResult { f=expand_term f, G=expand_term G, R=expand_term R,
-                                  psimps=map expand mpsimps, subset_pinducts=[expand subset_pinduct], simple_pinducts=map expand minducts,
-                                  cases=expand completeness, termination=expand termination,
+                      psimps=map expand mpsimps, subset_pinducts=[expand subset_pinduct], simple_pinducts=map expand minducts,
+                      cases=expand completeness, termination=expand termination,
                       domintros=map expand dom_intros }
     end
-
-
-
+      
+      
+      
 (* puts an object in the "right bucket" *)
 fun store_grouped P x [] = []
   | store_grouped P x ((l, xs)::bs) =
     if P (x, l) then ((l, x::xs)::bs) else ((l, xs)::store_grouped P x bs)
-
+                                           
 fun sort_by_function (Mutual {fqgars, ...}) names xs =
-      fold_rev (store_grouped (eq_str o apfst fst))  (* fill *)
-               (map name_of_fqgar fqgars ~~ xs)      (* the name-thm pairs *)
-               (map (rpair []) names)                (* in the empty buckets labeled with names *)
-
-         |> map (snd #> map snd)                     (* and remove the labels afterwards *)
-
+    fold_rev (store_grouped (eq_str o apfst fst))  (* fill *)
+             (map name_of_fqgar fqgars ~~ xs)      (* the name-thm pairs *)
+             (map (rpair []) names)                (* in the empty buckets labeled with names *)
+             
+             |> map (snd #> map snd)                     (* and remove the labels afterwards *)
+    
 end

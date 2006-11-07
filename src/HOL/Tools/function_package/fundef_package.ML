@@ -146,7 +146,7 @@ fun setup_termination_proof name_opt lthy =
     in
       lthy
         |> ProofContext.note_thmss_i [(("termination",
-                                 [ContextRules.intro_query NONE]), [(ProofContext.standard lthy [termination], [])])] |> snd
+                                        [ContextRules.intro_query NONE]), [(ProofContext.standard lthy [termination], [])])] |> snd
         |> Proof.theorem_i PureThy.internalK NONE
                            (total_termination_afterqed name data) NONE ("", [])
                            [(("", []), [(goal, [])])]

@@ -46,30 +46,30 @@ datatype sum_tree
   | Branch of (typ * (typ * sum_tree) * (typ * sum_tree))
 
 type sum_path = bool list (* true: left, false: right *)
-
+                
 fun sum_type_of (Leaf T) = T
   | sum_type_of (Branch (ST,(LT,_),(RT,_))) = ST
-
-
+                                              
+                                              
 fun mk_tree Ts =
     let 
-	fun mk_tree' 1 [T] = (T, Leaf T, [[]])
-	  | mk_tree' n Ts =
-	    let 
-		val n2 = n div 2
-		val (lTs, rTs) = chop n2 Ts
-		val (TL, ltree, lpaths) = mk_tree' n2 lTs
-		val (TR, rtree, rpaths) = mk_tree' (n - n2) rTs
-		val T = mk_sumT TL TR
-		val pths = map (cons true) lpaths @ map (cons false) rpaths 
-	    in
-		(T, Branch (T, (TL, ltree), (TR, rtree)), pths)
-	    end
+      fun mk_tree' 1 [T] = (T, Leaf T, [[]])
+        | mk_tree' n Ts =
+          let 
+            val n2 = n div 2
+            val (lTs, rTs) = chop n2 Ts
+            val (TL, ltree, lpaths) = mk_tree' n2 lTs
+            val (TR, rtree, rpaths) = mk_tree' (n - n2) rTs
+            val T = mk_sumT TL TR
+            val pths = map (cons true) lpaths @ map (cons false) rpaths 
+          in
+            (T, Branch (T, (TL, ltree), (TR, rtree)), pths)
+          end
     in
-	mk_tree' (length Ts) Ts
+      mk_tree' (length Ts) Ts
     end
-
-
+    
+    
 fun mk_tree_distinct Ts =
     let
       fun insert_once T Ts =
@@ -78,9 +78,9 @@ fun mk_tree_distinct Ts =
           in
             if i = ~1 then (length Ts, Ts @ [T]) else (i, Ts)
           end
-
+          
       val (idxs, dist_Ts) = fold_map insert_once Ts []
-
+                            
       val (ST, tree, pths) = mk_tree dist_Ts
     in
       (ST, tree, map (nth pths) idxs)
@@ -104,19 +104,19 @@ fun mk_proj (Leaf _) [] t = t
 
 fun mk_sumcases tree T ts =
     let
-	fun mk_sumcases' (Leaf _) (t::ts) = (t,ts)
-	  | mk_sumcases' (Branch (ST, (LT, ltr), (RT, rtr))) ts =
-	    let
-		val (lcase, ts') = mk_sumcases' ltr ts
-		val (rcase, ts'') = mk_sumcases' rtr ts'
-	    in
-		(mk_sumcase LT RT T lcase rcase, ts'')
-	    end
-	  | mk_sumcases' _ [] = sys_error "mk_sumcases"
+      fun mk_sumcases' (Leaf _) (t::ts) = (t,ts)
+        | mk_sumcases' (Branch (ST, (LT, ltr), (RT, rtr))) ts =
+          let
+            val (lcase, ts') = mk_sumcases' ltr ts
+            val (rcase, ts'') = mk_sumcases' rtr ts'
+          in
+            (mk_sumcase LT RT T lcase rcase, ts'')
+          end
+        | mk_sumcases' _ [] = sys_error "mk_sumcases"
     in
-	fst (mk_sumcases' tree ts)
+      fst (mk_sumcases' tree ts)
     end
-
+    
 end
 
 
