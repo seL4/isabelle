@@ -864,7 +864,7 @@ ML {*
 structure Hypsubst = HypsubstFun(
 struct
   structure Simplifier = Simplifier
-  val dest_eq = HOLogic.dest_eq_typ
+  val dest_eq = HOLogic.dest_eq
   val dest_Trueprop = HOLogic.dest_Trueprop
   val dest_imp = HOLogic.dest_imp
   val eq_reflection = HOL.eq_reflection
