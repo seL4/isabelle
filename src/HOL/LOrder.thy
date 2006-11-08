@@ -6,7 +6,7 @@
 header {* Lattice Orders *}
 
 theory LOrder
-imports Lattice_Locales
+imports Lattices
 begin
 
 text {*

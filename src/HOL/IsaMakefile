@@ -94,7 +94,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   Integ/cooper_proof.ML Integ/reflected_presburger.ML				\
   Integ/reflected_cooper.ML Integ/int_arith1.ML Integ/int_factor_simprocs.ML	\
   Integ/nat_simprocs.ML Integ/presburger.ML Integ/qelim.ML LOrder.thy		\
-  Lattice_Locales.thy List.ML List.thy Main.thy Map.thy			\
+  Lattices.thy List.ML List.thy Main.thy Map.thy			\
   Nat.ML Nat.thy OrderedGroup.ML OrderedGroup.thy	\
   Orderings.ML Orderings.thy Power.thy PreList.thy Product_Type.thy		\
   ROOT.ML Recdef.thy Reconstruction.thy Record.thy Refute.thy			\

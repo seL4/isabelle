@@ -7,7 +7,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-imports Power Inductive Lattice_Locales
+imports Power Inductive Lattices
 begin
 
 subsection {* Definition and basic properties *}

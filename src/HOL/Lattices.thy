@@ -5,7 +5,7 @@
 
 header {* Lattices via Locales *}
 
-theory Lattice_Locales
+theory Lattices
 imports Orderings
 begin
 
