@@ -7,7 +7,7 @@
 header {* Primality on nat *}
 
 theory Primes
-imports Main
+imports GCD
 begin
 
 definition

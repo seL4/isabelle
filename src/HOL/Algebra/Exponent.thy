@@ -5,7 +5,7 @@
     exponent p s   yields the greatest power of p that divides s.
 *)
 
-theory Exponent imports Main Primes begin
+theory Exponent imports Main Primes Binomial begin
 
 
 section {*The Combinatorial Argument Underlying the First Sylow Theorem*}

@@ -2,30 +2,33 @@
 (*<*)
 theory Library
 imports
+  AssocList
   BigO
+  Binomial
+  Char_ord
+  Coinductive_List
+  Commutative_Ring
   Continuity
   EfficientNat
-  ExecutableSet
   ExecutableRat
-  MLString
+  ExecutableSet
   FuncSet
+  GCD
+  Infinite_Set
+  MLString
   Multiset
   NatPair
   Nat_Infinity
   Nested_Environment
   OptionalSugar
+  Parity
   Permutation
   Primes
   Quotient
+  State_Monad
   While_Combinator
   Word
   Zorn
-  Char_ord
-  Commutative_Ring
-  Coinductive_List
-  AssocList
-  Infinite_Set
-  State_Monad
 begin
 end
 (*>*)

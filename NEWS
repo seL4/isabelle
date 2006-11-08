@@ -615,9 +615,9 @@ still supported as well.
 * inductive and datatype: provide projections of mutual rules, bundled
 as foo_bar.inducts;
 
-* Library: theory Infinite_Set has been moved to the library.
+* Library: moved theories Parity, GCD, Binomial, Infinite_Set to Library.
 
-* Library: theory Accessible_Part has been move to main HOL.
+* Library: moved theory Accessible_Part to main HOL.
 
 * Library: added theory Coinductive_List of potentially infinite lists
 as greatest fixed-point.

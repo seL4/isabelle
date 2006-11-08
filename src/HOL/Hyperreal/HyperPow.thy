@@ -7,7 +7,7 @@
 header{*Exponentials on the Hyperreals*}
 
 theory HyperPow
-imports HyperArith HyperNat
+imports HyperArith HyperNat Parity
 begin
 
 (* consts hpowr :: "[hypreal,nat] => hypreal" *)

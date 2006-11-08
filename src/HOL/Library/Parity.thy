@@ -3,10 +3,10 @@
     Author:     Jeremy Avigad
 *)
 
-header {* Even and Odd for ints and nats*}
+header {* Even and Odd for int and nat *}
 
 theory Parity
-imports Divides IntDiv NatSimprocs
+imports Main
 begin
 
 axclass even_odd < type

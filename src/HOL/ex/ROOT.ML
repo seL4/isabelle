@@ -4,6 +4,9 @@
 Miscellaneous examples for Higher-Order Logic.
 *)
 
+no_document use_thy "Parity";
+no_document use_thy "GCD";
+
 no_document time_use_thy "Classpackage";
 no_document time_use_thy "Codegenerator";
 no_document time_use_thy "CodeCollections";

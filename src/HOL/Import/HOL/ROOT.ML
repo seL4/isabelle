@@ -3,5 +3,6 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
+use_thy "Primes";
 setmp quick_and_dirty true use_thy "HOL4Prob";
 setmp quick_and_dirty true use_thy "HOL4";

@@ -9,7 +9,7 @@ method to eliminate on \<exists>. *)
 header {* Quantifier elimination for Presburger arithmetic *}
 
 theory Reflected_Presburger
-imports Main
+imports Main GCD
 begin
 
 (* Shadow syntax for integer terms *)

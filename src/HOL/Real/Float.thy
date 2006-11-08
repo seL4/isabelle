@@ -6,7 +6,7 @@
 header {* Floating Point Representation of the Reals *}
 
 theory Float
-imports Real
+imports Real Parity
 uses ("float.ML")
 begin
 

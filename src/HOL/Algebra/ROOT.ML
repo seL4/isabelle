@@ -10,6 +10,8 @@
 
 no_document use_thy "FuncSet";
 no_document use_thy "Primes";
+no_document use_thy "Binomial";
+
 
 (* Groups *)
 

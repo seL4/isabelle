@@ -2,16 +2,12 @@
     ID:         $Id$
     Author:     Christophe Tabacznyj and Lawrence C Paulson
     Copyright   1996  University of Cambridge
-
-Builds on Integ/Parity mainly because that contains recdef, which we
-need, but also because we may want to include gcd on integers in here
-as well in the future.
 *)
 
 header {* The Greatest Common Divisor *}
 
 theory GCD
-imports Parity
+imports Main
 begin
 
 text {*

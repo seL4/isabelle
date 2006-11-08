@@ -5,7 +5,7 @@
 
 header {* Summing natural numbers *}
 
-theory NatSum imports Main begin
+theory NatSum imports Main Parity begin
 
 text {*
   Summing natural numbers, squares, cubes, etc.
