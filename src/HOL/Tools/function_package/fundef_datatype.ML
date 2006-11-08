@@ -192,7 +192,7 @@ fun fun_cmd fixes statements lthy =
     lthy
       |> FundefPackage.add_fundef fixes statements FundefCommon.fun_config
       ||> by_pat_completeness_simp
-      (*|-> termination_by_lexicographic_order*) |> snd
+      |-> termination_by_lexicographic_order
 
 
 val funP =

@@ -29,8 +29,8 @@ thm fib.domintros
 
 
 text {* Now termination: *}
-termination fib
-  by (auto_term "less_than")
+(*termination fib
+  by (auto_term "less_than")*)
 
 thm fib.simps
 thm fib.induct
@@ -42,8 +42,6 @@ fun add :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
   "add 0 y = y"
 | "add (Suc x) y = Suc (add x y)"
-termination
-  by (auto_term "measure fst")
 
 thm add.simps
 thm add.induct -- {* Note the curried induction predicate *}
@@ -51,10 +49,11 @@ thm add.induct -- {* Note the curried induction predicate *}
 
 section {* Nested recursion *}
 
-fun nz :: "nat \<Rightarrow> nat"
+function nz :: "nat \<Rightarrow> nat"
 where
   "nz 0 = 0"
 | "nz (Suc x) = nz (nz x)"
+by pat_completeness auto
 
 lemma nz_is_zero: -- {* A lemma we need to prove termination *}
   assumes trm: "nz_dom x"
@@ -72,9 +71,10 @@ thm nz.induct
 text {* Here comes McCarthy's 91-function *}
 
 
-fun f91 :: "nat => nat"
+function f91 :: "nat => nat"
 where
   "f91 n = (if 100 < n then n - 10 else f91 (f91 (n + 11)))"
+by pat_completeness auto
 
 (* Prove a lemma before attempting a termination proof *)
 lemma f91_estimate: 
@@ -112,10 +112,6 @@ where
 | "gcd2 (Suc x) (Suc y) = (if x < y then gcd2 (Suc x) (y - x)
                                     else gcd2 (x - y) (Suc y))"
 
-
-termination 
-  by (auto_term "(measure (%x. x)) <*lex*> (measure (%x. x))")
-
 thm gcd2.simps
 thm gcd2.induct
 
@@ -132,9 +128,7 @@ where
   apply (case_tac x, case_tac a, auto)
   apply (case_tac ba, auto)
   done
-
-termination 
-  by (auto_term "measure (\<lambda>(x,y). x + y)")
+termination by lexicographic_order
 
 thm gcd3.simps
 thm gcd3.induct
@@ -164,7 +158,7 @@ proof -  -- {* completeness is more difficult here \dots *}
     with c2 show "P" .
   qed
 qed presburger+ -- {* solve compatibility with presburger *}
-termination by (auto_term "{}")
+termination by lexicographic_order
 
 thm ev.simps
 thm ev.induct
@@ -180,18 +174,15 @@ where
 | "evn (Suc n) = od n"
 | "od (Suc n) = evn n"
 
-thm evn.psimps
-thm od.psimps
+thm evn.simps
+thm od.simps
 
 thm evn_od.pinduct
 thm evn_od.termination
 thm evn_od.domintros
 
-termination
-  by (auto_term "measure (sum_case (%n. n) (%n. n))")
 
-thm evn.simps
-thm od.simps
+
 
 
 end

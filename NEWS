@@ -476,6 +476,22 @@ the graph browser tool.
 
 *** HOL ***
 
+* Automated termination proofs "by lexicographic_order" are now
+included in the abbreviated function command "fun". No explicit
+"termination" command is necessary anymore.
+INCOMPATIBILITY: If a "fun"-definition cannot be proved terminating by
+a lexicographic size order, then the command fails. Use the expanded
+version "function" for these cases.
+
+* New method "lexicographic_order" automatically synthesizes
+termination relations as lexicographic combinations of size measures. 
+Usage for (function package) termination proofs:
+
+termination 
+by lexicographic_order
+
+Contributed by Lukas Bulwahn.
+
 * Records: generalised field-update to take a function on the field 
 rather than the new value: r(|A := x|) is translated to A_update (K x) r
 The K-combinator that is internally used is called K_record.

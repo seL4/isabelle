@@ -73,7 +73,8 @@ fun fundef_afterqed fixes spec mutual_info defname data [[result]] lthy =
         |> LocalTheory.note ((qualify "termination", []), [termination]) |> snd
         |> LocalTheory.note ((qualify "cases", []), [cases]) |> snd
         |> LocalTheory.note ((qualify "pinduct", [Attrib.internal (InductAttrib.induct_set "")]), simple_pinducts) |> snd
-        |> LocalTheory.declaration (add_fundef_data defname (fundef_data, mutual_info, (fixes,spec)))
+        |> LocalTheory.declaration (add_fundef_data defname (fundef_data, mutual_info, (fixes,spec))) (* save in target *)
+        |> Context.proof_map (add_fundef_data defname (fundef_data, mutual_info, (fixes,spec))) (* also save in local context *)
     end (* FIXME: Add cases for induct and cases thm *)
 
 
