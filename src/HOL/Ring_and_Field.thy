@@ -510,6 +510,13 @@ apply (erule mult_right_mono [THEN order_trans], assumption)
 apply (erule mult_left_mono, assumption)
 done
 
+lemma mult_mono':
+     "[|a \<le> b; c \<le> d; 0 \<le> a; 0 \<le> c|] 
+      ==> a * c  \<le>  b * (d::'a::pordered_semiring)"
+apply (rule mult_mono)
+apply (fast intro: order_trans)+
+done
+
 lemma less_1_mult: "[| 1 < m; 1 < n |] ==> 1 < m*(n::'a::ordered_semidom)"
 apply (insert mult_strict_mono [of 1 m 1 n]) 
 apply (simp add:  order_less_trans [OF zero_less_one]) 
