@@ -61,8 +61,8 @@ fun simp_all_tac rules =
   let val ss0 = HOL_ss addsimps rules
   in fn ss => ALLGOALS (simp_tac (Simplifier.inherit_context ss ss0)) end;
 
-val add_rules = [add_Suc, add_Suc_right, add_0, add_0_right];
-val mult_rules = [mult_Suc, mult_Suc_right, mult_0, mult_0_right];
+val add_rules = [thm "add_Suc", thm "add_Suc_right", thm "add_0", thm "add_0_right"];
+val mult_rules = [thm "mult_Suc", thm "mult_Suc_right", thm "mult_0", thm "mult_0_right"];
 
 fun prep_simproc (name, pats, proc) =
   Simplifier.simproc (the_context ()) name pats proc;
@@ -104,7 +104,7 @@ structure EqCancelSums = CancelSumsFun
   open Sum;
   val mk_bal = HOLogic.mk_eq;
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT;
-  val uncancel_tac = gen_uncancel_tac nat_add_left_cancel;
+  val uncancel_tac = gen_uncancel_tac (thm "nat_add_left_cancel");
 end);
 
 (* nat less *)
@@ -114,7 +114,7 @@ structure LessCancelSums = CancelSumsFun
   open Sum;
   val mk_bal = HOLogic.mk_binrel "Orderings.less";
   val dest_bal = HOLogic.dest_bin "Orderings.less" HOLogic.natT;
-  val uncancel_tac = gen_uncancel_tac nat_add_left_cancel_less;
+  val uncancel_tac = gen_uncancel_tac (thm "nat_add_left_cancel_less");
 end);
 
 (* nat le *)
@@ -124,7 +124,7 @@ structure LeCancelSums = CancelSumsFun
   open Sum;
   val mk_bal = HOLogic.mk_binrel "Orderings.less_eq";
   val dest_bal = HOLogic.dest_bin "Orderings.less_eq" HOLogic.natT;
-  val uncancel_tac = gen_uncancel_tac nat_add_left_cancel_le;
+  val uncancel_tac = gen_uncancel_tac (thm "nat_add_left_cancel_le");
 end);
 
 (* nat diff *)
@@ -134,7 +134,7 @@ structure DiffCancelSums = CancelSumsFun
   open Sum;
   val mk_bal = HOLogic.mk_binop "HOL.minus";
   val dest_bal = HOLogic.dest_bin "HOL.minus" HOLogic.natT;
-  val uncancel_tac = gen_uncancel_tac diff_cancel;
+  val uncancel_tac = gen_uncancel_tac (thm "diff_cancel");
 end);
 
 (** prepare nat_cancel simprocs **)
@@ -175,6 +175,7 @@ val notI = notI;
 val sym = sym;
 val not_lessD = linorder_not_less RS iffD1;
 val not_leD = linorder_not_le RS iffD1;
+val le0 = thm "le0";
 
 fun mk_Eq thm = (thm RS Eq_FalseI) handle THM _ => (thm RS Eq_TrueI);
 
@@ -931,10 +932,10 @@ local
    Most of the work is done by the cancel tactics.
 *)
 val add_rules =
- [add_zero_left,add_zero_right,Zero_not_Suc,Suc_not_Zero,le_0_eq,
-  One_nat_def,
-  order_less_irrefl, zero_neq_one, zero_less_one, zero_le_one,
-  zero_neq_one RS not_sym, not_one_le_zero, not_one_less_zero];
+ [thm "add_zero_left", thm "add_zero_right", thm "Zero_not_Suc", thm "Suc_not_Zero",
+  thm "le_0_eq", thm "One_nat_def", thm "order_less_irrefl", thm "zero_neq_one",
+  thm "zero_less_one", thm "zero_le_one", thm "zero_neq_one" RS not_sym, thm "not_one_le_zero",
+  thm "not_one_less_zero"];
 
 val add_mono_thms_ordered_semiring = map (fn s => prove_goal (the_context ()) s
  (fn prems => [cut_facts_tac prems 1,
@@ -966,8 +967,8 @@ val init_lin_arith_data =
     add_mono_thms_ordered_semiring @ add_mono_thms_ordered_field,
     mult_mono_thms = mult_mono_thms,
     inj_thms = inj_thms,
-    lessD = lessD @ [Suc_leI],
-    neqE = [linorder_neqE_nat,
+    lessD = lessD @ [thm "Suc_leI"],
+    neqE = [thm "linorder_neqE_nat",
       get_thm (theory "Ring_and_Field") (Name "linorder_neqE_ordered_idom")],
     simpset = HOL_basic_ss addsimps add_rules
                    addsimprocs [ab_group_add_cancel.sum_conv,

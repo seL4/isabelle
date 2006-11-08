@@ -361,9 +361,9 @@ val blacklist = ref
    "Nat.less_one", (*not directional? obscure*)
    "Nat.not_gr0",
    "Nat.one_eq_mult_iff", (*duplicate by symmetry*)
-   "NatArith.of_nat_0_eq_iff",
-   "NatArith.of_nat_eq_0_iff",
-   "NatArith.of_nat_le_0_iff",
+   "Nat.of_nat_0_eq_iff",
+   "Nat.of_nat_eq_0_iff",
+   "Nat.of_nat_le_0_iff",
    "NatSimprocs.divide_le_0_iff_number_of",  (*too many clauses*)
    "NatSimprocs.divide_less_0_iff_number_of",
    "NatSimprocs.equation_minus_iff_1",  (*not directional*)

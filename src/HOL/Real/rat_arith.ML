@@ -48,7 +48,7 @@ val rat_arith_setup =
     neqE =  neqE,
     simpset = simpset addsimps simps
                       addsimprocs simprocs}) #>
-  arith_inj_const ("NatArith.of_nat", HOLogic.natT --> ratT) #>
+  arith_inj_const ("Nat.of_nat", HOLogic.natT --> ratT) #>
   arith_inj_const ("IntDef.of_int", HOLogic.intT --> ratT) #>
   (fn thy => (change_simpset_of thy (fn ss => ss addsimprocs [fast_rat_arith_simproc]); thy))
 

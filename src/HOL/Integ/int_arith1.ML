@@ -530,7 +530,7 @@ val int_arith_setup =
     simpset = simpset addsimps add_rules
                       addsimprocs Int_Numeral_Base_Simprocs
                       addcongs [if_weak_cong]}) #>
-  arith_inj_const ("NatArith.of_nat", HOLogic.natT --> HOLogic.intT) #>
+  arith_inj_const ("Nat.of_nat", HOLogic.natT --> HOLogic.intT) #>
   arith_inj_const ("IntDef.int", HOLogic.natT --> HOLogic.intT) #>
   arith_discrete "IntDef.int"
 

@@ -48,7 +48,10 @@ is available.
 \index{numeric literals|(}%
 The constants \cdx{0} and \cdx{1} are overloaded.  They denote zero and one,
 respectively, for all numeric types.  Other values are expressed by numeric
-literals, which consist of one or more decimal digits optionally preceeded by a minus sign (\isa{-}).  Examples are \isa{2}, \isa{-3} and\isa{441223334678}.  Literals are available for the types of naturalnumbers, integers, rationals, reals, etc.; they denote integer values ofarbitrary size.
+literals, which consist of one or more decimal digits optionally preceeded by a minus sign (\isa{-}).  Examples are \isa{2}, \isa{-3} and
+\isa{441223334678}.  Literals are available for the types of natural
+numbers, integers, rationals, reals, etc.; they denote integer values of
+arbitrary size.
 
 Literals look like constants, but they abbreviate 
 terms representing the number in a two's complement binary notation. 
@@ -102,7 +105,7 @@ You should use a conditional expression instead:
 \index{natural numbers|(}\index{*nat (type)|(}%
 This type requires no introduction: we have been using it from the
 beginning.  Hundreds of theorems about the natural numbers are
-proved in the theories \isa{Nat}, \isa{NatArith} and \isa{Divides}.  
+proved in the theories \isa{Nat} and \isa{Divides}.  
 Basic properties of addition and multiplication are available through the
 axiomatic type class for semirings (\S\ref{sec:numeric-axclasses}).
 
@@ -234,7 +237,12 @@ if we explicitly split \isa{n<2} as \isa{n=0} or \isa{n=1}:
 
 \index{integers|(}\index{*int (type)|(}%
 Reasoning methods for the integers resemble those for the natural numbers, 
-but induction andthe constant \isa{Suc} are not available.  HOL provides many lemmas forproving inequalities involving integer multiplication and division, similarto those shown above for type~\isa{nat}. The laws of addition, subtractionand multiplication are available through the axiomatic type class for rings(\S\ref{sec:numeric-axclasses}).
+but induction and
+the constant \isa{Suc} are not available.  HOL provides many lemmas for
+proving inequalities involving integer multiplication and division, similar
+to those shown above for type~\isa{nat}. The laws of addition, subtraction
+and multiplication are available through the axiomatic type class for rings
+(\S\ref{sec:numeric-axclasses}).
 
 The \rmindex{absolute value} function \cdx{abs} is overloaded, and is 
 defined for all types that involve negative numbers, including the integers.
@@ -324,8 +332,13 @@ a\ <\ b\ \isasymLongrightarrow \ \isasymexists r.\ a\ <\ r\ \isasymand \ r\ <\ b
 \rulename{dense}
 \end{isabelle}
 
-The real numbers are, moreover, \textbf{complete}: every set of reals thatis bounded above has a least upper bound.  Completeness distinguishes thereals from the rationals, for which the set $\{x\mid x^2<2\}$ has no leastupper bound.  (It could only be $\surd2$, which is irrational. Theformalization of completeness, which is complicated, 
-can be found in theory \texttt{RComplete} of directory\texttt{Real}.
+The real numbers are, moreover, \textbf{complete}: every set of reals that
+is bounded above has a least upper bound.  Completeness distinguishes the
+reals from the rationals, for which the set $\{x\mid x^2<2\}$ has no least
+upper bound.  (It could only be $\surd2$, which is irrational. The
+formalization of completeness, which is complicated, 
+can be found in theory \texttt{RComplete} of directory
+\texttt{Real}.
 
 Numeric literals\index{numeric literals!for type \protect\isa{real}}
 for type \isa{real} have the same syntax as those for type
@@ -375,18 +388,36 @@ for all numeric types satisfying the necessary axioms. The theory defines
 the following type classes:
 \begin{itemize}
 \item 
-\tcdx{semiring} and \tcdx{ordered_semiring}: a \emph{semiring}provides the operators \isa{+} and~\isa{*}, which are commutative andassociative, with the usual distributive law and with \isa{0} and~\isa{1}as their respective identities. An \emph{ordered semiring} is also linearlyordered, with addition and multiplication respecting the ordering. Type \isa{nat} is an ordered semiring.
+\tcdx{semiring} and \tcdx{ordered_semiring}: a \emph{semiring}
+provides the operators \isa{+} and~\isa{*}, which are commutative and
+associative, with the usual distributive law and with \isa{0} and~\isa{1}
+as their respective identities. An \emph{ordered semiring} is also linearly
+ordered, with addition and multiplication respecting the ordering. Type \isa{nat} is an ordered semiring.
 \item 
-\tcdx{ring} and \tcdx{ordered_ring}: a \emph{ring} extends a semiringwith unary minus (the additive inverse) and subtraction (bothdenoted~\isa{-}). An \emph{ordered ring} includes the absolute valuefunction, \cdx{abs}. Type \isa{int} is an ordered ring.
+\tcdx{ring} and \tcdx{ordered_ring}: a \emph{ring} extends a semiring
+with unary minus (the additive inverse) and subtraction (both
+denoted~\isa{-}). An \emph{ordered ring} includes the absolute value
+function, \cdx{abs}. Type \isa{int} is an ordered ring.
 \item 
-\tcdx{field} and \tcdx{ordered_field}: a field extends a ring with themultiplicative inverse (called simply \cdx{inverse} and division~(\isa{/}).An ordered field is based on an ordered ring. Type \isa{complex} is a field, while type \isa{real} is an ordered field.
+\tcdx{field} and \tcdx{ordered_field}: a field extends a ring with the
+multiplicative inverse (called simply \cdx{inverse} and division~(\isa{/}).
+An ordered field is based on an ordered ring. Type \isa{complex} is a field, while type \isa{real} is an ordered field.
 \item 
 \tcdx{division_by_zero} includes all types where \isa{inverse 0 = 0}
 and \isa{a / 0 = 0}. These include all of Isabelle's standard numeric types.
 However, the basic properties of fields are derived without assuming
-division by zero.\end{itemize}
+division by zero.
+\end{itemize}
 
-Theory \thydx{Ring_and_Field} proves over 250 lemmas, each of whichholds for all types in the corresponding type class. In mostcases, it is obvious whether a property is valid for a particular type. Allabstract properties involving subtraction require a ring, and therefore donot hold for type \isa{nat}, although we have theorems such as\isa{diff_mult_distrib} proved specifically about subtraction ontype~\isa{nat}. All abstract properties involving division require a field.Obviously, all properties involving orderings required an orderedstructure.
+Theory \thydx{Ring_and_Field} proves over 250 lemmas, each of which
+holds for all types in the corresponding type class. In most
+cases, it is obvious whether a property is valid for a particular type. All
+abstract properties involving subtraction require a ring, and therefore do
+not hold for type \isa{nat}, although we have theorems such as
+\isa{diff_mult_distrib} proved specifically about subtraction on
+type~\isa{nat}. All abstract properties involving division require a field.
+Obviously, all properties involving orderings required an ordered
+structure.
 
 The following two theorems are less obvious. Although they
 mention no ordering, they require an ordered ring. However, if we have a 

@@ -9,7 +9,7 @@ Could <*> be generalized to a general summation (Sigma)?
 header{*Analogues of the Cartesian Product and Disjoint Sum for Datatypes*}
 
 theory Datatype
-imports NatArith Sum_Type
+imports Nat Sum_Type
 begin
 
 typedef (Node)

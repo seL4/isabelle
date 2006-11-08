@@ -8,7 +8,7 @@
 header{*The Integers as Equivalence Classes over Pairs of Natural Numbers*} 
 
 theory IntDef
-imports Equiv_Relations NatArith
+imports Equiv_Relations Nat
 begin
 
 constdefs

@@ -877,7 +877,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
     val (weak_case_congs, thy8) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
       [descr] sorts thy7;
     val (size_thms, thy9) =
-      if Context.exists_name "NatArith" thy8 then
+      if Context.exists_name "Nat" thy8 then
         DatatypeAbsProofs.prove_size_thms false new_type_names
           [descr] sorts reccomb_names rec_thms thy8
       else ([], thy8);
