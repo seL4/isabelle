@@ -107,6 +107,10 @@ proof (rule LIM_I)
   qed
 qed
 
+lemma LIM_add_zero:
+  "\<lbrakk>f -- a --> 0; g -- a --> 0\<rbrakk> \<Longrightarrow> (\<lambda>x. f x + g x) -- a --> 0"
+by (drule (1) LIM_add, simp)
+
 lemma minus_diff_minus:
   fixes a b :: "'a::ab_group_add"
   shows "(- a) - (- b) = - (a - b)"
@@ -128,6 +132,25 @@ by (simp add: LIM_def)
 
 lemma LIM_zero_cancel: "(\<lambda>x. f x - l) -- a --> 0 \<Longrightarrow> f -- a --> l"
 by (simp add: LIM_def)
+
+lemma LIM_imp_LIM:
+  assumes f: "f -- a --> l"
+  assumes le: "\<And>x. x \<noteq> a \<Longrightarrow> norm (g x - m) \<le> norm (f x - l)"
+  shows "g -- a --> m"
+apply (rule LIM_I, drule LIM_D [OF f], safe)
+apply (rule_tac x="s" in exI, safe)
+apply (drule_tac x="x" in spec, safe)
+apply (erule (1) order_le_less_trans [OF le])
+done
+
+lemma LIM_norm: "f -- a --> l \<Longrightarrow> (\<lambda>x. norm (f x)) -- a --> norm l"
+by (erule LIM_imp_LIM, simp add: norm_triangle_ineq3)
+
+lemma LIM_norm_zero: "f -- a --> 0 \<Longrightarrow> (\<lambda>x. norm (f x)) -- a --> 0"
+by (drule LIM_norm, simp)
+
+lemma LIM_norm_zero_cancel: "(\<lambda>x. norm (f x)) -- a --> 0 \<Longrightarrow> f -- a --> 0"
+by (erule LIM_imp_LIM, simp)
 
 lemma LIM_const_not_eq:
   fixes a :: "'a::real_normed_div_algebra"
