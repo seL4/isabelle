@@ -432,9 +432,10 @@ lemma contrapos_pn:
 by (iprover intro: notI minor major notE)
 
 lemma not_sym: "t ~= s ==> s ~= t"
-apply (erule contrapos_nn)
-apply (erule sym)
-done
+  by (erule contrapos_nn) (erule sym)
+
+lemma eq_neq_eq_imp_neq: "[| x = a ; a ~= b; b = y |] ==> x ~= y"
+  by (erule subst, erule ssubst, assumption)
 
 (*still used in HOLCF*)
 lemma rev_contrapos:
