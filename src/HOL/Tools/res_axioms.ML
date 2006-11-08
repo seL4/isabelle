@@ -60,9 +60,9 @@ fun seed th net =
   in  Net.insert_term eq_thm (t, th) net end;
   
 val abstraction_cache = ref 
-      (seed (thm"Reconstruction.I_simp") 
-       (seed (thm"Reconstruction.B_simp") 
-	(seed (thm"Reconstruction.K_simp") Net.empty)));
+      (seed (thm"ATP_Linkup.I_simp") 
+       (seed (thm"ATP_Linkup.B_simp") 
+	(seed (thm"ATP_Linkup.K_simp") Net.empty)));
 
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
@@ -137,15 +137,15 @@ fun transform_elim th =
 
 (**** Transformation of Clasets and Simpsets into First-Order Axioms ****)
 
-(*Transfer a theorem into theory Reconstruction.thy if it is not already
+(*Transfer a theorem into theory ATP_Linkup.thy if it is not already
   inside that theory -- because it's needed for Skolemization *)
 
-(*This will refer to the final version of theory Reconstruction.*)
+(*This will refer to the final version of theory ATP_Linkup.*)
 val recon_thy_ref = Theory.self_ref (the_context ());
 
-(*If called while Reconstruction is being created, it will transfer to the
+(*If called while ATP_Linkup is being created, it will transfer to the
   current version. If called afterward, it will transfer to the final version.*)
-fun transfer_to_Reconstruction th =
+fun transfer_to_ATP_Linkup th =
     transfer (Theory.deref recon_thy_ref) th handle THM _ => th;
 
 fun is_taut th =
@@ -476,7 +476,7 @@ fun skolem_of_def def =
 
 (*Converts an Isabelle theorem (intro, elim or simp format, even higher-order) into NNF.*)
 fun to_nnf th =
-    th |> transfer_to_Reconstruction
+    th |> transfer_to_ATP_Linkup
        |> transform_elim |> zero_var_indexes |> freeze_thm
        |> ObjectLogic.atomize_thm |> make_nnf |> strip_lambdas ~1;
 

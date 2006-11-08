@@ -125,15 +125,15 @@ val const_trans_table =
 		   ("op Un", "union"),
 		   ("op Int", "inter"),
 		   ("List.op @", "append"),
-		   ("Reconstruction.fequal", "fequal"),
-		   ("Reconstruction.COMBI", "COMBI"),
-		   ("Reconstruction.COMBK", "COMBK"),
-		   ("Reconstruction.COMBB", "COMBB"),
-		   ("Reconstruction.COMBC", "COMBC"),
-		   ("Reconstruction.COMBS", "COMBS"),
-		   ("Reconstruction.COMBB'", "COMBB_e"),
-		   ("Reconstruction.COMBC'", "COMBC_e"),
-		   ("Reconstruction.COMBS'", "COMBS_e")];
+		   ("ATP_Linkup.fequal", "fequal"),
+		   ("ATP_Linkup.COMBI", "COMBI"),
+		   ("ATP_Linkup.COMBK", "COMBK"),
+		   ("ATP_Linkup.COMBB", "COMBB"),
+		   ("ATP_Linkup.COMBC", "COMBC"),
+		   ("ATP_Linkup.COMBS", "COMBS"),
+		   ("ATP_Linkup.COMBB'", "COMBB_e"),
+		   ("ATP_Linkup.COMBC'", "COMBC_e"),
+		   ("ATP_Linkup.COMBS'", "COMBS_e")];
 
 val type_const_trans_table =
       Symtab.make [("*", "prod"),

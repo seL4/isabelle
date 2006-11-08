@@ -11,16 +11,16 @@ struct
 
 (* theorems for combinators and function extensionality *)
 val ext = thm "HOL.ext";
-val comb_I = thm "Reconstruction.COMBI_def";
-val comb_K = thm "Reconstruction.COMBK_def";
-val comb_B = thm "Reconstruction.COMBB_def";
-val comb_C = thm "Reconstruction.COMBC_def";
-val comb_S = thm "Reconstruction.COMBS_def";
-val comb_B' = thm "Reconstruction.COMBB'_def";
-val comb_C' = thm "Reconstruction.COMBC'_def";
-val comb_S' = thm "Reconstruction.COMBS'_def";
-val fequal_imp_equal = thm "Reconstruction.fequal_imp_equal";
-val equal_imp_fequal = thm "Reconstruction.equal_imp_fequal";
+val comb_I = thm "ATP_Linkup.COMBI_def";
+val comb_K = thm "ATP_Linkup.COMBK_def";
+val comb_B = thm "ATP_Linkup.COMBB_def";
+val comb_C = thm "ATP_Linkup.COMBC_def";
+val comb_S = thm "ATP_Linkup.COMBS_def";
+val comb_B' = thm "ATP_Linkup.COMBB'_def";
+val comb_C' = thm "ATP_Linkup.COMBC'_def";
+val comb_S' = thm "ATP_Linkup.COMBS'_def";
+val fequal_imp_equal = thm "ATP_Linkup.fequal_imp_equal";
+val equal_imp_fequal = thm "ATP_Linkup.equal_imp_fequal";
 
 (*A flag to set if we use the Turner optimizations. Currently FALSE, as the 5 standard
   combinators appear to work best.*)
@@ -81,7 +81,7 @@ fun is_free (Bound(a)) n = (a = n)
 
 
 (*******************************************)
-fun mk_compact_comb (tm as (Const("Reconstruction.COMBB",_)$p) $ (Const("Reconstruction.COMBB",_)$q$r)) Bnds count_comb =
+fun mk_compact_comb (tm as (Const("ATP_Linkup.COMBB",_)$p) $ (Const("ATP_Linkup.COMBB",_)$q$r)) Bnds count_comb =
     let val tp_p = Term.type_of1(Bnds,p)
 	val tp_q = Term.type_of1(Bnds,q)
 	val tp_r = Term.type_of1(Bnds,r)
@@ -90,9 +90,9 @@ fun mk_compact_comb (tm as (Const("Reconstruction.COMBB",_)$p) $ (Const("Reconst
 	val _ = increB' count_comb
 	val _ = decreB count_comb 2
     in
-	Const("Reconstruction.COMBB'",typ_B') $ p $ q $ r
+	Const("ATP_Linkup.COMBB'",typ_B') $ p $ q $ r
     end
-  | mk_compact_comb (tm as (Const("Reconstruction.COMBC",_) $ (Const("Reconstruction.COMBB",_)$p$q) $ r)) Bnds count_comb =
+  | mk_compact_comb (tm as (Const("ATP_Linkup.COMBC",_) $ (Const("ATP_Linkup.COMBB",_)$p$q) $ r)) Bnds count_comb =
     let val tp_p = Term.type_of1(Bnds,p)
 	val tp_q = Term.type_of1(Bnds,q)
 	val tp_r = Term.type_of1(Bnds,r)
@@ -102,9 +102,9 @@ fun mk_compact_comb (tm as (Const("Reconstruction.COMBB",_)$p) $ (Const("Reconst
 	val _ = decreC count_comb 1
 	val _ = decreB count_comb 1
     in
-	Const("Reconstruction.COMBC'",typ_C') $ p $ q $ r
+	Const("ATP_Linkup.COMBC'",typ_C') $ p $ q $ r
     end
-  | mk_compact_comb (tm as (Const("Reconstruction.COMBS",_) $ (Const("Reconstruction.COMBB",_)$p$q) $ r)) Bnds count_comb =
+  | mk_compact_comb (tm as (Const("ATP_Linkup.COMBS",_) $ (Const("ATP_Linkup.COMBB",_)$p$q) $ r)) Bnds count_comb =
     let val tp_p = Term.type_of1(Bnds,p)
 	val tp_q = Term.type_of1(Bnds,q)
 	val tp_r = Term.type_of1(Bnds,r)
@@ -114,7 +114,7 @@ fun mk_compact_comb (tm as (Const("Reconstruction.COMBB",_)$p) $ (Const("Reconst
 	val _ = decreS count_comb 1
 	val _ = decreB count_comb 1
     in
-	Const("Reconstruction.COMBS'",typ_S') $ p $ q $ r
+	Const("ATP_Linkup.COMBS'",typ_S') $ p $ q $ r
     end
   | mk_compact_comb tm _ _ = tm;
 
@@ -124,28 +124,28 @@ fun compact_comb t Bnds count_comb =
 fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb = 
       let val _ = increI count_comb
       in 
-	  Const("Reconstruction.COMBI",tp-->tp) 
+	  Const("ATP_Linkup.COMBI",tp-->tp) 
       end
   | lam2comb (Abs(x,tp,Bound n)) Bnds count_comb = 
       let val tb = List.nth(Bnds,n-1)
 	  val _ = increK count_comb 
       in
-	  Const("Reconstruction.COMBK", [tb,tp] ---> tb) $ (Bound (n-1))
+	  Const("ATP_Linkup.COMBK", [tb,tp] ---> tb) $ (Bound (n-1))
       end
   | lam2comb (Abs(x,t1,Const(c,t2))) _ count_comb = 
       let val _ = increK count_comb 
       in 
-	  Const("Reconstruction.COMBK",[t2,t1] ---> t2) $ Const(c,t2) 
+	  Const("ATP_Linkup.COMBK",[t2,t1] ---> t2) $ Const(c,t2) 
       end
   | lam2comb (Abs(x,t1,Free(v,t2))) _ count_comb =
       let val _ = increK count_comb
       in
-	  Const("Reconstruction.COMBK",[t2,t1] ---> t2) $ Free(v,t2)
+	  Const("ATP_Linkup.COMBK",[t2,t1] ---> t2) $ Free(v,t2)
       end
   | lam2comb (Abs(x,t1,Var(ind,t2))) _ count_comb =
       let val _ = increK count_comb 
       in
-	  Const("Reconstruction.COMBK", [t2,t1] ---> t2) $ Var(ind,t2)
+	  Const("ATP_Linkup.COMBK", [t2,t1] ---> t2) $ Var(ind,t2)
       end
   | lam2comb (t as (Abs(x,t1,P$(Bound 0)))) Bnds count_comb =
       let val tr = Term.type_of1(t1::Bnds,P)
@@ -159,8 +159,8 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 	      val _ = increI count_comb
 	      val _ = increS count_comb
 	  in
-	      compact_comb (Const("Reconstruction.COMBS",tS) $ P' $ 
-	                     Const("Reconstruction.COMBI",tI)) Bnds count_comb
+	      compact_comb (Const("ATP_Linkup.COMBS",tS) $ P' $ 
+	                     Const("ATP_Linkup.COMBI",tI)) Bnds count_comb
 	  end
       end	    
   | lam2comb (t as (Abs(x,t1,P$Q))) Bnds count_comb =
@@ -174,7 +174,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 		val PQ' = incr_boundvars ~1(P $ Q)
 		val _ = increK count_comb
 	    in 
-		Const("Reconstruction.COMBK",tK) $ PQ'
+		Const("ATP_Linkup.COMBK",tK) $ PQ'
 	    end
 	  else if nfreeP then 
 	    let val Q' = lam2comb (Abs(x,t1,Q)) Bnds count_comb
@@ -184,7 +184,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 		val tB = [tp,tq',t1] ---> tpq
 		val _ = increB count_comb
 	    in
-		compact_comb (Const("Reconstruction.COMBB",tB) $ P' $ Q') Bnds count_comb 
+		compact_comb (Const("ATP_Linkup.COMBB",tB) $ P' $ Q') Bnds count_comb 
 	    end
 	  else if nfreeQ then 
 	    let val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
@@ -194,7 +194,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 		val tC = [tp',tq,t1] ---> tpq
 		val _ = increC count_comb
 	    in
-		compact_comb (Const("Reconstruction.COMBC",tC) $ P' $ Q') Bnds count_comb
+		compact_comb (Const("ATP_Linkup.COMBC",tC) $ P' $ Q') Bnds count_comb
 	    end
           else
 	    let val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
@@ -204,7 +204,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb =
 		val tS = [tp',tq',t1] ---> tpq
 		val _ = increS count_comb
 	    in
-		compact_comb (Const("Reconstruction.COMBS",tS) $ P' $ Q') Bnds count_comb
+		compact_comb (Const("ATP_Linkup.COMBS",tS) $ P' $ Q') Bnds count_comb
 	    end
       end
   | lam2comb (t as (Abs(x,t1,_))) _ _ = raise ResClause.CLAUSE("HOL CLAUSE",t);
@@ -718,8 +718,8 @@ fun pretend_cnf s = (thm s, (s,0));
   completeness. Unfortunately, they are very prolific, causing greatly increased runtimes.
   They also lead to many unsound proofs. Thus it is well that the "exists too_general_bool"
   test deletes them except with the full-typed translation.*)
-val iff_thms = [pretend_cnf "Reconstruction.iff_positive", 
-                pretend_cnf "Reconstruction.iff_negative"];
+val iff_thms = [pretend_cnf "ATP_Linkup.iff_positive", 
+                pretend_cnf "ATP_Linkup.iff_negative"];
 
 fun get_helper_clauses () =
     let val IK = if !combI_count > 0 orelse !combK_count > 0 

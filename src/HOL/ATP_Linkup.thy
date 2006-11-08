@@ -1,22 +1,24 @@
-(*  Title:      HOL/Reconstruction.thy
+(*  Title:      HOL/ATP_Linkup.thy
     ID:         $Id$
     Author:     Lawrence C Paulson
-    Copyright   2004  University of Cambridge
+    Author:     Jia Meng, NICTA
 *)
 
-header{* Reconstructing external resolution proofs *}
+header{* The Isabelle-ATP Linkup *}
 
-theory Reconstruction
+theory ATP_Linkup
 imports Hilbert_Choice Map Extraction
-uses 	 "Tools/polyhash.ML"
-	 "Tools/ATP/AtpCommunication.ML"
-	 "Tools/ATP/watcher.ML"
-         "Tools/ATP/reduce_axiomsN.ML"
-         "Tools/res_clause.ML"
-	 ("Tools/res_hol_clause.ML")
-	 ("Tools/res_axioms.ML")
-	 ("Tools/res_atp.ML")
-
+uses
+  "Tools/polyhash.ML"
+  "Tools/ATP/AtpCommunication.ML"
+  "Tools/ATP/watcher.ML"
+  "Tools/ATP/reduce_axiomsN.ML"
+  "Tools/res_clause.ML"
+  ("Tools/res_hol_clause.ML")
+  ("Tools/res_axioms.ML")
+  ("Tools/res_atp.ML")
+  ("Tools/res_atp_provers.ML")
+  ("Tools/res_atp_methods.ML")
 begin
 
 constdefs
@@ -54,25 +56,25 @@ lemma equal_imp_fequal: "X=Y ==> fequal X Y"
   by (simp add: fequal_def)
 
 lemma K_simp: "COMBK P == (%Q. P)"
-apply (rule eq_reflection) 
-apply (rule ext) 
-apply (simp add: COMBK_def) 
+apply (rule eq_reflection)
+apply (rule ext)
+apply (simp add: COMBK_def)
 done
 
 lemma I_simp: "COMBI == (%P. P)"
-apply (rule eq_reflection) 
-apply (rule ext) 
-apply (simp add: COMBI_def) 
+apply (rule eq_reflection)
+apply (rule ext)
+apply (simp add: COMBI_def)
 done
 
 lemma B_simp: "COMBB P Q == %R. P (Q R)"
-apply (rule eq_reflection) 
-apply (rule ext) 
-apply (simp add: COMBB_def) 
+apply (rule eq_reflection)
+apply (rule ext)
+apply (simp add: COMBB_def)
 done
 
 text{*These two represent the equivalence between Boolean equality and iff.
-They can't be converted to clauses automatically, as the iff would be 
+They can't be converted to clauses automatically, as the iff would be
 expanded...*}
 
 lemma iff_positive: "P | Q | P=Q"
@@ -86,5 +88,17 @@ use "Tools/res_hol_clause.ML"
 use "Tools/res_atp.ML"
 
 setup ResAxioms.meson_method_setup
+
+
+subsection {* Setup for Vampire, E prover and SPASS *}
+
+use "Tools/res_atp_provers.ML"
+
+oracle vampire_oracle ("string * int") = {* ResAtpProvers.vampire_o *}
+oracle eprover_oracle ("string * int") = {* ResAtpProvers.eprover_o *}
+oracle spass_oracle ("string * int") = {* ResAtpProvers.spass_o *}
+
+use "Tools/res_atp_methods.ML"
+setup ResAtpMethods.ResAtps_setup
 
 end
