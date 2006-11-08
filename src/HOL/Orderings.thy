@@ -75,7 +75,18 @@ locale partial_order =
   assumes refl [iff]: "x \<sqsubseteq> x"
   and trans: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
   and antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
-  and less_le: "(x \<sqsubset> y) = (x \<sqsubseteq> y \<and> x \<noteq> y)"
+  and less_le: "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<noteq> y"
+begin
+
+abbreviation (input)
+  greater_eq (infixl "\<sqsupseteq>" 50)
+  "x \<sqsupseteq> y \<equiv> y \<sqsubseteq> x"
+
+abbreviation (input)
+  greater (infixl "\<sqsupset>" 50)
+  "x \<sqsupset> y \<equiv> y \<sqsubset> x"
+
+end
 
 axclass order < ord
   order_refl [iff]: "x <= x"
@@ -89,90 +100,86 @@ apply(rule partial_order.intro)
 apply(rule order_refl, erule (1) order_trans, erule (1) order_antisym, rule order_less_le)
 done
 
+context partial_order
+begin
+
 text {* Reflexivity. *}
 
-lemma order_eq_refl: "(x \<Colon> 'a\<Colon>order) = y \<Longrightarrow> x \<le> y"
+lemma eq_refl: "x = y \<Longrightarrow> x \<sqsubseteq> y"
     -- {* This form is useful with the classical reasoner. *}
-  apply (erule ssubst)
-  apply (rule order_refl)
-  done
+  by (erule ssubst) (rule refl)
 
-lemma order_less_irrefl [iff]: "~ x < (x::'a::order)"
-  by (simp add: order_less_le)
+lemma less_irrefl [iff]: "\<not> x \<sqsubset> x"
+  by (simp add: less_le)
 
-lemma order_le_less: "((x::'a::order) <= y) = (x < y | x = y)"
+lemma le_less: "x \<sqsubseteq> y \<longleftrightarrow> x \<sqsubset> y \<or> x = y"
     -- {* NOT suitable for iff, since it can cause PROOF FAILED. *}
-  apply (simp add: order_less_le, blast)
-  done
+  by (simp add: less_le) blast
 
-lemmas order_le_imp_less_or_eq = order_le_less [THEN iffD1, standard]
+lemma le_imp_less_or_eq: "x \<sqsubseteq> y \<Longrightarrow> x \<sqsubset> y \<or> x = y"
+  unfolding less_le by blast
 
-lemma order_less_imp_le: "!!x::'a::order. x < y ==> x <= y"
-  by (simp add: order_less_le)
+lemma less_imp_le: "x \<sqsubset> y \<Longrightarrow> x \<sqsubseteq> y"
+  unfolding less_le by blast
+
 
 text {* Asymmetry. *}
 
-lemma order_less_not_sym: "(x::'a::order) < y ==> ~ (y < x)"
-  by (simp add: order_less_le order_antisym)
+lemma less_not_sym: "x \<sqsubset> y \<Longrightarrow> \<not> (y \<sqsubset> x)"
+  by (simp add: less_le antisym)
 
-lemma order_less_asym: "x < (y::'a::order) ==> (~P ==> y < x) ==> P"
-  apply (drule order_less_not_sym)
-  apply (erule contrapos_np, simp)
-  done
+lemma less_asym: "x \<sqsubset> y \<Longrightarrow> (\<not> P \<Longrightarrow> y \<sqsubset> x) \<Longrightarrow> P"
+  by (drule less_not_sym, erule contrapos_np) simp
 
-lemma order_eq_iff: "!!x::'a::order. (x = y) = (x \<le> y & y \<le> x)"
-by (blast intro: order_antisym)
+lemma eq_iff: "x = y \<longleftrightarrow> x \<sqsubseteq> y \<and> y \<sqsubseteq> x"
+  by (blast intro: antisym)
 
-lemma order_antisym_conv: "(y::'a::order) <= x ==> (x <= y) = (x = y)"
-by(blast intro:order_antisym)
+lemma antisym_conv: "y \<sqsubseteq> x \<Longrightarrow> x \<sqsubseteq> y \<longleftrightarrow> x = y"
+  by (blast intro: antisym)
 
-lemma less_imp_neq: "[| (x::'a::order) < y |] ==> x ~= y"
-  by (erule contrapos_pn, erule subst, rule order_less_irrefl)
+lemma less_imp_neq: "x \<sqsubset> y \<Longrightarrow> x \<noteq> y"
+  by (erule contrapos_pn, erule subst, rule less_irrefl)
+
 
 text {* Transitivity. *}
 
-lemma order_less_trans: "!!x::'a::order. [| x < y; y < z |] ==> x < z"
-  apply (simp add: order_less_le)
-  apply (blast intro: order_trans order_antisym)
-  done
+lemma less_trans: "\<lbrakk> x \<sqsubset> y; y \<sqsubset> z \<rbrakk> \<Longrightarrow> x \<sqsubset> z"
+  by (simp add: less_le) (blast intro: trans antisym)
 
-lemma order_le_less_trans: "!!x::'a::order. [| x <= y; y < z |] ==> x < z"
-  apply (simp add: order_less_le)
-  apply (blast intro: order_trans order_antisym)
-  done
+lemma le_less_trans: "\<lbrakk> x \<sqsubseteq> y; y \<sqsubset> z \<rbrakk> \<Longrightarrow> x \<sqsubset> z"
+  by (simp add: less_le) (blast intro: trans antisym)
 
-lemma order_less_le_trans: "!!x::'a::order. [| x < y; y <= z |] ==> x < z"
-  apply (simp add: order_less_le)
-  apply (blast intro: order_trans order_antisym)
-  done
+lemma less_le_trans: "\<lbrakk> x \<sqsubset> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubset> z"
+  by (simp add: less_le) (blast intro: trans antisym)
 
-lemma eq_neq_eq_imp_neq: "[| x = a ; a ~= b; b = y |] ==> x ~= y"
-  by (erule subst, erule ssubst, assumption)
 
 text {* Useful for simplification, but too risky to include by default. *}
 
-lemma order_less_imp_not_less: "(x::'a::order) < y ==>  (~ y < x) = True"
-  by (blast elim: order_less_asym)
+lemma less_imp_not_less: "x \<sqsubset> y \<Longrightarrow> (\<not> y \<sqsubset> x) \<longleftrightarrow> True"
+  by (blast elim: less_asym)
 
-lemma order_less_imp_triv: "(x::'a::order) < y ==>  (y < x --> P) = True"
-  by (blast elim: order_less_asym)
+lemma less_imp_triv: "x \<sqsubset> y \<Longrightarrow> (y \<sqsubset> x \<longrightarrow> P) \<longleftrightarrow> True"
+  by (blast elim: less_asym)
 
-lemma order_less_imp_not_eq: "(x::'a::order) < y ==>  (x = y) = False"
+lemma less_imp_not_eq: "x \<sqsubset> y \<Longrightarrow> (x = y) \<longleftrightarrow> False"
   by auto
 
-lemma order_less_imp_not_eq2: "(x::'a::order) < y ==>  (y = x) = False"
+lemma less_imp_not_eq2: "x \<sqsubset> y \<Longrightarrow> (y = x) \<longleftrightarrow> False"
   by auto
+
 
 text {* Transitivity rules for calculational reasoning *}
 
-lemma order_neq_le_trans: "a ~= b ==> (a::'a::order) <= b ==> a < b"
-  by (simp add: order_less_le)
+lemma neq_le_trans: "\<lbrakk> a \<noteq> b; a \<sqsubseteq> b \<rbrakk> \<Longrightarrow> a \<sqsubset> b"
+  by (simp add: less_le)
 
-lemma order_le_neq_trans: "(a::'a::order) <= b ==> a ~= b ==> a < b"
-  by (simp add: order_less_le)
+lemma le_neq_trans: "\<lbrakk> a \<sqsubseteq> b; a \<noteq> b \<rbrakk> \<Longrightarrow> a \<sqsubset> b"
+  by (simp add: less_le)
 
-lemma order_less_asym': "(a::'a::order) < b ==> b < a ==> P"
-  by (rule order_less_asym)
+lemma less_asym': "\<lbrakk> a \<sqsubset> b; b \<sqsubset> a \<rbrakk> \<Longrightarrow> P"
+  by (rule less_asym)
+
+end
 
 
 subsection {* Linear (total) orderings *}
@@ -187,59 +194,98 @@ interpretation linorder:
   linear_order ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op < \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool"]
   by unfold_locales (rule linorder_linear)
 
-lemma linorder_less_linear: "!!x::'a::linorder. x<y | x=y | y<x"
-  apply (simp add: order_less_le)
-  apply (insert linorder_linear, blast)
+context linear_order
+begin
+
+lemma trichotomy: "x \<sqsubset> y \<or> x = y \<or> y \<sqsubset> x"
+  unfolding less_le using less_le linear by blast 
+
+lemma le_less_linear: "x \<sqsubseteq> y \<or> y \<sqsubset> x"
+  by (simp add: le_less trichotomy)
+
+lemma le_cases [case_names le ge]:
+  "\<lbrakk> x \<sqsubseteq> y \<Longrightarrow> P; y \<sqsubseteq> x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  using linear by blast
+
+lemma cases [case_names less equal greater]:
+    "\<lbrakk> x \<sqsubset> y \<Longrightarrow> P; x = y \<Longrightarrow> P; y \<sqsubset> x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  using trichotomy by blast
+
+lemma not_less: "\<not> x \<sqsubset> y \<longleftrightarrow> y \<sqsubseteq> x"
+  apply (simp add: less_le)
+  using linear apply (blast intro: antisym)
   done
 
-lemma linorder_le_less_linear: "!!x::'a::linorder. x\<le>y | y<x"
-  by (simp add: order_le_less linorder_less_linear)
-
-lemma linorder_le_cases [case_names le ge]:
-    "((x::'a::linorder) \<le> y ==> P) ==> (y \<le> x ==> P) ==> P"
-  by (insert linorder_linear, blast)
-
-lemma linorder_cases [case_names less equal greater]:
-    "((x::'a::linorder) < y ==> P) ==> (x = y ==> P) ==> (y < x ==> P) ==> P"
-  by (insert linorder_less_linear, blast)
-
-lemma linorder_not_less: "!!x::'a::linorder. (~ x < y) = (y <= x)"
-  apply (simp add: order_less_le)
-  apply (insert linorder_linear)
-  apply (blast intro: order_antisym)
+lemma not_le: "\<not> x \<sqsubseteq> y \<longleftrightarrow> y \<sqsubset> x"
+  apply (simp add: less_le)
+  using linear apply (blast intro: antisym)
   done
 
-lemma linorder_not_le: "!!x::'a::linorder. (~ x <= y) = (y < x)"
-  apply (simp add: order_less_le)
-  apply (insert linorder_linear)
-  apply (blast intro: order_antisym)
-  done
+lemma neq_iff: "x \<noteq> y \<longleftrightarrow> x \<sqsubset> y \<or> y \<sqsubset> x"
+  by (cut_tac x = x and y = y in trichotomy, auto)
 
-lemma linorder_neq_iff: "!!x::'a::linorder. (x ~= y) = (x<y | y<x)"
-by (cut_tac x = x and y = y in linorder_less_linear, auto)
+lemma neqE: "\<lbrakk> x \<noteq> y; x \<sqsubset> y \<Longrightarrow> R; y \<sqsubset> x \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
+  by (simp add: neq_iff) blast
 
-lemma linorder_neqE: "x ~= (y::'a::linorder) ==> (x < y ==> R) ==> (y < x ==> R) ==> R"
-by (simp add: linorder_neq_iff, blast)
+lemma antisym_conv1: "\<not> x \<sqsubset> y \<Longrightarrow> x \<sqsubseteq> y \<longleftrightarrow> x = y"
+  by (blast intro: antisym dest: not_less [THEN iffD1])
 
-lemma linorder_antisym_conv1: "~ (x::'a::linorder) < y ==> (x <= y) = (x = y)"
-by(blast intro:order_antisym dest:linorder_not_less[THEN iffD1])
+lemma antisym_conv2: "x \<sqsubseteq> y \<Longrightarrow> \<not> x \<sqsubset> y \<longleftrightarrow> x = y"
+  by (blast intro: antisym dest: not_less [THEN iffD1])
 
-lemma linorder_antisym_conv2: "(x::'a::linorder) <= y ==> (~ x < y) = (x = y)"
-by(blast intro:order_antisym dest:linorder_not_less[THEN iffD1])
-
-lemma linorder_antisym_conv3: "~ (y::'a::linorder) < x ==> (~ x < y) = (x = y)"
-by(blast intro:order_antisym dest:linorder_not_less[THEN iffD1])
+lemma antisym_conv3: "\<not> y \<sqsubset> x \<Longrightarrow> \<not> x \<sqsubset> y \<longleftrightarrow> x = y"
+  by (blast intro: antisym dest: not_less [THEN iffD1])
 
 text{*Replacing the old Nat.leI*}
-lemma leI: "~ x < y ==> y <= (x::'a::linorder)"
-  by (simp only: linorder_not_less)
+lemma leI: "\<not> x \<sqsubset> y \<Longrightarrow> y \<sqsubseteq> x"
+  unfolding not_less .
 
-lemma leD: "y <= (x::'a::linorder) ==> ~ x < y"
-  by (simp only: linorder_not_less)
+lemma leD: "y \<sqsubseteq> x \<Longrightarrow> \<not> x \<sqsubset> y"
+  unfolding not_less .
 
 (*FIXME inappropriate name (or delete altogether)*)
-lemma not_leE: "~ y <= (x::'a::linorder) ==> x < y"
-  by (simp only: linorder_not_le)
+lemma not_leE: "\<not> y \<sqsubseteq> x \<Longrightarrow> x \<sqsubset> y"
+  unfolding not_le .
+
+end
+
+
+subsection {* Name duplicates *}
+
+lemmas order_eq_refl [where 'b = "?'a::order"] = order.eq_refl
+lemmas order_less_irrefl [where 'b = "?'a::order"] = order.less_irrefl
+lemmas order_le_less [where 'b = "?'a::order"] = order.le_less
+lemmas order_le_imp_less_or_eq [where 'b = "?'a::order"] = order.le_imp_less_or_eq
+lemmas order_less_imp_le [where 'b = "?'a::order"] = order.less_imp_le
+lemmas order_less_not_sym [where 'b = "?'a::order"] = order.less_not_sym
+lemmas order_less_asym [where 'b = "?'a::order"] = order.less_asym
+lemmas order_eq_iff [where 'b = "?'a::order"] = order.eq_iff
+lemmas order_antisym_conv [where 'b = "?'a::order"] = order.antisym_conv
+lemmas less_imp_neq [where 'b = "?'a::order"] = order.less_imp_neq
+lemmas order_less_trans [where 'b = "?'a::order"] = order.less_trans
+lemmas order_le_less_trans [where 'b = "?'a::order"] = order.le_less_trans
+lemmas order_less_le_trans [where 'b = "?'a::order"] = order.less_le_trans
+lemmas order_less_imp_not_less [where 'b = "?'a::order"] = order.less_imp_not_less
+lemmas order_less_imp_triv [where 'b = "?'a::order"] = order.less_imp_triv
+lemmas order_less_imp_not_eq [where 'b = "?'a::order"] = order.less_imp_not_eq
+lemmas order_less_imp_not_eq2 [where 'b = "?'a::order"] = order.less_imp_not_eq2
+lemmas order_neq_le_trans [where 'b = "?'a::order"] = order.neq_le_trans
+lemmas order_le_neq_trans [where 'b = "?'a::order"] = order.le_neq_trans
+lemmas order_less_asym' [where 'b = "?'a::order"] = order.less_asym'
+lemmas linorder_less_linear [where 'b = "?'a::linorder"] = linorder.trichotomy
+lemmas linorder_le_less_linear [where 'b = "?'a::linorder"] = linorder.le_less_linear
+lemmas linorder_le_cases [where 'b = "?'a::linorder"] = linorder.le_cases
+lemmas linorder_cases [where 'b = "?'a::linorder"] = linorder.cases
+lemmas linorder_not_less [where 'b = "?'a::linorder"] = linorder.not_less
+lemmas linorder_not_le [where 'b = "?'a::linorder"] = linorder.not_le
+lemmas linorder_neq_iff [where 'b = "?'a::linorder"] = linorder.neq_iff
+lemmas linorder_neqE [where 'b = "?'a::linorder"] = linorder.neqE
+lemmas linorder_antisym_conv1 [where 'b = "?'a::linorder"] = linorder.antisym_conv1
+lemmas linorder_antisym_conv2 [where 'b = "?'a::linorder"] = linorder.antisym_conv2
+lemmas linorder_antisym_conv3 [where 'b = "?'a::linorder"] = linorder.antisym_conv3
+lemmas leI [where 'b = "?'a::linorder"] = linorder.leI
+lemmas leD [where 'b = "?'a::linorder"] = linorder.leD
+lemmas not_leE [where 'b = "?'a::linorder"] = linorder.not_leE
 
 
 subsection {* Reasoning tools setup *}
@@ -248,75 +294,78 @@ ML {*
 local
 
 fun decomp_gen sort thy (Trueprop $ t) =
-  let fun of_sort t = let val T = type_of t in
+  let
+    fun of_sort t =
+      let
+        val T = type_of t
+      in
         (* exclude numeric types: linear arithmetic subsumes transitivity *)
-        T <> HOLogic.natT andalso T <> HOLogic.intT andalso
-        T <> HOLogic.realT andalso Sign.of_sort thy (T, sort) end
-  fun dec (Const ("Not", _) $ t) = (
-	  case dec t of
-	    NONE => NONE
-	  | SOME (t1, rel, t2) => SOME (t1, "~" ^ rel, t2))
-	| dec (Const ("op =",  _) $ t1 $ t2) =
-	    if of_sort t1
-	    then SOME (t1, "=", t2)
-	    else NONE
-	| dec (Const ("Orderings.less_eq",  _) $ t1 $ t2) =
-	    if of_sort t1
-	    then SOME (t1, "<=", t2)
-	    else NONE
-	| dec (Const ("Orderings.less",  _) $ t1 $ t2) =
-	    if of_sort t1
-	    then SOME (t1, "<", t2)
-	    else NONE
-	| dec _ = NONE
+        T <> HOLogic.natT andalso T <> HOLogic.intT
+          andalso T <> HOLogic.realT andalso Sign.of_sort thy (T, sort)
+      end;
+    fun dec (Const ("Not", _) $ t) = (case dec t
+          of NONE => NONE
+           | SOME (t1, rel, t2) => SOME (t1, "~" ^ rel, t2))
+      | dec (Const ("op =",  _) $ t1 $ t2) =
+          if of_sort t1
+          then SOME (t1, "=", t2)
+          else NONE
+      | dec (Const ("Orderings.less_eq",  _) $ t1 $ t2) =
+          if of_sort t1
+          then SOME (t1, "<=", t2)
+          else NONE
+      | dec (Const ("Orderings.less",  _) $ t1 $ t2) =
+          if of_sort t1
+          then SOME (t1, "<", t2)
+          else NONE
+      | dec _ = NONE;
   in dec t end;
 
 in
 
-structure Quasi_Tac = Quasi_Tac_Fun (
 (* The setting up of Quasi_Tac serves as a demo.  Since there is no
    class for quasi orders, the tactics Quasi_Tac.trans_tac and
    Quasi_Tac.quasi_tac are not of much use. *)
-  struct
-    val le_trans = thm "order_trans";
-    val le_refl = thm "order_refl";
-    val eqD1 = thm "order_eq_refl";
-    val eqD2 = thm "sym" RS thm "order_eq_refl";
-    val less_reflE = thm "order_less_irrefl" RS thm "notE";
-    val less_imp_le = thm "order_less_imp_le";
-    val le_neq_trans = thm "order_le_neq_trans";
-    val neq_le_trans = thm "order_neq_le_trans";
-    val less_imp_neq = thm "less_imp_neq";
-    val decomp_trans = decomp_gen ["Orderings.order"];
-    val decomp_quasi = decomp_gen ["Orderings.order"];
 
-  end);
+structure Quasi_Tac = Quasi_Tac_Fun (
+struct
+  val le_trans = thm "order_trans";
+  val le_refl = thm "order_refl";
+  val eqD1 = thm "order_eq_refl";
+  val eqD2 = thm "sym" RS thm "order_eq_refl";
+  val less_reflE = thm "order_less_irrefl" RS thm "notE";
+  val less_imp_le = thm "order_less_imp_le";
+  val le_neq_trans = thm "order_le_neq_trans";
+  val neq_le_trans = thm "order_neq_le_trans";
+  val less_imp_neq = thm "less_imp_neq";
+  val decomp_trans = decomp_gen ["Orderings.order"];
+  val decomp_quasi = decomp_gen ["Orderings.order"];
+end);
 
 structure Order_Tac = Order_Tac_Fun (
-  struct
-    val less_reflE = thm "order_less_irrefl" RS thm "notE";
-    val le_refl = thm "order_refl";
-    val less_imp_le = thm "order_less_imp_le";
-    val not_lessI = thm "linorder_not_less" RS thm "iffD2";
-    val not_leI = thm "linorder_not_le" RS thm "iffD2";
-    val not_lessD = thm "linorder_not_less" RS thm "iffD1";
-    val not_leD = thm "linorder_not_le" RS thm "iffD1";
-    val eqI = thm "order_antisym";
-    val eqD1 = thm "order_eq_refl";
-    val eqD2 = thm "sym" RS thm "order_eq_refl";
-    val less_trans = thm "order_less_trans";
-    val less_le_trans = thm "order_less_le_trans";
-    val le_less_trans = thm "order_le_less_trans";
-    val le_trans = thm "order_trans";
-    val le_neq_trans = thm "order_le_neq_trans";
-    val neq_le_trans = thm "order_neq_le_trans";
-    val less_imp_neq = thm "less_imp_neq";
-    val eq_neq_eq_imp_neq = thm "eq_neq_eq_imp_neq";
-    val not_sym = thm "not_sym";
-    val decomp_part = decomp_gen ["Orderings.order"];
-    val decomp_lin = decomp_gen ["Orderings.linorder"];
-
-  end);
+struct
+  val less_reflE = thm "order_less_irrefl" RS thm "notE";
+  val le_refl = thm "order_refl";
+  val less_imp_le = thm "order_less_imp_le";
+  val not_lessI = thm "linorder_not_less" RS thm "iffD2";
+  val not_leI = thm "linorder_not_le" RS thm "iffD2";
+  val not_lessD = thm "linorder_not_less" RS thm "iffD1";
+  val not_leD = thm "linorder_not_le" RS thm "iffD1";
+  val eqI = thm "order_antisym";
+  val eqD1 = thm "order_eq_refl";
+  val eqD2 = thm "sym" RS thm "order_eq_refl";
+  val less_trans = thm "order_less_trans";
+  val less_le_trans = thm "order_less_le_trans";
+  val le_less_trans = thm "order_le_less_trans";
+  val le_trans = thm "order_trans";
+  val le_neq_trans = thm "order_le_neq_trans";
+  val neq_le_trans = thm "order_neq_le_trans";
+  val less_imp_neq = thm "less_imp_neq";
+  val eq_neq_eq_imp_neq = thm "eq_neq_eq_imp_neq";
+  val not_sym = thm "not_sym";
+  val decomp_part = decomp_gen ["Orderings.order"];
+  val decomp_lin = decomp_gen ["Orderings.linorder"];
+end);
 
 end;
 *}
@@ -361,21 +410,25 @@ fun prove_antisym_less sg ss (NotC $ ((less as Const(_,T)) $ r $ s)) =
   end
   handle THM _ => NONE;
 
-val antisym_le = Simplifier.simproc (the_context())
-  "antisym le" ["(x::'a::order) <= y"] prove_antisym_le;
-val antisym_less = Simplifier.simproc (the_context())
-  "antisym less" ["~ (x::'a::linorder) < y"] prove_antisym_less;
+fun add_simprocs procs thy =
+  (Simplifier.change_simpset_of thy (fn ss => ss
+    addsimprocs (map (fn (name, raw_ts, proc) =>
+      Simplifier.simproc thy name raw_ts proc)) procs); thy);
+fun add_solver name tac thy =
+  (Simplifier.change_simpset_of thy (fn ss => ss addSolver
+    (mk_solver name (K tac))); thy);
 
 in
-  (fn thy => (Simplifier.change_simpset_of thy
-    (fn ss => ss
-       addsimprocs [antisym_le, antisym_less]
-       addSolver (mk_solver "Trans_linear" (fn _ => Order_Tac.linear_tac))
-       addSolver (mk_solver "Trans_partial" (fn _ => Order_Tac.partial_tac)))
-       (* Adding the transitivity reasoners also as safe solvers showed a slight
-          speed up, but the reasoning strength appears to be not higher (at least
-          no breaking of additional proofs in the entire HOL distribution, as
-          of 5 March 2004, was observed). *); thy))
+  add_simprocs [
+       ("antisym le", ["(x::'a::order) <= y"], prove_antisym_le),
+       ("antisym less", ["~ (x::'a::linorder) < y"], prove_antisym_less)
+     ]
+  #> add_solver "Trans_linear" Order_Tac.linear_tac
+  #> add_solver "Trans_partial" Order_Tac.partial_tac
+  (* Adding the transitivity reasoners also as safe solvers showed a slight
+     speed up, but the reasoning strength appears to be not higher (at least
+     no breaking of additional proofs in the entire HOL distribution, as
+     of 5 March 2004, was observed). *)
 end
 *}
 
