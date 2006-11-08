@@ -43,11 +43,11 @@ val conjunctionD2 = thm "conjunctionD2"
 
 fun mk_psimp thy globals R f_iff graph_is_function clause valthm =
     let
-  val Globals {domT, z, ...} = globals
-
-  val ClauseInfo {qglr = (oqs, _, _, _), cdata = ClauseContext {qs, cqs, gs, lhs, rhs, ags, ...}, ...} = clause
-  val lhs_acc = cterm_of thy (Trueprop (mk_acc domT R $ lhs)) (* "acc R lhs" *)
-  val z_smaller = cterm_of thy (Trueprop (R $ z $ lhs)) (* "R z lhs" *)
+      val Globals {domT, z, ...} = globals
+                                   
+      val ClauseInfo {qglr = (oqs, _, _, _), cdata = ClauseContext {qs, cqs, gs, lhs, rhs, ags, ...}, ...} = clause
+      val lhs_acc = cterm_of thy (Trueprop (mk_acc domT R $ lhs)) (* "acc R lhs" *)
+      val z_smaller = cterm_of thy (Trueprop (R $ z $ lhs)) (* "R z lhs" *)
     in
       ((assume z_smaller) RS ((assume lhs_acc) RS acc_downward))
         |> (fn it => it COMP graph_is_function)
@@ -64,29 +64,29 @@ fun mk_psimp thy globals R f_iff graph_is_function clause valthm =
 
 fun mk_partial_induct_rule thy globals R complete_thm clauses =
     let
-  val Globals {domT, x, z, a, P, D, ...} = globals
-        val acc_R = mk_acc domT R
-
-  val x_D = assume (cterm_of thy (Trueprop (D $ x)))
-  val a_D = cterm_of thy (Trueprop (D $ a))
-
-  val D_subset = cterm_of thy (mk_forall x (implies $ Trueprop (D $ x) $ Trueprop (acc_R $ x)))
-
-  val D_dcl = (* "!!x z. [| x: D; (z,x):R |] ==> z:D" *)
-      mk_forall x
-          (mk_forall z (Logic.mk_implies (Trueprop (D $ x),
-                  Logic.mk_implies (Trueprop (R $ z $ x),
-                  Trueprop (D $ z)))))
-          |> cterm_of thy
-
-
+      val Globals {domT, x, z, a, P, D, ...} = globals
+      val acc_R = mk_acc domT R
+                  
+      val x_D = assume (cterm_of thy (Trueprop (D $ x)))
+      val a_D = cterm_of thy (Trueprop (D $ a))
+                
+      val D_subset = cterm_of thy (mk_forall x (implies $ Trueprop (D $ x) $ Trueprop (acc_R $ x)))
+                     
+      val D_dcl = (* "!!x z. [| x: D; (z,x):R |] ==> z:D" *)
+                    mk_forall x
+                    (mk_forall z (Logic.mk_implies (Trueprop (D $ x),
+                                                    Logic.mk_implies (Trueprop (R $ z $ x),
+                                                                      Trueprop (D $ z)))))
+                    |> cterm_of thy
+                    
+                    
   (* Inductive Hypothesis: !!z. (z,x):R ==> P z *)
-  val ihyp = all domT $ Abs ("z", domT, 
-           implies $ Trueprop (R $ Bound 0 $ x)
+      val ihyp = all domT $ Abs ("z", domT, 
+               implies $ Trueprop (R $ Bound 0 $ x)
              $ Trueprop (P $ Bound 0))
            |> cterm_of thy
 
-  val aihyp = assume ihyp
+      val aihyp = assume ihyp
 
   fun prove_case clause =
       let
@@ -188,6 +188,9 @@ fun mk_domain_intro thy globals R R_cases clause =
     end
 
 
+fun maybe_mk_domain_intro thy =
+    if !FundefCommon.domintros then mk_domain_intro thy
+    else K (K (K (K refl)))
 
 
 fun mk_nest_term_case thy globals R' ihyp clause =
@@ -296,34 +299,22 @@ fun mk_partial_rules thy data provedgoal =
     let
       val Prep {globals, G, f, R, clauses, values, R_cases, ex1_iff, ...} = data
                                                                             
-      val _ = Output.debug "Closing Derivation"
-              
-      val provedgoal = Drule.close_derivation provedgoal
+      val provedgoal = PROFILE "Closing Derivation" Drule.close_derivation provedgoal
                        
-      val _ = Output.debug "Getting function theorem"
-              
-      val graph_is_function = (provedgoal COMP conjunctionD1)
-                                |> forall_elim_vars 0
+      val graph_is_function = PROFILE "Getting function theorem" (fn x => (x COMP conjunctionD1) |> forall_elim_vars 0) provedgoal
                               
-      val _ = Output.debug "Getting cases"
-              
-      val complete_thm = provedgoal COMP conjunctionD2
-                         
-      val _ = Output.debug "Making f_iff"
-              
-      val f_iff = (graph_is_function RS ex1_iff) 
+      val complete_thm = PROFILE "Getting cases" (curry op COMP provedgoal) conjunctionD2
+
+      val f_iff = PROFILE "Making f_iff" (curry op RS graph_is_function) ex1_iff
                   
-      val _ = Output.debug "Proving simplification rules"
-      val psimps  = map2 (mk_psimp thy globals R f_iff graph_is_function) clauses values
+      val psimps = PROFILE "Proving simplification rules" (map2 (mk_psimp thy globals R f_iff graph_is_function)) clauses values
                     
-      val _ = Output.debug "Proving partial induction rule"
-      val (subset_pinduct, simple_pinduct) = mk_partial_induct_rule thy globals R complete_thm clauses
+      val (subset_pinduct, simple_pinduct) = PROFILE "Proving partial induction rule" 
+                                             (mk_partial_induct_rule thy globals R complete_thm) clauses
                                              
-      val _ = Output.debug "Proving nested termination rule"
-      val total_intro = mk_nest_term_rule thy globals R R_cases clauses
+      val total_intro = PROFILE "Proving nested termination rule" (mk_nest_term_rule thy globals R R_cases) clauses
                         
-      val _ = Output.debug "Proving domain introduction rules"
-      val dom_intros = map (mk_domain_intro thy globals R R_cases) clauses
+      val dom_intros = PROFILE "Proving domain introduction rules" (map (maybe_mk_domain_intro thy globals R R_cases)) clauses
     in 
       FundefResult {f=f, G=G, R=R, completeness=complete_thm, 
                     psimps=psimps, subset_pinduct=subset_pinduct, simple_pinduct=simple_pinduct, total_intro=total_intro,

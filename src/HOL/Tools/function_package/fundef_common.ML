@@ -12,6 +12,11 @@ struct
 (* Theory Dependencies *)
 val acc_const_name = "FunDef.accP"
 
+val domintros = ref true;
+val profile = ref false;
+
+fun PROFILE msg = if !profile then timeap_msg msg else I
+
 fun mk_acc domT R =
     Const (acc_const_name, (fastype_of R) --> domT --> HOLogic.boolT) $ R 
 
@@ -175,14 +180,26 @@ datatype fundef_mresult =
       domintros : thm list
      }
 
+datatype fundef_context_data =
+  FundefCtxData of
+     {
+      fixes : ((string * typ) * mixfix) list,
+      spec : ((string * Attrib.src list) * term list) list list,
+      mutual: mutual_info,
 
-type fundef_spec = ((string * typ) * mixfix) list *((string * Attrib.src list) * term list) list list
-type result_with_names = fundef_mresult * mutual_info * fundef_spec
+      f : term,
+      R : term,
+      
+      psimps: thm list,
+      pinducts: thm list,
+      termination: thm
+     }
+
 
 structure FundefData = GenericDataFun
 (struct
   val name = "HOL/function_def/data";
-  type T = string * result_with_names Symtab.table
+  type T = string * fundef_context_data Symtab.table
 
   val empty = ("", Symtab.empty);
   val copy = I;
@@ -206,10 +223,11 @@ end);
 
 
 fun add_fundef_data name fundef_data =
-    FundefData.map (fn (_,tab) => (name, Symtab.update_new (name, fundef_data) tab))
+    FundefData.map (fn (last,tab) => (name, Symtab.update_new (name, fundef_data) tab))
 
 fun get_fundef_data name thy = Symtab.lookup (snd (FundefData.get thy)) name
 
+fun set_last_fundef name = FundefData.map (apfst (K name))
 fun get_last_fundef thy = fst (FundefData.get thy)
 
 val map_fundef_congs = FundefCongs.map 

@@ -9,8 +9,8 @@ Termination goals...
 
 signature FUNDEF_TERMINATION =
 sig
-  val mk_total_termination_goal : FundefCommon.result_with_names -> term
-  val mk_partial_termination_goal : theory -> FundefCommon.result_with_names -> string -> term * term
+  val mk_total_termination_goal : term -> term -> term
+(*  val mk_partial_termination_goal : theory -> FundefCommon.result_with_names -> string -> term * term*)
 end
 
 structure FundefTermination : FUNDEF_TERMINATION =
@@ -21,7 +21,7 @@ open FundefLib
 open FundefCommon
 open FundefAbbrev
      
-fun mk_total_termination_goal (FundefMResult {R, f, ... }, _, _) =
+fun mk_total_termination_goal f R =
     let
       val domT = domain_type (fastype_of f)
       val x = Free ("x", domT)
@@ -29,6 +29,7 @@ fun mk_total_termination_goal (FundefMResult {R, f, ... }, _, _) =
       mk_forall x (Trueprop (mk_acc domT R $ x))
     end
     
+(*
 fun mk_partial_termination_goal thy (FundefMResult {R, f, ... }, _, _) dom =
     let
       val domT = domain_type (fastype_of f)
@@ -55,7 +56,7 @@ fun mk_partial_termination_goal thy (FundefMResult {R, f, ... }, _, _) dom =
     in
       (subs, dcl)
     end
-
+*)
 end
 
 

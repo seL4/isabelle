@@ -477,6 +477,8 @@ fun prepare_fundef defname (fname, fT, mixfix) abstract_qglrs default_str lthy =
       val fvar = Free (fname, fT)
       val domT = domain_type fT
       val ranT = range_type fT
+
+                 
                             
       val [default] = fst (Variable.importT_terms (fst (ProofContext.read_termTs lthy (K false) (K NONE) (K NONE) [] [(default_str, fT)])) lthy) (* FIXME *)
 
@@ -485,7 +487,7 @@ fun prepare_fundef defname (fname, fT, mixfix) abstract_qglrs default_str lthy =
 
       val Globals { x, h, ... } = globals
 
-      val clauses = map (mk_clause_context x ctxt') abstract_qglrs 
+      val clauses = PROFILE "mk_clause_context" (map (mk_clause_context x ctxt')) abstract_qglrs 
 
       val n = length abstract_qglrs
 
@@ -494,34 +496,34 @@ fun prepare_fundef defname (fname, fT, mixfix) abstract_qglrs default_str lthy =
       fun build_tree (ClauseContext { ctxt, rhs, ...}) = 
             FundefCtxTree.mk_tree congs_deps (fname, fT) h ctxt rhs
 
-      val trees = map build_tree clauses
-      val RCss = map find_calls trees
+      val trees = PROFILE "making trees" (map build_tree) clauses
+      val RCss = PROFILE "finding calls" (map find_calls) trees
 
-      val ((G, GIntro_thms, G_elim), lthy) = define_graph (defname ^ "_graph") fvar domT ranT clauses RCss lthy
-      val ((f, f_defthm), lthy) = define_function (defname ^ "_sum_def") (fname, mixfix) domT ranT G default lthy
+      val ((G, GIntro_thms, G_elim), lthy) = PROFILE "def_graph" (define_graph (defname ^ "_graph") fvar domT ranT clauses RCss) lthy
+      val ((f, f_defthm), lthy) = PROFILE "def_fun" (define_function (defname ^ "_sum_def") (fname, mixfix) domT ranT G default) lthy
 
-      val RCss = map (map (inst_RC (ProofContext.theory_of lthy) fvar f)) RCss
-      val trees = map (FundefCtxTree.inst_tree (ProofContext.theory_of lthy) fvar f) trees
+      val RCss = PROFILE "inst_RCs" (map (map (inst_RC (ProofContext.theory_of lthy) fvar f))) RCss
+      val trees = PROFILE "inst_trees" (map (FundefCtxTree.inst_tree (ProofContext.theory_of lthy) fvar f)) trees
 
       val ((R, RIntro_thmss, R_elim), lthy) = 
-          define_recursion_relation (defname ^ "_rel") domT ranT fvar f abstract_qglrs clauses RCss lthy
+          PROFILE "def_rel" (define_recursion_relation (defname ^ "_rel") domT ranT fvar f abstract_qglrs clauses RCss) lthy
 
       val dom_abbrev = Logic.mk_equals (Free (defname ^ "_dom", domT --> boolT), mk_acc domT R)
-      val lthy = Specification.abbreviation_i ("", false) [(NONE, dom_abbrev)] lthy
+      val lthy = PROFILE "abbrev" (Specification.abbreviation_i ("", false) [(NONE, dom_abbrev)]) lthy
 
       val newthy = ProofContext.theory_of lthy
       val clauses = map (transfer_clause_ctx newthy) clauses
 
       val cert = cterm_of (ProofContext.theory_of lthy)
 
-      val xclauses = map7 (mk_clause_info globals G f) (1 upto n) clauses abstract_qglrs trees RCss GIntro_thms RIntro_thmss
+      val xclauses = PROFILE "xclauses" (map7 (mk_clause_info globals G f) (1 upto n) clauses abstract_qglrs trees RCss GIntro_thms) RIntro_thmss
 
-      val complete = mk_completeness globals clauses abstract_qglrs |> cert |> assume
-      val compat = mk_compat_proof_obligations domT ranT fvar f abstract_qglrs |> map (cert #> assume)
+      val complete = PROFILE "mk_compl" (mk_completeness globals clauses) abstract_qglrs |> cert |> assume
+      val compat = PROFILE "mk_compat" (mk_compat_proof_obligations domT ranT fvar f) abstract_qglrs |> map (cert #> assume)
 
       val compat_store = store_compat_thms n compat
 
-      val (goal, goalI, ex1_iff, values) = prove_stuff newthy congs globals G f R xclauses complete compat compat_store G_elim f_defthm
+      val (goal, goalI, ex1_iff, values) = PROFILE "prove_stuff" (prove_stuff newthy congs globals G f R xclauses complete compat compat_store G_elim) f_defthm
     in
         (Prep {globals = globals, f = f, G = G, R = R, goal = goal, goalI = goalI, values = values, clauses = xclauses, ex1_iff = ex1_iff, R_cases = R_elim}, f,
          lthy)

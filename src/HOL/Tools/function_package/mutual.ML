@@ -337,10 +337,9 @@ fun mk_partial_rules_mutual lthy (m as Mutual {RST, parts, streeR, fqgars, ...})
       fun mk_mpsimp fqgar sum_psimp =
           in_context lthy fqgar (recover_mutual_psimp thy RST streeR all_f_defs parts) sum_psimp
           
-      val mpsimps = map2 mk_mpsimp fqgars psimps
-                    
-      val minducts = mutual_induct_rules thy simple_pinduct all_f_defs m
-      val termination = full_simplify (HOL_basic_ss addsimps all_f_defs) total_intro
+      val mpsimps = PROFILE "making mpsimps" (map2 mk_mpsimp fqgars) psimps
+      val minducts = PROFILE "making mpinduct" (mutual_induct_rules thy simple_pinduct all_f_defs) m
+      val termination = PROFILE "making mtermination" (full_simplify (HOL_basic_ss addsimps all_f_defs)) total_intro
     in
       FundefMResult { f=expand_term f, G=expand_term G, R=expand_term R,
                       psimps=map expand mpsimps, subset_pinducts=[expand subset_pinduct], simple_pinducts=map expand minducts,
