@@ -101,6 +101,9 @@ proof -
   finally show ?thesis .
 qed
 
+lemmas add_zero_left = add_0
+  and add_zero_right = add_0_right
+
 lemma add_left_cancel [simp]:
      "(a + b = a + c) = (b = (c::'a::cancel_semigroup_add))"
 by (blast dest: add_left_imp_eq) 
@@ -1054,13 +1057,6 @@ declare diff_less_0_iff_less [simp]
 declare diff_eq_0_iff_eq [simp]
 declare diff_le_0_iff_le [simp]
 
-
-
-
-ML {*
-val add_zero_left = thm"add_0";
-val add_zero_right = thm"add_0_right";
-*}
 
 ML {*
 val add_assoc = thm "add_assoc";
