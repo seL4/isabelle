@@ -2,6 +2,9 @@
 Contributions to Isabelle
 -------------------------
 
+* November 2006: Lukas Bulwahn, TUM
+  HOL/function: method "lexicographic_order".
+
 * October 2006: Stefan Hohe, TUM
   HOL-Algebra: ideals and quotients over rings.
 
