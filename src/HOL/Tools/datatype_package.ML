@@ -408,7 +408,7 @@ fun case_tr context [t, u] =
               (case try (unprefix Syntax.constN) s of
                 SOME c => (c, ts)
               | NONE => (Sign.intern_const thy s, ts))
-          | (Free (s, _), ts) => (Sign.intern_const thy s, ts) (*FIXME?*)
+          | (Free (s, _), ts) => (Sign.intern_const thy s, ts)
           | _ => case_error "Head is not a constructor" NONE [t, u], u)
         | dest_case1 t = raise TERM ("dest_case1", [t]);
       fun dest_case2 (Const ("_case2", _) $ t $ u) = t :: dest_case2 u
@@ -465,6 +465,8 @@ fun case_tr context [t, u] =
 fun case_tr' constrs context ts =
   if length ts <> length constrs + 1 then raise Match else
   let
+    val consts = Context.cases Sign.consts_of ProofContext.consts_of context;
+
     val (fs, x) = split_last ts;
     fun strip_abs 0 t = ([], t)
       | strip_abs i (Abs p) =
@@ -478,7 +480,7 @@ fun case_tr' constrs context ts =
         (loose_bnos (strip_abs_body t))
       end;
     val cases = map (fn ((cname, dts), t) =>
-      (Sign.extern_const (Context.theory_of context) cname,
+      (Consts.extern_early consts cname,
        strip_abs (length dts) t, is_dependent (length dts) t))
       (constrs ~~ fs);
     fun count_cases (_, _, true) = I
