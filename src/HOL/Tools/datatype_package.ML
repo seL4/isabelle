@@ -733,7 +733,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
       |> snd
       |> DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos)
-      |> DatatypeHooks.invoke (map fst dt_infos);
+      |> DatatypeHooks.all (map fst dt_infos);
   in
     ({distinct = distinct,
       inject = inject,
@@ -793,7 +793,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       |> Theory.parent_path
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms) |> snd
       |> DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos)
-      |> DatatypeHooks.invoke (map fst dt_infos);
+      |> DatatypeHooks.all (map fst dt_infos);
   in
     ({distinct = distinct,
       inject = inject,
@@ -906,7 +906,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
       |> snd
       |> DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos)
-      |> DatatypeHooks.invoke (map fst dt_infos);
+      |> DatatypeHooks.all (map fst dt_infos);
   in
     ({distinct = distinct,
       inject = inject,

@@ -9,7 +9,7 @@ signature DATATYPE_HOOKS =
 sig
   type hook = string list -> theory -> theory;
   val add: hook -> theory -> theory;
-  val invoke: hook;
+  val all: hook;
   val setup: theory -> theory;
 end;
 
@@ -43,7 +43,7 @@ end);
 fun add hook =
   DatatypeHooksData.map (map_T (cons (serial (), hook)));
 
-fun invoke dtcos thy =
+fun all dtcos thy =
   fold (fn (_, f) => f dtcos) ((fn T hooks => hooks) (DatatypeHooksData.get thy)) thy;
 
 
