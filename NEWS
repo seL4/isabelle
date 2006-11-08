@@ -490,8 +490,6 @@ Usage for (function package) termination proofs:
 termination 
 by lexicographic_order
 
-Contributed by Lukas Bulwahn.
-
 * Records: generalised field-update to take a function on the field 
 rather than the new value: r(|A := x|) is translated to A_update (K x) r
 The K-combinator that is internally used is called K_record.
