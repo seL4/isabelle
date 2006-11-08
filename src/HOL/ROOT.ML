@@ -37,6 +37,11 @@ use "~~/src/Provers/order.ML";
 
 with_path "Integ" use_thy "Main";
 
+structure Main =
+struct
+  val thy = theory "Main"
+end;
+
 path_add "~~/src/HOL/Library";
 
 Goal "True";  (*leave subgoal package empty*)
