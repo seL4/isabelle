@@ -67,6 +67,12 @@ apply (drule_tac x="x + k" in spec)
 apply (simp add: compare_rls)
 done
 
+lemma LIM_offset_zero: "f -- a --> L \<Longrightarrow> (\<lambda>h. f (a + h)) -- 0 --> L"
+by (drule_tac k="a" in LIM_offset, simp add: add_commute)
+
+lemma LIM_offset_zero_cancel: "(\<lambda>h. f (a + h)) -- 0 --> L \<Longrightarrow> f -- a --> L"
+by (drule_tac k="- a" in LIM_offset, simp)
+
 lemma LIM_const [simp]: "(%x. k) -- x --> k"
 by (simp add: LIM_def)
 
@@ -116,6 +122,12 @@ by (intro LIM_add LIM_minus)
 lemma LIM_diff:
     "[| f -- x --> l; g -- x --> m |] ==> (%x. f(x) - g(x)) -- x --> l-m"
 by (simp only: diff_minus LIM_add LIM_minus)
+
+lemma LIM_zero: "f -- a --> l \<Longrightarrow> (\<lambda>x. f x - l) -- a --> 0"
+by (simp add: LIM_def)
+
+lemma LIM_zero_cancel: "(\<lambda>x. f x - l) -- a --> 0 \<Longrightarrow> f -- a --> l"
+by (simp add: LIM_def)
 
 lemma LIM_const_not_eq:
   fixes a :: "'a::real_normed_div_algebra"
@@ -190,6 +202,33 @@ lemma LIM_trans:
 apply (drule LIM_add, assumption)
 apply (auto simp add: add_assoc)
 done
+
+lemma LIM_compose:
+  assumes g: "g -- l --> g l"
+  assumes f: "f -- a --> l"
+  shows "(\<lambda>x. g (f x)) -- a --> g l"
+proof (rule LIM_I)
+  fix r::real assume r: "0 < r"
+  obtain s where s: "0 < s"
+    and less_r: "\<And>y. \<lbrakk>y \<noteq> l; norm (y - l) < s\<rbrakk> \<Longrightarrow> norm (g y - g l) < r"
+    using LIM_D [OF g r] by fast
+  obtain t where t: "0 < t"
+    and less_s: "\<And>x. \<lbrakk>x \<noteq> a; norm (x - a) < t\<rbrakk> \<Longrightarrow> norm (f x - l) < s"
+    using LIM_D [OF f s] by fast
+
+  show "\<exists>t>0. \<forall>x. x \<noteq> a \<and> norm (x - a) < t \<longrightarrow> norm (g (f x) - g l) < r"
+  proof (rule exI, safe)
+    show "0 < t" using t .
+  next
+    fix x assume "x \<noteq> a" and "norm (x - a) < t"
+    hence "norm (f x - l) < s" by (rule less_s)
+    thus "norm (g (f x) - g l) < r"
+      using r less_r by (case_tac "f x = l", simp_all)
+  qed
+qed
+
+lemma LIM_o: "\<lbrakk>g -- l --> g l; f -- a --> l\<rbrakk> \<Longrightarrow> (g \<circ> f) -- a --> g l"
+unfolding o_def by (rule LIM_compose)
 
 subsubsection {* Purely nonstandard proofs *}
 
@@ -391,11 +430,6 @@ by (simp add: LIM_NSLIM_iff NSLIM_inverse)
 lemma LIM_zero2: "f -- a --> l ==> (%x. f(x) + -l) -- a --> 0"
 by (simp add: LIM_NSLIM_iff NSLIM_zero)
 
-lemma LIM_zero_cancel: "(%x. f(x) - l) -- x --> 0 ==> f -- x --> l"
-apply (drule_tac g = "%x. l" and M = l in LIM_add)
-apply (auto simp add: diff_minus add_assoc)
-done
-
 lemma LIM_unique2:
   fixes a :: real
   shows "[| f -- a --> L; f -- a --> M |] ==> L = M"
@@ -411,6 +445,51 @@ by (drule LIM_mult2, auto)
 
 
 subsection {* Continuity *}
+
+subsubsection {* Purely standard proofs *}
+
+lemma LIM_isCont_iff: "(f -- a --> f a) = ((\<lambda>h. f (a + h)) -- 0 --> f a)"
+by (rule iffI [OF LIM_offset_zero LIM_offset_zero_cancel])
+
+lemma isCont_iff: "isCont f x = (\<lambda>h. f (x + h)) -- 0 --> f x"
+by (simp add: isCont_def LIM_isCont_iff)
+
+lemma isCont_Id: "isCont (\<lambda>x. x) a"
+unfolding isCont_def by (rule LIM_self)
+
+lemma isCont_const [simp]: "isCont (%x. k) a"
+unfolding isCont_def by (rule LIM_const)
+
+lemma isCont_add: "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x + g x) a"
+unfolding isCont_def by (rule LIM_add)
+
+lemma isCont_minus: "isCont f a \<Longrightarrow> isCont (\<lambda>x. - f x) a"
+unfolding isCont_def by (rule LIM_minus)
+
+lemma isCont_diff: "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x - g x) a"
+unfolding isCont_def by (rule LIM_diff)
+
+lemma isCont_mult:
+  fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
+  shows "[| isCont f a; isCont g a |] ==> isCont (%x. f(x) * g(x)) a"
+unfolding isCont_def by (rule LIM_mult2)
+
+lemma isCont_inverse:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_div_algebra"
+  shows "[| isCont f x; f x \<noteq> 0 |] ==> isCont (%x. inverse (f x)) x"
+unfolding isCont_def by (rule LIM_inverse)
+
+lemma isCont_LIM_compose:
+  "\<lbrakk>isCont g l; f -- a --> l\<rbrakk> \<Longrightarrow> (\<lambda>x. g (f x)) -- a --> g l"
+unfolding isCont_def by (rule LIM_compose)
+
+lemma isCont_o2: "\<lbrakk>isCont f a; isCont g (f a)\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. g (f x)) a"
+unfolding isCont_def by (rule LIM_compose)
+
+lemma isCont_o: "\<lbrakk>isCont f a; isCont g (f a)\<rbrakk> \<Longrightarrow> isCont (g o f) a"
+unfolding o_def by (rule isCont_o2)
+
+subsubsection {* Nonstandard proofs *}
 
 lemma isNSContD: "[| isNSCont f a; y \<approx> hypreal_of_real a |] ==> ( *f* f) y \<approx> hypreal_of_real (f a)"
 by (simp add: isNSCont_def)
@@ -466,63 +545,13 @@ done
 lemma NSLIM_isCont_iff: "(f -- a --NS> f a) = ((%h. f(a + h)) -- 0 --NS> f a)"
 by (rule NSLIM_h_iff)
 
-lemma LIM_isCont_iff: "(f -- a --> f a) = ((%h. f(a + h)) -- 0 --> f(a))"
-by (simp add: LIM_NSLIM_iff NSLIM_isCont_iff)
-
-lemma isCont_iff: "(isCont f x) = ((%h. f(x + h)) -- 0 --> f(x))"
-by (simp add: isCont_def LIM_isCont_iff)
-
-text{*Immediate application of nonstandard criterion for continuity can offer
-   very simple proofs of some standard property of continuous functions*}
-text{*sum continuous*}
-lemma isCont_add: "[| isCont f a; isCont g a |] ==> isCont (%x. f(x) + g(x)) a"
-by (auto intro: approx_add simp add: isNSCont_isCont_iff [symmetric] isNSCont_def)
-
-text{*mult continuous*}
-lemma isCont_mult:
-  fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
-  shows "[| isCont f a; isCont g a |] ==> isCont (%x. f(x) * g(x)) a"
-by (auto intro!: starfun_mult_HFinite_approx
-            simp del: starfun_mult [symmetric]
-            simp add: isNSCont_isCont_iff [symmetric] isNSCont_def)
-
-text{*composition of continuous functions
-     Note very short straightforard proof!*}
-lemma isCont_o: "[| isCont f a; isCont g (f a) |] ==> isCont (g o f) a"
-by (auto simp add: isNSCont_isCont_iff [symmetric] isNSCont_def starfun_o [symmetric])
-
-lemma isCont_o2: "[| isCont f a; isCont g (f a) |] ==> isCont (%x. g (f x)) a"
-by (auto dest: isCont_o simp add: o_def)
-
 lemma isNSCont_minus: "isNSCont f a ==> isNSCont (%x. - f x) a"
 by (simp add: isNSCont_def)
-
-lemma isCont_minus: "isCont f a ==> isCont (%x. - f x) a"
-by (auto simp add: isNSCont_isCont_iff [symmetric] isNSCont_minus)
-
-lemma isCont_inverse:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_div_algebra"
-  shows "[| isCont f x; f x \<noteq> 0 |] ==> isCont (%x. inverse (f x)) x"
-apply (simp add: isCont_def)
-apply (blast intro: LIM_inverse)
-done
 
 lemma isNSCont_inverse:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_div_algebra"
   shows "[| isNSCont f x; f x \<noteq> 0 |] ==> isNSCont (%x. inverse (f x)) x"
 by (auto intro: isCont_inverse simp add: isNSCont_isCont_iff)
-
-lemma isCont_diff:
-      "[| isCont f a; isCont g a |] ==> isCont (%x. f(x) - g(x)) a"
-apply (simp add: diff_minus)
-apply (auto intro: isCont_add isCont_minus)
-done
-
-lemma isCont_Id: "isCont (\<lambda>x. x) a"
-by (simp only: isCont_def LIM_self)
-
-lemma isCont_const [simp]: "isCont (%x. k) a"
-by (simp add: isCont_def)
 
 lemma isNSCont_const [simp]: "isNSCont (%x. k) a"
 by (simp add: isNSCont_def)
@@ -645,30 +674,6 @@ proof (unfold isUCont_def, safe)
   qed
   thus "\<exists>s>0. \<forall>x y. norm (x - y) < s \<longrightarrow> norm (f x - f y) < r"
     by transfer
-qed
-
-lemma LIM_compose:
-  assumes g: "isCont g l"
-  assumes f: "f -- a --> l"
-  shows "(\<lambda>x. g (f x)) -- a --> g l"
-proof (rule LIM_I)
-  fix r::real assume r: "0 < r"
-  obtain s where s: "0 < s"
-    and less_r: "\<And>y. \<lbrakk>y \<noteq> l; norm (y - l) < s\<rbrakk> \<Longrightarrow> norm (g y - g l) < r"
-    using LIM_D [OF g [unfolded isCont_def] r] by fast
-  obtain t where t: "0 < t"
-    and less_s: "\<And>x. \<lbrakk>x \<noteq> a; norm (x - a) < t\<rbrakk> \<Longrightarrow> norm (f x - l) < s"
-    using LIM_D [OF f s] by fast
-
-  show "\<exists>t>0. \<forall>x. x \<noteq> a \<and> norm (x - a) < t \<longrightarrow> norm (g (f x) - g l) < r"
-  proof (rule exI, safe)
-    show "0 < t" using t .
-  next
-    fix x assume "x \<noteq> a" and "norm (x - a) < t"
-    hence "norm (f x - l) < s" by (rule less_s)
-    thus "norm (g (f x) - g l) < r"
-      using r less_r by (case_tac "f x = l", simp_all)
-  qed
 qed
 
 subsection {* Relation of LIM and LIMSEQ *}

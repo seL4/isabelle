@@ -300,7 +300,7 @@ proof (unfold DERIV_iff2)
   from f have "f -- x --> f x"
     by (rule DERIV_isCont [unfolded isCont_def])
   with cont_d have "(\<lambda>z. d (f z)) -- x --> d (f x)"
-    by (rule LIM_compose)
+    by (rule isCont_LIM_compose)
   hence "(\<lambda>z. ((f z - f x) /# (z - x)) *# d (f z))
           -- x --> D *# d (f x)"
     by (rule LIM_scaleR [OF f [unfolded DERIV_iff2]])
