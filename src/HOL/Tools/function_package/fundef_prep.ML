@@ -508,8 +508,9 @@ fun prepare_fundef defname (fname, fT, mixfix) abstract_qglrs default_str lthy =
       val ((R, RIntro_thmss, R_elim), lthy) = 
           PROFILE "def_rel" (define_recursion_relation (defname ^ "_rel") domT ranT fvar f abstract_qglrs clauses RCss) lthy
 
-      val dom_abbrev = Logic.mk_equals (Free (defname ^ "_dom", domT --> boolT), mk_acc domT R)
-      val lthy = PROFILE "abbrev" (Specification.abbreviation_i ("", false) [(NONE, dom_abbrev)]) lthy
+      val lthy = PROFILE "abbrev"
+        (snd o LocalTheory.abbrevs ("", false) (* FIXME really this mode? cf. Syntax.default_mode *)
+          [((defname ^ "_dom", NoSyn), mk_acc domT R)]) lthy
 
       val newthy = ProofContext.theory_of lthy
       val clauses = map (transfer_clause_ctx newthy) clauses
