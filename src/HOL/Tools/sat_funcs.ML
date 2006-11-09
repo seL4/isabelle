@@ -320,7 +320,7 @@ let
 		fold Thm.weaken clauses''' False_thm
 	end
 in
-	case (tracing "Invoking solver"; timeap (SatSolver.invoke_solver (!solver)) fm) of  (*TODO*)
+	case (tracing ("Invoking solver " ^ (!solver)); SatSolver.invoke_solver (!solver) fm) of
 	  SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id)) => (
 		if !trace_sat then
 			tracing ("Proof trace from SAT solver:\n" ^
@@ -334,22 +334,19 @@ in
 				(* optimization: convert the given clauses to "[c_1 && ... && c_n] |- c_i";  *)
 				(*               this avoids accumulation of hypotheses during resolution    *)
 				(* [c_1, ..., c_n] |- c_1 && ... && c_n *)
-				val _           = tracing "Conjunction.intr_list"  (*TODO*)
-				val clauses_thm = timeap Conjunction.intr_list (map Thm.assume clauses''')  (*TODO*)
+				val clauses_thm = Conjunction.intr_list (map Thm.assume clauses''')
 				(* [c_1 && ... && c_n] |- c_1 && ... && c_n *)
 				val cnf_cterm = cprop_of clauses_thm
 				val cnf_thm   = Thm.assume cnf_cterm
 				(* [[c_1 && ... && c_n] |- c_1, ..., [c_1 && ... && c_n] |- c_n] *)
-				val _           = tracing "Conjunction.elim_list"  (*TODO*)
-				val cnf_clauses = timeap Conjunction.elim_list cnf_thm  (*TODO*)
+				val cnf_clauses = Conjunction.elim_list cnf_thm
 				(* initialize the clause array with the given clauses *)
 				val max_idx    = valOf (Inttab.max_key clause_table)
 				val clause_arr = Array.array (max_idx + 1, NO_CLAUSE)
 				val _          = fold (fn thm => fn idx => (Array.update (clause_arr, idx, ORIG_CLAUSE thm); idx+1)) cnf_clauses 0
 				(* replay the proof to derive the empty clause *)
 				(* [c_1 && ... && c_n] |- False *)
-				val _       = tracing "replay_proof"  (*TODO*)
-				val raw_thm = timeap (replay_proof atom_table clause_arr) (clause_table, empty_id)  (*TODO*)
+				val raw_thm = replay_proof atom_table clause_arr (clause_table, empty_id)
 			in
 				(* [c_1, ..., c_n] |- False *)
 				Thm.implies_elim (Thm.implies_intr cnf_cterm raw_thm) clauses_thm

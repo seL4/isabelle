@@ -892,8 +892,7 @@ let
 					process_lines ls
 				)
 			(* proof *)
-			val _ = tracing "process_lines"  (*TODO*)
-			val _ = timeap process_lines proof_lines  (*TODO*)
+			val _ = process_lines proof_lines
 			val _ = if !empty_id <> ~1 then () else raise INVALID_PROOF "File format error: no conflicting clause specified."
 		in
 			SatSolver.UNSATISFIABLE (SOME (!clause_table, !empty_id))
