@@ -187,12 +187,12 @@ fun it_right f (xq, yq) =
 
 
 
-(** sequence functions **)      (*some code copied from Pure/tctical.ML*)
+(** sequence functions **)      (*cf. Pure/tctical.ML*)
 
 fun succeed x = single x;
 fun fail _ = empty;
 
-fun op THEN (f, g) x = flat (map g (f x));
+fun op THEN (f, g) x = maps g (f x);
 
 fun op ORELSE (f, g) x =
   (case pull (f x) of
