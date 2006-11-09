@@ -20,17 +20,17 @@ begin
 
 notation
   less_eq  ("op \<^loc><=")
-  less_eq  ("(_/ \<^loc><= _)" [50, 51] 50)
+  less_eq  ("(_/ \<^loc><= _)" [51, 51] 50)
   less  ("op \<^loc><")
-  less  ("(_/ \<^loc>< _)"  [50, 51] 50)
+  less  ("(_/ \<^loc>< _)"  [51, 51] 50)
 
 notation (xsymbols)
   less_eq  ("op \<^loc>\<le>")
-  less_eq  ("(_/ \<^loc>\<le> _)"  [50, 51] 50)
+  less_eq  ("(_/ \<^loc>\<le> _)"  [51, 51] 50)
 
 notation (HTML output)
   less_eq  ("op \<^loc>\<le>")
-  less_eq  ("(_/ \<^loc>\<le> _)"  [50, 51] 50)
+  less_eq  ("(_/ \<^loc>\<le> _)"  [51, 51] 50)
 
 abbreviation (input)
   greater  (infix "\<^loc>>" 50)
@@ -39,32 +39,32 @@ abbreviation (input)
   "x \<^loc>>= y \<equiv> y \<^loc><= x"
 
 notation (xsymbols)
-  greater_eq  (infixl "\<^loc>\<ge>" 50)
+  greater_eq  (infix "\<^loc>\<ge>" 50)
 
 end
 
 notation
   less_eq  ("op <=")
-  less_eq  ("(_/ <= _)" [50, 51] 50)
+  less_eq  ("(_/ <= _)" [51, 51] 50)
   less  ("op <")
-  less  ("(_/ < _)"  [50, 51] 50)
+  less  ("(_/ < _)"  [51, 51] 50)
   
 notation (xsymbols)
   less_eq  ("op \<le>")
-  less_eq  ("(_/ \<le> _)"  [50, 51] 50)
+  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
 
 notation (HTML output)
   less_eq  ("op \<le>")
-  less_eq  ("(_/ \<le> _)"  [50, 51] 50)
+  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
 
 abbreviation (input)
-  greater  (infixl ">" 50)
+  greater  (infix ">" 50)
   "x > y \<equiv> y < x"
-  greater_eq  (infixl ">=" 50)
+  greater_eq  (infix ">=" 50)
   "x >= y \<equiv> y <= x"
   
 notation (xsymbols)
-  greater_eq  (infixl "\<ge>" 50)
+  greater_eq  (infix "\<ge>" 50)
 
 
 subsection {* Partial orderings *}
