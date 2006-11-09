@@ -31,9 +31,9 @@ sig
     ((string * typ option * mixfix) option * ((string * Attrib.src list) * term)) list ->
     local_theory -> (term * (bstring * thm)) list * local_theory
   val abbreviation: Syntax.mode -> ((string * string option * mixfix) option * string) list ->
-    local_theory -> local_theory
+    local_theory -> (term * term) list * local_theory
   val abbreviation_i: Syntax.mode -> ((string * typ option * mixfix) option * term) list ->
-    local_theory -> local_theory
+    local_theory -> (term * term) list * local_theory
   val notation: Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val notation_i: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val theorems: string -> ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list
@@ -132,7 +132,7 @@ fun gen_defs prep args lthy =
           |> LocalTheory.def ((x, mx), ((name, []), rhs));
         val ((b, [th']), lthy3) = lthy2
           |> LocalTheory.note ((name, atts), [prove lthy2 th]);
-      in (((x, T), (lhs, (b, th'))), LocalTheory.reinit lthy3) end;
+      in (((x, T), (lhs, (b, th'))), LocalTheory.restore lthy3) end;
 
     val ((cs, defs), lthy') = lthy |> fold_map define args |>> split_list;
     val def_frees = member (op =) (fold (Term.add_frees o fst) defs []);
@@ -153,21 +153,19 @@ fun gen_abbrevs prep mode args lthy =
           prep (the_list raw_var) [(("", []), [raw_prop])]
             (lthy1 |> ProofContext.expand_abbrevs false);
         val ((x, T), rhs) = LocalDefs.abs_def (#2 (LocalDefs.cert_def lthy1 prop));
-        val mx = (case vars of [] => NoSyn | [((x', _), mx)] =>
-          if x = x' then mx
-          else error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote x'));
-      in
-        lthy1
-        |> LocalTheory.abbrevs mode [((x, mx), rhs)]
-        |> pair (x, T)
-      end;
+        val mx = (case vars of [] => NoSyn | [((y, _), mx)] =>
+          if x = y then mx
+          else error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y));
+        val ([abbr], lthy2) = lthy1
+          |> LocalTheory.abbrevs mode [((x, mx), rhs)];
+      in (((x, T), abbr), LocalTheory.restore lthy2) end;
 
-    val (cs, lthy1) = lthy
+    val (abbrs, lthy1) = lthy
       |> ProofContext.set_syntax_mode mode
       |> fold_map abbrev args
       ||> ProofContext.restore_syntax_mode lthy;
-    val _ = print_consts lthy1 (K false) cs;
-  in lthy1 end;
+    val _ = print_consts lthy1 (K false) (map fst abbrs);
+  in (map snd abbrs, lthy1) end;
 
 val abbreviation = gen_abbrevs read_specification;
 val abbreviation_i = gen_abbrevs cert_specification;
@@ -261,7 +259,7 @@ fun gen_theorem prep_att prep_stmt
     val (loc, ctxt, lthy) =
       (case (TheoryTarget.peek lthy0, exists (fn Locale.Expr _ => true | _ => false) raw_elems) of
         (SOME loc, true) => (* workaround non-modularity of in/includes *)  (* FIXME *)
-          (SOME loc, ProofContext.init thy, LocalTheory.reinit lthy0)
+          (SOME loc, ProofContext.init thy, LocalTheory.restore lthy0)
       | _ => (NONE, lthy0, lthy0));
 
     val elems = raw_elems |> (map o Locale.map_elem)
