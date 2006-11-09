@@ -167,7 +167,7 @@ fun map_node f (Node {context, facts, mode, goal}) =
 fun init ctxt = State (Stack.init (make_node (ctxt, NONE, Forward, NONE)));
 
 fun current (State st) = Stack.top st |> (fn Node node => node);
-fun map_current f (State st) = State (Stack.map (map_node f) st);
+fun map_current f (State st) = State (Stack.map_top (map_node f) st);
 
 
 
