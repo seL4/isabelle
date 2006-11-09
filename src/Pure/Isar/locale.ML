@@ -1547,8 +1547,6 @@ fun add_thmss kind loc args ctxt =
       #> note_thmss_registrations kind loc args');
   in (facts, ctxt'') end;
 
-fun locale_results kind loc args = add_thmss kind loc (map (apsnd Thm.simple_fact) args);
-
 
 
 (** define locales **)
