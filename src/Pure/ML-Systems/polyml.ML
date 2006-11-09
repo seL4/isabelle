@@ -25,13 +25,6 @@ struct
 end;
 
 
-(* cygwin *)
-
-val cygwin_platform = String.isSuffix "cygwin" ml_platform;
-fun if_cygwin f x = if cygwin_platform then f x else ();
-fun unless_cygwin f x = if not cygwin_platform then f x else ();
-
-
 (*low-level pointer equality*)
 val pointer_eq = Address.wordEq;
 
@@ -62,14 +55,9 @@ use "ML-Systems/cpu-timer-basis.ML";
 
 (* bounded time execution *)
 
-(* FIXME proper implementation available? *)
+(*dummy implementation*)
 fun interrupt_timeout time f x =
   f x;
-
-(*
-unless_cygwin
-  use "ML-Systems/polyml-interrupt-timeout.ML";
-*)
 
 
 (* prompts *)
@@ -165,8 +153,7 @@ end;
 
 (** OS related **)
 
-unless_cygwin
-  use "ML-Systems/polyml-posix.ML";
+use "ML-Systems/polyml-posix.ML";
 
 
 (* system command execution *)
