@@ -544,7 +544,7 @@ fun local_theory_presentation loc f g = app_current (fn int =>
         in Theory (Context.Theory thy', SOME ctxt') end
     | Theory (Context.Proof lthy, _) =>
         let val (ctxt', lthy') =
-          if is_none loc then f lthy |> (fn lthy' => (lthy', LocalTheory.reinit lthy'))
+          if is_none loc then f lthy |> (fn lthy' => (lthy', LocalTheory.restore lthy'))
           else lthy |> LocalTheory.raw_theory_result (TheoryTarget.mapping loc f)
         in Theory (Context.Proof lthy', SOME ctxt') end
     | _ => raise UNDEF) #> tap (g int));
@@ -578,7 +578,7 @@ fun begin_proof init finish = app_current (fn int =>
   | _ => raise UNDEF));
 
 val global_finish = Context.Theory o ProofContext.theory_of;
-val local_finish = Context.Proof o LocalTheory.reinit;
+val local_finish = Context.Proof o LocalTheory.restore;
 
 fun mixed_finish (Context.Theory _) ctxt = global_finish ctxt
   | mixed_finish (Context.Proof lthy) ctxt =
