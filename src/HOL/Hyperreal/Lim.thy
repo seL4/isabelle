@@ -219,6 +219,17 @@ lemma LIM_cong:
    \<Longrightarrow> (f -- a --> l) = (g -- b --> m)"
 by (simp add: LIM_def)
 
+lemma LIM_equal2:
+  assumes 1: "0 < R"
+  assumes 2: "\<And>x. \<lbrakk>x \<noteq> a; norm (x - a) < R\<rbrakk> \<Longrightarrow> f x = g x"
+  shows "g -- a --> l \<Longrightarrow> f -- a --> l"
+apply (unfold LIM_def, safe)
+apply (drule_tac x="r" in spec, safe)
+apply (rule_tac x="min s R" in exI, safe)
+apply (simp add: 1)
+apply (simp add: 2)
+done
+
 text{*Two uses in Hyperreal/Transcendental.ML*}
 lemma LIM_trans:
      "[| (%x. f(x) + -g(x)) -- a --> 0;  g -- a --> l |] ==> f -- a --> l"
@@ -252,6 +263,225 @@ qed
 
 lemma LIM_o: "\<lbrakk>g -- l --> g l; f -- a --> l\<rbrakk> \<Longrightarrow> (g \<circ> f) -- a --> g l"
 unfolding o_def by (rule LIM_compose)
+
+lemma real_LIM_sandwich_zero:
+  fixes f g :: "'a::real_normed_vector \<Rightarrow> real"
+  assumes f: "f -- a --> 0"
+  assumes 1: "\<And>x. x \<noteq> a \<Longrightarrow> 0 \<le> g x"
+  assumes 2: "\<And>x. x \<noteq> a \<Longrightarrow> g x \<le> f x"
+  shows "g -- a --> 0"
+proof (rule LIM_imp_LIM [OF f])
+  fix x assume x: "x \<noteq> a"
+  have "norm (g x - 0) = g x" by (simp add: 1 x)
+  also have "g x \<le> f x" by (rule 2 [OF x])
+  also have "f x \<le> \<bar>f x\<bar>" by (rule abs_ge_self)
+  also have "\<bar>f x\<bar> = norm (f x - 0)" by simp
+  finally show "norm (g x - 0) \<le> norm (f x - 0)" .
+qed
+
+subsubsection {* Bounded Linear Operators *}
+
+locale bounded_linear = additive +
+  constrains f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes scaleR: "f (scaleR r x) = scaleR r (f x)"
+  assumes bounded: "\<exists>K. \<forall>x. norm (f x) \<le> norm x * K"
+
+lemma (in bounded_linear) pos_bounded:
+  "\<exists>K>0. \<forall>x. norm (f x) \<le> norm x * K"
+apply (cut_tac bounded, erule exE)
+apply (rule_tac x="max 1 K" in exI, safe)
+apply (rule order_less_le_trans [OF zero_less_one le_maxI1])
+apply (drule spec, erule order_trans)
+apply (rule mult_left_mono [OF le_maxI2 norm_ge_zero])
+done
+
+lemma (in bounded_linear) pos_boundedE:
+  obtains K where "0 < K" and "\<forall>x. norm (f x) \<le> norm x * K"
+  using pos_bounded by fast
+
+lemma (in bounded_linear) cont: "f -- a --> f a"
+proof (rule LIM_I)
+  fix r::real assume r: "0 < r"
+  obtain K where K: "0 < K" and norm_le: "\<And>x. norm (f x) \<le> norm x * K"
+    using pos_bounded by fast
+  show "\<exists>s>0. \<forall>x. x \<noteq> a \<and> norm (x - a) < s \<longrightarrow> norm (f x - f a) < r"
+  proof (rule exI, safe)
+    from r K show "0 < r / K" by (rule divide_pos_pos)
+  next
+    fix x assume x: "norm (x - a) < r / K"
+    have "norm (f x - f a) = norm (f (x - a))" by (simp only: diff)
+    also have "\<dots> \<le> norm (x - a) * K" by (rule norm_le)
+    also from K x have "\<dots> < r" by (simp only: pos_less_divide_eq)
+    finally show "norm (f x - f a) < r" .
+  qed
+qed
+
+lemma (in bounded_linear) LIM:
+  "g -- a --> l \<Longrightarrow> (\<lambda>x. f (g x)) -- a --> f l"
+by (rule LIM_compose [OF cont])
+
+lemma (in bounded_linear) LIM_zero:
+  "g -- a --> 0 \<Longrightarrow> (\<lambda>x. f (g x)) -- a --> 0"
+by (drule LIM, simp only: zero)
+
+subsubsection {* Bounded Bilinear Operators *}
+
+locale bounded_bilinear =
+  fixes prod :: "['a::real_normed_vector, 'b::real_normed_vector]
+                 \<Rightarrow> 'c::real_normed_vector"
+    (infixl "**" 70)
+  assumes add_left: "prod (a + a') b = prod a b + prod a' b"
+  assumes add_right: "prod a (b + b') = prod a b + prod a b'"
+  assumes scaleR_left: "prod (scaleR r a) b = scaleR r (prod a b)"
+  assumes scaleR_right: "prod a (scaleR r b) = scaleR r (prod a b)"
+  assumes bounded: "\<exists>K. \<forall>a b. norm (prod a b) \<le> norm a * norm b * K"
+
+lemma (in bounded_bilinear) pos_bounded:
+  "\<exists>K>0. \<forall>a b. norm (a ** b) \<le> norm a * norm b * K"
+apply (cut_tac bounded, erule exE)
+apply (rule_tac x="max 1 K" in exI, safe)
+apply (rule order_less_le_trans [OF zero_less_one le_maxI1])
+apply (drule spec, drule spec, erule order_trans)
+apply (rule mult_left_mono [OF le_maxI2])
+apply (intro mult_nonneg_nonneg norm_ge_zero)
+done
+
+lemma (in bounded_bilinear) additive_right: "additive (\<lambda>b. prod a b)"
+by (rule additive.intro, rule add_right)
+
+lemma (in bounded_bilinear) additive_left: "additive (\<lambda>a. prod a b)"
+by (rule additive.intro, rule add_left)
+
+lemma (in bounded_bilinear) zero_left: "prod 0 b = 0"
+by (rule additive.zero [OF additive_left])
+
+lemma (in bounded_bilinear) zero_right: "prod a 0 = 0"
+by (rule additive.zero [OF additive_right])
+
+lemma (in bounded_bilinear) minus_left: "prod (- a) b = - prod a b"
+by (rule additive.minus [OF additive_left])
+
+lemma (in bounded_bilinear) minus_right: "prod a (- b) = - prod a b"
+by (rule additive.minus [OF additive_right])
+
+lemma (in bounded_bilinear) diff_left:
+  "prod (a - a') b = prod a b - prod a' b"
+by (rule additive.diff [OF additive_left])
+
+lemma (in bounded_bilinear) diff_right:
+  "prod a (b - b') = prod a b - prod a b'"
+by (rule additive.diff [OF additive_right])
+
+lemma (in bounded_bilinear) LIM_prod_zero:
+  assumes f: "f -- a --> 0"
+  assumes g: "g -- a --> 0"
+  shows "(\<lambda>x. f x ** g x) -- a --> 0"
+proof (rule LIM_I)
+  fix r::real assume r: "0 < r"
+  obtain K where K: "0 < K"
+    and norm_le: "\<And>x y. norm (x ** y) \<le> norm x * norm y * K"
+    using pos_bounded by fast
+  from K have K': "0 < inverse K"
+    by (rule positive_imp_inverse_positive)
+  obtain s where s: "0 < s"
+    and norm_f: "\<And>x. \<lbrakk>x \<noteq> a; norm (x - a) < s\<rbrakk> \<Longrightarrow> norm (f x) < r"
+    using LIM_D [OF f r] by auto
+  obtain t where t: "0 < t"
+    and norm_g: "\<And>x. \<lbrakk>x \<noteq> a; norm (x - a) < t\<rbrakk> \<Longrightarrow> norm (g x) < inverse K"
+    using LIM_D [OF g K'] by auto
+  show "\<exists>s>0. \<forall>x. x \<noteq> a \<and> norm (x - a) < s \<longrightarrow> norm (f x ** g x - 0) < r"
+  proof (rule exI, safe)
+    from s t show "0 < min s t" by simp
+  next
+    fix x assume x: "x \<noteq> a"
+    assume "norm (x - a) < min s t"
+    hence xs: "norm (x - a) < s" and xt: "norm (x - a) < t" by simp_all
+    from x xs have 1: "norm (f x) < r" by (rule norm_f)
+    from x xt have 2: "norm (g x) < inverse K" by (rule norm_g)
+    have "norm (f x ** g x) \<le> norm (f x) * norm (g x) * K" by (rule norm_le)
+    also from 1 2 K have "\<dots> < r * inverse K * K"
+      by (intro mult_strict_right_mono mult_strict_mono' norm_ge_zero)
+    also from K have "r * inverse K * K = r" by simp
+    finally show "norm (f x ** g x - 0) < r" by simp
+  qed
+qed
+
+lemma (in bounded_bilinear) bounded_linear_left:
+  "bounded_linear (\<lambda>a. a ** b)"
+apply (unfold_locales)
+apply (rule add_left)
+apply (rule scaleR_left)
+apply (cut_tac bounded, safe)
+apply (rule_tac x="norm b * K" in exI)
+apply (simp add: mult_ac)
+done
+
+lemma (in bounded_bilinear) bounded_linear_right:
+  "bounded_linear (\<lambda>b. a ** b)"
+apply (unfold_locales)
+apply (rule add_right)
+apply (rule scaleR_right)
+apply (cut_tac bounded, safe)
+apply (rule_tac x="norm a * K" in exI)
+apply (simp add: mult_ac)
+done
+
+lemma (in bounded_bilinear) LIM_left_zero:
+  "f -- a --> 0 \<Longrightarrow> (\<lambda>x. f x ** c) -- a --> 0"
+by (rule bounded_linear.LIM_zero [OF bounded_linear_left])
+
+lemma (in bounded_bilinear) LIM_right_zero:
+  "f -- a --> 0 \<Longrightarrow> (\<lambda>x. c ** f x) -- a --> 0"
+by (rule bounded_linear.LIM_zero [OF bounded_linear_right])
+
+lemma (in bounded_bilinear) prod_diff_prod:
+  "(x ** y - a ** b) = (x - a) ** (y - b) + (x - a) ** b + a ** (y - b)"
+by (simp add: diff_left diff_right)
+
+lemma (in bounded_bilinear) LIM:
+  "\<lbrakk>f -- a --> L; g -- a --> M\<rbrakk> \<Longrightarrow> (\<lambda>x. f x ** g x) -- a --> L ** M"
+apply (drule LIM_zero)
+apply (drule LIM_zero)
+apply (rule LIM_zero_cancel)
+apply (subst prod_diff_prod)
+apply (rule LIM_add_zero)
+apply (rule LIM_add_zero)
+apply (erule (1) LIM_prod_zero)
+apply (erule LIM_left_zero)
+apply (erule LIM_right_zero)
+done
+
+interpretation bounded_bilinear_mult:
+  bounded_bilinear ["op * :: 'a \<Rightarrow> 'a \<Rightarrow> 'a::real_normed_algebra"]
+apply (rule bounded_bilinear.intro)
+apply (rule left_distrib)
+apply (rule right_distrib)
+apply (rule mult_scaleR_left)
+apply (rule mult_scaleR_right)
+apply (rule_tac x="1" in exI)
+apply (simp add: norm_mult_ineq)
+done
+
+interpretation bounded_bilinear_scaleR:
+  bounded_bilinear ["scaleR"]
+apply (rule bounded_bilinear.intro)
+apply (rule scaleR_left_distrib)
+apply (rule scaleR_right_distrib)
+apply (simp add: real_scaleR_def)
+apply (rule scaleR_left_commute)
+apply (rule_tac x="1" in exI)
+apply (simp add: norm_scaleR)
+done
+
+lemmas LIM_mult = bounded_bilinear_mult.LIM
+
+lemmas LIM_mult_zero = bounded_bilinear_mult.LIM_prod_zero
+
+lemmas LIM_mult_left_zero = bounded_bilinear_mult.LIM_left_zero
+
+lemmas LIM_mult_right_zero = bounded_bilinear_mult.LIM_right_zero
+
+lemmas LIM_scaleR = bounded_bilinear_scaleR.LIM
 
 subsubsection {* Purely nonstandard proofs *}
 
@@ -478,39 +708,48 @@ lemma isCont_iff: "isCont f x = (\<lambda>h. f (x + h)) -- 0 --> f x"
 by (simp add: isCont_def LIM_isCont_iff)
 
 lemma isCont_Id: "isCont (\<lambda>x. x) a"
-unfolding isCont_def by (rule LIM_self)
+  unfolding isCont_def by (rule LIM_self)
 
 lemma isCont_const [simp]: "isCont (%x. k) a"
-unfolding isCont_def by (rule LIM_const)
+  unfolding isCont_def by (rule LIM_const)
 
 lemma isCont_add: "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x + g x) a"
-unfolding isCont_def by (rule LIM_add)
+  unfolding isCont_def by (rule LIM_add)
 
 lemma isCont_minus: "isCont f a \<Longrightarrow> isCont (\<lambda>x. - f x) a"
-unfolding isCont_def by (rule LIM_minus)
+  unfolding isCont_def by (rule LIM_minus)
 
 lemma isCont_diff: "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x - g x) a"
-unfolding isCont_def by (rule LIM_diff)
+  unfolding isCont_def by (rule LIM_diff)
 
 lemma isCont_mult:
   fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
   shows "[| isCont f a; isCont g a |] ==> isCont (%x. f(x) * g(x)) a"
-unfolding isCont_def by (rule LIM_mult2)
+  unfolding isCont_def by (rule LIM_mult)
 
 lemma isCont_inverse:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_div_algebra"
   shows "[| isCont f x; f x \<noteq> 0 |] ==> isCont (%x. inverse (f x)) x"
-unfolding isCont_def by (rule LIM_inverse)
+  unfolding isCont_def by (rule LIM_inverse)
 
 lemma isCont_LIM_compose:
   "\<lbrakk>isCont g l; f -- a --> l\<rbrakk> \<Longrightarrow> (\<lambda>x. g (f x)) -- a --> g l"
-unfolding isCont_def by (rule LIM_compose)
+  unfolding isCont_def by (rule LIM_compose)
 
 lemma isCont_o2: "\<lbrakk>isCont f a; isCont g (f a)\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. g (f x)) a"
-unfolding isCont_def by (rule LIM_compose)
+  unfolding isCont_def by (rule LIM_compose)
 
 lemma isCont_o: "\<lbrakk>isCont f a; isCont g (f a)\<rbrakk> \<Longrightarrow> isCont (g o f) a"
-unfolding o_def by (rule isCont_o2)
+  unfolding o_def by (rule isCont_o2)
+
+lemma (in bounded_linear) isCont: "isCont f a"
+  unfolding isCont_def by (rule cont)
+
+lemma (in bounded_bilinear) isCont:
+  "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x ** g x) a"
+  unfolding isCont_def by (rule LIM)
+
+lemmas isCont_scaleR = bounded_bilinear_scaleR.isCont
 
 subsubsection {* Nonstandard proofs *}
 
