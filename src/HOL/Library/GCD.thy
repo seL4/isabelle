@@ -21,10 +21,10 @@ consts
 recdef gcd  "measure ((\<lambda>(m, n). n) :: nat \<times> nat => nat)"
   "gcd (m, n) = (if n = 0 then m else gcd (n, m mod n))"
 
-constdefs
+definition
   is_gcd :: "nat => nat => nat => bool"  -- {* @{term gcd} as a relation *}
-  "is_gcd p m n == p dvd m \<and> p dvd n \<and>
-    (\<forall>d. d dvd m \<and> d dvd n --> d dvd p)"
+  "is_gcd p m n = (p dvd m \<and> p dvd n \<and>
+    (\<forall>d. d dvd m \<and> d dvd n --> d dvd p))"
 
 
 lemma gcd_induct:
@@ -38,18 +38,15 @@ lemma gcd_induct:
 
 
 lemma gcd_0 [simp]: "gcd (m, 0) = m"
-  apply simp
-  done
+  by simp
 
 lemma gcd_non_0: "0 < n ==> gcd (m, n) = gcd (n, m mod n)"
-  apply simp
-  done
+  by simp
 
 declare gcd.simps [simp del]
 
 lemma gcd_1 [simp]: "gcd (m, Suc 0) = 1"
-  apply (simp add: gcd_non_0)
-  done
+  by (simp add: gcd_non_0)
 
 text {*
   \medskip @{term "gcd (m, n)"} divides @{text m} and @{text n}.  The
@@ -59,7 +56,7 @@ text {*
 lemma gcd_dvd1 [iff]: "gcd (m, n) dvd m"
   and gcd_dvd2 [iff]: "gcd (m, n) dvd n"
   apply (induct m n rule: gcd_induct)
-   apply (simp_all add: gcd_non_0)
+     apply (simp_all add: gcd_non_0)
   apply (blast dest: dvd_mod_imp_dvd)
   done
 
@@ -70,16 +67,13 @@ text {*
 *}
 
 lemma gcd_greatest: "k dvd m ==> k dvd n ==> k dvd gcd (m, n)"
-  apply (induct m n rule: gcd_induct)
-   apply (simp_all add: gcd_non_0 dvd_mod)
-  done
+  by (induct m n rule: gcd_induct) (simp_all add: gcd_non_0 dvd_mod)
 
 lemma gcd_greatest_iff [iff]: "(k dvd gcd (m, n)) = (k dvd m \<and> k dvd n)"
-  apply (blast intro!: gcd_greatest intro: dvd_trans)
-  done
+  by (blast intro!: gcd_greatest intro: dvd_trans)
 
 lemma gcd_zero: "(gcd (m, n) = 0) = (m = 0 \<and> n = 0)"
-  by (simp only: dvd_0_left_iff [THEN sym] gcd_greatest_iff)
+  by (simp only: dvd_0_left_iff [symmetric] gcd_greatest_iff)
 
 
 text {*
@@ -199,8 +193,6 @@ lemma gcd_add2' [simp]: "gcd (m, n + m) = gcd (m, n)"
   done
 
 lemma gcd_add_mult: "gcd (m, k * m + n) = gcd (m, n)"
-  apply (induct k)
-   apply (simp_all add: add_assoc)
-  done
+  by (induct k) (simp_all add: add_assoc)
 
 end
