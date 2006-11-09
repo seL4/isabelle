@@ -110,14 +110,12 @@ fun term_of_qf vs t =
       | _ => error "If this is raised, Isabelle/HOL or generate_code is inconsistent!";
 
 (* The oracle *)
- exception COOPER; 
-
 fun presburger_oracle thy t =
     let val vs = start_vs t
 	val result = lift_un (term_of_qf vs) (pa (qf_of_term vs t))
     in 
     case result of 
-	None => raise COOPER
+	None => raise CooperDec.COOPER
       | Some t' => HOLogic.mk_Trueprop (HOLogic.mk_eq(t,t'))
     end ;
  
