@@ -192,7 +192,8 @@ sig
   val read_prop: theory -> string -> term
   val add_consts_authentic: (bstring * typ * mixfix) list -> theory -> theory
   val add_notation: Syntax.mode -> (term * mixfix) list -> theory -> theory
-  val add_abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> theory -> theory
+  val add_abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> theory ->
+    (term * term) list * theory
   include SIGN_THEORY
 end
 
@@ -752,20 +753,23 @@ end;
 
 (* add abbreviations *)
 
-fun add_abbrevs (mode, inout) = fold (fn ((raw_c, raw_mx), raw_t) => fn thy =>
+fun add_abbrevs prmode = fold_map (fn ((raw_c, raw_mx), raw_t) => fn thy =>
   let
     val prep_tm = Compress.term thy o Logic.varify o no_vars (pp thy) o
       Term.no_dummy_patterns o cert_term_abbrev thy;
 
     val (c, mx) = Syntax.const_mixfix raw_c raw_mx;
-    val c' = Syntax.constN ^ full_name thy c;
+    val full_c = full_name thy c;
+    val c' = Syntax.constN ^ full_c;
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val T = Term.fastype_of t;
   in
     thy
-    |> map_consts (Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy) mode ((c, t), true))
-    |> add_modesyntax_i (mode, inout) [(c', T, mx)]
+    |> map_consts
+      (Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy) (#1 prmode) ((c, t), true))
+    |> add_modesyntax_i prmode [(c', T, mx)]
+    |> pair (Const (full_c, T), t)
   end);
 
 

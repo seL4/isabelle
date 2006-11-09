@@ -140,8 +140,8 @@ sig
   val expand_abbrevs: bool -> Proof.context -> Proof.context
   val add_notation: Syntax.mode -> (term * mixfix) list ->
     Proof.context -> Proof.context
-  val add_abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list ->
-    Proof.context -> Proof.context
+  val add_abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> Proof.context ->
+    (term * term) list * Proof.context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: Proof.context -> unit
@@ -867,10 +867,11 @@ val _ = Context.add_setup
 
 val expand_abbrevs = map_consts o apsnd o Consts.expand_abbrevs;
 
-fun add_abbrevs prmode = fold (fn ((raw_c, raw_mx), raw_t) => fn ctxt =>
+fun add_abbrevs prmode = fold_map (fn ((raw_c, raw_mx), raw_t) => fn ctxt =>
   let
     val ([(c, _, mx)], _) = cert_vars [(raw_c, NONE, raw_mx)] ctxt;
-    val c' = Syntax.constN ^ full_name ctxt c;
+    val full_c = full_name ctxt c;
+    val c' = Syntax.constN ^ full_c;
     val t0 = cert_term (ctxt |> expand_abbrevs false) raw_t;
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
     val T = Term.fastype_of t;
@@ -883,6 +884,7 @@ fun add_abbrevs prmode = fold (fn ((raw_c, raw_mx), raw_t) => fn ctxt =>
     |> map_consts (apsnd
       (Consts.abbreviate (pp ctxt) (tsig_of ctxt) (naming_of ctxt) (#1 prmode) ((c, t), true)))
     |> map_syntax (LocalSyntax.add_modesyntax (theory_of ctxt) prmode [(false, (c', T, mx))])
+    |> pair (Const (full_c, T), t)
   end);
 
 
