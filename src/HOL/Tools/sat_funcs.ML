@@ -51,9 +51,10 @@ Proof reconstruction from SAT solvers.
 
 signature SAT =
 sig
-	val trace_sat  : bool ref    (* print trace messages *)
-	val solver     : string ref  (* name of SAT solver to be used *)
-	val counter    : int ref     (* number of resolution steps during last proof replay *)
+	val trace_sat  : bool ref    (* input: print trace messages *)
+	val solver     : string ref  (* input: name of SAT solver to be used *)
+	val counter    : int ref     (* output: number of resolution steps during last proof replay *)
+	val rawsat_thm : cterm list -> thm
 	val rawsat_tac : int -> Tactical.tactic
 	val sat_tac    : int -> Tactical.tactic
 	val satx_tac   : int -> Tactical.tactic
@@ -69,7 +70,7 @@ val solver = ref "zchaff_with_proofs";  (* see HOL/Tools/sat_solver.ML for possi
 val counter = ref 0;
 
 (* Thm.thm *)
-val resolution_thm =  (* "[| P ==> False; ~P ==> False |] ==> False" *)
+val resolution_thm =  (* "[| ?P ==> False; ~ ?P ==> False |] ==> False" *)
 	let
 		val cterm = cterm_of (the_context ())
 		val Q     = Var (("Q", 0), HOLogic.boolT)
@@ -256,52 +257,70 @@ fun string_of_prop_formula PropLogic.True             = "True"
   | string_of_prop_formula (PropLogic.And (fm1, fm2)) = "(" ^ string_of_prop_formula fm1 ^ " & " ^ string_of_prop_formula fm2 ^ ")";
 
 (* ------------------------------------------------------------------------- *)
-(* rawsat_thm: run external SAT solver with the given clauses.  Reconstructs *)
-(*      a proof from the resulting proof trace of the SAT solver.  Each      *)
-(*      premise in 'prems' that is not a clause is ignored, and the theorem  *)
-(*      returned is just "False" (with some clauses as hyps).                *)
+(* take_prefix:                                                              *)
+(*      take_prefix n [x_1, ..., x_k] = ([x_1, ..., x_n], [x_n+1, ..., x_k]) *)
 (* ------------------------------------------------------------------------- *)
 
-(* Thm.thm list -> Thm.thm *)
+(* int -> 'a list -> 'a list * 'a list *)
 
-fun rawsat_thm prems =
+fun take_prefix n xs =
+let
+	fun take 0 (rxs, xs)      = (rev rxs, xs)
+	  | take _ (rxs, [])      = (rev rxs, [])
+	  | take n (rxs, x :: xs) = take (n-1) (x :: rxs, xs)
+in
+	take n ([], xs)
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* rawsat_thm: run external SAT solver with the given clauses.  Reconstructs *)
+(*      a proof from the resulting proof trace of the SAT solver.  The       *)
+(*      theorem returned is just "False" (with some of the given clauses as  *)
+(*      hyps).                                                               *)
+(* ------------------------------------------------------------------------- *)
+
+(* Thm.cterm list -> Thm.thm *)
+
+fun rawsat_thm clauses =
 let
 	(* remove premises that equal "True" *)
-	val non_triv_prems    = filter (fn thm =>
-		(not_equal HOLogic.true_const o HOLogic.dest_Trueprop o prop_of) thm
-			handle TERM ("dest_Trueprop", _) => true) prems
+	val clauses' = filter (fn clause =>
+		(not_equal HOLogic.true_const o HOLogic.dest_Trueprop o term_of) clause
+			handle TERM ("dest_Trueprop", _) => true) clauses
 	(* remove non-clausal premises -- of course this shouldn't actually   *)
-	(* remove anything as long as 'rawsat_thm' is only called after the   *)
+	(* remove anything as long as 'rawsat_tac' is only called after the   *)
 	(* premises have been converted to clauses                            *)
-	val clauses           = filter (fn thm =>
-		((cnf.is_clause o HOLogic.dest_Trueprop o prop_of) thm handle TERM ("dest_Trueprop", _) => false)
-		orelse (warning ("Ignoring non-clausal premise " ^ (string_of_cterm o cprop_of) thm); false)) non_triv_prems
+	val clauses'' = filter (fn clause =>
+		((cnf.is_clause o HOLogic.dest_Trueprop o term_of) clause
+			handle TERM ("dest_Trueprop", _) => false)
+		orelse (
+			warning ("Ignoring non-clausal premise " ^ string_of_cterm clause);
+			false)) clauses'
 	(* remove trivial clauses -- this is necessary because zChaff removes *)
 	(* trivial clauses during preprocessing, and otherwise our clause     *)
 	(* numbering would be off                                             *)
-	val non_triv_clauses  = filter (not o cnf.clause_is_trivial o HOLogic.dest_Trueprop o prop_of) clauses
-	val _                 = if !trace_sat then
-			tracing ("Non-trivial clauses:\n" ^ space_implode "\n" (map (string_of_cterm o cprop_of) non_triv_clauses))
+	val clauses''' = filter (not o cnf.clause_is_trivial o HOLogic.dest_Trueprop o term_of) clauses''
+	val _ = if !trace_sat then
+			tracing ("Non-trivial clauses:\n" ^ space_implode "\n" (map string_of_cterm clauses'''))
 		else ()
 	(* translate clauses from HOL terms to PropLogic.prop_formula *)
-	val (fms, atom_table) = fold_map (PropLogic.prop_formula_of_term o HOLogic.dest_Trueprop o prop_of) non_triv_clauses Termtab.empty
-	val _                 = if !trace_sat then
+	val (fms, atom_table) = fold_map (PropLogic.prop_formula_of_term o HOLogic.dest_Trueprop o term_of) clauses''' Termtab.empty
+	val _ = if !trace_sat then
 			tracing ("Invoking SAT solver on clauses:\n" ^ space_implode "\n" (map string_of_prop_formula fms))
 		else ()
 	val fm                = PropLogic.all fms
 	(* unit -> Thm.thm *)
-	fun make_quick_and_dirty_thm () = (
-		if !trace_sat then
-			tracing "'quick_and_dirty' is set: proof reconstruction skipped, using oracle instead."
-		else ();
-		(* of course just returning "False" is unsound; what we should return *)
-		(* instead is "False" with all 'non_triv_clauses' as hyps -- but this *)
-		(* might be rather slow, and it makes no real difference as long as   *)
-		(* 'rawsat_thm' is only called from 'rawsat_tac'                      *)
-		SkipProof.make_thm (the_context ()) (HOLogic.Trueprop $ HOLogic.false_const)
-	)
+	fun make_quick_and_dirty_thm () =
+	let
+		val _ = if !trace_sat then
+				tracing "'quick_and_dirty' is set: proof reconstruction skipped, using oracle instead."
+			else ()
+		val False_thm = SkipProof.make_thm (the_context ()) (HOLogic.Trueprop $ HOLogic.false_const)
+	in
+		fold Thm.weaken clauses''' False_thm
+	end
 in
-	case SatSolver.invoke_solver (!solver) fm of
+	case (tracing "Invoking solver"; timeap (SatSolver.invoke_solver (!solver)) fm) of  (*TODO*)
 	  SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id)) => (
 		if !trace_sat then
 			tracing ("Proof trace from SAT solver:\n" ^
@@ -312,35 +331,28 @@ in
 			make_quick_and_dirty_thm ()
 		else
 			let
-				(* optimization: convert the given clauses from "[c_i] |- c_i" to *)
-				(* "[c_1 && ... && c_n] |- c_i"; this avoids accumulation of      *)
-				(* hypotheses during resolution                                   *)
+				(* optimization: convert the given clauses to "[c_1 && ... && c_n] |- c_i";  *)
+				(*               this avoids accumulation of hypotheses during resolution    *)
+				(* [c_1, ..., c_n] |- c_1 && ... && c_n *)
+				val _           = tracing "Conjunction.intr_list"  (*TODO*)
+				val clauses_thm = timeap Conjunction.intr_list (map Thm.assume clauses''')  (*TODO*)
 				(* [c_1 && ... && c_n] |- c_1 && ... && c_n *)
-				val cnf_cterm = Conjunction.mk_conjunction_list (map cprop_of non_triv_clauses)
+				val cnf_cterm = cprop_of clauses_thm
 				val cnf_thm   = Thm.assume cnf_cterm
-				(* cf. Conjunction.elim_list *)
-				fun right_elim_list th =
-					let val (th1, th2) = Conjunction.elim th
-					in th1 :: right_elim_list th2 end handle THM _ => [th]
 				(* [[c_1 && ... && c_n] |- c_1, ..., [c_1 && ... && c_n] |- c_n] *)
-				val converted_clauses = right_elim_list cnf_thm
+				val _           = tracing "Conjunction.elim_list"  (*TODO*)
+				val cnf_clauses = timeap Conjunction.elim_list cnf_thm  (*TODO*)
 				(* initialize the clause array with the given clauses *)
 				val max_idx    = valOf (Inttab.max_key clause_table)
 				val clause_arr = Array.array (max_idx + 1, NO_CLAUSE)
-				val _          = fold (fn thm => fn idx => (Array.update (clause_arr, idx, ORIG_CLAUSE thm); idx+1)) converted_clauses 0
+				val _          = fold (fn thm => fn idx => (Array.update (clause_arr, idx, ORIG_CLAUSE thm); idx+1)) cnf_clauses 0
 				(* replay the proof to derive the empty clause *)
 				(* [c_1 && ... && c_n] |- False *)
-				val FalseThm   = replay_proof atom_table clause_arr (clause_table, empty_id)
+				val _       = tracing "replay_proof"  (*TODO*)
+				val raw_thm = timeap (replay_proof atom_table clause_arr) (clause_table, empty_id)  (*TODO*)
 			in
-				(* convert the &&-hyp back to the original clauses format *)
-				FalseThm
-				(* [] |- c_1 && ... && c_n ==> False *)
-				|> Thm.implies_intr cnf_cterm
-				(* c_1 ==> ... ==> c_n ==> False *)
-				|> Conjunction.curry ~1
 				(* [c_1, ..., c_n] |- False *)
-				|> (fn thm => fold (fn cprem => fn thm' =>
-					Thm.implies_elim thm' (Thm.assume cprem)) (cprems_of thm) thm)
+				Thm.implies_elim (Thm.implies_intr cnf_cterm raw_thm) clauses_thm
 			end)
 	| SatSolver.UNSATISFIABLE NONE =>
 		if !quick_and_dirty then (
@@ -377,7 +389,7 @@ end;
 
 (* int -> Tactical.tactic *)
 
-fun rawsat_tac i = METAHYPS (fn prems => rtac (rawsat_thm prems) 1) i;
+fun rawsat_tac i = METAHYPS (fn prems => rtac (rawsat_thm (map cprop_of prems)) 1) i;
 
 (* ------------------------------------------------------------------------- *)
 (* pre_cnf_tac: converts the i-th subgoal                                    *)

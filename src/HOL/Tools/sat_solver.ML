@@ -1,7 +1,7 @@
 (*  Title:      HOL/Tools/sat_solver.ML
     ID:         $Id$
     Author:     Tjark Weber
-    Copyright   2004-2005
+    Copyright   2004-2006
 
 Interface to external SAT solvers, and (simple) built-in SAT solvers.
 *)
@@ -580,25 +580,60 @@ let
 	  SatSolver.UNSATISFIABLE NONE =>
 		(let
 			(* string list *)
-			val proof_lines = ((split_lines o File.read) proofpath)
+			val proof_lines = (split_lines o File.read) proofpath
 				handle IO.Io _ => raise INVALID_PROOF "Could not read file \"result.prf\""
-			(* a simple representation of the CNF formula as list of clauses (paired with their ID), *)
-			(* where each clause is a sorted list of literals, where each literal is an int          *)
-			(* removes duplicates from an ordered list *)
-			(* int list -> int list *)
-			fun remove_dups []             = []
-			  | remove_dups [x]            = [x]
-			  | remove_dups (x :: y :: xs) = if x = y then remove_dups (y :: xs) else x :: remove_dups (y :: xs)
+			(* representation of clauses as ordered lists of literals (with duplicates removed) *)
 			(* prop_formula -> int list *)
-			fun clause_to_lit_list (PropLogic.Or (fm1, fm2))             = clause_to_lit_list fm1 @ clause_to_lit_list fm2
-			  | clause_to_lit_list (PropLogic.BoolVar i)                 = [i]
-			  | clause_to_lit_list (PropLogic.Not (PropLogic.BoolVar i)) = [~i]
-			  | clause_to_lit_list _                 = raise INVALID_PROOF "Error: invalid clause in CNF formula."
-			(* prop_formula -> int list list *)
-			fun cnf_to_clause_list (PropLogic.And (fm1, fm2)) = cnf_to_clause_list fm1 @ cnf_to_clause_list fm2
-			  | cnf_to_clause_list fm                         = [(remove_dups o sort int_ord o clause_to_lit_list) fm]
-			(* (int list * int) list * int *)
-			val (clauses, length_clauses) = fold_map (fn clause => fn n => ((clause, n), n+1)) (cnf_to_clause_list cnf) 0
+			fun clause_to_lit_list (PropLogic.Or (fm1, fm2)) =
+				OrdList.union int_ord (clause_to_lit_list fm1) (clause_to_lit_list fm2)
+			  | clause_to_lit_list (PropLogic.BoolVar i) =
+				[i]
+			  | clause_to_lit_list (PropLogic.Not (PropLogic.BoolVar i)) =
+				[~i]
+			  | clause_to_lit_list _ =
+				raise INVALID_PROOF "Error: invalid clause in CNF formula."
+			(* prop_formula -> int *)
+			fun cnf_number_of_clauses (PropLogic.And (fm1, fm2)) =
+				cnf_number_of_clauses fm1 + cnf_number_of_clauses fm2
+			  | cnf_number_of_clauses _ =
+				1
+			val number_of_clauses = cnf_number_of_clauses cnf
+			(* int list array *)
+			val clauses = Array.array (number_of_clauses, [])
+			(* initialize the 'clauses' array *)
+			(* prop_formula * int -> int *)
+			fun init_array (PropLogic.And (fm1, fm2), n) =
+				init_array (fm2, init_array (fm1, n))
+			  | init_array (fm, n) =
+				(Array.update (clauses, n, clause_to_lit_list fm); n+1)
+			val _ = init_array (cnf, 0)
+			(* optimization for the common case where MiniSat "R"s clauses in their *)
+			(* original order:                                                      *)
+			val last_ref_clause = ref (number_of_clauses - 1)
+			(* search the 'clauses' array for the given list of literals 'lits', *)
+			(* starting at index '!last_ref_clause + 1'                          *)
+			(* int list -> int option *)
+			fun original_clause_id lits =
+			let
+				fun original_clause_id_from index =
+					if index = number_of_clauses then
+						(* search from beginning again *)
+						original_clause_id_from 0
+					(* both 'lits' and the list of literals used in 'clauses' are sorted, so *)
+					(* testing for equality should suffice -- barring duplicate literals     *)
+					else if Array.sub (clauses, index) = lits then (
+						(* success *)
+						last_ref_clause := index;
+						SOME index
+					) else if index = !last_ref_clause then
+						(* failure *)
+						NONE
+					else
+						(* continue search *)
+						original_clause_id_from (index + 1)
+			in
+				original_clause_id_from (!last_ref_clause + 1)
+			end
 			(* string -> int *)
 			fun int_from_string s = (
 				case Int.fromString s of
@@ -606,6 +641,8 @@ let
 				| NONE   => raise INVALID_PROOF ("File format error: number expected (" ^ quote s ^ " encountered).")
 			)
 			(* parse the proof file *)
+			val clause_table  = ref (Inttab.empty : int list Inttab.table)
+			val empty_id      = ref ~1
 			(* contains a mapping from clause IDs as used by MiniSat to clause IDs in *)
 			(* our proof format, where original clauses are numbered starting from 0  *)
 			val clause_id_map = ref (Inttab.empty : int Inttab.table)
@@ -614,30 +651,27 @@ let
 				  SOME id' => id'
 				| NONE     => raise INVALID_PROOF ("Clause ID " ^ Int.toString id ^ " used, but not defined.")
 			)
-			val next_id = ref (length_clauses - 1)
-			(* string list -> proof -> proof *)
-			fun process_tokens [] proof =
-				proof
-			  | process_tokens (tok::toks) (clause_table, empty_id) =
+			val next_id = ref (number_of_clauses - 1)
+			(* string list -> unit *)
+			fun process_tokens [] =
+				()
+			  | process_tokens (tok::toks) =
 				if tok="R" then (
 					case toks of
 					  id::sep::lits =>
 						let
-							val _        = if empty_id = ~1 then () else raise INVALID_PROOF "File format error: \"R\" disallowed after \"X\"."
+							val _        = if !empty_id = ~1 then () else raise INVALID_PROOF "File format error: \"R\" disallowed after \"X\"."
 							val cid      = int_from_string id
 							val _        = if sep = "<=" then () else raise INVALID_PROOF ("File format error: \"<=\" expected (" ^ quote sep ^ " encountered).")
 							val ls       = sort int_ord (map int_from_string lits)
-							val proof_id = (* both 'ls' and the list of literals used as key in 'clauses' are sorted, *)
-							               (* so testing for equality should suffice -- barring duplicate literals    *)
-							               case AList.lookup (op =) clauses ls of
+							val proof_id = case original_clause_id ls of
 							                 SOME orig_id => orig_id
-						                   | NONE         => raise INVALID_PROOF ("Original clause (new ID is " ^ id ^ ") not found.")
-							(* extend the mapping of clause IDs with this newly defined ID *)
-							val _        = clause_id_map := Inttab.update_new (cid, proof_id) (!clause_id_map)
-							                 handle Inttab.DUP _ => raise INVALID_PROOF ("File format error: clause " ^ id ^ " defined more than once (in \"R\").")
+							               | NONE         => raise INVALID_PROOF ("Original clause (new ID is " ^ id ^ ") not found.")
 						in
+							(* extend the mapping of clause IDs with this newly defined ID *)
+							clause_id_map := Inttab.update_new (cid, proof_id) (!clause_id_map)
+								handle Inttab.DUP _ => raise INVALID_PROOF ("File format error: clause " ^ id ^ " defined more than once (in \"R\").")
 							(* the proof itself doesn't change *)
-							(clause_table, empty_id)
 						end
 					| _ =>
 						raise INVALID_PROOF "File format error: \"R\" followed by an insufficient number of tokens."
@@ -645,7 +679,7 @@ let
 					case toks of
 					  id::sep::ids =>
 						let
-							val _        = if empty_id = ~1 then () else raise INVALID_PROOF "File format error: \"C\" disallowed after \"X\"."
+							val _        = if !empty_id = ~1 then () else raise INVALID_PROOF "File format error: \"C\" disallowed after \"X\"."
 							val cid      = int_from_string id
 							val _        = if sep = "<=" then () else raise INVALID_PROOF ("File format error: \"<=\" expected (" ^ quote sep ^ " encountered).")
 							(* ignore the pivot literals in MiniSat's trace *)
@@ -659,7 +693,7 @@ let
 							                 handle Inttab.DUP _ => raise INVALID_PROOF ("File format error: clause " ^ id ^ " defined more than once (in \"C\").")
 						in
 							(* update clause table *)
-							(Inttab.update_new (proof_id, rs) clause_table, empty_id)
+							clause_table := Inttab.update_new (proof_id, rs) (!clause_table)
 								handle Inttab.DUP _ => raise INVALID_PROOF ("Error: internal ID for clause " ^ id ^ " already used.")
 						end
 					| _ =>
@@ -668,11 +702,11 @@ let
 					case toks of
 					  [id] =>
 						let
-							val _ = if empty_id = ~1 then () else raise INVALID_PROOF "File format error: \"D\" disallowed after \"X\"."
+							val _ = if !empty_id = ~1 then () else raise INVALID_PROOF "File format error: \"D\" disallowed after \"X\"."
 							val _ = sat_to_proof (int_from_string id)
 						in
 							(* simply ignore "D" *)
-							(clause_table, empty_id)
+							()
 						end
 					| _ =>
 						raise INVALID_PROOF "File format error: \"D\" followed by an illegal number of tokens."
@@ -680,27 +714,29 @@ let
 					case toks of
 					  [id1, id2] =>
 						let
-							val _            = if empty_id = ~1 then () else raise INVALID_PROOF "File format error: more than one end-of-proof statement."
+							val _            = if !empty_id = ~1 then () else raise INVALID_PROOF "File format error: more than one end-of-proof statement."
 							val _            = sat_to_proof (int_from_string id1)
 							val new_empty_id = sat_to_proof (int_from_string id2)
 						in
 							(* update conflict id *)
-							(clause_table, new_empty_id)
+							empty_id := new_empty_id
 						end
 					| _ =>
 						raise INVALID_PROOF "File format error: \"X\" followed by an illegal number of tokens."
 				) else
 					raise INVALID_PROOF ("File format error: unknown token " ^ quote tok ^ " encountered.")
-			(* string list -> proof -> proof *)
-			fun process_lines [] proof =
-				proof
-			  | process_lines (l::ls) proof =
-				process_lines ls (process_tokens (String.tokens (fn c => c = #" " orelse c = #"\t") l) proof)
+			(* string list -> unit *)
+			fun process_lines [] =
+				()
+			  | process_lines (l::ls) = (
+					process_tokens (String.tokens (fn c => c = #" " orelse c = #"\t") l);
+					process_lines ls
+				)
 			(* proof *)
-			val (clause_table, empty_id) = process_lines proof_lines (Inttab.empty, ~1)
-			val _                        = if empty_id <> ~1 then () else raise INVALID_PROOF "File format error: no conflicting clause specified."
+			val _ = process_lines proof_lines
+			val _ = if !empty_id <> ~1 then () else raise INVALID_PROOF "File format error: no conflicting clause specified."
 		in
-			SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id))
+			SatSolver.UNSATISFIABLE (SOME (!clause_table, !empty_id))
 		end handle INVALID_PROOF reason => (warning reason; SatSolver.UNSATISFIABLE NONE))
 	| result =>
 		result
@@ -856,7 +892,8 @@ let
 					process_lines ls
 				)
 			(* proof *)
-			val _ = process_lines proof_lines
+			val _ = tracing "process_lines"  (*TODO*)
+			val _ = timeap process_lines proof_lines  (*TODO*)
 			val _ = if !empty_id <> ~1 then () else raise INVALID_PROOF "File format error: no conflicting clause specified."
 		in
 			SatSolver.UNSATISFIABLE (SOME (!clause_table, !empty_id))

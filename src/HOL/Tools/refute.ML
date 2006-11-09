@@ -628,6 +628,8 @@ struct
 			| Const ("List.op @", T)          => collect_type_axioms (axs, T)
 			| Const ("Lfp.lfp", T)            => collect_type_axioms (axs, T)
 			| Const ("Gfp.gfp", T)            => collect_type_axioms (axs, T)
+			| Const ("fst", T)                => collect_type_axioms (axs, T)
+			| Const ("snd", T)                => collect_type_axioms (axs, T)
 			(* simply-typed lambda calculus *)
 			| Const (s, T)                    =>
 				let
@@ -2376,6 +2378,46 @@ struct
 		| _ =>
 			NONE;
 
+	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
+
+	(* only an optimization: 'fst' could in principle be interpreted with     *)
+	(* interpreters available already (using its definition), but the code    *)
+	(* below is more efficient                                                *)
+
+	fun Product_Type_fst_interpreter thy model args t =
+		case t of
+		  Const ("fst", Type ("fun", [Type ("*", [T, U]), _])) =>
+			let
+				val (iT, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
+				val is_T       = make_constants iT
+				val (iU, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", U))
+				val size_U     = size_of_type iU
+			in
+				SOME (Node (List.concat (map (replicate size_U) is_T)), model, args)
+			end
+		| _ =>
+			NONE;
+
+	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
+
+	(* only an optimization: 'snd' could in principle be interpreted with     *)
+	(* interpreters available already (using its definition), but the code    *)
+	(* below is more efficient                                                *)
+
+	fun Product_Type_snd_interpreter thy model args t =
+		case t of
+		  Const ("snd", Type ("fun", [Type ("*", [T, U]), _])) =>
+			let
+				val (iT, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
+				val size_T     = size_of_type iT
+				val (iU, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", U))
+				val is_U       = make_constants iU
+			in
+				SOME (Node (List.concat (replicate size_T is_U)), model, args)
+			end
+		| _ =>
+			NONE;
+
 
 (* ------------------------------------------------------------------------- *)
 (* PRINTERS                                                                  *)
@@ -2616,6 +2658,8 @@ struct
 		 add_interpreter "List.op @" List_append_interpreter #>
 		 add_interpreter "Lfp.lfp" Lfp_lfp_interpreter #>
 		 add_interpreter "Gfp.gfp" Gfp_gfp_interpreter #>
+		 add_interpreter "fst" Product_Type_fst_interpreter #>
+		 add_interpreter "snd" Product_Type_snd_interpreter #>
 		 add_printer "stlc" stlc_printer #>
 		 add_printer "set"  set_printer #>
 		 add_printer "IDT"  IDT_printer;
