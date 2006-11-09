@@ -49,6 +49,13 @@ case $(uname -s) in
         ;;
     esac
     ;;
+  CYGWIN_NT*)
+    case $(uname -m) in
+      i?86)
+        PLATFORM=x86-cygwin
+        ;;
+    esac
+    ;;
   Windows_NT)
     case $(uname -m) in
       ?86)
