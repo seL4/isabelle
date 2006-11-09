@@ -78,7 +78,7 @@ fun consts loc depends decls lthy =
       |> LocalTheory.theory_result (fold_map const decls) |>> split_list;
   in
     lthy'
-    |> K (loc <> "") ? LocalTheory.abbrevs Syntax.default_mode abbrs
+    |> K (loc <> "") ? (snd o LocalTheory.abbrevs Syntax.default_mode abbrs)
     |> LocalDefs.add_defs defns |>> map (apsnd snd)
   end;
 
@@ -204,22 +204,24 @@ fun declaration "" f = LocalTheory.theory (Context.theory_map f)
 
 (* init and exit *)
 
-fun begin loc =
-  Data.put (if loc = "" then NONE else SOME loc) #>
-  LocalTheory.init (SOME (NameSpace.base loc))
-   {pretty = pretty loc,
-    consts = consts loc,
-    axioms = axioms,
-    defs = defs,
-    notes = notes loc,
-    term_syntax = term_syntax loc,
-    declaration = declaration loc,
-    exit = K I};
+fun begin loc ctxt = ctxt
+  |> Data.put (if loc = "" then NONE else SOME loc)
+  |> LocalTheory.init (SOME (NameSpace.base loc))
+     {pretty = pretty loc,
+      consts = consts loc,
+      axioms = axioms,
+      defs = defs,
+      notes = notes loc,
+      term_syntax = term_syntax loc,
+      declaration = declaration loc,
+      reinit = begin loc,
+      exit = K I};
 
 fun init_i NONE thy = begin "" (ProofContext.init thy)
   | init_i (SOME loc) thy = begin loc (Locale.init loc thy);
 
-fun init loc thy = init_i (Option.map (Locale.intern thy) loc) thy;
+fun init (SOME "-") thy = init_i NONE thy
+  | init loc thy = init_i (Option.map (Locale.intern thy) loc) thy;
 
 fun mapping loc f = init loc #> f #> LocalTheory.exit false;
 
