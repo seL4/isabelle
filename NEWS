@@ -583,6 +583,10 @@ d) ML code directly refering to constant names
 This in general only affects hand-written proof tactics, simprocs and so on.
 INCOMPATIBILITY: grep your sourcecode and replace names.
 
+* Relations less (<) and less_eq (<=) are also available on type bool.
+Modified syntax to disallow nesting without explicit parentheses,
+e.g. "(x < y) < z" or "x < (y < z)", but NOT "x < y < z".
+
 * "LEAST x:A. P" expands to "LEAST x. x:A & P" (input only).
 
 * Relation composition operator "op O" now has precedence 75 and binds
