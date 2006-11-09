@@ -87,7 +87,7 @@ lemma EF_lemma:
 apply(rule equalityI);
  apply(rule subsetI);
  apply(simp);
- apply(erule lfp_induct);
+ apply(erule lfp_induct_set);
   apply(rule mono_ef);
  apply(simp);
  apply(blast intro: rtrancl_trans);
