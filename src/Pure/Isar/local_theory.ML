@@ -34,9 +34,10 @@ sig
   val note: (bstring * Attrib.src list) * thm list ->
     local_theory -> (bstring * thm list) * Proof.context
   val notation: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
-  val abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> local_theory -> local_theory
+  val abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> local_theory ->
+    (term * term) list * local_theory
   val init: string option -> operations -> Proof.context -> local_theory
-  val reinit: local_theory -> local_theory
+  val restore: local_theory -> local_theory
   val exit: bool -> local_theory -> Proof.context * theory
 end;
 
@@ -59,6 +60,7 @@ type operations =
     (bstring * thm list) list * local_theory,
   term_syntax: (Context.generic -> Context.generic) -> local_theory -> local_theory,
   declaration: (Context.generic -> Context.generic) -> local_theory -> local_theory,
+  reinit: Proof.context -> local_theory,
   exit: bool -> local_theory -> local_theory};
 
 datatype lthy = LThy of
@@ -145,6 +147,7 @@ val defs = operation1 #defs;
 val notes = operation1 #notes;
 val term_syntax = operation1 #term_syntax;
 val declaration = operation1 #declaration;
+val reinit = operation #reinit;
 
 
 (* derived operations *)
@@ -157,7 +160,8 @@ fun notation mode args = term_syntax
   (Context.mapping (Sign.add_notation mode args) (ProofContext.add_notation mode args));
 
 fun abbrevs mode args = term_syntax
-  (Context.mapping (Sign.add_abbrevs mode args) (ProofContext.add_abbrevs mode args));
+  (Context.mapping (snd o Sign.add_abbrevs mode args) (snd o ProofContext.add_abbrevs mode args))
+  #> ProofContext.add_abbrevs mode args;  (* FIXME *)
 
 
 (* init -- exit *)
@@ -166,7 +170,7 @@ fun init theory_prefix operations target = target |> Data.map
   (fn NONE => SOME (make_lthy (theory_prefix, operations, target))
     | SOME _ => error "Local theory already initialized");
 
-fun reinit lthy =
+fun restore lthy =
   let val {theory_prefix, operations, target} = get_lthy lthy
   in init theory_prefix operations target end;
 
