@@ -97,9 +97,10 @@ use "ML-Systems/cpu-timer-gc.ML";
 
 (* bounded time execution *)
 
-(* FIXME proper implementation available? *)
+(*dummy implementation*)
 fun interrupt_timeout time f x =
   f x;
+
 
 (* ML command execution *)
 
