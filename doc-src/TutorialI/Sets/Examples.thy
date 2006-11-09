@@ -1,5 +1,5 @@
 (* ID:         $Id$ *)
-theory Examples imports Main begin
+theory Examples imports Main Binomial begin
 
 ML "reset eta_contract"
 ML "Pretty.setmargin 64"
