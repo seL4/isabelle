@@ -72,7 +72,7 @@ val prover = ref "";
 fun set_prover atp = 
   case String.map Char.toLower atp of
       "e" => 
-          (ReduceAxiomsN.max_new := 80;
+          (ReduceAxiomsN.max_new := 100;
            ReduceAxiomsN.theory_const := false;
            prover := "E")
     | "spass" => 
@@ -585,11 +585,16 @@ fun all_valid_thms ctxt =
 fun multi_name a (th, (n,pairs)) = 
   (n+1, (a ^ "(" ^ Int.toString n ^ ")", th) :: pairs)
 
-fun multi_names ((a, []), pairs) = pairs
-  | multi_names ((a, [th]), pairs) = (a,th)::pairs
-  | multi_names ((a, ths), pairs) = #2 (foldl (multi_name a) (1,pairs) ths);
+fun add_multi_names ((a, []), pairs) = pairs
+  | add_multi_names ((a, [th]), pairs) = (a,th)::pairs
+  | add_multi_names ((a, ths), pairs) = #2 (foldl (multi_name a) (1,pairs) ths);
 
-fun name_thm_pairs ctxt = foldl multi_names [] (all_valid_thms ctxt);
+fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
+
+(*The single theorems go BEFORE the multiple ones*)
+fun name_thm_pairs ctxt = 
+  let val (mults,singles) = List.partition is_multi (all_valid_thms ctxt)
+  in  foldl add_multi_names (foldl add_multi_names [] mults) singles  end;
 
 fun check_named ("",th) = (warning ("No name for theorem " ^ string_of_thm th); false)
   | check_named (_,th) = true;
@@ -633,6 +638,24 @@ fun blacklist_filter thms =
       in  okthms end
   else thms;
 
+(***************************************************************)
+(* Type Classes Present in the Axiom or Conjecture Clauses     *)
+(***************************************************************)
+
+fun setinsert (x,s) = Symtab.update (x,()) s;
+
+fun add_classes (sorts, cset) = foldl setinsert cset (List.concat sorts);
+
+(*Remove this trivial type class*)
+fun delete_type cset = Symtab.delete_safe "HOL.type" cset;
+
+fun tvar_classes_of_terms ts =
+  let val sorts_list = map (map #2 o term_tvars) ts
+  in  Symtab.keys (delete_type (foldl add_classes Symtab.empty sorts_list))  end;
+
+fun tfree_classes_of_terms ts =
+  let val sorts_list = map (map #2 o term_tfrees) ts
+  in  Symtab.keys (delete_type (foldl add_classes Symtab.empty sorts_list))  end;
 
 (***************************************************************)
 (* ATP invocation methods setup                                *)
@@ -681,7 +704,12 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
 	val axclauses = get_relevant_clauses thy cla_simp_atp_clauses
 	                            user_cls (map prop_of goal_cls) |> make_unique
 	val keep_types = if is_fol_logic logic then !fol_keep_types else is_typed_hol ()
-	val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy else []
+        val subs = tfree_classes_of_terms (map prop_of goal_cls)
+        and supers = tvar_classes_of_terms (map (prop_of o #1) axclauses)
+        (*TFrees in conjecture clauses; TVars in axiom clauses*)
+        val classrel_clauses = 
+              if keep_types then ResClause.make_classrel_clauses thy subs supers
+              else []
 	val arity_clauses = if keep_types then ResClause.arity_clause_thy thy else []
         val writer = if dfg then dfg_writer else tptp_writer 
 	and file = atp_input_file()
@@ -800,10 +828,6 @@ fun write_problem_files probfile (ctxt,th)  =
                   axcls_list
       val keep_types = if is_fol_logic logic then !ResClause.keep_types 
                        else is_typed_hol ()
-      val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy
-                             else []
-      val _ = Output.debug ("classrel clauses = " ^ 
-                            Int.toString (length classrel_clauses))
       val arity_clauses = if keep_types then ResClause.arity_clause_thy thy 
                           else []
       val _ = Output.debug ("arity clauses = " ^ Int.toString (length arity_clauses))
@@ -813,6 +837,13 @@ fun write_problem_files probfile (ctxt,th)  =
             let val fname = probfile k
                 val axcls = make_unique axcls
                 val ccls = subtract_cls ccls axcls
+                val subs = tfree_classes_of_terms (map prop_of ccls)
+                and supers = tvar_classes_of_terms (map (prop_of o #1) axcls)
+                (*TFrees in conjecture clauses; TVars in axiom clauses*)
+                val classrel_clauses = 
+                      if keep_types then ResClause.make_classrel_clauses thy subs supers
+                      else []
+                val _ = Output.debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
                 val clnames = writer logic ccls fname (axcls,classrel_clauses,arity_clauses) []
                 val thm_names = Array.fromList clnames
                 val _ = if !Output.show_debug_msgs 

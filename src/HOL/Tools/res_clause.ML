@@ -23,7 +23,7 @@ signature RES_CLAUSE =
   val arity_clause_thy: theory -> arityClause list 
   val ascii_of : string -> string
   val bracket_pack : string list -> string
-  val classrel_clauses_thy: theory -> classrelClause list 
+  val make_classrel_clauses: theory -> class list -> class list -> classrelClause list 
   val clause_prefix : string 
   val clause2tptp : clause -> string * string list
   val const_prefix : string
@@ -529,23 +529,22 @@ datatype classrelClause =
 	 ClassrelClause of {axiom_name: axiom_name,
 			    subclass: class,
 			    superclass: class};
+ 
+(*Generate all pairs (sub,super) such that sub is a proper subclass of super in theory thy.*)
+fun class_pairs thy subs supers =
+  let val class_less = Sorts.class_less(Sign.classes_of thy)
+      fun add_super sub (super,pairs) = 
+            if class_less (sub,super) then (sub,super)::pairs else pairs
+      fun add_supers (sub,pairs) = foldl (add_super sub) pairs supers
+  in  foldl add_supers [] subs  end;
 
-fun make_axiom_classrelClause n subclass superclass =
-  ClassrelClause {axiom_name = clrelclause_prefix ^ ascii_of subclass ^ 
-                                "_" ^ Int.toString n,
-                  subclass = make_type_class subclass, 
-                  superclass = make_type_class superclass};
+fun make_classrelClause (sub,super) =
+  ClassrelClause {axiom_name = clrelclause_prefix ^ ascii_of sub ^ "_" ^ ascii_of super,
+                  subclass = make_type_class sub, 
+                  superclass = make_type_class super};
 
-fun classrelClauses_of_aux n sub [] = []
-  | classrelClauses_of_aux n sub ("HOL.type"::sups) = (*Should be ignored*)
-      classrelClauses_of_aux n sub sups
-  | classrelClauses_of_aux n sub (sup::sups) =
-      make_axiom_classrelClause n sub sup :: classrelClauses_of_aux (n+1) sub sups;
-
-fun classrelClauses_of (sub,sups) = classrelClauses_of_aux 0 sub sups;
-
-val classrel_clauses_thy =
-  maps classrelClauses_of o Graph.dest o #classes o Sorts.rep_algebra o Sign.classes_of;
+fun make_classrel_clauses thy subs supers =
+  map make_classrelClause (class_pairs thy subs supers);
 
 
 (** Isabelle arities **)

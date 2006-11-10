@@ -647,7 +647,8 @@ fun cnf_rules_pairs_aux pairs [] = pairs
                        handle THM _ => pairs | ResClause.CLAUSE _ => pairs
       in  cnf_rules_pairs_aux pairs' ths  end;
 
-val cnf_rules_pairs = cnf_rules_pairs_aux [];
+(*The combination of rev and tail recursion preserves the original order*)
+fun cnf_rules_pairs l = cnf_rules_pairs_aux [] (rev l);
 
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause, or ResHolClause.clause) ****)
