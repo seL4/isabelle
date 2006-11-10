@@ -68,19 +68,23 @@ text {*
 
 definition
   mbind :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd"
-    (infixl "\<guillemotright>=" 60)
-  "f \<guillemotright>= g = split g \<circ> f"
+    (infixl ">>=" 60)
+  "f >>= g = split g \<circ> f"
   fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c"
-    (infixl "\<guillemotright>" 60)
-  "f \<guillemotright> g = g \<circ> f"
+    (infixl ">>" 60)
+  "f >> g = g \<circ> f"
   run :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
   "run f = f"
 
-syntax (input)
+print_ast_translation {*[
+  (Sign.const_syntax_name (the_context ()) "State_Monad.run", fn (f::ts) => Syntax.mk_appl f ts)
+]*}
+
+syntax (xsymbols)
   mbind :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd"
-    (infixl ">>=" 60)
+    (infixl "\<guillemotright>=" 60)
   fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c"
-    (infixl ">>" 60)
+    (infixl "\<guillemotright>" 60)
 
 abbreviation (input)
   "return \<equiv> Pair"
@@ -109,7 +113,7 @@ text {*
   \begin{itemize}
     \item The monad model does not state anything about
        the kind of state; the model for the state is
-       completely orthogonal and has (or may) be
+       completely orthogonal and has to (or may) be
        specified completely independent.
     \item There is no distinguished type constructor
        encapsulating away the state transformation, i.e.~transformations
@@ -225,6 +229,7 @@ let
         else t
     | unfold_monad (Const ("Let", _) $ f $ g) =
         let
+          
           val ([(v, ty)], g') = Term.strip_abs_eta 1 g;
         in Const ("_let", dummyT) $ Free (v, ty) $ f $ unfold_monad g' end
     | unfold_monad (Const ("Pair", _) $ f) =
@@ -236,10 +241,6 @@ in [
   (syntax_name "State_Monad.run", tr')
 ] end;
 *}
-
-print_ast_translation {*[
-  (Sign.const_syntax_name (the_context ()) "State_Monad.run", fn (f::ts) => Syntax.mk_appl f ts)
-]*}
 
 text {*
   For an example, see HOL/ex/CodeRandom.thy (more examples coming soon).
