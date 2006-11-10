@@ -247,9 +247,9 @@ end;
 
 (** Compiler-independent timing functions **)
 
-fun startTiming() = "FIXME";
-fun endTiming (s: string) = s;
-fun checkTimer _ = (0, 0, 0);
+fun start_timing() = "FIXME";
+fun end_timing (s: string) = s;
+fun check_timer _ = (0, 0, 0);
 
 structure Timer =
 struct

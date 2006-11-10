@@ -902,7 +902,7 @@ and ntried  = ref 1;
 
 fun printStats (b, start, tacs) =
   if b then
-    writeln (endTiming start ^ " for search.  Closed: "
+    writeln (end_timing start ^ " for search.  Closed: "
              ^ Int.toString (!nclosed) ^
              " tried: " ^ Int.toString (!ntried) ^
              " tactics: " ^ Int.toString (length tacs))
@@ -1253,7 +1253,7 @@ fun timing_depth_tac start cs lim i st0 =
       val hyps  = strip_imp_prems skoprem
       and concl = strip_imp_concl skoprem
       fun cont (tacs,_,choices) =
-          let val start = startTiming()
+          let val start = start_timing ()
           in
           case Seq.pull(EVERY' (rev tacs) i st) of
               NONE => (writeln ("PROOF FAILED for depth " ^
@@ -1262,7 +1262,7 @@ fun timing_depth_tac start cs lim i st0 =
                        else ();
                        backtrack choices)
             | cell => (if (!trace orelse !stats)
-                       then writeln (endTiming start ^ " for reconstruction")
+                       then writeln (end_timing start ^ " for reconstruction")
                        else ();
                        Seq.make(fn()=> cell))
           end
@@ -1271,12 +1271,12 @@ fun timing_depth_tac start cs lim i st0 =
   handle PROVE     => Seq.empty;
 
 (*Public version with fixed depth*)
-fun depth_tac cs lim i st = timing_depth_tac (startTiming()) cs lim i st;
+fun depth_tac cs lim i st = timing_depth_tac (start_timing ()) cs lim i st;
 
 val depth_limit = ref 20;
 
 fun blast_tac cs i st =
-    ((DEEPEN (1, !depth_limit) (timing_depth_tac (startTiming()) cs) 0) i
+    ((DEEPEN (1, !depth_limit) (timing_depth_tac (start_timing ()) cs) 0) i
      THEN flexflex_tac) st
     handle TRANS s =>
       ((if !trace then warning ("blast: " ^ s) else ());
@@ -1296,7 +1296,7 @@ fun trygl cs lim i =
                                fromSubgoal (List.nth(prems_of st, i-1)))
                 val hyps  = strip_imp_prems skoprem
                 and concl = strip_imp_concl skoprem
-        in timeap prove (sign, startTiming(), cs,
+        in timeap prove (sign, start_timing (), cs,
                          [initBranch (mkGoal concl :: hyps, lim)], I)
         end
         handle Subscript => error("There is no subgoal " ^ Int.toString i);
@@ -1309,7 +1309,7 @@ fun readGoal thy s = Sign.read_prop thy s |> fromTerm |> rand |> mkGoal;
 fun tryInThy thy lim s =
     (initialize thy;
      timeap prove (thy,
-                   startTiming(),
+                   start_timing(),
                    Data.claset(),
                    [initBranch ([readGoal thy s], lim)],
                    I));

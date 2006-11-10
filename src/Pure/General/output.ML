@@ -188,9 +188,9 @@ val timing = ref false;
   prints its runtime on warning channel*)
 fun cond_timeit flag f =
   if flag then
-    let val start = startTiming()
+    let val start = start_timing ()
         val result = f ()
-    in info (endTiming start); result end
+    in info (end_timing start); result end
   else f ();
 
 (*unconditional timing function*)
@@ -230,9 +230,9 @@ fun time_add ti f x =
     fun add_diff time time1 time2 =
       Time.+ (time, Time.- (time2, time1) handle Time.Time => Time.zeroTime);
     val {name, timer, sys, usr, gc, count} = time_check ti;
-    val (sys1, usr1, gc1) = checkTimer timer;
+    val (sys1, usr1, gc1) = check_timer timer;
     val result = capture f x;
-    val (sys2, usr2, gc2) = checkTimer timer;
+    val (sys2, usr2, gc2) = check_timer timer;
   in
     ti := TI
      {name = name,
