@@ -38,7 +38,8 @@ sig
     (term * term) list * local_theory
   val init: string option -> operations -> Proof.context -> local_theory
   val restore: local_theory -> local_theory
-  val exit: bool -> local_theory -> Proof.context * theory
+  val reinit: local_theory -> theory -> local_theory
+  val exit: local_theory -> Proof.context
 end;
 
 structure LocalTheory: LOCAL_THEORY =
@@ -60,8 +61,8 @@ type operations =
     (bstring * thm list) list * local_theory,
   term_syntax: (Context.generic -> Context.generic) -> local_theory -> local_theory,
   declaration: (Context.generic -> Context.generic) -> local_theory -> local_theory,
-  reinit: Proof.context -> local_theory,
-  exit: bool -> local_theory -> local_theory};
+  reinit: local_theory -> theory -> local_theory,
+  exit: local_theory -> Proof.context};
 
 datatype lthy = LThy of
  {theory_prefix: string option,
@@ -147,7 +148,6 @@ val defs = operation1 #defs;
 val notes = operation1 #notes;
 val term_syntax = operation1 #term_syntax;
 val declaration = operation1 #declaration;
-val reinit = operation #reinit;
 
 
 (* derived operations *)
@@ -174,8 +174,7 @@ fun restore lthy =
   let val {theory_prefix, operations, target} = get_lthy lthy
   in init theory_prefix operations target end;
 
-fun exit int lthy = lthy
-  |> operation1 #exit int |> target_of
-  |> (fn ctxt => (ctxt, ProofContext.theory_of ctxt));
+val reinit = operation #reinit;
+val exit = operation #exit;
 
 end;
