@@ -248,9 +248,9 @@ fun remove_suc thy thms =
                  SOME (Thm.cabs cv' (rhs_of th)), NONE, SOME cv']
                Suc_if_eq')) (Thm.forall_intr cv' th)
       in
-        case List.mapPartial (fn th'' =>
+        case map_filter (fn th'' =>
             SOME (th'', singleton
-              (Variable.trade (Variable.thm_context th'') (fn [th'''] => [th''' RS th'])) th'')
+              (Variable.trade (K (fn [th'''] => [th''' RS th'])) (Variable.thm_context th'')) th'')
           handle THM _ => NONE) thms of
             [] => NONE
           | thps =>
@@ -309,7 +309,7 @@ fun clause_suc_preproc thy ths =
   in
     if forall (can (dest o concl_of)) ths andalso
       exists (fn th => member (op =) (foldr add_term_consts
-        [] (List.mapPartial (try dest) (concl_of th :: prems_of th))) "Suc") ths
+        [] (map_filter (try dest) (concl_of th :: prems_of th))) "Suc") ths
     then remove_suc_clause thy ths else ths
   end;
 

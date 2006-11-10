@@ -51,8 +51,8 @@ sig
   val import_prf: bool -> Proofterm.proof -> Proof.context -> Proofterm.proof * Proof.context
   val import: bool -> thm list -> Proof.context ->
     ((ctyp list * cterm list) * thm list) * Proof.context
-  val tradeT: Proof.context -> (thm list -> thm list) -> thm list -> thm list
-  val trade: Proof.context -> (thm list -> thm list) -> thm list -> thm list
+  val tradeT: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
+  val trade: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
   val focus: cterm -> Proof.context -> (cterm list * cterm) * Proof.context
   val focus_subgoal: int -> thm -> Proof.context -> (cterm list * cterm) * Proof.context
   val warn_extra_tfrees: Proof.context -> Proof.context -> unit
@@ -401,9 +401,9 @@ fun import is_open ths ctxt =
 
 (* import/export *)
 
-fun gen_trade imp exp ctxt f ths =
+fun gen_trade imp exp f ctxt ths =
   let val ((_, ths'), ctxt') = imp ths ctxt
-  in exp ctxt' ctxt (f ths') end;
+  in exp ctxt' ctxt (f ctxt' ths') end;
 
 val tradeT = gen_trade importT exportT;
 val trade = gen_trade (import true) export;
