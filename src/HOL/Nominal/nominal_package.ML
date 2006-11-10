@@ -520,7 +520,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
            (map (fn (s, T) => (s, SOME (T --> HOLogic.boolT), NoSyn))
               (rep_set_names' ~~ recTs'))
            [] (map (fn x => (("", []), x)) intr_ts) [] #>
-         apfst (snd o LocalTheory.exit false)) thy3;
+         apfst (ProofContext.theory_of o LocalTheory.exit)) thy3;
 
     (**** Prove that representing set is closed under permutation ****)
 
@@ -1448,7 +1448,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
            (map (fn (s, T) => (s, SOME T, NoSyn)) (rec_set_names' ~~ rec_set_Ts))
            (map (apsnd SOME o dest_Free) rec_fns)
            (map (fn x => (("", []), x)) rec_intr_ts) [] #>
-         apfst (snd o LocalTheory.exit false)) |>>
+         apfst (ProofContext.theory_of o LocalTheory.exit)) |>>
       PureThy.hide_thms true [NameSpace.append
         (Sign.full_name thy10 big_rec_name) "induct"];
 

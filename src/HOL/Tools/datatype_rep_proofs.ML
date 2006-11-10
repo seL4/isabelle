@@ -179,7 +179,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
          InductivePackage.add_inductive_i false big_rec_name false true false
            (map (fn s => (s, SOME UnivT', NoSyn)) rep_set_names') []
            (map (fn x => (("", []), x)) intr_ts) [] #>
-         apfst (snd o LocalTheory.exit false)) thy1;
+         apfst (ProofContext.theory_of o LocalTheory.exit)) thy1;
 
     (********************************* typedef ********************************)
 

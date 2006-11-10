@@ -164,7 +164,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
            (map (fn (s, T) => (s, SOME T, NoSyn)) (rec_set_names' ~~ rec_set_Ts))
            (map (apsnd SOME o dest_Free) rec_fns)
            (map (fn x => (("", []), x)) rec_intr_ts) [] #>
-         apfst (snd o LocalTheory.exit false)) thy0;
+         apfst (ProofContext.theory_of o LocalTheory.exit)) thy0;
 
     (* prove uniqueness and termination of primrec combinators *)
 
