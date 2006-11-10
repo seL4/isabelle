@@ -371,9 +371,7 @@ proof -
   ultimately show ?thesis ..
 qed
 
-end
-
-lemma aux2: "[| zprime p; zprime q; 2 < p; 2 < q |] ==>
+lemma (in -) aux2: "[| zprime p; zprime q; 2 < p; 2 < q |] ==>
              (q * ((p - 1) div 2)) div p \<le> (q - 1) div 2"
 proof-
   assume "zprime p" and "zprime q" and "2 < p" and "2 < q"
@@ -401,9 +399,6 @@ proof-
                     y = "(q - 1) div 2" in div_prop2)
     using prems by auto
 qed
-
-context QRTEMP
-begin
 
 lemma aux3a: "\<forall>j \<in> P_set. int (card (f1 j)) = (q * j) div p"
 proof
@@ -582,17 +577,14 @@ proof -
   finally show ?thesis .
 qed
 
-end
 
-lemma pq_prime_neq: "[| zprime p; zprime q; p \<noteq> q |] ==> (~[p = 0] (mod q))"
+lemma (in -) pq_prime_neq: "[| zprime p; zprime q; p \<noteq> q |] ==> (~[p = 0] (mod q))"
   apply (auto simp add: zcong_eq_zdvd_prop zprime_def)
   apply (drule_tac x = q in allE)
   apply (drule_tac x = p in allE)
   apply auto
   done
 
-context QRTEMP
-begin
 
 lemma QR_short: "(Legendre p q) * (Legendre q p) =
     (-1::int)^nat(((p - 1) div 2)*((q - 1) div 2))"

@@ -59,9 +59,8 @@ qed
 lemma p_eq: "p = (2 * (p - 1) div 2) + 1"
   using zdiv_zmult_self2 [of 2 "p - 1"] by auto
 
-end
 
-lemma zodd_imp_zdiv_eq: "x \<in> zOdd ==> 2 * (x - 1) div 2 = 2 * ((x - 1) div 2)"
+lemma (in -) zodd_imp_zdiv_eq: "x \<in> zOdd ==> 2 * (x - 1) div 2 = 2 * ((x - 1) div 2)"
   apply (frule odd_minus_one_even)
   apply (simp add: zEven_def)
   apply (subgoal_tac "2 \<noteq> 0")
@@ -69,8 +68,6 @@ lemma zodd_imp_zdiv_eq: "x \<in> zOdd ==> 2 * (x - 1) div 2 = 2 * ((x - 1) div 2
   apply (auto simp add: even_div_2_prop2)
   done
 
-context GAUSS
-begin
 
 lemma p_eq2: "p = (2 * ((p - 1) div 2)) + 1"
   apply (insert p_eq p_prime p_g_2 zprime_zOdd_eq_grt_2 [of p], auto)
