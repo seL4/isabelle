@@ -1,7 +1,5 @@
 (*  Title:      Pure/ML-Systems/polyml.ML
     ID:         $Id$
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1991  University of Cambridge
 
 Compatibility file for Poly/ML (version 4.0, 4.1, 4.1.x).
 *)
@@ -50,7 +48,25 @@ val implode = SML90.implode;
 
 (* compiler-independent timing functions *)
 
-use "ML-Systems/cpu-timer-basis.ML";
+fun start_timing () =
+  let val CPUtimer = Timer.startCPUTimer();
+      val time = Timer.checkCPUTimer(CPUtimer)
+  in  (CPUtimer,time)  end;
+
+fun end_timing (CPUtimer, {sys,usr}) =
+  let open Time  (*...for Time.toString, Time.+ and Time.- *)
+      val {sys=sys2,usr=usr2} = Timer.checkCPUTimer(CPUtimer)
+  in  "User " ^ toString (usr2-usr) ^
+      "  All "^ toString (sys2-sys + usr2-usr) ^
+      " secs"
+      handle Time => ""
+  end;
+
+fun check_timer timer =
+  let
+    val {sys, usr} = Timer.checkCPUTimer timer;
+    val gc = Timer.checkGCTime timer;    (* FIXME already included in usr? *)
+  in (sys, usr, gc) end;
 
 
 (* bounded time execution *)

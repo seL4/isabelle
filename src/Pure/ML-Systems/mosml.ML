@@ -27,6 +27,7 @@ load "ListPair";
 load "OS";
 load "Process";
 load "FileSys";
+load "IO";
 
 (*low-level pointer equality*)
 local val cast : 'a -> int = Obj.magic
@@ -93,7 +94,34 @@ fun print x = x;
 
 load "Timer";
 
-use "ML-Systems/cpu-timer-gc.ML";
+fun start_timing () =
+  let val CPUtimer = Timer.startCPUTimer();
+      val time = Timer.checkCPUTimer(CPUtimer)
+  in  (CPUtimer,time)  end;
+
+fun end_timing (CPUtimer, {gc,sys,usr}) =
+  let open Time  (*...for Time.toString, Time.+ and Time.- *)
+      val {gc=gc2,sys=sys2,usr=usr2} = Timer.checkCPUTimer(CPUtimer)
+  in  "User " ^ toString (usr2-usr) ^
+      "  GC " ^ toString (gc2-gc) ^
+      "  All "^ toString (sys2-sys + usr2-usr + gc2-gc) ^
+      " secs"
+      handle Time => ""
+  end;
+
+fun check_timer timer =
+  let val {sys, usr, gc} = Timer.checkCPUTimer timer
+  in (sys, usr, gc) end;
+
+
+(* SML basis library fixes *)
+
+structure TextIO =
+struct
+  fun canInput _ = raise IO.Io {cause = Fail "undefined", function = "canInput", name = ""};
+  open TextIO;
+end;
+
 
 (* bounded time execution *)
 

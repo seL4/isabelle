@@ -1,25 +1,16 @@
 (*  Title:      Pure/ML-Systems/smlnj.ML
     ID:         $Id$
-    Author:     Carsten Clasohm and Markus Wenzel, TU Muenchen
 
 Compatibility file for Standard ML of New Jersey 110 or later.
 *)
-
-(case #version_id (Compiler.version) of
-  [110, x] => if x >= 35 then use "ML-Systems/smlnj-compiler.ML" else ()
-| _ => ());
 
 
 (** ML system related **)
 
 (*low-level pointer equality*)
 
-(*dummy version -- may get overridden in smlnj-ptreql.ML*)
-fun pointer_eq (x:'a, y) = false;
-
-(case #version_id (Compiler.version) of
-  [110, x] => if x >= 49 then use "ML-Systems/smlnj-ptreql.ML" else ()
-| _ => ());
+CM.autoload "$smlnj/init/init.cmi";
+val pointer_eq = InlineT.ptreql;
 
 
 (* restore old-style character / string functions *)
@@ -33,11 +24,11 @@ val implode = SML90.implode;
 (* New Jersey ML parameters *)
 
 val _ =
- (Compiler.Control.Print.printLength := 1000;
-  Compiler.Control.Print.printDepth := 350;
-  Compiler.Control.Print.stringDepth := 250;
-  Compiler.Control.Print.signatures := 2;
-  Compiler.Control.MC.matchRedundantError := false);
+ (Control.Print.printLength := 1000;
+  Control.Print.printDepth := 350;
+  Control.Print.stringDepth := 250;
+  Control.Print.signatures := 2;
+  Control.MC.matchRedundantError := false);
 
 
 (* Poly/ML emulation *)
@@ -46,22 +37,36 @@ fun quit () = exit 0;
 
 (*limit the printing depth -- divided by 2 for comparibility with Poly/ML*)
 fun print_depth n =
- (Compiler.Control.Print.printDepth := n div 2;
-  Compiler.Control.Print.printLength := n);
+ (Control.Print.printDepth := n div 2;
+  Control.Print.printLength := n);
 
 
 (* compiler-independent timing functions *)
 
-(case #version_id (Compiler.version) of
-  [110, x] => if x >= 44
-              then use "ML-Systems/cpu-timer-basis.ML"
-              else use "ML-Systems/cpu-timer-gc.ML"
-| _ => use "ML-Systems/cpu-timer-gc.ML");
+fun start_timing () =
+  let val CPUtimer = Timer.startCPUTimer();
+      val time = Timer.checkCPUTimer(CPUtimer)
+  in  (CPUtimer,time)  end;
+
+fun end_timing (CPUtimer, {sys,usr}) =
+  let open Time  (*...for Time.toString, Time.+ and Time.- *)
+      val {sys=sys2,usr=usr2} = Timer.checkCPUTimer(CPUtimer)
+  in  "User " ^ toString (usr2-usr) ^
+      "  All "^ toString (sys2-sys + usr2-usr) ^
+      " secs"
+      handle Time => ""
+  end;
+
+fun check_timer timer =
+  let
+    val {sys, usr} = Timer.checkCPUTimer timer;
+    val gc = Timer.checkGCTime timer;    (* FIXME already included in usr? *)
+  in (sys, usr, gc) end;
 
 
 (*prompts*)
 fun ml_prompts p1 p2 =
-  (Compiler.Control.primaryPrompt := p1; Compiler.Control.secondaryPrompt := p2);
+  (Control.primaryPrompt := p1; Control.secondaryPrompt := p2);
 
 (*dummy implementation*)
 fun profile (n: int) f x = f x;
@@ -72,22 +77,28 @@ fun exception_trace f = f ();
 (*dummy implementation*)
 fun print x = x;
 
+
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)
 
-(case #version_id (Compiler.version) of
-  [110, x] => if x >= 44
-              then use "ML-Systems/smlnj-pp-new.ML"
-              else use "ML-Systems/smlnj-pp-old.ML"
-| _ => use "ML-Systems/smlnj-pp-old.ML");
+fun make_pp path pprint =
+  let
+    open PrettyPrint;
 
-fun install_pp (path, pp) = Compiler.PPTable.install_pp path pp;
+    fun pp pps obj =
+      pprint obj
+        (string pps, openHOVBox pps o Rel,
+          fn wd => break pps {nsp=wd, offset=0}, fn () => newline pps,
+          fn () => closeBox pps);
+  in (path, pp) end;
+
+fun install_pp (path, pp) = CompilerPPTable.install_pp path pp;
 
 
 (* ML command execution *)
 
 fun use_text (print, err) verbose txt =
   let
-    val ref out_orig = Compiler.Control.Print.out;
+    val ref out_orig = Control.Print.out;
 
     val out_buffer = ref ([]: string list);
     val out = {say = (fn s => out_buffer := s :: ! out_buffer), flush = (fn () => ())};
@@ -95,10 +106,10 @@ fun use_text (print, err) verbose txt =
       let val str = implode (rev (! out_buffer))
       in String.substring (str, 0, Int.max (0, size str - 1)) end;
   in
-    Compiler.Control.Print.out := out;
-    Compiler.Interact.useStream (TextIO.openString txt) handle exn =>
-      (Compiler.Control.Print.out := out_orig; err (output ()); raise exn);
-    Compiler.Control.Print.out := out_orig;
+    Control.Print.out := out;
+    Backend.Interact.useStream (TextIO.openString txt) handle exn =>
+      (Control.Print.out := out_orig; err (output ()); raise exn);
+    Control.Print.out := out_orig;
     if verbose then print (output ()) else ()
   end;
 
@@ -138,17 +149,26 @@ fun raise_interrupt f x =
 
 end;
 
-(case #version_id (Compiler.version) of
-  [110, x] => if x >= 44
-              then use "ML-Systems/smlnj-basis-compat.ML"
-              else ()
-| _ => ());
 
+(* basis library fixes *)
+
+structure TextIO =
+struct
+  open TextIO;
+
+  fun inputLine is =
+    (case TextIO.inputLine is of
+      SOME str => str
+    | NONE => "")
+    handle IO.Io _ => raise Interrupt;
+end;
 
 
 (* bounded time execution *)
 
-use "ML-Systems/smlnj-interrupt-timeout.ML";
+fun interrupt_timeout time f x =
+  TimeLimit.timeLimit time f x
+    handle TimeLimit.TimeOut => raise Interrupt;
 
 
 (** Signal handling: emulation of the Poly/ML Signal structure. Note that types
@@ -214,7 +234,7 @@ val system = OS.Process.system: string -> int;
 
 
 (*Convert a process ID to a decimal string (chiefly for tracing)*)
-fun string_of_pid pid = 
+fun string_of_pid pid =
     Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord pid));
 
 
