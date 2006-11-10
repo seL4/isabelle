@@ -11,7 +11,6 @@ sig
   val begin: bstring -> Proof.context -> local_theory
   val init: xstring option -> theory -> local_theory
   val init_i: string option -> theory -> local_theory
-  val mapping: xstring option -> (local_theory -> local_theory) -> theory -> Proof.context * theory
 end;
 
 structure TheoryTarget: THEORY_TARGET =
@@ -201,28 +200,25 @@ fun declaration "" f = LocalTheory.theory (Context.theory_map f)
   | declaration loc f = I;    (* FIXME *)
 
 
-
 (* init and exit *)
 
-fun begin loc ctxt = ctxt
-  |> Data.put (if loc = "" then NONE else SOME loc)
-  |> LocalTheory.init (SOME (NameSpace.base loc))
-     {pretty = pretty loc,
-      consts = consts loc,
-      axioms = axioms,
-      defs = defs,
-      notes = notes loc,
-      term_syntax = term_syntax loc,
-      declaration = declaration loc,
-      reinit = begin loc,
-      exit = K I};
+fun begin loc =
+  Data.put (if loc = "" then NONE else SOME loc) #>
+  LocalTheory.init (SOME (NameSpace.base loc))
+   {pretty = pretty loc,
+    consts = consts loc,
+    axioms = axioms,
+    defs = defs,
+    notes = notes loc,
+    term_syntax = term_syntax loc,
+    declaration = declaration loc,
+    reinit = fn _ => begin loc o (if loc = "" then ProofContext.init else Locale.init loc),
+    exit = LocalTheory.target_of}
 
 fun init_i NONE thy = begin "" (ProofContext.init thy)
   | init_i (SOME loc) thy = begin loc (Locale.init loc thy);
 
 fun init (SOME "-") thy = init_i NONE thy
   | init loc thy = init_i (Option.map (Locale.intern thy) loc) thy;
-
-fun mapping loc f = init loc #> f #> LocalTheory.exit false;
 
 end;
