@@ -632,7 +632,7 @@ fun seri_sml output reserved_user module_alias module_prolog
         (fn (name, CodegenThingol.Class info) =>
               map_nsp_typ (name_def false (NameSpace.base name)) >> (fn base => (base, SOME (name, info)))
           | (name, CodegenThingol.Classop _) =>
-              map_nsp_fun (name_def true (NameSpace.base name)) >> (fn base => (base, NONE))
+              map_nsp_fun (name_def false (NameSpace.base name)) >> (fn base => (base, NONE))
           | (name, def) => error ("Class block containing illegal def: " ^ quote name)
         ) defs
       >> (split_list #> apsnd (map_filter I
@@ -710,7 +710,8 @@ fun seri_sml output reserved_user module_alias module_prolog
           |> fold (fn m => fn g => case Graph.get_node g m
               of Module (_, (_, g)) => g) modl'
           |> (fn g => case Graph.get_node g name of Def (defname, _) => defname);
-      in NameSpace.pack (remainder @ [defname']) end;
+      in NameSpace.pack (remainder @ [defname']) end handle Graph.UNDEF _ =>
+        "(raise Fail \"undefined name " ^ name ^ "\")";
     fun the_prolog modlname = case module_prolog modlname
      of NONE => []
       | SOME p => [p, str ""];
@@ -1060,10 +1061,12 @@ fun seri_haskell module_prefix destination string_classes reserved_user module_a
     val init_vars = CodegenThingol.make_vars (reserved_haskell @ reserved_user);
     fun deresolv name =
       (fst o fst o the o AList.lookup (op =) ((fst o snd o snd o the
-        o Symtab.lookup code') ((NameSpace.qualifier o NameSpace.qualifier) name))) name;
+        o Symtab.lookup code') ((NameSpace.qualifier o NameSpace.qualifier) name))) name
+        handle Option => "(error \"undefined name " ^ name ^ "\")";
     fun deresolv_here name =
       (snd o fst o the o AList.lookup (op =) ((fst o snd o snd o the
-        o Symtab.lookup code') ((NameSpace.qualifier o NameSpace.qualifier) name))) name;
+        o Symtab.lookup code') ((NameSpace.qualifier o NameSpace.qualifier) name))) name
+        handle Option => "(error \"undefined name " ^ name ^ "\")";
     val deresolv_module = fst o the o Symtab.lookup code';
     fun deriving_show tyco =
       let
@@ -1395,6 +1398,13 @@ fun gen_add_syntax_const prep_const target raw_c raw_syn thy =
            (Symtab.delete_safe c')
   end;
 
+(*fun gen_add_syntax_monad prep_tyco target raw_tyco monad_tyco thy =
+  let
+    val _ = if 
+  in
+    thy
+  end;*)
+
 fun read_type thy raw_tyco =
   let
     val tyco = Sign.intern_type thy raw_tyco;
@@ -1450,9 +1460,9 @@ fun parse_syntax xs =
       -- P.string
       >> (fn (parse, s) => parse s)) xs;
 
-val (code_classK, code_instanceK, code_typeK, code_constK,
+val (code_classK, code_instanceK, code_typeK, code_constK, code_monadK,
   code_reservedK, code_modulenameK, code_moduleprologK) =
-  ("code_class", "code_instance", "code_type", "code_const",
+  ("code_class", "code_instance", "code_type", "code_const", "code_monad",
     "code_reserved", "code_modulename", "code_moduleprolog");
 
 in
@@ -1514,6 +1524,13 @@ val code_constP =
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
           fold (fn (raw_const, syn) => add_syntax_const target raw_const syn) syns)
   );
+
+(*val code_monadP =
+  OuterSyntax.command code_typeK "define code syntax for open state monads" K.thy_decl (
+    parse_multi_syntax P.xname parse_syntax
+    >> (Toplevel.theory oo fold) (fn (target, syns) =>
+          fold (fn (raw_tyco, syn) => add_syntax_monad target raw_tyco syn) syns)
+  );*)
 
 val code_reservedP =
   OuterSyntax.command code_reservedK "declare words as reserved for target language" K.thy_decl (
