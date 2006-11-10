@@ -248,12 +248,16 @@ type sdthms = lthms * thm list;
 fun add_drop_redundant thm thms =
   let
     val thy = Context.check_thy (Thm.theory_of_thm thm);
-    val pattern = (fst o Logic.dest_equals o Drule.plain_prop_of) thm;
-    fun matches thm' = if (curry (Pattern.matches thy) pattern o
-      fst o Logic.dest_equals o Drule.plain_prop_of) thm'
-      then (warning ("Dropping redundant function theorem\n" ^ string_of_thm thm'); true)
-      else false
-  in thm :: filter_out matches thms end;
+    val args_of = snd o strip_comb o fst o Logic.dest_equals o Drule.plain_prop_of;
+    val args = args_of thm;
+    fun matches [] _ = true
+      | matches (Var _ :: xs) [] = matches xs []
+      | matches (_ :: _) [] = false
+      | matches (x :: xs) (y :: ys) = Pattern.matches thy (x, y) andalso matches xs ys;
+    fun drop thm' = if matches args (args_of thm')
+      then (warning ("Dropping redundant function theorem\n" ^ string_of_thm thm'); false)
+      else true
+  in thm :: filter drop thms end;
 
 fun add_thm thm (sels, dels) =
   (Susp.value (add_drop_redundant thm (Susp.force sels)), remove eq_thm thm dels);
