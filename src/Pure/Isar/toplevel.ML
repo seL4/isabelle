@@ -112,9 +112,24 @@ struct
 exception UNDEF;
 
 
-(* datatype state *)
+(* local theory wrappers *)
 
 type generic_theory = Context.generic;    (*theory or local_theory*)
+
+val loc_init = TheoryTarget.init;
+
+val loc_exit = ProofContext.theory_of o LocalTheory.exit;
+
+fun loc_begin loc (Context.Theory thy) = loc_init loc thy
+  | loc_begin NONE (Context.Proof lthy) = lthy
+  | loc_begin loc (Context.Proof lthy) = loc_init loc (loc_exit lthy);
+
+fun loc_finish _ (Context.Theory _) = Context.Theory o loc_exit
+  | loc_finish NONE (Context.Proof _) = Context.Proof o LocalTheory.restore
+  | loc_finish (SOME _) (Context.Proof lthy) = Context.Proof o LocalTheory.reinit lthy o loc_exit;
+
+
+(* datatype state *)
 
 datatype node =
   Theory of generic_theory * Proof.context option | (*theory with presentation context*)
@@ -133,7 +148,7 @@ fun cases_node f _ (Theory (gthy, _)) = f gthy
 fun presentation_context (SOME (Theory (_, SOME ctxt))) NONE = ctxt
   | presentation_context (SOME node) NONE = cases_node Context.proof_of Proof.context_of node
   | presentation_context (SOME node) (SOME loc) =
-      TheoryTarget.init (SOME loc) (cases_node Context.theory_of Proof.theory_of node)
+      loc_init (SOME loc) (cases_node Context.theory_of Proof.theory_of node)
   | presentation_context NONE _ = raise UNDEF;
 
 datatype state = State of (node History.T * ((node -> unit) * (node -> unit))) option;
@@ -197,7 +212,7 @@ fun prompt_state state = ! prompt_state_fn state;
 
 (* print state *)
 
-val pretty_context = LocalTheory.pretty o Context.cases (TheoryTarget.init NONE) I;
+val pretty_context = LocalTheory.pretty o Context.cases (loc_init NONE) I;
 
 fun pretty_state_context state =
   (case try context_of state of NONE => []
@@ -520,33 +535,26 @@ fun theory' f = app_current (fn int =>
 
 fun theory f = theory' (K f);
 
-fun begin_local_theory begin f = app_current (fn int =>
+fun begin_local_theory begin f = app_current (fn _ =>
   (fn Theory (Context.Theory thy, _) =>
         let
           val lthy = f thy;
-          val (ctxt, gthy) =
-            if begin then (lthy, Context.Proof lthy)
-            else lthy |> LocalTheory.exit int ||> Context.Theory;
-        in Theory (gthy, SOME ctxt) end
+          val gthy = if begin then Context.Proof lthy else Context.Theory (loc_exit lthy);
+        in Theory (gthy, SOME lthy) end
     | _ => raise UNDEF));
 
-val end_local_theory = app_current (fn int =>
-  (fn Theory (Context.Proof lthy, _) =>
-      let val (ctxt', thy') = LocalTheory.exit int lthy
-      in Theory (Context.Theory thy', SOME ctxt') end
+val end_local_theory = app_current (fn _ =>
+  (fn Theory (Context.Proof lthy, _) => Theory (Context.Theory (loc_exit lthy), SOME lthy)
     | _ => raise UNDEF));
 
 local
 
 fun local_theory_presentation loc f g = app_current (fn int =>
-  (fn Theory (Context.Theory thy, _) =>
-        let val (ctxt', thy') = TheoryTarget.mapping loc f thy
-        in Theory (Context.Theory thy', SOME ctxt') end
-    | Theory (Context.Proof lthy, _) =>
-        let val (ctxt', lthy') =
-          if is_none loc then f lthy |> (fn lthy' => (lthy', LocalTheory.restore lthy'))
-          else lthy |> LocalTheory.raw_theory_result (TheoryTarget.mapping loc f)
-        in Theory (Context.Proof lthy', SOME ctxt') end
+  (fn Theory (gthy, _) =>
+        let
+          val finish = loc_finish loc gthy;
+          val lthy' = f (loc_begin loc gthy);
+        in Theory (finish lthy', SOME lthy') end
     | _ => raise UNDEF) #> tap (g int));
 
 in
@@ -558,46 +566,6 @@ end;
 
 
 (* proof transitions *)
-
-local
-
-fun begin_proof init finish = app_current (fn int =>
-  (fn Theory (gthy, _) =>
-    let 
-      val prf = init gthy;
-      val schematic = Proof.schematic_goal prf;
-    in
-      if ! skip_proofs andalso schematic then
-        warning "Cannot skip proof of schematic goal statement"
-      else ();
-      if ! skip_proofs andalso not schematic then
-        SkipProof
-          (History.init (undo_limit int) 0, (finish gthy (Proof.global_skip_proof int prf), gthy))
-      else Proof (ProofHistory.init (undo_limit int) prf, (finish gthy, gthy))
-    end
-  | _ => raise UNDEF));
-
-val global_finish = Context.Theory o ProofContext.theory_of;
-val local_finish = Context.Proof o LocalTheory.restore;
-
-fun mixed_finish (Context.Theory _) ctxt = global_finish ctxt
-  | mixed_finish (Context.Proof lthy) ctxt =
-      Context.Proof (LocalTheory.raw_theory (K (ProofContext.theory_of ctxt)) lthy);
-
-in
-
-fun local_theory_to_proof NONE f = begin_proof
-      (fn Context.Theory thy => f (TheoryTarget.init NONE thy)
-        | Context.Proof lthy => f lthy)
-      (fn Context.Theory _ => global_finish
-        | Context.Proof _ => local_finish)
-  | local_theory_to_proof loc f =
-      begin_proof (f o TheoryTarget.init loc o Context.theory_of) mixed_finish;
-
-fun theory_to_proof f =
-  begin_proof (fn Context.Theory thy => f thy | _ => raise UNDEF) (K global_finish);
-
-end;
 
 fun end_proof f = map_current (fn int =>
   (fn Proof (prf, (finish, orig_gthy)) =>
@@ -612,6 +580,34 @@ fun end_proof f = map_current (fn int =>
     | SkipProof (h, (gthy, _)) =>
         if History.current h = 0 then Theory (gthy, NONE) else raise UNDEF
     | _ => raise UNDEF));
+
+local
+
+fun begin_proof init finish = app_current (fn int =>
+  (fn Theory (gthy, _) =>
+    let
+      val prf = init gthy;
+      val schematic = Proof.schematic_goal prf;
+    in
+      if ! skip_proofs andalso schematic then
+        warning "Cannot skip proof of schematic goal statement"
+      else ();
+      if ! skip_proofs andalso not schematic then
+        SkipProof
+          (History.init (undo_limit int) 0, (finish gthy (Proof.global_skip_proof int prf), gthy))
+      else Proof (ProofHistory.init (undo_limit int) prf, (finish gthy, gthy))
+    end
+  | _ => raise UNDEF));
+
+in
+
+fun local_theory_to_proof loc f = begin_proof (f o loc_begin loc) (loc_finish loc);
+
+fun theory_to_proof f = begin_proof
+    (fn Context.Theory thy => f thy | _ => raise UNDEF)
+    (K (Context.Theory o ProofContext.theory_of));
+
+end;
 
 val forget_proof = map_current (fn _ =>
   (fn Proof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
