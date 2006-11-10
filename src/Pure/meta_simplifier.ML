@@ -320,7 +320,7 @@ fun print_ss ss =
     [Pretty.big_list "simplification rules:" (pretty_thms smps),
       Pretty.big_list "simplification procedures:" (map pretty_proc prcs),
       Pretty.big_list "congruences:" (map pretty_cong cngs),
-      Pretty.strs ("loopers:" :: map (quote o #1) loop_tacs),
+      Pretty.strs ("loopers:" :: map (quote o fst) loop_tacs),
       Pretty.strs ("unsafe solvers:" :: map (quote o solver_name) (#1 solvers)),
       Pretty.strs ("safe solvers:" :: map (quote o solver_name) (#2 solvers))]
     |> Pretty.chunks |> Pretty.writeln
@@ -688,18 +688,20 @@ fun ss setloop tac = ss setloop' (K tac);
 fun ss addloop' (name, tac) = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
     (congs, procs, mk_rews, termless, subgoal_tac,
-      overwrite_warn (loop_tacs, (name, tac)) ("Overwriting looper " ^ quote name),
+      (if AList.defined (op =) loop_tacs name
+        then warning ("Overwriting looper " ^ quote name)
+        else (); AList.update (op =) (name, tac) loop_tacs),
       solvers));
 
 fun ss addloop (name, tac) = ss addloop' (name, K tac);
 
 fun ss delloop name = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
-    let val loop_tacs' = filter_out (equal name o fst) loop_tacs in
-      if length loop_tacs <> length loop_tacs' then ()
-      else warning ("No such looper in simpset: " ^ quote name);
-      (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs', solvers)
-    end);
+    (congs, procs, mk_rews, termless, subgoal_tac,
+      (if AList.defined (op =) loop_tacs name
+        then ()
+        else warning ("No such looper in simpset: " ^ quote name);
+       AList.delete (op =) name loop_tacs), solvers));
 
 fun ss setSSolver solver = ss |> map_simpset2 (fn (congs, procs, mk_rews, termless,
   subgoal_tac, loop_tacs, (unsafe_solvers, _)) =>
@@ -759,7 +761,7 @@ fun merge_ss (ss1, ss2) =
     val congs' = gen_merge_lists (eq_cong o pairself #2) congs1 congs2;
     val weak' = merge_lists weak1 weak2;
     val procs' = Net.merge eq_proc (procs1, procs2);
-    val loop_tacs' = merge_alists loop_tacs1 loop_tacs2;
+    val loop_tacs' = AList.merge (op =) (K true) (loop_tacs1, loop_tacs2);
     val unsafe_solvers' = merge_solvers unsafe_solvers1 unsafe_solvers2;
     val solvers' = merge_solvers solvers1 solvers2;
   in

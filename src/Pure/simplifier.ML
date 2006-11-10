@@ -161,7 +161,7 @@ fun solve_all_tac solvers ss =
 fun generic_simp_tac safe mode ss =
   let
     val (_, {loop_tacs, solvers = (unsafe_solvers, solvers), ...}) = MetaSimplifier.rep_ss ss;
-    val loop_tac = FIRST' (map (fn (_, tac) => tac ss) loop_tacs);
+    val loop_tac = FIRST' (map (fn (_, tac) => tac ss) (rev loop_tacs));
     val solve_tac = FIRST' (map (MetaSimplifier.solver ss)
       (if safe then solvers else unsafe_solvers));
 
