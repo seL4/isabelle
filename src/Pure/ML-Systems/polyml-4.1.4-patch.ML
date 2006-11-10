@@ -1,10 +1,8 @@
 (*  Title:      Pure/ML-Systems/polyml-4.1.4-patch.ML
     ID:         $Id$
-    Author:     Makarius
 
-Turn the official PolyML 4.2.0 into the internal version 4.1.4, in
-order to make it work with Isabelle2005.  This is to be commited into
-ML_dbase! *)
+Basis library fixes for Poly/ML 4.2.0 or later.
+*)
 
 structure Posix =
 struct
