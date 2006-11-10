@@ -21,10 +21,10 @@ type fname (* parameter/free variable names *)
 type cname (* constant names *)
 type vname (* meta variable names *)
 type bname (* bound var name *)
-datatype term = Const of (cname * typ)
-           | Abs of (aname * typ * term)
-           | Free of (fname * typ)
-           | Var of (vname * typ)
+datatype term = Const of cname * typ
+           | Abs of aname * typ * term
+           | Free of fname * typ
+           | Var of vname * typ
            | Bound of bname
            | $ of term * term;
 type T = term;
