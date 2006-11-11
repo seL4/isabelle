@@ -23,28 +23,31 @@ instance list :: (type) order
 lemma prefixI [intro?]: "ys = xs @ zs ==> xs \<le> ys"
   unfolding prefix_def by blast
 
-lemma prefixE [elim?]: "xs \<le> ys ==> (!!zs. ys = xs @ zs ==> C) ==> C"
-  unfolding prefix_def by blast
+lemma prefixE [elim?]:
+  assumes "xs \<le> ys"
+  obtains zs where "ys = xs @ zs"
+  using prems unfolding prefix_def by blast
 
 lemma strict_prefixI' [intro?]: "ys = xs @ z # zs ==> xs < ys"
   unfolding strict_prefix_def prefix_def by blast
 
 lemma strict_prefixE' [elim?]:
-  assumes lt: "xs < ys"
-    and r: "!!z zs. ys = xs @ z # zs ==> C"
-  shows C
+  assumes "xs < ys"
+  obtains z zs where "ys = xs @ z # zs"
 proof -
-  from lt obtain us where "ys = xs @ us" and "xs \<noteq> ys"
+  from `xs < ys` obtain us where "ys = xs @ us" and "xs \<noteq> ys"
     unfolding strict_prefix_def prefix_def by blast
-  with r show ?thesis by (auto simp add: neq_Nil_conv)
+  with that show ?thesis by (auto simp add: neq_Nil_conv)
 qed
 
 lemma strict_prefixI [intro?]: "xs \<le> ys ==> xs \<noteq> ys ==> xs < (ys::'a list)"
   unfolding strict_prefix_def by blast
 
 lemma strict_prefixE [elim?]:
-    "xs < ys ==> (xs \<le> ys ==> xs \<noteq> (ys::'a list) ==> C) ==> C"
-  unfolding strict_prefix_def by blast
+  fixes xs ys :: "'a list"
+  assumes "xs < ys"
+  obtains "xs \<le> ys" and "xs \<noteq> ys"
+  using prems unfolding strict_prefix_def by blast
 
 
 subsection {* Basic properties of prefixes *}
@@ -163,13 +166,12 @@ lemma parallelI [intro]: "\<not> xs \<le> ys ==> \<not> ys \<le> xs ==> xs \<par
   unfolding parallel_def by blast
 
 lemma parallelE [elim]:
-    "xs \<parallel> ys ==> (\<not> xs \<le> ys ==> \<not> ys \<le> xs ==> C) ==> C"
-  unfolding parallel_def by blast
+  assumes "xs \<parallel> ys"
+  obtains "\<not> xs \<le> ys \<and> \<not> ys \<le> xs"
+  using prems unfolding parallel_def by blast
 
 theorem prefix_cases:
-  "(xs \<le> ys ==> C) ==>
-    (ys < xs ==> C) ==>
-    (xs \<parallel> ys ==> C) ==> C"
+  obtains "xs \<le> ys" | "ys < xs" | "xs \<parallel> ys"
   unfolding parallel_def strict_prefix_def by blast
 
 theorem parallel_decomp:
@@ -219,7 +221,15 @@ definition
   postfix :: "'a list => 'a list => bool"  ("(_/ >>= _)" [51, 50] 50)
   "(xs >>= ys) = (\<exists>zs. xs = zs @ ys)"
 
-lemma postfix_refl [simp, intro!]: "xs >>= xs"
+lemma postfixI [intro?]: "xs = zs @ ys ==> xs >>= ys"
+  unfolding postfix_def by blast
+
+lemma postfixE [elim?]:
+  assumes "xs >>= ys"
+  obtains zs where "xs = zs @ ys"
+  using prems unfolding postfix_def by blast
+
+lemma postfix_refl [iff]: "xs >>= xs"
   by (auto simp add: postfix_def)
 lemma postfix_trans: "\<lbrakk>xs >>= ys; ys >>= zs\<rbrakk> \<Longrightarrow> xs >>= zs"
   by (auto simp add: postfix_def)
@@ -229,7 +239,7 @@ lemma postfix_antisym: "\<lbrakk>xs >>= ys; ys >>= xs\<rbrakk> \<Longrightarrow>
 lemma Nil_postfix [iff]: "xs >>= []"
   by (simp add: postfix_def)
 lemma postfix_Nil [simp]: "([] >>= xs) = (xs = [])"
-  by (auto simp add:postfix_def)
+  by (auto simp add: postfix_def)
 
 lemma postfix_ConsI: "xs >>= ys \<Longrightarrow> x#xs >>= ys"
   by (auto simp add: postfix_def)
@@ -239,23 +249,35 @@ lemma postfix_ConsD: "xs >>= y#ys \<Longrightarrow> xs >>= ys"
 lemma postfix_appendI: "xs >>= ys \<Longrightarrow> zs @ xs >>= ys"
   by (auto simp add: postfix_def)
 lemma postfix_appendD: "xs >>= zs @ ys \<Longrightarrow> xs >>= ys"
-  by(auto simp add: postfix_def)
+  by (auto simp add: postfix_def)
 
-lemma postfix_is_subset_lemma: "xs = zs @ ys \<Longrightarrow> set ys \<subseteq> set xs"
-  by (induct zs) auto
-lemma postfix_is_subset: "xs >>= ys \<Longrightarrow> set ys \<subseteq> set xs"
-  by (unfold postfix_def, erule exE, erule postfix_is_subset_lemma)
+lemma postfix_is_subset: "xs >>= ys ==> set ys \<subseteq> set xs"
+proof -
+  assume "xs >>= ys"
+  then obtain zs where "xs = zs @ ys" ..
+  then show ?thesis by (induct zs) auto
+qed
 
-lemma postfix_ConsD2_lemma: "x#xs = zs @ y#ys \<Longrightarrow> xs >>= ys"
-  by (induct zs) (auto intro!: postfix_appendI postfix_ConsI)
-lemma postfix_ConsD2: "x#xs >>= y#ys \<Longrightarrow> xs >>= ys"
-  by (auto simp add: postfix_def dest!: postfix_ConsD2_lemma)
+lemma postfix_ConsD2: "x#xs >>= y#ys ==> xs >>= ys"
+proof -
+  assume "x#xs >>= y#ys"
+  then obtain zs where "x#xs = zs @ y#ys" ..
+  then show ?thesis
+    by (induct zs) (auto intro!: postfix_appendI postfix_ConsI)
+qed
 
-lemma postfix2prefix: "(xs >>= ys) = (rev ys <= rev xs)"
-  apply (unfold prefix_def postfix_def, safe)
-   apply (rule_tac x = "rev zs" in exI, simp)
-  apply (rule_tac x = "rev zs" in exI)
-  apply (rule rev_is_rev_conv [THEN iffD1], simp)
-  done
+lemma postfix_to_prefix: "xs >>= ys \<longleftrightarrow> rev ys \<le> rev xs"
+proof
+  assume "xs >>= ys"
+  then obtain zs where "xs = zs @ ys" ..
+  then have "rev xs = rev ys @ rev zs" by simp
+  then show "rev ys <= rev xs" ..
+next
+  assume "rev ys <= rev xs"
+  then obtain zs where "rev xs = rev ys @ zs" ..
+  then have "rev (rev xs) = rev zs @ rev (rev ys)" by simp
+  then have "xs = rev zs @ ys" by simp
+  then show "xs >>= ys" ..
+qed
 
 end
