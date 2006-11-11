@@ -24,11 +24,10 @@ tactical theorem proving.
 
 \subsection{Defining theories}\label{sec:begin-thy}
 
-\indexisarcmd{header}\indexisarcmd{theory}\indexisarcmd{context}\indexisarcmd{end}
+\indexisarcmd{header}\indexisarcmd{theory}\indexisarcmd{end}
 \begin{matharray}{rcl}
   \isarcmd{header} & : & \isarkeep{toplevel} \\
   \isarcmd{theory} & : & \isartrans{toplevel}{theory} \\
-  \isarcmd{context}^* & : & \isartrans{toplevel}{theory} \\
   \isarcmd{end} & : & \isartrans{theory}{toplevel} \\
 \end{matharray}
 
@@ -38,21 +37,19 @@ uniformly --- occasionally definitional mechanisms even require some explicit
 proof as well.  In contrast, ``old-style'' Isabelle theories support batch
 processing only, with the proof scripts collected in separate ML files.
 
-The first ``real'' command of any theory has to be $\THEORY$, which starts a
-new theory based on the merge of existing ones.  Just preceding $\THEORY$,
-there may be an optional $\isarkeyword{header}$ declaration, which is relevant
-to document preparation only; it acts very much like a special pre-theory
-markup command (cf.\ \S\ref{sec:markup-thy} and \S\ref{sec:markup-thy}).  The
-$\END$ command concludes a theory development; it has to be the very last
-command of any theory file loaded in batch-mode.  The theory context may be
-also changed interactively by $\CONTEXT$ without creating a new theory.
+The first ``real'' command of any theory has to be $\THEORY$, which
+starts a new theory based on the merge of existing ones.  Just
+preceding $\THEORY$, there may be an optional $\isarkeyword{header}$
+declaration, which is relevant to document preparation only; it acts
+very much like a special pre-theory markup command (cf.\ 
+\S\ref{sec:markup-thy} and \S\ref{sec:markup-thy}).  The $\END$
+command concludes a theory development; it has to be the very last
+command of any theory file loaded in batch-mode.
 
 \begin{rail}
   'header' text
   ;
   'theory' name 'imports' (name +) uses? 'begin'
-  ;
-  'context' name
   ;
 
   uses: 'uses' ((name | parname) +);
@@ -86,14 +83,6 @@ also changed interactively by $\CONTEXT$ without creating a new theory.
   \emph{finished} theory $A$.  That file should not be included in the
   $\isarkeyword{files}$ dependency declaration, though.
   
-\item [$\CONTEXT~B$] enters an existing theory context, basically in read-only
-  mode, so only a limited set of commands may be performed without destroying
-  the theory.  Just as for $\THEORY$, the theory loader ensures that $B$ is
-  loaded and up-to-date.
-  
-  This command is occasionally useful for quick interactive experiments;
-  normally one should always commence a new context via $\THEORY$.
-  
 \item [$\END$] concludes the current theory definition or context switch.
   Note that this command cannot be undone, but the whole theory definition has
   to be retracted.
@@ -120,7 +109,7 @@ a structured way to insert text into the document generated from a theory (see
 tools).
 
 \begin{rail}
-  ('chapter' | 'section' | 'subsection' | 'subsubsection' | 'text') locale? text
+  ('chapter' | 'section' | 'subsection' | 'subsubsection' | 'text') target? text
   ;
   'text\_raw' text
   ;
@@ -138,8 +127,8 @@ tools).
 
 The $text$ argument of these markup commands (except for
 $\isarkeyword{text_raw}$) may contain references to formal entities
-(``antiquotations'', see also \S\ref{sec:antiq}).  These are interpreted in
-the present theory context, or the specified $locale$.
+(``antiquotations'', see also \S\ref{sec:antiq}).  These are
+interpreted in the present theory context, or the specified $target$.
 
 Any of these markup elements corresponds to a {\LaTeX} command with the name
 prefixed by \verb,\isamarkup,.  For the sectioning commands this is a plain
@@ -402,14 +391,14 @@ general $d :: \alpha \times \beta$ will be disallowed.
 \indexisarcmd{axioms}\indexisarcmd{lemmas}\indexisarcmd{theorems}
 \begin{matharray}{rcll}
   \isarcmd{axioms} & : & \isartrans{theory}{theory} & (axiomatic!) \\
-  \isarcmd{lemmas} & : & \isartrans{theory}{theory} \\
-  \isarcmd{theorems} & : & \isartrans{theory}{theory} \\
+  \isarcmd{lemmas} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{theorems} & : & isarkeep{local{\dsh}theory} \\
 \end{matharray}
 
 \begin{rail}
   'axioms' (axmdecl prop +)
   ;
-  ('lemmas' | 'theorems') locale? (thmdef? thmrefs + 'and')
+  ('lemmas' | 'theorems') target? (thmdef? thmrefs + 'and')
   ;
 \end{rail}
 
@@ -423,10 +412,10 @@ general $d :: \alpha \times \beta$ will be disallowed.
   Everyday work is typically done the hard way, with proper definitions and
   proven theorems.
   
-\item [$\isarkeyword{lemmas}~a = \vec b$] retrieves and stores existing facts
-  in the theory context, or the specified locale (see also
-  \S\ref{sec:locale}).  Typical applications would also involve attributes, to
-  declare Simplifier rules, for example.
+\item [$\isarkeyword{lemmas}~a = \vec b$] retrieves and stores
+  existing facts in the theory context, or the specified target
+  context (see also \S\ref{sec:target}).  Typical applications would
+  also involve attributes, to declare Simplifier rules, for example.
   
 \item [$\isarkeyword{theorems}$] is essentially the same as
   $\isarkeyword{lemmas}$, but marks the result as a different kind of facts.
@@ -876,9 +865,9 @@ the order of facts is less significant here.
 \indexisarcmd{have}\indexisarcmd{show}\indexisarcmd{hence}\indexisarcmd{thus}
 \indexisarcmd{print-statement}
 \begin{matharray}{rcl}
-  \isarcmd{lemma} & : & \isartrans{theory}{proof(prove)} \\
-  \isarcmd{theorem} & : & \isartrans{theory}{proof(prove)} \\
-  \isarcmd{corollary} & : & \isartrans{theory}{proof(prove)} \\
+  \isarcmd{lemma} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
+  \isarcmd{theorem} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
+  \isarcmd{corollary} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
   \isarcmd{have} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
   \isarcmd{show} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
   \isarcmd{hence} & : & \isartrans{proof(state)}{proof(prove)} \\
@@ -914,7 +903,7 @@ contexts of (essentially a big disjunction of eliminated parameters
 and assumptions, cf.\ \S\ref{sec:obtain}).
 
 \begin{rail}
-  ('lemma' | 'theorem' | 'corollary') locale? (goal | longgoal)
+  ('lemma' | 'theorem' | 'corollary') target? (goal | longgoal)
   ;
   ('have' | 'show' | 'hence' | 'thus') goal
   ;
@@ -1345,7 +1334,7 @@ used in scripts, too.
   \isarcmd{defer}^* & : & \isartrans{proof}{proof} \\
   \isarcmd{prefer}^* & : & \isartrans{proof}{proof} \\
   \isarcmd{back}^* & : & \isartrans{proof}{proof} \\
-  \isarcmd{declare}^* & : & \isartrans{theory}{theory} \\
+  \isarcmd{declare}^* & : & \isarkeep{local{\dsh}theory} \\
 \end{matharray}
 
 \railalias{applyend}{apply\_end}
@@ -1358,7 +1347,7 @@ used in scripts, too.
   ;
   'prefer' nat
   ;
-  'declare' locale? (thmrefs + 'and')
+  'declare' target? (thmrefs + 'and')
   ;
 \end{rail}
 
@@ -1393,12 +1382,13 @@ used in scripts, too.
   the latest proof command.  Basically, any proof command may return multiple
   results.
   
-\item [$\isarkeyword{declare}~thms$] declares theorems to the current theory
-  context (or the specified locale, see also \S\ref{sec:locale}).  No theorem
-  binding is involved here, unlike $\isarkeyword{theorems}$ or
-  $\isarkeyword{lemmas}$ (cf.\ \S\ref{sec:axms-thms}), so
-  $\isarkeyword{declare}$ only has the effect of applying attributes as
-  included in the theorem specification.
+\item [$\isarkeyword{declare}~thms$] declares theorems to the current
+  theory context (or the specified target context, see also
+  \S\ref{sec:target}).  No theorem binding is involved here, unlike
+  $\isarkeyword{theorems}$ or $\isarkeyword{lemmas}$ (cf.\ 
+  \S\ref{sec:axms-thms}), so $\isarkeyword{declare}$ only has the
+  effect of applying attributes as included in the theorem
+  specification.
 
 \end{descr}
 
