@@ -35,6 +35,13 @@ settings mechanism allows to change and save options persistently, but
 older versions of Isabelle will fail to start up if a negative prems
 limit is imposed.
 
+* Local theory targets may be specified by non-nested blocks of
+``context/locale/class ... begin'' followed by ``end''.  The body may
+contain definitions, theorems etc., including any derived mechanism
+that has been implemented on top of these primitives.  This concept
+generalizes the existing ``theorem (in ...)'' towards more versatility
+and scalability.
+
 
 *** Document preparation ***
 
