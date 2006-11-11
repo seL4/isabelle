@@ -51,6 +51,7 @@ sig
   val rm_simpset : unit -> unit
   val rm_atpset : unit -> unit
   val rm_clasimp : unit -> unit
+  val is_fol_thms : thm list -> bool
 end;
 
 structure ResAtp =
@@ -303,6 +304,8 @@ fun problem_logic_goals_aux [] (lg,seen) = lg
     problem_logic_goals_aux subgoals (logic_of_clauses subgoal (lg,seen));
     
 fun problem_logic_goals subgoals = problem_logic_goals_aux subgoals (FOL,[]);
+
+fun is_fol_thms ths = ((fst(logic_of_clauses (map prop_of ths) (FOL,[]))) = FOL);
 
 (***************************************************************)
 (* Retrieving and filtering lemmas                             *)
