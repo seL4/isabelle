@@ -161,10 +161,9 @@ fun is_toplevel (State NONE) = true
 fun level (State NONE) = 0
   | level (State (SOME (node, _))) =
       (case History.current node of
-        Theory (Context.Theory _, _) => 0
-      | Theory (Context.Proof _, _) => 1
-      | Proof (prf, _) => Proof.level (ProofHistory.current prf) + 1
-      | SkipProof (h, _) => History.current h + 2);   (*different notion of proof depth!*)
+        Theory _ => 0
+      | Proof (prf, _) => Proof.level (ProofHistory.current prf)
+      | SkipProof (h, _) => History.current h + 1);   (*different notion of proof depth!*)
 
 fun str_of_state (State NONE) = "at top level"
   | str_of_state (State (SOME (node, _))) =
