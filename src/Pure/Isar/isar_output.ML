@@ -172,6 +172,8 @@ fun eval_antiquote lex node (str, pos) =
 
 (** present theory source **)
 
+(*NB: arranging white space around command spans is a black art.*)
+
 (* presentation tokens *)
 
 datatype token =
@@ -255,6 +257,7 @@ fun present_span lex default_tags span state state'
 
     val active_tag' =
       if is_some tag' then tag'
+      else if cmd_name = "end" andalso not (Toplevel.is_toplevel state') then NONE
       else try hd (default_tags cmd_name);
     val edge = (active_tag, active_tag');
 
@@ -306,6 +309,7 @@ val space_proper =
 val is_improper = not o (T.is_proper orf T.is_begin_ignore orf T.is_end_ignore);
 val improper = Scan.any is_improper;
 val improper_end = Scan.repeat (Scan.unless space_proper (Scan.one is_improper));
+val blank_end = Scan.repeat (Scan.unless space_proper (Scan.one T.is_blank));
 
 val opt_newline = Scan.option (Scan.one T.is_newline);
 
@@ -316,7 +320,7 @@ val ignore =
     (if d = 0 then Scan.fail_with (K "Bad nesting of meta-comments") else opt_newline)
     >> pair (d - 1));
 
-val tag = (improper -- P.$$$ "%" -- improper) |-- P.!!! (P.tag_name --| improper_end);
+val tag = (improper -- P.$$$ "%" -- improper) |-- P.!!! (P.tag_name --| blank_end);
 
 val locale =
   Scan.option ((P.$$$ "(" -- improper -- P.$$$ "in") |--
