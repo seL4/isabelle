@@ -34,7 +34,6 @@ sig
   val theory: string * string list * (string * bool) list
     -> Toplevel.transition -> Toplevel.transition
   val init_context: ('a -> unit) -> 'a -> Toplevel.transition -> Toplevel.transition
-  val context: string -> Toplevel.transition -> Toplevel.transition
 end;
 
 structure IsarThy: ISAR_THY =
@@ -132,16 +131,11 @@ fun theory (name, imports, uses) =
     (fn thy => (end_theory thy; ()))
     (kill_theory o Context.theory_name);
 
-
-(* context switch *)
-
-fun fetch_context f x =
-  (case Context.pass NONE f x of
-    ((), NONE) => raise Toplevel.UNDEF
-  | ((), SOME thy) => thy);
-
-fun init_context f x = Toplevel.init_theory (fn _ => fetch_context f x) (K ()) (K ());
-
-val context = init_context (ThyInfo.quiet_update_thy true);
+fun init_context f x = Toplevel.init_theory
+  (fn _ =>
+    (case Context.pass NONE f x of
+      ((), NONE) => raise Toplevel.UNDEF
+    | ((), SOME thy) => thy))
+  (K ()) (K ());
 
 end;
