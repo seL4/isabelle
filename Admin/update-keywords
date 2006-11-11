@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Makarius
+#
+# DESCRIPTION: Update standard keyword files.
+
+isabelle -qe 'ProofGeneral.write_keywords "";' IOA
+isabelle -qe 'ProofGeneral.write_keywords "HOL-Nominal";' HOL-Nominal
+isabelle -qe 'ProofGeneral.write_keywords "ZF";' ZF
