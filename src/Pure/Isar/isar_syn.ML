@@ -21,13 +21,6 @@ val endP =
   OuterSyntax.command "end" "end (local) theory" (K.tag_theory K.thy_end)
     (Scan.succeed (Toplevel.exit o Toplevel.end_local_theory));
 
-val contextP =
-  OuterSyntax.improper_command "context" "switch (local) theory context"
-    (K.tag_theory K.thy_switch)
-    (P.name --| P.begin >> (fn name =>
-      Toplevel.print o IsarThy.context name o
-      Toplevel.begin_local_theory true (TheoryTarget.init (SOME name))));
-
 
 (** markup commands **)
 
@@ -343,6 +336,14 @@ val oracleP =
   OuterSyntax.command "oracle" "declare oracle" (K.tag_ml K.thy_decl)
     (P.name -- (P.$$$ "(" |-- P.text --| P.$$$ ")" --| P.$$$ "=")
       -- P.text >> (Toplevel.theory o PureThy.add_oracle o P.triple1));
+
+
+(* local theories *)
+
+val contextP =
+  OuterSyntax.command "context" "enter local theory context" K.thy_decl
+    (P.name --| P.begin >> (fn name =>
+      Toplevel.print o Toplevel.begin_local_theory true (TheoryTarget.init (SOME name))));
 
 
 (* locales *)
@@ -896,7 +897,7 @@ val _ = OuterSyntax.add_keywords
 
 val _ = OuterSyntax.add_parsers [
   (*theory structure*)
-  theoryP, endP, contextP,
+  theoryP, endP,
   (*markup commands*)
   headerP, chapterP, sectionP, subsectionP, subsubsectionP, textP,
   text_rawP, sectP, subsectP, subsubsectP, txtP, txt_rawP,
@@ -909,7 +910,7 @@ val _ = OuterSyntax.add_parsers [
   ml_commandP, ml_setupP, setupP, method_setupP,
   parse_ast_translationP, parse_translationP, print_translationP,
   typed_print_translationP, print_ast_translationP,
-  token_translationP, oracleP, localeP,
+  token_translationP, oracleP, contextP, localeP,
   (*proof commands*)
   theoremP, lemmaP, corollaryP, haveP, henceP, showP, thusP, fixP,
   assumeP, presumeP, defP, obtainP, guessP, letP, caseP, thenP, fromP,
