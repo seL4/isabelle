@@ -375,7 +375,7 @@
   '("theory"))
 
 (defconst isar-keywords-theory-switch
-  '("context"))
+  '())
 
 (defconst isar-keywords-theory-end
   '("end"))
@@ -413,6 +413,7 @@
     "constdefs"
     "consts"
     "consts_code"
+    "context"
     "datatype"
     "defaultsort"
     "defer_recdef"
