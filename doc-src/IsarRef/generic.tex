@@ -23,13 +23,13 @@ than the underlying primitives of $\CONSTS$, $\DEFS$ (see
 available, and result names need not be given.
 
 \begin{rail}
-  'axiomatization' locale? consts? ('where' specs)?
+  'axiomatization' target? consts? ('where' specs)?
   ;
-  'definition' locale? (constdecl? constdef +)
+  'definition' target? (constdecl? constdef +)
   ;
-  'abbreviation' locale? mode? (constdecl? prop +)
+  'abbreviation' target? mode? (constdecl? prop +)
   ;
-  'notation' locale? mode? (nameref mixfix +)
+  'notation' target? mode? (nameref mixfix +)
   ;
 
   consts: ((name ('::' type)? structmixfix? | vars) + 'and')
@@ -64,9 +64,6 @@ available, and result names need not be given.
   \equiv \lambda x\;y. t$ and $y \not= 0 \Imp g\;x\;y = u$ instead of
   an unguarded $g \equiv \lambda x\;y. u$.
   
-  Multiple definitions are processed consecutively; no overloading is
-  supported here.
-  
 \item $\isarkeyword{abbreviation}~c~\isarkeyword{where}~eq$ introduces
   a syntactic constant which is associated with a certain term
   according to the meta-level equality $eq$.
@@ -91,56 +88,80 @@ available, and result names need not be given.
   
 \end{descr}
 
-Any of these specifications support an optional target locale context
-(cf.\ \S\ref{sec:locale}).  In the latter case, constants being
-introduced depend on certain fixed parameters of the locale context;
-the constant name is qualified by the locale base name.  A syntactic
-abbreviation takes care for convenient input and output of such terms,
-making the parameters implicit and using the original short name.
-Outside the locale context, the specified entities are available in
-generalized form, with the parameters being open to explicit
-instantiation.
+All of these specifications support local theory targets (cf.\ 
+\S\ref{sec:target}).
 
 
-\subsection{Locales and local contexts}\label{sec:locale}
+\subsection{Local theory targets}\label{sec:target}
+
+A local theory target is a context managed separately within the
+enclosing theory.  Contexts may introduce parameters (fixed variables)
+and assumptions (hypotheses).  Definitions and theorems depending on
+the context may be added incrementally later on.  Named contexts refer
+to locales (cf.\ \S\ref{sec:locale}) or type classes (cf.\ 
+\S\ref{sec:class}); the name ``$-$'' signifies the global theory
+context.
+
+\indexisarcmd{context}\indexisarcmd{end}
+\begin{matharray}{rcll}
+  \isarcmd{context} & : & \isartrans{theory}{local{\dsh}theory} \\
+  \isarcmd{end} & : & \isartrans{local{\dsh}theory}{theory} \\
+\end{matharray}
+
+\indexouternonterm{target}
+\begin{rail}
+  'context' name 'begin'
+  ;
+
+  target: '(' 'in' name ')'
+  ;
+\end{rail}
+
+\begin{descr}
+  
+\item $\isarkeyword{context}~c~\isarkeyword{begin}$ recommences an
+  existing locale or class context $c$.  Note that locale and class
+  definitions allow to include the $\isarkeyword{begin}$ keyword as
+  well, in order to continue the local theory immediately after the
+  initial specification.
+  
+\item $\END$ concludes the current local theory and continues the
+  enclosing global theory.  Note that a non-local $\END$ has a
+  different meaning: it concludes the theory itself
+  (\S\ref{sec:begin-thy}).
+  
+\item $(\IN~loc)$ given after any local theory command specifies an
+  immediate target, e.g.\ 
+  ``$\isarkeyword{definition}~(\IN~loc)~\dots$'' or
+  ``$\THEOREMNAME~(\IN~loc)~\dots$''.  This works both in a local or
+  global theory context; the current target context will be suspended
+  for this command only.  Note that $(\IN~-)$ will always produce a
+  global result independently of the current target context.
+
+\end{descr}
+
+The exact meaning of results produced within a local theory context
+depends on the underlying target infrastructure (locale, type class
+etc.).  The general idea is as follows, considering a context named
+$c$ with parameter $x$ and assumption $A[x]$.
+
+Definitions are exported by introducing a global version with
+additional arguments; a syntactic abbreviation links the long form
+with the abstract version of the target context.  For example, $a
+\equiv t[x]$ becomes $c\dtt a \; ?x \equiv t[?x]$ at the theory level
+(for arbitrary $?x$), together with a local abbreviation $c \equiv
+c\dtt a\; x$ in the target context (for fixed $x$).
+
+Theorems are exported by discharging the assumptions and generalizing
+the parameters of the context.  For example, $a: B[x]$ becomes $c\dtt
+a: A[?x] \Imp B[?x]$ (for arbitrary $?x$).
+
+
+\subsection{Locales}\label{sec:locale}
 
 Locales are named local contexts, consisting of a list of declaration elements
 that are modeled after the Isar proof context commands (cf.\
 \S\ref{sec:proof-context}).
-
-
-\subsubsection{Localized commands}
-
-Existing locales may be augmented later on by adding new facts.  Note that the
-actual context definition may not be changed!  Several theory commands that
-produce facts in some way are available in ``localized'' versions, referring
-to a named locale instead of the global theory context.
-
-\indexouternonterm{locale}
-\begin{rail}
-  locale: '(' 'in' name ')'
-  ;
-\end{rail}
-
-Emerging facts of localized commands are stored in two versions, both in the
-target locale and the theory (after export).  The latter view produces a
-qualified binding, using the locale name as a name space prefix.
-
-For example, ``$\LEMMAS~(\IN~loc)~a = \vec b$'' retrieves facts $\vec b$ from
-the locale context of $loc$ and augments its body by an appropriate
-``$\isarkeyword{notes}$'' element (see below).  The exported view of $a$,
-after discharging the locale context, is stored as $loc{.}a$ within the global
-theory.  A localized goal ``$\LEMMANAME~(\IN~loc)~a:~\phi$'' works similarly,
-only that the fact emerges through the subsequent proof, which may refer to
-the full infrastructure of the locale context (covering local parameters with
-typing and concrete syntax, assumptions, definitions etc.).  Most notably,
-fact declarations of the locale are active during the proof as well (e.g.\ 
-local $simp$ rules).
-
-As a general principle, results exported from a locale context acquire
-additional premises according to the specification.  Usually this is only a
-single predicate according to the standard ``closed'' view of locale
-specifications.
 
 
 \subsubsection{Locale specifications}
@@ -159,7 +180,7 @@ specifications.
 \indexisarelem{defines}\indexisarelem{notes}\indexisarelem{includes}
 
 \begin{rail}
-  'locale' ('(open)')? name ('=' localeexpr)?
+  'locale' ('(open)')? name ('=' localeexpr)? 'begin'?
   ;
   'print\_locale' '!'? localeexpr
   ;
@@ -297,9 +318,8 @@ Locale expressions (more precisely, \emph{context expressions}) may be
 instantiated, and the instantiated facts added to the current context.
 This requires a proof of the instantiated specification and is called
 \emph{locale interpretation}.  Interpretation is possible in theories
-and locales
-(command $\isarcmd{interpretation}$) and also in proof contexts
-($\isarcmd{interpret}$).
+and locales (command $\isarcmd{interpretation}$) and also in proof
+contexts ($\isarcmd{interpret}$).
 
 \indexisarcmd{interpretation}\indexisarcmd{interpret}
 \indexisarcmd{print-interps}
@@ -411,29 +431,29 @@ and locales
 
 \begin{warn}
   Since attributes are applied to interpreted theorems, interpretation
-  may modify the current simpset and claset.  Take this into
-  account when choosing attributes for local theorems.
+  may modify the context of common proof tools, e.g.\ the Simplifier
+  or Classical Reasoner.  Since the behavior of such automated
+  reasoning tools is \emph{not} stable under interpretation morphisms,
+  manual declarations might have to be issued.
 \end{warn}
 
 \begin{warn}
   An interpretation in a theory may subsume previous interpretations.
   This happens if the same specification fragment is interpreted twice
   and the instantiation of the second interpretation is more general
-  than the interpretation of the first.  A warning
-  is issued, since it is likely that these could have been generalized
-  in the first place.  The locale package does not attempt to remove
-  subsumed interpretations.  This situation is normally harmless, but
-  note that $blast$ gets confused by the presence of multiple axclass
-  instances of a rule.
+  than the interpretation of the first.  A warning is issued, since it
+  is likely that these could have been generalized in the first place.
+  The locale package does not attempt to remove subsumed
+  interpretations.
 \end{warn}
 
 
-\subsection{Type classes}
+\subsection{Type classes}\label{sec:class}
 
-A special case of locales are type classes.
-Type classes
-consist of a locale with \emph{exactly one} type variable
-and an corresponding axclass. \cite{isabelle-classes} gives a substantial
+A type class is a special case of a locale, with some additional
+infrastructure (notably a link to type-inference).  Type classes
+consist of a locale with \emph{exactly one} type variable and an
+corresponding axclass.  \cite{isabelle-classes} gives a substantial
 introduction on type classes.
 
 \indexisarcmd{instance}\indexisarcmd{class}\indexisarcmd{print-classes}
@@ -444,7 +464,7 @@ introduction on type classes.
 \end{matharray}
 
 \begin{rail}
-  'class' name '=' classexpr
+  'class' name '=' classexpr 'begin'?
   ;
   'instance' (instarity | instsubsort)
   ;
