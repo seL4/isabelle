@@ -94,23 +94,27 @@ fun mk_meta_cong rl = zero_var_indexes
      else error "Conclusion of congruence rules must be =-equality"
    end);
 
-(*
-val mk_atomize:      (string * thm list) list -> thm -> thm list
-looks too specific to move it somewhere else
-*)
 fun mk_atomize pairs =
   let
-    fun atoms thm = case concl_of thm
-     of Const("Trueprop", _) $ p => (case head_of p
-        of Const(a, _) => (case AList.lookup (op =) pairs a
-           of SOME rls => maps atoms ([thm] RL rls)
-            | NONE => [thm])
-         | _ => [thm])
-      | _ => [thm]
+    fun atoms thm =
+      let
+        fun res th = map (fn rl => th RS rl);   (*exception THM*)
+        fun res_fixed rls =
+          if Thm.maxidx_of (Thm.adjust_maxidx_thm ~1 thm) = ~1 then res thm rls
+          else Variable.trade (K (fn [thm'] => res thm' rls)) (Variable.thm_context thm) [thm];
+      in
+        case concl_of thm
+          of Const ("Trueprop", _) $ p => (case head_of p
+            of Const (a, _) => (case AList.lookup (op =) pairs a
+              of SOME rls => (maps atoms (res_fixed rls) handle THM _ => [thm])
+              | NONE => [thm])
+            | _ => [thm])
+          | _ => [thm]
+      end;
   in atoms end;
 
 fun mksimps pairs =
-  (map_filter (try mk_eq) o mk_atomize pairs o gen_all);
+  map_filter (try mk_eq) o mk_atomize pairs o gen_all;
 
 fun unsafe_solver_tac prems =
   (fn i => REPEAT_DETERM (match_tac [simp_impliesI] i)) THEN'
@@ -141,6 +145,7 @@ struct
 end;
 
 structure Splitter = SplitterFun(SplitterData);
+
 
 (* integration of simplifier with classical reasoner *)
 
@@ -174,6 +179,8 @@ fun unfold_tac ths =
   let val ss0 = Simplifier.clear_ss simpset_basic addsimps ths
   in fn ss => ALLGOALS (full_simp_tac (Simplifier.inherit_context ss ss0)) end;
 
+
+
 (** simprocs **)
 
 (* simproc for proving "(y = x) == False" from premise "~(x = y)" *)
@@ -199,7 +206,7 @@ in
 
 val neq_simproc = Simplifier.simproc thy "neq_simproc" ["x = y"] neq_prover;
 
-end; (*local*)
+end;
 
 
 (* simproc for Let *)
@@ -259,7 +266,8 @@ val let_simproc =
         | _ => NONE)
      end)
 
-end; (*local*)
+end;
+
 
 (* generic refutation procedure *)
 
@@ -301,7 +309,7 @@ fun refute_tac test prep_tac ref_tac =
             REPEAT_DETERM o etac rev_mp, prep_tac, rtac ccontr, prem_nnf_tac,
             SELECT_GOAL (DEPTH_SOLVE refute_prems_tac)]
   end;
-end; (*local*)
+end;
 
 val defALL_regroup =
   Simplifier.simproc (the_context ())
@@ -315,4 +323,4 @@ val defEX_regroup =
 val simpset_simprocs = simpset_basic
   addsimprocs [defALL_regroup, defEX_regroup, neq_simproc, let_simproc]
 
-end; (*struct*)
+end;
