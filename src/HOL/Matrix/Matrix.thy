@@ -20,10 +20,10 @@ defs (overloaded)
   times_matrix_def: "A * B == mult_matrix (op *) (op +) A B"
 
 lemma is_meet_combine_matrix_meet: "is_meet (combine_matrix meet)"
-  by (simp_all add: is_meet_def le_matrix_def meet_left_le meet_right_le meet_imp_le)
+  by (simp_all add: is_meet_def le_matrix_def meet_left_le meet_right_le le_meetI)
 
 lemma is_join_combine_matrix_join: "is_join (combine_matrix join)"
-  by (simp_all add: is_join_def le_matrix_def join_left_le join_right_le join_imp_le)
+  by (simp_all add: is_join_def le_matrix_def join_left_le join_right_le join_leI)
 
 instance matrix :: (lordered_ab_group) lordered_ab_group_meet
 proof 

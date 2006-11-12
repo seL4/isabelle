@@ -9,6 +9,85 @@ theory Continuity
 imports Main
 begin
 
+subsection{*Continuity for complete lattices*}
+
+constdefs
+ chain :: "(nat \<Rightarrow> 'a::order) \<Rightarrow> bool"
+"chain M == !i. M i \<le> M(Suc i)"
+ continuous :: "('a::order \<Rightarrow> 'a::order) \<Rightarrow> bool"
+"continuous F == !M. chain M \<longrightarrow> F(SUP i. M i) = (SUP i. F(M i))"
+
+abbreviation
+ bot :: "'a::order"
+"bot == Sup {}"
+
+lemma SUP_nat_conv:
+ "(SUP n::nat. M n::'a::comp_lat) = join (M 0) (SUP n. M(Suc n))"
+apply(rule order_antisym)
+ apply(rule SUP_leI)
+ apply(case_tac n)
+  apply simp
+ apply (blast intro:le_SUPI le_joinI2)
+apply(simp)
+apply (blast intro:SUP_leI le_SUPI)
+done
+
+lemma continuous_mono: fixes F :: "'a::comp_lat \<Rightarrow> 'a::comp_lat"
+  assumes "continuous F" shows "mono F"
+proof
+  fix A B :: "'a" assume "A <= B"
+  let ?C = "%i::nat. if i=0 then A else B"
+  have "chain ?C" using `A <= B` by(simp add:chain_def)
+  have "F B = join (F A) (F B)"
+  proof -
+    have "join A B = B" using `A <= B` by (simp add:join_absorp2)
+    hence "F B = F(SUP i. ?C i)" by(simp add: SUP_nat_conv)
+    also have "\<dots> = (SUP i. F(?C i))"
+      using `chain ?C` `continuous F` by(simp add:continuous_def)
+    also have "\<dots> = join (F A) (F B)" by(simp add: SUP_nat_conv)
+    finally show ?thesis .
+  qed
+  thus "F A \<le> F B" by(subst le_def_join, simp)
+qed
+
+lemma continuous_lfp:
+ assumes "continuous F" shows "lfp F = (SUP i. (F^i) bot)"
+proof -
+  note mono = continuous_mono[OF `continuous F`]
+  { fix i have "(F^i) bot \<le> lfp F"
+    proof (induct i)
+      show "(F^0) bot \<le> lfp F" by simp
+    next
+      case (Suc i)
+      have "(F^(Suc i)) bot = F((F^i) bot)" by simp
+      also have "\<dots> \<le> F(lfp F)" by(rule monoD[OF mono Suc])
+      also have "\<dots> = lfp F" by(simp add:lfp_unfold[OF mono, symmetric])
+      finally show ?case .
+    qed }
+  hence "(SUP i. (F^i) bot) \<le> lfp F" by (blast intro!:SUP_leI)
+  moreover have "lfp F \<le> (SUP i. (F^i) bot)" (is "_ \<le> ?U")
+  proof (rule lfp_lowerbound)
+    have "chain(%i. (F^i) bot)"
+    proof -
+      { fix i have "(F^i) bot \<le> (F^(Suc i)) bot"
+	proof (induct i)
+	  case 0 show ?case by simp
+	next
+	  case Suc thus ?case using monoD[OF mono Suc] by auto
+	qed }
+      thus ?thesis by(auto simp add:chain_def)
+    qed
+    hence "F ?U = (SUP i. (F^(i+1)) bot)" using `continuous F` by (simp add:continuous_def)
+    also have "\<dots> \<le> ?U" by(blast intro:SUP_leI le_SUPI)
+    finally show "F ?U \<le> ?U" .
+  qed
+  ultimately show ?thesis by (blast intro:order_antisym)
+qed
+
+text{* The following development is just for sets but presents an up
+and a down version of chains and continuity and covers @{const gfp}. *}
+
+
 subsection "Chains"
 
 definition

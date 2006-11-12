@@ -573,37 +573,37 @@ axclass lordered_ab_group_join < pordered_ab_group_add, join_semilorder
 
 lemma add_meet_distrib_left: "a + (meet b c) = meet (a + b) (a + (c::'a::{pordered_ab_group_add, meet_semilorder}))"
 apply (rule order_antisym)
-apply (rule meet_imp_le, simp_all add: meet_join_le)
+apply (simp_all add: le_meetI)
 apply (rule add_le_imp_le_left [of "-a"])
 apply (simp only: add_assoc[symmetric], simp)
-apply (rule meet_imp_le)
-apply (rule add_le_imp_le_left[of "a"], simp only: add_assoc[symmetric], simp add: meet_join_le)+
+apply rule
+apply (rule add_le_imp_le_left[of "a"], simp only: add_assoc[symmetric], simp)+
 done
 
 lemma add_join_distrib_left: "a + (join b c) = join (a + b) (a+ (c::'a::{pordered_ab_group_add, join_semilorder}))" 
 apply (rule order_antisym)
 apply (rule add_le_imp_le_left [of "-a"])
 apply (simp only: add_assoc[symmetric], simp)
-apply (rule join_imp_le)
-apply (rule add_le_imp_le_left [of "a"], simp only: add_assoc[symmetric], simp add: meet_join_le)+
-apply (rule join_imp_le)
-apply (simp_all add: meet_join_le)
+apply rule
+apply (rule add_le_imp_le_left [of "a"], simp only: add_assoc[symmetric], simp)+
+apply (rule join_leI)
+apply (simp_all)
 done
 
 lemma is_join_neg_meet: "is_join (% (a::'a::{pordered_ab_group_add, meet_semilorder}) b. - (meet (-a) (-b)))"
 apply (auto simp add: is_join_def)
-apply (rule_tac c="meet (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_meet_distrib_left meet_join_le)
-apply (rule_tac c="meet (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_meet_distrib_left meet_join_le)
+apply (rule_tac c="meet (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_meet_distrib_left)
+apply (rule_tac c="meet (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_meet_distrib_left)
 apply (subst neg_le_iff_le[symmetric]) 
-apply (simp add: meet_imp_le)
+apply (simp add: le_meetI)
 done
 
 lemma is_meet_neg_join: "is_meet (% (a::'a::{pordered_ab_group_add, join_semilorder}) b. - (join (-a) (-b)))"
 apply (auto simp add: is_meet_def)
-apply (rule_tac c="join (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_join_distrib_left meet_join_le)
-apply (rule_tac c="join (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_join_distrib_left meet_join_le)
+apply (rule_tac c="join (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_join_distrib_left)
+apply (rule_tac c="join (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_join_distrib_left)
 apply (subst neg_le_iff_le[symmetric]) 
-apply (simp add: join_imp_le)
+apply (simp add: join_leI)
 done
 
 axclass lordered_ab_group \<subseteq> pordered_ab_group_add, lorder
@@ -664,10 +664,10 @@ lemma prts: "a = pprt a + nprt a"
 by (simp add: pprt_def nprt_def add_eq_meet_join[symmetric])
 
 lemma zero_le_pprt[simp]: "0 \<le> pprt a"
-by (simp add: pprt_def meet_join_le)
+by (simp add: pprt_def)
 
 lemma nprt_le_zero[simp]: "nprt a \<le> 0"
-by (simp add: nprt_def meet_join_le)
+by (simp add: nprt_def)
 
 lemma le_eq_neg: "(a \<le> -b) = (a + b \<le> (0::_::lordered_ab_group))" (is "?l = ?r")
 proof -
@@ -794,7 +794,7 @@ qed
 
 lemma abs_ge_zero[simp]: "0 \<le> abs (a::'a::lordered_ab_group_abs)"
 proof -
-  have a:"a <= abs a" and b:"-a <= abs a" by (auto simp add: abs_lattice meet_join_le)
+  have a:"a <= abs a" and b:"-a <= abs a" by (auto simp add: abs_lattice)
   show ?thesis by (rule add_mono[OF a b, simplified])
 qed
   
@@ -818,27 +818,15 @@ proof -
 qed
 
 lemma abs_ge_self: "a \<le> abs (a::'a::lordered_ab_group_abs)"
-by (simp add: abs_lattice meet_join_le)
+by (simp add: abs_lattice)
 
 lemma abs_ge_minus_self: "-a \<le> abs (a::'a::lordered_ab_group_abs)"
-by (simp add: abs_lattice meet_join_le)
-
-lemma le_imp_join_eq: "a \<le> b \<Longrightarrow> join a b = b" 
-by (simp add: le_def_join)
-
-lemma ge_imp_join_eq: "b \<le> a \<Longrightarrow> join a b = a"
-by (simp add: le_def_join join_aci)
-
-lemma le_imp_meet_eq: "a \<le> b \<Longrightarrow> meet a b = a"
-by (simp add: le_def_meet)
-
-lemma ge_imp_meet_eq: "b \<le> a \<Longrightarrow> meet a b = b"
-by (simp add: le_def_meet meet_aci)
+by (simp add: abs_lattice)
 
 lemma abs_prts: "abs (a::_::lordered_ab_group_abs) = pprt a - nprt a"
 apply (simp add: pprt_def nprt_def diff_minus)
 apply (simp add: add_meet_join_distribs join_aci abs_lattice[symmetric])
-apply (subst le_imp_join_eq, auto)
+apply (subst join_absorp2, auto)
 done
 
 lemma abs_minus_cancel [simp]: "abs (-a) = abs(a::'a::lordered_ab_group_abs)"
@@ -846,7 +834,7 @@ by (simp add: abs_lattice join_comm)
 
 lemma abs_idempotent [simp]: "abs (abs a) = abs (a::'a::lordered_ab_group_abs)"
 apply (simp add: abs_lattice[of "abs a"])
-apply (subst ge_imp_join_eq)
+apply (subst join_absorp1)
 apply (rule order_trans[of _ 0])
 by auto
 
@@ -900,7 +888,7 @@ lemma abs_of_neg: "(x::'a::lordered_ab_group_abs) <  0 ==>
 by (rule abs_of_nonpos, rule order_less_imp_le)
 
 lemma abs_leI: "[|a \<le> b; -a \<le> b|] ==> abs a \<le> (b::'a::lordered_ab_group_abs)"
-by (simp add: abs_lattice join_imp_le)
+by (simp add: abs_lattice join_leI)
 
 lemma le_minus_self_iff: "(a \<le> -a) = (a \<le> (0::'a::lordered_ab_group))"
 proof -
@@ -929,10 +917,10 @@ lemma abs_triangle_ineq: "abs(a+b) \<le> abs a + abs(b::'a::lordered_ab_group_ab
 proof -
   have g:"abs a + abs b = join (a+b) (join (-a-b) (join (-a+b) (a + (-b))))" (is "_=join ?m ?n")
     by (simp add: abs_lattice add_meet_join_distribs join_aci diff_minus)
-  have a:"a+b <= join ?m ?n" by (simp add: meet_join_le)
-  have b:"-a-b <= ?n" by (simp add: meet_join_le) 
-  have c:"?n <= join ?m ?n" by (simp add: meet_join_le)
-  from b c have d: "-a-b <= join ?m ?n" by simp
+  have a:"a+b <= join ?m ?n" by (simp)
+  have b:"-a-b <= ?n" by (simp) 
+  have c:"?n <= join ?m ?n" by (simp)
+  from b c have d: "-a-b <= join ?m ?n" by(rule order_trans)
   have e:"-a-b = -(a+b)" by (simp add: diff_minus)
   from a d e have "abs(a+b) <= join ?m ?n" 
     by (drule_tac abs_leI, auto)
@@ -1174,10 +1162,10 @@ val zero_less_abs_iff = thm "zero_less_abs_iff";
 val abs_not_less_zero = thm "abs_not_less_zero";
 val abs_ge_self = thm "abs_ge_self";
 val abs_ge_minus_self = thm "abs_ge_minus_self";
-val le_imp_join_eq = thm "le_imp_join_eq";
-val ge_imp_join_eq = thm "ge_imp_join_eq";
-val le_imp_meet_eq = thm "le_imp_meet_eq";
-val ge_imp_meet_eq = thm "ge_imp_meet_eq";
+val le_imp_join_eq = thm "join_absorp2";
+val ge_imp_join_eq = thm "join_absorp1";
+val le_imp_meet_eq = thm "meet_absorp1";
+val ge_imp_meet_eq = thm "meet_absorp2";
 val abs_prts = thm "abs_prts";
 val abs_minus_cancel = thm "abs_minus_cancel";
 val abs_idempotent = thm "abs_idempotent";

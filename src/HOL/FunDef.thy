@@ -19,7 +19,7 @@ uses
 ("Tools/function_package/mutual.ML")
 ("Tools/function_package/pattern_split.ML")
 ("Tools/function_package/fundef_package.ML")
-("Tools/function_package/fundef_datatype.ML")
+(*("Tools/function_package/fundef_datatype.ML")*)
 ("Tools/function_package/auto_term.ML")
 begin
 

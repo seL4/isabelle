@@ -3,18 +3,14 @@
     Author:  Steven Obua, TU Muenchen
 *)
 
-header {* Lattice Orders *}
+header "Lattice Orders"
 
 theory LOrder
 imports Lattices
 begin
 
-text {*
-  The theory of lattices developed here is taken from the book:
-  \begin{itemize}
-  \item \emph{Lattice Theory} by Garret Birkhoff, American Mathematical Society 1979. 
-  \end{itemize}
-*}
+text {* The theory of lattices developed here is taken from
+\cite{Birkhoff79}.  *}
 
 constdefs
   is_meet :: "(('a::order) \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> bool"
@@ -100,7 +96,9 @@ by (insert is_meet_meet, auto simp add: is_meet_def)
 lemma meet_right_le: "meet a b \<le> (b::'a::meet_semilorder)"
 by (insert is_meet_meet, auto simp add: is_meet_def)
 
-lemma meet_imp_le: "x \<le> a \<Longrightarrow> x \<le> b \<Longrightarrow> x \<le> meet a (b::'a::meet_semilorder)"
+(* intro! breaks a proof in Hyperreal/SEQ and NumberTheory/IntPrimes *)
+lemma le_meetI:
+ "x \<le> a \<Longrightarrow> x \<le> b \<Longrightarrow> x \<le> meet a (b::'a::meet_semilorder)"
 by (insert is_meet_meet, auto simp add: is_meet_def)
 
 lemma join_left_le: "a \<le> join a (b::'a::join_semilorder)"
@@ -109,10 +107,30 @@ by (insert is_join_join, auto simp add: is_join_def)
 lemma join_right_le: "b \<le> join a (b::'a::join_semilorder)"
 by (insert is_join_join, auto simp add: is_join_def)
 
-lemma join_imp_le: "a \<le> x \<Longrightarrow> b \<le> x \<Longrightarrow> join a b \<le> (x::'a::join_semilorder)"
+lemma join_leI:
+ "a \<le> x \<Longrightarrow> b \<le> x \<Longrightarrow> join a b \<le> (x::'a::join_semilorder)"
 by (insert is_join_join, auto simp add: is_join_def)
 
-lemmas meet_join_le = meet_left_le meet_right_le join_left_le join_right_le
+lemmas meet_join_le[simp] = meet_left_le meet_right_le join_left_le join_right_le
+
+lemma le_meet[simp]: "(x <= meet y z) = (x <= y & x <= z)" (is "?L = ?R")
+proof
+  assume ?L
+  moreover have "meet y z \<le> y" "meet y z <= z" by(simp_all)
+  ultimately show ?R by(blast intro:order_trans)
+next
+  assume ?R thus ?L by (blast intro!:le_meetI)
+qed
+
+lemma join_le[simp]: "(join x y <= z) = (x <= z & y <= z)" (is "?L = ?R")
+proof
+  assume ?L
+  moreover have "x \<le> join x y" "y \<le> join x y" by(simp_all)
+  ultimately show ?R by(blast intro:order_trans)
+next
+  assume ?R thus ?L by (blast intro:join_leI)
+qed
+
 
 lemma is_meet_min: "is_meet (min::'a \<Rightarrow> 'a \<Rightarrow> ('a::linorder))"
 by (auto simp add: is_meet_def min_def)
@@ -139,42 +157,52 @@ lemma join_max: "join = (max :: 'a\<Rightarrow>'a\<Rightarrow>('a::linorder))"
 by (simp add: is_join_join is_join_max is_join_unique)
 
 lemma meet_idempotent[simp]: "meet x x = x"
-by (rule order_antisym, simp_all add: meet_left_le meet_imp_le)
+by (rule order_antisym, simp_all add: le_meetI)
 
 lemma join_idempotent[simp]: "join x x = x"
-by (rule order_antisym, simp_all add: join_left_le join_imp_le)
+by (rule order_antisym, simp_all add: join_leI)
 
 lemma meet_comm: "meet x y = meet y x" 
-by (rule order_antisym, (simp add: meet_left_le meet_right_le meet_imp_le)+)
+by (rule order_antisym, (simp add: le_meetI)+)
 
 lemma join_comm: "join x y = join y x"
-by (rule order_antisym, (simp add: join_right_le join_left_le join_imp_le)+)
+by (rule order_antisym, (simp add: join_leI)+)
 
-lemma meet_assoc: "meet (meet x y) z = meet x (meet y z)" (is "?l=?r")
-proof - 
-  have "?l <= meet x y & meet x y <= x & ?l <= z & meet x y <= y" by (simp add: meet_left_le meet_right_le)
-  hence "?l <= x & ?l <= y & ?l <= z" by auto
-  hence "?l <= ?r" by (simp add: meet_imp_le)
-  hence a:"?l <= meet x (meet y z)" by (simp add: meet_imp_le)
-  have "?r <= meet y z & meet y z <= y & meet y z <= z & ?r <= x" by (simp add: meet_left_le meet_right_le)  
-  hence "?r <= x & ?r <= y & ?r <= z" by (auto) 
-  hence "?r <= meet x y & ?r <= z" by (simp add: meet_imp_le)
-  hence b:"?r <= ?l" by (simp add: meet_imp_le)
-  from a b show "?l = ?r" by auto
-qed
+lemma meet_leI1: "x \<le> z \<Longrightarrow> meet x y \<le> z"
+apply(subgoal_tac "meet x y <= x")
+ apply(blast intro:order_trans)
+apply simp
+done
 
-lemma join_assoc: "join (join x y) z = join x (join y z)" (is "?l=?r")
-proof -
-  have "join x y <= ?l & x <= join x y & z <= ?l & y <= join x y" by (simp add: join_left_le join_right_le)
-  hence "x <= ?l & y <= ?l & z <= ?l" by auto
-  hence "join y z <= ?l & x <= ?l" by (simp add: join_imp_le)
-  hence a:"?r <= ?l" by (simp add: join_imp_le)
-  have "join y z <= ?r & y <= join y z & z <= join y z & x <= ?r" by (simp add: join_left_le join_right_le)
-  hence "y <= ?r & z <= ?r & x <= ?r" by auto
-  hence "join x y <= ?r & z <= ?r" by (simp add: join_imp_le)
-  hence b:"?l <= ?r" by (simp add: join_imp_le)
-  from a b show "?l = ?r" by auto
-qed
+lemma meet_leI2: "y \<le> z \<Longrightarrow> meet x y \<le> z"
+apply(subgoal_tac "meet x y <= y")
+ apply(blast intro:order_trans)
+apply simp
+done
+
+lemma le_joinI1: "x \<le> y \<Longrightarrow> x \<le> join y z"
+apply(subgoal_tac "y <= join y z")
+ apply(blast intro:order_trans)
+apply simp
+done
+
+lemma le_joinI2: "x \<le> z \<Longrightarrow> x \<le> join y z"
+apply(subgoal_tac "z <= join y z")
+ apply(blast intro:order_trans)
+apply simp
+done
+
+lemma meet_assoc: "meet (meet x y) z = meet x (meet y z)"
+apply(rule order_antisym)
+apply (simp add:meet_leI1 meet_leI2)
+apply (simp add:meet_leI1 meet_leI2)
+done
+
+lemma join_assoc: "join (join x y) z = join x (join y z)"
+apply(rule order_antisym)
+apply (simp add:le_joinI1 le_joinI2)
+apply (simp add:le_joinI1 le_joinI2)
+done
 
 lemma meet_left_comm: "meet a (meet b c) = meet b (meet a c)"
 by (simp add: meet_assoc[symmetric, of a b c], simp add: meet_comm[of a b], simp add: meet_assoc)
@@ -192,97 +220,69 @@ lemmas meet_aci = meet_assoc meet_comm meet_left_comm meet_left_idempotent
 
 lemmas join_aci = join_assoc join_comm join_left_comm join_left_idempotent
 
-lemma le_def_meet: "(x <= y) = (meet x y = x)" 
-proof -
-  have u: "x <= y \<longrightarrow> meet x y = x"
-  proof 
-    assume "x <= y"
-    hence "x <= meet x y & meet x y <= x" by (simp add: meet_imp_le meet_left_le)
-    thus "meet x y = x" by auto
-  qed
-  have v:"meet x y = x \<longrightarrow> x <= y" 
-  proof 
-    have a:"meet x y <= y" by (simp add: meet_right_le)
-    assume "meet x y = x"
-    hence "x = meet x y" by auto
-    with a show "x <= y" by (auto)
-  qed
-  from u v show ?thesis by blast
-qed
+lemma le_def_meet: "(x <= y) = (meet x y = x)"
+apply rule
+apply(simp add: order_antisym)
+apply(subgoal_tac "meet x y <= y")
+apply(simp)
+apply(simp (no_asm))
+done
 
-lemma le_def_join: "(x <= y) = (join x y = y)" 
-proof -
-  have u: "x <= y \<longrightarrow> join x y = y"
-  proof 
-    assume "x <= y"
-    hence "join x y <= y & y <= join x y" by (simp add: join_imp_le join_right_le)
-    thus "join x y = y" by auto
-  qed
-  have v:"join x y = y \<longrightarrow> x <= y" 
-  proof 
-    have a:"x <= join x y" by (simp add: join_left_le)
-    assume "join x y = y"
-    hence "y = join x y" by auto
-    with a show "x <= y" by (auto)
-  qed
-  from u v show ?thesis by blast
-qed
+lemma le_def_join: "(x <= y) = (join x y = y)"
+apply rule
+apply(simp add: order_antisym)
+apply(subgoal_tac "x <= join x y")
+apply(simp)
+apply(simp (no_asm))
+done
+
+lemma join_absorp2: "a \<le> b \<Longrightarrow> join a b = b" 
+by (simp add: le_def_join)
+
+lemma join_absorp1: "b \<le> a \<Longrightarrow> join a b = a"
+by (simp add: le_def_join join_aci)
+
+lemma meet_absorp1: "a \<le> b \<Longrightarrow> meet a b = a"
+by (simp add: le_def_meet)
+
+lemma meet_absorp2: "b \<le> a \<Longrightarrow> meet a b = b"
+by (simp add: le_def_meet meet_aci)
 
 lemma meet_join_absorp: "meet x (join x y) = x"
-proof -
-  have a:"meet x (join x y) <= x" by (simp add: meet_left_le)
-  have b:"x <= meet x (join x y)" by (rule meet_imp_le, simp_all add: join_left_le)
-  from a b show ?thesis by auto
-qed
+by(simp add:meet_absorp1)
 
 lemma join_meet_absorp: "join x (meet x y) = x"
-proof - 
-  have a:"x <= join x (meet x y)" by (simp add: join_left_le)
-  have b:"join x (meet x y) <= x" by (rule join_imp_le, simp_all add: meet_left_le)
-  from a b show ?thesis by auto
-qed
+by(simp add:join_absorp1)
 
 lemma meet_mono: "y \<le> z \<Longrightarrow> meet x y \<le> meet x z"
-proof -
-  assume a: "y <= z"
-  have "meet x y <= x & meet x y <= y" by (simp add: meet_left_le meet_right_le)
-  with a have "meet x y <= x & meet x y <= z" by auto 
-  thus "meet x y <= meet x z" by (simp add: meet_imp_le)
-qed
+by(simp add:meet_leI2)
 
 lemma join_mono: "y \<le> z \<Longrightarrow> join x y \<le> join x z"
-proof -
-  assume a: "y \<le> z"
-  have "x <= join x z & z <= join x z" by (simp add: join_left_le join_right_le)
-  with a have "x <= join x z & y <= join x z" by auto
-  thus "join x y <= join x z" by (simp add: join_imp_le)
-qed
+by(simp add:le_joinI2)
 
 lemma distrib_join_le: "join x (meet y z) \<le> meet (join x y) (join x z)" (is "_ <= ?r")
 proof -
-  have a: "x <= ?r" by (rule meet_imp_le, simp_all add: join_left_le)
-  from meet_join_le have b: "meet y z <= ?r" 
-    by (rule_tac meet_imp_le, (blast intro: order_trans)+)
-  from a b show ?thesis by (simp add: join_imp_le)
+  have a: "x <= ?r" by (simp_all add:le_meetI)
+  have b: "meet y z <= ?r" by (simp add:le_joinI2)
+  from a b show ?thesis by (simp add: join_leI)
 qed
   
-lemma distrib_meet_le: "join (meet x y) (meet x z) \<le> meet x (join y z)" (is "?l <= _") 
+lemma distrib_meet_le: "join (meet x y) (meet x z) \<le> meet x (join y z)" (is "?l <= _")
 proof -
-  have a: "?l <= x" by (rule join_imp_le, simp_all add: meet_left_le)
-  from meet_join_le have b: "?l <= join y z" 
-    by (rule_tac join_imp_le, (blast intro: order_trans)+)
-  from a b show ?thesis by (simp add: meet_imp_le)
+  have a: "?l <= x" by (simp_all add: join_leI)
+  have b: "?l <= join y z" by (simp add:meet_leI2)
+  from a b show ?thesis by (simp add: le_meetI)
 qed
 
 lemma meet_join_eq_imp_le: "a = c \<or> a = d \<or> b = c \<or> b = d \<Longrightarrow> meet a b \<le> join c d"
-by (insert meet_join_le, blast intro: order_trans)
+by (auto simp:meet_leI2 meet_leI1)
 
 lemma modular_le: "x \<le> z \<Longrightarrow> join x (meet y z) \<le> meet (join x y) z" (is "_ \<Longrightarrow> ?t <= _")
 proof -
   assume a: "x <= z"
-  have b: "?t <= join x y" by (rule join_imp_le, simp_all add: meet_join_le meet_join_eq_imp_le)
-  have c: "?t <= z" by (rule join_imp_le, simp_all add: meet_join_le a)
-  from b c show ?thesis by (simp add: meet_imp_le)
+  have b: "?t <= join x y" by (simp_all add: join_leI meet_join_eq_imp_le )
+  have c: "?t <= z" by (simp_all add: a join_leI)
+  from b c show ?thesis by (simp add: le_meetI)
 qed
 
 end

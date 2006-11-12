@@ -965,7 +965,6 @@ apply (subgoal_tac "((mt2 @ [Some sttp2]) ! length bc2) = Some sttp2")
 apply (simp only:)
 apply (rule check_type_mono) apply assumption
 apply (simp (no_asm_simp)  add: max_ssize_def max_of_list_append max_ac)
-apply arith
 apply (simp add: nth_append)
 
 apply (erule conjE)+

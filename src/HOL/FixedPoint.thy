@@ -12,42 +12,107 @@ imports Product_Type
 begin
 
 subsection {* Complete lattices *}
-
+(*FIXME Meet \<rightarrow> Inf *)
 consts
   Meet :: "'a::order set \<Rightarrow> 'a"
-  Join :: "'a::order set \<Rightarrow> 'a"
+  Sup :: "'a::order set \<Rightarrow> 'a"
 
-defs Join_def: "Join A == Meet {b. \<forall>a \<in> A. a <= b}"
+defs Sup_def: "Sup A == Meet {b. \<forall>a \<in> A. a <= b}"
 
+definition
+ SUP :: "('a \<Rightarrow> 'b::order) \<Rightarrow> 'b" (binder "SUP " 10)
+"SUP x. f x == Sup (f ` UNIV)"
+(*
+abbreviation
+ bot :: "'a::order"
+"bot == Sup {}"
+*)
 axclass comp_lat < order
   Meet_lower: "x \<in> A \<Longrightarrow> Meet A <= x"
   Meet_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z <= x) \<Longrightarrow> z <= Meet A"
 
-theorem Join_upper: "(x::'a::comp_lat) \<in> A \<Longrightarrow> x <= Join A"
-  by (auto simp: Join_def intro: Meet_greatest)
+theorem Sup_upper: "(x::'a::comp_lat) \<in> A \<Longrightarrow> x <= Sup A"
+  by (auto simp: Sup_def intro: Meet_greatest)
 
-theorem Join_least: "(\<And>x::'a::comp_lat. x \<in> A \<Longrightarrow> x <= z) \<Longrightarrow> Join A <= z"
-  by (auto simp: Join_def intro: Meet_lower)
+theorem Sup_least: "(\<And>x::'a::comp_lat. x \<in> A \<Longrightarrow> x <= z) \<Longrightarrow> Sup A <= z"
+  by (auto simp: Sup_def intro: Meet_lower)
 
 text {* A complete lattice is a lattice *}
 
 lemma is_meet_Meet: "is_meet (\<lambda>(x::'a::comp_lat) y. Meet {x, y})"
   by (auto simp: is_meet_def intro: Meet_lower Meet_greatest)
 
-lemma is_join_Join: "is_join (\<lambda>(x::'a::comp_lat) y. Join {x, y})"
-  by (auto simp: is_join_def intro: Join_upper Join_least)
+lemma is_join_Sup: "is_join (\<lambda>(x::'a::comp_lat) y. Sup {x, y})"
+  by (auto simp: is_join_def intro: Sup_upper Sup_least)
 
 instance comp_lat < lorder
 proof
   from is_meet_Meet show "\<exists>m::'a\<Rightarrow>'a\<Rightarrow>'a. is_meet m" by iprover
-  from is_join_Join show "\<exists>j::'a\<Rightarrow>'a\<Rightarrow>'a. is_join j" by iprover
+  from is_join_Sup show "\<exists>j::'a\<Rightarrow>'a\<Rightarrow>'a. is_join j" by iprover
 qed
 
+subsubsection {* Properties *}
+
 lemma mono_join: "mono f \<Longrightarrow> join (f A) (f B) <= f (join A B)"
-  by (auto simp add: mono_def intro: join_imp_le join_left_le join_right_le)
+  by (auto simp add: mono_def)
 
 lemma mono_meet: "mono f \<Longrightarrow> f (meet A B) <= meet (f A) (f B)"
-  by (auto simp add: mono_def intro: meet_imp_le meet_left_le meet_right_le)
+  by (auto simp add: mono_def)
+
+lemma Sup_insert[simp]: "Sup (insert (a::'a::comp_lat) A) = join a (Sup A)"
+apply(simp add:Sup_def)
+apply(rule order_antisym)
+ apply(rule Meet_lower)
+ apply(clarsimp)
+ apply(rule le_joinI2)
+ apply(rule Meet_greatest)
+ apply blast
+apply simp
+apply rule
+ apply(rule Meet_greatest)apply blast
+apply(rule Meet_greatest)
+apply(rule Meet_lower)
+apply blast
+done
+
+lemma bot_least[simp]: "Sup{} \<le> (x::'a::comp_lat)"
+apply(simp add: Sup_def)
+apply(rule Meet_lower)
+apply blast
+done
+(*
+lemma Meet_singleton[simp]: "Meet{a} = (a::'a::comp_lat)"
+apply(rule order_antisym)
+ apply(simp add: Meet_lower)
+apply(rule Meet_greatest)
+apply(simp)
+done
+*)
+lemma le_SupI: "(l::'a::comp_lat) : M \<Longrightarrow> l \<le> Sup M"
+apply(simp add:Sup_def)
+apply(rule Meet_greatest)
+apply(simp)
+done
+
+lemma le_SUPI: "(l::'a::comp_lat) = M i \<Longrightarrow> l \<le> (SUP i. M i)"
+apply(simp add:SUP_def)
+apply(blast intro:le_SupI)
+done
+
+lemma Sup_leI: "(!!x. x:M \<Longrightarrow> x \<le> u) \<Longrightarrow> Sup M \<le> (u::'a::comp_lat)"
+apply(simp add:Sup_def)
+apply(rule Meet_lower)
+apply(blast)
+done
+
+
+lemma SUP_leI: "(!!i. M i \<le> u) \<Longrightarrow> (SUP i. M i) \<le> (u::'a::comp_lat)"
+apply(simp add:SUP_def)
+apply(blast intro!:Sup_leI)
+done
+
+lemma SUP_const[simp]: "(SUP i. M) = (M::'a::comp_lat)"
+by(simp add:SUP_def join_absorp1)
 
 
 subsection {* Some instances of the type class of complete lattices *}
@@ -97,7 +162,7 @@ theorem meet_bool_eq: "meet P Q = (P \<and> Q)"
   apply (rule le_boolE)
   apply (rule meet_right_le)
   apply assumption+
-  apply (rule meet_imp_le)
+  apply (rule le_meetI)
   apply (rule le_boolI)
   apply (erule conjunct1)
   apply (rule le_boolI)
@@ -106,7 +171,7 @@ theorem meet_bool_eq: "meet P Q = (P \<and> Q)"
 
 theorem join_bool_eq: "join P Q = (P \<or> Q)"
   apply (rule order_antisym)
-  apply (rule join_imp_le)
+  apply (rule join_leI)
   apply (rule le_boolI)
   apply (erule disjI1)
   apply (rule le_boolI)
@@ -121,15 +186,15 @@ theorem join_bool_eq: "join P Q = (P \<or> Q)"
   apply assumption+
   done
 
-theorem Join_bool_eq: "Join A = (EX x:A. x)"
+theorem Sup_bool_eq: "Sup A = (EX x:A. x)"
   apply (rule order_antisym)
-  apply (rule Join_least)
+  apply (rule Sup_least)
   apply (rule le_boolI)
   apply (erule bexI, assumption)
   apply (rule le_boolI)
   apply (erule bexE)
   apply (rule le_boolE)
-  apply (rule Join_upper)
+  apply (rule Sup_upper)
   apply assumption+
   done
 
@@ -221,10 +286,10 @@ instance "fun" :: (type, comp_lat) comp_lat
 theorem meet_fun_eq: "meet f g = (\<lambda>x. meet (f x) (g x))"
   apply (rule order_antisym)
   apply (rule le_funI)
-  apply (rule meet_imp_le)
+  apply (rule le_meetI)
   apply (rule le_funD [OF meet_left_le])
   apply (rule le_funD [OF meet_right_le])
-  apply (rule meet_imp_le)
+  apply (rule le_meetI)
   apply (rule le_funI)
   apply (rule meet_left_le)
   apply (rule le_funI)
@@ -233,28 +298,28 @@ theorem meet_fun_eq: "meet f g = (\<lambda>x. meet (f x) (g x))"
 
 theorem join_fun_eq: "join f g = (\<lambda>x. join (f x) (g x))"
   apply (rule order_antisym)
-  apply (rule join_imp_le)
+  apply (rule join_leI)
   apply (rule le_funI)
   apply (rule join_left_le)
   apply (rule le_funI)
   apply (rule join_right_le)
   apply (rule le_funI)
-  apply (rule join_imp_le)
+  apply (rule join_leI)
   apply (rule le_funD [OF join_left_le])
   apply (rule le_funD [OF join_right_le])
   done
 
-theorem Join_fun_eq: "Join A = (\<lambda>x. Join {y::'a::comp_lat. EX f:A. y = f x})"
+theorem Sup_fun_eq: "Sup A = (\<lambda>x. Sup {y::'a::comp_lat. EX f:A. y = f x})"
   apply (rule order_antisym)
-  apply (rule Join_least)
+  apply (rule Sup_least)
   apply (rule le_funI)
-  apply (rule Join_upper)
+  apply (rule Sup_upper)
   apply fast
   apply (rule le_funI)
-  apply (rule Join_least)
+  apply (rule Sup_least)
   apply (erule CollectE)
   apply (erule bexE)
-  apply (drule le_funD [OF Join_upper])
+  apply (drule le_funD [OF Sup_upper])
   apply simp
   done
 
@@ -270,14 +335,14 @@ theorem meet_set_eq: "meet A B = A \<inter> B"
   apply (rule Int_greatest)
   apply (rule meet_left_le)
   apply (rule meet_right_le)
-  apply (rule meet_imp_le)
+  apply (rule le_meetI)
   apply (rule Int_lower1)
   apply (rule Int_lower2)
   done
 
 theorem join_set_eq: "join A B = A \<union> B"
   apply (rule subset_antisym)
-  apply (rule join_imp_le)
+  apply (rule join_leI)
   apply (rule Un_upper1)
   apply (rule Un_upper2)
   apply (rule Un_least)
@@ -285,12 +350,12 @@ theorem join_set_eq: "join A B = A \<union> B"
   apply (rule join_right_le)
   done
 
-theorem Join_set_eq: "Join S = \<Union>S"
+theorem Sup_set_eq: "Sup S = \<Union>S"
   apply (rule subset_antisym)
-  apply (rule Join_least)
+  apply (rule Sup_least)
   apply (erule Union_upper)
   apply (rule Union_least)
-  apply (erule Join_upper)
+  apply (erule Sup_upper)
   done
 
 
@@ -301,7 +366,7 @@ constdefs
   "lfp f == Meet {u. f u <= u}"    --{*least fixed point*}
 
   gfp :: "(('a::comp_lat) => 'a) => 'a"
-  "gfp f == Join {u. u <= f u}"    --{*greatest fixed point*}
+  "gfp f == Sup {u. u <= f u}"    --{*greatest fixed point*}
 
 
 subsection{*Proof of Knaster-Tarski Theorem using @{term lfp}*}
@@ -335,7 +400,7 @@ proof -
   with mono have "f (meet (lfp f) P) <= f (lfp f)" ..
   also from mono have "f (lfp f) = lfp f" by (rule lfp_unfold [symmetric])
   finally have "f (meet (lfp f) P) <= lfp f" .
-  from this and ind have "f (meet (lfp f) P) <= meet (lfp f) P" by (rule meet_imp_le)
+  from this and ind have "f (meet (lfp f) P) <= meet (lfp f) P" by (rule le_meetI)
   hence "lfp f <= meet (lfp f) P" by (rule lfp_lowerbound)
   also have "meet (lfp f) P <= P" by (rule meet_right_le)
   finally show ?thesis .
@@ -400,10 +465,10 @@ text{*@{term "gfp f"} is the greatest lower bound of
       the set @{term "{u. u \<le> f(u)}"} *}
 
 lemma gfp_upperbound: "X \<le> f X ==> X \<le> gfp f"
-  by (auto simp add: gfp_def intro: Join_upper)
+  by (auto simp add: gfp_def intro: Sup_upper)
 
 lemma gfp_least: "(!!u. u \<le> f u ==> u \<le> X) ==> gfp f \<le> X"
-  by (auto simp add: gfp_def intro: Join_least)
+  by (auto simp add: gfp_def intro: Sup_least)
 
 lemma gfp_lemma2: "mono f ==> gfp f \<le> f (gfp f)"
   by (iprover intro: gfp_least order_trans monoD gfp_upperbound)
@@ -429,7 +494,7 @@ lemma coinduct_lemma:
      "[| X \<le> f (join X (gfp f));  mono f |] ==> join X (gfp f) \<le> f (join X (gfp f))"
   apply (frule gfp_lemma2)
   apply (drule mono_join)
-  apply (rule join_imp_le)
+  apply (rule join_leI)
   apply assumption
   apply (rule order_trans)
   apply (rule order_trans)
@@ -508,6 +573,7 @@ by (auto intro!: coinduct3)
 text{*Monotonicity of @{term gfp}!*}
 lemma gfp_mono: "(!!Z. f Z \<le> g Z) ==> gfp f \<le> gfp g"
   by (rule gfp_upperbound [THEN gfp_least], blast intro: order_trans)
+
 
 
 ML

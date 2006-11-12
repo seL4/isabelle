@@ -1231,6 +1231,9 @@ lemma image_insert [simp]: "f ` insert a B = insert (f a) (f`B)"
 lemma image_constant: "x \<in> A ==> (\<lambda>x. c) ` A = {c}"
   by auto
 
+lemma image_constant_conv[simp]: "(%x. c) ` A = (if A = {} then {} else {c})"
+by auto
+
 lemma image_image: "f ` (g ` A) = (\<lambda>x. f (g x)) ` A"
   by blast
 
