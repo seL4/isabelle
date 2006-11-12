@@ -185,12 +185,6 @@ done
 
 section "quantifiers"
 
-(*###to be phased out *)
-ML {* 
-fun noAll_simpset () = simpset() setmksimps 
-	mksimps (List.filter (fn (x,_) => x<>"All") mksimps_pairs)
-*}
-
 lemma All_Ex_refl_eq2 [simp]: 
  "(!x. (? b. x = f b & Q b) \<longrightarrow> P x) = (!b. Q b --> P (f b))"
 apply auto
