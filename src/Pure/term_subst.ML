@@ -133,17 +133,21 @@ fun instantiate_maxidx insts tm i =
   let val maxidx = ref i
   in (instantiate_same maxidx insts tm handle SAME => tm, ! maxidx) end;
 
-fun instantiateT instT ty =
-  instantiateT_same (ref ~1) (no_indexes1 instT) ty handle SAME => ty;
+fun instantiateT [] ty = ty
+  | instantiateT instT ty =
+      (instantiateT_same (ref ~1) (no_indexes1 instT) ty handle SAME => ty);
 
-fun instantiate insts tm =
-  instantiate_same (ref ~1) (no_indexes2 insts) tm handle SAME => tm;
+fun instantiate ([], []) tm = tm
+  | instantiate insts tm =
+      (instantiate_same (ref ~1) (no_indexes2 insts) tm handle SAME => tm);
 
-fun instantiateT_option instT ty =
-  SOME (instantiateT_same (ref ~1) (no_indexes1 instT) ty) handle SAME => NONE;
+fun instantiateT_option [] _ = NONE
+  | instantiateT_option instT ty =
+      (SOME (instantiateT_same (ref ~1) (no_indexes1 instT) ty) handle SAME => NONE);
 
-fun instantiate_option insts tm =
-  SOME (instantiate_same (ref ~1) (no_indexes2 insts) tm) handle SAME => NONE;
+fun instantiate_option ([], []) _ = NONE
+  | instantiate_option insts tm =
+      (SOME (instantiate_same (ref ~1) (no_indexes2 insts) tm) handle SAME => NONE);
 
 end;
 
