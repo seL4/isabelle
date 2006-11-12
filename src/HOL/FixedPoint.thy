@@ -112,7 +112,7 @@ apply(blast intro!:Sup_leI)
 done
 
 lemma SUP_const[simp]: "(SUP i. M) = (M::'a::comp_lat)"
-by(simp add:SUP_def join_absorp1)
+by(simp add:SUP_def image_constant_conv join_absorp1)
 
 
 subsection {* Some instances of the type class of complete lattices *}
