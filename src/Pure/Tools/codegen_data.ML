@@ -8,15 +8,14 @@ executabl content.
 
 signature CODEGEN_DATA =
 sig
-  type lthms = thm list Susp.T;
-  val lazy: (unit -> thm list) -> lthms
+  val lazy: (unit -> thm list) -> thm list Susp.T
   val eval_always: bool ref
 
   val add_func: thm -> theory -> theory
   val add_func_legacy: thm -> theory -> theory
   val del_func: thm -> theory -> theory
-  val add_funcl: CodegenConsts.const * lthms -> theory -> theory
-  val add_datatype: string * (((string * sort) list * (string * typ list) list) * lthms)
+  val add_funcl: CodegenConsts.const * thm list Susp.T -> theory -> theory
+  val add_datatype: string * (((string * sort) list * (string * typ list) list) * thm list Susp.T)
     -> theory -> theory
   val del_datatype: string -> theory -> theory
   val add_inline: thm -> theory -> theory
@@ -62,7 +61,6 @@ fun tracing f x = (if !trace then Output.tracing (f x) else (); x);
 
 (** lazy theorems, certificate theorems **)
 
-type lthms = thm list Susp.T;
 val eval_always = ref false;
 
 fun lazy f = if !eval_always
@@ -243,7 +241,7 @@ fun get_prim_def_funcs thy c =
 
 (* pairs of (selected, deleted) function theorems *)
 
-type sdthms = lthms * thm list;
+type sdthms = thm list Susp.T * thm list;
 
 fun add_drop_redundant thm thms =
   let
@@ -343,7 +341,7 @@ fun merge_dtyps (tabs as (tab1, tab2)) =
 datatype spec = Spec of {
   funcs: sdthms Consttab.table,
   dconstrs: string Consttab.table,
-  dtyps: (((string * sort) list * (string * typ list) list) * lthms) Symtab.table
+  dtyps: (((string * sort) list * (string * typ list) list) * thm list Susp.T) Symtab.table
 };
 
 fun mk_spec ((funcs, dconstrs), dtyps) =

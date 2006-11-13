@@ -107,20 +107,6 @@ fun get thy get_tabs get upd_names upd policy x =
   let
     val names_ref = CodeName.get thy
     val (Names names) = ! names_ref;
-    fun mk_unique used name =
-      let
-        fun mk_name 0 = name
-          | mk_name i = name ^ "_" ^ string_of_int i
-        fun find_name i =
-          let
-            val name = mk_name i
-          in
-            if used name
-            then find_name (i+1)
-            else name
-          end;
-        val name = find_name 0;
-      in name end;
     val tabs = get_tabs names;
     fun declare name =
       let
@@ -129,11 +115,11 @@ fun get thy get_tabs get upd_names upd policy x =
       in (names_ref := names'; name) end;
   in case get (fst tabs) x
    of SOME name => name
-    | NONE => let
-        val used = Symtab.defined (snd tabs);
-        val raw_name = policy thy x;
-        val name = mk_unique used raw_name;
-      in declare name end
+    | NONE => 
+        x
+        |> policy thy
+        |> Name.variant (Symtab.keys (snd tabs))
+        |> declare
   end;
 
 
