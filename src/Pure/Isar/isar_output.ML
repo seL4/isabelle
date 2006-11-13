@@ -232,8 +232,8 @@ local
 fun err_bad_nesting pos =
   error ("Bad nesting of commands in presentation" ^ pos);
 
-fun edge1 f (x, y) = the_default I (Option.map (Buffer.add o f) (if x = y then NONE else x));
-fun edge2 f (x, y) = the_default I (Option.map (Buffer.add o f) (if x = y then NONE else y));
+fun edge1 f (x : string option, y) = the_default I (Option.map (Buffer.add o f) (if x = y then NONE else x));
+fun edge2 f (x : string option, y) = the_default I (Option.map (Buffer.add o f) (if x = y then NONE else y));
 
 val begin_tag = edge2 Latex.begin_tag;
 val end_tag = edge1 Latex.end_tag;
@@ -520,6 +520,7 @@ val _ = add_commands
   ("subgoals", output_goals false),
   ("prf", args Attrib.thms (output (pretty_prf false))),
   ("full_prf", args Attrib.thms (output (pretty_prf true))),
+  ("theory", args (Scan.lift Args.name) ((K o K o tap) use_thy)),
   ("ML", args (Scan.lift Args.name) (output_ml ml_val)),
   ("ML_type", args (Scan.lift Args.name) (output_ml ml_type)),
   ("ML_struct", args (Scan.lift Args.name) (output_ml ml_struct))];
