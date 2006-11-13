@@ -6,7 +6,7 @@
 header {* Set theory for higher-order logic *}
 
 theory Set
-imports LOrder
+imports Lattices
 begin
 
 text {* A set in HOL is simply a predicate. *}
@@ -43,8 +43,6 @@ notation
 
 local
 
-instance set :: (type) "{ord, minus}" ..
-
 
 subsection {* Additional concrete syntax *}
 
@@ -76,36 +74,6 @@ notation (HTML output)
   "op :"  ("(_/ \<in> _)" [50, 51] 50)
   not_mem  ("op \<notin>")
   not_mem  ("(_/ \<notin> _)" [50, 51] 50)
-
-abbreviation
-  subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
-  "subset == less"
-  subset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
-  "subset_eq == less_eq"
-
-notation (output)
-  subset  ("op <")
-  subset  ("(_/ < _)" [50, 51] 50)
-  subset_eq  ("op <=")
-  subset_eq  ("(_/ <= _)" [50, 51] 50)
-
-notation (xsymbols)
-  subset  ("op \<subset>")
-  subset  ("(_/ \<subset> _)" [50, 51] 50)
-  subset_eq  ("op \<subseteq>")
-  subset_eq  ("(_/ \<subseteq> _)" [50, 51] 50)
-
-notation (HTML output)
-  subset  ("op \<subset>")
-  subset  ("(_/ \<subset> _)" [50, 51] 50)
-  subset_eq  ("op \<subseteq>")
-  subset_eq  ("(_/ \<subseteq> _)" [50, 51] 50)
-
-abbreviation (input)
-  supset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"    (infixl "\<supset>" 50)
-  "supset == greater"
-  supset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"  (infixl "\<supseteq>" 50)
-  "supset_eq == greater_eq"
 
 syntax
   "@Finset"     :: "args => 'a set"                       ("{(_)}")
@@ -175,6 +143,40 @@ text{*
   former does not make the index expression a subscript of the
   union/intersection symbol because this leads to problems with nested
   subscripts in Proof General. *}
+
+instance set :: (type) ord
+  subset_def:   "A <= B         == \<forall>x\<in>A. x \<in> B"
+  psubset_def:  "A < B          == (A::'a set) <= B & ~ A=B" ..
+
+abbreviation
+  subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+  "subset == less"
+  subset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+  "subset_eq == less_eq"
+
+notation (output)
+  subset  ("op <")
+  subset  ("(_/ < _)" [50, 51] 50)
+  subset_eq  ("op <=")
+  subset_eq  ("(_/ <= _)" [50, 51] 50)
+
+notation (xsymbols)
+  subset  ("op \<subset>")
+  subset  ("(_/ \<subset> _)" [50, 51] 50)
+  subset_eq  ("op \<subseteq>")
+  subset_eq  ("(_/ \<subseteq> _)" [50, 51] 50)
+
+notation (HTML output)
+  subset  ("op \<subset>")
+  subset  ("(_/ \<subset> _)" [50, 51] 50)
+  subset_eq  ("op \<subseteq>")
+  subset_eq  ("(_/ \<subseteq> _)" [50, 51] 50)
+
+abbreviation (input)
+  supset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"    (infixl "\<supset>" 50)
+  "supset == greater"
+  supset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"  (infixl "\<supseteq>" 50)
+  "supset_eq == greater_eq"
 
 
 subsubsection "Bounded quantifiers"
@@ -329,11 +331,9 @@ defs
   Bex_def:      "Bex A P        == EX x. x:A & P(x)"
   Bex1_def:     "Bex1 A P       == EX! x. x:A & P(x)"
 
-defs (overloaded)
-  subset_def:   "A <= B         == ALL x:A. x:B"
-  psubset_def:  "A < B          == (A::'a set) <= B & ~ A=B"
+instance set :: (type) minus
   Compl_def:    "- A            == {x. ~x:A}"
-  set_diff_def: "A - B          == {x. x:A & ~x:B}"
+  set_diff_def: "A - B          == {x. x:A & ~x:B}" ..
 
 defs
   Un_def:       "A Un B         == {x. x:A | x:B}"
@@ -2223,6 +2223,10 @@ proof -
   also assume "b < c" hence "f b < f c" by (rule r)
   finally (ord_eq_less_trans) show ?thesis .
 qed
+
+instance set :: (type) order
+  by (intro_classes,
+      (assumption | rule subset_refl subset_trans subset_antisym psubset_eq)+)
 
 text {*
   Note that this list of rules is in reverse order of priorities.
