@@ -3,15 +3,15 @@
     Author:     Tobias Nipkow, Markus Wenzel, and Larry Paulson
 *)
 
-header {* Abstract orderings *}
+header {* Syntactic and abstract orders *}
 
 theory Orderings
-imports Code_Generator
+imports HOL
 begin
 
-section {* Abstract orderings *}
+section {* Abstract orders *}
 
-subsection {* Order signatures *}
+subsection {* Order syntax *}
 
 class ord =
   fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
@@ -67,14 +67,13 @@ notation (xsymbols)
   greater_eq  (infix "\<ge>" 50)
 
 
-subsection {* Partial orderings *}
+subsection {* Quasiorders (preorders) *}
 
-locale partial_order =
+locale preorder =
   fixes below :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubseteq>" 50)
   fixes less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubset>" 50)
   assumes refl [iff]: "x \<sqsubseteq> x"
   and trans: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
-  and antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
   and less_le: "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<noteq> y"
 begin
 
@@ -85,23 +84,6 @@ abbreviation (input)
 abbreviation (input)
   greater (infixl "\<sqsupset>" 50)
   "x \<sqsupset> y \<equiv> y \<sqsubset> x"
-
-end
-
-axclass order < ord
-  order_refl [iff]: "x <= x"
-  order_trans: "x <= y ==> y <= z ==> x <= z"
-  order_antisym: "x <= y ==> y <= x ==> x = y"
-  order_less_le: "(x < y) = (x <= y & x ~= y)"
-
-interpretation order:
-  partial_order ["op \<le> \<Colon> 'a\<Colon>order \<Rightarrow> 'a \<Rightarrow> bool" "op < \<Colon> 'a\<Colon>order \<Rightarrow> 'a \<Rightarrow> bool"]
-apply(rule partial_order.intro)
-apply(rule order_refl, erule (1) order_trans, erule (1) order_antisym, rule order_less_le)
-done
-
-context partial_order
-begin
 
 text {* Reflexivity. *}
 
@@ -122,6 +104,37 @@ lemma le_imp_less_or_eq: "x \<sqsubseteq> y \<Longrightarrow> x \<sqsubset> y \<
 lemma less_imp_le: "x \<sqsubset> y \<Longrightarrow> x \<sqsubseteq> y"
   unfolding less_le by blast
 
+lemma less_imp_neq: "x \<sqsubset> y \<Longrightarrow> x \<noteq> y"
+  by (erule contrapos_pn, erule subst, rule less_irrefl)
+
+
+text {* Useful for simplification, but too risky to include by default. *}
+
+lemma less_imp_not_eq: "x \<sqsubset> y \<Longrightarrow> (x = y) \<longleftrightarrow> False"
+  by auto
+
+lemma less_imp_not_eq2: "x \<sqsubset> y \<Longrightarrow> (y = x) \<longleftrightarrow> False"
+  by auto
+
+
+text {* Transitivity rules for calculational reasoning *}
+
+lemma neq_le_trans: "\<lbrakk> a \<noteq> b; a \<sqsubseteq> b \<rbrakk> \<Longrightarrow> a \<sqsubset> b"
+  by (simp add: less_le)
+
+lemma le_neq_trans: "\<lbrakk> a \<sqsubseteq> b; a \<noteq> b \<rbrakk> \<Longrightarrow> a \<sqsubset> b"
+  by (simp add: less_le)
+
+end
+
+
+subsection {* Partial orderings *}
+
+locale partial_order = preorder + 
+  assumes antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
+
+context partial_order
+begin
 
 text {* Asymmetry. *}
 
@@ -161,40 +174,36 @@ lemma less_imp_not_less: "x \<sqsubset> y \<Longrightarrow> (\<not> y \<sqsubset
 lemma less_imp_triv: "x \<sqsubset> y \<Longrightarrow> (y \<sqsubset> x \<longrightarrow> P) \<longleftrightarrow> True"
   by (blast elim: less_asym)
 
-lemma less_imp_not_eq: "x \<sqsubset> y \<Longrightarrow> (x = y) \<longleftrightarrow> False"
-  by auto
-
-lemma less_imp_not_eq2: "x \<sqsubset> y \<Longrightarrow> (y = x) \<longleftrightarrow> False"
-  by auto
-
 
 text {* Transitivity rules for calculational reasoning *}
-
-lemma neq_le_trans: "\<lbrakk> a \<noteq> b; a \<sqsubseteq> b \<rbrakk> \<Longrightarrow> a \<sqsubset> b"
-  by (simp add: less_le)
-
-lemma le_neq_trans: "\<lbrakk> a \<sqsubseteq> b; a \<noteq> b \<rbrakk> \<Longrightarrow> a \<sqsubset> b"
-  by (simp add: less_le)
 
 lemma less_asym': "\<lbrakk> a \<sqsubset> b; b \<sqsubset> a \<rbrakk> \<Longrightarrow> P"
   by (rule less_asym)
 
 end
 
+axclass order < ord
+  order_refl [iff]: "x <= x"
+  order_trans: "x <= y ==> y <= z ==> x <= z"
+  order_antisym: "x <= y ==> y <= x ==> x = y"
+  order_less_le: "(x < y) = (x <= y & x ~= y)"
 
-subsection {* Linear (total) orderings *}
+interpretation order:
+  partial_order ["op \<le> \<Colon> 'a\<Colon>order \<Rightarrow> 'a \<Rightarrow> bool" "op < \<Colon> 'a\<Colon>order \<Rightarrow> 'a \<Rightarrow> bool"]
+apply unfold_locales
+apply (rule order_refl)
+apply (erule (1) order_trans)
+apply (rule order_less_le)
+apply (erule (1) order_antisym)
+done
 
-locale linear_order = partial_order +
+
+subsection {* Linear (total) orders *}
+
+locale linorder = partial_order +
   assumes linear: "x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
 
-axclass linorder < order
-  linorder_linear: "x <= y | y <= x"
-
-interpretation linorder:
-  linear_order ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op < \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool"]
-  by unfold_locales (rule linorder_linear)
-
-context linear_order
+context linorder
 begin
 
 lemma trichotomy: "x \<sqsubset> y \<or> x = y \<or> y \<sqsubset> x"
@@ -248,6 +257,13 @@ lemma not_leE: "\<not> y \<sqsubseteq> x \<Longrightarrow> x \<sqsubset> y"
   unfolding not_le .
 
 end
+
+axclass linorder < order
+  linorder_linear: "x <= y | y <= x"
+
+interpretation linorder:
+  linorder ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op < \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool"]
+  by unfold_locales (rule linorder_linear)
 
 
 subsection {* Name duplicates *}
