@@ -7,7 +7,7 @@ Basic library: functions, options, pairs, booleans, lists, integers,
 strings, lists as sets, balanced trees, orders, current directory, misc.
 *)
 
-infix 1 |> |-> ||> ||>> |>> |>>> #> #->;
+infix 1 |> |-> ||> ||>> |>> #> #-> ##> ##>> #>> |>>> ;
 infix 2 ?;
 infix 3 o oo ooo oooo;
 
@@ -27,9 +27,12 @@ sig
   val ||> : ('c * 'a) * ('a -> 'b) -> 'c * 'b
   val ||>> : ('c * 'a) * ('a -> 'd * 'b) -> ('c * 'd) * 'b
   val |>> : ('a * 'c) * ('a -> 'b) -> 'b * 'c
-  val |>>> : ('a * 'c) * ('a -> 'b * 'd) -> 'b * ('c * 'd)
   val #> : ('a -> 'b) * ('b -> 'c) -> 'a -> 'c
   val #-> : ('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd
+  val ##> : ('a -> 'c * 'b) * ('b -> 'd) -> 'a -> 'c * 'd
+  val ##>> : ('a -> 'c * 'b) * ('b -> 'e * 'd) -> 'a -> ('c * 'e) * 'd
+  val #>> : ('a -> 'c * 'b) * ('c -> 'd) -> 'a -> 'd * 'b
+  val |>>> : ('a * 'c) * ('a -> 'b * 'd) -> 'b * ('c * 'd)
   val ? : ('a -> bool) * ('a -> 'a) -> 'a -> 'a
   val ` : ('b -> 'a) -> 'b -> 'a * 'b
   val tap: ('b -> 'a) -> 'b -> 'b
@@ -303,9 +306,12 @@ fun (x, y) ||> f = (x, f y);
 fun (x, y) |>>> f = let val (x', z) = f x in (x', (y, z)) end;
 fun (x, y) ||>> f = let val (z, y') = f y in ((x, z), y') end;
 
-(*reverse composition*)
+(*reverse composition and structured results*)
 fun f #> g = g o f;
 fun f #-> g = uncurry g o f;
+fun (f ##> g) x = let val (y, z) = f x in (y, g z) end;
+fun (f ##>> g) x = let val (y, z) = f x; val (w, u) = g z in ((y, w), u) end;
+fun (f #>> g) x = let val (y, z) = f x in (g y, z) end;
 
 (*conditional application*)
 fun b ? f = fn x => if b x then f x else x;
