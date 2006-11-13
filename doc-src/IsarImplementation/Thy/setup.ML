@@ -3,18 +3,26 @@ local structure O = IsarOutput
 
 val str_of_source = space_implode " " o map Args.string_of o #2 o #1 o Args.dest_src;
 
-fun ml_val txt = "fn _ => (" ^ txt ^ ");";
-fun ml_type txt = "val _ = NONE : (" ^ txt ^ ") option;";
-fun ml_structure txt = "functor DUMMY_FUNCTOR() = struct structure DUMMY = " ^ txt ^ " end;"
-fun ml_functor txt = "val _ = ();";  (*no check!*)
+fun ml_val (txt1, "") = "fn _ => (" ^ txt1 ^ ");"
+  | ml_val (txt1, txt2) = "fn _ => (" ^ txt1 ^ ": " ^ txt2 ^ ");";
+
+fun ml_type (txt1, "") = "val _ = NONE : (" ^ txt1 ^ ") option;"
+  | ml_type (txt1, txt2) = "val _ = [NONE : (" ^ txt1 ^ ") option, NONE : (" ^ txt2 ^ ") option];";
+  
+fun ml_structure (txt, _) = "functor DUMMY_FUNCTOR() = struct structure DUMMY = " ^ txt ^ " end;"
+
+fun ml_functor _ = "val _ = ();";  (*no check!*)
 
 val verbatim = space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|";
 
 fun index_ml kind ml src ctxt (txt1, txt2) =
   let
-    val txt = if txt2 = "" then txt1 else txt1 ^ ": " ^ txt2;
+    val txt = if txt2 = "" then txt1 else
+      if kind = "type"
+        then txt1 ^ " = " ^ txt2
+        else txt1 ^ ": " ^ txt2;
     val txt' = if kind = "" then txt else kind ^ " " ^ txt;
-    val _ = Context.use_mltext (ml txt) false (SOME (ProofContext.theory_of ctxt));
+    val _ = Context.use_mltext (ml (txt1, txt2)) false (SOME (ProofContext.theory_of ctxt));
   in
     "\\indexml" ^ kind ^ enclose "{" "}"
       (translate_string (fn "_" => "-" | ">" => "$>$" | c => c) txt1) ^
