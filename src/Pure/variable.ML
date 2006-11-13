@@ -172,6 +172,9 @@ fun redeclare_skolems ctxt = ctxt |> map_constraints (apfst (fn types =>
       | NONE => I);
   in fold_rev decl (fixes_of ctxt) types end));
 
+fun constrain_tvar (xi, S) =
+  if S = dummyS then Vartab.delete_safe xi else Vartab.update (xi, S);
+
 fun declare_constraints t = map_constraints (fn (types, sorts) =>
   let
     val types' = fold_aterms
@@ -179,8 +182,8 @@ fun declare_constraints t = map_constraints (fn (types, sorts) =>
         | Var v => Vartab.update v
         | _ => I) t types;
     val sorts' = fold_types (fold_atyps
-      (fn TFree (x, S) => Vartab.update ((x, ~1), S)
-        | TVar v => Vartab.update v
+      (fn TFree (x, S) => constrain_tvar ((x, ~1), S)
+        | TVar v => constrain_tvar v
         | _ => I)) t sorts;
   in (types', sorts') end)
   #> declare_type_names t
