@@ -29,37 +29,25 @@ function check_file()
 ## Poly/ML executable and database
 
 ML_DBASE_PREFIX=""
-ML_DBASE_SUFFIX=""
 
-case "$ML_PLATFORM" in
-  *-cygwin)
-    ML_DBASE_SUFFIX=".pmd"
-    POLY="$ML_HOME/PolyML.exe"
-    function fixpath () { cygpath -m "$@"; }
-    ;;
-  *)
-    POLY="$ML_HOME/poly"
-    function fixpath () { echo -n "$@"; }
-    ;;
-esac
-
+POLY="$ML_HOME/poly"
 check_file "$POLY"
 
 if [ -z "$ML_DBASE" ]; then
-  if [ ! -e "$ML_HOME/ML_dbase${ML_DBASE_SUFFIX}" -a "$(basename "$ML_HOME")" = bin ]; then
+  if [ ! -e "$ML_HOME/ML_dbase" -a "$(basename "$ML_HOME")" = bin ]; then
     ML_DBASE_HOME="$(cd "$ML_HOME"; cd "$(pwd -P)"; cd ../lib/poly; pwd)"
   else
     ML_DBASE_HOME="$ML_HOME"
   fi
   if [ -z "$COPYDB" ]; then
     ML_DBASE_PREFIX="$ML_DBASE_HOME/"
-    ML_DBASE="ML_dbase${ML_DBASE_SUFFIX}"
+    ML_DBASE="ML_dbase"
   else
-    ML_DBASE="$ML_DBASE_HOME/ML_dbase${ML_DBASE_SUFFIX}"
+    ML_DBASE="$ML_DBASE_HOME/ML_dbase"
   fi
-  export POLYPATH="$(fixpath "$ML_DBASE_HOME")"
+  export POLYPATH="$ML_DBASE_HOME"
 else
-  export POLYPATH="$(fixpath "$(dirname "$ML_DBASE")")"
+  export POLYPATH="$(dirname "$ML_DBASE")"
 fi
 
 DISCGARB_OPTIONS="-d -c"
@@ -97,7 +85,7 @@ elif [ -n "$COPYDB" ]; then
   DB="$OUTFILE"
 else
   [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out; }
-  echo "PolyML.make_database \"$(fixpath "$OUTFILE")\"; PolyML.quit();" | "$POLY" -r "$(fixpath "$INFILE")"
+  echo "PolyML.make_database \"$OUTFILE\"; PolyML.quit();" | "$POLY" -r "$INFILE"
   [ -f "$OUTFILE" ] || fail_out
   DB="$OUTFILE"
 fi
@@ -122,7 +110,7 @@ fi
 DB_INFO="$(ls -l "$DB" 2>/dev/null)"
 
 "$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" $FEEDER_OPTS | {
-  read FPID; "$POLY" $ML_OPTIONS "$(fixpath "$DB")";
+  read FPID; "$POLY" $ML_OPTIONS "$DB";
   RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
 RC="$?"
 
