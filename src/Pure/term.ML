@@ -30,6 +30,7 @@ sig
     $ of term * term
   exception TYPE of string * typ list * term list
   exception TERM of string * term list
+  val dummyS: sort
   val dummyT: typ
   val no_dummyT: typ -> typ
   val --> : typ * typ -> typ
@@ -243,7 +244,8 @@ exception TERM of string * term list;
 
 (** Types **)
 
-(*dummy type for parsing and printing etc.*)
+(*dummies for type-inference etc.*)
+val dummyS = [""];
 val dummyT = Type ("dummy", []);
 
 fun no_dummyT typ =
