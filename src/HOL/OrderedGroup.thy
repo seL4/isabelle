@@ -7,7 +7,7 @@
 header {* Ordered Groups *}
 
 theory OrderedGroup
-imports Inductive LOrder
+imports Set LOrder
 uses "~~/src/Provers/Arith/abel_cancel.ML"
 begin
 

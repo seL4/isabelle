@@ -215,7 +215,7 @@ instance ordered_semiring_strict \<subseteq> semiring_0_cancel ..
 
 instance ordered_semiring_strict \<subseteq> pordered_cancel_semiring
 apply intro_classes
-apply (case_tac "a < b & 0 < c")
+apply (cases "a < b & 0 < c")
 apply (auto simp add: mult_strict_left_mono order_less_le)
 apply (auto simp add: mult_strict_left_mono order_le_less)
 apply (simp add: mult_strict_right_mono)
@@ -253,7 +253,7 @@ by (intro_classes, insert mult_strict_mono, simp_all add: mult_commute, blast+)
 
 instance ordered_comm_semiring_strict \<subseteq> pordered_cancel_comm_semiring
 apply (intro_classes)
-apply (case_tac "a < b & 0 < c")
+apply (cases "a < b & 0 < c")
 apply (auto simp add: mult_strict_left_mono order_less_le)
 apply (auto simp add: mult_strict_left_mono order_le_less)
 done
@@ -400,7 +400,7 @@ by (drule mult_right_mono_neg[of a 0 b ], auto)
 
 lemma zero_less_mult_pos:
      "[| 0 < a*b; 0 < a|] ==> 0 < (b::'a::ordered_semiring_strict)"
-apply (case_tac "b\<le>0") 
+apply (cases "b\<le>0") 
  apply (auto simp add: order_le_less linorder_not_less)
 apply (drule_tac mult_pos_neg [of a b]) 
  apply (auto dest: order_less_not_sym)
@@ -408,7 +408,7 @@ done
 
 lemma zero_less_mult_pos2:
      "[| 0 < b*a; 0 < a|] ==> 0 < (b::'a::ordered_semiring_strict)"
-apply (case_tac "b\<le>0") 
+apply (cases "b\<le>0") 
  apply (auto simp add: order_le_less linorder_not_less)
 apply (drule_tac mult_pos_neg2 [of a b]) 
  apply (auto dest: order_less_not_sym)
@@ -425,7 +425,7 @@ done
 text{*A field has no "zero divisors", and this theorem holds without the
       assumption of an ordering.  See @{text field_mult_eq_0_iff} below.*}
 lemma mult_eq_0_iff [simp]: "(a*b = (0::'a::ordered_ring_strict)) = (a = 0 | b = 0)"
-apply (case_tac "a < 0")
+apply (cases "a < 0")
 apply (auto simp add: linorder_not_less order_le_less linorder_neq_iff)
 apply (force dest: mult_strict_right_mono_neg mult_strict_right_mono)+
 done
@@ -489,7 +489,7 @@ subsection{*More Monotonicity*}
 text{*Strict monotonicity in both arguments*}
 lemma mult_strict_mono:
      "[|a<b; c<d; 0<b; 0\<le>c|] ==> a * c < b * (d::'a::ordered_semiring_strict)"
-apply (case_tac "c=0")
+apply (cases "c=0")
  apply (simp add: mult_pos_pos) 
 apply (erule mult_strict_right_mono [THEN order_less_trans])
  apply (force simp add: order_le_less) 
@@ -552,7 +552,7 @@ text{*These ``disjunction'' versions produce two cases when the comparison is
 
 lemma mult_less_cancel_right_disj:
     "(a*c < b*c) = ((0 < c & a < b) | (c < 0 & b < (a::'a::ordered_ring_strict)))"
-apply (case_tac "c = 0")
+apply (cases "c = 0")
 apply (auto simp add: linorder_neq_iff mult_strict_right_mono 
                       mult_strict_right_mono_neg)
 apply (auto simp add: linorder_not_less 
@@ -565,7 +565,7 @@ done
 
 lemma mult_less_cancel_left_disj:
     "(c*a < c*b) = ((0 < c & a < b) | (c < 0 & b < (a::'a::ordered_ring_strict)))"
-apply (case_tac "c = 0")
+apply (cases "c = 0")
 apply (auto simp add: linorder_neq_iff mult_strict_left_mono 
                       mult_strict_left_mono_neg)
 apply (auto simp add: linorder_not_less 
@@ -877,7 +877,7 @@ qed
 
 lemma inverse_eq_imp_eq:
   "inverse a = inverse b ==> a = (b::'a::{division_ring,division_by_zero})"
-apply (case_tac "a=0 | b=0") 
+apply (cases "a=0 | b=0") 
  apply (force dest!: inverse_zero_imp_zero
               simp add: eq_commute [of "0::'a"])
 apply (force dest!: nonzero_inverse_eq_imp_eq) 
@@ -988,7 +988,7 @@ qed
 
 lemma mult_divide_cancel_left:
      "c\<noteq>0 ==> (c*a) / (c*b) = a / (b::'a::{field,division_by_zero})"
-apply (case_tac "b = 0")
+apply (cases "b = 0")
 apply (simp_all add: nonzero_mult_divide_cancel_left)
 done
 
@@ -998,7 +998,7 @@ by (simp add: mult_commute [of _ c] nonzero_mult_divide_cancel_left)
 
 lemma mult_divide_cancel_right:
      "c\<noteq>0 ==> (a*c) / (b*c) = a / (b::'a::{field,division_by_zero})"
-apply (case_tac "b = 0")
+apply (cases "b = 0")
 apply (simp_all add: nonzero_mult_divide_cancel_right)
 done
 
@@ -1122,7 +1122,7 @@ declare mult_minus_left [simp]   mult_minus_right [simp]
 
 lemma minus_divide_divide [simp]:
      "(-a)/(-b) = a / (b::'a::{field,division_by_zero})"
-apply (case_tac "b=0", simp) 
+apply (cases "b=0", simp) 
 apply (simp add: nonzero_minus_divide_divide) 
 done
 
@@ -1184,7 +1184,7 @@ lemma inverse_positive_imp_positive:
 
 lemma inverse_positive_iff_positive [simp]:
       "(0 < inverse a) = (0 < (a::'a::{ordered_field,division_by_zero}))"
-apply (case_tac "a = 0", simp)
+apply (cases "a = 0", simp)
 apply (blast intro: inverse_positive_imp_positive positive_imp_inverse_positive)
 done
 
@@ -1201,7 +1201,7 @@ lemma inverse_negative_imp_negative:
 
 lemma inverse_negative_iff_negative [simp]:
       "(inverse a < 0) = (a < (0::'a::{ordered_field,division_by_zero}))"
-apply (case_tac "a = 0", simp)
+apply (cases "a = 0", simp)
 apply (blast intro: inverse_negative_imp_negative negative_imp_inverse_negative)
 done
 
@@ -1362,7 +1362,7 @@ lemma le_divide_eq:
    (if 0 < c then a*c \<le> b
              else if c < 0 then b \<le> a*c
              else  a \<le> (0::'a::{ordered_field,division_by_zero}))"
-apply (case_tac "c=0", simp) 
+apply (cases "c=0", simp) 
 apply (force simp add: pos_le_divide_eq neg_le_divide_eq linorder_neq_iff) 
 done
 
@@ -1391,7 +1391,7 @@ lemma divide_le_eq:
    (if 0 < c then b \<le> a*c
              else if c < 0 then a*c \<le> b
              else 0 \<le> (a::'a::{ordered_field,division_by_zero}))"
-apply (case_tac "c=0", simp) 
+apply (cases "c=0", simp) 
 apply (force simp add: pos_divide_le_eq neg_divide_le_eq linorder_neq_iff) 
 done
 
@@ -1422,7 +1422,7 @@ lemma less_divide_eq:
    (if 0 < c then a*c < b
              else if c < 0 then b < a*c
              else  a < (0::'a::{ordered_field,division_by_zero}))"
-apply (case_tac "c=0", simp) 
+apply (cases "c=0", simp) 
 apply (force simp add: pos_less_divide_eq neg_less_divide_eq linorder_neq_iff) 
 done
 
@@ -1453,7 +1453,7 @@ lemma divide_less_eq:
    (if 0 < c then b < a*c
              else if c < 0 then a*c < b
              else 0 < (a::'a::{ordered_field,division_by_zero}))"
-apply (case_tac "c=0", simp) 
+apply (cases "c=0", simp) 
 apply (force simp add: pos_divide_less_eq neg_divide_less_eq linorder_neq_iff) 
 done
 
@@ -1583,13 +1583,13 @@ subsection{*Cancellation Laws for Division*}
 
 lemma divide_cancel_right [simp]:
      "(a/c = b/c) = (c = 0 | a = (b::'a::{field,division_by_zero}))"
-apply (case_tac "c=0", simp) 
+apply (cases "c=0", simp) 
 apply (simp add: divide_inverse field_mult_cancel_right) 
 done
 
 lemma divide_cancel_left [simp]:
      "(c/a = c/b) = (c = 0 | a = (b::'a::{field,division_by_zero}))" 
-apply (case_tac "c=0", simp) 
+apply (cases "c=0", simp) 
 apply (simp add: divide_inverse field_mult_cancel_left) 
 done
 
@@ -1598,7 +1598,7 @@ subsection {* Division and the Number One *}
 text{*Simplify expressions equated with 1*}
 lemma divide_eq_1_iff [simp]:
      "(a/b = 1) = (b \<noteq> 0 & a = (b::'a::{field,division_by_zero}))"
-apply (case_tac "b=0", simp) 
+apply (cases "b=0", simp) 
 apply (simp add: right_inverse_eq) 
 done
 
@@ -1608,13 +1608,13 @@ by (simp add: eq_commute [of 1])
 
 lemma zero_eq_1_divide_iff [simp]:
      "((0::'a::{ordered_field,division_by_zero}) = 1/a) = (a = 0)"
-apply (case_tac "a=0", simp) 
+apply (cases "a=0", simp) 
 apply (auto simp add: nonzero_eq_divide_eq) 
 done
 
 lemma one_divide_eq_0_iff [simp]:
      "(1/a = (0::'a::{ordered_field,division_by_zero})) = (a = 0)"
-apply (case_tac "a=0", simp) 
+apply (cases "a=0", simp) 
 apply (insert zero_neq_one [THEN not_sym]) 
 apply (auto simp add: nonzero_divide_eq_eq) 
 done
@@ -1666,7 +1666,7 @@ lemma divide_left_mono:
   apply (subgoal_tac "a \<noteq> 0 & b \<noteq> 0") 
    prefer 2 
    apply (force simp add: zero_less_mult_iff order_less_imp_not_eq) 
-  apply (case_tac "c=0", simp add: divide_inverse)
+  apply (cases "c=0", simp add: divide_inverse)
   apply (force simp add: divide_strict_left_mono order_le_less) 
   done
 
@@ -1949,7 +1949,7 @@ done
 lemma abs_inverse [simp]:
      "abs (inverse (a::'a::{ordered_field,division_by_zero})) = 
       inverse (abs a)"
-apply (case_tac "a=0", simp) 
+apply (cases "a=0", simp) 
 apply (simp add: nonzero_abs_inverse) 
 done
 
@@ -1959,7 +1959,7 @@ by (simp add: divide_inverse abs_mult nonzero_abs_inverse)
 
 lemma abs_divide [simp]:
      "abs (a / (b::'a::{ordered_field,division_by_zero})) = abs a / abs b"
-apply (case_tac "b=0", simp) 
+apply (cases "b=0", simp) 
 apply (simp add: nonzero_abs_divide) 
 done
 
