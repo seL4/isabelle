@@ -1377,12 +1377,12 @@ val redoP = (*redo without output*)
 
 val context_thy_onlyP =
   OuterSyntax.improper_command "ProofGeneral.context_thy_only" "(internal)" K.control
-    (P.name >> (Toplevel.no_timing oo IsarThy.init_context update_thy_only));
+    (P.name >> (Toplevel.no_timing oo IsarCmd.init_context update_thy_only));
 
 val try_context_thy_onlyP =
   OuterSyntax.improper_command "ProofGeneral.try_context_thy_only" "(internal)" K.control
     (P.name >> (Toplevel.no_timing oo
-      (Toplevel.imperative (K ()) oo IsarThy.init_context try_update_thy_only)));
+      (Toplevel.imperative (K ()) oo IsarCmd.init_context try_update_thy_only)));
 
 val restartP =
   OuterSyntax.improper_command "ProofGeneral.restart" "(internal)" K.control

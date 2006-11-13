@@ -15,7 +15,7 @@ structure P = OuterParse and K = OuterKeyword;
 
 val theoryP =
   OuterSyntax.command "theory" "begin theory" (K.tag_theory K.thy_begin)
-    (ThyHeader.args >> (Toplevel.print oo IsarThy.theory));
+    (ThyHeader.args >> (Toplevel.print oo IsarCmd.theory));
 
 val endP =
   OuterSyntax.command "end" "end (local) theory" (K.tag_theory K.thy_end)
@@ -174,7 +174,7 @@ val no_translationsP =
 
 val axiomsP =
   OuterSyntax.command "axioms" "state arbitrary propositions (axiomatic!)" K.thy_decl
-    (Scan.repeat1 P.spec_name >> (Toplevel.theory o IsarThy.add_axioms));
+    (Scan.repeat1 P.spec_name >> (Toplevel.theory o IsarCmd.add_axioms));
 
 val opt_unchecked_overloaded =
   Scan.optional (P.$$$ "(" |-- P.!!!
@@ -184,7 +184,7 @@ val opt_unchecked_overloaded =
 val defsP =
   OuterSyntax.command "defs" "define constants" K.thy_decl
     (opt_unchecked_overloaded -- Scan.repeat1 P.spec_name
-      >> (Toplevel.theory o IsarThy.add_defs));
+      >> (Toplevel.theory o IsarCmd.add_defs));
 
 
 (* constant definitions and abbreviations *)
@@ -399,22 +399,22 @@ val corollaryP = gen_theorem PureThy.corollaryK;
 val haveP =
   OuterSyntax.command "have" "state local goal"
     (K.tag_proof K.prf_goal)
-    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.have));
+    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.have));
 
 val henceP =
   OuterSyntax.command "hence" "abbreviates \"then have\""
     (K.tag_proof K.prf_goal)
-    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.hence));
+    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.hence));
 
 val showP =
   OuterSyntax.command "show" "state local goal, solving current obligation"
     (K.tag_proof K.prf_goal)
-    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.show));
+    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.show));
 
 val thusP =
   OuterSyntax.command "thus" "abbreviates \"then show\""
     (K.tag_proof K.prf_goal)
-    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.thus));
+    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.thus));
 
 
 (* facts *)
@@ -527,32 +527,32 @@ val nextP =
 val qedP =
   OuterSyntax.command "qed" "conclude (sub-)proof"
     (K.tag_proof K.qed_block)
-    (Scan.option P.method >> (Toplevel.print3 oo IsarThy.qed));
+    (Scan.option P.method >> (Toplevel.print3 oo IsarCmd.qed));
 
 val terminal_proofP =
   OuterSyntax.command "by" "terminal backward proof"
     (K.tag_proof K.qed)
-    (P.method -- Scan.option P.method >> (Toplevel.print3 oo IsarThy.terminal_proof));
+    (P.method -- Scan.option P.method >> (Toplevel.print3 oo IsarCmd.terminal_proof));
 
 val default_proofP =
   OuterSyntax.command ".." "default proof"
     (K.tag_proof K.qed)
-    (Scan.succeed (Toplevel.print3 o IsarThy.default_proof));
+    (Scan.succeed (Toplevel.print3 o IsarCmd.default_proof));
 
 val immediate_proofP =
   OuterSyntax.command "." "immediate proof"
     (K.tag_proof K.qed)
-    (Scan.succeed (Toplevel.print3 o IsarThy.immediate_proof));
+    (Scan.succeed (Toplevel.print3 o IsarCmd.immediate_proof));
 
 val done_proofP =
   OuterSyntax.command "done" "done proof"
     (K.tag_proof K.qed)
-    (Scan.succeed (Toplevel.print3 o IsarThy.done_proof));
+    (Scan.succeed (Toplevel.print3 o IsarCmd.done_proof));
 
 val skip_proofP =
   OuterSyntax.improper_command "sorry" "skip proof (quick-and-dirty mode only!)"
     (K.tag_proof K.qed)
-    (Scan.succeed (Toplevel.print3 o IsarThy.skip_proof));
+    (Scan.succeed (Toplevel.print3 o IsarCmd.skip_proof));
 
 val forget_proofP =
   OuterSyntax.command "oops" "forget proof"

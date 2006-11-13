@@ -921,8 +921,8 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       simps = simps}, thy11)
   end;
 
-val rep_datatype = gen_rep_datatype IsarThy.apply_theorems;
-val rep_datatype_i = gen_rep_datatype IsarThy.apply_theorems_i;
+val rep_datatype = gen_rep_datatype IsarCmd.apply_theorems;
+val rep_datatype_i = gen_rep_datatype IsarCmd.apply_theorems_i;
 
 
 

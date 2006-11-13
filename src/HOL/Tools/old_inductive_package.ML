@@ -858,7 +858,7 @@ fun add_inductive verbose coind c_strings intro_srcs raw_monos thy =
     val intr_atts = map (map (Attrib.attribute thy) o snd) intro_srcs;
     val (cs', intr_ts') = unify_consts thy cs intr_ts;
 
-    val (monos, thy') = thy |> IsarThy.apply_theorems raw_monos;
+    val (monos, thy') = thy |> IsarCmd.apply_theorems raw_monos;
   in
     add_inductive_i verbose false "" coind false false cs'
       ((intr_names ~~ intr_ts') ~~ intr_atts) monos thy'

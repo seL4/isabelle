@@ -766,7 +766,7 @@ fun add_inductive verbose coind cnames_syn pnames_syn intro_srcs raw_monos ctxt 
       (s, SOME (ProofContext.infer_type ctxt' s))) pnames_syn;
     val cnames_syn' = map (fn (s, _, mx) =>
       (s, SOME (ProofContext.infer_type ctxt' s), mx)) cnames_syn;
-    val (monos, ctxt'') = LocalTheory.theory_result (IsarThy.apply_theorems raw_monos) ctxt;
+    val (monos, ctxt'') = LocalTheory.theory_result (IsarCmd.apply_theorems raw_monos) ctxt;
   in
     add_inductive_i verbose "" coind false false cnames_syn' pnames intrs monos ctxt''
   end;

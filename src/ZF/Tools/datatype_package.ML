@@ -396,9 +396,9 @@ fun add_datatype (sdom, srec_tms) scon_ty_lists (raw_monos, raw_type_intrs, raw_
       else read_i sdom;
   in
     thy
-    |> IsarThy.apply_theorems raw_monos
-    ||>> IsarThy.apply_theorems raw_type_intrs
-    ||>> IsarThy.apply_theorems raw_type_elims
+    |> IsarCmd.apply_theorems raw_monos
+    ||>> IsarCmd.apply_theorems raw_type_intrs
+    ||>> IsarCmd.apply_theorems raw_type_elims
     |-> (fn ((monos, type_intrs), type_elims) =>
           add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elims))
   end;

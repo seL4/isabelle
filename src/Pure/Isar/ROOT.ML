@@ -65,6 +65,5 @@ use "outer_syntax.ML";
 use "rule_insts.ML";
 use "../simplifier.ML";
 use "find_theorems.ML";
-use "isar_thy.ML";
 use "isar_cmd.ML";
 use "isar_syn.ML";
