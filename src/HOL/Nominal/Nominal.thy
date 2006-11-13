@@ -344,6 +344,16 @@ lemma fresh_unit_elim: "(a\<sharp>() \<Longrightarrow> PROP C) \<equiv> PROP C"
 lemma fresh_prod_elim: "(a\<sharp>(x,y) \<Longrightarrow> PROP C) \<equiv> (a\<sharp>x \<Longrightarrow> a\<sharp>y \<Longrightarrow> PROP C)"
   by rule (simp_all add: fresh_prod)
 
+lemma fresh_prodD:
+    "a \<sharp> (x, y) \<Longrightarrow> a \<sharp> x"
+    "a \<sharp> (x, y) \<Longrightarrow> a \<sharp> y"
+  by (simp_all add: fresh_prod)
+
+ML_setup {*
+  val mksimps_pairs = ("Nominal.fresh", thms "fresh_prodD") :: mksimps_pairs;
+  change_simpset (fn ss => ss setmksimps (mksimps mksimps_pairs));
+*}
+
 
 section {* Abstract Properties for Permutations and  Atoms *}
 (*=========================================================*)
