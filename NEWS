@@ -483,6 +483,15 @@ the graph browser tool.
 
 *** HOL ***
 
+* Replaced "auto_term" by the conceptually simpler method "relation",
+which just applies the instantiated termination rule with no further
+simplifications.
+INCOMPATIBILITY: 
+Replace 
+        termination by (auto_term "MYREL")
+with 
+        termination by (relation "MYREL") auto
+
 * Automated termination proofs "by lexicographic_order" are now
 included in the abbreviated function command "fun". No explicit
 "termination" command is necessary anymore.
