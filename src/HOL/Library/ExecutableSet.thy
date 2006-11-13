@@ -9,19 +9,21 @@ theory ExecutableSet
 imports Main
 begin
 
-section {* Definitional equality rewrites *}
+section {* Definitional rewrites *}
 
 instance set :: (eq) eq ..
 
 lemma [code target: Set]:
-  "(A = B) = (A \<subseteq> B \<and> B \<subseteq> A)"
+  "(A = B) \<longleftrightarrow> (A \<subseteq> B \<and> B \<subseteq> A)"
   by blast
 
 lemma [code func]:
-  "Code_Generator.eq A B = (A \<subseteq> B \<and> B \<subseteq> A)"
+  "Code_Generator.eq A B \<longleftrightarrow> (A \<subseteq> B \<and> B \<subseteq> A)"
   unfolding eq_def by blast
 
-declare bex_triv_one_point1 [symmetric, standard, code]
+lemma [code]:
+  "a \<in> A \<longleftrightarrow> (\<exists>x\<in>A. x = a)"
+  unfolding bex_triv_one_point1 ..
 
 
 section {* HOL definitions *}

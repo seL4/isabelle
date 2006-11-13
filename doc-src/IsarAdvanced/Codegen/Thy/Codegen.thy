@@ -156,7 +156,7 @@ text {*
 code_gen fac (SML "examples/fac.ML")
 
 text {*
-  The \isasymCODEGEN command takes a space-separated list of
+  The @{text "\<CODEGEN>"} command takes a space-separated list of
   constants together with \qn{serialization directives}
   in parentheses. These start with a \qn{target language}
   identifier, followed by arguments, their semantics
@@ -231,7 +231,7 @@ subsection {* Theorem selection *}
 
 text {*
   The list of all function equations in a theory may be inspected
-  using the \isasymPRINTCODETHMS command:
+  using the @{text "\<PRINTCODETHMS>"} command:
 *}
 
 print_codethms
@@ -245,8 +245,9 @@ text {*
   whether it provides one.
 
   The typical HOL tools are already set up in a way that
-  function definitions introduced by \isasymFUN, \isasymFUNCTION,
-  \isasymPRIMREC, \isasymRECDEF are implicitly propagated
+  function definitions introduced by @{text "\<FUN>"},
+  @{text "\<FUNCTION>"}, @{text "\<PRIMREC>"}
+  @{text "\<RECDEF>"} are implicitly propagated
   to this function equation table. Specific theorems may be
   selected using an attribute: \emph{code func}. As example,
   a weight selector function:
@@ -392,14 +393,14 @@ text {*
   Implementation of caching is supposed to transparently
   hid away the details from the user.  Anyway, caching
   reaches the surface by using a slightly more general form
-  of the \isasymCODEGEN: either the list of constants or the
+  of the @{text "\<CODEGEN>"}: either the list of constants or the
   list of serialization expressions may be dropped.  If no
   serialization expressions are given, only abstract code
   is generated and cached; if no constants are given, the
   current cache is serialized.
 
-  For explorative reasons, an extended version of the
-  \isasymCODEGEN command may prove useful:
+  For explorative purpose, an extended version of the
+  @{text "\<CODEGEN>"} command may prove useful:
 *}
 
 print_codethms ()
@@ -442,15 +443,15 @@ text {*
 
   \begin{description}
 
-    \item[ExecutableSet] allows to generate code
+    \item[@{theory "ExecutableSet"}] allows to generate code
        for finite sets using lists.
-    \item[ExecutableRat] \label{exec_rat} implements rational
+    \item[@{theory "ExecutableRat"}] \label{exec_rat} implements rational
        numbers as triples @{text "(sign, enumerator, denominator)"}.
-    \item[EfficientNat] \label{eff_nat} implements natural numbers by integers,
+    \item[@{theory "EfficientNat"}] \label{eff_nat} implements natural numbers by integers,
        which in general will result in higher efficency; pattern
        matching with @{const "0\<Colon>nat"} / @{const "Suc"}
        is eliminated.
-    \item[MLString] provides an additional datatype @{text "mlstring"};
+    \item[@{theory "MLString"}] provides an additional datatype @{text "mlstring"};
        in the HOL default setup, strings in HOL are mapped to list
        of chars in SML; values of type @{text "mlstring"} are
        mapped to strings in SML.
@@ -506,7 +507,7 @@ text_raw {*
 
 text {*
   The current set of inline theorems may be inspected using
-  the \isasymPRINTCODETHMS command.
+  the @{text "\<PRINTCODETHMS>"} command.
 
   \emph{Inline procedures} are a generalized version of inline
   theorems written in ML -- rewrite rules are generated dependent
@@ -519,7 +520,8 @@ text {*
   transforming a list of function theorems to another
   list of function theorems, provided that neither the heading
   constant nor its type change.  The @{const "0\<Colon>nat"} / @{const Suc}
-  pattern elimination implemented in \secref{eff_nat} uses this
+  pattern elimination implemented in
+  theory @{theory "EfficientNat"} (\secref{eff_nat}) uses this
   interface.
 
   \begin{warn}
@@ -550,16 +552,16 @@ declare in_interval.simps [code func]
 (*>*)
 
 (*<*)
-code_type bool
+code_type %tt bool
   (SML)
-code_const True and False and "op \<and>" and Not
+code_const %tt True and False and "op \<and>" and Not
   (SML and and and)
 (*>*)
 
-code_gen in_interval (SML "examples/bool1.ML")
+code_gen in_interval (SML "examples/bool_literal.ML")
 
 text {*
-  \lstsml{Thy/examples/bool1.ML}
+  \lstsml{Thy/examples/bool_literal.ML}
 
   Though this is correct code, it is a little bit unsatisfactory:
   boolean values and operators are materialized as distinguished
@@ -572,19 +574,19 @@ text {*
   \qn{custom serializations}:
 *}
 
-code_type bool
+code_type %tt bool
   (SML "bool")
-code_const True and False and "op \<and>"
+code_const %tt True and False and "op \<and>"
   (SML "true" and "false" and "_ andalso _")
 
 text {*
-  The \isasymCODETYPE commad takes a type constructor
+  The @{text "\<CODETYPE>"} commad takes a type constructor
   as arguments together with a list of custom serializations.
   Each custom serialization starts with a target language
   identifier followed by an expression, which during
   code serialization is inserted whenever the type constructor
-  would occur.  For constants, \isasymCODECONST implements
-  the corresponding mechanism.  Each \qt{\_} in
+  would occur.  For constants, @{text "\<CODECONST>"} implements
+  the corresponding mechanism.  Each ``@{verbatim "_"}'' in
   a serialization expression is treated as a placeholder
   for the type constructor's (the constant's) arguments.
 *}
@@ -594,33 +596,34 @@ code_reserved SML
 
 text {*
   To assert that the existing \qt{bool}, \qt{true} and \qt{false}
-  is not used for generated code, we use \isasymCODERESERVED.
+  is not used for generated code, we use @{text "\<CODERESERVED>"}.
 
   After this setup, code looks quite more readable:
 *}
 
-code_gen in_interval (SML "examples/bool2.ML")
+code_gen in_interval (SML "examples/bool_mlbool.ML")
 
 text {*
-  \lstsml{Thy/examples/bool2.ML}
+  \lstsml{Thy/examples/bool_mlbool.ML}
 
   This still is not perfect: the parentheses
-  around \qt{andalso} are superfluous.  Though the serializer
+  around the \qt{andalso} expression are superfluous.
+  Though the serializer
   by no means attempts to imitate the rich Isabelle syntax
   framework, it provides some common idioms, notably
   associative infixes with precedences which may be used here:
 *}
 
-code_const "op \<and>"
+code_const %tt "op \<and>"
   (SML infixl 1 "andalso")
 
-code_gen in_interval (SML "examples/bool3.ML")
+code_gen in_interval (SML "examples/bool_infix.ML")
 
 text {*
-  \lstsml{Thy/examples/bool3.ML}
+  \lstsml{Thy/examples/bool_infix.ML}
 
   Next, we try to map HOL pairs to SML pairs, using the
-  infix \qt{ * } type constructor and parentheses:
+  infix ``@{verbatim "*"}'' type constructor and parentheses:
 *}
 
 (*<*)
@@ -630,18 +633,18 @@ code_const Pair
   (SML)
 (*>*)
 
-code_type *
+code_type %tt *
   (SML infix 2 "*")
 
-code_const Pair
+code_const %tt Pair
   (SML "!((_),/ (_))")
 
 text {*
-  The initial bang \qt{!} tells the serializer to never put
+  The initial bang ``@{verbatim "!"}'' tells the serializer to never put
   parentheses around the whole expression (they are already present),
   while the parentheses around argument place holders
   tell not to put parentheses around the arguments.
-  The slash \qt{/} (followed by arbitrary white space)
+  The slash ``@{verbatim "/"}'' (followed by arbitrary white space)
   inserts a space which may be used as a break if necessary
   during pretty printing.
 
@@ -666,10 +669,10 @@ text {*
   integers:
 *}
 
-code_type int
+code_type %tt int
   (SML "IntInf.int")
 
-code_const "op + \<Colon> int \<Rightarrow> int \<Rightarrow> int"
+code_const %tt "op + \<Colon> int \<Rightarrow> int \<Rightarrow> int"
     and "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
   (SML "IntInf.+ (_, _)" and "IntInf.* (_, _)")
 
@@ -690,9 +693,10 @@ text {*
 
   A further noteworthy details is that any special
   character in a custom serialization may be quoted
-  using \qt{'}; thus, in \qt{fn '\_ => \_} the first
-  \qt{'\_} is a proper underscore while the
-  second \qt{\_} is a placeholder.
+  using ``@{verbatim "'"}''; thus, in
+  ``@{verbatim "fn '_ => _"}'' the first
+  ``@{verbatim "_"}'' is a proper underscore while the
+  second ``@{verbatim "_"}'' is a placeholder.
 
   The HOL theories provide further
   examples for custom serializations and form
@@ -778,7 +782,7 @@ text {*
   Examine the following:
 *}
 
-code_const "op = \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+code_const %tt "op = \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "!(_ : IntInf.int = _)")
 
 text {*
@@ -789,7 +793,7 @@ text {*
   by using the overloaded constant @{const "Code_Generator.eq"}:
 *}
 
-code_const "Code_Generator.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+code_const %tt "Code_Generator.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "!(_ : IntInf.int = _)")
 
 subsubsection {* typedecls interpreted by customary serializations *}
@@ -810,7 +814,7 @@ termination by (auto_term "measure (length o fst)")
 lemmas [code func] = lookup.simps
 (*>*)
 
-code_type key
+code_type %tt key
   (SML "string")
 
 text {*
@@ -822,7 +826,7 @@ text {*
 
 instance key :: eq ..
 
-code_const "Code_Generator.eq \<Colon> key \<Rightarrow> key \<Rightarrow> bool"
+code_const %tt "Code_Generator.eq \<Colon> key \<Rightarrow> key \<Rightarrow> bool"
   (SML "!(_ : string = _)")
 
 text {*
@@ -896,7 +900,7 @@ text {*
   For convenience, the default
   HOL setup for Haskell maps the @{text eq} class to
   its counterpart in Haskell, giving custom serializations
-  for the class (\isasymCODECLASS) and its operation:
+  for the class (@{text "\<CODECLASS>"}) and its operation:
 *}
 
 (*<*)
@@ -904,10 +908,10 @@ setup {* Sign.add_path "bar" *}
 class eq = fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 (*>*)
 
-code_class eq
+code_class %tt eq
   (Haskell "Eq" where eq \<equiv> "(==)")
 
-code_const eq
+code_const %tt eq
   (Haskell infixl 4 "==")
 
 (*<*)
@@ -927,17 +931,17 @@ typedecl bar
 
 instance bar :: eq ..
 
-code_type bar
+code_type %tt bar
   (Haskell "Integer")
 
 text {*
     The code generator would produce
     an additional instance, which of course is rejected.
     To suppress this additional instance, use
-    \isasymCODEINSTANCE:
+    @{text "\<CODEINSTANCE>"}:
 *}
 
-code_instance bar :: eq
+code_instance %tt bar :: eq
   (Haskell -)
 
 subsection {* Types matter *}
@@ -947,10 +951,10 @@ text {*
   some kind of sets as lists in SML:
 *}
 
-code_type set
+code_type %tt set
   (SML "_ list")
 
-code_const "{}" and insert
+code_const %tt "{}" and insert
   (SML "![]" and infixl 7 "::")
 
 definition
@@ -1059,8 +1063,8 @@ text {*
   By brute force:
 *}
 
-axioms
-  arbitrary_option: "arbitrary = None"
+axiomatization where
+  "arbitrary = None"
 
 text {*
   However this has to be considered harmful since this axiom,
@@ -1097,7 +1101,7 @@ definition
   "None' = None"
 
 text {*
-  Then finally we are enabled to use \isasymCODEAXIOMS:
+  Then finally we are enabled to use @{text "\<CODEAXIOMS>"}:
 *}
 
 code_axioms
@@ -1123,7 +1127,7 @@ text {*
 
   Another axiomatic extension is code generation
   for abstracted types.  For this, the  
-  \emph{ExecutableRat} (see \secref{exec_rat})
+  @{theory "ExecutableRat"} (see \secref{exec_rat})
   forms a good example.
 *}
 
@@ -1146,7 +1150,7 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML_type CodegenConsts.const} \\
+  @{index_ML_type CodegenConsts.const: "string * typ list"} \\
   @{index_ML CodegenConsts.norm_of_typ: "theory -> string * typ -> CodegenConsts.const"} \\
   @{index_ML CodegenConsts.typ_of_inst: "theory -> CodegenConsts.const -> string * typ"} \\
  \end{mldecls}
@@ -1180,17 +1184,13 @@ subsubsection {* Suspended theorems *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML_type CodegenData.lthms} \\
   @{index_ML CodegenData.lazy: "(unit -> thm list) -> CodegenData.lthms"}
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML_type CodegenData.lthms} is an abstract view
-     on suspended theorems.  Suspensions are evaluated on demand.
-
   \item @{ML CodegenData.lazy}~@{text f} turns an abstract
-     theorem computation @{text f} into suspended theorems.
+     theorem computation @{text f} into a suspension of theorems.
 
   \end{description}
 *}
@@ -1199,7 +1199,6 @@ subsubsection {* Executable content *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML_type CodegenData.lthms} \\
   @{index_ML CodegenData.add_func: "thm -> theory -> theory"} \\
   @{index_ML CodegenData.del_func: "thm -> theory -> theory"} \\
   @{index_ML CodegenData.add_funcl: "CodegenConsts.const * CodegenData.lthms -> theory -> theory"} \\
@@ -1416,14 +1415,21 @@ subsubsection {* Datatype hooks *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML_type DatatypeHooks.hook} \\
+  @{index_ML_type DatatypeHooks.hook: "string list -> theory -> theory"} \\
   @{index_ML DatatypeHooks.add: "DatatypeHooks.hook -> theory -> theory"}
   \end{mldecls}
 *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML_type TypecopyPackage.info} \\
+  @{index_ML_type TypecopyPackage.info: "{
+    vs: (string * sort) list,
+    constr: string,
+    typ: typ,
+    inject: thm,
+    proj: string * typ,
+    proj_def: thm
+  }"} \\
   @{index_ML TypecopyPackage.add_typecopy: "
     bstring * string list -> typ -> (bstring * bstring) option
     -> theory -> (string * TypecopyPackage.info) * theory"} \\
@@ -1439,7 +1445,8 @@ text %mlref {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML_type DatatypeCodegen.hook} \\
+  @{index_ML_type DatatypeCodegen.hook: "(string * (bool * ((string * sort) list * (string * typ list) list))) list
+    -> theory -> theory"} \\
   @{index_ML DatatypeCodegen.add_codetypes_hook_bootstrap: "
       DatatypeCodegen.hook -> theory -> theory"}
   \end{mldecls}
