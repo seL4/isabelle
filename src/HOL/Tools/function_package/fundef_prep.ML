@@ -188,31 +188,31 @@ fun lookup_compat_thm i j cts =
 (* if j < i, then turn around *)
 fun get_compat_thm thy cts i j ctxi ctxj = 
     let
-        val ClauseContext {cqs=cqsi,ags=agsi,lhs=lhsi,...} = ctxi
-        val ClauseContext {cqs=cqsj,ags=agsj,lhs=lhsj,...} = ctxj
-
-        val lhsi_eq_lhsj = cterm_of thy (Trueprop (mk_eq (lhsi, lhsj)))
+      val ClauseContext {cqs=cqsi,ags=agsi,lhs=lhsi,...} = ctxi
+      val ClauseContext {cqs=cqsj,ags=agsj,lhs=lhsj,...} = ctxj
+          
+      val lhsi_eq_lhsj = cterm_of thy (Trueprop (mk_eq (lhsi, lhsj)))
     in if j < i then
-           let
-               val compat = lookup_compat_thm j i cts
-           in
-               compat         (* "!!qj qi. Gsj => Gsi => lhsj = lhsi ==> rhsj = rhsi" *)
+         let
+           val compat = lookup_compat_thm j i cts
+         in
+           compat         (* "!!qj qi. Gsj => Gsi => lhsj = lhsi ==> rhsj = rhsi" *)
                 |> fold forall_elim (cqsj @ cqsi) (* "Gsj => Gsi => lhsj = lhsi ==> rhsj = rhsi" *)
                 |> fold implies_elim_swp agsj
                 |> fold implies_elim_swp agsi
                 |> implies_elim_swp ((assume lhsi_eq_lhsj) RS sym) (* "Gsj, Gsi, lhsi = lhsj |-- rhsj = rhsi" *)
-           end
+         end
        else
-           let
-               val compat = lookup_compat_thm i j cts
-           in
+         let
+           val compat = lookup_compat_thm i j cts
+         in
                compat        (* "!!qi qj. Gsi => Gsj => lhsi = lhsj ==> rhsi = rhsj" *)
                  |> fold forall_elim (cqsi @ cqsj) (* "Gsi => Gsj => lhsi = lhsj ==> rhsi = rhsj" *)
                  |> fold implies_elim_swp agsi
                  |> fold implies_elim_swp agsj
                  |> implies_elim_swp (assume lhsi_eq_lhsj)
                  |> (fn thm => thm RS sym) (* "Gsi, Gsj, lhsi = lhsj |-- rhsj = rhsi" *)
-           end
+         end
     end
 
 
@@ -237,6 +237,7 @@ fun mk_replacement_lemma thy h ih_elim clause =
                                 |> fold_rev (implies_intr o cprop_of) h_assums
                                 |> fold_rev (implies_intr o cprop_of) ags
                                 |> fold_rev forall_intr cqs
+                                |> Drule.close_derivation
     in
       replace_lemma
     end
@@ -364,7 +365,6 @@ fun prove_stuff thy congs globals G f R clauses complete compat compat_store G_e
                                   |> forall_intr (cterm_of thy x)
                                   |> (fn it => Drule.compose_single (it, 2, acc_induct_rule)) (* "EX! y. (?x,y):G" *)
                                   |> (fn it => fold (forall_intr o cterm_of thy) (term_vars (prop_of it)) it)
-                                  |> Drule.close_derivation
 
         val goal = complete COMP (graph_is_function COMP conjunctionI)
                             |> Drule.close_derivation
@@ -477,8 +477,6 @@ fun prepare_fundef defname (fname, fT, mixfix) abstract_qglrs default_str lthy =
       val fvar = Free (fname, fT)
       val domT = domain_type fT
       val ranT = range_type fT
-
-                 
                             
       val [default] = fst (Variable.importT_terms (fst (ProofContext.read_termTs lthy (K false) (K NONE) (K NONE) [] [(default_str, fT)])) lthy) (* FIXME *)
 
@@ -499,14 +497,14 @@ fun prepare_fundef defname (fname, fT, mixfix) abstract_qglrs default_str lthy =
       val trees = PROFILE "making trees" (map build_tree) clauses
       val RCss = PROFILE "finding calls" (map find_calls) trees
 
-      val ((G, GIntro_thms, G_elim), lthy) = PROFILE "def_graph" (define_graph (defname ^ "_graph") fvar domT ranT clauses RCss) lthy
+      val ((G, GIntro_thms, G_elim), lthy) = PROFILE "def_graph" (define_graph (graph_name defname) fvar domT ranT clauses RCss) lthy
       val ((f, f_defthm), lthy) = PROFILE "def_fun" (define_function (defname ^ "_sum_def") (fname, mixfix) domT ranT G default) lthy
 
       val RCss = PROFILE "inst_RCs" (map (map (inst_RC (ProofContext.theory_of lthy) fvar f))) RCss
       val trees = PROFILE "inst_trees" (map (FundefCtxTree.inst_tree (ProofContext.theory_of lthy) fvar f)) trees
 
       val ((R, RIntro_thmss, R_elim), lthy) = 
-          PROFILE "def_rel" (define_recursion_relation (defname ^ "_rel") domT ranT fvar f abstract_qglrs clauses RCss) lthy
+          PROFILE "def_rel" (define_recursion_relation (rel_name defname) domT ranT fvar f abstract_qglrs clauses RCss) lthy
 
       val lthy = PROFILE "abbrev"
         (snd o LocalTheory.abbrevs ("", false) (* FIXME really this mode? cf. Syntax.default_mode *)

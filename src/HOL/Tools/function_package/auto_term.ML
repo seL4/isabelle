@@ -3,48 +3,37 @@
     Author:     Alexander Krauss, TU Muenchen
 
 A package for general recursive function definitions.
-The auto_term method.
+Method "relation" to commence a termination proof using a user-specified relation.
 *)
 
 
-signature FUNDEF_AUTO_TERM =
+signature FUNDEF_RELATION =
 sig
+  val relation_meth : Proof.context -> term -> Method.method
+
   val setup: theory -> theory
 end
 
-structure FundefAutoTerm : FUNDEF_AUTO_TERM =
+structure FundefRelation : FUNDEF_RELATION =
 struct
 
-open FundefCommon
-open FundefAbbrev
-
-
-fun auto_term_tac ctxt rule rel wf_rules ss =
-  let
-    val cert = Thm.cterm_of (ProofContext.theory_of ctxt)
-
-    val rel' = cert (singleton (Variable.polymorphic ctxt) rel)
-    val rule' = rule |> Thm.incr_indexes (#maxidx (Thm.rep_cterm rel') + 1)
-    val prem = #1 (Logic.dest_implies (Thm.prop_of rule'))
-    val R' = cert (Var (the_single (Term.add_vars prem [])))
-  in
-    rtac (Drule.cterm_instantiate [(R', rel')] rule') 1  (* instantiate termination rule *)
-    THEN (ALLGOALS
-      (fn 1 => REPEAT (ares_tac wf_rules 1)    (* Solve wellfoundedness *)
-        | i => asm_simp_tac ss i))             (* Simplify termination conditions *)
-  end
-
-
-fun termination_meth src = Method.syntax Args.term src #> (fn (ctxt, rel) =>
-  let
-    val {simps, congs, wfs} = RecdefPackage.get_hints (Context.Proof ctxt)
-    val ss = local_simpset_of ctxt addsimps simps
-
-    val intro_rule = ProofContext.get_thm ctxt (Name "termination")
-    (* FIXME avoid internal name lookup -- dynamic scoping! *)
-  in Method.SIMPLE_METHOD (auto_term_tac ctxt intro_rule rel wfs ss) end)
+fun relation_meth ctxt rel = 
+    let
+      val cert = Thm.cterm_of (ProofContext.theory_of ctxt)
+                 
+      val rel' = cert (singleton (Variable.polymorphic ctxt) rel)
+      val rule = FundefCommon.get_termination_rule ctxt |> the
+                  |> Thm.incr_indexes (#maxidx (Thm.rep_cterm rel') + 1)
+          
+      val prem = #1 (Logic.dest_implies (Thm.prop_of rule))
+      val Rvar = cert (Var (the_single (Term.add_vars prem [])))
+    in
+      Method.SIMPLE_METHOD (rtac (Drule.cterm_instantiate [(Rvar, rel')] rule) 1)
+    end
+   
 
 val setup = Method.add_methods
-  [("auto_term", termination_meth, "proves termination using a user-specified wellfounded relation")]
+  [("relation", uncurry relation_meth oo Method.syntax Args.term,
+    "proves termination using a user-specified wellfounded relation")]
 
 end

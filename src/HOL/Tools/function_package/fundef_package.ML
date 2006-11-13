@@ -38,8 +38,6 @@ struct
 open FundefLib
 open FundefCommon
 
-(*fn (ctxt,s) => Variable.importT_terms (fst (ProofContext.read_termTs ctxt (K false) (K NONE) (K NONE) [] [s])) ctxt;*)
-
 fun burrow_snd f ps = (* ('a list -> 'b list) -> ('c * 'a) list -> ('c * 'b) list *)
     let val (xs, ys) = split_list ps
     in xs ~~ f ys end
@@ -64,8 +62,9 @@ fun add_simps label moreatts mutual_info fixes psimps spec lthy =
     end
 
 
-fun fundef_afterqed fixes spec mutual_info defname data [[result]] lthy =
+fun fundef_afterqed config fixes spec mutual_info defname data [[result]] lthy =
     let
+      val FundefConfig { domintros, ...} = config
       val Prep {f, R, ...} = data
       val fundef_data = FundefMutual.mk_partial_rules_mutual lthy mutual_info data result
       val FundefMResult {psimps, subset_pinducts, simple_pinducts, termination, domintros, cases, ...} = fundef_data
@@ -119,7 +118,7 @@ fun gen_add_fundef prep_spec fixspec eqnss_flags config lthy =
       val ((mutual_info, name, prep_result as Prep {goal, goalI, ...}), lthy) =
           FundefMutual.prepare_fundef_mutual fixes t_eqns default lthy
 
-      val afterqed = fundef_afterqed fixes spec mutual_info name prep_result
+      val afterqed = fundef_afterqed config fixes spec mutual_info name prep_result
     in
       (name, lthy
          |> Proof.theorem_i PureThy.internalK NONE afterqed NONE ("", []) [(("", []), [(goal, [])])]
@@ -162,6 +161,7 @@ fun setup_termination_proof name_opt lthy =
       lthy
         |> ProofContext.note_thmss_i [(("termination",
                                         [ContextRules.intro_query NONE]), [(ProofContext.standard lthy [termination], [])])] |> snd
+        |> set_termination_rule termination
         |> Proof.theorem_i PureThy.internalK NONE
                            (total_termination_afterqed name data) NONE ("", [])
                            [(("", []), [(goal, [])])]
@@ -199,9 +199,11 @@ val setup_case_cong_hook =
 val setup = 
     FundefData.init 
       #> FundefCongs.init
+      #> TerminationRule.init
       #>  Attrib.add_attributes
             [("fundef_cong", Attrib.add_del_args cong_add cong_del, "declaration of congruence rule for function definitions")]
       #> setup_case_cong_hook
+      #> FundefRelation.setup
 
 val get_congs = FundefCommon.get_fundef_congs o Context.Theory
 

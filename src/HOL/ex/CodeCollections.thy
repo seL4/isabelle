@@ -72,8 +72,6 @@ where
 | "abs_sorted cmp [x] = True"
 | "abs_sorted cmp (x#y#xs) = (cmp x y \<and> abs_sorted cmp (y#xs))"
 
-termination by (auto_term "measure (length o snd)")
-
 thm abs_sorted.simps
 
 abbreviation (in ordered)
@@ -117,8 +115,6 @@ where
 | "le_option' (Some x) None = False"
 | "le_option' (Some x) (Some y) = x <<= y"
 
-termination by (auto_term "{}")
-
 instance option :: (ordered) ordered
   "x <<= y == le_option' x y"
 proof (default, unfold ordered_option_def)
@@ -147,7 +143,6 @@ lemma [simp, code]:
 fun le_pair' :: "'a::ordered \<times> 'b::ordered \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
 where
   "le_pair' (x1, y1) (x2, y2) = (x1 << x2 \<or> x1 = x2 \<and> y1 <<= y2)"
-termination by (auto_term "{}")
 
 instance * :: (ordered, ordered) ordered
   "x <<= y == le_pair' x y"
@@ -168,8 +163,6 @@ where
   "le_list' [] ys = True"
 | "le_list' (x#xs) [] = False"
 | "le_list' (x#xs) (y#ys) = (x << y \<or> x = y \<and> le_list' xs ys)"
-
-termination by (auto_term "measure (length o fst)")
 
 instance (ordered) list :: ordered
   "xs <<= ys == le_list' xs ys"

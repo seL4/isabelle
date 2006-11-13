@@ -7,7 +7,7 @@ Method for termination proofs with lexicographic orderings.
 
 signature LEXICOGRAPHIC_ORDER =
 sig
-  val lexicographic_order : Method.method
+  val lexicographic_order : Proof.context -> Method.method
   val setup: theory -> theory
 end
 
@@ -201,10 +201,10 @@ fun pr_err table thy tl base_funs =
       
 (* the main function: create table, search table, create relation,
    and prove the subgoals *)
-fun lexicographic_order_tac (st: thm) = 
+fun lexicographic_order_tac ctxt (st: thm) = 
     let
       val thy = theory_of_thm st
-      val termination_thm = ProofContext.get_thm (Variable.thm_context st) (Name "termination")
+      val termination_thm = the (FundefCommon.get_termination_rule ctxt)
       val next_st = SINGLE (rtac termination_thm 1) st |> the
       val premlist = prems_of next_st
     in
@@ -239,8 +239,8 @@ fun lexicographic_order_tac (st: thm) =
             end
     end
 
-val lexicographic_order = Method.SIMPLE_METHOD lexicographic_order_tac
+val lexicographic_order = Method.SIMPLE_METHOD o lexicographic_order_tac
 
-val setup = Method.add_methods [("lexicographic_order", Method.no_args lexicographic_order, "termination prover for lexicographic orderings")]
+val setup = Method.add_methods [("lexicographic_order", Method.ctxt_args lexicographic_order, "termination prover for lexicographic orderings")]
 
 end

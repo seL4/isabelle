@@ -48,7 +48,7 @@ function
   fac :: "int => int" where
   "fac j = (if j <= 0 then 1 else j * (fac (j - 1)))"
   by pat_completeness auto
-termination by (auto_term "measure nat")
+termination by (relation "measure nat") auto
 
 declare fac.simps [code]
 

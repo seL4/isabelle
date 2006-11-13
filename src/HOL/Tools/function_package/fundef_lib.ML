@@ -10,6 +10,9 @@ Some fairly general functions that should probably go somewhere else...
 
 structure FundefLib = struct
 
+fun plural sg pl [x] = sg
+  | plural sg pl _ = pl
+
 fun eq_str (s : string, t) = (s = t) (* monomorphic equality on strings *)
 
 fun mk_forall v t = all (fastype_of v) $ lambda v t
@@ -36,14 +39,15 @@ fun dest_all (Const ("all", _) $ Abs (a as (_,T,_))) =
 (* Removes all quantifiers from a term, replacing bound variables by frees. *)
 fun dest_all_all (t as (Const ("all",_) $ _)) = 
     let
-  val (v,b) = dest_all t
-  val (vs, b') = dest_all_all b
+      val (v,b) = dest_all t
+      val (vs, b') = dest_all_all b
     in
-  (v :: vs, b')
+      (v :: vs, b')
     end
   | dest_all_all t = ([],t)
+                     
 
-
+(* FIXME: similar to Variable.focus *)
 fun dest_all_all_ctx ctx (Const ("all", _) $ Abs (a as (n,T,b))) =
     let
       val [(n', _)] = Variable.variant_frees ctx [] [(n,T)]
@@ -87,10 +91,16 @@ fun unordered_pairs [] = []
 
 (* Replaces Frees by name. Probably quicker than Pattern.rewrite_terms, and works with loose Bounds. *)
 fun replace_frees assoc =
-    map_aterms (fn c as Free (n, _) => (case AList.lookup (op =) assoc n of
-                                          NONE => c
-                                        | SOME t => t)
+    map_aterms (fn c as Free (n, _) => the_default c (AList.lookup (op =) assoc n)
                  | t => t)
+
+
+fun forall_aterms P (t $ u) = forall_aterms P t andalso forall_aterms P u
+  | forall_aterms P (Abs (_, _, t)) = forall_aterms P t
+  | forall_aterms P a = P a
+
+fun exists_aterm P = not o forall_aterms (not o P)
+
 
 
 
@@ -100,27 +110,27 @@ fun rename_bound n (Q $ Abs(_, T, b)) = (Q $ Abs(n, T, b))
 fun mk_forall_rename (n, v) =
     rename_bound n o mk_forall v 
 
+val dummy_term = Free ("", dummyT)
+
 fun forall_intr_rename (n, cv) thm =
     let
       val allthm = forall_intr cv thm
-      val reflx = prop_of allthm
-                   |> rename_bound n
-                   |> cterm_of (theory_of_thm thm)
-                   |> reflexive
+      val (_, abs) = Logic.dest_all (prop_of allthm)
     in
-      equal_elim reflx allthm
+      Thm.rename_boundvars abs (Abs (n, dummyT, dummy_term)) allthm
     end
 
 
 (* Returns the frees in a term in canonical order, excluding the fixes from the context *)
 fun frees_in_term ctxt t =
+    Term.add_frees t []
+    |> filter_out (Variable.is_fixed ctxt o fst)
+    |> rev
+(*
     rev (fold_aterms (fn  Free (v as (x, _)) =>
                           if Variable.is_fixed ctxt x then I else insert (fn ((x, _),(y, _)) => x = y) v | _ => I) t [])
+*)
 
-
-fun plural sg pl [] = sys_error "plural"
-  | plural sg pl [x] = sg
-  | plural sg pl (x::y::ys) = pl
 
 
 end

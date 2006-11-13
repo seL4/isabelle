@@ -49,7 +49,7 @@ fun open_all_all (Const ("all", _) $ Abs (n, T, b)) = apfst (cons (n, T)) (open_
 (* Builds a curried clause description in abstracted form *)
 fun split_def ctxt fnames geq arities =
     let
-      fun input_error msg = error (cat_lines [msg, ProofContext.string_of_term ctxt geq])
+      fun input_error msg = cat_lines [msg, ProofContext.string_of_term ctxt geq]
                             
       val (qs, imp) = open_all_all geq
 
@@ -61,32 +61,27 @@ fun split_def ctxt fnames geq arities =
 
       val invalid_head_msg = "Head symbol of left hand side must be " ^ plural "" "one out of " fnames ^ commas_quote fnames
       val fname = fst (dest_Free head)
-          handle TERM _ => input_error invalid_head_msg
+          handle TERM _ => error (input_error invalid_head_msg)
 
-      val _ = if fname mem fnames then ()
-              else input_error invalid_head_msg
+      val _ = assert (fname mem fnames) (input_error invalid_head_msg)
 
       fun add_bvs t is = add_loose_bnos (t, 0, is)
       val rvs = (add_bvs rhs [] \\ fold add_bvs args [])
                   |> map (fst o nth (rev qs))
                 
-      val _ = if null rvs then ()
-              else input_error ("Variable" ^ plural " " "s " rvs ^ commas_quote rvs
-                                ^ " occur" ^ plural "s" "" rvs ^ " on right hand side only:")
+      val _ = assert (null rvs) (input_error ("Variable" ^ plural " " "s " rvs ^ commas_quote rvs
+                                              ^ " occur" ^ plural "s" "" rvs ^ " on right hand side only:"))
 
-      val _ = (fold o fold_aterms)
-                 (fn Free (n, _) => if n mem fnames
-                                    then input_error "Recursive Calls not allowed in premises:"
-                                    else I
-                   | _ => I) gs ()
+      val _ = assert (forall (forall_aterms (fn Free (n, _) => not (n mem fnames) | _ => true)) gs)
+                     (input_error "Recursive Calls not allowed in premises")
 
       val k = length args
 
       val arities' = case Symtab.lookup arities fname of
                        NONE => Symtab.update (fname, k) arities
-                     | SOME i => if (i <> k)
-                                 then input_error ("Function " ^ quote fname ^ " has different numbers of arguments in different equations")
-                                 else arities
+                     | SOME i => (assert (i = k)
+                                  (input_error ("Function " ^ quote fname ^ " has different numbers of arguments in different equations"));
+                                  arities)
     in
       ((fname, qs, gs, args, rhs), arities')
     end

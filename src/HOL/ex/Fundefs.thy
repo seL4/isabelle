@@ -17,8 +17,7 @@ where
 | "fib (Suc 0) = 1"
 | "fib (Suc (Suc n)) = fib n + fib (Suc n)"
 
-
-text {* we get partial simp and induction rules: *}
+text {* partial simp and induction rules: *}
 thm fib.psimps
 thm fib.pinduct
 
@@ -27,14 +26,9 @@ thm fib.cases
 
 thm fib.domintros
 
-
-text {* Now termination: *}
-(*termination fib
-  by (auto_term "less_than")*)
-
+text {* total simp and induction rules: *}
 thm fib.simps
 thm fib.induct
-
 
 section {* Currying *}
 
@@ -62,8 +56,7 @@ using trm
 by induct auto
 
 termination nz
-  apply (auto_term "less_than") -- {* Oops, it left us something to prove *}
-  by (auto simp:nz_is_zero)
+  by (relation "less_than") (auto simp:nz_is_zero)
 
 thm nz.simps
 thm nz.induct

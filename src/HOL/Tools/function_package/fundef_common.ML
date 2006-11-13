@@ -20,6 +20,12 @@ fun PROFILE msg = if !profile then timeap_msg msg else I
 fun mk_acc domT R =
     Const (acc_const_name, (fastype_of R) --> domT --> HOLogic.boolT) $ R 
 
+val function_name = suffix "C"
+val graph_name = suffix "_graph"
+val rel_name = suffix "_rel"
+val dom_name = suffix "_dom"
+
+val dest_rel_name = unsuffix "_rel"
 
 type depgraph = int IntGraph.T
 
@@ -216,8 +222,7 @@ structure FundefCongs = GenericDataFun
     type T = thm list
     val empty = []
     val extend = I
-    fun merge _ (l1, l2) = l1 @ l2
-      (* FIXME exponential blowup! cf. Library.merge, Drule.merge_rules *)
+    fun merge _ = Drule.merge_rules
     fun print  _ _ = ()
 end);
 
@@ -230,8 +235,23 @@ fun get_fundef_data name thy = Symtab.lookup (snd (FundefData.get thy)) name
 fun set_last_fundef name = FundefData.map (apfst (K name))
 fun get_last_fundef thy = fst (FundefData.get thy)
 
+
 val map_fundef_congs = FundefCongs.map 
 val get_fundef_congs = FundefCongs.get
+
+
+
+structure TerminationRule = ProofDataFun
+(struct
+    val name = "HOL/function_def/termination"
+    type T = thm option
+    val init = K NONE
+    fun print  _ _ = ()
+end);
+
+val get_termination_rule = TerminationRule.get 
+val set_termination_rule = TerminationRule.map o K o SOME
+
 
 
 (* Configuration management *)
@@ -240,6 +260,7 @@ datatype fundef_opt
   | Default of string
   | Preprocessor of string
   | Target of xstring
+  | DomIntros
 
 datatype fundef_config
   = FundefConfig of
@@ -247,21 +268,24 @@ datatype fundef_config
     sequential: bool,
     default: string,
     preprocessor: string option,
-    target: xstring option
+    target: xstring option,
+    domintros: bool
    }
 
 
-val default_config = FundefConfig { sequential=false, default="%x. arbitrary", preprocessor=NONE, target=NONE }
-val fun_config = FundefConfig { sequential=true, default="%x. arbitrary", preprocessor=NONE, target=NONE }
+val default_config = FundefConfig { sequential=false, default="%x. arbitrary", preprocessor=NONE, target=NONE, domintros=false }
+val fun_config = FundefConfig { sequential=true, default="%x. arbitrary", preprocessor=NONE, target=NONE, domintros=false }
 
-fun apply_opt Sequential (FundefConfig {sequential, default, preprocessor, target}) = 
-    FundefConfig {sequential=true, default=default, preprocessor=preprocessor, target=target }
-  | apply_opt (Default d) (FundefConfig {sequential, default, preprocessor, target}) = 
-    FundefConfig {sequential=sequential, default=d, preprocessor=preprocessor, target=target }
-  | apply_opt (Preprocessor p) (FundefConfig {sequential, default, preprocessor, target}) = 
-    FundefConfig {sequential=sequential, default=default, preprocessor=SOME p, target=target }
-  | apply_opt (Target t) (FundefConfig {sequential, default, preprocessor, target }) =
-    FundefConfig {sequential=sequential, default=default, preprocessor=preprocessor, target=SOME t }
+fun apply_opt Sequential (FundefConfig {sequential, default, preprocessor, target, domintros}) = 
+    FundefConfig {sequential=true, default=default, preprocessor=preprocessor, target=target, domintros=domintros }
+  | apply_opt (Default d) (FundefConfig {sequential, default, preprocessor, target, domintros}) = 
+    FundefConfig {sequential=sequential, default=d, preprocessor=preprocessor, target=target, domintros=domintros }
+  | apply_opt (Preprocessor p) (FundefConfig {sequential, default, preprocessor, target, domintros}) = 
+    FundefConfig {sequential=sequential, default=default, preprocessor=SOME p, target=target, domintros=domintros }
+  | apply_opt (Target t) (FundefConfig {sequential, default, preprocessor, target, domintros }) =
+    FundefConfig {sequential=sequential, default=default, preprocessor=preprocessor, target=SOME t, domintros=domintros }
+  | apply_opt Domintros (FundefConfig {sequential, default, preprocessor, target, domintros }) =
+    FundefConfig {sequential=sequential, default=default, preprocessor=preprocessor, target=target, domintros=true }
 
 
 local structure P = OuterParse and K = OuterKeyword in
@@ -270,11 +294,18 @@ val opt_sequential = Scan.optional ((P.$$$ "(" |-- P.$$$ "sequential" --| P.$$$ 
 
 val option_parser = (P.$$$ "sequential" >> K Sequential)
                || ((P.reserved "default" |-- P.term) >> Default)
+               || (P.reserved "domintros" >> K DomIntros)
                || ((P.$$$ "in" |-- P.xname) >> Target)
 
 fun config_parser def = (Scan.optional (P.$$$ "(" |-- P.list1 option_parser --| P.$$$ ")") [])
                           >> (fn opts => fold apply_opt opts def)
 end
+
+
+
+
+
+
 
 
 
