@@ -24,8 +24,6 @@ where
 | "fib (Suc 0) = 1"
 | "fib (Suc (Suc n)) = fib n + fib (Suc n)"
 
-(*<*)termination by lexicographic_order(*>*)
-
 text {*
   The function always terminates, since the argument of gets smaller in every
   recursive call. Termination is an
@@ -55,7 +53,6 @@ fun sep :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
   "sep a (x#y#xs) = x # a # sep a (y # xs)"
 | "sep a xs       = xs"
-(*<*)termination by lexicographic_order(*>*)
 
 text {* 
   Overlapping patterns are interpreted as "increments" to what is
@@ -165,11 +162,11 @@ text {*
   @{text "N + 1 - i"} decreases in every recursive call.
 
   We can use this expression as a measure function to construct a
-  wellfounded relation, which is a proof of termination:
+  wellfounded relation, which can prove termination.
 *}
 
 termination 
-  by (auto_term "measure (\<lambda>(i,N). N + 1 - i)")
+  by (relation "measure (\<lambda>(i,N). N + 1 - i)") auto
 
 text {*
   Note that the two (curried) function arguments appear as a pair in
@@ -199,7 +196,7 @@ text {*
 *}
 
 termination 
-  by (auto_term "measures [\<lambda>(i, N). N, \<lambda>(i,N). N + 1 - i]")
+  by (relation "measures [\<lambda>(i, N). N, \<lambda>(i,N). N + 1 - i]") auto
 
 
 section {* Mutual Recursion *}
@@ -208,7 +205,6 @@ text {*
   If two or more functions call one another mutually, they have to be defined
   in one step. The simplest example are probably @{text "even"} and @{text "odd"}:
 *}
-(*<*)hide const even odd(*>*)
 
 function even odd :: "nat \<Rightarrow> bool"
 where
@@ -228,7 +224,7 @@ text {*
 *}
 
 termination 
-  by (auto_term "measure (sum_case (%n. n) (%n. n))")
+  by (relation "measure (sum_case (%n. n) (%n. n))") auto
 
 
 

@@ -42,21 +42,7 @@ In most cases, defining a recursive function is just as simple as other definiti
 \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}fib\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
 {\isacharbar}\ {\isachardoublequoteopen}fib\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}fib\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ fib\ n\ {\isacharplus}\ fib\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
+{\isacharbar}\ {\isachardoublequoteopen}fib\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ fib\ n\ {\isacharplus}\ fib\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 The function always terminates, since the argument of gets smaller in every
   recursive call. Termination is an
@@ -90,19 +76,6 @@ Like in functional programming, functions can be defined by pattern
 \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}sep\ a\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ x\ {\isacharhash}\ a\ {\isacharhash}\ sep\ a\ {\isacharparenleft}y\ {\isacharhash}\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
 {\isacharbar}\ {\isachardoublequoteopen}sep\ a\ xs\ \ \ \ \ \ \ {\isacharequal}\ xs{\isachardoublequoteclose}%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
 \begin{isamarkuptext}%
 Overlapping patterns are interpreted as "increments" to what is
   already there: The second equation is only meant for the cases where
@@ -281,7 +254,7 @@ The {\tt lexicographic\_order} method fails on this example, because none of the
   \isa{N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i} decreases in every recursive call.
 
   We can use this expression as a measure function to construct a
-  wellfounded relation, which is a proof of termination:%
+  wellfounded relation, which can prove termination.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{termination}\isamarkupfalse%
@@ -293,7 +266,7 @@ The {\tt lexicographic\_order} method fails on this example, because none of the
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}auto{\isacharunderscore}term\ {\isachardoublequoteopen}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}i{\isacharcomma}N{\isacharparenright}{\isachardot}\ N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
+\ {\isacharparenleft}relation\ {\isachardoublequoteopen}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}i{\isacharcomma}N{\isacharparenright}{\isachardot}\ N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}\ auto%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -351,7 +324,7 @@ When \isa{i} has reached \isa{N}, it starts at zero again
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}auto{\isacharunderscore}term\ {\isachardoublequoteopen}measures\ {\isacharbrackleft}{\isasymlambda}{\isacharparenleft}i{\isacharcomma}\ N{\isacharparenright}{\isachardot}\ N{\isacharcomma}\ {\isasymlambda}{\isacharparenleft}i{\isacharcomma}N{\isacharparenright}{\isachardot}\ N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i{\isacharbrackright}{\isachardoublequoteclose}{\isacharparenright}%
+\ {\isacharparenleft}relation\ {\isachardoublequoteopen}measures\ {\isacharbrackleft}{\isasymlambda}{\isacharparenleft}i{\isacharcomma}\ N{\isacharparenright}{\isachardot}\ N{\isacharcomma}\ {\isasymlambda}{\isacharparenleft}i{\isacharcomma}N{\isacharparenright}{\isachardot}\ N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i{\isacharbrackright}{\isachardoublequoteclose}{\isacharparenright}\ auto%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -368,7 +341,6 @@ If two or more functions call one another mutually, they have to be defined
   in one step. The simplest example are probably \isa{even} and \isa{odd}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isanewline
 \isacommand{function}\isamarkupfalse%
 \ even\ odd\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \isakeyword{where}\isanewline
@@ -409,7 +381,7 @@ To solve the problem of mutual dependencies, Isabelle internally
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}auto{\isacharunderscore}term\ {\isachardoublequoteopen}measure\ {\isacharparenleft}sum{\isacharunderscore}case\ {\isacharparenleft}{\isacharpercent}n{\isachardot}\ n{\isacharparenright}\ {\isacharparenleft}{\isacharpercent}n{\isachardot}\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
+\ {\isacharparenleft}relation\ {\isachardoublequoteopen}measure\ {\isacharparenleft}sum{\isacharunderscore}case\ {\isacharparenleft}{\isacharpercent}n{\isachardot}\ n{\isacharparenright}\ {\isacharparenleft}{\isacharpercent}n{\isachardot}\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}\ auto%
 \endisatagproof
 {\isafoldproof}%
 %
