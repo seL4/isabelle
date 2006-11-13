@@ -8,7 +8,7 @@
 header{* Fixed Points and the Knaster-Tarski Theorem*}
 
 theory FixedPoint
-imports Product_Type
+imports Product_Type LOrder
 begin
 
 subsection {* Complete lattices *}
