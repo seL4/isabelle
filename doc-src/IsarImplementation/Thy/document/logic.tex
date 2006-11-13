@@ -330,7 +330,7 @@ The language of types is an uninterpreted order-sorted first-order
   \indexml{betapply}\verb|betapply: term * term -> term| \\
   \indexml{Sign.add-consts-i}\verb|Sign.add_consts_i: (string * typ * mixfix) list -> theory -> theory| \\
   \indexml{Sign.add-abbrevs}\verb|Sign.add_abbrevs: string * bool ->|\isasep\isanewline%
-\verb|  ((string * mixfix) * term) list -> theory -> theory| \\
+\verb|  ((string * mixfix) * term) list -> theory -> (term * term) list * theory| \\
   \indexml{Sign.const-typargs}\verb|Sign.const_typargs: theory -> string * typ -> typ list| \\
   \indexml{Sign.const-instance}\verb|Sign.const_instance: theory -> string * typ list -> typ| \\
   \end{mldecls}

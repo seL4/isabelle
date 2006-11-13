@@ -1,4 +1,4 @@
-(*<*)theory Rules = Main:(*>*)
+(*<*)theory Rules imports Main begin(*>*)
 
 section{*The Rules of the Game*}
 

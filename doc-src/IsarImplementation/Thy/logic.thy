@@ -328,7 +328,7 @@ text %mlref {*
   @{index_ML betapply: "term * term -> term"} \\
   @{index_ML Sign.add_consts_i: "(string * typ * mixfix) list -> theory -> theory"} \\
   @{index_ML Sign.add_abbrevs: "string * bool ->
-  ((string * mixfix) * term) list -> theory -> theory"} \\
+  ((string * mixfix) * term) list -> theory -> (term * term) list * theory"} \\
   @{index_ML Sign.const_typargs: "theory -> string * typ -> typ list"} \\
   @{index_ML Sign.const_instance: "theory -> string * typ list -> typ"} \\
   \end{mldecls}

@@ -1,4 +1,4 @@
-(*<*)theory Sets = Main:(*>*)
+(*<*)theory Sets imports Main begin(*>*)
 
 section{*Sets, Functions and Relations*}
 

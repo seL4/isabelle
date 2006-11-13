@@ -1,4 +1,4 @@
-(*<*)theory FP1 = Main:(*>*)
+(*<*)theory FP1 imports Main begin(*>*)
 
 subsection{*Quickcheck*}
 

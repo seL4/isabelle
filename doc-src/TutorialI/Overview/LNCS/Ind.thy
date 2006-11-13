@@ -1,4 +1,4 @@
-(*<*)theory Ind = Main:(*>*)
+(*<*)theory Ind imports Main begin(*>*)
 
 section{*Inductive Definitions*}
 
