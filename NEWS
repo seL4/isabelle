@@ -45,9 +45,8 @@ and scalability.
 
 *** Document preparation ***
 
-* Added antiquotation @{theory thyname} which checks the given
-source text as name of a theory loaded or loadable via the current
-theory loader path.
+* Added antiquotation @{theory name} which prints the name $A$, after
+checking that it refers to a valid theory in the current session.
 
 * Added antiquotations @{ML_type text} and @{ML_struct text} which
 check the given source text as ML type/structure, printing verbatim.
