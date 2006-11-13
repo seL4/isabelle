@@ -27,8 +27,8 @@ sig
     -> theory -> theory * {induct_rules: thm}
   val defer_recdef_i: xstring -> term list -> (thm list * attribute list) list
     -> theory -> theory * {induct_rules: thm}
-  val recdef_tc: bstring * Attrib.src list -> xstring -> int option -> theory -> Proof.state
-  val recdef_tc_i: bstring * attribute list -> string -> int option -> theory -> Proof.state
+  val recdef_tc: bstring * Attrib.src list -> xstring -> int option -> local_theory -> Proof.state
+  val recdef_tc_i: bstring * Attrib.src list -> string -> int option -> local_theory -> Proof.state
   val setup: theory -> theory
 end;
 
@@ -272,28 +272,32 @@ fun gen_defer_recdef tfl_fn app_thms raw_name eqs raw_congs thy =
       ||> Theory.parent_path;
   in (thy3, {induct_rules = induct_rules'}) end;
 
-val defer_recdef = gen_defer_recdef Tfl.defer IsarThy.apply_theorems;
-val defer_recdef_i = gen_defer_recdef Tfl.defer_i IsarThy.apply_theorems_i;
+val defer_recdef = gen_defer_recdef Tfl.defer IsarCmd.apply_theorems;
+val defer_recdef_i = gen_defer_recdef Tfl.defer_i IsarCmd.apply_theorems_i;
 
 
 
 (** recdef_tc(_i) **)
 
-fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i thy =
+fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i lthy =
   let
+    val thy = ProofContext.theory_of lthy;
     val name = prep_name thy raw_name;
     val atts = map (prep_att thy) raw_atts;
     val tcs =
       (case get_recdef thy name of
         NONE => error ("No recdef definition of constant: " ^ quote name)
       | SOME {tcs, ...} => tcs);
-    val i = getOpt (opt_i, 1);
-    val tc = List.nth (tcs, i - 1) handle Subscript =>
+    val i = the_default 1 opt_i;
+    val tc = nth tcs (i - 1) handle Subscript =>
       error ("No termination condition #" ^ string_of_int i ^
         " in recdef definition of " ^ quote name);
-  in IsarThy.theorem_i PureThy.internalK (bname, atts) (HOLogic.mk_Trueprop tc, []) thy end;
+  in
+    Specification.theorem_i PureThy.internalK NONE (K I) (bname, atts)
+      [] (Element.Shows [(("", []), [(HOLogic.mk_Trueprop tc, [])])]) lthy
+  end;
 
-val recdef_tc = gen_recdef_tc Attrib.attribute Sign.intern_const;
+val recdef_tc = gen_recdef_tc Attrib.intern_src Sign.intern_const;
 val recdef_tc_i = gen_recdef_tc (K I) (K I);
 
 
@@ -339,9 +343,10 @@ val defer_recdefP =
 
 val recdef_tcP =
   OuterSyntax.command "recdef_tc" "recommence proof of termination condition (TFL)" K.thy_goal
-    (P.opt_thm_name ":" -- P.xname -- Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")")
-      >> (fn ((thm_name, name), i) =>
-        Toplevel.print o Toplevel.theory_to_proof (recdef_tc thm_name name i)));
+    (P.opt_locale_target --
+      P.opt_thm_name ":" -- P.xname -- Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")")
+      >> (fn (((loc, thm_name), name), i) =>
+        Toplevel.print o Toplevel.local_theory_to_proof loc (recdef_tc thm_name name i)));
 
 
 val _ = OuterSyntax.add_keywords ["permissive", "congs", "hints"];
