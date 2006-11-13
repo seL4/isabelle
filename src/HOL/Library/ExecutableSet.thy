@@ -96,7 +96,8 @@ where
   "unionl [] ys = ys"
 | "unionl xs ys = foldr insertl xs ys"
 by pat_completeness auto
-termination unionl by (auto_term "{}")
+termination by lexicographic_order
+
 lemmas unionl_def = unionl.simps(2)
 declare unionl.simps[code]
 
@@ -105,8 +106,9 @@ where
   "intersect [] ys = []"
 | "intersect xs [] = []"
 | "intersect xs ys = filter (member xs) ys"
-  by pat_completeness auto
-termination intersect by (auto_term "{}")
+by pat_completeness auto
+termination by lexicographic_order
+
 lemmas intersect_def = intersect.simps(3)
 declare intersect.simps[code]
 
@@ -115,8 +117,9 @@ where
   "subtract [] ys = ys"
 | "subtract xs [] = []"
 | "subtract xs ys = foldr remove1 xs ys"
-  by pat_completeness auto
-termination subtract by (auto_term "{}")
+by pat_completeness auto
+termination by lexicographic_order
+
 lemmas subtract_def = subtract.simps(3)
 declare subtract.simps[code]
 
@@ -124,8 +127,9 @@ function map_distinct :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarr
 where
   "map_distinct f [] = []"
 | "map_distinct f xs = foldr (insertl o f) xs []"
-  by pat_completeness auto
-termination map_distinct by (auto_term "{}")
+by pat_completeness auto
+termination by lexicographic_order
+
 lemmas map_distinct_def = map_distinct.simps(2)
 declare map_distinct.simps[code]
 
@@ -133,8 +137,9 @@ function unions :: "'a list list \<Rightarrow> 'a list"
 where
   "unions [] = []"
   "unions xs = foldr unionl xs []"
-  by pat_completeness auto
-termination unions by (auto_term "{}")
+by pat_completeness auto
+termination by lexicographic_order
+
 lemmas unions_def = unions.simps(2)
 declare unions.simps[code]
 
