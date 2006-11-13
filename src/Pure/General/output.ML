@@ -24,6 +24,7 @@ sig
   val priority: string -> unit
   val tracing: string -> unit
   val warning: string -> unit
+  val change_warn: ('b -> 'a -> bool) -> ('a -> 'b -> 'b) -> ('a -> string) -> 'a -> 'b -> 'b
   val update_warn: ('a * 'a -> bool) -> string -> ('a * 'b) -> ('a * 'b) list -> ('a * 'b) list
   val overwrite_warn: (''a * 'b) list * (''a * 'b) -> string -> (''a * 'b) list
   val show_debug_msgs: bool ref
@@ -150,6 +151,12 @@ fun toplevel_errors f x =
   else f x;
 
 fun ML_errors f = setmp do_toplevel_errors true (toplevel_errors f);
+
+
+(* overwriting change with warning *)
+
+fun change_warn ex upd msg x xs =
+  (if ex xs x then warning (msg x) else (); upd x xs);
 
 
 (* AList operations *)
