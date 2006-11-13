@@ -546,7 +546,6 @@ text {*
 fun
   in_interval :: "nat \<times> nat \<Rightarrow> nat \<Rightarrow> bool" where
   "in_interval (k, l) n \<longleftrightarrow> k \<le> n \<and> n \<le> l"
-termination by (auto_term "{}")
 (*<*)
 declare in_interval.simps [code func]
 (*>*)
@@ -718,7 +717,6 @@ fun
       then collect_duplicates xs ys zs
       else collect_duplicates xs (z#ys) zs
     else collect_duplicates (z#xs) (z#ys) zs)"
-termination by (auto_term "measure (length o snd o snd)")
 (*<*)
 lemmas [code func] = collect_duplicates.simps
 (*>*)
@@ -809,7 +807,6 @@ fun
   lookup :: "(key \<times> 'a) list \<Rightarrow> key \<Rightarrow> 'a option" where
   "lookup [] l = None"
   "lookup ((k, v) # xs) l = (if k = l then Some v else lookup xs l)"
-termination by (auto_term "measure (length o fst)")
 (*<*)
 lemmas [code func] = lookup.simps
 (*>*)
@@ -1115,7 +1112,6 @@ fun
   dummy_option :: "'a list \<Rightarrow> 'a option" where
   "dummy_option (x#xs) = Some x"
   "dummy_option [] = arbitrary"
-termination by (auto_term "{}")
 (*<*)
 declare dummy_option.simps [code func]
 (*>*)
@@ -1184,7 +1180,7 @@ subsubsection {* Suspended theorems *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML CodegenData.lazy: "(unit -> thm list) -> CodegenData.lthms"}
+  @{index_ML CodegenData.lazy: "(unit -> thm list) -> thm list Susp.T"}
   \end{mldecls}
 
   \begin{description}
@@ -1201,7 +1197,7 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML CodegenData.add_func: "thm -> theory -> theory"} \\
   @{index_ML CodegenData.del_func: "thm -> theory -> theory"} \\
-  @{index_ML CodegenData.add_funcl: "CodegenConsts.const * CodegenData.lthms -> theory -> theory"} \\
+  @{index_ML CodegenData.add_funcl: "CodegenConsts.const * thm list Susp.T -> theory -> theory"} \\
   @{index_ML CodegenData.add_inline: "thm -> theory -> theory"} \\
   @{index_ML CodegenData.del_inline: "thm -> theory -> theory"} \\
   @{index_ML CodegenData.add_inline_proc: "(theory -> cterm list -> thm list)
@@ -1209,7 +1205,7 @@ text %mlref {*
   @{index_ML CodegenData.add_preproc: "(theory -> thm list -> thm list)
     -> theory -> theory"} \\
   @{index_ML CodegenData.add_datatype: "string * (((string * sort) list * (string * typ list) list)
-    * CodegenData.lthms) -> theory -> theory"} \\
+    * thm list Susp.T) -> theory -> theory"} \\
   @{index_ML CodegenData.del_datatype: "string -> theory -> theory"} \\
   @{index_ML CodegenData.get_datatype: "theory -> string
     -> ((string * sort) list * (string * typ list) list) option"} \\
