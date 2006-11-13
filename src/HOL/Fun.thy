@@ -7,12 +7,8 @@
 header {* Notions about functions *}
 
 theory Fun
-imports Typedef
+imports Set
 begin
-
-instance set :: (type) order
-  by (intro_classes,
-      (assumption | rule subset_refl subset_trans subset_antisym psubset_eq)+)
 
 constdefs
   fun_upd :: "('a => 'b) => 'a => 'b => ('a => 'b)"
@@ -77,10 +73,11 @@ constdefs
 
 text{*As a simplification rule, it replaces all function equalities by
   first-order equalities.*}
-lemma expand_fun_eq: "(f = g) = (! x. f(x)=g(x))"
+lemma expand_fun_eq: "f = g \<longleftrightarrow> (\<forall>x. f x = g x)"
 apply (rule iffI)
 apply (simp (no_asm_simp))
-apply (rule ext, simp (no_asm_simp))
+apply (rule ext)
+apply (simp (no_asm_simp))
 done
 
 lemma apply_inverse:
