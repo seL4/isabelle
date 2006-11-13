@@ -2,7 +2,8 @@
     ID:         $Id$
     Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
 
-Gordon/HOL-style type definitions.
+Gordon/HOL-style type definitions: create a new syntactic type
+represented by a non-empty subset.
 *)
 
 signature TYPEDEF_PACKAGE =
@@ -28,7 +29,6 @@ end;
 
 structure TypedefPackage: TYPEDEF_PACKAGE =
 struct
-
 
 (** theory context references **)
 
@@ -93,27 +93,25 @@ fun put_info name info = TypedefData.map (Symtab.update (name, info));
 
 (* prepare_typedef *)
 
-fun read_term thy used s =
-  #1 (Thm.read_def_cterm (thy, K NONE, K NONE) used true (s, HOLogic.typeT));
-
-fun cert_term thy _ t = Thm.cterm_of thy t handle TERM (msg, _) => error msg;
-
 fun err_in_typedef msg name =
   cat_error msg ("The error(s) above occurred in typedef " ^ quote name);
+
+fun declare_type_name a = Variable.declare_constraints (Logic.mk_type (TFree (a, dummyS)));
 
 fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
   let
     val _ = Theory.requires thy "Typedef" "typedefs";
+    val ctxt = ProofContext.init thy;
     val full = Sign.full_name thy;
 
     (*rhs*)
     val full_name = full name;
-    val cset = prep_term thy vs raw_set;
-    val {T = setT, t = set, ...} = Thm.rep_cterm cset;
+    val set = prep_term (ctxt |> fold declare_type_name vs) raw_set;
+    val setT = Term.fastype_of set;
     val rhs_tfrees = Term.add_tfrees set [];
     val rhs_tfreesT = Term.add_tfreesT setT [];
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
-      error ("Not a set type: " ^ quote (Sign.string_of_typ thy setT));
+      error ("Not a set type: " ^ quote (ProofContext.string_of_typ ctxt setT));
     fun mk_nonempty A =
       HOLogic.mk_Trueprop (HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A)));
     val goal = mk_nonempty set;
@@ -154,19 +152,18 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
         |-> (fn [th] => pair (SOME th))
       else (NONE, thy);
 
-    fun typedef_result nonempty context =
-      Context.the_theory context
-      |> add_typedecls [(t, vs, mx)]
-      |> Theory.add_consts_i
+    fun typedef_result nonempty =
+      add_typedecls [(t, vs, mx)]
+      #> Theory.add_consts_i
        ((if def then [(name, setT', NoSyn)] else []) @
         [(Rep_name, newT --> oldT, NoSyn),
          (Abs_name, oldT --> newT, NoSyn)])
-      |> add_def (Logic.mk_defpair (setC, set))
-      ||>> PureThy.add_axioms_i [((typedef_name, typedef_prop),
+      #> add_def (Logic.mk_defpair (setC, set))
+      ##>> PureThy.add_axioms_i [((typedef_name, typedef_prop),
           [apsnd (fn cond_axm => nonempty RS cond_axm)])]
-      ||> Theory.add_deps "" (dest_Const RepC) typedef_deps
-      ||> Theory.add_deps "" (dest_Const AbsC) typedef_deps
-      |-> (fn (set_def, [type_definition]) => fn thy1 =>
+      ##> Theory.add_deps "" (dest_Const RepC) typedef_deps
+      ##> Theory.add_deps "" (dest_Const AbsC) typedef_deps
+      #-> (fn (set_def, [type_definition]) => fn thy1 =>
         let
           fun make th = Drule.standard (th OF [type_definition]);
           val abs_inject = make Abs_inject;
@@ -197,7 +194,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
               Rep_inject = Rep_inject, Abs_inject = Abs_inject, Rep_cases = Rep_cases,
             Abs_cases = Abs_cases, Rep_induct = Rep_induct, Abs_induct = Abs_induct};
           val thy3 = thy2 |> put_info full_tname info;
-        in ((full_tname, info), Context.Theory thy3) end);
+        in ((full_tname, info), thy3) end);
 
 
     (* errors *)
@@ -225,11 +222,10 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
 
     (*test theory errors now!*)
     val test_thy = Theory.copy thy;
-    val _ =
-      Context.Theory test_thy
+    val _ = test_thy
       |> typedef_result (setmp quick_and_dirty true (SkipProof.make_thm test_thy) goal);
 
-  in (cset, goal, goal_pat, typedef_result) end
+  in (set, goal, goal_pat, typedef_result) end
   handle ERROR msg => err_in_typedef msg name;
 
 
@@ -239,22 +235,19 @@ local
 
 fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
   let
+    val string_of_term = ProofContext.string_of_term (ProofContext.init thy);
     val name = the_default (#1 typ) opt_name;
-    val (cset, goal, _, typedef_result) =
+    val (set, goal, _, typedef_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;
-    val _ = message ("Proving non-emptiness of set " ^ quote (string_of_cterm cset) ^ " ...");
+    val _ = message ("Proving non-emptiness of set " ^ quote (string_of_term set) ^ " ...");
     val non_empty = Goal.prove_global thy [] [] goal (K tac) handle ERROR msg =>
-      cat_error msg ("Failed to prove non-emptiness of " ^ quote (string_of_cterm cset));
-  in
-    Context.Theory thy
-    |> typedef_result non_empty
-    ||> Context.the_theory
-  end;
+      cat_error msg ("Failed to prove non-emptiness of " ^ quote (string_of_term set));
+  in typedef_result non_empty thy end;
 
 in
 
-val add_typedef = gen_typedef read_term;
-val add_typedef_i = gen_typedef cert_term;
+val add_typedef = gen_typedef ProofContext.read_term;
+val add_typedef_i = gen_typedef ProofContext.cert_term;
 
 end;
 
@@ -267,18 +260,17 @@ fun gen_typedef prep_term ((def, name), typ, set, opt_morphs) thy =
   let
     val (_, goal, goal_pat, typedef_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;
-    fun att (thy, th) =
-      let val ((name, {type_definition, ...}), thy') = typedef_result th thy
-      in (thy', type_definition) end;
+    fun after_qed [[th]] = ProofContext.theory (snd o typedef_result th);
   in
-    thy
-    |> IsarThy.theorem_i PureThy.internalK ("", [att]) (goal, [goal_pat])
+    ProofContext.init thy
+    |> Proof.theorem_i PureThy.internalK NONE after_qed NONE ("", [])
+      [(("", []), [(goal, [goal_pat])])]
   end;
 
 in
 
-val typedef = gen_typedef read_term;
-val typedef_i = gen_typedef cert_term;
+val typedef = gen_typedef ProofContext.read_term;
+val typedef_i = gen_typedef ProofContext.cert_term;
 
 end;
 

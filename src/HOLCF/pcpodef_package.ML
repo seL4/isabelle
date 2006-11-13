@@ -2,7 +2,8 @@
     ID:         $Id$
     Author:     Brian Huffman
 
-Gordon/HOL-style type definitions for HOLCF.
+Primitive domain definitions for HOLCF, similar to Gordon/HOL-style
+typedef.
 *)
 
 signature PCPODEF_PACKAGE =
@@ -20,7 +21,6 @@ end;
 
 structure PcpodefPackage: PCPODEF_PACKAGE =
 struct
-
 
 (** theory context references **)
 
@@ -48,28 +48,26 @@ fun message s = if ! quiet_mode then () else writeln s;
 
 (* prepare_cpodef *)
 
-fun read_term thy used s =
-  #1 (Thm.read_def_cterm (thy, K NONE, K NONE) used true (s, HOLogic.typeT));
-
-fun cert_term thy _ t = Thm.cterm_of thy t handle TERM (msg, _) => error msg;
-
 fun err_in_cpodef msg name =
   cat_error msg ("The error(s) above occurred in cpodef " ^ quote name);
+
+fun declare_type_name a = Variable.declare_constraints (Logic.mk_type (TFree (a, dummyS)));
 
 fun adm_const T = Const ("Adm.adm", (T --> HOLogic.boolT) --> HOLogic.boolT);
 fun mk_adm (x, T, P) = adm_const T $ absfree (x, T, P);
 
-fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
+fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
   let
+    val ctxt = ProofContext.init thy;
     val full = Sign.full_name thy;
 
     (*rhs*)
     val full_name = full name;
-    val cset = prep_term thy vs raw_set;
-    val {T = setT, t = set, ...} = Thm.rep_cterm cset;
+    val set = prep_term (ctxt |> fold declare_type_name vs) raw_set;
+    val setT = Term.fastype_of set;
     val rhs_tfrees = term_tfrees set;
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
-      error ("Not a set type: " ^ quote (Sign.string_of_typ thy setT));
+      error ("Not a set type: " ^ quote (ProofContext.string_of_typ ctxt setT));
     fun mk_nonempty A =
       HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A));
     fun mk_admissible A =
@@ -78,25 +76,22 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
     val goal = if pcpo
       then HOLogic.mk_Trueprop (HOLogic.mk_conj (mk_UU_mem set, mk_admissible set))
       else HOLogic.mk_Trueprop (HOLogic.mk_conj (mk_nonempty set, mk_admissible set));
-  
+
     (*lhs*)
-    val lhs_tfrees = map (fn v => (v, AList.lookup (op =) rhs_tfrees v |> the_default HOLogic.typeS)) vs;
+    val defS = Sign.defaultS thy;
+    val lhs_tfrees = map (fn v => (v, the_default defS (AList.lookup (op =) rhs_tfrees v))) vs;
     val lhs_sorts = map snd lhs_tfrees;
     val tname = Syntax.type_name t mx;
     val full_tname = full tname;
     val newT = Type (full_tname, map TFree lhs_tfrees);
 
-    val (Rep_name, Abs_name) = getOpt (opt_morphs, ("Rep_" ^ name, "Abs_" ^ name));
+    val (Rep_name, Abs_name) = the_default ("Rep_" ^ name, "Abs_" ^ name) opt_morphs;
     val RepC = Const (full Rep_name, newT --> oldT);
     fun lessC T = Const ("Porder.<<", T --> T --> HOLogic.boolT);
     val less_def = ("less_" ^ name ^ "_def", Logic.mk_equals (lessC newT,
       Abs ("x", newT, Abs ("y", newT, lessC oldT $ (RepC $ Bound 1) $ (RepC $ Bound 0)))));
 
-    fun option_fold_rule NONE = I
-      | option_fold_rule (SOME def) = fold_rule [def];
-    
-    fun make_po tac thy =
-      thy
+    fun make_po tac theory = theory
       |> TypedefPackage.add_typedef_i def (SOME name) (t, vs, mx) set opt_morphs tac
       ||> AxClass.prove_arity (full_tname, lhs_sorts, ["Porder.sq_ord"])
            (ClassPackage.intro_classes_tac [])
@@ -104,86 +99,88 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
       |-> (fn ((_, {type_definition, set_def, ...}), [less_definition]) =>
           AxClass.prove_arity (full_tname, lhs_sorts, ["Porder.po"])
              (Tactic.rtac (typedef_po OF [type_definition, less_definition]) 1)
-           #> rpair (type_definition, less_definition, set_def));
-    
-    fun make_cpo admissible (theory, defs as (type_def, less_def, set_def)) =
+           #> pair (type_definition, less_definition, set_def));
+
+    fun make_cpo admissible (type_def, less_def, set_def) theory =
       let
-        val admissible' = option_fold_rule set_def admissible;
+        val admissible' = fold_rule (the_list set_def) admissible;
         val cpo_thms = [type_def, less_def, admissible'];
-        val (_, theory') =
-          theory
-          |> AxClass.prove_arity (full_tname, lhs_sorts, ["Pcpo.cpo"])
-            (Tactic.rtac (typedef_cpo OF cpo_thms) 1)
-          |> Theory.add_path name
-          |> PureThy.add_thms
+      in
+        theory
+        |> AxClass.prove_arity (full_tname, lhs_sorts, ["Pcpo.cpo"])
+          (Tactic.rtac (typedef_cpo OF cpo_thms) 1)
+        |> Theory.add_path name
+        |> PureThy.add_thms
             ([(("adm_" ^ name, admissible'), []),
               (("cont_" ^ Rep_name, cont_Rep OF cpo_thms), []),
               (("cont_" ^ Abs_name, cont_Abs OF cpo_thms), []),
               (("lub_"     ^ name, typedef_lub     OF cpo_thms), []),
               (("thelub_"  ^ name, typedef_thelub  OF cpo_thms), []),
               (("compact_" ^ name, typedef_compact OF cpo_thms), [])])
-          ||> Theory.parent_path;
-      in (theory', defs) end;
+        |> snd
+        |> Theory.parent_path
+      end;
 
-    fun make_pcpo UUmem (theory, defs as (type_def, less_def, set_def)) =
+    fun make_pcpo UUmem (type_def, less_def, set_def) theory =
       let
-        val UUmem' = option_fold_rule set_def UUmem;
+        val UUmem' = fold_rule (the_list set_def) UUmem;
         val pcpo_thms = [type_def, less_def, UUmem'];
-        val (_, theory') =
-          theory
-          |> AxClass.prove_arity (full_tname, lhs_sorts, ["Pcpo.pcpo"])
-            (Tactic.rtac (typedef_pcpo OF pcpo_thms) 1)
-          |> Theory.add_path name
-          |> PureThy.add_thms
+      in
+        theory
+        |> AxClass.prove_arity (full_tname, lhs_sorts, ["Pcpo.pcpo"])
+          (Tactic.rtac (typedef_pcpo OF pcpo_thms) 1)
+        |> Theory.add_path name
+        |> PureThy.add_thms
             ([((Rep_name ^ "_strict", Rep_strict OF pcpo_thms), []),
               ((Abs_name ^ "_strict", Abs_strict OF pcpo_thms), []),
               ((Rep_name ^ "_defined", Rep_defined OF pcpo_thms), []),
               ((Abs_name ^ "_defined", Abs_defined OF pcpo_thms), [])
               ])
-          ||> Theory.parent_path;
-      in (theory', defs) end;
-    
-    fun pcpodef_result (context, UUmem_admissible) =
+        |> snd
+        |> Theory.parent_path
+      end;
+
+    fun pcpodef_result UUmem_admissible theory =
       let
-        val theory = Context.the_theory context;
         val UUmem = UUmem_admissible RS conjunct1;
         val admissible = UUmem_admissible RS conjunct2;
       in
         theory
         |> make_po (Tactic.rtac exI 1 THEN Tactic.rtac UUmem 1)
-        |> make_cpo admissible
-        |> make_pcpo UUmem
-        |> (fn (theory', (type_def, _, _)) => (Context.Theory theory', type_def))
+        |-> (fn defs => make_cpo admissible defs #> make_pcpo UUmem defs)
       end;
-  
-    fun cpodef_result (context, nonempty_admissible) =
+
+    fun cpodef_result nonempty_admissible theory =
       let
-        val theory = Context.the_theory context;
         val nonempty = nonempty_admissible RS conjunct1;
         val admissible = nonempty_admissible RS conjunct2;
       in
         theory
         |> make_po (Tactic.rtac nonempty 1)
-        |> make_cpo admissible
-        |> (fn (theory', (type_def, _, _)) => (Context.Theory theory', type_def))
+        |-> make_cpo admissible
       end;
-  
+
   in (goal, if pcpo then pcpodef_result else cpodef_result) end
   handle ERROR msg => err_in_cpodef msg name;
+
 
 (* cpodef_proof interface *)
 
 fun gen_pcpodef_proof prep_term pcpo ((def, name), typ, set, opt_morphs) thy =
   let
-    val (goal, att) =
-      gen_prepare_pcpodef prep_term pcpo def name typ set opt_morphs thy;
-  in IsarThy.theorem_i PureThy.internalK ("", [att]) (goal, []) thy end;
+    val (goal, pcpodef_result) =
+      prepare_pcpodef prep_term pcpo def name typ set opt_morphs thy;
+    fun after_qed [[th]] = ProofContext.theory (pcpodef_result th);
+  in
+    ProofContext.init thy
+    |> Proof.theorem_i PureThy.internalK NONE after_qed NONE ("", []) [(("", []), [(goal, [])])]
+  end;
 
-fun pcpodef_proof x = gen_pcpodef_proof read_term true x;
-fun pcpodef_proof_i x = gen_pcpodef_proof cert_term true x;
+fun pcpodef_proof x = gen_pcpodef_proof ProofContext.read_term true x;
+fun pcpodef_proof_i x = gen_pcpodef_proof ProofContext.cert_term true x;
 
-fun cpodef_proof x = gen_pcpodef_proof read_term false x;
-fun cpodef_proof_i x = gen_pcpodef_proof cert_term false x;
+fun cpodef_proof x = gen_pcpodef_proof ProofContext.read_term false x;
+fun cpodef_proof_i x = gen_pcpodef_proof ProofContext.cert_term false x;
 
 
 (** outer syntax **)
@@ -200,7 +197,7 @@ val typedef_proof_decl =
 
 fun mk_pcpodef_proof pcpo ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
   (if pcpo then pcpodef_proof else cpodef_proof)
-    ((def, getOpt (opt_name, Syntax.type_name t mx)), (t, vs, mx), A, morphs);
+    ((def, the_default (Syntax.type_name t mx) opt_name), (t, vs, mx), A, morphs);
 
 val pcpodefP =
   OuterSyntax.command "pcpodef" "HOLCF type definition (requires admissibility proof)" K.thy_goal
