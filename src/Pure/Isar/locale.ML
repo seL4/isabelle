@@ -2142,30 +2142,22 @@ fun prep_registration_in_locale target expr thy =
   in (propss, activate) end;
 
 fun prep_propp propss = propss |> map (fn (_, props) =>
-  (("", []), map (rpair [] o Element.mark_witness) props));
+  map (rpair [] o Element.mark_witness) props);
 
 fun prep_result propps thmss =
   ListPair.map (fn ((_, props), thms) => map2 Element.make_witness props thms) (propps, thmss);
-
-fun goal_name thy kind target propss =
-    kind ^ Proof.goal_names (Option.map (extern thy) target) ""
-      (propss |> map (fn ((name, _), _) => extern thy name));
-
-val global_goal = Proof.global_goal ProofDisplay.present_results
-  Attrib.attribute_i ProofContext.bind_propp_schematic_i;
 
 in
 
 fun interpretation after_qed (prfx, atts) expr insts thy =
   let
     val (propss, activate) = prep_global_registration (prfx, atts) expr insts thy;
-    val kind = goal_name thy "interpretation" NONE propss;
     fun after_qed' results =
       ProofContext.theory (activate (prep_result propss results))
       #> after_qed;
   in
     ProofContext.init thy
-    |> Proof.theorem_i kind NONE after_qed' NONE ("", []) (prep_propp propss)
+    |> Proof.theorem_i "interpretation" NONE after_qed' (prep_propp propss)
     |> Element.refine_witness |> Seq.hd
   end;
 
@@ -2173,19 +2165,18 @@ fun interpretation_in_locale after_qed (raw_target, expr) thy =
   let
     val target = intern thy raw_target;
     val (propss, activate) = prep_registration_in_locale target expr thy;
-    val kind = goal_name thy "interpretation" (SOME target) propss;
-    val raw_stmt = prep_propp propss;
+    val raw_propp = prep_propp propss;
 
     val (_, _, goal_ctxt, propp) = thy
       |> ProofContext.init |> init_term_syntax target
-      |> cert_context_statement (SOME target) [] (map snd raw_stmt)
+      |> cert_context_statement (SOME target) [] raw_propp;
 
     fun after_qed' results =
       ProofContext.theory (activate (prep_result propss results))
       #> after_qed;
   in
     goal_ctxt
-    |> global_goal kind NONE after_qed' NONE ("", []) (map fst raw_stmt ~~ propp)
+    |> Proof.theorem_i "interpretation" NONE after_qed' propp
     |> Element.refine_witness |> Seq.hd
   end;
 
@@ -2194,7 +2185,6 @@ fun interpret after_qed (prfx, atts) expr insts int state =
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
     val (propss, activate) = prep_local_registration (prfx, atts) expr insts ctxt;
-    val kind = goal_name (Proof.theory_of state) "interpret" NONE propss;
     fun after_qed' results =
       Proof.map_context (K (ctxt |> activate (prep_result propss results)))
       #> Proof.put_facts NONE
@@ -2202,7 +2192,7 @@ fun interpret after_qed (prfx, atts) expr insts int state =
   in
     state
     |> Proof.local_goal (ProofDisplay.print_results int) (K I) ProofContext.bind_propp_i
-      kind NONE after_qed' (prep_propp propss)
+      "interpret" NONE after_qed' (map (pair ("", [])) (prep_propp propss))
     |> Element.refine_witness |> Seq.hd
   end;
 
