@@ -48,8 +48,8 @@ lemma wf_in_rel:
 
 inductive2 accP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
   for r :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-intros
-    accPI: "(!!y. r y x ==> accP r y) ==> accP r x"
+where
+  accPI: "(!!y. r y x ==> accP r y) ==> accP r x"
 
 
 theorem accP_induct:
