@@ -121,7 +121,7 @@ fun gen_add_fundef prep_spec fixspec eqnss_flags config lthy =
       val afterqed = fundef_afterqed config fixes spec mutual_info name prep_result
     in
       (name, lthy
-         |> Proof.theorem_i PureThy.internalK NONE afterqed NONE ("", []) [(("", []), [(goal, [])])]
+         |> Proof.theorem_i PureThy.internalK NONE afterqed [[(goal, [])]]
          |> Proof.refine (Method.primitive_text (fn _ => goalI)) |> Seq.hd)
     end
 
@@ -163,8 +163,7 @@ fun setup_termination_proof name_opt lthy =
                                         [ContextRules.intro_query NONE]), [(ProofContext.standard lthy [termination], [])])] |> snd
         |> set_termination_rule termination
         |> Proof.theorem_i PureThy.internalK NONE
-                           (total_termination_afterqed name data) NONE ("", [])
-                           [(("", []), [(goal, [])])]
+                           (total_termination_afterqed name data) [[(goal, [])]]
     end
 
 

@@ -263,8 +263,7 @@ fun gen_typedef prep_term ((def, name), typ, set, opt_morphs) thy =
     fun after_qed [[th]] = ProofContext.theory (snd o typedef_result th);
   in
     ProofContext.init thy
-    |> Proof.theorem_i PureThy.internalK NONE after_qed NONE ("", [])
-      [(("", []), [(goal, [goal_pat])])]
+    |> Proof.theorem_i PureThy.internalK NONE after_qed [[(goal, [goal_pat])]]
   end;
 
 in

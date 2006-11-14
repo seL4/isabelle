@@ -173,7 +173,7 @@ fun gen_pcpodef_proof prep_term pcpo ((def, name), typ, set, opt_morphs) thy =
     fun after_qed [[th]] = ProofContext.theory (pcpodef_result th);
   in
     ProofContext.init thy
-    |> Proof.theorem_i PureThy.internalK NONE after_qed NONE ("", []) [(("", []), [(goal, [])])]
+    |> Proof.theorem_i PureThy.internalK NONE after_qed [[(goal, [])]]
   end;
 
 fun pcpodef_proof x = gen_pcpodef_proof ProofContext.read_term true x;

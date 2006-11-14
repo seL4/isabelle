@@ -283,8 +283,7 @@ fun gen_theorem prep_att prep_stmt
       end;
   in
     goal_ctxt
-    |> Proof.global_goal (K (K ())) Attrib.attribute_i ProofContext.bind_propp_schematic_i
-      kind before_qed after_qed' NONE (name, []) stmt
+    |> Proof.theorem_i kind before_qed after_qed' (map snd stmt)
     |> Proof.refine_insert facts
   end;
 
