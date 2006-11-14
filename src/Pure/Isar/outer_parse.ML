@@ -66,6 +66,7 @@ sig
   val simple_fixes: token list -> (string * string option) list * token list
   val fixes: token list -> (string * string option * mixfix) list * token list
   val for_fixes: token list -> (string * string option * mixfix) list * token list
+  val for_simple_fixes: token list -> (string * string option) list * token list
   val term: token list -> string * token list
   val prop: token list -> string * token list
   val propp: token list -> (string * string list) * token list
@@ -90,8 +91,8 @@ sig
   val locale_target: token list -> xstring * token list
   val opt_locale_target: token list -> xstring option * token list
   val locale_expr: token list -> Locale.expr * token list
-  val locale_expr_unless: (token list -> 'a * token list) -> 
-         token list -> Locale.expr * token list 
+  val locale_expr_unless: (token list -> 'a * token list) ->
+    token list -> Locale.expr * token list
   val locale_keyword: token list -> string * token list
   val locale_element: token list -> Element.context Locale.element * token list
   val context_element: token list -> Element.context * token list
@@ -100,6 +101,10 @@ sig
   val general_statement: token list ->
     (Element.context Locale.element list * Element.statement) * OuterLex.token list
   val statement_keyword: token list -> string * token list
+  val specification: token list ->
+    (string *
+      (((bstring * Attrib.src list) * string list) list * (string * string option) list)) list *
+    token list
   val method: token list -> Method.text * token list
 end;
 
@@ -274,6 +279,7 @@ val fixes =
     params >> map Syntax.no_syn) >> flat;
 
 val for_fixes = Scan.optional ($$$ "for" |-- !!! fixes) [];
+val for_simple_fixes = Scan.optional ($$$ "for" |-- !!! simple_fixes) [];
 
 
 (* terms *)
@@ -381,7 +387,7 @@ fun plus1 test scan =
 val rename = name -- Scan.option mixfix;
 
 fun expr test =
-  let 
+  let
     fun expr2 x = (xname >> Locale.Locale || $$$ "(" |-- !!! (expr0 --| $$$ ")")) x
     and expr1 x = (expr2 -- Scan.repeat1 (maybe rename) >> Locale.Rename || expr2) x
     and expr0 x = (plus1 test expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
@@ -417,6 +423,11 @@ val general_statement =
     $$$ "shows" |-- !!! statement >> Element.Shows);
 
 val statement_keyword =  $$$ "obtains" || $$$ "shows";
+
+
+(* specifications *)
+
+val specification = enum1 "|" (parname -- (and_list1 spec -- for_simple_fixes));
 
 
 (* proof methods *)
