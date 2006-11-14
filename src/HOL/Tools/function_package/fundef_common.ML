@@ -245,7 +245,7 @@ structure TerminationRule = ProofDataFun
 (struct
     val name = "HOL/function_def/termination"
     type T = thm option
-    val init = K NONE
+    fun init _ = NONE
     fun print  _ _ = ()
 end);
 
