@@ -86,6 +86,7 @@ fun prep_specification prep_vars prep_propp prep_att raw_vars raw_specs ctxt =
 
 fun read_specification x =
   prep_specification ProofContext.read_vars ProofContext.read_propp Attrib.intern_src x;
+
 fun cert_specification x =
   prep_specification ProofContext.cert_vars ProofContext.cert_propp (K I) x;
 
@@ -100,7 +101,7 @@ fun gen_axioms prep raw_vars raw_specs lthy =
 
     val ((consts, axioms), lthy') = lthy
       |> LocalTheory.consts spec_frees vars
-      ||> fold (fold Variable.fix_frees o snd) specs   (* FIXME !? *)
+      ||> fold (fold Variable.auto_fixes o snd) specs   (* FIXME !? *)
       ||>> LocalTheory.axioms specs;
 
     (* FIXME generic target!? *)
@@ -206,7 +207,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
     Element.Shows shows =>
       let
         val (_, _, elems_ctxt, propp) = prep_stmt elems (map snd shows) ctxt;
-        val goal_ctxt = fold (fold (Variable.fix_frees o fst)) propp elems_ctxt;
+        val goal_ctxt = fold (fold (Variable.auto_fixes o fst)) propp elems_ctxt;
         val stmt = Attrib.map_specs prep_att (map fst shows ~~ propp);
       in ((stmt, []), goal_ctxt) end
   | Element.Obtains obtains =>
@@ -232,7 +233,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
             val asm = Term.list_all_free (parms, Logic.list_implies (props, thesis));
           in
             ctxt' |> (snd o ProofContext.add_fixes_i (map (fn x => (x, NONE, NoSyn)) xs));
-            ctxt' |> Variable.fix_frees asm
+            ctxt' |> Variable.auto_fixes asm
             |> ProofContext.add_assms_i Assumption.assume_export
               [((name, [ContextRules.intro_query NONE]), [(asm, [])])]
             |>> (fn [(_, [th])] => th)

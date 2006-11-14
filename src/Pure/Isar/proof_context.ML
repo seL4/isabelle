@@ -921,8 +921,7 @@ end;
 (* fixes vs. frees *)
 
 fun auto_fixes (arg as (ctxt, (propss, x))) =
-  if Variable.is_body ctxt then arg
-  else ((fold o fold) Variable.fix_frees propss ctxt, (propss, x));
+  ((fold o fold) Variable.auto_fixes propss ctxt, (propss, x));
 
 fun bind_fixes xs ctxt =
   let
