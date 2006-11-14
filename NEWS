@@ -46,7 +46,8 @@ and scalability.
 *** Document preparation ***
 
 * Added antiquotation @{theory name} which prints the name $A$, after
-checking that it refers to a valid theory in the current session.
+checking that it refers to a valid ancestor theory in the current
+context.
 
 * Added antiquotations @{ML_type text} and @{ML_struct text} which
 check the given source text as ML type/structure, printing verbatim.
