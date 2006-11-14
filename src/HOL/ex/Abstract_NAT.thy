@@ -18,81 +18,114 @@ locale NAT =
     and succ_neq_zero [simp]: "succ m \<noteq> zero"
     and induct [case_names zero succ, induct type: 'n]:
       "P zero \<Longrightarrow> (\<And>n. P n \<Longrightarrow> P (succ n)) \<Longrightarrow> P n"
+begin
 
-lemma (in NAT) zero_neq_succ [simp]: "zero \<noteq> succ m"
+lemma zero_neq_succ [simp]: "zero \<noteq> succ m"
   by (rule succ_neq_zero [symmetric])
 
 
-text {*
-  Primitive recursion as a (functional) relation -- polymorphic!
+text {* \medskip Primitive recursion as a (functional) relation -- polymorphic! *}
 
-  (We simulate a localized version of the inductive packages using
-  explicit premises + parameters, and an abbreviation.) *}
+inductive2
+  Rec :: "'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> 'a \<Rightarrow> bool"
+  for e :: 'a and r :: "'n \<Rightarrow> 'a \<Rightarrow> 'a"
+where
+    Rec_zero: "Rec e r zero e"
+  | Rec_succ: "Rec e r m n \<Longrightarrow> Rec e r (succ m) (r m n)"
 
-consts
-  REC :: "'n \<Rightarrow> ('n \<Rightarrow> 'n) \<Rightarrow> 'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('n * 'a) set"
-inductive "REC zer succ e r"
-  intros
-    Rec_zero: "NAT zer succ \<Longrightarrow> (zer, e) \<in> REC zer succ e r"
-    Rec_succ: "NAT zer succ \<Longrightarrow> (m, n) \<in> REC zer succ e r \<Longrightarrow>
-      (succ m, r m n) \<in> REC zer succ e r"
-
-abbreviation (in NAT)
-  "Rec == REC zero succ"
-
-lemma (in NAT) Rec_functional:
+lemma Rec_functional:
   fixes x :: 'n
-  shows "\<exists>!y::'a. (x, y) \<in> Rec e r"  (is "\<exists>!y::'a. _ \<in> ?Rec")
-proof (induct x)
-  case zero
-  show "\<exists>!y. (zero, y) \<in> ?Rec"
-  proof
-    show "(zero, e) \<in> ?Rec" by (rule Rec_zero)
-    fix y assume "(zero, y) \<in> ?Rec"
-    then show "y = e" by cases simp_all
-  qed
-next
-  case (succ m)
-  from `\<exists>!y. (m, y) \<in> ?Rec`
-  obtain y where y: "(m, y) \<in> ?Rec"
-    and yy': "\<And>y'. (m, y') \<in> ?Rec \<Longrightarrow> y = y'" by blast
-  show "\<exists>!z. (succ m, z) \<in> ?Rec"
-  proof
-    from _ y show "(succ m, r m y) \<in> ?Rec" by (rule Rec_succ)
-    fix z assume "(succ m, z) \<in> ?Rec"
-    then obtain u where "z = r m u" and "(m, u) \<in> ?Rec" by cases simp_all
-    with yy' show "z = r m y" by (simp only:)
+  shows "\<exists>!y::'a. Rec e r x y"
+proof -
+  let ?R = "Rec e r"
+  show ?thesis
+  proof (induct x)
+    case zero
+    show "\<exists>!y. ?R zero y"
+    proof
+      show "?R zero e" by (rule Rec_zero)
+      fix y assume "?R zero y"
+      then show "y = e" by cases simp_all
+    qed
+  next
+    case (succ m)
+    from `\<exists>!y. ?R m y`
+    obtain y where y: "?R m y"
+      and yy': "\<And>y'. ?R m y' \<Longrightarrow> y = y'" by blast
+    show "\<exists>!z. ?R (succ m) z"
+    proof
+      from y show "?R (succ m) (r m y)" by (rule Rec_succ)
+      fix z assume "?R (succ m) z"
+      then obtain u where "z = r m u" and "?R m u" by cases simp_all
+      with yy' show "z = r m y" by (simp only:)
+    qed
   qed
 qed
 
 
-text {* The recursion operator -- polymorphic! *}
+text {* \medskip The recursion operator -- polymorphic! *}
 
-definition (in NAT)
-  "rec e r x = (THE y. (x, y) \<in> Rec e r)"
+definition
+  rec :: "'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> 'a"
+  "rec e r x = (THE y. Rec e r x y)"
 
-lemma (in NAT) rec_eval:
-  assumes Rec: "(x, y) \<in> Rec e r"
+lemma rec_eval:
+  assumes Rec: "Rec e r x y"
   shows "rec e r x = y"
   unfolding rec_def
   using Rec_functional and Rec by (rule the1_equality)
 
-lemma (in NAT) rec_zero: "rec e r zero = e"
+lemma rec_zero [simp]: "rec e r zero = e"
 proof (rule rec_eval)
-  show "(zero, e) \<in> Rec e r" by (rule Rec_zero)
+  show "Rec e r zero e" by (rule Rec_zero)
 qed
 
-lemma (in NAT) rec_succ: "rec e r (succ m) = r m (rec e r m)"
+lemma rec_succ [simp]: "rec e r (succ m) = r m (rec e r m)"
 proof (rule rec_eval)
-  let ?Rec = "Rec e r"
-  have "(m, rec e r m) \<in> ?Rec"
-    unfolding rec_def
-    using Rec_functional by (rule theI')
-  with _ show "(succ m, r m (rec e r m)) \<in> ?Rec" by (rule Rec_succ)
+  let ?R = "Rec e r"
+  have "?R m (rec e r m)"
+    unfolding rec_def using Rec_functional by (rule theI')
+  then show "?R (succ m) (r m (rec e r m))" by (rule Rec_succ)
 qed
 
 
-text {* Just see that our abstract specification makes sense \dots *}
+text {* \medskip Example: addition (monomorphic) *}
+
+definition
+  add :: "'n \<Rightarrow> 'n \<Rightarrow> 'n"
+  "add m n = rec n (\<lambda>_ k. succ k) m"
+
+lemma add_zero [simp]: "add zero n = n"
+  and add_succ [simp]: "add (succ m) n = succ (add m n)"
+  unfolding add_def by simp_all
+
+lemma add_assoc: "add (add k m) n = add k (add m n)"
+  by (induct k) simp_all
+
+lemma add_zero_right: "add m zero = m"
+  by (induct m) simp_all
+
+lemma add_succ_right: "add m (succ n) = succ (add m n)"
+  by (induct m) simp_all
+
+
+text {* \medskip Example: replication (polymorphic) *}
+
+definition
+  repl :: "'n \<Rightarrow> 'a \<Rightarrow> 'a list"
+  "repl n x = rec [] (\<lambda>_ xs. x # xs) n"
+
+lemma repl_zero [simp]: "repl zero x = []"
+  and repl_succ [simp]: "repl (succ n) x = x # repl n x"
+  unfolding repl_def by simp_all
+
+lemma "repl (succ (succ (succ zero))) True = [True, True, True]"
+  by simp
+
+end
+
+
+text {* \medskip Just see that our abstract specification makes sense \dots *}
 
 interpretation NAT [0 Suc]
 proof (rule NAT.intro)
