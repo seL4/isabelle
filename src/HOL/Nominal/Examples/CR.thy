@@ -175,17 +175,17 @@ section {* Beta Reduction *}
 
 inductive2
   "Beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta> _" [80,80] 80)
-intros
-  b1[intro]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (App s1 t)\<longrightarrow>\<^isub>\<beta>(App s2 t)"
-  b2[intro]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (App t s1)\<longrightarrow>\<^isub>\<beta>(App t s2)"
-  b3[intro]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (Lam [a].s1)\<longrightarrow>\<^isub>\<beta> (Lam [a].s2)"
-  b4[intro]: "(App (Lam [a].s1) s2)\<longrightarrow>\<^isub>\<beta>(s1[a::=s2])"
+where
+    b1[intro]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (App s1 t)\<longrightarrow>\<^isub>\<beta>(App s2 t)"
+  | b2[intro]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (App t s1)\<longrightarrow>\<^isub>\<beta>(App t s2)"
+  | b3[intro]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (Lam [a].s1)\<longrightarrow>\<^isub>\<beta> (Lam [a].s2)"
+  | b4[intro]: "(App (Lam [a].s1) s2)\<longrightarrow>\<^isub>\<beta>(s1[a::=s2])"
 
 inductive2
   "Beta_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta>\<^sup>* _" [80,80] 80)
-intros 
-  bs1[intro, simp]: "M \<longrightarrow>\<^isub>\<beta>\<^sup>* M"
-  bs2[intro]: "\<lbrakk>M1\<longrightarrow>\<^isub>\<beta>\<^sup>* M2; M2 \<longrightarrow>\<^isub>\<beta> M3\<rbrakk> \<Longrightarrow> M1 \<longrightarrow>\<^isub>\<beta>\<^sup>* M3"
+where
+    bs1[intro, simp]: "M \<longrightarrow>\<^isub>\<beta>\<^sup>* M"
+  | bs2[intro]: "\<lbrakk>M1\<longrightarrow>\<^isub>\<beta>\<^sup>* M2; M2 \<longrightarrow>\<^isub>\<beta> M3\<rbrakk> \<Longrightarrow> M1 \<longrightarrow>\<^isub>\<beta>\<^sup>* M3"
 
 lemma beta_star_trans:
   assumes a1: "M1\<longrightarrow>\<^isub>\<beta>\<^sup>* M2"
@@ -265,17 +265,17 @@ section {* One-Reduction *}
 
 inductive2
   One :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>1 _" [80,80] 80)
-  intros
-  o1[intro!]:      "M\<longrightarrow>\<^isub>1M"
-  o2[simp,intro!]: "\<lbrakk>t1\<longrightarrow>\<^isub>1t2;s1\<longrightarrow>\<^isub>1s2\<rbrakk> \<Longrightarrow> (App t1 s1)\<longrightarrow>\<^isub>1(App t2 s2)"
-  o3[simp,intro!]: "s1\<longrightarrow>\<^isub>1s2 \<Longrightarrow> (Lam [a].s1)\<longrightarrow>\<^isub>1(Lam [a].s2)"
-  o4[simp,intro!]: "\<lbrakk>s1\<longrightarrow>\<^isub>1s2;t1\<longrightarrow>\<^isub>1t2\<rbrakk> \<Longrightarrow> (App (Lam [a].t1) s1)\<longrightarrow>\<^isub>1(t2[a::=s2])"
+where
+    o1[intro!]:      "M\<longrightarrow>\<^isub>1M"
+  | o2[simp,intro!]: "\<lbrakk>t1\<longrightarrow>\<^isub>1t2;s1\<longrightarrow>\<^isub>1s2\<rbrakk> \<Longrightarrow> (App t1 s1)\<longrightarrow>\<^isub>1(App t2 s2)"
+  | o3[simp,intro!]: "s1\<longrightarrow>\<^isub>1s2 \<Longrightarrow> (Lam [a].s1)\<longrightarrow>\<^isub>1(Lam [a].s2)"
+  | o4[simp,intro!]: "\<lbrakk>s1\<longrightarrow>\<^isub>1s2;t1\<longrightarrow>\<^isub>1t2\<rbrakk> \<Longrightarrow> (App (Lam [a].t1) s1)\<longrightarrow>\<^isub>1(t2[a::=s2])"
 
 inductive2
   "One_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>1\<^sup>* _" [80,80] 80)
-intros 
-  os1[intro, simp]: "M \<longrightarrow>\<^isub>1\<^sup>* M"
-  os2[intro]: "\<lbrakk>M1\<longrightarrow>\<^isub>1\<^sup>* M2; M2 \<longrightarrow>\<^isub>1 M3\<rbrakk> \<Longrightarrow> M1 \<longrightarrow>\<^isub>1\<^sup>* M3"
+where
+    os1[intro, simp]: "M \<longrightarrow>\<^isub>1\<^sup>* M"
+  | os2[intro]: "\<lbrakk>M1\<longrightarrow>\<^isub>1\<^sup>* M2; M2 \<longrightarrow>\<^isub>1 M3\<rbrakk> \<Longrightarrow> M1 \<longrightarrow>\<^isub>1\<^sup>* M3"
 
 lemma eqvt_one: 
   fixes pi :: "name prm"
@@ -283,7 +283,7 @@ lemma eqvt_one:
   and   s  :: "lam"
   assumes a: "t\<longrightarrow>\<^isub>1s"
   shows "(pi\<bullet>t)\<longrightarrow>\<^isub>1(pi\<bullet>s)"
-  using a by (induct, auto)
+  using a by (induct) (auto)
 
 lemma one_star_trans:
   assumes a1: "M1\<longrightarrow>\<^isub>1\<^sup>* M2" 
@@ -449,7 +449,7 @@ lemma one_app:
          (\<exists>a s s1 s2. t1 = Lam [a].s \<and> t' = s1[a::=s2] \<and> s \<longrightarrow>\<^isub>1 s1 \<and> t2 \<longrightarrow>\<^isub>1 s2)" 
   using a
   apply -
-  apply(ind_cases2 "App t1 s1 \<longrightarrow>\<^isub>1 t'")
+  apply(ind_cases2 "App t1 t2 \<longrightarrow>\<^isub>1 t'")
   apply(auto simp add: lam.distinct lam.inject)
   done
 
@@ -459,7 +459,7 @@ lemma one_red:
          (\<exists>s1 s2. M = s1[a::=s2] \<and> t1 \<longrightarrow>\<^isub>1 s1 \<and> t2 \<longrightarrow>\<^isub>1 s2)" 
   using a
   apply -
-  apply(ind_cases2 "App (Lam [a].t1) s1 \<longrightarrow>\<^isub>1 M")
+  apply(ind_cases2 "App (Lam [a].t1) t2 \<longrightarrow>\<^isub>1 M")
   apply(simp_all add: lam.inject)
   apply(force)
   apply(erule conjE)
