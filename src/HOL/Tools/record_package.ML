@@ -27,7 +27,14 @@ sig
   val quiet_mode: bool ref
   val record_quick_and_dirty_sensitive: bool ref
   val updateN: string
+  val updN: string
   val ext_typeN: string
+  val extN: string
+  val makeN: string
+  val moreN: string
+  val ext_dest: string
+  val KN:string
+
   val last_extT: typ -> (string * typ list) option
   val dest_recTs : typ -> (string * typ list) list
   val get_extT_fields:  theory -> typ -> ((string * typ) list * (string * typ))
