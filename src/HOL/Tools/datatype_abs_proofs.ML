@@ -157,14 +157,14 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
       Library.foldl (make_rec_intr T set_name) (x, #3 (snd d)))
         (([], 0), descr' ~~ recTs ~~ rec_sets');
 
-    val (thy1, {intrs = rec_intrs, elims = rec_elims, ...}) =
+    val ({intrs = rec_intrs, elims = rec_elims, ...}, thy1) =
       setmp InductivePackage.quiet_mode (!quiet_mode)
         (TheoryTarget.init NONE #>
          InductivePackage.add_inductive_i false big_rec_name' false false true
            (map (fn (s, T) => (s, SOME T, NoSyn)) (rec_set_names' ~~ rec_set_Ts))
            (map (apsnd SOME o dest_Free) rec_fns)
            (map (fn x => (("", []), x)) rec_intr_ts) [] #>
-         apfst (ProofContext.theory_of o LocalTheory.exit)) thy0;
+         apsnd (ProofContext.theory_of o LocalTheory.exit)) thy0;
 
     (* prove uniqueness and termination of primrec combinators *)
 

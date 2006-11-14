@@ -150,7 +150,7 @@ val collect_simp = rewrite_rule [mk_meta_eq mem_Collect_eq];
 fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
   let
     (* this theory is used just for parsing *)
-  
+
     val tmp_thy = thy |>
       Theory.copy |>
       Theory.add_types (map (fn (tvs, tname, mx, _) =>
@@ -186,7 +186,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       (Sign.full_name sign n, Sign.full_name sign (n ^ "_Rep"))) dts;
     val rps = map Library.swap ps;
 
-    fun replace_types (Type ("Nominal.ABS", [T, U])) = 
+    fun replace_types (Type ("Nominal.ABS", [T, U])) =
           Type ("fun", [T, Type ("Nominal.noption", [replace_types U])])
       | replace_types (Type (s, Ts)) =
           Type (getOpt (AList.lookup op = ps s, s), map replace_types Ts)
@@ -221,7 +221,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val perm_eqs = List.concat (map (fn (i, (_, _, constrs)) =>
       let val T = nth_dtyp i
-      in map (fn (cname, dts) => 
+      in map (fn (cname, dts) =>
         let
           val Ts = map (typ_of_dtyp descr sorts') dts;
           val names = DatatypeProp.make_tnames Ts;
@@ -239,7 +239,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                         Bound i) ((length Us - 1 downto 0) ~~ Us)))
                 end
               else Const ("Nominal.perm", permT --> T --> T) $ pi $ x
-            end;  
+            end;
         in
           (("", HOLogic.mk_Trueprop (HOLogic.mk_eq
             (Const (List.nth (perm_names_types, i)) $
@@ -445,7 +445,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           perm_append_thms), [Simplifier.simp_add]),
          ((space_implode "_" new_type_names ^ "_perm_eq",
           perm_eq_thms), [Simplifier.simp_add])];
-  
+
     (**** Define representing sets ****)
 
     val _ = warning "representing sets";
@@ -473,7 +473,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     fun make_intr s T (cname, cargs) =
       let
-        fun mk_prem (dt, (j, j', prems, ts)) = 
+        fun mk_prem (dt, (j, j', prems, ts)) =
           let
             val (dts, dt') = strip_option dt;
             val (dts', dt'') = strip_dtyp dt';
@@ -513,14 +513,14 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                 (descr ~~ rep_set_names))));
     val rep_set_names'' = map (Sign.full_name thy3) rep_set_names';
 
-    val (thy4, {raw_induct = rep_induct, intrs = rep_intrs, ...}) =
+    val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy4) =
       setmp InductivePackage.quiet_mode false
         (TheoryTarget.init NONE #>
          InductivePackage.add_inductive_i false big_rep_name false true false
            (map (fn (s, T) => (s, SOME (T --> HOLogic.boolT), NoSyn))
               (rep_set_names' ~~ recTs'))
            [] (map (fn x => (("", []), x)) intr_ts) [] #>
-         apfst (ProofContext.theory_of o LocalTheory.exit)) thy3;
+         apsnd (ProofContext.theory_of o LocalTheory.exit)) thy3;
 
     (**** Prove that representing set is closed under permutation ****)
 
@@ -547,7 +547,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
            [indtac rep_induct [] 1,
             ALLGOALS (simp_tac (simpset_of thy4 addsimps
               (symmetric perm_fun_def :: PureThy.get_thms thy4 (Name ("abs_perm"))))),
-            ALLGOALS (resolve_tac rep_intrs 
+            ALLGOALS (resolve_tac rep_intrs
                THEN_ALL_NEW (asm_full_simp_tac (simpset_of thy4 addsimps [perm_fun_def])))])),
         length new_type_names));
 
@@ -669,8 +669,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     fun strip_suffix i s = implode (List.take (explode s, size s - i));
 
     (** strips the "_Rep" in type names *)
-    fun strip_nth_name i s = 
-      let val xs = NameSpace.unpack s; 
+    fun strip_nth_name i s =
+      let val xs = NameSpace.unpack s;
       in NameSpace.pack (Library.nth_map (length xs - i) (strip_suffix 4) xs) end;
 
     val (descr'', ndescr) = ListPair.unzip (List.mapPartial
@@ -767,7 +767,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val rep_inject_thms = map (#Rep_inject o fst) typedefs
 
     (* prove theorem  Rep_i (Constr_j ...) = Constr'_j ...  *)
-    
+
     fun prove_constr_rep_thm eqn =
       let
         val inj_thms = map (fn r => r RS iffD1) abs_inject_thms;
@@ -829,7 +829,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val perm_simps' = map (fn (((i, (_, _, constrs)), tname), constr_rep_thms) =>
       let val T = nth_dtyp' i
       in List.concat (map (fn (atom, perm_closed_thms) =>
-          map (fn ((cname, dts), constr_rep_thm) => 
+          map (fn ((cname, dts), constr_rep_thm) =>
         let
           val cname = Sign.intern_const thy8
             (NameSpace.append tname (Sign.base_name cname));
@@ -1343,7 +1343,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val (rec_result_Ts', rec_fn_Ts') = DatatypeProp.make_primrec_Ts descr' sorts' used;
 
-    val rec_sort = if null dt_atomTs then HOLogic.typeS else 
+    val rec_sort = if null dt_atomTs then HOLogic.typeS else
       let val names = map (Sign.base_name o fst o dest_Type) dt_atomTs
       in Sign.certify_sort thy10 (map (Sign.intern_class thy10)
         (map (fn s => "pt_" ^ s) names @
@@ -1440,7 +1440,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         Library.foldl (make_rec_intr T p rec_set) (x, #3 (snd d) ~~ snd d'))
           (([], [], [], [], 0), descr'' ~~ ndescr ~~ recTs ~~ rec_preds ~~ rec_sets');
 
-    val (thy11, {intrs = rec_intrs, elims = rec_elims, raw_induct = rec_induct, ...}) =
+    val ({intrs = rec_intrs, elims = rec_elims, raw_induct = rec_induct, ...}, thy11) =
       thy10 |>
       setmp InductivePackage.quiet_mode (!quiet_mode)
         (TheoryTarget.init NONE #>
@@ -1448,7 +1448,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
            (map (fn (s, T) => (s, SOME T, NoSyn)) (rec_set_names' ~~ rec_set_Ts))
            (map (apsnd SOME o dest_Free) rec_fns)
            (map (fn x => (("", []), x)) rec_intr_ts) [] #>
-         apfst (ProofContext.theory_of o LocalTheory.exit)) |>>
+         apsnd (ProofContext.theory_of o LocalTheory.exit)) ||>
       PureThy.hide_thms true [NameSpace.append
         (Sign.full_name thy10 big_rec_name) "induct"];
 
@@ -1875,7 +1875,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                               THEN resolve_tac rec_prems 1),
                             resolve_tac P_ind_ths 1,
                             REPEAT_DETERM (resolve_tac (P_ths @ rec_prems) 1)]);
-        
+
                     val fresh_results'' = map prove_fresh_result boundsl;
 
                     fun prove_fresh_result'' ((a as Free (_, aT), b), th) =
@@ -1989,7 +1989,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
              REPEAT (solve (prems @ rec_total_thms) prems 1)])
       end) (rec_eq_prems ~~
         DatatypeProp.make_primrecs new_type_names descr' sorts' thy12);
-    
+
     (* FIXME: theorems are stored in database for testing only *)
     val (_, thy13) = thy12 |>
       PureThy.add_thmss
@@ -2032,4 +2032,3 @@ val _ = OuterSyntax.add_parsers [nominal_datatypeP];
 end;
 
 end
-

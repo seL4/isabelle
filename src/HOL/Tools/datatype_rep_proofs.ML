@@ -173,13 +173,13 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       map (make_intr rep_set_name (length constrs))
         ((1 upto (length constrs)) ~~ constrs)) (descr' ~~ rep_set_names'));
 
-    val (thy2, {raw_induct = rep_induct, intrs = rep_intrs, ...}) =
+    val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy2) =
       setmp InductivePackage.quiet_mode (!quiet_mode)
         (TheoryTarget.init NONE #>
          InductivePackage.add_inductive_i false big_rec_name false true false
            (map (fn s => (s, SOME UnivT', NoSyn)) rep_set_names') []
            (map (fn x => (("", []), x)) intr_ts) [] #>
-         apfst (ProofContext.theory_of o LocalTheory.exit)) thy1;
+         apsnd (ProofContext.theory_of o LocalTheory.exit)) thy1;
 
     (********************************* typedef ********************************)
 
