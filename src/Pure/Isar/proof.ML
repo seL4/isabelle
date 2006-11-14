@@ -84,18 +84,16 @@ sig
   val prefer: int -> state -> state Seq.seq
   val apply: Method.text -> state -> state Seq.seq
   val apply_end: Method.text -> state -> state Seq.seq
-  val goal_names: string option -> string -> string list -> string
   val local_goal: (context -> ((string * string) * (string * thm list) list) -> unit) ->
     (theory -> 'a -> attribute) ->
     (context * 'b list -> context * (term list list * (context -> context))) ->
     string -> Method.text option -> (thm list list -> state -> state Seq.seq) ->
     ((string * 'a list) * 'b) list -> state -> state
   val local_qed: Method.text option * bool -> state -> state Seq.seq
-  val global_goal: (context -> (string * string) * (string * thm list) list -> unit) ->
-    (theory -> 'a -> attribute) ->
-    (context * 'b list -> context * (term list list * (context -> context))) ->
-    string -> Method.text option -> (thm list list -> context -> context) ->
-    string option -> string * 'a list -> ((string * 'a list) * 'b) list -> context -> state
+  val theorem: string -> Method.text option -> (thm list list -> context -> context) ->
+    (string * string list) list list -> context -> state
+  val theorem_i: string -> Method.text option -> (thm list list -> context -> context) ->
+    (term * term list) list list -> context -> state
   val global_qed: Method.text option * bool -> state -> context
   val local_terminal_proof: Method.text * Method.text option -> state -> state Seq.seq
   val local_default_proof: state -> state Seq.seq
@@ -115,12 +113,6 @@ sig
     ((string * Attrib.src list) * (string * string list) list) list -> bool -> state -> state
   val show_i: Method.text option -> (thm list list -> state -> state Seq.seq) ->
     ((string * attribute list) * (term * term list) list) list -> bool -> state -> state
-  val theorem: string -> Method.text option -> (thm list list -> context -> context) ->
-    string option -> string * Attrib.src list ->
-    ((string * Attrib.src list) * (string * string list) list) list -> context -> state
-  val theorem_i: string -> Method.text option -> (thm list list -> context -> context) ->
-    string option -> string * attribute list ->
-    ((string * attribute list) * (term * term list) list) list -> context -> state
 end;
 
 structure Proof: PROOF =
@@ -307,11 +299,10 @@ fun get_goal state =
   in (ctxt, (using, goal)) end;
 
 fun schematic_goal state =
-  let
-    val (_, (_, {statement = (_, propss), ...})) = find_goal state;
-    val tvars = fold (fold Term.add_tvars) propss [];
-    val vars = fold (fold Term.add_vars) propss [];
-  in not (null tvars andalso null vars) end;
+  let val (_, (_, {statement = (_, propss), ...})) = find_goal state in
+    exists (exists (Term.exists_subterm Term.is_Var)) propss orelse
+    exists (exists (Term.exists_type (Term.exists_subtype Term.is_TVar))) propss
+  end;
 
 
 
@@ -619,7 +610,6 @@ val with_thmss_i = gen_thmss ProofContext.note_thmss_i the_facts chain #2 (K I) 
 
 val local_results =
   gen_thmss ProofContext.note_thmss_i (K []) I I (K I) o map (apsnd Thm.simple_fact);
-fun global_results kind = PureThy.note_thmss_i kind o map (apsnd Thm.simple_fact);
 
 fun get_thmss state srcs = the_facts (note_thmss [(("", []), srcs)] state);
 fun simple_note_thms name thms = note_thmss_i [((name, []), [(thms, [])])];
@@ -739,22 +729,6 @@ fun apply_end text = assert_forward #> refine_end text;
 
 (** goals **)
 
-(* goal names *)
-
-fun prep_names prep_att stmt =
-  let
-    val (names_attss, propp) = split_list (Attrib.map_specs prep_att stmt);
-    val (names, attss) = split_list names_attss;
-  in ((names, attss), propp) end;
-
-fun goal_names target name names =
-  (case target of NONE => "" | SOME "" => "" | SOME loc => " (in " ^ loc ^ ")") ^
-  (if name = "" then "" else " " ^ name) ^
-  (case filter_out (equal "") names of [] => ""
-  | nms => " " ^ enclose "(" ")" (space_implode " and " (Library.take (7, nms) @
-      (if length nms > 7 then ["..."] else []))));
-
-
 (* generic goals *)
 
 local
@@ -839,7 +813,9 @@ end;
 
 fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state =
   let
-    val ((names, attss), propp) = prep_names (prep_att (theory_of state)) stmt;
+    val thy = theory_of state;
+    val ((names, attss), propp) =
+      Attrib.map_specs (prep_att thy) stmt |> split_list |>> split_list;
 
     fun after_qed' results =
       local_results ((names ~~ attss) ~~ results)
@@ -847,7 +823,7 @@ fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state
       #> after_qed results;
   in
     state
-    |> generic_goal prepp (kind ^ goal_names NONE "" names) before_qed (after_qed', K I) propp
+    |> generic_goal prepp kind before_qed (after_qed', K I) propp
     |> tap (Variable.warn_extra_tfrees (context_of state) o context_of)
   end;
 
@@ -858,35 +834,13 @@ fun local_qed txt =
 
 (* global goals *)
 
-fun global_goal print_results prep_att prepp
-    kind before_qed after_qed target (name, raw_atts) stmt ctxt =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    val thy_ctxt = ProofContext.init thy;
+fun global_goal prepp kind before_qed after_qed propp ctxt =
+  init ctxt
+  |> generic_goal (prepp #> ProofContext.auto_fixes) kind
+    before_qed (K Seq.single, after_qed) propp;
 
-    val atts = map (prep_att thy) raw_atts;
-    val ((names, attss), propp) = prep_names (prep_att thy) stmt;
-
-    fun store_results prfx res =
-      K (prfx <> "") ? (Sign.add_path prfx #> Sign.no_base_names)
-      #> global_results kind ((names ~~ attss) ~~ res)
-      #-> (fn res' =>
-        (print_results thy_ctxt ((kind, name), res') : unit;
-          #2 o global_results kind [((name, atts), maps #2 res')]))
-      #> Sign.restore_naming thy;
-
-    fun after_qed' results =
-      ProofContext.theory
-        (case target of
-          NONE => I
-        | SOME prfx => store_results (NameSpace.base prfx)
-            (map (ProofContext.export_standard ctxt thy_ctxt) results))
-      #> after_qed results;
-  in
-    init ctxt
-    |> generic_goal (prepp #> ProofContext.auto_fixes) (kind ^ goal_names target name names)
-      before_qed (K Seq.single, after_qed') propp
-  end;
+val theorem = global_goal ProofContext.bind_propp_schematic;
+val theorem_i = global_goal ProofContext.bind_propp_schematic_i;
 
 fun check_result msg sq =
   (case Seq.pull sq of
@@ -971,17 +925,12 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
       | Exn exn => raise EXCEPTION (exn, fail_msg (context_of goal_state))))
   end;
 
-fun gen_theorem prep_att prepp kind before_qed after_qed target a =
-  global_goal ProofDisplay.present_results prep_att prepp kind before_qed after_qed target a;
-
 in
 
 val have = gen_have Attrib.attribute ProofContext.bind_propp;
 val have_i = gen_have (K I) ProofContext.bind_propp_i;
 val show = gen_show Attrib.attribute ProofContext.bind_propp;
 val show_i = gen_show (K I) ProofContext.bind_propp_i;
-val theorem = gen_theorem Attrib.attribute ProofContext.bind_propp_schematic;
-val theorem_i = gen_theorem (K I) ProofContext.bind_propp_schematic_i;
 
 end;
 
