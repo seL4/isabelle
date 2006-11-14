@@ -32,7 +32,7 @@ sig
   val expand_binds: Proof.context -> term -> term
   val add_fixes: string list -> Proof.context -> string list * Proof.context
   val add_fixes_direct: string list -> Proof.context -> Proof.context
-  val fix_frees: term -> Proof.context -> Proof.context
+  val auto_fixes: term -> Proof.context -> Proof.context
   val variant_fixes: string list -> Proof.context -> string list * Proof.context
   val invent_types: sort list -> Proof.context -> (string * sort) list * Proof.context
   val export_inst: Proof.context -> Proof.context -> string list * string list
@@ -295,7 +295,10 @@ fun add_fixes_direct xs ctxt = ctxt
 fun fix_frees t ctxt = ctxt
   |> add_fixes_direct
       (rev (fold_aterms (fn Free (x, _) =>
-        if is_fixed ctxt x then I else insert (op =) x | _ => I) t []))
+        if is_fixed ctxt x then I else insert (op =) x | _ => I) t []));
+
+fun auto_fixes t ctxt =
+  (if is_body ctxt then ctxt else fix_frees t ctxt)
   |> declare_term t;
 
 fun invent_types Ss ctxt =
