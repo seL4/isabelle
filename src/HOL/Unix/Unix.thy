@@ -349,52 +349,47 @@ text {*
   involved here).
 *}
 
-consts
-  transition :: "(file \<times> operation \<times> file) set"
-
-abbreviation
-  transition_rel  ("_ \<midarrow>_\<rightarrow> _" [90, 1000, 90] 100)
-  "root \<midarrow>x\<rightarrow> root' \<equiv> (root, x, root') \<in> transition"
-
-inductive transition
-  intros
+inductive2
+  transition :: "file \<Rightarrow> operation \<Rightarrow> file \<Rightarrow> bool"
+    ("_ \<midarrow>_\<rightarrow> _" [90, 1000, 90] 100)
+where
 
   read:
     "access root path uid {Readable} = Some (Val (att, text)) \<Longrightarrow>
-      root \<midarrow>(Read uid text path)\<rightarrow> root"
+      root \<midarrow>(Read uid text path)\<rightarrow> root" |
   write:
     "access root path uid {Writable} = Some (Val (att, text')) \<Longrightarrow>
-      root \<midarrow>(Write uid text path)\<rightarrow> update path (Some (Val (att, text))) root"
+      root \<midarrow>(Write uid text path)\<rightarrow> update path (Some (Val (att, text))) root" |
 
   chmod:
     "access root path uid {} = Some file \<Longrightarrow>
       uid = 0 \<or> uid = owner (attributes file) \<Longrightarrow>
       root \<midarrow>(Chmod uid perms path)\<rightarrow> update path
-        (Some (map_attributes (others_update (K_record perms)) file)) root"
+        (Some (map_attributes (others_update (K_record perms)) file)) root" |
 
   creat:
     "path = parent_path @ [name] \<Longrightarrow>
       access root parent_path uid {Writable} = Some (Env att parent) \<Longrightarrow>
       access root path uid {} = None \<Longrightarrow>
       root \<midarrow>(Creat uid perms path)\<rightarrow> update path
-        (Some (Val (\<lparr>owner = uid, others = perms\<rparr>, []))) root"
+        (Some (Val (\<lparr>owner = uid, others = perms\<rparr>, []))) root" |
   unlink:
     "path = parent_path @ [name] \<Longrightarrow>
       access root parent_path uid {Writable} = Some (Env att parent) \<Longrightarrow>
       access root path uid {} = Some (Val plain) \<Longrightarrow>
-      root \<midarrow>(Unlink uid path)\<rightarrow> update path None root"
+      root \<midarrow>(Unlink uid path)\<rightarrow> update path None root" |
 
   mkdir:
     "path = parent_path @ [name] \<Longrightarrow>
       access root parent_path uid {Writable} = Some (Env att parent) \<Longrightarrow>
       access root path uid {} = None \<Longrightarrow>
       root \<midarrow>(Mkdir uid perms path)\<rightarrow> update path
-        (Some (Env \<lparr>owner = uid, others = perms\<rparr> empty)) root"
+        (Some (Env \<lparr>owner = uid, others = perms\<rparr> empty)) root" |
   rmdir:
     "path = parent_path @ [name] \<Longrightarrow>
       access root parent_path uid {Writable} = Some (Env att parent) \<Longrightarrow>
       access root path uid {} = Some (Env att' empty) \<Longrightarrow>
-      root \<midarrow>(Rmdir uid path)\<rightarrow> update path None root"
+      root \<midarrow>(Rmdir uid path)\<rightarrow> update path None root" |
 
   readdir:
     "access root path uid {Readable} = Some (Env att dir) \<Longrightarrow>
@@ -505,17 +500,12 @@ text {*
   amount of time.
 *}
 
-consts
-  transitions :: "(file \<times> operation list \<times> file) set"
-
-abbreviation
-  transitions_rel  ("_ =_\<Rightarrow> _" [90, 1000, 90] 100)
-  "root =xs\<Rightarrow> root' \<equiv> (root, xs, root') \<in> transitions"
-
-inductive transitions
-  intros
+inductive2
+  transitions :: "file \<Rightarrow> operation list \<Rightarrow> file \<Rightarrow> bool"
+    ("_ =_\<Rightarrow> _" [90, 1000, 90] 100)
+where
     nil: "root =[]\<Rightarrow> root"
-    cons: "root \<midarrow>x\<rightarrow> root' \<Longrightarrow> root' =xs\<Rightarrow> root'' \<Longrightarrow> root =(x # xs)\<Rightarrow> root''"
+  | cons: "root \<midarrow>x\<rightarrow> root' \<Longrightarrow> root' =xs\<Rightarrow> root'' \<Longrightarrow> root =(x # xs)\<Rightarrow> root''"
 
 text {*
   \medskip We establish a few basic facts relating iterated
@@ -581,7 +571,7 @@ proof induct
   case nil
   show ?case by assumption
 next
-  case (cons root root' root'' x xs)
+  case (cons root x root' xs root'')
   note P = `\<forall>x \<in> set (x # xs). P x`
   then have "P x" by simp
   with `root \<midarrow>x\<rightarrow> root'` and `Q root` have Q': "Q root'" by (rule r)
