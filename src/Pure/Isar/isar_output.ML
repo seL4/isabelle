@@ -462,7 +462,8 @@ fun pretty_thm_style ctxt (name, th) =
 fun pretty_prf full ctxt thms =
   Pretty.chunks (map (ProofContext.pretty_proof_of ctxt full) thms);
 
-fun pretty_theory name = (ThyInfo.theory name; Pretty.str name);
+fun pretty_theory ctxt name =
+  (Theory.requires (ProofContext.theory_of ctxt) name "presentation"; Pretty.str name);
 
 
 (* Isar output *)
@@ -522,7 +523,7 @@ val _ = add_commands
   ("subgoals", output_goals false),
   ("prf", args Attrib.thms (output (pretty_prf false))),
   ("full_prf", args Attrib.thms (output (pretty_prf true))),
-  ("theory", args (Scan.lift Args.name) (output (K pretty_theory))),
+  ("theory", args (Scan.lift Args.name) (output pretty_theory)),
   ("ML", args (Scan.lift Args.name) (output_ml ml_val)),
   ("ML_type", args (Scan.lift Args.name) (output_ml ml_type)),
   ("ML_struct", args (Scan.lift Args.name) (output_ml ml_struct))];
