@@ -1,8 +1,7 @@
 (*  Title:      HOL/Tools/inductive_package.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Author:     Stefan Berghofer, TU Muenchen
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 
 (Co)Inductive Definition module for HOL.
 
@@ -23,27 +22,29 @@ Features:
 signature INDUCTIVE_PACKAGE =
 sig
   val quiet_mode: bool ref
-  val trace: bool ref
   type inductive_result
   type inductive_info
-  val get_inductive: Context.generic -> string -> inductive_info option
-  val the_mk_cases: Context.generic -> string -> string -> thm
-  val print_inductives: Context.generic -> unit
+  val get_inductive: Proof.context -> string -> inductive_info option
+  val print_inductives: Proof.context -> unit
   val mono_add: attribute
   val mono_del: attribute
-  val get_monos: Context.generic -> thm list
+  val get_monos: Proof.context -> thm list
+  val mk_cases: Proof.context -> term -> thm
   val inductive_forall_name: string
   val inductive_forall_def: thm
   val rulify: thm -> thm
-  val inductive_cases: ((bstring * Attrib.src list) * string list) list -> theory -> theory
-  val inductive_cases_i: ((bstring * attribute list) * term list) list -> theory -> theory
-  val add_inductive_i: bool -> bstring -> bool -> bool -> bool -> (string * typ option * mixfix) list ->
+  val inductive_cases: ((bstring * Attrib.src list) * string list) list ->
+    Proof.context -> thm list list * local_theory
+  val inductive_cases_i: ((bstring * Attrib.src list) * term list) list ->
+    Proof.context -> thm list list * local_theory
+  val add_inductive_i: bool -> bstring -> bool -> bool -> bool ->
+    (string * typ option * mixfix) list ->
     (string * typ option) list -> ((bstring * Attrib.src list) * term) list -> thm list ->
-      local_theory -> local_theory * inductive_result
+      local_theory -> inductive_result * local_theory
   val add_inductive: bool -> bool -> (string * string option * mixfix) list ->
     (string * string option * mixfix) list ->
     ((bstring * Attrib.src list) * string) list -> (thmref * Attrib.src list) list ->
-    local_theory -> local_theory * inductive_result
+    local_theory -> inductive_result * local_theory
   val setup: theory -> theory
 end;
 
@@ -80,7 +81,7 @@ val simp_thms' = map (fn s => mk_meta_eq (the (find_first
 
 type inductive_result =
   {preds: term list, defs: thm list, elims: thm list, raw_induct: thm,
-   induct: thm, intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm};
+   induct: thm, intrs: thm list, mono: thm, unfold: thm};
 
 type inductive_info =
   {names: string list, coind: bool} * inductive_result;
@@ -104,19 +105,17 @@ structure InductiveData = GenericDataFun
     |> Pretty.chunks |> Pretty.writeln;
 end);
 
-val print_inductives = InductiveData.print;
+val print_inductives = InductiveData.print o Context.Proof;
 
 
 (* get and put data *)
 
-val get_inductive = Symtab.lookup o #1 o InductiveData.get;
+val get_inductive = Symtab.lookup o #1 o InductiveData.get o Context.Proof;
 
-fun the_inductive thy name =
-  (case get_inductive thy name of
+fun the_inductive ctxt name =
+  (case get_inductive ctxt name of
     NONE => error ("Unknown (co)inductive predicate " ^ quote name)
   | SOME info => info);
-
-val the_mk_cases = (#mk_cases o #2) oo the_inductive;
 
 fun put_inductives names info = InductiveData.map (apfst (fn tab =>
   fold (fn name => Symtab.update_new (name, info)) names tab
@@ -126,8 +125,8 @@ fun put_inductives names info = InductiveData.map (apfst (fn tab =>
 
 (** monotonicity rules **)
 
-val get_monos = #2 o InductiveData.get;
-val map_monos = InductiveData.map o Library.apsnd;
+val get_monos = #2 o InductiveData.get o Context.Proof;
+val map_monos = InductiveData.map o apsnd;
 
 fun mk_mono thm =
   let
@@ -147,18 +146,14 @@ fun mk_mono thm =
 
 (* attributes *)
 
-val mono_add = Thm.declaration_attribute (fn th =>
-  map_monos (fold Drule.add_rule (mk_mono th)));
-
-val mono_del = Thm.declaration_attribute (fn th =>
-  map_monos (fold Drule.del_rule (mk_mono th)));
+val mono_add = Thm.declaration_attribute (map_monos o fold Drule.add_rule o mk_mono);
+val mono_del = Thm.declaration_attribute (map_monos o fold Drule.del_rule o mk_mono);
 
 
 
 (** misc utilities **)
 
 val quiet_mode = ref false;
-val trace = ref false;  (*for debugging*)
 fun message s = if ! quiet_mode then () else writeln s;
 fun clean_message s = if ! quick_and_dirty then () else message s;
 
@@ -258,7 +253,7 @@ fun check_rule thy cs params ((name, att), rule) =
       else err_in_prem thy name rule prem "Non-atomic premise";
   in
     (case concl of
-       Const ("Trueprop", _) $ t => 
+       Const ("Trueprop", _) $ t =>
          if head_of t mem cs then
            (check_ind (err_in_rule thy name rule) t;
             List.app check_prem (prems ~~ aprems))
@@ -290,8 +285,7 @@ fun prove_mono predT fp_fun monos ctxt =
       REPEAT (resolve_tac [le_funI, le_boolI'] 1),
       REPEAT (FIRST
         [atac 1,
-         resolve_tac (List.concat (map mk_mono monos) @
-           get_monos (Context.Proof ctxt)) 1,
+         resolve_tac (List.concat (map mk_mono monos) @ get_monos ctxt) 1,
          etac le_funE 1, dtac le_boolD 1])]));
 
 
@@ -376,9 +370,6 @@ fun prove_elims cs params intr_ts intr_names unfold rec_preds_defs ctxt =
 
 local
 
-(*cprop should have the form "Si t" where Si is an inductive predicate*)
-val mk_cases_err = "mk_cases: proposition not an inductive predicate";
-
 (*delete needless equality assumptions*)
 val refl_thin = prove_goal HOL.thy "!!P. a = a ==> P ==> P" (fn _ => [assume_tac 1]);
 val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE];
@@ -386,60 +377,55 @@ val elim_tac = REPEAT o Tactic.eresolve_tac elim_rls;
 
 fun simp_case_tac solved ss i =
   EVERY' [elim_tac, asm_full_simp_tac ss, elim_tac, REPEAT o bound_hyp_subst_tac] i
-  THEN_MAYBE (if solved then no_tac else all_tac);
+  THEN_MAYBE (if solved then no_tac else all_tac);  (* FIXME !? *)
+
+(*prop should have the form "P t" where P is an inductive predicate*)
+val mk_cases_err = "mk_cases: proposition not an inductive predicate";
 
 in
 
-fun mk_cases_i elims ss cprop =
+fun mk_cases ctxt prop =
   let
-    val prem = Thm.assume cprop;
+    val thy = ProofContext.theory_of ctxt;
+    val ss = Simplifier.local_simpset_of ctxt;
+
+    val c = #1 (Term.dest_Const (Term.head_of (HOLogic.dest_Trueprop
+      (Logic.strip_imp_concl prop)))) handle TERM _ => error mk_cases_err;
+    val (_, {elims, ...}) = the_inductive ctxt c;
+
+    val cprop = Thm.cterm_of thy prop;
     val tac = ALLGOALS (simp_case_tac false ss) THEN prune_params_tac;
-    fun mk_elim rl = Drule.standard (Tactic.rule_by_tactic tac (prem RS rl));
+    fun mk_elim rl =
+      Thm.implies_intr cprop (Tactic.rule_by_tactic tac (Thm.assume cprop RS rl))
+      |> singleton (Variable.export (Variable.auto_fixes prop ctxt) ctxt);
   in
     (case get_first (try mk_elim) elims of
       SOME r => r
     | NONE => error (Pretty.string_of (Pretty.block
-        [Pretty.str mk_cases_err, Pretty.fbrk, Display.pretty_cterm cprop])))
+        [Pretty.str mk_cases_err, Pretty.fbrk, ProofContext.pretty_term ctxt prop])))
   end;
-
-fun mk_cases elims s =
-  mk_cases_i elims (simpset()) (Thm.read_cterm (Thm.theory_of_thm (hd elims)) (s, propT));
-
-fun smart_mk_cases ctxt ss cprop =
-  let
-    val c = #1 (Term.dest_Const (Term.head_of (HOLogic.dest_Trueprop
-      (Logic.strip_imp_concl (Thm.term_of cprop))))) handle TERM _ => error mk_cases_err;
-    val (_, {elims, ...}) = the_inductive ctxt c;
-  in mk_cases_i elims ss cprop end;
 
 end;
 
 
-(* inductive_cases(_i) *)
+(* inductive_cases *)
 
-fun gen_inductive_cases prep_att prep_prop args thy =
+fun gen_inductive_cases prep_att prep_prop args lthy =
   let
-    val cert_prop = Thm.cterm_of thy o prep_prop (ProofContext.init thy);
-    val mk_cases = smart_mk_cases (Context.Theory thy) (Simplifier.simpset_of thy) o cert_prop;
-
+    val thy = ProofContext.theory_of lthy;
     val facts = args |> map (fn ((a, atts), props) =>
-     ((a, map (prep_att thy) atts), map (Thm.no_attributes o single o mk_cases) props));
-  in thy |> PureThy.note_thmss_i "" facts |> snd end;
+      ((a, map (prep_att thy) atts),
+        map (Thm.no_attributes o single o mk_cases lthy o prep_prop lthy) props));
+  in lthy |> LocalTheory.notes facts |>> map snd end;
 
-val inductive_cases = gen_inductive_cases Attrib.attribute ProofContext.read_prop;
+val inductive_cases = gen_inductive_cases Attrib.intern_src ProofContext.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) ProofContext.cert_prop;
 
 
-(* mk_cases_meth *)
+fun ind_cases src =
+  Method.syntax (Scan.repeat1 Args.prop) src
+  #> (fn (ctxt, props) => Method.erule 0 (map (mk_cases ctxt) props));
 
-fun mk_cases_meth (ctxt, raw_props) =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    val ss = local_simpset_of ctxt;
-    val cprops = map (Thm.cterm_of thy o ProofContext.read_prop ctxt) raw_props;
-  in Method.erule 0 (map (smart_mk_cases (Context.Theory thy) ss) cprops) end;
-
-val mk_cases_args = Method.syntax (Scan.lift (Scan.repeat1 Args.name));
 
 
 (* prove induction rule *)
@@ -502,10 +488,6 @@ fun prove_indrule cs argTs bs xs rec_const params intr_ts mono
              (list_comb (c, params @ frees), list_comb (P, frees))
            end) (unflat Tss xnames ~~ Tss ~~ cs ~~ preds)));
 
-    val dummy = if !trace then
-                (writeln "ind_prems = ";
-                 List.app (writeln o Sign.string_of_term thy) ind_prems)
-            else ();
 
     (* make predicate for instantiation of abstract induction rule *)
 
@@ -518,10 +500,6 @@ fun prove_indrule cs argTs bs xs rec_const params intr_ts mono
       (HOLogic.mk_binrel "Orderings.less_eq" (rec_const, ind_pred));
 
     val raw_fp_induct = (mono RS (fp_def RS def_lfp_induct));
-
-    val dummy = if !trace then
-                (writeln "raw_fp_induct = "; print_thm raw_fp_induct)
-            else ();
 
     val induct = SkipProof.prove ctxt'' [] ind_prems ind_concl
       (fn {prems, ...} => EVERY
@@ -680,9 +658,9 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
     val (intrs', ctxt2) =
       ctxt1 |>
       LocalTheory.notes
-        (map (fn "" => "" | name => NameSpace.append rec_name name) intr_names ~~
+        (map (NameSpace.append rec_name) intr_names ~~
          intr_atts ~~
-         map (single o rpair [] o single) (ProofContext.export ctxt1 ctxt intrs)) |>>
+         map (fn th => [([th], [])]) (ProofContext.export ctxt1 ctxt intrs)) |>>
       map (hd o snd); (* FIXME? *)
     val (((_, elims'), (_, [induct'])), ctxt3) =
       ctxt2 |>
@@ -717,14 +695,12 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
        unfold = singleton (ProofContext.export ctxt1 ctxt) unfold,
        intrs = intrs',
        elims = elims',
-       mk_cases = mk_cases elims',
        raw_induct = rulify raw_induct,
        induct = induct'}
-      
+
   in
-    (LocalTheory.declaration
-       (put_inductives cnames ({names = cnames, coind = coind}, result)) ctxt4,
-     result)
+    (result, LocalTheory.declaration
+       (put_inductives cnames ({names = cnames, coind = coind}, result)) ctxt4)
   end;
 
 
@@ -779,9 +755,9 @@ fun add_inductive verbose coind cnames_syn pnames_syn intro_srcs raw_monos ctxt 
 
 val setup =
   InductiveData.init #>
-  Method.add_methods [("ind_cases2", mk_cases_meth oo mk_cases_args,
+  Method.add_methods [("ind_cases2", ind_cases,   (* FIXME "ind_cases" (?) *)
     "dynamic case analysis on predicates")] #>
-  Attrib.add_attributes [("mono2", Attrib.add_del_args mono_add mono_del,
+  Attrib.add_attributes [("mono2", Attrib.add_del_args mono_add mono_del,   (* FIXME "mono" *)
     "declaration of monotonicity rule")];
 
 
@@ -789,17 +765,25 @@ val setup =
 
 local structure P = OuterParse and K = OuterKeyword in
 
-fun mk_ind coind ((((loc, preds), params), intrs), monos) =
-  Toplevel.local_theory loc
-    (#1 o add_inductive true coind preds params intrs monos);
+(* FIXME tmp *)
+fun flatten_specification specs = specs |> maps
+  (fn (a, (concl, [])) => concl |> map
+        (fn ((b, atts), [B]) =>
+              if a = "" then ((b, atts), B)
+              else if b = "" then ((a, atts), B)
+              else error ("Illegal nested case names " ^ quote (NameSpace.append a b))
+          | ((b, _), _) => error ("Illegal simultaneous specification " ^ quote b))
+    | (a, _) => error ("Illegal local specification parameters for " ^ quote a));
 
 fun ind_decl coind =
   P.opt_locale_target --
-  P.fixes -- Scan.optional (P.$$$ "for" |-- P.fixes) [] --
-  (P.$$$ "intros" |--
-    P.!!! (Scan.repeat (P.opt_thm_name ":" -- P.prop))) --
+  P.fixes -- P.for_fixes --
+  Scan.optional (P.$$$ "where" |-- P.!!! P.specification) [] --
   Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1) []
-  >> mk_ind coind;
+  >> (fn ((((loc, preds), params), specs), monos) =>
+    Toplevel.local_theory loc
+      (fn lthy => lthy
+        |> add_inductive true coind preds params (flatten_specification specs) monos |> snd));
 
 val inductiveP =
   OuterSyntax.command "inductive2" "define inductive predicates" K.thy_decl (ind_decl false);
@@ -808,18 +792,15 @@ val coinductiveP =
   OuterSyntax.command "coinductive2" "define coinductive predicates" K.thy_decl (ind_decl true);
 
 
-val ind_cases =
-  P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.prop)
-  >> (Toplevel.theory o inductive_cases);
-
 val inductive_casesP =
   OuterSyntax.command "inductive_cases2"
-    "create simplified instances of elimination rules (improper)" K.thy_script ind_cases;
+    "create simplified instances of elimination rules (improper)" K.thy_script
+    (P.opt_locale_target -- P.and_list1 P.spec
+      >> (fn (loc, specs) => Toplevel.local_theory loc (snd o inductive_cases specs)));
 
-val _ = OuterSyntax.add_keywords ["intros", "monos"];
+val _ = OuterSyntax.add_keywords ["monos"];
 val _ = OuterSyntax.add_parsers [inductiveP, coinductiveP, inductive_casesP];
 
 end;
 
 end;
-
