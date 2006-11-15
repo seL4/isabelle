@@ -166,147 +166,26 @@ lemmas (in distrib_lattice) distrib =
   sup_inf_distrib1 sup_inf_distrib2 inf_sup_distrib1 inf_sup_distrib2
 
 
-subsection {* Least value operator and min/max -- properties *}
- 
-(*FIXME: derive more of the min/max laws generically via semilattices*)
-
-lemma LeastI2_order:
-  "[| P (x::'a::order);
-      !!y. P y ==> x <= y;
-      !!x. [| P x; ALL y. P y --> x \<le> y |] ==> Q x |]
-   ==> Q (Least P)"
-  apply (unfold Least_def)
-  apply (rule theI2)
-    apply (blast intro: order_antisym)+
-  done
-
-lemma Least_equality:
-    "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k"
-  apply (simp add: Least_def)
-  apply (rule the_equality)
-  apply (auto intro!: order_antisym)
-  done
-
-lemma min_leastL: "(!!x. least <= x) ==> min least x = least"
-  by (simp add: min_def)
-
-lemma max_leastL: "(!!x. least <= x) ==> max least x = x"
-  by (simp add: max_def)
-
-lemma min_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> min x least = least"
-  apply (simp add: min_def)
-  apply (blast intro: order_antisym)
-  done
-
-lemma max_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> max x least = x"
-  apply (simp add: max_def)
-  apply (blast intro: order_antisym)
-  done
-
-lemma min_of_mono:
-    "(!!x y. (f x <= f y) = (x <= y)) ==> min (f m) (f n) = f (min m n)"
-  by (simp add: min_def)
-
-lemma max_of_mono:
-    "(!!x y. (f x <= f y) = (x <= y)) ==> max (f m) (f n) = f (max m n)"
-  by (simp add: max_def)
-
-text{* Instantiate locales: *}
+subsection {* min/max on linear orders as special case of inf/sup *}
 
 interpretation min_max:
-  lower_semilattice["op \<le>" "op <" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
+  distrib_lattice ["op \<le>" "op <" "min \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
 apply unfold_locales
-apply(simp add:min_def linorder_not_le order_less_imp_le)
-apply(simp add:min_def linorder_not_le order_less_imp_le)
-apply(simp add:min_def linorder_not_le order_less_imp_le)
-done
-
-interpretation min_max:
-  upper_semilattice["op \<le>" "op <" "max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply unfold_locales
-apply(simp add: max_def linorder_not_le order_less_imp_le)
-apply(simp add: max_def linorder_not_le order_less_imp_le)
-apply(simp add: max_def linorder_not_le order_less_imp_le)
-done
-
-interpretation min_max:
-  lattice["op \<le>" "op <" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
-  by unfold_locales
-
-interpretation min_max:
-  distrib_lattice["op \<le>" "op <" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
-apply unfold_locales
-apply(rule_tac x=x and y=y in linorder_le_cases)
-apply(rule_tac x=x and y=z in linorder_le_cases)
-apply(rule_tac x=y and y=z in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
-apply(rule_tac x=y and y=z in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
-apply(rule_tac x=x and y=z in linorder_le_cases)
-apply(rule_tac x=y and y=z in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
-apply(rule_tac x=y and y=z in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
-done
-
-lemma le_max_iff_disj: "!!z::'a::linorder. (z <= max x y) = (z <= x | z <= y)"
-  apply(simp add:max_def)
-  apply (insert linorder_linear)
-  apply (blast intro: order_trans)
-  done
+apply (simp add: min_def linorder_not_le order_less_imp_le)
+apply (simp add: min_def linorder_not_le order_less_imp_le)
+apply (simp add: min_def linorder_not_le order_less_imp_le)
+apply (simp add: max_def linorder_not_le order_less_imp_le)
+apply (simp add: max_def linorder_not_le order_less_imp_le)
+unfolding min_def max_def by auto
 
 lemmas le_maxI1 = min_max.sup_ge1
 lemmas le_maxI2 = min_max.sup_ge2
-
-lemma less_max_iff_disj: "!!z::'a::linorder. (z < max x y) = (z < x | z < y)"
-  apply (simp add: max_def order_le_less)
-  apply (insert linorder_less_linear)
-  apply (blast intro: order_less_trans)
-  done
-
-lemma max_less_iff_conj [simp]:
-    "!!z::'a::linorder. (max x y < z) = (x < z & y < z)"
-  apply (simp add: order_le_less max_def)
-  apply (insert linorder_less_linear)
-  apply (blast intro: order_less_trans)
-  done
-
-lemma min_less_iff_conj [simp]:
-    "!!z::'a::linorder. (z < min x y) = (z < x & z < y)"
-  apply (simp add: order_le_less min_def)
-  apply (insert linorder_less_linear)
-  apply (blast intro: order_less_trans)
-  done
-
-lemma min_le_iff_disj: "!!z::'a::linorder. (min x y <= z) = (x <= z | y <= z)"
-  apply (simp add: min_def)
-  apply (insert linorder_linear)
-  apply (blast intro: order_trans)
-  done
-
-lemma min_less_iff_disj: "!!z::'a::linorder. (min x y < z) = (x < z | y < z)"
-  apply (simp add: min_def order_le_less)
-  apply (insert linorder_less_linear)
-  apply (blast intro: order_less_trans)
-  done
-
+ 
 lemmas max_ac = min_max.sup_assoc min_max.sup_commute
                mk_left_commute[of max,OF min_max.sup_assoc min_max.sup_commute]
 
 lemmas min_ac = min_max.inf_assoc min_max.inf_commute
                mk_left_commute[of min,OF min_max.inf_assoc min_max.inf_commute]
-
-lemma split_min:
-    "P (min (i::'a::linorder) j) = ((i <= j --> P(i)) & (~ i <= j --> P(j)))"
-  by (simp add: min_def)
-
-lemma split_max:
-    "P (max (i::'a::linorder) j) = ((i <= j --> P(j)) & (~ i <= j --> P(i)))"
-  by (simp add: max_def)
 
 text {* ML legacy bindings *}
 
