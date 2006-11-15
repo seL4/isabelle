@@ -490,8 +490,7 @@ datatype arLit = TConsLit of bool * (class * tcons * string list)
                | TVarLit of bool * (class * string);
  
 datatype arityClause =  
-	 ArityClause of {clause_id: clause_id,
-	  	         axiom_name: axiom_name,
+	 ArityClause of {axiom_name: axiom_name,
 			 kind: kind,
 			 conclLit: arLit,
 			 premLits: arLit list};
@@ -509,15 +508,14 @@ fun make_TConsLit (b, (cls,tcons,tvars)) =
       TConsLit(b, (make_type_class cls, make_fixed_type_const tcons, tvars));
 
 (*Arity of type constructor tcon :: (arg1,...,argN)res*)
-fun make_axiom_arity_clause (tcons, n, (res,args)) =
+fun make_axiom_arity_clause (tcons, axiom_name, (res,args)) =
    let val nargs = length args
        val tvars = gen_TVars nargs
        val tvars_srts = ListPair.zip (tvars,args)
        val tvars_srts' = union_all(map pack_sort tvars_srts)
        val false_tvars_srts' = map (pair false) tvars_srts'
    in
-      ArityClause {clause_id = n, kind = Axiom, 
-                   axiom_name = lookup_type_const tcons,
+      ArityClause {axiom_name = axiom_name, kind = Axiom, 
                    conclLit = make_TConsLit(true, (res,tcons,tvars)), 
                    premLits = map make_TVarLit false_tvars_srts'}
    end;
@@ -549,24 +547,34 @@ fun make_classrel_clauses thy subs supers =
 
 (** Isabelle arities **)
 
-fun arity_clause _ (tcons, []) = []
-  | arity_clause n (tcons, ("HOL.type",_)::ars) =  (*ignore*)
-      arity_clause n (tcons,ars)
-  | arity_clause n (tcons, ar::ars) =
-      make_axiom_arity_clause (tcons,n,ar) :: 
-      arity_clause (n+1) (tcons,ars);
+fun arity_clause _ _ (tcons, []) = []
+  | arity_clause seen n (tcons, ("HOL.type",_)::ars) =  (*ignore*)
+      arity_clause seen n (tcons,ars)
+  | arity_clause seen n (tcons, (ar as (class,_)) :: ars) =
+      if class mem_string seen then (*multiple arities for the same tycon, class pair*)
+	  make_axiom_arity_clause (tcons, lookup_type_const tcons ^ "_" ^ class ^ "_" ^ Int.toString n, ar) :: 
+	  arity_clause seen (n+1) (tcons,ars)
+      else
+	  make_axiom_arity_clause (tcons, lookup_type_const tcons ^ "_" ^ class, ar) :: 
+	  arity_clause (class::seen) n (tcons,ars)
 
 fun multi_arity_clause [] = []
   | multi_arity_clause ((tcons,ars) :: tc_arlists) =
-      (*Reversal ensures that older entries always get the same axiom name*)
-      arity_clause 0 (tcons, rev ars)  @  
+      arity_clause [] 1 (tcons, ars)  @  
       multi_arity_clause tc_arlists 
 
-fun arity_clause_thy thy =
-  let val arities = thy |> Sign.classes_of
-    |> Sorts.rep_algebra |> #arities |> Symtab.dest
-    |> map (apsnd (map (fn (c, (_, Ss)) => (c, Ss))));
-  in multi_arity_clause (rev arities) end;
+(*Generate all pairs (tycon,class,sorts) such that tycon belongs to class in theory thy.*)
+fun type_class_pairs thy tycons classes =
+  let val alg = Sign.classes_of thy
+      fun domain_sorts (tycon,class) = Sorts.mg_domain alg tycon [class]
+      fun add_class tycon (class,pairs) = 
+            (class, domain_sorts(tycon,class))::pairs 
+            handle Sorts.CLASS_ERROR _ => pairs
+      fun try_classes tycon = (tycon, foldl (add_class tycon) [] classes)
+  in  map try_classes tycons  end;
+
+fun arity_clause_thy thy tycons classes =
+  multi_arity_clause (type_class_pairs thy tycons classes);
 
 
 (**** Find occurrences of predicates in clauses ****)
@@ -594,9 +602,14 @@ fun add_clause_preds (Clause {literals, types_sorts, ...}, preds) =
 fun add_classrelClause_preds (ClassrelClause {subclass,superclass,...}, preds) =
   Symtab.update (subclass,1) (Symtab.update (superclass,1) preds);
 
-fun add_arityClause_preds (ArityClause {conclLit,...}, preds) =
-  let val TConsLit(_, (tclass, _, _)) = conclLit
-  in  Symtab.update (tclass,1) preds  end;
+(*Not sure the TVar case is ever used*)
+fun class_of_arityLit (TConsLit(_, (tclass, _, _))) = tclass
+  | class_of_arityLit (TVarLit(_, (tclass, _))) = tclass;
+
+fun add_arityClause_preds (ArityClause {conclLit,premLits,...}, preds) =
+  let val classes = map class_of_arityLit (conclLit::premLits)
+      fun upd (class,preds) = Symtab.update (class,1) preds
+  in  foldl upd preds classes  end;
 
 fun preds_of_clauses clauses clsrel_clauses arity_clauses = 
   Symtab.dest
@@ -755,8 +768,8 @@ fun string_of_descrip name =
 fun dfg_tfree_clause tfree_lit =
   "clause( %(conjecture)\n" ^ "or( " ^ tfree_lit ^ "),\n" ^ "tfree_tcs" ^ ").\n\n"
 
-fun string_of_arClauseID (ArityClause {clause_id,axiom_name,...}) =
-    arclause_prefix ^ ascii_of axiom_name ^ "_" ^ Int.toString clause_id;
+fun string_of_arClauseID (ArityClause {axiom_name,...}) =
+    arclause_prefix ^ ascii_of axiom_name;
 
 fun dfg_of_arLit (TConsLit(pol,(c,t,args))) =
       dfg_sign pol (c ^ "(" ^ t ^ paren_pack args ^ ")")
