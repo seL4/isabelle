@@ -13,20 +13,44 @@ section {* Definitional rewrites *}
 
 instance set :: (eq) eq ..
 
+definition
+  minus_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
+  "minus_set xs ys = ys - xs"
+
+lemma [code inline]:
+  "op - = (\<lambda>xs ys. minus_set ys xs)"
+  unfolding minus_set_def ..
+
+definition
+  subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+  subset_def: "subset = op \<subseteq>"
+
+lemmas [symmetric, code inline] = subset_def
+
 lemma [code target: Set]:
-  "(A = B) \<longleftrightarrow> (A \<subseteq> B \<and> B \<subseteq> A)"
+  "A = B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
   by blast
 
 lemma [code func]:
-  "Code_Generator.eq A B \<longleftrightarrow> (A \<subseteq> B \<and> B \<subseteq> A)"
-  unfolding eq_def by blast
+  "Code_Generator.eq A B \<longleftrightarrow> subset A B \<and> subset B A"
+  unfolding eq_def subset_def by blast
+
+lemma [code func]:
+  "subset A B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
+  unfolding subset_def Set.subset_def ..
 
 lemma [code]:
   "a \<in> A \<longleftrightarrow> (\<exists>x\<in>A. x = a)"
   unfolding bex_triv_one_point1 ..
 
+definition
+  filter_set :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set"
+  filter_set_def: "filter_set P xs = {x\<in>xs. P x}"
 
-section {* HOL definitions *}
+lemmas [symmetric, code inline] = filter_set_def
+
+
+section {* Operations on lists *}
 
 subsection {* Basic definitions *}
 
@@ -169,12 +193,12 @@ lemma iso_insert:
 lemma iso_remove1:
   assumes distnct: "distinct xs"
   shows "set (remove1 x xs) = set xs - {x}"
-using distnct set_remove1_eq by auto
+  using distnct set_remove1_eq by auto
 
 lemma iso_union:
   "set (unionl xs ys) = set xs \<union> set ys"
   unfolding unionl_def
- by (induct xs arbitrary: ys) (simp_all add: iso_insert)
+  by (induct xs arbitrary: ys) (simp_all add: iso_insert)
 
 lemma iso_intersect:
   "set (intersect xs ys) = set xs \<inter> set ys"
@@ -183,18 +207,10 @@ lemma iso_intersect:
 lemma iso_subtract:
   fixes ys
   assumes distnct: "distinct ys"
-  shows "set (subtract xs ys) = set ys - set xs"
+  shows "set (subtract xs ys) = minus_set (set xs) (set ys)"
   and "distinct (subtract xs ys)"
-unfolding subtract_def using distnct by (induct xs arbitrary: ys) (simp_all, auto)
-
-corollary iso_subtract':
-  fixes xs ys
-  assumes distnct: "distinct xs"
-  shows "set ((flip subtract) xs ys) = set xs - set ys"
-proof -
-  from distnct iso_subtract have "set (subtract ys xs) = set xs - set ys" by auto
-  thus ?thesis unfolding flip_def by auto
-qed
+  unfolding subtract_def minus_set_def
+  using distnct by (induct xs arbitrary: ys) auto
 
 lemma iso_map_distinct:
   "set (map_distinct f xs) = image f (set xs)"
@@ -234,6 +250,9 @@ lemma iso_Bex:
   "Blex xs f = Bex (set xs) f"
   unfolding Blex_def flip_def by (induct xs) simp_all
 
+lemma iso_filter:
+  "set (filter P xs) = filter_set P (set xs)"
+  unfolding filter_set_def by (induct xs) auto
 
 section {* code generator setup *}
 
@@ -244,6 +263,11 @@ nonfix union;
 
 code_modulename SML
   ExecutableSet List
+  Set List
+
+code_modulename Haskell
+  ExecutableSet List
+  Set List
 
 definition [code inline]:
   "empty_list = []"
@@ -257,8 +281,8 @@ lemma [code func]:
 lemma [code func]:
   "(xs \<Colon> 'a\<Colon>eq set) \<inter> ys = xs \<inter> ys" ..
 
-definition
-  "subtract' = flip subtract"
+lemma [code func]:
+  "minus_set xs = minus_set (xs \<Colon> 'a\<Colon>eq set)" ..
 
 lemma [code func]:
   "image (f \<Colon> 'a \<Rightarrow> 'b\<Colon>eq) = image f" ..
@@ -275,12 +299,15 @@ lemma [code func]:
 lemma [code func]:
   "Bex (xs \<Colon> 'a\<Colon>type set) = Bex xs" ..
 
+lemma [code func]:
+  "filter_set P (xs \<Colon> 'a\<Colon>type set) = filter_set P xs" ..
+
 code_abstype "'a set" "'a list" where
   "{}" \<equiv> empty_list
   insert \<equiv> insertl
   "op \<union>" \<equiv> unionl
   "op \<inter>" \<equiv> intersect
-  "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" \<equiv> subtract'
+  minus_set \<equiv> subtract
   image \<equiv> map_distinct
   Union \<equiv> unions
   Inter \<equiv> intersects
@@ -288,9 +315,10 @@ code_abstype "'a set" "'a list" where
   INTER \<equiv> map_inter
   Ball \<equiv> Blall
   Bex \<equiv> Blex
+  filter_set \<equiv> filter
 
-code_gen "{}" insert "op \<union>" "op \<inter>" "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
-  image Union Inter UNION INTER Ball Bex (SML -)
+code_gen "{}" insert "op \<union>" "op \<inter>" minus_set
+  image Union Inter UNION INTER Ball Bex filter_set (SML -)
 
 
 subsection {* type serializations *}
@@ -325,5 +353,6 @@ consts_code
   "INTER"   ("{*map_inter*}")
   "Ball"    ("{*Blall*}")
   "Bex"     ("{*Blex*}")
+  "filter_set" ("{*filter*}")
 
 end
