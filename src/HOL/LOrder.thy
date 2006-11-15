@@ -90,6 +90,22 @@ qed
 lemma join_unique: "(is_join j) = (j = join)"
 by (insert is_join_join, auto simp add: is_join_unique)
 
+interpretation lattice:
+  lattice ["op \<le> \<Colon> 'a\<Colon>lorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" meet join]
+proof unfold_locales
+  fix x y z :: "'a\<Colon>lorder"
+  from is_meet_meet have "is_meet meet" by blast
+  note meet = this is_meet_def
+  from meet show "meet x y \<le> x" by blast
+  from meet show "meet x y \<le> y" by blast
+  from meet show "x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> meet y z" by blast
+  from is_join_join have "is_join join" by blast
+  note join = this is_join_def
+  from join show "x \<le> join x y" by blast
+  from join show "y \<le> join x y" by blast
+  from join show "y \<le> x \<Longrightarrow> z \<le> x \<Longrightarrow> join y z \<le> x" by blast
+qed
+
 lemma meet_left_le: "meet a b \<le> (a::'a::meet_semilorder)"
 by (insert is_meet_meet, auto simp add: is_meet_def)
 
