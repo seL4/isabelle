@@ -3,7 +3,6 @@
 val HOL_cs = HOL.claset;
 val HOL_basic_ss = HOL.simpset_basic;
 val HOL_ss = HOL.simpset;
-val HOL_css = (HOL.claset, HOL.simpset);
 val hol_simplify = HOL.simplify;
 
 val split_tac        = Splitter.split_tac;
