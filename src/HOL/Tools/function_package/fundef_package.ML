@@ -55,7 +55,7 @@ fun add_simps label moreatts mutual_info fixes psimps spec lthy =
       val psimps_by_f = FundefMutual.sort_by_function mutual_info fnames saved_psimps
 
       fun add_for_f fname psimps =
-          LocalTheory.note ((NameSpace.append fname label, Attrib.internal Simplifier.simp_add :: moreatts), psimps) #> snd
+          LocalTheory.note ((NameSpace.qualified fname label, Attrib.internal Simplifier.simp_add :: moreatts), psimps) #> snd
     in
       (saved_psimps,
        fold2 add_for_f fnames psimps_by_f lthy)
@@ -68,7 +68,7 @@ fun fundef_afterqed config fixes spec mutual_info defname data [[result]] lthy =
       val Prep {f, R, ...} = data
       val fundef_data = FundefMutual.mk_partial_rules_mutual lthy mutual_info data result
       val FundefMResult {psimps, subset_pinducts, simple_pinducts, termination, domintros, cases, ...} = fundef_data
-      val qualify = NameSpace.append defname
+      val qualify = NameSpace.qualified defname
           
       val (((psimps', pinducts'), (_, [termination'])), lthy) = 
           lthy
@@ -141,7 +141,7 @@ fun total_termination_afterqed defname data [[totality]] lthy =
         val has_guards = exists ((fn (Const ("Trueprop", _) $ _) => false | _ => true) o prop_of) tsimps
         val allatts = if has_guards then [] else [Attrib.internal (RecfunCodegen.add NONE)]
         *)
-        val qualify = NameSpace.append defname;
+        val qualify = NameSpace.qualified defname;
     in
         lthy
           |> PROFILE "adding tsimps" (add_simps "simps" [] mutual fixes tsimps spec) |> snd
