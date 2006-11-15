@@ -602,9 +602,9 @@ fun get_root_module thy =
 
 fun eval_term thy (ref_spec, t) =
   let
-    val _ = Term.fold_atyps (fn _ =>
+    val _ = (Term.fold_types o Term.fold_atyps) (fn _ =>
       error ("Term" ^ Sign.string_of_term thy t ^ "is polymorhpic"))
-      (Term.fastype_of t);
+      t;
     val t' = codegen_term thy t;
   in CodegenSerializer.eval_term thy (ref_spec, t') (Code.get thy) end;
 
