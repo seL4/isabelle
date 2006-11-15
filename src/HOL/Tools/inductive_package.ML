@@ -658,20 +658,22 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
     val (intrs', ctxt2) =
       ctxt1 |>
       LocalTheory.notes
-        (map (NameSpace.append rec_name) intr_names ~~
+        (map (NameSpace.qualified rec_name) intr_names ~~
          intr_atts ~~
          map (fn th => [([th], [])]) (ProofContext.export ctxt1 ctxt intrs)) |>>
       map (hd o snd); (* FIXME? *)
     val (((_, elims'), (_, [induct'])), ctxt3) =
       ctxt2 |>
-      LocalTheory.note ((NameSpace.append rec_name "intros", []), intrs') ||>>
+      LocalTheory.note ((NameSpace.qualified rec_name "intros",
+          [Attrib.internal (ContextRules.intro_query NONE)]), intrs') ||>>
       fold_map (fn (name, (elim, cases)) =>
-        LocalTheory.note ((NameSpace.append (Sign.base_name name) "cases",
+        LocalTheory.note ((NameSpace.qualified (Sign.base_name name) "cases",
           [Attrib.internal (RuleCases.case_names cases),
            Attrib.internal (RuleCases.consumes 1),
-           Attrib.internal (InductAttrib.cases_set name)]), [elim]) #>
+           Attrib.internal (InductAttrib.cases_set name),
+           Attrib.internal (ContextRules.elim_query NONE)]), [elim]) #>
         apfst (hd o snd)) elims ||>>
-      LocalTheory.note ((NameSpace.append rec_name (coind_prefix coind ^ "induct"),
+      LocalTheory.note ((NameSpace.qualified rec_name (coind_prefix coind ^ "induct"),
         map Attrib.internal (#2 induct)), [rulify (#1 induct)]);
 
     val induct_att = if coind then InductAttrib.coinduct_set else InductAttrib.induct_set;
@@ -683,7 +685,7 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
           [Attrib.internal ind_case_names,
            Attrib.internal (RuleCases.consumes 1),
            Attrib.internal (induct_att name)]), [([th], [])]))) |> snd |>
-        LocalTheory.note ((NameSpace.append rec_name (coind_prefix coind ^ "inducts"),
+        LocalTheory.note ((NameSpace.qualified rec_name (coind_prefix coind ^ "inducts"),
           [Attrib.internal ind_case_names,
            Attrib.internal (RuleCases.consumes 1)]), map snd inducts) |> snd
       end;
