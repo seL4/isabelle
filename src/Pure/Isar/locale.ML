@@ -1771,13 +1771,13 @@ fun gen_add_locale prep_ctxt prep_expr
         |> snd;
     val (ctxt, (_, facts)) = activate_facts true (K I)
       (ProofContext.init pred_thy, axiomify predicate_axioms elemss');
-    val export = singleton (ProofContext.export_standard
-        (Assumption.add_view thy_ctxt predicate_statement ctxt) thy_ctxt);
+    val view_ctxt = Assumption.add_view thy_ctxt predicate_statement ctxt;
+    val export = singleton (ProofContext.export_standard view_ctxt thy_ctxt);
     val facts' = facts |> map (fn (a, ths) => ((a, []), [(map export ths, [])]));
     val elems' = maps #2 (filter (equal "" o #1 o #1) elemss');
     val elems'' = map_filter (fn (Fixes _) => NONE | e => SOME e) elems';
     val axs' = map (Element.assume_witness pred_thy) stmt';
-    val ctxt' = ctxt |> ProofContext.theory (fn pred_thy => pred_thy
+    val loc_ctxt = pred_thy
       |> PureThy.note_thmss_qualified "" bname facts' |> snd
       |> declare_locale name
       |> put_locale name
@@ -1788,8 +1788,9 @@ fun gen_add_locale prep_ctxt prep_expr
         lparams = map #1 (params_of' body_elemss),
         term_syntax = [],
         regs = regs,
-        intros = intros});
-  in (name, ctxt') end;
+        intros = intros}
+      |> init name;
+  in (name, loc_ctxt) end;
 
 in
 
