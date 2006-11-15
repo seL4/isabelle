@@ -1095,7 +1095,8 @@ fun seri_haskell module_prefix destination string_classes reserved_user module_a
     fun seri_module (modlname, (modlname', (imports, (defs, _)))) =
       Pretty.chunks (
         str ("module " ^ modlname' ^ " where")
-        :: map str (distinct (op =) (map (prefix "import qualified " o deresolv_module) imports)) @ (
+        :: map (str o prefix "import qualified ")
+          (imports |> map deresolv_module |> distinct (op =) |> remove (op =) modlname') @ (
         (case module_prolog modlname
          of SOME prolog => [str "", prolog, str ""]
           | NONE => [str ""])
