@@ -43,7 +43,7 @@ proof -
     case zero
     show "\<exists>!y. ?R zero y"
     proof
-      show "?R zero e" by (rule Rec_zero)
+      show "?R zero e" ..
       fix y assume "?R zero y"
       then show "y = e" by cases simp_all
     qed
@@ -54,7 +54,7 @@ proof -
       and yy': "\<And>y'. ?R m y' \<Longrightarrow> y = y'" by blast
     show "\<exists>!z. ?R (succ m) z"
     proof
-      from y show "?R (succ m) (r m y)" by (rule Rec_succ)
+      from y show "?R (succ m) (r m y)" ..
       fix z assume "?R (succ m) z"
       then obtain u where "z = r m u" and "?R m u" by cases simp_all
       with yy' show "z = r m y" by (simp only:)
@@ -77,7 +77,7 @@ lemma rec_eval:
 
 lemma rec_zero [simp]: "rec e r zero = e"
 proof (rule rec_eval)
-  show "Rec e r zero e" by (rule Rec_zero)
+  show "Rec e r zero e" ..
 qed
 
 lemma rec_succ [simp]: "rec e r (succ m) = r m (rec e r m)"
@@ -85,7 +85,7 @@ proof (rule rec_eval)
   let ?R = "Rec e r"
   have "?R m (rec e r m)"
     unfolding rec_def using Rec_functional by (rule theI')
-  then show "?R (succ m) (r m (rec e r m))" by (rule Rec_succ)
+  then show "?R (succ m) (r m (rec e r m))" ..
 qed
 
 
@@ -107,6 +107,10 @@ lemma add_zero_right: "add m zero = m"
 
 lemma add_succ_right: "add m (succ n) = succ (add m n)"
   by (induct m) simp_all
+
+lemma "add (succ (succ (succ zero))) (succ (succ zero)) =
+    succ (succ (succ (succ (succ zero))))"
+  by simp
 
 
 text {* \medskip Example: replication (polymorphic) *}
