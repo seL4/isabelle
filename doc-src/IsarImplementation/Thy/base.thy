@@ -3,7 +3,7 @@
 
 theory base
 imports CPure
-uses "setup.ML"
+uses "../../antiquote_setup.ML"
 begin
 
 end
