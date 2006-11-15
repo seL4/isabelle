@@ -110,7 +110,55 @@ code_reserved SML Fail
 code_reserved Haskell error
 
 
-subsection {* normalization by evaluation *}
+subsection {* Evaluation oracle *}
+
+ML {*
+signature HOL_EVAL =
+sig
+  val eval_ref: bool option ref
+  val oracle: string * (theory * exn -> term)
+  val tac: int -> tactic
+  val method: Method.src -> Proof.context -> Method.method
+end;
+
+structure HOLEval : HOL_EVAL =
+struct
+
+val eval_ref : bool option ref = ref NONE;
+
+fun eval_prop thy t =
+  CodegenPackage.eval_term
+    thy (("HOLEval.eval_ref", eval_ref), t);
+
+exception Eval of term;
+
+val oracle = ("Eval", fn (thy, Eval t) =>
+  Logic.mk_equals (t, if eval_prop thy t then HOLogic.true_const else HOLogic.false_const));
+
+val oracle_name = NameSpace.pack [Context.theory_name (the_context ()), fst oracle];
+
+fun conv ct =
+  let
+    val {thy, t, ...} = rep_cterm ct;
+  in Thm.invoke_oracle_i thy oracle_name (thy, Eval t) end;
+
+fun tac i = Tactical.PRIMITIVE (Drule.fconv_rule
+  (Drule.goals_conv (equal i) (HOL.Trueprop_conv conv)));
+
+val method =
+  Method.no_args (Method.METHOD (fn _ =>
+    tac 1 THEN rtac TrueI 1));
+
+end;
+*}
+
+setup {*
+  Theory.add_oracle HOLEval.oracle
+  #> Method.add_method ("eval", HOLEval.method, "solve goal by evaluation")
+*}
+
+
+subsection {* Normalization by evaluation *}
 
 setup {*
 let
