@@ -122,8 +122,6 @@ sig
   val eval_term: theory -> term -> term
   val term: string -> unit
   val eval_ref: term option ref
-  val oracle: string * (theory * exn -> term)
-  val method: Method.src -> Proof.context -> Method.method
 end;
 
 structure Eval : EVAL =
@@ -143,29 +141,7 @@ fun term t =
 
 exception Eval of term;
 
-val oracle = ("Eval", fn (thy, Eval t) =>
-  Logic.mk_equals (t, eval_term thy t));
-
-val oracle_name = NameSpace.pack [Context.theory_name (the_context ()), fst oracle];
-
-fun conv ct =
-  let
-    val {thy, t, ...} = rep_cterm ct;
-  in Thm.invoke_oracle_i thy oracle_name (thy, Eval t) end;
-
-fun tac i = Tactical.PRIMITIVE (Drule.fconv_rule
-  (Drule.goals_conv (equal i) (HOL.Trueprop_conv conv)));
-
-val method =
-  Method.no_args (Method.METHOD (fn _ =>
-    tac 1 THEN rtac TrueI 1));
-
 end;
-*}
-
-setup {*
-  Theory.add_oracle Eval.oracle
-  #> Method.add_method ("eval", Eval.method, "solve goal by evaluation")
 *}
 
 
@@ -185,14 +161,5 @@ and ('a, 'b) cair =
     Cair 'a 'b
 
 ML {* Eval.term "Shift (Cair (4::nat) [Suc 0])" *}
-
-lemma
-  "Suc 0 = 1" by eval
-
-lemma
-  "rev [0, Suc 0, Suc 0] = [Suc 0, Suc 0, 0]" by eval
-
-lemma
-  "fst (snd (fst ( ((Some (2::nat), (Suc 0, ())), [0::nat]) ))) = Suc (Suc 0) - 1" by eval
 
 end
