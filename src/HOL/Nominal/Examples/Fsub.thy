@@ -535,7 +535,7 @@ proof -
     have b3: "X\<sharp>\<Gamma>" by fact
     have b3': "X\<sharp>T1" "X\<sharp>S1" using b1 b3 by (simp_all add: subtype_implies_fresh)
     have "\<exists>C::tyvrs. C\<sharp>(pi\<bullet>X,pi\<bullet>S2,pi\<bullet>T2,pi\<bullet>S1,pi\<bullet>T1,pi\<bullet>\<Gamma>,x)"
-      by (rule at_exists_fresh[OF at_tyvrs_inst], simp add: fs_tyvrs1)
+      by (rule exists_fresh', simp add: fs_tyvrs1)
     then obtain C::"tyvrs" where  f1: "C\<noteq>(pi\<bullet>X)" and f2: "C\<sharp>(pi\<bullet>S1)" and f3: "C\<sharp>(pi\<bullet>T1)"
       and f4: "C\<sharp>(pi\<bullet>S2)" and f5: "C\<sharp>(pi\<bullet>T2)" and f6: "C\<sharp>(pi\<bullet>\<Gamma>)" and f7: "C\<sharp>x"
       by (auto simp add: fresh_prod fresh_atm)

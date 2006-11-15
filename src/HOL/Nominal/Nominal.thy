@@ -338,19 +338,23 @@ lemma fresh_string:
 
 text {* Normalization of freshness results; cf.\ @{text nominal_induct} *}
 
-lemma fresh_unit_elim: "(a\<sharp>() \<Longrightarrow> PROP C) \<equiv> PROP C"
+lemma fresh_unit_elim: 
+  shows "(a\<sharp>() \<Longrightarrow> PROP C) \<equiv> PROP C"
   by (simp add: fresh_def supp_unit)
 
-lemma fresh_prod_elim: "(a\<sharp>(x,y) \<Longrightarrow> PROP C) \<equiv> (a\<sharp>x \<Longrightarrow> a\<sharp>y \<Longrightarrow> PROP C)"
+lemma fresh_prod_elim: 
+  shows "(a\<sharp>(x,y) \<Longrightarrow> PROP C) \<equiv> (a\<sharp>x \<Longrightarrow> a\<sharp>y \<Longrightarrow> PROP C)"
   by rule (simp_all add: fresh_prod)
 
 lemma fresh_prodD:
-    "a \<sharp> (x, y) \<Longrightarrow> a \<sharp> x"
-    "a \<sharp> (x, y) \<Longrightarrow> a \<sharp> y"
+  shows "a\<sharp>(x,y) \<Longrightarrow> a\<sharp>x"
+  and   "a\<sharp>(x,y) \<Longrightarrow> a\<sharp>y"
   by (simp_all add: fresh_prod)
 
+(* setup for the simplifier to automatically unsplit freshness in products *)
+
 ML_setup {*
-  val mksimps_pairs = ("Nominal.fresh", thms "fresh_prodD") :: mksimps_pairs;
+  val mksimps_pairs = ("Nominal.fresh", thms "fresh_prodD")::mksimps_pairs;
   change_simpset (fn ss => ss setmksimps (mksimps mksimps_pairs));
 *}
 
@@ -717,29 +721,38 @@ apply(simp add: at_prm_fresh[OF at] at_rev_pi[OF at])
 apply(rule at_prm_eq_refl)
 done
 
---"there always exists an atom not being in a finite set"
+--"there always exists an atom that is not being in a finite set"
 lemma ex_in_inf:
   fixes   A::"'x set"
   assumes at: "at TYPE('x)"
   and     fs: "finite A"
-  shows "\<exists>c::'x. c\<notin>A"
+  obtains c::"'x" where "c\<notin>A"
 proof -
   from  fs at4[OF at] have "infinite ((UNIV::'x set) - A)" 
     by (simp add: Diff_infinite_finite)
   hence "((UNIV::'x set) - A) \<noteq> ({}::'x set)" by (force simp only:)
-  hence "\<exists>c::'x. c\<in>((UNIV::'x set) - A)" by force
-  thus "\<exists>c::'x. c\<notin>A" by force
+  then obtain c::"'x" where "c\<in>((UNIV::'x set) - A)" by force
+  then have "c\<notin>A" by simp
+  then show ?thesis using prems by simp 
 qed
 
---"there always exists a fresh name for an object with finite support"
-lemma at_exists_fresh: 
+text {* there always exists a fresh name for an object with finite support *}
+lemma at_exists_fresh': 
   fixes  x :: "'a"
   assumes at: "at TYPE('x)"
   and     fs: "finite ((supp x)::'x set)"
   shows "\<exists>c::'x. c\<sharp>x"
-  by (simp add: fresh_def, rule ex_in_inf[OF at, OF fs])
+  by (auto simp add: fresh_def intro: ex_in_inf[OF at, OF fs])
 
-lemma at_finite_select: "at (TYPE('a)) \<Longrightarrow> finite (S::'a set) \<Longrightarrow> \<exists>x. x \<notin> S"
+lemma at_exists_fresh: 
+  fixes  x :: "'a"
+  assumes at: "at TYPE('x)"
+  and     fs: "finite ((supp x)::'x set)"
+  obtains c::"'x" where  "c\<sharp>x"
+  by (auto intro: ex_in_inf[OF at, OF fs] simp add: fresh_def)
+
+lemma at_finite_select: 
+  shows "at (TYPE('a)) \<Longrightarrow> finite (S::'a set) \<Longrightarrow> \<exists>x. x \<notin> S"
   apply (drule Diff_infinite_finite)
   apply (simp add: at_def)
   apply blast
@@ -1635,6 +1648,7 @@ proof -
 qed
 
 section {* equivaraince for some connectives *}
+(* FIXME: maybe not really needed *)
 
 lemma pt_all_eqvt:
   fixes  pi :: "'x prm"
@@ -2776,7 +2790,7 @@ lemma fresh_abs_funI1:
   shows "b\<sharp>([a].x)"
   proof -
     have "\<exists>c::'x. c\<sharp>(b,a,x,[a].x)" 
-    proof (rule at_exists_fresh[OF at], auto simp add: supp_prod at_supp[OF at] f)
+    proof (rule at_exists_fresh'[OF at], auto simp add: supp_prod at_supp[OF at] f)
       show "finite ((supp ([a].x))::'x set)" using f
 	by (simp add: abs_fun_finite_supp[OF pt, OF at])	
     qed
@@ -2807,7 +2821,7 @@ lemma fresh_abs_funE:
   shows "b\<sharp>x"
 proof -
   have "\<exists>c::'x. c\<sharp>(b,a,x,[a].x)"
-  proof (rule at_exists_fresh[OF at], auto simp add: supp_prod at_supp[OF at] f)
+  proof (rule at_exists_fresh'[OF at], auto simp add: supp_prod at_supp[OF at] f)
     show "finite ((supp ([a].x))::'x set)" using f
       by (simp add: abs_fun_finite_supp[OF pt, OF at])	
   qed
@@ -2834,7 +2848,7 @@ lemma fresh_abs_funI2:
   shows "a\<sharp>([a].x)"
 proof -
   have "\<exists>c::'x. c\<sharp>(a,x)"
-    by  (rule at_exists_fresh[OF at], auto simp add: supp_prod at_supp[OF at] f) 
+    by  (rule at_exists_fresh'[OF at], auto simp add: supp_prod at_supp[OF at] f) 
   then obtain c where fr1: "a\<noteq>c" and fr1_sym: "c\<noteq>a" 
                 and   fr2: "c\<sharp>x" by (force simp add: fresh_prod at_fresh[OF at])
   have "c\<sharp>([a].x)" using f fr1 fr2 by (simp add: fresh_abs_funI1[OF pt, OF at])

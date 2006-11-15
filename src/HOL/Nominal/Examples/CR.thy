@@ -225,7 +225,7 @@ proof -
     show ?case 
     proof (simp)
       have f: "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>s1,pi\<bullet>s2,x)"
-	by (rule at_exists_fresh[OF at_name_inst], simp add: fs_name1)
+	by (rule exists_fresh', simp add: fs_name1)
       then obtain c::"name" 
 	where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>s1)" and f4: "c\<sharp>(pi\<bullet>s2)"
 	by (force simp add: fresh_prod fresh_atm)
@@ -243,7 +243,7 @@ proof -
     show ?case
     proof (simp add: subst_eqvt)
       have f: "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>s1,pi\<bullet>s2,x)"
-	by (rule at_exists_fresh[OF at_name_inst], simp add: fs_name1)
+	by (rule exists_fresh', simp add: fs_name1)
       then obtain c::"name" 
 	where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>s1)" and f4: "c\<sharp>(pi\<bullet>s2)"
 	by (force simp add: fresh_prod fresh_atm)
@@ -320,7 +320,7 @@ proof -
     show ?case 
     proof (simp)
       have f: "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>t1,pi\<bullet>t2,x)"
-	by (rule at_exists_fresh[OF at_name_inst], simp add: fs_name1)
+	by (rule exists_fresh', simp add: fs_name1)
       then obtain c::"name" 
 	where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>t1)" and f4: "c\<sharp>(pi\<bullet>t2)"
 	by (force simp add: fresh_prod fresh_atm)
@@ -342,7 +342,7 @@ proof -
     show ?case
     proof (simp)
       have f: "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>t1,pi\<bullet>t2,pi\<bullet>s1,pi\<bullet>s2,x)"
-	by (rule at_exists_fresh[OF at_name_inst], simp add: fs_name1)
+	by (rule exists_fresh', simp add: fs_name1)
       then obtain c::"name" 
 	where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>t1)" and f4: "c\<sharp>(pi\<bullet>t2)"
 	by (force simp add: fresh_prod at_fresh[OF at_name_inst])

@@ -1595,7 +1595,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     (** uniqueness **)
 
-    val exists_fresh = PureThy.get_thms thy11 (Name "exists_fresh");
+    val exists_fresh' = PureThy.get_thms thy11 (Name "exists_fresh'");
     val fs_atoms = map (fn Type (s, _) => PureThy.get_thm thy11
       (Name ("fs_" ^ Sign.base_name s ^ "1"))) dt_atomTs;
     val fresh_atm = PureThy.get_thms thy11 (Name "fresh_atm");
@@ -1636,7 +1636,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (fn _ => EVERY
             [cut_facts_tac ths 1,
              REPEAT_DETERM (dresolve_tac (the (AList.lookup op = rec_fin_supp T)) 1),
-             resolve_tac exists_fresh 1,
+             resolve_tac exists_fresh' 1,
              asm_simp_tac (HOL_ss addsimps (supp_prod :: finite_Un :: fs_atoms)) 1]);
         val (([cx], ths), ctxt') = Obtain.result
           (fn _ => EVERY

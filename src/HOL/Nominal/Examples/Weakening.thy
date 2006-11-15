@@ -102,7 +102,7 @@ proof -
     have k2: "((a,\<tau>)#\<Gamma>)\<turnstile>t:\<sigma>" by fact
     have k3: "\<And>(pi::name prm) (x::'a::fs_name). P x (pi \<bullet>((a,\<tau>)#\<Gamma>)) (pi\<bullet>t) \<sigma>" by fact
     have f: "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>t,pi\<bullet>\<Gamma>,x)"
-      by (rule exists_fresh, simp add: fs_name1)
+      by (rule exists_fresh', simp add: fs_name1)
     then obtain c::"name" 
       where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>t)" and f4: "c\<sharp>(pi\<bullet>\<Gamma>)"
       by (force simp add: fresh_prod fresh_atm)
@@ -159,7 +159,7 @@ proof -
     have f: "a\<sharp>\<Gamma>" by fact
     then have f': "(pi\<bullet>a)\<sharp>(pi\<bullet>\<Gamma>)"  by (simp add: fresh_bij)
     have "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>t,pi\<bullet>\<Gamma>,x)"
-      by (rule exists_fresh, simp add: fs_name1)
+      by (rule exists_fresh', simp add: fs_name1)
     then obtain c::"name" 
       where fs: "c\<noteq>(pi\<bullet>a)" "c\<sharp>x" "c\<sharp>(pi\<bullet>t)" "c\<sharp>(pi\<bullet>\<Gamma>)"
       by (force simp add: fresh_prod fresh_atm)    

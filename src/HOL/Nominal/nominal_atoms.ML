@@ -684,6 +684,7 @@ fun create_nom_typedecls ak_names thy =
        val pt_pi_rev           = thm "Nominal.pt_pi_rev";
        val pt_rev_pi           = thm "Nominal.pt_rev_pi";
        val at_exists_fresh     = thm "Nominal.at_exists_fresh";
+       val at_exists_fresh'    = thm "Nominal.at_exists_fresh'";
 
 
        (* Now we collect and instantiate some lemmas w.r.t. all atom      *)
@@ -764,6 +765,7 @@ fun create_nom_typedecls ak_names thy =
             ||>> PureThy.add_thmss [(("perm_app", inst_pt_at [perm_app]),[])]
             ||>> PureThy.add_thmss [(("supp_atm", (inst_at [at_supp]) @ (inst_dj [dj_supp])),[])]
             ||>> PureThy.add_thmss [(("exists_fresh", inst_at [at_exists_fresh]),[])]
+            ||>> PureThy.add_thmss [(("exists_fresh'", inst_at [at_exists_fresh']),[])]
             ||>> PureThy.add_thmss [(("all_eqvt", inst_pt_at [all_eqvt]),[])]
             ||>> PureThy.add_thmss 
 	      let val thms1 = inst_at [at_fresh]
