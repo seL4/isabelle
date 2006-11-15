@@ -70,7 +70,7 @@ notation (xsymbols)
 subsection {* Quasiorders (preorders) *}
 
 locale preorder =
-  fixes below :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubseteq>" 50)
+  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubseteq>" 50)
   fixes less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubset>" 50)
   assumes refl [iff]: "x \<sqsubseteq> x"
   and trans: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
@@ -255,6 +255,46 @@ lemma leD: "y \<sqsubseteq> x \<Longrightarrow> \<not> x \<sqsubset> y"
 (*FIXME inappropriate name (or delete altogether)*)
 lemma not_leE: "\<not> y \<sqsubseteq> x \<Longrightarrow> x \<sqsubset> y"
   unfolding not_le .
+
+(* min/max *)
+
+definition
+  min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+  "min a b = (if a \<sqsubseteq> b then a else b)"
+  max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+  "max a b = (if a \<sqsubseteq> b then b else a)"
+
+lemma min_le_iff_disj:
+  "min x y \<sqsubseteq> z \<longleftrightarrow> x \<sqsubseteq> z \<or> y \<sqsubseteq> z"
+  unfolding min_def using linear by (auto intro: trans)
+
+lemma le_max_iff_disj:
+  "z \<sqsubseteq> max x y \<longleftrightarrow> z \<sqsubseteq> x \<or> z \<sqsubseteq> y"
+  unfolding max_def using linear by (auto intro: trans)
+
+lemma min_less_iff_disj:
+  "min x y \<sqsubset> z \<longleftrightarrow> x \<sqsubset> z \<or> y \<sqsubset> z"
+  unfolding min_def le_less using trichotomy by (auto intro: less_trans)
+
+lemma less_max_iff_disj:
+  "z \<sqsubset> max x y \<longleftrightarrow> z \<sqsubset> x \<or> z \<sqsubset> y"
+  unfolding max_def le_less using trichotomy by (auto intro: less_trans)
+
+lemma min_less_iff_conj [simp]:
+  "z \<sqsubset> min x y \<longleftrightarrow> z \<sqsubset> x \<and> z \<sqsubset> y"
+  unfolding min_def le_less using trichotomy by (auto intro: less_trans)
+
+lemma max_less_iff_conj [simp]:
+  "max x y \<sqsubset> z \<longleftrightarrow> x \<sqsubset> z \<and> y \<sqsubset> z"
+  unfolding max_def le_less using trichotomy by (auto intro: less_trans)
+
+lemma split_min:
+  "P (min i j) \<longleftrightarrow> (i \<sqsubseteq> j \<longrightarrow> P i) \<and> (\<not> i \<sqsubseteq> j \<longrightarrow> P j)"
+  by (simp add: min_def)
+
+lemma split_max:
+  "P (max i j) \<longleftrightarrow> (i \<sqsubseteq> j \<longrightarrow> P j) \<and> (\<not> i \<sqsubseteq> j \<longrightarrow> P i)"
+  by (simp add: max_def)
 
 end
 
@@ -532,7 +572,163 @@ in [tr' "ALL ", tr' "EX "] end
 *}
 
 
-subsection {* Transitivity reasoning on decreasing inequalities *}
+subsection {* Transitivity reasoning *}
+
+lemma ord_le_eq_trans: "a <= b ==> b = c ==> a <= c"
+  by (rule subst)
+
+lemma ord_eq_le_trans: "a = b ==> b <= c ==> a <= c"
+  by (rule ssubst)
+
+lemma ord_less_eq_trans: "a < b ==> b = c ==> a < c"
+  by (rule subst)
+
+lemma ord_eq_less_trans: "a = b ==> b < c ==> a < c"
+  by (rule ssubst)
+
+lemma order_less_subst2: "(a::'a::order) < b ==> f b < (c::'c::order) ==>
+  (!!x y. x < y ==> f x < f y) ==> f a < c"
+proof -
+  assume r: "!!x y. x < y ==> f x < f y"
+  assume "a < b" hence "f a < f b" by (rule r)
+  also assume "f b < c"
+  finally (order_less_trans) show ?thesis .
+qed
+
+lemma order_less_subst1: "(a::'a::order) < f b ==> (b::'b::order) < c ==>
+  (!!x y. x < y ==> f x < f y) ==> a < f c"
+proof -
+  assume r: "!!x y. x < y ==> f x < f y"
+  assume "a < f b"
+  also assume "b < c" hence "f b < f c" by (rule r)
+  finally (order_less_trans) show ?thesis .
+qed
+
+lemma order_le_less_subst2: "(a::'a::order) <= b ==> f b < (c::'c::order) ==>
+  (!!x y. x <= y ==> f x <= f y) ==> f a < c"
+proof -
+  assume r: "!!x y. x <= y ==> f x <= f y"
+  assume "a <= b" hence "f a <= f b" by (rule r)
+  also assume "f b < c"
+  finally (order_le_less_trans) show ?thesis .
+qed
+
+lemma order_le_less_subst1: "(a::'a::order) <= f b ==> (b::'b::order) < c ==>
+  (!!x y. x < y ==> f x < f y) ==> a < f c"
+proof -
+  assume r: "!!x y. x < y ==> f x < f y"
+  assume "a <= f b"
+  also assume "b < c" hence "f b < f c" by (rule r)
+  finally (order_le_less_trans) show ?thesis .
+qed
+
+lemma order_less_le_subst2: "(a::'a::order) < b ==> f b <= (c::'c::order) ==>
+  (!!x y. x < y ==> f x < f y) ==> f a < c"
+proof -
+  assume r: "!!x y. x < y ==> f x < f y"
+  assume "a < b" hence "f a < f b" by (rule r)
+  also assume "f b <= c"
+  finally (order_less_le_trans) show ?thesis .
+qed
+
+lemma order_less_le_subst1: "(a::'a::order) < f b ==> (b::'b::order) <= c ==>
+  (!!x y. x <= y ==> f x <= f y) ==> a < f c"
+proof -
+  assume r: "!!x y. x <= y ==> f x <= f y"
+  assume "a < f b"
+  also assume "b <= c" hence "f b <= f c" by (rule r)
+  finally (order_less_le_trans) show ?thesis .
+qed
+
+lemma order_subst1: "(a::'a::order) <= f b ==> (b::'b::order) <= c ==>
+  (!!x y. x <= y ==> f x <= f y) ==> a <= f c"
+proof -
+  assume r: "!!x y. x <= y ==> f x <= f y"
+  assume "a <= f b"
+  also assume "b <= c" hence "f b <= f c" by (rule r)
+  finally (order_trans) show ?thesis .
+qed
+
+lemma order_subst2: "(a::'a::order) <= b ==> f b <= (c::'c::order) ==>
+  (!!x y. x <= y ==> f x <= f y) ==> f a <= c"
+proof -
+  assume r: "!!x y. x <= y ==> f x <= f y"
+  assume "a <= b" hence "f a <= f b" by (rule r)
+  also assume "f b <= c"
+  finally (order_trans) show ?thesis .
+qed
+
+lemma ord_le_eq_subst: "a <= b ==> f b = c ==>
+  (!!x y. x <= y ==> f x <= f y) ==> f a <= c"
+proof -
+  assume r: "!!x y. x <= y ==> f x <= f y"
+  assume "a <= b" hence "f a <= f b" by (rule r)
+  also assume "f b = c"
+  finally (ord_le_eq_trans) show ?thesis .
+qed
+
+lemma ord_eq_le_subst: "a = f b ==> b <= c ==>
+  (!!x y. x <= y ==> f x <= f y) ==> a <= f c"
+proof -
+  assume r: "!!x y. x <= y ==> f x <= f y"
+  assume "a = f b"
+  also assume "b <= c" hence "f b <= f c" by (rule r)
+  finally (ord_eq_le_trans) show ?thesis .
+qed
+
+lemma ord_less_eq_subst: "a < b ==> f b = c ==>
+  (!!x y. x < y ==> f x < f y) ==> f a < c"
+proof -
+  assume r: "!!x y. x < y ==> f x < f y"
+  assume "a < b" hence "f a < f b" by (rule r)
+  also assume "f b = c"
+  finally (ord_less_eq_trans) show ?thesis .
+qed
+
+lemma ord_eq_less_subst: "a = f b ==> b < c ==>
+  (!!x y. x < y ==> f x < f y) ==> a < f c"
+proof -
+  assume r: "!!x y. x < y ==> f x < f y"
+  assume "a = f b"
+  also assume "b < c" hence "f b < f c" by (rule r)
+  finally (ord_eq_less_trans) show ?thesis .
+qed
+
+text {*
+  Note that this list of rules is in reverse order of priorities.
+*}
+
+lemmas order_trans_rules [trans] =
+  order_less_subst2
+  order_less_subst1
+  order_le_less_subst2
+  order_le_less_subst1
+  order_less_le_subst2
+  order_less_le_subst1
+  order_subst2
+  order_subst1
+  ord_le_eq_subst
+  ord_eq_le_subst
+  ord_less_eq_subst
+  ord_eq_less_subst
+  forw_subst
+  back_subst
+  rev_mp
+  mp
+  order_neq_le_trans
+  order_le_neq_trans
+  order_less_trans
+  order_less_asym'
+  order_le_less_trans
+  order_less_le_trans
+  order_trans
+  order_antisym
+  ord_le_eq_trans
+  ord_eq_le_trans
+  ord_less_eq_trans
+  ord_eq_less_trans
+  trans
+
 
 (* FIXME cleanup *)
 
@@ -619,7 +815,7 @@ qed
   leave out the "(xtrans)" above.
 *)
 
-subsection {* Monotonicity, syntactic least value operator and syntactic min/max *}
+subsection {* Monotonicity, syntactic least value operator and min/max *}
 
 locale mono =
   fixes f
@@ -633,10 +829,68 @@ constdefs
   "Least P == THE x. P x & (ALL y. P y --> x <= y)"
     -- {* We can no longer use LeastM because the latter requires Hilbert-AC. *}
 
+lemma LeastI2_order:
+  "[| P (x::'a::order);
+      !!y. P y ==> x <= y;
+      !!x. [| P x; ALL y. P y --> x \<le> y |] ==> Q x |]
+   ==> Q (Least P)"
+  apply (unfold Least_def)
+  apply (rule theI2)
+    apply (blast intro: order_antisym)+
+  done
+
+lemma Least_equality:
+    "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k"
+  apply (simp add: Least_def)
+  apply (rule the_equality)
+  apply (auto intro!: order_antisym)
+  done
+
 constdefs
   min :: "['a::ord, 'a] => 'a"
   "min a b == (if a <= b then a else b)"
   max :: "['a::ord, 'a] => 'a"
   "max a b == (if a <= b then b else a)"
+
+lemma min_linorder:
+  "linorder.min (op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool) = min"
+  by (rule+) (simp add: min_def linorder.min_def)
+
+lemma max_linorder:
+  "linorder.max (op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool) = max"
+  by (rule+) (simp add: max_def linorder.max_def)
+
+lemmas min_le_iff_disj = linorder.min_le_iff_disj [where 'b = "?'a::linorder", simplified min_linorder]
+lemmas le_max_iff_disj = linorder.le_max_iff_disj [where 'b = "?'a::linorder", simplified max_linorder]
+lemmas min_less_iff_disj = linorder.min_less_iff_disj [where 'b = "?'a::linorder", simplified min_linorder]
+lemmas less_max_iff_disj = linorder.less_max_iff_disj [where 'b = "?'a::linorder", simplified max_linorder]
+lemmas min_less_iff_conj [simp] = linorder.min_less_iff_conj [where 'b = "?'a::linorder", simplified min_linorder]
+lemmas max_less_iff_conj [simp] = linorder.max_less_iff_conj [where 'b = "?'a::linorder", simplified max_linorder]
+lemmas split_min = linorder.split_min [where 'b = "?'a::linorder", simplified min_linorder]
+lemmas split_max = linorder.split_max [where 'b = "?'a::linorder", simplified max_linorder]
+
+lemma min_leastL: "(!!x. least <= x) ==> min least x = least"
+  by (simp add: min_def)
+
+lemma max_leastL: "(!!x. least <= x) ==> max least x = x"
+  by (simp add: max_def)
+
+lemma min_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> min x least = least"
+  apply (simp add: min_def)
+  apply (blast intro: order_antisym)
+  done
+
+lemma max_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> max x least = x"
+  apply (simp add: max_def)
+  apply (blast intro: order_antisym)
+  done
+
+lemma min_of_mono:
+    "(!!x y. (f x <= f y) = (x <= y)) ==> min (f m) (f n) = f (min m n)"
+  by (simp add: min_def)
+
+lemma max_of_mono:
+    "(!!x y. (f x <= f y) = (x <= y)) ==> max (f m) (f n) = f (max m n)"
+  by (simp add: max_def)
 
 end
