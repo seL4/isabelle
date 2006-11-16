@@ -80,7 +80,7 @@ and tl xq = #2 (the (pull xq));
 
 (*partial function as procedure*)
 fun try f x =
-  (case Library.try f x of
+  (case Basics.try f x of
     SOME y => single y
   | NONE => empty);
 
@@ -92,7 +92,7 @@ fun chop n xq =
   else
     (case pull xq of
       NONE => ([], xq)
-    | SOME (x, xq') => apfst (Library.cons x) (chop (n - 1) xq'));
+    | SOME (x, xq') => apfst (Basics.cons x) (chop (n - 1) xq'));
 
 (*conversion from sequence to list*)
 fun list_of xq =

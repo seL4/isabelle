@@ -5,15 +5,16 @@
 
 Basic library: functions, options, pairs, booleans, lists, integers,
 strings, lists as sets, balanced trees, orders, current directory, misc.
+
+See also General/basics.ML for the most fundamental concepts.
 *)
 
-infix 1 |> |-> ||> ||>> |>> #> #-> ##> ##>> #>> |>>> ;
-infix 2 ?;
-infix 3 o oo ooo oooo;
-
-infix 4 ~~ upto downto;
+infix 1 |>>>
+infix 2 ?
+infix 3 o oo ooo oooo
+infix 4 ~~ upto downto
 infix orf andf \ \\ mem mem_int mem_string union union_int
-  union_string inter inter_int inter_string subset subset_int subset_string;
+  union_string inter inter_int inter_string subset subset_int subset_string
 
 signature BASIC_LIBRARY =
 sig
@@ -22,37 +23,14 @@ sig
   val K: 'a -> 'b -> 'a
   val curry: ('a * 'b -> 'c) -> 'a -> 'b -> 'c
   val uncurry: ('a -> 'b -> 'c) -> 'a * 'b -> 'c
-  val |> : 'a * ('a -> 'b) -> 'b
-  val |-> : ('c * 'a) * ('c -> 'a -> 'b) -> 'b
-  val ||> : ('c * 'a) * ('a -> 'b) -> 'c * 'b
-  val ||>> : ('c * 'a) * ('a -> 'd * 'b) -> ('c * 'd) * 'b
-  val |>> : ('a * 'c) * ('a -> 'b) -> 'b * 'c
-  val #> : ('a -> 'b) * ('b -> 'c) -> 'a -> 'c
-  val #-> : ('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd
-  val ##> : ('a -> 'c * 'b) * ('b -> 'd) -> 'a -> 'c * 'd
-  val ##>> : ('a -> 'c * 'b) * ('b -> 'e * 'd) -> 'a -> ('c * 'e) * 'd
-  val #>> : ('a -> 'c * 'b) * ('c -> 'd) -> 'a -> 'd * 'b
   val |>>> : ('a * 'c) * ('a -> 'b * 'd) -> 'b * ('c * 'd)
   val ? : ('a -> bool) * ('a -> 'a) -> 'a -> 'a
-  val ` : ('b -> 'a) -> 'b -> 'a * 'b
-  val tap: ('b -> 'a) -> 'b -> 'b
   val oo: ('a -> 'b) * ('c -> 'd -> 'a) -> 'c -> 'd -> 'b
   val ooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'a) -> 'c -> 'd -> 'e -> 'b
   val oooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'f -> 'a) -> 'c -> 'd -> 'e -> 'f -> 'b
   val funpow: int -> ('a -> 'a) -> 'a -> 'a
 
-  (*options*)
-  val the: 'a option -> 'a
-  val these: 'a list option -> 'a list
-  val the_default: 'a -> 'a option -> 'a
-  val the_list: 'a option -> 'a list
-  val is_some: 'a option -> bool
-  val is_none: 'a option -> bool
-  val perhaps: ('a -> 'a option) -> 'a -> 'a
-
   (*exceptions*)
-  val try: ('a -> 'b) -> 'a -> 'b option
-  val can: ('a -> 'b) -> 'a -> bool
   exception EXCEPTION of exn * string
   val do_transform_failure: bool ref
   val transform_failure: (exn -> exn) -> ('a -> 'b) -> 'a -> 'b
@@ -102,22 +80,17 @@ sig
 
   (*lists*)
   exception UnequalLengths
-  val cons: 'a -> 'a list -> 'a list
   val single: 'a -> 'a list
   val the_single: 'a list -> 'a
   val singleton: ('a list -> 'b list) -> 'a -> 'b
-  val append: 'a list -> 'a list -> 'a list
   val apply: ('a -> 'a) list -> 'a -> 'a
-  val fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
-  val fold_rev: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
-  val fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val flat: 'a list list -> 'a list
-  val maps: ('a -> 'b list) -> 'a list -> 'b list
   val unflat: 'a list list -> 'b list -> 'b list list
   val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
   val fold_burrow: ('a list -> 'c -> 'b list * 'd) -> 'a list list -> 'c -> 'b list list * 'd
+  val maps: ('a -> 'b list) -> 'a list -> 'b list
   val chop: int -> 'a list -> 'a list * 'a list
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
   val nth: 'a list -> int -> 'a
@@ -290,35 +263,18 @@ end;
 structure Library: LIBRARY =
 struct
 
-
-(** functions **)
+(* functions *)
 
 fun I x = x;
 fun K x = fn _ => x;
 fun curry f x y = f (x, y);
 fun uncurry f (x, y) = f x y;
 
-(*reverse application and structured results*)
-fun x |> f = f x;
-fun (x, y) |-> f = f x y;
-fun (x, y) |>> f = (f x, y);
-fun (x, y) ||> f = (x, f y);
+(*application and structured results -- old version*)
 fun (x, y) |>>> f = let val (x', z) = f x in (x', (y, z)) end;
-fun (x, y) ||>> f = let val (z, y') = f y in ((x, z), y') end;
-
-(*reverse composition and structured results*)
-fun f #> g = g o f;
-fun f #-> g = uncurry g o f;
-fun (f ##> g) x = let val (y, z) = f x in (y, g z) end;
-fun (f ##>> g) x = let val (y, z) = f x; val (w, u) = g z in ((y, w), u) end;
-fun (f #>> g) x = let val (y, z) = f x in (g y, z) end;
 
 (*conditional application*)
 fun b ? f = fn x => if b x then f x else x;
-
-(*view results*)
-fun `f = fn x => (f x, x);
-fun tap f = fn x => (f x; x);
 
 (*composition with multiple args*)
 fun (f oo g) x y = f (g x y);
@@ -332,28 +288,6 @@ fun funpow n f x =
   in rep (n, x) end;
 
 
-(** options **)
-
-val the = Option.valOf;
-
-fun these (SOME x) = x
-  | these _ = [];
-
-fun the_default x (SOME y) = y
-  | the_default x _ = x;
-
-fun the_list (SOME x) = [x]
-  | the_list _ = []
-
-fun is_some (SOME _) = true
-  | is_some NONE = false;
-
-fun is_none (SOME _) = false
-  | is_none NONE = true;
-
-fun perhaps f x = the_default x (f x);
-
-
 (* exceptions *)
 
 val do_transform_failure = ref true;
@@ -364,13 +298,6 @@ fun transform_failure exn f x =
   else f x;
 
 exception EXCEPTION of exn * string;
-
-
-fun try f x = SOME (f x)
-  handle Interrupt => raise Interrupt | _ => NONE;
-
-fun can f x = is_some (try f x);
-
 
 datatype 'a result =
   Result of 'a |
@@ -409,7 +336,7 @@ fun assert_all pred list msg =
   in ass list end;
 
 
-(** pairs **)
+(* pairs *)
 
 fun pair x y = (x, y);
 fun rpair x y = (y, x);
@@ -431,19 +358,15 @@ fun pairself f (x, y) = (f x, f y);
 fun string_of_pair f1 f2 (x, y) = "(" ^ f1 x ^ ", " ^ f2 y ^ ")";
 
 
-(** booleans **)
+(* booleans *)
 
-(* equality *)
-
+(*polymorphic equality*)
 fun equal x y = x = y;
 fun not_equal x y = x <> y;
 
-(* operators for combining predicates *)
-
+(*combining predicates*)
 fun p orf q = fn x => p x orelse q x;
 fun p andf q = fn x => p x andalso q x;
-
-(* predicates on lists *)
 
 (*exists pred [x1, ..., xn] ===> pred x1 orelse ... orelse pred xn*)
 fun exists (pred: 'a -> bool) : 'a list -> bool =
@@ -481,11 +404,10 @@ fun setmp flag value f x =
 fun conditional b f = if b then f () else ();
 
 
+
 (** lists **)
 
 exception UnequalLengths;
-
-fun cons x xs = x :: xs;
 
 fun single x = [x];
 
@@ -494,35 +416,11 @@ fun the_single [x] = x
 
 fun singleton f x = the_single (f [x]);
 
-fun append xs ys = xs @ ys;
-
 fun apply [] x = x
   | apply (f :: fs) x = apply fs (f x);
 
 
-(* fold *)
-
-fun fold f =
-  let
-    fun fold_aux [] y = y
-      | fold_aux (x :: xs) y = fold_aux xs (f x y);
-  in fold_aux end;
-
-fun fold_rev f =
-  let
-    fun fold_aux [] y = y
-      | fold_aux (x :: xs) y = f x (fold_aux xs y);
-  in fold_aux end;
-
-fun fold_map f =
-  let
-    fun fold_aux [] y = ([], y)
-      | fold_aux (x :: xs) y =
-          let
-            val (x', y') = f x y;
-            val (xs', y'') = fold_aux xs y';
-          in (x' :: xs', y'') end;
-  in fold_aux end;
+(* fold -- old versions *)
 
 (*the following versions of fold are designed to fit nicely with infixes*)
 
@@ -570,9 +468,7 @@ fun eq_list eq (list1, list2) =
 fun maps f [] = []
   | maps f (x :: xs) = f x @ maps f xs;
 
-fun chop 0 xs = ([], xs)
-  | chop _ [] = ([], [])
-  | chop n (x :: xs) = chop (n - 1) xs |>> cons x;
+fun chop n xs = unfold_rev n dest xs;
 
 (*take the first n elements from a list*)
 fun take (n, []) = []

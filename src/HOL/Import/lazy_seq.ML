@@ -453,7 +453,7 @@ fun DETERM f x =
 (*partial function as procedure*)
 fun try f x =
     make (fn () =>
-	     case Library.try f x of
+	     case Basics.try f x of
 		 SOME y => SOME(y,Seq (value NONE))
 	       | NONE => NONE)
 
@@ -528,7 +528,7 @@ fun chop (n, xq) =
     else
 	case getItem xq of
 	    NONE => ([], xq)
-	  | SOME (x, xq') => apfst (Library.cons x) (chop (n - 1, xq'))
+	  | SOME (x, xq') => apfst (Basics.cons x) (chop (n - 1, xq'))
 
 fun foldl f e s =
     let

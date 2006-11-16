@@ -234,8 +234,9 @@ fun add_consumes k th = put_consumes (SOME (k + get_consumes th)) th;
 val save_consumes = put_consumes o lookup_consumes;
 
 fun consumes n x = Thm.rule_attribute (K (put_consumes (SOME n))) x;
+
 fun consumes_default n x =
-  if Library.is_some (lookup_consumes (#2 x)) then x else consumes n x;
+  if is_some (lookup_consumes (#2 x)) then x else consumes n x;
 
 
 

@@ -73,7 +73,7 @@ struct
                         " " ^ File.shell_path svc_input_file ^
                         ">/dev/null 2>&1"))
       val svc_output =
-        (case Library.try File.read svc_output_file of
+        (case try File.read svc_output_file of
           SOME out => out
         | NONE => error "SVC returned no output");
   in

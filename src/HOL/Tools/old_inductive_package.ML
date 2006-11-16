@@ -403,7 +403,7 @@ fun mk_indrule cs cTs params intr_ts =
 
     val ind_prems = map mk_ind_prem intr_ts;
 
-    val factors = Library.fold (mg_prod_factors preds) ind_prems [];
+    val factors = fold (mg_prod_factors preds) ind_prems [];
 
     (* make conclusions for induction rules *)
 
@@ -814,7 +814,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
 (* external interfaces *)
 
 fun try_term f msg thy t =
-  (case Library.try f t of
+  (case try f t of
     SOME x => x
   | NONE => error (msg ^ Sign.string_of_term thy t));
 

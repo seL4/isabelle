@@ -295,7 +295,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val (_ $ (_ $ _ $ S)) = Logic.strip_imp_concl (prop_of (hd intrs));
     val (_, params) = strip_comb S;
     val params' = map dest_Var params;
-    val rss = [] |> Library.fold add_rule intrs;
+    val rss = [] |> fold add_rule intrs;
     val (prfx, _) = split_last (NameSpace.unpack (fst (hd rss)));
     val tnames = map (fn s => space_implode "_" (s ^ "T" :: vs)) rsets;
 

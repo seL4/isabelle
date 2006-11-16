@@ -215,7 +215,7 @@ struct
   fun add_outerctxt ctop cbottom = cbottom @ ctop; 
 
   (* mkterm : zipper -> trm -> trm *)
-  val apply = Library.fold D.apply;
+  val apply = Basics.fold D.apply;
   
   (* named type context *)
   val nty_ctxt = List.foldr (fn (D.Abs nty,ntys) => nty::ntys
@@ -228,7 +228,7 @@ struct
 
   val map = List.map : (D.dtrm -> D.dtrm) -> T -> T
 
-  val fold = Library.fold : (D.dtrm -> 'a -> 'a) -> T -> 'a -> 'a;
+  val fold = Basics.fold : (D.dtrm -> 'a -> 'a) -> T -> 'a -> 'a;
 
 end;
 

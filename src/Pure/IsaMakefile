@@ -23,16 +23,15 @@ LOG = $(OUT)/log
 
 Pure: $(OUT)/Pure$(ML_SUFFIX)
 
-$(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML		\
-  General/buffer.ML General/file.ML General/graph.ML General/heap.ML		\
-  General/history.ML General/name_space.ML		\
-  General/ord_list.ML General/output.ML General/path.ML				\
-  General/position.ML General/pretty.ML General/rat.ML General/scan.ML		\
-  General/secure.ML General/seq.ML General/source.ML General/stack.ML		\
-  General/susp.ML General/symbol.ML General/table.ML General/url.ML		\
-  General/xml.ML Isar/ROOT.ML Isar/antiquote.ML Isar/args.ML Isar/attrib.ML	\
-  Isar/auto_bind.ML Isar/calculation.ML Isar/constdefs.ML			\
-  Isar/context_rules.ML Isar/element.ML Isar/find_theorems.ML			\
+$(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML 		\
+  General/basics.ML General/buffer.ML General/file.ML General/graph.ML 		\
+  General/heap.ML General/history.ML General/name_space.ML General/ord_list.ML	\
+  General/output.ML General/path.ML General/position.ML General/pretty.ML	\
+  General/rat.ML General/scan.ML General/secure.ML General/seq.ML		\
+  General/source.ML General/stack.ML General/susp.ML General/symbol.ML		\
+  General/table.ML General/url.ML General/xml.ML Isar/ROOT.ML Isar/antiquote.ML	\
+  Isar/args.ML Isar/attrib.ML Isar/auto_bind.ML Isar/calculation.ML		\
+  Isar/constdefs.ML Isar/context_rules.ML Isar/element.ML Isar/find_theorems.ML	\
   Isar/induct_attrib.ML Isar/isar_cmd.ML Isar/isar_output.ML Isar/isar_syn.ML	\
   Isar/local_defs.ML Isar/local_syntax.ML Isar/local_theory.ML Isar/locale.ML	\
   Isar/method.ML Isar/net_rules.ML Isar/object_logic.ML Isar/obtain.ML		\
