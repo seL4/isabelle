@@ -16,6 +16,7 @@ print_depth 10;
 structure Hidden = struct end;
 
 (*basic tools*)
+use "General/basics.ML";
 use "library.ML";
 cd "General"; use "ROOT.ML"; cd "..";
 
