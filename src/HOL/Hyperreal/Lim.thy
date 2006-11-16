@@ -133,6 +133,9 @@ by (simp add: LIM_def)
 lemma LIM_zero_cancel: "(\<lambda>x. f x - l) -- a --> 0 \<Longrightarrow> f -- a --> l"
 by (simp add: LIM_def)
 
+lemma LIM_zero_iff: "(\<lambda>x. f x - l) -- a --> 0 = f -- a --> l"
+by (simp add: LIM_def)
+
 lemma LIM_imp_LIM:
   assumes f: "f -- a --> l"
   assumes le: "\<And>x. x \<noteq> a \<Longrightarrow> norm (g x - m) \<le> norm (f x - l)"
@@ -151,6 +154,9 @@ by (drule LIM_norm, simp)
 
 lemma LIM_norm_zero_cancel: "(\<lambda>x. norm (f x)) -- a --> 0 \<Longrightarrow> f -- a --> 0"
 by (erule LIM_imp_LIM, simp)
+
+lemma LIM_norm_zero_iff: "(\<lambda>x. norm (f x)) -- a --> 0 = f -- a --> 0"
+by (rule iffI [OF LIM_norm_zero_cancel LIM_norm_zero])
 
 lemma LIM_const_not_eq:
   fixes a :: "'a::real_normed_div_algebra"
@@ -216,7 +222,7 @@ by (simp add: LIM_def)
 
 lemma LIM_cong:
   "\<lbrakk>a = b; \<And>x. x \<noteq> b \<Longrightarrow> f x = g x; l = m\<rbrakk>
-   \<Longrightarrow> (f -- a --> l) = (g -- b --> m)"
+   \<Longrightarrow> ((\<lambda>x. f x) -- a --> l) = ((\<lambda>x. g x) -- b --> m)"
 by (simp add: LIM_def)
 
 lemma LIM_equal2:
