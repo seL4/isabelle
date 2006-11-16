@@ -666,10 +666,17 @@ fun fold_type_consts f (Type (a, Ts)) x = fold (fold_type_consts f) Ts (f (a,x))
 
 val add_type_consts_in_type = fold_type_consts setinsert;
 
-val add_type_consts_in_term = fold_types add_type_consts_in_type;
+(*Type constructors used to instantiate overloaded constants are the only ones needed.*)
+fun add_type_consts_in_term thy =
+  let val const_typargs = Sign.const_typargs thy
+      fun add_tcs (Const cT) x = fold add_type_consts_in_type (const_typargs cT) x
+        | add_tcs (Abs (_, T, u)) x = add_tcs u x
+        | add_tcs (t $ u) x = add_tcs t (add_tcs u x)
+        | add_tcs _ x = x
+  in  add_tcs  end
 
-fun type_consts_of_terms ts =
-  Symtab.keys (fold add_type_consts_in_term ts Symtab.empty);
+fun type_consts_of_terms thy ts =
+  Symtab.keys (fold (add_type_consts_in_term thy) ts Symtab.empty);
 
 
 (***************************************************************)
@@ -722,7 +729,7 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
         val subs = tfree_classes_of_terms (map prop_of goal_cls)
         and axtms = map (prop_of o #1) axclauses
         val supers = tvar_classes_of_terms axtms
-        and tycons = type_consts_of_terms axtms
+        and tycons = type_consts_of_terms thy axtms
         (*TFrees in conjecture clauses; TVars in axiom clauses*)
         val classrel_clauses = 
               if keep_types then ResClause.make_classrel_clauses thy subs supers
@@ -854,7 +861,7 @@ fun write_problem_files probfile (ctxt,th)  =
                 val subs = tfree_classes_of_terms (map prop_of ccls)
                 and axtms = map (prop_of o #1) axcls
                 val supers = tvar_classes_of_terms axtms
-                and tycons = type_consts_of_terms axtms
+                and tycons = type_consts_of_terms thy axtms
                 (*TFrees in conjecture clauses; TVars in axiom clauses*)
                 val classrel_clauses = 
                       if keep_types then ResClause.make_classrel_clauses thy subs supers
