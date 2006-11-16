@@ -696,13 +696,20 @@ fun funcs_of_clauses clauses arity_clauses =
                        (foldl add_clause_funcs (init_funcs_tab Symtab.empty) clauses)
                        arity_clauses)
 
-fun preds_of clsrel_clauses arity_clauses = 
+fun add_clause_preds (Clause {ctypes_sorts, ...}, preds) =
+  foldl ResClause.add_type_sort_preds preds ctypes_sorts
+  handle Symtab.DUP a => raise ERROR ("predicate " ^ a ^ " has multiple arities")
+
+(*Higher-order clauses have only the predicates hBOOL and type classes.*)
+fun preds_of_clauses clauses clsrel_clauses arity_clauses = 
     Symtab.dest
 	(foldl ResClause.add_classrelClause_preds 
 	       (foldl ResClause.add_arityClause_preds
-		      (Symtab.update ("hBOOL",1) Symtab.empty)
+		      (Symtab.update ("hBOOL",1) 
+		        (foldl add_clause_preds Symtab.empty clauses))
 		      arity_clauses)
 	       clsrel_clauses)
+
 
 
 (**********************************************************************)
@@ -781,7 +788,7 @@ fun dfg_write_file  thms filename (axclauses,classrel_clauses,arity_clauses) use
 	val helper_clauses = (#2 o ListPair.unzip o get_helper_clauses) ()
 	val helper_clauses_strs = (#1 o ListPair.unzip o (map clause2dfg)) helper_clauses
 	val funcs = funcs_of_clauses (helper_clauses @ conjectures @ axclauses') arity_clauses
-	and preds = preds_of classrel_clauses arity_clauses
+	and preds = preds_of_clauses axclauses' classrel_clauses arity_clauses
     in
 	TextIO.output (out, ResClause.string_of_start probname); 
 	TextIO.output (out, ResClause.string_of_descrip probname); 
