@@ -175,7 +175,9 @@ fun check_func thy thm = case try (dest_func thy) thm
       in if Sign.typ_equiv thy (ty_decl, ty)
         then SOME (const, thm)
         else (if is_classop
-            then error
+            then if !strict_functyp
+              then error
+              else warning #> K NONE
           else if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty)
             then warning #> (K o SOME) (const, thm)
           else if !strict_functyp
