@@ -18,7 +18,7 @@ Goalw [thm "assoc_def"] "!! c::'a::factorial. \
 by (induct_tac "factors" 1);
 (* Base case: c dvd a contradicts irred c *)
 by (full_simp_tac (simpset() addsimps [thm "irred_def"]) 1);
-by (blast_tac (claset() addIs [dvd_trans_ring]) 1);
+by (blast_tac (claset() addIs [thm "dvd_trans_ring"]) 1);
 (* Induction step *)
 by (ftac (thm "factorial_prime") 1);
 by (full_simp_tac (simpset() addsimps [thm "irred_def", thm "prime_def"]) 1);

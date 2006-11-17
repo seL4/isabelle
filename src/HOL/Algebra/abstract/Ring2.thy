@@ -231,4 +231,54 @@ lemma m_rcancel:
   "(a::'a::domain) ~= 0 ==> (b * a = c * a) = (b = c)"
 by (simp add: m_lcancel)
 
+lemma power_0 [simp]:
+  "(a::'a::ring) ^ 0 = 1" unfolding power_def by simp
+
+lemma power_Suc [simp]:
+  "(a::'a::ring) ^ Suc n = a ^ n * a" unfolding power_def by simp
+
+lemma power_one [simp]:
+  "1 ^ n = (1::'a::ring)" by (induct n) simp_all
+
+lemma power_zero [simp]:
+  "n \<noteq> 0 \<Longrightarrow> 0 ^ n = (0::'a::ring)" by (induct n) simp_all
+
+lemma power_mult [simp]:
+  "(a::'a::ring) ^ m * a ^ n = a ^ (m + n)"
+  by (induct m) simp_all
+
+
+section "Divisibility"
+
+lemma dvd_zero_right [simp]:
+  "(a::'a::ring) dvd 0"
+proof
+  show "0 = a * 0" by simp
+qed
+
+lemma dvd_zero_left:
+  "0 dvd (a::'a::ring) \<Longrightarrow> a = 0" unfolding dvd_def by simp
+
+lemma dvd_refl_ring [simp]:
+  "(a::'a::ring) dvd a"
+proof
+  show "a = a * 1" by simp
+qed
+
+lemma dvd_trans_ring:
+  fixes a b c :: "'a::ring"
+  assumes a_dvd_b: "a dvd b"
+  and b_dvd_c: "b dvd c"
+  shows "a dvd c"
+proof -
+  from a_dvd_b obtain l where "b = a * l" using dvd_def by blast
+  moreover from b_dvd_c obtain j where "c = b * j" using dvd_def by blast
+  ultimately have "c = a * (l * j)" by simp
+  then have "\<exists>k. c = a * k" ..
+  then show ?thesis using dvd_def by blast
+qed
+
+lemma dvd_def':
+  "m dvd n \<equiv> \<exists>k. n = m * k" unfolding dvd_def by simp
+
 end

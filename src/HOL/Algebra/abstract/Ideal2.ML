@@ -124,7 +124,7 @@ qed "ideal_of_mono";
 Goal "ideal_of {0::'a::ring} = {0}";
 by (simp_tac (simpset() addsimps [pideal_structure]) 1);
 by (rtac subset_antisym 1);
-by (auto_tac (claset() addIs [dvd_zero_left], simpset()));
+by (auto_tac (claset() addIs [thm "dvd_zero_left"], simpset()));
 qed "ideal_of_zero_eq";
 
 Goal "[| is_ideal I; a : I |] ==> ideal_of {a::'a::ring} <= I";
@@ -149,7 +149,7 @@ qed "is_pidealD";
 (* Ideals and divisibility *)
 
 Goal "b dvd a ==> ideal_of {a::'a::ring} <= ideal_of {b}";
-by (auto_tac (claset() addIs [dvd_trans_ring],
+by (auto_tac (claset() addIs [thm "dvd_trans_ring"],
   simpset() addsimps [pideal_structure]));
 qed "dvd_imp_subideal";
 
@@ -167,7 +167,7 @@ Goal "(ideal_of {a::'a::ring} < ideal_of {b}) ==> ~ a dvd b";
 by (full_simp_tac (simpset() addsimps [psubset_eq, pideal_structure]) 1);
 by (etac conjE 1);
 by (dres_inst_tac [("c", "a")] subsetD 1);
-by (auto_tac (claset() addIs [dvd_trans_ring],
+by (auto_tac (claset() addIs [thm "dvd_trans_ring"],
   simpset()));
 qed "psubideal_not_dvd";
 

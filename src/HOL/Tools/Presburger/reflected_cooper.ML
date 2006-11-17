@@ -31,7 +31,7 @@ fun qf_of_term vs t =
       | Const("False",_) => F
       | Const("Orderings.less",_)$t1$t2 => Lt (i_of_term vs t1,i_of_term vs t2)
       | Const("Orderings.less_eq",_)$t1$t2 => Le (i_of_term vs t1,i_of_term vs t2)
-      | Const ("Divides.op dvd",_)$t1$t2 => 
+      | Const ("Divides.dvd",_)$t1$t2 => 
 	Divides(i_of_term vs t1,i_of_term vs t2)
       | Const("op =",eqT)$t1$t2 => 
 	if (domain_type eqT = HOLogic.intT)
@@ -99,7 +99,7 @@ fun term_of_qf vs t =
 			  (term_of_i vs t2)$(term_of_i vs t1)
       | Eq(t1,t2) => Const("op =",[iT,iT] ---> bT)$
 			   (term_of_i vs t1)$(term_of_i vs t2)
-      | Divides(t1,t2) => Const("Divides.op dvd",[iT,iT] ---> bT)$
+      | Divides(t1,t2) => Const("Divides.dvd",[iT,iT] ---> bT)$
 			       (term_of_i vs t1)$(term_of_i vs t2)
       | NOT t' => HOLogic.Not$(term_of_qf vs t')
       | And(t1,t2) => HOLogic.conj$(term_of_qf vs t1)$(term_of_qf vs t2)

@@ -294,8 +294,8 @@ structure CancelNumeralFactorCommon =
 structure DivCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binop "Divides.op div"
-  val dest_bal = HOLogic.dest_bin "Divides.op div" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binop "Divides.div"
+  val dest_bal = HOLogic.dest_bin "Divides.div" HOLogic.natT
   val cancel = nat_mult_div_cancel1 RS trans
   val neg_exchanges = false
 )
@@ -404,8 +404,8 @@ structure LeCancelFactor = ExtractCommonTermFun
 structure DivideCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binop "Divides.op div"
-  val dest_bal = HOLogic.dest_bin "Divides.op div" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binop "Divides.div"
+  val dest_bal = HOLogic.dest_bin "Divides.div" HOLogic.natT
   val simplify_meta_eq  = cancel_simplify_meta_eq nat_mult_div_cancel_disj
 );
 

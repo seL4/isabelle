@@ -10,8 +10,8 @@ Simproc for cancelling div and mod
 structure CancelDivModData =
 struct
 
-val div_name = "Divides.op div";
-val mod_name = "Divides.op mod";
+val div_name = "Divides.div";
+val mod_name = "Divides.mod";
 val mk_binop = HOLogic.mk_binop;
 val mk_sum = Int_Numeral_Simprocs.mk_sum HOLogic.intT;
 val dest_sum = Int_Numeral_Simprocs.dest_sum;

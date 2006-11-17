@@ -187,8 +187,8 @@ const_maps
   "-"          > "HOL.minus"      :: "[nat,nat]=>nat"
   MIN          > Orderings.min    :: "[nat,nat]=>nat"
   MAX          > Orderings.max    :: "[nat,nat]=>nat"
-  DIV          > "Divides.op div" :: "[nat,nat]=>nat"
-  MOD          > "Divides.op mod" :: "[nat,nat]=>nat"
+  DIV          > "Divides.div" :: "[nat,nat]=>nat"
+  MOD          > "Divides.mod" :: "[nat,nat]=>nat"
   EXP          > Nat.power        :: "[nat,nat]=>nat";
 
 end_import;
@@ -208,7 +208,7 @@ end_import;
 import_theory divides;
 
 const_maps
-    divides > "Divides.op dvd" :: "[nat,nat]=>bool";
+    divides > "Divides.dvd" :: "[nat,nat]=>bool";
 
 end_import;
 

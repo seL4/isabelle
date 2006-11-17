@@ -203,10 +203,10 @@ fun lint vars tm = if is_numeral tm then tm else case tm of
  
 fun mkatom vars p t = Const(p,HOLogic.intT --> HOLogic.intT --> HOLogic.boolT) $ zero $ (lint vars t); 
  
-fun linform vars (Const ("Divides.op dvd",_) $ c $ t) =
+fun linform vars (Const ("Divides.dvd",_) $ c $ t) =
     if is_numeral c then   
       let val c' = (mk_numeral(abs(dest_numeral c)))  
-      in (HOLogic.mk_binrel "Divides.op dvd" (c,lint vars t)) 
+      in (HOLogic.mk_binrel "Divides.dvd" (c,lint vars t)) 
       end 
     else (warning "Nonlinear term --- Non numeral leftside at dvd"
       ;raise COOPER)
@@ -283,7 +283,7 @@ fun unitycoeff x fm =
      let val xp = (HOLogic.mk_binop "HOL.plus"  
      		((HOLogic.mk_binop "HOL.times" ((mk_numeral 1), x )), zero))
 	in 
-      HOLogic.conj $(HOLogic.mk_binrel "Divides.op dvd" ((mk_numeral l) , xp )) $ (adjustcoeff x l fm) 
+      HOLogic.conj $(HOLogic.mk_binrel "Divides.dvd" ((mk_numeral l) , xp )) $ (adjustcoeff x l fm) 
       end 
   end; 
  
@@ -354,7 +354,7 @@ fun plusinf x fm = case fm of
 (* The LCM of all the divisors that involve x.                               *) 
 (* ------------------------------------------------------------------------- *) 
  
-fun divlcm x (Const("Divides.op dvd",_)$ d $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $ c $ y ) $ z ) ) =  
+fun divlcm x (Const("Divides.dvd",_)$ d $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $ c $ y ) $ z ) ) =  
         if x = y then abs(dest_numeral d) else 1 
   |divlcm x ( Const ("Not", _) $ p) = divlcm x p 
   |divlcm x ( Const ("op &",_) $ p $ q) = lcm_num (divlcm x p) (divlcm x q) 
@@ -450,7 +450,7 @@ fun dvd_op (d, t) =
 val operations = 
   [("op =",op=), ("Orderings.less",IntInf.<), ("op >",IntInf.>), ("Orderings.less_eq",IntInf.<=) , 
    ("op >=",IntInf.>=), 
-   ("Divides.op dvd",fn (x,y) =>((IntInf.mod(y, x)) = 0))]; 
+   ("Divides.dvd",fn (x,y) =>((IntInf.mod(y, x)) = 0))]; 
  
 fun applyoperation (SOME f) (a,b) = f (a, b) 
     |applyoperation _ (_, _) = false; 
@@ -460,7 +460,7 @@ fun applyoperation (SOME f) (a,b) = f (a, b)
 (*
 fun evalc_atom at = case at of  
   (Const (p,_) $ s $ t) =>
-   (if p="Divides.op dvd" then 
+   (if p="Divides.dvd" then 
      ((if dvd_op(s,t) then HOLogic.true_const
      else HOLogic.false_const)
       handle _ => at)

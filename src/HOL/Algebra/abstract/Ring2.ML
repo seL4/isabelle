@@ -164,61 +164,7 @@ Goal "!!a::'a::ring. (a = b) = (a -- b = 0)";
 
 *)
 
-(* Power *)
-
-Goal "!!a::'a::ring. a ^ 0 = 1";
-by (simp_tac (simpset() addsimps [power_def]) 1);
-qed "power_0";
-
-Goal "!!a::'a::ring. a ^ Suc n = a ^ n * a";
-by (simp_tac (simpset() addsimps [power_def]) 1);
-qed "power_Suc";
-
-Addsimps [power_0, power_Suc];
-
-Goal "1 ^ n = (1::'a::ring)";
-by (induct_tac "n" 1);
-by Auto_tac;
-qed "power_one";
-
-Goal "!!n. n ~= 0 ==> 0 ^ n = (0::'a::ring)";
-by (etac rev_mp 1);
-by (induct_tac "n" 1);
-by Auto_tac;
-qed "power_zero";
-
-Addsimps [power_zero, power_one];
-
-Goal "!! a::'a::ring. a ^ m * a ^ n = a ^ (m + n)";
-by (induct_tac "m" 1);
-by (Simp_tac 1);
-by (Asm_simp_tac 1);
-qed "power_mult";
-
-(* Divisibility *)
-section "Divisibility";
-
-Goalw [dvd_def] "!! a::'a::ring. a dvd 0";
-by (res_inst_tac [("x", "0")] exI 1);
-by (Simp_tac 1);
-qed "dvd_zero_right";
-
-Goalw [dvd_def] "!! a::'a::ring. 0 dvd a ==> a = 0";
-by Auto_tac;
-qed "dvd_zero_left";
-
-Goalw [dvd_def] "!! a::'a::ring. a dvd a";
-by (res_inst_tac [("x", "1")] exI 1);
-by (Simp_tac 1);
-qed "dvd_refl_ring";
-
-Goalw [dvd_def] "!! a::'a::ring. [| a dvd b; b dvd c |] ==> a dvd c";
-by (Step_tac 1);
-by (res_inst_tac [("x", "k * ka")] exI 1);
-by (Asm_simp_tac 1);
-qed "dvd_trans_ring";
-
-Addsimps [dvd_zero_right, dvd_refl_ring];
+val dvd_def = thm "dvd_def'";
 
 Goalw [dvd_def]
   "!!a::'a::ring. [| a dvd 1; b dvd 1 |] ==> a * b dvd 1";
@@ -366,7 +312,7 @@ Addsimps [m_lcancel_eq, m_rcancel_eq];
 section "Fields";
 
 Goal "!! a::'a::field. (a dvd 1) = (a ~= 0)";
-by (auto_tac (claset() addDs [thm "field_ax", dvd_zero_left],
+by (auto_tac (claset() addDs [thm "field_ax", thm "dvd_zero_left"],
   simpset() addsimps [thm "field_one_not_zero"]));
 qed "field_unit";
 

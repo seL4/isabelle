@@ -3,7 +3,7 @@ import
 import_segment "hol4"
 
 const_maps
-  "divides" > "Divides.op dvd" :: "nat => nat => bool"
+  "divides" > "Divides.dvd" :: "nat => nat => bool"
 
 thm_maps
   "divides_def" > "HOL4Compat.divides_def"
