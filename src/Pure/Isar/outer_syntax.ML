@@ -12,6 +12,7 @@ sig
       val state: unit -> Toplevel.state
       val exn: unit -> (exn * string) option
       val context: unit -> Proof.context
+      val goal: unit -> thm list * thm
       val main: unit -> unit
       val loop: unit -> unit
       val sync_main: unit -> unit
@@ -325,9 +326,15 @@ structure Isar =
 struct
   val state = Toplevel.get_state;
   val exn = Toplevel.exn;
+
   fun context () =
     Context.proof_of (Toplevel.context_of (state ()))
       handle Toplevel.UNDEF => error "Unknown context";
+
+  fun goal () =
+    #2 (Proof.get_goal (Toplevel.proof_of (state ())))
+      handle Toplevel.UNDEF => error "No goal present";
+
   fun main () = gen_main false false;
   fun loop () = gen_loop false false;
   fun sync_main () = gen_main true true;
