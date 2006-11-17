@@ -346,12 +346,16 @@ lemma fresh_prod_elim:
   shows "(a\<sharp>(x,y) \<Longrightarrow> PROP C) \<equiv> (a\<sharp>x \<Longrightarrow> a\<sharp>y \<Longrightarrow> PROP C)"
   by rule (simp_all add: fresh_prod)
 
+(* this rule needs to be added before the fresh_prodD is *)
+(* added to the simplifier with mksimps                  *) 
+lemma [simp]:
+  shows "a\<sharp>x1 \<Longrightarrow> a\<sharp>x2 \<Longrightarrow> a\<sharp>(x1,x2)"
+  by (simp add: fresh_prod)
+
 lemma fresh_prodD:
   shows "a\<sharp>(x,y) \<Longrightarrow> a\<sharp>x"
   and   "a\<sharp>(x,y) \<Longrightarrow> a\<sharp>y"
   by (simp_all add: fresh_prod)
-
-(* setup for the simplifier to automatically unsplit freshness in products *)
 
 ML_setup {*
   val mksimps_pairs = ("Nominal.fresh", thms "fresh_prodD")::mksimps_pairs;

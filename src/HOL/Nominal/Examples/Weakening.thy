@@ -101,11 +101,9 @@ proof -
     have k1: "a\<sharp>\<Gamma>" by fact
     have k2: "((a,\<tau>)#\<Gamma>)\<turnstile>t:\<sigma>" by fact
     have k3: "\<And>(pi::name prm) (x::'a::fs_name). P x (pi \<bullet>((a,\<tau>)#\<Gamma>)) (pi\<bullet>t) \<sigma>" by fact
-    have f: "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>t,pi\<bullet>\<Gamma>,x)"
-      by (rule exists_fresh', simp add: fs_name1)
-    then obtain c::"name" 
-      where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>t)" and f4: "c\<sharp>(pi\<bullet>\<Gamma>)"
-      by (force simp add: fresh_prod fresh_atm)
+    obtain c::"name" where "c\<sharp>(pi\<bullet>a,pi\<bullet>t,pi\<bullet>\<Gamma>,x)" by (erule exists_fresh[OF fs_name1])
+    then have f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>t)" and f4: "c\<sharp>(pi\<bullet>\<Gamma>)"
+      by (simp_all add: fresh_atm[symmetric]) 
     from k1 have k1a: "(pi\<bullet>a)\<sharp>(pi\<bullet>\<Gamma>)"  by (simp add: fresh_bij)
     have l1: "(([(c,pi\<bullet>a)]@pi)\<bullet>\<Gamma>) = (pi\<bullet>\<Gamma>)" using f4 k1a 
       by (simp only: pt_name2, rule perm_fresh_fresh)
@@ -158,11 +156,9 @@ proof -
     have ih1: "\<And>(pi::name prm) x. P x (pi\<bullet>((a,\<tau>)#\<Gamma>)) (pi\<bullet>t) \<sigma>" by fact
     have f: "a\<sharp>\<Gamma>" by fact
     then have f': "(pi\<bullet>a)\<sharp>(pi\<bullet>\<Gamma>)"  by (simp add: fresh_bij)
-    have "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>t,pi\<bullet>\<Gamma>,x)"
-      by (rule exists_fresh', simp add: fs_name1)
-    then obtain c::"name" 
-      where fs: "c\<noteq>(pi\<bullet>a)" "c\<sharp>x" "c\<sharp>(pi\<bullet>t)" "c\<sharp>(pi\<bullet>\<Gamma>)"
-      by (force simp add: fresh_prod fresh_atm)    
+    obtain  c::"name" where "c\<sharp>(pi\<bullet>a,pi\<bullet>t,pi\<bullet>\<Gamma>,x)" by (erule exists_fresh[OF fs_name1])
+    then have fs: "c\<noteq>(pi\<bullet>a)" "c\<sharp>x" "c\<sharp>(pi\<bullet>t)" "c\<sharp>(pi\<bullet>\<Gamma>)"
+      by (simp_all add: fresh_atm[symmetric])    
     let ?pi'="[(pi\<bullet>a,c)]@pi"
     have eq: "((pi\<bullet>a,c)#pi)\<bullet>a = c" by (simp add: calc_atm)
     have p1': "(?pi'\<bullet>((a,\<tau>)#\<Gamma>))\<turnstile>(?pi'\<bullet>t):\<sigma>" using p1 by (simp only: eqvt_typing)
