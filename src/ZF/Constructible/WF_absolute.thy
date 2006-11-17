@@ -10,7 +10,7 @@ theory WF_absolute imports WFrec begin
 subsection{*Transitive closure without fixedpoints*}
 
 definition
-  rtrancl_alt :: "[i,i]=>i"
+  rtrancl_alt :: "[i,i]=>i" where
     "rtrancl_alt(A,r) ==
        {p \<in> A*A. \<exists>n\<in>nat. \<exists>f \<in> succ(n) -> A.
                  (\<exists>x y. p = <x,y> &  f`0 = x & f`n = y) &
@@ -60,8 +60,7 @@ by (blast del: subsetI
 
 
 definition
-
-  rtran_closure_mem :: "[i=>o,i,i,i] => o"
+  rtran_closure_mem :: "[i=>o,i,i,i] => o" where
     --{*The property of belonging to @{text "rtran_closure(r)"}*}
     "rtran_closure_mem(M,A,r,p) ==
 	      \<exists>nnat[M]. \<exists>n[M]. \<exists>n'[M]. 
@@ -74,12 +73,14 @@ definition
 		      fun_apply(M,f,j,fj) & successor(M,j,sj) &
 		      fun_apply(M,f,sj,fsj) & pair(M,fj,fsj,ffp) & ffp \<in> r)))"
 
-  rtran_closure :: "[i=>o,i,i] => o"
+definition
+  rtran_closure :: "[i=>o,i,i] => o" where
     "rtran_closure(M,r,s) == 
         \<forall>A[M]. is_field(M,r,A) -->
  	 (\<forall>p[M]. p \<in> s <-> rtran_closure_mem(M,A,r,p))"
 
-  tran_closure :: "[i=>o,i,i] => o"
+definition
+  tran_closure :: "[i=>o,i,i] => o" where
     "tran_closure(M,r,t) ==
          \<exists>s[M]. rtran_closure(M,r,s) & composition(M,r,s,t)"
 

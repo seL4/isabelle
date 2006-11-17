@@ -12,7 +12,7 @@ consts
   perm :: "('a list * 'a list) set"
 
 abbreviation
-  perm_rel :: "'a list => 'a list => bool"    ("_ <~~> _"  [50, 50] 50)
+  perm_rel :: "'a list => 'a list => bool"  ("_ <~~> _"  [50, 50] 50) where
   "x <~~> y == (x, y) \<in> perm"
 
 inductive perm

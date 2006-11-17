@@ -18,9 +18,11 @@ text {*
 subsection {* Definitions and lemmas *}
 
 definition
-  reciR :: "int => int => int => bool"
+  reciR :: "int => int => int => bool" where
   "reciR p = (\<lambda>a b. zcong (a * b) 1 p \<and> 1 < a \<and> a < p - 1 \<and> 1 < b \<and> b < p - 1)"
-  inv :: "int => int => int"
+
+definition
+  inv :: "int => int => int" where
   "inv p a =
     (if zprime p \<and> 0 < a \<and> a < p then
       (SOME x. 0 \<le> x \<and> x < p \<and> zcong (a * x) 1 p)

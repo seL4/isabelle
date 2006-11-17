@@ -13,17 +13,12 @@ The protocol of
 theory ZhouGollmann imports Public begin
 
 abbreviation
-  TTP :: agent
-  "TTP == Server"
+  TTP :: agent where "TTP == Server"
 
-  f_sub :: nat
-  "f_sub == 5"
-  f_nro :: nat
-  "f_nro == 2"
-  f_nrr :: nat
-  "f_nrr == 3"
-  f_con :: nat
-  "f_con == 4"
+abbreviation f_sub :: nat where "f_sub == 5"
+abbreviation f_nro :: nat where "f_nro == 2"
+abbreviation f_nrr :: nat where "f_nrr == 3"
+abbreviation f_con :: nat where "f_con == 4"
 
 
 constdefs

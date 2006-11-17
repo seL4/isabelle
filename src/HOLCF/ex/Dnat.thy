@@ -10,7 +10,7 @@ theory Dnat imports HOLCF begin
 domain dnat = dzero | dsucc (dpred :: dnat)
 
 definition
-  iterator :: "dnat -> ('a -> 'a) -> 'a -> 'a"
+  iterator :: "dnat -> ('a -> 'a) -> 'a -> 'a" where
   "iterator = fix $ (LAM h n f x.
     case n of dzero => x
       | dsucc $ m => f $ (h $ m $ f $ x))"

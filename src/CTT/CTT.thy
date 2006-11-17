@@ -65,20 +65,21 @@ translations
   "SUM x:A. B"  == "Sum(A, %x. B)"
 
 abbreviation
-  Arrow     :: "[t,t]=>t"           (infixr "-->" 30)
+  Arrow     :: "[t,t]=>t"  (infixr "-->" 30) where
   "A --> B == PROD _:A. B"
-  Times     :: "[t,t]=>t"           (infixr "*" 50)
+abbreviation
+  Times     :: "[t,t]=>t"  (infixr "*" 50) where
   "A * B == SUM _:A. B"
 
 notation (xsymbols)
-  Elem  ("(_ /\<in> _)" [10,10] 5)
-  Eqelem  ("(2_ =/ _ \<in>/ _)" [10,10,10] 5)
-  Arrow  (infixr "\<longrightarrow>" 30)
+  Elem  ("(_ /\<in> _)" [10,10] 5) and
+  Eqelem  ("(2_ =/ _ \<in>/ _)" [10,10,10] 5) and
+  Arrow  (infixr "\<longrightarrow>" 30) and
   Times  (infixr "\<times>" 50)
 
 notation (HTML output)
-  Elem  ("(_ /\<in> _)" [10,10] 5)
-  Eqelem  ("(2_ =/ _ \<in>/ _)" [10,10,10] 5)
+  Elem  ("(_ /\<in> _)" [10,10] 5) and
+  Eqelem  ("(2_ =/ _ \<in>/ _)" [10,10,10] 5) and
   Times  (infixr "\<times>" 50)
 
 syntax (xsymbols)

@@ -15,14 +15,14 @@ text {* A formalization of some of the results in \emph{Inductive
 text "S is an inductive invariant of the functional F with respect to the wellfounded relation r."
 
 definition
-  indinv :: "('a * 'a) set => ('a => 'b => bool) => (('a => 'b) => ('a => 'b)) => bool"
+  indinv :: "('a * 'a) set => ('a => 'b => bool) => (('a => 'b) => ('a => 'b)) => bool" where
   "indinv r S F = (\<forall>f x. (\<forall>y. (y,x) : r --> S y (f y)) --> S x (F f x))"
 
 
 text "S is an inductive invariant of the functional F on set D with respect to the wellfounded relation r."
 
 definition
-  indinv_on :: "('a * 'a) set => 'a set => ('a => 'b => bool) => (('a => 'b) => ('a => 'b)) => bool"
+  indinv_on :: "('a * 'a) set => 'a set => ('a => 'b => bool) => (('a => 'b) => ('a => 'b)) => bool" where
   "indinv_on r D S F = (\<forall>f. \<forall>x\<in>D. (\<forall>y\<in>D. (y,x) \<in> r --> S y (f y)) --> S x (F f x))"
 
 

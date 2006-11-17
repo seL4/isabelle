@@ -110,7 +110,8 @@ defs
   Sigma_def:    "Sigma A B == UN x:A. UN y:B x. {Pair x y}"
 
 abbreviation
-  Times :: "['a set, 'b set] => ('a * 'b) set"  (infixr "<*>" 80)
+  Times :: "['a set, 'b set] => ('a * 'b) set"
+    (infixr "<*>" 80) where
   "A <*> B == Sigma A (%_. B)"
 
 notation (xsymbols)

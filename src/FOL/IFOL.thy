@@ -45,7 +45,7 @@ consts
 
 
 abbreviation
-  not_equal     :: "['a, 'a] => o"              (infixl "~=" 50)
+  not_equal :: "['a, 'a] => o"  (infixl "~=" 50) where
   "x ~= y == ~ (x = y)"
 
 notation (xsymbols)

@@ -30,7 +30,7 @@ consts
   thms  :: "'a pl set => 'a pl set"
 
 abbreviation
-  thm_rel :: "['a pl set, 'a pl] => bool"   (infixl "|-" 50)
+  thm_rel :: "['a pl set, 'a pl] => bool"   (infixl "|-" 50) where
   "H |- p == p \<in> thms H"
 
 inductive "thms(H)"
@@ -73,7 +73,7 @@ text {*
 *}
 
 definition
-  sat :: "['a pl set, 'a pl] => bool"   (infixl "|=" 50)
+  sat :: "['a pl set, 'a pl] => bool"   (infixl "|=" 50) where
     "H |= p  =  (\<forall>tt. (\<forall>q\<in>H. tt[[q]]) --> tt[[p]])"
 
 

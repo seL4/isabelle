@@ -14,63 +14,74 @@ begin
 types hcomplex = "complex star"
 
 abbreviation
-  hcomplex_of_complex :: "complex => complex star"
+  hcomplex_of_complex :: "complex => complex star" where
   "hcomplex_of_complex == star_of"
 
-  hcmod :: "complex star => real star"
+abbreviation
+  hcmod :: "complex star => real star" where
   "hcmod == hnorm"
 
-definition
 
   (*--- real and Imaginary parts ---*)
 
-  hRe :: "hcomplex => hypreal"
+definition
+  hRe :: "hcomplex => hypreal" where
   "hRe = *f* Re"
 
-  hIm :: "hcomplex => hypreal"
+definition
+  hIm :: "hcomplex => hypreal" where
   "hIm = *f* Im"
 
 
   (*------ imaginary unit ----------*)
 
-  iii :: hcomplex
+definition
+  iii :: hcomplex where
   "iii = star_of ii"
 
   (*------- complex conjugate ------*)
 
-  hcnj :: "hcomplex => hcomplex"
+definition
+  hcnj :: "hcomplex => hcomplex" where
   "hcnj = *f* cnj"
 
   (*------------ Argand -------------*)
 
-  hsgn :: "hcomplex => hcomplex"
+definition
+  hsgn :: "hcomplex => hcomplex" where
   "hsgn = *f* sgn"
 
-  harg :: "hcomplex => hypreal"
+definition
+  harg :: "hcomplex => hypreal" where
   "harg = *f* arg"
 
+definition
   (* abbreviation for (cos a + i sin a) *)
-  hcis :: "hypreal => hcomplex"
+  hcis :: "hypreal => hcomplex" where
   "hcis = *f* cis"
 
   (*----- injection from hyperreals -----*)
 
-  hcomplex_of_hypreal :: "hypreal => hcomplex"
+definition
+  hcomplex_of_hypreal :: "hypreal => hcomplex" where
   "hcomplex_of_hypreal = *f* complex_of_real"
 
+definition
   (* abbreviation for r*(cos a + i sin a) *)
-  hrcis :: "[hypreal, hypreal] => hcomplex"
+  hrcis :: "[hypreal, hypreal] => hcomplex" where
   "hrcis = *f2* rcis"
 
   (*------------ e ^ (x + iy) ------------*)
-
-  hexpi :: "hcomplex => hcomplex"
+definition
+  hexpi :: "hcomplex => hcomplex" where
   "hexpi = *f* expi"
 
-  HComplex :: "[hypreal,hypreal] => hcomplex"
+definition
+  HComplex :: "[hypreal,hypreal] => hcomplex" where
   "HComplex = *f2* Complex"
 
-  hcpow :: "[hcomplex,hypnat] => hcomplex"  (infixr "hcpow" 80)
+definition
+  hcpow :: "[hcomplex,hypnat] => hcomplex"  (infixr "hcpow" 80) where
   "(z::hcomplex) hcpow (n::hypnat) = ( *f2* op ^) z n"
 
 lemmas hcomplex_defs [transfer_unfold] =

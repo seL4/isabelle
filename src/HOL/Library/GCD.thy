@@ -22,7 +22,7 @@ recdef gcd  "measure ((\<lambda>(m, n). n) :: nat \<times> nat => nat)"
   "gcd (m, n) = (if n = 0 then m else gcd (n, m mod n))"
 
 definition
-  is_gcd :: "nat => nat => nat => bool"  -- {* @{term gcd} as a relation *}
+  is_gcd :: "nat => nat => nat => bool" where -- {* @{term gcd} as a relation *}
   "is_gcd p m n = (p dvd m \<and> p dvd n \<and>
     (\<forall>d. d dvd m \<and> d dvd n --> d dvd p))"
 

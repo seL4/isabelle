@@ -803,7 +803,7 @@ constdefs
   "setsum f A == if finite A then fold (op +) f 0 A else 0"
 
 abbreviation
-  Setsum  ("\<Sum>_" [1000] 999)
+  Setsum  ("\<Sum>_" [1000] 999) where
   "\<Sum>A == setsum (%x. x) A"
 
 text{* Now: lot's of fancy syntax. First, @{term "setsum (%x. e) A"} is
@@ -1275,7 +1275,7 @@ constdefs
   "setprod f A == if finite A then fold (op *) f 1 A else 1"
 
 abbreviation
-  Setprod  ("\<Prod>_" [1000] 999)
+  Setprod  ("\<Prod>_" [1000] 999) where
   "\<Prod>A == setprod (%x. x) A"
 
 syntax

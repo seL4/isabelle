@@ -30,7 +30,7 @@ axiomatization
   random_seed :: "randseed \<Rightarrow> nat"
 
 definition
-  random :: "nat \<Rightarrow> randseed \<Rightarrow> nat \<times> randseed"
+  random :: "nat \<Rightarrow> randseed \<Rightarrow> nat \<times> randseed" where
   "random n s = (random_seed s mod n, random_shift s)"
 
 lemma random_bound:
@@ -45,12 +45,13 @@ lemma random_random_seed [simp]:
   "snd (random n s) = random_shift s" unfolding random_def by simp
 
 definition
-  select :: "'a list \<Rightarrow> randseed \<Rightarrow> 'a \<times> randseed"
+  select :: "'a list \<Rightarrow> randseed \<Rightarrow> 'a \<times> randseed" where
   [simp]: "select xs = (do
       n \<leftarrow> random (length xs);
       return (nth xs n)
     done)"
-  select_weight :: "(nat \<times> 'a) list \<Rightarrow> randseed \<Rightarrow> 'a \<times> randseed"
+definition
+  select_weight :: "(nat \<times> 'a) list \<Rightarrow> randseed \<Rightarrow> 'a \<times> randseed" where
   [simp]: "select_weight xs = (do
       n \<leftarrow> random (foldl (op +) 0 (map fst xs));
       return (pick xs n)
@@ -123,7 +124,7 @@ next
 qed
 
 definition
-  random_int :: "int \<Rightarrow> randseed \<Rightarrow> int * randseed"
+  random_int :: "int \<Rightarrow> randseed \<Rightarrow> int * randseed" where
   "random_int k = (do n \<leftarrow> random (nat k); return (int n) done)"
 
 lemma random_nat [code]:

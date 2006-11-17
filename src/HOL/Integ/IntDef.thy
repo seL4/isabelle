@@ -870,9 +870,11 @@ fun gen_int i = one_of [~1, 1] * random_range 0 i;
 *}
 
 definition
-  int_aux :: "int \<Rightarrow> nat \<Rightarrow> int"
+  int_aux :: "int \<Rightarrow> nat \<Rightarrow> int" where
   "int_aux i n = (i + int n)"
-  nat_aux :: "nat \<Rightarrow> int \<Rightarrow> nat"
+
+definition
+  nat_aux :: "nat \<Rightarrow> int \<Rightarrow> nat" where
   "nat_aux n i = (n + nat i)"
 
 lemma [code]:

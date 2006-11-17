@@ -15,22 +15,23 @@ begin
 types hypreal = "real star"
 
 abbreviation
-  hypreal_of_real :: "real => real star"
+  hypreal_of_real :: "real => real star" where
   "hypreal_of_real == star_of"
 
 definition
-  omega   :: hypreal   -- {*an infinite number @{text "= [<1,2,3,...>]"} *}
+  omega :: hypreal where   -- {*an infinite number @{text "= [<1,2,3,...>]"} *}
   "omega = star_n (%n. real (Suc n))"
 
-  epsilon :: hypreal   -- {*an infinitesimal number @{text "= [<1,1/2,1/3,...>]"} *}
+definition
+  epsilon :: hypreal where   -- {*an infinitesimal number @{text "= [<1,1/2,1/3,...>]"} *}
   "epsilon = star_n (%n. inverse (real (Suc n)))"
 
 notation (xsymbols)
-  omega  ("\<omega>")
+  omega  ("\<omega>") and
   epsilon  ("\<epsilon>")
 
 notation (HTML output)
-  omega  ("\<omega>")
+  omega  ("\<omega>") and
   epsilon  ("\<epsilon>")
 
 

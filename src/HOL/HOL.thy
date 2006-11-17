@@ -58,27 +58,27 @@ notation (output)
   "op ="  (infix "=" 50)
 
 abbreviation
-  not_equal     :: "['a, 'a] => bool"               (infixl "~=" 50)
+  not_equal :: "['a, 'a] => bool"  (infixl "~=" 50) where
   "x ~= y == ~ (x = y)"
 
 notation (output)
   not_equal  (infix "~=" 50)
 
 notation (xsymbols)
-  Not  ("\<not> _" [40] 40)
-  "op &"  (infixr "\<and>" 35)
-  "op |"  (infixr "\<or>" 30)
-  "op -->"  (infixr "\<longrightarrow>" 25)
+  Not  ("\<not> _" [40] 40) and
+  "op &"  (infixr "\<and>" 35) and
+  "op |"  (infixr "\<or>" 30) and
+  "op -->"  (infixr "\<longrightarrow>" 25) and
   not_equal  (infix "\<noteq>" 50)
 
 notation (HTML output)
-  Not  ("\<not> _" [40] 40)
-  "op &"  (infixr "\<and>" 35)
-  "op |"  (infixr "\<or>" 30)
+  Not  ("\<not> _" [40] 40) and
+  "op &"  (infixr "\<and>" 35) and
+  "op |"  (infixr "\<or>" 30) and
   not_equal  (infix "\<noteq>" 50)
 
 abbreviation (iff)
-  iff :: "[bool, bool] => bool"  (infixr "<->" 25)
+  iff :: "[bool, bool] => bool"  (infixr "<->" 25) where
   "A <-> B == A = B"
 
 notation (xsymbols)

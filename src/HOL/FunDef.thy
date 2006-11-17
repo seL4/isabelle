@@ -108,7 +108,7 @@ qed
 section {* Definitions with default value *}
 
 definition
-  THE_default :: "'a \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a"
+  THE_default :: "'a \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a" where
   "THE_default d P = (if (\<exists>!x. P x) then (THE x. P x) else d)"
 
 lemma THE_defaultI': "\<exists>!x. P x \<Longrightarrow> P (THE_default d P)"
@@ -178,9 +178,9 @@ intros
 inductive rpg
 intros
   "(Inr y, y) : rpg"
-definition
-  "lproj x = (THE y. (x,y) : lpg)"
-  "rproj x = (THE y. (x,y) : rpg)"
+
+definition "lproj x = (THE y. (x,y) : lpg)"
+definition "rproj x = (THE y. (x,y) : rpg)"
 
 lemma lproj_inl:
   "lproj (Inl x) = x"

@@ -11,7 +11,7 @@ theory Denotational imports HOLCF Natural begin
 subsection "Definition"
 
 definition
-  dlift :: "(('a::type) discr -> 'b::pcpo) => ('a lift -> 'b)"
+  dlift :: "(('a::type) discr -> 'b::pcpo) => ('a lift -> 'b)" where
   "dlift f = (LAM x. case x of UU => UU | Def y => f\<cdot>(Discr y))"
 
 consts D :: "com => state discr -> state lift"

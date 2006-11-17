@@ -14,7 +14,7 @@ begin
 types hypnat = "nat star"
 
 abbreviation
-  hypnat_of_nat :: "nat => nat star"
+  hypnat_of_nat :: "nat => nat star" where
   "hypnat_of_nat == star_of"
 
 subsection{*Properties Transferred from Naturals*}
@@ -161,7 +161,7 @@ subsection{*Infinite Hypernatural Numbers -- @{term HNatInfinite}*}
 
 definition
   (* the set of infinite hypernatural numbers *)
-  HNatInfinite :: "hypnat set"
+  HNatInfinite :: "hypnat set" where
   "HNatInfinite = {n. n \<notin> Nats}"
 
 lemma Nats_not_HNatInfinite_iff: "(x \<in> Nats) = (x \<notin> HNatInfinite)"
@@ -254,7 +254,7 @@ subsection{*Existence of an infinite hypernatural number*}
 
 definition
   (* omega is in fact an infinite hypernatural number = [<1,2,3,...>] *)
-  whn :: hypnat
+  whn :: hypnat where
   hypnat_omega_def: "whn = star_n (%n::nat. n)"
 
 lemma hypnat_of_nat_neq_whn: "hypnat_of_nat n \<noteq> whn"
@@ -362,7 +362,7 @@ subsection{*Embedding of the Hypernaturals into the Hyperreals*}
 text{*Obtained using the nonstandard extension of the naturals*}
 
 definition
-  hypreal_of_hypnat :: "hypnat => hypreal"
+  hypreal_of_hypnat :: "hypnat => hypreal" where
   "hypreal_of_hypnat = *f* real"
 
 declare hypreal_of_hypnat_def [transfer_unfold]

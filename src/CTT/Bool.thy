@@ -11,16 +11,19 @@ imports CTT
 begin
 
 definition
-  Bool :: "t"
+  Bool :: "t" where
   "Bool == T+T"
 
-  true :: "i"
+definition
+  true :: "i" where
   "true == inl(tt)"
 
-  false :: "i"
+definition
+  false :: "i" where
   "false == inr(tt)"
 
-  cond :: "[i,i,i]=>i"
+definition
+  cond :: "[i,i,i]=>i" where
   "cond(a,b,c) == when(a, %u. b, %u. c)"
 
 lemmas bool_defs = Bool_def true_def false_def cond_def

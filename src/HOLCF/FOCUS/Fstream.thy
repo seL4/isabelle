@@ -17,24 +17,27 @@ defaultsort type
 types 'a fstream = "'a lift stream"
 
 definition
-  fscons        :: "'a     \<Rightarrow> 'a fstream \<rightarrow> 'a fstream"
+  fscons        :: "'a     \<Rightarrow> 'a fstream \<rightarrow> 'a fstream" where
   "fscons a = (\<Lambda> s. Def a && s)"
 
-  fsfilter      :: "'a set \<Rightarrow> 'a fstream \<rightarrow> 'a fstream"
+definition
+  fsfilter      :: "'a set \<Rightarrow> 'a fstream \<rightarrow> 'a fstream" where
   "fsfilter A = (sfilter\<cdot>(flift2 (\<lambda>x. x\<in>A)))"
 
 abbreviation
-  emptystream   :: "'a fstream"                          ("<>")
+  emptystream   :: "'a fstream"                          ("<>") where
   "<> == \<bottom>"
 
-  fscons'       :: "'a \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"       ("(_~>_)"    [66,65] 65)
+abbreviation
+  fscons'       :: "'a \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"       ("(_~>_)"    [66,65] 65) where
   "a~>s == fscons a\<cdot>s"
 
-  fsfilter'     :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"   ("(_'(C')_)" [64,63] 63)
+abbreviation
+  fsfilter'     :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"   ("(_'(C')_)" [64,63] 63) where
   "A(C)s == fsfilter A\<cdot>s"
 
 notation (xsymbols)
-  fscons'  ("(_\<leadsto>_)"                                                 [66,65] 65)
+  fscons'  ("(_\<leadsto>_)"                                                 [66,65] 65) and
   fsfilter'  ("(_\<copyright>_)"                                               [64,63] 63)
 
 

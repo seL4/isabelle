@@ -13,7 +13,7 @@ begin
 subsection {* A Free Ultrafilter over the Naturals *}
 
 definition
-  FreeUltrafilterNat :: "nat set set"  ("\<U>")
+  FreeUltrafilterNat :: "nat set set"  ("\<U>") where
   "\<U> = (SOME U. freeultrafilter U)"
 
 lemma freeultrafilter_FUFNat: "freeultrafilter \<U>"
@@ -36,14 +36,14 @@ by (simp add: Collect_imp_eq FUFNat.F.Un_iff FUFNat.F.Compl_iff)
 subsection {* Definition of @{text star} type constructor *}
 
 definition
-  starrel :: "((nat \<Rightarrow> 'a) \<times> (nat \<Rightarrow> 'a)) set"
+  starrel :: "((nat \<Rightarrow> 'a) \<times> (nat \<Rightarrow> 'a)) set" where
   "starrel = {(X,Y). {n. X n = Y n} \<in> \<U>}"
 
 typedef 'a star = "(UNIV :: (nat \<Rightarrow> 'a) set) // starrel"
 by (auto intro: quotientI)
 
 definition
-  star_n :: "(nat \<Rightarrow> 'a) \<Rightarrow> 'a star"
+  star_n :: "(nat \<Rightarrow> 'a) \<Rightarrow> 'a star" where
   "star_n X = Abs_star (starrel `` {X})"
 
 theorem star_cases [case_names star_n, cases type: star]:
@@ -157,10 +157,11 @@ by (simp add: atomize_eq)
 subsection {* Standard elements *}
 
 definition
-  star_of :: "'a \<Rightarrow> 'a star"
+  star_of :: "'a \<Rightarrow> 'a star" where
   "star_of x == star_n (\<lambda>n. x)"
 
-  Standard :: "'a star set"
+definition
+  Standard :: "'a star set" where
   "Standard = range star_of"
 
 text {* Transfer tactic should remove occurrences of @{term star_of} *}
@@ -178,7 +179,7 @@ by (simp add: Standard_def)
 subsection {* Internal functions *}
 
 definition
-  Ifun :: "('a \<Rightarrow> 'b) star \<Rightarrow> 'a star \<Rightarrow> 'b star" ("_ \<star> _" [300,301] 300)
+  Ifun :: "('a \<Rightarrow> 'b) star \<Rightarrow> 'a star \<Rightarrow> 'b star" ("_ \<star> _" [300,301] 300) where
   "Ifun f \<equiv> \<lambda>x. Abs_star
        (\<Union>F\<in>Rep_star f. \<Union>X\<in>Rep_star x. starrel``{\<lambda>n. F n (X n)})"
 
@@ -207,12 +208,12 @@ by (auto simp add: Standard_def)
 text {* Nonstandard extensions of functions *}
 
 definition
-  starfun :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a star \<Rightarrow> 'b star)"
-    ("*f* _" [80] 80)
+  starfun :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a star \<Rightarrow> 'b star)"  ("*f* _" [80] 80) where
   "starfun f == \<lambda>x. star_of f \<star> x"
 
+definition
   starfun2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a star \<Rightarrow> 'b star \<Rightarrow> 'c star)"
-    ("*f2* _" [80] 80)
+    ("*f2* _" [80] 80) where
   "starfun2 f == \<lambda>x y. star_of f \<star> x \<star> y"
 
 declare starfun_def [transfer_unfold]
@@ -242,7 +243,7 @@ by (simp add: starfun2_def)
 subsection {* Internal predicates *}
 
 definition
-  unstar :: "bool star \<Rightarrow> bool"
+  unstar :: "bool star \<Rightarrow> bool" where
   "unstar b = (b = star_of True)"
 
 lemma unstar_star_n: "unstar (star_n P) = ({n. P n} \<in> \<U>)"
@@ -259,12 +260,11 @@ lemma transfer_unstar [transfer_intro]:
 by (simp only: unstar_star_n)
 
 definition
-  starP :: "('a \<Rightarrow> bool) \<Rightarrow> 'a star \<Rightarrow> bool"
-    ("*p* _" [80] 80)
+  starP :: "('a \<Rightarrow> bool) \<Rightarrow> 'a star \<Rightarrow> bool"  ("*p* _" [80] 80) where
   "*p* P = (\<lambda>x. unstar (star_of P \<star> x))"
 
-  starP2 :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a star \<Rightarrow> 'b star \<Rightarrow> bool"
-    ("*p2* _" [80] 80)
+definition
+  starP2 :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a star \<Rightarrow> 'b star \<Rightarrow> bool"  ("*p2* _" [80] 80) where
   "*p2* P = (\<lambda>x y. unstar (star_of P \<star> x \<star> y))"
 
 declare starP_def [transfer_unfold]
@@ -287,7 +287,7 @@ by (transfer, rule refl)
 subsection {* Internal sets *}
 
 definition
-  Iset :: "'a set star \<Rightarrow> 'a star set"
+  Iset :: "'a set star \<Rightarrow> 'a star set" where
   "Iset A = {x. ( *p2* op \<in>) x A}"
 
 lemma Iset_star_n:
@@ -329,7 +329,7 @@ by simp
 text {* Nonstandard extensions of sets. *}
 
 definition
-  starset :: "'a set \<Rightarrow> 'a star set" ("*s* _" [80] 80)
+  starset :: "'a set \<Rightarrow> 'a star set" ("*s* _" [80] 80) where
   "starset A = Iset (star_of A)"
 
 declare starset_def [transfer_unfold]

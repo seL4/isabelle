@@ -27,8 +27,8 @@ instance erat :: inverse ..
 instance erat :: ord ..
 
 definition
-  norm :: "erat \<Rightarrow> erat"
-  norm_def: "norm r = (case r of (Rat a p q) \<Rightarrow>
+  norm :: "erat \<Rightarrow> erat" where
+  "norm r = (case r of (Rat a p q) \<Rightarrow>
      if p = 0 then Rat True 0 1
      else
        let
@@ -36,19 +36,28 @@ definition
        in let
          m = zgcd (absp, q)
        in Rat (a = (0 <= p)) (absp div m) (q div m))"
-  common :: "(int * int) * (int * int) \<Rightarrow> (int * int) * int"
-  common_def: "common r = (case r of ((p1, q1), (p2, q2)) \<Rightarrow>
+
+definition
+  common :: "(int * int) * (int * int) \<Rightarrow> (int * int) * int" where
+  "common r = (case r of ((p1, q1), (p2, q2)) \<Rightarrow>
        let q' = q1 * q2 div int (gcd (nat q1, nat q2))
        in ((p1 * (q' div q1), p2 * (q' div q2)), q'))"
-  of_quotient :: "int \<Rightarrow> int \<Rightarrow> erat"
-  of_quotient_def: "of_quotient a b =
-       norm (Rat True a b)"
-  of_rat :: "rat \<Rightarrow> erat"
-  of_rat_def: "of_rat r = split of_quotient (SOME s. s : Rep_Rat r)"
-  to_rat :: "erat \<Rightarrow> rat"
-  to_rat_def: "to_rat r = (case r of (Rat a p q) \<Rightarrow>
+
+definition
+  of_quotient :: "int \<Rightarrow> int \<Rightarrow> erat" where
+  "of_quotient a b = norm (Rat True a b)"
+
+definition
+  of_rat :: "rat \<Rightarrow> erat" where
+  "of_rat r = split of_quotient (SOME s. s : Rep_Rat r)"
+
+definition
+  to_rat :: "erat \<Rightarrow> rat" where
+  "to_rat r = (case r of (Rat a p q) \<Rightarrow>
        if a then Fract p q else Fract (uminus p) q)"
-  eq_erat :: "erat \<Rightarrow> erat \<Rightarrow> bool"
+
+definition
+  eq_erat :: "erat \<Rightarrow> erat \<Rightarrow> bool" where
   "eq_erat r s = (norm r = norm s)"
 
 axiomatization

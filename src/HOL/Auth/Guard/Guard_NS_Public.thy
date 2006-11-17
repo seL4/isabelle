@@ -18,19 +18,23 @@ theory Guard_NS_Public imports Guard_Public begin
 subsection{*messages used in the protocol*}
 
 abbreviation (input)
-  ns1 :: "agent => agent => nat => event"
+  ns1 :: "agent => agent => nat => event" where
   "ns1 A B NA == Says A B (Crypt (pubK B) {|Nonce NA, Agent A|})"
 
-  ns1' :: "agent => agent => agent => nat => event"
+abbreviation (input)
+  ns1' :: "agent => agent => agent => nat => event" where
   "ns1' A' A B NA == Says A' B (Crypt (pubK B) {|Nonce NA, Agent A|})"
 
-  ns2 :: "agent => agent => nat => nat => event"
+abbreviation (input)
+  ns2 :: "agent => agent => nat => nat => event" where
   "ns2 B A NA NB == Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|})"
 
-  ns2' :: "agent => agent => agent => nat => nat => event"
+abbreviation (input)
+  ns2' :: "agent => agent => agent => nat => nat => event" where
   "ns2' B' B A NA NB == Says B' A (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|})"
 
-  ns3 :: "agent => agent => nat => event"
+abbreviation (input)
+  ns3 :: "agent => agent => nat => event" where
   "ns3 A B NB == Says A B (Crypt (pubK B) (Nonce NB))"
 
 

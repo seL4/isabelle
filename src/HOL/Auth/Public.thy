@@ -21,19 +21,24 @@ consts
   publicKey :: "[keymode,agent] => key"
 
 abbreviation
-  pubEK :: "agent => key"
+  pubEK :: "agent => key" where
   "pubEK == publicKey Encryption"
 
-  pubSK :: "agent => key"
+abbreviation
+  pubSK :: "agent => key" where
   "pubSK == publicKey Signature"
 
-  privateKey :: "[keymode, agent] => key"
+abbreviation
+  privateKey :: "[keymode, agent] => key" where
   "privateKey b A == invKey (publicKey b A)"
 
+abbreviation
   (*BEWARE!! priEK, priSK DON'T WORK with inj, range, image, etc.*)
-  priEK :: "agent => key"
+  priEK :: "agent => key" where
   "priEK A == privateKey Encryption A"
-  priSK :: "agent => key"
+
+abbreviation
+  priSK :: "agent => key" where
   "priSK A == privateKey Signature A"
 
 
@@ -41,10 +46,11 @@ text{*These abbreviations give backward compatibility.  They represent the
 simple situation where the signature and encryption keys are the same.*}
 
 abbreviation
-  pubK :: "agent => key"
+  pubK :: "agent => key" where
   "pubK A == pubEK A"
 
-  priK :: "agent => key"
+abbreviation
+  priK :: "agent => key" where
   "priK A == invKey (pubEK A)"
 
 

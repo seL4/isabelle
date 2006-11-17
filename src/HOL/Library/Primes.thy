@@ -11,10 +11,11 @@ imports GCD
 begin
 
 definition
-  coprime :: "nat => nat => bool"
+  coprime :: "nat => nat => bool" where
   "coprime m n = (gcd (m, n) = 1)"
 
-  prime :: "nat \<Rightarrow> bool"
+definition
+  prime :: "nat \<Rightarrow> bool" where
   "prime p = (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
 
 

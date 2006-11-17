@@ -12,27 +12,31 @@ begin
 domain 'a stream = "&&" (ft::'a) (lazy rt::"'a stream") (infixr 65)
 
 definition
-  smap          :: "('a \<rightarrow> 'b) \<rightarrow> 'a stream \<rightarrow> 'b stream"
+  smap :: "('a \<rightarrow> 'b) \<rightarrow> 'a stream \<rightarrow> 'b stream" where
   "smap = fix\<cdot>(\<Lambda> h f s. case s of x && xs \<Rightarrow> f\<cdot>x && h\<cdot>f\<cdot>xs)"
 
-  sfilter       :: "('a \<rightarrow> tr) \<rightarrow> 'a stream \<rightarrow> 'a stream"
+definition
+  sfilter :: "('a \<rightarrow> tr) \<rightarrow> 'a stream \<rightarrow> 'a stream" where
   "sfilter = fix\<cdot>(\<Lambda> h p s. case s of x && xs \<Rightarrow>
                                      If p\<cdot>x then x && h\<cdot>p\<cdot>xs else h\<cdot>p\<cdot>xs fi)"
 
-  slen          :: "'a stream \<Rightarrow> inat"                   ("#_" [1000] 1000)
+definition
+  slen :: "'a stream \<Rightarrow> inat"  ("#_" [1000] 1000) where
   "#s = (if stream_finite s then Fin (LEAST n. stream_take n\<cdot>s = s) else \<infinity>)"
 
 
 (* concatenation *)
 
 definition
-  i_rt :: "nat => 'a stream => 'a stream" (* chops the first i elements *)
+  i_rt :: "nat => 'a stream => 'a stream" where (* chops the first i elements *)
   "i_rt = (%i s. iterate i$rt$s)"
 
-  i_th :: "nat => 'a stream => 'a"        (* the i-th element *)
+definition
+  i_th :: "nat => 'a stream => 'a" where (* the i-th element *)
   "i_th = (%i s. ft$(i_rt i s))"
 
-  sconc         :: "'a stream => 'a stream => 'a stream" (infixr "ooo" 65)
+definition
+  sconc :: "'a stream => 'a stream => 'a stream"  (infixr "ooo" 65) where
   "s1 ooo s2 = (case #s1 of
                   Fin n \<Rightarrow> (SOME s. (stream_take n$s=s1) & (i_rt n s = s2))
                | \<infinity>     \<Rightarrow> s1)"
@@ -45,7 +49,7 @@ primrec
                                                     constr_sconc' n (rt$s1) s2"
 
 definition
-  constr_sconc  :: "'a stream => 'a stream => 'a stream" (* constructive *)
+  constr_sconc  :: "'a stream => 'a stream => 'a stream" where (* constructive *)
   "constr_sconc s1 s2 = (case #s1 of
                           Fin n \<Rightarrow> constr_sconc' n s1 s2
                         | \<infinity>    \<Rightarrow> s1)"

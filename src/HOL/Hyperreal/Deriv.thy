@@ -15,26 +15,29 @@ begin
 text{*Standard and Nonstandard Definitions*}
 
 definition
-
   deriv :: "[real \<Rightarrow> 'a::real_normed_vector, real, 'a] \<Rightarrow> bool"
     --{*Differentiation: D is derivative of function f at x*}
-          ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
+          ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60) where
   "DERIV f x :> D = ((%h. (f(x + h) - f x) /# h) -- 0 --> D)"
 
+definition
   nsderiv :: "[real=>real,real,real] => bool"
-          ("(NSDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
+          ("(NSDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60) where
   "NSDERIV f x :> D = (\<forall>h \<in> Infinitesimal - {0}.
       (( *f* f)(hypreal_of_real x + h)
        - hypreal_of_real (f x))/h @= hypreal_of_real D)"
 
-  differentiable :: "[real=>real,real] => bool"   (infixl "differentiable" 60)
+definition
+  differentiable :: "[real=>real,real] => bool"   (infixl "differentiable" 60) where
   "f differentiable x = (\<exists>D. DERIV f x :> D)"
 
+definition
   NSdifferentiable :: "[real=>real,real] => bool"
-                       (infixl "NSdifferentiable" 60)
+                       (infixl "NSdifferentiable" 60) where
   "f NSdifferentiable x = (\<exists>D. NSDERIV f x :> D)"
 
-  increment :: "[real=>real,real,hypreal] => hypreal"
+definition
+  increment :: "[real=>real,real,hypreal] => hypreal" where
   "increment f x h = (@inc. f NSdifferentiable x &
            inc = ( *f* f)(hypreal_of_real x + h) - hypreal_of_real (f x))"
 

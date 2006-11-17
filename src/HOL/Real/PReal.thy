@@ -28,7 +28,7 @@ by (auto dest: dense)
 
 
 definition
-  cut :: "rat set => bool"
+  cut :: "rat set => bool" where
   "cut A = ({} \<subset> A &
             A < {r. 0 < r} &
             (\<forall>y \<in> A. ((\<forall>z. 0<z & z < y --> z \<in> A) & (\<exists>u \<in> A. y < u))))"
@@ -56,22 +56,27 @@ typedef preal = "{A. cut A}"
 instance preal :: "{ord, plus, minus, times, inverse}" ..
 
 definition
-  preal_of_rat :: "rat => preal"
+  preal_of_rat :: "rat => preal" where
   "preal_of_rat q = Abs_preal {x::rat. 0 < x & x < q}"
 
-  psup :: "preal set => preal"
+definition
+  psup :: "preal set => preal" where
   "psup P = Abs_preal (\<Union>X \<in> P. Rep_preal X)"
 
-  add_set :: "[rat set,rat set] => rat set"
+definition
+  add_set :: "[rat set,rat set] => rat set" where
   "add_set A B = {w. \<exists>x \<in> A. \<exists>y \<in> B. w = x + y}"
 
-  diff_set :: "[rat set,rat set] => rat set"
+definition
+  diff_set :: "[rat set,rat set] => rat set" where
   "diff_set A B = {w. \<exists>x. 0 < w & 0 < x & x \<notin> B & x + w \<in> A}"
 
-  mult_set :: "[rat set,rat set] => rat set"
+definition
+  mult_set :: "[rat set,rat set] => rat set" where
   "mult_set A B = {w. \<exists>x \<in> A. \<exists>y \<in> B. w = x * y}"
 
-  inverse_set :: "rat set => rat set"
+definition
+  inverse_set :: "rat set => rat set" where
   "inverse_set A = {x. \<exists>y. 0 < x & x < y & inverse y \<notin> A}"
 
 

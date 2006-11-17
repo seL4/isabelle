@@ -15,10 +15,11 @@ subsection {* Rational numbers *}
 subsubsection {* Equivalence of fractions *}
 
 definition
-  fraction :: "(int \<times> int) set"
+  fraction :: "(int \<times> int) set" where
   "fraction = {x. snd x \<noteq> 0}"
 
-  ratrel :: "((int \<times> int) \<times> (int \<times> int)) set"
+definition
+  ratrel :: "((int \<times> int) \<times> (int \<times> int)) set" where
   "ratrel = {(x,y). snd x \<noteq> 0 \<and> snd y \<noteq> 0 \<and> fst x * snd y = fst y * snd x}"
 
 lemma fraction_iff [simp]: "(x \<in> fraction) = (snd x \<noteq> 0)"
@@ -79,12 +80,12 @@ declare Abs_Rat_inject [simp]  Abs_Rat_inverse [simp]
 
 
 definition
-  Fract :: "int \<Rightarrow> int \<Rightarrow> rat"
+  Fract :: "int \<Rightarrow> int \<Rightarrow> rat" where
   "Fract a b = Abs_Rat (ratrel``{(a,b)})"
 
 theorem Rat_cases [case_names Fract, cases type: rat]:
-  "(!!a b. q = Fract a b ==> b \<noteq> 0 ==> C) ==> C"
-by (cases q, clarsimp simp add: Fract_def Rat_def fraction_def quotient_def)
+    "(!!a b. q = Fract a b ==> b \<noteq> 0 ==> C) ==> C"
+  by (cases q) (clarsimp simp add: Fract_def Rat_def fraction_def quotient_def)
 
 theorem Rat_induct [case_names Fract, induct type: rat]:
     "(!!a b. b \<noteq> 0 ==> P (Fract a b)) ==> P q"

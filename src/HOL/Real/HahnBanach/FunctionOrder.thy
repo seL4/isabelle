@@ -23,7 +23,7 @@ text {*
 types 'a graph = "('a \<times> real) set"
 
 definition
-  graph :: "'a set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> 'a graph"
+  graph :: "'a set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> 'a graph" where
   "graph F f = {(x, f x) | x. x \<in> F}"
 
 lemma graphI [intro]: "x \<in> F \<Longrightarrow> (x, f x) \<in> graph F f"
@@ -66,10 +66,11 @@ text {*
 *}
 
 definition
-  "domain" :: "'a graph \<Rightarrow> 'a set"
+  "domain" :: "'a graph \<Rightarrow> 'a set" where
   "domain g = {x. \<exists>y. (x, y) \<in> g}"
 
-  funct :: "'a graph \<Rightarrow> ('a \<Rightarrow> real)"
+definition
+  funct :: "'a graph \<Rightarrow> ('a \<Rightarrow> real)" where
   "funct g = (\<lambda>x. (SOME y. (x, y) \<in> g))"
 
 text {*
@@ -104,7 +105,7 @@ text {*
 definition
   norm_pres_extensions ::
     "'a::{plus, minus, zero} set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> real)
-      \<Rightarrow> 'a graph set"
+      \<Rightarrow> 'a graph set" where
     "norm_pres_extensions E p F f
       = {g. \<exists>H h. g = graph H h
           \<and> linearform H h

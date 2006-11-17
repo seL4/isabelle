@@ -12,21 +12,26 @@ begin
 
 definition
     (* internal sets *)
-  starset_n :: "(nat => 'a set) => 'a star set"        ("*sn* _" [80] 80)
+  starset_n :: "(nat => 'a set) => 'a star set" ("*sn* _" [80] 80) where
   "*sn* As = Iset (star_n As)"
 
-  InternalSets :: "'a star set set"
+definition
+  InternalSets :: "'a star set set" where
   "InternalSets = {X. \<exists>As. X = *sn* As}"
 
+definition
   (* nonstandard extension of function *)
-  is_starext  :: "['a star => 'a star, 'a => 'a] => bool"
+  is_starext  :: "['a star => 'a star, 'a => 'a] => bool" where
   "is_starext F f = (\<forall>x y. \<exists>X \<in> Rep_star(x). \<exists>Y \<in> Rep_star(y).
                         ((y = (F x)) = ({n. Y n = f(X n)} : FreeUltrafilterNat)))"
+
+definition
   (* internal functions *)
-  starfun_n :: "(nat => ('a => 'b)) => 'a star => 'b star"   ("*fn* _" [80] 80)
+  starfun_n :: "(nat => ('a => 'b)) => 'a star => 'b star"   ("*fn* _" [80] 80) where
   "*fn* F = Ifun (star_n F)"
 
-  InternalFuns :: "('a star => 'b star) set"
+definition
+  InternalFuns :: "('a star => 'b star) set" where
   "InternalFuns = {X. \<exists>F. X = *fn* F}"
 
 

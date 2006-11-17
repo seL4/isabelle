@@ -22,11 +22,15 @@ consts
   eta :: "(dB \<times> dB) set"
 
 abbreviation
-  eta_red :: "[dB, dB] => bool"   (infixl "-e>" 50)
+  eta_red :: "[dB, dB] => bool"   (infixl "-e>" 50) where
   "s -e> t == (s, t) \<in> eta"
-  eta_reds :: "[dB, dB] => bool"   (infixl "-e>>" 50)
+
+abbreviation
+  eta_reds :: "[dB, dB] => bool"   (infixl "-e>>" 50) where
   "s -e>> t == (s, t) \<in> eta^*"
-  eta_red0 :: "[dB, dB] => bool"   (infixl "-e>=" 50)
+
+abbreviation
+  eta_red0 :: "[dB, dB] => bool"   (infixl "-e>=" 50) where
   "s -e>= t == (s, t) \<in> eta^="
 
 inductive eta
@@ -224,7 +228,7 @@ consts
   par_eta :: "(dB \<times> dB) set"
 
 abbreviation
-  par_eta_red :: "[dB, dB] => bool"   (infixl "=e>" 50)
+  par_eta_red :: "[dB, dB] => bool"   (infixl "=e>" 50) where
   "s =e> t == (s, t) \<in> par_eta"
 
 notation (xsymbols)

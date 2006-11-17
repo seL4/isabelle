@@ -111,19 +111,22 @@ consts
   Rf :: "('b stream * ('b,'c) tc stream * 'c stream * ('b,'c) tc stream) => bool"
 
 definition
-  is_f :: "('b stream * ('b,'c) tc stream -> 'c stream * ('b,'c) tc stream) => bool"
+  is_f :: "('b stream * ('b,'c) tc stream -> 'c stream * ('b,'c) tc stream) => bool" where
   "is_f f = (!i1 i2 o1 o2. f$<i1,i2> = <o1,o2> --> Rf(i1,i2,o1,o2))"
 
+definition
   is_net_g :: "('b stream *('b,'c) tc stream -> 'c stream * ('b,'c) tc stream) =>
-    'b stream => 'c stream => bool"
+    'b stream => 'c stream => bool" where
   "is_net_g f x y == (? z.
                         <y,z> = f$<x,z> &
                         (!oy hz. <oy,hz> = f$<x,hz> --> z << hz))"
 
-  is_g :: "('b stream -> 'c stream) => bool"
+definition
+  is_g :: "('b stream -> 'c stream) => bool" where
   "is_g g  == (? f. is_f f  & (!x y. g$x = y --> is_net_g f x y))"
 
-  def_g :: "('b stream -> 'c stream) => bool"
+definition
+  def_g :: "('b stream -> 'c stream) => bool" where
   "def_g g == (? f. is_f f  & g = (LAM x. cfst$(f$<x,fix$(LAM  k. csnd$(f$<x,k>))>)))"
 
 

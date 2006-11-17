@@ -8,9 +8,11 @@ header {*Parity: Even and Odd Integers*}
 theory EvenOdd imports Int2 begin
 
 definition
-  zOdd    :: "int set"
+  zOdd    :: "int set" where
   "zOdd = {x. \<exists>k. x = 2 * k + 1}"
-  zEven   :: "int set"
+
+definition
+  zEven   :: "int set" where
   "zEven = {x. \<exists>k. x = 2 * k}"
 
 subsection {* Some useful properties about even and odd *}

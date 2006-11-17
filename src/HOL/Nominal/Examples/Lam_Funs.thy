@@ -1,4 +1,4 @@
-(* $Id: *)
+(* $Id$ *)
 
 theory Lam_Funs
 imports Nominal
@@ -73,7 +73,7 @@ constdefs
   "subst_Lam b t \<equiv> \<lambda>a _ r. Lam [a].r"
 
 abbreviation
-  subst_syn  :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam" ("_[_::=_]" [100,100,100] 900) 
+  subst_syn  :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam" ("_[_::=_]" [100,100,100] 900) where
   "t'[b::=t] \<equiv> (lam_rec (subst_Var b t) (subst_App b t) (subst_Lam b t)) t'"
 
 (* FIXME: this lemma needs to be in Nominal.thy *)
@@ -200,7 +200,7 @@ constdefs
   "psubst_Lam \<theta> \<equiv> \<lambda>a _ r. Lam [a].r"
 
 abbreviation
-  psubst_lam :: "lam \<Rightarrow> (name\<times>lam) list \<Rightarrow> lam" ("_[<_>]" [100,100] 900)
+  psubst_lam :: "lam \<Rightarrow> (name\<times>lam) list \<Rightarrow> lam" ("_[<_>]" [100,100] 900) where
   "t[<\<theta>>] \<equiv> (lam_rec (psubst_Var \<theta>) (psubst_App \<theta>) (psubst_Lam \<theta>)) t"
 
 lemma fin_supp_psubst:

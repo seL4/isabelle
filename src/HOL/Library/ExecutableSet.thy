@@ -14,7 +14,7 @@ section {* Definitional rewrites *}
 instance set :: (eq) eq ..
 
 definition
-  minus_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
+  minus_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
   "minus_set xs ys = ys - xs"
 
 lemma [code inline]:
@@ -22,8 +22,8 @@ lemma [code inline]:
   unfolding minus_set_def ..
 
 definition
-  subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
-  subset_def: "subset = op \<subseteq>"
+  subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
+  "subset = op \<subseteq>"
 
 lemmas [symmetric, code inline] = subset_def
 
@@ -44,8 +44,8 @@ lemma [code]:
   unfolding bex_triv_one_point1 ..
 
 definition
-  filter_set :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set"
-  filter_set_def: "filter_set P xs = {x\<in>xs. P x}"
+  filter_set :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  "filter_set P xs = {x\<in>xs. P x}"
 
 lemmas [symmetric, code inline] = filter_set_def
 
@@ -55,11 +55,15 @@ section {* Operations on lists *}
 subsection {* Basic definitions *}
 
 definition
-  flip :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c"
+  flip :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c" where
   "flip f a b = f b a"
-  member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool"
+
+definition
+  member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool" where
   "member xs x = (x \<in> set xs)"
-  insertl :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"
+
+definition
+  insertl :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "insertl x xs = (if member xs x then xs else x#xs)"
 
 lemma
@@ -174,9 +178,11 @@ primrec
   "intersects (x#xs) = foldr intersect xs x"
 
 definition
-  map_union :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b list) \<Rightarrow> 'b list"
+  map_union :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b list) \<Rightarrow> 'b list" where
   "map_union xs f = unions (map f xs)"
-  map_inter :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b list) \<Rightarrow> 'b list"
+
+definition
+  map_inter :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b list) \<Rightarrow> 'b list" where
   "map_inter xs f = intersects (map f xs)"
 
 
@@ -237,9 +243,10 @@ lemma iso_INTER:
   unfolding map_inter_def iso_intersects by (induct xs) (simp_all add: iso_member, auto)
 
 definition
-  Blall :: "'a list \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
+  Blall :: "'a list \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
   "Blall = flip list_all"
-  Blex :: "'a list \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
+definition
+  Blex :: "'a list \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
   "Blex = flip list_ex"
 
 lemma iso_Ball:

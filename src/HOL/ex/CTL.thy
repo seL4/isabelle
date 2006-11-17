@@ -25,7 +25,7 @@ lemmas [intro!] = Int_greatest Un_upper2 Un_upper1 Int_lower1 Int_lower2
 types 'a ctl = "'a set"
 
 definition
-  imp :: "'a ctl \<Rightarrow> 'a ctl \<Rightarrow> 'a ctl"    (infixr "\<rightarrow>" 75)
+  imp :: "'a ctl \<Rightarrow> 'a ctl \<Rightarrow> 'a ctl"    (infixr "\<rightarrow>" 75) where
   "p \<rightarrow> q = - p \<union> q"
 
 lemma [intro!]: "p \<inter> p \<rightarrow> q \<subseteq> q" unfolding imp_def by auto
@@ -58,9 +58,11 @@ text {*
 *}
 
 definition
-  EX :: "'a ctl \<Rightarrow> 'a ctl"    ("\<EX> _" [80] 90)    "\<EX> p = {s. \<exists>s'. (s, s') \<in> \<M> \<and> s' \<in> p}"
-  EF :: "'a ctl \<Rightarrow> 'a ctl"    ("\<EF> _" [80] 90)    "\<EF> p = lfp (\<lambda>s. p \<union> \<EX> s)"
-  EG :: "'a ctl \<Rightarrow> 'a ctl"    ("\<EG> _" [80] 90)    "\<EG> p = gfp (\<lambda>s. p \<inter> \<EX> s)"
+  EX  ("\<EX> _" [80] 90) where "\<EX> p = {s. \<exists>s'. (s, s') \<in> \<M> \<and> s' \<in> p}"
+definition
+  EF ("\<EF> _" [80] 90)  where "\<EF> p = lfp (\<lambda>s. p \<union> \<EX> s)"
+definition
+  EG ("\<EG> _" [80] 90)  where "\<EG> p = gfp (\<lambda>s. p \<inter> \<EX> s)"
 
 text {*
   @{text "\<AX>"}, @{text "\<AF>"} and @{text "\<AG>"} are now defined
@@ -69,9 +71,11 @@ text {*
 *}
 
 definition
-  AX :: "'a ctl \<Rightarrow> 'a ctl"    ("\<AX> _" [80] 90)    "\<AX> p = - \<EX> - p"
-  AF :: "'a ctl \<Rightarrow> 'a ctl"    ("\<AF> _" [80] 90)    "\<AF> p = - \<EG> - p"
-  AG :: "'a ctl \<Rightarrow> 'a ctl"    ("\<AG> _" [80] 90)    "\<AG> p = - \<EF> - p"
+  AX  ("\<AX> _" [80] 90) where "\<AX> p = - \<EX> - p"
+definition
+  AF  ("\<AF> _" [80] 90) where "\<AF> p = - \<EG> - p"
+definition
+  AG  ("\<AG> _" [80] 90) where "\<AG> p = - \<EF> - p"
 
 lemmas [simp] = EX_def EG_def AX_def EF_def AF_def AG_def
 

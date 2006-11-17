@@ -12,17 +12,20 @@ imports Series
 begin
 
 definition
-  sumhr :: "(hypnat * hypnat * (nat=>real)) => hypreal"
+  sumhr :: "(hypnat * hypnat * (nat=>real)) => hypreal" where
   "sumhr = 
       (%(M,N,f). starfun2 (%m n. setsum f {m..<n}) M N)"
 
-  NSsums  :: "[nat=>real,real] => bool"     (infixr "NSsums" 80)
+definition
+  NSsums  :: "[nat=>real,real] => bool"     (infixr "NSsums" 80) where
   "f NSsums s = (%n. setsum f {0..<n}) ----NS> s"
 
-  NSsummable :: "(nat=>real) => bool"
+definition
+  NSsummable :: "(nat=>real) => bool" where
   "NSsummable f = (\<exists>s. f NSsums s)"
 
-  NSsuminf   :: "(nat=>real) => real"
+definition
+  NSsuminf   :: "(nat=>real) => real" where
   "NSsuminf f = (THE s. f NSsums s)"
 
 

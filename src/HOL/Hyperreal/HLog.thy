@@ -19,10 +19,11 @@ by auto
 
 
 definition
-  powhr  :: "[hypreal,hypreal] => hypreal"     (infixr "powhr" 80)
+  powhr  :: "[hypreal,hypreal] => hypreal"     (infixr "powhr" 80) where
   "x powhr a = starfun2 (op powr) x a"
   
-  hlog :: "[hypreal,hypreal] => hypreal"
+definition
+  hlog :: "[hypreal,hypreal] => hypreal" where
   "hlog a x = starfun2 log a x"
 
 declare powhr_def [transfer_unfold]

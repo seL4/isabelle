@@ -14,13 +14,15 @@ record ring = monoid +
 *)
 
 definition
-  add_field :: "i => i"
+  add_field :: "i => i" where
   "add_field(M) = fst(snd(snd(snd(M))))"
 
-  ring_add :: "[i, i, i] => i" (infixl "\<oplus>\<index>" 65)
+definition
+  ring_add :: "[i, i, i] => i" (infixl "\<oplus>\<index>" 65) where
   "ring_add(M,x,y) = add_field(M) ` <x,y>"
 
-  zero :: "i => i" ("\<zero>\<index>")
+definition
+  zero :: "i => i" ("\<zero>\<index>") where
   "zero(M) = fst(snd(snd(snd(snd(M)))))"
 
 
@@ -37,10 +39,11 @@ lemma zero_eq [simp]: "zero(<C,M,I,A,Z,z>) = Z"
 text {* Derived operations. *}
 
 definition
-  a_inv :: "[i,i] => i" ("\<ominus>\<index> _" [81] 80)
+  a_inv :: "[i,i] => i" ("\<ominus>\<index> _" [81] 80) where
   "a_inv(R) == m_inv (<carrier(R), add_field(R), zero(R), 0>)"
 
-  minus :: "[i,i,i] => i" (infixl "\<ominus>\<index>" 65)
+definition
+  minus :: "[i,i,i] => i" (infixl "\<ominus>\<index>" 65) where
   "\<lbrakk>x \<in> carrier(R); y \<in> carrier(R)\<rbrakk> \<Longrightarrow> x \<ominus>\<^bsub>R\<^esub> y = x \<oplus>\<^bsub>R\<^esub> (\<ominus>\<^bsub>R\<^esub> y)"
 
 locale abelian_monoid = struct G +
@@ -225,7 +228,7 @@ end
 subsection {* Morphisms *}
 
 definition
-  ring_hom :: "[i,i] => i"
+  ring_hom :: "[i,i] => i" where
   "ring_hom(R,S) ==
     {h \<in> carrier(R) -> carrier(S).
       (\<forall>x y. x \<in> carrier(R) & y \<in> carrier(R) -->

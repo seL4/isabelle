@@ -11,11 +11,11 @@ imports SEQ
 begin
 
 definition
-
-  root :: "[nat, real] \<Rightarrow> real"
+  root :: "[nat, real] \<Rightarrow> real" where
   "root n x = (THE u. (0 < x \<longrightarrow> 0 < u) \<and> (u ^ n = x))"
 
-  sqrt :: "real \<Rightarrow> real"
+definition
+  sqrt :: "real \<Rightarrow> real" where
   "sqrt x = root 2 x"
 
 

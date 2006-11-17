@@ -20,7 +20,7 @@ by (rule power_Suc)
 
 definition
   (* hypernatural powers of hyperreals *)
-  pow :: "[hypreal,hypnat] => hypreal"     (infixr "pow" 80)
+  pow :: "[hypreal,hypnat] => hypreal"     (infixr "pow" 80) where
   hyperpow_def [transfer_unfold]:
   "(R::hypreal) pow (N::hypnat) = ( *f2* op ^) R N"
 

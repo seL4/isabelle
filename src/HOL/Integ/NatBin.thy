@@ -20,7 +20,7 @@ defs (overloaded)
   nat_number_of_def: "number_of v == nat (number_of (v\<Colon>int))"
 
 abbreviation (xsymbols)
-  square :: "'a::power => 'a"  ("(_\<twosuperior>)" [1000] 999)
+  square :: "'a::power => 'a"  ("(_\<twosuperior>)" [1000] 999) where
   "x\<twosuperior> == x^2"
 
 notation (latex output)

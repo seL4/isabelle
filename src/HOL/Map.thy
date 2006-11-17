@@ -19,34 +19,37 @@ syntax (xsymbols)
   "~=>" :: "[type, type] => type"  (infixr "\<rightharpoonup>" 0)
 
 abbreviation
-  empty :: "'a ~=> 'b"
+  empty :: "'a ~=> 'b" where
   "empty == %x. None"
 
 definition
-  map_comp :: "('b ~=> 'c)  => ('a ~=> 'b) => ('a ~=> 'c)"  (infixl "o'_m" 55)
+  map_comp :: "('b ~=> 'c)  => ('a ~=> 'b) => ('a ~=> 'c)"  (infixl "o'_m" 55) where
   "f o_m g = (\<lambda>k. case g k of None \<Rightarrow> None | Some v \<Rightarrow> f v)"
 
 notation (xsymbols)
   map_comp  (infixl "\<circ>\<^sub>m" 55)
 
 definition
-  map_add :: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)"  (infixl "++" 100)
+  map_add :: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)"  (infixl "++" 100) where
   "m1 ++ m2 = (\<lambda>x. case m2 x of None => m1 x | Some y => Some y)"
 
-  restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)"  (infixl "|`"  110)
+definition
+  restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)"  (infixl "|`"  110) where
   "m|`A = (\<lambda>x. if x : A then m x else None)"
 
 notation (latex output)
   restrict_map  ("_\<restriction>\<^bsub>_\<^esub>" [111,110] 110)
 
 definition
-  dom :: "('a ~=> 'b) => 'a set"
+  dom :: "('a ~=> 'b) => 'a set" where
   "dom m = {a. m a ~= None}"
 
-  ran :: "('a ~=> 'b) => 'b set"
+definition
+  ran :: "('a ~=> 'b) => 'b set" where
   "ran m = {b. EX a. m a = Some b}"
 
-  map_le :: "('a ~=> 'b) => ('a ~=> 'b) => bool"  (infix "\<subseteq>\<^sub>m" 50)
+definition
+  map_le :: "('a ~=> 'b) => ('a ~=> 'b) => bool"  (infix "\<subseteq>\<^sub>m" 50) where
   "(m\<^isub>1 \<subseteq>\<^sub>m m\<^isub>2) = (\<forall>a \<in> dom m\<^isub>1. m\<^isub>1 a = m\<^isub>2 a)"
 
 consts

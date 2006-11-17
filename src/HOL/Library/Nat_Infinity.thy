@@ -28,7 +28,7 @@ notation (HTML output)
 instance inat :: "{ord, zero}" ..
 
 definition
-  iSuc :: "inat => inat"
+  iSuc :: "inat => inat" where
   "iSuc i = (case i of Fin n => Fin (Suc n) | \<infinity> => \<infinity>)"
 
 defs (overloaded)

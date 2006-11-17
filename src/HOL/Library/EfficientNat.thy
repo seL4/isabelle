@@ -25,7 +25,7 @@ text {*
 *}
 
 definition
-  nat_of_int :: "int \<Rightarrow> nat"
+  nat_of_int :: "int \<Rightarrow> nat" where
   "k \<ge> 0 \<Longrightarrow> nat_of_int k = nat k"
 
 lemma nat_of_int_int:

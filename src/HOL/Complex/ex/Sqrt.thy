@@ -18,7 +18,7 @@ text {*
 *}
 
 definition
-  rationals  ("\<rat>")
+  rationals  ("\<rat>") where
   "\<rat> = {x. \<exists>m n. n \<noteq> 0 \<and> \<bar>x\<bar> = real (m::nat) / real (n::nat)}"
 
 theorem rationals_rep [elim?]:

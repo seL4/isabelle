@@ -18,7 +18,7 @@ translations
 
 (* aligning equations *)
 notation (tab output)
-  "op ="  ("(_) \<^raw:}\putisatab\isa{\ >=\<^raw:}\putisatab\isa{> (_)" [50,49] 50)
+  "op ="  ("(_) \<^raw:}\putisatab\isa{\ >=\<^raw:}\putisatab\isa{> (_)" [50,49] 50) and
   "=="  ("(_) \<^raw:}\putisatab\isa{\ >\<equiv>\<^raw:}\putisatab\isa{> (_)")
 
 (* Let *)

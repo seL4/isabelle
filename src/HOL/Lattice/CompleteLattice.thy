@@ -32,13 +32,14 @@ text {*
 *}
 
 definition
-  Meet :: "'a::complete_lattice set \<Rightarrow> 'a"
+  Meet :: "'a::complete_lattice set \<Rightarrow> 'a" where
   "Meet A = (THE inf. is_Inf A inf)"
-  Join :: "'a::complete_lattice set \<Rightarrow> 'a"
+definition
+  Join :: "'a::complete_lattice set \<Rightarrow> 'a" where
   "Join A = (THE sup. is_Sup A sup)"
 
 notation (xsymbols)
-  Meet  ("\<Sqinter>_" [90] 90)
+  Meet  ("\<Sqinter>_" [90] 90) and
   Join  ("\<Squnion>_" [90] 90)
 
 text {*
@@ -143,9 +144,10 @@ text {*
 *}
 
 definition
-  bottom :: "'a::complete_lattice"    ("\<bottom>")
+  bottom :: "'a::complete_lattice"    ("\<bottom>") where
   "\<bottom> = \<Sqinter>UNIV"
-  top :: "'a::complete_lattice"    ("\<top>")
+definition
+  top :: "'a::complete_lattice"    ("\<top>") where
   "\<top> = \<Squnion>UNIV"
 
 lemma bottom_least [intro?]: "\<bottom> \<sqsubseteq> x"

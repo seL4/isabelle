@@ -131,7 +131,7 @@ text {*
 *}
 
 definition
-  lin :: "('a::{minus, plus, zero}) \<Rightarrow> 'a set"
+  lin :: "('a::{minus, plus, zero}) \<Rightarrow> 'a set" where
   "lin x = {a \<cdot> x | a. True}"
 
 lemma linI [intro]: "y = a \<cdot> x \<Longrightarrow> y \<in> lin x"

@@ -19,23 +19,25 @@ class ord =
 begin
 
 notation
-  less_eq  ("op \<^loc><=")
-  less_eq  ("(_/ \<^loc><= _)" [51, 51] 50)
-  less  ("op \<^loc><")
+  less_eq  ("op \<^loc><=") and
+  less_eq  ("(_/ \<^loc><= _)" [51, 51] 50) and
+  less  ("op \<^loc><") and
   less  ("(_/ \<^loc>< _)"  [51, 51] 50)
 
 notation (xsymbols)
-  less_eq  ("op \<^loc>\<le>")
+  less_eq  ("op \<^loc>\<le>") and
   less_eq  ("(_/ \<^loc>\<le> _)"  [51, 51] 50)
 
 notation (HTML output)
-  less_eq  ("op \<^loc>\<le>")
+  less_eq  ("op \<^loc>\<le>") and
   less_eq  ("(_/ \<^loc>\<le> _)"  [51, 51] 50)
 
 abbreviation (input)
-  greater  (infix "\<^loc>>" 50)
+  greater  (infix "\<^loc>>" 50) where
   "x \<^loc>> y \<equiv> y \<^loc>< x"
-  greater_eq  (infix "\<^loc>>=" 50)
+
+abbreviation (input)
+  greater_eq  (infix "\<^loc>>=" 50) where
   "x \<^loc>>= y \<equiv> y \<^loc><= x"
 
 notation (xsymbols)
@@ -44,23 +46,25 @@ notation (xsymbols)
 end
 
 notation
-  less_eq  ("op <=")
-  less_eq  ("(_/ <= _)" [51, 51] 50)
-  less  ("op <")
+  less_eq  ("op <=") and
+  less_eq  ("(_/ <= _)" [51, 51] 50) and
+  less  ("op <") and
   less  ("(_/ < _)"  [51, 51] 50)
   
 notation (xsymbols)
-  less_eq  ("op \<le>")
+  less_eq  ("op \<le>") and
   less_eq  ("(_/ \<le> _)"  [51, 51] 50)
 
 notation (HTML output)
-  less_eq  ("op \<le>")
+  less_eq  ("op \<le>") and
   less_eq  ("(_/ \<le> _)"  [51, 51] 50)
 
 abbreviation (input)
-  greater  (infix ">" 50)
+  greater  (infix ">" 50) where
   "x > y \<equiv> y < x"
-  greater_eq  (infix ">=" 50)
+
+abbreviation (input)
+  greater_eq  (infix ">=" 50) where
   "x >= y \<equiv> y <= x"
   
 notation (xsymbols)
@@ -78,11 +82,11 @@ locale preorder =
 begin
 
 abbreviation (input)
-  greater_eq (infixl "\<sqsupseteq>" 50)
+  greater_eq  (infixl "\<sqsupseteq>" 50) where
   "x \<sqsupseteq> y \<equiv> y \<sqsubseteq> x"
 
 abbreviation (input)
-  greater (infixl "\<sqsupset>" 50)
+  greater (infixl "\<sqsupset>" 50) where
   "x \<sqsupset> y \<equiv> y \<sqsubset> x"
 
 text {* Reflexivity. *}
@@ -202,8 +206,6 @@ subsection {* Linear (total) orders *}
 
 locale linorder = partial_order +
   assumes linear: "x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
-
-context linorder
 begin
 
 lemma trichotomy: "x \<sqsubset> y \<or> x = y \<or> y \<sqsubset> x"
@@ -259,9 +261,11 @@ lemma not_leE: "\<not> y \<sqsubseteq> x \<Longrightarrow> x \<sqsubset> y"
 (* min/max *)
 
 definition
-  min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+  min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   "min a b = (if a \<sqsubseteq> b then a else b)"
-  max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+
+definition
+  max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   "max a b = (if a \<sqsubseteq> b then b else a)"
 
 lemma min_le_iff_disj:

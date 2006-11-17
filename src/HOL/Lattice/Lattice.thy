@@ -25,13 +25,14 @@ text {*
 *}
 
 definition
-  meet :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "&&" 70)
+  meet :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "&&" 70) where
   "x && y = (THE inf. is_inf x y inf)"
-  join :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "||" 65)
+definition
+  join :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "||" 65) where
   "x || y = (THE sup. is_sup x y sup)"
 
 notation (xsymbols)
-  meet  (infixl "\<sqinter>" 70)
+  meet  (infixl "\<sqinter>" 70) and
   join  (infixl "\<squnion>" 65)
 
 text {*
@@ -337,9 +338,10 @@ text {*
 *}
 
 definition
-  minimum :: "'a::linear_order \<Rightarrow> 'a \<Rightarrow> 'a"
+  minimum :: "'a::linear_order \<Rightarrow> 'a \<Rightarrow> 'a" where
   "minimum x y = (if x \<sqsubseteq> y then x else y)"
-  maximum :: "'a::linear_order \<Rightarrow> 'a \<Rightarrow> 'a"
+definition
+  maximum :: "'a::linear_order \<Rightarrow> 'a \<Rightarrow> 'a" where
   "maximum x y = (if x \<sqsubseteq> y then y else x)"
 
 lemma is_inf_minimum: "is_inf x y (minimum x y)"

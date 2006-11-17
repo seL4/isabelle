@@ -11,9 +11,8 @@ theory Sexp imports Main begin
 
 types
   'a item = "'a Datatype.item"
-abbreviation
-  "Leaf == Datatype.Leaf"
-  "Numb == Datatype.Numb"
+abbreviation "Leaf == Datatype.Leaf"
+abbreviation "Numb == Datatype.Numb"
 
 consts
   sexp      :: "'a item set"
@@ -26,16 +25,18 @@ inductive sexp
 
 definition
   sexp_case :: "['a=>'b, nat=>'b, ['a item, 'a item]=>'b, 
-                'a item] => 'b"
+                'a item] => 'b" where
   "sexp_case c d e M = (THE z. (EX x.   M=Leaf(x) & z=c(x))  
                              | (EX k.   M=Numb(k) & z=d(k))  
                              | (EX N1 N2. M = Scons N1 N2  & z=e N1 N2))"
 
-  pred_sexp :: "('a item * 'a item)set"
+definition
+  pred_sexp :: "('a item * 'a item)set" where
      "pred_sexp = (\<Union>M \<in> sexp. \<Union>N \<in> sexp. {(M, Scons M N), (N, Scons M N)})"
 
+definition
   sexp_rec  :: "['a item, 'a=>'b, nat=>'b,      
-                ['a item, 'a item, 'b, 'b]=>'b] => 'b"
+                ['a item, 'a item, 'b, 'b]=>'b] => 'b" where
    "sexp_rec M c d e = wfrec pred_sexp
              (%g. sexp_case c d (%N1 N2. e N1 N2 (g N1) (g N2))) M"
 

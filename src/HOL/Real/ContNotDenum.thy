@@ -37,7 +37,7 @@ text {* This section formalises some properties of closed intervals. *}
 subsubsection {* Definition *}
 
 definition
-  closed_int :: "real \<Rightarrow> real \<Rightarrow> real set"
+  closed_int :: "real \<Rightarrow> real \<Rightarrow> real set" where
   "closed_int x y = {z. x \<le> z \<and> z \<le> y}"
 
 subsubsection {* Properties *}

@@ -10,23 +10,29 @@ Commutation theory for proving the Church Rosser theorem
 theory Commutation imports Main begin
 
 definition
-  square  :: "[i, i, i, i] => o"
+  square  :: "[i, i, i, i] => o" where
   "square(r,s,t,u) ==
     (\<forall>a b. <a,b> \<in> r --> (\<forall>c. <a, c> \<in> s --> (\<exists>x. <b,x> \<in> t & <c,x> \<in> u)))"
 
-  commute :: "[i, i] => o"
+definition
+  commute :: "[i, i] => o" where
   "commute(r,s) == square(r,s,s,r)"
 
-  diamond :: "i=>o"
+definition
+  diamond :: "i=>o" where
   "diamond(r)   == commute(r, r)"
 
-  strip :: "i=>o"
+definition
+  strip :: "i=>o" where
   "strip(r) == commute(r^*, r)"
 
-  Church_Rosser :: "i => o"
+definition
+  Church_Rosser :: "i => o" where
   "Church_Rosser(r) == (\<forall>x y. <x,y> \<in>  (r Un converse(r))^* -->
                         (\<exists>z. <x,z> \<in> r^* & <y,z> \<in> r^*))"
-  confluent :: "i=>o"
+
+definition
+  confluent :: "i=>o" where
   "confluent(r) == diamond(r^*)"
 
 

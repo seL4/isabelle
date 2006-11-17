@@ -22,7 +22,7 @@ defs (overloaded)
   even_nat_def: "even (x::nat) == even (int x)"
 
 abbreviation
-  odd :: "'a::even_odd => bool"
+  odd :: "'a::even_odd => bool" where
   "odd x == \<not> even x"
 
 

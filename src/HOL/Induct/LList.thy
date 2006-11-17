@@ -47,46 +47,54 @@ typedef (LList)
   by (blast intro: llist.NIL_I)
 
 definition
-  list_Fun   :: "['a item set, 'a item set] => 'a item set"
+  list_Fun   :: "['a item set, 'a item set] => 'a item set" where
     --{*Now used exclusively for abbreviating the coinduction rule*}
      "list_Fun A X = {z. z = NIL | (\<exists>M a. z = CONS a M & a \<in> A & M \<in> X)}"
 
+definition
   LListD_Fun :: 
       "[('a item * 'a item)set, ('a item * 'a item)set] => 
-       ('a item * 'a item)set"
+       ('a item * 'a item)set" where
     "LListD_Fun r X =   
        {z. z = (NIL, NIL) |   
            (\<exists>M N a b. z = (CONS a M, CONS b N) & (a, b) \<in> r & (M, N) \<in> X)}"
 
-  LNil :: "'a llist"
+definition
+  LNil :: "'a llist" where
      --{*abstract constructor*}
     "LNil = Abs_LList NIL"
 
-  LCons :: "['a, 'a llist] => 'a llist"
+definition
+  LCons :: "['a, 'a llist] => 'a llist" where
      --{*abstract constructor*}
     "LCons x xs = Abs_LList(CONS (Leaf x) (Rep_LList xs))"
 
-  llist_case :: "['b, ['a, 'a llist]=>'b, 'a llist] => 'b"
+definition
+  llist_case :: "['b, ['a, 'a llist]=>'b, 'a llist] => 'b" where
     "llist_case c d l =
        List_case c (%x y. d (inv Leaf x) (Abs_LList y)) (Rep_LList l)"
 
-  LList_corec_fun :: "[nat, 'a=> ('b item * 'a) option, 'a] => 'b item"
+definition
+  LList_corec_fun :: "[nat, 'a=> ('b item * 'a) option, 'a] => 'b item" where
     "LList_corec_fun k f ==
      nat_rec (%x. {})                         
              (%j r x. case f x of None    => NIL
                                 | Some(z,w) => CONS z (r w)) 
              k"
 
-  LList_corec     :: "['a, 'a => ('b item * 'a) option] => 'b item"
+definition
+  LList_corec     :: "['a, 'a => ('b item * 'a) option] => 'b item" where
     "LList_corec a f = (\<Union>k. LList_corec_fun k f a)"
 
-  llist_corec     :: "['a, 'a => ('b * 'a) option] => 'b llist"
+definition
+  llist_corec     :: "['a, 'a => ('b * 'a) option] => 'b llist" where
     "llist_corec a f =
        Abs_LList(LList_corec a 
                  (%z. case f z of None      => None
                                 | Some(v,w) => Some(Leaf(v), w)))"
 
-  llistD_Fun :: "('a llist * 'a llist)set => ('a llist * 'a llist)set"
+definition
+  llistD_Fun :: "('a llist * 'a llist)set => ('a llist * 'a llist)set" where
     "llistD_Fun(r) =   
         prod_fun Abs_LList Abs_LList `         
                 LListD_Fun (diag(range Leaf))   
@@ -105,25 +113,30 @@ translations
 subsubsection{* Sample function definitions.  Item-based ones start with @{text L} *}
 
 definition
-  Lmap       :: "('a item => 'b item) => ('a item => 'b item)"
+  Lmap       :: "('a item => 'b item) => ('a item => 'b item)" where
     "Lmap f M = LList_corec M (List_case None (%x M'. Some((f(x), M'))))"
 
-  lmap       :: "('a=>'b) => ('a llist => 'b llist)"
+definition
+  lmap       :: "('a=>'b) => ('a llist => 'b llist)" where
     "lmap f l = llist_corec l (%z. case z of LNil => None 
                                            | LCons y z => Some(f(y), z))"
 
-  iterates   :: "['a => 'a, 'a] => 'a llist"
+definition
+  iterates   :: "['a => 'a, 'a] => 'a llist" where
     "iterates f a = llist_corec a (%x. Some((x, f(x))))"     
 
-  Lconst     :: "'a item => 'a item"
+definition
+  Lconst     :: "'a item => 'a item" where
     "Lconst(M) == lfp(%N. CONS M N)"
 
-  Lappend    :: "['a item, 'a item] => 'a item"
+definition
+  Lappend    :: "['a item, 'a item] => 'a item" where
    "Lappend M N = LList_corec (M,N)                                         
      (split(List_case (List_case None (%N1 N2. Some((N1, (NIL,N2))))) 
                       (%M1 M2 N. Some((M1, (M2,N))))))"
 
-  lappend    :: "['a llist, 'a llist] => 'a llist"
+definition
+  lappend    :: "['a llist, 'a llist] => 'a llist" where
     "lappend l n = llist_corec (l,n)                                         
        (split(llist_case (llist_case None (%n1 n2. Some((n1, (LNil,n2))))) 
                          (%l1 l2 n. Some((l1, (l2,n))))))"

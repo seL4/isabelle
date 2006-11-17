@@ -22,9 +22,10 @@ datatype "typ" =
   | TFix vname sort (infix "\<Colon>\<epsilon>" 117)
 
 abbreviation
-  Fun :: "typ \<Rightarrow> typ \<Rightarrow> typ" (infixr "\<rightarrow>" 115)
+  Fun :: "typ \<Rightarrow> typ \<Rightarrow> typ" (infixr "\<rightarrow>" 115) where
   "ty1 \<rightarrow> ty2 \<equiv> Type (STR ''fun'') [ty1, ty2]"
-  Funs :: "typ list \<Rightarrow> typ \<Rightarrow> typ" (infixr "{\<rightarrow>}" 115)
+abbreviation
+  Funs :: "typ list \<Rightarrow> typ \<Rightarrow> typ" (infixr "{\<rightarrow>}" 115) where
   "tys {\<rightarrow>} ty \<equiv> foldr (op \<rightarrow>) tys ty"
 
 datatype "term" =
@@ -33,7 +34,7 @@ datatype "term" =
   | App   "term" "term" (infixl "\<bullet>" 110)
 
 abbreviation
-  Apps :: "term \<Rightarrow> term list \<Rightarrow> term"  (infixl "{\<bullet>}" 110)
+  Apps :: "term \<Rightarrow> term list \<Rightarrow> term"  (infixl "{\<bullet>}" 110) where
   "t {\<bullet>} ts \<equiv> foldl (op \<bullet>) t ts"
 
 

@@ -34,43 +34,50 @@ apply (drule sym [THEN diff_eq_eq [THEN iffD2]], auto)
 done
 
 abbreviation
-
   CLIM :: "[complex=>complex,complex,complex] => bool"
-				("((_)/ -- (_)/ --C> (_))" [60, 0, 60] 60)
+				("((_)/ -- (_)/ --C> (_))" [60, 0, 60] 60) where
   "CLIM == LIM"
 
+abbreviation
   NSCLIM :: "[complex=>complex,complex,complex] => bool"
-			      ("((_)/ -- (_)/ --NSC> (_))" [60, 0, 60] 60)
+			      ("((_)/ -- (_)/ --NSC> (_))" [60, 0, 60] 60) where
   "NSCLIM == NSLIM"
 
+abbreviation
   (* f: C --> R *)
   CRLIM :: "[complex=>real,complex,real] => bool"
-				("((_)/ -- (_)/ --CR> (_))" [60, 0, 60] 60)
+				("((_)/ -- (_)/ --CR> (_))" [60, 0, 60] 60) where
   "CRLIM == LIM"
 
+abbreviation
   NSCRLIM :: "[complex=>real,complex,real] => bool"
-			      ("((_)/ -- (_)/ --NSCR> (_))" [60, 0, 60] 60)
+			      ("((_)/ -- (_)/ --NSCR> (_))" [60, 0, 60] 60) where
   "NSCRLIM == NSLIM"
 
-
-  isContc :: "[complex=>complex,complex] => bool"
+abbreviation
+  isContc :: "[complex=>complex,complex] => bool" where
   "isContc == isCont"
 
+abbreviation
   (* NS definition dispenses with limit notions *)
-  isNSContc :: "[complex=>complex,complex] => bool"
+  isNSContc :: "[complex=>complex,complex] => bool" where
   "isNSContc == isNSCont"
 
-  isContCR :: "[complex=>real,complex] => bool"
+abbreviation
+  isContCR :: "[complex=>real,complex] => bool" where
   "isContCR == isCont"
 
+abbreviation
   (* NS definition dispenses with limit notions *)
-  isNSContCR :: "[complex=>real,complex] => bool"
+  isNSContCR :: "[complex=>real,complex] => bool" where
   "isNSContCR == isNSCont"
 
-  isUContc :: "(complex=>complex) => bool"
+abbreviation
+  isUContc :: "(complex=>complex) => bool" where
   "isUContc == isUCont"
 
-  isNSUContc :: "(complex=>complex) => bool"
+abbreviation
+  isNSUContc :: "(complex=>complex) => bool" where
   "isNSUContc == isNSUCont"
 
 
@@ -129,25 +136,27 @@ lemma isNSUContc_def:
 by (rule isNSUCont_def)
 
 
-definition
-
   (* differentiation: D is derivative of function f at x *)
+definition
   cderiv:: "[complex=>complex,complex,complex] => bool"
-			    ("(CDERIV (_)/ (_)/ :> (_))" [60, 0, 60] 60)
+			    ("(CDERIV (_)/ (_)/ :> (_))" [60, 0, 60] 60) where
   "CDERIV f x :> D = ((%h. (f(x + h) - f(x))/h) -- 0 --C> D)"
 
+definition
   nscderiv :: "[complex=>complex,complex,complex] => bool"
-			    ("(NSCDERIV (_)/ (_)/ :> (_))" [60, 0, 60] 60)
+			    ("(NSCDERIV (_)/ (_)/ :> (_))" [60, 0, 60] 60) where
   "NSCDERIV f x :> D = (\<forall>h \<in> Infinitesimal - {0}.
 			      (( *f* f)(hcomplex_of_complex x + h)
         			 - hcomplex_of_complex (f x))/h @= hcomplex_of_complex D)"
 
+definition
   cdifferentiable :: "[complex=>complex,complex] => bool"
-                     (infixl "cdifferentiable" 60)
+                     (infixl "cdifferentiable" 60) where
   "f cdifferentiable x = (\<exists>D. CDERIV f x :> D)"
 
+definition
   NSCdifferentiable :: "[complex=>complex,complex] => bool"
-                        (infixl "NSCdifferentiable" 60)
+                        (infixl "NSCdifferentiable" 60) where
   "f NSCdifferentiable x = (\<exists>D. NSCDERIV f x :> D)"
 
 

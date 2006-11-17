@@ -30,7 +30,7 @@ locale normal = subgroup + group +
   assumes coset_eq: "(\<forall>x \<in> carrier G. H #> x = x <# H)"
 
 abbreviation
-  normal_rel :: "['a set, ('a, 'b) monoid_scheme] \<Rightarrow> bool"  (infixl "\<lhd>" 60)
+  normal_rel :: "['a set, ('a, 'b) monoid_scheme] \<Rightarrow> bool"  (infixl "\<lhd>" 60) where
   "H \<lhd> G \<equiv> normal H G"
 
 

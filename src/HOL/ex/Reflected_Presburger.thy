@@ -530,7 +530,7 @@ recdef islintn "measure (\<lambda> (n,t). (size t))"
 "islintn (n0, t) = False"
 
 definition
-  islint :: "intterm \<Rightarrow> bool"
+  islint :: "intterm \<Rightarrow> bool" where
   "islint t = islintn(0,t)"
 
 (* And the equivalence to the first definition *)
@@ -730,7 +730,7 @@ lemma lin_mul_lintn:
 
 (* lin_neg neagtes a linear term *)
 definition
-  lin_neg :: "intterm \<Rightarrow> intterm"
+  lin_neg :: "intterm \<Rightarrow> intterm" where
   "lin_neg i = lin_mul ((-1::int),i)"
 
 (* lin_neg has the semantics of Neg *)
@@ -1625,11 +1625,11 @@ by simp
 
 (* Definitions and lemmas about gcd and lcm *)
 definition
-  lcm :: "nat \<times> nat \<Rightarrow> nat"
+  lcm :: "nat \<times> nat \<Rightarrow> nat" where
   "lcm = (\<lambda>(m,n). m*n div gcd(m,n))"
 
 definition
-  ilcm :: "int \<Rightarrow> int \<Rightarrow> int"
+  ilcm :: "int \<Rightarrow> int \<Rightarrow> int" where
   "ilcm = (\<lambda>i.\<lambda>j. int (lcm(nat(abs i),nat(abs j))))"
 
 (* ilcm_dvd12 are needed later *)
@@ -1879,7 +1879,7 @@ recdef adjustcoeff "measure (\<lambda>(l,p). size p)"
 
 (* unitycoeff expects a quantifier free formula an transforms it to an equivalent formula where the bound variable occurs only with coeffitient 1  or -1 *)
 definition
-  unitycoeff :: "QF \<Rightarrow> QF"
+  unitycoeff :: "QF \<Rightarrow> QF" where
   "unitycoeff p =
   (let l = formlcm p;
        p' = adjustcoeff (l,p)
@@ -5091,7 +5091,7 @@ by (cases f, auto) (cases g, auto)+
 
 (* An implementation of sets trough lists *)
 definition
-  list_insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  list_insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "list_insert x xs = (if x mem xs then xs else x#xs)"
 
 lemma list_insert_set: "set (list_insert x xs) = set (x#xs)"
@@ -5368,7 +5368,7 @@ qed
 (* An implementation of cooper's method for both plus/minus/infinity *)
 
 (* unify the formula *)
-definition unify:: "QF \<Rightarrow> (QF \<times> intterm list)"
+definition unify:: "QF \<Rightarrow> (QF \<times> intterm list)" where
   "unify p =
   (let q = unitycoeff p;
        B = list_set(bset q);
@@ -5484,7 +5484,7 @@ proof-
 qed
 (* An implementation of cooper's method *)
 definition
-  cooper:: "QF \<Rightarrow> QF option"
+  cooper:: "QF \<Rightarrow> QF option" where
   "cooper p = lift_un (\<lambda>q. decrvars(explode_minf (unify q))) (linform (nnf p))"
 
 (* cooper eliminates quantifiers *)
@@ -5538,7 +5538,7 @@ qed
 
 (* A decision procedure for Presburger Arithmetics *)
 definition
-  pa:: "QF \<Rightarrow> QF option"
+  pa:: "QF \<Rightarrow> QF option" where
   "pa p \<equiv> lift_un psimpl (qelim(cooper, p))"
 
 lemma psimpl_qfree: "isqfree p \<Longrightarrow> isqfree (psimpl p)"

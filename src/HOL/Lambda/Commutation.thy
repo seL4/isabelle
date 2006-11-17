@@ -11,22 +11,25 @@ theory Commutation imports Main begin
 subsection {* Basic definitions *}
 
 definition
-  square :: "[('a \<times> 'a) set, ('a \<times> 'a) set, ('a \<times> 'a) set, ('a \<times> 'a) set] => bool"
+  square :: "[('a \<times> 'a) set, ('a \<times> 'a) set, ('a \<times> 'a) set, ('a \<times> 'a) set] => bool" where
   "square R S T U =
     (\<forall>x y. (x, y) \<in> R --> (\<forall>z. (x, z) \<in> S --> (\<exists>u. (y, u) \<in> T \<and> (z, u) \<in> U)))"
 
-  commute :: "[('a \<times> 'a) set, ('a \<times> 'a) set] => bool"
+definition
+  commute :: "[('a \<times> 'a) set, ('a \<times> 'a) set] => bool" where
   "commute R S = square R S S R"
 
-  diamond :: "('a \<times> 'a) set => bool"
+definition
+  diamond :: "('a \<times> 'a) set => bool" where
   "diamond R = commute R R"
 
-  Church_Rosser :: "('a \<times> 'a) set => bool"
+definition
+  Church_Rosser :: "('a \<times> 'a) set => bool" where
   "Church_Rosser R =
     (\<forall>x y. (x, y) \<in> (R \<union> R^-1)^* --> (\<exists>z. (x, z) \<in> R^* \<and> (y, z) \<in> R^*))"
 
 abbreviation
-  confluent :: "('a \<times> 'a) set => bool"
+  confluent :: "('a \<times> 'a) set => bool" where
   "confluent R == diamond (R^*)"
 
 

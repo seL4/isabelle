@@ -13,7 +13,7 @@ text {*
 *}
 
 abbreviation
-  list_beta :: "dB list => dB list => bool"   (infixl "=>" 50)
+  list_beta :: "dB list => dB list => bool"  (infixl "=>" 50) where
   "rs => ss == (rs, ss) : step1 beta"
 
 lemma head_Var_reduction:

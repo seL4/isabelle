@@ -30,10 +30,11 @@ consts
   g :: "'a -> 'a"
 
 definition
-  p :: "'a -> 'a"
+  p :: "'a -> 'a" where
   "p = fix$(LAM f. LAM x. If b1$x then f$(g$x) else x fi)"
 
-  q :: "'a -> 'a"
+definition
+  q :: "'a -> 'a" where
   "q = fix$(LAM f. LAM x. If b1$x orelse b2$x then f$(g$x) else x fi)"
 
 

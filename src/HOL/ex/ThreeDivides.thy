@@ -156,7 +156,7 @@ text {* The function @{text "sumdig"} returns the sum of all digits in
 some number n. *}
 
 definition
-  sumdig :: "nat \<Rightarrow> nat"
+  sumdig :: "nat \<Rightarrow> nat" where
   "sumdig n = (\<Sum>x < nlen n. n div 10^x mod 10)"
 
 text {* Some properties of these functions follow. *}

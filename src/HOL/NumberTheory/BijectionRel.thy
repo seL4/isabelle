@@ -30,13 +30,15 @@ text {*
 *}
 
 definition
-  bijP :: "('a => 'a => bool) => 'a set => bool"
+  bijP :: "('a => 'a => bool) => 'a set => bool" where
   "bijP P F = (\<forall>a b. a \<in> F \<and> P a b --> b \<in> F)"
 
-  uniqP :: "('a => 'a => bool) => bool"
+definition
+  uniqP :: "('a => 'a => bool) => bool" where
   "uniqP P = (\<forall>a b c d. P a b \<and> P c d --> (a = c) = (b = d))"
 
-  symP :: "('a => 'a => bool) => bool"
+definition
+  symP :: "('a => 'a => bool) => bool" where
   "symP P = (\<forall>a b. P a b = P b a)"
 
 consts

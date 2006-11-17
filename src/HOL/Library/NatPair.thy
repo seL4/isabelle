@@ -16,7 +16,7 @@ text{*
 *}
 
 definition
-  nat2_to_nat:: "(nat * nat) \<Rightarrow> nat"
+  nat2_to_nat:: "(nat * nat) \<Rightarrow> nat" where
   "nat2_to_nat pair = (let (n,m) = pair in (n+m) * Suc (n+m) div 2 + n)"
 
 lemma dvd2_a_x_suc_a: "2 dvd a * (Suc a)"

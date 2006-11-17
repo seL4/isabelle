@@ -223,18 +223,20 @@ formulas.  The order type of the resulting wellordering gives us a map from
 "DPow(A)"}, we take the minimum such ordinal.*}
 
 definition
-  env_form_r :: "[i,i,i]=>i"
+  env_form_r :: "[i,i,i]=>i" where
     --{*wellordering on (environment, formula) pairs*}
    "env_form_r(f,r,A) ==
       rmult(list(A), rlist(A, r),
 	    formula, measure(formula, enum(f)))"
 
-  env_form_map :: "[i,i,i,i]=>i"
+definition
+  env_form_map :: "[i,i,i,i]=>i" where
     --{*map from (environment, formula) pairs to ordinals*}
    "env_form_map(f,r,A,z)
       == ordermap(list(A) * formula, env_form_r(f,r,A)) ` z"
 
-  DPow_ord :: "[i,i,i,i,i]=>o"
+definition
+  DPow_ord :: "[i,i,i,i,i]=>o" where
     --{*predicate that holds if @{term k} is a valid index for @{term X}*}
    "DPow_ord(f,r,A,X,k) ==
            \<exists>env \<in> list(A). \<exists>p \<in> formula.
@@ -242,11 +244,13 @@ definition
              X = {x\<in>A. sats(A, p, Cons(x,env))} &
              env_form_map(f,r,A,<env,p>) = k"
 
-  DPow_least :: "[i,i,i,i]=>i"
+definition
+  DPow_least :: "[i,i,i,i]=>i" where
     --{*function yielding the smallest index for @{term X}*}
    "DPow_least(f,r,A,X) == \<mu> k. DPow_ord(f,r,A,X,k)"
 
-  DPow_r :: "[i,i,i]=>i"
+definition
+  DPow_r :: "[i,i,i]=>i" where
     --{*a wellordering on @{term "DPow(A)"}*}
    "DPow_r(f,r,A) == measure(DPow(A), DPow_least(f,r,A))"
 
@@ -318,7 +322,7 @@ text{*Now we work towards the transfinite definition of wellorderings for
 of wellorderings for smaller ordinals.*}
 
 definition
-  rlimit :: "[i,i=>i]=>i"
+  rlimit :: "[i,i=>i]=>i" where
   --{*Expresses the wellordering at limit ordinals.  The conditional
       lets us remove the premise @{term "Limit(i)"} from some theorems.*}
     "rlimit(i,r) ==
@@ -329,7 +333,8 @@ definition
 		  (lrank(x') = lrank(x) & <x',x> \<in> r(succ(lrank(x)))))}
        else 0"
 
-  Lset_new :: "i=>i"
+definition
+  Lset_new :: "i=>i" where
   --{*This constant denotes the set of elements introduced at level
       @{term "succ(i)"}*}
     "Lset_new(i) == {x \<in> Lset(succ(i)). lrank(x) = i}"
@@ -401,7 +406,7 @@ done
 subsection{*Transfinite Definition of the Wellordering on @{term "L"}*}
 
 definition
- L_r :: "[i, i] => i"
+  L_r :: "[i, i] => i" where
   "L_r(f) == %i.
       transrec3(i, 0, \<lambda>x r. DPow_r(f, r, Lset(x)), 
                 \<lambda>x r. rlimit(x, \<lambda>y. r`y))"

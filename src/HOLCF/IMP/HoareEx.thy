@@ -17,7 +17,7 @@ text {*
 types assn = "state => bool"
 
 definition
-  hoare_valid :: "[assn, com, assn] => bool"    ("|= {(1_)}/ (_)/ {(1_)}" 50)
+  hoare_valid :: "[assn, com, assn] => bool"  ("|= {(1_)}/ (_)/ {(1_)}" 50) where
   "|= {A} c {B} = (\<forall>s t. A s \<and> D c $(Discr s) = Def t --> B t)"
 
 lemma WHILE_rule_sound:

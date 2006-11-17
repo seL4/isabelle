@@ -11,11 +11,10 @@ theory KerberosIV_Gets imports Public begin
 text{*The "u" prefix indicates theorems referring to an updated version of the protocol. The "r" suffix indicates theorems where the confidentiality assumptions are relaxed by the corresponding arguments.*}
 
 abbreviation
-  Kas :: agent
-  "Kas == Server"
+  Kas :: agent where "Kas == Server"
 
-  Tgs :: agent
-  "Tgs == Friend 0"
+abbreviation
+  Tgs :: agent where "Tgs == Friend 0"
 
 
 axioms
@@ -67,19 +66,23 @@ specification (replylife)
 
 abbreviation
   (*The current time is just the length of the trace!*)
-  CT :: "event list=>nat"
+  CT :: "event list=>nat" where
   "CT == length"
 
-  expiredAK :: "[nat, event list] => bool"
+abbreviation
+  expiredAK :: "[nat, event list] => bool" where
   "expiredAK Ta evs == authKlife + Ta < CT evs"
 
-  expiredSK :: "[nat, event list] => bool"
+abbreviation
+  expiredSK :: "[nat, event list] => bool" where
   "expiredSK Ts evs == servKlife + Ts < CT evs"
 
-  expiredA :: "[nat, event list] => bool"
+abbreviation
+  expiredA :: "[nat, event list] => bool" where
   "expiredA T evs == authlife + T < CT evs"
 
-  valid :: "[nat, nat] => bool" ("valid _ wrt _")
+abbreviation
+  valid :: "[nat, nat] => bool" ("valid _ wrt _") where
   "valid T1 wrt T2 == T1 <= replylife + T2"
 
 (*---------------------------------------------------------------------*)

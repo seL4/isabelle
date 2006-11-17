@@ -18,7 +18,7 @@ consts
   par_beta :: "(dB \<times> dB) set"
 
 abbreviation
-  par_beta_red :: "[dB, dB] => bool"  (infixl "=>" 50)
+  par_beta_red :: "[dB, dB] => bool"  (infixl "=>" 50) where
   "s => t == (s, t) \<in> par_beta"
 
 inductive par_beta

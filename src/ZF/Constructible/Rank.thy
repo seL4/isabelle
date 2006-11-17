@@ -136,22 +136,22 @@ apply (simp add: left_inverse_bij [OF ord_iso_is_bij])
 done
 
 
-definition
-  
-  obase :: "[i=>o,i,i] => i"
+definition  
+  obase :: "[i=>o,i,i] => i" where
        --{*the domain of @{text om}, eventually shown to equal @{text A}*}
    "obase(M,A,r) == {a\<in>A. \<exists>x[M]. \<exists>g[M]. Ord(x) & 
                           g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x))}"
 
-  omap :: "[i=>o,i,i,i] => o"  
+definition
+  omap :: "[i=>o,i,i,i] => o" where
     --{*the function that maps wosets to order types*}
    "omap(M,A,r,f) == 
 	\<forall>z[M].
          z \<in> f <-> (\<exists>a\<in>A. \<exists>x[M]. \<exists>g[M]. z = <a,x> & Ord(x) & 
                         g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x)))"
 
-
-  otype :: "[i=>o,i,i,i] => o"  --{*the order types themselves*}
+definition
+  otype :: "[i=>o,i,i,i] => o" where --{*the order types themselves*}
    "otype(M,A,r,i) == \<exists>f[M]. omap(M,A,r,f) & is_range(M,f,i)"
 
 
@@ -414,12 +414,12 @@ text{*Note: the remainder of this theory is not needed elsewhere.*}
 subsubsection{*Ordinal Addition*}
 
 (*FIXME: update to use new techniques!!*)
-definition
  (*This expresses ordinal addition in the language of ZF.  It also 
    provides an abbreviation that can be used in the instance of strong
    replacement below.  Here j is used to define the relation, namely
    Memrel(succ(j)), while x determines the domain of f.*)
- is_oadd_fun :: "[i=>o,i,i,i,i] => o"
+definition
+  is_oadd_fun :: "[i=>o,i,i,i,i] => o" where
     "is_oadd_fun(M,i,j,x,f) == 
        (\<forall>sj msj. M(sj) --> M(msj) --> 
                  successor(M,j,sj) --> membership(M,sj,msj) --> 
@@ -427,7 +427,8 @@ definition
 		     %x g y. \<exists>gx[M]. image(M,g,x,gx) & union(M,i,gx,y),
 		     msj, x, f))"
 
- is_oadd :: "[i=>o,i,i,i] => o"
+definition
+  is_oadd :: "[i=>o,i,i,i] => o" where
     "is_oadd(M,i,j,k) == 
         (~ ordinal(M,i) & ~ ordinal(M,j) & k=0) |
         (~ ordinal(M,i) & ordinal(M,j) & k=j) |
@@ -437,21 +438,24 @@ definition
 		    successor(M,j,sj) & is_oadd_fun(M,i,sj,sj,f) & 
 		    fun_apply(M,f,j,fj) & fj = k))"
 
+definition
  (*NEEDS RELATIVIZATION*)
- omult_eqns :: "[i,i,i,i] => o"
+  omult_eqns :: "[i,i,i,i] => o" where
     "omult_eqns(i,x,g,z) ==
             Ord(x) & 
 	    (x=0 --> z=0) &
             (\<forall>j. x = succ(j) --> z = g`j ++ i) &
             (Limit(x) --> z = \<Union>(g``x))"
 
- is_omult_fun :: "[i=>o,i,i,i] => o"
+definition
+  is_omult_fun :: "[i=>o,i,i,i] => o" where
     "is_omult_fun(M,i,j,f) == 
 	    (\<exists>df. M(df) & is_function(M,f) & 
                   is_domain(M,f,df) & subset(M, j, df)) & 
             (\<forall>x\<in>j. omult_eqns(i,x,f,f`x))"
 
- is_omult :: "[i=>o,i,i,i] => o"
+definition
+  is_omult :: "[i=>o,i,i,i] => o" where
     "is_omult(M,i,j,k) == 
 	\<exists>f fj sj. M(f) & M(fj) & M(sj) & 
                   successor(M,j,sj) & is_omult_fun(M,i,sj,f) & 
@@ -726,7 +730,7 @@ done
 text{*This function, defined using replacement, is a rank function for
 well-founded relations within the class M.*}
 definition
- wellfoundedrank :: "[i=>o,i,i] => i"
+  wellfoundedrank :: "[i=>o,i,i] => i" where
     "wellfoundedrank(M,r,A) ==
         {p. x\<in>A, \<exists>y[M]. \<exists>f[M]. 
                        p = <x,y> & is_recfun(r^+, x, %x f. range(f), f) &

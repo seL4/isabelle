@@ -13,30 +13,37 @@ defaultsort type
 types 'a fstream = "('a lift) stream"
 
 definition
-  fsingleton    :: "'a => 'a fstream"  ("<_>" [1000] 999)
+  fsingleton    :: "'a => 'a fstream"  ("<_>" [1000] 999) where
   fsingleton_def2: "fsingleton = (%a. Def a && UU)"
 
-  fsfilter      :: "'a set \<Rightarrow> 'a fstream \<rightarrow> 'a fstream"
+definition
+  fsfilter      :: "'a set \<Rightarrow> 'a fstream \<rightarrow> 'a fstream" where
   "fsfilter A = sfilter\<cdot>(flift2 (\<lambda>x. x\<in>A))"
 
-  fsmap		:: "('a => 'b) => 'a fstream -> 'b fstream"
+definition
+  fsmap		:: "('a => 'b) => 'a fstream -> 'b fstream" where
   "fsmap f = smap$(flift2 f)"
 
-  jth           :: "nat => 'a fstream => 'a"
+definition
+  jth           :: "nat => 'a fstream => 'a" where
   "jth = (%n s. if Fin n < #s then THE a. i_th n s = Def a else arbitrary)"
 
-  first         :: "'a fstream => 'a"
+definition
+  first         :: "'a fstream => 'a" where
   "first = (%s. jth 0 s)"
 
-  last          :: "'a fstream => 'a"
+definition
+  last          :: "'a fstream => 'a" where
   "last = (%s. case #s of Fin n => (if n~=0 then jth (THE k. Suc k = n) s else arbitrary)
               | Infty => arbitrary)"
 
 
 abbreviation
-  emptystream :: "'a fstream" 			("<>")
+  emptystream :: "'a fstream"  ("<>") where
   "<> == \<bottom>"
-  fsfilter' :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"	("(_'(C')_)" [64,63] 63)
+
+abbreviation
+  fsfilter' :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"	("(_'(C')_)" [64,63] 63) where
   "A(C)s == fsfilter A\<cdot>s"
 
 notation (xsymbols)

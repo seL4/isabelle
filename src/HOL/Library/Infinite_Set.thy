@@ -18,7 +18,7 @@ text {*
 *}
 
 abbreviation
-  infinite :: "'a set \<Rightarrow> bool"
+  infinite :: "'a set \<Rightarrow> bool" where
   "infinite S == \<not> finite S"
 
 text {*
@@ -349,17 +349,19 @@ text {*
 *}
 
 definition
-  Inf_many :: "('a \<Rightarrow> bool) \<Rightarrow> bool"      (binder "INF " 10)
+  Inf_many :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "INF " 10) where
   "Inf_many P = infinite {x. P x}"
-  Alm_all  :: "('a \<Rightarrow> bool) \<Rightarrow> bool"      (binder "MOST " 10)
+
+definition
+  Alm_all :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "MOST " 10) where
   "Alm_all P = (\<not> (INF x. \<not> P x))"
 
 notation (xsymbols)
-  Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10)
+  Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10) and
   Alm_all  (binder "\<forall>\<^sub>\<infinity>" 10)
 
 notation (HTML output)
-  Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10)
+  Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10) and
   Alm_all  (binder "\<forall>\<^sub>\<infinity>" 10)
 
 lemma INF_EX:
@@ -453,7 +455,7 @@ text {*
 *}
 
 definition
-  atmost_one :: "'a set \<Rightarrow> bool"
+  atmost_one :: "'a set \<Rightarrow> bool" where
   "atmost_one S = (\<forall>x y. x\<in>S \<and> y\<in>S \<longrightarrow> x=y)"
 
 lemma atmost_one_empty: "S = {} \<Longrightarrow> atmost_one S"

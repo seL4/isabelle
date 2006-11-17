@@ -25,10 +25,11 @@ primrec
 
 
 definition
-  total  :: "('a \<Rightarrow> 'a \<Rightarrow> bool) => bool"
+  total  :: "('a \<Rightarrow> 'a \<Rightarrow> bool) => bool" where
    "total r = (\<forall>x y. r x y | r y x)"
   
-  transf :: "('a \<Rightarrow> 'a \<Rightarrow> bool) => bool"
+definition
+  transf :: "('a \<Rightarrow> 'a \<Rightarrow> bool) => bool" where
    "transf f = (\<forall>x y z. f x y & f y z --> f x z)"
 
 

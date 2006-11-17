@@ -45,7 +45,7 @@ text {*
 *}
 
 definition
-  "domain" :: "'a::partial_equiv set"
+  "domain" :: "'a::partial_equiv set" where
   "domain = {x. x \<sim> x}"
 
 lemma domainI [intro]: "x \<sim> x ==> x \<in> domain"
@@ -165,7 +165,7 @@ text {*
 *}
 
 definition
-  eqv_class :: "('a::partial_equiv) => 'a quot"    ("\<lfloor>_\<rfloor>")
+  eqv_class :: "('a::partial_equiv) => 'a quot"    ("\<lfloor>_\<rfloor>") where
   "\<lfloor>a\<rfloor> = Abs_quot {x. a \<sim> x}"
 
 theorem quot_rep: "\<exists>a. A = \<lfloor>a\<rfloor>"
@@ -232,7 +232,7 @@ lemma eqv_class_eq [simp]: "(\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<s
 subsection {* Picking representing elements *}
 
 definition
-  pick :: "'a::partial_equiv quot => 'a"
+  pick :: "'a::partial_equiv quot => 'a" where
   "pick A = (SOME a. A = \<lfloor>a\<rfloor>)"
 
 theorem pick_eqv' [intro?, simp]: "a \<in> domain ==> pick \<lfloor>a\<rfloor> \<sim> a"

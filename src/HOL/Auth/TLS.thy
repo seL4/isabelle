@@ -64,10 +64,11 @@ consts
   sessionK :: "(nat*nat*nat) * role => key"
 
 abbreviation
-  clientK :: "nat*nat*nat => key"
+  clientK :: "nat*nat*nat => key" where
   "clientK X == sessionK(X, ClientRole)"
 
-  serverK :: "nat*nat*nat => key"
+abbreviation
+  serverK :: "nat*nat*nat => key" where
   "serverK X == sessionK(X, ServerRole)"
 
 

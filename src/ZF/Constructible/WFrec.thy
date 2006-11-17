@@ -272,7 +272,7 @@ done
 subsection{*Relativization of the ZF Predicate @{term is_recfun}*}
 
 definition
-  M_is_recfun :: "[i=>o, [i,i,i]=>o, i, i, i] => o"
+  M_is_recfun :: "[i=>o, [i,i,i]=>o, i, i, i] => o" where
    "M_is_recfun(M,MH,r,a,f) == 
      \<forall>z[M]. z \<in> f <-> 
             (\<exists>x[M]. \<exists>y[M]. \<exists>xa[M]. \<exists>sx[M]. \<exists>r_sx[M]. \<exists>f_r_sx[M]. 
@@ -280,11 +280,13 @@ definition
                pre_image(M,r,sx,r_sx) & restriction(M,f,r_sx,f_r_sx) &
                xa \<in> r & MH(x, f_r_sx, y))"
 
-  is_wfrec :: "[i=>o, [i,i,i]=>o, i, i, i] => o"
+definition
+  is_wfrec :: "[i=>o, [i,i,i]=>o, i, i, i] => o" where
    "is_wfrec(M,MH,r,a,z) == 
       \<exists>f[M]. M_is_recfun(M,MH,r,a,f) & MH(a,f,z)"
 
-  wfrec_replacement :: "[i=>o, [i,i,i]=>o, i] => o"
+definition
+  wfrec_replacement :: "[i=>o, [i,i,i]=>o, i] => o" where
    "wfrec_replacement(M,MH,r) ==
         strong_replacement(M, 
              \<lambda>x z. \<exists>y[M]. pair(M,x,y,z) & is_wfrec(M,MH,r,x,y))"

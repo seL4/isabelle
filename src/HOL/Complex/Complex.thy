@@ -235,7 +235,7 @@ qed
 subsection{*Embedding Properties for @{term complex_of_real} Map*}
 
 abbreviation
-  complex_of_real :: "real => complex"
+  complex_of_real :: "real => complex" where
   "complex_of_real == of_real"
 
 lemma complex_of_real_def: "complex_of_real r = Complex r 0"
@@ -321,7 +321,7 @@ by (simp add: complex_Im_mult_eq)
 subsection{*Conjugation is an Automorphism*}
 
 definition
-  cnj :: "complex => complex"
+  cnj :: "complex => complex" where
   "cnj z = Complex (Re z) (-Im z)"
 
 lemma complex_cnj: "cnj (Complex x y) = Complex x (-y)"
@@ -385,7 +385,7 @@ defs (overloaded)
   complex_norm_def: "norm z == sqrt(Re(z) ^ 2 + Im(z) ^ 2)"
 
 abbreviation
-  cmod :: "complex => real"
+  cmod :: "complex => real" where
   "cmod == norm"
 
 lemmas cmod_def = complex_norm_def
@@ -575,10 +575,11 @@ subsection{*The Function @{term sgn}*}
 definition
   (*------------ Argand -------------*)
 
-  sgn :: "complex => complex"
+  sgn :: "complex => complex" where
   "sgn z = z / complex_of_real(cmod z)"
 
-  arg :: "complex => real"
+definition
+  arg :: "complex => real" where
   "arg z = (SOME a. Re(sgn z) = cos a & Im(sgn z) = sin a & -pi < a & a \<le> pi)"
 
 lemma sgn_zero [simp]: "sgn 0 = 0"
@@ -671,15 +672,17 @@ subsection{*Finally! Polar Form for Complex Numbers*}
 definition
 
   (* abbreviation for (cos a + i sin a) *)
-  cis :: "real => complex"
+  cis :: "real => complex" where
   "cis a = Complex (cos a) (sin a)"
 
+definition
   (* abbreviation for r*(cos a + i sin a) *)
-  rcis :: "[real, real] => complex"
+  rcis :: "[real, real] => complex" where
   "rcis r a = complex_of_real r * cis a"
 
+definition
   (* e ^ (x + iy) *)
-  expi :: "complex => complex"
+  expi :: "complex => complex" where
   "expi z = complex_of_real(exp (Re z)) * cis (Im z)"
 
 lemma complex_split_polar:

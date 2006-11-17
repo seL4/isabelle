@@ -43,7 +43,7 @@ consts
   splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 
 abbreviation
-  upto:: "nat => nat => nat list"    ("(1[_../_])")
+  upto:: "nat => nat => nat list"  ("(1[_../_])") where
   "[i..j] == [i..<(Suc j)]"
 
 
@@ -82,7 +82,7 @@ text {*
   refer to the list version as @{text length}. *}
 
 abbreviation
-  length :: "'a list => nat"
+  length :: "'a list => nat" where
   "length == size"
 
 primrec
@@ -187,16 +187,21 @@ primrec
   replicate_Suc: "replicate (Suc n) x = x # replicate n x"
 
 definition
-  rotate1 :: "'a list \<Rightarrow> 'a list"
-  rotate1_def: "rotate1 xs = (case xs of [] \<Rightarrow> [] | x#xs \<Rightarrow> xs @ [x])"
-  rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
-  rotate_def:  "rotate n = rotate1 ^ n"
-  list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool"
-  list_all2_def: "list_all2 P xs ys =
+  rotate1 :: "'a list \<Rightarrow> 'a list" where
+  "rotate1 xs = (case xs of [] \<Rightarrow> [] | x#xs \<Rightarrow> xs @ [x])"
+
+definition
+  rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+  "rotate n = rotate1 ^ n"
+
+definition
+  list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool" where
+  "list_all2 P xs ys =
     (length xs = length ys \<and> (\<forall>(x, y) \<in> set (zip xs ys). P x y))"
-  sublist :: "'a list => nat set => 'a list"
-  sublist_def: "sublist xs A =
-    map fst (filter (\<lambda>p. snd p \<in> A) (zip xs [0..<size xs]))"
+
+definition
+  sublist :: "'a list => nat set => 'a list" where
+  "sublist xs A = map fst (filter (\<lambda>p. snd p \<in> A) (zip xs [0..<size xs]))"
 
 primrec
   "splice [] ys = ys"

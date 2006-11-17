@@ -11,10 +11,11 @@ begin
 
 definition
    (* standard complex numbers reagarded as an embedded subset of NS complex *)
-   SComplex  :: "hcomplex set"
+   SComplex  :: "hcomplex set" where
    "SComplex = {x. \<exists>r. x = hcomplex_of_complex r}"
 
-   stc :: "hcomplex => hcomplex"
+definition
+   stc :: "hcomplex => hcomplex" where
     --{* standard part map*}
    "stc x = (SOME r. x \<in> HFinite & r:SComplex & r @= x)"
 

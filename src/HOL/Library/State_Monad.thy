@@ -68,12 +68,16 @@ text {*
 
 definition
   mbind :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd"
-    (infixl ">>=" 60)
+    (infixl ">>=" 60) where
   "f >>= g = split g \<circ> f"
+
+definition
   fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c"
-    (infixl ">>" 60)
+    (infixl ">>" 60) where
   "f >> g = g \<circ> f"
-  run :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
+
+definition
+  run :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
   "run f = f"
 
 print_ast_translation {*[

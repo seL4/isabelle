@@ -12,37 +12,45 @@ imports NthRoot Fact Series EvenOdd Deriv
 begin
 
 definition
-
-  exp :: "real => real"
+  exp :: "real => real" where
   "exp x = (\<Sum>n. inverse(real (fact n)) * (x ^ n))"
 
-  sin :: "real => real"
+definition
+  sin :: "real => real" where
   "sin x = (\<Sum>n. (if even(n) then 0 else
              ((- 1) ^ ((n - Suc 0) div 2))/(real (fact n))) * x ^ n)"
  
-  diffs :: "(nat => real) => nat => real"
+definition
+  diffs :: "(nat => real) => nat => real" where
   "diffs c = (%n. real (Suc n) * c(Suc n))"
 
-  cos :: "real => real"
+definition
+  cos :: "real => real" where
   "cos x = (\<Sum>n. (if even(n) then ((- 1) ^ (n div 2))/(real (fact n)) 
                             else 0) * x ^ n)"
   
-  ln :: "real => real"
+definition
+  ln :: "real => real" where
   "ln x = (SOME u. exp u = x)"
 
-  pi :: "real"
+definition
+  pi :: "real" where
   "pi = 2 * (@x. 0 \<le> (x::real) & x \<le> 2 & cos x = 0)"
 
-  tan :: "real => real"
+definition
+  tan :: "real => real" where
   "tan x = (sin x)/(cos x)"
 
-  arcsin :: "real => real"
+definition
+  arcsin :: "real => real" where
   "arcsin y = (SOME x. -(pi/2) \<le> x & x \<le> pi/2 & sin x = y)"
 
-  arcos :: "real => real"
+definition
+  arcos :: "real => real" where
   "arcos y = (SOME x. 0 \<le> x & x \<le> pi & cos x = y)"
-     
-  arctan :: "real => real"
+
+definition     
+  arctan :: "real => real" where
   "arctan y = (SOME x. -(pi/2) < x & x < pi/2 & tan x = y)"
 
 

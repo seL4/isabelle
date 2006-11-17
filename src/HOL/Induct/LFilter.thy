@@ -20,10 +20,11 @@ inductive "findRel p"
 declare findRel.intros [intro]
 
 definition
-  find    :: "['a => bool, 'a llist] => 'a llist"
+  find    :: "['a => bool, 'a llist] => 'a llist" where
   "find p l = (SOME l'. (l,l'): findRel p | (l' = LNil & l ~: Domain(findRel p)))"
 
-  lfilter :: "['a => bool, 'a llist] => 'a llist"
+definition
+  lfilter :: "['a => bool, 'a llist] => 'a llist" where
   "lfilter p l = llist_corec l (%l. case find p l of
                                             LNil => None
                                           | LCons y z => Some(y,z))"

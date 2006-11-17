@@ -31,13 +31,15 @@ inductive domino
 text {* \medskip Sets of squares of the given colour*}
 
 definition
-  coloured :: "nat => (nat \<times> nat) set"
+  coloured :: "nat => (nat \<times> nat) set" where
   "coloured b = {(i, j). (i + j) mod 2 = b}"
 
 abbreviation
-  whites  :: "(nat \<times> nat) set"
+  whites  :: "(nat \<times> nat) set" where
   "whites == coloured 0"
-  blacks  :: "(nat \<times> nat) set"
+
+abbreviation
+  blacks  :: "(nat \<times> nat) set" where
   "blacks == coloured (Suc 0)"
 
 

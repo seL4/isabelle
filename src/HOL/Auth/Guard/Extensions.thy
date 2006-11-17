@@ -86,7 +86,7 @@ lemma Crypt_isnt_MPair [iff]: "~ is_MPair (Crypt K X)"
 by simp
 
 abbreviation
-  not_MPair :: "msg => bool"
+  not_MPair :: "msg => bool" where
   "not_MPair X == ~ is_MPair X"
 
 lemma is_MPairE: "[| is_MPair X ==> P; not_MPair X ==> P |] ==> P"
@@ -370,7 +370,7 @@ knows'_Cons0:
    ))"
 
 abbreviation
-  spies' :: "event list => msg set"
+  spies' :: "event list => msg set" where
   "spies' == knows' Spy"
 
 subsubsection{*decomposition of knows into knows' and initState*}
@@ -452,7 +452,7 @@ constdefs knows_max :: "agent => event list => msg set"
 "knows_max A evs == knows_max' A evs Un initState A"
 
 abbreviation
-  spies_max :: "event list => msg set"
+  spies_max :: "event list => msg set" where
   "spies_max evs == knows_max Spy evs"
 
 subsubsection{*basic facts about @{term knows_max}*}

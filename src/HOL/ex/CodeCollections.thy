@@ -55,15 +55,19 @@ next
 qed
 
 definition (in ordered)
-  min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+  min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   "min x y = (if x \<^loc><<= y then x else y)"
-  max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+
+definition (in ordered)
+  max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   "max x y = (if x \<^loc><<= y then y else x)"
 
 definition
-  min :: "'a::ordered \<Rightarrow> 'a \<Rightarrow> 'a"
+  min :: "'a::ordered \<Rightarrow> 'a \<Rightarrow> 'a" where
   "min x y = (if x <<= y then x else y)"
-  max :: "'a::ordered \<Rightarrow> 'a \<Rightarrow> 'a"
+
+definition
+  max :: "'a::ordered \<Rightarrow> 'a \<Rightarrow> 'a" where
   "max x y = (if x <<= y then y else x)"
 
 fun abs_sorted :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
@@ -366,15 +370,15 @@ primrec
   "get_index p n (x#xs) = (if p x then Some n else get_index p (Suc n) xs)"
 
 definition
-  between :: "'a::enum \<Rightarrow> 'a \<Rightarrow> 'a option"
+  between :: "'a::enum \<Rightarrow> 'a \<Rightarrow> 'a option" where
   "between x y = get_first (\<lambda>z. x << z & z << y) enum"
 
 definition
-  index :: "'a::enum \<Rightarrow> nat"
+  index :: "'a::enum \<Rightarrow> nat" where
   "index x = the (get_index (\<lambda>y. y = x) 0 enum)"
 
 definition
-  add :: "'a::enum \<Rightarrow> 'a \<Rightarrow> 'a"
+  add :: "'a::enum \<Rightarrow> 'a \<Rightarrow> 'a" where
   "add x y =
     (let
       enm = enum
@@ -387,9 +391,8 @@ primrec
   "sum [] = inf"
   "sum (x#xs) = add x (sum xs)"
 
-definition
-  "test1 = sum [None, Some True, None, Some False]"
-  "test2 = (inf :: nat \<times> unit)"
+definition "test1 = sum [None, Some True, None, Some False]"
+definition "test2 = (inf :: nat \<times> unit)"
 
 code_gen "op <<="
 code_gen "op <<"

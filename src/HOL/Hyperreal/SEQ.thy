@@ -13,54 +13,64 @@ imports NatStar
 begin
 
 definition
-
   LIMSEQ :: "[nat => 'a::real_normed_vector, 'a] => bool"
-    ("((_)/ ----> (_))" [60, 60] 60)
+    ("((_)/ ----> (_))" [60, 60] 60) where
     --{*Standard definition of convergence of sequence*}
   "X ----> L = (\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> norm (X n - L) < r))"
 
+definition
   NSLIMSEQ :: "[nat => 'a::real_normed_vector, 'a] => bool"
-    ("((_)/ ----NS> (_))" [60, 60] 60)
+    ("((_)/ ----NS> (_))" [60, 60] 60) where
     --{*Nonstandard definition of convergence of sequence*}
   "X ----NS> L = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
 
-  lim :: "(nat => 'a::real_normed_vector) => 'a"
+definition
+  lim :: "(nat => 'a::real_normed_vector) => 'a" where
     --{*Standard definition of limit using choice operator*}
   "lim X = (THE L. X ----> L)"
 
-  nslim :: "(nat => 'a::real_normed_vector) => 'a"
+definition
+  nslim :: "(nat => 'a::real_normed_vector) => 'a" where
     --{*Nonstandard definition of limit using choice operator*}
   "nslim X = (THE L. X ----NS> L)"
 
-  convergent :: "(nat => 'a::real_normed_vector) => bool"
+definition
+  convergent :: "(nat => 'a::real_normed_vector) => bool" where
     --{*Standard definition of convergence*}
   "convergent X = (\<exists>L. X ----> L)"
 
-  NSconvergent :: "(nat => 'a::real_normed_vector) => bool"
+definition
+  NSconvergent :: "(nat => 'a::real_normed_vector) => bool" where
     --{*Nonstandard definition of convergence*}
   "NSconvergent X = (\<exists>L. X ----NS> L)"
 
-  Bseq :: "(nat => 'a::real_normed_vector) => bool"
+definition
+  Bseq :: "(nat => 'a::real_normed_vector) => bool" where
     --{*Standard definition for bounded sequence*}
   "Bseq X = (\<exists>K>0.\<forall>n. norm (X n) \<le> K)"
 
-  NSBseq :: "(nat => 'a::real_normed_vector) => bool"
+definition
+  NSBseq :: "(nat => 'a::real_normed_vector) => bool" where
     --{*Nonstandard definition for bounded sequence*}
   "NSBseq X = (\<forall>N \<in> HNatInfinite. ( *f* X) N : HFinite)"
 
-  monoseq :: "(nat=>real)=>bool"
+definition
+  monoseq :: "(nat=>real)=>bool" where
     --{*Definition for monotonicity*}
   "monoseq X = ((\<forall>m. \<forall>n\<ge>m. X m \<le> X n) | (\<forall>m. \<forall>n\<ge>m. X n \<le> X m))"
 
-  subseq :: "(nat => nat) => bool"
+definition
+  subseq :: "(nat => nat) => bool" where
     --{*Definition of subsequence*}
   "subseq f = (\<forall>m. \<forall>n>m. (f m) < (f n))"
 
-  Cauchy :: "(nat => 'a::real_normed_vector) => bool"
+definition
+  Cauchy :: "(nat => 'a::real_normed_vector) => bool" where
     --{*Standard definition of the Cauchy condition*}
   "Cauchy X = (\<forall>e>0. \<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. norm (X m - X n) < e)"
 
-  NSCauchy :: "(nat => 'a::real_normed_vector) => bool"
+definition
+  NSCauchy :: "(nat => 'a::real_normed_vector) => bool" where
     --{*Nonstandard definition*}
   "NSCauchy X = (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite. ( *f* X) M \<approx> ( *f* X) N)"
 

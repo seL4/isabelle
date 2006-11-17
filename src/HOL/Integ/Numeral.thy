@@ -51,6 +51,8 @@ setup NumeralSyntax.setup
 
 abbreviation
   "Numeral0 \<equiv> number_of Pls"
+
+abbreviation
   "Numeral1 \<equiv> number_of (Pls BIT B1)"
 
 lemma Let_number_of [simp]: "Let (number_of v) f = f (number_of v)"
@@ -64,9 +66,11 @@ lemma Let_1 [simp]: "Let 1 f = f 1"
   unfolding Let_def ..
 
 definition
-  succ :: "int \<Rightarrow> int"
+  succ :: "int \<Rightarrow> int" where
   "succ k = k + 1"
-  pred :: "int \<Rightarrow> int"
+
+definition
+  pred :: "int \<Rightarrow> int" where
   "pred k = k - 1"
 
 lemmas numeral_simps = 

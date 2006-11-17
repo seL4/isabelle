@@ -124,14 +124,14 @@ instance cnam :: eq
   and instr :: eq ..
 
 definition
-  arbitrary_val :: val
+  arbitrary_val :: val where
   [symmetric, code inline]: "arbitrary_val = arbitrary"
-  arbitrary_cname :: cname
+definition
+  arbitrary_cname :: cname where
   [symmetric, code inline]: "arbitrary_cname = arbitrary"
 
-definition
-  "unit' = Unit"
-  "object' = Object"
+definition "unit' = Unit"
+definition "object' = Object"
 
 code_axioms
   arbitrary_val \<equiv> unit'
@@ -153,7 +153,7 @@ axiomatization
   "test_loc p v l = (if p l then v l else test_loc p v (incr l))"
 
 definition
-  new_addr' :: "(loc \<Rightarrow> (cname \<times> (vname \<times> cname \<Rightarrow> val option)) option) \<Rightarrow> loc \<times> val option"
+  new_addr' :: "(loc \<Rightarrow> (cname \<times> (vname \<times> cname \<Rightarrow> val option)) option) \<Rightarrow> loc \<times> val option" where
   "new_addr' hp =
     test_loc (\<lambda>i. hp (Loc i) = None) (\<lambda>i. (Loc i, None)) zero_loc"
 

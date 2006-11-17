@@ -13,22 +13,27 @@ begin
 subsection {* Arithmetic operators and their definitions *}
 
 definition
-  add :: "[i,i]=>i"   (infixr "#+" 65)
+  add :: "[i,i]=>i"   (infixr "#+" 65) where
   "a#+b == rec(a, b, %u v. succ(v))"
 
-  diff :: "[i,i]=>i"   (infixr "-" 65)
+definition
+  diff :: "[i,i]=>i"   (infixr "-" 65) where
   "a-b == rec(b, a, %u v. rec(v, 0, %x y. x))"
 
-  absdiff :: "[i,i]=>i"   (infixr "|-|" 65)
+definition
+  absdiff :: "[i,i]=>i"   (infixr "|-|" 65) where
   "a|-|b == (a-b) #+ (b-a)"
 
-  mult :: "[i,i]=>i"   (infixr "#*" 70)
+definition
+  mult :: "[i,i]=>i"   (infixr "#*" 70) where
   "a#*b == rec(a, 0, %u v. b #+ v)"
 
-  mod :: "[i,i]=>i"   (infixr "mod" 70)
+definition
+  mod :: "[i,i]=>i"   (infixr "mod" 70) where
   "a mod b == rec(a, 0, %u v. rec(succ(v) |-| b, 0, %x y. succ(v)))"
 
-  div :: "[i,i]=>i"   (infixr "div" 70)
+definition
+  div :: "[i,i]=>i"   (infixr "div" 70) where
   "a div b == rec(a, 0, %u v. rec(succ(u) mod b, succ(v), %x y. v))"
 
 

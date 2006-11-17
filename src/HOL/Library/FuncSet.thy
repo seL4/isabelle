@@ -10,17 +10,20 @@ imports Main
 begin
 
 definition
-  Pi :: "['a set, 'a => 'b set] => ('a => 'b) set"
+  Pi :: "['a set, 'a => 'b set] => ('a => 'b) set" where
   "Pi A B = {f. \<forall>x. x \<in> A --> f x \<in> B x}"
 
-  extensional :: "'a set => ('a => 'b) set"
+definition
+  extensional :: "'a set => ('a => 'b) set" where
   "extensional A = {f. \<forall>x. x~:A --> f x = arbitrary}"
 
-  "restrict" :: "['a => 'b, 'a set] => ('a => 'b)"
+definition
+  "restrict" :: "['a => 'b, 'a set] => ('a => 'b)" where
   "restrict f A = (%x. if x \<in> A then f x else arbitrary)"
 
 abbreviation
-  funcset :: "['a set, 'b set] => ('a => 'b) set"      (infixr "->" 60)
+  funcset :: "['a set, 'b set] => ('a => 'b) set"
+    (infixr "->" 60) where
   "A -> B == Pi A (%_. B)"
 
 notation (xsymbols)
@@ -43,7 +46,7 @@ translations
   "%x:A. f" == "CONST restrict (%x. f) A"
 
 definition
-  "compose" :: "['a set, 'b => 'c, 'a => 'b] => ('a => 'c)"
+  "compose" :: "['a set, 'b => 'c, 'a => 'b] => ('a => 'c)" where
   "compose A g f = (\<lambda>x\<in>A. g (f x))"
 
 
@@ -142,7 +145,7 @@ text{*The basic definition could be moved to @{text "Fun.thy"}, but most of
 the theorems belong here, or need at least @{term Hilbert_Choice}.*}
 
 definition
-  bij_betw :: "['a => 'b, 'a set, 'b set] => bool"         -- {* bijective *}
+  bij_betw :: "['a => 'b, 'a set, 'b set] => bool" where -- {* bijective *}
   "bij_betw f A B = (inj_on f A & f ` A = B)"
 
 lemma bij_betw_imp_inj_on: "bij_betw f A B \<Longrightarrow> inj_on f A"

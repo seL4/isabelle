@@ -37,10 +37,11 @@ theory SList imports Sexp begin
 
 (* Defining the Concrete Constructors *)
 definition
-  NIL  :: "'a item"
+  NIL  :: "'a item" where
   "NIL = In0(Numb(0))"
 
-  CONS :: "['a item, 'a item] => 'a item"
+definition
+  CONS :: "['a item, 'a item] => 'a item" where
   "CONS M N = In1(Scons M N)"
 
 consts
@@ -55,15 +56,15 @@ typedef (List)
     'a list = "list(range Leaf) :: 'a item set" 
   by (blast intro: list.NIL_I)
 
-abbreviation
-  "Case == Datatype.Case"
-  "Split == Datatype.Split"
+abbreviation "Case == Datatype.Case"
+abbreviation "Split == Datatype.Split"
 
 definition
-  List_case :: "['b, ['a item, 'a item]=>'b, 'a item] => 'b"
+  List_case :: "['b, ['a item, 'a item]=>'b, 'a item] => 'b" where
   "List_case c d = Case(%x. c)(Split(d))"
   
-  List_rec  :: "['a item, 'b, ['a item, 'a item, 'b]=>'b] => 'b"
+definition
+  List_rec  :: "['a item, 'b, ['a item, 'a item, 'b]=>'b] => 'b" where
   "List_rec M c d = wfrec (trancl pred_sexp)
                            (%g. List_case c (%x y. d x y (g y))) M"
 
@@ -84,18 +85,21 @@ no_syntax
   Cons :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixr "#" 65)
 
 definition
-  Nil       :: "'a list"                               ("[]")
+  Nil       :: "'a list"                               ("[]") where
    "Nil  = Abs_List(NIL)"
 
-  "Cons"       :: "['a, 'a list] => 'a list"           (infixr "#" 65)
+definition
+  "Cons"       :: "['a, 'a list] => 'a list"           (infixr "#" 65) where
    "x#xs = Abs_List(CONS (Leaf x)(Rep_List xs))"
 
+definition
   (* list Recursion -- the trancl is Essential; see list.ML *)
-  list_rec  :: "['a list, 'b, ['a, 'a list, 'b]=>'b] => 'b"
+  list_rec  :: "['a list, 'b, ['a, 'a list, 'b]=>'b] => 'b" where
    "list_rec l c d =
       List_rec(Rep_List l) c (%x y r. d(inv Leaf x)(Abs_List y) r)"
 
-  list_case :: "['b, ['a, 'a list]=>'b, 'a list] => 'b"
+definition
+  list_case :: "['b, ['a, 'a list]=>'b, 'a list] => 'b" where
    "list_case a f xs = list_rec xs a (%x xs r. f x xs)"
 
 (* list Enumeration *)
@@ -116,80 +120,98 @@ translations
 (* Generalized Map Functionals *)
 
 definition
-  Rep_map   :: "('b => 'a item) => ('b list => 'a item)"
+  Rep_map   :: "('b => 'a item) => ('b list => 'a item)" where
    "Rep_map f xs = list_rec xs  NIL(%x l r. CONS(f x) r)"
 
-  Abs_map   :: "('a item => 'b) => 'a item => 'b list"
+definition
+  Abs_map   :: "('a item => 'b) => 'a item => 'b list" where
    "Abs_map g M  = List_rec M Nil (%N L r. g(N)#r)"
 
 
 (**** Function definitions ****)
 
 definition
-
-  null      :: "'a list => bool"
+  null      :: "'a list => bool" where
   "null xs  = list_rec xs True (%x xs r. False)"
 
-  hd        :: "'a list => 'a"
+definition
+  hd        :: "'a list => 'a" where
   "hd xs    = list_rec xs (@x. True) (%x xs r. x)"
 
-  tl        :: "'a list => 'a list"
+definition
+  tl        :: "'a list => 'a list" where
   "tl xs    = list_rec xs (@xs. True) (%x xs r. xs)"
 
+definition
   (* a total version of tl: *)
-  ttl       :: "'a list => 'a list"
+  ttl       :: "'a list => 'a list" where
   "ttl xs   = list_rec xs [] (%x xs r. xs)"
 
-  member :: "['a, 'a list] => bool"    (infixl "mem" 55)
+definition
+  member :: "['a, 'a list] => bool"    (infixl "mem" 55) where
   "x mem xs = list_rec xs False (%y ys r. if y=x then True else r)"
 
-  list_all  :: "('a => bool) => ('a list => bool)"
+definition
+  list_all  :: "('a => bool) => ('a list => bool)" where
   "list_all P xs = list_rec xs True(%x l r. P(x) & r)"
 
-  map       :: "('a=>'b) => ('a list => 'b list)"
+definition
+  map       :: "('a=>'b) => ('a list => 'b list)" where
   "map f xs = list_rec xs [] (%x l r. f(x)#r)"
 
-
-  append    :: "['a list, 'a list] => 'a list"   (infixr "@" 65)
+definition
+  append    :: "['a list, 'a list] => 'a list"   (infixr "@" 65) where
   "xs@ys = list_rec xs ys (%x l r. x#r)"
 
-  filter    :: "['a => bool, 'a list] => 'a list"
+definition
+  filter    :: "['a => bool, 'a list] => 'a list" where
   "filter P xs = list_rec xs []  (%x xs r. if P(x)then x#r else r)"
 
-  foldl     :: "[['b,'a] => 'b, 'b, 'a list] => 'b"
+definition
+  foldl     :: "[['b,'a] => 'b, 'b, 'a list] => 'b" where
   "foldl f a xs = list_rec xs (%a. a)(%x xs r.%a. r(f a x))(a)"
 
-  foldr     :: "[['a,'b] => 'b, 'b, 'a list] => 'b"
+definition
+  foldr     :: "[['a,'b] => 'b, 'b, 'a list] => 'b" where
   "foldr f a xs     = list_rec xs a (%x xs r. (f x r))"
 
-  length    :: "'a list => nat"
+definition
+  length    :: "'a list => nat" where
   "length xs = list_rec xs 0 (%x xs r. Suc r)"
 
-  drop      :: "['a list,nat] => 'a list"
+definition
+  drop      :: "['a list,nat] => 'a list" where
   "drop t n = (nat_rec(%x. x)(%m r xs. r(ttl xs)))(n)(t)"
 
-  copy      :: "['a, nat] => 'a list"      (* make list of n copies of x *)
+definition
+  copy      :: "['a, nat] => 'a list"  where     (* make list of n copies of x *)
   "copy t   = nat_rec [] (%m xs. t # xs)"
 
-  flat      :: "'a list list => 'a list"
+definition
+  flat      :: "'a list list => 'a list" where
   "flat     = foldr (op @) []"
 
-  nth       :: "[nat, 'a list] => 'a"
+definition
+  nth       :: "[nat, 'a list] => 'a" where
   "nth      = nat_rec hd (%m r xs. r(tl xs))"
 
-  rev       :: "'a list => 'a list"
+definition
+  rev       :: "'a list => 'a list" where
   "rev xs   = list_rec xs [] (%x xs xsa. xsa @ [x])"
 
 (* miscellaneous definitions *)
-  zipWith   :: "['a * 'b => 'c, 'a list * 'b list] => 'c list"
+definition
+  zipWith   :: "['a * 'b => 'c, 'a list * 'b list] => 'c list" where
   "zipWith f S = (list_rec (fst S)  (%T.[])
                             (%x xs r. %T. if null T then [] 
                                           else f(x,hd T) # r(tl T)))(snd(S))"
 
-  zip       :: "'a list * 'b list => ('a*'b) list"
+definition
+  zip       :: "'a list * 'b list => ('a*'b) list" where
   "zip      = zipWith  (%s. s)"
 
-  unzip     :: "('a*'b) list => ('a list * 'b list)"
+definition
+  unzip     :: "('a*'b) list => ('a list * 'b list)" where
   "unzip    = foldr(% (a,b)(c,d).(a#c,b#d))([],[])"
 
 

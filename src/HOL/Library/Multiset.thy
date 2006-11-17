@@ -21,20 +21,23 @@ lemmas multiset_typedef [simp] =
   and [simp] = Rep_multiset_inject [symmetric]
 
 definition
-  Mempty :: "'a multiset"    ("{#}")
+  Mempty :: "'a multiset"  ("{#}") where
   "{#} = Abs_multiset (\<lambda>a. 0)"
 
-  single :: "'a => 'a multiset"    ("{#_#}")
+definition
+  single :: "'a => 'a multiset"  ("{#_#}") where
   "{#a#} = Abs_multiset (\<lambda>b. if b = a then 1 else 0)"
 
-  count :: "'a multiset => 'a => nat"
+definition
+  count :: "'a multiset => 'a => nat" where
   "count = Rep_multiset"
 
-  MCollect :: "'a multiset => ('a => bool) => 'a multiset"
+definition
+  MCollect :: "'a multiset => ('a => bool) => 'a multiset" where
   "MCollect M P = Abs_multiset (\<lambda>x. if P x then Rep_multiset M x else 0)"
 
 abbreviation
-  Melem :: "'a => 'a multiset => bool"    ("(_/ :# _)" [50, 51] 50)
+  Melem :: "'a => 'a multiset => bool"  ("(_/ :# _)" [50, 51] 50) where
   "a :# M == 0 < count M a"
 
 syntax
@@ -43,7 +46,7 @@ translations
   "{#x:M. P#}" == "CONST MCollect M (\<lambda>x. P)"
 
 definition
-  set_of :: "'a multiset => 'a set"
+  set_of :: "'a multiset => 'a set" where
   "set_of M = {x. x :# M}"
 
 instance multiset :: (type) "{plus, minus, zero}" ..
@@ -55,7 +58,7 @@ defs (overloaded)
   size_def: "size M == setsum (count M) (set_of M)"
 
 definition
-  multiset_inter :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" (infixl "#\<inter>" 70)
+  multiset_inter :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset"  (infixl "#\<inter>" 70) where
   "multiset_inter A B = A - (A - B)"
 
 
@@ -380,12 +383,13 @@ subsection {* Multiset orderings *}
 subsubsection {* Well-foundedness *}
 
 definition
-  mult1 :: "('a \<times> 'a) set => ('a multiset \<times> 'a multiset) set"
+  mult1 :: "('a \<times> 'a) set => ('a multiset \<times> 'a multiset) set" where
   "mult1 r =
     {(N, M). \<exists>a M0 K. M = M0 + {#a#} \<and> N = M0 + K \<and>
       (\<forall>b. b :# K --> (b, a) \<in> r)}"
 
-  mult :: "('a \<times> 'a) set => ('a multiset \<times> 'a multiset) set"
+definition
+  mult :: "('a \<times> 'a) set => ('a multiset \<times> 'a multiset) set" where
   "mult r = (mult1 r)\<^sup>+"
 
 lemma not_less_empty [iff]: "(M, {#}) \<notin> mult1 r"
@@ -796,7 +800,7 @@ lemma count_filter:
 subsection {* Pointwise ordering induced by count *}
 
 definition
-  mset_le :: "['a multiset, 'a multiset] \<Rightarrow> bool"   ("_ \<le># _"  [50,51] 50)
+  mset_le :: "['a multiset, 'a multiset] \<Rightarrow> bool"  ("_ \<le># _"  [50,51] 50) where
   "(xs \<le># ys) = (\<forall>a. count xs a \<le> count ys a)"
 
 lemma mset_le_refl[simp]: "xs \<le># xs"

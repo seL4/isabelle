@@ -52,14 +52,15 @@ defs (overloaded)
   set_one: "1::('a::one)set == {1}"
 
 definition
-  elt_set_plus :: "'a::plus => 'a set => 'a set"    (infixl "+o" 70)
+  elt_set_plus :: "'a::plus => 'a set => 'a set"  (infixl "+o" 70) where
   "a +o B = {c. EX b:B. c = a + b}"
 
-  elt_set_times :: "'a::times => 'a set => 'a set"  (infixl "*o" 80)
+definition
+  elt_set_times :: "'a::times => 'a set => 'a set"  (infixl "*o" 80) where
   "a *o B = {c. EX b:B. c = a * b}"
 
 abbreviation (input)
-  elt_set_eq :: "'a => 'a set => bool"      (infix "=o" 50)
+  elt_set_eq :: "'a => 'a set => bool"  (infix "=o" 50) where
   "x =o A == x : A"
 
 instance "fun" :: (type,semigroup_add)semigroup_add

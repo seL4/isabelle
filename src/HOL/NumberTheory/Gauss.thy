@@ -18,22 +18,27 @@ locale GAUSS =
 begin
 
 definition
-  A :: "int set"
+  A :: "int set" where
   "A = {(x::int). 0 < x & x \<le> ((p - 1) div 2)}"
 
-  B :: "int set"
+definition
+  B :: "int set" where
   "B = (%x. x * a) ` A"
 
-  C :: "int set"
+definition
+  C :: "int set" where
   "C = StandardRes p ` B"
 
-  D :: "int set"
+definition
+  D :: "int set" where
   "D = C \<inter> {x. x \<le> ((p - 1) div 2)}"
 
-  E :: "int set"
+definition
+  E :: "int set" where
   "E = C \<inter> {x. ((p - 1) div 2) < x}"
 
-  F :: "int set"
+definition
+  F :: "int set" where
   "F = (%x. (p - x)) ` E"
 
 

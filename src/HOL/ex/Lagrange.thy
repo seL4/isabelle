@@ -17,7 +17,7 @@ The enterprising reader might consider proving all of Lagrange's
 theorem.  *}
 
 definition
-  sq :: "'a::times => 'a"
+  sq :: "'a::times => 'a" where
   "sq x == x*x"
 
 text {* The following lemma essentially shows that every natural

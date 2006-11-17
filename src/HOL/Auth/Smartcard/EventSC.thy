@@ -25,7 +25,7 @@ consts
  secureM :: "bool"(*assumption of secure means between agents and their cards*)
 
 abbreviation
-  insecureM :: bool (*certain protocols make no assumption of secure means*)
+  insecureM :: bool where (*certain protocols make no assumption of secure means*)
   "insecureM == \<not>secureM"
 
 

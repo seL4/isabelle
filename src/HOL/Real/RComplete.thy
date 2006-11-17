@@ -432,18 +432,19 @@ done
 subsection{*Floor and Ceiling Functions from the Reals to the Integers*}
 
 definition
-  floor :: "real => int"
+  floor :: "real => int" where
   "floor r = (LEAST n::int. r < real (n+1))"
 
-  ceiling :: "real => int"
+definition
+  ceiling :: "real => int" where
   "ceiling r = - floor (- r)"
 
 notation (xsymbols)
-  floor  ("\<lfloor>_\<rfloor>")
+  floor  ("\<lfloor>_\<rfloor>") and
   ceiling  ("\<lceil>_\<rceil>")
 
 notation (HTML output)
-  floor  ("\<lfloor>_\<rfloor>")
+  floor  ("\<lfloor>_\<rfloor>") and
   ceiling  ("\<lceil>_\<rceil>")
 
 
@@ -933,9 +934,11 @@ done
 subsection {* Versions for the natural numbers *}
 
 definition
-  natfloor :: "real => nat"
+  natfloor :: "real => nat" where
   "natfloor x = nat(floor x)"
-  natceiling :: "real => nat"
+
+definition
+  natceiling :: "real => nat" where
   "natceiling x = nat(ceiling x)"
 
 lemma natfloor_zero [simp]: "natfloor 0 = 0"

@@ -41,11 +41,11 @@ consts
   scaleR :: "real \<Rightarrow> 'a \<Rightarrow> 'a::scaleR" (infixr "*#" 75)
 
 abbreviation
-  divideR :: "'a \<Rightarrow> real \<Rightarrow> 'a::scaleR" (infixl "'/#" 70)
+  divideR :: "'a \<Rightarrow> real \<Rightarrow> 'a::scaleR" (infixl "'/#" 70) where
   "x /# r == inverse r *# x"
 
 notation (xsymbols)
-  scaleR (infixr "*\<^sub>R" 75)
+  scaleR (infixr "*\<^sub>R" 75) and
   divideR (infixl "'/\<^sub>R" 70)
 
 instance real :: scaleR ..
@@ -175,7 +175,7 @@ subsection {* Embedding of the Reals into any @{text real_algebra_1}:
 @{term of_real} *}
 
 definition
-  of_real :: "real \<Rightarrow> 'a::real_algebra_1"
+  of_real :: "real \<Rightarrow> 'a::real_algebra_1" where
   "of_real r = r *# 1"
 
 lemma scaleR_conv_of_real: "r *# x = of_real r * x"
@@ -250,7 +250,7 @@ by (simp add: number_of_eq)
 subsection {* The Set of Real Numbers *}
 
 definition
-  Reals :: "'a::real_algebra_1 set"
+  Reals :: "'a::real_algebra_1 set" where
   "Reals \<equiv> range of_real"
 
 notation (xsymbols)

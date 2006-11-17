@@ -164,7 +164,8 @@ locale congruent =
   assumes congruent: "(y,z) \<in> r ==> f y = f z"
 
 abbreviation
-  RESPECTS :: "('a => 'b) => ('a * 'a) set => bool"  (infixr "respects" 80)
+  RESPECTS :: "('a => 'b) => ('a * 'a) set => bool"
+    (infixr "respects" 80) where
   "f respects r == congruent r f"
 
 
@@ -222,7 +223,8 @@ locale congruent2 =
 
 text{*Abbreviation for the common case where the relations are identical*}
 abbreviation
-  RESPECTS2:: "['a => 'a => 'b, ('a * 'a)set] => bool" (infixr "respects2 " 80)
+  RESPECTS2:: "['a => 'a => 'b, ('a * 'a) set] => bool"
+    (infixr "respects2 " 80) where
   "f respects2 r == congruent2 r r f"
 
 

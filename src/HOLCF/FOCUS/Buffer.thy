@@ -42,47 +42,56 @@ types
   SPECS11       = "SPSF11 set"
 
 definition
-
-  BufEq_F       :: "SPEC11 \<Rightarrow> SPEC11"
+  BufEq_F       :: "SPEC11 \<Rightarrow> SPEC11" where
   "BufEq_F B = {f. \<forall>d. f\<cdot>(Md d\<leadsto><>) = <> \<and>
                 (\<forall>x. \<exists>ff\<in>B. f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x) = d\<leadsto>ff\<cdot>x)}"
 
-  BufEq         :: "SPEC11"
+definition
+  BufEq         :: "SPEC11" where
   "BufEq = gfp BufEq_F"
 
-  BufEq_alt     :: "SPEC11"
+definition
+  BufEq_alt     :: "SPEC11" where
   "BufEq_alt = gfp (\<lambda>B. {f. \<forall>d. f\<cdot>(Md d\<leadsto><> ) = <> \<and>
                          (\<exists>ff\<in>B. (\<forall>x. f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x) = d\<leadsto>ff\<cdot>x))})"
 
-  BufAC_Asm_F   :: " (M fstream set) \<Rightarrow> (M fstream set)"
+definition
+  BufAC_Asm_F   :: " (M fstream set) \<Rightarrow> (M fstream set)" where
   "BufAC_Asm_F A = {s. s = <> \<or>
                   (\<exists>d x. s = Md d\<leadsto>x \<and> (x = <> \<or> (ft\<cdot>x = Def \<bullet> \<and> (rt\<cdot>x)\<in>A)))}"
 
-  BufAC_Asm     :: " (M fstream set)"
+definition
+  BufAC_Asm     :: " (M fstream set)" where
   "BufAC_Asm = gfp BufAC_Asm_F"
 
+definition
   BufAC_Cmt_F   :: "((M fstream * D fstream) set) \<Rightarrow>
-                    ((M fstream * D fstream) set)"
+                    ((M fstream * D fstream) set)" where
   "BufAC_Cmt_F C = {(s,t). \<forall>d x.
                            (s = <>         \<longrightarrow>     t = <>                 ) \<and>
                            (s = Md d\<leadsto><>   \<longrightarrow>     t = <>                 ) \<and>
                            (s = Md d\<leadsto>\<bullet>\<leadsto>x \<longrightarrow> (ft\<cdot>t = Def d \<and> (x,rt\<cdot>t)\<in>C))}"
 
-  BufAC_Cmt     :: "((M fstream * D fstream) set)"
+definition
+  BufAC_Cmt     :: "((M fstream * D fstream) set)" where
   "BufAC_Cmt = gfp BufAC_Cmt_F"
 
-  BufAC         :: "SPEC11"
+definition
+  BufAC         :: "SPEC11" where
   "BufAC = {f. \<forall>x. x\<in>BufAC_Asm \<longrightarrow> (x,f\<cdot>x)\<in>BufAC_Cmt}"
 
-  BufSt_F       :: "SPECS11 \<Rightarrow> SPECS11"
+definition
+  BufSt_F       :: "SPECS11 \<Rightarrow> SPECS11" where
   "BufSt_F H = {h. \<forall>s  . h s      \<cdot><>        = <>         \<and>
                                  (\<forall>d x. h \<currency>     \<cdot>(Md d\<leadsto>x) = h (Sd d)\<cdot>x \<and>
                                 (\<exists>hh\<in>H. h (Sd d)\<cdot>(\<bullet>   \<leadsto>x) = d\<leadsto>(hh \<currency>\<cdot>x)))}"
 
-  BufSt_P       :: "SPECS11"
+definition
+  BufSt_P       :: "SPECS11" where
   "BufSt_P = gfp BufSt_F"
 
-  BufSt         :: "SPEC11"
+definition
+  BufSt         :: "SPEC11" where
   "BufSt = {f. \<exists>h\<in>BufSt_P. f = h \<currency>}"
 
 

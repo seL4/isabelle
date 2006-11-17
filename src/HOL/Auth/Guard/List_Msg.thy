@@ -18,7 +18,7 @@ subsection{*Implementation of Lists by Messages*}
 subsubsection{*nil is represented by any message which is not a pair*}
 
 abbreviation (input)
-  cons :: "msg => msg => msg"
+  cons :: "msg => msg => msg" where
   "cons x l == {|x,l|}"
 
 subsubsection{*induction principle*}
@@ -134,7 +134,7 @@ subsection{*Agent Lists*}
 subsubsection{*set of well-formed agent-list messages*}
 
 abbreviation
-  nil :: msg
+  nil :: msg where
   "nil == Number 0"
 
 consts agl :: "msg set"

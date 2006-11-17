@@ -10,7 +10,7 @@ theory Recur imports Public begin
 
 text{*End marker for message bundles*}
 abbreviation
-  END :: "msg"
+  END :: "msg" where
   "END == Number 0"
 
 (*Two session keys are distributed to each agent except for the initiator,

@@ -13,6 +13,7 @@ subsection {* List constructors over the datatype universe *}
 
 definition
   "NIL = Datatype.In0 (Datatype.Numb 0)"
+definition
   "CONS M N = Datatype.In1 (Datatype.Scons M N)"
 
 lemma CONS_not_NIL [iff]: "CONS M N \<noteq> NIL"
@@ -146,6 +147,7 @@ qed
 
 definition
   "LNil = Abs_llist NIL"
+definition
   "LCons x xs = Abs_llist (CONS (Datatype.Leaf x) (Rep_llist xs))"
 
 lemma LCons_not_LNil [iff]: "LCons x xs \<noteq> LNil"
@@ -573,6 +575,7 @@ subsubsection {* @{text Lmap} and @{text lmap} *}
 
 definition
   "Lmap f M = LList_corec M (List_case None (\<lambda>x M'. Some (f x, M')))"
+definition
   "lmap f l = llist_corec l
     (\<lambda>z.
       case z of LNil \<Rightarrow> None
@@ -671,6 +674,7 @@ definition
     (split (List_case
         (List_case None (\<lambda>N1 N2. Some (N1, (NIL, N2))))
         (\<lambda>M1 M2 N. Some (M1, (M2, N)))))"
+definition
   "lappend l n = llist_corec (l, n)
     (split (llist_case
         (llist_case None (\<lambda>n1 n2. Some (n1, (LNil, n2))))
@@ -746,7 +750,7 @@ subsection{* iterates *}
 text {* @{text llist_fun_equalityI} cannot be used here! *}
 
 definition
-  iterates :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist"
+  iterates :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
   "iterates f a = llist_corec a (\<lambda>x. Some (x, f x))"
 
 lemma iterates: "iterates f x = LCons x (iterates f (f x))"

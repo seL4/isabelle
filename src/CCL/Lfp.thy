@@ -11,7 +11,7 @@ imports Set
 begin
 
 definition
-  lfp :: "['a set=>'a set] => 'a set"     (*least fixed point*)
+  lfp :: "['a set=>'a set] => 'a set" where -- "least fixed point"
   "lfp(f) == Inter({u. f(u) <= u})"
 
 (* lfp(f) is the greatest lower bound of {u. f(u) <= u} *)

@@ -87,31 +87,39 @@ axioms  (** tnam_, vnam_ and label are intended to be isomorphic
   surj_label_:" \<exists>m. n = label_ m"
 
 abbreviation
-  HasFoo :: qtname
+  HasFoo :: qtname where
   "HasFoo == \<lparr>pid=java_lang,tid=TName (tnam_ HasFoo_)\<rparr>"
 
-  Base :: qtname
+abbreviation
+  Base :: qtname where
   "Base == \<lparr>pid=java_lang,tid=TName (tnam_ Base_)\<rparr>"
 
-  Ext :: qtname
+abbreviation
+  Ext :: qtname where
   "Ext == \<lparr>pid=java_lang,tid=TName (tnam_ Ext_)\<rparr>"
 
-  Main :: qtname
+abbreviation
+  Main :: qtname where
   "Main == \<lparr>pid=java_lang,tid=TName (tnam_ Main_)\<rparr>"
 
-  arr :: vname
+abbreviation
+  arr :: vname where
   "arr == (vnam_ arr_)"
 
-  vee :: vname
+abbreviation
+  vee :: vname where
   "vee == (vnam_ vee_)"
 
-  z :: vname
+abbreviation
+  z :: vname where
   "z == (vnam_ z_)"
 
-  e :: vname
+abbreviation
+  e :: vname where
   "e == (vnam_ e_)"
 
-  lab1:: label
+abbreviation
+  lab1:: label where
   "lab1 == label_ lab1_"
 
 
@@ -261,7 +269,7 @@ done
 section "program"
 
 abbreviation
-  tprg :: prog
+  tprg :: prog where
   "tprg == \<lparr>ifaces=Ifaces,classes=Classes\<rparr>"
 
 constdefs
@@ -1195,11 +1203,10 @@ consts
   b :: loc
   c :: loc
 
-abbreviation
-  "one == Suc 0"
-  "two == Suc one"
-  "tree == Suc two"
-  "four == Suc tree"
+abbreviation "one == Suc 0"
+abbreviation "two == Suc one"
+abbreviation "tree == Suc two"
+abbreviation "four == Suc tree"
 
 syntax
   obj_a :: obj

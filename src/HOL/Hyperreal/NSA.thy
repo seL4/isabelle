@@ -12,32 +12,37 @@ imports HyperArith "../Real/RComplete"
 begin
 
 definition
-
-  hnorm :: "'a::norm star \<Rightarrow> real star"
+  hnorm :: "'a::norm star \<Rightarrow> real star" where
   "hnorm = *f* norm"
 
-  Infinitesimal  :: "('a::real_normed_vector) star set"
+definition
+  Infinitesimal  :: "('a::real_normed_vector) star set" where
   "Infinitesimal = {x. \<forall>r \<in> Reals. 0 < r --> hnorm x < r}"
 
-  HFinite :: "('a::real_normed_vector) star set"
+definition
+  HFinite :: "('a::real_normed_vector) star set" where
   "HFinite = {x. \<exists>r \<in> Reals. hnorm x < r}"
 
-  HInfinite :: "('a::real_normed_vector) star set"
+definition
+  HInfinite :: "('a::real_normed_vector) star set" where
   "HInfinite = {x. \<forall>r \<in> Reals. r < hnorm x}"
 
-  approx :: "['a::real_normed_vector star, 'a star] => bool"
-    (infixl "@=" 50)
+definition
+  approx :: "['a::real_normed_vector star, 'a star] => bool"  (infixl "@=" 50) where
     --{*the `infinitely close' relation*}
   "(x @= y) = ((x - y) \<in> Infinitesimal)"
 
-  st        :: "hypreal => hypreal"
+definition
+  st        :: "hypreal => hypreal" where
     --{*the standard part of a hyperreal*}
   "st = (%x. @r. x \<in> HFinite & r \<in> Reals & r @= x)"
 
-  monad     :: "'a::real_normed_vector star => 'a star set"
+definition
+  monad     :: "'a::real_normed_vector star => 'a star set" where
   "monad x = {y. x @= y}"
 
-  galaxy    :: "'a::real_normed_vector star => 'a star set"
+definition
+  galaxy    :: "'a::real_normed_vector star => 'a star set" where
   "galaxy x = {y. (x + -y) \<in> HFinite}"
 
 notation (xsymbols)
@@ -52,7 +57,7 @@ by (simp add: Reals_def image_def)
 subsection {* Nonstandard Extension of the Norm Function *}
 
 definition
-  scaleHR :: "real star \<Rightarrow> 'a star \<Rightarrow> 'a::real_normed_vector star"
+  scaleHR :: "real star \<Rightarrow> 'a star \<Rightarrow> 'a::real_normed_vector star" where
   "scaleHR = starfun2 scaleR"
 
 declare hnorm_def [transfer_unfold]

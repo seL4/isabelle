@@ -18,8 +18,8 @@ constdefs
 "continuous F == !M. chain M \<longrightarrow> F(SUP i. M i) = (SUP i. F(M i))"
 
 abbreviation
- bot :: "'a::order"
-"bot == Sup {}"
+  bot :: "'a::order" where
+  "bot == Sup {}"
 
 lemma SUP_nat_conv:
  "(SUP n::nat. M n::'a::comp_lat) = join (M 0) (SUP n. M(Suc n))"
@@ -91,7 +91,7 @@ and a down version of chains and continuity and covers @{const gfp}. *}
 subsection "Chains"
 
 definition
-  up_chain :: "(nat => 'a set) => bool"
+  up_chain :: "(nat => 'a set) => bool" where
   "up_chain F = (\<forall>i. F i \<subseteq> F (Suc i))"
 
 lemma up_chainI: "(!!i. F i \<subseteq> F (Suc i)) ==> up_chain F"
@@ -113,7 +113,7 @@ lemma up_chain_mono: "up_chain F ==> x \<le> y ==> F x \<subseteq> F y"
 
 
 definition
-  down_chain :: "(nat => 'a set) => bool"
+  down_chain :: "(nat => 'a set) => bool" where
   "down_chain F = (\<forall>i. F (Suc i) \<subseteq> F i)"
 
 lemma down_chainI: "(!!i. F (Suc i) \<subseteq> F i) ==> down_chain F"
@@ -137,7 +137,7 @@ lemma down_chain_mono: "down_chain F ==> x \<le> y ==> F y \<subseteq> F x"
 subsection "Continuity"
 
 definition
-  up_cont :: "('a set => 'a set) => bool"
+  up_cont :: "('a set => 'a set) => bool" where
   "up_cont f = (\<forall>F. up_chain F --> f (\<Union>(range F)) = \<Union>(f ` range F))"
 
 lemma up_contI:
@@ -164,7 +164,7 @@ lemma up_cont_mono: "up_cont f ==> mono f"
 
 
 definition
-  down_cont :: "('a set => 'a set) => bool"
+  down_cont :: "('a set => 'a set) => bool" where
   "down_cont f =
     (\<forall>F. down_chain F --> f (Inter (range F)) = Inter (f ` range F))"
 
@@ -194,7 +194,7 @@ lemma down_cont_mono: "down_cont f ==> mono f"
 subsection "Iteration"
 
 definition
-  up_iterate :: "('a set => 'a set) => nat => 'a set"
+  up_iterate :: "('a set => 'a set) => nat => 'a set" where
   "up_iterate f n = (f^n) {}"
 
 lemma up_iterate_0 [simp]: "up_iterate f 0 = {}"
@@ -246,7 +246,7 @@ lemma UNION_up_iterate_is_lfp:
 
 
 definition
-  down_iterate :: "('a set => 'a set) => nat => 'a set"
+  down_iterate :: "('a set => 'a set) => nat => 'a set" where
   "down_iterate f n = (f^n) UNIV"
 
 lemma down_iterate_0 [simp]: "down_iterate f 0 = UNIV"

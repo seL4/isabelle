@@ -15,7 +15,7 @@ lemma bv_to_nat_helper':
   by (cases bv) (simp_all add: bv_to_nat_helper)
 
 definition
-  half_adder :: "[bit, bit] => bit list"
+  half_adder :: "[bit, bit] => bit list" where
   "half_adder a b = [a bitand b, a bitxor b]"
 
 lemma half_adder_correct: "bv_to_nat (half_adder a b) = bitval a + bitval b"
@@ -28,7 +28,7 @@ lemma [simp]: "length (half_adder a b) = 2"
   by (simp add: half_adder_def)
 
 definition
-  full_adder :: "[bit, bit, bit] => bit list"
+  full_adder :: "[bit, bit, bit] => bit list" where
   "full_adder a b c =
       (let x = a bitxor b in [a bitand b bitor c bitand x, x bitxor c])"
 

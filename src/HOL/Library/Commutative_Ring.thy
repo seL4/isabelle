@@ -48,14 +48,14 @@ primrec
 text {* Create polynomial normalized polynomials given normalized inputs. *}
 
 definition
-  mkPinj :: "nat \<Rightarrow> 'a pol \<Rightarrow> 'a pol"
+  mkPinj :: "nat \<Rightarrow> 'a pol \<Rightarrow> 'a pol" where
   "mkPinj x P = (case P of
     Pc c \<Rightarrow> Pc c |
     Pinj y P \<Rightarrow> Pinj (x + y) P |
     PX p1 y p2 \<Rightarrow> Pinj x P)"
 
 definition
-  mkPX :: "'a::{comm_ring,recpower} pol \<Rightarrow> nat \<Rightarrow> 'a pol \<Rightarrow> 'a pol"
+  mkPX :: "'a::{comm_ring,recpower} pol \<Rightarrow> nat \<Rightarrow> 'a pol \<Rightarrow> 'a pol" where
   "mkPX P i Q = (case P of
     Pc c \<Rightarrow> (if (c = 0) then (mkPinj 1 Q) else (PX P i Q)) |
     Pinj j R \<Rightarrow> PX P i Q |
@@ -128,7 +128,7 @@ primrec
 
 text {* Substraction *}
 definition
-  sub :: "'a::{comm_ring,recpower} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol"
+  sub :: "'a::{comm_ring,recpower} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol" where
   "sub p q = add (p, neg q)"
 
 text {* Square for Fast Exponentation *}

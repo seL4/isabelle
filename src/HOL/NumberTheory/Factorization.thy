@@ -12,7 +12,7 @@ theory Factorization imports Primes Permutation begin
 subsection {* Definitions *}
 
 definition
-  primel :: "nat list => bool "
+  primel :: "nat list => bool" where
   "primel xs = (\<forall>p \<in> set xs. prime p)"
 
 consts

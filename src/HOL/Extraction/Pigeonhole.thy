@@ -302,9 +302,10 @@ ML "timeit (fn () => PH.test 500)"
 ML "PH.pigeonhole 8 (PH.sel [0,1,2,3,4,5,6,3,7,8])"
 
 definition
-  arbitrary_nat :: "nat \<times> nat"
+  arbitrary_nat :: "nat \<times> nat" where
   [symmetric, code inline]: "arbitrary_nat = arbitrary"
-  arbitrary_nat_subst :: "nat \<times> nat"
+definition
+  arbitrary_nat_subst :: "nat \<times> nat" where
   "arbitrary_nat_subst = (0, 0)"
 
 code_axioms
@@ -312,6 +313,7 @@ code_axioms
 
 definition
   "test n = pigeonhole n (\<lambda>m. m - 1)"
+definition
   "test' n = pigeonhole_slow n (\<lambda>m. m - 1)"
 
 code_gen test test' "op !" (SML *)

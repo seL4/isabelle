@@ -21,7 +21,7 @@ text{*The equivalence relation, which makes PLUS associative.*}
 consts  exprel :: "(freeExp * freeExp) set"
 
 abbreviation
-  exp_rel :: "[freeExp, freeExp] => bool"  (infixl "~~" 50)
+  exp_rel :: "[freeExp, freeExp] => bool"  (infixl "~~" 50) where
   "X ~~ Y == (X,Y) \<in> exprel"
 
 notation (xsymbols)
@@ -160,14 +160,16 @@ typedef (Exp)  exp = "UNIV//exprel"
 text{*The abstract message constructors*}
 
 definition
-  Var :: "nat \<Rightarrow> exp"
+  Var :: "nat \<Rightarrow> exp" where
   "Var N = Abs_Exp(exprel``{VAR N})"
 
-  Plus :: "[exp,exp] \<Rightarrow> exp"
+definition
+  Plus :: "[exp,exp] \<Rightarrow> exp" where
    "Plus X Y =
        Abs_Exp (\<Union>U \<in> Rep_Exp X. \<Union>V \<in> Rep_Exp Y. exprel``{PLUS U V})"
 
-  FnCall :: "[nat, exp list] \<Rightarrow> exp"
+definition
+  FnCall :: "[nat, exp list] \<Rightarrow> exp" where
    "FnCall F Xs =
        Abs_Exp (\<Union>Us \<in> listset (map Rep_Exp Xs). exprel `` {FNCALL F Us})"
 
@@ -207,7 +209,7 @@ subsection{*Every list of abstract expressions can be expressed in terms of a
   list of concrete expressions*}
 
 definition
-  Abs_ExpList :: "freeExp list => exp list"
+  Abs_ExpList :: "freeExp list => exp list" where
   "Abs_ExpList Xs = map (%U. Abs_Exp(exprel``{U})) Xs"
 
 lemma Abs_ExpList_Nil [simp]: "Abs_ExpList [] == []"
@@ -285,7 +287,7 @@ by (cases X, cases Y, cases Z, simp add: Plus exprel.ASSOC)
 subsection{*The Abstract Function to Return the Set of Variables*}
 
 definition
-  vars :: "exp \<Rightarrow> nat set"
+  vars :: "exp \<Rightarrow> nat set" where
   "vars X = (\<Union>U \<in> Rep_Exp X. freevars U)"
 
 lemma vars_respects: "freevars respects exprel"
@@ -351,7 +353,7 @@ done
 subsection{*Injectivity of @{term FnCall}*}
 
 definition
-  "fun" :: "exp \<Rightarrow> nat"
+  "fun" :: "exp \<Rightarrow> nat" where
   "fun X = contents (\<Union>U \<in> Rep_Exp X. {freefun U})"
 
 lemma fun_respects: "(%U. {freefun U}) respects exprel"
@@ -363,7 +365,7 @@ apply (simp add: FnCall fun_def UN_equiv_class [OF equiv_exprel fun_respects])
 done
 
 definition
-  args :: "exp \<Rightarrow> exp list"
+  args :: "exp \<Rightarrow> exp list" where
   "args X = contents (\<Union>U \<in> Rep_Exp X. {Abs_ExpList (freeargs U)})"
 
 text{*This result can probably be generalized to arbitrary equivalence
@@ -398,7 +400,7 @@ text{*However, as @{text FnCall_Var_neq_Var} illustrates, we don't need this
 function in order to prove discrimination theorems.*}
 
 definition
-  discrim :: "exp \<Rightarrow> int"
+  discrim :: "exp \<Rightarrow> int" where
   "discrim X = contents (\<Union>U \<in> Rep_Exp X. {freediscrim U})"
 
 lemma discrim_respects: "(\<lambda>U. {freediscrim U}) respects exprel"

@@ -15,13 +15,15 @@ begin
 
 definition
    sums  :: "(nat \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> bool"
-     (infixr "sums" 80)
+     (infixr "sums" 80) where
    "f sums s = (%n. setsum f {0..<n}) ----> s"
 
-   summable :: "(nat \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> bool"
+definition
+   summable :: "(nat \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> bool" where
    "summable f = (\<exists>s. f sums s)"
 
-   suminf   :: "(nat \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> 'a"
+definition
+   suminf   :: "(nat \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> 'a" where
    "suminf f = (THE s. f sums s)"
 
 syntax

@@ -53,7 +53,7 @@ lemma prime_not_square:
 subsection {* The set of rational numbers *}
 
 definition
-  rationals :: "real set"    ("\<rat>")
+  rationals :: "real set"    ("\<rat>") where
   "\<rat> = {x. \<exists>m n. n \<noteq> 0 \<and> \<bar>x\<bar> = real (m::nat) / real (n::nat)}"
 
 

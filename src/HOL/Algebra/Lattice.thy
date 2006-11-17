@@ -29,7 +29,7 @@ text {* Note that the type constraints above are necessary, because the
   definition command cannot specialise the types. *}
 
 definition (in order_syntax)
-  less (infixl "\<sqsubset>" 50) "x \<sqsubset> y == x \<sqsubseteq> y & x ~= y"
+  less (infixl "\<sqsubset>" 50) where "x \<sqsubset> y == x \<sqsubseteq> y & x ~= y"
 
 text {* Upper and lower bounds of a set. *}
 
@@ -38,35 +38,35 @@ definition (in order_syntax)
   "Upper A == {u. (ALL x. x \<in> A \<inter> L --> x \<sqsubseteq> u)} \<inter> L"
 
 definition (in order_syntax)
-  Lower :: "'a set => 'a set"
+  Lower :: "'a set => 'a set" where
   "Lower A == {l. (ALL x. x \<in> A \<inter> L --> l \<sqsubseteq> x)} \<inter> L"
 
 text {* Least and greatest, as predicate. *}
 
 definition (in order_syntax)
-  least :: "['a, 'a set] => bool"
+  least :: "['a, 'a set] => bool" where
   "least l A == A \<subseteq> L & l \<in> A & (ALL x : A. l \<sqsubseteq> x)"
 
 definition (in order_syntax)
-  greatest :: "['a, 'a set] => bool"
+  greatest :: "['a, 'a set] => bool" where
   "greatest g A == A \<subseteq> L & g \<in> A & (ALL x : A. x \<sqsubseteq> g)"
 
 text {* Supremum and infimum *}
 
 definition (in order_syntax)
-  sup :: "'a set => 'a" ("\<Squnion>_" [90] 90)
+  sup :: "'a set => 'a" ("\<Squnion>_" [90] 90) where
   "\<Squnion>A == THE x. least x (Upper A)"
 
 definition (in order_syntax)
-  inf :: "'a set => 'a" ("\<Sqinter>_" [90] 90)
+  inf :: "'a set => 'a" ("\<Sqinter>_" [90] 90) where
   "\<Sqinter>A == THE x. greatest x (Lower A)"
 
 definition (in order_syntax)
-  join :: "['a, 'a] => 'a" (infixl "\<squnion>" 65)
+  join :: "['a, 'a] => 'a" (infixl "\<squnion>" 65) where
   "x \<squnion> y == sup {x, y}"
 
 definition (in order_syntax)
-  meet :: "['a, 'a] => 'a" (infixl "\<sqinter>" 70)
+  meet :: "['a, 'a] => 'a" (infixl "\<sqinter>" 70) where
   "x \<sqinter> y == inf {x, y}"
 
 locale partial_order = order_syntax +
@@ -79,7 +79,7 @@ locale partial_order = order_syntax +
                    x \<in> L; y \<in> L; z \<in> L |] ==> x \<sqsubseteq> z"
 
 abbreviation (in partial_order)
-  less (infixl "\<sqsubset>" 50) "less == order_syntax.less le"
+  less (infixl "\<sqsubset>" 50) where "less == order_syntax.less le"
 abbreviation (in partial_order)
   Upper where "Upper == order_syntax.Upper L le"
 abbreviation (in partial_order)
@@ -89,13 +89,13 @@ abbreviation (in partial_order)
 abbreviation (in partial_order)
   greatest where "greatest == order_syntax.greatest L le"
 abbreviation (in partial_order)
-  sup ("\<Squnion>_" [90] 90) "sup == order_syntax.sup L le"
+  sup ("\<Squnion>_" [90] 90) where "sup == order_syntax.sup L le"
 abbreviation (in partial_order)
-  inf ("\<Sqinter>_" [90] 90) "inf == order_syntax.inf L le"
+  inf ("\<Sqinter>_" [90] 90) where "inf == order_syntax.inf L le"
 abbreviation (in partial_order)
-  join (infixl "\<squnion>" 65) "join == order_syntax.join L le"
+  join (infixl "\<squnion>" 65) where "join == order_syntax.join L le"
 abbreviation (in partial_order)
-  meet (infixl "\<sqinter>" 70) "meet == order_syntax.meet L le"
+  meet (infixl "\<sqinter>" 70) where "meet == order_syntax.meet L le"
 
 
 subsubsection {* Upper *}
@@ -207,7 +207,7 @@ locale lattice = partial_order +
     "[| x \<in> L; y \<in> L |] ==> EX s. order_syntax.greatest L le s (order_syntax.Lower L le {x, y})"
 
 abbreviation (in lattice)
-  less (infixl "\<sqsubset>" 50) "less == order_syntax.less le"
+  less (infixl "\<sqsubset>" 50) where "less == order_syntax.less le"
 abbreviation (in lattice)
   Upper where "Upper == order_syntax.Upper L le"
 abbreviation (in lattice)
@@ -217,13 +217,13 @@ abbreviation (in lattice)
 abbreviation (in lattice)
   greatest where "greatest == order_syntax.greatest L le"
 abbreviation (in lattice)
-  sup ("\<Squnion>_" [90] 90) "sup == order_syntax.sup L le"
+  sup ("\<Squnion>_" [90] 90) where "sup == order_syntax.sup L le"
 abbreviation (in lattice)
-  inf ("\<Sqinter>_" [90] 90) "inf == order_syntax.inf L le"
+  inf ("\<Sqinter>_" [90] 90) where "inf == order_syntax.inf L le"
 abbreviation (in lattice)
-  join (infixl "\<squnion>" 65) "join == order_syntax.join L le"
+  join (infixl "\<squnion>" 65) where "join == order_syntax.join L le"
 abbreviation (in lattice)
-  meet (infixl "\<sqinter>" 70) "meet == order_syntax.meet L le"
+  meet (infixl "\<sqinter>" 70) where "meet == order_syntax.meet L le"
 
 lemma (in order_syntax) least_Upper_above:
   "[| least s (Upper A); x \<in> A; A \<subseteq> L |] ==> x \<sqsubseteq> s"
@@ -690,7 +690,7 @@ locale total_order = lattice +
   assumes total: "[| x \<in> L; y \<in> L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
 
 abbreviation (in total_order)
-  less (infixl "\<sqsubset>" 50) "less == order_syntax.less le"
+  less (infixl "\<sqsubset>" 50) where "less == order_syntax.less le"
 abbreviation (in total_order)
   Upper where "Upper == order_syntax.Upper L le"
 abbreviation (in total_order)
@@ -700,13 +700,13 @@ abbreviation (in total_order)
 abbreviation (in total_order)
   greatest where "greatest == order_syntax.greatest L le"
 abbreviation (in total_order)
-  sup ("\<Squnion>_" [90] 90) "sup == order_syntax.sup L le"
+  sup ("\<Squnion>_" [90] 90) where "sup == order_syntax.sup L le"
 abbreviation (in total_order)
-  inf ("\<Sqinter>_" [90] 90) "inf == order_syntax.inf L le"
+  inf ("\<Sqinter>_" [90] 90) where "inf == order_syntax.inf L le"
 abbreviation (in total_order)
-  join (infixl "\<squnion>" 65) "join == order_syntax.join L le"
+  join (infixl "\<squnion>" 65) where "join == order_syntax.join L le"
 abbreviation (in total_order)
-  meet (infixl "\<sqinter>" 70) "meet == order_syntax.meet L le"
+  meet (infixl "\<sqinter>" 70) where "meet == order_syntax.meet L le"
 
 text {* Introduction rule: the usual definition of total order *}
 
@@ -768,7 +768,7 @@ locale complete_lattice = lattice +
     "[| A \<subseteq> L |] ==> EX i. order_syntax.greatest L le i (order_syntax.Lower L le A)"
 
 abbreviation (in complete_lattice)
-  less (infixl "\<sqsubset>" 50) "less == order_syntax.less le"
+  less (infixl "\<sqsubset>" 50) where "less == order_syntax.less le"
 abbreviation (in complete_lattice)
   Upper where "Upper == order_syntax.Upper L le"
 abbreviation (in complete_lattice)
@@ -778,13 +778,13 @@ abbreviation (in complete_lattice)
 abbreviation (in complete_lattice)
   greatest where "greatest == order_syntax.greatest L le"
 abbreviation (in complete_lattice)
-  sup ("\<Squnion>_" [90] 90) "sup == order_syntax.sup L le"
+  sup ("\<Squnion>_" [90] 90) where "sup == order_syntax.sup L le"
 abbreviation (in complete_lattice)
-  inf ("\<Sqinter>_" [90] 90) "inf == order_syntax.inf L le"
+  inf ("\<Sqinter>_" [90] 90) where "inf == order_syntax.inf L le"
 abbreviation (in complete_lattice)
-  join (infixl "\<squnion>" 65) "join == order_syntax.join L le"
+  join (infixl "\<squnion>" 65) where "join == order_syntax.join L le"
 abbreviation (in complete_lattice)
-  meet (infixl "\<sqinter>" 70) "meet == order_syntax.meet L le"
+  meet (infixl "\<sqinter>" 70) where "meet == order_syntax.meet L le"
 
 text {* Introduction rule: the usual definition of complete lattice *}
 
@@ -800,29 +800,29 @@ proof intro_locales
 qed (assumption | rule complete_lattice_axioms.intro)+
 
 definition (in order_syntax)
-  top ("\<top>")
+  top ("\<top>") where
   "\<top> == sup L"
 
 definition (in order_syntax)
-  bottom ("\<bottom>")
+  bottom ("\<bottom>") where
   "\<bottom> == inf L"
 
 abbreviation (in partial_order)
-  top ("\<top>") "top == order_syntax.top L le"
+  top ("\<top>") where "top == order_syntax.top L le"
 abbreviation (in partial_order)
-  bottom ("\<bottom>") "bottom == order_syntax.bottom L le"
+  bottom ("\<bottom>") where "bottom == order_syntax.bottom L le"
 abbreviation (in lattice)
-  top ("\<top>") "top == order_syntax.top L le"
+  top ("\<top>") where "top == order_syntax.top L le"
 abbreviation (in lattice)
-  bottom ("\<bottom>") "bottom == order_syntax.bottom L le"
+  bottom ("\<bottom>") where "bottom == order_syntax.bottom L le"
 abbreviation (in total_order)
-  top ("\<top>") "top == order_syntax.top L le"
+  top ("\<top>") where "top == order_syntax.top L le"
 abbreviation (in total_order)
-  bottom ("\<bottom>") "bottom == order_syntax.bottom L le"
+  bottom ("\<bottom>") where "bottom == order_syntax.bottom L le"
 abbreviation (in complete_lattice)
-  top ("\<top>") "top == order_syntax.top L le"
+  top ("\<top>") where "top == order_syntax.top L le"
 abbreviation (in complete_lattice)
-  bottom ("\<bottom>") "bottom == order_syntax.bottom L le"
+  bottom ("\<bottom>") where "bottom == order_syntax.bottom L le"
 
 
 lemma (in complete_lattice) supI:

@@ -175,7 +175,7 @@ end;
 text {* lazy @{const If} *}
 
 definition
-  if_delayed :: "bool \<Rightarrow> (bool \<Rightarrow> 'a) \<Rightarrow> (bool \<Rightarrow> 'a) \<Rightarrow> 'a"
+  if_delayed :: "bool \<Rightarrow> (bool \<Rightarrow> 'a) \<Rightarrow> (bool \<Rightarrow> 'a) \<Rightarrow> 'a" where
   "if_delayed b f g = (if b then f True else g False)"
 
 lemma [code func]:

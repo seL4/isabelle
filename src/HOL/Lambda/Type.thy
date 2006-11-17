@@ -12,7 +12,7 @@ theory Type imports ListApplication begin
 subsection {* Environments *}
 
 definition
-  shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"    ("_<_:_>" [90, 0, 0] 91)
+  shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"  ("_<_:_>" [90, 0, 0] 91) where
   "e<i:a> = (\<lambda>j. if j < i then e j else if j = i then a else e (j - 1))"
 
 notation (xsymbols)
@@ -50,21 +50,23 @@ consts
   typings :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
 
 abbreviation
-  funs :: "type list \<Rightarrow> type \<Rightarrow> type"    (infixr "=>>" 200)
+  funs :: "type list \<Rightarrow> type \<Rightarrow> type"  (infixr "=>>" 200) where
   "Ts =>> T == foldr Fun Ts T"
 
-  typing_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ |- _ : _" [50, 50, 50] 50)
+abbreviation
+  typing_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  ("_ |- _ : _" [50, 50, 50] 50) where
   "env |- t : T == (env, t, T) \<in> typing"
 
+abbreviation
   typings_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
-    ("_ ||- _ : _" [50, 50, 50] 50)
+    ("_ ||- _ : _" [50, 50, 50] 50) where
   "env ||- ts : Ts == typings env ts Ts"
 
 notation (xsymbols)
   typing_rel  ("_ \<turnstile> _ : _" [50, 50, 50] 50)
 
 notation (latex)
-  funs  (infixr "\<Rrightarrow>" 200)
+  funs  (infixr "\<Rrightarrow>" 200) and
   typings_rel  ("_ \<tturnstile> _ : _" [50, 50, 50] 50)
 
 inductive typing

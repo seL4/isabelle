@@ -57,15 +57,15 @@ consts
   bitxor :: "bit => bit => bit" (infixr "bitxor" 30)
 
 notation (xsymbols)
-  bitnot ("\<not>\<^sub>b _" [40] 40)
-  bitand (infixr "\<and>\<^sub>b" 35)
-  bitor  (infixr "\<or>\<^sub>b" 30)
+  bitnot ("\<not>\<^sub>b _" [40] 40) and
+  bitand (infixr "\<and>\<^sub>b" 35) and
+  bitor  (infixr "\<or>\<^sub>b" 30) and
   bitxor (infixr "\<oplus>\<^sub>b" 30)
 
 notation (HTML output)
-  bitnot ("\<not>\<^sub>b _" [40] 40)
-  bitand (infixr "\<and>\<^sub>b" 35)
-  bitor  (infixr "\<or>\<^sub>b" 30)
+  bitnot ("\<not>\<^sub>b _" [40] 40) and
+  bitand (infixr "\<and>\<^sub>b" 35) and
+  bitor  (infixr "\<or>\<^sub>b" 30) and
   bitxor (infixr "\<oplus>\<^sub>b" 30)
 
 primrec
@@ -142,11 +142,15 @@ proof (induct w,simp_all add: empty)
 qed
 
 definition
-  bv_msb :: "bit list => bit"
+  bv_msb :: "bit list => bit" where
   "bv_msb w = (if w = [] then \<zero> else hd w)"
-  bv_extend :: "[nat,bit,bit list]=>bit list"
+
+definition
+  bv_extend :: "[nat,bit,bit list]=>bit list" where
   "bv_extend i b w = (replicate (i - length w) b) @ w"
-  bv_not :: "bit list => bit list"
+
+definition
+  bv_not :: "bit list => bit list" where
   "bv_not w = map bitnot w"
 
 lemma bv_length_extend [simp]: "length w \<le> i ==> length (bv_extend i b w) = i"
@@ -177,7 +181,7 @@ lemma length_bv_not [simp]: "length (bv_not w) = length w"
   by (induct w,simp_all)
 
 definition
-  bv_to_nat :: "bit list => nat"
+  bv_to_nat :: "bit list => nat" where
   "bv_to_nat = foldl (%bn b. 2 * bn + bitval b) 0"
 
 lemma bv_to_nat_Nil [simp]: "bv_to_nat [] = 0"
@@ -327,7 +331,7 @@ proof -
 qed
 
 definition
-  norm_unsigned :: "bit list => bit list"
+  norm_unsigned :: "bit list => bit list" where
   "norm_unsigned = rem_initial \<zero>"
 
 lemma norm_unsigned_Nil [simp]: "norm_unsigned [] = []"
@@ -350,7 +354,7 @@ recdef nat_to_bv_helper "measure (\<lambda>n. n)"
                                else nat_to_bv_helper (n div 2) ((if n mod 2 = 0 then \<zero> else \<one>)#bs)))"
 
 definition
-  nat_to_bv :: "nat => bit list"
+  nat_to_bv :: "nat => bit list" where
   "nat_to_bv n = nat_to_bv_helper n []"
 
 lemma nat_to_bv0 [simp]: "nat_to_bv 0 = []"
@@ -857,7 +861,7 @@ qed
 subsection {* Unsigned Arithmetic Operations *}
 
 definition
-  bv_add :: "[bit list, bit list ] => bit list"
+  bv_add :: "[bit list, bit list ] => bit list" where
   "bv_add w1 w2 = nat_to_bv (bv_to_nat w1 + bv_to_nat w2)"
 
 lemma bv_add_type1 [simp]: "bv_add (norm_unsigned w1) w2 = bv_add w1 w2"
@@ -909,7 +913,7 @@ proof (unfold bv_add_def,rule length_nat_to_bv_upper_limit)
 qed
 
 definition
-  bv_mult :: "[bit list, bit list ] => bit list"
+  bv_mult :: "[bit list, bit list ] => bit list" where
   "bv_mult w1 w2 = nat_to_bv (bv_to_nat w1 * bv_to_nat w2)"
 
 lemma bv_mult_type1 [simp]: "bv_mult (norm_unsigned w1) w2 = bv_mult w1 w2"
@@ -969,7 +973,7 @@ lemma norm_signed11 [simp]: "norm_signed (\<one>#\<one>#xs) = norm_signed (\<one
 lemmas [simp del] = norm_signed_Cons
 
 definition
-  int_to_bv :: "int => bit list"
+  int_to_bv :: "int => bit list" where
   "int_to_bv n = (if 0 \<le> n
                  then norm_signed (\<zero>#nat_to_bv (nat n))
                  else norm_signed (bv_not (\<zero>#nat_to_bv (nat (-n- 1)))))"
@@ -1004,7 +1008,7 @@ next
 qed
 
 definition
-  bv_to_int :: "bit list => int"
+  bv_to_int :: "bit list => int" where
   "bv_to_int w =
     (case bv_msb w of \<zero> => int (bv_to_nat w)
     | \<one> => - int (bv_to_nat (bv_not w) + 1))"
@@ -1589,7 +1593,7 @@ subsection {* Signed Arithmetic Operations *}
 subsubsection {* Conversion from unsigned to signed *}
 
 definition
-  utos :: "bit list => bit list"
+  utos :: "bit list => bit list" where
   "utos w = norm_signed (\<zero> # w)"
 
 lemma utos_type [simp]: "utos (norm_unsigned w) = utos w"
@@ -1613,7 +1617,7 @@ qed
 subsubsection {* Unary minus *}
 
 definition
-  bv_uminus :: "bit list => bit list"
+  bv_uminus :: "bit list => bit list" where
   "bv_uminus w = int_to_bv (- bv_to_int w)"
 
 lemma bv_uminus_type [simp]: "bv_uminus (norm_signed w) = bv_uminus w"
@@ -1712,7 +1716,7 @@ proof -
 qed
 
 definition
-  bv_sadd :: "[bit list, bit list ] => bit list"
+  bv_sadd :: "[bit list, bit list ] => bit list" where
   "bv_sadd w1 w2 = int_to_bv (bv_to_int w1 + bv_to_int w2)"
 
 lemma bv_sadd_type1 [simp]: "bv_sadd (norm_signed w1) w2 = bv_sadd w1 w2"
@@ -1823,7 +1827,7 @@ proof -
 qed
 
 definition
-  bv_sub :: "[bit list, bit list] => bit list"
+  bv_sub :: "[bit list, bit list] => bit list" where
   "bv_sub w1 w2 = bv_sadd w1 (bv_uminus w2)"
 
 lemma bv_sub_type1 [simp]: "bv_sub (norm_signed w1) w2 = bv_sub w1 w2"
@@ -1917,7 +1921,7 @@ next
 qed
 
 definition
-  bv_smult :: "[bit list, bit list] => bit list"
+  bv_smult :: "[bit list, bit list] => bit list" where
   "bv_smult w1 w2 = int_to_bv (bv_to_int w1 * bv_to_int w2)"
 
 lemma bv_smult_type1 [simp]: "bv_smult (norm_signed w1) w2 = bv_smult w1 w2"
@@ -2203,11 +2207,15 @@ lemma bv_smult_sym: "bv_smult w1 w2 = bv_smult w2 w1"
 subsection {* Structural operations *}
 
 definition
-  bv_select :: "[bit list,nat] => bit"
+  bv_select :: "[bit list,nat] => bit" where
   "bv_select w i = w ! (length w - 1 - i)"
-  bv_chop :: "[bit list,nat] => bit list * bit list"
+
+definition
+  bv_chop :: "[bit list,nat] => bit list * bit list" where
   "bv_chop w i = (let len = length w in (take (len - i) w,drop (len - i) w))"
-  bv_slice :: "[bit list,nat*nat] => bit list"
+
+definition
+  bv_slice :: "[bit list,nat*nat] => bit list" where
   "bv_slice w = (\<lambda>(b,e). fst (bv_chop (snd (bv_chop w (b+1))) e))"
 
 lemma bv_select_rev:
@@ -2280,7 +2288,7 @@ lemma bv_slice_length [simp]: "[| j \<le> i; i < length w |] ==> length (bv_slic
   by (auto simp add: bv_slice_def)
 
 definition
-  length_nat :: "nat => nat"
+  length_nat :: "nat => nat" where
   "length_nat x = (LEAST n. x < 2 ^ n)"
 
 lemma length_nat: "length (nat_to_bv n) = length_nat n"
@@ -2312,7 +2320,7 @@ lemma length_nat_non0:
   done
 
 definition
-  length_int :: "int => nat"
+  length_int :: "int => nat" where
   "length_int x =
     (if 0 < x then Suc (length_nat (nat x))
     else if x = 0 then 0
@@ -2546,7 +2554,7 @@ declare bv_to_nat1 [simp del]
 declare bv_to_nat_helper [simp del]
 
 definition
-  bv_mapzip :: "[bit => bit => bit,bit list, bit list] => bit list"
+  bv_mapzip :: "[bit => bit => bit,bit list, bit list] => bit list" where
   "bv_mapzip f w1 w2 =
     (let g = bv_extend (max (length w1) (length w2)) \<zero>
      in map (split f) (zip (g w1) (g w2)))"

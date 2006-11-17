@@ -10,18 +10,19 @@ imports Stream Continuity
 begin
 
 definition
-
-  stream_monoP  :: "(('a stream) set \<Rightarrow> ('a stream) set) \<Rightarrow> bool"
+  stream_monoP  :: "(('a stream) set \<Rightarrow> ('a stream) set) \<Rightarrow> bool" where
   "stream_monoP F = (\<exists>Q i. \<forall>P s. Fin i \<le> #s \<longrightarrow>
                     (s \<in> F P) = (stream_take i\<cdot>s \<in> Q \<and> iterate i\<cdot>rt\<cdot>s \<in> P))"
 
-  stream_antiP  :: "(('a stream) set \<Rightarrow> ('a stream) set) \<Rightarrow> bool"
+definition
+  stream_antiP  :: "(('a stream) set \<Rightarrow> ('a stream) set) \<Rightarrow> bool" where
   "stream_antiP F = (\<forall>P x. \<exists>Q i.
                 (#x  < Fin i \<longrightarrow> (\<forall>y. x \<sqsubseteq> y \<longrightarrow> y \<in> F P \<longrightarrow> x \<in> F P)) \<and>
                 (Fin i <= #x \<longrightarrow> (\<forall>y. x \<sqsubseteq> y \<longrightarrow>
                 (y \<in> F P) = (stream_take i\<cdot>y \<in> Q \<and> iterate i\<cdot>rt\<cdot>y \<in> P))))"
 
-  antitonP :: "'a set => bool"
+definition
+  antitonP :: "'a set => bool" where
   "antitonP P = (\<forall>x y. x \<sqsubseteq> y \<longrightarrow> y\<in>P \<longrightarrow> x\<in>P)"
 
 

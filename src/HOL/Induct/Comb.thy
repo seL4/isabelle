@@ -38,9 +38,11 @@ consts
   contract  :: "(comb*comb) set"
 
 abbreviation
-  contract_rel1 :: "[comb,comb] => bool"   (infixl "-1->" 50)
+  contract_rel1 :: "[comb,comb] => bool"   (infixl "-1->" 50) where
   "x -1-> y == (x,y) \<in> contract"
-  contract_rel :: "[comb,comb] => bool"   (infixl "--->" 50)
+
+abbreviation
+  contract_rel :: "[comb,comb] => bool"   (infixl "--->" 50) where
   "x ---> y == (x,y) \<in> contract^*"
 
 inductive contract
@@ -59,9 +61,11 @@ consts
   parcontract :: "(comb*comb) set"
 
 abbreviation
-  parcontract_rel1 :: "[comb,comb] => bool"   (infixl "=1=>" 50)
+  parcontract_rel1 :: "[comb,comb] => bool"   (infixl "=1=>" 50) where
   "x =1=> y == (x,y) \<in> parcontract"
-  parcontract_rel :: "[comb,comb] => bool"   (infixl "===>" 50)
+
+abbreviation
+  parcontract_rel :: "[comb,comb] => bool"   (infixl "===>" 50) where
   "x ===> y == (x,y) \<in> parcontract^*"
 
 inductive parcontract
@@ -76,10 +80,11 @@ text {*
 *}
 
 definition
-  I :: comb
+  I :: comb where
   "I = S##K##K"
 
-  diamond   :: "('a * 'a)set => bool"	
+definition
+  diamond   :: "('a * 'a)set => bool" where
     --{*confluence; Lambda/Commutation treats this more abstractly*}
   "diamond(r) = (\<forall>x y. (x,y) \<in> r --> 
                   (\<forall>y'. (x,y') \<in> r --> 

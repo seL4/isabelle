@@ -186,7 +186,7 @@ done
 subsection{*Nonstandard Characterization of Induction*}
 
 definition
-  hSuc :: "hypnat => hypnat"
+  hSuc :: "hypnat => hypnat" where
   "hSuc n = n + 1"
 
 lemma starP: "(( *p* P) (star_n X)) = ({n. P (X n)} \<in> FreeUltrafilterNat)"

@@ -17,7 +17,7 @@ Felix Joachimski and Ralph Matthes \cite{Matthes-Joachimski-AML}.
 subsection {* Terms in normal form *}
 
 definition
-  listall :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
+  listall :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
   "listall P xs == (\<forall>i. i < length xs \<longrightarrow> P (xs ! i))"
 
 declare listall_def [extraction_expand]
@@ -362,7 +362,7 @@ consts -- {* A computationally relevant copy of @{term "e \<turnstile> t : T"} *
   rtyping :: "((nat \<Rightarrow> type) \<times> dB \<times> type) set"
 
 abbreviation
-  rtyping_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ |-\<^sub>R _ : _" [50, 50, 50] 50)
+  rtyping_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  ("_ |-\<^sub>R _ : _" [50, 50, 50] 50) where
   "e |-\<^sub>R t : T == (e, t, T) \<in> rtyping"
 
 notation (xsymbols)

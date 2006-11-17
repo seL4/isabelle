@@ -39,7 +39,7 @@ rather than as an @{text "intro!"} rule, for example, using
 subsection {* Definitions *}
 
 definition
-  bigo :: "('a => 'b::ordered_idom) => ('a => 'b) set"    ("(1O'(_'))")
+  bigo :: "('a => 'b::ordered_idom) => ('a => 'b) set"  ("(1O'(_'))") where
   "O(f::('a => 'b)) =
       {h. EX c. ALL x. abs (h x) <= c * abs (f x)}"
 
@@ -736,7 +736,7 @@ subsection {* Less than or equal to *}
 
 definition
   lesso :: "('a => 'b::ordered_idom) => ('a => 'b) => ('a => 'b)"
-      (infixl "<o" 70)
+    (infixl "<o" 70) where
   "f <o g = (%x. max (f x - g x) 0)"
 
 lemma bigo_lesseq1: "f =o O(h) ==> ALL x. abs (g x) <= abs (f x) ==>

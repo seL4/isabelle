@@ -13,23 +13,27 @@ begin
 text{*Thanks to suggestions by James Margetson*}
 
 definition
-
-  setle :: "['a set, 'a::ord] => bool"     (infixl "*<=" 70)
+  setle :: "['a set, 'a::ord] => bool"  (infixl "*<=" 70) where
   "S *<= x = (ALL y: S. y <= x)"
 
-  setge :: "['a::ord, 'a set] => bool"     (infixl "<=*" 70)
+definition
+  setge :: "['a::ord, 'a set] => bool"  (infixl "<=*" 70) where
   "x <=* S = (ALL y: S. x <= y)"
 
-  leastP      :: "['a =>bool,'a::ord] => bool"
+definition
+  leastP      :: "['a =>bool,'a::ord] => bool" where
   "leastP P x = (P x & x <=* Collect P)"
 
-  isUb        :: "['a set, 'a set, 'a::ord] => bool"
+definition
+  isUb        :: "['a set, 'a set, 'a::ord] => bool" where
   "isUb R S x = (S *<= x & x: R)"
 
-  isLub       :: "['a set, 'a set, 'a::ord] => bool"
+definition
+  isLub       :: "['a set, 'a set, 'a::ord] => bool" where
   "isLub R S x = leastP (isUb R S) x"
 
-  ubs         :: "['a set, 'a::ord set] => 'a set"
+definition
+  ubs         :: "['a set, 'a::ord set] => 'a set" where
   "ubs R S = Collect (isUb R S)"
 
 

@@ -96,12 +96,12 @@ subsection {* @{const delete} *}
 (* ******************************************************************************** *)
 
 lemma delete_simps [simp]:
-"delete k [] = []"
-"delete k (p#ps) = (if fst p = k then delete k ps else p # delete k ps)"
+    "delete k [] = []"
+    "delete k (p#ps) = (if fst p = k then delete k ps else p # delete k ps)"
   by (simp_all add: delete_def)
 
 lemma delete_id[simp]: "k \<notin> fst ` set al \<Longrightarrow> delete k al = al"
-by(induct al, auto)
+  by (induct al) auto
 
 lemma delete_conv: "map_of (delete k al) k' = ((map_of al)(k := None)) k'"
   by (induct al) auto
@@ -112,9 +112,9 @@ lemma delete_conv': "map_of (delete k al) = ((map_of al)(k := None))"
 lemma delete_idem: "delete k (delete k al) = delete k al"
   by (induct al) auto
 
-lemma map_of_delete[simp]:
- "k' \<noteq> k \<Longrightarrow> map_of (delete k al) k' = map_of al k'"
-by(induct al, auto)
+lemma map_of_delete [simp]:
+    "k' \<noteq> k \<Longrightarrow> map_of (delete k al) k' = map_of al k'"
+  by (induct al) auto
 
 lemma delete_notin_dom: "k \<notin> fst ` set (delete k al)"
   by (induct al) auto
@@ -547,7 +547,7 @@ by (induct xs ys rule: compose_induct) (auto split: option.splits split_if_asm)
 
 lemma compose_conv: 
   shows "map_of (compose xs ys) k = (map_of ys \<circ>\<^sub>m map_of xs) k"
-proof (induct xs ys rule: compose_induct )
+proof (induct xs ys rule: compose_induct)
   case Nil thus ?case by simp
 next
   case (Cons x xs)
@@ -595,7 +595,7 @@ lemma compose_first_Some [simp]:
 using prems by (simp add: compose_conv)
 
 lemma dom_compose: "fst ` set (compose xs ys) \<subseteq> fst ` set xs"
-proof (induct xs ys rule: compose_induct )
+proof (induct xs ys rule: compose_induct)
   case Nil thus ?case by simp
 next
   case (Cons x xs)
@@ -799,12 +799,12 @@ lemma update_restr:
  "map_of (update x y (restrict D al)) = map_of (update x y (restrict (D-{x}) al))"
   by (simp add: update_conv' restr_conv') (rule fun_upd_restrict)
 
-lemma upate_restr_conv[simp]:
+lemma upate_restr_conv [simp]:
  "x \<in> D \<Longrightarrow> 
  map_of (update x y (restrict D al)) = map_of (update x y (restrict (D-{x}) al))"
   by (simp add: update_conv' restr_conv')
 
-lemma restr_updates[simp]: "
+lemma restr_updates [simp]: "
  \<lbrakk> length xs = length ys; set xs \<subseteq> D \<rbrakk>
  \<Longrightarrow> map_of (restrict D (updates xs ys al)) = 
      map_of (updates xs ys (restrict (D - set xs) al))"

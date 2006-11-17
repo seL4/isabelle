@@ -726,7 +726,7 @@ lemma option_map_o_sum_case [simp]:
 subsubsection {* Code generator setup *}
 
 definition
-  is_none :: "'a option \<Rightarrow> bool"
+  is_none :: "'a option \<Rightarrow> bool" where
   is_none_none [normal post, symmetric, code inline]: "is_none x \<longleftrightarrow> x = None"
 
 lemma is_none_code [code]:

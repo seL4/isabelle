@@ -15,7 +15,7 @@ locale lub =
 lemmas [elim?] = lub.least lub.upper
 
 definition
-  the_lub :: "'a::order set \<Rightarrow> 'a"
+  the_lub :: "'a::order set \<Rightarrow> 'a" where
   "the_lub A = The (lub A)"
 
 notation (xsymbols)

@@ -82,25 +82,30 @@ primrec
 text{*Other definitions*}
 
 definition
-  poly_minus :: "real list => real list"      ("-- _" [80] 80)
+  poly_minus :: "real list => real list"      ("-- _" [80] 80) where
   "-- p = (- 1) %* p"
 
-  pderiv :: "real list => real list"
+definition
+  pderiv :: "real list => real list" where
   "pderiv p = (if p = [] then [] else pderiv_aux 1 (tl p))"
 
-  divides :: "[real list,real list] => bool"  (infixl "divides" 70)
+definition
+  divides :: "[real list,real list] => bool"  (infixl "divides" 70) where
   "p1 divides p2 = (\<exists>q. poly p2 = poly(p1 *** q))"
 
-  order :: "real => real list => nat"
+definition
+  order :: "real => real list => nat" where
     --{*order of a polynomial*}
   "order a p = (SOME n. ([-a, 1] %^ n) divides p &
                       ~ (([-a, 1] %^ (Suc n)) divides p))"
 
-  degree :: "real list => nat"
+definition
+  degree :: "real list => nat" where
      --{*degree of a polynomial*}
   "degree p = length (pnormalize p)"
 
-  rsquarefree :: "real list => bool"
+definition
+  rsquarefree :: "real list => bool" where
      --{*squarefree polynomials --- NB with respect to real roots only.*}
   "rsquarefree p = (poly p \<noteq> poly [] &
                      (\<forall>a. (order a p = 0) | (order a p = 1)))"
@@ -108,7 +113,7 @@ definition
 
 
 lemma padd_Nil2: "p +++ [] = p"
-by (induct "p", auto)
+by (induct p) auto
 declare padd_Nil2 [simp]
 
 lemma padd_Cons_Cons: "(h1 # p1) +++ (h2 # p2) = (h1 + h2) # (p1 +++ p2)"

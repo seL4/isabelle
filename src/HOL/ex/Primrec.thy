@@ -43,19 +43,23 @@ primrec
 text {* The set of primitive recursive functions of type @{typ "nat list => nat"}. *}
 
 definition
-  SC :: "nat list => nat"
+  SC :: "nat list => nat" where
   "SC l = Suc (zeroHd l)"
 
-  CONSTANT :: "nat => nat list => nat"
+definition
+  CONSTANT :: "nat => nat list => nat" where
   "CONSTANT k l = k"
 
-  PROJ :: "nat => nat list => nat"
+definition
+  PROJ :: "nat => nat list => nat" where
   "PROJ i l = zeroHd (drop i l)"
 
-  COMP :: "(nat list => nat) => (nat list => nat) list => nat list => nat"
+definition
+  COMP :: "(nat list => nat) => (nat list => nat) list => nat list => nat" where
   "COMP g fs l = g (map (\<lambda>f. f l) fs)"
 
-  PREC :: "(nat list => nat) => (nat list => nat) => nat list => nat"
+definition
+  PREC :: "(nat list => nat) => (nat list => nat) => nat list => nat" where
   "PREC f g l =
     (case l of
       [] => 0

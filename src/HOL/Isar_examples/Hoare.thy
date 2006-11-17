@@ -32,7 +32,7 @@ datatype 'a com =
   | While "'a bexp" "'a assn" "'a com"
 
 abbreviation
-  Skip  ("SKIP")
+  Skip  ("SKIP") where
   "SKIP == Basic id"
 
 types

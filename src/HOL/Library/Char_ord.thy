@@ -32,8 +32,8 @@ primrec
   "nibble_to_int NibbleF = 15"
 
 definition
-  int_to_nibble :: "int \<Rightarrow> nibble"
-  "int_to_nibble x \<equiv> (let y = x mod 16 in
+  int_to_nibble :: "int \<Rightarrow> nibble" where
+  "int_to_nibble x = (let y = x mod 16 in
     if y = 0 then Nibble0 else
     if y = 1 then Nibble1 else
     if y = 2 then Nibble2 else

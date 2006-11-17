@@ -34,7 +34,7 @@ by (rule star_of_abs [symmetric])
 subsection{*Embedding the Naturals into the Hyperreals*}
 
 abbreviation
-  hypreal_of_nat   :: "nat => hypreal"
+  hypreal_of_nat :: "nat => hypreal" where
   "hypreal_of_nat == of_nat"
 
 lemma SNat_eq: "Nats = {n. \<exists>N. n = hypreal_of_nat N}"

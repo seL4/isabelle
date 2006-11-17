@@ -30,7 +30,8 @@ text{*First, The Defining Formula*}
           (\<exists>fj[M]. \<exists>sj[M]. \<exists>fsj[M]. \<exists>ffp[M].
             fun_apply(M,f,j,fj) & successor(M,j,sj) &
             fun_apply(M,f,sj,fsj) & pair(M,fj,fsj,ffp) & ffp \<in> r)))"*)
-definition rtran_closure_mem_fm :: "[i,i,i]=>i"
+definition
+  rtran_closure_mem_fm :: "[i,i,i]=>i" where
  "rtran_closure_mem_fm(A,r,p) ==
    Exists(Exists(Exists(
     And(omega_fm(2),
@@ -87,8 +88,9 @@ subsubsection{*Reflexive/Transitive Closure, Internalized*}
 (*  "rtran_closure(M,r,s) ==
         \<forall>A[M]. is_field(M,r,A) -->
          (\<forall>p[M]. p \<in> s <-> rtran_closure_mem(M,A,r,p))" *)
-definition rtran_closure_fm :: "[i,i]=>i"
- "rtran_closure_fm(r,s) ==
+definition
+  rtran_closure_fm :: "[i,i]=>i" where
+  "rtran_closure_fm(r,s) ==
    Forall(Implies(field_fm(succ(r),0),
                   Forall(Iff(Member(0,succ(succ(s))),
                              rtran_closure_mem_fm(1,succ(succ(r)),0)))))"
@@ -121,8 +123,9 @@ subsubsection{*Transitive Closure of a Relation, Internalized*}
 
 (*  "tran_closure(M,r,t) ==
          \<exists>s[M]. rtran_closure(M,r,s) & composition(M,r,s,t)" *)
-definition tran_closure_fm :: "[i,i]=>i"
- "tran_closure_fm(r,s) ==
+definition
+  tran_closure_fm :: "[i,i]=>i" where
+  "tran_closure_fm(r,s) ==
    Exists(And(rtran_closure_fm(succ(r),0), composition_fm(succ(r),0,succ(s))))"
 
 lemma tran_closure_type [TC]:
@@ -293,7 +296,8 @@ subsubsection{*The Formula @{term is_nth}, Internalized*}
 
 (* "is_nth(M,n,l,Z) ==
       \<exists>X[M]. is_iterates(M, is_tl(M), l, n, X) & is_hd(M,X,Z)" *)
-definition nth_fm :: "[i,i,i]=>i"
+definition
+  nth_fm :: "[i,i,i]=>i" where
     "nth_fm(n,l,Z) == 
        Exists(And(is_iterates_fm(tl_fm(1,0), succ(l), succ(n), 0), 
               hd_fm(0,succ(Z))))"

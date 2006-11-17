@@ -29,19 +29,23 @@ fun ram 0 j = 1
 theory Ramsey imports Main begin
 
 definition
-  Symmetric :: "i=>o"
+  Symmetric :: "i=>o" where
     "Symmetric(E) == (\<forall>x y. <x,y>:E --> <y,x>:E)"
 
-  Atleast :: "[i,i]=>o"  (*not really necessary: ZF defines cardinality*)
+definition
+  Atleast :: "[i,i]=>o" where -- "not really necessary: ZF defines cardinality"
     "Atleast(n,S) == (\<exists>f. f \<in> inj(n,S))"
 
-  Clique  :: "[i,i,i]=>o"
+definition
+  Clique  :: "[i,i,i]=>o" where
     "Clique(C,V,E) == (C \<subseteq> V) & (\<forall>x \<in> C. \<forall>y \<in> C. x\<noteq>y --> <x,y> \<in> E)"
 
-  Indept  :: "[i,i,i]=>o"
+definition
+  Indept  :: "[i,i,i]=>o" where
     "Indept(I,V,E) == (I \<subseteq> V) & (\<forall>x \<in> I. \<forall>y \<in> I. x\<noteq>y --> <x,y> \<notin> E)"
   
-  Ramsey  :: "[i,i,i]=>o"
+definition
+  Ramsey  :: "[i,i,i]=>o" where
     "Ramsey(n,i,j) == \<forall>V E. Symmetric(E) & Atleast(n,V) -->  
          (\<exists>C. Clique(C,V,E) & Atleast(i,C)) |       
          (\<exists>I. Indept(I,V,E) & Atleast(j,I))"

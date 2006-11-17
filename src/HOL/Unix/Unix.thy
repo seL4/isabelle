@@ -166,6 +166,7 @@ definition
       Val (att, text) \<Rightarrow> att
     | Env att dir \<Rightarrow> att)"
 
+definition
   "map_attributes f file =
     (case file of
       Val (att, text) \<Rightarrow> Val (f att, text)
@@ -830,6 +831,7 @@ definition
      [Mkdir user\<^isub>1 perms\<^isub>1 [user\<^isub>1, name\<^isub>1],
       Mkdir user\<^isub>2 perms\<^isub>2 [user\<^isub>1, name\<^isub>1, name\<^isub>2],
       Creat user\<^isub>2 perms\<^isub>2 [user\<^isub>1, name\<^isub>1, name\<^isub>2, name\<^isub>3]]"
+definition
   "bogus_path = [user\<^isub>1, name\<^isub>1, name\<^isub>2]"
 
 text {*

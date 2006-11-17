@@ -14,7 +14,7 @@ uses ("real_arith.ML")
 begin
 
 definition
-  realrel   ::  "((preal * preal) * (preal * preal)) set"
+  realrel   ::  "((preal * preal) * (preal * preal)) set" where
   "realrel = {p. \<exists>x1 y1 x2 y2. p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1}"
 
 typedef (Real)  real = "UNIV//realrel"
@@ -26,7 +26,7 @@ definition
 
   (** these don't use the overloaded "real" function: users don't see them **)
 
-  real_of_preal :: "preal => real"
+  real_of_preal :: "preal => real" where
   "real_of_preal m = Abs_Real(realrel``{(m + preal_of_rat 1, preal_of_rat 1)})"
 
 consts

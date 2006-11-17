@@ -16,16 +16,19 @@ text{*
 *}
 
 definition
-  chain     ::  "'a set set => 'a set set set"
+  chain     ::  "'a set set => 'a set set set" where
   "chain S  = {F. F \<subseteq> S & (\<forall>x \<in> F. \<forall>y \<in> F. x \<subseteq> y | y \<subseteq> x)}"
 
-  super     ::  "['a set set,'a set set] => 'a set set set"
+definition
+  super     ::  "['a set set,'a set set] => 'a set set set" where
   "super S c = {d. d \<in> chain S & c \<subset> d}"
 
-  maxchain  ::  "'a set set => 'a set set set"
+definition
+  maxchain  ::  "'a set set => 'a set set set" where
   "maxchain S = {c. c \<in> chain S & super S c = {}}"
 
-  succ      ::  "['a set set,'a set set] => 'a set set"
+definition
+  succ      ::  "['a set set,'a set set] => 'a set set" where
   "succ S c =
     (if c \<notin> chain S | c \<in> maxchain S
     then c else SOME c'. c' \<in> super S c)"

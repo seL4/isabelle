@@ -8,10 +8,11 @@ header{*The Certified Electronic Mail Protocol by Abadi et al.*}
 theory CertifiedEmail imports Public begin
 
 abbreviation
-  TTP :: agent
+  TTP :: agent where
   "TTP == Server"
 
-  RPwd :: "agent => key"
+abbreviation
+  RPwd :: "agent => key" where
   "RPwd == shrK"
 
  

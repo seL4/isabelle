@@ -75,7 +75,7 @@ text {*
 *}
 
 definition
-  "class" :: "'a::equiv => 'a quot"    ("\<lfloor>_\<rfloor>")
+  "class" :: "'a::equiv => 'a quot"  ("\<lfloor>_\<rfloor>") where
   "\<lfloor>a\<rfloor> = Abs_quot {x. a \<sim> x}"
 
 theorem quot_exhaust: "\<exists>a. A = \<lfloor>a\<rfloor>"
@@ -134,7 +134,7 @@ qed
 subsection {* Picking representing elements *}
 
 definition
-  pick :: "'a::equiv quot => 'a"
+  pick :: "'a::equiv quot => 'a" where
   "pick A = (SOME a. A = \<lfloor>a\<rfloor>)"
 
 theorem pick_equiv [intro]: "pick \<lfloor>a\<rfloor> \<sim> a"

@@ -8,7 +8,7 @@ header {*Integers: Divisibility and Congruences*}
 theory Int2 imports Finite2 WilsonRuss begin
 
 definition
-  MultInv :: "int => int => int"
+  MultInv :: "int => int => int" where
   "MultInv p x = x ^ nat (p - 2)"
 
 

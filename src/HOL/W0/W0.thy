@@ -12,7 +12,7 @@ section {* Universal error monad *}
 datatype 'a maybe = Ok 'a | Fail
 
 definition
-  bind :: "'a maybe \<Rightarrow> ('a \<Rightarrow> 'b maybe) \<Rightarrow> 'b maybe"    (infixl "\<bind>" 60)
+  bind :: "'a maybe \<Rightarrow> ('a \<Rightarrow> 'b maybe) \<Rightarrow> 'b maybe"    (infixl "\<bind>" 60) where
   "m \<bind> f = (case m of Ok r \<Rightarrow> f r | Fail \<Rightarrow> Fail)"
 
 syntax
@@ -85,11 +85,12 @@ primrec (free_tv_list)
   "free_tv (x # xs) = free_tv x \<union> free_tv xs"
 
 definition
-  dom :: "subst \<Rightarrow> nat set"
+  dom :: "subst \<Rightarrow> nat set" where
   "dom s = {n. s n \<noteq> TVar n}"
   -- {* domain of a substitution *}
 
-  cod :: "subst \<Rightarrow> nat set"
+definition
+  cod :: "subst \<Rightarrow> nat set" where
   "cod s = (\<Union>m \<in> dom s. free_tv (s m))"
   -- {* codomain of a substitutions: the introduced variables *}
 
@@ -103,14 +104,14 @@ text {*
 *}
 
 definition
-  new_tv :: "nat \<Rightarrow> 'a::type_struct \<Rightarrow> bool"
+  new_tv :: "nat \<Rightarrow> 'a::type_struct \<Rightarrow> bool" where
   "new_tv n ts = (\<forall>m. m \<in> free_tv ts \<longrightarrow> m < n)"
 
 
 subsubsection {* Identity substitution *}
 
 definition
-  id_subst :: subst
+  id_subst :: subst where
   "id_subst = (\<lambda>n. TVar n)"
 
 lemma app_subst_id_te [simp]:
@@ -384,7 +385,7 @@ consts
   has_type :: "(typ list \<times> expr \<times> typ) set"
 
 abbreviation
-  has_type_rel  ("((_) |-/ (_) :: (_))" [60, 0, 60] 60)
+  has_type_rel  ("((_) |-/ (_) :: (_))" [60, 0, 60] 60) where
   "a |- e :: t == (a, e, t) \<in> has_type"
 
 inductive has_type

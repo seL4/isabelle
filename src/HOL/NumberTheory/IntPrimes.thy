@@ -32,16 +32,19 @@ recdef xzgcda
 		      t, t' - (r' div r) * t))"
 
 definition
-  zgcd :: "int * int => int"
+  zgcd :: "int * int => int" where
   "zgcd = (\<lambda>(x,y). int (gcd (nat (abs x), nat (abs y))))"
 
-  zprime :: "int \<Rightarrow> bool"
+definition
+  zprime :: "int \<Rightarrow> bool" where
   "zprime p = (1 < p \<and> (\<forall>m. 0 <= m & m dvd p --> m = 1 \<or> m = p))"
 
-  xzgcd :: "int => int => int * int * int"
+definition
+  xzgcd :: "int => int => int * int * int" where
   "xzgcd m n = xzgcda (m, n, m, n, 1, 0, 0, 1)"
 
-  zcong :: "int => int => int => bool"    ("(1[_ = _] '(mod _'))")
+definition
+  zcong :: "int => int => int => bool"  ("(1[_ = _] '(mod _'))") where
   "[a = b] (mod m) = (m dvd (a - b))"
 
 

@@ -14,13 +14,15 @@ text{*These can be used to derive an alternative proof of the infinitude of
 primes by considering a property of nonstandard sets.*}
 
 definition
-  hdvd  :: "[hypnat, hypnat] => bool"       (infixl "hdvd" 50)
+  hdvd  :: "[hypnat, hypnat] => bool"       (infixl "hdvd" 50) where
   [transfer_unfold]: "(M::hypnat) hdvd N = ( *p2* (op dvd)) M N"
 
-  starprime :: "hypnat set"
+definition
+  starprime :: "hypnat set" where
   [transfer_unfold]: "starprime = ( *s* {p. prime p})"
 
-  choicefun :: "'a set => 'a"
+definition
+  choicefun :: "'a set => 'a" where
   "choicefun E = (@x. \<exists>X \<in> Pow(E) -{{}}. x : X)"
 
 consts injf_max :: "nat => ('a::{order} set) => 'a"

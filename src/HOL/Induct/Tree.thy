@@ -72,10 +72,11 @@ text{*To define recdef style functions we need an ordering on the Brouwer
   closure. *} 
 
 definition
-  brouwer_pred :: "(brouwer * brouwer) set"
+  brouwer_pred :: "(brouwer * brouwer) set" where
   "brouwer_pred = (\<Union>i. {(m,n). n = Succ m \<or> (EX f. n = Lim f & m = f i)})"
 
-  brouwer_order :: "(brouwer * brouwer) set"
+definition
+  brouwer_order :: "(brouwer * brouwer) set" where
   "brouwer_order = brouwer_pred^+"
 
 lemma wf_brouwer_pred: "wf brouwer_pred"

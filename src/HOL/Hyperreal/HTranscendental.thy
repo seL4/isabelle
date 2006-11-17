@@ -31,15 +31,17 @@ qed
 
 
 definition
-  exphr :: "real => hypreal"
+  exphr :: "real => hypreal" where
     --{*define exponential function using standard part *}
   "exphr x =  st(sumhr (0, whn, %n. inverse(real (fact n)) * (x ^ n)))"
 
-  sinhr :: "real => hypreal"
+definition
+  sinhr :: "real => hypreal" where
   "sinhr x = st(sumhr (0, whn, %n. (if even(n) then 0 else
              ((-1) ^ ((n - 1) div 2))/(real (fact n))) * (x ^ n)))"
   
-  coshr :: "real => hypreal"
+definition
+  coshr :: "real => hypreal" where
   "coshr x = st(sumhr (0, whn, %n. (if even(n) then
             ((-1) ^ (n div 2))/(real (fact n)) else 0) * x ^ n))"
 

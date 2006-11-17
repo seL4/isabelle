@@ -32,9 +32,11 @@ primrec
   "iter f (Suc n) = f \<circ> (iter f n)"
 
 definition
-  OpLim :: "(nat => (ordinal => ordinal)) => (ordinal => ordinal)"
+  OpLim :: "(nat => (ordinal => ordinal)) => (ordinal => ordinal)" where
   "OpLim F a = Limit (\<lambda>n. F n a)"
-  OpItw :: "(ordinal => ordinal) => (ordinal => ordinal)"    ("\<Squnion>")
+
+definition
+  OpItw :: "(ordinal => ordinal) => (ordinal => ordinal)"    ("\<Squnion>") where
   "\<Squnion>f = OpLim (iter f)"
 
 consts
@@ -52,7 +54,7 @@ primrec
   "\<nabla>f (Limit h) = Limit (\<lambda>n. \<nabla>f (h n))"
 
 definition
-  deriv :: "(ordinal => ordinal) => (ordinal => ordinal)"
+  deriv :: "(ordinal => ordinal) => (ordinal => ordinal)" where
   "deriv f = \<nabla>(\<Squnion>f)"
 
 consts
@@ -62,9 +64,8 @@ primrec
   "veblen (Succ a) = \<nabla>(OpLim (iter (veblen a)))"
   "veblen (Limit f) = \<nabla>(OpLim (\<lambda>n. veblen (f n)))"
 
-definition
-  "veb a = veblen a Zero"
-  "\<epsilon>\<^isub>0 = veb Zero"
-  "\<Gamma>\<^isub>0 = Limit (\<lambda>n. iter veb n Zero)"
+definition "veb a = veblen a Zero"
+definition "\<epsilon>\<^isub>0 = veb Zero"
+definition "\<Gamma>\<^isub>0 = Limit (\<lambda>n. iter veb n Zero)"
 
 end

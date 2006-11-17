@@ -11,11 +11,12 @@ imports Transcendental
 begin
 
 definition
-  powr  :: "[real,real] => real"     (infixr "powr" 80)
+  powr  :: "[real,real] => real"     (infixr "powr" 80) where
     --{*exponentation with real exponent*}
   "x powr a = exp(a * ln x)"
 
-  log :: "[real,real] => real"
+definition
+  log :: "[real,real] => real" where
     --{*logarithm of @{term x} to base @{term a}*}
   "log a x = ln x / ln a"
 

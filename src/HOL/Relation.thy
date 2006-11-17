@@ -13,54 +13,69 @@ begin
 subsection {* Definitions *}
 
 definition
-  converse :: "('a * 'b) set => ('b * 'a) set"    ("(_^-1)" [1000] 999)
+  converse :: "('a * 'b) set => ('b * 'a) set"
+    ("(_^-1)" [1000] 999) where
   "r^-1 == {(y, x). (x, y) : r}"
 
 notation (xsymbols)
   converse  ("(_\<inverse>)" [1000] 999)
 
 definition
-  rel_comp  :: "[('b * 'c) set, ('a * 'b) set] => ('a * 'c) set"  (infixr "O" 75)
+  rel_comp  :: "[('b * 'c) set, ('a * 'b) set] => ('a * 'c) set"
+    (infixr "O" 75) where
   "r O s == {(x,z). EX y. (x, y) : s & (y, z) : r}"
 
-  Image :: "[('a * 'b) set, 'a set] => 'b set"                (infixl "``" 90)
+definition
+  Image :: "[('a * 'b) set, 'a set] => 'b set"
+    (infixl "``" 90) where
   "r `` s == {y. EX x:s. (x,y):r}"
 
-  Id    :: "('a * 'a) set"  -- {* the identity relation *}
+definition
+  Id :: "('a * 'a) set" where -- {* the identity relation *}
   "Id == {p. EX x. p = (x,x)}"
 
-  diag  :: "'a set => ('a * 'a) set"  -- {* diagonal: identity over a set *}
+definition
+  diag  :: "'a set => ('a * 'a) set" where -- {* diagonal: identity over a set *}
   "diag A == \<Union>x\<in>A. {(x,x)}"
 
-  Domain :: "('a * 'b) set => 'a set"
+definition
+  Domain :: "('a * 'b) set => 'a set" where
   "Domain r == {x. EX y. (x,y):r}"
 
-  Range  :: "('a * 'b) set => 'b set"
+definition
+  Range  :: "('a * 'b) set => 'b set" where
   "Range r == Domain(r^-1)"
 
-  Field :: "('a * 'a) set => 'a set"
+definition
+  Field :: "('a * 'a) set => 'a set" where
   "Field r == Domain r \<union> Range r"
 
-  refl   :: "['a set, ('a * 'a) set] => bool"  -- {* reflexivity over a set *}
+definition
+  refl :: "['a set, ('a * 'a) set] => bool" where -- {* reflexivity over a set *}
   "refl A r == r \<subseteq> A \<times> A & (ALL x: A. (x,x) : r)"
 
-  sym    :: "('a * 'a) set => bool"  -- {* symmetry predicate *}
+definition
+  sym :: "('a * 'a) set => bool" where -- {* symmetry predicate *}
   "sym r == ALL x y. (x,y): r --> (y,x): r"
 
-  antisym:: "('a * 'a) set => bool"  -- {* antisymmetry predicate *}
+definition
+  antisym :: "('a * 'a) set => bool" where -- {* antisymmetry predicate *}
   "antisym r == ALL x y. (x,y):r --> (y,x):r --> x=y"
 
-  trans  :: "('a * 'a) set => bool"  -- {* transitivity predicate *}
+definition
+  trans :: "('a * 'a) set => bool" where -- {* transitivity predicate *}
   "trans r == (ALL x y z. (x,y):r --> (y,z):r --> (x,z):r)"
 
-  single_valued :: "('a * 'b) set => bool"
+definition
+  single_valued :: "('a * 'b) set => bool" where
   "single_valued r == ALL x y. (x,y):r --> (ALL z. (x,z):r --> y=z)"
 
-  inv_image :: "('b * 'b) set => ('a => 'b) => ('a * 'a) set"
+definition
+  inv_image :: "('b * 'b) set => ('a => 'b) => ('a * 'a) set" where
   "inv_image r f == {(x, y). (f x, f y) : r}"
 
 abbreviation
-  reflexive :: "('a * 'a) set => bool"  -- {* reflexivity over a type *}
+  reflexive :: "('a * 'a) set => bool" where -- {* reflexivity over a type *}
   "reflexive == refl UNIV"
 
 

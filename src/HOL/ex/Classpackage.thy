@@ -97,8 +97,8 @@ next
 qed
 
 definition (in monoid)
-  units :: "'a set"
-  units_def: "units = { y. \<exists>x. x \<^loc>\<otimes> y = \<^loc>\<one> \<and> y \<^loc>\<otimes> x = \<^loc>\<one> }"
+  units :: "'a set" where
+  "units = { y. \<exists>x. x \<^loc>\<otimes> y = \<^loc>\<one> \<and> y \<^loc>\<otimes> x = \<^loc>\<one> }"
 
 lemma (in monoid) inv_obtain:
   assumes ass: "x \<in> units"
@@ -139,11 +139,11 @@ primrec
   "reduce f g (Suc n) x = f x (reduce f g n x)"
 
 definition (in monoid)
-  npow :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
+  npow :: "nat \<Rightarrow> 'a \<Rightarrow> 'a" where
   npow_def_prim: "npow n x = reduce (op \<^loc>\<otimes>) \<^loc>\<one> n x"
 
 abbreviation (in monoid)
-  abbrev_npow :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75)
+  abbrev_npow :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75) where
   "x \<^loc>\<up> n \<equiv> npow n x"
 
 lemma (in monoid) npow_def:
@@ -272,12 +272,12 @@ lemma (in group) inv_comm:
 using invr invl by simp
 
 definition (in group)
-  pow :: "int \<Rightarrow> 'a \<Rightarrow> 'a"
-  pow_def: "pow k x = (if k < 0 then \<^loc>\<div> (monoid.npow (op \<^loc>\<otimes>) \<^loc>\<one> (nat (-k)) x)
+  pow :: "int \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "pow k x = (if k < 0 then \<^loc>\<div> (monoid.npow (op \<^loc>\<otimes>) \<^loc>\<one> (nat (-k)) x)
     else (monoid.npow (op \<^loc>\<otimes>) \<^loc>\<one> (nat k) x))"
 
 abbreviation (in group)
-  abbrev_pow :: "'a \<Rightarrow> int \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75)
+  abbrev_pow :: "'a \<Rightarrow> int \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75) where
   "x \<^loc>\<up> k \<equiv> pow k x"
 
 lemma (in group) int_pow_zero:
@@ -312,12 +312,12 @@ by default (simp_all add: split_paired_all group_prod_def comm)
 
 definition
   "X a b c = (a \<otimes> \<one> \<otimes> b, a \<otimes> \<one> \<otimes> b, [a, b] \<otimes> \<one> \<otimes> [a, b, c])"
+definition
   "Y a b c = (a, \<div> a) \<otimes> \<one> \<otimes> \<div> (b, \<div> c)"
 
-definition
-  "x1 = X (1::nat) 2 3"
-  "x2 = X (1::int) 2 3"
-  "y2 = Y (1::int) 2 3"
+definition "x1 = X (1::nat) 2 3"
+definition "x2 = X (1::int) 2 3"
+definition "y2 = Y (1::int) 2 3"
 
 code_gen "op \<otimes>" \<one> inv
 code_gen X Y (SML) (Haskell)

@@ -19,13 +19,15 @@ North-Holland, 1974.
 subsection {*Closed and Unbounded (c.u.) Classes of Ordinals*}
 
 definition
-  Closed :: "(i=>o) => o"
+  Closed :: "(i=>o) => o" where
     "Closed(P) == \<forall>I. I \<noteq> 0 --> (\<forall>i\<in>I. Ord(i) \<and> P(i)) --> P(\<Union>(I))"
 
-  Unbounded :: "(i=>o) => o"
+definition
+  Unbounded :: "(i=>o) => o" where
     "Unbounded(P) == \<forall>i. Ord(i) --> (\<exists>j. i<j \<and> P(j))"
 
-  Closed_Unbounded :: "(i=>o) => o"
+definition
+  Closed_Unbounded :: "(i=>o) => o" where
     "Closed_Unbounded(P) == Closed(P) \<and> Unbounded(P)"
 
 
@@ -201,16 +203,19 @@ done
 subsection {*Normal Functions*} 
 
 definition
-  mono_le_subset :: "(i=>i) => o"
+  mono_le_subset :: "(i=>i) => o" where
     "mono_le_subset(M) == \<forall>i j. i\<le>j --> M(i) \<subseteq> M(j)"
 
-  mono_Ord :: "(i=>i) => o"
+definition
+  mono_Ord :: "(i=>i) => o" where
     "mono_Ord(F) == \<forall>i j. i<j --> F(i) < F(j)"
 
-  cont_Ord :: "(i=>i) => o"
+definition
+  cont_Ord :: "(i=>i) => o" where
     "cont_Ord(F) == \<forall>l. Limit(l) --> F(l) = (\<Union>i<l. F(i))"
 
-  Normal :: "(i=>i) => o"
+definition
+  Normal :: "(i=>i) => o" where
     "Normal(F) == mono_Ord(F) \<and> cont_Ord(F)"
 
 
@@ -373,7 +378,7 @@ text{*Function @{text normalize} maps a function @{text F} to a
       normal function, by @{thm [source] Normal_imp_fp_Unbounded}.
 *}
 definition
-  normalize :: "[i=>i, i] => i"
+  normalize :: "[i=>i, i] => i" where
     "normalize(F,a) == transrec2(a, F(0), \<lambda>x r. F(succ(x)) Un succ(r))"
 
 
@@ -425,7 +430,7 @@ text {*This is the well-known transfinite enumeration of the cardinal
 numbers.*}
 
 definition
-  Aleph :: "i => i"
+  Aleph :: "i => i" where
     "Aleph(a) == transrec2(a, nat, \<lambda>x r. csucc(r))"
 
 notation (xsymbols)

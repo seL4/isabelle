@@ -80,21 +80,31 @@ theorem iff2 [elim]: "A = B \<Longrightarrow> B \<Longrightarrow> A"
 subsubsection {* Derived connectives *}
 
 definition
-  false :: o    ("\<bottom>")
+  false :: o  ("\<bottom>") where
   "\<bottom> \<equiv> \<forall>A. A"
-  true :: o    ("\<top>")
+
+definition
+  true :: o  ("\<top>") where
   "\<top> \<equiv> \<bottom> \<longrightarrow> \<bottom>"
-  not :: "o \<Rightarrow> o"     ("\<not> _" [40] 40)
+
+definition
+  not :: "o \<Rightarrow> o"  ("\<not> _" [40] 40) where
   "not \<equiv> \<lambda>A. A \<longrightarrow> \<bottom>"
-  conj :: "o \<Rightarrow> o \<Rightarrow> o"    (infixr "\<and>" 35)
+
+definition
+  conj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<and>" 35) where
   "conj \<equiv> \<lambda>A B. \<forall>C. (A \<longrightarrow> B \<longrightarrow> C) \<longrightarrow> C"
-  disj :: "o \<Rightarrow> o \<Rightarrow> o"    (infixr "\<or>" 30)
+
+definition
+  disj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<or>" 30) where
   "disj \<equiv> \<lambda>A B. \<forall>C. (A \<longrightarrow> C) \<longrightarrow> (B \<longrightarrow> C) \<longrightarrow> C"
-  Ex :: "('a \<Rightarrow> o) \<Rightarrow> o"    (binder "\<exists>" 10)
+
+definition
+  Ex :: "('a \<Rightarrow> o) \<Rightarrow> o"  (binder "\<exists>" 10) where
   "Ex \<equiv> \<lambda>P. \<forall>C. (\<forall>x. P x \<longrightarrow> C) \<longrightarrow> C"
 
 abbreviation
-  not_equal :: "'a \<Rightarrow> 'a \<Rightarrow> o"    (infixl "\<noteq>" 50)
+  not_equal :: "'a \<Rightarrow> 'a \<Rightarrow> o"  (infixl "\<noteq>" 50) where
   "x \<noteq> y \<equiv> \<not> (x = y)"
 
 theorem falseE [elim]: "\<bottom> \<Longrightarrow> A"

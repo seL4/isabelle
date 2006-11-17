@@ -36,7 +36,7 @@ recdef_tc while_aux_tc: while_aux
   done
 
 definition
-  while :: "('a => bool) => ('a => 'a) => 'a => 'a"
+  while :: "('a => bool) => ('a => 'a) => 'a => 'a" where
   "while b c s = while_aux (b, c, s)"
 
 lemma while_aux_unfold:

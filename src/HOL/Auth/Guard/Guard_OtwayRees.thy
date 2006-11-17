@@ -16,40 +16,48 @@ theory Guard_OtwayRees imports Guard_Shared begin
 subsection{*messages used in the protocol*}
 
 abbreviation
-  nil :: "msg"
+  nil :: "msg" where
   "nil == Number 0"
 
-  or1 :: "agent => agent => nat => event"
+abbreviation
+  or1 :: "agent => agent => nat => event" where
   "or1 A B NA ==
     Says A B {|Nonce NA, Agent A, Agent B, Ciph A {|Nonce NA, Agent A, Agent B|}|}"
 
-  or1' :: "agent => agent => agent => nat => msg => event"
+abbreviation
+  or1' :: "agent => agent => agent => nat => msg => event" where
   "or1' A' A B NA X == Says A' B {|Nonce NA, Agent A, Agent B, X|}"
 
-  or2 :: "agent => agent => nat => nat => msg => event"
+abbreviation
+  or2 :: "agent => agent => nat => nat => msg => event" where
   "or2 A B NA NB X ==
     Says B Server {|Nonce NA, Agent A, Agent B, X,
                     Ciph B {|Nonce NA, Nonce NB, Agent A, Agent B|}|}"
 
-  or2' :: "agent => agent => agent => nat => nat => event"
+abbreviation
+  or2' :: "agent => agent => agent => nat => nat => event" where
   "or2' B' A B NA NB ==
     Says B' Server {|Nonce NA, Agent A, Agent B,
                      Ciph A {|Nonce NA, Agent A, Agent B|},
                      Ciph B {|Nonce NA, Nonce NB, Agent A, Agent B|}|}"
 
-  or3 :: "agent => agent => nat => nat => key => event"
+abbreviation
+  or3 :: "agent => agent => nat => nat => key => event" where
   "or3 A B NA NB K ==
     Says Server B {|Nonce NA, Ciph A {|Nonce NA, Key K|},
                     Ciph B {|Nonce NB, Key K|}|}"
 
-  or3':: "agent => msg => agent => agent => nat => nat => key => event"
+abbreviation
+  or3':: "agent => msg => agent => agent => nat => nat => key => event" where
   "or3' S Y A B NA NB K ==
     Says S B {|Nonce NA, Y, Ciph B {|Nonce NB, Key K|}|}"
 
-  or4 :: "agent => agent => nat => msg => event"
+abbreviation
+  or4 :: "agent => agent => nat => msg => event" where
   "or4 A B NA X == Says B A {|Nonce NA, X, nil|}"
 
-  or4' :: "agent => agent => nat => key => event"
+abbreviation
+  or4' :: "agent => agent => nat => key => event" where
   "or4' B' A NA K == Says B' A {|Nonce NA, Ciph A {|Nonce NA, Key K|}, nil|}"
 
 subsection{*definition of the protocol*}

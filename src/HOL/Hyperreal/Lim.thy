@@ -15,28 +15,33 @@ text{*Standard and Nonstandard Definitions*}
 
 definition
   LIM :: "['a::real_normed_vector => 'b::real_normed_vector, 'a, 'b] => bool"
-        ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60)
+        ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60) where
   "f -- a --> L =
      (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & norm (x - a) < s
         --> norm (f x - L) < r)"
 
+definition
   NSLIM :: "['a::real_normed_vector => 'b::real_normed_vector, 'a, 'b] => bool"
-            ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60)
+            ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60) where
   "f -- a --NS> L =
     (\<forall>x. (x \<noteq> star_of a & x @= star_of a --> ( *f* f) x @= star_of L))"
 
-  isCont :: "['a::real_normed_vector => 'b::real_normed_vector, 'a] => bool"
+definition
+  isCont :: "['a::real_normed_vector => 'b::real_normed_vector, 'a] => bool" where
   "isCont f a = (f -- a --> (f a))"
 
-  isNSCont :: "['a::real_normed_vector => 'b::real_normed_vector, 'a] => bool"
+definition
+  isNSCont :: "['a::real_normed_vector => 'b::real_normed_vector, 'a] => bool" where
     --{*NS definition dispenses with limit notions*}
   "isNSCont f a = (\<forall>y. y @= star_of a -->
          ( *f* f) y @= star_of (f a))"
 
-  isUCont :: "['a::real_normed_vector => 'b::real_normed_vector] => bool"
+definition
+  isUCont :: "['a::real_normed_vector => 'b::real_normed_vector] => bool" where
   "isUCont f = (\<forall>r>0. \<exists>s>0. \<forall>x y. norm (x - y) < s \<longrightarrow> norm (f x - f y) < r)"
 
-  isNSUCont :: "['a::real_normed_vector => 'b::real_normed_vector] => bool"
+definition
+  isNSUCont :: "['a::real_normed_vector => 'b::real_normed_vector] => bool" where
   "isNSUCont f = (\<forall>x y. x @= y --> ( *f* f) x @= ( *f* f) y)"
 
 

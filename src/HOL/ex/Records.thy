@@ -51,9 +51,11 @@ defs
 subsubsection {* Record selection and record update *}
 
 definition
-  getX :: "'a point_scheme => nat"
+  getX :: "'a point_scheme => nat" where
   "getX r = xpos r"
-  setX :: "'a point_scheme => nat => 'a point_scheme"
+
+definition
+  setX :: "'a point_scheme => nat => 'a point_scheme" where
   "setX r n = r (| xpos := n |)"
 
 
@@ -145,14 +147,14 @@ text {*
 *}
 
 definition
-  foo5 :: nat
+  foo5 :: nat where
   "foo5 = getX (| xpos = 1, ypos = 0 |)"
 
 
 text {* \medskip Manipulating the ``@{text "..."}'' (more) part. *}
 
 definition
-  incX :: "'a point_scheme => 'a point_scheme"
+  incX :: "'a point_scheme => 'a point_scheme" where
   "incX r = (| xpos = xpos r + 1, ypos = ypos r, ... = point.more r |)"
 
 lemma "incX r = setX r (Suc (getX r))"
@@ -162,7 +164,7 @@ lemma "incX r = setX r (Suc (getX r))"
 text {* An alternative definition. *}
 
 definition
-  incX' :: "'a point_scheme => 'a point_scheme"
+  incX' :: "'a point_scheme => 'a point_scheme" where
   "incX' r = r (| xpos := xpos r + 1 |)"
 
 
@@ -194,7 +196,7 @@ text {*
 *}
 
 definition
-  foo10 :: nat
+  foo10 :: nat where
   "foo10 = getX (| xpos = 2, ypos = 0, colour = Blue |)"
 
 
@@ -206,7 +208,7 @@ text {*
 *}
 
 definition
-  foo11 :: cpoint
+  foo11 :: cpoint where
   "foo11 = setX (| xpos = 2, ypos = 0, colour = Blue |) 0"
 
 

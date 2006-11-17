@@ -37,17 +37,17 @@ inductive "r^+"
     trancl_into_trancl [Pure.intro]: "(a, b) : r^+ ==> (b, c) : r ==> (a,c) : r^+"
 
 abbreviation
-  reflcl :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_^=)" [1000] 999)
+  reflcl :: "('a \<times> 'a) set => ('a \<times> 'a) set"  ("(_^=)" [1000] 999) where
   "r^= == r \<union> Id"
 
 notation (xsymbols)
-  rtrancl  ("(_\<^sup>*)" [1000] 999)
-  trancl  ("(_\<^sup>+)" [1000] 999)
+  rtrancl  ("(_\<^sup>*)" [1000] 999) and
+  trancl  ("(_\<^sup>+)" [1000] 999) and
   reflcl  ("(_\<^sup>=)" [1000] 999)
 
 notation (HTML output)
-  rtrancl  ("(_\<^sup>*)" [1000] 999)
-  trancl  ("(_\<^sup>+)" [1000] 999)
+  rtrancl  ("(_\<^sup>*)" [1000] 999) and
+  trancl  ("(_\<^sup>+)" [1000] 999) and
   reflcl  ("(_\<^sup>=)" [1000] 999)
 
 

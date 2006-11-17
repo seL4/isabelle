@@ -8,9 +8,11 @@ consts
   y  :: "'a"
 
 definition
-  YS :: "'a stream"
+  YS :: "'a stream" where
   "YS = fix$(LAM x. y && x)"
-  YYS :: "'a stream"
+
+definition
+  YYS :: "'a stream" where
   "YYS = fix$(LAM z. y && y && z)"
 
 lemma YS_def2: "YS = y && YS"

@@ -111,19 +111,21 @@ defs
 
 
 abbreviation
-  NP  :: xcpt
+  NP  :: xcpt where
   "NP == NullPointer"
 
-  tprg  ::"java_mb prog"
+abbreviation
+  tprg  ::"java_mb prog" where
   "tprg == [ObjectC, BaseC, ExtC, ClassCastC, NullPointerC, OutOfMemoryC]"
 
-  obj1  :: obj
+abbreviation
+  obj1  :: obj where
   "obj1 == (Ext, empty((vee, Base)\<mapsto>Bool False) ((vee, Ext )\<mapsto>Intg 0))"
 
-  "s0 == Norm    (empty, empty)"
-  "s1 == Norm    (empty(a\<mapsto>obj1),empty(e\<mapsto>Addr a))"
-  "s2 == Norm    (empty(a\<mapsto>obj1),empty(x\<mapsto>Null)(This\<mapsto>Addr a))"
-  "s3 == (Some NP, empty(a\<mapsto>obj1),empty(e\<mapsto>Addr a))"
+abbreviation "s0 == Norm    (empty, empty)"
+abbreviation "s1 == Norm    (empty(a\<mapsto>obj1),empty(e\<mapsto>Addr a))"
+abbreviation "s2 == Norm    (empty(a\<mapsto>obj1),empty(x\<mapsto>Null)(This\<mapsto>Addr a))"
+abbreviation "s3 == (Some NP, empty(a\<mapsto>obj1),empty(e\<mapsto>Addr a))"
 
 ML {* bind_thm ("map_of_Cons", hd (tl (thms "map_of.simps"))) *}
 lemma map_of_Cons1 [simp]: "map_of ((aa,bb)#ps) aa = Some bb"

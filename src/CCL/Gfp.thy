@@ -11,7 +11,7 @@ imports Lfp
 begin
 
 definition
-  gfp :: "['a set=>'a set] => 'a set"    (*greatest fixed point*)
+  gfp :: "['a set=>'a set] => 'a set" where -- "greatest fixed point"
   "gfp(f) == Union({u. u <= f(u)})"
 
 (* gfp(f) is the least upper bound of {u. u <= f(u)} *)

@@ -38,25 +38,30 @@ recdef BnorRset
     else {})"
 
 definition
-  norRRset :: "int => int set"
+  norRRset :: "int => int set" where
   "norRRset m = BnorRset (m - 1, m)"
 
-  noXRRset :: "int => int => int set"
+definition
+  noXRRset :: "int => int => int set" where
   "noXRRset m x = (\<lambda>a. a * x) ` norRRset m"
 
-  phi :: "int => nat"
+definition
+  phi :: "int => nat" where
   "phi m = card (norRRset m)"
 
-  is_RRset :: "int set => int => bool"
+definition
+  is_RRset :: "int set => int => bool" where
   "is_RRset A m = (A \<in> RsetR m \<and> card A = phi m)"
 
-  RRset2norRR :: "int set => int => int => int"
+definition
+  RRset2norRR :: "int set => int => int => int" where
   "RRset2norRR A m a =
      (if 1 < m \<and> is_RRset A m \<and> a \<in> A then
         SOME b. zcong a b m \<and> b \<in> norRRset m
       else 0)"
 
-  zcongm :: "int => int => int => bool"
+definition
+  zcongm :: "int => int => int => bool" where
   "zcongm m = (\<lambda>a b. zcong a b m)"
 
 lemma abs_eq_1_iff [iff]: "(abs z = (1::int)) = (z = 1 \<or> z = -1)"

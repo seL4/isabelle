@@ -38,7 +38,7 @@ consts
   "op :"        :: "'a => 'a set => bool"                -- "membership"
 
 notation
-  "op :"  ("op :")
+  "op :"  ("op :") and
   "op :"  ("(_/ : _)" [50, 51] 50)
 
 local
@@ -47,32 +47,32 @@ local
 subsection {* Additional concrete syntax *}
 
 abbreviation
-  range :: "('a => 'b) => 'b set"             -- "of function"
+  range :: "('a => 'b) => 'b set" where -- "of function"
   "range f == f ` UNIV"
 
 abbreviation
-  "not_mem x A == ~ (x : A)"                  -- "non-membership"
+  "not_mem x A == ~ (x : A)" -- "non-membership"
 
 notation
-  not_mem  ("op ~:")
+  not_mem  ("op ~:") and
   not_mem  ("(_/ ~: _)" [50, 51] 50)
 
 notation (xsymbols)
-  "op Int"  (infixl "\<inter>" 70)
-  "op Un"  (infixl "\<union>" 65)
-  "op :"  ("op \<in>")
-  "op :"  ("(_/ \<in> _)" [50, 51] 50)
-  not_mem  ("op \<notin>")
-  not_mem  ("(_/ \<notin> _)" [50, 51] 50)
-  Union  ("\<Union>_" [90] 90)
+  "op Int"  (infixl "\<inter>" 70) and
+  "op Un"  (infixl "\<union>" 65) and
+  "op :"  ("op \<in>") and
+  "op :"  ("(_/ \<in> _)" [50, 51] 50) and
+  not_mem  ("op \<notin>") and
+  not_mem  ("(_/ \<notin> _)" [50, 51] 50) and
+  Union  ("\<Union>_" [90] 90) and
   Inter  ("\<Inter>_" [90] 90)
 
 notation (HTML output)
-  "op Int"  (infixl "\<inter>" 70)
-  "op Un"  (infixl "\<union>" 65)
-  "op :"  ("op \<in>")
-  "op :"  ("(_/ \<in> _)" [50, 51] 50)
-  not_mem  ("op \<notin>")
+  "op Int"  (infixl "\<inter>" 70) and
+  "op Un"  (infixl "\<union>" 65) and
+  "op :"  ("op \<in>") and
+  "op :"  ("(_/ \<in> _)" [50, 51] 50) and
+  not_mem  ("op \<notin>") and
   not_mem  ("(_/ \<notin> _)" [50, 51] 50)
 
 syntax
@@ -149,33 +149,37 @@ instance set :: (type) ord
   psubset_def:  "A < B          == (A::'a set) <= B & ~ A=B" ..
 
 abbreviation
-  subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+  subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
   "subset == less"
-  subset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+
+abbreviation
+  subset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
   "subset_eq == less_eq"
 
 notation (output)
-  subset  ("op <")
-  subset  ("(_/ < _)" [50, 51] 50)
-  subset_eq  ("op <=")
+  subset  ("op <") and
+  subset  ("(_/ < _)" [50, 51] 50) and
+  subset_eq  ("op <=") and
   subset_eq  ("(_/ <= _)" [50, 51] 50)
 
 notation (xsymbols)
-  subset  ("op \<subset>")
-  subset  ("(_/ \<subset> _)" [50, 51] 50)
-  subset_eq  ("op \<subseteq>")
+  subset  ("op \<subset>") and
+  subset  ("(_/ \<subset> _)" [50, 51] 50) and
+  subset_eq  ("op \<subseteq>") and
   subset_eq  ("(_/ \<subseteq> _)" [50, 51] 50)
 
 notation (HTML output)
-  subset  ("op \<subset>")
-  subset  ("(_/ \<subset> _)" [50, 51] 50)
-  subset_eq  ("op \<subseteq>")
+  subset  ("op \<subset>") and
+  subset  ("(_/ \<subset> _)" [50, 51] 50) and
+  subset_eq  ("op \<subseteq>") and
   subset_eq  ("(_/ \<subseteq> _)" [50, 51] 50)
 
 abbreviation (input)
-  supset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"    (infixl "\<supset>" 50)
+  supset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"  (infixl "\<supset>" 50) where
   "supset == greater"
-  supset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"  (infixl "\<supseteq>" 50)
+
+abbreviation (input)
+  supset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"  (infixl "\<supseteq>" 50) where
   "supset_eq == greater_eq"
 
 
@@ -216,6 +220,7 @@ translations
  "\<exists>A\<subseteq>B. P"   =>  "EX A. A \<subseteq> B & P"
  "\<exists>!A\<subseteq>B. P"  =>  "EX! A. A \<subseteq> B & P"
 
+(* FIXME re-use version in Orderings.thy *)
 print_translation {*
 let
   fun

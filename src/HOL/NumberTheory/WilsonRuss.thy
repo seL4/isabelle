@@ -16,7 +16,7 @@ text {*
 subsection {* Definitions and lemmas *}
 
 definition
-  inv :: "int => int => int"
+  inv :: "int => int => int" where
   "inv p a = (a^(nat (p - 2))) mod p"
 
 consts

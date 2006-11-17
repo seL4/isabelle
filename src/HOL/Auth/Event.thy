@@ -29,7 +29,7 @@ consts
 text{*The constant "spies" is retained for compatibility's sake*}
 
 abbreviation (input)
-  spies  :: "event list => msg set"
+  spies  :: "event list => msg set" where
   "spies == knows Spy"
 
 text{*Spy has access to his own key for spoof messages, but Server is secure*}

@@ -30,7 +30,7 @@ axclass
   rec_Suc:       "rec(Suc(m), a, f) = f(m, rec(m, a, f))"
 
 definition
-  add :: "['a::nat, 'a] => 'a"    (infixl "+" 60)
+  add :: "['a::nat, 'a] => 'a"  (infixl "+" 60) where
   "m + n = rec(m, n, %x y. Suc(y))"
 
 lemma Suc_n_not_n: "Suc(k) ~= (k::'a::nat)"

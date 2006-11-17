@@ -10,10 +10,11 @@ imports HOLCF
 begin
 
 definition
-  step  :: "('a -> tr)->('a -> 'a)->'a->'a"
+  step  :: "('a -> tr)->('a -> 'a)->'a->'a" where
   "step = (LAM b g x. If b$x then g$x else x fi)"
 
-  while :: "('a -> tr)->('a -> 'a)->'a->'a"
+definition
+  while :: "('a -> tr)->('a -> 'a)->'a->'a" where
   "while = (LAM b g. fix$(LAM f x. If b$x then f$(g$x) else x fi))"
 
 (* ------------------------------------------------------------------------- *)

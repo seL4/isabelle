@@ -39,13 +39,15 @@ specification (authlife)
     by blast
 
 abbreviation
-  CT :: "event list=>nat"
+  CT :: "event list=>nat" where
   "CT == length "
 
-  expiredK :: "[nat, event list] => bool"
+abbreviation
+  expiredK :: "[nat, event list] => bool" where
   "expiredK T evs == sesKlife + T < CT evs"
 
-  expiredA :: "[nat, event list] => bool"
+abbreviation
+  expiredA :: "[nat, event list] => bool" where
   "expiredA T evs == authlife + T < CT evs"
 
 

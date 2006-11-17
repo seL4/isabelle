@@ -21,23 +21,29 @@ datatype
 
 declare formula.intros [TC]
 
-definition Neg :: "i=>i"
-    "Neg(p) == Nand(p,p)"
+definition
+  Neg :: "i=>i" where
+  "Neg(p) == Nand(p,p)"
 
-definition And :: "[i,i]=>i"
-    "And(p,q) == Neg(Nand(p,q))"
+definition
+  And :: "[i,i]=>i" where
+  "And(p,q) == Neg(Nand(p,q))"
 
-definition Or :: "[i,i]=>i"
-    "Or(p,q) == Nand(Neg(p),Neg(q))"
+definition
+  Or :: "[i,i]=>i" where
+  "Or(p,q) == Nand(Neg(p),Neg(q))"
 
-definition Implies :: "[i,i]=>i"
-    "Implies(p,q) == Nand(p,Neg(q))"
+definition
+  Implies :: "[i,i]=>i" where
+  "Implies(p,q) == Nand(p,Neg(q))"
 
-definition Iff :: "[i,i]=>i"
-    "Iff(p,q) == And(Implies(p,q), Implies(q,p))"
+definition
+  Iff :: "[i,i]=>i" where
+  "Iff(p,q) == And(Implies(p,q), Implies(q,p))"
 
-definition Exists :: "i=>i"
-    "Exists(p) == Neg(Forall(Neg(p)))";
+definition
+  Exists :: "i=>i" where
+  "Exists(p) == Neg(Forall(Neg(p)))";
 
 lemma Neg_type [TC]: "p \<in> formula ==> Neg(p) \<in> formula"
 by (simp add: Neg_def) 
@@ -79,7 +85,7 @@ lemma "p \<in> formula ==> satisfies(A,p) \<in> list(A) -> bool"
 by (induct set: formula) simp_all
 
 abbreviation
-  sats :: "[i,i,i] => o"
+  sats :: "[i,i,i] => o" where
   "sats(A,p,env) == satisfies(A,p)`env = 1"
 
 lemma [simp]:
@@ -246,8 +252,9 @@ done
 
 subsection{*Renaming Some de Bruijn Variables*}
 
-definition incr_var :: "[i,i]=>i"
-    "incr_var(x,nq) == if x<nq then x else succ(x)"
+definition
+  incr_var :: "[i,i]=>i" where
+  "incr_var(x,nq) == if x<nq then x else succ(x)"
 
 lemma incr_var_lt: "x<nq ==> incr_var(x,nq) = x"
 by (simp add: incr_var_def)
@@ -334,8 +341,9 @@ done
 
 subsection{*Renaming all but the First de Bruijn Variable*}
 
-definition incr_bv1 :: "i => i"
-    "incr_bv1(p) == incr_bv(p)`1"
+definition
+  incr_bv1 :: "i => i" where
+  "incr_bv1(p) == incr_bv(p)`1"
 
 
 lemma incr_bv1_type [TC]: "p \<in> formula ==> incr_bv1(p) \<in> formula"
@@ -385,7 +393,8 @@ done
 subsection{*Definable Powerset*}
 
 text{*The definable powerset operation: Kunen's definition VI 1.1, page 165.*}
-definition DPow :: "i => i"
+definition
+  DPow :: "i => i" where
   "DPow(A) == {X \<in> Pow(A). 
                \<exists>env \<in> list(A). \<exists>p \<in> formula. 
                  arity(p) \<le> succ(length(env)) & 
@@ -507,8 +516,9 @@ locale @{text M_trivial}.  Note that the present theory does not even take
 
 subsubsection{*The subset relation*}
 
-definition subset_fm :: "[i,i]=>i"
-    "subset_fm(x,y) == Forall(Implies(Member(0,succ(x)), Member(0,succ(y))))"
+definition
+  subset_fm :: "[i,i]=>i" where
+  "subset_fm(x,y) == Forall(Implies(Member(0,succ(x)), Member(0,succ(y))))"
 
 lemma subset_type [TC]: "[| x \<in> nat; y \<in> nat |] ==> subset_fm(x,y) \<in> formula"
 by (simp add: subset_fm_def) 
@@ -527,8 +537,9 @@ done
 
 subsubsection{*Transitive sets*}
 
-definition transset_fm :: "i=>i"
-   "transset_fm(x) == Forall(Implies(Member(0,succ(x)), subset_fm(0,succ(x))))"
+definition
+  transset_fm :: "i=>i" where
+  "transset_fm(x) == Forall(Implies(Member(0,succ(x)), subset_fm(0,succ(x))))"
 
 lemma transset_type [TC]: "x \<in> nat ==> transset_fm(x) \<in> formula"
 by (simp add: transset_fm_def) 
@@ -547,9 +558,10 @@ done
 
 subsubsection{*Ordinals*}
 
-definition ordinal_fm :: "i=>i"
-   "ordinal_fm(x) == 
-      And(transset_fm(x), Forall(Implies(Member(0,succ(x)), transset_fm(0))))"
+definition
+  ordinal_fm :: "i=>i" where
+  "ordinal_fm(x) == 
+    And(transset_fm(x), Forall(Implies(Member(0,succ(x)), transset_fm(0))))"
 
 lemma ordinal_type [TC]: "x \<in> nat ==> ordinal_fm(x) \<in> formula"
 by (simp add: ordinal_fm_def) 
@@ -579,11 +591,12 @@ done
 subsection{* Constant Lset: Levels of the Constructible Universe *}
 
 definition
-  Lset :: "i=>i"
-    "Lset(i) == transrec(i, %x f. \<Union>y\<in>x. DPow(f`y))"
+  Lset :: "i=>i" where
+  "Lset(i) == transrec(i, %x f. \<Union>y\<in>x. DPow(f`y))"
 
-  L :: "i=>o" --{*Kunen's definition VI 1.5, page 167*}
-    "L(x) == \<exists>i. Ord(i) & x \<in> Lset(i)"
+definition
+  L :: "i=>o" where --{*Kunen's definition VI 1.5, page 167*}
+  "L(x) == \<exists>i. Ord(i) & x \<in> Lset(i)"
   
 text{*NOT SUITABLE FOR REWRITING -- RECURSIVE!*}
 lemma Lset: "Lset(i) = (UN j:i. DPow(Lset(j)))"
@@ -825,8 +838,8 @@ done
 
 text{*The rank function for the constructible universe*}
 definition
-  lrank :: "i=>i" --{*Kunen's definition VI 1.7*}
-    "lrank(x) == \<mu> i. x \<in> Lset(succ(i))"
+  lrank :: "i=>i" where --{*Kunen's definition VI 1.7*}
+  "lrank(x) == \<mu> i. x \<in> Lset(succ(i))"
 
 lemma L_I: "[|x \<in> Lset(i); Ord(i)|] ==> L(x)"
 by (simp add: L_def, blast)
@@ -984,7 +997,8 @@ done
 
 
 text{*A simpler version of @{term DPow}: no arity check!*}
-definition DPow' :: "i => i"
+definition
+  DPow' :: "i => i" where
   "DPow'(A) == {X \<in> Pow(A). 
                 \<exists>env \<in> list(A). \<exists>p \<in> formula. 
                     X = {x\<in>A. sats(A, p, Cons(x,env))}}"

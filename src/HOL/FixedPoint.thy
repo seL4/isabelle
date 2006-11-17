@@ -20,12 +20,13 @@ consts
 defs Sup_def: "Sup A == Meet {b. \<forall>a \<in> A. a <= b}"
 
 definition
- SUP :: "('a \<Rightarrow> 'b::order) \<Rightarrow> 'b" (binder "SUP " 10)
-"SUP x. f x == Sup (f ` UNIV)"
+  SUP :: "('a \<Rightarrow> 'b::order) \<Rightarrow> 'b"  (binder "SUP " 10) where
+  "SUP x. f x == Sup (f ` UNIV)"
+
 (*
 abbreviation
- bot :: "'a::order"
-"bot == Sup {}"
+  bot :: "'a::order" where
+  "bot == Sup {}"
 *)
 axclass comp_lat < order
   Meet_lower: "x \<in> A \<Longrightarrow> Meet A <= x"

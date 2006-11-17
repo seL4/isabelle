@@ -66,7 +66,7 @@ qed
 text {* \medskip The recursion operator -- polymorphic! *}
 
 definition
-  rec :: "'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> 'a"
+  rec :: "'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> 'a" where
   "rec e r x = (THE y. Rec e r x y)"
 
 lemma rec_eval:
@@ -92,7 +92,7 @@ qed
 text {* \medskip Example: addition (monomorphic) *}
 
 definition
-  add :: "'n \<Rightarrow> 'n \<Rightarrow> 'n"
+  add :: "'n \<Rightarrow> 'n \<Rightarrow> 'n" where
   "add m n = rec n (\<lambda>_ k. succ k) m"
 
 lemma add_zero [simp]: "add zero n = n"
@@ -116,7 +116,7 @@ lemma "add (succ (succ (succ zero))) (succ (succ zero)) =
 text {* \medskip Example: replication (polymorphic) *}
 
 definition
-  repl :: "'n \<Rightarrow> 'a \<Rightarrow> 'a list"
+  repl :: "'n \<Rightarrow> 'a \<Rightarrow> 'a list" where
   "repl n x = rec [] (\<lambda>_ xs. x # xs) n"
 
 lemma repl_zero [simp]: "repl zero x = []"

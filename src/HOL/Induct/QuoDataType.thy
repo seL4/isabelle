@@ -23,7 +23,7 @@ provided the keys are the same.*}
 consts  msgrel :: "(freemsg * freemsg) set"
 
 abbreviation
-  msg_rel :: "[freemsg, freemsg] => bool"  (infixl "~~" 50)
+  msg_rel :: "[freemsg, freemsg] => bool"  (infixl "~~" 50) where
   "X ~~ Y == (X,Y) \<in> msgrel"
 
 notation (xsymbols)
@@ -143,18 +143,21 @@ typedef (Msg)  msg = "UNIV//msgrel"
 
 text{*The abstract message constructors*}
 definition
-  Nonce :: "nat \<Rightarrow> msg"
+  Nonce :: "nat \<Rightarrow> msg" where
   "Nonce N = Abs_Msg(msgrel``{NONCE N})"
 
-  MPair :: "[msg,msg] \<Rightarrow> msg"
+definition
+  MPair :: "[msg,msg] \<Rightarrow> msg" where
    "MPair X Y =
        Abs_Msg (\<Union>U \<in> Rep_Msg X. \<Union>V \<in> Rep_Msg Y. msgrel``{MPAIR U V})"
 
-  Crypt :: "[nat,msg] \<Rightarrow> msg"
+definition
+  Crypt :: "[nat,msg] \<Rightarrow> msg" where
    "Crypt K X =
        Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{CRYPT K U})"
 
-  Decrypt :: "[nat,msg] \<Rightarrow> msg"
+definition
+  Decrypt :: "[nat,msg] \<Rightarrow> msg" where
    "Decrypt K X =
        Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{DECRYPT K U})"
 
@@ -228,7 +231,7 @@ by (cases X, simp add: Crypt Decrypt DC)
 subsection{*The Abstract Function to Return the Set of Nonces*}
 
 definition
-  nonces :: "msg \<Rightarrow> nat set"
+  nonces :: "msg \<Rightarrow> nat set" where
    "nonces X = (\<Union>U \<in> Rep_Msg X. freenonces U)"
 
 lemma nonces_congruent: "freenonces respects msgrel"
@@ -263,7 +266,7 @@ done
 subsection{*The Abstract Function to Return the Left Part*}
 
 definition
-  left :: "msg \<Rightarrow> msg"
+  left :: "msg \<Rightarrow> msg" where
    "left X = Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeleft U})"
 
 lemma left_congruent: "(\<lambda>U. msgrel `` {freeleft U}) respects msgrel"
@@ -297,7 +300,7 @@ done
 subsection{*The Abstract Function to Return the Right Part*}
 
 definition
-  right :: "msg \<Rightarrow> msg"
+  right :: "msg \<Rightarrow> msg" where
    "right X = Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeright U})"
 
 lemma right_congruent: "(\<lambda>U. msgrel `` {freeright U}) respects msgrel"
@@ -432,7 +435,7 @@ text{*However, as @{text Crypt_Nonce_neq_Nonce} above illustrates, we don't
 need this function in order to prove discrimination theorems.*}
 
 definition
-  discrim :: "msg \<Rightarrow> int"
+  discrim :: "msg \<Rightarrow> int" where
    "discrim X = contents (\<Union>U \<in> Rep_Msg X. {freediscrim U})"
 
 lemma discrim_congruent: "(\<lambda>U. {freediscrim U}) respects msgrel"

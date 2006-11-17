@@ -11,23 +11,27 @@ begin
 subsection {* booleans *}
 
 definition
-  xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"
+  xor :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
   "xor p q = ((p | q) & \<not> (p & q))"
 
 subsection {* natural numbers *}
 
 definition
-  n :: nat
+  n :: nat where
   "n = 42"
 
 subsection {* pairs *}
 
 definition
-  swap :: "'a * 'b \<Rightarrow> 'b * 'a"
+  swap :: "'a * 'b \<Rightarrow> 'b * 'a" where
   "swap p = (let (x, y) = p in (y, x))"
-  appl :: "('a \<Rightarrow> 'b) * 'a \<Rightarrow> 'b"
+
+definition
+  appl :: "('a \<Rightarrow> 'b) * 'a \<Rightarrow> 'b" where
   "appl p = (let (f, x) = p in f x)"
-  snd_three :: "'a * 'b * 'c => 'b"
+
+definition
+  snd_three :: "'a * 'b * 'c => 'b" where
   "snd_three a = id (\<lambda>(a, b, c). b) a"
 
 lemma [code]:
@@ -41,7 +45,7 @@ lemma [code]:
 subsection {* integers *}
 
 definition
-  k :: "int"
+  k :: "int" where
   "k = -42"
 
 function
@@ -59,9 +63,11 @@ subsection {* options *}
 subsection {* lists *}
 
 definition
-  ps :: "nat list"
+  ps :: "nat list" where
   "ps = [2, 3, 5, 7, 11]"
-  qs :: "nat list"
+
+definition
+  qs :: "nat list" where
   "qs == rev ps"
 
 subsection {* mutual datatypes *}

@@ -32,32 +32,37 @@ primrec
   "funsum f i (Suc n) = f (Suc (i + n)) + funsum f i n"
 
 definition
-  m_cond :: "nat => (nat => int) => bool"
+  m_cond :: "nat => (nat => int) => bool" where
   "m_cond n mf =
     ((\<forall>i. i \<le> n --> 0 < mf i) \<and>
       (\<forall>i j. i \<le> n \<and> j \<le> n \<and> i \<noteq> j --> zgcd (mf i, mf j) = 1))"
 
-  km_cond :: "nat => (nat => int) => (nat => int) => bool"
+definition
+  km_cond :: "nat => (nat => int) => (nat => int) => bool" where
   "km_cond n kf mf = (\<forall>i. i \<le> n --> zgcd (kf i, mf i) = 1)"
 
+definition
   lincong_sol ::
-    "nat => (nat => int) => (nat => int) => (nat => int) => int => bool"
+    "nat => (nat => int) => (nat => int) => (nat => int) => int => bool" where
   "lincong_sol n kf bf mf x = (\<forall>i. i \<le> n --> zcong (kf i * x) (bf i) (mf i))"
 
-  mhf :: "(nat => int) => nat => nat => int"
+definition
+  mhf :: "(nat => int) => nat => nat => int" where
   "mhf mf n i =
     (if i = 0 then funprod mf (Suc 0) (n - Suc 0)
      else if i = n then funprod mf 0 (n - Suc 0)
      else funprod mf 0 (i - Suc 0) * funprod mf (Suc i) (n - Suc 0 - i))"
 
+definition
   xilin_sol ::
-    "nat => nat => (nat => int) => (nat => int) => (nat => int) => int"
+    "nat => nat => (nat => int) => (nat => int) => (nat => int) => int" where
   "xilin_sol i n kf bf mf =
     (if 0 < n \<and> i \<le> n \<and> m_cond n mf \<and> km_cond n kf mf then
         (SOME x. 0 \<le> x \<and> x < mf i \<and> zcong (kf i * mhf mf n i * x) (bf i) (mf i))
      else 0)"
 
-  x_sol :: "nat => (nat => int) => (nat => int) => (nat => int) => int"
+definition
+  x_sol :: "nat => (nat => int) => (nat => int) => (nat => int) => int" where
   "x_sol n kf bf mf = funsum (\<lambda>i. xilin_sol i n kf bf mf * mhf mf n i) 0 n"
 
 

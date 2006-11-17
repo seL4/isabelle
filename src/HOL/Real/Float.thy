@@ -11,9 +11,11 @@ uses ("float.ML")
 begin
 
 definition
-  pow2 :: "int \<Rightarrow> real"
+  pow2 :: "int \<Rightarrow> real" where
   "pow2 a = (if (0 <= a) then (2^(nat a)) else (inverse (2^(nat (-a)))))"
-  float :: "int * int \<Rightarrow> real"
+
+definition
+  float :: "int * int \<Rightarrow> real" where
   "float x = real (fst x) * pow2 (snd x)"
 
 lemma pow2_0[simp]: "pow2 0 = 1"
@@ -99,9 +101,11 @@ lemma "float (a, e) + float (b, e) = float (a + b, e)"
 by (simp add: float_def ring_eq_simps)
 
 definition
-  int_of_real :: "real \<Rightarrow> int"
+  int_of_real :: "real \<Rightarrow> int" where
   "int_of_real x = (SOME y. real y = x)"
-  real_is_int :: "real \<Rightarrow> bool"
+
+definition
+  real_is_int :: "real \<Rightarrow> bool" where
   "real_is_int x = (EX (u::int). x = real u)"
 
 lemma real_is_int_def2: "real_is_int x = (x = real (int_of_real x))"

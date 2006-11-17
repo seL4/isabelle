@@ -16,31 +16,38 @@ theory Guard_Yahalom imports Guard_Shared begin
 subsection{*messages used in the protocol*}
 
 abbreviation (input)
-  ya1 :: "agent => agent => nat => event"
+  ya1 :: "agent => agent => nat => event" where
   "ya1 A B NA == Says A B {|Agent A, Nonce NA|}"
 
-  ya1' :: "agent => agent => agent => nat => event"
+abbreviation (input)
+  ya1' :: "agent => agent => agent => nat => event" where
   "ya1' A' A B NA == Says A' B {|Agent A, Nonce NA|}"
 
-  ya2 :: "agent => agent => nat => nat => event"
+abbreviation (input)
+  ya2 :: "agent => agent => nat => nat => event" where
   "ya2 A B NA NB == Says B Server {|Agent B, Ciph B {|Agent A, Nonce NA, Nonce NB|}|}"
 
-  ya2' :: "agent => agent => agent => nat => nat => event"
+abbreviation (input)
+  ya2' :: "agent => agent => agent => nat => nat => event" where
   "ya2' B' A B NA NB == Says B' Server {|Agent B, Ciph B {|Agent A, Nonce NA, Nonce NB|}|}"
 
-  ya3 :: "agent => agent => nat => nat => key => event"
+abbreviation (input)
+  ya3 :: "agent => agent => nat => nat => key => event" where
   "ya3 A B NA NB K ==
     Says Server A {|Ciph A {|Agent B, Key K, Nonce NA, Nonce NB|},
                     Ciph B {|Agent A, Key K|}|}"
 
-  ya3':: "agent => msg => agent => agent => nat => nat => key => event"
+abbreviation (input)
+  ya3':: "agent => msg => agent => agent => nat => nat => key => event" where
   "ya3' S Y A B NA NB K ==
     Says S A {|Ciph A {|Agent B, Key K, Nonce NA, Nonce NB|}, Y|}"
 
-  ya4 :: "agent => agent => nat => nat => msg => event"
+abbreviation (input)
+  ya4 :: "agent => agent => nat => nat => msg => event" where
   "ya4 A B K NB Y == Says A B {|Y, Crypt K (Nonce NB)|}"
 
-  ya4' :: "agent => agent => nat => nat => msg => event"
+abbreviation (input)
+  ya4' :: "agent => agent => nat => nat => msg => event" where
   "ya4' A' B K NB Y == Says A' B {|Y, Crypt K (Nonce NB)|}"
 
 

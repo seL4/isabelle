@@ -57,13 +57,15 @@ consts
   beta :: "(dB \<times> dB) set"
 
 abbreviation
-  beta_red :: "[dB, dB] => bool"  (infixl "->" 50)
+  beta_red :: "[dB, dB] => bool"  (infixl "->" 50) where
   "s -> t == (s, t) \<in> beta"
-  beta_reds :: "[dB, dB] => bool"  (infixl "->>" 50)
+
+abbreviation
+  beta_reds :: "[dB, dB] => bool"  (infixl "->>" 50) where
   "s ->> t == (s, t) \<in> beta^*"
 
 notation (latex)
-  beta_red  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
+  beta_red  (infixl "\<rightarrow>\<^sub>\<beta>" 50) and
   beta_reds  (infixl "\<rightarrow>\<^sub>\<beta>\<^sup>*" 50)
 
 inductive beta
