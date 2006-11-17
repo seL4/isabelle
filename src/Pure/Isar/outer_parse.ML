@@ -62,6 +62,7 @@ sig
   val opt_mixfix: token list -> mixfix * token list
   val opt_infix': token list -> mixfix * token list
   val opt_mixfix': token list -> mixfix * token list
+  val where_: token list -> string * token list
   val const: token list -> (string * string * mixfix) * token list
   val simple_fixes: token list -> (string * string option) list * token list
   val fixes: token list -> (string * string option * mixfix) list * token list
@@ -266,6 +267,8 @@ val opt_mixfix' = opt_annotation I (mfix || binder || infxl || infxr || infx);
 
 
 (* fixes *)
+
+val where_ = $$$ "where";
 
 val const = name -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
 
