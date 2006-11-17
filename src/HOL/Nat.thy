@@ -111,16 +111,20 @@ lemma Suc_Suc_eq [iff]: "(Suc m = Suc n) = (m = n)"
 lemma nat_not_singleton: "(\<forall>x. x = (0::nat)) = False"
   by auto
 
+text {* size of a datatype value *}
 
-text {* size of a datatype value; overloaded *}
-consts size :: "'a => nat"
+class size =
+  fixes size :: "'a \<Rightarrow> nat"
 
 text {* @{typ nat} is a datatype *}
 
 rep_datatype nat
   distinct  Suc_not_Zero Zero_not_Suc
   inject    Suc_Suc_eq
-  induction nat_induct [case_names 0 Suc]
+  induction nat_induct
+
+declare nat.induct [case_names 0 Suc, induct type: nat]
+declare nat.exhaust [case_names 0 Suc, cases type: nat]
 
 lemma n_not_Suc_n: "n \<noteq> Suc n"
   by (induct n) simp_all
@@ -472,11 +476,8 @@ lemma one_reorient: "(1 = x) = (x = 1)"
 
 subsection {* Arithmetic operators *}
 
-axclass power < type
-
-consts
-  power :: "('a::power) => nat => 'a"            (infixr "^" 80)
-
+class power =
+  fixes power :: "'a \<Rightarrow> nat \<Rightarrow> 'a"            (infixr "\<^loc>^" 80)
 
 text {* arithmetic operators @{text "+ -"} and @{text "*"} *}
 
