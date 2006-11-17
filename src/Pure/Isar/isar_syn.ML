@@ -218,7 +218,7 @@ val abbreviationP =
 
 val notationP =
   OuterSyntax.command "notation" "variable/constant syntax" K.thy_decl
-    (P.opt_locale_target -- opt_mode -- Scan.repeat1 (P.xname -- P.mixfix)
+    (P.opt_locale_target -- opt_mode -- P.and_list1 (P.xname -- P.mixfix)
     >> (fn ((loc, mode), args) =>
         Toplevel.local_theory loc (Specification.notation mode args)));
 
