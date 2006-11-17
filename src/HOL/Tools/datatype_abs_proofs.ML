@@ -399,7 +399,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
     val big_name = space_implode "_" new_type_names;
     val thy1 = add_path flat_names big_name thy;
 
-    val descr' = List.concat descr;
+    val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
 
     val size_name = "Nat.size";
@@ -414,24 +414,35 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
     fun make_sizefun (_, cargs) =
       let
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
-        val k = length (List.filter is_rec_type cargs);
+        val k = length (filter is_rec_type cargs);
         val t = if k = 0 then HOLogic.zero else
           foldl1 plus (map Bound (k - 1 downto 0) @ [HOLogic.mk_nat 1])
       in
         foldr (fn (T, t') => Abs ("x", T, t')) t (Ts @ replicate k HOLogic.natT)
       end;
 
-    val fs = List.concat (map (fn (_, (_, _, constrs)) => map make_sizefun constrs) descr');
+    val fs = maps (fn (_, (_, _, constrs)) => map make_sizefun constrs) descr';
     val fTs = map fastype_of fs;
+
+    fun instance_size_class tyco thy =
+      let
+        val size_sort = ["Nat.size"];
+        val n = Sign.arity_number thy tyco;
+      in
+        thy
+        |> AxClass.prove_arity (tyco, replicate n HOLogic.typeS, size_sort)
+             (ClassPackage.intro_classes_tac [])
+      end
 
     val (size_def_thms, thy') =
       thy1
       |> Theory.add_consts_i (map (fn (s, T) =>
            (Sign.base_name s, T --> HOLogic.natT, NoSyn))
            (Library.drop (length (hd descr), size_names ~~ recTs)))
-      |> (PureThy.add_defs_i true o map Thm.no_attributes) (map (fn (((s, T), def_name), rec_name) =>
+      |> fold (fn (_, (name, _, _)) => instance_size_class name) descr'
+      |> PureThy.add_defs_i true (map (Thm.no_attributes o (fn (((s, T), def_name), rec_name) =>
            (def_name, Logic.mk_equals (Const (s, T --> HOLogic.natT),
-            list_comb (Const (rec_name, fTs @ [T] ---> HOLogic.natT), fs))))
+            list_comb (Const (rec_name, fTs @ [T] ---> HOLogic.natT), fs)))))
             (size_names ~~ recTs ~~ def_names ~~ reccomb_names))
       ||> parent_path flat_names;
 
@@ -446,7 +457,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
     |> Theory.add_path big_name
     |> PureThy.add_thmss [(("size", size_thms), [])]
     ||> Theory.parent_path
-    |-> (fn thmss => pair (Library.flat thmss))
+    |-> (fn thmss => pair (flat thmss))
   end;
 
 fun prove_weak_case_congs new_type_names descr sorts thy =

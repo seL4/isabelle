@@ -640,11 +640,22 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
     val case_names = map (fn s => (s ^ "_case")) new_type_names;
 
+    fun instance_size_class tyco thy =
+      let
+        val size_sort = ["Nat.size"];
+        val n = Sign.arity_number thy tyco;
+      in
+        thy
+        |> AxClass.prove_arity (tyco, replicate n HOLogic.typeS, size_sort)
+             (ClassPackage.intro_classes_tac [])
+      end
+
     val thy2' = thy
 
       (** new types **)
-      |> fold (fn ((name, mx), tvs) => TypedefPackage.add_typedecls [(name, tvs, mx)])
-           (types_syntax ~~ tyvars)
+      |> fold2 (fn (name, mx) => fn tvs => TypedefPackage.add_typedecls [(name, tvs, mx)])
+           types_syntax tyvars
+      |> fold (fn (_, (name, _, _)) => instance_size_class name) descr'
       |> add_path flat_names (space_implode "_" new_type_names)
 
       (** primrec combinators **)
@@ -813,8 +824,6 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
 
 fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induction thy0 =
   let
-    val _ = Theory.requires thy0 "Inductive" "datatype representations";
-
     val (((distinct, inject), [induction]), thy1) =
       thy0
       |> fold_map apply_theorems raw_distinct
@@ -852,13 +861,8 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
     val sorts = add_term_tfrees (concl_of induction', []);
     val dt_info = get_datatypes thy1;
 
-    val (case_names_induct, case_names_exhausts) = case RuleCases.get induction
-     of (("1", _) :: _, _) => (mk_case_names_induct descr, mk_case_names_exhausts descr (map #1 dtnames))
-      | (cases, _) => (RuleCases.case_names (map fst cases),
-          replicate (length ((filter (fn ((_, (name, _, _))) => member (op =)
-            (map #1 dtnames) name) descr)))
-            (RuleCases.case_names (map fst cases)));
-    
+    val (case_names_induct, case_names_exhausts) =
+      (mk_case_names_induct descr, mk_case_names_exhausts descr (map #1 dtnames));
 
     val _ = message ("Proofs for datatype(s) " ^ commas_quote new_type_names);
 
