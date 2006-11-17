@@ -21,7 +21,7 @@ primrec (relpow)
 
 
 instance
-  fun :: (type, type) power ..
+  "fun" :: (type, type) power ..
       --{* only type @{typ "'a => 'a"} should be in class @{text power}!*}
 
 (*f^n = f o ... o f, the n-fold composition of f*)
@@ -34,6 +34,21 @@ functions and relations has too general a domain, namely @{typ "('a * 'b)set"}
 and @{typ "'a => 'b"}.  Explicit type constraints may therefore be necessary.
 For example, @{term "range(f^n) = A"} and @{term "Range(R^n) = B"} need
 constraints.*}
+
+text {*
+  Circumvent this problem for code generation:
+*}
+
+definition
+  funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
+  funpow_def: "funpow n f = f ^ n"
+
+lemmas [code inline] = funpow_def [symmetric]
+
+lemma [code func]:
+  "funpow 0 f = id"
+  "funpow (Suc n) f = f o funpow n f"
+  unfolding funpow_def by simp_all
 
 lemma funpow_add: "f ^ (m+n) = f^m o f^n"
   by (induct m) simp_all
