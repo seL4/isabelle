@@ -208,11 +208,11 @@ locale linorder = partial_order +
   assumes linear: "x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
 begin
 
-lemma trichotomy: "x \<sqsubset> y \<or> x = y \<or> y \<sqsubset> x"
+lemma less_linear: "x \<sqsubset> y \<or> x = y \<or> y \<sqsubset> x"
   unfolding less_le using less_le linear by blast 
 
 lemma le_less_linear: "x \<sqsubseteq> y \<or> y \<sqsubset> x"
-  by (simp add: le_less trichotomy)
+  by (simp add: le_less less_linear)
 
 lemma le_cases [case_names le ge]:
   "\<lbrakk> x \<sqsubseteq> y \<Longrightarrow> P; y \<sqsubseteq> x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
@@ -220,7 +220,7 @@ lemma le_cases [case_names le ge]:
 
 lemma cases [case_names less equal greater]:
     "\<lbrakk> x \<sqsubset> y \<Longrightarrow> P; x = y \<Longrightarrow> P; y \<sqsubset> x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
-  using trichotomy by blast
+  using less_linear by blast
 
 lemma not_less: "\<not> x \<sqsubset> y \<longleftrightarrow> y \<sqsubseteq> x"
   apply (simp add: less_le)
@@ -233,7 +233,7 @@ lemma not_le: "\<not> x \<sqsubseteq> y \<longleftrightarrow> y \<sqsubset> x"
   done
 
 lemma neq_iff: "x \<noteq> y \<longleftrightarrow> x \<sqsubset> y \<or> y \<sqsubset> x"
-  by (cut_tac x = x and y = y in trichotomy, auto)
+  by (cut_tac x = x and y = y in less_linear, auto)
 
 lemma neqE: "\<lbrakk> x \<noteq> y; x \<sqsubset> y \<Longrightarrow> R; y \<sqsubset> x \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
   by (simp add: neq_iff) blast
@@ -278,19 +278,19 @@ lemma le_max_iff_disj:
 
 lemma min_less_iff_disj:
   "min x y \<sqsubset> z \<longleftrightarrow> x \<sqsubset> z \<or> y \<sqsubset> z"
-  unfolding min_def le_less using trichotomy by (auto intro: less_trans)
+  unfolding min_def le_less using less_linear by (auto intro: less_trans)
 
 lemma less_max_iff_disj:
   "z \<sqsubset> max x y \<longleftrightarrow> z \<sqsubset> x \<or> z \<sqsubset> y"
-  unfolding max_def le_less using trichotomy by (auto intro: less_trans)
+  unfolding max_def le_less using less_linear by (auto intro: less_trans)
 
 lemma min_less_iff_conj [simp]:
   "z \<sqsubset> min x y \<longleftrightarrow> z \<sqsubset> x \<and> z \<sqsubset> y"
-  unfolding min_def le_less using trichotomy by (auto intro: less_trans)
+  unfolding min_def le_less using less_linear by (auto intro: less_trans)
 
 lemma max_less_iff_conj [simp]:
   "max x y \<sqsubset> z \<longleftrightarrow> x \<sqsubset> z \<and> y \<sqsubset> z"
-  unfolding max_def le_less using trichotomy by (auto intro: less_trans)
+  unfolding max_def le_less using less_linear by (auto intro: less_trans)
 
 lemma split_min:
   "P (min i j) \<longleftrightarrow> (i \<sqsubseteq> j \<longrightarrow> P i) \<and> (\<not> i \<sqsubseteq> j \<longrightarrow> P j)"
@@ -332,7 +332,7 @@ lemmas order_less_imp_not_eq2 [where 'b = "?'a::order"] = order.less_imp_not_eq2
 lemmas order_neq_le_trans [where 'b = "?'a::order"] = order.neq_le_trans
 lemmas order_le_neq_trans [where 'b = "?'a::order"] = order.le_neq_trans
 lemmas order_less_asym' [where 'b = "?'a::order"] = order.less_asym'
-lemmas linorder_less_linear [where 'b = "?'a::linorder"] = linorder.trichotomy
+lemmas linorder_less_linear [where 'b = "?'a::linorder"] = linorder.less_linear
 lemmas linorder_le_less_linear [where 'b = "?'a::linorder"] = linorder.le_less_linear
 lemmas linorder_le_cases [where 'b = "?'a::linorder"] = linorder.le_cases
 lemmas linorder_cases [where 'b = "?'a::linorder"] = linorder.cases
