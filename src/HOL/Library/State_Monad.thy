@@ -144,7 +144,6 @@ lemma run_simp [simp]:
   "\<And>f. run f = f \<longleftrightarrow> True"
   unfolding run_def by rule+
 
-
 subsection {* Monad laws *}
 
 text {*
@@ -159,6 +158,14 @@ lemma
 lemma
   mbind_return [simp]: "x \<guillemotright>= return = x"
   unfolding mbind_def by (simp add: expand_fun_eq split_Pair)
+
+lemma
+  id_fcomp [simp]: "id \<guillemotright> f = f"
+  unfolding fcomp_def by simp
+
+lemma
+  fcomp_id [simp]: "f \<guillemotright> id = f"
+  unfolding fcomp_def by simp
 
 lemma
   mbind_mbind [simp]: "(f \<guillemotright>= g) \<guillemotright>= h = f \<guillemotright>= (\<lambda>x. g x \<guillemotright>= h)"
@@ -176,7 +183,7 @@ lemma
   fcomp_fcomp [simp]: "(f \<guillemotright> g) \<guillemotright> h = f \<guillemotright> (g \<guillemotright> h)"
   unfolding fcomp_def o_assoc ..
 
-lemmas monad_simp = run_simp return_mbind mbind_return
+lemmas monad_simp = run_simp return_mbind mbind_return id_fcomp fcomp_id
   mbind_mbind mbind_fcomp fcomp_mbind fcomp_fcomp
 
 text {*
@@ -244,6 +251,61 @@ let
 in [
   (syntax_name "State_Monad.run", tr')
 ] end;
+*}
+
+subsection {* Combinators *}
+
+definition
+  lift :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c \<Rightarrow> 'b \<times> 'c"
+  "lift f x = return (f x)"
+
+fun
+  list :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
+  "list f [] = id"
+  "list f (x#xs) = (do f x; list f xs done)"
+lemmas [code] = list.simps
+
+fun list_yield :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<times> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'c list \<times> 'b" where
+  "list_yield f [] = return []"
+  "list_yield f (x#xs) = (do y \<leftarrow> f x; ys \<leftarrow> list_yield f xs; return (y#ys) done)"
+lemmas [code] = list_yield.simps
+  
+text {* combinator properties *}
+
+lemma list_append [simp]:
+  "list f (xs @ ys) = list f xs \<guillemotright> list f ys"
+  by (induct xs) (simp_all del: id_apply) (*FIXME*)
+
+lemma list_cong [fundef_cong, recdef_cong]:
+  "\<lbrakk> \<And>x. x \<in> set xs \<Longrightarrow> f x = g x; xs = ys \<rbrakk>
+    \<Longrightarrow> list f xs = list g ys"
+proof (induct f xs arbitrary: g ys rule: list.induct)
+  case 1 then show ?case by simp
+next
+  case (2 f x xs g)
+  from 2 have "\<And>y. y \<in> set (x # xs) \<Longrightarrow> f y = g y" by auto
+  then have "\<And>y. y \<in> set xs \<Longrightarrow> f y = g y" by auto
+  with 2 have "list f xs = list g xs" by auto
+  with 2 have "list f (x # xs) = list g (x # xs)" by auto
+  with 2 show "list f (x # xs) = list g ys" by auto
+qed
+
+lemma list_yield_cong [fundef_cong, recdef_cong]:
+  "\<lbrakk> \<And>x. x \<in> set xs \<Longrightarrow> f x = g x; xs = ys \<rbrakk>
+    \<Longrightarrow> list_yield f xs = list_yield g ys"
+proof (induct f xs arbitrary: g ys rule: list_yield.induct)
+  case 1 then show ?case by simp
+next
+  case (2 f x xs g)
+  from 2 have "\<And>y. y \<in> set (x # xs) \<Longrightarrow> f y = g y" by auto
+  then have "\<And>y. y \<in> set xs \<Longrightarrow> f y = g y" by auto
+  with 2 have "list_yield f xs = list_yield g xs" by auto
+  with 2 have "list_yield f (x # xs) = list_yield g (x # xs)" by auto
+  with 2 show "list_yield f (x # xs) = list_yield g ys" by auto
+qed
+
+text {*
+  still waiting for extensions@{text "\<dots>"}
 *}
 
 text {*
