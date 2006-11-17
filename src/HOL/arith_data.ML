@@ -460,8 +460,8 @@ fun is_split_thm (thm : thm) : bool =
                                     "HOL.abs",
                                     "HOL.minus",
                                     "IntDef.nat",
-                                    "Divides.op mod",
-                                    "Divides.op div"]
+                                    "Divides.mod",
+                                    "Divides.div"]
     | _            => (warning ("Lin. Arith.: wrong format for split rule " ^
                                  Display.string_of_thm thm);
                        false))
@@ -620,7 +620,7 @@ in
     (* "?P ((?n::nat) mod (number_of ?k)) =
          ((number_of ?k = 0 --> ?P ?n) & (~ (number_of ?k = 0) -->
            (ALL i j. j < number_of ?k --> ?n = number_of ?k * i + j --> ?P j))) *)
-    | (Const ("Divides.op mod", Type ("fun", [Type ("nat", []), _])), [t1, t2]) =>
+    | (Const ("Divides.mod", Type ("fun", [Type ("nat", []), _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
         val zero                    = Const ("HOL.zero", split_type)
@@ -652,7 +652,7 @@ in
     (* "?P ((?n::nat) div (number_of ?k)) =
          ((number_of ?k = 0 --> ?P 0) & (~ (number_of ?k = 0) -->
            (ALL i j. j < number_of ?k --> ?n = number_of ?k * i + j --> ?P i))) *)
-    | (Const ("Divides.op div", Type ("fun", [Type ("nat", []), _])), [t1, t2]) =>
+    | (Const ("Divides.div", Type ("fun", [Type ("nat", []), _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
         val zero                    = Const ("HOL.zero", split_type)
@@ -687,7 +687,7 @@ in
             (ALL i j. 0 <= j & j < number_of ?k & ?n = number_of ?k * i + j --> ?P j)) &
           (neg (number_of ?k) -->
             (ALL i j. number_of ?k < j & j <= 0 & ?n = number_of ?k * i + j --> ?P j))) *)
-    | (Const ("Divides.op mod",
+    | (Const ("Divides.mod",
         Type ("fun", [Type ("IntDef.int", []), _])), [t1, t2 as (number_of $ k)]) =>
       let
         val rev_terms               = rev terms
@@ -739,7 +739,7 @@ in
             (ALL i. (EX j. 0 <= j & j < number_of ?k & ?n = number_of ?k * i + j) --> ?P i)) &
           (neg (number_of ?k) -->
             (ALL i. (EX j. number_of ?k < j & j <= 0 & ?n = number_of ?k * i + j) --> ?P i))) *)
-    | (Const ("Divides.op div",
+    | (Const ("Divides.div",
         Type ("fun", [Type ("IntDef.int", []), _])), [t1, t2 as (number_of $ k)]) =>
       let
         val rev_terms               = rev terms
