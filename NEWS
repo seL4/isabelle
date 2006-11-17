@@ -487,6 +487,13 @@ the graph browser tool.
 
 *** HOL ***
 
+* New syntactic class "size"; overloaded constant "size" now
+has type "'a::size ==> bool"
+
+* Constants "Divides.op div", "Divides.op mod" and "Divides.op dvd" no named
+  "Divides.div", "Divides.mod" and "Divides.dvd"
+  INCOMPATIBILITY for ML code directly refering to constant names.
+
 * Replaced "auto_term" by the conceptually simpler method "relation",
 which just applies the instantiated termination rule with no further
 simplifications.
