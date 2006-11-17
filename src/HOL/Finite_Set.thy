@@ -7,7 +7,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-imports Power Inductive Lattices
+imports Power Divides Inductive Lattices
 begin
 
 subsection {* Definition and basic properties *}
