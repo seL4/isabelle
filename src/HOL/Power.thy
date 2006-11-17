@@ -8,7 +8,7 @@
 header{*Exponentiation*}
 
 theory Power
-imports Divides
+imports Nat
 begin
 
 subsection{*Powers for Arbitrary Monoids*}
@@ -325,34 +325,22 @@ qed
 lemma nat_one_le_power [simp]: "1 \<le> i ==> Suc 0 \<le> i^n"
 by (insert one_le_power [of i n], simp)
 
-lemma le_imp_power_dvd: "!!i::nat. m \<le> n ==> i^m dvd i^n"
-apply (unfold dvd_def)
-apply (erule linorder_not_less [THEN iffD2, THEN add_diff_inverse, THEN subst])
-apply (simp add: power_add)
-done
+lemma nat_zero_less_power_iff [simp]: "(0 < x^n) = (x \<noteq> (0::nat) | n=0)"
+by (induct "n", auto)
 
 text{*Valid for the naturals, but what if @{text"0<i<1"}?
 Premises cannot be weakened: consider the case where @{term "i=0"},
 @{term "m=1"} and @{term "n=0"}.*}
-lemma nat_power_less_imp_less: "!!i::nat. [| 0 < i; i^m < i^n |] ==> m < n"
-apply (rule ccontr)
-apply (drule leI [THEN le_imp_power_dvd, THEN dvd_imp_le, THEN leD])
-apply (erule zero_less_power, auto)
-done
-
-lemma nat_zero_less_power_iff [simp]: "(0 < x^n) = (x \<noteq> (0::nat) | n=0)"
-by (induct "n", auto)
-
-lemma power_le_dvd [rule_format]: "k^j dvd n --> i\<le>j --> k^i dvd (n::nat)"
-apply (induct "j")
-apply (simp_all add: le_Suc_eq)
-apply (blast dest!: dvd_mult_right)
-done
-
-lemma power_dvd_imp_le: "[|i^m dvd i^n;  (1::nat) < i|] ==> m \<le> n"
-apply (rule power_le_imp_le_exp, assumption)
-apply (erule dvd_imp_le, simp)
-done
+lemma nat_power_less_imp_less:
+  assumes nonneg: "0 < (i\<Colon>nat)"
+  assumes less: "i^m < i^n"
+  shows "m < n"
+proof (cases "i = 1")
+  case True with less power_one [where 'a = nat] show ?thesis by simp
+next
+  case False with nonneg have "1 < i" by auto
+  from power_strict_increasing_iff [OF this] less show ?thesis ..
+qed
 
 lemma power_diff:
   assumes nz: "a ~= 0"
@@ -408,11 +396,8 @@ text{*ML bindings for the remaining theorems*}
 ML
 {*
 val nat_one_le_power = thm"nat_one_le_power";
-val le_imp_power_dvd = thm"le_imp_power_dvd";
 val nat_power_less_imp_less = thm"nat_power_less_imp_less";
 val nat_zero_less_power_iff = thm"nat_zero_less_power_iff";
-val power_le_dvd = thm"power_le_dvd";
-val power_dvd_imp_le = thm"power_dvd_imp_le";
 *}
 
 end
