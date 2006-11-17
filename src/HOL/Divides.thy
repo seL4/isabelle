@@ -7,40 +7,50 @@
 header {* The division operators div, mod and the divides relation "dvd" *}
 
 theory Divides
-imports Datatype
+imports Datatype Power
 begin
 
 (*We use the same class for div and mod;
   moreover, dvd is defined whenever multiplication is*)
-axclass
-  div < type
+class div =
+  fixes div :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+  fixes mod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+begin
 
-instance  nat :: div ..
+notation
+  div (infixl "\<^loc>div" 70)
+
+notation
+  mod (infixl "\<^loc>mod" 70)
+
+end
+
+notation
+  div (infixl "div" 70)
+
+notation
+  mod (infixl "mod" 70)
+
+instance nat :: "Divides.div"
+  mod_def: "m mod n == wfrec (trancl pred_nat)
+                          (%f j. if j<n | n=0 then j else f (j-n)) m"
+  div_def:   "m div n == wfrec (trancl pred_nat) 
+                          (%f j. if j<n | n=0 then 0 else Suc (f (j-n))) m" ..
+
+definition
+  (*The definition of dvd is polymorphic!*)
+  dvd  :: "'a::times \<Rightarrow> 'a \<Rightarrow> bool" (infixl "dvd" 50) where
+  dvd_def: "m dvd n \<longleftrightarrow> (\<exists>k. n = m*k)"
 
 consts
-  div  :: "'a::div \<Rightarrow> 'a \<Rightarrow> 'a"          (infixl 70)
-  mod  :: "'a::div \<Rightarrow> 'a \<Rightarrow> 'a"          (infixl 70)
-  dvd  :: "'a::times \<Rightarrow> 'a \<Rightarrow> bool"      (infixl 50)
-
+  quorem :: "(nat*nat) * (nat*nat) => bool"
 
 defs
-
-  mod_def:   "m mod n == wfrec (trancl pred_nat)
-                          (%f j. if j<n | n=0 then j else f (j-n)) m"
-
-  div_def:   "m div n == wfrec (trancl pred_nat) 
-                          (%f j. if j<n | n=0 then 0 else Suc (f (j-n))) m"
-
-(*The definition of dvd is polymorphic!*)
-  dvd_def:   "m dvd n == \<exists>k. n = m*k"
-
-(*This definition helps prove the harder properties of div and mod.
-  It is copied from IntDiv.thy; should it be overloaded?*)
-constdefs
-  quorem :: "(nat*nat) * (nat*nat) => bool"
-    "quorem == %((a,b), (q,r)).
-                      a = b*q + r &
-                      (if 0<b then 0\<le>r & r<b else b<r & r \<le>0)"
+  (*This definition helps prove the harder properties of div and mod.
+    It is copied from IntDiv.thy; should it be overloaded?*)
+  quorem_def: "quorem \<equiv> (%((a,b), (q,r)).
+                    a = b*q + r &
+                    (if 0<b then 0\<le>r & r<b else b<r & r \<le>0))"
 
 
 
@@ -187,8 +197,8 @@ val div_mod_equality2 = thm "div_mod_equality2";
 structure CancelDivModData =
 struct
 
-val div_name = "Divides.op div";
-val mod_name = "Divides.op mod";
+val div_name = "Divides.div";
+val mod_name = "Divides.mod";
 val mk_binop = HOLogic.mk_binop;
 val mk_sum = NatArithUtils.mk_sum;
 val dest_sum = NatArithUtils.dest_sum;
@@ -266,7 +276,7 @@ apply (simp add: quorem_def)
 done
 
 lemma quorem_div_mod: "0 < b ==> quorem ((a, b), (a div b, a mod b))"
-by (auto simp add: quorem_def)
+  unfolding quorem_def by simp 
 
 lemma quorem_div: "[| quorem((a,b),(q,r));  0 < b |] ==> a div b = q"
 by (simp add: quorem_div_mod [THEN unique_quotient])
@@ -649,6 +659,26 @@ lemma dvd_mult_div_cancel: "n dvd m ==> n * (m div n) = (m::nat)"
 apply (subgoal_tac "m mod n = 0")
  apply (simp add: mult_div_cancel)
 apply (simp only: dvd_eq_mod_eq_0)
+done
+
+lemma le_imp_power_dvd: "!!i::nat. m \<le> n ==> i^m dvd i^n"
+apply (unfold dvd_def)
+apply (erule linorder_not_less [THEN iffD2, THEN add_diff_inverse, THEN subst])
+apply (simp add: power_add)
+done
+
+lemma nat_zero_less_power_iff [simp]: "(0 < x^n) = (x \<noteq> (0::nat) | n=0)"
+by (induct "n", auto)
+
+lemma power_le_dvd [rule_format]: "k^j dvd n --> i\<le>j --> k^i dvd (n::nat)"
+apply (induct "j")
+apply (simp_all add: le_Suc_eq)
+apply (blast dest!: dvd_mult_right)
+done
+
+lemma power_dvd_imp_le: "[|i^m dvd i^n;  (1::nat) < i|] ==> m \<le> n"
+apply (rule power_le_imp_le_exp, assumption)
+apply (erule dvd_imp_le, simp)
 done
 
 lemma mod_eq_0_iff: "(m mod d = 0) = (\<exists>q::nat. m = d*q)"
