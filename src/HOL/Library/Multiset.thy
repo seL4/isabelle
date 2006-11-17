@@ -49,13 +49,11 @@ definition
   set_of :: "'a multiset => 'a set" where
   "set_of M = {x. x :# M}"
 
-instance multiset :: (type) "{plus, minus, zero}" ..
-
-defs (overloaded)
+instance multiset :: (type) "{plus, minus, zero, size}" 
   union_def: "M + N == Abs_multiset (\<lambda>a. Rep_multiset M a + Rep_multiset N a)"
   diff_def: "M - N == Abs_multiset (\<lambda>a. Rep_multiset M a - Rep_multiset N a)"
   Zero_multiset_def [simp]: "0 == {#}"
-  size_def: "size M == setsum (count M) (set_of M)"
+  size_def: "size M == setsum (count M) (set_of M)" ..
 
 definition
   multiset_inter :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset"  (infixl "#\<inter>" 70) where
