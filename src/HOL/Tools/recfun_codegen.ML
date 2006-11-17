@@ -36,7 +36,7 @@ val const_of = dest_Const o head_of o fst o dest_eqn;
 fun warn thm = warning ("RecfunCodegen: Not a proper equation:\n" ^
   string_of_thm thm);
 
-fun add optmod = Thm.declaration_attribute (fn thm => Context.mapping
+fun add optmod =
   let
     fun add thm =
       if Pattern.pattern (lhs_of thm) then
@@ -45,9 +45,9 @@ fun add optmod = Thm.declaration_attribute (fn thm => Context.mapping
       else tap (fn _ => warn thm)
       handle TERM _ => tap (fn _ => warn thm);
   in
-    add thm
-    #> CodegenData.add_func_legacy thm
-  end I);
+    Thm.declaration_attribute (fn thm => Context.mapping
+      (add thm #> CodegenData.add_func_legacy thm) I)
+  end;
 
 fun del_thm thm thy =
   let
@@ -103,7 +103,7 @@ fun add_rec_funs thy defs gr dep eqs module =
     val (s, T) = const_of (hd eqs);
 
     fun mk_fundef module fname prfx gr [] = (gr, [])
-      | mk_fundef module fname prfx gr ((fname', (lhs, rhs)) :: xs) =
+      | mk_fundef module fname prfx gr ((fname' : string, (lhs, rhs)) :: xs) =
       let
         val (gr1, pl) = invoke_codegen thy defs dname module false (gr, lhs);
         val (gr2, pr) = invoke_codegen thy defs dname module false (gr1, rhs);
