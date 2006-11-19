@@ -85,7 +85,7 @@ ML {* reset quick_and_dirty; *}
 method_setup rawsat = {* Method.no_args (Method.SIMPLE_METHOD (sat.rawsat_tac 1)) *}
   "SAT solver (no preprocessing)"
 
-ML {* Toplevel.profiling := 1; *}
+(* ML {* Toplevel.profiling := 1; *} *)
 
 (* Translated from TPTP problem library: PUZ015-2.006.dimacs *)
 
@@ -526,6 +526,6 @@ by rawsat  -- {* this is without CNF conversion time *}
    (as of 2006-08-30, on a 2.5 GHz Pentium 4)
 *)
 
-ML {* Toplevel.profiling := 0; *}
+(* ML {* Toplevel.profiling := 0; *} *)
 
 end
