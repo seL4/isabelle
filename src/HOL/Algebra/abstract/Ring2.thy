@@ -8,7 +8,7 @@
 header {* The algebraic hierarchy of rings as axiomatic classes *}
 
 theory Ring2 imports Main
-uses ("order.ML") begin
+begin
 
 section {* Constants *}
 
@@ -102,15 +102,141 @@ axclass
                    prove about fields is that they are domains. *)
   field_ax:        "a ~= 0 ==> a dvd 1"
 
+
 section {* Basic facts *}
 
 subsection {* Normaliser for rings *}
 
-use "order.ML"
+(* derived rewrite rules *)
+
+lemma a_lcomm: "(a::'a::ring)+(b+c) = b+(a+c)"
+  apply (rule a_comm [THEN trans])
+  apply (rule a_assoc [THEN trans])
+  apply (rule a_comm [THEN arg_cong])
+  done
+
+lemma r_zero: "(a::'a::ring) + 0 = a"
+  apply (rule a_comm [THEN trans])
+  apply (rule l_zero)
+  done
+
+lemma r_neg: "(a::'a::ring) + (-a) = 0"
+  apply (rule a_comm [THEN trans])
+  apply (rule l_neg)
+  done
+
+lemma r_neg2: "(a::'a::ring) + (-a + b) = b"
+  apply (rule a_assoc [symmetric, THEN trans])
+  apply (simp add: r_neg l_zero)
+  done
+
+lemma r_neg1: "-(a::'a::ring) + (a + b) = b"
+  apply (rule a_assoc [symmetric, THEN trans])
+  apply (simp add: l_neg l_zero)
+  done
+
+
+(* auxiliary *)
+
+lemma a_lcancel: "!! a::'a::ring. a + b = a + c ==> b = c"
+  apply (rule box_equals)
+  prefer 2
+  apply (rule l_zero)
+  prefer 2
+  apply (rule l_zero)
+  apply (rule_tac a1 = a in l_neg [THEN subst])
+  apply (simp add: a_assoc)
+  done
+
+lemma minus_add: "-((a::'a::ring) + b) = (-a) + (-b)"
+  apply (rule_tac a = "a + b" in a_lcancel)
+  apply (simp add: r_neg l_neg l_zero a_assoc a_comm a_lcomm)
+  done
+
+lemma minus_minus: "-(-(a::'a::ring)) = a"
+  apply (rule a_lcancel)
+  apply (rule r_neg [THEN trans])
+  apply (rule l_neg [symmetric])
+  done
+
+lemma minus0: "- 0 = (0::'a::ring)"
+  apply (rule a_lcancel)
+  apply (rule r_neg [THEN trans])
+  apply (rule l_zero [symmetric])
+  done
+
+
+(* derived rules for multiplication *)
+
+lemma m_lcomm: "(a::'a::ring)*(b*c) = b*(a*c)"
+  apply (rule m_comm [THEN trans])
+  apply (rule m_assoc [THEN trans])
+  apply (rule m_comm [THEN arg_cong])
+  done
+
+lemma r_one: "(a::'a::ring) * 1 = a"
+  apply (rule m_comm [THEN trans])
+  apply (rule l_one)
+  done
+
+lemma r_distr: "(a::'a::ring) * (b + c) = a * b + a * c"
+  apply (rule m_comm [THEN trans])
+  apply (rule l_distr [THEN trans])
+  apply (simp add: m_comm)
+  done
+
+
+(* the following proof is from Jacobson, Basic Algebra I, pp. 88-89 *)
+lemma l_null: "0 * (a::'a::ring) = 0"
+  apply (rule a_lcancel)
+  apply (rule l_distr [symmetric, THEN trans])
+  apply (simp add: r_zero)
+  done
+
+lemma r_null: "(a::'a::ring) * 0 = 0"
+  apply (rule m_comm [THEN trans])
+  apply (rule l_null)
+  done
+
+lemma l_minus: "(-(a::'a::ring)) * b = - (a * b)"
+  apply (rule a_lcancel)
+  apply (rule r_neg [symmetric, THEN [2] trans])
+  apply (rule l_distr [symmetric, THEN trans])
+  apply (simp add: l_null r_neg)
+  done
+
+lemma r_minus: "(a::'a::ring) * (-b) = - (a * b)"
+  apply (rule a_lcancel)
+  apply (rule r_neg [symmetric, THEN [2] trans])
+  apply (rule r_distr [symmetric, THEN trans])
+  apply (simp add: r_null r_neg)
+  done
+
+(*** Term order for commutative rings ***)
+
+ML {*
+fun ring_ord (Const (a, _)) =
+    find_index (fn a' => a = a')
+      ["HOL.zero", "HOL.plus", "HOL.uminus", "HOL.minus", "HOL.one", "HOL.times"]
+  | ring_ord _ = ~1;
+
+fun termless_ring (a, b) = (Term.term_lpo ring_ord (a, b) = LESS);
+
+val ring_ss = HOL_basic_ss settermless termless_ring addsimps
+  [thm "a_assoc", thm "l_zero", thm "l_neg", thm "a_comm", thm "m_assoc",
+   thm "l_one", thm "l_distr", thm "m_comm", thm "minus_def",
+   thm "r_zero", thm "r_neg", thm "r_neg2", thm "r_neg1", thm "minus_add",
+   thm "minus_minus", thm "minus0", thm "a_lcomm", thm "m_lcomm", (*thm "r_one",*)
+   thm "r_distr", thm "l_null", thm "r_null", thm "l_minus", thm "r_minus"];
+*}   (* Note: r_one is not necessary in ring_ss *)
 
 method_setup ring =
   {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (full_simp_tac ring_ss)) *}
   {* computes distributive normal form in rings *}
+
+lemmas ring_simps =
+  l_zero r_zero l_neg r_neg minus_minus minus0
+  l_one r_one l_null r_null l_minus r_minus
 
 
 subsection {* Rings and the summation operator *}
@@ -278,7 +404,108 @@ proof -
   then show ?thesis using dvd_def by blast
 qed
 
-lemma dvd_def':
-  "m dvd n \<equiv> \<exists>k. n = m * k" unfolding dvd_def by simp
+
+lemma unit_mult: 
+  "!!a::'a::ring. [| a dvd 1; b dvd 1 |] ==> a * b dvd 1"
+  apply (unfold dvd_def)
+  apply clarify
+  apply (rule_tac x = "k * ka" in exI)
+  apply simp
+  done
+
+lemma unit_power: "!!a::'a::ring. a dvd 1 ==> a^n dvd 1"
+  apply (induct_tac n)
+   apply simp
+  apply (simp add: unit_mult)
+  done
+
+lemma dvd_add_right [simp]:
+  "!! a::'a::ring. [| a dvd b; a dvd c |] ==> a dvd b + c"
+  apply (unfold dvd_def)
+  apply clarify
+  apply (rule_tac x = "k + ka" in exI)
+  apply (simp add: r_distr)
+  done
+
+lemma dvd_uminus_right [simp]:
+  "!! a::'a::ring. a dvd b ==> a dvd -b"
+  apply (unfold dvd_def)
+  apply clarify
+  apply (rule_tac x = "-k" in exI)
+  apply (simp add: r_minus)
+  done
+
+lemma dvd_l_mult_right [simp]:
+  "!! a::'a::ring. a dvd b ==> a dvd c*b"
+  apply (unfold dvd_def)
+  apply clarify
+  apply (rule_tac x = "c * k" in exI)
+  apply simp
+  done
+
+lemma dvd_r_mult_right [simp]:
+  "!! a::'a::ring. a dvd b ==> a dvd b*c"
+  apply (unfold dvd_def)
+  apply clarify
+  apply (rule_tac x = "k * c" in exI)
+  apply simp
+  done
+
+
+(* Inverse of multiplication *)
+
+section "inverse"
+
+lemma inverse_unique: "!! a::'a::ring. [| a * x = 1; a * y = 1 |] ==> x = y"
+  apply (rule_tac a = "(a*y) * x" and b = "y * (a*x)" in box_equals)
+    apply (simp (no_asm))
+  apply auto
+  done
+
+lemma r_inverse_ring: "!! a::'a::ring. a dvd 1 ==> a * inverse a = 1"
+  apply (unfold inverse_def dvd_def)
+  apply (tactic {* asm_full_simp_tac (simpset () delsimprocs [ring_simproc]) 1 *})
+  apply clarify
+  apply (rule theI)
+   apply assumption
+  apply (rule inverse_unique)
+   apply assumption
+  apply assumption
+  done
+
+lemma l_inverse_ring: "!! a::'a::ring. a dvd 1 ==> inverse a * a = 1"
+  by (simp add: r_inverse_ring)
+
+
+(* Fields *)
+
+section "Fields"
+
+lemma field_unit [simp]: "!! a::'a::field. (a dvd 1) = (a ~= 0)"
+  by (auto dest: field_ax dvd_zero_left simp add: field_one_not_zero)
+
+lemma r_inverse [simp]: "!! a::'a::field. a ~= 0 ==> a * inverse a = 1"
+  by (simp add: r_inverse_ring)
+
+lemma l_inverse [simp]: "!! a::'a::field. a ~= 0 ==> inverse a * a= 1"
+  by (simp add: l_inverse_ring)
+
+
+(* fields are integral domains *)
+
+lemma field_integral: "!! a::'a::field. a * b = 0 ==> a = 0 | b = 0"
+  apply (tactic "Step_tac 1")
+  apply (rule_tac a = " (a*b) * inverse b" in box_equals)
+    apply (rule_tac [3] refl)
+   prefer 2
+   apply (simp (no_asm))
+   apply auto
+  done
+
+
+(* fields are factorial domains *)
+
+lemma field_fact_prime: "!! a::'a::field. irred a ==> prime a"
+  unfolding prime_def irred_def by (blast intro: field_ax)
 
 end

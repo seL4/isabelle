@@ -11,29 +11,6 @@ theory UnivPoly2
 imports "../abstract/Abstract"
 begin
 
-(* already proved in Finite_Set.thy
-
-lemma setsum_cong:
-  "[| A = B; !!i. i : B ==> f i = g i |] ==> setsum f A = setsum g B"
-proof -
-  assume prems: "A = B" "!!i. i : B ==> f i = g i"
-  show ?thesis
-  proof (cases "finite B")
-    case True
-    then have "!!A. [| A = B; !!i. i : B ==> f i = g i |] ==>
-      setsum f A = setsum g B"
-    proof induct
-      case empty thus ?case by simp
-    next
-      case insert thus ?case by simp
-    qed
-    with prems show ?thesis by simp
-  next
-    case False with prems show ?thesis by (simp add: setsum_def)
-  qed
-qed
-*)
-
 (* With this variant of setsum_cong, assumptions
    like i:{m..n} get simplified (to m <= i & i <= n). *)
 
@@ -41,21 +18,18 @@ declare strong_setsum_cong [cong]
 
 section {* Definition of type up *}
 
-constdefs
-  bound  :: "[nat, nat => 'a::zero] => bool"
-  "bound n f == (ALL i. n < i --> f i = 0)"
+definition
+  bound :: "[nat, nat => 'a::zero] => bool" where
+  "bound n f = (ALL i. n < i --> f i = 0)"
 
 lemma boundI [intro!]: "[| !! m. n < m ==> f m = 0 |] ==> bound n f"
-proof (unfold bound_def)
-qed fast
+  unfolding bound_def by blast
 
 lemma boundE [elim?]: "[| bound n f; (!! m. n < m ==> f m = 0) ==> P |] ==> P"
-proof (unfold bound_def)
-qed fast
+  unfolding bound_def by blast
 
 lemma boundD [dest]: "[| bound n f; n < m |] ==> f m = 0"
-proof (unfold bound_def)
-qed fast
+  unfolding bound_def by blast
 
 lemma bound_below:
   assumes bound: "bound m f" and nonzero: "f n ~= 0" shows "n <= m"
@@ -67,20 +41,23 @@ proof (rule classical)
 qed
 
 typedef (UP)
-  ('a) up = "{f :: nat => 'a::zero. EX n. bound n f}"
-by (rule+)   (* Question: what does trace_rule show??? *)
+    ('a) up = "{f :: nat => 'a::zero. EX n. bound n f}"
+  by (rule+)   (* Question: what does trace_rule show??? *)
+
 
 section {* Constants *}
 
-consts
-  coeff  :: "['a up, nat] => ('a::zero)"
-  monom  :: "['a::zero, nat] => 'a up"              ("(3_*X^/_)" [71, 71] 70)
-  "*s"   :: "['a::{zero, times}, 'a up] => 'a up"   (infixl 70)
+definition
+  coeff :: "['a up, nat] => ('a::zero)" where
+  "coeff p n = Rep_UP p n"
 
-defs
-  coeff_def: "coeff p n == Rep_UP p n"
-  monom_def: "monom a n == Abs_UP (%i. if i=n then a else 0)"
-  smult_def: "a *s p == Abs_UP (%i. a * Rep_UP p i)"
+definition
+  monom :: "['a::zero, nat] => 'a up"  ("(3_*X^/_)" [71, 71] 70) where
+  "monom a n = Abs_UP (%i. if i=n then a else 0)"
+
+definition
+  smult :: "['a::{zero, times}, 'a up] => 'a up"  (infixl "*s" 70) where
+  "a *s p = Abs_UP (%i. a * Rep_UP p i)"
 
 lemma coeff_bound_ex: "EX n. bound n (coeff p)"
 proof -
@@ -96,6 +73,7 @@ proof -
   then obtain n where "bound n (coeff p)" by (unfold UP_def) fast
   with prem show P .
 qed
+
 
 text {* Ring operations *}
 
@@ -123,6 +101,7 @@ defs
   up_divide_def:  "(a::'a::{times, inverse} up) / b == a * inverse b"
   up_power_def:   "(a::'a::{one, times, power} up) ^ n ==
                      nat_rec 1 (%u b. b * a) n"
+
 
 subsection {* Effect of operations on coefficients *}
 
@@ -451,9 +430,9 @@ qed
 
 section {* The degree function *}
 
-constdefs
-  deg :: "('a::zero) up => nat"
-  "deg p == LEAST n. bound n (coeff p)"
+definition
+  deg :: "('a::zero) up => nat" where
+  "deg p = (LEAST n. bound n (coeff p))"
 
 lemma deg_aboveI:
   "(!!m. n < m ==> coeff p m = 0) ==> deg p <= n"
@@ -772,5 +751,17 @@ by (simp add: monom_mult_is_smult [THEN sym] integral_iff monom_inj_zero) fast
 lemma smult_integral:
   "(a::'a::domain) *s p = 0 ==> a = 0 | p = 0"
 by (simp add: monom_mult_is_smult [THEN sym] integral_iff monom_inj_zero)
+
+
+(* Divisibility and degree *)
+
+lemma "!! p::'a::domain up. [| p dvd q; q ~= 0 |] ==> deg p <= deg q"
+  apply (unfold dvd_def)
+  apply (erule exE)
+  apply hypsubst
+  apply (case_tac "p = 0")
+   apply (case_tac [2] "k = 0")
+    apply auto
+  done
 
 end
