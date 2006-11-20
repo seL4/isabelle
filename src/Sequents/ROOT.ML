@@ -13,7 +13,11 @@ Unify.trace_bound:= 20;
 Unify.search_bound := 40;
 
 use_thy "LK";
+
 use_thy "ILL";
+use_thy "ILL_predlog";
+use_thy "Washing";
+
 use_thy "Modal0";
 use_thy"T";
 use_thy"S4";

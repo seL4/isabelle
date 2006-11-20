@@ -10,11 +10,16 @@ Borrows from the DC simplifier of Soren Heilmann.
 
 (*** Rewrite rules ***)
 
+local
+  val subst = thm "subst"
+in
+
 fun prove_fun s =
  (writeln s;
   prove_goal (the_context ()) s
    (fn prems => [ (cut_facts_tac prems 1),
                   (fast_tac (pack() add_safes [subst]) 1) ]));
+end;
 
 val conj_simps = map prove_fun
  ["|- P & True <-> P",      "|- True & P <-> P",
@@ -83,6 +88,12 @@ val distrib_simps  = map prove_fun
 
 (** Conversion into rewrite rules **)
 
+local
+  val mp_R = thm "mp_R";
+  val conjunct1 = thm "conjunct1";
+  val conjunct2 = thm "conjunct2";
+  val spec = thm "spec";
+in
 (*Make atomic rewrite rules*)
 fun atomize r =
  case concl_of r of
@@ -99,22 +110,26 @@ fun atomize r =
              | _                     => [r])
       | _ => [])  (*ignore theorem unless it has precisely one conclusion*)
  | _ => [r];
-
+end;
 
 Goal "|- ~P ==> |- (P <-> False)";
-by (etac (thinR RS cut) 1);
+by (etac (thm "thinR" RS (thm "cut")) 1);
 by (Fast_tac 1);
 qed "P_iff_F";
 
-val iff_reflection_F = P_iff_F RS iff_reflection;
+bind_thm ("iff_reflection_F", thm "P_iff_F" RS thm "iff_reflection");
 
 Goal "|- P ==> |- (P <-> True)";
-by (etac (thinR RS cut) 1);
+by (etac (thm "thinR" RS (thm "cut")) 1);
 by (Fast_tac 1);
 qed "P_iff_T";
 
-val iff_reflection_T = P_iff_T RS iff_reflection;
+bind_thm ("iff_reflection_T", thm "P_iff_T" RS thm "iff_reflection");
 
+local
+  val eq_reflection = thm "eq_reflection"
+  val iff_reflection = thm "iff_reflection"
+in
 (*Make meta-equalities.*)
 fun mk_meta_eq th = case concl_of th of
     Const("==",_)$_$_           => th
@@ -128,12 +143,12 @@ fun mk_meta_eq th = case concl_of th of
                     | _                       => th RS iff_reflection_T)
            | _ => error ("addsimps: unable to use theorem\n" ^
                          string_of_thm th));
-
+end;
 
 (*Replace premises x=y, X<->Y by X==Y*)
 val mk_meta_prems =
     rule_by_tactic
-      (REPEAT_FIRST (resolve_tac [meta_eq_to_obj_eq, def_imp_iff]));
+      (REPEAT_FIRST (resolve_tac [thm "meta_eq_to_obj_eq", thm "def_imp_iff"]));
 
 (*Congruence rules for = or <-> (instead of ==)*)
 fun mk_meta_cong rl =
@@ -179,9 +194,9 @@ val [p1,p2] = Goal
     "[| |- P <-> P';  |- P' ==> |- Q <-> Q' |] ==> |- (P-->Q) <-> (P'-->Q')";
 by (lemma_tac p1 1);
 by (Safe_tac 1);
-by (REPEAT (rtac cut 1
+by (REPEAT (rtac (thm "cut") 1
             THEN
-            DEPTH_SOLVE_1 (resolve_tac [thinL, thinR, p2 COMP monotonic] 1)
+            DEPTH_SOLVE_1 (resolve_tac [thm "thinL", thm "thinR", p2 COMP thm "monotonic"] 1)
             THEN
             Safe_tac 1));
 qed "imp_cong";
@@ -190,42 +205,23 @@ val [p1,p2] = Goal
     "[| |- P <-> P';  |- P' ==> |- Q <-> Q' |] ==> |- (P&Q) <-> (P'&Q')";
 by (lemma_tac p1 1);
 by (Safe_tac 1);
-by (REPEAT (rtac cut 1
+by (REPEAT (rtac (thm "cut") 1
             THEN
-            DEPTH_SOLVE_1 (resolve_tac [thinL, thinR, p2 COMP monotonic] 1)
+            DEPTH_SOLVE_1 (resolve_tac [thm "thinL", thm "thinR", p2 COMP thm "monotonic"] 1)
             THEN
             Safe_tac 1));
 qed "conj_cong";
 
 Goal "|- (x=y) <-> (y=x)";
-by (fast_tac (pack() add_safes [subst]) 1);
+by (fast_tac (pack() add_safes [thm "subst"]) 1);
 qed "eq_sym_conv";
 
-
-(** if-then-else rules **)
-
-Goalw [If_def] "|- (if True then x else y) = x";
-by (Fast_tac 1);
-qed "if_True";
-
-Goalw [If_def] "|- (if False then x else y) = y";
-by (Fast_tac 1);
-qed "if_False";
-
-Goalw [If_def] "|- P ==> |- (if P then x else y) = x";
-by (etac (thinR RS cut) 1);
-by (Fast_tac 1);
-qed "if_P";
-
-Goalw [If_def] "|- ~P ==> |- (if P then x else y) = y";
-by (etac (thinR RS cut) 1);
-by (Fast_tac 1);
-qed "if_not_P";
 
 
 (*** Standard simpsets ***)
 
-val triv_rls = [FalseL, TrueR, basic, refl, iff_refl, reflexive_thm];
+val triv_rls = [thm "FalseL", thm "TrueR", thm "basic", thm "refl",
+  thm "iff_refl", reflexive_thm];
 
 fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls@prems),
                                  assume_tac];
@@ -244,7 +240,7 @@ val LK_basic_ss =
 
 val LK_simps =
    [triv_forall_equality, (* prunes params *)
-    refl RS P_iff_T] @
+    thm "refl" RS P_iff_T] @
     conj_simps @ disj_simps @ not_simps @
     imp_simps @ iff_simps @quant_simps @ all_simps @ ex_simps @
     [de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2] @
@@ -269,10 +265,10 @@ qed_goal "eq_imp_subst" (the_context ()) "|- a=b ==> $H, A(a), $G |- $E, A(b), $
     asm_simp_tac LK_basic_ss 1]);
 
 Goal "|- P(if Q then x else y) <-> ((Q --> P(x)) & (~Q --> P(y)))";
-by (res_inst_tac [ ("P","Q") ] cut 1);
-by (simp_tac (simpset() addsimps [if_P]) 2);
-by (res_inst_tac [ ("P","~Q") ] cut 1);
-by (simp_tac (simpset() addsimps [if_not_P]) 2);
+by (res_inst_tac [ ("P","Q") ] (thm "cut") 1);
+by (simp_tac (simpset() addsimps [thm "if_P"]) 2);
+by (res_inst_tac [ ("P","~Q") ] (thm "cut") 1);
+by (simp_tac (simpset() addsimps [thm "if_not_P"]) 2);
 by (Fast_tac 1);
 qed "split_if";
 
@@ -284,8 +280,8 @@ qed "if_cancel";
 Goal "|- (if x=y then y else x) = x";
 by (lemma_tac split_if 1);
 by (Safe_tac 1);
-by (rtac symL 1);
-by (rtac basic 1);
+by (rtac (thm "symL") 1);
+by (rtac (thm "basic") 1);
 qed "if_eq_cancel";
 
 (*Putting in automatic case splits seems to require a lot of work.*)

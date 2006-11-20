@@ -8,7 +8,7 @@
 
 default: Sequents
 images: Sequents
-test: Sequents-ILL Sequents-LK Sequents-Modal
+test: Sequents-LK
 all: images test
 
 
@@ -26,42 +26,22 @@ Sequents: Pure $(OUT)/Sequents
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-$(OUT)/Sequents: $(OUT)/Pure ILL.ML ILL.thy LK0.ML LK0.thy LK.thy \
-  modal.ML ROOT.ML simpdata.ML S4.ML \
-  S4.thy S43.ML S43.thy Sequents.thy T.ML T.thy prover.ML
+$(OUT)/Sequents: $(OUT)/Pure ILL.ML ILL.thy LK0.thy LK.thy \
+  modal.ML ROOT.ML simpdata.ML S4.thy S43.thy Sequents.thy T.thy prover.ML \
+  ILL_predlog.thy Washing.thy
 	@$(ISATOOL) usedir -b $(OUT)/Pure Sequents
-
-
-## Sequents-ILL
-
-Sequents-ILL: Sequents $(LOG)/Sequents-ILL.gz
-
-$(LOG)/Sequents-ILL.gz: $(OUT)/Sequents ILL/ILL_kleene_lemmas.ML \
-  ILL/ILL_predlog.ML ILL/ILL_predlog.thy ILL/ROOT.ML ILL/washing.ML \
-  ILL/washing.thy
-	@$(ISATOOL) usedir $(OUT)/Sequents ILL
 
 
 ## Sequents-LK
 
 Sequents-LK: Sequents $(LOG)/Sequents-LK.gz
 
-$(LOG)/Sequents-LK.gz: $(OUT)/Sequents LK/ROOT.ML LK/hardquant.ML \
-  LK/prop.ML LK/quant.ML LK/Nat.thy LK/Nat.ML
+$(LOG)/Sequents-LK.gz: $(OUT)/Sequents LK/ROOT.ML LK/Hard_Quantifiers.thy \
+  LK/Propositional.thy LK/Quantifiers.thy LK/Nat.thy
 	@$(ISATOOL) usedir $(OUT)/Sequents LK
-
-
-## Sequents-Modal
-
-Sequents-Modal: Sequents $(LOG)/Sequents-Modal.gz
-
-$(LOG)/Sequents-Modal.gz: $(OUT)/Sequents Modal/ROOT.ML \
-  Modal/S43thms.ML Modal/S4thms.ML Modal/Tthms.ML ROOT.ML
-	@$(ISATOOL) usedir $(OUT)/Sequents Modal
 
 
 ## clean
 
 clean:
-	@rm -f $(OUT)/Sequents $(LOG)/Sequents.gz $(LOG)/Sequents-ILL.gz \
-	  $(LOG)/Sequents-LK.gz $(LOG)/Sequents-Modal.gz
+	@rm -f $(OUT)/Sequents $(LOG)/Sequents.gz $(LOG)/Sequents-LK.gz

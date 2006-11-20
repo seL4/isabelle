@@ -31,6 +31,46 @@ axioms
    "[| $E |L> $E';  $F |L> $F';  $G |R> $G';
                $E', P, $F'|-         $G'|] ==> $E, <>P, $F |-          $G"
 
-ML {* use_legacy_bindings (the_context ()) *}
+ML {*
+structure T_Prover = Modal_ProverFun
+(
+  val rewrite_rls = thms "rewrite_rls"
+  val safe_rls = thms "safe_rls"
+  val unsafe_rls = thms "unsafe_rls" @ [thm "boxR", thm "diaL"]
+  val bound_rls = thms "bound_rls" @ [thm "boxL", thm "diaR"]
+  val aside_rls = [thm "lstar0", thm "lstar1", thm "lstar2", thm "rstar0",
+    thm "rstar1", thm "rstar2"]
+)
+*}
+
+method_setup T_solve =
+{* Method.no_args (Method.SIMPLE_METHOD (T_Prover.solve_tac 2)) *} "T solver"
+
+
+(* Theorems of system T from Hughes and Cresswell and Hailpern, LNCS 129 *)
+
+lemma "|- []P --> P" by T_solve
+lemma "|- [](P-->Q) --> ([]P-->[]Q)" by T_solve   (* normality*)
+lemma "|- (P--<Q) --> []P --> []Q" by T_solve
+lemma "|- P --> <>P" by T_solve
+
+lemma "|-  [](P & Q) <-> []P & []Q" by T_solve
+lemma "|-  <>(P | Q) <-> <>P | <>Q" by T_solve
+lemma "|-  [](P<->Q) <-> (P>-<Q)" by T_solve
+lemma "|-  <>(P-->Q) <-> ([]P--><>Q)" by T_solve
+lemma "|-        []P <-> ~<>(~P)" by T_solve
+lemma "|-     [](~P) <-> ~<>P" by T_solve
+lemma "|-       ~[]P <-> <>(~P)" by T_solve
+lemma "|-      [][]P <-> ~<><>(~P)" by T_solve
+lemma "|- ~<>(P | Q) <-> ~<>P & ~<>Q" by T_solve
+
+lemma "|- []P | []Q --> [](P | Q)" by T_solve
+lemma "|- <>(P & Q) --> <>P & <>Q" by T_solve
+lemma "|- [](P | Q) --> []P | <>Q" by T_solve
+lemma "|- <>P & []Q --> <>(P & Q)" by T_solve
+lemma "|- [](P | Q) --> <>P | []Q" by T_solve
+lemma "|- <>(P-->(Q & R)) --> ([]P --> <>Q) & ([]P--><>R)" by T_solve
+lemma "|- (P--<Q) & (Q--<R) --> (P--<R)" by T_solve
+lemma "|- []P --> <>Q --> <>(P & Q)" by T_solve
 
 end

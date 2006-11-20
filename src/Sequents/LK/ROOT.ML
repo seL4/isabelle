@@ -6,7 +6,7 @@
 Examples for Classical Logic.
 *)
 
-time_use "prop.ML";
-time_use "quant.ML";
-time_use "hardquant.ML";
-time_use_thy "Nat";
+use_thy "Propositional";
+use_thy "Quantifiers";
+use_thy "Hard_Quantifiers";
+use_thy "Nat";
