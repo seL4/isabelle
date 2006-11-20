@@ -26,7 +26,7 @@ Sequents: Pure $(OUT)/Sequents
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-$(OUT)/Sequents: $(OUT)/Pure ILL.ML ILL.thy LK0.thy LK.thy \
+$(OUT)/Sequents: $(OUT)/Pure ILL.thy LK0.thy LK.thy \
   modal.ML ROOT.ML simpdata.ML S4.thy S43.thy Sequents.thy T.thy prover.ML \
   ILL_predlog.thy Washing.thy
 	@$(ISATOOL) usedir -b $(OUT)/Pure Sequents

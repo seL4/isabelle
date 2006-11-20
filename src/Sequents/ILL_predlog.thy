@@ -29,107 +29,102 @@ translations
 (* another translations for linear implication:
   "[* A > B *]" == "!([*A*] -o [*B*])" *)
 
-method_setup auto1 =
-  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (best_tac safe_cs)) *} ""
-method_setup auto2 =
-  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (best_tac power_cs)) *} ""
-
 (* from [kleene 52] pp 118,119 *)
 
 lemma k49a: "|- [* A > ( - ( - A)) *]"
-  by auto1
+  by best_safe
 
 lemma k49b: "|- [*( - ( - ( - A))) = ( - A)*]"
-  by auto1
+  by best_safe
 
 lemma k49c: "|- [* (A | - A) > ( - - A = A) *]"
-  by auto1
+  by best_safe
 
 lemma k50a: "|- [* - (A = - A) *]"
-  by auto2
+  by best_power
 
 lemma k51a: "|- [* - - (A | - A) *]"
-  by auto1
+  by best_safe
 
 lemma k51b: "|- [* - - (- - A > A) *]"
-  by auto2
+  by best_power
 
 lemma k56a: "|- [* (A | B) > - (- A & - B) *]"
-  by auto1
+  by best_safe
 
 lemma k56b: "|- [* (-A | B) > - (A & -B) *]"
-  by auto1
+  by best_safe
 
 lemma k57a: "|- [* (A & B) > - (-A | -B) *]"
-  by auto1
+  by best_safe
 
 lemma k57b: "|- [* (A & -B) > -(-A | B) *]"
-  by auto2
+  by best_power
 
 lemma k58a: "|- [* (A > B) > - (A & -B) *]"
-  by auto1
+  by best_safe
 
 lemma k58b: "|- [* (A > -B) = -(A & B) *]"
-  by auto1
+  by best_safe
 
 lemma k58c: "|- [* - (A & B) = (- - A > - B) *]"
-  by auto1
+  by best_safe
 
 lemma k58d: "|- [* (- - A > - B) = - - (-A | -B) *]"
-  by auto1
+  by best_safe
 
 lemma k58e: "! [* - -B > B *] |- [* (- -A > B) = (A > B) *]"
-  by auto1
+  by best_safe
 
 lemma k58f: "! [* - -B > B *] |- [* (A > B) = - (A & -B) *]"
-  by auto1
+  by best_safe
 
 lemma k58g: "|- [* (- -A > B) > - (A & -B) *]"
-  by auto1
+  by best_safe
 
 lemma k59a: "|- [* (-A | B) > (A > B) *]"
-  by auto1
+  by best_safe
 
 lemma k59b: "|- [* (A > B) > - - (-A | B) *]"
-  by auto2
+  by best_power
 
 lemma k59c: "|- [* (-A > B) > - -(A | B) *]"
-  by auto2
+  by best_power
 
 lemma k60a: "|- [* (A & B) > - (A > -B) *]"
-  by auto1
+  by best_safe
 
 lemma k60b: "|- [* (A & -B) > - (A > B) *]"
-  by auto1
+  by best_safe
 
 lemma k60c: "|- [* ( - - A & B) > - (A > -B) *]"
-  by auto1
+  by best_safe
 
 lemma k60d: "|- [* (- - A & - B) = - (A > B) *]"
-  by auto1
+  by best_safe
 
 lemma k60e: "|- [* - (A > B) = - (-A | B) *]"
-  by auto1
+  by best_safe
 
 lemma k60f: "|- [* - (-A | B) = - - (A & -B) *]"
-  by auto1
+  by best_safe
 
 lemma k60g: "|- [* - - (A > B) = - (A & -B) *]"
-  by auto2
+  by best_power
 
 lemma k60h: "|- [* - (A & -B) = (A > - -B) *]"
-  by auto1
+  by best_safe
 
 lemma k60i: "|- [* (A > - -B) = (- -A > - -B) *]"
-  by auto1
+  by best_safe
 
 lemma k61a: "|- [* (A | B) > (-A > B) *]"
-  by auto1
+  by best_safe
 
 lemma k61b: "|- [* - (A | B) = - (-A > B) *]"
-  by auto2
+  by best_power
 
 lemma k62a: "|- [* (-A | -B) > - (A & B) *]"
-  by auto1
+  by best_safe
 
 end
