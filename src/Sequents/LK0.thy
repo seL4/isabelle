@@ -129,9 +129,6 @@ constdefs
   If :: "[o, 'a, 'a] => 'a"   ("(if (_)/ then (_)/ else (_))" 10)
    "If(P,x,y) == THE z::'a. (P --> z=x) & (~P --> z=y)"
 
-setup
-  prover_setup
-
 
 (** Structural Rules on formulas **)
 
@@ -239,8 +236,6 @@ val LK_pack = prop_pack add_safes   [thm "allR", thm "exL"]
 val LK_dup_pack = prop_pack add_safes   [thm "allR", thm "exL"]
                             add_unsafes [thm "allL", thm "exR", thm "the_equality"];
 
-
-pack_ref() := LK_pack;
 
 local
   val thinR = thm "thinR"

@@ -166,44 +166,6 @@ fun best_tac pack  =
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) 
 	       (step_tac pack 1));
 
-
-
-structure ProverData = TheoryDataFun
-(struct
-  val name = "Sequents/prover";
-  type T = pack ref;
-  val empty = ref empty_pack
-  fun copy (ref pack) = ref pack;
-  val extend = copy;
-  fun merge _ (ref pack1, ref pack2) = ref (merge_pack (pack1, pack2));
-  fun print _ (ref pack) = print_pack pack;
-end);
-
-val prover_setup = ProverData.init;
-
-val print_pack = ProverData.print;
-val pack_ref_of = ProverData.get;
-
-(* access global pack *)
-
-val pack_of = ! o pack_ref_of;
-val pack = pack_of o Context.the_context;
-val pack_ref = pack_ref_of o Context.the_context;
-
-
-(* change global pack *)
-
-fun change_pack f x = pack_ref () := (f (pack (), x));
-
-val Add_safes = change_pack (op add_safes);
-val Add_unsafes = change_pack (op add_unsafes);
-
-
-fun Fast_tac st = fast_tac (pack()) st;
-fun Step_tac st = step_tac (pack()) st;
-fun Safe_tac st = safe_tac (pack()) st;
-fun Pc_tac st   = pc_tac (pack()) st;
-
 end;
 
 

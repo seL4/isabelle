@@ -18,7 +18,7 @@ fun prove_fun s =
  (writeln s;
   prove_goal (the_context ()) s
    (fn prems => [ (cut_facts_tac prems 1),
-                  (fast_tac (pack() add_safes [subst]) 1) ]));
+                  (fast_tac (LK_pack add_safes [subst]) 1) ]));
 end;
 
 val conj_simps = map prove_fun
@@ -114,14 +114,14 @@ end;
 
 Goal "|- ~P ==> |- (P <-> False)";
 by (etac (thm "thinR" RS (thm "cut")) 1);
-by (Fast_tac 1);
+by (fast_tac LK_pack 1);
 qed "P_iff_F";
 
 bind_thm ("iff_reflection_F", thm "P_iff_F" RS thm "iff_reflection");
 
 Goal "|- P ==> |- (P <-> True)";
 by (etac (thm "thinR" RS (thm "cut")) 1);
-by (Fast_tac 1);
+by (fast_tac LK_pack 1);
 qed "P_iff_T";
 
 bind_thm ("iff_reflection_T", thm "P_iff_T" RS thm "iff_reflection");
@@ -193,27 +193,27 @@ prove "not_iff" "|- ~(P <-> Q) <-> (P <-> ~Q)";
 val [p1,p2] = Goal
     "[| |- P <-> P';  |- P' ==> |- Q <-> Q' |] ==> |- (P-->Q) <-> (P'-->Q')";
 by (lemma_tac p1 1);
-by (Safe_tac 1);
+by (safe_tac LK_pack 1);
 by (REPEAT (rtac (thm "cut") 1
             THEN
             DEPTH_SOLVE_1 (resolve_tac [thm "thinL", thm "thinR", p2 COMP thm "monotonic"] 1)
             THEN
-            Safe_tac 1));
+            safe_tac LK_pack 1));
 qed "imp_cong";
 
 val [p1,p2] = Goal
     "[| |- P <-> P';  |- P' ==> |- Q <-> Q' |] ==> |- (P&Q) <-> (P'&Q')";
 by (lemma_tac p1 1);
-by (Safe_tac 1);
+by (safe_tac LK_pack 1);
 by (REPEAT (rtac (thm "cut") 1
             THEN
             DEPTH_SOLVE_1 (resolve_tac [thm "thinL", thm "thinR", p2 COMP thm "monotonic"] 1)
             THEN
-            Safe_tac 1));
+            safe_tac LK_pack 1));
 qed "conj_cong";
 
 Goal "|- (x=y) <-> (y=x)";
-by (fast_tac (pack() add_safes [thm "subst"]) 1);
+by (fast_tac (LK_pack add_safes [thm "subst"]) 1);
 qed "eq_sym_conv";
 
 
@@ -251,7 +251,7 @@ val LK_simps =
 
 val LK_ss =
   LK_basic_ss addsimps LK_simps
-  addeqcongs [left_cong]
+  addeqcongs [thm "left_cong"]
   addcongs [imp_cong];
 
 change_simpset (fn _ => LK_ss);
@@ -269,17 +269,17 @@ by (res_inst_tac [ ("P","Q") ] (thm "cut") 1);
 by (simp_tac (simpset() addsimps [thm "if_P"]) 2);
 by (res_inst_tac [ ("P","~Q") ] (thm "cut") 1);
 by (simp_tac (simpset() addsimps [thm "if_not_P"]) 2);
-by (Fast_tac 1);
+by (fast_tac LK_pack 1);
 qed "split_if";
 
 Goal "|- (if P then x else x) = x";
 by (lemma_tac split_if 1);
-by (Fast_tac 1);
+by (fast_tac LK_pack 1);
 qed "if_cancel";
 
 Goal "|- (if x=y then y else x) = x";
 by (lemma_tac split_if 1);
-by (Safe_tac 1);
+by (safe_tac LK_pack 1);
 by (rtac (thm "symL") 1);
 by (rtac (thm "basic") 1);
 qed "if_eq_cancel";

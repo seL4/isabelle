@@ -25,8 +25,6 @@ axioms
   left_cong:  "[| P == P';  |- P' ==> ($H |- $F) == ($H' |- $F') |]
                ==> (P, $H |- $F) == (P', $H' |- $F')"
 
-ML {* use_legacy_bindings (the_context ()) *}
-
 use "simpdata.ML"
 
 end
