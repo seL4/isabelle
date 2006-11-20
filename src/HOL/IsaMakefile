@@ -499,9 +499,8 @@ $(LOG)/HOL-Lambda.gz: $(OUT)/HOL \
 
 HOL-Prolog: HOL $(LOG)/HOL-Prolog.gz
 
-$(LOG)/HOL-Prolog.gz: $(OUT)/HOL Prolog/ROOT.ML Prolog/HOHH.ML Prolog/HOHH.thy \
-  Prolog/Test.ML Prolog/Test.thy  \
-  Prolog/Func.ML Prolog/Func.thy Prolog/Type.ML Prolog/Type.thy
+$(LOG)/HOL-Prolog.gz: $(OUT)/HOL Prolog/ROOT.ML Prolog/prolog.ML Prolog/HOHH.thy \
+  Prolog/Test.thy Prolog/Func.thy Prolog/Type.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Prolog
 
 

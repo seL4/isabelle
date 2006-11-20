@@ -1,7 +1,12 @@
-(*  Title:    HOL/Prolog/HOHH.ML
+(*  Title:    HOL/Prolog/prolog.ML
     ID:       $Id$
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 *)
+
+set Proof.show_main_goal;
+
+structure Prolog =
+struct
 
 exception not_HOHH;
 
@@ -121,3 +126,5 @@ fun prolog_tac prog = check_HOHH_tac1 THEN
                       DEPTH_SOLVE (ptac (map check_HOHH prog) 1);
 
 val prog_HOHH = [];
+
+end;

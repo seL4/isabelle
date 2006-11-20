@@ -20,8 +20,8 @@ consts
 
   true    :: tm
   false   :: tm
-  "and"   :: "tm => tm => tm"       (infixr 999)
-  "eq"    :: "tm => tm => tm"       (infixr 999)
+  "and"   :: "tm => tm => tm"       (infixr "and" 999)
+  eq      :: "tm => tm => tm"       (infixr "eq" 999)
 
   Z       :: tm                     ("Z")
   S       :: "tm => tm"
@@ -60,6 +60,16 @@ eval ((S N) - (S M)) K :- eval (N- M)  K..
 eval ( Z    * M) Z..
 eval ((S N) * M) K :- eval (N * M) L & eval (L + M) K"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+lemmas prog_Func = eval
+
+lemma "eval ((S (S Z)) + (S Z)) ?X"
+  apply (prolog prog_Func)
+  done
+
+lemma "eval (app (fix (%fact. abs(%n. cond (n eq Z) (S Z)
+                        (n * (app fact (n - (S Z))))))) (S (S (S Z)))) ?X"
+  apply (prolog prog_Func)
+  done
 
 end
