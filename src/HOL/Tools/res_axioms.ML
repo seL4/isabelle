@@ -8,9 +8,6 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 (*unused during debugging*)
 signature RES_AXIOMS =
   sig
-  val elimRule_tac : thm -> Tactical.tactic
-  val elimR2Fol : thm -> term
-  val transform_elim : thm -> thm
   val cnf_axiom : (string * thm) -> thm list
   val cnf_name : string -> thm list
   val meta_cnf_axiom : thm -> thm list
@@ -67,73 +64,19 @@ val abstraction_cache = ref
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
-(* a tactic used to prove an elim-rule. *)
-fun elimRule_tac th =
-    (resolve_tac [impI,notI] 1) THEN (etac th 1) THEN REPEAT(fast_tac HOL_cs 1);
+val cfalse = cterm_of HOL.thy HOLogic.false_const;
+val ctp_false = cterm_of HOL.thy (HOLogic.mk_Trueprop HOLogic.false_const);
 
-fun add_EX tm [] = tm
-  | add_EX tm ((x,xtp)::xs) = add_EX (HOLogic.exists_const xtp $ Abs(x,xtp,tm)) xs;
-
-(*Checks for the premise ~P when the conclusion is P.*)
-fun is_neg (Const("Trueprop",_) $ (Const("Not",_) $ Free(p,_)))
-           (Const("Trueprop",_) $ Free(q,_)) = (p = q)
-  | is_neg _ _ = false;
-
-exception ELIMR2FOL;
-
-(*Handles the case where the dummy "conclusion" variable appears negated in the
-  premises, so the final consequent must be kept.*)
-fun strip_concl' prems bvs (Const ("==>",_) $ P $ Q) =
-      strip_concl' (HOLogic.dest_Trueprop P :: prems) bvs  Q
-  | strip_concl' prems bvs P =
-      let val P' = HOLogic.Not $ (HOLogic.dest_Trueprop P)
-      in add_EX (foldr1 HOLogic.mk_conj (P'::prems)) bvs end;
-
-(*Recurrsion over the minor premise of an elimination rule. Final consequent
-  is ignored, as it is the dummy "conclusion" variable.*)
-fun strip_concl prems bvs concl (Const ("all", _) $ Abs (x,xtp,body)) =
-      strip_concl prems ((x,xtp)::bvs) concl body
-  | strip_concl prems bvs concl (Const ("==>",_) $ P $ Q) =
-      if (is_neg P concl) then (strip_concl' prems bvs Q)
-      else strip_concl (HOLogic.dest_Trueprop P::prems) bvs  concl Q
-  | strip_concl prems bvs concl Q =
-      if concl aconv Q andalso not (null prems) 
-      then add_EX (foldr1 HOLogic.mk_conj prems) bvs
-      else raise ELIMR2FOL (*expected conclusion not found!*)
-
-fun trans_elim (major,[],_) = HOLogic.Not $ major
-  | trans_elim (major,minors,concl) =
-      let val disjs = foldr1 HOLogic.mk_disj (map (strip_concl [] [] concl) minors)
-      in  HOLogic.mk_imp (major, disjs)  end;
-
-(* convert an elim rule into an equivalent formula, of type term. *)
-fun elimR2Fol elimR =
-  let val elimR' = freeze_thm elimR
-      val (prems,concl) = (prems_of elimR', concl_of elimR')
-      val cv = case concl of    (*conclusion variable*)
-                  Const("Trueprop",_) $ (v as Free(_,Type("bool",[]))) => v
-                | v as Free(_, Type("prop",[])) => v
-                | _ => raise ELIMR2FOL
-  in case prems of
-      [] => raise ELIMR2FOL
-    | (Const("Trueprop",_) $ major) :: minors =>
-        if member (op aconv) (term_frees major) cv then raise ELIMR2FOL
-        else (trans_elim (major, minors, concl) handle TERM _ => raise ELIMR2FOL)
-    | _ => raise ELIMR2FOL
-  end;
-
-(* convert an elim-rule into an equivalent theorem that does not have the
-   predicate variable.  Leave other theorems unchanged.*)
+(*Converts an elim-rule into an equivalent theorem that does not have the
+  predicate variable.  Leaves other theorems unchanged.  We simply instantiate the
+  conclusion variable to False.*)
 fun transform_elim th =
-    let val t = HOLogic.mk_Trueprop (elimR2Fol th)
-    in 
-        if Meson.too_many_clauses t then TrueI
-        else Goal.prove_raw [] (cterm_of (sign_of_thm th) t) (fn _ => elimRule_tac th) 
-    end
-    handle ELIMR2FOL => th (*not an elimination rule*)
-         | exn => (warning ("transform_elim failed: " ^ Toplevel.exn_message exn ^
-                            " for theorem " ^ Thm.name_of_thm th ^ ": " ^ string_of_thm th); th)
-
+  case concl_of th of    (*conclusion variable*)
+       Const("Trueprop",_) $ (v as Var(_,Type("bool",[]))) => 
+           Thm.instantiate ([], [(cterm_of HOL.thy v, cfalse)]) th
+    | v as Var(_, Type("prop",[])) => 
+           Thm.instantiate ([], [(cterm_of HOL.thy v, ctp_false)]) th
+    | _ => th;
 
 (**** Transformation of Clasets and Simpsets into First-Order Axioms ****)
 
