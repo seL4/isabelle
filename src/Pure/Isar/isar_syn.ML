@@ -239,10 +239,10 @@ fun theorems kind = P.opt_locale_target -- P.name_facts
   >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.theorems kind args));
 
 val theoremsP =
-  OuterSyntax.command "theorems" "define theorems" K.thy_decl (theorems PureThy.theoremK);
+  OuterSyntax.command "theorems" "define theorems" K.thy_decl (theorems Thm.theoremK);
 
 val lemmasP =
-  OuterSyntax.command "lemmas" "define lemmas" K.thy_decl (theorems PureThy.lemmaK);
+  OuterSyntax.command "lemmas" "define lemmas" K.thy_decl (theorems Thm.lemmaK);
 
 val declareP =
   OuterSyntax.command "declare" "declare theorems (improper)" K.thy_script
@@ -392,9 +392,9 @@ fun gen_theorem kind =
        Toplevel.local_theory_to_proof loc
          (Specification.theorem kind NONE (K I) a elems concl))));
 
-val theoremP = gen_theorem PureThy.theoremK;
-val lemmaP = gen_theorem PureThy.lemmaK;
-val corollaryP = gen_theorem PureThy.corollaryK;
+val theoremP = gen_theorem Thm.theoremK;
+val lemmaP = gen_theorem Thm.lemmaK;
+val corollaryP = gen_theorem Thm.corollaryK;
 
 val haveP =
   OuterSyntax.command "have" "state local goal"

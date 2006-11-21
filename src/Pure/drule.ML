@@ -934,13 +934,13 @@ local
   val term_def = unvarify ProtoPure.term_def;
 in
   val protect = Thm.capply (cert Logic.protectC);
-  val protectI = store_thm "protectI" (PureThy.kind_rule PureThy.internalK (standard
+  val protectI = store_thm "protectI" (PureThy.kind_rule Thm.internalK (standard
       (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A))));
-  val protectD = store_thm "protectD" (PureThy.kind_rule PureThy.internalK (standard
+  val protectD = store_thm "protectD" (PureThy.kind_rule Thm.internalK (standard
       (Thm.equal_elim prop_def (Thm.assume (protect A)))));
   val protect_cong = store_standard_thm_open "protect_cong" (Thm.reflexive (protect A));
 
-  val termI = store_thm "termI" (PureThy.kind_rule PureThy.internalK (standard
+  val termI = store_thm "termI" (PureThy.kind_rule Thm.internalK (standard
       (Thm.equal_elim (Thm.symmetric term_def) (Thm.forall_intr A (Thm.trivial A)))));
 end;
 

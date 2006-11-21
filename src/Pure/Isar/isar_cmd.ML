@@ -432,7 +432,7 @@ local
 
 fun string_of_stmts state args =
   Proof.get_thmss state args
-  |> map (Element.pretty_statement (Proof.context_of state) PureThy.lemmaK)
+  |> map (Element.pretty_statement (Proof.context_of state) Thm.theoremK)
   |> Pretty.chunks2 |> Pretty.string_of;
 
 fun string_of_thms state args =

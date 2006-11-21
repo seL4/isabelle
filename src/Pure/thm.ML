@@ -70,6 +70,13 @@ signature BASIC_THM =
     tpairs: (cterm * cterm) list,
     prop: cterm}
   exception THM of string * int * thm list
+  val axiomK: string
+  val assumptionK: string
+  val definitionK: string
+  val theoremK: string
+  val lemmaK: string
+  val corollaryK: string
+  val internalK: string
   type attribute     (* = Context.generic * thm -> Context.generic * thm *)
   val eq_thm: thm * thm -> bool
   val eq_thms: thm list * thm list -> bool
@@ -427,6 +434,14 @@ fun merge_thys1 (Cterm {thy_ref = r1, ...}) (th as Thm {thy_ref = r2, ...}) =
 fun merge_thys2 (th1 as Thm {thy_ref = r1, ...}) (th2 as Thm {thy_ref = r2, ...}) =
   Theory.merge_refs (r1, r2) handle TERM (msg, _) => raise THM (msg, 0, [th1, th2]);
 
+(*theorem kinds*)
+val axiomK = "axiom";
+val assumptionK = "assumption";
+val definitionK = "definition";
+val theoremK = "theorem";
+val lemmaK = "lemma";
+val corollaryK = "corollary";
+val internalK = "internal";
 
 (*attributes subsume any kind of rules or context modifiers*)
 type attribute = Context.generic * thm -> Context.generic * thm;
