@@ -95,7 +95,7 @@ echo "$(date) $HOSTNAME $PRG: dist build successful, elapsed time $ELAPSED." >> 
 $SSH sunbroy2 "$MAKEALL $HOME/settings/sun-poly"
 # give test some time to copy settings and start
 sleep 5
-$SSH atbroy9 "$MAKEALL $HOME/settings/at-poly"
+$SSH atbroy9 "$MAKEALL $HOME/settings/at-poly at-poly-e"
 sleep 5
 $SSH atbroy10 "$MAKEALL $HOME/settings/at-sml-dev"
 sleep 5
