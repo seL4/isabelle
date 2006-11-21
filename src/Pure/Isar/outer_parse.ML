@@ -382,7 +382,7 @@ val loc_element =
   $$$ "defines" |-- !!! (and_list1 (opt_thm_name ":" -- propp))
     >> Element.Defines ||
   $$$ "notes" |-- !!! (and_list1 (opt_thm_name "=" -- xthms1))
-    >> Element.Notes;
+    >> (curry Element.Notes "");
 
 fun plus1 test scan =
   scan -- Scan.repeat ($$$ "+" |-- Scan.unless test (!!! scan)) >> op ::;

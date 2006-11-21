@@ -18,7 +18,7 @@ sig
     Constrains of (string * 'typ) list |
     Assumes of ((string * Attrib.src list) * ('term * 'term list) list) list |
     Defines of ((string * Attrib.src list) * ('term * 'term list)) list |
-    Notes of ((string * Attrib.src list) * ('fact * Attrib.src list) list) list
+    Notes of string * ((string * Attrib.src list) * ('fact * Attrib.src list) list) list
   type context (*= (string, string, thmref) ctxt*)
   type context_i (*= (typ, term, thm list) ctxt*)
   val map_ctxt: {name: string -> string,
@@ -97,7 +97,7 @@ datatype ('typ, 'term, 'fact) ctxt =
   Constrains of (string * 'typ) list |
   Assumes of ((string * Attrib.src list) * ('term * 'term list) list) list |
   Defines of ((string * Attrib.src list) * ('term * 'term list)) list |
-  Notes of ((string * Attrib.src list) * ('fact * Attrib.src list) list) list;
+  Notes of string * ((string * Attrib.src list) * ('fact * Attrib.src list) list) list;
 
 type context = (string, string, thmref) ctxt;
 type context_i = (typ, term, thm list) ctxt;
@@ -110,7 +110,7 @@ fun map_ctxt {name, var, typ, term, fact, attrib} =
       ((name a, map attrib atts), propps |> map (fn (t, ps) => (term t, map term ps)))))
    | Defines defs => Defines (defs |> map (fn ((a, atts), (t, ps)) =>
       ((name a, map attrib atts), (term t, map term ps))))
-   | Notes facts => Notes (facts |> map (fn ((a, atts), bs) =>
+   | Notes (kind, facts) => Notes (kind, facts |> map (fn ((a, atts), bs) =>
       ((name a, map attrib atts), bs |> map (fn (ths, btts) => (fact ths, map attrib btts)))));
 
 fun map_ctxt_values typ term thm = map_ctxt
@@ -133,7 +133,7 @@ fun assume thy t = Assumption.assume (Thm.cterm_of thy t);
 
 fun facts_of thy (Assumes asms) = map (apsnd (map (fn (t, _) => ([assume thy t], [])))) asms
   | facts_of thy (Defines defs) = map (apsnd (fn (t, _) => [([assume thy t], [])])) defs
-  | facts_of _ (Notes facts) = facts
+  | facts_of _ (Notes (_, facts)) = facts
   | facts_of _ _ = [];
 
 
@@ -208,7 +208,8 @@ fun pretty_ctxt ctxt =
      | Constrains xs => pretty_items "constrains" "and" (map prt_constrain xs)
      | Assumes asms => pretty_items "assumes" "and" (map prt_asm asms)
      | Defines defs => pretty_items "defines" "and" (map prt_def defs)
-     | Notes facts => pretty_items "notes" "and" (map prt_note facts)
+     | Notes ("", facts) => pretty_items "notes" "and" (map prt_note facts)
+     | Notes (kind, facts) => pretty_items ("notes " ^ kind) "and" (map prt_note facts)
   end;
 
 
@@ -464,7 +465,7 @@ fun satisfy_witness witns = map_witness (apsnd (satisfy_thm witns));
 fun satisfy_ctxt witns = map_ctxt_values I I (satisfy_thm witns);
 
 fun satisfy_facts witns facts =
-  satisfy_ctxt witns (Notes facts) |> (fn Notes facts' => facts');
+  satisfy_ctxt witns (Notes ("", facts)) |> (fn Notes (_, facts') => facts');
 
 
 (* generalize type/term parameters *)
@@ -482,7 +483,7 @@ fun exp_facts std inner outer facts =
       singleton ((if std then ProofContext.export_standard else ProofContext.export) inner outer);
     val exp_term = Drule.term_rule thy exp_thm;
     val exp_typ = Logic.mk_type #> exp_term #> Logic.dest_type;
-    val Notes facts' = map_ctxt_values exp_typ exp_term exp_thm (Notes facts);
+    val Notes (_, facts') = map_ctxt_values exp_typ exp_term exp_thm (Notes ("", facts));
   in facts' end;
 
 in

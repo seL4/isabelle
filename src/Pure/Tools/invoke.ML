@@ -80,7 +80,7 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
           ctxt
           |> ProofContext.sticky_prefix prfx
           |> ProofContext.qualified_names
-          |> (snd o ProofContext.note_thmss_i notes)
+          |> (snd o ProofContext.note_thmss_i "" notes)
           |> ProofContext.restore_naming ctxt
         end) #>
       Proof.put_facts NONE #> Seq.single;
