@@ -18,8 +18,7 @@ sig
   val theory_of: state -> theory
   val map_context: (context -> context) -> state -> state
   val add_binds_i: (indexname * term option) list -> state -> state
-  val put_thms: bool -> string * thm list option -> state -> state
-  val put_thms_internal: string * thm list option -> state -> state
+  val put_thms: string * thm list option -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
   val put_facts: thm list option -> state -> state
@@ -90,9 +89,9 @@ sig
     string -> Method.text option -> (thm list list -> state -> state Seq.seq) ->
     ((string * 'a list) * 'b) list -> state -> state
   val local_qed: Method.text option * bool -> state -> state Seq.seq
-  val theorem: string -> Method.text option -> (thm list list -> context -> context) ->
+  val theorem: Method.text option -> (thm list list -> context -> context) ->
     (string * string list) list list -> context -> state
-  val theorem_i: string -> Method.text option -> (thm list list -> context -> context) ->
+  val theorem_i: Method.text option -> (thm list list -> context -> context) ->
     (term * term list) list list -> context -> state
   val global_qed: Method.text option * bool -> state -> context
   val local_terminal_proof: Method.text * Method.text option -> state -> state Seq.seq
@@ -194,8 +193,7 @@ fun map_context_result f state =
   f (context_of state) ||> (fn ctxt => map_context (K ctxt) state);
 
 val add_binds_i = map_context o ProofContext.add_binds_i;
-val put_thms = map_context oo ProofContext.put_thms;
-val put_thms_internal = map_context o ProofContext.put_thms_internal;
+val put_thms = map_context o ProofContext.put_thms;
 
 
 (* facts *)
@@ -212,7 +210,7 @@ fun the_fact state =
 
 fun put_facts facts =
   map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal)) #>
-  put_thms_internal (AutoBind.thisN, facts);
+  put_thms (AutoBind.thisN, facts);
 
 fun these_factss more_facts (named_factss, state) =
   (named_factss, state |> put_facts (SOME (maps snd named_factss @ more_facts)));
@@ -334,11 +332,11 @@ fun pretty_state nr state =
       (case filter_out (equal "") strs of [] => ""
       | strs' => enclose " (" ")" (commas strs'));
 
-    fun prt_goal (SOME (ctxt, (i, {statement = (kind, _), using, goal, before_qed, after_qed}))) =
+    fun prt_goal (SOME (ctxt, (i, {using, goal, before_qed, after_qed, ...}))) =
           pretty_facts "using " ctxt
             (if mode <> Backward orelse null using then NONE else SOME using) @
-          [Pretty.str ("goal" ^ description [kind, levels_up (i div 2),
-              subgoals (Thm.nprems_of goal)] ^ ":")] @
+          [Pretty.str ("goal" ^
+            description [levels_up (i div 2), subgoals (Thm.nprems_of goal)] ^ ":")] @
           pretty_goals_local ctxt bg (true, ! show_main_goal) (! Display.goals_limit) goal
       | prt_goal NONE = [];
 
@@ -597,19 +595,19 @@ fun gen_thmss note_ctxt more_facts opt_chain opt_result prep_atts args state =
 
 in
 
-val note_thmss = gen_thmss ProofContext.note_thmss (K []) I #2 Attrib.attribute;
-val note_thmss_i = gen_thmss ProofContext.note_thmss_i (K []) I #2 (K I);
+val note_thmss = gen_thmss (ProofContext.note_thmss "") (K []) I #2 Attrib.attribute;
+val note_thmss_i = gen_thmss (ProofContext.note_thmss_i "") (K []) I #2 (K I);
 
 val from_thmss =
-  gen_thmss ProofContext.note_thmss (K []) chain #2 Attrib.attribute o no_binding;
-val from_thmss_i = gen_thmss ProofContext.note_thmss_i (K []) chain #2 (K I) o no_binding;
+  gen_thmss (ProofContext.note_thmss "") (K []) chain #2 Attrib.attribute o no_binding;
+val from_thmss_i = gen_thmss (ProofContext.note_thmss_i "") (K []) chain #2 (K I) o no_binding;
 
 val with_thmss =
-  gen_thmss ProofContext.note_thmss the_facts chain #2 Attrib.attribute o no_binding;
-val with_thmss_i = gen_thmss ProofContext.note_thmss_i the_facts chain #2 (K I) o no_binding;
+  gen_thmss (ProofContext.note_thmss "") the_facts chain #2 Attrib.attribute o no_binding;
+val with_thmss_i = gen_thmss (ProofContext.note_thmss_i "") the_facts chain #2 (K I) o no_binding;
 
 val local_results =
-  gen_thmss ProofContext.note_thmss_i (K []) I I (K I) o map (apsnd Thm.simple_fact);
+  gen_thmss (ProofContext.note_thmss_i "") (K []) I I (K I) o map (apsnd Thm.simple_fact);
 
 fun get_thmss state srcs = the_facts (note_thmss [(("", []), srcs)] state);
 fun simple_note_thms name thms = note_thmss_i [((name, []), [(thms, [])])];
@@ -624,7 +622,8 @@ local
 fun gen_using f g note prep_atts args state =
   state
   |> assert_backward
-  |> map_context_result (note (Attrib.map_facts (prep_atts (theory_of state)) (no_binding args)))
+  |> map_context_result
+    (note "" (Attrib.map_facts (prep_atts (theory_of state)) (no_binding args)))
   |> (fn (named_facts, state') =>
     state' |> map_goal I (fn (statement, using, goal, before_qed, after_qed) =>
       let
@@ -834,9 +833,9 @@ fun local_qed txt =
 
 (* global goals *)
 
-fun global_goal prepp kind before_qed after_qed propp ctxt =
+fun global_goal prepp before_qed after_qed propp ctxt =
   init ctxt
-  |> generic_goal (prepp #> ProofContext.auto_fixes) kind
+  |> generic_goal (prepp #> ProofContext.auto_fixes) ""
     before_qed (K Seq.single, after_qed) propp;
 
 val theorem = global_goal ProofContext.bind_propp_schematic;
