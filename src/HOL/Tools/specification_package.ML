@@ -228,7 +228,7 @@ fun process_spec axiomatic cos alt_props thy =
     in
       thy
       |> ProofContext.init
-      |> Proof.theorem_i PureThy.internalK NONE after_qed [[(HOLogic.mk_Trueprop ex_prop, [])]]
+      |> Proof.theorem_i NONE after_qed [[(HOLogic.mk_Trueprop ex_prop, [])]]
     end;
 
 
