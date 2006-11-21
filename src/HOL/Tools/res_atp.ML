@@ -315,9 +315,8 @@ fun is_fol_thms ths = ((fst(logic_of_clauses (map prop_of ths) (FOL,[]))) = FOL)
 
 (*The rule subsetI is frequently omitted by the relevance filter.*)
 val whitelist = ref [subsetI]; 
-
-(*Names of theorems and theorem lists to be banned. The final numeric suffix of
-  theorem lists is first removed.
+  
+(*Names of theorems (not theorem lists! See multi_blacklist above) to be banned. 
 
   These theorems typically produce clauses that are prolific (match too many equality or
   membership literals) and relate to seldom-used facts. Some duplicate other rules.
@@ -325,12 +324,6 @@ val whitelist = ref [subsetI];
   an attribute.*)
 val blacklist = ref
   ["Datatype.prod.size",
-   "Datatype.unit.exhaust", (*"unit" thms cause unsound proofs; unit.nchotomy is caught automatically*)
-   "Datatype.unit.induct", 
-   "Datatype.unit.inducts",
-   "Datatype.unit.split_asm", 
-   "Datatype.unit.split",
-   "Datatype.unit.splits",
    "Divides.dvd_0_left_iff",
    "Finite_Set.card_0_eq",
    "Finite_Set.card_infinite",
@@ -344,8 +337,6 @@ val blacklist = ref
    "Finite_Set.Min_gr_iff",
    "Finite_Set.Min_in",
    "Finite_Set.Min_le",
-   "Finite_Set.min_max.below_inf_sup_Inf_Sup.inf_Sup_absorb", 
-   "Finite_Set.min_max.below_inf_sup_Inf_Sup.sup_Inf_absorb", 
    "Finite_Set.min.f_below_strict_below.below_f_conv",        (*duplicates in Orderings.*)
    "Finite_Set.min.f_below_strict_below.strict_below_f_conv", (*duplicates in Orderings.*)
    "Fun.vimage_image_eq",   (*involves an existential quantifier*)
@@ -394,12 +385,6 @@ val blacklist = ref
    "OrderedGroup.pprt_mono",   (*obscure*)
    "Orderings.split_max",      (*splitting theorem*)
    "Orderings.split_min",      (*splitting theorem*)
-   "Parity.even_nat_power",   (*obscure, somewhat prolilfic*)
-   "Parity.power_eq_0_iff_number_of",
-   "Parity.power_le_zero_eq_number_of",   (*obscure and prolific*)
-   "Parity.power_less_zero_eq_number_of",
-   "Parity.zero_le_power_eq_number_of",   (*obscure and prolific*)
-   "Parity.zero_less_power_eq_number_of",   (*obscure and prolific*)
    "Power.zero_less_power_abs_iff",
    "Product_Type.split_eta_SetCompr",   (*involves an existential quantifier*)
    "Product_Type.split_paired_Ball_Sigma",     (*splitting theorem*)
@@ -437,20 +422,16 @@ val blacklist = ref
    "Ring_and_Field.less_divide_eq_1_neg", (*obscure and prolific*)
    "Ring_and_Field.less_divide_eq_1_pos", (*obscure and prolific*)
    "Ring_and_Field.one_eq_divide_iff",  (*duplicate by symmetry*)
-   "Set.ball_simps", "Set.bex_simps",   (*quantifier rewriting: useless*)
    "Set.Collect_bex_eq",   (*involves an existential quantifier*)
    "Set.Collect_ex_eq",   (*involves an existential quantifier*)
    "Set.Diff_eq_empty_iff", (*redundant with paramodulation*)
    "Set.Diff_insert0",
-   "Set.disjoint_insert",
    "Set.empty_Union_conv",   (*redundant with paramodulation*)
    "Set.full_SetCompr_eq",   (*involves an existential quantifier*)
    "Set.image_Collect",      (*involves an existential quantifier*)
    "Set.image_def",          (*involves an existential quantifier*)
-   "Set.insert_disjoint",
    "Set.Int_UNIV",  (*redundant with paramodulation*)
    "Set.Inter_iff", (*We already have InterI, InterE*)
-   "Set.Inter_UNIV_conv",
    "Set.psubsetE",    (*too prolific and obscure*)
    "Set.psubsetI",
    "Set.singleton_insert_inj_eq'",
@@ -490,18 +471,7 @@ fun insert_suffixed_names ht x =
       Polyhash.insert ht (x^"_iff2", ()); 
       Polyhash.insert ht (x^"_dest", ())); 
 
-(*Are all characters in this string digits?*)
-fun all_numeric s = null (String.tokens Char.isDigit s);
-
-(*Delete a suffix of the form _\d+*)
-fun delete_numeric_suffix s =
-  case rev (String.fields (fn c => c = #"_") s) of
-      last::rest => 
-          if all_numeric last 
-          then [s, space_implode "_" (rev rest)]
-          else [s]
-    | [] => [s];
-
+(*FIXME: probably redundant now that ALL boolean-valued variables are banned*)
 fun banned_thmlist s =
   (Sign.base_name s) mem_string ["induct","inducts","split","splits","split_asm"];
 
@@ -515,9 +485,8 @@ fun is_package_def a =
 fun make_banned_test xs = 
   let val ht = Polyhash.mkTable (Polyhash.hash_string, op =)
                                 (6000, HASH_STRING)
-      fun banned_aux s = 
+      fun banned s = 
             isSome (Polyhash.peek ht s) orelse banned_thmlist s orelse is_package_def s
-      fun banned s = exists banned_aux (delete_numeric_suffix s)
   in  app (fn x => Polyhash.insert ht (x,())) (!blacklist);
       app (insert_suffixed_names ht) (!blacklist @ xs); 
       banned
@@ -588,9 +557,18 @@ fun all_valid_thms ctxt =
 fun multi_name a (th, (n,pairs)) = 
   (n+1, (a ^ "(" ^ Int.toString n ^ ")", th) :: pairs)
 
-fun add_multi_names ((a, []), pairs) = pairs
-  | add_multi_names ((a, [th]), pairs) = (a,th)::pairs
-  | add_multi_names ((a, ths), pairs) = #2 (foldl (multi_name a) (1,pairs) ths);
+fun add_multi_names_aux ((a, []), pairs) = pairs
+  | add_multi_names_aux ((a, [th]), pairs) = (a,th)::pairs
+  | add_multi_names_aux ((a, ths), pairs) = #2 (foldl (multi_name a) (1,pairs) ths);
+
+val multi_blacklist =
+  ["Set.ball_simps", "Set.bex_simps",  (*quantifier rewriting: useless*)
+   "Set.disjoint_insert", "Set.insert_disjoint", "Set.Inter_UNIV_conv"];
+
+(*Ignore blacklisted theorem lists*)
+fun add_multi_names ((a, ths), pairs) = 
+  if a mem_string multi_blacklist then pairs
+  else add_multi_names_aux ((a, ths), pairs);
 
 fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 
@@ -631,15 +609,15 @@ fun get_clasimp_atp_lemmas ctxt user_thms =
   end;
 
 (*Remove lemmas that are banned from the backlist. Also remove duplicates. *)
-fun blacklist_filter thms = 
+fun blacklist_filter ths = 
   if !run_blacklist_filter then 
-      let val _ = Output.debug("blacklist filter gets " ^ Int.toString (length thms) ^ " theorems")
-          val banned = make_banned_test (map #1 thms)
+      let val _ = Output.debug("blacklist filter gets " ^ Int.toString (length ths) ^ " theorems")
+          val banned = make_banned_test (map #1 ths)
 	  fun ok (a,_) = not (banned a)
-	  val okthms = filter ok thms
+	  val okthms = filter ok ths
           val _ = Output.debug("...and returns " ^ Int.toString (length okthms))
       in  okthms end
-  else thms;
+  else ths;
 
 (***************************************************************)
 (* Type Classes Present in the Axiom or Conjecture Clauses     *)
@@ -697,6 +675,17 @@ fun restrict_to_logic logic cls =
   if is_fol_logic logic then filter (Meson.is_fol_term o prop_of o fst) cls 
 	                else cls;
 
+(*True if the term contains a variable whose (atomic) type is in the given list.*)
+fun has_typed_var tycons = 
+  let fun var_tycon (Var (_, Type(a,_))) = a mem_string tycons
+        | var_tycon _ = false
+  in  exists var_tycon o term_vars  end;
+
+(*Clauses containing variables of type "unit" or "bool" are unlikely to be useful and
+  likely to lead to unsound proofs.*)
+fun remove_finite_types cls =
+  filter (not o has_typed_var ["Product_Type.unit","bool"] o prop_of o fst) cls;
+
 fun tptp_writer logic goals filename (axioms,classrels,arities) user_lemmas =
     if is_fol_logic logic 
     then ResClause.tptp_write_file goals filename (axioms, classrels, arities)
@@ -713,23 +702,24 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
                          |> ResAxioms.assume_abstract_list |> Meson.finish_cnf
 	val hyp_cls = cnf_hyps_thms ctxt
 	val goal_cls = conj_cls@hyp_cls
+	val goal_tms = map prop_of goal_cls
 	val logic = case mode of 
-                            Auto => problem_logic_goals [map prop_of goal_cls]
+                            Auto => problem_logic_goals [goal_tms]
 			  | Fol => FOL
 			  | Hol => HOL
 	val (included_thms,user_rules) = get_clasimp_atp_lemmas ctxt user_thms
 	val cla_simp_atp_clauses = included_thms |> blacklist_filter
 	                             |> ResAxioms.cnf_rules_pairs |> make_unique 
                                      |> restrict_to_logic logic 
+                                     |> remove_finite_types
 	val user_cls = ResAxioms.cnf_rules_pairs user_rules
 	val thy = ProofContext.theory_of ctxt
-	val axclauses = get_relevant_clauses thy cla_simp_atp_clauses
-	                            user_cls (map prop_of goal_cls) |> make_unique
+	val axclauses = make_unique (get_relevant_clauses thy cla_simp_atp_clauses user_cls goal_tms)
 	val keep_types = if is_fol_logic logic then !fol_keep_types else is_typed_hol ()
-        val subs = tfree_classes_of_terms (map prop_of goal_cls)
+        val subs = tfree_classes_of_terms goal_tms
         and axtms = map (prop_of o #1) axclauses
         val supers = tvar_classes_of_terms axtms
-        and tycons = type_consts_of_terms thy axtms
+        and tycons = type_consts_of_terms thy (goal_tms@axtms)
         (*TFrees in conjecture clauses; TVars in axiom clauses*)
         val classrel_clauses = 
               if keep_types then ResClause.make_classrel_clauses thy subs supers
@@ -842,7 +832,8 @@ fun write_problem_files probfile (ctxt,th)  =
       val (included_thms,white_thms) = get_clasimp_atp_lemmas ctxt []
       val included_cls = included_thms |> blacklist_filter
                                        |> ResAxioms.cnf_rules_pairs |> make_unique 
-                                       |> restrict_to_logic logic 
+                                       |> restrict_to_logic logic
+                                       |> remove_finite_types
       val _ = Output.debug ("clauses = " ^ Int.toString(length included_cls))
       val white_cls = ResAxioms.cnf_rules_pairs white_thms
       (*clauses relevant to goal gl*)
@@ -858,10 +849,11 @@ fun write_problem_files probfile (ctxt,th)  =
             let val fname = probfile k
                 val axcls = make_unique axcls
                 val ccls = subtract_cls ccls axcls
-                val subs = tfree_classes_of_terms (map prop_of ccls)
+                val ccltms = map prop_of ccls
                 and axtms = map (prop_of o #1) axcls
-                val supers = tvar_classes_of_terms axtms
-                and tycons = type_consts_of_terms thy axtms
+                val subs = tfree_classes_of_terms ccltms
+                and supers = tvar_classes_of_terms axtms
+                and tycons = type_consts_of_terms thy (ccltms@axtms)
                 (*TFrees in conjecture clauses; TVars in axiom clauses*)
                 val classrel_clauses = 
                       if keep_types then ResClause.make_classrel_clauses thy subs supers
