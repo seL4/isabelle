@@ -37,10 +37,6 @@ sig
   val get_kind: thm -> string
   val kind_rule: string -> thm -> thm
   val kind: string -> attribute
-  val theoremK: string
-  val lemmaK: string
-  val corollaryK: string
-  val internalK: string
   val kind_internal: attribute
   val has_internal: tag list -> bool
   val is_internal: thm -> bool
@@ -61,6 +57,8 @@ sig
   val thms_of: theory -> (string * thm) list
   val all_thms_of: theory -> (string * thm) list
   val hide_thms: bool -> string list -> theory -> theory
+  val name_thms: bool -> string -> thm list -> thm list
+  val name_thmss: string -> (thm list * 'a) list -> (thm list * 'a) list
   val store_thm: (bstring * thm) * attribute list -> theory -> thm * theory
   val smart_store_thms: (bstring * thm list) -> thm list
   val smart_store_thms_open: (bstring * thm list) -> thm list
@@ -118,11 +116,6 @@ fun simple_tag name x = tag (name, []) x;
 
 
 (* theorem kinds *)
-
-val theoremK = "theorem";
-val lemmaK = "lemma";
-val corollaryK = "corollary";
-val internalK = "internal";
 
 fun get_kind thm =
   (case AList.lookup (op =) ((#2 o Thm.get_name_tags) thm) "kind" of
@@ -392,14 +385,14 @@ in
 val note_thmss = gen_note_thmss get_thms;
 val note_thmss_i = gen_note_thmss (K I);
 
+end;
+
 fun note_thmss_qualified k path facts thy =
   thy
   |> Theory.add_path path
   |> Theory.no_base_names
   |> note_thmss_i k facts
   ||> Theory.restore_naming thy;
-
-end;
 
 
 (* store_thm *)
