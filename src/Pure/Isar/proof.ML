@@ -60,7 +60,6 @@ sig
   val chain: state -> state
   val chain_facts: thm list -> state -> state
   val get_thmss: state -> (thmref * Attrib.src list) list -> thm list
-  val simple_note_thms: string -> thm list -> state -> state
   val note_thmss: ((string * Attrib.src list) *
     (thmref * Attrib.src list) list) list -> state -> state
   val note_thmss_i: ((string * attribute list) *
@@ -610,7 +609,6 @@ val local_results =
   gen_thmss (ProofContext.note_thmss_i "") (K []) I I (K I) o map (apsnd Thm.simple_fact);
 
 fun get_thmss state srcs = the_facts (note_thmss [(("", []), srcs)] state);
-fun simple_note_thms name thms = note_thmss_i [((name, []), [(thms, [])])];
 
 end;
 
@@ -661,7 +659,7 @@ fun gen_invoke_case prep_att (name, xs, raw_atts) state =
     |> assume_i assumptions
     |> add_binds_i AutoBind.no_facts
     |> map_context (ProofContext.restore_naming (context_of state))
-    |> `the_facts |-> simple_note_thms name
+    |> `the_facts |-> (fn thms => note_thmss_i [((name, []), [(thms, [])])])
   end;
 
 in
