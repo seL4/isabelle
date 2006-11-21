@@ -892,13 +892,14 @@ $\PROOFNAME$ (\S\ref{sec:proof-steps}) or $\APPLYNAME$
 Claims at the theory level may be either in short or long form.  A
 short goal merely consists of several simultaneous propositions (often
 just one).  A long goal includes an explicit context specification for
-the subsequent conclusion, involving local parameters.  Here the role
-of each part of the statement is explicitly marked by separate
-keywords (see also \S\ref{sec:locale}).
-\indexisarelem{shows}\indexisarelem{obtains}Moreover, there are two
-kinds of conclusions: $\isarkeyword{shows}$ states several
-simultaneous propositions (essentially a big conjunction), while
-$\isarkeyword{obtains}$ claims several simultaneous simultaneous
+the subsequent conclusion, involving local parameters and assumptions.
+Here the role of each part of the statement is explicitly marked by
+separate keywords (see also \S\ref{sec:locale}); the local assumptions
+being introduced here are available as $assms$\indexisarthm{assms} in
+the proof.  \indexisarelem{shows}\indexisarelem{obtains}Moreover,
+there are two kinds of conclusions: $\isarkeyword{shows}$ states
+several simultaneous propositions (essentially a big conjunction),
+while $\isarkeyword{obtains}$ claims several simultaneous simultaneous
 contexts of (essentially a big disjunction of eliminated parameters
 and assumptions, cf.\ \S\ref{sec:obtain}).
 
