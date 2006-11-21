@@ -886,18 +886,19 @@ fun activate_elem _ _ ((ctxt, mode), Fixes fixes) =
       in ((ctxt', Assumed axs), []) end
   | activate_elem _ _ ((ctxt, Derived ths), Defines defs) =
       ((ctxt, Derived ths), [])
-  | activate_elem _ is_ext ((ctxt, mode), Notes facts) =
+  | activate_elem _ is_ext ((ctxt, mode), Notes (kind, facts)) =
       let
         val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts;
-        val (res, ctxt') = ctxt |> ProofContext.note_thmss_i facts';
+        val (res, ctxt') = ctxt |> ProofContext.note_thmss_i kind facts';
       in ((ctxt', mode), if is_ext then res else []) end;
 
 fun activate_elems ax_in_ctxt (((name, ps), mode), elems) ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val ((ctxt', _), res) =
-        foldl_map (activate_elem ax_in_ctxt (name = "")) ((ProofContext.qualified_names ctxt, mode), elems)
-      handle ERROR msg => err_in_locale ctxt msg [(name, map fst ps)]
+      foldl_map (activate_elem ax_in_ctxt (name = ""))
+        ((ProofContext.qualified_names ctxt, mode), elems)
+      handle ERROR msg => err_in_locale ctxt msg [(name, map fst ps)];
     val ctxt'' = if name = "" then ctxt'
           else let
               val ps' = map (fn (n, SOME T) => Free (n, T)) ps;
@@ -1005,7 +1006,7 @@ fun declare_ext_elem prep_vars (ctxt, Fixes fixes) =
       in (ctxt', []) end
   | declare_ext_elem _ (ctxt, Assumes asms) = (ctxt, map #2 asms)
   | declare_ext_elem _ (ctxt, Defines defs) = (ctxt, map (fn (_, (t, ps)) => [(t, ps)]) defs)
-  | declare_ext_elem _ (ctxt, Notes facts) = (ctxt, []);
+  | declare_ext_elem _ (ctxt, Notes _) = (ctxt, []);
 
 fun declare_elems prep_vars (ctxt, (((name, ps), Assumed _), elems)) =
     let val (ctxt', propps) =
@@ -1093,12 +1094,14 @@ fun finish_derived _ _ (Assumed _) (Fixes fixes) = SOME (Fixes fixes)
   | finish_derived _ _ (Derived _) (Constrains _) = NONE
   | finish_derived sign wits (Derived _) (Assumes asms) = asms
       |> map (apsnd (map (fn (a, _) => ([Thm.assume (cterm_of sign a)], []))))
-      |> Notes |> Element.map_ctxt_values I I (Element.satisfy_thm wits) |> SOME
+      |> pair Thm.assumptionK |> Notes
+      |> Element.map_ctxt_values I I (Element.satisfy_thm wits) |> SOME
   | finish_derived sign wits (Derived _) (Defines defs) = defs
       |> map (apsnd (fn (d, _) => [([Thm.assume (cterm_of sign d)], [])]))
-      |> Notes |> Element.map_ctxt_values I I (Element.satisfy_thm wits) |> SOME
+      |> pair Thm.definitionK |> Notes
+      |> Element.map_ctxt_values I I (Element.satisfy_thm wits) |> SOME
 
-  | finish_derived _ wits _ (Notes facts) = (Notes facts)
+  | finish_derived _ wits _ (Notes facts) = Notes facts
       |> Element.map_ctxt_values I I (Element.satisfy_thm wits) |> SOME;
 
 (* CB: for finish_elems (Ext) *)
@@ -1390,7 +1393,7 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
       activate_facts false prep_facts (context, ps);
 
     val (ctxt, (elemss, _)) =
-      activate_facts false prep_facts (import_ctxt, qs);
+      activate_facts false prep_facts (ProofContext.set_stmt true import_ctxt, qs);
   in
     ((((import_ctxt, import_elemss), (ctxt, elemss, syn)),
       (parms, spec, defs)), concl)
@@ -1457,11 +1460,11 @@ fun global_note_prefix_i kind prfx args thy =
   |> PureThy.note_thmss_i kind args
   ||> Theory.restore_naming thy;
 
-fun local_note_prefix_i prfx args ctxt =
+fun local_note_prefix_i kind prfx args ctxt =
   ctxt
   |> ProofContext.qualified_names
   |> ProofContext.sticky_prefix prfx
-  |> ProofContext.note_thmss_i args
+  |> ProofContext.note_thmss_i kind args
   ||> ProofContext.restore_naming ctxt;
 
 
@@ -1488,7 +1491,7 @@ fun collect_global_witnesses thy parms ids vts = let
 (* store instantiations of args for all registered interpretations
    of the theory *)
 
-fun note_thmss_registrations kind target args thy =
+fun note_thmss_registrations target (kind, args) thy =
   let
     val parms = the_locale thy target |> #params |> map fst;
     val ids = flatten (ProofContext.init thy, intern_expr thy)
@@ -1535,16 +1538,17 @@ fun init loc =
 
 (* locale results *)
 
-fun add_thmss kind loc args ctxt =
+fun add_thmss loc kind args ctxt =
   let
     val (ctxt', ([(_, [Notes args'])], facts)) =
-      activate_facts true cert_facts (ctxt, [((("", []), Assumed []), [Ext (Notes args)])]);
+      activate_facts true cert_facts
+        (ctxt, [((("", []), Assumed []), [Ext (Notes (kind, args))])]);
     val ctxt'' = ctxt' |> ProofContext.theory
       (change_locale loc
         (fn (axiom, import, elems, params, lparams, term_syntax, regs, intros) =>
           (axiom, import, elems @ [(Notes args', stamp ())],
             params, lparams, term_syntax, regs, intros))
-      #> note_thmss_registrations kind loc args');
+      #> note_thmss_registrations loc args');
   in (facts, ctxt'') end;
 
 
@@ -1629,10 +1633,10 @@ fun def_pred bname parms defs ts norm_ts thy =
   in ((statement, intro, axioms), defs_thy) end;
 
 fun assumes_to_notes (Assumes asms) axms =
-    fold_map (fn (a, spec) => fn axs =>
-       let val (ps, qs) = chop (length spec) axs
-       in ((a, [(ps, [])]), qs) end) asms axms
-    |> apfst Notes
+      fold_map (fn (a, spec) => fn axs =>
+          let val (ps, qs) = chop (length spec) axs
+          in ((a, [(ps, [])]), qs) end) asms axms
+      |> apfst (curry Notes Thm.assumptionK)
   | assumes_to_notes e axms = (e, axms);
 
 (* CB: the following two change only "new" elems, these have identifier ("", _). *)
@@ -1655,7 +1659,7 @@ fun change_assumes_elemss axioms elemss =
 fun change_elemss_hyps axioms elemss =
   let
     fun change (id as ("", _), es) =
-        (id, map (fn e as (Notes _) => Element.map_ctxt_values I I (Element.satisfy_thm axioms) e
+        (id, map (fn e as Notes _ => Element.map_ctxt_values I I (Element.satisfy_thm axioms) e
                    | e => e) es)
       | change e = e;
   in map change elemss end;
@@ -1675,7 +1679,8 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
             thy |> def_pred aname parms defs exts exts';
           val elemss' = change_assumes_elemss axioms elemss;
           val def_thy' = def_thy
-            |> PureThy.note_thmss_qualified "" aname [((introN, []), [([intro], [])])]
+            |> PureThy.note_thmss_qualified Thm.definitionK
+              aname [((introN, []), [([intro], [])])]
             |> snd;
           val a_elem = [(("", []), [Assumes [((bname ^ "_" ^ axiomsN, []), [(statement, [])])]])];
         in ((elemss', [statement]), a_elem, [intro], def_thy') end;
@@ -1689,8 +1694,8 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
           val elemss'' = change_elemss_hyps axioms elemss';
           val def_thy' =
           def_thy
-          |> PureThy.note_thmss_qualified "" bname
-               [((introN, []), [([intro], [])]),
+          |> PureThy.note_thmss_qualified Thm.definitionK bname
+              [((introN, []), [([intro], [])]),
                 ((axiomsN, []), [(map (Drule.standard o Element.conclude_witness) axioms, [])])]
           |> snd;
           val b_elem = [(("", []),
@@ -1712,7 +1717,9 @@ fun defines_to_notes is_ext thy (Defines defs) defns =
       val defs' = map (fn (_, (def, _)) => (("", []), (def, []))) defs
       val notes = map (fn (a, (def, _)) =>
         (a, [([assume (cterm_of thy def)], [])])) defs
-    in (if is_ext then SOME (Notes notes) else NONE, defns @ [Defines defs']) end
+    in
+      (if is_ext then SOME (Notes (Thm.definitionK, notes)) else NONE, defns @ [Defines defs'])
+    end
   | defines_to_notes _ _ e defns = (SOME e, defns);
 
 fun change_defines_elemss thy elemss defns =
@@ -1778,7 +1785,7 @@ fun gen_add_locale prep_ctxt prep_expr
     val elems'' = map_filter (fn (Fixes _) => NONE | e => SOME e) elems';
     val axs' = map (Element.assume_witness pred_thy) stmt';
     val loc_ctxt = pred_thy
-      |> PureThy.note_thmss_qualified "" bname facts' |> snd
+      |> PureThy.note_thmss_qualified Thm.assumptionK bname facts' |> snd
       |> declare_locale name
       |> put_locale name
        {axiom = axs',
@@ -1871,16 +1878,16 @@ fun extract_asms_elems ((id, Assumed _), elems) = (id, maps Element.prems_of ele
 fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
         attn all_elemss new_elemss propss thmss thy_ctxt =
     let
-      fun activate_elem disch (prfx, atts) (Notes facts) thy_ctxt =
+      fun activate_elem disch (prfx, atts) (Notes (kind, facts)) thy_ctxt =
           let
             val facts' = facts
               (* discharge hyps in attributes *)
               |> Attrib.map_facts (attrib thy_ctxt o Args.map_values I I I disch)
-              (* insert interpretation attributes *)
+              (* append interpretation attributes *)
               |> map (apfst (apsnd (fn a => a @ map (attrib thy_ctxt) atts)))
               (* discharge hyps *)
               |> map (apsnd (map (apfst (map disch))));
-          in snd (note prfx facts' thy_ctxt) end
+          in snd (note kind prfx facts' thy_ctxt) end
         | activate_elem _ _ _ thy_ctxt = thy_ctxt;
 
       fun activate_elems disch ((id, _), elems) thy_ctxt =
@@ -1917,7 +1924,7 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
 fun global_activate_facts_elemss x = gen_activate_facts_elemss
       (fn thy => fn (name, ps) =>
         get_global_registration thy (name, map Logic.varify ps))
-      (global_note_prefix_i "")
+      global_note_prefix_i
       Attrib.attribute_i Drule.standard
       (fn (name, ps) => put_global_registration (name, map Logic.varify ps))
       (fn (n, ps) => add_global_witness (n, map Logic.varify ps) o
@@ -2114,7 +2121,7 @@ fun prep_registration_in_locale target expr thy =
                         disch (Element.inst_thm thy insts (satisfy th))))) thy) ths
               end;
 
-            fun activate_elem (Notes facts) thy =
+            fun activate_elem (Notes (kind, facts)) thy =
                 let
                   val facts' = facts
                       |> Attrib.map_facts (Attrib.attribute_i thy o
@@ -2125,7 +2132,7 @@ fun prep_registration_in_locale target expr thy =
                       |> map (apsnd (map (apfst (map (disch o Element.inst_thm thy insts o satisfy)))))
                 in
                   thy
-                  |> global_note_prefix_i "" prfx facts'
+                  |> global_note_prefix_i kind prfx facts'
                   |> snd
                 end
               | activate_elem _ thy = thy;
@@ -2158,7 +2165,7 @@ fun interpretation after_qed (prfx, atts) expr insts thy =
       #> after_qed;
   in
     ProofContext.init thy
-    |> Proof.theorem_i "interpretation" NONE after_qed' (prep_propp propss)
+    |> Proof.theorem_i NONE after_qed' (prep_propp propss)
     |> Element.refine_witness |> Seq.hd
   end;
 
@@ -2177,7 +2184,7 @@ fun interpretation_in_locale after_qed (raw_target, expr) thy =
       #> after_qed;
   in
     goal_ctxt
-    |> Proof.theorem_i "interpretation" NONE after_qed' propp
+    |> Proof.theorem_i NONE after_qed' propp
     |> Element.refine_witness |> Seq.hd
   end;
 
