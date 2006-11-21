@@ -410,9 +410,10 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
       val f_def = 
           Abs ("x", domT, Const ("FunDef.THE_default", ranT --> (ranT --> boolT) --> ranT) $ (default $ Bound 0) $
                                 Abs ("y", ranT, G $ Bound 1 $ Bound 0))
-              |> Envir.beta_norm (* Fixme: LocalTheory.def does not work if not beta-normal *)
+              |> Envir.beta_norm (* FIXME: LocalTheory.def does not work if not beta-normal *)
           
-      val ((f, (_, f_defthm)), lthy) = LocalTheory.def ((fname ^ "C", mixfix), ((fdefname, []), f_def)) lthy
+      val ((f, (_, f_defthm)), lthy) =
+        LocalTheory.def Thm.internalK ((fname ^ "C", mixfix), ((fdefname, []), f_def)) lthy
     in
       ((f, f_defthm), lthy)
     end

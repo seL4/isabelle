@@ -161,9 +161,10 @@ fun define_projections fixes mutual fsum lthy =
     let
       fun def ((MutualPart {fvar=(fname, fT), cargTs, pthA, pthR, f_def, ...}), (_, mixfix)) lthy =
           let
-            val ((f, (_, f_defthm)), lthy') = LocalTheory.def ((fname, mixfix),
-                                                               ((fname ^ "_def", []), Term.subst_bound (fsum, f_def)))
-                                                              lthy
+            val ((f, (_, f_defthm)), lthy') =
+              LocalTheory.def Thm.internalK ((fname, mixfix),
+                                            ((fname ^ "_def", []), Term.subst_bound (fsum, f_def)))
+                              lthy
           in
             (MutualPart {fvar=(fname, fT), cargTs=cargTs, pthA=pthA, pthR=pthR, f_def=f_def,
                          f=SOME f, f_defthm=SOME f_defthm },
