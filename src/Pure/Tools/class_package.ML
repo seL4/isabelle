@@ -208,8 +208,7 @@ fun gen_instance mk_prop add_thm after_qed insts thy =
   in
     thy
     |> ProofContext.init
-    |> Proof.theorem_i PureThy.internalK NONE after_qed'
-      ((map (fn t => [(t, [])]) o maps (mk_prop thy)) insts)
+    |> Proof.theorem_i NONE after_qed' ((map (fn t => [(t, [])]) o maps (mk_prop thy)) insts)
   end;
 
 in
@@ -219,7 +218,8 @@ val axclass_instance_arity =
 val axclass_instance_arity_i =
   gen_instance (Logic.mk_arities oo Sign.cert_arity) AxClass.add_arity;
 val axclass_instance_sort =      
-  gen_instance (single oo (Logic.mk_classrel oo AxClass.read_classrel)) AxClass.add_classrel I o single;
+  gen_instance (single oo (Logic.mk_classrel oo AxClass.read_classrel))
+    AxClass.add_classrel I o single;
 
 end;
 
@@ -441,7 +441,7 @@ fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arities (raw_na
             ((snd o the_class_data thy) class) tyco) (the_ancestry thy sort)) arities;
       in if bind then
         thy
-        |> PureThy.note_thmss_i (*qualified*) PureThy.internalK [((name, atts), [(thms, [])])]
+        |> PureThy.note_thmss_i (*qualified*) Thm.internalK [((name, atts), [(thms, [])])]
         |> snd
       else
         thy
