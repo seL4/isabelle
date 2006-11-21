@@ -11,6 +11,7 @@ sig
   val thesisN: string
   val thisN: string
   val premsN: string
+  val assmsN: string
   val goal: theory -> term list -> (indexname * term option) list
   val cases: theory -> term list -> (string * RuleCases.T option) list
   val facts: theory -> term list -> (indexname * term option) list
@@ -26,6 +27,7 @@ val rule_contextN = "rule_context";
 val thesisN = "thesis";
 val thisN = "this";
 val premsN = "prems";
+val assmsN = "assms";
 
 fun strip_judgment thy = ObjectLogic.drop_judgment thy o Logic.strip_assums_concl;
 
