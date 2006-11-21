@@ -201,14 +201,18 @@ val theorems_i = gen_theorems (K I) (K I);
 
 local
 
+fun subtract_prems ctxt1 ctxt2 =
+  Library.drop (length (Assumption.prems_of ctxt1), Assumption.prems_of ctxt2);
+
 fun prep_statement prep_att prep_stmt elems concl ctxt =
   (case concl of
     Element.Shows shows =>
       let
-        val (_, _, elems_ctxt, propp) = prep_stmt elems (map snd shows) ctxt;
-        val goal_ctxt = fold (fold (Variable.auto_fixes o fst)) propp elems_ctxt;
+        val (_, loc_ctxt, elems_ctxt, propp) = prep_stmt elems (map snd shows) ctxt;
+        val prems = subtract_prems loc_ctxt elems_ctxt;
         val stmt = Attrib.map_specs prep_att (map fst shows ~~ propp);
-      in ((stmt, []), goal_ctxt) end
+        val goal_ctxt = fold (fold (Variable.auto_fixes o fst)) propp elems_ctxt;
+      in ((prems, stmt, []), goal_ctxt) end
   | Element.Obtains obtains =>
       let
         val case_names = obtains |> map_index
@@ -218,7 +222,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
             (vars |> map_filter (fn (x, SOME T) => SOME (x, T) | _ => NONE))));
 
         val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
-        val (_, _, elems_ctxt, propp) = prep_stmt (elems @ constraints) raw_propp ctxt;
+        val (_, loc_ctxt, elems_ctxt, propp) = prep_stmt (elems @ constraints) raw_propp ctxt;
 
         val thesis = ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) AutoBind.thesisN;
 
@@ -240,6 +244,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
 
         val atts = map Attrib.internal
           [RuleCases.consumes (~ (length obtains)), RuleCases.case_names case_names];
+        val prems = subtract_prems loc_ctxt elems_ctxt;
         val stmt = [(("", atts), [(thesis, [])])];
 
         val (facts, goal_ctxt) = elems_ctxt
@@ -247,7 +252,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
           |> fold_map assume_case (obtains ~~ propp)
           |-> (fn ths => ProofContext.note_thmss_i Thm.assumptionK
                 [((Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
-      in ((stmt, facts), goal_ctxt) end);
+      in ((prems, stmt, facts), goal_ctxt) end);
 
 fun gen_theorem prep_att prep_stmt
     kind before_qed after_qed (name, raw_atts) raw_elems raw_concl lthy0 =
@@ -266,7 +271,8 @@ fun gen_theorem prep_att prep_stmt
 
     val elems = raw_elems |> (map o Locale.map_elem)
       (Element.map_ctxt {name = I, var = I, typ = I, term = I, fact = I, attrib = attrib});
-    val ((stmt, facts), goal_ctxt) = prep_statement attrib (prep_stmt loc) elems raw_concl ctxt;
+    val ((prems, stmt, facts), goal_ctxt) =
+      prep_statement attrib (prep_stmt loc) elems raw_concl ctxt;
 
     fun after_qed' results goal_ctxt' =
       let val results' = burrow (ProofContext.export_standard goal_ctxt' lthy) results in
@@ -280,6 +286,8 @@ fun gen_theorem prep_att prep_stmt
       end;
   in
     goal_ctxt
+    |> ProofContext.note_thmss_i Thm.assumptionK [((AutoBind.assmsN, []), [(prems, [])])]
+    |> snd
     |> Proof.theorem_i before_qed after_qed' (map snd stmt)
     |> Proof.refine_insert facts
   end;
