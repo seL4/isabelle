@@ -21,17 +21,17 @@ sig
   val pretty: local_theory -> Pretty.T list
   val consts: (string * typ -> bool) ->
     ((bstring * typ) * mixfix) list -> local_theory -> (term * thm) list * local_theory
-  val axioms: ((bstring * Attrib.src list) * term list) list -> local_theory ->
+  val axioms: string -> ((bstring * Attrib.src list) * term list) list -> local_theory ->
     (bstring * thm list) list * local_theory
-  val defs: ((bstring * mixfix) * ((bstring * Attrib.src list) * term)) list ->
+  val defs: string -> ((bstring * mixfix) * ((bstring * Attrib.src list) * term)) list ->
     local_theory -> (term * (bstring * thm)) list * local_theory
-  val notes: ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
+  val notes: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     local_theory -> (bstring * thm list) list * local_theory
   val term_syntax: (Context.generic -> Context.generic) -> local_theory -> local_theory
   val declaration: (Context.generic -> Context.generic) -> local_theory -> local_theory
-  val def: (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
+  val def: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
     local_theory -> (term * (bstring * thm)) * local_theory
-  val note: (bstring * Attrib.src list) * thm list ->
+  val note: string -> (bstring * Attrib.src list) * thm list ->
     local_theory -> (bstring * thm list) * Proof.context
   val notation: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> local_theory ->
@@ -53,12 +53,13 @@ type operations =
  {pretty: local_theory -> Pretty.T list,
   consts: (string * typ -> bool) -> ((bstring * typ) * mixfix) list -> local_theory ->
     (term * thm) list * local_theory,
-  axioms: ((bstring * Attrib.src list) * term list) list -> local_theory ->
+  axioms: string -> ((bstring * Attrib.src list) * term list) list -> local_theory ->
     (bstring * thm list) list * local_theory,
-  defs: ((bstring * mixfix) * ((bstring * Attrib.src list) * term)) list -> local_theory ->
-    (term * (bstring * thm)) list * local_theory,
-  notes: ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list -> local_theory ->
-    (bstring * thm list) list * local_theory,
+  defs: string -> ((bstring * mixfix) * ((bstring * Attrib.src list) * term)) list ->
+    local_theory -> (term * (bstring * thm)) list * local_theory,
+  notes: string ->
+    ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
+    local_theory -> (bstring * thm list) list * local_theory,
   term_syntax: (Context.generic -> Context.generic) -> local_theory -> local_theory,
   declaration: (Context.generic -> Context.generic) -> local_theory -> local_theory,
   reinit: local_theory -> theory -> local_theory,
@@ -143,18 +144,18 @@ fun operation2 f x y = operation (fn ops => f ops x y);
 
 val pretty = operation #pretty;
 val consts = operation2 #consts;
-val axioms = operation1 #axioms;
-val defs = operation1 #defs;
-val notes = operation1 #notes;
+val axioms = operation2 #axioms;
+val defs = operation2 #defs;
+val notes = operation2 #notes;
 val term_syntax = operation1 #term_syntax;
 val declaration = operation1 #declaration;
 
 
 (* derived operations *)
 
-fun def arg lthy = lthy |> defs [arg] |>> hd;
+fun def kind arg lthy = lthy |> defs kind [arg] |>> hd;
 
-fun note (a, ths) lthy = lthy |> notes [(a, [(ths, [])])] |>> hd;
+fun note kind (a, ths) lthy = lthy |> notes kind [(a, [(ths, [])])] |>> hd;
 
 fun notation mode args = term_syntax
   (Context.mapping (Sign.add_notation mode args) (ProofContext.add_notation mode args));

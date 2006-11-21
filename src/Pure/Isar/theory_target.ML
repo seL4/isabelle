@@ -97,7 +97,7 @@ fun add_axiom hyps (name, prop) thy =
 
 in
 
-fun axioms specs lthy =
+fun axioms kind specs lthy =
   let
     val hyps = Assumption.assms_of lthy;
     fun axiom ((name, atts), props) thy = thy
@@ -107,7 +107,7 @@ fun axioms specs lthy =
     lthy
     |> fold (fold Variable.declare_term o snd) specs
     |> LocalTheory.theory_result (fold_map axiom specs)
-    |-> LocalTheory.notes
+    |-> LocalTheory.notes kind
   end;
 
 end;
@@ -127,7 +127,7 @@ fun expand_defs lthy =
 
 in
 
-fun defs args lthy =
+fun defs kind args lthy =
   let
     fun def ((x, mx), ((name, atts), rhs)) lthy1 =
       let
@@ -152,7 +152,7 @@ fun defs args lthy =
       in ((lhs, ((name', atts), [([eq], [])])), lthy3) end;
 
     val ((lhss, facts), lthy') = lthy |> fold_map def args |>> split_list;
-    val (res, lthy'') = lthy' |> LocalTheory.notes facts;
+    val (res, lthy'') = lthy' |> LocalTheory.notes kind facts;
   in (lhss ~~ map (apsnd the_single) res, lthy'') end;
 
 end;
@@ -160,19 +160,21 @@ end;
 
 (* notes *)
 
-fun context_notes facts lthy =
+fun context_notes kind facts lthy =
   let
     val facts' = facts
       |> Element.export_standard_facts lthy lthy
       |> Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of lthy));
   in
     lthy
+    |> ProofContext.set_stmt true
     |> ProofContext.qualified_names
-    |> ProofContext.note_thmss_i facts'
+    |> ProofContext.note_thmss_i kind facts'
     ||> ProofContext.restore_naming lthy
+    ||> ProofContext.restore_stmt lthy
   end;
 
-fun theory_notes keep_atts facts lthy = lthy |> LocalTheory.theory (fn thy =>
+fun theory_notes keep_atts kind facts lthy = lthy |> LocalTheory.theory (fn thy =>
   let
     val facts' = facts
       |> Element.export_standard_facts lthy (ProofContext.init thy)
@@ -180,15 +182,16 @@ fun theory_notes keep_atts facts lthy = lthy |> LocalTheory.theory (fn thy =>
   in
     thy
     |> Sign.qualified_names
-    |> PureThy.note_thmss_i "" facts' |> #2
+    |> PureThy.note_thmss_i kind facts' |> #2
     |> Sign.restore_naming thy
   end);
 
-fun locale_notes loc facts lthy = lthy |> LocalTheory.target (fn ctxt =>
-  #2 (Locale.add_thmss "" loc (Element.export_standard_facts lthy ctxt facts) ctxt));
+fun locale_notes loc kind facts lthy = lthy |> LocalTheory.target (fn ctxt =>
+  #2 (Locale.add_thmss loc kind (Element.export_standard_facts lthy ctxt facts) ctxt));
 
-fun notes "" facts = theory_notes true facts #> context_notes facts
-  | notes loc facts = theory_notes false facts #> locale_notes loc facts #> context_notes facts;
+fun notes "" kind facts = theory_notes true kind facts #> context_notes kind facts
+  | notes loc kind facts = theory_notes false kind facts #>
+      locale_notes loc kind facts #> context_notes kind facts;
 
 
 (* declarations *)

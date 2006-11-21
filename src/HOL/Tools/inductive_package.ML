@@ -157,6 +157,9 @@ val quiet_mode = ref false;
 fun message s = if ! quiet_mode then () else writeln s;
 fun clean_message s = if ! quick_and_dirty then () else message s;
 
+val note_theorems = LocalTheory.notes Thm.theoremK;
+val note_theorem = LocalTheory.note Thm.theoremK;
+
 fun coind_prefix true = "co"
   | coind_prefix false = "";
 
@@ -416,7 +419,7 @@ fun gen_inductive_cases prep_att prep_prop args lthy =
     val facts = args |> map (fn ((a, atts), props) =>
       ((a, map (prep_att thy) atts),
         map (Thm.no_attributes o single o mk_cases lthy o prep_prop lthy) props));
-  in lthy |> LocalTheory.notes facts |>> map snd end;
+  in lthy |> note_theorems facts |>> map snd end;
 
 val inductive_cases = gen_inductive_cases Attrib.intern_src ProofContext.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) ProofContext.cert_prop;
@@ -591,7 +594,7 @@ fun mk_ind_def alt_name coind cs intr_ts monos
     val ((rec_const, (_, fp_def)), ctxt') = ctxt |>
       Variable.add_fixes (map (fst o dest_Free) params) |> snd |>
       fold Variable.declare_term intr_ts |>
-      LocalTheory.def
+      LocalTheory.def Thm.internalK
         ((rec_name, case cnames_syn of [(_, syn)] => syn | _ => NoSyn),
          (("", []), fold_rev lambda params
            (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)));
@@ -608,7 +611,7 @@ fun mk_ind_def alt_name coind cs intr_ts monos
             (list_comb (rec_const, params @ make_bool_args' bs i @
               make_args argTs (xs ~~ Ts)))))
         end) (cnames_syn ~~ cs);
-    val (consts_defs, ctxt'') = fold_map LocalTheory.def specs ctxt';
+    val (consts_defs, ctxt'') = fold_map (LocalTheory.def Thm.internalK) specs ctxt';
     val preds = (case cs of [_] => [rec_const] | _ => map #1 consts_defs);
 
     val mono = prove_mono predT fp_fun monos ctxt''
@@ -657,23 +660,23 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
 
     val (intrs', ctxt2) =
       ctxt1 |>
-      LocalTheory.notes
+      note_theorems
         (map (NameSpace.qualified rec_name) intr_names ~~
          intr_atts ~~
          map (fn th => [([th], [])]) (ProofContext.export ctxt1 ctxt intrs)) |>>
       map (hd o snd); (* FIXME? *)
     val (((_, elims'), (_, [induct'])), ctxt3) =
       ctxt2 |>
-      LocalTheory.note ((NameSpace.qualified rec_name "intros",
+      note_theorem ((NameSpace.qualified rec_name "intros",
           [Attrib.internal (ContextRules.intro_query NONE)]), intrs') ||>>
       fold_map (fn (name, (elim, cases)) =>
-        LocalTheory.note ((NameSpace.qualified (Sign.base_name name) "cases",
+        note_theorem ((NameSpace.qualified (Sign.base_name name) "cases",
           [Attrib.internal (RuleCases.case_names cases),
            Attrib.internal (RuleCases.consumes 1),
            Attrib.internal (InductAttrib.cases_set name),
            Attrib.internal (ContextRules.elim_query NONE)]), [elim]) #>
         apfst (hd o snd)) elims ||>>
-      LocalTheory.note ((NameSpace.qualified rec_name (coind_prefix coind ^ "induct"),
+      note_theorem ((NameSpace.qualified rec_name (coind_prefix coind ^ "induct"),
         map Attrib.internal (#2 induct)), [rulify (#1 induct)]);
 
     val induct_att = if coind then InductAttrib.coinduct_set else InductAttrib.induct_set;
@@ -681,11 +684,11 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
       let val inducts = cnames ~~ ProjectRule.projects ctxt (1 upto length cnames) induct'
       in
         ctxt3 |>
-        LocalTheory.notes (inducts |> map (fn (name, th) => (("",
+        note_theorems (inducts |> map (fn (name, th) => (("",
           [Attrib.internal ind_case_names,
            Attrib.internal (RuleCases.consumes 1),
            Attrib.internal (induct_att name)]), [([th], [])]))) |> snd |>
-        LocalTheory.note ((NameSpace.qualified rec_name (coind_prefix coind ^ "inducts"),
+        note_theorem ((NameSpace.qualified rec_name (coind_prefix coind ^ "inducts"),
           [Attrib.internal ind_case_names,
            Attrib.internal (RuleCases.consumes 1)]), map snd inducts) |> snd
       end;
