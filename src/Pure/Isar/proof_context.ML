@@ -16,6 +16,9 @@ sig
   val const_syntax_name: Proof.context -> string -> string
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
+  val is_stmt: Proof.context -> bool
+  val set_stmt: bool -> Proof.context -> Proof.context
+  val restore_stmt: Proof.context -> Proof.context -> Proof.context
   val fact_index_of: Proof.context -> FactIndex.T
   val transfer: theory -> Proof.context -> Proof.context
   val theory: (theory -> theory) -> Proof.context -> Proof.context
@@ -104,12 +107,11 @@ sig
   val sticky_prefix: string -> Proof.context -> Proof.context
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val hide_thms: bool -> string list -> Proof.context -> Proof.context
-  val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
-  val put_thms_internal: string * thm list option -> Proof.context -> Proof.context
-  val note_thmss:
+  val put_thms: string * thm list option -> Proof.context -> Proof.context
+  val note_thmss: string ->
     ((bstring * attribute list) * (thmref * attribute list) list) list ->
       Proof.context -> (bstring * thm list) list * Proof.context
-  val note_thmss_i:
+  val note_thmss_i: string ->
     ((bstring * attribute list) * (thm list * attribute list) list) list ->
       Proof.context -> (bstring * thm list) list * Proof.context
   val read_vars: (string * string option * mixfix) list -> Proof.context ->
@@ -168,14 +170,16 @@ val init = Context.init_proof;
 
 datatype ctxt =
   Ctxt of
-   {naming: NameSpace.naming,                     (*local naming conventions*)
+   {is_stmt: bool,                                (*inner statement mode*)
+    naming: NameSpace.naming,                     (*local naming conventions*)
     syntax: LocalSyntax.T,                        (*local syntax*)
     consts: Consts.T * Consts.T,                  (*global/local consts*)
     thms: thm list NameSpace.table * FactIndex.T, (*local thms*)
     cases: (string * (RuleCases.T * bool)) list}; (*local contexts*)
 
-fun make_ctxt (naming, syntax, consts, thms, cases) =
-  Ctxt {naming = naming, syntax = syntax, consts = consts, thms = thms, cases = cases};
+fun make_ctxt (is_stmt, naming, syntax, consts, thms, cases) =
+  Ctxt {is_stmt = is_stmt, naming = naming, syntax = syntax,
+    consts = consts, thms = thms, cases = cases};
 
 val local_naming = NameSpace.default_naming |> NameSpace.add_path "local";
 
@@ -184,7 +188,7 @@ structure ContextData = ProofDataFun
   val name = "Isar/context";
   type T = ctxt;
   fun init thy =
-    make_ctxt (local_naming, LocalSyntax.init thy,
+    make_ctxt (false, local_naming, LocalSyntax.init thy,
       (Sign.consts_of thy, Sign.consts_of thy),
       (NameSpace.empty_table, FactIndex.empty), []);
   fun print _ _ = ();
@@ -195,28 +199,35 @@ val _ = Context.add_setup ContextData.init;
 fun rep_context ctxt = ContextData.get ctxt |> (fn Ctxt args => args);
 
 fun map_context f =
-  ContextData.map (fn Ctxt {naming, syntax, consts, thms, cases} =>
-    make_ctxt (f (naming, syntax, consts, thms, cases)));
+  ContextData.map (fn Ctxt {is_stmt, naming, syntax, consts, thms, cases} =>
+    make_ctxt (f (is_stmt, naming, syntax, consts, thms, cases)));
+
+fun set_stmt b =
+  map_context (fn (_, naming, syntax, consts, thms, cases) =>
+    (b, naming, syntax, consts, thms, cases));
 
 fun map_naming f =
-  map_context (fn (naming, syntax, consts, thms, cases) =>
-    (f naming, syntax, consts, thms, cases));
+  map_context (fn (is_stmt, naming, syntax, consts, thms, cases) =>
+    (is_stmt, f naming, syntax, consts, thms, cases));
 
 fun map_syntax f =
-  map_context (fn (naming, syntax, consts, thms, cases) =>
-    (naming, f syntax, consts, thms, cases));
+  map_context (fn (is_stmt, naming, syntax, consts, thms, cases) =>
+    (is_stmt, naming, f syntax, consts, thms, cases));
 
 fun map_consts f =
-  map_context (fn (naming, syntax, consts, thms, cases) =>
-    (naming, syntax, f consts, thms, cases));
+  map_context (fn (is_stmt, naming, syntax, consts, thms, cases) =>
+    (is_stmt, naming, syntax, f consts, thms, cases));
 
 fun map_thms f =
-  map_context (fn (naming, syntax, consts, thms, cases) =>
-    (naming, syntax, consts, f thms, cases));
+  map_context (fn (is_stmt, naming, syntax, consts, thms, cases) =>
+    (is_stmt, naming, syntax, consts, f thms, cases));
 
 fun map_cases f =
-  map_context (fn (naming, syntax, consts, thms, cases) =>
-    (naming, syntax, consts, thms, f cases));
+  map_context (fn (is_stmt, naming, syntax, consts, thms, cases) =>
+    (is_stmt, naming, syntax, consts, thms, f cases));
+
+val is_stmt = #is_stmt o rep_context;
+fun restore_stmt ctxt = set_stmt (is_stmt ctxt);
 
 val naming_of = #naming o rep_context;
 val full_name = NameSpace.full o naming_of;
@@ -755,17 +766,17 @@ fun hide_thms fully names = map_thms (fn ((space, tab), index) =>
 
 (* put_thms *)
 
-fun put_thms _ ("", NONE) ctxt = ctxt
-  | put_thms do_index ("", SOME ths) ctxt = ctxt |> map_thms (fn (facts, index) =>
+fun update_thms _ ("", NONE) ctxt = ctxt
+  | update_thms do_index ("", SOME ths) ctxt = ctxt |> map_thms (fn (facts, index) =>
       let
         val index' = FactIndex.add_local do_index ("", ths) index;
       in (facts, index') end)
-  | put_thms _ (bname, NONE) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
+  | update_thms _ (bname, NONE) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
       let
         val name = full_name ctxt bname;
         val tab' = Symtab.delete_safe name tab;
       in ((space, tab'), index) end)
-  | put_thms do_index (bname, SOME ths) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
+  | update_thms do_index (bname, SOME ths) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
       let
         val name = full_name ctxt bname;
         val space' = NameSpace.declare (naming_of ctxt) name space;
@@ -773,30 +784,34 @@ fun put_thms _ ("", NONE) ctxt = ctxt
         val index' = FactIndex.add_local do_index (name, ths) index;
       in ((space', tab'), index') end);
 
-fun put_thms_internal thms ctxt =
-  ctxt |> map_naming (K local_naming) |> put_thms false thms |> restore_naming ctxt;
+fun put_thms thms ctxt =
+  ctxt |> map_naming (K local_naming) |> update_thms false thms |> restore_naming ctxt;
 
 
 (* note_thmss *)
 
 local
 
-fun gen_note_thmss get = fold_map (fn ((name, more_attrs), ths_attrs) => fn ctxt =>
+fun gen_note_thmss get k = fold_map (fn ((bname, more_attrs), raw_facts) => fn ctxt =>
   let
-    fun app (th, attrs) (ct, ths) =
-      let val (ct', th') = foldl_map (Thm.proof_attributes (attrs @ more_attrs)) (ct, get ctxt th)
-      in (ct', th' :: ths) end;
-    val (ctxt', rev_thms) = fold app ths_attrs (ctxt, []);
-    val thms = flat (rev rev_thms);
-  in ((name, thms), ctxt' |> put_thms true (name, SOME thms)) end);
+    val name = full_name ctxt bname;
+    val stmt = is_stmt ctxt;
+
+    val kind = if stmt then [] else [PureThy.kind k];
+    val facts = raw_facts |> map (apfst (get ctxt))
+      |> (if stmt then I else PureThy.name_thmss name);
+
+    fun app (th, attrs) x =
+      swap (foldl_map (Thm.proof_attributes (attrs @ more_attrs @ kind)) (x, th));
+    val (res, ctxt') = fold_map app facts ctxt;
+    val thms = flat res
+      |> (if stmt then I else PureThy.name_thms false name);
+  in ((bname, thms), ctxt' |> update_thms stmt (bname, SOME thms)) end);
 
 in
 
 val note_thmss = gen_note_thmss get_thms;
 val note_thmss_i = gen_note_thmss (K I);
-
-val note_thmss_accesses = gen_note_thmss get_thms;
-val note_thmss_accesses_i = gen_note_thmss (K I);
 
 end;
 
@@ -950,8 +965,8 @@ fun gen_assms prepp exp args ctxt =
   in
     ctxt2
     |> auto_bind_facts (flat propss)
-    |> put_thms_internal (AutoBind.premsN, SOME (Assumption.prems_of ctxt2))
-    |> note_thmss_i (map fst args ~~ map (map (fn th => ([th], []))) premss)
+    |> put_thms (AutoBind.premsN, SOME (Assumption.prems_of ctxt2))
+    |> note_thmss_i Thm.assumptionK (map fst args ~~ map (map (fn th => ([th], []))) premss)
   end;
 
 in
