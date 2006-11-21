@@ -102,7 +102,7 @@ fun gen_axioms prep raw_vars raw_specs lthy =
     val ((consts, axioms), lthy') = lthy
       |> LocalTheory.consts spec_frees vars
       ||> fold (fold Variable.auto_fixes o snd) specs   (* FIXME !? *)
-      ||>> LocalTheory.axioms specs;
+      ||>> LocalTheory.axioms Thm.axiomK specs;
 
     (* FIXME generic target!? *)
     val hs = map (Term.head_of o #2 o Logic.dest_equals o Thm.prop_of o #2) consts;
@@ -130,9 +130,9 @@ fun gen_defs prep args lthy =
           else error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote x'));
         val ((lhs, (_, th)), lthy2) = lthy1
 (*          |> LocalTheory.def ((x, mx), ((name ^ "_raw", []), rhs));  FIXME *)
-          |> LocalTheory.def ((x, mx), ((name, []), rhs));
+          |> LocalTheory.def Thm.definitionK ((x, mx), ((name, []), rhs));
         val ((b, [th']), lthy3) = lthy2
-          |> LocalTheory.note ((name, atts), [prove lthy2 th]);
+          |> LocalTheory.note Thm.definitionK ((name, atts), [prove lthy2 th]);
       in (((x, T), (lhs, (b, th'))), LocalTheory.restore lthy3) end;
 
     val ((cs, defs), lthy') = lthy |> fold_map define args |>> split_list;
@@ -185,12 +185,11 @@ val notation_i = gen_notation (K I);
 
 fun gen_theorems prep_thms prep_att kind raw_facts lthy =
   let
-    val k = if kind = "" then [] else [Attrib.kind kind];
     val attrib = prep_att (ProofContext.theory_of lthy);
     val facts = raw_facts |> map (fn ((name, atts), bs) =>
       ((name, map attrib atts),
-        bs |> map (fn (b, more_atts) => (prep_thms lthy b, map attrib more_atts @ k))));
-    val (res, lthy') = lthy |> LocalTheory.notes facts;
+        bs |> map (fn (b, more_atts) => (prep_thms lthy b, map attrib more_atts))));
+    val (res, lthy') = lthy |> LocalTheory.notes kind facts;
     val _ = present_results' lthy' kind res;
   in (res, lthy') end;
 
@@ -246,8 +245,8 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val (facts, goal_ctxt) = elems_ctxt
           |> (snd o ProofContext.add_fixes_i [(AutoBind.thesisN, NONE, NoSyn)])
           |> fold_map assume_case (obtains ~~ propp)
-          |-> (fn ths =>
-            ProofContext.note_thmss_i [((Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
+          |-> (fn ths => ProofContext.note_thmss_i Thm.assumptionK
+                [((Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
       in ((stmt, facts), goal_ctxt) end);
 
 fun gen_theorem prep_att prep_stmt
@@ -255,7 +254,6 @@ fun gen_theorem prep_att prep_stmt
   let
     val _ = LocalTheory.assert lthy0;
     val thy = ProofContext.theory_of lthy0;
-    val attrib = prep_att thy;
 
     val (loc, ctxt, lthy) =
       (case (TheoryTarget.peek lthy0, exists (fn Locale.Expr _ => true | _ => false) raw_elems) of
@@ -263,28 +261,26 @@ fun gen_theorem prep_att prep_stmt
           (SOME loc, ProofContext.init thy, LocalTheory.restore lthy0)
       | _ => (NONE, lthy0, lthy0));
 
+    val attrib = prep_att thy;
+    val atts = map attrib raw_atts;
+
     val elems = raw_elems |> (map o Locale.map_elem)
       (Element.map_ctxt {name = I, var = I, typ = I, term = I, fact = I, attrib = attrib});
     val ((stmt, facts), goal_ctxt) = prep_statement attrib (prep_stmt loc) elems raw_concl ctxt;
 
-    val k = if kind = "" then [] else [Attrib.kind kind];
-    val names = map (fst o fst) stmt;
-    val attss = map (fn ((_, atts), _) => atts @ k) stmt;
-    val atts = map attrib raw_atts @ k;
-
     fun after_qed' results goal_ctxt' =
       let val results' = burrow (ProofContext.export_standard goal_ctxt' lthy) results in
         lthy
-        |> LocalTheory.notes ((names ~~ attss) ~~ map (fn ths => [(ths, [])]) results')
+        |> LocalTheory.notes kind (map2 (fn (a, _) => fn ths => (a, [(ths, [])])) stmt results')
         |> (fn (res, lthy') =>
           (present_results lthy' ((kind, name), res);
-            if name = "" andalso null raw_atts then lthy'
-            else #2 (LocalTheory.notes [((name, atts), [(maps #2 res, [])])] lthy')))
+            if name = "" andalso null atts then lthy'
+            else #2 (LocalTheory.notes kind [((name, atts), [(maps #2 res, [])])] lthy')))
         |> after_qed results'
       end;
   in
     goal_ctxt
-    |> Proof.theorem_i kind before_qed after_qed' (map snd stmt)
+    |> Proof.theorem_i before_qed after_qed' (map snd stmt)
     |> Proof.refine_insert facts
   end;
 

@@ -38,6 +38,8 @@ struct
 open FundefLib
 open FundefCommon
 
+val note_theorem = LocalTheory.note Thm.theoremK
+
 fun burrow_snd f ps = (* ('a list -> 'b list) -> ('c * 'a) list -> ('c * 'b) list *)
     let val (xs, ys) = split_list ps
     in xs ~~ f ys end
@@ -49,13 +51,16 @@ fun add_simps label moreatts mutual_info fixes psimps spec lthy =
     let
       val fnames = map (fst o fst) fixes
 
-      val (saved_spec_psimps, lthy) = fold_map (fold_map LocalTheory.note) (restore_spec_structure psimps spec) lthy
+      val (saved_spec_psimps, lthy) =
+        fold_map (fold_map note_theorem) (restore_spec_structure psimps spec) lthy
       val saved_psimps = flat (map snd (flat saved_spec_psimps))
 
       val psimps_by_f = FundefMutual.sort_by_function mutual_info fnames saved_psimps
 
       fun add_for_f fname psimps =
-          LocalTheory.note ((NameSpace.qualified fname label, Attrib.internal Simplifier.simp_add :: moreatts), psimps) #> snd
+        note_theorem
+          ((NameSpace.qualified fname label, Attrib.internal Simplifier.simp_add :: moreatts),
+            psimps) #> snd
     in
       (saved_psimps,
        fold2 add_for_f fnames psimps_by_f lthy)
@@ -73,10 +78,10 @@ fun fundef_afterqed config fixes spec mutual_info defname data [[result]] lthy =
       val (((psimps', pinducts'), (_, [termination'])), lthy) = 
           lthy
             |> PROFILE "adding_psimps" (add_simps "psimps" [] mutual_info fixes psimps spec)
-            ||>> PROFILE "adding pinduct" (LocalTheory.note ((qualify "pinduct", [Attrib.internal (InductAttrib.induct_set "")]), simple_pinducts))
-            ||>> PROFILE "adding termination" (LocalTheory.note ((qualify "termination", []), [termination]))
-            ||> (snd o PROFILE "adding cases" (LocalTheory.note ((qualify "cases", []), [cases])))
-            ||> (snd o PROFILE "adding domintros" (LocalTheory.note ((qualify "domintros", []), domintros)))
+            ||>> PROFILE "adding pinduct" (note_theorem ((qualify "pinduct", [Attrib.internal (InductAttrib.induct_set "")]), simple_pinducts))
+            ||>> PROFILE "adding termination" (note_theorem ((qualify "termination", []), [termination]))
+            ||> (snd o PROFILE "adding cases" (note_theorem ((qualify "cases", []), [cases])))
+            ||> (snd o PROFILE "adding domintros" (note_theorem ((qualify "domintros", []), domintros)))
 
       val cdata = FundefCtxData { fixes=fixes, spec=spec, mutual=mutual_info, psimps=psimps',
                                   pinducts=snd pinducts', termination=termination', f=f, R=R }
@@ -121,7 +126,7 @@ fun gen_add_fundef prep_spec fixspec eqnss_flags config lthy =
       val afterqed = fundef_afterqed config fixes spec mutual_info name prep_result
     in
       (name, lthy
-         |> Proof.theorem_i PureThy.internalK NONE afterqed [[(goal, [])]]
+         |> Proof.theorem_i NONE afterqed [[(goal, [])]]
          |> Proof.refine (Method.primitive_text (fn _ => goalI)) |> Seq.hd)
     end
 
@@ -145,7 +150,7 @@ fun total_termination_afterqed defname data [[totality]] lthy =
     in
         lthy
           |> PROFILE "adding tsimps" (add_simps "simps" [] mutual fixes tsimps spec) |> snd
-          |> PROFILE "adding tinduct" (LocalTheory.note ((qualify "induct", []), tinduct)) |> snd
+          |> PROFILE "adding tinduct" (note_theorem ((qualify "induct", []), tinduct)) |> snd
     end
 
 
@@ -159,11 +164,10 @@ fun setup_termination_proof name_opt lthy =
         val goal = FundefTermination.mk_total_termination_goal f R
     in
       lthy
-        |> ProofContext.note_thmss_i [(("termination",
+        |> ProofContext.note_thmss_i "" [(("termination",
                                         [ContextRules.intro_query NONE]), [(ProofContext.standard lthy [termination], [])])] |> snd
         |> set_termination_rule termination
-        |> Proof.theorem_i PureThy.internalK NONE
-                           (total_termination_afterqed name data) [[(goal, [])]]
+        |> Proof.theorem_i NONE (total_termination_afterqed name data) [[(goal, [])]]
     end
 
 
