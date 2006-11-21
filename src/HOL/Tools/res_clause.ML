@@ -529,12 +529,13 @@ datatype classrelClause =
 			    superclass: class};
  
 (*Generate all pairs (sub,super) such that sub is a proper subclass of super in theory thy.*)
-fun class_pairs thy subs supers =
-  let val class_less = Sorts.class_less(Sign.classes_of thy)
-      fun add_super sub (super,pairs) = 
-            if class_less (sub,super) then (sub,super)::pairs else pairs
-      fun add_supers (sub,pairs) = foldl (add_super sub) pairs supers
-  in  foldl add_supers [] subs  end;
+fun class_pairs thy [] supers = []
+  | class_pairs thy subs supers =
+      let val class_less = Sorts.class_less(Sign.classes_of thy)
+	  fun add_super sub (super,pairs) = 
+		if class_less (sub,super) then (sub,super)::pairs else pairs
+	  fun add_supers (sub,pairs) = foldl (add_super sub) pairs supers
+      in  foldl add_supers [] subs  end;
 
 fun make_classrelClause (sub,super) =
   ClassrelClause {axiom_name = clrelclause_prefix ^ ascii_of sub ^ "_" ^ ascii_of super,
