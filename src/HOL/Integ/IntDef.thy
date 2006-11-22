@@ -917,7 +917,7 @@ code_type int
 code_instance int :: eq
   (Haskell -)
 
-code_const "Code_Generator.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+code_const "op = \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "!((_ : IntInf.int) = _)")
   (Haskell infixl 4 "==")
 

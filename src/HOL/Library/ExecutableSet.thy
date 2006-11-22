@@ -32,10 +32,6 @@ lemma [code target: Set]:
   by blast
 
 lemma [code func]:
-  "Code_Generator.eq A B \<longleftrightarrow> subset A B \<and> subset B A"
-  unfolding eq_def subset_def by blast
-
-lemma [code func]:
   "subset A B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
   unfolding subset_def Set.subset_def ..
 

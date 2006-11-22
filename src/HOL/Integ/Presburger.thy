@@ -1090,12 +1090,12 @@ setup "Presburger.setup"
 text {* Code generator setup *}
 
 text {*
-  Presburger arithmetic is neccesary to prove some
+  Presburger arithmetic is necessary (at least convenient) to prove some
   of the following code lemmas on integer numerals.
 *}
 
 lemma eq_number_of [code func]:
-  "Code_Generator.eq ((number_of k)\<Colon>int) (number_of l) \<longleftrightarrow> Code_Generator.eq k l"
+  "((number_of k)\<Colon>int) = number_of l \<longleftrightarrow> k = l"
   unfolding number_of_is_id ..
 
 lemma less_eq_number_of [code func]:
@@ -1103,57 +1103,55 @@ lemma less_eq_number_of [code func]:
   unfolding number_of_is_id ..
 
 lemma eq_Pls_Pls:
-  "Code_Generator.eq Numeral.Pls Numeral.Pls"
-  unfolding eq_def ..
+  "Numeral.Pls = Numeral.Pls" ..
 
 lemma eq_Pls_Min:
-  "\<not> Code_Generator.eq Numeral.Pls Numeral.Min"
-  unfolding eq_def Pls_def Min_def by auto
+  "Numeral.Pls \<noteq> Numeral.Min"
+  unfolding Pls_def Min_def by auto
 
 lemma eq_Pls_Bit0:
-  "Code_Generator.eq Numeral.Pls (Numeral.Bit k bit.B0) \<longleftrightarrow> Code_Generator.eq Numeral.Pls k"
-  unfolding eq_def Pls_def Bit_def bit.cases by auto
+  "Numeral.Pls = Numeral.Bit k bit.B0 \<longleftrightarrow> Numeral.Pls = k"
+  unfolding Pls_def Bit_def bit.cases by auto
 
 lemma eq_Pls_Bit1:
-  "\<not> Code_Generator.eq Numeral.Pls (Numeral.Bit k bit.B1)"
-  unfolding eq_def Pls_def Bit_def bit.cases by arith
+  "Numeral.Pls \<noteq> Numeral.Bit k bit.B1"
+  unfolding Pls_def Bit_def bit.cases by arith
 
 lemma eq_Min_Pls:
-  "\<not> Code_Generator.eq Numeral.Min Numeral.Pls"
-  unfolding eq_def Pls_def Min_def by auto
+  "Numeral.Min \<noteq> Numeral.Pls"
+  unfolding Pls_def Min_def by auto
 
 lemma eq_Min_Min:
-  "Code_Generator.eq Numeral.Min Numeral.Min"
-  unfolding eq_def ..
+  "Numeral.Min = Numeral.Min" ..
 
 lemma eq_Min_Bit0:
-  "\<not> Code_Generator.eq Numeral.Min (Numeral.Bit k bit.B0)"
-  unfolding eq_def Min_def Bit_def bit.cases by arith
+  "Numeral.Min \<noteq> Numeral.Bit k bit.B0"
+  unfolding Min_def Bit_def bit.cases by arith
 
 lemma eq_Min_Bit1:
-  "Code_Generator.eq Numeral.Min (Numeral.Bit k bit.B1) \<longleftrightarrow> Code_Generator.eq Numeral.Min k"
-  unfolding eq_def Min_def Bit_def bit.cases by auto
+  "Numeral.Min = Numeral.Bit k bit.B1 \<longleftrightarrow> Numeral.Min = k"
+  unfolding Min_def Bit_def bit.cases by auto
 
 lemma eq_Bit0_Pls:
-  "Code_Generator.eq (Numeral.Bit k bit.B0) Numeral.Pls \<longleftrightarrow> Code_Generator.eq Numeral.Pls k"
-  unfolding eq_def Pls_def Bit_def bit.cases by auto
+  "Numeral.Bit k bit.B0 = Numeral.Pls \<longleftrightarrow> Numeral.Pls = k"
+  unfolding Pls_def Bit_def bit.cases by auto
 
 lemma eq_Bit1_Pls:
-  "\<not> Code_Generator.eq (Numeral.Bit k bit.B1) Numeral.Pls"
-  unfolding eq_def Pls_def Bit_def bit.cases by arith
+  "Numeral.Bit k bit.B1 \<noteq>  Numeral.Pls"
+  unfolding Pls_def Bit_def bit.cases by arith
 
 lemma eq_Bit0_Min:
-  "\<not> Code_Generator.eq (Numeral.Bit k bit.B0) Numeral.Min"
-  unfolding eq_def Min_def Bit_def bit.cases by arith
+  "Numeral.Bit k bit.B0 \<noteq> Numeral.Min"
+  unfolding Min_def Bit_def bit.cases by arith
 
 lemma eq_Bit1_Min:
-  "Code_Generator.eq (Numeral.Bit k bit.B1) Numeral.Min \<longleftrightarrow> Code_Generator.eq Numeral.Min k"
-  unfolding eq_def Min_def Bit_def bit.cases by auto
+  "(Numeral.Bit k bit.B1) = Numeral.Min \<longleftrightarrow> Numeral.Min = k"
+  unfolding Min_def Bit_def bit.cases by auto
 
 lemma eq_Bit_Bit:
-  "Code_Generator.eq (Numeral.Bit k1 v1) (Numeral.Bit k2 v2) \<longleftrightarrow>
-    Code_Generator.eq v1 v2 \<and> Code_Generator.eq k1 k2"
-  unfolding eq_def Bit_def
+  "Numeral.Bit k1 v1 = Numeral.Bit k2 v2 \<longleftrightarrow>
+    v1 = v2 \<and> k1 = k2"
+  unfolding Bit_def
   apply (cases v1)
   apply (cases v2)
   apply auto

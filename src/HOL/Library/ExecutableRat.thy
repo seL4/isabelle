@@ -121,7 +121,7 @@ code_abstype rat erat where
   "op * \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat" \<equiv> "op * \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat"
   "inverse \<Colon> rat \<Rightarrow> rat" \<equiv> "inverse \<Colon> erat \<Rightarrow> erat"
   "op \<le> \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" \<equiv>  "op \<le> \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool"
-  "Code_Generator.eq \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" \<equiv> eq_erat
+  "op = \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" \<equiv> eq_erat
 
 code_const div_zero
   (SML "raise/ (Fail/ \"Division by zero\")")
@@ -136,7 +136,7 @@ code_gen
   "op * \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat"
   "inverse \<Colon> rat \<Rightarrow> rat"
   "op \<le> \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool"
-   "Code_Generator.eq \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool"
+  "op = \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool"
   (SML *)
 
 

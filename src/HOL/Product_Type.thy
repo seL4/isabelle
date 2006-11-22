@@ -776,7 +776,7 @@ subsection {* Code generator setup *}
 instance unit :: eq ..
 
 lemma [code func]:
-  "Code_Generator.eq (u\<Colon>unit) v = True" unfolding eq_def unit_eq [of u] unit_eq [of v] by rule+
+  "(u\<Colon>unit) = v \<longleftrightarrow> True" unfolding unit_eq [of u] unit_eq [of v] by rule+
 
 code_instance unit :: eq
   (Haskell -)
@@ -784,16 +784,15 @@ code_instance unit :: eq
 instance * :: (eq, eq) eq ..
 
 lemma [code func]:
-  "Code_Generator.eq (x1, y1) (x2, y2) = (Code_Generator.eq x1 x2 \<and> Code_Generator.eq y1 y2)"
-  unfolding eq_def by auto
+  "(x1\<Colon>'a\<Colon>eq, y1\<Colon>'b\<Colon>eq) = (x2, y2) \<longleftrightarrow> x1 = x2 \<and> y1 = y2" by auto
 
 code_instance * :: eq
   (Haskell -)
 
-code_const "Code_Generator.eq \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
+code_const "op = \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
-code_const "Code_Generator.eq \<Colon> 'a\<Colon>eq \<times> 'b\<Colon>eq \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
+code_const "op = \<Colon> 'a\<Colon>eq \<times> 'b\<Colon>eq \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 types_code

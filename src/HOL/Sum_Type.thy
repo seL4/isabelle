@@ -197,20 +197,20 @@ subsection {* Code generator setup *}
 instance "+" :: (eq, eq) eq ..
 
 lemma [code func]:
-  "Code_Generator.eq (Inl x) (Inl y) = Code_Generator.eq x y"
-  unfolding eq_def Inl_eq ..
+  "(Inl x \<Colon> 'a\<Colon>eq + 'b\<Colon>eq) = Inl y \<longleftrightarrow> x = y"
+  unfolding Inl_eq ..
 
 lemma [code func]:
-  "Code_Generator.eq (Inr x) (Inr y) = Code_Generator.eq x y"
-  unfolding eq_def Inr_eq ..
+  "(Inr x \<Colon> 'a\<Colon>eq + 'b\<Colon>eq) = Inr y \<longleftrightarrow> x = y"
+  unfolding Inr_eq ..
 
 lemma [code func]:
-  "Code_Generator.eq (Inl x) (Inr y) = False"
-  unfolding eq_def using Inl_not_Inr by auto
+  "Inl (x\<Colon>'a\<Colon>eq) = Inr (y\<Colon>'b\<Colon>eq) \<longleftrightarrow> False"
+  using Inl_not_Inr by auto
 
 lemma [code func]:
-  "Code_Generator.eq (Inr x) (Inl y) = False"
-  unfolding eq_def using Inr_not_Inl by auto
+  "Inr (x\<Colon>'b\<Colon>eq) = Inl (y\<Colon>'a\<Colon>eq) \<longleftrightarrow> False"
+  using Inr_not_Inl by auto
 
 ML
 {*

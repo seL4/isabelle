@@ -192,13 +192,8 @@ subsection {* Operational equality for code generation *}
 
 subsubsection {* eq class *}
 
-class eq =
-  fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-
-defs
-  eq_def [normal post]: "eq \<equiv> (op =)"
-
-lemmas [symmetric, code inline, code func] = eq_def
+axclass eq \<subseteq> type
+  attach "op ="
 
 
 subsubsection {* bool type *}
@@ -206,36 +201,36 @@ subsubsection {* bool type *}
 instance bool :: eq ..
 
 lemma [code func]:
-  "eq True p = p" unfolding eq_def by auto
+  "True = P \<longleftrightarrow> P" by simp
 
 lemma [code func]:
-  "eq False p = (\<not> p)" unfolding eq_def by auto
+  "False = P \<longleftrightarrow> \<not> P" by simp
 
 lemma [code func]:
-  "eq p True = p" unfolding eq_def by auto
+  "P = True \<longleftrightarrow> P" by simp
 
 lemma [code func]:
-  "eq p False = (\<not> p)" unfolding eq_def by auto
+  "P = False \<longleftrightarrow> \<not> P" by simp
 
 
 subsubsection {* Haskell *}
 
 code_class eq
-  (Haskell "Eq" where eq \<equiv> "(==)")
+  (Haskell "Eq" where "op =" \<equiv> "(==)")
 
-code_const eq
+code_const "op ="
   (Haskell infixl 4 "==")
 
 code_instance bool :: eq
   (Haskell -)
 
-code_const "eq \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
+code_const "op = \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 code_reserved Haskell
   Eq eq
 
 
-hide (open) const eq if_delayed
+hide (open) const if_delayed
 
 end

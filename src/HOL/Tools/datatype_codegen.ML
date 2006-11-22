@@ -489,7 +489,6 @@ fun get_cert thy (true, dtco) = get_cert_datatype thy dtco
   | get_cert thy (false, dtco) = [TypecopyPackage.get_cert thy dtco];
 
 local
-  val eq_def_sym = thm "eq_def" |> Thm.symmetric;
   fun get_eq_thms thy tyco = case DatatypePackage.get_datatype thy tyco
    of SOME _ => get_eq_datatype thy tyco
     | NONE => [TypecopyPackage.get_eq thy tyco];
@@ -498,7 +497,6 @@ in
     get_eq_thms thy tyco
     |> maps ((#mk o #mk_rews o snd o MetaSimplifier.rep_ss o Simplifier.simpset_of) thy)
     |> HOL.constrain_op_eq_thms thy
-    |> map (Tactic.rewrite_rule [eq_def_sym])
 end;
 
 type hook = (string * (bool * ((string * sort) list * (string * typ list) list))) list
@@ -605,7 +603,7 @@ fun eq_hook specs =
       let
         val thy_ref = Theory.self_ref thy;
         val ty = Type (dtco, map TFree vs) |> Logic.varifyT;
-        val c = CodegenConsts.norm thy ("Code_Generator.eq", [ty]);
+        val c = CodegenConsts.norm thy ("op =", [ty]);
         val get_thms = (fn () => get_eq (Theory.deref thy_ref) dtco |> rev);
       in
         CodegenData.add_funcl (c, CodegenData.lazy get_thms) thy
