@@ -477,7 +477,7 @@ fun mk_const_id module cname (gr, (tab1, tab2)) =
   let
     val ((module, s), tab1') = mk_long_id tab1 module cname
     val s' = mk_id s;
-    val s'' = if ThmDatabase.is_ml_reserved s' then s' ^ "_const" else s'
+    val s'' = if ML_Syntax.is_reserved s' then s' ^ "_const" else s'
   in ((gr, (tab1', tab2)), (module, s'')) end;
 
 fun get_const_id cname (gr, (tab1, tab2)) =
@@ -486,14 +486,14 @@ fun get_const_id cname (gr, (tab1, tab2)) =
   | SOME (module, s) =>
       let
         val s' = mk_id s;
-        val s'' = if ThmDatabase.is_ml_reserved s' then s' ^ "_const" else s'
+        val s'' = if ML_Syntax.is_reserved s' then s' ^ "_const" else s'
       in (module, s'') end;
 
 fun mk_type_id module tyname (gr, (tab1, tab2)) =
   let
     val ((module, s), tab2') = mk_long_id tab2 module tyname
     val s' = mk_id s;
-    val s'' = if ThmDatabase.is_ml_reserved s' then s' ^ "_type" else s'
+    val s'' = if ML_Syntax.is_reserved s' then s' ^ "_type" else s'
   in ((gr, (tab1, tab2')), (module, s'')) end;
 
 fun get_type_id tyname (gr, (tab1, tab2)) =
@@ -502,7 +502,7 @@ fun get_type_id tyname (gr, (tab1, tab2)) =
   | SOME (module, s) =>
       let
         val s' = mk_id s;
-        val s'' = if ThmDatabase.is_ml_reserved s' then s' ^ "_type" else s'
+        val s'' = if ML_Syntax.is_reserved s' then s' ^ "_type" else s'
       in (module, s'') end;
 
 fun get_type_id' f tyname tab = apsnd f (get_type_id tyname tab);
@@ -536,7 +536,7 @@ fun rename_terms ts =
   let
     val names = foldr add_term_names
       (map (fst o fst) (rev (fold Term.add_vars ts []))) ts;
-    val reserved = names inter ThmDatabase.ml_reserved;
+    val reserved = filter ML_Syntax.is_reserved names;
     val (illegal, alt_names) = split_list (map_filter (fn s =>
       let val s' = mk_id s in if s = s' then NONE else SOME (s, s') end) names)
     val ps = (reserved @ illegal) ~~
@@ -689,7 +689,7 @@ fun mk_app _ p [] = p
 
 fun new_names t xs = Name.variant_list
   (map (fst o fst o dest_Var) (term_vars t) union
-    add_term_names (t, ThmDatabase.ml_reserved)) (map mk_id xs);
+    add_term_names (t, ML_Syntax.reserved)) (map mk_id xs);
 
 fun new_name t x = hd (new_names t [x]);
 
