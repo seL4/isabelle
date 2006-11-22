@@ -139,8 +139,8 @@ fun resolve_raw_clauses [] =
 		fun resolution (c1, hyp1_table) (c2, hyp2_table) =
 		let
 			val _ = if !trace_sat then
-					tracing ("Resolving clause: " ^ string_of_thm c1 ^ " (hyps: " ^ string_of_list (Sign.string_of_term (theory_of_thm c1)) (#hyps (rep_thm c1))
-						^ ")\nwith clause: " ^ string_of_thm c2 ^ " (hyps: " ^ string_of_list (Sign.string_of_term (theory_of_thm c2)) (#hyps (rep_thm c2)) ^ ")")
+					tracing ("Resolving clause: " ^ string_of_thm c1 ^ " (hyps: " ^ ML_Syntax.str_of_list (Sign.string_of_term (theory_of_thm c1)) (#hyps (rep_thm c1))
+						^ ")\nwith clause: " ^ string_of_thm c2 ^ " (hyps: " ^ ML_Syntax.str_of_list (Sign.string_of_term (theory_of_thm c2)) (#hyps (rep_thm c2)) ^ ")")
 				else ()
 
 			(* the two literals used for resolution *)
@@ -172,7 +172,7 @@ fun resolve_raw_clauses [] =
 			val hypnew_table = Inttab.merge (K true) (Inttab.delete i1 hyp1_table, Inttab.delete (~i1) hyp2_table)
 
 			val _ = if !trace_sat then
-					tracing ("Resulting clause: " ^ string_of_thm c_new ^ " (hyps: " ^ string_of_list (Sign.string_of_term (theory_of_thm c_new)) (#hyps (rep_thm c_new)) ^ ")")
+					tracing ("Resulting clause: " ^ string_of_thm c_new ^ " (hyps: " ^ ML_Syntax.str_of_list (Sign.string_of_term (theory_of_thm c_new)) (#hyps (rep_thm c_new)) ^ ")")
 				else ()
 			val _ = inc counter
 		in
@@ -324,7 +324,7 @@ in
 	  SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id)) => (
 		if !trace_sat then
 			tracing ("Proof trace from SAT solver:\n" ^
-				"clauses: " ^ string_of_list (string_of_pair string_of_int (string_of_list string_of_int)) (Inttab.dest clause_table) ^ "\n" ^
+				"clauses: " ^ ML_Syntax.str_of_list (ML_Syntax.str_of_pair string_of_int (ML_Syntax.str_of_list string_of_int)) (Inttab.dest clause_table) ^ "\n" ^
 				"empty clause: " ^ string_of_int empty_id)
 		else ();
 		if !quick_and_dirty then
