@@ -48,8 +48,8 @@ local
   val const_STR = Sign.intern_const thy "STR";
 in
   val typ_ml_string = Type (Sign.intern_type thy "ml_string", []);
-  fun term_ml_string s = Const (const_STR, HOList.typ_string --> typ_ml_string)
-    $ HOList.term_string s
+  fun term_ml_string s = Const (const_STR, HOLogic.stringT --> typ_ml_string)
+    $ HOLogic.mk_string s
 end;
 
 end;
@@ -67,7 +67,7 @@ code_const STR
 
 setup {*
   CodegenSerializer.add_pretty_ml_string "SML" "List.list.Nil" "List.list.Cons" "MLString.ml_string.STR"
-    HOList.print_char HOList.print_string "String.implode"
+    HOLogic.print_char HOLogic.print_string "String.implode"
 *}
 
 code_const explode

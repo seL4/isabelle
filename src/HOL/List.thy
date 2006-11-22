@@ -6,7 +6,7 @@
 header {* The datatype of finite lists *}
 
 theory List
-imports PreList FunDef
+imports PreList
 begin
 
 datatype 'a list =
@@ -2542,72 +2542,11 @@ parse_ast_translation {*
   in [("_Char", char_ast_tr), ("_String", string_ast_tr)] end;
 *}
 
-ML {*
-structure HOList =
-struct
-
-local
-  val thy = the_context ();
-in
-  val typ_string = Type (Sign.intern_type thy "string", []);
-  fun typ_list ty = Type (Sign.intern_type thy "list", [ty]);
-  fun term_list ty f [] = Const (Sign.intern_const thy "Nil", typ_list ty)
-    | term_list ty f (x::xs) = Const (Sign.intern_const thy "Cons",
-        ty --> typ_list ty --> typ_list ty) $ f x $ term_list ty f xs;
-end;
-
-fun int_of_nibble h =
-  if "0" <= h andalso h <= "9" then ord h - ord "0"
-  else if "A" <= h andalso h <= "F" then ord h - ord "A" + 10
-  else raise Match;
-
-fun nibble_of_int i =
-  if i <= 9 then chr (ord "0" + i) else chr (ord "A" + i - 10);
-
-fun dest_char (Const ("List.char.Char", _) $ c1 $ c2) =
-      let
-        fun dest_nibble (Const (s, _)) = (int_of_nibble o unprefix "List.nibble.Nibble") s
-          | dest_nibble _ = raise Match;
-      in
-        (SOME (dest_nibble c1 * 16 + dest_nibble c2)
-        handle Fail _ => NONE | Match => NONE)
-      end
-  | dest_char _ = NONE;
-
-val print_list = Pretty.enum "," "[" "]";
-
-fun print_char c =
-  let
-    val i = ord c
-  in if i < 32
-    then prefix "\\" (string_of_int i)
-    else c
-  end;
-
-val print_string = quote;
-
-fun term_string s =
-  let
-    val ty_n = Type ("List.nibble", []);
-    val ty_c = Type ("List.char", []);
-    val ty_l = Type ("List.list", [ty_c]);
-    fun mk_nib n = Const ("List.nibble.Nibble" ^ chr (n + (if n <= 9 then ord "0" else ord "A" - 10)), ty_n);
-    fun mk_char c =
-      if Symbol.is_ascii c andalso Symbol.is_printable c then
-        Const ("List.char.Char", ty_n --> ty_n --> ty_c) $ mk_nib (ord c div 16) $ mk_nib (ord c mod 16)
-      else error ("Printable ASCII character expected: " ^ quote c);
-    fun mk_string c t = Const ("List.list.Cons", ty_c --> ty_l --> ty_l)
-      $ mk_char c $ t;
-  in fold_rev mk_string (explode s) (Const ("List.list.Nil", ty_l)) end;
-
-end;
-*}
-
 print_ast_translation {*
   let
     fun dest_nib (Syntax.Constant c) =
         (case explode c of
-          ["N", "i", "b", "b", "l", "e", h] => HOList.int_of_nibble h
+          ["N", "i", "b", "b", "l", "e", h] => HOLogic.int_of_nibble h
         | _ => raise Match)
       | dest_nib _ = raise Match;
 
@@ -2646,12 +2585,7 @@ and gen_list aG i = gen_list' aG i i;
 *}
   "char" ("string")
 attach (term_of) {*
-val nibbleT = Type ("List.nibble", []);
-
-fun term_of_char c =
-  Const ("List.char.Char", nibbleT --> nibbleT --> Type ("List.char", [])) $
-    Const ("List.nibble.Nibble" ^ HOList.nibble_of_int (ord c div 16), nibbleT) $
-    Const ("List.nibble.Nibble" ^ HOList.nibble_of_int (ord c mod 16), nibbleT);
+val term_of_char = HOLogic.mk_char;
 *}
 attach (test) {*
 fun gen_char i = chr (random_range (ord "a") (Int.min (ord "a" + i, ord "z")));
@@ -2678,10 +2612,10 @@ code_const Char
 code_instance list :: eq and char :: eq
   (Haskell - and -)
 
-code_const "Code_Generator.eq \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> bool"
+code_const "op = \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
-code_const "Code_Generator.eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
+code_const "op = \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 code_reserved SML
@@ -2699,7 +2633,7 @@ fun list_codegen thy defs gr dep thyname b t =
   in SOME (gr', Pretty.list "[" "]" ps) end handle TERM _ => NONE;
 
 fun char_codegen thy defs gr dep thyname b t =
-  case (Option.map chr o HOList.dest_char) t 
+  case (Option.map chr o HOLogic.dest_char) t 
    of SOME c =>
         if Symbol.is_printable c
         then SOME (gr, (Pretty.quote o Pretty.str) c)
@@ -2711,11 +2645,11 @@ in
   Codegen.add_codegen "list_codegen" list_codegen
   #> Codegen.add_codegen "char_codegen" char_codegen
   #> CodegenSerializer.add_pretty_list "SML" "List.list.Nil" "List.list.Cons"
-       HOList.print_list NONE (7, "::")
+       (Pretty.enum "," "[" "]") NONE (7, "::")
   #> CodegenSerializer.add_pretty_list "Haskell" "List.list.Nil" "List.list.Cons"
-       HOList.print_list (SOME (HOList.print_char, HOList.print_string)) (5, ":")
+       (Pretty.enum "," "[" "]") (SOME (HOLogic.print_char, HOLogic.print_string)) (5, ":")
   #> CodegenPackage.add_appconst
-       ("List.char.Char", CodegenPackage.appgen_char HOList.dest_char)
+       ("List.char.Char", CodegenPackage.appgen_char HOLogic.dest_char)
 
 end;
 *}

@@ -88,6 +88,14 @@ sig
   val listT : typ -> typ
   val mk_list: ('a -> term) -> typ -> 'a list -> term
   val dest_list: term -> term list
+  val charT : typ
+  val int_of_nibble : string -> int
+  val mk_char : string -> term
+  val dest_char : term -> int option
+  val print_char : string -> string
+  val stringT : typ
+  val mk_string : string -> term
+  val print_string : string -> string
 end;
 
 
@@ -343,7 +351,7 @@ val realT = Type ("RealDef.real", []);
 
 (* list *)
 
-fun listT T =  Type ("List.list", [T])
+fun listT T =  Type ("List.list", [T]);
 
 fun mk_list f T [] = Const ("List.list.Nil", listT T)
   | mk_list f T (x :: xs) = Const ("List.list.Cons",
@@ -353,5 +361,63 @@ fun mk_list f T [] = Const ("List.list.Nil", listT T)
 fun dest_list (Const ("List.list.Nil", _)) = []
   | dest_list (Const ("List.list.Cons", _) $ x $ xs) = x :: dest_list xs
   | dest_list t = raise TERM ("dest_list", [t]);
+
+
+(* char *)
+
+val nibbleT = Type ("List.nibble", []);
+val charT = Type ("List.char", []);
+
+fun int_of_nibble h =
+  if "0" <= h andalso h <= "9" then ord h - ord "0"
+  else if "A" <= h andalso h <= "F" then ord h - ord "A" + 10
+  else raise Match;
+
+fun nibble_of_int i =
+  if i <= 9 then chr (ord "0" + i) else chr (ord "A" + i - 10);
+
+fun mk_char c =
+  Const ("List.char.Char", nibbleT --> nibbleT --> charT) $
+    Const ("List.nibble.Nibble" ^ nibble_of_int (ord c div 16), nibbleT) $
+    Const ("List.nibble.Nibble" ^ nibble_of_int (ord c mod 16), nibbleT);
+
+fun dest_char (Const ("List.char.Char", _) $ c1 $ c2) =
+      let
+        fun dest_nibble (Const (s, _)) = (int_of_nibble o unprefix "List.nibble.Nibble") s
+          | dest_nibble _ = raise Match;
+      in
+        (SOME (dest_nibble c1 * 16 + dest_nibble c2)
+        handle Fail _ => NONE | Match => NONE)
+      end
+  | dest_char _ = NONE;
+
+fun print_char c =
+  let
+    val i = ord c
+  in if i < 32
+    then prefix "\\" (string_of_int i)
+    else c
+  end;
+
+
+(* string *)
+
+val stringT = Type ("List.string", []);
+
+fun mk_string s =
+  let
+    val ty_n = Type ("List.nibble", []);
+    val ty_c = Type ("List.char", []);
+    val ty_l = Type ("List.list", [ty_c]);
+    fun mk_nib n = Const ("List.nibble.Nibble" ^ chr (n + (if n <= 9 then ord "0" else ord "A" - 10)), ty_n);
+    fun mk_char c =
+      if Symbol.is_ascii c andalso Symbol.is_printable c then
+        Const ("List.char.Char", ty_n --> ty_n --> ty_c) $ mk_nib (ord c div 16) $ mk_nib (ord c mod 16)
+      else error ("Printable ASCII character expected: " ^ quote c);
+    fun mk_string c t = Const ("List.list.Cons", ty_c --> ty_l --> ty_l)
+      $ mk_char c $ t;
+  in fold_rev mk_string (explode s) (Const ("List.list.Nil", ty_l)) end;
+
+val print_string = quote;
 
 end;

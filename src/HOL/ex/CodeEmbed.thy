@@ -57,10 +57,10 @@ in
   val typ_sort = Type (Sign.intern_type thy "sort", []);
   val typ_typ = Type (Sign.intern_type thy "typ", []);
   val typ_term = Type (Sign.intern_type thy "term", []);
-  val term_sort = HOList.term_list typ_class MLString.term_ml_string;
+  val term_sort = HOLogic.mk_list MLString.term_ml_string typ_class;
   fun term_typ f (Type (tyco, tys)) =
-        Const (const_Type, MLString.typ_ml_string --> HOList.typ_list typ_typ --> typ_typ)
-          $ MLString.term_ml_string tyco $ HOList.term_list typ_typ (term_typ f) tys
+        Const (const_Type, MLString.typ_ml_string --> HOLogic.listT typ_typ --> typ_typ)
+          $ MLString.term_ml_string tyco $ HOLogic.mk_list (term_typ f) typ_typ tys
     | term_typ f (TFree v) =
         f v;
   fun term_term f g (Const (c, ty)) =
