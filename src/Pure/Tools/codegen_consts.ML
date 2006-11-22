@@ -19,6 +19,8 @@ sig
   val norm_of_typ: theory -> string * typ -> const
   val find_def: theory -> const
     -> ((string (*theory name*) * thm) * typ list) option
+  val instance_dict: theory -> class * string
+    -> (string * sort) list * (string * typ) list
   val disc_typ_of_classop: theory -> const -> typ
   val disc_typ_of_const: theory -> (const -> typ) -> const -> typ
   val consts_of: theory -> term -> const list
@@ -45,7 +47,7 @@ structure Consttab =
   );
 
 
-(* type instantiations and overloading *)
+(* type instantiations, overloading, dictionary values *)
 
 fun inst_of_typ thy (c_ty as (c, ty)) =
   (c, Consts.typargs (Sign.consts_of thy) c_ty);
@@ -95,26 +97,35 @@ fun norm thy (c, insts) =
 fun norm_of_typ thy (c, ty) =
   norm thy (c, Consts.typargs (Sign.consts_of thy) (c, ty));
 
+fun instance_dict thy (class, tyco) =
+  let
+    val (var, cs) = AxClass.params_of_class thy class;
+    val sort_args = Name.names (Name.declare var Name.context) "'a"
+      (Sign.arity_sorts thy tyco [class]);
+    val ty_inst = Type (tyco, map TFree sort_args);
+    val inst_signs = (map o apsnd o map_type_tfree) (K ty_inst) cs;
+  in (sort_args, inst_signs) end;
+
 fun disc_typ_of_classop thy (c, [TVar _]) = 
       let
         val class = (the o AxClass.class_of_param thy) c;
-        val (v, cs) = ClassPackage.the_consts_sign thy class
+        val (v, cs) = AxClass.params_of_class thy class;
       in
-        (Logic.varifyT o map_type_tfree (fn u as (w, _) => if w = v then TFree (v, [class]) else TFree u))
+        (Logic.varifyT o map_type_tfree (K (TFree (v, [class]))))
           ((the o AList.lookup (op =) cs) c)
       end
   | disc_typ_of_classop thy (c, [TFree _]) = 
       let
         val class = (the o AxClass.class_of_param thy) c;
-        val (v, cs) = ClassPackage.the_consts_sign thy class
+        val (v, cs) = AxClass.params_of_class thy class;
       in
-        (Logic.varifyT o map_type_tfree (fn u as (w, _) => if w = v then TFree (v, [class]) else TFree u))
+        (Logic.varifyT o map_type_tfree (K (TFree (v, [class]))))
           ((the o AList.lookup (op =) cs) c)
       end
   | disc_typ_of_classop thy (c, [Type (tyco, _)]) =
       let
         val class = (the o AxClass.class_of_param thy) c;
-        val (_, cs) = ClassPackage.the_inst_sign thy (class, tyco);
+        val (_, cs) = instance_dict thy (class, tyco);
       in
         Logic.varifyT ((the o AList.lookup (op =) cs) c)
       end;

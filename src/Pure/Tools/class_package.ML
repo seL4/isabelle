@@ -28,9 +28,6 @@ sig
   val certify_sort: theory -> sort -> sort
   val read_class: theory -> xstring -> class
   val read_sort: theory -> string -> sort
-  val operational_algebra: theory -> (sort -> sort) * Sorts.algebra
-  val the_consts_sign: theory -> class -> string * (string * typ) list
-  val the_inst_sign: theory -> class * string -> (string * sort) list * (string * typ) list
   val assume_arities_of_sort: theory -> ((string * sort list) * sort) list -> typ * sort -> bool
   val assume_arities_thy: theory -> ((string * sort list) * sort) list -> (theory -> 'a) -> 'a
     (*'a must not keep any reference to theory*)
@@ -52,8 +49,6 @@ datatype class_data = ClassData of {
   var: string,
   consts: (string * (string * typ)) list
     (*locale parameter ~> toplevel theory constant*),
-  operational: bool (* == at least one class operation,
-    or at least two operational superclasses *),
   propnames: string list
 } * thm list Symtab.table;
 
@@ -123,14 +118,13 @@ fun subst_clsvar v ty_subst =
 
 (* updaters *)
 
-fun add_class_data (class, (name_locale, name_axclass, var, consts, operational, propnames)) =
+fun add_class_data (class, (name_locale, name_axclass, var, consts, propnames)) =
   ClassData.map (
     Symtab.update_new (class, ClassData ({
       name_locale = name_locale,
       name_axclass = name_axclass,
       var = var,
       consts = consts,
-      operational = operational,
       propnames = propnames}, Symtab.empty))
   );
 
@@ -314,9 +308,6 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
       |> Sign.add_const_constraint_i (c, SOME (subst_clsvar v (TFree (v, [class])) ty));
     fun mk_const thy class v (c, ty) =
       Const (c, subst_clsvar v (TFree (v, [class])) ty);
-    fun is_operational thy mapp_this =
-      length mapp_this > 0 orelse
-        length (filter (#operational o fst o the o lookup_class_data thy) supclasses) > 1;
   in
     thy
     |> add_locale bname expr elems
@@ -330,9 +321,8 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
           add_axclass_i (bname, supsort) (map (fst o snd) mapp_this) loc_axioms
     #-> (fn (name_axclass, (_, ax_axioms)) =>
           fold (add_global_constraint v name_axclass) mapp_this
-    #> `(fn thy => is_operational thy mapp_this)
-    #-> (fn operational => add_class_data (name_locale, (name_locale, name_axclass, v, mapp_this,
-          operational, map (fst o fst) loc_axioms)))
+    #> add_class_data (name_locale, (name_locale, name_axclass, v, mapp_this,
+          map (fst o fst) loc_axioms))
     #> prove_interpretation_i (bname, [])
           (Locale.Locale name_locale) (map (SOME o mk_const thy name_axclass v) (map snd (mapp_sup @ mapp_this)))
           ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
@@ -384,13 +374,12 @@ fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arities (raw_na
         (Defs.specifications_of (Theory.defs_of theory) c));
     fun get_consts_class tyco ty class =
       let
-        val data = (fst o the_class_data theory) class;
-        val subst_ty = map_type_tfree (fn (v, sort) =>
-          if #var data = v then ty else TVar ((v, 0), sort));
+        val (_, cs) = AxClass.params_of_class theory class;
+        val subst_ty = map_type_tfree (K ty);
       in
-        (map_filter (fn (_, (c, ty)) =>
+        map_filter (fn (c, ty) =>
           if already_defined (c, ty)
-          then NONE else SOME ((c, ((tyco, class), subst_ty ty)))) o #consts) data
+          then NONE else SOME ((c, ((tyco, class), subst_ty ty)))) cs
       end;
     fun get_consts_sort (tyco, asorts, sort) =
       let
@@ -438,7 +427,8 @@ fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arities (raw_na
         val bind = bind_always orelse not (can (PureThy.get_thms thy) (Name name));
         val thms = maps (fn (tyco, _, sort) => maps (fn class =>
           Symtab.lookup_list
-            ((snd o the_class_data thy) class) tyco) (the_ancestry thy sort)) arities;
+            ((the_default Symtab.empty o Option.map snd o try (the_class_data thy)) class) tyco)
+            (the_ancestry thy sort)) arities;
       in if bind then
         thy
         |> PureThy.note_thmss_i (*qualified*) Thm.internalK [((name, atts), [(thms, [])])]
@@ -526,42 +516,6 @@ val instance_sort_i = instance_sort_i' setup_proof;
 val prove_instance_sort = instance_sort_i' o tactic_proof;
 
 end; (* local *)
-
-
-
-(** code generation view **)
-
-fun is_operational_class thy class =
-  the_default false ((Option.map (#operational o fst) o lookup_class_data thy) class);
-
-fun operational_algebra thy =
-  Sorts.project_algebra (Sign.pp thy)
-    (is_operational_class thy) (Sign.classes_of thy);
-
-fun the_consts_sign thy class =
-  let
-    val _ = if is_operational_class thy class then () else error ("no operational class: " ^ quote class);
-    val data = (fst o the_class_data thy) class
-  in (#var data, (map snd o #consts) data) end;
-
-fun the_inst_sign thy (class, tyco) =
-  let
-    val _ = if is_operational_class thy class then () else error ("no operational class: " ^ quote class);
-    val asorts = Sign.arity_sorts thy tyco [class];
-    val (clsvar, const_sign) = the_consts_sign thy class;
-    fun add_var sort used =
-      let val v = hd (Name.invents used "'a" 1);
-      in ((v, sort), Name.declare v used) end;
-    val (vsorts, _) =
-      Name.context
-      |> Name.declare clsvar
-      |> fold (fn (_, ty) => fold Name.declare
-           ((map (fst o fst) o typ_tvars) ty @ map fst (Term.add_tfreesT  ty []))) const_sign
-      |> fold_map add_var asorts;
-    val ty_inst = Type (tyco, map TFree vsorts);
-    val inst_signs = map (apsnd (subst_clsvar clsvar ty_inst)) const_sign;
-  in (vsorts, inst_signs) end;
-
 
 
 (** toplevel interface **)

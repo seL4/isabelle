@@ -1406,6 +1406,12 @@ fun gen_add_syntax_const prep_const target raw_c raw_syn thy =
     thy
   end;*)
 
+fun read_class thy raw_class =
+  let
+    val class = Sign.intern_class thy raw_class;
+    val _ = AxClass.get_definition thy class;
+  in class end;
+
 fun read_type thy raw_tyco =
   let
     val tyco = Sign.intern_type thy raw_tyco;
@@ -1419,8 +1425,8 @@ fun idfs_of_const_names thy cs =
     val cs'' = map (CodegenConsts.norm_of_typ thy) cs';
   in AList.make (CodegenNames.const thy) cs'' end;
 
-val add_syntax_class = gen_add_syntax_class ClassPackage.read_class CodegenConsts.read_const;
-val add_syntax_inst = gen_add_syntax_inst ClassPackage.read_class read_type;
+val add_syntax_class = gen_add_syntax_class read_class CodegenConsts.read_const;
+val add_syntax_inst = gen_add_syntax_inst read_class read_type;
 val add_syntax_tyco = gen_add_syntax_tyco read_type;
 val add_syntax_const = gen_add_syntax_const CodegenConsts.read_const;
 
@@ -1558,7 +1564,7 @@ val _ = OuterSyntax.add_parsers [code_classP, code_instanceP, code_typeP, code_c
 
 val _ = Context.add_setup (
   gen_add_syntax_tyco (K I) "SML" "fun" (SOME (2, fn fxy => fn pr_typ => fn [ty1, ty2] =>
-      (gen_brackify (case fxy of BR => false | _ => eval_fxy (INFX (1, R)) fxy) o Pretty.breaks) [
+      (gen_brackify (case fxy of NOBR => false | _ => eval_fxy (INFX (1, R)) fxy) o Pretty.breaks) [
         pr_typ (INFX (1, X)) ty1,
         str "->",
         pr_typ (INFX (1, R)) ty2

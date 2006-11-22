@@ -41,7 +41,7 @@ structure Funcgr = CodeDataFun
   fun merge _ _ = Constgraph.empty;
   fun purge _ NONE _ = Constgraph.empty
     | purge _ (SOME cs) funcgr =
-        Constgraph.del_nodes ((Constgraph.all_succs funcgr 
+        Constgraph.del_nodes ((Constgraph.all_preds funcgr 
           o filter (can (Constgraph.get_node funcgr))) cs) funcgr;
 end);
 
@@ -186,8 +186,10 @@ fun insts_of thy funcgr (c, ty) =
   end;
 
 fun all_classops thy tyco class =
-  AxClass.params_of thy class
-  |> AList.make (fn c => CodegenConsts.disc_typ_of_classop thy (c, [Type (tyco, [])]))
+  try (AxClass.params_of_class thy) class
+  |> Option.map snd
+  |> these
+  |> map (fn (c, _) => (c, CodegenConsts.disc_typ_of_classop thy (c, [Type (tyco, [])])))
   |> map (CodegenConsts.norm_of_typ thy);
 
 fun instdefs_of thy insts =

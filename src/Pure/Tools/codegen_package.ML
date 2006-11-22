@@ -49,14 +49,11 @@ structure Code = CodeDataFun
         let
           val cs_exisiting =
             map_filter (CodegenNames.const_rev thy) (Graph.keys code);
-        in
-          Graph.del_nodes
-            ((Graph.all_succs code
+          val dels = (Graph.all_preds code
               o map (CodegenNames.const thy)
               o filter (member CodegenConsts.eq_const cs_exisiting)
-              ) cs)
-            code
-        end;
+            ) cs;
+        in Graph.del_nodes dels code end;
 end);
 
 type appgen = theory -> ((sort -> sort) * Sorts.algebra) * Consts.T
@@ -105,7 +102,7 @@ fun get_abstype thy (tyco, tys) = case Symtab.lookup ((fst o snd o CodegenPackag
 
 fun ensure_def_class thy (algbr as ((proj_sort, _), _)) funcgr strct class trns =
   let
-    val (v, cs) = (ClassPackage.the_consts_sign thy) class;
+    val (v, cs) = (AxClass.params_of_class thy) class;
     val superclasses = (proj_sort o Sign.super_classes thy) class;
     val classops' = map (CodegenNames.const thy o CodegenConsts.norm_of_typ thy) cs;
     val class' = CodegenNames.class thy class;
@@ -225,10 +222,10 @@ and exprgen_typinst_const thy (algbr as (_, consts)) funcgr strct (c, ty_ctxt) t
   end
 and ensure_def_inst thy (algbr as ((proj_sort, _), _)) funcgr strct (class, tyco) trns =
   let
-    val (vs, classop_defs) = ((apsnd o map) Const o ClassPackage.the_inst_sign thy)
+    val (vs, classop_defs) = ((apsnd o map) Const o CodegenConsts.instance_dict thy)
       (class, tyco);
     val classops = (map (CodegenConsts.norm_of_typ thy) o snd
-      o ClassPackage.the_consts_sign thy) class;
+      o AxClass.params_of_class thy) class;
     val arity_typ = Type (tyco, (map TFree vs));
     val superclasses = (proj_sort o Sign.super_classes thy) class
     fun gen_superarity superclass trns =
@@ -575,7 +572,8 @@ fun generate thy funcgr targets init gen it =
       (CodegenFuncgr.all funcgr);
     val funcgr' = CodegenFuncgr.make thy cs;
     val qnaming = NameSpace.qualified_names NameSpace.default_naming;
-    val algebr = ClassPackage.operational_algebra thy;
+    val algebr = Sorts.project_algebra (Sign.pp thy)
+      (the_default false o Option.map #operational o try (AxClass.get_definition thy)) (Sign.classes_of thy);
     val consttab = Consts.empty
       |> fold (fn c => Consts.declare qnaming
            ((CodegenNames.const thy c, CodegenFuncgr.typ funcgr' c), true))

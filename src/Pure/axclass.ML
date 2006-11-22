@@ -8,11 +8,11 @@ definitions and proofs.
 
 signature AX_CLASS =
 sig
-  val get_definition: theory -> class -> {def: thm, intro: thm, axioms: thm list}
+  val get_definition: theory -> class -> {def: thm, intro: thm, axioms: thm list,
+    params: (string * typ) list, operational: bool}
   val class_intros: theory -> thm list
-  val params_of: theory -> class -> string list
-  val all_params_of: theory -> sort -> string list
   val class_of_param: theory -> string -> class option
+  val params_of_class: theory -> class -> string * (string * typ) list
   val print_axclasses: theory -> unit
   val cert_classrel: theory -> class * class -> class * class
   val read_classrel: theory -> xstring * xstring -> class * class
@@ -62,15 +62,21 @@ val introN = "intro";
 val superN = "super";
 val axiomsN = "axioms";
 
+val param_tyvarname = "'a";
+
 datatype axclass = AxClass of
  {def: thm,
   intro: thm,
-  axioms: thm list};
+  axioms: thm list,
+  params: (string * typ) list,
+  operational: bool (* == at least one class operation,
+    or at least two operational superclasses *)};
 
 type axclasses = axclass Symtab.table * param list;
 
-fun make_axclass (def, intro, axioms) =
-  AxClass {def = def, intro = intro, axioms = axioms};
+fun make_axclass ((def, intro, axioms), (params, operational)) =
+  AxClass {def = def, intro = intro, axioms = axioms, params = params,
+    operational = operational};
 
 fun merge_axclasses pp ((tab1, params1), (tab2, params2)) : axclasses =
   (Symtab.merge (K true) (tab1, tab2), merge_params pp (params1, params2));
@@ -137,6 +143,8 @@ fun all_params_of thy S = get_params thy (fn c => Sign.subsort thy (S, [c]));
 fun class_of_param thy =
   AList.lookup (op =) (#2 (get_axclasses thy));
 
+fun params_of_class thy class =
+  (param_tyvarname, (#params o get_definition thy) class);
 
 (* maintain instances *)
 
@@ -169,7 +177,7 @@ fun print_axclasses thy =
     val axclasses = #1 (get_axclasses thy);
     val ctxt = ProofContext.init thy;
 
-    fun pretty_axclass (class, AxClass {def, intro, axioms}) =
+    fun pretty_axclass (class, AxClass {def, intro, axioms, params, operational}) =
       Pretty.block (Pretty.fbreaks
        [Pretty.block
           [Pretty.str "class ", ProofContext.pretty_sort ctxt [class], Pretty.str ":"],
@@ -264,8 +272,16 @@ fun prove_arity raw_arity tac thy =
 
 local
 
-fun def_class prep_class prep_att prep_propp
-    (bclass, raw_super) params raw_specs thy =
+fun read_param thy raw_t =
+  let
+    val t = Sign.read_term thy raw_t
+  in case try dest_Const t
+   of SOME (c, _) => c
+    | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t)
+  end;
+
+fun def_class prep_class prep_att prep_param prep_propp
+    (bclass, raw_super) raw_params raw_specs thy =
   let
     val ctxt = ProofContext.init thy;
     val pp = ProofContext.pp ctxt;
@@ -318,6 +334,20 @@ fun def_class prep_class prep_att prep_propp
          ((superN, []), [(map Drule.standard raw_classrel, [])]),
          ((axiomsN, []), [(map (fn th => Drule.standard (class_triv RS th)) raw_axioms, [])])];
 
+    (* params *)
+
+    val params = map (prep_param thy) raw_params;
+    val params_typs = map (fn param =>
+      let
+        val ty = Sign.the_const_type thy param;
+        val var = case Term.typ_tvars ty
+         of [(v, _)] => v
+          | _ => error ("exactly one type variable required in parameter " ^ quote param);
+        val ty' = Term.typ_subst_TVars [(var, TFree (param_tyvarname, []))] ty;
+      in (param, ty') end) params;
+    val operational = length params_typs > 0 orelse
+      length (filter (the_default false o Option.map
+        (fn AxClass { operational, ... } => operational) o lookup_def thy) super) > 1;
 
     (* result *)
 
@@ -328,15 +358,15 @@ fun def_class prep_class prep_att prep_propp
       |> PureThy.note_thmss_i "" (name_atts ~~ map Thm.simple_fact (unflat axiomss axioms)) |> snd
       |> Sign.restore_naming facts_thy
       |> map_axclasses (fn (axclasses, parameters) =>
-        (Symtab.update (class, make_axclass (def, intro, axioms)) axclasses,
+        (Symtab.update (class, make_axclass ((def, intro, axioms), (params_typs, operational))) axclasses,
           fold (fn x => add_param pp (x, class)) params parameters));
 
   in (class, result_thy) end;
 
 in
 
-val define_class = def_class Sign.read_class Attrib.attribute ProofContext.read_propp;
-val define_class_i = def_class Sign.certify_class (K I) ProofContext.cert_propp;
+val define_class = def_class Sign.read_class Attrib.attribute read_param ProofContext.read_propp;
+val define_class_i = def_class Sign.certify_class (K I) (K I) ProofContext.cert_propp;
 
 end;
 
