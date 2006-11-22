@@ -66,11 +66,11 @@ lemma "case Z of Z \<Rightarrow> True | S x \<Rightarrow> False" by normalizatio
 
 lemma "[] @ [] = []" by normalization
 lemma "[] @ xs = xs" by normalization
-lemma "[a, b, c] @ xs = a # b # c # xs" by normalization
-lemma "map f [x,y,z::'x] = [f x, f y, f z]" by normalization
+normal_form "[a, b, c] @ xs = a # b # c # xs"
+normal_form "map f [x,y,z::'x] = [f x, f y, f z]"
 normal_form "map (%f. f True) [id, g, Not] = [True, g True, False]"
 normal_form "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs"
-lemma "rev [a, b, c] = [c, b, a]" by normalization
+normal_form "rev [a, b, c] = [c, b, a]"
 normal_form "rev (a#b#cs) = rev cs @ [b, a]"
 normal_form "map (%F. F [a,b,c::'x]) (map map [f,g,h])"
 normal_form "map (%F. F ([a,b,c] @ ds)) (map map ([f,g,h]@fs))"
@@ -85,8 +85,8 @@ normal_form "(%(x,y). add x y) (S z,S z)"
 normal_form "filter (%x. x) ([True,False,x]@xs)"
 normal_form "filter Not ([True,False,x]@xs)"
 
-lemma "[x,y,z] @ [a,b,c] = [x, y, z, a, b ,c]" by normalization
-lemma "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f]) = [a, b, c, d, e, f]" by normalization
+normal_form "[x,y,z] @ [a,b,c] = [x, y, z, a, b ,c]"
+normal_form "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f]) = [a, b, c, d, e, f]"
 normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()] = [False, True]"
 
 lemma "last [a, b, c] = c"
@@ -108,7 +108,7 @@ normal_form "min 0 x"
 normal_form "min 0 (x::nat)"
 lemma "(if (0\<Colon>nat) \<le> (x\<Colon>nat) then 0\<Colon>nat else x) = 0" by normalization
 
-lemma "nat 4 = Suc (Suc (Suc (Suc 0)))" by normalization
+normal_form "nat 4 = Suc (Suc (Suc (Suc 0)))"
 
 normal_form "Suc 0 \<in> set ms"
 
