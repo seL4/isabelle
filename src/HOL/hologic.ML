@@ -308,7 +308,7 @@ fun int_of [] = 0
   | int_of (b :: bs) = IntInf.fromInt b + (2 * int_of bs);
 
 (*When called from a print translation, the Numeral qualifier will probably have
-  been removed from Bit, bit.B0, etc.*)
+  been removed from Bit, bit.B0, etc.*)  (* FIXME !? *)
 fun dest_bit (Const ("Numeral.bit.B0", _)) = 0
   | dest_bit (Const ("Numeral.bit.B1", _)) = 1
   | dest_bit (Const ("bit.B0", _)) = 0
@@ -322,10 +322,6 @@ fun bin_of (Const ("Numeral.Pls", _)) = []
   | bin_of t = raise TERM("bin_of", [t]);
 
 val dest_binum = int_of o bin_of;
-
-fun mk_bit 0 = B0_const
-  | mk_bit 1 = B1_const
-  | mk_bit _ = sys_error "mk_bit";
 
 fun mk_binum n =
   let
