@@ -264,7 +264,7 @@ local
 
   val thyname_attr = pair "thyname";
   val url_attr = pair "url";
-  fun localfile_url_attr path = url_attr ("file:///" ^ path);
+  fun localfile_url_attr abspath = url_attr ("file://" ^ abspath);
 in
 
 fun setup_messages () =
@@ -623,6 +623,24 @@ val preferences = ref
    ];
 end;
 
+(** lexicalstructure element with keywords (PGIP version of elisp keywords file) **)
+
+fun lexicalstructure_keywords () = 
+    let val commands = OuterSyntax.dest_keywords ()
+	fun category_of k = if (k mem commands) then "major" else "minor"
+         (* NB: we might filter to only include words like elisp case (OuterSyntax.is_keyword). *)
+    	fun keyword_elt (keyword,help,kind,_) = 
+  	    XML.element "keyword" [("word", keyword), ("category", category_of kind)]
+	  	    [XML.element "shorthelp" [] [XML.text help]]
+        in 	    	    
+            (* Also, note we don't call init_outer_syntax here to add interface commands,
+            but they should never appear in scripts anyway so it shouldn't matter *)
+            XML.element "lexicalstructure" [] (map keyword_elt (OuterSyntax.dest_parsers()))
+        end
+
+(* TODO: we can issue a lexicalstructure/keyword when the syntax gets extended dynamically;
+   hooks needed in outer_syntax.ML to do that. *)
+
 
 (* Configuration: GUI config, proverinfo messages *)
 
@@ -648,7 +666,9 @@ fun send_pgip_config () =
             []
     in
         if exists then
-            (issue_pgips [proverinfo]; issue_pgips [File.read path])
+            (issue_pgips [proverinfo]; 
+	     issue_pgips [File.read path];
+	     issue_pgips [lexicalstructure_keywords()])
         else Output.panic ("PGIP configuration file \"" ^ config_file() ^ "\" not found")
     end;
 end
@@ -736,6 +756,7 @@ fun showid (_,        "theory", n) =
   | showid (_, ot, _) = error ("Cannot show objects of type "^ot)
 
 end
+
 
 
 (** Parsing proof scripts without execution **)
@@ -1127,6 +1148,7 @@ fun getpref name =
 
 
 
+
 (**** PGIP:  Interface -> Isabelle/Isar ****)
 
 exception PGIP of string;
@@ -1488,5 +1510,6 @@ fun write_keywords s =
     (make_elisp_syntax (OuterSyntax.dest_keywords (), OuterSyntax.dest_parsers ())));
 
 end;
+
 
 end;
