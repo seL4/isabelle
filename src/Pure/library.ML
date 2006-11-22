@@ -62,7 +62,6 @@ sig
   val apfst: ('a -> 'b) -> 'a * 'c -> 'b * 'c
   val apsnd: ('a -> 'b) -> 'c * 'a -> 'c * 'b
   val pairself: ('a -> 'b) -> 'a * 'a -> 'b * 'b
-  val string_of_pair: ('a -> string) -> ('b -> string) -> 'a * 'b -> string
 
   (*booleans*)
   val equal: ''a -> ''a -> bool
@@ -164,8 +163,6 @@ sig
   val unsuffix: string -> string -> string
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
-  val string_of_list: ('a -> string) -> 'a list -> string
-  val string_of_option: ('a -> string) -> 'a option -> string
 
   (*lists as sets -- see also Pure/General/ord_list.ML*)
   val member: ('b * 'a -> bool) -> 'a list -> 'b -> bool
@@ -354,8 +351,6 @@ fun swap (x, y) = (y, x);
 fun apfst f (x, y) = (f x, y);
 fun apsnd f (x, y) = (x, f y);
 fun pairself f (x, y) = (f x, f y);
-
-fun string_of_pair f1 f2 (x, y) = "(" ^ f1 x ^ ", " ^ f2 y ^ ")";
 
 
 (* booleans *)
@@ -549,8 +544,7 @@ fun unflat (xs :: xss) ys =
   | unflat [] [] = []
   | unflat _ _ = raise UnequalLengths;
 
-fun burrow f xss =
-  unflat xss ((f o flat) xss);
+fun burrow f xss = unflat xss (f (flat xss));
 
 fun fold_burrow f xss s =
   apfst (unflat xss) (f (flat xss) s);
@@ -818,11 +812,6 @@ fun replicate_string 0 _ = ""
   | replicate_string k a =
       if k mod 2 = 0 then replicate_string (k div 2) (a ^ a)
       else replicate_string (k div 2) (a ^ a) ^ a;
-
-fun string_of_list f = enclose "[" "]" o commas o map f;
-
-fun string_of_option f NONE = "NONE"
-  | string_of_option f (SOME x) = "SOME (" ^ f x ^ ")";
 
 
 
