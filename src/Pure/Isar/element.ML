@@ -25,7 +25,7 @@ sig
     var: string * mixfix -> string * mixfix,
     typ: 'typ -> 'a, term: 'term -> 'b, fact: 'fact -> 'c,
     attrib: Attrib.src -> Attrib.src} -> ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
-  val map_ctxt_values: (typ -> typ) -> (term -> term) -> (thm -> thm) -> context_i -> context_i
+  val morph_ctxt: morphism -> context_i -> context_i
   val params_of: context_i -> (string * typ) list
   val prems_of: context_i -> term list
   val facts_of: theory -> context_i ->
@@ -35,6 +35,7 @@ sig
   val pretty_statement: Proof.context -> string -> thm -> Pretty.T
   type witness
   val map_witness: (term * thm -> term * thm) -> witness -> witness
+  val morph_witness: morphism -> witness -> witness
   val witness_prop: witness -> term
   val witness_hyps: witness -> term list
   val assume_witness: theory -> term -> witness
@@ -49,20 +50,16 @@ sig
   val rename_var: (string * (string * mixfix option)) list -> string * mixfix -> string * mixfix
   val rename_term: (string * (string * mixfix option)) list -> term -> term
   val rename_thm: (string * (string * mixfix option)) list -> thm -> thm
-  val rename_witness: (string * (string * mixfix option)) list -> witness -> witness
-  val rename_ctxt: (string * (string * mixfix option)) list -> context_i -> context_i
+  val rename_morphism: (string * (string * mixfix option)) list -> morphism
   val instT_type: typ Symtab.table -> typ -> typ
   val instT_term: typ Symtab.table -> term -> term
   val instT_thm: theory -> typ Symtab.table -> thm -> thm
-  val instT_witness: theory -> typ Symtab.table -> witness -> witness
-  val instT_ctxt: theory -> typ Symtab.table -> context_i -> context_i
+  val instT_morphism: theory -> typ Symtab.table -> morphism
   val inst_term: typ Symtab.table * term Symtab.table -> term -> term
   val inst_thm: theory -> typ Symtab.table * term Symtab.table -> thm -> thm
-  val inst_witness: theory -> typ Symtab.table * term Symtab.table -> witness -> witness
-  val inst_ctxt: theory -> typ Symtab.table * term Symtab.table -> context_i -> context_i
+  val inst_morphism: theory -> typ Symtab.table * term Symtab.table -> morphism
   val satisfy_thm: witness list -> thm -> thm
-  val satisfy_witness: witness list -> witness -> witness
-  val satisfy_ctxt: witness list -> context_i -> context_i
+  val satisfy_morphism: witness list -> morphism
   val satisfy_facts: witness list ->
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list
@@ -76,7 +73,6 @@ end;
 
 structure Element: ELEMENT =
 struct
-
 
 (** language elements **)
 
@@ -113,9 +109,13 @@ fun map_ctxt {name, var, typ, term, fact, attrib} =
    | Notes (kind, facts) => Notes (kind, facts |> map (fn ((a, atts), bs) =>
       ((name a, map attrib atts), bs |> map (fn (ths, btts) => (fact ths, map attrib btts)))));
 
-fun map_ctxt_values typ term thm = map_ctxt
-  {name = I, var = I, typ = typ, term = term, fact = map thm,
-    attrib = Args.map_values I typ term thm};
+fun morph_ctxt phi = map_ctxt
+ {name = Morphism.name phi,
+  var = Morphism.var phi,
+  typ = Morphism.typ phi,
+  term = Morphism.term phi,
+  fact = map (Morphism.thm phi),
+  attrib = Args.morph_values phi};
 
 
 (* logical content *)
@@ -272,6 +272,8 @@ datatype witness = Witness of term * thm;
 
 fun map_witness f (Witness witn) = Witness (f witn);
 
+fun morph_witness phi = map_witness (fn (t, th) => (Morphism.term phi t, Morphism.thm phi th));
+
 fun witness_prop (Witness (t, _)) = t;
 fun witness_hyps (Witness (_, th)) = #hyps (Thm.rep_thm th);
 
@@ -369,12 +371,8 @@ fun rename_thm ren th =
     else th |> hyps_rule (instantiate_frees thy subst)
   end;
 
-fun rename_witness ren =
-  map_witness (fn (t, th) => (rename_term ren t, rename_thm ren th));
-
-fun rename_ctxt ren =
-  map_ctxt_values I (rename_term ren) (rename_thm ren)
-  #> map_ctxt {name = I, typ = I, term = I, fact = I, attrib = I, var = rename_var ren};
+fun rename_morphism ren = Morphism.morphism
+  {name = I, var = rename_var ren, typ = I, term = rename_term ren, thm = rename_thm ren};
 
 
 (* instantiate types *)
@@ -399,11 +397,8 @@ fun instT_thm thy env th =
     let val subst = instT_subst env th
     in if null subst then th else th |> hyps_rule (instantiate_tfrees thy subst) end;
 
-fun instT_witness thy env =
-  map_witness (fn (t, th) => (instT_term env t, instT_thm thy env th));
-
-fun instT_ctxt thy env =
-  map_ctxt_values (instT_type env) (instT_term env) (instT_thm thy env);
+fun instT_morphism thy env = Morphism.morphism
+  {name = I, var = I, typ = instT_type env, term = instT_term env, thm = instT_thm thy env};
 
 
 (* instantiate types and terms *)
@@ -445,11 +440,8 @@ fun inst_thm thy (envT, env) th =
         Drule.fconv_rule (Thm.beta_conversion true))
     end;
 
-fun inst_witness thy envs =
-  map_witness (fn (t, th) => (inst_term envs t, inst_thm thy envs th));
-
-fun inst_ctxt thy envs =
-  map_ctxt_values (instT_type (#1 envs)) (inst_term envs) (inst_thm thy envs);
+fun inst_morphism thy envs = Morphism.morphism
+  {name = I, var = I, typ = instT_type (#1 envs), term = inst_term envs, thm = inst_thm thy envs};
 
 
 (* satisfy hypotheses *)
@@ -460,12 +452,11 @@ fun satisfy_thm witns thm = thm |> fold (fn hyp =>
     | SOME (Witness (_, th)) => Drule.implies_intr_protected [hyp] #> Goal.comp_hhf th))
   (#hyps (Thm.crep_thm thm));
 
-fun satisfy_witness witns = map_witness (apsnd (satisfy_thm witns));
-
-fun satisfy_ctxt witns = map_ctxt_values I I (satisfy_thm witns);
+fun satisfy_morphism witns = Morphism.morphism
+  {name = I, var = I, typ = I, term = I, thm = satisfy_thm witns};
 
 fun satisfy_facts witns facts =
-  satisfy_ctxt witns (Notes ("", facts)) |> (fn Notes (_, facts') => facts');
+  morph_ctxt (satisfy_morphism witns) (Notes ("", facts)) |> (fn Notes (_, facts') => facts');
 
 
 (* generalize type/term parameters *)
@@ -483,7 +474,9 @@ fun exp_facts std inner outer facts =
       singleton ((if std then ProofContext.export_standard else ProofContext.export) inner outer);
     val exp_term = Drule.term_rule thy exp_thm;
     val exp_typ = Logic.mk_type #> exp_term #> Logic.dest_type;
-    val Notes (_, facts') = map_ctxt_values exp_typ exp_term exp_thm (Notes ("", facts));
+    val exp_morphism =
+      Morphism.morphism {name = I, var = I, typ = exp_typ, term = exp_term, thm = exp_thm};
+    val Notes (_, facts') = morph_ctxt exp_morphism (Notes ("", facts));
   in facts' end;
 
 in
