@@ -869,7 +869,7 @@ local
                  "declare"]
 
             val plain_item   = markup_text str "theoryitem"
-            val comment_item = markup_text str "litcomment"
+            val comment_item = markup_text str "doccomment"
             val named_item   = named_item_elt toks str "theoryitem"
 
             val opt_overloaded = P.opt_keyword "overloaded";
@@ -953,12 +953,12 @@ local
     (* theory/files *)
     | "theory-begin"   => xmls_of_thy_begin (name,toks,str)
     | "theory-decl"    => xmls_of_thy_decl (name,toks,str)
-    | "theory-heading" => markup "litcomment"
+    | "theory-heading" => markup "doccomment"
     | "theory-script"  => markup "theorystep"
     | "theory-end"     => markup "closetheory"
     (* proof control *)
     | "theory-goal"    => xmls_of_thy_goal (name,toks,str)
-    | "proof-heading"  => markup "litcomment"
+    | "proof-heading"  => markup "doccomment"
     | "proof-goal"     => (markup "opengoal") @ (empty "openblock")  (* nested proof: have, show, ... *)
     | "proof-block"    => markup "proofstep" (* context-shift: proof, next; really "newgoal" *)
     | "proof-open"     => (empty "openblock") @ (markup "proofstep")
@@ -1022,7 +1022,7 @@ fun xmls_pre_cmd [] = ([],[])
          (if (length rest2 = length rest1)  then []
           else markup_text (implode
                                 (map OuterLex.unparse (Library.take (length rest1 - length rest2, rest1))))
-               "litcomment") @
+               "doccomment") @
          (markup_comment_whs postwhs),
          Library.take (length rest3 - 1,rest3))
     end
@@ -1259,9 +1259,10 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "closegoal"      => isarscript data
      | "giveupgoal"     => isarscript data
      | "postponegoal"   => isarscript data
-     | "comment"        => isarscript data  (* NB: should be ignored, but process anyway *)
+     | "comment"        => isarscript data  
+     | "doccomment"     => isarscript data  
      | "whitespace"     => isarscript data  (* NB: should be ignored, but process anyway *)
-     | "litcomment"     => isarscript data
+     | "litcomment"     => isarscript data  (* NB: should be ignored, process for back compat *)
      | "spuriouscmd"    => isarscript data
      | "badcmd"         => isarscript data
      (* improperproofcmd: improper commands which *do not* belong in script *)
