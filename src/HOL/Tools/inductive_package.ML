@@ -663,12 +663,12 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
       note_theorems
         (map (NameSpace.qualified rec_name) intr_names ~~
          intr_atts ~~
-         map (fn th => [([th], [])]) (ProofContext.export ctxt1 ctxt intrs)) |>>
+         map (fn th => [([th], [Attrib.internal (ContextRules.intro_query NONE)])])
+           (ProofContext.export ctxt1 ctxt intrs)) |>>
       map (hd o snd); (* FIXME? *)
     val (((_, elims'), (_, [induct'])), ctxt3) =
       ctxt2 |>
-      note_theorem ((NameSpace.qualified rec_name "intros",
-          [Attrib.internal (ContextRules.intro_query NONE)]), intrs') ||>>
+      note_theorem ((NameSpace.qualified rec_name "intros", []), intrs') ||>>
       fold_map (fn (name, (elim, cases)) =>
         note_theorem ((NameSpace.qualified (Sign.base_name name) "cases",
           [Attrib.internal (RuleCases.case_names cases),
