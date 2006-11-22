@@ -91,14 +91,6 @@ val recon_thy_ref = Theory.self_ref (the_context ());
 fun transfer_to_ATP_Linkup th =
     transfer (Theory.deref recon_thy_ref) th handle THM _ => th;
 
-fun is_taut th =
-      case (prop_of th) of
-           (Const ("Trueprop", _) $ Const ("True", _)) => true
-         | _ => false;
-
-(* remove tautologous clauses *)
-val rm_redundant_cls = List.filter (not o is_taut);
-
 
 (**** SKOLEMIZATION BY INFERENCE (lcp) ****)
 
@@ -467,8 +459,7 @@ fun declare_abstract (thy, ths) =
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
 fun skolem_thm th =
   let val nnfth = to_nnf th
-  in  Meson.make_cnf (skolem_of_nnf nnfth) nnfth
-      |> assume_abstract_list |> Meson.finish_cnf |> rm_redundant_cls
+  in  Meson.make_cnf (skolem_of_nnf nnfth) nnfth |> assume_abstract_list |> Meson.finish_cnf
   end
   handle THM _ => [];
 
@@ -485,7 +476,7 @@ fun skolem thy (name,th) =
           let val (thy',defs) = declare_skofuns cname nnfth thy
               val cnfs = Meson.make_cnf (map skolem_of_def defs) nnfth
               val (thy'',cnfs') = declare_abstract (thy',cnfs)
-          in (thy'', rm_redundant_cls (Meson.finish_cnf cnfs'))
+          in (thy'', Meson.finish_cnf cnfs')
           end)
       (SOME (to_nnf th)  handle THM _ => NONE)
   end;

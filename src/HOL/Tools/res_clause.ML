@@ -417,35 +417,14 @@ fun add_typs_aux [] = ([],[])
 	  (vss, fs union fss)
       end;
 
-(** Too general means, positive equality literal with a variable X as one operand,
-  when X does not occur properly in the other operand. This rules out clearly
-  inconsistent clauses such as V=a|V=b, though it by no means guarantees soundness. **)
-
-fun occurs a (UVar(b,_)) = a=b
-  | occurs a (Fun (_,_,ts)) = exists (occurs a) ts
-
-(*Is the first operand a variable that does not properly occur in the second operand?*)
-fun too_general_terms (UVar _, UVar _) = false
-  | too_general_terms (Fun _, _) = false
-  | too_general_terms (UVar (a,_), t) = not (occurs a t);
-
-fun too_general_lit (Literal (true, Predicate("equal",_,[x,y]))) =
-      too_general_terms (x,y) orelse too_general_terms(y,x)
-  | too_general_lit _ = false;
-
-
 
 (** make axiom and conjecture clauses. **)
 
 exception MAKE_CLAUSE;
 fun make_clause (clause_id, axiom_name, th, kind) =
-  let val term = prop_of th
-      val (lits,types_sorts) = literals_of_term term
+  let val (lits,types_sorts) = literals_of_term (prop_of th)
   in if forall isFalse lits 
      then error "Problem too trivial for resolution (empty clause)"
-     else if kind=Axiom andalso forall too_general_lit lits 
-     then (Output.debug ("Omitting " ^ axiom_name ^ ": equalities are too general"); 
-           raise MAKE_CLAUSE)
      else Clause {clause_id = clause_id, axiom_name = axiom_name, th = th, 
                   kind = kind, literals = lits, types_sorts = types_sorts}
   end;		     

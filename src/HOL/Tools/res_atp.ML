@@ -247,9 +247,11 @@ fun term_lg [] (lg,seen) = (lg,seen)
 exception PRED_LG of term;
 
 fun pred_lg (t as Const(P,tp)) (lg,seen)= 
-      if is_hol_pred tp then (upgrade_lg HOL lg, insert (op =) t seen) else (lg,insert (op =) t seen) 
+      if is_hol_pred tp then (upgrade_lg HOL lg, insert (op =) t seen) 
+      else (lg,insert (op =) t seen) 
   | pred_lg (t as Free(P,tp)) (lg,seen) =
-      if is_hol_pred tp then (upgrade_lg HOL lg, insert (op =) t seen) else (lg,insert (op =) t seen)
+      if is_hol_pred tp then (upgrade_lg HOL lg, insert (op =) t seen) 
+      else (lg,insert (op =) t seen)
   | pred_lg (t as Var(_,_)) (lg,seen) = (upgrade_lg HOL lg, insert (op =) t seen)
   | pred_lg P _ = raise PRED_LG(P);
 
@@ -275,18 +277,13 @@ fun lits_lg [] (lg,seen) = (lg,seen)
       end
   | lits_lg lits (lg,seen) = (lg,seen);
 
-fun dest_disj_aux (Const ("op |", _) $ t $ t') disjs = 
-    dest_disj_aux t (dest_disj_aux t' disjs)
+fun dest_disj_aux (Const("Trueprop",_) $ t) disjs = dest_disj_aux t disjs
+  | dest_disj_aux (Const ("op |", _) $ t $ t') disjs = dest_disj_aux t (dest_disj_aux t' disjs)
   | dest_disj_aux t disjs = t::disjs;
 
 fun dest_disj t = dest_disj_aux t [];
 
-fun logic_of_clause tm (lg,seen) =
-    let val tm' = HOLogic.dest_Trueprop tm
-	val disjs = dest_disj tm'
-    in
-	lits_lg disjs (lg,seen)
-    end;
+fun logic_of_clause tm = lits_lg (dest_disj tm);
 
 fun logic_of_clauses [] (lg,seen) = (lg,seen)
   | logic_of_clauses (cls::clss) (FOL,seen) =
@@ -316,7 +313,7 @@ fun is_fol_thms ths = ((fst(logic_of_clauses (map prop_of ths) (FOL,[]))) = FOL)
 (*The rule subsetI is frequently omitted by the relevance filter.*)
 val whitelist = ref [subsetI]; 
   
-(*Names of theorems (not theorem lists! See multi_blacklist above) to be banned. 
+(*Names of theorems (not theorem lists! See multi_blacklist below) to be banned. 
 
   These theorems typically produce clauses that are prolific (match too many equality or
   membership literals) and relate to seldom-used facts. Some duplicate other rules.
@@ -471,10 +468,6 @@ fun insert_suffixed_names ht x =
       Polyhash.insert ht (x^"_iff2", ()); 
       Polyhash.insert ht (x^"_dest", ())); 
 
-(*FIXME: probably redundant now that ALL boolean-valued variables are banned*)
-fun banned_thmlist s =
-  (Sign.base_name s) mem_string ["induct","inducts","split","splits","split_asm"];
-
 (*Reject theorems with names like "List.filter.filter_list_def" or
   "Accessible_Part.acc.defs", as these are definitions arising from packages.
   FIXME: this will also block definitions within locales*)
@@ -486,7 +479,7 @@ fun make_banned_test xs =
   let val ht = Polyhash.mkTable (Polyhash.hash_string, op =)
                                 (6000, HASH_STRING)
       fun banned s = 
-            isSome (Polyhash.peek ht s) orelse banned_thmlist s orelse is_package_def s
+            isSome (Polyhash.peek ht s) orelse is_package_def s
   in  app (fn x => Polyhash.insert ht (x,())) (!blacklist);
       app (insert_suffixed_names ht) (!blacklist @ xs); 
       banned
@@ -505,12 +498,7 @@ fun hashw_term ((Const(c,_)), w) = Polyhash.hashw_string (c,w)
 fun hash_literal (Const("Not",_)$P) = Word.notb(hashw_term(P,0w0))
   | hash_literal P = hashw_term(P,0w0);
 
-
-fun get_literals (Const("Trueprop",_)$P) lits = get_literals P lits
-  | get_literals (Const("op |",_)$P$Q) lits = get_literals Q (get_literals P lits)
-  | get_literals lit lits = (lit::lits);
-
-fun hash_term t = Word.toIntX (xor_words (map hash_literal (get_literals t [])));
+fun hash_term t = Word.toIntX (xor_words (map hash_literal (dest_disj t)));
 
 fun equal_thm (thm1,thm2) = Term.aconv(prop_of thm1, prop_of thm2);
 
@@ -565,9 +553,13 @@ val multi_blacklist =
   ["Set.ball_simps", "Set.bex_simps",  (*quantifier rewriting: useless*)
    "Set.disjoint_insert", "Set.insert_disjoint", "Set.Inter_UNIV_conv"];
 
+val multi_base_blacklist =
+  ["defs","select_defs","update_defs","induct","inducts","split","splits","split_asm"];
+
 (*Ignore blacklisted theorem lists*)
 fun add_multi_names ((a, ths), pairs) = 
-  if a mem_string multi_blacklist then pairs
+  if a mem_string multi_blacklist orelse (Sign.base_name a) mem_string multi_base_blacklist
+  then pairs
   else add_multi_names_aux ((a, ths), pairs);
 
 fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
@@ -675,16 +667,50 @@ fun restrict_to_logic logic cls =
   if is_fol_logic logic then filter (Meson.is_fol_term o prop_of o fst) cls 
 	                else cls;
 
+(**** Predicates to detect unwanted clauses (prolific or likely to cause unsoundness) ****)
+
+(** Too general means, positive equality literal with a variable X as one operand,
+  when X does not occur properly in the other operand. This rules out clearly
+  inconsistent clauses such as V=a|V=b, though it by no means guarantees soundness. **)
+ 
+fun occurs ix =
+    let fun occ(Var (jx,_)) = (ix=jx)
+          | occ(t1$t2)      = occ t1 orelse occ t2
+          | occ(Abs(_,_,t)) = occ t
+          | occ _           = false
+    in occ end;
+
+fun is_recordtype T = not (null (RecordPackage.dest_recTs T));
+
+(*Unwanted equalities include
+  (1) those between a variable that does not properly occur in the second operand,
+  (2) those between a variable and a record, since these seem to be prolific "cases" thms
+*)  
+fun too_general_eqterms (Var (ix,T), t) = not (occurs ix t) orelse is_recordtype T
+  | too_general_eqterms _ = false;
+
+fun too_general_equality (Const ("op =", _) $ x $ y) =
+      too_general_eqterms (x,y) orelse too_general_eqterms(y,x)
+  | too_general_equality _ = false;
+
+(* tautologous? *)
+fun is_taut (Const ("Trueprop", _) $ Const ("True", _)) = true
+  | is_taut _ = false;
+
 (*True if the term contains a variable whose (atomic) type is in the given list.*)
 fun has_typed_var tycons = 
   let fun var_tycon (Var (_, Type(a,_))) = a mem_string tycons
         | var_tycon _ = false
   in  exists var_tycon o term_vars  end;
 
+fun unwanted t =
+    is_taut t orelse has_typed_var ["Product_Type.unit","bool"] t orelse
+    forall too_general_equality (dest_disj t);
+
 (*Clauses containing variables of type "unit" or "bool" are unlikely to be useful and
   likely to lead to unsound proofs.*)
-fun remove_finite_types cls =
-  filter (not o has_typed_var ["Product_Type.unit","bool"] o prop_of o fst) cls;
+fun remove_unwanted_clauses cls =
+  filter (not o unwanted o prop_of o fst) cls;
 
 fun tptp_writer logic goals filename (axioms,classrels,arities) user_lemmas =
     if is_fol_logic logic 
@@ -711,7 +737,7 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
 	val cla_simp_atp_clauses = included_thms |> blacklist_filter
 	                             |> ResAxioms.cnf_rules_pairs |> make_unique 
                                      |> restrict_to_logic logic 
-                                     |> remove_finite_types
+                                     |> remove_unwanted_clauses
 	val user_cls = ResAxioms.cnf_rules_pairs user_rules
 	val thy = ProofContext.theory_of ctxt
 	val axclauses = make_unique (get_relevant_clauses thy cla_simp_atp_clauses user_cls goal_tms)
@@ -833,7 +859,7 @@ fun write_problem_files probfile (ctxt,th)  =
       val included_cls = included_thms |> blacklist_filter
                                        |> ResAxioms.cnf_rules_pairs |> make_unique 
                                        |> restrict_to_logic logic
-                                       |> remove_finite_types
+                                       |> remove_unwanted_clauses
       val _ = Output.debug ("clauses = " ^ Int.toString(length included_cls))
       val white_cls = ResAxioms.cnf_rules_pairs white_thms
       (*clauses relevant to goal gl*)

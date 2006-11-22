@@ -418,21 +418,6 @@ fun literals_of_term1 args (Const("Trueprop",_) $ P) = literals_of_term1 args P
 
 fun literals_of_term P = literals_of_term1 ([],[]) P;
 
-fun occurs a (CombVar(b,_)) = a = b
-  | occurs a (CombApp(t1,t2,_)) = (occurs a t1) orelse (occurs a t2)
-  | occurs _ _ = false
-
-fun too_general_terms (CombVar(v,_), t) = not (occurs v t)
-  | too_general_terms _ = false;
-
-fun too_general_equality (Literal(true,(Bool(CombApp(CombApp(CombConst("equal",tp,tps),t1,tp1),t2,tp2))))) =
-      too_general_terms (t1,t2) orelse too_general_terms (t2,t1)
-  | too_general_equality _ = false;
-
-(* forbid the literal hBOOL(V) *)
-fun too_general_bool (Literal(_,Bool(CombVar _))) = true
-  | too_general_bool _ = false;
-
 (* making axiom and conjecture clauses *)
 exception MAKE_CLAUSE
 fun make_clause(clause_id,axiom_name,kind,thm,is_user) =
@@ -443,10 +428,6 @@ fun make_clause(clause_id,axiom_name,kind,thm,is_user) =
     in
 	if forall isFalse lits
 	then error "Problem too trivial for resolution (empty clause)"
-	else if (!typ_level <> T_FULL) andalso kind=Axiom andalso 
-	        (forall too_general_equality lits orelse exists too_general_bool lits)
-	    then (Output.debug ("Omitting " ^ axiom_name ^ ": clause is too prolific"); 
-	          raise MAKE_CLAUSE) 
 	else
 	    Clause {clause_id = clause_id, axiom_name = axiom_name, th = thm, kind = kind,
 		    literals = lits, ctypes_sorts = ctypes_sorts, 
@@ -718,16 +699,6 @@ fun preds_of_clauses clauses clsrel_clauses arity_clauses =
 
 val cnf_helper_thms = ResAxioms.cnf_rules_pairs o (map ResAxioms.pairname)
 
-(*Simulate the result of conversion to CNF*)
-fun pretend_cnf s = (thm s, (s,0));
-
-(*These theorems allow the proof of P=Q from P-->Q and Q-->P, so they are necessary for
-  completeness. Unfortunately, they are very prolific, causing greatly increased runtimes.
-  They also lead to many unsound proofs. Thus it is well that the "exists too_general_bool"
-  test deletes them except with the full-typed translation.*)
-val iff_thms = [pretend_cnf "ATP_Linkup.iff_positive", 
-                pretend_cnf "ATP_Linkup.iff_negative"];
-
 fun get_helper_clauses () =
     let val IK = if !combI_count > 0 orelse !combK_count > 0 
                  then (Output.debug "Include combinator I K"; cnf_helper_thms [comb_I,comb_K]) 
@@ -746,7 +717,7 @@ fun get_helper_clauses () =
 	         else []
 	val other = cnf_helper_thms [ext,fequal_imp_equal,equal_imp_fequal]
     in
-	make_axiom_clauses (iff_thms @ other @ IK @ BC @ S @ B'C' @ S') []
+	make_axiom_clauses (other @ IK @ BC @ S @ B'C' @ S') []
     end
 
 
