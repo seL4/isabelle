@@ -28,8 +28,7 @@ sig
   val dest_src: src -> (string * T list) * Position.T
   val pretty_src: Proof.context -> src -> Pretty.T
   val map_name: (string -> string) -> src -> src
-  val map_values: (string -> string) -> (typ -> typ) -> (term -> term) -> (thm -> thm)
-    -> src -> src
+  val morph_values: morphism -> src -> src
   val maxidx_values: src -> int -> int
   val assignable: src -> src
   val assign: value option -> T -> unit
@@ -181,11 +180,11 @@ fun map_args f (Src ((s, args), pos)) = Src ((s, map f args), pos);
 fun map_value f (Arg (s, Value (SOME v))) = Arg (s, Value (SOME (f v)))
   | map_value _ arg = arg;
 
-fun map_values f g h i = map_args (map_value
-  (fn Name s => Name (f s)
-    | Typ T => Typ (g T)
-    | Term t => Term (h t)
-    | Fact ths => Fact (map i ths)
+fun morph_values phi = map_args (map_value
+  (fn Name s => Name (Morphism.name phi s)
+    | Typ T => Typ (Morphism.typ phi T)
+    | Term t => Term (Morphism.term phi t)
+    | Fact ths => Fact (map (Morphism.thm phi) ths)
     | Attribute att => Attribute att));
 
 fun maxidx_values (Src ((_, args), _)) = args |> fold
