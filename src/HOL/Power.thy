@@ -311,6 +311,8 @@ by (blast intro: power_le_imp_le_base order_antisym order_eq_refl sym)
 
 subsection{*Exponentiation for the Natural Numbers*}
 
+instance nat :: power ..
+
 primrec (power)
   "p ^ 0 = 1"
   "p ^ (Suc n) = (p::nat) * (p ^ n)"

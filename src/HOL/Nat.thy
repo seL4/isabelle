@@ -46,9 +46,6 @@ proof
   show "Zero_Rep : Nat" by (rule Nat.Zero_RepI)
 qed
 
-instance nat :: "{ord, zero, one}" ..
-
-
 text {* Abstract constants and syntax *}
 
 consts
@@ -58,19 +55,14 @@ consts
 local
 
 defs
-  Zero_nat_def: "0 == Abs_Nat Zero_Rep"
   Suc_def:      "Suc == (%n. Abs_Nat (Suc_Rep (Rep_Nat n)))"
-  One_nat_def:  "1 == Suc 0"
-
-  -- {* nat operations *}
   pred_nat_def: "pred_nat == {(m, n). n = Suc m}"
 
+instance nat :: "{ord, zero, one}"
+  Zero_nat_def: "0 == Abs_Nat Zero_Rep"
+  One_nat_def [simp]: "1 == Suc 0"
   less_def: "m < n == (m, n) : trancl pred_nat"
-
-  le_def: "m \<le> (n::nat) == ~ (n < m)"
-
-declare One_nat_def [simp]
-
+  le_def: "m \<le> (n::nat) == ~ (n < m)" ..
 
 text {* Induction *}
 
@@ -481,7 +473,7 @@ class power =
 
 text {* arithmetic operators @{text "+ -"} and @{text "*"} *}
 
-instance nat :: "{plus, minus, times, power}" ..
+instance nat :: "{plus, minus, times}" ..
 
 primrec
   add_0:    "0 + n = n"
@@ -1059,16 +1051,16 @@ lemma one_is_suc_zero [code inline]:
 instance nat :: eq ..
 
 lemma [code func]:
-  "Code_Generator.eq (0\<Colon>nat) 0 = True" unfolding eq_def by auto
+  "(0\<Colon>nat) = 0 \<longleftrightarrow> True" by auto
 
 lemma [code func]:
-  "Code_Generator.eq (Suc n) (Suc m) = Code_Generator.eq n m" unfolding eq_def by auto
+  "Suc n = Suc m \<longleftrightarrow> n = m" by auto
 
 lemma [code func]:
-  "Code_Generator.eq (Suc n) 0 = False" unfolding eq_def by auto
+  "Suc n = 0 \<longleftrightarrow> False" by auto
 
 lemma [code func]:
-  "Code_Generator.eq 0 (Suc m) = False" unfolding eq_def by auto
+  "0 = Suc m \<longleftrightarrow> False" by auto
 
 
 subsection {* Further Arithmetic Facts Concerning the Natural Numbers *}
