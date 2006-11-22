@@ -212,20 +212,21 @@ struct
     let
       val t = termify ts;
       val subs = subsumers thy t regs;
-    in (case subs of
+    in
+      (case subs of
         [] => NONE
-      | ((t', (attn, thms)) :: _) => let
+      | ((t', (attn, thms)) :: _) =>
+          let
             val (tinst, inst) = Pattern.match thy (t', t) (Vartab.empty, Vartab.empty);
             (* thms contain Frees, not Vars *)
-            val tinst' = tinst |> Vartab.dest
+            val tinst' = tinst |> Vartab.dest   (* FIXME Symtab.map (!?) *)
                  |> map (fn ((x, 0), (_, T)) => (x, Logic.legacy_unvarifyT T))
                  |> Symtab.make;
             val inst' = inst |> Vartab.dest
                  |> map (fn ((x, 0), (_, t)) => (x, Logic.legacy_unvarify t))
                  |> Symtab.make;
-          in
-            SOME (attn, map (Element.inst_witness thy (tinst', inst')) thms)
-          end)
+            val inst_witness = Element.morph_witness (Element.inst_morphism thy (tinst', inst'));
+          in SOME (attn, map inst_witness thms) end)
     end;
 
   (* add registration if not subsumed by ones already present,
@@ -607,12 +608,13 @@ fun unify_elemss _ _ [] = []
   | unify_elemss ctxt fixed_parms elemss =
       let
         val thy = ProofContext.theory_of ctxt;
-        val envs = unify_parms ctxt fixed_parms (map (snd o fst o fst) elemss);
-        fun inst ((((name, ps), mode), elems), env) =
-          (((name, map (apsnd (Option.map (Element.instT_type env))) ps),
-              map_mode (map (Element.instT_witness thy env)) mode),
-            map (Element.instT_ctxt thy env) elems);
-      in map inst (elemss ~~ envs) end;
+        val phis = unify_parms ctxt fixed_parms (map (snd o fst o fst) elemss)
+          |> map (Element.instT_morphism thy);
+        fun inst ((((name, ps), mode), elems), phi) =
+          (((name, map (apsnd (Option.map (Morphism.typ phi))) ps),
+              map_mode (map (Element.morph_witness phi)) mode),
+            map (Element.morph_ctxt phi) elems);
+      in map inst (elemss ~~ phis) end;
 
 
 fun renaming xs parms = zip_options parms xs
@@ -722,7 +724,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
         ((name, map (Element.rename ren) ps),
          if top
          then (map (Element.rename ren) parms,
-               map_mode (map (Element.rename_witness ren)) mode)
+               map_mode (map (Element.morph_witness (Element.rename_morphism ren))) mode)
          else (parms, mode));
 
     (* add (name, ps) and its registrations, recursively; adjust hyps of witnesses *)
@@ -744,11 +746,14 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
                  map (Element.transfer_witness thy) wits)) regs;
             val new_regs = regs';
             val new_ids = map fst new_regs;
-            val new_idTs = map (apsnd (map (fn p => (p, (the o AList.lookup (op =) pTs) p)))) new_ids;
+            val new_idTs =
+              map (apsnd (map (fn p => (p, (the o AList.lookup (op =) pTs) p)))) new_ids;
 
             val new_wits = new_regs |> map (#2 #> map
-              (Element.instT_witness thy env #> Element.rename_witness ren #>
-                Element.satisfy_witness wits));
+              (Element.morph_witness
+                (Element.instT_morphism thy env $>
+                  Element.rename_morphism ren $>
+                  Element.satisfy_morphism wits)));
             val new_ids' = map (fn (id, wits) =>
                 (id, ([], Derived wits))) (new_ids ~~ new_wits);
             val new_idTs' = map (fn ((n, pTs), (_, ([], mode))) =>
@@ -827,12 +832,12 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
         val mode' = map_mode (map (Element.map_witness (inst_wit all_params))) mode;
         val ren = map fst ps ~~ map (fn p => (p, lookup_syn p)) params;
         val [env] = unify_parms ctxt all_params [map (apfst (Element.rename ren) o apsnd SOME) ps];
-        val elems' = elems
-              |> map (Element.rename_ctxt ren)
-              |> map (Element.map_ctxt {var = I, typ = I, term = I, fact = I, attrib = I,
-                   name = NameSpace.qualified (space_implode "_" params)})
-              |> map (Element.instT_ctxt thy env)
-      in (((name, map (apsnd SOME) locale_params'), mode'), elems') end;
+        val eval_elem =
+           Element.morph_ctxt (Element.rename_morphism ren) #>
+           Element.map_ctxt {var = I, typ = I, term = I, fact = I, attrib = I,
+             name = NameSpace.qualified (space_implode "_" params)} #>
+           Element.morph_ctxt (Element.instT_morphism thy env);
+      in (((name, map (apsnd SOME) locale_params'), mode'), map eval_elem elems) end;
 
     (* parameters, their types and syntax *)
     val (all_params', tenv, syn) = params_of_expr ctxt [] expr ([], Symtab.empty, Symtab.empty);
@@ -1083,7 +1088,7 @@ fun eval_text _ _ _ (Fixes _) text = text
 (* for finish_elems (Int),
    remove redundant elements of derived identifiers,
    turn assumptions and definitions into facts,
-   adjust hypotheses of facts using witnesses *)
+   satisfy hypotheses of facts *)
 
 fun finish_derived _ _ (Assumed _) (Fixes fixes) = SOME (Fixes fixes)
   | finish_derived _ _ (Assumed _) (Constrains csts) = SOME (Constrains csts)
@@ -1092,17 +1097,17 @@ fun finish_derived _ _ (Assumed _) (Fixes fixes) = SOME (Fixes fixes)
 
   | finish_derived _ _ (Derived _) (Fixes _) = NONE
   | finish_derived _ _ (Derived _) (Constrains _) = NONE
-  | finish_derived sign wits (Derived _) (Assumes asms) = asms
+  | finish_derived sign satisfy (Derived _) (Assumes asms) = asms
       |> map (apsnd (map (fn (a, _) => ([Thm.assume (cterm_of sign a)], []))))
       |> pair Thm.assumptionK |> Notes
-      |> Element.map_ctxt_values I I (Element.satisfy_thm wits) |> SOME
-  | finish_derived sign wits (Derived _) (Defines defs) = defs
+      |> Element.morph_ctxt satisfy |> SOME
+  | finish_derived sign satisfy (Derived _) (Defines defs) = defs
       |> map (apsnd (fn (d, _) => [([Thm.assume (cterm_of sign d)], [])]))
       |> pair Thm.definitionK |> Notes
-      |> Element.map_ctxt_values I I (Element.satisfy_thm wits) |> SOME
+      |> Element.morph_ctxt satisfy |> SOME
 
-  | finish_derived _ wits _ (Notes facts) = Notes facts
-      |> Element.map_ctxt_values I I (Element.satisfy_thm wits) |> SOME;
+  | finish_derived _ satisfy _ (Notes facts) = Notes facts
+      |> Element.morph_ctxt satisfy |> SOME;
 
 (* CB: for finish_elems (Ext) *)
 
@@ -1148,7 +1153,7 @@ fun finish_elems ctxt parms _ ((text, wits), ((id, Int e), _)) =
         val wits' = case mode of Assumed _ => wits | Derived ths => wits @ ths;
         val text' = fold (eval_text ctxt id' false) es text;
         val es' = map_filter
-              (finish_derived (ProofContext.theory_of ctxt) wits' mode) es;
+          (finish_derived (ProofContext.theory_of ctxt) (Element.satisfy_morphism wits') mode) es;
       in ((text', wits'), (id', map Int es')) end
   | finish_elems ctxt parms do_close ((text, wits), ((id, Ext e), [propp])) =
       let
@@ -1282,7 +1287,7 @@ fun check_name name =
   else name;
 
 fun prep_facts _ _ _ ctxt (Int elem) =
-      Element.map_ctxt_values I I (Thm.transfer (ProofContext.theory_of ctxt)) elem
+      Element.morph_ctxt (Morphism.transfer (ProofContext.theory_of ctxt)) elem
   | prep_facts prep_name get intern ctxt (Ext elem) = elem |> Element.map_ctxt
      {var = I, typ = I, term = I,
       name = prep_name,
@@ -1506,9 +1511,7 @@ fun note_thmss_registrations target (kind, args) thy =
       let
         val (insts, prems) = collect_global_witnesses thy parms ids vts;
         val attrib = Attrib.attribute_i thy;
-        val inst_atts =
-          Args.map_values I (Element.instT_type (#1 insts))
-            (Element.inst_term insts) (Element.inst_thm thy insts);
+        val inst_atts = Args.morph_values (Element.inst_morphism thy insts);
         val inst_thm =
           Drule.standard o Element.satisfy_thm prems o Element.inst_thm thy insts;
         val args' = args |> map (fn ((name, atts), bs) =>
@@ -1645,9 +1648,9 @@ fun assumes_to_notes (Assumes asms) axms =
 
 fun change_assumes_elemss axioms elemss =
   let
+    val satisfy = Element.morph_ctxt (Element.satisfy_morphism axioms);
     fun change (id as ("", _), es) =
-          fold_map assumes_to_notes
-            (map (Element.map_ctxt_values I I (Element.satisfy_thm axioms)) es)
+          fold_map assumes_to_notes (map satisfy es)
           #-> (fn es' => pair (id, es'))
       | change e = pair e;
   in
@@ -1658,9 +1661,8 @@ fun change_assumes_elemss axioms elemss =
 
 fun change_elemss_hyps axioms elemss =
   let
-    fun change (id as ("", _), es) =
-        (id, map (fn e as Notes _ => Element.map_ctxt_values I I (Element.satisfy_thm axioms) e
-                   | e => e) es)
+    val satisfy = Element.morph_ctxt (Element.satisfy_morphism axioms);
+    fun change (id as ("", _), es) = (id, map (fn e as Notes _ => satisfy e | e => e) es)
       | change e = e;
   in map change elemss end;
 
@@ -1880,9 +1882,11 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
     let
       fun activate_elem disch (prfx, atts) (Notes (kind, facts)) thy_ctxt =
           let
+            val disch_morphism = Morphism.morphism
+              {name = I, var = I, typ = I, term = I, thm = disch};
             val facts' = facts
               (* discharge hyps in attributes *)
-              |> Attrib.map_facts (attrib thy_ctxt o Args.map_values I I I disch)
+              |> Attrib.map_facts (attrib thy_ctxt o Args.morph_values disch_morphism)
               (* append interpretation attributes *)
               |> map (apfst (apsnd (fn a => a @ map (attrib thy_ctxt) atts)))
               (* discharge hyps *)
@@ -1908,13 +1912,14 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
       val prems = flat (map_filter
             (fn ((id, Assumed _), _) => Option.map snd (get_reg thy_ctxt' id)
               | ((_, Derived _), _) => NONE) all_elemss);
+      val satisfy = Element.satisfy_morphism prems;
       val thy_ctxt'' = thy_ctxt'
         (* add witnesses of Derived elements *)
-        |> fold (fn (id, thms) => fold (add_wit id o Element.satisfy_witness prems) thms)
+        |> fold (fn (id, thms) => fold (add_wit id o Element.morph_witness satisfy) thms)
            (map_filter (fn ((_, Assumed _), _) => NONE
               | ((id, Derived thms), _) => SOME (id, thms)) new_elemss)
 
-      val disch' = std o Element.satisfy_thm prems;  (* FIXME *)
+      val disch' = std o Morphism.thm satisfy;  (* FIXME *)
     in
       thy_ctxt''
         (* add facts to theory or context *)
@@ -2004,6 +2009,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
       in Symtab.update_new (p, d) inst end;
     val inst = fold add_def not_given inst;
     val insts = (tinst, inst);
+    val inst_morphism = Element.inst_morphism thy insts;
     (* Note: insts contain no vars. *)
 
 
@@ -2016,9 +2022,9 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
     val (_, all_elemss') = chop (length raw_params_elemss) all_elemss
     (* instantiate ids and elements *)
     val inst_elemss = (ids' ~~ all_elemss') |> map (fn (((n, ps), _), ((_, mode), elems)) =>
-      ((n, map (Element.inst_term insts) ps),
-        map (fn Int e => Element.inst_ctxt thy insts e) elems)
-      |> apfst (fn id => (id, map_mode (map (Element.inst_witness thy insts)) mode)));
+      ((n, map (Morphism.term inst_morphism) ps),
+        map (fn Int e => Element.morph_ctxt inst_morphism e) elems)
+      |> apfst (fn id => (id, map_mode (map (Element.morph_witness inst_morphism)) mode)));
 
     (* remove fragments already registered with theory or context *)
     val new_inst_elemss = filter (fn ((id, _), _) =>
@@ -2088,7 +2094,8 @@ fun prep_registration_in_locale target expr thy =
                 |> fold (add_witness_in_locale target id) thms
           | activate_id _ thy = thy;
 
-        fun activate_reg (vts, ((prfx, atts2), _)) thy = let
+        fun activate_reg (vts, ((prfx, atts2), _)) thy =
+          let
             val (insts, wits) = collect_global_witnesses thy fixed t_ids vts;
             fun inst_parms ps = map
                   (the o AList.lookup (op =) (map #1 fixed ~~ vts)) ps;
@@ -2104,7 +2111,7 @@ fun prep_registration_in_locale target expr thy =
                 else thy
                   |> put_global_registration (name, ps') (prfx, atts2)
                   |> fold (fn witn => fn thy => add_global_witness (name, ps')
-                     (Element.inst_witness thy insts witn) thy) thms
+                     (Element.morph_witness (Element.inst_morphism thy insts) witn) thy) thms
               end;
 
             fun activate_derived_id ((_, Assumed _), _) thy = thy
@@ -2123,11 +2130,11 @@ fun prep_registration_in_locale target expr thy =
 
             fun activate_elem (Notes (kind, facts)) thy =
                 let
+                  val att_morphism = Morphism.morphism {var = I, name = I,
+                    typ = Element.instT_type (#1 insts), term = Element.inst_term insts,
+                    thm = disch o Element.inst_thm thy insts o satisfy};
                   val facts' = facts
-                      |> Attrib.map_facts (Attrib.attribute_i thy o
-                         Args.map_values I (Element.instT_type (#1 insts))
-                           (Element.inst_term insts)
-                           (disch o Element.inst_thm thy insts o satisfy))
+                      |> Attrib.map_facts (Attrib.attribute_i thy o Args.morph_values att_morphism)
                       |> map (apfst (apsnd (fn a => a @ map (Attrib.attribute thy) atts2)))
                       |> map (apsnd (map (apfst (map (disch o Element.inst_thm thy insts o satisfy)))))
                 in

@@ -67,8 +67,9 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
 
           val types'' = map (Logic.dest_type o Thm.term_of o Drule.dest_term) res_types;
           val params'' = map (Thm.term_of o Drule.dest_term) res_params;
-          val elems' = elems |> map (Element.inst_ctxt thy
+          val inst = Element.morph_ctxt (Element.inst_morphism thy
             (Symtab.make (map #1 types ~~ types''), Symtab.make (map #1 params ~~ params'')));
+          val elems' = map inst elems;
           val prems'' = map2 Element.make_witness (maps Element.prems_of elems') res_prems;
           val notes =
             maps (Element.facts_of thy) elems'
