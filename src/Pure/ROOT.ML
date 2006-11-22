@@ -32,6 +32,7 @@ use "compress.ML";
 
 (*inner syntax module*)
 cd "Syntax"; use "ROOT.ML"; cd "..";
+use "General/ml_syntax.ML";
 
 (*core of tactical proof system*)
 use "envir.ML";
@@ -46,6 +47,7 @@ use "defs.ML";
 use "theory.ML";
 use "proofterm.ML";
 use "thm.ML";
+use "morphism.ML";
 use "fact_index.ML";
 use "pure_thy.ML";
 use "display.ML";
