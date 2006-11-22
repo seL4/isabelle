@@ -533,7 +533,7 @@ Code generation is \emph{incremental}: theorems
 \ {\isacharparenleft}{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent print all cached function equations (i.e.~\emph{after}
-  any applied transformation. Inside the brackets a
+  any applied transformation). Inside the brackets a
   list of constants may be given; their function
   equations are added to the cache if not already present.%
 \end{isamarkuptext}%
@@ -574,15 +574,15 @@ The HOL \emph{Main} theory already provides a code generator setup
 
   \begin{description}
 
-    \item[ExecutableSet] allows to generate code
+    \item[\isa{ExecutableSet}] allows to generate code
        for finite sets using lists.
-    \item[ExecutableRat] \label{exec_rat} implements rational
+    \item[\isa{ExecutableRat}] \label{exec_rat} implements rational
        numbers as triples \isa{{\isacharparenleft}sign{\isacharcomma}\ enumerator{\isacharcomma}\ denominator{\isacharparenright}}.
-    \item[EfficientNat] \label{eff_nat} implements natural numbers by integers,
+    \item[\isa{EfficientNat}] \label{eff_nat} implements natural numbers by integers,
        which in general will result in higher efficency; pattern
        matching with \isa{{\isadigit{0}}} / \isa{Suc}
        is eliminated.
-    \item[MLString] provides an additional datatype \isa{mlstring};
+    \item[\isa{MLString}] provides an additional datatype \isa{mlstring};
        in the HOL default setup, strings in HOL are mapped to list
        of chars in SML; values of type \isa{mlstring} are
        mapped to strings in SML.
@@ -687,7 +687,7 @@ The current set of inline theorems may be inspected using
   list of function theorems, provided that neither the heading
   constant nor its type change.  The \isa{{\isadigit{0}}} / \isa{Suc}
   pattern elimination implemented in
-  theory EfficientNat (\secref{eff_nat}) uses this
+  theory \isa{EfficientNat} (\secref{eff_nat}) uses this
   interface.
 
   \begin{warn}
@@ -976,20 +976,16 @@ Obviously, polymorphic equality is implemented the Haskell
 {\isafoldML}%
 %
 \isadelimML
-\isanewline
 %
 \endisadelimML
-\isacommand{class}\isamarkupfalse%
-\ eq\ {\isacharequal}\isanewline
-\ \ \isakeyword{fixes}\ eq\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \isanewline
-\isacommand{defs}\isamarkupfalse%
-\isanewline
-\ \ eq\ {\isacharcolon}\ {\isachardoublequoteopen}eq\ {\isasymequiv}\ {\isacharparenleft}op\ {\isacharequal}{\isacharparenright}{\isachardoublequoteclose}%
+\isacommand{axclass}\isamarkupfalse%
+\ eq\ {\isasymsubseteq}\ type\isanewline
+\ \ \isakeyword{attach}\ {\isachardoublequoteopen}op\ {\isacharequal}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 This merely introduces a class \isa{eq} with corresponding
-  operation \isa{eq}, which by definition is isomorphic
-  to \isa{op\ {\isacharequal}}; the preprocessing framework does the rest.%
+  operation \isa{foo{\isachardot}op\ {\isacharequal}};
+  the preprocessing framework does the rest.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1014,54 +1010,6 @@ For datatypes, instances of \isa{eq} are implicitly derived
   are some cases when it suddenly comes to surface:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-%
-\isamarkupsubsubsection{code lemmas and customary serializations for equality%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-Examine the following:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimtt
-%
-\endisadelimtt
-%
-\isatagtt
-\isacommand{code{\isacharunderscore}const}\isamarkupfalse%
-\ {\isachardoublequoteopen}op\ {\isacharequal}\ {\isasymColon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}{\isacharbang}{\isacharparenleft}{\isacharunderscore}\ {\isacharcolon}\ IntInf{\isachardot}int\ {\isacharequal}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
-\endisatagtt
-{\isafoldtt}%
-%
-\isadelimtt
-%
-\endisadelimtt
-%
-\begin{isamarkuptext}%
-What is wrong here? Since \isa{op\ {\isacharequal}} is nothing else then
-  a plain constant, this customary serialization will refer
-  to polymorphic equality \isa{op\ {\isacharequal}}.
-  Instead, we want the specific equality on \isa{int},
-  by using the overloaded constant \isa{Code{\isacharunderscore}Generator{\isachardot}eq}:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimtt
-%
-\endisadelimtt
-%
-\isatagtt
-\isacommand{code{\isacharunderscore}const}\isamarkupfalse%
-\ {\isachardoublequoteopen}Code{\isacharunderscore}Generator{\isachardot}eq\ {\isasymColon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}{\isacharbang}{\isacharparenleft}{\isacharunderscore}\ {\isacharcolon}\ IntInf{\isachardot}int\ {\isacharequal}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
-\endisatagtt
-{\isafoldtt}%
-%
-\isadelimtt
-%
-\endisadelimtt
 %
 \isamarkupsubsubsection{typedecls interpreted by customary serializations%
 }
@@ -1100,7 +1048,7 @@ A common idiom is to use unspecified types for formalizations
 This, though, is not sufficient: \isa{key} is no instance
   of \isa{eq} since \isa{key} is no datatype; the instance
   has to be declared manually, including a serialization
-  for the particular instance of \isa{Code{\isacharunderscore}Generator{\isachardot}eq}:%
+  for the particular instance of \isa{op\ {\isacharequal}}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{instance}\isamarkupfalse%
@@ -1127,8 +1075,8 @@ This, though, is not sufficient: \isa{key} is no instance
 %
 \isatagtt
 \isacommand{code{\isacharunderscore}const}\isamarkupfalse%
-\ {\isachardoublequoteopen}Code{\isacharunderscore}Generator{\isachardot}eq\ {\isasymColon}\ key\ {\isasymRightarrow}\ key\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}{\isacharbang}{\isacharparenleft}{\isacharunderscore}\ {\isacharcolon}\ string\ {\isacharequal}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
+\ {\isachardoublequoteopen}op\ {\isacharequal}\ {\isasymColon}\ key\ {\isasymRightarrow}\ key\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}{\isacharbang}{\isacharparenleft}{\isacharparenleft}{\isacharunderscore}\ {\isacharcolon}\ string{\isacharparenright}\ {\isacharequal}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
 \endisatagtt
 {\isafoldtt}%
 %
@@ -1573,7 +1521,7 @@ By that, we replace any \isa{arbitrary} with option type
 
   For technical reasons, we further have to provide a
   synonym for \isa{None} which in code generator view
-  is a function rather than a datatype constructor%
+  is a function rather than a datatype constructor:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
@@ -1602,7 +1550,7 @@ A dummy example:%
 
   Another axiomatic extension is code generation
   for abstracted types.  For this, the  
-  ExecutableRat (see \secref{exec_rat})
+  \isa{ExecutableRat} (see \secref{exec_rat})
   forms a good example.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1933,9 +1881,7 @@ Implementing code generator applications on top
     Some interfaces discussed here have not reached
     a final state yet.
     Changes likely to occur in future.
-  \end{warn}
-
-  \fixme%
+  \end{warn}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1944,7 +1890,18 @@ Implementing code generator applications on top
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\medskip
+Due to incrementality of code generation, changes in the
+  theory's executable content have to be propagated in a
+  certain fashion.  Additionally, such changes may occur
+  not only during theory extension but also during theory
+  merge, which is a little bit nasty from an implementation
+  point of view.  The framework provides a solution
+  to this technical challenge by providing a functorial
+  data slot \verb|CodeDataFun|; on instantiation
+  of this functor, the following types and operations
+  are required:
+
+  \medskip
   \begin{tabular}{l}
   \isa{val\ name{\isacharcolon}\ string} \\
   \isa{type\ T} \\
@@ -1953,48 +1910,64 @@ Implementing code generator applications on top
   \isa{val\ purge{\isacharcolon}\ theory\ option\ {\isasymrightarrow}\ CodegenConsts{\isachardot}const\ list\ option\ {\isasymrightarrow}\ T\ {\isasymrightarrow}\ T}
   \end{tabular}
 
-  \medskip
+  \begin{description}
 
+  \item \isa{name} is a system-wide unique name identifying the data.
+
+  \item \isa{T} the type of data to store.
+
+  \item \isa{empty} initial (empty) data.
+
+  \item \isa{merge} merging two data slots.
+
+  \item \isa{purge}~\isa{thy}~\isa{cs} propagates changes in executable content;
+    if possible, the current theory context is handed over
+    as argument \isa{thy} (if there is no current theory context (e.g.~during
+    theory merge, \verb|NONE|); \isa{cs} indicates the kind
+    of change: \verb|NONE| stands for a fundamental change
+    which invalidates any existing code, \isa{SOME\ cs}
+    hints that executable content for constants \isa{cs}
+    has changed.
+
+  \end{description}
+
+  An instance of \verb|CodeDataFun| provides the following
+  interface:
+
+  \medskip
   \begin{tabular}{l}
   \isa{init{\isacharcolon}\ theory\ {\isasymrightarrow}\ theory} \\
   \isa{get{\isacharcolon}\ theory\ {\isasymrightarrow}\ T} \\
   \isa{change{\isacharcolon}\ theory\ {\isasymrightarrow}\ {\isacharparenleft}T\ {\isasymrightarrow}\ T{\isacharparenright}\ {\isasymrightarrow}\ T} \\
   \isa{change{\isacharunderscore}yield{\isacharcolon}\ theory\ {\isasymrightarrow}\ {\isacharparenleft}T\ {\isasymrightarrow}\ {\isacharprime}a\ {\isacharasterisk}\ T{\isacharparenright}\ {\isasymrightarrow}\ {\isacharprime}a\ {\isacharasterisk}\ T}
-  \end{tabular}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimmlref
-%
-\endisadelimmlref
-%
-\isatagmlref
-%
-\begin{isamarkuptext}%
-\begin{mldecls}
-  \indexmlfunctor{CodeDataFun}\verb|functor CodeDataFun|
-  \end{mldecls}
+  \end{tabular}
 
   \begin{description}
 
-  \item \verb|CodeDataFun|\isa{{\isacharparenleft}spec{\isacharparenright}} declares code
-  dependent data according to the specification provided as
-  argument structure.  The resulting structure provides data init and
-  access operations as described above.
+  \item \isa{init} initialization during theory setup.
+
+  \item \isa{get} retrieval of the current data.
+
+  \item \isa{change} update of current data (cached!)
+    by giving a continuation.
+
+  \item \isa{change{\isacharunderscore}yield} update with side result.
 
   \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagmlref
-{\isafoldmlref}%
-%
-\isadelimmlref
-%
-\endisadelimmlref
-%
 \isamarkupsubsubsection{Datatype hooks%
 }
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle/HOL's datatype package provides a mechanism to
+  extend theories depending on datatype declarations:
+  \emph{datatype hooks}.  For example, when declaring a new
+  datatype, a hook proves function equations for equality on
+  that datatype (if possible).%
+\end{isamarkuptext}%
 \isamarkuptrue%
 %
 \isadelimmlref
@@ -2007,37 +1980,114 @@ Implementing code generator applications on top
 \begin{mldecls}
   \indexmltype{DatatypeHooks.hook}\verb|type DatatypeHooks.hook = string list -> theory -> theory| \\
   \indexml{DatatypeHooks.add}\verb|DatatypeHooks.add: DatatypeHooks.hook -> theory -> theory|
-  \end{mldecls}%
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|DatatypeHooks.hook| specifies the interface
+     of \emph{datatype hooks}: a theory update
+     depending on the list of newly introduced
+     datatype names.
+
+  \item \verb|DatatypeHooks.add| adds a hook to the
+     chain of all hooks.
+
+  \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsubsubsection{Trivial typedefs -- type copies%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Sometimes packages will introduce new types
+  as \emph{marked type copies} similar to Haskell's
+  \isa{newtype} declaration (e.g. the HOL record package)
+  \emph{without} tinkering with the overhead of datatypes.
+  Technically, these type copies are trivial forms of typedefs.
+  Since these type copies in code generation view are nothing
+  else than datatypes, they have been given a own package
+  in order to faciliate code generation:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexmltype{TypecopyPackage.info}\verb|type TypecopyPackage.info = {|\isasep\isanewline%
-\verb|    vs: (string * sort) list,|\isasep\isanewline%
-\verb|    constr: string,|\isasep\isanewline%
-\verb|    typ: typ,|\isasep\isanewline%
-\verb|    inject: thm,|\isasep\isanewline%
-\verb|    proj: string * typ,|\isasep\isanewline%
-\verb|    proj_def: thm|\isasep\isanewline%
-\verb|  }| \\
+  \indexmltype{TypecopyPackage.info}\verb|type TypecopyPackage.info| \\
   \indexml{TypecopyPackage.add-typecopy}\verb|TypecopyPackage.add_typecopy: |\isasep\isanewline%
 \verb|    bstring * string list -> typ -> (bstring * bstring) option|\isasep\isanewline%
 \verb|    -> theory -> (string * TypecopyPackage.info) * theory| \\
-  \indexml{TypecopyPackage.get-typecopies}\verb|TypecopyPackage.get_typecopies: theory -> string list| \\
   \indexml{TypecopyPackage.get-typecopy-info}\verb|TypecopyPackage.get_typecopy_info: theory|\isasep\isanewline%
 \verb|    -> string -> TypecopyPackage.info option| \\
-  \indexmltype{TypecopyPackage.hook}\verb|type TypecopyPackage.hook| \\
-  \indexml{TypecopyPackage.add-hook}\verb|TypecopyPackage.add_hook: TypecopyPackage.hook -> theory -> theory| \\
   \indexml{TypecopyPackage.get-spec}\verb|TypecopyPackage.get_spec: theory -> string|\isasep\isanewline%
-\verb|    -> (string * sort) list * (string * typ list) list|
-  \end{mldecls}%
+\verb|    -> (string * sort) list * (string * typ list) list| \\
+  \indexmltype{TypecopyPackage.hook}\verb|type TypecopyPackage.hook = string * TypecopyPackage.info -> theory -> theory| \\
+  \indexml{TypecopyPackage.add-hook}\verb|TypecopyPackage.add_hook: TypecopyPackage.hook -> theory -> theory| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|TypecopyPackage.info| a record containing
+     the specification and further data of a type copy.
+
+  \item \verb|TypecopyPackage.add_typecopy| defines a new
+     type copy.
+
+  \item \verb|TypecopyPackage.get_typecopy_info| retrieves
+     data of an existing type copy.
+
+  \item \verb|TypecopyPackage.get_spec| retrieves datatype-like
+     specification of a type copy.
+
+  \item \verb|TypecopyPackage.hook|,~\verb|TypecopyPackage.add_hook|
+     provide a hook mechanism corresponding to the hook mechanism
+     on datatypes.
+
+  \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsubsubsection{Unifying type copies and datatypes%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Since datatypes and type copies are mapped to the same concept (datatypes)
+  by code generation, the view on both is unified \qt{code types}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexmltype{DatatypeCodegen.hook}\verb|type DatatypeCodegen.hook = (string * (bool * ((string * sort) list * (string * typ list) list))) list|\isasep\isanewline%
+  \indexmltype{DatatypeCodegen.hook}\verb|type DatatypeCodegen.hook = (string * (bool * ((string * sort) list|\isasep\isanewline%
+\verb|    * (string * typ list) list))) list|\isasep\isanewline%
 \verb|    -> theory -> theory| \\
   \indexml{DatatypeCodegen.add-codetypes-hook-bootstrap}\verb|DatatypeCodegen.add_codetypes_hook_bootstrap: |\isasep\isanewline%
 \verb|      DatatypeCodegen.hook -> theory -> theory|
@@ -2053,8 +2103,25 @@ Implementing code generator applications on top
 \endisadelimmlref
 %
 \begin{isamarkuptext}%
-\fixme
-%  \emph{Happy proving, happy hacking!}%
+\begin{description}
+
+  \item \verb|DatatypeCodegen.hook| specifies the code type hook
+     interface: a theory transformation depending on a list of
+     mutual recursive code types; each entry in the list
+     has the structure \isa{{\isacharparenleft}name{\isacharcomma}\ {\isacharparenleft}is{\isacharunderscore}data{\isacharcomma}\ {\isacharparenleft}vars{\isacharcomma}\ cons{\isacharparenright}{\isacharparenright}{\isacharparenright}}
+     where \isa{name} is the name of the code type, \isa{is{\isacharunderscore}data}
+     is true iff \isa{name} is a datatype rather then a type copy,
+     and \isa{{\isacharparenleft}vars{\isacharcomma}\ cons{\isacharparenright}} is the specification of the code type.
+
+  \item \verb|DatatypeCodegen.add_codetypes_hook_bootstrap| adds a code
+     type hook;  the hook is immediately processed for all already
+     existing datatypes, in blocks of mutual recursive datatypes,
+     where all datatypes a block depends on are processed before
+     the block.
+
+  \end{description}
+
+  \emph{Happy proving, happy hacking!}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

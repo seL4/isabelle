@@ -4,23 +4,16 @@ struct
 structure Code_Generator = 
 struct
 
-type 'a eq = {eq_ : 'a -> 'a -> bool};
-fun eq (A_:'a eq) = #eq_ A_;
+type 'a eq = {op_eq_ : 'a -> 'a -> bool};
+fun op_eq (A_:'a eq) = #op_eq_ A_;
 
 end; (*struct Code_Generator*)
-
-structure HOL = 
-struct
-
-fun op_eq (A_:'a Code_Generator.eq) a b = Code_Generator.eq A_ a b;
-
-end; (*struct HOL*)
 
 structure List = 
 struct
 
 fun memberl (A_1_:'a_1 Code_Generator.eq) x (y :: ys) =
-  HOL.op_eq A_1_ x y orelse memberl A_1_ x ys
+  Code_Generator.op_eq A_1_ x y orelse memberl A_1_ x ys
   | memberl (A_1_:'a_1 Code_Generator.eq) x [] = false;
 
 end; (*struct List*)

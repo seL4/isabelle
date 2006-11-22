@@ -19,7 +19,7 @@ FILES = $(NAME).tex Thy/document/Codegen.tex \
 
 dvi: $(NAME).dvi
 
-$(NAME).dvi: $(FILES) isabelle_isar.eps
+$(NAME).dvi: $(FILES) isabelle_isar.eps codegen_process.ps
 	$(LATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(LATEX) $(NAME)
@@ -27,7 +27,7 @@ $(NAME).dvi: $(FILES) isabelle_isar.eps
 
 pdf: $(NAME).pdf
 
-$(NAME).pdf: $(FILES) isabelle_isar.pdf
+$(NAME).pdf: $(FILES) isabelle_isar.pdf codegen_process.pdf
 	$(PDFLATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(PDFLATEX) $(NAME)

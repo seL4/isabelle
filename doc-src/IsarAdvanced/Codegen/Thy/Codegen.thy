@@ -4,7 +4,7 @@
 (*<*)
 theory Codegen
 imports Main
-uses "../../../IsarImplementation/Thy/setup.ML"
+uses "../../../antiquote_setup.ML"
 begin
 
 ML {*
@@ -153,7 +153,7 @@ text {*
   This executable specification is now turned to SML code:
 *}
 
-code_gen fac (SML "examples/fac.ML")
+code_gen fac (*<*)(SML *)(*>*)(SML "examples/fac.ML")
 
 text {*
   The @{text "\<CODEGEN>"} command takes a space-separated list of
@@ -269,7 +269,7 @@ lemma [code func]:
   "pick ((k, v)#xs) n = (if n < k then v else pick xs (n - k))"
   by simp
 
-code_gen pick (SML "examples/pick1.ML")
+code_gen pick (*<*)(SML *)(*>*)(SML "examples/pick1.ML")
 
 text {*
   This theorem is now added to the function equation table:
@@ -282,7 +282,7 @@ text {*
 
 lemmas [code nofunc] = pick.simps 
 
-code_gen pick (SML "examples/pick2.ML")
+code_gen pick (*<*)(SML *)(*>*)(SML "examples/pick2.ML")
 
 text {*
   \lstsml{Thy/examples/pick2.ML}
@@ -298,7 +298,7 @@ lemma [code func]:
   "fac n = (case n of 0 \<Rightarrow> 1 | Suc m \<Rightarrow> n * fac m)"
   by (cases n) simp_all
 
-code_gen fac (SML "examples/fac_case.ML")
+code_gen fac (*<*)(SML *)(*>*)(SML "examples/fac_case.ML")
 
 text {*
   \lstsml{Thy/examples/fac_case.ML}
@@ -377,7 +377,7 @@ text {*
   The whole code in SML with explicit dictionary passing:
 *}
 
-code_gen dummy (SML "examples/class.ML")
+code_gen dummy (*<*)(SML *)(*>*)(SML "examples/class.ML")
 
 text {*
   \lstsml{Thy/examples/class.ML}
@@ -407,7 +407,7 @@ print_codethms ()
 
 text {*
   \noindent print all cached function equations (i.e.~\emph{after}
-  any applied transformation. Inside the brackets a
+  any applied transformation). Inside the brackets a
   list of constants may be given; their function
   equations are added to the cache if not already present.
 *}
@@ -443,15 +443,15 @@ text {*
 
   \begin{description}
 
-    \item[@{theory "ExecutableSet"}] allows to generate code
+    \item[@{text "ExecutableSet"}] allows to generate code
        for finite sets using lists.
-    \item[@{theory "ExecutableRat"}] \label{exec_rat} implements rational
+    \item[@{text "ExecutableRat"}] \label{exec_rat} implements rational
        numbers as triples @{text "(sign, enumerator, denominator)"}.
-    \item[@{theory "EfficientNat"}] \label{eff_nat} implements natural numbers by integers,
+    \item[@{text "EfficientNat"}] \label{eff_nat} implements natural numbers by integers,
        which in general will result in higher efficency; pattern
        matching with @{const "0\<Colon>nat"} / @{const "Suc"}
        is eliminated.
-    \item[@{theory "MLString"}] provides an additional datatype @{text "mlstring"};
+    \item[@{text "MLString"}] provides an additional datatype @{text "mlstring"};
        in the HOL default setup, strings in HOL are mapped to list
        of chars in SML; values of type @{text "mlstring"} are
        mapped to strings in SML.
@@ -521,7 +521,7 @@ text {*
   list of function theorems, provided that neither the heading
   constant nor its type change.  The @{const "0\<Colon>nat"} / @{const Suc}
   pattern elimination implemented in
-  theory @{theory "EfficientNat"} (\secref{eff_nat}) uses this
+  theory @{text "EfficientNat"} (\secref{eff_nat}) uses this
   interface.
 
   \begin{warn}
@@ -557,7 +557,7 @@ code_const %tt True and False and "op \<and>" and Not
   (SML and and and)
 (*>*)
 
-code_gen in_interval (SML "examples/bool_literal.ML")
+code_gen in_interval (*<*)(SML *)(*>*)(SML "examples/bool_literal.ML")
 
 text {*
   \lstsml{Thy/examples/bool_literal.ML}
@@ -600,7 +600,7 @@ text {*
   After this setup, code looks quite more readable:
 *}
 
-code_gen in_interval (SML "examples/bool_mlbool.ML")
+code_gen in_interval (*<*)(SML *)(*>*)(SML "examples/bool_mlbool.ML")
 
 text {*
   \lstsml{Thy/examples/bool_mlbool.ML}
@@ -616,7 +616,7 @@ text {*
 code_const %tt "op \<and>"
   (SML infixl 1 "andalso")
 
-code_gen in_interval (SML "examples/bool_infix.ML")
+code_gen in_interval (*<*)(SML *)(*>*)(SML "examples/bool_infix.ML")
 
 text {*
   \lstsml{Thy/examples/bool_infix.ML}
@@ -675,7 +675,7 @@ code_const %tt "op + \<Colon> int \<Rightarrow> int \<Rightarrow> int"
     and "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
   (SML "IntInf.+ (_, _)" and "IntInf.* (_, _)")
 
-code_gen double_inc (SML "examples/integers.ML")
+code_gen double_inc (*<*)(SML *)(*>*)(SML "examples/integers.ML")
 
 text {*
   resulting in:
@@ -727,7 +727,7 @@ text {*
   performs an explicit equality check.
 *}
 
-code_gen collect_duplicates (SML "examples/collect_duplicates.ML")
+code_gen collect_duplicates (*<*)(SML *)(*>*)(SML "examples/collect_duplicates.ML")
 
 text {*
   \lstsml{Thy/examples/collect_duplicates.ML}
@@ -741,28 +741,21 @@ text {*
 
 (*<*)
 setup {* Sign.add_path "foo" *}
+consts "op =" :: "'a"
 (*>*)
 
-class eq =
-  fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-
-defs
-  eq (*[symmetric, code inline, code func]*): "eq \<equiv> (op =)"
+axclass eq \<subseteq> type
+  attach "op ="
 
 text {*
   This merely introduces a class @{text eq} with corresponding
-  operation @{const eq}, which by definition is isomorphic
-  to @{const "op ="}; the preprocessing framework does the rest.
+  operation @{const "op ="};
+  the preprocessing framework does the rest.
 *}
 
 (*<*)
-lemmas [code noinline] = eq
-
 hide (open) "class" eq
-hide (open) const eq
-
-lemmas [symmetric, code func] = eq_def
-
+hide (open) const "op ="
 setup {* Sign.parent_path *}
 (*>*)
 
@@ -773,26 +766,6 @@ text {*
   Though this class is designed to get rarely in the way, there
   are some cases when it suddenly comes to surface:
 *}
-
-subsubsection {* code lemmas and customary serializations for equality *}
-
-text {*
-  Examine the following:
-*}
-
-code_const %tt "op = \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
-  (SML "!(_ : IntInf.int = _)")
-
-text {*
-  What is wrong here? Since @{const "op ="} is nothing else then
-  a plain constant, this customary serialization will refer
-  to polymorphic equality @{const "op = \<Colon> 'a \<Rightarrow> 'a \<Rightarrow> bool"}.
-  Instead, we want the specific equality on @{typ int},
-  by using the overloaded constant @{const "Code_Generator.eq"}:
-*}
-
-code_const %tt "Code_Generator.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
-  (SML "!(_ : IntInf.int = _)")
 
 subsubsection {* typedecls interpreted by customary serializations *}
 
@@ -818,19 +791,19 @@ text {*
   This, though, is not sufficient: @{typ key} is no instance
   of @{text eq} since @{typ key} is no datatype; the instance
   has to be declared manually, including a serialization
-  for the particular instance of @{const "Code_Generator.eq"}:
+  for the particular instance of @{const "op ="}:
 *}
 
 instance key :: eq ..
 
-code_const %tt "Code_Generator.eq \<Colon> key \<Rightarrow> key \<Rightarrow> bool"
-  (SML "!(_ : string = _)")
+code_const %tt "op = \<Colon> key \<Rightarrow> key \<Rightarrow> bool"
+  (SML "!((_ : string) = _)")
 
 text {*
   Then everything goes fine:
 *}
 
-code_gen lookup (SML "examples/lookup.ML")
+code_gen lookup (*<*)(SML *)(*>*)(SML "examples/lookup.ML")
 
 text {*
   \lstsml{Thy/examples/lookup.ML}
@@ -847,8 +820,6 @@ text {*
 
 (*<*)
 setup {* Sign.add_path "foobar" *}
-
-class eq = fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 class ord =
   fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" ("(_/ \<^loc>\<le> _)" [50, 51] 50)
   fixes less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" ("(_/ \<^loc>< _)" [50, 51] 50)
@@ -860,8 +831,8 @@ instance * :: (ord, ord) ord
   "p1 \<le> p2 \<equiv> p1 < p2 \<or> (p1 \<Colon> 'a\<Colon>ord \<times> 'b\<Colon>ord)  = p2" ..
 
 (*<*)
-hide "class" eq ord
-hide const eq less_eq less
+hide "class"  ord
+hide const less_eq less
 setup {* Sign.parent_path *}
 (*>*)
 
@@ -885,7 +856,7 @@ text {*
 *}
 
 code_gen "op \<le> \<Colon> 'a\<Colon>{eq, ord} \<times> 'b\<Colon>{eq, ord} \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
-  (SML "examples/lexicographic.ML")
+  (*<*)(SML *)(*>*)(SML "examples/lexicographic.ML")
 
 text {*
   \lstsml{Thy/examples/lexicographic.ML}
@@ -989,7 +960,7 @@ text {*
 lemma [code func]:
   "insert = insert" ..
 
-code_gen dummy_set foobar_set (SML "examples/dirty_set.ML")
+code_gen dummy_set foobar_set (*<*)(SML *)(*>*)(SML "examples/dirty_set.ML")
 
 text {*
   \lstsml{Thy/examples/dirty_set.ML}
@@ -1091,7 +1062,7 @@ text {*
 
   For technical reasons, we further have to provide a
   synonym for @{const None} which in code generator view
-  is a function rather than a datatype constructor
+  is a function rather than a datatype constructor:
 *}
 
 definition
@@ -1116,14 +1087,14 @@ fun
 declare dummy_option.simps [code func]
 (*>*)
 
-code_gen dummy_option (SML "examples/arbitrary.ML")
+code_gen dummy_option (*<*)(SML *)(*>*)(SML "examples/arbitrary.ML")
 
 text {*
   \lstsml{Thy/examples/arbitrary.ML}
 
   Another axiomatic extension is code generation
   for abstracted types.  For this, the  
-  @{theory "ExecutableRat"} (see \secref{exec_rat})
+  @{text "ExecutableRat"} (see \secref{exec_rat})
   forms a good example.
 *}
 
@@ -1366,13 +1337,22 @@ text {*
     a final state yet.
     Changes likely to occur in future.
   \end{warn}
-
-  \fixme
 *}
 
 subsubsection {* Data depending on the theory's executable content *}
 
 text {*
+  Due to incrementality of code generation, changes in the
+  theory's executable content have to be propagated in a
+  certain fashion.  Additionally, such changes may occur
+  not only during theory extension but also during theory
+  merge, which is a little bit nasty from an implementation
+  point of view.  The framework provides a solution
+  to this technical challenge by providing a functorial
+  data slot @{ML_functor CodeDataFun}; on instantiation
+  of this functor, the following types and operations
+  are required:
+
   \medskip
   \begin{tabular}{l}
   @{text "val name: string"} \\
@@ -1382,66 +1362,141 @@ text {*
   @{text "val purge: theory option \<rightarrow> CodegenConsts.const list option \<rightarrow> T \<rightarrow> T"}
   \end{tabular}
 
-  \medskip
+  \begin{description}
 
+  \item @{text name} is a system-wide unique name identifying the data.
+
+  \item @{text T} the type of data to store.
+
+  \item @{text empty} initial (empty) data.
+
+  \item @{text merge} merging two data slots.
+
+  \item @{text purge}~@{text thy}~@{text cs} propagates changes in executable content;
+    if possible, the current theory context is handed over
+    as argument @{text thy} (if there is no current theory context (e.g.~during
+    theory merge, @{ML NONE}); @{text cs} indicates the kind
+    of change: @{ML NONE} stands for a fundamental change
+    which invalidates any existing code, @{text "SOME cs"}
+    hints that executable content for constants @{text cs}
+    has changed.
+
+  \end{description}
+
+  An instance of @{ML_functor CodeDataFun} provides the following
+  interface:
+
+  \medskip
   \begin{tabular}{l}
   @{text "init: theory \<rightarrow> theory"} \\
   @{text "get: theory \<rightarrow> T"} \\
   @{text "change: theory \<rightarrow> (T \<rightarrow> T) \<rightarrow> T"} \\
   @{text "change_yield: theory \<rightarrow> (T \<rightarrow> 'a * T) \<rightarrow> 'a * T"}
   \end{tabular}
-*}
-
-text %mlref {*
-  \begin{mldecls}
-  @{index_ML_functor CodeDataFun}
-  \end{mldecls}
 
   \begin{description}
 
-  \item @{ML_functor CodeDataFun}@{text "(spec)"} declares code
-  dependent data according to the specification provided as
-  argument structure.  The resulting structure provides data init and
-  access operations as described above.
+  \item @{text init} initialization during theory setup.
+
+  \item @{text get} retrieval of the current data.
+
+  \item @{text change} update of current data (cached!)
+    by giving a continuation.
+
+  \item @{text change_yield} update with side result.
 
   \end{description}
 *}
 
 subsubsection {* Datatype hooks *}
 
+text {*
+  Isabelle/HOL's datatype package provides a mechanism to
+  extend theories depending on datatype declarations:
+  \emph{datatype hooks}.  For example, when declaring a new
+  datatype, a hook proves function equations for equality on
+  that datatype (if possible).
+*}
+
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type DatatypeHooks.hook: "string list -> theory -> theory"} \\
   @{index_ML DatatypeHooks.add: "DatatypeHooks.hook -> theory -> theory"}
   \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_type DatatypeHooks.hook} specifies the interface
+     of \emph{datatype hooks}: a theory update
+     depending on the list of newly introduced
+     datatype names.
+
+  \item @{ML DatatypeHooks.add} adds a hook to the
+     chain of all hooks.
+
+  \end{description}
+*}
+
+subsubsection {* Trivial typedefs -- type copies *}
+
+text {*
+  Sometimes packages will introduce new types
+  as \emph{marked type copies} similar to Haskell's
+  @{text newtype} declaration (e.g. the HOL record package)
+  \emph{without} tinkering with the overhead of datatypes.
+  Technically, these type copies are trivial forms of typedefs.
+  Since these type copies in code generation view are nothing
+  else than datatypes, they have been given a own package
+  in order to faciliate code generation:
 *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML_type TypecopyPackage.info: "{
-    vs: (string * sort) list,
-    constr: string,
-    typ: typ,
-    inject: thm,
-    proj: string * typ,
-    proj_def: thm
-  }"} \\
+  @{index_ML_type TypecopyPackage.info} \\
   @{index_ML TypecopyPackage.add_typecopy: "
     bstring * string list -> typ -> (bstring * bstring) option
     -> theory -> (string * TypecopyPackage.info) * theory"} \\
-  @{index_ML TypecopyPackage.get_typecopies: "theory -> string list"} \\
   @{index_ML TypecopyPackage.get_typecopy_info: "theory
     -> string -> TypecopyPackage.info option"} \\
-  @{index_ML_type TypecopyPackage.hook} \\
-  @{index_ML TypecopyPackage.add_hook: "TypecopyPackage.hook -> theory -> theory"} \\
   @{index_ML TypecopyPackage.get_spec: "theory -> string
-    -> (string * sort) list * (string * typ list) list"}
+    -> (string * sort) list * (string * typ list) list"} \\
+  @{index_ML_type TypecopyPackage.hook: "string * TypecopyPackage.info -> theory -> theory"} \\
+  @{index_ML TypecopyPackage.add_hook:
+     "TypecopyPackage.hook -> theory -> theory"} \\
   \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_type TypecopyPackage.info} a record containing
+     the specification and further data of a type copy.
+
+  \item @{ML TypecopyPackage.add_typecopy} defines a new
+     type copy.
+
+  \item @{ML TypecopyPackage.get_typecopy_info} retrieves
+     data of an existing type copy.
+
+  \item @{ML TypecopyPackage.get_spec} retrieves datatype-like
+     specification of a type copy.
+
+  \item @{ML_type TypecopyPackage.hook},~@{ML TypecopyPackage.add_hook}
+     provide a hook mechanism corresponding to the hook mechanism
+     on datatypes.
+
+  \end{description}
+*}
+
+subsubsection {* Unifying type copies and datatypes *}
+
+text {*
+  Since datatypes and type copies are mapped to the same concept (datatypes)
+  by code generation, the view on both is unified \qt{code types}:
 *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML_type DatatypeCodegen.hook: "(string * (bool * ((string * sort) list * (string * typ list) list))) list
+  @{index_ML_type DatatypeCodegen.hook: "(string * (bool * ((string * sort) list
+    * (string * typ list) list))) list
     -> theory -> theory"} \\
   @{index_ML DatatypeCodegen.add_codetypes_hook_bootstrap: "
       DatatypeCodegen.hook -> theory -> theory"}
@@ -1449,8 +1504,25 @@ text %mlref {*
 *}
 
 text {*
-  \fixme
-%  \emph{Happy proving, happy hacking!}
+  \begin{description}
+
+  \item @{ML_type DatatypeCodegen.hook} specifies the code type hook
+     interface: a theory transformation depending on a list of
+     mutual recursive code types; each entry in the list
+     has the structure @{text "(name, (is_data, (vars, cons)))"}
+     where @{text name} is the name of the code type, @{text is_data}
+     is true iff @{text name} is a datatype rather then a type copy,
+     and @{text "(vars, cons)"} is the specification of the code type.
+
+  \item @{ML DatatypeCodegen.add_codetypes_hook_bootstrap} adds a code
+     type hook;  the hook is immediately processed for all already
+     existing datatypes, in blocks of mutual recursive datatypes,
+     where all datatypes a block depends on are processed before
+     the block.
+
+  \end{description}
+
+  \emph{Happy proving, happy hacking!}
 *}
 
 end
