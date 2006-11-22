@@ -19,9 +19,6 @@ sig
   val qed_thms: thm list ref
   val ml_store_thm: string * thm -> unit
   val ml_store_thms: string * thm list -> unit
-  val ml_reserved: string list
-  val is_ml_reserved: string -> bool
-  val is_ml_identifier: string -> bool
 end;
 
 structure ThmDatabase: THM_DATABASE =
@@ -44,21 +41,8 @@ fun store_thms (name, thms) =
 
 val qed_thms: thm list ref = ref [];
 
-val ml_reserved =
- ["abstype", "and", "andalso", "as", "case", "do", "datatype", "else",
-  "end", "exception", "fn", "fun", "handle", "if", "in", "infix",
-  "infixr", "let", "local", "nonfix", "of", "op", "open", "orelse",
-  "raise", "rec", "then", "type", "val", "with", "withtype", "while",
-  "eqtype", "functor", "include", "sharing", "sig", "signature",
-  "struct", "structure", "where"];
-
-val is_ml_reserved = member (op =) ml_reserved;
-
-fun is_ml_identifier name =
-  not (is_ml_reserved name) andalso Syntax.is_ascii_identifier name;
-
 fun warn_ml name =
-  if is_ml_identifier name then false
+  if ML_Syntax.is_identifier name then false
   else if name = "" then true
   else (warning ("Cannot bind theorem(s) " ^ quote name ^ " as ML value"); true);
 
@@ -89,7 +73,8 @@ fun legacy_bindings thy =
       let
         val xname = NameSpace.extern space name;
         fun result prfx bname =
-          if (prfx = "" orelse is_ml_identifier prfx) andalso is_ml_identifier bname andalso
+          if (prfx = "" orelse ML_Syntax.is_identifier prfx) andalso
+              ML_Syntax.is_identifier bname andalso
               NameSpace.intern space xname = name then
             SOME (prfx, (bname, xname, length (the (Symtab.lookup thms name)) = 1))
           else NONE;
