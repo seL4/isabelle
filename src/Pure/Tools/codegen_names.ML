@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Name policies for code generation: prefixing any name by corresponding theory name,
+Naming policies for code generation: prefixing any name by corresponding theory name,
 conversion to alphanumeric representation, shallow name spaces.
 Mappings are incrementally cached.
 *)
@@ -219,7 +219,6 @@ fun check_modulename mn =
       ^ "perhaps try " ^ quote (NameSpace.pack mns'))
   end
 
-
 fun purify_var "" = "x"
   | purify_var v =
       if nth (explode v) 0 = "'"
@@ -244,14 +243,16 @@ fun tyco_policy thy = policy thy NameSpace.base thyname_of_tyco;
 fun instance_policy thy = policy thy (fn (class, tyco) => 
   NameSpace.base class ^ "_" ^ NameSpace.base tyco) thyname_of_instance;
 
-fun force_thyname thy (c, tys) =
+fun force_thyname thy (const as (c, tys)) =
   case AxClass.class_of_param thy c
    of SOME class => (case tys
        of [Type (tyco, _)] => SOME (thyname_of_instance thy (class, tyco))
-        | _ => NONE)
-    | NONE => (case CodegenConsts.find_def thy (c, tys)
+        | _ => SOME (thyname_of_class thy class))
+    | NONE => (case CodegenData.get_datatype_of_constr thy const
+   of SOME dtco => SOME (thyname_of_tyco thy dtco)
+    | NONE => (case CodegenConsts.find_def thy const
    of SOME ((thyname, _), _) => SOME thyname
-    | NONE => NONE);
+    | NONE => NONE));
 
 fun const_policy thy (c, tys) =
   case force_thyname thy (c, tys)
