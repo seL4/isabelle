@@ -78,7 +78,9 @@ fun consts loc depends decls lthy =
   in
     lthy'
     |> K (loc <> "") ? (snd o LocalTheory.abbrevs Syntax.default_mode abbrs)
+    |> ProofContext.set_stmt true
     |> LocalDefs.add_defs defns |>> map (apsnd snd)
+    ||> ProofContext.restore_stmt lthy'
   end;
 
 
