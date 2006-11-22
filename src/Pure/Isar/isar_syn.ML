@@ -86,10 +86,11 @@ val defaultsortP =
 
 val axclassP =
   OuterSyntax.command "axclass" "define axiomatic type class" K.thy_decl
-    ((P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
-        P.!!! (P.list1 P.xname)) []) --
-          Scan.repeat (P.thm_name ":" -- (P.prop >> single))
-      >> (fn (x, y) => Toplevel.theory (snd o AxClass.define_class x [] y)));
+    (P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
+        P.!!! (P.list1 P.xname)) []
+        -- Scan.optional (P.$$$ "attach" |-- Scan.repeat P.term) []
+        -- Scan.repeat (P.thm_name ":" -- (P.prop >> single))
+      >> (fn ((x, y), z) => Toplevel.theory (snd o AxClass.define_class x y z)));
 
 
 (* types *)
@@ -887,7 +888,7 @@ val welcomeP =
 
 val _ = OuterSyntax.add_keywords
  ["!", "!!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
-  "=", "==", "=>", "?", "[", "]", "advanced", "and", "assumes",
+  "=", "==", "=>", "?", "[", "]", "advanced", "and", "assumes", "attach",
   "begin", "binder", "concl", "constrains", "defines", "fixes", "for",
   "imports", "if", "in", "includes", "infix", "infixl", "infixr",
   "is", "notes", "obtains", "open", "output", "overloaded", "shows",

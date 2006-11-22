@@ -560,7 +560,7 @@ require renaming (e.g. ``List.memberl.simps'').
 INCOMPATIBILITY: ML code directly refering to constant names may need adaption
 This in general only affects hand-written proof tactics, simprocs and so on.
 
-* New theory Code_Generator providing class 'eq' with constant 'eq',
+* New theory Code_Generator providing class 'eq',
 allowing for code generation with polymorphic equality.
 
 * Numeral syntax: type 'bin' which was a mere type copy of 'int' has been
