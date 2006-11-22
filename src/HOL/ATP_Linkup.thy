@@ -7,7 +7,7 @@
 header{* The Isabelle-ATP Linkup *}
 
 theory ATP_Linkup
-imports Hilbert_Choice Map Extraction
+imports Map Hilbert_Choice
 uses
   "Tools/polyhash.ML"
   "Tools/ATP/AtpCommunication.ML"
