@@ -106,8 +106,9 @@ particular, external environment references should be kept at a minimum.
   absolute path names of the \texttt{isabelle-process} and \texttt{isatool}
   executables, respectively.
   
-\item \settdx{ISABELLE_OUTPUT} will have the {\ML} system identifier
-  (according to \texttt{ML_IDENTIFIER}) automatically appended to its value.
+\item \settdx{ISABELLE_OUTPUT} will have the {\ML} system and Isabelle version
+  identifier (according to \texttt{ML_IDENTIFIER}) appended automatically to
+  its value.
 \end{itemize}
 
 \medskip The Isabelle settings scheme is conceptually simple, but not
@@ -150,16 +151,16 @@ selection. Variables that are special in some sense are marked with *.
   with \texttt{ML_OPTIONS} as first arguments on the command line.  The
   optional \texttt{ML_PLATFORM} may specify the binary format of ML heap
   images, which is useful for cross-platform installations.  The value of
-  \texttt{ML_IDENTIFIER} is automatically obtained by composing the
-  \texttt{ML_SYSTEM} and \texttt{ML_PLATFORM} values.
+  \texttt{ML_IDENTIFIER} is automatically obtained by composing the values of
+  \texttt{ML_SYSTEM}, \texttt{ML_PLATFORM} and the Isabelle version values.
   
 \item[\settdx{ISABELLE_PATH}] is a list of directories (separated by colons)
   where Isabelle logic images may reside.  When looking up heaps files, the
   value of \texttt{ML_IDENTIFIER} is appended to each component internally.
   
 \item[\settdx{ISABELLE_OUTPUT}*] is a directory where output heap files should
-  be stored by default. The \texttt{ML_SYSTEM} identifier is appended here,
-  too.
+  be stored by default. The {\ML} system and Isabelle version identifier is
+  appended here, too.
   
 \item[\settdx{ISABELLE_BROWSER_INFO}] is the directory where theory browser
   information (HTML text, graph data, and printable documents) is stored (see
