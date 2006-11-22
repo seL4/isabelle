@@ -154,7 +154,8 @@ fun make_node (context, facts, mode, goal) =
 fun map_node f (Node {context, facts, mode, goal}) =
   make_node (f (context, facts, mode, goal));
 
-fun init ctxt = State (Stack.init (make_node (ctxt, NONE, Forward, NONE)));
+fun init ctxt =
+  State (Stack.init (make_node (ProofContext.set_stmt true ctxt, NONE, Forward, NONE)));
 
 fun current (State st) = Stack.top st |> (fn Node node => node);
 fun map_current f (State st) = State (Stack.map_top (map_node f) st);
