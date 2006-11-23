@@ -1109,7 +1109,7 @@ val isabelle_acceptedpgipelems =
      "showproofstate", "showctxt", "searchtheorems", "setlinewidth", "viewdoc",
      "doitem", "undoitem", "redoitem", "abortheory",
      "retracttheory", "loadfile", "openfile", "closefile",
-     "abortfile", "changecwd", "systemcmd"];
+     "abortfile", "retractfile", "changecwd", "systemcmd"];
 
 fun usespgip () =
     issue_pgip
