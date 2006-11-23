@@ -8,11 +8,11 @@ Declaration of rules for cases and induction.
 signature INDUCT_ATTRIB =
 sig
   val vars_of: term -> term list
-  val dest_rules: Context.generic ->
+  val dest_rules: Proof.context ->
     {type_cases: (string * thm) list, set_cases: (string * thm) list,
       type_induct: (string * thm) list, set_induct: (string * thm) list,
       type_coinduct: (string * thm) list, set_coinduct: (string * thm) list}
-  val print_rules: Context.generic -> unit
+  val print_rules: Proof.context -> unit
   val lookup_casesT : Proof.context -> string -> thm option
   val lookup_casesS : Proof.context -> string -> thm option
   val lookup_inductT : Proof.context -> string -> thm option
@@ -133,8 +133,8 @@ structure Induct = GenericDataFun
 );
 
 val _ = Context.add_setup Induct.init;
-val print_rules = Induct.print;
-val dest_rules = dest o Induct.get;
+val print_rules = Induct.print o Context.Proof;
+val dest_rules = dest o Induct.get o Context.Proof;
 
 val get_local = Induct.get o Context.Proof;
 

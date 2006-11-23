@@ -15,7 +15,7 @@ sig
   val orderlist: ((int * int) * 'a) list -> 'a list
   val find_rules_netpair: bool -> thm list -> term -> netpair -> thm list
   val find_rules: bool -> thm list -> term -> Proof.context -> thm list list
-  val print_rules: Context.generic -> unit
+  val print_rules: Proof.context -> unit
   val addSWrapper: ((int -> tactic) -> int -> tactic) -> theory -> theory
   val addWrapper: ((int -> tactic) -> int -> tactic) -> theory -> theory
   val Swrap: Proof.context -> (int -> tactic) -> int -> tactic
@@ -125,7 +125,7 @@ structure Rules = GenericDataFun
 );
 
 val _ = Context.add_setup Rules.init;
-val print_rules = Rules.print;
+val print_rules = Rules.print o Context.Proof;
 
 
 (* access data *)

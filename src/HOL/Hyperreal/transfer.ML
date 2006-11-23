@@ -60,7 +60,7 @@ fun transfer_thm_of ctxt ths t =
   let
     val thy = ProofContext.theory_of ctxt;
     val {intros,unfolds,refolds,consts} = TransferData.get (Context.Proof ctxt)
-    val meta = LocalDefs.meta_rewrite_rule (Context.Proof ctxt)
+    val meta = LocalDefs.meta_rewrite_rule ctxt
     val unfolds' = map meta unfolds and refolds' = map meta refolds;
     val (_$_$t') = concl_of (Tactic.rewrite true unfolds' (cterm_of thy t))
     val u = unstar_term consts t'

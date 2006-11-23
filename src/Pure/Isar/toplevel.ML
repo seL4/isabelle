@@ -24,7 +24,7 @@ sig
   val node_history_of: state -> node History.T
   val node_of: state -> node
   val node_case: (generic_theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
-  val context_of: state -> Context.generic
+  val context_of: state -> Proof.context
   val theory_of: state -> theory
   val proof_of: state -> Proof.state
   val proof_position_of: state -> int
@@ -189,7 +189,7 @@ fun is_proof state = not (is_toplevel state) andalso is_some (proof_node (node_o
 
 fun node_case f g state = cases_node f g (node_of state);
 
-val context_of = node_case I (Context.Proof o Proof.context_of);
+val context_of = node_case Context.proof_of Proof.context_of;
 val theory_of = node_case Context.theory_of Proof.theory_of;
 val proof_of = node_case (fn _ => raise UNDEF) I;
 
@@ -214,7 +214,8 @@ fun prompt_state state = ! prompt_state_fn state;
 val pretty_context = LocalTheory.pretty o Context.cases (loc_init NONE) I;
 
 fun pretty_state_context state =
-  (case try context_of state of NONE => []
+  (case try (node_case I (Context.Proof o Proof.context_of)) state of
+    NONE => []
   | SOME gthy => pretty_context gthy);
 
 fun pretty_node prf_only (Theory (gthy, _)) = if prf_only then [] else pretty_context gthy

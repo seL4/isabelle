@@ -6,8 +6,8 @@ ATP rules.
 
 signature RES_ATPSET =
 sig
-  val print_atpset: Context.generic -> unit
-  val get_atpset: Context.generic -> thm list
+  val print_atpset: Proof.context -> unit
+  val get_atpset: Proof.context -> thm list
   val atp_add: attribute
   val atp_del: attribute
   val setup: theory -> theory
@@ -28,8 +28,8 @@ structure Data = GenericDataFun
       (map (ProofContext.pretty_thm (Context.proof_of context)) rules));
 );
 
-val print_atpset = Data.print;
-val get_atpset = Data.get;
+val print_atpset = Data.print o Context.Proof;
+val get_atpset = Data.get o Context.Proof;
 
 val atp_add = Thm.declaration_attribute (Data.map o Drule.add_rule);
 val atp_del = Thm.declaration_attribute (Data.map o Drule.del_rule);

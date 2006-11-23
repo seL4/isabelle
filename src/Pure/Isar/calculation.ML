@@ -7,7 +7,7 @@ Generic calculational proofs.
 
 signature CALCULATION =
 sig
-  val print_rules: Context.generic -> unit
+  val print_rules: Proof.context -> unit
   val get_calculation: Proof.state -> thm list option
   val trans_add: attribute
   val trans_del: attribute
@@ -47,7 +47,7 @@ structure CalculationData = GenericDataFun
 );
 
 val _ = Context.add_setup CalculationData.init;
-val print_rules = CalculationData.print;
+val print_rules = CalculationData.print o Context.Proof;
 
 
 (* access calculation *)

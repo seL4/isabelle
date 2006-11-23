@@ -59,9 +59,9 @@ val _ =
 
 fun consts_of_pres thy = 
   let
+    val ctxt = ProofContext.init thy;
     val pres = fst (NBE_Rewrite.get thy);
-    val rhss = map (snd o Logic.dest_equals o prop_of
-      o LocalDefs.meta_rewrite_rule (Context.Theory thy)) pres;
+    val rhss = map (snd o Logic.dest_equals o prop_of o LocalDefs.meta_rewrite_rule ctxt) pres;
   in
     (fold o fold_aterms)
       (fn Const c => insert (op =) (CodegenConsts.norm_of_typ thy c) | _ => I)
@@ -70,14 +70,14 @@ fun consts_of_pres thy =
 
 fun apply_pres thy =
   let
-    val pres =
-      (map (LocalDefs.meta_rewrite_rule (Context.Theory thy)) o fst) (NBE_Rewrite.get thy)
+    val ctxt = ProofContext.init thy;
+    val pres = (map (LocalDefs.meta_rewrite_rule ctxt) o fst) (NBE_Rewrite.get thy)
   in map (CodegenData.rewrite_func pres) end
 
 fun apply_posts thy =
   let
-    val posts =
-      (map (LocalDefs.meta_rewrite_rule (Context.Theory thy)) o snd) (NBE_Rewrite.get thy)
+    val ctxt = ProofContext.init thy;
+    val posts = (map (LocalDefs.meta_rewrite_rule ctxt) o snd) (NBE_Rewrite.get thy)
   in Tactic.rewrite false posts end
 
 
@@ -213,8 +213,7 @@ fun norm_print_term ctxt modes t =
   in Pretty.writeln p end;
 
 fun norm_print_term_e (modes, raw_t) state =
-  let
-    val ctxt = Context.proof_of (Toplevel.context_of state);
+  let val ctxt = Toplevel.context_of state
   in norm_print_term ctxt modes (ProofContext.read_term ctxt raw_t) end;
 
 val _ = Context.add_setup

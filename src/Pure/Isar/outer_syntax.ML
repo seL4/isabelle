@@ -328,7 +328,7 @@ struct
   val exn = Toplevel.exn;
 
   fun context () =
-    Context.proof_of (Toplevel.context_of (state ()))
+    Toplevel.context_of (state ())
       handle Toplevel.UNDEF => error "Unknown context";
 
   fun goal () =

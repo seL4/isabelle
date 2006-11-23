@@ -14,10 +14,10 @@ sig
   val find_def: Proof.context -> string -> thm option
   val add_defs: ((string * mixfix) * ((bstring * attribute list) * term)) list -> Proof.context ->
     (term * (bstring * thm)) list * Proof.context
-  val print_rules: Context.generic -> unit
+  val print_rules: Proof.context -> unit
   val defn_add: attribute
   val defn_del: attribute
-  val meta_rewrite_rule: Context.generic -> thm -> thm
+  val meta_rewrite_rule: Proof.context -> thm -> thm
   val unfold: Proof.context -> thm list -> thm -> thm
   val unfold_goals: Proof.context -> thm list -> thm -> thm
   val unfold_tac: Proof.context -> thm list -> tactic
@@ -122,7 +122,7 @@ structure Rules = GenericDataFun
 
 val _ = Context.add_setup Rules.init;
 
-val print_rules = Rules.print;
+val print_rules = Rules.print o Context.Proof;
 
 val defn_add = Thm.declaration_attribute (Rules.map o Drule.add_rule);
 val defn_del = Thm.declaration_attribute (Rules.map o Drule.del_rule);
@@ -134,19 +134,19 @@ val equals_ss =
   MetaSimplifier.theory_context ProtoPure.thy MetaSimplifier.empty_ss
     addeqcongs [Drule.equals_cong];    (*protect meta-level equality*)
 
-fun meta_rewrite context =
+fun meta_rewrite ctxt =
   MetaSimplifier.rewrite_cterm (false, false, false) (K (K NONE))
-    (equals_ss addsimps (Rules.get context));
+    (equals_ss addsimps (Rules.get (Context.Proof ctxt)));
 
 val meta_rewrite_rule = Drule.fconv_rule o meta_rewrite;
 
 fun meta_rewrite_tac ctxt i =
-  PRIMITIVE (Drule.fconv_rule (Drule.goals_conv (equal i) (meta_rewrite (Context.Proof ctxt))));
+  PRIMITIVE (Drule.fconv_rule (Drule.goals_conv (equal i) (meta_rewrite ctxt)));
 
 
 (* rewriting with object-level rules *)
 
-fun meta f ctxt = f o map (meta_rewrite_rule (Context.Proof ctxt));
+fun meta f ctxt = f o map (meta_rewrite_rule ctxt);
 
 val unfold       = meta Tactic.rewrite_rule;
 val unfold_goals = meta Tactic.rewrite_goals_rule;
@@ -161,7 +161,7 @@ fun derived_def ctxt conditional prop =
   let
     val ((c, T), rhs) = prop
       |> Thm.cterm_of (ProofContext.theory_of ctxt)
-      |> meta_rewrite (Context.Proof ctxt)
+      |> meta_rewrite ctxt
       |> (snd o Logic.dest_equals o Thm.prop_of)
       |> K conditional ? Logic.strip_imp_concl
       |> (abs_def o #2 o cert_def ctxt);

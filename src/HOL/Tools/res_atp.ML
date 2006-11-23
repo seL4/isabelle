@@ -581,13 +581,13 @@ fun get_clasimp_atp_lemmas ctxt user_thms =
 	          (name_thm_pairs ctxt))
 	else 
 	let val claset_thms =
-		if !include_claset then ResAxioms.claset_rules_of_ctxt ctxt
+		if !include_claset then ResAxioms.claset_rules_of ctxt
 		else []
 	    val simpset_thms = 
-		if !include_simpset then ResAxioms.simpset_rules_of_ctxt ctxt
+		if !include_simpset then ResAxioms.simpset_rules_of ctxt
 		else []
 	    val atpset_thms =
-		if !include_atpset then ResAxioms.atpset_rules_of_ctxt ctxt
+		if !include_atpset then ResAxioms.atpset_rules_of ctxt
 		else []
 	    val _ = if !Output.show_debug_msgs 
 		    then (Output.debug "ATP theorems: "; display_thms atpset_thms) 

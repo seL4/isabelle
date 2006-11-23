@@ -8,7 +8,7 @@ Automated type checking (cf. CTT).
 
 signature TYPE_CHECK =
 sig
-  val print_tcset: Context.generic -> unit
+  val print_tcset: Proof.context -> unit
   val TC_add: attribute
   val TC_del: attribute
   val typecheck_tac: Proof.context -> tactic
@@ -58,7 +58,7 @@ structure Data = GenericDataFun
       (map (ProofContext.pretty_thm (Context.proof_of context)) rules));
 );
 
-val print_tcset = Data.print;
+val print_tcset = Data.print o Context.Proof;
 
 val TC_add = Thm.declaration_attribute (Data.map o add_rule);
 val TC_del = Thm.declaration_attribute (Data.map o del_rule);

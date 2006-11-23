@@ -339,7 +339,7 @@ val print_syntax = Toplevel.unknown_theory o
 
 val print_facts = Toplevel.unknown_context o Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
-    ProofContext.print_lthms (Context.proof_of (Toplevel.context_of state)));
+    ProofContext.print_lthms (Toplevel.context_of state));
 
 val print_theorems_proof = Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
