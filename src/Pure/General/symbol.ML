@@ -64,7 +64,6 @@ sig
   val default_raw: string -> string
   val xsymbolsN: string
   val symbol_output: string -> string * real
-  val alphanum: string -> string
 end;
 
 structure Symbol: SYMBOL =
@@ -491,26 +490,6 @@ fun bump_string str =
     val (ss, qs) = apfst rev (Library.take_suffix is_quasi (sym_explode str));
     val ss' = if symbolic_end ss then "'" :: ss else bump ss;
   in implode (rev ss' @ qs) end;
-
-
-(*turning arbitrary names into alphanumerics*)
-
-fun alphanum s =
-  let
-    fun replace_invalid c (last_inv, cs) =
-      if (is_ascii_letter c orelse is_ascii_digit c orelse c = "'")
-        andalso not ("." = c)   (* FIXME !? *)
-      then (false, if last_inv then c :: "_" :: cs else c :: cs)
-      else (true, cs);
-    fun prefix_num_empty [] = ["x"]
-      | prefix_num_empty (cs as c::_) =
-          if is_ascii_digit c
-          then "x" :: cs
-          else cs;
-    val (prefix, cs1) = case explode s of "'"::cs => ("'", cs) | cs => ("", cs);
-    val (_, cs2) = fold_rev replace_invalid cs1 (false, []);
-    val cs3 = prefix_num_empty cs2;
-  in implode (prefix :: cs3) end;
 
 
 
