@@ -104,7 +104,8 @@ struct
 (* add / delete tags *)
 
 fun map_tags f thm =
-  Thm.put_name_tags (Thm.name_of_thm thm, f (#2 (Thm.get_name_tags thm))) thm;
+  let val (name, tags) = Thm.get_name_tags thm
+  in Thm.put_name_tags (name, f tags) thm end;
 
 fun tag_rule tg = map_tags (fn tgs => if member (op =) tgs tg then tgs else tgs @ [tg]);
 fun untag_rule s = map_tags (filter_out (fn (s', _) => s = s'));
