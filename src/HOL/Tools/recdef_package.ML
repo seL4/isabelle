@@ -11,7 +11,7 @@ sig
   val print_recdefs: theory -> unit
   val get_recdef: theory -> string
     -> {simps: thm list, rules: thm list list, induct: thm, tcs: term list} option
-  val get_hints: Context.generic -> {simps: thm list, congs: (string * thm) list, wfs: thm list}
+  val get_hints: Proof.context -> {simps: thm list, congs: (string * thm) list, wfs: thm list}
   val simp_add: attribute
   val simp_del: attribute
   val cong_add: attribute
@@ -130,7 +130,6 @@ fun put_recdef name info thy =
   in GlobalRecdefData.put (tab', hints) thy end;
 
 val get_global_hints = #2 o GlobalRecdefData.get;
-val map_global_hints = GlobalRecdefData.map o apsnd;
 
 
 (* proof data *)
@@ -143,17 +142,8 @@ structure LocalRecdefData = ProofDataFun
   fun print _ hints = pretty_hints hints |> Pretty.chunks |> Pretty.writeln;
 end);
 
-val get_local_hints = LocalRecdefData.get;
-val map_local_hints = LocalRecdefData.map;
-
-
-(* generic data *)
-
-fun get_hints (Context.Theory thy) = get_global_hints thy
-  | get_hints (Context.Proof ctxt) = get_local_hints ctxt;
-
-fun map_hints f (Context.Theory thy) = Context.Theory (map_global_hints f thy)
-  | map_hints f (Context.Proof ctxt) = Context.Proof (map_local_hints f ctxt);
+val get_hints = LocalRecdefData.get;
+fun map_hints f = Context.mapping (GlobalRecdefData.map (apsnd f)) (LocalRecdefData.map f);
 
 
 (* attributes *)
@@ -197,7 +187,7 @@ fun prepare_hints thy opt_src =
       (case opt_src of
         NONE => ctxt0
       | SOME src => Method.only_sectioned_args recdef_modifiers I src ctxt0);
-    val {simps, congs, wfs} = get_local_hints ctxt;
+    val {simps, congs, wfs} = get_hints ctxt;
     val cs = local_claset_of ctxt;
     val ss = local_simpset_of ctxt addsimps simps;
   in (cs, ss, rev (map snd congs), wfs) end;

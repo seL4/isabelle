@@ -1,13 +1,13 @@
 (*
-  Title:     Normalisation method for locales ring and cring
   Id:        $Id$
   Author:    Clemens Ballarin
-  Copyright: TU Muenchen
+
+Normalisation method for locales ring and cring.
 *)
 
 signature ALGEBRA =
 sig
-  val print_structures: Context.generic -> unit
+  val print_structures: Proof.context -> unit
   val setup: theory -> theory
 end;
 
@@ -44,7 +44,7 @@ structure AlgebraData = GenericDataFun
     end
 end);
 
-val print_structures = AlgebraData.print;
+val print_structures = AlgebraData.print o Context.Proof;
 
 
 (** Method **)
@@ -58,8 +58,7 @@ fun struct_tac ((s, ts), simps) =
   in asm_full_simp_tac (HOL_ss settermless less addsimps simps) end;
 
 fun algebra_tac ctxt =
-  let val _ = print_structures (Context.Proof ctxt)
-  in EVERY' (map (fn s => TRY o struct_tac s) (AlgebraData.get (Context.Proof ctxt))) end;
+  EVERY' (map (fn s => TRY o struct_tac s) (AlgebraData.get (Context.Proof ctxt)));
 
 val method =
   Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD' HEADGOAL (algebra_tac ctxt))
@@ -69,7 +68,7 @@ val method =
 
 fun add_struct_thm s =
   Thm.declaration_attribute (fn thm => fn ctxt =>
-    AlgebraData.map (fn structs => 
+    AlgebraData.map (fn structs =>
       if AList.defined struct_eq structs s
       then AList.map_entry struct_eq s (fn thms => thm :: thms) structs
       else (s, [thm])::structs) ctxt);
@@ -79,7 +78,7 @@ fun del_struct s =
 
 val attribute = Attrib.syntax
      (Scan.lift ((Args.add >> K true || Args.del >> K false) --| Args.colon ||
-        Scan.succeed true) -- Scan.lift Args.name -- 
+        Scan.succeed true) -- Scan.lift Args.name --
       Scan.repeat Args.term
       >> (fn ((b, n), ts) => if b then add_struct_thm (n, ts) else del_struct (n, ts)));
 
@@ -92,4 +91,4 @@ val setup =
   Attrib.add_attributes [("algebra", attribute, "theorems controlling algebra method")];
 
 
-end;  (* struct *)
+end;

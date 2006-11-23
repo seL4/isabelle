@@ -5,29 +5,25 @@
 Transformation of axiom rules (elim/intro/etc) into CNF forms.
 *)
 
-(*unused during debugging*)
 signature RES_AXIOMS =
-  sig
-  val cnf_axiom : (string * thm) -> thm list
+sig
+  val trace_abs: bool ref
+  val cnf_axiom : string * thm -> thm list
   val cnf_name : string -> thm list
   val meta_cnf_axiom : thm -> thm list
-  val claset_rules_of_thy : theory -> (string * thm) list
-  val simpset_rules_of_thy : theory -> (string * thm) list
-  val claset_rules_of_ctxt: Proof.context -> (string * thm) list
-  val simpset_rules_of_ctxt : Proof.context -> (string * thm) list
-  val pairname : thm -> (string * thm)
+  val pairname : thm -> string * thm
   val skolem_thm : thm -> thm list
   val to_nnf : thm -> thm
-  val cnf_rules_pairs : (string * Thm.thm) list -> (Thm.thm * (string * int)) list list;
+  val cnf_rules_pairs : (string * thm) list -> (thm * (string * int)) list
   val meson_method_setup : theory -> theory
   val setup : theory -> theory
+  val assume_abstract_list: thm list -> thm list
+  val claset_rules_of: Proof.context -> (string * thm) list
+  val simpset_rules_of: Proof.context -> (string * thm) list
+  val atpset_rules_of: Proof.context -> (string * thm) list
+end;
 
-  val atpset_rules_of_thy : theory -> (string * thm) list
-  val atpset_rules_of_ctxt : Proof.context -> (string * thm) list
-  end;
-
-structure ResAxioms =
-
+structure ResAxioms: RES_AXIOMS =
 struct
 
 (*For running the comparison between combinators and abstractions.
@@ -552,16 +548,10 @@ fun rules_of_simpset ss =
       map (fn r => (#name r, #thm r)) simps
   end;
 
-fun claset_rules_of_thy thy = rules_of_claset (claset_of thy);
-fun simpset_rules_of_thy thy = rules_of_simpset (simpset_of thy);
+fun claset_rules_of ctxt = rules_of_claset (local_claset_of ctxt);
+fun simpset_rules_of ctxt = rules_of_simpset (local_simpset_of ctxt);
 
-fun atpset_rules_of_thy thy = map pairname (ResAtpset.get_atpset (Context.Theory thy));
-
-
-fun claset_rules_of_ctxt ctxt = rules_of_claset (local_claset_of ctxt);
-fun simpset_rules_of_ctxt ctxt = rules_of_simpset (local_simpset_of ctxt);
-
-fun atpset_rules_of_ctxt ctxt = map pairname (ResAtpset.get_atpset (Context.Proof ctxt));
+fun atpset_rules_of ctxt = map pairname (ResAtpset.get_atpset ctxt);
 
 
 (**** Translate a set of classical/simplifier rules into CNF (still as type "thm")  ****)
