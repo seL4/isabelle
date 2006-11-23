@@ -66,10 +66,10 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
     val (type_insts, term_insts) = List.partition (is_tvar o fst) mixed_insts;
     val internal_insts = term_insts |> map_filter
       (fn (xi, Args.Term t) => SOME (xi, t)
-        | (_, Args.Name _) => NONE
+        | (_, Args.Text _) => NONE
         | (xi, _) => error_var "Term argument expected for " xi);
     val external_insts = term_insts |> map_filter
-      (fn (xi, Args.Name s) => SOME (xi, s) | _ => NONE);
+      (fn (xi, Args.Text s) => SOME (xi, s) | _ => NONE);
 
 
     (* mixed type instantiations *)
@@ -79,7 +79,7 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
         val S = the_sort tvars xi;
         val T =
           (case arg of
-            Args.Name s => ProofContext.read_typ ctxt s
+            Args.Text s => ProofContext.read_typ ctxt s
           | Args.Typ T => T
           | _ => error_var "Type argument expected for " xi);
       in
@@ -169,7 +169,7 @@ local
 val value =
   Args.internal_typ >> Args.Typ ||
   Args.internal_term >> Args.Term ||
-  Args.name >> Args.Name;
+  Args.name >> Args.Text;
 
 val inst = Args.var -- (Args.$$$ "=" |-- Args.ahead -- value)
   >> (fn (xi, (a, v)) => (a, (xi, v)));
@@ -188,7 +188,7 @@ local
 
 val value =
   Args.internal_term >> Args.Term ||
-  Args.name >> Args.Name;
+  Args.name >> Args.Text;
 
 val inst = Args.ahead -- Args.maybe value;
 val concl = Args.$$$ "concl" -- Args.colon;
