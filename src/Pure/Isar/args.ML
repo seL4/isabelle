@@ -9,14 +9,14 @@ support for embedded values and static binding.
 signature ARGS =
 sig
   datatype value =
-    Name of string | Typ of typ | Term of term | Fact of thm list | Attribute of attribute
+    Text of string | Typ of typ | Term of term | Fact of thm list | Attribute of attribute
   type T
   val string_of: T -> string
   val mk_ident: string * Position.T -> T
   val mk_string: string * Position.T -> T
   val mk_alt_string: string * Position.T -> T
   val mk_keyword: string * Position.T -> T
-  val mk_name: string -> T
+  val mk_text: string -> T
   val mk_typ: typ -> T
   val mk_term: term -> T
   val mk_fact: thm list -> T
@@ -61,12 +61,12 @@ sig
   val and_list: ('a * T list -> 'b * ('a * T list)) -> 'a * T list -> 'b list * ('a * T list)
   val and_list1: ('a * T list -> 'b * ('a * T list)) -> 'a * T list -> 'b list * ('a * T list)
   val ahead: T list -> T * T list
-  val internal_name: T list -> string * T list
+  val internal_text: T list -> string * T list
   val internal_typ: T list -> typ * T list
   val internal_term: T list -> term * T list
   val internal_fact: T list -> thm list * T list
   val internal_attribute: T list -> attribute * T list
-  val named_name: (string -> string) -> T list -> string * T list
+  val named_text: (string -> string) -> T list -> string * T list
   val named_typ: (string -> typ) -> T list -> typ * T list
   val named_term: (string -> term) -> T list -> term * T list
   val named_fact: (string -> thm list) -> T list -> thm list * T list
@@ -103,7 +103,7 @@ datatype kind = Ident | String | AltString | Keyword | EOF;
 type symbol = kind * string * Position.T;
 
 datatype value =
-  Name of string |
+  Text of string |
   Typ of typ |
   Term of term |
   Fact of thm list |
@@ -135,7 +135,7 @@ val mk_ident = mk_symbol Ident;
 val mk_string = mk_symbol String;
 val mk_alt_string = mk_symbol AltString;
 val mk_keyword = mk_symbol Keyword;
-val mk_name = mk_value "<name>" o Name;
+val mk_text = mk_value "<text>" o Text;
 val mk_typ = mk_value "<typ>" o Typ;
 val mk_term = mk_value "<term>" o Term;
 val mk_fact = mk_value "<fact>" o Fact;
@@ -163,7 +163,7 @@ fun dest_src (Src src) = src;
 
 fun pretty_src ctxt src =
   let
-    fun prt (Arg (_, Value (SOME (Name s)))) = Pretty.str (quote s)
+    fun prt (Arg (_, Value (SOME (Text s)))) = Pretty.str (quote s)
       | prt (Arg (_, Value (SOME (Typ T)))) = ProofContext.pretty_typ ctxt T
       | prt (Arg (_, Value (SOME (Term t)))) = ProofContext.pretty_term ctxt t
       | prt (Arg (_, Value (SOME (Fact ths)))) = ProofContext.pretty_thms ctxt ths
@@ -181,7 +181,7 @@ fun map_value f (Arg (s, Value (SOME v))) = Arg (s, Value (SOME (f v)))
   | map_value _ arg = arg;
 
 fun morph_values phi = map_args (map_value
-  (fn Name s => Name (Morphism.name phi s)
+  (fn Text s => Text s
     | Typ T => Typ (Morphism.typ phi T)
     | Term t => Term (Morphism.term phi t)
     | Fact ths => Fact (map (Morphism.thm phi) ths)
@@ -298,13 +298,13 @@ fun value dest = Scan.some  (*no touch here*)
 fun evaluate mk eval arg =
   let val x = eval (sym_of arg) in (assign (SOME (mk x)) arg; x) end;
 
-val internal_name = value (fn Name s => s);
+val internal_text = value (fn Text s => s);
 val internal_typ = value (fn Typ T => T);
 val internal_term = value (fn Term t => t);
 val internal_fact = value (fn Fact ths => ths);
 val internal_attribute = value (fn Attribute att => att);
 
-fun named_name intern = internal_name || named >> evaluate Name intern;
+fun named_text intern = internal_text || named >> evaluate Text intern;
 fun named_typ readT = internal_typ || named >> evaluate Typ readT;
 fun named_term read = internal_term || named >> evaluate Term read;
 fun named_fact get = internal_fact || (alt_string || named) >> evaluate Fact get;
@@ -375,7 +375,7 @@ in
 
 fun attribs intern =
   let
-    val attrib_name = internal_name || (symbolic || named) >> evaluate Name intern;
+    val attrib_name = internal_text || (symbolic || named) >> evaluate Text intern;
     val attrib = position (attrib_name -- !!! (args false)) >> src;
   in $$$ "[" |-- !!! (list attrib --| $$$ "]") end;
 
