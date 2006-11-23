@@ -452,8 +452,7 @@ fun satisfy_thm witns thm = thm |> fold (fn hyp =>
     | SOME (Witness (_, th)) => Drule.implies_intr_protected [hyp] #> Goal.comp_hhf th))
   (#hyps (Thm.crep_thm thm));
 
-fun satisfy_morphism witns = Morphism.morphism
-  {name = I, var = I, typ = I, term = I, thm = satisfy_thm witns};
+fun satisfy_morphism witns = Morphism.thm_morphism (satisfy_thm witns);
 
 fun satisfy_facts witns facts =
   morph_ctxt (satisfy_morphism witns) (Notes ("", facts)) |> (fn Notes (_, facts') => facts');
