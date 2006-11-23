@@ -306,8 +306,8 @@ done
 
 subsubsection {*Equality of booleans -- iff*}
 
-lemma iffI: assumes prems: "P ==> Q" "Q ==> P" shows "P=Q"
-  by (iprover intro: iff [THEN mp, THEN mp] impI prems)
+lemma iffI: assumes "P ==> Q" and "Q ==> P" shows "P=Q"
+  by (iprover intro: iff [THEN mp, THEN mp] impI assms)
 
 lemma iffD2: "[| P=Q; Q |] ==> P"
   by (erule ssubst)
@@ -315,12 +315,15 @@ lemma iffD2: "[| P=Q; Q |] ==> P"
 lemma rev_iffD2: "[| Q; P=Q |] ==> P"
   by (erule iffD2)
 
-lemmas iffD1 = sym [THEN iffD2, standard]
-lemmas rev_iffD1 = sym [THEN [2] rev_iffD2, standard]
+lemma iffD1: "Q = P \<Longrightarrow> Q \<Longrightarrow> P"
+  by (drule sym) (rule iffD2)
+
+lemma rev_iffD1: "Q \<Longrightarrow> Q = P \<Longrightarrow> P"
+  by (drule sym) (rule rev_iffD2)
 
 lemma iffE:
   assumes major: "P=Q"
-      and minor: "[| P --> Q; Q --> P |] ==> R"
+    and minor: "[| P --> Q; Q --> P |] ==> R"
   shows R
   by (iprover intro: minor impI major [THEN iffD2] major [THEN iffD1])
 
@@ -328,23 +331,19 @@ lemma iffE:
 subsubsection {*True*}
 
 lemma TrueI: "True"
-  by (unfold True_def) (rule refl)
+  unfolding True_def by (rule refl)
 
-lemma eqTrueI: "P ==> P=True"
+lemma eqTrueI: "P ==> P = True"
   by (iprover intro: iffI TrueI)
 
-lemma eqTrueE: "P=True ==> P"
-apply (erule iffD2)
-apply (rule TrueI)
-done
+lemma eqTrueE: "P = True ==> P"
+  by (erule iffD2) (rule TrueI)
 
 
 subsubsection {*Universal quantifier*}
 
-lemma allI: assumes p: "!!x::'a. P(x)" shows "ALL x. P(x)"
-apply (unfold All_def)
-apply (iprover intro: ext eqTrueI p)
-done
+lemma allI: assumes "!!x::'a. P(x)" shows "ALL x. P(x)"
+  unfolding All_def by (iprover intro: ext eqTrueI assms)
 
 lemma spec: "ALL x::'a. P(x) ==> P(x)"
 apply (unfold All_def)
@@ -354,57 +353,61 @@ done
 
 lemma allE:
   assumes major: "ALL x. P(x)"
-      and minor: "P(x) ==> R"
-  shows "R"
-by (iprover intro: minor major [THEN spec])
+    and minor: "P(x) ==> R"
+  shows R
+  by (iprover intro: minor major [THEN spec])
 
 lemma all_dupE:
   assumes major: "ALL x. P(x)"
-      and minor: "[| P(x); ALL x. P(x) |] ==> R"
-  shows "R"
-by (iprover intro: minor major major [THEN spec])
+    and minor: "[| P(x); ALL x. P(x) |] ==> R"
+  shows R
+  by (iprover intro: minor major major [THEN spec])
 
 
-subsubsection {*False*}
-(*Depends upon spec; it is impossible to do propositional logic before quantifiers!*)
+subsubsection {* False *}
+
+text {*
+  Depends upon @{text spec}; it is impossible to do propositional
+  logic before quantifiers!
+*}
 
 lemma FalseE: "False ==> P"
-apply (unfold False_def)
-apply (erule spec)
-done
+  apply (unfold False_def)
+  apply (erule spec)
+  done
 
-lemma False_neq_True: "False=True ==> P"
-by (erule eqTrueE [THEN FalseE])
+lemma False_neq_True: "False = True ==> P"
+  by (erule eqTrueE [THEN FalseE])
 
 
-subsubsection {*Negation*}
+subsubsection {* Negation *}
 
 lemma notI:
-  assumes p: "P ==> False"
+  assumes "P ==> False"
   shows "~P"
-apply (unfold not_def)
-apply (iprover intro: impI p)
-done
+  apply (unfold not_def)
+  apply (iprover intro: impI assms)
+  done
 
 lemma False_not_True: "False ~= True"
-apply (rule notI)
-apply (erule False_neq_True)
-done
+  apply (rule notI)
+  apply (erule False_neq_True)
+  done
 
 lemma True_not_False: "True ~= False"
-apply (rule notI)
-apply (drule sym)
-apply (erule False_neq_True)
-done
+  apply (rule notI)
+  apply (drule sym)
+  apply (erule False_neq_True)
+  done
 
 lemma notE: "[| ~P;  P |] ==> R"
-apply (unfold not_def)
-apply (erule mp [THEN FalseE])
-apply assumption
-done
+  apply (unfold not_def)
+  apply (erule mp [THEN FalseE])
+  apply assumption
+  done
 
-(* Alternative ~ introduction rule: [| P ==> ~ Pa; P ==> Pa |] ==> ~ P *)
-lemmas notI2 = notE [THEN notI, standard]
+lemma notI2: "(P \<Longrightarrow> \<not> Pa) \<Longrightarrow> (P \<Longrightarrow> Pa) \<Longrightarrow> \<not> P"
+  by (erule notE [THEN notI]) (erule meta_mp)
 
 
 subsubsection {*Implication*}
