@@ -93,7 +93,12 @@ sig
   val add_thmss: string -> string ->
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
-  val add_term_syntax: string -> (Proof.context -> Proof.context) -> Proof.context -> Proof.context
+  val add_type_syntax: string -> (morphism -> Proof.context -> Proof.context) ->
+    Proof.context -> Proof.context
+  val add_term_syntax: string -> (morphism -> Proof.context -> Proof.context) ->
+    Proof.context -> Proof.context
+  val add_declaration: string -> (morphism -> Proof.context -> Proof.context) ->
+    Proof.context -> Proof.context
 
   val interpretation: (Proof.context -> Proof.context) ->
     string * Attrib.src list -> expr -> string option list ->
@@ -141,6 +146,8 @@ datatype 'a element =
 fun map_elem f (Elem e) = Elem (f e)
   | map_elem _ (Expr e) = Expr e;
 
+type decl = (morphism -> Proof.context -> Proof.context) * stamp;
+
 type locale =
  {axiom: Element.witness list,
     (* For locales that define predicates this is [A [A]], where A is the locale
@@ -149,9 +156,9 @@ type locale =
   import: expr,                                                     (*dynamic import*)
   elems: (Element.context_i * stamp) list,
     (* Static content, neither Fixes nor Constrains elements *)
-  params: ((string * typ) * mixfix) list,                           (*all params*)
+  params: ((string * typ) * mixfix) list,                             (*all params*)
   lparams: string list,                                             (*local params*)
-  term_syntax: ((Proof.context -> Proof.context) * stamp) list, (* FIXME depend on morphism *)
+  decls: decl list * decl list * decl list,          (*type/term/fact declarations*)
   regs: ((string * string list) * Element.witness list) list,
     (* Registrations: indentifiers and witnesses of locales interpreted in the locale. *)
   intros: thm list * thm list}
@@ -270,18 +277,24 @@ structure GlobalLocalesData = TheoryDataFun
   val copy = I;
   val extend = I;
 
-  fun join_locs _ ({axiom, import, elems, params, lparams, term_syntax, regs, intros}: locale,
-      {elems = elems', term_syntax = term_syntax', regs = regs', ...}: locale) =
+  fun merge_decls which (decls, decls') : decl list =
+    Library.merge (eq_snd (op =)) (which decls, which decls');
+
+  fun join_locales _ ({axiom, import, elems, params, lparams, decls, regs, intros}: locale,
+      {elems = elems', decls = decls', regs = regs', ...}: locale) =
      {axiom = axiom,
       import = import,
       elems = gen_merge_lists (eq_snd (op =)) elems elems',
       params = params,
       lparams = lparams,
-      term_syntax = Library.merge (eq_snd (op =)) (term_syntax, term_syntax'),
+      decls =
+       (merge_decls #1 (decls, decls'),
+        merge_decls #2 (decls, decls'),
+        merge_decls #3 (decls, decls')),
       regs = merge_alists regs regs',
       intros = intros};
   fun merge _ ((space1, locs1, regs1), (space2, locs2, regs2)) =
-    (NameSpace.merge (space1, space2), Symtab.join join_locs (locs1, locs2),
+    (NameSpace.merge (space1, space2), Symtab.join join_locales (locs1, locs2),
      Symtab.join (K Registrations.join) (regs1, regs2));
 
   fun print _ (space, locs, _) =
@@ -331,13 +344,13 @@ fun the_locale thy name =
 
 fun change_locale name f thy =
   let
-    val {axiom, import, elems, params, lparams, term_syntax, regs, intros} =
+    val {axiom, import, elems, params, lparams, decls, regs, intros} =
         the_locale thy name;
-    val (axiom', import', elems', params', lparams', term_syntax', regs', intros') =
-      f (axiom, import, elems, params, lparams, term_syntax, regs, intros);
+    val (axiom', import', elems', params', lparams', decls', regs', intros') =
+      f (axiom, import, elems, params, lparams, decls, regs, intros);
   in
     put_locale name {axiom = axiom', import = import', elems = elems',
-      params = params', lparams = lparams', term_syntax = term_syntax', regs = regs',
+      params = params', lparams = lparams', decls = decls', regs = regs',
       intros = intros'} thy
   end;
 
@@ -403,8 +416,8 @@ val put_local_registration =
      gen_put_registration LocalLocalesData.map ProofContext.theory_of;
 
 fun put_registration_in_locale name id =
-  change_locale name (fn (axiom, import, elems, params, lparams, term_syntax, regs, intros) =>
-    (axiom, import, elems, params, lparams, term_syntax, regs @ [(id, [])], intros));
+  change_locale name (fn (axiom, import, elems, params, lparams, decls, regs, intros) =>
+    (axiom, import, elems, params, lparams, decls, regs @ [(id, [])], intros));
 
 
 (* add witness theorem to registration in theory or context,
@@ -419,11 +432,11 @@ fun add_global_witness id thm =
 val add_local_witness = LocalLocalesData.map oo add_witness;
 
 fun add_witness_in_locale name id thm =
-  change_locale name (fn (axiom, import, elems, params, lparams, term_syntax, regs, intros) =>
+  change_locale name (fn (axiom, import, elems, params, lparams, decls, regs, intros) =>
     let
       fun add (id', thms) =
         if id = id' then (id', thm :: thms) else (id', thms);
-    in (axiom, import, elems, params, lparams, term_syntax, map add regs, intros) end);
+    in (axiom, import, elems, params, lparams, decls, map add regs, intros) end);
 
 
 (* printing of registrations *)
@@ -832,12 +845,12 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
         val mode' = map_mode (map (Element.map_witness (inst_wit all_params))) mode;
         val ren = map fst ps ~~ map (fn p => (p, lookup_syn p)) params;
         val [env] = unify_parms ctxt all_params [map (apfst (Element.rename ren) o apsnd SOME) ps];
-        val eval_elem =
-           Element.morph_ctxt (Element.rename_morphism ren) #>
-           Element.map_ctxt {var = I, typ = I, term = I, fact = I, attrib = I,
-             name = NameSpace.qualified (space_implode "_" params)} #>
-           Element.morph_ctxt (Element.instT_morphism thy env);
-      in (((name, map (apsnd SOME) locale_params'), mode'), map eval_elem elems) end;
+        val elem_morphism =
+          Element.rename_morphism ren $>
+          Morphism.name_morphism (NameSpace.qualified (space_implode "_" params)) $>
+          Element.instT_morphism thy env;
+        val elems' = map (Element.morph_ctxt elem_morphism) elems;
+      in (((name, map (apsnd SOME) locale_params'), mode'), elems') end;
 
     (* parameters, their types and syntax *)
     val (all_params', tenv, syn) = params_of_expr ctxt [] expr ([], Symtab.empty, Symtab.empty);
@@ -1286,8 +1299,8 @@ fun check_name name =
   if NameSpace.is_qualified name then error ("Illegal qualified name: " ^ quote name)
   else name;
 
-fun prep_facts _ _ _ ctxt (Int elem) =
-      Element.morph_ctxt (Morphism.transfer (ProofContext.theory_of ctxt)) elem
+fun prep_facts _ _ _ ctxt (Int elem) = elem
+      |> Element.morph_ctxt (Morphism.thm_morphism (Thm.transfer (ProofContext.theory_of ctxt)))
   | prep_facts prep_name get intern ctxt (Ext elem) = elem |> Element.map_ctxt
      {var = I, typ = I, term = I,
       name = prep_name,
@@ -1522,21 +1535,37 @@ fun note_thmss_registrations target (kind, args) thy =
   in fold activate regs thy end;
 
 
-(* term syntax *)
+(* init *)
 
-fun add_term_syntax loc syn =
-  syn #> ProofContext.theory (change_locale loc
-    (fn (axiom, import, elems, params, lparams, term_syntax, regs, intros) =>
-      (axiom, import, elems, params, lparams, (syn, stamp ()) :: term_syntax, regs, intros)));
-
-fun init_term_syntax loc ctxt =
-  fold_rev (fn (f, _) => fn ctxt' => f ctxt')
-    (#term_syntax (the_locale (ProofContext.theory_of ctxt) loc)) ctxt;
+fun init_decls loc ctxt =
+  let
+    val (type_syntax, term_syntax, declarations) =
+      #decls (the_locale (ProofContext.theory_of ctxt) loc)
+    fun app (f, _) = f Morphism.identity;
+  in
+    ctxt
+    |> fold_rev app type_syntax
+    |> fold_rev app term_syntax
+    |> fold_rev app declarations
+  end;
 
 fun init loc =
   ProofContext.init
-  #> init_term_syntax loc
+  #> init_decls loc
   #> (#2 o cert_context_statement (SOME loc) [] []);
+
+
+(* declarations *)
+
+fun add_decls which loc decl =
+  decl Morphism.identity #>
+  ProofContext.theory (change_locale loc
+    (fn (axiom, import, elems, params, lparams, decls, regs, intros) =>
+      (axiom, import, elems, params, lparams, which (decl, stamp ()) decls, regs, intros)));
+
+val add_type_syntax = add_decls (fn d => fn (ds1, ds2, ds3) => (d :: ds1, ds2, ds3));
+val add_term_syntax = add_decls (fn d => fn (ds1, ds2, ds3) => (ds1, d :: ds2, ds3));
+val add_declaration = add_decls (fn d => fn (ds1, ds2, ds3) => (ds1, ds2, d :: ds3));
 
 
 (* locale results *)
@@ -1548,9 +1577,9 @@ fun add_thmss loc kind args ctxt =
         (ctxt, [((("", []), Assumed []), [Ext (Notes (kind, args))])]);
     val ctxt'' = ctxt' |> ProofContext.theory
       (change_locale loc
-        (fn (axiom, import, elems, params, lparams, term_syntax, regs, intros) =>
+        (fn (axiom, import, elems, params, lparams, decls, regs, intros) =>
           (axiom, import, elems @ [(Notes args', stamp ())],
-            params, lparams, term_syntax, regs, intros))
+            params, lparams, decls, regs, intros))
       #> note_thmss_registrations loc args');
   in (facts, ctxt'') end;
 
@@ -1795,7 +1824,7 @@ fun gen_add_locale prep_ctxt prep_expr
         elems = map (fn e => (e, stamp ())) elems'',
         params = params_of elemss' |> map (fn (x, SOME T) => ((x, T), the (Symtab.lookup syn x))),
         lparams = map #1 (params_of' body_elemss),
-        term_syntax = [],
+        decls = ([], [], []),
         regs = regs,
         intros = intros}
       |> init name;
@@ -1879,52 +1908,48 @@ fun extract_asms_elems ((id, Assumed _), elems) = (id, maps Element.prems_of ele
 
 fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
         attn all_elemss new_elemss propss thmss thy_ctxt =
-    let
-      fun activate_elem disch (prfx, atts) (Notes (kind, facts)) thy_ctxt =
-          let
-            val disch_morphism = Morphism.morphism
-              {name = I, var = I, typ = I, term = I, thm = disch};
-            val facts' = facts
-              (* discharge hyps in attributes *)
-              |> Attrib.map_facts (attrib thy_ctxt o Args.morph_values disch_morphism)
-              (* append interpretation attributes *)
-              |> map (apfst (apsnd (fn a => a @ map (attrib thy_ctxt) atts)))
-              (* discharge hyps *)
-              |> map (apsnd (map (apfst (map disch))));
-          in snd (note kind prfx facts' thy_ctxt) end
-        | activate_elem _ _ _ thy_ctxt = thy_ctxt;
+  let
+    fun activate_elem disch (prfx, atts) (Notes (kind, facts)) thy_ctxt =
+        let
+          val facts' = facts
+            (* discharge hyps in attributes *)
+            |> Attrib.map_facts (attrib thy_ctxt o Args.morph_values (Morphism.thm_morphism disch))
+            (* append interpretation attributes *)
+            |> map (apfst (apsnd (fn a => a @ map (attrib thy_ctxt) atts)))
+            (* discharge hyps *)
+            |> map (apsnd (map (apfst (map disch))));
+        in snd (note kind prfx facts' thy_ctxt) end
+      | activate_elem _ _ _ thy_ctxt = thy_ctxt;
 
-      fun activate_elems disch ((id, _), elems) thy_ctxt =
-          let
-            val ((prfx, atts2), _) = the (get_reg thy_ctxt id)
-                handle Option => sys_error ("Unknown registration of " ^
-                  quote (fst id) ^ " while activating facts.");
-          in
-            fold (activate_elem disch (prfx, atts2)) elems thy_ctxt
-          end;
+    fun activate_elems disch ((id, _), elems) thy_ctxt =
+      let
+        val ((prfx, atts2), _) = the (get_reg thy_ctxt id)
+          handle Option => sys_error ("Unknown registration of " ^
+            quote (fst id) ^ " while activating facts.");
+      in fold (activate_elem disch (prfx, atts2)) elems thy_ctxt end;
 
-      val thy_ctxt' = thy_ctxt
-        (* add registrations *)
-        |> fold (fn ((id, _), _) => put_reg id attn) new_elemss
-        (* add witnesses of Assumed elements *)
-        |> fold (fn (id, thms) => fold (add_wit id) thms) (map fst propss ~~ thmss);
+    val thy_ctxt' = thy_ctxt
+      (* add registrations *)
+      |> fold (fn ((id, _), _) => put_reg id attn) new_elemss
+      (* add witnesses of Assumed elements *)
+      |> fold (fn (id, thms) => fold (add_wit id) thms) (map fst propss ~~ thmss);
 
-      val prems = flat (map_filter
-            (fn ((id, Assumed _), _) => Option.map snd (get_reg thy_ctxt' id)
-              | ((_, Derived _), _) => NONE) all_elemss);
-      val satisfy = Element.satisfy_morphism prems;
-      val thy_ctxt'' = thy_ctxt'
-        (* add witnesses of Derived elements *)
-        |> fold (fn (id, thms) => fold (add_wit id o Element.morph_witness satisfy) thms)
-           (map_filter (fn ((_, Assumed _), _) => NONE
-              | ((id, Derived thms), _) => SOME (id, thms)) new_elemss)
+    val prems = flat (map_filter
+          (fn ((id, Assumed _), _) => Option.map snd (get_reg thy_ctxt' id)
+            | ((_, Derived _), _) => NONE) all_elemss);
+    val satisfy = Element.satisfy_morphism prems;
+    val thy_ctxt'' = thy_ctxt'
+      (* add witnesses of Derived elements *)
+      |> fold (fn (id, thms) => fold (add_wit id o Element.morph_witness satisfy) thms)
+         (map_filter (fn ((_, Assumed _), _) => NONE
+            | ((id, Derived thms), _) => SOME (id, thms)) new_elemss)
 
-      val disch' = std o Morphism.thm satisfy;  (* FIXME *)
-    in
-      thy_ctxt''
-        (* add facts to theory or context *)
-        |> fold (activate_elems disch') new_elemss
-    end;
+    val disch' = std o Morphism.thm satisfy;  (* FIXME *)
+  in
+    thy_ctxt''
+    (* add facts to theory or context *)
+    |> fold (activate_elems disch') new_elemss
+  end;
 
 fun global_activate_facts_elemss x = gen_activate_facts_elemss
       (fn thy => fn (name, ps) =>
@@ -2183,7 +2208,7 @@ fun interpretation_in_locale after_qed (raw_target, expr) thy =
     val raw_propp = prep_propp propss;
 
     val (_, _, goal_ctxt, propp) = thy
-      |> ProofContext.init |> init_term_syntax target
+      |> ProofContext.init |> init_decls target
       |> cert_context_statement (SOME target) [] raw_propp;
 
     fun after_qed' results =
