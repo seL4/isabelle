@@ -88,8 +88,8 @@ fun fundef_afterqed config fixes spec mutual_info defname data [[result]] lthy =
 
       
     in
-      lthy
-        |> LocalTheory.declaration (add_fundef_data defname cdata) (* save in target *)
+      lthy  (* FIXME proper handling of morphism *)
+        |> LocalTheory.declaration (fn phi => add_fundef_data defname cdata) (* save in target *)
         |> Context.proof_map (add_fundef_data defname cdata) (* also save in local context *)
     end (* FIXME: Add cases for induct and cases thm *)
 

@@ -704,8 +704,8 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
        induct = induct'}
 
   in
-    (result, LocalTheory.declaration
-       (put_inductives cnames ({names = cnames, coind = coind}, result)) ctxt4)
+    (result, LocalTheory.declaration (fn phi => (* FIXME *)
+       (put_inductives cnames ({names = cnames, coind = coind}, result))) ctxt4)
   end;
 
 
