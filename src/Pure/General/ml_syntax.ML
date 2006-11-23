@@ -47,12 +47,16 @@ fun str_of_list f = enclose "[" "]" o commas o map f;
 fun str_of_option f NONE = "NONE"
   | str_of_option f (SOME x) = "SOME (" ^ f x ^ ")";
 
-fun str_of_char c =
-  if not (Symbol.is_char c) then raise Fail ("Bad character: " ^ quote c)
-  else if c = "\"" then "\\\""
-  else if c = "\\" then "\\\\"
-  else if Symbol.is_printable c then c
-  else "\\" ^ string_of_int (ord c);
+fun str_of_char s =
+  if not (Symbol.is_char s) then raise Fail ("Bad character: " ^ quote s)
+  else if s = "\"" then "\\\""
+  else if s = "\\" then "\\\\"
+  else
+    let val c = ord s in
+      if c < 32 then "\\^" ^ chr (c + ord "@")
+      else if c < 127 then s
+      else "\\" ^ string_of_int c
+    end;
 
 val str_of_string = quote o translate_string str_of_char;
 
