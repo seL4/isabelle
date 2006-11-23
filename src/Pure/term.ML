@@ -152,6 +152,7 @@ sig
   val itselfT: typ -> typ
   val a_itselfT: typ
   val argument_type_of: term -> typ
+  val head_name_of: term -> string
   val add_tvarsT: typ -> (indexname * sort) list -> (indexname * sort) list
   val add_tvars: term -> (indexname * sort) list -> (indexname * sort) list
   val add_vars: term -> (indexname * typ) list -> (indexname * typ) list
@@ -406,6 +407,15 @@ fun strip_comb u : term * term list =
 fun head_of (f$t) = head_of f
   | head_of u = u;
 
+fun head_name_of tm =
+  (case head_of tm of
+    t as Const (c, _) =>
+      if NameSpace.is_qualified c then c
+      else raise TERM ("Malformed constant name", [t])
+  | t as Free (x, _) =>
+      if not (NameSpace.is_qualified x) then x
+      else raise TERM ("Malformed fixed variable name", [t])
+  | t => raise TERM ("No fixed head of term", [t]));
 
 (*number of atoms and abstractions in a term*)
 fun size_of_term tm =
