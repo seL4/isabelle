@@ -106,7 +106,7 @@ ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
 ISABELLE_TMP_PREFIX="/tmp/isabelle-$USER"
 
 # Heap input locations. ML system identifier is included in lookup.
-ISABELLE_PATH="$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps"
+ISABELLE_PATH="$ISABELLE_HOME_USER/heaps/$ISABELLE_IDENTIFIER:$ISABELLE_HOME/heaps"
 
 # Heap output location. ML system identifier is appended automatically later on.
 if [ "$THIS_IS_ISABELLE_BUILD" = true ]; then
@@ -114,7 +114,7 @@ if [ "$THIS_IS_ISABELLE_BUILD" = true ]; then
   ISABELLE_OUTPUT="$ISABELLE_HOME/heaps"
   ISABELLE_BROWSER_INFO="$ISABELLE_HOME/browser_info"
 else
-  ISABELLE_OUTPUT="$ISABELLE_HOME_USER/heaps"
+  ISABELLE_OUTPUT="$ISABELLE_HOME_USER/heaps/$ISABELLE_IDENTIFIER"
   ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 fi
 
