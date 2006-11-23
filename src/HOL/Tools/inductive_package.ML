@@ -684,13 +684,11 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
       let val inducts = cnames ~~ ProjectRule.projects ctxt (1 upto length cnames) induct'
       in
         ctxt3 |>
-        note_theorems (inducts |> map (fn (name, th) => (("",
-          [Attrib.internal ind_case_names,
-           Attrib.internal (RuleCases.consumes 1),
-           Attrib.internal (induct_att name)]), [([th], [])]))) |> snd |>
-        note_theorem ((NameSpace.qualified rec_name (coind_prefix coind ^ "inducts"),
-          [Attrib.internal ind_case_names,
-           Attrib.internal (RuleCases.consumes 1)]), map snd inducts) |> snd
+        note_theorems [((NameSpace.qualified rec_name (coind_prefix coind ^ "inducts"), []),
+          inducts |> map (fn (name, th) => ([th],
+            [Attrib.internal ind_case_names,
+             Attrib.internal (RuleCases.consumes 1),
+             Attrib.internal (induct_att name)])))] |> snd
       end;
 
     val result =
