@@ -259,7 +259,7 @@ lemma meta_eq_to_obj_eq:
   shows "A = B"
   by (unfold meq) (rule refl)
 
-text {* Useful with eresolve\_tac for proving equalties from known equalities. *}
+text {* Useful with eresolve\_tac for proving equalities from known equalities. *}
      (* a = b
         |   |
         c = d   *)
