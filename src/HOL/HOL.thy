@@ -259,7 +259,7 @@ lemma meta_eq_to_obj_eq:
   shows "A = B"
   by (unfold meq) (rule refl)
 
-text {* Useful with eresolve\_tac for proving equalities from known equalities. *}
+text {* Useful with @{text erule} for proving equalities from known equalities. *}
      (* a = b
         |   |
         c = d   *)
@@ -1403,7 +1403,7 @@ lemma if_distrib:
   "f (if c then x else y) = (if c then f x else f y)"
   by simp
 
-text {* For expand\_case\_tac *}
+text {* For @{text expand_case_tac} *}
 lemma expand_case:
   assumes "P \<Longrightarrow> Q True"
       and "~P \<Longrightarrow> Q False"
@@ -1418,7 +1418,7 @@ next
 qed
 
 text {* This lemma restricts the effect of the rewrite rule u=v to the left-hand
-  side of an equality.  Used in {Integ,Real}/simproc.ML *}
+  side of an equality.  Used in @{text "{Integ,Real}/simproc.ML"} *}
 lemma restrict_to_left:
   assumes "x = y"
   shows "(x = z) = (y = z)"

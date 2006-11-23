@@ -114,7 +114,7 @@ apply (rule ringI)
       --{* mult closed *}
       apply (clarify)
       apply (simp add: rcoset_mult_add, fast)
-     --{* mult one\_closed *}
+     --{* mult @{text one_closed} *}
      apply (force intro: one_closed)
     --{* mult assoc *}
     apply clarify

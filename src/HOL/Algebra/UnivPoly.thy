@@ -1161,8 +1161,9 @@ interpretation UP_univ_prop < ring_hom_cring P S Eval
 
 text {* Further properties of the evaluation homomorphism. *}
 
-(* The following lemma could be proved in UP\_cring with the additional
-   assumption that h is closed. *)
+text {*
+  The following lemma could be proved in @{text UP_cring} with the additional
+  assumption that @{text h} is closed. *}
 
 lemma (in UP_pre_univ_prop) eval_const:
   "[| s \<in> carrier S; r \<in> carrier R |] ==> eval R S h s (monom P r 0) = h r"

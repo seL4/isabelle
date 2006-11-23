@@ -5,6 +5,8 @@ theory "ML" imports base begin
 
 chapter {* Aesthetics of ML programming *}
 
+text FIXME
+
 text {* This style guide is loosely based on
   \url{http://caml.inria.fr/resources/doc/guides/guidelines.en.html}.
 %  FIMXE \url{http://www.cs.cornell.edu/Courses/cs312/2003sp/handouts/style.htm}
@@ -85,7 +87,7 @@ text {* This style guide is loosely based on
       while keeping its length to the absolutely neccessary minimum.
       Always give the same name to function arguments which
       have the same meaning. Separate words by underscores
-      (``{\ttfamily int\_of\_string}'', not ``{\ttfamily intOfString}'')
+      (``@{verbatim int_of_string}'', not ``@{verbatim intOfString}'')
 
   \end{description}
 *}

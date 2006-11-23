@@ -13,7 +13,7 @@ section {* More Lifting from Groups to Abelian Groups *}
 
 subsection {* Definitions *}
 
-text {* Hiding @{text "<+>"} from \texttt{Sum\_Type.thy} until I come
+text {* Hiding @{text "<+>"} from @{theory Sum_Type} until I come
   up with better syntax here *}
 
 hide const Plus

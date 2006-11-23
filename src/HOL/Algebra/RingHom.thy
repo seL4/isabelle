@@ -11,7 +11,7 @@ begin
 
 section {* Homomorphisms of Non-Commutative Rings *}
 
-text {* Lifting existing lemmas in a ring\_hom\_ring locale *}
+text {* Lifting existing lemmas in a @{text ring_hom_ring} locale *}
 locale ring_hom_ring = ring R + ring S + var h +
   assumes homh: "h \<in> ring_hom R S"
   notes hom_mult [simp] = ring_hom_mult [OF homh]

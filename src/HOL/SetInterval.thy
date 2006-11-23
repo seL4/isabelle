@@ -627,7 +627,7 @@ The left column shows the term before introduction of the new syntax,
 the middle column shows the new (default) syntax, and the right column
 shows a special syntax. The latter is only meaningful for latex output
 and has to be activated explicitly by setting the print mode to
-\texttt{latex\_sum} (e.g.\ via \texttt{mode=latex\_sum} in
+@{text latex_sum} (e.g.\ via @{text "mode = latex_sum"} in
 antiquotations). It is not the default \LaTeX\ output because it only
 works well with italic-style formulae, not tt-style.
 
