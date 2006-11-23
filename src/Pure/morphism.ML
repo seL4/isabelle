@@ -27,9 +27,13 @@ sig
     typ: typ -> typ,
     term: term -> term,
     thm: thm -> thm} -> morphism
-  val comp: morphism -> morphism -> morphism
+  val name_morphism: (string -> string) -> morphism
+  val var_morphism: (string * mixfix -> string * mixfix) -> morphism
+  val typ_morphism: (typ -> typ) -> morphism
+  val term_morphism: (term -> term) -> morphism
+  val thm_morphism: (thm -> thm) -> morphism
   val identity: morphism
-  val transfer: theory -> morphism
+  val comp: morphism -> morphism -> morphism
 end;
 
 structure Morphism: MORPHISM =
@@ -50,6 +54,14 @@ fun thm (Morphism {thm, ...}) = thm;
 
 val morphism = Morphism;
 
+fun name_morphism name = morphism {name = name, var = I, typ = I, term = I, thm = I};
+fun var_morphism var = morphism {name = I, var = var, typ = I, term = I, thm = I};
+fun typ_morphism typ = morphism {name = I, var = I, typ = typ, term = I, thm = I};
+fun term_morphism term = morphism {name = I, var = I, typ = I, term = term, thm = I};
+fun thm_morphism thm = morphism {name = I, var = I, typ = I, term = I, thm = thm};
+
+val identity = morphism {name = I, var = I, typ = I, term = I, thm = I};
+
 fun comp
     (Morphism {name = name1, var = var1, typ = typ1, term = term1, thm = thm1})
     (Morphism {name = name2, var = var2, typ = typ2, term = term2, thm = thm2}) =
@@ -58,12 +70,7 @@ fun comp
 
 fun phi1 $> phi2 = comp phi2 phi1;
 
-val identity = morphism {name = I, var = I, typ = I, term = I, thm = I};
-
-fun transfer thy = morphism {name = I, var = I, typ = I, term = I, thm = Thm.transfer thy};
-
 end;
 
 structure BasicMorphism: BASIC_MORPHISM = Morphism;
 open BasicMorphism;
-
