@@ -65,6 +65,7 @@ val scan_url =
   Scan.this_string "file:///" |-- scan_path_root >> File ||
   Scan.this_string "file://localhost/" |-- scan_path_root >> File ||
   Scan.this_string "file://" |-- scan_host -- scan_path >> RemoteFile ||
+  Scan.this_string "file:/" |-- scan_path_root >> File ||
   Scan.this_string "http://" |-- scan_host -- scan_path >> Http ||
   Scan.this_string "ftp://" |-- scan_host -- scan_path >> Ftp;
 
