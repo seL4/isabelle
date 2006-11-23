@@ -18,7 +18,7 @@ nominal_datatype ty =
     TVar "nat"
   | TArr "ty" "ty" (infix "\<rightarrow>" 200)
 
-lemma [simp]:
+lemma ty_perm[simp]:
   fixes pi ::"name prm"
   and   \<tau>  ::"ty"
   shows "pi\<bullet>\<tau> = \<tau>"
@@ -57,8 +57,8 @@ proof (induct)
   case (t_Var \<Gamma> a \<tau>)
   have "valid (pi\<bullet>\<Gamma>)" by (rule eqvt_valid)
   moreover
-  have "(pi\<bullet>(a,\<tau>))\<in>((pi::name prm)\<bullet>set \<Gamma>)" by (rule pt_set_bij2[OF pt_name_inst, OF at_name_inst])
-  ultimately show "(pi\<bullet>\<Gamma>) \<turnstile> ((pi::name prm)\<bullet>Var a) : \<tau>"
+  have "(pi\<bullet>(a,\<tau>))\<in>(pi\<bullet>set \<Gamma>)" by (rule pt_set_bij2[OF pt_name_inst, OF at_name_inst])
+  ultimately show "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>Var a) : \<tau>"
     using typing.intros by (force simp add: pt_list_set_pi[OF pt_name_inst, symmetric])
 next 
   case (t_Lam a \<Gamma> \<tau> t \<sigma>)
@@ -129,7 +129,7 @@ abbreviation
   "sub" :: "(name\<times>ty) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" (" _ \<lless> _ " [80,80] 80) where
   "\<Gamma>1 \<lless> \<Gamma>2 \<equiv> \<forall>a \<sigma>. (a,\<sigma>)\<in>set \<Gamma>1 \<longrightarrow> (a,\<sigma>)\<in>set \<Gamma>2"
 
-text {* Now it comes: The Weakening Lemma *}
+text {* now it comes: The Weakening Lemma *}
 
 lemma weakening_version1: 
   assumes a: "\<Gamma>1 \<turnstile> t : \<sigma>" 
@@ -139,7 +139,7 @@ lemma weakening_version1:
 using a b c
 apply(nominal_induct \<Gamma>1 t \<sigma> avoiding: \<Gamma>2 rule: typing_induct)
 apply(auto | atomize)+
-(* FIXME: meta-quantifiers seem to not ba as "automatic" as object-quantifiers *)
+(* FIXME: meta-quantifiers seem to be not as "automatic" as object-quantifiers *)
 done
 
 lemma weakening_version2: 
@@ -167,10 +167,10 @@ next
   then have "((a,\<tau>)#\<Gamma>1) \<lless> ((a,\<tau>)#\<Gamma>2)" by simp
   moreover
   have "valid \<Gamma>2" by fact
-  then have "valid ((a,\<tau>)#\<Gamma>2)" using vc v2 by simp
+  then have "valid ((a,\<tau>)#\<Gamma>2)" using vc by (simp add: v2)
   ultimately have "((a,\<tau>)#\<Gamma>2) \<turnstile> t:\<sigma>" using ih by simp
   with vc show "\<Gamma>2 \<turnstile> (Lam [a].t) : \<tau> \<rightarrow> \<sigma>" by auto
-qed (auto)
+qed (auto) (* app case *)
 
 lemma weakening_version3: 
   assumes a: "\<Gamma>1 \<turnstile> t:\<sigma>"
@@ -186,13 +186,13 @@ proof (nominal_induct \<Gamma>1 t \<sigma> avoiding: \<Gamma>2 rule: typing_indu
   then have "((a,\<tau>)#\<Gamma>1) \<lless> ((a,\<tau>)#\<Gamma>2)" by simp
   moreover
   have "valid \<Gamma>2" by fact
-  then have "valid ((a,\<tau>)#\<Gamma>2)" using vc v2 by simp
+  then have "valid ((a,\<tau>)#\<Gamma>2)" using vc by (simp add: v2)
   ultimately have "((a,\<tau>)#\<Gamma>2) \<turnstile> t:\<sigma>" using ih by simp
   with vc show "\<Gamma>2 \<turnstile> (Lam [a].t) : \<tau> \<rightarrow> \<sigma>" by auto
 qed (auto) (* app and var case *)
 
 text{* The original induction principle for the typing relation
-       is not strong enough - even this simple lemma fails      *}
+       is not strong enough - even this simple lemma fails:     *}
 lemma weakening_too_weak: 
   assumes a: "\<Gamma>1 \<turnstile> t:\<sigma>"
   and     b: "valid \<Gamma>2" 
@@ -209,7 +209,7 @@ proof (induct arbitrary: \<Gamma>2)
   ultimately show "\<Gamma>2 \<turnstile> Var a : \<tau>" by auto
 next
   case (t_Lam a \<Gamma>1 \<tau> t \<sigma>) (* lambda case *)
-  (* all assumption in this case*)
+  (* all assumptions available in this case*)
   have a0: "a\<sharp>\<Gamma>1" by fact
   have a1: "((a,\<tau>)#\<Gamma>1) \<turnstile> t : \<sigma>" by fact
   have a2: "\<Gamma>1 \<lless> \<Gamma>2" by fact
