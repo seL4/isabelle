@@ -27,8 +27,9 @@ sig
     local_theory -> (term * (bstring * thm)) list * local_theory
   val notes: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     local_theory -> (bstring * thm list) list * local_theory
-  val term_syntax: (Context.generic -> Context.generic) -> local_theory -> local_theory
-  val declaration: (Context.generic -> Context.generic) -> local_theory -> local_theory
+  val type_syntax: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory
+  val term_syntax: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory
+  val declaration: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory
   val def: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
     local_theory -> (term * (bstring * thm)) * local_theory
   val note: string -> (bstring * Attrib.src list) * thm list ->
@@ -60,8 +61,9 @@ type operations =
   notes: string ->
     ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     local_theory -> (bstring * thm list) list * local_theory,
-  term_syntax: (Context.generic -> Context.generic) -> local_theory -> local_theory,
-  declaration: (Context.generic -> Context.generic) -> local_theory -> local_theory,
+  type_syntax: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory,
+  term_syntax: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory,
+  declaration: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory,
   reinit: local_theory -> theory -> local_theory,
   exit: local_theory -> Proof.context};
 
@@ -147,6 +149,7 @@ val consts = operation2 #consts;
 val axioms = operation2 #axioms;
 val defs = operation2 #defs;
 val notes = operation2 #notes;
+val type_syntax = operation1 #type_syntax;
 val term_syntax = operation1 #term_syntax;
 val declaration = operation1 #declaration;
 
@@ -157,11 +160,11 @@ fun def kind arg lthy = lthy |> defs kind [arg] |>> hd;
 
 fun note kind (a, ths) lthy = lthy |> notes kind [(a, [(ths, [])])] |>> hd;
 
-fun notation mode args = term_syntax
-  (Context.mapping (Sign.add_notation mode args) (ProofContext.add_notation mode args));
+fun notation mode args = term_syntax (fn phi => (* FIXME *)
+  (Context.mapping (Sign.add_notation mode args) (ProofContext.add_notation mode args)));
 
-fun abbrevs mode args = term_syntax
-  (Context.mapping (snd o Sign.add_abbrevs mode args) (snd o ProofContext.add_abbrevs mode args))
+fun abbrevs mode args = term_syntax (fn phi => (* FIXME *)
+  (Context.mapping (snd o Sign.add_abbrevs mode args) (snd o ProofContext.add_abbrevs mode args)))
   #> ProofContext.add_abbrevs mode args;  (* FIXME *)
 
 

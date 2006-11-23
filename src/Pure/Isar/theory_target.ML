@@ -198,11 +198,13 @@ fun notes "" kind facts = theory_notes true kind facts #> context_notes kind fac
 
 (* declarations *)
 
-fun term_syntax "" f = LocalTheory.theory (Context.theory_map f)
-  | term_syntax loc f = LocalTheory.target (Locale.add_term_syntax loc (Context.proof_map f));
+(* FIXME proper morphisms *)
+fun decl _ "" f = LocalTheory.theory (Context.theory_map (f Morphism.identity))
+  | decl add loc f = LocalTheory.target (add loc (Context.proof_map o f));
 
-fun declaration "" f = LocalTheory.theory (Context.theory_map f)
-  | declaration loc f = I;    (* FIXME *)
+val type_syntax = decl Locale.add_type_syntax;
+val term_syntax = decl Locale.add_term_syntax;
+val declaration = decl Locale.add_declaration;
 
 
 (* init and exit *)
@@ -215,6 +217,7 @@ fun begin loc =
     axioms = axioms,
     defs = defs,
     notes = notes loc,
+    type_syntax = type_syntax loc,
     term_syntax = term_syntax loc,
     declaration = declaration loc,
     reinit = fn _ => begin loc o (if loc = "" then ProofContext.init else Locale.init loc),
