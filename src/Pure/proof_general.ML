@@ -1295,18 +1295,28 @@ fun process_pgip_element pgipxml = (case pgipxml of
                            end
      (* improperfilecmd: theory-level commands not in script *)
      | "doitem"         => isarscript data
-     | "undoitem"       => isarcmd "ProofGeneral.undo"
+     | "undoitem"       => isarcmd "ProofGeneral.undo"  (* NB: named target not supported *)
      | "redoitem"       => isarcmd "ProofGeneral.redo"
      | "aborttheory"    => isarcmd ("init_toplevel")
      | "retracttheory"  => isarcmd ("kill_thy " ^ quote (thyname_attr attrs))
-     | "loadfile"       => use_thy_or_ml_file (fileurl_of attrs)
-     | "openfile"       => (openfile_retract (fileurl_of attrs);
-                            currently_open_file := SOME (fileurl_of attrs))
+     | "loadfile"       => (case !currently_open_file of
+                                SOME f => raise PGIP ("loadfile when a file is open!")
+                              | NONE => use_thy_or_ml_file (fileurl_of attrs))
+     | "openfile"       => (case !currently_open_file of
+                                SOME f => raise PGIP ("openfile when a file is already open!")
+                              | NONE => (openfile_retract (fileurl_of attrs);
+					 currently_open_file := SOME (fileurl_of attrs)))
      | "closefile"      => (case !currently_open_file of
                                 SOME f => (inform_file_processed f;
                                            currently_open_file := NONE)
                               | NONE => raise PGIP ("closefile when no file is open!"))
-     | "abortfile"      => (currently_open_file := NONE) (* perhaps error for no file open *)
+     | "abortfile"      => (case !currently_open_file of
+                                SOME f => (isarcmd "init_toplevel";
+					   currently_open_file := NONE)
+                              | NONE => raise PGIP ("abortfile when no file is open!"))
+     | "retractfile"    => (case !currently_open_file of
+                                SOME f => raise PGIP ("retractfile when a file is open!")
+                              | NONE => inform_file_retracted (fileurl_of attrs))
      | "changecwd"      => changecwd (dirname_attr attrs)
      | "systemcmd"      => isarscript data
      (* unofficial command for debugging *)
