@@ -22,6 +22,14 @@ fi
 ISABELLE="$ISABELLE_HOME/bin/isabelle-process"
 ISATOOL="$ISABELLE_HOME/bin/isatool"
 
+#Isabelle version
+ISABELLE_VERSION=$("$ISABELLE_HOME/lib/Tools/version")
+if [ "$ISABELLE_VERSION" = "Isabelle repository version" ]; then
+  ISABELLE_IDENTIFIER=""
+else
+  ISABELLE_IDENTIFIER="$ISABELLE_VERSION"
+fi
+
 #users tend to put strange things in here ...
 unset ENV
 unset BASH_ENV
@@ -50,17 +58,11 @@ ISABELLE_SITE_SETTINGS_PRESENT=true
 [ -z "$ISABELLE_IGNORE_USER_SETTINGS" -a -f "$ISABELLE_HOME_USER/etc/settings" ] && \
   { source "$ISABELLE_HOME_USER/etc/settings" || exit 2; }
 
-#produce ML system and Isabelle version identifier
+#ML system identifier
 if [ -z "$ML_PLATFORM" ]; then
   ML_IDENTIFIER="$ML_SYSTEM"
 else
   ML_IDENTIFIER="${ML_SYSTEM}_${ML_PLATFORM}"
-fi
-
-ISABELLE_VERSION=$("$ISABELLE_HOME/lib/Tools/version")
-if [ "$ISABELLE_VERSION" != "Isabelle repository version" -a "$THIS_IS_ISABELLE_BUILD" != true ]
-then
-  ML_IDENTIFIER="${ML_IDENTIFIER}_${ISABELLE_VERSION}"
 fi
 
 ISABELLE_OUTPUT="$ISABELLE_OUTPUT/$ML_IDENTIFIER"
