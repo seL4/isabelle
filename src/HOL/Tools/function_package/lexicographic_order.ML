@@ -8,6 +8,11 @@ Method for termination proofs with lexicographic orderings.
 signature LEXICOGRAPHIC_ORDER =
 sig
   val lexicographic_order : Proof.context -> Method.method
+
+  (* exported for use by size-change termination prototype.
+     FIXME: provide a common interface later *)
+  val mk_base_funs : typ -> term list
+
   val setup: theory -> theory
 end
 
