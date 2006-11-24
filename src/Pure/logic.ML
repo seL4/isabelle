@@ -28,7 +28,9 @@ sig
   val dest_conjunction_list: term -> term list
   val dest_conjunctions: term -> term list
   val strip_horn: term -> term list * term
+  val mk_type: typ -> term
   val dest_type: term -> typ
+  val type_map: (term -> term) -> typ -> typ
   val const_of_class: class -> string
   val class_of_const: string -> class
   val mk_inclass: typ * class -> term
@@ -45,7 +47,6 @@ sig
   val abs_def: term -> term * term
   val mk_cond_defpair: term list -> term * term -> string * term
   val mk_defpair: term * term -> string * term
-  val mk_type: typ -> term
   val protectC: term
   val protect: term -> term
   val unprotect: term -> term
@@ -188,6 +189,8 @@ fun mk_type ty = Const ("TYPE", Term.itselfT ty);
 
 fun dest_type (Const ("TYPE", Type ("itself", [ty]))) = ty
   | dest_type t = raise TERM ("dest_type", [t]);
+
+fun type_map f = dest_type o f o mk_type;
 
 
 
