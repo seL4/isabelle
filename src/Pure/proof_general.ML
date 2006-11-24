@@ -264,7 +264,7 @@ local
 
   val thyname_attr = pair "thyname";
   val url_attr = pair "url";
-  fun localfile_url_attr abspath = url_attr ("file://" ^ abspath);
+  fun localfile_url_attr abspath = url_attr ("file:" ^ abspath);
 in
 
 fun setup_messages () =
@@ -314,16 +314,20 @@ fun tell_clear_response () =
 fun tell_file_loaded path =
   if pgip () then
     issue_pgipe "informfileloaded"
-      [localfile_url_attr  (XML.text (File.platform_path path))]
+      [localfile_url_attr  (XML.text (File.platform_path 
+					  (File.full_path path)))]
   else
-    emacs_notify ("Proof General, this file is loaded: " ^ quote (File.platform_path path));
+    emacs_notify ("Proof General, this file is loaded: " ^ 
+		  quote (File.platform_path path));
 
 fun tell_file_retracted path =
   if pgip() then
     issue_pgipe "informfileretracted"
-      [localfile_url_attr  (XML.text (File.platform_path path))]
+      [localfile_url_attr  (XML.text (File.platform_path 
+					  (File.full_path path)))]
   else
-    emacs_notify ("Proof General, you can unlock the file " ^ quote (File.platform_path path));
+    emacs_notify ("Proof General, you can unlock the file " 
+		  ^ quote (File.platform_path path));
 
 
 (* theory / proof state output *)
