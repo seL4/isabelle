@@ -149,14 +149,15 @@ shows "(G x y) = (f x = y)"
 
 lemma fundef_default_value:
 assumes f_def: "f == (\<lambda>x::'a. THE_default (d x) (\<lambda>y. G x y))"
-assumes graph: "\<And>x y. G x y \<Longrightarrow> x \<in> D"
-assumes "x \<notin> D"
+assumes graph: "\<And>x y. G x y \<Longrightarrow> D x"
+assumes "\<not> D x"
 shows "f x = d x"
 proof -
   have "\<not>(\<exists>y. G x y)"
   proof
-    assume "(\<exists>y. G x y)"
-    with graph and `x\<notin>D` show False by blast
+    assume "\<exists>y. G x y"
+    hence "D x" using graph ..
+    with `\<not> D x` show False ..
   qed
   hence "\<not>(\<exists>!y. G x y)" by blast
   
