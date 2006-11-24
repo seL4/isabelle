@@ -18,6 +18,7 @@ sig
   val add_assumes: cterm list -> Proof.context -> thm list * Proof.context
   val add_view: Proof.context -> cterm list -> Proof.context -> Proof.context
   val export: bool -> Proof.context -> Proof.context -> thm -> thm
+  val export_morphism: Proof.context -> Proof.context -> morphism
 end;
 
 structure Assumption: ASSUMPTION =
@@ -103,5 +104,12 @@ fun export is_goal inner outer =
     #> fold_rev (fn (e, As) => e is_goal As) asms
     #> norm_hhf_protect
   end;
+
+fun export_morphism inner outer =
+  let
+    val thm = export false inner outer;
+    fun term t = Drule.term_rule (ProofContext.theory_of inner (*delayed until now*)) thm t;
+    val typ = Logic.type_map term;
+  in Morphism.morphism {name = I, var = I, typ = typ, term = term, fact = map thm} end;
 
 end;
