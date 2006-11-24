@@ -114,7 +114,7 @@ fun morph_ctxt phi = map_ctxt
   var = Morphism.var phi,
   typ = Morphism.typ phi,
   term = Morphism.term phi,
-  fact = map (Morphism.thm phi),
+  fact = Morphism.fact phi,
   attrib = Args.morph_values phi};
 
 
@@ -327,13 +327,10 @@ fun instantiate_frees thy subst =
   end;
 
 fun hyps_rule rule th =
-  let
-    val cterm_rule = Drule.mk_term #> rule #> Drule.dest_term;
-    val {hyps, ...} = Thm.crep_thm th;
-  in
+  let val {hyps, ...} = Thm.crep_thm th in
     Drule.implies_elim_list
       (rule (Drule.implies_intr_list hyps th))
-      (map (Thm.assume o cterm_rule) hyps)
+      (map (Thm.assume o Drule.cterm_rule rule) hyps)
   end;
 
 
@@ -372,7 +369,7 @@ fun rename_thm ren th =
   end;
 
 fun rename_morphism ren = Morphism.morphism
-  {name = I, var = rename_var ren, typ = I, term = rename_term ren, thm = rename_thm ren};
+  {name = I, var = rename_var ren, typ = I, term = rename_term ren, fact = map (rename_thm ren)};
 
 
 (* instantiate types *)
@@ -398,7 +395,7 @@ fun instT_thm thy env th =
     in if null subst then th else th |> hyps_rule (instantiate_tfrees thy subst) end;
 
 fun instT_morphism thy env = Morphism.morphism
-  {name = I, var = I, typ = instT_type env, term = instT_term env, thm = instT_thm thy env};
+  {name = I, var = I, typ = instT_type env, term = instT_term env, fact = map (instT_thm thy env)};
 
 
 (* instantiate types and terms *)
@@ -441,7 +438,8 @@ fun inst_thm thy (envT, env) th =
     end;
 
 fun inst_morphism thy envs = Morphism.morphism
-  {name = I, var = I, typ = instT_type (#1 envs), term = inst_term envs, thm = inst_thm thy envs};
+  {name = I, var = I, typ = instT_type (#1 envs), term = inst_term envs,
+    fact = map (inst_thm thy envs)};
 
 
 (* satisfy hypotheses *)
@@ -469,13 +467,13 @@ fun exp_facts std inner outer facts =
     val thy = ProofContext.theory_of inner;
     val maxidx =
       fold (fn ((_, atts), bs) => maxidx_atts atts #> fold (maxidx_atts o #2) bs) facts ~1;
-    val exp_thm = Thm.adjust_maxidx_thm maxidx #>
-      singleton ((if std then ProofContext.export_standard else ProofContext.export) inner outer);
-    val exp_term = Drule.term_rule thy exp_thm;
-    val exp_typ = Logic.mk_type #> exp_term #> Logic.dest_type;
-    val exp_morphism =
-      Morphism.morphism {name = I, var = I, typ = exp_typ, term = exp_term, thm = exp_thm};
-    val Notes (_, facts') = morph_ctxt exp_morphism (Notes ("", facts));
+    val exp_fact = map (Thm.adjust_maxidx_thm maxidx) #>
+      ((if std then ProofContext.export_standard else ProofContext.export) inner outer);
+    val exp_term = Drule.term_rule thy (singleton exp_fact);
+    val exp_typ = Logic.type_map exp_term;
+    val morphism =
+      Morphism.morphism {name = I, var = I, typ = exp_typ, term = exp_term, fact = exp_fact};
+    val Notes (_, facts') = morph_ctxt morphism (Notes ("", facts));
   in facts' end;
 
 in
