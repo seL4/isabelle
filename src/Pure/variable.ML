@@ -42,6 +42,7 @@ sig
   val exportT: Proof.context -> Proof.context -> thm list -> thm list
   val export_prf: Proof.context -> Proof.context -> Proofterm.proof -> Proofterm.proof
   val export: Proof.context -> Proof.context -> thm list -> thm list
+  val export_morphism: Proof.context -> Proof.context -> morphism
   val importT_inst: term list -> Proof.context -> ((indexname * sort) * typ) list * Proof.context
   val import_inst: bool -> term list -> Proof.context ->
     (((indexname * sort) * typ) list * ((indexname * typ) * term) list) * Proof.context
@@ -203,7 +204,7 @@ fun declare_term t =
 val declare_prf = Proofterm.fold_proof_terms declare_internal (declare_internal o Logic.mk_type);
 
 val declare_thm = Drule.fold_terms declare_internal;
-fun thm_context th = declare_thm th (Context.init_proof (Thm.theory_of_thm th));
+fun thm_context th = declare_thm th (ProofContext.init (Thm.theory_of_thm th));
 
 
 (* renaming term/type frees *)
@@ -351,6 +352,12 @@ fun gen_export inst inner outer ths =
 val exportT = gen_export (rpair [] oo exportT_inst);
 val export = gen_export export_inst;
 
+fun export_morphism inner outer =
+  let
+    val fact = export inner outer;
+    val term = singleton (export_terms inner outer);
+    val typ = Logic.type_map term;
+  in Morphism.morphism {name = I, var = I, typ = typ, term = term, fact = fact} end;
 
 
 (** import -- fix schematic type/term variables **)
@@ -380,7 +387,7 @@ fun import_terms is_open ts ctxt =
 
 fun importT ths ctxt =
   let
-    val thy = Context.theory_of_proof ctxt;
+    val thy = ProofContext.theory_of ctxt;
     val certT = Thm.ctyp_of thy;
     val (instT, ctxt') = importT_inst (map Thm.full_prop_of ths) ctxt;
     val instT' = map (fn (v, T) => (certT (TVar v), certT T)) instT;
@@ -395,7 +402,7 @@ fun import_prf is_open prf ctxt =
 
 fun import is_open ths ctxt =
   let
-    val thy = Context.theory_of_proof ctxt;
+    val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
     val certT = Thm.ctyp_of thy;
     val ((instT, inst), ctxt') = import_inst is_open (map Thm.full_prop_of ths) ctxt;
