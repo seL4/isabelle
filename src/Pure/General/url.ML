@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Basic URLs, see RFC 1738.
+Basic URLs, see RFC 1738 and RFC 2396.
 *)
 
 signature URL =
