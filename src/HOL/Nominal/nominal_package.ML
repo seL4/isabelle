@@ -1549,7 +1549,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             val y = Free ("y", U);
             val y' = Free ("y'", U)
           in
-            standard (Goal.prove (Context.init_proof thy11) [] (finite_prems @
+            standard (Goal.prove (ProofContext.init thy11) [] (finite_prems @
                 [HOLogic.mk_Trueprop (R $ x $ y),
                  HOLogic.mk_Trueprop (HOLogic.mk_all ("y'", U,
                    HOLogic.mk_imp (R $ x $ y', HOLogic.mk_eq (y', y)))),
@@ -1652,7 +1652,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
          Const ("Finite_Set.Finites", HOLogic.mk_setT (HOLogic.mk_setT aT))))) dt_atomTs;
 
     val rec_unique_thms = split_conj_thm (Goal.prove
-      (Context.init_proof thy11) (map fst rec_unique_frees)
+      (ProofContext.init thy11) (map fst rec_unique_frees)
       (List.concat finite_premss @ finite_ctxt_prems @ rec_prems @ rec_prems')
       (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj rec_unique_concls))
       (fn {prems, context} =>

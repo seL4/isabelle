@@ -106,7 +106,7 @@ fun prove_raw casms cprop tac =
 
 fun prove_multi ctxt xs asms props tac =
   let
-    val thy = Context.theory_of_proof ctxt;
+    val thy = ProofContext.theory_of ctxt;
     val string_of_term = Sign.string_of_term thy;
 
     fun err msg = cat_error msg
@@ -145,7 +145,7 @@ fun prove_multi ctxt xs asms props tac =
 fun prove ctxt xs asms prop tac = hd (prove_multi ctxt xs asms [prop] tac);
 
 fun prove_global thy xs asms prop tac =
-  Drule.standard (prove (Context.init_proof thy) xs asms prop (fn {prems, ...} => tac prems));
+  Drule.standard (prove (ProofContext.init thy) xs asms prop (fn {prems, ...} => tac prems));
 
 
 

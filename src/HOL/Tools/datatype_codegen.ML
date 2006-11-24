@@ -380,13 +380,15 @@ local
   val rew_conj = thm "HOL.atomize_conj" |> Thm.symmetric;
   val not_false_true = iffD2 OF [nth (thms "HOL.simp_thms") 7, TrueI];
   val not_eq_quodlibet = thm "not_eq_quodlibet";
-in fun get_cert_datatype thy dtco =
+in
+
+fun get_cert_datatype thy dtco =
   let
     val SOME (vs, cs) = DatatypePackage.get_datatype_spec thy dtco;
     val inject = (#inject o DatatypePackage.the_datatype thy) dtco
       |> map (fn thm => bool_eq_implies OF [thm] )
       |> map (Tactic.rewrite_rule [rew_eq, rew_conj]);
-    val ctxt = Context.init_proof thy;
+    val ctxt = ProofContext.init thy;
     val simpset = Simplifier.context ctxt
       (MetaSimplifier.empty_ss addsimprocs [DatatypePackage.distinct_simproc]);
     val cos = map (fn (co, tys) =>
@@ -398,12 +400,15 @@ in fun get_cert_datatype thy dtco =
       |> map (fn t => Goal.prove_global thy [] [] t (K tac))
       |> map (fn thm => not_eq_quodlibet OF [thm])
   in inject @ distinct end
-end (*local*);
+
+end;
 
 local
   val not_sym = thm "HOL.not_sym";
   val not_false_true = iffD2 OF [nth (thms "HOL.simp_thms") 7, TrueI];
-in fun get_eq_datatype thy dtco =
+in
+
+fun get_eq_datatype thy dtco =
   let
     val SOME (vs, cs) = DatatypePackage.get_datatype_spec thy dtco;
     fun mk_triv_inject co =
@@ -418,7 +423,7 @@ in fun get_eq_datatype thy dtco =
       in eqTrueI OF [Thm.instantiate ([(cty, cty')], [(ct, ct')]) HOL.refl] end;
     val inject1 = map_filter (fn (co, []) => SOME (mk_triv_inject co) | _ => NONE) cs
     val inject2 = (#inject o DatatypePackage.the_datatype thy) dtco;
-    val ctxt = Context.init_proof thy;
+    val ctxt = ProofContext.init thy;
     val simpset = Simplifier.context ctxt
       (MetaSimplifier.empty_ss addsimprocs [distinct_simproc]);
     val cos = map (fn (co, tys) =>
@@ -430,7 +435,8 @@ in fun get_eq_datatype thy dtco =
       |> map (fn t => Goal.prove_global thy [] [] t (K tac))
       |> (fn thms => thms @ map (fn thm => not_sym OF [thm]) thms)
   in inject1 @ inject2 @ distinct end;
-end (*local*);
+
+end;
 
 fun add_datatype_case_const dtco thy =
   let

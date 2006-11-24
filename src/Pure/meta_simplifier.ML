@@ -366,7 +366,7 @@ fun the_context (Simpset ({context = SOME ctxt, ...}, _)) = ctxt
 fun context ctxt =
   map_simpset1 (fn (rules, prems, bounds, _) => (rules, prems, bounds, SOME ctxt));
 
-val theory_context = context o Context.init_proof;
+val theory_context = context o ProofContext.init;
 
 fun fallback_context _ (ss as Simpset ({context = SOME _, ...}, _)) = ss
   | fallback_context thy ss =

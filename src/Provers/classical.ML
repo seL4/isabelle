@@ -888,7 +888,7 @@ fun change_claset f = change_claset_of (Context.the_context ()) f;
 
 fun claset_of thy =
   let val (cs_ref, ctxt_cs) = GlobalClaset.get thy
-  in context_cs (Context.init_proof thy) (! cs_ref) (ctxt_cs) end;
+  in context_cs (ProofContext.init thy) (! cs_ref) (ctxt_cs) end;
 val claset = claset_of o Context.the_context;
 
 fun CLASET tacf st = tacf (claset_of (Thm.theory_of_thm st)) st;
