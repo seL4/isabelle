@@ -2155,13 +2155,14 @@ fun prep_registration_in_locale target expr thy =
 
             fun activate_elem (Notes (kind, facts)) thy =
                 let
-                  val att_morphism = Morphism.morphism {var = I, name = I,
-                    typ = Element.instT_type (#1 insts), term = Element.inst_term insts,
-                    thm = disch o Element.inst_thm thy insts o satisfy};
+                  val att_morphism =
+                    Morphism.thm_morphism satisfy $>
+                    Element.inst_morphism thy insts $>
+                    Morphism.thm_morphism disch;
                   val facts' = facts
-                      |> Attrib.map_facts (Attrib.attribute_i thy o Args.morph_values att_morphism)
-                      |> map (apfst (apsnd (fn a => a @ map (Attrib.attribute thy) atts2)))
-                      |> map (apsnd (map (apfst (map (disch o Element.inst_thm thy insts o satisfy)))))
+                    |> Attrib.map_facts (Attrib.attribute_i thy o Args.morph_values att_morphism)
+                    |> map (apfst (apsnd (fn a => a @ map (Attrib.attribute thy) atts2)))
+                    |> map (apsnd (map (apfst (map (disch o Element.inst_thm thy insts o satisfy)))))
                 in
                   thy
                   |> global_note_prefix_i kind prfx facts'
