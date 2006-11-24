@@ -250,10 +250,6 @@ fun find_typ_level () = !typ_level;
 
 
 type axiom_name = string;
-datatype kind = Axiom | Conjecture;
-
-fun name_of_kind Axiom = "axiom"
-  | name_of_kind Conjecture = "conjecture";
 
 type polarity = bool;
 type indexname = Term.indexname;
@@ -280,18 +276,11 @@ datatype clause =
 	 Clause of {clause_id: clause_id,
 		    axiom_name: axiom_name,
 		    th: thm,
-		    kind: kind,
+		    kind: ResClause.kind,
 		    literals: literal list,
 		    ctypes_sorts: (ctyp_var * csort) list, 
                     ctvar_type_literals: ctype_literal list, 
                     ctfree_type_literals: ctype_literal list};
-
-
-fun string_of_kind (Clause cls) = name_of_kind (#kind cls);
-fun get_axiomName (Clause cls) = #axiom_name cls;
-fun get_clause_id (Clause cls) = #clause_id cls;
-
-fun get_literals (c as Clause(cls)) = #literals cls;
 
 
 (*********************************************************************)
@@ -404,47 +393,37 @@ fun predicate_of ((Const("Not",_) $ P), polarity) =
 
 fun literals_of_term1 args (Const("Trueprop",_) $ P) = literals_of_term1 args P
   | literals_of_term1 args (Const("op |",_) $ P $ Q) = 
-    let val args' = literals_of_term1 args P
-    in
-	literals_of_term1 args' Q
-    end
+      literals_of_term1 (literals_of_term1 args P) Q
   | literals_of_term1 (lits,ts) P =
-    let val ((pred,ts'),pol) = predicate_of (P,true)
-	val lits' = Literal(pol,pred)::lits
-    in
-	(lits',ts union ts')
-    end;
-
+      let val ((pred,ts'),pol) = predicate_of (P,true)
+      in
+	  (Literal(pol,pred)::lits, ts union ts')
+      end;
 
 fun literals_of_term P = literals_of_term1 ([],[]) P;
 
 (* making axiom and conjecture clauses *)
 exception MAKE_CLAUSE
-fun make_clause(clause_id,axiom_name,kind,thm,is_user) =
-    let val term = prop_of thm
-	val term' = comb_of term is_user
-	val (lits,ctypes_sorts) = literals_of_term term'
+fun make_clause(clause_id,axiom_name,kind,th,is_user) =
+    let val (lits,ctypes_sorts) = literals_of_term (comb_of (prop_of th) is_user)
 	val (ctvar_lits,ctfree_lits) = ResClause.add_typs_aux ctypes_sorts
     in
 	if forall isFalse lits
 	then error "Problem too trivial for resolution (empty clause)"
 	else
-	    Clause {clause_id = clause_id, axiom_name = axiom_name, th = thm, kind = kind,
+	    Clause {clause_id = clause_id, axiom_name = axiom_name, th = th, kind = kind,
 		    literals = lits, ctypes_sorts = ctypes_sorts, 
 		    ctvar_type_literals = ctvar_lits,
 		    ctfree_type_literals = ctfree_lits}
     end;
 
 
-fun make_axiom_clause thm (ax_name,cls_id,is_user) = 
-      make_clause(cls_id,ax_name,Axiom,thm,is_user);
- 
 fun make_axiom_clauses [] user_lemmas = []
-  | make_axiom_clauses ((thm,(name,id))::thms) user_lemmas =
+  | make_axiom_clauses ((th,(name,id))::ths) user_lemmas =
     let val is_user = name mem user_lemmas
-	val cls = SOME (make_axiom_clause thm (name,id,is_user)) 
+	val cls = SOME (make_clause(id, name, ResClause.Axiom, th, is_user)) 
 	          handle MAKE_CLAUSE => NONE
-	val clss = make_axiom_clauses thms user_lemmas
+	val clss = make_axiom_clauses ths user_lemmas
     in
 	case cls of NONE => clss
 		  | SOME(cls') => if isTaut cls' then clss 
@@ -454,7 +433,7 @@ fun make_axiom_clauses [] user_lemmas = []
 
 fun make_conjecture_clauses_aux _ [] = []
   | make_conjecture_clauses_aux n (th::ths) =
-      make_clause(n,"conjecture",Conjecture,th,true) ::
+      make_clause(n,"conjecture", ResClause.Conjecture, th, true) ::
       make_conjecture_clauses_aux (n+1) ths;
 
 val make_conjecture_clauses = make_conjecture_clauses_aux 0;
@@ -574,13 +553,7 @@ fun string_of_type_clsname (cls_id,ax_name,idx) =
 
 (* tptp format *)
 
-fun tptp_literal (Literal(pol,pred)) =
-    let val pred_string = string_of_combterm true pred
-	val pol_str = if pol then "++" else "--"
-    in
-	pol_str ^ pred_string
-    end;
-
+fun tptp_literal (Literal(pol,pred)) = ResClause.tptp_sign pol (string_of_combterm true pred);
  
 fun tptp_type_lits (Clause cls) = 
     let val lits = map tptp_literal (#literals cls)
@@ -595,13 +568,9 @@ fun tptp_type_lits (Clause cls) =
     end; 
     
     
-fun clause2tptp cls =
+fun clause2tptp (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
     let val (lits,ctfree_lits) = tptp_type_lits cls
-	val cls_id = get_clause_id cls
-	val ax_name = get_axiomName cls
-	val knd = string_of_kind cls
-	val lits_str = ResClause.bracket_pack lits
-	val cls_str = ResClause.gen_tptp_cls(cls_id,ax_name,knd,lits_str)
+	val cls_str = ResClause.gen_tptp_cls(clause_id,axiom_name,kind,lits)
     in
 	(cls_str,ctfree_lits)
     end;
@@ -638,7 +607,7 @@ fun clause2dfg (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
     let val (lits,tfree_lits) = dfg_clause_aux cls 
         val vars = dfg_vars cls
         val tvars = ResClause.get_tvar_strs ctypes_sorts
-	val knd = name_of_kind kind
+	val knd = ResClause.name_of_kind kind
 	val lits_str = commas lits
 	val cls_str = ResClause.gen_dfg_cls(clause_id, axiom_name, knd, lits_str, tvars@vars) 
     in (cls_str, tfree_lits) end;

@@ -17,12 +17,14 @@ signature RES_CLAUSE =
   datatype fol_term = UVar of string * fol_type
                     | Fun of string * fol_type list * fol_term list;
   datatype predicate = Predicate of string * fol_type list * fol_term list;
+  datatype kind = Axiom | Conjecture;
+  val name_of_kind : kind -> string
   type typ_var and type_literal and literal
   val literals_of_term: Term.term -> literal list * (typ_var * Term.sort) list
   val add_typs_aux : (typ_var * string list) list -> type_literal list * type_literal list
   val arity_clause_thy: theory -> arityClause list 
   val ascii_of : string -> string
-  val bracket_pack : string list -> string
+  val tptp_pack : string list -> string
   val make_classrel_clauses: theory -> class list -> class list -> classrelClause list 
   val clause_prefix : string 
   val clause2tptp : clause -> string * string list
@@ -30,8 +32,7 @@ signature RES_CLAUSE =
   val dfg_write_file:  thm list -> string -> 
        ((thm * (string * int)) list * classrelClause list * arityClause list) -> string list
   val fixed_var_prefix : string
-  val gen_tptp_cls : int * string * string * string -> string
-  val gen_tptp_type_cls : int * string * string * string * int -> string
+  val gen_tptp_cls : int * string * string * string list -> string
   val get_axiomName : clause ->  string
   val get_literals : clause -> literal list
   val init : theory -> unit
@@ -52,7 +53,6 @@ signature RES_CLAUSE =
   val mk_typ_var_sort : Term.typ -> typ_var * sort
   val paren_pack : string list -> string
   val schematic_var_prefix : string
-  val special_equal : bool ref
   val string_of_fol_type : fol_type -> string
   val tconst_prefix : string 
   val tfree_prefix : string
@@ -85,11 +85,6 @@ end;
 
 structure ResClause =
 struct
-
-(* Added for typed equality *)
-val special_equal = ref false; (* by default,equality does not carry type information *)
-val eq_typ_wrapper = "typeinfo"; (* default string *)
-
 
 val schematic_var_prefix = "V_";
 val fixed_var_prefix = "v_";
@@ -167,7 +162,8 @@ end;
 fun paren_pack [] = ""   (*empty argument list*)
   | paren_pack strings = "(" ^ commas strings ^ ")";
 
-fun bracket_pack strings = "[" ^ commas strings ^ "]";
+(*TSTP format uses (...) rather than the old [...]*)
+fun tptp_pack strings = "(" ^ space_implode " | " strings ^ ")";
 
 
 (*Remove the initial ' character from a type variable, if it is present*)
@@ -207,10 +203,9 @@ fun make_type_class clas = class_prefix ^ ascii_of clas;
 
 val keep_types = ref true;
 
-datatype kind = Axiom | Hypothesis | Conjecture;
+datatype kind = Axiom | Conjecture;
 fun name_of_kind Axiom = "axiom"
-  | name_of_kind Hypothesis = "hypothesis"
-  | name_of_kind Conjecture = "conjecture";
+  | name_of_kind Conjecture = "negated_conjecture";
 
 type clause_id = int;
 type axiom_name = string;
@@ -640,33 +635,24 @@ fun funcs_of_clauses clauses arity_clauses =
 
 (**** String-oriented operations ****)
 
-fun wrap_eq_type typ t = eq_typ_wrapper ^"(" ^ t ^ "," ^ typ ^ ")";
-
-(*Only need to wrap equality's arguments with "typeinfo" if the output clauses are typed 
- and if we specifically ask for types to be included.   *)
-fun string_of_equality (typ,terms) =
-      let val [tstr1,tstr2] = map string_of_term terms
-	  val typ' = string_of_fol_type typ
-      in
-	  if !keep_types andalso !special_equal 
-	  then "equal(" ^ (wrap_eq_type typ' tstr1) ^ "," ^ 
-		 	  (wrap_eq_type typ' tstr2) ^ ")"
-	  else "equal(" ^ tstr1 ^ "," ^ tstr2 ^ ")"
-      end
-and string_of_term (UVar(x,_)) = x
-  | string_of_term (Fun("equal",[typ],terms)) = string_of_equality(typ,terms)
+fun string_of_term (UVar(x,_)) = x
   | string_of_term (Fun (name,typs,[])) = name ^ (paren_pack (map string_of_fol_type typs))
   | string_of_term (Fun (name,typs,terms)) = 
-      let val terms_as_strings = map string_of_term terms
-	  val typs' = if !keep_types then map string_of_fol_type typs else []
-      in  name ^ (paren_pack (terms_as_strings @ typs'))  end;
+      let val typs' = if !keep_types then map string_of_fol_type typs else []
+      in  name ^ (paren_pack (map string_of_term terms @ typs'))  end;
+
+fun string_of_pair [t1,t2] = (string_of_term t1, string_of_term t2)
+  | string_of_pair _ = raise ERROR ("equality predicate requires two arguments");
+
+fun string_of_equality ts =
+  let val (s1,s2) = string_of_pair ts
+  in "equal(" ^ s1 ^ "," ^ s2 ^ ")" end;
 
 (* before output the string of the predicate, check if the predicate corresponds to an equality or not. *)
-fun string_of_predicate (Predicate("equal",[typ],terms)) = string_of_equality(typ,terms)
-  | string_of_predicate (Predicate(name,typs,terms)) = 
-      let val terms_as_strings = map string_of_term terms
-	  val typs' = if !keep_types then map string_of_fol_type typs else []
-      in  name ^ (paren_pack (terms_as_strings @ typs'))  end;
+fun string_of_predicate (Predicate("equal",_,ts)) = string_of_equality ts
+  | string_of_predicate (Predicate(name,typs,ts)) = 
+      let val typs' = if !keep_types then map string_of_fol_type typs else []
+      in  name ^ (paren_pack (map string_of_term ts @ typs'))  end;
 
 fun string_of_clausename (cls_id,ax_name) = 
     clause_prefix ^ ascii_of ax_name ^ "_" ^ Int.toString cls_id;
@@ -746,7 +732,7 @@ fun string_of_descrip name =
   "*}).\nauthor({*Isabelle*}).\nstatus(unknown).\ndescription({*auto-generated*}).\nend_of_list.\n\n"
 
 fun dfg_tfree_clause tfree_lit =
-  "clause( %(conjecture)\n" ^ "or( " ^ tfree_lit ^ "),\n" ^ "tfree_tcs" ^ ").\n\n"
+  "clause( %(negated_conjecture)\n" ^ "or( " ^ tfree_lit ^ "),\n" ^ "tfree_tcs" ^ ").\n\n"
 
 fun string_of_arClauseID (ArityClause {axiom_name,...}) =
     arclause_prefix ^ ascii_of axiom_name;
@@ -807,22 +793,23 @@ fun dfg_write_file thms filename (ax_tuples,classrel_clauses,arity_clauses) =
 (**** Produce TPTP files ****)
 
 (*Attach sign in TPTP syntax: false means negate.*)
-fun tptp_sign true s = "++" ^ s
-  | tptp_sign false s = "--" ^ s
+fun tptp_sign true s = s
+  | tptp_sign false s = "~ " ^ s
 
-fun tptp_literal (Literal(pol,pred)) = 
-      (if pol then "++" else "--") ^ string_of_predicate pred;
+fun tptp_of_equality pol ts =
+  let val (s1,s2) = string_of_pair ts
+      val eqop = if pol then " = " else " != "
+  in  s1 ^ eqop ^ s2  end;
 
-fun tptp_of_typeLit (LTVar (s,ty)) = "--" ^ s ^ "(" ^ ty ^ ")"
-  | tptp_of_typeLit (LTFree (s,ty)) = "++" ^ s ^ "(" ^ ty ^ ")";
+fun tptp_literal (Literal(pol,Predicate("equal",_,ts))) = tptp_of_equality pol ts
+  | tptp_literal (Literal(pol,pred)) = tptp_sign pol (string_of_predicate pred);
+
+fun tptp_of_typeLit (LTVar (s,ty))  = tptp_sign false (s ^ "(" ^ ty ^ ")")
+  | tptp_of_typeLit (LTFree (s,ty)) = tptp_sign true  (s ^ "(" ^ ty ^ ")");
  
 fun gen_tptp_cls (cls_id,ax_name,knd,lits) = 
-    "input_clause(" ^ string_of_clausename (cls_id,ax_name) ^ "," ^ 
-    knd ^ "," ^ lits ^ ").\n";
-
-fun gen_tptp_type_cls (cls_id,ax_name,knd,tfree_lit,idx) = 
-    "input_clause(" ^ string_of_type_clsname (cls_id,ax_name,idx) ^ "," ^ 
-    knd ^ ",[" ^ tfree_lit ^ "]).\n";
+    "cnf(" ^ string_of_clausename (cls_id,ax_name) ^ "," ^ 
+    name_of_kind knd ^ "," ^ tptp_pack lits ^ ").\n";
 
 fun tptp_type_lits (Clause {literals, types_sorts, ...}) = 
     let val lits = map tptp_literal literals
@@ -838,15 +825,14 @@ fun tptp_type_lits (Clause {literals, types_sorts, ...}) =
 fun clause2tptp (cls as Clause {clause_id, axiom_name, kind, ...}) =
     let val (lits,tfree_lits) = tptp_type_lits cls 
             (*"lits" includes the typing assumptions (TVars)*)
-	val knd = name_of_kind kind
-	val cls_str = gen_tptp_cls(clause_id, axiom_name, knd, bracket_pack lits) 
+	val cls_str = gen_tptp_cls(clause_id, axiom_name, kind, lits) 
     in
 	(cls_str,tfree_lits) 
     end;
 
 fun tptp_tfree_clause tfree_lit =
-    "input_clause(" ^ "tfree_tcs," ^ "conjecture" ^ ",[" ^ tfree_lit ^ "]).\n";
-
+    "cnf(" ^ "tfree_tcs," ^ "negated_conjecture" ^ "," ^ tptp_pack[tfree_lit] ^ ").\n";
+    
 fun tptp_of_arLit (TConsLit(b,(c,t,args))) =
       tptp_sign b (c ^ "(" ^ t ^ paren_pack args ^ ")")
   | tptp_of_arLit (TVarLit(b,(c,str))) =
@@ -857,17 +843,15 @@ fun tptp_arity_clause (arcls as ArityClause{kind,conclLit,premLits,...}) =
       val knd = name_of_kind kind
       val lits = map tptp_of_arLit (conclLit :: premLits)
   in
-    "input_clause(" ^ arcls_id ^ "," ^ knd ^ "," ^ bracket_pack lits ^ ").\n"
+    "cnf(" ^ arcls_id ^ "," ^ knd ^ "," ^ tptp_pack lits ^ ").\n"
   end;
 
 fun tptp_classrelLits sub sup = 
-    let val tvar = "(T)"
-    in 
-	"[--" ^ sub ^ tvar ^ ",++" ^ sup ^ tvar ^ "]"
-    end;
+  let val tvar = "(T)"
+  in  tptp_pack [tptp_sign false (sub^tvar), tptp_sign true (sup^tvar)]  end;
 
 fun tptp_classrelClause (ClassrelClause {axiom_name,subclass,superclass,...}) =
-  "input_clause(" ^ axiom_name ^ ",axiom," ^ tptp_classrelLits subclass superclass ^ ").\n" 
+  "cnf(" ^ axiom_name ^ ",axiom," ^ tptp_classrelLits subclass superclass ^ ").\n" 
 
 (* write out a subgoal as tptp clauses to the file "xxxx_N"*)
 fun tptp_write_file thms filename (ax_tuples,classrel_clauses,arity_clauses) =
