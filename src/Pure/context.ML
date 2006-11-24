@@ -741,5 +741,7 @@ end;
 (*hide private interface*)
 structure Context: CONTEXT = Context;
 
-(*fake predeclaration*)
+(*fake predeclarations*)
 structure Proof = struct type context = Context.proof end;
+structure ProofContext =
+struct val theory_of = Context.theory_of_proof val init = Context.init_proof end;
