@@ -142,15 +142,15 @@ fun total_termination_afterqed defname data [[totality]] lthy =
       val tsimps = PROFILE "making tsimps" (map remove_domain_condition) psimps
       val tinduct = PROFILE "making tinduct" (map remove_domain_condition) pinducts
 
-        (* FIXME: How to generate code from (possibly) local contexts
-        val has_guards = exists ((fn (Const ("Trueprop", _) $ _) => false | _ => true) o prop_of) tsimps
-        val allatts = if has_guards then [] else [Attrib.internal (RecfunCodegen.add NONE)]
-        *)
-        val qualify = NameSpace.qualified defname;
+        (* FIXME: How to generate code from (possibly) local contexts*)
+      val has_guards = exists ((fn (Const ("Trueprop", _) $ _) => false | _ => true) o prop_of) tsimps
+      val allatts = if has_guards then [] else [Attrib.internal (RecfunCodegen.add NONE)]
+        
+      val qualify = NameSpace.qualified defname;
     in
-        lthy
-          |> PROFILE "adding tsimps" (add_simps "simps" [] mutual fixes tsimps spec) |> snd
-          |> PROFILE "adding tinduct" (note_theorem ((qualify "induct", []), tinduct)) |> snd
+      lthy
+        |> PROFILE "adding tsimps" (add_simps "simps" allatts mutual fixes tsimps spec) |> snd
+        |> PROFILE "adding tinduct" (note_theorem ((qualify "induct", []), tinduct)) |> snd
     end
 
 

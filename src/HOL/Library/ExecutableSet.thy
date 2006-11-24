@@ -125,7 +125,6 @@ by pat_completeness auto
 termination by lexicographic_order
 
 lemmas unionl_def = unionl.simps(2)
-declare unionl.simps[code]
 
 function intersect :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
@@ -136,7 +135,6 @@ by pat_completeness auto
 termination by lexicographic_order
 
 lemmas intersect_def = intersect.simps(3)
-declare intersect.simps[code]
 
 function subtract :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
@@ -147,7 +145,6 @@ by pat_completeness auto
 termination by lexicographic_order
 
 lemmas subtract_def = subtract.simps(3)
-declare subtract.simps[code]
 
 function map_distinct :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"
 where
@@ -157,7 +154,6 @@ by pat_completeness auto
 termination by lexicographic_order
 
 lemmas map_distinct_def = map_distinct.simps(2)
-declare map_distinct.simps[code]
 
 function unions :: "'a list list \<Rightarrow> 'a list"
 where
@@ -167,7 +163,6 @@ by pat_completeness auto
 termination by lexicographic_order
 
 lemmas unions_def = unions.simps(2)
-declare unions.simps[code]
 
 consts intersects :: "'a list list \<Rightarrow> 'a list"
 primrec

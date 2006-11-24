@@ -54,8 +54,6 @@ function
   by pat_completeness auto
 termination by (relation "measure nat") auto
 
-declare fac.simps [code]
-
 subsection {* sums *}
 
 subsection {* options *}
