@@ -105,7 +105,7 @@ fun abs_tr (*"_abs"*) [Free (x, T), t] = Term.absfree (x, T, t)
 
 (* binder *)
 
-fun mk_binder_tr (sy, name) =
+fun mk_binder_tr (syn, name) =
   let
     fun tr (Free (x, T), t) = Lexicon.const name $ Term.absfree (x, T, t)
       | tr (Const ("_idtdummy", T), t) = Lexicon.const name $ Term.absdummy (T, t)
@@ -116,9 +116,9 @@ fun mk_binder_tr (sy, name) =
       | tr (Const ("_idts", _) $ idt $ idts, t) = tr (idt, tr (idts, t))
       | tr (t1, t2) = raise TERM ("binder_tr", [t1, t2]);
 
-    fun binder_tr (*sy*) [idts, body] = tr (idts, body)
-      | binder_tr (*sy*) ts = raise TERM ("binder_tr", ts);
-  in (sy, binder_tr) end;
+    fun binder_tr [idts, body] = tr (idts, body)
+      | binder_tr ts = raise TERM ("binder_tr", ts);
+  in (syn, binder_tr) end;
 
 
 (* meta propositions *)
@@ -292,7 +292,7 @@ fun abs_ast_tr' (*"_abs"*) asts =
 
 (* binder *)
 
-fun mk_binder_tr' (name, sy) =
+fun mk_binder_tr' (name, syn) =
   let
     fun mk_idts [] = raise Match    (*abort translation*)
       | mk_idts [idt] = idt
@@ -301,13 +301,11 @@ fun mk_binder_tr' (name, sy) =
     fun tr' t =
       let
         val (xs, bd) = strip_abss (strip_qnt_vars name) (strip_qnt_body name) t;
-      in Lexicon.const sy $ mk_idts xs $ bd end;
+      in Lexicon.const syn $ mk_idts xs $ bd end;
 
-    fun binder_tr' (*name*) (t :: ts) = Term.list_comb (tr' (Lexicon.const name $ t), ts)
-      | binder_tr' (*name*) [] = raise Match;
-  in
-    (name, binder_tr')
-  end;
+    fun binder_tr' (t :: ts) = Term.list_comb (tr' (Lexicon.const name $ t), ts)
+      | binder_tr' [] = raise Match;
+  in (name, binder_tr') end;
 
 
 (* idtyp constraints *)
