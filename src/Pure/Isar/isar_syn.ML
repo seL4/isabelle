@@ -215,7 +215,7 @@ val abbreviationP =
     (P.opt_locale_target -- opt_mode --
       Scan.repeat1 (Scan.option constdecl -- P.prop)
     >> (fn ((loc, mode), args) =>
-        Toplevel.local_theory loc (snd o Specification.abbreviation mode args)));
+        Toplevel.local_theory loc (Specification.abbreviation mode args)));
 
 val notationP =
   OuterSyntax.command "notation" "variable/constant syntax" K.thy_decl
