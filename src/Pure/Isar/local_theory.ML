@@ -35,9 +35,10 @@ sig
   val note: string -> (bstring * Attrib.src list) * thm list ->
     local_theory -> (bstring * thm list) * Proof.context
   val notation: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
-  val abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> local_theory ->
-    (term * term) list * local_theory
-  val init: string option -> operations -> Proof.context -> local_theory
+  val abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> local_theory -> local_theory
+  val target_morphism: local_theory -> morphism
+  val target_name: local_theory -> bstring -> string
+  val init: string -> operations -> Proof.context -> local_theory
   val restore: local_theory -> local_theory
   val reinit: local_theory -> theory -> local_theory
   val exit: local_theory -> Proof.context
@@ -64,11 +65,13 @@ type operations =
   type_syntax: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory,
   term_syntax: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory,
   declaration: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory,
+  target_morphism: local_theory -> morphism,
+  target_name: local_theory -> bstring -> string,
   reinit: local_theory -> theory -> local_theory,
   exit: local_theory -> Proof.context};
 
 datatype lthy = LThy of
- {theory_prefix: string option,
+ {theory_prefix: string,
   operations: operations,
   target: Proof.context};
 
@@ -115,14 +118,11 @@ fun raw_theory_result f lthy =
 
 fun raw_theory f = #2 o raw_theory_result (f #> pair ());
 
-fun theory_result f lthy =
-  (case #theory_prefix (get_lthy lthy) of
-    NONE => error "Cannot change background theory"
-  | SOME prefix => lthy |> raw_theory_result (fn thy => thy
-      |> Sign.sticky_prefix prefix
-      |> Sign.qualified_names
-      |> f
-      ||> Sign.restore_naming thy));
+fun theory_result f lthy = lthy |> raw_theory_result (fn thy => thy
+  |> Sign.sticky_prefix (#theory_prefix (get_lthy lthy))
+  |> Sign.qualified_names
+  |> f
+  ||> Sign.restore_naming thy);
 
 fun theory f = #2 o theory_result (f #> pair ());
 
@@ -152,6 +152,8 @@ val notes = operation2 #notes;
 val type_syntax = operation1 #type_syntax;
 val term_syntax = operation1 #term_syntax;
 val declaration = operation1 #declaration;
+val target_morphism = operation #target_morphism;
+val target_name = operation #target_name;
 
 
 (* derived operations *)
@@ -160,12 +162,16 @@ fun def kind arg lthy = lthy |> defs kind [arg] |>> hd;
 
 fun note kind (a, ths) lthy = lthy |> notes kind [(a, [(ths, [])])] |>> hd;
 
-fun notation mode args = term_syntax (fn phi => (* FIXME *)
-  (Context.mapping (Sign.add_notation mode args) (ProofContext.add_notation mode args)));
+fun notation mode args = term_syntax (fn phi =>
+  let val args' = args |> map (fn (t, mx) => (Morphism.term phi t, mx))
+  in Context.mapping (Sign.add_notation mode args') (ProofContext.add_notation mode args') end);
 
-fun abbrevs mode args = term_syntax (fn phi => (* FIXME *)
-  (Context.mapping (snd o Sign.add_abbrevs mode args) (snd o ProofContext.add_abbrevs mode args)))
-  #> ProofContext.add_abbrevs mode args;  (* FIXME *)
+fun abbrevs mode args = term_syntax (fn phi =>
+  let val args' = args |> map (fn ((c, mx), t) => ((Morphism.name phi c, mx), Morphism.term phi t))
+  in
+    Context.mapping
+      (snd o Sign.add_abbrevs mode args') (snd o ProofContext.add_abbrevs mode args')
+  end);
 
 
 (* init -- exit *)
