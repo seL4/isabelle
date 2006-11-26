@@ -19,6 +19,7 @@ sig
     Infixr of int |   (*obsolete*)
     Binder of string * int * int |
     Structure
+  val binder_name: string -> string
 end;
 
 signature MIXFIX1 =
@@ -186,6 +187,7 @@ fun syn_ext_types type_decls =
 (* syn_ext_consts *)
 
 val binder_stamp = stamp ();
+val binder_name = suffix "_binder";
 
 fun syn_ext_consts is_logtype const_decls =
   let
@@ -212,11 +214,11 @@ fun syn_ext_consts is_logtype const_decls =
         | (sy, ty, Infixl p) => mk_infix sy ty c p (p + 1) p
         | (sy, ty, Infixr p) => mk_infix sy ty c (p + 1) p p
         | (_, ty, Binder (sy, p, q)) =>
-            [SynExt.Mfix ("(3" ^ sy ^ "_./ _)", binder_typ c ty, sy, [0, p], q)]
+            [SynExt.Mfix ("(3" ^ sy ^ "_./ _)", binder_typ c ty, (binder_name c), [0, p], q)]
         | _ => error ("Bad mixfix declaration for const: " ^ quote c))
     end;
 
-    fun binder (c, _, Binder (sy, _, _)) = SOME (sy, c)
+    fun binder (c, _, Binder _) = SOME (binder_name c, c)
       | binder _ = NONE;
 
     val mfix = maps mfix_of const_decls;
