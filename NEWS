@@ -239,6 +239,10 @@ according to the current context.  This is particularly useful for
 syntax translations that should refer to internal constant
 representations independently of name spaces.
 
+* Pure: syntax constant for foo (binder "FOO ") is called "foo_binder"
+instead of "FOO ". This allows multiple binder declarations to coexist
+in the same context.  INCOMPATIBILITY.
+
 * Isar/locales: 'notation' provides a robust interface to the 'syntax'
 primitive that also works in a locale context (both for constants and
 fixed variables).  Type declaration and internal syntactic
