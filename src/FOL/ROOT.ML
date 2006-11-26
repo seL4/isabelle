@@ -24,3 +24,13 @@ use "~~/src/Provers/quantifier1.ML";
 use "~~/src/Provers/project_rule.ML";
 
 use_thy "FOL";
+
+structure IFOL =
+struct
+  val thy = theory "IFOL";
+end;
+
+structure FOL =
+struct
+  val thy = theory "FOL";
+end;

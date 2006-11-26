@@ -1,4 +1,6 @@
 
+val ccontr = thm "ccontr";
+
 (*** Applying BlastFun to create Blast_tac ***)
 structure Blast_Data = 
   struct

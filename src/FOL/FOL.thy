@@ -7,7 +7,7 @@ header {* Classical first-order logic *}
 
 theory FOL
 imports IFOL
-uses ("FOL_lemmas1.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
+uses ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
 begin
 
 
@@ -19,8 +19,151 @@ axioms
 
 subsection {* Lemmas and proof tools *}
 
-use "FOL_lemmas1.ML"
-theorems case_split = case_split_thm [case_names True False, cases type: o]
+lemma ccontr: "(\<not> P \<Longrightarrow> False) \<Longrightarrow> P"
+  by (erule FalseE [THEN classical])
+
+(*** Classical introduction rules for | and EX ***)
+
+lemma disjCI: "(~Q ==> P) ==> P|Q"
+  apply (rule classical)
+  apply (assumption | erule meta_mp | rule disjI1 notI)+
+  apply (erule notE disjI2)+
+  done
+
+(*introduction rule involving only EX*)
+lemma ex_classical:
+  assumes r: "~(EX x. P(x)) ==> P(a)"
+  shows "EX x. P(x)"
+  apply (rule classical)
+  apply (rule exI, erule r)
+  done
+
+(*version of above, simplifying ~EX to ALL~ *)
+lemma exCI:
+  assumes r: "ALL x. ~P(x) ==> P(a)"
+  shows "EX x. P(x)"
+  apply (rule ex_classical)
+  apply (rule notI [THEN allI, THEN r])
+  apply (erule notE)
+  apply (erule exI)
+  done
+
+lemma excluded_middle: "~P | P"
+  apply (rule disjCI)
+  apply assumption
+  done
+
+(*For disjunctive case analysis*)
+ML {*
+  local
+    val excluded_middle = thm "excluded_middle"
+    val disjE = thm "disjE"
+  in
+    fun excluded_middle_tac sP =
+      res_inst_tac [("Q",sP)] (excluded_middle RS disjE)
+  end
+*}
+
+lemma case_split_thm:
+  assumes r1: "P ==> Q"
+    and r2: "~P ==> Q"
+  shows Q
+  apply (rule excluded_middle [THEN disjE])
+  apply (erule r2)
+  apply (erule r1)
+  done
+
+lemmas case_split = case_split_thm [case_names True False, cases type: o]
+
+(*HOL's more natural case analysis tactic*)
+ML {*
+  local
+    val case_split_thm = thm "case_split_thm"
+  in
+    fun case_tac a = res_inst_tac [("P",a)] case_split_thm
+  end
+*}
+
+
+(*** Special elimination rules *)
+
+
+(*Classical implies (-->) elimination. *)
+lemma impCE:
+  assumes major: "P-->Q"
+    and r1: "~P ==> R"
+    and r2: "Q ==> R"
+  shows R
+  apply (rule excluded_middle [THEN disjE])
+   apply (erule r1)
+  apply (rule r2)
+  apply (erule major [THEN mp])
+  done
+
+(*This version of --> elimination works on Q before P.  It works best for
+  those cases in which P holds "almost everywhere".  Can't install as
+  default: would break old proofs.*)
+lemma impCE':
+  assumes major: "P-->Q"
+    and r1: "Q ==> R"
+    and r2: "~P ==> R"
+  shows R
+  apply (rule excluded_middle [THEN disjE])
+   apply (erule r2)
+  apply (rule r1)
+  apply (erule major [THEN mp])
+  done
+
+(*Double negation law*)
+lemma notnotD: "~~P ==> P"
+  apply (rule classical)
+  apply (erule notE)
+  apply assumption
+  done
+
+lemma contrapos2:  "[| Q; ~ P ==> ~ Q |] ==> P"
+  apply (rule classical)
+  apply (drule (1) meta_mp)
+  apply (erule (1) notE)
+  done
+
+(*** Tactics for implication and contradiction ***)
+
+(*Classical <-> elimination.  Proof substitutes P=Q in 
+    ~P ==> ~Q    and    P ==> Q  *)
+lemma iffCE:
+  assumes major: "P<->Q"
+    and r1: "[| P; Q |] ==> R"
+    and r2: "[| ~P; ~Q |] ==> R"
+  shows R
+  apply (rule major [unfolded iff_def, THEN conjE])
+  apply (elim impCE)
+     apply (erule (1) r2)
+    apply (erule (1) notE)+
+  apply (erule (1) r1)
+  done
+
+
+(*Better for fast_tac: needs no quantifier duplication!*)
+lemma alt_ex1E:
+  assumes major: "EX! x. P(x)"
+    and r: "!!x. [| P(x);  ALL y y'. P(y) & P(y') --> y=y' |] ==> R"
+  shows R
+  using major
+proof (rule ex1E)
+  fix x
+  assume * : "\<forall>y. P(y) \<longrightarrow> y = x"
+  assume "P(x)"
+  then show R
+  proof (rule r)
+    { fix y y'
+      assume "P(y)" and "P(y')"
+      with * have "x = y" and "x = y'" by - (tactic "IntPr.fast_tac 1")+
+      then have "y = y'" by (rule subst)
+    } note r' = this
+    show "\<forall>y y'. P(y) \<and> P(y') \<longrightarrow> y = y'" by (intro strip, elim conjE) (rule r')
+  qed
+qed
 
 use "cladata.ML"
 setup Cla.setup
@@ -32,9 +175,7 @@ setup Blast.setup
 
 
 lemma ex1_functional: "[| EX! z. P(a,z);  P(a,b);  P(a,c) |] ==> b = c"
-by blast
-
-ML {* val ex1_functional = thm "ex1_functional" *}
+  by blast
 
 (* Elimination of True from asumptions: *)
 lemma True_implies_equals: "(True ==> PROP P) == PROP P"
@@ -45,6 +186,19 @@ next
   assume "PROP P"
   then show "PROP P" .
 qed
+
+lemma uncurry: "P --> Q --> R ==> P & Q --> R"
+  by blast
+
+lemma iff_allI: "(!!x. P(x) <-> Q(x)) ==> (ALL x. P(x)) <-> (ALL x. Q(x))"
+  by blast
+
+lemma iff_exI: "(!!x. P(x) <-> Q(x)) ==> (EX x. P(x)) <-> (EX x. Q(x))"
+  by blast
+
+lemma all_comm: "(ALL x y. P(x,y)) <-> (ALL y x. P(x,y))" by blast
+
+lemma ex_comm: "(EX x y. P(x,y)) <-> (EX y x. P(x,y))" by blast
 
 use "simpdata.ML"
 setup simpsetup

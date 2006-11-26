@@ -6,16 +6,11 @@
 Simplification data for FOL.
 *)
 
-val ex1_functional = thm "ex1_functional";
-val True_implies_equals = thm "True_implies_equals";
-
-
-
 (*** Rewrite rules ***)
 
 fun int_prove_fun s =
  (writeln s;
-  prove_goal IFOL.thy s
+  prove_goal (theory "IFOL") s
    (fn prems => [ (cut_facts_tac prems 1),
                   (IntPr.fast_tac 1) ]));
 
@@ -88,7 +83,7 @@ fun mk_eq th = case concl_of th of
 (*Replace premises x=y, X<->Y by X==Y*)
 val mk_meta_prems =
     rule_by_tactic
-      (REPEAT_FIRST (resolve_tac [meta_eq_to_obj_eq, def_imp_iff]));
+      (REPEAT_FIRST (resolve_tac [meta_eq_to_obj_eq, thm "def_imp_iff"]));
 
 (*Congruence rules for = or <-> (instead of ==)*)
 fun mk_meta_cong rl =
@@ -169,7 +164,7 @@ bind_thms ("all_simps", int_all_simps @ cla_all_simps);
 
 (*** Named rewrite rules proved for IFOL ***)
 
-fun int_prove nm thm  = qed_goal nm IFOL.thy thm
+fun int_prove nm thm  = qed_goal nm (theory "IFOL") thm
     (fn prems => [ (cut_facts_tac prems 1),
                    (IntPr.fast_tac 1) ]);
 
@@ -213,23 +208,6 @@ int_prove "all_conj_distrib"
     "(ALL x. P(x) & Q(x)) <-> ((ALL x. P(x)) & (ALL x. Q(x)))";
 
 
-local
-val uncurry = prove_goal (the_context()) "P --> Q --> R ==> P & Q --> R"
-              (fn prems => [cut_facts_tac prems 1, Blast_tac 1]);
-
-val iff_allI = allI RS
-    prove_goal (the_context()) "ALL x. P(x) <-> Q(x) ==> (ALL x. P(x)) <-> (ALL x. Q(x))"
-               (fn prems => [cut_facts_tac prems 1, Blast_tac 1])
-val iff_exI = allI RS
-    prove_goal (the_context()) "ALL x. P(x) <-> Q(x) ==> (EX x. P(x)) <-> (EX x. Q(x))"
-               (fn prems => [cut_facts_tac prems 1, Blast_tac 1])
-
-val all_comm = prove_goal (the_context()) "(ALL x y. P(x,y)) <-> (ALL y x. P(x,y))"
-               (fn _ => [Blast_tac 1])
-val ex_comm = prove_goal (the_context()) "(EX x y. P(x,y)) <-> (EX y x. P(x,y))"
-               (fn _ => [Blast_tac 1])
-in
-
 (** make simplification procedures for quantifier elimination **)
 structure Quantifier1 = Quantifier1Fun(
 struct
@@ -250,16 +228,14 @@ struct
   val conjE= conjE
   val impI = impI
   val mp   = mp
-  val uncurry = uncurry
+  val uncurry = thm "uncurry"
   val exI  = exI
   val exE  = exE
-  val iff_allI = iff_allI
-  val iff_exI = iff_exI
-  val all_comm = all_comm
-  val ex_comm = ex_comm
+  val iff_allI = thm "iff_allI"
+  val iff_exI = thm "iff_exI"
+  val all_comm = thm "all_comm"
+  val ex_comm = thm "ex_comm"
 end);
-
-end;
 
 val defEX_regroup =
   Simplifier.simproc (the_context ())
@@ -272,9 +248,6 @@ val defALL_regroup =
 
 (*** Case splitting ***)
 
-bind_thm ("meta_eq_to_iff", prove_goal IFOL.thy "x==y ==> x<->y"
-  (fn [prem] => [rewtac prem, rtac iffI 1, atac 1, atac 1]));
-
 structure SplitterData =
   struct
   structure Simplifier = Simplifier
@@ -284,9 +257,9 @@ structure SplitterData =
   val disjE          = disjE
   val conjE          = conjE
   val exE            = exE
-  val contrapos      = contrapos
-  val contrapos2     = contrapos2
-  val notnotD        = notnotD
+  val contrapos      = thm "contrapos"
+  val contrapos2     = thm "contrapos2"
+  val notnotD        = thm "notnotD"
   end;
 
 structure Splitter = SplitterFun(SplitterData);
@@ -302,21 +275,22 @@ val Delsplits        = Splitter.Delsplits;
 
 (*** Standard simpsets ***)
 
-structure Induction = InductionFun(struct val spec=IFOL.spec end);
+structure Induction = InductionFun(struct val spec = spec end);
 
 open Induction;
 
 
 bind_thms ("meta_simps",
  [triv_forall_equality,   (* prunes params *)
-  True_implies_equals]);  (* prune asms `True' *)
+  thm "True_implies_equals"]);  (* prune asms `True' *)
 
 bind_thms ("IFOL_simps",
  [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @
   imp_simps @ iff_simps @ quant_simps);
 
 bind_thm ("notFalseI", int_prove_fun "~False");
-bind_thms ("triv_rls", [TrueI,refl,reflexive_thm,iff_refl,notFalseI]);
+bind_thms ("triv_rls",
+  [TrueI, refl, reflexive_thm, iff_refl, thm "notFalseI"]);
 
 fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls@prems),
                                  atac, etac FalseE];
@@ -339,10 +313,11 @@ fun unfold_tac ths =
 
 
 (*intuitionistic simprules only*)
-val IFOL_ss = FOL_basic_ss
+val IFOL_ss =
+  FOL_basic_ss
   addsimps (meta_simps @ IFOL_simps @ int_ex_simps @ int_all_simps)
   addsimprocs [defALL_regroup, defEX_regroup]    
-  addcongs [imp_cong];
+  addcongs [thm "imp_cong"];
 
 bind_thms ("cla_simps",
   [de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2,

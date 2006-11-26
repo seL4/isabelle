@@ -41,22 +41,22 @@ struct
   step of an intuitionistic proof.
 *)
 val safe_brls = sort (make_ord lessb)
-    [ (true,FalseE), (false,TrueI), (false,refl),
-      (false,impI), (false,notI), (false,allI),
-      (true,conjE), (true,exE),
-      (false,conjI), (true,conj_impE),
-      (true,disj_impE), (true,disjE), 
-      (false,iffI), (true,iffE), (true,not_to_imp) ];
+    [ (true, thm "FalseE"), (false, thm "TrueI"), (false, thm "refl"),
+      (false, thm "impI"), (false, thm "notI"), (false, thm "allI"),
+      (true, thm "conjE"), (true, thm "exE"),
+      (false, thm "conjI"), (true, thm "conj_impE"),
+      (true, thm "disj_impE"), (true, thm "disjE"), 
+      (false, thm "iffI"), (true, thm "iffE"), (true, thm "not_to_imp") ];
 
 val haz_brls =
-    [ (false,disjI1), (false,disjI2), (false,exI), 
-      (true,allE), (true,not_impE), (true,imp_impE), (true,iff_impE),
-      (true,all_impE), (true,ex_impE), (true,impE) ];
+    [ (false, thm "disjI1"), (false, thm "disjI2"), (false, thm "exI"), 
+      (true, thm "allE"), (true, thm "not_impE"), (true, thm "imp_impE"), (true, thm "iff_impE"),
+      (true, thm "all_impE"), (true, thm "ex_impE"), (true, thm "impE") ];
 
 val haz_dup_brls =
-    [ (false,disjI1), (false,disjI2), (false,exI), 
-      (true,all_dupE), (true,not_impE), (true,imp_impE), (true,iff_impE),
-      (true,all_impE), (true,ex_impE), (true,impE) ];
+    [ (false, thm "disjI1"), (false, thm "disjI2"), (false, thm "exI"),
+      (true, thm "all_dupE"), (true, thm "not_impE"), (true, thm "imp_impE"), (true, thm "iff_impE"),
+      (true, thm "all_impE"), (true, thm "ex_impE"), (true, thm "impE") ];
 
 (*0 subgoals vs 1 or more: the p in safep is for positive*)
 val (safe0_brls, safep_brls) =

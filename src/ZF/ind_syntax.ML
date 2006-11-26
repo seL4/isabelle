@@ -136,20 +136,20 @@ fun data_domain co (rec_tms, con_ty_lists) =
 
 
 (*Could go to FOL, but it's hardly general*)
-val def_swap_iff = prove_goal IFOL.thy "a==b ==> a=c <-> c=b"
- (fn [def] => [(rewtac def), (rtac iffI 1), (REPEAT (etac sym 1))]);
+val def_swap_iff = prove_goal (the_context ()) "a==b ==> a=c <-> c=b"
+  (fn [def] => [(rewtac def), (rtac iffI 1), (REPEAT (etac sym 1))]);
 
-val def_trans = prove_goal IFOL.thy "[| f==g;  g(a)=b |] ==> f(a)=b"
+val def_trans = prove_goal (the_context ()) "[| f==g;  g(a)=b |] ==> f(a)=b"
   (fn [rew,prem] => [ rewtac rew, rtac prem 1 ]);
 
 (*Delete needless equality assumptions*)
-val refl_thin = prove_goal IFOL.thy "!!P. [| a=a;  P |] ==> P"
+val refl_thin = prove_goal (the_context ()) "!!P. [| a=a;  P |] ==> P"
      (fn _ => [assume_tac 1]);
 
 (*Includes rules for succ and Pair since they are common constructions*)
-val elim_rls = [asm_rl, FalseE, succ_neq_0, sym RS succ_neq_0, 
-                Pair_neq_0, sym RS Pair_neq_0, Pair_inject,
-                make_elim succ_inject, 
+val elim_rls = [asm_rl, FalseE, thm "succ_neq_0", sym RS thm "succ_neq_0",
+                thm "Pair_neq_0", sym RS thm "Pair_neq_0", thm "Pair_inject",
+                make_elim (thm "succ_inject"),
                 refl_thin, conjE, exE, disjE];
 
 
@@ -162,7 +162,6 @@ fun gen_make_elim elim_rls rl =
 
 (*Turns iff rules into safe elimination rules*)
 fun mk_free_SEs iffs = map (gen_make_elim [conjE,FalseE]) (iffs RL [iffD1]);
-
 
 end;
 

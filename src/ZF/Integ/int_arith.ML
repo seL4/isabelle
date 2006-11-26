@@ -20,7 +20,7 @@ AddIffs [inst "y" "integ_of(?w)" zminus_zless,
 AddIffs [inst "y" "integ_of(?w)" zminus_zle,
          inst "x" "integ_of(?w)" zle_zminus];
 
-Addsimps [inst "s" "integ_of(?w)" Let_def];
+Addsimps [inst "s" "integ_of(?w)" (thm "Let_def")];
 
 (*** Simprocs for numeric literals ***)
 
