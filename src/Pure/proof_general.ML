@@ -387,15 +387,11 @@ fun repeat_undo 0 = ()
 
 local
 
-fun add_master_files name files =
-  let val masters = [ThyLoad.thy_path name, ThyLoad.ml_path name]
-  in masters @ subtract (op = o pairself Path.base) masters files end;
-
 fun trace_action action name =
   if action = ThyInfo.Update then
     List.app tell_file_loaded (ThyInfo.loaded_files name)
   else if action = ThyInfo.Outdate orelse action = ThyInfo.Remove then
-    List.app tell_file_retracted (add_master_files name (ThyInfo.loaded_files name))
+    List.app tell_file_retracted (ThyInfo.loaded_files name)
   else ();
 
 in
@@ -1321,7 +1317,7 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "retractfile"    => (case !currently_open_file of
                                 SOME f => raise PGIP ("retractfile when a file is open!")
                               | NONE => inform_file_retracted (fileurl_of attrs))
-     | "changecwd"      => changecwd (dirname_attr attrs)
+     | "changecwd"      => changecwd (fileurl_of attrs)
      | "systemcmd"      => isarscript data
      (* unofficial command for debugging *)
      | "quitpgip" => raise PGIP_QUIT
