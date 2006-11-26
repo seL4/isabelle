@@ -25,6 +25,8 @@ sig
     var: string * mixfix -> string * mixfix,
     typ: 'typ -> 'a, term: 'term -> 'b, fact: 'fact -> 'c,
     attrib: Attrib.src -> Attrib.src} -> ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
+  val map_ctxt_attrib: (Attrib.src -> Attrib.src) ->
+    ('typ, 'term, 'fact) ctxt -> ('typ, 'term, 'fact) ctxt
   val morph_ctxt: morphism -> context_i -> context_i
   val params_of: context_i -> (string * typ) list
   val prems_of: context_i -> term list
@@ -108,6 +110,9 @@ fun map_ctxt {name, var, typ, term, fact, attrib} =
       ((name a, map attrib atts), (term t, map term ps))))
    | Notes (kind, facts) => Notes (kind, facts |> map (fn ((a, atts), bs) =>
       ((name a, map attrib atts), bs |> map (fn (ths, btts) => (fact ths, map attrib btts)))));
+
+fun map_ctxt_attrib attrib =
+  map_ctxt {name = I, var = I, typ = I, term = I, fact = I, attrib = attrib};
 
 fun morph_ctxt phi = map_ctxt
  {name = Morphism.name phi,
