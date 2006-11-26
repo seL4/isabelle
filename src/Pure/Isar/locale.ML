@@ -935,8 +935,7 @@ fun activate_elemss ax_in_ctxt prep_facts =
         val elems = map (prep_facts ctxt) raw_elems;
         val (ctxt', res) = apsnd flat
             (activate_elems ax_in_ctxt (((name, ps), mode), elems) ctxt);
-        val elems' = elems |> map (Element.map_ctxt
-          {name = I, var = I, typ = I, term = I, fact = I, attrib = Args.closure});
+        val elems' = elems |> map (Element.map_ctxt_attrib Args.closure);
       in (((((name, ps), mode), elems'), res), ctxt') end);
 
 in
