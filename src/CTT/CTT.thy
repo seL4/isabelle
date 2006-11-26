@@ -72,25 +72,25 @@ abbreviation
   "A * B == SUM _:A. B"
 
 notation (xsymbols)
+  lambda  (binder "\<lambda>\<lambda>" 10) and
   Elem  ("(_ /\<in> _)" [10,10] 5) and
   Eqelem  ("(2_ =/ _ \<in>/ _)" [10,10,10] 5) and
   Arrow  (infixr "\<longrightarrow>" 30) and
   Times  (infixr "\<times>" 50)
 
 notation (HTML output)
+  lambda  (binder "\<lambda>\<lambda>" 10) and
   Elem  ("(_ /\<in> _)" [10,10] 5) and
   Eqelem  ("(2_ =/ _ \<in>/ _)" [10,10,10] 5) and
   Times  (infixr "\<times>" 50)
 
 syntax (xsymbols)
-  "@SUM"    :: "[idt,t,t] => t"     ("(3\<Sigma> _\<in>_./ _)" 10)
-  "@PROD"   :: "[idt,t,t] => t"     ("(3\<Pi> _\<in>_./ _)"    10)
-  "lam "    :: "[idts, i] => i"     ("(3\<lambda>\<lambda>_./ _)" 10)
+  "_PROD"   :: "[idt,t,t] => t"     ("(3\<Pi> _\<in>_./ _)"    10)
+  "_SUM"    :: "[idt,t,t] => t"     ("(3\<Sigma> _\<in>_./ _)" 10)
 
 syntax (HTML output)
-  "@SUM"    :: "[idt,t,t] => t"     ("(3\<Sigma> _\<in>_./ _)" 10)
-  "@PROD"   :: "[idt,t,t] => t"     ("(3\<Pi> _\<in>_./ _)"    10)
-  "lam "    :: "[idts, i] => i"     ("(3\<lambda>\<lambda>_./ _)" 10)
+  "_PROD"   :: "[idt,t,t] => t"     ("(3\<Pi> _\<in>_./ _)"    10)
+  "_SUM"    :: "[idt,t,t] => t"     ("(3\<Sigma> _\<in>_./ _)" 10)
 
 axioms
 

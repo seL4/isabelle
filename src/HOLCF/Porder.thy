@@ -87,14 +87,13 @@ constdefs
   lub :: "'a set \<Rightarrow> 'a::po"
   "lub S \<equiv> THE x. S <<| x"
 
-syntax
-  "@LUB"	:: "('b \<Rightarrow> 'a) \<Rightarrow> 'a"	(binder "LUB " 10)
+abbreviation
+  Lub  (binder "LUB " 10) where
+  "LUB n. t n == lub (range t)"
 
-syntax (xsymbols)
-  "LUB "	:: "[idts, 'a] \<Rightarrow> 'a"		("(3\<Squnion>_./ _)" [0,10] 10)
+notation (xsymbols)
+  Lub  (binder "\<Squnion> " 10)
 
-translations
-  "\<Squnion>n. t" == "lub(CONST range(\<lambda>n. t))"
 
 text {* lubs are unique *}
 

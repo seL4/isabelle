@@ -547,16 +547,19 @@ translations
 print_translation {*
 let
   val syntax_name = Sign.const_syntax_name (the_context ());
+  val binder_name = Syntax.binder_name o syntax_name;
+  val All_binder = binder_name "All";
+  val Ex_binder = binder_name "Ex";
   val impl = syntax_name "op -->";
   val conj = syntax_name "op &";
   val less = syntax_name "Orderings.less";
   val less_eq = syntax_name "Orderings.less_eq";
 
   val trans =
-   [(("ALL ", impl, less), ("_All_less", "_All_greater")),
-    (("ALL ", impl, less_eq), ("_All_less_eq", "_All_greater_eq")),
-    (("EX ", conj, less), ("_Ex_less", "_Ex_greater")),
-    (("EX ", conj, less_eq), ("_Ex_less_eq", "_Ex_greater_eq"))];
+   [((All_binder, impl, less), ("_All_less", "_All_greater")),
+    ((All_binder, impl, less_eq), ("_All_less_eq", "_All_greater_eq")),
+    ((Ex_binder, conj, less), ("_Ex_less", "_Ex_greater")),
+    ((Ex_binder, conj, less_eq), ("_Ex_less_eq", "_Ex_greater_eq"))];
 
   fun mk v v' c n P =
     if v = v' andalso not (Term.exists_subterm (fn Free (x, _) => x = v | _ => false) n)
@@ -572,7 +575,7 @@ let
           | (n, Const ("_bound", _) $ Free (v', _)) => mk v v' g n P
           | _ => raise Match))
      | _ => raise Match);
-in [tr' "ALL ", tr' "EX "] end
+in [tr' All_binder, tr' Ex_binder] end
 *}
 
 

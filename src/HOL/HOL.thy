@@ -115,21 +115,22 @@ print_translation {*
 *}
 
 syntax (xsymbols)
-  "ALL "        :: "[idts, bool] => bool"                ("(3\<forall>_./ _)" [0, 10] 10)
-  "EX "         :: "[idts, bool] => bool"                ("(3\<exists>_./ _)" [0, 10] 10)
-  "EX! "        :: "[idts, bool] => bool"                ("(3\<exists>!_./ _)" [0, 10] 10)
   "_case1"      :: "['a, 'b] => case_syn"                ("(2_ \<Rightarrow>/ _)" 10)
-(*"_case2"      :: "[case_syn, cases_syn] => cases_syn"  ("_/ \<orelse> _")*)
 
-syntax (HTML output)
-  "ALL "        :: "[idts, bool] => bool"                ("(3\<forall>_./ _)" [0, 10] 10)
-  "EX "         :: "[idts, bool] => bool"                ("(3\<exists>_./ _)" [0, 10] 10)
-  "EX! "        :: "[idts, bool] => bool"                ("(3\<exists>!_./ _)" [0, 10] 10)
+notation (xsymbols)
+  All  (binder "\<forall>" 10) and
+  Ex  (binder "\<exists>" 10) and
+  Ex1  (binder "\<exists>!" 10)
 
-syntax (HOL)
-  "ALL "        :: "[idts, bool] => bool"                ("(3! _./ _)" [0, 10] 10)
-  "EX "         :: "[idts, bool] => bool"                ("(3? _./ _)" [0, 10] 10)
-  "EX! "        :: "[idts, bool] => bool"                ("(3?! _./ _)" [0, 10] 10)
+notation (HTML output)
+  All  (binder "\<forall>" 10) and
+  Ex  (binder "\<exists>" 10) and
+  Ex1  (binder "\<exists>!" 10)
+
+notation (HOL)
+  All  (binder "! " 10) and
+  Ex  (binder "? " 10) and
+  Ex1  (binder "?! " 10)
 
 
 subsubsection {* Axioms and basic definitions *}
@@ -179,27 +180,35 @@ finalconsts
 subsubsection {* Generic algebraic operations *}
 
 class zero =
-  fixes zero :: "'a"                       ("\<^loc>0")
+  fixes zero :: "'a"  ("\<^loc>0")
 
 class one =
-  fixes one  :: "'a"                       ("\<^loc>1")
+  fixes one  :: "'a"  ("\<^loc>1")
 
 hide (open) const zero one
 
 class plus =
-  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"   (infixl "\<^loc>+" 65)
+  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>+" 65)
 
 class minus =
   fixes uminus :: "'a \<Rightarrow> 'a" 
-  fixes minus  :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<^loc>-" 65)
-  fixes abs    :: "'a \<Rightarrow> 'a"
+    and minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>-" 65)
+    and abs :: "'a \<Rightarrow> 'a"
 
 class times =
   fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>*" 70)
 
 class inverse = 
   fixes inverse :: "'a \<Rightarrow> 'a"
-  fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<^loc>'/" 70)
+    and divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>'/" 70)
+
+notation
+  uminus  ("- _" [81] 80)
+
+notation (xsymbols)
+  abs  ("\<bar>_\<bar>")
+notation (HTML output)
+  abs  ("\<bar>_\<bar>")
 
 syntax
   "_index1"  :: index    ("\<^sub>1")
@@ -214,14 +223,6 @@ let
     else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
 in map (tr' o Sign.const_syntax_name thy) ["HOL.one", "HOL.zero"] end;
 *} -- {* show types that are presumably too general *}
-
-notation
-  uminus  ("- _" [81] 80)
-
-notation (xsymbols)
-  abs  ("\<bar>_\<bar>")
-notation (HTML output)
-  abs  ("\<bar>_\<bar>")
 
 
 subsection {* Fundamental rules *}

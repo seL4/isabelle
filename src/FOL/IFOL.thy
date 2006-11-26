@@ -54,24 +54,23 @@ notation (xsymbols)
 notation (HTML output)
   not_equal  (infixl "\<noteq>" 50)
 
-syntax (xsymbols)
-  Not           :: "o => o"                     ("\<not> _" [40] 40)
-  "op &"        :: "[o, o] => o"                (infixr "\<and>" 35)
-  "op |"        :: "[o, o] => o"                (infixr "\<or>" 30)
-  "ALL "        :: "[idts, o] => o"             ("(3\<forall>_./ _)" [0, 10] 10)
-  "EX "         :: "[idts, o] => o"             ("(3\<exists>_./ _)" [0, 10] 10)
-  "EX! "        :: "[idts, o] => o"             ("(3\<exists>!_./ _)" [0, 10] 10)
-  "op -->"      :: "[o, o] => o"                (infixr "\<longrightarrow>" 25)
-  "op <->"      :: "[o, o] => o"                (infixr "\<longleftrightarrow>" 25)
+notation (xsymbols)
+  Not  ("\<not> _" [40] 40) and
+  "op &"  (infixr "\<and>" 35) and
+  "op |"  (infixr "\<or>" 30) and
+  All  (binder "\<forall>" 10) and
+  Ex  (binder "\<exists>" 10) and
+  Ex1  (binder "\<exists>!" 10) and
+  "op -->"  (infixr "\<longrightarrow>" 25) and
+  "op <->"  (infixr "\<longleftrightarrow>" 25)
 
-syntax (HTML output)
-  Not           :: "o => o"                     ("\<not> _" [40] 40)
-  "op &"        :: "[o, o] => o"                (infixr "\<and>" 35)
-  "op |"        :: "[o, o] => o"                (infixr "\<or>" 30)
-  "ALL "        :: "[idts, o] => o"             ("(3\<forall>_./ _)" [0, 10] 10)
-  "EX "         :: "[idts, o] => o"             ("(3\<exists>_./ _)" [0, 10] 10)
-  "EX! "        :: "[idts, o] => o"             ("(3\<exists>!_./ _)" [0, 10] 10)
-
+notation (HTML output)
+  Not  ("\<not> _" [40] 40) and
+  "op &"  (infixr "\<and>" 35) and
+  "op |"  (infixr "\<or>" 30) and
+  All  (binder "\<forall>" 10) and
+  Ex  (binder "\<exists>" 10) and
+  Ex1  (binder "\<exists>!" 10)
 
 local
 

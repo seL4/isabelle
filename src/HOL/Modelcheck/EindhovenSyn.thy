@@ -16,8 +16,8 @@ syntax (Eindhoven output)
   "op &"        :: "[bool, bool] => bool"               (infixr "AND" 35)
   "op |"        :: "[bool, bool] => bool"               (infixr "OR" 30)
 
-  "ALL "        :: "[idts, bool] => bool"               ("'((3A _./ _)')" [0, 10] 10)
-  "EX "         :: "[idts, bool] => bool"               ("'((3E _./ _)')" [0, 10] 10)
+  All_binder    :: "[idts, bool] => bool"               ("'((3A _./ _)')" [0, 10] 10)
+  Ex_binder     :: "[idts, bool] => bool"               ("'((3E _./ _)')" [0, 10] 10)
    "_lambda"    :: "[pttrns, 'a] => 'b"                 ("(3L _./ _)" 10)
 
   "_idts"       :: "[idt, idts] => idts"                ("_,/_" [1, 0] 0)

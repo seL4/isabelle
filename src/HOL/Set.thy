@@ -249,7 +249,7 @@ let
    then Syntax.const "_setleEx" $ Syntax.mark_bound v' $ n $ P
    else raise Match)
 in
-[("ALL ", all_tr'), ("EX ", ex_tr')]
+[("All_binder", all_tr'), ("Ex_binder", ex_tr')]
 end
 *}
 

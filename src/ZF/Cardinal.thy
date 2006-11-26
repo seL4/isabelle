@@ -33,15 +33,16 @@ constdefs
   Card     :: "i=>o"
     "Card(i) == (i = |i|)"
 
-syntax (xsymbols)
-  "eqpoll"      :: "[i,i] => o"       (infixl "\<approx>" 50)
-  "lepoll"      :: "[i,i] => o"       (infixl "\<lesssim>" 50)
-  "lesspoll"    :: "[i,i] => o"       (infixl "\<prec>" 50)
-  "LEAST "         :: "[pttrn, o] => i"  ("(3\<mu>_./ _)" [0, 10] 10)
+notation (xsymbols)
+  eqpoll    (infixl "\<approx>" 50) and
+  lepoll    (infixl "\<lesssim>" 50) and
+  lesspoll  (infixl "\<prec>" 50) and
+  Least     (binder "\<mu>" 10)
 
-syntax (HTML output)
-  "eqpoll"      :: "[i,i] => o"       (infixl "\<approx>" 50)
-  "LEAST "         :: "[pttrn, o] => i"  ("(3\<mu>_./ _)" [0, 10] 10)
+notation (HTML output)
+  eqpoll    (infixl "\<approx>" 50) and
+  Least     (binder "\<mu>" 10)
+
 
 subsection{*The Schroeder-Bernstein Theorem*}
 text{*See Davey and Priestly, page 106*}
