@@ -31,9 +31,9 @@ sig
     ((string * typ option * mixfix) option * ((string * Attrib.src list) * term)) list ->
     local_theory -> (term * (bstring * thm)) list * local_theory
   val abbreviation: Syntax.mode -> ((string * string option * mixfix) option * string) list ->
-    local_theory -> (term * term) list * local_theory
+    local_theory -> local_theory
   val abbreviation_i: Syntax.mode -> ((string * typ option * mixfix) option * term) list ->
-    local_theory -> (term * term) list * local_theory
+    local_theory -> local_theory
   val notation: Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val notation_i: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val theorems: string -> ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list
@@ -157,16 +157,15 @@ fun gen_abbrevs prep mode args lthy =
         val mx = (case vars of [] => NoSyn | [((y, _), mx)] =>
           if x = y then mx
           else error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y));
-        val ([abbr], lthy2) = lthy1
-          |> LocalTheory.abbrevs mode [((x, mx), rhs)];
-      in (((x, T), abbr), LocalTheory.restore lthy2) end;
+        val lthy2 = lthy1 |> LocalTheory.abbrevs mode [((x, mx), rhs)];
+      in ((x, T), LocalTheory.restore lthy2) end;
 
-    val (abbrs, lthy1) = lthy
+    val (cs, lthy') = lthy
       |> ProofContext.set_syntax_mode mode
       |> fold_map abbrev args
       ||> ProofContext.restore_syntax_mode lthy;
-    val _ = print_consts lthy1 (K false) (map fst abbrs);
-  in (map snd abbrs, lthy1) end;
+    val _ = print_consts lthy' (K false) cs;
+  in lthy' end;
 
 val abbreviation = gen_abbrevs read_specification;
 val abbreviation_i = gen_abbrevs cert_specification;
@@ -269,8 +268,7 @@ fun gen_theorem prep_att prep_stmt
     val attrib = prep_att thy;
     val atts = map attrib raw_atts;
 
-    val elems = raw_elems |> (map o Locale.map_elem)
-      (Element.map_ctxt {name = I, var = I, typ = I, term = I, fact = I, attrib = attrib});
+    val elems = raw_elems |> map (Locale.map_elem (Element.map_ctxt_attrib attrib));
     val ((prems, stmt, facts), goal_ctxt) =
       prep_statement attrib (prep_stmt loc) elems raw_concl ctxt;
 
