@@ -58,29 +58,22 @@ fun pretty loc ctxt =
 
 fun consts loc depends decls lthy =
   let
-    val xs = filter depends (#1 (ProofContext.inferred_fixes lthy));
-    val ys = filter (Variable.newly_fixed lthy (LocalTheory.target_of lthy) o #1) xs;
+    val is_loc = loc <> "";
+    val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
 
     fun const ((c, T), mx) thy =
       let
         val U = map #2 xs ---> T;
-        val mx' = if null ys then mx else NoSyn;
-        val mx'' = Syntax.unlocalize_mixfix (loc <> "") mx';
-
         val t = Term.list_comb (Const (Sign.full_name thy c, U), map Free xs);
-        val defn = ((c, if loc <> "" then mx else NoSyn (* FIXME !? *)), (("", []), t));
-        val abbr = ((c, mx'), fold_rev (lambda o Free) ys t);
-        val thy' = Sign.add_consts_authentic [(c, U, mx'')] thy;
-      in ((defn, abbr), thy') end;
+        val thy' = Sign.add_consts_authentic [(c, U, Syntax.unlocalize_mixfix is_loc mx)] thy;
+      in (((c, mx), t), thy') end;
 
-    val ((defns, abbrs), lthy') = lthy
-      |> LocalTheory.theory_result (fold_map const decls) |>> split_list;
+    val (abbrs, lthy') = lthy |> LocalTheory.theory_result (fold_map const decls);
+    val defs = abbrs |> map (fn (x, t) => (x, (("", []), t)));
   in
     lthy'
-    |> K (loc <> "") ? (snd o LocalTheory.abbrevs Syntax.default_mode abbrs)
-    |> ProofContext.set_stmt true
-    |> LocalDefs.add_defs defns |>> map (apsnd snd)
-    ||> ProofContext.restore_stmt lthy'
+    |> K is_loc ? LocalTheory.abbrevs Syntax.default_mode abbrs
+    |> LocalDefs.add_defs defs |>> map (apsnd snd)
   end;
 
 
@@ -127,30 +120,37 @@ fun expand_defs lthy =
   Drule.term_rule (ProofContext.theory_of lthy)
     (Assumption.export false lthy (LocalTheory.target_of lthy));
 
+infix also;
+fun eq1 also eq2 = Thm.transitive eq1 eq2;
+
 in
 
 fun defs kind args lthy =
   let
-    fun def ((x, mx), ((name, atts), rhs)) lthy1 =
+    fun def ((c, mx), ((name, atts), rhs)) lthy1 =
       let
-        val name' = Thm.def_name_optional x name;
+        val name' = Thm.def_name_optional c name;
         val T = Term.fastype_of rhs;
+
         val rhs' = expand_defs lthy1 rhs;
         val depends = member (op =) (Term.add_frees rhs' []);
         val defined = filter_out depends (Term.add_frees rhs []);
+
+        val ([(lhs, local_def)], lthy2) = lthy1
+          |> LocalTheory.consts depends [((c, T), mx)];
+        val lhs' = #2 (Logic.dest_equals (Thm.prop_of local_def));
 
         val rhs_conv = rhs
           |> Thm.cterm_of (ProofContext.theory_of lthy1)
           |> Tactic.rewrite true (map_filter (LocalDefs.find_def lthy1 o #1) defined);
 
-        val ([(lhs, local_def)], lthy2) = lthy1
-          |> LocalTheory.consts depends [((x, T), mx)];
-        val lhs' = #2 (Logic.dest_equals (Thm.prop_of local_def));
-
         val (global_def, lthy3) = lthy2
           |> LocalTheory.theory_result (add_def (name', Logic.mk_equals (lhs', rhs')));
 
-        val eq = Thm.transitive (Thm.transitive local_def global_def) (Thm.symmetric rhs_conv);
+        val eq =
+          local_def                      (*c == loc.c xs*)
+          also global_def                (*... == rhs'*)
+          also Thm.symmetric rhs_conv;   (*... == rhs*)
       in ((lhs, ((name', atts), [([eq], [])])), lthy3) end;
 
     val ((lhss, facts), lthy') = lthy |> fold_map def args |>> split_list;
@@ -196,22 +196,31 @@ fun notes "" kind facts = theory_notes true kind facts #> context_notes kind fac
       locale_notes loc kind facts #> context_notes kind facts;
 
 
-(* declarations *)
+(* target declarations *)
 
-(* FIXME proper morphisms *)
-fun decl _ "" f = LocalTheory.theory (Context.theory_map (f Morphism.identity))
-  | decl add loc f = LocalTheory.target (add loc (Context.proof_map o f));
+fun decl _ "" f =
+      LocalTheory.theory (Context.theory_map (f Morphism.identity)) #>
+      LocalTheory.target (Context.proof_map (f Morphism.identity))
+  | decl add loc f =
+      LocalTheory.target (add loc (Context.proof_map o f));
 
 val type_syntax = decl Locale.add_type_syntax;
 val term_syntax = decl Locale.add_term_syntax;
 val declaration = decl Locale.add_declaration;
+
+fun target_morphism loc lthy =
+  ProofContext.export_standard_morphism lthy (LocalTheory.target_of lthy) $>
+  Morphism.name_morphism (NameSpace.qualified loc);
+
+fun target_name "" lthy = Sign.full_name (ProofContext.theory_of lthy)
+  | target_name _ lthy = ProofContext.full_name (LocalTheory.target_of lthy);
 
 
 (* init and exit *)
 
 fun begin loc =
   Data.put (if loc = "" then NONE else SOME loc) #>
-  LocalTheory.init (SOME (NameSpace.base loc))
+  LocalTheory.init (NameSpace.base loc)
    {pretty = pretty loc,
     consts = consts loc,
     axioms = axioms,
@@ -220,8 +229,10 @@ fun begin loc =
     type_syntax = type_syntax loc,
     term_syntax = term_syntax loc,
     declaration = declaration loc,
+    target_morphism = target_morphism loc,
+    target_name = target_name loc,
     reinit = fn _ => begin loc o (if loc = "" then ProofContext.init else Locale.init loc),
-    exit = LocalTheory.target_of}
+    exit = LocalTheory.target_of};
 
 fun init_i NONE thy = begin "" (ProofContext.init thy)
   | init_i (SOME loc) thy = begin loc (Locale.init loc thy);
