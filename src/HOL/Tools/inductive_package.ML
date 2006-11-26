@@ -23,8 +23,9 @@ signature INDUCTIVE_PACKAGE =
 sig
   val quiet_mode: bool ref
   type inductive_result
+  val morph_result: morphism -> inductive_result -> inductive_result
   type inductive_info
-  val get_inductive: Proof.context -> string -> inductive_info option
+  val the_inductive: Proof.context -> string -> inductive_info
   val print_inductives: Proof.context -> unit
   val mono_add: attribute
   val mono_del: attribute
@@ -45,6 +46,9 @@ sig
     (string * string option * mixfix) list ->
     ((bstring * Attrib.src list) * string) list -> (thmref * Attrib.src list) list ->
     local_theory -> inductive_result * local_theory
+  val add_inductive_global: bool -> bstring -> bool -> bool -> bool ->
+    (string * typ option * mixfix) list -> (string * typ option) list ->
+    ((bstring * Attrib.src list) * term) list -> thm list -> theory -> inductive_result * theory
   val setup: theory -> theory
 end;
 
@@ -83,12 +87,22 @@ type inductive_result =
   {preds: term list, defs: thm list, elims: thm list, raw_induct: thm,
    induct: thm, intrs: thm list, mono: thm, unfold: thm};
 
+fun morph_result phi {preds, defs, elims, raw_induct: thm, induct, intrs, mono, unfold} =
+  let
+    val term = Morphism.term phi;
+    val thm = Morphism.thm phi;
+    val fact = Morphism.fact phi;
+  in
+   {preds = map term preds, defs = fact defs, elims = fact elims, raw_induct = thm raw_induct,
+    induct = thm induct, intrs = fact intrs, mono = thm mono, unfold = thm unfold}
+  end;
+
 type inductive_info =
   {names: string list, coind: bool} * inductive_result;
 
 structure InductiveData = GenericDataFun
 (struct
-  val name = "HOL/inductive2";
+  val name = "HOL/inductive";
   type T = inductive_info Symtab.table * thm list;
 
   val empty = (Symtab.empty, []);
@@ -96,36 +110,37 @@ structure InductiveData = GenericDataFun
   fun merge _ ((tab1, monos1), (tab2, monos2)) =
     (Symtab.merge (K true) (tab1, tab2), Drule.merge_rules (monos1, monos2));
 
-  fun print generic (tab, monos) =
-    [Pretty.strs ("(co)inductives:" ::
-      map #1 (NameSpace.extern_table
-        (Sign.const_space (Context.theory_of generic), tab))),  (* FIXME? *)
-     Pretty.big_list "monotonicity rules:"
-        (map (ProofContext.pretty_thm (Context.proof_of generic)) monos)]
-    |> Pretty.chunks |> Pretty.writeln;
+  fun print context (tab, monos) =
+    let
+      val ctxt = Context.proof_of context;
+      val space = Consts.space_of (ProofContext.consts_of ctxt);
+    in
+      [Pretty.strs ("(co)inductives:" :: map #1 (NameSpace.extern_table (space, tab))),
+       Pretty.big_list "monotonicity rules:" (map (ProofContext.pretty_thm ctxt) monos)]
+      |> Pretty.chunks |> Pretty.writeln
+    end;
 end);
 
+val get_inductives = InductiveData.get o Context.Proof;
 val print_inductives = InductiveData.print o Context.Proof;
 
 
 (* get and put data *)
 
-val get_inductive = Symtab.lookup o #1 o InductiveData.get o Context.Proof;
-
 fun the_inductive ctxt name =
-  (case get_inductive ctxt name of
+  (case Symtab.lookup (#1 (get_inductives ctxt)) name of
     NONE => error ("Unknown (co)inductive predicate " ^ quote name)
   | SOME info => info);
 
 fun put_inductives names info = InductiveData.map (apfst (fn tab =>
   fold (fn name => Symtab.update_new (name, info)) names tab
-    handle Symtab.DUP dup => error ("Duplicate definition of (co)inductive predicate " ^ quote dup)));
+    handle Symtab.DUP d => error ("Duplicate definition of (co)inductive predicate " ^ quote d)));
 
 
 
 (** monotonicity rules **)
 
-val get_monos = #2 o InductiveData.get o Context.Proof;
+val get_monos = #2 o get_inductives;
 val map_monos = InductiveData.map o apsnd;
 
 fun mk_mono thm =
@@ -142,9 +157,6 @@ fun mk_mono thm =
       eq2mono thm
     else [thm]
   end;
-
-
-(* attributes *)
 
 val mono_add = Thm.declaration_attribute (map_monos o fold Drule.add_rule o mk_mono);
 val mono_del = Thm.declaration_attribute (map_monos o fold Drule.del_rule o mk_mono);
@@ -382,9 +394,6 @@ fun simp_case_tac solved ss i =
   EVERY' [elim_tac, asm_full_simp_tac ss, elim_tac, REPEAT o bound_hyp_subst_tac] i
   THEN_MAYBE (if solved then no_tac else all_tac);  (* FIXME !? *)
 
-(*prop should have the form "P t" where P is an inductive predicate*)
-val mk_cases_err = "mk_cases: proposition not an inductive predicate";
-
 in
 
 fun mk_cases ctxt prop =
@@ -392,8 +401,13 @@ fun mk_cases ctxt prop =
     val thy = ProofContext.theory_of ctxt;
     val ss = Simplifier.local_simpset_of ctxt;
 
-    val c = #1 (Term.dest_Const (Term.head_of (HOLogic.dest_Trueprop
-      (Logic.strip_imp_concl prop)))) handle TERM _ => error mk_cases_err;
+    fun err msg =
+      error (Pretty.string_of (Pretty.block
+        [Pretty.str msg, Pretty.fbrk, ProofContext.pretty_term ctxt prop]));
+
+    val P = HOLogic.dest_Trueprop (Logic.strip_imp_concl prop) handle TERM _ =>
+      err "Object-logic proposition expected";
+    val c = Term.head_name_of P;
     val (_, {elims, ...}) = the_inductive ctxt c;
 
     val cprop = Thm.cterm_of thy prop;
@@ -404,8 +418,7 @@ fun mk_cases ctxt prop =
   in
     (case get_first (try mk_elim) elims of
       SOME r => r
-    | NONE => error (Pretty.string_of (Pretty.block
-        [Pretty.str mk_cases_err, Pretty.fbrk, ProofContext.pretty_term ctxt prop])))
+    | NONE => err "Proposition not an inductive predicate:")
   end;
 
 end;
@@ -478,6 +491,7 @@ fun prove_indrule cs argTs bs xs rec_const params intr_ts mono
       end;
 
     val ind_prems = map mk_ind_prem intr_ts;
+
 
     (* make conclusions for induction rules *)
 
@@ -627,7 +641,7 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
       if verbose then message ("Proofs for " ^ coind_prefix coind ^ "inductive predicate(s) " ^
         commas_quote (map fst cnames_syn)) else ();
 
-    val cnames = map (Sign.full_name (ProofContext.theory_of ctxt) o #1) cnames_syn;
+    val cnames = map (Sign.full_name (ProofContext.theory_of ctxt) o #1) cnames_syn;  (* FIXME *)
     val ((intr_names, intr_atts), intr_ts) = apfst split_list (split_list intros);
 
     val (ctxt1, rec_name, mono, fp_def, rec_preds_defs, rec_const, preds,
@@ -691,6 +705,7 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
              Attrib.internal (induct_att name)])))] |> snd
       end;
 
+    val names = map #1 cnames_syn;
     val result =
       {preds = preds,
        defs = fp_def :: rec_preds_defs,
@@ -699,12 +714,17 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
        intrs = intrs',
        elims = elims',
        raw_induct = rulify raw_induct,
-       induct = induct'}
+       induct = induct'};
+    val target_result = morph_result (LocalTheory.target_morphism ctxt4) result;
 
-  in
-    (result, LocalTheory.declaration (fn phi => (* FIXME *)
-       (put_inductives cnames ({names = cnames, coind = coind}, result))) ctxt4)
-  end;
+    val ctxt5 = ctxt4
+      |> Context.proof_map (put_inductives names ({names = names, coind = coind}, result))
+      |> LocalTheory.declaration (fn phi =>
+        let
+          val names' = map (LocalTheory.target_name ctxt4 o Morphism.name phi) names;
+          val result' = morph_result phi target_result;
+        in put_inductives names' ({names = names', coind = coind}, result') end);
+  in (result, ctxt5) end;
 
 
 (* external interfaces *)
@@ -750,6 +770,13 @@ fun add_inductive verbose coind cnames_syn pnames_syn intro_srcs raw_monos ctxt 
     add_inductive_i verbose "" coind false false cnames_syn' pnames intrs monos ctxt''
   end;
 
+fun add_inductive_global verbose alt_name coind no_elim no_ind cnames_syn pnames pre_intros monos =
+  TheoryTarget.init NONE #>
+  add_inductive_i verbose alt_name coind no_elim no_ind cnames_syn pnames pre_intros monos #>
+  (fn (_, lthy) =>
+    (#2 (the_inductive (LocalTheory.target_of lthy)
+      (LocalTheory.target_name lthy (#1 (hd cnames_syn)))),
+    ProofContext.theory_of (LocalTheory.exit lthy)));
 
 
 (** package setup **)
