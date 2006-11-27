@@ -1051,6 +1051,7 @@ struct
 		(* type s.t. ...; to refute such a formula, we would have to show that *)
 		(* for ALL types, not ...)                                             *)
 		val _ = assert (null (term_tvars t)) "Term to be refuted contains schematic type variables"
+
 		(* existential closure over schematic variables *)
 		(* (Term.indexname * Term.typ) list *)
 		val vars = sort_wrt (fst o fst) (map dest_Var (term_vars t))
@@ -1058,13 +1059,33 @@ struct
 		val ex_closure = Library.foldl
 			(fn (t', ((x, i), T)) => (HOLogic.exists_const T) $ Abs (x, T, abstract_over (Var ((x, i), T), t')))
 			(t, vars)
-		(* If 't' is of type 'propT' (rather than 'boolT'), applying  *)
-		(* 'HOLogic.exists_const' is not type-correct.  However, this *)
-		(* is not really a problem as long as 'find_model' still      *)
-		(* interprets the resulting term correctly, without checking  *)
-		(* its type.                                                  *)
+		(* Note: If 't' is of type 'propT' (rather than 'boolT'), applying   *)
+		(* 'HOLogic.exists_const' is not type-correct.  However, this is not *)
+		(* really a problem as long as 'find_model' still interprets the     *)
+		(* resulting term correctly, without checking its type.              *)
+
+		(* replace outermost universally quantified variables by Free's:     *)
+		(* refuting a term with Free's is generally faster than refuting a   *)
+		(* term with (nested) quantifiers, because quantifiers are expanded, *)
+		(* while the SAT solver searches for an interpretation for Free's.   *)
+		(* Also we get more information back that way, namely an             *)
+		(* interpretation which includes values for the (formerly)           *)
+		(* quantified variables.                                             *)
+		(* maps  !!x1...xn. !xk...xm. t   to   t  *)
+		fun strip_all_body (Const ("all", _) $ Abs (_, _, t)) = strip_all_body t
+		  | strip_all_body (Const ("Trueprop", _) $ t)        = strip_all_body t
+		  | strip_all_body (Const ("All", _) $ Abs (_, _, t)) = strip_all_body t
+		  | strip_all_body t                                  = t
+		(* maps  !!x1...xn. !xk...xm. t   to   [x1, ..., xn, xk, ..., xm]  *)
+		fun strip_all_vars (Const ("all", _) $ Abs (a, T, t)) = (a, T) :: strip_all_vars t
+		  | strip_all_vars (Const ("Trueprop", _) $ t)        = strip_all_vars t
+		  | strip_all_vars (Const ("All", _) $ Abs (a, T, t)) = (a, T) :: strip_all_vars t
+		  | strip_all_vars t                                  = [] : (string * typ) list
+		val strip_t = strip_all_body ex_closure
+		val frees   = Term.rename_wrt_term strip_t (strip_all_vars ex_closure)
+		val subst_t = Term.subst_bounds (map Free frees, strip_t)
 	in
-		find_model thy (actual_params thy params) ex_closure true
+		find_model thy (actual_params thy params) subst_t true
 	end;
 
 (* ------------------------------------------------------------------------- *)
