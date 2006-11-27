@@ -863,8 +863,7 @@ fun write_problem_files probfile (ctxt,th)  =
       val _ = Output.debug ("clauses = " ^ Int.toString(length included_cls))
       val white_cls = ResAxioms.cnf_rules_pairs white_thms
       (*clauses relevant to goal gl*)
-      val axcls_list = map (fn gl => get_relevant_clauses thy included_cls white_cls [gl])
-                           goals
+      val axcls_list = map (fn ngcls => get_relevant_clauses thy included_cls white_cls (map prop_of ngcls)) goal_cls
       val _ = app (fn axcls => Output.debug ("filtered clauses = " ^ Int.toString(length axcls)))
                   axcls_list
       val keep_types = if is_fol_logic logic then !ResClause.keep_types 
