@@ -18,6 +18,7 @@ sig
   val Trueprop: term
   val mk_Trueprop: term -> term
   val dest_Trueprop: term -> term
+  val Trueprop_conv: (cterm -> thm) -> cterm -> thm
   val conj: term
   val disj: term
   val imp: term
@@ -131,6 +132,11 @@ fun mk_Trueprop P = Trueprop $ P;
 fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
   | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
 
+fun Trueprop_conv conv ct = (case term_of ct of
+    Const ("Trueprop", _) $ _ =>
+      let val (ct1, ct2) = Thm.dest_comb ct
+      in Thm.combination (Thm.reflexive ct1) (conv ct2) end
+  | _ => raise TERM ("Trueprop_conv", []));
 
 val conj = Const ("op &", [boolT, boolT] ---> boolT)
 and disj = Const ("op |", [boolT, boolT] ---> boolT)
