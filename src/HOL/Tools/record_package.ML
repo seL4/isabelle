@@ -54,6 +54,7 @@ end;
 structure RecordPackage: RECORD_PACKAGE =
 struct
 
+val eq_reflection = thm "eq_reflection";
 val rec_UNIV_I = thm "rec_UNIV_I";
 val rec_True_simp = thm "rec_True_simp";
 val Pair_eq = thm "Product_Type.Pair_eq";
@@ -1205,8 +1206,8 @@ fun record_split_simproc P =
                             | SOME (all_thm, All_thm, Ex_thm,_)
                                => SOME (case quantifier of
                                           "all" => all_thm
-                                        | "All" => All_thm RS HOL.eq_reflection
-                                        | "Ex"  => Ex_thm RS HOL.eq_reflection
+                                        | "All" => All_thm RS eq_reflection
+                                        | "Ex"  => Ex_thm RS eq_reflection
                                         | _     => error "record_split_simproc"))
                         else NONE
                       end)

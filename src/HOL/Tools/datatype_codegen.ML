@@ -406,6 +406,8 @@ end;
 local
   val not_sym = thm "HOL.not_sym";
   val not_false_true = iffD2 OF [nth (thms "HOL.simp_thms") 7, TrueI];
+  val refl = thm "refl";
+  val eqTrueI = thm "eqTrueI";
 in
 
 fun get_eq_datatype thy dtco =
@@ -416,11 +418,10 @@ fun get_eq_datatype thy dtco =
         val ct' = Thm.cterm_of thy
           (Const (co, Type (dtco, map (fn (v, sort) => TVar ((v, 0), sort)) vs)))
         val cty' = Thm.ctyp_of_term ct';
-        val refl = Thm.prop_of HOL.refl;
         val SOME (ct, cty) = fold_aterms (fn Var (v, ty) =>
           (K o SOME) (Thm.cterm_of thy (Var (v, Thm.typ_of cty')), Thm.ctyp_of thy ty) | _ => I)
-          refl NONE;
-      in eqTrueI OF [Thm.instantiate ([(cty, cty')], [(ct, ct')]) HOL.refl] end;
+          (Thm.prop_of refl) NONE;
+      in eqTrueI OF [Thm.instantiate ([(cty, cty')], [(ct, ct')]) refl] end;
     val inject1 = map_filter (fn (co, []) => SOME (mk_triv_inject co) | _ => NONE) cs
     val inject2 = (#inject o DatatypePackage.the_datatype thy) dtco;
     val ctxt = ProofContext.init thy;
@@ -498,11 +499,26 @@ local
   fun get_eq_thms thy tyco = case DatatypePackage.get_datatype thy tyco
    of SOME _ => get_eq_datatype thy tyco
     | NONE => [TypecopyPackage.get_eq thy tyco];
+  fun constrain_op_eq_thms thy thms =
+    let
+      fun add_eq (Const ("op =", ty)) =
+            fold (insert (eq_fst (op =)))
+              (Term.add_tvarsT ty [])
+        | add_eq _ =
+            I
+      val eqs = fold (fold_aterms add_eq o Thm.prop_of) thms [];
+      val instT = map (fn (v_i, sort) =>
+        (Thm.ctyp_of thy (TVar (v_i, sort)),
+           Thm.ctyp_of thy (TVar (v_i, Sorts.inter_sort (Sign.classes_of thy) (sort, [HOLogic.class_eq]))))) eqs;
+    in
+      thms
+      |> map (Thm.instantiate (instT, []))
+    end;
 in
   fun get_eq thy tyco =
     get_eq_thms thy tyco
     |> maps ((#mk o #mk_rews o snd o MetaSimplifier.rep_ss o Simplifier.simpset_of) thy)
-    |> HOL.constrain_op_eq_thms thy
+    |> constrain_op_eq_thms thy
 end;
 
 type hook = (string * (bool * ((string * sort) list * (string * typ list) list))) list

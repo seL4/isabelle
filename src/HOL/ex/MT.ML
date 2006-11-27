@@ -602,7 +602,7 @@ qed "hasty_elim_clos";
 (* ############################################################ *)
 
 fun excluded_middle_tac sP =
-  res_inst_tac [("Q", sP)] (excluded_middle RS HOL.disjE);
+  res_inst_tac [("Q", sP)] (excluded_middle RS disjE);
 
 Goal "[| ve hastyenv te; v hasty t |] ==> \
 \        ve + {ev |-> v} hastyenv te + {ev |=> t}";

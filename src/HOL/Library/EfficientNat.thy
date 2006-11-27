@@ -315,10 +315,14 @@ fun clause_suc_preproc thy ths =
 
 end; (*local*)
 
-fun lift_obj_eq f thy =
+local
+  val meta_eq_to_obj_eq = thm "meta_eq_to_obj_eq";
+  val eq_reflection = thm "eq_reflection";
+in fun lift_obj_eq f thy =
   map (fn thm => thm RS meta_eq_to_obj_eq)
   #> f thy
-  #> map (fn thm => thm RS HOL.eq_reflection)
+  #> map (fn thm => thm RS eq_reflection)
+end
 *}
 
 setup {*

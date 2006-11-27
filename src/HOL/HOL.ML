@@ -1,19 +1,36 @@
 (* legacy ML bindings *)
 
-val HOL_cs = HOL.claset;
-val HOL_basic_ss = HOL.simpset_basic;
-val HOL_ss = HOL.simpset;
-val hol_simplify = HOL.simplify;
+val Blast_tac = Blast.Blast_tac;
+val blast_tac = Blast.blast_tac;
+
+(* combination of (spec RS spec RS ...(j times) ... spec RS mp) *)
+local
+  fun wrong_prem (Const ("All", _) $ (Abs (_, _, t))) = wrong_prem t
+    | wrong_prem (Bound _) = true
+    | wrong_prem _ = false;
+  val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);
+  val spec = thm "spec"
+  val mp = thm "mp"
+in
+  fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp]);
+  fun smp_tac j = EVERY'[dresolve_tac (smp j), atac];
+end;
+
+fun strip_tac i = REPEAT (resolve_tac [thm "impI", thm "allI"] i);
 
 val split_tac        = Splitter.split_tac;
 val split_inside_tac = Splitter.split_inside_tac;
 val split_asm_tac    = Splitter.split_asm_tac;
+
 val op addsplits     = Splitter.addsplits;
 val op delsplits     = Splitter.delsplits;
 val Addsplits        = Splitter.Addsplits;
 val Delsplits        = Splitter.Delsplits;
 
-open HOL;
+val HOL_basic_ss = Simpdata.simpset_basic;
+val hol_simplify = Simpdata.simplify;
+
+open Simpdata;
 val claset = Classical.claset;
 val simpset = Simplifier.simpset;
 val simplify = Simplifier.simplify;
@@ -21,6 +38,51 @@ open Hypsubst;
 open BasicClassical;
 open Clasimp;
 
+val eq_reflection = thm "eq_reflection";
+val def_imp_eq = thm "def_imp_eq";
+val meta_eq_to_obj_eq = thm "meta_eq_to_obj_eq";
+val ccontr = thm "ccontr";
+val impI = thm "impI";
+val impCE = thm "impCE";
+val notI = thm "notI";
+val notE = thm "notE";
+val iffI = thm "iffI";
+val iffCE = thm "iffCE";
+val conjI = thm "conjI";
+val conjE = thm "conjE";
+val disjCI = thm "disjCI";
+val disjE = thm "disjE";
+val TrueI = thm "TrueI";
+val FalseE = thm "FalseE";
+val allI = thm "allI";
+val allE = thm "allE";
+val exI = thm "exI";
+val exE = thm "exE";
+val ex_ex1I = thm "ex_ex1I";
+val the_equality = thm "the_equality";
+val mp = thm "mp";
+val rev_mp = thm "rev_mp"
+val classical = thm "classical";
+val subst = thm "subst";
+val refl = thm "refl";
+val sym = thm "sym";
+val trans = thm "trans";
+val arg_cong = thm "arg_cong";
+val iffD1 = thm "iffD1";
+val iffD2 = thm "iffD2";
+val disjE = thm "disjE";
+val conjE = thm "conjE";
+val exE = thm "exE";
+val contrapos_nn = thm "contrapos_nn";
+val contrapos_pp = thm "contrapos_pp";
+val notnotD = thm "notnotD";
+val conjunct1 = thm "conjunct1";
+val conjunct2 = thm "conjunct2";
+val spec = thm "spec";
+val imp_cong = thm "imp_cong";
+val the_sym_eq_trivial = thm "the_sym_eq_trivial";
+val triv_forall_equality = thm "triv_forall_equality";
+val case_split = thm "case_split_thm";
 val ext = thm "ext"
 val True_def = thm "True_def"
 val All_def = thm "All_def"
@@ -75,7 +137,6 @@ val if_weak_cong = thm "if_weak_cong"
 val let_weak_cong = thm "let_weak_cong"
 val eq_cong2 = thm "eq_cong2"
 val if_distrib = thm "if_distrib"
-val expand_case = thm "expand_case"
 val restrict_to_left = thm "restrict_to_left"
 val all_conj_distrib = thm "all_conj_distrib";
 val atomize_not = thm "atomize_not";
@@ -149,8 +210,6 @@ val True_implies_equals = thm "True_implies_equals";
 
 structure HOL =
 struct
-
-open HOL;
 
 val thy = the_context ();
 

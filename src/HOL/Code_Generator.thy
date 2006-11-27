@@ -64,11 +64,11 @@ text {* Evaluation *}
 setup {*
 let
 
+val TrueI = thm "TrueI"
 fun evaluation_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
   (Drule.goals_conv (equal i) Codegen.evaluation_conv));
-
 val evaluation_meth =
-  Method.no_args (Method.METHOD (fn _ => evaluation_tac 1 THEN rtac HOL.TrueI 1));
+  Method.no_args (Method.METHOD (fn _ => evaluation_tac 1 THEN rtac TrueI 1));
 
 in
 
@@ -143,7 +143,7 @@ fun conv ct =
   in Thm.invoke_oracle_i thy oracle_name (thy, Eval t) end;
 
 fun tac i = Tactical.PRIMITIVE (Drule.fconv_rule
-  (Drule.goals_conv (equal i) (HOL.Trueprop_conv conv)));
+  (Drule.goals_conv (equal i) (HOLogic.Trueprop_conv conv)));
 
 val method =
   Method.no_args (Method.METHOD (fn _ =>
@@ -163,7 +163,7 @@ subsection {* Normalization by evaluation *}
 setup {*
 let
   fun normalization_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
-    (Drule.goals_conv (equal i) (HOL.Trueprop_conv
+    (Drule.goals_conv (equal i) (HOLogic.Trueprop_conv
       NBE.normalization_conv)));
   val normalization_meth =
     Method.no_args (Method.METHOD (fn _ => normalization_tac 1 THEN resolve_tac [TrueI, refl] 1));

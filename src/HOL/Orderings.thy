@@ -822,6 +822,25 @@ qed
   leave out the "(xtrans)" above.
 *)
 
+subsection {* Order on bool *}
+
+instance bool :: linorder 
+  le_bool_def: "P \<le> Q \<equiv> P \<longrightarrow> Q"
+  less_bool_def: "P < Q \<equiv> P \<le> Q \<and> P \<noteq> Q"
+  by default (auto simp add: le_bool_def less_bool_def)
+
+lemma le_boolI: "(P \<Longrightarrow> Q) \<Longrightarrow> P \<le> Q"
+  by (simp add: le_bool_def)
+
+lemma le_boolI': "P \<longrightarrow> Q \<Longrightarrow> P \<le> Q"
+  by (simp add: le_bool_def)
+
+lemma le_boolE: "P \<le> Q \<Longrightarrow> P \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R"
+  by (simp add: le_bool_def)
+
+lemma le_boolD: "P \<le> Q \<Longrightarrow> P \<longrightarrow> Q"
+  by (simp add: le_bool_def)
+
 subsection {* Monotonicity, syntactic least value operator and min/max *}
 
 locale mono =
