@@ -149,17 +149,16 @@ next
 next
   case (Lam b N1)
   have ih: "y\<sharp>N1 \<Longrightarrow> (N1[x::=L] = ([(y,x)]\<bullet>N1)[y::=L])" by fact
-  have f: "b\<sharp>y" "b\<sharp>x" "b\<sharp>L" by fact
-  from f have a:"b\<noteq>y" and b: "b\<noteq>x" and c: "b\<sharp>L" by (simp add: fresh_atm)+
+  have vc: "b\<sharp>y" "b\<sharp>x" "b\<sharp>L" by fact
   have "y\<sharp>Lam [b].N1" by fact
-  hence "y\<sharp>N1" using a by (simp add: abs_fresh)
+  hence "y\<sharp>N1" using vc by (simp add: abs_fresh fresh_atm)
   hence d: "N1[x::=L] = ([(y,x)]\<bullet>N1)[y::=L]" using ih by simp
   show "(Lam [b].N1)[x::=L] = ([(y,x)]\<bullet>(Lam [b].N1))[y::=L]" (is "?LHS = ?RHS")
   proof -
-    have    "?LHS = Lam [b].(N1[x::=L])" using b c by simp
+    have    "?LHS = Lam [b].(N1[x::=L])" using vc by simp
     also have "\<dots> = Lam [b].(([(y,x)]\<bullet>N1)[y::=L])" using d by simp
-    also have "\<dots> = (Lam [b].([(y,x)]\<bullet>N1))[y::=L]" using a c by simp
-    also have "\<dots> = ?RHS" using a b by (simp add: calc_atm)
+    also have "\<dots> = (Lam [b].([(y,x)]\<bullet>N1))[y::=L]" using vc by simp
+    also have "\<dots> = ?RHS" using vc by (simp add: calc_atm fresh_atm)
     finally show "?LHS = ?RHS" by simp
   qed
 qed
