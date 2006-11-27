@@ -17,6 +17,7 @@ sig
   val is_declared: Proof.context -> string -> bool
   val is_fixed: Proof.context -> string -> bool
   val newly_fixed: Proof.context -> Proof.context -> string -> bool
+  val add_fixed: Proof.context -> term -> (string * typ) list -> (string * typ) list
   val default_type: Proof.context -> string -> typ option
   val def_type: Proof.context -> bool -> indexname -> typ option
   val def_sort: Proof.context -> indexname -> sort option
@@ -125,6 +126,9 @@ val constraints_of = #constraints o rep_data;
 val is_declared = Name.is_declared o names_of;
 fun is_fixed ctxt x = exists (fn (_, y) => x = y) (fixes_of ctxt);
 fun newly_fixed inner outer x = is_fixed inner x andalso not (is_fixed outer x);
+
+fun add_fixed ctxt = Term.fold_aterms
+  (fn Free (x, T) => if is_fixed ctxt x then insert (op =) (x, T) else I | _ => I);
 
 
 
