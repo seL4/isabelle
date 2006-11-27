@@ -1751,32 +1751,26 @@ lemma Compl_Diff_eq [simp]: "- (A - B) = -A \<union> B"
 
 text {* \medskip Quantification over type @{typ bool}. *}
 
-lemma all_bool_eq: "(\<forall>b::bool. P b) = (P True & P False)"
-  apply auto
-  apply (tactic {* case_tac "b" 1 *}, auto)
-  done
-
 lemma bool_induct: "P True \<Longrightarrow> P False \<Longrightarrow> P x"
-  by (rule conjI [THEN all_bool_eq [THEN iffD2], THEN spec])
+  by (cases x) auto
 
-lemma ex_bool_eq: "(\<exists>b::bool. P b) = (P True | P False)"
-  apply auto
-  apply (tactic {* case_tac "b" 1 *}, auto)
-  done
+lemma all_bool_eq: "(\<forall>b. P b) \<longleftrightarrow> P True \<and> P False"
+  by (auto intro: bool_induct)
+
+lemma bool_contrapos: "P x \<Longrightarrow> \<not> P False \<Longrightarrow> P True"
+  by (cases x) auto
+
+lemma ex_bool_eq: "(\<exists>b. P b) \<longleftrightarrow> P True \<or> P False"
+  by (auto intro: bool_contrapos)
 
 lemma Un_eq_UN: "A \<union> B = (\<Union>b. if b then A else B)"
   by (auto simp add: split_if_mem2)
 
 lemma UN_bool_eq: "(\<Union>b::bool. A b) = (A True \<union> A False)"
-  apply auto
-  apply (tactic {* case_tac "b" 1 *}, auto)
-  done
+  by (auto intro: bool_contrapos)
 
 lemma INT_bool_eq: "(\<Inter>b::bool. A b) = (A True \<inter> A False)"
-  apply auto
-  apply (tactic {* case_tac "b" 1 *}, auto)
-  done
-
+  by (auto intro: bool_induct)
 
 text {* \medskip @{text Pow} *}
 
