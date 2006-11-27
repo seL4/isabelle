@@ -72,7 +72,7 @@ fun consts loc depends decls lthy =
     val defs = abbrs |> map (fn (x, t) => (x, (("", []), t)));
   in
     lthy'
-    |> K is_loc ? LocalTheory.abbrevs Syntax.default_mode abbrs
+    |> is_loc ? LocalTheory.abbrevs Syntax.default_mode abbrs
     |> LocalDefs.add_defs defs |>> map (apsnd snd)
   end;
 
@@ -110,50 +110,48 @@ end;
 
 (* defs *)
 
+infix also;
+fun eq1 also eq2 =
+  eq2 COMP (eq1 COMP (Drule.incr_indexes2 eq1 eq2 transitive_thm));
+
 local
+
+fun expand_defs ctxt t =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val thy_ctxt = ProofContext.init thy;
+    val ct = Thm.cterm_of thy t;
+    val (defs, ct') = LocalDefs.expand_defs ctxt thy_ctxt (Drule.mk_term ct) ||> Drule.dest_term;
+  in (Thm.term_of ct', Tactic.rewrite true defs ct) end;
 
 fun add_def (name, prop) =
   Theory.add_defs_i false false [(name, prop)] #>
   (fn thy => (Drule.unvarify (Thm.get_axiom_i thy (Sign.full_name thy name)), thy));
 
-fun expand_defs lthy =
-  Drule.term_rule (ProofContext.theory_of lthy)
-    (Assumption.export false lthy (LocalTheory.target_of lthy));
-
-infix also;
-fun eq1 also eq2 = Thm.transitive eq1 eq2;
-
 in
 
-fun defs kind args lthy =
+fun defs kind args lthy0 =
   let
     fun def ((c, mx), ((name, atts), rhs)) lthy1 =
       let
+        val (rhs', rhs_conv) = expand_defs lthy0 rhs;
+        val xs = Variable.add_fixed (LocalTheory.target_of lthy0) rhs' [];
+
+        val ([(lhs, lhs_def)], lthy2) = lthy1
+          |> LocalTheory.consts (member (op =) xs) [((c, Term.fastype_of rhs), mx)];
+        val lhs' = #2 (Logic.dest_equals (Thm.prop_of lhs_def));
+
         val name' = Thm.def_name_optional c name;
-        val T = Term.fastype_of rhs;
-
-        val rhs' = expand_defs lthy1 rhs;
-        val depends = member (op =) (Term.add_frees rhs' []);
-        val defined = filter_out depends (Term.add_frees rhs []);
-
-        val ([(lhs, local_def)], lthy2) = lthy1
-          |> LocalTheory.consts depends [((c, T), mx)];
-        val lhs' = #2 (Logic.dest_equals (Thm.prop_of local_def));
-
-        val rhs_conv = rhs
-          |> Thm.cterm_of (ProofContext.theory_of lthy1)
-          |> Tactic.rewrite true (map_filter (LocalDefs.find_def lthy1 o #1) defined);
-
-        val (global_def, lthy3) = lthy2
+        val (def, lthy3) = lthy2
           |> LocalTheory.theory_result (add_def (name', Logic.mk_equals (lhs', rhs')));
 
         val eq =
-          local_def                      (*c == loc.c xs*)
-          also global_def                (*... == rhs'*)
-          also Thm.symmetric rhs_conv;   (*... == rhs*)
+          (*c == loc.c xs*) lhs_def
+          (*lhs' == rhs'*)  also def
+          (*rhs' == rhs*)   also Thm.symmetric rhs_conv;
       in ((lhs, ((name', atts), [([eq], [])])), lthy3) end;
 
-    val ((lhss, facts), lthy') = lthy |> fold_map def args |>> split_list;
+    val ((lhss, facts), lthy') = lthy0 |> fold_map def args |>> split_list;
     val (res, lthy'') = lthy' |> LocalTheory.notes kind facts;
   in (lhss ~~ map (apsnd the_single) res, lthy'') end;
 
