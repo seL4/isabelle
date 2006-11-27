@@ -477,21 +477,19 @@ fun pack_sort(_,[])  = []
   | pack_sort(tvar, "HOL.type"::srt) = pack_sort(tvar, srt)   (*IGNORE sort "type"*)
   | pack_sort(tvar, cls::srt) =  (make_type_class cls, tvar) :: pack_sort(tvar, srt);
     
-fun make_TVarLit (b, (cls,str)) = TVarLit(b, (cls,str));
-fun make_TConsLit (b, (cls,tcons,tvars)) = 
+fun make_TVarLit b (cls,str) = TVarLit(b, (cls,str));
+
+fun make_TConsLit b (cls,tcons,tvars) = 
       TConsLit(b, (make_type_class cls, make_fixed_type_const tcons, tvars));
 
 (*Arity of type constructor tcon :: (arg1,...,argN)res*)
 fun make_axiom_arity_clause (tcons, axiom_name, (res,args)) =
-   let val nargs = length args
-       val tvars = gen_TVars nargs
+   let val tvars = gen_TVars (length args)
        val tvars_srts = ListPair.zip (tvars,args)
-       val tvars_srts' = union_all(map pack_sort tvars_srts)
-       val false_tvars_srts' = map (pair false) tvars_srts'
    in
       ArityClause {axiom_name = axiom_name, kind = Axiom, 
-                   conclLit = make_TConsLit(true, (res,tcons,tvars)), 
-                   premLits = map make_TVarLit false_tvars_srts'}
+                   conclLit = make_TConsLit true (res,tcons,tvars), 
+                   premLits = map (make_TVarLit false) (union_all(map pack_sort tvars_srts))}
    end;
 
 
@@ -577,7 +575,6 @@ fun add_clause_preds (Clause {literals, types_sorts, ...}, preds) =
 fun add_classrelClause_preds (ClassrelClause {subclass,superclass,...}, preds) =
   Symtab.update (subclass,1) (Symtab.update (superclass,1) preds);
 
-(*Not sure the TVar case is ever used*)
 fun class_of_arityLit (TConsLit(_, (tclass, _, _))) = tclass
   | class_of_arityLit (TVarLit(_, (tclass, _))) = tclass;
 
@@ -734,9 +731,6 @@ fun string_of_descrip name =
 fun dfg_tfree_clause tfree_lit =
   "clause( %(negated_conjecture)\n" ^ "or( " ^ tfree_lit ^ "),\n" ^ "tfree_tcs" ^ ").\n\n"
 
-fun string_of_arClauseID (ArityClause {axiom_name,...}) =
-    arclause_prefix ^ ascii_of axiom_name;
-
 fun dfg_of_arLit (TConsLit(pol,(c,t,args))) =
       dfg_sign pol (c ^ "(" ^ t ^ paren_pack args ^ ")")
   | dfg_of_arLit (TVarLit(pol,(c,str))) =
@@ -748,15 +742,15 @@ fun dfg_classrelClause (ClassrelClause {axiom_name,subclass,superclass,...}) =
   "clause(forall([T],\nor( " ^ dfg_classrelLits subclass superclass ^ ")),\n" ^
   axiom_name ^ ").\n\n";
       
-fun dfg_arity_clause (arcls as ArityClause{kind,conclLit,premLits,...}) = 
-  let val arcls_id = string_of_arClauseID arcls
-      val knd = name_of_kind kind
-      val TConsLit(_, (_,_,tvars)) = conclLit
+fun string_of_ar axiom_name = arclause_prefix ^ ascii_of axiom_name;
+
+fun dfg_arity_clause (ArityClause{axiom_name,kind,conclLit,premLits,...}) = 
+  let val TConsLit(_, (_,_,tvars)) = conclLit
       val lits = map dfg_of_arLit (conclLit :: premLits)
   in
-      "clause( %(" ^ knd ^ ")\n" ^ 
+      "clause( %(" ^ name_of_kind kind ^ ")\n" ^ 
       dfg_forall tvars ("or( " ^ commas lits ^ ")") ^ ",\n" ^
-      arcls_id ^ ").\n\n"
+      string_of_ar axiom_name ^ ").\n\n"
   end;
 
 (* write out a subgoal in DFG format to the file "xxxx_N"*)
@@ -838,13 +832,9 @@ fun tptp_of_arLit (TConsLit(b,(c,t,args))) =
   | tptp_of_arLit (TVarLit(b,(c,str))) =
       tptp_sign b (c ^ "(" ^ str ^ ")")
     
-fun tptp_arity_clause (arcls as ArityClause{kind,conclLit,premLits,...}) = 
-  let val arcls_id = string_of_arClauseID arcls
-      val knd = name_of_kind kind
-      val lits = map tptp_of_arLit (conclLit :: premLits)
-  in
-    "cnf(" ^ arcls_id ^ "," ^ knd ^ "," ^ tptp_pack lits ^ ").\n"
-  end;
+fun tptp_arity_clause (ArityClause{axiom_name,kind,conclLit,premLits,...}) = 
+  "cnf(" ^ string_of_ar axiom_name ^ "," ^ name_of_kind kind ^ "," ^ 
+  tptp_pack (map tptp_of_arLit (conclLit :: premLits)) ^ ").\n";
 
 fun tptp_classrelLits sub sup = 
   let val tvar = "(T)"
