@@ -232,113 +232,27 @@ qed
 
 section {* Size and Capture-Avoiding Substitution for Types *}
 
-constdefs 
-  size_ty_Tvar :: "tyvrs \<Rightarrow> nat"
-  "size_ty_Tvar \<equiv> \<lambda>_. 1"
-  
-  size_ty_Top :: "nat"
-  "size_ty_Top \<equiv> 1"
+consts size_ty :: "ty \<Rightarrow> nat"
 
-  size_ty_Fun :: "ty \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat"
-  "size_ty_Fun \<equiv> \<lambda>_ _ r1 r2. r1 + r2 + 1"
-
-  size_ty_All :: "tyvrs \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat"
-  "size_ty_All \<equiv> \<lambda>_ _ _ r1 r2. r1 + r2 + 1"
-
-  size_ty :: "ty \<Rightarrow> nat"
-  "size_ty \<equiv> ty_rec size_ty_Tvar size_ty_Top size_ty_Fun size_ty_All"
-
-lemma fin_size_ty:
-  shows "finite ((supp size_ty_Tvar)::tyvrs set)"
-  and   "finite ((supp size_ty_Top)::tyvrs set)"
-  and   "finite ((supp size_ty_Fun)::tyvrs set)"
-  and   "finite ((supp size_ty_All)::tyvrs set)"
-by (finite_guess add: size_ty_Tvar_def size_ty_Top_def size_ty_Fun_def size_ty_All_def perm_nat_def)+
-
-lemma fcb_size_ty_All:
-  assumes "X\<sharp>size_ty_All" "X\<sharp>T2" "X\<sharp>r2"
-  shows "X\<sharp>(size_ty_All X T1 T2 r1 r2)"
-by (simp add: fresh_def supp_nat)
-
-lemmas ty_recs = ty.recs[where P="\<lambda>_. True" and z="()", simplified]
-
-lemma size_ty[simp]:
-  shows "size_ty (Tvar X) = 1"
-  and   "size_ty (Top) = 1"
-  and   "size_ty (T1 \<rightarrow> T2) = (size_ty T1) + (size_ty T2) + 1"
-  and   "X\<sharp>T1 \<Longrightarrow> size_ty (\<forall>[X<:T1].T2) = (size_ty T1) + (size_ty T2) + 1"
-apply(unfold size_ty_def)
-apply(rule trans, rule ty_recs)
-apply(simp_all add: fin_size_ty fcb_size_ty_All supp_unit)
-apply(simp add: size_ty_Tvar_def)
-apply(rule trans, rule ty_recs)
-apply(simp_all add: fin_size_ty fcb_size_ty_All supp_unit)
-apply(simp add: size_ty_Top_def)
-apply(rule trans, rule ty_recs)
-apply(simp_all add: fin_size_ty fcb_size_ty_All supp_unit)
-apply(simp add: size_ty_Fun_def)
-apply(rule trans, rule ty_recs)
-apply(simp_all add: fin_size_ty fcb_size_ty_All supp_unit)
-apply(fresh_guess add: perm_nat_def size_ty_Tvar_def size_ty_Top_def size_ty_Fun_def size_ty_All_def)+
-apply(simp add: size_ty_All_def)
-done
-
-constdefs 
-  subst_Tvar :: "tyvrs \<Rightarrow>ty \<Rightarrow> tyvrs \<Rightarrow> ty"
-  "subst_Tvar X T \<equiv> \<lambda>Y. (if Y=X then T else (Tvar Y))"
-  
-  subst_Top :: "tyvrs \<Rightarrow> ty \<Rightarrow> ty"
-  "subst_Top X T \<equiv> Top"
-
-  subst_Fun :: "tyvrs \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty"
-  "subst_Fun X T \<equiv> \<lambda>_ _ r1 r2. r1 \<rightarrow> r2"
-
-  subst_All :: "tyvrs \<Rightarrow> ty \<Rightarrow> tyvrs \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty"
-  "subst_All X T \<equiv> \<lambda>Y _ _ r1 r2. \<forall>[Y<:r2].r1"
-
-  subst_ty :: "tyvrs \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty" 
-  "subst_ty X T \<equiv> ty_rec (subst_Tvar X T) (subst_Top X T) (subst_Fun X T) (subst_All X T)"
-
-lemma supports_subst_Tvar:
-  shows "((supp (X,T))::tyvrs set) supports (subst_Tvar X T)"
-apply(supports_simp add: subst_Tvar_def)
-apply(rule impI)
-apply(drule pt_bij1[OF pt_tyvrs_inst, OF at_tyvrs_inst])
-apply(perm_simp)
-done
-
-lemma supports_subst_Top:
-  shows "((supp (X,T))::tyvrs set) supports subst_Top X T"
-by  (supports_simp add: subst_Top_def)
-
-lemma supports_subst_Fun:
-  shows "((supp (X,T))::tyvrs set) supports subst_Fun X T"
-  by (supports_simp add: subst_Fun_def)
-
-lemma supports_subst_All:
-  shows "((supp (X,T))::tyvrs set) supports subst_All X T"
-apply(supports_simp add: subst_All_def)
-apply(perm_full_simp)
-done
-
-lemma fin_supp_subst:
-  shows "finite ((supp (subst_Tvar X T))::tyvrs set)"
-  and   "finite ((supp (subst_Top X T))::tyvrs set)"
-  and   "finite ((supp (subst_Fun X T))::tyvrs set)"
-  and   "finite ((supp (subst_All X T))::tyvrs set)"
-apply -
-apply(rule supports_finite)
-apply(rule supports_subst_Tvar)
-apply(simp add: fs_tyvrs1)
-apply(finite_guess add: subst_Top_def subst_Fun_def subst_All_def fs_tyvrs1)+
-apply(perm_full_simp)
-done
-
-lemma fcb_subst_All:
-  assumes fr: "X\<sharp>(subst_All Y T)" "X\<sharp>T2" "X\<sharp>r2" 
-  shows "X\<sharp>(subst_All Y T) X T1 T2 r1 r2"
-  apply (simp add: subst_All_def abs_fresh fr)
+nominal_primrec
+  "size_ty (Tvar X) = 1"
+  "size_ty (Top) = 1"
+  "size_ty (T1 \<rightarrow> T2) = (size_ty T1) + (size_ty T2) + 1"
+  "X\<sharp>T1 \<Longrightarrow> size_ty (\<forall>[X<:T1].T2) = (size_ty T1) + (size_ty T2) + 1"
+  apply (finite_guess add: perm_nat_def)+
+  apply (rule TrueI)+
+  apply (simp add: fresh_def supp_nat)
+  apply (assumption | fresh_guess add: perm_nat_def)+
   done
+
+lemma eq_eqvt:
+  fixes pi::"tyvrs prm"
+  and   x::"'a::pt_tyvrs"
+  shows "pi\<bullet>(x=y) = ((pi\<bullet>x)=(pi\<bullet>y))"
+  apply(simp add: perm_bool perm_bij)
+  done
+
+consts subst_ty :: "tyvrs \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty"
 
 syntax 
  subst_ty_syn :: "ty \<Rightarrow> tyvrs \<Rightarrow> ty \<Rightarrow> ty" ("_[_:=_]\<^isub>t\<^isub>y" [100,100,100] 100)
@@ -346,46 +260,26 @@ syntax
 translations 
   "T1[Y:=T2]\<^isub>t\<^isub>y" \<rightleftharpoons> "subst_ty Y T2 T1"
 
-lemma subst_ty[simp]:
-  shows "(Tvar X)[Y:=T]\<^isub>t\<^isub>y= (if X=Y then T else (Tvar X))"
-  and   "(Top)[Y:=T]\<^isub>t\<^isub>y = Top"
-  and   "(T\<^isub>1 \<rightarrow> T\<^isub>2)[Y:=T]\<^isub>t\<^isub>y = (T\<^isub>1[Y:=T]\<^isub>t\<^isub>y) \<rightarrow> (T\<^isub>2[Y:=T]\<^isub>t\<^isub>y)"
-  and   "\<lbrakk>X\<sharp>(Y,T); X\<sharp>T\<^isub>1\<rbrakk> \<Longrightarrow> (\<forall>[X<:T\<^isub>1].T\<^isub>2)[Y:=T]\<^isub>t\<^isub>y = (\<forall>[X<:(T\<^isub>1[Y:=T]\<^isub>t\<^isub>y)].(T\<^isub>2[Y:=T]\<^isub>t\<^isub>y))"
-apply -
-apply(unfold subst_ty_def)
-apply(rule trans)
-apply(rule ty_recs)
-apply(simp add: fin_supp_subst supp_unit)+
-apply(rule fcb_subst_All)
-apply(assumption)+
-apply(simp add: subst_Tvar_def)
-apply(rule trans)
-apply(rule ty_recs)
-apply(simp add: fin_supp_subst supp_unit)+
-apply(rule fcb_subst_All)
-apply(assumption)+
-apply(simp add: subst_Top_def)
-apply(rule trans)
-apply(rule ty_recs)
-apply(simp add: fin_supp_subst supp_unit)+
-apply(rule fcb_subst_All)
-apply(assumption)+
-apply(simp add: subst_Fun_def)
-apply(rule trans)
-apply(rule ty_recs)
-apply(simp add: fin_supp_subst supp_unit)+
-apply(rule fcb_subst_All)
-apply(assumption)+
-apply(rule supports_fresh)
-apply(rule supports_subst_Tvar)
-apply(simp add: fs_tyvrs1, simp add: fresh_def)
-apply(fresh_guess add: fresh_prod subst_Top_def fs_tyvrs1)
-apply(fresh_guess add: fresh_prod subst_Fun_def fs_tyvrs1)
-apply(fresh_guess add: fresh_prod subst_All_def fs_tyvrs1)
-apply(perm_full_simp)
-apply(assumption)
-apply(simp add: subst_All_def)
-done
+nominal_primrec
+  "(Tvar X)[Y:=T]\<^isub>t\<^isub>y= (if X=Y then T else (Tvar X))"
+  "(Top)[Y:=T]\<^isub>t\<^isub>y = Top"
+  "(T\<^isub>1 \<rightarrow> T\<^isub>2)[Y:=T]\<^isub>t\<^isub>y = (T\<^isub>1[Y:=T]\<^isub>t\<^isub>y) \<rightarrow> (T\<^isub>2[Y:=T]\<^isub>t\<^isub>y)"
+  "\<lbrakk>X\<sharp>(Y,T); X\<sharp>T\<^isub>1\<rbrakk> \<Longrightarrow> (\<forall>[X<:T\<^isub>1].T\<^isub>2)[Y:=T]\<^isub>t\<^isub>y = (\<forall>[X<:(T\<^isub>1[Y:=T]\<^isub>t\<^isub>y)].(T\<^isub>2[Y:=T]\<^isub>t\<^isub>y))"
+  apply (finite_guess add: perm_if eq_eqvt fs_tyvrs1)
+  apply finite_guess
+  apply finite_guess
+  apply finite_guess
+  apply perm_full_simp
+  apply (simp add: supp_unit)
+  apply (rule TrueI)+
+  apply (simp add: abs_fresh)
+  apply (fresh_guess add: fs_tyvrs1 perm_if eq_eqvt)
+  apply fresh_guess
+  apply fresh_guess
+  apply fresh_guess
+  apply perm_full_simp
+  apply assumption
+  done
 
 consts subst_tyc :: "ty_context \<Rightarrow> tyvrs \<Rightarrow> ty \<Rightarrow> ty_context" ("_[_:=_]\<^isub>t\<^isub>y\<^isub>c" [100,100,100] 100)
 primrec
