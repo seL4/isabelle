@@ -2,7 +2,6 @@
    Author: Jia Meng, NICTA
 
 FOL clauses translated from HOL formulae.  Combinators are used to represent lambda terms.
-
 *)
 
 structure ResHolClause =
@@ -251,16 +250,10 @@ type axiom_name = string;
 type polarity = bool;
 type clause_id = int;
 
-type ctyp_var = ResClause.typ_var;
-
-type ctype_literal = ResClause.type_literal;
-
-
 datatype combterm = CombConst of string * ResClause.fol_type * ResClause.fol_type list
 		  | CombFree of string * ResClause.fol_type
 		  | CombVar of string * ResClause.fol_type
 		  | CombApp of combterm * combterm * ResClause.fol_type
-		  | Bool of combterm;
 		  
 datatype literal = Literal of polarity * combterm;
 
@@ -270,22 +263,21 @@ datatype clause =
 		    th: thm,
 		    kind: ResClause.kind,
 		    literals: literal list,
-		    ctypes_sorts: (ctyp_var * Term.sort) list, 
-                    ctvar_type_literals: ctype_literal list, 
-                    ctfree_type_literals: ctype_literal list};
+		    ctypes_sorts: (ResClause.typ_var * Term.sort) list, 
+                    ctvar_type_literals: ResClause.type_literal list, 
+                    ctfree_type_literals: ResClause.type_literal list};
 
 
 (*********************************************************************)
 (* convert a clause with type Term.term to a clause with type clause *)
 (*********************************************************************)
 
-fun isFalse (Literal(pol,Bool(CombConst(c,_,_)))) =
+fun isFalse (Literal(pol, CombConst(c,_,_))) =
       (pol andalso c = "c_False") orelse
       (not pol andalso c = "c_True")
   | isFalse _ = false;
 
-
-fun isTrue (Literal (pol,Bool(CombConst(c,_,_)))) =
+fun isTrue (Literal (pol, CombConst(c,_,_))) =
       (pol andalso c = "c_True") orelse
       (not pol andalso c = "c_False")
   | isTrue _ = false;
@@ -293,28 +285,27 @@ fun isTrue (Literal (pol,Bool(CombConst(c,_,_)))) =
 fun isTaut (Clause {literals,...}) = exists isTrue literals;  
 
 fun type_of (Type (a, Ts)) =
-    let val (folTypes,ts) = types_of Ts
-	val t = ResClause.make_fixed_type_const a
-    in
-	(ResClause.mk_fol_type("Comp",t,folTypes),ts)
-    end
+      let val (folTypes,ts) = types_of Ts
+	  val t = ResClause.make_fixed_type_const a
+      in
+	  (ResClause.mk_fol_type("Comp",t,folTypes),ts)
+      end
   | type_of (tp as (TFree(a,s))) =
-    let val t = ResClause.make_fixed_type_var a
-    in
-	(ResClause.mk_fol_type("Fixed",t,[]),[ResClause.mk_typ_var_sort tp])
-    end
+      let val t = ResClause.make_fixed_type_var a
+      in
+	  (ResClause.mk_fol_type("Fixed",t,[]),[ResClause.mk_typ_var_sort tp])
+      end
   | type_of (tp as (TVar(v,s))) =
-    let val t = ResClause.make_schematic_type_var v
-    in
-	(ResClause.mk_fol_type("Var",t,[]),[ResClause.mk_typ_var_sort tp])
-    end
-
+      let val t = ResClause.make_schematic_type_var v
+      in
+	  (ResClause.mk_fol_type("Var",t,[]),[ResClause.mk_typ_var_sort tp])
+      end
 and types_of Ts =
-    let val foltyps_ts = map type_of Ts
-	val (folTyps,ts) = ListPair.unzip foltyps_ts
-    in
-	(folTyps,ResClause.union_all ts)
-    end;
+      let val foltyps_ts = map type_of Ts
+	  val (folTyps,ts) = ListPair.unzip foltyps_ts
+      in
+	  (folTyps,ResClause.union_all ts)
+      end;
 
 (* same as above, but no gathering of sort information *)
 fun simp_type_of (Type (a, Ts)) = 
@@ -330,46 +321,37 @@ fun simp_type_of (Type (a, Ts)) =
 fun const_type_of (c,t) =
     let val (tp,ts) = type_of t
 	val tvars = !const_typargs(c,t)
-	val tvars' = map simp_type_of tvars
     in
-	(tp,ts,tvars')
+	(tp, ts, map simp_type_of tvars)
     end;
-
-fun is_bool_type (Type("bool",[])) = true
-  | is_bool_type _ = false;
-
 
 (* convert a Term.term (with combinators) into a combterm, also accummulate sort info *)
 fun combterm_of (Const(c,t)) =
       let val (tp,ts,tvar_list) = const_type_of (c,t)
 	  val c' = CombConst(ResClause.make_fixed_const c,tp,tvar_list)
-	  val c'' = if is_bool_type t then Bool(c') else c'
       in
-	  (c'',ts)
+	  (c',ts)
       end
   | combterm_of (Free(v,t)) =
       let val (tp,ts) = type_of t
 	  val v' = if ResClause.isMeta v then CombVar(ResClause.make_schematic_var(v,0),tp)
 		   else CombFree(ResClause.make_fixed_var v,tp)
-	  val v'' = if is_bool_type t then Bool(v') else v'
       in
-	  (v'',ts)
+	  (v',ts)
       end
   | combterm_of (Var(v,t)) =
       let val (tp,ts) = type_of t
 	  val v' = CombVar(ResClause.make_schematic_var v,tp)
-	  val v'' = if is_bool_type t then Bool(v') else v'
       in
-	  (v'',ts)
+	  (v',ts)
       end
   | combterm_of (t as (P $ Q)) =
       let val (P',tsP) = combterm_of P
 	  val (Q',tsQ) = combterm_of Q
 	  val tp = Term.type_of t
 	  val t' = CombApp(P',Q', simp_type_of tp)
-	  val t'' = if is_bool_type tp then Bool(t') else t'
       in
-	  (t'',tsP union tsQ)
+	  (t',tsP union tsQ)
       end;
 
 fun predicate_of ((Const("Not",_) $ P), polarity) =
@@ -447,8 +429,7 @@ val bool_str = "hBOOL";
 fun type_of_combterm (CombConst(c,tp,_)) = tp
   | type_of_combterm (CombFree(v,tp)) = tp
   | type_of_combterm (CombVar(v,tp)) = tp
-  | type_of_combterm (CombApp(t1,t2,tp)) = tp
-  | type_of_combterm (Bool(t)) = type_of_combterm t;
+  | type_of_combterm (CombApp(t1,t2,tp)) = tp;
 
 fun string_of_combterm1 (CombConst(c,tp,_)) = 
       let val c' = if c = "equal" then "c_fequal" else c
@@ -468,8 +449,7 @@ fun string_of_combterm1 (CombConst(c,tp,_)) =
 	                     [s1,s2, ResClause.string_of_fol_type (type_of_combterm t1)]
 	    | T_NONE => app_str ^ ResClause.paren_pack [s1,s2]
 	    | T_CONST => raise ERROR "string_of_combterm1"
-      end
-  | string_of_combterm1 (Bool(t)) = string_of_combterm1 t;
+      end;
 
 fun string_of_combterm2 (CombConst(c,tp,tvars)) = 
       let val tvars' = map ResClause.string_of_fol_type tvars
@@ -480,16 +460,15 @@ fun string_of_combterm2 (CombConst(c,tp,tvars)) =
   | string_of_combterm2 (CombFree(v,tp)) = v
   | string_of_combterm2 (CombVar(v,tp)) = v
   | string_of_combterm2 (CombApp(t1,t2,_)) =
-      app_str ^ ResClause.paren_pack [string_of_combterm2 t1, string_of_combterm2 t2]
-  | string_of_combterm2 (Bool(t)) = string_of_combterm2 t
+      app_str ^ ResClause.paren_pack [string_of_combterm2 t1, string_of_combterm2 t2];
 
 fun string_of_combterm t = 
     case !typ_level of T_CONST => string_of_combterm2 t
 		           | _ => string_of_combterm1 t;
 		           
-fun string_of_predicate (Bool(CombApp(CombApp(CombConst("equal",_,_),t1,_),t2,_))) =
+fun string_of_predicate (CombApp(CombApp(CombConst("equal",_,_),t1,_),t2,_)) =
       ("equal" ^ ResClause.paren_pack [string_of_combterm t1, string_of_combterm t2])
-  | string_of_predicate (Bool(t)) = 
+  | string_of_predicate t = 
       bool_str ^ ResClause.paren_pack [string_of_combterm t]
 
 fun string_of_clausename (cls_id,ax_name) = 
@@ -499,13 +478,13 @@ fun string_of_type_clsname (cls_id,ax_name,idx) =
     string_of_clausename (cls_id,ax_name) ^ "_tcs" ^ (Int.toString idx);
 
 
-(* tptp format *)
+(*** tptp format ***)
 
 fun tptp_of_equality pol (t1,t2) =
   let val eqop = if pol then " = " else " != "
   in  string_of_combterm t1 ^ eqop ^ string_of_combterm t2  end;
 
-fun tptp_literal (Literal(pol, Bool(CombApp(CombApp(CombConst("equal",_,_),t1,_),t2,_)))) = 
+fun tptp_literal (Literal(pol, CombApp(CombApp(CombConst("equal",_,_),t1,_),t2,_))) = 
       tptp_of_equality pol (t1,t2)
   | tptp_literal (Literal(pol,pred)) = 
       ResClause.tptp_sign pol (string_of_predicate pred);
@@ -531,7 +510,8 @@ fun clause2tptp (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
     end;
 
 
-(* dfg format *)
+(*** dfg format ***)
+
 fun dfg_literal (Literal(pol,pred)) = ResClause.dfg_sign pol (string_of_predicate pred);
 
 fun dfg_clause_aux (Clause{literals, ctypes_sorts, ...}) = 
@@ -550,9 +530,7 @@ fun dfg_clause_aux (Clause{literals, ctypes_sorts, ...}) =
 fun get_uvars (CombConst(_,_,_)) vars = vars
   | get_uvars (CombFree(_,_)) vars = vars
   | get_uvars (CombVar(v,tp)) vars = (v::vars)
-  | get_uvars (CombApp(P,Q,tp)) vars = get_uvars P (get_uvars Q vars)
-  | get_uvars (Bool(c)) vars = get_uvars c vars;
-
+  | get_uvars (CombApp(P,Q,tp)) vars = get_uvars P (get_uvars Q vars);
 
 fun get_uvars_l (Literal(_,c)) = get_uvars c [];
 
@@ -569,26 +547,22 @@ fun clause2dfg (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
 
 
 fun init_funcs_tab funcs = 
-    let val tp = !typ_level
-	val funcs1 = case tp of T_PARTIAL => Symtab.update ("hAPP",3) funcs
+    let val funcs1 = case !typ_level of T_PARTIAL => Symtab.update ("hAPP",3) funcs
 				      | _ => Symtab.update ("hAPP",2) funcs
-	val funcs2 = case tp of T_FULL => Symtab.update ("typeinfo",2) funcs1
-				      | _ => funcs1
     in
-	funcs2
+	Symtab.update ("typeinfo",2) funcs1
     end;
 
 
 fun add_funcs (CombConst(c,_,tvars),funcs) =
-    if c = "equal" then foldl ResClause.add_foltype_funcs funcs tvars
-    else
-	(case !typ_level of T_CONST => foldl ResClause.add_foltype_funcs (Symtab.update(c,length tvars) funcs) tvars
-			  | _ => foldl ResClause.add_foltype_funcs (Symtab.update(c,0) funcs) tvars)
+      if c = "equal" then foldl ResClause.add_foltype_funcs funcs tvars
+      else
+	(case !typ_level of
+	     T_CONST => foldl ResClause.add_foltype_funcs (Symtab.update(c,length tvars) funcs) tvars
+           | _ => foldl ResClause.add_foltype_funcs (Symtab.update(c,0) funcs) tvars)
   | add_funcs (CombFree(v,ctp),funcs) = ResClause.add_foltype_funcs (ctp,Symtab.update (v,0) funcs) 
   | add_funcs (CombVar(_,ctp),funcs) = ResClause.add_foltype_funcs (ctp,funcs)
-  | add_funcs (CombApp(P,Q,_),funcs) = add_funcs(P,add_funcs (Q,funcs))
-  | add_funcs (Bool(t),funcs) = add_funcs (t,funcs);
-
+  | add_funcs (CombApp(P,Q,_),funcs) = add_funcs(P,add_funcs (Q,funcs));
 
 fun add_literal_funcs (Literal(_,c), funcs) = add_funcs (c,funcs);
 
