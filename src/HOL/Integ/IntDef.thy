@@ -921,7 +921,7 @@ code_const "op = \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "!((_ : IntInf.int) = _)")
   (Haskell infixl 4 "==")
 
-code_const "op <= \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+code_const "op \<le> \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "IntInf.<= (_, _)")
   (Haskell infix 4 "<=")
 
