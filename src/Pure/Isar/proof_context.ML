@@ -282,7 +282,7 @@ fun pretty_term' abbrevs ctxt t =
     val syntax = syntax_of ctxt;
     val consts = consts_of ctxt;
     val t' = t
-      |> K abbrevs ? rewrite_term thy (Consts.abbrevs_of consts (! print_mode @ [""]))
+      |> abbrevs ? rewrite_term thy (Consts.abbrevs_of consts (! print_mode @ [""]))
       |> Sign.extern_term (Consts.extern_early consts) thy
       |> LocalSyntax.extern_term syntax;
   in
@@ -764,8 +764,9 @@ fun valid_thms ctxt (name, ths) =
 
 fun lthms_containing ctxt spec =
   FactIndex.find (fact_index_of ctxt) spec
-  |> map ((not o valid_thms ctxt) ? apfst (fn name =>
-    NameSpace.hidden (if name = "" then "unnamed" else name)));
+  |> map (fn (name, ths) =>
+    if valid_thms ctxt (name, ths) then (name, ths)
+    else (NameSpace.hidden (if name = "" then "unnamed" else name), ths));
 
 
 (* name space operations *)
@@ -809,18 +810,14 @@ local
 
 fun gen_note_thmss get k = fold_map (fn ((bname, more_attrs), raw_facts) => fn ctxt =>
   let
-    val name = full_name ctxt bname;
     val stmt = is_stmt ctxt;
-
     val kind = if stmt then [] else [PureThy.kind k];
-    val facts = raw_facts |> map (apfst (get ctxt))
-      |> (if stmt then I else PureThy.name_thmss name);
 
+    val facts = map (apfst (get ctxt)) raw_facts;
     fun app (th, attrs) x =
       swap (foldl_map (Thm.proof_attributes (attrs @ more_attrs @ kind)) (x, th));
     val (res, ctxt') = fold_map app facts ctxt;
-    val thms = flat res
-      |> (if stmt then I else PureThy.name_thms false name);
+    val thms = flat res;
   in ((bname, thms), ctxt' |> update_thms stmt (bname, SOME thms)) end);
 
 in
