@@ -2619,7 +2619,7 @@ code_const "op = \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 code_reserved SML
-  list char
+  list char nil
 
 code_reserved Haskell
   Char

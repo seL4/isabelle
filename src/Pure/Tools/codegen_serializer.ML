@@ -567,8 +567,7 @@ fun seri_sml output reserved_user module_alias module_prolog
     datatype node =
         Def of string * ml_def option
       | Module of string * ((Name.context * Name.context) * node Graph.T);
-    val empty_names =
-      Name.make_context ("nil" :: (* FIXME !? *) ML_Syntax.reserved @ reserved_user);
+    val empty_names = Name.make_context ("o" :: ML_Syntax.reserved @ reserved_user);
     val empty_module = ((empty_names, empty_names), Graph.empty);
     fun map_node [] f = f
       | map_node (m::ms) f =
@@ -750,7 +749,7 @@ val isar_seri_sml =
     fun output_internal p = use_text Output.ml_output false (Pretty.output p);
   in
     parse_args ((Args.$$$ "-" >> K output_diag
-      || Args.$$$ "*" >> K output_internal
+      || Args.$$$ "#" >> K output_internal
       || Args.name >> output_file)
     >> (fn output => seri_sml output))
   end;
