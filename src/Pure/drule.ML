@@ -963,7 +963,7 @@ fun mk_term ct =
   in Thm.instantiate ([(a, certT T)], [(x, ct)]) termI end;
 
 fun dest_term th =
-  let val cprop = Thm.cprop_of th in
+  let val cprop = strip_imp_concl (Thm.cprop_of th) in
     if can Logic.dest_term (Thm.term_of cprop) then
       Thm.dest_arg cprop
     else raise THM ("dest_term", 0, [th])

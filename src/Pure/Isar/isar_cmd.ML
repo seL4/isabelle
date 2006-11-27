@@ -193,7 +193,8 @@ val skip_proof = local_skip_proof o global_skip_proof;
 fun begin_theory name imports uses =
   ThyInfo.begin_theory Present.begin_theory name imports (map (apfst Path.unpack) uses);
 
-val end_theory = (ThyInfo.check_known_thy o Context.theory_name) ? ThyInfo.end_theory;
+fun end_theory thy =
+  if ThyInfo.check_known_thy (Context.theory_name thy) then ThyInfo.end_theory thy else thy;
 
 val kill_theory = ThyInfo.if_known_thy ThyInfo.remove_thy;
 
