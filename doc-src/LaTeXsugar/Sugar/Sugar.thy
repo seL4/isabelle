@@ -334,7 +334,7 @@ text {*
     \end{quote}
 
   A ``style'' is a transformation of propositions. There are predefined
-  styles, namly \verb!lhs! and \verb!rhs!, \verb!prem1! up to \verb!prem9!, and \verb!concl!.
+  styles, namely \verb!lhs! and \verb!rhs!, \verb!prem1! up to \verb!prem9!, and \verb!concl!.
   For example, 
   the output
   \begin{center}
