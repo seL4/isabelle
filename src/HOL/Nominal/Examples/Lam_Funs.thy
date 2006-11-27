@@ -10,6 +10,8 @@ nominal_datatype lam = Var "name"
                      | App "lam" "lam"
                      | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
+text {* depth of a lambda-term *}
+
 consts 
   depth :: "lam \<Rightarrow> nat"
 
@@ -22,6 +24,36 @@ nominal_primrec
   apply(simp add: fresh_nat)
   apply(fresh_guess add: perm_nat_def)+
   done
+
+text {* free variables of a lambda-term *}
+
+consts 
+  frees :: "lam \<Rightarrow> name set"
+
+nominal_primrec (invariant: "\<lambda>s::name set. finite s")
+  "frees (Var a) = {a}"
+  "frees (App t1 t2) = (frees t1) \<union> (frees t2)"
+  "frees (Lam [a].t) = (frees t) - {a}"
+apply(finite_guess add: perm_insert perm_set_def)
+apply(finite_guess add: perm_union)
+apply(finite_guess add: pt_set_diff_eqvt[OF pt_name_inst, OF at_name_inst] perm_insert)
+apply(simp add: perm_set_def)
+apply(simp add: fs_name1)
+apply(simp)+
+apply(simp add: fresh_def)
+apply(simp add: supp_of_fin_sets[OF pt_name_inst, OF at_name_inst, OF fs_at_inst[OF at_name_inst]])
+apply(simp add: supp_atm)
+apply(force)
+apply(fresh_guess add: perm_insert perm_set_def)
+apply(fresh_guess add: perm_union)
+apply(fresh_guess add: pt_set_diff_eqvt[OF pt_name_inst, OF at_name_inst] perm_insert)
+apply(simp add: perm_set_def)
+done
+
+lemma frees_equals_support:
+  shows "frees t = supp t"
+by (nominal_induct t rule: lam.induct)
+   (simp_all add: lam.supp supp_atm abs_supp)
 
 text {* capture-avoiding substitution *}
 
