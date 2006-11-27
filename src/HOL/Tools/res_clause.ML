@@ -654,6 +654,9 @@ fun string_of_predicate (Predicate("equal",_,ts)) = string_of_equality ts
 fun string_of_clausename (cls_id,ax_name) = 
     clause_prefix ^ ascii_of ax_name ^ "_" ^ Int.toString cls_id;
 
+fun clause_name_of (cls_id,ax_name) = 
+    ascii_of ax_name ^ "_" ^ Int.toString cls_id;
+
 fun string_of_type_clsname (cls_id,ax_name,idx) = 
     string_of_clausename (cls_id,ax_name) ^ "_tcs" ^ (Int.toString idx);
 
