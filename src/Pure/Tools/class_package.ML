@@ -32,6 +32,11 @@ sig
   val assume_arities_thy: theory -> ((string * sort list) * sort) list -> (theory -> 'a) -> 'a
     (*'a must not keep any reference to theory*)
 
+  val add_def: class * thm -> theory -> theory
+  val export_typ: theory -> class -> typ -> typ
+  val export_def: theory -> class -> term -> term
+  val export_thm: theory -> class -> thm -> thm
+
   val print_classes: theory -> unit
   val intro_classes_tac: thm list -> tactic
   val default_intro_classes_tac: thm list -> tactic
@@ -49,7 +54,8 @@ datatype class_data = ClassData of {
   var: string,
   consts: (string * (string * typ)) list
     (*locale parameter ~> toplevel theory constant*),
-  propnames: string list
+  propnames: string list,
+  defs: thm list
 } * thm list Symtab.table;
 
 fun rep_classdata (ClassData c) = c;
@@ -125,14 +131,62 @@ fun add_class_data (class, (name_locale, name_axclass, var, consts, propnames)) 
       name_axclass = name_axclass,
       var = var,
       consts = consts,
-      propnames = propnames}, Symtab.empty))
+      propnames = propnames,
+      defs = []}, Symtab.empty))
   );
+
+fun add_def (class, thm) =
+  ClassData.map (
+    Symtab.map_entry class (fn ClassData ({ name_locale, name_axclass,
+      var, consts, propnames, defs }, instd) => ClassData ({ name_locale = name_locale,
+      name_axclass = name_axclass, var = var,
+      consts = consts, propnames = propnames, defs = thm :: defs }, instd))
+  );
+
 
 fun add_inst_def ((class, tyco), thm) =
   ClassData.map (
     Symtab.map_entry class (fn ClassData (classd, instd) =>
       ClassData (classd, Symtab.insert_list eq_thm (tyco, thm) instd))
   );
+
+
+(* experimental class target *)
+
+fun export_typ thy loc =
+  let
+    val class = loc (*FIXME*);
+    val (v, _) = AxClass.params_of_class thy class;
+  in
+    Term.map_type_tfree (fn var as (w, sort) =>
+      if w = v then TFree (w, Sorts.inter_sort (Sign.classes_of thy)
+        (sort, [class])) else TFree var)
+  end;
+
+fun export_def thy loc =
+  let
+    val class = loc (*FIXME*);
+    val data = (fst o the_class_data thy) class;
+    val consts = #consts data;
+    val v = #var data;
+    val subst_typ = Term.map_type_tfree (fn var as (w, sort) =>
+      if w = v then TFree (w, Sorts.inter_sort (Sign.classes_of thy)
+        (sort, [class])) else TFree var)
+    fun subst (t as Free (v, _)) = (case AList.lookup (op =) consts v
+         of SOME c_ty => Const c_ty
+          | NONE => t)
+      | subst t = t;
+  in
+    Term.map_aterms subst #> map_types subst_typ
+  end;
+
+fun export_thm thy loc =
+  let
+    val class = loc (*FIXME*);
+    val thms = (#defs o fst o the_class_data thy) class;
+  in
+    Tactic.rewrite_rule thms
+  end;
 
 
 (* certification and reading *)
