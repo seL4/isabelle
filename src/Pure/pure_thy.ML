@@ -57,8 +57,7 @@ sig
   val thms_of: theory -> (string * thm) list
   val all_thms_of: theory -> (string * thm) list
   val hide_thms: bool -> string list -> theory -> theory
-  val name_thms: bool -> string -> thm list -> thm list
-  val name_thmss: string -> (thm list * 'a) list -> (thm list * 'a) list
+  val burrow_fact: ('a list -> 'b list) -> ('a list * 'c) list -> ('b list * 'c) list
   val store_thm: (bstring * thm) * attribute list -> theory -> thm * theory
   val smart_store_thms: (bstring * thm list) -> thm list
   val smart_store_thms_open: (bstring * thm list) -> thm list
@@ -322,11 +321,8 @@ fun name_thm pre (name, thm) =
 
 fun name_thms pre name xs = map (name_thm pre) (name_multi name xs);
 
-fun name_thmss name xs =
-  (case filter_out (null o fst) xs of
-    [([x], z)] => [([name_thm true (name, x)], z)]
-  | _ => fst (fold_map (fn (ys, z) => fn i =>
-    ((map (name_thm true) (gen_names i (length ys) name ~~ ys), z), i + length ys)) xs 0));
+fun burrow_fact f = split_list #>> burrow f #> op ~~;
+fun name_thmss name fact = burrow_fact (name_thms true name) fact;
 
 
 (* enter_thms *)
