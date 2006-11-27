@@ -7,6 +7,7 @@ uses
   ("nominal_package.ML")
   ("nominal_induct.ML") 
   ("nominal_permeq.ML")
+  ("nominal_primrec.ML")
 begin 
 
 section {* Permutations *}
@@ -3009,6 +3010,10 @@ use "nominal_atoms.ML"
 use "nominal_permeq.ML";
 use "nominal_package.ML"
 setup "NominalAtoms.setup"
+setup "NominalPackage.setup"
+
+(** primitive recursive functions on nominal datatypes **)
+use "nominal_primrec.ML"
 
 (*****************************************)
 (* setup for induction principles method *)
