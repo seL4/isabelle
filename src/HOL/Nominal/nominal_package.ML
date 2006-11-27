@@ -9,6 +9,10 @@ signature NOMINAL_PACKAGE =
 sig
   val add_nominal_datatype : bool -> string list -> (string list * bstring * mixfix *
     (bstring * string list * mixfix) list) list -> theory -> theory
+  type nominal_datatype_info
+  val get_nominal_datatypes : theory -> nominal_datatype_info Symtab.table
+  val get_nominal_datatype : theory -> string -> nominal_datatype_info option
+  val setup: theory -> theory
 end
 
 structure NominalPackage : NOMINAL_PACKAGE =
@@ -46,6 +50,53 @@ fun mk_case_names_exhausts descr new =
     (List.filter (fn ((_, (name, _, _))) => name mem_string new) descr);
 
 end;
+
+(* data kind 'HOL/nominal_datatypes' *)
+
+type nominal_datatype_info =
+  {index : int,
+   descr : descr,
+   sorts : (string * sort) list,
+   rec_names : string list,
+   rec_rewrites : thm list,
+   induction : thm,
+   distinct : thm list,
+   inject : thm list};
+
+structure NominalDatatypesData = TheoryDataFun
+(struct
+  val name = "HOL/nominal_datatypes";
+  type T = nominal_datatype_info Symtab.table;
+
+  val empty = Symtab.empty;
+  val copy = I;
+  val extend = I;
+  fun merge _ tabs : T = Symtab.merge (K true) tabs;
+
+  fun print sg tab =
+    Pretty.writeln (Pretty.strs ("nominal datatypes:" ::
+      map #1 (NameSpace.extern_table (Sign.type_space sg, tab))));
+end);
+
+val get_nominal_datatypes = NominalDatatypesData.get;
+val put_nominal_datatypes = NominalDatatypesData.put;
+val map_nominal_datatypes = NominalDatatypesData.map;
+val get_nominal_datatype = Symtab.lookup o get_nominal_datatypes;
+val setup = NominalDatatypesData.init;
+
+(**** make datatype info ****)
+
+fun make_dt_info descr sorts induct reccomb_names rec_thms
+    (((i, (_, (tname, _, _))), distinct), inject) =
+  (tname,
+   {index = i,
+    descr = descr,
+    sorts = sorts,
+    rec_names = reccomb_names,
+    rec_rewrites = rec_thms,
+    induction = induct,
+    distinct = distinct,
+    inject = inject});
 
 (*******************************)
 
@@ -1990,6 +2041,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       end) (rec_eq_prems ~~
         DatatypeProp.make_primrecs new_type_names descr' sorts' thy12);
 
+    val dt_infos = map (make_dt_info descr'' sorts induct reccomb_names rec_thms)
+      ((0 upto length descr1 - 1) ~~ descr1 ~~ distinct_thms ~~ inject_thms);
+
     (* FIXME: theorems are stored in database for testing only *)
     val (_, thy13) = thy12 |>
       PureThy.add_thmss
@@ -1999,7 +2053,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
          (("rec_fresh", List.concat rec_fresh_thms), []),
          (("rec_unique", map standard rec_unique_thms), []),
          (("recs", rec_thms), [])] ||>
-      Theory.parent_path;
+      Theory.parent_path ||>
+      map_nominal_datatypes (fold Symtab.update dt_infos);
 
   in
     thy13
