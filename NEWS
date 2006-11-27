@@ -63,7 +63,7 @@ HOL/ex/Classpackage.thy for examples.
 code for ML and Haskell (including "class"es). A short usage sketch:
 
     internal compilation:
-        code_gen <list of constants (term syntax)> (SML *)
+        code_gen <list of constants (term syntax)> (SML #)
     writing SML code to a file:
         code_gen <list of constants (term syntax)> (SML <filename>)
     writing Haskell code to a bunch of files:

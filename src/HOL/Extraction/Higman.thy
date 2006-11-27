@@ -337,7 +337,7 @@ val xs4 = test f2;
 end;
 *}
 
-code_gen good_prefix (SML *)
+code_gen good_prefix (SML #)
 
 ML {*
 local

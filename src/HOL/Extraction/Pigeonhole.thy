@@ -316,7 +316,7 @@ definition
 definition
   "test' n = pigeonhole_slow n (\<lambda>m. m - 1)"
 
-code_gen test test' "op !" (SML *)
+code_gen test test' "op !" (SML #)
 
 ML "timeit (fn () => ROOT.Pigeonhole.test 10)"
 ML "timeit (fn () => ROOT.Pigeonhole.test' 10)"

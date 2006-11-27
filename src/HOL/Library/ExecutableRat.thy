@@ -137,7 +137,7 @@ code_gen
   "inverse \<Colon> rat \<Rightarrow> rat"
   "op \<le> \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool"
   "op = \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool"
-  (SML *)
+  (SML #)
 
 
 section {* type serializations *}

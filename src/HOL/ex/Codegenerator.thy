@@ -188,6 +188,6 @@ code_gen
   "op = :: mut2 \<Rightarrow> mut2 \<Rightarrow> bool"
   "op = :: ('a\<Colon>eq) point_scheme \<Rightarrow> 'a point_scheme \<Rightarrow> bool"
 
-code_gen (SML *) (Haskell -)
+code_gen (SML #) (Haskell -)
 
 end

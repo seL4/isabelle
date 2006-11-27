@@ -187,7 +187,7 @@ code_const run_random
   (SML "case _ (Random.seed ()) of (x, '_) => x")
 
 code_gen select select_weight
-  (SML *)
+  (SML #)
 
 code_gen (SML -)
 

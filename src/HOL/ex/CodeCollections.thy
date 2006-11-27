@@ -198,7 +198,7 @@ definition "test3 \<longleftrightarrow> (\<exists>x \<Colon> bool option. case x
 
 code_gen test3
 
-code_gen (SML *)
+code_gen (SML #)
 code_gen (Haskell -)
 
 end

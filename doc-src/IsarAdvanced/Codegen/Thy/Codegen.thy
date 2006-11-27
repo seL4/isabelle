@@ -153,7 +153,7 @@ text {*
   This executable specification is now turned to SML code:
 *}
 
-code_gen fac (*<*)(SML *)(*>*)(SML "examples/fac.ML")
+code_gen fac (*<*)(SML #)(*>*)(SML "examples/fac.ML")
 
 text {*
   The @{text "\<CODEGEN>"} command takes a space-separated list of
@@ -269,7 +269,7 @@ lemma [code func]:
   "pick ((k, v)#xs) n = (if n < k then v else pick xs (n - k))"
   by simp
 
-code_gen pick (*<*)(SML *)(*>*)(SML "examples/pick1.ML")
+code_gen pick (*<*)(SML #)(*>*)(SML "examples/pick1.ML")
 
 text {*
   This theorem is now added to the function equation table:
@@ -282,7 +282,7 @@ text {*
 
 lemmas [code nofunc] = pick.simps 
 
-code_gen pick (*<*)(SML *)(*>*)(SML "examples/pick2.ML")
+code_gen pick (*<*)(SML #)(*>*)(SML "examples/pick2.ML")
 
 text {*
   \lstsml{Thy/examples/pick2.ML}
@@ -298,7 +298,7 @@ lemma [code func]:
   "fac n = (case n of 0 \<Rightarrow> 1 | Suc m \<Rightarrow> n * fac m)"
   by (cases n) simp_all
 
-code_gen fac (*<*)(SML *)(*>*)(SML "examples/fac_case.ML")
+code_gen fac (*<*)(SML #)(*>*)(SML "examples/fac_case.ML")
 
 text {*
   \lstsml{Thy/examples/fac_case.ML}
@@ -377,7 +377,7 @@ text {*
   The whole code in SML with explicit dictionary passing:
 *}
 
-code_gen dummy (*<*)(SML *)(*>*)(SML "examples/class.ML")
+code_gen dummy (*<*)(SML #)(*>*)(SML "examples/class.ML")
 
 text {*
   \lstsml{Thy/examples/class.ML}
@@ -557,7 +557,7 @@ code_const %tt True and False and "op \<and>" and Not
   (SML and and and)
 (*>*)
 
-code_gen in_interval (*<*)(SML *)(*>*)(SML "examples/bool_literal.ML")
+code_gen in_interval (*<*)(SML #)(*>*)(SML "examples/bool_literal.ML")
 
 text {*
   \lstsml{Thy/examples/bool_literal.ML}
@@ -600,7 +600,7 @@ text {*
   After this setup, code looks quite more readable:
 *}
 
-code_gen in_interval (*<*)(SML *)(*>*)(SML "examples/bool_mlbool.ML")
+code_gen in_interval (*<*)(SML #)(*>*)(SML "examples/bool_mlbool.ML")
 
 text {*
   \lstsml{Thy/examples/bool_mlbool.ML}
@@ -616,7 +616,7 @@ text {*
 code_const %tt "op \<and>"
   (SML infixl 1 "andalso")
 
-code_gen in_interval (*<*)(SML *)(*>*)(SML "examples/bool_infix.ML")
+code_gen in_interval (*<*)(SML #)(*>*)(SML "examples/bool_infix.ML")
 
 text {*
   \lstsml{Thy/examples/bool_infix.ML}
@@ -675,7 +675,7 @@ code_const %tt "op + \<Colon> int \<Rightarrow> int \<Rightarrow> int"
     and "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
   (SML "IntInf.+ (_, _)" and "IntInf.* (_, _)")
 
-code_gen double_inc (*<*)(SML *)(*>*)(SML "examples/integers.ML")
+code_gen double_inc (*<*)(SML #)(*>*)(SML "examples/integers.ML")
 
 text {*
   resulting in:
@@ -727,7 +727,7 @@ text {*
   performs an explicit equality check.
 *}
 
-code_gen collect_duplicates (*<*)(SML *)(*>*)(SML "examples/collect_duplicates.ML")
+code_gen collect_duplicates (*<*)(SML #)(*>*)(SML "examples/collect_duplicates.ML")
 
 text {*
   \lstsml{Thy/examples/collect_duplicates.ML}
@@ -803,7 +803,7 @@ text {*
   Then everything goes fine:
 *}
 
-code_gen lookup (*<*)(SML *)(*>*)(SML "examples/lookup.ML")
+code_gen lookup (*<*)(SML #)(*>*)(SML "examples/lookup.ML")
 
 text {*
   \lstsml{Thy/examples/lookup.ML}
@@ -856,7 +856,7 @@ text {*
 *}
 
 code_gen "op \<le> \<Colon> 'a\<Colon>{eq, ord} \<times> 'b\<Colon>{eq, ord} \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
-  (*<*)(SML *)(*>*)(SML "examples/lexicographic.ML")
+  (*<*)(SML #)(*>*)(SML "examples/lexicographic.ML")
 
 text {*
   \lstsml{Thy/examples/lexicographic.ML}
@@ -960,7 +960,7 @@ text {*
 lemma [code func]:
   "insert = insert" ..
 
-code_gen dummy_set foobar_set (*<*)(SML *)(*>*)(SML "examples/dirty_set.ML")
+code_gen dummy_set foobar_set (*<*)(SML #)(*>*)(SML "examples/dirty_set.ML")
 
 text {*
   \lstsml{Thy/examples/dirty_set.ML}
@@ -1087,7 +1087,7 @@ fun
 declare dummy_option.simps [code func]
 (*>*)
 
-code_gen dummy_option (*<*)(SML *)(*>*)(SML "examples/arbitrary.ML")
+code_gen dummy_option (*<*)(SML #)(*>*)(SML "examples/arbitrary.ML")
 
 text {*
   \lstsml{Thy/examples/arbitrary.ML}
