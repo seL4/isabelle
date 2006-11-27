@@ -278,7 +278,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                           else (new_prod :: tk_prods, true);
 
                         val prods' = prods
-                                     |> K is_new' ? AList.update (op =) (tk, tk_prods');
+                                     |> is_new' ? AList.update (op =) (tk, tk_prods');
                     in store tks prods' (is_new orelse is_new') end;
 
                 val (nt_prods', prod_count', changed) =
@@ -367,7 +367,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
                       val nt_prods' =
                         nt_prods'
-                        |> (K (key = SOME UnknownStart)) ? AList.update (op =) (key, tk_prods')
+                        |> (key = SOME UnknownStart) ? AList.update (op =) (key, tk_prods')
 
                       val added_tks =
                         subtract matching_tokens old_tks new_tks;

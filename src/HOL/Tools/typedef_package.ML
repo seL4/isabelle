@@ -54,9 +54,9 @@ fun HOL_arity (raw_name, args, mx) thy =
       replicate (length args) HOLogic.typeS, HOLogic.typeS);
 
 fun add_typedecls decls thy =
-  thy
-  |> Theory.add_typedecls decls
-  |> can (Theory.assert_super HOL.thy) ? fold HOL_arity decls;
+  if can (Theory.assert_super HOL.thy) thy then
+    thy |> Theory.add_typedecls decls |> fold HOL_arity decls
+  else thy |> Theory.add_typedecls decls;
 
 
 

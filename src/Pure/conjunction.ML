@@ -216,7 +216,7 @@ fun split_defined n eq =
     val intro =
       (eq RS Drule.equal_elim_rule2)
       |> curry n
-      |> K (n = 0) ? Thm.eq_assumption 1;
+      |> n = 0 ? Thm.eq_assumption 1;
     val dests = map (project (eq RS Drule.equal_elim_rule1)) (1 upto n);
   in (intro, dests) end;
 

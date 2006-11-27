@@ -1223,11 +1223,11 @@ fun rewrite_goal_rule mode prover ss i thm =
 
 local
 
-fun gen_norm_hhf ss =
-  (not o Drule.is_norm_hhf o Thm.prop_of) ?
-    Drule.fconv_rule (rewrite_cterm (true, false, false) (K (K NONE)) ss)
-  #> Thm.adjust_maxidx_thm ~1
-  #> Drule.gen_all;
+fun gen_norm_hhf ss th =
+  (if Drule.is_norm_hhf (Thm.prop_of th) then th
+   else Drule.fconv_rule (rewrite_cterm (true, false, false) (K (K NONE)) ss) th)
+  |> Thm.adjust_maxidx_thm ~1
+  |> Drule.gen_all;
 
 val ss = theory_context ProtoPure.thy empty_ss addsimps [Drule.norm_hhf_eq];
 

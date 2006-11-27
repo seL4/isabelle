@@ -314,7 +314,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
       supclasses
       |> map (#name_axclass o fst o the_class_data thy)
       |> Sign.certify_sort thy
-      |> null ? K (Sign.defaultS thy);
+      |> (fn [] => Sign.defaultS thy | S => S);    (* FIXME Why syntax defaultS? *)
     val expr_supclasses = Locale.Merge
       (map (Locale.Locale o #name_locale o fst o the_class_data thy) supclasses);
     val expr = Locale.Merge (map (Locale.Locale o #name_locale o fst o the_class_data thy) supclasses

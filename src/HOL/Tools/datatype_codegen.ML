@@ -609,7 +609,7 @@ fun prove_codetypes_arities tac tycos sort f after_qed thy =
             then NONE else SOME (arity, (tyco, cs)))) insts;
       in
         thy
-        |> K ((not o null) arities) ? (
+        |> not (null arities) ? (
             f arities css
             #-> (fn defs =>
               ClassPackage.prove_instance_arity tac arities ("", []) defs

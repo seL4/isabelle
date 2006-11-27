@@ -776,13 +776,13 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
     |> put_goal (SOME (make_goal ((kind, propss'), [], goal, before_qed, after_qed')))
     |> map_context (ProofContext.add_cases false (AutoBind.cases thy props))
     |> map_context (ProofContext.auto_bind_goal props)
-    |> K chaining ? (`the_facts #-> using_facts)
+    |> chaining ? (`the_facts #-> using_facts)
     |> put_facts NONE
     |> open_block
     |> put_goal NONE
     |> enter_backward
-    |> K (not (null vars)) ? refine_terms (length propss')
-    |> K (null props) ? (refine (Method.Basic Method.assumption) #> Seq.hd)
+    |> not (null vars) ? refine_terms (length propss')
+    |> null props ? (refine (Method.Basic Method.assumption) #> Seq.hd)
   end;
 
 fun generic_qed state =
@@ -915,7 +915,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
   in
     state
     |> local_goal print_results prep_att prepp "show" before_qed after_qed' stmt
-    |> K int ? (fn goal_state =>
+    |> int ? (fn goal_state =>
       (case test_proof goal_state of
         Result (SOME _) => goal_state
       | Result NONE => error (fail_msg (context_of goal_state))

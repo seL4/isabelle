@@ -24,7 +24,7 @@ sig
   val curry: ('a * 'b -> 'c) -> 'a -> 'b -> 'c
   val uncurry: ('a -> 'b -> 'c) -> 'a * 'b -> 'c
   val |>>> : ('a * 'c) * ('a -> 'b * 'd) -> 'b * ('c * 'd)
-  val ? : ('a -> bool) * ('a -> 'a) -> 'a -> 'a
+  val ? : bool * ('a -> 'a) -> 'a -> 'a
   val oo: ('a -> 'b) * ('c -> 'd -> 'a) -> 'c -> 'd -> 'b
   val ooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'a) -> 'c -> 'd -> 'e -> 'b
   val oooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'f -> 'a) -> 'c -> 'd -> 'e -> 'f -> 'b
@@ -271,7 +271,7 @@ fun uncurry f (x, y) = f x y;
 fun (x, y) |>>> f = let val (x', z) = f x in (x', (y, z)) end;
 
 (*conditional application*)
-fun b ? f = fn x => if b x then f x else x;
+fun b ? f = fn x => if b then f x else x;
 
 (*composition with multiple args*)
 fun (f oo g) x y = f (g x y);

@@ -123,7 +123,7 @@ val variants = fold_map (fn name => fn ctxt =>
           val x0 = Symbol.bump_init x;
           val x' = vary x0;
           val ctxt' = ctxt
-            |> K (x0 <> x') ? declare_renaming (x0, x')
+            |> x0 <> x' ? declare_renaming (x0, x')
             |> declare x';
         in (x', ctxt') end;
   in (x' ^ replicate_string n "_", ctxt') end);

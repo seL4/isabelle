@@ -145,7 +145,7 @@ fun strong_conn G = filter_out null (fst (reachable (imm_preds G)
 fun project proj G =
   let
     fun subg (k, (i, (preds, succs))) =
-      K (proj k) ? Table.update (k, (i, (filter proj preds, filter proj succs)));
+      proj k ? Table.update (k, (i, (filter proj preds, filter proj succs)));
   in Graph (fold_graph subg G Table.empty) end;
 
 
