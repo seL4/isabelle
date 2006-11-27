@@ -805,61 +805,6 @@ lemmas [symmetric, rulify] = atomize_all atomize_imp
 
 subsection {* Package setup *}
 
-subsubsection {* Fundamental ML bindings *}
-
-ML {*
-structure HOL =
-struct
-  (*FIXME reduce this to a minimum*)
-  val eq_reflection = thm "eq_reflection";
-  val def_imp_eq = thm "def_imp_eq";
-  val meta_eq_to_obj_eq = thm "meta_eq_to_obj_eq";
-  val ccontr = thm "ccontr";
-  val impI = thm "impI";
-  val impCE = thm "impCE";
-  val notI = thm "notI";
-  val notE = thm "notE";
-  val iffI = thm "iffI";
-  val iffCE = thm "iffCE";
-  val conjI = thm "conjI";
-  val conjE = thm "conjE";
-  val disjCI = thm "disjCI";
-  val disjE = thm "disjE";
-  val TrueI = thm "TrueI";
-  val FalseE = thm "FalseE";
-  val allI = thm "allI";
-  val allE = thm "allE";
-  val exI = thm "exI";
-  val exE = thm "exE";
-  val ex_ex1I = thm "ex_ex1I";
-  val the_equality = thm "the_equality";
-  val mp = thm "mp";
-  val rev_mp = thm "rev_mp"
-  val classical = thm "classical";
-  val subst = thm "subst";
-  val refl = thm "refl";
-  val sym = thm "sym";
-  val trans = thm "trans";
-  val arg_cong = thm "arg_cong";
-  val iffD1 = thm "iffD1";
-  val iffD2 = thm "iffD2";
-  val disjE = thm "disjE";
-  val conjE = thm "conjE";
-  val exE = thm "exE";
-  val contrapos_nn = thm "contrapos_nn";
-  val contrapos_pp = thm "contrapos_pp";
-  val notnotD = thm "notnotD";
-  val conjunct1 = thm "conjunct1";
-  val conjunct2 = thm "conjunct2";
-  val spec = thm "spec";
-  val imp_cong = thm "imp_cong";
-  val the_sym_eq_trivial = thm "the_sym_eq_trivial";
-  val triv_forall_equality = thm "triv_forall_equality";
-  val case_split = thm "case_split_thm";
-end
-*}
-
-
 subsubsection {* Classical Reasoner setup *}
 
 lemma thin_refl:
@@ -872,20 +817,20 @@ struct
   val dest_eq = HOLogic.dest_eq
   val dest_Trueprop = HOLogic.dest_Trueprop
   val dest_imp = HOLogic.dest_imp
-  val eq_reflection = HOL.eq_reflection
-  val rev_eq_reflection = HOL.def_imp_eq
-  val imp_intr = HOL.impI
-  val rev_mp = HOL.rev_mp
-  val subst = HOL.subst
-  val sym = HOL.sym
+  val eq_reflection = thm "HOL.eq_reflection"
+  val rev_eq_reflection = thm "HOL.def_imp_eq"
+  val imp_intr = thm "HOL.impI"
+  val rev_mp = thm "HOL.rev_mp"
+  val subst = thm "HOL.subst"
+  val sym = thm "HOL.sym"
   val thin_refl = thm "thin_refl";
 end);
 
 structure Classical = ClassicalFun(
 struct
-  val mp = HOL.mp
-  val not_elim = HOL.notE
-  val classical = HOL.classical
+  val mp = thm "HOL.mp"
+  val not_elim = thm "HOL.notE"
+  val classical = thm "HOL.classical"
   val sizef = Drule.size_of_thm
   val hyp_subst_tacs = [Hypsubst.hyp_subst_tac]
 end);
@@ -931,14 +876,7 @@ declare exE [elim!]
   allE [elim]
 
 ML {*
-structure HOL =
-struct
-
-open HOL;
-
-val claset = Classical.claset_of (the_context ());
-
-end;
+val HOL_cs = Classical.claset_of (the_context ());
 *}
 
 lemma contrapos_np: "~ Q ==> (~ P ==> Q) ==> P"
@@ -959,8 +897,8 @@ lemma alt_ex1E [elim!]:
   shows R
 apply (rule ex1E [OF major])
 apply (rule prem)
-apply (tactic "ares_tac [HOL.allI] 1")+
-apply (tactic "etac (Classical.dup_elim HOL.allE) 1")
+apply (tactic {* ares_tac [thm "allI"] 1 *})+
+apply (tactic {* etac (Classical.dup_elim (thm "allE")) 1 *})
 by iprover
 
 ML {*
@@ -969,8 +907,8 @@ struct
   type claset = Classical.claset
   val equality_name = "op ="
   val not_name = "Not"
-  val notE = HOL.notE
-  val ccontr = HOL.ccontr
+  val notE = thm "HOL.notE"
+  val ccontr = thm "HOL.ccontr"
   val contr_tac = Classical.contr_tac
   val dup_intr = Classical.dup_intr
   val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
@@ -979,60 +917,6 @@ struct
   val cla_modifiers = Classical.cla_modifiers
   val cla_meth' = Classical.cla_meth'
 end);
-
-structure HOL =
-struct
-
-open HOL;
-
-val Blast_tac = Blast.Blast_tac;
-val blast_tac = Blast.blast_tac;
-
-fun case_tac a = res_inst_tac [("P", a)] case_split;
-
-(* combination of (spec RS spec RS ...(j times) ... spec RS mp) *)
-local
-  fun wrong_prem (Const ("All", _) $ (Abs (_, _, t))) = wrong_prem t
-    | wrong_prem (Bound _) = true
-    | wrong_prem _ = false;
-  val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);
-in
-  fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp]);
-  fun smp_tac j = EVERY'[dresolve_tac (smp j), atac];
-end;
-
-fun strip_tac i = REPEAT (resolve_tac [impI, allI] i);
-
-fun Trueprop_conv conv ct = (case term_of ct of
-    Const ("Trueprop", _) $ _ =>
-      let val (ct1, ct2) = Thm.dest_comb ct
-      in Thm.combination (Thm.reflexive ct1) (conv ct2) end
-  | _ => raise TERM ("Trueprop_conv", []));
-
-fun Equals_conv conv ct = (case term_of ct of
-    Const ("op =", _) $ _ $ _ =>
-      let
-        val ((ct1, ct2), ct3) = (apfst Thm.dest_comb o Thm.dest_comb) ct;
-      in Thm.combination (Thm.combination (Thm.reflexive ct1) (conv ct2)) (conv ct3) end
-  | _ => conv ct);
-
-fun constrain_op_eq_thms thy thms =
-  let
-    fun add_eq (Const ("op =", ty)) =
-          fold (insert (eq_fst (op =)))
-            (Term.add_tvarsT ty [])
-      | add_eq _ =
-          I
-    val eqs = fold (fold_aterms add_eq o Thm.prop_of) thms [];
-    val instT = map (fn (v_i, sort) =>
-      (Thm.ctyp_of thy (TVar (v_i, sort)),
-         Thm.ctyp_of thy (TVar (v_i, Sorts.inter_sort (Sign.classes_of thy) (sort, [HOLogic.class_eq]))))) eqs;
-  in
-    thms
-    |> map (Thm.instantiate (instT, []))
-  end;
-
-end;
 *}
 
 setup Blast.setup
@@ -1298,7 +1182,7 @@ lemma ex_comm:
 use "simpdata.ML"
 setup {*
   Simplifier.method_setup Splitter.split_modifiers
-  #> (fn thy => (change_simpset_of thy (fn _ => HOL.simpset_simprocs); thy))
+  #> (fn thy => (change_simpset_of thy (fn _ => Simpdata.simpset_simprocs); thy))
   #> Splitter.setup
   #> Clasimp.setup
   #> EqSubst.setup
@@ -1366,14 +1250,7 @@ declare triv_forall_equality [simp] (*prunes params*)
   and split_if [split]
 
 ML {*
-structure HOL =
-struct
-
-open HOL;
-
-val simpset = Simplifier.simpset_of (the_context ());
-
-end;
+val HOL_ss = Simplifier.simpset_of (the_context ());
 *}
 
 text {* Simplifies x assuming c and y assuming ~c *}
@@ -1406,20 +1283,6 @@ lemma eq_cong2:
 lemma if_distrib:
   "f (if c then x else y) = (if c then f x else f y)"
   by simp
-
-text {* For @{text expand_case_tac} *}
-lemma expand_case:
-  assumes "P \<Longrightarrow> Q True"
-      and "~P \<Longrightarrow> Q False"
-  shows "Q P"
-proof (tactic {* HOL.case_tac "P" 1 *})
-  assume P
-  then show "Q P" by simp
-next
-  assume "\<not> P"
-  then have "P = False" by simp
-  with prems show "Q P" by simp
-qed
 
 text {* This lemma restricts the effect of the rewrite rule u=v to the left-hand
   side of an equality.  Used in @{text "{Integ,Real}/simproc.ML"} *}
@@ -1529,11 +1392,11 @@ lemma choice_eq: "(ALL x. EX! y. P x y) = (EX! f. ALL x. P x (f x))"
   apply (drule_tac [3] x = x in fun_cong, simp_all)
   done
 
-text {* Needs only HOL-lemmas *}
 lemma mk_left_commute:
-  assumes a: "\<And>x y z. f (f x y) z = f x (f y z)" and
-          c: "\<And>x y. f x y = f y x"
-  shows "f x (f y z) = f y (f x z)"
+  fixes f (infix "\<otimes>" 60)
+  assumes a: "\<And>x y z. (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)" and
+          c: "\<And>x y. x \<otimes> y = y \<otimes> x"
+  shows "x \<otimes> (y \<otimes> z) = y \<otimes> (x \<otimes> z)"
   by (rule trans [OF trans [OF c a] arg_cong [OF c, of "f y"]])
 
 end

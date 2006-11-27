@@ -452,7 +452,29 @@ qed
 
 lemma bij_swap_iff: "bij (swap a b f) = bij f"
 by (simp add: bij_def)
- 
+
+
+subsection {* Order on functions *}
+
+instance "fun" :: (type, order) order
+  le_fun_def: "f \<le> g \<equiv> \<forall>x. f x \<le> g x"
+  less_fun_def: "f < g \<equiv> f \<le> g \<and> f \<noteq> g"
+  by default
+    (auto simp add: le_fun_def less_fun_def intro: order_trans, rule ext, auto intro: order_antisym)
+
+lemma le_funI: "(\<And>x. f x \<le> g x) \<Longrightarrow> f \<le> g"
+  unfolding le_fun_def by simp
+
+lemma le_funE: "f \<le> g \<Longrightarrow> (f x \<le> g x \<Longrightarrow> P) \<Longrightarrow> P"
+  unfolding le_fun_def by simp
+
+lemma le_funD: "f \<le> g \<Longrightarrow> f x \<le> g x"
+  unfolding le_fun_def by simp
+
+instance "fun" :: (type, ord) ord ..
+
+
+subsection {* ML legacy bindings *} 
 
 text{*The ML section includes some compatibility bindings and a simproc
 for function updates, in addition to the usual ML-bindings of theorems.*}

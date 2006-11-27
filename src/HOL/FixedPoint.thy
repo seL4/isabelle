@@ -120,30 +120,6 @@ subsection {* Some instances of the type class of complete lattices *}
 
 subsubsection {* Booleans *}
 
-instance bool :: ord ..
-
-defs
-  le_bool_def: "P <= Q == P \<longrightarrow> Q"
-  less_bool_def: "P < Q == (P::bool) <= Q \<and> P \<noteq> Q"
-
-theorem le_boolI: "(P \<Longrightarrow> Q) \<Longrightarrow> P <= Q"
-  by (simp add: le_bool_def)
-
-theorem le_boolI': "P \<longrightarrow> Q \<Longrightarrow> P <= Q"
-  by (simp add: le_bool_def)
-
-theorem le_boolE: "P <= Q \<Longrightarrow> P \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R"
-  by (simp add: le_bool_def)
-
-theorem le_boolD: "P <= Q \<Longrightarrow> P \<longrightarrow> Q"
-  by (simp add: le_bool_def)
-
-instance bool :: order
-  apply intro_classes
-  apply (unfold le_bool_def less_bool_def)
-  apply iprover+
-  done
-
 defs Meet_bool_def: "Meet A == ALL x:A. x"
 
 instance bool :: comp_lat
@@ -201,21 +177,6 @@ theorem Sup_bool_eq: "Sup A = (EX x:A. x)"
 
 subsubsection {* Functions *}
 
-instance "fun" :: (type, ord) ord ..
-
-defs
-  le_fun_def: "f <= g == \<forall>x. f x <= g x"
-  less_fun_def: "f < g == (f::'a\<Rightarrow>'b::ord) <= g \<and> f \<noteq> g"
-
-theorem le_funI: "(\<And>x. f x <= g x) \<Longrightarrow> f <= g"
-  by (simp add: le_fun_def)
-
-theorem le_funE: "f <= g \<Longrightarrow> (f x <= g x \<Longrightarrow> P) \<Longrightarrow> P"
-  by (simp add: le_fun_def)
-
-theorem le_funD: "f <= g \<Longrightarrow> f x <= g x"
-  by (simp add: le_fun_def)
-
 text {*
 Handy introduction and elimination rules for @{text "\<le>"}
 on unary and binary predicates
@@ -249,21 +210,6 @@ lemma predicate2D [elim]: "P \<le> Q \<Longrightarrow> P x y \<Longrightarrow> Q
   apply (erule le_funE)+
   apply (erule le_boolE)
   apply assumption+
-  done
-
-instance "fun" :: (type, order) order
-  apply intro_classes
-  apply (rule le_funI)
-  apply (rule order_refl)
-  apply (rule le_funI)
-  apply (erule le_funE)+
-  apply (erule order_trans)
-  apply assumption
-  apply (rule ext)
-  apply (erule le_funE)+
-  apply (erule order_antisym)
-  apply assumption
-  apply (simp add: less_fun_def)
   done
 
 defs Meet_fun_def: "Meet A == (\<lambda>x. Meet {y. EX f:A. y = f x})"
