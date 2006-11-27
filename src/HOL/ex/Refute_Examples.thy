@@ -163,8 +163,7 @@ lemma "a=b | a=c | a=d | a=e | b=c | b=d | b=e | c=d | c=e | d=e"
 oops
 
 lemma "\<forall>a b c d e. a=b | a=c | a=d | a=e | b=c | b=d | b=e | c=d | c=e | d=e"
-  refute  -- {* quantification causes an expansion of the formula; the
-                previous version with free variables is refuted much faster *}
+  refute
 oops
 
 text {* "Every reflexive and symmetric relation is transitive." *}
