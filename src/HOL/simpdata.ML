@@ -20,49 +20,55 @@ structure Quantifier1 = Quantifier1Fun
   val conj = HOLogic.conj
   val imp  = HOLogic.imp
   (*rules*)
-  val iff_reflection = HOL.eq_reflection
-  val iffI = HOL.iffI
-  val iff_trans = HOL.trans
-  val conjI= HOL.conjI
-  val conjE= HOL.conjE
-  val impI = HOL.impI
-  val mp   = HOL.mp
+  val iff_reflection = thm "eq_reflection"
+  val iffI = thm "iffI"
+  val iff_trans = thm "trans"
+  val conjI= thm "conjI"
+  val conjE= thm "conjE"
+  val impI = thm "impI"
+  val mp   = thm "mp"
   val uncurry = thm "uncurry"
-  val exI  = HOL.exI
-  val exE  = HOL.exE
+  val exI  = thm "exI"
+  val exE  = thm "exE"
   val iff_allI = thm "iff_allI"
   val iff_exI = thm "iff_exI"
   val all_comm = thm "all_comm"
   val ex_comm = thm "ex_comm"
 end);
 
-structure HOL =
+structure Simpdata =
 struct
 
-open HOL;
-
-val Eq_FalseI = thm "Eq_FalseI";
-val Eq_TrueI = thm "Eq_TrueI";
-val simp_implies_def = thm "simp_implies_def";
-val simp_impliesI = thm "simp_impliesI";
-
-fun mk_meta_eq r = r RS eq_reflection;
+local
+  val eq_reflection = thm "eq_reflection"
+in fun mk_meta_eq r = r RS eq_reflection end;
 fun safe_mk_meta_eq r = mk_meta_eq r handle Thm.THM _ => r;
 
-fun mk_eq thm = case concl_of thm
+local
+  val Eq_FalseI = thm "Eq_FalseI"
+  val Eq_TrueI = thm "Eq_TrueI"
+in fun mk_eq th = case concl_of th
   (*expects Trueprop if not == *)
-  of Const ("==",_) $ _ $ _ => thm
-   | _ $ (Const ("op =", _) $ _ $ _) => mk_meta_eq thm
-   | _ $ (Const ("Not", _) $ _) => thm RS Eq_FalseI
-   | _ => thm RS Eq_TrueI;
+  of Const ("==",_) $ _ $ _ => th
+   | _ $ (Const ("op =", _) $ _ $ _) => mk_meta_eq th
+   | _ $ (Const ("Not", _) $ _) => th RS Eq_FalseI
+   | _ => th RS Eq_TrueI
+end;
 
-fun mk_eq_True r =
+local
+  val meta_eq_to_obj_eq = thm "meta_eq_to_obj_eq"
+  val Eq_TrueI = thm "Eq_TrueI"
+in fun mk_eq_True r =
   SOME (r RS meta_eq_to_obj_eq RS Eq_TrueI) handle Thm.THM _ => NONE;
+end;
 
 (* Produce theorems of the form
   (P1 =simp=> ... =simp=> Pn => x == y) ==> (P1 =simp=> ... =simp=> Pn => x = y)
 *)
-fun lift_meta_eq_to_obj_eq i st =
+local
+  val meta_eq_to_obj_eq = thm "meta_eq_to_obj_eq"
+  val simp_implies_def = thm "simp_implies_def"
+in fun lift_meta_eq_to_obj_eq i st =
   let
     fun count_imp (Const ("HOL.simp_implies", _) $ P $ Q) = 1 + count_imp Q
       | count_imp _ = 0;
@@ -84,6 +90,7 @@ fun lift_meta_eq_to_obj_eq i st =
           REPEAT (ares_tac (meta_eq_to_obj_eq :: map (rewrite_rule [simp_implies_def]) prems) 1)])
       end
   end;
+end;
 
 (*Congruence rules for = (instead of ==)*)
 fun mk_meta_cong rl = zero_var_indexes
@@ -116,53 +123,57 @@ fun mk_atomize pairs =
 fun mksimps pairs =
   map_filter (try mk_eq) o mk_atomize pairs o gen_all;
 
-fun unsafe_solver_tac prems =
+local
+  val simp_impliesI = thm "simp_impliesI"
+  val TrueI = thm "TrueI"
+  val FalseE = thm "FalseE"
+  val refl = thm "refl"
+in fun unsafe_solver_tac prems =
   (fn i => REPEAT_DETERM (match_tac [simp_impliesI] i)) THEN'
   FIRST'[resolve_tac(reflexive_thm :: TrueI :: refl :: prems), atac, etac FalseE];
+end;
 val unsafe_solver = mk_solver "HOL unsafe" unsafe_solver_tac;
 
 (*No premature instantiation of variables during simplification*)
-fun safe_solver_tac prems =
+local
+  val simp_impliesI = thm "simp_impliesI"
+  val TrueI = thm "TrueI"
+  val FalseE = thm "FalseE"
+  val refl = thm "refl"
+in fun safe_solver_tac prems =
   (fn i => REPEAT_DETERM (match_tac [simp_impliesI] i)) THEN'
   FIRST'[match_tac(reflexive_thm :: TrueI :: refl :: prems),
          eq_assume_tac, ematch_tac [FalseE]];
-val safe_solver = mk_solver "HOL safe" safe_solver_tac;
-
 end;
+val safe_solver = mk_solver "HOL safe" safe_solver_tac;
 
 structure SplitterData =
 struct
   structure Simplifier = Simplifier
-  val mk_eq           = HOL.mk_eq
-  val meta_eq_to_iff  = HOL.meta_eq_to_obj_eq
-  val iffD            = HOL.iffD2
-  val disjE           = HOL.disjE
-  val conjE           = HOL.conjE
-  val exE             = HOL.exE
-  val contrapos       = HOL.contrapos_nn
-  val contrapos2      = HOL.contrapos_pp
-  val notnotD         = HOL.notnotD
+  val mk_eq           = mk_eq
+  val meta_eq_to_iff  = thm "meta_eq_to_obj_eq"
+  val iffD            = thm "iffD2"
+  val disjE           = thm "disjE"
+  val conjE           = thm "conjE"
+  val exE             = thm "exE"
+  val contrapos       = thm "contrapos_nn"
+  val contrapos2      = thm "contrapos_pp"
+  val notnotD         = thm "notnotD"
 end;
 
 structure Splitter = SplitterFun(SplitterData);
-
 
 (* integration of simplifier with classical reasoner *)
 
 structure Clasimp = ClasimpFun
  (structure Simplifier = Simplifier and Splitter = Splitter
   and Classical  = Classical and Blast = Blast
-  val iffD1 = HOL.iffD1 val iffD2 = HOL.iffD2 val notE = HOL.notE);
-
-structure HOL =
-struct
-
-open HOL;
+  val iffD1 = thm "iffD1" val iffD2 = thm "iffD2" val notE = thm "notE");
 
 val mksimps_pairs =
-  [("op -->", [mp]), ("op &", [thm "conjunct1", thm "conjunct2"]),
-   ("All", [spec]), ("True", []), ("False", []),
-   ("HOL.If", [thm "if_bool_eq_conj" RS iffD1])];
+  [("op -->", [thm "mp"]), ("op &", [thm "conjunct1", thm "conjunct2"]),
+   ("All", [thm "spec"]), ("True", []), ("False", []),
+   ("HOL.If", [thm "if_bool_eq_conj" RS thm "iffD1"])];
 
 val simpset_basic =
   Simplifier.theory_context (the_context ()) empty_ss
@@ -189,7 +200,7 @@ val use_neq_simproc = ref true;
 
 local
   val thy = the_context ();
-  val neq_to_EQ_False = thm "not_sym" RS HOL.Eq_FalseI;
+  val neq_to_EQ_False = thm "not_sym" RS thm "Eq_FalseI";
   fun neq_prover sg ss (eq $ lhs $ rhs) =
     let
       fun test thm = (case #prop (rep_thm thm) of
@@ -217,6 +228,7 @@ local
   val thy = the_context ();
   val Let_folded = thm "Let_folded";
   val Let_unfold = thm "Let_unfold";
+  val Let_def = thm "Let_def";
   val (f_Let_unfold, x_Let_unfold) =
       let val [(_$(f$x)$_)] = prems_of Let_unfold
       in (cterm_of thy f, cterm_of thy x) end
@@ -236,7 +248,7 @@ val let_simproc =
       (case t' of (Const ("Let",_)$x$f) => (* x and f are already in normal form *)
          if not (!use_let_simproc) then NONE
          else if is_Free x orelse is_Bound x orelse is_Const x
-         then SOME (thm "Let_def")
+         then SOME Let_def
          else
           let
              val n = case f of (Abs (x,_,_)) => x | _ => "x";
@@ -289,6 +301,12 @@ end;
 *)
 
 local
+  val conjE = thm "conjE"
+  val exE = thm "exE"
+  val disjE = thm "disjE"
+  val notE = thm "notE"
+  val rev_mp = thm "rev_mp"
+  val ccontr = thm "ccontr"
   val nnf_simpset =
     empty_ss setmkeqTrue mk_eq_True
     setmksimps (mksimps mksimps_pairs)
@@ -324,3 +342,6 @@ val simpset_simprocs = simpset_basic
   addsimprocs [defALL_regroup, defEX_regroup, neq_simproc, let_simproc]
 
 end;
+
+structure Splitter = Simpdata.Splitter;
+structure Clasimp = Simpdata.Clasimp;
