@@ -739,7 +739,8 @@ HOL-Nominal: HOL $(OUT)/HOL-Nominal
 
 $(OUT)/HOL-Nominal: $(OUT)/HOL Nominal/ROOT.ML Nominal/Nominal.thy		\
   Nominal/nominal_atoms.ML Nominal/nominal_induct.ML				\
-  Nominal/nominal_package.ML Nominal/nominal_permeq.ML Library/Infinite_Set.thy
+  Nominal/nominal_package.ML Nominal/nominal_permeq.ML Nominal/nominal_primrec.ML \
+  Library/Infinite_Set.thy
 	@cd Nominal; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-Nominal
 
 
