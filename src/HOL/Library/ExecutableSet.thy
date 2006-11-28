@@ -27,13 +27,27 @@ definition
 
 lemmas [symmetric, code inline] = subset_def
 
+definition
+  strict_subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where 
+  "strict_subset = op \<subset>"
+
+lemmas [symmetric, code inline] = strict_subset_def
+
 lemma [code target: Set]:
   "A = B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
   by blast
 
 lemma [code func]:
+  "(A\<Colon>'a\<Colon>eq set) = B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
+  by blast
+
+lemma [code func]:
   "subset A B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
   unfolding subset_def Set.subset_def ..
+
+lemma [code func]:
+  "strict_subset A B \<longleftrightarrow> subset A B \<and> A \<noteq> B"
+  unfolding subset_def strict_subset_def by blast
 
 lemma [code]:
   "a \<in> A \<longleftrightarrow> (\<exists>x\<in>A. x = a)"
