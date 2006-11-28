@@ -25,49 +25,9 @@ val equal_imp_fequal = thm "ATP_Linkup.equal_imp_fequal";
   combinators appear to work best.*)
 val use_Turner = ref false;
 
-(*FIXME: these refs should probaby replaced by code to count the combinators in the 
-  translated form of the term.*)
-val combI_count = ref 0;
-val combK_count = ref 0;
-val combB_count = ref 0;
-val combC_count = ref 0;
-val combS_count = ref 0;
-
-val combB'_count = ref 0;
-val combC'_count = ref 0;
-val combS'_count = ref 0; 
-
-
-fun increI count_comb =  if count_comb then combI_count := !combI_count + 1 else ();
-fun increK count_comb =  if count_comb then combK_count := !combK_count + 1 else ();
-fun increB count_comb =  if count_comb then combB_count := !combB_count + 1 else ();
-fun increC count_comb =  if count_comb then combC_count := !combC_count + 1 else ();
-fun increS count_comb =  if count_comb then combS_count := !combS_count + 1 else (); 
-fun increB' count_comb =  if count_comb then combB'_count := !combB'_count + 1 else (); 
-fun increC' count_comb =  if count_comb then combC'_count := !combC'_count + 1 else ();
-fun increS' count_comb =  if count_comb then combS'_count := !combS'_count + 1 else (); 
-
-
-exception DECRE_COMB of string;
-fun decreB count_comb n = 
-  if count_comb then 
-    if !combB_count >= n then combB_count := !combB_count - n else raise DECRE_COMB "COMBB"
-  else ();
-
-fun decreC count_comb n =
-  if count_comb then 
-    if !combC_count >= n then combC_count := !combC_count - n else raise DECRE_COMB "COMBC"
-  else ();
-
-fun decreS count_comb n = 
-  if count_comb then 
-    if !combS_count >= n then combS_count := !combS_count - n else raise DECRE_COMB "COMBS"
-  else ();
-
 val const_typargs = ref (Library.K [] : (string*typ -> typ list));
 
-fun init thy = (combI_count:=0; combK_count:=0;combB_count:=0;combC_count:=0;combS_count:=0;combB'_count:=0;combC'_count:=0;combS'_count:=0;
-                const_typargs := Sign.const_typargs thy);
+fun init thy = (const_typargs := Sign.const_typargs thy);
 
 (**********************************************************************)
 (* convert a Term.term with lambdas into a Term.term with combinators *) 
@@ -80,145 +40,108 @@ fun is_free (Bound(a)) n = (a = n)
 
 
 (*******************************************)
-fun mk_compact_comb (tm as (Const("ATP_Linkup.COMBB",_)$p) $ (Const("ATP_Linkup.COMBB",_)$q$r)) Bnds count_comb =
-    let val tp_p = Term.type_of1(Bnds,p)
-	val tp_q = Term.type_of1(Bnds,q)
-	val tp_r = Term.type_of1(Bnds,r)
-	val typ = Term.type_of1(Bnds,tm)
-	val typ_B' = [tp_p,tp_q,tp_r] ---> typ
-	val _ = increB' count_comb
-	val _ = decreB count_comb 2
-    in
-	Const("ATP_Linkup.COMBB'",typ_B') $ p $ q $ r
-    end
-  | mk_compact_comb (tm as (Const("ATP_Linkup.COMBC",_) $ (Const("ATP_Linkup.COMBB",_)$p$q) $ r)) Bnds count_comb =
-    let val tp_p = Term.type_of1(Bnds,p)
-	val tp_q = Term.type_of1(Bnds,q)
-	val tp_r = Term.type_of1(Bnds,r)
-	val typ = Term.type_of1(Bnds,tm)
-	val typ_C' = [tp_p,tp_q,tp_r] ---> typ
-	val _ = increC' count_comb
-	val _ = decreC count_comb 1
-	val _ = decreB count_comb 1
-    in
-	Const("ATP_Linkup.COMBC'",typ_C') $ p $ q $ r
-    end
-  | mk_compact_comb (tm as (Const("ATP_Linkup.COMBS",_) $ (Const("ATP_Linkup.COMBB",_)$p$q) $ r)) Bnds count_comb =
-    let val tp_p = Term.type_of1(Bnds,p)
-	val tp_q = Term.type_of1(Bnds,q)
-	val tp_r = Term.type_of1(Bnds,r)
-	val typ = Term.type_of1(Bnds,tm)
-	val typ_S' = [tp_p,tp_q,tp_r] ---> typ
-	val _ = increS' count_comb
-	val _ = decreS count_comb 1
-	val _ = decreB count_comb 1
-    in
-	Const("ATP_Linkup.COMBS'",typ_S') $ p $ q $ r
-    end
-  | mk_compact_comb tm _ _ = tm;
+fun mk_compact_comb (tm as (Const("ATP_Linkup.COMBB",_)$p) $ (Const("ATP_Linkup.COMBB",_)$q$r)) bnds =
+      let val tp_p = Term.type_of1(bnds,p)
+	  val tp_q = Term.type_of1(bnds,q)
+	  val tp_r = Term.type_of1(bnds,r)
+	  val typ = Term.type_of1(bnds,tm)
+	  val typ_B' = [tp_p,tp_q,tp_r] ---> typ
+      in
+	  Const("ATP_Linkup.COMBB'",typ_B') $ p $ q $ r
+      end
+  | mk_compact_comb (tm as (Const("ATP_Linkup.COMBC",_) $ (Const("ATP_Linkup.COMBB",_)$p$q) $ r)) bnds =
+      let val tp_p = Term.type_of1(bnds,p)
+	  val tp_q = Term.type_of1(bnds,q)
+	  val tp_r = Term.type_of1(bnds,r)
+	  val typ = Term.type_of1(bnds,tm)
+	  val typ_C' = [tp_p,tp_q,tp_r] ---> typ
+      in
+	  Const("ATP_Linkup.COMBC'",typ_C') $ p $ q $ r
+      end
+  | mk_compact_comb (tm as (Const("ATP_Linkup.COMBS",_) $ (Const("ATP_Linkup.COMBB",_)$p$q) $ r)) bnds =
+      let val tp_p = Term.type_of1(bnds,p)
+	  val tp_q = Term.type_of1(bnds,q)
+	  val tp_r = Term.type_of1(bnds,r)
+	  val typ = Term.type_of1(bnds,tm)
+	  val typ_S' = [tp_p,tp_q,tp_r] ---> typ
+      in
+	  Const("ATP_Linkup.COMBS'",typ_S') $ p $ q $ r
+      end
+  | mk_compact_comb tm _ = tm;
 
-fun compact_comb t Bnds count_comb = 
-  if !use_Turner then mk_compact_comb t Bnds count_comb else t;
+fun compact_comb t bnds = 
+  if !use_Turner then mk_compact_comb t bnds else t;
 
-fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb = 
-      let val _ = increI count_comb
-      in 
-	  Const("ATP_Linkup.COMBI",tp-->tp) 
-      end
-  | lam2comb (Abs(x,tp,Bound n)) Bnds count_comb = 
-      let val tb = List.nth(Bnds,n-1)
-	  val _ = increK count_comb 
+fun lam2comb (Abs(x,tp,Bound 0)) _ = Const("ATP_Linkup.COMBI",tp-->tp) 
+  | lam2comb (Abs(x,tp,Bound n)) bnds = 
+      let val tb = List.nth(bnds,n-1)
       in
-	  Const("ATP_Linkup.COMBK", [tb,tp] ---> tb) $ (Bound (n-1))
+	  Const("ATP_Linkup.COMBK", [tb,tp] ---> tb) $ Bound (n-1)
       end
-  | lam2comb (Abs(x,t1,Const(c,t2))) _ count_comb = 
-      let val _ = increK count_comb 
-      in 
-	  Const("ATP_Linkup.COMBK",[t2,t1] ---> t2) $ Const(c,t2) 
-      end
-  | lam2comb (Abs(x,t1,Free(v,t2))) _ count_comb =
-      let val _ = increK count_comb
-      in
-	  Const("ATP_Linkup.COMBK",[t2,t1] ---> t2) $ Free(v,t2)
-      end
-  | lam2comb (Abs(x,t1,Var(ind,t2))) _ count_comb =
-      let val _ = increK count_comb 
-      in
-	  Const("ATP_Linkup.COMBK", [t2,t1] ---> t2) $ Var(ind,t2)
-      end
-  | lam2comb (t as (Abs(x,t1,P$(Bound 0)))) Bnds count_comb =
-      let val tr = Term.type_of1(t1::Bnds,P)
-      in
-	  if not(is_free P 0) then (incr_boundvars ~1 P)
-	  else 
+  | lam2comb (Abs(x,t1,Const(c,t2))) _ = Const("ATP_Linkup.COMBK",[t2,t1] ---> t2) $ Const(c,t2) 
+  | lam2comb (Abs(x,t1,Free(v,t2))) _ = Const("ATP_Linkup.COMBK",[t2,t1] ---> t2) $ Free(v,t2)
+  | lam2comb (Abs(x,t1,Var(ind,t2))) _ = Const("ATP_Linkup.COMBK", [t2,t1] ---> t2) $ Var(ind,t2)
+  | lam2comb (t as (Abs(x,t1,P$(Bound 0)))) bnds =
+      if is_free P 0 then 
 	  let val tI = [t1] ---> t1
-	      val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
-	      val tp' = Term.type_of1(Bnds,P')
+	      val P' = lam2comb (Abs(x,t1,P)) bnds
+	      val tp' = Term.type_of1(bnds,P')
+	      val tr = Term.type_of1(t1::bnds,P)
 	      val tS = [tp',tI] ---> tr
-	      val _ = increI count_comb
-	      val _ = increS count_comb
 	  in
 	      compact_comb (Const("ATP_Linkup.COMBS",tS) $ P' $ 
-	                     Const("ATP_Linkup.COMBI",tI)) Bnds count_comb
+	                     Const("ATP_Linkup.COMBI",tI)) bnds
 	  end
-      end	    
-  | lam2comb (t as (Abs(x,t1,P$Q))) Bnds count_comb =
+      else incr_boundvars ~1 P
+  | lam2comb (t as (Abs(x,t1,P$Q))) bnds =
       let val nfreeP = not(is_free P 0)
 	  and nfreeQ = not(is_free Q 0)
-	  val tpq = Term.type_of1(t1::Bnds, P$Q) 
+	  val tpq = Term.type_of1(t1::bnds, P$Q) 
       in
 	  if nfreeP andalso nfreeQ 
 	  then 
 	    let val tK = [tpq,t1] ---> tpq
-		val PQ' = incr_boundvars ~1(P $ Q)
-		val _ = increK count_comb
+		val PQ' = incr_boundvars ~1 (P $ Q)
 	    in 
 		Const("ATP_Linkup.COMBK",tK) $ PQ'
 	    end
 	  else if nfreeP then 
-	    let val Q' = lam2comb (Abs(x,t1,Q)) Bnds count_comb
+	    let val Q' = lam2comb (Abs(x,t1,Q)) bnds
 		val P' = incr_boundvars ~1 P
-		val tp = Term.type_of1(Bnds,P')
-		val tq' = Term.type_of1(Bnds, Q')
+		val tp = Term.type_of1(bnds,P')
+		val tq' = Term.type_of1(bnds, Q')
 		val tB = [tp,tq',t1] ---> tpq
-		val _ = increB count_comb
 	    in
-		compact_comb (Const("ATP_Linkup.COMBB",tB) $ P' $ Q') Bnds count_comb 
+		compact_comb (Const("ATP_Linkup.COMBB",tB) $ P' $ Q') bnds 
 	    end
 	  else if nfreeQ then 
-	    let val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
+	    let val P' = lam2comb (Abs(x,t1,P)) bnds
 		val Q' = incr_boundvars ~1 Q
-		val tq = Term.type_of1(Bnds,Q')
-		val tp' = Term.type_of1(Bnds, P')
+		val tq = Term.type_of1(bnds,Q')
+		val tp' = Term.type_of1(bnds, P')
 		val tC = [tp',tq,t1] ---> tpq
-		val _ = increC count_comb
 	    in
-		compact_comb (Const("ATP_Linkup.COMBC",tC) $ P' $ Q') Bnds count_comb
+		compact_comb (Const("ATP_Linkup.COMBC",tC) $ P' $ Q') bnds
 	    end
           else
-	    let val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
-		val Q' = lam2comb (Abs(x,t1,Q)) Bnds count_comb 
-		val tp' = Term.type_of1(Bnds,P')
-		val tq' = Term.type_of1(Bnds,Q')
+	    let val P' = lam2comb (Abs(x,t1,P)) bnds
+		val Q' = lam2comb (Abs(x,t1,Q)) bnds 
+		val tp' = Term.type_of1(bnds,P')
+		val tq' = Term.type_of1(bnds,Q')
 		val tS = [tp',tq',t1] ---> tpq
-		val _ = increS count_comb
 	    in
-		compact_comb (Const("ATP_Linkup.COMBS",tS) $ P' $ Q') Bnds count_comb
+		compact_comb (Const("ATP_Linkup.COMBS",tS) $ P' $ Q') bnds
 	    end
       end
-  | lam2comb (t as (Abs(x,t1,_))) _ _ = raise ResClause.CLAUSE("HOL CLAUSE",t);
+  | lam2comb (t as (Abs(x,t1,_))) _ = raise ResClause.CLAUSE("HOL CLAUSE",t);
 
 (*********************)
 
-fun to_comb (Abs(x,tp,b)) Bnds count_comb =
-    let val b' = to_comb b (tp::Bnds) count_comb
-    in lam2comb (Abs(x,tp,b')) Bnds count_comb end
-  | to_comb (P $ Q) Bnds count_comb = ((to_comb P Bnds count_comb) $ (to_comb Q Bnds count_comb))
-  | to_comb t _ _ = t;
- 
-   
-fun comb_of t count_comb = to_comb t [] count_comb;
- 
+fun to_comb (Abs(x,tp,b)) bnds =
+      lam2comb (Abs(x, tp, to_comb b (tp::bnds))) bnds 
+  | to_comb (P $ Q) bnds = (to_comb P bnds) $ (to_comb Q bnds)
+  | to_comb t _ = t;
+    
 (* print a term containing combinators, used for debugging *)
 exception TERM_COMB of term;
 
@@ -288,23 +211,23 @@ fun type_of (Type (a, Ts)) =
       let val (folTypes,ts) = types_of Ts
 	  val t = ResClause.make_fixed_type_const a
       in
-	  (ResClause.mk_fol_type("Comp",t,folTypes),ts)
+	  (ResClause.mk_fol_type("Comp",t,folTypes), ts)
       end
   | type_of (tp as (TFree(a,s))) =
       let val t = ResClause.make_fixed_type_var a
       in
-	  (ResClause.mk_fol_type("Fixed",t,[]),[ResClause.mk_typ_var_sort tp])
+	  (ResClause.mk_fol_type("Fixed",t,[]), [ResClause.mk_typ_var_sort tp])
       end
   | type_of (tp as (TVar(v,s))) =
       let val t = ResClause.make_schematic_type_var v
       in
-	  (ResClause.mk_fol_type("Var",t,[]),[ResClause.mk_typ_var_sort tp])
+	  (ResClause.mk_fol_type("Var",t,[]), [ResClause.mk_typ_var_sort tp])
       end
 and types_of Ts =
       let val foltyps_ts = map type_of Ts
 	  val (folTyps,ts) = ListPair.unzip foltyps_ts
       in
-	  (folTyps,ResClause.union_all ts)
+	  (folTyps, ResClause.union_all ts)
       end;
 
 (* same as above, but no gathering of sort information *)
@@ -354,10 +277,8 @@ fun combterm_of (Const(c,t)) =
 	  (t',tsP union tsQ)
       end;
 
-fun predicate_of ((Const("Not",_) $ P), polarity) =
-    predicate_of (P, not polarity)
-  | predicate_of (term,polarity) = (combterm_of term,polarity);
-
+fun predicate_of ((Const("Not",_) $ P), polarity) = predicate_of (P, not polarity)
+  | predicate_of (t,polarity) = (combterm_of t, polarity);
 
 fun literals_of_term1 args (Const("Trueprop",_) $ P) = literals_of_term1 args P
   | literals_of_term1 args (Const("op |",_) $ P $ Q) = 
@@ -371,9 +292,8 @@ fun literals_of_term1 args (Const("Trueprop",_) $ P) = literals_of_term1 args P
 fun literals_of_term P = literals_of_term1 ([],[]) P;
 
 (* making axiom and conjecture clauses *)
-exception MAKE_CLAUSE
-fun make_clause(clause_id,axiom_name,kind,th,is_user) =
-    let val (lits,ctypes_sorts) = literals_of_term (comb_of (prop_of th) is_user)
+fun make_clause(clause_id,axiom_name,kind,th) =
+    let val (lits,ctypes_sorts) = literals_of_term (to_comb (prop_of th) [])
 	val (ctvar_lits,ctfree_lits) = ResClause.add_typs_aux ctypes_sorts
     in
 	if forall isFalse lits
@@ -386,22 +306,17 @@ fun make_clause(clause_id,axiom_name,kind,th,is_user) =
     end;
 
 
-fun make_axiom_clauses [] user_lemmas = []
-  | make_axiom_clauses ((th,(name,id))::ths) user_lemmas =
-    let val is_user = name mem user_lemmas
-	val cls = SOME (make_clause(id, name, ResClause.Axiom, th, is_user)) 
-	          handle MAKE_CLAUSE => NONE
-	val clss = make_axiom_clauses ths user_lemmas
-    in
-	case cls of NONE => clss
-		  | SOME(cls') => if isTaut cls' then clss 
-		                  else (name,cls')::clss
-    end;
+fun add_axiom_clause ((th,(name,id)), pairs) =
+  let val cls = make_clause(id, name, ResClause.Axiom, th)
+  in
+      if isTaut cls then pairs else (name,cls)::pairs
+  end;
 
+val make_axiom_clauses = foldl add_axiom_clause [];
 
 fun make_conjecture_clauses_aux _ [] = []
   | make_conjecture_clauses_aux n (th::ths) =
-      make_clause(n,"conjecture", ResClause.Conjecture, th, true) ::
+      make_clause(n,"conjecture", ResClause.Conjecture, th) ::
       make_conjecture_clauses_aux (n+1) ths;
 
 val make_conjecture_clauses = make_conjecture_clauses_aux 0;
@@ -595,41 +510,65 @@ fun preds_of_clauses clauses clsrel_clauses arity_clauses =
 (* write clauses to files                                             *)
 (**********************************************************************)
 
+
+val init_counters =
+    Symtab.make [("c_COMBI", 0), ("c_COMBK", 0),
+		 ("c_COMBB", 0), ("c_COMBC", 0),
+		 ("c_COMBS", 0), ("c_COMBB_e", 0),
+		 ("c_COMBC_e", 0), ("c_COMBS_e", 0)];
+                
+fun count_combterm (CombConst(c,tp,_), ct) = 
+     (case Symtab.lookup ct c of NONE => ct  (*no counter*)
+                               | SOME n => Symtab.update (c,n+1) ct)
+  | count_combterm (CombFree(v,tp), ct) = ct
+  | count_combterm (CombVar(v,tp), ct) = ct
+  | count_combterm (CombApp(t1,t2,tp), ct) = count_combterm(t1, count_combterm(t2, ct));
+
+fun count_literal (Literal(_,t), ct) = count_combterm(t,ct);
+
+fun count_clause (Clause{literals,...}, ct) = foldl count_literal ct literals;
+
+fun count_user_clause user_lemmas (Clause{axiom_name,literals,...}, ct) = 
+  if axiom_name mem_string user_lemmas then foldl count_literal ct literals
+  else ct;
+
 val cnf_helper_thms = ResAxioms.cnf_rules_pairs o (map ResAxioms.pairname)
 
-fun get_helper_clauses () =
-    let val IK = if !combI_count > 0 orelse !combK_count > 0 
+fun get_helper_clauses ct =
+    let fun needed c = valOf (Symtab.lookup ct c) > 0
+        val IK = if needed "c_COMBI" orelse needed "c_COMBK" 
                  then (Output.debug "Include combinator I K"; cnf_helper_thms [comb_I,comb_K]) 
                  else []
-	val BC = if !combB_count > 0 orelse !combC_count > 0 
+	val BC = if needed "c_COMBB" orelse needed "c_COMBC" 
 	         then (Output.debug "Include combinator B C"; cnf_helper_thms [comb_B,comb_C]) 
 	         else []
-	val S = if !combS_count > 0 
+	val S = if needed "c_COMBS" 
 	        then (Output.debug "Include combinator S"; cnf_helper_thms [comb_S]) 
 	        else []
-	val B'C' = if !combB'_count > 0 orelse !combC'_count > 0 
+	val B'C' = if needed "c_COMBB_e" orelse needed "c_COMBC_e" 
 	           then (Output.debug "Include combinator B' C'"; cnf_helper_thms [comb_B', comb_C']) 
 	           else []
-	val S' = if !combS'_count > 0 
+	val S' = if needed "c_COMBS_e" 
 	         then (Output.debug "Include combinator S'"; cnf_helper_thms [comb_S']) 
 	         else []
 	val other = cnf_helper_thms [ext,fequal_imp_equal,equal_imp_fequal]
     in
-	make_axiom_clauses (other @ IK @ BC @ S @ B'C' @ S') []
+	make_axiom_clauses (other @ IK @ BC @ S @ B'C' @ S')
     end
-
 
 (* tptp format *)
 						  
 (* write TPTP format to a single file *)
-(* when "get_helper_clauses" is called, "include_combS" and "include_min_comb" should have correct values already *)
-fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) user_lemmas=
-    let val clss = make_conjecture_clauses thms
-        val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses user_lemmas)
-	val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
+fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) user_lemmas =
+    let val conjectures = make_conjecture_clauses thms
+        val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses)
+	val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp conjectures)
 	val tfree_clss = map ResClause.tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
 	val out = TextIO.openOut filename
-	val helper_clauses = (#2 o ListPair.unzip o get_helper_clauses) ()
+	val ct = foldl (count_user_clause user_lemmas) 
+	            (foldl count_clause init_counters conjectures)
+	            axclauses'
+	val helper_clauses = map #2 (get_helper_clauses ct)
     in
 	List.app (curry TextIO.output out o #1 o clause2tptp) axclauses';
 	ResClause.writeln_strs out tfree_clss;
@@ -648,14 +587,17 @@ fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) use
 fun dfg_write_file  thms filename (axclauses,classrel_clauses,arity_clauses) user_lemmas =
     let val _ = Output.debug ("Preparing to write the DFG file " ^ filename) 
 	val conjectures = make_conjecture_clauses thms
-        val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses user_lemmas)
+        val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses)
 	val (dfg_clss,tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
 	and probname = Path.pack (Path.base (Path.unpack filename))
-	val (axstrs,_) =  ListPair.unzip (map clause2dfg axclauses')
+	val axstrs = map (#1 o clause2dfg) axclauses'
 	val tfree_clss = map ResClause.dfg_tfree_clause (ResClause.union_all tfree_litss)
 	val out = TextIO.openOut filename
-	val helper_clauses = (#2 o ListPair.unzip o get_helper_clauses) ()
-	val helper_clauses_strs = (#1 o ListPair.unzip o (map clause2dfg)) helper_clauses
+	val ct = foldl (count_user_clause user_lemmas) 
+	            (foldl count_clause init_counters conjectures)
+	            axclauses'
+	val helper_clauses = map #2 (get_helper_clauses ct)
+	val helper_clauses_strs = map (#1 o clause2dfg) helper_clauses
 	val funcs = funcs_of_clauses (helper_clauses @ conjectures @ axclauses') arity_clauses
 	and preds = preds_of_clauses axclauses' classrel_clauses arity_clauses
     in
