@@ -92,7 +92,7 @@ sig
   (* Storing results *)
   val add_thmss: string -> string ->
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    Proof.context -> (string * thm list) list * Proof.context
+    Proof.context -> Proof.context
   val add_type_syntax: string -> (morphism -> Proof.context -> Proof.context) ->
     Proof.context -> Proof.context
   val add_term_syntax: string -> (morphism -> Proof.context -> Proof.context) ->
@@ -1571,7 +1571,7 @@ val add_declaration = add_decls (fn d => fn (ds1, ds2, ds3) => (ds1, ds2, d :: d
 
 fun add_thmss loc kind args ctxt =
   let
-    val (ctxt', ([(_, [Notes args'])], facts)) =
+    val (ctxt', ([(_, [Notes args'])], _)) =
       activate_facts true cert_facts
         (ctxt, [((("", []), Assumed []), [Ext (Notes (kind, args))])]);
     val ctxt'' = ctxt' |> ProofContext.theory
@@ -1580,7 +1580,7 @@ fun add_thmss loc kind args ctxt =
           (axiom, import, elems @ [(Notes args', stamp ())],
             params, lparams, decls, regs, intros))
       #> note_thmss_registrations loc args');
-  in (facts, ctxt'') end;
+  in ctxt'' end;
 
 
 
@@ -1709,7 +1709,7 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
             thy |> def_pred aname parms defs exts exts';
           val elemss' = change_assumes_elemss axioms elemss;
           val def_thy' = def_thy
-            |> PureThy.note_thmss_qualified Thm.definitionK
+            |> PureThy.note_thmss_qualified Thm.internalK
               aname [((introN, []), [([intro], [])])]
             |> snd;
           val a_elem = [(("", []), [Assumes [((bname ^ "_" ^ axiomsN, []), [(statement, [])])]])];
@@ -1724,7 +1724,7 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
           val elemss'' = change_elemss_hyps axioms elemss';
           val def_thy' =
           def_thy
-          |> PureThy.note_thmss_qualified Thm.definitionK bname
+          |> PureThy.note_thmss_qualified Thm.internalK bname
               [((introN, []), [([intro], [])]),
                 ((axiomsN, []), [(map (Drule.standard o Element.conclude_witness) axioms, [])])]
           |> snd;
