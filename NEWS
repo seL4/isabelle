@@ -254,15 +254,14 @@ object-level specifications (equality, equivalence).  See also the
 isar-ref manual.  Examples:
 
   axiomatization
-    eq  (infix "===" 50)
-    where eq_refl: "x === x" and eq_subst: "x === y ==> P x ==> P y"
+    eq  (infix "===" 50) where
+    eq_refl: "x === x" and eq_subst: "x === y ==> P x ==> P y"
 
-  definition
-    "f x y = x + y + 1"
-    "g x = f x x"
+  definition "f x y = x + y + 1"
+  definition g where "g x = f x x"
 
   abbreviation
-    neq  (infix "=!=" 50)
+    neq  (infix "=!=" 50) where
     "x =!= y == ~ (x === y)"
 
 These specifications may be also used in a locale context.  Then the
