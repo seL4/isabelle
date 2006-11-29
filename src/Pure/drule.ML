@@ -6,7 +6,7 @@
 Derived rules and other operations on theorems.
 *)
 
-infix 0 RS RSN RL RLN MRS MRL OF COMP;
+infix 0 RS RSN RL RLN MRS MRL OF COMP INCR_COMP COMP_INCR;
 
 signature BASIC_DRULE =
 sig
@@ -53,6 +53,8 @@ sig
   val OF: thm * thm list -> thm
   val compose: thm * int * thm -> thm list
   val COMP: thm * thm -> thm
+  val INCR_COMP: thm * thm -> thm
+  val COMP_INCR: thm * thm -> thm
   val read_instantiate_sg: theory -> (string*string)list -> thm -> thm
   val read_instantiate: (string*string)list -> thm -> thm
   val cterm_instantiate: (cterm*cterm)list -> thm -> thm
@@ -1056,6 +1058,9 @@ fun incr_indexes th = Thm.incr_indexes (Thm.maxidx_of th + 1);
 
 fun incr_indexes2 th1 th2 =
   Thm.incr_indexes (Int.max (Thm.maxidx_of th1, Thm.maxidx_of th2) + 1);
+
+fun th1 INCR_COMP th2 = incr_indexes th2 th1 COMP th2;
+fun th1 COMP_INCR th2 = th1 COMP incr_indexes th1 th2;
 
 
 
