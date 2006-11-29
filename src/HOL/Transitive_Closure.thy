@@ -8,7 +8,7 @@ header {* Reflexive and Transitive closure of a relation *}
 
 theory Transitive_Closure
 imports Inductive
-uses ("../Provers/trancl.ML")
+uses "~~/src/Provers/trancl.ML"
 begin
 
 text {*
@@ -459,8 +459,6 @@ declare tranclE [cases set: trancl]
 
 subsection {* Setup of transitivity reasoner *}
 
-use "../Provers/trancl.ML";
-
 ML_setup {*
 
 structure Trancl_Tac = Trancl_Tac_Fun (
@@ -484,7 +482,7 @@ structure Trancl_Tac = Trancl_Tac_Fun (
       | dec _ =  NONE
     in dec t end;
 
-  end); (* struct *)
+  end);
 
 change_simpset (fn ss => ss
   addSolver (mk_solver "Trancl" (fn _ => Trancl_Tac.trancl_tac))
@@ -492,15 +490,13 @@ change_simpset (fn ss => ss
 
 *}
 
-(* Optional methods
+(* Optional methods *)
 
 method_setup trancl =
-  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (trancl_tac)) *}
+  {* Method.no_args (Method.SIMPLE_METHOD' Trancl_Tac.trancl_tac) *}
   {* simple transitivity reasoner *}
 method_setup rtrancl =
-  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (rtrancl_tac)) *}
+  {* Method.no_args (Method.SIMPLE_METHOD' Trancl_Tac.rtrancl_tac) *}
   {* simple transitivity reasoner *}
-
-*)
 
 end
