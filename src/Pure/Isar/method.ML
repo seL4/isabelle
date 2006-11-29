@@ -29,7 +29,8 @@ sig
   val insert: thm list -> method
   val insert_facts: method
   val SIMPLE_METHOD: tactic -> method
-  val SIMPLE_METHOD': ((int -> tactic) -> tactic) -> (int -> tactic) -> method
+  val SIMPLE_METHOD': (int -> tactic) -> method
+  val SIMPLE_METHOD'': ((int -> tactic) -> tactic) -> (int -> tactic) -> method
   val defer: int option -> method
   val prefer: int -> method
   val cheating: bool -> Proof.context -> method
@@ -163,7 +164,8 @@ val insert_facts = METHOD (ALLGOALS o insert_tac);
 fun insert thms = METHOD (fn _ => ALLGOALS (insert_tac thms));
 
 fun SIMPLE_METHOD tac = METHOD (fn facts => ALLGOALS (insert_tac facts) THEN tac);
-fun SIMPLE_METHOD' quant tac = METHOD (fn facts => quant (insert_tac facts THEN' tac));
+fun SIMPLE_METHOD'' quant tac = METHOD (fn facts => quant (insert_tac facts THEN' tac));
+val SIMPLE_METHOD' = SIMPLE_METHOD'' HEADGOAL;
 
 end;
 
@@ -182,8 +184,8 @@ fun cheating int ctxt = METHOD (K (setmp quick_and_dirty (int orelse ! quick_and
 
 (* unfold intro/elim rules *)
 
-fun intro ths = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.match_tac ths));
-fun elim ths = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.ematch_tac ths));
+fun intro ths = SIMPLE_METHOD' (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.match_tac ths));
+fun elim ths = SIMPLE_METHOD' (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.ematch_tac ths));
 
 
 (* unfold/fold definitions *)
@@ -194,7 +196,7 @@ fun fold_meth ths ctxt = SIMPLE_METHOD (CHANGED_PROP (LocalDefs.fold_tac ctxt th
 
 (* atomize rule statements *)
 
-fun atomize false = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o ObjectLogic.atomize_tac)
+fun atomize false = SIMPLE_METHOD' (CHANGED_PROP o ObjectLogic.atomize_tac)
   | atomize true = RAW_METHOD (K (HEADGOAL (CHANGED_PROP o ObjectLogic.full_atomize_tac)));
 
 
@@ -205,8 +207,8 @@ val this = METHOD (EVERY o map (HEADGOAL o Tactic.rtac));
 
 (* fact -- composition by facts from context *)
 
-fun fact [] ctxt = SIMPLE_METHOD' HEADGOAL (ProofContext.some_fact_tac ctxt)
-  | fact rules _ = SIMPLE_METHOD' HEADGOAL (ProofContext.fact_tac rules);
+fun fact [] ctxt = SIMPLE_METHOD' (ProofContext.some_fact_tac ctxt)
+  | fact rules _ = SIMPLE_METHOD' (ProofContext.fact_tac rules);
 
 
 (* assumption *)
@@ -538,13 +540,13 @@ fun nat_thms_args f = uncurry f oo
   (#2 oo syntax (Scan.lift (Scan.optional (Args.parens Args.nat) 0) -- Attrib.thms));
 
 fun goal_args' args tac src ctxt = #2 (syntax (Args.goal_spec HEADGOAL -- args >>
-  (fn (quant, s) => SIMPLE_METHOD' quant (tac s))) src ctxt);
+  (fn (quant, s) => SIMPLE_METHOD'' quant (tac s))) src ctxt);
 
 fun goal_args args tac = goal_args' (Scan.lift args) tac;
 
 fun goal_args_ctxt' args tac src ctxt =
   #2 (syntax (Args.goal_spec HEADGOAL -- args >>
-  (fn (quant, s) => SIMPLE_METHOD' quant (tac ctxt s))) src ctxt);
+  (fn (quant, s) => SIMPLE_METHOD'' quant (tac ctxt s))) src ctxt);
 
 fun goal_args_ctxt args tac = goal_args_ctxt' (Scan.lift args) tac;
 
