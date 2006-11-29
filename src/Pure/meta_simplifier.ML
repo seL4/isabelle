@@ -856,7 +856,7 @@ fun rewritec (prover, thyt, maxt) ss t =
                           else Thm.cterm_match (elhs', eta_t');
         val thm' = Thm.instantiate insts (Thm.rename_boundvars lhs eta_t rthm);
         val prop' = Thm.prop_of thm';
-        val unconditional = (Logic.count_prems (prop',0) = 0);
+        val unconditional = (Logic.count_prems prop' = 0);
         val (lhs', rhs') = Logic.dest_equals (Logic.strip_imp_concl prop')
       in
         if perm andalso not (termless (rhs', lhs'))

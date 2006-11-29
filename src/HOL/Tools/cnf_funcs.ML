@@ -540,7 +540,7 @@ fun cnf_rewrite_tac i =
 	(* remove the original premises *)
 	THEN SELECT_GOAL (fn thm =>
 		let
-			val n = Logic.count_prems ((Term.strip_all_body o fst o Logic.dest_implies o prop_of) thm, 0)
+			val n = Logic.count_prems ((Term.strip_all_body o fst o Logic.dest_implies o prop_of) thm)
 		in
 			PRIMITIVE (funpow (n div 2) (Seq.hd o weakening_tac 1)) thm
 		end) i;
@@ -564,7 +564,7 @@ fun cnfx_rewrite_tac i =
 	(* remove the original premises *)
 	THEN SELECT_GOAL (fn thm =>
 		let
-			val n = Logic.count_prems ((Term.strip_all_body o fst o Logic.dest_implies o prop_of) thm, 0)
+			val n = Logic.count_prems ((Term.strip_all_body o fst o Logic.dest_implies o prop_of) thm)
 		in
 			PRIMITIVE (funpow (n div 2) (Seq.hd o weakening_tac 1)) thm
 		end) i;

@@ -137,7 +137,7 @@ fun extract_case is_open thy (case_outline, raw_prop) name concls =
 fun make is_open rule_struct (thy, prop) cases =
   let
     val n = length cases;
-    val nprems = Logic.count_prems (prop, 0);
+    val nprems = Logic.count_prems prop;
     fun add_case (name, concls) (cs, i) =
       ((case try (fn () =>
           (Option.map (curry Logic.nth_prem i) rule_struct, Logic.nth_prem (i, prop))) () of

@@ -500,7 +500,7 @@ fun tpairs_of (Thm {tpairs, ...}) = tpairs;
 
 val concl_of = Logic.strip_imp_concl o prop_of;
 val prems_of = Logic.strip_imp_prems o prop_of;
-fun nprems_of th = Logic.count_prems (prop_of th, 0);
+val nprems_of = Logic.count_prems o prop_of;
 fun no_prems th = nprems_of th = 0;
 
 fun major_prem_of th =
@@ -1506,8 +1506,7 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
      and Thm{der=rder, maxidx=rmax, shyps=rshyps, hyps=rhyps,
              tpairs=rtpairs, prop=rprop,...} = orule
          (*How many hyps to skip over during normalization*)
-     and nlift = Logic.count_prems(strip_all_body Bi,
-                                   if eres_flg then ~1 else 0)
+     and nlift = Logic.count_prems (strip_all_body Bi) + (if eres_flg then ~1 else 0)
      val thy_ref = merge_thys2 state orule;
      val thy = Theory.deref thy_ref;
      (** Add new theorem with prop = '[| Bs; As |] ==> C' to thq **)

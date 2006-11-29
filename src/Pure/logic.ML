@@ -18,7 +18,7 @@ sig
   val strip_imp_prems: term -> term list
   val strip_imp_concl: term -> term
   val strip_prems: int * term list * term -> term list * term
-  val count_prems: term * int -> int
+  val count_prems: term -> int
   val nth_prem: int * term -> term
   val conjunction: term
   val mk_conjunction: term * term -> term
@@ -137,8 +137,8 @@ fun strip_prems (0, As, B) = (As, B)
   | strip_prems (_, As, A) = raise TERM("strip_prems", A::As);
 
 (*Count premises -- quicker than (length o strip_prems) *)
-fun count_prems (Const("==>", _) $ A $ B, n) = count_prems (B,n+1)
-  | count_prems (_,n) = n;
+fun count_prems (Const ("==>", _) $ _ $ B) = 1 + count_prems B
+  | count_prems _ = 0;
 
 (*Select Ai from A1 ==>...Ai==>B*)
 fun nth_prem (1, Const ("==>", _) $ A $ _) = A
