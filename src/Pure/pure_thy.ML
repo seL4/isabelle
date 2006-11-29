@@ -418,7 +418,10 @@ fun smart_store _ (name, []) =
   | smart_store name_thm (name, [thm]) =
       fst (enter_thms (name_thm true) (name_thm false) I (name, [thm]) (Thm.theory_of_thm thm))
   | smart_store name_thm (name, thms) =
-      let val thy = Theory.merge_list (map Thm.theory_of_thm thms)
+      let
+        fun merge th thy = Theory.merge (thy, Thm.theory_of_thm th)
+          handle TERM (msg, _) => raise THM (msg, 0, [th]);
+        val thy = fold merge (tl thms) (Thm.theory_of_thm (hd thms));
       in fst (enter_thms (name_thm true) (name_thm false) I (name, thms) thy) end;
 
 in
