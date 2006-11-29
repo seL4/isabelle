@@ -286,7 +286,8 @@ lemma inj_vimage_singleton: "inj f ==> f-`{a} \<subseteq> {THE x. f x = a}"
 lemma finite_vimageI: "[|finite F; inj h|] ==> finite (h -` F)"
   -- {* The inverse image of a finite set under an injective function
          is finite. *}
-  apply (induct set: Finites, simp_all)
+  apply (induct set: Finites)
+   apply simp_all
   apply (subst vimage_insert)
   apply (simp add: finite_Un finite_subset [OF inj_vimage_singleton])
   done
@@ -699,14 +700,16 @@ subsubsection{*Lemmas about @{text fold}*}
 
 lemma (in ACf) fold_commute:
   "finite A ==> (!!z. f x (fold f g z A) = fold f g (f x z) A)"
-  apply (induct set: Finites, simp)
+  apply (induct set: Finites)
+   apply simp
   apply (simp add: left_commute [of x])
   done
 
 lemma (in ACf) fold_nest_Un_Int:
   "finite A ==> finite B
     ==> fold f g (fold f g z B) A = fold f g (fold f g z (A Int B)) (A Un B)"
-  apply (induct set: Finites, simp)
+  apply (induct set: Finites)
+   apply simp
   apply (simp add: fold_commute Int_insert_left insert_absorb)
   done
 
@@ -759,7 +762,7 @@ lemma (in ACf) fold_fusion:
 	"finite A ==> 
 	 (!!x y. h (g x y) = f x (h y)) ==>
          h (fold g j w A) = fold f j (h w) A"
-  by (induct set: Finites, simp_all)
+  by (induct set: Finites) simp_all
 
 lemma (in ACf) fold_cong:
   "finite A \<Longrightarrow> (!!x. x:A ==> g x = h x) ==> fold f g z A = fold f h z A"
@@ -1017,7 +1020,7 @@ lemma setsum_diff:
 proof -
   from le have finiteB: "finite B" using finite_subset by auto
   show ?thesis using finiteB le
-  proof (induct)
+  proof induct
     case empty
     thus ?case by auto
   next
@@ -1061,7 +1064,7 @@ qed
 lemma setsum_negf:
   "setsum (%x. - (f x)::'a::ab_group_add) A = - setsum f A"
 proof (cases "finite A")
-  case True thus ?thesis by (induct set: Finites, auto)
+  case True thus ?thesis by (induct set: Finites) auto
 next
   case False thus ?thesis by (simp add: setsum_def)
 qed
@@ -1080,7 +1083,7 @@ lemma setsum_nonneg:
   shows "0 \<le> setsum f A"
 proof (cases "finite A")
   case True thus ?thesis using nn
-  proof (induct)
+  proof induct
     case empty then show ?case by simp
   next
     case (insert x F)
@@ -1096,7 +1099,7 @@ lemma setsum_nonpos:
   shows "setsum f A \<le> 0"
 proof (cases "finite A")
   case True thus ?thesis using np
-  proof (induct)
+  proof induct
     case empty then show ?case by simp
   next
     case (insert x F)
@@ -1146,7 +1149,7 @@ lemma setsum_right_distrib:
 proof (cases "finite A")
   case True
   thus ?thesis
-  proof (induct)
+  proof induct
     case empty thus ?case by simp
   next
     case (insert x A) thus ?case by (simp add: right_distrib)
@@ -1189,7 +1192,7 @@ lemma setsum_abs[iff]:
 proof (cases "finite A")
   case True
   thus ?thesis
-  proof (induct)
+  proof induct
     case empty thus ?case by simp
   next
     case (insert x A)
@@ -1205,7 +1208,7 @@ lemma setsum_abs_ge_zero[iff]:
 proof (cases "finite A")
   case True
   thus ?thesis
-  proof (induct)
+  proof induct
     case empty thus ?case by simp
   next
     case (insert x A) thus ?case by (auto intro: order_trans)
@@ -1220,7 +1223,7 @@ lemma abs_setsum_abs[simp]:
 proof (cases "finite A")
   case True
   thus ?thesis
-  proof (induct)
+  proof induct
     case empty thus ?case by simp
   next
     case (insert a A)
@@ -1664,7 +1667,7 @@ qed
 subsubsection {* Cardinality of unions *}
 
 lemma of_nat_id[simp]: "(of_nat n :: nat) = n"
-by(induct n, auto)
+by(induct n) auto
 
 lemma card_UN_disjoint:
     "finite I ==> (ALL i:I. finite (A i)) ==>
@@ -1695,7 +1698,8 @@ lemma image_eq_fold: "finite A ==> f ` A = fold (op Un) (%x. {f x}) {} A"
   done
 
 lemma card_image_le: "finite A ==> card (f ` A) <= card A"
-  apply (induct set: Finites, simp)
+  apply (induct set: Finites)
+   apply simp
   apply (simp add: le_SucI finite_imageI card_insert_if)
   done
 
@@ -1707,7 +1711,8 @@ lemma endo_inj_surj: "finite A ==> f ` A \<subseteq> A ==> inj_on f A ==> f ` A 
 
 lemma eq_card_imp_inj_on:
   "[| finite A; card(f ` A) = card A |] ==> inj_on f A"
-apply (induct rule:finite_induct, simp)
+apply (induct rule:finite_induct)
+apply simp
 apply(frule card_image_le[where f = f])
 apply(simp add:card_insert_if split:if_splits)
 done
