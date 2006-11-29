@@ -11,7 +11,7 @@ sig
   val assume_export: export
   val presume_export: export
   val assume: cterm -> thm
-  val assms_of: Proof.context -> term list
+  val assms_of: Proof.context -> cterm list
   val prems_of: Proof.context -> thm list
   val extra_hyps: Proof.context -> thm -> term list
   val add_assms: export -> cterm list -> Proof.context -> thm list * Proof.context
@@ -73,10 +73,10 @@ fun map_data f = Data.map (fn Data {assms, prems} => make_data (f (assms, prems)
 fun rep_data ctxt = Data.get ctxt |> (fn Data args => args);
 
 val assumptions_of = #assms o rep_data;
-val assms_of = map Thm.term_of o maps #2 o assumptions_of;
+val assms_of = maps #2 o assumptions_of;
 val prems_of = #prems o rep_data;
 
-fun extra_hyps ctxt th = subtract (op aconv) (assms_of ctxt) (Thm.hyps_of th);
+fun extra_hyps ctxt th = subtract (op aconv) (map Thm.term_of (assms_of ctxt)) (Thm.hyps_of th);
 
 
 (* add assumptions *)
