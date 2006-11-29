@@ -38,7 +38,7 @@ fun pretty loc ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val fixes = map (fn (x, T) => (x, SOME T, NoSyn)) (#1 (ProofContext.inferred_fixes ctxt));
-    val assumes = map (fn A => (("", []), [(A, [])])) (Assumption.assms_of ctxt);
+    val assumes = map (fn A => (("", []), [(A, [])])) (map Thm.term_of (Assumption.assms_of ctxt));
     val elems =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);
@@ -94,7 +94,7 @@ in
 
 fun axioms kind specs lthy =
   let
-    val hyps = Assumption.assms_of lthy;
+    val hyps = map Thm.term_of (Assumption.assms_of lthy);
     fun axiom ((name, atts), props) thy = thy
       |> fold_map (add_axiom hyps) (PureThy.name_multi name props)
       |-> (fn ths => pair ((name, atts), [(ths, [])]));
@@ -160,10 +160,27 @@ end;
 
 (* notes *)
 
+(* FIXME tmp *)
+
+val maxidx_atts = fold Args.maxidx_values;
+
+fun export_standard_facts inner outer facts =
+  let
+    val thy = ProofContext.theory_of inner;
+    val maxidx =
+      fold (fn ((_, atts), bs) => maxidx_atts atts #> fold (maxidx_atts o #2) bs) facts ~1;
+    val exp_fact = map (Thm.adjust_maxidx_thm maxidx) #> ProofContext.export_standard inner outer;
+    val exp_term = Drule.term_rule thy (singleton exp_fact);
+    val exp_typ = Logic.type_map exp_term;
+    val morphism =
+      Morphism.morphism {name = I, var = I, typ = exp_typ, term = exp_term, fact = exp_fact};
+  in Element.facts_map (Element.morph_ctxt morphism) facts end;
+
+
 fun context_notes kind facts lthy =
   let
     val facts' = facts
-      |> Element.export_standard_facts lthy lthy
+      |> export_standard_facts lthy lthy
       |> Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of lthy));
   in
     lthy
@@ -177,7 +194,7 @@ fun context_notes kind facts lthy =
 fun theory_notes keep_atts kind facts lthy = lthy |> LocalTheory.theory (fn thy =>
   let
     val facts' = facts
-      |> Element.export_standard_facts lthy (ProofContext.init thy)
+      |> export_standard_facts lthy (ProofContext.init thy)
       |> Attrib.map_facts (if keep_atts then Attrib.attribute_i thy else K I);
   in
     thy
@@ -187,7 +204,7 @@ fun theory_notes keep_atts kind facts lthy = lthy |> LocalTheory.theory (fn thy 
   end);
 
 fun locale_notes loc kind facts lthy = lthy |> LocalTheory.target (fn ctxt =>
-  #2 (Locale.add_thmss loc kind (Element.export_standard_facts lthy ctxt facts) ctxt));
+  Locale.add_thmss loc kind (export_standard_facts lthy ctxt facts) ctxt);
 
 fun notes "" kind facts = theory_notes true kind facts #> context_notes kind facts
   | notes loc kind facts = theory_notes false kind facts #>
