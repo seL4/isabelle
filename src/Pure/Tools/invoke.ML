@@ -74,7 +74,7 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
           val notes =
             maps (Element.facts_of thy) elems'
             |> Element.satisfy_facts prems''
-            |> Element.export_facts ctxt'' ctxt
+            |> Element.generalize_facts ctxt'' ctxt
             |> Attrib.map_facts (Attrib.attribute_i thy)
             |> map (fn ((a, atts), bs) => ((a, atts @ more_atts), bs));
         in
