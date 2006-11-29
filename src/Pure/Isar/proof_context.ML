@@ -317,7 +317,7 @@ fun pretty_thm ctxt th =
     val thy = theory_of ctxt;
     val (pp, asms) =
       if Theory.eq_thy (thy, ProtoPure.thy) then (Sign.pp thy, [])
-      else (pp ctxt, Assumption.assms_of ctxt);
+      else (pp ctxt, map Thm.term_of (Assumption.assms_of ctxt));
   in Display.pretty_thm_aux pp false true asms th end;
 
 fun pretty_thms ctxt [th] = pretty_thm ctxt th
