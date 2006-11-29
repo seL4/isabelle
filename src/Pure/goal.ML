@@ -48,7 +48,7 @@ val init =
   --- (protect)
   #C
 *)
-fun protect th = th COMP Drule.incr_indexes th Drule.protectI;
+fun protect th = th COMP_INCR Drule.protectI;
 
 (*
   A ==> ... ==> #C

@@ -151,11 +151,8 @@ val succeed = METHOD (K all_tac);
 
 local
 
-fun cut_rule_tac raw_rule =
-  let
-    val rule = Drule.forall_intr_vars raw_rule;
-    val revcut_rl = Drule.incr_indexes rule Drule.revcut_rl;
-  in Tactic.rtac (rule COMP revcut_rl) end;
+fun cut_rule_tac rule =
+  Tactic.rtac (Drule.forall_intr_vars rule COMP_INCR revcut_rl);
 
 in
 
