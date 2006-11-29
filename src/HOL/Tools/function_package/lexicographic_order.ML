@@ -205,7 +205,7 @@ fun pr_err table thy tl base_funs =
     end
       
 (* the main function: create table, search table, create relation,
-   and prove the subgoals *)
+   and prove the subgoals *)  (* FIXME proper goal addressing -- do not hardwire 1 *)
 fun lexicographic_order_tac ctxt (st: thm) = 
     let
       val thy = theory_of_thm st
