@@ -21,6 +21,9 @@ sig
     Notes of string * ((string * Attrib.src list) * ('fact * Attrib.src list) list) list
   type context (*= (string, string, thmref) ctxt*)
   type context_i (*= (typ, term, thm list) ctxt*)
+  val facts_map: (('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt) ->
+   ((string * Attrib.src list) * ('fact * Attrib.src list) list) list ->
+   ((string * Attrib.src list) * ('c * Attrib.src list) list) list
   val map_ctxt: {name: string -> string,
     var: string * mixfix -> string * mixfix,
     typ: 'typ -> 'a, term: 'term -> 'b, fact: 'fact -> 'c,
@@ -65,10 +68,7 @@ sig
   val satisfy_facts: witness list ->
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list
-  val export_facts: Proof.context -> Proof.context ->
-    ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    ((string * Attrib.src list) * (thm list * Attrib.src list) list) list
-  val export_standard_facts: Proof.context -> Proof.context ->
+  val generalize_facts: Proof.context -> Proof.context ->
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list
 end;
@@ -99,6 +99,8 @@ datatype ('typ, 'term, 'fact) ctxt =
 
 type context = (string, string, thmref) ctxt;
 type context_i = (typ, term, thm list) ctxt;
+
+fun facts_map f facts = Notes ("", facts) |> f |> (fn Notes (_, facts') => facts');
 
 fun map_ctxt {name, var, typ, term, fact, attrib} =
   fn Fixes fixes => Fixes (fixes |> map (fn (x, T, mx) =>
@@ -457,35 +459,23 @@ fun satisfy_thm witns thm = thm |> fold (fn hyp =>
 
 fun satisfy_morphism witns = Morphism.thm_morphism (satisfy_thm witns);
 
-fun satisfy_facts witns facts =
-  morph_ctxt (satisfy_morphism witns) (Notes ("", facts)) |> (fn Notes (_, facts') => facts');
+fun satisfy_facts witns = facts_map (morph_ctxt (satisfy_morphism witns));
 
 
 (* generalize type/term parameters *)
 
-local
-
 val maxidx_atts = fold Args.maxidx_values;
 
-fun exp_facts std inner outer facts =
+fun generalize_facts inner outer facts =
   let
     val thy = ProofContext.theory_of inner;
     val maxidx =
       fold (fn ((_, atts), bs) => maxidx_atts atts #> fold (maxidx_atts o #2) bs) facts ~1;
-    val exp_fact = map (Thm.adjust_maxidx_thm maxidx) #>
-      ((if std then ProofContext.export_standard else ProofContext.export) inner outer);
+    val exp_fact = map (Thm.adjust_maxidx_thm maxidx) #> Variable.export inner outer;
     val exp_term = Drule.term_rule thy (singleton exp_fact);
     val exp_typ = Logic.type_map exp_term;
     val morphism =
       Morphism.morphism {name = I, var = I, typ = exp_typ, term = exp_term, fact = exp_fact};
-    val Notes (_, facts') = morph_ctxt morphism (Notes ("", facts));
-  in facts' end;
-
-in
-
-val export_facts = exp_facts false;
-val export_standard_facts = exp_facts true;
-
-end;
+  in facts_map (morph_ctxt morphism) facts end;
 
 end;
