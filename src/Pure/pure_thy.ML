@@ -57,13 +57,17 @@ sig
   val thms_of: theory -> (string * thm) list
   val all_thms_of: theory -> (string * thm) list
   val hide_thms: bool -> string list -> theory -> theory
+  val map_facts: ('a -> 'b) -> ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
   val burrow_fact: ('a list -> 'b list) -> ('a list * 'c) list -> ('b list * 'c) list
+  val burrow_facts: ('a list -> 'b list) ->
+    ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
+  val name_multi: string -> 'a list -> (string * 'a) list
+  val name_thm: bool -> string * thm -> thm
   val store_thm: (bstring * thm) * attribute list -> theory -> thm * theory
   val smart_store_thms: (bstring * thm list) -> thm list
   val smart_store_thms_open: (bstring * thm list) -> thm list
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
-  val name_multi: string -> 'a list -> (string * 'a) list
   val add_thms: ((bstring * thm) * attribute list) list -> theory -> thm list * theory
   val add_thmss: ((bstring * thm list) * attribute list) list -> theory -> thm list list * theory 
   val note_thmss: string -> ((bstring * attribute list) *
@@ -308,6 +312,13 @@ fun hide_thms fully names thy =
   in r := {theorems = (space', thms), index = index}; thy end;
 
 
+(* fact specifications *)
+
+fun map_facts f = map (apsnd (map (apfst (map f))));
+fun burrow_fact f = split_list #>> burrow f #> op ~~;
+fun burrow_facts f = split_list ##> burrow (burrow_fact f) #> op ~~;
+
+
 (* naming *)
 
 fun gen_names _ len "" = replicate len ""
@@ -321,7 +332,6 @@ fun name_thm pre (name, thm) =
 
 fun name_thms pre name xs = map (name_thm pre) (name_multi name xs);
 
-fun burrow_fact f = split_list #>> burrow f #> op ~~;
 fun name_thmss name fact = burrow_fact (name_thms true name) fact;
 
 
