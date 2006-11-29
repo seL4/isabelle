@@ -13,8 +13,7 @@ sig
   val def_export: Assumption.export
   val add_defs: ((string * mixfix) * ((bstring * attribute list) * term)) list -> Proof.context ->
     (term * (bstring * thm)) list * Proof.context
-  val find_def: Proof.context -> string -> thm option
-  val expand_defs: Proof.context -> Proof.context -> thm -> thm list * thm
+  val export: Proof.context -> Proof.context -> thm -> thm list * thm
   val print_rules: Proof.context -> unit
   val defn_add: attribute
   val defn_del: attribute
@@ -95,21 +94,17 @@ fun add_defs defs ctxt =
   end;
 
 
-(* find/expand defs -- based on educated guessing *)
+(* export -- result based on educated guessing *)
 
-fun find_def ctxt x =
-  Assumption.prems_of ctxt |> find_first (fn th =>
-    (case try (head_of_def o Thm.prop_of) th of
-      SOME y => x = y
-    | NONE => false));
-
-fun expand_defs inner outer th =
+fun export inner outer th =
   let
     val th' = Assumption.export false inner outer th;
-    val xs = map #1 (Drule.fold_terms Term.add_frees th []);
-    val ys = map #1 (Drule.fold_terms Term.add_frees th' []);
-    val defs = map_filter (find_def inner) (subtract (op =) ys xs);
-  in (defs, th') end;
+    val still_fixed = map #1 (Drule.fold_terms Term.add_frees th' []);
+    val defs = Assumption.prems_of inner |> filter_out (fn prem =>
+      (case try (head_of_def o Thm.prop_of) prem of
+        SOME x => member (op =) still_fixed x
+      | NONE => true));
+  in (map Drule.abs_def defs, th') end;
 
 
 
