@@ -68,7 +68,7 @@ val TrueI = thm "TrueI"
 fun evaluation_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
   (Drule.goals_conv (equal i) Codegen.evaluation_conv));
 val evaluation_meth =
-  Method.no_args (Method.METHOD (fn _ => evaluation_tac 1 THEN rtac TrueI 1));
+  Method.no_args (Method.SIMPLE_METHOD' (evaluation_tac THEN' rtac TrueI));
 
 in
 
@@ -135,7 +135,7 @@ exception Eval of term;
 val oracle = ("Eval", fn (thy, Eval t) =>
   Logic.mk_equals (t, if eval_prop thy t then HOLogic.true_const else HOLogic.false_const));
 
-val oracle_name = NameSpace.pack [Context.theory_name (the_context ()), fst oracle];
+val oracle_name = Sign.full_name (the_context ()) (fst oracle);
 
 fun conv ct =
   let
@@ -146,8 +146,7 @@ fun tac i = Tactical.PRIMITIVE (Drule.fconv_rule
   (Drule.goals_conv (equal i) (HOLogic.Trueprop_conv conv)));
 
 val method =
-  Method.no_args (Method.METHOD (fn _ =>
-    tac 1 THEN rtac TrueI 1));
+  Method.no_args (Method.SIMPLE_METHOD' (tac THEN' rtac TrueI));
 
 end;
 *}
@@ -166,7 +165,7 @@ let
     (Drule.goals_conv (equal i) (HOLogic.Trueprop_conv
       NBE.normalization_conv)));
   val normalization_meth =
-    Method.no_args (Method.METHOD (fn _ => normalization_tac 1 THEN resolve_tac [TrueI, refl] 1));
+    Method.no_args (Method.SIMPLE_METHOD' (normalization_tac THEN' resolve_tac [TrueI, refl]));
 in
   Method.add_method ("normalization", normalization_meth, "solve goal by normalization")
 end;
