@@ -198,7 +198,7 @@ fun replay_proof atom_table clauses (clause_table, empty_id) =
 let
 	(* Thm.cterm -> int option *)
 	fun index_of_literal chyp = (
-		case (HOLogic.dest_Trueprop o term_of) chyp of
+		case (HOLogic.dest_Trueprop o Thm.term_of) chyp of
 		  (Const ("Not", _) $ atom) =>
 			SOME (~(valOf (Termtab.lookup atom_table atom)))
 		| atom =>
@@ -285,13 +285,13 @@ fun rawsat_thm clauses =
 let
 	(* remove premises that equal "True" *)
 	val clauses' = filter (fn clause =>
-		(not_equal HOLogic.true_const o HOLogic.dest_Trueprop o term_of) clause
+		(not_equal HOLogic.true_const o HOLogic.dest_Trueprop o Thm.term_of) clause
 			handle TERM ("dest_Trueprop", _) => true) clauses
 	(* remove non-clausal premises -- of course this shouldn't actually   *)
 	(* remove anything as long as 'rawsat_tac' is only called after the   *)
 	(* premises have been converted to clauses                            *)
 	val clauses'' = filter (fn clause =>
-		((cnf.is_clause o HOLogic.dest_Trueprop o term_of) clause
+		((cnf.is_clause o HOLogic.dest_Trueprop o Thm.term_of) clause
 			handle TERM ("dest_Trueprop", _) => false)
 		orelse (
 			warning ("Ignoring non-clausal premise " ^ string_of_cterm clause);
@@ -299,16 +299,22 @@ let
 	(* remove trivial clauses -- this is necessary because zChaff removes *)
 	(* trivial clauses during preprocessing, and otherwise our clause     *)
 	(* numbering would be off                                             *)
-	val clauses''' = filter (not o cnf.clause_is_trivial o HOLogic.dest_Trueprop o term_of) clauses''
+	val nontrivial_clauses = filter (not o cnf.clause_is_trivial o HOLogic.dest_Trueprop o Thm.term_of) clauses''
+	(* sort clauses according to the term order -- an optimization,       *)
+	(* useful because forming the union of hypotheses, as done by         *)
+	(* Conjunction.intr_list and foldr Thm.weaken below, is quadratic for *)
+	(* terms sorted in descending order, while only linear for terms      *)
+	(* sorted in ascending order                                          *)
+	val sorted_clauses = sort (Term.fast_term_ord o pairself Thm.term_of) nontrivial_clauses
 	val _ = if !trace_sat then
-			tracing ("Non-trivial clauses:\n" ^ space_implode "\n" (map string_of_cterm clauses'''))
+			tracing ("Sorted non-trivial clauses:\n" ^ space_implode "\n" (map string_of_cterm sorted_clauses))
 		else ()
 	(* translate clauses from HOL terms to PropLogic.prop_formula *)
-	val (fms, atom_table) = fold_map (PropLogic.prop_formula_of_term o HOLogic.dest_Trueprop o term_of) clauses''' Termtab.empty
+	val (fms, atom_table) = fold_map (PropLogic.prop_formula_of_term o HOLogic.dest_Trueprop o Thm.term_of) sorted_clauses Termtab.empty
 	val _ = if !trace_sat then
 			tracing ("Invoking SAT solver on clauses:\n" ^ space_implode "\n" (map string_of_prop_formula fms))
 		else ()
-	val fm                = PropLogic.all fms
+	val fm = PropLogic.all fms
 	(* unit -> Thm.thm *)
 	fun make_quick_and_dirty_thm () =
 	let
@@ -317,15 +323,19 @@ let
 			else ()
 		val False_thm = SkipProof.make_thm (the_context ()) (HOLogic.Trueprop $ HOLogic.false_const)
 	in
-		fold Thm.weaken clauses''' False_thm
+		(* 'fold Thm.weaken (rev sorted_clauses)' is linear, while 'fold    *)
+		(* Thm.weaken sorted_clauses' would be quadratic, since we sorted   *)
+		(* clauses in ascending order (which is linear for                  *)
+		(* 'Conjunction.intr_list', used below)                             *)
+		fold Thm.weaken (rev sorted_clauses) False_thm
 	end
 in
 	case (tracing ("Invoking solver " ^ (!solver)); SatSolver.invoke_solver (!solver) fm) of
 	  SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id)) => (
 		if !trace_sat then
 			tracing ("Proof trace from SAT solver:\n" ^
-				"clauses: " ^ ML_Syntax.str_of_list (ML_Syntax.str_of_pair string_of_int (ML_Syntax.str_of_list string_of_int)) (Inttab.dest clause_table) ^ "\n" ^
-				"empty clause: " ^ string_of_int empty_id)
+				"clauses: " ^ ML_Syntax.str_of_list (ML_Syntax.str_of_pair Int.toString (ML_Syntax.str_of_list Int.toString)) (Inttab.dest clause_table) ^ "\n" ^
+				"empty clause: " ^ Int.toString empty_id)
 		else ();
 		if !quick_and_dirty then
 			make_quick_and_dirty_thm ()
@@ -334,7 +344,7 @@ in
 				(* optimization: convert the given clauses to "[c_1 && ... && c_n] |- c_i";  *)
 				(*               this avoids accumulation of hypotheses during resolution    *)
 				(* [c_1, ..., c_n] |- c_1 && ... && c_n *)
-				val clauses_thm = Conjunction.intr_list (map Thm.assume clauses''')
+				val clauses_thm = Conjunction.intr_list (map Thm.assume sorted_clauses)
 				(* [c_1 && ... && c_n] |- c_1 && ... && c_n *)
 				val cnf_cterm = cprop_of clauses_thm
 				val cnf_thm   = Thm.assume cnf_cterm
