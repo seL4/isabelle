@@ -774,15 +774,15 @@ val analz_prepare_tac =
 *}
 
 method_setup prepare = {*
-    Method.no_args (Method.METHOD (fn facts => prepare_tac)) *}
+    Method.no_args (Method.SIMPLE_METHOD prepare_tac) *}
   "to launch a few simple facts that'll help the simplifier"
 
 method_setup parts_prepare = {*
-    Method.no_args (Method.METHOD (fn facts => parts_prepare_tac)) *}
+    Method.no_args (Method.SIMPLE_METHOD parts_prepare_tac) *}
   "additional facts to reason about parts"
 
 method_setup analz_prepare = {*
-    Method.no_args (Method.METHOD (fn facts => analz_prepare_tac)) *}
+    Method.no_args (Method.SIMPLE_METHOD analz_prepare_tac) *}
   "additional facts to reason about analz"
 
 
@@ -836,8 +836,8 @@ val analz_image_Key_Un_Nonce= thm "analz_image_Key_Un_Nonce"
 
 method_setup sc_analz_freshK = {*
     Method.ctxt_args (fn ctxt =>
-     (Method.METHOD
-      (fn facts => EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
+     (Method.SIMPLE_METHOD
+      (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
                           REPEAT_FIRST (rtac analz_image_freshK_lemma),
                           ALLGOALS (asm_simp_tac (Simplifier.context ctxt analz_image_freshK_ss
                                     addsimps [knows_Spy_Inputs_secureM_sr_Spy,

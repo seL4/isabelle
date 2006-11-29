@@ -69,9 +69,9 @@ fun prepare_for_linr q fm =
 fun spec_step n th = if n = 0 then th else spec_step (n - 1) th RS spec ;
 fun mp_step n th = if n = 0 then th else mp_step (n - 1) th RS mp;
 
-local
-  val context_ss = simpset_of (the_context ())
-in fun ferrack_tac q i =  ObjectLogic.atomize_tac i
+val context_ss = simpset_of (the_context ());
+
+fun ferrack_tac q i =  ObjectLogic.atomize_tac i
   THEN REPEAT_DETERM (split_tac [split_min, split_max,abs_split] i)
   THEN (fn st =>
   let
@@ -103,21 +103,19 @@ in fun ferrack_tac q i =  ObjectLogic.atomize_tac i
   in (rtac (((mp_step nh) o (spec_step np)) th) i 
       THEN tac) st
   end handle Subscript => no_tac st | Ferrante_Rackoff_Proof.FAILURE _ => no_tac st);
-end; (*local*)
 
-fun ferrack_args meth =
- let
-   val parse_flag =  Args.$$$ "no_quantify" >> (K (K false));
- in
-   Method.simple_args 
-  (Scan.optional (Args.$$$ "(" |-- Scan.repeat1 parse_flag --| Args.$$$ ")") [] >>
-    curry (Library.foldl op |>) true)
-    (fn q => fn _ => meth q 1)
+val ferrack_meth =
+  let
+    val parse_flag =  Args.$$$ "no_quantify" >> (K (K false));
+  in
+    Method.simple_args 
+      (Scan.optional (Args.$$$ "(" |-- Scan.repeat1 parse_flag --| Args.$$$ ")") [] >>
+        curry (Library.foldl op |>) true)
+      (fn q => K (Method.SIMPLE_METHOD' (ferrack_tac q)))
   end;
 
 val setup =
-  Method.add_method ("ferrack",
-     ferrack_args (Method.SIMPLE_METHOD oo ferrack_tac),
-     "LCF-proof-producing decision procedure for linear real arithmetic");
+  Method.add_method ("ferrack", ferrack_meth,
+    "LCF-proof-producing decision procedure for linear real arithmetic");
 
-end
+end;

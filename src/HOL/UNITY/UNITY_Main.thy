@@ -11,13 +11,12 @@ uses "UNITY_tactics.ML" begin
 
 method_setup safety = {*
     Method.ctxt_args (fn ctxt =>
-        Method.METHOD (fn facts => 
-            gen_constrains_tac (local_clasimpset_of ctxt) 1)) *}
+        Method.SIMPLE_METHOD' (gen_constrains_tac (local_clasimpset_of ctxt))) *}
     "for proving safety properties"
 
 method_setup ensures_tac = {*
     fn args => fn ctxt =>
-        Method.goal_args' (Scan.lift Args.name) 
+        Method.goal_args' (Scan.lift Args.name)
            (gen_ensures_tac (local_clasimpset_of ctxt))
            args ctxt *}
     "for proving progress properties"

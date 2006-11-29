@@ -161,20 +161,20 @@ fun pat_complete_tac i thm =
     handle COMPLETENESS => Seq.empty
 
 
-val pat_completeness = Method.SIMPLE_METHOD (pat_complete_tac 1)
+val pat_completeness = Method.SIMPLE_METHOD' pat_complete_tac
 
 val by_pat_completeness_simp =
     Proof.global_terminal_proof
       (Method.Basic (K pat_completeness),
-       SOME (Method.Source (Args.src (("simp_all", []), Position.none))))
-         (* FIXME avoid dynamic scoping of method name! *)
+       SOME (Method.Source_i (Args.src (("HOL.simp_all", []), Position.none))))
 
 fun termination_by_lexicographic_order name =
     FundefPackage.setup_termination_proof (SOME name)
     #> Proof.global_terminal_proof (Method.Basic LexicographicOrder.lexicographic_order, NONE)
 
 val setup =
-    Method.add_methods [("pat_completeness", Method.no_args pat_completeness, "Completeness prover for datatype patterns")]
+    Method.add_methods [("pat_completeness", Method.no_args pat_completeness,
+      "Completeness prover for datatype patterns")]
 
 
 

@@ -231,7 +231,7 @@ val ring_ss = HOL_basic_ss settermless termless_ring addsimps
 *}   (* Note: r_one is not necessary in ring_ss *)
 
 method_setup ring =
-  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (full_simp_tac ring_ss)) *}
+  {* Method.no_args (Method.SIMPLE_METHOD' (full_simp_tac ring_ss)) *}
   {* computes distributive normal form in rings *}
 
 lemmas ring_simps =

@@ -107,9 +107,6 @@ fun add_const c = Context.theory_map (TransferData.map
   (fn {intros,unfolds,refolds,consts} =>
     {intros=intros, unfolds=unfolds, refolds=refolds, consts=c::consts}))
 
-val transfer_method = Method.thms_ctxt_args (fn ths => fn ctxt =>
-  Method.SIMPLE_METHOD' HEADGOAL (transfer_tac ctxt ths));
-
 val setup =
   TransferData.init #>
   Attrib.add_attributes
@@ -119,6 +116,7 @@ val setup =
       "declaration of transfer unfolding rule"),
      ("transfer_refold", Attrib.add_del_args refold_add refold_del,
       "declaration of transfer refolding rule")] #>
-  Method.add_method ("transfer", transfer_method, "transfer principle");
+  Method.add_method ("transfer", Method.thms_ctxt_args (fn ths => fn ctxt =>
+    Method.SIMPLE_METHOD' (transfer_tac ctxt ths)), "transfer principle");
 
 end;

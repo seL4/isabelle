@@ -464,25 +464,21 @@ text {* The so defined ML tactics are then ``exported'' to be used in
 Isabelle proofs. *}
 
 method_setup oghoare = {*
-  Method.no_args
-    (Method.SIMPLE_METHOD' HEADGOAL (oghoare_tac)) *}
+  Method.no_args (Method.SIMPLE_METHOD' oghoare_tac) *}
   "verification condition generator for the oghoare logic"
 
 method_setup annhoare = {*
-  Method.no_args
-    (Method.SIMPLE_METHOD' HEADGOAL (annhoare_tac)) *}
+  Method.no_args (Method.SIMPLE_METHOD' annhoare_tac) *}
   "verification condition generator for the ann_hoare logic"
 
 method_setup interfree_aux = {*
-  Method.no_args
-    (Method.SIMPLE_METHOD' HEADGOAL (interfree_aux_tac)) *}
+  Method.no_args (Method.SIMPLE_METHOD' interfree_aux_tac) *}
   "verification condition generator for interference freedom tests"
 
 text {* Tactics useful for dealing with the generated verification conditions: *}
 
 method_setup conjI_tac = {*
-  Method.no_args
-    (Method.SIMPLE_METHOD' HEADGOAL (conjI_Tac (K all_tac))) *}
+  Method.no_args (Method.SIMPLE_METHOD' (conjI_Tac (K all_tac))) *}
   "verification condition generator for interference freedom tests"
 
 ML {*
@@ -493,8 +489,7 @@ fun disjE_Tac tac i st = st |>
 *}
 
 method_setup disjE_tac = {*
-  Method.no_args
-    (Method.SIMPLE_METHOD' HEADGOAL (disjE_Tac (K all_tac))) *}
+  Method.no_args (Method.SIMPLE_METHOD' (disjE_Tac (K all_tac))) *}
   "verification condition generator for interference freedom tests"
 
 end

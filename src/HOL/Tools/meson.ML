@@ -666,15 +666,11 @@ val make_clauses_tac =
 
 (*No CHANGED_PROP here, since these always appear in the preamble*)
 
-val skolemize_meth = Method.SIMPLE_METHOD' HEADGOAL skolemize_tac;
-
-val make_clauses_meth = Method.SIMPLE_METHOD' HEADGOAL make_clauses_tac;
-
 val skolemize_setup =
   Method.add_methods
-    [("skolemize", Method.no_args skolemize_meth, 
+    [("skolemize", Method.no_args (Method.SIMPLE_METHOD' skolemize_tac),
       "Skolemization into existential quantifiers"),
-     ("make_clauses", Method.no_args make_clauses_meth, 
+     ("make_clauses", Method.no_args (Method.SIMPLE_METHOD' make_clauses_tac), 
       "Conversion to !!-quantified meta-level clauses")];
 
 end;

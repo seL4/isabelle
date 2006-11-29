@@ -228,14 +228,12 @@ done
 use "hoare.ML"
 
 method_setup vcg = {*
-  Method.no_args
-    (Method.SIMPLE_METHOD' HEADGOAL (hoare_tac (K all_tac))) *}
+  Method.no_args (Method.SIMPLE_METHOD' (hoare_tac (K all_tac))) *}
   "verification condition generator"
 
 method_setup vcg_simp = {*
   Method.ctxt_args (fn ctxt =>
-    Method.METHOD (fn facts => 
-      hoare_tac (asm_full_simp_tac (local_simpset_of ctxt))1)) *}
+    Method.SIMPLE_METHOD' (hoare_tac (asm_full_simp_tac (local_simpset_of ctxt)))) *}
   "verification condition generator plus simplification"
 
 end

@@ -18,14 +18,14 @@ method_setup reify = {*
   fn src =>
     Method.syntax (Attrib.thms --
       Scan.option (Scan.lift (Args.$$$ "(") |-- Args.term --| Scan.lift (Args.$$$ ")"))) src #>
-  (fn (ctxt, (eqs,to)) => Method.SIMPLE_METHOD' HEADGOAL (Reflection.genreify_tac ctxt eqs to))
+  (fn (ctxt, (eqs,to)) => Method.SIMPLE_METHOD' (Reflection.genreify_tac ctxt eqs to))
 *} "partial automatic reification"
 
 method_setup reflection = {*
   fn src =>
     Method.syntax (Attrib.thms --
       Scan.option (Scan.lift (Args.$$$ "(") |-- Args.term --| Scan.lift (Args.$$$ ")"))) src #>
-  (fn (ctxt, (ths,to)) => Method.SIMPLE_METHOD' HEADGOAL (Reflection.reflection_tac ctxt ths to))
+  (fn (ctxt, (ths,to)) => Method.SIMPLE_METHOD' (Reflection.reflection_tac ctxt ths to))
 *} "reflection method"
 
 end

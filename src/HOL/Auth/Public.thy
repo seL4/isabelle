@@ -415,8 +415,8 @@ val analz_image_freshK_ss =
 
 method_setup analz_freshK = {*
     Method.ctxt_args (fn ctxt =>
-     (Method.METHOD
-      (fn facts => EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
+     (Method.SIMPLE_METHOD
+      (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
                           REPEAT_FIRST (rtac analz_image_freshK_lemma),
                           ALLGOALS (asm_simp_tac (Simplifier.context ctxt analz_image_freshK_ss))]))) *}
     "for proving the Session Key Compromise theorem"
@@ -449,8 +449,7 @@ fun basic_possibility_tac st = st |>
 
 method_setup possibility = {*
     Method.ctxt_args (fn ctxt =>
-        Method.METHOD (fn facts =>
-            gen_possibility_tac (local_simpset_of ctxt))) *}
+        Method.SIMPLE_METHOD (gen_possibility_tac (local_simpset_of ctxt))) *}
     "for proving possibility theorems"
 
 end

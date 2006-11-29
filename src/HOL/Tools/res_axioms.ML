@@ -608,14 +608,10 @@ fun skolem_use_cache_thm th =
 
 fun cnf_rules_of_ths ths = List.concat (map skolem_use_cache_thm ths);
 
-fun meson_meth ths ctxt =
-  Method.SIMPLE_METHOD' HEADGOAL
-    (CHANGED_PROP o Meson.meson_claset_tac (cnf_rules_of_ths ths) HOL_cs);
-
-val meson_method_setup =
-  Method.add_methods
-    [("meson", Method.thms_ctxt_args meson_meth,
-      "MESON resolution proof procedure")];
+val meson_method_setup = Method.add_methods
+  [("meson", Method.thms_args (fn ths =>
+      Method.SIMPLE_METHOD' (CHANGED_PROP o Meson.meson_claset_tac (cnf_rules_of_ths ths) HOL_cs)),
+    "MESON resolution proof procedure")];
 
 (** Attribute for converting a theorem into clauses **)
 

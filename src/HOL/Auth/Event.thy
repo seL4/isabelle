@@ -290,8 +290,7 @@ by (force
     intro: analz_subset_parts [THEN subsetD] parts_mono [THEN [2] rev_subsetD])
 
 method_setup analz_mono_contra = {*
-    Method.no_args
-      (Method.METHOD (fn facts => REPEAT_FIRST analz_mono_contra_tac)) *}
+    Method.no_args (Method.SIMPLE_METHOD (REPEAT_FIRST analz_mono_contra_tac)) *}
     "for proving theorems of the form X \<notin> analz (knows Spy evs) --> P"
 
 subsubsection{*Useful for case analysis on whether a hash is a spoof or not*}
@@ -349,8 +348,7 @@ val synth_analz_mono_contra_tac =
 *}
 
 method_setup synth_analz_mono_contra = {*
-    Method.no_args
-      (Method.METHOD (fn facts => REPEAT_FIRST synth_analz_mono_contra_tac)) *}
+    Method.no_args (Method.SIMPLE_METHOD (REPEAT_FIRST synth_analz_mono_contra_tac)) *}
     "for proving theorems of the form X \<notin> synth (analz (knows Spy evs)) --> P"
 
 end

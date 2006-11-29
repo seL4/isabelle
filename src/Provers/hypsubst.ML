@@ -224,18 +224,12 @@ fun stac th =
   in CHANGED_GOAL (rtac (th' RS ssubst)) end;
 
 
-(* proof methods *)
-
-val subst_meth = Method.thm_args (Method.SIMPLE_METHOD' HEADGOAL o stac);
-val hyp_subst_meth =
-  Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o hyp_subst_tac));
-
-
 (* theory setup *)
 
 val hypsubst_setup =
   Method.add_methods
-    [("hypsubst", hyp_subst_meth, "substitution using an assumption (improper)"),
-     ("simplesubst", subst_meth, "simple substitution")];
+    [("hypsubst", Method.no_args (Method.SIMPLE_METHOD' (CHANGED_PROP o hyp_subst_tac)),
+        "substitution using an assumption (improper)"),
+     ("simplesubst", Method.thm_args (Method.SIMPLE_METHOD' o stac), "simple substitution")];
 
 end;

@@ -447,7 +447,7 @@ use "~~/src/HOL/Hoare/hoare.ML"
 
 method_setup hoare = {*
   Method.no_args
-    (Method.SIMPLE_METHOD' HEADGOAL 
+    (Method.SIMPLE_METHOD'
        (hoare_tac (simp_tac (HOL_basic_ss addsimps [thm "Record.K_record_apply"] )))) *}
   "verification condition generator for Hoare logic"
 

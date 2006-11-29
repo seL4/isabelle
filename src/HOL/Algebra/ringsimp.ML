@@ -60,9 +60,6 @@ fun struct_tac ((s, ts), simps) =
 fun algebra_tac ctxt =
   EVERY' (map (fn s => TRY o struct_tac s) (AlgebraData.get (Context.Proof ctxt)));
 
-val method =
-  Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD' HEADGOAL (algebra_tac ctxt))
-
 
 (** Attribute **)
 
@@ -87,8 +84,8 @@ val attribute = Attrib.syntax
 
 val setup =
   AlgebraData.init #>
-  Method.add_methods [("algebra", method, "normalisation of algebraic structure")] #>
+  Method.add_methods [("algebra", Method.ctxt_args (Method.SIMPLE_METHOD' o algebra_tac),
+    "normalisation of algebraic structure")] #>
   Attrib.add_attributes [("algebra", attribute, "theorems controlling algebra method")];
-
 
 end;

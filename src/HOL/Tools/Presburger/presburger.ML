@@ -10,10 +10,9 @@ formula. It then resolves with the subgoal. To enable this feature
 call the procedure with the parameter abs.
 *)
 
-signature PRESBURGER = 
+signature PRESBURGER =
 sig
  val presburger_tac : bool -> bool -> int -> tactic
- val presburger_method : bool -> bool -> int -> Proof.method
  val setup : theory -> theory
  val trace : bool ref
 end;
@@ -25,7 +24,7 @@ val trace = ref false;
 fun trace_msg s = if !trace then tracing s else ();
 
 (*-----------------------------------------------------------------*)
-(*cooper_pp: provefunction for the one-exstance quantifier elimination*)
+(*cooper_pp: provefunction for the one-existance quantifier elimination*)
 (* Here still only one problem : The proof for the arithmetical transformations done on the dvd atomic formulae*)
 (*-----------------------------------------------------------------*)
 
@@ -36,35 +35,35 @@ val binarith = map thm
  "pred_Pls","pred_Min","pred_1","pred_0",
   "succ_Pls", "succ_Min", "succ_1", "succ_0",
   "add_Pls", "add_Min", "add_BIT_0", "add_BIT_10",
-  "add_BIT_11", "minus_Pls", "minus_Min", "minus_1", 
-  "minus_0", "mult_Pls", "mult_Min", "mult_num1", "mult_num0", 
+  "add_BIT_11", "minus_Pls", "minus_Min", "minus_1",
+  "minus_0", "mult_Pls", "mult_Min", "mult_num1", "mult_num0",
   "add_Pls_right", "add_Min_right"];
- val intarithrel = 
-     (map thm ["int_eq_number_of_eq","int_neg_number_of_BIT", 
-		"int_le_number_of_eq","int_iszero_number_of_0",
-		"int_less_number_of_eq_neg"]) @
-     (map (fn s => thm s RS thm "lift_bool") 
-	  ["int_iszero_number_of_Pls","int_iszero_number_of_1",
-	   "int_neg_number_of_Min"])@
-     (map (fn s => thm s RS thm "nlift_bool") 
-	  ["int_nonzero_number_of_Min","int_not_neg_number_of_Pls"]);
-     
+ val intarithrel =
+     (map thm ["int_eq_number_of_eq","int_neg_number_of_BIT",
+                "int_le_number_of_eq","int_iszero_number_of_0",
+                "int_less_number_of_eq_neg"]) @
+     (map (fn s => thm s RS thm "lift_bool")
+          ["int_iszero_number_of_Pls","int_iszero_number_of_1",
+           "int_neg_number_of_Min"])@
+     (map (fn s => thm s RS thm "nlift_bool")
+          ["int_nonzero_number_of_Min","int_not_neg_number_of_Pls"]);
+
 val intarith = map thm ["int_number_of_add_sym", "int_number_of_minus_sym",
-			"int_number_of_diff_sym", "int_number_of_mult_sym"];
+                        "int_number_of_diff_sym", "int_number_of_mult_sym"];
 val natarith = map thm ["add_nat_number_of", "diff_nat_number_of",
-			"mult_nat_number_of", "eq_nat_number_of",
-			"less_nat_number_of"]
-val powerarith = 
-    (map thm ["nat_number_of", "zpower_number_of_even", 
-	      "zpower_Pls", "zpower_Min"]) @ 
-    [(Tactic.simplify true [thm "zero_eq_Numeral0_nring", 
-			   thm "one_eq_Numeral1_nring"] 
+                        "mult_nat_number_of", "eq_nat_number_of",
+                        "less_nat_number_of"]
+val powerarith =
+    (map thm ["nat_number_of", "zpower_number_of_even",
+              "zpower_Pls", "zpower_Min"]) @
+    [(Tactic.simplify true [thm "zero_eq_Numeral0_nring",
+                           thm "one_eq_Numeral1_nring"]
   (thm "zpower_number_of_odd"))]
 
-val comp_arith = binarith @ intarith @ intarithrel @ natarith 
-	    @ powerarith @[thm"not_false_eq_true", thm "not_true_eq_false"];
+val comp_arith = binarith @ intarith @ intarithrel @ natarith
+            @ powerarith @[thm"not_false_eq_true", thm "not_true_eq_false"];
 
-fun cooper_pp sg (fm as e$Abs(xn,xT,p)) = 
+fun cooper_pp sg (fm as e$Abs(xn,xT,p)) =
   let val (xn1,p1) = Syntax.variant_abs (xn,xT,p)
   in (CooperProof.cooper_prv sg (Free (xn1, xT)) p1) end;
 
@@ -140,7 +139,7 @@ val allowed_consts =
    ("Divides.mod", iT --> iT --> iT),
    ("HOL.plus", iT --> iT --> iT),
    ("HOL.minus", iT --> iT --> iT),
-   ("HOL.times", iT --> iT --> iT), 
+   ("HOL.times", iT --> iT --> iT),
    ("HOL.abs", iT --> iT),
    ("HOL.uminus", iT --> iT),
    ("HOL.max", iT --> iT --> iT),
@@ -154,7 +153,7 @@ val allowed_consts =
    ("Divides.mod", nT --> nT --> nT),
    ("HOL.plus", nT --> nT --> nT),
    ("HOL.minus", nT --> nT --> nT),
-   ("HOL.times", nT --> nT --> nT), 
+   ("HOL.times", nT --> nT --> nT),
    ("Suc", nT --> nT),
    ("HOL.max", nT --> nT --> nT),
    ("HOL.min", nT --> nT --> nT),
@@ -186,12 +185,12 @@ val allowed_consts =
 
 fun getfuncs fm = case strip_comb fm of
     (Free (_, T), ts as _ :: _) =>
-      if body_type T mem [iT, nT] 
-         andalso not (ts = []) andalso forall (null o loose_bnos) ts 
+      if body_type T mem [iT, nT]
+         andalso not (ts = []) andalso forall (null o loose_bnos) ts
       then [fm]
       else Library.foldl op union ([], map getfuncs ts)
   | (Var (_, T), ts as _ :: _) =>
-      if body_type T mem [iT, nT] 
+      if body_type T mem [iT, nT]
          andalso not (ts = []) andalso forall (null o loose_bnos) ts then [fm]
       else Library.foldl op union ([], map getfuncs ts)
   | (Const (s, T), ts) =>
@@ -202,7 +201,7 @@ fun getfuncs fm = case strip_comb fm of
   | _ => [];
 
 
-fun abstract_pres sg fm = 
+fun abstract_pres sg fm =
   foldr (fn (t, u) =>
       let val T = fastype_of t
       in all T $ Abs ("x", T, abstract_over (t, u)) end)
@@ -214,11 +213,11 @@ fun abstract_pres sg fm =
  It returns true if there is a subterm coresponding to the application of
  a function on a bounded variable.
 
- Function applications are allowed only for well predefined functions a 
+ Function applications are allowed only for well predefined functions a
  consts*)
 
 fun has_free_funcs fm  = case strip_comb fm of
-    (Free (_, T), ts as _ :: _) => 
+    (Free (_, T), ts as _ :: _) =>
       if (body_type T mem [iT,nT]) andalso (not (T mem [iT,nT]))
       then true
       else exists (fn x => x) (map has_free_funcs ts)
@@ -233,24 +232,24 @@ fun has_free_funcs fm  = case strip_comb fm of
 
 (*returns true if the formula is relevant for presburger arithmetic tactic
 The constants occuring in term t should be a subset of the allowed_consts
- There also should be no occurences of application of functions on bounded 
- variables. Whenever this function will be used, it will be ensured that t 
- will not contain subterms with function symbols that could have been 
+ There also should be no occurences of application of functions on bounded
+ variables. Whenever this function will be used, it will be ensured that t
+ will not contain subterms with function symbols that could have been
  abstracted over.*)
- 
-fun relevant ps t = (term_typed_consts t) subset allowed_consts andalso 
+
+fun relevant ps t = (term_typed_consts t) subset allowed_consts andalso
   map (fn i => snd (List.nth (ps, i))) (loose_bnos t) @
   map (snd o dest_Free) (term_frees t) @ map (snd o dest_Var) (term_vars t)
   subset [iT, nT]
   andalso not (has_free_funcs t);
 
 
-fun prepare_for_presburger sg q fm = 
+fun prepare_for_presburger sg q fm =
   let
     val ps = Logic.strip_params fm
     val hs = map HOLogic.dest_Trueprop (Logic.strip_assums_hyp fm)
     val c = HOLogic.dest_Trueprop (Logic.strip_assums_concl fm)
-    val _ = if relevant (rev ps) c then () 
+    val _ = if relevant (rev ps) c then ()
                else  (trace_msg ("Conclusion is not a presburger term:\n" ^
              Sign.string_of_term sg c); raise CooperDec.COOPER)
     fun mk_all ((s, T), (P,n)) =
@@ -275,7 +274,7 @@ fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 (* the presburger tactic*)
 
-(* Parameters : q = flag for quantify ofer free variables ; 
+(* Parameters : q = flag for quantify ofer free variables ;
                 a = flag for abstracting over function occurences
                 i = subgoal  *)
 
@@ -289,18 +288,18 @@ fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
     val (t,np,nh) = prepare_for_presburger sg q g'
     (* Some simpsets for dealing with mod div abs and nat*)
     val mod_div_simpset = Simplifier.theory_context sg HOL_basic_ss
-			addsimps [refl,nat_mod_add_eq, nat_mod_add_left_eq, 
-				  nat_mod_add_right_eq, int_mod_add_eq, 
-				  int_mod_add_right_eq, int_mod_add_left_eq,
-				  nat_div_add_eq, int_div_add_eq,
-				  mod_self, zmod_self,
-				  DIVISION_BY_ZERO_MOD,DIVISION_BY_ZERO_DIV,
-				  ZDIVISION_BY_ZERO_MOD,ZDIVISION_BY_ZERO_DIV,
-				  zdiv_zero,zmod_zero,div_0,mod_0,
-				  zdiv_1,zmod_1,div_1,mod_1,
-				  Suc_plus1]
-			addsimps add_ac
-			addsimprocs [cancel_div_mod_proc]
+                        addsimps [refl,nat_mod_add_eq, nat_mod_add_left_eq,
+                                  nat_mod_add_right_eq, int_mod_add_eq,
+                                  int_mod_add_right_eq, int_mod_add_left_eq,
+                                  nat_div_add_eq, int_div_add_eq,
+                                  mod_self, zmod_self,
+                                  DIVISION_BY_ZERO_MOD,DIVISION_BY_ZERO_DIV,
+                                  ZDIVISION_BY_ZERO_MOD,ZDIVISION_BY_ZERO_DIV,
+                                  zdiv_zero,zmod_zero,div_0,mod_0,
+                                  zdiv_1,zmod_1,div_1,mod_1,
+                                  Suc_plus1]
+                        addsimps add_ac
+                        addsimprocs [cancel_div_mod_proc]
     val simpset0 = HOL_basic_ss
       addsimps [mod_div_equality', Suc_plus1]
       addsimps comp_arith
@@ -328,47 +327,43 @@ fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
     (* The result of the quantifier elimination *)
     val (th, tac) = case (prop_of pre_thm) of
         Const ("==>", _) $ (Const ("Trueprop", _) $ t1) $ _ =>
-    let val pth = 
+    let val pth =
           (* If quick_and_dirty then run without proof generation as oracle*)
-             if !quick_and_dirty 
+             if !quick_and_dirty
              then presburger_oracle sg (Pattern.eta_long [] t1)
 (*
-assume (cterm_of sg 
-	       (HOLogic.mk_Trueprop(HOLogic.mk_eq(t1,CooperDec.integer_qelim (Pattern.eta_long [] t1)))))
+assume (cterm_of sg
+               (HOLogic.mk_Trueprop(HOLogic.mk_eq(t1,CooperDec.integer_qelim (Pattern.eta_long [] t1)))))
 *)
-	     else tmproof_of_int_qelim sg (Pattern.eta_long [] t1)
-    in 
+             else tmproof_of_int_qelim sg (Pattern.eta_long [] t1)
+    in
           (trace_msg ("calling procedure with term:\n" ^
              Sign.string_of_term sg t1);
            ((pth RS iffD2) RS pre_thm,
             assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i)))
     end
       | _ => (pre_thm, assm_tac i)
-  in (rtac (((mp_step nh) o (spec_step np)) th) i 
+  in (rtac (((mp_step nh) o (spec_step np)) th) i
       THEN tac) st
   end handle Subscript => no_tac st | CooperDec.COOPER => no_tac st);
 
-fun presburger_args meth =
- let val parse_flag = 
+val presburger_meth =
+ let val parse_flag =
          Args.$$$ "no_quantify" >> K (apfst (K false))
       || Args.$$$ "no_abs" >> K (apsnd (K false));
  in
-   Method.simple_args 
-  (Scan.optional (Args.$$$ "(" |-- Scan.repeat1 parse_flag --| Args.$$$ ")") [] >>
-    curry (Library.foldl op |>) (true, true))
-    (fn (q,a) => fn _ => meth q a 1)
+   Method.simple_args
+     (Scan.optional (Args.$$$ "(" |-- Scan.repeat1 parse_flag --| Args.$$$ ")") [] >>
+      curry (Library.foldl op |>) (true, true))
+     (fn (q,a) => K (Method.SIMPLE_METHOD' (presburger_tac q a)))
   end;
-
-fun presburger_method q a i = Method.METHOD (fn facts =>
-  Method.insert_tac facts 1 THEN presburger_tac q a i)
 
 val presburger_arith_tac = mk_arith_tactic "presburger" (fn i => fn st =>
   (warning "Trying full Presburger arithmetic ...";
    presburger_tac true true i st));
 
 val setup =
-  Method.add_method ("presburger",
-    presburger_args presburger_method,
+  Method.add_method ("presburger", presburger_meth,
     "decision procedure for Presburger arithmetic") #>
   arith_tactic_add presburger_arith_tac;
 

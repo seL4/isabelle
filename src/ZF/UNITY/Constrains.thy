@@ -565,11 +565,9 @@ fun always_tac i =
 *}
 
 method_setup safety = {*
-    Method.ctxt_args (fn ctxt =>
-        Method.METHOD (fn facts =>
-            gen_constrains_tac (local_clasimpset_of ctxt) 1)) *}
-    "for proving safety properties"
+  Method.ctxt_args (fn ctxt =>
+    Method.SIMPLE_METHOD' (gen_constrains_tac (local_clasimpset_of ctxt))) *}
+  "for proving safety properties"
 
 
 end
-

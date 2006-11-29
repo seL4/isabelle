@@ -407,9 +407,7 @@ fun eqsubst_tac ctxt occL thms i th =
 (* inthms are the given arguments in Isar, and treated as eqstep with
    the first one, then the second etc *)
 fun eqsubst_meth ctxt occL inthms =
-    Method.METHOD
-      (fn facts =>
-          HEADGOAL (Method.insert_tac facts THEN' eqsubst_tac ctxt occL inthms));
+    Method.SIMPLE_METHOD' (eqsubst_tac ctxt occL inthms);
 
 (* apply a substitution inside assumption j, keeps asm in the same place *)
 fun apply_subst_in_asm i th rule ((cfvs, j, ngoalprems, pth),m) =
@@ -523,9 +521,7 @@ fun eqsubst_asm_tac ctxt occL thms i th =
 (* inthms are the given arguments in Isar, and treated as eqstep with
    the first one, then the second etc *)
 fun eqsubst_asm_meth ctxt occL inthms =
-    Method.METHOD
-      (fn facts =>
-          HEADGOAL (Method.insert_tac facts THEN' eqsubst_asm_tac ctxt occL inthms ));
+    Method.SIMPLE_METHOD' (eqsubst_asm_tac ctxt occL inthms);
 
 (* syntax for options, given "(asm)" will give back true, without
    gives back false *)

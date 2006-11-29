@@ -183,14 +183,12 @@ use "fuf.ML"
 
 method_setup fuf = {*
     Method.ctxt_args (fn ctxt =>
-        Method.METHOD (fn facts =>
-            fuf_tac (local_clasimpset_of ctxt) 1)) *}
+        Method.SIMPLE_METHOD' (fuf_tac (local_clasimpset_of ctxt))) *}
     "free ultrafilter tactic"
 
 method_setup ultra = {*
     Method.ctxt_args (fn ctxt =>
-        Method.METHOD (fn facts =>
-            ultra_tac (local_clasimpset_of ctxt) 1)) *}
+        Method.SIMPLE_METHOD' (ultra_tac (local_clasimpset_of ctxt))) *}
     "ultrafilter tactic"
 
 

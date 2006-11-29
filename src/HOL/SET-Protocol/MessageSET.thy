@@ -935,21 +935,17 @@ lemmas Fake_parts_sing_imp_Un = Fake_parts_sing [THEN [2] rev_subsetD]
 
 method_setup spy_analz = {*
     Method.ctxt_args (fn ctxt =>
-        Method.METHOD (fn facts =>
-            gen_spy_analz_tac (local_clasimpset_of ctxt) 1))*}
+        Method.SIMPLE_METHOD' (gen_spy_analz_tac (local_clasimpset_of ctxt))) *}
     "for proving the Fake case when analz is involved"
 
 method_setup atomic_spy_analz = {*
     Method.ctxt_args (fn ctxt =>
-        Method.METHOD (fn facts =>
-            atomic_spy_analz_tac (local_clasimpset_of ctxt) 1))*}
+        Method.SIMPLE_METHOD' (atomic_spy_analz_tac (local_clasimpset_of ctxt))) *}
     "for debugging spy_analz"
 
 method_setup Fake_insert_simp = {*
     Method.ctxt_args (fn ctxt =>
-        Method.METHOD (fn facts =>
-            Fake_insert_simp_tac (local_simpset_of ctxt) 1))*}
+        Method.SIMPLE_METHOD' (Fake_insert_simp_tac (local_simpset_of ctxt))) *}
     "for debugging spy_analz"
-
 
 end

@@ -15,7 +15,7 @@ sig
   val problem_name: string ref
   val time_limit: int ref
   val set_prover: string -> unit
-   
+
   datatype mode = Auto | Fol | Hol
   val linkup_logic_mode : mode ref
   val write_subgoal_file: bool -> mode -> Proof.context -> thm list -> thm list -> int -> string
@@ -65,22 +65,22 @@ fun timestamp s = Output.debug ("At " ^ Time.toString (Time.now()) ^ ": " ^ s);
 (********************************************************************)
 
 (*** background linkup ***)
-val call_atp = ref false; 
+val call_atp = ref false;
 val hook_count = ref 0;
 val time_limit = ref 60;
-val prover = ref "";   
+val prover = ref "";
 
-fun set_prover atp = 
+fun set_prover atp =
   case String.map Char.toLower atp of
-      "e" => 
+      "e" =>
           (ReduceAxiomsN.max_new := 100;
            ReduceAxiomsN.theory_const := false;
            prover := "E")
-    | "spass" => 
+    | "spass" =>
           (ReduceAxiomsN.max_new := 40;
            ReduceAxiomsN.theory_const := true;
            prover := "spass")
-    | "vampire" => 
+    | "vampire" =>
           (ReduceAxiomsN.max_new := 60;
            ReduceAxiomsN.theory_const := false;
            prover := "vampire")
@@ -94,17 +94,17 @@ val destdir = ref "";   (*Empty means write files to /tmp*)
 val problem_name = ref "prob";
 
 (*Return the path to a "helper" like SPASS or tptp2X, first checking that
-  it exists.  FIXME: modify to use Path primitives and move to some central place.*)  
+  it exists.  FIXME: modify to use Path primitives and move to some central place.*)
 fun helper_path evar base =
   case getenv evar of
       "" => error  ("Isabelle environment variable " ^ evar ^ " not defined")
-    | home => 
+    | home =>
         let val path = home ^ "/" ^ base
-        in  if File.exists (File.unpack_platform_path path) then path 
-	    else error ("Could not find the file " ^ path)
-	end;  
+        in  if File.exists (File.unpack_platform_path path) then path
+            else error ("Could not find the file " ^ path)
+        end;
 
-fun probfile_nosuffix _ = 
+fun probfile_nosuffix _ =
   if !destdir = "" then File.platform_path (File.tmp_path (Path.basic (!problem_name)))
   else if File.exists (File.unpack_platform_path (!destdir))
   then !destdir ^ "/" ^ !problem_name
@@ -118,15 +118,15 @@ val vampire_time = ref 60;
 val eprover_time = ref 60;
 val spass_time = ref 60;
 
-fun run_vampire time =  
+fun run_vampire time =
     if (time >0) then vampire_time:= time
     else vampire_time:=60;
 
-fun run_eprover time = 
+fun run_eprover time =
     if (time > 0) then eprover_time:= time
     else eprover_time:=60;
 
-fun run_spass time = 
+fun run_spass time =
     if (time > 0) then spass_time:=time
     else spass_time:=60;
 
@@ -141,24 +141,24 @@ val hol_partial_types = ResHolClause.partial_types;
 val hol_const_types_only = ResHolClause.const_types_only;
 val hol_no_types = ResHolClause.no_types;
 fun hol_typ_level () = ResHolClause.find_typ_level ();
-fun is_typed_hol () = 
+fun is_typed_hol () =
     let val tp_level = hol_typ_level()
     in
-	not (tp_level = ResHolClause.T_NONE)
+        not (tp_level = ResHolClause.T_NONE)
     end;
 
 fun atp_input_file () =
-    let val file = !problem_name 
+    let val file = !problem_name
     in
-	if !destdir = "" then File.platform_path (File.tmp_path (Path.basic file))
-	else if File.exists (File.unpack_platform_path (!destdir))
-	then !destdir ^ "/" ^ file
-	else error ("No such directory: " ^ !destdir)
+        if !destdir = "" then File.platform_path (File.tmp_path (Path.basic file))
+        else if File.exists (File.unpack_platform_path (!destdir))
+        then !destdir ^ "/" ^ file
+        else error ("No such directory: " ^ !destdir)
     end;
 
 val include_all = ref true;
 val include_simpset = ref false;
-val include_claset = ref false; 
+val include_claset = ref false;
 val include_atpset = ref true;
 
 (*Tests show that follow_defs gives VERY poor results with "include_all"*)
@@ -200,7 +200,7 @@ fun is_fol_logic FOL = true
 fun upgrade_lg HOLC _ = HOLC
   | upgrade_lg HOL HOLC = HOLC
   | upgrade_lg HOL _ = HOL
-  | upgrade_lg FOL lg = lg; 
+  | upgrade_lg FOL lg = lg;
 
 (* check types *)
 fun has_bool_hfn (Type("bool",_)) = true
@@ -211,34 +211,34 @@ fun has_bool_hfn (Type("bool",_)) = true
 fun is_hol_fn tp =
     let val (targs,tr) = strip_type tp
     in
-	exists (has_bool_hfn) (tr::targs)
+        exists (has_bool_hfn) (tr::targs)
     end;
 
 fun is_hol_pred tp =
     let val (targs,tr) = strip_type tp
     in
-	exists (has_bool_hfn) targs
+        exists (has_bool_hfn) targs
     end;
 
 exception FN_LG of term;
 
-fun fn_lg (t as Const(f,tp)) (lg,seen) = 
-    if is_hol_fn tp then (upgrade_lg HOL lg, insert (op =) t seen) else (lg, insert (op =) t seen) 
-  | fn_lg (t as Free(f,tp)) (lg,seen) = 
-    if is_hol_fn tp then (upgrade_lg HOL lg, insert (op =) t seen) else (lg, insert (op =) t seen) 
+fun fn_lg (t as Const(f,tp)) (lg,seen) =
+    if is_hol_fn tp then (upgrade_lg HOL lg, insert (op =) t seen) else (lg, insert (op =) t seen)
+  | fn_lg (t as Free(f,tp)) (lg,seen) =
+    if is_hol_fn tp then (upgrade_lg HOL lg, insert (op =) t seen) else (lg, insert (op =) t seen)
   | fn_lg (t as Var(f,tp)) (lg,seen) =
     if is_hol_fn tp then (upgrade_lg HOL lg,insert (op =) t seen) else (lg,insert (op =) t seen)
   | fn_lg (t as Abs(_,_,_)) (lg,seen) = (upgrade_lg HOLC lg,insert (op =) t seen)
-  | fn_lg f _ = raise FN_LG(f); 
+  | fn_lg f _ = raise FN_LG(f);
 
 
 fun term_lg [] (lg,seen) = (lg,seen)
   | term_lg (tm::tms) (FOL,seen) =
       let val (f,args) = strip_comb tm
-	  val (lg',seen') = if f mem seen then (FOL,seen) 
-			    else fn_lg f (FOL,seen)
+          val (lg',seen') = if f mem seen then (FOL,seen)
+                            else fn_lg f (FOL,seen)
       in
-	if is_fol_logic lg' then ()
+        if is_fol_logic lg' then ()
         else Output.debug ("Found a HOL term: " ^ Display.raw_string_of_term f);
         term_lg (args@tms) (lg',seen')
       end
@@ -246,11 +246,11 @@ fun term_lg [] (lg,seen) = (lg,seen)
 
 exception PRED_LG of term;
 
-fun pred_lg (t as Const(P,tp)) (lg,seen)= 
-      if is_hol_pred tp then (upgrade_lg HOL lg, insert (op =) t seen) 
-      else (lg,insert (op =) t seen) 
+fun pred_lg (t as Const(P,tp)) (lg,seen)=
+      if is_hol_pred tp then (upgrade_lg HOL lg, insert (op =) t seen)
+      else (lg,insert (op =) t seen)
   | pred_lg (t as Free(P,tp)) (lg,seen) =
-      if is_hol_pred tp then (upgrade_lg HOL lg, insert (op =) t seen) 
+      if is_hol_pred tp then (upgrade_lg HOL lg, insert (op =) t seen)
       else (lg,insert (op =) t seen)
   | pred_lg (t as Var(_,_)) (lg,seen) = (upgrade_lg HOL lg, insert (op =) t seen)
   | pred_lg P _ = raise PRED_LG(P);
@@ -259,21 +259,21 @@ fun pred_lg (t as Const(P,tp)) (lg,seen)=
 fun lit_lg (Const("Not",_) $ P) (lg,seen) = lit_lg P (lg,seen)
   | lit_lg P (lg,seen) =
       let val (pred,args) = strip_comb P
-	  val (lg',seen') = if pred mem seen then (lg,seen) 
-			    else pred_lg pred (lg,seen)
+          val (lg',seen') = if pred mem seen then (lg,seen)
+                            else pred_lg pred (lg,seen)
       in
-	if is_fol_logic lg' then ()
-	else Output.debug ("Found a HOL predicate: " ^ Display.raw_string_of_term pred);
-	term_lg args (lg',seen')
+        if is_fol_logic lg' then ()
+        else Output.debug ("Found a HOL predicate: " ^ Display.raw_string_of_term pred);
+        term_lg args (lg',seen')
       end;
 
 fun lits_lg [] (lg,seen) = (lg,seen)
   | lits_lg (lit::lits) (FOL,seen) =
       let val (lg,seen') = lit_lg lit (FOL,seen)
       in
-	if is_fol_logic lg then ()
-	else Output.debug ("Found a HOL literal: " ^ Display.raw_string_of_term lit);
-	lits_lg lits (lg,seen')
+        if is_fol_logic lg then ()
+        else Output.debug ("Found a HOL literal: " ^ Display.raw_string_of_term lit);
+        lits_lg lits (lg,seen')
       end
   | lits_lg lits (lg,seen) = (lg,seen);
 
@@ -288,18 +288,18 @@ fun logic_of_clause tm = lits_lg (dest_disj tm);
 fun logic_of_clauses [] (lg,seen) = (lg,seen)
   | logic_of_clauses (cls::clss) (FOL,seen) =
     let val (lg,seen') = logic_of_clause cls (FOL,seen)
-	val _ =
+        val _ =
           if is_fol_logic lg then ()
           else Output.debug ("Found a HOL clause: " ^ Display.raw_string_of_term cls)
     in
-	logic_of_clauses clss (lg,seen')
+        logic_of_clauses clss (lg,seen')
     end
   | logic_of_clauses (cls::clss) (lg,seen) = (lg,seen);
 
 fun problem_logic_goals_aux [] (lg,seen) = lg
-  | problem_logic_goals_aux (subgoal::subgoals) (lg,seen) = 
+  | problem_logic_goals_aux (subgoal::subgoals) (lg,seen) =
     problem_logic_goals_aux subgoals (logic_of_clauses subgoal (lg,seen));
-    
+
 fun problem_logic_goals subgoals = problem_logic_goals_aux subgoals (FOL,[]);
 
 fun is_fol_thms ths = ((fst(logic_of_clauses (map prop_of ths) (FOL,[]))) = FOL);
@@ -311,9 +311,9 @@ fun is_fol_thms ths = ((fst(logic_of_clauses (map prop_of ths) (FOL,[]))) = FOL)
 (*** white list and black list of lemmas ***)
 
 (*The rule subsetI is frequently omitted by the relevance filter.*)
-val whitelist = ref [subsetI]; 
-  
-(*Names of theorems (not theorem lists! See multi_blacklist below) to be banned. 
+val whitelist = ref [subsetI];
+
+(*Names of theorems (not theorem lists! See multi_blacklist below) to be banned.
 
   These theorems typically produce clauses that are prolific (match too many equality or
   membership literals) and relate to seldom-used facts. Some duplicate other rules.
@@ -447,7 +447,7 @@ val blacklist = ref
 
 
 (*These might be prolific but are probably OK, and min and max are basic.
-   "Orderings.max_less_iff_conj", 
+   "Orderings.max_less_iff_conj",
    "Orderings.min_less_iff_conj",
    "Orderings.min_max.below_inf.below_inf_conv",
    "Orderings.min_max.below_sup.above_sup_conv",
@@ -463,25 +463,25 @@ Very prolific and somewhat obscure:
 exception HASH_CLAUSE and HASH_STRING;
 
 (*Catches (for deletion) theorems automatically generated from other theorems*)
-fun insert_suffixed_names ht x = 
-     (Polyhash.insert ht (x^"_iff1", ()); 
-      Polyhash.insert ht (x^"_iff2", ()); 
-      Polyhash.insert ht (x^"_dest", ())); 
+fun insert_suffixed_names ht x =
+     (Polyhash.insert ht (x^"_iff1", ());
+      Polyhash.insert ht (x^"_iff2", ());
+      Polyhash.insert ht (x^"_dest", ()));
 
 (*Reject theorems with names like "List.filter.filter_list_def" or
   "Accessible_Part.acc.defs", as these are definitions arising from packages.
   FIXME: this will also block definitions within locales*)
 fun is_package_def a =
-   length (NameSpace.unpack a) > 2 andalso 
+   length (NameSpace.unpack a) > 2 andalso
    String.isSuffix "_def" a  orelse  String.isSuffix "_defs" a;
 
-fun make_banned_test xs = 
+fun make_banned_test xs =
   let val ht = Polyhash.mkTable (Polyhash.hash_string, op =)
                                 (6000, HASH_STRING)
-      fun banned s = 
+      fun banned s =
             isSome (Polyhash.peek ht s) orelse is_package_def s
   in  app (fn x => Polyhash.insert ht (x,())) (!blacklist);
-      app (insert_suffixed_names ht) (!blacklist @ xs); 
+      app (insert_suffixed_names ht) (!blacklist @ xs);
       banned
   end;
 
@@ -509,40 +509,40 @@ fun mk_clause_table n =
 
 (*Use a hash table to eliminate duplicates from xs. Argument is a list of
   (thm * (string * int)) tuples. The theorems are hashed into the table. *)
-fun make_unique xs = 
+fun make_unique xs =
   let val ht = mk_clause_table 7000
   in
       Output.debug("make_unique gets " ^ Int.toString (length xs) ^ " clauses");
-      app (ignore o Polyhash.peekInsert ht) xs;  
+      app (ignore o Polyhash.peekInsert ht) xs;
       Polyhash.listItems ht
   end;
 
 (*Remove existing axiom clauses from the conjecture clauses, as this can dramatically
   boost an ATP's performance (for some reason)*)
-fun subtract_cls c_clauses ax_clauses = 
+fun subtract_cls c_clauses ax_clauses =
   let val ht = mk_clause_table 2200
       fun known x = isSome (Polyhash.peek ht x)
   in
-      app (ignore o Polyhash.peekInsert ht) ax_clauses;  
-      filter (not o known) c_clauses 
+      app (ignore o Polyhash.peekInsert ht) ax_clauses;
+      filter (not o known) c_clauses
   end;
 
-(*Filter axiom clauses, but keep supplied clauses and clauses in whitelist. 
+(*Filter axiom clauses, but keep supplied clauses and clauses in whitelist.
   Duplicates are removed later.*)
 fun get_relevant_clauses thy cls_thms white_cls goals =
   white_cls @ (ReduceAxiomsN.relevance_filter thy cls_thms goals);
 
 fun display_thms [] = ()
-  | display_thms ((name,thm)::nthms) = 
+  | display_thms ((name,thm)::nthms) =
       let val nthm = name ^ ": " ^ (string_of_thm thm)
       in Output.debug nthm; display_thms nthms  end;
- 
+
 fun all_valid_thms ctxt =
   PureThy.thms_containing (ProofContext.theory_of ctxt) ([], []) @
   filter (ProofContext.valid_thms ctxt)
     (FactIndex.find (ProofContext.fact_index_of ctxt) ([], []));
 
-fun multi_name a (th, (n,pairs)) = 
+fun multi_name a (th, (n,pairs)) =
   (n+1, (a ^ "(" ^ Int.toString n ^ ")", th) :: pairs)
 
 fun add_multi_names_aux ((a, []), pairs) = pairs
@@ -557,7 +557,7 @@ val multi_base_blacklist =
   ["defs","select_defs","update_defs","induct","inducts","split","splits","split_asm"];
 
 (*Ignore blacklisted theorem lists*)
-fun add_multi_names ((a, ths), pairs) = 
+fun add_multi_names ((a, ths), pairs) =
   if a mem_string multi_blacklist orelse (Sign.base_name a) mem_string multi_base_blacklist
   then pairs
   else add_multi_names_aux ((a, ths), pairs);
@@ -565,7 +565,7 @@ fun add_multi_names ((a, ths), pairs) =
 fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 
 (*The single theorems go BEFORE the multiple ones*)
-fun name_thm_pairs ctxt = 
+fun name_thm_pairs ctxt =
   let val (mults,singles) = List.partition is_multi (all_valid_thms ctxt)
   in  foldl add_multi_names (foldl add_multi_names [] mults) singles  end;
 
@@ -573,40 +573,40 @@ fun check_named ("",th) = (warning ("No name for theorem " ^ string_of_thm th); 
   | check_named (_,th) = true;
 
 (* get lemmas from claset, simpset, atpset and extra supplied rules *)
-fun get_clasimp_atp_lemmas ctxt user_thms = 
+fun get_clasimp_atp_lemmas ctxt user_thms =
   let val included_thms =
-	if !include_all 
-	then (tap (fn ths => Output.debug
-	             ("Including all " ^ Int.toString (length ths) ^ " theorems")) 
-	          (name_thm_pairs ctxt))
-	else 
-	let val claset_thms =
-		if !include_claset then ResAxioms.claset_rules_of ctxt
-		else []
-	    val simpset_thms = 
-		if !include_simpset then ResAxioms.simpset_rules_of ctxt
-		else []
-	    val atpset_thms =
-		if !include_atpset then ResAxioms.atpset_rules_of ctxt
-		else []
-	    val _ = if !Output.show_debug_msgs 
-		    then (Output.debug "ATP theorems: "; display_thms atpset_thms) 
-		    else ()		 
-	in  claset_thms @ simpset_thms @ atpset_thms  end
-      val user_rules = filter check_named 
+        if !include_all
+        then (tap (fn ths => Output.debug
+                     ("Including all " ^ Int.toString (length ths) ^ " theorems"))
+                  (name_thm_pairs ctxt))
+        else
+        let val claset_thms =
+                if !include_claset then ResAxioms.claset_rules_of ctxt
+                else []
+            val simpset_thms =
+                if !include_simpset then ResAxioms.simpset_rules_of ctxt
+                else []
+            val atpset_thms =
+                if !include_atpset then ResAxioms.atpset_rules_of ctxt
+                else []
+            val _ = if !Output.show_debug_msgs
+                    then (Output.debug "ATP theorems: "; display_thms atpset_thms)
+                    else ()
+        in  claset_thms @ simpset_thms @ atpset_thms  end
+      val user_rules = filter check_named
                          (map (ResAxioms.pairname)
-			   (if null user_thms then !whitelist else user_thms))
+                           (if null user_thms then !whitelist else user_thms))
   in
       (filter check_named included_thms, user_rules)
   end;
 
 (*Remove lemmas that are banned from the backlist. Also remove duplicates. *)
-fun blacklist_filter ths = 
-  if !run_blacklist_filter then 
+fun blacklist_filter ths =
+  if !run_blacklist_filter then
       let val _ = Output.debug("blacklist filter gets " ^ Int.toString (length ths) ^ " theorems")
           val banned = make_banned_test (map #1 ths)
-	  fun ok (a,_) = not (banned a)
-	  val okthms = filter ok ths
+          fun ok (a,_) = not (banned a)
+          val okthms = filter ok ths
           val _ = Output.debug("...and returns " ^ Int.toString (length okthms))
       in  okthms end
   else ths;
@@ -653,7 +653,7 @@ fun type_consts_of_terms thy ts =
 (* ATP invocation methods setup                                *)
 (***************************************************************)
 
-fun cnf_hyps_thms ctxt = 
+fun cnf_hyps_thms ctxt =
     let val ths = Assumption.prems_of ctxt
     in fold (fold (insert Thm.eq_thm) o ResAxioms.skolem_thm) ths [] end;
 
@@ -664,15 +664,15 @@ val linkup_logic_mode = ref Auto;
 
 (*Ensures that no higher-order theorems "leak out"*)
 fun restrict_to_logic logic cls =
-  if is_fol_logic logic then filter (Meson.is_fol_term o prop_of o fst) cls 
-	                else cls;
+  if is_fol_logic logic then filter (Meson.is_fol_term o prop_of o fst) cls
+                        else cls;
 
 (**** Predicates to detect unwanted clauses (prolific or likely to cause unsoundness) ****)
 
 (** Too general means, positive equality literal with a variable X as one operand,
   when X does not occur properly in the other operand. This rules out clearly
   inconsistent clauses such as V=a|V=b, though it by no means guarantees soundness. **)
- 
+
 fun occurs ix =
     let fun occ(Var (jx,_)) = (ix=jx)
           | occ(t1$t2)      = occ t1 orelse occ t2
@@ -685,7 +685,7 @@ fun is_recordtype T = not (null (RecordPackage.dest_recTs T));
 (*Unwanted equalities include
   (1) those between a variable that does not properly occur in the second operand,
   (2) those between a variable and a record, since these seem to be prolific "cases" thms
-*)  
+*)
 fun too_general_eqterms (Var (ix,T), t) = not (occurs ix t) orelse is_recordtype T
   | too_general_eqterms _ = false;
 
@@ -698,7 +698,7 @@ fun is_taut (Const ("Trueprop", _) $ Const ("True", _)) = true
   | is_taut _ = false;
 
 (*True if the term contains a variable whose (atomic) type is in the given list.*)
-fun has_typed_var tycons = 
+fun has_typed_var tycons =
   let fun var_tycon (Var (_, Type(a,_))) = a mem_string tycons
         | var_tycon _ = false
   in  exists var_tycon o term_vars  end;
@@ -713,72 +713,67 @@ fun remove_unwanted_clauses cls =
   filter (not o unwanted o prop_of o fst) cls;
 
 fun tptp_writer logic goals filename (axioms,classrels,arities) user_lemmas =
-    if is_fol_logic logic 
+    if is_fol_logic logic
     then ResClause.tptp_write_file goals filename (axioms, classrels, arities)
     else ResHolClause.tptp_write_file goals filename (axioms, classrels, arities) user_lemmas;
 
 fun dfg_writer logic goals filename (axioms,classrels,arities) user_lemmas =
-    if is_fol_logic logic 
+    if is_fol_logic logic
     then ResClause.dfg_write_file goals filename (axioms, classrels, arities)
     else ResHolClause.dfg_write_file goals filename (axioms, classrels, arities) user_lemmas;
 
 (*Called by the oracle-based methods declared in res_atp_methods.ML*)
 fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
-    let val conj_cls = make_clauses conjectures 
+    let val conj_cls = make_clauses conjectures
                          |> ResAxioms.assume_abstract_list |> Meson.finish_cnf
-	val hyp_cls = cnf_hyps_thms ctxt
-	val goal_cls = conj_cls@hyp_cls
-	val goal_tms = map prop_of goal_cls
-	val logic = case mode of 
+        val hyp_cls = cnf_hyps_thms ctxt
+        val goal_cls = conj_cls@hyp_cls
+        val goal_tms = map prop_of goal_cls
+        val logic = case mode of
                             Auto => problem_logic_goals [goal_tms]
-			  | Fol => FOL
-			  | Hol => HOL
-	val (included_thms,user_rules) = get_clasimp_atp_lemmas ctxt user_thms
-	val cla_simp_atp_clauses = included_thms |> blacklist_filter
-	                             |> ResAxioms.cnf_rules_pairs |> make_unique 
-                                     |> restrict_to_logic logic 
+                          | Fol => FOL
+                          | Hol => HOL
+        val (included_thms,user_rules) = get_clasimp_atp_lemmas ctxt user_thms
+        val cla_simp_atp_clauses = included_thms |> blacklist_filter
+                                     |> ResAxioms.cnf_rules_pairs |> make_unique
+                                     |> restrict_to_logic logic
                                      |> remove_unwanted_clauses
-	val user_cls = ResAxioms.cnf_rules_pairs user_rules
-	val thy = ProofContext.theory_of ctxt
-	val axclauses = make_unique (get_relevant_clauses thy cla_simp_atp_clauses user_cls goal_tms)
-	val keep_types = if is_fol_logic logic then !fol_keep_types else is_typed_hol ()
+        val user_cls = ResAxioms.cnf_rules_pairs user_rules
+        val thy = ProofContext.theory_of ctxt
+        val axclauses = make_unique (get_relevant_clauses thy cla_simp_atp_clauses user_cls goal_tms)
+        val keep_types = if is_fol_logic logic then !fol_keep_types else is_typed_hol ()
         val subs = tfree_classes_of_terms goal_tms
         and axtms = map (prop_of o #1) axclauses
         val supers = tvar_classes_of_terms axtms
         and tycons = type_consts_of_terms thy (goal_tms@axtms)
         (*TFrees in conjecture clauses; TVars in axiom clauses*)
-        val classrel_clauses = 
+        val classrel_clauses =
               if keep_types then ResClause.make_classrel_clauses thy subs supers
               else []
-	val arity_clauses = if keep_types then ResClause.arity_clause_thy thy tycons supers else []
-        val writer = if dfg then dfg_writer else tptp_writer 
-	and file = atp_input_file()
-	and user_lemmas_names = map #1 user_rules
+        val arity_clauses = if keep_types then ResClause.arity_clause_thy thy tycons supers else []
+        val writer = if dfg then dfg_writer else tptp_writer
+        and file = atp_input_file()
+        and user_lemmas_names = map #1 user_rules
     in
-	writer logic goal_cls file (axclauses,classrel_clauses,arity_clauses) user_lemmas_names;
-	Output.debug ("Writing to " ^ file);
-	file
+        writer logic goal_cls file (axclauses,classrel_clauses,arity_clauses) user_lemmas_names;
+        Output.debug ("Writing to " ^ file);
+        file
     end;
 
 
 (**** remove tmp files ****)
-fun cond_rm_tmp file = 
-    if !Output.show_debug_msgs orelse !destdir <> "" then Output.debug "ATP input kept..." 
+fun cond_rm_tmp file =
+    if !Output.show_debug_msgs orelse !destdir <> "" then Output.debug "ATP input kept..."
     else OS.FileSys.remove file;
 
 
 (****** setup ATPs as Isabelle methods ******)
-fun atp_meth' tac ths ctxt = 
-    Method.SIMPLE_METHOD' HEADGOAL
-    (tac ctxt ths);
 
-fun atp_meth tac ths ctxt = 
+fun atp_meth tac ths ctxt =
     let val thy = ProofContext.theory_of ctxt
-	val _ = ResClause.init thy
-	val _ = ResHolClause.init thy
-    in
-	atp_meth' tac ths ctxt
-    end;
+        val _ = ResClause.init thy
+        val _ = ResHolClause.init thy
+    in Method.SIMPLE_METHOD' (tac ctxt ths) end;
 
 fun atp_method tac = Method.thms_ctxt_args (atp_meth tac);
 
@@ -802,25 +797,25 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
               let val spass = helper_path "SPASS_HOME" "SPASS"
                   val sopts =
    "-Auto%-SOS=1%-PGiven=0%-PProblem=0%-Splits=0%-FullRed=0%-DocProof%-TimeLimit=" ^ time
-              in 
+              in
                   ("spass", spass, sopts, probfile) :: make_atp_list xs (n+1)
               end
             else if !prover = "vampire"
-	    then 
+            then
               let val vampire = helper_path "VAMPIRE_HOME" "vampire"
                   val vopts = "--mode casc%-t " ^ time  (*what about -m 100000?*)
               in
                   ("vampire", vampire, vopts, probfile) :: make_atp_list xs (n+1)
               end
-      	     else if !prover = "E"
-      	     then
-	       let val Eprover = helper_path "E_HOME" "eproof"
-	       in
-		  ("E", Eprover, 
-		     "--tstp-in%-l5%-xAutoDev%-tAutoDev%--silent%--cpu-limit=" ^ time, probfile) ::
-		   make_atp_list xs (n+1)
-	       end
-	     else error ("Invalid prover name: " ^ !prover)
+             else if !prover = "E"
+             then
+               let val Eprover = helper_path "E_HOME" "eproof"
+               in
+                  ("E", Eprover,
+                     "--tstp-in%-l5%-xAutoDev%-tAutoDev%--silent%--cpu-limit=" ^ time, probfile) ::
+                   make_atp_list xs (n+1)
+               end
+             else error ("Invalid prover name: " ^ !prover)
           end
 
     val atp_list = make_atp_list sg_terms 1
@@ -828,7 +823,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
     Watcher.callResProvers(childout,atp_list);
     Output.debug "Sent commands to watcher!"
   end
-  
+
 fun trace_array fname =
   let val path = File.unpack_platform_path fname
   in  Array.app (File.append path o (fn s => s ^ "\n"))  end;
@@ -839,7 +834,7 @@ fun neg_clauses th n =
       val st = Seq.hd (EVERY' tacs n th)
       val negs = Option.valOf (metahyps_thms n st)
   in make_clauses negs |> ResAxioms.assume_abstract_list |> Meson.finish_cnf end;
-		                       
+
 (*We write out problem files for each subgoal. Argument probfile generates filenames,
   and allows the suppression of the suffix "_1" in problem-generation mode.
   FIXME: does not cope with &&, and it isn't easy because one could have multiple
@@ -852,12 +847,12 @@ fun write_problem_files probfile (ctxt,th)  =
         | get_neg_subgoals (gl::gls) n = neg_clauses th n :: get_neg_subgoals gls (n+1)
       val goal_cls = get_neg_subgoals goals 1
       val logic = case !linkup_logic_mode of
-		Auto => problem_logic_goals (map ((map prop_of)) goal_cls)
-	      | Fol => FOL
-	      | Hol => HOL
+                Auto => problem_logic_goals (map ((map prop_of)) goal_cls)
+              | Fol => FOL
+              | Hol => HOL
       val (included_thms,white_thms) = get_clasimp_atp_lemmas ctxt []
       val included_cls = included_thms |> blacklist_filter
-                                       |> ResAxioms.cnf_rules_pairs |> make_unique 
+                                       |> ResAxioms.cnf_rules_pairs |> make_unique
                                        |> restrict_to_logic logic
                                        |> remove_unwanted_clauses
       val _ = Output.debug ("clauses = " ^ Int.toString(length included_cls))
@@ -866,11 +861,11 @@ fun write_problem_files probfile (ctxt,th)  =
       val axcls_list = map (fn ngcls => get_relevant_clauses thy included_cls white_cls (map prop_of ngcls)) goal_cls
       val _ = app (fn axcls => Output.debug ("filtered clauses = " ^ Int.toString(length axcls)))
                   axcls_list
-      val keep_types = if is_fol_logic logic then !ResClause.keep_types 
+      val keep_types = if is_fol_logic logic then !ResClause.keep_types
                        else is_typed_hol ()
-      val writer = if !prover = "spass" then dfg_writer else tptp_writer 
+      val writer = if !prover = "spass" then dfg_writer else tptp_writer
       fun write_all [] [] _ = []
-	| write_all (ccls::ccls_list) (axcls::axcls_list) k =
+        | write_all (ccls::ccls_list) (axcls::axcls_list) k =
             let val fname = probfile k
                 val axcls = make_unique axcls
                 val ccls = subtract_cls ccls axcls
@@ -880,7 +875,7 @@ fun write_problem_files probfile (ctxt,th)  =
                 and supers = tvar_classes_of_terms axtms
                 and tycons = type_consts_of_terms thy (ccltms@axtms)
                 (*TFrees in conjecture clauses; TVars in axiom clauses*)
-                val classrel_clauses = 
+                val classrel_clauses =
                       if keep_types then ResClause.make_classrel_clauses thy subs supers
                       else []
                 val _ = Output.debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
@@ -889,7 +884,7 @@ fun write_problem_files probfile (ctxt,th)  =
                 val _ = Output.debug ("arity clauses = " ^ Int.toString (length arity_clauses))
                 val clnames = writer logic ccls fname (axcls,classrel_clauses,arity_clauses) []
                 val thm_names = Array.fromList clnames
-                val _ = if !Output.show_debug_msgs 
+                val _ = if !Output.show_debug_msgs
                         then trace_array (fname ^ "_thm_names") thm_names else ()
             in  (thm_names,fname) :: write_all ccls_list axcls_list (k+1)  end
       val (thm_names_list, filenames) = ListPair.unzip (write_all goal_cls axcls_list 1)
@@ -897,16 +892,16 @@ fun write_problem_files probfile (ctxt,th)  =
       (filenames, thm_names_list)
   end;
 
-val last_watcher_pid = ref (NONE : (TextIO.instream * TextIO.outstream * 
+val last_watcher_pid = ref (NONE : (TextIO.instream * TextIO.outstream *
                                     Posix.Process.pid * string list) option);
 
 fun kill_last_watcher () =
-    (case !last_watcher_pid of 
+    (case !last_watcher_pid of
          NONE => ()
-       | SOME (_, _, pid, files) => 
-	  (Output.debug ("Killing old watcher, pid = " ^ string_of_pid pid);
-	   Watcher.killWatcher pid;  
-	   ignore (map (try cond_rm_tmp) files)))
+       | SOME (_, _, pid, files) =>
+          (Output.debug ("Killing old watcher, pid = " ^ string_of_pid pid);
+           Watcher.killWatcher pid;
+           ignore (map (try cond_rm_tmp) files)))
      handle OS.SysErr _ => Output.debug "Attempt to kill watcher failed";
 
 (*writes out the current clasimpset to a tptp file;
@@ -920,7 +915,7 @@ fun isar_atp_body (ctxt, th) =
       val (childin, childout, pid) = Watcher.createWatcher (th, thm_names_list)
     in
       last_watcher_pid := SOME (childin, childout, pid, files);
-      Output.debug ("problem files: " ^ space_implode ", " files); 
+      Output.debug ("problem files: " ^ space_implode ", " files);
       Output.debug ("pid: " ^ string_of_pid pid);
       watcher_call_provers (sign_of_thm th) (Thm.prems_of th) (childin, childout, pid)
     end;
@@ -928,17 +923,17 @@ fun isar_atp_body (ctxt, th) =
 val isar_atp = setmp print_mode [] isar_atp_body;
 
 (*For ML scripts, and primarily, for debugging*)
-fun callatp () = 
+fun callatp () =
   let val th = topthm()
       val ctxt = ProofContext.init (theory_of_thm th)
   in  isar_atp_body (ctxt, th)  end;
 
-val isar_atp_writeonly = setmp print_mode [] 
+val isar_atp_writeonly = setmp print_mode []
       (fn (ctxt,th) =>
        if Thm.no_prems th then ()
-       else 
-         let val probfile = if Thm.nprems_of th = 1 then probfile_nosuffix 
-          	            else prob_pathname
+       else
+         let val probfile = if Thm.nprems_of th = 1 then probfile_nosuffix
+                            else prob_pathname
          in ignore (write_problem_files probfile (ctxt,th)) end);
 
 
@@ -947,9 +942,9 @@ val isar_atp_writeonly = setmp print_mode []
 fun invoke_atp_ml (ctxt, goal) =
   let val thy = ProofContext.theory_of ctxt;
   in
-    Output.debug ("subgoals in isar_atp:\n" ^ 
-		  Pretty.string_of (ProofContext.pretty_term ctxt
-		    (Logic.mk_conjunction_list (Thm.prems_of goal))));
+    Output.debug ("subgoals in isar_atp:\n" ^
+                  Pretty.string_of (ProofContext.pretty_term ctxt
+                    (Logic.mk_conjunction_list (Thm.prems_of goal))));
     Output.debug ("current theory: " ^ Context.theory_name thy);
     inc hook_count;
     Output.debug ("in hook for time: " ^ Int.toString (!hook_count));
@@ -965,9 +960,9 @@ val invoke_atp = Toplevel.no_timing o Toplevel.unknown_proof o Toplevel.keep
   in  invoke_atp_ml (ctxt, goal)  end);
 
 val call_atpP =
-  OuterSyntax.command 
-    "ProofGeneral.call_atp" 
-    "call automatic theorem provers" 
+  OuterSyntax.command
+    "ProofGeneral.call_atp"
+    "call automatic theorem provers"
     OuterKeyword.diag
     (Scan.succeed invoke_atp);
 

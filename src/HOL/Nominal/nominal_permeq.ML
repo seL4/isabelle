@@ -332,7 +332,7 @@ fun fresh_guess_tac tactical ss i st =
 
 fun simp_meth_setup tac =
   Method.only_sectioned_args (Simplifier.simp_modifiers' @ Splitter.split_modifiers)
-  (Method.SIMPLE_METHOD' HEADGOAL o tac o local_simpset_of);
+  (Method.SIMPLE_METHOD' o tac o local_simpset_of);
 
 val perm_eq_meth            = simp_meth_setup (perm_simp_tac NO_DEBUG_tac);
 val perm_eq_meth_debug      = simp_meth_setup (perm_simp_tac DEBUG_tac);

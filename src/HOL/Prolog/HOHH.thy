@@ -11,7 +11,7 @@ uses "prolog.ML"
 begin
 
 method_setup ptac =
-  {* Method.thms_args (Method.SIMPLE_METHOD' HEADGOAL o Prolog.ptac) *}
+  {* Method.thms_args (Method.SIMPLE_METHOD' o Prolog.ptac) *}
   "Basic Lambda Prolog interpreter"
 
 method_setup prolog =
