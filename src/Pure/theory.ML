@@ -41,6 +41,7 @@ sig
   val deref: theory_ref -> theory
   val merge: theory * theory -> theory                     (*exception TERM*)
   val merge_refs: theory_ref * theory_ref -> theory_ref    (*exception TERM*)
+  val merge_list: theory list -> theory                    (*exception TERM*)
   val requires: theory -> string -> string -> unit
   val assert_super: theory -> theory -> theory
   val add_axioms: (bstring * string) list -> theory -> theory
@@ -71,6 +72,9 @@ val self_ref = Context.self_ref;
 val deref = Context.deref;
 val merge = Context.merge;
 val merge_refs = Context.merge_refs;
+
+fun merge_list [] = raise TERM ("Empty merge of theories", [])
+  | merge_list (thy :: thys) = Library.foldl merge (thy, thys);
 
 val begin_theory = Sign.local_path oo Context.begin_thy Sign.pp;
 val end_theory = Context.finish_thy;
