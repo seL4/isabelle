@@ -58,9 +58,10 @@ sig
   val type_args: token list -> string list * token list
   val typ: token list -> string * token list
   val mixfix: token list -> mixfix * token list
+  val mixfix': token list -> mixfix * token list
   val opt_infix: token list -> mixfix * token list
-  val opt_mixfix: token list -> mixfix * token list
   val opt_infix': token list -> mixfix * token list
+  val opt_mixfix: token list -> mixfix * token list
   val opt_mixfix': token list -> mixfix * token list
   val where_: token list -> string * token list
   val const: token list -> (string * string * mixfix) * token list
@@ -260,9 +261,10 @@ fun annotation guard fix = $$$ "(" |-- guard (fix --| $$$ ")");
 fun opt_annotation guard fix = Scan.optional (annotation guard fix) NoSyn;
 
 val mixfix = annotation !!! (mfix || binder || infxl || infxr || infx);
+val mixfix' = annotation I (mfix || binder || infxl || infxr || infx);
 val opt_infix = opt_annotation !!! (infxl || infxr || infx);
-val opt_mixfix = opt_annotation !!! (mfix || binder || infxl || infxr || infx);
 val opt_infix' = opt_annotation I (infxl || infxr || infx);
+val opt_mixfix = opt_annotation !!! (mfix || binder || infxl || infxr || infx);
 val opt_mixfix' = opt_annotation I (mfix || binder || infxl || infxr || infx);
 
 
