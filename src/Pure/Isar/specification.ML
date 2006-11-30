@@ -273,7 +273,9 @@ fun gen_theorem prep_att prep_stmt
       prep_statement attrib (prep_stmt loc) elems raw_concl ctxt;
 
     fun after_qed' results goal_ctxt' =
-      let val results' = burrow (ProofContext.export_standard goal_ctxt' lthy) results in
+      let val results' =
+        burrow (map Goal.norm_result o ProofContext.export goal_ctxt' lthy) results
+      in
         lthy
         |> LocalTheory.notes kind (map2 (fn (a, _) => fn ths => (a, [(ths, [])])) stmt results')
         |> (fn (res, lthy') =>

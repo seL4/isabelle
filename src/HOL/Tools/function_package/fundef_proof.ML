@@ -299,7 +299,7 @@ fun mk_partial_rules thy data provedgoal =
     let
       val Prep {globals, G, f, R, clauses, values, R_cases, ex1_iff, ...} = data
                                                                             
-      val provedgoal = PROFILE "Closing Derivation" Drule.close_derivation provedgoal
+      val provedgoal = PROFILE "Closing result" Goal.close_result provedgoal
                        
       val graph_is_function = PROFILE "Getting function theorem" (fn x => (x COMP conjunctionD1) |> forall_elim_vars 0) provedgoal
                               

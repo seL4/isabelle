@@ -485,7 +485,7 @@ fun skolem_cache_thm (name,th) thy =
         (case skolem thy (name, Thm.transfer thy th) of
              NONE => ([th],thy)
            | SOME (thy',cls) => 
-               let val cls = map Drule.local_standard cls
+               let val cls = map Goal.close_result cls
                in
                   if null cls then warning ("skolem_cache: empty clause set for " ^ name)
                   else ();
@@ -506,7 +506,7 @@ fun cnf_axiom (name,th) =
         "" => skolem_thm th (*no name, so can't cache*)
       | s  => case Symtab.lookup (!clause_cache) s of
                 NONE => 
-                  let val cls = map Drule.local_standard (skolem_thm th)
+                  let val cls = map Goal.close_result (skolem_thm th)
                   in Output.debug "inserted into cache";
                      change clause_cache (Symtab.update (s, (th, cls))); cls 
                   end

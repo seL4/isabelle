@@ -74,8 +74,8 @@ fun fundef_afterqed config fixes spec mutual_info defname data [[result]] lthy =
       val fundef_data = FundefMutual.mk_partial_rules_mutual lthy mutual_info data result
       val FundefMResult {psimps, subset_pinducts, simple_pinducts, termination, domintros, cases, ...} = fundef_data
       val qualify = NameSpace.qualified defname
-          
-      val (((psimps', pinducts'), (_, [termination'])), lthy) = 
+
+      val (((psimps', pinducts'), (_, [termination'])), lthy) =
           lthy
             |> PROFILE "adding_psimps" (add_simps "psimps" [] mutual_info fixes psimps spec)
             ||>> PROFILE "adding pinduct" (note_theorem ((qualify "pinduct", [Attrib.internal (InductAttrib.induct_set "")]), simple_pinducts))
@@ -86,7 +86,7 @@ fun fundef_afterqed config fixes spec mutual_info defname data [[result]] lthy =
       val cdata = FundefCtxData { fixes=fixes, spec=spec, mutual=mutual_info, psimps=psimps',
                                   pinducts=snd pinducts', termination=termination', f=f, R=R }
 
-      
+
     in
       lthy  (* FIXME proper handling of morphism *)
         |> LocalTheory.declaration (fn phi => add_fundef_data defname cdata) (* save in target *)
@@ -135,7 +135,7 @@ fun total_termination_afterqed defname data [[totality]] lthy =
     let
       val FundefCtxData { fixes, spec, mutual, psimps, pinducts, ... } = data
 
-      val totality = PROFILE "closing" Drule.close_derivation totality
+      val totality = PROFILE "closing" Goal.close_result totality
 
       val remove_domain_condition = full_simplify (HOL_basic_ss addsimps [totality, True_implies_equals])
 
@@ -145,7 +145,7 @@ fun total_termination_afterqed defname data [[totality]] lthy =
         (* FIXME: How to generate code from (possibly) local contexts*)
       val has_guards = exists ((fn (Const ("Trueprop", _) $ _) => false | _ => true) o prop_of) tsimps
       val allatts = if has_guards then [] else [Attrib.internal (RecfunCodegen.add NONE)]
-        
+
       val qualify = NameSpace.qualified defname;
     in
       lthy
@@ -164,8 +164,9 @@ fun setup_termination_proof name_opt lthy =
         val goal = FundefTermination.mk_total_termination_goal f R
     in
       lthy
-        |> ProofContext.note_thmss_i "" [(("termination",
-                                        [ContextRules.intro_query NONE]), [(ProofContext.standard lthy [termination], [])])] |> snd
+        |> ProofContext.note_thmss_i ""
+          [(("termination", [ContextRules.intro_query NONE]),
+            [([Goal.norm_result termination], [])])] |> snd
         |> set_termination_rule termination
         |> Proof.theorem_i NONE (total_termination_afterqed name data) [[(goal, [])]]
     end
@@ -184,23 +185,23 @@ val cong_del = Thm.declaration_attribute (map_fundef_congs o Drule.del_rule o sa
 (* Datatype hook to declare datatype congs as "fundef_congs" *)
 
 
-fun add_case_cong n thy = 
-    Context.theory_map (map_fundef_congs (Drule.add_rule 
+fun add_case_cong n thy =
+    Context.theory_map (map_fundef_congs (Drule.add_rule
                           (DatatypePackage.get_datatype thy n |> the
                            |> #case_cong
-                           |> safe_mk_meta_eq))) 
+                           |> safe_mk_meta_eq)))
                        thy
 
 val case_cong_hook = fold add_case_cong
 
-val setup_case_cong_hook = 
+val setup_case_cong_hook =
     DatatypeHooks.add case_cong_hook
     #> (fn thy => case_cong_hook (Symtab.keys (DatatypePackage.get_datatypes thy)) thy)
 
 (* setup *)
 
-val setup = 
-    FundefData.init 
+val setup =
+    FundefData.init
       #> FundefCongs.init
       #> TerminationRule.init
       #>  Attrib.add_attributes
