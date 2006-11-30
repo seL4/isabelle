@@ -17,6 +17,8 @@ sig
   val protect: thm -> thm
   val conclude: thm -> thm
   val finish: thm -> thm
+  val norm_result: thm -> thm
+  val close_result: thm -> thm
   val compose_hhf: thm -> int -> thm -> thm Seq.seq
   val compose_hhf_tac: thm -> int -> tactic
   val comp_hhf: thm -> thm -> thm
@@ -76,6 +78,19 @@ fun finish th =
 
 
 (** results **)
+
+(* normal form *)
+
+val norm_result =
+  Drule.flexflex_unique
+  #> MetaSimplifier.norm_hhf_protect
+  #> Thm.strip_shyps
+  #> Drule.zero_var_indexes;
+
+val close_result =
+  Thm.compress
+  #> Drule.close_derivation;
+
 
 (* composition of normal results *)
 
