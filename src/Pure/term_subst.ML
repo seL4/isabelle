@@ -22,7 +22,7 @@ sig
     term -> term option
   val instantiateT_option: ((indexname * sort) * typ) list -> typ -> typ option
   val zero_var_indexes: term -> term
-  val zero_var_indexes_inst: term ->
+  val zero_var_indexes_inst: term list ->
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list
 end;
 
@@ -161,14 +161,14 @@ fun zero_var_inst vars =
     in if x = x' andalso i = 0 then (inst, used') else ((v, ((x', 0), X)) :: inst, used') end)
   vars ([], Name.context) |> #1;
 
-fun zero_var_indexes_inst tm =
+fun zero_var_indexes_inst ts =
   let
-    val instT = zero_var_inst (sort Term.tvar_ord (Term.add_tvars tm [])) |> map (apsnd TVar);
-    val inst =
-      zero_var_inst (sort Term.var_ord (map (apsnd (instantiateT instT)) (Term.add_vars tm [])))
-      |> map (apsnd Var);
+    val tvars = sort Term.tvar_ord (fold Term.add_tvars ts []);
+    val instT = map (apsnd TVar) (zero_var_inst tvars);
+    val vars = sort Term.var_ord (map (apsnd (instantiateT instT)) (fold Term.add_vars ts []));
+    val inst = map (apsnd Var) (zero_var_inst vars);
   in (instT, inst) end;
 
-fun zero_var_indexes tm = instantiate (zero_var_indexes_inst tm) tm;
+fun zero_var_indexes t = instantiate (zero_var_indexes_inst [t]) t;
 
 end;
