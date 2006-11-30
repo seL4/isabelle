@@ -794,7 +794,8 @@ local
 fun gen_note_thmss get k = fold_map (fn ((bname, more_attrs), raw_facts) => fn ctxt =>
   let
     val stmt = is_stmt ctxt;
-    val kind = if stmt then [] else [PureThy.kind k];
+(*    val kind = if stmt then [] else [PureThy.kind k];  *)
+    val kind = [];   (* FIXME refrain from closing the derivation here *)
 
     val facts = map (apfst (get ctxt)) raw_facts;
     fun app (th, attrs) x =
