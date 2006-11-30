@@ -38,6 +38,7 @@ sig
   val implies_elim_list: thm -> thm list -> thm
   val implies_intr_list: cterm list -> thm -> thm
   val instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
+  val zero_var_indexes_list: thm list -> thm list
   val zero_var_indexes: thm -> thm
   val implies_intr_hyps: thm -> thm
   val standard: thm -> thm
@@ -99,7 +100,6 @@ sig
   val add_used: thm -> string list -> string list
   val flexflex_unique: thm -> thm
   val close_derivation: thm -> thm
-  val local_standard: thm -> thm
   val store_thm: bstring -> thm -> thm
   val store_standard_thm: bstring -> thm -> thm
   val store_thm_open: bstring -> thm -> thm
@@ -397,14 +397,17 @@ val implies_intr_list = fold_rev implies_intr;
 fun implies_elim_list impth ths = Library.foldl (uncurry implies_elim) (impth,ths);
 
 (*Reset Var indexes to zero, renaming to preserve distinctness*)
-fun zero_var_indexes th =
-  let
-    val thy = Thm.theory_of_thm th;
-    val certT = Thm.ctyp_of thy and cert = Thm.cterm_of thy;
-    val (instT, inst) = TermSubst.zero_var_indexes_inst (Thm.full_prop_of th);
-    val cinstT = map (fn (v, T) => (certT (TVar v), certT T)) instT;
-    val cinst = map (fn (v, t) => (cert (Var v), cert t)) inst;
-  in Thm.adjust_maxidx_thm ~1 (Thm.instantiate (cinstT, cinst) th) end;
+fun zero_var_indexes_list [] = []
+  | zero_var_indexes_list ths =
+      let
+        val thy = Theory.merge_list (map Thm.theory_of_thm ths);
+        val certT = Thm.ctyp_of thy and cert = Thm.cterm_of thy;
+        val (instT, inst) = TermSubst.zero_var_indexes_inst (map Thm.full_prop_of ths);
+        val cinstT = map (fn (v, T) => (certT (TVar v), certT T)) instT;
+        val cinst = map (fn (v, t) => (cert (Var v), cert t)) inst;
+      in map (Thm.adjust_maxidx_thm ~1 o Thm.instantiate (cinstT, cinst)) ths end;
+
+val zero_var_indexes = singleton zero_var_indexes_list;
 
 
 (** Standard form of object-rule: no hypotheses, flexflex constraints,
@@ -427,6 +430,9 @@ fun close_derivation thm =
   if Thm.get_name_tags thm = ("", []) then Thm.name_thm ("", thm)
   else thm;
 
+
+(* legacy standard operations *)
+
 val standard' =
   implies_intr_hyps
   #> forall_intr_frees
@@ -441,13 +447,6 @@ val standard' =
 val standard =
   flexflex_unique
   #> standard'
-  #> close_derivation;
-
-val local_standard =
-  flexflex_unique
-  #> Thm.strip_shyps
-  #> zero_var_indexes
-  #> Thm.compress
   #> close_derivation;
 
 
@@ -862,11 +861,22 @@ fun norm_hhf_cterm ct =
   else cterm_fun (Pattern.rewrite_term (Thm.theory_of_cterm ct) [norm_hhf_prop] []) ct;
 
 
+(* var indexes *)
+
+fun incr_indexes th = Thm.incr_indexes (Thm.maxidx_of th + 1);
+
+fun incr_indexes2 th1 th2 =
+  Thm.incr_indexes (Int.max (Thm.maxidx_of th1, Thm.maxidx_of th2) + 1);
+
+fun th1 INCR_COMP th2 = incr_indexes th2 th1 COMP th2;
+fun th1 COMP_INCR th2 = th1 COMP incr_indexes th1 th2;
+
 
 (*** Instantiate theorem th, reading instantiations in theory thy ****)
 
 (*Version that normalizes the result: Thm.instantiate no longer does that*)
-fun instantiate instpair th = Thm.instantiate instpair th  COMP   asm_rl;
+fun instantiate instpair th =
+  Thm.adjust_maxidx_thm ~1 (Thm.instantiate instpair th COMP_INCR asm_rl);
 
 fun read_instantiate_sg' thy sinsts th =
     let val ts = types_sorts th;
@@ -1050,17 +1060,6 @@ fun rename_bvars' xs thm =
       ([], prop') => equal_elim (reflexive (cterm_of thy prop')) thm
     | _ => error "More names than abstractions in theorem"
   end;
-
-
-(* var indexes *)
-
-fun incr_indexes th = Thm.incr_indexes (Thm.maxidx_of th + 1);
-
-fun incr_indexes2 th1 th2 =
-  Thm.incr_indexes (Int.max (Thm.maxidx_of th1, Thm.maxidx_of th2) + 1);
-
-fun th1 INCR_COMP th2 = incr_indexes th2 th1 COMP th2;
-fun th1 COMP_INCR th2 = th1 COMP incr_indexes th1 th2;
 
 
 
