@@ -13,6 +13,7 @@ sig
   val target_of: local_theory -> Proof.context
   val raw_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
+  val full_name: local_theory -> bstring -> string
   val theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val theory: (theory -> theory) -> local_theory -> local_theory
   val target_result: (Proof.context -> 'a * Proof.context) -> local_theory -> 'a * local_theory
@@ -117,6 +118,13 @@ fun raw_theory_result f lthy =
   in (res, lthy') end;
 
 fun raw_theory f = #2 o raw_theory_result (f #> pair ());
+
+fun full_name lthy =
+  let
+    val naming = Sign.naming_of (ProofContext.theory_of lthy)
+      |> NameSpace.sticky_prefix (#theory_prefix (get_lthy lthy))
+      |> NameSpace.qualified_names;
+  in NameSpace.full naming end;  
 
 fun theory_result f lthy = lthy |> raw_theory_result (fn thy => thy
   |> Sign.sticky_prefix (#theory_prefix (get_lthy lthy))
