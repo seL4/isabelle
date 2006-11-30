@@ -183,7 +183,7 @@ fun import_export_proof ctxt (name, raw_th) =
       |> Drule.zero_var_indexes_list;
 
     (*thm definition*)
-    val result = PureThy.name_thm true (name, th'');
+    val result = PureThy.name_thm true (name, Goal.close_result th'');
 
     (*import fixes*)
     val (tvars, vars) =
@@ -202,16 +202,14 @@ fun import_export_proof ctxt (name, raw_th) =
       (case SINGLE (Seq.INTERVAL assm_tac 1 nprems) result' of
         NONE => raise THM ("Failed to re-import result", 0, [result'])
       | SOME res => res) COMP (concl_conv COMP_INCR Drule.equal_elim_rule2)
-      |> Goal.norm_result
-      |> Goal.close_result;
+      |> Goal.norm_result;
 
-    val _ = result'' COMP (th COMP_INCR Drule.remdups_rl);  (* FIXME *)
   in (result'', result) end;
 
 fun import_export ctxt (_, raw_th) =
   let
     val thy_ctxt = ProofContext.init (ProofContext.theory_of ctxt);
-    val result'' = Goal.close_result (Goal.norm_result raw_th);
+    val result'' = Goal.norm_result raw_th;
     val result = Goal.norm_result (singleton (ProofContext.export ctxt thy_ctxt) result'');
   in (result'', result) end;
 
@@ -222,7 +220,7 @@ fun notes loc kind facts lthy =
 
     val facts' = facts
       |> map (fn (a, bs) => (a, PureThy.burrow_fact (PureThy.name_multi (fst a)) bs))
-      |> PureThy.map_facts (import_export lthy);
+      |> PureThy.map_facts (import_export lthy);   (* FIXME import_export_proof *)
     val local_facts = PureThy.map_facts #1 facts'
       |> Attrib.map_facts (Attrib.attribute_i thy);
     val target_facts = PureThy.map_facts #1 facts'
@@ -259,7 +257,7 @@ val declaration = target_decl Locale.add_declaration;
 
 fun target_morphism loc lthy =
   ProofContext.export_morphism lthy (LocalTheory.target_of lthy) $>
-  Morphism.thm_morphism (Goal.close_result o Goal.norm_result);
+  Morphism.thm_morphism Goal.norm_result;
 
 fun target_name "" lthy = Sign.full_name (ProofContext.theory_of lthy)
   | target_name _ lthy = ProofContext.full_name (LocalTheory.target_of lthy);
