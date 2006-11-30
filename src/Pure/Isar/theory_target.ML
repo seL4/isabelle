@@ -73,40 +73,8 @@ fun consts is_loc depends decls lthy =
   in
     lthy'
     |> is_loc ? LocalTheory.abbrevs Syntax.default_mode abbrs
-    |> LocalDefs.add_defs defs
-    |>> map (apsnd snd)
+    |> LocalDefs.add_defs defs |>> map (apsnd snd)
   end;
-
-
-(* axioms *)
-
-local
-
-fun add_axiom hyps (name, prop) thy =
-  let
-    val name' = if name = "" then "axiom_" ^ serial_string () else name;
-    val prop' = Logic.list_implies (hyps, prop);
-    val thy' = thy |> Theory.add_axioms_i [(name', prop')];
-    val axm = Drule.unvarify (Thm.get_axiom_i thy' (Sign.full_name thy' name'));
-    val prems = map (Thm.assume o Thm.cterm_of thy') hyps;
-  in (Drule.implies_elim_list axm prems, thy') end;
-
-in
-
-fun axioms kind specs lthy =
-  let
-    val hyps = map Thm.term_of (Assumption.assms_of lthy);
-    fun axiom ((name, atts), props) thy = thy
-      |> fold_map (add_axiom hyps) (PureThy.name_multi name props)
-      |-> (fn ths => pair ((name, atts), [(ths, [])]));
-  in
-    lthy
-    |> fold (fold Variable.declare_term o snd) specs
-    |> LocalTheory.theory_result (fold_map axiom specs)
-    |-> LocalTheory.notes kind
-  end;
-
-end;
 
 
 (* defs *)
@@ -114,6 +82,7 @@ end;
 local
 
 infix also;
+
 fun eq1 also eq2 =
   eq2 COMP (eq1 COMP (Drule.incr_indexes2 eq1 eq2 transitive_thm));
 
@@ -159,61 +128,118 @@ fun defs kind args lthy0 =
 end;
 
 
+(* axioms *)
+
+local
+
+fun add_axiom hyps (name, prop) thy =
+  let
+    val name' = if name = "" then "axiom_" ^ serial_string () else name;
+    val prop' = Logic.list_implies (hyps, prop);
+    val thy' = thy |> Theory.add_axioms_i [(name', prop')];
+    val axm = Drule.unvarify (Thm.get_axiom_i thy' (Sign.full_name thy' name'));
+    val prems = map (Thm.assume o Thm.cterm_of thy') hyps;
+  in (Drule.implies_elim_list axm prems, thy') end;
+
+in
+
+fun axioms kind specs lthy =
+  let
+    val hyps = map Thm.term_of (Assumption.assms_of lthy);
+    fun axiom ((name, atts), props) thy = thy
+      |> fold_map (add_axiom hyps) (PureThy.name_multi name props)
+      |-> (fn ths => pair ((name, atts), [(ths, [])]));
+  in
+    lthy
+    |> fold (fold Variable.declare_term o snd) specs
+    |> LocalTheory.theory_result (fold_map axiom specs)
+    |-> LocalTheory.notes kind
+  end;
+
+end;
+
+
 (* notes *)
 
-(* FIXME
-fun import_export inner outer (name, raw_th) =
+fun import_export_proof ctxt (name, raw_th) =
   let
-    val th = norm_hhf_protect raw_th;
-    val (defs, th') = LocalDefs.export inner outer th;
-    val n = Thm.nprems_of th' - Thm.nprems_of th;
+    val thy = ProofContext.theory_of ctxt;
+    val thy_ctxt = ProofContext.init thy;
+    val certT = Thm.ctyp_of thy;
+    val cert = Thm.cterm_of thy;
 
-    val result = PureThy.name_thm true (name, th');  (* FIXME proper thm definition!? *)
-
+    (*export assumes/defines*)
+    val th = Goal.norm_result raw_th;
+    val (defs, th') = LocalDefs.export ctxt thy_ctxt th;
     val concl_conv = Tactic.rewrite true defs (Thm.cprop_of th);
-    val assms = map (Tactic.rewrite_rule defs o Thm.assume) (Assumption.assms_of inner);
+    val assms = map (Tactic.rewrite_rule defs o Thm.assume) (Assumption.assms_of ctxt);
+    val nprems = Thm.nprems_of th' - Thm.nprems_of th;
+
+    (*export fixes*)
+    val tfrees = map TFree (Drule.fold_terms Term.add_tfrees th' []);
+    val frees = map Free (Drule.fold_terms Term.add_frees th' []);
+    val (th'' :: vs) = (th' :: map (Drule.mk_term o cert) (map Logic.mk_type tfrees @ frees))
+      |> Variable.export ctxt thy_ctxt
+      |> Drule.zero_var_indexes_list;
+
+    (*thm definition*)
+    val result = PureThy.name_thm true (name, th'');
+
+    (*import fixes*)
+    val (tvars, vars) =
+      chop (length tfrees) (map (Thm.term_of o Drule.dest_term) vs)
+      |>> map Logic.dest_type;
+
+    val instT = map_filter (fn (TVar v, T) => SOME (v, T) | _ => NONE) (tvars ~~ tfrees);
+    val inst = filter (is_Var o fst) (vars ~~ frees);
+    val cinstT = map (pairself certT o apfst TVar) instT;
+    val cinst = map (pairself (cert o Term.map_types (TermSubst.instantiateT instT))) inst;
+    val result' = Thm.instantiate (cinstT, cinst) result;
+
+    (*import assumes/defines*)
     val assm_tac = FIRST' (map (fn assm => Tactic.compose_tac (false, assm, 0)) assms);
-    val reimported_result =
-      (case SINGLE (Seq.INTERVAL assm_tac 1 n) result of
-        NONE => raise THM ("Failed to re-import result", 0, [result])
-      | SOME res => res) COMP (concl_conv COMP_INCR Drule.equal_elim_rule2);
-    val _ = reimported_result COMP (th COMP_INCR Drule.remdups_rl) handle THM _ =>
-      (warning "FIXME"; asm_rl);
-  in (reimported_result, result) end;
-*)
-fun import_export inner outer (_, th) =
-  (singleton (ProofContext.standard inner) th, Assumption.export false inner outer th);
+    val result'' =
+      (case SINGLE (Seq.INTERVAL assm_tac 1 nprems) result' of
+        NONE => raise THM ("Failed to re-import result", 0, [result'])
+      | SOME res => res) COMP (concl_conv COMP_INCR Drule.equal_elim_rule2)
+      |> Goal.norm_result
+      |> Goal.close_result;
+
+    val _ = result'' COMP (th COMP_INCR Drule.remdups_rl);  (* FIXME *)
+  in (result'', result) end;
+
+fun import_export ctxt (_, raw_th) =
+  let
+    val thy_ctxt = ProofContext.init (ProofContext.theory_of ctxt);
+    val result'' = Goal.close_result (Goal.norm_result raw_th);
+    val result = Goal.norm_result (singleton (ProofContext.export ctxt thy_ctxt) result'');
+  in (result'', result) end;
 
 fun notes loc kind facts lthy =
   let
     val is_loc = loc <> "";
     val thy = ProofContext.theory_of lthy;
-    val thy_ctxt = ProofContext.init thy;
 
     val facts' = facts
       |> map (fn (a, bs) => (a, PureThy.burrow_fact (PureThy.name_multi (fst a)) bs))
-      |> PureThy.map_facts (import_export lthy thy_ctxt);
-    val local_facts = facts'
-      |> PureThy.map_facts #1
-      |> Element.facts_map (Element.morph_ctxt (Morphism.thm_morphism Drule.local_standard));
-    val global_facts = facts'
-      |> PureThy.map_facts #2
-      |> Element.generalize_facts lthy thy_ctxt
-      |> PureThy.map_facts Drule.local_standard
+      |> PureThy.map_facts (import_export lthy);
+    val local_facts = PureThy.map_facts #1 facts'
+      |> Attrib.map_facts (Attrib.attribute_i thy);
+    val target_facts = PureThy.map_facts #1 facts'
+      |> is_loc ? Element.facts_map (Element.morph_ctxt (LocalTheory.target_morphism lthy));
+    val global_facts = PureThy.map_facts #2 facts'
       |> Attrib.map_facts (if is_loc then K I else Attrib.attribute_i thy);
   in
-    lthy |> LocalTheory.theory (fn thy => thy
-      |> Sign.qualified_names
-      |> PureThy.note_thmss_i kind global_facts |> #2
-      |> Sign.restore_naming thy)
+    lthy |> LocalTheory.theory
+      (Sign.qualified_names
+        #> PureThy.note_thmss_i kind global_facts #> snd
+        #> Sign.restore_naming thy)
 
-    |> is_loc ? (fn lthy' => lthy' |> LocalTheory.target
-      (Locale.add_thmss loc kind
-        (Element.facts_map (Element.morph_ctxt (LocalTheory.target_morphism lthy')) local_facts)))
+    |> is_loc ? LocalTheory.target (Locale.add_thmss loc kind target_facts)
 
     |> ProofContext.set_stmt true
     |> ProofContext.qualified_names
-    |> ProofContext.note_thmss_i kind (Attrib.map_facts (Attrib.attribute_i thy) local_facts)
+    |> ProofContext.note_thmss_i kind local_facts
     ||> ProofContext.restore_naming lthy
     ||> ProofContext.restore_stmt lthy
   end;
@@ -221,19 +247,19 @@ fun notes loc kind facts lthy =
 
 (* target declarations *)
 
-fun decl _ "" f =
+fun target_decl _ "" f =
       LocalTheory.theory (Context.theory_map (f Morphism.identity)) #>
       LocalTheory.target (Context.proof_map (f Morphism.identity))
-  | decl add loc f =
+  | target_decl add loc f =
       LocalTheory.target (add loc (Context.proof_map o f));
 
-val type_syntax = decl Locale.add_type_syntax;
-val term_syntax = decl Locale.add_term_syntax;
-val declaration = decl Locale.add_declaration;
+val type_syntax = target_decl Locale.add_type_syntax;
+val term_syntax = target_decl Locale.add_term_syntax;
+val declaration = target_decl Locale.add_declaration;
 
 fun target_morphism loc lthy =
   ProofContext.export_morphism lthy (LocalTheory.target_of lthy) $>
-  Morphism.thm_morphism Drule.local_standard;
+  Morphism.thm_morphism (Goal.close_result o Goal.norm_result);
 
 fun target_name "" lthy = Sign.full_name (ProofContext.theory_of lthy)
   | target_name _ lthy = ProofContext.full_name (LocalTheory.target_of lthy);
