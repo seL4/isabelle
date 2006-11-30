@@ -70,8 +70,6 @@ sig
   val read_const: Proof.context -> string -> term
   val goal_export: Proof.context -> Proof.context -> thm list -> thm list
   val export: Proof.context -> Proof.context -> thm list -> thm list
-  val export_standard: Proof.context -> Proof.context -> thm list -> thm list
-  val standard: Proof.context -> thm list -> thm list
   val export_morphism: Proof.context -> Proof.context -> morphism
   val add_binds: (indexname * string option) list -> Proof.context -> Proof.context
   val add_binds_i: (indexname * term option) list -> Proof.context -> Proof.context
@@ -572,9 +570,7 @@ fun read_const ctxt c =
 
 
 
-(** export theorems **)
-
-(* rules *)
+(** export results **)
 
 fun common_export is_goal inner outer =
   map (Assumption.export is_goal inner outer) #>
@@ -582,14 +578,6 @@ fun common_export is_goal inner outer =
 
 val goal_export = common_export true;
 val export = common_export false;
-
-fun export_standard inner outer =
-  export inner outer #> map Drule.local_standard;
-
-fun standard ctxt = export_standard ctxt ctxt;
-
-
-(* morphisms *)
 
 fun export_morphism inner outer =
   Assumption.export_morphism inner outer $>
