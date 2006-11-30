@@ -206,21 +206,15 @@ fun import_export_proof ctxt (name, raw_th) =
 
   in (result'', result) end;
 
-fun import_export ctxt (_, raw_th) =
-  let
-    val thy_ctxt = ProofContext.init (ProofContext.theory_of ctxt);
-    val result'' = Goal.norm_result raw_th;
-    val result = Goal.norm_result (singleton (ProofContext.export ctxt thy_ctxt) result'');
-  in (result'', result) end;
-
 fun notes loc kind facts lthy =
   let
     val is_loc = loc <> "";
     val thy = ProofContext.theory_of lthy;
+    val full = LocalTheory.full_name lthy;
 
     val facts' = facts
-      |> map (fn (a, bs) => (a, PureThy.burrow_fact (PureThy.name_multi (fst a)) bs))
-      |> PureThy.map_facts (import_export lthy);   (* FIXME import_export_proof *)
+      |> map (fn (a, bs) => (a, PureThy.burrow_fact (PureThy.name_multi (full (fst a))) bs))
+      |> PureThy.map_facts (import_export_proof lthy);
     val local_facts = PureThy.map_facts #1 facts'
       |> Attrib.map_facts (Attrib.attribute_i thy);
     val target_facts = PureThy.map_facts #1 facts'
