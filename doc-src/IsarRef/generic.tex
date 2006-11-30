@@ -23,18 +23,20 @@ than the underlying primitives of $\CONSTS$, $\DEFS$ (see
 available, and result names need not be given.
 
 \begin{rail}
-  'axiomatization' target? consts? ('where' specs)?
+  'axiomatization' target? fixes? ('where' specs)?
   ;
-  'definition' target? (constdecl? constdef +)
+  'definition' target? (decl 'where')? thmdecl? prop
   ;
-  'abbreviation' target? mode? (constdecl? prop +)
+  'abbreviation' target? mode? (decl 'where')? prop
   ;
   'notation' target? mode? (nameref mixfix + 'and')
   ;
 
-  consts: ((name ('::' type)? structmixfix? | vars) + 'and')
+  fixes: ((name ('::' type)? mixfix? | vars) + 'and')
   ;
   specs: (thmdecl? props + 'and')
+  ;
+  decl: name ('::' type)? mixfix?
   ;
 \end{rail}
 

@@ -256,7 +256,7 @@ in [
 subsection {* Combinators *}
 
 definition
-  lift :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c \<Rightarrow> 'b \<times> 'c"
+  lift :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c \<Rightarrow> 'b \<times> 'c" where
   "lift f x = return (f x)"
 
 fun

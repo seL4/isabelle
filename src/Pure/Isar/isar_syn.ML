@@ -188,32 +188,43 @@ val defsP =
       >> (Toplevel.theory o IsarCmd.add_defs));
 
 
-(* constant definitions and abbreviations *)
+(* old constdefs *)
 
-val constdecl =
-  (P.name --| P.$$$ "where") >> (fn x => (x, NONE, NoSyn)) ||
-    P.name -- (P.$$$ "::" |-- P.!!! P.typ >> SOME) -- P.opt_mixfix'
-      --| Scan.option (P.$$$ "where") >> P.triple1 ||
-    P.name -- (P.mixfix >> pair NONE) --| Scan.option (P.$$$ "where") >> P.triple2;
+val old_constdecl =
+  P.name --| P.where_ >> (fn x => (x, NONE, NoSyn)) ||
+  P.name -- (P.$$$ "::" |-- P.!!! P.typ >> SOME) -- P.opt_mixfix'
+    --| Scan.option P.where_ >> P.triple1 ||
+  P.name -- (P.mixfix >> pair NONE) --| Scan.option P.where_ >> P.triple2;
 
-val constdef = Scan.option constdecl -- (P.opt_thm_name ":" -- P.prop);
+val old_constdef = Scan.option old_constdecl -- (P.opt_thm_name ":" -- P.prop);
 
 val structs =
   Scan.optional ((P.$$$ "(" -- P.$$$ "structure") |-- P.!!! (P.simple_fixes --| P.$$$ ")")) [];
 
 val constdefsP =
   OuterSyntax.command "constdefs" "old-style constant definition" K.thy_decl
-    (structs -- Scan.repeat1 constdef >> (Toplevel.theory o Constdefs.add_constdefs));
+    (structs -- Scan.repeat1 old_constdef >> (Toplevel.theory o Constdefs.add_constdefs));
+
+
+(* constant definitions and abbreviations *)
+
+val constdecl =
+  P.name --
+    (P.where_ >> K (NONE, NoSyn) ||
+      P.$$$ "::" |-- P.!!! ((P.typ >> SOME) -- P.opt_mixfix' --| P.where_) ||
+      Scan.ahead (P.$$$ "(") |-- P.!!! (P.mixfix' --| P.where_ >> pair NONE))
+  >> P.triple2;
+
+val constdef = Scan.option constdecl -- (P.opt_thm_name ":" -- P.prop);
 
 val definitionP =
   OuterSyntax.command "definition" "constant definition" K.thy_decl
-    (P.opt_locale_target -- Scan.repeat1 constdef
+    (P.opt_locale_target -- (constdef >> single)
     >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.definition args)));
 
 val abbreviationP =
   OuterSyntax.command "abbreviation" "constant abbreviation" K.thy_decl
-    (P.opt_locale_target -- opt_mode --
-      Scan.repeat1 (Scan.option constdecl -- P.prop)
+    (P.opt_locale_target -- opt_mode -- (Scan.option constdecl -- P.prop >> single)
     >> (fn ((loc, mode), args) =>
         Toplevel.local_theory loc (Specification.abbreviation mode args)));
 
@@ -230,7 +241,7 @@ val axiomatizationP =
   OuterSyntax.command "axiomatization" "axiomatic constant specification" K.thy_decl
     (P.opt_locale_target --
      (Scan.optional P.fixes [] --
-      Scan.optional (P.$$$ "where" |-- P.!!! (P.and_list1 P.spec)) [])
+      Scan.optional (P.where_ |-- P.!!! (P.and_list1 P.spec)) [])
     >> (fn (loc, (x, y)) => Toplevel.local_theory loc (#2 o Specification.axiomatization x y)));
 
 
@@ -481,7 +492,7 @@ val defP =
 val obtainP =
   OuterSyntax.command "obtain" "generalized existence"
     (K.tag_proof K.prf_asm_goal)
-    (P.parname -- Scan.optional (P.fixes --| P.$$$ "where") [] -- P.statement
+    (P.parname -- Scan.optional (P.fixes --| P.where_) [] -- P.statement
       >> (fn ((x, y), z) => Toplevel.print o Toplevel.proof' (Obtain.obtain x y z)));
 
 val guessP =
