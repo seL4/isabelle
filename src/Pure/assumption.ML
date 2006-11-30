@@ -47,7 +47,7 @@ fun assume_export true = Drule.implies_intr_protected
 *)
 fun presume_export _ = assume_export false;
 
-val assume = norm_hhf o Thm.assume;
+val assume = MetaSimplifier.norm_hhf o Thm.assume;
 
 
 
@@ -100,9 +100,9 @@ fun add_view outer view = map_data (fn (asms, prems) =>
 
 fun export is_goal inner outer =
   let val asms = Library.drop (length (assumptions_of outer), assumptions_of inner) in
-    norm_hhf_protect
+    MetaSimplifier.norm_hhf_protect
     #> fold_rev (fn (e, As) => e is_goal As) asms
-    #> norm_hhf_protect
+    #> MetaSimplifier.norm_hhf_protect
   end;
 
 fun export_morphism inner outer =

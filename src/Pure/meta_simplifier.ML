@@ -72,8 +72,6 @@ sig
   val addSSolver: simpset * solver -> simpset
   val setSolver: simpset * solver -> simpset
   val addSolver: simpset * solver -> simpset
-  val norm_hhf: thm -> thm
-  val norm_hhf_protect: thm -> thm
 end;
 
 signature META_SIMPLIFIER =
@@ -104,6 +102,8 @@ sig
   val rewrite_goals_rule_aux: (simpset -> thm -> thm option) -> thm list -> thm -> thm
   val rewrite_goal_rule: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> int -> thm -> thm
+  val norm_hhf: thm -> thm
+  val norm_hhf_protect: thm -> thm
 end;
 
 structure MetaSimplifier: META_SIMPLIFIER =

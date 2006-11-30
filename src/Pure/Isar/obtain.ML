@@ -187,7 +187,7 @@ fun result tac facts ctxt =
     val rule =
       (case SINGLE (Method.insert_tac facts 1 THEN tac thesis_ctxt) (Goal.init (cert thesis)) of
         NONE => raise THM ("Obtain.result: tactic failed", 0, facts)
-      | SOME th => check_result ctxt thesis (norm_hhf (Goal.conclude th)));
+      | SOME th => check_result ctxt thesis (MetaSimplifier.norm_hhf (Goal.conclude th)));
 
     val closed_rule = Thm.forall_intr (cert (Free thesis_var)) rule;
     val ((_, [rule']), ctxt') = Variable.import false [closed_rule] ctxt;
@@ -292,7 +292,7 @@ fun gen_guess prep_vars raw_vars int state =
     val goal = Var (("guess", 0), propT);
     fun print_result ctxt' (k, [(s, [_, th])]) =
       ProofDisplay.print_results int ctxt' (k, [(s, [th])]);
-    val before_qed = SOME (Method.primitive_text (Goal.conclude #> norm_hhf #>
+    val before_qed = SOME (Method.primitive_text (Goal.conclude #> MetaSimplifier.norm_hhf #>
         (fn th => Goal.protect (Conjunction.intr (Drule.mk_term (Thm.cprop_of th)) th))));
     fun after_qed [[_, res]] =
       Proof.end_block #> guess_context (check_result ctxt thesis res) #> Seq.single;

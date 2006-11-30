@@ -245,7 +245,7 @@ fun pretty_statement ctxt kind raw_th =
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
-    val th = norm_hhf raw_th;
+    val th = MetaSimplifier.norm_hhf raw_th;
     val is_elim = ObjectLogic.is_elim th;
 
     val ((_, [th']), ctxt') = Variable.import true [th] ctxt;
@@ -291,7 +291,7 @@ fun prove_witness ctxt t tac =
   Witness (t, Goal.prove ctxt [] [] (Logic.protect t) (fn _ =>
     Tactic.rtac Drule.protectI 1 THEN tac));
 
-fun conclude_witness (Witness (_, th)) = norm_hhf (Goal.conclude th);
+fun conclude_witness (Witness (_, th)) = MetaSimplifier.norm_hhf_protect (Goal.conclude th);
 
 val mark_witness = Logic.protect;
 
