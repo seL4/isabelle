@@ -354,7 +354,7 @@ fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
     Proof.theorem_i NONE
       (fn thss => ProofContext.theory (fn thy =>
          let
-           val simps = flat thss;
+           val simps = map standard (flat thss);
            val (simps', thy') =
              fold_map note ((map fst eqns ~~ atts) ~~ map single simps) thy;
            val simps'' = maps snd simps'
