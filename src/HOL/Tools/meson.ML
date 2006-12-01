@@ -210,11 +210,13 @@ fun signed_nclauses b (Const("Trueprop",_) $ t) = signed_nclauses b t
   | signed_nclauses b (Const("op -->",_) $ t $ u) = 
       if b then prod (signed_nclauses (not b) t) (signed_nclauses b u)
            else sum (signed_nclauses (not b) t) (signed_nclauses b u)
-  | signed_nclauses b (Const("op =",_) $ t $ u) = 
-      if b then sum (prod (signed_nclauses (not b) t) (signed_nclauses b u))
-                    (prod (signed_nclauses (not b) u) (signed_nclauses b t))
-           else sum (prod (signed_nclauses b t) (signed_nclauses b u))
-                    (prod (signed_nclauses (not b) t) (signed_nclauses (not b) u))
+  | signed_nclauses b (Const("op =", Type ("fun", [T, _])) $ t $ u) = 
+      if T = HOLogic.boolT then (*Boolean equality is if-and-only-if*)
+	  if b then sum (prod (signed_nclauses (not b) t) (signed_nclauses b u))
+			(prod (signed_nclauses (not b) u) (signed_nclauses b t))
+	       else sum (prod (signed_nclauses b t) (signed_nclauses b u))
+			(prod (signed_nclauses (not b) t) (signed_nclauses (not b) u))
+      else 1 
   | signed_nclauses b (Const("Ex", _) $ Abs (_,_,t)) = signed_nclauses b t
   | signed_nclauses b (Const("All",_) $ Abs (_,_,t)) = signed_nclauses b t
   | signed_nclauses _ _ = 1; (* literal *)
