@@ -806,8 +806,8 @@ fun gen_note_thmss get k = fold_map (fn ((bname, more_attrs), raw_facts) => fn c
 
 in
 
-val note_thmss = gen_note_thmss get_thms;
-val note_thmss_i = gen_note_thmss (K I);
+fun note_thmss k = gen_note_thmss get_thms k;
+fun note_thmss_i k = gen_note_thmss (K I) k;
 
 end;
 
