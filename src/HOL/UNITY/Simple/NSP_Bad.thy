@@ -104,6 +104,7 @@ done
 text{*This ML code does the inductions directly.*}
 ML{*
 val ns_constrainsI = thm "ns_constrainsI";
+val impCE = thm "impCE";
 
 fun ns_constrains_tac(cs,ss) i =
    SELECT_GOAL

@@ -402,15 +402,14 @@ lemmas analz_image_freshK_simps =
        insert_Key_singleton 
        Key_not_used insert_Key_image Un_assoc [THEN sym]
 
-ML
-{*
+ML {*
 val analz_image_freshK_lemma = thm "analz_image_freshK_lemma";
 val analz_image_freshK_simps = thms "analz_image_freshK_simps";
+val imp_disjL = thm "imp_disjL";
 
-val analz_image_freshK_ss = 
-     simpset() delsimps [image_insert, image_Un]
-	       delsimps [imp_disjL]    (*reduces blow-up*)
-	       addsimps thms "analz_image_freshK_simps"
+val analz_image_freshK_ss = simpset() delsimps [image_insert, image_Un]
+  delsimps [imp_disjL]    (*reduces blow-up*)
+  addsimps thms "analz_image_freshK_simps"
 *}
 
 method_setup analz_freshK = {*

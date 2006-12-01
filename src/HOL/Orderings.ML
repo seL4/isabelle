@@ -1,21 +1,6 @@
 (* legacy ML bindings *)
 
-val order_eq_refl = thm "order_eq_refl";
 val order_less_irrefl = thm "order_less_irrefl";
-val order_le_less = thm "order_le_less";
-val order_le_imp_less_or_eq = thm "order_le_imp_less_or_eq";
-val order_less_imp_le = thm "order_less_imp_le";
-val order_less_not_sym = thm "order_less_not_sym";
-val order_less_asym = thm "order_less_asym";
-val order_less_trans = thm "order_less_trans";
-val order_le_less_trans = thm "order_le_less_trans";
-val order_less_le_trans = thm "order_less_le_trans";
-val order_less_imp_not_less = thm "order_less_imp_not_less";
-val order_less_imp_triv = thm "order_less_imp_triv";
-val order_less_imp_not_eq = thm "order_less_imp_not_eq";
-val order_less_imp_not_eq2 = thm "order_less_imp_not_eq2";
-val linorder_less_linear = thm "linorder_less_linear";
-val linorder_cases = thm "linorder_cases";
 val linorder_not_less = thm "linorder_not_less";
 val linorder_not_le = thm "linorder_not_le";
 val linorder_neq_iff = thm "linorder_neq_iff";
@@ -23,8 +8,10 @@ val linorder_neqE = thm "linorder_neqE";
 val order_refl = thm "order_refl";
 val order_trans = thm "order_trans";
 val order_antisym = thm "order_antisym";
-val order_less_le = thm "order_less_le";
-val linorder_linear = thm "linorder_linear";
 val mono_def = thm "mono_def";
 val monoI = thm "monoI";
 val monoD = thm "monoD";
+val max_less_iff_conj = thm "max_less_iff_conj";
+val min_less_iff_conj = thm "min_less_iff_conj";
+val split_min = thm "split_min";
+val split_max = thm "split_max";

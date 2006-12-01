@@ -213,6 +213,7 @@ local
       val conj = foldr1 mk_conj (eqn :: map (defined o %:) (nonlazy args));
     in Library.foldr mk_ex (vns, conj) end;
 
+  val conj_assoc = thm "conj_assoc";
   val exh = foldr1 mk_disj ((%:x_name === UU) :: map one_con cons);
   val thm1 = instantiate' [SOME (cons2ctyp cons)] [] exh_start;
   val thm2 = rewrite_rule (map mk_meta_eq ex_defined_iffs) thm1;
@@ -350,6 +351,7 @@ in
 end;
 
 local
+  val rev_contrapos = thm "rev_contrapos";
   fun con_strict (con, args) = 
     let
       fun one_strict vn =
@@ -457,6 +459,7 @@ in
 end;
 
 val sel_rews = sel_stricts @ sel_defins @ sel_apps;
+val rev_contrapos = thm "rev_contrapos";
 
 val distincts_le =
   let
