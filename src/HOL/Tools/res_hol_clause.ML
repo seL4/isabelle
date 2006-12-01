@@ -141,17 +141,6 @@ fun to_comb (Abs(x,tp,b)) bnds =
       lam2comb (Abs(x, tp, to_comb b (tp::bnds))) bnds 
   | to_comb (P $ Q) bnds = (to_comb P bnds) $ (to_comb Q bnds)
   | to_comb t _ = t;
-    
-(* print a term containing combinators, used for debugging *)
-exception TERM_COMB of term;
-
-fun string_of_term (Const(c,t)) = c
-  | string_of_term (Free(v,t)) = v
-  | string_of_term (Var((x,n),t)) = x ^ "_" ^ (string_of_int n)
-  | string_of_term (P $ Q) =
-      "(" ^ string_of_term P ^ " " ^ string_of_term Q ^ ")" 
-  | string_of_term t =  raise TERM_COMB (t);
-
 
 
 (******************************************************)
