@@ -377,7 +377,7 @@ fun make_size descr sorts thy =
         val ts = map (fn ((r, s), T) => List.nth (size_consts, dest_DtRec r) $
           Free (s, T)) (recs ~~ rec_tnames ~~ recTs);
         val t = if ts = [] then HOLogic.zero else
-          foldl1 plus (ts @ [HOLogic.mk_nat 1])
+          foldl1 plus (ts @ [HOLogic.Suc_zero])
       in
         HOLogic.mk_Trueprop (HOLogic.mk_eq (size_const $
           list_comb (Const (cname, Ts ---> T), map Free (tnames ~~ Ts)), t))

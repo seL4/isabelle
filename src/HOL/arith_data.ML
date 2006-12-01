@@ -16,7 +16,6 @@ struct
 
 (* mk_sum, mk_norm_sum *)
 
-val one = HOLogic.mk_nat 1;
 val mk_plus = HOLogic.mk_binop "HOL.plus";
 
 fun mk_sum [] = HOLogic.zero
@@ -25,7 +24,7 @@ fun mk_sum [] = HOLogic.zero
 
 (*normal form of sums: Suc (... (Suc (a + (b + ...))))*)
 fun mk_norm_sum ts =
-  let val (ones, sums) = List.partition (equal one) ts in
+  let val (ones, sums) = List.partition (equal HOLogic.Suc_zero) ts in
     funpow (length ones) HOLogic.mk_Suc (mk_sum sums)
   end;
 
@@ -37,7 +36,7 @@ fun dest_sum tm =
   if HOLogic.is_zero tm then []
   else
     (case try HOLogic.dest_Suc tm of
-      SOME t => one :: dest_sum t
+      SOME t => HOLogic.Suc_zero :: dest_sum t
     | NONE =>
         (case try dest_plus tm of
           SOME (t, u) => dest_sum t @ dest_sum u

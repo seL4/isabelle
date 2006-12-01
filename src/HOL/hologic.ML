@@ -43,13 +43,13 @@ sig
   val list_all: (string * typ) list * term -> term
   val mk_exists: string * typ * term -> term
   val mk_Collect: string * typ * term -> term
-  val class_eq: string
   val mk_mem: term * term -> term
   val dest_mem: term -> term * term
   val mk_UNIV: typ -> term
   val mk_binop: string -> term * term -> term
   val mk_binrel: string -> term * term -> term
   val dest_bin: string -> typ -> term -> term * term
+  val class_eq: string
   val unitT: typ
   val is_unitT: typ -> bool
   val unit: term
@@ -70,8 +70,9 @@ sig
   val is_zero: term -> bool
   val mk_Suc: term -> term
   val dest_Suc: term -> term
-  val mk_nat: int -> term
-  val dest_nat: term -> int
+  val Suc_zero: term
+  val mk_nat: IntInf.int -> term
+  val dest_nat: term -> IntInf.int
   val intT: typ
   val mk_int: IntInf.int -> term
   val realT: typ
@@ -288,11 +289,13 @@ fun mk_Suc t = Const ("Suc", natT --> natT) $ t;
 fun dest_Suc (Const ("Suc", _) $ t) = t
   | dest_Suc t = raise TERM ("dest_Suc", [t]);
 
+val Suc_zero = mk_Suc zero;
+
 fun mk_nat 0 = zero
-  | mk_nat n = mk_Suc (mk_nat (n - 1));
+  | mk_nat n = mk_Suc (mk_nat (IntInf.- (n, 1)));
 
 fun dest_nat (Const ("HOL.zero", _)) = 0
-  | dest_nat (Const ("Suc", _) $ t) = dest_nat t + 1
+  | dest_nat (Const ("Suc", _) $ t) = IntInf.+ (dest_nat t, 1)
   | dest_nat t = raise TERM ("dest_nat", [t]);
 
 

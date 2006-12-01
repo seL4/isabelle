@@ -414,7 +414,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
         val k = length (filter is_rec_type cargs);
         val t = if k = 0 then HOLogic.zero else
-          foldl1 plus (map Bound (k - 1 downto 0) @ [HOLogic.mk_nat 1])
+          foldl1 plus (map Bound (k - 1 downto 0) @ [HOLogic.Suc_zero])
       in
         foldr (fn (T, t') => Abs ("x", T, t')) t (Ts @ replicate k HOLogic.natT)
       end;

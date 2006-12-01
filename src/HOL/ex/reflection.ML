@@ -190,7 +190,7 @@ fun mk_decompatom eqs (t,ctxt) =
 		     (AList.delete (op =) (xn,0) tml)
        val th = (instantiate 
 		     ([],
-		      [(cert vs, cvs),(cert n, t' |> index_of |> HOLogic.mk_nat |> cert)]
+		      [(cert vs, cvs),(cert n, t' |> index_of |> IntInf.fromInt |> HOLogic.mk_nat |> cert)]
 		      @cts) eq) RS sym
       in hd (Variable.export ctxt' ctxt [th])
       end)
