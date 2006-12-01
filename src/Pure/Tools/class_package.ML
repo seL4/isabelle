@@ -322,6 +322,10 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
     val mapp_sup = AList.make
       (the o AList.lookup (op =) ((flat o map (the_parm_map thy) o the_ancestry thy) supclasses))
       ((map (fst o fst) o Locale.parameters_of_expr thy) expr_supclasses);
+    fun unlocalize syn =
+      let
+        val syn' = Syntax.unlocalize_mixfix true syn;
+      in if syn = syn' then NoSyn else syn' end;
     fun extract_tyvar_consts thy name_locale =
       let
         fun extract_classvar ((c, ty), _) w =
@@ -333,7 +337,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
             | _ => error ("More than one type variable in type signature of constant " ^ quote c));
         val consts1 =
           Locale.parameters_of thy name_locale
-          |> map (apsnd (Syntax.unlocalize_mixfix true))
+          |> map (apsnd unlocalize)
         val SOME v = fold extract_classvar consts1 NONE;
         val consts2 = map ((apfst o apsnd) (subst_clsvar v (TFree (v, [])))) consts1;
       in (v, chop (length mapp_sup) consts2) end;
