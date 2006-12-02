@@ -32,7 +32,7 @@ locale (open) meta_term_syntax =
   fixes meta_term :: "'a => prop"  ("TERM _")
 
 parse_translation {*
-  [("\<^fixed>meta_term", fn [t] => Logic.mk_term t)]
+  [("\<^fixed>meta_term", fn [t] => Const ("ProtoPure.term", dummyT --> propT) $ t)]
 *}
 
 lemmas [intro?] = termI
