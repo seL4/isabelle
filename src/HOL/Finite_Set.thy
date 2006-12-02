@@ -428,7 +428,7 @@ se the definitions of sums and products over finite sets.
 *}
 
 consts
-  foldSet :: "('a => 'a => 'a) => ('b => 'a) => 'a => ('b set \<times> 'a) set"
+  foldSet :: "('a => 'b => 'b) => ('c => 'a) => 'b => ('c set \<times> 'b) set"
 
 inductive "foldSet f g z"
 intros
@@ -440,7 +440,7 @@ insertI [intro]:
 inductive_cases empty_foldSetE [elim!]: "({}, x) : foldSet f g z"
 
 constdefs
-  fold :: "('a => 'a => 'a) => ('b => 'a) => 'a => 'b set => 'a"
+  fold :: "('a => 'b => 'b) => ('c => 'a) => 'b => 'c set => 'b"
   "fold f g z A == THE x. (A, x) : foldSet f g z"
 
 text{*A tempting alternative for the definiens is
