@@ -26,6 +26,18 @@ lemma meta_spec:
 lemmas meta_allE = meta_spec [elim_format]
 
 
+subsection {* Embedded terms *}
+
+locale (open) meta_term_syntax =
+  fixes meta_term :: "'a => prop"  ("TERM _")
+
+parse_translation {*
+  [("\<^fixed>meta_term", fn [t] => Logic.mk_term t)]
+*}
+
+lemmas [intro?] = termI
+
+
 subsection {* Meta-level conjunction *}
 
 locale (open) meta_conjunction_syntax =
