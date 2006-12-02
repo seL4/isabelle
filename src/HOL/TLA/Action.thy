@@ -3,12 +3,9 @@
     ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1998 University of Munich
-
-    Theory Name: Action
-    Logic Image: HOL
-
-Define the action level of TLA as an Isabelle theory.
 *)
+
+header {* The action level of TLA as an Isabelle theory *}
 
 theory Action
 imports Stfun
@@ -75,6 +72,250 @@ axioms
 
   enabled_def:   "s |= Enabled A  ==  EX u. (s,u) |= A"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+(* The following assertion specializes "intI" for any world type
+   which is a pair, not just for "state * state".
+*)
+
+lemma actionI [intro!]:
+  assumes "!!s t. (s,t) |= A"
+  shows "|- A"
+  apply (rule assms intI prod_induct)+
+  done
+
+lemma actionD [dest]: "|- A ==> (s,t) |= A"
+  apply (erule intD)
+  done
+
+lemma pr_rews [int_rewrite]:
+  "|- (#c)` = #c"
+  "!!f. |- f<x>` = f<x` >"
+  "!!f. |- f<x,y>` = f<x`,y` >"
+  "!!f. |- f<x,y,z>` = f<x`,y`,z` >"
+  "|- (! x. P x)` = (! x. (P x)`)"
+  "|- (? x. P x)` = (? x. (P x)`)"
+  by (rule actionI, unfold unl_after intensional_rews, rule refl)+
+
+
+lemmas act_rews [simp] = unl_before unl_after unchanged_def pr_rews
+
+lemmas action_rews = act_rews intensional_rews
+
+
+(* ================ Functions to "unlift" action theorems into HOL rules ================ *)
+
+ML {*
+(* The following functions are specialized versions of the corresponding
+   functions defined in Intensional.ML in that they introduce a
+   "world" parameter of the form (s,t) and apply additional rewrites.
+*)
+local
+  val action_rews = thms "action_rews";
+  val actionD = thm "actionD";
+in
+
+fun action_unlift th =
+  (rewrite_rule action_rews (th RS actionD))
+    handle THM _ => int_unlift th;
+
+(* Turn  |- A = B  into meta-level rewrite rule  A == B *)
+val action_rewrite = int_rewrite
+
+fun action_use th =
+    case (concl_of th) of
+      Const _ $ (Const ("Intensional.Valid", _) $ _) =>
+              (flatten (action_unlift th) handle THM _ => th)
+    | _ => th;
+
+end
+*}
+
+setup {*
+  Attrib.add_attributes [
+    ("action_unlift", Attrib.no_args (Thm.rule_attribute (K action_unlift)), ""),
+    ("action_rewrite", Attrib.no_args (Thm.rule_attribute (K action_rewrite)), ""),
+    ("action_use", Attrib.no_args (Thm.rule_attribute (K action_use)), "")]
+*}
+
+
+(* =========================== square / angle brackets =========================== *)
+
+lemma idle_squareI: "(s,t) |= unchanged v ==> (s,t) |= [A]_v"
+  by (simp add: square_def)
+
+lemma busy_squareI: "(s,t) |= A ==> (s,t) |= [A]_v"
+  by (simp add: square_def)
+  
+lemma squareE [elim]:
+  "[| (s,t) |= [A]_v; A (s,t) ==> B (s,t); v t = v s ==> B (s,t) |] ==> B (s,t)"
+  apply (unfold square_def action_rews)
+  apply (erule disjE)
+  apply simp_all
+  done
+
+lemma squareCI [intro]: "[| v t ~= v s ==> A (s,t) |] ==> (s,t) |= [A]_v"
+  apply (unfold square_def action_rews)
+  apply (rule disjCI)
+  apply (erule (1) meta_mp)
+  done
+
+lemma angleI [intro]: "!!s t. [| A (s,t); v t ~= v s |] ==> (s,t) |= <A>_v"
+  by (simp add: angle_def)
+
+lemma angleE [elim]: "[| (s,t) |= <A>_v; [| A (s,t); v t ~= v s |] ==> R |] ==> R"
+  apply (unfold angle_def action_rews)
+  apply (erule conjE)
+  apply simp
+  done
+
+lemma square_simulation:
+   "!!f. [| |- unchanged f & ~B --> unchanged g;    
+            |- A & ~unchanged g --> B               
+         |] ==> |- [A]_f --> [B]_g"
+  apply clarsimp
+  apply (erule squareE)
+  apply (auto simp add: square_def)
+  done
+
+lemma not_square: "|- (~ [A]_v) = <~A>_v"
+  by (auto simp: square_def angle_def)
+
+lemma not_angle: "|- (~ <A>_v) = [~A]_v"
+  by (auto simp: square_def angle_def)
+
+
+(* ============================== Facts about ENABLED ============================== *)
+
+lemma enabledI: "|- A --> $Enabled A"
+  by (auto simp add: enabled_def)
+
+lemma enabledE: "[| s |= Enabled A; !!u. A (s,u) ==> Q |] ==> Q"
+  apply (unfold enabled_def)
+  apply (erule exE)
+  apply simp
+  done
+
+lemma notEnabledD: "|- ~$Enabled G --> ~ G"
+  by (auto simp add: enabled_def)
+
+(* Monotonicity *)
+lemma enabled_mono:
+  assumes min: "s |= Enabled F"
+    and maj: "|- F --> G"
+  shows "s |= Enabled G"
+  apply (rule min [THEN enabledE])
+  apply (rule enabledI [action_use])
+  apply (erule maj [action_use])
+  done
+
+(* stronger variant *)
+lemma enabled_mono2:
+  assumes min: "s |= Enabled F"
+    and maj: "!!t. F (s,t) ==> G (s,t)"
+  shows "s |= Enabled G"
+  apply (rule min [THEN enabledE])
+  apply (rule enabledI [action_use])
+  apply (erule maj)
+  done
+
+lemma enabled_disj1: "|- Enabled F --> Enabled (F | G)"
+  by (auto elim!: enabled_mono)
+
+lemma enabled_disj2: "|- Enabled G --> Enabled (F | G)"
+  by (auto elim!: enabled_mono)
+
+lemma enabled_conj1: "|- Enabled (F & G) --> Enabled F"
+  by (auto elim!: enabled_mono)
+
+lemma enabled_conj2: "|- Enabled (F & G) --> Enabled G"
+  by (auto elim!: enabled_mono)
+
+lemma enabled_conjE:
+    "[| s |= Enabled (F & G); [| s |= Enabled F; s |= Enabled G |] ==> Q |] ==> Q"
+  apply (frule enabled_conj1 [action_use])
+  apply (drule enabled_conj2 [action_use])
+  apply simp
+  done
+
+lemma enabled_disjD: "|- Enabled (F | G) --> Enabled F | Enabled G"
+  by (auto simp add: enabled_def)
+
+lemma enabled_disj: "|- Enabled (F | G) = (Enabled F | Enabled G)"
+  apply clarsimp
+  apply (rule iffI)
+   apply (erule enabled_disjD [action_use])
+  apply (erule disjE enabled_disj1 [action_use] enabled_disj2 [action_use])+
+  done
+
+lemma enabled_ex: "|- Enabled (EX x. F x) = (EX x. Enabled (F x))"
+  by (force simp add: enabled_def)
+
+
+(* A rule that combines enabledI and baseE, but generates fewer instantiations *)
+lemma base_enabled:
+    "[| basevars vs; EX c. ! u. vs u = c --> A(s,u) |] ==> s |= Enabled A"
+  apply (erule exE)
+  apply (erule baseE)
+  apply (rule enabledI [action_use])
+  apply (erule allE)
+  apply (erule mp)
+  apply assumption
+  done
+
+(* ======================= action_simp_tac ============================== *)
+
+ML {*
+(* A dumb simplification-based tactic with just a little first-order logic:
+   should plug in only "very safe" rules that can be applied blindly.
+   Note that it applies whatever simplifications are currently active.
+*)
+local
+  val actionI = thm "actionI";
+  val intI = thm "intI";
+in
+
+fun action_simp_tac ss intros elims =
+    asm_full_simp_tac
+         (ss setloop ((resolve_tac ((map action_use intros)
+                                    @ [refl,impI,conjI,actionI,intI,allI]))
+                      ORELSE' (eresolve_tac ((map action_use elims)
+                                             @ [conjE,disjE,exE]))));
+
+(* default version without additional plug-in rules *)
+val Action_simp_tac = action_simp_tac (simpset()) [] []
+
+end
+*}
+
+(* ---------------- enabled_tac: tactic to prove (Enabled A) -------------------- *)
+
+ML {*
+(* "Enabled A" can be proven as follows:
+   - Assume that we know which state variables are "base variables"
+     this should be expressed by a theorem of the form "basevars (x,y,z,...)".
+   - Resolve this theorem with baseE to introduce a constant for the value of the
+     variables in the successor state, and resolve the goal with the result.
+   - Resolve with enabledI and do some rewriting.
+   - Solve for the unknowns using standard HOL reasoning.
+   The following tactic combines these steps except the final one.
+*)
+local
+  val base_enabled = thm "base_enabled";
+in
+
+fun enabled_tac base_vars =
+  clarsimp_tac (claset() addSIs [base_vars RS base_enabled], simpset());
+
+end
+*}
+
+(* Example *)
+
+lemma
+  assumes "basevars (x,y,z)"
+  shows "|- x --> Enabled ($x & (y$ = #False))"
+  apply (tactic {* enabled_tac (thm "assms") 1 *})
+  apply auto
+  done
 
 end

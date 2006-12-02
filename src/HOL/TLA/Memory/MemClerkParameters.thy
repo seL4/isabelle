@@ -3,12 +3,9 @@
     ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
-
-    Theory Name: MemClerkParameters
-    Logic Image: TLA
-
-    RPC-Memory example: Parameters of the memory clerk.
 *)
+
+header {* RPC-Memory example: Parameters of the memory clerk *}
 
 theory MemClerkParameters
 imports RPCParameters
@@ -29,7 +26,5 @@ constdefs
   (* translate RPC failures to memory failures *)
   MClkReplyVal     :: "Vals => Vals"
     "MClkReplyVal v == if v = RPCFailure then MemFailure else v"
-
-ML {* use_legacy_bindings (the_context ()) *}
 
 end

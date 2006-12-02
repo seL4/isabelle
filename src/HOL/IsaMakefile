@@ -693,9 +693,8 @@ $(OUT)/HOL-Complex-Matrix: $(OUT)/HOL-Complex \
 
 TLA: HOL $(OUT)/TLA
 
-$(OUT)/TLA: $(OUT)/HOL TLA/Action.ML TLA/Action.thy TLA/Init.ML \
-  TLA/Init.thy TLA/Intensional.ML TLA/Intensional.thy \
-  TLA/ROOT.ML TLA/Stfun.ML TLA/Stfun.thy TLA/TLA.ML TLA/TLA.thy
+$(OUT)/TLA: $(OUT)/HOL TLA/Action.thy TLA/Init.thy TLA/Intensional.thy \
+  TLA/ROOT.ML TLA/Stfun.thy TLA/TLA.thy
 	@cd TLA; $(ISATOOL) usedir -b $(OUT)/HOL TLA
 
 
@@ -703,7 +702,7 @@ $(OUT)/TLA: $(OUT)/HOL TLA/Action.ML TLA/Action.thy TLA/Init.ML \
 
 TLA-Inc: TLA $(LOG)/TLA-Inc.gz
 
-$(LOG)/TLA-Inc.gz: $(OUT)/TLA TLA/Inc/Inc.thy TLA/Inc/Inc.ML
+$(LOG)/TLA-Inc.gz: $(OUT)/TLA TLA/Inc/Inc.thy
 	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Inc
 
 
@@ -711,8 +710,7 @@ $(LOG)/TLA-Inc.gz: $(OUT)/TLA TLA/Inc/Inc.thy TLA/Inc/Inc.ML
 
 TLA-Buffer: TLA $(LOG)/TLA-Buffer.gz
 
-$(LOG)/TLA-Buffer.gz: $(OUT)/TLA TLA/Buffer/Buffer.thy \
-  TLA/Buffer/Buffer.ML TLA/Buffer/DBuffer.thy TLA/Buffer/DBuffer.ML
+$(LOG)/TLA-Buffer.gz: $(OUT)/TLA TLA/Buffer/Buffer.thy TLA/Buffer/DBuffer.thy
 	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Buffer
 
 
@@ -721,15 +719,10 @@ $(LOG)/TLA-Buffer.gz: $(OUT)/TLA TLA/Buffer/Buffer.thy \
 TLA-Memory: TLA $(LOG)/TLA-Memory.gz
 
 $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MIParameters.thy \
-  TLA/Memory/MIsafe.ML TLA/Memory/MemClerk.ML \
-  TLA/Memory/MemClerk.thy TLA/Memory/MemClerkParameters.ML \
-  TLA/Memory/MemClerkParameters.thy TLA/Memory/Memory.ML \
-  TLA/Memory/Memory.thy TLA/Memory/MemoryImplementation.ML \
-  TLA/Memory/MemoryImplementation.thy TLA/Memory/MemoryParameters.ML \
-  TLA/Memory/MemoryParameters.thy TLA/Memory/ProcedureInterface.ML \
-  TLA/Memory/ProcedureInterface.thy TLA/Memory/RPC.ML TLA/Memory/RPC.thy \
-  TLA/Memory/RPCMemoryParams.thy TLA/Memory/RPCParameters.ML \
-  TLA/Memory/RPCParameters.thy
+  TLA/Memory/MemClerk.thy TLA/Memory/MemClerkParameters.thy \
+  TLA/Memory/Memory.thy TLA/Memory/MemoryImplementation.thy \
+  TLA/Memory/MemoryParameters.thy TLA/Memory/ProcedureInterface.thy TLA/Memory/RPC.thy \
+  TLA/Memory/RPCMemoryParams.thy TLA/Memory/RPCParameters.thy
 	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Memory
 
 

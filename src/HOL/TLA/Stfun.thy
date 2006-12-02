@@ -3,12 +3,9 @@
     ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1998 University of Munich
-
-    Theory Name: Stfun
-    Logic Image: HOL
-
-States and state functions for TLA as an "intensional" logic.
 *)
+
+header {* States and state functions for TLA as an "intensional" logic *}
 
 theory Stfun
 imports Intensional
@@ -56,6 +53,62 @@ defs
   *)
   basevars_def:  "stvars vs == range vs = UNIV"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+lemma basevars: "!!vs. basevars vs ==> EX u. vs u = c"
+  apply (unfold basevars_def)
+  apply (rule_tac b = c and f = vs in rangeE)
+   apply auto
+  done
+
+lemma base_pair1: "!!x y. basevars (x,y) ==> basevars x"
+  apply (simp (no_asm) add: basevars_def)
+  apply (rule equalityI)
+   apply (rule subset_UNIV)
+  apply (rule subsetI)
+  apply (drule_tac c = "(xa, arbitrary) " in basevars)
+  apply auto
+  done
+
+lemma base_pair2: "!!x y. basevars (x,y) ==> basevars y"
+  apply (simp (no_asm) add: basevars_def)
+  apply (rule equalityI)
+   apply (rule subset_UNIV)
+  apply (rule subsetI)
+  apply (drule_tac c = "(arbitrary, xa) " in basevars)
+  apply auto
+  done
+
+lemma base_pair: "!!x y. basevars (x,y) ==> basevars x & basevars y"
+  apply (rule conjI)
+  apply (erule base_pair1)
+  apply (erule base_pair2)
+  done
+
+(* Since the unit type has just one value, any state function can be
+   regarded as "base". The following axiom can sometimes be useful
+   because it gives a trivial solution for "basevars" premises.
+*)
+lemma unit_base: "basevars (v::unit stfun)"
+  apply (unfold basevars_def)
+  apply auto
+  done
+
+lemma baseE: "[| basevars v; !!x. v x = c ==> Q |] ==> Q"
+  apply (erule basevars [THEN exE])
+  apply blast
+  done
+
+
+(* -------------------------------------------------------------------------------
+   The following shows that there should not be duplicates in a "stvars" tuple:
+*)
+
+lemma "!!v. basevars (v::bool stfun, v) ==> False"
+  apply (erule baseE)
+  apply (subgoal_tac "(LIFT (v,v)) x = (True, False)")
+   prefer 2
+   apply assumption
+  apply simp
+  done
 
 end

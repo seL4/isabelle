@@ -3,12 +3,9 @@
     ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
-
-    Theory Name: RPCMemoryParams
-    Logic Image: TLA
-
-    Basic declarations for the RPC-memory example.
 *)
+
+header {* Basic declarations for the RPC-memory example *}
 
 theory RPCMemoryParams
 imports Main

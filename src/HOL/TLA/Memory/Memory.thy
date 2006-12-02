@@ -3,12 +3,9 @@
     ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
-
-    Theory Name: Memory
-    Logic Image: TLA
-
-    RPC-Memory example: Memory specification
 *)
+
+header {* RPC-Memory example: Memory specification *}
 
 theory Memory
 imports MemoryParameters ProcedureInterface
@@ -136,6 +133,108 @@ defs
 
   MemInv_def:        "MemInv mm l == PRED  #l : #MemLoc --> mm!l : #MemVal"
 
-ML {* use_legacy_bindings (the_context ()) *}
+lemmas RM_action_defs =
+  MInit_def PInit_def RdRequest_def WrRequest_def MemInv_def
+  GoodRead_def BadRead_def ReadInner_def Read_def
+  GoodWrite_def BadWrite_def WriteInner_def Write_def
+  MemReturn_def RNext_def
+
+lemmas UM_action_defs = RM_action_defs MemFail_def UNext_def
+
+lemmas RM_temp_defs = RPSpec_def MSpec_def IRSpec_def
+lemmas UM_temp_defs = UPSpec_def MSpec_def IUSpec_def
+
+
+(* The reliable memory is an implementation of the unreliable one *)
+lemma ReliableImplementsUnReliable: "|- IRSpec ch mm rs --> IUSpec ch mm rs"
+  by (force simp: UNext_def UPSpec_def IUSpec_def RM_temp_defs elim!: STL4E [temp_use] squareE)
+
+(* The memory spec implies the memory invariant *)
+lemma MemoryInvariant: "|- MSpec ch mm rs l --> [](MemInv mm l)"
+  by (tactic {* auto_inv_tac
+    (simpset () addsimps (thms "RM_temp_defs" @ thms "RM_action_defs")) 1 *})
+
+(* The invariant is trivial for non-locations *)
+lemma NonMemLocInvariant: "|- #l ~: #MemLoc --> [](MemInv mm l)"
+  by (auto simp: MemInv_def intro!: necT [temp_use])
+
+lemma MemoryInvariantAll:
+    "|- (ALL l. #l : #MemLoc --> MSpec ch mm rs l) --> (ALL l. [](MemInv mm l))"
+  apply clarify
+  apply (case_tac "l : MemLoc")
+  apply (auto elim!: MemoryInvariant [temp_use] NonMemLocInvariant [temp_use])
+  done
+
+(* The memory engages in an action for process p only if there is an
+   unanswered call from p.
+   We need this only for the reliable memory.
+*)
+
+lemma Memoryidle: "|- ~$(Calling ch p) --> ~ RNext ch mm rs p"
+  by (auto simp: Return_def RM_action_defs)
+
+(* Enabledness conditions *)
+
+lemma MemReturn_change: "|- MemReturn ch rs p --> <MemReturn ch rs p>_(rtrner ch ! p, rs!p)"
+  by (force simp: MemReturn_def angle_def)
+
+lemma MemReturn_enabled: "!!p. basevars (rtrner ch ! p, rs!p) ==>
+      |- Calling ch p & (rs!p ~= #NotAResult)
+         --> Enabled (<MemReturn ch rs p>_(rtrner ch ! p, rs!p))"
+  apply (tactic
+    {* action_simp_tac (simpset ()) [thm "MemReturn_change" RSN (2, thm "enabled_mono") ] [] 1 *})
+  apply (tactic
+    {* action_simp_tac (simpset () addsimps [thm "MemReturn_def", thm "Return_def",
+      thm "rtrner_def"]) [exI] [thm "base_enabled", thm "Pair_inject"] 1 *})
+  done
+
+lemma ReadInner_enabled: "!!p. basevars (rtrner ch ! p, rs!p) ==>
+      |- Calling ch p & (arg<ch!p> = #(read l)) --> Enabled (ReadInner ch mm rs p l)"
+  apply (case_tac "l : MemLoc")
+  apply (force simp: ReadInner_def GoodRead_def BadRead_def RdRequest_def
+    intro!: exI elim!: base_enabled [temp_use])+
+  done
+
+lemma WriteInner_enabled: "!!p. basevars (mm!l, rtrner ch ! p, rs!p) ==>
+      |- Calling ch p & (arg<ch!p> = #(write l v))
+         --> Enabled (WriteInner ch mm rs p l v)"
+  apply (case_tac "l:MemLoc & v:MemVal")
+  apply (force simp: WriteInner_def GoodWrite_def BadWrite_def WrRequest_def
+    intro!: exI elim!: base_enabled [temp_use])+
+  done
+
+lemma ReadResult: "|- Read ch mm rs p & (!l. $(MemInv mm l)) --> (rs!p)` ~= #NotAResult"
+  by (force simp: Read_def ReadInner_def GoodRead_def BadRead_def MemInv_def)
+
+lemma WriteResult: "|- Write ch mm rs p l --> (rs!p)` ~= #NotAResult"
+  by (auto simp: Write_def WriteInner_def GoodWrite_def BadWrite_def)
+
+lemma ReturnNotReadWrite: "|- (ALL l. $MemInv mm l) & MemReturn ch rs p
+         --> ~ Read ch mm rs p & (ALL l. ~ Write ch mm rs p l)"
+  by (auto simp: MemReturn_def dest!: WriteResult [temp_use] ReadResult [temp_use])
+
+lemma RWRNext_enabled: "|- (rs!p = #NotAResult) & (!l. MemInv mm l)
+         & Enabled (Read ch mm rs p | (? l. Write ch mm rs p l))
+         --> Enabled (<RNext ch mm rs p>_(rtrner ch ! p, rs!p))"
+  by (force simp: RNext_def angle_def elim!: enabled_mono2
+    dest: ReadResult [temp_use] WriteResult [temp_use])
+
+
+(* Combine previous lemmas: the memory can make a visible step if there is an
+   outstanding call for which no result has been produced.
+*)
+lemma RNext_enabled: "!!p. !l. basevars (mm!l, rtrner ch!p, rs!p) ==>
+      |- (rs!p = #NotAResult) & Calling ch p & (!l. MemInv mm l)
+         --> Enabled (<RNext ch mm rs p>_(rtrner ch ! p, rs!p))"
+  apply (auto simp: enabled_disj [try_rewrite] intro!: RWRNext_enabled [temp_use])
+  apply (case_tac "arg (ch w p)")
+   apply (tactic {* action_simp_tac (simpset () addsimps [thm "Read_def",
+     temp_rewrite (thm "enabled_ex")]) [thm "ReadInner_enabled", exI] [] 1 *})
+   apply (force dest: base_pair [temp_use])
+  apply (erule contrapos_np)
+  apply (tactic {* action_simp_tac (simpset () addsimps [thm "Write_def",
+    temp_rewrite (thm "enabled_ex")])
+    [thm "WriteInner_enabled", exI] [] 1 *})
+  done
 
 end

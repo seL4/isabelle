@@ -3,12 +3,9 @@
     ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
-
-   Theory Name: ProcedureInterface
-   Logic Image: TLA
-
-   Procedure interface for RPC-Memory components.
 *)
+
+header {* Procedure interface for RPC-Memory components *}
 
 theory ProcedureInterface
 imports TLA RPCMemoryParams
@@ -84,6 +81,16 @@ defs
                                 [][ ? v. Return ch p v ]_((rtrner ch)!p)"
   LegalReturner_def:     "LegalReturner ch == TEMP (! p. PLegalReturner ch p)"
 
-ML {* use_legacy_bindings (the_context ()) *}
+declare slice_def [simp]
+
+lemmas Procedure_defs = caller_def rtrner_def Calling_def Call_def Return_def
+  PLegalCaller_def LegalCaller_def PLegalReturner_def LegalReturner_def
+
+(* Calls and returns change their subchannel *)
+lemma Call_changed: "|- Call ch p v --> <Call ch p v>_((caller ch)!p)"
+  by (auto simp: angle_def Call_def caller_def Calling_def)
+
+lemma Return_changed: "|- Return ch p v --> <Return ch p v>_((rtrner ch)!p)"
+  by (auto simp: angle_def Return_def rtrner_def Calling_def)
 
 end

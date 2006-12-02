@@ -3,13 +3,10 @@
     ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1998 University of Munich
-
-    Theory Name: Intensional
-    Logic Image: HOL
-
-Define a framework for "intensional" (possible-world based) logics
-on top of HOL, with lifting of constants and functions.
 *)
+
+header {* A framework for "intensional" (possible-world based) logics
+  on top of HOL, with lifting of constants and functions *}
 
 theory Intensional
 imports Main
@@ -188,6 +185,136 @@ axioms
   unl_Rex:     "w |= EX x. A x   ==  EX x. (w |= A x)"
   unl_Rex1:    "w |= EX! x. A x  ==  EX! x. (w |= A x)"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+subsection {* Lemmas and tactics for "intensional" logics. *}
+
+lemmas intensional_rews [simp] =
+  unl_con unl_lift unl_lift2 unl_lift3 unl_Rall unl_Rex unl_Rex1
+
+lemma inteq_reflection: "|- x=y  ==>  (x==y)"
+  apply (unfold Valid_def unl_lift2)
+  apply (rule eq_reflection)
+  apply (rule ext)
+  apply (erule spec)
+  done
+
+lemma intI [intro!]: "(!!w. w |= A) ==> |- A"
+  apply (unfold Valid_def)
+  apply (rule allI)
+  apply (erule meta_spec)
+  done
+
+lemma intD [dest]: "|- A ==> w |= A"
+  apply (unfold Valid_def)
+  apply (erule spec)
+  done
+
+(** Lift usual HOL simplifications to "intensional" level. **)
+
+lemma int_simps:
+  "|- (x=x) = #True"
+  "|- (~#True) = #False"  "|- (~#False) = #True"  "|- (~~ P) = P"
+  "|- ((~P) = P) = #False"  "|- (P = (~P)) = #False"
+  "|- (P ~= Q) = (P = (~Q))"
+  "|- (#True=P) = P"  "|- (P=#True) = P"
+  "|- (#True --> P) = P"  "|- (#False --> P) = #True"
+  "|- (P --> #True) = #True"  "|- (P --> P) = #True"
+  "|- (P --> #False) = (~P)"  "|- (P --> ~P) = (~P)"
+  "|- (P & #True) = P"  "|- (#True & P) = P"
+  "|- (P & #False) = #False"  "|- (#False & P) = #False"
+  "|- (P & P) = P"  "|- (P & ~P) = #False"  "|- (~P & P) = #False"
+  "|- (P | #True) = #True"  "|- (#True | P) = #True"
+  "|- (P | #False) = P"  "|- (#False | P) = P"
+  "|- (P | P) = P"  "|- (P | ~P) = #True"  "|- (~P | P) = #True"
+  "|- (! x. P) = P"  "|- (? x. P) = P"
+  "|- (~Q --> ~P) = (P --> Q)"
+  "|- (P|Q --> R) = ((P-->R)&(Q-->R))"
+  apply (unfold Valid_def intensional_rews)
+  apply blast+
+  done
+
+declare int_simps [THEN inteq_reflection, simp]
+
+lemma TrueW [simp]: "|- #True"
+  by (simp add: Valid_def unl_con)
+
+
+
+(* ======== Functions to "unlift" intensional implications into HOL rules ====== *)
+
+ML {*
+
+local
+  val intD = thm "intD";
+  val inteq_reflection = thm "inteq_reflection";
+  val intensional_rews = thms "intensional_rews";
+in
+
+(* Basic unlifting introduces a parameter "w" and applies basic rewrites, e.g.
+   |- F = G    becomes   F w = G w
+   |- F --> G  becomes   F w --> G w
+*)
+
+fun int_unlift th =
+  rewrite_rule intensional_rews (th RS intD handle THM _ => th);
+
+(* Turn  |- F = G  into meta-level rewrite rule  F == G *)
+fun int_rewrite th =
+  zero_var_indexes (rewrite_rule intensional_rews (th RS inteq_reflection))
+
+(* flattening turns "-->" into "==>" and eliminates conjunctions in the
+   antecedent. For example,
+
+         P & Q --> (R | S --> T)    becomes   [| P; Q; R | S |] ==> T
+
+   Flattening can be useful with "intensional" lemmas (after unlifting).
+   Naive resolution with mp and conjI may run away because of higher-order
+   unification, therefore the code is a little awkward.
+*)
+fun flatten t =
+  let
+    (* analogous to RS, but using matching instead of resolution *)
+    fun matchres tha i thb =
+      case Seq.chop 2 (biresolution true [(false,tha)] i thb) of
+          ([th],_) => th
+        | ([],_)   => raise THM("matchres: no match", i, [tha,thb])
+        |      _   => raise THM("matchres: multiple unifiers", i, [tha,thb])
+
+    (* match tha with some premise of thb *)
+    fun matchsome tha thb =
+      let fun hmatch 0 = raise THM("matchsome: no match", 0, [tha,thb])
+            | hmatch n = matchres tha n thb handle THM _ => hmatch (n-1)
+      in hmatch (nprems_of thb) end
+
+    fun hflatten t =
+        case (concl_of t) of
+          Const _ $ (Const ("op -->", _) $ _ $ _) => hflatten (t RS mp)
+        | _ => (hflatten (matchsome conjI t)) handle THM _ => zero_var_indexes t
+  in
+    hflatten t
+  end
+
+fun int_use th =
+    case (concl_of th) of
+      Const _ $ (Const ("Intensional.Valid", _) $ _) =>
+              (flatten (int_unlift th) handle THM _ => th)
+    | _ => th
+
+end
+*}
+
+setup {*
+  Attrib.add_attributes [
+    ("int_unlift", Attrib.no_args (Thm.rule_attribute (K int_unlift)), ""),
+    ("int_rewrite", Attrib.no_args (Thm.rule_attribute (K int_rewrite)), ""),
+    ("flatten", Attrib.no_args (Thm.rule_attribute (K flatten)), ""),
+    ("int_use", Attrib.no_args (Thm.rule_attribute (K int_use)), "")]
+*}
+
+lemma Not_Rall: "|- (~(! x. F x)) = (? x. ~F x)"
+  by (simp add: Valid_def)
+
+lemma Not_Rex: "|- (~ (? x. F x)) = (! x. ~ F x)"
+  by (simp add: Valid_def)
 
 end

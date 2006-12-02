@@ -3,18 +3,18 @@
     ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
-
-    Theory Name: RPCParameters
-    Logic Image: TLA
-
-    RPC-Memory example: RPC parameters
-    For simplicity, specify the instance of RPC that is used in the
-    memory implementation.
 *)
+
+header {* RPC-Memory example: RPC parameters *}
 
 theory RPCParameters
 imports MemoryParameters
 begin
+
+(*
+  For simplicity, specify the instance of RPC that is used in the
+  memory implementation.
+*)
 
 datatype rpcOp = memcall memOp | othercall Vals
 datatype rpcState = rpcA | rpcB
@@ -46,6 +46,7 @@ defs
 		         case ra of (memcall m) => m
 		                  | (othercall v) => arbitrary"
 
-ML {* use_legacy_bindings (the_context ()) *}
+lemmas [simp] = RFNoMemVal NotAResultNotRF OKNotRF BANotRF
+  NotAResultNotRF [symmetric] OKNotRF [symmetric] BANotRF [symmetric]
 
 end

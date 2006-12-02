@@ -3,12 +3,9 @@
     ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
-
-    Theory Name: RPC
-    Logic Image: TLA
-
-    RPC-Memory example: RPC specification
 *)
+
+header {* RPC-Memory example: RPC specification *}
 
 theory RPC
 imports RPCParameters ProcedureInterface Memory
@@ -77,6 +74,44 @@ defs
 
   RPCISpec_def:      "RPCISpec send rcv rst == TEMP (ALL p. RPCIPSpec send rcv rst p)"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+lemmas RPC_action_defs =
+  RPCInit_def RPCFwd_def RPCReject_def RPCFail_def RPCReply_def RPCNext_def
+
+lemmas RPC_temp_defs = RPCIPSpec_def RPCISpec_def
+
+
+(* The RPC component engages in an action for process p only if there is an outstanding,
+   unanswered call for that process.
+*)
+
+lemma RPCidle: "|- ~$(Calling send p) --> ~RPCNext send rcv rst p"
+  by (auto simp: Return_def RPC_action_defs)
+
+lemma RPCbusy: "|- $(Calling rcv p) & $(rst!p) = #rpcB --> ~RPCNext send rcv rst p"
+  by (auto simp: RPC_action_defs)
+
+(* RPC failure actions are visible. *)
+lemma RPCFail_vis: "|- RPCFail send rcv rst p -->  
+    <RPCNext send rcv rst p>_(rst!p, rtrner send!p, caller rcv!p)"
+  by (auto dest!: Return_changed [temp_use] simp: angle_def RPCNext_def RPCFail_def)
+
+lemma RPCFail_Next_enabled: "|- Enabled (RPCFail send rcv rst p) -->  
+    Enabled (<RPCNext send rcv rst p>_(rst!p, rtrner send!p, caller rcv!p))"
+  by (force elim!: enabled_mono [temp_use] RPCFail_vis [temp_use])
+
+(* Enabledness of some actions *)
+lemma RPCFail_enabled: "!!p. basevars (rtrner send!p, caller rcv!p, rst!p) ==>  
+    |- ~Calling rcv p & Calling send p --> Enabled (RPCFail send rcv rst p)"
+  by (tactic {* action_simp_tac (simpset () addsimps [thm "RPCFail_def",
+    thm "Return_def", thm "caller_def", thm "rtrner_def"]) [exI]
+    [thm "base_enabled", thm "Pair_inject"] 1 *})
+
+lemma RPCReply_enabled: "!!p. basevars (rtrner send!p, caller rcv!p, rst!p) ==>  
+      |- ~Calling rcv p & Calling send p & rst!p = #rpcB  
+         --> Enabled (RPCReply send rcv rst p)"
+  by (tactic {* action_simp_tac (simpset () addsimps [thm "RPCReply_def",
+    thm "Return_def", thm "caller_def", thm "rtrner_def"]) [exI]
+    [thm "base_enabled", thm "Pair_inject"] 1 *})
 
 end

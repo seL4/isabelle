@@ -3,12 +3,9 @@
     ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
-
-    Theory Name: MemoryParameters
-    Logic Image: TLA
-
-    RPC-Memory example: Memory parameters
 *)
+
+header {* RPC-Memory example: Memory parameters *}
 
 theory MemoryParameters
 imports RPCMemoryParams
@@ -41,6 +38,12 @@ axioms
   NotAResultNotBA:   "NotAResult ~= BadArg"
   NotAResultNotMF:   "NotAResult ~= MemFailure"
 
-ML {* use_legacy_bindings (the_context ()) *}
+lemmas [simp] =
+  BadArgNoMemVal MemFailNoMemVal InitValMemVal NotAResultNotVal
+  NotAResultNotOK NotAResultNotBA NotAResultNotMF
+  NotAResultNotOK [symmetric] NotAResultNotBA [symmetric] NotAResultNotMF [symmetric]
+
+lemma MemValNotAResultE: "[| x : MemVal; (x ~= NotAResult ==> P) |] ==> P"
+  using NotAResultNotVal by blast
 
 end
