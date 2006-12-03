@@ -12,6 +12,7 @@ sig
   val add: string -> T -> T
   val content: T -> string
   val write: Path.T -> T -> unit
+  val output: (string -> unit) -> T -> unit
 end;
 
 structure Buffer: BUFFER =
@@ -27,5 +28,7 @@ fun add "" buf = buf
 fun content (Buffer xs) = implode (rev xs);
 
 fun write path (Buffer xs) = File.write_list path (rev xs);
+
+fun output f (Buffer xs) = Library.seq f (rev xs);
 
 end;
