@@ -7,22 +7,27 @@ Basic support for XML.
 
 signature XML =
 sig
-  type attributes = (string * string) list
-  datatype tree =
-      Elem of string * attributes * tree list
-    | Text of string
-  type element = string * attributes * tree list
+  (* string functions *)
   val header: string
   val text: string -> string
   val text_charref: string -> string
   val cdata: string -> string
+  type attributes = (string * string) list
   val element: string -> attributes -> string list -> string
+  (* tree functions *)
+  datatype tree =
+      Elem of string * attributes * tree list
+    | Text of string    (* native string, subject to XML.text on output *)
+    | Rawtext of string (* XML string: not parsed and output directly   *)
+  type element = string * attributes * tree list
   val string_of_tree: tree -> string
+  val buffer_of_tree: tree -> Buffer.T
   val parse_content: string list -> tree list * string list
   val parse_elem: string list -> tree * string list
   val parse_document: string list -> (string option * tree) * string list
-  val scan_comment_whspc : string list -> unit * string list
   val tree_of_string: string -> tree
+  (* scanner for stream parser in proof_general.ML *)				
+  val scan_comment_whspc : string list -> unit * string list
 end;
 
 structure XML: XML =
@@ -77,11 +82,12 @@ type attributes = (string * string) list
 
 datatype tree =
     Elem of string * attributes * tree list
-  | Text of string;
+  | Text of string      
+  | Rawtext of string;  
 
 type element = string * attributes * tree list
 
-fun string_of_tree tree =
+fun buffer_of_tree tree =
   let
     fun string_of (Elem (name, atts, ts)) buf =
         let val buf' =
@@ -95,8 +101,11 @@ fun string_of_tree tree =
             |> fold string_of ts
             |> Buffer.add "</" |> Buffer.add name |> Buffer.add ">"
         end
-      | string_of (Text s) buf = Buffer.add (text s) buf;
-  in Buffer.content (string_of tree Buffer.empty) end;
+      | string_of (Text s) buf = Buffer.add (text s) buf
+      | string_of (Rawtext s) buf = Buffer.add s buf;
+  in string_of tree Buffer.empty end;
+
+val string_of_tree = Buffer.content o buffer_of_tree;
 
 
 
