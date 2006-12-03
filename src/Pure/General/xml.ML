@@ -7,14 +7,16 @@ Basic support for XML.
 
 signature XML =
 sig
+  type attributes = (string * string) list
+  datatype tree =
+      Elem of string * attributes * tree list
+    | Text of string
+  type element = string * attributes * tree list
   val header: string
   val text: string -> string
   val text_charref: string -> string
   val cdata: string -> string
-  val element: string -> (string * string) list -> string list -> string
-  datatype tree =
-      Elem of string * (string * string) list * tree list
-    | Text of string
+  val element: string -> attributes -> string list -> string
   val string_of_tree: tree -> string
   val parse_content: string list -> tree list * string list
   val parse_elem: string list -> tree * string list
@@ -71,9 +73,13 @@ fun element name atts cs =
 
 (** explicit XML trees **)
 
+type attributes = (string * string) list
+
 datatype tree =
-    Elem of string * (string * string) list * tree list
+    Elem of string * attributes * tree list
   | Text of string;
+
+type element = string * attributes * tree list
 
 fun string_of_tree tree =
   let
