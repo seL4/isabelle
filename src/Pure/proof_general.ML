@@ -468,7 +468,6 @@ local
 
 val spaces_quote = space_implode " " o map quote;
 
-(* FIXME: investigate why dependencies at the moment include themselves! *)
 fun thm_deps_message (thms, deps) =
   if pgip() then
     issue_pgips
@@ -479,6 +478,7 @@ fun thm_deps_message (thms, deps) =
          XML.element "value" [("name", "deps")] [XML.text deps]]]
   else emacs_notify ("Proof General, theorem dependencies of " ^ thms ^ " are " ^ deps);
 
+(* FIXME: check this uses non-transitive closure function here *)
 fun tell_thm_deps ths = conditional (Output.has_mode thm_depsN) (fn () =>
   let
     val names = filter_out (equal "") (map Thm.name_of_thm ths);
@@ -1197,8 +1197,6 @@ local
   val objtype_attro = xmlattro "objtype"
   val objtype_attr = xmlattr "objtype"
   val name_attr = xmlattr "name"
-  val dirname_attr = xmlattr "dir"
-  fun comment x = "(* " ^ x ^ " *)"
 
   fun localfile_of_url url = (* only handle file:/// or file://localhost/ *)
       case Url.unpack url of
@@ -1215,7 +1213,7 @@ local
   (* Path management: we allow theory files to have dependencies
      in their own directory, but when we change directory for a new
      file we remove the path.  Leaving it there can cause confusion
-     with difference in batch mode.a  NB: PGIP does not assume
+     with difference in batch mode. NB: PGIP does not currently assume
      that the prover has a load path. *)
   local
       val current_working_dir = ref (NONE : string option)
