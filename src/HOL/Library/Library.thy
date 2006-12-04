@@ -25,6 +25,7 @@ imports
   Permutation
   Primes
   Quotient
+  Ramsey
   State_Monad
   While_Combinator
   Word
