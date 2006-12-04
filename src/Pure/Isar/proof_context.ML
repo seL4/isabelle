@@ -793,16 +793,13 @@ local
 
 fun gen_note_thmss get k = fold_map (fn ((bname, more_attrs), raw_facts) => fn ctxt =>
   let
-    val stmt = is_stmt ctxt;
-(*    val kind = if stmt then [] else [PureThy.kind k];  *)
-    val kind = [];   (* FIXME refrain from closing the derivation here *)
-
-    val facts = map (apfst (get ctxt)) raw_facts;
+    val name = full_name ctxt bname;
+    val facts = PureThy.name_thmss false name (map (apfst (get ctxt)) raw_facts);
     fun app (th, attrs) x =
-      swap (foldl_map (Thm.proof_attributes (attrs @ more_attrs @ kind)) (x, th));
+      swap (foldl_map (Thm.proof_attributes (attrs @ more_attrs @ [PureThy.kind k])) (x, th));
     val (res, ctxt') = fold_map app facts ctxt;
-    val thms = flat res;
-  in ((bname, thms), ctxt' |> update_thms stmt (bname, SOME thms)) end);
+    val thms = PureThy.name_thms false false name (flat res);
+  in ((bname, thms), ctxt' |> update_thms (is_stmt ctxt) (bname, SOME thms)) end);
 
 in
 
