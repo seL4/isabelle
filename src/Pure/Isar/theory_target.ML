@@ -183,7 +183,10 @@ fun import_export_proof ctxt (name, raw_th) =
       |> Drule.zero_var_indexes_list;
 
     (*thm definition*)
-    val result = PureThy.name_thm true (name, Goal.close_result th'');
+    val result = th''
+      |> PureThy.name_thm true true ""
+      |> Goal.close_result
+      |> PureThy.name_thm true true name;
 
     (*import fixes*)
     val (tvars, vars) =
@@ -202,7 +205,8 @@ fun import_export_proof ctxt (name, raw_th) =
       (case SINGLE (Seq.INTERVAL assm_tac 1 nprems) result' of
         NONE => raise THM ("Failed to re-import result", 0, [result'])
       | SOME res => res) COMP (concl_conv COMP_INCR Drule.equal_elim_rule2)
-      |> Goal.norm_result;
+      |> Goal.norm_result
+      |> PureThy.name_thm false false name;
 
   in (result'', result) end;
 
