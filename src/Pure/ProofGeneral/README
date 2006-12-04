@@ -1,0 +1,36 @@
+Proof General interface for Isabelle.
+
+This includes a prover-side PGIP abstraction layer for passing
+interface configuration, control commands and display messages to
+Proof General.
+
+  pgip_types.ML    -- the datatypes in PGIP and their manipulation
+  pgip_input.ML	   -- commands sent to the prover
+  pgip_output.ML   -- commands the prover sends out
+  pgip_markup.ML   -- markup for proof script documents
+  pgip.ML	   -- union of the above
+  pgip_tests.ML    -- some basic testing of the API
+
+The code constructs some marshalling datatypes for reading and writing
+XML which conforms to the PGIP schema, interfacing with SML types and
+some basic types from the Isabelle platform (i.e. URLs, XML).  This
+part of the code is intended to be useful for reuse or porting
+elsewhere, so it should have minimal dependency on Isabelle and be
+written readably.  Some languages have tools for making type-safe
+XML<->native datatype translations from a schema (e.g. HaXML for
+Haskell) which would be useful here.
+
+The Isabelle specific configuration is in these files:
+
+  pgip_isabelle.ML	  - configure part of PGIP supported by Isabelle
+  parsing.ML		  - parsing routines to add PGIP markup to scripts
+  preferences.ML	  - user preferences
+  proof_general_pgip.ML   - the main connection point with Isabelle, including
+			    the PGIP processing loop.
+
+For the full PGIP schema and an explanation of it, see:
+
+   http://proofgeneral.inf.ed.ac.uk/kit
+
+David Aspinall, Dec. 2006.
+$Id$
