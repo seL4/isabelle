@@ -9,7 +9,10 @@ See http://proofgeneral.inf.ed.ac.uk/kit
 
 signature PROOF_GENERAL_PGIP =
 sig
-  val init_pgip: bool -> unit
+  val init_pgip: bool -> unit		  (* main PGIP loop with true; fail with false *)
+
+  val process_pgip: string -> unit        (* process a command; only good for preferences *)
+  val init_pgip_session_id: unit -> unit  (* call before using process_pgip *)
 end
 
 structure ProofGeneralPgip : PROOF_GENERAL_PGIP  =

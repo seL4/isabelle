@@ -1,7 +1,6 @@
 Major:
 
- split out Emacs part of Pure/proof_general.ML and move here 
- as proof_general_emacs.ML.  Remove isa support.
+ proof_general_emacs.ML fixups/PG compatibility: ongoing
 
  Complete pgip_types: add PGML and objtypes
 

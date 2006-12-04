@@ -10,6 +10,4 @@ use "preferences.ML";
 use "parsing.ML";
 
 (use |> setmp proofs 1 |> setmp quick_and_dirty true) "proof_general_pgip.ML";
-(* OLD interaction mode, not yet complete
-  (use |> setmp proofs 1 |> setmp quick_and_dirty true) "proof_general_emacs.ML";
-*)
+(use |> setmp proofs 1 |> setmp quick_and_dirty true) "proof_general_emacs.ML";
