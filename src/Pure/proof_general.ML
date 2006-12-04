@@ -1522,3 +1522,5 @@ end;
 
 
 end;
+
+structure ProofGeneralPgip = ProofGeneral;  (* for forward compatibility *)

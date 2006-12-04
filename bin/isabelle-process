@@ -217,7 +217,7 @@ ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
 [ -n "$SECURE" ] && MLTEXT="$MLTEXT Secure.set_secure ();"
 
 if [ -n "$PGIP" ]; then
-  MLTEXT="$MLTEXT; ProofGeneral.init_pgip $ISAR;"
+  MLTEXT="$MLTEXT; ProofGeneralPgip.init_pgip $ISAR;"
 elif [ -n "$PROOFGENERAL" ]; then
   MLTEXT="$MLTEXT; ProofGeneral.init $ISAR;"
 elif [ "$ISAR" = true ]; then
