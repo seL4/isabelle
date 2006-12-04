@@ -826,6 +826,11 @@ have been reoriented to "... -> theory -> ... * theory" in order to
 allow natural usage in combination with the ||>, ||>>, |-> and
 fold_map combinators.
 
+* Pure: official theorem names (closed derivations) and additional
+comments (tags) are now strictly separate.  Name hints -- which are
+maintained as tags -- may be attached any time without affecting the
+derivation.
+
 * Pure: primitive rule lift_rule now takes goal cterm instead of an
 actual goal state (thm).  Use Thm.lift_rule (Thm.cprem_of st i) to
 achieve the old behaviour.
