@@ -56,6 +56,7 @@ definition
   part :: "nat => nat => 'a set => ('a set => nat) => bool"
   --{*the function @{term f} partitions the @{term r}-subsets of the typically
        infinite set @{term Y} into @{term s} distinct categories.*}
+where
   "part r s Y f = (\<forall>X. X \<subseteq> Y & finite X & card X = r --> f X < s)"
 
 text{*For induction, we decrease the value of @{term r} in partitions.*}
@@ -242,9 +243,12 @@ IEEE Symposium on Logic in Computer Science (LICS'04), pages 32--41 (2004).
 
 definition
   disj_wf         :: "('a * 'a)set => bool"
+where
   "disj_wf r = (\<exists>T. \<exists>n::nat. (\<forall>i<n. wf(T i)) & r = (\<Union>i<n. T i))"
 
+definition
   transition_idx :: "[nat => 'a, nat => ('a*'a)set, nat set] => nat"
+where
   "transition_idx s T A =
     (LEAST k. \<exists>i j. A = {i,j} & i<j & (s j, s i) \<in> T k)"
 
