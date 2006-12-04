@@ -22,6 +22,7 @@ sig
   type element = string * attributes * tree list
   val string_of_tree: tree -> string
   val buffer_of_tree: tree -> Buffer.T
+  val parse_string : string -> string option
   val parse_content: string list -> tree list * string list
   val parse_elem: string list -> tree * string list
   val parse_document: string list -> (string option * tree) * string list
@@ -120,6 +121,8 @@ val scan_special = $$ "&" ^^ Symbol.scan_id ^^ $$ ";" >> decode;
 
 val parse_chars = Scan.repeat1 (Scan.unless ((* scan_whspc -- *)$$ "<")
   (scan_special || Scan.one Symbol.not_eof)) >> implode;
+
+val parse_string = Scan.read Symbol.stopper parse_chars o explode;
 
 val parse_cdata = Scan.this_string "<![CDATA[" |--
   (Scan.repeat (Scan.unless (Scan.this_string "]]>") (Scan.one Symbol.not_eof)) >>
