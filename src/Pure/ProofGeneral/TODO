@@ -1,0 +1,17 @@
+Major:
+
+ split out Emacs part of Pure/proof_general.ML and move here 
+ as proof_general_emacs.ML.  Remove isa support.
+
+ Complete pgip_types: add PGML and objtypes
+
+ Complete pgip_markup: provide markup abstraction for parsing.ML
+
+
+Minor:
+
+ <pgipquit> broken
+
+ cleanups: signatures & structures
+
+ further tests in pgip_tests.ML
