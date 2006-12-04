@@ -46,8 +46,14 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML		\
   ML-Systems/polyml-4.2.0.ML ML-Systems/polyml-4.9.1.ML				\
   ML-Systems/polyml-interrupt-timeout.ML ML-Systems/polyml-posix.ML		\
   ML-Systems/polyml.ML ML-Systems/poplogml.ML ML-Systems/smlnj.ML		\
-  Proof/extraction.ML Proof/proof_rewrite_rules.ML Proof/proof_syntax.ML	\
-  Proof/proofchecker.ML Proof/reconstruct.ML Pure.thy ROOT.ML			\
+  Proof/extraction.ML Proof/proof_rewrite_rules.ML Proof/proof_syntax.ML        \
+  Proof/proofchecker.ML Proof/reconstruct.ML Pure.thy ROOT.ML                   \
+  ProofGeneral/parsing.ML ProofGeneral/pgip_input.ML                            \
+  ProofGeneral/pgip_isabelle.ML ProofGeneral/pgip_markup.ML                     \
+  ProofGeneral/pgip.ML ProofGeneral/pgip_output.ML                              \
+  ProofGeneral/pgip_tests.ML ProofGeneral/pgip_types.ML                         \
+  ProofGeneral/preferences.ML ProofGeneral/proof_general_pgip.ML                \
+  ProofGeneral/ROOT.ML                                                          \
   Syntax/ROOT.ML Syntax/ast.ML Syntax/lexicon.ML Syntax/mixfix.ML		\
   Syntax/parser.ML Syntax/printer.ML Syntax/syn_ext.ML				\
   Syntax/syn_trans.ML Syntax/syntax.ML Syntax/type_ext.ML Thy/html.ML		\

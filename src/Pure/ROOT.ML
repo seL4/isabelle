@@ -84,6 +84,8 @@ cd "Tools"; use "ROOT.ML"; cd "..";
 
 (*configuration for Proof General*)
 (use |> setmp proofs 1 |> setmp quick_and_dirty true) "proof_general.ML";
+(* NEW PG code: [ in testing ]
+cd "ProofGeneral"; use "ROOT.ML"; cd ".."; *)
 
 use_thy "Pure";
 structure Pure = struct val thy = theory "Pure" end;
