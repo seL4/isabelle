@@ -77,7 +77,7 @@ fun pretty_thm_aux pp quote show_hyps' asms raw_th =
     val th = Thm.strip_shyps raw_th;
     val {hyps, tpairs, prop, der = (ora, _), ...} = Thm.rep_thm th;
     val xshyps = Thm.extra_shyps th;
-    val (_, tags) = Thm.get_name_tags th;
+    val tags = Thm.get_tags th;
 
     val q = if quote then Pretty.quote else I;
     val prt_term = q o (Pretty.term pp);

@@ -128,7 +128,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
           REPEAT ((resolve_tac prems THEN_ALL_NEW (fn i =>
             REPEAT (etac allE i) THEN atac i)) 1)]);
 
-    val ind_name = Thm.name_of_thm induction;
+    val ind_name = Thm.get_name induction;
     val vs = map (fn i => List.nth (pnames, i)) is;
     val (thm', thy') = thy
       |> Theory.absolute_path
@@ -196,7 +196,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
             [asm_simp_tac (HOL_basic_ss addsimps case_rewrites),
              resolve_tac prems, asm_simp_tac HOL_basic_ss])]);
 
-    val exh_name = Thm.name_of_thm exhaustion;
+    val exh_name = Thm.get_name exhaustion;
     val (thm', thy') = thy
       |> Theory.absolute_path
       |> PureThy.store_thm ((exh_name ^ "_P_correctness", thm), [])

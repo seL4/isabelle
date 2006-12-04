@@ -151,7 +151,7 @@ fun make_constraints_cprf thy env cprf =
             val prop'' = subst_TVars (map fst tvars @ map snd fmap ~~ Ts)
               (forall_intr_vfs prop') handle Library.UnequalLengths =>
                 error ("Wrong number of type arguments for " ^
-                  quote (fst (get_name_tags [] prop prf)))
+                  quote (get_name [] prop prf))
           in (prop'', change_type (SOME Ts) prf, [], env', vTs) end;
 
     fun head_norm (prop, prf, cnstrts, env, vTs) =
@@ -352,7 +352,7 @@ fun expand_proof thy thms prf =
       | expand maxidx prfs (prf % t) =
           let val (maxidx', prfs', prf') = expand maxidx prfs prf
           in (maxidx', prfs', prf' % t) end
-      | expand maxidx prfs (prf as PThm ((a, _), cprf, prop, SOME Ts)) =
+      | expand maxidx prfs (prf as PThm (a, cprf, prop, SOME Ts)) =
           if not (exists
             (fn (b, NONE) => a = b
               | (b, SOME prop') => a = b andalso prop = prop') thms)

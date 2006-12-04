@@ -301,7 +301,7 @@ end;
 (*Name management for ATP linkup. The suffix here must agree with the one given
   for notE in Clasimp.addIff*)
 fun name_notE th =
-    Thm.name_thm (Thm.name_of_thm th ^ "_iff1", th RS notE);
+  PureThy.put_name_hint (PureThy.get_name_hint th ^ "_iff1") (th RS notE);
       
 fun add_rules simps case_thms size_thms rec_thms inject distinct
                   weak_case_congs cong_att =

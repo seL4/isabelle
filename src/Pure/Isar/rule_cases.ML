@@ -215,7 +215,7 @@ val consumes_tagN = "consumes";
 
 fun lookup_consumes th =
   let fun err () = raise THM ("Malformed 'consumes' tag of theorem", 0, [th]) in
-    (case AList.lookup (op =) (Thm.tags_of_thm th) (consumes_tagN) of
+    (case AList.lookup (op =) (Thm.get_tags th) (consumes_tagN) of
       NONE => NONE
     | SOME [s] => (case Syntax.read_nat s of SOME n => SOME n | _ => err ())
     | _ => err ())
@@ -249,7 +249,7 @@ fun add_case_names NONE = I
       PureThy.untag_rule case_names_tagN
       #> PureThy.tag_rule (case_names_tagN, names);
 
-fun lookup_case_names th = AList.lookup (op =) (Thm.tags_of_thm th) case_names_tagN;
+fun lookup_case_names th = AList.lookup (op =) (Thm.get_tags th) case_names_tagN;
 
 val save_case_names = add_case_names o lookup_case_names;
 val name = add_case_names o SOME;
@@ -264,16 +264,16 @@ val case_concl_tagN = "case_conclusion";
 fun is_case_concl name ((a, b :: _): tag) = (a = case_concl_tagN andalso b = name)
   | is_case_concl _ _ = false;
 
-fun add_case_concl (name, cs) = PureThy.map_tags (fn tags =>
+fun add_case_concl (name, cs) = Thm.map_tags (fn tags =>
   filter_out (is_case_concl name) tags @ [(case_concl_tagN, name :: cs)]);
 
 fun get_case_concls th name =
-  (case find_first (is_case_concl name) (Thm.tags_of_thm th) of
+  (case find_first (is_case_concl name) (Thm.get_tags th) of
     SOME (_, _ :: cs) => cs
   | _ => []);
 
 fun save_case_concls th =
-  let val concls = Thm.tags_of_thm th |> map_filter
+  let val concls = Thm.get_tags th |> map_filter
     (fn (a, b :: cs) =>
       if a = case_concl_tagN then SOME (b, cs) else NONE
     | _ => NONE)

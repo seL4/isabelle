@@ -143,7 +143,7 @@ fun xml_of_proof (PBound i) =
   | xml_of_proof (prf %% prf') =
       XML.Elem ("AppP", [], [xml_of_proof prf, xml_of_proof prf'])
   | xml_of_proof (Hyp t) = XML.Elem ("Hyp", [], [xml_of_term t])
-  | xml_of_proof (PThm ((s, _), _, t, optTs)) =
+  | xml_of_proof (PThm (s, _, t, optTs)) =
       XML.Elem ("PThm", [("name", s)], xml_of_term t :: xml_of_opttypes optTs)
   | xml_of_proof (PAxm (s, t, optTs)) =
       XML.Elem ("PAxm", [("name", s)], xml_of_term t :: xml_of_opttypes optTs)

@@ -286,9 +286,9 @@ val rews = map (pairself (ProofSyntax.proof_of_term (the_context ()) Symtab.empt
 
 (** Replace congruence rules by substitution rules **)
 
-fun strip_cong ps (PThm (("HOL.cong", _), _, _, _) % _ % _ % SOME x % SOME y %%
+fun strip_cong ps (PThm ("HOL.cong", _, _, _) % _ % _ % SOME x % SOME y %%
       prf1 %% prf2) = strip_cong (((x, y), prf2) :: ps) prf1
-  | strip_cong ps (PThm (("HOL.refl", _), _, _, _) % SOME f) = SOME (f, ps)
+  | strip_cong ps (PThm ("HOL.refl", _, _, _) % SOME f) = SOME (f, ps)
   | strip_cong _ _ = NONE;
 
 val subst_prf = fst (strip_combt (#2 (#der (rep_thm subst))));
@@ -310,15 +310,15 @@ fun make_sym Ts ((x, y), prf) =
 
 fun mk_AbsP P t = AbsP ("H", P, t);
 
-fun elim_cong Ts (PThm (("HOL.iffD1", _), _, _, _) % _ % _ %% prf1 %% prf2) =
+fun elim_cong Ts (PThm ("HOL.iffD1", _, _, _) % _ % _ %% prf1 %% prf2) =
       Option.map (make_subst Ts prf2 []) (strip_cong [] prf1)
-  | elim_cong Ts (PThm (("HOL.iffD1", _), _, _, _) % P % _ %% prf) =
+  | elim_cong Ts (PThm ("HOL.iffD1", _, _, _) % P % _ %% prf) =
       Option.map (mk_AbsP P o make_subst Ts (PBound 0) [])
         (strip_cong [] (incr_pboundvars 1 0 prf))
-  | elim_cong Ts (PThm (("HOL.iffD2", _), _, _, _) % _ % _ %% prf1 %% prf2) =
+  | elim_cong Ts (PThm ("HOL.iffD2", _, _, _) % _ % _ %% prf1 %% prf2) =
       Option.map (make_subst Ts prf2 [] o
         apsnd (map (make_sym Ts))) (strip_cong [] prf1)
-  | elim_cong Ts (PThm (("HOL.iffD2", _), _, _, _) % _ % P %% prf) =
+  | elim_cong Ts (PThm ("HOL.iffD2", _, _, _) % _ % P %% prf) =
       Option.map (mk_AbsP P o make_subst Ts (PBound 0) [] o
         apsnd (map (make_sym Ts))) (strip_cong [] (incr_pboundvars 1 0 prf))
   | elim_cong _ _ = NONE;

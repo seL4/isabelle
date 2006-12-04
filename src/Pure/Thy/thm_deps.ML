@@ -25,9 +25,9 @@ open Proofterm;
 fun enable () = if ! proofs = 0 then proofs := 1 else ();
 fun disable () = proofs := 0;
 
-fun dest_thm_axm (PThm (nt, prf, _, _)) = (nt, prf)
-  | dest_thm_axm (PAxm (n, _, _)) = ((n ^ " (Ax)", []), MinProof ([], [], []))
-  | dest_thm_axm _ = (("", []), MinProof ([], [], []));
+fun dest_thm_axm (PThm (name, prf, _, _)) = (name, prf)
+  | dest_thm_axm (PAxm (name, _, _)) = (name ^ " (Ax)", MinProof ([], [], []))
+  | dest_thm_axm _ = ("", MinProof ([], [], []));
 
 fun make_deps_graph (AbsP (_, _, prf)) = make_deps_graph prf
   | make_deps_graph (Abst (_, _, prf)) = make_deps_graph prf
@@ -37,9 +37,9 @@ fun make_deps_graph (AbsP (_, _, prf)) = make_deps_graph prf
       fold (make_deps_graph o Proofterm.proof_of_min_thm) thms #>
       fold (make_deps_graph o Proofterm.proof_of_min_axm) axms
   | make_deps_graph prf = (fn p as (gra, parents) =>
-      let val ((name, tags), prf') = dest_thm_axm prf
+      let val (name, prf') = dest_thm_axm prf
       in
-        if name <> "" andalso not (PureThy.has_internal tags) then
+        if name <> "" then
           if not (Symtab.defined gra name) then
             let
               val (gra', parents') = make_deps_graph prf' (gra, []);

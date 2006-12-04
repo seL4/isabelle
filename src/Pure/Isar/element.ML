@@ -226,7 +226,7 @@ local
 
 fun thm_name kind th prts =
   let val head =
-    (case #1 (Thm.get_name_tags th) of
+    (case PureThy.get_name_hint th of
       "" => Pretty.command kind
     | a => Pretty.block [Pretty.command kind, Pretty.brk 1, Pretty.str (Sign.base_name a ^ ":")])
   in Pretty.block (Pretty.fbreaks (head :: prts)) end;

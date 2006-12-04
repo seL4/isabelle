@@ -115,8 +115,8 @@ fun cs addss' ss = Classical.addbefore  (cs, ("asm_full_simp_tac",
                             CHANGED o Simplifier.asm_lr_simp_tac ss));
 
 (*Attach a suffix, provided we have a name to start with.*)
-fun suffix_thm "" _ th = th
-  | suffix_thm a b th = Thm.name_thm (a^b, th);
+fun suffix_thm "" _ = I
+  | suffix_thm a b = PureThy.put_name_hint (a^b);
 
 (* iffs: addition of rules to simpsets and clasets simultaneously *)
 
@@ -129,7 +129,7 @@ local
 
 fun addIff decls1 decls2 simp ((cs, ss), th) =
   let
-    val name = Thm.name_of_thm th;
+    val name = PureThy.get_name_hint th;
     val n = nprems_of th;
     val (elim, intro) = if n = 0 then decls1 else decls2;
     val zero_rotate = zero_var_indexes o rotate_prems n;

@@ -427,7 +427,7 @@ fun flexflex_unique th =
     |      _   => raise THM("flexflex_unique: multiple unifiers", 0, [th]);
 
 fun close_derivation thm =
-  if Thm.get_name_tags thm = ("", []) then Thm.name_thm ("", thm)
+  if Thm.get_name thm = "" then Thm.put_name "" thm
   else thm;
 
 

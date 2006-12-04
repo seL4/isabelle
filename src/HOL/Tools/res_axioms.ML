@@ -518,17 +518,17 @@ fun cnf_axiom (name,th) =
                         cls)
  );
 
-fun pairname th = (Thm.name_of_thm th, th);
+fun pairname th = (PureThy.get_name_hint th, th);
 
 (*Principally for debugging*)
 fun cnf_name s = 
   let val th = thm s
-  in cnf_axiom (Thm.name_of_thm th, th) end;
+  in cnf_axiom (PureThy.get_name_hint th, th) end;
 
 (**** Extract and Clausify theorems from a theory's claset and simpset ****)
 
 (*Preserve the name of "th" after the transformation "f"*)
-fun preserve_name f th = Thm.name_thm (Thm.name_of_thm th, f th);
+fun preserve_name f th = PureThy.put_name_hint (PureThy.get_name_hint th) (f th);
 
 fun rules_of_claset cs =
   let val {safeIs,safeEs,hazIs,hazEs,...} = rep_cs cs
@@ -601,7 +601,7 @@ fun clause_cache_setup thy = fold skolem_cache (PureThy.all_thms_of thy) thy;
 (*** meson proof methods ***)
 
 fun skolem_use_cache_thm th =
-  case Symtab.lookup (!clause_cache) (Thm.name_of_thm th) of
+  case Symtab.lookup (!clause_cache) (PureThy.get_name_hint th) of
       NONE => skolem_thm th
     | SOME (th',cls) =>
         if eq_thm(th,th') then cls else skolem_thm th;
@@ -631,7 +631,7 @@ fun conj_rule []  = TrueI
   | conj_rule ths = foldr1 conj2_rule ths;
 
 fun skolem_attr (Context.Theory thy, th) =
-      let val name = Thm.name_of_thm th
+      let val name = PureThy.get_name_hint th
           val (cls, thy') = skolem_cache_thm (name, th) thy
       in (Context.Theory thy', conj_rule cls) end
   | skolem_attr (context, th) = (context, conj_rule (skolem_use_cache_thm th));

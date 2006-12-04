@@ -514,7 +514,7 @@ fun orient_rrule ss (thm, name) =
   end;
 
 fun extract_rews (Simpset (_, {mk_rews = {mk, ...}, ...}), thms) =
-  maps (fn thm => map (rpair (Thm.name_of_thm thm)) (mk thm)) thms;
+  maps (fn thm => map (rpair (PureThy.get_name_hint thm)) (mk thm)) thms;
 
 fun extract_safe_rrules (ss, thm) =
   maps (orient_rrule ss) (extract_rews (ss, [thm]));

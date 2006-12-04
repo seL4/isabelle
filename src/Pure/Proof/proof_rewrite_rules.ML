@@ -32,12 +32,12 @@ fun rew b _ =
     val equal_elim_axm = ax equal_elim_axm [];
     val symmetric_axm = ax symmetric_axm [propT];
 
-    fun rew' (PThm (("ProtoPure.protectD", _), _, _, _) % _ %%
-        (PThm (("ProtoPure.protectI", _), _, _, _) % _ %% prf)) = SOME prf
-      | rew' (PThm (("ProtoPure.conjunctionD1", _), _, _, _) % _ % _ %%
-        (PThm (("ProtoPure.conjunctionI", _), _, _, _) % _ % _ %% prf %% _)) = SOME prf
-      | rew' (PThm (("ProtoPure.conjunctionD2", _), _, _, _) % _ % _ %%
-        (PThm (("ProtoPure.conjunctionI", _), _, _, _) % _ % _ %% _ %% prf)) = SOME prf
+    fun rew' (PThm ("ProtoPure.protectD", _, _, _) % _ %%
+        (PThm ("ProtoPure.protectI", _, _, _) % _ %% prf)) = SOME prf
+      | rew' (PThm ("ProtoPure.conjunctionD1", _, _, _) % _ % _ %%
+        (PThm ("ProtoPure.conjunctionI", _, _, _) % _ % _ %% prf %% _)) = SOME prf
+      | rew' (PThm ("ProtoPure.conjunctionD2", _, _, _) % _ % _ %%
+        (PThm ("ProtoPure.conjunctionI", _, _, _) % _ % _ %% _ %% prf)) = SOME prf
       | rew' (PAxm ("ProtoPure.equal_elim", _, _) % _ % _ %%
         (PAxm ("ProtoPure.equal_intr", _, _) % _ % _ %% prf %% _)) = SOME prf
       | rew' (PAxm ("ProtoPure.symmetric", _, _) % _ % _ %%
@@ -47,14 +47,14 @@ fun rew b _ =
       | rew' (PAxm ("ProtoPure.equal_elim", _, _) % SOME (_ $ A) % SOME (_ $ B) %%
         (PAxm ("ProtoPure.combination", _, _) % SOME (Const ("prop", _)) %
           _ % _ % _ %% (PAxm ("ProtoPure.reflexive", _, _) % _) %% prf1) %%
-        ((tg as PThm (("ProtoPure.protectI", _), _, _, _)) % _ %% prf2)) =
+        ((tg as PThm ("ProtoPure.protectI", _, _, _)) % _ %% prf2)) =
         SOME (tg %> B %% (equal_elim_axm %> A %> B %% prf1 %% prf2))
 
       | rew' (PAxm ("ProtoPure.equal_elim", _, _) % SOME (_ $ A) % SOME (_ $ B) %%
         (PAxm ("ProtoPure.symmetric", _, _) % _ % _ %%
           (PAxm ("ProtoPure.combination", _, _) % SOME (Const ("prop", _)) %
              _ % _ % _ %% (PAxm ("ProtoPure.reflexive", _, _) % _) %% prf1)) %%
-        ((tg as PThm (("ProtoPure.protectI", _), _, _, _)) % _ %% prf2)) =
+        ((tg as PThm ("ProtoPure.protectI", _, _, _)) % _ %% prf2)) =
         SOME (tg %> B %% (equal_elim_axm %> A %> B %%
           (symmetric_axm % ?? B % ?? A %% prf1) %% prf2))
 
@@ -222,7 +222,7 @@ fun insert_refl defs Ts (prf1 %% prf2) =
   | insert_refl defs Ts (AbsP (s, t, prf)) =
       AbsP (s, t, insert_refl defs Ts prf)
   | insert_refl defs Ts prf = (case strip_combt prf of
-        (PThm ((s, _), _, prop, SOME Ts), ts) =>
+        (PThm (s, _, prop, SOME Ts), ts) =>
           if member (op =) defs s then
             let
               val vs = vars_of prop;
@@ -241,7 +241,7 @@ fun insert_refl defs Ts (prf1 %% prf2) =
 fun elim_defs thy r defs prf =
   let
     val defs' = map (Logic.dest_equals o prop_of o Drule.abs_def) defs
-    val defnames = map Thm.name_of_thm defs;
+    val defnames = map Thm.get_name defs;
     val f = if not r then I else
       let
         val cnames = map (fst o dest_Const o fst) defs';

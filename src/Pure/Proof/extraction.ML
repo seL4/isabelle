@@ -314,7 +314,7 @@ fun prep_realizer thy =
     val rd = ProofSyntax.read_proof thy' false
   in fn (thm, (vs, s1, s2)) =>
     let
-      val name = Thm.name_of_thm thm;
+      val name = Thm.get_name thm;
       val _ = assert (name <> "") "add_realizers: unnamed theorem";
       val prop = Pattern.rewrite_term thy'
         (map (Logic.dest_equals o prop_of) defs) [] (prop_of thm);
@@ -359,7 +359,7 @@ fun add_expand_thm thm thy =
     val {realizes_eqns, typeof_eqns, types, realizers,
       defs, expand, prep} = ExtractionData.get thy;
 
-    val name = Thm.name_of_thm thm;
+    val name = Thm.get_name thm;
     val _ = assert (name <> "") "add_expand_thms: unnamed theorem";
 
     val is_def =
@@ -555,7 +555,7 @@ fun extract thms thy =
               (defs3, corr_prf1 % u %% corr_prf2)
           end
 
-      | corr d defs vs ts Ts hs (prf0 as PThm ((name, _), prf, prop, SOME Ts')) _ _ =
+      | corr d defs vs ts Ts hs (prf0 as PThm (name, prf, prop, SOME Ts')) _ _ =
           let
             val (vs', tye) = find_inst prop Ts ts vs;
             val tye' = (map fst (term_tvars prop) ~~ Ts') @ tye;
@@ -578,7 +578,7 @@ fun extract thms thy =
                     val corr_prop = Reconstruct.prop_of corr_prf;
                     val corr_prf' = foldr forall_intr_prf
                       (proof_combt
-                         (PThm ((corr_name name vs', []), corr_prf, corr_prop,
+                         (PThm (corr_name name vs', corr_prf, corr_prop,
                              SOME (map TVar (term_tvars corr_prop))), vfs_of corr_prop))
 		      (map (get_var_type corr_prop) (vfs_of prop))
                   in
@@ -643,7 +643,7 @@ fun extract thms thy =
               in (defs'', f $ t) end
           end
 
-      | extr d defs vs ts Ts hs (prf0 as PThm ((s, _), prf, prop, SOME Ts')) =
+      | extr d defs vs ts Ts hs (prf0 as PThm (s, prf, prop, SOME Ts')) =
           let
             val (vs', tye) = find_inst prop Ts ts vs;
             val tye' = (map fst (term_tvars prop) ~~ Ts') @ tye
@@ -687,7 +687,7 @@ fun extract thms thy =
                     val corr_prop = Reconstruct.prop_of corr_prf';
                     val corr_prf'' = foldr forall_intr_prf
                       (proof_combt
-                        (PThm ((corr_name s vs', []), corr_prf', corr_prop,
+                        (PThm (corr_name s vs', corr_prf', corr_prop,
                           SOME (map TVar (term_tvars corr_prop))),  vfs_of corr_prop))
 		      (map (get_var_type corr_prop) (vfs_of prop));
                   in
@@ -719,7 +719,7 @@ fun extract thms thy =
     fun prep_thm (thm, vs) =
       let
         val {prop, der = (_, prf), sign, ...} = rep_thm thm;
-        val name = Thm.name_of_thm thm;
+        val name = Thm.get_name thm;
         val _ = assert (name <> "") "extraction: unnamed theorem";
         val _ = assert (etype_of thy' vs [] prop <> nullT) ("theorem " ^
           quote name ^ " has no computational content")

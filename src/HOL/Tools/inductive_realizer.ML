@@ -59,7 +59,7 @@ fun dt_of_intrs thy vs intrs =
     val (Const (s, _), ts) = strip_comb S;
     val params = map dest_Var ts;
     val tname = space_implode "_" (Sign.base_name s ^ "T" :: vs);
-    fun constr_of_intr intr = (Sign.base_name (Thm.name_of_thm intr),
+    fun constr_of_intr intr = (Sign.base_name (Thm.get_name intr),
       map (Logic.unvarifyT o snd) (rev (Term.add_vars (prop_of intr) []) \\ params) @
         filter_out (equal Extraction.nullT) (map
           (Logic.unvarifyT o Extraction.etype_of thy vs []) (prems_of intr)),
@@ -189,7 +189,7 @@ fun fun_of_prem thy rsets vs params rule intr =
           in if conclT = Extraction.nullT
             then list_abs_free (map dest_Free xs, HOLogic.unit)
             else list_abs_free (map dest_Free xs, list_comb
-              (Free ("r" ^ Sign.base_name (Thm.name_of_thm intr),
+              (Free ("r" ^ Sign.base_name (Thm.get_name intr),
                 map fastype_of (rev args) ---> conclT), rev args))
           end
 
@@ -226,7 +226,7 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
     let
       val r = foldr1 HOLogic.mk_prod rlzs;
       val x = Free ("x", Extraction.etype_of thy vs [] (hd (prems_of induct)));
-      fun name_of_fn intr = "r" ^ Sign.base_name (Thm.name_of_thm intr);
+      fun name_of_fn intr = "r" ^ Sign.base_name (Thm.get_name intr);
       val r' = list_abs_free (List.mapPartial (fn intr =>
         Option.map (pair (name_of_fn intr)) (AList.lookup (op =) frees (name_of_fn intr))) intrs,
           if length concls = 1 then r $ x else r)
@@ -271,7 +271,7 @@ fun mk_realizer thy vs params ((rule, rrule), rt) =
           else forall_intr_prf (Var (hd rs), AbsP ("H", SOME rprem,
             mk_prf (tl rs) prems prf));
 
-  in (Thm.name_of_thm rule, (vs,
+  in (Thm.get_name rule, (vs,
     if rt = Extraction.nullt then rt else
       foldr (uncurry lambda) rt vs1,
     foldr forall_intr_prf (mk_prf rs prems (Proofterm.proof_combP
@@ -349,11 +349,11 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val (thy3', ind_info) = thy2 |>
       OldInductivePackage.add_inductive_i false true "" false false false
         (map Logic.unvarify rlzsets) (map (fn (rintr, intr) =>
-          ((Sign.base_name (Thm.name_of_thm intr), strip_all
+          ((Sign.base_name (Thm.get_name intr), strip_all
             (Logic.unvarify rintr)), [])) (rintrs ~~ intrs)) [] |>>
       Theory.absolute_path;
     val thy3 = PureThy.hide_thms false
-      (map Thm.name_of_thm (#intrs ind_info)) thy3';
+      (map Thm.get_name (#intrs ind_info)) thy3';
 
     (** realizer for induction rule **)
 
@@ -379,7 +379,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
              [K (rewrite_goals_tac rews), ObjectLogic.atomize_tac,
               DEPTH_SOLVE_1 o FIRST' [atac, etac allE, etac impE]]) 1)]);
         val (thm', thy') = PureThy.store_thm ((space_implode "_"
-          (Thm.name_of_thm induct :: vs @ Ps @ ["correctness"]), thm), []) thy
+          (Thm.get_name induct :: vs @ Ps @ ["correctness"]), thm), []) thy
       in
         Extraction.add_realizers_i
           [mk_realizer thy' (vs @ Ps) params' ((induct, thm'), r)] thy'
@@ -427,7 +427,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
            REPEAT ((resolve_tac prems THEN_ALL_NEW (ObjectLogic.atomize_tac THEN'
              DEPTH_SOLVE_1 o FIRST' [atac, etac allE, etac impE])) 1)]);
         val (thm', thy') = PureThy.store_thm ((space_implode "_"
-          (Thm.name_of_thm elim :: vs @ Ps @ ["correctness"]), thm), []) thy
+          (Thm.get_name elim :: vs @ Ps @ ["correctness"]), thm), []) thy
       in
         Extraction.add_realizers_i
           [mk_realizer thy' (vs @ Ps) params' ((elim, thm'), r)] thy'

@@ -29,11 +29,12 @@ end;
 signature PURE_THY =
 sig
   include BASIC_PURE_THY
-  val map_tags: (tag list -> tag list) -> thm -> thm
   val tag_rule: tag -> thm -> thm
   val untag_rule: string -> thm -> thm
   val tag: tag -> attribute
   val untag: string -> attribute
+  val get_name_hint: thm -> string
+  val put_name_hint: string -> thm -> thm
   val get_kind: thm -> string
   val kind_rule: string -> thm -> thm
   val kind: string -> attribute
@@ -62,7 +63,9 @@ sig
   val burrow_facts: ('a list -> 'b list) ->
     ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
   val name_multi: string -> 'a list -> (string * 'a) list
-  val name_thm: bool -> string * thm -> thm
+  val name_thm: bool -> bool -> string -> thm -> thm
+  val name_thms: bool -> bool -> string -> thm list -> thm list
+  val name_thmss: bool -> string -> (thm list * 'a) list -> (thm list * 'a) list
   val store_thm: (bstring * thm) * attribute list -> theory -> thm * theory
   val smart_store_thms: (bstring * thm list) -> thm list
   val smart_store_thms_open: (bstring * thm list) -> thm list
@@ -106,12 +109,8 @@ struct
 
 (* add / delete tags *)
 
-fun map_tags f thm =
-  let val (name, tags) = Thm.get_name_tags thm
-  in Thm.put_name_tags (name, f tags) thm end;
-
-fun tag_rule tg = map_tags (fn tgs => if member (op =) tgs tg then tgs else tgs @ [tg]);
-fun untag_rule s = map_tags (filter_out (fn (s', _) => s = s'));
+fun tag_rule tg = Thm.map_tags (insert (op =) tg);
+fun untag_rule s = Thm.map_tags (filter_out (fn (s', _) => s = s'));
 
 fun tag tg x = Thm.rule_attribute (K (tag_rule tg)) x;
 fun untag s x = Thm.rule_attribute (K (untag_rule s)) x;
@@ -119,18 +118,28 @@ fun untag s x = Thm.rule_attribute (K (untag_rule s)) x;
 fun simple_tag name x = tag (name, []) x;
 
 
+(* unofficial theorem names *)
+
+fun put_name_hint name = untag_rule "name" #> tag_rule ("name", [name]);
+
+fun get_name_hint thm =
+  (case AList.lookup (op =) (Thm.get_tags thm) "name" of
+    SOME (k :: _) => k
+  | _ => "??.unknown");
+
+
 (* theorem kinds *)
 
 fun get_kind thm =
-  (case AList.lookup (op =) ((#2 o Thm.get_name_tags) thm) "kind" of
+  (case AList.lookup (op =) (Thm.get_tags thm) "kind" of
     SOME (k :: _) => k
-  | _ => "unknown");
+  | _ => "??.unknown");
 
 fun kind_rule k = tag_rule ("kind", [k]) o untag_rule "kind";
 fun kind k x = if k = "" then x else Thm.rule_attribute (K (kind_rule k)) x;
 fun kind_internal x = kind internalK x;
 fun has_internal tags = exists (fn ("kind", [k]) => k = internalK | _ => false) tags;
-val is_internal = has_internal o Thm.tags_of_thm;
+val is_internal = has_internal o Thm.get_tags;
 
 
 
@@ -288,14 +297,14 @@ fun thms_containing theory spec =
 
 fun thms_containing_consts thy consts =
   thms_containing thy (consts, []) |> maps #2
-  |> map (fn th => (Thm.name_of_thm th, th));
+  |> map (`(get_name_hint));
 
 
 (* thms_of etc. *)
 
 fun thms_of thy =
   let val thms = #2 (theorems_of thy)
-  in map (fn th => (Thm.name_of_thm th, th)) (maps snd (Symtab.dest thms)) end;
+  in map (`(get_name_hint)) (maps snd (Symtab.dest thms)) end;
 
 fun all_thms_of thy = maps thms_of (thy :: Theory.ancestors_of thy);
 
@@ -327,12 +336,15 @@ fun gen_names _ len "" = replicate len ""
 fun name_multi name [x] = [(name, x)]
   | name_multi name xs = gen_names 0 (length xs) name ~~ xs;
 
-fun name_thm pre (name, thm) =
-  if Thm.name_of_thm thm <> "" andalso pre then thm else Thm.name_thm (name, thm);
+fun name_thm pre official name thm = thm
+  |> (if Thm.get_name thm <> "" andalso pre orelse not official then I else Thm.put_name name)
+  |> (if get_name_hint thm <> "" andalso pre orelse name = "" then I else put_name_hint name);
 
-fun name_thms pre name xs = map (name_thm pre) (name_multi name xs);
+fun name_thms pre official name xs =
+  map (uncurry (name_thm pre official)) (name_multi name xs);
 
-fun name_thmss name fact = burrow_fact (name_thms true name) fact;
+fun name_thmss official name fact =
+  burrow_fact (name_thms true official name) fact;
 
 
 (* enter_thms *)
@@ -363,7 +375,8 @@ fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms) |> swap
 (* add_thms(s) *)
 
 fun add_thms_atts pre_name ((bname, thms), atts) =
-  enter_thms pre_name (name_thms false) (foldl_map (Thm.theory_attributes atts)) (bname, thms);
+  enter_thms pre_name (name_thms false true)
+    (foldl_map (Thm.theory_attributes atts)) (bname, thms);
 
 fun gen_add_thmss pre_name =
   fold_map (add_thms_atts pre_name);
@@ -371,8 +384,8 @@ fun gen_add_thmss pre_name =
 fun gen_add_thms pre_name args =
   apfst (map hd) o gen_add_thmss pre_name (map (apfst (apsnd single)) args);
 
-val add_thmss = gen_add_thmss (name_thms true);
-val add_thms = gen_add_thms (name_thms true);
+val add_thmss = gen_add_thmss (name_thms true true);
+val add_thms = gen_add_thms (name_thms true true);
 
 
 (* note_thmss(_i) *)
@@ -383,7 +396,7 @@ fun gen_note_thmss get k = fold_map (fn ((bname, more_atts), ths_atts) => fn thy
   let
     fun app (x, (ths, atts)) = foldl_map (Thm.theory_attributes atts) (x, ths);
     val (thms, thy') = thy |> enter_thms
-      name_thmss (name_thms false) (apsnd flat o foldl_map app)
+      (name_thmss true) (name_thms false true) (apsnd flat o foldl_map app)
       (bname, map (fn (ths, atts) => (get thy ths, atts @ more_atts @ [kind k])) ths_atts);
   in ((bname, thms), thy') end);
 
@@ -405,7 +418,7 @@ fun note_thmss_qualified k path facts thy =
 (* store_thm *)
 
 fun store_thm ((bname, thm), atts) thy =
-  let val ([th'], thy') = add_thms_atts (name_thms true) ((bname, [thm]), atts) thy
+  let val ([th'], thy') = add_thms_atts (name_thms true true) ((bname, [thm]), atts) thy
   in (th', thy') end;
 
 
@@ -415,16 +428,18 @@ local
 
 fun smart_store _ (name, []) =
       error ("Cannot store empty list of theorems: " ^ quote name)
-  | smart_store name_thm (name, [thm]) =
-      fst (enter_thms (name_thm true) (name_thm false) I (name, [thm]) (Thm.theory_of_thm thm))
-  | smart_store name_thm (name, thms) =
-      let val thy = Theory.merge_list (map Thm.theory_of_thm thms)
-      in fst (enter_thms (name_thm true) (name_thm false) I (name, thms) thy) end;
+  | smart_store official (name, [thm]) =
+      fst (enter_thms (name_thms true official) (name_thms false official) I (name, [thm])
+        (Thm.theory_of_thm thm))
+  | smart_store official (name, thms) =
+      let val thy = Theory.merge_list (map Thm.theory_of_thm thms) in
+        fst (enter_thms (name_thms true official) (name_thms false official) I (name, thms) thy)
+      end;
 
 in
 
-val smart_store_thms = smart_store name_thms;
-val smart_store_thms_open = smart_store (K (K I));
+val smart_store_thms = smart_store true;
+val smart_store_thms_open = smart_store false;
 
 end;
 

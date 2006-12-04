@@ -45,7 +45,7 @@ fun thm_of_proof thy prf =
         Thm.instantiate (ctye, []) (forall_intr_vars (forall_intr_frees thm'))
       end;
 
-    fun thm_of _ _ (PThm ((name, _), _, prop', SOME Ts)) =
+    fun thm_of _ _ (PThm (name, _, prop', SOME Ts)) =
           let
             val thm = Drule.implies_intr_hyps (lookup name);
             val {prop, ...} = rep_thm thm;

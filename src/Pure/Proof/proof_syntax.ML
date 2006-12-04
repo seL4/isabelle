@@ -108,12 +108,12 @@ fun disambiguate_names thy prf =
       | rename (AbsP (s, t, prf)) = AbsP (s, t, rename prf)
       | rename (prf1 %% prf2) = rename prf1 %% rename prf2
       | rename (prf % t) = rename prf % t
-      | rename (prf' as PThm ((s, tags), prf, prop, Ts)) =
+      | rename (prf' as PThm (s, prf, prop, Ts)) =
           let
             val prop' = the_default (Bound 0) (AList.lookup (op =) thms' s);
             val ps = remove (op =) prop' (map fst (the (Symtab.lookup thms s)))
           in if prop = prop' then prf' else
-            PThm ((s ^ "_" ^ string_of_int (length ps - find_index (fn p => p = prop) ps), tags),
+            PThm (s ^ "_" ^ string_of_int (length ps - find_index (fn p => p = prop) ps),
               prf, prop, Ts)
           end
       | rename prf = prf
@@ -183,9 +183,9 @@ val MinProoft = Const ("MinProof", proofT);
 val mk_tyapp = fold (fn T => fn prf => Const ("Appt",
   [proofT, Term.itselfT T] ---> proofT) $ prf $ Logic.mk_type T);
 
-fun term_of _ (PThm ((name, _), _, _, NONE)) =
+fun term_of _ (PThm (name, _, _, NONE)) =
       Const (NameSpace.append "thm" name, proofT)
-  | term_of _ (PThm ((name, _), _, _, SOME Ts)) =
+  | term_of _ (PThm (name, _, _, SOME Ts)) =
       mk_tyapp Ts (Const (NameSpace.append "thm" name, proofT))
   | term_of _ (PAxm (name, _, NONE)) = Const (NameSpace.append "axm" name, proofT)
   | term_of _ (PAxm (name, _, SOME Ts)) =

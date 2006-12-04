@@ -195,7 +195,7 @@ fun classical_rule rule =
           else all_tac))
         |> Seq.hd
         |> Drule.zero_var_indexes
-        |> Thm.put_name_tags (Thm.get_name_tags rule);
+        |> PureThy.put_name_hint (PureThy.get_name_hint rule);
     in if Drule.equiv_thm (rule, rule'') then rule else rule'' end
   else rule;
 
@@ -424,9 +424,9 @@ fun name_make_elim th =
     if has_fewer_prems 1 th then
     	error("Ill-formed destruction rule\n" ^ string_of_thm th)
     else
-    case Thm.name_of_thm th of
+    case PureThy.get_name_hint th of
         "" => Tactic.make_elim th
-      | a  => Thm.name_thm (a ^ "_dest", Tactic.make_elim th);
+      | a  => PureThy.put_name_hint (a ^ "_dest") (Tactic.make_elim th);
 
 fun cs addSDs ths = cs addSEs (map name_make_elim ths);
 
