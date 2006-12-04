@@ -11,7 +11,7 @@ sig
   val xml_of_type: typ -> XML.tree
   val xml_of_term: term -> XML.tree
   val xml_of_proof: Proofterm.proof -> XML.tree
-  val write_to_file: string -> string -> XML.tree -> unit
+  val write_to_file: Path.T -> string -> XML.tree -> unit
   exception XML of string * XML.tree
   val type_of_xml: XML.tree -> typ
   val term_of_xml: XML.tree -> term
@@ -71,7 +71,7 @@ fun xml_of_proof (PBound i) =
   | xml_of_proof (prf %% prf') =
       XML.Elem ("AppP", [], [xml_of_proof prf, xml_of_proof prf'])
   | xml_of_proof (Hyp t) = XML.Elem ("Hyp", [], [xml_of_term t])
-  | xml_of_proof (PThm ((s, _), _, t, optTs)) =
+  | xml_of_proof (PThm (s, _, t, optTs)) =
       XML.Elem ("PThm", [("name", s)], xml_of_term t :: xml_of_opttypes optTs)
   | xml_of_proof (PAxm (s, t, optTs)) =
       XML.Elem ("PAxm", [("name", s)], xml_of_term t :: xml_of_opttypes optTs)
@@ -82,8 +82,8 @@ fun xml_of_proof (PBound i) =
 
 (* useful for checking the output against a schema file *)
 
-fun write_to_file fname elname x =
-  File.write (Path.unpack fname)
+fun write_to_file path elname x =
+  File.write path
     ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ^
      XML.string_of_tree (XML.Elem (elname,
        [("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"),
@@ -155,7 +155,7 @@ fun proof_of_xml (tree as XML.Elem ("PBound", [("index", idx)], [])) =
   | proof_of_xml (XML.Elem ("AppP", [], [proof, proof'])) =
       proof_of_xml proof %% proof_of_xml proof'
   | proof_of_xml (XML.Elem ("PThm", [("name", s)], term :: opttypes)) =
-      PThm ((s, []), MinProof ([], [], []),  (* FIXME? *)
+      PThm (s, MinProof ([], [], []),  (* FIXME? *)
         term_of_xml term, opttypes_of_xml opttypes)
   | proof_of_xml (XML.Elem ("PAxm", [("name", s)], term :: opttypes)) =
       PAxm (s, term_of_xml term, opttypes_of_xml opttypes)
