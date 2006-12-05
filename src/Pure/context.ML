@@ -73,6 +73,7 @@ sig
   datatype generic = Theory of theory | Proof of proof
   val cases: (theory -> 'a) -> (proof -> 'a) -> generic -> 'a
   val mapping: (theory -> theory) -> (proof -> proof) -> generic -> generic
+  val mapping_result: (theory -> 'a * theory) -> (proof -> 'a * proof) -> generic -> 'a * generic
   val the_theory: generic -> theory
   val the_proof: generic -> proof
   val map_theory: (theory -> theory) -> generic -> generic
@@ -582,6 +583,7 @@ fun cases f _ (Theory thy) = f thy
   | cases _ g (Proof prf) = g prf;
 
 fun mapping f g = cases (Theory o f) (Proof o g);
+fun mapping_result f g = cases (apsnd Theory o f) (apsnd Proof o g);
 
 val the_theory = cases I (fn _ => raise Fail "Ill-typed context: theory expected");
 val the_proof = cases (fn _ => raise Fail "Ill-typed context: proof expected") I;
