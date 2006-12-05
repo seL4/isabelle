@@ -7,7 +7,7 @@ Parsing theory files to add PGIP markup.
 
 signature PGIP_PARSER =
 sig
-    val xmls_of_str: string -> XML.tree list
+    val xmls_of_str: string -> XML.content
 end
 
 structure PgipParser : PGIP_PARSER =
@@ -228,7 +228,7 @@ local
     | "qed"            => xmls_of_qed (name,markup)
     | "qed-block"      => xmls_of_qed (name,markup)
     | "qed-global"     => xmls_of_qed (name,markup)
-    | other => (* default for anything else is "spuriouscmd", ignored for undo. *)
+    | other => (* default for anything else is "spuriouscmd", ignored for undo *)
       (parse_warning ("Internal inconsistency, unrecognized keyword kind: " ^ quote other);
        markup "spuriouscmd")
     end

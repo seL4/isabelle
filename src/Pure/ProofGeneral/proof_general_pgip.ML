@@ -320,6 +320,7 @@ fun restart () =
      tell_clear_goals ();
      tell_clear_response ();
      welcome ();
+     priority "Running new version of PGIP code.  In testing.";
      raise Toplevel.RESTART)
 
 
@@ -847,19 +848,21 @@ fun process_pgip_tree xml =
           (let
                val class = PgipTypes.get_attr "class" attrs
                val dest  = PgipTypes.get_attr_opt "destid" attrs
-               val _ = (pgip_refid :=  PgipTypes.get_attr_opt "id" attrs)
-	       val _ = (pgip_refseq := Option.join 
-					   (Option.map Int.fromString
-						  (PgipTypes.get_attr_opt "seq" attrs)))
+	       val seq = PgipTypes.read_pgipnat (PgipTypes.get_attr "seq" attrs)
                (* Respond to prover broadcasts, or messages for us. Ignore rest *)
 	       val processit = 
 		   case dest of
                        NONE =>    class = "pa"
 		     | SOME id => matching_pgip_id id
-           in
-               if processit then 
-		   (List.app process_pgip_element pgips; true) 
-	       else false
+	   in if processit then
+		  (pgip_refid :=  PgipTypes.get_attr_opt "id" attrs;
+		   pgip_refseq := SOME seq;
+		   List.app process_pgip_element pgips; 
+		   (* return true to indicate <ready/> *)
+		   true)
+	      else 
+		  (* no response to ignored messages. *) 
+		  false
            end)
         | _ => raise PGIP "Invalid PGIP packet received")
      handle PGIP msg =>

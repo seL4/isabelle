@@ -13,17 +13,17 @@ sig
     | Normalresponse      of { area: PgipTypes.displayarea, 
                                urgent: bool, 
                                messagecategory: PgipTypes.messagecategory, 
-                               content: XML.tree list }
+                               content: XML.content }
     | Errorresponse       of { fatality: PgipTypes.fatality, 
                                area: PgipTypes.displayarea option, 
                                location: PgipTypes.location option, 
-                               content: XML.tree list }
+                               content: XML.content }
     | Informfileloaded    of { url: PgipTypes.pgipurl }
     | Informfileretracted of { url: PgipTypes.pgipurl }
-    | Proofstate          of { pgml: XML.tree list }
+    | Proofstate          of { pgml: XML.content }
     | Metainforesponse    of { attrs: XML.attributes, 
-                               content: XML.tree list }
-    | Lexicalstructure    of { content: XML.tree list }
+                               content: XML.content }
+    | Lexicalstructure    of { content: XML.content }
     | Proverinfo          of { name: string, 
                                version: string, 
                                instance: string,
@@ -33,18 +33,18 @@ sig
     | Idtable             of { objtype: string, 
                                context: string option, 
                                ids: string list }
-    | Setids              of { idtables: XML.tree list }
-    | Delids              of { idtables: XML.tree list }
-    | Addids              of { idtables: XML.tree list }
+    | Setids              of { idtables: XML.content }
+    | Delids              of { idtables: XML.content }
+    | Addids              of { idtables: XML.content }
     | Hasprefs            of { prefcategory: string option, 
                                prefs: PgipTypes.preference list }
     | Prefval             of { name: string, value: string }
-    | Idvalue             of { name: string, objtype: string, text: XML.tree list }
+    | Idvalue             of { name: string, objtype: string, text: XML.content }
     | Informguise         of { file : PgipTypes.pgipurl option,  
                                theory: string option, 
                                theorem: string option, 
                                proofpos: int option }
-    | Parseresult         of { attrs: XML.attributes, content: XML.tree list }
+    | Parseresult         of { attrs: XML.attributes, content: XML.content }
     | Usespgip            of { version: string, 
                                pgipelems: (string * bool * string list) list }
     | Usespgml            of { version: string }
@@ -54,7 +54,7 @@ sig
                                destid: string option,
                                refid: string option,
                                refseq: int option,
-                               content: XML.tree list }
+                               content: XML.content }
     | Ready               of { }
 
     val output : pgipoutput -> XML.tree                                  
@@ -67,26 +67,26 @@ open PgipTypes
 datatype pgipoutput = 
          Cleardisplay        of { area: displayarea }
        | Normalresponse      of { area: displayarea, urgent: bool, 
-                                  messagecategory: messagecategory, content: XML.tree list }
+                                  messagecategory: messagecategory, content: XML.content }
        | Errorresponse       of { area: displayarea option, fatality: fatality, 
-                                  location: location option, content: XML.tree list }
+                                  location: location option, content: XML.content }
        | Informfileloaded    of { url: Path.T }
        | Informfileretracted of { url: Path.T }
-       | Proofstate          of { pgml: XML.tree list }
-       | Metainforesponse    of { attrs: XML.attributes, content: XML.tree list }
-       | Lexicalstructure    of { content: XML.tree list }
+       | Proofstate          of { pgml: XML.content }
+       | Metainforesponse    of { attrs: XML.attributes, content: XML.content }
+       | Lexicalstructure    of { content: XML.content }
        | Proverinfo          of { name: string, version: string, instance: string,
                                   descr: string, url: Url.T, filenameextns: string }
        | Idtable             of { objtype: string, context: string option, ids: string list }
-       | Setids              of { idtables: XML.tree list }
-       | Delids              of { idtables: XML.tree list }
-       | Addids              of { idtables: XML.tree list }
+       | Setids              of { idtables: XML.content }
+       | Delids              of { idtables: XML.content }
+       | Addids              of { idtables: XML.content }
        | Hasprefs            of { prefcategory: string option, prefs: preference list }
        | Prefval             of { name: string, value: string }
-       | Idvalue             of { name: string, objtype: string, text: XML.tree list }
+       | Idvalue             of { name: string, objtype: string, text: XML.content }
        | Informguise         of { file : pgipurl option,  theory: string option, 
                                   theorem: string option, proofpos: int option }
-       | Parseresult         of { attrs: XML.attributes, content: XML.tree list }
+       | Parseresult         of { attrs: XML.attributes, content: XML.content }
        | Usespgip            of { version: string, 
                                   pgipelems: (string * bool * string list) list }
        | Usespgml            of { version: string }
@@ -96,7 +96,7 @@ datatype pgipoutput =
                                   destid: string option,
                                   refid: string option,
                                   refseq: int option,
-                                  content: XML.tree list}
+                                  content: XML.content }
        | Ready               of { }
 
 
@@ -231,7 +231,7 @@ fun acceptedpgipelems vs =
         fun async_attrs b = if b then attr "async" "true" else []
         fun attrs_attrs attrs = if attrs=[] then [] else attr "attributes" (space_implode "," attrs)
         fun singlepgipelem (e,async,attrs) = 
-            XML.Elem("pgipelem", ((async_attrs async) @ (attrs_attrs attrs)),[])
+            XML.Elem("pgipelem", ((async_attrs async) @ (attrs_attrs attrs)),[XML.Text e])
                                                       
     in
         XML.Elem ("acceptedpgipelems", [],
