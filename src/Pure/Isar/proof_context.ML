@@ -11,14 +11,15 @@ signature PROOF_CONTEXT =
 sig
   val theory_of: Proof.context -> theory
   val init: theory -> Proof.context
+  val is_stmt: Proof.context -> bool
+  val set_stmt: bool -> Proof.context -> Proof.context
+  val restore_stmt: Proof.context -> Proof.context -> Proof.context
+  val naming_of: Proof.context -> NameSpace.naming
   val full_name: Proof.context -> bstring -> string
   val consts_of: Proof.context -> Consts.T
   val const_syntax_name: Proof.context -> string -> string
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
-  val is_stmt: Proof.context -> bool
-  val set_stmt: bool -> Proof.context -> Proof.context
-  val restore_stmt: Proof.context -> Proof.context -> Proof.context
   val fact_index_of: Proof.context -> FactIndex.T
   val transfer: theory -> Proof.context -> Proof.context
   val theory: (theory -> theory) -> Proof.context -> Proof.context
@@ -849,7 +850,8 @@ end;
 (* authentic constants *)
 
 fun const_syntax ctxt (Free (x, T), mx) = SOME (true, (x, T, mx))
-  | const_syntax ctxt (Const (c, _), mx) = SOME (false, Consts.syntax (consts_of ctxt) (c, mx))
+  | const_syntax ctxt (Const (c, _), mx) =
+      Option.map (pair false) (try (Consts.syntax (consts_of ctxt)) (c, mx))
   | const_syntax _ _ = NONE;
 
 fun add_notation prmode args ctxt =
@@ -877,7 +879,8 @@ val expand_abbrevs = map_consts o apsnd o Consts.expand_abbrevs;
 
 fun add_abbrevs prmode = fold_map (fn ((raw_c, raw_mx), raw_t) => fn ctxt =>
   let
-    val ([(c, _, mx)], _) = cert_vars [(raw_c, NONE, raw_mx)] ctxt;
+    val (c, mx) = Syntax.const_mixfix raw_c raw_mx;
+    val _ = no_skolem true c;
     val full_c = full_name ctxt c;
     val c' = Syntax.constN ^ full_c;
     val t0 = cert_term (ctxt |> expand_abbrevs false) raw_t;
