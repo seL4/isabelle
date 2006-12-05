@@ -146,7 +146,7 @@ fun target_result f lthy =
 fun target f = #2 o target_result (f #> pair ());
 
 
-(* primitive operations *)
+(* basic operations *)
 
 fun operation f lthy = f (#operations (get_lthy lthy)) lthy;
 fun operation1 f x = operation (fn ops => f ops x);
@@ -163,22 +163,29 @@ val declaration = operation1 #declaration;
 val target_morphism = operation #target_morphism;
 val target_name = operation #target_name;
 
-
-(* derived operations *)
-
 fun def kind arg lthy = lthy |> defs kind [arg] |>> hd;
-
 fun note kind (a, ths) lthy = lthy |> notes kind [(a, [(ths, [])])] |>> hd;
 
-fun notation mode args = term_syntax (fn phi =>
-  let val args' = args |> map (fn (t, mx) => (Morphism.term phi t, mx))
-  in Context.mapping (Sign.add_notation mode args') (ProofContext.add_notation mode args') end);
+
+(* term syntax *)
+
+fun generic_notation mode args phi =
+  let
+    val args' = args |> filter (fn (t, _) => t aconv Morphism.term phi t);
+  in Context.mapping (Sign.add_notation mode args') (ProofContext.add_notation mode args') end;
+
+fun notation mode args = term_syntax (generic_notation mode args);
 
 fun abbrevs mode args = term_syntax (fn phi =>
-  let val args' = args |> map (fn ((c, mx), t) => ((Morphism.name phi c, mx), Morphism.term phi t))
+  let
+    val (mxs, args') = args |> map_filter (fn ((c, mx), t) =>
+        if t aconv Morphism.term phi t
+        then SOME (mx, ((Morphism.name phi c, NoSyn), t))
+        else NONE)
+      |> split_list;
   in
-    Context.mapping
-      (snd o Sign.add_abbrevs mode args') (snd o ProofContext.add_abbrevs mode args')
+    Context.mapping_result (Sign.add_abbrevs mode args') (ProofContext.add_abbrevs mode args')
+    #-> (fn abbrs => generic_notation mode (map #1 abbrs ~~ mxs) phi)
   end);
 
 
