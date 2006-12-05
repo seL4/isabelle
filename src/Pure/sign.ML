@@ -714,7 +714,7 @@ val add_syntax_i = add_modesyntax_i Syntax.default_mode;
 val del_modesyntax = gen_syntax Syntax.remove_const_gram (read_typ_syntax o no_def_sort);
 val del_modesyntax_i = gen_syntax Syntax.remove_const_gram certify_typ_syntax;
 
-fun const_syntax thy (Const (c, _), mx) = SOME (Consts.syntax (consts_of thy) (c, mx))
+fun const_syntax thy (Const (c, _), mx) = try (Consts.syntax (consts_of thy)) (c, mx)
   | const_syntax _ _ = NONE;
 
 fun add_notation mode args thy =
@@ -751,7 +751,7 @@ val add_consts_authentic = gen_add_consts certify_typ true;
 end;
 
 
-(* add abbreviations *)
+(* add abbreviations -- cf. Sign.add_abbrevs *)
 
 fun add_abbrevs prmode = fold_map (fn ((raw_c, raw_mx), raw_t) => fn thy =>
   let
