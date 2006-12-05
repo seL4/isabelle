@@ -246,8 +246,7 @@ fun notes loc kind facts lthy =
 fun target_decl _ "" f =
       LocalTheory.theory (Context.theory_map (f Morphism.identity)) #>
       LocalTheory.target (Context.proof_map (f Morphism.identity))
-  | target_decl add loc f =
-      LocalTheory.target (add loc (Context.proof_map o f));
+  | target_decl add loc f = LocalTheory.target (add loc f);
 
 val type_syntax = target_decl Locale.add_type_syntax;
 val term_syntax = target_decl Locale.add_term_syntax;
@@ -257,8 +256,11 @@ fun target_morphism loc lthy =
   ProofContext.export_morphism lthy (LocalTheory.target_of lthy) $>
   Morphism.thm_morphism Goal.norm_result;
 
-fun target_name "" lthy = Sign.full_name (ProofContext.theory_of lthy)
-  | target_name _ lthy = ProofContext.full_name (LocalTheory.target_of lthy);
+fun target_name loc lthy =
+  (if loc = "" then Sign.naming_of (ProofContext.theory_of lthy)
+   else ProofContext.naming_of (LocalTheory.target_of lthy))
+  |> NameSpace.qualified_names
+  |> NameSpace.full;
 
 
 (* init and exit *)
