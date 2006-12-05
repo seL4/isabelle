@@ -677,7 +677,7 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
       note_theorems
         (map (NameSpace.qualified rec_name) intr_names ~~
          intr_atts ~~
-         map (fn th => [([th], [Attrib.internal (ContextRules.intro_query NONE)])])
+         map (fn th => [([th], [Attrib.internal (K (ContextRules.intro_query NONE))])])
            (ProofContext.export ctxt1 ctxt intrs)) |>>
       map (hd o snd); (* FIXME? *)
     val (((_, elims'), (_, [induct'])), ctxt3) =
@@ -685,13 +685,13 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
       note_theorem ((NameSpace.qualified rec_name "intros", []), intrs') ||>>
       fold_map (fn (name, (elim, cases)) =>
         note_theorem ((NameSpace.qualified (Sign.base_name name) "cases",
-          [Attrib.internal (RuleCases.case_names cases),
-           Attrib.internal (RuleCases.consumes 1),
-           Attrib.internal (InductAttrib.cases_set name),
-           Attrib.internal (ContextRules.elim_query NONE)]), [elim]) #>
+          [Attrib.internal (K (RuleCases.case_names cases)),
+           Attrib.internal (K (RuleCases.consumes 1)),
+           Attrib.internal (K (InductAttrib.cases_set name)),
+           Attrib.internal (K (ContextRules.elim_query NONE))]), [elim]) #>
         apfst (hd o snd)) elims ||>>
       note_theorem ((NameSpace.qualified rec_name (coind_prefix coind ^ "induct"),
-        map Attrib.internal (#2 induct)), [rulify (#1 induct)]);
+        map (Attrib.internal o K) (#2 induct)), [rulify (#1 induct)]);
 
     val induct_att = if coind then InductAttrib.coinduct_set else InductAttrib.induct_set;
     val ctxt4 = if no_ind then ctxt3 else
@@ -700,9 +700,9 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
         ctxt3 |>
         note_theorems [((NameSpace.qualified rec_name (coind_prefix coind ^ "inducts"), []),
           inducts |> map (fn (name, th) => ([th],
-            [Attrib.internal ind_case_names,
-             Attrib.internal (RuleCases.consumes 1),
-             Attrib.internal (induct_att name)])))] |> snd
+            [Attrib.internal (K ind_case_names),
+             Attrib.internal (K (RuleCases.consumes 1)),
+             Attrib.internal (K (induct_att name))])))] |> snd
       end;
 
     val names = map #1 cnames_syn;

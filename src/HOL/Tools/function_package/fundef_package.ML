@@ -59,7 +59,7 @@ fun add_simps label moreatts mutual_info fixes psimps spec lthy =
 
       fun add_for_f fname psimps =
         note_theorem
-          ((NameSpace.qualified fname label, Attrib.internal Simplifier.simp_add :: moreatts),
+          ((NameSpace.qualified fname label, Attrib.internal (K Simplifier.simp_add) :: moreatts),
             psimps) #> snd
     in
       (saved_psimps,
@@ -78,8 +78,11 @@ fun fundef_afterqed config fixes spec mutual_info defname data [[result]] lthy =
       val (((psimps', pinducts'), (_, [termination'])), lthy) =
           lthy
             |> PROFILE "adding_psimps" (add_simps "psimps" [] mutual_info fixes psimps spec)
-            ||>> PROFILE "adding pinduct" (note_theorem ((qualify "pinduct", [Attrib.internal (InductAttrib.induct_set "")]), simple_pinducts))
-            ||>> PROFILE "adding termination" (note_theorem ((qualify "termination", []), [termination]))
+            ||>> PROFILE "adding pinduct"
+              (note_theorem ((qualify "pinduct",
+                [Attrib.internal (K (InductAttrib.induct_set ""))]), simple_pinducts))
+            ||>> PROFILE "adding termination"
+              (note_theorem ((qualify "termination", []), [termination]))
             ||> (snd o PROFILE "adding cases" (note_theorem ((qualify "cases", []), [cases])))
             ||> (snd o PROFILE "adding domintros" (note_theorem ((qualify "domintros", []), domintros)))
 
@@ -144,7 +147,7 @@ fun total_termination_afterqed defname data [[totality]] lthy =
 
         (* FIXME: How to generate code from (possibly) local contexts*)
       val has_guards = exists ((fn (Const ("Trueprop", _) $ _) => false | _ => true) o prop_of) tsimps
-      val allatts = if has_guards then [] else [Attrib.internal (RecfunCodegen.add NONE)]
+      val allatts = if has_guards then [] else [Attrib.internal (K (RecfunCodegen.add NONE))]
 
       val qualify = NameSpace.qualified defname;
     in

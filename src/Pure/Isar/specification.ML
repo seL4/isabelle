@@ -241,7 +241,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
             |>> (fn [(_, [th])] => th)
           end;
 
-        val atts = map Attrib.internal
+        val atts = map (Attrib.internal o K)
           [RuleCases.consumes (~ (length obtains)), RuleCases.case_names case_names];
         val prems = subtract_prems loc_ctxt elems_ctxt;
         val stmt = [(("", atts), [(thesis, [])])];

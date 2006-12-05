@@ -35,7 +35,7 @@ sig
     attribute * (Context.generic * Args.T list)) -> src -> attribute
   val no_args: attribute -> src -> attribute
   val add_del_args: attribute -> attribute -> src -> attribute
-  val internal: attribute -> src
+  val internal: (morphism -> attribute) -> src
 end;
 
 structure Attrib: ATTRIB =
@@ -267,7 +267,8 @@ fun eta_long x = no_args (Thm.rule_attribute (K (Drule.fconv_rule Drule.eta_long
 
 fun internal att = Args.src (("Pure.attribute", [Args.mk_attribute att]), Position.none);
 
-fun internal_att x = syntax (Scan.lift Args.internal_attribute) x;
+fun internal_att x =
+  syntax (Scan.lift Args.internal_attribute >> (fn att => att Morphism.identity)) x;
 
 
 (* theory setup *)
