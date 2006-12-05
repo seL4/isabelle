@@ -44,18 +44,17 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML		\
   Isar/term_style.ML Isar/theory_target.ML Isar/thy_header.ML			\
   Isar/toplevel.ML ML-Systems/polyml-4.1.4-patch.ML				\
   ML-Systems/polyml-4.2.0.ML ML-Systems/polyml-4.9.1.ML				\
-  ML-Systems/polyml-interrupt-timeout.ML ML-Systems/polyml-posix.ML		\
-  ML-Systems/polyml.ML ML-Systems/poplogml.ML ML-Systems/smlnj.ML		\
-  Proof/extraction.ML Proof/proof_rewrite_rules.ML Proof/proof_syntax.ML        \
-  Proof/proofchecker.ML Proof/reconstruct.ML Pure.thy ROOT.ML                   \
-  ProofGeneral/parsing.ML ProofGeneral/pgip_input.ML                            \
+  ML-Systems/polyml-5.0.ML ML-Systems/polyml-interrupt-timeout.ML		\
+  ML-Systems/polyml-posix.ML ML-Systems/polyml.ML ML-Systems/poplogml.ML	\
+  ML-Systems/smlnj.ML Proof/extraction.ML Proof/proof_rewrite_rules.ML		\
+  Proof/proof_syntax.ML Proof/proofchecker.ML Proof/reconstruct.ML Pure.thy	\
+  ROOT.ML ProofGeneral/parsing.ML ProofGeneral/pgip_input.ML                    \
   ProofGeneral/pgip_isabelle.ML ProofGeneral/pgip_markup.ML                     \
-  ProofGeneral/pgip.ML ProofGeneral/pgip_output.ML                              \
-  ProofGeneral/pgip_tests.ML ProofGeneral/pgip_types.ML                         \
-  ProofGeneral/preferences.ML ProofGeneral/proof_general_pgip.ML                \
-  ProofGeneral/proof_general_emacs.ML ProofGeneral/ROOT.ML                      \
-  Syntax/ROOT.ML Syntax/ast.ML Syntax/lexicon.ML Syntax/mixfix.ML		\
-  Syntax/parser.ML Syntax/printer.ML Syntax/syn_ext.ML				\
+  ProofGeneral/pgip.ML ProofGeneral/pgip_output.ML ProofGeneral/pgip_tests.ML	\
+  ProofGeneral/pgip_types.ML ProofGeneral/preferences.ML			\
+  ProofGeneral/proof_general_pgip.ML ProofGeneral/proof_general_emacs.ML	\
+  ProofGeneral/ROOT.ML Syntax/ROOT.ML Syntax/ast.ML Syntax/lexicon.ML 		\
+  Syntax/mixfix.ML Syntax/parser.ML Syntax/printer.ML Syntax/syn_ext.ML		\
   Syntax/syn_trans.ML Syntax/syntax.ML Syntax/type_ext.ML Thy/html.ML		\
   Thy/latex.ML Thy/present.ML Thy/thm_database.ML Thy/thm_deps.ML		\
   Thy/thy_info.ML Thy/thy_load.ML Tools/ROOT.ML Tools/am_compiler.ML		\
