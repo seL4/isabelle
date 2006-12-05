@@ -766,25 +766,25 @@ fun hide_thms fully names = map_thms (fn ((space, tab), index) =>
 (* put_thms *)
 
 fun update_thms _ ("", NONE) ctxt = ctxt
-  | update_thms do_index ("", SOME ths) ctxt = ctxt |> map_thms (fn (facts, index) =>
+  | update_thms opts ("", SOME ths) ctxt = ctxt |> map_thms (fn (facts, index) =>
       let
-        val index' = FactIndex.add_local do_index ("", ths) index;
+        val index' = uncurry FactIndex.add_local opts ("", ths) index;
       in (facts, index') end)
   | update_thms _ (bname, NONE) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
       let
         val name = full_name ctxt bname;
         val tab' = Symtab.delete_safe name tab;
       in ((space, tab'), index) end)
-  | update_thms do_index (bname, SOME ths) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
+  | update_thms opts (bname, SOME ths) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
       let
         val name = full_name ctxt bname;
         val space' = NameSpace.declare (naming_of ctxt) name space;
         val tab' = Symtab.update (name, ths) tab;
-        val index' = FactIndex.add_local do_index (name, ths) index;
+        val index' = uncurry FactIndex.add_local opts (name, ths) index;
       in ((space', tab'), index') end);
 
 fun put_thms thms ctxt =
-  ctxt |> map_naming (K local_naming) |> update_thms false thms |> restore_naming ctxt;
+  ctxt |> map_naming (K local_naming) |> update_thms (true, false) thms |> restore_naming ctxt;
 
 
 (* note_thmss *)
@@ -799,7 +799,7 @@ fun gen_note_thmss get k = fold_map (fn ((bname, more_attrs), raw_facts) => fn c
       swap (foldl_map (Thm.proof_attributes (attrs @ more_attrs @ [PureThy.kind k])) (x, th));
     val (res, ctxt') = fold_map app facts ctxt;
     val thms = PureThy.name_thms false false name (flat res);
-  in ((bname, thms), ctxt' |> update_thms (is_stmt ctxt) (bname, SOME thms)) end);
+  in ((bname, thms), ctxt' |> update_thms (is_stmt ctxt, true) (bname, SOME thms)) end);
 
 in
 

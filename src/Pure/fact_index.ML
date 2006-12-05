@@ -13,8 +13,8 @@ sig
   val props: T -> thm list
   val could_unify: T -> term -> thm list
   val empty: T
+  val add_local: bool -> bool -> (string * thm list) -> T -> T
   val add_global: (string * thm list) -> T -> T
-  val add_local: bool -> (string * thm list) -> T -> T
   val find: T -> spec -> (string * thm list) list
 end;
 
@@ -59,7 +59,7 @@ fun could_unify (Index {props, ...}) = Net.unify_term props;
 val empty =
   Index {facts = [], consts = Symtab.empty, frees = Symtab.empty, props = Net.empty};
 
-fun add do_props do_index (fact as (_, ths)) (Index {facts, consts, frees, props}) =
+fun add_local do_props do_index (fact as (_, ths)) (Index {facts, consts, frees, props}) =
   let
     val entry = (serial (), fact);
     val (cs, xs) = fold index_thm ths ([], []);
@@ -75,8 +75,7 @@ fun add do_props do_index (fact as (_, ths)) (Index {facts, consts, frees, props
       else props;
   in Index {facts = facts', consts = consts', frees = frees', props = props'} end;
 
-val add_global = add false true;
-val add_local = add true;
+val add_global = add_local false true;
 
 
 (* find by consts/frees *)
