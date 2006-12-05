@@ -334,9 +334,8 @@ val print_context = Toplevel.keep Toplevel.print_state_context;
 fun print_theory verbose = Toplevel.unknown_theory o
   Toplevel.keep (ProofDisplay.print_full_theory verbose o Toplevel.theory_of);
 
-val print_syntax = Toplevel.unknown_theory o
-  Toplevel.keep (Display.print_syntax o Toplevel.theory_of) o
-  Toplevel.keep (ProofContext.print_syntax o Proof.context_of o Toplevel.proof_of);
+val print_syntax = Toplevel.unknown_context o
+  Toplevel.keep (ProofContext.print_syntax o Toplevel.context_of);
 
 val print_facts = Toplevel.unknown_context o Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
@@ -352,7 +351,7 @@ val print_theorems_theory = Toplevel.keep (fn state =>
     SOME (SOME prev_thy) => ProofDisplay.print_theorems_diff (Context.theory_of prev_thy)
   | _ => ProofDisplay.print_theorems));
 
-val print_theorems = Toplevel.unknown_theory o print_theorems_theory o print_theorems_proof;
+val print_theorems = Toplevel.unknown_context o print_theorems_theory o print_theorems_proof;
 
 val print_locales = Toplevel.unknown_theory o
   Toplevel.keep (Locale.print_locales o Toplevel.theory_of);
@@ -418,13 +417,11 @@ fun find_theorems (opt_lim, spec) = Toplevel.unknown_theory o Toplevel.keep (fn 
 
 (* print proof context contents *)
 
-val print_binds = Toplevel.unknown_proof o Toplevel.keep (fn state =>
-  ProofContext.setmp_verbose
-    ProofContext.print_binds (Proof.context_of (Toplevel.proof_of state)));
+val print_binds = Toplevel.unknown_context o Toplevel.keep (fn state =>
+  ProofContext.setmp_verbose ProofContext.print_binds (Toplevel.context_of state));
 
-val print_cases = Toplevel.unknown_proof o Toplevel.keep (fn state =>
-  ProofContext.setmp_verbose
-    ProofContext.print_cases (Proof.context_of (Toplevel.proof_of state)));
+val print_cases = Toplevel.unknown_context o Toplevel.keep (fn state =>
+  ProofContext.setmp_verbose ProofContext.print_cases (Toplevel.context_of state));
 
 
 (* print theorems, terms, types etc. *)
