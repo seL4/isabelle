@@ -93,11 +93,11 @@ sig
   val add_thmss: string -> string ->
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     Proof.context -> Proof.context
-  val add_type_syntax: string -> (morphism -> Proof.context -> Proof.context) ->
+  val add_type_syntax: string -> (morphism -> Context.generic -> Context.generic) ->
     Proof.context -> Proof.context
-  val add_term_syntax: string -> (morphism -> Proof.context -> Proof.context) ->
+  val add_term_syntax: string -> (morphism -> Context.generic -> Context.generic) ->
     Proof.context -> Proof.context
-  val add_declaration: string -> (morphism -> Proof.context -> Proof.context) ->
+  val add_declaration: string -> (morphism -> Context.generic -> Context.generic) ->
     Proof.context -> Proof.context
 
   val interpretation: (Proof.context -> Proof.context) ->
@@ -146,7 +146,7 @@ datatype 'a element =
 fun map_elem f (Elem e) = Elem (f e)
   | map_elem _ (Expr e) = Expr e;
 
-type decl = (morphism -> Proof.context -> Proof.context) * stamp;
+type decl = (morphism -> Context.generic -> Context.generic) * stamp;
 
 type locale =
  {axiom: Element.witness list,
@@ -158,7 +158,7 @@ type locale =
     (* Static content, neither Fixes nor Constrains elements *)
   params: ((string * typ) * mixfix) list,                             (*all params*)
   lparams: string list,                                             (*local params*)
-  decls: decl list * decl list * decl list,          (*type/term/fact declarations*)
+  decls: decl list * decl list,                    (*type/term_syntax declarations*)
   regs: ((string * string list) * Element.witness list) list,
     (* Registrations: indentifiers and witnesses of locales interpreted in the locale. *)
   intros: thm list * thm list}
@@ -226,7 +226,7 @@ struct
           let
             val (tinst, inst) = Pattern.match thy (t', t) (Vartab.empty, Vartab.empty);
             (* thms contain Frees, not Vars *)
-            val tinst' = tinst |> Vartab.dest   (* FIXME Symtab.map (!?) *)
+            val tinst' = tinst |> Vartab.dest   (* FIXME Vartab.map (!?) *)
                  |> map (fn ((x, 0), (_, T)) => (x, Logic.legacy_unvarifyT T))
                  |> Symtab.make;
             val inst' = inst |> Vartab.dest
@@ -277,20 +277,17 @@ structure GlobalLocalesData = TheoryDataFun
   val copy = I;
   val extend = I;
 
-  fun merge_decls which (decls, decls') : decl list =
-    Library.merge (eq_snd (op =)) (which decls, which decls');
-
-  fun join_locales _ ({axiom, import, elems, params, lparams, decls, regs, intros}: locale,
-      {elems = elems', decls = decls', regs = regs', ...}: locale) =
+  fun join_locales _
+    ({axiom, import, elems, params, lparams, decls = (decls1, decls2), regs, intros}: locale,
+      {elems = elems', decls = (decls1', decls2'), regs = regs', ...}: locale) =
      {axiom = axiom,
       import = import,
       elems = gen_merge_lists (eq_snd (op =)) elems elems',
       params = params,
       lparams = lparams,
       decls =
-       (merge_decls #1 (decls, decls'),
-        merge_decls #2 (decls, decls'),
-        merge_decls #3 (decls, decls')),
+       (Library.merge (eq_snd (op =)) (decls1, decls1'),
+        Library.merge (eq_snd (op =)) (decls2, decls2')),
       regs = merge_alists regs regs',
       intros = intros};
   fun merge _ ((space1, locs1, regs1), (space2, locs2, regs2)) =
@@ -551,8 +548,14 @@ fun unify_frozen ctxt maxidx Ts Us =
     val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (map_filter I Vs));
   in map (Option.map (Envir.norm_type unifier')) Vs end;
 
-fun params_of elemss = distinct (eq_fst (op = : string * string -> bool)) (maps (snd o fst) elemss);
-fun params_of' elemss = distinct (eq_fst (op = : string * string -> bool)) (maps (snd o fst o fst) elemss);
+fun params_of elemss =
+  distinct (eq_fst (op = : string * string -> bool)) (maps (snd o fst) elemss);
+
+fun params_of' elemss =
+  distinct (eq_fst (op = : string * string -> bool)) (maps (snd o fst o fst) elemss);
+
+
+fun params_prefix params = space_implode "_" params;
 
 
 (* CB: param_types has the following type:
@@ -847,7 +850,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
         val [env] = unify_parms ctxt all_params [map (apfst (Element.rename ren) o apsnd SOME) ps];
         val elem_morphism =
           Element.rename_morphism ren $>
-          Morphism.name_morphism (NameSpace.qualified (space_implode "_" params)) $>
+          Morphism.name_morphism (NameSpace.qualified (params_prefix params)) $>
           Element.instT_morphism thy env;
         val elems' = map (Element.morph_ctxt elem_morphism) elems;
       in (((name, map (apsnd SOME) locale_params'), mode'), elems') end;
@@ -1454,6 +1457,13 @@ fun cert_context_statement loc = prep_statement (K I) cert_ctxt loc;
 end;
 
 
+(* init *)
+
+fun init loc =
+  ProofContext.init
+  #> (#2 o cert_context_statement (SOME loc) [] []);
+
+
 (* print locale *)
 
 fun print_locale thy show_facts import body =
@@ -1534,39 +1544,6 @@ fun note_thmss_registrations target (kind, args) thy =
   in fold activate regs thy end;
 
 
-(* init *)
-
-fun init_decls loc ctxt =
-  let
-    val (type_syntax, term_syntax, declarations) =
-      #decls (the_locale (ProofContext.theory_of ctxt) loc)
-    fun app (f, _) = f Morphism.identity;
-  in
-    ctxt
-    |> fold_rev app type_syntax
-    |> fold_rev app term_syntax
-    |> fold_rev app declarations
-  end;
-
-fun init loc =
-  ProofContext.init
-  #> init_decls loc
-  #> (#2 o cert_context_statement (SOME loc) [] []);
-
-
-(* declarations *)
-
-fun add_decls which loc decl =
-  decl Morphism.identity #>
-  ProofContext.theory (change_locale loc
-    (fn (axiom, import, elems, params, lparams, decls, regs, intros) =>
-      (axiom, import, elems, params, lparams, which (decl, stamp ()) decls, regs, intros)));
-
-val add_type_syntax = add_decls (fn d => fn (ds1, ds2, ds3) => (d :: ds1, ds2, ds3));
-val add_term_syntax = add_decls (fn d => fn (ds1, ds2, ds3) => (ds1, d :: ds2, ds3));
-val add_declaration = add_decls (fn d => fn (ds1, ds2, ds3) => (ds1, ds2, d :: ds3));
-
-
 (* locale results *)
 
 fun add_thmss loc kind args ctxt =
@@ -1581,6 +1558,28 @@ fun add_thmss loc kind args ctxt =
             params, lparams, decls, regs, intros))
       #> note_thmss_registrations loc args');
   in ctxt'' end;
+
+
+(* declarations *)
+
+local
+
+val dummy_thm = Drule.mk_term (Thm.cterm_of ProtoPure.thy (Term.dummy_pattern propT));
+fun decl_attrib decl phi = Thm.declaration_attribute (K (decl phi));
+
+fun add_decls add loc decl =
+  ProofContext.theory (change_locale loc
+    (fn (axiom, import, elems, params, lparams, decls, regs, intros) =>
+      (axiom, import, elems, params, lparams, add (decl, stamp ()) decls, regs, intros))) #>
+  add_thmss loc "" [(("", [Attrib.internal (decl_attrib decl)]), [([dummy_thm], [])])];
+
+in  
+
+val add_type_syntax = add_decls (apfst o cons);
+val add_term_syntax = add_decls (apsnd o cons);
+val add_declaration = add_decls (K I);
+
+end;
 
 
 
@@ -1824,7 +1823,7 @@ fun gen_add_locale prep_ctxt prep_expr
         elems = map (fn e => (e, stamp ())) elems'',
         params = params_of elemss' |> map (fn (x, SOME T) => ((x, T), the (Symtab.lookup syn x))),
         lparams = map #1 (params_of' body_elemss),
-        decls = ([], [], []),
+        decls = ([], []),
         regs = regs,
         intros = intros}
       |> init name;
@@ -2209,7 +2208,7 @@ fun interpretation_in_locale after_qed (raw_target, expr) thy =
     val raw_propp = prep_propp propss;
 
     val (_, _, goal_ctxt, propp) = thy
-      |> ProofContext.init |> init_decls target
+      |> ProofContext.init
       |> cert_context_statement (SOME target) [] raw_propp;
 
     fun after_qed' results =
