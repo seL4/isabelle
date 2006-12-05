@@ -78,25 +78,6 @@ locale partial_order = order_syntax +
                   "[| x \<sqsubseteq> y; y \<sqsubseteq> z;
                    x \<in> L; y \<in> L; z \<in> L |] ==> x \<sqsubseteq> z"
 
-abbreviation (in partial_order)
-  less (infixl "\<sqsubset>" 50) where "less == order_syntax.less le"
-abbreviation (in partial_order)
-  Upper where "Upper == order_syntax.Upper L le"
-abbreviation (in partial_order)
-  Lower where "Lower == order_syntax.Lower L le"
-abbreviation (in partial_order)
-  least where "least == order_syntax.least L le"
-abbreviation (in partial_order)
-  greatest where "greatest == order_syntax.greatest L le"
-abbreviation (in partial_order)
-  sup ("\<Squnion>_" [90] 90) where "sup == order_syntax.sup L le"
-abbreviation (in partial_order)
-  inf ("\<Sqinter>_" [90] 90) where "inf == order_syntax.inf L le"
-abbreviation (in partial_order)
-  join (infixl "\<squnion>" 65) where "join == order_syntax.join L le"
-abbreviation (in partial_order)
-  meet (infixl "\<sqinter>" 70) where "meet == order_syntax.meet L le"
-
 
 subsubsection {* Upper *}
 
@@ -205,25 +186,6 @@ locale lattice = partial_order +
     "[| x \<in> L; y \<in> L |] ==> EX s. order_syntax.least L le s (order_syntax.Upper L le {x, y})"
     and inf_of_two_exists:
     "[| x \<in> L; y \<in> L |] ==> EX s. order_syntax.greatest L le s (order_syntax.Lower L le {x, y})"
-
-abbreviation (in lattice)
-  less (infixl "\<sqsubset>" 50) where "less == order_syntax.less le"
-abbreviation (in lattice)
-  Upper where "Upper == order_syntax.Upper L le"
-abbreviation (in lattice)
-  Lower where "Lower == order_syntax.Lower L le"
-abbreviation (in lattice)
-  least where "least == order_syntax.least L le"
-abbreviation (in lattice)
-  greatest where "greatest == order_syntax.greatest L le"
-abbreviation (in lattice)
-  sup ("\<Squnion>_" [90] 90) where "sup == order_syntax.sup L le"
-abbreviation (in lattice)
-  inf ("\<Sqinter>_" [90] 90) where "inf == order_syntax.inf L le"
-abbreviation (in lattice)
-  join (infixl "\<squnion>" 65) where "join == order_syntax.join L le"
-abbreviation (in lattice)
-  meet (infixl "\<sqinter>" 70) where "meet == order_syntax.meet L le"
 
 lemma (in order_syntax) least_Upper_above:
   "[| least s (Upper A); x \<in> A; A \<subseteq> L |] ==> x \<sqsubseteq> s"
@@ -689,24 +651,6 @@ subsection {* Total Orders *}
 locale total_order = lattice +
   assumes total: "[| x \<in> L; y \<in> L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
 
-abbreviation (in total_order)
-  less (infixl "\<sqsubset>" 50) where "less == order_syntax.less le"
-abbreviation (in total_order)
-  Upper where "Upper == order_syntax.Upper L le"
-abbreviation (in total_order)
-  Lower where "Lower == order_syntax.Lower L le"
-abbreviation (in total_order)
-  least where "least == order_syntax.least L le"
-abbreviation (in total_order)
-  greatest where "greatest == order_syntax.greatest L le"
-abbreviation (in total_order)
-  sup ("\<Squnion>_" [90] 90) where "sup == order_syntax.sup L le"
-abbreviation (in total_order)
-  inf ("\<Sqinter>_" [90] 90) where "inf == order_syntax.inf L le"
-abbreviation (in total_order)
-  join (infixl "\<squnion>" 65) where "join == order_syntax.join L le"
-abbreviation (in total_order)
-  meet (infixl "\<sqinter>" 70) where "meet == order_syntax.meet L le"
 
 text {* Introduction rule: the usual definition of total order *}
 
@@ -767,25 +711,6 @@ locale complete_lattice = lattice +
     and inf_exists:
     "[| A \<subseteq> L |] ==> EX i. order_syntax.greatest L le i (order_syntax.Lower L le A)"
 
-abbreviation (in complete_lattice)
-  less (infixl "\<sqsubset>" 50) where "less == order_syntax.less le"
-abbreviation (in complete_lattice)
-  Upper where "Upper == order_syntax.Upper L le"
-abbreviation (in complete_lattice)
-  Lower where "Lower == order_syntax.Lower L le"
-abbreviation (in complete_lattice)
-  least where "least == order_syntax.least L le"
-abbreviation (in complete_lattice)
-  greatest where "greatest == order_syntax.greatest L le"
-abbreviation (in complete_lattice)
-  sup ("\<Squnion>_" [90] 90) where "sup == order_syntax.sup L le"
-abbreviation (in complete_lattice)
-  inf ("\<Sqinter>_" [90] 90) where "inf == order_syntax.inf L le"
-abbreviation (in complete_lattice)
-  join (infixl "\<squnion>" 65) where "join == order_syntax.join L le"
-abbreviation (in complete_lattice)
-  meet (infixl "\<sqinter>" 70) where "meet == order_syntax.meet L le"
-
 text {* Introduction rule: the usual definition of complete lattice *}
 
 lemma (in partial_order) complete_latticeI:
@@ -806,23 +731,6 @@ definition (in order_syntax)
 definition (in order_syntax)
   bottom ("\<bottom>") where
   "\<bottom> == inf L"
-
-abbreviation (in partial_order)
-  top ("\<top>") where "top == order_syntax.top L le"
-abbreviation (in partial_order)
-  bottom ("\<bottom>") where "bottom == order_syntax.bottom L le"
-abbreviation (in lattice)
-  top ("\<top>") where "top == order_syntax.top L le"
-abbreviation (in lattice)
-  bottom ("\<bottom>") where "bottom == order_syntax.bottom L le"
-abbreviation (in total_order)
-  top ("\<top>") where "top == order_syntax.top L le"
-abbreviation (in total_order)
-  bottom ("\<bottom>") where "bottom == order_syntax.bottom L le"
-abbreviation (in complete_lattice)
-  top ("\<top>") where "top == order_syntax.top L le"
-abbreviation (in complete_lattice)
-  bottom ("\<bottom>") where "bottom == order_syntax.bottom L le"
 
 
 lemma (in complete_lattice) supI:
