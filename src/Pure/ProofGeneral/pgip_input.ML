@@ -9,54 +9,54 @@ signature PGIPINPUT =
 sig
     (* These are the PGIP commands to which we respond. *) 
     datatype pgipinput = 
-       (* protocol/prover config *)
-	 Askpgip 	of { }
-       | Askpgml 	of { } 
-       | Askconfig	of { }
-       | Askprefs	of { }
-       | Setpref 	of { name:string, prefcategory:string option, value:string }
-       | Getpref 	of { name:string, prefcategory:string option }
-       (* prover control *)
-       | Proverinit 	of { }
-       | Proverexit 	of { }
-       | Startquiet 	of { }
-       | Stopquiet	of { } 
-       | Pgmlsymbolson  of { } 
-       | Pgmlsymbolsoff of { }
-       (* improper proof commands: control proof state *)
-       | Dostep		of { text: string }
-       | Undostep	of { times: int }
-       | Redostep	of { }
-       | Abortgoal	of { }
-       | Forget		of { thyname: string option, name: string option, 
-			     objtype: string option }
-       | Restoregoal    of { thmname : string }
-       (* context inspection commands *)
-       | Askids		of { thyname:string option, objtype:string option }
-       | Showid		of { thyname:string option, objtype:string, name:string }
-       | Askguise	of { }
-       | Parsescript	of { text: string, location: PgipTypes.location,
-			     systemdata: string option } 
-       | Showproofstate of { }
-       | Showctxt	of { }
-       | Searchtheorems of { arg: string }
-       | Setlinewidth   of { width: int }
-       | Viewdoc	of { arg: string }
-       (* improper theory-level commands *)
-       | Doitem		of { text: string }
-       | Undoitem	of { }
-       | Redoitem	of { }
-       | Aborttheory	of { }
-       | Retracttheory  of { thyname: string }
-       | Loadfile 	of { url: PgipTypes.pgipurl }
-       | Openfile 	of { url: PgipTypes.pgipurl }
-       | Closefile	of { }
-       | Abortfile	of { }
-       | Retractfile    of { url: PgipTypes.pgipurl }
-       | Changecwd 	of { url: PgipTypes.pgipurl }
-       | Systemcmd 	of { arg: string }
-       (* unofficial escape command for debugging *)
-       | Quitpgip	of { }
+    (* protocol/prover config *)
+      Askpgip        of { }
+    | Askpgml        of { } 
+    | Askconfig      of { }
+    | Askprefs       of { }
+    | Setpref        of { name:string, prefcategory:string option, value:string }
+    | Getpref        of { name:string, prefcategory:string option }
+    (* prover control *)
+    | Proverinit     of { }
+    | Proverexit     of { }
+    | Startquiet     of { }
+    | Stopquiet      of { } 
+    | Pgmlsymbolson  of { } 
+    | Pgmlsymbolsoff of { }
+    (* improper proof commands: control proof state *)
+    | Dostep         of { text: string }
+    | Undostep       of { times: int }
+    | Redostep       of { }
+    | Abortgoal      of { }
+    | Forget         of { thyname: string option, name: string option, 
+                          objtype: string option }
+    | Restoregoal    of { thmname : string }
+    (* context inspection commands *)
+    | Askids         of { thyname:string option, objtype:string option }
+    | Showid         of { thyname:string option, objtype:string, name:string }
+    | Askguise       of { }
+    | Parsescript    of { text: string, location: PgipTypes.location,
+                          systemdata: string option } 
+    | Showproofstate of { }
+    | Showctxt       of { }
+    | Searchtheorems of { arg: string }
+    | Setlinewidth   of { width: int }
+    | Viewdoc        of { arg: string }
+    (* improper theory-level commands *)
+    | Doitem         of { text: string }
+    | Undoitem       of { }
+    | Redoitem       of { }
+    | Aborttheory    of { }
+    | Retracttheory  of { thyname: string }
+    | Loadfile       of { url: PgipTypes.pgipurl }
+    | Openfile       of { url: PgipTypes.pgipurl }
+    | Closefile      of { }
+    | Abortfile      of { }
+    | Retractfile    of { url: PgipTypes.pgipurl }
+    | Changecwd      of { url: PgipTypes.pgipurl }
+    | Systemcmd      of { arg: string }
+    (* unofficial escape command for debugging *)
+    | Quitpgip       of { }
 
     val input           : XML.element -> pgipinput option        (* raises PGIP *)
 end

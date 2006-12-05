@@ -77,7 +77,8 @@ val print_depth_pref =
 	fun setn n = (print_depth n; pg_print_depth_val := n)
 	val set = setn o PgipTypes.read_pgipnat
     in
-	mkpref get set PgipTypes.Pgipbool "print-depth" "Setting for the ML print depth"
+	mkpref get set PgipTypes.Pgipnat
+	       "print-depth" "Setting for the ML print depth"
     end
 
 

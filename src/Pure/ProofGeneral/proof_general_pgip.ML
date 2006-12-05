@@ -11,8 +11,9 @@ signature PROOF_GENERAL_PGIP =
 sig
   val init_pgip: bool -> unit		  (* main PGIP loop with true; fail with false *)
 
-  val process_pgip: string -> unit        (* process a command; only good for preferences *)
-  val init_pgip_session_id: unit -> unit  (* call before using process_pgip *)
+  (* These two are just to support the semi-PGIP Emacs mode *)
+  val init_pgip_channel: (string -> unit) -> unit 
+  val process_pgip: string -> unit     
 end
 
 structure ProofGeneralPgip : PROOF_GENERAL_PGIP  =
@@ -146,10 +147,11 @@ fun init_pgip_session_id () =
 
 fun matching_pgip_id id = (id = !pgip_id)
 
-val output_xml = writeln_default o XML.string_of_tree;  (* FIXME: use string buffer *)
+val output_xml_fn = ref writeln_default  
+fun output_xml s = (!output_xml_fn) (XML.string_of_tree s);  (* TODO: string buffer *)
 
 fun issue_pgip_rawtext str = 
-    output_xml (PgipOutput.output (assemble_pgips [XML.Text str])) (* FIXME: don't escape!! *)
+    output_xml (PgipOutput.output (assemble_pgips [XML.Rawtext str]))
 
 fun issue_pgips pgipops =
     output_xml (PgipOutput.output (assemble_pgips (map PgipOutput.output pgipops)));
@@ -865,7 +867,9 @@ fun process_pgip_tree xml =
 			       (XML.string_of_tree xml));
 	     true))
 
-val process_pgip = K () o process_pgip_tree o XML.tree_of_string
+(* External input *)
+
+val process_pgip_plain = K () o process_pgip_tree o XML.tree_of_string
 
 end
 
@@ -963,7 +967,7 @@ val inform_file_retractedP =
 val process_pgipP =
   OuterSyntax.improper_command "ProofGeneral.process_pgip" "(internal)" K.control
     (P.text >> (Toplevel.no_timing oo
-      (fn txt => Toplevel.imperative (fn () => process_pgip txt))));
+      (fn txt => Toplevel.imperative (fn () => process_pgip_plain txt))));
 
 fun init_outer_syntax () = OuterSyntax.add_parsers
  [undoP, redoP, kill_proofP, context_thy_onlyP, try_context_thy_onlyP,
@@ -999,7 +1003,26 @@ fun init_setup () =
 fun init_pgip false = Output.panic "PGIP not supported for Isabelle/classic mode."
   | init_pgip true = (init_setup (); pgip_toplevel tty_src);
 
-fun write_keywords s = ()  (* NB: do nothing *)
+
+
+(** Out-of-loop PGIP commands (for Emacs hybrid mode) **)
+
+local
+    val pgip_output_channel = ref writeln_default
+in
+
+(* Set recipient for PGIP results *)
+fun init_pgip_channel writefn =
+    (init_pgip_session_id();  
+     pgip_output_channel := writefn)				  
+
+(* Process a PGIP command. 
+   This works for preferences but not generally guaranteed 
+   because we haven't done full setup here (e.g., no pgml mode)  *)
+fun process_pgip str =
+     setmp output_xml_fn (!pgip_output_channel) process_pgip_plain str
+
+end
 
 end;
 

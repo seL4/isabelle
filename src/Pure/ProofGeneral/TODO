@@ -1,16 +1,13 @@
 Major:
 
- proof_general_emacs.ML fixups/PG compatibility: ongoing
-
  Complete pgip_types: add PGML and objtypes
 
  Complete pgip_markup: provide markup abstraction for parsing.ML
 
-
 Minor:
 
- <pgipquit> broken
-
- cleanups: signatures & structures
+ cleanups: signatures & structures, concrete types in XML attrs, etc.
 
  further tests in pgip_tests.ML
+
+ <pgipquit> broken

@@ -9,55 +9,55 @@ signature PGIPOUTPUT =
 sig
     (* These are the PGIP messages which the prover emits. *) 
     datatype pgipoutput = 
-	     Cleardisplay        of { area: PgipTypes.displayarea }
-	   | Normalresponse      of { area: PgipTypes.displayarea, 
-				      urgent: bool, 
-				      messagecategory: PgipTypes.messagecategory, 
-				      content: XML.tree list }
-	   | Errorresponse       of { fatality: PgipTypes.fatality, 
-				      area: PgipTypes.displayarea option, 
-				      location: PgipTypes.location option, 
-				      content: XML.tree list }
-	   | Informfileloaded    of { url: PgipTypes.pgipurl }
-	   | Informfileretracted of { url: PgipTypes.pgipurl }
-	   | Proofstate	         of { pgml: XML.tree list }
-	   | Metainforesponse    of { attrs: XML.attributes, 
-				      content: XML.tree list }
-	   | Lexicalstructure    of { content: XML.tree list }
-	   | Proverinfo	         of { name: string, 
-				      version: string, 
-				      instance: string,
-				      descr: string, 
-				      url: Url.T, 
-				      filenameextns: string }
-	   | Idtable	         of { objtype: string, 
-				      context: string option, 
-				      ids: string list }
-           | Setids		 of { idtables: XML.tree list }
-           | Delids		 of { idtables: XML.tree list }
-           | Addids		 of { idtables: XML.tree list }
-	   | Hasprefs	         of { prefcategory: string option, 
-				      prefs: PgipTypes.preference list }
-           | Prefval		 of { name: string, value: string }
-           | Idvalue		 of { name: string, objtype: string, text: XML.tree list }
-	   | Informguise	 of { file : PgipTypes.pgipurl option,  
-				      theory: string option, 
-				      theorem: string option, 
-				      proofpos: int option }
-	   | Parseresult	 of { attrs: XML.attributes, content: XML.tree list }
-           | Usespgip		 of { version: string, 
-				      pgipelems: (string * bool * string list) list }
-           | Usespgml		 of { version: string }
-	   | Pgip		 of { tag: string option, 
-				      class: string, 
-				      seq: int, id: string, 
-				      destid: string option,
-				      refid: string option,
-				      refseq: int option,
-				      content: XML.tree list }
-	   | Ready		 of { }
+      Cleardisplay        of { area: PgipTypes.displayarea }
+    | Normalresponse      of { area: PgipTypes.displayarea, 
+                               urgent: bool, 
+                               messagecategory: PgipTypes.messagecategory, 
+                               content: XML.tree list }
+    | Errorresponse       of { fatality: PgipTypes.fatality, 
+                               area: PgipTypes.displayarea option, 
+                               location: PgipTypes.location option, 
+                               content: XML.tree list }
+    | Informfileloaded    of { url: PgipTypes.pgipurl }
+    | Informfileretracted of { url: PgipTypes.pgipurl }
+    | Proofstate          of { pgml: XML.tree list }
+    | Metainforesponse    of { attrs: XML.attributes, 
+                               content: XML.tree list }
+    | Lexicalstructure    of { content: XML.tree list }
+    | Proverinfo          of { name: string, 
+                               version: string, 
+                               instance: string,
+                               descr: string, 
+                               url: Url.T, 
+                               filenameextns: string }
+    | Idtable             of { objtype: string, 
+                               context: string option, 
+                               ids: string list }
+    | Setids              of { idtables: XML.tree list }
+    | Delids              of { idtables: XML.tree list }
+    | Addids              of { idtables: XML.tree list }
+    | Hasprefs            of { prefcategory: string option, 
+                               prefs: PgipTypes.preference list }
+    | Prefval             of { name: string, value: string }
+    | Idvalue             of { name: string, objtype: string, text: XML.tree list }
+    | Informguise         of { file : PgipTypes.pgipurl option,  
+                               theory: string option, 
+                               theorem: string option, 
+                               proofpos: int option }
+    | Parseresult         of { attrs: XML.attributes, content: XML.tree list }
+    | Usespgip            of { version: string, 
+                               pgipelems: (string * bool * string list) list }
+    | Usespgml            of { version: string }
+    | Pgip                of { tag: string option, 
+                               class: string, 
+                               seq: int, id: string, 
+                               destid: string option,
+                               refid: string option,
+                               refseq: int option,
+                               content: XML.tree list }
+    | Ready               of { }
 
-    val output : pgipoutput -> XML.tree					 
+    val output : pgipoutput -> XML.tree                                  
 end
 
 structure PgipOutput : PGIPOUTPUT =
@@ -65,88 +65,84 @@ struct
 open PgipTypes
 
 datatype pgipoutput = 
-	 Cleardisplay        of { area: displayarea }
+         Cleardisplay        of { area: displayarea }
        | Normalresponse      of { area: displayarea, urgent: bool, 
-				  messagecategory: messagecategory, content: XML.tree list }
+                                  messagecategory: messagecategory, content: XML.tree list }
        | Errorresponse       of { area: displayarea option, fatality: fatality, 
-				  location: location option, content: XML.tree list }
+                                  location: location option, content: XML.tree list }
        | Informfileloaded    of { url: Path.T }
        | Informfileretracted of { url: Path.T }
-       | Proofstate	     of { pgml: XML.tree list }
+       | Proofstate          of { pgml: XML.tree list }
        | Metainforesponse    of { attrs: XML.attributes, content: XML.tree list }
        | Lexicalstructure    of { content: XML.tree list }
-       | Proverinfo	     of { name: string, version: string, instance: string,
-				  descr: string, url: Url.T, filenameextns: string }
-       | Idtable	     of { objtype: string, context: string option, ids: string list }
-       | Setids		     of { idtables: XML.tree list }
-       | Delids		     of { idtables: XML.tree list }
-       | Addids		     of { idtables: XML.tree list }
-       | Hasprefs	     of { prefcategory: string option, prefs: preference list }
-       | Prefval  	     of { name: string, value: string }
-       | Idvalue	     of { name: string, objtype: string, text: XML.tree list }
-       | Informguise	     of { file : pgipurl option,  theory: string option, 
-				  theorem: string option, proofpos: int option }
-       | Parseresult	     of { attrs: XML.attributes, content: XML.tree list }
-       | Usespgip	     of { version: string, 
-				  pgipelems: (string * bool * string list) list }
-       | Usespgml	     of { version: string }
-       | Pgip		     of { tag: string option, 
-				  class: string, 
-				  seq: int, id: string, 
-				  destid: string option,
-				  refid: string option,
-				  refseq: int option,
-				  content: XML.tree list}
-       | Ready		     of { }
+       | Proverinfo          of { name: string, version: string, instance: string,
+                                  descr: string, url: Url.T, filenameextns: string }
+       | Idtable             of { objtype: string, context: string option, ids: string list }
+       | Setids              of { idtables: XML.tree list }
+       | Delids              of { idtables: XML.tree list }
+       | Addids              of { idtables: XML.tree list }
+       | Hasprefs            of { prefcategory: string option, prefs: preference list }
+       | Prefval             of { name: string, value: string }
+       | Idvalue             of { name: string, objtype: string, text: XML.tree list }
+       | Informguise         of { file : pgipurl option,  theory: string option, 
+                                  theorem: string option, proofpos: int option }
+       | Parseresult         of { attrs: XML.attributes, content: XML.tree list }
+       | Usespgip            of { version: string, 
+                                  pgipelems: (string * bool * string list) list }
+       | Usespgml            of { version: string }
+       | Pgip                of { tag: string option, 
+                                  class: string, 
+                                  seq: int, id: string, 
+                                  destid: string option,
+                                  refid: string option,
+                                  refseq: int option,
+                                  content: XML.tree list}
+       | Ready               of { }
 
-
-(* util *)
-
-fun attrsome attr f x = case x of NONE => [] | SOME x => [(attr,f x)]
 
 (* Construct output XML messages *)
-	
+        
 fun cleardisplay vs = 
     let
-	val area = #area vs
+        val area = #area vs
     in
-	XML.Elem ("cleardisplay", (attrs_of_displayarea area), [])
+        XML.Elem ("cleardisplay", (attrs_of_displayarea area), [])
     end
 
 fun normalresponse vs =
     let 
-	val area = #area vs
-	val urgent = #urgent vs
-	val messagecategory = #messagecategory vs
-	val content = #content vs
+        val area = #area vs
+        val urgent = #urgent vs
+        val messagecategory = #messagecategory vs
+        val content = #content vs
     in
-	XML.Elem ("normalresponse", 
-		 (attrs_of_displayarea area) @
-		 (if urgent then [("urgent", "true")] else []) @
-		 (attrs_of_messagecategory messagecategory),
-		 content)
+        XML.Elem ("normalresponse", 
+                 (attrs_of_displayarea area) @
+                 (if urgent then [("urgent", "true")] else []) @
+                 (attrs_of_messagecategory messagecategory),
+                 content)
     end
-				       
+                                       
 fun errorresponse vs =
     let 
-	val area = #area vs
-	val fatality = #fatality vs
-	val location = #location vs
-	val content = #content vs
+        val area = #area vs
+        val fatality = #fatality vs
+        val location = #location vs
+        val content = #content vs
     in
-	XML.Elem ("errorresponse",
-		 (the_default [] (Option.map attrs_of_displayarea area)) @
-		 (attrs_of_fatality fatality) @
-		 (the_default [] (Option.map attrs_of_location location)),
-		 content)
+        XML.Elem ("errorresponse",
+                 (the_default [] (Option.map attrs_of_displayarea area)) @
+                 (attrs_of_fatality fatality) @
+                 (the_default [] (Option.map attrs_of_location location)),
+                 content)
     end
-				       
+                                       
 
 fun informfile lr vs =
     let 
-	val url = #url vs
+        val url = #url vs
     in
-	XML.Elem ("informfile" ^ lr, attrs_of_pgipurl url, [])
+        XML.Elem ("informfile" ^ lr, attrs_of_pgipurl url, [])
     end
 
 val informfileloaded = informfile "loaded"
@@ -154,120 +150,118 @@ val informfileretracted = informfile "retracted"
 
 fun proofstate vs =
     let
-	val pgml = #pgml vs
+        val pgml = #pgml vs
     in
-	XML.Elem("proofstate", [], pgml)
+        XML.Elem("proofstate", [], pgml)
     end
 
 fun metainforesponse vs =
     let 
-	val attrs = #attrs vs
-	val content = #content vs
+        val attrs = #attrs vs
+        val content = #content vs
     in
-	XML.Elem ("metainforesponse", attrs, content)
+        XML.Elem ("metainforesponse", attrs, content)
     end
 
 fun lexicalstructure vs =
     let
-	val content = #content vs
+        val content = #content vs
     in
-	XML.Elem ("lexicalstructure", [], content)
+        XML.Elem ("lexicalstructure", [], content)
     end
 
 fun proverinfo vs =
     let
-	val name = #name vs
-	val version = #version vs
-	val instance = #instance vs
-	val descr = #descr vs
-	val url = #url vs
-	val filenameextns = #filenameextns vs
+        val name = #name vs
+        val version = #version vs
+        val instance = #instance vs
+        val descr = #descr vs
+        val url = #url vs
+        val filenameextns = #filenameextns vs
     in 
-	XML.Elem ("proverinfo",
-		 [("name", name),
-		  ("version", version),
-		  ("instance", instance), 
-		  ("descr", descr),
-		  ("url", Url.pack url),
-		  ("filenameextns", filenameextns)],
-		 [])
+        XML.Elem ("proverinfo",
+                 [("name", name),
+                  ("version", version),
+                  ("instance", instance), 
+                  ("descr", descr),
+                  ("url", Url.pack url),
+                  ("filenameextns", filenameextns)],
+                 [])
     end
 
 fun idtable vs = 
     let 
-	val objtype = #objtype vs
-	val objtype_attrs = [("objtype", objtype)]
-	val context = #context vs
-	val context_attrs = opt_attr "context" context
-	val ids = #ids vs
-	val ids_content = map (fn x => XML.Elem("identifier",[],[XML.Text x])) ids
+        val objtype = #objtype vs
+        val objtype_attrs = attr [("objtype", objtype)]
+        val context = #context vs
+        val context_attrs = opt_attr "context" context
+        val ids = #ids vs
+        val ids_content = map (fn x => XML.Elem("identifier",[],[XML.Text x])) ids
     in 
-	XML.Elem ("idtable",
-		  objtype_attrs @ context_attrs,
-		  ids_content)
+        XML.Elem ("idtable",
+                  objtype_attrs @ context_attrs,
+                  ids_content)
     end
 
 fun setids vs =
     let
-	val idtables = #idtables vs
+        val idtables = #idtables vs
     in
-	XML.Elem ("setids",[],idtables)
+        XML.Elem ("setids",[],idtables)
     end
 
 fun addids vs =
     let
-	val idtables = #idtables vs
+        val idtables = #idtables vs
     in
-	XML.Elem ("addids",[],idtables)
+        XML.Elem ("addids",[],idtables)
     end
 
 fun delids vs =
     let
-	val idtables = #idtables vs
+        val idtables = #idtables vs
     in
-	XML.Elem ("delids",[],idtables)
+        XML.Elem ("delids",[],idtables)
     end
 
 
 fun acceptedpgipelems vs = 
     let
-	val pgipelems = #pgipelems vs
-	fun async_attrs b = if b then [("async","true")] else []
-	fun attrs_attrs attrs = if attrs=[] then [] else [("attributes",space_implode "," attrs)]
-	fun singlepgipelem (e,async,attrs) = 
-	    XML.Elem("pgipelem", ((async_attrs async) @ (attrs_attrs attrs)),[])
-						      
+        val pgipelems = #pgipelems vs
+        fun async_attrs b = if b then [("async","true")] else []
+        fun attrs_attrs attrs = if attrs=[] then [] else [("attributes",space_implode "," attrs)]
+        fun singlepgipelem (e,async,attrs) = 
+            XML.Elem("pgipelem", ((async_attrs async) @ (attrs_attrs attrs)),[])
+                                                      
     in
-	XML.Elem ("acceptedpgipelems", [],
-		 map singlepgipelem pgipelems)
+        XML.Elem ("acceptedpgipelems", [],
+                 map singlepgipelem pgipelems)
     end
 
-
-fun attro x yo = case yo of NONE => [] | SOME y => [(x,y)] : XML.attributes
 
 fun hasprefs vs =
   let 
       val prefcategory = #prefcategory vs
       val prefs = #prefs vs
   in 
-      XML.Elem("hasprefs",attro "prefcategory" prefcategory, map haspref prefs)
+      XML.Elem("hasprefs",opt_attr "prefcategory" prefcategory, map haspref prefs)
   end
 
 fun prefval vs =
     let 
-	val name = #name vs
-	val value = #value vs
+        val name = #name vs
+        val value = #value vs
     in
-	XML.Elem("prefval", [("name",name)], [XML.Text value])
+        XML.Elem("prefval", [("name",name)], [XML.Text value])
     end 
 
 fun idvalue vs =
     let 
-	val name = #name vs
-	val objtype = #objtype vs
-	val text = #text vs
+        val name = #name vs
+        val objtype = #objtype vs
+        val text = #text vs
     in
-	XML.Elem("idvalue", [("name",name),("objtype",objtype)], text)
+        XML.Elem("idvalue", [("name",name),("objtype",objtype)], text)
     end 
 
 
@@ -283,84 +277,83 @@ fun informguise vs =
       val guisefile = elto "guisefile" attrs_of_pgipurl file
       val guisetheory = elto "guisetheory" (single o (pair "thyname")) theory
       val guiseproof = elto "guiseproof" 
-			    (fn thm=>[("thmname",thm)]@
-				     (attro "proofpos" (Option.map Int.toString proofpos))) theorem
+                            (fn thm=>[("thmname",thm)]@
+                                     (opt_attr "proofpos" (Option.map Int.toString proofpos))) theorem
   in 
       XML.Elem("informguise", [], guisefile @ guisetheory @ guiseproof)
   end
 
 fun parseresult vs =
     let
-	val attrs = #attrs vs
-	val content = #content vs
+        val attrs = #attrs vs
+        val content = #content vs
     in 
-	XML.Elem("parseresult", attrs, content)
+        XML.Elem("parseresult", attrs, content)
     end
 
 fun usespgip vs =
     let
-	val version = #version vs
-	val acceptedelems = acceptedpgipelems vs
+        val version = #version vs
+        val acceptedelems = acceptedpgipelems vs
     in 
-	XML.Elem("usespgip", [("version", version)], [acceptedelems])
+        XML.Elem("usespgip", [("version", version)], [acceptedelems])
     end
 
 fun usespgml vs =
     let
-	val version = #version vs
+        val version = #version vs
     in 
-	XML.Elem("usespgml", [("version", version)], [])
+        XML.Elem("usespgml", [("version", version)], [])
     end
 
 fun pgip vs =
     let 
-	val tag = #tag vs
-	val class = #class vs
-	val seq = #seq vs
-	val id = #id vs
-	val destid = #destid vs
-	val refid = #refid vs
-	val refseq = #refseq vs
-	val content = #content vs
+        val tag = #tag vs
+        val class = #class vs
+        val seq = #seq vs
+        val id = #id vs
+        val destid = #destid vs
+        val refid = #refid vs
+        val refseq = #refseq vs
+        val content = #content vs
     in
-	XML.Elem("pgip",
-		 opt_attr "tag" tag @
-		 [("id", id)] @
-		 opt_attr "destid" destid @
-		 [("class", class)] @
-		 opt_attr "refid" refid @
-		 opt_attr_map string_of_int "refseq" refseq @
-		 [("seq", string_of_int seq)],
-		 content)
+        XML.Elem("pgip",
+                 opt_attr "tag" tag @
+                 [("id", id)] @
+                 opt_attr "destid" destid @
+                 [("class", class)] @
+                 opt_attr "refid" refid @
+                 opt_attr_map string_of_int "refseq" refseq @
+                 [("seq", string_of_int seq)],
+                 content)
     end
 
-fun ready vs = 
-    XML.Elem("ready",[],[])
+fun ready vs = XML.Elem("ready",[],[])
 
 
 fun output pgipoutput = case pgipoutput of
-   Cleardisplay vs 	   => cleardisplay vs
+   Cleardisplay vs         => cleardisplay vs
  | Normalresponse vs       => normalresponse vs
  | Errorresponse vs        => errorresponse vs
- | Informfileloaded vs	   => informfileloaded vs
+ | Informfileloaded vs     => informfileloaded vs
  | Informfileretracted vs  => informfileretracted vs
- | Proofstate vs	   => proofstate vs
- | Metainforesponse vs	   => metainforesponse vs
- | Lexicalstructure vs	   => lexicalstructure vs
- | Proverinfo vs	   => proverinfo vs
- | Idtable vs		   => idtable vs
- | Setids vs		   => setids vs
- | Addids vs		   => addids vs
- | Delids vs		   => delids vs
- | Hasprefs vs		   => hasprefs vs
- | Prefval vs		   => prefval vs
- | Idvalue vs		   => idvalue vs
- | Informguise vs	   => informguise vs
- | Parseresult vs	   => parseresult vs
- | Usespgip vs		   => usespgip vs
- | Usespgml vs		   => usespgml vs
- | Pgip vs		   => pgip vs
- | Ready vs		   => ready vs
+ | Proofstate vs           => proofstate vs
+ | Metainforesponse vs     => metainforesponse vs
+ | Lexicalstructure vs     => lexicalstructure vs
+ | Proverinfo vs           => proverinfo vs
+ | Idtable vs              => idtable vs
+ | Setids vs               => setids vs
+ | Addids vs               => addids vs
+ | Delids vs               => delids vs
+ | Hasprefs vs             => hasprefs vs
+ | Prefval vs              => prefval vs
+ | Idvalue vs              => idvalue vs
+ | Informguise vs          => informguise vs
+ | Parseresult vs          => parseresult vs
+ | Usespgip vs             => usespgip vs
+ | Usespgml vs             => usespgml vs
+ | Pgip vs                 => pgip vs
+ | Ready vs                => ready vs
 
 end
 

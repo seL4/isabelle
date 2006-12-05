@@ -240,7 +240,7 @@ fun thm_deps_message (thms, deps) =
 (* FIXME: check this uses non-transitive closure function here *)
 fun tell_thm_deps ths = conditional (Output.has_mode thm_depsN) (fn () =>
   let
-    val names = filter_out (equal "") (map Thm.name_of_thm ths);
+    val names = filter_out (equal "") (map PureThy.get_name_hint ths);
     val deps = filter_out (equal "")
       (Symtab.keys (fold Proofterm.thms_of_proof
         (map Thm.proof_of ths) Symtab.empty));
@@ -321,6 +321,7 @@ fun init_setup () =
    (setmp warning_fn (K ()) init_outer_syntax ();
     setup_xsymbols_output ();
     setup_messages ();
+    ProofGeneralPgip.init_pgip_channel (!priority_fn);
     setup_state ();
     setup_thy_loader ();
     setup_present_hook ();
