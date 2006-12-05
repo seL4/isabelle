@@ -118,7 +118,7 @@ fun normalresponse vs =
     in
         XML.Elem ("normalresponse", 
                  (attrs_of_displayarea area) @
-                 (if urgent then [("urgent", "true")] else []) @
+                 (if urgent then attr "urgent" "true" else []) @
                  (attrs_of_messagecategory messagecategory),
                  content)
     end
@@ -192,7 +192,7 @@ fun proverinfo vs =
 fun idtable vs = 
     let 
         val objtype = #objtype vs
-        val objtype_attrs = attr [("objtype", objtype)]
+        val objtype_attrs = attr "objtype" objtype
         val context = #context vs
         val context_attrs = opt_attr "context" context
         val ids = #ids vs
@@ -228,8 +228,8 @@ fun delids vs =
 fun acceptedpgipelems vs = 
     let
         val pgipelems = #pgipelems vs
-        fun async_attrs b = if b then [("async","true")] else []
-        fun attrs_attrs attrs = if attrs=[] then [] else [("attributes",space_implode "," attrs)]
+        fun async_attrs b = if b then attr "async" "true" else []
+        fun attrs_attrs attrs = if attrs=[] then [] else attr "attributes" (space_implode "," attrs)
         fun singlepgipelem (e,async,attrs) = 
             XML.Elem("pgipelem", ((async_attrs async) @ (attrs_attrs attrs)),[])
                                                       
@@ -252,7 +252,7 @@ fun prefval vs =
         val name = #name vs
         val value = #value vs
     in
-        XML.Elem("prefval", [("name",name)], [XML.Text value])
+        XML.Elem("prefval", attr "name" name, [XML.Text value])
     end 
 
 fun idvalue vs =
@@ -277,7 +277,7 @@ fun informguise vs =
       val guisefile = elto "guisefile" attrs_of_pgipurl file
       val guisetheory = elto "guisetheory" (single o (pair "thyname")) theory
       val guiseproof = elto "guiseproof" 
-                            (fn thm=>[("thmname",thm)]@
+                            (fn thm=>(attr "thmname" thm) @
                                      (opt_attr "proofpos" (Option.map Int.toString proofpos))) theorem
   in 
       XML.Elem("informguise", [], guisefile @ guisetheory @ guiseproof)
@@ -296,14 +296,14 @@ fun usespgip vs =
         val version = #version vs
         val acceptedelems = acceptedpgipelems vs
     in 
-        XML.Elem("usespgip", [("version", version)], [acceptedelems])
+        XML.Elem("usespgip", attr "version" version, [acceptedelems])
     end
 
 fun usespgml vs =
     let
         val version = #version vs
     in 
-        XML.Elem("usespgml", [("version", version)], [])
+        XML.Elem("usespgml", attr "version" version, [])
     end
 
 fun pgip vs =
@@ -319,12 +319,12 @@ fun pgip vs =
     in
         XML.Elem("pgip",
                  opt_attr "tag" tag @
-                 [("id", id)] @
+                 attr "id" id @
                  opt_attr "destid" destid @
-                 [("class", class)] @
+                 attr "class" class @
                  opt_attr "refid" refid @
                  opt_attr_map string_of_int "refseq" refseq @
-                 [("seq", string_of_int seq)],
+                 attr "seq" (string_of_int seq),
                  content)
     end
 
