@@ -14,15 +14,15 @@ section {* Abstract orders *}
 subsection {* Order syntax *}
 
 class ord =
-  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<sqsubseteq>" 50)
-    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infix "\<sqsubset>" 50)
+  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<sqsubseteq>" 50)
+    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<sqsubset>" 50)
 begin
 
 notation
-  less_eq  ("(_/ \<^loc><= _)" [51, 51] 50) and
   less_eq  ("op \<^loc><=") and
-  less  ("(_/ \<^loc>< _)"  [51, 51] 50) and
-  less  ("op \<^loc><")
+  less_eq  ("(_/ \<^loc><= _)" [51, 51] 50) and
+  less  ("op \<^loc><") and
+  less  ("(_/ \<^loc>< _)"  [51, 51] 50)
   
 notation (xsymbols)
   less_eq  ("op \<^loc>\<le>") and
@@ -33,32 +33,23 @@ notation (HTML output)
   less_eq  ("(_/ \<^loc>\<le> _)"  [51, 51] 50)
 
 abbreviation (input)
-  greater_eq  ("(_/ \<^loc>>= _)" [51, 51] 50) where
-  "x \<^loc>>= y \<equiv> y \<^loc><= x"
-
-abbreviation (input)
-  greater  ("(_/ \<^loc>> _)" [51, 51] 50) where
+  greater  (infix "\<^loc>>" 50) where
   "x \<^loc>> y \<equiv> y \<^loc>< x"
 
-notation
-  greater_eq  ("op \<^loc>>=") and
-  greater  ("op \<^loc>>")
+abbreviation (input)
+  greater_eq  (infix "\<^loc>>=" 50) where
+  "x \<^loc>>= y \<equiv> y \<^loc><= x"
 
-notation (xsymbols)
-  greater_eq  ("op \<^loc>\<ge>") and
-  greater_eq  ("(_/ \<^loc>\<ge> _)"  [51, 51] 50)
-
-notation (HTML output)
-  greater_eq  ("op \<^loc>\<ge>") and
-  greater_eq  ("(_/ \<^loc>\<ge> _)"  [51, 51] 50)
+notation (input)
+  greater_eq  (infix "\<^loc>\<ge>" 50)
 
 end
 
 notation
-  less_eq  ("(_/ <= _)" [51, 51] 50) and
   less_eq  ("op <=") and
-  less  ("(_/ < _)"  [51, 51] 50) and
-  less  ("op <")
+  less_eq  ("(_/ <= _)" [51, 51] 50) and
+  less  ("op <") and
+  less  ("(_/ < _)"  [51, 51] 50)
   
 notation (xsymbols)
   less_eq  ("op \<le>") and
@@ -69,24 +60,15 @@ notation (HTML output)
   less_eq  ("(_/ \<le> _)"  [51, 51] 50)
 
 abbreviation (input)
-  greater_eq  ("(_/ >= _)" [51, 51] 50) where
-  "x >= y \<equiv> y <= x"
-
-abbreviation (input)
-  greater  ("(_/ > _)" [51, 51] 50) where
+  greater  (infix ">" 50) where
   "x > y \<equiv> y < x"
 
-notation
-  greater_eq  ("op >=") and
-  greater  ("op >")
+abbreviation (input)
+  greater_eq  (infix ">=" 50) where
+  "x >= y \<equiv> y <= x"
 
-notation (xsymbols)
-  greater_eq  ("op \<ge>") and
-  greater_eq  ("(_/ \<ge> _)"  [51, 51] 50)
-
-notation (HTML output)
-  greater_eq  ("op \<ge>") and
-  greater_eq  ("(_/ \<ge> _)"  [51, 51] 50)
+notation (input)
+  greater_eq  (infix "\<ge>" 50)
 
 
 subsection {* Quasiorders (preorders) *}
@@ -96,14 +78,6 @@ locale preorder = ord +
   and trans: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
   and less_le: "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<noteq> y"
 begin
-
-abbreviation (input)
-  greater_eq  (infixl "\<^loc>\<ge>" 50) where
-  "x \<^loc>\<ge> y \<equiv> y \<sqsubseteq> x"
-
-abbreviation (input)
-  greater (infixl "\<^loc>>" 50) where
-  "x \<^loc>> y \<equiv> y \<sqsubset> x"
 
 text {* Reflexivity. *}
 
