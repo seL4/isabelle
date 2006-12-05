@@ -53,7 +53,7 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML		\
   ProofGeneral/pgip.ML ProofGeneral/pgip_output.ML                              \
   ProofGeneral/pgip_tests.ML ProofGeneral/pgip_types.ML                         \
   ProofGeneral/preferences.ML ProofGeneral/proof_general_pgip.ML                \
-  ProofGeneral/ROOT.ML                                                          \
+  ProofGeneral/proof_general_emacs.ML ProofGeneral/ROOT.ML                      \
   Syntax/ROOT.ML Syntax/ast.ML Syntax/lexicon.ML Syntax/mixfix.ML		\
   Syntax/parser.ML Syntax/printer.ML Syntax/syn_ext.ML				\
   Syntax/syn_trans.ML Syntax/syntax.ML Syntax/type_ext.ML Thy/html.ML		\
