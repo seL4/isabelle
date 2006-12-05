@@ -9,7 +9,8 @@ support for embedded values and static binding.
 signature ARGS =
 sig
   datatype value =
-    Text of string | Typ of typ | Term of term | Fact of thm list | Attribute of attribute
+    Text of string | Typ of typ | Term of term | Fact of thm list |
+    Attribute of morphism -> attribute
   type T
   val string_of: T -> string
   val mk_ident: string * Position.T -> T
@@ -20,7 +21,7 @@ sig
   val mk_typ: typ -> T
   val mk_term: term -> T
   val mk_fact: thm list -> T
-  val mk_attribute: attribute -> T
+  val mk_attribute: (morphism -> attribute) -> T
   val stopper: T * (T -> bool)
   val not_eof: T -> bool
   type src
@@ -65,7 +66,7 @@ sig
   val internal_typ: T list -> typ * T list
   val internal_term: T list -> term * T list
   val internal_fact: T list -> thm list * T list
-  val internal_attribute: T list -> attribute * T list
+  val internal_attribute: T list -> (morphism -> attribute) * T list
   val named_text: (string -> string) -> T list -> string * T list
   val named_typ: (string -> typ) -> T list -> typ * T list
   val named_term: (string -> term) -> T list -> term * T list
@@ -107,7 +108,7 @@ datatype value =
   Typ of typ |
   Term of term |
   Fact of thm list |
-  Attribute of attribute;
+  Attribute of morphism -> attribute;
 
 datatype slot =
   Empty |
@@ -185,7 +186,7 @@ fun morph_values phi = map_args (map_value
     | Typ T => Typ (Morphism.typ phi T)
     | Term t => Term (Morphism.term phi t)
     | Fact ths => Fact (map (Morphism.thm phi) ths)
-    | Attribute att => Attribute att));
+    | Attribute att => Attribute (fn psi => att (phi $> psi))));
 
 fun maxidx_values (Src ((_, args), _)) = args |> fold
   (fn (Arg (_, Value (SOME (Typ T)))) => Term.maxidx_typ T
