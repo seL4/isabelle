@@ -19,7 +19,8 @@ sig
       Elem of string * attributes * tree list
     | Text of string    (* native string, subject to XML.text on output *)
     | Rawtext of string (* XML string: not parsed and output directly   *)
-  type element = string * attributes * tree list
+  type content = tree list
+  type element = string * attributes * content
   val string_of_tree: tree -> string
   val buffer_of_tree: tree -> Buffer.T
   val parse_string : string -> string option
@@ -86,7 +87,9 @@ datatype tree =
   | Text of string      
   | Rawtext of string;  
 
-type element = string * attributes * tree list
+type content = tree list
+
+type element = string * attributes * content
 
 fun buffer_of_tree tree =
   let
