@@ -18,6 +18,7 @@ sig
   val add_assumes: cterm list -> Proof.context -> thm list * Proof.context
   val add_view: Proof.context -> cterm list -> Proof.context -> Proof.context
   val export: bool -> Proof.context -> Proof.context -> thm -> thm
+  val export_term: Proof.context -> Proof.context -> term -> term
   val export_morphism: Proof.context -> Proof.context -> morphism
 end;
 
@@ -26,7 +27,7 @@ struct
 
 (** basic rules **)
 
-type export = bool -> cterm list -> thm -> thm
+type export = bool -> cterm list -> (thm -> thm) * (term -> term);
 
 (*
     [A]
@@ -35,8 +36,8 @@ type export = bool -> cterm list -> thm -> thm
   --------
   #A ==> B
 *)
-fun assume_export true = Drule.implies_intr_protected
-  | assume_export false = Drule.implies_intr_list;
+fun assume_export is_goal asms =
+  (if is_goal then Drule.implies_intr_protected asms else Drule.implies_intr_list asms, fn t => t);
 
 (*
     [A]
@@ -98,17 +99,23 @@ fun add_view outer view = map_data (fn (asms, prems) =>
 
 (* export *)
 
+fun diff_assms inner outer =
+  Library.drop (length (assumptions_of outer), assumptions_of inner);
+
 fun export is_goal inner outer =
-  let val asms = Library.drop (length (assumptions_of outer), assumptions_of inner) in
+  let val asms = diff_assms inner outer in
     MetaSimplifier.norm_hhf_protect
-    #> fold_rev (fn (e, As) => e is_goal As) asms
+    #> fold_rev (fn (e, As) => #1 (e is_goal As)) asms
     #> MetaSimplifier.norm_hhf_protect
   end;
+
+fun export_term inner outer =
+  fold_rev (fn (e, As) => #2 (e false As)) (diff_assms inner outer);
 
 fun export_morphism inner outer =
   let
     val thm = export false inner outer;
-    fun term t = Drule.term_rule (ProofContext.theory_of inner (*delayed until now*)) thm t;
+    val term = export_term inner outer;
     val typ = Logic.type_map term;
   in Morphism.morphism {name = I, var = I, typ = typ, term = term, fact = map thm} end;
 
