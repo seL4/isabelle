@@ -31,11 +31,6 @@ end;
 structure TypecopyPackage: TYPECOPY_PACKAGE =
 struct
 
-(* theory context reference *)
-
-val univ_witness = thm "Set.UNIV_witness"
-
-
 (* theory data *)
 
 type info = {
