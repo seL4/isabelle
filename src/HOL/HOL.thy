@@ -825,6 +825,7 @@ struct
   val sym = thm "HOL.sym"
   val thin_refl = thm "thin_refl";
 end);
+open Hypsubst;
 
 structure Classical = ClassicalFun(
 struct
@@ -836,6 +837,7 @@ struct
 end);
 
 structure BasicClassical: BASIC_CLASSICAL = Classical; 
+open BasicClassical;
 *}
 
 setup {*
@@ -912,11 +914,13 @@ struct
   val contr_tac = Classical.contr_tac
   val dup_intr = Classical.dup_intr
   val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
-  val claset	= Classical.claset
+  val claset = Classical.claset
   val rep_cs = Classical.rep_cs
   val cla_modifiers = Classical.cla_modifiers
   val cla_meth' = Classical.cla_meth'
 end);
+val Blast_tac = Blast.Blast_tac;
+val blast_tac = Blast.blast_tac;
 *}
 
 setup Blast.setup
@@ -1180,6 +1184,8 @@ lemma ex_comm:
   by blast
 
 use "simpdata.ML"
+ML {* open Simpdata *}
+
 setup {*
   Simplifier.method_setup Splitter.split_modifiers
   #> (fn thy => (change_simpset_of thy (fn _ => Simpdata.simpset_simprocs); thy))
@@ -1217,37 +1223,38 @@ lemma all_simps:
   -- {* Miniscoping: pushing in universal quantifiers. *}
   by (iprover | blast)+
 
-declare triv_forall_equality [simp] (*prunes params*)
-  and True_implies_equals [simp] (*prune asms `True'*)
-  and if_True [simp]
-  and if_False [simp]
-  and if_cancel [simp]
-  and if_eq_cancel [simp]
-  and imp_disjL [simp]
+lemmas [simp] =
+  triv_forall_equality (*prunes params*)
+  True_implies_equals  (*prune asms `True'*)
+  if_True
+  if_False
+  if_cancel
+  if_eq_cancel
+  imp_disjL
   (*In general it seems wrong to add distributive laws by default: they
     might cause exponential blow-up.  But imp_disjL has been in for a while
     and cannot be removed without affecting existing proofs.  Moreover,
     rewriting by "(P|Q --> R) = ((P-->R)&(Q-->R))" might be justified on the
     grounds that it allows simplification of R in the two cases.*)
-  and conj_assoc [simp]
-  and disj_assoc [simp]
-  and de_Morgan_conj [simp]
-  and de_Morgan_disj [simp]
-  and imp_disj1 [simp]
-  and imp_disj2 [simp]
-  and not_imp [simp]
-  and disj_not1 [simp]
-  and not_all [simp]
-  and not_ex [simp]
-  and cases_simp [simp]
-  and the_eq_trivial [simp]
-  and the_sym_eq_trivial [simp]
-  and ex_simps [simp]
-  and all_simps [simp]
-  and simp_thms [simp]
-  and imp_cong [cong]
-  and simp_implies_cong [cong]
-  and split_if [split]
+  conj_assoc
+  disj_assoc
+  de_Morgan_conj
+  de_Morgan_disj
+  imp_disj1
+  imp_disj2
+  not_imp
+  disj_not1
+  not_all
+  not_ex
+  cases_simp
+  the_eq_trivial
+  the_sym_eq_trivial
+  ex_simps
+  all_simps
+  simp_thms
+
+lemmas [cong] = imp_cong simp_implies_cong
+lemmas [split] = split_if
 
 ML {*
 val HOL_ss = Simplifier.simpset_of (the_context ());
@@ -1398,5 +1405,79 @@ lemma mk_left_commute:
           c: "\<And>x y. x \<otimes> y = y \<otimes> x"
   shows "x \<otimes> (y \<otimes> z) = y \<otimes> (x \<otimes> z)"
   by (rule trans [OF trans [OF c a] arg_cong [OF c, of "f y"]])
+
+
+subsection {* Basic ML bindings *}
+
+ML {*
+val FalseE = thm "FalseE"
+val Let_def = thm "Let_def"
+val TrueI = thm "TrueI";
+val allE = thm "allE";
+val allI = thm "allI";
+val all_dupE = thm "all_dupE"
+val arg_cong = thm "arg_cong";
+val box_equals = thm "box_equals"
+val ccontr = thm "ccontr";
+val classical = thm "classical";
+val conjE = thm "conjE";
+val conjI = thm "conjI";
+val conjunct1 = thm "conjunct1";
+val conjunct2 = thm "conjunct2";
+val disjCI = thm "disjCI";
+val disjE = thm "disjE";
+val disjI1 = thm "disjI1"
+val disjI2 = thm "disjI2"
+val eq_reflection = thm "eq_reflection";
+val ex1E = thm "ex1E"
+val ex1I = thm "ex1I"
+val ex1_implies_ex = thm "ex1_implies_ex"
+val exE = thm "exE";
+val exI = thm "exI";
+val excluded_middle = thm "excluded_middle"
+val ext = thm "ext"
+val fun_cong = thm "fun_cong"
+val iffD1 = thm "iffD1";
+val iffD2 = thm "iffD2";
+val iffI = thm "iffI";
+val impE = thm "impE"
+val impI = thm "impI";
+val meta_eq_to_obj_eq = thm "meta_eq_to_obj_eq";
+val mp = thm "mp";
+val notE = thm "notE";
+val notI = thm "notI";
+val not_all = thm "not_all";
+val not_ex = thm "not_ex";
+val not_iff = thm "not_iff";
+val not_not = thm "not_not";
+val not_sym = thm "not_sym"
+val refl = thm "refl";
+val rev_mp = thm "rev_mp"
+val spec = thm "spec";
+val ssubst = thm "ssubst"
+val subst = thm "subst";
+val sym = thm "sym";
+val trans = thm "trans";
+*}
+
+
+subsection {* Legacy tactics *}
+
+ML {*
+fun strip_tac i = REPEAT (resolve_tac [impI, allI] i);
+
+(* combination of (spec RS spec RS ...(j times) ... spec RS mp) *)
+local
+  fun wrong_prem (Const ("All", _) $ (Abs (_, _, t))) = wrong_prem t
+    | wrong_prem (Bound _) = true
+    | wrong_prem _ = false;
+  val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);
+  val spec = thm "spec"
+  val mp = thm "mp"
+in
+  fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp]);
+  fun smp_tac j = EVERY'[dresolve_tac (smp j), atac];
+end;
+*}
 
 end
