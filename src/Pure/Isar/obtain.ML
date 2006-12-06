@@ -64,16 +64,21 @@ struct
   --------
      B
 *)
-fun obtain_export fix_ctxt rule xs _ As thm =
+fun eliminate_term ctxt xs tm =
+  let
+    val vs = map (dest_Free o Thm.term_of) xs;
+    val bads = Term.fold_aterms (fn t as Free v =>
+      if member (op =) vs v then insert (op aconv) t else I | _ => I) tm [];
+    val _ = null bads orelse
+      error ("Result contains obtained parameters: " ^
+        space_implode " " (map (ProofContext.string_of_term ctxt) bads));
+  in tm end;
+
+fun eliminate fix_ctxt rule xs As thm =
   let
     val thy = ProofContext.theory_of fix_ctxt;
 
-    val vs = map (dest_Free o Thm.term_of) xs;
-    val bads = Term.fold_aterms (fn t as Free v =>
-      if member (op =) vs v then insert (op aconv) t else I | _ => I) (Thm.prop_of thm) [];
-    val _ = null bads orelse
-      error ("Result contains obtained parameters: " ^
-        space_implode " " (map (ProofContext.string_of_term fix_ctxt) bads));
+    val _ = eliminate_term fix_ctxt xs (Thm.full_prop_of thm);
     val _ = ObjectLogic.is_judgment thy (Thm.concl_of thm) orelse
       error "Conclusion in obtained context must be object-logic judgment";
 
@@ -87,6 +92,9 @@ fun obtain_export fix_ctxt rule xs _ As thm =
     |> Drule.implies_intr_list prems
     |> singleton (Variable.export ctxt' fix_ctxt)
   end;
+
+fun obtain_export ctxt rule xs _ As =
+  (eliminate ctxt rule xs As, eliminate_term ctxt xs);
 
 
 

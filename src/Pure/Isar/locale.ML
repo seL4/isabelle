@@ -873,9 +873,8 @@ end;
 
 local
 
-fun axioms_export axs _ hyps =
-  Element.satisfy_thm axs
-  #> Drule.implies_intr_list (Library.drop (length axs, hyps));
+fun axioms_export axs _ As =
+  (Element.satisfy_thm axs #> Drule.implies_intr_list (Library.drop (length axs, As)), fn t => t);
 
 
 (* NB: derived ids contain only facts at this stage *)
