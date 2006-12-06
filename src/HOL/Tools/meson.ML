@@ -520,7 +520,7 @@ fun skolemize_prems_tac prems =
 (*Expand all definitions (presumably of Skolem functions) in a proof state.*)
 fun expand_defs_tac st =
   let val defs = filter (can dest_equals) (#hyps (crep_thm st))
-  in  PRIMITIVE (LocalDefs.def_export false defs) st  end;
+  in  PRIMITIVE (LocalDefs.expand defs) st  end;
 
 (*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions*)
 fun MESON cltac i st = 
