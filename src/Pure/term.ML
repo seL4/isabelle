@@ -156,10 +156,11 @@ sig
   val add_tvarsT: typ -> (indexname * sort) list -> (indexname * sort) list
   val add_tvars: term -> (indexname * sort) list -> (indexname * sort) list
   val add_vars: term -> (indexname * typ) list -> (indexname * typ) list
+  val add_varnames: term -> indexname list -> indexname list
   val add_tfreesT: typ -> (string * sort) list -> (string * sort) list
   val add_tfrees: term -> (string * sort) list -> (string * sort) list
   val add_frees: term -> (string * typ) list -> (string * typ) list
-  val add_varnames: term -> indexname list -> indexname list
+  val hidden_polymorphism: term -> typ -> (indexname * sort) list
   val strip_abs_eta: int -> term -> (string * typ) list * term
   val fast_indexname_ord: indexname * indexname -> order
   val indexname_ord: indexname * indexname -> order
@@ -485,6 +486,14 @@ val add_varnames = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I);
 val add_tfreesT = fold_atyps (fn TFree v => insert (op =) v | _ => I);
 val add_tfrees = fold_types add_tfreesT;
 val add_frees = fold_aterms (fn Free v => insert (op =) v | _ => I);
+
+(*extra type variables in a term, not covered by the type*)
+fun hidden_polymorphism t T =
+  let
+    val tvarsT = add_tvarsT T [];
+    val extra_tvars = fold_types (fold_atyps
+      (fn TVar v => if member (op =) tvarsT v then I else insert (op =) v | _ => I)) t [];
+  in extra_tvars end;
 
 
 (** Comparing terms, types, sorts etc. **)
