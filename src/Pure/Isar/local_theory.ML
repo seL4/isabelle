@@ -124,7 +124,7 @@ fun full_name lthy =
     val naming = Sign.naming_of (ProofContext.theory_of lthy)
       |> NameSpace.sticky_prefix (#theory_prefix (get_lthy lthy))
       |> NameSpace.qualified_names;
-  in NameSpace.full naming end;  
+  in NameSpace.full naming end;
 
 fun theory_result f lthy = lthy |> raw_theory_result (fn thy => thy
   |> Sign.sticky_prefix (#theory_prefix (get_lthy lthy))
@@ -176,17 +176,22 @@ fun generic_notation mode args phi =
 
 fun notation mode args = term_syntax (generic_notation mode args);
 
-fun abbrevs mode args = term_syntax (fn phi =>
-  let
-    val (mxs, args') = args |> map_filter (fn ((c, mx), t) =>
-        if t aconv Morphism.term phi t
-        then SOME (mx, ((Morphism.name phi c, NoSyn), t))
-        else NONE)
-      |> split_list;
-  in
-    Context.mapping_result (Sign.add_abbrevs mode args') (ProofContext.add_abbrevs mode args')
-    #-> (fn abbrs => generic_notation mode (map #1 abbrs ~~ mxs) phi)
-  end);
+
+fun morph_abbrev phi ((c, mx), t) = ((Morphism.name phi c, mx), Morphism.term phi t);
+
+fun abbrevs mode raw_args lthy =
+  let val args = map (morph_abbrev (target_morphism lthy)) raw_args in
+    lthy |> term_syntax (fn phi =>
+      let
+        val args' = map (morph_abbrev phi) args;
+        val (abbrs, mxs) = (args ~~ args') |> map_filter (fn ((_, rhs), ((c', mx'), rhs')) =>
+            if rhs aconv rhs' then SOME (((c', NoSyn), rhs'), mx') else NONE)
+          |> split_list;
+      in
+        Context.mapping_result (Sign.add_abbrevs mode abbrs) (ProofContext.add_abbrevs mode abbrs)
+        #-> (fn res => generic_notation mode (map #1 res ~~ mxs) phi)
+      end)
+  end;
 
 
 (* init -- exit *)
