@@ -28,7 +28,6 @@ sig
   val declare_thm: thm -> Proof.context -> Proof.context
   val thm_context: thm -> Proof.context
   val variant_frees: Proof.context -> term list -> (string * 'a) list -> (string * 'a) list
-  val hidden_polymorphism: term -> typ -> (indexname * sort) list
   val add_binds: (indexname * term option) list -> Proof.context -> Proof.context
   val expand_binds: Proof.context -> term -> term
   val add_fixes: string list -> Proof.context -> string list * Proof.context
@@ -223,19 +222,12 @@ fun variant_frees ctxt ts frees =
 
 (** term bindings **)
 
-fun hidden_polymorphism t T =
-  let
-    val tvarsT = Term.add_tvarsT T [];
-    val extra_tvars = Term.fold_types (Term.fold_atyps
-      (fn TVar v => if member (op =) tvarsT v then I else insert (op =) v | _ => I)) t [];
-  in extra_tvars end;
-
 fun add_bind (xi, NONE) = map_binds (Vartab.delete_safe xi)
   | add_bind ((x, i), SOME t) =
       let
         val T = Term.fastype_of t;
         val t' =
-          if null (hidden_polymorphism t T) then t
+          if null (Term.hidden_polymorphism t T) then t
           else Var ((x ^ "_has_extra_type_vars_on_rhs", i), T);
       in declare_term t' #> map_binds (Vartab.update ((x, i), (T, t'))) end;
 
