@@ -31,7 +31,7 @@ sig
   val constrain: string * typ option -> T -> T
   val expand_abbrevs: bool -> T -> T
   val abbreviate: Pretty.pp -> Type.tsig -> NameSpace.naming -> string ->
-    (bstring * term) * bool -> T -> T
+    (bstring * term) * bool -> T -> ((string * typ) * term) * T
   val hide: bool -> string -> T -> T
   val empty: T
   val merge: T * T -> T
@@ -253,20 +253,27 @@ in
 
 fun abbreviate pp tsig naming mode ((c, raw_rhs), authentic) consts =
   let
+    val full_c = NameSpace.full naming c;
     val rhs = raw_rhs
       |> Term.map_types (Type.cert_typ tsig)
       |> certify pp tsig (consts |> expand_abbrevs false);
     val rhs' = rhs
       |> certify pp tsig (consts |> expand_abbrevs true);
     val T = Term.fastype_of rhs;
+
+    fun err msg = error (msg ^ " on rhs of abbreviation:\n" ^
+      Pretty.string_of_term pp (Logic.mk_equals (Const (full_c, T), rhs)));
+    val _ = Term.exists_subterm Term.is_Var rhs andalso err "Illegal schematic variables"
+    val _ = null (Term.hidden_polymorphism rhs T) orelse err "Extra type variables";
   in
     consts |> map_consts (fn (decls, constraints, rev_abbrevs, expand_abbrevs) =>
       let
         val decls' = decls
           |> extend_decls naming (c, (((T, Abbreviation rhs'), authentic), serial ()));
         val rev_abbrevs' = rev_abbrevs
-          |> fold (curry Symtab.update_list mode) (rev_abbrev (NameSpace.full naming c, T) rhs);
+          |> fold (curry Symtab.update_list mode) (rev_abbrev (full_c, T) rhs);
       in (decls', constraints, rev_abbrevs', expand_abbrevs) end)
+    |> pair ((full_c, T), rhs)
   end;
 
 end;
