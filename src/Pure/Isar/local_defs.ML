@@ -10,6 +10,7 @@ sig
   val cert_def: Proof.context -> term -> (string * typ) * term
   val abs_def: term -> (string * typ) * term
   val mk_def: Proof.context -> (string * term) list -> term list
+  val expand: cterm list -> thm -> thm
   val def_export: Assumption.export
   val add_defs: ((string * mixfix) * ((bstring * attribute list) * term)) list -> Proof.context ->
     (term * (bstring * thm)) list * Proof.context
@@ -68,11 +69,17 @@ val head_of_def =
   -----------
       B a
 *)
-fun def_export _ defs thm =
-  thm
-  |> Drule.implies_intr_list defs
-  |> Drule.generalize ([], map (head_of_def o Thm.term_of) defs)
-  |> funpow (length defs) (fn th => Drule.reflexive_thm RS th);
+fun expand defs =
+  Drule.implies_intr_list defs
+  #> Drule.generalize ([], map (head_of_def o Thm.term_of) defs)
+  #> funpow (length defs) (fn th => Drule.reflexive_thm RS th);
+
+fun expand_term [] = I
+  | expand_term defs = Pattern.rewrite_term
+      (Theory.merge_list (map Thm.theory_of_cterm defs))
+      (map (Logic.dest_equals o Thm.prop_of o Assumption.assume) defs) [];
+
+fun def_export _ defs = (expand defs, expand_term defs);
 
 
 (* add defs *)
@@ -94,7 +101,7 @@ fun add_defs defs ctxt =
   end;
 
 
-(* export -- result based on educated guessing *)
+(* specific export -- result based on educated guessing *)
 
 fun export inner outer th =
   let
