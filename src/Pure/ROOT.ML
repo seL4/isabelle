@@ -56,10 +56,10 @@ use "variable.ML";
 use "tctical.ML";
 use "search.ML";
 use "meta_simplifier.ML";
+use "tactic.ML";
 use "conjunction.ML";
 use "assumption.ML";
 use "goal.ML";
-use "tactic.ML";
 
 (*proof term operations*)
 use "Proof/reconstruct.ML";

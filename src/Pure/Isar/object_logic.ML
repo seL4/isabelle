@@ -162,7 +162,7 @@ fun atomize_tac i st =
   else all_tac st;
 
 fun full_atomize_tac i st =
-  rewrite_goal_tac (get_atomize (Thm.theory_of_thm st)) i st;
+  Goal.rewrite_goal_tac (get_atomize (Thm.theory_of_thm st)) i st;
 
 fun atomize_goal i st =
   (case Seq.pull (atomize_tac i st) of NONE => st | SOME (st', _) => st');
@@ -171,7 +171,7 @@ fun atomize_goal i st =
 (* rulify *)
 
 fun rulify_term thy = MetaSimplifier.rewrite_term thy (get_rulify thy) [];
-fun rulify_tac i st = rewrite_goal_tac (get_rulify (Thm.theory_of_thm st)) i st;
+fun rulify_tac i st = Goal.rewrite_goal_tac (get_rulify (Thm.theory_of_thm st)) i st;
 
 fun gen_rulify full thm =
   Tactic.simplify full (get_rulify (Thm.theory_of_thm thm)) thm

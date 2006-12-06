@@ -702,7 +702,7 @@ fun comp_incr_tac [] _ st = no_tac st
   | comp_incr_tac (th :: ths) i st =
       (Goal.compose_hhf_tac (Drule.incr_indexes st th) i APPEND comp_incr_tac ths i) st;
 
-fun fact_tac facts = Tactic.norm_hhf_tac THEN' comp_incr_tac facts;
+fun fact_tac facts = Goal.norm_hhf_tac THEN' comp_incr_tac facts;
 
 fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) =>
   let

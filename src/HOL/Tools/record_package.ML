@@ -905,8 +905,8 @@ fun mk_fun_apply_eq (Abs (f, fT, t)) thy =
     val prove_standard = quick_and_dirty_prove true thy;
     val thm = prove_standard [] prop (fn prems =>
 	 EVERY [rtac equal_intr_rule 1, 
-                norm_hhf_tac 1,REPEAT (etac meta_allE 1), atac 1,
-                norm_hhf_tac 1,REPEAT (etac meta_allE 1), atac 1]);
+                Goal.norm_hhf_tac 1,REPEAT (etac meta_allE 1), atac 1,
+                Goal.norm_hhf_tac 1,REPEAT (etac meta_allE 1), atac 1]);
   in thm end
   | mk_fun_apply_eq t thy = raise TERM ("mk_fun_apply_eq",[t]);
 
@@ -1649,7 +1649,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
 
     fun split_meta_prf () =
         prove_standard [] split_meta_prop (fn prems =>
-         EVERY [rtac equal_intr_rule 1, norm_hhf_tac 1,
+         EVERY [rtac equal_intr_rule 1, Goal.norm_hhf_tac 1,
                 etac meta_allE 1, atac 1,
                 rtac (prop_subst OF [surjective]) 1,
                 REPEAT (etac meta_allE 1), atac 1]);
@@ -2058,7 +2058,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     fun split_meta_prf () =
         prove false [] split_meta_prop (fn prems =>
-         EVERY [rtac equal_intr_rule 1, norm_hhf_tac 1,
+         EVERY [rtac equal_intr_rule 1, Goal.norm_hhf_tac 1,
                 etac meta_allE 1, atac 1,
                 rtac (prop_subst OF [surjective]) 1,
                 REPEAT (etac meta_allE 1), atac 1]);

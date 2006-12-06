@@ -391,10 +391,10 @@ fun apply_method current_context meth_fun state =
 fun select_goals n meth state =
   state
   |> (#2 o #2 o get_goal)
-  |> ALLGOALS Tactic.conjunction_tac
+  |> ALLGOALS Goal.conjunction_tac
   |> Seq.maps (fn goal =>
     state
-    |> Seq.lift set_goal (Goal.extract 1 n goal |> Seq.maps (Tactic.conjunction_tac 1))
+    |> Seq.lift set_goal (Goal.extract 1 n goal |> Seq.maps (Goal.conjunction_tac 1))
     |> Seq.maps meth
     |> Seq.maps (fn state' => state'
       |> Seq.lift set_goal (Goal.retrofit 1 n (#2 (#2 (get_goal state'))) goal))
@@ -428,8 +428,8 @@ end;
 (* refine via sub-proof *)
 
 fun goal_tac rule =
-  Tactic.norm_hhf_tac THEN' Tactic.rtac rule THEN_ALL_NEW
-    (Tactic.norm_hhf_tac THEN' (SUBGOAL (fn (goal, i) =>
+  Goal.norm_hhf_tac THEN' Tactic.rtac rule THEN_ALL_NEW
+    (Goal.norm_hhf_tac THEN' (SUBGOAL (fn (goal, i) =>
       if can Logic.unprotect (Logic.strip_assums_concl goal) then
         Tactic.etac Drule.protectI i
       else all_tac)));

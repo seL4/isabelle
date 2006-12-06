@@ -183,7 +183,7 @@ fun derived_def ctxt conditional prop =
       in
         Goal.prove ctxt' frees [] prop (K (ALLGOALS
           (meta_rewrite_tac ctxt' THEN'
-            Tactic.rewrite_goal_tac [def] THEN'
+            Goal.rewrite_goal_tac [def] THEN'
             Tactic.resolve_tac [Drule.reflexive_thm])))
         handle ERROR msg => cat_error msg "Failed to prove definitional specification."
       end;

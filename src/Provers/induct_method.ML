@@ -162,10 +162,10 @@ fun atomize_term thy =
 
 val atomize_cterm = Tactic.rewrite true Data.atomize;
 
-val atomize_tac = Tactic.rewrite_goal_tac Data.atomize;
+val atomize_tac = Goal.rewrite_goal_tac Data.atomize;
 
 val inner_atomize_tac =
-  Tactic.rewrite_goal_tac (map Thm.symmetric conjunction_congs) THEN' atomize_tac;
+  Goal.rewrite_goal_tac (map Thm.symmetric conjunction_congs) THEN' atomize_tac;
 
 
 (* rulify *)
@@ -182,10 +182,10 @@ fun rulified_term thm =
   in (thy, Logic.list_implies (map rulify As, rulify B)) end;
 
 val rulify_tac =
-  Tactic.rewrite_goal_tac (Data.rulify @ conjunction_congs) THEN'
-  Tactic.rewrite_goal_tac Data.rulify_fallback THEN'
-  Tactic.conjunction_tac THEN_ALL_NEW
-  (Tactic.rewrite_goal_tac [conjunction_imp] THEN' Tactic.norm_hhf_tac);
+  Goal.rewrite_goal_tac (Data.rulify @ conjunction_congs) THEN'
+  Goal.rewrite_goal_tac Data.rulify_fallback THEN'
+  Goal.conjunction_tac THEN_ALL_NEW
+  (Goal.rewrite_goal_tac [conjunction_imp] THEN' Goal.norm_hhf_tac);
 
 
 (* prepare rule *)

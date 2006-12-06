@@ -140,9 +140,9 @@ val RAW_METHOD_CASES = Meth;
 fun RAW_METHOD tac = RAW_METHOD_CASES (NO_CASES o tac);
 
 fun METHOD_CASES tac = RAW_METHOD_CASES (fn facts =>
-  Seq.THEN (ALLGOALS Tactic.conjunction_tac, tac facts));
+  Seq.THEN (ALLGOALS Goal.conjunction_tac, tac facts));
 
-fun METHOD tac = RAW_METHOD (fn facts => ALLGOALS Tactic.conjunction_tac THEN tac facts);
+fun METHOD tac = RAW_METHOD (fn facts => ALLGOALS Goal.conjunction_tac THEN tac facts);
 
 val fail = METHOD (K no_tac);
 val succeed = METHOD (K all_tac);
@@ -256,7 +256,7 @@ fun gen_rule_tac tac rules facts =
   (fn i => fn st =>
     if null facts then tac rules i st
     else Seq.maps (fn rule => (tac o single) rule i st) (Drule.multi_resolves facts rules))
-  THEN_ALL_NEW Tactic.norm_hhf_tac;
+  THEN_ALL_NEW Goal.norm_hhf_tac;
 
 fun gen_arule_tac tac j rules facts =
   EVERY' (gen_rule_tac tac rules facts :: replicate j Tactic.assume_tac);

@@ -69,7 +69,6 @@ sig
   val net_biresolve_tac : (bool*thm) list -> int -> tactic
   val net_match_tac     : thm list -> int -> tactic
   val net_resolve_tac   : thm list -> int -> tactic
-  val norm_hhf_tac      : int -> tactic
   val prune_params_tac  : tactic
   val rename_params_tac : string list -> int -> tactic
   val rename_tac        : string -> int -> tactic
@@ -77,12 +76,10 @@ sig
   val resolve_from_net_tac      : (int*thm) Net.net -> int -> tactic
   val resolve_tac       : thm list -> int -> tactic
   val res_inst_tac      : (string*string)list -> thm -> int -> tactic
-  val rewrite_goal_tac  : thm list -> int -> tactic
   val rewrite_goals_rule: thm list -> thm -> thm
   val rewrite_rule      : thm list -> thm -> thm
   val rewrite_goals_tac : thm list -> tactic
   val rewrite_tac       : thm list -> tactic
-  val asm_rewrite_goal_tac: bool * bool * bool -> (simpset -> tactic) -> simpset -> int -> tactic
   val rewtac            : thm -> tactic
   val rotate_tac        : int -> int -> tactic
   val rtac              : thm -> int -> tactic
@@ -97,8 +94,6 @@ sig
   val instantiate_tac   : (string * string) list -> tactic
   val thin_tac          : string -> int -> tactic
   val trace_goalno_tac  : (int -> tactic) -> int -> tactic
-  val CONJUNCTS: tactic -> int -> tactic
-  val PRECISE_CONJUNCTS: int -> tactic -> int -> tactic
 end;
 
 signature TACTIC =
@@ -110,8 +105,6 @@ sig
   val orderlist: (int * 'a) list -> 'a list
   val rewrite: bool -> thm list -> cterm -> thm
   val simplify: bool -> thm list -> thm -> thm
-  val conjunction_tac: int -> tactic
-  val precise_conjunction_tac: int -> int -> tactic
   val compose_inst_tac' : (indexname * string) list -> (bool * thm * int) ->
                           int -> tactic
   val lift_inst_rule'   : thm * int * (indexname * string) list * thm -> thm
@@ -529,29 +522,12 @@ val simplify = MetaSimplifier.simplify_aux simple_prover;
 val rewrite_rule = simplify true;
 val rewrite_goals_rule = MetaSimplifier.rewrite_goals_rule_aux simple_prover;
 
-(*Rewrite subgoal i only.  SELECT_GOAL avoids inefficiencies in goals_conv.*)
-fun asm_rewrite_goal_tac mode prover_tac ss =
-  SELECT_GOAL
-    (PRIMITIVE (MetaSimplifier.rewrite_goal_rule mode (SINGLE o prover_tac) ss 1));
-
-fun rewrite_goal_tac rews =
-  let val ss = MetaSimplifier.empty_ss addsimps rews in
-    fn i => fn st => asm_rewrite_goal_tac (true, false, false) (K no_tac)
-      (MetaSimplifier.theory_context (Thm.theory_of_thm st) ss) i st
-  end;
-
 (*Rewrite throughout proof state. *)
 fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);
 
 (*Rewrite subgoals only, not main goal. *)
 fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
 fun rewtac def = rewrite_goals_tac [def];
-
-val norm_hhf_tac =
-  rtac Drule.asm_rl  (*cheap approximation -- thanks to builtin Logic.flatten_params*)
-  THEN' SUBGOAL (fn (t, i) =>
-    if Drule.is_norm_hhf t then all_tac
-    else rewrite_goal_tac [Drule.norm_hhf_eq] i);
 
 
 (*** for folding definitions, handling critical pairs ***)
@@ -632,32 +608,6 @@ fun filter_prems_tac p =
             NONE => no_tac | SOME tac => tac n
        end)
   end;
-
-
-(* meta-level conjunction *)
-
-val conj_tac = SUBGOAL (fn (goal, i) =>
-  if can Logic.dest_conjunction goal then rtac Conjunction.conjunctionI i
-  else no_tac);
-
-val conjunction_tac = TRY o REPEAT_ALL_NEW conj_tac;
-
-val precise_conjunction_tac =
-  let
-    fun tac 0 i = eq_assume_tac i
-      | tac 1 i = SUBGOAL (K all_tac) i
-      | tac n i = conj_tac i THEN TRY (fn st => tac (n - 1) (i + 1) st);
-  in TRY oo tac end;
-
-fun CONJUNCTS tac =
-  SELECT_GOAL (conjunction_tac 1
-    THEN tac
-    THEN PRIMITIVE (Conjunction.uncurry ~1));
-
-fun PRECISE_CONJUNCTS n tac =
-  SELECT_GOAL (precise_conjunction_tac n 1
-    THEN tac
-    THEN PRIMITIVE (Conjunction.uncurry ~1));
 
 end;
 

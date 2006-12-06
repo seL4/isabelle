@@ -8,6 +8,8 @@ Goals in tactical theorem proving.
 signature BASIC_GOAL =
 sig
   val SELECT_GOAL: tactic -> int -> tactic
+  val CONJUNCTS: tactic -> int -> tactic
+  val PRECISE_CONJUNCTS: int -> tactic -> int -> tactic
 end;
 
 signature GOAL =
@@ -19,9 +21,6 @@ sig
   val finish: thm -> thm
   val norm_result: thm -> thm
   val close_result: thm -> thm
-  val compose_hhf: thm -> int -> thm -> thm Seq.seq
-  val compose_hhf_tac: thm -> int -> tactic
-  val comp_hhf: thm -> thm -> thm
   val prove_raw: cterm list -> cterm -> (thm list -> tactic) -> thm
   val prove_multi: Proof.context -> string list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm list
@@ -30,6 +29,14 @@ sig
   val prove_global: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val extract: int -> int -> thm -> thm Seq.seq
   val retrofit: int -> int -> thm -> thm -> thm Seq.seq
+  val conjunction_tac: int -> tactic
+  val precise_conjunction_tac: int -> int -> tactic
+  val asm_rewrite_goal_tac: bool * bool * bool -> (simpset -> tactic) -> simpset -> int -> tactic
+  val rewrite_goal_tac: thm list -> int -> tactic
+  val norm_hhf_tac: int -> tactic
+  val compose_hhf: thm -> int -> thm -> thm Seq.seq
+  val compose_hhf_tac: thm -> int -> tactic
+  val comp_hhf: thm -> thm -> thm
 end;
 
 structure Goal: GOAL =
@@ -92,20 +99,6 @@ val close_result =
   #> Drule.close_derivation;
 
 
-(* composition of normal results *)
-
-fun compose_hhf tha i thb =
-  Thm.bicompose false (false, Drule.lift_all (Thm.cprem_of thb i) tha, 0) i thb;
-
-fun compose_hhf_tac th i = PRIMSEQ (compose_hhf th i);
-
-fun comp_hhf tha thb =
-  (case Seq.chop 2 (compose_hhf tha 1 thb) of
-    ([th], _) => th
-  | ([], _) => raise THM ("comp_hhf: no unifiers", 1, [tha, thb])
-  | _  => raise THM ("comp_hhf: multiple unifiers", 1, [tha, thb]));
-
-
 
 (** tactical theorem proving **)
 
@@ -164,7 +157,9 @@ fun prove_global thy xs asms prop tac =
 
 
 
-(** local goal states **)
+(** goal structure **)
+
+(* nested goals *)
 
 fun extract i n st =
   (if i < 1 orelse n < 1 orelse i + n - 1 > Thm.nprems_of st then Seq.empty
@@ -180,6 +175,66 @@ fun retrofit i n st' st =
 fun SELECT_GOAL tac i st =
   if Thm.nprems_of st = 1 andalso i = 1 then tac st
   else Seq.lifts (retrofit i 1) (Seq.maps tac (extract i 1 st)) st;
+
+
+(* multiple goals *)
+
+val conj_tac = SUBGOAL (fn (goal, i) =>
+  if can Logic.dest_conjunction goal then rtac Conjunction.conjunctionI i
+  else no_tac);
+
+val conjunction_tac = TRY o REPEAT_ALL_NEW conj_tac;
+
+val precise_conjunction_tac =
+  let
+    fun tac 0 i = eq_assume_tac i
+      | tac 1 i = SUBGOAL (K all_tac) i
+      | tac n i = conj_tac i THEN TRY (fn st => tac (n - 1) (i + 1) st);
+  in TRY oo tac end;
+
+fun CONJUNCTS tac =
+  SELECT_GOAL (conjunction_tac 1
+    THEN tac
+    THEN PRIMITIVE (Conjunction.uncurry ~1));
+
+fun PRECISE_CONJUNCTS n tac =
+  SELECT_GOAL (precise_conjunction_tac n 1
+    THEN tac
+    THEN PRIMITIVE (Conjunction.uncurry ~1));
+
+
+(* rewriting *)
+
+(*Rewrite subgoal i only.  SELECT_GOAL avoids inefficiencies in goals_conv.*)
+fun asm_rewrite_goal_tac mode prover_tac ss =
+  SELECT_GOAL
+    (PRIMITIVE (MetaSimplifier.rewrite_goal_rule mode (SINGLE o prover_tac) ss 1));
+
+fun rewrite_goal_tac rews =
+  let val ss = MetaSimplifier.empty_ss addsimps rews in
+    fn i => fn st => asm_rewrite_goal_tac (true, false, false) (K no_tac)
+      (MetaSimplifier.theory_context (Thm.theory_of_thm st) ss) i st
+  end;
+
+
+(* hhf normal form *)
+
+val norm_hhf_tac =
+  rtac Drule.asm_rl  (*cheap approximation -- thanks to builtin Logic.flatten_params*)
+  THEN' SUBGOAL (fn (t, i) =>
+    if Drule.is_norm_hhf t then all_tac
+    else rewrite_goal_tac [Drule.norm_hhf_eq] i);
+
+fun compose_hhf tha i thb =
+  Thm.bicompose false (false, Drule.lift_all (Thm.cprem_of thb i) tha, 0) i thb;
+
+fun compose_hhf_tac th i = PRIMSEQ (compose_hhf th i);
+
+fun comp_hhf tha thb =
+  (case Seq.chop 2 (compose_hhf tha 1 thb) of
+    ([th], _) => th
+  | ([], _) => raise THM ("comp_hhf: no unifiers", 1, [tha, thb])
+  | _  => raise THM ("comp_hhf: multiple unifiers", 1, [tha, thb]));
 
 end;
 
