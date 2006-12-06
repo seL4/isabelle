@@ -118,6 +118,13 @@ rep_datatype nat
 declare nat.induct [case_names 0 Suc, induct type: nat]
 declare nat.exhaust [case_names 0 Suc, cases type: nat]
 
+lemmas nat_rec_0 = nat.recs(1)
+  and nat_rec_Suc = nat.recs(2)
+
+lemmas nat_case_0 = nat.cases(1)
+  and nat_case_Suc = nat.cases(2)
+
+
 lemma n_not_Suc_n: "n \<noteq> Suc n"
   by (induct n) simp_all
 
