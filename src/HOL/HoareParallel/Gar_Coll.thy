@@ -798,7 +798,7 @@ apply(tactic {* TRYALL (etac disjE) *})
 apply simp_all
 apply(tactic {* TRYALL(EVERY'[rtac disjI2,rtac subset_trans,etac (thm "Graph3"),force_tac (clasimpset ()), assume_tac]) *})
 apply(tactic {* TRYALL(EVERY'[rtac disjI2,etac subset_trans,rtac (thm "Graph9"),force_tac (clasimpset ())]) *})
-apply(tactic {* TRYALL(EVERY'[rtac disjI1,etac psubset_subset_trans,rtac (thm "Graph9"),force_tac (clasimpset ())]) *})
+apply(tactic {* TRYALL(EVERY'[rtac disjI1,etac (thm "psubset_subset_trans"),rtac (thm "Graph9"),force_tac (clasimpset ())]) *})
 done
 
 subsubsection {* Interference freedom Mutator-Collector *}

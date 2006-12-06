@@ -18,6 +18,18 @@ end
 structure NominalPackage : NOMINAL_PACKAGE =
 struct
 
+val Finites_emptyI = thm "Finites.emptyI";
+val finite_Diff = thm "finite_Diff";
+val finite_Un = thm "finite_Un";
+val Un_iff = thm "Un_iff";
+val In0_eq = thm "In0_eq";
+val In1_eq = thm "In1_eq";
+val In0_not_In1 = thm "In0_not_In1";
+val In1_not_In0 = thm "In1_not_In0";
+val Un_assoc = thm "Un_assoc";
+val Collect_disj_eq = thm "Collect_disj_eq";
+val empty_def = thm "empty_def";
+
 open DatatypeAux;
 open NominalAtoms;
 
@@ -1004,7 +1016,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             (fn _ =>
               simp_tac (HOL_basic_ss addsimps (supp_def ::
                  Un_assoc :: de_Morgan_conj :: Collect_disj_eq :: finite_Un ::
-                 symmetric empty_def :: Finites.emptyI :: simp_thms @
+                 symmetric empty_def :: Finites_emptyI :: simp_thms @
                  abs_perm @ abs_fresh @ inject_thms' @ perm_thms')) 1)
         in
           (supp_thm,

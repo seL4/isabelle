@@ -353,7 +353,7 @@ lemma free_tv_comp_subst:
   apply (tactic {*
     fast_tac (set_cs addSDs [thm "free_tv_app_subst_te" RS subsetD,
     thm "free_tv_subst_var" RS subsetD]
-    addss (simpset() delsimps bex_simps
+    addss (simpset() delsimps (thms "bex_simps")
     addsimps [thm "cod_def", thm "dom_def"])) 1 *})
   done
 
@@ -581,7 +581,7 @@ lemma free_tv_W: "!!n a s t m v. \<W> e a n = Ok (s, t, m) \<Longrightarrow>
   apply (induct e)
     txt {* case @{text "Var n"} *}
     apply clarsimp
-    apply (tactic {* fast_tac (HOL_cs addIs [nth_mem, subsetD, thm "ftv_mem_sub_ftv_list"]) 1 *})
+    apply (tactic {* fast_tac (HOL_cs addIs [thm "nth_mem", subsetD, thm "ftv_mem_sub_ftv_list"]) 1 *})
    txt {* case @{text "Abs e"} *}
    apply (simp add: free_tv_subst split add: split_bind)
    apply (intro strip)

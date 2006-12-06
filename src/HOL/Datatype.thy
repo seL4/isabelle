@@ -6,7 +6,7 @@
 Could <*> be generalized to a general summation (Sigma)?
 *)
 
-header{*Analogues of the Cartesian Product and Disjoint Sum for Datatypes*}
+header {* Analogues of the Cartesian Product and Disjoint Sum for Datatypes *}
 
 theory Datatype
 imports Nat Sum_Type
@@ -808,95 +808,12 @@ code_reserved SML
 code_reserved Haskell
   Bool True False not Maybe Nothing Just
 
-ML
-{*
-val apfst_conv = thm "apfst_conv";
-val apfst_convE = thm "apfst_convE";
-val Push_inject1 = thm "Push_inject1";
-val Push_inject2 = thm "Push_inject2";
-val Push_inject = thm "Push_inject";
-val Push_neq_K0 = thm "Push_neq_K0";
-val Abs_Node_inj = thm "Abs_Node_inj";
-val Node_K0_I = thm "Node_K0_I";
-val Node_Push_I = thm "Node_Push_I";
-val Scons_not_Atom = thm "Scons_not_Atom";
-val Atom_not_Scons = thm "Atom_not_Scons";
-val inj_Atom = thm "inj_Atom";
-val Atom_inject = thm "Atom_inject";
-val Atom_Atom_eq = thm "Atom_Atom_eq";
-val inj_Leaf = thm "inj_Leaf";
-val Leaf_inject = thm "Leaf_inject";
-val inj_Numb = thm "inj_Numb";
-val Numb_inject = thm "Numb_inject";
-val Push_Node_inject = thm "Push_Node_inject";
-val Scons_inject1 = thm "Scons_inject1";
-val Scons_inject2 = thm "Scons_inject2";
-val Scons_inject = thm "Scons_inject";
-val Scons_Scons_eq = thm "Scons_Scons_eq";
-val Scons_not_Leaf = thm "Scons_not_Leaf";
-val Leaf_not_Scons = thm "Leaf_not_Scons";
-val Scons_not_Numb = thm "Scons_not_Numb";
-val Numb_not_Scons = thm "Numb_not_Scons";
-val Leaf_not_Numb = thm "Leaf_not_Numb";
-val Numb_not_Leaf = thm "Numb_not_Leaf";
-val ndepth_K0 = thm "ndepth_K0";
-val ndepth_Push_Node_aux = thm "ndepth_Push_Node_aux";
-val ndepth_Push_Node = thm "ndepth_Push_Node";
-val ntrunc_0 = thm "ntrunc_0";
-val ntrunc_Atom = thm "ntrunc_Atom";
-val ntrunc_Leaf = thm "ntrunc_Leaf";
-val ntrunc_Numb = thm "ntrunc_Numb";
-val ntrunc_Scons = thm "ntrunc_Scons";
-val ntrunc_one_In0 = thm "ntrunc_one_In0";
-val ntrunc_In0 = thm "ntrunc_In0";
-val ntrunc_one_In1 = thm "ntrunc_one_In1";
-val ntrunc_In1 = thm "ntrunc_In1";
-val uprodI = thm "uprodI";
-val uprodE = thm "uprodE";
-val uprodE2 = thm "uprodE2";
-val usum_In0I = thm "usum_In0I";
-val usum_In1I = thm "usum_In1I";
-val usumE = thm "usumE";
-val In0_not_In1 = thm "In0_not_In1";
-val In1_not_In0 = thm "In1_not_In0";
-val In0_inject = thm "In0_inject";
-val In1_inject = thm "In1_inject";
-val In0_eq = thm "In0_eq";
-val In1_eq = thm "In1_eq";
-val inj_In0 = thm "inj_In0";
-val inj_In1 = thm "inj_In1";
-val Lim_inject = thm "Lim_inject";
-val ntrunc_subsetI = thm "ntrunc_subsetI";
-val ntrunc_subsetD = thm "ntrunc_subsetD";
-val ntrunc_equality = thm "ntrunc_equality";
-val ntrunc_o_equality = thm "ntrunc_o_equality";
-val uprod_mono = thm "uprod_mono";
-val usum_mono = thm "usum_mono";
-val Scons_mono = thm "Scons_mono";
-val In0_mono = thm "In0_mono";
-val In1_mono = thm "In1_mono";
-val Split = thm "Split";
-val Case_In0 = thm "Case_In0";
-val Case_In1 = thm "Case_In1";
-val ntrunc_UN1 = thm "ntrunc_UN1";
-val Scons_UN1_x = thm "Scons_UN1_x";
-val Scons_UN1_y = thm "Scons_UN1_y";
-val In0_UN1 = thm "In0_UN1";
-val In1_UN1 = thm "In1_UN1";
-val dprodI = thm "dprodI";
-val dprodE = thm "dprodE";
-val dsum_In0I = thm "dsum_In0I";
-val dsum_In1I = thm "dsum_In1I";
-val dsumE = thm "dsumE";
-val dprod_mono = thm "dprod_mono";
-val dsum_mono = thm "dsum_mono";
-val dprod_Sigma = thm "dprod_Sigma";
-val dprod_subset_Sigma = thm "dprod_subset_Sigma";
-val dprod_subset_Sigma2 = thm "dprod_subset_Sigma2";
-val dsum_Sigma = thm "dsum_Sigma";
-val dsum_subset_Sigma = thm "dsum_subset_Sigma";
-val Domain_dprod = thm "Domain_dprod";
-val Domain_dsum = thm "Domain_dsum";
+
+subsection {* Basic ML bindings *}
+
+ML {*
+val not_None_eq = thm "not_None_eq";
+val not_Some_eq = thm "not_Some_eq";
 *}
 
 end

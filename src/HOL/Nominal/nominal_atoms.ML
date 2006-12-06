@@ -16,6 +16,10 @@ end
 structure NominalAtoms : NOMINAL_ATOMS =
 struct
 
+val Finites_emptyI = thm "Finites.emptyI";
+val Collect_const = thm "Collect_const";
+
+
 (* data kind 'HOL/nominal' *)
 
 structure NominalArgs =
@@ -477,7 +481,7 @@ fun create_nom_typedecls ak_names thy =
                              rtac ((at_thm RS fs_at_inst) RS fs1) 1] end
                 else
                   let val dj_inst = PureThy.get_thm thy' (Name ("dj_"^ak_name'^"_"^ak_name));
-                      val simp_s = HOL_basic_ss addsimps [dj_inst RS dj_supp, Finites.emptyI];
+                      val simp_s = HOL_basic_ss addsimps [dj_inst RS dj_supp, Finites_emptyI];
                   in EVERY [ClassPackage.intro_classes_tac [], asm_simp_tac simp_s 1] end)
         in
          AxClass.prove_arity (qu_name,[],[qu_class]) proof thy'
@@ -614,7 +618,7 @@ fun create_nom_typedecls ak_names thy =
 	     let
 	       val qu_class = Sign.full_name thy ("fs_"^ak_name);
 	       val supp_def = thm "Nominal.supp_def";
-               val simp_s = HOL_ss addsimps [supp_def,Collect_const,Finites.emptyI,defn];
+               val simp_s = HOL_ss addsimps [supp_def,Collect_const,Finites_emptyI,defn];
                val proof = EVERY [ClassPackage.intro_classes_tac [], asm_simp_tac simp_s 1];
              in 
 	       AxClass.prove_arity (discrete_ty,[],[qu_class]) proof thy

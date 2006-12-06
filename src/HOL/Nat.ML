@@ -17,17 +17,6 @@ struct
   val simps = thms "nat.simps";
 end;
 
-val [nat_rec_0, nat_rec_Suc] = thms "nat.recs";
-bind_thm ("nat_rec_0", nat_rec_0);
-bind_thm ("nat_rec_Suc", nat_rec_Suc);
-
-val [nat_case_0, nat_case_Suc] = thms "nat.cases";
-bind_thm ("nat_case_0", nat_case_0);
-bind_thm ("nat_case_Suc", nat_case_Suc);
-
-val leD = thm "leD";  (*Now defined in Orderings.thy*)
-val leI = thm "leI";
-
 val Least_Suc = thm "Least_Suc";
 val Least_Suc2 = thm "Least_Suc2";
 val One_nat_def = thm "One_nat_def";

@@ -48,6 +48,9 @@ end
 structure NominalPermeq : NOMINAL_PERMEQ =
 struct
 
+val Finites_emptyI = thm "Finites.emptyI";
+val finite_Un = thm "finite_Un";
+
 (* pulls out dynamically a thm via the proof state *)
 fun dynamic_thms st name = PureThy.get_thms (theory_of_thm st) (Name name);
 fun dynamic_thm st name = PureThy.get_thm (theory_of_thm st) (Name name);
@@ -278,7 +281,7 @@ fun finite_guess_tac tactical ss i st =
               Logic.strip_assums_concl (hd (prems_of supports_rule'));
             val supports_rule'' = Drule.cterm_instantiate
               [(cert (head_of S), cert s')] supports_rule'
-            val ss' = ss addsimps [supp_prod, supp_unit, finite_Un, Finites.emptyI]
+            val ss' = ss addsimps [supp_prod, supp_unit, finite_Un, Finites_emptyI]
           in
             (tactical ("guessing of the right supports-set",
                       EVERY [compose_tac (false, supports_rule'', 2) i,
@@ -316,7 +319,7 @@ fun fresh_guess_tac tactical ss i st =
             val supports_fresh_rule'' = Drule.cterm_instantiate
               [(cert (head_of S), cert s')] supports_fresh_rule'
 	    val ss1 = ss addsimps [symmetric fresh_def,fresh_prod,fresh_unit]
-            val ss2 = ss addsimps [supp_prod,supp_unit,finite_Un,Finites.emptyI]
+            val ss2 = ss addsimps [supp_prod,supp_unit,finite_Un,Finites_emptyI]
             (* FIXME sometimes these rewrite rules are already in the ss, *)
             (* which produces a warning                                   *)
           in

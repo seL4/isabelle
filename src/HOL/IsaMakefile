@@ -84,9 +84,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   $(SRC)/TFL/rules.ML $(SRC)/TFL/tfl.ML $(SRC)/TFL/thms.ML			\
   $(SRC)/TFL/thry.ML $(SRC)/TFL/usyntax.ML $(SRC)/TFL/utils.ML			\
   Tools/res_atpset.ML \
-  Code_Generator.thy Datatype.ML Datatype.thy			\
-  Divides.thy						\
-  Equiv_Relations.thy Extraction.thy Finite_Set.ML Finite_Set.thy		\
+  Code_Generator.thy Datatype.thy Divides.thy					\
+  Equiv_Relations.thy Extraction.thy Finite_Set.thy				\
   FixedPoint.thy Fun.thy HOL.ML HOL.thy Hilbert_Choice.thy Inductive.thy	\
   Integ/IntArith.thy Integ/IntDef.thy Integ/IntDiv.thy				\
   Integ/NatBin.thy Integ/NatSimprocs.thy Integ/Numeral.thy			\
@@ -94,11 +93,10 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   Integ/cooper_proof.ML Integ/reflected_presburger.ML				\
   Integ/reflected_cooper.ML Integ/int_arith1.ML Integ/int_factor_simprocs.ML	\
   Integ/nat_simprocs.ML Integ/presburger.ML Integ/qelim.ML LOrder.thy		\
-  Lattices.thy List.ML List.thy Main.thy Map.thy			\
-  Nat.ML Nat.thy OrderedGroup.ML OrderedGroup.thy	\
-  Orderings.ML Orderings.thy Power.thy PreList.thy Product_Type.thy		\
+  Lattices.thy List.thy Main.thy Map.thy Nat.thy Nat.ML OrderedGroup.ML		\
+  OrderedGroup.thy Orderings.thy Power.thy PreList.thy Product_Type.thy		\
   ROOT.ML Recdef.thy Record.thy Refute.thy			\
-  Relation.ML Relation.thy Relation_Power.thy Ring_and_Field.thy SAT.thy Set.ML		\
+  Relation.thy Relation_Power.thy Ring_and_Field.thy SAT.thy 			\
   Set.thy SetInterval.thy Sum_Type.thy Tools/ATP/AtpCommunication.ML		\
   Tools/ATP/reduce_axiomsN.ML Tools/ATP/watcher.ML 					\
   Tools/cnf_funcs.ML					\
@@ -117,9 +115,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   Tools/sat_solver.ML Tools/specification_package.ML Tools/split_rule.ML	\
   Tools/typecopy_package.ML	\
   Tools/typedef_package.ML Tools/typedef_codegen.ML	\
-  Transitive_Closure.ML Transitive_Closure.thy		\
-  Typedef.thy Wellfounded_Recursion.thy Wellfounded_Relations.thy		\
-  arith_data.ML			\
+  Transitive_Closure.thy Typedef.thy Wellfounded_Recursion.thy		\
+  Wellfounded_Relations.thy arith_data.ML			\
   document/root.tex hologic.ML simpdata.ML ATP_Linkup.thy \
   Tools/res_atp_provers.ML Tools/res_atp_methods.ML	\
   Tools/res_hol_clause.ML	\

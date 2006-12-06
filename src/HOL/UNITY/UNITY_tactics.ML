@@ -7,6 +7,7 @@ Specialized UNITY tactics, and ML bindings of theorems
 *)
 
 (*ListOrder*)
+val Domain_def = thm "Domain_def";
 val Le_def = thm "Le_def";
 val Ge_def = thm "Ge_def";
 val prefix_def = thm "prefix_def";

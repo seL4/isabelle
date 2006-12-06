@@ -14,6 +14,9 @@ structure Reflection : REFLECTION
 = struct
 
 val ext2 = thm "ext2";
+val nth_Cons_0 = thm "nth_Cons_0";
+val nth_Cons_Suc = thm "nth_Cons_Suc";
+
   (* Make a congruence rule out of a defining equation for the interpretation *)
   (* th is one defining equation of f, i.e.
      th is "f (Cp ?t1 ... ?tn) = P(f ?t1, .., f ?tn)" *)

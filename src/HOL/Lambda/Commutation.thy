@@ -130,8 +130,9 @@ lemma Church_Rosser_confluent: "Church_Rosser R = confluent R"
   apply (tactic {* safe_tac HOL_cs *})
    apply (tactic {*
      blast_tac (HOL_cs addIs
-       [Un_upper2 RS rtrancl_mono RS subsetD RS rtrancl_trans,
-       rtrancl_converseI, converseI, Un_upper1 RS rtrancl_mono RS subsetD]) 1 *})
+       [thm "Un_upper2" RS thm "rtrancl_mono" RS thm "subsetD" RS thm "rtrancl_trans",
+        thm "rtrancl_converseI", thm "converseI",
+        thm "Un_upper1" RS thm "rtrancl_mono" RS thm "subsetD"]) 1 *})
   apply (erule rtrancl_induct)
    apply blast
   apply (blast del: rtrancl_refl intro: rtrancl_trans)

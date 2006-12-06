@@ -288,6 +288,9 @@ lemmas [simp] =
   bij_image_Collect_eq
 
 ML {*
+local
+  val INT_D = thm "INT_D";
+in
 (*Splits up conjunctions & intersections: like CONJUNCTS in the HOL system*)
 fun list_of_Int th = 
     (list_of_Int (th RS conjunct1) @ list_of_Int (th RS conjunct2))
@@ -295,6 +298,7 @@ fun list_of_Int th =
     handle THM _ => (list_of_Int (th RS INT_D))
     handle THM _ => (list_of_Int (th RS bspec))
     handle THM _ => [th];
+end;
 *}
 
 lemmas lessThanBspec = lessThan_iff [THEN iffD2, THEN [2] bspec]

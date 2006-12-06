@@ -86,7 +86,7 @@ by (rtac (UnE RS subsetI) 1);
 by (assume_tac 1);
 by (blast_tac (claset() addSIs [cih]) 1);
 by (rtac (monoh RS monoD RS subsetD) 1);
-by (rtac Un_upper2 1);
+by (rtac (thm "Un_upper2") 1);
 by (etac (monoh RS gfp_lemma2 RS subsetD) 1);
 qed "gfp_coind2";
 
@@ -141,7 +141,7 @@ fun v_ext_cs cs  = cs addSIs v_disj_si addSEs v_disj_se addSDs v_injs;
 
 (* Monotonicity of eval_fun *)
 
-Goalw [mono_def, eval_fun_def] "mono(eval_fun)";
+Goalw [thm "mono_def", eval_fun_def] "mono(eval_fun)";
 by infsys_mono_tac;
 qed "eval_fun_mono";
 
@@ -259,7 +259,7 @@ qed "eval_ind";
 (* Elaborations                                                 *)
 (* ############################################################ *)
 
-Goalw [mono_def, elab_fun_def] "mono(elab_fun)";
+Goalw [thm "mono_def", elab_fun_def] "mono(elab_fun)";
 by infsys_mono_tac;
 qed "elab_fun_mono";
 
@@ -480,7 +480,7 @@ qed "elab_app_elim";
 
 (* Monotonicity of hasty_fun *)
 
-Goalw [mono_def, hasty_fun_def] "mono(hasty_fun)";
+Goalw [thm "mono_def", hasty_fun_def] "mono(hasty_fun)";
 by infsys_mono_tac;
 by (Blast_tac 1);
 qed "mono_hasty_fun";
@@ -607,7 +607,7 @@ fun excluded_middle_tac sP =
 Goal "[| ve hastyenv te; v hasty t |] ==> \
 \        ve + {ev |-> v} hastyenv te + {ev |=> t}";
 by (rewtac hasty_env_def);
-by (asm_full_simp_tac (simpset() delsimps mem_simps
+by (asm_full_simp_tac (simpset() delsimps thms "mem_simps"
                                 addsimps [ve_dom_owr, te_dom_owr]) 1);
 by (safe_tac HOL_cs);
 by (excluded_middle_tac "ev=x" 1);
@@ -651,12 +651,12 @@ by (rtac hasty_rel_clos_coind 1);
 by (etac elab_fn 1);
 by (asm_simp_tac (simpset() addsimps [ve_dom_owr, te_dom_owr]) 1);
 
-by (asm_simp_tac (simpset() delsimps mem_simps addsimps [ve_dom_owr]) 1);
+by (asm_simp_tac (simpset() delsimps thms "mem_simps" addsimps [ve_dom_owr]) 1);
 by (safe_tac HOL_cs);
 by (excluded_middle_tac "ev2=ev1a" 1);
 by (asm_full_simp_tac (simpset() addsimps [ve_app_owr2, te_app_owr2]) 1);
 
-by (asm_simp_tac (simpset() delsimps mem_simps
+by (asm_simp_tac (simpset() delsimps thms "mem_simps"
                            addsimps [ve_app_owr1, te_app_owr1]) 1);
 by (Blast_tac 1);
 qed "consistency_fix";
