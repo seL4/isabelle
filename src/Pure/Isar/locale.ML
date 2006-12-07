@@ -1469,7 +1469,8 @@ fun print_locale thy show_facts import body =
   let val (all_elems, ctxt) = read_expr import body (ProofContext.init thy) in
     Pretty.big_list "locale elements:" (all_elems
       |> (if show_facts then I else filter (fn Notes _ => false | _ => true))
-      |> map (Pretty.chunks o Element.pretty_ctxt ctxt))
+      |> map (Element.pretty_ctxt ctxt) |> filter_out null
+      |> map Pretty.chunks)
     |> Pretty.writeln
   end;
 
@@ -1570,7 +1571,7 @@ fun add_decls add loc decl =
   ProofContext.theory (change_locale loc
     (fn (axiom, import, elems, params, lparams, decls, regs, intros) =>
       (axiom, import, elems, params, lparams, add (decl, stamp ()) decls, regs, intros))) #>
-  add_thmss loc "" [(("", [Attrib.internal (decl_attrib decl)]), [([dummy_thm], [])])];
+  add_thmss loc Thm.internalK [(("", [Attrib.internal (decl_attrib decl)]), [([dummy_thm], [])])];
 
 in  
 
