@@ -192,8 +192,7 @@ sig
   val read_prop: theory -> string -> term
   val add_consts_authentic: (bstring * typ * mixfix) list -> theory -> theory
   val add_notation: Syntax.mode -> (term * mixfix) list -> theory -> theory
-  val add_abbrevs: string -> (bstring * term) list -> theory ->
-    ((string * typ) * term) list * theory
+  val add_abbrev: string -> bstring * term -> theory -> ((string * typ) * term) * theory
   include SIGN_THEORY
 end
 
@@ -753,14 +752,14 @@ end;
 
 (* add abbreviations *)
 
-fun add_abbrevs mode = fold_map (fn (c, raw_t) => fn thy =>
+fun add_abbrev mode (c, raw_t) thy =
   let
     val prep_tm = Compress.term thy o Term.no_dummy_patterns o cert_term_abbrev thy;
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val (res, consts') = consts_of thy
       |> Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy) mode ((c, t), true);
-  in (res, thy |> map_consts (K consts')) end);
+  in (res, thy |> map_consts (K consts')) end;
 
 
 (* add constraints *)

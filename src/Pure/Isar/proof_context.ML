@@ -142,8 +142,8 @@ sig
   val add_notation: Syntax.mode -> (term * mixfix) list ->
     Proof.context -> Proof.context
   val expand_abbrevs: bool -> Proof.context -> Proof.context
-  val add_abbrevs: string -> (bstring * term) list -> Proof.context ->
-    ((string * typ) * term) list * Proof.context
+  val add_abbrev: string -> bstring * term -> Proof.context ->
+    ((string * typ) * term) * Proof.context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: Proof.context -> unit
@@ -877,7 +877,7 @@ val _ = Context.add_setup
 
 val expand_abbrevs = map_consts o apsnd o Consts.expand_abbrevs;
 
-fun add_abbrevs mode = fold_map (fn (c, raw_t) => fn ctxt =>
+fun add_abbrev mode (c, raw_t) ctxt =
   let
     val t0 = cert_term (ctxt |> expand_abbrevs false) raw_t
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
@@ -889,7 +889,7 @@ fun add_abbrevs mode = fold_map (fn (c, raw_t) => fn ctxt =>
     |> Variable.declare_term t
     |> map_consts (apsnd (K consts'))
     |> pair res
-  end);
+  end;
 
 
 (* fixes *)
