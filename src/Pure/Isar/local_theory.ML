@@ -35,8 +35,6 @@ sig
     local_theory -> (term * (bstring * thm)) * local_theory
   val note: string -> (bstring * Attrib.src list) * thm list ->
     local_theory -> (bstring * thm list) * Proof.context
-  val notation: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
-  val abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> local_theory -> local_theory
   val target_morphism: local_theory -> morphism
   val target_name: local_theory -> bstring -> string
   val init: string -> operations -> Proof.context -> local_theory
@@ -165,33 +163,6 @@ val target_name = operation #target_name;
 
 fun def kind arg lthy = lthy |> defs kind [arg] |>> hd;
 fun note kind (a, ths) lthy = lthy |> notes kind [(a, [(ths, [])])] |>> hd;
-
-
-(* term syntax *)
-
-fun generic_notation mode args phi =
-  let
-    val args' = args |> filter (fn (t, _) => t aconv Morphism.term phi t);
-  in Context.mapping (Sign.add_notation mode args') (ProofContext.add_notation mode args') end;
-
-fun notation mode args = term_syntax (generic_notation mode args);
-
-
-fun morph_abbrev phi ((c, mx), t) = ((Morphism.name phi c, mx), Morphism.term phi t);
-
-fun abbrevs mode raw_args lthy =
-  let val args = map (morph_abbrev (target_morphism lthy)) raw_args in
-    lthy |> term_syntax (fn phi =>
-      let
-        val args' = map (morph_abbrev phi) args;
-        val (abbrs, mxs) = (args ~~ args') |> map_filter (fn ((_, rhs), ((c', mx'), rhs')) =>
-            if rhs aconv rhs' then SOME (((c', NoSyn), rhs'), mx') else NONE)
-          |> split_list;
-      in
-        Context.mapping_result (Sign.add_abbrevs mode abbrs) (ProofContext.add_abbrevs mode abbrs)
-        #-> (fn res => generic_notation mode (map #1 res ~~ mxs) phi)
-      end)
-  end;
 
 
 (* init -- exit *)
