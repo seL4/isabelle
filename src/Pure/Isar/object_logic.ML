@@ -148,12 +148,12 @@ val declare_rulify = Thm.declaration_attribute (fn th =>
 fun rewrite_prems_tac rews i = PRIMITIVE (Drule.fconv_rule
   (Drule.goals_conv (Library.equal i)
     (Drule.forall_conv ~1
-      (Drule.goals_conv (K true) (Tactic.rewrite true rews)))));
+      (Drule.goals_conv (K true) (MetaSimplifier.rewrite true rews)))));
 
 fun atomize_term thy =
   drop_judgment thy o MetaSimplifier.rewrite_term thy (get_atomize thy) [];
 
-fun atomize_cterm ct = Tactic.rewrite true (get_atomize (Thm.theory_of_cterm ct)) ct;
+fun atomize_cterm ct = MetaSimplifier.rewrite true (get_atomize (Thm.theory_of_cterm ct)) ct;
 fun atomize_thm th = rewrite_rule (get_atomize (Thm.theory_of_thm th)) th;
 
 fun atomize_tac i st =
@@ -174,7 +174,7 @@ fun rulify_term thy = MetaSimplifier.rewrite_term thy (get_rulify thy) [];
 fun rulify_tac i st = Goal.rewrite_goal_tac (get_rulify (Thm.theory_of_thm st)) i st;
 
 fun gen_rulify full thm =
-  Tactic.simplify full (get_rulify (Thm.theory_of_thm thm)) thm
+  MetaSimplifier.simplify full (get_rulify (Thm.theory_of_thm thm)) thm
   |> Drule.gen_all |> Thm.strip_shyps |> Drule.zero_var_indexes;
 
 val rulify = gen_rulify true;

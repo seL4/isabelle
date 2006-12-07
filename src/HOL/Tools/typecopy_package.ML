@@ -96,7 +96,7 @@ fun gen_add_typecopy prep_typ (raw_tyco, raw_vs) raw_ty constr_proj thy =
     val tac = Tactic.rtac UNIV_witness 1;
     fun add_info tyco ( { abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs,
       Rep_name = c_rep, Abs_inject = inject,
-      Abs_inverse = inverse, ... } : TypedefPackage.info ) thy = 
+      Abs_inverse = inverse, ... } : TypedefPackage.info ) thy =
         let
           val exists_thm =
             UNIV_I
@@ -146,16 +146,16 @@ fun get_spec thy tyco =
   in (vs, [(constr, [typ])]) end;
 
 local
-  val bool_eq_implies = thm "iffD1";
+  val bool_eq_implies = iffD1;
   val rew_eq = thm "HOL.atomize_eq" |> Thm.symmetric;
 in fun get_cert thy tyco =
-  Tactic.rewrite_rule [rew_eq] (bool_eq_implies OF [get_eq thy tyco])
+  MetaSimplifier.rewrite_rule [rew_eq] (bool_eq_implies OF [get_eq thy tyco])
 end; (*local*)
 
 
 (* hook for projection function code *)
 
-fun add_project (_ , { proj_def, ...} : info) =
+fun add_project (_ , {proj_def, ...} : info) =
   CodegenData.add_func proj_def;
 
 val setup =

@@ -78,7 +78,7 @@ fun apply_posts thy =
   let
     val ctxt = ProofContext.init thy;
     val posts = (map (LocalDefs.meta_rewrite_rule ctxt) o snd) (NBE_Rewrite.get thy)
-  in Tactic.rewrite false posts end
+  in MetaSimplifier.rewrite false posts end
 
 
 (* code store *)

@@ -375,7 +375,7 @@ fun mk_distinct cos =
   in map mk_dist (sym_product cos) end;
 
 local
-  val bool_eq_implies = thm "iffD1";
+  val bool_eq_implies = iffD1;
   val rew_eq = thm "HOL.atomize_eq" |> Thm.symmetric;
   val rew_conj = thm "HOL.atomize_conj" |> Thm.symmetric;
   val not_false_true = iffD2 OF [nth (thms "HOL.simp_thms") 7, TrueI];
@@ -387,7 +387,7 @@ fun get_cert_datatype thy dtco =
     val SOME (vs, cs) = DatatypePackage.get_datatype_spec thy dtco;
     val inject = (#inject o DatatypePackage.the_datatype thy) dtco
       |> map (fn thm => bool_eq_implies OF [thm] )
-      |> map (Tactic.rewrite_rule [rew_eq, rew_conj]);
+      |> map (MetaSimplifier.rewrite_rule [rew_eq, rew_conj]);
     val ctxt = ProofContext.init thy;
     val simpset = Simplifier.context ctxt
       (MetaSimplifier.empty_ss addsimprocs [DatatypePackage.distinct_simproc]);

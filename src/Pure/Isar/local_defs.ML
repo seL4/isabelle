@@ -161,11 +161,11 @@ fun meta_rewrite_tac ctxt i =
 
 fun meta f ctxt = f o map (meta_rewrite_rule ctxt);
 
-val unfold       = meta Tactic.rewrite_rule;
-val unfold_goals = meta Tactic.rewrite_goals_rule;
-val unfold_tac   = meta Tactic.rewrite_goals_tac;
-val fold         = meta Tactic.fold_rule;
-val fold_tac     = meta Tactic.fold_goals_tac;
+val unfold       = meta MetaSimplifier.rewrite_rule;
+val unfold_goals = meta MetaSimplifier.rewrite_goals_rule;
+val unfold_tac   = meta MetaSimplifier.rewrite_goals_tac;
+val fold         = meta MetaSimplifier.fold_rule;
+val fold_tac     = meta MetaSimplifier.fold_goals_tac;
 
 
 (* derived defs -- potentially within the object-logic *)
@@ -186,7 +186,7 @@ fun derived_def ctxt conditional prop =
         Goal.prove ctxt' frees [] prop (K (ALLGOALS
           (meta_rewrite_tac ctxt' THEN'
             Goal.rewrite_goal_tac [def] THEN'
-            Tactic.resolve_tac [Drule.reflexive_thm])))
+            resolve_tac [Drule.reflexive_thm])))
         handle ERROR msg => cat_error msg "Failed to prove definitional specification."
       end;
   in (((c, T), rhs), prove) end;

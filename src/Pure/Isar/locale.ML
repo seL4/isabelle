@@ -1648,17 +1648,17 @@ fun def_pred bname parms defs ts norm_ts thy =
     val cert = Thm.cterm_of defs_thy;
 
     val intro = Goal.prove_global defs_thy [] norm_ts statement (fn _ =>
-      Tactic.rewrite_goals_tac [pred_def] THEN
+      MetaSimplifier.rewrite_goals_tac [pred_def] THEN
       Tactic.compose_tac (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
       Tactic.compose_tac (false, Conjunction.intr_list (map (Thm.assume o cert) norm_ts), 0) 1);
 
     val conjuncts =
       (Drule.equal_elim_rule2 OF [body_eq,
-        Tactic.rewrite_rule [pred_def] (Thm.assume (cert statement))])
+        MetaSimplifier.rewrite_rule [pred_def] (Thm.assume (cert statement))])
       |> Conjunction.elim_precise [length ts] |> hd;
     val axioms = ts ~~ conjuncts |> map (fn (t, ax) =>
       Element.prove_witness defs_ctxt t
-       (Tactic.rewrite_goals_tac defs THEN
+       (MetaSimplifier.rewrite_goals_tac defs THEN
         Tactic.compose_tac (false, ax, 0) 1));
   in ((statement, intro, axioms), defs_thy) end;
 

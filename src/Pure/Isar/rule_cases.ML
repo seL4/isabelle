@@ -189,14 +189,14 @@ local
 
 fun unfold_prems n defs th =
   if null defs then th
-  else Drule.fconv_rule (Drule.goals_conv (fn i => i <= n) (Tactic.rewrite true defs)) th;
+  else Drule.fconv_rule (Drule.goals_conv (fn i => i <= n) (MetaSimplifier.rewrite true defs)) th;
 
 fun unfold_prems_concls defs th =
   if null defs orelse not (can Logic.dest_conjunction (Thm.concl_of th)) then th
   else
     Drule.fconv_rule
       (Drule.concl_conv ~1 (Conjunction.conv ~1
-        (K (Drule.prems_conv ~1 (K (Tactic.rewrite true defs)))))) th;
+        (K (Drule.prems_conv ~1 (K (MetaSimplifier.rewrite true defs)))))) th;
 
 in
 

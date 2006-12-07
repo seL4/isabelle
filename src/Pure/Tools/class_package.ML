@@ -185,7 +185,7 @@ fun export_thm thy loc =
     val class = loc (*FIXME*);
     val thms = (#defs o fst o the_class_data thy) class;
   in
-    Tactic.rewrite_rule thms
+    MetaSimplifier.rewrite_rule thms
   end;
 
 

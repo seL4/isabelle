@@ -415,7 +415,7 @@ fun apply_subst_in_asm i th rule ((cfvs, j, ngoalprems, pth),m) =
       val th2 = Thm.rotate_rule (j - 1) i th; (* put premice first *)
       val preelimrule =
           (RWInst.rw m rule pth)
-            |> (Seq.hd o Tactic.prune_params_tac)
+            |> (Seq.hd o prune_params_tac)
             |> Thm.permute_prems 0 ~1 (* put old asm first *)
             |> IsaND.unfix_frees cfvs (* unfix any global params *)
             |> RWInst.beta_eta_contract; (* normal form *)

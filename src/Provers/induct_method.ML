@@ -160,7 +160,7 @@ fun atomize_term thy =
   MetaSimplifier.rewrite_term thy Data.atomize []
   #> ObjectLogic.drop_judgment thy;
 
-val atomize_cterm = Tactic.rewrite true Data.atomize;
+val atomize_cterm = MetaSimplifier.rewrite true Data.atomize;
 
 val atomize_tac = Goal.rewrite_goal_tac Data.atomize;
 
@@ -312,7 +312,7 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
 
 fun miniscope_tac p i = PRIMITIVE (Drule.fconv_rule
   (Drule.goals_conv (Library.equal i)
-    (Drule.forall_conv p (Tactic.rewrite true [Thm.symmetric Drule.norm_hhf_eq]))));
+    (Drule.forall_conv p (MetaSimplifier.rewrite true [Thm.symmetric Drule.norm_hhf_eq]))));
 
 in
 

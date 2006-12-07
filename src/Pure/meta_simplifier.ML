@@ -72,6 +72,16 @@ sig
   val addSSolver: simpset * solver -> simpset
   val setSolver: simpset * solver -> simpset
   val addSolver: simpset * solver -> simpset
+
+  val rewrite_rule: thm list -> thm -> thm
+  val rewrite_goals_rule: thm list -> thm -> thm
+  val rewrite_goals_tac: thm list -> tactic
+  val rewrite_tac: thm list -> tactic
+  val rewtac: thm -> tactic
+  val prune_params_tac: tactic
+  val fold_rule: thm list -> thm -> thm
+  val fold_tac: thm list -> tactic
+  val fold_goals_tac: thm list -> tactic
 end;
 
 signature META_SIMPLIFIER =
@@ -94,16 +104,15 @@ sig
   val set_solvers: solver list -> simpset -> simpset
   val rewrite_cterm: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> cterm -> thm
-  val rewrite_aux: (simpset -> thm -> thm option) -> bool -> thm list -> cterm -> thm
-  val simplify_aux: (simpset -> thm -> thm option) -> bool -> thm list -> thm -> thm
   val rewrite_term: theory -> thm list -> (term -> term option) list -> term -> term
   val rewrite_thm: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> thm -> thm
-  val rewrite_goals_rule_aux: (simpset -> thm -> thm option) -> thm list -> thm -> thm
   val rewrite_goal_rule: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> int -> thm -> thm
   val norm_hhf: thm -> thm
   val norm_hhf_protect: thm -> thm
+  val rewrite: bool -> thm list -> cterm -> thm
+  val simplify: bool -> thm list -> thm -> thm
 end;
 
 structure MetaSimplifier: META_SIMPLIFIER =
@@ -1189,17 +1198,22 @@ fun rewrite_cterm mode prover raw_ss raw_ct =
   in dec simp_depth; res end
   handle exn => (dec simp_depth; raise exn);  (* FIXME avoid handling of generic exceptions *)
 
+val simple_prover =
+  SINGLE o (fn ss => ALLGOALS (resolve_tac (prems_of_ss ss)));
+
 (*Rewrite a cterm*)
-fun rewrite_aux _ _ [] ct = Thm.reflexive ct
-  | rewrite_aux prover full thms ct =
-      rewrite_cterm (full, false, false) prover
-      (theory_context (Thm.theory_of_cterm ct) empty_ss addsimps thms) ct;
+fun rewrite _ [] ct = Thm.reflexive ct
+  | rewrite full thms ct =
+      rewrite_cterm (full, false, false) simple_prover
+        (theory_context (Thm.theory_of_cterm ct) empty_ss addsimps thms) ct;
 
 (*Rewrite a theorem*)
-fun simplify_aux _ _ [] th = th
-  | simplify_aux prover full thms th =
-      Drule.fconv_rule (rewrite_cterm (full, false, false) prover
+fun simplify _ [] th = th
+  | simplify full thms th =
+      Drule.fconv_rule (rewrite_cterm (full, false, false) simple_prover
         (theory_context (Thm.theory_of_thm th) empty_ss addsimps thms)) th;
+
+val rewrite_rule = simplify true;
 
 (*simple term rewriting -- no proof*)
 fun rewrite_term thy rules procs =
@@ -1208,8 +1222,8 @@ fun rewrite_term thy rules procs =
 fun rewrite_thm mode prover ss = Drule.fconv_rule (rewrite_cterm mode prover ss);
 
 (*Rewrite the subgoals of a proof state (represented by a theorem) *)
-fun rewrite_goals_rule_aux prover thms th =
-  Drule.fconv_rule (Drule.goals_conv (K true) (rewrite_cterm (true, true, true) prover
+fun rewrite_goals_rule thms th =
+  Drule.fconv_rule (Drule.goals_conv (K true) (rewrite_cterm (true, true, true) simple_prover
     (theory_context (Thm.theory_of_thm th) empty_ss addsimps thms))) th;
 
 (*Rewrite the subgoal of a proof state (represented by a theorem)*)
@@ -1217,6 +1231,44 @@ fun rewrite_goal_rule mode prover ss i thm =
   if 0 < i  andalso  i <= nprems_of thm
   then Drule.fconv_rule (Drule.goals_conv (fn j => j=i) (rewrite_cterm mode prover ss)) thm
   else raise THM("rewrite_goal_rule",i,[thm]);
+
+
+(** meta-rewriting tactics **)
+
+(*Rewrite throughout proof state. *)
+fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);
+
+(*Rewrite subgoals only, not main goal. *)
+fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
+fun rewtac def = rewrite_goals_tac [def];
+
+(*Prunes all redundant parameters from the proof state by rewriting.
+  DOES NOT rewrite main goal, where quantification over an unused bound
+    variable is sometimes done to avoid the need for cut_facts_tac.*)
+val prune_params_tac = rewrite_goals_tac [triv_forall_equality];
+
+
+(* for folding definitions, handling critical pairs *)
+
+(*The depth of nesting in a term*)
+fun term_depth (Abs(a,T,t)) = 1 + term_depth t
+  | term_depth (f$t) = 1 + Int.max(term_depth f, term_depth t)
+  | term_depth _ = 0;
+
+val lhs_of_thm = #1 o Logic.dest_equals o prop_of;
+
+(*folding should handle critical pairs!  E.g. K == Inl(0),  S == Inr(Inl(0))
+  Returns longest lhs first to avoid folding its subexpressions.*)
+fun sort_lhs_depths defs =
+  let val keylist = AList.make (term_depth o lhs_of_thm) defs
+      val keys = sort_distinct (rev_order o int_ord) (map #2 keylist)
+  in map (AList.find (op =) keylist) keys end;
+
+val rev_defs = sort_lhs_depths o map symmetric;
+
+fun fold_rule defs = fold rewrite_rule (rev_defs defs);
+fun fold_tac defs = EVERY (map rewrite_tac (rev_defs defs));
+fun fold_goals_tac defs = EVERY (map rewrite_goals_tac (rev_defs defs));
 
 
 (* HHF normal form: !! before ==>, outermost !! generalized *)

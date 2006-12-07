@@ -524,7 +524,7 @@ val _ = Context.add_setup CodeData.init;
 
 fun rewrite_func rewrites thm =
   let
-    val rewrite = Tactic.rewrite false rewrites;
+    val rewrite = MetaSimplifier.rewrite false rewrites;
     val (ct_eq, [ct_lhs, ct_rhs]) = (Drule.strip_comb o Thm.cprop_of) thm;
     val Const ("==", _) = Thm.term_of ct_eq;
     val (ct_f, ct_args) = Drule.strip_comb ct_lhs;
@@ -715,7 +715,7 @@ val apply_inline_proc = gen_apply_inline_proc (maps
   ((fn [args, rhs] => rhs :: (snd o Drule.strip_comb) args) o snd o Drule.strip_comb o Thm.cprop_of))
   (fn rews => map (rewrite_func rews));
 val apply_inline_proc_cterm = gen_apply_inline_proc single
-  (Tactic.rewrite false);
+  (MetaSimplifier.rewrite false);
 
 fun apply_preproc thy f [] = []
   | apply_preproc thy f (thms as (thm :: _)) =
@@ -746,8 +746,10 @@ fun preprocess thy thms =
 fun preprocess_cterm thy ct =
   ct
   |> Thm.reflexive
-  |> fold (rhs_conv o Tactic.rewrite false o single) ((#inlines o the_preproc o get_exec) thy)
-  |> fold (fn (_, f) => rhs_conv (apply_inline_proc_cterm thy f)) ((#inline_procs o the_preproc o get_exec) thy)
+  |> fold (rhs_conv o MetaSimplifier.rewrite false o single)
+    ((#inlines o the_preproc o get_exec) thy)
+  |> fold (fn (_, f) => rhs_conv (apply_inline_proc_cterm thy f))
+    ((#inline_procs o the_preproc o get_exec) thy)
 
 end; (*local*)
 

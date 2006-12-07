@@ -1428,7 +1428,7 @@ fun extension_typedef name repT alphas thy =
       let
         val SOME { Abs_induct = abs_induct,
           Abs_inject=abs_inject, Abs_inverse = abs_inverse, ...} = TypedefPackage.get_info thy name;
-        val rewrite_rule = Tactic.rewrite_rule [rec_UNIV_I, rec_True_simp];
+        val rewrite_rule = MetaSimplifier.rewrite_rule [rec_UNIV_I, rec_True_simp];
       in map rewrite_rule [abs_inject, abs_inverse, abs_induct] end;
   in
     thy

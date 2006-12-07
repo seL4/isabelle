@@ -56,7 +56,7 @@ val natarith = map thm ["add_nat_number_of", "diff_nat_number_of",
 val powerarith =
     (map thm ["nat_number_of", "zpower_number_of_even",
               "zpower_Pls", "zpower_Min"]) @
-    [(Tactic.simplify true [thm "zero_eq_Numeral0_nring",
+    [(MetaSimplifier.simplify true [thm "zero_eq_Numeral0_nring",
                            thm "one_eq_Numeral1_nring"]
   (thm "zpower_number_of_odd"))]
 

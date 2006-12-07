@@ -92,7 +92,7 @@ fun expand_term ctxt t =
     val thy_ctxt = ProofContext.init thy;
     val ct = Thm.cterm_of thy t;
     val (defs, ct') = LocalDefs.export ctxt thy_ctxt (Drule.mk_term ct) ||> Drule.dest_term;
-  in (Thm.term_of ct', Tactic.rewrite true defs ct) end;
+  in (Thm.term_of ct', MetaSimplifier.rewrite true defs ct) end;
 
 fun add_def (name, prop) =
   Theory.add_defs_i false false [(name, prop)] #>
@@ -171,8 +171,8 @@ fun import_export_proof ctxt (name, raw_th) =
     (*export assumes/defines*)
     val th = Goal.norm_result raw_th;
     val (defs, th') = LocalDefs.export ctxt thy_ctxt th;
-    val concl_conv = Tactic.rewrite true defs (Thm.cprop_of th);
-    val assms = map (Tactic.rewrite_rule defs o Thm.assume) (Assumption.assms_of ctxt);
+    val concl_conv = MetaSimplifier.rewrite true defs (Thm.cprop_of th);
+    val assms = map (MetaSimplifier.rewrite_rule defs o Thm.assume) (Assumption.assms_of ctxt);
     val nprems = Thm.nprems_of th' - Thm.nprems_of th;
 
     (*export fixes*)

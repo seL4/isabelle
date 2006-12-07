@@ -80,6 +80,9 @@ end;
 structure Simplifier: SIMPLIFIER =
 struct
 
+open MetaSimplifier;
+
+
 (** simpset data **)
 
 (* global simpsets *)
@@ -347,9 +350,6 @@ fun easy_setup reflect trivs = method_setup [] #> (fn thy =>
       setmksimps mksimps;
     thy
   end);
-
-
-open MetaSimplifier;
 
 end;
 

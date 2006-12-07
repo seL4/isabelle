@@ -47,9 +47,6 @@ sig
   val filter_thms       : (term*term->bool) -> int*term*thm list -> thm list
   val filt_resolve_tac  : thm list -> int -> int -> tactic
   val flexflex_tac      : tactic
-  val fold_goals_tac    : thm list -> tactic
-  val fold_rule         : thm list -> thm -> thm
-  val fold_tac          : thm list -> tactic
   val forward_tac       : thm list -> int -> tactic
   val forw_inst_tac     : (string*string)list -> thm -> int -> tactic
   val ftac              : thm -> int ->tactic
@@ -69,18 +66,12 @@ sig
   val net_biresolve_tac : (bool*thm) list -> int -> tactic
   val net_match_tac     : thm list -> int -> tactic
   val net_resolve_tac   : thm list -> int -> tactic
-  val prune_params_tac  : tactic
   val rename_params_tac : string list -> int -> tactic
   val rename_tac        : string -> int -> tactic
   val rename_last_tac   : string -> string list -> int -> tactic
   val resolve_from_net_tac      : (int*thm) Net.net -> int -> tactic
   val resolve_tac       : thm list -> int -> tactic
   val res_inst_tac      : (string*string)list -> thm -> int -> tactic
-  val rewrite_goals_rule: thm list -> thm -> thm
-  val rewrite_rule      : thm list -> thm -> thm
-  val rewrite_goals_tac : thm list -> tactic
-  val rewrite_tac       : thm list -> tactic
-  val rewtac            : thm -> tactic
   val rotate_tac        : int -> int -> tactic
   val rtac              : thm -> int -> tactic
   val rule_by_tactic    : tactic -> thm -> thm
@@ -103,8 +94,6 @@ sig
   val untaglist: (int * 'a) list -> 'a list
   val eq_kbrl: ('a * (bool * thm)) * ('a * (bool * thm)) -> bool
   val orderlist: (int * 'a) list -> 'a list
-  val rewrite: bool -> thm list -> cterm -> thm
-  val simplify: bool -> thm list -> thm -> thm
   val compose_inst_tac' : (indexname * string) list -> (bool * thm * int) ->
                           int -> tactic
   val lift_inst_rule'   : thm * int * (indexname * string) list * thm -> thm
@@ -512,47 +501,6 @@ fun subgoals_of_brl (true,rule)  = nprems_of rule - 1
 fun lessb (brl1,brl2) = subgoals_of_brl brl1 < subgoals_of_brl brl2;
 
 
-(*** Meta-Rewriting Tactics ***)
-
-val simple_prover =
-  SINGLE o (fn ss => ALLGOALS (resolve_tac (MetaSimplifier.prems_of_ss ss)));
-
-val rewrite = MetaSimplifier.rewrite_aux simple_prover;
-val simplify = MetaSimplifier.simplify_aux simple_prover;
-val rewrite_rule = simplify true;
-val rewrite_goals_rule = MetaSimplifier.rewrite_goals_rule_aux simple_prover;
-
-(*Rewrite throughout proof state. *)
-fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);
-
-(*Rewrite subgoals only, not main goal. *)
-fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
-fun rewtac def = rewrite_goals_tac [def];
-
-
-(*** for folding definitions, handling critical pairs ***)
-
-(*The depth of nesting in a term*)
-fun term_depth (Abs(a,T,t)) = 1 + term_depth t
-  | term_depth (f$t) = 1 + Int.max(term_depth f, term_depth t)
-  | term_depth _ = 0;
-
-val lhs_of_thm = #1 o Logic.dest_equals o prop_of;
-
-(*folding should handle critical pairs!  E.g. K == Inl(0),  S == Inr(Inl(0))
-  Returns longest lhs first to avoid folding its subexpressions.*)
-fun sort_lhs_depths defs =
-  let val keylist = AList.make (term_depth o lhs_of_thm) defs
-      val keys = sort_distinct (rev_order o int_ord) (map #2 keylist)
-  in map (AList.find (op =) keylist) keys end;
-
-val rev_defs = sort_lhs_depths o map symmetric;
-
-fun fold_rule defs = fold rewrite_rule (rev_defs defs);
-fun fold_tac defs = EVERY (map rewrite_tac (rev_defs defs));
-fun fold_goals_tac defs = EVERY (map rewrite_goals_tac (rev_defs defs));
-
-
 (*** Renaming of parameters in a subgoal
      Names may contain letters, digits or primes and must be
      separated by blanks ***)
@@ -581,11 +529,6 @@ fun rename_last_tac a sufs i =
       then PRIMITIVE (rename_params_rule (names,i))
       else all_tac
   end;
-
-(*Prunes all redundant parameters from the proof state by rewriting.
-  DOES NOT rewrite main goal, where quantification over an unused bound
-    variable is sometimes done to avoid the need for cut_facts_tac.*)
-val prune_params_tac = rewrite_goals_tac [triv_forall_equality];
 
 (*rotate_tac n i: rotate the assumptions of subgoal i by n positions, from
   right to left if n is positive, and from left to right if n is negative.*)
