@@ -39,6 +39,7 @@ sig
   val is_keyword: syntax -> string -> bool
   type mode
   val default_mode: mode
+  val input_mode: mode
   val extend_type_gram: (string * int * mixfix) list -> syntax -> syntax
   val extend_const_gram: (string -> bool) ->
     mode -> (string * typ * mixfix) list -> syntax -> syntax
@@ -185,6 +186,7 @@ fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.e
 
 type mode = string * bool;
 val default_mode = ("", true);
+val input_mode = ("input", true);
 
 
 (* empty_syntax *)
