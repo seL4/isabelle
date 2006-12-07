@@ -145,7 +145,8 @@ fun certify pp tsig (consts as Consts ({expand_abbrevs, ...}, _)) =
     fun cert tm =
       let
         val (head, args) = Term.strip_comb tm;
-        fun comb h = Term.list_comb (h, map cert args);
+        val args' = map cert args;
+        fun comb head' = Term.list_comb (head', args');
       in
         (case head of
           Abs (x, T, t) => comb (Abs (x, T, cert t))
@@ -160,7 +161,7 @@ fun certify pp tsig (consts as Consts ({expand_abbrevs, ...}, _)) =
                 (case (kind, expand_abbrevs) of
                   (Abbreviation u, true) =>
                     Term.betapplys (Envir.expand_atom T' (U, u) handle TYPE _ =>
-                      err "Illegal type for abbreviation" (c, T), map cert args)
+                      err "Illegal type for abbreviation" (c, T), args')
                 | _ => comb head)
             end
         | _ => comb head)
