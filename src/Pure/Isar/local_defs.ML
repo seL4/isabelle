@@ -46,7 +46,7 @@ fun cert_def ctxt eq =
       handle TERM (msg, _) => err msg | ERROR msg => err msg;
   in (Term.dest_Free (Term.head_of lhs), eq') end;
 
-val abs_def = Logic.abs_def #> apfst Term.dest_Free;
+val abs_def = Logic.abs_def #>> Term.dest_Free;
 
 fun mk_def ctxt args =
   let
@@ -74,10 +74,12 @@ fun expand defs =
   #> Drule.generalize ([], map (head_of_def o Thm.term_of) defs)
   #> funpow (length defs) (fn th => Drule.reflexive_thm RS th);
 
-fun expand_term [] = I
-  | expand_term defs = Pattern.rewrite_term
-      (Theory.merge_list (map Thm.theory_of_cterm defs))
-      (map (Logic.dest_equals o Thm.prop_of o Assumption.assume) defs) [];
+fun expand_term defs =
+  let
+    val eqs = defs |> map (Thm.term_of #> abs_def #> (fn ((x, U), u) => (x, (U, u))));
+    fun get_def (Free (x, _)) = AList.lookup (op =) eqs x
+      | get_def _ = NONE;
+  in Envir.expand_term get_def end;
 
 fun def_export _ defs = (expand defs, expand_term defs);
 
