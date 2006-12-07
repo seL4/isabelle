@@ -1,0 +1,23 @@
+
+Using Isabelle2005 with Poly/ML 5.0 requires the following
+compatibility wrappers:
+
+  Isabelle2005/src/Pure/ML-Systems/polyml-5.0.ML
+  Isabelle2005/lib/scripts/run-polyml-5.0
+
+Moreover the Isabelle settings need to specify that version, by
+including something like this in Isabelle2005/etc/settings or
+~/isabelle/etc/settings:
+
+ML_PLATFORM=""
+ML_HOME=/usr/local/bin
+ML_SYSTEM=polyml-5.0
+ML_OPTIONS="-H 500"
+
+Then logics can be compiled as usual, cf. the INSTALL instructions.
+
+
+	Makarius
+	07-Dec-2006
+
+$Id$
