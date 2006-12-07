@@ -462,18 +462,15 @@ Very prolific and somewhat obscure:
 
 exception HASH_CLAUSE and HASH_STRING;
 
-(*Catches (for deletion) theorems automatically generated from other theorems*)
-fun insert_suffixed_names ht x =
-     (Polyhash.insert ht (x^"_iff1", ());
-      Polyhash.insert ht (x^"_iff2", ());
-      Polyhash.insert ht (x^"_dest", ()));
-
 (*Reject theorems with names like "List.filter.filter_list_def" or
-  "Accessible_Part.acc.defs", as these are definitions arising from packages.
-  FIXME: this will also block definitions within locales*)
+  "Accessible_Part.acc.defs", as these are definitions arising from packages.*)
 fun is_package_def a =
-   length (NameSpace.unpack a) > 2 andalso
-   String.isSuffix "_def" a  orelse  String.isSuffix "_defs" a;
+  let val names = NameSpace.unpack a
+  in
+     length names > 2 andalso
+     not (hd names = "local") andalso
+     String.isSuffix "_def" a  orelse  String.isSuffix "_defs" a
+  end;
 
 fun make_banned_test xs =
   let val ht = Polyhash.mkTable (Polyhash.hash_string, op =)
@@ -481,7 +478,6 @@ fun make_banned_test xs =
       fun banned s =
             isSome (Polyhash.peek ht s) orelse is_package_def s
   in  app (fn x => Polyhash.insert ht (x,())) (!blacklist);
-      app (insert_suffixed_names ht) (!blacklist @ xs);
       banned
   end;
 
@@ -603,12 +599,16 @@ fun get_clasimp_atp_lemmas ctxt user_thms =
 (*Remove lemmas that are banned from the backlist. Also remove duplicates. *)
 fun blacklist_filter ths =
   if !run_blacklist_filter then
-      let val _ = Output.debug("blacklist filter gets " ^ Int.toString (length ths) ^ " theorems")
-          val banned = make_banned_test (map #1 ths)
+      let val banned = make_banned_test (map #1 ths)
           fun ok (a,_) = not (banned a)
-          val okthms = filter ok ths
-          val _ = Output.debug("...and returns " ^ Int.toString (length okthms))
-      in  okthms end
+          val (good,bad) = List.partition ok ths
+      in  if !Output.show_debug_msgs then
+             (Output.debug("blacklist filter gets " ^ Int.toString (length ths) ^ " theorems");
+              Output.debug("filtered: " ^ space_implode ", " (map #1 bad));
+              Output.debug("...and returns " ^ Int.toString (length good)))
+          else ();
+          good 
+      end
   else ths;
 
 (***************************************************************)
@@ -855,7 +855,7 @@ fun write_problem_files probfile (ctxt,th)  =
                                        |> ResAxioms.cnf_rules_pairs |> make_unique
                                        |> restrict_to_logic logic
                                        |> remove_unwanted_clauses
-      val _ = Output.debug ("clauses = " ^ Int.toString(length included_cls))
+      val _ = Output.debug ("included clauses = " ^ Int.toString(length included_cls))
       val white_cls = ResAxioms.cnf_rules_pairs white_thms
       (*clauses relevant to goal gl*)
       val axcls_list = map (fn ngcls => get_relevant_clauses thy included_cls white_cls (map prop_of ngcls)) goal_cls
