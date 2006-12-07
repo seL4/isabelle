@@ -39,6 +39,7 @@ sig
   val subst_Vars: tenv -> term -> term
   val subst_vars: Type.tyenv * tenv -> term -> term
   val expand_atom: typ -> typ * term -> term
+  val expand_term: (term -> (typ * term) option) -> term -> term
 end;
 
 structure Envir : ENVIR =
@@ -295,10 +296,28 @@ fun subst_vars (iTs, itms) =
   in subst end;
 
 
-(* expand_atom *)
+(* expand defined atoms *)
 
 fun expand_atom T (U, u) =
   subst_TVars (Type.raw_match (U, T) Vartab.empty) u
   handle Type.TYPE_MATCH => raise TYPE ("expand_atom: ill-typed replacement", [T, U], [u]);
+
+fun expand_term get_def =
+  let
+    fun expand tm =
+      let
+        val (head, args) = Term.strip_comb tm;
+        val args' = map expand args;
+        fun comb head' = Term.list_comb (head', args');
+      in
+        (case head of
+          Abs (x, T, t) => comb (Abs (x, T, expand t))
+        | _ =>
+            (case get_def head of
+              SOME def => Term.betapplys (expand_atom (Term.fastype_of head) def, args')
+            | NONE => comb head)
+        | _ => comb head)
+      end;
+  in expand end;
 
 end;
