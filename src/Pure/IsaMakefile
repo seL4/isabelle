@@ -41,8 +41,8 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML		\
   Isar/proof.ML Isar/proof_context.ML Isar/proof_display.ML			\
   Isar/proof_history.ML Isar/rule_cases.ML Isar/rule_insts.ML			\
   Isar/session.ML Isar/skip_proof.ML Isar/specification.ML			\
-  Isar/term_style.ML Isar/theory_target.ML Isar/thy_header.ML			\
-  Isar/toplevel.ML ML-Systems/polyml-4.1.4-patch.ML				\
+  Isar/term_style.ML Isar/term_syntax.ML Isar/theory_target.ML			\
+  Isar/thy_header.ML Isar/toplevel.ML ML-Systems/polyml-4.1.4-patch.ML		\
   ML-Systems/polyml-4.2.0.ML ML-Systems/polyml-4.9.1.ML				\
   ML-Systems/polyml-5.0.ML ML-Systems/polyml-interrupt-timeout.ML		\
   ML-Systems/polyml-posix.ML ML-Systems/polyml.ML ML-Systems/poplogml.ML	\
