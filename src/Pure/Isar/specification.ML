@@ -25,14 +25,14 @@ sig
     ((bstring * Attrib.src list) * term list) list -> local_theory ->
     (term list * (bstring * thm list) list) * local_theory
   val definition:
-    ((string * string option * mixfix) option * ((string * Attrib.src list) * string)) list ->
-    local_theory -> (term * (bstring * thm)) list * local_theory
+    (string * string option * mixfix) option * ((string * Attrib.src list) * string) ->
+    local_theory -> (term * (bstring * thm)) * local_theory
   val definition_i:
-    ((string * typ option * mixfix) option * ((string * Attrib.src list) * term)) list ->
-    local_theory -> (term * (bstring * thm)) list * local_theory
-  val abbreviation: Syntax.mode -> ((string * string option * mixfix) option * string) list ->
+    (string * typ option * mixfix) option * ((string * Attrib.src list) * term) ->
+    local_theory -> (term * (bstring * thm)) * local_theory
+  val abbreviation: Syntax.mode -> (string * string option * mixfix) option * string ->
     local_theory -> local_theory
-  val abbreviation_i: Syntax.mode -> ((string * typ option * mixfix) option * term) list ->
+  val abbreviation_i: Syntax.mode -> (string * typ option * mixfix) option * term ->
     local_theory -> local_theory
   val notation: Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val notation_i: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
@@ -117,58 +117,49 @@ val axiomatization_i = gen_axioms cert_specification;
 
 (* definition *)
 
-fun gen_defs prep args lthy =
+fun gen_def prep (raw_var, (raw_a, raw_prop)) lthy =
   let
-    fun define (raw_var, (raw_a, raw_prop)) lthy1 =
-      let
-        val (vars, [((raw_name, atts), [prop])]) =
-          fst (prep (the_list raw_var) [(raw_a, [raw_prop])] lthy1);
-        val (((x, T), rhs), prove) = LocalDefs.derived_def lthy1 true prop;
-        val name = Thm.def_name_optional x raw_name;
-        val mx = (case vars of [] => NoSyn | [((x', _), mx)] =>
-          if x = x' then mx
-          else error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote x'));
-        val ((lhs, (_, th)), lthy2) = lthy1
-(*          |> LocalTheory.def ((x, mx), ((name ^ "_raw", []), rhs));  FIXME *)
-          |> LocalTheory.def Thm.definitionK ((x, mx), ((name, []), rhs));
-        val ((b, [th']), lthy3) = lthy2
-          |> LocalTheory.note Thm.definitionK ((name, atts), [prove lthy2 th]);
-      in (((x, T), (lhs, (b, th'))), LocalTheory.restore lthy3) end;
+    val (vars, [((raw_name, atts), [prop])]) =
+      fst (prep (the_list raw_var) [(raw_a, [raw_prop])] lthy);
+    val (((x, T), rhs), prove) = LocalDefs.derived_def lthy true prop;
+    val name = Thm.def_name_optional x raw_name;
+    val mx = (case vars of [] => NoSyn | [((x', _), mx)] =>
+      if x = x' then mx
+      else error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote x'));
+    val ((lhs, (_, th)), lthy2) = lthy
+(*    |> LocalTheory.def ((x, mx), ((name ^ "_raw", []), rhs));  FIXME *)
+      |> LocalTheory.def Thm.definitionK ((x, mx), ((name, []), rhs));
+    val ((b, [th']), lthy3) = lthy2
+      |> LocalTheory.note Thm.definitionK ((name, atts), [prove lthy2 th]);
 
-    val ((cs, defs), lthy') = lthy |> fold_map define args |>> split_list;
-    val def_frees = member (op =) (fold (Term.add_frees o fst) defs []);
-    val _ = print_consts lthy' def_frees cs;
-  in (defs, lthy') end;
+    val lhs' = Morphism.term (LocalTheory.target_morphism lthy3) lhs;
+    val _ = print_consts lthy3 (member (op =) (Term.add_frees lhs' [])) [(x, T)];
+  in ((lhs, (b, th')), lthy3) end;
 
-val definition = gen_defs read_specification;
-val definition_i = gen_defs cert_specification;
+val definition = gen_def read_specification;
+val definition_i = gen_def cert_specification;
 
 
 (* abbreviation *)
 
-fun gen_abbrevs prep mode args lthy =
+fun gen_abbrev prep mode (raw_var, raw_prop) lthy =
   let
-    fun abbrev (raw_var, raw_prop) lthy1 =
-      let
-        val ((vars, [(_, [prop])]), _) =
-          prep (the_list raw_var) [(("", []), [raw_prop])]
-            (lthy1 |> ProofContext.expand_abbrevs false);
-        val ((x, T), rhs) = LocalDefs.abs_def (#2 (LocalDefs.cert_def lthy1 prop));
-        val mx = (case vars of [] => NoSyn | [((y, _), mx)] =>
-          if x = y then mx
-          else error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y));
-        val lthy2 = lthy1 |> TermSyntax.abbrevs mode [((x, mx), rhs)];
-      in ((x, T), LocalTheory.restore lthy2) end;
-
-    val (cs, lthy') = lthy
-      |> ProofContext.set_syntax_mode mode
-      |> fold_map abbrev args
-      ||> ProofContext.restore_syntax_mode lthy;
-    val _ = print_consts lthy' (K false) cs;
+    val ((vars, [(_, [prop])]), _) =
+      prep (the_list raw_var) [(("", []), [raw_prop])]
+        (lthy |> ProofContext.expand_abbrevs false);
+    val ((x, T), rhs) = LocalDefs.abs_def (#2 (LocalDefs.cert_def lthy prop));
+    val mx = (case vars of [] => NoSyn | [((y, _), mx)] =>
+      if x = y then mx
+      else error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y));
+    val lthy' = lthy
+      |> ProofContext.set_syntax_mode mode    (* FIXME !? *)
+      |> TermSyntax.abbrevs mode [((x, mx), rhs)]
+      |> ProofContext.restore_syntax_mode lthy;
+    val _ = print_consts lthy' (K false) [(x, T)]
   in lthy' end;
 
-val abbreviation = gen_abbrevs read_specification;
-val abbreviation_i = gen_abbrevs cert_specification;
+val abbreviation = gen_abbrev read_specification;
+val abbreviation_i = gen_abbrev cert_specification;
 
 
 (* notation *)

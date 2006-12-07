@@ -219,12 +219,12 @@ val constdef = Scan.option constdecl -- (P.opt_thm_name ":" -- P.prop);
 
 val definitionP =
   OuterSyntax.command "definition" "constant definition" K.thy_decl
-    (P.opt_locale_target -- (constdef >> single)
+    (P.opt_locale_target -- constdef
     >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.definition args)));
 
 val abbreviationP =
   OuterSyntax.command "abbreviation" "constant abbreviation" K.thy_decl
-    (P.opt_locale_target -- opt_mode -- (Scan.option constdecl -- P.prop >> single)
+    (P.opt_locale_target -- opt_mode -- (Scan.option constdecl -- P.prop)
     >> (fn ((loc, mode), args) =>
         Toplevel.local_theory loc (Specification.abbreviation mode args)));
 
