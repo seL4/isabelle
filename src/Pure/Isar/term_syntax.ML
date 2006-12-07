@@ -14,7 +14,8 @@ end;
 structure TermSyntax: TERM_SYNTAX =
 struct
 
-(* notation *)  (* FIXME dynamic scoping!? *)
+
+(* notation *)  (* FIXME avoid dynamic scoping!? *)
 
 fun target_notation mode args phi =
   let val args' = filter (fn (t, _) => t aconv Morphism.term phi t) args
@@ -29,21 +30,31 @@ fun notation mode raw_args lthy =
 
 fun morph_abbrev phi ((c, mx), rhs) = ((Morphism.name phi c, mx), Morphism.term phi rhs);
 
-fun abbrevs prmode raw_args lthy =
+fun target_abbrev (prmode, arg) phi =
   let
     val mode = #1 prmode;
-    val args = map (morph_abbrev (LocalTheory.target_morphism lthy)) raw_args;
+    val ((c, mx), rhs) = arg;
+    val ((c', _), rhs') = morph_abbrev phi arg;
+    val abbr = (c', rhs');
   in
-    lthy |> LocalTheory.term_syntax (fn phi =>
-      let
-        val args' = map (morph_abbrev phi) args;
-        val (abbrs, mxs) = (args ~~ args') |> map_filter (fn ((_, rhs), ((c', mx'), rhs')) =>
-            if rhs aconv rhs' then SOME ((c', rhs'), mx') else NONE)
-          |> split_list;
-      in
-        Context.mapping_result (Sign.add_abbrevs mode abbrs) (ProofContext.add_abbrevs mode abbrs)
-        #-> (fn res => target_notation prmode (map (Const o #1) res ~~ mxs) phi)
-      end)
+    if rhs aconv rhs' then   (* FIXME !? *)
+      Context.mapping_result (Sign.add_abbrev mode abbr) (ProofContext.add_abbrev mode abbr)
+        #-> (fn (lhs, _) =>
+          if rhs aconv rhs' then target_notation prmode [(Const lhs, mx)] Morphism.identity
+          else I)
+    else I
   end;
+
+fun abbrevs prmode raw_args lthy =
+  let
+    val is_local = is_none o Sign.const_constraint (ProofContext.theory_of lthy);
+    val local_term = Term.exists_subterm (fn Const (c, _) => is_local c | _ => false);
+    val input_only = (#1 Syntax.input_mode, #2 prmode);
+    val expand = ProofContext.cert_term (ProofContext.expand_abbrevs true lthy);
+    val args = raw_args |> map (morph_abbrev (LocalTheory.target_morphism lthy) #>
+      (fn (lhs, rhs) =>  (*avoid dynamic references to local names*)
+        if local_term rhs then (input_only, (lhs, expand rhs))
+        else (prmode, (lhs, rhs))));
+  in LocalTheory.term_syntax (fn phi => fold (fn arg => target_abbrev arg phi) args) lthy end;
 
 end;
