@@ -2,7 +2,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Test and Examples for Pure/Tools/class_package.ML *}
+header {* Test and examples for new class package *}
 
 theory Classpackage
 imports Main
@@ -96,30 +96,33 @@ next
   from monoid_comm_num_def show "k \<otimes> l = l \<otimes> k" by simp
 qed
 
-definition (in monoid)
-  units :: "'a set" where
-  "units = { y. \<exists>x. x \<^loc>\<otimes> y = \<^loc>\<one> \<and> y \<^loc>\<otimes> x = \<^loc>\<one> }"
+context monoid
+begin
 
-lemma (in monoid) inv_obtain:
-  assumes ass: "x \<in> units"
+definition
+  units :: "'a set" where
+  "units = {y. \<exists>x. x \<^loc>\<otimes> y = \<^loc>\<one> \<and> y \<^loc>\<otimes> x = \<^loc>\<one>}"
+
+lemma inv_obtain:
+  assumes "x \<in> units"
   obtains y where "y \<^loc>\<otimes> x = \<^loc>\<one>" and "x \<^loc>\<otimes> y = \<^loc>\<one>"
 proof -
-  from ass units_def obtain y
+  from assms units_def obtain y
     where "y \<^loc>\<otimes> x = \<^loc>\<one>" and "x \<^loc>\<otimes> y = \<^loc>\<one>" by auto
   thus ?thesis ..
 qed
 
-lemma (in monoid) inv_unique:
-  assumes eq: "y \<^loc>\<otimes> x = \<^loc>\<one>" "x \<^loc>\<otimes> y' = \<^loc>\<one>"
+lemma inv_unique:
+  assumes "y \<^loc>\<otimes> x = \<^loc>\<one>" "x \<^loc>\<otimes> y' = \<^loc>\<one>"
   shows "y = y'"
 proof -
-  from eq neutr have "y = y \<^loc>\<otimes> (x \<^loc>\<otimes> y')" by simp
+  from assms neutr have "y = y \<^loc>\<otimes> (x \<^loc>\<otimes> y')" by simp
   also with assoc have "... = (y \<^loc>\<otimes> x) \<^loc>\<otimes> y'" by simp
-  also with eq neutl have "... = y'" by simp
+  also with assms neutl have "... = y'" by simp
   finally show ?thesis .
 qed
 
-lemma (in monoid) units_inv_comm:
+lemma units_inv_comm:
   assumes inv: "x \<^loc>\<otimes> y = \<^loc>\<one>"
     and G: "x \<in> units"
   shows "y \<^loc>\<otimes> x = \<^loc>\<one>"
@@ -131,6 +134,8 @@ proof -
   with neutl z_choice show ?thesis by simp
 qed
 
+end
+
 consts
   reduce :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a"
 
@@ -138,34 +143,37 @@ primrec
   "reduce f g 0 x = g"
   "reduce f g (Suc n) x = f x (reduce f g n x)"
 
-definition (in monoid)
+context monoid
+begin
+
+definition
   npow :: "nat \<Rightarrow> 'a \<Rightarrow> 'a" where
   npow_def_prim: "npow n x = reduce (op \<^loc>\<otimes>) \<^loc>\<one> n x"
 
-abbreviation (in monoid)
-  abbrev_npow :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75) where
+abbreviation
+  npow_syn :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75) where
   "x \<^loc>\<up> n \<equiv> npow n x"
 
-lemma (in monoid) npow_def:
+lemma npow_def:
   "x \<^loc>\<up> 0 = \<^loc>\<one>"
   "x \<^loc>\<up> Suc n = x \<^loc>\<otimes> x \<^loc>\<up> n"
 using npow_def_prim by simp_all
 
-lemma (in monoid) nat_pow_one:
+lemma nat_pow_one:
   "\<^loc>\<one> \<^loc>\<up> n = \<^loc>\<one>"
 using npow_def neutl by (induct n) simp_all
 
-lemma (in monoid) nat_pow_mult:
-  "npow n x \<^loc>\<otimes> npow m x = npow (n + m) x"
+lemma nat_pow_mult: "x \<^loc>\<up> n \<^loc>\<otimes> x \<^loc>\<up> m = x \<^loc>\<up> (n + m)"
 proof (induct n)
   case 0 with neutl npow_def show ?case by simp
 next
   case (Suc n) with Suc.hyps assoc npow_def show ?case by simp
 qed
 
-lemma (in monoid) nat_pow_pow:
-  "npow n (npow m x) = npow (n * m) x"
+lemma nat_pow_pow: "(x \<^loc>\<up> m) \<^loc>\<up> n = x \<^loc>\<up> (n * m)"
 using npow_def nat_pow_mult by (induct n) simp_all
+
+end
 
 class group = monoidl +
   fixes inv :: "'a \<Rightarrow> 'a" ("\<^loc>\<div> _" [81] 80)
@@ -277,7 +285,7 @@ definition (in group)
     else (monoid.npow (op \<^loc>\<otimes>) \<^loc>\<one> (nat k) x))"
 
 abbreviation (in group)
-  abbrev_pow :: "'a \<Rightarrow> int \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75) where
+  pow_syn :: "'a \<Rightarrow> int \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75) where
   "x \<^loc>\<up> k \<equiv> pow k x"
 
 lemma (in group) int_pow_zero:
