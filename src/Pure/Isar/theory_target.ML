@@ -72,7 +72,7 @@ fun consts is_loc depends decls lthy =
     val defs = abbrs |> map (fn (x, t) => (x, (("", []), t)));
   in
     lthy'
-    |> is_loc ? LocalTheory.abbrevs Syntax.default_mode abbrs
+    |> is_loc ? TermSyntax.abbrevs Syntax.default_mode abbrs
     |> LocalDefs.add_defs defs |>> map (apsnd snd)
   end;
 

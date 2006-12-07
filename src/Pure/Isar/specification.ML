@@ -157,7 +157,7 @@ fun gen_abbrevs prep mode args lthy =
         val mx = (case vars of [] => NoSyn | [((y, _), mx)] =>
           if x = y then mx
           else error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y));
-        val lthy2 = lthy1 |> LocalTheory.abbrevs mode [((x, mx), rhs)];
+        val lthy2 = lthy1 |> TermSyntax.abbrevs mode [((x, mx), rhs)];
       in ((x, T), LocalTheory.restore lthy2) end;
 
     val (cs, lthy') = lthy
@@ -174,7 +174,7 @@ val abbreviation_i = gen_abbrevs cert_specification;
 (* notation *)
 
 fun gen_notation prep_const mode args lthy =
-  lthy |> LocalTheory.notation mode (map (apfst (prep_const lthy)) args);
+  lthy |> TermSyntax.notation mode (map (apfst (prep_const lthy)) args);
 
 val notation = gen_notation ProofContext.read_const;
 val notation_i = gen_notation (K I);
