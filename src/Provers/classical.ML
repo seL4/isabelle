@@ -419,16 +419,12 @@ fun addSE w th
 fun cs addSIs ths = fold_rev (addSI NONE) ths cs;
 fun cs addSEs ths = fold_rev (addSE NONE) ths cs;
 
-(*Give new theorem a name, if it has one already.*)
-fun name_make_elim th =
+fun make_elim th =
     if has_fewer_prems 1 th then
     	error("Ill-formed destruction rule\n" ^ string_of_thm th)
-    else
-    case PureThy.get_name_hint th of
-        "" => Tactic.make_elim th
-      | a  => PureThy.put_name_hint (a ^ "_dest") (Tactic.make_elim th);
+    else Tactic.make_elim th;
 
-fun cs addSDs ths = cs addSEs (map name_make_elim ths);
+fun cs addSDs ths = cs addSEs (map make_elim ths);
 
 
 (*** Hazardous (unsafe) rules ***)
@@ -488,7 +484,7 @@ fun addE w th
 fun cs addIs ths = fold_rev (addI NONE) ths cs;
 fun cs addEs ths = fold_rev (addE NONE) ths cs;
 
-fun cs addDs ths = cs addEs (map name_make_elim ths);
+fun cs addDs ths = cs addEs (map make_elim ths);
 
 
 (*** Deletion of rules
@@ -936,10 +932,10 @@ fun attrib f = Thm.declaration_attribute (fn th =>
    fn Context.Theory thy => (change_claset_of thy (f th); Context.Theory thy)
     | Context.Proof ctxt => Context.Proof (LocalClaset.map (f th) ctxt));
 
-fun safe_dest w = attrib (addSE w o name_make_elim);
+fun safe_dest w = attrib (addSE w o make_elim);
 val safe_elim = attrib o addSE;
 val safe_intro = attrib o addSI;
-fun haz_dest w = attrib (addE w o name_make_elim);
+fun haz_dest w = attrib (addE w o make_elim);
 val haz_elim = attrib o addE;
 val haz_intro = attrib o addI;
 val rule_del = attrib delrule o ContextRules.rule_del;
