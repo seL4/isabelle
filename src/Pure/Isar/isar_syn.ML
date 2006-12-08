@@ -673,8 +673,12 @@ val pretty_setmarginP =
   OuterSyntax.improper_command "pretty_setmargin" "change default margin for pretty printing"
     K.diag (P.nat >> (Toplevel.no_timing oo IsarCmd.pretty_setmargin));
 
+val helpP =
+  OuterSyntax.improper_command "help" "print outer syntax commands" K.diag
+    (Scan.succeed (Toplevel.no_timing o OuterSyntax.print_commands));
+
 val print_commandsP =
-  OuterSyntax.improper_command "print_commands" "print outer syntax (global)" K.diag
+  OuterSyntax.improper_command "print_commands" "print outer syntax commands" K.diag
     (Scan.succeed (Toplevel.no_timing o OuterSyntax.print_commands));
 
 val print_contextP =
@@ -933,14 +937,14 @@ val _ = OuterSyntax.add_parsers [
   cannot_undoP, clear_undosP, redoP, undos_proofP, undoP, killP,
   interpretationP, interpretP,
   (*diagnostic commands*)
-  pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
-  print_syntaxP, print_factsP, print_theoremsP, print_localesP,
-  print_localeP, print_registrationsP, print_attributesP,
-  print_simpsetP, print_rulesP, print_induct_rulesP,
-  print_trans_rulesP, print_methodsP, print_antiquotationsP,
-  class_depsP, thm_depsP, find_theoremsP, print_bindsP, print_casesP,
-  print_stmtsP, print_thmsP, print_prfsP, print_full_prfsP,
-  print_propP, print_termP, print_typeP,
+  pretty_setmarginP, helpP, print_commandsP, print_contextP,
+  print_theoryP, print_syntaxP, print_factsP, print_theoremsP,
+  print_localesP, print_localeP, print_registrationsP,
+  print_attributesP, print_simpsetP, print_rulesP,
+  print_induct_rulesP, print_trans_rulesP, print_methodsP,
+  print_antiquotationsP, class_depsP, thm_depsP, find_theoremsP,
+  print_bindsP, print_casesP, print_stmtsP, print_thmsP, print_prfsP,
+  print_full_prfsP, print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
   touch_thyP, touch_all_thysP, touch_child_thysP, remove_thyP,
