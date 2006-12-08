@@ -65,7 +65,7 @@ by (simp add: Follows_def)
 lemma Follows_Increasing2: "F \<in> f Fols g ==> F \<in> Increasing g"
 by (simp add: Follows_def)
 
-lemma Follows_Bounded: "F \<in> f Fols g ==> F \<in> Always {s. f s \<subseteq> g s}"
+lemma Follows_Bounded: "F \<in> f Fols g ==> F \<in> Always {s. f s \<le> g s}"
 by (simp add: Follows_def)
 
 lemma Follows_LeadsTo: 

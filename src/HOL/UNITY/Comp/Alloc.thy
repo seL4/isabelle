@@ -1,5 +1,4 @@
-(*  Title:      HOL/UNITY/Alloc
-    ID:         $Id$
+(*  ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
@@ -7,90 +6,90 @@ Specification of Chandy and Charpentier's Allocator
 *)
 
 theory Alloc
-imports AllocBase PPROD
+imports AllocBase "../PPROD"
 begin
 
-(** State definitions.  OUTPUT variables are locals **)
+subsection{*State definitions.  OUTPUT variables are locals*}
 
 record clientState =
-  giv :: "nat list"   (*client's INPUT history:  tokens GRANTED*)
-  ask :: "nat list"   (*client's OUTPUT history: tokens REQUESTED*)
-  rel :: "nat list"   (*client's OUTPUT history: tokens RELEASED*)
+  giv :: "nat list"   --{*client's INPUT history:  tokens GRANTED*}
+  ask :: "nat list"   --{*client's OUTPUT history: tokens REQUESTED*}
+  rel :: "nat list"   --{*client's OUTPUT history: tokens RELEASED*}
 
 record 'a clientState_d =
   clientState +
-  dummy :: 'a       (*dummy field for new variables*)
+  dummy :: 'a       --{*dummy field for new variables*}
 
 constdefs
-  (*DUPLICATED FROM Client.thy, but with "tok" removed*)
-  (*Maybe want a special theory section to declare such maps*)
+  --{*DUPLICATED FROM Client.thy, but with "tok" removed*}
+  --{*Maybe want a special theory section to declare such maps*}
   non_dummy :: "'a clientState_d => clientState"
     "non_dummy s == (|giv = giv s, ask = ask s, rel = rel s|)"
 
-  (*Renaming map to put a Client into the standard form*)
+  --{*Renaming map to put a Client into the standard form*}
   client_map :: "'a clientState_d => clientState*'a"
     "client_map == funPair non_dummy dummy"
 
   
 record allocState =
-  allocGiv :: "nat => nat list"   (*OUTPUT history: source of "giv" for i*)
-  allocAsk :: "nat => nat list"   (*INPUT: allocator's copy of "ask" for i*)
-  allocRel :: "nat => nat list"   (*INPUT: allocator's copy of "rel" for i*)
+  allocGiv :: "nat => nat list"   --{*OUTPUT history: source of "giv" for i*}
+  allocAsk :: "nat => nat list"   --{*INPUT: allocator's copy of "ask" for i*}
+  allocRel :: "nat => nat list"   --{*INPUT: allocator's copy of "rel" for i*}
 
 record 'a allocState_d =
   allocState +
-  dummy    :: 'a                (*dummy field for new variables*)
+  dummy    :: 'a                --{*dummy field for new variables*}
 
 record 'a systemState =
   allocState +
-  client :: "nat => clientState"  (*states of all clients*)
-  dummy  :: 'a                    (*dummy field for new variables*)
+  client :: "nat => clientState"  --{*states of all clients*}
+  dummy  :: 'a                    --{*dummy field for new variables*}
 
 
 constdefs
 
-(** Resource allocation system specification **)
+--{** Resource allocation system specification **}
 
-  (*spec (1)*)
+  --{*spec (1)*}
   system_safety :: "'a systemState program set"
     "system_safety ==
      Always {s. (SUM i: lessThan Nclients. (tokens o giv o sub i o client)s)
-     <= NbT + (SUM i: lessThan Nclients. (tokens o rel o sub i o client)s)}"
+     \<le> NbT + (SUM i: lessThan Nclients. (tokens o rel o sub i o client)s)}"
 
-  (*spec (2)*)
+  --{*spec (2)*}
   system_progress :: "'a systemState program set"
     "system_progress == INT i : lessThan Nclients.
 			INT h. 
-			  {s. h <= (ask o sub i o client)s} LeadsTo
+			  {s. h \<le> (ask o sub i o client)s} LeadsTo
 			  {s. h pfixLe (giv o sub i o client) s}"
 
   system_spec :: "'a systemState program set"
     "system_spec == system_safety Int system_progress"
 
-(** Client specification (required) ***)
+--{** Client specification (required) ***}
 
-  (*spec (3)*)
+  --{*spec (3)*}
   client_increasing :: "'a clientState_d program set"
     "client_increasing ==
          UNIV guarantees  Increasing ask Int Increasing rel"
 
-  (*spec (4)*)
+  --{*spec (4)*}
   client_bounded :: "'a clientState_d program set"
     "client_bounded ==
-         UNIV guarantees  Always {s. ALL elt : set (ask s). elt <= NbT}"
+         UNIV guarantees  Always {s. ALL elt : set (ask s). elt \<le> NbT}"
 
-  (*spec (5)*)
+  --{*spec (5)*}
   client_progress :: "'a clientState_d program set"
     "client_progress ==
 	 Increasing giv  guarantees
-	 (INT h. {s. h <= giv s & h pfixGe ask s}
-		 LeadsTo {s. tokens h <= (tokens o rel) s})"
+	 (INT h. {s. h \<le> giv s & h pfixGe ask s}
+		 LeadsTo {s. tokens h \<le> (tokens o rel) s})"
 
-  (*spec: preserves part*)
+  --{*spec: preserves part*}
   client_preserves :: "'a clientState_d program set"
     "client_preserves == preserves giv Int preserves clientState_d.dummy"
 
-  (*environmental constraints*)
+  --{*environmental constraints*}
   client_allowed_acts :: "'a clientState_d program set"
     "client_allowed_acts ==
        {F. AllowedActs F =
@@ -100,54 +99,54 @@ constdefs
     "client_spec == client_increasing Int client_bounded Int client_progress
                     Int client_allowed_acts Int client_preserves"
 
-(** Allocator specification (required) ***)
+--{** Allocator specification (required) **}
 
-  (*spec (6)*)
+  --{*spec (6)*}
   alloc_increasing :: "'a allocState_d program set"
     "alloc_increasing ==
 	 UNIV  guarantees
 	 (INT i : lessThan Nclients. Increasing (sub i o allocGiv))"
 
-  (*spec (7)*)
+  --{*spec (7)*}
   alloc_safety :: "'a allocState_d program set"
     "alloc_safety ==
 	 (INT i : lessThan Nclients. Increasing (sub i o allocRel))
          guarantees
 	 Always {s. (SUM i: lessThan Nclients. (tokens o sub i o allocGiv)s)
-         <= NbT + (SUM i: lessThan Nclients. (tokens o sub i o allocRel)s)}"
+         \<le> NbT + (SUM i: lessThan Nclients. (tokens o sub i o allocRel)s)}"
 
-  (*spec (8)*)
+  --{*spec (8)*}
   alloc_progress :: "'a allocState_d program set"
     "alloc_progress ==
 	 (INT i : lessThan Nclients. Increasing (sub i o allocAsk) Int
 	                             Increasing (sub i o allocRel))
          Int
          Always {s. ALL i<Nclients.
-		     ALL elt : set ((sub i o allocAsk) s). elt <= NbT}
+		     ALL elt : set ((sub i o allocAsk) s). elt \<le> NbT}
          Int
          (INT i : lessThan Nclients. 
-	  INT h. {s. h <= (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}
+	  INT h. {s. h \<le> (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}
 		 LeadsTo
-	         {s. tokens h <= (tokens o sub i o allocRel)s})
+	         {s. tokens h \<le> (tokens o sub i o allocRel)s})
          guarantees
 	     (INT i : lessThan Nclients.
-	      INT h. {s. h <= (sub i o allocAsk) s}
+	      INT h. {s. h \<le> (sub i o allocAsk) s}
 	             LeadsTo
 	             {s. h pfixLe (sub i o allocGiv) s})"
 
   (*NOTE: to follow the original paper, the formula above should have had
-	INT h. {s. h i <= (sub i o allocGiv)s & h i pfixGe (sub i o allocAsk)s}
+	INT h. {s. h i \<le> (sub i o allocGiv)s & h i pfixGe (sub i o allocAsk)s}
 	       LeadsTo
-	       {s. tokens h i <= (tokens o sub i o allocRel)s})
+	       {s. tokens h i \<le> (tokens o sub i o allocRel)s})
     thus h should have been a function variable.  However, only h i is ever
     looked at.*)
 
-  (*spec: preserves part*)
+  --{*spec: preserves part*}
   alloc_preserves :: "'a allocState_d program set"
     "alloc_preserves == preserves allocRel Int preserves allocAsk Int
                         preserves allocState_d.dummy"
   
-  (*environmental constraints*)
+  --{*environmental constraints*}
   alloc_allowed_acts :: "'a allocState_d program set"
     "alloc_allowed_acts ==
        {F. AllowedActs F =
@@ -157,36 +156,36 @@ constdefs
     "alloc_spec == alloc_increasing Int alloc_safety Int alloc_progress Int
                    alloc_allowed_acts Int alloc_preserves"
 
-(** Network specification ***)
+--{** Network specification **}
 
-  (*spec (9.1)*)
+  --{*spec (9.1)*}
   network_ask :: "'a systemState program set"
     "network_ask == INT i : lessThan Nclients.
 			Increasing (ask o sub i o client)  guarantees
 			((sub i o allocAsk) Fols (ask o sub i o client))"
 
-  (*spec (9.2)*)
+  --{*spec (9.2)*}
   network_giv :: "'a systemState program set"
     "network_giv == INT i : lessThan Nclients.
 			Increasing (sub i o allocGiv)
 			guarantees
 			((giv o sub i o client) Fols (sub i o allocGiv))"
 
-  (*spec (9.3)*)
+  --{*spec (9.3)*}
   network_rel :: "'a systemState program set"
     "network_rel == INT i : lessThan Nclients.
 			Increasing (rel o sub i o client)
 			guarantees
 			((sub i o allocRel) Fols (rel o sub i o client))"
 
-  (*spec: preserves part*)
+  --{*spec: preserves part*}
   network_preserves :: "'a systemState program set"
     "network_preserves ==
        preserves allocGiv  Int
        (INT i : lessThan Nclients. preserves (rel o sub i o client)  Int
                                    preserves (ask o sub i o client))"
   
-  (*environmental constraints*)
+  --{*environmental constraints*}
   network_allowed_acts :: "'a systemState program set"
     "network_allowed_acts ==
        {F. AllowedActs F =
@@ -201,7 +200,7 @@ constdefs
                      network_preserves"
 
 
-(** State mappings **)
+--{** State mappings **}
   sysOfAlloc :: "((nat => clientState) * 'a) allocState_d => 'a systemState"
     "sysOfAlloc == %s. let (cl,xtr) = allocState_d.dummy s
                        in (| allocGiv = allocGiv s,
@@ -331,7 +330,7 @@ lemma inj_sysOfAlloc [iff]: "inj sysOfAlloc"
   apply (tactic record_auto_tac)
   done
 
-(*We need the inverse; also having it simplifies the proof of surjectivity*)
+text{*We need the inverse; also having it simplifies the proof of surjectivity*}
 lemma inv_sysOfAlloc_eq [simp]: "!!s. inv sysOfAlloc s =  
              (| allocGiv = allocGiv s,    
                 allocAsk = allocAsk s,    
@@ -351,7 +350,7 @@ lemma bij_sysOfAlloc [iff]: "bij sysOfAlloc"
   done
 
 
-(*** bijectivity of sysOfClient ***)
+subsubsection{*bijectivity of @{term sysOfClient}*}
 
 lemma inj_sysOfClient [iff]: "inj sysOfClient"
   apply (unfold sysOfClient_def)
@@ -379,7 +378,7 @@ lemma bij_sysOfClient [iff]: "bij sysOfClient"
   done
 
 
-(*** bijectivity of client_map ***)
+subsubsection{*bijectivity of @{term client_map}*}
 
 lemma inj_client_map [iff]: "inj client_map"
   apply (unfold inj_on_def)
@@ -403,7 +402,7 @@ lemma bij_client_map [iff]: "bij client_map"
   done
 
 
-(** o-simprules for client_map **)
+text{*o-simprules for @{term client_map}*}
 
 lemma fst_o_client_map: "fst o client_map = non_dummy"
   apply (unfold client_map_def)
@@ -421,7 +420,8 @@ lemma snd_o_client_map: "snd o client_map = clientState_d.dummy"
 ML {* bind_thms ("snd_o_client_map'", make_o_equivs (thm "snd_o_client_map")) *}
 declare snd_o_client_map' [simp]
 
-(** o-simprules for sysOfAlloc [MUST BE AUTOMATED] **)
+
+subsection{*o-simprules for @{term sysOfAlloc} [MUST BE AUTOMATED]*}
 
 lemma client_o_sysOfAlloc: "client o sysOfAlloc = fst o allocState_d.dummy "
   apply (tactic record_auto_tac)
@@ -451,7 +451,8 @@ lemma allocRel_o_sysOfAlloc_eq: "allocRel o sysOfAlloc = allocRel"
 ML {* bind_thms ("allocRel_o_sysOfAlloc_eq'", make_o_equivs (thm "allocRel_o_sysOfAlloc_eq")) *}
 declare allocRel_o_sysOfAlloc_eq' [simp]
 
-(** o-simprules for sysOfClient [MUST BE AUTOMATED] **)
+
+subsection{* o-simprules for @{term sysOfClient} [MUST BE AUTOMATED]*}
 
 lemma client_o_sysOfClient: "client o sysOfClient = fst"
   apply (tactic record_auto_tac)
@@ -532,7 +533,7 @@ CANNOT use bind_thm: it puts the theorem into standard form, in effect
 
 declare finite_lessThan [iff]
 
-(*Client : <unfolded specification> *)
+text{*Client : <unfolded specification> *}
 lemmas client_spec_simps =
   client_spec_def client_increasing_def client_bounded_def
   client_progress_def client_allowed_acts_def client_preserves_def
@@ -562,7 +563,7 @@ declare
   Client_preserves_dummy [iff]
 
 
-(*Network : <unfolded specification> *)
+text{*Network : <unfolded specification> *}
 lemmas network_spec_simps =
   network_spec_def network_ask_def network_giv_def
   network_rel_def network_allowed_acts_def network_preserves_def
@@ -594,7 +595,7 @@ declare
   Network_preserves_rel [simplified o_def, simp]
   Network_preserves_ask [simplified o_def, simp]
 
-(*Alloc : <unfolded specification> *)
+text{*Alloc : <unfolded specification> *}
 lemmas alloc_spec_simps =
   alloc_spec_def alloc_increasing_def alloc_safety_def
   alloc_progress_def alloc_allowed_acts_def alloc_preserves_def
@@ -615,7 +616,7 @@ bind_thm ("Alloc_preserves_allocAsk", Alloc_preserves_allocAsk);
 bind_thm ("Alloc_preserves_dummy", Alloc_preserves_dummy);
 *}
 
-(*Strip off the INT in the guarantees postcondition*)
+text{*Strip off the INT in the guarantees postcondition*}
 ML
 {*
 bind_thm ("Alloc_Increasing", normalize Alloc_Increasing_0)
@@ -627,50 +628,45 @@ declare
   Alloc_preserves_dummy [iff]
 
 
-(** Components lemmas [MUST BE AUTOMATED] **)
+subsection{*Components Lemmas [MUST BE AUTOMATED]*}
 
 lemma Network_component_System: "Network Join  
       ((rename sysOfClient  
         (plam x: (lessThan Nclients). rename client_map Client)) Join  
        rename sysOfAlloc Alloc)  
       = System"
-  apply (simp add: System_def Join_ac)
-  done
+  by (simp add: System_def Join_ac)
 
 lemma Client_component_System: "(rename sysOfClient  
        (plam x: (lessThan Nclients). rename client_map Client)) Join  
       (Network Join rename sysOfAlloc Alloc)  =  System"
-  apply (simp add: System_def Join_ac)
-  done
+  by (simp add: System_def Join_ac)
 
 lemma Alloc_component_System: "rename sysOfAlloc Alloc Join  
        ((rename sysOfClient (plam x: (lessThan Nclients). rename client_map Client)) Join  
         Network)  =  System"
-  apply (simp add: System_def Join_ac)
-  done
+  by (simp add: System_def Join_ac)
 
 declare
   Client_component_System [iff]
   Network_component_System [iff]
   Alloc_component_System [iff]
 
-(** These preservation laws should be generated automatically **)
+
+text{** These preservation laws should be generated automatically **}
 
 lemma Client_Allowed [simp]: "Allowed Client = preserves rel Int preserves ask"
-  apply (auto simp add: Allowed_def Client_AllowedActs safety_prop_Acts_iff)
-  done
+  by (auto simp add: Allowed_def Client_AllowedActs safety_prop_Acts_iff)
 
 lemma Network_Allowed [simp]: "Allowed Network =         
         preserves allocRel Int  
         (INT i: lessThan Nclients. preserves(giv o sub i o client))"
-  apply (auto simp add: Allowed_def Network_AllowedActs safety_prop_Acts_iff)
-  done
+  by (auto simp add: Allowed_def Network_AllowedActs safety_prop_Acts_iff)
 
 lemma Alloc_Allowed [simp]: "Allowed Alloc = preserves allocGiv"
-  apply (auto simp add: Allowed_def Alloc_AllowedActs safety_prop_Acts_iff)
-  done
+  by (auto simp add: Allowed_def Alloc_AllowedActs safety_prop_Acts_iff)
 
-(*needed in rename_client_map_tac*)
+text{*needed in @{text rename_client_map_tac}*}
 lemma OK_lift_rename_Client [simp]: "OK I (%i. lift i (rename client_map Client))"
   apply (rule OK_lift_I)
   apply auto
@@ -678,6 +674,18 @@ lemma OK_lift_rename_Client [simp]: "OK I (%i. lift i (rename client_map Client)
   apply (drule_tac [2] w1 = ask in subset_preserves_o [THEN [2] rev_subsetD])
   apply (auto simp add: o_def split_def)
   done
+
+lemma fst_lift_map_eq_fst [simp]: "fst (lift_map i x) i = fst x"
+apply (insert fst_o_lift_map [of i])
+apply (drule fun_cong [where x=x])  
+apply (simp add: o_def);
+done
+
+lemma fst_o_lift_map' [simp]:
+     "(f \<circ> sub i \<circ> fst \<circ> lift_map i \<circ> g) = f o fst o g"
+apply (subst fst_o_lift_map [symmetric]) 
+apply (simp only: o_assoc) 
+done
 
 
 (*The proofs of rename_Client_Increasing, rename_Client_Bounded and
@@ -717,14 +725,13 @@ val rename_client_map_tac =
         (simpset() addsimps [thm "o_def", thm "non_dummy_def", thm "guarantees_Int_right"]) 1]
 *}
 
-(*Lifting Client_Increasing to systemState*)
+text{*Lifting @{text Client_Increasing} to @{term systemState}*}
 lemma rename_Client_Increasing: "i : I  
       ==> rename sysOfClient (plam x: I. rename client_map Client) :  
             UNIV  guarantees   
             Increasing (ask o sub i o client) Int  
             Increasing (rel o sub i o client)"
-  apply (tactic rename_client_map_tac)
-  sorry
+  by (tactic rename_client_map_tac)
 
 lemma preserves_sub_fst_lift_map: "[| F : preserves w; i ~= j |]  
       ==> F : preserves (sub i o fst o lift_map j o funPair v w)"
@@ -735,38 +742,33 @@ lemma preserves_sub_fst_lift_map: "[| F : preserves w; i ~= j |]
 
 lemma client_preserves_giv_oo_client_map: "[| i < Nclients; j < Nclients |]  
       ==> Client : preserves (giv o sub i o fst o lift_map j o client_map)"
-  apply (case_tac "i=j")
-  apply (simp add: o_def non_dummy_def)
-  sorry
-(*
+  apply (case_tac "i=j") 
+  apply (simp, simp add: o_def non_dummy_def)
   apply (drule Client_preserves_dummy [THEN preserves_sub_fst_lift_map])
   apply (drule_tac [!] subset_preserves_o [THEN [2] rev_subsetD])
   apply (simp add: o_def client_map_def)
   done
-*)
 
 lemma rename_sysOfClient_ok_Network:
   "rename sysOfClient (plam x: lessThan Nclients. rename client_map Client) 
     ok Network"
-  apply (auto simp add: ok_iff_Allowed client_preserves_giv_oo_client_map)
-  done
+  by (auto simp add: ok_iff_Allowed client_preserves_giv_oo_client_map)
 
 lemma rename_sysOfClient_ok_Alloc:
   "rename sysOfClient (plam x: lessThan Nclients. rename client_map Client) 
     ok rename sysOfAlloc Alloc"
-  apply (simp add: ok_iff_Allowed)
-  done
+  by (simp add: ok_iff_Allowed)
 
 lemma rename_sysOfAlloc_ok_Network: "rename sysOfAlloc Alloc ok Network"
-  apply (simp add: ok_iff_Allowed)
-  done
+  by (simp add: ok_iff_Allowed)
 
 declare
   rename_sysOfClient_ok_Network [iff]
   rename_sysOfClient_ok_Alloc [iff]
   rename_sysOfAlloc_ok_Network [iff]
 
-(*The "ok" laws, re-oriented*)
+text{*The "ok" laws, re-oriented. 
+  But not sure this works: theorem @{text ok_commute} is needed below*}
 declare
   rename_sysOfClient_ok_Network [THEN ok_sym, iff]
   rename_sysOfClient_ok_Alloc [THEN ok_sym, iff]
@@ -784,22 +786,21 @@ lemmas rename_guarantees_sysOfAlloc_I =
 
 
 (*Lifting Alloc_Increasing up to the level of systemState*)
-ML {*
-bind_thm ("rename_Alloc_Increasing",
-  thm "Alloc_Increasing" RS thm "rename_guarantees_sysOfAlloc_I"
-     |> simplify (simpset() addsimps [thm "surj_rename" RS thm "surj_range", thm "o_def"]))
-*}
+lemmas rename_Alloc_Increasing =
+  Alloc_Increasing
+    [THEN rename_guarantees_sysOfAlloc_I, 
+     simplified surj_rename [THEN surj_range] o_def sub_apply 
+                rename_image_Increasing bij_sysOfAlloc 
+                allocGiv_o_inv_sysOfAlloc_eq'];
 
 lemma System_Increasing_allocGiv: 
      "i < Nclients ==> System : Increasing (sub i o allocGiv)"
   apply (unfold System_def)
   apply (simp add: o_def)
-  sorry
-(*
   apply (rule rename_Alloc_Increasing [THEN guarantees_Join_I1, THEN guaranteesD])
   apply auto
   done
-*)
+
 
 ML {*
 bind_thms ("System_Increasing'", list_of_Int (thm "System_Increasing"))
@@ -807,109 +808,92 @@ bind_thms ("System_Increasing'", list_of_Int (thm "System_Increasing"))
 
 declare System_Increasing' [intro!]
 
-(** Follows consequences.
+text{* Follows consequences.
     The "Always (INT ...) formulation expresses the general safety property
-    and allows it to be combined using Always_Int_rule below. **)
+    and allows it to be combined using @{text Always_Int_rule} below. *}
 
 lemma System_Follows_rel: 
   "i < Nclients ==> System : ((sub i o allocRel) Fols (rel o sub i o client))"
   apply (auto intro!: Network_Rel [THEN component_guaranteesD])
-  sorry
+  apply (simp add: ok_commute [of Network]) 
+  done
 
 lemma System_Follows_ask: 
   "i < Nclients ==> System : ((sub i o allocAsk) Fols (ask o sub i o client))"
-  sorry
-(*
-  apply (auto intro!: [Network_Ask [THEN component_guaranteesD]])
+  apply (auto intro!: Network_Ask [THEN component_guaranteesD])
+  apply (simp add: ok_commute [of Network]) 
   done
-*)
 
 lemma System_Follows_allocGiv: 
   "i < Nclients ==> System : (giv o sub i o client) Fols (sub i o allocGiv)"
   apply (auto intro!: Network_Giv [THEN component_guaranteesD]
     rename_Alloc_Increasing [THEN component_guaranteesD])
-  apply (simp_all add: o_def non_dummy_def)
-  sorry
-(*
+  apply (simp_all add: o_def non_dummy_def ok_commute [of Network])
   apply (auto intro!: rename_Alloc_Increasing [THEN component_guaranteesD])
   done
-*)
+
 
 lemma Always_giv_le_allocGiv: "System : Always (INT i: lessThan Nclients.  
-                       {s. (giv o sub i o client) s <= (sub i o allocGiv) s})"
+                       {s. (giv o sub i o client) s \<le> (sub i o allocGiv) s})"
   apply auto
-  sorry
-(*
   apply (erule System_Follows_allocGiv [THEN Follows_Bounded])
   done
-*)
+
 
 lemma Always_allocAsk_le_ask: "System : Always (INT i: lessThan Nclients.  
-                       {s. (sub i o allocAsk) s <= (ask o sub i o client) s})"
+                       {s. (sub i o allocAsk) s \<le> (ask o sub i o client) s})"
   apply auto
-  sorry
-(*
   apply (erule System_Follows_ask [THEN Follows_Bounded])
   done
-*)
+
 
 lemma Always_allocRel_le_rel: "System : Always (INT i: lessThan Nclients.  
-                       {s. (sub i o allocRel) s <= (rel o sub i o client) s})"
-  sorry
-(*
-  apply (auto intro!: Follows_Bounded System_Follows_rel)
-  done
-*)
+                       {s. (sub i o allocRel) s \<le> (rel o sub i o client) s})"
+  by (auto intro!: Follows_Bounded System_Follows_rel)
 
-(*** Proof of the safety property (1) ***)
 
-(*safety (1), step 1 is System_Follows_rel*)
+subsection{*Proof of the safety property (1)*}
 
-(*safety (1), step 2*)
+text{*safety (1), step 1 is @{text System_Follows_rel}*}
+
+text{*safety (1), step 2*}
 (* i < Nclients ==> System : Increasing (sub i o allocRel) *)
 lemmas System_Increasing_allocRel = System_Follows_rel [THEN Follows_Increasing1, standard]
 
 (*Lifting Alloc_safety up to the level of systemState.
-  Simplififying with o_def gets rid of the translations but it unfortunately
+  Simplifying with o_def gets rid of the translations but it unfortunately
   gets rid of the other "o"s too.*)
-ML {*
- val rename_Alloc_Safety = 
-    thm "Alloc_Safety" RS thm "rename_guarantees_sysOfAlloc_I"
-     |> simplify (simpset() addsimps [o_def])
-*}
 
-(*safety (1), step 3*)
-(*
+text{*safety (1), step 3*}
 lemma System_sum_bounded: 
-    "System : Always {s. (\<Sum>i: lessThan Nclients. (tokens o sub i o allocGiv) s)
-            <= NbT + (\<Sum>i: lessThan Nclients. (tokens o sub i o allocRel) s)}"
+    "System : Always {s. (\<Sum>i \<in> lessThan Nclients. (tokens o sub i o allocGiv) s)
+            \<le> NbT + (\<Sum>i \<in> lessThan Nclients. (tokens o sub i o allocRel) s)}"
   apply (simp add: o_apply)
-  apply (rule rename_Alloc_Safety [THEN component_guaranteesD])
-  apply (auto simp add: o_simp System_Increasing_allocRel)
+  apply (insert Alloc_Safety [THEN rename_guarantees_sysOfAlloc_I])   
+  apply (simp add: o_def); 
+  apply (erule component_guaranteesD) 
+  apply (auto simp add: System_Increasing_allocRel [simplified sub_apply o_def])
   done
-*)
 
-(** Follows reasoning **)
+text{* Follows reasoning*}
 
 lemma Always_tokens_giv_le_allocGiv: "System : Always (INT i: lessThan Nclients.  
                           {s. (tokens o giv o sub i o client) s  
-                           <= (tokens o sub i o allocGiv) s})"
+                           \<le> (tokens o sub i o allocGiv) s})"
   apply (rule Always_giv_le_allocGiv [THEN Always_weaken])
   apply (auto intro: tokens_mono_prefix simp add: o_apply)
   done
 
 lemma Always_tokens_allocRel_le_rel: "System : Always (INT i: lessThan Nclients.  
                           {s. (tokens o sub i o allocRel) s  
-                           <= (tokens o rel o sub i o client) s})"
+                           \<le> (tokens o rel o sub i o client) s})"
   apply (rule Always_allocRel_le_rel [THEN Always_weaken])
   apply (auto intro: tokens_mono_prefix simp add: o_apply)
   done
 
-(*safety (1), step 4 (final result!) *)
-lemma System_safety: "System : system_safety"
+text{*safety (1), step 4 (final result!) *}
+theorem System_safety: "System : system_safety"
   apply (unfold system_safety_def)
-  sorry
-(*
   apply (tactic {* rtac (Always_Int_rule [thm "System_sum_bounded",
     thm "Always_tokens_giv_le_allocGiv", thm "Always_tokens_allocRel_le_rel"] RS
     thm "Always_weaken") 1 *})
@@ -920,27 +904,27 @@ lemma System_safety: "System : system_safety"
   prefer 3 apply assumption
   apply auto
   done
-*)
 
-(*** Proof of the progress property (2) ***)
+subsection {* Proof of the progress property (2) *}
 
-(*progress (2), step 1 is System_Follows_ask and System_Follows_rel*)
+text{*progress (2), step 1 is @{text System_Follows_ask} and
+      @{text System_Follows_rel}*}
 
-(*progress (2), step 2; see also System_Increasing_allocRel*)
+text{*progress (2), step 2; see also @{text System_Increasing_allocRel}*}
 (* i < Nclients ==> System : Increasing (sub i o allocAsk) *)
 lemmas System_Increasing_allocAsk =  System_Follows_ask [THEN Follows_Increasing1, standard]
 
-(*progress (2), step 3: lifting "Client_Bounded" to systemState*)
+text{*progress (2), step 3: lifting @{text Client_Bounded} to systemState*}
 lemma rename_Client_Bounded: "i : I  
     ==> rename sysOfClient (plam x: I. rename client_map Client) :  
           UNIV  guarantees   
-          Always {s. ALL elt : set ((ask o sub i o client) s). elt <= NbT}"
-  apply (tactic rename_client_map_tac)
-  sorry
+          Always {s. ALL elt : set ((ask o sub i o client) s). elt \<le> NbT}"
+  by (tactic rename_client_map_tac)
+
 
 lemma System_Bounded_ask: "i < Nclients  
       ==> System : Always  
-                    {s. ALL elt : set ((ask o sub i o client) s). elt <= NbT}"
+                    {s. ALL elt : set ((ask o sub i o client) s). elt \<le> NbT}"
   apply (rule component_guaranteesD [OF rename_Client_Bounded Client_component_System])
   apply auto
   done
@@ -949,18 +933,18 @@ lemma Collect_all_imp_eq: "{x. ALL y. P y --> Q x y} = (INT y: {y. P y}. {x. Q x
   apply blast
   done
 
-(*progress (2), step 4*)
+text{*progress (2), step 4*}
 lemma System_Bounded_allocAsk: "System : Always {s. ALL i<Nclients.  
-                          ALL elt : set ((sub i o allocAsk) s). elt <= NbT}"
+                          ALL elt : set ((sub i o allocAsk) s). elt \<le> NbT}"
   apply (auto simp add: Collect_all_imp_eq)
   apply (tactic {* rtac (Always_Int_rule [thm "Always_allocAsk_le_ask",
     thm "System_Bounded_ask"] RS thm "Always_weaken") 1 *})
   apply (auto dest: set_mono)
   done
 
-(*progress (2), step 5 is System_Increasing_allocGiv*)
+text{*progress (2), step 5 is @{text System_Increasing_allocGiv}*}
 
-(*progress (2), step 6*)
+text{*progress (2), step 6*}
 (* i < Nclients ==> System : Increasing (giv o sub i o client) *)
 lemmas System_Increasing_giv =  System_Follows_allocGiv [THEN Follows_Increasing1, standard]
 
@@ -969,23 +953,20 @@ lemma rename_Client_Progress: "i: I
    ==> rename sysOfClient (plam x: I. rename client_map Client)  
         : Increasing (giv o sub i o client)   
           guarantees  
-          (INT h. {s. h <= (giv o sub i o client) s &  
+          (INT h. {s. h \<le> (giv o sub i o client) s &  
                             h pfixGe (ask o sub i o client) s}   
-                  LeadsTo {s. tokens h <= (tokens o rel o sub i o client) s})"
+                  LeadsTo {s. tokens h \<le> (tokens o rel o sub i o client) s})"
   apply (tactic rename_client_map_tac)
-  sorry
-(*
   apply (simp add: Client_Progress [simplified o_def])
   done
-*)
 
 
-(*progress (2), step 7*)
+text{*progress (2), step 7*}
 lemma System_Client_Progress: 
   "System : (INT i : (lessThan Nclients).  
-            INT h. {s. h <= (giv o sub i o client) s &  
+            INT h. {s. h \<le> (giv o sub i o client) s &  
                        h pfixGe (ask o sub i o client) s}   
-                LeadsTo {s. tokens h <= (tokens o rel o sub i o client) s})"
+                LeadsTo {s. tokens h \<le> (tokens o rel o sub i o client) s})"
   apply (rule INT_I)
 (*Couldn't have just used Auto_tac since the "INT h" must be kept*)
   apply (rule component_guaranteesD [OF rename_Client_Progress Client_component_System])
@@ -993,44 +974,39 @@ lemma System_Client_Progress:
   done
 
 (*Concludes
- System : {s. k <= (sub i o allocGiv) s} 
+ System : {s. k \<le> (sub i o allocGiv) s} 
           LeadsTo
-          {s. (sub i o allocAsk) s <= (ask o sub i o client) s} Int
-          {s. k <= (giv o sub i o client) s} *)
-(*
-bind_thm ("lemma",
-    [thm "System_Follows_ask" RS thm "Follows_Bounded",
-     thm "System_Follows_allocGiv" RS thm "Follows_LeadsTo"] MRS thm "Always_LeadsToD");
-*)
+          {s. (sub i o allocAsk) s \<le> (ask o sub i o client) s} Int
+          {s. k \<le> (giv o sub i o client) s} *)
 
-(*A more complicated variant of the previous one*)
-(*
-val lemma2 = [lemma, 
-	      System_Follows_ask RS Follows_Increasing1 RS IncreasingD]
-             MRS PSP_Stable;
-*)
+lemmas System_lemma1 =
+  Always_LeadsToD [OF System_Follows_ask [THEN Follows_Bounded]
+                      System_Follows_allocGiv [THEN Follows_LeadsTo]]
 
-lemma lemma3: "i < Nclients  
-      ==> System : {s. h <= (sub i o allocGiv) s &       
+lemmas System_lemma2 =
+  PSP_Stable [OF System_lemma1
+	      System_Follows_ask [THEN Follows_Increasing1, THEN IncreasingD]]
+
+
+lemma System_lemma3: "i < Nclients  
+      ==> System : {s. h \<le> (sub i o allocGiv) s &       
                        h pfixGe (sub i o allocAsk) s}    
                    LeadsTo   
-                   {s. h <= (giv o sub i o client) s &   
+                   {s. h \<le> (giv o sub i o client) s &   
                        h pfixGe (ask o sub i o client) s}"
   apply (rule single_LeadsTo_I)
-  sorry
-(*
-  apply (rule_tac k6 = "h" and x2 = " (sub i o allocAsk) s" in lemma2 [THEN LeadsTo_weaken])
+  apply (rule_tac k6 = "h" and x2 = " (sub i o allocAsk) s" 
+         in System_lemma2 [THEN LeadsTo_weaken])
   apply auto
-  apply (blast intro: trans_Ge [THEN trans_genPrefix THEN transD] prefix_imp_pfixGe)
+  apply (blast intro: trans_Ge [THEN trans_genPrefix, THEN transD] prefix_imp_pfixGe)
   done
-*)
 
 
-(*progress (2), step 8: Client i's "release" action is visible system-wide*)
+text{*progress (2), step 8: Client i's "release" action is visible system-wide*}
 lemma System_Alloc_Client_Progress: "i < Nclients   
-      ==> System : {s. h <= (sub i o allocGiv) s &  
+      ==> System : {s. h \<le> (sub i o allocGiv) s &  
                        h pfixGe (sub i o allocAsk) s}   
-                   LeadsTo {s. tokens h <= (tokens o sub i o allocRel) s}"
+                   LeadsTo {s. tokens h \<le> (tokens o sub i o allocRel) s}"
   apply (rule LeadsTo_Trans)
    prefer 2
    apply (drule System_Follows_rel [THEN
@@ -1041,35 +1017,28 @@ lemma System_Alloc_Client_Progress: "i < Nclients
    apply (cut_tac [2] System_Client_Progress)
    prefer 2
    apply (blast intro: LeadsTo_Basis)
-  apply (erule lemma3)
+  apply (erule System_lemma3)
   done
 
-(*Lifting Alloc_Progress up to the level of systemState*)
-ML {*
-bind_thm ("rename_Alloc_Progress",
-  thm "Alloc_Progress" RS thm "rename_guarantees_sysOfAlloc_I"
-  |> simplify (simpset() addsimps [thm "o_def"]))
-*}
+text{*Lifting @{text Alloc_Progress} up to the level of systemState*}
 
-(*progress (2), step 9*)
+text{*progress (2), step 9*}
 lemma System_Alloc_Progress: 
  "System : (INT i : (lessThan Nclients).  
-            INT h. {s. h <= (sub i o allocAsk) s}   
+            INT h. {s. h \<le> (sub i o allocAsk) s}   
                    LeadsTo {s. h pfixLe (sub i o allocGiv) s})"
   apply (simp only: o_apply sub_def)
-  sorry
-(*
-  apply (rule rename_Alloc_Progress [THEN component_guaranteesD])
+  apply (insert Alloc_Progress [THEN rename_guarantees_sysOfAlloc_I]) 
+  apply (simp add: o_def del: Set.INT_iff); 
+  apply (erule component_guaranteesD)
   apply (auto simp add: 
-    System_Increasing_allocRel [simplified o_def]
-    System_Increasing_allocAsk [simplified o_def]
-    System_Bounded_allocAsk [simplified o_def]
-    System_Alloc_Client_Progress [simplified o_def])
+    System_Increasing_allocRel [simplified sub_apply o_def]
+    System_Increasing_allocAsk [simplified sub_apply o_def]
+    System_Bounded_allocAsk [simplified sub_apply o_def]
+    System_Alloc_Client_Progress [simplified sub_apply o_def])
   done
-*)
 
-
-(*progress (2), step 10 (final result!) *)
+text{*progress (2), step 10 (final result!) *}
 lemma System_Progress: "System : system_progress"
   apply (unfold system_progress_def)
   apply (cut_tac System_Alloc_Progress)
@@ -1079,14 +1048,13 @@ lemma System_Progress: "System : system_progress"
   done
 
 
-(*Ultimate goal*)
-lemma System_correct: "System : system_spec"
+theorem System_correct: "System : system_spec"
   apply (unfold system_spec_def)
   apply (blast intro: System_safety System_Progress)
   done
 
 
-(** SOME lemmas no longer used **)
+text{* Some obsolete lemmas *}
 
 lemma non_dummy_eq_o_funPair: "non_dummy = (% (g,a,r). (| giv = g, ask = a, rel = r |)) o  
                               (funPair giv (funPair ask rel))"
@@ -1104,7 +1072,7 @@ lemma preserves_non_dummy_eq: "(preserves non_dummy) =
     apply (auto simp add: o_def)
   done
 
-(*Could go to Extend.ML*)
+text{*Could go to Extend.ML*}
 lemma bij_fst_inv_inv_eq: "bij f ==> fst (inv (%(x, u). inv f x) z) = f z"
   apply (rule fst_inv_equalityI)
    apply (rule_tac f = "%z. (f z, ?h z) " in surjI)
