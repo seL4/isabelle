@@ -90,19 +90,11 @@ fun make_pp _ pprint (str, blk, brk, en) _ _ obj =
 
 (* ML command execution -- 'eval' *)
 
-local
-
-fun drop_last [] = []
-  | drop_last [x] = []
-  | drop_last (x :: xs) = x :: drop_last xs;
-
-in
-
 fun use_text (print, err) verbose txt =
   let
     val in_buffer = ref (explode txt);
     val out_buffer = ref ([]: string list);
-    fun output () = implode (drop_last (rev (! out_buffer)));
+    fun output () = implode (rev (case ! out_buffer of "\n" :: cs => cs | cs => cs));
 
     fun get () =
       (case ! in_buffer of
@@ -119,14 +111,13 @@ fun use_text (print, err) verbose txt =
     if verbose then print (output ()) else ()
   end;
 
-end;
-
 
 (*eval command line arguments*)
 local
   fun println s =
     (TextIO.output (TextIO.stdOut, s ^ "\n"); TextIO.flushOut TextIO.stdOut);
-  val eval = use_text (println, println) true;
+  fun eval "-q" = ()
+    | eval txt = use_text (println, println) false txt;
 in
   val _ = PolyML.onEntry (fn () => app eval (CommandLine.arguments ()));
 end;
