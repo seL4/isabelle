@@ -80,8 +80,8 @@ fi
 
 # dist version
 
-DATE=$(date "+%d-%b-%Y")
-DISTDATE=$(date "+%B %Y")
+DATE=$(env LC_ALL=C date "+%d-%b-%Y")
+DISTDATE=$(env LC_ALL=C date "+%B %Y")
 
 if [ "$VERSION" = "-" ]; then
   DISTIDENT="Isabelle_$DATE"
