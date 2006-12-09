@@ -70,6 +70,7 @@ sig
   val print_context: Toplevel.transition -> Toplevel.transition
   val print_theory: bool -> Toplevel.transition -> Toplevel.transition
   val print_syntax: Toplevel.transition -> Toplevel.transition
+  val print_abbrevs: Toplevel.transition -> Toplevel.transition
   val print_facts: Toplevel.transition -> Toplevel.transition
   val print_theorems: Toplevel.transition -> Toplevel.transition
   val print_locales: Toplevel.transition -> Toplevel.transition
@@ -215,9 +216,7 @@ val init_toplevel = Toplevel.imperative (fn () => raise Toplevel.RESTART);
 val welcome = Toplevel.imperative (writeln o Session.welcome);
 
 val exit = Toplevel.keep (fn state =>
-  (Context.set_context (try Toplevel.theory_of state);
-    writeln "Leaving the Isar loop.  Invoke 'Isar.loop();' to continue.";
-    raise Toplevel.TERMINATE));
+  (Context.set_context (try Toplevel.theory_of state); raise Toplevel.TERMINATE));
 
 val quit = Toplevel.imperative quit;
 
@@ -336,6 +335,9 @@ fun print_theory verbose = Toplevel.unknown_theory o
 
 val print_syntax = Toplevel.unknown_context o
   Toplevel.keep (ProofContext.print_syntax o Toplevel.context_of);
+
+val print_abbrevs = Toplevel.unknown_context o
+  Toplevel.keep (ProofContext.print_abbrevs o Toplevel.context_of);
 
 val print_facts = Toplevel.unknown_context o Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
