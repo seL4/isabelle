@@ -689,7 +689,7 @@ fun mk_app _ p [] = p
 
 fun new_names t xs = Name.variant_list
   (map (fst o fst o dest_Var) (term_vars t) union
-    add_term_names (t, ML_Syntax.reserved)) (map mk_id xs);
+    add_term_names (t, ML_Syntax.reserved_names)) (map mk_id xs);
 
 fun new_name t x = hd (new_names t [x]);
 

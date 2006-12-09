@@ -567,7 +567,7 @@ fun seri_sml output reserved_user module_alias module_prolog
     datatype node =
         Def of string * ml_def option
       | Module of string * ((Name.context * Name.context) * node Graph.T);
-    val empty_names = Name.make_context ("o" :: ML_Syntax.reserved @ reserved_user);
+    val empty_names = ML_Syntax.reserved |> fold Name.declare ("o" :: reserved_user);
     val empty_module = ((empty_names, empty_names), Graph.empty);
     fun map_node [] f = f
       | map_node (m::ms) f =
@@ -587,7 +587,7 @@ fun seri_sml output reserved_user module_alias module_prolog
                     val (x, nsp_nodes') = map_nsp_yield ms f nsp_nodes
                   in (x, Module (dmodlname, nsp_nodes')) end)
           in (x, (nsp, nodes')) end;
-    val init_vars = CodegenThingol.make_vars (ML_Syntax.reserved @ reserved_user);
+    val init_vars = CodegenThingol.make_vars (ML_Syntax.reserved_names @ reserved_user);
     fun name_modl modl =
       let
         val modlname = NameSpace.pack modl
