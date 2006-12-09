@@ -7,7 +7,8 @@ Basic ML syntax operations.
 
 signature ML_SYNTAX =
 sig
-  val reserved: string list
+  val reserved_names: string list
+  val reserved: Name.context
   val is_reserved: string -> bool
   val is_identifier: string -> bool
   val str_of_pair: ('a -> string) -> ('b -> string) -> 'a * 'b -> string
@@ -21,7 +22,7 @@ struct
 
 (* reserved words *)
 
-val reserved =
+val reserved_names =
  ["abstype", "and", "andalso", "as", "case", "do", "datatype", "else",
   "end", "exception", "fn", "fun", "handle", "if", "in", "infix",
   "infixr", "let", "local", "nonfix", "of", "op", "open", "orelse",
@@ -29,7 +30,8 @@ val reserved =
   "eqtype", "functor", "include", "sharing", "sig", "signature",
   "struct", "structure", "where"];
 
-val is_reserved = member (op =) reserved;
+val reserved = Name.make_context reserved_names;
+val is_reserved = Name.is_declared reserved;
 
 
 (* identifiers *)
