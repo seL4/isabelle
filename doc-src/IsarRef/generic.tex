@@ -6,13 +6,14 @@
 
 \indexisarcmd{axiomatization}
 \indexisarcmd{definition}\indexisaratt{defn}
-\indexisarcmd{abbreviation}
+\indexisarcmd{abbreviation}\indexisarcmd{print-abbrevs}
 \indexisarcmd{notation}
 \begin{matharray}{rcll}
   \isarcmd{axiomatization} & : & \isarkeep{local{\dsh}theory} & (axiomatic!)\\
   \isarcmd{definition} & : & \isarkeep{local{\dsh}theory} \\
   defn & : & \isaratt \\
   \isarcmd{abbreviation} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{print_abbrevs}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{notation} & : & \isarkeep{local{\dsh}theory} \\
 \end{matharray}
 
@@ -81,6 +82,9 @@ available, and result names need not be given.
   abbreviations.  The mode may also include an ``$output$'' qualifier
   that affects the concrete syntax declared for abbreviations, cf.\ 
   $\isarkeyword{syntax}$ in \S\ref{sec:syn-trans}.
+  
+\item $\isarkeyword{print_abbrevs}$ prints all constant abbreviations
+  of the current context.
   
 \item $\isarkeyword{notation}~c~mx$ associates mixfix syntax with an
   existing constant or fixed variable.  This is a robust interface to
