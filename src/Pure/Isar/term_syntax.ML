@@ -8,7 +8,7 @@ Common term syntax declarations.
 signature TERM_SYNTAX =
 sig
   val notation: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
-  val abbrevs: Syntax.mode -> ((bstring * mixfix) * term) list -> local_theory -> local_theory
+  val abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory -> local_theory
 end;
 
 structure TermSyntax: TERM_SYNTAX =
@@ -45,16 +45,16 @@ fun target_abbrev (prmode, arg) phi =
     else I
   end;
 
-fun abbrevs prmode raw_args lthy =
+fun abbrev prmode raw_arg lthy =
   let
     val is_local = is_none o Sign.const_constraint (ProofContext.theory_of lthy);
     val local_term = Term.exists_subterm (fn Const (c, _) => is_local c | _ => false);
     val input_only = (#1 Syntax.input_mode, #2 prmode);
-    val expand = ProofContext.cert_term (ProofContext.expand_abbrevs true lthy);
-    val args = raw_args |> map (morph_abbrev (LocalTheory.target_morphism lthy) #>
+    val expand = ProofContext.cert_term (ProofContext.set_expand_abbrevs true lthy);
+    val arg = raw_arg |> (morph_abbrev (LocalTheory.target_morphism lthy) #>
       (fn (lhs, rhs) =>  (*avoid dynamic references to local names*)
         if local_term rhs then (input_only, (lhs, expand rhs))
         else (prmode, (lhs, rhs))));
-  in LocalTheory.term_syntax (fn phi => fold (fn arg => target_abbrev arg phi) args) lthy end;
+  in LocalTheory.term_syntax (fn phi => target_abbrev arg phi) lthy end;
 
 end;
