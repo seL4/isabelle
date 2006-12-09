@@ -211,7 +211,7 @@ and exprgen_typinst_const thy (algbr as (_, consts)) funcgr strct (c, ty_ctxt) t
   let
     val c' = CodegenConsts.norm_of_typ thy (c, ty_ctxt)
     val idf = CodegenNames.const thy c';
-    val ty_decl = Consts.declaration consts idf;
+    val ty_decl = Consts.the_declaration consts idf;
     val insts = (op ~~ o apsnd (map (snd o dest_TVar)) oo pairself)
       (curry (Consts.typargs consts) idf) (ty_ctxt, ty_decl);
     val _ = if exists not (map (Sign.of_sort thy) insts)

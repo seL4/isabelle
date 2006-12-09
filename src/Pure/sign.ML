@@ -285,11 +285,11 @@ val is_logtype = member (op =) o Type.logical_types o tsig_of;
 (* polymorphic constants *)
 
 val consts_of = #consts o rep_sg;
-val the_const_constraint = Consts.constraint o consts_of;
+val the_const_constraint = Consts.the_constraint o consts_of;
 val const_constraint = try o the_const_constraint;
-val the_const_type = Consts.declaration o consts_of;
+val the_const_type = Consts.the_declaration o consts_of;
 val const_type = try o the_const_type;
-val const_monomorphic = Consts.monomorphic o consts_of;
+val const_monomorphic = Consts.is_monomorphic o consts_of;
 val const_syntax_name = Consts.syntax_name o consts_of;
 val const_typargs = Consts.typargs o consts_of;
 val const_instance = Consts.instance o consts_of;
@@ -585,7 +585,7 @@ fun infer_types_simult pp thy consts def_type def_sort used freeze args =
       map (fn (_, T) => certify_typ thy T handle TYPE (msg, _, _) => error msg) args;
 
     fun infer ts = Result (TypeInfer.infer_types (Syntax.pp_show_brackets pp) (tsig_of thy)
-        (try (Consts.constraint consts)) def_type def_sort (Consts.intern consts)
+        (try (Consts.the_constraint consts)) def_type def_sort (Consts.intern consts)
         (intern_tycons thy) (intern_sort thy) used freeze typs ts)
       handle TYPE (msg, _, _) => Exn (ERROR msg);
 
@@ -758,7 +758,7 @@ fun add_abbrev mode (c, raw_t) thy =
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val (res, consts') = consts_of thy
-      |> Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy) mode ((c, t), true);
+      |> Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy) mode (c, t);
   in (res, thy |> map_consts (K consts')) end;
 
 
