@@ -45,12 +45,17 @@ and scalability.
 
 *** Document preparation ***
 
-* Added antiquotation @{theory name} which prints the name $A$, after
-checking that it refers to a valid ancestor theory in the current
-context.
+* Added antiquotation @{theory name} which prints the given name,
+after checking that it refers to a valid ancestor theory in the
+current context.
 
 * Added antiquotations @{ML_type text} and @{ML_struct text} which
 check the given source text as ML type/structure, printing verbatim.
+
+* Added antiquotation @{abbrev "c args"} which prints the abbreviation
+"c args == rhs" given in the current context.  (Any number of
+arguments on the LHS may be given.)
+
 
 
 *** Pure ***

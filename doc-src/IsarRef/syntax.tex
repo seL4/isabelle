@@ -435,6 +435,7 @@ $\ASSUMENAME$ in \S\ref{sec:proof-context}.
   prop & : & \isarantiq \\
   term & : & \isarantiq \\
   const & : & \isarantiq \\
+  abbrev & : & \isarantiq \\
   typeof & : & \isarantiq \\
   typ & : & \isarantiq \\
   thm_style & : & \isarantiq \\
@@ -465,7 +466,7 @@ statement where all schematic variables have been replaced by fixed ones,
 which are easier to read.
 
 \indexisarant{theory}\indexisarant{thm}\indexisarant{prop}\indexisarant{term}\indexisarant{const}
-\indexisarant{typeof}\indexisarant{typ}\indexisarant{thm-style}
+\indexisarant{abbrev}\indexisarant{typeof}\indexisarant{typ}\indexisarant{thm-style}
 \indexisarant{term-style}\indexisarant{text}\indexisarant{goals}
 \indexisarant{subgoals}\indexisarant{prf}\indexisarant{full-prf}\indexisarant{ML}
 \indexisarant{ML-type}\indexisarant{ML-struct}
@@ -480,6 +481,7 @@ which are easier to read.
     'prop' options prop |
     'term' options term |
     'const' options term |
+    'abbrev' options term |
     'typeof' options term |
     'typ' options type |
     'thm\_style' options name thmref |
@@ -517,6 +519,9 @@ Note that the syntax of antiquotations may \emph{not} include source comments
 \item [$\at\{term~t\}$] prints a well-typed term $t$.
 
 \item [$\at\{const~c\}$] prints a well-defined constant $c$.
+  
+\item [$\at\{abbrev~c\,\vec x\}$] prints a constant abbreviation
+  $c\,\vec x \equiv rhs$ as defined in the current context.
 
 \item [$\at\{typeof~t\}$] prints the type of a well-typed term $t$.
 
