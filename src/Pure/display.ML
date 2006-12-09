@@ -221,7 +221,7 @@ fun pretty_full_theory verbose thy =
     val arties = dest_table (Sign.type_space thy, arities);
     val cnsts = extern_table constants;
     val log_cnsts = map_filter (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
-    val abbrevs = map_filter (fn (c, (ty, SOME t)) => SOME (c, (ty, t)) | _ => NONE) cnsts;
+    val abbrevs = map_filter (fn (c, (ty, SOME (t, _))) => SOME (c, (ty, t)) | _ => NONE) cnsts;
     val cnstrs = extern_table constraints;
     val axms = extern_table axioms;
     val oras = extern_table oracles;
