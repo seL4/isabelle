@@ -74,6 +74,7 @@ sig
   val typ_abbrev: Context.generic * T list -> typ * (Context.generic * T list)
   val typ: Context.generic * T list -> typ * (Context.generic * T list)
   val term: Context.generic * T list -> term * (Context.generic * T list)
+  val term_abbrev: Context.generic * T list -> term * (Context.generic * T list)
   val prop: Context.generic * T list -> term * (Context.generic * T list)
   val tyname: Context.generic * T list -> string * (Context.generic * T list)
   val const: Context.generic * T list -> string * (Context.generic * T list)
@@ -318,6 +319,7 @@ fun named_fact get = internal_fact || (alt_string || named) >> evaluate Fact get
 val typ_abbrev = Scan.peek (named_typ o ProofContext.read_typ_abbrev o Context.proof_of);
 val typ = Scan.peek (named_typ o ProofContext.read_typ o Context.proof_of);
 val term = Scan.peek (named_term o ProofContext.read_term o Context.proof_of);
+val term_abbrev = Scan.peek (named_term o ProofContext.read_term_abbrev o Context.proof_of);
 val prop = Scan.peek (named_term o ProofContext.read_prop o Context.proof_of);
 
 
