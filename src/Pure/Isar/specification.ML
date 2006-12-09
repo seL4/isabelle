@@ -146,14 +146,14 @@ fun gen_abbrev prep mode (raw_var, raw_prop) lthy =
   let
     val ((vars, [(_, [prop])]), _) =
       prep (the_list raw_var) [(("", []), [raw_prop])]
-        (lthy |> ProofContext.expand_abbrevs false);
+        (lthy |> ProofContext.set_expand_abbrevs false);
     val ((x, T), rhs) = LocalDefs.abs_def (#2 (LocalDefs.cert_def lthy prop));
     val mx = (case vars of [] => NoSyn | [((y, _), mx)] =>
       if x = y then mx
       else error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y));
     val lthy' = lthy
       |> ProofContext.set_syntax_mode mode    (* FIXME !? *)
-      |> TermSyntax.abbrevs mode [((x, mx), rhs)]
+      |> TermSyntax.abbrev mode ((x, mx), rhs)
       |> ProofContext.restore_syntax_mode lthy;
     val _ = print_consts lthy' (K false) [(x, T)]
   in lthy' end;
