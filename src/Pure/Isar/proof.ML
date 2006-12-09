@@ -154,8 +154,11 @@ fun make_node (context, facts, mode, goal) =
 fun map_node f (Node {context, facts, mode, goal}) =
   make_node (f (context, facts, mode, goal));
 
+val init_context =
+  ProofContext.set_stmt true #> ProofContext.reset_naming;
+
 fun init ctxt =
-  State (Stack.init (make_node (ProofContext.set_stmt true ctxt, NONE, Forward, NONE)));
+  State (Stack.init (make_node (init_context ctxt, NONE, Forward, NONE)));
 
 fun current (State st) = Stack.top st |> (fn Node node => node);
 fun map_current f (State st) = State (Stack.map_top (map_node f) st);
@@ -772,7 +775,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
       fn results => map_context after_ctxt #> after_local results);
   in
     goal_state
-    |> map_context (Variable.set_body true #> ProofContext.set_stmt true)
+    |> map_context (init_context #> Variable.set_body true)
     |> put_goal (SOME (make_goal ((kind, propss'), [], goal, before_qed, after_qed')))
     |> map_context (ProofContext.add_cases false (AutoBind.cases thy props))
     |> map_context (ProofContext.auto_bind_goal props)
