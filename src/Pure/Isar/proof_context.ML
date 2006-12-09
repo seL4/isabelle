@@ -25,6 +25,7 @@ sig
   val theory: (theory -> theory) -> Proof.context -> Proof.context
   val theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
   val pretty_term: Proof.context -> term -> Pretty.T
+  val pretty_term_abbrev: Proof.context -> term -> Pretty.T
   val pretty_typ: Proof.context -> typ -> Pretty.T
   val pretty_sort: Proof.context -> sort -> Pretty.T
   val pretty_classrel: Proof.context -> class list -> Pretty.T
@@ -60,6 +61,7 @@ sig
   val read_prop_schematic: Proof.context -> string -> term
   val read_term_pats: typ -> Proof.context -> string list -> term list
   val read_prop_pats: Proof.context -> string list -> term list
+  val read_term_abbrev: Proof.context -> string -> term
   val cert_term: Proof.context -> term -> term
   val cert_prop: Proof.context -> term -> term
   val cert_term_pats: typ -> Proof.context -> term list -> term list
@@ -106,6 +108,7 @@ sig
   val qualified_names: Proof.context -> Proof.context
   val sticky_prefix: string -> Proof.context -> Proof.context
   val restore_naming: Proof.context -> Proof.context -> Proof.context
+  val reset_naming: Proof.context -> Proof.context
   val hide_thms: bool -> string list -> Proof.context -> Proof.context
   val put_thms: string * thm list option -> Proof.context -> Proof.context
   val note_thmss: string ->
@@ -141,12 +144,13 @@ sig
   val get_case: Proof.context -> string -> string option list -> RuleCases.T
   val add_notation: Syntax.mode -> (term * mixfix) list ->
     Proof.context -> Proof.context
-  val expand_abbrevs: bool -> Proof.context -> Proof.context
+  val set_expand_abbrevs: bool -> Proof.context -> Proof.context
   val add_abbrev: string -> bstring * term -> Proof.context ->
     ((string * typ) * term) * Proof.context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: Proof.context -> unit
+  val print_abbrevs: Proof.context -> unit
   val print_binds: Proof.context -> unit
   val print_lthms: Proof.context -> unit
   val print_cases: Proof.context -> unit
@@ -281,6 +285,7 @@ fun pretty_term' abbrevs ctxt t =
     val consts = consts_of ctxt;
     val t' = t
       |> abbrevs ? rewrite_term thy (Consts.abbrevs_of consts (! print_mode @ [""]))
+      |> abbrevs ? rewrite_term thy (Consts.abbrevs_of consts [#1 Syntax.internal_mode])
       |> Sign.extern_term (Consts.extern_early consts) thy
       |> LocalSyntax.extern_term syntax;
   in
@@ -290,7 +295,7 @@ fun pretty_term' abbrevs ctxt t =
 in
 
 val pretty_term = pretty_term' true;
-val pretty_term_no_abbrevs = pretty_term' false;
+val pretty_term_abbrev = pretty_term' false;
 
 end;
 
@@ -328,7 +333,7 @@ fun pretty_fact ctxt ("", ths) = pretty_thms ctxt ths
       Pretty.block (Pretty.fbreaks (Pretty.str (a ^ ":") :: map (pretty_thm ctxt) ths));
 
 fun pretty_proof ctxt prf =
-  pretty_term_no_abbrevs (ctxt |> transfer_syntax (ProofSyntax.proof_syntax prf (theory_of ctxt)))
+  pretty_term_abbrev (ctxt |> transfer_syntax (ProofSyntax.proof_syntax prf (theory_of ctxt)))
     (ProofSyntax.term_of_proof prf);
 
 fun pretty_proof_of ctxt full th =
@@ -759,6 +764,7 @@ val no_base_names   = map_naming NameSpace.no_base_names;
 val qualified_names = map_naming NameSpace.qualified_names;
 val sticky_prefix   = map_naming o NameSpace.sticky_prefix;
 val restore_naming  = map_naming o K o naming_of;
+val reset_naming    = map_naming (K local_naming);
 
 fun hide_thms fully names = map_thms (fn ((space, tab), index) =>
   ((fold (NameSpace.hide fully) names space, tab), index));
@@ -862,7 +868,7 @@ fun context_const_ast_tr context [Syntax.Variable c] =
       let
         val consts = Context.cases Sign.consts_of consts_of context;
         val c' = Consts.intern consts c;
-        val _ = Consts.constraint consts c' handle TYPE (msg, _, _) => error msg;
+        val _ = Consts.the_constraint consts c' handle TYPE (msg, _, _) => error msg;
       in Syntax.Constant (Syntax.constN ^ c') end
   | context_const_ast_tr _ asts = raise Syntax.AST ("const_ast_tr", asts);
 
@@ -875,15 +881,16 @@ val _ = Context.add_setup
 
 (* abbreviations *)
 
-val expand_abbrevs = map_consts o apsnd o Consts.expand_abbrevs;
+val set_expand_abbrevs = map_consts o apsnd o Consts.set_expand;
+fun read_term_abbrev ctxt = read_term (set_expand_abbrevs false ctxt);
 
 fun add_abbrev mode (c, raw_t) ctxt =
   let
-    val t0 = cert_term (ctxt |> expand_abbrevs false) raw_t
+    val t0 = cert_term (ctxt |> set_expand_abbrevs false) raw_t
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
     val (res, consts') = consts_of ctxt
-      |> Consts.abbreviate (pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode ((c, t), true);
+      |> Consts.abbreviate (pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode (c, t);
   in
     ctxt
     |> Variable.declare_term t
@@ -1040,20 +1047,23 @@ fun setmp_verbose f x = Library.setmp verbose true f x;
 val print_syntax = Syntax.print_syntax o syn_of;
 
 
-(* local consts *)
+(* abbreviations *)
 
-fun pretty_consts ctxt =
+fun pretty_abbrevs show_globals ctxt =
   let
     val ((_, globals), (space, consts)) =
       pairself (#constants o Consts.dest) (#consts (rep_context ctxt));
-    fun local_abbrev (_, (_, NONE)) = I
-      | local_abbrev (c, (T, SOME t)) =
-          if Symtab.defined globals c then I else cons (c, Logic.mk_equals (Const (c, T), t));
-    val abbrevs = NameSpace.extern_table (space, Symtab.make (Symtab.fold local_abbrev consts []));
+    fun add_abbrev (_, (_, NONE)) = I
+      | add_abbrev (c, (T, SOME (t, _))) =
+          if not show_globals andalso Symtab.defined globals c then I
+          else cons (c, Logic.mk_equals (Const (c, T), t));
+    val abbrevs = NameSpace.extern_table (space, Symtab.make (Symtab.fold add_abbrev consts []));
   in
     if null abbrevs andalso not (! verbose) then []
-    else [Pretty.big_list "abbreviations:" (map (pretty_term_no_abbrevs ctxt o #2) abbrevs)]
+    else [Pretty.big_list "abbreviations:" (map (pretty_term_abbrev ctxt o #2) abbrevs)]
   end;
+
+val print_abbrevs = Pretty.writeln o Pretty.chunks o pretty_abbrevs true;
 
 
 (* term bindings *)
@@ -1061,7 +1071,7 @@ fun pretty_consts ctxt =
 fun pretty_binds ctxt =
   let
     val binds = Variable.binds_of ctxt;
-    fun prt_bind (xi, (T, t)) = pretty_term_no_abbrevs ctxt (Logic.mk_equals (Var (xi, T), t));
+    fun prt_bind (xi, (T, t)) = pretty_term_abbrev ctxt (Logic.mk_equals (Var (xi, T), t));
   in
     if Vartab.is_empty binds andalso not (! verbose) then []
     else [Pretty.big_list "term bindings:" (map prt_bind (Vartab.dest binds))]
@@ -1190,7 +1200,7 @@ fun pretty_context ctxt =
   in
     verb single (K pretty_thy) @
     pretty_ctxt ctxt @
-    verb pretty_consts (K ctxt) @
+    verb (pretty_abbrevs false) (K ctxt) @
     verb pretty_binds (K ctxt) @
     verb pretty_lthms (K ctxt) @
     verb pretty_cases (K ctxt) @
