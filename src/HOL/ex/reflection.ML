@@ -269,7 +269,7 @@ fun genreif ctxt raw_eqs t =
 	       |> split_last |> fst
   val cert = cterm_of (ProofContext.theory_of ctxt)
   val cvs = map (fn t => t |> (AList.lookup (op =) (!bds)) |> the |> snd 
-			   |> HOLogic.mk_list I (dest_listT t) |> cert |> SOME)
+			   |> HOLogic.mk_list (dest_listT t) |> cert |> SOME)
 		tys
   val th' = (instantiate' [] cvs (th RS sym)) RS sym
   val t' = (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) th'

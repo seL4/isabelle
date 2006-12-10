@@ -230,7 +230,7 @@ fun lexicographic_order_tac ctxt (st: thm) =
       | SOME order  => let
       val clean_table = map (fn x => map (nth x) order) table
       val funs = map (nth base_funs) order
-      val list = HOLogic.mk_list (fn x => x) (fastype_of var --> HOLogic.natT) funs
+      val list = HOLogic.mk_list (fastype_of var --> HOLogic.natT) funs
       val relterm = Abs ("x", fastype_of var, Const(measures, (fastype_of list) --> (range_type (fastype_of rel))) $ list)
       val crelterm = cterm_of thy relterm
       val _ = writeln ("Instantiating R with " ^ (string_of_cterm crelterm))
