@@ -2526,7 +2526,7 @@ subsubsection {* Setup *}
 types_code
   "list" ("_ list")
 attach (term_of) {*
-val term_of_list = HOLogic.mk_list;
+fun term_of_list f T = HOLogic.mk_list T o map f;
 *}
 attach (test) {*
 fun gen_list' aG i j = frequency
