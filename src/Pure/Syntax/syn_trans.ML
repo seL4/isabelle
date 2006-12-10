@@ -246,10 +246,12 @@ fun strip_abss vars_of body_of tm =
     val vars = vars_of tm;
     val body = body_of tm;
     val rev_new_vars = rename_wrt_term body vars;
-  in
-    (map mark_boundT (rev rev_new_vars),
-      subst_bounds (map (mark_bound o #1) rev_new_vars, body))
-  end;
+    fun subst (x, T) b =
+      if can Name.dest_internal x andalso not (Term.loose_bvar1 (b, 0))
+      then (Const ("_idtdummy", T), incr_boundvars ~1 b)
+      else (mark_boundT (x, T), Term.subst_bound (mark_bound x, b));
+    val (rev_vars', body') = fold_map subst rev_new_vars body;
+  in (rev rev_vars', body') end;
 
 
 (*do (partial) eta-contraction before printing*)
