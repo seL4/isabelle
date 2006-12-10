@@ -144,9 +144,13 @@ sig
   val get_case: Proof.context -> string -> string option list -> RuleCases.T
   val add_notation: Syntax.mode -> (term * mixfix) list ->
     Proof.context -> Proof.context
+  val target_notation: Syntax.mode -> (term * mixfix) list -> morphism ->
+    Context.generic -> Context.generic
   val set_expand_abbrevs: bool -> Proof.context -> Proof.context
   val add_abbrev: string -> bstring * term -> Proof.context ->
     ((string * typ) * term) * Proof.context
+  val target_abbrev: Syntax.mode -> (string * mixfix) * term -> morphism ->
+    Context.generic -> Context.generic
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: Proof.context -> unit
@@ -274,18 +278,19 @@ fun theory_result f ctxt =
 
 local
 
-fun rewrite_term thy rews t =
+fun rewrite_term warn thy rews t =
   if can Term.type_of t then Pattern.rewrite_term thy rews [] t
-  else (warning "Printing ill-typed term -- cannot expand abbreviations"; t);
+  else (if warn then warning "Printing malformed term -- cannot expand abbreviations" else (); t);
 
 fun pretty_term' abbrevs ctxt t =
   let
     val thy = theory_of ctxt;
     val syntax = syntax_of ctxt;
     val consts = consts_of ctxt;
+    val do_abbrevs = abbrevs andalso not (Output.has_mode "no_abbrevs");
     val t' = t
-      |> abbrevs ? rewrite_term thy (Consts.abbrevs_of consts (! print_mode @ [""]))
-      |> abbrevs ? rewrite_term thy (Consts.abbrevs_of consts [#1 Syntax.internal_mode])
+      |> do_abbrevs ? rewrite_term true thy (Consts.abbrevs_of consts (! print_mode @ [""]))
+      |> do_abbrevs ? rewrite_term false thy (Consts.abbrevs_of consts [#1 Syntax.internal_mode])
       |> Sign.extern_term (Consts.extern_early consts) thy
       |> LocalSyntax.extern_term syntax;
   in
@@ -860,10 +865,6 @@ fun const_syntax ctxt (Free (x, T), mx) = SOME (true, (x, T, mx))
       Option.map (pair false) (try (Consts.syntax (consts_of ctxt)) (c, mx))
   | const_syntax _ _ = NONE;
 
-fun add_notation prmode args ctxt =
-  ctxt |> map_syntax
-    (LocalSyntax.add_modesyntax (theory_of ctxt) prmode (map_filter (const_syntax ctxt) args));
-
 fun context_const_ast_tr context [Syntax.Variable c] =
       let
         val consts = Context.cases Sign.consts_of consts_of context;
@@ -877,6 +878,17 @@ val _ = Context.add_setup
    [("_context_const", "id => 'a", Delimfix "CONST _"),
     ("_context_const", "longid => 'a", Delimfix "CONST _")] #>
   Sign.add_advanced_trfuns ([("_context_const", context_const_ast_tr)], [], [], []));
+
+
+(* notation *)
+
+fun add_notation mode args ctxt =
+  ctxt |> map_syntax
+    (LocalSyntax.add_modesyntax (theory_of ctxt) mode (map_filter (const_syntax ctxt) args));
+
+fun target_notation mode args phi =   (* FIXME equiv_term; avoid dynamic scoping!? *)
+  let val args' = filter (fn (t, _) => t aconv Morphism.term phi t) args;
+  in Context.mapping (Sign.add_notation mode args') (add_notation mode args') end;
 
 
 (* abbreviations *)
@@ -896,6 +908,19 @@ fun add_abbrev mode (c, raw_t) ctxt =
     |> Variable.declare_term t
     |> map_consts (apsnd (K consts'))
     |> pair res
+  end;
+
+fun target_abbrev prmode ((c, mx), rhs) phi =
+  let
+    val mode = #1 prmode;
+    val c' = Morphism.name phi c;
+    val rhs' = Morphism.term phi rhs;
+    val arg' = (c', rhs');
+    val FIXME = PolyML.print arg';
+  in
+    Context.mapping_result (Sign.add_abbrev mode arg') (add_abbrev mode arg')
+    (* FIXME equiv_term *)
+    #-> (fn (a, _) => (rhs aconv rhs') ? target_notation prmode [(Const a, mx)] Morphism.identity)
   end;
 
 
