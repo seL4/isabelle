@@ -868,6 +868,8 @@ constdefs
   max :: "['a::ord, 'a] => 'a"
   "max a b == (if a <= b then b else a)"
 
+hide const linorder.less_eq_less.max linorder.less_eq_less.min  (* FIXME !? *)
+
 lemma min_linorder:
   "linorder.min (op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool) = min"
   by (rule+) (simp add: min_def linorder.min_def)
