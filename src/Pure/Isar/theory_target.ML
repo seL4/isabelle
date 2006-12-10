@@ -86,7 +86,7 @@ fun abbrev is_loc prmode ((raw_c, mx), raw_t) lthy =
       |> LocalTheory.theory_result (Sign.add_abbrev (#1 prmode) (c, u'));
     val v = Const (#1 const, Term.fastype_of u);
     val v' = Const const;
-    (* FIXME !? *)
+    (* FIXME proper handling of mixfix !? *)
     val mx' = if is_class lthy then NoSyn else Syntax.unlocalize_mixfix is_loc mx;
   in
     lthy1
@@ -105,13 +105,14 @@ fun consts is_loc depends decls lthy =
       let
         val U = map #2 xs ---> T;
         val t = Term.list_comb (Const (Sign.full_name thy c, U), map Free xs);
-        (* FIXME !? *)
+        (* FIXME proper handling of mixfix !? *)
         val mx' = if is_class lthy then NoSyn else Syntax.unlocalize_mixfix is_loc mx;
         val thy' = Sign.add_consts_authentic [(c, U, mx')] thy;
       in (((c, mx), t), thy') end;
 
     val (abbrs, lthy') = lthy |> LocalTheory.theory_result (fold_map const decls);
-    val defs = abbrs |> map (fn (x, t) => (x, (("", []), t)));
+    val defs = abbrs    (* FIXME proper handling of mixfix !? *)
+      |> map (fn ((c, mx), t) => ((c, if is_loc then mx else NoSyn), (("", []), t)));
   in
     lthy'
     |> is_loc ? fold internal_abbrev abbrs
