@@ -153,7 +153,7 @@ fun gen_abbrev prep mode (raw_var, raw_prop) lthy =
       else error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y));
     val lthy' = lthy
       |> ProofContext.set_syntax_mode mode    (* FIXME !? *)
-      |> TermSyntax.abbrev mode ((x, mx), rhs)
+      |> LocalTheory.abbrev mode ((x, mx), rhs)
       |> ProofContext.restore_syntax_mode lthy;
     val _ = print_consts lthy' (K false) [(x, T)]
   in lthy' end;
@@ -165,7 +165,7 @@ val abbreviation_i = gen_abbrev cert_specification;
 (* notation *)
 
 fun gen_notation prep_const mode args lthy =
-  lthy |> TermSyntax.notation mode (map (apfst (prep_const lthy)) args);
+  lthy |> LocalTheory.notation mode (map (apfst (prep_const lthy)) args);
 
 val notation = gen_notation ProofContext.read_const;
 val notation_i = gen_notation (K I);

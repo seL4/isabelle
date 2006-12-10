@@ -508,7 +508,7 @@ fun prepare_fundef defname (fname, fT, mixfix) abstract_qglrs default_str lthy =
           PROFILE "def_rel" (define_recursion_relation (rel_name defname) domT ranT fvar f abstract_qglrs clauses RCss) lthy
 
       val lthy = PROFILE "abbrev"
-        (TermSyntax.abbrev Syntax.default_mode ((defname ^ "_dom", NoSyn), mk_acc domT R)) lthy
+        (LocalTheory.abbrev Syntax.default_mode ((defname ^ "_dom", NoSyn), mk_acc domT R)) lthy
 
       val newthy = ProofContext.theory_of lthy
       val clauses = map (transfer_clause_ctx newthy) clauses
