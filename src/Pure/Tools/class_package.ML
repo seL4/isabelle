@@ -322,10 +322,6 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
     val mapp_sup = AList.make
       (the o AList.lookup (op =) ((flat o map (the_parm_map thy) o the_ancestry thy) supclasses))
       ((map (fst o fst) o Locale.parameters_of_expr thy) expr_supclasses);
-    fun unlocalize syn =
-      let
-        val syn' = Syntax.unlocalize_mixfix true syn;
-      in if syn = syn' then NoSyn else syn' end;
     fun extract_tyvar_consts thy name_locale =
       let
         fun extract_classvar ((c, ty), _) w =
@@ -337,7 +333,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
             | _ => error ("More than one type variable in type signature of constant " ^ quote c));
         val consts1 =
           Locale.parameters_of thy name_locale
-          |> map (apsnd unlocalize)
+          |> map (apsnd (Syntax.unlocalize_mixfix true))
         val SOME v = fold extract_classvar consts1 NONE;
         val consts2 = map ((apfst o apsnd) (subst_clsvar v (TFree (v, [])))) consts1;
       in (v, chop (length mapp_sup) consts2) end;
@@ -381,7 +377,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
           fold (add_global_constraint v name_axclass) mapp_this
     #> add_class_data (name_locale, (name_locale, name_axclass, v, mapp_this,
           map (fst o fst) loc_axioms))
-    #> prove_interpretation_i (bname, [])
+    #> prove_interpretation_i (Logic.const_of_class bname, [])
           (Locale.Locale name_locale) (map (SOME o mk_const thy name_axclass v) (map snd (mapp_sup @ mapp_this)))
           ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
     ))))) #> pair name_locale)
@@ -545,7 +541,7 @@ fun gen_instance_sort prep_class prep_sort do_proof (raw_class, raw_sort) theory
     fun get_thms thy =
       the_ancestry thy sort
       |> AList.make (the_propnames thy)
-      |> map (apsnd (map (NameSpace.append (loc_name))))
+      |> map (apsnd (map (NameSpace.append (Logic.const_of_class loc_name))))
       |> map_filter (fn (superclass, thm_names) =>
           case map_filter (try (PureThy.get_thm thy o Name)) thm_names
            of [] => NONE
