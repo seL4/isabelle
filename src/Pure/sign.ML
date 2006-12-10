@@ -157,6 +157,7 @@ sig
   val certify_prop: theory -> term -> term * typ * int
   val cert_term: theory -> term -> term
   val cert_prop: theory -> term -> term
+  val no_frees: Pretty.pp -> term -> term
   val no_vars: Pretty.pp -> term -> term
   val cert_def: Pretty.pp -> term -> (string * typ) * term
   val read_class: theory -> xstring -> class
@@ -482,12 +483,15 @@ end;
 
 (* specifications *)
 
-fun no_vars pp tm =
-  (case (Term.add_vars tm [], Term.add_tvars tm []) of
+fun no_variables kind add addT mk mkT pp tm =
+  (case (add tm [], addT tm []) of
     ([], []) => tm
-  | (vars, tvars) => error (Pretty.string_of (Pretty.block (Pretty.breaks
-      (Pretty.str "Illegal schematic variable(s) in term:" ::
-       map (Pretty.term pp o Var) vars @ map (Pretty.typ pp o TVar) tvars)))));
+  | (frees, tfrees) => error (Pretty.string_of (Pretty.block (Pretty.breaks
+      (Pretty.str ("Illegal " ^ kind ^ " variable(s) in term:") ::
+       map (Pretty.term pp o mk) frees @ map (Pretty.typ pp o mkT) tfrees)))));
+
+val no_frees = no_variables "free" Term.add_frees Term.add_tfrees Free TFree;
+val no_vars = no_variables "schematic" Term.add_vars Term.add_tvars Var TVar;
 
 fun cert_def pp tm =
   let val ((lhs, rhs), _) = tm
@@ -754,11 +758,14 @@ end;
 
 fun add_abbrev mode (c, raw_t) thy =
   let
-    val prep_tm = Compress.term thy o Term.no_dummy_patterns o cert_term_abbrev thy;
+    val pp = pp thy;
+    val prep_tm = Compress.term thy o no_frees pp o
+      map_types Logic.legacy_varifyT (* FIXME tmp *) o
+      Term.no_dummy_patterns o cert_term_abbrev thy;
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val (res, consts') = consts_of thy
-      |> Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy) mode (c, t);
+      |> Consts.abbreviate pp (tsig_of thy) (naming_of thy) mode (c, t);
   in (res, thy |> map_consts (K consts')) end;
 
 
