@@ -41,14 +41,14 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML		\
   Isar/proof.ML Isar/proof_context.ML Isar/proof_display.ML			\
   Isar/proof_history.ML Isar/rule_cases.ML Isar/rule_insts.ML			\
   Isar/session.ML Isar/skip_proof.ML Isar/specification.ML			\
-  Isar/term_style.ML Isar/term_syntax.ML Isar/theory_target.ML			\
-  Isar/thy_header.ML Isar/toplevel.ML ML-Systems/polyml-4.1.4-patch.ML		\
-  ML-Systems/polyml-4.2.0.ML ML-Systems/polyml-4.9.1.ML				\
-  ML-Systems/polyml-5.0.ML ML-Systems/polyml-interrupt-timeout.ML		\
-  ML-Systems/polyml-posix.ML ML-Systems/polyml.ML ML-Systems/poplogml.ML	\
-  ML-Systems/smlnj.ML Proof/extraction.ML Proof/proof_rewrite_rules.ML		\
-  Proof/proof_syntax.ML Proof/proofchecker.ML Proof/reconstruct.ML Pure.thy	\
-  ROOT.ML ProofGeneral/parsing.ML ProofGeneral/pgip_input.ML                    \
+  Isar/term_style.ML Isar/theory_target.ML Isar/thy_header.ML Isar/toplevel.ML	\
+  ML-Systems/polyml-4.1.4-patch.ML ML-Systems/polyml-4.2.0.ML			\
+  ML-Systems/polyml-4.9.1.ML ML-Systems/polyml-5.0.ML 				\
+  ML-Systems/polyml-interrupt-timeout.ML ML-Systems/polyml-posix.ML		\
+  ML-Systems/polyml.ML ML-Systems/poplogml.ML ML-Systems/smlnj.ML		\
+  Proof/extraction.ML Proof/proof_rewrite_rules.ML Proof/proof_syntax.ML	\
+  Proof/proofchecker.ML Proof/reconstruct.ML Pure.thy ROOT.ML			\
+  ProofGeneral/parsing.ML ProofGeneral/pgip_input.ML 				\
   ProofGeneral/pgip_isabelle.ML ProofGeneral/pgip_markup.ML                     \
   ProofGeneral/pgip.ML ProofGeneral/pgip_output.ML ProofGeneral/pgip_tests.ML	\
   ProofGeneral/pgip_types.ML ProofGeneral/preferences.ML			\
@@ -69,8 +69,7 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML		\
   meta_simplifier.ML morphism.ML name.ML net.ML old_goals.ML pattern.ML		\
   proof_general.ML proofterm.ML pure_thy.ML search.ML sign.ML			\
   simplifier.ML sorts.ML subgoal.ML tactic.ML tctical.ML term.ML		\
-  term_subst.ML theory.ML thm.ML type.ML type_infer.ML unify.ML			\
-  variable.ML
+  term_subst.ML theory.ML thm.ML type.ML type_infer.ML unify.ML variable.ML
 	@./mk
 
 

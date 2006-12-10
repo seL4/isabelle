@@ -34,7 +34,6 @@ use "induct_attrib.ML";
 
 (*derived theory and proof elements*)
 use "local_theory.ML";
-use "term_syntax.ML";
 use "calculation.ML";
 use "obtain.ML";
 use "locale.ML";
