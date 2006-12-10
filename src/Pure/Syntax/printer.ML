@@ -147,10 +147,12 @@ fun ast_of_term context trf show_all_types no_freeTs show_types show_sorts tm =
         (t as Abs _, ts) => Ast.mk_appl (ast_of (SynTrans.abs_tr' t)) (map ast_of ts)
       | ((c as Const ("_free", _)), Free (x, T) :: ts) =>
           Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
-      | ((c as Const ("_bound", _)), Free (x, T) :: ts) =>
-          Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
       | ((c as Const ("_var", _)), Var (xi, T) :: ts) =>
           Ast.mk_appl (constrain (c $ Lexicon.var xi) T) (map ast_of ts)
+      | ((c as Const ("_bound", _)), Free (x, T) :: ts) =>
+          Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
+      | (Const ("_idtdummy", T), ts) =>
+          Ast.mk_appl (constrain (Lexicon.const "_idtdummy") T) (map ast_of ts)
       | (c' as Const (c, T), ts) =>
           if show_all_types
           then Ast.mk_appl (constrain c' T) (map ast_of ts)
