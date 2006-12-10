@@ -24,6 +24,7 @@ sig
     ((bstring * typ) * mixfix) list -> local_theory -> (term * thm) list * local_theory
   val axioms: string -> ((bstring * Attrib.src list) * term list) list -> local_theory ->
     (bstring * thm list) list * local_theory
+  val abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory -> local_theory
   val defs: string -> ((bstring * mixfix) * ((bstring * Attrib.src list) * term)) list ->
     local_theory -> (term * (bstring * thm)) list * local_theory
   val notes: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
@@ -35,6 +36,7 @@ sig
     local_theory -> (term * (bstring * thm)) * local_theory
   val note: string -> (bstring * Attrib.src list) * thm list ->
     local_theory -> (bstring * thm list) * Proof.context
+  val notation: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val target_morphism: local_theory -> morphism
   val target_name: local_theory -> bstring -> string
   val init: string -> operations -> Proof.context -> local_theory
@@ -56,6 +58,7 @@ type operations =
     (term * thm) list * local_theory,
   axioms: string -> ((bstring * Attrib.src list) * term list) list -> local_theory ->
     (bstring * thm list) list * local_theory,
+  abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory -> local_theory,
   defs: string -> ((bstring * mixfix) * ((bstring * Attrib.src list) * term)) list ->
     local_theory -> (term * (bstring * thm)) list * local_theory,
   notes: string ->
@@ -153,6 +156,7 @@ fun operation2 f x y = operation (fn ops => f ops x y);
 val pretty = operation #pretty;
 val consts = operation2 #consts;
 val axioms = operation2 #axioms;
+val abbrev = operation2 #abbrev;
 val defs = operation2 #defs;
 val notes = operation2 #notes;
 val type_syntax = operation1 #type_syntax;
@@ -163,6 +167,10 @@ val target_name = operation #target_name;
 
 fun def kind arg lthy = lthy |> defs kind [arg] |>> hd;
 fun note kind (a, ths) lthy = lthy |> notes kind [(a, [(ths, [])])] |>> hd;
+
+fun notation mode raw_args lthy =
+  let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args
+  in term_syntax (ProofContext.target_notation mode args) lthy end;
 
 
 (* init -- exit *)
