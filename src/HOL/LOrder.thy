@@ -90,63 +90,49 @@ qed
 lemma join_unique: "(is_join j) = (j = join)"
 by (insert is_join_join, auto simp add: is_join_unique)
 
-interpretation lattice:
-  lattice ["op \<le> \<Colon> 'a\<Colon>lorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" meet join]
+interpretation meet_semilat:
+  lower_semilattice ["op \<le> \<Colon> 'a\<Colon>meet_semilorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" meet]
 proof unfold_locales
-  fix x y z :: "'a\<Colon>lorder"
+  fix x y z :: "'a\<Colon>meet_semilorder"
   from is_meet_meet have "is_meet meet" by blast
   note meet = this is_meet_def
   from meet show "meet x y \<le> x" by blast
   from meet show "meet x y \<le> y" by blast
   from meet show "x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> meet y z" by blast
+qed
+
+interpretation join_semilat:
+  upper_semilattice ["op \<le> \<Colon> 'a\<Colon>join_semilorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" join]
+proof unfold_locales
+  fix x y z :: "'a\<Colon>join_semilorder"
   from is_join_join have "is_join join" by blast
   note join = this is_join_def
   from join show "x \<le> join x y" by blast
   from join show "y \<le> join x y" by blast
-  from join show "y \<le> x \<Longrightarrow> z \<le> x \<Longrightarrow> join y z \<le> x" by blast
+  from join show "x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> join x y \<le> z" by blast
 qed
 
-lemma meet_left_le: "meet a b \<le> (a::'a::meet_semilorder)"
-by (insert is_meet_meet, auto simp add: is_meet_def)
+declare
+ join_semilat.antisym_intro[rule del] meet_semilat.antisym_intro[rule del]
+ join_semilat.less_eq_supE[rule del] meet_semilat.less_eq_infE[rule del]
 
-lemma meet_right_le: "meet a b \<le> (b::'a::meet_semilorder)"
-by (insert is_meet_meet, auto simp add: is_meet_def)
+interpretation meet_join_lat:
+  lattice ["op \<le> \<Colon> 'a\<Colon>lorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" meet join]
+by unfold_locales
 
+lemmas meet_left_le = meet_semilat.inf_le1
+lemmas meet_right_le = meet_semilat.inf_le2
+lemmas le_meetI[rule del] = meet_semilat.less_eq_infI
 (* intro! breaks a proof in Hyperreal/SEQ and NumberTheory/IntPrimes *)
-lemma le_meetI:
- "x \<le> a \<Longrightarrow> x \<le> b \<Longrightarrow> x \<le> meet a (b::'a::meet_semilorder)"
-by (insert is_meet_meet, auto simp add: is_meet_def)
+lemmas join_left_le = join_semilat.sup_ge1
+lemmas join_right_le = join_semilat.sup_ge2
+lemmas join_leI[rule del] = join_semilat.less_eq_supI
 
-lemma join_left_le: "a \<le> join a (b::'a::join_semilorder)"
-by (insert is_join_join, auto simp add: is_join_def)
+lemmas meet_join_le = meet_left_le meet_right_le join_left_le join_right_le
 
-lemma join_right_le: "b \<le> join a (b::'a::join_semilorder)"
-by (insert is_join_join, auto simp add: is_join_def)
+lemmas le_meet = meet_semilat.less_eq_inf_conv
 
-lemma join_leI:
- "a \<le> x \<Longrightarrow> b \<le> x \<Longrightarrow> join a b \<le> (x::'a::join_semilorder)"
-by (insert is_join_join, auto simp add: is_join_def)
-
-lemmas meet_join_le[simp] = meet_left_le meet_right_le join_left_le join_right_le
-
-lemma le_meet[simp]: "(x <= meet y z) = (x <= y & x <= z)" (is "?L = ?R")
-proof
-  assume ?L
-  moreover have "meet y z \<le> y" "meet y z <= z" by(simp_all)
-  ultimately show ?R by(blast intro:order_trans)
-next
-  assume ?R thus ?L by (blast intro!:le_meetI)
-qed
-
-lemma join_le[simp]: "(join x y <= z) = (x <= z & y <= z)" (is "?L = ?R")
-proof
-  assume ?L
-  moreover have "x \<le> join x y" "y \<le> join x y" by(simp_all)
-  ultimately show ?R by(blast intro:order_trans)
-next
-  assume ?R thus ?L by (blast intro:join_leI)
-qed
-
+lemmas le_join = join_semilat.above_sup_conv
 
 lemma is_meet_min: "is_meet (min::'a \<Rightarrow> 'a \<Rightarrow> ('a::linorder))"
 by (auto simp add: is_meet_def min_def)
@@ -172,68 +158,22 @@ by (simp add: is_meet_meet is_meet_min is_meet_unique)
 lemma join_max: "join = (max :: 'a\<Rightarrow>'a\<Rightarrow>('a::linorder))"
 by (simp add: is_join_join is_join_max is_join_unique)
 
-lemma meet_idempotent[simp]: "meet x x = x"
-by (rule order_antisym, simp_all add: le_meetI)
-
-lemma join_idempotent[simp]: "join x x = x"
-by (rule order_antisym, simp_all add: join_leI)
-
-lemma meet_comm: "meet x y = meet y x" 
-by (rule order_antisym, (simp add: le_meetI)+)
-
-lemma join_comm: "join x y = join y x"
-by (rule order_antisym, (simp add: join_leI)+)
-
-lemma meet_leI1: "x \<le> z \<Longrightarrow> meet x y \<le> z"
-apply(subgoal_tac "meet x y <= x")
- apply(blast intro:order_trans)
-apply simp
-done
-
-lemma meet_leI2: "y \<le> z \<Longrightarrow> meet x y \<le> z"
-apply(subgoal_tac "meet x y <= y")
- apply(blast intro:order_trans)
-apply simp
-done
-
-lemma le_joinI1: "x \<le> y \<Longrightarrow> x \<le> join y z"
-apply(subgoal_tac "y <= join y z")
- apply(blast intro:order_trans)
-apply simp
-done
-
-lemma le_joinI2: "x \<le> z \<Longrightarrow> x \<le> join y z"
-apply(subgoal_tac "z <= join y z")
- apply(blast intro:order_trans)
-apply simp
-done
-
-lemma meet_assoc: "meet (meet x y) z = meet x (meet y z)"
-apply(rule order_antisym)
-apply (simp add:meet_leI1 meet_leI2)
-apply (simp add:meet_leI1 meet_leI2)
-done
-
-lemma join_assoc: "join (join x y) z = join x (join y z)"
-apply(rule order_antisym)
-apply (simp add:le_joinI1 le_joinI2)
-apply (simp add:le_joinI1 le_joinI2)
-done
-
-lemma meet_left_comm: "meet a (meet b c) = meet b (meet a c)"
-by (simp add: meet_assoc[symmetric, of a b c], simp add: meet_comm[of a b], simp add: meet_assoc)
-
-lemma meet_left_idempotent: "meet y (meet y x) = meet y x"
-by (simp add: meet_assoc meet_comm meet_left_comm)
-
-lemma join_left_comm: "join a (join b c) = join b (join a c)"
-by (simp add: join_assoc[symmetric, of a b c], simp add: join_comm[of a b], simp add: join_assoc)
-
-lemma join_left_idempotent: "join y (join y x) = join y x"
-by (simp add: join_assoc join_comm join_left_comm)
+lemmas meet_idempotent = meet_semilat.inf_idem
+lemmas join_idempotent = join_semilat.sup_idem
+lemmas meet_comm = meet_semilat.inf_commute
+lemmas join_comm = join_semilat.sup_commute
+lemmas meet_leI1[rule del] = meet_semilat.less_eq_infI1
+lemmas meet_leI2[rule del] = meet_semilat.less_eq_infI2
+lemmas le_joinI1[rule del] = join_semilat.less_eq_supI1
+lemmas le_joinI2[rule del] = join_semilat.less_eq_supI2
+lemmas meet_assoc = meet_semilat.inf_assoc
+lemmas join_assoc = join_semilat.sup_assoc
+lemmas meet_left_comm = meet_semilat.inf_left_commute
+lemmas meet_left_idempotent = meet_semilat.inf_left_idem
+lemmas join_left_comm = join_semilat.sup_left_commute
+lemmas join_left_idempotent= join_semilat.sup_left_idem
     
 lemmas meet_aci = meet_assoc meet_comm meet_left_comm meet_left_idempotent
-
 lemmas join_aci = join_assoc join_comm join_left_comm join_left_idempotent
 
 lemma le_def_meet: "(x <= y) = (meet x y = x)"
@@ -252,17 +192,11 @@ apply(simp)
 apply(simp (no_asm))
 done
 
-lemma join_absorp2: "a \<le> b \<Longrightarrow> join a b = b" 
-by (simp add: le_def_join)
+lemmas join_absorp2 = join_semilat.sup_absorb2
+lemmas join_absorp1 = join_semilat.sup_absorb1
 
-lemma join_absorp1: "b \<le> a \<Longrightarrow> join a b = a"
-by (simp add: le_def_join join_aci)
-
-lemma meet_absorp1: "a \<le> b \<Longrightarrow> meet a b = a"
-by (simp add: le_def_meet)
-
-lemma meet_absorp2: "b \<le> a \<Longrightarrow> meet a b = b"
-by (simp add: le_def_meet meet_aci)
+lemmas meet_absorp1 = meet_semilat.inf_absorb1
+lemmas meet_absorp2 = meet_semilat.inf_absorb2
 
 lemma meet_join_absorp: "meet x (join x y) = x"
 by(simp add:meet_absorp1)

@@ -966,7 +966,7 @@ proof (safe intro!: LIMSEQ_I)
     and aux: "\<And>x. \<lbrakk>x \<noteq> a; norm (x - a) < s\<rbrakk> \<Longrightarrow> norm (X x - L) < r"
     by fast
   from LIMSEQ_D [OF S sgz]
-  obtain no where "\<forall>n\<ge>no. norm (S n - a) < s" by fast
+  obtain no where "\<forall>n\<ge>no. norm (S n - a) < s" by blast
   hence "\<forall>n\<ge>no. norm (X (S n) - L) < r" by (simp add: aux as)
   thus "\<exists>no. \<forall>n\<ge>no. norm (X (S n) - L) < r" ..
 qed

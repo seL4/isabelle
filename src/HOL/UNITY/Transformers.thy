@@ -444,11 +444,11 @@ lemma wens_set_subset_single:
 apply (rule subsetI)  
 apply (erule wens_set.induct)
   txt{*Basis*} 
-  apply (force simp add: wens_single_finite_def)
+  apply (fastsimp simp add: wens_single_finite_def)
  txt{*Wens inductive step*}
- apply (case_tac "acta = Id", simp)   
+ apply (case_tac "acta = Id", simp)
  apply (simp add: wens_single_eq)
- apply (elim disjE)   
+ apply (elim disjE)
  apply (simp add: wens_single_Un_eq)
  apply (force simp add: wens_single_finite_Un_eq)
 txt{*Union inductive step*}

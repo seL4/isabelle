@@ -428,7 +428,7 @@ se the definitions of sums and products over finite sets.
 *}
 
 consts
-  foldSet :: "('a => 'b => 'b) => ('c => 'a) => 'b => ('c set \<times> 'b) set"
+  foldSet :: "('a => 'a => 'a) => ('b => 'a) => 'a => ('b set \<times> 'a) set"
 
 inductive "foldSet f g z"
 intros
@@ -440,7 +440,7 @@ insertI [intro]:
 inductive_cases empty_foldSetE [elim!]: "({}, x) : foldSet f g z"
 
 constdefs
-  fold :: "('a => 'b => 'b) => ('c => 'a) => 'b => 'c set => 'b"
+  fold :: "('a => 'a => 'a) => ('b => 'a) => 'a => 'b set => 'a"
   "fold f g z A == THE x. (A, x) : foldSet f g z"
 
 text{*A tempting alternative for the definiens is
@@ -1211,7 +1211,7 @@ proof (cases "finite A")
   proof induct
     case empty thus ?case by simp
   next
-    case (insert x A) thus ?case by (auto intro: order_trans)
+    case (insert x A) thus ?case by (auto simp: add_nonneg_nonneg)
   qed
 next
   case False thus ?thesis by (simp add: setsum_def)
@@ -2213,7 +2213,7 @@ apply(rule ACf_inf)
 apply(rule ACIf.axioms[OF ACIf_inf])
 apply(rule ACIfSL_axioms.intro)
 apply(rule iffI)
- apply(blast intro: antisym inf_le1 inf_le2 inf_least refl)
+ apply(blast intro: antisym inf_le1 inf_le2 inf_greatest refl)
 apply(erule subst)
 apply(rule inf_le2)
 done
@@ -2226,7 +2226,7 @@ apply(rule ACf_sup)
 apply(rule ACIf.axioms[OF ACIf_sup])
 apply(rule ACIfSL_axioms.intro)
 apply(rule iffI)
- apply(blast intro: antisym sup_ge1 sup_ge2 sup_greatest refl)
+ apply(blast intro: antisym sup_ge1 sup_ge2 sup_least refl)
 apply(erule subst)
 apply(rule sup_ge2)
 done
@@ -2247,12 +2247,12 @@ done
 lemma (in Lattice) sup_Inf_absorb[simp]:
   "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (a \<squnion> \<Sqinter>A) = a"
 apply(subst sup_commute)
-apply(simp add:Inf_def sup_absorb ACIfSL.fold1_belowI[OF ACIfSL_inf])
+apply(simp add:Inf_def sup_absorb2 ACIfSL.fold1_belowI[OF ACIfSL_inf])
 done
 
 lemma (in Lattice) inf_Sup_absorb[simp]:
   "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (a \<sqinter> \<Squnion>A) = a"
-by(simp add:Sup_def inf_absorb ACIfSL.fold1_belowI[OF ACIfSL_sup])
+by(simp add:Sup_def inf_absorb1 ACIfSL.fold1_belowI[OF ACIfSL_sup])
 
 
 lemma (in ACIf) hom_fold1_commute:
@@ -2289,7 +2289,7 @@ proof (induct rule: finite_ne_induct)
 next
   case (insert x A)
   have finB: "finite {x \<squnion> b |b. b \<in> B}"
-    by(fast intro: finite_surj[where f = "%b. x \<squnion> b", OF B(1)])
+    by(rule finite_surj[where f = "%b. x \<squnion> b", OF B(1)], auto)
   have finAB: "finite {a \<squnion> b |a b. a \<in> A \<and> b \<in> B}"
   proof -
     have "{a \<squnion> b |a b. a \<in> A \<and> b \<in> B} = (UN a:A. UN b:B. {a \<squnion> b})"
@@ -2330,7 +2330,7 @@ proof (induct rule: finite_ne_induct)
 next
   case (insert x A)
   have finB: "finite {x \<sqinter> b |b. b \<in> B}"
-    by(fast intro: finite_surj[where f = "%b. x \<sqinter> b", OF B(1)])
+    by(rule finite_surj[where f = "%b. x \<sqinter> b", OF B(1)], auto)
   have finAB: "finite {a \<sqinter> b |a b. a \<in> A \<and> b \<in> B}"
   proof -
     have "{a \<sqinter> b |a b. a \<in> A \<and> b \<in> B} = (UN a:A. UN b:B. {a \<sqinter> b})"
