@@ -637,7 +637,7 @@ val COM004_1 = prove_hard
 \  (\\<forall>F' G. equal(F'::'a,G) --> equal(negate(F'),negate(G))) &      \
 \  (\\<forall>H I' J. equal(H::'a,I') --> equal(or(H::'a,J),or(I'::'a,J))) &        \
 \  (\\<forall>K' M L. equal(K'::'a,L) --> equal(or(M::'a,K'),or(M::'a,L))) &        \
-\  (\\<forall>N O_ P. equal(N::'a,O_) --> equal(parent_of(N::'a,P),parent_of(O_::'a,P))) &     \
+\  (\\<forall>N O' P. equal(N::'a,O') --> equal(parent_of(N::'a,P),parent_of(O'::'a,P))) &     \
 \  (\\<forall>Q S' R. equal(Q::'a,R) --> equal(parent_of(S'::'a,Q),parent_of(S'::'a,R))) &  \
 \  (\\<forall>T' U. equal(T'::'a,U) --> equal(right_child_of(T'),right_child_of(U))) &      \
 \  (\\<forall>V W X. equal(V::'a,W) & contradictory(V::'a,X) --> contradictory(W::'a,X)) &  \
@@ -690,7 +690,7 @@ val GEO001_0_eq =
 \  (\\<forall>X V1 V2 V3 V4 Y. equal(X::'a,Y) --> equal(outer_pasch(V1::'a,V2,V3,V4,X),outer_pasch(V1::'a,V2,V3,V4,Y))) &   \
 \  (\\<forall>A B C D E F'. equal(A::'a,B) --> equal(euclid1(A::'a,C,D,E,F'),euclid1(B::'a,C,D,E,F'))) &    \
 \  (\\<forall>G I' H J K' L. equal(G::'a,H) --> equal(euclid1(I'::'a,G,J,K',L),euclid1(I'::'a,H,J,K',L))) & \
-\  (\\<forall>M O_ P N Q R. equal(M::'a,N) --> equal(euclid1(O_::'a,P,M,Q,R),euclid1(O_::'a,P,N,Q,R))) &       \
+\  (\\<forall>M O' P N Q R. equal(M::'a,N) --> equal(euclid1(O'::'a,P,M,Q,R),euclid1(O'::'a,P,N,Q,R))) &       \
 \  (\\<forall>S' U V W T' X. equal(S'::'a,T') --> equal(euclid1(U::'a,V,W,S',X),euclid1(U::'a,V,W,T',X))) & \
 \  (\\<forall>Y A1 B1 C1 D1 Z. equal(Y::'a,Z) --> equal(euclid1(A1::'a,B1,C1,D1,Y),euclid1(A1::'a,B1,C1,D1,Z))) &   \
 \  (\\<forall>E1 F1 G1 H1 I1 J1. equal(E1::'a,F1) --> equal(euclid2(E1::'a,G1,H1,I1,J1),euclid2(F1::'a,G1,H1,I1,J1))) &     \
@@ -749,7 +749,7 @@ val GEO002_ax_eq =
 \  (\\<forall>X V1 V2 V3 V4 Y. equal(X::'a,Y) --> equal(inner_pasch(V1::'a,V2,V3,V4,X),inner_pasch(V1::'a,V2,V3,V4,Y))) &   \
 \  (\\<forall>A B C D E F'. equal(A::'a,B) --> equal(euclid1(A::'a,C,D,E,F'),euclid1(B::'a,C,D,E,F'))) &    \
 \  (\\<forall>G I' H J K' L. equal(G::'a,H) --> equal(euclid1(I'::'a,G,J,K',L),euclid1(I'::'a,H,J,K',L))) & \
-\  (\\<forall>M O_ P N Q R. equal(M::'a,N) --> equal(euclid1(O_::'a,P,M,Q,R),euclid1(O_::'a,P,N,Q,R))) &       \
+\  (\\<forall>M O' P N Q R. equal(M::'a,N) --> equal(euclid1(O'::'a,P,M,Q,R),euclid1(O'::'a,P,N,Q,R))) &       \
 \  (\\<forall>S' U V W T' X. equal(S'::'a,T') --> equal(euclid1(U::'a,V,W,S',X),euclid1(U::'a,V,W,T',X))) & \
 \  (\\<forall>Y A1 B1 C1 D1 Z. equal(Y::'a,Z) --> equal(euclid1(A1::'a,B1,C1,D1,Y),euclid1(A1::'a,B1,C1,D1,Z))) &   \
 \  (\\<forall>E1 F1 G1 H1 I1 J1. equal(E1::'a,F1) --> equal(euclid2(E1::'a,G1,H1,I1,J1),euclid2(F1::'a,G1,H1,I1,J1))) &     \
@@ -1133,7 +1133,7 @@ val LCL143_1 = prove
 \  (\\<forall>D F' E. equal(D,E) --> equal(big_V(F',D),big_V(F',E))) &  \
 \  (\\<forall>G H I'. equal(G,H) --> equal(big_hat(G,I'),big_hat(H,I'))) &      \
 \  (\\<forall>J L K'. equal(J,K') --> equal(big_hat(L,J),big_hat(L,K'))) &      \
-\  (\\<forall>M N O_. equal(M,N) & ordered(M,O_) --> ordered(N,O_)) &      \
+\  (\\<forall>M N O'. equal(M,N) & ordered(M,O') --> ordered(N,O')) &      \
 \  (\\<forall>P R Q. equal(P,Q) & ordered(R,P) --> ordered(R,Q)) &      \
 \  (ordered(x,y)) &     \
 \  (~ordered(implies(z,x),implies(z,y))) --> False",
@@ -1417,7 +1417,7 @@ val SET004_0_eq =
 \  (\\<forall>G I' H. equal(G::'a,H) --> equal(apply(I'::'a,G),apply(I'::'a,H))) &  \
 \  (\\<forall>J K'. equal(J::'a,K') --> equal(cantor(J),cantor(K'))) &      \
 \  (\\<forall>L M. equal(L::'a,M) --> equal(complement(L),complement(M))) & \
-\  (\\<forall>N O_ P. equal(N::'a,O_) --> equal(compos(N::'a,P),compos(O_::'a,P))) & \
+\  (\\<forall>N O' P. equal(N::'a,O') --> equal(compos(N::'a,P),compos(O'::'a,P))) & \
 \  (\\<forall>Q S' R. equal(Q::'a,R) --> equal(compos(S'::'a,Q),compos(S'::'a,R))) &      \
 \  (\\<forall>T' U V. equal(T'::'a,U) --> equal(cross_product(T'::'a,V),cross_product(U::'a,V))) &  \
 \  (\\<forall>W Y X. equal(W::'a,X) --> equal(cross_product(Y::'a,W),cross_product(Y::'a,X))) &     \
@@ -1564,7 +1564,7 @@ val NUM004_0_eq =
 \  (\\<forall>F' G H. equal(F'::'a,G) --> equal(least(F'::'a,H),least(G::'a,H))) &  \
 \  (\\<forall>I' K' J. equal(I'::'a,J) --> equal(least(K'::'a,I'),least(K'::'a,J))) &       \
 \  (\\<forall>L M N. equal(L::'a,M) --> equal(not_well_ordering(L::'a,N),not_well_ordering(M::'a,N))) &     \
-\  (\\<forall>O_ Q P. equal(O_::'a,P) --> equal(not_well_ordering(Q::'a,O_),not_well_ordering(Q::'a,P))) &     \
+\  (\\<forall>O' Q P. equal(O'::'a,P) --> equal(not_well_ordering(Q::'a,O'),not_well_ordering(Q::'a,P))) &     \
 \  (\\<forall>R S' T'. equal(R::'a,S') --> equal(ordinal_add(R::'a,T'),ordinal_add(S'::'a,T'))) &   \
 \  (\\<forall>U W V. equal(U::'a,V) --> equal(ordinal_add(W::'a,U),ordinal_add(W::'a,V))) & \
 \  (\\<forall>X Y Z. equal(X::'a,Y) --> equal(ordinal_multiply(X::'a,Z),ordinal_multiply(Y::'a,Z))) &       \
@@ -1975,7 +1975,7 @@ val RNG011_5 = prove
 \  (\\<forall>A B C D. equal(A::'a,B) --> equal(associator(A::'a,C,D),associator(B::'a,C,D))) &     \
 \  (\\<forall>E G F' H. equal(E::'a,F') --> equal(associator(G::'a,E,H),associator(G::'a,F',H))) &  \
 \  (\\<forall>I' K' L J. equal(I'::'a,J) --> equal(associator(K'::'a,L,I'),associator(K'::'a,L,J))) &       \
-\  (\\<forall>M N O_. equal(M::'a,N) --> equal(commutator(M::'a,O_),commutator(N::'a,O_))) &   \
+\  (\\<forall>M N O'. equal(M::'a,N) --> equal(commutator(M::'a,O'),commutator(N::'a,O'))) &   \
 \  (\\<forall>P R Q. equal(P::'a,Q) --> equal(commutator(R::'a,P),commutator(R::'a,Q))) &   \
 \  (\\<forall>Y X. equal(add(X::'a,Y),add(Y::'a,X))) &  \
 \  (\\<forall>X Y Z. equal(add(add(X::'a,Y),Z),add(X::'a,add(Y::'a,Z)))) &  \
@@ -2022,7 +2022,7 @@ val RNG023_6 = prove
 \  (\\<forall>D E F'. equal(D::'a,E) --> equal(add(D::'a,F'),add(E::'a,F'))) &      \
 \  (\\<forall>G I' H. equal(G::'a,H) --> equal(add(I'::'a,G),add(I'::'a,H))) &      \
 \  (\\<forall>J K'. equal(J::'a,K') --> equal(additive_inverse(J),additive_inverse(K'))) &  \
-\  (\\<forall>L M N O_. equal(L::'a,M) --> equal(associator(L::'a,N,O_),associator(M::'a,N,O_))) &     \
+\  (\\<forall>L M N O'. equal(L::'a,M) --> equal(associator(L::'a,N,O'),associator(M::'a,N,O'))) &     \
 \  (\\<forall>P R Q S'. equal(P::'a,Q) --> equal(associator(R::'a,P,S'),associator(R::'a,Q,S'))) &  \
 \  (\\<forall>T' V W U. equal(T'::'a,U) --> equal(associator(V::'a,W,T'),associator(V::'a,W,U))) &  \
 \  (\\<forall>X Y Z. equal(X::'a,Y) --> equal(commutator(X::'a,Z),commutator(Y::'a,Z))) &   \
@@ -2058,7 +2058,7 @@ val RNG028_2 = prove
 \  (\\<forall>D1 E1 F1. equal(D1::'a,E1) --> equal(multiply(D1::'a,F1),multiply(E1::'a,F1))) &      \
 \  (\\<forall>G1 I1 H1. equal(G1::'a,H1) --> equal(multiply(I1::'a,G1),multiply(I1::'a,H1))) &      \
 \  (\\<forall>X Y Z. equal(associator(X::'a,Y,Z),add(multiply(multiply(X::'a,Y),Z),additive_inverse(multiply(X::'a,multiply(Y::'a,Z)))))) &     \
-\  (\\<forall>L M N O_. equal(L::'a,M) --> equal(associator(L::'a,N,O_),associator(M::'a,N,O_))) &     \
+\  (\\<forall>L M N O'. equal(L::'a,M) --> equal(associator(L::'a,N,O'),associator(M::'a,N,O'))) &     \
 \  (\\<forall>P R Q S'. equal(P::'a,Q) --> equal(associator(R::'a,P,S'),associator(R::'a,Q,S'))) &  \
 \  (\\<forall>T' V W U. equal(T'::'a,U) --> equal(associator(V::'a,W,T'),associator(V::'a,W,U))) &  \
 \  (\\<forall>X Y. ~equal(multiply(multiply(Y::'a,X),Y),multiply(Y::'a,multiply(X::'a,Y)))) &       \
@@ -2163,7 +2163,7 @@ val ROB016_1 = prove_hard
 \  (\\<forall>D F' E. equal(D::'a,E) --> equal(add(F'::'a,D),add(F'::'a,E))) &      \
 \  (\\<forall>G H. equal(G::'a,H) --> equal(negate(G),negate(H))) & \
 \  (\\<forall>J K' L. equal(J::'a,K') --> equal(multiply(J::'a,L),multiply(K'::'a,L))) &    \
-\  (\\<forall>M O_ N. equal(M::'a,N) --> equal(multiply(O_::'a,M),multiply(O_::'a,N))) &       \
+\  (\\<forall>M O' N. equal(M::'a,N) --> equal(multiply(O'::'a,M),multiply(O'::'a,N))) &       \
 \  (\\<forall>P Q. equal(P::'a,Q) --> equal(successor(P),successor(Q))) &   \
 \  (\\<forall>R S'. equal(R::'a,S') & positive_integer(R) --> positive_integer(S')) &       \
 \  (\\<forall>X. equal(multiply(One::'a,X),X)) &    \
@@ -2392,7 +2392,7 @@ val SET025_4 = prove_hard
 \  (\\<forall>V8 X8 W8. equal(V8::'a,W8) --> equal(f9(X8::'a,V8),f9(X8::'a,W8))) &  \
 \  (\\<forall>G H I'. equal(G::'a,H) --> equal(f10(G::'a,I'),f10(H::'a,I'))) &      \
 \  (\\<forall>J L K'. equal(J::'a,K') --> equal(f10(L::'a,J),f10(L::'a,K'))) &      \
-\  (\\<forall>M N O_. equal(M::'a,N) --> equal(f11(M::'a,O_),f11(N::'a,O_))) & \
+\  (\\<forall>M N O'. equal(M::'a,N) --> equal(f11(M::'a,O'),f11(N::'a,O'))) & \
 \  (\\<forall>P R Q. equal(P::'a,Q) --> equal(f11(R::'a,P),f11(R::'a,Q))) & \
 \  (\\<forall>S' T' U. equal(S'::'a,T') --> equal(f12(S'::'a,U),f12(T'::'a,U))) &   \
 \  (\\<forall>V X W. equal(V::'a,W) --> equal(f12(X::'a,V),f12(X::'a,W))) & \
@@ -2443,7 +2443,7 @@ val SET025_4 = prove_hard
 \  (\\<forall>D F' E. equal(D::'a,E) --> equal(apply(F'::'a,D),apply(F'::'a,E))) &  \
 \  (\\<forall>G H I' J. equal(G::'a,H) --> equal(apply_to_two_arguments(G::'a,I',J),apply_to_two_arguments(H::'a,I',J))) &  \
 \  (\\<forall>K' M L N. equal(K'::'a,L) --> equal(apply_to_two_arguments(M::'a,K',N),apply_to_two_arguments(M::'a,L,N))) &  \
-\  (\\<forall>O_ Q R P. equal(O_::'a,P) --> equal(apply_to_two_arguments(Q::'a,R,O_),apply_to_two_arguments(Q::'a,R,P))) &     \
+\  (\\<forall>O' Q R P. equal(O'::'a,P) --> equal(apply_to_two_arguments(Q::'a,R,O'),apply_to_two_arguments(Q::'a,R,P))) &     \
 \  (\\<forall>S' T'. equal(S'::'a,T') --> equal(complement(S'),complement(T'))) &   \
 \  (\\<forall>U V W. equal(U::'a,V) --> equal(composition(U::'a,W),composition(V::'a,W))) & \
 \  (\\<forall>X Z Y. equal(X::'a,Y) --> equal(composition(Z::'a,X),composition(Z::'a,Y))) & \
