@@ -88,18 +88,18 @@ sig
   val mk_binum: IntInf.int -> term
   val bin_of : term -> int list
   val listT : typ -> typ
-  val mk_list: ('a -> term) -> typ -> 'a list -> term
+  val nibbleT: typ
+  val mk_nibble: int -> term
+  val dest_nibble: term -> int
+  val charT: typ
+  val mk_char: int -> term
+  val dest_char: term -> int
+  val stringT: typ
+  val mk_list: typ -> term list -> term
   val dest_list: term -> term list
-  val charT : typ
-  val int_of_nibble : string -> int
-  val mk_char : string -> term
-  val dest_char : term -> int option
-  val print_char : string -> string
-  val stringT : typ
   val mk_string : string -> term
-  val print_string : string -> string
+  val dest_string : term -> string
 end;
-
 
 structure HOLogic: HOLOGIC =
 struct
@@ -177,7 +177,7 @@ fun list_all (xs, t) = fold_rev (fn (x, T) => fn P => all_const T $ Abs (x, T, P
 fun exists_const T = Const ("Ex", [T --> boolT] ---> boolT);
 fun mk_exists (x, T, P) = exists_const T $ absfree (x, T, P);
 
-fun choice_const T = Const("Hilbert_Choice.Eps", (T --> boolT) --> T)
+fun choice_const T = Const("Hilbert_Choice.Eps", (T --> boolT) --> T);
 
 fun Collect_const T = Const ("Collect", [T --> boolT] ---> mk_setT T);
 fun mk_Collect (a, T, t) = Collect_const T $ absfree (a, T, t);
@@ -339,8 +339,7 @@ fun mk_binum n =
       if n = 0 then pls_const
       else if n = ~1 then min_const
       else
-        let
-          val (q,r) = IntInf.divMod (n, 2);
+        let val (q, r) = IntInf.divMod (n, 2);
         in bit_const $ bin_of q $ mk_bit r end;
   in bin_of n end;
 
@@ -354,75 +353,65 @@ fun mk_int 0 = Const ("HOL.zero", intT)
 val realT = Type ("RealDef.real", []);
 
 
-(* list *)
+(* nibble *)
 
-fun listT T =  Type ("List.list", [T]);
+val nibbleT = Type ("List.nibble", []);
 
-fun mk_list f T [] = Const ("List.list.Nil", listT T)
-  | mk_list f T (x :: xs) = Const ("List.list.Cons",
-      T --> listT T --> listT T) $ f x $
-        mk_list f T xs;
+fun mk_nibble n =
+  let val s =
+    if 0 <= n andalso n <= 9 then chr (n + ord "0")
+    else if 10 <= n andalso n <= 15 then chr (n + ord "A" - 10)
+    else raise TERM ("mk_nibble", [])
+  in Const ("List.nibble.Nibble" ^ s, nibbleT) end;
 
-fun dest_list (Const ("List.list.Nil", _)) = []
-  | dest_list (Const ("List.list.Cons", _) $ x $ xs) = x :: dest_list xs
-  | dest_list t = raise TERM ("dest_list", [t]);
+fun dest_nibble t =
+  let fun err () = raise TERM ("dest_nibble", [t]) in
+    (case try (unprefix "List.nibble.Nibble" o fst o Term.dest_Const) t of
+      NONE => err ()
+    | SOME c =>
+        if size c <> 1 then err ()
+        else if "0" <= c andalso c <= "9" then ord c - ord "0"
+        else if "A" <= c andalso c <= "F" then ord c - ord "A" + 10
+        else err ())
+  end;
 
 
 (* char *)
 
-val nibbleT = Type ("List.nibble", []);
 val charT = Type ("List.char", []);
 
-fun int_of_nibble h =
-  if "0" <= h andalso h <= "9" then ord h - ord "0"
-  else if "A" <= h andalso h <= "F" then ord h - ord "A" + 10
-  else raise Match;
+fun mk_char n =
+  if 0 <= n andalso n <= 255 then
+    Const ("List.char.Char", nibbleT --> nibbleT --> charT) $
+      mk_nibble (n div 16) $ mk_nibble (n mod 16)
+  else raise TERM ("mk_char", []);
 
-fun nibble_of_int i =
-  if i <= 9 then chr (ord "0" + i) else chr (ord "A" + i - 10);
+fun dest_char (Const ("List.char.Char", _) $ t $ u) =
+      dest_nibble t * 16 + dest_nibble u
+  | dest_char t = raise TERM ("dest_char", [t]);
 
-fun mk_char c =
-  Const ("List.char.Char", nibbleT --> nibbleT --> charT) $
-    Const ("List.nibble.Nibble" ^ nibble_of_int (ord c div 16), nibbleT) $
-    Const ("List.nibble.Nibble" ^ nibble_of_int (ord c mod 16), nibbleT);
 
-fun dest_char (Const ("List.char.Char", _) $ c1 $ c2) =
-      let
-        fun dest_nibble (Const (s, _)) = (int_of_nibble o unprefix "List.nibble.Nibble") s
-          | dest_nibble _ = raise Match;
-      in
-        (SOME (dest_nibble c1 * 16 + dest_nibble c2)
-        handle Fail _ => NONE | Match => NONE)
-      end
-  | dest_char _ = NONE;
+(* list *)
 
-fun print_char c =
+fun listT T = Type ("List.list", [T]);
+
+fun mk_list T ts =
   let
-    val i = ord c
-  in if i < 32
-    then prefix "\\" (string_of_int i)
-    else c
-  end;
+    val lT = listT T;
+    val Nil = Const ("List.list.Nil", lT);
+    fun Cons t u = Const ("List.list.Cons", T --> lT --> lT) $ t $ u;
+  in fold_rev Cons ts Nil end;
+
+fun dest_list (Const ("List.list.Nil", _)) = []
+  | dest_list (Const ("List.list.Cons", _) $ t $ u) = t :: dest_list u
+  | dest_list t = raise TERM ("dest_list", [t]);
 
 
 (* string *)
 
-val stringT = Type ("List.string", []);
+val stringT = listT charT;
 
-fun mk_string s =
-  let
-    val ty_n = Type ("List.nibble", []);
-    val ty_c = Type ("List.char", []);
-    val ty_l = Type ("List.list", [ty_c]);
-    fun mk_nib n = Const ("List.nibble.Nibble" ^ chr (n + (if n <= 9 then ord "0" else ord "A" - 10)), ty_n);
-    fun mk_char c =
-      if Symbol.is_ascii c andalso Symbol.is_printable c then
-        Const ("List.char.Char", ty_n --> ty_n --> ty_c) $ mk_nib (ord c div 16) $ mk_nib (ord c mod 16)
-      else error ("Printable ASCII character expected: " ^ quote c);
-    fun mk_string c t = Const ("List.list.Cons", ty_c --> ty_l --> ty_l)
-      $ mk_char c $ t;
-  in fold_rev mk_string (explode s) (Const ("List.list.Nil", ty_l)) end;
-
-val print_string = quote;
+val mk_string = mk_list charT o map (mk_char o ord) o explode;
+val dest_string = implode o map (chr o dest_char) o dest_list;
 
 end;
