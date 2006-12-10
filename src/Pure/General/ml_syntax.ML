@@ -11,10 +11,11 @@ sig
   val reserved: Name.context
   val is_reserved: string -> bool
   val is_identifier: string -> bool
-  val str_of_pair: ('a -> string) -> ('b -> string) -> 'a * 'b -> string
-  val str_of_list: ('a -> string) -> 'a list -> string
-  val str_of_option: ('a -> string) -> 'a option -> string
-  val str_of_char: string -> string
+  val print_pair: ('a -> string) -> ('b -> string) -> 'a * 'b -> string
+  val print_list: ('a -> string) -> 'a list -> string
+  val print_option: ('a -> string) -> 'a option -> string
+  val print_char: string -> string
+  val print_string: string -> string
 end;
 
 structure ML_Syntax: ML_SYNTAX =
@@ -42,14 +43,14 @@ fun is_identifier name =
 
 (* unformatted output *)
 
-fun str_of_pair f1 f2 (x, y) = "(" ^ f1 x ^ ", " ^ f2 y ^ ")";
+fun print_pair f1 f2 (x, y) = "(" ^ f1 x ^ ", " ^ f2 y ^ ")";
 
-fun str_of_list f = enclose "[" "]" o commas o map f;
+fun print_list f = enclose "[" "]" o commas o map f;
 
-fun str_of_option f NONE = "NONE"
-  | str_of_option f (SOME x) = "SOME (" ^ f x ^ ")";
+fun print_option f NONE = "NONE"
+  | print_option f (SOME x) = "SOME (" ^ f x ^ ")";
 
-fun str_of_char s =
+fun print_char s =
   if not (Symbol.is_char s) then raise Fail ("Bad character: " ^ quote s)
   else if s = "\"" then "\\\""
   else if s = "\\" then "\\\\"
@@ -60,6 +61,6 @@ fun str_of_char s =
       else "\\" ^ string_of_int c
     end;
 
-val str_of_string = quote o translate_string str_of_char;
+val print_string = quote o translate_string print_char;
 
 end;
