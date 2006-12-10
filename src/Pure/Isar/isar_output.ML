@@ -232,13 +232,14 @@ local
 fun err_bad_nesting pos =
   error ("Bad nesting of commands in presentation" ^ pos);
 
-fun edge1 f (x : string option, y) = the_default I (Option.map (Buffer.add o f) (if x = y then NONE else x));
-fun edge2 f (x : string option, y) = the_default I (Option.map (Buffer.add o f) (if x = y then NONE else y));
+fun edge which f (x: string option, y) =
+  if x = y then I
+  else (case which (x, y) of NONE => I | SOME txt => Buffer.add txt);
 
-val begin_tag = edge2 Latex.begin_tag;
-val end_tag = edge1 Latex.end_tag;
-fun open_delim delim e = edge2 Latex.begin_delim e #> delim #> edge2 Latex.end_delim e;
-fun close_delim delim e = edge1 Latex.begin_delim e #> delim #> edge1 Latex.end_delim e;
+val begin_tag = edge #2 Latex.begin_tag;
+val end_tag = edge #1 Latex.end_tag;
+fun open_delim delim e = edge #2 Latex.begin_delim e #> delim #> edge #2 Latex.end_delim e;
+fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.end_delim e;
 
 in
 
