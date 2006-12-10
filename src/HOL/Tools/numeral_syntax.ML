@@ -2,8 +2,7 @@
     ID:         $Id$
     Authors:    Markus Wenzel, TU Muenchen
 
-Concrete syntax for generic numerals.  Assumes consts and syntax of
-theory HOL/Numeral.
+Concrete syntax for generic numerals.
 *)
 
 signature NUMERAL_SYNTAX =
