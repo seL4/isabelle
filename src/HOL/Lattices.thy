@@ -35,30 +35,35 @@ begin
 
 lemmas antisym_intro[intro!] = antisym
 
-lemma less_eq_infI1[intro]: "a \<sqsubseteq> x \<Longrightarrow> a \<sqinter> b \<sqsubseteq> x"
+lemma le_infI1[intro]: "a \<sqsubseteq> x \<Longrightarrow> a \<sqinter> b \<sqsubseteq> x"
 apply(subgoal_tac "a \<sqinter> b \<sqsubseteq> a")
  apply(blast intro:trans)
 apply simp
 done
 
-lemma less_eq_infI2[intro]: "b \<sqsubseteq> x \<Longrightarrow> a \<sqinter> b \<sqsubseteq> x"
+lemma le_infI2[intro]: "b \<sqsubseteq> x \<Longrightarrow> a \<sqinter> b \<sqsubseteq> x"
 apply(subgoal_tac "a \<sqinter> b \<sqsubseteq> b")
  apply(blast intro:trans)
 apply simp
 done
 
-lemma less_eq_infI[intro!]: "x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> x \<sqsubseteq> a \<sqinter> b"
+lemma le_infI[intro!]: "x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> x \<sqsubseteq> a \<sqinter> b"
 by(blast intro: inf_greatest)
 
-lemma less_eq_infE[elim!]: "x \<sqsubseteq> a \<sqinter> b \<Longrightarrow> (x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> P) \<Longrightarrow> P"
+lemma le_infE[elim!]: "x \<sqsubseteq> a \<sqinter> b \<Longrightarrow> (x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> P) \<Longrightarrow> P"
 by(blast intro: trans)
 
-lemma less_eq_inf_conv [simp]:
+lemma le_inf_iff [simp]:
  "x \<sqsubseteq> y \<sqinter> z = (x \<sqsubseteq> y \<and> x \<sqsubseteq> z)"
 by blast
 
-lemmas below_inf_conv = less_eq_inf_conv
-  -- {* a duplicate for backward compatibility *}
+lemma le_iff_inf: "(x \<sqsubseteq> y) = (x \<sqinter> y = x)"
+apply rule
+ apply(simp add: antisym)
+apply(subgoal_tac "x \<sqinter> y \<sqsubseteq> y")
+ apply(simp)
+apply(simp (no_asm))
+done
 
 end
 
@@ -68,27 +73,35 @@ begin
 
 lemmas antisym_intro[intro!] = antisym
 
-lemma less_eq_supI1[intro]: "x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> a \<squnion> b"
+lemma le_supI1[intro]: "x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> a \<squnion> b"
 apply(subgoal_tac "a \<sqsubseteq> a \<squnion> b")
  apply(blast intro:trans)
 apply simp
 done
 
-lemma less_eq_supI2[intro]: "x \<sqsubseteq> b \<Longrightarrow> x \<sqsubseteq> a \<squnion> b"
+lemma le_supI2[intro]: "x \<sqsubseteq> b \<Longrightarrow> x \<sqsubseteq> a \<squnion> b"
 apply(subgoal_tac "b \<sqsubseteq> a \<squnion> b")
  apply(blast intro:trans)
 apply simp
 done
 
-lemma less_eq_supI[intro!]: "a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> a \<squnion> b \<sqsubseteq> x"
+lemma le_supI[intro!]: "a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> a \<squnion> b \<sqsubseteq> x"
 by(blast intro: sup_least)
 
-lemma less_eq_supE[elim!]: "a \<squnion> b \<sqsubseteq> x \<Longrightarrow> (a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> P) \<Longrightarrow> P"
+lemma le_supE[elim!]: "a \<squnion> b \<sqsubseteq> x \<Longrightarrow> (a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> P) \<Longrightarrow> P"
 by(blast intro: trans)
 
-lemma above_sup_conv[simp]:
+lemma ge_sup_conv[simp]:
  "x \<squnion> y \<sqsubseteq> z = (x \<sqsubseteq> z \<and> y \<sqsubseteq> z)"
 by blast
+
+lemma le_iff_sup: "(x \<sqsubseteq> y) = (x \<squnion> y = y)"
+apply rule
+ apply(simp add: antisym)
+apply(subgoal_tac "x \<sqsubseteq> x \<squnion> y")
+apply(simp)
+ apply(simp (no_asm))
+done
 
 end
 
@@ -162,9 +175,18 @@ by(blast intro: antisym inf_le1 inf_greatest sup_ge1)
 lemma sup_inf_absorb: "x \<squnion> (x \<sqinter> y) = x"
 by(blast intro: antisym sup_ge1 sup_least inf_le1)
 
-lemmas (in lattice) ACI = inf_ACI sup_ACI
+lemmas ACI = inf_ACI sup_ACI
 
-text{* Towards distributivity: if you have one of them, you have them all. *}
+text{* Towards distributivity *}
+
+lemma distrib_sup_le: "x \<squnion> (y \<sqinter> z) \<sqsubseteq> (x \<squnion> y) \<sqinter> (x \<squnion> z)"
+by blast
+
+lemma distrib_inf_le: "(x \<sqinter> y) \<squnion> (x \<sqinter> z) \<sqsubseteq> x \<sqinter> (y \<squnion> z)"
+by blast
+
+
+text{* If you have one of them, you have them all. *}
 
 lemma distrib_imp1:
 assumes D: "!!x y z. x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
@@ -189,6 +211,10 @@ proof-
   also have "\<dots> = (x \<sqinter> y) \<squnion> (x \<sqinter> z)" by(simp add:D)
   finally show ?thesis .
 qed
+
+(* seems unused *)
+lemma modular_le: "x \<sqsubseteq> z \<Longrightarrow> x \<squnion> (y \<sqinter> z) \<sqsubseteq> (x \<squnion> y) \<sqinter> z"
+by blast
 
 end
 
@@ -237,10 +263,10 @@ undesirable. *}
 
 declare
  min_max.antisym_intro[rule del]
- min_max.less_eq_infI[rule del] min_max.less_eq_supI[rule del]
- min_max.less_eq_supE[rule del] min_max.less_eq_infE[rule del]
- min_max.less_eq_supI1[rule del] min_max.less_eq_supI2[rule del]
- min_max.less_eq_infI1[rule del] min_max.less_eq_infI2[rule del]
+ min_max.le_infI[rule del] min_max.le_supI[rule del]
+ min_max.le_supE[rule del] min_max.le_infE[rule del]
+ min_max.le_supI1[rule del] min_max.le_supI2[rule del]
+ min_max.le_infI1[rule del] min_max.le_infI2[rule del]
 
 lemmas le_maxI1 = min_max.sup_ge1
 lemmas le_maxI2 = min_max.sup_ge2
