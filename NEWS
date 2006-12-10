@@ -15,8 +15,8 @@ discontinued altogether.  Note that ML proof scripts may still be used
 with Isar theories; migration is usually quite simple with the ML
 function use_legacy_bindings.  INCOMPATIBILITY.
 
-* Theory syntax: some popular names (e.g. "class", "if", "fun") are
-now keywords.  INCOMPATIBILITY, use double quotes.
+* Theory syntax: some popular names (e.g. "class", "fun", "help",
+"if") are now keywords.  INCOMPATIBILITY, use double quotes.
 
 * Legacy goal package: reduced interface to the bare minimum required
 to keep existing proof scripts running.  Most other user-level
@@ -54,7 +54,7 @@ check the given source text as ML type/structure, printing verbatim.
 
 * Added antiquotation @{abbrev "c args"} which prints the abbreviation
 "c args == rhs" given in the current context.  (Any number of
-arguments on the LHS may be given.)
+arguments may be given on the LHS.)
 
 
 
@@ -286,6 +286,10 @@ Concrete syntax is attached to specified constants in internal form,
 independently of name spaces.  The parse tree representation is
 slightly different -- use 'notation' instead of raw 'syntax', and
 'translations' with explicit "CONST" markup to accommodate this.
+
+* Pure: command 'print_abbrevs' prints all constant abbreviations of
+the current context.  Print mode "no_abbrevs" prevents inversion of
+abbreviations on output.
 
 * Isar/locales: improved parameter handling:
 - use of locales "var" and "struct" no longer necessary;
