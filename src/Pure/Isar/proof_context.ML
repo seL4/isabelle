@@ -916,7 +916,6 @@ fun target_abbrev prmode ((c, mx), rhs) phi =
     val c' = Morphism.name phi c;
     val rhs' = Morphism.term phi rhs;
     val arg' = (c', rhs');
-    val FIXME = PolyML.print arg';
   in
     Context.mapping_result (Sign.add_abbrev mode arg') (add_abbrev mode arg')
     (* FIXME equiv_term *)

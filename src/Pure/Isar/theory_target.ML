@@ -91,7 +91,7 @@ fun abbrev is_loc prmode ((raw_c, mx), raw_t) lthy =
   in
     lthy1
     |> LocalTheory.theory (Sign.add_notation prmode [(v', mx')])
-    |> is_loc ? internal_abbrev (PolyML.print ((c, mx), Term.list_comb (v, xs)))
+    |> is_loc ? internal_abbrev ((c, mx), Term.list_comb (v, xs))
   end;
 
 
