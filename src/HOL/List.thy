@@ -7,6 +7,7 @@ header {* The datatype of finite lists *}
 
 theory List
 imports PreList
+uses "Tools/string_syntax.ML"
 begin
 
 datatype 'a list =
@@ -108,7 +109,7 @@ primrec
   "map f (x#xs) = f(x)#map f xs"
 
 primrec
-  append_Nil:"[]@ys = ys"
+  append_Nil: "[]@ys = ys"
   append_Cons: "(x#xs)@ys = x#(xs@ys)"
 
 primrec
@@ -2515,58 +2516,7 @@ syntax
   "_Char" :: "xstr => char"    ("CHR _")
   "_String" :: "xstr => string"    ("_")
 
-parse_ast_translation {*
-  let
-    val constants = Syntax.Appl o map Syntax.Constant;
-
-    fun mk_nib n = "Nibble" ^ chr (n + (if n <= 9 then ord "0" else ord "A" - 10));
-    fun mk_char c =
-      if Symbol.is_ascii c andalso Symbol.is_printable c then
-        constants ["Char", mk_nib (ord c div 16), mk_nib (ord c mod 16)]
-      else error ("Printable ASCII character expected: " ^ quote c);
-
-    fun mk_string [] = Syntax.Constant "Nil"
-      | mk_string (c :: cs) = Syntax.Appl [Syntax.Constant "Cons", mk_char c, mk_string cs];
-
-    fun char_ast_tr [Syntax.Variable xstr] =
-        (case Syntax.explode_xstr xstr of
-          [c] => mk_char c
-        | _ => error ("Single character expected: " ^ xstr))
-      | char_ast_tr asts = raise AST ("char_ast_tr", asts);
-
-    fun string_ast_tr [Syntax.Variable xstr] =
-        (case Syntax.explode_xstr xstr of
-          [] => constants [Syntax.constrainC, "Nil", "string"]
-        | cs => mk_string cs)
-      | string_ast_tr asts = raise AST ("string_tr", asts);
-  in [("_Char", char_ast_tr), ("_String", string_ast_tr)] end;
-*}
-
-print_ast_translation {*
-  let
-    fun dest_nib (Syntax.Constant c) =
-        (case explode c of
-          ["N", "i", "b", "b", "l", "e", h] => HOLogic.int_of_nibble h
-        | _ => raise Match)
-      | dest_nib _ = raise Match;
-
-    fun dest_chr c1 c2 =
-      let val c = chr (dest_nib c1 * 16 + dest_nib c2)
-      in if Symbol.is_printable c then c else raise Match end;
-
-    fun dest_char (Syntax.Appl [Syntax.Constant "Char", c1, c2]) = dest_chr c1 c2
-      | dest_char _ = raise Match;
-
-    fun xstr cs = Syntax.Appl [Syntax.Constant "_xstr", Syntax.Variable (Syntax.implode_xstr cs)];
-
-    fun char_ast_tr' [c1, c2] = Syntax.Appl [Syntax.Constant "_Char", xstr [dest_chr c1 c2]]
-      | char_ast_tr' _ = raise Match;
-
-    fun list_ast_tr' [args] = Syntax.Appl [Syntax.Constant "_String",
-            xstr (map dest_char (Syntax.unfold_ast "_args" args))]
-      | list_ast_tr' ts = raise Match;
-  in [("Char", char_ast_tr'), ("@list", list_ast_tr')] end;
-*}
+setup StringSyntax.setup
 
 
 subsection {* Code generator *}
@@ -2633,7 +2583,7 @@ fun list_codegen thy defs gr dep thyname b t =
   in SOME (gr', Pretty.list "[" "]" ps) end handle TERM _ => NONE;
 
 fun char_codegen thy defs gr dep thyname b t =
-  case (Option.map chr o HOLogic.dest_char) t 
+  case (Option.map chr o try HOLogic.dest_char) t 
    of SOME c =>
         if Symbol.is_printable c
         then SOME (gr, (Pretty.quote o Pretty.str) c)
@@ -2647,9 +2597,9 @@ in
   #> CodegenSerializer.add_pretty_list "SML" "List.list.Nil" "List.list.Cons"
        (Pretty.enum "," "[" "]") NONE (7, "::")
   #> CodegenSerializer.add_pretty_list "Haskell" "List.list.Nil" "List.list.Cons"
-       (Pretty.enum "," "[" "]") (SOME (HOLogic.print_char, HOLogic.print_string)) (5, ":")
+       (Pretty.enum "," "[" "]") (SOME (ML_Syntax.print_char, ML_Syntax.print_string)) (5, ":")
   #> CodegenPackage.add_appconst
-       ("List.char.Char", CodegenPackage.appgen_char HOLogic.dest_char)
+       ("List.char.Char", CodegenPackage.appgen_char (try HOLogic.dest_char))
 
 end;
 *}
@@ -2704,19 +2654,20 @@ primrec
   "itrev (x#xs) ys = itrev xs (x#ys)"
 
 text {*
-  Only use @{text mem} for generating executable code.  Otherwise
-  use @{prop "x : set xs"} instead --- it is much easier to reason about.
+  Only use @{text mem} for generating executable code.  Otherwise use
+  @{prop "x : set xs"} instead --- it is much easier to reason about.
   The same is true for @{const list_all} and @{const list_ex}: write
   @{text "\<forall>x\<in>set xs"} and @{text "\<exists>x\<in>set xs"} instead because the HOL
-  quantifiers are aleady known to the automatic provers. In fact,
-  the declarations in the code subsection make sure that @{text "\<in>"}, @{text "\<forall>x\<in>set xs"}
-  and @{text "\<exists>x\<in>set xs"} are implemented efficiently.
+  quantifiers are aleady known to the automatic provers. In fact, the
+  declarations in the code subsection make sure that @{text "\<in>"},
+  @{text "\<forall>x\<in>set xs"} and @{text "\<exists>x\<in>set xs"} are implemented
+  efficiently.
 
   Efficient emptyness check is implemented by @{const null}.
 
-  The functions @{const itrev}, @{const filtermap} and @{const map_filter}
-  are just there to generate efficient code. Do not use them
-  for modelling and proving.
+  The functions @{const itrev}, @{const filtermap} and @{const
+  map_filter} are just there to generate efficient code. Do not use
+  them for modelling and proving.
 *}
 
 lemma mem_iff [normal post]:
