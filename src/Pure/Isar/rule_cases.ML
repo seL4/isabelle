@@ -91,7 +91,7 @@ fun extract_assumes _ NONE prop = ([("", Logic.strip_assums_hyp prop)], [])
 
 fun extract_case is_open thy (case_outline, raw_prop) name concls =
   let
-    val rename = if is_open then I else (apfst Name.internal);
+    val rename = if is_open then I else (apfst (Name.internal o Name.clean));
 
     val props = Logic.dest_conjunctions (Drule.norm_hhf thy raw_prop);
     val len = length props;
