@@ -73,30 +73,30 @@ sig
   val Suc_zero: term
   val mk_nat: IntInf.int -> term
   val dest_nat: term -> IntInf.int
-  val intT: typ
-  val mk_int: IntInf.int -> term
-  val realT: typ
   val bitT: typ
   val B0_const: term
   val B1_const: term
+  val mk_bit: int -> term
+  val dest_bit: term -> int
+  val intT: typ
   val pls_const: term
   val min_const: term
   val bit_const: term
   val number_of_const: typ -> term
-  val int_of: int list -> IntInf.int
-  val dest_binum: term -> IntInf.int
   val mk_binum: IntInf.int -> term
-  val bin_of : term -> int list
-  val listT : typ -> typ
+  val dest_binum: term -> IntInf.int
+  val mk_int: IntInf.int -> term
+  val realT: typ
   val nibbleT: typ
   val mk_nibble: int -> term
   val dest_nibble: term -> int
   val charT: typ
   val mk_char: int -> term
   val dest_char: term -> int
-  val stringT: typ
+  val listT : typ -> typ
   val mk_list: typ -> term list -> term
   val dest_list: term -> term list
+  val stringT: typ
   val mk_string : string -> term
   val dest_string : term -> string
 end;
@@ -299,49 +299,43 @@ fun dest_nat (Const ("HOL.zero", _)) = 0
   | dest_nat t = raise TERM ("dest_nat", [t]);
 
 
-(* binary numerals and int *)
+(* bit *)
 
-val intT = Type ("IntDef.int", []);
 val bitT = Type ("Numeral.bit", []);
 
 val B0_const = Const ("Numeral.bit.B0", bitT);
 val B1_const =  Const ("Numeral.bit.B1", bitT);
 
+fun mk_bit 0 = B0_const
+  | mk_bit 1 = B1_const
+  | mk_bit _ = raise TERM ("mk_bit", []);
+
+fun dest_bit (Const ("Numeral.bit.B0", _)) = 0
+  | dest_bit (Const ("Numeral.bit.B1", _)) = 1
+  | dest_bit t = raise TERM ("dest_bit", [t]);
+
+
+(* binary numerals and int -- non-unique representation due to leading zeros/ones! *)
+
+val intT = Type ("IntDef.int", []);
+
 val pls_const = Const ("Numeral.Pls", intT)
 and min_const = Const ("Numeral.Min", intT)
 and bit_const = Const ("Numeral.Bit", [intT, bitT] ---> intT);
 
+fun mk_binum 0 = pls_const
+  | mk_binum ~1 = min_const
+  | mk_binum i =
+      let val (q, r) = IntInf.divMod (i, 2)
+      in bit_const $ mk_binum q $ mk_bit r end;
+
+fun dest_binum (Const ("Numeral.Pls", _)) = 0
+  | dest_binum (Const ("Numeral.Min", _)) = ~1
+  | dest_binum (Const ("Numeral.Bit", _) $ bs $ b) =
+      2 * dest_binum bs + IntInf.fromInt (dest_bit b)
+  | dest_binum t = raise TERM ("dest_binum", [t]);
+
 fun number_of_const T = Const ("Numeral.number_of", intT --> T);
-
-fun int_of [] = 0
-  | int_of (b :: bs) = IntInf.fromInt b + (2 * int_of bs);
-
-(*When called from a print translation, the Numeral qualifier will probably have
-  been removed from Bit, bit.B0, etc.*)  (* FIXME !? *)
-fun dest_bit (Const ("Numeral.bit.B0", _)) = 0
-  | dest_bit (Const ("Numeral.bit.B1", _)) = 1
-  | dest_bit (Const ("bit.B0", _)) = 0
-  | dest_bit (Const ("bit.B1", _)) = 1
-  | dest_bit t = raise TERM("dest_bit", [t]);
-
-fun bin_of (Const ("Numeral.Pls", _)) = []
-  | bin_of (Const ("Numeral.Min", _)) = [~1]
-  | bin_of (Const ("Numeral.Bit", _) $ bs $ b) = dest_bit b :: bin_of bs
-  | bin_of (Const ("Bit", _) $ bs $ b) = dest_bit b :: bin_of bs
-  | bin_of t = raise TERM("bin_of", [t]);
-
-val dest_binum = int_of o bin_of;
-
-fun mk_binum n =
-  let
-    fun mk_bit n = if n = 0 then B0_const else B1_const;
-    fun bin_of n =
-      if n = 0 then pls_const
-      else if n = ~1 then min_const
-      else
-        let val (q, r) = IntInf.divMod (n, 2);
-        in bit_const $ bin_of q $ mk_bit r end;
-  in bin_of n end;
 
 fun mk_int 0 = Const ("HOL.zero", intT)
   | mk_int 1 = Const ("HOL.one", intT)
