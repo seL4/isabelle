@@ -51,11 +51,11 @@ sig
   val prop_tr': term -> term
   val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-  val pts_to_asts: Context.generic ->
-    (string -> (Context.generic -> Ast.ast list -> Ast.ast) option) ->
+  val pts_to_asts: Proof.context ->
+    (string -> (Proof.context -> Ast.ast list -> Ast.ast) option) ->
     Parser.parsetree list -> Ast.ast list
-  val asts_to_terms: Context.generic ->
-    (string -> (Context.generic -> term list -> term) option) -> Ast.ast list -> term list
+  val asts_to_terms: Proof.context ->
+    (string -> (Proof.context -> term list -> term) option) -> Ast.ast list -> term list
 end;
 
 structure SynTrans: SYN_TRANS =
@@ -94,10 +94,14 @@ fun lambda_ast_tr (*"_lambda"*) [pats, body] =
 
 val constrainAbsC = "_constrainAbs";
 
-fun abs_tr (*"_abs"*) [Free (x, T), t] = Term.absfree (x, T, t)
+fun absfree_proper (x, T, t) =
+  if can Name.dest_internal x then error ("Illegal internal variable in abstraction: " ^ quote x)
+  else Term.absfree (x, T, t);
+
+fun abs_tr (*"_abs"*) [Free (x, T), t] = absfree_proper (x, T, t)
   | abs_tr (*"_abs"*) [Const ("_idtdummy", T), t] = Term.absdummy (T, t)
   | abs_tr (*"_abs"*) [Const ("_constrain", _) $ Free (x, T) $ tT, t] =
-      Lexicon.const constrainAbsC $ Term.absfree (x, T, t) $ tT
+      Lexicon.const constrainAbsC $ absfree_proper (x, T, t) $ tT
   | abs_tr (*"_abs"*) [Const ("_constrain", _) $ Const ("_idtdummy", T) $ tT, t] =
       Lexicon.const constrainAbsC $ Term.absdummy (T, t) $ tT
   | abs_tr (*"_abs"*) ts = raise TERM ("abs_tr", ts);
@@ -107,10 +111,10 @@ fun abs_tr (*"_abs"*) [Free (x, T), t] = Term.absfree (x, T, t)
 
 fun mk_binder_tr (syn, name) =
   let
-    fun tr (Free (x, T), t) = Lexicon.const name $ Term.absfree (x, T, t)
+    fun tr (Free (x, T), t) = Lexicon.const name $ absfree_proper (x, T, t)
       | tr (Const ("_idtdummy", T), t) = Lexicon.const name $ Term.absdummy (T, t)
       | tr (Const ("_constrain", _) $ Free (x, T) $ tT, t) =
-          Lexicon.const name $ (Lexicon.const constrainAbsC $ Term.absfree (x, T, t) $ tT)
+          Lexicon.const name $ (Lexicon.const constrainAbsC $ absfree_proper (x, T, t) $ tT)
       | tr (Const ("_constrain", _) $ Const ("_idtdummy", T) $ tT, t) =
           Lexicon.const name $ (Lexicon.const constrainAbsC $ Term.absdummy (T, t) $ tT)
       | tr (Const ("_idts", _) $ idt $ idts, t) = tr (idt, tr (idts, t))
@@ -467,14 +471,14 @@ fun struct_trfuns structs =
 
 (** pts_to_asts **)
 
-fun pts_to_asts context trf pts =
+fun pts_to_asts ctxt trf pts =
   let
     fun trans a args =
       (case trf a of
         NONE => Ast.mk_appl (Ast.Constant a) args
       | SOME f => transform_failure (fn exn =>
             EXCEPTION (exn, "Error in parse ast translation for " ^ quote a))
-          (fn () => f context args) ());
+          (fn () => f ctxt args) ());
 
     (*translate pt bottom-up*)
     fun ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
@@ -489,14 +493,14 @@ fun pts_to_asts context trf pts =
 
 (** asts_to_terms **)
 
-fun asts_to_terms context trf asts =
+fun asts_to_terms ctxt trf asts =
   let
     fun trans a args =
       (case trf a of
         NONE => Term.list_comb (Lexicon.const a, args)
       | SOME f => transform_failure (fn exn =>
             EXCEPTION (exn, "Error in parse translation for " ^ quote a))
-          (fn () => f context args) ());
+          (fn () => f ctxt args) ());
 
     fun term_of (Ast.Constant a) = trans a []
       | term_of (Ast.Variable x) = Lexicon.read_var x
