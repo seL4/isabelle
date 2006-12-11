@@ -536,26 +536,21 @@ undeclared_in:: "prog  \<Rightarrow> memberid \<Rightarrow> qtname \<Rightarrow>
 
 subsubsection "members"
 
-consts
-members:: "prog \<Rightarrow> (qtname \<times> (qtname \<times> memberdecl)) set"
 (* Can't just take a function: prog \<Rightarrow> qtname \<Rightarrow> memberdecl set because
    the class qtname changes to the superclass in the inductive definition
    below
 *)
 
-syntax
-member_of:: "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> bool"
-                           ("_ \<turnstile> _ member'_of _" [61,61,61] 60)
+inductive2
+  members :: "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> bool"
+    ("_ \<turnstile> _ member'_of _" [61,61,61] 60)
+  for G :: prog
+where
 
-translations
- "G\<turnstile>m member_of C" \<rightleftharpoons> "(C,m) \<in> members G"
-
-inductive "members G"  intros
-
-Immediate: "\<lbrakk>G\<turnstile>mbr m declared_in C;declclass m = C\<rbrakk> \<Longrightarrow> G\<turnstile>m member_of C"
-Inherited: "\<lbrakk>G\<turnstile>m inheritable_in (pid C); G\<turnstile>memberid m undeclared_in C; 
-             G\<turnstile>C \<prec>\<^sub>C\<^sub>1 S; G\<turnstile>(Class S) accessible_in (pid C);G\<turnstile>m member_of S 
-            \<rbrakk> \<Longrightarrow> G\<turnstile>m member_of C"
+  Immediate: "\<lbrakk>G\<turnstile>mbr m declared_in C;declclass m = C\<rbrakk> \<Longrightarrow> G\<turnstile>m member_of C"
+| Inherited: "\<lbrakk>G\<turnstile>m inheritable_in (pid C); G\<turnstile>memberid m undeclared_in C; 
+               G\<turnstile>C \<prec>\<^sub>C\<^sub>1 S; G\<turnstile>(Class S) accessible_in (pid C);G\<turnstile>m member_of S 
+              \<rbrakk> \<Longrightarrow> G\<turnstile>m member_of C"
 text {* Note that in the case of an inherited member only the members of the
 direct superclass are concerned. If a member of a superclass of the direct
 superclass isn't inherited in the direct superclass (not member of the
@@ -619,9 +614,6 @@ methd_member_in:: "prog \<Rightarrow> sig \<Rightarrow> (qtname \<times> methd) 
 translations
  "G\<turnstile>Methd s m member_in C" \<rightleftharpoons> "G\<turnstile>(method s m) member_in C" 
 
-consts stat_overridesR::
-  "prog  \<Rightarrow> ((qtname \<times> mdecl) \<times> (qtname \<times> mdecl)) set"
-
 lemma member_inD: "G\<turnstile>m member_in C 
  \<Longrightarrow> \<exists> provC. G\<turnstile> C \<preceq>\<^sub>C provC \<and> G \<turnstile> m member_of provC"
 by (auto simp add: member_in_def)
@@ -641,48 +633,43 @@ execution in the JVM) are not exactly the same.
 *}
 
 text {* Static overriding (used during the typecheck of the compiler) *}
-syntax
-stat_overrides:: "prog  \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> bool" 
-                                  ("_ \<turnstile> _ overrides\<^sub>S _" [61,61,61] 60)
-translations
- "G\<turnstile>new overrides\<^sub>S  old" == "(new,old) \<in> stat_overridesR G "
 
-inductive "stat_overridesR G" intros
+inductive2
+  stat_overridesR :: "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> bool"
+    ("_ \<turnstile> _ overrides\<^sub>S _" [61,61,61] 60)
+  for G :: prog
+where
 
-Direct: "\<lbrakk>\<not> is_static new; msig new = msig old; 
-         G\<turnstile>Method new declared_in (declclass new);  
-         G\<turnstile>Method old declared_in (declclass old); 
-         G\<turnstile>Method old inheritable_in pid (declclass new);
-         G\<turnstile>(declclass new) \<prec>\<^sub>C\<^sub>1 superNew;
-         G \<turnstile>Method old member_of superNew
-         \<rbrakk> \<Longrightarrow> G\<turnstile>new overrides\<^sub>S old"
+  Direct: "\<lbrakk>\<not> is_static new; msig new = msig old; 
+           G\<turnstile>Method new declared_in (declclass new);  
+           G\<turnstile>Method old declared_in (declclass old); 
+           G\<turnstile>Method old inheritable_in pid (declclass new);
+           G\<turnstile>(declclass new) \<prec>\<^sub>C\<^sub>1 superNew;
+           G \<turnstile>Method old member_of superNew
+           \<rbrakk> \<Longrightarrow> G\<turnstile>new overrides\<^sub>S old"
 
-Indirect: "\<lbrakk>G\<turnstile>new overrides\<^sub>S inter; G\<turnstile>inter overrides\<^sub>S old\<rbrakk>
-           \<Longrightarrow> G\<turnstile>new overrides\<^sub>S old"
+| Indirect: "\<lbrakk>G\<turnstile>new overrides\<^sub>S inter; G\<turnstile>inter overrides\<^sub>S old\<rbrakk>
+             \<Longrightarrow> G\<turnstile>new overrides\<^sub>S old"
 
 text {* Dynamic overriding (used during the typecheck of the compiler) *}
-consts overridesR::
-  "prog  \<Rightarrow> ((qtname \<times> mdecl) \<times> (qtname \<times> mdecl)) set"
 
+inductive2
+  overridesR :: "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> bool"
+    ("_ \<turnstile> _ overrides _" [61,61,61] 60)
+  for G :: prog
+where
 
-overrides:: "prog  \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> bool" 
-                                  ("_ \<turnstile> _ overrides _" [61,61,61] 60)
-translations
- "G\<turnstile>new overrides old" == "(new,old) \<in> overridesR G "
+  Direct: "\<lbrakk>\<not> is_static new; \<not> is_static old; accmodi new \<noteq> Private;
+           msig new = msig old; 
+           G\<turnstile>(declclass new) \<prec>\<^sub>C (declclass old);
+           G\<turnstile>Method new declared_in (declclass new);  
+           G\<turnstile>Method old declared_in (declclass old);    
+           G\<turnstile>Method old inheritable_in pid (declclass new);
+           G\<turnstile>resTy new \<preceq> resTy old
+           \<rbrakk> \<Longrightarrow> G\<turnstile>new overrides old"
 
-inductive "overridesR G" intros
-
-Direct: "\<lbrakk>\<not> is_static new; \<not> is_static old; accmodi new \<noteq> Private;
-         msig new = msig old; 
-         G\<turnstile>(declclass new) \<prec>\<^sub>C (declclass old);
-         G\<turnstile>Method new declared_in (declclass new);  
-         G\<turnstile>Method old declared_in (declclass old);    
-         G\<turnstile>Method old inheritable_in pid (declclass new);
-         G\<turnstile>resTy new \<preceq> resTy old
-         \<rbrakk> \<Longrightarrow> G\<turnstile>new overrides old"
-
-Indirect: "\<lbrakk>G\<turnstile>new overrides inter; G\<turnstile>inter overrides old\<rbrakk>
-           \<Longrightarrow> G\<turnstile>new overrides old"
+| Indirect: "\<lbrakk>G\<turnstile>new overrides inter; G\<turnstile>inter overrides old\<rbrakk>
+            \<Longrightarrow> G\<turnstile>new overrides old"
 
 syntax
 sig_stat_overrides:: 
@@ -797,28 +784,31 @@ of members is not uniform.
 \end{itemize} 
 *} 
 
+inductive2
+  accessible_fromR :: "prog \<Rightarrow> qtname \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> bool"
+  and accessible_from :: "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
+    ("_ \<turnstile> _ of _ accessible'_from _" [61,61,61,61] 60)
+  and method_accessible_from :: "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
+    ("_ \<turnstile>Method _ of _ accessible'_from _" [61,61,61,61] 60)
+  for G :: prog and accclass :: qtname
+where
+  "G\<turnstile>membr of cls accessible_from accclass \<equiv> accessible_fromR G accclass membr cls"
 
-consts
-accessible_fromR:: 
- "prog \<Rightarrow> qtname \<Rightarrow> ((qtname \<times> memberdecl) \<times>  qtname) set"
+| "G\<turnstile>Method m of cls accessible_from accclass \<equiv>
+   G\<turnstile>methdMembr m of cls accessible_from accclass"  
 
-syntax 
-accessible_from:: 
- "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
-                   ("_ \<turnstile> _ of _ accessible'_from _" [61,61,61,61] 60)
+| Immediate:  "\<lbrakk>G\<turnstile>membr member_of class;
+                G\<turnstile>(Class class) accessible_in (pid accclass);
+                G\<turnstile>membr in class permits_acc_from accclass 
+               \<rbrakk> \<Longrightarrow> G\<turnstile>membr of class accessible_from accclass"
 
-translations
-"G\<turnstile>membr of cls accessible_from accclass"  
- \<rightleftharpoons> "(membr,cls) \<in> accessible_fromR G accclass"
-
-syntax 
-method_accessible_from:: 
- "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
-                   ("_ \<turnstile>Method _ of _ accessible'_from _" [61,61,61,61] 60)
-
-translations
-"G\<turnstile>Method m of cls accessible_from accclass"  
- \<rightleftharpoons> "G\<turnstile>methdMembr m of cls accessible_from accclass"  
+| Overriding: "\<lbrakk>G\<turnstile>membr member_of class;
+                G\<turnstile>(Class class) accessible_in (pid accclass);
+                membr=(C,mdecl new);
+                G\<turnstile>(C,new) overrides\<^sub>S old; 
+                G\<turnstile>class \<prec>\<^sub>C sup;
+                G\<turnstile>Method old of sup accessible_from accclass
+               \<rbrakk>\<Longrightarrow> G\<turnstile>membr of class accessible_from accclass"
 
 syntax 
 methd_accessible_from:: 
@@ -838,41 +828,29 @@ translations
 "G\<turnstile>Field fn f of C accessible_from accclass"  
  \<rightleftharpoons> "G\<turnstile>(fieldm fn f) of C accessible_from accclass" 
 
-inductive "accessible_fromR G accclass" intros
-Immediate:  "\<lbrakk>G\<turnstile>membr member_of class;
-              G\<turnstile>(Class class) accessible_in (pid accclass);
-              G\<turnstile>membr in class permits_acc_from accclass 
-             \<rbrakk> \<Longrightarrow> G\<turnstile>membr of class accessible_from accclass"
+inductive2
+  dyn_accessible_fromR :: "prog \<Rightarrow> qtname \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> bool"
+  and dyn_accessible_from' ::  "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
+    ("_ \<turnstile> _ in _ dyn'_accessible'_from _" [61,61,61,61] 60)
+  and method_dyn_accessible_from :: "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
+    ("_ \<turnstile>Method _ in _ dyn'_accessible'_from _" [61,61,61,61] 60)
+  for G :: prog and accclass :: qtname
+where
+  "G\<turnstile>membr in C dyn_accessible_from accC \<equiv> dyn_accessible_fromR G accC membr C"
 
-Overriding: "\<lbrakk>G\<turnstile>membr member_of class;
-              G\<turnstile>(Class class) accessible_in (pid accclass);
-              membr=(C,mdecl new);
-              G\<turnstile>(C,new) overrides\<^sub>S old; 
-              G\<turnstile>class \<prec>\<^sub>C sup;
-              G\<turnstile>Method old of sup accessible_from accclass
-             \<rbrakk>\<Longrightarrow> G\<turnstile>membr of class accessible_from accclass"
+| "G\<turnstile>Method m in C dyn_accessible_from accC \<equiv>
+   G\<turnstile>methdMembr m in C dyn_accessible_from accC"
 
-consts
-dyn_accessible_fromR:: 
- "prog \<Rightarrow> qtname \<Rightarrow> ((qtname \<times> memberdecl) \<times>  qtname) set"
+| Immediate:  "\<lbrakk>G\<turnstile>membr member_in class;
+                G\<turnstile>membr in class permits_acc_from accclass 
+               \<rbrakk> \<Longrightarrow> G\<turnstile>membr in class dyn_accessible_from accclass"
 
-syntax 
-dyn_accessible_from:: 
- "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
-                   ("_ \<turnstile> _ in _ dyn'_accessible'_from _" [61,61,61,61] 60)
-
-translations
-"G\<turnstile>membr in C dyn_accessible_from accC"  
- \<rightleftharpoons> "(membr,C) \<in> dyn_accessible_fromR G accC"
-
-syntax 
-method_dyn_accessible_from:: 
- "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
-                 ("_ \<turnstile>Method _ in _ dyn'_accessible'_from _" [61,61,61,61] 60)
-
-translations
-"G\<turnstile>Method m in C dyn_accessible_from accC"  
- \<rightleftharpoons> "G\<turnstile>methdMembr m in C dyn_accessible_from accC"  
+| Overriding: "\<lbrakk>G\<turnstile>membr member_in class;
+                membr=(C,mdecl new);
+                G\<turnstile>(C,new) overrides old; 
+                G\<turnstile>class \<prec>\<^sub>C sup;
+                G\<turnstile>Method old in sup dyn_accessible_from accclass
+               \<rbrakk>\<Longrightarrow> G\<turnstile>membr in class dyn_accessible_from accclass"
 
 syntax 
 methd_dyn_accessible_from:: 
@@ -891,18 +869,6 @@ field_dyn_accessible_from::
 translations
 "G\<turnstile>Field fn f in dynC dyn_accessible_from accC"  
  \<rightleftharpoons> "G\<turnstile>(fieldm fn f) in dynC dyn_accessible_from accC"
-  
-inductive "dyn_accessible_fromR G accclass" intros
-Immediate:  "\<lbrakk>G\<turnstile>membr member_in class;
-              G\<turnstile>membr in class permits_acc_from accclass 
-             \<rbrakk> \<Longrightarrow> G\<turnstile>membr in class dyn_accessible_from accclass"
-
-Overriding: "\<lbrakk>G\<turnstile>membr member_in class;
-              membr=(C,mdecl new);
-              G\<turnstile>(C,new) overrides old; 
-              G\<turnstile>class \<prec>\<^sub>C sup;
-              G\<turnstile>Method old in sup dyn_accessible_from accclass
-             \<rbrakk>\<Longrightarrow> G\<turnstile>membr in class dyn_accessible_from accclass"
 
 
 lemma accessible_from_commonD: "G\<turnstile>m of C accessible_from S
@@ -967,13 +933,13 @@ proof -
   from n m eqid  
   show "n=m"
   proof (induct)
-    case (Immediate C n)
+    case (Immediate n C)
     assume member_n: "G\<turnstile> mbr n declared_in C" "declclass n = C"
     assume eqid: "memberid n = memberid m"
     assume "G \<turnstile> m member_of C"
     then show "n=m"
     proof (cases)
-      case (Immediate _ m')
+      case (Immediate m' _)
       with eqid 
       have "m=m'"
            "memberid n = memberid m" 
@@ -987,7 +953,7 @@ proof -
                            cdeclaredmethd_def cdeclaredfield_def
                     split: memberdecl.splits)
     next
-      case (Inherited _ _ m')
+      case (Inherited m' _ _)
       then have "G\<turnstile> memberid m undeclared_in C"
 	by simp
       with eqid member_n
@@ -995,7 +961,7 @@ proof -
 	by (cases n) (auto dest: declared_not_undeclared)
     qed
   next
-    case (Inherited C S n)
+    case (Inherited n C S)
     assume undecl: "G\<turnstile> memberid n undeclared_in C"
     assume  super: "G\<turnstile>C\<prec>\<^sub>C\<^sub>1S"
     assume    hyp: "\<lbrakk>G \<turnstile> m member_of S; memberid n = memberid m\<rbrakk> \<Longrightarrow> n = m"
@@ -1021,13 +987,13 @@ qed
 
 lemma member_of_is_classD: "G\<turnstile>m member_of C \<Longrightarrow> is_class G C"
 proof (induct set: members)
-  case (Immediate C m)
+  case (Immediate m C)
   assume "G\<turnstile> mbr m declared_in C"
   then show "is_class G C"
     by (cases "mbr m")
        (auto simp add: declared_in_def cdeclaredmethd_def cdeclaredfield_def)
 next
-  case (Inherited C S m)  
+  case (Inherited m C S)  
   assume "G\<turnstile>C\<prec>\<^sub>C\<^sub>1S" and "is_class G S"
   then show "is_class G C"
     by - (rule subcls_is_class2,auto)
@@ -1046,10 +1012,10 @@ by (auto dest: member_of_declC intro: members.Immediate)
 lemma member_of_class_relation:
   "G\<turnstile>m member_of C \<Longrightarrow> G\<turnstile>C \<preceq>\<^sub>C declclass m"
 proof (induct set: members)
-  case (Immediate C m)
+  case (Immediate m C)
   then show "G\<turnstile>C \<preceq>\<^sub>C declclass m" by simp
 next
-  case (Inherited C S m)
+  case (Inherited m C S)
   then show "G\<turnstile>C \<preceq>\<^sub>C declclass m" 
     by (auto dest: r_into_rtrancl intro: rtrancl_trans)
 qed
@@ -1152,12 +1118,12 @@ proof -
   from acc_C static
   show "G\<turnstile>m in (declclass m) dyn_accessible_from accC"
   proof (induct)
-    case (Immediate C m)
+    case (Immediate m C)
     then show ?case 
       by (auto intro!: dyn_accessible_fromR.Immediate
                  dest: member_in_declC permits_acc_static_declC) 
   next 
-    case (Overriding declCNew C m new old sup)
+    case (Overriding m C declCNew new old sup)
     then have "\<not> is_static m"
       by (auto dest: overrides_commonD)
     moreover
@@ -1259,7 +1225,7 @@ proof -
   from m subclseq_D_C subclseq_C_m
   show ?thesis
   proof (induct)
-    case (Immediate D m)
+    case (Immediate m D)
     assume "declclass m = D" and
            "G\<turnstile>D\<preceq>\<^sub>C C" and "G\<turnstile>C\<preceq>\<^sub>C declclass m"
     with ws have "D=C" 
@@ -1268,7 +1234,7 @@ proof -
     show "G\<turnstile>m member_of C"
       by (auto intro: members.Immediate)
   next
-    case (Inherited D S m)
+    case (Inherited m D S)
     assume member_of_D_props: 
             "G \<turnstile> m inheritable_in pid D" 
             "G\<turnstile> memberid m undeclared_in D"  
@@ -1714,7 +1680,7 @@ proof -
     from member_of
     show "?Methd C"
     proof (cases)
-      case (Immediate Ca membr)
+      case (Immediate membr Ca)
       then have "Ca=C" "membr = method sig m" and 
                 "G\<turnstile>Methd sig m declared_in C" "declclass m = C"
 	by (cases m,auto)
@@ -1727,7 +1693,7 @@ proof -
       show ?thesis
 	by (simp add: methd_rec)
     next
-      case (Inherited Ca S membr)
+      case (Inherited membr Ca S)
       with clsC
       have eq_Ca_C: "Ca=C" and
             undecl: "G\<turnstile>mid sig undeclared_in C" and

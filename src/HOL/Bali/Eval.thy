@@ -474,104 +474,75 @@ check_method_access::
        
 section "evaluation judgments"
 
-consts
-  eval   :: "prog \<Rightarrow> (state \<times> term    \<times> vals \<times> state) set"
-  halloc::  "prog \<Rightarrow> (state \<times> obj_tag \<times> loc  \<times> state) set"
-  sxalloc:: "prog \<Rightarrow> (state                  \<times> state) set"
-
-
-syntax
-eval ::"[prog,state,term,vals*state]=>bool"("_|-_ -_>-> _"  [61,61,80,   61]60)
-exec ::"[prog,state,stmt      ,state]=>bool"("_|-_ -_-> _"   [61,61,65,   61]60)
-evar ::"[prog,state,var  ,vvar,state]=>bool"("_|-_ -_=>_-> _"[61,61,90,61,61]60)
-eval_::"[prog,state,expr ,val, state]=>bool"("_|-_ -_->_-> _"[61,61,80,61,61]60)
-evals::"[prog,state,expr list ,
-		    val  list ,state]=>bool"("_|-_ -_#>_-> _"[61,61,61,61,61]60)
-hallo::"[prog,state,obj_tag,
-	             loc,state]=>bool"("_|-_ -halloc _>_-> _"[61,61,61,61,61]60)
-sallo::"[prog,state        ,state]=>bool"("_|-_ -sxalloc-> _"[61,61,      61]60)
-
-syntax (xsymbols)
-eval ::"[prog,state,term,vals\<times>state]\<Rightarrow>bool" ("_\<turnstile>_ \<midarrow>_\<succ>\<rightarrow> _"  [61,61,80,   61]60)
-exec ::"[prog,state,stmt      ,state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>_\<rightarrow> _"   [61,61,65,   61]60)
-evar ::"[prog,state,var  ,vvar,state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>_=\<succ>_\<rightarrow> _"[61,61,90,61,61]60)
-eval_::"[prog,state,expr ,val ,state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>_-\<succ>_\<rightarrow> _"[61,61,80,61,61]60)
-evals::"[prog,state,expr list ,
-		    val  list ,state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>_\<doteq>\<succ>_\<rightarrow> _"[61,61,61,61,61]60)
-hallo::"[prog,state,obj_tag,
-	             loc,state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>halloc _\<succ>_\<rightarrow> _"[61,61,61,61,61]60)
-sallo::"[prog,state,        state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>sxalloc\<rightarrow> _"[61,61,      61]60)
-
-translations
-  "G\<turnstile>s \<midarrow>t   \<succ>\<rightarrow>  w___s' " == "(s,t,w___s') \<in> eval G"
-  "G\<turnstile>s \<midarrow>t   \<succ>\<rightarrow> (w,  s')" <= "(s,t,w,  s') \<in> eval G"
-  "G\<turnstile>s \<midarrow>t   \<succ>\<rightarrow> (w,x,s')" <= "(s,t,w,x,s') \<in> eval G"
-  "G\<turnstile>s \<midarrow>c    \<rightarrow>  (x,s')" <= "G\<turnstile>s \<midarrow>In1r c\<succ>\<rightarrow> (\<diamondsuit>,x,s')"
-  "G\<turnstile>s \<midarrow>c    \<rightarrow>     s' " == "G\<turnstile>s \<midarrow>In1r c\<succ>\<rightarrow> (\<diamondsuit>  ,  s')"
-  "G\<turnstile>s \<midarrow>e-\<succ>v \<rightarrow>  (x,s')" <= "G\<turnstile>s \<midarrow>In1l e\<succ>\<rightarrow> (In1 v ,x,s')"
-  "G\<turnstile>s \<midarrow>e-\<succ>v \<rightarrow>     s' " == "G\<turnstile>s \<midarrow>In1l e\<succ>\<rightarrow> (In1 v ,  s')"
-  "G\<turnstile>s \<midarrow>e=\<succ>vf\<rightarrow>  (x,s')" <= "G\<turnstile>s \<midarrow>In2  e\<succ>\<rightarrow> (In2 vf,x,s')"
-  "G\<turnstile>s \<midarrow>e=\<succ>vf\<rightarrow>     s' " == "G\<turnstile>s \<midarrow>In2  e\<succ>\<rightarrow> (In2 vf,  s')"
-  "G\<turnstile>s \<midarrow>e\<doteq>\<succ>v \<rightarrow>  (x,s')" <= "G\<turnstile>s \<midarrow>In3  e\<succ>\<rightarrow> (In3 v ,x,s')"
-  "G\<turnstile>s \<midarrow>e\<doteq>\<succ>v \<rightarrow>     s' " == "G\<turnstile>s \<midarrow>In3  e\<succ>\<rightarrow> (In3 v ,  s')"
-  "G\<turnstile>s \<midarrow>halloc oi\<succ>a\<rightarrow> (x,s')" <= "(s,oi,a,x,s') \<in> halloc G"
-  "G\<turnstile>s \<midarrow>halloc oi\<succ>a\<rightarrow>    s' " == "(s,oi,a,  s') \<in> halloc G"
-  "G\<turnstile>s \<midarrow>sxalloc\<rightarrow>     (x,s')" <= "(s     ,x,s') \<in> sxalloc G"
-  "G\<turnstile>s \<midarrow>sxalloc\<rightarrow>        s' " == "(s     ,  s') \<in> sxalloc G"
-
-inductive "halloc G" intros --{* allocating objects on the heap, cf. 12.5 *}
+inductive2
+  halloc :: "[prog,state,obj_tag,loc,state]\<Rightarrow>bool" ("_\<turnstile>_ \<midarrow>halloc _\<succ>_\<rightarrow> _"[61,61,61,61,61]60) for G::prog
+where --{* allocating objects on the heap, cf. 12.5 *}
 
   Abrupt: 
   "G\<turnstile>(Some x,s) \<midarrow>halloc oi\<succ>arbitrary\<rightarrow> (Some x,s)"
 
-  New:	  "\<lbrakk>new_Addr (heap s) = Some a; 
+| New:	  "\<lbrakk>new_Addr (heap s) = Some a; 
 	    (x,oi') = (if atleast_free (heap s) (Suc (Suc 0)) then (None,oi)
 		       else (Some (Xcpt (Loc a)),CInst (SXcpt OutOfMemory)))\<rbrakk>
             \<Longrightarrow>
 	    G\<turnstile>Norm s \<midarrow>halloc oi\<succ>a\<rightarrow> (x,init_obj G oi' (Heap a) s)"
 
-inductive "sxalloc G" intros --{* allocating exception objects for
-	 	 	      standard exceptions (other than OutOfMemory) *}
+inductive2 sxalloc :: "[prog,state,state]\<Rightarrow>bool" ("_\<turnstile>_ \<midarrow>sxalloc\<rightarrow> _"[61,61,61]60) for G::prog
+where --{* allocating exception objects for
+  standard exceptions (other than OutOfMemory) *}
 
   Norm:	 "G\<turnstile> Norm              s   \<midarrow>sxalloc\<rightarrow>  Norm             s"
 
-  Jmp:   "G\<turnstile>(Some (Jump j), s)  \<midarrow>sxalloc\<rightarrow> (Some (Jump j), s)"
+| Jmp:   "G\<turnstile>(Some (Jump j), s)  \<midarrow>sxalloc\<rightarrow> (Some (Jump j), s)"
 
-  Error: "G\<turnstile>(Some (Error e), s)  \<midarrow>sxalloc\<rightarrow> (Some (Error e), s)"
+| Error: "G\<turnstile>(Some (Error e), s)  \<midarrow>sxalloc\<rightarrow> (Some (Error e), s)"
 
-  XcptL: "G\<turnstile>(Some (Xcpt (Loc a) ),s)  \<midarrow>sxalloc\<rightarrow> (Some (Xcpt (Loc a)),s)"
+| XcptL: "G\<turnstile>(Some (Xcpt (Loc a) ),s)  \<midarrow>sxalloc\<rightarrow> (Some (Xcpt (Loc a)),s)"
 
-  SXcpt: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>halloc (CInst (SXcpt xn))\<succ>a\<rightarrow> (x,s1)\<rbrakk> \<Longrightarrow>
+| SXcpt: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>halloc (CInst (SXcpt xn))\<succ>a\<rightarrow> (x,s1)\<rbrakk> \<Longrightarrow>
 	  G\<turnstile>(Some (Xcpt (Std xn)),s0) \<midarrow>sxalloc\<rightarrow> (Some (Xcpt (Loc a)),s1)"
 
 
-inductive "eval G" intros
+inductive2
+  eval :: "[prog,state,term,vals,state]\<Rightarrow>bool" ("_\<turnstile>_ \<midarrow>_\<succ>\<rightarrow> '(_, _')"  [61,61,80,0,0]60)
+  and exec ::"[prog,state,stmt      ,state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>_\<rightarrow> _"   [61,61,65,   61]60)
+  and evar ::"[prog,state,var  ,vvar,state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>_=\<succ>_\<rightarrow> _"[61,61,90,61,61]60)
+  and eval'::"[prog,state,expr ,val ,state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>_-\<succ>_\<rightarrow> _"[61,61,80,61,61]60)
+  and evals::"[prog,state,expr list ,
+		    val  list ,state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>_\<doteq>\<succ>_\<rightarrow> _"[61,61,61,61,61]60)
+  for G::prog
+where
+
+  "G\<turnstile>s \<midarrow>c    \<rightarrow>     s' \<equiv> G\<turnstile>s \<midarrow>In1r c\<succ>\<rightarrow> (\<diamondsuit>,  s')"
+| "G\<turnstile>s \<midarrow>e-\<succ>v \<rightarrow>     s' \<equiv> G\<turnstile>s \<midarrow>In1l e\<succ>\<rightarrow> (In1 v,  s')"
+| "G\<turnstile>s \<midarrow>e=\<succ>vf\<rightarrow>     s' \<equiv> G\<turnstile>s \<midarrow>In2  e\<succ>\<rightarrow> (In2 vf, s')"
+| "G\<turnstile>s \<midarrow>e\<doteq>\<succ>v \<rightarrow>     s' \<equiv> G\<turnstile>s \<midarrow>In3  e\<succ>\<rightarrow> (In3 v,  s')"
 
 --{* propagation of abrupt completion *}
 
   --{* cf. 14.1, 15.5 *}
-  Abrupt: 
-   "G\<turnstile>(Some xc,s) \<midarrow>t\<succ>\<rightarrow> (arbitrary3 t,(Some xc,s))"
+| Abrupt: 
+   "G\<turnstile>(Some xc,s) \<midarrow>t\<succ>\<rightarrow> (arbitrary3 t, (Some xc, s))"
 
 
 --{* execution of statements *}
 
   --{* cf. 14.5 *}
-  Skip:	 			    "G\<turnstile>Norm s \<midarrow>Skip\<rightarrow> Norm s"
+| Skip:	 			    "G\<turnstile>Norm s \<midarrow>Skip\<rightarrow> Norm s"
 
   --{* cf. 14.7 *}
-  Expr:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1\<rbrakk> \<Longrightarrow>
+| Expr:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1\<rbrakk> \<Longrightarrow>
 				  G\<turnstile>Norm s0 \<midarrow>Expr e\<rightarrow> s1"
 
-  Lab:  "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c \<rightarrow> s1\<rbrakk> \<Longrightarrow>
+| Lab:  "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c \<rightarrow> s1\<rbrakk> \<Longrightarrow>
                                 G\<turnstile>Norm s0 \<midarrow>l\<bullet> c\<rightarrow> abupd (absorb l) s1"
   --{* cf. 14.2 *}
-  Comp:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c1 \<rightarrow> s1;
+| Comp:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c1 \<rightarrow> s1;
 	  G\<turnstile>     s1 \<midarrow>c2 \<rightarrow> s2\<rbrakk> \<Longrightarrow>
 				 G\<turnstile>Norm s0 \<midarrow>c1;; c2\<rightarrow> s2"
 
   --{* cf. 14.8.2 *}
-  If:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1;
+| If:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1;
 	  G\<turnstile>     s1\<midarrow>(if the_Bool b then c1 else c2)\<rightarrow> s2\<rbrakk> \<Longrightarrow>
 		       G\<turnstile>Norm s0 \<midarrow>If(e) c1 Else c2 \<rightarrow> s2"
 
@@ -583,26 +554,26 @@ inductive "eval G" intros
      the state before the iterative evaluation of the while statement.
      A break jump is handled by the Lab Statement @{text "Lab l (while\<dots>)"}.
   *}
-  Loop:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1;
+| Loop:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1;
 	  if the_Bool b 
              then (G\<turnstile>s1 \<midarrow>c\<rightarrow> s2 \<and> 
                    G\<turnstile>(abupd (absorb (Cont l)) s2) \<midarrow>l\<bullet> While(e) c\<rightarrow> s3)
 	     else s3 = s1\<rbrakk> \<Longrightarrow>
 			      G\<turnstile>Norm s0 \<midarrow>l\<bullet> While(e) c\<rightarrow> s3"
 
-  Jmp: "G\<turnstile>Norm s \<midarrow>Jmp j\<rightarrow> (Some (Jump j), s)"
+| Jmp: "G\<turnstile>Norm s \<midarrow>Jmp j\<rightarrow> (Some (Jump j), s)"
    
   --{* cf. 14.16 *}
-  Throw: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>a'\<rightarrow> s1\<rbrakk> \<Longrightarrow>
+| Throw: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>a'\<rightarrow> s1\<rbrakk> \<Longrightarrow>
 				 G\<turnstile>Norm s0 \<midarrow>Throw e\<rightarrow> abupd (throw a') s1"
 
   --{* cf. 14.18.1 *}
-  Try:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1; G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2; 
+| Try:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1; G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2; 
 	  if G,s2\<turnstile>catch C then G\<turnstile>new_xcpt_var vn s2 \<midarrow>c2\<rightarrow> s3 else s3 = s2\<rbrakk> \<Longrightarrow>
 		  G\<turnstile>Norm s0 \<midarrow>Try c1 Catch(C vn) c2\<rightarrow> s3"
 
   --{* cf. 14.18.2 *}
-  Fin:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> (x1,s1);
+| Fin:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> (x1,s1);
 	  G\<turnstile>Norm s1 \<midarrow>c2\<rightarrow> s2;
           s3=(if (\<exists> err. x1=Some (Error err)) 
               then (x1,s1) 
@@ -610,7 +581,7 @@ inductive "eval G" intros
           \<Longrightarrow>
           G\<turnstile>Norm s0 \<midarrow>c1 Finally c2\<rightarrow> s3"
   --{* cf. 12.4.2, 8.5 *}
-  Init:	"\<lbrakk>the (class G C) = c;
+| Init:	"\<lbrakk>the (class G C) = c;
 	  if inited C (globs s0) then s3 = Norm s0
 	  else (G\<turnstile>Norm (init_class_obj G C s0) 
 		  \<midarrow>(if C = Object then Skip else Init (super c))\<rightarrow> s1 \<and>
@@ -642,51 +613,51 @@ inductive "eval G" intros
 --{* evaluation of expressions *}
 
   --{* cf. 15.8.1, 12.4.1 *}
-  NewC:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>Init C\<rightarrow> s1;
+| NewC:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>Init C\<rightarrow> s1;
 	  G\<turnstile>     s1 \<midarrow>halloc (CInst C)\<succ>a\<rightarrow> s2\<rbrakk> \<Longrightarrow>
 	                          G\<turnstile>Norm s0 \<midarrow>NewC C-\<succ>Addr a\<rightarrow> s2"
 
   --{* cf. 15.9.1, 12.4.1 *}
-  NewA:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>init_comp_ty T\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e-\<succ>i'\<rightarrow> s2; 
+| NewA:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>init_comp_ty T\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e-\<succ>i'\<rightarrow> s2; 
 	  G\<turnstile>abupd (check_neg i') s2 \<midarrow>halloc (Arr T (the_Intg i'))\<succ>a\<rightarrow> s3\<rbrakk> \<Longrightarrow>
 	                        G\<turnstile>Norm s0 \<midarrow>New T[e]-\<succ>Addr a\<rightarrow> s3"
 
   --{* cf. 15.15 *}
-  Cast:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1;
+| Cast:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1;
 	  s2 = abupd (raise_if (\<not>G,store s1\<turnstile>v fits T) ClassCast) s1\<rbrakk> \<Longrightarrow>
 			        G\<turnstile>Norm s0 \<midarrow>Cast T e-\<succ>v\<rightarrow> s2"
 
   --{* cf. 15.19.2 *}
-  Inst:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1;
+| Inst:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1;
 	  b = (v\<noteq>Null \<and> G,store s1\<turnstile>v fits RefT T)\<rbrakk> \<Longrightarrow>
 			      G\<turnstile>Norm s0 \<midarrow>e InstOf T-\<succ>Bool b\<rightarrow> s1"
 
   --{* cf. 15.7.1 *}
-  Lit:	"G\<turnstile>Norm s \<midarrow>Lit v-\<succ>v\<rightarrow> Norm s"
+| Lit:	"G\<turnstile>Norm s \<midarrow>Lit v-\<succ>v\<rightarrow> Norm s"
 
-  UnOp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1\<rbrakk> 
+| UnOp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1\<rbrakk> 
          \<Longrightarrow> G\<turnstile>Norm s0 \<midarrow>UnOp unop e-\<succ>(eval_unop unop v)\<rightarrow> s1"
  
-  BinOp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e1-\<succ>v1\<rightarrow> s1; 
+| BinOp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e1-\<succ>v1\<rightarrow> s1; 
           G\<turnstile>s1 \<midarrow>(if need_second_arg binop v1 then (In1l e2) else (In1r Skip))
-                \<succ>\<rightarrow> (In1 v2,s2)
+                \<succ>\<rightarrow> (In1 v2, s2)
           \<rbrakk> 
          \<Longrightarrow> G\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>(eval_binop binop v1 v2)\<rightarrow> s2"
    
   --{* cf. 15.10.2 *}
-  Super: "G\<turnstile>Norm s \<midarrow>Super-\<succ>val_this s\<rightarrow> Norm s"
+| Super: "G\<turnstile>Norm s \<midarrow>Super-\<succ>val_this s\<rightarrow> Norm s"
 
   --{* cf. 15.2 *}
-  Acc:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>va=\<succ>(v,f)\<rightarrow> s1\<rbrakk> \<Longrightarrow>
+| Acc:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>va=\<succ>(v,f)\<rightarrow> s1\<rbrakk> \<Longrightarrow>
 	                          G\<turnstile>Norm s0 \<midarrow>Acc va-\<succ>v\<rightarrow> s1"
 
   --{* cf. 15.25.1 *}
-  Ass:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>va=\<succ>(w,f)\<rightarrow> s1;
+| Ass:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>va=\<succ>(w,f)\<rightarrow> s1;
           G\<turnstile>     s1 \<midarrow>e-\<succ>v  \<rightarrow> s2\<rbrakk> \<Longrightarrow>
 				   G\<turnstile>Norm s0 \<midarrow>va:=e-\<succ>v\<rightarrow> assign f v s2"
 
   --{* cf. 15.24 *}
-  Cond:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e0-\<succ>b\<rightarrow> s1;
+| Cond:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e0-\<succ>b\<rightarrow> s1;
           G\<turnstile>     s1 \<midarrow>(if the_Bool b then e1 else e2)-\<succ>v\<rightarrow> s2\<rbrakk> \<Longrightarrow>
 			    G\<turnstile>Norm s0 \<midarrow>e0 ? e1 : e2-\<succ>v\<rightarrow> s2"
 
@@ -710,7 +681,7 @@ inductive "eval G" intros
       \end{itemize}
    *}
   --{* cf. 15.11.4.1, 15.11.4.2, 15.11.4.4, 15.11.4.5 *}
-  Call:	
+| Call:	
   "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>a'\<rightarrow> s1; G\<turnstile>s1 \<midarrow>args\<doteq>\<succ>vs\<rightarrow> s2;
     D = invocation_declclass G mode (store s2) a' statT \<lparr>name=mn,parTs=pTs\<rparr>;
     s3=init_lvars G D \<lparr>name=mn,parTs=pTs\<rparr> mode a' vs s2;
@@ -723,10 +694,10 @@ inductive "eval G" intros
    reference in case of an instance method invocation.
 *}
 
-  Methd:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>body G D sig-\<succ>v\<rightarrow> s1\<rbrakk> \<Longrightarrow>
+| Methd:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>body G D sig-\<succ>v\<rightarrow> s1\<rbrakk> \<Longrightarrow>
 				G\<turnstile>Norm s0 \<midarrow>Methd D sig-\<succ>v\<rightarrow> s1"
   
-  Body:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>Init D\<rightarrow> s1; G\<turnstile>s1 \<midarrow>c\<rightarrow> s2; 
+| Body:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>Init D\<rightarrow> s1; G\<turnstile>s1 \<midarrow>c\<rightarrow> s2; 
           s3 = (if (\<exists> l. abrupt s2 = Some (Jump (Break l)) \<or>  
                          abrupt s2 = Some (Jump (Cont l)))
                   then abupd (\<lambda> x. Some (Error CrossMethodJump)) s2 
@@ -742,10 +713,10 @@ inductive "eval G" intros
 --{* evaluation of variables *}
 
   --{* cf. 15.13.1, 15.7.2 *}
-  LVar:	"G\<turnstile>Norm s \<midarrow>LVar vn=\<succ>lvar vn s\<rightarrow> Norm s"
+| LVar:	"G\<turnstile>Norm s \<midarrow>LVar vn=\<succ>lvar vn s\<rightarrow> Norm s"
 
   --{* cf. 15.10.1, 12.4.1 *}
-  FVar:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>Init statDeclC\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e-\<succ>a\<rightarrow> s2;
+| FVar:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>Init statDeclC\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e-\<succ>a\<rightarrow> s2;
 	  (v,s2') = fvar statDeclC stat fn a s2;
           s3 = check_field_access G accC statDeclC fn stat a s2' \<rbrakk> \<Longrightarrow>
 	  G\<turnstile>Norm s0 \<midarrow>{accC,statDeclC,stat}e..fn=\<succ>v\<rightarrow> s3"
@@ -755,7 +726,7 @@ inductive "eval G" intros
   *}
 
   --{* cf. 15.12.1, 15.25.1 *}
-  AVar:	"\<lbrakk>G\<turnstile> Norm s0 \<midarrow>e1-\<succ>a\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e2-\<succ>i\<rightarrow> s2;
+| AVar:	"\<lbrakk>G\<turnstile> Norm s0 \<midarrow>e1-\<succ>a\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e2-\<succ>i\<rightarrow> s2;
 	  (v,s2') = avar G i a s2\<rbrakk> \<Longrightarrow>
 	              G\<turnstile>Norm s0 \<midarrow>e1.[e2]=\<succ>v\<rightarrow> s2'"
 
@@ -763,11 +734,11 @@ inductive "eval G" intros
 --{* evaluation of expression lists *}
 
   --{* cf. 15.11.4.2 *}
-  Nil:
+| Nil:
 				    "G\<turnstile>Norm s0 \<midarrow>[]\<doteq>\<succ>[]\<rightarrow> Norm s0"
 
   --{* cf. 15.6.4 *}
-  Cons:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e -\<succ> v \<rightarrow> s1;
+| Cons:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e -\<succ> v \<rightarrow> s1;
           G\<turnstile>     s1 \<midarrow>es\<doteq>\<succ>vs\<rightarrow> s2\<rbrakk> \<Longrightarrow>
 				   G\<turnstile>Norm s0 \<midarrow>e#es\<doteq>\<succ>v#vs\<rightarrow> s2"
 
@@ -794,17 +765,17 @@ lemmas eval_induct = eval_induct_ [split_format and and and and and and and and
 
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]
-inductive_cases halloc_elim_cases: 
+inductive_cases2 halloc_elim_cases: 
   "G\<turnstile>(Some xc,s) \<midarrow>halloc oi\<succ>a\<rightarrow> s'"
   "G\<turnstile>(Norm    s) \<midarrow>halloc oi\<succ>a\<rightarrow> s'"
 
-inductive_cases sxalloc_elim_cases:
+inductive_cases2 sxalloc_elim_cases:
  	"G\<turnstile> Norm                 s  \<midarrow>sxalloc\<rightarrow> s'"
         "G\<turnstile>(Some (Jump j),s) \<midarrow>sxalloc\<rightarrow> s'"
  	"G\<turnstile>(Some (Error e),s) \<midarrow>sxalloc\<rightarrow> s'"
         "G\<turnstile>(Some (Xcpt (Loc a )),s) \<midarrow>sxalloc\<rightarrow> s'"
  	"G\<turnstile>(Some (Xcpt (Std xn)),s) \<midarrow>sxalloc\<rightarrow> s'"
-inductive_cases sxalloc_cases: "G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s'"
+inductive_cases2 sxalloc_cases: "G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s'"
 
 lemma sxalloc_elim_cases2: "\<lbrakk>G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s';  
        \<And>s.   \<lbrakk>s' = Norm s\<rbrakk> \<Longrightarrow> P;  
@@ -822,40 +793,40 @@ declare split_paired_All [simp del] split_paired_Ex [simp del]
 ML_setup {*
 change_simpset (fn ss => ss delloop "split_all_tac");
 *}
-inductive_cases eval_cases: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> vs'"
+inductive_cases2 eval_cases: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v, s')"
 
-inductive_cases eval_elim_cases [cases set]:
-        "G\<turnstile>(Some xc,s) \<midarrow>t                              \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1r Skip                           \<succ>\<rightarrow> xs'"
-        "G\<turnstile>Norm s \<midarrow>In1r (Jmp j)                        \<succ>\<rightarrow> xs'"
-        "G\<turnstile>Norm s \<midarrow>In1r (l\<bullet> c)                         \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In3  ([])                           \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In3  (e#es)                         \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (Lit w)                        \<succ>\<rightarrow> vs'"
-        "G\<turnstile>Norm s \<midarrow>In1l (UnOp unop e)                  \<succ>\<rightarrow> vs'"
-        "G\<turnstile>Norm s \<midarrow>In1l (BinOp binop e1 e2)            \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In2  (LVar vn)                      \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (Cast T e)                     \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (e InstOf T)                   \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (Super)                        \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (Acc va)                       \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (Expr e)                       \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (c1;; c2)                      \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (Methd C sig)                  \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (Body D c)                     \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (e0 ? e1 : e2)                 \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (If(e) c1 Else c2)             \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (l\<bullet> While(e) c)                \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (c1 Finally c2)                \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (Throw e)                      \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (NewC C)                       \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (New T[e])                     \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (Ass va e)                     \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (Try c1 Catch(tn vn) c2)       \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In2  ({accC,statDeclC,stat}e..fn)   \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In2  (e1.[e2])                      \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l ({accC,statT,mode}e\<cdot>mn({pT}p)) \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (Init C)                       \<succ>\<rightarrow> xs'"
+inductive_cases2 eval_elim_cases [cases set]:
+        "G\<turnstile>(Some xc,s) \<midarrow>t                              \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In1r Skip                           \<succ>\<rightarrow> (x, s')"
+        "G\<turnstile>Norm s \<midarrow>In1r (Jmp j)                        \<succ>\<rightarrow> (x, s')"
+        "G\<turnstile>Norm s \<midarrow>In1r (l\<bullet> c)                         \<succ>\<rightarrow> (x, s')"
+	"G\<turnstile>Norm s \<midarrow>In3  ([])                           \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In3  (e#es)                         \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In1l (Lit w)                        \<succ>\<rightarrow> (v, s')"
+        "G\<turnstile>Norm s \<midarrow>In1l (UnOp unop e)                  \<succ>\<rightarrow> (v, s')"
+        "G\<turnstile>Norm s \<midarrow>In1l (BinOp binop e1 e2)            \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In2  (LVar vn)                      \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In1l (Cast T e)                     \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In1l (e InstOf T)                   \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In1l (Super)                        \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In1l (Acc va)                       \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In1r (Expr e)                       \<succ>\<rightarrow> (x, s')"
+	"G\<turnstile>Norm s \<midarrow>In1r (c1;; c2)                      \<succ>\<rightarrow> (x, s')"
+	"G\<turnstile>Norm s \<midarrow>In1l (Methd C sig)                  \<succ>\<rightarrow> (x, s')"
+	"G\<turnstile>Norm s \<midarrow>In1l (Body D c)                     \<succ>\<rightarrow> (x, s')"
+	"G\<turnstile>Norm s \<midarrow>In1l (e0 ? e1 : e2)                 \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In1r (If(e) c1 Else c2)             \<succ>\<rightarrow> (x, s')"
+	"G\<turnstile>Norm s \<midarrow>In1r (l\<bullet> While(e) c)                \<succ>\<rightarrow> (x, s')"
+	"G\<turnstile>Norm s \<midarrow>In1r (c1 Finally c2)                \<succ>\<rightarrow> (x, s')"
+	"G\<turnstile>Norm s \<midarrow>In1r (Throw e)                      \<succ>\<rightarrow> (x, s')"
+	"G\<turnstile>Norm s \<midarrow>In1l (NewC C)                       \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In1l (New T[e])                     \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In1l (Ass va e)                     \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In1r (Try c1 Catch(tn vn) c2)       \<succ>\<rightarrow> (x, s')"
+	"G\<turnstile>Norm s \<midarrow>In2  ({accC,statDeclC,stat}e..fn)   \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In2  (e1.[e2])                      \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In1l ({accC,statT,mode}e\<cdot>mn({pT}p)) \<succ>\<rightarrow> (v, s')"
+	"G\<turnstile>Norm s \<midarrow>In1r (Init C)                       \<succ>\<rightarrow> (x, s')"
 declare not_None_eq [simp]  (* IntDef.Zero_def [simp] *)
 declare split_paired_All [simp] split_paired_Ex [simp]
 ML_setup {*
@@ -885,25 +856,33 @@ text {* The following simplification procedures set up the proper injections of
  (injection @{term In1l} into terms) always evaluates to ordinary values 
  (injection @{term In1} into generalised values @{term vals}). 
 *}
+
+lemma eval_expr_eq: "G\<turnstile>s \<midarrow>In1l t\<succ>\<rightarrow> (w, s') = (\<exists>v. w=In1 v \<and> G\<turnstile>s \<midarrow>t-\<succ>v \<rightarrow> s')"
+  by (auto, frule eval_Inj_elim, auto)
+
+lemma eval_var_eq: "G\<turnstile>s \<midarrow>In2 t\<succ>\<rightarrow> (w, s') = (\<exists>vf. w=In2 vf \<and> G\<turnstile>s \<midarrow>t=\<succ>vf\<rightarrow> s')"
+  by (auto, frule eval_Inj_elim, auto)
+
+lemma eval_exprs_eq: "G\<turnstile>s \<midarrow>In3 t\<succ>\<rightarrow> (w, s') = (\<exists>vs. w=In3 vs \<and> G\<turnstile>s \<midarrow>t\<doteq>\<succ>vs\<rightarrow> s')"
+  by (auto, frule eval_Inj_elim, auto)
+
+lemma eval_stmt_eq: "G\<turnstile>s \<midarrow>In1r t\<succ>\<rightarrow> (w, s') = (w=\<diamondsuit> \<and> G\<turnstile>s \<midarrow>t \<rightarrow> s')"
+  by (auto, frule eval_Inj_elim, auto, frule eval_Inj_elim, auto)
+
 ML_setup {*
-fun eval_fun nam inj rhs =
+fun eval_fun name lhs =
 let
-  val name = "eval_" ^ nam ^ "_eq"
-  val lhs = "G\<turnstile>s \<midarrow>" ^ inj ^ " t\<succ>\<rightarrow> (w, s')"
-  val () = qed_goal name (the_context()) (lhs ^ " = (" ^ rhs ^ ")") 
-	(K [Auto_tac, ALLGOALS (ftac (thm "eval_Inj_elim")) THEN Auto_tac])
   fun is_Inj (Const (inj,_) $ _) = true
     | is_Inj _                   = false
-  fun pred (_ $ (Const ("Pair",_) $ _ $ 
-      (Const ("Pair", _) $ _ $ (Const ("Pair", _) $ x $ _ ))) $ _ ) = is_Inj x
+  fun pred (_ $ _ $ _ $ _ $ x $ _) = is_Inj x
 in
   cond_simproc name lhs pred (thm name)
 end
 
-val eval_expr_proc =eval_fun "expr" "In1l" "\<exists>v.  w=In1 v   \<and> G\<turnstile>s \<midarrow>t-\<succ>v \<rightarrow> s'"
-val eval_var_proc  =eval_fun "var"  "In2"  "\<exists>vf. w=In2 vf  \<and> G\<turnstile>s \<midarrow>t=\<succ>vf\<rightarrow> s'"
-val eval_exprs_proc=eval_fun "exprs""In3"  "\<exists>vs. w=In3 vs  \<and> G\<turnstile>s \<midarrow>t\<doteq>\<succ>vs\<rightarrow> s'"
-val eval_stmt_proc =eval_fun "stmt" "In1r" "     w=\<diamondsuit> \<and> G\<turnstile>s \<midarrow>t    \<rightarrow> s'";
+val eval_expr_proc  = eval_fun "eval_expr_eq"  "G\<turnstile>s \<midarrow>In1l t\<succ>\<rightarrow> (w, s')";
+val eval_var_proc   = eval_fun "eval_var_eq"   "G\<turnstile>s \<midarrow>In2 t\<succ>\<rightarrow> (w, s')";
+val eval_exprs_proc = eval_fun "eval_exprs_eq" "G\<turnstile>s \<midarrow>In3 t\<succ>\<rightarrow> (w, s')";
+val eval_stmt_proc  = eval_fun "eval_stmt_eq"  "G\<turnstile>s \<midarrow>In1r t\<succ>\<rightarrow> (w, s')";
 Addsimprocs [eval_expr_proc,eval_var_proc,eval_exprs_proc,eval_stmt_proc];
 bind_thms ("AbruptIs", sum3_instantiate (thm "eval.Abrupt"))
 *}
@@ -922,9 +901,7 @@ proof -
     assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')" and
          normal: "normal s" and
          callee: "t=In1l (Callee l e)"
-    then have "False"
-    proof (induct)
-    qed (auto)
+    then have "False" by induct auto
   }  
   then show ?thesis
     by (cases s') fastsimp
@@ -937,9 +914,7 @@ proof -
     assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')" and
          normal: "normal s" and
          callee: "t=In1l (InsInitE c e)"
-    then have "False"
-    proof (induct)
-    qed (auto)
+    then have "False" by induct auto
   }
   then show ?thesis
     by (cases s') fastsimp
@@ -951,9 +926,7 @@ proof -
     assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')" and
          normal: "normal s" and
          callee: "t=In2 (InsInitV c w)"
-    then have "False"
-    proof (induct)
-    qed (auto)
+    then have "False" by induct auto
   }  
   then show ?thesis
     by (cases s') fastsimp
@@ -965,9 +938,7 @@ proof -
     assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')" and
          normal: "normal s" and
          callee: "t=In1r (FinA a c)"
-    then have "False"
-    proof (induct)
-    qed (auto)
+    then have "False" by induct auto
   }  
   then show ?thesis
     by (cases s') fastsimp 
@@ -988,8 +959,7 @@ ML {*
 local
   fun is_None (Const ("Datatype.option.None",_)) = true
     | is_None _ = false
-  fun pred (t as (_ $ (Const ("Pair",_) $
-     (Const ("Pair", _) $ x $ _) $ _ ) $ _)) = is_None x
+  fun pred (_ $ _ $ (Const ("Pair", _) $ x $ _) $ _  $ _ $ _) = is_None x
 in
   val eval_no_abrupt_proc = 
   cond_simproc "eval_no_abrupt" "G\<turnstile>(x,s) \<midarrow>e\<succ>\<rightarrow> (w,Norm s')" pred 
@@ -1015,9 +985,7 @@ ML {*
 local
   fun is_Some (Const ("Pair",_) $ (Const ("Datatype.option.Some",_) $ _)$ _) =true
     | is_Some _ = false
-  fun pred (_ $ (Const ("Pair",_) $
-     _ $ (Const ("Pair", _) $ _ $ (Const ("Pair", _) $ _ $
-       x))) $ _ ) = is_Some x
+  fun pred (_ $ _ $ _ $ _ $ _ $ x) = is_Some x
 in
   val eval_abrupt_proc = 
   cond_simproc "eval_abrupt" 
@@ -1174,8 +1142,7 @@ qed
 section "single valued"
 
 lemma unique_halloc [rule_format (no_asm)]: 
-  "\<And>s as as'. (s,oi,as)\<in>halloc G \<Longrightarrow> (s,oi,as')\<in>halloc G \<longrightarrow> as'=as"
-apply (simp (no_asm_simp) only: split_tupled_all)
+  "G\<turnstile>s \<midarrow>halloc oi\<succ>a \<rightarrow> s' \<Longrightarrow> G\<turnstile>s \<midarrow>halloc oi\<succ>a' \<rightarrow> s'' \<longrightarrow> a' = a \<and> s'' = s'"
 apply (erule halloc.induct)
 apply  (auto elim!: halloc_elim_cases split del: split_if split_if_asm)
 apply (drule trans [THEN sym], erule sym) 
@@ -1192,8 +1159,7 @@ by (clarsimp, drule (1) unique_halloc, auto)
 
 
 lemma unique_sxalloc [rule_format (no_asm)]: 
-  "\<And>s s'. G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s' \<Longrightarrow> G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s'' \<longrightarrow> s'' = s'"
-apply (simp (no_asm_simp) only: split_tupled_all)
+  "G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s' \<Longrightarrow> G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s'' \<longrightarrow> s'' = s'"
 apply (erule sxalloc.induct)
 apply   (auto dest: unique_halloc elim!: sxalloc_elim_cases 
               split del: split_if split_if_asm)
@@ -1210,9 +1176,7 @@ by auto
 
 
 lemma unique_eval [rule_format (no_asm)]: 
-  "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> ws \<Longrightarrow> (\<forall>ws'. G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> ws' \<longrightarrow> ws' = ws)"
-apply (case_tac "ws")
-apply hypsubst
+  "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (w, s') \<Longrightarrow> (\<forall>w' s''. G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (w', s'') \<longrightarrow> w' = w \<and> s'' = s')"
 apply (erule eval_induct)
 apply (tactic {* ALLGOALS (EVERY'
       [strip_tac, rotate_tac ~1, eresolve_tac (thms "eval_elim_cases")]) *})
@@ -1221,19 +1185,16 @@ prefer 28 (* Try *)
 apply (simp (no_asm_use) only: split add: split_if_asm)
 (* 34 subgoals *)
 prefer 30 (* Init *)
-apply (case_tac "inited C (globs s0)", (simp only: if_True if_False)+)
+apply (case_tac "inited C (globs s0)", (simp only: if_True if_False simp_thms)+)
 prefer 26 (* While *)
 apply (simp (no_asm_use) only: split add: split_if_asm, blast)
-apply (drule_tac x="(In1 bb, s1a)" in spec, drule (1) mp, simp)
-apply (drule_tac x="(In1 bb, s1a)" in spec, drule (1) mp, simp)
-apply blast
-(* 33 subgoals *)
+(* 36 subgoals *)
 apply (blast dest: unique_sxalloc unique_halloc split_pairD)+
 done
 
 (* unused *)
 lemma single_valued_eval: 
- "single_valued {((s,t),vs'). G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> vs'}"
+ "single_valued {((s, t), (v, s')). G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v, s')}"
 apply (unfold single_valued_def)
 by (clarify, drule (1) unique_eval, auto)
 

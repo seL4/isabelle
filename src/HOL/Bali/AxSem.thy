@@ -435,7 +435,6 @@ consts
                                                 (   "_\<Turnstile>_:_" [61,0, 58] 57)
     ax_valids :: "prog \<Rightarrow> 'b triples \<Rightarrow> 'a triples \<Rightarrow> bool"
                                                 ("_,_|\<Turnstile>_"   [61,58,58] 57)
-    ax_derivs :: "prog \<Rightarrow> ('a triples \<times> 'a triples) set"
 
 syntax
 
@@ -443,10 +442,6 @@ syntax
                                                 (  "_||=_:_" [61,0, 58] 57)
      ax_valid :: "prog \<Rightarrow>  'b triples \<Rightarrow> 'a triple  \<Rightarrow> bool"
                                                 ( "_,_|=_"   [61,58,58] 57)
-     ax_Derivs:: "prog \<Rightarrow>  'b triples \<Rightarrow> 'a triples \<Rightarrow> bool"
-                                                ("_,_||-_"   [61,58,58] 57)
-     ax_Deriv :: "prog \<Rightarrow>  'b triples \<Rightarrow> 'a triple  \<Rightarrow> bool"
-                                                ( "_,_|-_"   [61,58,58] 57)
 
 syntax (xsymbols)
 
@@ -454,10 +449,6 @@ syntax (xsymbols)
                                                 (  "_|\<Turnstile>_:_" [61,0, 58] 57)
      ax_valid :: "prog \<Rightarrow>  'b triples \<Rightarrow> 'a triple  \<Rightarrow> bool"
                                                 ( "_,_\<Turnstile>_"   [61,58,58] 57)
-     ax_Derivs:: "prog \<Rightarrow>  'b triples \<Rightarrow> 'a triples \<Rightarrow> bool"
-                                                ("_,_|\<turnstile>_"   [61,58,58] 57)
-     ax_Deriv :: "prog \<Rightarrow>  'b triples \<Rightarrow> 'a triple  \<Rightarrow> bool"
-                                                ( "_,_\<turnstile>_"   [61,58,58] 57)
 
 defs  triple_valid_def:  "G\<Turnstile>n:t  \<equiv> case t of {P} t\<succ> {Q} \<Rightarrow>
                           \<forall>Y s Z. P Y s Z \<longrightarrow> type_ok G t s \<longrightarrow>
@@ -465,8 +456,6 @@ defs  triple_valid_def:  "G\<Turnstile>n:t  \<equiv> case t of {P} t\<succ> {Q} 
 translations         "G|\<Turnstile>n:ts" == "Ball ts (triple_valid G n)"
 defs   ax_valids_def:"G,A|\<Turnstile>ts  \<equiv>  \<forall>n. G|\<Turnstile>n:A \<longrightarrow> G|\<Turnstile>n:ts"
 translations         "G,A \<Turnstile>t"  == "G,A|\<Turnstile>{t}"
-                     "G,A|\<turnstile>ts" == "(A,ts) \<in> ax_derivs G"
-                     "G,A \<turnstile>t"  == "G,A|\<turnstile>{t}"
 
 lemma triple_valid_def2: "G\<Turnstile>n:{P} t\<succ> {Q} =  
  (\<forall>Y s Z. P Y s Z 
@@ -487,63 +476,69 @@ change_simpset (fn ss => ss delloop "split_all_tac");
 change_claset (fn cs => cs delSWrapper "split_all_tac");
 *}
 
-inductive "ax_derivs G" intros
+inductive2
+  ax_derivs :: "prog \<Rightarrow> 'a triples \<Rightarrow> 'a triples \<Rightarrow> bool" ("_,_|\<turnstile>_" [61,58,58] 57)
+  and ax_deriv :: "prog \<Rightarrow> 'a triples \<Rightarrow> 'a triple  \<Rightarrow> bool" ("_,_\<turnstile>_" [61,58,58] 57)
+  for G :: prog
+where
 
-  empty: " G,A|\<turnstile>{}"
-  insert:"\<lbrakk>G,A\<turnstile>t; G,A|\<turnstile>ts\<rbrakk> \<Longrightarrow>
+  "G,A \<turnstile>t \<equiv> G,A|\<turnstile>{t}"
+
+| empty: " G,A|\<turnstile>{}"
+| insert:"\<lbrakk>G,A\<turnstile>t; G,A|\<turnstile>ts\<rbrakk> \<Longrightarrow>
           G,A|\<turnstile>insert t ts"
 
-  asm:   "ts\<subseteq>A \<Longrightarrow> G,A|\<turnstile>ts"
+| asm:   "ts\<subseteq>A \<Longrightarrow> G,A|\<turnstile>ts"
 
 (* could be added for convenience and efficiency, but is not necessary
   cut:   "\<lbrakk>G,A'|\<turnstile>ts; G,A|\<turnstile>A'\<rbrakk> \<Longrightarrow>
            G,A |\<turnstile>ts"
 *)
-  weaken:"\<lbrakk>G,A|\<turnstile>ts'; ts \<subseteq> ts'\<rbrakk> \<Longrightarrow> G,A|\<turnstile>ts"
+| weaken:"\<lbrakk>G,A|\<turnstile>ts'; ts \<subseteq> ts'\<rbrakk> \<Longrightarrow> G,A|\<turnstile>ts"
 
-  conseq:"\<forall>Y s Z . P  Y s Z  \<longrightarrow> (\<exists>P' Q'. G,A\<turnstile>{P'} t\<succ> {Q'} \<and> (\<forall>Y' s'. 
+| conseq:"\<forall>Y s Z . P  Y s Z  \<longrightarrow> (\<exists>P' Q'. G,A\<turnstile>{P'} t\<succ> {Q'} \<and> (\<forall>Y' s'. 
          (\<forall>Y   Z'. P' Y s Z' \<longrightarrow> Q' Y' s' Z') \<longrightarrow>
                                  Q  Y' s' Z ))
                                          \<Longrightarrow> G,A\<turnstile>{P } t\<succ> {Q }"
 
-  hazard:"G,A\<turnstile>{P \<and>. Not \<circ> type_ok G t} t\<succ> {Q}"
+| hazard:"G,A\<turnstile>{P \<and>. Not \<circ> type_ok G t} t\<succ> {Q}"
 
-  Abrupt:  "G,A\<turnstile>{P\<leftarrow>(arbitrary3 t) \<and>. Not \<circ> normal} t\<succ> {P}"
+| Abrupt:  "G,A\<turnstile>{P\<leftarrow>(arbitrary3 t) \<and>. Not \<circ> normal} t\<succ> {P}"
 
   --{* variables *}
-  LVar:  " G,A\<turnstile>{Normal (\<lambda>s.. P\<leftarrow>Var (lvar vn s))} LVar vn=\<succ> {P}"
+| LVar:  " G,A\<turnstile>{Normal (\<lambda>s.. P\<leftarrow>Var (lvar vn s))} LVar vn=\<succ> {P}"
 
-  FVar: "\<lbrakk>G,A\<turnstile>{Normal P} .Init C. {Q};
+| FVar: "\<lbrakk>G,A\<turnstile>{Normal P} .Init C. {Q};
           G,A\<turnstile>{Q} e-\<succ> {\<lambda>Val:a:. fvar C stat fn a ..; R}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} {accC,C,stat}e..fn=\<succ> {R}"
 
-  AVar:  "\<lbrakk>G,A\<turnstile>{Normal P} e1-\<succ> {Q};
+| AVar:  "\<lbrakk>G,A\<turnstile>{Normal P} e1-\<succ> {Q};
           \<forall>a. G,A\<turnstile>{Q\<leftarrow>Val a} e2-\<succ> {\<lambda>Val:i:. avar G i a ..; R}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} e1.[e2]=\<succ> {R}"
   --{* expressions *}
 
-  NewC: "\<lbrakk>G,A\<turnstile>{Normal P} .Init C. {Alloc G (CInst C) Q}\<rbrakk> \<Longrightarrow>
+| NewC: "\<lbrakk>G,A\<turnstile>{Normal P} .Init C. {Alloc G (CInst C) Q}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} NewC C-\<succ> {Q}"
 
-  NewA: "\<lbrakk>G,A\<turnstile>{Normal P} .init_comp_ty T. {Q};  G,A\<turnstile>{Q} e-\<succ>
+| NewA: "\<lbrakk>G,A\<turnstile>{Normal P} .init_comp_ty T. {Q};  G,A\<turnstile>{Q} e-\<succ>
 	  {\<lambda>Val:i:. abupd (check_neg i) .; Alloc G (Arr T (the_Intg i)) R}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} New T[e]-\<succ> {R}"
 
-  Cast: "\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {\<lambda>Val:v:. \<lambda>s..
+| Cast: "\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {\<lambda>Val:v:. \<lambda>s..
           abupd (raise_if (\<not>G,s\<turnstile>v fits T) ClassCast) .; Q\<leftarrow>Val v}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} Cast T e-\<succ> {Q}"
 
-  Inst: "\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {\<lambda>Val:v:. \<lambda>s..
+| Inst: "\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {\<lambda>Val:v:. \<lambda>s..
                   Q\<leftarrow>Val (Bool (v\<noteq>Null \<and> G,s\<turnstile>v fits RefT T))}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} e InstOf T-\<succ> {Q}"
 
-  Lit:                          "G,A\<turnstile>{Normal (P\<leftarrow>Val v)} Lit v-\<succ> {P}"
+| Lit:                          "G,A\<turnstile>{Normal (P\<leftarrow>Val v)} Lit v-\<succ> {P}"
 
-  UnOp: "\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {\<lambda>Val:v:. Q\<leftarrow>Val (eval_unop unop v)}\<rbrakk>
+| UnOp: "\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {\<lambda>Val:v:. Q\<leftarrow>Val (eval_unop unop v)}\<rbrakk>
           \<Longrightarrow>
           G,A\<turnstile>{Normal P} UnOp unop e-\<succ> {Q}"
 
-  BinOp:
+| BinOp:
    "\<lbrakk>G,A\<turnstile>{Normal P} e1-\<succ> {Q};
      \<forall>v1. G,A\<turnstile>{Q\<leftarrow>Val v1} 
                (if need_second_arg binop v1 then (In1l e2) else (In1r Skip))\<succ>
@@ -551,20 +546,20 @@ inductive "ax_derivs G" intros
     \<Longrightarrow>
     G,A\<turnstile>{Normal P} BinOp binop e1 e2-\<succ> {R}" 
 
-  Super:" G,A\<turnstile>{Normal (\<lambda>s.. P\<leftarrow>Val (val_this s))} Super-\<succ> {P}"
+| Super:" G,A\<turnstile>{Normal (\<lambda>s.. P\<leftarrow>Val (val_this s))} Super-\<succ> {P}"
 
-  Acc:  "\<lbrakk>G,A\<turnstile>{Normal P} va=\<succ> {\<lambda>Var:(v,f):. Q\<leftarrow>Val v}\<rbrakk> \<Longrightarrow>
+| Acc:  "\<lbrakk>G,A\<turnstile>{Normal P} va=\<succ> {\<lambda>Var:(v,f):. Q\<leftarrow>Val v}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} Acc va-\<succ> {Q}"
 
-  Ass:  "\<lbrakk>G,A\<turnstile>{Normal P} va=\<succ> {Q};
+| Ass:  "\<lbrakk>G,A\<turnstile>{Normal P} va=\<succ> {Q};
      \<forall>vf. G,A\<turnstile>{Q\<leftarrow>Var vf} e-\<succ> {\<lambda>Val:v:. assign (snd vf) v .; R}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} va:=e-\<succ> {R}"
 
-  Cond: "\<lbrakk>G,A \<turnstile>{Normal P} e0-\<succ> {P'};
+| Cond: "\<lbrakk>G,A \<turnstile>{Normal P} e0-\<succ> {P'};
           \<forall>b. G,A\<turnstile>{P'\<leftarrow>=b} (if b then e1 else e2)-\<succ> {Q}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} e0 ? e1 : e2-\<succ> {Q}"
 
-  Call: 
+| Call: 
 "\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {Q}; \<forall>a. G,A\<turnstile>{Q\<leftarrow>Val a} args\<doteq>\<succ> {R a};
   \<forall>a vs invC declC l. G,A\<turnstile>{(R a\<leftarrow>Vals vs \<and>.
  (\<lambda>s. declC=invocation_declclass G mode (store s) a statT \<lparr>name=mn,parTs=pTs\<rparr> \<and>
@@ -575,37 +570,37 @@ inductive "ax_derivs G" intros
  Methd declC \<lparr>name=mn,parTs=pTs\<rparr>-\<succ> {set_lvars l .; S}\<rbrakk> \<Longrightarrow>
          G,A\<turnstile>{Normal P} {accC,statT,mode}e\<cdot>mn({pTs}args)-\<succ> {S}"
 
-  Methd:"\<lbrakk>G,A\<union> {{P} Methd-\<succ> {Q} | ms} |\<turnstile> {{P} body G-\<succ> {Q} | ms}\<rbrakk> \<Longrightarrow>
+| Methd:"\<lbrakk>G,A\<union> {{P} Methd-\<succ> {Q} | ms} |\<turnstile> {{P} body G-\<succ> {Q} | ms}\<rbrakk> \<Longrightarrow>
                                  G,A|\<turnstile>{{P} Methd-\<succ>  {Q} | ms}"
 
-  Body: "\<lbrakk>G,A\<turnstile>{Normal P} .Init D. {Q}; 
+| Body: "\<lbrakk>G,A\<turnstile>{Normal P} .Init D. {Q}; 
   G,A\<turnstile>{Q} .c. {\<lambda>s.. abupd (absorb Ret) .; R\<leftarrow>(In1 (the (locals s Result)))}\<rbrakk> 
     \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} Body D c-\<succ> {R}"
   
   --{* expression lists *}
 
-  Nil:                          "G,A\<turnstile>{Normal (P\<leftarrow>Vals [])} []\<doteq>\<succ> {P}"
+| Nil:                          "G,A\<turnstile>{Normal (P\<leftarrow>Vals [])} []\<doteq>\<succ> {P}"
 
-  Cons: "\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {Q};
+| Cons: "\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {Q};
           \<forall>v. G,A\<turnstile>{Q\<leftarrow>Val v} es\<doteq>\<succ> {\<lambda>Vals:vs:. R\<leftarrow>Vals (v#vs)}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} e#es\<doteq>\<succ> {R}"
 
   --{* statements *}
 
-  Skip:                         "G,A\<turnstile>{Normal (P\<leftarrow>\<diamondsuit>)} .Skip. {P}"
+| Skip:                         "G,A\<turnstile>{Normal (P\<leftarrow>\<diamondsuit>)} .Skip. {P}"
 
-  Expr: "\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {Q\<leftarrow>\<diamondsuit>}\<rbrakk> \<Longrightarrow>
+| Expr: "\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {Q\<leftarrow>\<diamondsuit>}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} .Expr e. {Q}"
 
-  Lab: "\<lbrakk>G,A\<turnstile>{Normal P} .c. {abupd (absorb l) .; Q}\<rbrakk> \<Longrightarrow>
+| Lab: "\<lbrakk>G,A\<turnstile>{Normal P} .c. {abupd (absorb l) .; Q}\<rbrakk> \<Longrightarrow>
                            G,A\<turnstile>{Normal P} .l\<bullet> c. {Q}"
 
-  Comp: "\<lbrakk>G,A\<turnstile>{Normal P} .c1. {Q};
+| Comp: "\<lbrakk>G,A\<turnstile>{Normal P} .c1. {Q};
           G,A\<turnstile>{Q} .c2. {R}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} .c1;;c2. {R}"
 
-  If:   "\<lbrakk>G,A \<turnstile>{Normal P} e-\<succ> {P'};
+| If:   "\<lbrakk>G,A \<turnstile>{Normal P} e-\<succ> {P'};
           \<forall>b. G,A\<turnstile>{P'\<leftarrow>=b} .(if b then c1 else c2). {Q}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} .If(e) c1 Else c2. {Q}"
 (* unfolding variant of Loop, not needed here
@@ -613,28 +608,28 @@ inductive "ax_derivs G" intros
           \<forall>b. G,A\<turnstile>{P'\<leftarrow>=b} .(if b then c;;While(e) c else Skip).{Q}\<rbrakk>
          \<Longrightarrow>              G,A\<turnstile>{Normal P} .While(e) c. {Q}"
 *)
-  Loop: "\<lbrakk>G,A\<turnstile>{P} e-\<succ> {P'}; 
+| Loop: "\<lbrakk>G,A\<turnstile>{P} e-\<succ> {P'}; 
           G,A\<turnstile>{Normal (P'\<leftarrow>=True)} .c. {abupd (absorb (Cont l)) .; P}\<rbrakk> \<Longrightarrow>
                             G,A\<turnstile>{P} .l\<bullet> While(e) c. {(P'\<leftarrow>=False)\<down>=\<diamondsuit>}"
   
-  Jmp: "G,A\<turnstile>{Normal (abupd (\<lambda>a. (Some (Jump j))) .; P\<leftarrow>\<diamondsuit>)} .Jmp j. {P}"
+| Jmp: "G,A\<turnstile>{Normal (abupd (\<lambda>a. (Some (Jump j))) .; P\<leftarrow>\<diamondsuit>)} .Jmp j. {P}"
 
-  Throw:"\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {\<lambda>Val:a:. abupd (throw a) .; Q\<leftarrow>\<diamondsuit>}\<rbrakk> \<Longrightarrow>
+| Throw:"\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {\<lambda>Val:a:. abupd (throw a) .; Q\<leftarrow>\<diamondsuit>}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} .Throw e. {Q}"
 
-  Try:  "\<lbrakk>G,A\<turnstile>{Normal P} .c1. {SXAlloc G Q};
+| Try:  "\<lbrakk>G,A\<turnstile>{Normal P} .c1. {SXAlloc G Q};
           G,A\<turnstile>{Q \<and>. (\<lambda>s.  G,s\<turnstile>catch C) ;. new_xcpt_var vn} .c2. {R};
               (Q \<and>. (\<lambda>s. \<not>G,s\<turnstile>catch C)) \<Rightarrow> R\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} .Try c1 Catch(C vn) c2. {R}"
 
-  Fin:  "\<lbrakk>G,A\<turnstile>{Normal P} .c1. {Q};
+| Fin:  "\<lbrakk>G,A\<turnstile>{Normal P} .c1. {Q};
       \<forall>x. G,A\<turnstile>{Q \<and>. (\<lambda>s. x = fst s) ;. abupd (\<lambda>x. None)}
               .c2. {abupd (abrupt_if (x\<noteq>None) x) .; R}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} .c1 Finally c2. {R}"
 
-  Done:                       "G,A\<turnstile>{Normal (P\<leftarrow>\<diamondsuit> \<and>. initd C)} .Init C. {P}"
+| Done:                       "G,A\<turnstile>{Normal (P\<leftarrow>\<diamondsuit> \<and>. initd C)} .Init C. {P}"
 
-  Init: "\<lbrakk>the (class G C) = c;
+| Init: "\<lbrakk>the (class G C) = c;
           G,A\<turnstile>{Normal ((P \<and>. Not \<circ> initd C) ;. supd (init_class_obj G C))}
               .(if C = Object then Skip else Init (super c)). {Q};
       \<forall>l. G,A\<turnstile>{Q \<and>. (\<lambda>s. l = locals (store s)) ;. set_lvars empty}
@@ -645,10 +640,10 @@ inductive "ax_derivs G" intros
 @{text InsInitE}, @{text InsInitV}, @{text FinA} only used by the smallstep 
 semantics.
 *}
-  InsInitV: " G,A\<turnstile>{Normal P} InsInitV c v=\<succ> {Q}"
-  InsInitE: " G,A\<turnstile>{Normal P} InsInitE c e-\<succ> {Q}"
-  Callee:    " G,A\<turnstile>{Normal P} Callee l e-\<succ> {Q}"
-  FinA:      " G,A\<turnstile>{Normal P} .FinA a c. {Q}"
+| InsInitV: " G,A\<turnstile>{Normal P} InsInitV c v=\<succ> {Q}"
+| InsInitE: " G,A\<turnstile>{Normal P} InsInitE c e-\<succ> {Q}"
+| Callee:    " G,A\<turnstile>{Normal P} Callee l e-\<succ> {Q}"
+| FinA:      " G,A\<turnstile>{Normal P} .FinA a c. {Q}"
 (*
 axioms 
 *)
@@ -1032,7 +1027,7 @@ bind_thms ("ax_Abrupts", sum3_instantiate (thm "ax_derivs.Abrupt"))
 *}
 declare ax_Abrupts [intro!]
 
-lemmas ax_Normal_cases = ax_cases [of _ _ normal]
+lemmas ax_Normal_cases = ax_cases [of _ _ _ normal]
 
 lemma ax_Skip [intro!]: "G,(A::'a triple set)\<turnstile>{P\<leftarrow>\<diamondsuit>} .Skip. {P::'a assn}"
 apply (rule ax_Normal_cases)

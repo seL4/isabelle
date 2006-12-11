@@ -513,25 +513,6 @@ record assigned =
          brk :: "breakass" --{* Definetly assigned variables for 
                                 abrupt completion with a break *}
 
-consts da :: "(env \<times> lname set \<times> term \<times> assigned) set"  
-text {* The environment @{term env} is only needed for the 
-        conditional @{text "_ ? _ : _"}.
-        The definite assignment rules refer to the typing rules here to
-        distinguish boolean and other expressions.
-      *}
-
-syntax
-da :: "env \<Rightarrow> lname set \<Rightarrow> term \<Rightarrow> assigned \<Rightarrow> bool" 
-                           ("_\<turnstile> _ \<guillemotright>_\<guillemotright> _" [65,65,65,65] 71)
-
-translations 
-  "E\<turnstile> B \<guillemotright>t\<guillemotright> A" == "(E,B,t,A) \<in> da"
-
-text {* @{text B}: the ''assigned'' variables before evaluating term @{text t};
-        @{text A}: the ''assigned'' variables after evaluating term @{text t}
-*}
-
-
 constdefs rmlab :: "'a \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables"
 "rmlab k A \<equiv> \<lambda> x. if x=k then UNIV else A x"
  
@@ -543,35 +524,45 @@ constdefs setbrk :: "breakass \<Rightarrow> assigned \<Rightarrow> breakass set"
 constdefs range_inter_ts :: "('a,'b) tables \<Rightarrow> 'b set" ("\<Rightarrow>\<Inter>_" 80)
  "\<Rightarrow>\<Inter>A \<equiv> {x |x. \<forall> k. x \<in> A k}"
 
-inductive "da" intros
+text {*
+In @{text "E\<turnstile> B \<guillemotright>t\<guillemotright> A"},
+@{text B} denotes the ''assigned'' variables before evaluating term @{text t},
+whereas @{text A} denotes the ''assigned'' variables after evaluating term @{text t}.
+The environment @{term E} is only needed for the conditional @{text "_ ? _ : _"}.
+The definite assignment rules refer to the typing rules here to
+distinguish boolean and other expressions.
+*}
 
- Skip: "Env\<turnstile> B \<guillemotright>\<langle>Skip\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>"
+inductive2
+  da :: "env \<Rightarrow> lname set \<Rightarrow> term \<Rightarrow> assigned \<Rightarrow> bool" ("_\<turnstile> _ \<guillemotright>_\<guillemotright> _" [65,65,65,65] 71)
+where
+  Skip: "Env\<turnstile> B \<guillemotright>\<langle>Skip\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>"
 
- Expr: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A 
-        \<Longrightarrow>  
-        Env\<turnstile> B \<guillemotright>\<langle>Expr e\<rangle>\<guillemotright> A"
- Lab:  "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>c\<rangle>\<guillemotright> C; nrm A = nrm C \<inter> (brk C) l; brk A = rmlab l (brk C)\<rbrakk>
-        \<Longrightarrow> 
-        Env\<turnstile> B \<guillemotright>\<langle>Break l\<bullet> c\<rangle>\<guillemotright> A" 
+| Expr: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A 
+         \<Longrightarrow>  
+         Env\<turnstile> B \<guillemotright>\<langle>Expr e\<rangle>\<guillemotright> A"
+| Lab:  "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>c\<rangle>\<guillemotright> C; nrm A = nrm C \<inter> (brk C) l; brk A = rmlab l (brk C)\<rbrakk>
+         \<Longrightarrow> 
+         Env\<turnstile> B \<guillemotright>\<langle>Break l\<bullet> c\<rangle>\<guillemotright> A" 
 
- Comp: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1; Env\<turnstile> nrm C1 \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2; 
-        nrm A = nrm C2; brk A = (brk C1) \<Rightarrow>\<inter> (brk C2)\<rbrakk> 
-        \<Longrightarrow>  
-        Env\<turnstile> B \<guillemotright>\<langle>c1;; c2\<rangle>\<guillemotright> A"
+| Comp: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1; Env\<turnstile> nrm C1 \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2; 
+         nrm A = nrm C2; brk A = (brk C1) \<Rightarrow>\<inter> (brk C2)\<rbrakk> 
+         \<Longrightarrow>  
+         Env\<turnstile> B \<guillemotright>\<langle>c1;; c2\<rangle>\<guillemotright> A"
 
- If:   "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E;
-         Env\<turnstile> (B \<union> assigns_if True  e) \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1;
-         Env\<turnstile> (B \<union> assigns_if False e) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2;
-         nrm A = nrm C1 \<inter> nrm C2;
-         brk A = brk C1 \<Rightarrow>\<inter> brk C2 \<rbrakk>  
-         \<Longrightarrow>
-         Env\<turnstile> B \<guillemotright>\<langle>If(e) c1 Else c2\<rangle>\<guillemotright> A"
+| If:   "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E;
+          Env\<turnstile> (B \<union> assigns_if True  e) \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1;
+          Env\<turnstile> (B \<union> assigns_if False e) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2;
+          nrm A = nrm C1 \<inter> nrm C2;
+          brk A = brk C1 \<Rightarrow>\<inter> brk C2 \<rbrakk>  
+          \<Longrightarrow>
+          Env\<turnstile> B \<guillemotright>\<langle>If(e) c1 Else c2\<rangle>\<guillemotright> A"
 
 --{* Note that @{term E} is not further used, because we take the specialized
      sets that also consider if the expression evaluates to true or false. 
      Inside of @{term e} there is no {\tt break} or {\tt finally}, so the break
      map of @{term E} will be the trivial one. So 
-     @{term "Env\<turnstile>B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E"} is just used to enshure the definite assignment in
+     @{term "Env\<turnstile>B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E"} is just used to ensure the definite assignment in
      expression @{term e}.
      Notice the implicit analysis of a constant boolean expression @{term e}
      in this rule. For example, if @{term e} is constantly @{term True} then 
@@ -585,12 +576,12 @@ inductive "da" intros
      contribution.
   *}
 
- Loop: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E; 
-         Env\<turnstile> (B \<union> assigns_if True e) \<guillemotright>\<langle>c\<rangle>\<guillemotright> C;
-         nrm A = nrm C \<inter> (B \<union> assigns_if False e);
-         brk A = brk C\<rbrakk>  
-         \<Longrightarrow>
-         Env\<turnstile> B \<guillemotright>\<langle>l\<bullet> While(e) c\<rangle>\<guillemotright> A"
+| Loop: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E; 
+          Env\<turnstile> (B \<union> assigns_if True e) \<guillemotright>\<langle>c\<rangle>\<guillemotright> C;
+          nrm A = nrm C \<inter> (B \<union> assigns_if False e);
+          brk A = brk C\<rbrakk>  
+          \<Longrightarrow>
+          Env\<turnstile> B \<guillemotright>\<langle>l\<bullet> While(e) c\<rangle>\<guillemotright> A"
 --{* The @{text Loop} rule resembles some of the ideas of the @{text If} rule.
      For the @{term "nrm A"} the set @{term "B \<union> assigns_if False e"} 
      will be @{term UNIV} if the condition is constantly true. To normally exit
@@ -602,14 +593,14 @@ inductive "da" intros
      handle the breaks specially. 
   *}
 
- Jmp: "\<lbrakk>jump=Ret \<longrightarrow> Result \<in> B;
-        nrm A = UNIV;
-        brk A = (case jump of
-                   Break l \<Rightarrow> \<lambda> k. if k=l then B else UNIV     
-                 | Cont l  \<Rightarrow> \<lambda> k. UNIV
-                 | Ret     \<Rightarrow> \<lambda> k. UNIV)\<rbrakk> 
-       \<Longrightarrow> 
-       Env\<turnstile> B \<guillemotright>\<langle>Jmp jump\<rangle>\<guillemotright> A"
+| Jmp: "\<lbrakk>jump=Ret \<longrightarrow> Result \<in> B;
+         nrm A = UNIV;
+         brk A = (case jump of
+                    Break l \<Rightarrow> \<lambda> k. if k=l then B else UNIV     
+                  | Cont l  \<Rightarrow> \<lambda> k. UNIV
+                  | Ret     \<Rightarrow> \<lambda> k. UNIV)\<rbrakk> 
+        \<Longrightarrow> 
+        Env\<turnstile> B \<guillemotright>\<langle>Jmp jump\<rangle>\<guillemotright> A"
 --{* In case of a break to label @{term l} the corresponding break set is all
      variables assigned before the break. The assigned variables for normal
      completion of the @{term Jmp} is @{term UNIV}, because the statement will
@@ -618,21 +609,21 @@ inductive "da" intros
      assigned.
   *}
 
- Throw: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E; nrm A = UNIV; brk A = (\<lambda> l. UNIV)\<rbrakk> 
-        \<Longrightarrow> Env\<turnstile> B \<guillemotright>\<langle>Throw e\<rangle>\<guillemotright> A"
+| Throw: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E; nrm A = UNIV; brk A = (\<lambda> l. UNIV)\<rbrakk> 
+         \<Longrightarrow> Env\<turnstile> B \<guillemotright>\<langle>Throw e\<rangle>\<guillemotright> A"
 
- Try:  "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1; 
-         Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>\<turnstile> (B \<union> {VName vn}) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2;  
-         nrm A = nrm C1 \<inter> nrm C2;
-         brk A = brk C1 \<Rightarrow>\<inter> brk C2\<rbrakk> 
-        \<Longrightarrow> Env\<turnstile> B \<guillemotright>\<langle>Try c1 Catch(C vn) c2\<rangle>\<guillemotright> A"
+| Try:  "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1; 
+          Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>\<turnstile> (B \<union> {VName vn}) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2;  
+          nrm A = nrm C1 \<inter> nrm C2;
+          brk A = brk C1 \<Rightarrow>\<inter> brk C2\<rbrakk> 
+         \<Longrightarrow> Env\<turnstile> B \<guillemotright>\<langle>Try c1 Catch(C vn) c2\<rangle>\<guillemotright> A"
 
- Fin:  "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1;
-         Env\<turnstile> B \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2;
-         nrm A = nrm C1 \<union> nrm C2;
-         brk A = ((brk C1) \<Rightarrow>\<union>\<^sub>\<forall> (nrm C2)) \<Rightarrow>\<inter> (brk C2)\<rbrakk>  
-         \<Longrightarrow>
-         Env\<turnstile> B \<guillemotright>\<langle>c1 Finally c2\<rangle>\<guillemotright> A" 
+| Fin:  "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1;
+          Env\<turnstile> B \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2;
+          nrm A = nrm C1 \<union> nrm C2;
+          brk A = ((brk C1) \<Rightarrow>\<union>\<^sub>\<forall> (nrm C2)) \<Rightarrow>\<inter> (brk C2)\<rbrakk>  
+          \<Longrightarrow>
+          Env\<turnstile> B \<guillemotright>\<langle>c1 Finally c2\<rangle>\<guillemotright> A" 
 --{* The set of assigned variables before execution @{term c2} are the same
      as before execution @{term c1}, because @{term c1} could throw an exception
      and so we can't guarantee that any variable will be assigned in @{term c1}.
@@ -671,7 +662,7 @@ inductive "da" intros
      and @{text NewA}
 *}
 
- Init: "Env\<turnstile> B \<guillemotright>\<langle>Init C\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>"
+| Init: "Env\<turnstile> B \<guillemotright>\<langle>Init C\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>"
 --{* Wellformedness of a program will ensure, that every static initialiser 
      is definetly assigned and the jumps are nested correctly. The case here
      for @{term Init} is just for convenience, to get a proper precondition 
@@ -679,91 +670,91 @@ inductive "da" intros
      expand the initialisation on every point where it is triggerred by the
      evaluation rules.
   *}   
- NewC: "Env\<turnstile> B \<guillemotright>\<langle>NewC C\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>" 
+| NewC: "Env\<turnstile> B \<guillemotright>\<langle>NewC C\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>" 
 
- NewA: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A 
-        \<Longrightarrow>
-        Env\<turnstile> B \<guillemotright>\<langle>New T[e]\<rangle>\<guillemotright> A"
-
- Cast: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A
-        \<Longrightarrow>
-        Env\<turnstile> B \<guillemotright>\<langle>Cast T e\<rangle>\<guillemotright> A"
-
- Inst: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A 
-        \<Longrightarrow> 
-        Env\<turnstile> B \<guillemotright>\<langle>e InstOf T\<rangle>\<guillemotright> A"
-
- Lit:  "Env\<turnstile> B \<guillemotright>\<langle>Lit v\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>"
-
- UnOp: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A
-        \<Longrightarrow> 
-        Env\<turnstile> B \<guillemotright>\<langle>UnOp unop e\<rangle>\<guillemotright> A"
-
- CondAnd: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1; Env\<turnstile> (B \<union> assigns_if True e1) \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2; 
-            nrm A = B \<union> (assigns_if True (BinOp CondAnd e1 e2) \<inter> 
-                            assigns_if False (BinOp CondAnd e1 e2));
-            brk A = (\<lambda> l. UNIV) \<rbrakk>
-           \<Longrightarrow>
-           Env\<turnstile> B \<guillemotright>\<langle>BinOp CondAnd e1 e2\<rangle>\<guillemotright> A"
-
- CondOr: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1; Env\<turnstile> (B \<union> assigns_if False e1) \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2; 
-           nrm A = B \<union> (assigns_if True (BinOp CondOr e1 e2) \<inter> 
-                             assigns_if False (BinOp CondOr e1 e2));
-           brk A = (\<lambda> l. UNIV) \<rbrakk>
-           \<Longrightarrow>
-           Env\<turnstile> B \<guillemotright>\<langle>BinOp CondOr e1 e2\<rangle>\<guillemotright> A"
-
- BinOp: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1; Env\<turnstile> nrm E1 \<guillemotright>\<langle>e2\<rangle>\<guillemotright> A; 
-          binop \<noteq> CondAnd; binop \<noteq> CondOr\<rbrakk>
+| NewA: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A 
          \<Longrightarrow>
-         Env\<turnstile> B \<guillemotright>\<langle>BinOp binop e1 e2\<rangle>\<guillemotright> A"
+         Env\<turnstile> B \<guillemotright>\<langle>New T[e]\<rangle>\<guillemotright> A"
 
- Super: "This \<in> B 
+| Cast: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A
+         \<Longrightarrow>
+         Env\<turnstile> B \<guillemotright>\<langle>Cast T e\<rangle>\<guillemotright> A"
+
+| Inst: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A 
          \<Longrightarrow> 
-         Env\<turnstile> B \<guillemotright>\<langle>Super\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>"
+         Env\<turnstile> B \<guillemotright>\<langle>e InstOf T\<rangle>\<guillemotright> A"
 
- AccLVar: "\<lbrakk>vn \<in> B;
-            nrm A = B; brk A = (\<lambda> k. UNIV)\<rbrakk> 
-            \<Longrightarrow> 
-            Env\<turnstile> B \<guillemotright>\<langle>Acc (LVar vn)\<rangle>\<guillemotright> A"
+| Lit:  "Env\<turnstile> B \<guillemotright>\<langle>Lit v\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>"
+
+| UnOp: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A
+         \<Longrightarrow> 
+         Env\<turnstile> B \<guillemotright>\<langle>UnOp unop e\<rangle>\<guillemotright> A"
+
+| CondAnd: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1; Env\<turnstile> (B \<union> assigns_if True e1) \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2; 
+             nrm A = B \<union> (assigns_if True (BinOp CondAnd e1 e2) \<inter> 
+                             assigns_if False (BinOp CondAnd e1 e2));
+             brk A = (\<lambda> l. UNIV) \<rbrakk>
+            \<Longrightarrow>
+            Env\<turnstile> B \<guillemotright>\<langle>BinOp CondAnd e1 e2\<rangle>\<guillemotright> A"
+
+| CondOr: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1; Env\<turnstile> (B \<union> assigns_if False e1) \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2; 
+            nrm A = B \<union> (assigns_if True (BinOp CondOr e1 e2) \<inter> 
+                              assigns_if False (BinOp CondOr e1 e2));
+            brk A = (\<lambda> l. UNIV) \<rbrakk>
+            \<Longrightarrow>
+            Env\<turnstile> B \<guillemotright>\<langle>BinOp CondOr e1 e2\<rangle>\<guillemotright> A"
+
+| BinOp: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1; Env\<turnstile> nrm E1 \<guillemotright>\<langle>e2\<rangle>\<guillemotright> A; 
+           binop \<noteq> CondAnd; binop \<noteq> CondOr\<rbrakk>
+          \<Longrightarrow>
+          Env\<turnstile> B \<guillemotright>\<langle>BinOp binop e1 e2\<rangle>\<guillemotright> A"
+
+| Super: "This \<in> B 
+          \<Longrightarrow> 
+          Env\<turnstile> B \<guillemotright>\<langle>Super\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>"
+
+| AccLVar: "\<lbrakk>vn \<in> B;
+             nrm A = B; brk A = (\<lambda> k. UNIV)\<rbrakk> 
+             \<Longrightarrow> 
+             Env\<turnstile> B \<guillemotright>\<langle>Acc (LVar vn)\<rangle>\<guillemotright> A"
 --{* To properly access a local variable we have to test the definite 
      assignment here. The variable must occur in the set @{term B} 
   *}
 
- Acc: "\<lbrakk>\<forall> vn. v \<noteq> LVar vn;
-        Env\<turnstile> B \<guillemotright>\<langle>v\<rangle>\<guillemotright> A\<rbrakk>
-        \<Longrightarrow>
-        Env\<turnstile> B \<guillemotright>\<langle>Acc v\<rangle>\<guillemotright> A"
+| Acc: "\<lbrakk>\<forall> vn. v \<noteq> LVar vn;
+         Env\<turnstile> B \<guillemotright>\<langle>v\<rangle>\<guillemotright> A\<rbrakk>
+         \<Longrightarrow>
+         Env\<turnstile> B \<guillemotright>\<langle>Acc v\<rangle>\<guillemotright> A"
 
- AssLVar: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E; nrm A = nrm E \<union> {vn}; brk A = brk E\<rbrakk> 
-           \<Longrightarrow> 
-           Env\<turnstile> B \<guillemotright>\<langle>(LVar vn) := e\<rangle>\<guillemotright> A"
+| AssLVar: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E; nrm A = nrm E \<union> {vn}; brk A = brk E\<rbrakk> 
+            \<Longrightarrow> 
+            Env\<turnstile> B \<guillemotright>\<langle>(LVar vn) := e\<rangle>\<guillemotright> A"
 
- Ass: "\<lbrakk>\<forall> vn. v \<noteq> LVar vn; Env\<turnstile> B \<guillemotright>\<langle>v\<rangle>\<guillemotright> V; Env\<turnstile> nrm V \<guillemotright>\<langle>e\<rangle>\<guillemotright> A\<rbrakk>
-        \<Longrightarrow>
-        Env\<turnstile> B \<guillemotright>\<langle>v := e\<rangle>\<guillemotright> A"
+| Ass: "\<lbrakk>\<forall> vn. v \<noteq> LVar vn; Env\<turnstile> B \<guillemotright>\<langle>v\<rangle>\<guillemotright> V; Env\<turnstile> nrm V \<guillemotright>\<langle>e\<rangle>\<guillemotright> A\<rbrakk>
+         \<Longrightarrow>
+         Env\<turnstile> B \<guillemotright>\<langle>v := e\<rangle>\<guillemotright> A"
 
- CondBool: "\<lbrakk>Env\<turnstile>(c ? e1 : e2)\<Colon>-(PrimT Boolean);
-             Env\<turnstile> B \<guillemotright>\<langle>c\<rangle>\<guillemotright> C;
-             Env\<turnstile> (B \<union> assigns_if True  c) \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1;
-             Env\<turnstile> (B \<union> assigns_if False c) \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2;
-             nrm A = B \<union> (assigns_if True  (c ? e1 : e2) \<inter> 
-                              assigns_if False (c ? e1 : e2));
-             brk A = (\<lambda> l. UNIV)\<rbrakk>
-             \<Longrightarrow> 
-             Env\<turnstile> B \<guillemotright>\<langle>c ? e1 : e2\<rangle>\<guillemotright> A" 
+| CondBool: "\<lbrakk>Env\<turnstile>(c ? e1 : e2)\<Colon>-(PrimT Boolean);
+              Env\<turnstile> B \<guillemotright>\<langle>c\<rangle>\<guillemotright> C;
+              Env\<turnstile> (B \<union> assigns_if True  c) \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1;
+              Env\<turnstile> (B \<union> assigns_if False c) \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2;
+              nrm A = B \<union> (assigns_if True  (c ? e1 : e2) \<inter> 
+                               assigns_if False (c ? e1 : e2));
+              brk A = (\<lambda> l. UNIV)\<rbrakk>
+              \<Longrightarrow> 
+              Env\<turnstile> B \<guillemotright>\<langle>c ? e1 : e2\<rangle>\<guillemotright> A" 
 
- Cond: "\<lbrakk>\<not> Env\<turnstile>(c ? e1 : e2)\<Colon>-(PrimT Boolean);
-         Env\<turnstile> B \<guillemotright>\<langle>c\<rangle>\<guillemotright> C;
-         Env\<turnstile> (B \<union> assigns_if True  c) \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1;
-         Env\<turnstile> (B \<union> assigns_if False c) \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2;
-        nrm A = nrm E1 \<inter> nrm E2; brk A = (\<lambda> l. UNIV)\<rbrakk>
-        \<Longrightarrow> 
-        Env\<turnstile> B \<guillemotright>\<langle>c ? e1 : e2\<rangle>\<guillemotright> A" 
+| Cond: "\<lbrakk>\<not> Env\<turnstile>(c ? e1 : e2)\<Colon>-(PrimT Boolean);
+          Env\<turnstile> B \<guillemotright>\<langle>c\<rangle>\<guillemotright> C;
+          Env\<turnstile> (B \<union> assigns_if True  c) \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1;
+          Env\<turnstile> (B \<union> assigns_if False c) \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2;
+          nrm A = nrm E1 \<inter> nrm E2; brk A = (\<lambda> l. UNIV)\<rbrakk>
+          \<Longrightarrow> 
+          Env\<turnstile> B \<guillemotright>\<langle>c ? e1 : e2\<rangle>\<guillemotright> A" 
 
- Call: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E; Env\<turnstile> nrm E \<guillemotright>\<langle>args\<rangle>\<guillemotright> A\<rbrakk> 
-        \<Longrightarrow>  
-        Env\<turnstile> B \<guillemotright>\<langle>{accC,statT,mode}e\<cdot>mn({pTs}args)\<rangle>\<guillemotright> A"
+| Call: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E; Env\<turnstile> nrm E \<guillemotright>\<langle>args\<rangle>\<guillemotright> A\<rbrakk> 
+         \<Longrightarrow>  
+         Env\<turnstile> B \<guillemotright>\<langle>{accC,statT,mode}e\<cdot>mn({pTs}args)\<rangle>\<guillemotright> A"
 
 -- {* The interplay of @{term Call}, @{term Methd} and @{term Body}:
       Why rules for @{term Methd} and @{term Body} at all? Note that a
@@ -786,16 +777,16 @@ inductive "da" intros
       also a precondition for type-safety and so we can omit some assertion 
       that are already ensured by well-typedness. 
    *}
- Methd: "\<lbrakk>methd (prg Env) D sig = Some m;
-          Env\<turnstile> B \<guillemotright>\<langle>Body (declclass m) (stmt (mbody (mthd m)))\<rangle>\<guillemotright> A
-         \<rbrakk>
-         \<Longrightarrow>
-         Env\<turnstile> B \<guillemotright>\<langle>Methd D sig\<rangle>\<guillemotright> A" 
+| Methd: "\<lbrakk>methd (prg Env) D sig = Some m;
+           Env\<turnstile> B \<guillemotright>\<langle>Body (declclass m) (stmt (mbody (mthd m)))\<rangle>\<guillemotright> A
+          \<rbrakk>
+          \<Longrightarrow>
+          Env\<turnstile> B \<guillemotright>\<langle>Methd D sig\<rangle>\<guillemotright> A" 
 
- Body: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>c\<rangle>\<guillemotright> C; jumpNestingOkS {Ret} c; Result \<in> nrm C;
-         nrm A = B; brk A = (\<lambda> l. UNIV)\<rbrakk>
-        \<Longrightarrow>
-        Env\<turnstile> B \<guillemotright>\<langle>Body D c\<rangle>\<guillemotright> A"
+| Body: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>c\<rangle>\<guillemotright> C; jumpNestingOkS {Ret} c; Result \<in> nrm C;
+          nrm A = B; brk A = (\<lambda> l. UNIV)\<rbrakk>
+         \<Longrightarrow>
+         Env\<turnstile> B \<guillemotright>\<langle>Body D c\<rangle>\<guillemotright> A"
 -- {* Note that @{term A} is not correlated to  @{term C}. If the body
       statement returns abruptly with return, evaluation of  @{term Body}
       will absorb this return and complete normally. So we cannot trivially
@@ -809,21 +800,21 @@ inductive "da" intros
       set and then this information must be carried over to the @{term Body}
       rule by the conformance predicate of the state.
    *}
- LVar: "Env\<turnstile> B \<guillemotright>\<langle>LVar vn\<rangle>\<guillemotright> \<lparr>nrm=B, brk=\<lambda> l. UNIV\<rparr>" 
+| LVar: "Env\<turnstile> B \<guillemotright>\<langle>LVar vn\<rangle>\<guillemotright> \<lparr>nrm=B, brk=\<lambda> l. UNIV\<rparr>" 
 
- FVar: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A 
-        \<Longrightarrow> 
-        Env\<turnstile> B \<guillemotright>\<langle>{accC,statDeclC,stat}e..fn\<rangle>\<guillemotright> A" 
-
- AVar: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1; Env\<turnstile> nrm E1 \<guillemotright>\<langle>e2\<rangle>\<guillemotright> A\<rbrakk>
+| FVar: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A 
          \<Longrightarrow> 
-         Env\<turnstile> B \<guillemotright>\<langle>e1.[e2]\<rangle>\<guillemotright> A" 
+         Env\<turnstile> B \<guillemotright>\<langle>{accC,statDeclC,stat}e..fn\<rangle>\<guillemotright> A" 
 
- Nil: "Env\<turnstile> B \<guillemotright>\<langle>[]::expr list\<rangle>\<guillemotright> \<lparr>nrm=B, brk=\<lambda> l. UNIV\<rparr>" 
+| AVar: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1; Env\<turnstile> nrm E1 \<guillemotright>\<langle>e2\<rangle>\<guillemotright> A\<rbrakk>
+          \<Longrightarrow> 
+          Env\<turnstile> B \<guillemotright>\<langle>e1.[e2]\<rangle>\<guillemotright> A" 
 
- Cons: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e::expr\<rangle>\<guillemotright> E; Env\<turnstile> nrm E \<guillemotright>\<langle>es\<rangle>\<guillemotright> A\<rbrakk>
-        \<Longrightarrow> 
-        Env\<turnstile> B \<guillemotright>\<langle>e#es\<rangle>\<guillemotright> A" 
+| Nil: "Env\<turnstile> B \<guillemotright>\<langle>[]::expr list\<rangle>\<guillemotright> \<lparr>nrm=B, brk=\<lambda> l. UNIV\<rparr>" 
+
+| Cons: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e::expr\<rangle>\<guillemotright> E; Env\<turnstile> nrm E \<guillemotright>\<langle>es\<rangle>\<guillemotright> A\<rbrakk>
+         \<Longrightarrow> 
+         Env\<turnstile> B \<guillemotright>\<langle>e#es\<rangle>\<guillemotright> A" 
 
 
 declare inj_term_sym_simps [simp]
@@ -832,7 +823,7 @@ declare split_paired_All [simp del] split_paired_Ex [simp del]
 ML_setup {*
 change_simpset (fn ss => ss delloop "split_all_tac");
 *}
-inductive_cases da_elim_cases [cases set]:
+inductive_cases2 da_elim_cases [cases set]:
   "Env\<turnstile> B \<guillemotright>\<langle>Skip\<rangle>\<guillemotright> A" 
   "Env\<turnstile> B \<guillemotright>In1r Skip\<guillemotright> A" 
   "Env\<turnstile> B \<guillemotright>\<langle>Expr e\<rangle>\<guillemotright> A"
@@ -1076,7 +1067,7 @@ proof -
     from Expr.prems Expr.hyps 
     show ?case by cases simp
   next
-    case (Lab A B C Env c l B' A')
+    case (Lab Env B c C A l B' A')
     have A: "nrm A = nrm C \<inter> brk C l" "brk A = rmlab l (brk C)" .
     have "PROP ?Hyp Env B \<langle>c\<rangle> C" .
     moreover
@@ -1102,7 +1093,7 @@ proof -
     ultimately show ?case
       by simp
   next
-    case (Comp A B C1 C2 Env c1 c2 B' A')
+    case (Comp Env B c1 C1 c2 C2 A B' A')
     have A: "nrm A = nrm C2" "brk A = brk C1 \<Rightarrow>\<inter>  brk C2" .
     have "Env\<turnstile> B' \<guillemotright>\<langle>c1;; c2\<rangle>\<guillemotright> A'" .
     then obtain  C1' C2'
@@ -1123,7 +1114,7 @@ proof -
     show ?case
       by auto
   next
-    case (If A B C1 C2 E Env c1 c2 e B' A')
+    case (If Env B e E c1 C1 c2 C2 A B' A')
     have A: "nrm A = nrm C1 \<inter> nrm C2" "brk A = brk C1 \<Rightarrow>\<inter>  brk C2" .
     have "Env\<turnstile> B' \<guillemotright>\<langle>If(e) c1 Else c2\<rangle>\<guillemotright> A'" .
     then obtain C1' C2'
@@ -1144,7 +1135,7 @@ proof -
     show ?case
       by auto
   next
-    case (Loop A B C E Env c e l B' A')
+    case (Loop Env B e E c C A l B' A')
     have A: "nrm A = nrm C \<inter> (B \<union> assigns_if False e)"
             "brk A = brk C" .
     have "Env\<turnstile> B' \<guillemotright>\<langle>l\<bullet> While(e) c\<rangle>\<guillemotright> A'" .
@@ -1180,12 +1171,12 @@ proof -
     ultimately show ?case
       by auto
   next
-    case (Jmp A B Env jump B' A')
+    case (Jmp jump B A Env B' A')
     thus ?case by (elim da_elim_cases) (auto split: jump.splits)
   next
     case Throw thus ?case by -  (erule da_elim_cases, auto)
   next
-    case (Try A B C C1 C2 Env c1 c2 vn B' A')
+    case (Try Env B c1 C1 vn C c2 C2 A B' A')
     have A: "nrm A = nrm C1 \<inter> nrm C2"
             "brk A = brk C1 \<Rightarrow>\<inter>  brk C2" .
     have "Env\<turnstile> B' \<guillemotright>\<langle>Try c1 Catch(C vn) c2\<rangle>\<guillemotright> A'" .
@@ -1210,7 +1201,7 @@ proof -
     show ?case
       by auto
   next
-    case (Fin A B C1 C2 Env c1 c2 B' A')
+    case (Fin Env B c1 C1 c2 C2 A B' A')
     have A: "nrm A = nrm C1 \<union> nrm C2"
             "brk A = (brk C1 \<Rightarrow>\<union>\<^sub>\<forall> nrm C2) \<Rightarrow>\<inter> (brk C2)" .
     have "Env\<turnstile> B' \<guillemotright>\<langle>c1 Finally c2\<rangle>\<guillemotright> A'" .
@@ -1247,7 +1238,7 @@ proof -
    next
      case UnOp thus ?case by -  (erule da_elim_cases, auto)
    next
-     case (CondAnd A B E1 E2 Env e1 e2 B' A')
+     case (CondAnd Env B e1 E1 e2 E2 A B' A')
      have A: "nrm A = B \<union>
                        assigns_if True (BinOp CondAnd e1 e2) \<inter>
                        assigns_if False (BinOp CondAnd e1 e2)"
@@ -1276,7 +1267,7 @@ proof -
    next
      case Ass thus ?case by -  (erule da_elim_cases, auto)
    next
-     case (CondBool A B C E1 E2 Env c e1 e2 B' A')
+     case (CondBool Env c e1 e2 B C E1 E2 A B' A')
      have A: "nrm A = B \<union> 
                         assigns_if True (c ? e1 : e2) \<inter> 
                         assigns_if False (c ? e1 : e2)"
@@ -1295,7 +1286,7 @@ proof -
      with A A' show ?case 
        by auto 
    next
-     case (Cond A B C E1 E2 Env c e1 e2 B' A')  
+     case (Cond Env c e1 e2 B C E1 E2 A B' A')  
      have A: "nrm A = nrm E1 \<inter> nrm E2"
              "brk A = (\<lambda>l. UNIV)" .
      have not_bool: "\<not> Env\<turnstile> (c ? e1 : e2)\<Colon>- (PrimT Boolean)" .
@@ -1354,7 +1345,7 @@ proof -
   next
     case Expr thus ?case by (iprover intro: da.Expr)
   next
-    case (Lab A B C Env c l B')  
+    case (Lab Env B c C A l B')  
     have "PROP ?Hyp Env B \<langle>c\<rangle>" .
     moreover
     have B': "B \<subseteq> B'" .
@@ -1364,7 +1355,7 @@ proof -
       by (iprover intro: da.Lab)
     thus ?case ..
   next
-    case (Comp A B C1 C2 Env c1 c2 B')
+    case (Comp Env B c1 C1 c2 C2 A B')
     have da_c1: "Env\<turnstile> B \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1" .
     have "PROP ?Hyp Env B \<langle>c1\<rangle>" .
     moreover
@@ -1383,7 +1374,7 @@ proof -
       by (iprover intro: da.Comp)
     thus ?case ..
   next
-    case (If A B C1 C2 E Env c1 c2 e B')
+    case (If Env B e E c1 C1 c2 C2 A B')
     have B': "B \<subseteq> B'" .
     obtain  E' where "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
     proof -
@@ -1417,7 +1408,7 @@ proof -
       by (iprover intro: da.If)
     thus ?case ..
   next  
-    case (Loop A B C E Env c e l B')
+    case (Loop Env B e E c C A l B')
     have B': "B \<subseteq> B'" .
     obtain  E' where "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
     proof -
@@ -1441,7 +1432,7 @@ proof -
       by (iprover intro: da.Loop )
     thus ?case ..
   next
-    case (Jmp A B Env jump B') 
+    case (Jmp jump B A Env B') 
     have B': "B \<subseteq> B'" .
     with Jmp.hyps have "jump = Ret \<longrightarrow> Result \<in> B' "
       by auto
@@ -1460,7 +1451,7 @@ proof -
   next
     case Throw thus ?case by (iprover intro: da.Throw )
   next
-    case (Try A B C C1 C2 Env c1 c2 vn B')
+    case (Try Env B c1 C1 vn C c2 C2 A B')
     have B': "B \<subseteq> B'" .
     obtain C1' where "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'"
     proof -
@@ -1485,7 +1476,7 @@ proof -
       by (iprover intro: da.Try )
     thus ?case ..
   next
-    case (Fin A B C1 C2 Env c1 c2 B')
+    case (Fin Env B c1 C1 c2 C2 A B')
     have B': "B \<subseteq> B'" .
     obtain C1' where C1': "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'"
     proof -
@@ -1519,7 +1510,7 @@ proof -
   next
     case UnOp thus ?case by (iprover intro: da.UnOp)
   next
-    case (CondAnd A B E1 E2 Env e1 e2 B')
+    case (CondAnd Env B e1 E1 e2 E2 A B')
     have B': "B \<subseteq> B'" .
     obtain E1' where "Env\<turnstile> B' \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'"
     proof -
@@ -1541,7 +1532,7 @@ proof -
       by (iprover intro: da.CondAnd)
     thus ?case ..
   next
-    case (CondOr A B E1 E2 Env e1 e2 B')
+    case (CondOr Env B e1 E1 e2 E2 A B')
     have B': "B \<subseteq> B'" .
     obtain E1' where "Env\<turnstile> B' \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'"
     proof -
@@ -1563,7 +1554,7 @@ proof -
       by (iprover intro: da.CondOr)
     thus ?case ..
   next
-    case (BinOp A B E1 Env binop e1 e2 B')
+    case (BinOp Env B e1 E1 e2 A binop B')
     have B': "B \<subseteq> B'" .
     obtain E1' where E1': "Env\<turnstile> B' \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'"
     proof -
@@ -1593,7 +1584,7 @@ proof -
       by auto
     thus ?case by (iprover intro: da.Super)
   next
-    case (AccLVar A B Env vn B')
+    case (AccLVar vn B A Env B')
     have "vn \<in> B" .
     moreover
     have "B \<subseteq> B'" .
@@ -1602,7 +1593,7 @@ proof -
   next
     case Acc thus ?case by (iprover intro: da.Acc)
   next 
-    case (AssLVar A B E Env e vn B')
+    case (AssLVar Env B e E A vn B')
     have B': "B \<subseteq> B'" .
     then obtain E' where "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
       by (rule AssLVar.hyps [elim_format]) iprover
@@ -1611,7 +1602,7 @@ proof -
       by (iprover intro: da.AssLVar)
     thus ?case ..
   next
-    case (Ass A B Env V e v B') 
+    case (Ass v Env B V e A B') 
     have B': "B \<subseteq> B'" .
     have "\<forall>vn. v \<noteq> LVar vn".
     moreover
@@ -1637,7 +1628,7 @@ proof -
       by (iprover intro: da.Ass)
     thus ?case ..
   next
-    case (CondBool A B C E1 E2 Env c e1 e2 B')
+    case (CondBool Env c e1 e2 B C E1 E2 A B')
     have B': "B \<subseteq> B'" .
     have "Env\<turnstile>(c ? e1 : e2)\<Colon>-(PrimT Boolean)" .
     moreover obtain C' where C': "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'"
@@ -1673,7 +1664,7 @@ proof -
       by (iprover intro: da.CondBool)
     thus ?case ..
   next
-    case (Cond A B C E1 E2 Env c e1 e2 B')
+    case (Cond Env c e1 e2 B C E1 E2 A B')
     have B': "B \<subseteq> B'" .
     have "\<not> Env\<turnstile>(c ? e1 : e2)\<Colon>-(PrimT Boolean)" .
     moreover obtain C' where C': "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'"
@@ -1709,7 +1700,7 @@ proof -
       by (iprover intro: da.Cond)
     thus ?case ..
   next
-    case (Call A B E Env accC args e mn mode pTs statT B')
+    case (Call Env B e E args A accC statT mode mn pTs B')
     have B': "B \<subseteq> B'" .
     obtain E' where E': "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
     proof -
@@ -1735,7 +1726,7 @@ proof -
   next
     case Methd thus ?case by (iprover intro: da.Methd)
   next
-    case (Body A B C D Env c B')  
+    case (Body Env B c C A D B')  
     have B': "B \<subseteq> B'" .
     obtain C' where C': "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'" and nrm_C': "nrm C \<subseteq> nrm C'"
     proof -
@@ -1763,7 +1754,7 @@ proof -
   next
     case FVar thus ?case by (iprover intro: da.FVar)
   next
-    case (AVar A B E1 Env e1 e2 B')
+    case (AVar Env B e1 E1 e2 A B')
     have B': "B \<subseteq> B'" .
     obtain E1' where E1': "Env\<turnstile> B' \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'"
     proof -
@@ -1789,7 +1780,7 @@ proof -
   next
     case Nil thus ?case by (iprover intro: da.Nil)
   next
-    case (Cons A B E Env e es B')
+    case (Cons Env B e E es A B')
     have B': "B \<subseteq> B'" .
     obtain E' where E': "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
     proof -

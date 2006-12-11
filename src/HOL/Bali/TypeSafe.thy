@@ -226,7 +226,7 @@ done
 
 lemmas eval_gext = eval_gext_lemma [THEN conjunct1]
 
-lemma eval_gext': "G\<turnstile>(x1,s1) \<midarrow>t\<succ>\<rightarrow> (w,x2,s2) \<Longrightarrow> s1\<le>|s2"
+lemma eval_gext': "G\<turnstile>(x1,s1) \<midarrow>t\<succ>\<rightarrow> (w,(x2,s2)) \<Longrightarrow> s1\<le>|s2"
 apply (drule eval_gext)
 apply auto
 done
@@ -1735,7 +1735,7 @@ proof -
                  \<Longrightarrow> ?Conform L s1 \<and> ?ValueTyped L T s1 t v \<and>
                      ?ErrorFree s0 s1")
   proof (induct)
-    case (Abrupt s t xc L accC T A) 
+    case (Abrupt xc s t L accC T A) 
     have "(Some xc, s)\<Colon>\<preceq>(G,L)" .
     then show "(Some xc, s)\<Colon>\<preceq>(G,L) \<and> 
       (normal (Some xc, s) 
@@ -1751,7 +1751,7 @@ proof -
               (error_free (Norm s) = error_free (Norm s))"
       by (simp)
   next
-    case (Expr e s0 s1 v L accC T A)
+    case (Expr s0 e v s1 L accC T A)
     have "G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1" .
     have     hyp: "PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)" .
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
@@ -1773,7 +1773,7 @@ proof -
           (error_free (Norm s0) = error_free s1)"
       by (simp)
   next
-    case (Lab c l s0 s1 L accC T A)
+    case (Lab s0 c s1 l L accC T A)
     have     hyp: "PROP ?TypeSafe (Norm s0) s1 (In1r c) \<diamondsuit>" .
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
     moreover
@@ -1796,7 +1796,7 @@ proof -
           (error_free (Norm s0) = error_free (abupd (absorb l) s1))"
       by (simp)
   next
-    case (Comp c1 c2 s0 s1 s2 L accC T A)
+    case (Comp s0 c1 s1 c2 s2 L accC T A)
     have eval_c1: "G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1" .
     have eval_c2: "G\<turnstile>s1 \<midarrow>c2\<rightarrow> s2" .
     have  hyp_c1: "PROP ?TypeSafe (Norm s0) s1 (In1r c1) \<diamondsuit>" .
@@ -1842,7 +1842,7 @@ proof -
 	using wt by simp
     qed
   next
-    case (If b c1 c2 e s0 s1 s2 L accC T)
+    case (If s0 e b s1 c1 c2 s2 L accC T A)
     have eval_e: "G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1" .
     have eval_then_else: "G\<turnstile>s1 \<midarrow>(if the_Bool b then c1 else c2)\<rightarrow> s2" .
     have hyp_e: "PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 b)" .
@@ -1917,7 +1917,7 @@ proof -
           a boolean value is part of @{term hyp_e}. See also Loop 
        *}
   next
-    case (Loop b c e l s0 s1 s2 s3 L accC T A)
+    case (Loop s0 e b s1 c s2 l s3 L accC T A)
     have eval_e: "G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1" .
     have hyp_e: "PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 b)" .
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
@@ -2048,7 +2048,7 @@ proof -
 	by simp
     qed
   next
-    case (Jmp j s L accC T A)
+    case (Jmp s j L accC T A)
     have "Norm s\<Colon>\<preceq>(G, L)" .
     moreover
     from Jmp.prems 
@@ -2062,7 +2062,7 @@ proof -
            (error_free (Norm s) = error_free (Some (Jump j), s))"
       by simp
   next
-    case (Throw a e s0 s1 L accC T A)
+    case (Throw s0 e a s1 L accC T A)
     have "G\<turnstile>Norm s0 \<midarrow>e-\<succ>a\<rightarrow> s1" .
     have hyp: "PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 a)" .
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
@@ -2090,7 +2090,7 @@ proof -
             (error_free (Norm s0) = error_free (abupd (throw a) s1))"
       by simp
   next
-    case (Try catchC c1 c2 s0 s1 s2 s3 vn L accC T A)
+    case (Try s0 c1 s1 s2 catchC vn c2 s3 L accC T A)
     have eval_c1: "G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1" .
     have sx_alloc: "G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2" .
     have hyp_c1: "PROP ?TypeSafe (Norm s0) s1 (In1r c1) \<diamondsuit>" .
@@ -2207,7 +2207,7 @@ proof -
       qed
     qed
   next
-    case (Fin c1 c2 s0 s1 s2 s3 x1 L accC T A)
+    case (Fin s0 c1 x1 s1 c2 s2 s3 L accC T A)
     have eval_c1: "G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> (x1, s1)" .
     have eval_c2: "G\<turnstile>Norm s1 \<midarrow>c2\<rightarrow> s2" .
     have s3: "s3= (if \<exists>err. x1 = Some (Error err) 
@@ -2276,7 +2276,7 @@ proof -
 	by (cases s2) auto
     qed
   next
-    case (Init C c s0 s1 s2 s3 L accC T)
+    case (Init C c s0 s3 s1 s2 L accC T A)
     have     cls: "the (class G C) = c" .
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
     have      wt: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (Init C)\<Colon>T" .
@@ -2382,7 +2382,7 @@ proof -
 	by simp
     qed
   next
-    case (NewC C a s0 s1 s2 L accC T A)
+    case (NewC s0 C s1 a s2 L accC T A)
     have         "G\<turnstile>Norm s0 \<midarrow>Init C\<rightarrow> s1" .
     have halloc: "G\<turnstile>s1 \<midarrow>halloc CInst C\<succ>a\<rightarrow> s2" .
     have hyp: "PROP ?TypeSafe (Norm s0) s1 (In1r (Init C)) \<diamondsuit>" .
@@ -2414,7 +2414,7 @@ proof -
           (error_free (Norm s0) = error_free s2)"
       by auto
   next
-    case (NewA elT a e i s0 s1 s2 s3 L accC T A)
+    case (NewA s0 elT s1 e i s2 a s3 L accC T A)
     have eval_init: "G\<turnstile>Norm s0 \<midarrow>init_comp_ty elT\<rightarrow> s1" .
     have eval_e: "G\<turnstile>s1 \<midarrow>e-\<succ>i\<rightarrow> s2" .
     have halloc: "G\<turnstile>abupd (check_neg i) s2\<midarrow>halloc Arr elT (the_Intg i)\<succ>a\<rightarrow> s3".
@@ -2485,7 +2485,7 @@ proof -
           (error_free (Norm s0) = error_free s3) "
       by simp
   next
-    case (Cast castT e s0 s1 s2 v L accC T A)
+    case (Cast s0 e v s1 s2 castT L accC T A)
     have "G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1" .
     have s2:"s2 = abupd (raise_if (\<not> G,store s1\<turnstile>v fits castT) ClassCast) s1" .
     have hyp: "PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)" .
@@ -2531,7 +2531,7 @@ proof -
            (error_free (Norm s0) = error_free s2)"
       by blast
   next
-    case (Inst instT b e s0 s1 v L accC T A)
+    case (Inst s0 e v s1 b instT L accC T A)
     have hyp: "PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)" .
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
     from Inst.prems obtain eT
@@ -2555,7 +2555,7 @@ proof -
       by (auto elim!: wt_elim_cases 
                intro: conf_litval simp add: empty_dt_def)
   next
-    case (UnOp e s0 s1 unop v L accC T A)
+    case (UnOp s0 e v s1 unop L accC T A)
     have hyp: "PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)" .
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
     have      wt: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (UnOp unop e)\<Colon>T" .
@@ -2582,7 +2582,7 @@ proof -
      error_free (Norm s0) = error_free s1"
       by simp
   next
-    case (BinOp binop e1 e2 s0 s1 s2 v1 v2 L accC T A)
+    case (BinOp s0 e1 v1 s1 binop e2 v2 s2 L accC T A)
     have eval_e1: "G\<turnstile>Norm s0 \<midarrow>e1-\<succ>v1\<rightarrow> s1" .
     have eval_e2: "G\<turnstile>s1 \<midarrow>(if need_second_arg binop v1 then In1l e2
                              else In1r Skip)\<succ>\<rightarrow> (In1 v2, s2)" .
@@ -2698,7 +2698,7 @@ proof -
            (error_free (Norm s) = error_free (Norm s))"
       by simp
   next
-    case (Acc upd s0 s1 w v L accC T A) 
+    case (Acc s0 v w upd s1 L accC T A)
     have hyp: "PROP ?TypeSafe (Norm s0) s1 (In2 v) (In2 (w,upd))" .
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
     from Acc.prems obtain vT where
@@ -2738,7 +2738,7 @@ proof -
     with conf_s1 error_free_s1 show ?case
       by simp
   next
-    case (Ass e upd s0 s1 s2 v var w L accC T A)
+    case (Ass s0 var w upd s1 e v s2 L accC T A)
     have eval_var: "G\<turnstile>Norm s0 \<midarrow>var=\<succ>(w, upd)\<rightarrow> s1" .
     have   eval_e: "G\<turnstile>s1 \<midarrow>e-\<succ>v\<rightarrow> s2" .
     have  hyp_var: "PROP ?TypeSafe (Norm s0) s1 (In2 var) (In2 (w,upd))" .
@@ -2895,7 +2895,7 @@ proof -
       qed
     qed
   next
-    case (Cond b e0 e1 e2 s0 s1 s2 v L accC T A)
+    case (Cond s0 e0 b s1 e1 e2 v s2 L accC T A)
     have eval_e0: "G\<turnstile>Norm s0 \<midarrow>e0-\<succ>b\<rightarrow> s1" .
     have eval_e1_e2: "G\<turnstile>s1 \<midarrow>(if the_Bool b then e1 else e2)-\<succ>v\<rightarrow> s2" .
     have hyp_e0: "PROP ?TypeSafe (Norm s0) s1 (In1l e0) (In1 b)" .
@@ -2988,8 +2988,8 @@ proof -
       qed
     qed
   next
-    case (Call invDeclC a accC' args e mn mode pTs' s0 s1 s2 s3 s3' s4 statT 
-           v vs L accC T A)
+    case (Call s0 e a s1 args vs s2 invDeclC mode statT mn pTs' s3 s3' accC'
+           v s4 L accC T A)
     have eval_e: "G\<turnstile>Norm s0 \<midarrow>e-\<succ>a\<rightarrow> s1" .
     have eval_args: "G\<turnstile>s1 \<midarrow>args\<doteq>\<succ>vs\<rightarrow> s2" .
     have invDeclC: "invDeclC 
@@ -3332,7 +3332,7 @@ proof -
       qed
     qed
   next
-    case (Methd D s0 s1 sig v L accC T A)
+    case (Methd s0 D sig v s1 L accC T A)
     have "G\<turnstile>Norm s0 \<midarrow>body G D sig-\<succ>v\<rightarrow> s1" .
     have hyp:"PROP ?TypeSafe (Norm s0) s1 (In1l (body G D sig)) (In1 v)" .
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
@@ -3357,7 +3357,7 @@ proof -
       using hyp [of _ _ "(Inl bodyT)"] conf_s0 
       by (auto simp add: Let_def body_def)
   next
-    case (Body D c s0 s1 s2 s3 L accC T A)
+    case (Body s0 D s1 c s2 s3 L accC T A)
     have eval_init: "G\<turnstile>Norm s0 \<midarrow>Init D\<rightarrow> s1" .
     have eval_c: "G\<turnstile>s1 \<midarrow>c\<rightarrow> s2" .
     have hyp_init: "PROP ?TypeSafe (Norm s0) s1 (In1r (Init D)) \<diamondsuit>" .
@@ -3481,7 +3481,7 @@ proof -
                  (error_free (Norm s) = error_free (Norm s))"
       by (simp add: lvar_def) 
   next
-    case (FVar a accC e fn s0 s1 s2 s2' s3 stat statDeclC v L accC' T A)
+    case (FVar s0 statDeclC s1 e a s2 v s2' stat fn s3 accC L accC' T A)
     have eval_init: "G\<turnstile>Norm s0 \<midarrow>Init statDeclC\<rightarrow> s1" .
     have eval_e: "G\<turnstile>s1 \<midarrow>e-\<succ>a\<rightarrow> s2" .
     have fvar: "(v, s2') = fvar statDeclC stat fn a s2" .
@@ -3597,7 +3597,7 @@ proof -
           (error_free (Norm s0) = error_free s3)"
       by auto
   next
-    case (AVar a e1 e2 i s0 s1 s2 s2' v L accC T A)
+    case (AVar s0 e1 a s1 e2 i s2 v s2' L accC T A)
     have eval_e1: "G\<turnstile>Norm s0 \<midarrow>e1-\<succ>a\<rightarrow> s1" .
     have eval_e2: "G\<turnstile>s1 \<midarrow>e2-\<succ>i\<rightarrow> s2" .
     have hyp_e1: "PROP ?TypeSafe (Norm s0) s1 (In1l e1) (In1 a)" .
@@ -3697,7 +3697,7 @@ proof -
     then show ?case
       by (auto elim!: wt_elim_cases)
   next
-    case (Cons e es s0 s1 s2 v vs L accC T A)
+    case (Cons s0 e v s1 es vs s2 L accC T A)
     have eval_e: "G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1" .
     have eval_es: "G\<turnstile>s1 \<midarrow>es\<doteq>\<succ>vs\<rightarrow> s2" .
     have hyp_e: "PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)" .
@@ -3905,7 +3905,7 @@ proof -
   next
     case Skip from skip show ?case by simp
   next
-    case (Expr e s0 s1 v L accC T A) 
+    case (Expr s0 e v s1 L accC T A) 
     from Expr.prems obtain eT where 
       "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e\<Colon>-eT"
       by (elim wt_elim_cases) 
@@ -3919,7 +3919,7 @@ proof -
     ultimately show ?case
       by (rule expr)
   next
-    case (Lab c l s0 s1 L accC T A)
+    case (Lab s0 c s1 l L accC T A)
     from Lab.prems 
     have "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>c\<Colon>\<surd>"
       by (elim wt_elim_cases)
@@ -3933,7 +3933,7 @@ proof -
     ultimately show ?case
       by (rule lab)
   next
-    case (Comp c1 c2 s0 s1 s2 L accC T A) 
+    case (Comp s0 c1 s1 c2 s2 L accC T A) 
     have eval_c1: "G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1" .
     have eval_c2: "G\<turnstile>s1 \<midarrow>c2\<rightarrow> s2" .
     from Comp.prems obtain 
@@ -3976,7 +3976,7 @@ proof -
     show ?case
       by (rule comp) iprover+
   next
-    case (If b c1 c2 e s0 s1 s2 L accC T A)
+    case (If s0 e b s1 c1 c2 s2 L accC T A)
     have eval_e: "G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1" .
     have eval_then_else: "G\<turnstile>s1 \<midarrow>(if the_Bool b then c1 else c2)\<rightarrow> s2" .
     from If.prems

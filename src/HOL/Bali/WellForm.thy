@@ -883,7 +883,7 @@ proof -
     show "?Overrides new old" 
       by (auto intro: overridesR.Direct stat_override_declclasses_relation) 
   next
-    case (Indirect inter new old)
+    case (Indirect new inter old)
     then show "?Overrides new old" 
       by (blast intro: overridesR.Indirect) 
   qed
@@ -1138,7 +1138,7 @@ proof -
       qed
     qed
   next
-    case (Indirect inter new old)
+    case (Indirect new inter old)
     assume accmodi_old: "accmodi old \<noteq> Package"
     assume "accmodi old \<noteq> Package \<Longrightarrow> G \<turnstile> inter overrides\<^sub>S old"
     with accmodi_old 
@@ -1244,7 +1244,7 @@ proof -
     then show "pid (declclass old) =  pid (declclass new)"
       by (auto simp add: inheritable_in_def)
   next
-    case (Indirect inter new old)
+    case (Indirect new inter old)
     assume accmodi_old: "accmodi old = Package" and
            accmodi_new: "accmodi new = Package" 
     assume "G \<turnstile> new overrides inter"
@@ -1280,7 +1280,7 @@ proof -
     show "?P new old"
       by (contradiction)
   next
-    case (Indirect inter new old)
+    case (Indirect new inter old)
     assume accmodi_old: "accmodi old = Package"
     assume outside_pack: "pid (declclass old) \<noteq> pid (declclass new)"
     assume override_new_inter: "G \<turnstile> new overrides inter"
@@ -2554,13 +2554,13 @@ proof -
   from stat_acc subclseq 
   show ?thesis (is "?Dyn_accessible m")
   proof (induct rule: accessible_fromR.induct)
-    case (Immediate statC m)
+    case (Immediate m statC)
     then show "?Dyn_accessible m"
       by (blast intro: dyn_accessible_fromR.Immediate
                        member_inI
                        permits_acc_inheritance)
   next
-    case (Overriding _ _ m)
+    case (Overriding m _ _)
     with wf show "?Dyn_accessible m"
       by (blast intro: dyn_accessible_fromR.Overriding
                        member_inI
@@ -2921,7 +2921,7 @@ proof -
   from dyn_acc priv
   show ?thesis
   proof (induct)
-    case (Immediate C m)
+    case (Immediate m C)
     have "G \<turnstile> m in C permits_acc_from accC" and "accmodi m = Private" .
     then show ?case
       by (simp add: permits_acc_def)
@@ -2946,14 +2946,14 @@ proof -
             \<Longrightarrow> pid accC = pid (declclass m)"
     (is "?Pack m \<Longrightarrow> ?P m")
   proof (induct rule: dyn_accessible_fromR.induct)
-    case (Immediate C m)
+    case (Immediate m C)
     assume "G\<turnstile>m member_in C"
            "G \<turnstile> m in C permits_acc_from accC"
            "accmodi m = Package"      
     then show "?P m"
       by (auto simp add: permits_acc_def)
   next
-    case (Overriding declC C new newm old Sup)
+    case (Overriding new C declC newm old Sup)
     assume member_new: "G \<turnstile> new member_in C" and
                   new: "new = (declC, mdecl newm)" and
              override: "G \<turnstile> (declC, newm) overrides old" and
@@ -2986,7 +2986,7 @@ proof -
   from dyn_acc pack field
   show ?thesis
   proof (induct)
-    case (Immediate C f)
+    case (Immediate f C)
     have "G \<turnstile> f in C permits_acc_from accC" and "accmodi f = Package" .
     then show ?case
       by (simp add: permits_acc_def)
@@ -3010,7 +3010,7 @@ proof -
   from dyn_acc prot field instance_field outside
   show ?thesis
   proof (induct)
-    case (Immediate C f)
+    case (Immediate f C)
     have "G \<turnstile> f in C permits_acc_from accC" .
     moreover 
     assume "accmodi f = Protected" and  "is_field f" and "\<not> is_static f" and
@@ -3035,7 +3035,7 @@ proof -
   from dyn_acc prot field static_field outside
   show ?thesis
   proof (induct)
-    case (Immediate C f)
+    case (Immediate f C)
     assume "accmodi f = Protected" and  "is_field f" and "is_static f" and
            "pid (declclass f) \<noteq> pid accC"
     moreover 

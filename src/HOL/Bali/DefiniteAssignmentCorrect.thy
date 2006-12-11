@@ -309,7 +309,7 @@ proof -
   next
     case Expr thus ?case by (elim wt_elim_cases) simp
   next
-    case (Lab c jmp s0 s1 jmps T Env) 
+    case (Lab s0 c s1 jmp jmps T Env) 
     have jmpOK: "jumpNestingOk jmps (In1r (jmp\<bullet> c))" .
     have G: "prg Env = G" .
     have wt_c: "Env\<turnstile>c\<Colon>\<surd>" 
@@ -338,7 +338,7 @@ proof -
     }
     thus ?case by simp
   next
-    case (Comp c1 c2 s0 s1 s2 jmps T Env)
+    case (Comp s0 c1 s1 c2 s2 jmps T Env)
     have jmpOk: "jumpNestingOk jmps (In1r (c1;; c2))" .
     have G: "prg Env = G" .
     from Comp.prems obtain 
@@ -363,7 +363,7 @@ proof -
       qed
     } thus ?case by simp
   next
-    case (If b c1 c2 e s0 s1 s2 jmps T Env)
+    case (If s0 e b s1 c1 c2 s2 jmps T Env)
     have jmpOk: "jumpNestingOk jmps (In1r (If(e) c1 Else c2))" .
     have G: "prg Env = G" .
     from If.prems obtain 
@@ -389,7 +389,7 @@ proof -
     }
     thus ?case by simp
   next
-    case (Loop b c e l s0 s1 s2 s3 jmps T Env)
+    case (Loop s0 e b s1 c s2 l s3 jmps T Env)
     have jmpOk: "jumpNestingOk jmps (In1r (l\<bullet> While(e) c))" .
     have G: "prg Env = G" .
     have wt: "Env\<turnstile>In1r (l\<bullet> While(e) c)\<Colon>T" .
@@ -467,9 +467,9 @@ proof -
     }
     thus ?case by simp
   next
-    case (Jmp j s jmps T Env) thus ?case by simp
+    case (Jmp s j jmps T Env) thus ?case by simp
   next
-    case (Throw a e s0 s1 jmps T Env)
+    case (Throw s0 e a s1 jmps T Env)
     have jmpOk: "jumpNestingOk jmps (In1r (Throw e))" .
     have G: "prg Env = G" .
     from Throw.prems obtain Te where 
@@ -491,7 +491,7 @@ proof -
     }
     thus ?case by simp
   next
-    case (Try C c1 c2 s0 s1 s2 s3 vn jmps T Env)
+    case (Try s0 c1 s1 s2 C vn c2 s3 jmps T Env)
     have jmpOk: "jumpNestingOk jmps (In1r (Try c1 Catch(C vn) c2))" .
     have G: "prg Env = G" .
     from Try.prems obtain 
@@ -543,7 +543,7 @@ proof -
     }
     thus ?case by simp
   next
-    case (Fin c1 c2 s0 s1 s2 s3 x1 jmps T Env)
+    case (Fin s0 c1 x1 s1 c2 s2 s3 jmps T Env)
     have jmpOk: " jumpNestingOk jmps (In1r (c1 Finally c2))" .
     have G: "prg Env = G" .
     from Fin.prems obtain 
@@ -571,7 +571,7 @@ proof -
     }
     thus ?case by simp
   next
-    case (Init C c s0 s1 s2 s3 jmps T Env)
+    case (Init C c s0 s3 s1 s2 jmps T Env)
     have "jumpNestingOk jmps (In1r (Init C))".
     have G: "prg Env = G" .
     have "the (class G C) = c" .
@@ -636,7 +636,7 @@ proof -
     }
     thus ?case by simp
   next
-    case (NewC C a s0 s1 s2 jmps T Env)
+    case (NewC s0 C s1 a s2 jmps T Env)
     {
       fix j
       assume jmp: "abrupt s2 = Some (Jump j)"
@@ -660,7 +660,7 @@ proof -
     }
     thus ?case by simp
   next
-    case (NewA elT a e i s0 s1 s2 s3 jmps T Env)
+    case (NewA s0 elT s1 e i s2 a s3 jmps T Env)
     {
       fix j
       assume jmp: "abrupt s3 = Some (Jump j)"
@@ -692,7 +692,7 @@ proof -
     }
     thus ?case by simp
   next
-    case (Cast cT e s0 s1 s2 v jmps T Env)
+    case (Cast s0 e v s1 s2 cT jmps T Env)
     {
       fix j
       assume jmp: "abrupt s2 = Some (Jump j)"
@@ -715,7 +715,7 @@ proof -
     }
     thus ?case by simp
   next
-    case (Inst eT b e s0 s1 v jmps T Env)
+    case (Inst s0 e v s1 b eT jmps T Env)
     {
       fix j
       assume jmp: "abrupt s1 = Some (Jump j)"
@@ -734,7 +734,7 @@ proof -
   next
     case Lit thus ?case by simp
   next
-    case (UnOp e s0 s1 unop v jmps T Env)
+    case (UnOp s0 e v s1 unop jmps T Env)
     {
       fix j
       assume jmp: "abrupt s1 = Some (Jump j)"
@@ -751,7 +751,7 @@ proof -
     }
     thus ?case by simp
   next
-    case (BinOp binop e1 e2 s0 s1 s2 v1 v2 jmps T Env)
+    case (BinOp s0 e1 v1 s1 binop e2 v2 s2 jmps T Env)
     {
       fix j
       assume jmp: "abrupt s2 = Some (Jump j)"
@@ -784,7 +784,7 @@ proof -
   next
     case Super thus ?case by simp
   next
-    case (Acc f s0 s1 v va jmps T Env)
+    case (Acc s0 va v f s1 jmps T Env)
     {
       fix j
       assume jmp: "abrupt s1 = Some (Jump j)"
@@ -801,7 +801,7 @@ proof -
     }
     thus ?case by simp
   next
-    case (Ass e f s0 s1 s2 v va w jmps T Env)
+    case (Ass s0 va w f s1 e v s2 jmps T Env)
     have G: "prg Env = G" .
     from Ass.prems
     obtain vT eT where
@@ -841,7 +841,7 @@ proof -
     }
     thus ?case by simp
   next
-    case (Cond b e0 e1 e2 s0 s1 s2 v jmps T Env)
+    case (Cond s0 e0 b s1 e1 e2 v s2 jmps T Env)
     have G: "prg Env = G" .
     have hyp_e0: "PROP ?Hyp (In1l e0) (Norm s0) s1 (In1 b)" .
     have hyp_e1_e2: "PROP ?Hyp (In1l (if the_Bool b then e1 else e2)) 
@@ -876,7 +876,7 @@ proof -
     }
     thus ?case by simp
   next
-    case (Call D a accC args e mn mode pTs s0 s1 s2 s3 s3' s4 statT v vs 
+    case (Call s0 e a s1 args vs s2 D mode statT mn pTs s3 s3' accC v s4
                jmps T Env)
     have G: "prg Env = G" .
     from Call.prems
@@ -919,14 +919,14 @@ proof -
     }
     thus ?case by simp
   next
-    case (Methd D s0 s1 sig v jmps T Env)
+    case (Methd s0 D sig v s1 jmps T Env)
     have "G\<turnstile>Norm s0 \<midarrow>Methd D sig-\<succ>v\<rightarrow> s1"
       by (rule eval.Methd)
     hence "\<And> j. abrupt s1 \<noteq> Some (Jump j)"
       by (rule Methd_no_jump) simp
     thus ?case by simp
   next
-    case (Body D c s0 s1 s2 s3 jmps T Env)
+    case (Body s0 D s1 c s2 s3 jmps T Env)
     have "G\<turnstile>Norm s0 \<midarrow>Body D c-\<succ>the (locals (store s2) Result)
            \<rightarrow> abupd (absorb Ret) s3"
       by (rule eval.Body)
@@ -937,7 +937,7 @@ proof -
     case LVar
     thus ?case by (simp add: lvar_def Let_def)
   next
-    case (FVar a accC e fn s0 s1 s2 s2' s3 stat statDeclC v jmps T Env)
+    case (FVar s0 statDeclC s1 e a s2 v s2' stat fn s3 accC jmps T Env)
     have G: "prg Env = G" .
     from wf FVar.prems 
     obtain  statC f where
@@ -996,7 +996,7 @@ proof -
     }
     ultimately show ?case using v by simp
   next
-    case (AVar a e1 e2 i s0 s1 s2 s2' v jmps T Env)
+    case (AVar s0 e1 a s1 e2 i s2 v s2' jmps T Env)
     have G: "prg Env = G" .
     from AVar.prems 
     obtain  e1T e2T where
@@ -1042,7 +1042,7 @@ proof -
   next
     case Nil thus ?case by simp
   next
-    case (Cons e es s0 s1 s2 v vs jmps T Env)
+    case (Cons s0 e v s1 es vs s2 jmps T Env)
     have G: "prg Env = G" .
     from Cons.prems obtain eT esT
       where wt_e: "Env\<turnstile>e\<Colon>-eT" and wt_e2: "Env\<turnstile>es\<Colon>\<doteq>esT"
@@ -1290,7 +1290,7 @@ proof -
   next
     case Lab thus ?case by simp
   next
-    case (Comp c1 c2 s0 s1 s2) 
+    case (Comp s0 c1 s1 c2 s2) 
     from Comp.hyps 
     have "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
       by simp
@@ -1300,7 +1300,7 @@ proof -
       by simp
     finally show ?case by simp
   next
-    case (If b c1 c2 e s0 s1 s2)
+    case (If s0 e b s1 c1 c2 s2)
     from If.hyps 
     have "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
       by simp
@@ -1310,7 +1310,7 @@ proof -
       by simp
     finally show ?case by simp
   next
-    case (Loop b c e l s0 s1 s2 s3) 
+    case (Loop s0 e b s1 c s2 l s3) 
     show ?case
     proof (cases "the_Bool b")
       case True
@@ -1334,7 +1334,7 @@ proof -
   next
     case Throw thus ?case by simp
   next
-    case (Try C c1 c2 s0 s1 s2 s3 vn)
+    case (Try s0 c1 s1 s2 C vn c2 s3)
     then
     have s0_s1: "dom (locals (store ((Norm s0)::state))) 
                   \<subseteq> dom (locals (store s1))" by simp
@@ -1361,7 +1361,7 @@ proof -
 	using False Try.hyps by simp
     qed
   next
-    case (Fin c1 c2 s0 s1 s2 s3 x1) 
+    case (Fin s0 c1 x1 s1 c2 s2 s3) 
     show ?case
     proof (cases "\<exists>err. x1 = Some (Error err)")
       case True
@@ -1384,7 +1384,7 @@ proof -
 	using Fin.hyps by simp
     qed
   next
-    case (Init C c s0 s1 s2 s3)
+    case (Init C c s0 s3 s1 s2)
     show ?case
     proof (cases "inited C (globs s0)")
       case True
@@ -1405,7 +1405,7 @@ proof -
       thus ?thesis by simp
     qed
   next
-    case (NewC C a s0 s1 s2)
+    case (NewC s0 C s1 a s2)
     have halloc: "G\<turnstile>s1 \<midarrow>halloc CInst C\<succ>a\<rightarrow> s2" .
     from NewC.hyps
     have "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))" 
@@ -1415,7 +1415,7 @@ proof -
     have "\<dots>  \<subseteq> dom (locals (store s2))" by (rule dom_locals_halloc_mono)
     finally show ?case by simp
   next
-    case (NewA T a e i s0 s1 s2 s3)
+    case (NewA s0 T s1 e i s2 a s3)
     have halloc: "G\<turnstile>abupd (check_neg i) s2 \<midarrow>halloc Arr T (the_Intg i)\<succ>a\<rightarrow> s3" .
     from NewA.hyps
     have "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))" 
@@ -1437,7 +1437,7 @@ proof -
   next
     case UnOp thus ?case by simp
   next
-    case (BinOp binop e1 e2 s0 s1 s2 v1 v2) 
+    case (BinOp s0 e1 v1 s1 binop e2 v2 s2) 
     from BinOp.hyps
     have "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))" 
       by simp
@@ -1450,7 +1450,7 @@ proof -
   next
     case Acc thus ?case by simp
   next
-    case (Ass e f s0 s1 s2 v va w)
+    case (Ass s0 va w f s1 e v s2)
     from Ass.hyps
     have s0_s1: 
       "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))" 
@@ -1486,7 +1486,7 @@ proof -
 	by simp
     qed
   next
-    case (Cond b e0 e1 e2 s0 s1 s2 v)
+    case (Cond s0 e0 b s1 e1 e2 v s2)
     from Cond.hyps 
     have "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
       by simp
@@ -1496,7 +1496,7 @@ proof -
       by simp
     finally show ?case by simp
   next
-    case (Call D a' accC args e mn mode pTs s0 s1 s2 s3 s3' s4 statT v vs)
+    case (Call s0 e a' s1 args vs s2 D mode statT mn pTs s3 s3' accC v s4)
     have s3: "s3 = init_lvars G D \<lparr>name = mn, parTs = pTs\<rparr> mode a' vs s2" .
     from Call.hyps 
     have "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
@@ -1512,7 +1512,7 @@ proof -
   next
     case Methd thus ?case by simp
   next
-    case (Body D c s0 s1 s2 s3)
+    case (Body s0 D s1 c s2 s3)
     from Body.hyps 
     have "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
       by simp
@@ -1540,7 +1540,7 @@ proof -
       using dom_locals_lvar_mono
       by simp
   next
-    case (FVar a accC e fn s0 s1 s2 s2' s3 stat statDeclC v)
+    case (FVar s0 statDeclC s1 e a s2 v s2' stat fn s3 accC)
     from FVar.hyps
     obtain s2': "s2' = snd (fvar statDeclC stat fn a s2)" and
              v: "v = fst (fvar statDeclC stat fn a s2)"
@@ -1572,7 +1572,7 @@ proof -
       using v_ok
       by simp
   next
-    case (AVar a e1 e2 i s0 s1 s2 s2' v)
+    case (AVar s0 e1 a s1 e2 i s2 v s2')
     from AVar.hyps
     obtain s2': "s2' = snd (avar G i a s2)" and
              v: "v   = fst (avar G i a s2)"
@@ -1599,7 +1599,7 @@ proof -
   next
     case Nil thus ?case by simp
   next
-    case (Cons e es s0 s1 s2 v vs)
+    case (Cons s0 e v s1 es vs s2)
     from Cons.hyps
     have "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
       by simp
@@ -1689,7 +1689,7 @@ proof -
   next
     case NewC show ?case by simp
   next
-    case (NewA T a e i s0 s1 s2 s3)
+    case (NewA s0 T s1 e i s2 a s3)
     have halloc: "G\<turnstile>abupd (check_neg i) s2 \<midarrow>halloc Arr T (the_Intg i)\<succ>a\<rightarrow> s3" .
     have "assigns (In1l e) \<subseteq> dom (locals (store s2))"
     proof -
@@ -1706,7 +1706,7 @@ proof -
       by (rule dom_locals_halloc_mono [elim_format]) simp
     finally show ?case by simp 
   next
-    case (Cast T e s0 s1 s2 v)
+    case (Cast s0 e v s1 s2 T)
     hence "normal s1" by (cases s1,simp)
     with Cast.hyps
     have "assigns (In1l e) \<subseteq> dom (locals (store s1))"
@@ -1725,7 +1725,7 @@ proof -
   next
     case UnOp thus ?case by simp
   next
-    case (BinOp binop e1 e2 s0 s1 s2 v1 v2)
+    case (BinOp s0 e1 v1 s1 binop e2 v2 s2)
     hence "normal s1" by - (erule eval_no_abrupt_lemma [rule_format]) 
     with BinOp.hyps
     have "assigns (In1l e1) \<subseteq> dom (locals (store s1))"
@@ -1756,7 +1756,7 @@ proof -
   next
     case Acc thus ?case by simp
   next 
-    case (Ass e f s0 s1 s2 v va w)
+    case (Ass s0 va w f s1 e v s2)
     have  nrm_ass_s2: "normal (assign f v s2)" .
     hence nrm_s2: "normal s2"
       by (cases s2, simp add: assign_def Let_def)
@@ -1808,7 +1808,7 @@ proof -
       show ?thesis by (simp add: Un_assoc)
     qed
   next
-    case (Cond b e0 e1 e2 s0 s1 s2 v) 
+    case (Cond s0 e0 b s1 e1 e2 v s2) 
     hence "normal s1"
       by - (erule eval_no_abrupt_lemma [rule_format])
     with Cond.hyps
@@ -1845,7 +1845,7 @@ proof -
       thus ?thesis using False by simp 
     qed
   next
-    case (Call D a' accC args e mn mode pTs s0 s1 s2 s3 s3' s4 statT v vs)
+    case (Call s0 e a' s1 args vs s2 D mode statT mn pTs s3 s3' accC v s4)
     have nrm_s2: "normal s2"
     proof -
       have "normal ((set_lvars (locals (snd s2))) s4)" .
@@ -1887,7 +1887,7 @@ proof -
   next
     case LVar thus ?case by simp
   next
-    case (FVar a accC e fn s0 s1 s2 s2' s3 stat statDeclC v)
+    case (FVar s0 statDeclC s1 e a s2 v s2' stat fn s3 accC)
     have s3:  "s3 = check_field_access G accC statDeclC fn stat a s2'" .
     have avar: "(v, s2') = fvar statDeclC stat fn a s2" .
     have nrm_s2: "normal s2"
@@ -1916,7 +1916,7 @@ proof -
     finally show ?case
       by simp
   next
-    case (AVar a e1 e2 i s0 s1 s2 s2' v)
+    case (AVar s0 e1 a s1 e2 i s2 v s2')
     have avar: "(v, s2') = avar G i a s2" .
     have nrm_s2: "normal s2"
     proof -
@@ -1954,7 +1954,7 @@ proof -
   next
     case Nil show ?case by simp
   next
-    case (Cons e es s0 s1 s2 v vs)
+    case (Cons s0 e v s1 es vs s2)
     have "assigns (In1l e) \<subseteq> dom (locals (store s1))"
     proof -
       from Cons
@@ -2254,19 +2254,19 @@ proof -
    proof (induct)
      case Abrupt thus ?case by simp
    next
-     case (NewC C a s0 s1 s2)
+     case (NewC s0 C s1 a s2)
      have "Env\<turnstile>NewC C\<Colon>-PrimT Boolean" .
      hence False 
        by cases simp
      thus ?case ..
    next
-     case (NewA T a e i s0 s1 s2 s3)
+     case (NewA s0 T s1 e i s2 a s3)
      have "Env\<turnstile>New T[e]\<Colon>-PrimT Boolean" .
      hence False 
        by cases simp
      thus ?case ..
    next
-     case (Cast T e s0 s1 s2 b)
+     case (Cast s0 e b s1 s2 T)
      have s2: "s2 = abupd (raise_if (\<not> prg Env,snd s1\<turnstile>b fits T) ClassCast) s1".
      have "assigns_if (the_Bool b) e \<subseteq> dom (locals (store s1))" 
      proof -
@@ -2285,7 +2285,7 @@ proof -
        by simp
      finally show ?case by simp
    next
-     case (Inst T b e s0 s1 v)
+     case (Inst s0 e v s1 b T)
      have "prg Env\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1" and "normal s1" .
      hence "assignsE e \<subseteq> dom (locals (store s1))"
        by (rule assignsE_good_approx)
@@ -2301,7 +2301,7 @@ proof -
      thus ?case
        by simp
    next
-     case (UnOp e s0 s1 unop v)
+     case (UnOp s0 e v s1 unop)
      have bool: "Env\<turnstile>UnOp unop e\<Colon>-PrimT Boolean" .
      hence bool_e: "Env\<turnstile>e\<Colon>-PrimT Boolean" 
        by cases (cases unop,simp_all)
@@ -2341,7 +2341,7 @@ proof -
        thus ?thesis by simp
      qed
    next
-     case (BinOp binop e1 e2 s0 s1 s2 v1 v2)
+     case (BinOp s0 e1 v1 s1 binop e2 v2 s2)
      have bool: "Env\<turnstile>BinOp binop e1 e2\<Colon>-PrimT Boolean" .
      show ?case
      proof (cases "constVal (BinOp binop e1 e2)") 
@@ -2507,13 +2507,13 @@ proof -
        by cases simp
      thus ?case ..
    next
-     case (Acc f s0 s1 v va)
+     case (Acc s0 va v f s1)
      have "prg Env\<turnstile>Norm s0 \<midarrow>va=\<succ>(v, f)\<rightarrow> s1"  and "normal s1".
      hence "assignsV va \<subseteq> dom (locals (store s1))"
        by (rule assignsV_good_approx)
      thus ?case by simp
    next
-     case (Ass e f s0 s1 s2 v va w)
+     case (Ass s0 va w f s1 e v s2)
      hence "prg Env\<turnstile>Norm s0 \<midarrow>va := e-\<succ>v\<rightarrow> assign f v s2"
        by - (rule eval.Ass)
      moreover have "normal (assign f v s2)" .
@@ -2522,7 +2522,7 @@ proof -
        by (rule assignsE_good_approx)
      thus ?case by simp
    next
-     case (Cond b e0 e1 e2 s0 s1 s2 v)
+     case (Cond s0 e0 b s1 e1 e2 v s2)
      have "Env\<turnstile>e0 ? e1 : e2\<Colon>-PrimT Boolean" .
      then obtain wt_e1: "Env\<turnstile>e1\<Colon>-PrimT Boolean" and
                  wt_e2: "Env\<turnstile>e2\<Colon>-PrimT Boolean"
@@ -2599,7 +2599,7 @@ proof -
        qed
      qed
    next
-     case (Call D a accC args e mn mode pTs s0 s1 s2 s3 s3' s4 statT v vs)
+     case (Call s0 e a s1 args vs s2 D mode statT mn pTs s3 s3' accC v s4)
      hence
      "prg Env\<turnstile>Norm s0 \<midarrow>({accC,statT,mode}e\<cdot>mn( {pTs}args))-\<succ>v\<rightarrow> 
                        (set_lvars (locals (store s2)) s4)"
@@ -2662,7 +2662,7 @@ proof -
   from eval and wt da G
   show ?thesis
   proof (induct arbitrary: Env T A)
-    case (Abrupt s t xc Env T A)
+    case (Abrupt xc s t Env T A)
     have da: "Env\<turnstile> dom (locals s) \<guillemotright>t\<guillemotright> A" using Abrupt.prems by simp 
     have "?NormalAssigned (Some xc,s) A" 
       by simp
@@ -2687,14 +2687,14 @@ proof -
       by simp
     ultimately show ?case by (intro conjI)
   next
-    case (Expr e s0 s1 v Env T A)
+    case (Expr s0 e v s1 Env T A)
     from Expr.prems
     show "?NormalAssigned s1 A \<and> ?BreakAssigned (Norm s0) s1 A 
            \<and> ?ResAssigned (Norm s0) s1"
       by (elim wt_elim_cases da_elim_cases) 
          (rule Expr.hyps, auto)
   next 
-    case (Lab c j s0 s1 Env T A)
+    case (Lab s0 c s1 j Env T A)
     have G: "prg Env = G" .
     from Lab.prems
     obtain C l where
@@ -2753,7 +2753,7 @@ proof -
       by (cases s1) (simp add: absorb_def)
     ultimately show ?case by (intro conjI)
   next
-    case (Comp c1 c2 s0 s1 s2 Env T A)
+    case (Comp s0 c1 s1 c2 s2 Env T A)
     have G: "prg Env = G" .
     from Comp.prems
     obtain C1 C2
@@ -2826,7 +2826,7 @@ proof -
       ultimately show ?thesis by (intro conjI)
     qed
   next
-    case (If b c1 c2 e s0 s1 s2 Env T A)
+    case (If s0 e b s1 c1 c2 s2 Env T A)
     have G: "prg Env = G" .
     with If.hyps have eval_e: "prg Env \<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1" by simp
     from If.prems
@@ -2930,7 +2930,7 @@ proof -
       ultimately show ?thesis by simp
     qed
   next
-    case (Loop b c e l s0 s1 s2 s3 Env T A)
+    case (Loop s0 e b s1 c s2 l s3 Env T A)
     have G: "prg Env = G" .
     with Loop.hyps have eval_e: "prg Env\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1" 
       by (simp (no_asm_simp))
@@ -3118,7 +3118,7 @@ proof -
 	by simp 
     qed
   next 
-    case (Jmp j s Env T A)
+    case (Jmp s j Env T A)
     have "?NormalAssigned (Some (Jump j),s) A" by simp
     moreover
     from Jmp.prems
@@ -3136,7 +3136,7 @@ proof -
       by simp
     ultimately show ?case by (intro conjI)
   next
-    case (Throw a e s0 s1 Env T A)
+    case (Throw s0 e a s1 Env T A)
     have G: "prg Env = G" .
     from Throw.prems obtain E where 
       da_e: "Env\<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>\<langle>e\<rangle>\<guillemotright> E"
@@ -3166,7 +3166,7 @@ proof -
       by (cases s1) (simp add: throw_def abrupt_if_def)
     ultimately show ?case by (intro conjI)
   next
-    case (Try C c1 c2 s0 s1 s2 s3 vn Env T A)
+    case (Try s0 c1 s1 s2 C vn c2 s3 Env T A)
     have G: "prg Env = G" .
     from Try.prems obtain C1 C2 where
       da_c1: "Env\<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1"  and
@@ -3313,7 +3313,7 @@ proof -
       qed
     qed
   next
-    case (Fin c1 c2 s0 s1 s2 s3 x1 Env T A)
+    case (Fin s0 c1 x1 s1 c2 s2 s3 Env T A)
     have G: "prg Env = G" .
     from Fin.prems obtain C1 C2 where 
       da_C1: "Env\<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1" and
@@ -3472,7 +3472,7 @@ proof -
       by simp
     ultimately show ?case by (intro conjI)
   next 
-    case (Init C c s0 s1 s2 s3 Env T A)
+    case (Init C c s0 s3 s1 s2 Env T A)
     have G: "prg Env = G" .
     from Init.hyps
     have eval: "prg Env\<turnstile> Norm s0 \<midarrow>Init C\<rightarrow> s3"
@@ -3528,7 +3528,7 @@ proof -
       ultimately show ?thesis by (intro conjI)
     qed
   next 
-    case (NewC C a s0 s1 s2 Env T A)
+    case (NewC s0 C s1 a s2 Env T A)
     have G: "prg Env = G" .
     from NewC.prems
     obtain A: "nrm A = dom (locals (store ((Norm s0)::state)))"
@@ -3568,7 +3568,7 @@ proof -
       by simp_all      
     ultimately show ?case by (intro conjI)
   next
-    case (NewA elT a e i s0 s1 s2 s3 Env T A) 
+    case (NewA s0 elT s1 e i s2 a s3 Env T A) 
     have G: "prg Env = G" .
     from NewA.prems obtain
       da_e: "Env\<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>\<langle>e\<rangle>\<guillemotright> A"
@@ -3633,7 +3633,7 @@ proof -
       by simp_all
     ultimately show ?case by (intro conjI)
   next
-    case (Cast cT e s0 s1 s2 v Env T A)
+    case (Cast s0 e v s1 s2 cT Env T A)
     have G: "prg Env = G" .
     from Cast.prems obtain
       da_e: "Env\<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>\<langle>e\<rangle>\<guillemotright> A"
@@ -3678,7 +3678,7 @@ proof -
       by simp_all
     ultimately show ?case by (intro conjI)
   next
-    case (Inst iT b e s0 s1 v Env T A)
+    case (Inst s0 e v s1 b iT Env T A)
     have G: "prg Env = G" .
     from Inst.prems obtain
       da_e: "Env\<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>\<langle>e\<rangle>\<guillemotright> A"
@@ -3700,7 +3700,7 @@ proof -
       by (elim da_elim_cases) simp
     thus ?case by simp
   next
-    case (UnOp e s0 s1 unop v Env T A)
+    case (UnOp s0 e v s1 unop Env T A)
      have G: "prg Env = G" .
     from UnOp.prems obtain
       da_e: "Env\<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>\<langle>e\<rangle>\<guillemotright> A"
@@ -3716,7 +3716,7 @@ proof -
       by simp
     thus ?case by (intro conjI)
   next
-    case (BinOp binop e1 e2 s0 s1 s2 v1 v2 Env T A)
+    case (BinOp s0 e1 v1 s1 binop e2 v2 s2 Env T A)
     have G: "prg Env = G". 
     from BinOp.hyps 
     have 
@@ -3875,7 +3875,7 @@ proof -
       by (elim da_elim_cases) simp
     thus ?case by simp
   next
-    case (Acc upd s0 s1 w v Env T A)
+    case (Acc s0 v w upd s1 Env T A)
     show ?case
     proof (cases "\<exists> vn. v = LVar vn")
       case True
@@ -3905,7 +3905,7 @@ proof -
       thus ?thesis by (intro conjI)
     qed
   next
-    case (Ass e upd s0 s1 s2 v var w Env T A)
+    case (Ass s0 var w upd s1 e v s2 Env T A)
     have G: "prg Env = G" .
     from Ass.prems obtain varT eT where
       wt_var: "Env\<turnstile>var\<Colon>=varT" and
@@ -4019,7 +4019,7 @@ proof -
       by simp_all
     ultimately show ?case by (intro conjI)
   next
-    case (Cond b e0 e1 e2 s0 s1 s2 v Env T A)
+    case (Cond s0 e0 b s1 e1 e2 v s2 Env T A)
     have G: "prg Env = G" .
     have "?NormalAssigned s2 A"
     proof 
@@ -4140,7 +4140,7 @@ proof -
       by simp_all
     ultimately show ?case by (intro conjI)
   next
-    case (Call D a accC args e mn mode pTs s0 s1 s2 s3 s3' s4 statT v vs 
+    case (Call s0 e a s1 args vs s2 D mode statT mn pTs s3 s3' accC v s4
            Env T A)
     have G: "prg Env = G" .
     have "?NormalAssigned (restore_lvars s2 s4) A"
@@ -4213,7 +4213,7 @@ proof -
       by simp_all
     ultimately show ?case by (intro conjI)
   next
-    case (Methd D s0 s1 sig v Env T A)
+    case (Methd s0 D sig v s1 Env T A)
     have G: "prg Env = G". 
     from Methd.prems obtain m where
        m:      "methd (prg Env) D sig = Some m" and
@@ -4235,7 +4235,7 @@ proof -
     ultimately show ?case
       using G by simp
   next
-    case (Body D c s0 s1 s2 s3 Env T A)
+    case (Body s0 D s1 c s2 s3 Env T A)
     have G: "prg Env = G" .
     from Body.prems 
     have nrm_A: "nrm A = dom (locals (store ((Norm s0)::state)))"
@@ -4261,7 +4261,7 @@ proof -
       by (elim da_elim_cases) simp
     thus ?case by simp
   next
-    case (FVar a accC e fn s0 s1 s2 s2' s3 stat statDeclC v Env T A)
+    case (FVar s0 statDeclC s1 e a s2 v s2' stat fn s3 accC Env T A)
     have G: "prg Env = G" .
     have "?NormalAssigned s3 A"
     proof 
@@ -4333,7 +4333,7 @@ proof -
       by simp_all
     ultimately show ?case by (intro conjI)
   next
-    case (AVar a e1 e2 i s0 s1 s2 s2' v Env T A)
+    case (AVar s0 e1 a s1 e2 i s2 v s2' Env T A)
     have G: "prg Env = G" .
     have "?NormalAssigned s2' A"
     proof 
@@ -4405,7 +4405,7 @@ proof -
       by (elim da_elim_cases) simp
     thus ?case by simp
   next 
-    case (Cons e es s0 s1 s2 v vs Env T A)
+    case (Cons s0 e v s1 es vs s2 Env T A)
     have G: "prg Env = G" .
     have "?NormalAssigned s2 A"
     proof 
