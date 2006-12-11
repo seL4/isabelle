@@ -83,6 +83,15 @@ val resolution_thm =  (* "[| ?P ==> False; ~ ?P ==> False |] ==> False" *)
 val cP = cterm_of (theory_of_thm resolution_thm) (Var (("P", 0), HOLogic.boolT));
 
 (* ------------------------------------------------------------------------- *)
+(* lit_ord: an order on integers that considers their absolute values only,  *)
+(*      thereby treating integers that represent the same atom (positively   *)
+(*      or negatively) as equal                                              *)
+(* ------------------------------------------------------------------------- *)
+
+fun lit_ord (i, j) =
+	int_ord (abs i, abs j);
+
+(* ------------------------------------------------------------------------- *)
 (* CLAUSE: during proof reconstruction, three kinds of clauses are           *)
 (*      distinguished:                                                       *)
 (*      1. NO_CLAUSE: clause not proved (yet)                                *)
@@ -94,7 +103,7 @@ val cP = cterm_of (theory_of_thm resolution_thm) (Var (("P", 0), HOLogic.boolT))
 
 datatype CLAUSE = NO_CLAUSE
                 | ORIG_CLAUSE of Thm.thm
-                | RAW_CLAUSE of Thm.thm * Thm.cterm Inttab.table;
+                | RAW_CLAUSE of Thm.thm * (int * Thm.cterm) list;
 
 (* ------------------------------------------------------------------------- *)
 (* resolve_raw_clauses: given a non-empty list of raw clauses, we fold       *)
@@ -112,31 +121,49 @@ datatype CLAUSE = NO_CLAUSE
 (*        [| ?P ==> False; ~?P ==> False |] ==> False                        *)
 (*      to produce                                                           *)
 (*        [P, Q, x1, ..., xn, y1, ..., ym] |- False                          *)
-(*      Each clause is accompanied with a table mapping integers (positive   *)
-(*      for positive literals, negative for negative literals, and the same  *)
-(*      absolute value for dual literals) to the actual literals as cterms.  *)
+(*      Each clause is accompanied with an association list mapping integers *)
+(*      (positive for positive literals, negative for negative literals, and *)
+(*      the same absolute value for dual literals) to the actual literals as *)
+(*      cterms.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-(* (Thm.thm * Thm.cterm Inttab.table) list -> Thm.thm * Thm.cterm Inttab.table *)
+(* (Thm.thm * (int * Thm.cterm) list) list -> Thm.thm * (int * Thm.cterm) list *)
 
 fun resolve_raw_clauses [] =
 	raise THM ("Proof reconstruction failed (empty list of resolvents)!", 0, [])
   | resolve_raw_clauses (c::cs) =
 	let
-		(* find out which two hyps are used in the resolution *)
-		local exception RESULT of int * Thm.cterm * Thm.cterm in
-			(* Thm.cterm Inttab.table -> Thm.cterm Inttab.table -> int * Thm.cterm * Thm.cterm *)
-			fun find_res_hyps hyp1_table hyp2_table = (
-				Inttab.fold (fn (i, hyp1) => fn () =>
-					case Inttab.lookup hyp2_table (~i) of
-					  SOME hyp2 => raise RESULT (i, hyp1, hyp2)
-					| NONE      => ()) hyp1_table ();
-				raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, [])
-			) handle RESULT x => x
-		end
+		(* merges two sorted lists wrt. 'lit_ord', suppressing duplicates *)
+		fun merge xs      []      = xs
+		  | merge []      ys      = ys
+		  | merge (x::xs) (y::ys) =
+			(case (lit_ord o pairself fst) (x, y) of
+			  LESS    => x :: merge xs (y::ys)
+			| EQUAL   => x :: merge xs ys
+			| GREATER => y :: merge (x::xs) ys)
 
-		(* Thm.thm * Thm.cterm Inttab.table -> Thm.thm * Thm.cterm Inttab.table -> Thm.thm * Thm.cterm Inttab.table *)
-		fun resolution (c1, hyp1_table) (c2, hyp2_table) =
+		(* find out which two hyps are used in the resolution *)
+		(* (int * Thm.cterm) list * (int * Thm.cterm) list -> (int * Thm.cterm) list -> bool * Thm.cterm * Thm.cterm * (int * Thm.cterm) list *)
+		fun find_res_hyps ([], _) _ =
+			raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, [])
+		  | find_res_hyps (_, []) _ =
+			raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, [])
+		  | find_res_hyps (h1 :: hyps1, h2 :: hyps2) acc =
+			(case (lit_ord o pairself fst) (h1, h2) of
+			  LESS  => find_res_hyps (hyps1, h2 :: hyps2) (h1 :: acc)
+			| EQUAL => let
+				val (i1, chyp1) = h1
+				val (i2, chyp2) = h2
+			in
+				if i1 = ~ i2 then
+					(i1 < 0, chyp1, chyp2, rev acc @ merge hyps1 hyps2)
+				else (* i1 = i2 *)
+					find_res_hyps (hyps1, hyps2) (h1 :: acc)
+			end
+			| GREATER => find_res_hyps (h1 :: hyps1, hyps2) (h2 :: acc))
+
+		(* Thm.thm * (int * Thm.cterm) list -> Thm.thm * (int * Thm.cterm) list -> Thm.thm * (int * Thm.cterm) list *)
+		fun resolution (c1, hyps1) (c2, hyps2) =
 		let
 			val _ = if !trace_sat then
 					tracing ("Resolving clause: " ^ string_of_thm c1 ^ " (hyps: " ^ ML_Syntax.print_list (Sign.string_of_term (theory_of_thm c1)) (#hyps (rep_thm c1))
@@ -144,8 +171,7 @@ fun resolve_raw_clauses [] =
 				else ()
 
 			(* the two literals used for resolution *)
-			val (i1, hyp1, hyp2) = find_res_hyps hyp1_table hyp2_table
-			val hyp1_is_neg      = i1 < 0
+			val (hyp1_is_neg, hyp1, hyp2, new_hyps) = find_res_hyps (hyps1, hyps2) []
 
 			val c1' = Thm.implies_intr hyp1 c1  (* Gamma1 |- hyp1 ==> False *)
 			val c2' = Thm.implies_intr hyp2 c2  (* Gamma2 |- hyp2 ==> False *)
@@ -166,17 +192,12 @@ fun resolve_raw_clauses [] =
 				(Thm.implies_elim res_thm (if hyp1_is_neg then c2' else c1'))
 				(if hyp1_is_neg then c1' else c2')
 
-			(* since the mapping from integers to literals should be injective *)
-			(* (over different clauses), 'K true' here should be equivalent to *)
-			(* 'op=' (but slightly faster)                                     *)
-			val hypnew_table = Inttab.merge (K true) (Inttab.delete i1 hyp1_table, Inttab.delete (~i1) hyp2_table)
-
 			val _ = if !trace_sat then
 					tracing ("Resulting clause: " ^ string_of_thm c_new ^ " (hyps: " ^ ML_Syntax.print_list (Sign.string_of_term (theory_of_thm c_new)) (#hyps (rep_thm c_new)) ^ ")")
 				else ()
 			val _ = inc counter
 		in
-			(c_new, hypnew_table)
+			(c_new, new_hyps)
 		end
 	in
 		fold resolution cs c
@@ -205,7 +226,7 @@ let
 			SOME (valOf (Termtab.lookup atom_table atom))
 	) handle TERM _ => NONE;  (* 'chyp' is not a literal *)
 
-	(* int -> Thm.thm * Thm.cterm Inttab.table *)
+	(* int -> Thm.thm * (int * Thm.cterm) list *)
 	fun prove_clause id =
 		case Array.sub (clauses, id) of
 		  RAW_CLAUSE clause =>
@@ -213,13 +234,12 @@ let
 		| ORIG_CLAUSE thm =>
 			(* convert the original clause *)
 			let
-				val _         = if !trace_sat then tracing ("Using original clause #" ^ string_of_int id) else ()
-				val raw       = cnf.clause2raw_thm thm
-				val lit_table = fold (fn chyp => fn lit_table => (case index_of_literal chyp of
-					  SOME i => Inttab.update_new (i, chyp) lit_table
-					| NONE   => lit_table)) (#hyps (Thm.crep_thm raw)) Inttab.empty
-				val clause    = (raw, lit_table)
-				val _         = Array.update (clauses, id, RAW_CLAUSE clause)
+				val _      = if !trace_sat then tracing ("Using original clause #" ^ string_of_int id) else ()
+				val raw    = cnf.clause2raw_thm thm
+				val hyps   = sort (lit_ord o pairself fst) (map_filter (fn chyp =>
+					Option.map (rpair chyp) (index_of_literal chyp)) (#hyps (Thm.crep_thm raw)))
+				val clause = (raw, hyps)
+				val _      = Array.update (clauses, id, RAW_CLAUSE clause)
 			in
 				clause
 			end
