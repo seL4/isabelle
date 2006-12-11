@@ -30,12 +30,14 @@ text{*
 
 datatype bit = B0 | B1
 
-constdefs
-  Pls :: int
-  "Pls == 0"
-  Min :: int
-  "Min == - 1"
-  Bit :: "int \<Rightarrow> bit \<Rightarrow> int" (infixl "BIT" 90)
+definition
+  Pls :: int where "Pls == 0"
+
+definition
+  Min :: int where "Min == - 1"
+
+definition
+  Bit :: "int \<Rightarrow> bit \<Rightarrow> int" (infixl "BIT" 90) where
   "k BIT b == (case b of B0 \<Rightarrow> 0 | B1 \<Rightarrow> 1) + k + k"
 
 axclass
