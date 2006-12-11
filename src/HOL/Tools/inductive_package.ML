@@ -653,14 +653,14 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
     val elims = if no_elim then [] else
       cnames ~~ map (apfst (singleton (ProofContext.export ctxt1 ctxt)))
         (prove_elims cs params intr_ts intr_names unfold rec_preds_defs ctxt1);
-    val raw_induct = singleton (ProofContext.export ctxt1 ctxt)
+    val raw_induct = zero_var_indexes (singleton (ProofContext.export ctxt1 ctxt)
       (if no_ind then Drule.asm_rl else
        if coind then ObjectLogic.rulify (rule_by_tactic
          (rewrite_tac [le_fun_def, le_bool_def] THEN
            fold_tac rec_preds_defs) (mono RS (fp_def RS def_coinduct)))
        else
          prove_indrule cs argTs bs xs rec_const params intr_ts mono fp_def
-           rec_preds_defs ctxt1);
+           rec_preds_defs ctxt1));
     val induct_cases = map (#1 o #1) intros;
     val ind_case_names = RuleCases.case_names induct_cases;
     val induct =
@@ -738,11 +738,44 @@ fun add_inductive_i verbose alt_name coind no_elim no_ind cnames_syn pnames pre_
     fun type_of s = (case AList.lookup op = frees s of
       NONE => error ("No such variable: " ^ s) | SOME T => T);
 
+    fun is_abbrev ((name, atts), t) =
+      can (Logic.strip_assums_concl #> Logic.dest_equals) t andalso
+      (name = "" andalso null atts orelse
+       error "Abbreviations may not have names or attributes");
+
+    fun expand_atom tab (t as Free xT) =
+          the_default t (AList.lookup op = tab xT)
+      | expand_atom tab t = t;
+    fun expand [] r = r
+      | expand tab r = Envir.beta_norm (Term.map_aterms (expand_atom tab) r);
+
+    val (_, ctxt') = Variable.add_fixes (map #1 cnames_syn) ctxt;
+
+    fun prep_abbrevs [] abbrevs' abbrevs'' = (rev abbrevs', rev abbrevs'')
+      | prep_abbrevs ((_, abbrev) :: abbrevs) abbrevs' abbrevs'' =
+          let val ((s, T), t) =
+            LocalDefs.abs_def (snd (LocalDefs.cert_def ctxt' abbrev))
+          in case find_first (equal s o #1) cnames_syn of
+              NONE => error ("Head of abbreviation " ^ quote s ^ " undeclared")
+            | SOME (_, _, mx) => prep_abbrevs abbrevs
+                (((s, T), expand abbrevs' t) :: abbrevs')
+                (((s, mx), expand abbrevs' t) :: abbrevs'') (* FIXME: do not expand *)
+          end;
+
+    val (abbrevs, pre_intros') = List.partition is_abbrev pre_intros;
+    val (abbrevs', abbrevs'') = prep_abbrevs abbrevs [] [];
+    val _ = (case gen_inter (op = o apsnd fst)
+      (fold (Term.add_frees o snd) abbrevs' [], abbrevs') of
+        [] => ()
+      | xs => error ("Bad abbreviation(s): " ^ commas (map fst xs)));
+
     val params = map
       (fn (s, SOME T) => Free (s, T) | (s, NONE) => Free (s, type_of s)) pnames;
+    val cnames_syn' = filter_out (fn (s, _, _) =>
+      exists (equal s o fst o fst) abbrevs') cnames_syn;
     val cs = map
-      (fn (s, SOME T, _) => Free (s, T) | (s, NONE, _) => Free (s, type_of s)) cnames_syn;
-    val cnames_syn' = map (fn (s, _, mx) => (s, mx)) cnames_syn;
+      (fn (s, SOME T, _) => Free (s, T) | (s, NONE, _) => Free (s, type_of s)) cnames_syn';
+    val cnames_syn'' = map (fn (s, _, mx) => (s, mx)) cnames_syn';
 
     fun close_rule (x, r) = (x, list_all_free (rev (fold_aterms
       (fn t as Free (v as (s, _)) =>
@@ -750,17 +783,23 @@ fun add_inductive_i verbose alt_name coind no_elim no_ind cnames_syn pnames pre_
               member op = params t then I else insert op = v
         | _ => I) r []), r));
 
-    val intros = map (close_rule o check_rule thy cs params) pre_intros;
+    val intros = map (apsnd (expand abbrevs') #>
+      check_rule thy cs params #> close_rule) pre_intros';
   in
+    ctxt |>
     add_ind_def verbose alt_name coind no_elim no_ind cs intros monos
-      params cnames_syn' ctxt
+      params cnames_syn'' ||>
+    fold (LocalTheory.abbrev Syntax.default_mode) abbrevs''
   end;
 
 fun add_inductive verbose coind cnames_syn pnames_syn intro_srcs raw_monos ctxt =
   let
     val (_, ctxt') = Specification.read_specification (cnames_syn @ pnames_syn) [] ctxt;
-    val intrs = map (fn spec => apsnd hd (hd (snd (fst
-      (Specification.read_specification [] [apsnd single spec] ctxt'))))) intro_srcs;
+    val intrs = map (fn ((name, att), s) => apsnd hd (hd (snd (fst
+      (Specification.read_specification [] [((name, att), [s])] ctxt'))))
+      handle ERROR msg =>
+        cat_error msg ("The error(s) above occurred for\n" ^
+          (if name = "" then "" else name ^ ": ") ^ s)) intro_srcs;
     val pnames = map (fn (s, _, _) =>
       (s, SOME (ProofContext.infer_type ctxt' s))) pnames_syn;
     val cnames_syn' = map (fn (s, _, mx) =>
