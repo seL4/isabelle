@@ -42,33 +42,30 @@ sig
       xprods: xprod list,
       consts: string list,
       prmodes: string list,
-      parse_ast_translation:
-        (string * ((Context.generic -> Ast.ast list -> Ast.ast) * stamp)) list,
+      parse_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
       parse_rules: (Ast.ast * Ast.ast) list,
-      parse_translation:
-        (string * ((Context.generic -> term list -> term) * stamp)) list,
+      parse_translation: (string * ((Proof.context -> term list -> term) * stamp)) list,
       print_translation:
-        (string * ((Context.generic -> bool -> typ -> term list -> term) * stamp)) list,
+        (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list,
       print_rules: (Ast.ast * Ast.ast) list,
-      print_ast_translation:
-        (string * ((Context.generic -> Ast.ast list -> Ast.ast) * stamp)) list,
+      print_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
       token_translation: (string * string * (string -> string * real)) list}
   val mfix_delims: string -> string list
   val mfix_args: string -> int
   val escape_mfix: string -> string
   val unlocalize_mfix: string -> string
   val syn_ext': bool -> (string -> bool) -> mfix list ->
-    string list -> (string * ((Context.generic -> Ast.ast list -> Ast.ast) * stamp)) list *
-    (string * ((Context.generic -> term list -> term) * stamp)) list *
-    (string * ((Context.generic -> bool -> typ -> term list -> term) * stamp)) list *
-    (string * ((Context.generic -> Ast.ast list -> Ast.ast) * stamp)) list
+    string list -> (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
+    (string * ((Proof.context -> term list -> term) * stamp)) list *
+    (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list
     -> (string * string * (string -> string * real)) list
     -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext: mfix list -> string list ->
-    (string * ((Context.generic -> Ast.ast list -> Ast.ast) * stamp)) list *
-    (string * ((Context.generic -> term list -> term) * stamp)) list *
-    (string * ((Context.generic -> bool -> typ -> term list -> term) * stamp)) list *
-    (string * ((Context.generic -> Ast.ast list -> Ast.ast) * stamp)) list
+    (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
+    (string * ((Proof.context -> term list -> term) * stamp)) list *
+    (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list
     -> (string * string * (string -> string * real)) list
     -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext_const_names: string list -> syn_ext
@@ -79,10 +76,10 @@ sig
     (string * ((bool -> typ -> term list -> term) * stamp)) list *
     (string * ((Ast.ast list -> Ast.ast) * stamp)) list -> syn_ext
   val syn_ext_advanced_trfuns:
-    (string * ((Context.generic -> Ast.ast list -> Ast.ast) * stamp)) list *
-    (string * ((Context.generic -> term list -> term) * stamp)) list *
-    (string * ((Context.generic -> bool -> typ -> term list -> term) * stamp)) list *
-    (string * ((Context.generic -> Ast.ast list -> Ast.ast) * stamp)) list -> syn_ext
+    (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
+    (string * ((Proof.context -> term list -> term) * stamp)) list *
+    (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list -> syn_ext
   val syn_ext_tokentrfuns: (string * string * (string -> string * real)) list -> syn_ext
   val standard_token_markers: string list
   val pure_ext: syn_ext
@@ -339,16 +336,13 @@ datatype syn_ext =
     xprods: xprod list,
     consts: string list,
     prmodes: string list,
-    parse_ast_translation:
-      (string * ((Context.generic -> Ast.ast list -> Ast.ast) * stamp)) list,
+    parse_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
     parse_rules: (Ast.ast * Ast.ast) list,
-    parse_translation:
-      (string * ((Context.generic -> term list -> term) * stamp)) list,
+    parse_translation: (string * ((Proof.context -> term list -> term) * stamp)) list,
     print_translation:
-      (string * ((Context.generic -> bool -> typ -> term list -> term) * stamp)) list,
+      (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list,
     print_rules: (Ast.ast * Ast.ast) list,
-    print_ast_translation:
-      (string * ((Context.generic -> Ast.ast list -> Ast.ast) * stamp)) list,
+    print_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
     token_translation: (string * string * (string -> string * real)) list};
 
 

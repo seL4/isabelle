@@ -36,12 +36,12 @@ sig
   val add_trfunsT:
     (string * (bool -> typ -> term list -> term)) list -> theory -> theory
   val add_advanced_trfuns:
-    (string * (Context.generic -> ast list -> ast)) list *
-    (string * (Context.generic -> term list -> term)) list *
-    (string * (Context.generic -> term list -> term)) list *
-    (string * (Context.generic -> ast list -> ast)) list -> theory -> theory
+    (string * (Proof.context -> ast list -> ast)) list *
+    (string * (Proof.context -> term list -> term)) list *
+    (string * (Proof.context -> term list -> term)) list *
+    (string * (Proof.context -> ast list -> ast)) list -> theory -> theory
   val add_advanced_trfunsT:
-    (string * (Context.generic -> bool -> typ -> term list -> term)) list -> theory -> theory
+    (string * (Proof.context -> bool -> typ -> term list -> term)) list -> theory -> theory
   val add_tokentrfuns:
     (string * string * (string -> string * real)) list -> theory -> theory
   val add_mode_tokentrfuns: string -> (string * (string -> string * real)) list
@@ -133,7 +133,7 @@ sig
   val intern_term: theory -> term -> term
   val extern_term: (string -> xstring) -> theory -> term -> term
   val intern_tycons: theory -> typ -> typ
-  val pretty_term': Context.generic -> Syntax.syntax -> (string -> xstring) -> term -> Pretty.T
+  val pretty_term': Proof.context -> Syntax.syntax -> (string -> xstring) -> term -> Pretty.T
   val pretty_term: theory -> term -> Pretty.T
   val pretty_typ: theory -> typ -> Pretty.T
   val pretty_sort: theory -> sort -> Pretty.T
@@ -161,15 +161,14 @@ sig
   val no_vars: Pretty.pp -> term -> term
   val cert_def: Pretty.pp -> term -> (string * typ) * term
   val read_class: theory -> xstring -> class
-  val read_sort': Syntax.syntax -> Context.generic -> string -> sort
+  val read_sort': Syntax.syntax -> Proof.context -> string -> sort
   val read_sort: theory -> string -> sort
   val read_arity: theory -> xstring * string list * string -> arity
   val cert_arity: theory -> arity -> arity
-  val read_typ': Syntax.syntax -> Context.generic ->
+  val read_typ': Syntax.syntax -> Proof.context -> (indexname -> sort option) -> string -> typ
+  val read_typ_syntax': Syntax.syntax -> Proof.context ->
     (indexname -> sort option) -> string -> typ
-  val read_typ_syntax': Syntax.syntax -> Context.generic ->
-    (indexname -> sort option) -> string -> typ
-  val read_typ_abbrev': Syntax.syntax -> Context.generic ->
+  val read_typ_abbrev': Syntax.syntax -> Proof.context ->
     (indexname -> sort option) -> string -> typ
   val read_typ: theory * (indexname -> sort option) -> string -> typ
   val read_typ_syntax: theory * (indexname -> sort option) -> string -> typ
@@ -183,7 +182,7 @@ sig
     (indexname -> sort option) -> Name.context -> bool
     -> term list * typ -> term * (indexname * typ) list
   val read_def_terms': Pretty.pp -> (string -> bool) -> Syntax.syntax -> Consts.T ->
-    Context.generic -> (indexname -> typ option) * (indexname -> sort option) ->
+    Proof.context -> (indexname -> typ option) * (indexname -> sort option) ->
     Name.context -> bool -> (string * typ) list -> term list * (indexname * typ) list
   val read_def_terms:
     theory * (indexname -> typ option) * (indexname -> sort option) ->
@@ -371,16 +370,19 @@ end;
 
 (** pretty printing of terms, types etc. **)
 
-fun pretty_term' context syn ext t =
-  let val curried = Context.exists_name Context.CPureN (Context.theory_of context)
-  in Syntax.pretty_term ext context syn curried t end;
+fun pretty_term' ctxt syn ext t =
+  let val curried = Context.exists_name Context.CPureN (ProofContext.theory_of ctxt)
+  in Syntax.pretty_term ext ctxt syn curried t end;
 
 fun pretty_term thy t =
-  pretty_term' (Context.Theory thy) (syn_of thy) (Consts.extern (consts_of thy))
+  pretty_term' (ProofContext.init thy) (syn_of thy) (Consts.extern (consts_of thy))
     (extern_term (Consts.extern_early (consts_of thy)) thy t);
 
-fun pretty_typ thy T = Syntax.pretty_typ (Context.Theory thy) (syn_of thy) (extern_typ thy T);
-fun pretty_sort thy S = Syntax.pretty_sort (Context.Theory thy) (syn_of thy) (extern_sort thy S);
+fun pretty_typ thy T =
+  Syntax.pretty_typ (ProofContext.init thy) (syn_of thy) (extern_typ thy T);
+
+fun pretty_sort thy S =
+  Syntax.pretty_sort (ProofContext.init thy) (syn_of thy) (extern_sort thy S);
 
 fun pretty_classrel thy cs = Pretty.block (flat
   (separate [Pretty.str " <", Pretty.brk 1] (map (single o pretty_sort thy o single) cs)));
@@ -510,14 +512,14 @@ fun cert_def pp tm =
 fun read_class thy c = certify_class thy (intern_class thy c)
   handle TYPE (msg, _, _) => error msg;
 
-fun read_sort' syn context str =
+fun read_sort' syn ctxt str =
   let
-    val thy = Context.theory_of context;
+    val thy = ProofContext.theory_of ctxt;
     val _ = Context.check_thy thy;
-    val S = intern_sort thy (Syntax.read_sort context syn str);
+    val S = intern_sort thy (Syntax.read_sort ctxt syn str);
   in certify_sort thy S handle TYPE (msg, _, _) => error msg end;
 
-fun read_sort thy str = read_sort' (syn_of thy) (Context.Theory thy) str;
+fun read_sort thy str = read_sort' (syn_of thy) (ProofContext.init thy) str;
 
 
 (* type arities *)
@@ -534,17 +536,17 @@ val cert_arity = prep_arity (K I) certify_sort;
 
 local
 
-fun gen_read_typ' cert syn context def_sort str =
+fun gen_read_typ' cert syn ctxt def_sort str =
   let
-    val thy = Context.theory_of context;
+    val thy = ProofContext.theory_of ctxt;
     val _ = Context.check_thy thy;
     val get_sort = TypeInfer.get_sort (tsig_of thy) def_sort (intern_sort thy);
-    val T = intern_tycons thy (Syntax.read_typ context syn get_sort (intern_sort thy) str);
+    val T = intern_tycons thy (Syntax.read_typ ctxt syn get_sort (intern_sort thy) str);
   in cert thy T handle TYPE (msg, _, _) => error msg end
   handle ERROR msg => cat_error msg ("The error(s) above occurred in type " ^ quote str);
 
 fun gen_read_typ cert (thy, def_sort) str =
-  gen_read_typ' cert (syn_of thy) (Context.Theory thy) def_sort str;
+  gen_read_typ' cert (syn_of thy) (ProofContext.init thy) def_sort str;
 
 in
 
@@ -620,12 +622,12 @@ fun infer_types pp thy consts def_type def_sort used freeze tsT =
 
 (* read_def_terms -- read terms and infer types *)    (*exception ERROR*)
 
-fun read_def_terms' pp is_logtype syn consts context (types, sorts) used freeze sTs =
+fun read_def_terms' pp is_logtype syn consts ctxt (types, sorts) used freeze sTs =
   let
-    val thy = Context.theory_of context;
+    val thy = ProofContext.theory_of ctxt;
     fun read (s, T) =
       let val T' = certify_typ thy T handle TYPE (msg, _, _) => error msg
-      in (Syntax.read context is_logtype syn T' s, T') end;
+      in (Syntax.read ctxt is_logtype syn T' s, T') end;
   in infer_types_simult pp thy consts types sorts used freeze (map read sTs) end;
 
 fun read_def_terms (thy, types, sorts) used freeze sTs =
@@ -635,7 +637,7 @@ fun read_def_terms (thy, types, sorts) used freeze sTs =
     val cert_consts = Consts.certify pp (tsig_of thy) consts;
     val (ts, inst) =
       read_def_terms' pp (is_logtype thy) (syn_of thy) consts
-        (Context.Theory thy) (types, sorts) (Name.make_context used) freeze sTs;
+        (ProofContext.init thy) (types, sorts) (Name.make_context used) freeze sTs;
   in (map cert_consts ts, inst) end;
 
 fun simple_read_term thy T s =
@@ -827,7 +829,7 @@ fun add_mode_tokentrfuns m = add_tokentrfuns o map (fn (s, f) => (m, s, f));
 local
 
 fun advancedT false = ""
-  | advancedT true = "Context.generic -> ";
+  | advancedT true = "Proof.context -> ";
 
 fun advancedN false = ""
   | advancedN true = "advanced_";
@@ -870,7 +872,7 @@ end;
 
 fun gen_trrules f args thy = thy |> map_syn (fn syn =>
   let val rules = map (Syntax.map_trrule (apfst (intern_type thy))) args
-  in f (Context.Theory thy) (is_logtype thy) syn rules syn end);
+  in f (ProofContext.init thy) (is_logtype thy) syn rules syn end);
 
 val add_trrules = gen_trrules Syntax.extend_trrules;
 val del_trrules = gen_trrules Syntax.remove_trrules;

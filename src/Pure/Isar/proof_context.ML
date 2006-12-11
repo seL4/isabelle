@@ -293,9 +293,7 @@ fun pretty_term' abbrevs ctxt t =
       |> do_abbrevs ? rewrite_term false thy (Consts.abbrevs_of consts [#1 Syntax.internal_mode])
       |> Sign.extern_term (Consts.extern_early consts) thy
       |> LocalSyntax.extern_term syntax;
-  in
-    Sign.pretty_term' (Context.Proof ctxt) (LocalSyntax.syn_of syntax) (Consts.extern consts) t'
-  end;
+  in Sign.pretty_term' ctxt (LocalSyntax.syn_of syntax) (Consts.extern consts) t' end;
 
 in
 
@@ -355,7 +353,7 @@ val string_of_thm = Pretty.string_of oo pretty_thm;
 local
 
 fun read_typ_aux read ctxt s =
-  read (syn_of ctxt) (Context.Proof ctxt) (Variable.def_sort ctxt) s;
+  read (syn_of ctxt) ctxt (Variable.def_sort ctxt) s;
 
 fun cert_typ_aux cert ctxt raw_T =
   cert (theory_of ctxt) raw_T handle TYPE (msg, _, _) => error msg;
@@ -435,7 +433,7 @@ fun revert_skolems ctxt =
 
 fun read_def_termTs freeze pp syn ctxt (types, sorts, used) sTs =
   Sign.read_def_terms' pp (Sign.is_logtype (theory_of ctxt)) syn (consts_of ctxt)
-    (Context.Proof ctxt) (types, sorts) used freeze sTs;
+    ctxt (types, sorts) used freeze sTs;
 
 fun read_def_termT freeze pp syn ctxt defaults sT =
   apfst hd (read_def_termTs freeze pp syn ctxt defaults [sT]);
@@ -865,9 +863,9 @@ fun const_syntax ctxt (Free (x, T), mx) = SOME (true, (x, T, mx))
       Option.map (pair false) (try (Consts.syntax (consts_of ctxt)) (c, mx))
   | const_syntax _ _ = NONE;
 
-fun context_const_ast_tr context [Syntax.Variable c] =
+fun context_const_ast_tr ctxt [Syntax.Variable c] =
       let
-        val consts = Context.cases Sign.consts_of consts_of context;
+        val consts = consts_of ctxt;
         val c' = Consts.intern consts c;
         val _ = Consts.the_constraint consts c' handle TYPE (msg, _, _) => error msg;
       in Syntax.Constant (Syntax.constN ^ c') end

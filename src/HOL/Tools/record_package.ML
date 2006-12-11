@@ -538,9 +538,9 @@ fun dest_ext_fields sep mark (trm as (Const (c,_) $ t $ u)) =
      else [dest_ext_field mark trm]
   | dest_ext_fields _ mark t = [dest_ext_field mark t]
 
-fun gen_ext_fields_tr sep mark sfx more context t =
+fun gen_ext_fields_tr sep mark sfx more ctxt t =
   let
-    val thy = Context.theory_of context;
+    val thy = ProofContext.theory_of ctxt;
     val msg = "error in record input: ";
     val fieldargs = dest_ext_fields sep mark t;
     fun splitargs (field::fields) ((name,arg)::fargs) =
@@ -568,9 +568,9 @@ fun gen_ext_fields_tr sep mark sfx more context t =
 
   in mk_ext fieldargs end;
 
-fun gen_ext_type_tr sep mark sfx more context t =
+fun gen_ext_type_tr sep mark sfx more ctxt t =
   let
-    val thy = Context.theory_of context;
+    val thy = ProofContext.theory_of ctxt;
     val msg = "error in record-type input: ";
     val fieldargs = dest_ext_fields sep mark t;
     fun splitargs (field::fields) ((name,arg)::fargs) =
@@ -619,20 +619,20 @@ fun gen_ext_type_tr sep mark sfx more context t =
 
   in mk_ext fieldargs end;
 
-fun gen_adv_record_tr sep mark sfx unit context [t] =
-      gen_ext_fields_tr sep mark sfx unit context t
+fun gen_adv_record_tr sep mark sfx unit ctxt [t] =
+      gen_ext_fields_tr sep mark sfx unit ctxt t
   | gen_adv_record_tr _ _ _ _ _ ts = raise TERM ("gen_record_tr", ts);
 
-fun gen_adv_record_scheme_tr sep mark sfx context [t, more] =
-      gen_ext_fields_tr sep mark sfx more context t
+fun gen_adv_record_scheme_tr sep mark sfx ctxt [t, more] =
+      gen_ext_fields_tr sep mark sfx more ctxt t
   | gen_adv_record_scheme_tr _ _ _ _ ts = raise TERM ("gen_record_scheme_tr", ts);
 
-fun gen_adv_record_type_tr sep mark sfx unit context [t] =
-      gen_ext_type_tr sep mark sfx unit context t
+fun gen_adv_record_type_tr sep mark sfx unit ctxt [t] =
+      gen_ext_type_tr sep mark sfx unit ctxt t
   | gen_adv_record_type_tr _ _ _ _ _ ts = raise TERM ("gen_record_tr", ts);
 
-fun gen_adv_record_type_scheme_tr sep mark sfx context [t, more] =
-      gen_ext_type_tr sep mark sfx more context t
+fun gen_adv_record_type_scheme_tr sep mark sfx ctxt [t, more] =
+      gen_ext_type_tr sep mark sfx more ctxt t
   | gen_adv_record_type_scheme_tr _ _ _ _ ts = raise TERM ("gen_record_scheme_tr", ts);
 
 val adv_record_tr = gen_adv_record_tr "_fields" "_field" extN HOLogic.unit;
@@ -680,9 +680,9 @@ fun gen_field_tr' sfx tr' name =
   let val name_sfx = suffix sfx name
   in (name_sfx, fn [t, u] => tr' (Syntax.const name_sfx $ t $ u) | _ => raise Match) end;
 
-fun record_tr' sep mark record record_scheme unit context t =
+fun record_tr' sep mark record record_scheme unit ctxt t =
   let
-    val thy = Context.theory_of context;
+    val thy = ProofContext.theory_of ctxt;
     fun field_lst t =
       (case strip_comb t of
         (Const (ext,_),args as (_::_))
@@ -713,7 +713,7 @@ fun record_tr' sep mark record record_scheme unit context t =
 fun gen_record_tr' name =
   let val name_sfx = suffix extN name;
       val unit = (fn Const ("Unity",_) => true | _ => false);
-      fun tr' context ts = record_tr' "_fields" "_field" "_record" "_record_scheme" unit context
+      fun tr' ctxt ts = record_tr' "_fields" "_field" "_record" "_record_scheme" unit ctxt
                        (list_comb (Syntax.const name_sfx,ts))
   in (name_sfx,tr')
   end
@@ -724,9 +724,9 @@ fun print_translation names =
 
 (* record_type_abbr_tr' tries to reconstruct the record name type abbreviation from *)
 (* the (nested) extension types.                                                    *)
-fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT context tm =
+fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt tm =
   let
-      val thy = Context.theory_of context;
+      val thy = ProofContext.theory_of ctxt;
       (* tm is term representation of a (nested) field type. We first reconstruct the      *)
       (* type from tm so that we can continue on the type level rather then the term level.*)
 
@@ -770,15 +770,15 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT context tm
                     if HOLogic.is_unitT (Envir.norm_type subst (varifyT (TFree(zeta,Sign.defaultS thy))))
                     then mk_type_abbr subst abbr alphas
                     else mk_type_abbr subst (suffix schemeN abbr) (alphas@[zeta])
-                   end handle TYPE_MATCH => default_tr' context tm)
+                   end handle TYPE_MATCH => default_tr' ctxt tm)
                  else raise Match (* give print translation of specialised record a chance *)
             | _ => raise Match)
-       else default_tr' context tm
+       else default_tr' ctxt tm
   end
 
-fun record_type_tr' sep mark record record_scheme context t =
+fun record_type_tr' sep mark record record_scheme ctxt t =
   let
-    val thy = Context.theory_of context;
+    val thy = ProofContext.theory_of ctxt;
     fun get_sort xs n = AList.lookup (op =) xs n |> the_default (Sign.defaultS thy);
 
     val T = Sign.intern_typ thy (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts t)) I t)
@@ -826,8 +826,8 @@ fun record_type_tr' sep mark record record_scheme context t =
 
 fun gen_record_type_tr' name =
   let val name_sfx = suffix ext_typeN name;
-      fun tr' context ts = record_type_tr' "_field_types" "_field_type"
-                       "_record_type" "_record_type_scheme" context
+      fun tr' ctxt ts = record_type_tr' "_field_types" "_field_type"
+                       "_record_type" "_record_type_scheme" ctxt
                        (list_comb (Syntax.const name_sfx,ts))
   in (name_sfx,tr')
   end
@@ -837,8 +837,8 @@ fun gen_record_type_abbr_tr' abbr alphas zeta lastExt schemeT name =
   let val name_sfx = suffix ext_typeN name;
       val default_tr' = record_type_tr' "_field_types" "_field_type"
                                "_record_type" "_record_type_scheme"
-      fun tr' context ts =
-          record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT context
+      fun tr' ctxt ts =
+          record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt
                                (list_comb (Syntax.const name_sfx,ts))
   in (name_sfx, tr') end;
 

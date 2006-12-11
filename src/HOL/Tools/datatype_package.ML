@@ -392,9 +392,9 @@ val simproc_setup =
 
 (**** translation rules for case ****)
 
-fun case_tr context [t, u] =
+fun case_tr ctxt [t, u] =
     let
-      val thy = Context.theory_of context;
+      val thy = ProofContext.theory_of ctxt;
       fun case_error s name ts = raise TERM ("Error in case expression" ^
         getOpt (Option.map (curry op ^ " for datatype ") name, "") ^ ":\n" ^ s, ts);
       fun dest_case1 (Const ("_case1", _) $ t $ u) =
@@ -457,10 +457,10 @@ fun case_tr context [t, u] =
     end
   | case_tr _ ts = raise TERM ("case_tr", ts);
 
-fun case_tr' constrs context ts =
+fun case_tr' constrs ctxt ts =
   if length ts <> length constrs + 1 then raise Match else
   let
-    val consts = Context.cases Sign.consts_of ProofContext.consts_of context;
+    val consts = ProofContext.consts_of ctxt;
 
     val (fs, x) = split_last ts;
     fun strip_abs 0 t = ([], t)

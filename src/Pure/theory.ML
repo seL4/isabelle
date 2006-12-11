@@ -178,7 +178,7 @@ fun cert_axm thy (name, raw_tm) =
 
 fun read_def_axm (thy, types, sorts) used (name, str) =
   let
-    val ts = Syntax.read (Context.Theory thy) (Sign.is_logtype thy) (Sign.syn_of thy) propT str;
+    val ts = Syntax.read (ProofContext.init thy) (Sign.is_logtype thy) (Sign.syn_of thy) propT str;
     val (t, _) =
       Sign.infer_types (Sign.pp thy) thy (Sign.consts_of thy)
         types sorts (Name.make_context used) true (ts, propT);
