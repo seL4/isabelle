@@ -431,7 +431,7 @@ val primrec_decl =
 val primrecP =
   OuterSyntax.command "nominal_primrec" "define primitive recursive functions on nominal datatypes" K.thy_goal
     (primrec_decl >> (fn ((unchecked, (alt_name, (invs, fctxt))), eqns) =>
-      Toplevel.theory_to_proof
+      Toplevel.print o Toplevel.theory_to_proof
         ((if unchecked then add_primrec_unchecked else add_primrec) alt_name invs fctxt
           (map P.triple_swap eqns))));
 
