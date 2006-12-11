@@ -224,8 +224,8 @@ fun lex_err msg prfx (cs, _) =
   "Inner lexical error: " ^ msg ^ " at " ^ quote (prfx ^ Symbol.beginning 10 cs);
 
 val scan_chr =
-  $$ "\\" |-- Scan.one Symbol.not_eof ||
-  Scan.one (fn s => s <> "'" andalso Symbol.not_eof s) ||
+  $$ "\\" |-- $$ "'" ||
+  Scan.one (fn s => s <> "\\" andalso s <> "'" andalso Symbol.not_eof s) ||
   $$ "'" --| Scan.ahead (~$$ "'");
 
 val scan_str =
