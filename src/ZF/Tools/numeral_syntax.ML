@@ -92,7 +92,7 @@ fun show_int t =
 (* translation of integer constant tokens to and from binary *)
 
 fun int_tr (*"_Int"*) [t as Free (str, _)] =
-      Syntax.const "integ_of" $ mk_bin (Syntax.read_xnum str)
+      Syntax.const "integ_of" $ mk_bin (#value (Syntax.read_xnum str))
   | int_tr (*"_Int"*) ts = raise TERM ("int_tr", ts);
 
 fun int_tr' _ _ (*"integ_of"*) [t] = Syntax.const "_Int" $ Syntax.free (show_int t)

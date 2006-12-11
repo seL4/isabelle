@@ -31,7 +31,7 @@ sig
   val var: indexname -> term
   val read_nat: string -> int option
   val read_int: string -> int option
-  val read_xnum: string -> IntInf.int
+  val read_xnum: string -> {radix: int, leading_zeros: int, value: IntInf.int}
   val read_idents: string -> string list
   val fixedN: string
   val constN: string
@@ -397,6 +397,10 @@ fun remap_hex c =
     else c
   end;
 
+fun leading_zeros ["0"] = 0
+  | leading_zeros ("0" :: cs) = 1 + leading_zeros cs
+  | leading_zeros _ = 0;
+
 in
 
 fun read_xnum str =
@@ -407,7 +411,8 @@ fun read_xnum str =
       | "0" :: "b" :: cs => (1, 2, cs)
       | "-" :: cs => (~1, 10, cs)
       | cs => (1, 10, cs));
-  in sign * #1 (Library.read_intinf radix digs) end;
+    val value = sign * #1 (Library.read_intinf radix digs);
+  in {radix = radix, leading_zeros = leading_zeros digs, value = value} end;
 
 end;
 
