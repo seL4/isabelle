@@ -32,7 +32,7 @@ fun mk_char s =
     Syntax.Appl [Syntax.Constant "Char", mk_nib (ord s div 16), mk_nib (ord s mod 16)]
   else error ("Non-ASCII symbol: " ^ quote s);
 
-val specials = explode "\\\"`";
+val specials = explode "\\\"`'";
 
 fun dest_chr c1 c2 =
   let val c = chr (dest_nib c1 * 16 + dest_nib c2) in
