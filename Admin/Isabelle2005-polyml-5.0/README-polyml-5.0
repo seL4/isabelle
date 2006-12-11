@@ -5,19 +5,30 @@ compatibility wrappers:
   Isabelle2005/src/Pure/ML-Systems/polyml-5.0.ML
   Isabelle2005/lib/scripts/run-polyml-5.0
 
-Moreover the Isabelle settings need to specify that version, by
-including something like this in Isabelle2005/etc/settings or
+The Isabelle settings need to specify that version, by including
+something like this in Isabelle2005/etc/settings or
 ~/isabelle/etc/settings:
 
-ML_PLATFORM=""
-ML_HOME=/usr/local/bin
-ML_SYSTEM=polyml-5.0
-ML_OPTIONS="-H 500"
+  ML_PLATFORM=""
+  ML_HOME=/usr/local/bin
+  ML_SYSTEM=polyml-5.0
+  ML_OPTIONS="-H 500"
 
-Then logics can be compiled as usual, cf. the INSTALL instructions.
+Now logics can be compiled as usual, cf. the INSTALL instructions.
+
+
+ProofGeneral needs to be adapted as well, by including the following
+in Isabelle2005/etc/proofgeneral-settings.el or
+~/isabelle/etc/proofgeneral-settings.el:
+
+  (custom-set-variables
+   '(proof-shell-pre-interrupt-hook (lambda () t)))
+
+Otherwise ProofGeneral will regard polyml-5.0 as an old polyml-3.x and
+activate strange workarounds for interrupt handling.
 
 
 	Makarius
-	07-Dec-2006
+	11-Dec-2006
 
 $Id$
