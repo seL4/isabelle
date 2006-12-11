@@ -111,6 +111,8 @@ fun use_text (print, err) verbose txt =
     if verbose then print (output ()) else ()
   end;
 
+fun use_file _ _ name = use name;
+
 
 (*eval command line arguments*)
 local

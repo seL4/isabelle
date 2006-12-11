@@ -144,6 +144,8 @@ fun use_text _ _ txt =
     FileSys.remove tmp_name
   end;
 
+fun use_file _ _ name = PolyML.use name;
+
 
 
 (** interrupts **)      (*Note: may get into race conditions*)
