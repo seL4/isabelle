@@ -19,12 +19,14 @@ abbreviation
   "hypreal_of_real == star_of"
 
 definition
-  omega :: hypreal where   -- {*an infinite number @{text "= [<1,2,3,...>]"} *}
-  "omega = star_n (%n. real (Suc n))"
+  omega :: hypreal where
+   -- {*an infinite number @{text "= [<1,2,3,...>]"} *}
+  "omega = star_n (\<lambda>n. real (Suc n))"
 
 definition
-  epsilon :: hypreal where   -- {*an infinitesimal number @{text "= [<1,1/2,1/3,...>]"} *}
-  "epsilon = star_n (%n. inverse (real (Suc n)))"
+  epsilon :: hypreal where
+   -- {*an infinitesimal number @{text "= [<1,1/2,1/3,...>]"} *}
+  "epsilon = star_n (\<lambda>n. inverse (real (Suc n)))"
 
 notation (xsymbols)
   omega  ("\<omega>") and
@@ -42,31 +44,31 @@ instance star :: (scaleR) scaleR ..
 defs (overloaded)
   star_scaleR_def [transfer_unfold]: "scaleR r \<equiv> *f* (scaleR r)"
 
-lemma Standard_scaleR [simp]: "x \<in> Standard \<Longrightarrow> r *# x \<in> Standard"
+lemma Standard_scaleR [simp]: "x \<in> Standard \<Longrightarrow> scaleR r x \<in> Standard"
 by (simp add: star_scaleR_def)
 
-lemma star_of_scaleR [simp]: "star_of (r *# x) = r *# star_of x"
+lemma star_of_scaleR [simp]: "star_of (scaleR r x) = scaleR r (star_of x)"
 by transfer (rule refl)
 
 instance star :: (real_vector) real_vector
 proof
   fix a b :: real
-  show "\<And>x y::'a star. a *# (x + y) = a *# x + a *# y"
+  show "\<And>x y::'a star. scaleR a (x + y) = scaleR a x + scaleR a y"
     by transfer (rule scaleR_right_distrib)
-  show "\<And>x::'a star. (a + b) *# x = a *# x + b *# x"
+  show "\<And>x::'a star. scaleR (a + b) x = scaleR a x + scaleR b x"
     by transfer (rule scaleR_left_distrib)
-  show "\<And>x::'a star. a *# b *# x = (a * b) *# x"
+  show "\<And>x::'a star. scaleR a (scaleR b x) = scaleR (a * b) x"
     by transfer (rule scaleR_scaleR)
-  show "\<And>x::'a star. 1 *# x = x"
+  show "\<And>x::'a star. scaleR 1 x = x"
     by transfer (rule scaleR_one)
 qed
 
 instance star :: (real_algebra) real_algebra
 proof
   fix a :: real
-  show "\<And>x y::'a star. a *# x * y = a *# (x * y)"
+  show "\<And>x y::'a star. scaleR a x * y = scaleR a (x * y)"
     by transfer (rule mult_scaleR_left)
-  show "\<And>x y::'a star. x * a *# y = a *# (x * y)"
+  show "\<And>x y::'a star. x * scaleR a y = scaleR a (x * y)"
     by transfer (rule mult_scaleR_right)
 qed
 
@@ -117,52 +119,47 @@ lemma FilterNat_mem: "filter FreeUltrafilterNat"
 by (rule FreeUltrafilterNat_mem [THEN freeultrafilter.filter])
 
 lemma FreeUltrafilterNat_finite: "finite x ==> x \<notin> FreeUltrafilterNat"
-by (rule FreeUltrafilterNat_mem [THEN freeultrafilter.finite])
+by (rule FreeUltrafilterNat.finite)
 
 lemma FreeUltrafilterNat_not_finite: "x \<in> FreeUltrafilterNat ==> ~ finite x"
-thm FreeUltrafilterNat_mem
-thm freeultrafilter.infinite
-thm FreeUltrafilterNat_mem [THEN freeultrafilter.infinite]
-by (rule FreeUltrafilterNat_mem [THEN freeultrafilter.infinite])
+by (rule FreeUltrafilterNat.infinite)
 
-lemma FreeUltrafilterNat_empty [simp]: "{} \<notin> FreeUltrafilterNat"
-by (rule FilterNat_mem [THEN filter.empty])
+lemma FreeUltrafilterNat_empty: "{} \<notin> FreeUltrafilterNat"
+by (rule FreeUltrafilterNat.empty)
 
 lemma FreeUltrafilterNat_Int:
      "[| X \<in> FreeUltrafilterNat;  Y \<in> FreeUltrafilterNat |]   
       ==> X Int Y \<in> FreeUltrafilterNat"
-by (rule FilterNat_mem [THEN filter.Int])
+by (rule FreeUltrafilterNat.Int)
 
 lemma FreeUltrafilterNat_subset:
      "[| X \<in> FreeUltrafilterNat;  X \<subseteq> Y |]  
       ==> Y \<in> FreeUltrafilterNat"
-by (rule FilterNat_mem [THEN filter.subset])
+by (rule FreeUltrafilterNat.subset)
 
 lemma FreeUltrafilterNat_Compl:
      "X \<in> FreeUltrafilterNat ==> -X \<notin> FreeUltrafilterNat"
-apply (erule contrapos_pn)
-apply (erule UltrafilterNat_mem [THEN ultrafilter.not_mem_iff, THEN iffD2])
-done
+by (rule FreeUltrafilterNat.memD)
 
 lemma FreeUltrafilterNat_Compl_mem:
-     "X\<notin> FreeUltrafilterNat ==> -X \<in> FreeUltrafilterNat"
-by (rule UltrafilterNat_mem [THEN ultrafilter.not_mem_iff, THEN iffD1])
+     "X \<notin> FreeUltrafilterNat ==> -X \<in> FreeUltrafilterNat"
+by (rule FreeUltrafilterNat.not_memD)
 
 lemma FreeUltrafilterNat_Compl_iff1:
      "(X \<notin> FreeUltrafilterNat) = (-X \<in> FreeUltrafilterNat)"
-by (rule UltrafilterNat_mem [THEN ultrafilter.not_mem_iff])
+by (rule FreeUltrafilterNat.not_mem_iff)
 
 lemma FreeUltrafilterNat_Compl_iff2:
      "(X \<in> FreeUltrafilterNat) = (-X \<notin> FreeUltrafilterNat)"
 by (auto simp add: FreeUltrafilterNat_Compl_iff1 [symmetric])
 
 lemma cofinite_mem_FreeUltrafilterNat: "finite (-X) ==> X \<in> FreeUltrafilterNat"
-apply (drule FreeUltrafilterNat_finite)  
-apply (simp add: FreeUltrafilterNat_Compl_iff2 [symmetric])
+apply (drule FreeUltrafilterNat.finite)
+apply (simp add: FreeUltrafilterNat.not_mem_iff)
 done
 
-lemma FreeUltrafilterNat_UNIV [iff]: "UNIV \<in> FreeUltrafilterNat"
-by (rule FilterNat_mem [THEN filter.UNIV])
+lemma FreeUltrafilterNat_UNIV: "UNIV \<in> FreeUltrafilterNat"
+by (rule FreeUltrafilterNat.UNIV)
 
 lemma FreeUltrafilterNat_Nat_set_refl [intro]:
      "{n. P(n) = P(n)} \<in> FreeUltrafilterNat"
@@ -202,7 +199,7 @@ by (auto, ultra)
 subsection{*Properties of @{term starrel}*}
 
 text{*Proving that @{term starrel} is an equivalence relation*}
-
+(*
 lemma starrel_iff: "((X,Y) \<in> starrel) = ({n. X n = Y n} \<in> FreeUltrafilterNat)"
 by (rule StarDef.starrel_iff)
 
@@ -219,20 +216,10 @@ by (simp add: starrel_def, ultra)
 lemma equiv_starrel: "equiv UNIV starrel"
 by (rule StarDef.equiv_starrel)
 
-(* (starrel `` {x} = starrel `` {y}) = ((x,y) \<in> starrel) *)
 lemmas equiv_starrel_iff =
     eq_equiv_class_iff [OF equiv_starrel UNIV_I UNIV_I, simp] 
 
-lemma starrel_in_hypreal [simp]: "starrel``{x}:star"
-by (simp add: star_def starrel_def quotient_def, blast)
-
-declare Abs_star_inject [simp] Abs_star_inverse [simp]
-declare equiv_starrel [THEN eq_equiv_class_iff, simp]
-
 lemmas eq_starrelD = eq_equiv_class [OF _ equiv_starrel]
-
-lemma lemma_starrel_refl [simp]: "x \<in> starrel `` {x}"
-by (simp add: starrel_def)
 
 lemma hypreal_empty_not_mem [simp]: "{} \<notin> star"
 apply (simp add: star_def)
@@ -241,6 +228,16 @@ done
 
 lemma Rep_hypreal_nonempty [simp]: "Rep_star x \<noteq> {}"
 by (insert Rep_star [of x], auto)
+*)
+
+lemma lemma_starrel_refl [simp]: "x \<in> starrel `` {x}"
+by (simp add: starrel_def)
+
+lemma starrel_in_hypreal [simp]: "starrel``{x}:star"
+by (simp add: star_def starrel_def quotient_def, blast)
+
+declare Abs_star_inject [simp] Abs_star_inverse [simp]
+declare equiv_starrel [THEN eq_equiv_class_iff, simp]
 
 subsection{*@{term hypreal_of_real}: 
             the Injection from @{typ real} to @{typ hypreal}*}

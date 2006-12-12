@@ -258,10 +258,12 @@ definition
   hypnat_omega_def: "whn = star_n (%n::nat. n)"
 
 lemma hypnat_of_nat_neq_whn: "hypnat_of_nat n \<noteq> whn"
-by (simp add: hypnat_omega_def star_of_def star_n_eq_iff FUFNat.finite)
+by (simp add: hypnat_omega_def star_of_def star_n_eq_iff
+              FreeUltrafilterNat.finite)
 
 lemma whn_neq_hypnat_of_nat: "whn \<noteq> hypnat_of_nat n"
-by (simp add: hypnat_omega_def star_of_def star_n_eq_iff FUFNat.finite)
+by (simp add: hypnat_omega_def star_of_def star_n_eq_iff
+              FreeUltrafilterNat.finite)
 
 lemma whn_not_Nats [simp]: "whn \<notin> Nats"
 by (simp add: Nats_def image_def whn_neq_hypnat_of_nat)
@@ -373,32 +375,32 @@ by (simp add: hypreal_of_hypnat_def starfun)
 
 lemma hypreal_of_hypnat_inject [simp]:
      "!!m n. (hypreal_of_hypnat m = hypreal_of_hypnat n) = (m=n)"
-by (transfer, simp)
+by transfer (rule real_of_nat_inject)
 
 lemma hypreal_of_hypnat_zero: "hypreal_of_hypnat 0 = 0"
-by (simp add: star_n_zero_num hypreal_of_hypnat)
+by transfer (rule real_of_nat_zero)
 
 lemma hypreal_of_hypnat_one: "hypreal_of_hypnat (1::hypnat) = 1"
-by (simp add: star_n_one_num hypreal_of_hypnat)
+by transfer simp
 
 lemma hypreal_of_hypnat_add [simp]:
      "!!m n. hypreal_of_hypnat (m + n) = hypreal_of_hypnat m + hypreal_of_hypnat n"
-by (transfer, rule real_of_nat_add)
+by transfer (rule real_of_nat_add)
 
 lemma hypreal_of_hypnat_mult [simp]:
      "!!m n. hypreal_of_hypnat (m * n) = hypreal_of_hypnat m * hypreal_of_hypnat n"
-by (transfer, rule real_of_nat_mult)
+by transfer (rule real_of_nat_mult)
 
 lemma hypreal_of_hypnat_less_iff [simp]:
      "!!m n. (hypreal_of_hypnat n < hypreal_of_hypnat m) = (n < m)"
-by (transfer, simp)
+by transfer (rule real_of_nat_less_iff)
 
 lemma hypreal_of_hypnat_eq_zero_iff: "(hypreal_of_hypnat N = 0) = (N = 0)"
 by (simp add: hypreal_of_hypnat_zero [symmetric])
 declare hypreal_of_hypnat_eq_zero_iff [simp]
 
 lemma hypreal_of_hypnat_ge_zero [simp]: "!!n. 0 \<le> hypreal_of_hypnat n"
-by (transfer, simp)
+by transfer (rule real_of_nat_ge_zero)
 
 lemma HNatInfinite_inverse_Infinitesimal [simp]:
      "n \<in> HNatInfinite ==> inverse (hypreal_of_hypnat n) \<in> Infinitesimal"
