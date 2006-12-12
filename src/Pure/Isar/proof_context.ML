@@ -147,10 +147,10 @@ sig
   val target_notation: Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
   val set_expand_abbrevs: bool -> Proof.context -> Proof.context
-  val add_abbrev: string -> bstring * term -> Proof.context ->
-    ((string * typ) * term) * Proof.context
+  val add_abbrev: string -> bstring * term -> Proof.context -> (term * term) * Proof.context
   val target_abbrev: Syntax.mode -> (string * mixfix) * term -> morphism ->
     Context.generic -> Context.generic
+  val local_abbrev: string * term -> Proof.context -> (term * term) * Proof.context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: Proof.context -> unit
@@ -884,8 +884,8 @@ fun add_notation mode args ctxt =
   ctxt |> map_syntax
     (LocalSyntax.add_modesyntax (theory_of ctxt) mode (map_filter (const_syntax ctxt) args));
 
-fun target_notation mode args phi =   (* FIXME equiv_term; avoid dynamic scoping!? *)
-  let val args' = filter (fn (t, _) => t aconv Morphism.term phi t) args;
+fun target_notation mode args phi =
+  let val args' = filter (fn (t, _) => Term.equiv_types (t, Morphism.term phi t)) args;
   in Context.mapping (Sign.add_notation mode args') (add_notation mode args') end;
 
 
@@ -899,13 +899,15 @@ fun add_abbrev mode (c, raw_t) ctxt =
     val t0 = cert_term (ctxt |> set_expand_abbrevs false) raw_t
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
-    val (res, consts') = consts_of ctxt
+    val ((lhs as Const (full_c, T), rhs), consts') = consts_of ctxt
       |> Consts.abbreviate (pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode (c, t);
+    val get = fn Const (c', _) => if c' = full_c then SOME (T, rhs) else NONE | _ => NONE;
   in
     ctxt
-    |> Variable.declare_term t
     |> map_consts (apsnd (K consts'))
-    |> pair res
+    |> Variable.declare_term rhs
+    |> Assumption.add_assms (K (K (I, Envir.expand_term get))) [] |> snd
+    |> pair (lhs, rhs)
   end;
 
 fun target_abbrev prmode ((c, mx), rhs) phi =
@@ -916,9 +918,15 @@ fun target_abbrev prmode ((c, mx), rhs) phi =
     val arg' = (c', rhs');
   in
     Context.mapping_result (Sign.add_abbrev mode arg') (add_abbrev mode arg')
-    (* FIXME equiv_term *)
-    #-> (fn (a, _) => (rhs aconv rhs') ? target_notation prmode [(Const a, mx)] Morphism.identity)
+    #-> (fn (lhs, _) =>
+      Term.equiv_types (rhs, rhs') ? target_notation prmode [(lhs, mx)] Morphism.identity)
   end;
+
+fun local_abbrev (x, rhs) =
+  let
+    val T = Term.fastype_of rhs;
+    val export = Envir.expand_term_frees [((x, T), rhs)];
+  in Assumption.add_assms (K (K (I, export))) [] #> snd #> pair (Free (x, T), rhs) end;
 
 
 (* fixes *)
@@ -1075,11 +1083,11 @@ fun pretty_abbrevs show_globals ctxt =
   let
     val ((_, globals), (space, consts)) =
       pairself (#constants o Consts.dest) (#consts (rep_context ctxt));
-    fun add_abbrev (_, (_, NONE)) = I
-      | add_abbrev (c, (T, SOME (t, _))) =
+    fun add_abbr (_, (_, NONE)) = I
+      | add_abbr (c, (T, SOME (t, _))) =
           if not show_globals andalso Symtab.defined globals c then I
           else cons (c, Logic.mk_equals (Const (c, T), t));
-    val abbrevs = NameSpace.extern_table (space, Symtab.make (Symtab.fold add_abbrev consts []));
+    val abbrevs = NameSpace.extern_table (space, Symtab.make (Symtab.fold add_abbr consts []));
   in
     if null abbrevs andalso not (! verbose) then []
     else [Pretty.big_list "abbreviations:" (map (pretty_term_abbrev ctxt o #2) abbrevs)]
