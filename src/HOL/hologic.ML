@@ -327,7 +327,7 @@ fun mk_binum 0 = pls_const
   | mk_binum ~1 = min_const
   | mk_binum i =
       let val (q, r) = IntInf.divMod (i, 2)
-      in bit_const $ mk_binum q $ mk_bit r end;
+      in bit_const $ mk_binum q $ mk_bit (IntInf.toInt r) end;
 
 fun dest_binum (Const ("Numeral.Pls", _)) = 0
   | dest_binum (Const ("Numeral.Min", _)) = ~1
