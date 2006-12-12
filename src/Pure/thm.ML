@@ -762,14 +762,14 @@ fun forall_intr
         hyps = hyps,
         tpairs = tpairs,
         prop = all T $ Abs (a, T, abstract_over (x, prop))};
-    fun check_occs x ts =
+    fun check_occs a x ts =
       if exists (fn t => Logic.occs (x, t)) ts then
-        raise THM("forall_intr: variable free in assumptions", 0, [th])
+        raise THM ("forall_intr: variable " ^ quote a ^ " free in assumptions", 0, [th])
       else ();
   in
     case x of
-      Free (a, _) => (check_occs x hyps; check_occs x (terms_of_tpairs tpairs); result a)
-    | Var ((a, _), _) => (check_occs x (terms_of_tpairs tpairs); result a)
+      Free (a, _) => (check_occs a x hyps; check_occs a x (terms_of_tpairs tpairs); result a)
+    | Var ((a, _), _) => (check_occs a x (terms_of_tpairs tpairs); result a)
     | _ => raise THM ("forall_intr: not a variable", 0, [th])
   end;
 
@@ -899,7 +899,6 @@ fun abstract_rule a
     (Cterm {t = x, T, sorts, ...})
     (th as Thm {thy_ref, der, maxidx, hyps, shyps, tpairs, prop, ...}) =
   let
-    val string_of = Sign.string_of_term (Theory.deref thy_ref);
     val (t, u) = Logic.dest_equals prop
       handle TERM _ => raise THM ("abstract_rule: premise not an equality", 0, [th]);
     val result =
@@ -912,15 +911,15 @@ fun abstract_rule a
         tpairs = tpairs,
         prop = Logic.mk_equals
           (Abs (a, T, abstract_over (x, t)), Abs (a, T, abstract_over (x, u)))};
-    fun check_occs x ts =
+    fun check_occs a x ts =
       if exists (fn t => Logic.occs (x, t)) ts then
-        raise THM ("abstract_rule: variable free in assumptions " ^ string_of x, 0, [th])
+        raise THM ("abstract_rule: variable " ^ quote a ^ " free in assumptions", 0, [th])
       else ();
   in
     case x of
-      Free _ => (check_occs x hyps; check_occs x (terms_of_tpairs tpairs); result)
-    | Var _ => (check_occs x (terms_of_tpairs tpairs); result)
-    | _ => raise THM ("abstract_rule: not a variable " ^ string_of x, 0, [th])
+      Free (a, _) => (check_occs a x hyps; check_occs a x (terms_of_tpairs tpairs); result)
+    | Var ((a, _), _) => (check_occs a x (terms_of_tpairs tpairs); result)
+    | _ => raise THM ("abstract_rule: not a variable", 0, [th])
   end;
 
 (*The combination rule
