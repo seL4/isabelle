@@ -333,7 +333,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
             | _ => error ("More than one type variable in type signature of constant " ^ quote c));
         val consts1 =
           Locale.parameters_of thy name_locale
-          |> map (apsnd (Syntax.unlocalize_mixfix true))
+          |> map (apsnd (TheoryTarget.fork_mixfix false true #> fst))
         val SOME v = fold extract_classvar consts1 NONE;
         val consts2 = map ((apfst o apsnd) (subst_clsvar v (TFree (v, [])))) consts1;
       in (v, chop (length mapp_sup) consts2) end;
@@ -604,7 +604,8 @@ val classP =
       || class_bodyP >> pair [])
     -- P.opt_begin
     >> (fn ((bname, (supclasses, elems)), begin) =>
-        Toplevel.begin_local_theory begin (class bname supclasses elems #-> TheoryTarget.begin)));
+        Toplevel.begin_local_theory begin
+          (class bname supclasses elems #-> TheoryTarget.begin true)));
 
 val instanceP =
   OuterSyntax.command instanceK "prove type arity or subclass relation" K.thy_goal ((
