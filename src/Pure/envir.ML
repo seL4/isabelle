@@ -40,6 +40,7 @@ sig
   val subst_vars: Type.tyenv * tenv -> term -> term
   val expand_atom: typ -> typ * term -> term
   val expand_term: (term -> (typ * term) option) -> term -> term
+  val expand_term_frees: ((string * typ) * term) list -> term -> term
 end;
 
 structure Envir : ENVIR =
@@ -296,13 +297,13 @@ fun subst_vars (iTs, itms) =
   in subst end;
 
 
-(* expand defined atoms *)
+(* expand defined atoms -- with local beta reduction *)
 
 fun expand_atom T (U, u) =
   subst_TVars (Type.raw_match (U, T) Vartab.empty) u
   handle Type.TYPE_MATCH => raise TYPE ("expand_atom: ill-typed replacement", [T, U], [u]);
 
-fun expand_term get_def =
+fun expand_term get =
   let
     fun expand tm =
       let
@@ -313,11 +314,17 @@ fun expand_term get_def =
         (case head of
           Abs (x, T, t) => comb (Abs (x, T, expand t))
         | _ =>
-            (case get_def head of
+            (case get head of
               SOME def => Term.betapplys (expand_atom (Term.fastype_of head) def, args')
             | NONE => comb head)
         | _ => comb head)
       end;
   in expand end;
+
+fun expand_term_frees defs =
+  let
+    val eqs = map (fn ((x, U), u) => (x, (U, u))) defs;
+    val get = fn Free (x, _) => AList.lookup (op =) eqs x | _ => NONE;
+  in expand_term get end;
 
 end;
