@@ -382,7 +382,7 @@ subsection{*Version for Sine Function*}
 
 lemma MVT2:
      "[| a < b; \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x) |]
-      ==> \<exists>z. a < z & z < b & (f b - f a = (b - a) * f'(z))"
+      ==> \<exists>z::real. a < z & z < b & (f b - f a = (b - a) * f'(z))"
 apply (drule MVT)
 apply (blast intro: DERIV_isCont)
 apply (force dest: order_less_imp_le simp add: differentiable_def)
