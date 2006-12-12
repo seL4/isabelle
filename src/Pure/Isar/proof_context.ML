@@ -899,14 +899,12 @@ fun add_abbrev mode (c, raw_t) ctxt =
     val t0 = cert_term (ctxt |> set_expand_abbrevs false) raw_t
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
-    val ((lhs as Const (full_c, T), rhs), consts') = consts_of ctxt
+    val ((lhs, rhs), consts') = consts_of ctxt
       |> Consts.abbreviate (pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode (c, t);
-    val get = fn Const (c', _) => if c' = full_c then SOME (T, rhs) else NONE | _ => NONE;
   in
     ctxt
     |> map_consts (apsnd (K consts'))
     |> Variable.declare_term rhs
-    |> Assumption.add_assms (K (K (I, Envir.expand_term get))) [] |> snd
     |> pair (lhs, rhs)
   end;
 
