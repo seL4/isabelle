@@ -236,12 +236,8 @@ val add_binds = fold add_bind;
 fun expand_binds ctxt =
   let
     val binds = binds_of ctxt;
-    fun expand (t as Var (xi, T)) =
-          (case Vartab.lookup binds xi of
-            SOME u => Envir.expand_atom T u
-          | NONE => t)
-      | expand t = t;
-  in Envir.beta_norm o Term.map_aterms expand end;
+    val get = fn Var (xi, _) => Vartab.lookup binds xi | _ => NONE;
+  in Envir.beta_norm o Envir.expand_term get end;
 
 
 
