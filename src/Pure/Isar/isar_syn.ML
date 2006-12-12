@@ -372,7 +372,7 @@ val localeP =
         -- P.opt_begin
       >> (fn (((is_open, name), (expr, elems)), begin) =>
           Toplevel.begin_local_theory begin
-            (Locale.add_locale is_open name expr elems #-> TheoryTarget.begin)));
+            (Locale.add_locale is_open name expr elems #-> TheoryTarget.begin false)));
 
 val interpretationP =
   OuterSyntax.command "interpretation"
@@ -420,12 +420,12 @@ val henceP =
 
 val showP =
   OuterSyntax.command "show" "state local goal, solving current obligation"
-    (K.tag_proof K.prf_goal)
+    (K.tag_proof K.prf_asm_goal)
     (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.show));
 
 val thusP =
   OuterSyntax.command "thus" "abbreviates \"then show\""
-    (K.tag_proof K.prf_goal)
+    (K.tag_proof K.prf_asm_goal)
     (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.thus));
 
 
