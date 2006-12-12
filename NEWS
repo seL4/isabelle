@@ -724,6 +724,47 @@ for linear arithmetic over the reals. The quantifier elimination
 feature is used only for decision, for compatibility with arith. This
 means a goal is either solved or left unchanged, no simplification.
 
+* Real: New axiomatic classes formalize real normed vector spaces and
+algebras, using new overloaded constants scaleR :: real => 'a => 'a
+and norm :: 'a => real.
+
+* Real: New constant of_real :: real => 'a::real_algebra_1 injects from
+reals into other types. The overloaded constant Reals :: 'a set is now
+defined as range of_real; potential INCOMPATIBILITY.
+
+* Hyperreal: Several constants that previously worked only for the reals
+have been generalized, so they now work over arbitrary vector spaces. Type
+annotations may need to be added in some cases; potential INCOMPATIBILITY.
+
+  Infinitesimal  :: ('a::real_normed_vector) star set"
+  HFinite        :: ('a::real_normed_vector) star set"
+  HInfinite      :: ('a::real_normed_vector) star set"
+  approx         :: ('a::real_normed_vector) star => 'a star => bool
+  monad          :: ('a::real_normed_vector) star => 'a star set
+  galaxy         :: ('a::real_normed_vector) star => 'a star set
+  (NS)LIMSEQ     :: [nat, 'a::real_normed_vector, 'a] => bool
+  (NS)convergent :: (nat => 'a::real_normed_vector) => bool
+  (NS)Bseq       :: (nat => 'a::real_normed_vector) => bool
+  (NS)Cauchy     :: (nat => 'a::real_normed_vector) => bool
+  (NS)LIM        :: ['a::real_normed_vector => 'b::real_normed_vector, 'a, 'b] => bool
+  is(NS)Cont     :: ['a::real_normed_vector => 'b::real_normed_vector, 'a] => bool
+  deriv          :: ['a::real_normed_field => 'a, 'a, 'a] => bool
+
+* Complex: Some complex-specific constants are now abbreviations for
+overloaded ones: complex_of_real = of_real, cmod = norm, hcmod = hnorm.
+Other constants have been entirely removed in favor of the polymorphic
+versions (INCOMPATIBILITY):
+
+  approx        <-- capprox
+  HFinite       <-- CFinite
+  HInfinite     <-- CInfinite
+  Infinitesimal <-- CInfinitesimal
+  monad         <-- cmonad
+  galaxy        <-- cgalaxy
+  (NS)LIM       <-- (NS)CLIM, (NS)CRLIM
+  is(NS)Cont    <-- is(NS)Contc, is(NS)contCR
+  (ns)deriv     <-- (ns)cderiv
+
 
 *** ML ***
 
