@@ -133,6 +133,7 @@
     "pretty_setmargin"
     "prf"
     "primrec"
+    "print_abbrevs"
     "print_antiquotations"
     "print_ast_translation"
     "print_attributes"
@@ -312,6 +313,7 @@
     "pr"
     "pretty_setmargin"
     "prf"
+    "print_abbrevs"
     "print_antiquotations"
     "print_attributes"
     "print_binds"
@@ -487,9 +489,7 @@
   '("have"
     "hence"
     "interpret"
-    "invoke"
-    "show"
-    "thus"))
+    "invoke"))
 
 (defconst isar-keywords-proof-block
   '("next"
@@ -527,7 +527,9 @@
 
 (defconst isar-keywords-proof-asm-goal
   '("guess"
-    "obtain"))
+    "obtain"
+    "show"
+    "thus"))
 
 (defconst isar-keywords-proof-script
   '("apply"

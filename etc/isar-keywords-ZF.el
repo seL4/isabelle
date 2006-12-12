@@ -452,9 +452,7 @@
   '("have"
     "hence"
     "interpret"
-    "invoke"
-    "show"
-    "thus"))
+    "invoke"))
 
 (defconst isar-keywords-proof-block
   '("next"
@@ -492,7 +490,9 @@
 
 (defconst isar-keywords-proof-asm-goal
   '("guess"
-    "obtain"))
+    "obtain"
+    "show"
+    "thus"))
 
 (defconst isar-keywords-proof-script
   '("apply"
