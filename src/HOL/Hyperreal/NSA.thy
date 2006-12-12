@@ -617,12 +617,14 @@ apply (rule_tac x = 1 in bexI, auto)
 done
 
 lemma Infinitesimal_hypreal_of_real_mult:
-     "x \<in> Infinitesimal ==> x * hypreal_of_real r \<in> Infinitesimal"
-by (erule HFinite_hypreal_of_real [THEN [2] Infinitesimal_HFinite_mult])
+  fixes x :: "'a::real_normed_algebra star"
+  shows "x \<in> Infinitesimal ==> x * star_of r \<in> Infinitesimal"
+by (erule HFinite_star_of [THEN [2] Infinitesimal_HFinite_mult])
 
 lemma Infinitesimal_hypreal_of_real_mult2:
-     "x \<in> Infinitesimal ==> hypreal_of_real r * x \<in> Infinitesimal"
-by (erule HFinite_hypreal_of_real [THEN [2] Infinitesimal_HFinite_mult2])
+  fixes x :: "'a::real_normed_algebra star"
+  shows "x \<in> Infinitesimal ==> star_of r * x \<in> Infinitesimal"
+by (erule HFinite_star_of [THEN [2] Infinitesimal_HFinite_mult2])
 
 
 subsection{*The Infinitely Close Relation*}
@@ -1743,9 +1745,9 @@ done
 
 (*used once, in Lim/NSDERIV_inverse*)
 lemma Infinitesimal_add_not_zero:
-     "[| h \<in> Infinitesimal; x \<noteq> 0 |] ==> hypreal_of_real x + h \<noteq> 0"
+     "[| h \<in> Infinitesimal; x \<noteq> 0 |] ==> star_of x + h \<noteq> 0"
 apply auto
-apply (subgoal_tac "h = - hypreal_of_real x", auto)
+apply (subgoal_tac "h = - star_of x", auto intro: equals_zero_I [symmetric])
 done
 
 lemma Infinitesimal_square_cancel [simp]:
