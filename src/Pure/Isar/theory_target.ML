@@ -8,12 +8,11 @@ Common theory/locale targets.
 signature THEORY_TARGET =
 sig
   val peek: local_theory -> string option
-  val is_class: local_theory -> bool
-  val begin: bstring -> Proof.context -> local_theory
+  val fork_mixfix: bool -> bool -> mixfix -> mixfix * mixfix
+  val begin: bool -> bstring -> Proof.context -> local_theory
   val init: xstring option -> theory -> local_theory
   val init_i: string option -> theory -> local_theory
 end;
-
 
 structure TheoryTarget: THEORY_TARGET =
 struct
@@ -32,11 +31,6 @@ structure Data = ProofDataFun
 
 val _ = Context.add_setup Data.init;
 val peek = Data.get;
-
-fun is_class lthy =          (* FIXME approximation *)
-  (case peek lthy of
-    NONE => false
-  | SOME loc => can (Sign.certify_class (ProofContext.theory_of lthy)) loc);
 
 
 (* pretty *)
@@ -61,16 +55,47 @@ fun pretty loc ctxt =
   end;
 
 
-(* abbrev *)
+(* consts *)
 
-val internal_abbrev =
-  LocalTheory.term_syntax o ProofContext.target_abbrev Syntax.internal_mode;
+fun fork_mixfix is_class is_loc mx =
+  let
+    val mx' = Syntax.unlocalize_mixfix mx;
+    val mx1 = if is_class orelse (is_loc andalso mx = mx') then NoSyn else mx';
+    val mx2 = if is_loc then mx else NoSyn;
+  in (mx1, mx2) end;
+
+fun internal_abbrev ((c, mx), t) =
+  LocalTheory.term_syntax (ProofContext.target_abbrev Syntax.internal_mode ((c, mx), t)) #>
+  ProofContext.add_abbrev (#1 Syntax.internal_mode) (c, t) #> snd;
+
+fun consts is_class is_loc depends decls lthy =
+  let
+    val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
+
+    fun const ((c, T), mx) thy =
+      let
+        val U = map #2 xs ---> T;
+        val t = Term.list_comb (Const (Sign.full_name thy c, U), map Free xs);
+        val (mx1, mx2) = fork_mixfix is_class is_loc mx;
+        val thy' = Sign.add_consts_authentic [(c, U, mx1)] thy;
+      in (((c, mx2), t), thy') end;
+
+    val (abbrs, lthy') = lthy |> LocalTheory.theory_result (fold_map const decls);
+    val defs = map (apsnd (pair ("", []))) abbrs;
+  in
+    lthy'
+    |> is_loc ? fold internal_abbrev abbrs
+    |> LocalDefs.add_defs defs |>> map (apsnd snd)
+  end;
+
+
+(* abbrev *)
 
 fun occ_params ctxt ts =
   #1 (ProofContext.inferred_fixes ctxt)
   |> filter (member (op =) (fold (Variable.add_fixed ctxt) ts []));
 
-fun abbrev is_loc prmode ((raw_c, mx), raw_t) lthy =
+fun abbrev is_class is_loc prmode ((raw_c, mx), raw_t) lthy =
   let
     val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
     val target = LocalTheory.target_of lthy;
@@ -80,44 +105,20 @@ fun abbrev is_loc prmode ((raw_c, mx), raw_t) lthy =
     val t = Morphism.term target_morphism raw_t;
     val xs = map Free (occ_params target [t]);
     val u = fold_rev Term.lambda xs t;
+    val U = Term.fastype_of u;
     val u' = singleton (Variable.export_terms (Variable.declare_term u target) thy_ctxt) u;
 
-    val ((const, _), lthy1) = lthy
+    val ((lhs as Const (full_c, _), rhs), lthy1) = lthy
       |> LocalTheory.theory_result (Sign.add_abbrev (#1 prmode) (c, u'));
-    val v = Const (#1 const, Term.fastype_of u);
-    val v' = Const const;
-    (* FIXME proper handling of mixfix !? *)
-    val mx' = if is_class lthy then NoSyn else Syntax.unlocalize_mixfix is_loc mx;
+    val (mx1, mx2) = fork_mixfix is_class is_loc mx;
   in
     lthy1
-    |> LocalTheory.theory (Sign.add_notation prmode [(v', mx')])
-    |> is_loc ? internal_abbrev ((c, mx), Term.list_comb (v, xs))
+    |> LocalTheory.theory (Sign.add_notation prmode [(lhs, mx1)])
+    |> is_loc ? internal_abbrev ((c, mx2), Term.list_comb (Const (full_c, U), xs))
+    |> ProofContext.local_abbrev (c, rhs)
   end;
 
 
-(* consts *)
-
-fun consts is_loc depends decls lthy =
-  let
-    val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
-
-    fun const ((c, T), mx) thy =
-      let
-        val U = map #2 xs ---> T;
-        val t = Term.list_comb (Const (Sign.full_name thy c, U), map Free xs);
-        (* FIXME proper handling of mixfix !? *)
-        val mx' = if is_class lthy then NoSyn else Syntax.unlocalize_mixfix is_loc mx;
-        val thy' = Sign.add_consts_authentic [(c, U, mx')] thy;
-      in (((c, mx), t), thy') end;
-
-    val (abbrs, lthy') = lthy |> LocalTheory.theory_result (fold_map const decls);
-    val defs = abbrs    (* FIXME proper handling of mixfix !? *)
-      |> map (fn ((c, mx), t) => ((c, if is_loc then mx else NoSyn), (("", []), t)));
-  in
-    lthy'
-    |> is_loc ? fold internal_abbrev abbrs
-    |> LocalDefs.add_defs defs |>> map (apsnd snd)
-  end;
 
 
 (* defs *)
@@ -308,14 +309,14 @@ fun target_name loc lthy =
 
 (* init and exit *)
 
-fun begin loc =
+fun begin is_class loc =
   let val is_loc = loc <> "" in
     Data.put (if is_loc then SOME loc else NONE) #>
     LocalTheory.init (NameSpace.base loc)
      {pretty = pretty loc,
-      consts = consts is_loc,
+      consts = consts is_class is_loc,
       axioms = axioms,
-      abbrev = abbrev is_loc,
+      abbrev = abbrev is_class is_loc,
       defs = defs,
       notes = notes loc,
       type_syntax = type_syntax loc,
@@ -323,12 +324,15 @@ fun begin loc =
       declaration = declaration loc,
       target_morphism = target_morphism loc,
       target_name = target_name loc,
-      reinit = fn _ => begin loc o (if is_loc then Locale.init loc else ProofContext.init),
+      reinit = fn _ =>
+        begin is_class loc o (if is_loc then Locale.init loc else ProofContext.init),
       exit = LocalTheory.target_of}
   end;
 
-fun init_i NONE thy = begin "" (ProofContext.init thy)
-  | init_i (SOME loc) thy = begin loc (Locale.init loc thy);
+fun init_i NONE thy = begin false "" (ProofContext.init thy)
+  | init_i (SOME loc) thy =
+      begin (can (Sign.certify_class thy) loc)  (* FIXME approximation *)
+        loc (Locale.init loc thy);
 
 fun init (SOME "-") thy = init_i NONE thy
   | init loc thy = init_i (Option.map (Locale.intern thy) loc) thy;
