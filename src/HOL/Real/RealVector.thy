@@ -42,7 +42,7 @@ consts
 
 abbreviation
   divideR :: "'a \<Rightarrow> real \<Rightarrow> 'a::scaleR" (infixl "'/#" 70) where
-  "x /# r == inverse r *# x"
+  "x /# r == scaleR (inverse r) x"
 
 notation (xsymbols)
   scaleR (infixr "*\<^sub>R" 75) and
@@ -51,17 +51,17 @@ notation (xsymbols)
 instance real :: scaleR ..
 
 defs (overloaded)
-  real_scaleR_def: "a *# x \<equiv> a * x"
+  real_scaleR_def: "scaleR a x \<equiv> a * x"
 
 axclass real_vector < scaleR, ab_group_add
-  scaleR_right_distrib: "a *# (x + y) = a *# x + a *# y"
-  scaleR_left_distrib: "(a + b) *# x = a *# x + b *# x"
-  scaleR_scaleR [simp]: "a *# b *# x = (a * b) *# x"
-  scaleR_one [simp]: "1 *# x = x"
+  scaleR_right_distrib: "scaleR a (x + y) = scaleR a x + scaleR a y"
+  scaleR_left_distrib: "scaleR (a + b) x = scaleR a x + scaleR b x"
+  scaleR_scaleR [simp]: "scaleR a (scaleR b x) = scaleR (a * b) x"
+  scaleR_one [simp]: "scaleR 1 x = x"
 
 axclass real_algebra < real_vector, ring
-  mult_scaleR_left [simp]: "a *# x * y = a *# (x * y)"
-  mult_scaleR_right [simp]: "x * a *# y = a *# (x * y)"
+  mult_scaleR_left [simp]: "scaleR a x * y = scaleR a (x * y)"
+  mult_scaleR_right [simp]: "x * scaleR a y = scaleR a (x * y)"
 
 axclass real_algebra_1 < real_algebra, ring_1
 
@@ -81,13 +81,13 @@ done
 
 lemma scaleR_left_commute:
   fixes x :: "'a::real_vector"
-  shows "a *# b *# x = b *# a *# x"
+  shows "scaleR a (scaleR b x) = scaleR b (scaleR a x)"
 by (simp add: mult_commute)
 
-lemma additive_scaleR_right: "additive (\<lambda>x. a *# x :: 'a::real_vector)"
+lemma additive_scaleR_right: "additive (\<lambda>x. scaleR a x::'a::real_vector)"
 by (rule additive.intro, rule scaleR_right_distrib)
 
-lemma additive_scaleR_left: "additive (\<lambda>a. a *# x :: 'a::real_vector)"
+lemma additive_scaleR_left: "additive (\<lambda>a. scaleR a x::'a::real_vector)"
 by (rule additive.intro, rule scaleR_left_distrib)
 
 lemmas scaleR_zero_left [simp] =
@@ -110,24 +110,24 @@ lemmas scaleR_right_diff_distrib =
 
 lemma scaleR_eq_0_iff:
   fixes x :: "'a::real_vector"
-  shows "(a *# x = 0) = (a = 0 \<or> x = 0)"
+  shows "(scaleR a x = 0) = (a = 0 \<or> x = 0)"
 proof cases
   assume "a = 0" thus ?thesis by simp
 next
   assume anz [simp]: "a \<noteq> 0"
-  { assume "a *# x = 0"
-    hence "inverse a *# a *# x = 0" by simp
+  { assume "scaleR a x = 0"
+    hence "scaleR (inverse a) (scaleR a x) = 0" by simp
     hence "x = 0" by simp }
   thus ?thesis by force
 qed
 
 lemma scaleR_left_imp_eq:
   fixes x y :: "'a::real_vector"
-  shows "\<lbrakk>a \<noteq> 0; a *# x = a *# y\<rbrakk> \<Longrightarrow> x = y"
+  shows "\<lbrakk>a \<noteq> 0; scaleR a x = scaleR a y\<rbrakk> \<Longrightarrow> x = y"
 proof -
   assume nonzero: "a \<noteq> 0"
-  assume "a *# x = a *# y"
-  hence "a *# (x - y) = 0"
+  assume "scaleR a x = scaleR a y"
+  hence "scaleR a (x - y) = 0"
      by (simp add: scaleR_right_diff_distrib)
   hence "x - y = 0"
      by (simp add: scaleR_eq_0_iff nonzero)
@@ -136,11 +136,11 @@ qed
 
 lemma scaleR_right_imp_eq:
   fixes x y :: "'a::real_vector"
-  shows "\<lbrakk>x \<noteq> 0; a *# x = b *# x\<rbrakk> \<Longrightarrow> a = b"
+  shows "\<lbrakk>x \<noteq> 0; scaleR a x = scaleR b x\<rbrakk> \<Longrightarrow> a = b"
 proof -
   assume nonzero: "x \<noteq> 0"
-  assume "a *# x = b *# x"
-  hence "(a - b) *# x = 0"
+  assume "scaleR a x = scaleR b x"
+  hence "scaleR (a - b) x = 0"
      by (simp add: scaleR_left_diff_distrib)
   hence "a - b = 0"
      by (simp add: scaleR_eq_0_iff nonzero)
@@ -149,22 +149,22 @@ qed
 
 lemma scaleR_cancel_left:
   fixes x y :: "'a::real_vector"
-  shows "(a *# x = a *# y) = (x = y \<or> a = 0)"
+  shows "(scaleR a x = scaleR a y) = (x = y \<or> a = 0)"
 by (auto intro: scaleR_left_imp_eq)
 
 lemma scaleR_cancel_right:
   fixes x y :: "'a::real_vector"
-  shows "(a *# x = b *# x) = (a = b \<or> x = 0)"
+  shows "(scaleR a x = scaleR b x) = (a = b \<or> x = 0)"
 by (auto intro: scaleR_right_imp_eq)
 
 lemma nonzero_inverse_scaleR_distrib:
-  fixes x :: "'a::real_div_algebra"
-  shows "\<lbrakk>a \<noteq> 0; x \<noteq> 0\<rbrakk> \<Longrightarrow> inverse (a *# x) = inverse a *# inverse x"
+  fixes x :: "'a::real_div_algebra" shows
+  "\<lbrakk>a \<noteq> 0; x \<noteq> 0\<rbrakk> \<Longrightarrow> inverse (scaleR a x) = scaleR (inverse a) (inverse x)"
 by (rule inverse_unique, simp)
 
 lemma inverse_scaleR_distrib:
   fixes x :: "'a::{real_div_algebra,division_by_zero}"
-  shows "inverse (a *# x) = inverse a *# inverse x"
+  shows "inverse (scaleR a x) = scaleR (inverse a) (inverse x)"
 apply (case_tac "a = 0", simp)
 apply (case_tac "x = 0", simp)
 apply (erule (1) nonzero_inverse_scaleR_distrib)
@@ -176,9 +176,9 @@ subsection {* Embedding of the Reals into any @{text real_algebra_1}:
 
 definition
   of_real :: "real \<Rightarrow> 'a::real_algebra_1" where
-  "of_real r = r *# 1"
+  "of_real r = scaleR r 1"
 
-lemma scaleR_conv_of_real: "r *# x = of_real r * x"
+lemma scaleR_conv_of_real: "scaleR r x = of_real r * x"
 by (simp add: of_real_def)
 
 lemma of_real_0 [simp]: "of_real 0 = 0"
@@ -256,14 +256,18 @@ definition
 notation (xsymbols)
   Reals  ("\<real>")
 
-lemma of_real_in_Reals [simp]: "of_real r \<in> Reals"
+lemma Reals_of_real [simp]: "of_real r \<in> Reals"
 by (simp add: Reals_def)
 
-lemma of_int_in_Reals [simp]: "of_int z \<in> Reals"
-by (subst of_real_of_int_eq [symmetric], rule of_real_in_Reals)
+lemma Reals_of_int [simp]: "of_int z \<in> Reals"
+by (subst of_real_of_int_eq [symmetric], rule Reals_of_real)
 
-lemma of_nat_in_Reals [simp]: "of_nat n \<in> Reals"
-by (subst of_real_of_nat_eq [symmetric], rule of_real_in_Reals)
+lemma Reals_of_nat [simp]: "of_nat n \<in> Reals"
+by (subst of_real_of_nat_eq [symmetric], rule Reals_of_real)
+
+lemma Reals_number_of [simp]:
+  "(number_of w::'a::{number_ring,real_algebra_1}) \<in> Reals"
+by (subst of_real_number_of_eq [symmetric], rule Reals_of_real)
 
 lemma Reals_0 [simp]: "0 \<in> Reals"
 apply (unfold Reals_def)
@@ -372,7 +376,7 @@ axclass normed < plus, zero, norm
   norm_triangle_ineq: "norm (x + y) \<le> norm x + norm y"
 
 axclass real_normed_vector < real_vector, normed
-  norm_scaleR: "norm (a *# x) = \<bar>a\<bar> * norm x"
+  norm_scaleR: "norm (scaleR a x) = \<bar>a\<bar> * norm x"
 
 axclass real_normed_algebra < real_algebra, real_normed_vector
   norm_mult_ineq: "norm (x * y) \<le> norm x * norm y"
@@ -386,11 +390,11 @@ axclass real_normed_field < real_field, real_normed_div_algebra
 instance real_normed_div_algebra < real_normed_algebra
 proof
   fix a :: real and x :: 'a
-  have "norm (a *# x) = norm (of_real a * x)"
-    by (simp add: of_real_def mult_scaleR_left)
+  have "norm (scaleR a x) = norm (of_real a * x)"
+    by (simp add: of_real_def)
   also have "\<dots> = abs a * norm x"
     by (simp add: norm_mult norm_of_real)
-  finally show "norm (a *# x) = abs a * norm x" .
+  finally show "norm (scaleR a x) = abs a * norm x" .
 next
   fix x y :: 'a
   show "norm (x * y) \<le> norm x * norm y"
@@ -422,7 +426,7 @@ lemma norm_minus_cancel [simp]:
   fixes x :: "'a::real_normed_vector"
   shows "norm (- x) = norm x"
 proof -
-  have "norm (- x) = norm (- 1 *# x)"
+  have "norm (- x) = norm (scaleR (- 1) x)"
     by (simp only: scaleR_minus_left scaleR_one)
   also have "\<dots> = \<bar>- 1\<bar> * norm x"
     by (rule norm_scaleR)
