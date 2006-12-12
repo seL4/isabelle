@@ -192,7 +192,7 @@ sig
   val read_prop: theory -> string -> term
   val add_consts_authentic: (bstring * typ * mixfix) list -> theory -> theory
   val add_notation: Syntax.mode -> (term * mixfix) list -> theory -> theory
-  val add_abbrev: string -> bstring * term -> theory -> ((string * typ) * term) * theory
+  val add_abbrev: string -> bstring * term -> theory -> (term * term) * theory
   include SIGN_THEORY
 end
 
