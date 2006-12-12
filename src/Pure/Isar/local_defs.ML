@@ -74,12 +74,7 @@ fun expand defs =
   #> Drule.generalize ([], map (head_of_def o Thm.term_of) defs)
   #> funpow (length defs) (fn th => Drule.reflexive_thm RS th);
 
-fun expand_term defs =
-  let
-    val eqs = defs |> map (Thm.term_of #> abs_def #> (fn ((x, U), u) => (x, (U, u))));
-    fun get_def (Free (x, _)) = AList.lookup (op =) eqs x
-      | get_def _ = NONE;
-  in Envir.expand_term get_def end;
+val expand_term = Envir.expand_term_frees o map (abs_def o Thm.term_of);
 
 fun def_export _ defs = (expand defs, expand_term defs);
 
