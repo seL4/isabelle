@@ -38,7 +38,6 @@ signature RES_CLAUSE =
   val init : theory -> unit
   val isMeta : string -> bool
   val isTaut : clause -> bool
-  val keep_types : bool ref
   val list_ord : ('a * 'b -> order) -> 'a list * 'b list -> order
   val make_axiom_clause : thm -> string * int -> clause option
   val make_conjecture_clauses : thm list -> clause list
@@ -201,8 +200,6 @@ fun make_type_class clas = class_prefix ^ ascii_of clas;
 
 (***** definitions and functions for FOL clauses, for conversion to TPTP or DFG format. *****)
 
-val keep_types = ref true;
-
 datatype kind = Axiom | Conjecture;
 fun name_of_kind Axiom = "axiom"
   | name_of_kind Conjecture = "negated_conjecture";
@@ -274,7 +271,7 @@ fun isTaut (Clause {literals,...}) = exists isTrue literals;
 (*Declarations of the current theory--to allow suppressing types.*)
 val const_typargs = ref (Library.K [] : (string*typ -> typ list));
 
-fun num_typargs(s,T) = if !keep_types then length (!const_typargs (s,T)) else 0;
+fun num_typargs(s,T) = length (!const_typargs (s,T));
 
 (*Initialize the type suppression mechanism with the current theory before
     producing any clauses!*)
@@ -633,10 +630,8 @@ fun funcs_of_clauses clauses arity_clauses =
 (**** String-oriented operations ****)
 
 fun string_of_term (UVar(x,_)) = x
-  | string_of_term (Fun (name,typs,[])) = name ^ (paren_pack (map string_of_fol_type typs))
   | string_of_term (Fun (name,typs,terms)) = 
-      let val typs' = if !keep_types then map string_of_fol_type typs else []
-      in  name ^ (paren_pack (map string_of_term terms @ typs'))  end;
+      name ^ (paren_pack (map string_of_term terms @ map string_of_fol_type typs));
 
 fun string_of_pair [t1,t2] = (string_of_term t1, string_of_term t2)
   | string_of_pair _ = raise ERROR ("equality predicate requires two arguments");
@@ -648,8 +643,7 @@ fun string_of_equality ts =
 (* before output the string of the predicate, check if the predicate corresponds to an equality or not. *)
 fun string_of_predicate (Predicate("equal",_,ts)) = string_of_equality ts
   | string_of_predicate (Predicate(name,typs,ts)) = 
-      let val typs' = if !keep_types then map string_of_fol_type typs else []
-      in  name ^ (paren_pack (map string_of_term ts @ typs'))  end;
+      name ^ (paren_pack (map string_of_term ts @ map string_of_fol_type typs));
 
 fun string_of_clausename (cls_id,ax_name) = 
     clause_prefix ^ ascii_of ax_name ^ "_" ^ Int.toString cls_id;
@@ -685,14 +679,9 @@ fun gen_dfg_cls (cls_id, ax_name, knd, lits, vars) =
     string_of_clausename (cls_id,ax_name) ^  ").\n\n";
 
 fun dfg_clause_aux (Clause{literals, types_sorts, ...}) = 
-  let val lits = map dfg_literal literals
-      val (tvar_lits,tfree_lits) = add_typs_aux types_sorts
-      val tvar_lits_strs = 
-	  if !keep_types then map dfg_of_typeLit tvar_lits else []
-      val tfree_lits =
-          if !keep_types then map dfg_of_typeLit tfree_lits else []
-  in
-      (tvar_lits_strs @ lits, tfree_lits)
+  let val (tvar_lits,tfree_lits) = add_typs_aux types_sorts
+  in  (map dfg_of_typeLit tvar_lits @ map dfg_literal literals, 
+       map dfg_of_typeLit tfree_lits)
   end; 
 
 fun dfg_folterms (Literal(pol,pred)) = 
@@ -809,15 +798,11 @@ fun gen_tptp_cls (cls_id,ax_name,knd,lits) =
     name_of_kind knd ^ "," ^ tptp_pack lits ^ ").\n";
 
 fun tptp_type_lits (Clause {literals, types_sorts, ...}) = 
-    let val lits = map tptp_literal literals
-	val (tvar_lits,tfree_lits) = add_typs_aux types_sorts
-        val tvar_lits_strs =
-            if !keep_types then map tptp_of_typeLit tvar_lits else []
-	val tfree_lits =
-	    if !keep_types then map tptp_of_typeLit tfree_lits else []
-    in
-	(tvar_lits_strs @ lits, tfree_lits)
-    end; 
+  let val (tvar_lits,tfree_lits) = add_typs_aux types_sorts
+  in
+      (map tptp_of_typeLit tvar_lits @ map tptp_literal literals,
+       map tptp_of_typeLit tfree_lits)
+  end; 
 
 fun clause2tptp (cls as Clause {clause_id, axiom_name, kind, ...}) =
     let val (lits,tfree_lits) = tptp_type_lits cls 

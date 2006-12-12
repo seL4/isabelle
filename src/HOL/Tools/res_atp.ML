@@ -31,7 +31,6 @@ sig
   val atp_method: (Proof.context -> thm list -> int -> tactic) ->
     Method.src -> Proof.context -> Proof.method
   val cond_rm_tmp: string -> unit
-  val fol_keep_types: bool ref
   val hol_full_types: unit -> unit
   val hol_partial_types: unit -> unit
   val hol_const_types_only: unit -> unit
@@ -135,7 +134,6 @@ fun vampireLimit () = !vampire_time;
 fun eproverLimit () = !eprover_time;
 fun spassLimit () = !spass_time;
 
-val fol_keep_types = ResClause.keep_types;
 val hol_full_types = ResHolClause.full_types;
 val hol_partial_types = ResHolClause.partial_types;
 val hol_const_types_only = ResHolClause.const_types_only;
@@ -741,16 +739,13 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
         val user_cls = ResAxioms.cnf_rules_pairs user_rules
         val thy = ProofContext.theory_of ctxt
         val axclauses = make_unique (get_relevant_clauses thy cla_simp_atp_clauses user_cls goal_tms)
-        val keep_types = if is_fol_logic logic then !fol_keep_types else is_typed_hol ()
         val subs = tfree_classes_of_terms goal_tms
         and axtms = map (prop_of o #1) axclauses
         val supers = tvar_classes_of_terms axtms
         and tycons = type_consts_of_terms thy (goal_tms@axtms)
         (*TFrees in conjecture clauses; TVars in axiom clauses*)
-        val classrel_clauses =
-              if keep_types then ResClause.make_classrel_clauses thy subs supers
-              else []
-        val arity_clauses = if keep_types then ResClause.arity_clause_thy thy tycons supers else []
+        val classrel_clauses = ResClause.make_classrel_clauses thy subs supers
+        val arity_clauses = ResClause.arity_clause_thy thy tycons supers
         val writer = if dfg then dfg_writer else tptp_writer
         and file = atp_input_file()
         and user_lemmas_names = map #1 user_rules
@@ -861,8 +856,6 @@ fun write_problem_files probfile (ctxt,th)  =
       val axcls_list = map (fn ngcls => get_relevant_clauses thy included_cls white_cls (map prop_of ngcls)) goal_cls
       val _ = app (fn axcls => Output.debug ("filtered clauses = " ^ Int.toString(length axcls)))
                   axcls_list
-      val keep_types = if is_fol_logic logic then !ResClause.keep_types
-                       else is_typed_hol ()
       val writer = if !prover = "spass" then dfg_writer else tptp_writer
       fun write_all [] [] _ = []
         | write_all (ccls::ccls_list) (axcls::axcls_list) k =
@@ -875,12 +868,9 @@ fun write_problem_files probfile (ctxt,th)  =
                 and supers = tvar_classes_of_terms axtms
                 and tycons = type_consts_of_terms thy (ccltms@axtms)
                 (*TFrees in conjecture clauses; TVars in axiom clauses*)
-                val classrel_clauses =
-                      if keep_types then ResClause.make_classrel_clauses thy subs supers
-                      else []
+                val classrel_clauses = ResClause.make_classrel_clauses thy subs supers
                 val _ = Output.debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
-                val arity_clauses = if keep_types then ResClause.arity_clause_thy thy tycons supers
-                                    else []
+                val arity_clauses = ResClause.arity_clause_thy thy tycons supers
                 val _ = Output.debug ("arity clauses = " ^ Int.toString (length arity_clauses))
                 val clnames = writer logic ccls fname (axcls,classrel_clauses,arity_clauses) []
                 val thm_names = Array.fromList clnames
