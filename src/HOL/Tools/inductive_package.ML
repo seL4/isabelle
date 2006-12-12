@@ -789,7 +789,7 @@ fun add_inductive_i verbose alt_name coind no_elim no_ind cnames_syn pnames pre_
     ctxt |>
     add_ind_def verbose alt_name coind no_elim no_ind cs intros monos
       params cnames_syn'' ||>
-    fold (LocalTheory.abbrev Syntax.default_mode) abbrevs''
+    fold (snd oo LocalTheory.abbrev Syntax.default_mode) abbrevs''
   end;
 
 fun add_inductive verbose coind cnames_syn pnames_syn intro_srcs raw_monos ctxt =

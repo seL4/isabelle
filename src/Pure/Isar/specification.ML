@@ -153,7 +153,7 @@ fun gen_abbrev prep mode (raw_var, raw_prop) lthy =
       else error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y));
     val lthy' = lthy
       |> ProofContext.set_syntax_mode mode    (* FIXME !? *)
-      |> LocalTheory.abbrev mode ((x, mx), rhs)
+      |> LocalTheory.abbrev mode ((x, mx), rhs) |> snd
       |> ProofContext.restore_syntax_mode lthy;
     val _ = print_consts lthy' (K false) [(x, T)]
   in lthy' end;
