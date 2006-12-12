@@ -15,25 +15,26 @@ begin
 text{*Standard and Nonstandard Definitions*}
 
 definition
-  deriv :: "[real \<Rightarrow> 'a::real_normed_vector, real, 'a] \<Rightarrow> bool"
+  deriv :: "['a::real_normed_field \<Rightarrow> 'a, 'a, 'a] \<Rightarrow> bool"
     --{*Differentiation: D is derivative of function f at x*}
           ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60) where
-  "DERIV f x :> D = ((%h. (f(x + h) - f x) /# h) -- 0 --> D)"
+  "DERIV f x :> D = ((%h. (f(x + h) - f x) / h) -- 0 --> D)"
 
 definition
-  nsderiv :: "[real=>real,real,real] => bool"
+  nsderiv :: "['a::real_normed_field \<Rightarrow> 'a, 'a, 'a] \<Rightarrow> bool"
           ("(NSDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60) where
   "NSDERIV f x :> D = (\<forall>h \<in> Infinitesimal - {0}.
-      (( *f* f)(hypreal_of_real x + h)
-       - hypreal_of_real (f x))/h @= hypreal_of_real D)"
+      (( *f* f)(star_of x + h)
+       - star_of (f x))/h @= star_of D)"
 
 definition
-  differentiable :: "[real=>real,real] => bool"   (infixl "differentiable" 60) where
+  differentiable :: "['a::real_normed_field \<Rightarrow> 'a, 'a] \<Rightarrow> bool"
+    (infixl "differentiable" 60) where
   "f differentiable x = (\<exists>D. DERIV f x :> D)"
 
 definition
-  NSdifferentiable :: "[real=>real,real] => bool"
-                       (infixl "NSdifferentiable" 60) where
+  NSdifferentiable :: "['a::real_normed_field \<Rightarrow> 'a, 'a] \<Rightarrow> bool"
+    (infixl "NSdifferentiable" 60) where
   "f NSdifferentiable x = (\<exists>D. NSDERIV f x :> D)"
 
 definition
@@ -56,17 +57,17 @@ subsection {* Derivatives *}
 
 subsubsection {* Purely standard proofs *}
 
-lemma DERIV_iff: "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/#h) -- 0 --> D)"
+lemma DERIV_iff: "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) -- 0 --> D)"
 by (simp add: deriv_def)
 
-lemma DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) - f(x))/#h) -- 0 --> D"
+lemma DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) - f(x))/h) -- 0 --> D"
 by (simp add: deriv_def)
 
 lemma DERIV_const [simp]: "DERIV (\<lambda>x. k) x :> 0"
 by (simp add: deriv_def)
 
 lemma DERIV_Id [simp]: "DERIV (\<lambda>x. x) x :> 1"
-by (simp add: deriv_def real_scaleR_def cong: LIM_cong)
+by (simp add: deriv_def divide_self cong: LIM_cong)
 
 lemma add_diff_add:
   fixes a b c d :: "'a::ab_group_add"
@@ -75,11 +76,11 @@ by simp
 
 lemma DERIV_add:
   "\<lbrakk>DERIV f x :> D; DERIV g x :> E\<rbrakk> \<Longrightarrow> DERIV (\<lambda>x. f x + g x) x :> D + E"
-by (simp only: deriv_def add_diff_add scaleR_right_distrib LIM_add)
+by (simp only: deriv_def add_diff_add add_divide_distrib LIM_add)
 
 lemma DERIV_minus:
   "DERIV f x :> D \<Longrightarrow> DERIV (\<lambda>x. - f x) x :> - D"
-by (simp only: deriv_def minus_diff_minus scaleR_minus_right LIM_minus)
+by (simp only: deriv_def minus_diff_minus divide_minus_left LIM_minus)
 
 lemma DERIV_diff:
   "\<lbrakk>DERIV f x :> D; DERIV g x :> E\<rbrakk> \<Longrightarrow> DERIV (\<lambda>x. f x - g x) x :> D - E"
@@ -92,23 +93,24 @@ by (simp only: DERIV_add DERIV_minus)
 lemma DERIV_isCont: "DERIV f x :> D \<Longrightarrow> isCont f x"
 proof (unfold isCont_iff)
   assume "DERIV f x :> D"
-  hence "(\<lambda>h. (f(x+h) - f(x)) /# h) -- 0 --> D"
+  hence "(\<lambda>h. (f(x+h) - f(x)) / h) -- 0 --> D"
     by (rule DERIV_D)
-  hence "(\<lambda>h. h *# ((f(x+h) - f(x)) /# h)) -- 0 --> 0 *# D"
-    by (intro LIM_scaleR LIM_self)
-  hence "(\<lambda>h. (f(x+h) - f(x))) -- 0 --> 0"
-    by (simp cong: LIM_cong)
+  hence "(\<lambda>h. (f(x+h) - f(x)) / h * h) -- 0 --> D * 0"
+    by (intro LIM_mult LIM_self)
+  hence "(\<lambda>h. (f(x+h) - f(x)) * (h / h)) -- 0 --> 0"
+    by simp
+  hence "(\<lambda>h. f(x+h) - f(x)) -- 0 --> 0"
+    by (simp cong: LIM_cong add: divide_self)
   thus "(\<lambda>h. f(x+h)) -- 0 --> f(x)"
     by (simp add: LIM_def)
 qed
 
 lemma DERIV_mult_lemma:
-  fixes a b c d :: "'a::real_algebra"
-  shows "(a * b - c * d) /# h = a * ((b - d) /# h) + ((a - c) /# h) * d"
-by (simp add: diff_minus scaleR_right_distrib [symmetric] ring_distrib)
+  fixes a b c d :: "'a::real_field"
+  shows "(a * b - c * d) / h = a * ((b - d) / h) + ((a - c) / h) * d"
+by (simp add: diff_minus add_divide_distrib [symmetric] ring_distrib)
 
 lemma DERIV_mult':
-  fixes f g :: "real \<Rightarrow> 'a::real_normed_algebra"
   assumes f: "DERIV f x :> D"
   assumes g: "DERIV g x :> E"
   shows "DERIV (\<lambda>x. f x * g x) x :> f x * E + D * g x"
@@ -117,17 +119,16 @@ proof (unfold deriv_def)
     by (rule DERIV_isCont)
   hence "(\<lambda>h. f(x+h)) -- 0 --> f x"
     by (simp only: isCont_iff)
-  hence "(\<lambda>h. f(x+h) * ((g(x+h) - g x) /# h) +
-              ((f(x+h) - f x) /# h) * g x)
+  hence "(\<lambda>h. f(x+h) * ((g(x+h) - g x) / h) +
+              ((f(x+h) - f x) / h) * g x)
           -- 0 --> f x * E + D * g x"
     by (intro LIM_add LIM_mult2 LIM_const DERIV_D f g)
-  thus "(\<lambda>h. (f(x+h) * g(x+h) - f x * g x) /# h)
+  thus "(\<lambda>h. (f(x+h) * g(x+h) - f x * g x) / h)
          -- 0 --> f x * E + D * g x"
     by (simp only: DERIV_mult_lemma)
 qed
 
 lemma DERIV_mult:
-  fixes f g :: "real \<Rightarrow> 'a::{real_normed_algebra,comm_ring}" shows
      "[| DERIV f x :> Da; DERIV g x :> Db |]
       ==> DERIV (%x. f x * g x) x :> (Da * g(x)) + (Db * f(x))"
 by (drule (1) DERIV_mult', simp only: mult_commute add_commute)
@@ -150,7 +151,7 @@ done
 text{*Alternative definition for differentiability*}
 
 lemma DERIV_LIM_iff:
-     "((%h::real. (f(a + h) - f(a)) / h) -- 0 --> D) =
+     "((%h. (f(a + h) - f(a)) / h) -- 0 --> D) =
       ((%x. (f(x)-f(a)) / (x-a)) -- a --> D)"
 apply (rule iffI)
 apply (drule_tac k="- a" in LIM_offset)
@@ -159,18 +160,8 @@ apply (drule_tac k="a" in LIM_offset)
 apply (simp add: add_commute)
 done
 
-lemma DERIV_LIM_iff':
-     "((%h::real. (f(a + h) - f(a)) /# h) -- 0 --> D) =
-      ((%x. (f(x)-f(a)) /# (x-a)) -- a --> D)"
-apply (rule iffI)
-apply (drule_tac k="- a" in LIM_offset)
-apply (simp add: diff_minus)
-apply (drule_tac k="a" in LIM_offset)
-apply (simp add: add_commute)
-done
-
-lemma DERIV_iff2: "(DERIV f x :> D) = ((%z. (f(z) - f(x)) /# (z-x)) -- x --> D)"
-by (simp add: deriv_def diff_minus [symmetric] DERIV_LIM_iff')
+lemma DERIV_iff2: "(DERIV f x :> D) = ((%z. (f(z) - f(x)) / (z-x)) -- x --> D)"
+by (simp add: deriv_def diff_minus [symmetric] DERIV_LIM_iff)
 
 lemma inverse_diff_inverse:
   "\<lbrakk>(a::'a::division_ring) \<noteq> 0; b \<noteq> 0\<rbrakk>
@@ -178,24 +169,12 @@ lemma inverse_diff_inverse:
 by (simp add: right_diff_distrib left_diff_distrib mult_assoc)
 
 lemma DERIV_inverse_lemma:
-  "\<lbrakk>a \<noteq> 0; b \<noteq> (0::'a::real_normed_div_algebra)\<rbrakk>
-   \<Longrightarrow> (inverse a - inverse b) /# h
-     = - (inverse a * ((a - b) /# h) * inverse b)"
+  "\<lbrakk>a \<noteq> 0; b \<noteq> (0::'a::real_normed_field)\<rbrakk>
+   \<Longrightarrow> (inverse a - inverse b) / h
+     = - (inverse a * ((a - b) / h) * inverse b)"
 by (simp add: inverse_diff_inverse)
 
-lemma LIM_equal2:
-  assumes 1: "0 < R"
-  assumes 2: "\<And>x. \<lbrakk>x \<noteq> a; norm (x - a) < R\<rbrakk> \<Longrightarrow> f x = g x"
-  shows "g -- a --> l \<Longrightarrow> f -- a --> l"
-apply (unfold LIM_def, safe)
-apply (drule_tac x="r" in spec, safe)
-apply (rule_tac x="min s R" in exI, safe)
-apply (simp add: 1)
-apply (simp add: 2)
-done
-
 lemma DERIV_inverse':
-  fixes f :: "real \<Rightarrow> 'a::real_normed_div_algebra"
   assumes der: "DERIV f x :> D"
   assumes neq: "f x \<noteq> 0"
   shows "DERIV (\<lambda>x. inverse (f x)) x :> - (inverse (f x) * D * inverse (f x))"
@@ -211,28 +190,27 @@ proof (unfold DERIV_iff2)
                   \<Longrightarrow> norm (f z - f x) < norm (f x)"
     by fast
 
-  show "(\<lambda>z. (inverse (f z) - inverse (f x)) /# (z - x)) -- x --> ?E"
+  show "(\<lambda>z. (inverse (f z) - inverse (f x)) / (z - x)) -- x --> ?E"
   proof (rule LIM_equal2 [OF s])
-    fix z :: real
+    fix z
     assume "z \<noteq> x" "norm (z - x) < s"
     hence "norm (f z - f x) < norm (f x)" by (rule less_fx)
     hence "f z \<noteq> 0" by auto
-    thus "(inverse (f z) - inverse (f x)) /# (z - x) =
-          - (inverse (f z) * ((f z - f x) /# (z - x)) * inverse (f x))"
+    thus "(inverse (f z) - inverse (f x)) / (z - x) =
+          - (inverse (f z) * ((f z - f x) / (z - x)) * inverse (f x))"
       using neq by (rule DERIV_inverse_lemma)
   next
-    from der have "(\<lambda>z. (f z - f x) /# (z - x)) -- x --> D"
+    from der have "(\<lambda>z. (f z - f x) / (z - x)) -- x --> D"
       by (unfold DERIV_iff2)
-    thus "(\<lambda>z. - (inverse (f z) * ((f z - f x) /# (z - x)) * inverse (f x)))
+    thus "(\<lambda>z. - (inverse (f z) * ((f z - f x) / (z - x)) * inverse (f x)))
           -- x --> ?E"
       by (intro LIM_mult2 LIM_inverse LIM_minus LIM_const lim_f neq)
   qed
 qed
 
 lemma DERIV_divide:
-  fixes D E :: "'a::{real_normed_div_algebra,field}"
-  shows "\<lbrakk>DERIV f x :> D; DERIV g x :> E; g x \<noteq> 0\<rbrakk>
-         \<Longrightarrow> DERIV (\<lambda>x. f x / g x) x :> (D * g x - f x * E) / (g x * g x)"
+  "\<lbrakk>DERIV f x :> D; DERIV g x :> E; g x \<noteq> 0\<rbrakk>
+   \<Longrightarrow> DERIV (\<lambda>x. f x / g x) x :> (D * g x - f x * E) / (g x * g x)"
 apply (subgoal_tac "f x * - (inverse (g x) * E * inverse (g x)) +
           D * inverse (g x) = (D * g x - f x * E) / (g x * g x)")
 apply (erule subst)
@@ -244,23 +222,23 @@ apply (simp add: mult_ac)
 done
 
 lemma DERIV_power_Suc:
-  fixes f :: "real \<Rightarrow> 'a::{real_normed_algebra,recpower,comm_monoid_mult}"
+  fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,recpower}"
   assumes f: "DERIV f x :> D"
-  shows "DERIV (\<lambda>x. f x ^ Suc n) x :> (of_nat n + 1) *# (D * f x ^ n)"
+  shows "DERIV (\<lambda>x. f x ^ Suc n) x :> (of_nat n + 1) * (D * f x ^ n)"
 proof (induct n)
 case 0
   show ?case by (simp add: power_Suc f)
 case (Suc k)
   from DERIV_mult' [OF f Suc] show ?case
-    apply (simp only: of_nat_Suc scaleR_left_distrib scaleR_one)
-    apply (simp only: power_Suc right_distrib mult_scaleR_right mult_ac)
+    apply (simp only: of_nat_Suc left_distrib mult_1_left)
+    apply (simp only: power_Suc right_distrib mult_ac)
     done
 qed
 
 lemma DERIV_power:
-  fixes f :: "real \<Rightarrow> 'a::{real_normed_algebra,recpower,comm_monoid_mult}"
+  fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,recpower}"
   assumes f: "DERIV f x :> D"
-  shows "DERIV (\<lambda>x. f x ^ n) x :> of_nat n *# (D * f x ^ (n - Suc 0))"
+  shows "DERIV (\<lambda>x. f x ^ n) x :> of_nat n * (D * f x ^ (n - Suc 0))"
 by (cases "n", simp, simp add: DERIV_power_Suc f)
 
 
@@ -268,16 +246,26 @@ by (cases "n", simp, simp add: DERIV_power_Suc f)
 (* Caratheodory formulation of derivative at a point: standard proof        *)
 (* ------------------------------------------------------------------------ *)
 
+lemma nonzero_mult_divide_cancel_right:
+  "b \<noteq> 0 \<Longrightarrow> a * b / b = (a::'a::field)"
+proof -
+  assume b: "b \<noteq> 0"
+  have "a * b / b = a * (b / b)" by simp
+  also have "\<dots> = a" by (simp add: divide_self b)
+  finally show "a * b / b = a" .
+qed
+
 lemma CARAT_DERIV:
      "(DERIV f x :> l) =
-      (\<exists>g. (\<forall>z. f z - f x = (z-x) *# g z) & isCont g x & g x = l)"
+      (\<exists>g. (\<forall>z. f z - f x = g z * (z-x)) & isCont g x & g x = l)"
       (is "?lhs = ?rhs")
 proof
   assume der: "DERIV f x :> l"
-  show "\<exists>g. (\<forall>z. f z - f x = (z-x) *# g z) \<and> isCont g x \<and> g x = l"
+  show "\<exists>g. (\<forall>z. f z - f x = g z * (z-x)) \<and> isCont g x \<and> g x = l"
   proof (intro exI conjI)
-    let ?g = "(%z. if z = x then l else (f z - f x) /# (z-x))"
-    show "\<forall>z. f z - f x = (z-x) *# ?g z" by (simp)
+    let ?g = "(%z. if z = x then l else (f z - f x) / (z-x))"
+    show "\<forall>z. f z - f x = ?g z * (z-x)"
+      by (simp add: nonzero_mult_divide_cancel_right)
     show "isCont ?g x" using der
       by (simp add: isCont_iff DERIV_iff diff_minus
                cong: LIM_equal [rule_format])
@@ -286,28 +274,28 @@ proof
 next
   assume "?rhs"
   then obtain g where
-    "(\<forall>z. f z - f x = (z-x) *# g z)" and "isCont g x" and "g x = l" by blast
+    "(\<forall>z. f z - f x = g z * (z-x))" and "isCont g x" and "g x = l" by blast
   thus "(DERIV f x :> l)"
-     by (auto simp add: isCont_iff DERIV_iff diff_minus
-               cong: LIM_equal [rule_format])
+     by (auto simp add: isCont_iff DERIV_iff nonzero_mult_divide_cancel_right
+              cong: LIM_cong)
 qed
 
 lemma DERIV_chain':
   assumes f: "DERIV f x :> D"
   assumes g: "DERIV g (f x) :> E"
-  shows "DERIV (\<lambda>x. g (f x)) x :> D *# E"
+  shows "DERIV (\<lambda>x. g (f x)) x :> E * D"
 proof (unfold DERIV_iff2)
-  obtain d where d: "\<forall>y. g y - g (f x) = (y - f x) *# d y"
+  obtain d where d: "\<forall>y. g y - g (f x) = d y * (y - f x)"
     and cont_d: "isCont d (f x)" and dfx: "d (f x) = E"
     using CARAT_DERIV [THEN iffD1, OF g] by fast
   from f have "f -- x --> f x"
     by (rule DERIV_isCont [unfolded isCont_def])
   with cont_d have "(\<lambda>z. d (f z)) -- x --> d (f x)"
     by (rule isCont_LIM_compose)
-  hence "(\<lambda>z. ((f z - f x) /# (z - x)) *# d (f z))
-          -- x --> D *# d (f x)"
-    by (rule LIM_scaleR [OF f [unfolded DERIV_iff2]])
-  thus "(\<lambda>z. (g (f z) - g (f x)) /# (z - x)) -- x --> D *# E"
+  hence "(\<lambda>z. d (f z) * ((f z - f x) / (z - x)))
+          -- x --> d (f x) * D"
+    by (rule LIM_mult [OF _ f [unfolded DERIV_iff2]])
+  thus "(\<lambda>z. (g (f z) - g (f x)) / (z - x)) -- x --> E * D"
     by (simp add: d dfx real_scaleR_def)
 qed
 
@@ -315,19 +303,37 @@ qed
 subsubsection {* Nonstandard proofs *}
 
 lemma DERIV_NS_iff:
-      "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/#h) -- 0 --NS> D)"
+      "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) -- 0 --NS> D)"
 by (simp add: deriv_def LIM_NSLIM_iff)
 
-lemma NS_DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) - f(x))/#h) -- 0 --NS> D"
+lemma NS_DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) - f(x))/h) -- 0 --NS> D"
 by (simp add: deriv_def LIM_NSLIM_iff)
+
+lemma hnorm_of_hypreal:
+  "\<And>r. hnorm (( *f* of_real) r::'a::real_normed_div_algebra star) = \<bar>r\<bar>"
+by transfer (rule norm_of_real)
+
+lemma Infinitesimal_of_hypreal:
+  "x \<in> Infinitesimal \<Longrightarrow>
+   (( *f* of_real) x::'a::real_normed_div_algebra star) \<in> Infinitesimal"
+apply (rule InfinitesimalI2)
+apply (drule (1) InfinitesimalD2)
+apply (simp add: hnorm_of_hypreal)
+done
+
+lemma of_hypreal_eq_0_iff:
+  "\<And>x. (( *f* of_real) x = (0::'a::real_algebra_1 star)) = (x = 0)"
+by transfer (rule of_real_eq_0_iff)
 
 lemma NSDeriv_unique:
      "[| NSDERIV f x :> D; NSDERIV f x :> E |] ==> D = E"
-apply (simp add: nsderiv_def)
-apply (cut_tac Infinitesimal_epsilon hypreal_epsilon_not_zero)
-apply (auto dest!: bspec [where x=epsilon]
-            intro!: inj_hypreal_of_real [THEN injD]
-            dest: approx_trans3)
+apply (subgoal_tac "( *f* of_real) epsilon \<in> Infinitesimal - {0::'a star}")
+apply (simp only: nsderiv_def)
+apply (drule (1) bspec)+
+apply (drule (1) approx_trans3)
+apply simp
+apply (simp add: Infinitesimal_of_hypreal Infinitesimal_epsilon)
+apply (simp add: of_hypreal_eq_0_iff hypreal_epsilon_not_zero)
 done
 
 text {*First NSDERIV in terms of NSLIM*}
@@ -352,13 +358,14 @@ by (simp add: NSDERIV_NSLIM_iff DERIV_LIM_iff  diff_minus [symmetric]
 lemma NSDERIV_iff2:
      "(NSDERIV f x :> D) =
       (\<forall>w.
-        w \<noteq> hypreal_of_real x & w \<approx> hypreal_of_real x -->
-        ( *f* (%z. (f z - f x) / (z-x))) w \<approx> hypreal_of_real D)"
+        w \<noteq> star_of x & w \<approx> star_of x -->
+        ( *f* (%z. (f z - f x) / (z-x))) w \<approx> star_of D)"
 by (simp add: NSDERIV_NSLIM_iff2 NSLIM_def)
 
 (*FIXME DELETE*)
-lemma hypreal_not_eq_minus_iff: "(x \<noteq> a) = (x - a \<noteq> (0::hypreal))"
-by (auto dest: hypreal_eq_minus_iff [THEN iffD2])
+lemma hypreal_not_eq_minus_iff:
+  "(x \<noteq> a) = (x - a \<noteq> (0::'a::ab_group_add))"
+by auto
 
 lemma NSDERIVD5:
   "(NSDERIV f x :> D) ==>
@@ -407,14 +414,14 @@ lemma NSDERIV_isNSCont: "NSDERIV f x :> D ==> isNSCont f x"
 apply (auto simp add: nsderiv_def isNSCont_NSLIM_iff NSLIM_def)
 apply (drule approx_minus_iff [THEN iffD1])
 apply (drule hypreal_not_eq_minus_iff [THEN iffD1])
-apply (drule_tac x = "xa - hypreal_of_real x" in bspec)
+apply (drule_tac x = "xa - star_of x" in bspec)
  prefer 2 apply (simp add: add_assoc [symmetric])
 apply (auto simp add: mem_infmal_iff [symmetric] add_commute)
-apply (drule_tac c = "xa - hypreal_of_real x" in approx_mult1)
+apply (drule_tac c = "xa - star_of x" in approx_mult1)
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-            simp add: mult_assoc)
+            simp add: mult_assoc nonzero_mult_divide_cancel_right)
 apply (drule_tac x3=D in
-           HFinite_hypreal_of_real [THEN [2] Infinitesimal_HFinite_mult,
+           HFinite_star_of [THEN [2] Infinitesimal_HFinite_mult,
              THEN mem_infmal_iff [THEN iffD1]])
 apply (auto simp add: mult_commute
             intro: approx_trans approx_minus_iff [THEN iffD2])
@@ -435,21 +442,24 @@ lemma NSDERIV_add: "[| NSDERIV f x :> Da;  NSDERIV g x :> Db |]
       ==> NSDERIV (%x. f x + g x) x :> Da + Db"
 apply (auto simp add: NSDERIV_NSLIM_iff NSLIM_def)
 apply (auto simp add: add_divide_distrib diff_divide_distrib dest!: spec)
-apply (drule_tac b = "hypreal_of_real Da" and d = "hypreal_of_real Db" in approx_add)
+apply (drule_tac b = "star_of Da" and d = "star_of Db" in approx_add)
 apply (auto simp add: diff_def add_ac)
 done
 
 text{*Product of functions - Proof is trivial but tedious
   and long due to rearrangement of terms*}
 
-lemma lemma_nsderiv1: "((a::hypreal)*b) - (c*d) = (b*(a - c)) + (c*(b - d))"
-by (simp add: right_diff_distrib)
+lemma lemma_nsderiv1:
+  fixes a b c d :: "'a::comm_ring star"
+  shows "(a*b) - (c*d) = (b*(a - c)) + (c*(b - d))"
+by (simp add: right_diff_distrib mult_ac)
 
-lemma lemma_nsderiv2: "[| (x - y) / z = hypreal_of_real D + yb; z \<noteq> 0;
+lemma lemma_nsderiv2:
+  fixes x y z :: "'a::real_normed_field star"
+  shows "[| (x - y) / z = star_of D + yb; z \<noteq> 0;
          z \<in> Infinitesimal; yb \<in> Infinitesimal |]
       ==> x - y \<approx> 0"
-apply (frule_tac c1 = z in hypreal_mult_right_cancel [THEN iffD2], assumption)
-apply (erule_tac V = "(x - y) / z = hypreal_of_real D + yb" in thin_rl)
+apply (simp add: nonzero_divide_eq_eq)
 apply (auto intro!: Infinitesimal_HFinite_mult2 HFinite_add
             simp add: mult_assoc mem_infmal_iff [symmetric])
 apply (erule Infinitesimal_subset_HFinite [THEN subsetD])
@@ -469,7 +479,7 @@ apply (drule_tac
      approx_minus_iff [THEN iffD2, THEN bex_Infinitesimal_iff2 [THEN iffD2]])
 apply (auto intro!: approx_add_mono1
             simp add: left_distrib right_distrib mult_commute add_assoc)
-apply (rule_tac b1 = "hypreal_of_real Db * hypreal_of_real (f x)"
+apply (rule_tac b1 = "star_of Db * star_of (f x)"
          in add_commute [THEN subst])
 apply (auto intro!: Infinitesimal_add_approx_self2 [THEN approx_sym]
                     Infinitesimal_add Infinitesimal_mult
@@ -493,7 +503,7 @@ proof (simp add: NSDERIV_NSLIM_iff)
   hence deriv: "(\<lambda>h. - ((f(x+h) - f x) / h)) -- 0 --NS> - D"
     by (rule NSLIM_minus)
   have "\<forall>h. - ((f (x + h) - f x) / h) = (- f (x + h) + f x) / h"
-    by (simp add: minus_divide_left)
+    by (simp add: minus_divide_left diff_def)
   with deriv
   show "(\<lambda>h. (- f (x + h) + f x) / h) -- 0 --NS> - D" by simp
 qed
@@ -520,22 +530,23 @@ text{*  Similarly to the above, the chain rule admits an entirely
 (* lemmas *)
 lemma NSDERIV_zero:
       "[| NSDERIV g x :> D;
-               ( *f* g) (hypreal_of_real(x) + xa) = hypreal_of_real(g x);
+               ( *f* g) (star_of x + xa) = star_of (g x);
                xa \<in> Infinitesimal;
                xa \<noteq> 0
             |] ==> D = 0"
 apply (simp add: nsderiv_def)
 apply (drule bspec, auto)
+apply (rule star_of_approx_iff [THEN iffD1], simp)
 done
 
 (* can be proved differently using NSLIM_isCont_iff *)
 lemma NSDERIV_approx:
      "[| NSDERIV f x :> D;  h \<in> Infinitesimal;  h \<noteq> 0 |]
-      ==> ( *f* f) (hypreal_of_real(x) + h) - hypreal_of_real(f x) \<approx> 0"
+      ==> ( *f* f) (star_of x + h) - star_of (f x) \<approx> 0"
 apply (simp add: nsderiv_def)
 apply (simp add: mem_infmal_iff [symmetric])
 apply (rule Infinitesimal_ratio)
-apply (rule_tac [3] approx_hypreal_of_real_HFinite, auto)
+apply (rule_tac [3] approx_star_of_HFinite, auto)
 done
 
 (*---------------------------------------------------------------
@@ -546,12 +557,12 @@ done
                   x - a
  ---------------------------------------------------------------*)
 lemma NSDERIVD1: "[| NSDERIV f (g x) :> Da;
-         ( *f* g) (hypreal_of_real(x) + xa) \<noteq> hypreal_of_real (g x);
-         ( *f* g) (hypreal_of_real(x) + xa) \<approx> hypreal_of_real (g x)
-      |] ==> (( *f* f) (( *f* g) (hypreal_of_real(x) + xa))
-                   - hypreal_of_real (f (g x)))
-              / (( *f* g) (hypreal_of_real(x) + xa) - hypreal_of_real (g x))
-             \<approx> hypreal_of_real(Da)"
+         ( *f* g) (star_of(x) + xa) \<noteq> star_of (g x);
+         ( *f* g) (star_of(x) + xa) \<approx> star_of (g x)
+      |] ==> (( *f* f) (( *f* g) (star_of(x) + xa))
+                   - star_of (f (g x)))
+              / (( *f* g) (star_of(x) + xa) - star_of (g x))
+             \<approx> star_of(Da)"
 by (auto simp add: NSDERIV_NSLIM_iff2 NSLIM_def diff_minus [symmetric])
 
 (*--------------------------------------------------------------
@@ -562,12 +573,16 @@ by (auto simp add: NSDERIV_NSLIM_iff2 NSLIM_def diff_minus [symmetric])
                        h
  --------------------------------------------------------------*)
 lemma NSDERIVD2: "[| NSDERIV g x :> Db; xa \<in> Infinitesimal; xa \<noteq> 0 |]
-      ==> (( *f* g) (hypreal_of_real(x) + xa) - hypreal_of_real(g x)) / xa
-          \<approx> hypreal_of_real(Db)"
+      ==> (( *f* g) (star_of(x) + xa) - star_of(g x)) / xa
+          \<approx> star_of(Db)"
 by (auto simp add: NSDERIV_NSLIM_iff NSLIM_def mem_infmal_iff starfun_lambda_cancel)
 
-lemma lemma_chain: "(z::hypreal) \<noteq> 0 ==> x*y = (x*inverse(z))*(z*y)"
-by auto
+lemma lemma_chain: "(z::'a::real_normed_field star) \<noteq> 0 ==> x*y = (x*inverse(z))*(z*y)"
+proof -
+  assume z: "z \<noteq> 0"
+  have "x * y = x * (inverse z * z) * y" by (simp add: z)
+  thus ?thesis by (simp add: mult_assoc)
+qed
 
 text{*This proof uses both definitions of differentiability.*}
 lemma NSDERIV_chain: "[| NSDERIV f (g x) :> Da; NSDERIV g x :> Db |]
@@ -577,12 +592,12 @@ apply (simp (no_asm_simp) add: NSDERIV_NSLIM_iff NSLIM_def
 apply clarify
 apply (frule_tac f = g in NSDERIV_approx)
 apply (auto simp add: starfun_lambda_cancel2 starfun_o [symmetric])
-apply (case_tac "( *f* g) (hypreal_of_real (x) + xa) = hypreal_of_real (g x) ")
+apply (case_tac "( *f* g) (star_of (x) + xa) = star_of (g x) ")
 apply (drule_tac g = g in NSDERIV_zero)
 apply (auto simp add: divide_inverse)
-apply (rule_tac z1 = "( *f* g) (hypreal_of_real (x) + xa) - hypreal_of_real (g x) " and y1 = "inverse xa" in lemma_chain [THEN ssubst])
+apply (rule_tac z1 = "( *f* g) (star_of (x) + xa) - star_of (g x) " and y1 = "inverse xa" in lemma_chain [THEN ssubst])
 apply (erule hypreal_not_eq_minus_iff [THEN iffD1])
-apply (rule approx_mult_hypreal_of_real)
+apply (rule approx_mult_star_of)
 apply (simp_all add: divide_inverse [symmetric])
 apply (blast intro: NSDERIVD1 approx_minus_iff [THEN iffD2])
 apply (blast intro: NSDERIVD2)
@@ -597,20 +612,22 @@ by (cut_tac c = c and x = x in NSDERIV_Id [THEN NSDERIV_cmult], simp)
 
 (*Can't get rid of x \<noteq> 0 because it isn't continuous at zero*)
 lemma NSDERIV_inverse:
-     "x \<noteq> 0 ==> NSDERIV (%x. inverse(x)) x :> (- (inverse x ^ Suc (Suc 0)))"
+  fixes x :: "'a::{real_normed_field,recpower}"
+  shows "x \<noteq> 0 ==> NSDERIV (%x. inverse(x)) x :> (- (inverse x ^ Suc (Suc 0)))"
 apply (simp add: nsderiv_def)
 apply (rule ballI, simp, clarify)
 apply (frule (1) Infinitesimal_add_not_zero)
 apply (simp add: add_commute)
 (*apply (auto simp add: starfun_inverse_inverse realpow_two
         simp del: minus_mult_left [symmetric] minus_mult_right [symmetric])*)
-apply (simp add: inverse_add inverse_mult_distrib [symmetric]
-              inverse_minus_eq [symmetric] add_ac mult_ac diff_def
+apply (simp add: inverse_add nonzero_inverse_mult_distrib [symmetric] power_Suc
+              nonzero_inverse_minus_eq [symmetric] add_ac mult_ac diff_def
             del: inverse_mult_distrib inverse_minus_eq
                  minus_mult_left [symmetric] minus_mult_right [symmetric])
+apply (subst mult_commute, simp add: nonzero_mult_divide_cancel_right)
 apply (simp (no_asm_simp) add: mult_assoc [symmetric] right_distrib
             del: minus_mult_left [symmetric] minus_mult_right [symmetric])
-apply (rule_tac y = "inverse (- hypreal_of_real x * hypreal_of_real x)" in approx_trans)
+apply (rule_tac y = "inverse (- (star_of x * star_of x))" in approx_trans)
 apply (rule inverse_add_Infinitesimal_approx2)
 apply (auto dest!: hypreal_of_real_HFinite_diff_Infinitesimal
             simp add: inverse_minus_eq [symmetric] HFinite_minus_iff)
@@ -619,7 +636,7 @@ done
 
 subsubsection {* Equivalence of NS and Standard definitions *}
 
-lemma divideR_eq_divide [simp]: "x /# y = x / y"
+lemma divideR_eq_divide: "x /# y = x / y"
 by (simp add: real_scaleR_def divide_inverse mult_commute)
 
 text{*Now equivalence between NSDERIV and DERIV*}
@@ -630,7 +647,6 @@ by (simp add: deriv_def NSDERIV_NSLIM_iff LIM_NSLIM_iff)
 (* LIM_mult2 follows from a NS proof          *)
 
 lemma DERIV_cmult:
-  fixes f :: "real \<Rightarrow> 'a::real_normed_algebra" shows
       "DERIV f x :> D ==> DERIV (%x. c * f x) x :> c*D"
 by (drule DERIV_mult' [OF DERIV_const], simp)
 
@@ -656,24 +672,34 @@ by (simp add: NSDERIV_DERIV_iff DERIV_pow)
 
 text{*Power of -1*}
 
-lemma DERIV_inverse: "x \<noteq> 0 ==> DERIV (%x. inverse(x)) x :> (-(inverse x ^ Suc (Suc 0)))"
-by (drule DERIV_inverse' [OF DERIV_Id], simp)
+lemma DERIV_inverse:
+  fixes x :: "'a::{real_normed_field,recpower}"
+  shows "x \<noteq> 0 ==> DERIV (%x. inverse(x)) x :> (-(inverse x ^ Suc (Suc 0)))"
+by (drule DERIV_inverse' [OF DERIV_Id]) (simp add: power_Suc)
 
 text{*Derivative of inverse*}
-lemma DERIV_inverse_fun: "[| DERIV f x :> d; f(x) \<noteq> 0 |]
-      ==> DERIV (%x. inverse(f x)::real) x :> (- (d * inverse(f(x) ^ Suc (Suc 0))))"
-by (drule (1) DERIV_inverse', simp add: mult_ac)
+lemma DERIV_inverse_fun:
+  fixes x :: "'a::{real_normed_field,recpower}"
+  shows "[| DERIV f x :> d; f(x) \<noteq> 0 |]
+      ==> DERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ Suc (Suc 0))))"
+by (drule (1) DERIV_inverse') (simp add: mult_ac power_Suc nonzero_inverse_mult_distrib)
 
-lemma NSDERIV_inverse_fun: "[| NSDERIV f x :> d; f(x) \<noteq> 0 |]
+lemma NSDERIV_inverse_fun:
+  fixes x :: "'a::{real_normed_field,recpower}"
+  shows "[| NSDERIV f x :> d; f(x) \<noteq> 0 |]
       ==> NSDERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ Suc (Suc 0))))"
 by (simp add: NSDERIV_DERIV_iff DERIV_inverse_fun del: realpow_Suc)
 
 text{*Derivative of quotient*}
-lemma DERIV_quotient: "[| DERIV f x :> d; DERIV g x :> e; g(x) \<noteq> 0 |]
-       ==> DERIV (%y. f(y) / (g y) :: real) x :> (d*g(x) - (e*f(x))) / (g(x) ^ Suc (Suc 0))"
-by (drule (2) DERIV_divide, simp add: mult_commute)
+lemma DERIV_quotient:
+  fixes x :: "'a::{real_normed_field,recpower}"
+  shows "[| DERIV f x :> d; DERIV g x :> e; g(x) \<noteq> 0 |]
+       ==> DERIV (%y. f(y) / (g y)) x :> (d*g(x) - (e*f(x))) / (g(x) ^ Suc (Suc 0))"
+by (drule (2) DERIV_divide) (simp add: mult_commute power_Suc)
 
-lemma NSDERIV_quotient: "[| NSDERIV f x :> d; DERIV g x :> e; g(x) \<noteq> 0 |]
+lemma NSDERIV_quotient:
+  fixes x :: "'a::{real_normed_field,recpower}"
+  shows "[| NSDERIV f x :> d; DERIV g x :> e; g(x) \<noteq> 0 |]
        ==> NSDERIV (%y. f(y) / (g y)) x :> (d*g(x)
                             - (e*f(x))) / (g(x) ^ Suc (Suc 0))"
 by (simp add: NSDERIV_DERIV_iff DERIV_quotient del: realpow_Suc)
@@ -681,7 +707,7 @@ by (simp add: NSDERIV_DERIV_iff DERIV_quotient del: realpow_Suc)
 lemma CARAT_NSDERIV: "NSDERIV f x :> l ==>
       \<exists>g. (\<forall>z. f z - f x = g z * (z-x)) & isNSCont g x & g x = l"
 by (auto simp add: NSDERIV_DERIV_iff isNSCont_isCont_iff CARAT_DERIV
-                   real_scaleR_def mult_commute)
+                   mult_commute)
 
 lemma hypreal_eq_minus_iff3: "(x = y + z) = (x + -z = (y::hypreal))"
 by auto
@@ -692,10 +718,10 @@ lemma CARAT_DERIVD:
   shows "NSDERIV f x :> g x"
 proof -
   from nsc
-  have "\<forall>w. w \<noteq> hypreal_of_real x \<and> w \<approx> hypreal_of_real x \<longrightarrow>
-         ( *f* g) w * (w - hypreal_of_real x) / (w - hypreal_of_real x) \<approx>
-         hypreal_of_real (g x)"
-    by (simp add: diff_minus isNSCont_def)
+  have "\<forall>w. w \<noteq> star_of x \<and> w \<approx> star_of x \<longrightarrow>
+         ( *f* g) w * (w - star_of x) / (w - star_of x) \<approx>
+         star_of (g x)"
+    by (simp add: isNSCont_def nonzero_mult_divide_cancel_right)
   thus ?thesis using all
     by (simp add: NSDERIV_iff2 starfun_if_eq cong: if_cong)
 qed
@@ -748,7 +774,7 @@ proof -
   hence "(\<lambda>x. - g x) differentiable x" by (fold differentiable_def)
   ultimately 
   show ?thesis
-    by (auto simp: real_diff_def dest: differentiable_sum)
+    by (auto simp: diff_def dest: differentiable_sum)
 qed
 
 lemma differentiable_mult:
@@ -1300,7 +1326,7 @@ theorem Rolle:
       and eq: "f(a) = f(b)"
       and con: "\<forall>x. a \<le> x & x \<le> b --> isCont f x"
       and dif [rule_format]: "\<forall>x. a < x & x < b --> f differentiable x"
-  shows "\<exists>z. a < z & z < b & DERIV f z :> 0"
+  shows "\<exists>z::real. a < z & z < b & DERIV f z :> 0"
 proof -
   have le: "a \<le> b" using lt by simp
   from isCont_eq_Ub [OF le con]
@@ -1401,7 +1427,7 @@ theorem MVT:
   assumes lt:  "a < b"
       and con: "\<forall>x. a \<le> x & x \<le> b --> isCont f x"
       and dif [rule_format]: "\<forall>x. a < x & x < b --> f differentiable x"
-  shows "\<exists>l z. a < z & z < b & DERIV f z :> l &
+  shows "\<exists>l z::real. a < z & z < b & DERIV f z :> l &
                    (f(b) - f(a) = (b-a) * l)"
 proof -
   let ?F = "%x. f x - ((f b - f a) / (b-a)) * x"
@@ -1477,7 +1503,8 @@ apply (blast intro: sym DERIV_isCont DERIV_isconst_end)+
 done
 
 lemma DERIV_const_ratio_const:
-     "[|a \<noteq> b; \<forall>x. DERIV f x :> k |] ==> (f(b) - f(a)) = (b-a) * k"
+  fixes f :: "real => real"
+  shows "[|a \<noteq> b; \<forall>x. DERIV f x :> k |] ==> (f(b) - f(a)) = (b-a) * k"
 apply (rule linorder_cases [of a b], auto)
 apply (drule_tac [!] f = f in MVT)
 apply (auto dest: DERIV_isCont DERIV_unique simp add: differentiable_def)
@@ -1485,7 +1512,8 @@ apply (auto dest: DERIV_unique simp add: left_distrib diff_minus)
 done
 
 lemma DERIV_const_ratio_const2:
-     "[|a \<noteq> b; \<forall>x. DERIV f x :> k |] ==> (f(b) - f(a))/(b-a) = k"
+  fixes f :: "real => real"
+  shows "[|a \<noteq> b; \<forall>x. DERIV f x :> k |] ==> (f(b) - f(a))/(b-a) = k"
 apply (rule_tac c1 = "b-a" in real_mult_right_cancel [THEN iffD1])
 apply (auto dest!: DERIV_const_ratio_const simp add: mult_assoc)
 done
@@ -1669,6 +1697,7 @@ proof (simp add: isCont_iff LIM_eq)
 qed
 
 theorem GMVT:
+  fixes a b :: real
   assumes alb: "a < b"
   and fc: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x"
   and fd: "\<forall>x. a < x \<and> x < b \<longrightarrow> f differentiable x"
