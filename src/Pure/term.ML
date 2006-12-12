@@ -161,6 +161,7 @@ sig
   val add_tfrees: term -> (string * sort) list -> (string * sort) list
   val add_frees: term -> (string * typ) list -> (string * typ) list
   val hidden_polymorphism: term -> typ -> (indexname * sort) list
+  val equiv_types: term * term -> bool
   val strip_abs_eta: int -> term -> (string * typ) list * term
   val fast_indexname_ord: indexname * indexname -> order
   val indexname_ord: indexname * indexname -> order
@@ -506,6 +507,29 @@ fun tm1 aconv tm2 =
       (t1 $ u1, t2 $ u2) => t1 aconv t2 andalso u1 aconv u2
     | (Abs (_, T1, t1), Abs (_, T2, t2)) => t1 aconv t2 andalso T1 = T2
     | (a1, a2) => a1 = a2);
+
+
+(* equivalence up to renaming of types variables *)
+
+local
+
+val invent_names = Name.invents Name.context "'a";
+
+fun standard_types t =
+  let
+    val tfrees = add_tfrees t [];
+    val tvars = add_tvars t [];
+    val env1 = map2 (fn (a, S) => fn a' => (TFree (a, S), TFree (a', [])))
+      tfrees (invent_names (length tfrees));
+    val env2 = map2 (fn ((a, i), S) => fn a' => (TVar ((a, i), S), TVar ((a', 0), [])))
+      tvars (invent_names (length tvars));
+  in map_types (map_atyps (perhaps (AList.lookup (op =) (env1 @ env2)))) t end;
+
+in
+
+val equiv_types = op aconv o pairself standard_types;
+
+end;
 
 
 (* fast syntactic ordering -- tuned for inequalities *)
