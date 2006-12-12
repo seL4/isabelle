@@ -119,8 +119,6 @@ fun abbrev is_class is_loc prmode ((raw_c, mx), raw_t) lthy =
   end;
 
 
-
-
 (* defs *)
 
 local
