@@ -32,7 +32,7 @@ sig
   val constrain: string * typ option -> T -> T
   val set_expand: bool -> T -> T
   val abbreviate: Pretty.pp -> Type.tsig -> NameSpace.naming -> string ->
-    bstring * term -> T -> ((string * typ) * term) * T
+    bstring * term -> T -> (term * term) * T
   val hide: bool -> string -> T -> T
   val empty: T
   val merge: T * T -> T
@@ -269,11 +269,9 @@ fun abbreviate pp tsig naming mode (c, raw_rhs) consts =
     val rhs = raw_rhs
       |> Term.map_types (Type.cert_typ tsig)
       |> cert_term;
-    val rhs' = expand_term rhs;
     val T = Term.fastype_of rhs;
-
-    val const = (NameSpace.full naming c, T);
-    val lhs = Const const;
+    val lhs = Const (NameSpace.full naming c, T);
+    val rhs' = expand_term rhs;
 
     fun err msg = error (msg ^ " on rhs of abbreviation:\n" ^
       Pretty.string_of_term pp (Logic.mk_equals (lhs, rhs)));
@@ -287,7 +285,7 @@ fun abbreviate pp tsig naming mode (c, raw_rhs) consts =
         val rev_abbrevs' = rev_abbrevs
           |> fold (curry Symtab.update_list mode) (rev_abbrev lhs rhs);
       in (decls', constraints, rev_abbrevs', do_expand) end)
-    |> pair (const, rhs)
+    |> pair (lhs, rhs)
   end;
 
 end;
