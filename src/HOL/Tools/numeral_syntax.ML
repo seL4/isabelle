@@ -24,7 +24,7 @@ fun mk_bin num =
     fun bit b bs = Syntax.const "\\<^const>Numeral.Bit" $ bs $ HOLogic.mk_bit b;
     fun mk 0 = (* FIXME funpow z (bit 0) *) (Syntax.const "\\<^const>Numeral.Pls")
       | mk ~1 = (* FIXME funpow z (bit 1) *) (Syntax.const "\\<^const>Numeral.Min")
-      | mk i = let val (q, r) = IntInf.divMod (i, 2) in bit r (mk q) end;
+      | mk i = let val (q, r) = IntInf.divMod (i, 2) in bit (IntInf.toInt r) (mk q) end;
   in mk value end;
 
 in
