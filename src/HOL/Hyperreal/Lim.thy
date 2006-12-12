@@ -171,6 +171,8 @@ apply (rule_tac x="norm (k - L)" in exI, simp, safe)
 apply (rule_tac x="a + of_real (s/2)" in exI, simp add: norm_of_real)
 done
 
+lemmas LIM_not_zero = LIM_const_not_eq [where L = 0]
+
 lemma LIM_const_eq:
   fixes a :: "'a::real_normed_div_algebra"
   shows "(%x. k) -- a --> L ==> k = L"
@@ -535,6 +537,10 @@ by (simp add: NSLIM_def)
 lemma NSLIM_minus: "f -- a --NS> L ==> (%x. -f(x)) -- a --NS> -L"
 by (simp add: NSLIM_def)
 
+lemma NSLIM_diff:
+  "\<lbrakk>f -- x --NS> l; g -- x --NS> m\<rbrakk> \<Longrightarrow> (\<lambda>x. f x - g x) -- x --NS> (l - m)"
+by (simp only: diff_def NSLIM_add NSLIM_minus)
+
 lemma NSLIM_add_minus: "[| f -- x --NS> l; g -- x --NS> m |] ==> (%x. f(x) + -g(x)) -- x --NS> (l + -m)"
 by (simp only: NSLIM_add NSLIM_minus)
 
@@ -548,10 +554,10 @@ apply (auto simp add: star_of_approx_inverse)
 done
 
 lemma NSLIM_zero:
-  assumes f: "f -- a --NS> l" shows "(%x. f(x) + -l) -- a --NS> 0"
+  assumes f: "f -- a --NS> l" shows "(%x. f(x) - l) -- a --NS> 0"
 proof -
-  have "(\<lambda>x. f x + - l) -- a --NS> l + -l"
-    by (rule NSLIM_add_minus [OF f NSLIM_const])
+  have "(\<lambda>x. f x - l) -- a --NS> l - l"
+    by (rule NSLIM_diff [OF f NSLIM_const])
   thus ?thesis by simp
 qed
 
@@ -691,7 +697,7 @@ lemma LIM_inverse:
       ==> (%x. inverse(f(x))) -- a --> (inverse L)"
 by (simp add: LIM_NSLIM_iff NSLIM_inverse)
 
-lemma LIM_zero2: "f -- a --> l ==> (%x. f(x) + -l) -- a --> 0"
+lemma LIM_zero2: "f -- a --> l ==> (%x. f(x) - l) -- a --> 0"
 by (simp add: LIM_NSLIM_iff NSLIM_zero)
 
 lemma LIM_unique2:
@@ -721,8 +727,11 @@ by (simp add: isCont_def LIM_isCont_iff)
 lemma isCont_Id: "isCont (\<lambda>x. x) a"
   unfolding isCont_def by (rule LIM_self)
 
-lemma isCont_const [simp]: "isCont (%x. k) a"
+lemma isCont_const [simp]: "isCont (\<lambda>x. k) a"
   unfolding isCont_def by (rule LIM_const)
+
+lemma isCont_norm: "isCont f a \<Longrightarrow> isCont (\<lambda>x. norm (f x)) a"
+  unfolding isCont_def by (rule LIM_norm)
 
 lemma isCont_add: "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x + g x) a"
   unfolding isCont_def by (rule LIM_add)
@@ -735,12 +744,12 @@ lemma isCont_diff: "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> i
 
 lemma isCont_mult:
   fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
-  shows "[| isCont f a; isCont g a |] ==> isCont (%x. f(x) * g(x)) a"
+  shows "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x * g x) a"
   unfolding isCont_def by (rule LIM_mult)
 
 lemma isCont_inverse:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_div_algebra"
-  shows "[| isCont f x; f x \<noteq> 0 |] ==> isCont (%x. inverse (f x)) x"
+  shows "\<lbrakk>isCont f a; f a \<noteq> 0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. inverse (f x)) a"
   unfolding isCont_def by (rule LIM_inverse)
 
 lemma isCont_LIM_compose:
@@ -764,7 +773,8 @@ lemmas isCont_scaleR = bounded_bilinear_scaleR.isCont
 
 subsubsection {* Nonstandard proofs *}
 
-lemma isNSContD: "[| isNSCont f a; y \<approx> hypreal_of_real a |] ==> ( *f* f) y \<approx> hypreal_of_real (f a)"
+lemma isNSContD:
+  "\<lbrakk>isNSCont f a; y \<approx> star_of a\<rbrakk> \<Longrightarrow> ( *f* f) y \<approx> star_of (f a)"
 by (simp add: isNSCont_def)
 
 lemma isNSCont_NSLIM: "isNSCont f a ==> f -- a --NS> (f a) "
