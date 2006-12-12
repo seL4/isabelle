@@ -699,7 +699,7 @@ by (drule (2) DERIV_divide) (simp add: mult_commute power_Suc)
 
 lemma NSDERIV_quotient:
   fixes x :: "'a::{real_normed_field,recpower}"
-  shows "[| NSDERIV f x :> d; DERIV g x :> e; g(x) \<noteq> 0 |]
+  shows "[| NSDERIV f x :> d; NSDERIV g x :> e; g(x) \<noteq> 0 |]
        ==> NSDERIV (%y. f(y) / (g y)) x :> (d*g(x)
                             - (e*f(x))) / (g(x) ^ Suc (Suc 0))"
 by (simp add: NSDERIV_DERIV_iff DERIV_quotient del: realpow_Suc)
