@@ -1008,7 +1008,7 @@ text{*Generalization to other limits*}
 lemma NSLIMSEQ_imp_rabs: "f ----NS> (l::real) ==> (%n. \<bar>f n\<bar>) ----NS> \<bar>l\<bar>"
 apply (simp add: NSLIMSEQ_def)
 apply (auto intro: approx_hrabs 
-            simp add: starfun_abs hypreal_of_real_hrabs [symmetric])
+            simp add: starfun_abs)
 done
 
 text{* standard version *}
@@ -1114,7 +1114,7 @@ apply (drule bspec, assumption)
 apply (drule bspec, assumption)
 apply (drule_tac x = "N + (1::hypnat) " in bspec, assumption)
 apply (simp add: hyperpow_add)
-apply (drule approx_mult_subst_SReal, assumption)
+apply (drule approx_mult_subst_star_of, assumption)
 apply (drule approx_trans3, assumption)
 apply (auto simp del: star_of_mult simp add: star_of_mult [symmetric])
 done

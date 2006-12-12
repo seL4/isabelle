@@ -132,10 +132,7 @@ by (auto_tac (claset(),simpset() addsimps [hcmod,hypreal_of_real_def,
 subsection{*The Finite Elements form a Subring*}
 
 lemma SComplex_subset_HFinite [simp]: "SComplex \<le> HFinite"
-apply (auto simp add: SComplex_def HFinite_def)
-apply (rule_tac x = "1 + hcmod (hcomplex_of_complex r) " in bexI)
-apply (auto intro: SReal_add)
-done
+by (auto simp add: SComplex_def)
 
 lemma HFinite_hcmod_hcomplex_of_complex [simp]:
      "hcmod (hcomplex_of_complex r) \<in> HFinite"
@@ -190,14 +187,6 @@ lemma Infinitesimal_interval2_hcmod:
       |] ==> x \<in> Infinitesimal"
 by (auto intro: Infinitesimal_interval2 simp add: Infinitesimal_hcmod_iff)
 
-lemma Infinitesimal_hcomplex_of_complex_mult:
-     "x \<in> Infinitesimal ==> x * hcomplex_of_complex r \<in> Infinitesimal"
-by (auto intro!: Infinitesimal_HFinite_mult simp add: Infinitesimal_hcmod_iff hcmod_mult)
-
-lemma Infinitesimal_hcomplex_of_complex_mult2:
-     "x \<in> Infinitesimal ==> hcomplex_of_complex r * x \<in> Infinitesimal"
-by (auto intro!: Infinitesimal_HFinite_mult2 simp add: Infinitesimal_hcmod_iff hcmod_mult)
-
 
 subsection{*The ``Infinitely Close'' Relation*}
 
@@ -209,7 +198,7 @@ by (auto_tac (claset(),simpset() addsimps [Infinitesimal_hcmod_iff]));
 lemma approx_mult_subst_SComplex:
      "[| u @= x*hcomplex_of_complex v; x @= y |] 
       ==> u @= y*hcomplex_of_complex v"
-by (auto intro: approx_mult_subst2)
+by (rule approx_mult_subst_star_of)
 
 lemma approx_hcomplex_of_complex_HFinite:
      "x @= hcomplex_of_complex D ==> x \<in> HFinite"
@@ -247,6 +236,8 @@ lemma approx_SComplex_mult_cancel_iff1 [simp]:
 by (auto intro!: approx_mult2 SComplex_subset_HFinite [THEN subsetD]
             intro: approx_SComplex_mult_cancel)
 
+(* TODO: generalize following theorems: hcmod -> hnorm *)
+
 lemma approx_hcmod_approx_zero: "(x @= y) = (hcmod (y - x) @= 0)"
 apply (subst hcmod_diff_commute)
 apply (simp add: approx_def Infinitesimal_hcmod_iff diff_minus)
@@ -273,9 +264,7 @@ apply (auto intro: Infinitesimal_hcmod_add_diff simp add: mem_infmal_iff [symmet
 done
 
 lemma approx_hcmod_approx: "x @= y ==> hcmod x @= hcmod y"
-by (auto intro: approx_hcmod_add_hcmod 
-         dest!: bex_Infinitesimal_iff2 [THEN iffD2]
-         simp add: mem_infmal_iff)
+by (rule approx_hnorm)
 
 
 subsection{*Zero is the Only Infinitesimal Complex Number*}
@@ -712,13 +701,5 @@ by (rule real_seq_to_hypreal_Infinitesimal [folded diff_def])
 lemma Infinitesimal_hcomplex_of_hypreal_epsilon [simp]:
      "hcomplex_of_hypreal epsilon \<in> Infinitesimal"
 by (simp add: Infinitesimal_hcmod_iff)
-
-lemma hcomplex_of_complex_approx_zero_iff [simp]:
-     "(hcomplex_of_complex z @= 0) = (z = 0)"
-by (simp add: star_of_zero [symmetric] del: star_of_zero)
-
-lemma hcomplex_of_complex_approx_zero_iff2 [simp]:
-     "(0 @= hcomplex_of_complex z) = (z = 0)"
-by (simp add: star_of_zero [symmetric] del: star_of_zero)
 
 end

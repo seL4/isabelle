@@ -841,7 +841,7 @@ by (simp add: isNSCont_def)
 
 lemma isNSCont_abs [simp]: "isNSCont abs (a::real)"
 apply (simp add: isNSCont_def)
-apply (auto intro: approx_hrabs simp add: hypreal_of_real_hrabs [symmetric] starfun_rabs_hrabs)
+apply (auto intro: approx_hrabs simp add: starfun_rabs_hrabs)
 done
 
 lemma isCont_abs [simp]: "isCont abs (a::real)"

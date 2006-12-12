@@ -483,8 +483,8 @@ apply (rule_tac b1 = "star_of Db * star_of (f x)"
          in add_commute [THEN subst])
 apply (auto intro!: Infinitesimal_add_approx_self2 [THEN approx_sym]
                     Infinitesimal_add Infinitesimal_mult
-                    Infinitesimal_hypreal_of_real_mult
-                    Infinitesimal_hypreal_of_real_mult2
+                    Infinitesimal_star_of_mult
+                    Infinitesimal_star_of_mult2
           simp add: add_assoc [symmetric])
 done
 
@@ -536,7 +536,6 @@ lemma NSDERIV_zero:
             |] ==> D = 0"
 apply (simp add: nsderiv_def)
 apply (drule bspec, auto)
-apply (rule star_of_approx_iff [THEN iffD1], simp)
 done
 
 (* can be proved differently using NSLIM_isCont_iff *)

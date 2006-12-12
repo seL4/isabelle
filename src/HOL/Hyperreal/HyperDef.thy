@@ -198,38 +198,6 @@ by (auto, ultra)
 
 subsection{*Properties of @{term starrel}*}
 
-text{*Proving that @{term starrel} is an equivalence relation*}
-(*
-lemma starrel_iff: "((X,Y) \<in> starrel) = ({n. X n = Y n} \<in> FreeUltrafilterNat)"
-by (rule StarDef.starrel_iff)
-
-lemma starrel_refl: "(x,x) \<in> starrel"
-by (simp add: starrel_def)
-
-lemma starrel_sym [rule_format (no_asm)]: "(x,y) \<in> starrel --> (y,x) \<in> starrel"
-by (simp add: starrel_def eq_commute)
-
-lemma starrel_trans: 
-      "[|(x,y) \<in> starrel; (y,z) \<in> starrel|] ==> (x,z) \<in> starrel"
-by (simp add: starrel_def, ultra)
-
-lemma equiv_starrel: "equiv UNIV starrel"
-by (rule StarDef.equiv_starrel)
-
-lemmas equiv_starrel_iff =
-    eq_equiv_class_iff [OF equiv_starrel UNIV_I UNIV_I, simp] 
-
-lemmas eq_starrelD = eq_equiv_class [OF _ equiv_starrel]
-
-lemma hypreal_empty_not_mem [simp]: "{} \<notin> star"
-apply (simp add: star_def)
-apply (auto elim!: quotientE equalityCE)
-done
-
-lemma Rep_hypreal_nonempty [simp]: "Rep_star x \<noteq> {}"
-by (insert Rep_star [of x], auto)
-*)
-
 lemma lemma_starrel_refl [simp]: "x \<in> starrel `` {x}"
 by (simp add: starrel_def)
 
@@ -242,7 +210,7 @@ declare equiv_starrel [THEN eq_equiv_class_iff, simp]
 subsection{*@{term hypreal_of_real}: 
             the Injection from @{typ real} to @{typ hypreal}*}
 
-lemma inj_hypreal_of_real: "inj(hypreal_of_real)"
+lemma inj_star_of: "inj star_of"
 by (rule inj_onI, simp)
 
 lemma mem_Rep_star_iff: "(X \<in> Rep_star x) = (x = star_n X)"
