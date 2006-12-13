@@ -242,22 +242,28 @@ by (auto intro!: NSBseq_HFinite_hypreal NSconvergent_NSBseq
 
 lemma exphr_zero [simp]: "exphr 0 = 1"
 apply (simp add: exphr_def sumhr_split_add
-                   [OF hypnat_one_less_hypnat_omega, symmetric]) 
-apply (simp add: sumhr star_n_zero_num starfun star_n_one_num star_n_add
-                 hypnat_omega_def
-            del: OrderedGroup.add_0)
-apply (simp add: star_n_one_num [symmetric])
+                   [OF hypnat_one_less_hypnat_omega, symmetric])
+apply (rule st_unique, simp)
+apply (rule subst [where P="\<lambda>x. 1 \<approx> x", OF _ approx_refl])
+apply (rule rev_mp [OF hypnat_one_less_hypnat_omega])
+apply (rule_tac x="whn" in spec)
+apply (unfold sumhr_app, transfer, simp)
 done
 
 lemma coshr_zero [simp]: "coshr 0 = 1"
 apply (simp add: coshr_def sumhr_split_add
                    [OF hypnat_one_less_hypnat_omega, symmetric]) 
-apply (simp add: sumhr star_n_zero_num star_n_one_num hypnat_omega_def)
-apply (simp add: star_n_one_num [symmetric] star_n_zero_num [symmetric])
+apply (rule st_unique, simp)
+apply (rule subst [where P="\<lambda>x. 1 \<approx> x", OF _ approx_refl])
+apply (rule rev_mp [OF hypnat_one_less_hypnat_omega])
+apply (rule_tac x="whn" in spec)
+apply (unfold sumhr_app, transfer, simp)
 done
 
 lemma STAR_exp_zero_approx_one [simp]: "( *f* exp) 0 @= 1"
-by (simp add: star_n_zero_num star_n_one_num starfun)
+apply (subgoal_tac "( *f* exp) 0 = 1", simp)
+apply (transfer, simp)
+done
 
 lemma STAR_exp_Infinitesimal: "x \<in> Infinitesimal ==> ( *f* exp) x @= 1"
 apply (case_tac "x = 0")
@@ -276,24 +282,21 @@ lemma STAR_exp_epsilon [simp]: "( *f* exp) epsilon @= 1"
 by (auto intro: STAR_exp_Infinitesimal)
 
 lemma STAR_exp_add: "!!x y. ( *f* exp)(x + y) = ( *f* exp) x * ( *f* exp) y"
-by (transfer, rule exp_add)
+by transfer (rule exp_add)
 
 lemma exphr_hypreal_of_real_exp_eq: "exphr x = hypreal_of_real (exp x)"
 apply (simp add: exphr_def)
-apply (rule st_hypreal_of_real [THEN subst])
-apply (rule approx_st_eq, auto)
-apply (rule approx_minus_iff [THEN iffD2])
-apply (simp only: mem_infmal_iff [symmetric])
-apply (auto simp add: mem_infmal_iff [symmetric] star_of_def star_n_zero_num hypnat_omega_def sumhr star_n_diff)
-apply (rule NSLIMSEQ_zero_Infinitesimal_hypreal)
-apply (insert exp_converges [of x]) 
-apply (simp add: sums_def) 
-apply (drule LIMSEQ_const [THEN [2] LIMSEQ_diff, where b = "exp x"])
-apply (simp add: LIMSEQ_NSLIMSEQ_iff)
+apply (rule st_unique, simp)
+apply (subst starfunNat_sumr [symmetric])
+apply (rule NSLIMSEQ_D [THEN approx_sym])
+apply (rule LIMSEQ_NSLIMSEQ)
+apply (subst sums_def [symmetric])
+apply (rule exp_converges)
+apply (rule HNatInfinite_whn)
 done
 
 lemma starfun_exp_ge_add_one_self [simp]: "!!x. 0 \<le> x ==> (1 + x) \<le> ( *f* exp) x"
-by (transfer, rule exp_ge_add_one_self_aux)
+by transfer (rule exp_ge_add_one_self_aux)
 
 (* exp (oo) is infinite *)
 lemma starfun_exp_HInfinite:
@@ -304,7 +307,7 @@ apply (rule order_trans [of _ "1+x"], auto)
 done
 
 lemma starfun_exp_minus: "!!x. ( *f* exp) (-x) = inverse(( *f* exp) x)"
-by (transfer, rule exp_minus)
+by transfer (rule exp_minus)
 
 (* exp (-oo) is infinitesimal *)
 lemma starfun_exp_Infinitesimal:
@@ -316,7 +319,7 @@ apply (auto intro!: HInfinite_inverse_Infinitesimal starfun_exp_HInfinite
 done
 
 lemma starfun_exp_gt_one [simp]: "!!x. 0 < x ==> 1 < ( *f* exp) x"
-by (transfer, simp)
+by transfer (rule exp_gt_one)
 
 (* needs derivative of inverse function
    TRY a NS one today!!!
@@ -332,25 +335,25 @@ Goalw [nsderiv_def] "0r < x ==> NSDERIV ln x :> inverse x";
 
 
 lemma starfun_ln_exp [simp]: "!!x. ( *f* ln) (( *f* exp) x) = x"
-by (transfer, simp)
+by transfer (rule ln_exp)
 
 lemma starfun_exp_ln_iff [simp]: "!!x. (( *f* exp)(( *f* ln) x) = x) = (0 < x)"
-by (transfer, simp)
+by transfer (rule exp_ln_iff)
 
-lemma starfun_exp_ln_eq: "( *f* exp) u = x ==> ( *f* ln) x = u"
-by auto
+lemma starfun_exp_ln_eq: "!!u x. ( *f* exp) u = x ==> ( *f* ln) x = u"
+by transfer (rule exp_ln_eq)
 
 lemma starfun_ln_less_self [simp]: "!!x. 0 < x ==> ( *f* ln) x < x"
-by (transfer, simp)
+by transfer (rule ln_less_self)
 
 lemma starfun_ln_ge_zero [simp]: "!!x. 1 \<le> x ==> 0 \<le> ( *f* ln) x"
-by (transfer, simp)
+by transfer (rule ln_ge_zero)
 
 lemma starfun_ln_gt_zero [simp]: "!!x .1 < x ==> 0 < ( *f* ln) x"
-by (transfer, simp)
+by transfer (rule ln_gt_zero)
 
 lemma starfun_ln_not_eq_zero [simp]: "!!x. [| 0 < x; x \<noteq> 1 |] ==> ( *f* ln) x \<noteq> 0"
-by (transfer, simp)
+by transfer simp
 
 lemma starfun_ln_HFinite: "[| x \<in> HFinite; 1 \<le> x |] ==> ( *f* ln) x \<in> HFinite"
 apply (rule HFinite_bounded)
@@ -359,7 +362,7 @@ apply (simp_all add: starfun_ln_less_self order_less_imp_le)
 done
 
 lemma starfun_ln_inverse: "!!x. 0 < x ==> ( *f* ln) (inverse x) = -( *f* ln) x"
-by (transfer, rule ln_inverse)
+by transfer (rule ln_inverse)
 
 lemma starfun_abs_exp_cancel: "\<And>x. \<bar>( *f* exp) x\<bar> = ( *f* exp) x"
 by transfer (rule abs_exp_cancel)
@@ -416,7 +419,7 @@ apply (auto simp add: starfun_ln_inverse HInfinite_minus_iff)
 done
 
 lemma starfun_ln_less_zero: "!!x. [| 0 < x; x < 1 |] ==> ( *f* ln) x < 0"
-by (transfer, simp)
+by transfer (rule ln_less_zero)
 
 lemma starfun_ln_Infinitesimal_less_zero:
      "[| x \<in> Infinitesimal; 0 < x |] ==> ( *f* ln) x < 0"
@@ -443,7 +446,7 @@ apply (simp only: One_nat_def summable_sin)
 done
 
 lemma STAR_sin_zero [simp]: "( *f* sin) 0 = 0"
-by (transfer, simp)
+by transfer (rule sin_zero)
 
 lemma STAR_sin_Infinitesimal [simp]: "x \<in> Infinitesimal ==> ( *f* sin) x @= x"
 apply (case_tac "x = 0")
@@ -465,7 +468,7 @@ by (auto intro!: NSBseq_HFinite_hypreal NSconvergent_NSBseq
                    summable_convergent_sumr_iff [symmetric] summable_cos)
 
 lemma STAR_cos_zero [simp]: "( *f* cos) 0 = 1"
-by (simp add: starfun star_n_zero_num star_n_one_num)
+by transfer (rule cos_zero)
 
 lemma STAR_cos_Infinitesimal [simp]: "x \<in> Infinitesimal ==> ( *f* cos) x @= 1"
 apply (case_tac "x = 0")
@@ -481,7 +484,7 @@ apply (simp add: diff_def)
 done
 
 lemma STAR_tan_zero [simp]: "( *f* tan) 0 = 0"
-by (simp add: starfun star_n_zero_num)
+by transfer (rule tan_zero)
 
 lemma STAR_tan_Infinitesimal: "x \<in> Infinitesimal ==> ( *f* tan) x @= x"
 apply (case_tac "x = 0")
