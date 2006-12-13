@@ -234,7 +234,7 @@ fun err_bad_nesting pos =
 
 fun edge which f (x: string option, y) =
   if x = y then I
-  else (case which (x, y) of NONE => I | SOME txt => Buffer.add txt);
+  else (case which (x, y) of NONE => I | SOME txt => Buffer.add (f txt));
 
 val begin_tag = edge #2 Latex.begin_tag;
 val end_tag = edge #1 Latex.end_tag;
