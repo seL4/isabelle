@@ -2555,9 +2555,9 @@ code_type char
   (SML "char")
   (Haskell "Char")
 
-code_const Char
-  (SML "!((_),/ (_))")
-  (Haskell "!((_),/ (_))")
+code_const Char and char_rec and "size \<Colon> char \<Rightarrow> nat"
+  (SML "raise/ Fail/ \"Char\"" and "raise/ Fail/ \"char_rec\"" and "raise/ Fail/ \"size_char\"")
+  (Haskell "error/ \"Char\"" and "error/ \"char_rec\"" and "error/ \"size_char\"")
 
 code_instance list :: eq and char :: eq
   (Haskell - and -)
