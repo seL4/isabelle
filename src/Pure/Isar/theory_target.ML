@@ -64,9 +64,9 @@ fun fork_mixfix is_class is_loc mx =
     val mx2 = if is_loc then mx else NoSyn;
   in (mx1, mx2) end;
 
-fun internal_abbrev ((c, mx), t) =
-  LocalTheory.term_syntax (ProofContext.target_abbrev Syntax.internal_mode ((c, mx), t)) #>
-  ProofContext.add_abbrev (#1 Syntax.internal_mode) (c, t) #> snd;
+fun internal_abbrev prmode ((c, mx), t) =
+  LocalTheory.term_syntax (ProofContext.target_abbrev prmode ((c, mx), t)) #>
+  ProofContext.add_abbrev Syntax.internalM (c, t) #> snd;
 
 fun consts is_class is_loc depends decls lthy =
   let
@@ -84,7 +84,7 @@ fun consts is_class is_loc depends decls lthy =
     val defs = map (apsnd (pair ("", []))) abbrs;
   in
     lthy'
-    |> is_loc ? fold internal_abbrev abbrs
+    |> is_loc ? fold (internal_abbrev Syntax.default_mode) abbrs
     |> LocalDefs.add_defs defs |>> map (apsnd snd)
   end;
 
@@ -114,7 +114,7 @@ fun abbrev is_class is_loc prmode ((raw_c, mx), raw_t) lthy =
   in
     lthy1
     |> LocalTheory.theory (Sign.add_notation prmode [(lhs, mx1)])
-    |> is_loc ? internal_abbrev ((c, mx2), Term.list_comb (Const (full_c, U), xs))
+    |> is_loc ? internal_abbrev prmode ((c, mx2), Term.list_comb (Const (full_c, U), xs))
     |> ProofContext.local_abbrev (c, rhs)
   end;
 
