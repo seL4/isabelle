@@ -27,12 +27,9 @@ fun relation_tac ctxt rel =
       val Rvar = cert (Var (the_single (Term.add_vars prem [])))
     in rtac (Drule.cterm_instantiate [(Rvar, rel')] rule) end
 
-fun relation_meth src =
-  Method.syntax Args.term src
-  #> (fn (ctxt, rel) => Method.SIMPLE_METHOD' (relation_tac ctxt rel))
 
 val setup = Method.add_methods
-  [("relation", relation_meth,
+  [("relation", (Method.SIMPLE_METHOD' o uncurry relation_tac) oo (Method.syntax Args.term),
     "proves termination using a user-specified wellfounded relation")]
 
 end
