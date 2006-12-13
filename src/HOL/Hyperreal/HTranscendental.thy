@@ -361,11 +361,18 @@ done
 lemma starfun_ln_inverse: "!!x. 0 < x ==> ( *f* ln) (inverse x) = -( *f* ln) x"
 by (transfer, rule ln_inverse)
 
+lemma starfun_abs_exp_cancel: "\<And>x. \<bar>( *f* exp) x\<bar> = ( *f* exp) x"
+by transfer (rule abs_exp_cancel)
+
+lemma starfun_exp_less_mono: "\<And>x y. x < y \<Longrightarrow> ( *f* exp) x < ( *f* exp) y"
+by transfer (rule exp_less_mono)
+
 lemma starfun_exp_HFinite: "x \<in> HFinite ==> ( *f* exp) x \<in> HFinite"
-apply (cases x)
-apply (auto simp add: starfun HFinite_FreeUltrafilterNat_iff)
-apply (rule_tac x = "exp u" in exI)
-apply ultra
+apply (auto simp add: HFinite_def, rename_tac u)
+apply (rule_tac x="( *f* exp) u" in rev_bexI)
+apply (simp add: Reals_eq_Standard)
+apply (simp add: starfun_abs_exp_cancel)
+apply (simp add: starfun_exp_less_mono)
 done
 
 lemma starfun_exp_add_HFinite_Infinitesimal_approx:
