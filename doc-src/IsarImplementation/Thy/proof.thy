@@ -318,8 +318,8 @@ text %mlref {*
 
   \item @{ML Goal.prove_multi} is simular to @{ML Goal.prove}, but
   states several conclusions simultaneously.  The goal is encoded by
-  means of Pure conjunction; @{ML Tactic.conjunction_tac} will turn
-  this into a collection of individual subgoals.
+  means of Pure conjunction; @{ML Goal.conjunction_tac} will turn this
+  into a collection of individual subgoals.
 
   \item @{ML Obtain.result}~@{text "tac thms ctxt"} eliminates the
   given facts using a tactic, which results in additional fixed
