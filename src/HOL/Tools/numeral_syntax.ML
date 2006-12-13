@@ -13,7 +13,6 @@ end;
 structure NumeralSyntax: NUMERAL_SYNTAX =
 struct
 
-
 (* parse translation *)
 
 local
@@ -90,6 +89,6 @@ end;
 
 val setup =
   Theory.add_trfuns ([], [("_Numeral", numeral_tr)], [], []) #>
-  Theory.add_trfunsT [("number_of", numeral_tr'), ("Numeral.number_of", numeral_tr')];
+  Theory.add_trfunsT [("\\<^const>Numeral.number_of", numeral_tr')];
 
 end;
