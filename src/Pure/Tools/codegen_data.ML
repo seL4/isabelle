@@ -739,7 +739,7 @@ fun preprocess thy thms =
   |> fold (fn (_, f) => apply_preproc thy f) ((#preprocs o the_preproc o get_exec) thy)
   |> map (rewrite_func ((#inlines o the_preproc o get_exec) thy))
   |> fold (fn (_, f) => apply_inline_proc thy f) ((#inline_procs o the_preproc o get_exec) thy)
-(*FIXME - must check: rewrite rule, function equation, proper constant |> map (snd o check_func false thy)  *)
+(*FIXME - must check: rewrite rule, function equation, proper constant |> map (snd o check_func false thy) *)
   |> sort (cmp_thms thy)
   |> common_typ_funcs thy;
 

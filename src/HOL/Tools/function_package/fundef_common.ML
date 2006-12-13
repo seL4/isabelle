@@ -249,7 +249,7 @@ structure TerminationRule = ProofDataFun
     fun print  _ _ = ()
 end);
 
-val get_termination_rule = TerminationRule.get 
+val get_termination_rule = TerminationRule.get
 val set_termination_rule = TerminationRule.map o K o SOME
 
 

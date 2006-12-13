@@ -78,10 +78,6 @@ definition
   run :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
   "run f = f"
 
-print_ast_translation {*[
-  (Sign.const_syntax_name (the_context ()) "State_Monad.run", fn (f::ts) => Syntax.mk_appl f ts)
-]*}
-
 syntax (xsymbols)
   mbind :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd"
     (infixl "\<guillemotright>=" 60)
@@ -90,6 +86,10 @@ syntax (xsymbols)
 
 abbreviation (input)
   "return \<equiv> Pair"
+
+print_ast_translation {*[
+  (Sign.const_syntax_name (the_context ()) "State_Monad.run", fn (f::ts) => Syntax.mk_appl f ts)
+]*}
 
 text {*
   Given two transformations @{term f} and @{term g}, they
