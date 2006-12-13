@@ -9,10 +9,10 @@ theory NSCA
 imports NSComplex
 begin
 
-definition
+abbreviation
    (* standard complex numbers reagarded as an embedded subset of NS complex *)
    SComplex  :: "hcomplex set" where
-   "SComplex = {x. \<exists>r. x = hcomplex_of_complex r}"
+   "SComplex \<equiv> Standard"
 
 definition
    stc :: "hcomplex => hcomplex" where
@@ -23,36 +23,27 @@ definition
 subsection{*Closure Laws for SComplex, the Standard Complex Numbers*}
 
 lemma SComplex_add: "[| x \<in> SComplex; y \<in> SComplex |] ==> x + y \<in> SComplex"
-apply (simp add: SComplex_def, safe)
-apply (rule_tac x = "r + ra" in exI, simp)
-done
+by (rule Standard_add)
 
 lemma SComplex_mult: "[| x \<in> SComplex; y \<in> SComplex |] ==> x * y \<in> SComplex"
-apply (simp add: SComplex_def, safe)
-apply (rule_tac x = "r * ra" in exI, simp)
-done
+by (rule Standard_mult)
 
 lemma SComplex_inverse: "x \<in> SComplex ==> inverse x \<in> SComplex"
-apply (simp add: SComplex_def)
-apply (blast intro: star_of_inverse [symmetric])
-done
+by (rule Standard_inverse)
 
 lemma SComplex_divide: "[| x \<in> SComplex;  y \<in> SComplex |] ==> x/y \<in> SComplex"
-by (simp add: SComplex_mult SComplex_inverse divide_inverse)
+by (rule Standard_divide)
 
 lemma SComplex_minus: "x \<in> SComplex ==> -x \<in> SComplex"
-apply (simp add: SComplex_def)
-apply (blast intro: star_of_minus [symmetric])
-done
+by (rule Standard_minus)
 
 lemma SComplex_minus_iff [simp]: "(-x \<in> SComplex) = (x \<in> SComplex)"
 apply auto
-apply (erule_tac [2] SComplex_minus)
 apply (drule SComplex_minus, auto)
 done
 
 lemma SComplex_diff: "[| x \<in> SComplex; y \<in> SComplex |] ==> x - y \<in> SComplex"
-by (simp add: diff_minus SComplex_add) 
+by (rule Standard_diff)
 
 lemma SComplex_add_cancel:
      "[| x + y \<in> SComplex; y \<in> SComplex |] ==> x \<in> SComplex"
@@ -60,7 +51,7 @@ by (drule SComplex_diff, assumption, simp)
 
 lemma SReal_hcmod_hcomplex_of_complex [simp]:
      "hcmod (hcomplex_of_complex r) \<in> Reals"
-by (auto simp add: hcmod SReal_def star_of_def)
+by (simp add: Reals_eq_Standard)
 
 lemma SReal_hcmod_number_of [simp]: "hcmod (number_of w ::hcomplex) \<in> Reals"
 apply (subst star_of_number_of [symmetric])
@@ -68,41 +59,37 @@ apply (rule SReal_hcmod_hcomplex_of_complex)
 done
 
 lemma SReal_hcmod_SComplex: "x \<in> SComplex ==> hcmod x \<in> Reals"
-by (auto simp add: SComplex_def)
+by (simp add: Reals_eq_Standard)
 
-lemma SComplex_hcomplex_of_complex [simp]: "hcomplex_of_complex x \<in> SComplex"
-by (simp add: SComplex_def)
+lemma SComplex_hcomplex_of_complex: "hcomplex_of_complex x \<in> SComplex"
+by (rule Standard_star_of)
 
-lemma SComplex_number_of [simp]: "(number_of w ::hcomplex) \<in> SComplex"
-apply (subst star_of_number_of [symmetric])
-apply (rule SComplex_hcomplex_of_complex)
-done
+lemma SComplex_number_of: "(number_of w ::hcomplex) \<in> SComplex"
+by (rule Standard_number_of)
 
 lemma SComplex_divide_number_of:
      "r \<in> SComplex ==> r/(number_of w::hcomplex) \<in> SComplex"
-apply (simp only: divide_inverse)
-apply (blast intro!: SComplex_number_of SComplex_mult SComplex_inverse)
-done
+by simp
 
 lemma SComplex_UNIV_complex:
      "{x. hcomplex_of_complex x \<in> SComplex} = (UNIV::complex set)"
-by (simp add: SComplex_def)
+by simp
 
 lemma SComplex_iff: "(x \<in> SComplex) = (\<exists>y. x = hcomplex_of_complex y)"
-by (simp add: SComplex_def)
+by (simp add: Standard_def image_def)
 
 lemma hcomplex_of_complex_image:
      "hcomplex_of_complex `(UNIV::complex set) = SComplex"
-by (auto simp add: SComplex_def)
+by (simp add: Standard_def)
 
 lemma inv_hcomplex_of_complex_image: "inv hcomplex_of_complex `SComplex = UNIV"
-apply (auto simp add: SComplex_def)
+apply (auto simp add: Standard_def image_def)
 apply (rule inj_hcomplex_of_complex [THEN inv_f_f, THEN subst], blast)
 done
 
 lemma SComplex_hcomplex_of_complex_image: 
       "[| \<exists>x. x: P; P \<le> SComplex |] ==> \<exists>Q. P = hcomplex_of_complex ` Q"
-apply (simp add: SComplex_def, blast)
+apply (simp add: Standard_def, blast)
 done
 
 lemma SComplex_SReal_dense:
@@ -113,13 +100,13 @@ done
 
 lemma SComplex_hcmod_SReal: 
       "z \<in> SComplex ==> hcmod z \<in> Reals"
-by (auto simp add: SComplex_def)
+by (simp add: Reals_eq_Standard)
 
-lemma SComplex_zero [simp]: "0 \<in> SComplex"
-by (simp add: SComplex_def)
+lemma SComplex_zero: "0 \<in> SComplex"
+by (rule Standard_zero)
 
-lemma SComplex_one [simp]: "1 \<in> SComplex"
-by (simp add: SComplex_def)
+lemma SComplex_one: "1 \<in> SComplex"
+by (rule Standard_one)
 
 (*
 Goalw [SComplex_def,SReal_def] "hcmod z \<in> Reals ==> z \<in> SComplex"
@@ -132,7 +119,7 @@ by (auto_tac (claset(),simpset() addsimps [hcmod,hypreal_of_real_def,
 subsection{*The Finite Elements form a Subring*}
 
 lemma SComplex_subset_HFinite [simp]: "SComplex \<le> HFinite"
-by (auto simp add: SComplex_def)
+by (auto simp add: Standard_def)
 
 lemma HFinite_hcmod_hcomplex_of_complex [simp]:
      "hcmod (hcomplex_of_complex r) \<in> HFinite"
@@ -274,7 +261,7 @@ lemma Infinitesimal_less_SComplex:
 by (auto intro: Infinitesimal_less_SReal SComplex_hcmod_SReal simp add: Infinitesimal_hcmod_iff)
 
 lemma SComplex_Int_Infinitesimal_zero: "SComplex Int Infinitesimal = {0}"
-by (auto simp add: SComplex_def Infinitesimal_hcmod_iff)
+by (auto simp add: Standard_def Infinitesimal_hcmod_iff)
 
 lemma SComplex_Infinitesimal_zero:
      "[| x \<in> SComplex; x \<in> Infinitesimal|] ==> x = 0"
@@ -303,7 +290,7 @@ by (auto dest: SComplex_Infinitesimal_zero approx_sym [THEN mem_infmal_iff [THEN
 
 lemma SComplex_approx_iff:
      "[|x \<in> SComplex; y \<in> SComplex|] ==> (x @= y) = (x = y)"
-by (auto simp add: SComplex_def)
+by (auto simp add: Standard_def)
 
 lemma number_of_Infinitesimal_iff [simp]:
      "((number_of w :: hcomplex) \<in> Infinitesimal) =
@@ -441,22 +428,22 @@ by (blast intro: HFinite_Re_Im_HFinite HFinite_HFinite_Im HFinite_HFinite_Re)
 lemma SComplex_Re_SReal:
      "star_n X \<in> SComplex  
       ==> star_n (%n. Re(X n)) \<in> Reals"
-apply (auto simp add: SComplex_def SReal_def star_of_def star_n_eq_iff)
-apply (rule_tac x = "Re r" in exI, ultra)
+apply (auto simp add: Standard_def SReal_def star_of_def star_n_eq_iff)
+apply (rule_tac x = "Re x" in exI, ultra)
 done
 
 lemma SComplex_Im_SReal:
      "star_n X \<in> SComplex  
       ==> star_n (%n. Im(X n)) \<in> Reals"
-apply (auto simp add: SComplex_def SReal_def star_of_def star_n_eq_iff)
-apply (rule_tac x = "Im r" in exI, ultra)
+apply (auto simp add: Standard_def SReal_def star_of_def star_n_eq_iff)
+apply (rule_tac x = "Im x" in exI, ultra)
 done
 
 lemma Reals_Re_Im_SComplex:
      "[| star_n (%n. Re(X n)) \<in> Reals;  
          star_n (%n. Im(X n)) \<in> Reals  
       |] ==> star_n X \<in> SComplex"
-apply (auto simp add: SComplex_def SReal_def star_of_def star_n_eq_iff)
+apply (auto simp add: Standard_def image_def SReal_def star_of_def star_n_eq_iff)
 apply (rule_tac x = "Complex r ra" in exI, ultra)
 done
 

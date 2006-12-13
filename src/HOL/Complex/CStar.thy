@@ -14,7 +14,7 @@ subsection{*Properties of the *-Transform Applied to Sets of Reals*}
 
 lemma STARC_hcomplex_of_complex_Int:
      "*s* X Int SComplex = hcomplex_of_complex ` X"
-by (auto simp add: SComplex_def)
+by (auto simp add: Standard_def)
 
 lemma lemma_not_hcomplexA:
      "x \<notin> hcomplex_of_complex ` A ==> \<forall>y \<in> A. x \<noteq> hcomplex_of_complex y"
