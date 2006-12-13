@@ -8,8 +8,6 @@ theory CodeEval
 imports CodeEmbed
 begin
 
-section {* A simple embedded term evaluation mechanism *}
-
 subsection {* The typ_of class *}
 
 class typ_of =
@@ -138,8 +136,6 @@ fun term t =
     val thy = the_context ();
     val t = eval_term thy (Sign.read_term thy t);
   in (writeln o Sign.string_of_term thy) t end;
-
-exception Eval of term;
 
 end;
 *}

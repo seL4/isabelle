@@ -332,9 +332,9 @@ fun add_preprocessor p thy =
     modules = modules, test_params = test_params} thy
   end;
 
-fun preprocess thy ths =
+fun preprocess thy =
   let val {preprocs, ...} = CodegenData.get thy
-  in Library.foldl (fn (ths, (_, f)) => f thy ths) (ths, preprocs) end;
+  in fold (fn (_, f) => f thy) preprocs end;
 
 fun preprocess_term thy t =
   let
