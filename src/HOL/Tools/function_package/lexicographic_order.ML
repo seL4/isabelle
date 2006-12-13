@@ -224,7 +224,7 @@ fun lexicographic_order_tac ctxt (st: thm) =
     val possible_order = search_table table
       in
     case possible_order of 
-        NONE => error (cat_lines ("Could not prove it by lexicographic order:"::(pr_err table thy tl base_funs)))
+        NONE => error (cat_lines ("Could not find lexicographic termination order:"::(pr_err table thy tl base_funs)))
       | SOME order  => let
       val clean_table = map (fn x => map (nth x) order) table
       val funs = map (nth base_funs) order
