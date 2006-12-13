@@ -290,7 +290,7 @@ fun pretty_term' abbrevs ctxt t =
     val do_abbrevs = abbrevs andalso not (Output.has_mode "no_abbrevs");
     val t' = t
       |> do_abbrevs ? rewrite_term true thy (Consts.abbrevs_of consts (! print_mode @ [""]))
-      |> do_abbrevs ? rewrite_term false thy (Consts.abbrevs_of consts [#1 Syntax.internal_mode])
+      |> do_abbrevs ? rewrite_term false thy (Consts.abbrevs_of consts [Syntax.internalM])
       |> Sign.extern_term (Consts.extern_early consts) thy
       |> LocalSyntax.extern_term syntax;
   in Sign.pretty_term' ctxt (LocalSyntax.syn_of syntax) (Consts.extern consts) t' end;
@@ -910,12 +910,12 @@ fun add_abbrev mode (c, raw_t) ctxt =
 
 fun target_abbrev prmode ((c, mx), rhs) phi =
   let
-    val mode = #1 prmode;
     val c' = Morphism.name phi c;
     val rhs' = Morphism.term phi rhs;
     val arg' = (c', rhs');
   in
-    Context.mapping_result (Sign.add_abbrev mode arg') (add_abbrev mode arg')
+    Context.mapping_result
+      (Sign.add_abbrev Syntax.internalM arg') (add_abbrev Syntax.internalM arg')
     #-> (fn (lhs, _) =>
       Term.equiv_types (rhs, rhs') ? target_notation prmode [(lhs, mx)] Morphism.identity)
   end;
