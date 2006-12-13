@@ -8,8 +8,6 @@ theory MLString
 imports List
 begin
 
-section {* Monolithic strings for ML *}
-
 subsection {* Motivation *}
 
 text {*

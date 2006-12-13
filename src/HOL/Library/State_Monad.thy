@@ -9,8 +9,6 @@ theory State_Monad
 imports Main
 begin
 
-section {* Generic, open state monads *}
-
 subsection {* Motivation *}
 
 text {*

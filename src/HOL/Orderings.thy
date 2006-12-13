@@ -9,8 +9,6 @@ theory Orderings
 imports HOL
 begin
 
-section {* Abstract orders *}
-
 subsection {* Order syntax *}
 
 class ord =
