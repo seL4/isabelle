@@ -14,7 +14,7 @@ signature RES_CLAUSE =
   datatype fol_type = AtomV of string
                     | AtomF of string
                     | Comp of string * fol_type list;
-  datatype fol_term = UVar of string * fol_type
+  datatype fol_term = UVar of string
                     | Fun of string * fol_type list * fol_term list;
   datatype predicate = Predicate of string * fol_type list * fol_term list;
   datatype kind = Axiom | Conjecture;
@@ -55,13 +55,13 @@ signature RES_CLAUSE =
   val string_of_fol_type : fol_type -> string
   val tconst_prefix : string 
   val tfree_prefix : string
+  val tvar_prefix : string
   val tptp_arity_clause : arityClause -> string
   val tptp_classrelClause : classrelClause -> string
   val tptp_of_typeLit : type_literal -> string
   val tptp_tfree_clause : string -> string
   val tptp_write_file: thm list -> string -> 
        ((thm * (string * int)) list * classrelClause list * arityClause list) -> string list
-  val tvar_prefix : string
   val union_all : ''a list list -> ''a list
   val writeln_strs: TextIO.outstream -> TextIO.vector list -> unit
   val dfg_sign: bool -> string -> string
@@ -230,7 +230,7 @@ fun mk_fol_type ("Var",x,_) = AtomV(x)
 (*First string is the type class; the second is a TVar or TFfree*)
 datatype type_literal = LTVar of string * string | LTFree of string * string;
 
-datatype fol_term = UVar of string * fol_type
+datatype fol_term = UVar of string
                   | Fun of string * fol_type list * fol_term list;
 datatype predicate = Predicate of string * fol_type list * fol_term list;
 
@@ -304,14 +304,6 @@ fun pred_name_type (Const(c,T)) = (make_fixed_const c, const_types_of (c,T))
   | pred_name_type (v as Var _) = raise CLAUSE("Predicate Not First Order 2", v)
   | pred_name_type t        = raise CLAUSE("Predicate input unexpected", t);
 
-
-(* For typed equality *)
-(* here "arg_typ" is the type of "="'s argument's type, not the type of the equality *)
-(* Find type of equality arg *)
-fun eq_arg_type (Type("fun",[T,_])) = 
-    let val (folT,_) = type_of T;
-    in  folT  end;
-
 fun fun_name_type (Const(c,T)) args = (make_fixed_const c, const_types_of (c,T))
   | fun_name_type (Free(x,T)) args  = 
        if isMeta x then raise CLAUSE("Function Not First Order", Free(x,T))
@@ -321,13 +313,13 @@ fun fun_name_type (Const(c,T)) args = (make_fixed_const c, const_types_of (c,T))
 (*Convert a term to a fol_term while accumulating sort constraints on the TFrees and
   TVars it contains.*)    
 fun term_of (Var(ind_nm,T)) = 
-      let val (folType,ts) = type_of T
-      in (UVar(make_schematic_var ind_nm, folType), ts) end
+      let val (_,ts) = type_of T
+      in (UVar(make_schematic_var ind_nm), ts) end
   | term_of (Free(x,T)) = 
-      let val (folType, ts) = type_of T
+      let val (_,ts) = type_of T
       in
-	  if isMeta x then (UVar(make_schematic_var(x,0),folType), ts)
-	  else (Fun(make_fixed_var x, [], []), ts)  (*Frees don't need types!*)
+	  if isMeta x then (UVar(make_schematic_var(x,0)), ts)
+	  else (Fun(make_fixed_var x, [], []), ts)
       end
   | term_of app = 
       let val (f,args) = strip_comb app
@@ -340,11 +332,9 @@ and terms_of ts = ListPair.unzip (map term_of ts)
 
 (*Create a predicate value, again accumulating sort constraints.*)    
 fun pred_of (Const("op =", typ), args) =
-      let val arg_typ = eq_arg_type typ 
-	  val (args',ts) = terms_of args
-	  val equal_name = make_fixed_const "op ="
+      let val (args',ts) = terms_of args
       in
-	  (Predicate(equal_name,[arg_typ],args'),
+	  (Predicate(make_fixed_const "op =", [], args'),
 	   union_all ts)
       end
   | pred_of (pred,args) = 
@@ -595,7 +585,7 @@ fun add_foltype_funcs (AtomV _, funcs) = funcs
   | add_foltype_funcs (Comp(a,tys), funcs) = 
       foldl add_foltype_funcs (Symtab.update (a, length tys) funcs) tys;
 
-fun add_folterm_funcs (UVar(_,ty), funcs) = add_foltype_funcs (ty, funcs)
+fun add_folterm_funcs (UVar _, funcs) = funcs
   | add_folterm_funcs (Fun(a,tys,tms), funcs) = 
       foldl add_foltype_funcs 
 	    (foldl add_folterm_funcs (Symtab.update (a, length tys + length tms) funcs) 
@@ -629,7 +619,7 @@ fun funcs_of_clauses clauses arity_clauses =
 
 (**** String-oriented operations ****)
 
-fun string_of_term (UVar(x,_)) = x
+fun string_of_term (UVar x) = x
   | string_of_term (Fun (name,typs,terms)) = 
       name ^ (paren_pack (map string_of_term terms @ map string_of_fol_type typs));
 
@@ -688,7 +678,7 @@ fun dfg_folterms (Literal(pol,pred)) =
   let val Predicate (_, _, folterms) = pred
   in  folterms  end
 
-fun get_uvars (UVar(a,typ)) = [a] 
+fun get_uvars (UVar a) = [a] 
   | get_uvars (Fun (_,typ,tlist)) = union_all(map get_uvars tlist)
 
 fun dfg_vars (Clause {literals,...}) =
