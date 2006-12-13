@@ -226,7 +226,6 @@ translations
  "\<exists>A\<subseteq>B. P"   =>  "EX A. A \<subseteq> B & P"
  "\<exists>!A\<subseteq>B. P"  =>  "EX! A. A \<subseteq> B & P"
 
-(* FIXME re-use version in Orderings.thy *)
 print_translation {*
 let
   val thy = the_context ();
