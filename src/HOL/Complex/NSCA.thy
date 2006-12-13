@@ -312,170 +312,133 @@ lemma approx_unique_complex:
      "[| r \<in> SComplex; s \<in> SComplex; r @= x; s @= x|] ==> r = s"
 by (blast intro: SComplex_approx_iff [THEN iffD1] approx_trans2)
 
-lemma hcomplex_approxD1:
-     "star_n X @= star_n Y
-      ==> star_n (%n. Re(X n)) @= star_n (%n. Re(Y n))"
-apply (simp (no_asm) add: approx_FreeUltrafilterNat_iff2, safe)
-apply (drule approx_minus_iff [THEN iffD1])
-apply (simp add: star_n_diff mem_infmal_iff [symmetric] Infinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff2)
-apply (drule_tac x = m in spec)
-apply (erule ultra, rule FreeUltrafilterNat_all, clarify)
-apply (rule_tac y="cmod (X n - Y n)" in order_le_less_trans)
-apply (case_tac "X n")
-apply (case_tac "Y n")
-apply (auto simp add: complex_diff complex_mod
-            simp del: realpow_Suc)
+subsection {* Properties of @{term hRe}, @{term hIm} and @{term HComplex} *}
+
+lemma abs_Re_le_cmod: "\<bar>Re x\<bar> \<le> cmod x"
+by (induct x) simp
+
+lemma abs_Im_le_cmod: "\<bar>Im x\<bar> \<le> cmod x"
+by (induct x) simp
+
+lemma abs_hRe_le_hcmod: "\<And>x. \<bar>hRe x\<bar> \<le> hcmod x"
+by transfer (rule abs_Re_le_cmod)
+
+lemma abs_hIm_le_hcmod: "\<And>x. \<bar>hIm x\<bar> \<le> hcmod x"
+by transfer (rule abs_Im_le_cmod)
+
+lemma Infinitesimal_hRe: "x \<in> Infinitesimal \<Longrightarrow> hRe x \<in> Infinitesimal"
+apply (rule InfinitesimalI2, simp)
+apply (rule order_le_less_trans [OF abs_hRe_le_hcmod])
+apply (erule (1) InfinitesimalD2)
 done
 
-(* same proof *)
-lemma hcomplex_approxD2:
-     "star_n X @= star_n Y
-      ==> star_n (%n. Im(X n)) @= star_n (%n. Im(Y n))"
-apply (simp (no_asm) add: approx_FreeUltrafilterNat_iff2, safe)
-apply (drule approx_minus_iff [THEN iffD1])
-apply (simp add: star_n_diff mem_infmal_iff [symmetric] Infinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff2)
-apply (drule_tac x = m in spec)
-apply (erule ultra, rule FreeUltrafilterNat_all, clarify)
-apply (rule_tac y="cmod (X n - Y n)" in order_le_less_trans)
-apply (case_tac "X n")
-apply (case_tac "Y n")
-apply (auto simp add: complex_diff complex_mod
-            simp del: realpow_Suc)
+lemma Infinitesimal_hIm: "x \<in> Infinitesimal \<Longrightarrow> hIm x \<in> Infinitesimal"
+apply (rule InfinitesimalI2, simp)
+apply (rule order_le_less_trans [OF abs_hIm_le_hcmod])
+apply (erule (1) InfinitesimalD2)
 done
 
-lemma hcomplex_approxI:
-     "[| star_n (%n. Re(X n)) @= star_n (%n. Re(Y n));  
-         star_n (%n. Im(X n)) @= star_n (%n. Im(Y n))  
-      |] ==> star_n X @= star_n Y"
-apply (drule approx_minus_iff [THEN iffD1])
-apply (drule approx_minus_iff [THEN iffD1])
-apply (rule approx_minus_iff [THEN iffD2])
-apply (auto simp add: mem_infmal_iff [symmetric] mem_infmal_iff [symmetric] star_n_diff Infinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff)
-apply (drule_tac x = "u/2" in spec)
-apply (drule_tac x = "u/2" in spec, auto, ultra)
-apply (case_tac "X x")
-apply (case_tac "Y x")
-apply (auto simp add: complex_diff complex_mod snd_conv fst_conv numeral_2_eq_2)
-apply (rename_tac a b c d)
-apply (subgoal_tac "sqrt (abs (a - c) ^ 2 + abs (b - d) ^ 2) < u")
-apply (rule_tac [2] lemma_sqrt_hcomplex_capprox, auto)
-apply (simp add: power2_eq_square)
+lemma real_sqrt_lessI: "\<lbrakk>0 \<le> x; 0 < u; x < u\<twosuperior>\<rbrakk> \<Longrightarrow> sqrt x < u"
+by (frule (1) real_sqrt_less_mono) simp
+
+lemma hypreal_sqrt_lessI:
+  "\<And>x u. \<lbrakk>0 \<le> x; 0 < u; x < u\<twosuperior>\<rbrakk> \<Longrightarrow> ( *f* sqrt) x < u"
+by transfer (rule real_sqrt_lessI)
+ 
+lemma hypreal_sqrt_ge_zero: "\<And>x. 0 \<le> x \<Longrightarrow> 0 \<le> ( *f* sqrt) x"
+by transfer (rule real_sqrt_ge_zero)
+
+lemma Infinitesimal_sqrt:
+  "\<lbrakk>x \<in> Infinitesimal; 0 \<le> x\<rbrakk> \<Longrightarrow> ( *f* sqrt) x \<in> Infinitesimal"
+apply (rule InfinitesimalI2)
+apply (drule_tac r="r\<twosuperior>" in InfinitesimalD2, simp)
+apply (simp add: hypreal_sqrt_ge_zero)
+apply (rule hypreal_sqrt_lessI, simp_all)
 done
 
-lemma approx_approx_iff:
-     "(star_n X @= star_n Y) = 
-       (star_n (%n. Re(X n)) @= star_n (%n. Re(Y n)) &  
-        star_n (%n. Im(X n)) @= star_n (%n. Im(Y n)))"
-apply (blast intro: hcomplex_approxI hcomplex_approxD1 hcomplex_approxD2)
+lemma Infinitesimal_HComplex:
+  "\<lbrakk>x \<in> Infinitesimal; y \<in> Infinitesimal\<rbrakk> \<Longrightarrow> HComplex x y \<in> Infinitesimal"
+apply (rule Infinitesimal_hcmod_iff [THEN iffD2])
+apply (simp add: hcmod_i)
+apply (rule Infinitesimal_sqrt)
+apply (rule Infinitesimal_add)
+apply (erule Infinitesimal_hrealpow, simp)
+apply (erule Infinitesimal_hrealpow, simp)
+apply (rule add_nonneg_nonneg)
+apply (rule zero_le_power2)
+apply (rule zero_le_power2)
 done
+
+lemma hcomplex_Infinitesimal_iff:
+  "(x \<in> Infinitesimal) = (hRe x \<in> Infinitesimal \<and> hIm x \<in> Infinitesimal)"
+apply (safe intro!: Infinitesimal_hRe Infinitesimal_hIm)
+apply (drule (1) Infinitesimal_HComplex, simp)
+done
+
+lemma hRe_diff [simp]: "\<And>x y. hRe (x - y) = hRe x - hRe y"
+by transfer (rule complex_Re_diff)
+
+lemma hIm_diff [simp]: "\<And>x y. hIm (x - y) = hIm x - hIm y"
+by transfer (rule complex_Im_diff)
+
+lemma approx_hRe: "x \<approx> y \<Longrightarrow> hRe x \<approx> hRe y"
+unfolding approx_def by (drule Infinitesimal_hRe) simp
+
+lemma approx_hIm: "x \<approx> y \<Longrightarrow> hIm x \<approx> hIm y"
+unfolding approx_def by (drule Infinitesimal_hIm) simp
+
+lemma approx_HComplex:
+  "\<lbrakk>a \<approx> b; c \<approx> d\<rbrakk> \<Longrightarrow> HComplex a c \<approx> HComplex b d"
+unfolding approx_def by (simp add: Infinitesimal_HComplex)
+
+lemma hcomplex_approx_iff:
+  "(x \<approx> y) = (hRe x \<approx> hRe y \<and> hIm x \<approx> hIm y)"
+unfolding approx_def by (simp add: hcomplex_Infinitesimal_iff)
+
+lemma HFinite_hRe: "x \<in> HFinite \<Longrightarrow> hRe x \<in> HFinite"
+apply (auto simp add: HFinite_def SReal_def)
+apply (rule_tac x="star_of r" in exI, simp)
+apply (erule order_le_less_trans [OF abs_hRe_le_hcmod])
+done
+
+lemma HFinite_hIm: "x \<in> HFinite \<Longrightarrow> hIm x \<in> HFinite"
+apply (auto simp add: HFinite_def SReal_def)
+apply (rule_tac x="star_of r" in exI, simp)
+apply (erule order_le_less_trans [OF abs_hIm_le_hcmod])
+done
+
+lemma HFinite_HComplex:
+  "\<lbrakk>x \<in> HFinite; y \<in> HFinite\<rbrakk> \<Longrightarrow> HComplex x y \<in> HFinite"
+apply (subgoal_tac "HComplex x 0 + HComplex 0 y \<in> HFinite", simp)
+apply (rule HFinite_add)
+apply (simp add: HFinite_hcmod_iff hcmod_i)
+apply (simp add: HFinite_hcmod_iff hcmod_i)
+done
+
+lemma hcomplex_HFinite_iff:
+  "(x \<in> HFinite) = (hRe x \<in> HFinite \<and> hIm x \<in> HFinite)"
+apply (safe intro!: HFinite_hRe HFinite_hIm)
+apply (drule (1) HFinite_HComplex, simp)
+done
+
+lemma hcomplex_HInfinite_iff:
+  "(x \<in> HInfinite) = (hRe x \<in> HInfinite \<or> hIm x \<in> HInfinite)"
+by (simp add: HInfinite_HFinite_iff hcomplex_HFinite_iff)
 
 lemma hcomplex_of_hypreal_approx_iff [simp]:
      "(hcomplex_of_hypreal x @= hcomplex_of_hypreal z) = (x @= z)"
-apply (cases x, cases z)
-apply (simp add: hcomplex_of_hypreal approx_approx_iff)
-done
+by (simp add: hcomplex_approx_iff)
 
-lemma HFinite_HFinite_Re:
-     "star_n X \<in> HFinite  
-      ==> star_n (%n. Re(X n)) \<in> HFinite"
-apply (auto simp add: HFinite_hcmod_iff hcmod HFinite_FreeUltrafilterNat_iff)
-apply (rule_tac x = u in exI, ultra)
-apply (case_tac "X x")
-apply (auto simp add: complex_mod numeral_2_eq_2 simp del: realpow_Suc)
-apply (rule ccontr, drule linorder_not_less [THEN iffD1])
-apply (drule order_less_le_trans, assumption)
-apply (drule real_sqrt_ge_abs1 [THEN [2] order_less_le_trans]) 
-apply (auto simp add: numeral_2_eq_2 [symmetric]) 
-done
-
-lemma HFinite_HFinite_Im:
-     "star_n X \<in> HFinite  
-      ==> star_n (%n. Im(X n)) \<in> HFinite"
-apply (auto simp add: HFinite_hcmod_iff hcmod HFinite_FreeUltrafilterNat_iff)
-apply (rule_tac x = u in exI, ultra)
-apply (case_tac "X x")
-apply (auto simp add: complex_mod simp del: realpow_Suc)
-apply (rule ccontr, drule linorder_not_less [THEN iffD1])
-apply (drule order_less_le_trans, assumption)
-apply (drule real_sqrt_ge_abs2 [THEN [2] order_less_le_trans], auto) 
-done
-
-lemma HFinite_Re_Im_HFinite:
-     "[| star_n (%n. Re(X n)) \<in> HFinite;  
-         star_n (%n. Im(X n)) \<in> HFinite  
-      |] ==> star_n X \<in> HFinite"
-apply (auto simp add: HFinite_hcmod_iff hcmod HFinite_FreeUltrafilterNat_iff)
-apply (rename_tac u v)
-apply (rule_tac x = "2* (u + v) " in exI)
-apply ultra
-apply (case_tac "X x")
-apply (auto simp add: complex_mod numeral_2_eq_2 simp del: realpow_Suc)
-apply (subgoal_tac "0 < u")
- prefer 2 apply arith
-apply (subgoal_tac "0 < v")
- prefer 2 apply arith
-apply (subgoal_tac "sqrt (abs (Re (X x)) ^ 2 + abs (Im (X x)) ^ 2) < 2*u + 2*v")
-apply (rule_tac [2] lemma_sqrt_hcomplex_capprox, auto)
-apply (simp add: power2_eq_square)
-done
-
-lemma HFinite_HFinite_iff:
-     "(star_n X \<in> HFinite) =  
-      (star_n (%n. Re(X n)) \<in> HFinite &  
-       star_n (%n. Im(X n)) \<in> HFinite)"
-by (blast intro: HFinite_Re_Im_HFinite HFinite_HFinite_Im HFinite_HFinite_Re)
-
-lemma SComplex_Re_SReal:
-     "star_n X \<in> SComplex  
-      ==> star_n (%n. Re(X n)) \<in> Reals"
-apply (auto simp add: Standard_def SReal_def star_of_def star_n_eq_iff)
-apply (rule_tac x = "Re x" in exI, ultra)
-done
-
-lemma SComplex_Im_SReal:
-     "star_n X \<in> SComplex  
-      ==> star_n (%n. Im(X n)) \<in> Reals"
-apply (auto simp add: Standard_def SReal_def star_of_def star_n_eq_iff)
-apply (rule_tac x = "Im x" in exI, ultra)
-done
-
-lemma Reals_Re_Im_SComplex:
-     "[| star_n (%n. Re(X n)) \<in> Reals;  
-         star_n (%n. Im(X n)) \<in> Reals  
-      |] ==> star_n X \<in> SComplex"
-apply (auto simp add: Standard_def image_def SReal_def star_of_def star_n_eq_iff)
-apply (rule_tac x = "Complex r ra" in exI, ultra)
-done
-
-lemma SComplex_SReal_iff:
-     "(star_n X \<in> SComplex) =  
-      (star_n (%n. Re(X n)) \<in> Reals &  
-       star_n (%n. Im(X n)) \<in> Reals)"
-by (blast intro: SComplex_Re_SReal SComplex_Im_SReal Reals_Re_Im_SComplex)
-
-lemma Infinitesimal_Infinitesimal_iff:
-     "(star_n X \<in> Infinitesimal) =  
-      (star_n (%n. Re(X n)) \<in> Infinitesimal &  
-       star_n (%n. Im(X n)) \<in> Infinitesimal)"
-by (simp add: mem_infmal_iff star_n_zero_num approx_approx_iff)
-
-lemma eq_Abs_star_EX:
-     "(\<exists>t. P t) = (\<exists>X. P (star_n X))"
-by (rule ex_star_eq)
-
-lemma eq_Abs_star_Bex:
-     "(\<exists>t \<in> A. P t) = (\<exists>X. star_n X \<in> A & P (star_n X))"
-by (simp add: Bex_def ex_star_eq)
+lemma Standard_HComplex:
+  "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> HComplex x y \<in> Standard"
+by (simp add: HComplex_def)
 
 (* Here we go - easy proof now!! *)
 lemma stc_part_Ex: "x:HFinite ==> \<exists>t \<in> SComplex. x @= t"
-apply (cases x)
-apply (auto simp add: HFinite_HFinite_iff eq_Abs_star_Bex SComplex_SReal_iff approx_approx_iff)
-apply (drule st_part_Ex, safe)+
-apply (rule_tac x = t in star_cases)
-apply (rule_tac x = ta in star_cases, auto)
-apply (rule_tac x = "%n. Complex (Xa n) (Xb n) " in exI)
-apply auto
+apply (simp add: hcomplex_HFinite_iff hcomplex_approx_iff)
+apply (rule_tac x="HComplex (st (hRe x)) (st (hIm x))" in bexI)
+apply (simp add: st_approx_self [THEN approx_sym])
+apply (simp add: Standard_HComplex st_SReal [unfolded Reals_eq_Standard])
 done
 
 lemma stc_part_Ex1: "x:HFinite ==> EX! t. t \<in> SComplex &  x @= t"
@@ -607,9 +570,7 @@ by (blast intro: stc_HFinite stc_approx_self approx_stc_eq)
 
 lemma HFinite_HFinite_hcomplex_of_hypreal:
      "z \<in> HFinite ==> hcomplex_of_hypreal z \<in> HFinite"
-apply (cases z)
-apply (simp add: hcomplex_of_hypreal HFinite_HFinite_iff star_n_zero_num [symmetric])
-done
+by (simp add: hcomplex_HFinite_iff)
 
 lemma SComplex_SReal_hcomplex_of_hypreal:
      "x \<in> Reals ==>  hcomplex_of_hypreal x \<in> SComplex"
@@ -636,54 +597,6 @@ approx_hcmod_add_hcmod
 lemma Infinitesimal_hcnj_iff [simp]:
      "(hcnj z \<in> Infinitesimal) = (z \<in> Infinitesimal)"
 by (simp add: Infinitesimal_hcmod_iff)
-
-lemma HInfinite_HInfinite_iff:
-     "(star_n X \<in> HInfinite) =  
-      (star_n (%n. Re(X n)) \<in> HInfinite |  
-       star_n (%n. Im(X n)) \<in> HInfinite)"
-by (simp add: HInfinite_HFinite_iff HFinite_HFinite_iff)
-
-text{*These theorems should probably be deleted*}
-lemma hcomplex_split_Infinitesimal_iff:
-     "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y \<in> Infinitesimal) =  
-      (x \<in> Infinitesimal & y \<in> Infinitesimal)"
-apply (cases x, cases y)
-apply (simp add: iii_def star_of_def star_n_add star_n_mult hcomplex_of_hypreal Infinitesimal_Infinitesimal_iff)
-done
-
-lemma hcomplex_split_HFinite_iff:
-     "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y \<in> HFinite) =  
-      (x \<in> HFinite & y \<in> HFinite)"
-apply (cases x, cases y)
-apply (simp add: iii_def star_of_def star_n_add star_n_mult hcomplex_of_hypreal HFinite_HFinite_iff)
-done
-
-lemma hcomplex_split_SComplex_iff:
-     "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y \<in> SComplex) =  
-      (x \<in> Reals & y \<in> Reals)"
-apply (cases x, cases y)
-apply (simp add: iii_def star_of_def star_n_add star_n_mult hcomplex_of_hypreal SComplex_SReal_iff)
-done
-
-lemma hcomplex_split_HInfinite_iff:
-     "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y \<in> HInfinite) =  
-      (x \<in> HInfinite | y \<in> HInfinite)"
-apply (cases x, cases y)
-apply (simp add: iii_def star_of_def star_n_add star_n_mult hcomplex_of_hypreal HInfinite_HInfinite_iff)
-done
-
-lemma hcomplex_split_approx_iff:
-     "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y @=  
-       hcomplex_of_hypreal x' + iii * hcomplex_of_hypreal y') =  
-      (x @= x' & y @= y')"
-apply (cases x, cases y, cases x', cases y')
-apply (simp add: iii_def star_of_def star_n_add star_n_mult hcomplex_of_hypreal approx_approx_iff)
-done
-
-lemma complex_seq_to_hcomplex_Infinitesimal:
-     "\<forall>n. cmod (X n - x) < inverse (real (Suc n)) ==>  
-      star_n X - hcomplex_of_complex x \<in> Infinitesimal"
-by (rule real_seq_to_hypreal_Infinitesimal [folded diff_def])
 
 lemma Infinitesimal_hcomplex_of_hypreal_epsilon [simp]:
      "hcomplex_of_hypreal epsilon \<in> Infinitesimal"

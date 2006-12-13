@@ -88,12 +88,6 @@ done
 lemma starfun_norm: "( *f* (\<lambda>x. norm (f x))) = (\<lambda>x. hnorm (( *f* f) x))"
 by transfer (rule refl)
 
-lemma starfun_Re: "( *f* (\<lambda>x. Re (f x))) = (\<lambda>x. hRe (( *f* f) x))"
-by transfer (rule refl)
-
-lemma starfun_Im: "( *f* (\<lambda>x. Im (f x))) = (\<lambda>x. hIm (( *f* f) x))"
-by transfer (rule refl)
-
 lemma star_of_Re [simp]: "star_of (Re x) = hRe (star_of x)"
 by transfer (rule refl)
 
@@ -122,7 +116,7 @@ lemma NSLIM_NSCRLIM_Re_Im_iff:
 apply (auto intro: NSLIM_Re NSLIM_Im)
 apply (auto simp add: NSLIM_def starfun_Re starfun_Im)
 apply (auto dest!: spec)
-apply (simp add: starfunC_approx_Re_Im_iff starfun_Re starfun_Im)
+apply (simp add: hcomplex_approx_iff)
 done
 
 lemma LIM_CRLIM_Re_Im_iff:

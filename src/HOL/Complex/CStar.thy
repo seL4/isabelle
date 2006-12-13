@@ -22,41 +22,38 @@ by auto
 
 subsection{*Theorems about Nonstandard Extensions of Functions*}
 
-lemma starfunC_hcpow: "( *f* (%z. z ^ n)) Z = Z hcpow hypnat_of_nat n"
-apply (cases Z)
-apply (simp add: hcpow starfun hypnat_of_nat_eq)
-done
+lemma starfunC_hcpow: "!!Z. ( *f* (%z. z ^ n)) Z = Z hcpow hypnat_of_nat n"
+by transfer (rule refl)
 
 lemma starfunCR_cmod: "*f* cmod = hcmod"
-apply (rule ext)
-apply (rule_tac x = x in star_cases)
-apply (simp add: starfun hcmod)
-done
+by transfer (rule refl)
 
 subsection{*Internal Functions - Some Redundancy With *f* Now*}
 
 (** subtraction: ( *fn) - ( *gn) = *(fn - gn) **)
-
+(*
 lemma starfun_n_diff:
    "( *fn* f) z - ( *fn* g) z = ( *fn* (%i x. f i x - g i x)) z"
 apply (cases z)
 apply (simp add: starfun_n star_n_diff)
 done
-
+*)
 (** composition: ( *fn) o ( *gn) = *(fn o gn) **)
+
+lemma starfun_Re: "( *f* (\<lambda>x. Re (f x))) = (\<lambda>x. hRe (( *f* f) x))"
+by transfer (rule refl)
+
+lemma starfun_Im: "( *f* (\<lambda>x. Im (f x))) = (\<lambda>x. hIm (( *f* f) x))"
+by transfer (rule refl)
 
 lemma starfunC_eq_Re_Im_iff:
     "(( *f* f) x = z) = ((( *f* (%x. Re(f x))) x = hRe (z)) &
                           (( *f* (%x. Im(f x))) x = hIm (z)))"
-apply (cases x, cases z)
-apply (auto simp add: starfun hIm hRe complex_Re_Im_cancel_iff star_n_eq_iff, ultra+)
-done
+by (simp add: hcomplex_hRe_hIm_cancel_iff starfun_Re starfun_Im)
 
 lemma starfunC_approx_Re_Im_iff:
     "(( *f* f) x @= z) = ((( *f* (%x. Re(f x))) x @= hRe (z)) &
                             (( *f* (%x. Im(f x))) x @= hIm (z)))"
-apply (cases x, cases z)
-apply (simp add: starfun hIm hRe approx_approx_iff)
-done
+by (simp add: hcomplex_approx_iff starfun_Re starfun_Im)
 
 end

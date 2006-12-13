@@ -88,17 +88,47 @@ lemmas hcomplex_defs [transfer_unfold] =
   hRe_def hIm_def iii_def hcnj_def hsgn_def harg_def hcis_def
   hcomplex_of_hypreal_def hrcis_def hexpi_def HComplex_def hcpow_def
 
+lemma Standard_hRe [simp]: "x \<in> Standard \<Longrightarrow> hRe x \<in> Standard"
+by (simp add: hcomplex_defs)
+
+lemma Standard_hIm [simp]: "x \<in> Standard \<Longrightarrow> hIm x \<in> Standard"
+by (simp add: hcomplex_defs)
+
+lemma Standard_iii [simp]: "iii \<in> Standard"
+by (simp add: hcomplex_defs)
+
+lemma Standard_hcnj [simp]: "x \<in> Standard \<Longrightarrow> hcnj x \<in> Standard"
+by (simp add: hcomplex_defs)
+
+lemma Standard_hsgn [simp]: "x \<in> Standard \<Longrightarrow> hsgn x \<in> Standard"
+by (simp add: hcomplex_defs)
+
+lemma Standard_harg [simp]: "x \<in> Standard \<Longrightarrow> harg x \<in> Standard"
+by (simp add: hcomplex_defs)
+
+lemma Standard_hcis [simp]: "r \<in> Standard \<Longrightarrow> hcis r \<in> Standard"
+by (simp add: hcomplex_defs)
+
+lemma Standard_hexpi [simp]: "x \<in> Standard \<Longrightarrow> hexpi x \<in> Standard"
+by (simp add: hcomplex_defs)
+
+lemma Standard_hrcis [simp]:
+  "\<lbrakk>r \<in> Standard; s \<in> Standard\<rbrakk> \<Longrightarrow> hrcis r s \<in> Standard"
+by (simp add: hcomplex_defs)
+
+lemma Standard_HComplex [simp]:
+  "\<lbrakk>r \<in> Standard; s \<in> Standard\<rbrakk> \<Longrightarrow> HComplex r s \<in> Standard"
+by (simp add: hcomplex_defs)
+
+lemma Standard_hcomplex_of_hypreal [simp]:
+  "r \<in> Standard \<Longrightarrow> hcomplex_of_hypreal r \<in> Standard"
+by (simp add: hcomplex_defs)
+
 lemma hcmod_def: "hcmod = *f* cmod"
 by (rule hnorm_def)
 
 
 subsection{*Properties of Nonstandard Real and Imaginary Parts*}
-
-lemma hRe: "hRe (star_n X) = star_n (%n. Re(X n))"
-by (simp add: hRe_def starfun)
-
-lemma hIm: "hIm (star_n X) = star_n (%n. Im(X n))"
-by (simp add: hIm_def starfun)
 
 lemma hcomplex_hRe_hIm_cancel_iff:
      "!!w z. (w=z) = (hRe(w) = hRe(z) & hIm(w) = hIm(z))"
@@ -181,10 +211,6 @@ by (rule Ring_and_Field.add_divide_distrib)
 
 subsection{*Embedding Properties for @{term hcomplex_of_hypreal} Map*}
 
-lemma hcomplex_of_hypreal:
-  "hcomplex_of_hypreal (star_n X) = star_n (%n. complex_of_real (X n))"
-by (simp add: hcomplex_of_hypreal_def starfun)
-
 lemma hcomplex_of_hypreal_cancel_iff [iff]:
      "!!x y. (hcomplex_of_hypreal x = hcomplex_of_hypreal y) = (x = y)"
 by transfer (rule of_real_eq_iff)
@@ -229,10 +255,13 @@ by transfer (rule Re_complex_of_real)
 lemma hIm_hcomplex_of_hypreal [simp]: "!!z. hIm(hcomplex_of_hypreal z) = 0"
 by transfer (rule Im_complex_of_real)
 
+lemma hcomplex_of_hypreal_zero_iff [simp]:
+  "\<And>x. (hcomplex_of_hypreal x = 0) = (x = 0)"
+by transfer (rule of_real_eq_0_iff)
+
 lemma hcomplex_of_hypreal_epsilon_not_zero [simp]:
      "hcomplex_of_hypreal epsilon \<noteq> 0"
-by (simp add: hcomplex_of_hypreal epsilon_def star_n_zero_num star_n_eq_iff)
-
+by (simp add: hypreal_epsilon_not_zero)
 
 subsection{*HComplex theorems*}
 
@@ -241,12 +270,6 @@ by transfer (rule Re)
 
 lemma hIm_HComplex [simp]: "!!x y. hIm (HComplex x y) = y"
 by transfer (rule Im)
-
-text{*Relates the two nonstandard constructions*}
-lemma HComplex_eq_Abs_star_Complex:
-     "HComplex (star_n X) (star_n Y) =
-      star_n (%n::nat. Complex (X n) (Y n))"
-by (simp add: hcomplex_hRe_hIm_cancel_iff hRe hIm)
 
 lemma hcomplex_surj [simp]: "!!z. HComplex (hRe z) (hIm z) = z"
 by transfer (rule complex_surj)
@@ -257,9 +280,6 @@ by (rule hcomplex_surj [THEN subst], blast)
 
 
 subsection{*Modulus (Absolute Value) of Nonstandard Complex Number*}
-
-lemma hcmod: "hcmod (star_n X) = star_n (%n. cmod (X n))"
-by (simp add: hcmod_def starfun)
 
 lemma hcmod_zero [simp]: "hcmod(0) = 0"
 by (rule hnorm_zero)
@@ -327,9 +347,6 @@ by transfer (rule complex_of_real_i)
 
 
 subsection{*Conjugation*}
-
-lemma hcnj: "hcnj (star_n X) = star_n (%n. cnj(X n))"
-by (simp add: hcnj_def starfun)
 
 lemma hcomplex_hcnj_cancel_iff [iff]: "!!x y. (hcnj x = hcnj y) = (x = y)"
 by transfer (rule complex_cnj_cancel_iff)
@@ -445,9 +462,6 @@ by transfer (rule complex_mod_diff_ineq)
 
 subsection{*A Few Nonlinear Theorems*}
 
-lemma hcpow: "star_n X hcpow star_n Y = star_n (%n. X n ^ Y n)"
-by (simp add: hcpow_def starfun2_star_n)
-
 lemma hcomplex_of_hypreal_hyperpow:
      "!!x n. hcomplex_of_hypreal (x pow n) = (hcomplex_of_hypreal x) hcpow n"
 by transfer (rule complex_of_real_pow)
@@ -505,13 +519,7 @@ by transfer (rule field_power_not_zero)
 lemma hcpow_zero_zero: "r hcpow n = (0::hcomplex) ==> r = 0"
 by (blast intro: ccontr dest: hcpow_not_zero)
 
-lemma star_n_divide: "star_n X / star_n Y = star_n (%n. X n / Y n)"
-by (simp add: star_divide_def starfun2_star_n)
-
 subsection{*The Function @{term hsgn}*}
-
-lemma hsgn: "hsgn (star_n X) = star_n (%n. sgn (X n))"
-by (simp add: hsgn_def starfun)
 
 lemma hsgn_zero [simp]: "hsgn 0 = 0"
 by transfer (rule sgn_zero)
@@ -587,9 +595,6 @@ by transfer simp
 (*  harg                                                                     *)
 (*---------------------------------------------------------------------------*)
 
-lemma harg: "harg (star_n X) = star_n (%n. arg (X n))"
-by (simp add: harg_def starfun)
-
 lemma cos_harg_i_mult_zero_pos:
      "!!y. 0 < y ==> ( *f* cos) (harg(HComplex 0 y)) = 0"
 by transfer (rule cos_arg_i_mult_zero_pos)
@@ -613,29 +618,15 @@ lemma complex_split_polar2:
      "\<forall>n. \<exists>r a. (z n) =  complex_of_real r * (Complex (cos a) (sin a))"
 by (blast intro: complex_split_polar)
 
-lemma lemma_hypreal_P_EX2:
-     "(\<exists>(x::hypreal) y. P x y) =
-      (\<exists>f g. P (star_n f) (star_n g))"
-apply auto
-apply (rule_tac x = x in star_cases)
-apply (rule_tac x = y in star_cases, auto)
-done
-
 lemma hcomplex_split_polar:
   "!!z. \<exists>r a. z = hcomplex_of_hypreal r * (HComplex(( *f* cos) a)(( *f* sin) a))"
 by transfer (rule complex_split_polar)
-
-lemma hcis: "hcis (star_n X) = star_n (%n. cis (X n))"
-by (simp add: hcis_def starfun)
 
 lemma hcis_eq:
    "!!a. hcis a =
     (hcomplex_of_hypreal(( *f* cos) a) +
     iii * hcomplex_of_hypreal(( *f* sin) a))"
 by transfer (simp add: cis_def)
-
-lemma hrcis: "hrcis (star_n X) (star_n Y) = star_n (%n. rcis (X n) (Y n))"
-by (simp add: hrcis_def starfun2_star_n)
 
 lemma hrcis_Ex: "!!z. \<exists>r a. z = hrcis r a"
 by transfer (rule rcis_Ex)
