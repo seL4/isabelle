@@ -158,7 +158,7 @@ datatype iterm =
     type schemes            tysm
     term                    t
     (term as pattern)       p
-    instance (classs, tyco) inst
+    instance (class, tyco)  inst
  *)
 
 fun ty1 `-> ty2 = "fun" `%% [ty1, ty2];
