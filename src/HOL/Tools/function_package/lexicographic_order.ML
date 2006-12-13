@@ -62,9 +62,7 @@ fun mk_base_fun_bodys (t : term) (tt : typ) =
     | _ => [(t, tt)]
            
 fun mk_base_fun_header fulltyp (t, typ) =
-    if typ = HOLogic.natT then
-      Abs ("x", fulltyp, t)
-    else Abs ("x", fulltyp, Const("Nat.size", typ --> HOLogic.natT) $ t)
+    Abs ("x", fulltyp, Const("Nat.size", typ --> HOLogic.natT) $ t)
          
 fun mk_base_funs (tt: typ) = 
     mk_base_fun_bodys (Bound 0) tt |>
