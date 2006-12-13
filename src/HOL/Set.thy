@@ -150,11 +150,11 @@ instance set :: (type) ord
 
 abbreviation
   subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
-  "subset == less"
+  "subset \<equiv> less"
 
 abbreviation
   subset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
-  "subset_eq == less_eq"
+  "subset_eq \<equiv> less_eq"
 
 notation (output)
   subset  ("op <") and
@@ -175,12 +175,18 @@ notation (HTML output)
   subset_eq  ("(_/ \<subseteq> _)" [50, 51] 50)
 
 abbreviation (input)
-  supset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"  (infixl "\<supset>" 50) where
-  "supset == greater"
+  supset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
+  "supset \<equiv> greater"
 
 abbreviation (input)
-  supset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"  (infixl "\<supseteq>" 50) where
-  "supset_eq == greater_eq"
+  supset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
+  "supset_eq \<equiv> greater_eq"
+
+notation (xsymbols)
+  supset  ("op \<supset>") and
+  supset  ("(_/ \<supset> _)" [50, 51] 50) and
+  supset_eq  ("op \<supseteq>") and
+  supset_eq  ("(_/ \<supseteq> _)" [50, 51] 50)
 
 
 subsubsection "Bounded quantifiers"
@@ -223,36 +229,38 @@ translations
 (* FIXME re-use version in Orderings.thy *)
 print_translation {*
 let
-  fun
-    all_tr' [Const ("_bound",_) $ Free (v,Type(T,_)), 
-             Const("op -->",_) $ (Const ("less",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
-  (if v=v' andalso T="set"
-   then Syntax.const "_setlessAll" $ Syntax.mark_bound v' $ n $ P
-   else raise Match)
+  val thy = the_context ();
+  val syntax_name = Sign.const_syntax_name thy;
+  val set_type = Sign.intern_type thy "set";
+  val binder_name = Syntax.binder_name o syntax_name;
+  val All_binder = binder_name "All";
+  val Ex_binder = binder_name "Ex";
+  val impl = syntax_name "op -->";
+  val conj = syntax_name "op &";
+  val sbset = syntax_name "Set.subset";
+  val sbset_eq = syntax_name "Set.subset_eq";
 
-  | all_tr' [Const ("_bound",_) $ Free (v,Type(T,_)), 
-             Const("op -->",_) $ (Const ("less_eq",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
-  (if v=v' andalso T="set"
-   then Syntax.const "_setleAll" $ Syntax.mark_bound v' $ n $ P
-   else raise Match);
+  val trans =
+   [((All_binder, impl, sbset), "_setlessAll"),
+    ((All_binder, impl, sbset_eq), "_setleAll"),
+    ((Ex_binder, conj, sbset), "_setlessEx"),
+    ((Ex_binder, conj, sbset_eq), "_setleEx")];
 
-  fun
-    ex_tr' [Const ("_bound",_) $ Free (v,Type(T,_)), 
-            Const("op &",_) $ (Const ("less",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
-  (if v=v' andalso T="set"
-   then Syntax.const "_setlessEx" $ Syntax.mark_bound v' $ n $ P
-   else raise Match)
+  fun mk v v' c n P =
+    if v = v' andalso not (Term.exists_subterm (fn Free (x, _) => x = v | _ => false) n)
+    then Syntax.const c $ Syntax.mark_bound v' $ n $ P else raise Match;
 
-  | ex_tr' [Const ("_bound",_) $ Free (v,Type(T,_)), 
-            Const("op &",_) $ (Const ("less_eq",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
-  (if v=v' andalso T="set"
-   then Syntax.const "_setleEx" $ Syntax.mark_bound v' $ n $ P
-   else raise Match)
+  fun tr' q = (q,
+    fn [Const ("_bound", _) $ Free (v, Type (T, _)), Const (c, _) $ (Const (d, _) $ (Const ("_bound", _) $ Free (v', _)) $ n) $ P] =>
+         if T = (set_type) then case AList.lookup (op =) trans (q, c, d)
+          of NONE => raise Match
+           | SOME l => mk v v' l n P
+         else raise Match
+     | _ => raise Match);
 in
-[("All_binder", all_tr'), ("Ex_binder", ex_tr')]
+  [tr' All_binder, tr' Ex_binder]
 end
 *}
-
 
 
 text {*
