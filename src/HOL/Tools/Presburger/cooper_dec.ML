@@ -11,8 +11,8 @@ signature COOPER_DEC =
 sig
   exception COOPER
   val is_arith_rel : term -> bool
-  val mk_numeral : IntInf.int -> term
-  val dest_numeral : term -> IntInf.int
+  val mk_number : IntInf.int -> term
+  val dest_number : term -> IntInf.int
   val is_numeral : term -> bool
   val zero : term
   val one : term
@@ -76,32 +76,32 @@ form [int,int]---> int*)
  
 (*Transform a natural number to a term*) 
  
-fun mk_numeral 0 = Const("HOL.zero",HOLogic.intT)
-   |mk_numeral 1 = Const("HOL.one",HOLogic.intT)
-   |mk_numeral n = (HOLogic.number_of_const HOLogic.intT) $ (HOLogic.mk_binum n); 
+fun mk_number 0 = Const("HOL.zero",HOLogic.intT)
+   |mk_number 1 = Const("HOL.one",HOLogic.intT)
+   |mk_number n = (HOLogic.number_of_const HOLogic.intT) $ (HOLogic.mk_numeral n); 
  
 (*Transform an Term to an natural number*)	  
 	  
-fun dest_numeral (Const("HOL.zero",Type ("IntDef.int", []))) = 0
-   |dest_numeral (Const("HOL.one",Type ("IntDef.int", []))) = 1
-   |dest_numeral (Const ("Numeral.number_of",_) $ n) = 
-       HOLogic.dest_binum n;
+fun dest_number (Const("HOL.zero",Type ("IntDef.int", []))) = 0
+   |dest_number (Const("HOL.one",Type ("IntDef.int", []))) = 1
+   |dest_number (Const ("Numeral.number_of",_) $ n) = 
+       HOLogic.dest_numeral n;
 (*Some terms often used for pattern matching*) 
  
-val zero = mk_numeral 0; 
-val one = mk_numeral 1; 
+val zero = mk_number 0; 
+val one = mk_number 1; 
  
 (*Tests if a Term is representing a number*) 
  
-fun is_numeral t = (t = zero) orelse (t = one) orelse (can dest_numeral t); 
+fun is_numeral t = (t = zero) orelse (t = one) orelse (can dest_number t); 
  
 (*maps a unary natural function on a term containing an natural number*) 
  
-fun numeral1 f n = mk_numeral (f(dest_numeral n)); 
+fun numeral1 f n = mk_number (f(dest_number n)); 
  
 (*maps a binary natural function on 2 term containing  natural numbers*) 
  
-fun numeral2 f m n = mk_numeral(f(dest_numeral m) (dest_numeral n)); 
+fun numeral2 f m n = mk_number(f(dest_number m) (dest_number n)); 
  
 (* ------------------------------------------------------------------------- *) 
 (* Operations on canonical linear terms c1 * x1 + ... + cn * xn + k          *) 
@@ -178,9 +178,9 @@ After this fuction the all expressions containig ths variable will have the form
  Free(x,T)*) 
   
 fun lint vars tm = if is_numeral tm then tm else case tm of 
-   (Free (x,T)) =>  (HOLogic.mk_binop "HOL.plus" ((HOLogic.mk_binop "HOL.times" ((mk_numeral 1),Free (x,T))), zero)) 
+   (Free (x,T)) =>  (HOLogic.mk_binop "HOL.plus" ((HOLogic.mk_binop "HOL.times" ((mk_number 1),Free (x,T))), zero)) 
   |(Bound i) =>  (Const("HOL.plus",HOLogic.intT -->HOLogic.intT -->HOLogic.intT) $ 
-  (Const("HOL.times",HOLogic.intT -->HOLogic.intT -->HOLogic.intT) $ (mk_numeral 1) $ (Bound i)) $ zero) 
+  (Const("HOL.times",HOLogic.intT -->HOLogic.intT -->HOLogic.intT) $ (mk_number 1) $ (Bound i)) $ zero) 
   |(Const("HOL.uminus",_) $ t ) => (linear_neg (lint vars t)) 
   |(Const("HOL.plus",_) $ s $ t) => (linear_add vars (lint vars s) (lint vars t)) 
   |(Const("HOL.minus",_) $ s $ t) => (linear_sub vars (lint vars s) (lint vars t)) 
@@ -188,8 +188,8 @@ fun lint vars tm = if is_numeral tm then tm else case tm of
         let val s' = lint vars s  
             val t' = lint vars t  
         in 
-        if is_numeral s' then (linear_cmul (dest_numeral s') t') 
-        else if is_numeral t' then (linear_cmul (dest_numeral t') s') 
+        if is_numeral s' then (linear_cmul (dest_number s') t') 
+        else if is_numeral t' then (linear_cmul (dest_number t') s') 
  
          else raise COOPER
          end 
@@ -205,7 +205,7 @@ fun mkatom vars p t = Const(p,HOLogic.intT --> HOLogic.intT --> HOLogic.boolT) $
  
 fun linform vars (Const ("Divides.dvd",_) $ c $ t) =
     if is_numeral c then   
-      let val c' = (mk_numeral(abs(dest_numeral c)))  
+      let val c' = (mk_number(abs(dest_number c)))  
       in (HOLogic.mk_binrel "Divides.dvd" (c,lint vars t)) 
       end 
     else (warning "Nonlinear term --- Non numeral leftside at dvd"
@@ -214,11 +214,11 @@ fun linform vars (Const ("Divides.dvd",_) $ c $ t) =
   |linform vars  (Const("Orderings.less",_)$ s $t ) = (mkatom vars "Orderings.less" (Const ("HOL.minus",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $ t $ s))
   |linform vars  (Const("op >",_) $ s $ t ) = (mkatom vars "Orderings.less" (Const ("HOL.minus",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $ s $ t)) 
   |linform vars  (Const("Orderings.less_eq",_)$ s $ t ) = 
-        (mkatom vars "Orderings.less" (Const ("HOL.minus",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $ (Const("HOL.plus",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $t $(mk_numeral 1)) $ s)) 
+        (mkatom vars "Orderings.less" (Const ("HOL.minus",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $ (Const("HOL.plus",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $t $(mk_number 1)) $ s)) 
   |linform vars  (Const("op >=",_)$ s $ t ) = 
         (mkatom vars "Orderings.less" (Const ("HOL.minus",HOLogic.intT --> HOLogic.intT --> 
 	HOLogic.intT) $ (Const("HOL.plus",HOLogic.intT --> HOLogic.intT --> 
-	HOLogic.intT) $s $(mk_numeral 1)) $ t)) 
+	HOLogic.intT) $s $(mk_number 1)) $ t)) 
  
    |linform vars  fm =  fm; 
  
@@ -228,7 +228,7 @@ fun linform vars (Const ("Divides.dvd",_) $ c $ t) =
  
 fun posineq fm = case fm of  
  (Const ("Not",_)$(Const("Orderings.less",_)$ c $ t)) =>
-   (HOLogic.mk_binrel "Orderings.less"  (zero , (linear_sub [] (mk_numeral 1) (linear_add [] c t ) ))) 
+   (HOLogic.mk_binrel "Orderings.less"  (zero , (linear_sub [] (mk_number 1) (linear_add [] c t ) ))) 
   | ( Const ("op &",_) $ p $ q)  => HOLogic.mk_conj (posineq p,posineq q)
   | ( Const ("op |",_) $ p $ q ) => HOLogic.mk_disj (posineq p,posineq q)
   | _ => fm; 
@@ -245,7 +245,7 @@ fun lcm_num a b = (abs a*b) div (gcd (abs a) (abs b));
  
 fun formlcm x fm = case fm of 
     (Const (p,_)$ _ $(Const ("HOL.plus", _)$(Const ("HOL.times",_)$ c $ y ) $z ) ) =>  if 
-    (is_arith_rel fm) andalso (x = y) then  (abs(dest_numeral c)) else 1 
+    (is_arith_rel fm) andalso (x = y) then  (abs(dest_number c)) else 1 
   | ( Const ("Not", _) $p) => formlcm x p 
   | ( Const ("op &",_) $ p $ q) => lcm_num (formlcm x p) (formlcm x q) 
   | ( Const ("op |",_) $ p $ q )=> lcm_num (formlcm x p) (formlcm x q) 
@@ -259,9 +259,9 @@ fun adjustcoeff x l fm =
      case fm of  
       (Const(p,_) $d $( Const ("HOL.plus", _)$(Const ("HOL.times",_) $ 
       c $ y ) $z )) => if (is_arith_rel fm) andalso (x = y) then  
-        let val m = l div (dest_numeral c) 
+        let val m = l div (dest_number c) 
             val n = (if p = "Orderings.less" then abs(m) else m) 
-            val xtm = HOLogic.mk_binop "HOL.times" ((mk_numeral (m div n)), x) 
+            val xtm = HOLogic.mk_binop "HOL.times" ((mk_number (m div n)), x) 
 	in
         (HOLogic.mk_binrel p ((linear_cmul n d),(HOLogic.mk_binop "HOL.plus" ( xtm ,( linear_cmul n z) )))) 
 	end 
@@ -281,9 +281,9 @@ fun unitycoeff x fm =
       if l = 1 then fm' 
 	 else 
      let val xp = (HOLogic.mk_binop "HOL.plus"  
-     		((HOLogic.mk_binop "HOL.times" ((mk_numeral 1), x )), zero))
+     		((HOLogic.mk_binop "HOL.times" ((mk_number 1), x )), zero))
 	in 
-      HOLogic.conj $(HOLogic.mk_binrel "Divides.dvd" ((mk_numeral l) , xp )) $ (adjustcoeff x l fm) 
+      HOLogic.conj $(HOLogic.mk_binrel "Divides.dvd" ((mk_number l) , xp )) $ (adjustcoeff x l fm) 
       end 
   end; 
  
@@ -294,9 +294,9 @@ fun adjustcoeffeq x l fm =
     case fm of  
       (Const(p,_) $d $( Const ("HOL.plus", _)$(Const ("HOL.times",_) $ 
       c $ y ) $z )) => if (is_arith_rel fm) andalso (x = y) then  
-        let val m = l div (dest_numeral c) 
+        let val m = l div (dest_number c) 
             val n = (if p = "Orderings.less" then abs(m) else m)  
-            val xtm = (HOLogic.mk_binop "HOL.times" ((mk_numeral ((m div n)*l) ), x))
+            val xtm = (HOLogic.mk_binop "HOL.times" ((mk_number ((m div n)*l) ), x))
             in (HOLogic.mk_binrel p ((linear_cmul n d),(HOLogic.mk_binop "HOL.plus" ( xtm ,( linear_cmul n z) )))) 
 	    end 
 	else fm 
@@ -320,7 +320,7 @@ fun minusinf x fm = case fm of
   |(Const("Orderings.less",_) $ c $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ pm1 $ y ) $ z 
   )) => if (x = y) 
 	then if (pm1 = one) andalso (c = zero) then HOLogic.false_const 
-	     else if (dest_numeral pm1 = ~1) andalso (c = zero) then HOLogic.true_const 
+	     else if (dest_number pm1 = ~1) andalso (c = zero) then HOLogic.true_const 
 	          else error "minusinf : term not in normal form!!!"
 	else fm
 	 
@@ -341,7 +341,7 @@ fun plusinf x fm = case fm of
   |(Const("Orderings.less",_) $ c $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ pm1 $ y ) $ z
   )) => if (x = y) 
 	then if (pm1 = one) andalso (c = zero) then HOLogic.true_const 
-	     else if (dest_numeral pm1 = ~1) andalso (c = zero) then HOLogic.false_const
+	     else if (dest_number pm1 = ~1) andalso (c = zero) then HOLogic.false_const
 	     else error "plusinf : term not in normal form!!!"
 	else fm 
 
@@ -355,7 +355,7 @@ fun plusinf x fm = case fm of
 (* ------------------------------------------------------------------------- *) 
  
 fun divlcm x (Const("Divides.dvd",_)$ d $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $ c $ y ) $ z ) ) =  
-        if x = y then abs(dest_numeral d) else 1 
+        if x = y then abs(dest_number d) else 1 
   |divlcm x ( Const ("Not", _) $ p) = divlcm x p 
   |divlcm x ( Const ("op &",_) $ p $ q) = lcm_num (divlcm x p) (divlcm x q) 
   |divlcm x ( Const ("op |",_) $ p $ q ) = lcm_num (divlcm x p) (divlcm x q) 
@@ -375,7 +375,7 @@ fun bset x fm = case fm of
    	  |_ =>[]) 
 			 
 			else bset x p 
-  |(Const ("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $c2 $ x) $ a)) =>  if (c1 =zero) andalso (c2 = one) then [linear_neg(linear_add [] a (mk_numeral 1))]  else [] 
+  |(Const ("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $c2 $ x) $ a)) =>  if (c1 =zero) andalso (c2 = one) then [linear_neg(linear_add [] a (mk_number 1))]  else [] 
   |(Const ("Orderings.less",_) $ c1$ (Const ("HOL.plus",_) $(Const ("HOL.times",_)$ c2 $ x) $ a)) => if (c1 =zero) andalso (c2 = one) then [linear_neg a] else [] 
   |(Const ("op &",_) $ p $ q) => (bset x p) union (bset x q) 
   |(Const ("op |",_) $ p $ q) => (bset x p) union (bset x q) 
@@ -395,8 +395,8 @@ fun aset x fm = case fm of
    	  |_ =>[])
 
 			else aset x p
-  |(Const ("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $c2 $ x) $ a)) =>  if (c1 =zero) andalso (c2 = one) then [linear_sub [] (mk_numeral 1) a]  else []
-  |(Const ("Orderings.less",_) $ c1$ (Const ("HOL.plus",_) $(Const ("HOL.times",_)$ c2 $ x) $ a)) => if (c1 =zero) andalso (c2 = (mk_numeral (~1))) then [a] else []
+  |(Const ("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $c2 $ x) $ a)) =>  if (c1 =zero) andalso (c2 = one) then [linear_sub [] (mk_number 1) a]  else []
+  |(Const ("Orderings.less",_) $ c1$ (Const ("HOL.plus",_) $(Const ("HOL.times",_)$ c2 $ x) $ a)) => if (c1 =zero) andalso (c2 = (mk_number (~1))) then [a] else []
   |(Const ("op &",_) $ p $ q) => (aset x p) union (aset x q)
   |(Const ("op |",_) $ p $ q) => (aset x p) union (aset x q)
   |_ => [];
@@ -410,7 +410,7 @@ fun linrep vars x t fm = case fm of
    ((Const(p,_)$ d $ (Const("HOL.plus",_)$(Const("HOL.times",_)$ c $ y) $ z))) => 
       if (x = y) andalso (is_arith_rel fm)  
       then  
-        let val ct = linear_cmul (dest_numeral c) t  
+        let val ct = linear_cmul (dest_number c) t  
 	in (HOLogic.mk_binrel p (d, linear_add vars ct z)) 
 	end 
 	else fm 
@@ -430,16 +430,16 @@ exception DVD_UNKNOWN
 fun dvd_op (d, t) = 
  if not(is_numeral d) then raise DVD_UNKNOWN
  else let 
-   val dn = dest_numeral d
+   val dn = dest_number d
    fun coeffs_of x = case x of 
      Const(p,_) $ tl $ tr => 
        if p = "HOL.plus" then (coeffs_of tl) union (coeffs_of tr)
           else if p = "HOL.times" 
 	        then if (is_numeral tr) 
-		 then [(dest_numeral tr) * (dest_numeral tl)] 
-		 else [dest_numeral tl]
+		 then [(dest_number tr) * (dest_number tl)] 
+		 else [dest_number tl]
 	        else []
-    |_ => if (is_numeral t) then [dest_numeral t]  else []
+    |_ => if (is_numeral t) then [dest_number t]  else []
    val ts = coeffs_of t
    in case ts of
      [] => raise DVD_UNKNOWN
@@ -466,12 +466,12 @@ fun evalc_atom at = case at of
       handle _ => at)
     else
   case AList.lookup (op =) operations p of 
-    SOME f => ((if (f ((dest_numeral s),(dest_numeral t))) then HOLogic.true_const else HOLogic.false_const)  
+    SOME f => ((if (f ((dest_number s),(dest_number t))) then HOLogic.true_const else HOLogic.false_const)  
     handle _ => at) 
       | _ =>  at) 
       |Const("Not",_)$(Const (p,_) $ s $ t) =>(  
   case AList.lookup (op =) operations p of 
-    SOME f => ((if (f ((dest_numeral s),(dest_numeral t))) then 
+    SOME f => ((if (f ((dest_number s),(dest_number t))) then 
     HOLogic.false_const else HOLogic.true_const)  
     handle _ => at) 
       | _ =>  at) 
@@ -482,13 +482,13 @@ fun evalc_atom at = case at of
 fun evalc_atom at = case at of  
   (Const (p,_) $ s $ t) =>
    ( case AList.lookup (op =) operations p of 
-    SOME f => ((if (f ((dest_numeral s),(dest_numeral t))) then HOLogic.true_const 
+    SOME f => ((if (f ((dest_number s),(dest_number t))) then HOLogic.true_const 
                 else HOLogic.false_const)  
     handle _ => at) 
       | _ =>  at) 
       |Const("Not",_)$(Const (p,_) $ s $ t) =>(  
   case AList.lookup (op =) operations p of 
-    SOME f => ((if (f ((dest_numeral s),(dest_numeral t))) 
+    SOME f => ((if (f ((dest_number s),(dest_number t))) 
                then HOLogic.false_const else HOLogic.true_const)  
     handle _ => at) 
       | _ =>  at) 
@@ -659,8 +659,8 @@ fun mk_uni_vars T  (node $ rest) = (case node of
     |mk_uni_vars T (Free (v,_)) = Free (v,T) 
     |mk_uni_vars T tm = tm; 
  
-fun mk_uni_int T (Const ("HOL.zero",T2)) = if T = T2 then (mk_numeral 0) else (Const ("HOL.zero",T2)) 
-    |mk_uni_int T (Const ("HOL.one",T2)) = if T = T2 then (mk_numeral 1) else (Const ("HOL.one",T2)) 
+fun mk_uni_int T (Const ("HOL.zero",T2)) = if T = T2 then (mk_number 0) else (Const ("HOL.zero",T2)) 
+    |mk_uni_int T (Const ("HOL.one",T2)) = if T = T2 then (mk_number 1) else (Const ("HOL.one",T2)) 
     |mk_uni_int T (node $ rest) = (mk_uni_int T node) $ (mk_uni_int T rest )  
     |mk_uni_int T (Abs(AV,AT,p)) = Abs(AV,AT,mk_uni_int T p) 
     |mk_uni_int T tm = tm; 
@@ -680,8 +680,8 @@ fun coopermi vars1 fm =
     val p_inf = simpl (minusinf x p) 
     val bset = bset x p 
     val js = myupto 1 (divlcm x p)
-    fun p_element j b = linrep vars x (linear_add vars b (mk_numeral j)) p  
-    fun stage j = list_disj (linrep vars x (mk_numeral j) p_inf :: map (p_element j) bset)  
+    fun p_element j b = linrep vars x (linear_add vars b (mk_number j)) p  
+    fun stage j = list_disj (linrep vars x (mk_number j) p_inf :: map (p_element j) bset)  
    in (list_disj (map stage js))
     end 
   | _ => error "cooper: not an existential formula"; 
@@ -699,8 +699,8 @@ fun cooperpi vars1 fm =
     val p_inf = simpl (plusinf x p)
     val aset = aset x p
     val js = myupto 1 (divlcm x p)
-    fun p_element j a = linrep vars x (linear_sub vars a (mk_numeral j)) p
-    fun stage j = list_disj (linrep vars x (mk_numeral j) p_inf :: map (p_element j) aset)
+    fun p_element j a = linrep vars x (linear_sub vars a (mk_number j)) p
+    fun stage j = list_disj (linrep vars x (mk_number j) p_inf :: map (p_element j) aset)
    in (list_disj (map stage js))
    end
   | _ => error "cooper: not an existential formula";
@@ -711,13 +711,13 @@ fun cooperpi vars1 fm =
 fun inf_w mi d vars x p = 
   let val f = if mi then minusinf else plusinf in
    case (simpl (minusinf x p)) of
-   Const("True",_)  => (SOME (mk_numeral 1), HOLogic.true_const)
+   Const("True",_)  => (SOME (mk_number 1), HOLogic.true_const)
   |Const("False",_) => (NONE,HOLogic.false_const)
   |F => 
       let 
       fun h n =
-       case ((simpl o evalc) (linrep vars x (mk_numeral n) F)) of 
-	Const("True",_) => (SOME (mk_numeral n),HOLogic.true_const)
+       case ((simpl o evalc) (linrep vars x (mk_number n) F)) of 
+	Const("True",_) => (SOME (mk_number n),HOLogic.true_const)
        |F' => if n=1 then (NONE,F')
 	     else let val (rw,rf) = h (n-1) in 
 	       (rw,HOLogic.mk_disj(F',rf))
@@ -736,7 +736,7 @@ fun set_w d b st vars x p = let
              in (rw,HOLogic.mk_disj(F',rf)) 
 	     end)
     val f = if b then linear_add else linear_sub
-    val p_elements = fold_rev (fn i => fn l => l union (map (fn e => f [] e (mk_numeral i)) st)) (myupto 1 d) []
+    val p_elements = fold_rev (fn i => fn l => l union (map (fn e => f [] e (mk_number i)) st)) (myupto 1 d) []
     in h p_elements
     end;
 
@@ -769,8 +769,8 @@ fun cooper vars1 fm =
     if (length bst) <= (length ast) 
      then (simpl (minusinf x p),linear_add,bst)
      else (simpl (plusinf x p), linear_sub,ast)
-    fun p_element j a = linrep vars x (f vars a (mk_numeral j)) p
-    fun stage j = list_disj (linrep vars x (mk_numeral j) p_inf :: map (p_element j) S)
+    fun p_element j a = linrep vars x (f vars a (mk_number j)) p
+    fun stage j = list_disj (linrep vars x (mk_number j) p_inf :: map (p_element j) S)
     fun stageh n = ((if n = 0 then []
 	else 
 	let 
@@ -805,8 +805,8 @@ fun cooper_w vars1 fm =
      then (true,bst)
      else (false,ast)
     in withness d p_inf S vars x p 
-(*    fun p_element j a = linrep vars x (f vars a (mk_numeral j)) p
-    fun stage j = list_disj (linrep vars x (mk_numeral j) p_inf :: map (p_element j) S)
+(*    fun p_element j a = linrep vars x (f vars a (mk_number j)) p
+    fun stage j = list_disj (linrep vars x (mk_number j) p_inf :: map (p_element j) S)
    in (list_disj (map stage js))
 *)
    end

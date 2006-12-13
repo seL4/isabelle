@@ -33,7 +33,7 @@ open CooperDec;
 val presburger_ss = simpset ()
   addsimps [diff_int_def] delsimps [thm "diff_int_def_symmetric"];
 
-val cboolT = ctyp_of (sign_of HOL.thy) HOLogic.boolT;
+val cboolT = ctyp_of HOL.thy HOLogic.boolT;
 
 (*Theorems that will be used later for the proofgeneration*)
 
@@ -163,7 +163,7 @@ val lf_dvd = thm "lf_dvd";
 fun norm_zero_one fm = case fm of
   (Const ("HOL.times",_) $ c $ t) => 
     if c = one then (norm_zero_one t)
-    else if (dest_numeral c = ~1) 
+    else if (dest_number c = ~1) 
          then (Const("HOL.uminus",HOLogic.intT --> HOLogic.intT) $ (norm_zero_one t))
          else (HOLogic.mk_binop "HOL.times" (norm_zero_one c,norm_zero_one t))
   |(node $ rest) => ((norm_zero_one node)$(norm_zero_one rest))
@@ -253,18 +253,18 @@ fun thm_of sg decomp t =
 fun decomp_adjustcoeffeq sg x l fm = case fm of
     (Const("Not",_)$(Const("Orderings.less",_) $(Const("HOL.zero",_)) $(rt as (Const ("HOL.plus", _)$(Const ("HOL.times",_) $    c $ y ) $z )))) => 
      let  
-        val m = l div (dest_numeral c) 
+        val m = l div (dest_number c) 
         val n = if (x = y) then abs (m) else 1
-        val xtm = (HOLogic.mk_binop "HOL.times" ((mk_numeral ((m div n)*l) ), x)) 
+        val xtm = (HOLogic.mk_binop "HOL.times" ((mk_number ((m div n)*l) ), x)) 
         val rs = if (x = y) 
-                 then (HOLogic.mk_binrel "Orderings.less" (zero,linear_sub [] (mk_numeral n) (HOLogic.mk_binop "HOL.plus" ( xtm ,( linear_cmul n z) )))) 
+                 then (HOLogic.mk_binrel "Orderings.less" (zero,linear_sub [] (mk_number n) (HOLogic.mk_binop "HOL.plus" ( xtm ,( linear_cmul n z) )))) 
                  else HOLogic.mk_binrel "Orderings.less" (zero,linear_sub [] one rt )
-        val ck = cterm_of sg (mk_numeral n)
+        val ck = cterm_of sg (mk_number n)
         val cc = cterm_of sg c
         val ct = cterm_of sg z
         val cx = cterm_of sg y
         val pre = prove_elementar sg "lf" 
-            (HOLogic.mk_binrel "Orderings.less" (Const("HOL.zero",HOLogic.intT),(mk_numeral n)))
+            (HOLogic.mk_binrel "Orderings.less" (Const("HOL.zero",HOLogic.intT),(mk_number n)))
         val th1 = (pre RS (instantiate' [] [SOME ck,SOME cc, SOME cx, SOME ct] (ac_pi_eq)))
         in ([], fn [] => [th1,(prove_elementar sg "sa" (HOLogic.mk_eq (snd (qe_get_terms th1) ,rs)))] MRS trans)
         end
@@ -273,12 +273,12 @@ fun decomp_adjustcoeffeq sg x l fm = case fm of
       c $ y ) $t )) => 
    if (is_arith_rel fm) andalso (x = y) 
    then  
-        let val m = l div (dest_numeral c) 
+        let val m = l div (dest_number c) 
            val k = (if p = "Orderings.less" then abs(m) else m)  
-           val xtm = (HOLogic.mk_binop "HOL.times" ((mk_numeral ((m div k)*l) ), x))
+           val xtm = (HOLogic.mk_binop "HOL.times" ((mk_number ((m div k)*l) ), x))
            val rs = (HOLogic.mk_binrel p ((linear_cmul k a),(HOLogic.mk_binop "HOL.plus" ( xtm ,( linear_cmul k t) )))) 
 
-           val ck = cterm_of sg (mk_numeral k)
+           val ck = cterm_of sg (mk_number k)
            val cc = cterm_of sg c
            val ct = cterm_of sg t
            val cx = cterm_of sg x
@@ -288,21 +288,21 @@ fun decomp_adjustcoeffeq sg x l fm = case fm of
 	case p of
 	  "Orderings.less" => 
 	let val pre = prove_elementar sg "lf" 
-	    (HOLogic.mk_binrel "Orderings.less" (Const("HOL.zero",HOLogic.intT),(mk_numeral k)))
+	    (HOLogic.mk_binrel "Orderings.less" (Const("HOL.zero",HOLogic.intT),(mk_number k)))
             val th1 = (pre RS (instantiate' [] [SOME ck,SOME ca,SOME cc, SOME cx, SOME ct] (ac_lt_eq)))
 	in ([], fn [] => [th1,(prove_elementar sg "lf" (HOLogic.mk_eq (snd (qe_get_terms th1) ,rs)))] MRS trans)
          end
 
            |"op =" =>
 	     let val pre = prove_elementar sg "lf" 
-	    (HOLogic.Not $ (HOLogic.mk_binrel "op =" (Const("HOL.zero",HOLogic.intT),(mk_numeral k))))
+	    (HOLogic.Not $ (HOLogic.mk_binrel "op =" (Const("HOL.zero",HOLogic.intT),(mk_number k))))
 	         val th1 = (pre RS(instantiate' [] [SOME ck,SOME ca,SOME cc, SOME cx, SOME ct] (ac_eq_eq)))
 	     in ([], fn [] => [th1,(prove_elementar sg "lf" (HOLogic.mk_eq (snd (qe_get_terms th1) ,rs)))] MRS trans)
              end
 
              |"Divides.dvd" =>
 	       let val pre = prove_elementar sg "lf" 
-	   (HOLogic.Not $ (HOLogic.mk_binrel "op =" (Const("HOL.zero",HOLogic.intT),(mk_numeral k))))
+	   (HOLogic.Not $ (HOLogic.mk_binrel "op =" (Const("HOL.zero",HOLogic.intT),(mk_number k))))
                    val th1 = (pre RS (instantiate' [] [SOME ck,SOME ca,SOME cc, SOME cx, SOME ct]) (ac_dvd_eq))
                in ([], fn [] => [th1,(prove_elementar sg "lf" (HOLogic.mk_eq (snd (qe_get_terms th1) ,rs)))] MRS trans)
                         
@@ -574,7 +574,7 @@ fun generate_atomic_not_bst_p sg (x as Free(xn,xT)) fm dlcm B at =
 
    |(Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $(Const ("HOL.plus", T) $(Const ("HOL.times",_) $ c2 $ y) $z)) =>
      if (is_arith_rel at) andalso (x=y)
-	then let val bst_z = norm_zero_one (linear_neg (linear_add [] z (mk_numeral 1)))
+	then let val bst_z = norm_zero_one (linear_neg (linear_add [] z (mk_number 1)))
 	         in let val th1 = prove_elementar sg "ss" (Const ("op :",HOLogic.intT --> (HOLogic.mk_setT HOLogic.intT) --> HOLogic.boolT) $ bst_z $ B)
 	          val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq (bst_z,Const("HOL.minus",T) $ (Const("HOL.uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one z)) $ (Const("HOL.one",HOLogic.intT))))
 		  val th3 = prove_elementar sg "ss" (HOLogic.mk_binrel "Orderings.less" (Const("HOL.zero",HOLogic.intT),dlcm))
@@ -675,7 +675,7 @@ fun generate_atomic_not_ast_p sg (x as Free(xn,xT)) fm dlcm A at =
 
    |(Const("Orderings.less",_) $ c1 $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ pm1 $ y ) $ z )) =>
         if (y=x) andalso (c1 =zero) then 
-        if pm1 = (mk_numeral ~1) then 
+        if pm1 = (mk_number ~1) then 
 	  let val th1 = prove_elementar sg "ss" (Const ("op :",HOLogic.intT --> (HOLogic.mk_setT HOLogic.intT) --> HOLogic.boolT) $ (norm_zero_one z) $ A)
               val th2 =  prove_elementar sg "ss" (HOLogic.mk_binrel "Orderings.less" (zero,dlcm))
 	  in  (instantiate' [] [SOME cfma]([th2,th1] MRS (not_ast_p_lt)))
@@ -734,7 +734,7 @@ fun rho_for_evalc sg at = case at of
     (Const (p,_) $ s $ t) =>(  
     case AList.lookup (op =) operations p of 
         SOME f => 
-           ((if (f ((dest_numeral s),(dest_numeral t))) 
+           ((if (f ((dest_number s),(dest_number t))) 
              then prove_elementar sg "ss" (HOLogic.mk_eq(at,HOLogic.true_const)) 
              else prove_elementar sg "ss" (HOLogic.mk_eq(at, HOLogic.false_const)))  
 		   handle _ => instantiate' [SOME cboolT] [SOME (cterm_of sg at)] refl)
@@ -742,7 +742,7 @@ fun rho_for_evalc sg at = case at of
      |Const("Not",_)$(Const (p,_) $ s $ t) =>(  
        case AList.lookup (op =) operations p of 
          SOME f => 
-           ((if (f ((dest_numeral s),(dest_numeral t))) 
+           ((if (f ((dest_number s),(dest_number t))) 
              then prove_elementar sg "ss" (HOLogic.mk_eq(at, HOLogic.false_const))  
              else prove_elementar sg "ss" (HOLogic.mk_eq(at,HOLogic.true_const)))  
 		      handle _ => instantiate' [SOME cboolT] [SOME (cterm_of sg at)] refl) 
@@ -842,14 +842,14 @@ fun cooper_prv sg (x as Free(xn,xT)) efm = let
    val ss = presburger_ss addsimps
      [simp_from_to] delsimps [P_eqtrue, P_eqfalse, bex_triv, insert_iff]
    (* uth : EX x.P(l*x) = EX x. l dvd x & P x*)
-   val uth = instantiate' [] [SOME (cterm_of sg P) , SOME (cterm_of sg (mk_numeral l))] (unity_coeff_ex)
+   val uth = instantiate' [] [SOME (cterm_of sg P) , SOME (cterm_of sg (mk_number l))] (unity_coeff_ex)
    (* e_ac_thm : Ex x. efm = EX x. fm*)
    val e_ac_thm = (forall_intr (cterm_of sg x) ac_thm) COMP (qe_exI)
    (* A and B set of the formula*)
    val A = aset x cfm
    val B = bset x cfm
    (* the divlcm (delta) of the formula*)
-   val dlcm = mk_numeral (divlcm x cfm)
+   val dlcm = mk_number (divlcm x cfm)
    (* Which set is smaller to generate the (hoepfully) shorter proof*)
    val cms = if ((length A) < (length B )) then "pi" else "mi"
 (*   val _ = if cms = "pi" then writeln "Plusinfinity" else writeln "Minusinfinity"*)
@@ -906,7 +906,7 @@ fun cooper_prv_w sg (x as Free(xn,xT)) efm = let
    val ss = presburger_ss addsimps
      [simp_from_to] delsimps [P_eqtrue, P_eqfalse, bex_triv, insert_iff]
    (* uth : EX x.P(l*x) = EX x. l dvd x & P x*)
-   val uth = instantiate' [] [SOME (cterm_of sg P) , SOME (cterm_of sg (mk_numeral l))] (unity_coeff_ex)
+   val uth = instantiate' [] [SOME (cterm_of sg P) , SOME (cterm_of sg (mk_number l))] (unity_coeff_ex)
    (* e_ac_thm : Ex x. efm = EX x. fm*)
    val e_ac_thm = (forall_intr (cterm_of sg x) ac_thm) COMP (qe_exI)
    (* lsuth = EX.P(l*x) ; rsuth = EX x. l dvd x & P x*)
@@ -923,7 +923,7 @@ fun cooper_prv_w sg (x as Free(xn,xT)) efm = let
     val A = aset x cfm
     val B = bset x cfm
     (* the divlcm (delta) of the formula*)
-    val dlcm = mk_numeral (divlcm x cfm)
+    val dlcm = mk_number (divlcm x cfm)
     (* Which set is smaller to generate the (hoepfully) shorter proof*)
     val cms = if ((length A) < (length B )) then "pi" else "mi"
     (* synthesize the proof of cooper's theorem*)

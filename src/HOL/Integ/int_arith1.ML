@@ -160,7 +160,7 @@ fun numterm_ord (Abs (_, T, t), Abs(_, U, u)) =
       (case numterm_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
   | numterm_ord
      (Const("Numeral.number_of", _) $ v, Const("Numeral.number_of", _) $ w) =
-     num_ord (HOLogic.dest_binum v, HOLogic.dest_binum w)
+     num_ord (HOLogic.dest_numeral v, HOLogic.dest_numeral w)
   | numterm_ord (Const("Numeral.number_of", _) $ _, _) = LESS
   | numterm_ord (_, Const("Numeral.number_of", _) $ _) = GREATER
   | numterm_ord (t, u) =
@@ -181,18 +181,18 @@ val num_ss = HOL_ss settermless numtermless;
 
 (** Utilities **)
 
-fun mk_numeral T n = HOLogic.number_of_const T $ HOLogic.mk_binum n;
+fun mk_number T n = HOLogic.number_of_const T $ HOLogic.mk_numeral n;
 
 (*Decodes a binary INTEGER*)
-fun dest_numeral (Const("HOL.zero", _)) = 0
-  | dest_numeral (Const("HOL.one", _)) = 1
-  | dest_numeral (Const("Numeral.number_of", _) $ w) =
-     (HOLogic.dest_binum w
-      handle TERM _ => raise TERM("Int_Numeral_Simprocs.dest_numeral:1", [w]))
-  | dest_numeral t = raise TERM("Int_Numeral_Simprocs.dest_numeral:2", [t]);
+fun dest_number (Const("HOL.zero", _)) = 0
+  | dest_number (Const("HOL.one", _)) = 1
+  | dest_number (Const("Numeral.number_of", _) $ w) =
+     (HOLogic.dest_numeral w
+      handle TERM _ => raise TERM("Int_Numeral_Simprocs.dest_number:1", [w]))
+  | dest_number t = raise TERM("Int_Numeral_Simprocs.dest_number:2", [t]);
 
 fun find_first_numeral past (t::terms) =
-        ((dest_numeral t, rev past @ terms)
+        ((dest_number t, rev past @ terms)
          handle TERM _ => find_first_numeral (t::past) terms)
   | find_first_numeral past [] = raise TERM("find_first_numeral", []);
 
@@ -204,12 +204,12 @@ fun mk_minus t =
   end;
 
 (*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
-fun mk_sum T []        = mk_numeral T 0
+fun mk_sum T []        = mk_number T 0
   | mk_sum T [t,u]     = mk_plus (t, u)
   | mk_sum T (t :: ts) = mk_plus (t, mk_sum T ts);
 
 (*this version ALWAYS includes a trailing zero*)
-fun long_mk_sum T []        = mk_numeral T 0
+fun long_mk_sum T []        = mk_number T 0
   | long_mk_sum T (t :: ts) = mk_plus (t, mk_sum T ts);
 
 val dest_plus = HOLogic.dest_bin "HOL.plus" Term.dummyT;
@@ -230,14 +230,14 @@ val dest_diff = HOLogic.dest_bin "HOL.minus" Term.dummyT;
 val mk_times = HOLogic.mk_binop "HOL.times";
 
 fun mk_prod T = 
-  let val one = mk_numeral T 1
+  let val one = mk_number T 1
   fun mk [] = one
     | mk [t] = t
     | mk (t :: ts) = if t = one then mk ts else mk_times (t, mk ts)
   in mk end;
 
 (*This version ALWAYS includes a trailing one*)
-fun long_mk_prod T []        = mk_numeral T 1
+fun long_mk_prod T []        = mk_number T 1
   | long_mk_prod T (t :: ts) = mk_times (t, mk_prod T ts);
 
 val dest_times = HOLogic.dest_bin "HOL.times" Term.dummyT;
@@ -248,7 +248,7 @@ fun dest_prod t =
       handle TERM _ => [t];
 
 (*DON'T do the obvious simplifications; that would create special cases*)
-fun mk_coeff (k, t) = mk_times (mk_numeral (Term.fastype_of t) k, t);
+fun mk_coeff (k, t) = mk_times (mk_number (Term.fastype_of t) k, t);
 
 (*Express t as a product of (possibly) a numeral with other sorted terms*)
 fun dest_coeff sign (Const ("HOL.uminus", _) $ t) = dest_coeff (~sign) t

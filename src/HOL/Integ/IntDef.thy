@@ -863,7 +863,7 @@ subsection {* Configuration of the code generator *}
 types_code
   "int" ("int")
 attach (term_of) {*
-val term_of_int = HOLogic.mk_int o IntInf.fromInt;
+val term_of_int = HOLogic.mk_number HOLogic.intT o IntInf.fromInt;
 *}
 attach (test) {*
 fun gen_int i = one_of [~1, 1] * random_range 0 i;
@@ -955,15 +955,15 @@ code_modulename Haskell
   IntDef Integer
 
 ML {*
-fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",
-      Type ("fun", [_, T as Type ("IntDef.int", [])])) $ bin) =
+fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of", Type ("fun", [_, T])) $ t) =
+      if T = HOLogic.intT then
         (SOME (fst (Codegen.invoke_tycodegen thy defs dep module false (gr, T)),
-           Pretty.str (IntInf.toString (HOLogic.dest_binum bin))) handle TERM _ => NONE)
-  | number_of_codegen thy defs gr s thyname b (Const ("Numeral.number_of",
-      Type ("fun", [_, Type ("nat", [])])) $ bin) =
-        SOME (Codegen.invoke_codegen thy defs s thyname b (gr,
+          (Pretty.str o IntInf.toString o HOLogic.dest_numeral) t) handle TERM _ => NONE)
+      else if T = HOLogic.natT then
+        SOME (Codegen.invoke_codegen thy defs dep module b (gr,
           Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT) $
-            (Const ("Numeral.number_of", HOLogic.intT --> HOLogic.intT) $ bin)))
+            (Const ("Numeral.number_of", HOLogic.intT --> HOLogic.intT) $ t)))
+      else NONE
   | number_of_codegen _ _ _ _ _ _ _ = NONE;
 *}
 

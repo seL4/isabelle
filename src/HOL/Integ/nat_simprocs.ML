@@ -23,22 +23,22 @@ fun rename_numerals th =
 
 (*Utilities*)
 
-fun mk_numeral n = HOLogic.number_of_const HOLogic.natT $ HOLogic.mk_binum n;
+fun mk_number n = HOLogic.number_of_const HOLogic.natT $ HOLogic.mk_numeral n;
 
 (*Decodes a unary or binary numeral to a NATURAL NUMBER*)
-fun dest_numeral (Const ("HOL.zero", _)) = 0
-  | dest_numeral (Const ("Suc", _) $ t) = 1 + dest_numeral t
-  | dest_numeral (Const("Numeral.number_of", _) $ w) =
-      (IntInf.max (0, HOLogic.dest_binum w)
-       handle TERM _ => raise TERM("Nat_Numeral_Simprocs.dest_numeral:1", [w]))
-  | dest_numeral t = raise TERM("Nat_Numeral_Simprocs.dest_numeral:2", [t]);
+fun dest_number (Const ("HOL.zero", _)) = 0
+  | dest_number (Const ("Suc", _) $ t) = 1 + dest_number t
+  | dest_number (Const("Numeral.number_of", _) $ w) =
+      (IntInf.max (0, HOLogic.dest_numeral w)
+       handle TERM _ => raise TERM("Nat_Numeral_Simprocs.dest_number:1", [w]))
+  | dest_number t = raise TERM("Nat_Numeral_Simprocs.dest_number:2", [t]);
 
 fun find_first_numeral past (t::terms) =
-        ((dest_numeral t, t, rev past @ terms)
+        ((dest_number t, t, rev past @ terms)
          handle TERM _ => find_first_numeral (t::past) terms)
   | find_first_numeral past [] = raise TERM("find_first_numeral", []);
 
-val zero = mk_numeral 0;
+val zero = mk_number 0;
 val mk_plus = HOLogic.mk_binop "HOL.plus";
 
 (*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
@@ -72,7 +72,7 @@ fun prep_simproc (name, pats, proc) =
 
 (*** CancelNumerals simprocs ***)
 
-val one = mk_numeral 1;
+val one = mk_number 1;
 val mk_times = HOLogic.mk_binop "HOL.times";
 
 fun mk_prod [] = one
@@ -88,7 +88,7 @@ fun dest_prod t =
       handle TERM _ => [t];
 
 (*DON'T do the obvious simplifications; that would create special cases*)
-fun mk_coeff (k,t) = mk_times (mk_numeral k, t);
+fun mk_coeff (k,t) = mk_times (mk_number k, t);
 
 (*Express t as a product of (possibly) a numeral with other factors, sorted*)
 fun dest_coeff t =
@@ -130,7 +130,7 @@ fun dest_Sucs_sum relaxed t =
   in
      if relaxed orelse exists prod_has_numeral ts then 
        if k=0 then ts
-       else mk_numeral (IntInf.fromInt k) :: ts
+       else mk_number (IntInf.fromInt k) :: ts
      else raise TERM("Nat_Numeral_Simprocs.dest_Sucs_sum", [t])
   end;
 

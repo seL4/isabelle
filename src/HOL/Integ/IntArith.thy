@@ -16,15 +16,9 @@ declare numeral_0_eq_0 [simp]
 
 subsection{*Instantiating Binary Arithmetic for the Integers*}
 
-instance
-  int :: number ..
-
-defs (overloaded)
-  int_number_of_def: "(number_of w :: int) == of_int w"
-    --{*the type constraint is essential!*}
-
 instance int :: number_ring
-by (intro_classes, simp add: int_number_of_def) 
+  int_number_of_def: "number_of w \<equiv> of_int w"
+  by intro_classes (simp only: int_number_of_def)
 
 
 subsection{*Inequality Reasoning for the Arithmetic Simproc*}
@@ -400,17 +394,6 @@ lemmas int_code_rewrites =
 
 declare int_code_rewrites [code func]
 
-ML {*
-structure Numeral =
-struct
- 
-fun int_of_numeral thy num = HOLogic.dest_binum num
-  handle TERM _
-    => error ("not a number: " ^ Sign.string_of_term thy num);
- 
-end;
-*}
-
 code_type bit
   (SML "bool")
   (Haskell "Bool")
@@ -435,7 +418,7 @@ code_const "number_of \<Colon> int \<Rightarrow> int"
      and "(-)/ _/ 1")
 
 setup {*
-  CodegenPackage.add_appconst ("Numeral.Bit", CodegenPackage.appgen_numeral Numeral.int_of_numeral)
+  CodegenPackage.add_appconst ("Numeral.Bit", CodegenPackage.appgen_numeral (try HOLogic.dest_numeral))
 *}
 
 

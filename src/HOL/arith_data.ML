@@ -268,16 +268,16 @@ fun add_atom (t : term) (m : Rat.rat) (p : (term * Rat.rat) list, i : Rat.rat) :
 
 exception Zero;
 
-fun rat_of_term (numt : term, dent : term) : Rat.rat =
-let
-  val num = HOLogic.dest_binum numt
-  val den = HOLogic.dest_binum dent
-in
-  if den = 0 then raise Zero else Rat.rat_of_quotient (num, den)
-end;
+fun rat_of_term (numt, dent) =
+  let
+    val num = HOLogic.dest_numeral numt
+    val den = HOLogic.dest_numeral dent
+  in
+    if den = 0 then raise Zero else Rat.rat_of_quotient (num, den)
+  end;
 
 (* Warning: in rare cases number_of encloses a non-numeral,
-   in which case dest_binum raises TERM; hence all the handles below.
+   in which case dest_numeral raises TERM; hence all the handles below.
    Same for Suc-terms that turn out not to be numerals -
    although the simplifier should eliminate those anyway ...
 *)
@@ -294,16 +294,16 @@ let
   fun demult ((mC as Const ("HOL.times", _)) $ s $ t, m) = (
     (case s of
       Const ("Numeral.number_of", _) $ n =>
-        demult (t, Rat.mult (m, Rat.rat_of_intinf (HOLogic.dest_binum n)))
+        demult (t, Rat.mult (m, Rat.rat_of_intinf (HOLogic.dest_numeral n)))
     | Const ("HOL.uminus", _) $ (Const ("Numeral.number_of", _) $ n) =>
-        demult (t, Rat.mult (m, Rat.rat_of_intinf (~(HOLogic.dest_binum n))))
+        demult (t, Rat.mult (m, Rat.rat_of_intinf (~(HOLogic.dest_numeral n))))
     | Const("Suc", _) $ _ =>
         demult (t, Rat.mult (m, Rat.rat_of_int (number_of_Sucs s)))
     | Const ("HOL.times", _) $ s1 $ s2 =>
         demult (mC $ s1 $ (mC $ s2 $ t), m)
     | Const ("HOL.divide", _) $ numt $ (Const ("Numeral.number_of", _) $ dent) =>
         let
-          val den = HOLogic.dest_binum dent
+          val den = HOLogic.dest_numeral dent
         in
           if den = 0 then
             raise Zero
@@ -316,7 +316,7 @@ let
   )
     | demult (atom as Const("HOL.divide", _) $ t $ (Const ("Numeral.number_of", _) $ dent), m) =
       (let
-        val den = HOLogic.dest_binum dent
+        val den = HOLogic.dest_numeral dent
       in
         if den = 0 then
           raise Zero
@@ -327,7 +327,7 @@ let
     | demult (Const ("HOL.zero", _), m) = (NONE, Rat.rat_of_int 0)
     | demult (Const ("HOL.one", _), m) = (NONE, m)
     | demult (t as Const ("Numeral.number_of", _) $ n, m) =
-        ((NONE, Rat.mult (m, Rat.rat_of_intinf (HOLogic.dest_binum n)))
+        ((NONE, Rat.mult (m, Rat.rat_of_intinf (HOLogic.dest_numeral n)))
           handle TERM _ => (SOME t,m))
     | demult (Const ("HOL.uminus", _) $ t, m) = demult(t,Rat.mult(m,Rat.rat_of_int(~1)))
     | demult (t as Const f $ x, m) =
@@ -365,7 +365,7 @@ let
            (NONE,   m') => (p, Rat.add (i, m'))
          | (SOME u, m') => add_atom u m' pi)
     | poly (all as Const ("Numeral.number_of", Type(_,[_,T])) $ t, m, pi as (p, i)) =
-        (let val k = HOLogic.dest_binum t
+        (let val k = HOLogic.dest_numeral t
             val k2 = if k < 0 andalso T = HOLogic.natT then 0 else k
         in (p, Rat.add (i, Rat.mult (m, Rat.rat_of_intinf k2))) end
         handle TERM _ => add_atom all m pi)
@@ -427,8 +427,7 @@ fun domain_is_nat (_ $ (Const (_, T) $ _ $ _))                      = nT T
   | domain_is_nat (_ $ (Const ("Not", _) $ (Const (_, T) $ _ $ _))) = nT T
   | domain_is_nat _                                                 = false;
 
-fun number_of (n : IntInf.int, T : typ) =
-  HOLogic.number_of_const T $ (HOLogic.mk_binum n);
+fun number_of (n, T) = HOLogic.mk_number T n;
 
 (*---------------------------------------------------------------------------*)
 (* code that performs certain goal transformations for linear arithmetic     *)

@@ -140,10 +140,7 @@ setup {*
 types_code
   nat ("int")
 attach (term_of) {*
-fun term_of_nat 0 = Const ("HOL.zero", HOLogic.natT)
-  | term_of_nat 1 = Const ("HOL.one", HOLogic.natT)
-  | term_of_nat i = HOLogic.number_of_const HOLogic.natT $
-      HOLogic.mk_binum (IntInf.fromInt i);
+val term_of_nat = HOLogic.mk_number HOLogic.natT o InfInf.fromInt;
 *}
 attach (test) {*
 fun gen_nat i = random_range 0 i;

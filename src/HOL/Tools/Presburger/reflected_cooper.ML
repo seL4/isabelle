@@ -20,7 +20,7 @@ fun i_of_term vs t =
       | Const ("HOL.plus",_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)
       | Const ("HOL.minus",_)$t1$t2 => Sub (i_of_term vs t1,i_of_term vs t2)
       | Const ("HOL.times",_)$t1$t2 => Mult (i_of_term vs t1,i_of_term vs t2)
-      | Const ("Numeral.number_of",_)$t' => Cst (HOLogic.dest_binum t')
+      | Const ("Numeral.number_of",_)$t' => Cst (HOLogic.dest_numeral t')
       | _ => error "i_of_term: unknown term";
 	
 
@@ -75,7 +75,7 @@ fun myassoc2 l v =
 
 fun term_of_i vs t =
     case t of 
-	Cst i => CooperDec.mk_numeral i
+	Cst i => CooperDec.mk_number i
       | Var n => valOf (myassoc2 vs n)
       | Neg t' => Const("HOL.uminus",iT --> iT)$(term_of_i vs t')
       | Add(t1,t2) => Const("HOL.plus",[iT,iT] ---> iT)$

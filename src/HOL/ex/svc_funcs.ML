@@ -149,10 +149,7 @@ struct
                become part of the Var's name*)
       | var (t,_) = fail t;
     (*translation of a literal*)
-    fun lit (Const("Numeral.number_of", _) $ w) =
-          (HOLogic.dest_binum w handle TERM _ => raise Match)
-      | lit (Const("0", _)) = 0
-      | lit (Const("1", _)) = 1
+    val lit = snd o HOLogic.dest_number;
     (*translation of a literal expression [no variables]*)
     fun litExp (Const("HOL.plus", T) $ x $ y) =
           if is_numeric_op T then (litExp x) + (litExp y)

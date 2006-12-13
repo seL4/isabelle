@@ -78,27 +78,28 @@ sig
   val B1_const: term
   val mk_bit: int -> term
   val dest_bit: term -> int
-  val intT: typ
   val pls_const: term
   val min_const: term
   val bit_const: term
   val number_of_const: typ -> term
-  val mk_binum: IntInf.int -> term
-  val dest_binum: term -> IntInf.int
-  val mk_int: IntInf.int -> term
+  val mk_numeral: IntInf.int -> term
+  val dest_numeral: term -> IntInf.int
+  val mk_number: typ -> IntInf.int -> term
+  val dest_number: term -> typ * IntInf.int
+  val intT: typ
   val realT: typ
+  val listT: typ -> typ
+  val mk_list: typ -> term list -> term
+  val dest_list: term -> term list
   val nibbleT: typ
   val mk_nibble: int -> term
   val dest_nibble: term -> int
   val charT: typ
   val mk_char: int -> term
   val dest_char: term -> int
-  val listT : typ -> typ
-  val mk_list: typ -> term list -> term
-  val dest_list: term -> term list
   val stringT: typ
-  val mk_string : string -> term
-  val dest_string : term -> string
+  val mk_string: string -> term
+  val dest_string: term -> string
 end;
 
 structure HOLogic: HOLOGIC =
@@ -323,24 +324,34 @@ val pls_const = Const ("Numeral.Pls", intT)
 and min_const = Const ("Numeral.Min", intT)
 and bit_const = Const ("Numeral.Bit", [intT, bitT] ---> intT);
 
-fun mk_binum 0 = pls_const
-  | mk_binum ~1 = min_const
-  | mk_binum i =
-      let val (q, r) = IntInf.divMod (i, 2)
-      in bit_const $ mk_binum q $ mk_bit (IntInf.toInt r) end;
-
-fun dest_binum (Const ("Numeral.Pls", _)) = 0
-  | dest_binum (Const ("Numeral.Min", _)) = ~1
-  | dest_binum (Const ("Numeral.Bit", _) $ bs $ b) =
-      2 * dest_binum bs + IntInf.fromInt (dest_bit b)
-  | dest_binum t = raise TERM ("dest_binum", [t]);
-
 fun number_of_const T = Const ("Numeral.number_of", intT --> T);
 
-fun mk_int 0 = Const ("HOL.zero", intT)
-  | mk_int 1 = Const ("HOL.one", intT)
-  | mk_int i = number_of_const intT $ mk_binum i;
+val mk_numeral =
+  let
+    fun mk_bit n = if n = 0 then B0_const else B1_const;
+    fun bin_of n =
+      if n = 0 then pls_const
+      else if n = ~1 then min_const
+      else
+        let
+          val (q, r) = IntInf.divMod (n, 2);
+        in bit_const $ bin_of q $ mk_bit r end;
+  in bin_of end;
 
+fun dest_numeral (Const ("Numeral.Pls", _)) = IntInf.fromInt 0
+  | dest_numeral (Const ("Numeral.Min", _)) = IntInf.fromInt ~1
+  | dest_numeral (Const ("Numeral.Bit", _) $ bs $ b) =
+      IntInf.fromInt (dest_bit b) + (2 * dest_numeral bs)
+  | dest_numeral t = raise TERM ("dest_numeral", [t]);
+
+fun mk_number T 0 = Const ("HOL.zero", T)
+  | mk_number T 1 = Const ("HOL.one", T)
+  | mk_number T i = number_of_const T $ mk_numeral i;
+
+fun dest_number (Const ("HOL.zero", T)) = (T, 0)
+  | dest_number (Const ("HOL.one", T)) = (T, 1)
+  | dest_number (Const ("Numeral.number_of", Type ("fun", [_, T])) $ t) = (T, dest_numeral t)
+  | dest_number t = raise TERM ("dest_number", [t]);
 
 (* real *)
 
@@ -403,7 +414,7 @@ fun dest_list (Const ("List.list.Nil", _)) = []
 
 (* string *)
 
-val stringT = listT charT;
+val stringT = Type ("List.string", []);
 
 val mk_string = mk_list charT o map (mk_char o ord) o explode;
 val dest_string = implode o map (chr o dest_char) o dest_list;

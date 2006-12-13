@@ -31,20 +31,19 @@ text{*
 datatype bit = B0 | B1
 
 definition
-  Pls :: int where "Pls == 0"
+  Pls :: int where
+  "Pls = 0"
 
 definition
-  Min :: int where "Min == - 1"
+  Min :: int where
+  "Min = - 1"
 
 definition
   Bit :: "int \<Rightarrow> bit \<Rightarrow> int" (infixl "BIT" 90) where
-  "k BIT b == (case b of B0 \<Rightarrow> 0 | B1 \<Rightarrow> 1) + k + k"
+  "k BIT b = (case b of B0 \<Rightarrow> 0 | B1 \<Rightarrow> 1) + k + k"
 
-axclass
-  number < type  -- {* for numeric types: nat, int, real, \dots *}
-
-consts
-  number_of :: "int \<Rightarrow> 'a::number"
+class number = -- {* for numeric types: nat, int, real, \dots *}
+  fixes number_of :: "int \<Rightarrow> 'a"
 
 syntax
   "_Numeral" :: "num_const \<Rightarrow> 'a"    ("_")
