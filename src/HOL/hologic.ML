@@ -11,8 +11,8 @@ sig
   val typeT: typ
   val boolN: string
   val boolT: typ
-  val false_const: term
   val true_const: term
+  val false_const: term
   val mk_setT: typ -> typ
   val dest_setT: typ -> typ
   val Trueprop: term
@@ -33,23 +33,23 @@ sig
   val dest_not: term -> term
   val dest_concls: term -> term list
   val eq_const: typ -> term
-  val all_const: typ -> term
-  val exists_const: typ -> term
-  val choice_const: typ -> term
-  val Collect_const: typ -> term
   val mk_eq: term * term -> term
   val dest_eq: term -> term * term
+  val all_const: typ -> term
   val mk_all: string * typ * term -> term
   val list_all: (string * typ) list * term -> term
+  val exists_const: typ -> term
   val mk_exists: string * typ * term -> term
+  val choice_const: typ -> term
+  val Collect_const: typ -> term
   val mk_Collect: string * typ * term -> term
+  val class_eq: string
   val mk_mem: term * term -> term
   val dest_mem: term -> term * term
   val mk_UNIV: typ -> term
   val mk_binop: string -> term * term -> term
   val mk_binrel: string -> term * term -> term
   val dest_bin: string -> typ -> term -> term * term
-  val class_eq: string
   val unitT: typ
   val is_unitT: typ -> bool
   val unit: term
@@ -61,9 +61,9 @@ sig
   val dest_prod: term -> term * term
   val mk_fst: term -> term
   val mk_snd: term -> term
+  val split_const: typ * typ * typ -> term
   val mk_split: term -> term
   val prodT_factors: typ -> typ list
-  val split_const: typ * typ * typ -> term
   val mk_tuple: typ -> term list -> term
   val natT: typ
   val zero: term
@@ -78,25 +78,25 @@ sig
   val B1_const: term
   val mk_bit: int -> term
   val dest_bit: term -> int
+  val intT: typ
   val pls_const: term
   val min_const: term
   val bit_const: term
-  val number_of_const: typ -> term
   val mk_numeral: IntInf.int -> term
   val dest_numeral: term -> IntInf.int
+  val number_of_const: typ -> term
   val mk_number: typ -> IntInf.int -> term
   val dest_number: term -> typ * IntInf.int
-  val intT: typ
   val realT: typ
-  val listT: typ -> typ
-  val mk_list: typ -> term list -> term
-  val dest_list: term -> term list
   val nibbleT: typ
   val mk_nibble: int -> term
   val dest_nibble: term -> int
   val charT: typ
   val mk_char: int -> term
   val dest_char: term -> int
+  val listT: typ -> typ
+  val mk_list: typ -> term list -> term
+  val dest_list: term -> term list
   val stringT: typ
   val mk_string: string -> term
   val dest_string: term -> string
@@ -324,25 +324,19 @@ val pls_const = Const ("Numeral.Pls", intT)
 and min_const = Const ("Numeral.Min", intT)
 and bit_const = Const ("Numeral.Bit", [intT, bitT] ---> intT);
 
-fun number_of_const T = Const ("Numeral.number_of", intT --> T);
+fun mk_numeral 0 = pls_const
+  | mk_numeral ~1 = min_const
+  | mk_numeral i =
+      let val (q, r) = IntInf.divMod (i, 2)
+      in bit_const $ mk_numeral q $ mk_bit (IntInf.toInt r) end;
 
-val mk_numeral =
-  let
-    fun mk_bit n = if n = 0 then B0_const else B1_const;
-    fun bin_of n =
-      if n = 0 then pls_const
-      else if n = ~1 then min_const
-      else
-        let
-          val (q, r) = IntInf.divMod (n, 2);
-        in bit_const $ bin_of q $ mk_bit r end;
-  in bin_of end;
-
-fun dest_numeral (Const ("Numeral.Pls", _)) = IntInf.fromInt 0
-  | dest_numeral (Const ("Numeral.Min", _)) = IntInf.fromInt ~1
+fun dest_numeral (Const ("Numeral.Pls", _)) = 0
+  | dest_numeral (Const ("Numeral.Min", _)) = ~1
   | dest_numeral (Const ("Numeral.Bit", _) $ bs $ b) =
-      IntInf.fromInt (dest_bit b) + (2 * dest_numeral bs)
+      2 * dest_numeral bs + IntInf.fromInt (dest_bit b)
   | dest_numeral t = raise TERM ("dest_numeral", [t]);
+
+fun number_of_const T = Const ("Numeral.number_of", intT --> T);
 
 fun mk_number T 0 = Const ("HOL.zero", T)
   | mk_number T 1 = Const ("HOL.one", T)
@@ -352,6 +346,7 @@ fun dest_number (Const ("HOL.zero", T)) = (T, 0)
   | dest_number (Const ("HOL.one", T)) = (T, 1)
   | dest_number (Const ("Numeral.number_of", Type ("fun", [_, T])) $ t) = (T, dest_numeral t)
   | dest_number t = raise TERM ("dest_number", [t]);
+
 
 (* real *)
 
