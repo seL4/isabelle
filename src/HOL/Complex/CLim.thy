@@ -85,14 +85,27 @@ apply (drule NSLIM_minus)
 apply (auto dest!: NSCLIM_const_eq [symmetric])
 done
 
+lemma starfun_norm: "( *f* (\<lambda>x. norm (f x))) = (\<lambda>x. hnorm (( *f* f) x))"
+by transfer (rule refl)
+
+lemma starfun_Re: "( *f* (\<lambda>x. Re (f x))) = (\<lambda>x. hRe (( *f* f) x))"
+by transfer (rule refl)
+
+lemma starfun_Im: "( *f* (\<lambda>x. Im (f x))) = (\<lambda>x. hIm (( *f* f) x))"
+by transfer (rule refl)
+
+lemma star_of_Re [simp]: "star_of (Re x) = hRe (star_of x)"
+by transfer (rule refl)
+
+lemma star_of_Im [simp]: "star_of (Im x) = hIm (star_of x)"
+by transfer (rule refl)
+
+text""
 (** another equivalence result **)
 lemma NSCLIM_NSCRLIM_iff:
    "(f -- x --NS> L) = ((%y. cmod(f y - L)) -- x --NS> 0)"
-apply (auto simp add: NSLIM_def Infinitesimal_approx_minus [symmetric] Infinitesimal_hcmod_iff)
-apply (auto dest!: spec) 
-apply (rule_tac [!] x = xa in star_cases)
-apply (auto simp add: star_n_diff starfun hcmod mem_infmal_iff star_of_def)
-done
+by (simp add: NSLIM_def starfun_norm
+    approx_approx_zero_iff [symmetric] approx_minus_iff [symmetric])
 
 (** much, much easier standard proof **)
 lemma CLIM_CRLIM_iff: "(f -- x --> L) = ((%y. cmod(f y - L)) -- x --> 0)"
@@ -107,10 +120,9 @@ lemma NSLIM_NSCRLIM_Re_Im_iff:
      "(f -- a --NS> L) = ((%x. Re(f x)) -- a --NS> Re(L) &
                             (%x. Im(f x)) -- a --NS> Im(L))"
 apply (auto intro: NSLIM_Re NSLIM_Im)
-apply (auto simp add: NSLIM_def)
-apply (auto dest!: spec) 
-apply (rule_tac x = x in star_cases)
-apply (simp add: approx_approx_iff starfun star_of_def)
+apply (auto simp add: NSLIM_def starfun_Re starfun_Im)
+apply (auto dest!: spec)
+apply (simp add: starfunC_approx_Re_Im_iff starfun_Re starfun_Im)
 done
 
 lemma LIM_CRLIM_Re_Im_iff:
