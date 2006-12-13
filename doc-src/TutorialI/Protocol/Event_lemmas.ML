@@ -41,7 +41,7 @@ by (Simp_tac 1);
 qed "knows_Spy_Gets";
 
 Goal "knows Spy evs <= knows Spy (Says A B X # evs)";
-by (simp_tac (simpset() addsimps [subset_insertI]) 1);
+by (simp_tac (simpset() addsimps [thm "subset_insertI"]) 1);
 qed "knows_Spy_subset_knows_Spy_Says";
 
 Goal "knows Spy evs <= knows Spy (Notes A X # evs)";
@@ -50,7 +50,7 @@ by (Fast_tac 1);
 qed "knows_Spy_subset_knows_Spy_Notes";
 
 Goal "knows Spy evs <= knows Spy (Gets A X # evs)";
-by (simp_tac (simpset() addsimps [subset_insertI]) 1);
+by (simp_tac (simpset() addsimps [thm "subset_insertI"]) 1);
 qed "knows_Spy_subset_knows_Spy_Gets";
 
 (*Spy sees what is sent on the traffic*)
@@ -89,15 +89,15 @@ qed "knows_Gets";
 
 
 Goal "knows A evs <= knows A (Says A B X # evs)";
-by (simp_tac (simpset() addsimps [subset_insertI]) 1);
+by (simp_tac (simpset() addsimps [thm "subset_insertI"]) 1);
 qed "knows_subset_knows_Says";
 
 Goal "knows A evs <= knows A (Notes A X # evs)";
-by (simp_tac (simpset() addsimps [subset_insertI]) 1);
+by (simp_tac (simpset() addsimps [thm "subset_insertI"]) 1);
 qed "knows_subset_knows_Notes";
 
 Goal "knows A evs <= knows A (Gets A X # evs)";
-by (simp_tac (simpset() addsimps [subset_insertI]) 1);
+by (simp_tac (simpset() addsimps [thm "subset_insertI"]) 1);
 qed "knows_subset_knows_Gets";
 
 (*Agents know what they say*)

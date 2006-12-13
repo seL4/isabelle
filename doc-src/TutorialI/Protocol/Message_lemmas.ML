@@ -125,7 +125,7 @@ Addsimps [keysFor_empty, keysFor_Un, keysFor_UN,
 	  keysFor_insert_Number, keysFor_insert_Key, 
           keysFor_insert_Hash, keysFor_insert_MPair, keysFor_insert_Crypt];
 AddSEs [keysFor_Un RS equalityD1 RS subsetD RS UnE,
-	keysFor_UN RS equalityD1 RS subsetD RS UN_E];
+	keysFor_UN RS equalityD1 RS subsetD RS thm "UN_E"];
 
 Goalw [keysFor_def] "keysFor (Key`E) = {}";
 by Auto_tac;
@@ -158,7 +158,7 @@ Goal "H \\<subseteq> parts(H)";
 by (Blast_tac 1);
 qed "parts_increasing";
 
-val parts_insertI = impOfSubs (subset_insertI RS parts_mono);
+val parts_insertI = impOfSubs (thm "subset_insertI" RS parts_mono);
 
 Goal "parts{} = {}";
 by Safe_tac;
@@ -182,7 +182,7 @@ qed "parts_singleton";
 (** Unions **)
 
 Goal "parts(G) Un parts(H) \\<subseteq> parts(G Un H)";
-by (REPEAT (ares_tac [Un_least, parts_mono, Un_upper1, Un_upper2] 1));
+by (REPEAT (ares_tac [thm "Un_least", parts_mono, thm "Un_upper1", thm "Un_upper2"] 1));
 val parts_Un_subset1 = result();
 
 Goal "parts(G Un H) \\<subseteq> parts(G) Un parts(H)";
@@ -196,19 +196,19 @@ by (REPEAT (ares_tac [equalityI, parts_Un_subset1, parts_Un_subset2] 1));
 qed "parts_Un";
 
 Goal "parts (insert X H) = parts {X} Un parts H";
-by (stac (read_instantiate [("A","H")] insert_is_Un) 1);
+by (stac (read_instantiate [("A","H")] (thm "insert_is_Un")) 1);
 by (simp_tac (HOL_ss addsimps [parts_Un]) 1);
 qed "parts_insert";
 
 (*TWO inserts to avoid looping.  This rewrite is better than nothing.
   Not suitable for Addsimps: its behaviour can be strange.*)
 Goal "parts (insert X (insert Y H)) = parts {X} Un parts {Y} Un parts H";
-by (simp_tac (simpset() addsimps [Un_assoc]) 1);
+by (simp_tac (simpset() addsimps [thm "Un_assoc"]) 1);
 by (simp_tac (simpset() addsimps [parts_insert RS sym]) 1);
 qed "parts_insert2";
 
 Goal "(\\<Union>x\\<in>A. parts(H x)) \\<subseteq> parts(\\<Union>x\\<in>A. H x)";
-by (REPEAT (ares_tac [UN_least, parts_mono, UN_upper] 1));
+by (REPEAT (ares_tac [thm "UN_least", parts_mono, thm "UN_upper"] 1));
 val parts_UN_subset1 = result();
 
 Goal "parts(\\<Union>x\\<in>A. H x) \\<subseteq> (\\<Union>x\\<in>A. parts(H x))";
@@ -225,7 +225,7 @@ qed "parts_UN";
   NOTE: the UN versions are no longer used!*)
 Addsimps [parts_Un, parts_UN];
 AddSEs [parts_Un RS equalityD1 RS subsetD RS UnE,
-	parts_UN RS equalityD1 RS subsetD RS UN_E];
+	parts_UN RS equalityD1 RS subsetD RS thm "UN_E"];
 
 Goal "insert X (parts H) \\<subseteq> parts(insert X H)";
 by (blast_tac (claset() addIs [impOfSubs parts_mono]) 1);
@@ -378,7 +378,7 @@ by Auto_tac;
 qed "analz_parts";
 Addsimps [analz_parts];
 
-bind_thm ("analz_insertI", impOfSubs (subset_insertI RS analz_mono));
+bind_thm ("analz_insertI", impOfSubs (thm "subset_insertI" RS analz_mono));
 
 (** General equational properties **)
 
@@ -392,7 +392,7 @@ Addsimps [analz_empty];
 (*Converse fails: we can analz more from the union than from the 
   separate parts, as a key in one might decrypt a message in the other*)
 Goal "analz(G) Un analz(H) \\<subseteq> analz(G Un H)";
-by (REPEAT (ares_tac [Un_least, analz_mono, Un_upper1, Un_upper2] 1));
+by (REPEAT (ares_tac [thm "Un_least", analz_mono, thm "Un_upper1", thm "Un_upper2"] 1));
 qed "analz_Un";
 
 Goal "insert X (analz H) \\<subseteq> analz(insert X H)";
@@ -557,7 +557,7 @@ qed "analz_cong";
 
 
 Goal "analz H = analz H' ==> analz(insert X H) = analz(insert X H')";
-by (asm_simp_tac (simpset() addsimps [insert_def] delsimps [singleton_conv]
+by (asm_simp_tac (simpset() addsimps [thm "insert_def"] delsimps [thm "singleton_conv"]
                             setloop (rtac analz_cong)) 1);
 qed "analz_insert_cong";
 
@@ -591,7 +591,7 @@ qed "synth_increasing";
 (*Converse fails: we can synth more from the union than from the 
   separate parts, building a compound message using elements of each.*)
 Goal "synth(G) Un synth(H) \\<subseteq> synth(G Un H)";
-by (REPEAT (ares_tac [Un_least, synth_mono, Un_upper1, Un_upper2] 1));
+by (REPEAT (ares_tac [thm "Un_least", synth_mono, thm "Un_upper1", thm "Un_upper2"] 1));
 qed "synth_Un";
 
 Goal "insert X (synth H) \\<subseteq> synth(insert X H)";

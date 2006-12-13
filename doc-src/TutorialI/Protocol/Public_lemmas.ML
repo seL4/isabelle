@@ -162,9 +162,9 @@ qed "insert_Key_image";
   the set of keys.  Based on analz_image_freshK_ss, but simpler.*)
 val analz_image_keys_ss = 
      simpset() delsimps [image_insert, image_Un]
-	       delsimps [imp_disjL]    (*reduces blow-up*)
+	       delsimps [thm "imp_disjL"]    (*reduces blow-up*)
 	       addsimps [image_insert RS sym, image_Un RS sym,
 			 rangeI, 
 			 insert_Key_singleton, 
-			 insert_Key_image, Un_assoc RS sym];
+			 insert_Key_image, thm "Un_assoc" RS sym];
 
