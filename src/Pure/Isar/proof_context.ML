@@ -921,10 +921,16 @@ fun target_abbrev prmode ((c, mx), rhs) phi =
   end;
 
 fun local_abbrev (x, rhs) =
-  let
-    val T = Term.fastype_of rhs;
-    val export = Envir.expand_term_frees [((x, T), rhs)];
-  in Assumption.add_assms (K (K (I, export))) [] #> snd #> pair (Free (x, T), rhs) end;
+  Variable.add_fixes [x] #-> (fn [x'] =>
+    let
+      val T = Term.fastype_of rhs;
+      val lhs = Free (x', T);
+    in
+      Variable.declare_term lhs #>
+      Variable.declare_term rhs #>
+      Assumption.add_assms (K (K (I, Envir.expand_term_frees [((x', T), rhs)]))) [] #> snd #>
+      pair (lhs, rhs)
+    end);
 
 
 (* fixes *)
