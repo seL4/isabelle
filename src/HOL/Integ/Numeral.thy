@@ -24,7 +24,7 @@ text {*
 *}
 
 text{*
-  This datatype avoids the use of type @{typ bool}, which would make
+  This type avoids the use of type @{typ bool}, which would make
   all of the rewrite rules higher-order.
 *}
 
