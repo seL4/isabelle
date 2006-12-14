@@ -185,13 +185,6 @@ done
 
 subsection{*Nonstandard Characterization of Induction*}
 
-definition
-  hSuc :: "hypnat => hypnat" where
-  "hSuc n = n + 1"
-
-lemma starP: "(( *p* P) (star_n X)) = ({n. P (X n)} \<in> FreeUltrafilterNat)"
-by (rule starP_star_n)
-
 lemma hypnat_induct_obj:
     "!!n. (( *p* P) (0::hypnat) &
             (\<forall>n. ( *p* P)(n) --> ( *p* P)(n + 1)))
@@ -204,26 +197,14 @@ lemma hypnat_induct:
      ==> ( *p* P)(n)"
 by (transfer, induct_tac n, auto)
 
-lemma starP2:
-"(( *p2* P) (star_n X) (star_n Y)) =
-      ({n. P (X n) (Y n)} \<in> FreeUltrafilterNat)"
-by (rule starP2_star_n)
-
 lemma starP2_eq_iff: "( *p2* (op =)) = (op =)"
-by (transfer, rule refl)
+by transfer (rule refl)
 
 lemma starP2_eq_iff2: "( *p2* (%x y. x = y)) X Y = (X = Y)"
 by (simp add: starP2_eq_iff)
 
-lemma hSuc_not_zero [iff]: "hSuc m \<noteq> 0"
-by (simp add: hSuc_def)
-
-lemmas zero_not_hSuc = hSuc_not_zero [THEN not_sym, standard, iff]
-
-lemma hSuc_hSuc_eq [iff]: "(hSuc m = hSuc n) = (m = n)"
-by (simp add: hSuc_def star_n_one_num)
-
-lemma nonempty_nat_set_Least_mem: "c \<in> (S :: nat set) ==> (LEAST n. n  \<in> S)  \<in> S"
+lemma nonempty_nat_set_Least_mem:
+  "c \<in> (S :: nat set) ==> (LEAST n. n \<in> S) \<in> S"
 by (erule LeastI)
 
 lemma nonempty_set_star_has_least:

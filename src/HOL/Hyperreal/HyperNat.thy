@@ -17,7 +17,20 @@ abbreviation
   hypnat_of_nat :: "nat => nat star" where
   "hypnat_of_nat == star_of"
 
+definition
+  hSuc :: "hypnat => hypnat" where
+  hSuc_def [transfer_unfold]: "hSuc = *f* Suc"
+
 subsection{*Properties Transferred from Naturals*}
+
+lemma hSuc_not_zero [iff]: "\<And>m. hSuc m \<noteq> 0"
+by transfer (rule Suc_not_Zero)
+
+lemma zero_not_hSuc [iff]: "\<And>m. 0 \<noteq> hSuc m"
+by transfer (rule Zero_not_Suc)
+
+lemma hSuc_hSuc_eq [iff]: "\<And>m n. (hSuc m = hSuc n) = (m = n)"
+by transfer (rule Suc_Suc_eq)
 
 lemma hypnat_minus_zero [simp]: "!!z. z - z = (0::hypnat)"
 by transfer (rule diff_self_eq_0)

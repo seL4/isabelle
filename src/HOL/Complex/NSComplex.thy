@@ -510,7 +510,7 @@ lemma hcpow_zero [simp]: "!!n. 0 hcpow (n + 1) = 0"
 by transfer simp
 
 lemma hcpow_zero2 [simp]: "!!n. 0 hcpow (hSuc n) = 0"
-by (simp add: hSuc_def)
+by transfer (rule power_0_Suc)
 
 lemma hcpow_not_zero [simp,intro]:
   "!!r n. r \<noteq> 0 ==> r hcpow n \<noteq> (0::hcomplex)"
