@@ -15,6 +15,8 @@ sig
   val add_defs: ((string * mixfix) * ((bstring * attribute list) * term)) list -> Proof.context ->
     (term * (bstring * thm)) list * Proof.context
   val export: Proof.context -> Proof.context -> thm -> thm list * thm
+  val trans_terms: Proof.context -> thm list -> thm
+  val trans_props: Proof.context -> thm list -> thm
   val print_rules: Proof.context -> unit
   val defn_add: attribute
   val defn_del: attribute
@@ -109,6 +111,28 @@ fun export inner outer th =
         SOME x => member (op =) still_fixed x
       | NONE => true));
   in (map Drule.abs_def defs, th') end;
+
+
+(* basic transitivity reasoning -- modulo beta-eta *)
+
+local
+
+val is_trivial = Pattern.aeconv o Logic.dest_equals o Thm.prop_of;
+
+fun trans_list _ _ [] = raise Empty
+  | trans_list trans ctxt (th :: raw_eqs) =
+      (case filter_out is_trivial raw_eqs of
+        [] => th
+      | eqs =>
+          let val ((_, th' :: eqs'), ctxt') = Variable.import true (th :: eqs) ctxt
+          in singleton (Variable.export ctxt' ctxt) (fold trans eqs' th') end);
+
+in
+
+val trans_terms = trans_list (fn eq2 => fn eq1 => eq2 COMP (eq1 COMP Drule.transitive_thm));
+val trans_props = trans_list (fn eq => fn th => th COMP (eq COMP Drule.equal_elim_rule1));
+
+end;
 
 
 
