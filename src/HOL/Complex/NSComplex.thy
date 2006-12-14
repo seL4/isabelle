@@ -79,14 +79,14 @@ definition
 definition
   HComplex :: "[hypreal,hypreal] => hcomplex" where
   "HComplex = *f2* Complex"
-
+(*
 definition
   hcpow :: "[hcomplex,hypnat] => hcomplex"  (infixr "hcpow" 80) where
   "(z::hcomplex) hcpow (n::hypnat) = ( *f2* op ^) z n"
-
+*)
 lemmas hcomplex_defs [transfer_unfold] =
   hRe_def hIm_def iii_def hcnj_def hsgn_def harg_def hcis_def
-  hcomplex_of_hypreal_def hrcis_def hexpi_def HComplex_def hcpow_def
+  hcomplex_of_hypreal_def hrcis_def hexpi_def HComplex_def
 
 lemma Standard_hRe [simp]: "x \<in> Standard \<Longrightarrow> hRe x \<in> Standard"
 by (simp add: hcomplex_defs)
@@ -463,10 +463,10 @@ by transfer (rule complex_mod_diff_ineq)
 subsection{*A Few Nonlinear Theorems*}
 
 lemma hcomplex_of_hypreal_hyperpow:
-     "!!x n. hcomplex_of_hypreal (x pow n) = (hcomplex_of_hypreal x) hcpow n"
+     "!!x n. hcomplex_of_hypreal (x pow n) = (hcomplex_of_hypreal x) pow n"
 by transfer (rule complex_of_real_pow)
 
-lemma hcmod_hcpow: "!!x n. hcmod(x hcpow n) = hcmod(x) pow n"
+lemma hcmod_hcpow: "!!x n. hcmod(x pow n) = hcmod(x) pow n"
 by transfer (rule complex_mod_complexpow)
 
 lemma hcmod_hcomplex_inverse: "!!x. hcmod(inverse x) = inverse(hcmod x)"
@@ -498,25 +498,23 @@ lemma hcmod_hcomplexpow: "!!x. hcmod(x ^ n) = hcmod(x) ^ n"
 by transfer (rule norm_power)
 
 lemma hcpow_minus:
-     "!!x n. (-x::hcomplex) hcpow n =
-      (if ( *p* even) n then (x hcpow n) else -(x hcpow n))"
+     "!!x n. (-x::hcomplex) pow n =
+      (if ( *p* even) n then (x pow n) else -(x pow n))"
 by transfer (rule neg_power_if)
 
 lemma hcpow_mult:
-  "!!r s n. ((r::hcomplex) * s) hcpow n = (r hcpow n) * (s hcpow n)"
+  "!!r s n. ((r::hcomplex) * s) pow n = (r pow n) * (s pow n)"
 by transfer (rule power_mult_distrib)
 
-lemma hcpow_zero [simp]: "!!n. 0 hcpow (n + 1) = 0"
-by transfer simp
-
-lemma hcpow_zero2 [simp]: "!!n. 0 hcpow (hSuc n) = 0"
+lemma hcpow_zero2 [simp]:
+  "\<And>n. 0 pow (hSuc n) = (0::'a::{recpower,semiring_0} star)"
 by transfer (rule power_0_Suc)
 
 lemma hcpow_not_zero [simp,intro]:
-  "!!r n. r \<noteq> 0 ==> r hcpow n \<noteq> (0::hcomplex)"
-by transfer (rule field_power_not_zero)
+  "!!r n. r \<noteq> 0 ==> r pow n \<noteq> (0::hcomplex)"
+by (rule hyperpow_not_zero)
 
-lemma hcpow_zero_zero: "r hcpow n = (0::hcomplex) ==> r = 0"
+lemma hcpow_zero_zero: "r pow n = (0::hcomplex) ==> r = 0"
 by (blast intro: ccontr dest: hcpow_not_zero)
 
 subsection{*The Function @{term hsgn}*}
@@ -709,7 +707,7 @@ lemma hcis_hypreal_of_hypnat_Suc_mult:
 by transfer (simp add: cis_real_of_nat_Suc_mult)
 
 lemma NSDeMoivre_ext:
-  "!!a n. (hcis a) hcpow n = hcis (hypreal_of_hypnat n * a)"
+  "!!a n. (hcis a) pow n = hcis (hypreal_of_hypnat n * a)"
 by transfer (rule DeMoivre)
 
 lemma NSDeMoivre2:
@@ -720,7 +718,7 @@ apply (rule DeMoivre2)
 done
 
 lemma DeMoivre2_ext:
-  "!! a r n. (hrcis r a) hcpow n = hrcis (r pow n) (hypreal_of_hypnat n * a)"
+  "!! a r n. (hrcis r a) pow n = hrcis (r pow n) (hypreal_of_hypnat n * a)"
 by transfer (rule DeMoivre2)
 
 lemma hcis_inverse [simp]: "!!a. inverse(hcis a) = hcis (-a)"
@@ -741,10 +739,10 @@ by (simp add: NSDeMoivre)
 lemma sin_n_hIm_hcis_pow_n: "( *f* sin) (hypreal_of_nat n * a) = hIm(hcis a ^ n)"
 by (simp add: NSDeMoivre)
 
-lemma cos_n_hRe_hcis_hcpow_n: "( *f* cos) (hypreal_of_hypnat n * a) = hRe(hcis a hcpow n)"
+lemma cos_n_hRe_hcis_hcpow_n: "( *f* cos) (hypreal_of_hypnat n * a) = hRe(hcis a pow n)"
 by (simp add: NSDeMoivre_ext)
 
-lemma sin_n_hIm_hcis_hcpow_n: "( *f* sin) (hypreal_of_hypnat n * a) = hIm(hcis a hcpow n)"
+lemma sin_n_hIm_hcis_hcpow_n: "( *f* sin) (hypreal_of_hypnat n * a) = hIm(hcis a pow n)"
 by (simp add: NSDeMoivre_ext)
 
 lemma hexpi_add: "!!a b. hexpi(a + b) = hexpi(a) * hexpi(b)"

@@ -22,7 +22,7 @@ by auto
 
 subsection{*Theorems about Nonstandard Extensions of Functions*}
 
-lemma starfunC_hcpow: "!!Z. ( *f* (%z. z ^ n)) Z = Z hcpow hypnat_of_nat n"
+lemma starfunC_hcpow: "!!Z. ( *f* (%z. z ^ n)) Z = Z pow hypnat_of_nat n"
 by transfer (rule refl)
 
 lemma starfunCR_cmod: "*f* cmod = hcmod"
