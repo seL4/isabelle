@@ -204,7 +204,9 @@ apply (rule ext)
 apply (rule_tac x = x in star_cases)
 apply (drule_tac x = x in spec)
 apply (drule_tac x = "( *f* f) x" in spec)
-apply (auto dest!: FreeUltrafilterNat_Compl_mem simp add: starfun, ultra)
+apply (auto simp add: starfun_star_n)
+apply (simp add: star_n_eq_iff [symmetric])
+apply (simp add: starfun_star_n [of f, symmetric])
 done
 
 lemma is_starext_starfun_iff: "(is_starext F f) = (F = *f* f)"
