@@ -68,6 +68,15 @@ locale freeultrafilter = ultrafilter +
 lemma (in freeultrafilter) finite: "finite A \<Longrightarrow> A \<notin> F"
 by (erule contrapos_pn, erule infinite)
 
+lemma (in freeultrafilter) singleton: "{x} \<notin> F"
+by (rule finite, simp)
+
+lemma (in freeultrafilter) insert_iff: "(insert x A \<in> F) = (A \<in> F)"
+apply (subst insert_is_Un)
+apply (subst Un_iff)
+apply (simp add: singleton)
+done
+
 lemma (in freeultrafilter) filter: "filter F" by unfold_locales
 
 lemma (in freeultrafilter) ultrafilter: "ultrafilter F"
