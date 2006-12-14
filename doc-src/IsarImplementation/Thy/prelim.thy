@@ -119,7 +119,7 @@ text {*
         &            & @{text "\<down>"} \\
         &            & @{text "FOL"} \\
         & $\swarrow$ &              & $\searrow$ & \\
-  $Nat$ &            &              &            & @{text "List"} \\
+  @{text "Nat"} &    &              &            & @{text "List"} \\
         & $\searrow$ &              & $\swarrow$ \\
         &            & @{text "Length"} \\
         &            & \multicolumn{3}{l}{~~$\isarkeyword{imports}$} \\
