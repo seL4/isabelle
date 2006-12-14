@@ -121,12 +121,9 @@ fun abbrev is_class is_loc prmode ((raw_c, mx), raw_t) lthy =
 
 (* defs *)
 
+
+
 local
-
-infix also;
-
-fun eq1 also eq2 =
-  eq2 COMP (eq1 COMP (Drule.incr_indexes2 eq1 eq2 transitive_thm));
 
 fun expand_term ctxt t =
   let
@@ -157,10 +154,10 @@ fun defs kind args lthy0 =
         val (def, lthy3) = lthy2
           |> LocalTheory.theory_result (add_def (name', Logic.mk_equals (lhs', rhs')));
 
-        val eq =
-          (*c == loc.c xs*) lhs_def
-          (*lhs' == rhs'*)  also def
-          (*rhs' == rhs*)   also Thm.symmetric rhs_conv;
+        val eq = LocalDefs.trans_terms lthy3
+          [(*c == loc.c xs*) lhs_def,
+           (*lhs' == rhs'*)  def,
+           (*rhs' == rhs*)   Thm.symmetric rhs_conv];
       in ((lhs, ((name', atts), [([eq], [])])), lthy3) end;
 
     val ((lhss, facts), lthy') = lthy0 |> fold_map def args |>> split_list;
@@ -246,7 +243,7 @@ fun import_export_proof ctxt (name, raw_th) =
     val result'' =
       (case SINGLE (Seq.INTERVAL assm_tac 1 nprems) result' of
         NONE => raise THM ("Failed to re-import result", 0, [result'])
-      | SOME res => res) COMP (concl_conv COMP_INCR Drule.equal_elim_rule2)
+      | SOME res => LocalDefs.trans_props ctxt [res, Thm.symmetric concl_conv])
       |> Goal.norm_result
       |> PureThy.name_thm false false name;
 
