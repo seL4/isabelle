@@ -371,7 +371,7 @@ val localeP =
         -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
         -- P.opt_begin
       >> (fn (((is_open, name), (expr, elems)), begin) =>
-          Toplevel.begin_local_theory begin
+          (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
             (Locale.add_locale is_open name expr elems #-> TheoryTarget.begin false)));
 
 val interpretationP =
