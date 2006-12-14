@@ -480,6 +480,16 @@ by (simp add: Bseq_def lemma_NBseq_def2)
 lemma NSBseqD: "[| NSBseq X;  N: HNatInfinite |] ==> ( *f* X) N : HFinite"
 by (simp add: NSBseq_def)
 
+lemma Standard_subset_HFinite: "Standard \<subseteq> HFinite"
+unfolding Standard_def by auto
+
+lemma NSBseqD2: "NSBseq X \<Longrightarrow> ( *f* X) N \<in> HFinite"
+apply (cases "N \<in> HNatInfinite")
+apply (erule (1) NSBseqD)
+apply (rule subsetD [OF Standard_subset_HFinite])
+apply (simp add: HNatInfinite_def Nats_eq_Standard)
+done
+
 lemma NSBseqI: "\<forall>N \<in> HNatInfinite. ( *f* X) N : HFinite ==> NSBseq X"
 by (simp add: NSBseq_def)
 
@@ -502,76 +512,34 @@ qed
 
 text{*The nonstandard definition implies the standard definition*}
 
-(* similar to NSLIM proof in REALTOPOS *)
-
-text{* We need to get rid of the real variable and do so by proving the
-   following, which relies on the Archimedean property of the reals.
-   When we skolemize we then get the required function @{term "f::nat=>nat"}.
-   Otherwise, we would be stuck with a skolem function @{term "f::real=>nat"}
-   which woulid be useless.*}
-
-lemma lemmaNSBseq:
-     "\<forall>K > 0. \<exists>n. K < norm (X n)
-      ==> \<forall>N. \<exists>n. real(Suc N) < norm (X n)"
-apply safe
-apply (cut_tac n = N in real_of_nat_Suc_gt_zero, blast)
+lemma SReal_less_omega: "r \<in> \<real> \<Longrightarrow> r < \<omega>"
+apply (insert HInfinite_omega)
+apply (simp add: HInfinite_def)
+apply (simp add: order_less_imp_le)
 done
 
-lemma lemmaNSBseq2: "\<forall>K > 0. \<exists>n::nat. K < norm (X n)
-                     ==> \<exists>f. \<forall>N. real(Suc N) < norm (X (f N))"
-apply (drule lemmaNSBseq)
-apply (drule no_choice, blast)
-done
-
-lemma real_seq_to_hypreal_HInfinite:
-     "\<forall>N. real(Suc N) < norm (X (f N))
-      ==>  star_n (X o f) : HInfinite"
-apply (auto simp add: HInfinite_FreeUltrafilterNat_iff o_def)
-apply (cut_tac u = u in FreeUltrafilterNat_nat_gt_real)
-apply (drule FreeUltrafilterNat_all)
-apply (erule FreeUltrafilterNat_Int [THEN FreeUltrafilterNat_subset])
-apply (auto simp add: real_of_nat_Suc)
-done
-
-text{* Now prove that we can get out an infinite hypernatural as well
-     defined using the skolem function  @{term "f::nat=>nat"} above*}
-
-lemma lemma_finite_NSBseq:
-     "{n. f n \<le> Suc u & real(Suc n) < norm (X (f n))} \<le>
-      {n. f n \<le> u & real(Suc n) < norm (X (f n))} Un
-      {n. real(Suc n) < norm (X (Suc u))}"
-by (auto dest!: le_imp_less_or_eq)
-
-lemma lemma_finite_NSBseq2:
-     "finite {n. f n \<le> (u::nat) &  real(Suc n) < norm (X(f n))}"
-apply (induct "u")
-apply (rule_tac [2] lemma_finite_NSBseq [THEN finite_subset])
-apply (rule_tac B = "{n. real (Suc n) < norm (X 0) }" in finite_subset)
-apply (auto intro: finite_real_of_nat_less_real 
-            simp add: real_of_nat_Suc less_diff_eq [symmetric])
-done
-
-lemma HNatInfinite_skolem_f:
-     "\<forall>N. real(Suc N) < norm (X (f N))
-      ==> star_n f : HNatInfinite"
-apply (auto simp add: HNatInfinite_FreeUltrafilterNat_iff)
-apply (rule ccontr, drule FreeUltrafilterNat_Compl_mem)
-apply (rule lemma_finite_NSBseq2 [THEN FreeUltrafilterNat_finite, THEN notE]) 
-apply (subgoal_tac "{n. f n \<le> u & real (Suc n) < norm (X (f n))} =
-                    {n. f n \<le> u} \<inter> {N. real (Suc N) < norm (X (f N))}")
-apply (erule ssubst) 
- apply (auto simp add: linorder_not_less Compl_def)
-done
-
-lemma NSBseq_Bseq: "NSBseq X ==> Bseq X"
-apply (simp add: Bseq_def NSBseq_def)
-apply (rule ccontr)
-apply (auto simp add: linorder_not_less [symmetric])
-apply (drule lemmaNSBseq2, safe)
-apply (frule_tac X = X and f = f in real_seq_to_hypreal_HInfinite)
-apply (drule HNatInfinite_skolem_f [THEN [2] bspec])
-apply (auto simp add: starfun o_def HFinite_HInfinite_iff)
-done
+lemma NSBseq_Bseq: "NSBseq X \<Longrightarrow> Bseq X"
+proof (rule ccontr)
+  let ?n = "\<lambda>K. LEAST n. K < norm (X n)"
+  assume "NSBseq X"
+  hence finite: "( *f* X) (( *f* ?n) \<omega>) \<in> HFinite"
+    by (rule NSBseqD2)
+  assume "\<not> Bseq X"
+  hence "\<forall>K>0. \<exists>n. K < norm (X n)"
+    by (simp add: Bseq_def linorder_not_le)
+  hence "\<forall>K>0. K < norm (X (?n K))"
+    by (auto intro: LeastI_ex)
+  hence "\<forall>K>0. K < hnorm (( *f* X) (( *f* ?n) K))"
+    by transfer
+  hence "\<omega> < hnorm (( *f* X) (( *f* ?n) \<omega>))"
+    by simp
+  hence "\<forall>r\<in>\<real>. r < hnorm (( *f* X) (( *f* ?n) \<omega>))"
+    by (simp add: order_less_trans [OF SReal_less_omega])
+  hence "( *f* X) (( *f* ?n) \<omega>) \<in> HInfinite"
+    by (simp add: HInfinite_def)
+  with finite show "False"
+    by (simp add: HFinite_HInfinite_iff)
+qed
 
 text{* Equivalence of nonstandard and standard definitions
   for a bounded sequence*}
@@ -1154,24 +1122,6 @@ done
 
 lemma NSLIMSEQ_rabs_realpow_zero2: "\<bar>c\<bar> < (1::real) ==> (%n. c ^ n) ----NS> 0"
 by (simp add: LIMSEQ_rabs_realpow_zero2 LIMSEQ_NSLIMSEQ_iff [symmetric])
-
-subsection{*Hyperreals and Sequences*}
-
-text{*A bounded sequence is a finite hyperreal*}
-lemma NSBseq_HFinite_hypreal: "NSBseq X ==> star_n X : HFinite"
-by (auto intro!: bexI lemma_starrel_refl 
-            intro: FreeUltrafilterNat_all [THEN FreeUltrafilterNat_subset]
-            simp add: HFinite_FreeUltrafilterNat_iff Bseq_NSBseq_iff [symmetric]
-                      Bseq_iff1a)
-
-text{*A sequence converging to zero defines an infinitesimal*}
-lemma NSLIMSEQ_zero_Infinitesimal_hypreal:
-      "X ----NS> 0 ==> star_n X : Infinitesimal"
-apply (simp add: NSLIMSEQ_def)
-apply (drule_tac x = whn in bspec)
-apply (simp add: HNatInfinite_whn)
-apply (auto simp add: hypnat_omega_def mem_infmal_iff [symmetric] starfun)
-done
 
 (***---------------------------------------------------------------
     Theorems proved by Harrison in HOL that we do not need

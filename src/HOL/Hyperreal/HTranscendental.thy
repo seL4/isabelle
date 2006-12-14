@@ -235,10 +235,14 @@ done
 
 lemma HFinite_exp [simp]:
      "sumhr (0, whn, %n. inverse (real (fact n)) * x ^ n) \<in> HFinite"
-by (auto intro!: NSBseq_HFinite_hypreal NSconvergent_NSBseq 
-         simp add: starfunNat_sumr [symmetric] starfun hypnat_omega_def
-                   convergent_NSconvergent_iff [symmetric] 
-                   summable_convergent_sumr_iff [symmetric] summable_exp)
+unfolding sumhr_app
+apply (simp only: star_zero_def starfun2_star_of)
+apply (rule NSBseqD2)
+apply (rule NSconvergent_NSBseq)
+apply (rule convergent_NSconvergent_iff [THEN iffD1])
+apply (rule summable_convergent_sumr_iff [THEN iffD1])
+apply (rule summable_exp)
+done
 
 lemma exphr_zero [simp]: "exphr 0 = 1"
 apply (simp add: exphr_def sumhr_split_add
@@ -438,10 +442,12 @@ lemma HFinite_sin [simp]:
      "sumhr (0, whn, %n. (if even(n) then 0 else  
               ((- 1) ^ ((n - 1) div 2))/(real (fact n))) * x ^ n)  
               \<in> HFinite"
-apply (auto intro!: NSBseq_HFinite_hypreal NSconvergent_NSBseq 
-            simp add: starfunNat_sumr [symmetric] starfun hypnat_omega_def
-                      convergent_NSconvergent_iff [symmetric] 
-                      summable_convergent_sumr_iff [symmetric])
+unfolding sumhr_app
+apply (simp only: star_zero_def starfun2_star_of)
+apply (rule NSBseqD2)
+apply (rule NSconvergent_NSBseq)
+apply (rule convergent_NSconvergent_iff [THEN iffD1])
+apply (rule summable_convergent_sumr_iff [THEN iffD1])
 apply (simp only: One_nat_def summable_sin)
 done
 
@@ -462,10 +468,14 @@ lemma HFinite_cos [simp]:
      "sumhr (0, whn, %n. (if even(n) then  
             ((- 1) ^ (n div 2))/(real (fact n)) else  
             0) * x ^ n) \<in> HFinite"
-by (auto intro!: NSBseq_HFinite_hypreal NSconvergent_NSBseq 
-         simp add: starfunNat_sumr [symmetric] starfun hypnat_omega_def
-                   convergent_NSconvergent_iff [symmetric] 
-                   summable_convergent_sumr_iff [symmetric] summable_cos)
+unfolding sumhr_app
+apply (simp only: star_zero_def starfun2_star_of)
+apply (rule NSBseqD2)
+apply (rule NSconvergent_NSBseq)
+apply (rule convergent_NSconvergent_iff [THEN iffD1])
+apply (rule summable_convergent_sumr_iff [THEN iffD1])
+apply (rule summable_cos)
+done
 
 lemma STAR_cos_zero [simp]: "( *f* cos) 0 = 1"
 by transfer (rule cos_zero)
