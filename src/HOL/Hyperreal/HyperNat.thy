@@ -271,12 +271,10 @@ definition
   hypnat_omega_def: "whn = star_n (%n::nat. n)"
 
 lemma hypnat_of_nat_neq_whn: "hypnat_of_nat n \<noteq> whn"
-by (simp add: hypnat_omega_def star_of_def star_n_eq_iff
-              FreeUltrafilterNat.finite)
+by (simp add: hypnat_omega_def star_of_def star_n_eq_iff)
 
 lemma whn_neq_hypnat_of_nat: "whn \<noteq> hypnat_of_nat n"
-by (simp add: hypnat_omega_def star_of_def star_n_eq_iff
-              FreeUltrafilterNat.finite)
+by (simp add: hypnat_omega_def star_of_def star_n_eq_iff)
 
 lemma whn_not_Nats [simp]: "whn \<notin> Nats"
 by (simp add: Nats_def image_def whn_neq_hypnat_of_nat)
@@ -297,9 +295,10 @@ done
 
 lemma lemma_unbounded_set [simp]: "{n::nat. m < n} \<in> FreeUltrafilterNat"
 apply (insert finite_atMost [of m]) 
-apply (simp add: atMost_def) 
-apply (drule FreeUltrafilterNat_finite)
-apply (drule FreeUltrafilterNat_Compl_mem, ultra)
+apply (simp add: atMost_def)
+apply (drule FreeUltrafilterNat.finite)
+apply (drule FreeUltrafilterNat.not_memD)
+apply (simp add: Collect_neg_eq [symmetric] linorder_not_le)
 done
 
 lemma Compl_Collect_le: "- {n::nat. N \<le> n} = {n. n < N}"
@@ -341,16 +340,14 @@ lemma HNatInfinite_FreeUltrafilterNat_lemma:
       ==> {n. N < f n} \<in> FreeUltrafilterNat"
 apply (induct_tac N)
 apply (drule_tac x = 0 in spec)
-apply (rule ccontr, drule FreeUltrafilterNat_Compl_mem, drule FreeUltrafilterNat_Int, assumption, simp)
-apply (drule_tac x = "Suc n" in spec, ultra)
+apply (rule ccontr, drule FreeUltrafilterNat.not_memD, drule FreeUltrafilterNat.Int, assumption, simp)
+apply (drule_tac x = "Suc n" in spec)
+apply (elim ultra, auto)
 done
 
 lemma HNatInfinite_iff: "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"
-apply (auto simp add: HNatInfinite_def SHNat_eq hypnat_of_nat_eq)
-apply (rule_tac x = x in star_cases)
-apply (auto elim: HNatInfinite_FreeUltrafilterNat_lemma 
-            simp add: star_n_less FreeUltrafilterNat_Compl_iff1
-                      star_n_eq_iff Collect_neg_eq [symmetric])
+apply (safe intro!: Nats_less_HNatInfinite)
+apply (auto simp add: HNatInfinite_def)
 done
 
 

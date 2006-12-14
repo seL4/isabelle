@@ -102,7 +102,7 @@ subsection{*Existence of Free Ultrafilter over the Naturals*}
 
 text{*Also, proof of various properties of @{term FreeUltrafilterNat}: 
 an arbitrary free ultrafilter*}
-
+(*
 lemma FreeUltrafilterNat_Ex: "\<exists>U::nat set set. freeultrafilter U"
 by (rule nat_infinite [THEN freeultrafilter_Ex])
 
@@ -190,11 +190,12 @@ method_setup ultra = {*
 
 
 text{*One further property of our free ultrafilter*}
+
 lemma FreeUltrafilterNat_Un:
      "X Un Y \<in> FreeUltrafilterNat  
       ==> X \<in> FreeUltrafilterNat | Y \<in> FreeUltrafilterNat"
 by (auto, ultra)
-
+*)
 
 subsection{*Properties of @{term starrel}*}
 
@@ -301,7 +302,7 @@ lemma not_ex_hypreal_of_real_eq_omega:
 apply (simp add: omega_def)
 apply (simp add: star_of_def star_n_eq_iff)
 apply (auto simp add: real_of_nat_Suc diff_eq_eq [symmetric] 
-            lemma_finite_omega_set [THEN FreeUltrafilterNat_finite])
+            lemma_finite_omega_set [THEN FreeUltrafilterNat.finite])
 done
 
 lemma hypreal_of_real_not_eq_omega: "hypreal_of_real x \<noteq> omega"
@@ -320,7 +321,7 @@ by (cut_tac x = x in lemma_epsilon_empty_singleton_disj, auto)
 
 lemma not_ex_hypreal_of_real_eq_epsilon: "~ (\<exists>x. hypreal_of_real x = epsilon)"
 by (auto simp add: epsilon_def star_of_def star_n_eq_iff
-                   lemma_finite_epsilon_set [THEN FreeUltrafilterNat_finite])
+                   lemma_finite_epsilon_set [THEN FreeUltrafilterNat.finite])
 
 lemma hypreal_of_real_not_eq_epsilon: "hypreal_of_real x \<noteq> epsilon"
 by (insert not_ex_hypreal_of_real_eq_epsilon, auto)

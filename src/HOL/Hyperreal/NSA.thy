@@ -1972,7 +1972,7 @@ lemma HInfinite_FreeUltrafilterNat:
 apply (drule HInfinite_HFinite_iff [THEN iffD1])
 apply (simp add: HFinite_FreeUltrafilterNat_iff)
 apply (rule allI, drule_tac x="u + 1" in spec)
-apply (drule FreeUltrafilterNat_Compl_mem)
+apply (drule FreeUltrafilterNat.not_memD)
 apply (simp add: Collect_neg_eq [symmetric] linorder_not_less)
 apply (erule ultra, simp)
 done
@@ -1989,7 +1989,9 @@ lemma FreeUltrafilterNat_HInfinite:
 apply (rule HInfinite_HFinite_iff [THEN iffD2])
 apply (safe, drule HFinite_FreeUltrafilterNat, safe)
 apply (drule_tac x = u in spec)
-apply ultra
+apply (drule (1) FreeUltrafilterNat.Int)
+apply (simp add: Collect_conj_eq [symmetric])
+apply (subgoal_tac "\<forall>n. \<not> (norm (X n) < u \<and> u < norm (X n))", auto)
 done
 
 lemma HInfinite_FreeUltrafilterNat_iff:
@@ -2090,13 +2092,13 @@ done
 
 lemma rabs_real_of_nat_le_real_FreeUltrafilterNat:
      "{n. abs(real n) \<le> u} \<notin> FreeUltrafilterNat"
-by (blast intro!: FreeUltrafilterNat_finite finite_rabs_real_of_nat_le_real)
+by (blast intro!: FreeUltrafilterNat.finite finite_rabs_real_of_nat_le_real)
 
 lemma FreeUltrafilterNat_nat_gt_real: "{n. u < real n} \<in> FreeUltrafilterNat"
-apply (rule ccontr, drule FreeUltrafilterNat_Compl_mem)
+apply (rule ccontr, drule FreeUltrafilterNat.not_memD)
 apply (subgoal_tac "- {n::nat. u < real n} = {n. real n \<le> u}")
 prefer 2 apply force
-apply (simp add: finite_real_of_nat_le_real [THEN FreeUltrafilterNat_finite])
+apply (simp add: finite_real_of_nat_le_real [THEN FreeUltrafilterNat.finite])
 done
 
 (*--------------------------------------------------------------
@@ -2112,7 +2114,7 @@ text{*@{term omega} is a member of @{term HInfinite}*}
 
 lemma FreeUltrafilterNat_omega: "{n. u < real n} \<in> FreeUltrafilterNat"
 apply (cut_tac u = u in rabs_real_of_nat_le_real_FreeUltrafilterNat)
-apply (auto dest: FreeUltrafilterNat_Compl_mem simp add: Compl_real_le_eq)
+apply (auto dest: FreeUltrafilterNat.not_memD simp add: Compl_real_le_eq)
 done
 
 theorem HInfinite_omega [simp]: "omega \<in> HInfinite"
@@ -2187,7 +2189,7 @@ by (auto simp add: lemma_real_le_Un_eq2 lemma_finite_omega_set2 finite_inverse_r
 
 lemma inverse_real_of_posnat_ge_real_FreeUltrafilterNat:
      "0 < u ==> {n. u \<le> inverse(real(Suc n))} \<notin> FreeUltrafilterNat"
-by (blast intro!: FreeUltrafilterNat_finite finite_inverse_real_of_posnat_ge_real)
+by (blast intro!: FreeUltrafilterNat.finite finite_inverse_real_of_posnat_ge_real)
 
 (*--------------------------------------------------------------
     The complement of  {n. u \<le> inverse(real(Suc n))} =
@@ -2204,7 +2206,7 @@ lemma FreeUltrafilterNat_inverse_real_of_posnat:
      "0 < u ==>
       {n. inverse(real(Suc n)) < u} \<in> FreeUltrafilterNat"
 apply (cut_tac u = u in inverse_real_of_posnat_ge_real_FreeUltrafilterNat)
-apply (auto dest: FreeUltrafilterNat_Compl_mem simp add: Compl_le_inverse_eq)
+apply (auto dest: FreeUltrafilterNat.not_memD simp add: Compl_le_inverse_eq)
 done
 
 text{* Example where we get a hyperreal from a real sequence
@@ -2220,7 +2222,7 @@ text{* Example where we get a hyperreal from a real sequence
 lemma real_seq_to_hypreal_Infinitesimal:
      "\<forall>n. norm(X n - x) < inverse(real(Suc n))
      ==> star_n X - star_of x \<in> Infinitesimal"
-apply (auto intro!: bexI dest: FreeUltrafilterNat_inverse_real_of_posnat FreeUltrafilterNat_all FreeUltrafilterNat_Int intro: order_less_trans FreeUltrafilterNat_subset simp add: star_n_diff star_of_def Infinitesimal_FreeUltrafilterNat_iff star_n_inverse)
+apply (auto intro!: bexI dest: FreeUltrafilterNat_inverse_real_of_posnat FreeUltrafilterNat.Int intro: order_less_trans FreeUltrafilterNat.subset simp add: star_n_diff star_of_def Infinitesimal_FreeUltrafilterNat_iff star_n_inverse)
 done
 
 lemma real_seq_to_hypreal_approx:
@@ -2244,8 +2246,8 @@ lemma real_seq_to_hypreal_Infinitesimal2:
       ==> star_n X - star_n Y \<in> Infinitesimal"
 by (auto intro!: bexI
 	 dest: FreeUltrafilterNat_inverse_real_of_posnat 
-	       FreeUltrafilterNat_all FreeUltrafilterNat_Int
-	 intro: order_less_trans FreeUltrafilterNat_subset 
+	       FreeUltrafilterNat.Int
+	 intro: order_less_trans FreeUltrafilterNat.subset 
 	 simp add: Infinitesimal_FreeUltrafilterNat_iff star_n_diff 
                    star_n_inverse)
 
