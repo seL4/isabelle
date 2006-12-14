@@ -247,7 +247,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
 fun gen_theorem prep_att prep_stmt
     kind before_qed after_qed (name, raw_atts) raw_elems raw_concl lthy0 =
   let
-    val _ = LocalTheory.assert lthy0;
+    val _ = LocalTheory.affirm lthy0;
     val thy = ProofContext.theory_of lthy0;
 
     val (loc, ctxt, lthy) =

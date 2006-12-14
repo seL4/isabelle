@@ -18,7 +18,7 @@ sig
   val theory: (theory -> theory) -> local_theory -> local_theory
   val target_result: (Proof.context -> 'a * Proof.context) -> local_theory -> 'a * local_theory
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
-  val assert: local_theory -> local_theory
+  val affirm: local_theory -> local_theory
   val pretty: local_theory -> Pretty.T list
   val consts: (string * typ -> bool) ->
     ((bstring * typ) * mixfix) list -> local_theory -> (term * thm) list * local_theory
@@ -103,7 +103,7 @@ fun map_lthy f lthy =
   in Data.put (SOME (make_lthy (f (theory_prefix, operations, target)))) lthy end;
 
 val target_of = #target o get_lthy;
-val assert = tap target_of;
+val affirm = tap target_of;
 
 fun map_target f = map_lthy (fn (theory_prefix, operations, target) =>
   (theory_prefix, operations, f target));
