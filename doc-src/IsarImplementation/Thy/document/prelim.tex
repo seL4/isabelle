@@ -137,7 +137,7 @@ A logical context represents the background that is required for
         &            & \isa{{\isasymdown}} \\
         &            & \isa{FOL} \\
         & $\swarrow$ &              & $\searrow$ & \\
-  $Nat$ &            &              &            & \isa{List} \\
+  \isa{Nat} &    &              &            & \isa{List} \\
         & $\searrow$ &              & $\swarrow$ \\
         &            & \isa{Length} \\
         &            & \multicolumn{3}{l}{~~$\isarkeyword{imports}$} \\
@@ -810,8 +810,8 @@ A \emph{qualified name} consists of a non-empty sequence of basic
   \indexml{NameSpace.base}\verb|NameSpace.base: string -> string| \\
   \indexml{NameSpace.qualifier}\verb|NameSpace.qualifier: string -> string| \\
   \indexml{NameSpace.append}\verb|NameSpace.append: string -> string -> string| \\
-  \indexml{NameSpace.pack}\verb|NameSpace.pack: string list -> string| \\
-  \indexml{NameSpace.unpack}\verb|NameSpace.unpack: string -> string list| \\
+  \indexml{NameSpace.implode}\verb|NameSpace.implode: string list -> string| \\
+  \indexml{NameSpace.explode}\verb|NameSpace.explode: string -> string list| \\
   \end{mldecls}
   \begin{mldecls}
   \indexmltype{NameSpace.naming}\verb|type NameSpace.naming| \\
@@ -839,7 +839,7 @@ A \emph{qualified name} consists of a non-empty sequence of basic
   \item \verb|NameSpace.append|~\isa{name\isactrlisub {\isadigit{1}}\ name\isactrlisub {\isadigit{2}}}
   appends two qualified names.
 
-  \item \verb|NameSpace.pack|~\isa{name} and \verb|NameSpace.unpack|~\isa{names} convert between the packed string
+  \item \verb|NameSpace.implode|~\isa{name} and \verb|NameSpace.explode|~\isa{names} convert between the packed string
   representation and the explicit list form of qualified names.
 
   \item \verb|NameSpace.naming| represents the abstract concept of

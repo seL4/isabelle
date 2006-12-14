@@ -702,8 +702,8 @@ text %mlref {*
   @{index_ML NameSpace.base: "string -> string"} \\
   @{index_ML NameSpace.qualifier: "string -> string"} \\
   @{index_ML NameSpace.append: "string -> string -> string"} \\
-  @{index_ML NameSpace.pack: "string list -> string"} \\
-  @{index_ML NameSpace.unpack: "string -> string list"} \\
+  @{index_ML NameSpace.implode: "string list -> string"} \\
+  @{index_ML NameSpace.explode: "string -> string list"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML_type NameSpace.naming} \\
@@ -731,8 +731,8 @@ text %mlref {*
   \item @{ML NameSpace.append}~@{text "name\<^isub>1 name\<^isub>2"}
   appends two qualified names.
 
-  \item @{ML NameSpace.pack}~@{text "name"} and @{ML
-  NameSpace.unpack}~@{text "names"} convert between the packed string
+  \item @{ML NameSpace.implode}~@{text "name"} and @{ML
+  NameSpace.explode}~@{text "names"} convert between the packed string
   representation and the explicit list form of qualified names.
 
   \item @{ML_type NameSpace.naming} represents the abstract concept of
