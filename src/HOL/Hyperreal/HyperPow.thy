@@ -202,7 +202,7 @@ by (auto intro!: hyperpow_less_le simp add: HNatInfinite_iff)
 
 lemma hyperpow_realpow:
       "(hypreal_of_real r) pow (hypnat_of_nat n) = hypreal_of_real (r ^ n)"
-by (simp add: star_of_def hypnat_of_nat_eq hyperpow)
+by transfer (rule refl)
 
 lemma hyperpow_SReal [simp]:
      "(hypreal_of_real r) pow (hypnat_of_nat n) \<in> Reals"
