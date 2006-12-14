@@ -20,7 +20,6 @@ sig
   val is_theory: state -> bool
   val is_proof: state -> bool
   val level: state -> int
-  val assert: bool -> unit
   val node_history_of: state -> node History.T
   val node_of: state -> node
   val node_case: (generic_theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
@@ -175,9 +174,6 @@ fun str_of_state (State NONE) = "at top level"
 
 
 (* top node *)
-
-fun assert true = ()
-  | assert false = raise UNDEF;
 
 fun node_history_of (State NONE) = raise UNDEF
   | node_history_of (State (SOME (node, _))) = node;
