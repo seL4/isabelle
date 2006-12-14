@@ -140,7 +140,7 @@ setup {*
 types_code
   nat ("int")
 attach (term_of) {*
-val term_of_nat = HOLogic.mk_number HOLogic.natT o InfInf.fromInt;
+val term_of_nat = HOLogic.mk_number HOLogic.natT o IntInf.fromInt;
 *}
 attach (test) {*
 fun gen_nat i = random_range 0 i;
