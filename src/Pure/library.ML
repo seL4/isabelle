@@ -660,7 +660,7 @@ fun suffixes xs = [] :: suffixes1 xs;
 
 fun gcd (x, y) =
   let fun gxd x y : IntInf.int =
-    if y = 0 then x else gxd y (x mod y)
+    if y = IntInf.fromInt 0 then x else gxd y (x mod y)
   in if x < y then gxd y x else gxd x y end;
 
 fun lcm (x, y) = (x * y) div gcd (x, y);
@@ -672,12 +672,12 @@ fun dec i = (i := ! i - 1; ! i);
 (* lists of integers *)
 
 (*make the list [from, from + 1, ..., to]*)
-fun (from upto to) =
-  if from > to then [] else from :: ((from + 1) upto to);
+fun (i upto j) =
+  if i > j then [] else i :: (i + 1 upto j);
 
 (*make the list [from, from - 1, ..., to]*)
-fun (from downto to) =
-  if from < to then [] else from :: ((from - 1) downto to);
+fun (i downto j) =
+  if i < j then [] else i :: (i - 1 downto j);
 
 (*predicate: downto0 (is, n) <=> is = [n, n - 1, ..., 0]*)
 fun downto0 (i :: is, n) = i = n andalso downto0 (is, n - 1)
@@ -720,7 +720,7 @@ fun read_intinf radix cs =
         if zero <= ord c andalso ord c < limit then
           scan (IntInf.fromInt radix * num + IntInf.fromInt (ord c - zero), cs)
         else (num, c :: cs);
-  in scan (0, cs) end;
+  in scan (IntInf.fromInt 0, cs) end;
 
 fun read_int cs = apfst IntInf.toInt (read_intinf 10 cs);
 
