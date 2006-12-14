@@ -71,7 +71,7 @@ by (erule contrapos_pn, erule infinite)
 lemma (in freeultrafilter) singleton: "{x} \<notin> F"
 by (rule finite, simp)
 
-lemma (in freeultrafilter) insert_iff: "(insert x A \<in> F) = (A \<in> F)"
+lemma (in freeultrafilter) insert_iff [simp]: "(insert x A \<in> F) = (A \<in> F)"
 apply (subst insert_is_Un)
 apply (subst Un_iff)
 apply (simp add: singleton)
