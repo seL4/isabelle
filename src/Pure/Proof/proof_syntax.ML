@@ -134,16 +134,16 @@ fun proof_of_term thy tab ty =
     fun prf_of [] (Bound i) = PBound i
       | prf_of Ts (Const (s, Type ("proof", _))) =
           change_type (if ty then SOME Ts else NONE)
-            (case NameSpace.unpack s of
+            (case NameSpace.explode s of
                "axm" :: xs =>
                  let
-                   val name = NameSpace.pack xs;
+                   val name = NameSpace.implode xs;
                    val prop = (case AList.lookup (op =) axms name of
                        SOME prop => prop
                      | NONE => error ("Unknown axiom " ^ quote name))
                  in PAxm (name, prop, NONE) end
              | "thm" :: xs =>
-                 let val name = NameSpace.pack xs;
+                 let val name = NameSpace.implode xs;
                  in (case AList.lookup (op =) thms name of
                      SOME thm => fst (strip_combt (Thm.proof_of thm))
                    | NONE => (case Symtab.lookup tab name of

@@ -564,14 +564,14 @@ let
 	fun minisat_with_proofs fm =
 	let
 		val _          = if (getenv "MINISAT_HOME") = "" then raise SatSolver.NOT_CONFIGURED else ()
-		val inpath     = File.tmp_path (Path.unpack "isabelle.cnf")
-		val outpath    = File.tmp_path (Path.unpack "result")
-		val proofpath  = File.tmp_path (Path.unpack "result.prf")
-		val cmd        = (getenv "MINISAT_HOME") ^ "/minisat " ^ (Path.pack inpath) ^ " -r " ^ (Path.pack outpath) ^ " -t " ^ (Path.pack proofpath) ^ "> /dev/null"
+		val inpath     = File.tmp_path (Path.explode "isabelle.cnf")
+		val outpath    = File.tmp_path (Path.explode "result")
+		val proofpath  = File.tmp_path (Path.explode "result.prf")
+		val cmd        = (getenv "MINISAT_HOME") ^ "/minisat " ^ (Path.implode inpath) ^ " -r " ^ (Path.implode outpath) ^ " -t " ^ (Path.implode proofpath) ^ "> /dev/null"
 		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath fm
 		fun readfn ()  = SatSolver.read_std_result_file outpath ("SAT", "", "UNSAT")
-		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.pack inpath)) else ()
-		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.pack outpath)) else ()
+		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
+		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.implode outpath)) else ()
 		val cnf        = PropLogic.defcnf fm
 		val result     = SatSolver.make_external_solver cmd writefn readfn cnf
 		val _          = try File.rm inpath
@@ -749,13 +749,13 @@ let
 	fun minisat fm =
 	let
 		val _          = if (getenv "MINISAT_HOME") = "" then raise SatSolver.NOT_CONFIGURED else ()
-		val inpath     = File.tmp_path (Path.unpack "isabelle.cnf")
-		val outpath    = File.tmp_path (Path.unpack "result")
-		val cmd        = (getenv "MINISAT_HOME") ^ "/minisat " ^ (Path.pack inpath) ^ " -r " ^ (Path.pack outpath) ^ " > /dev/null"
+		val inpath     = File.tmp_path (Path.explode "isabelle.cnf")
+		val outpath    = File.tmp_path (Path.explode "result")
+		val cmd        = (getenv "MINISAT_HOME") ^ "/minisat " ^ (Path.implode inpath) ^ " -r " ^ (Path.implode outpath) ^ " > /dev/null"
 		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
 		fun readfn ()  = SatSolver.read_std_result_file outpath ("SAT", "", "UNSAT")
-		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.pack inpath)) else ()
-		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.pack outpath)) else ()
+		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
+		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.implode outpath)) else ()
 		val result     = SatSolver.make_external_solver cmd writefn readfn fm
 		val _          = try File.rm inpath
 		val _          = try File.rm outpath
@@ -788,7 +788,7 @@ let
 	  SatSolver.UNSATISFIABLE NONE =>
 		(let
 			(* string list *)
-			val proof_lines = ((split_lines o File.read) (Path.unpack "resolve_trace"))
+			val proof_lines = ((split_lines o File.read) (Path.explode "resolve_trace"))
 				handle IO.Io _ => raise INVALID_PROOF "Could not read file \"resolve_trace\""
 			(* PropLogic.prop_formula -> int *)
 			fun cnf_number_of_clauses (PropLogic.And (fm1, fm2)) = cnf_number_of_clauses fm1 + cnf_number_of_clauses fm2
@@ -911,13 +911,13 @@ let
 		                    (getenv "ZCHAFF_VERSION") <> "2004.11.15" then raise SatSolver.NOT_CONFIGURED else ()
 			(* both versions of zChaff appear to have the same interface, so we do *)
 			(* not actually need to distinguish between them in the following code *)
-		val inpath     = File.tmp_path (Path.unpack "isabelle.cnf")
-		val outpath    = File.tmp_path (Path.unpack "result")
-		val cmd        = (getenv "ZCHAFF_HOME") ^ "/zchaff " ^ (Path.pack inpath) ^ " > " ^ (Path.pack outpath)
+		val inpath     = File.tmp_path (Path.explode "isabelle.cnf")
+		val outpath    = File.tmp_path (Path.explode "result")
+		val cmd        = (getenv "ZCHAFF_HOME") ^ "/zchaff " ^ (Path.implode inpath) ^ " > " ^ (Path.implode outpath)
 		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
 		fun readfn ()  = SatSolver.read_std_result_file outpath ("Instance Satisfiable", "", "Instance Unsatisfiable")
-		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.pack inpath)) else ()
-		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.pack outpath)) else ()
+		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
+		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.implode outpath)) else ()
 		val result     = SatSolver.make_external_solver cmd writefn readfn fm
 		val _          = try File.rm inpath
 		val _          = try File.rm outpath
@@ -936,13 +936,13 @@ let
 	fun berkmin fm =
 	let
 		val _          = if (getenv "BERKMIN_HOME") = "" orelse (getenv "BERKMIN_EXE") = "" then raise SatSolver.NOT_CONFIGURED else ()
-		val inpath     = File.tmp_path (Path.unpack "isabelle.cnf")
-		val outpath    = File.tmp_path (Path.unpack "result")
-		val cmd        = (getenv "BERKMIN_HOME") ^ "/" ^ (getenv "BERKMIN_EXE") ^ " " ^ (Path.pack inpath) ^ " > " ^ (Path.pack outpath)
+		val inpath     = File.tmp_path (Path.explode "isabelle.cnf")
+		val outpath    = File.tmp_path (Path.explode "result")
+		val cmd        = (getenv "BERKMIN_HOME") ^ "/" ^ (getenv "BERKMIN_EXE") ^ " " ^ (Path.implode inpath) ^ " > " ^ (Path.implode outpath)
 		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
 		fun readfn ()  = SatSolver.read_std_result_file outpath ("Satisfiable          !!", "solution =", "UNSATISFIABLE          !!")
-		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.pack inpath)) else ()
-		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.pack outpath)) else ()
+		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
+		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.implode outpath)) else ()
 		val result     = SatSolver.make_external_solver cmd writefn readfn fm
 		val _          = try File.rm inpath
 		val _          = try File.rm outpath
@@ -961,13 +961,13 @@ let
 	fun jerusat fm =
 	let
 		val _          = if (getenv "JERUSAT_HOME") = "" then raise SatSolver.NOT_CONFIGURED else ()
-		val inpath     = File.tmp_path (Path.unpack "isabelle.cnf")
-		val outpath    = File.tmp_path (Path.unpack "result")
-		val cmd        = (getenv "JERUSAT_HOME") ^ "/Jerusat1.3 " ^ (Path.pack inpath) ^ " > " ^ (Path.pack outpath)
+		val inpath     = File.tmp_path (Path.explode "isabelle.cnf")
+		val outpath    = File.tmp_path (Path.explode "result")
+		val cmd        = (getenv "JERUSAT_HOME") ^ "/Jerusat1.3 " ^ (Path.implode inpath) ^ " > " ^ (Path.implode outpath)
 		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
 		fun readfn ()  = SatSolver.read_std_result_file outpath ("s SATISFIABLE", "v ", "s UNSATISFIABLE")
-		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.pack inpath)) else ()
-		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.pack outpath)) else ()
+		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
+		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.implode outpath)) else ()
 		val result     = SatSolver.make_external_solver cmd writefn readfn fm
 		val _          = try File.rm inpath
 		val _          = try File.rm outpath

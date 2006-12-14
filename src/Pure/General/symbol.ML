@@ -403,7 +403,7 @@ fun scanner msg scan chs =
 
 (* scan *)
 
-val scan_id = Scan.one is_letter ^^ (Scan.any is_letdig >> implode);
+val scan_id = Scan.one is_letter ^^ (Scan.many is_letdig >> implode);
 
 local
 
@@ -413,8 +413,8 @@ val scan_encoded_newline =
   $$ "\\" -- Scan.optional ($$ "\\") "" -- Scan.this_string "<^newline>" >> K "\n";
 
 val scan_raw =
-  Scan.this_string "raw:" ^^ (Scan.any raw_chr >> implode) ||
-  Scan.this_string "raw" ^^ (Scan.any1 is_ascii_digit >> implode);
+  Scan.this_string "raw:" ^^ (Scan.many raw_chr >> implode) ||
+  Scan.this_string "raw" ^^ (Scan.many1 is_ascii_digit >> implode);
 
 in
 
@@ -431,7 +431,7 @@ end;
 (* source *)
 
 val recover =
-  Scan.any (fn s => not (is_blank s) andalso s <> "\"" andalso not_eof s) >> K [malformed];
+  Scan.many (fn s => not (is_blank s) andalso s <> "\"" andalso not_eof s) >> K [malformed];
 
 fun source do_recover src =
   Source.source stopper (Scan.bulk scan) (if do_recover then SOME recover else NONE) src;

@@ -253,9 +253,9 @@ fun deps_thy name ml path =
     val ml_file = if ml andalso is_some (ThyLoad.check_file NONE ml_path) then [ml_path] else [];
   in
     if name <> name' then
-      error ("Filename " ^ quote (Path.pack path) ^
+      error ("Filename " ^ quote (Path.implode path) ^
         " does not agree with theory name " ^ quote name')
-    else (parents, map (Path.unpack o #1) files @ ml_file)
+    else (parents, map (Path.explode o #1) files @ ml_file)
   end;
 
 
@@ -268,7 +268,7 @@ fun try_ml_file name time =
     if is_none (ThyLoad.check_file NONE path) then ()
     else
       let
-        val _ = warning ("Loading legacy ML script " ^ quote (Path.pack path));
+        val _ = warning ("Loading legacy ML script " ^ quote (Path.implode path));
         val tr = Toplevel.imperative (fn () => ThyInfo.load_file time path);
         val tr_name = if time then "time_use" else "use";
       in Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr] end

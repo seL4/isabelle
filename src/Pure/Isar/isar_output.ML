@@ -305,10 +305,10 @@ datatype markup = Markup | MarkupEnv | Verbatim;
 local
 
 val space_proper =
-  Scan.one T.is_blank -- Scan.any T.is_comment -- Scan.one T.is_proper;
+  Scan.one T.is_blank -- Scan.many T.is_comment -- Scan.one T.is_proper;
 
 val is_improper = not o (T.is_proper orf T.is_begin_ignore orf T.is_end_ignore);
-val improper = Scan.any is_improper;
+val improper = Scan.many is_improper;
 val improper_end = Scan.repeat (Scan.unless space_proper (Scan.one is_improper));
 val blank_end = Scan.repeat (Scan.unless space_proper (Scan.one T.is_blank));
 
@@ -375,7 +375,7 @@ fun present_thy lex default_tags is_markup trs src =
     val cmd = Scan.one (is_some o fst);
     val non_cmd = Scan.one (is_none o fst andf not o #2 stopper) >> #2;
 
-    val comments = Scan.any (comment_token o fst o snd);
+    val comments = Scan.many (comment_token o fst o snd);
     val blank = Scan.one (blank_token o fst o snd);
     val newline = Scan.one (newline_token o fst o snd);
     val before_cmd =

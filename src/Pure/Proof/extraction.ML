@@ -315,7 +315,7 @@ fun prep_realizer thy =
   in fn (thm, (vs, s1, s2)) =>
     let
       val name = Thm.get_name thm;
-      val _ = assert (name <> "") "add_realizers: unnamed theorem";
+      val _ = name <> "" orelse error "add_realizers: unnamed theorem";
       val prop = Pattern.rewrite_term thy'
         (map (Logic.dest_equals o prop_of) defs) [] (prop_of thm);
       val vars = vars_of prop;
@@ -360,7 +360,7 @@ fun add_expand_thm thm thy =
       defs, expand, prep} = ExtractionData.get thy;
 
     val name = Thm.get_name thm;
-    val _ = assert (name <> "") "add_expand_thms: unnamed theorem";
+    val _ = name <> "" orelse error "add_expand_thms: unnamed theorem";
 
     val is_def =
       (case strip_comb (fst (Logic.dest_equals (prop_of thm))) of
@@ -568,7 +568,7 @@ fun extract thms thy =
               NONE => (case find vs' (find' name defs') of
                 NONE =>
                   let
-                    val _ = assert (T = nullT) "corr: internal error";
+                    val _ = T = nullT orelse error "corr: internal error";
                     val _ = msg d ("Building correctness proof for " ^ quote name ^
                       (if null vs' then ""
                        else " (relevant variables: " ^ commas_quote vs' ^ ")"));
@@ -720,8 +720,8 @@ fun extract thms thy =
       let
         val {prop, der = (_, prf), sign, ...} = rep_thm thm;
         val name = Thm.get_name thm;
-        val _ = assert (name <> "") "extraction: unnamed theorem";
-        val _ = assert (etype_of thy' vs [] prop <> nullT) ("theorem " ^
+        val _ = name <> "" orelse error "extraction: unnamed theorem";
+        val _ = etype_of thy' vs [] prop <> nullT orelse error ("theorem " ^
           quote name ^ " has no computational content")
       in (Reconstruct.reconstruct_proof sign prop prf, vs) end;
 

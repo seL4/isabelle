@@ -266,13 +266,13 @@ val name = enclose "<span class=\"name\">" "</span>" o output;
 val keyword = enclose "<span class=\"keyword\">" "</span>" o output;
 val keyword_width = apfst (enclose "<span class=\"keyword\">" "</span>") o output_width;
 val file_name = enclose "<span class=\"filename\">" "</span>" o output;
-val file_path = file_name o Url.pack;
+val file_path = file_name o Url.implode;
 
 
 (* misc *)
 
 fun href_name s txt = "<a href=" ^ Library.quote s ^ ">" ^ txt ^ "</a>";
-fun href_path path txt = href_name (Url.pack path) txt;
+fun href_path path txt = href_name (Url.implode path) txt;
 
 fun href_opt_name NONE txt = txt
   | href_opt_name (SOME s) txt = href_name s txt;
@@ -400,7 +400,7 @@ val end_theory = end_document;
 (* ML file *)
 
 fun ml_file path str =
-  begin_document ("File " ^ Url.pack path) ^
+  begin_document ("File " ^ Url.implode path) ^
   "\n</div>\n<hr><div class=\"mlsource\">\n" ^
   verbatim str ^
   "\n</div>\n<hr>\n<div class=\"mlfooter\">\n" ^

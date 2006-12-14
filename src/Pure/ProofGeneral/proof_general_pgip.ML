@@ -271,7 +271,7 @@ end;
 
 (* prepare theory context *)
 
-val thy_name = Path.pack o #1 o Path.split_ext o Path.base o Path.unpack;
+val thy_name = Path.implode o #1 o Path.split_ext o Path.base o Path.explode;
 
 (* FIXME general treatment of tracing*)
 val update_thy_only = setmp MetaSimplifier.trace_simp false ThyInfo.update_thy_only;
@@ -282,7 +282,7 @@ fun dynamic_context () =
   | NONE => "");
 
 fun try_update_thy_only file =
-  ThyLoad.cond_add_path (Path.dir (Path.unpack file)) (fn () =>
+  ThyLoad.cond_add_path (Path.dir (Path.explode file)) (fn () =>
     let val name = thy_name file in
       if is_some (ThyLoad.check_file NONE (ThyLoad.thy_path name))
       then update_thy_only name
@@ -302,13 +302,13 @@ fun proper_inform_file_processed file state =
      (ThyInfo.touch_child_thys name;
       ThyInfo.pretend_use_thy_only name handle ERROR msg =>
        (warning msg; warning ("Failed to register theory: " ^ quote name);
-        tell_file_retracted (Path.base (Path.unpack file))))
+        tell_file_retracted (Path.base (Path.explode file))))
     else raise Toplevel.UNDEF
   end;
 
 fun vacuous_inform_file_processed file state =
  (warning ("No theory " ^ quote (thy_name file));
-  tell_file_retracted (Path.base (Path.unpack file)));
+  tell_file_retracted (Path.base (Path.explode file)));
 
 
 (* restart top-level loop (keeps most state information) *)
@@ -387,15 +387,15 @@ local
 in
 fun send_pgip_config () =
     let
-        val path = Path.unpack (config_file())
+        val path = Path.explode (config_file())
         val exists = File.exists path
 
 	val wwwpage = 
-	    (Url.unpack (isabelle_www()))
+	    (Url.explode (isabelle_www()))
 	    handle _ => 
 		   (Output.panic 
 			("Error in URL in environment variable ISABELLE_HOMEPAGE.");
-			Url.unpack isabellewww)
+			Url.explode isabellewww)
 		     
 	val proverinfo =
             Proverinfo { name = "Isabelle",
@@ -459,11 +459,11 @@ fun isarcmd s =
 
 fun use_thy_or_ml_file file =
     let
-        val (path,extn) = Path.split_ext (Path.unpack file)
+        val (path,extn) = Path.split_ext (Path.explode file)
     in
         case extn of
-            "" => isarcmd ("use_thy " ^ (quote (Path.pack path)))
-          | "thy" => isarcmd ("use_thy " ^ (quote (Path.pack path)))
+            "" => isarcmd ("use_thy " ^ (quote (Path.implode path)))
+          | "thy" => isarcmd ("use_thy " ^ (quote (Path.implode path)))
           | "ML" => isarcmd ("use " ^ quote file)
           | other => error ("Don't know how to read a file with extension " ^ other)
     end

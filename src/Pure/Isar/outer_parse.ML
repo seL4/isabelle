@@ -220,7 +220,7 @@ fun and_list scan = enum "and" scan;
 val name = group "name declaration" (short_ident || sym_ident || string || number);
 val xname = group "name reference" (short_ident || long_ident || sym_ident || string || number);
 val text = group "text" (short_ident || long_ident || sym_ident || string || number || verbatim);
-val path = group "file name/path specification" name >> Path.unpack;
+val path = group "file name/path specification" name >> Path.explode;
 
 val parname = Scan.optional ($$$ "(" |-- name --| $$$ ")") "";
 

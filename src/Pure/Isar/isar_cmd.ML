@@ -192,7 +192,7 @@ val skip_proof = local_skip_proof o global_skip_proof;
 (* init and exit *)
 
 fun begin_theory name imports uses =
-  ThyInfo.begin_theory Present.begin_theory name imports (map (apfst Path.unpack) uses);
+  ThyInfo.begin_theory Present.begin_theory name imports (map (apfst Path.explode) uses);
 
 fun end_theory thy =
   if ThyInfo.check_known_thy (Context.theory_name thy) then ThyInfo.end_theory thy else thy;
@@ -298,7 +298,7 @@ val use_commit = Toplevel.imperative Secure.commit;
 (* current working directory *)
 
 fun cd path = Toplevel.imperative (fn () => (File.cd path));
-val pwd = Toplevel.imperative (fn () => writeln (Path.pack (File.pwd ())));
+val pwd = Toplevel.imperative (fn () => writeln (Path.implode (File.pwd ())));
 
 
 (* load theory files *)
@@ -496,7 +496,7 @@ end;
 (* markup commands *)
 
 fun add_header s = Toplevel.keep' (fn int => fn state =>
-  (Toplevel.assert (Toplevel.is_toplevel state);
+  (if Toplevel.is_toplevel state then () else raise Toplevel.UNDEF;
    if int then OuterSyntax.check_text s NONE else ()));
 
 local

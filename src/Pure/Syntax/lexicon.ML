@@ -93,10 +93,10 @@ fun is_tid s =
 
 (** basic scanners **)
 
-val scan_letter_letdigs = Scan.one Symbol.is_letter -- Scan.any Symbol.is_letdig >> op ::;
-val scan_digits1 = Scan.any1 Symbol.is_digit;
-val scan_hex1 = Scan.any1 (Symbol.is_digit orf Symbol.is_hex_letter);
-val scan_bin1 = Scan.any1 (fn s => s = "0" orelse s = "1");
+val scan_letter_letdigs = Scan.one Symbol.is_letter -- Scan.many Symbol.is_letdig >> op ::;
+val scan_digits1 = Scan.many1 Symbol.is_digit;
+val scan_hex1 = Scan.many1 (Symbol.is_digit orf Symbol.is_hex_letter);
+val scan_bin1 = Scan.many1 (fn s => s = "0" orelse s = "1");
 
 val scan_id = scan_letter_letdigs >> implode;
 val scan_longid = scan_id ^^ (Scan.repeat1 ($$ "." ^^ scan_id) >> implode);
@@ -344,7 +344,7 @@ fun read_var str =
   let
     val scan =
       $$ "?" |-- scan_indexname --| Scan.ahead (Scan.one Symbol.is_eof) >> var ||
-      Scan.any Symbol.not_eof >> (free o implode);
+      Scan.many Symbol.not_eof >> (free o implode);
   in the (Scan.read Symbol.stopper scan (Symbol.explode str)) end;
 
 
@@ -388,7 +388,7 @@ local
 val ten = ord "0" + 10;
 val a = ord "a";
 val A = ord "A";
-val _ = assert (a > A) "Bad ASCII";
+val _ = a > A orelse error "Bad ASCII";
 
 fun remap_hex c =
   let val x = ord c in
@@ -421,8 +421,8 @@ end;
 
 fun read_idents str =
   let
-    val blanks = Scan.any Symbol.is_blank;
-    val junk = Scan.any Symbol.not_eof;
+    val blanks = Scan.many Symbol.is_blank;
+    val junk = Scan.many Symbol.not_eof;
     val idents = Scan.repeat1 (blanks |-- scan_id --| blanks) -- junk;
   in
     (case Scan.read Symbol.stopper idents (Symbol.explode str) of

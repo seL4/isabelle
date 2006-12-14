@@ -128,8 +128,8 @@ fun process_spec axiomatic cos alt_props thy =
         fun proc_single prop =
             let
                 val frees = Term.term_frees prop
-                val _ = assert (forall (fn v => Sign.of_sort thy (type_of v,HOLogic.typeS)) frees)
-                               "Specificaton: Only free variables of sort 'type' allowed"
+                val _ = forall (fn v => Sign.of_sort thy (type_of v,HOLogic.typeS)) frees
+                  orelse error "Specificaton: Only free variables of sort 'type' allowed"
                 val prop_closed = foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) prop (map dest_Free frees)
             in
                 (prop_closed,frees)
@@ -145,8 +145,8 @@ fun process_spec axiomatic cos alt_props thy =
         val (altcos,overloaded) = Library.split_list cos
         val (names,sconsts) = Library.split_list altcos
         val consts = map (term_of o Thm.read_cterm thy o rpair TypeInfer.logicT) sconsts
-        val _ = assert (not (Library.exists (not o Term.is_Const) consts))
-                       "Specification: Non-constant found as parameter"
+        val _ = not (Library.exists (not o Term.is_Const) consts)
+          orelse error "Specification: Non-constant found as parameter"
 
         fun proc_const c =
             let

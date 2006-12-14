@@ -460,7 +460,7 @@ fun skolem_thm th =
   handle THM _ => [];
 
 (*Keep the full complexity of the original name*)
-fun flatten_name s = space_implode "_X" (NameSpace.unpack s);
+fun flatten_name s = space_implode "_X" (NameSpace.explode s);
 
 (*Declare Skolem functions for a theorem, supplied in nnf and with its name.
   It returns a modified theory, unless skolemization fails.*)

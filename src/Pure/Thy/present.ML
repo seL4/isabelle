@@ -60,15 +60,15 @@ val graph_pdf_path = Path.basic "session_graph.pdf";
 val graph_eps_path = Path.basic "session_graph.eps";
 
 val session_path = Path.basic ".session";
-val session_entries_path = Path.unpack ".session/entries";
-val pre_index_path = Path.unpack ".session/pre-index";
+val session_entries_path = Path.explode ".session/entries";
+val pre_index_path = Path.explode ".session/pre-index";
 
 fun mk_rel_path [] ys = Path.make ys
   | mk_rel_path xs [] = Path.appends (replicate (length xs) Path.parent)
   | mk_rel_path (ps as x :: xs) (qs as y :: ys) = if x = y then mk_rel_path xs ys else
       Path.appends (replicate (length ps) Path.parent @ [Path.make qs]);
 
-fun show_path path = Path.pack (Path.append (File.pwd ()) path);
+fun show_path path = Path.implode (Path.append (File.pwd ()) path);
 
 
 
@@ -108,7 +108,7 @@ fun write_graph gr path =
 fun display_graph gr =
   let
     val _ = writeln "Generating graph ...";
-    val path = File.tmp_path (Path.unpack "tmp.graph");
+    val path = File.tmp_path (Path.explode "tmp.graph");
     val _ = write_graph gr path;
     val _ = File.isatool ("browser -c " ^ File.shell_path path ^ " &");
   in () end;
@@ -126,9 +126,9 @@ fun init_graph remote_path curr_sess = map (fn name =>
     path =
       if null session then "" else
       if is_some remote_path andalso not is_local then
-        Url.pack (Url.append (the remote_path) (Url.File
+        Url.implode (Url.append (the remote_path) (Url.File
           (Path.append (Path.make session) (html_path name))))
-      else Path.pack (Path.append (mk_rel_path curr_sess session) (html_path name)),
+      else Path.implode (Path.append (mk_rel_path curr_sess session) (html_path name)),
     unfold = false,
     parents =
       map (fn s => ID_of (#session (get_info (ThyInfo.theory s))) s) (ThyInfo.get_preds name)}
@@ -271,7 +271,7 @@ fun create_index dir =
 
 fun update_index dir name =
   (case try get_entries dir of
-    NONE => warning ("Browser info: cannot access session index of " ^ quote (Path.pack dir))
+    NONE => warning ("Browser info: cannot access session index of " ^ quote (Path.implode dir))
   | SOME es => (put_entries ((remove (op =) name es) @ [name]) dir; create_index dir));
 
 
@@ -323,7 +323,7 @@ fun init build info doc doc_graph doc_versions path name doc_prefix2
         (case readme of NONE => [] | SOME p => [(Url.File p, "README")]) @
         map (fn (name, _) => (Url.File (Path.ext doc (Path.basic name)), name)) documents;
       val index_text = HTML.begin_index (index_up_lnk, parent_name)
-        (Url.File index_path, session_name) docs (Url.unpack "medium.html");
+        (Url.File index_path, session_name) docs (Url.explode "medium.html");
     in
       session_info := SOME (make_session_info (name, parent_name, session_name, path, html_prefix,
       info, doc, doc_graph, documents, doc_prefix1, doc_prefix2, remote_path, verbose, readme));
@@ -407,10 +407,10 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
       if length path > 1 then update_index parent_html_prefix name else ();
       (case readme of NONE => () | SOME path => File.copy path html_prefix);
       write_graph graph (Path.append html_prefix graph_path);
-      File.copy (Path.unpack "~~/lib/browser/GraphBrowser.jar") html_prefix;
+      File.copy (Path.explode "~~/lib/browser/GraphBrowser.jar") html_prefix;
       List.app (fn (a, txt) => File.write (Path.append html_prefix (Path.basic a)) txt)
         (HTML.applet_pages name (Url.File index_path, name));
-      File.copy (Path.unpack "~~/lib/html/isabelle.css") html_prefix;
+      File.copy (Path.explode "~~/lib/html/isabelle.css") html_prefix;
       List.app finish_html thys;
       List.app (uncurry File.write) files;
       conditional verbose (fn () =>
@@ -474,7 +474,7 @@ fun begin_theory optpath name raw_parents orig_files thy =
               HTML.ml_file (Url.File base) (File.read path));
             (SOME (Url.File base_html), Url.File raw_path, loadit)
           end
-      | NONE => (warning ("Browser info: expected to find ML file" ^ quote (Path.pack raw_path));
+      | NONE => (warning ("Browser info: expected to find ML file" ^ quote (Path.implode raw_path));
           (NONE, Url.File raw_path, loadit)));
 
     val files_html = map prep_file files;
@@ -487,7 +487,7 @@ fun begin_theory optpath name raw_parents orig_files thy =
 
     val entry =
      {name = name, ID = ID_of path name, dir = sess_name, unfold = true,
-      path = Path.pack (html_path name),
+      path = Path.implode (html_path name),
       parents = map (fn s => ID_of (#session (get_info (ThyInfo.theory s))) s) raw_parents};
 
   in
@@ -523,11 +523,11 @@ fun drafts doc_format src_paths =
       let
         val base = Path.base path;
         val name =
-          (case Path.pack (#1 (Path.split_ext base)) of "" => gensym "DUMMY" | s => s);
+          (case Path.implode (#1 (Path.split_ext base)) of "" => gensym "DUMMY" | s => s);
       in
         if File.exists path then
           (Buffer.add (Latex.theory_entry name) tex_index, (name, base, File.read path))
-        else error ("Bad file: " ^ quote (Path.pack path))
+        else error ("Bad file: " ^ quote (Path.implode path))
       end;
     val (tex_index, srcs) = foldl_map prep_draft (Buffer.empty, src_paths);
 
@@ -535,7 +535,7 @@ fun drafts doc_format src_paths =
     val result_path = Path.append doc_path Path.parent;
     val _ = File.mkdir doc_path;
     val root_path = Path.append doc_path (Path.basic "root.tex");
-    val _ = File.copy (Path.unpack "~~/lib/texinputs/draft.tex") root_path;
+    val _ = File.copy (Path.explode "~~/lib/texinputs/draft.tex") root_path;
     val _ = File.isatool ("latex -o sty " ^ File.shell_path root_path);
     val _ = File.isatool ("latex -o syms " ^ File.shell_path root_path);
 
@@ -547,7 +547,7 @@ fun drafts doc_format src_paths =
 
     val _ = srcs |> List.app (fn (name, base, txt) =>
       Symbol.explode txt
-      |> Latex.symbol_source (known_syms, known_ctrls) (Path.pack base)
+      |> Latex.symbol_source (known_syms, known_ctrls) (Path.implode base)
       |> File.write (Path.append doc_path (tex_path name)));
     val _ = write_tex_index tex_index doc_path;
   in isatool_document false doc_format documentN "" doc_path result_path end;

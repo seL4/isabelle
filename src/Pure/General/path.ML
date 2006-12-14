@@ -21,8 +21,8 @@ sig
   val append: T -> T -> T
   val appends: T list -> T
   val make: string list -> T
-  val pack: T -> string
-  val unpack: string -> T
+  val implode: T -> string
+  val explode: string -> T
   val dir: T -> T
   val base: T -> T
   val ext: string -> T -> T
@@ -95,35 +95,35 @@ val make = appends o map basic;
 fun norm path = rev_app [] path;
 
 
-(* pack *)
+(* implode *)
 
-fun pack_elem Root = ""
-  | pack_elem Parent = ".."
-  | pack_elem (Basic s) = s
-  | pack_elem (Variable s) = "$" ^ s;
+fun implode_elem Root = ""
+  | implode_elem Parent = ".."
+  | implode_elem (Basic s) = s
+  | implode_elem (Variable s) = "$" ^ s;
 
-fun pack (Path []) = "."
-  | pack (Path (Root :: xs)) = "/" ^ space_implode "/" (map pack_elem xs)
-  | pack (Path xs) = space_implode "/" (map pack_elem xs);
+fun implode_path (Path []) = "."
+  | implode_path (Path (Root :: xs)) = "/" ^ space_implode "/" (map implode_elem xs)
+  | implode_path (Path xs) = space_implode "/" (map implode_elem xs);
 
 
-(* unpack *)
+(* explode *)
 
-fun unpack_elem "" = Root
-  | unpack_elem ".." = Parent
-  | unpack_elem "~" = Variable "HOME"
-  | unpack_elem "~~" = Variable "ISABELLE_HOME"
-  | unpack_elem s =
+fun explode_elem "" = Root
+  | explode_elem ".." = Parent
+  | explode_elem "~" = Variable "HOME"
+  | explode_elem "~~" = Variable "ISABELLE_HOME"
+  | explode_elem s =
       (case explode s of
         "$" :: cs => variable_elem cs
       | cs => basic_elem cs);
 
-val unpack_elems = map unpack_elem o filter_out (fn c => c = "" orelse c = ".");
+val explode_elems = map explode_elem o filter_out (fn c => c = "" orelse c = ".");
 
-fun unpack str = Path (norm
+fun explode_path str = Path (norm
   (case space_explode "/" str of
-    "" :: ss => Root :: unpack_elems ss
-  | ss => unpack_elems ss));
+    "" :: ss => Root :: explode_elems ss
+  | ss => explode_elems ss));
 
 
 (* base element *)
@@ -131,7 +131,7 @@ fun unpack str = Path (norm
 fun split_path f (path as Path xs) =
   (case try split_last xs of
     SOME (prfx, Basic s) => f (prfx, s)
-  | _ => error ("Cannot split path into dir/base: " ^ quote (pack path)));
+  | _ => error ("Cannot split path into dir/base: " ^ quote (implode_path path)));
 
 val dir = split_path (fn (prfx, _) => Path prfx);
 val base = split_path (fn (_, s) => Path [Basic s]);
@@ -150,10 +150,15 @@ val split_ext = split_path (fn (prfx, s) => apfst (append (Path prfx))
 fun eval (Variable s) =
     (case getenv s of
       "" => error ("Undefined Isabelle environment variable: " ^ quote s)
-    | path => rep (unpack path))
+    | path => rep (explode_path path))
   | eval x = [x];
 
 val expand = rep #> maps eval #> norm #> Path;
-val position = expand #> pack #> quote #> Position.line_name 1;
+val position = expand #> implode_path #> quote #> Position.line_name 1;
+
+
+(*final declarations of this structure!*)
+val implode = implode_path;
+val explode = explode_path;
 
 end;

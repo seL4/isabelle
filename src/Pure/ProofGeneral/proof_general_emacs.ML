@@ -176,7 +176,7 @@ end;
 
 (* prepare theory context *)
 
-val thy_name = Path.pack o #1 o Path.split_ext o Path.base o Path.unpack;
+val thy_name = Path.implode o #1 o Path.split_ext o Path.base o Path.explode;
 
 (* FIXME general treatment of tracing*)
 val update_thy_only = setmp MetaSimplifier.trace_simp false ThyInfo.update_thy_only;
@@ -187,7 +187,7 @@ fun dynamic_context () =
   | NONE => "");
 
 fun try_update_thy_only file =
-  ThyLoad.cond_add_path (Path.dir (Path.unpack file)) (fn () =>
+  ThyLoad.cond_add_path (Path.dir (Path.explode file)) (fn () =>
     let val name = thy_name file in
       if is_some (ThyLoad.check_file NONE (ThyLoad.thy_path name))
       then update_thy_only name
@@ -207,13 +207,13 @@ fun proper_inform_file_processed file state =
      (ThyInfo.touch_child_thys name;
       ThyInfo.pretend_use_thy_only name handle ERROR msg =>
        (warning msg; warning ("Failed to register theory: " ^ quote name);
-        tell_file_retracted (Path.base (Path.unpack file))))
+        tell_file_retracted (Path.base (Path.explode file))))
     else raise Toplevel.UNDEF
   end;
 
 fun vacuous_inform_file_processed file state =
  (warning ("No theory " ^ quote (thy_name file));
-  tell_file_retracted (Path.base (Path.unpack file)));
+  tell_file_retracted (Path.base (Path.explode file)));
 
 
 (* restart top-level loop (keeps most state information) *)
@@ -371,7 +371,7 @@ in
 
 fun write_keywords s =
  (init_outer_syntax ();
-  File.write (Path.unpack ("isar-keywords" ^ (if s = "" then "" else "-" ^ s) ^".el"))
+  File.write (Path.explode ("isar-keywords" ^ (if s = "" then "" else "-" ^ s) ^".el"))
     (make_elisp_syntax (OuterSyntax.dest_keywords (), OuterSyntax.dest_parsers ())));
 
 end;

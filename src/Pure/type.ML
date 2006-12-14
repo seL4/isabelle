@@ -535,7 +535,8 @@ fun the_decl (_, types) = fst o the o Symtab.lookup types;
 fun map_types f = map_tsig (fn (classes, default, types) =>
   let
     val (space', tab') = f types;
-    val _ = assert (NameSpace.intern space' "dummy" = "dummy") "Illegal declaration of dummy type";
+    val _ = NameSpace.intern space' "dummy" = "dummy" orelse
+      error "Illegal declaration of dummy type";
   in (classes, default, (space', tab')) end);
 
 fun syntactic types (Type (c, Ts)) =

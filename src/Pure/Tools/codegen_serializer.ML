@@ -235,7 +235,7 @@ fun constructive_fun (name, (eqs, ty)) =
 
 fun dest_name name =
   let
-    val (names, name_base) = (split_last o NameSpace.unpack) name;
+    val (names, name_base) = (split_last o NameSpace.explode) name;
     val (names_mod, name_shallow) = split_last names;
   in (names_mod, (name_shallow, name_base)) end;
 
@@ -257,7 +257,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv ml_def =
     fun dictvar v = 
       first_upper v ^ "_";
     val label = translate_string (fn "." => "__" | c => c)
-      o NameSpace.pack o op @ o apsnd single o apfst (fst o split_last) o split_last o NameSpace.unpack;
+      o NameSpace.implode o op @ o apsnd single o apfst (fst o split_last) o split_last o NameSpace.explode;
     fun pr_tyvar (v, []) =
           str "()"
       | pr_tyvar (v, sort) =
@@ -584,7 +584,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv ml_def =
     fun dictvar v = 
       first_upper v ^ "_";
     val label = translate_string (fn "." => "__" | c => c)
-      o NameSpace.pack o op @ o apsnd single o apfst (fst o split_last) o split_last o NameSpace.unpack;
+      o NameSpace.implode o op @ o apsnd single o apfst (fst o split_last) o split_last o NameSpace.explode;
     fun pr_tyvar (v, []) =
           str "()"
       | pr_tyvar (v, sort) =
@@ -924,9 +924,9 @@ fun seri_ml pr_def pr_modl output reserved_user module_alias module_prolog
     val init_vars = CodegenThingol.make_vars (ML_Syntax.reserved_names @ reserved_user);
     fun name_modl modl =
       let
-        val modlname = NameSpace.pack modl
+        val modlname = NameSpace.implode modl
       in case module_alias modlname
-       of SOME modlname' => NameSpace.unpack modlname'
+       of SOME modlname' => NameSpace.explode modlname'
         | NONE => map (fn name => (the_single o fst)
             (Name.variants [name] empty_names)) modl
       end;
@@ -992,14 +992,14 @@ fun seri_ml pr_def pr_modl output reserved_user module_alias module_prolog
             val (modl'', defname'') = (apfst name_modl o dest_name) name'';
           in if modl' = modl'' then
             map_node modl'
-              (Graph.add_edge (NameSpace.pack (modl @ [fst defname, snd defname]), name''))
+              (Graph.add_edge (NameSpace.implode (modl @ [fst defname, snd defname]), name''))
           else let
             val (common, (diff1::_, diff2::_)) = chop_prefix (op =) (modl', modl'');
           in
             map_node common
               (fn gr => Graph.add_edge_acyclic (diff1, diff2) gr
                 handle Graph.CYCLES _ => error ("Dependency "
-                  ^ quote (NameSpace.pack (modl' @ [fst defname, snd defname]))
+                  ^ quote (NameSpace.implode (modl' @ [fst defname, snd defname]))
                   ^ " -> " ^ quote name'' ^ " would result in module dependency cycle"))
           end end;
       in
@@ -1039,7 +1039,7 @@ fun seri_ml pr_def pr_modl output reserved_user module_alias module_prolog
           |> fold (fn m => fn g => case Graph.get_node g m
               of Module (_, (_, g)) => g) modl'
           |> (fn g => case Graph.get_node g name of Def (defname, _) => defname);
-      in NameSpace.pack (remainder @ [defname']) end handle Graph.UNDEF _ =>
+      in NameSpace.implode (remainder @ [defname']) end handle Graph.UNDEF _ =>
         "(raise Fail \"undefined name " ^ name ^ "\")";
     fun the_prolog modlname = case module_prolog modlname
      of NONE => []
@@ -1049,7 +1049,7 @@ fun seri_ml pr_def pr_modl output reserved_user module_alias module_prolog
       | pr_node prefix (Def (_, SOME def)) =
           SOME (pr_def tyco_syntax const_syntax init_vars (deresolver prefix) def)
       | pr_node prefix (Module (dmodlname, (_, nodes))) =
-          SOME (pr_modl dmodlname (the_prolog (NameSpace.pack (prefix @ [dmodlname]))
+          SOME (pr_modl dmodlname (the_prolog (NameSpace.implode (prefix @ [dmodlname]))
             @ separate (str "") ((map_filter (pr_node (prefix @ [dmodlname]) o Graph.get_node nodes)
                 o rev o flat o Graph.strong_conn) nodes)));
     val p = pr_modl "ROOT" (the_prolog "" @ separate (str "") ((map_filter
@@ -1058,7 +1058,7 @@ fun seri_ml pr_def pr_modl output reserved_user module_alias module_prolog
 
 val isar_seri_sml =
   let
-    fun output_file file p = File.write (Path.unpack file) (Pretty.output p ^ "\n");
+    fun output_file file p = File.write (Path.explode file) (Pretty.output p ^ "\n");
     fun output_diag p = Pretty.writeln p;
     fun output_internal p = use_text Output.ml_output false (Pretty.output p);
   in
@@ -1070,7 +1070,7 @@ val isar_seri_sml =
 
 val isar_seri_ocaml =
   let
-    fun output_file file p = File.write (Path.unpack file) (Pretty.output p ^ "\n");
+    fun output_file file p = File.write (Path.explode file) (Pretty.output p ^ "\n");
     fun output_diag p = Pretty.writeln p;
   in
     parse_args ((Args.$$$ "-" >> K output_diag
@@ -1330,16 +1330,16 @@ val reserved_haskell = [
 fun seri_haskell module_prefix destination string_classes reserved_user module_alias module_prolog
   class_syntax tyco_syntax const_syntax code =
   let
-    val _ = Option.map File.assert destination;
+    val _ = Option.map File.check destination;
     val empty_names = Name.make_context (reserved_haskell @ reserved_user);
     fun name_modl modl =
       let
-        val modlname = NameSpace.pack modl
+        val modlname = NameSpace.implode modl
       in (modlname, case module_alias modlname
        of SOME modlname' => (case module_prefix
             of NONE => modlname'
              | SOME module_prefix => NameSpace.append module_prefix modlname')
-        | NONE => NameSpace.pack (map_filter I (module_prefix :: map (fn name => (SOME o the_single o fst)
+        | NONE => NameSpace.implode (map_filter I (module_prefix :: map (fn name => (SOME o the_single o fst)
             (Name.variants [name] empty_names)) modl)))
       end;
     fun add_def (name, (def, deps)) =
@@ -1409,8 +1409,8 @@ fun seri_haskell module_prefix destination string_classes reserved_user module_a
     fun write_module (SOME destination) modlname p =
           let
             val filename = case modlname
-             of "" => Path.unpack "Main.hs"
-              | _ => (Path.ext "hs" o Path.unpack o implode o separate "/" o NameSpace.unpack) modlname;
+             of "" => Path.explode "Main.hs"
+              | _ => (Path.ext "hs" o Path.explode o implode o separate "/" o NameSpace.explode) modlname;
             val pathname = Path.append destination filename;
             val _ = File.mkdir (Path.dir pathname);
           in File.write pathname (Pretty.setmp_margin 999999 Pretty.output p ^ "\n") end
@@ -1435,7 +1435,7 @@ val isar_seri_haskell =
     -- Scan.optional (Args.$$$ "string_classes" >> K true) false
     -- (Args.$$$ "-" >> K NONE || Args.name >> SOME)
     >> (fn ((module_prefix, string_classes), destination) =>
-      seri_haskell module_prefix (Option.map Path.unpack destination) string_classes));
+      seri_haskell module_prefix (Option.map Path.explode destination) string_classes));
 
 
 (** diagnosis serializer **)

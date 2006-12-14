@@ -268,7 +268,7 @@ case split done during recdef's case analysis, this would avoid us
 having to (re)search for variables to split. *)
 fun splitto splitths genth =
     let
-      val _ = assert (not (null splitths)) "splitto: no given splitths";
+      val _ = not (null splitths) orelse error "splitto: no given splitths";
       val sgn = Thm.sign_of_thm genth;
 
       (* check if we are a member of splitths - FIXME: quicker and

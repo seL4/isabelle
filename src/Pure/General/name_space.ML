@@ -22,8 +22,8 @@ sig
   val hidden: string -> string
   val separator: string                 (*single char*)
   val is_qualified: string -> bool
-  val pack: string list -> string
-  val unpack: string -> string list
+  val implode: string list -> string
+  val explode: string -> string list
   val append: string -> string -> string
   val qualified: string -> string -> string
   val base: string -> string
@@ -70,8 +70,8 @@ val is_hidden = String.isPrefix "??."
 val separator = ".";
 val is_qualified = exists_string (fn s => s = separator);
 
-val pack = space_implode separator;
-val unpack = space_explode separator;
+val implode_name = space_implode separator;
+val explode_name = space_explode separator;
 
 fun append name1 "" = name1
   | append "" name2 = name2
@@ -82,15 +82,15 @@ fun qualified path name =
   else path ^ separator ^ name;
 
 fun base "" = ""
-  | base name = List.last (unpack name);
+  | base name = List.last (explode_name name);
 
 fun qualifier "" = ""
-  | qualifier name = pack (#1 (split_last (unpack name)));
+  | qualifier name = implode_name (#1 (split_last (explode_name name)));
 
 fun map_base _ "" = ""
   | map_base f name =
-      let val names = unpack name
-      in pack (nth_map (length names - 1) f names) end;
+      let val names = explode_name name
+      in implode_name (nth_map (length names - 1) f names) end;
 
 
 (* accesses *)
@@ -117,8 +117,8 @@ fun suffixes_prefixes_split i k list =
       [xs @ ys] @@ prefixes1 zs @@ [ws];
   in sfxs @ pfxs end;
 
-val accesses = map pack o suffixes_prefixes o unpack;
-val accesses' = map pack o Library.suffixes1 o unpack;
+val accesses = map implode_name o suffixes_prefixes o explode_name;
+val accesses' = map implode_name o Library.suffixes1 o explode_name;
 
 
 
@@ -228,10 +228,10 @@ fun declare (Naming (_, (_, accs))) name space =
   if is_hidden name then
     error ("Attempt to declare hidden name " ^ quote name)
   else
-    let val names = unpack name in
+    let val names = explode_name name in
       conditional (null names orelse exists (fn s => s = "") names) (fn () =>
         error ("Bad name declaration " ^ quote name));
-      fold (add_name name) (map pack (accs names)) space
+      fold (add_name name) (map implode_name (accs names)) space
     end;
 
 
@@ -258,7 +258,7 @@ fun qualified_names (Naming (path, (_, accs))) = Naming (path, (qualified, accs)
 
 fun sticky_prefix prfx (Naming (path, (qualify, _))) =
   Naming (append path prfx,
-    (qualify, suffixes_prefixes_split (length (unpack path)) (length (unpack prfx))));
+    (qualify, suffixes_prefixes_split (length (explode_name path)) (length (explode_name prfx))));
 
 fun set_policy policy (Naming (path, _)) = Naming (path, policy);
 
@@ -283,6 +283,11 @@ fun ext_table (space, tab) =
 
 fun dest_table tab = map (apfst #1) (ext_table tab);
 fun extern_table tab = map (apfst #2) (ext_table tab);
+
+
+(*final declarations of this structure!*)
+val implode = implode_name;
+val explode = explode_name;
 
 end;
 

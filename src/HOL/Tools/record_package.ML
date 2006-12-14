@@ -439,8 +439,8 @@ val get_extfields = Symtab.lookup o #extfields o RecordsData.get;
 fun get_extT_fields thy T =
   let
     val ((name,Ts),moreT) = dest_recT T;
-    val recname = let val (nm::recn::rst) = rev (NameSpace.unpack name)
-                  in NameSpace.pack (rev (nm::rst)) end;
+    val recname = let val (nm::recn::rst) = rev (NameSpace.explode name)
+                  in NameSpace.implode (rev (nm::rst)) end;
     val midx = maxidx_of_typs (moreT::Ts);
     val varifyT = varifyT midx;
     val {records,extfields,...} = RecordsData.get thy;

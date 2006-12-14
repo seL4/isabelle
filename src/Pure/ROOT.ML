@@ -99,7 +99,7 @@ structure CPure = struct val thy = theory "CPure" end;
 (*final ML setup*)
 use "install_pp.ML";
 val use = ThyInfo.use;
-val cd = File.cd o Path.unpack;
+val cd = File.cd o Path.explode;
 ml_prompts "ML> " "ML# ";
 
 proofs := 0;

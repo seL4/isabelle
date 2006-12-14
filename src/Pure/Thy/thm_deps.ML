@@ -43,7 +43,7 @@ fun make_deps_graph (AbsP (_, _, prf)) = make_deps_graph prf
           if not (Symtab.defined gra name) then
             let
               val (gra', parents') = make_deps_graph prf' (gra, []);
-              val prefx = #1 (Library.split_last (NameSpace.unpack name));
+              val prefx = #1 (Library.split_last (NameSpace.explode name));
               val session =
                 (case prefx of
                   (x :: _) =>

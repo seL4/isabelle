@@ -443,7 +443,7 @@ fun mk_id s = if s = "" then "" else
             | (true, "isup") => "" :: check_str zs
             | (ctrl, s') => (if ctrl then "ctrl_" ^ s' else s') :: check_str zs)
         | (ys, zs) => implode ys :: check_str zs);
-    val s' = space_implode "_" (maps (check_str o Symbol.explode) (NameSpace.unpack s))
+    val s' = space_implode "_" (maps (check_str o Symbol.explode) (NameSpace.explode s))
   in
     if Symbol.is_ascii_letter (hd (explode s')) then s' else "id_" ^ s'
   end;
@@ -453,7 +453,7 @@ fun mk_long_id (p as (tab, used)) module s =
     fun find_name [] = sys_error "mk_long_id"
       | find_name (ys :: yss) =
           let
-            val s' = NameSpace.pack ys
+            val s' = NameSpace.implode ys
             val s'' = NameSpace.append module s'
           in case Symtab.lookup used s'' of
               NONE => ((module, s'),
@@ -462,7 +462,7 @@ fun mk_long_id (p as (tab, used)) module s =
             | SOME _ => find_name yss
           end
   in case Symtab.lookup tab s of
-      NONE => find_name (Library.suffixes1 (NameSpace.unpack s))
+      NONE => find_name (Library.suffixes1 (NameSpace.explode s))
     | SOME name => (name, p)
   end;
 
@@ -874,9 +874,9 @@ fun output_code gr module xs =
 fun gen_generate_code prep_term thy modules module =
   setmp print_mode [] (Pretty.setmp_margin (!margin) (fn xs =>
   let
-    val _ = assert (module <> "" orelse
+    val _ = (module <> "" orelse
         member (op =) (!mode) "library" andalso forall (equal "" o fst) xs)
-      "missing module name";
+      orelse error "missing module name";
     val graphs = get_modules thy;
     val defs = mk_deftab thy;
     val gr = new_node ("<Top>", (NONE, module, ""))
@@ -958,10 +958,10 @@ val test_fn : (int -> (string * term) list option) ref = ref (fn _ => NONE);
 
 fun test_term thy sz i t =
   let
-    val _ = assert (null (term_tvars t) andalso null (term_tfrees t))
-      "Term to be tested contains type variables";
-    val _ = assert (null (term_vars t))
-      "Term to be tested contains schematic variables";
+    val _ = (null (term_tvars t) andalso null (term_tfrees t)) orelse
+      error "Term to be tested contains type variables";
+    val _ = null (term_vars t) orelse
+      error "Term to be tested contains schematic variables";
     val frees = map dest_Free (term_frees t);
     val frees' = frees ~~
       map (fn i => "arg" ^ string_of_int i) (1 upto length frees);
@@ -1028,10 +1028,10 @@ val eval_result = ref (Bound 0);
 
 fun eval_term thy = setmp print_mode [] (fn t =>
   let
-    val _ = assert (null (term_tvars t) andalso null (term_tfrees t))
-      "Term to be evaluated contains type variables";
-    val _ = assert (null (term_vars t) andalso null (term_frees t))
-      "Term to be evaluated contains variables";
+    val _ = (null (term_tvars t) andalso null (term_tfrees t)) orelse
+      error "Term to be evaluated contains type variables";
+    val _ = (null (term_vars t) andalso null (term_frees t)) orelse
+      error "Term to be evaluated contains variables";
     val (code, gr) = setmp mode ["term_of"]
       (generate_code_i thy [] "Generated") [("result", t)];
     val s = "structure EvalTerm =\nstruct\n\n" ^
@@ -1155,10 +1155,10 @@ fun parse_code lib =
        | SOME fname =>
            if lib then
              app (fn (name, s) => File.write
-                 (Path.append (Path.unpack fname) (Path.basic (name ^ ".ML"))) s)
+                 (Path.append (Path.explode fname) (Path.basic (name ^ ".ML"))) s)
                (("ROOT", implode (map (fn (name, _) =>
                    "use \"" ^ name ^ ".ML\";\n") code)) :: code)
-           else File.write (Path.unpack fname) (snd (hd code)));
+           else File.write (Path.explode fname) (snd (hd code)));
            if lib then thy
            else map_modules (Symtab.update (module, gr)) thy)
      end));

@@ -402,7 +402,7 @@ end;
 
 (* prepare theory context *)
 
-val thy_name = Path.pack o #1 o Path.split_ext o Path.base o Path.unpack;
+val thy_name = Path.implode o #1 o Path.split_ext o Path.base o Path.explode;
 
 (* FIXME general treatment of tracing*)
 val update_thy_only = setmp MetaSimplifier.trace_simp false ThyInfo.update_thy_only;
@@ -413,7 +413,7 @@ fun dynamic_context () =
   | NONE => "");
 
 fun try_update_thy_only file =
-  ThyLoad.cond_add_path (Path.dir (Path.unpack file)) (fn () =>
+  ThyLoad.cond_add_path (Path.dir (Path.explode file)) (fn () =>
     let val name = thy_name file in
       if is_some (ThyLoad.check_file NONE (ThyLoad.thy_path name))
       then update_thy_only name
@@ -433,13 +433,13 @@ fun proper_inform_file_processed file state =
      (ThyInfo.touch_child_thys name;
       ThyInfo.pretend_use_thy_only name handle ERROR msg =>
        (warning msg; warning ("Failed to register theory: " ^ quote name);
-        tell_file_retracted (Path.base (Path.unpack file))))
+        tell_file_retracted (Path.base (Path.explode file))))
     else raise Toplevel.UNDEF
   end;
 
 fun vacuous_inform_file_processed file state =
  (warning ("No theory " ^ quote (thy_name file));
-  tell_file_retracted (Path.base (Path.unpack file)));
+  tell_file_retracted (Path.base (Path.explode file)));
 
 
 (* restart top-level loop (keeps most state information) *)
@@ -653,7 +653,7 @@ local
 in
 fun send_pgip_config () =
     let
-        val path = Path.unpack (config_file())
+        val path = Path.explode (config_file())
         val exists = File.exists path
         val proverinfo =
             XML.element "proverinfo"
@@ -678,7 +678,7 @@ end
 fun send_informguise (openfile, opentheory, openproofpos) =
     let val guisefile =
             case openfile of SOME f => [XML.element "guisefile"
-                                                    [("url",Url.pack (Url.File (Path.unpack f)))] []]
+                                                    [("url",Url.implode (Url.File (Path.explode f)))] []]
                            | _ => []
         val guisetheory =
             case opentheory of SOME t => [XML.element "guisetheory" [("thyname", t)] []]
@@ -1172,11 +1172,11 @@ fun isarscript xmls = isarcmd (xmltext xmls)   (* send a script command *)
 
 fun use_thy_or_ml_file file =
     let
-        val (path,extn) = Path.split_ext (Path.unpack file)
+        val (path,extn) = Path.split_ext (Path.explode file)
     in
         case extn of
-            "" => isarcmd ("use_thy " ^ (quote (Path.pack path)))
-          | "thy" => isarcmd ("use_thy " ^ (quote (Path.pack path)))
+            "" => isarcmd ("use_thy " ^ (quote (Path.implode path)))
+          | "thy" => isarcmd ("use_thy " ^ (quote (Path.implode path)))
           | "ML" => isarcmd ("use " ^ quote file)
           | other => error ("Don't know how to read a file with extension " ^ other)
     end
@@ -1199,7 +1199,7 @@ local
   val name_attr = xmlattr "name"
 
   fun localfile_of_url url = (* only handle file:/// or file://localhost/ *)
-      case Url.unpack url of
+      case Url.explode url of
           (Url.File path) => File.platform_path path
         | _ => error ("Cannot access non-local URL " ^ url)
 
@@ -1515,7 +1515,7 @@ in
 
 fun write_keywords s =
  (init_outer_syntax ();
-  File.write (Path.unpack ("isar-keywords" ^ (if s = "" then "" else "-" ^ s) ^".el"))
+  File.write (Path.explode ("isar-keywords" ^ (if s = "" then "" else "-" ^ s) ^".el"))
     (make_elisp_syntax (OuterSyntax.dest_keywords (), OuterSyntax.dest_parsers ())));
 
 end;

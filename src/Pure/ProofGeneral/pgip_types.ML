@@ -279,7 +279,7 @@ type location = { descr: string option,
 (** Url operations **)
 
 fun pgipurl_of_string url = (* only handle file:/// or file://localhost/ *)
-	case Url.unpack url of
+	case Url.explode url of
             (Url.File path) => path
 	  | _ => raise PGIP ("Cannot access non-local URL " ^ url)
 		       
@@ -291,7 +291,7 @@ fun attrs_of_pgipurl purl =
 val pgipurl_of_attrs = pgipurl_of_string o (get_attr "url")
 
 fun pgipurl_of_url (Url.File p) = p
-  | pgipurl_of_url url = raise PGIP ("Cannot access non-local/non-file URL " ^ (Url.pack url))
+  | pgipurl_of_url url = raise PGIP ("Cannot access non-local/non-file URL " ^ (Url.implode url))
 
 
 (** Messages and errors **)

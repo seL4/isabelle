@@ -71,11 +71,11 @@ fun get_rpath rpath =
      if is_some (! remote_path) then
        error "Path for remote theory browsing information may only be set once"
      else
-       remote_path := SOME (Url.unpack rpath);
+       remote_path := SOME (Url.explode rpath);
    (! remote_path, rpath <> ""));
 
 fun dumping (_, "") = NONE
-  | dumping (cp, path) = SOME (cp, Path.unpack path);
+  | dumping (cp, path) = SOME (cp, Path.explode path);
 
 fun use_dir root build modes reset info doc doc_graph doc_versions
     parent name dump rpath level verbose =

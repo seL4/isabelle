@@ -49,12 +49,12 @@ struct
 val load_path = ref [Path.current];
 fun change_path f = load_path := f (! load_path);
 
-fun show_path () = map Path.pack (! load_path);
-fun del_path s = change_path (filter_out (equal (Path.unpack s)));
-fun add_path s = (del_path s; change_path (cons (Path.unpack s)));
-fun path_add s = (del_path s; change_path (fn path => path @ [Path.unpack s]));
+fun show_path () = map Path.implode (! load_path);
+fun del_path s = change_path (filter_out (equal (Path.explode s)));
+fun add_path s = (del_path s; change_path (cons (Path.explode s)));
+fun path_add s = (del_path s; change_path (fn path => path @ [Path.explode s]));
 fun reset_path () = load_path := [Path.current];
-fun with_paths ss f x = Library.setmp load_path (! load_path @ map Path.unpack ss) f x;
+fun with_paths ss f x = Library.setmp load_path (! load_path @ map Path.explode ss) f x;
 fun with_path s f x = with_paths [s] f x;
 
 fun cond_add_path path f x =
@@ -95,7 +95,7 @@ fun check_file current src_path =
 
 fun load_file current raw_path =
   (case check_file current raw_path of
-    NONE => error ("Could not find ML file " ^ quote (Path.pack raw_path))
+    NONE => error ("Could not find ML file " ^ quote (Path.implode raw_path))
   | SOME (path, info) => (File.use path; (path, info)));
 
 
@@ -113,7 +113,7 @@ local
 fun check_thy_aux (name, ml) =
   let val thy_file = thy_path name in
     case check_file NONE thy_file of
-      NONE => error ("Could not find theory file " ^ quote (Path.pack thy_file) ^
+      NONE => error ("Could not find theory file " ^ quote (Path.implode thy_file) ^
         " in dir(s) " ^ commas_quote (show_path ()))
     | SOME thy_info => (thy_info, if ml then check_file NONE (ml_path name) else NONE)
   end;

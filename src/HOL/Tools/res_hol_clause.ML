@@ -578,7 +578,7 @@ fun dfg_write_file  thms filename (axclauses,classrel_clauses,arity_clauses) use
 	val conjectures = make_conjecture_clauses thms
         val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses)
 	val (dfg_clss,tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
-	and probname = Path.pack (Path.base (Path.unpack filename))
+	and probname = Path.implode (Path.base (Path.explode filename))
 	val axstrs = map (#1 o clause2dfg) axclauses'
 	val tfree_clss = map ResClause.dfg_tfree_clause (ResClause.union_all tfree_litss)
 	val out = TextIO.openOut filename

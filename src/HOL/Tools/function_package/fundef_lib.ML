@@ -54,7 +54,8 @@ fun dest_all_all_ctx ctx (Const ("all", _) $ Abs (a as (n,T,b))) =
       val (_, ctx') = ProofContext.add_fixes_i [(n', SOME T, NoSyn)] ctx
 
       val (n'', body) = Term.dest_abs (n', T, b) 
-      val _ = assert (n' = n'') "dest_all_ctx" (* Note: We assume that n' does not occur in the body. Otherwise it would be fixed. *)
+      val _ = (n' = n'') orelse error "dest_all_ctx"
+      (* Note: We assume that n' does not occur in the body. Otherwise it would be fixed. *)
 
       val (ctx'', vs, bd) = dest_all_all_ctx ctx' body
     in

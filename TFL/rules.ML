@@ -698,9 +698,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                   end
              fun pq_eliminate (thm,sign,vlist,imp_body,lhs_eq) =
               let val ((vstrl, _, used'), args) = dest_pbeta_redex used lhs_eq (length vlist)
-                  val dummy = assert (forall (op aconv)
-                                      (ListPair.zip (vlist, args)))
-                               "assertion failed in CONTEXT_REWRITE_RULE"
+                  val dummy = forall (op aconv) (ListPair.zip (vlist, args))
+                    orelse error "assertion failed in CONTEXT_REWRITE_RULE"
                   val imp_body1 = subst_free (ListPair.zip (args, vstrl))
                                              imp_body
                   val tych = cterm_of sign

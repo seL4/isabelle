@@ -193,7 +193,7 @@ val scan_blank =
 val is_sym_char = member (op =) (explode "!#$%&*+-/<=>?@^_|~");
 
 val scan_symid =
-  Scan.any1 is_sym_char >> implode ||
+  Scan.many1 is_sym_char >> implode ||
   Scan.one Symbol.is_symbolic;
 
 fun is_symid str =
@@ -249,8 +249,8 @@ val scan_verbatim =
 fun is_space s = Symbol.is_blank s andalso s <> "\n";
 
 val scan_space =
-  (keep_line (Scan.any1 is_space) -- Scan.optional (incr_line ($$ "\n")) "" ||
-    keep_line (Scan.any is_space) -- incr_line ($$ "\n")) >> (fn (cs, c) => implode cs ^ c);
+  (keep_line (Scan.many1 is_space) -- Scan.optional (incr_line ($$ "\n")) "" ||
+    keep_line (Scan.many is_space) -- incr_line ($$ "\n")) >> (fn (cs, c) => implode cs ^ c);
 
 
 (* scan nested comments *)
@@ -303,7 +303,7 @@ fun scan (lex1, lex2) =
 (* token sources *)
 
 val is_junk = (not o Symbol.is_blank) andf Symbol.not_sync andf Symbol.not_eof;
-fun recover xs = (keep_line (Scan.any is_junk) >> (fn ts => [malformed_of ts])) xs;
+fun recover xs = (keep_line (Scan.many is_junk) >> (fn ts => [malformed_of ts])) xs;
 
 fun source do_recover get_lex pos src =
   Source.source' pos Symbol.stopper (Scan.bulk (fn xs => scan (get_lex ()) xs))

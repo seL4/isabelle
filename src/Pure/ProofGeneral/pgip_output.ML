@@ -184,7 +184,7 @@ fun proverinfo vs =
                   ("version", version),
                   ("instance", instance), 
                   ("descr", descr),
-                  ("url", Url.pack url),
+                  ("url", Url.implode url),
                   ("filenameextns", filenameextns)],
                  [])
     end

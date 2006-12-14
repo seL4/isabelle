@@ -296,12 +296,12 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val (_, params) = strip_comb S;
     val params' = map dest_Var params;
     val rss = [] |> fold add_rule intrs;
-    val (prfx, _) = split_last (NameSpace.unpack (fst (hd rss)));
+    val (prfx, _) = split_last (NameSpace.explode (fst (hd rss)));
     val tnames = map (fn s => space_implode "_" (s ^ "T" :: vs)) rsets;
 
     val thy1 = thy |>
       Theory.root_path |>
-      Theory.add_path (NameSpace.pack prfx);
+      Theory.add_path (NameSpace.implode prfx);
     val (ty_eqs, rlz_eqs) = split_list
       (map (fn (s, rs) => mk_realizes_eqn (not (s mem rsets)) vs rs) rss);
 

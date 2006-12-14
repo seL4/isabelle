@@ -188,7 +188,7 @@ fun add_dump s = add_delta (Dump s)
 fun set_skip_import_dir dir = (history_dir := dir)
 fun get_skip_import_dir () = !history_dir
 
-fun get_filename thyname = Path.pack (Path.append (Path.unpack (the (get_skip_import_dir ()))) (Path.unpack (thyname^".history")))
+fun get_filename thyname = Path.implode (Path.append (Path.explode (the (get_skip_import_dir ()))) (Path.explode (thyname^".history")))
 
 fun save_history thyname = 
     if get_skip_import () then
@@ -202,7 +202,7 @@ fun load_history thyname =
 	    val filename = get_filename thyname
 	    val _ = writeln "load_history / before"
 	    val _ = 
-		if File.exists (Path.unpack filename) then					
+		if File.exists (Path.explode filename) then					
 		    (history := XMLConv.read_from_file history_of_xml (get_filename thyname)) 
 		else
 		    clear_history ()

@@ -78,7 +78,7 @@ fun legacy_bindings thy =
               NameSpace.intern space xname = name then
             SOME (prfx, (bname, xname, length (the (Symtab.lookup thms name)) = 1))
           else NONE;
-        val names = NameSpace.unpack name;
+        val names = NameSpace.explode name;
       in
         (case #2 (chop (length names - 2) names) of
           [bname] => result "" bname

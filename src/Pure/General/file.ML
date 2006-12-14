@@ -7,8 +7,8 @@ File system operations.
 
 signature FILE =
 sig
-  val unpack_platform_path_fn: (string -> Path.T) ref
-  val unpack_platform_path: string -> Path.T
+  val explode_platform_path_fn: (string -> Path.T) ref
+  val explode_platform_path: string -> Path.T
   val platform_path_fn: (Path.T -> string) ref
   val platform_path: Path.T -> string
   val shell_path_fn: (Path.T -> string) ref
@@ -22,7 +22,7 @@ sig
   eqtype info
   val info: Path.T -> info option
   val exists: Path.T -> bool
-  val assert: Path.T -> unit
+  val check: Path.T -> unit
   val rm: Path.T -> unit
   val mkdir: Path.T -> unit
   val read: Path.T -> string
@@ -41,20 +41,20 @@ struct
 
 (* platform specific path representations *)
 
-val unpack_platform_path_fn = ref Path.unpack;
-fun unpack_platform_path s = ! unpack_platform_path_fn s;
+val explode_platform_path_fn = ref Path.explode;
+fun explode_platform_path s = ! explode_platform_path_fn s;
 
-val platform_path_fn = ref (Path.pack o Path.expand);
+val platform_path_fn = ref (Path.implode o Path.expand);
 fun platform_path path = ! platform_path_fn path;
 
-val shell_path_fn = ref (enclose "'" "'" o Path.pack o Path.expand);
+val shell_path_fn = ref (enclose "'" "'" o Path.implode o Path.expand);
 fun shell_path path = ! shell_path_fn path;
 
 
 (* current path *)
 
 val cd = Library.cd o platform_path;
-val pwd = unpack_platform_path o Library.pwd;
+val pwd = explode_platform_path o Library.pwd;
 
 fun norm_absolute p =
   let
@@ -94,9 +94,9 @@ fun info path =
 
 val exists = is_some o info;
 
-fun assert path =
+fun check path =
   if exists path then ()
-  else error ("No such file or directory: " ^ quote (Path.pack path));
+  else error ("No such file or directory: " ^ quote (Path.implode path));
 
 val rm = OS.FileSys.remove o platform_path;
 
@@ -137,12 +137,12 @@ fun eq paths =
     SOME ids => OS.FileSys.compare ids = EQUAL
   | NONE => false);
 
-fun copy from to = conditional (not (eq (from, to))) (fn () =>
-  let val target = if is_dir to then Path.append to (Path.base from) else to
-  in write target (read from) end);
+fun copy src dst = conditional (not (eq (src, dst))) (fn () =>
+  let val target = if is_dir dst then Path.append dst (Path.base src) else dst
+  in write target (read src) end);
 
-fun copy_dir from to = conditional (not (eq (from, to))) (fn () =>
-  (system_command ("cp -r -f " ^ shell_path from ^ "/. " ^ shell_path to); ()))
+fun copy_dir src dst = conditional (not (eq (src, dst))) (fn () =>
+  (system_command ("cp -r -f " ^ shell_path src ^ "/. " ^ shell_path dst); ()))
 
 
 (* use ML files *)

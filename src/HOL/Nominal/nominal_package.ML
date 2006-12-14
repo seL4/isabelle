@@ -733,8 +733,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     (** strips the "_Rep" in type names *)
     fun strip_nth_name i s =
-      let val xs = NameSpace.unpack s;
-      in NameSpace.pack (Library.nth_map (length xs - i) (strip_suffix 4) xs) end;
+      let val xs = NameSpace.explode s;
+      in NameSpace.implode (Library.nth_map (length xs - i) (strip_suffix 4) xs) end;
 
     val (descr'', ndescr) = ListPair.unzip (List.mapPartial
       (fn (i, ("Nominal.noption", _, _)) => NONE

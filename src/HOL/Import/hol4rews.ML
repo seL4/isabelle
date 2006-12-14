@@ -584,7 +584,7 @@ fun dump_import_thy thyname thy =
 	    if internal
 	    then
 		let
-		    val paths = NameSpace.unpack isa
+		    val paths = NameSpace.explode isa
 		    val i = Library.drop(length paths - 2,paths)
 		in
 		    case i of
@@ -638,10 +638,10 @@ fun dump_import_thy thyname thy =
 
 	fun gen2replay in_thy out_thy s = 
 	    let
-		val ss = NameSpace.unpack s
+		val ss = NameSpace.explode s
 	    in
 		if (hd ss = in_thy) then 
-		    NameSpace.pack (out_thy::(tl ss))
+		    NameSpace.implode (out_thy::(tl ss))
 		else
 		    s
 	    end 

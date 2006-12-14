@@ -176,12 +176,12 @@ val purify_name =
   let
     fun is_valid s = Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s orelse s = "'";
     val is_junk = not o is_valid andf Symbol.not_eof;
-    val junk = Scan.any is_junk;
+    val junk = Scan.many is_junk;
     val scan_valids = Symbol.scanner "Malformed input"
       ((junk |--
-        (Scan.optional (Scan.one Symbol.is_ascii_letter) "x" ^^ (Scan.any is_valid >> implode)
+        (Scan.optional (Scan.one Symbol.is_ascii_letter) "x" ^^ (Scan.many is_valid >> implode)
         --| junk))
-      -- Scan.repeat ((Scan.any1 is_valid >> implode) --| junk) >> op ::);
+      -- Scan.repeat ((Scan.many1 is_valid >> implode) --| junk) >> op ::);
   in explode #> scan_valids #> space_implode "_" end;
 
 fun purify_op "0" = "zero"
@@ -212,11 +212,11 @@ val purify_upper = explode #> nth_map 0 Symbol.to_ascii_upper #> implode;
 
 fun check_modulename mn =
   let
-    val mns = NameSpace.unpack mn;
+    val mns = NameSpace.explode mn;
     val mns' = map purify_upper mns;
   in
     if mns' = mns then mn else error ("Invalid module name: " ^ quote mn ^ "\n"
-      ^ "perhaps try " ^ quote (NameSpace.pack mns'))
+      ^ "perhaps try " ^ quote (NameSpace.implode mns'))
   end
 
 fun purify_var "" = "x"
@@ -234,9 +234,9 @@ val purify_base = purify_idf #> purify_lower;
 
 fun policy thy get_basename get_thyname name =
   let
-    val prefix = (purify_prefix o NameSpace.unpack o get_thyname thy) name;
+    val prefix = (purify_prefix o NameSpace.explode o get_thyname thy) name;
     val base = (purify_base o get_basename) name;
-  in NameSpace.pack (prefix @ [base]) end;
+  in NameSpace.implode (prefix @ [base]) end;
 
 fun class_policy thy = policy thy NameSpace.base thyname_of_class;
 fun tyco_policy thy = policy thy NameSpace.base thyname_of_tyco;
@@ -258,10 +258,10 @@ fun const_policy thy (c, tys) =
   case force_thyname thy (c, tys)
    of NONE => policy thy NameSpace.base thyname_of_const c
     | SOME thyname => let
-        val prefix = (purify_prefix o NameSpace.unpack) thyname;
+        val prefix = (purify_prefix o NameSpace.explode) thyname;
         val tycos = map_filter (fn Type (tyco, _) => SOME tyco | _ => NONE) tys;
         val base = map (purify_base o NameSpace.base) (c :: tycos);
-      in NameSpace.pack (prefix @ [space_implode "_" base]) end;
+      in NameSpace.implode (prefix @ [space_implode "_" base]) end;
 
 
 (* shallow name spaces *)
@@ -274,20 +274,20 @@ val nsp_dtco = "dtco";
 
 fun add_nsp shallow name =
   name
-  |> NameSpace.unpack
+  |> NameSpace.explode
   |> split_last
   |> apsnd (single #> cons shallow)
   |> (op @)
-  |> NameSpace.pack;
+  |> NameSpace.implode;
 
 fun dest_nsp nsp nspname =
   let
-    val xs = NameSpace.unpack nspname;
+    val xs = NameSpace.explode nspname;
     val (ys, base) = split_last xs;
     val (module, shallow) = split_last ys;
   in
     if nsp = shallow
-   then (SOME o NameSpace.pack) (module @ [base])
+   then (SOME o NameSpace.implode) (module @ [base])
     else NONE
   end;
 

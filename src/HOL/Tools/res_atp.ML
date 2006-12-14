@@ -99,13 +99,13 @@ fun helper_path evar base =
       "" => error  ("Isabelle environment variable " ^ evar ^ " not defined")
     | home =>
         let val path = home ^ "/" ^ base
-        in  if File.exists (File.unpack_platform_path path) then path
+        in  if File.exists (File.explode_platform_path path) then path
             else error ("Could not find the file " ^ path)
         end;
 
 fun probfile_nosuffix _ =
   if !destdir = "" then File.platform_path (File.tmp_path (Path.basic (!problem_name)))
-  else if File.exists (File.unpack_platform_path (!destdir))
+  else if File.exists (File.explode_platform_path (!destdir))
   then !destdir ^ "/" ^ !problem_name
   else error ("No such directory: " ^ !destdir);
 
@@ -149,7 +149,7 @@ fun atp_input_file () =
     let val file = !problem_name
     in
         if !destdir = "" then File.platform_path (File.tmp_path (Path.basic file))
-        else if File.exists (File.unpack_platform_path (!destdir))
+        else if File.exists (File.explode_platform_path (!destdir))
         then !destdir ^ "/" ^ file
         else error ("No such directory: " ^ !destdir)
     end;
@@ -463,7 +463,7 @@ exception HASH_CLAUSE and HASH_STRING;
 (*Reject theorems with names like "List.filter.filter_list_def" or
   "Accessible_Part.acc.defs", as these are definitions arising from packages.*)
 fun is_package_def a =
-  let val names = NameSpace.unpack a
+  let val names = NameSpace.explode a
   in
      length names > 2 andalso
      not (hd names = "local") andalso
@@ -820,7 +820,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
   end
 
 fun trace_array fname =
-  let val path = File.unpack_platform_path fname
+  let val path = File.explode_platform_path fname
   in  Array.app (File.append path o (fn s => s ^ "\n"))  end;
 
 (*Converting a subgoal into negated conjecture clauses*)

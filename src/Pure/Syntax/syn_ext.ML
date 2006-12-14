@@ -203,11 +203,11 @@ fun read_int ["0", "0"] = ~1
 val scan_sym =
   $$ "_" >> K (Argument ("", 0)) ||
   $$ "\\<index>" >> K index ||
-  $$ "(" |-- Scan.any Symbol.is_digit >> (Bg o read_int) ||
+  $$ "(" |-- Scan.many Symbol.is_digit >> (Bg o read_int) ||
   $$ ")" >> K En ||
   $$ "/" -- $$ "/" >> K (Brk ~1) ||
-  $$ "/" |-- Scan.any Symbol.is_blank >> (Brk o length) ||
-  Scan.any1 Symbol.is_blank >> (Space o implode) ||
+  $$ "/" |-- Scan.many Symbol.is_blank >> (Brk o length) ||
+  Scan.many1 Symbol.is_blank >> (Space o implode) ||
   Scan.repeat1 scan_delim_char >> (Delim o implode);
 
 val scan_symb =

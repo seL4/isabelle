@@ -42,8 +42,8 @@ sig
   val one: ('a -> bool) -> 'a list -> 'a * 'a list
   val this: string list -> string list -> string list * string list
   val this_string: string -> string list -> string * string list
-  val any: ('a -> bool) -> 'a list -> 'a list * 'a list
-  val any1: ('a -> bool) -> 'a list -> 'a list * 'a list
+  val many: ('a -> bool) -> 'a list -> 'a list * 'a list
+  val many1: ('a -> bool) -> 'a list -> 'a list * 'a list
   val optional: ('a -> 'b * 'a) -> 'b -> 'a -> 'b * 'a
   val option: ('a -> 'b * 'a) -> 'a -> 'b option * 'a
   val repeat: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
@@ -143,12 +143,12 @@ fun this ys xs =
 
 fun this_string s = this (explode s) >> K s;  (*primitive string -- no symbols here!*)
 
-fun any _ [] = raise MORE NONE
-  | any pred (lst as x :: xs) =
-      if pred x then apfst (cons x) (any pred xs)
+fun many _ [] = raise MORE NONE
+  | many pred (lst as x :: xs) =
+      if pred x then apfst (cons x) (many pred xs)
       else ([], lst);
 
-fun any1 pred = one pred -- any pred >> op ::;
+fun many1 pred = one pred -- many pred >> op ::;
 
 fun optional scan def = scan || succeed def;
 fun option scan = (scan >> SOME) || succeed NONE;

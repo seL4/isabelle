@@ -13,8 +13,8 @@ sig
     Http of string * Path.T |
     Ftp of string * Path.T
   val append: T -> T -> T
-  val pack: T -> string
-  val unpack: string -> T
+  val implode: T -> string
+  val explode: string -> T
 end;
 
 structure Url: URL =
@@ -38,26 +38,26 @@ fun append (File p)            (File p') = File (Path.append p p')
   | append _ url = url;
 
 
-(* pack *)
+(* implode *)
 
-fun pack_path p = if Path.is_current p then "" else Path.pack p;
+fun implode_path p = if Path.is_current p then "" else Path.implode p;
 
-fun pack (File p) = pack_path p
-  | pack (RemoteFile (h, p)) = "file://" ^ h ^ pack_path p
-  | pack (Http (h, p)) = "http://" ^ h ^ pack_path p
-  | pack (Ftp (h, p)) = "ftp://" ^ h ^ pack_path p;
+fun implode_url (File p) = implode_path p
+  | implode_url (RemoteFile (h, p)) = "file://" ^ h ^ implode_path p
+  | implode_url (Http (h, p)) = "http://" ^ h ^ implode_path p
+  | implode_url (Ftp (h, p)) = "ftp://" ^ h ^ implode_path p;
 
 
-(* unpack *)
+(* explode *)
 
 local
 
 val scan_host =
-  (Scan.any1 (fn s => s <> "/" andalso Symbol.not_eof s) >> implode) --|
+  (Scan.many1 (fn s => s <> "/" andalso Symbol.not_eof s) >> implode) --|
   Scan.ahead ($$ "/" || Scan.one Symbol.is_eof);
 
-val scan_path = Scan.any Symbol.not_eof >> (Path.unpack o implode);
-val scan_path_root = Scan.any Symbol.not_eof >> (Path.unpack o implode o cons "/");
+val scan_path = Scan.many Symbol.not_eof >> (Path.explode o implode);
+val scan_path_root = Scan.many Symbol.not_eof >> (Path.explode o implode o cons "/");
 
 val scan_url =
   Scan.unless (Scan.this_string "file:" ||
@@ -71,8 +71,13 @@ val scan_url =
 
 in
 
-fun unpack s = Symbol.scanner "Malformed URL" scan_url (Symbol.explode s);
+fun explode_url s = Symbol.scanner "Malformed URL" scan_url (Symbol.explode s);
 
 end;
+
+
+(*final declarations of this structure!*)
+val implode = implode_url;
+val explode = explode_url;
 
 end;

@@ -118,7 +118,7 @@ val string_of_tree = Buffer.content o buffer_of_tree;
 fun err s (xs, _) =
   "XML parsing error: " ^ s ^ "\nfound: " ^ quote (Symbol.beginning 100 xs);
 
-val scan_whspc = Scan.any Symbol.is_blank;
+val scan_whspc = Scan.many Symbol.is_blank;
 
 val scan_special = $$ "&" ^^ Symbol.scan_id ^^ $$ ";" >> decode;
 

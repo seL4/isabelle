@@ -243,12 +243,12 @@ fun mixfix_of_xml e =
     ) e
 
 
-fun to_file f output fname x = File.write (Path.unpack fname) (f (output x))
+fun to_file f output fname x = File.write (Path.explode fname) (f (output x))
  
 fun from_file f input fname = 
     let
 	val _ = writeln "read_from_file enter"
-	val s = File.read (Path.unpack fname)
+	val s = File.read (Path.explode fname)
 	val _ = writeln "done: read file"
 	val tree = timeit (fn () => f s)
 	val _ = writeln "done: tree"

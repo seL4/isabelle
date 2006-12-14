@@ -128,7 +128,8 @@ val spass_lemma_list = prover_lemma_list_aux get_axiom_names_spass;
 (*Return everything in s that comes before the string t*)
 fun cut_before t s = 
   let val (s1,s2) = Substring.position t (Substring.full s)
-      val _ = assert (Substring.size s2 <> 0) "cut_before: string not found" 
+      val _ = Substring.size s2 <> 0
+        orelse error "cut_before: string not found"
   in Substring.string s2 end;
 
 val start_E = "# Proof object starts here."

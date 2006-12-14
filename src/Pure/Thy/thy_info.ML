@@ -256,7 +256,7 @@ local
 fun provide path name info (deps as SOME {present, outdated, master, files}) =
      (if exists (equal path o #1) files then ()
       else warning (loader_msg "undeclared dependency of theory" [name] ^
-        " on file: " ^ quote (Path.pack path));
+        " on file: " ^ quote (Path.implode path));
       SOME (make_deps present outdated master (AList.update (op =) (path, SOME info) files)))
   | provide _ _ _ NONE = NONE;
 
@@ -272,7 +272,7 @@ in
 
 fun load_file time path = Output.toplevel_errors (fn () =>
   if time then
-    let val name = Path.pack path in
+    let val name = Path.implode path in
       timeit (fn () =>
        (priority ("\n**** Starting file " ^ quote name ^ " ****");
         run_file path;
@@ -280,8 +280,8 @@ fun load_file time path = Output.toplevel_errors (fn () =>
     end
   else run_file path) ();
 
-val use = load_file false o Path.unpack;
-val time_use = load_file true o Path.unpack;
+val use = load_file false o Path.explode;
+val time_use = load_file true o Path.explode;
 
 end;
 
@@ -303,7 +303,7 @@ fun load_thy really ml time initiators dir name =
       else #1 (ThyLoad.deps_thy dir name ml);
 
     val files = get_files name;
-    val missing_files = map_filter (fn (path, NONE) => SOME (Path.pack path) | _ => NONE) files;
+    val missing_files = map_filter (fn (path, NONE) => SOME (Path.implode path) | _ => NONE) files;
   in
     if null missing_files then ()
     else warning (loader_msg "unresolved dependencies of theory" [name] ^
@@ -315,7 +315,7 @@ fun load_thy really ml time initiators dir name =
 
 (* require_thy *)
 
-fun base_of_path s = Path.pack (Path.base (Path.unpack s));
+fun base_of_path s = Path.implode (Path.base (Path.explode s));
 
 local
 
@@ -333,7 +333,7 @@ fun current_deps ml strict dir name =
   | SOME deps =>
       let
         fun get_name s = (case opt_path'' (lookup_deps s) of NONE => s
-          | SOME p => Path.pack (Path.append p (Path.basic s)));
+          | SOME p => Path.implode (Path.append p (Path.basic s)));
         val same_deps = (NONE, map get_name (thy_graph Graph.imm_preds name))
       in
         (case deps of
@@ -349,8 +349,8 @@ fun current_deps ml strict dir name =
 
 fun require_thy really ml time strict keep_strict initiators prfx (visited, str) =
   let
-    val path = Path.expand (Path.unpack str);
-    val name = Path.pack (Path.base path);
+    val path = Path.expand (Path.explode str);
+    val name = Path.implode (Path.base path);
   in
     if member (op =) initiators name then error (cycle_msg initiators) else ();
     if known_thy name andalso is_finished name orelse member (op =) visited name then
@@ -422,7 +422,7 @@ fun check_uses name uses =
   let val illegal = map (fn ext => Path.ext ext (Path.basic name)) ThyLoad.ml_exts in
     (case find_first (member (op =) illegal o Path.base o Path.expand o #1) uses of
       NONE => ()
-    | SOME (path, _) => error ("Illegal use of theory ML file: " ^ quote (Path.pack path)))
+    | SOME (path, _) => error ("Illegal use of theory ML file: " ^ quote (Path.implode path)))
   end;
 
 fun begin_theory present name parents uses int =
