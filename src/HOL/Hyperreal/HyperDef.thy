@@ -9,7 +9,6 @@ header{*Construction of Hyperreals Using Ultrafilters*}
 
 theory HyperDef
 imports StarClasses "../Real/Real"
-uses ("fuf.ML")  (*Warning: file fuf.ML refers to the name Hyperdef!*)
 begin
 
 types hypreal = "real star"
@@ -97,105 +96,6 @@ qed
 lemma Reals_eq_Standard: "(Reals :: hypreal set) = Standard"
 by (simp add: Reals_def Standard_def)
 
-
-subsection{*Existence of Free Ultrafilter over the Naturals*}
-
-text{*Also, proof of various properties of @{term FreeUltrafilterNat}: 
-an arbitrary free ultrafilter*}
-(*
-lemma FreeUltrafilterNat_Ex: "\<exists>U::nat set set. freeultrafilter U"
-by (rule nat_infinite [THEN freeultrafilter_Ex])
-
-lemma FreeUltrafilterNat_mem: "freeultrafilter FreeUltrafilterNat"
-apply (unfold FreeUltrafilterNat_def)
-apply (rule someI_ex)
-apply (rule FreeUltrafilterNat_Ex)
-done
-
-lemma UltrafilterNat_mem: "ultrafilter FreeUltrafilterNat"
-by (rule FreeUltrafilterNat_mem [THEN freeultrafilter.ultrafilter])
-
-lemma FilterNat_mem: "filter FreeUltrafilterNat"
-by (rule FreeUltrafilterNat_mem [THEN freeultrafilter.filter])
-
-lemma FreeUltrafilterNat_finite: "finite x ==> x \<notin> FreeUltrafilterNat"
-by (rule FreeUltrafilterNat.finite)
-
-lemma FreeUltrafilterNat_not_finite: "x \<in> FreeUltrafilterNat ==> ~ finite x"
-by (rule FreeUltrafilterNat.infinite)
-
-lemma FreeUltrafilterNat_empty: "{} \<notin> FreeUltrafilterNat"
-by (rule FreeUltrafilterNat.empty)
-
-lemma FreeUltrafilterNat_Int:
-     "[| X \<in> FreeUltrafilterNat;  Y \<in> FreeUltrafilterNat |]   
-      ==> X Int Y \<in> FreeUltrafilterNat"
-by (rule FreeUltrafilterNat.Int)
-
-lemma FreeUltrafilterNat_subset:
-     "[| X \<in> FreeUltrafilterNat;  X \<subseteq> Y |]  
-      ==> Y \<in> FreeUltrafilterNat"
-by (rule FreeUltrafilterNat.subset)
-
-lemma FreeUltrafilterNat_Compl:
-     "X \<in> FreeUltrafilterNat ==> -X \<notin> FreeUltrafilterNat"
-by (rule FreeUltrafilterNat.memD)
-
-lemma FreeUltrafilterNat_Compl_mem:
-     "X \<notin> FreeUltrafilterNat ==> -X \<in> FreeUltrafilterNat"
-by (rule FreeUltrafilterNat.not_memD)
-
-lemma FreeUltrafilterNat_Compl_iff1:
-     "(X \<notin> FreeUltrafilterNat) = (-X \<in> FreeUltrafilterNat)"
-by (rule FreeUltrafilterNat.not_mem_iff)
-
-lemma FreeUltrafilterNat_Compl_iff2:
-     "(X \<in> FreeUltrafilterNat) = (-X \<notin> FreeUltrafilterNat)"
-by (auto simp add: FreeUltrafilterNat_Compl_iff1 [symmetric])
-
-lemma cofinite_mem_FreeUltrafilterNat: "finite (-X) ==> X \<in> FreeUltrafilterNat"
-apply (drule FreeUltrafilterNat.finite)
-apply (simp add: FreeUltrafilterNat.not_mem_iff)
-done
-
-lemma FreeUltrafilterNat_UNIV: "UNIV \<in> FreeUltrafilterNat"
-by (rule FreeUltrafilterNat.UNIV)
-
-lemma FreeUltrafilterNat_Nat_set_refl [intro]:
-     "{n. P(n) = P(n)} \<in> FreeUltrafilterNat"
-by simp
-
-lemma FreeUltrafilterNat_P: "{n::nat. P} \<in> FreeUltrafilterNat ==> P"
-by (rule ccontr, simp)
-
-lemma FreeUltrafilterNat_Ex_P: "{n. P(n)} \<in> FreeUltrafilterNat ==> \<exists>n. P(n)"
-by (rule ccontr, simp)
-
-lemma FreeUltrafilterNat_all: "\<forall>n. P(n) ==> {n. P(n)} \<in> FreeUltrafilterNat"
-by (auto)
-
-
-text{*Define and use Ultrafilter tactics*}
-use "fuf.ML"
-
-method_setup fuf = {*
-    Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD' (fuf_tac (local_clasimpset_of ctxt))) *}
-    "free ultrafilter tactic"
-
-method_setup ultra = {*
-    Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD' (ultra_tac (local_clasimpset_of ctxt))) *}
-    "ultrafilter tactic"
-
-
-text{*One further property of our free ultrafilter*}
-
-lemma FreeUltrafilterNat_Un:
-     "X Un Y \<in> FreeUltrafilterNat  
-      ==> X \<in> FreeUltrafilterNat | Y \<in> FreeUltrafilterNat"
-by (auto, ultra)
-*)
 
 subsection{*Properties of @{term starrel}*}
 
