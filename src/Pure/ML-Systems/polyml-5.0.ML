@@ -11,8 +11,10 @@ val pointer_eq = PolyML.pointerEq;
 
 
 (* improved versions of use_text/file *)
-(*
+
 local
+
+fun std_output s = (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
 
 fun use_ml name (print, err) verbose txt =
   let
@@ -26,15 +28,16 @@ fun use_ml name (print, err) verbose txt =
       (case ! in_buffer of
         [] => ""
       | c :: cs => (in_buffer := cs; if c = "\n" then line_no := ! line_no + 1 else (); c));
-    fun put s = out_buffer := s :: ! out_buffer;
+    val put_fn = ref (fn s => out_buffer := s :: ! out_buffer);
 
     fun exec () =
       (case ! in_buffer of
         [] => ()
-      | _ => (PolyML.compilerEx (get, put, line, name) (); exec ()));
+      | _ => (PolyML.compilerEx (get, fn s => ! put_fn s, line, name) (); exec ()));
   in
     exec () handle exn => (err (output ()); raise exn);
-    if verbose then print (output ()) else ()
+    if verbose then print (output ()) else ();
+    put_fn := std_output   (*run-time output, e.g. PolyML.print*)
   end;
 
 in
@@ -48,4 +51,3 @@ fun use_file output verbose name =
   in use_ml name output verbose txt end;
 
 end;
-*)
