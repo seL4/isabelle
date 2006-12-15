@@ -37,16 +37,16 @@ ML {* iff_oracle (the_context ()) 2 *}
 ML {* iff_oracle (the_context ()) 10 *}
 ML {* #der (Thm.rep_thm it) *}
 
-text {* These oracle calls had better fail *}
+text {* These oracle calls had better fail. *}
 
 ML {*
   (iff_oracle (the_context ()) 5; error "?")
-    handle Fail _ => warning "Oracle failed, as expected"
+    handle Fail _ => tracing "Oracle failed, as expected"
 *}
 
 ML {*
   (iff_oracle (the_context ()) 1; error "?")
-    handle Fail _ => warning "Oracle failed, as expected"
+    handle Fail _ => tracing "Oracle failed, as expected"
 *}
 
 
