@@ -370,62 +370,77 @@ lemma HNatInfinite_FreeUltrafilterNat_iff:
 by (rule iffI [OF HNatInfinite_FreeUltrafilterNat 
                  FreeUltrafilterNat_HNatInfinite])
 
-subsection{*Embedding of the Hypernaturals into the Hyperreals*}
-text{*Obtained using the nonstandard extension of the naturals*}
+subsection {* Embedding of the Hypernaturals into other types *}
 
 definition
+  of_hypnat :: "hypnat \<Rightarrow> 'a::semiring_1_cancel star" where
+  of_hypnat_def [transfer_unfold]: "of_hypnat = *f* of_nat"
+
+abbreviation
   hypreal_of_hypnat :: "hypnat => hypreal" where
-  "hypreal_of_hypnat = *f* real"
+  "hypreal_of_hypnat == of_hypnat"
 
-declare hypreal_of_hypnat_def [transfer_unfold]
+lemma of_hypnat_0 [simp]: "of_hypnat 0 = 0"
+by transfer (rule of_nat_0)
 
-lemma hypreal_of_hypnat:
-      "hypreal_of_hypnat (star_n X) = star_n (%n. real (X n))"
-by (simp add: hypreal_of_hypnat_def starfun)
+lemma of_hypnat_1 [simp]: "of_hypnat 1 = 1"
+by transfer (rule of_nat_1)
 
-lemma hypreal_of_hypnat_inject [simp]:
-     "!!m n. (hypreal_of_hypnat m = hypreal_of_hypnat n) = (m=n)"
-by transfer (rule real_of_nat_inject)
+lemma of_hypnat_hSuc: "\<And>m. of_hypnat (hSuc m) = of_hypnat m + 1"
+by transfer (rule of_nat_Suc)
 
-lemma hypreal_of_hypnat_zero: "hypreal_of_hypnat 0 = 0"
-by transfer (rule real_of_nat_zero)
+lemma of_hypnat_add [simp]:
+  "\<And>m n. of_hypnat (m + n) = of_hypnat m + of_hypnat n"
+by transfer (rule of_nat_add)
 
-lemma hypreal_of_hypnat_one: "hypreal_of_hypnat (1::hypnat) = 1"
-by transfer simp
+lemma of_hypnat_mult [simp]:
+  "\<And>m n. of_hypnat (m * n) = of_hypnat m * of_hypnat n"
+by transfer (rule of_nat_mult)
 
-lemma hypreal_of_hypnat_add [simp]:
-     "!!m n. hypreal_of_hypnat (m + n) = hypreal_of_hypnat m + hypreal_of_hypnat n"
-by transfer (rule real_of_nat_add)
+lemma of_hypnat_less_iff [simp]:
+  "\<And>m n. (of_hypnat m < (of_hypnat n::'a::ordered_semidom star)) = (m < n)"
+by transfer (rule of_nat_less_iff)
 
-lemma hypreal_of_hypnat_mult [simp]:
-     "!!m n. hypreal_of_hypnat (m * n) = hypreal_of_hypnat m * hypreal_of_hypnat n"
-by transfer (rule real_of_nat_mult)
+lemma of_hypnat_0_less_iff [simp]:
+  "\<And>n. (0 < (of_hypnat n::'a::ordered_semidom star)) = (0 < n)"
+by transfer (rule of_nat_0_less_iff)
 
-lemma hypreal_of_hypnat_less_iff [simp]:
-     "!!m n. (hypreal_of_hypnat n < hypreal_of_hypnat m) = (n < m)"
-by transfer (rule real_of_nat_less_iff)
+lemma of_hypnat_less_0_iff [simp]:
+  "\<And>m. \<not> (of_hypnat m::'a::ordered_semidom star) < 0"
+by transfer (rule of_nat_less_0_iff)
 
-lemma hypreal_of_hypnat_eq_zero_iff: "(hypreal_of_hypnat N = 0) = (N = 0)"
-by (simp add: hypreal_of_hypnat_zero [symmetric])
-declare hypreal_of_hypnat_eq_zero_iff [simp]
+lemma of_hypnat_le_iff [simp]:
+  "\<And>m n. (of_hypnat m \<le> (of_hypnat n::'a::ordered_semidom star)) = (m \<le> n)"
+by transfer (rule of_nat_le_iff)
 
-lemma hypreal_of_hypnat_ge_zero [simp]: "!!n. 0 \<le> hypreal_of_hypnat n"
-by transfer (rule real_of_nat_ge_zero)
+lemma of_hypnat_0_le_iff [simp]:
+  "\<And>n. 0 \<le> (of_hypnat n::'a::ordered_semidom star)"
+by transfer (rule of_nat_0_le_iff)
+
+lemma of_hypnat_le_0_iff [simp]:
+  "\<And>m. ((of_hypnat m::'a::ordered_semidom star) \<le> 0) = (m = 0)"
+by transfer (rule of_nat_le_0_iff)
+
+lemma of_hypnat_eq_iff [simp]:
+  "\<And>m n. (of_hypnat m = (of_hypnat n::'a::ordered_semidom star)) = (m = n)"
+by transfer (rule of_nat_eq_iff)
+
+lemma of_hypnat_eq_0_iff [simp]:
+  "\<And>m. ((of_hypnat m::'a::ordered_semidom star) = 0) = (m = 0)"
+by transfer (rule of_nat_eq_0_iff)
 
 lemma HNatInfinite_inverse_Infinitesimal [simp]:
      "n \<in> HNatInfinite ==> inverse (hypreal_of_hypnat n) \<in> Infinitesimal"
 apply (cases n)
-apply (auto simp add: hypreal_of_hypnat star_n_inverse real_norm_def
+apply (auto simp add: of_hypnat_def starfun_star_n real_of_nat_def [symmetric] star_n_inverse
       HNatInfinite_FreeUltrafilterNat_iff
       Infinitesimal_FreeUltrafilterNat_iff2)
 apply (drule_tac x="Suc m" in spec)
 apply (erule ultra, simp)
 done
 
-lemma HNatInfinite_hypreal_of_hypnat_gt_zero:
-     "N \<in> HNatInfinite ==> 0 < hypreal_of_hypnat N"
-apply (rule ccontr)
-apply (simp add: hypreal_of_hypnat_zero [symmetric] linorder_not_less)
-done
+lemma HNatInfinite_of_hypnat_gt_zero:
+  "N \<in> HNatInfinite \<Longrightarrow> (0::'a::ordered_semidom star) < of_hypnat N"
+by (rule ccontr, simp add: linorder_not_less)
 
 end
