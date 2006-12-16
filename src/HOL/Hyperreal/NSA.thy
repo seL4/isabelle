@@ -8,7 +8,7 @@ Converted to Isar and polished by lcp
 header{*Infinite Numbers, Infinitesimals, Infinitely Close Relation*}
 
 theory NSA
-imports HyperArith "../Real/RComplete"
+imports HyperDef "../Real/RComplete"
 begin
 
 definition
@@ -174,13 +174,10 @@ lemma Reals_add_cancel: "\<lbrakk>x + y \<in> Reals; y \<in> Reals\<rbrakk> \<Lo
 by (drule (1) Reals_diff, simp)
 
 lemma SReal_hrabs: "(x::hypreal) \<in> Reals ==> abs x \<in> Reals"
-apply (auto simp add: SReal_def)
-apply (rule_tac x="abs r" in exI)
-apply simp
-done
+by (simp add: Reals_eq_Standard)
 
 lemma SReal_hypreal_of_real [simp]: "hypreal_of_real x \<in> Reals"
-by (simp add: SReal_def)
+by (simp add: Reals_eq_Standard)
 
 lemma SReal_divide_number_of: "r \<in> Reals ==> r/(number_of w::hypreal) \<in> Reals"
 by simp
@@ -197,13 +194,13 @@ apply (auto simp add: hypreal_of_real_not_eq_omega [THEN not_sym])
 done
 
 lemma SReal_UNIV_real: "{x. hypreal_of_real x \<in> Reals} = (UNIV::real set)"
-by (simp add: SReal_def)
+by simp
 
 lemma SReal_iff: "(x \<in> Reals) = (\<exists>y. x = hypreal_of_real y)"
 by (simp add: SReal_def)
 
 lemma hypreal_of_real_image: "hypreal_of_real `(UNIV::real set) = Reals"
-by (auto simp add: SReal_def)
+by (simp add: Reals_eq_Standard Standard_def)
 
 lemma inv_hypreal_of_real_image: "inv hypreal_of_real ` Reals = UNIV"
 apply (auto simp add: SReal_def)
@@ -212,14 +209,12 @@ done
 
 lemma SReal_hypreal_of_real_image:
       "[| \<exists>x. x: P; P \<subseteq> Reals |] ==> \<exists>Q. P = hypreal_of_real ` Q"
-apply (simp add: SReal_def, blast)
-done
+by (simp add: SReal_def image_def, blast)
 
 lemma SReal_dense:
      "[| (x::hypreal) \<in> Reals; y \<in> Reals;  x<y |] ==> \<exists>r \<in> Reals. x<r & r<y"
-apply (auto simp add: SReal_iff)
-apply (drule dense, safe)
-apply (rule_tac x = "hypreal_of_real r" in bexI, auto)
+apply (auto simp add: SReal_def)
+apply (drule dense, auto)
 done
 
 text{*Completeness of Reals, but both lemmas are unused.*}
@@ -294,6 +289,13 @@ unfolding star_zero_def by (rule HFinite_star_of)
 
 lemma HFinite_1 [simp]: "1 \<in> HFinite"
 unfolding star_one_def by (rule HFinite_star_of)
+
+lemma hrealpow_HFinite:
+  fixes x :: "'a::{real_normed_algebra,recpower} star"
+  shows "x \<in> HFinite ==> x ^ n \<in> HFinite"
+apply (induct_tac "n")
+apply (auto simp add: power_Suc intro: HFinite_mult)
+done
 
 lemma HFinite_bounded:
   "[|(x::hypreal) \<in> HFinite; y \<le> x; 0 \<le> y |] ==> y \<in> HFinite"
@@ -521,6 +523,28 @@ lemma Infinitesimal_interval2:
      "[| e \<in> Infinitesimal; e' \<in> Infinitesimal;
          e' \<le> x ; x \<le> e |] ==> (x::hypreal) \<in> Infinitesimal"
 by (auto intro: Infinitesimal_interval simp add: order_le_less)
+
+
+lemma lemma_Infinitesimal_hyperpow:
+     "[| (x::hypreal) \<in> Infinitesimal; 0 < N |] ==> abs (x pow N) \<le> abs x"
+apply (unfold Infinitesimal_def)
+apply (auto intro!: hyperpow_Suc_le_self2 
+          simp add: hyperpow_hrabs [symmetric] hypnat_gt_zero_iff2 abs_ge_zero)
+done
+
+lemma Infinitesimal_hyperpow:
+     "[| (x::hypreal) \<in> Infinitesimal; 0 < N |] ==> x pow N \<in> Infinitesimal"
+apply (rule hrabs_le_Infinitesimal)
+apply (rule_tac [2] lemma_Infinitesimal_hyperpow, auto)
+done
+
+lemma hrealpow_hyperpow_Infinitesimal_iff:
+     "(x ^ n \<in> Infinitesimal) = (x pow (hypnat_of_nat n) \<in> Infinitesimal)"
+by (simp only: hyperpow_hypnat_of_nat)
+
+lemma Infinitesimal_hrealpow:
+     "[| (x::hypreal) \<in> Infinitesimal; 0 < n |] ==> x ^ n \<in> Infinitesimal"
+by (simp add: hrealpow_hyperpow_Infinitesimal_iff Infinitesimal_hyperpow)
 
 lemma not_Infinitesimal_mult:
   fixes x y :: "'a::real_normed_div_algebra star"
@@ -2207,6 +2231,17 @@ lemma FreeUltrafilterNat_inverse_real_of_posnat:
       {n. inverse(real(Suc n)) < u} \<in> FreeUltrafilterNat"
 apply (cut_tac u = u in inverse_real_of_posnat_ge_real_FreeUltrafilterNat)
 apply (auto dest: FreeUltrafilterNat.not_memD simp add: Compl_le_inverse_eq)
+done
+
+text{* Example of an hypersequence (i.e. an extended standard sequence)
+   whose term with an hypernatural suffix is an infinitesimal i.e.
+   the whn'nth term of the hypersequence is a member of Infinitesimal*}
+
+lemma SEQ_Infinitesimal:
+      "( *f* (%n::nat. inverse(real(Suc n)))) whn : Infinitesimal"
+apply (simp add: hypnat_omega_def starfun_star_n star_n_inverse)
+apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
+apply (simp add: real_of_nat_Suc_gt_zero FreeUltrafilterNat_inverse_real_of_posnat)
 done
 
 text{* Example where we get a hyperreal from a real sequence

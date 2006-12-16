@@ -8,7 +8,7 @@ Converted to Isar and polished by lcp
 header{*Hypernatural numbers*}
 
 theory HyperNat
-imports Star
+imports StarClasses
 begin
 
 types hypnat = "nat star"
@@ -31,6 +31,9 @@ by transfer (rule Zero_not_Suc)
 
 lemma hSuc_hSuc_eq [iff]: "\<And>m n. (hSuc m = hSuc n) = (m = n)"
 by transfer (rule Suc_Suc_eq)
+
+lemma zero_less_hSuc [iff]: "\<And>n. 0 < hSuc n"
+by transfer (rule zero_less_Suc)
 
 lemma hypnat_minus_zero [simp]: "!!z. z - z = (0::hypnat)"
 by transfer (rule diff_self_eq_0)
@@ -282,17 +285,6 @@ by (simp add: Nats_def image_def whn_neq_hypnat_of_nat)
 lemma HNatInfinite_whn [simp]: "whn \<in> HNatInfinite"
 by (simp add: HNatInfinite_def)
 
-text{* Example of an hypersequence (i.e. an extended standard sequence)
-   whose term with an hypernatural suffix is an infinitesimal i.e.
-   the whn'nth term of the hypersequence is a member of Infinitesimal*}
-
-lemma SEQ_Infinitesimal:
-      "( *f* (%n::nat. inverse(real(Suc n)))) whn : Infinitesimal"
-apply (simp add: hypnat_omega_def starfun star_n_inverse)
-apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
-apply (simp add: real_of_nat_Suc_gt_zero FreeUltrafilterNat_inverse_real_of_posnat)
-done
-
 lemma lemma_unbounded_set [simp]: "{n::nat. m < n} \<in> FreeUltrafilterNat"
 apply (insert finite_atMost [of m]) 
 apply (simp add: atMost_def)
@@ -358,12 +350,12 @@ lemma HNatInfinite_FreeUltrafilterNat:
      "star_n X \<in> HNatInfinite ==> \<forall>u. {n. u < X n}:  FreeUltrafilterNat"
 apply (auto simp add: HNatInfinite_iff SHNat_eq)
 apply (drule_tac x="star_of u" in spec, simp)
-apply (simp add: star_of_def star_n_less)
+apply (simp add: star_of_def star_less_def starP2_star_n)
 done
 
 lemma FreeUltrafilterNat_HNatInfinite:
      "\<forall>u. {n. u < X n}:  FreeUltrafilterNat ==> star_n X \<in> HNatInfinite"
-by (auto simp add: star_n_less HNatInfinite_iff SHNat_eq hypnat_of_nat_eq)
+by (auto simp add: star_less_def starP2_star_n HNatInfinite_iff SHNat_eq hypnat_of_nat_eq)
 
 lemma HNatInfinite_FreeUltrafilterNat_iff:
      "(star_n X \<in> HNatInfinite) = (\<forall>u. {n. u < X n}:  FreeUltrafilterNat)"
@@ -375,10 +367,6 @@ subsection {* Embedding of the Hypernaturals into other types *}
 definition
   of_hypnat :: "hypnat \<Rightarrow> 'a::semiring_1_cancel star" where
   of_hypnat_def [transfer_unfold]: "of_hypnat = *f* of_nat"
-
-abbreviation
-  hypreal_of_hypnat :: "hypnat => hypreal" where
-  "hypreal_of_hypnat == of_hypnat"
 
 lemma of_hypnat_0 [simp]: "of_hypnat 0 = 0"
 by transfer (rule of_nat_0)
@@ -428,16 +416,6 @@ by transfer (rule of_nat_eq_iff)
 lemma of_hypnat_eq_0_iff [simp]:
   "\<And>m. ((of_hypnat m::'a::ordered_semidom star) = 0) = (m = 0)"
 by transfer (rule of_nat_eq_0_iff)
-
-lemma HNatInfinite_inverse_Infinitesimal [simp]:
-     "n \<in> HNatInfinite ==> inverse (hypreal_of_hypnat n) \<in> Infinitesimal"
-apply (cases n)
-apply (auto simp add: of_hypnat_def starfun_star_n real_of_nat_def [symmetric] star_n_inverse
-      HNatInfinite_FreeUltrafilterNat_iff
-      Infinitesimal_FreeUltrafilterNat_iff2)
-apply (drule_tac x="Suc m" in spec)
-apply (erule ultra, simp)
-done
 
 lemma HNatInfinite_of_hypnat_gt_zero:
   "N \<in> HNatInfinite \<Longrightarrow> (0::'a::ordered_semidom star) < of_hypnat N"

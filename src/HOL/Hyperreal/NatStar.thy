@@ -8,7 +8,7 @@ Converted to Isar and polished by lcp
 header{*Star-transforms for the Hypernaturals*}
 
 theory NatStar
-imports HyperPow
+imports Star
 begin
 
 lemma star_n_eq_starfun_whn: "star_n X = ( *f* X) whn"

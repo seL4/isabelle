@@ -305,6 +305,16 @@ by (simp add: Infinitesimal_hypreal_of_nat_iff star_of_def
      hnorm_def star_of_nat_def starfun_star_n
      star_n_inverse star_n_less real_of_nat_def)
 
+lemma HNatInfinite_inverse_Infinitesimal [simp]:
+     "n \<in> HNatInfinite ==> inverse (hypreal_of_hypnat n) \<in> Infinitesimal"
+apply (cases n)
+apply (auto simp add: of_hypnat_def starfun_star_n real_of_nat_def [symmetric] star_n_inverse real_norm_def
+      HNatInfinite_FreeUltrafilterNat_iff
+      Infinitesimal_FreeUltrafilterNat_iff2)
+apply (drule_tac x="Suc m" in spec)
+apply (erule ultra, simp)
+done
+
 lemma approx_FreeUltrafilterNat_iff: "star_n X @= star_n Y =
       (\<forall>r>0. {n. norm (X n - Y n) < r} : FreeUltrafilterNat)"
 apply (subst approx_minus_iff)

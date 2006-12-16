@@ -7,7 +7,7 @@
 header{*Existence of Nth Root*}
 
 theory NthRoot
-imports SEQ
+imports SEQ Parity
 begin
 
 definition
