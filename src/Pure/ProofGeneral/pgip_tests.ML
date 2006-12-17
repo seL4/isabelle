@@ -82,6 +82,14 @@ val _ = asseqi "<otherelt/>" NONE;
 
 end
 
+(** pgip_markup.ML **)
+local
+open PgipMarkup
+in
+val _ = ()
+end
+
+
 (** pgip_output.ML **)
 local
 open PgipOutput
@@ -89,3 +97,25 @@ in
 val _ = ()
 end
 
+
+(** parsing.ML **)
+local
+open PgipMarkup
+open PgipParser
+fun asseqp a b =
+    if (pgip_parser a)=b then ()
+    else error("PGIP test: expected two parses to be equal, for input:\n" ^ a)
+
+in
+val _ = 
+    asseqp "theory A imports Bthy Cthy Dthy begin"
+    [Opentheory
+         {text = "theory A imports Bthy Cthy Dthy begin",
+          thyname = "A",
+          parentnames = ["Bthy", "Cthy", "Dthy"]}];
+
+val _ = 
+    asseqp "end" 
+   [Closetheory {text = "end"}];
+
+end

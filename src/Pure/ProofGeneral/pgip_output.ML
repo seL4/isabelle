@@ -30,21 +30,21 @@ sig
                                descr: string, 
                                url: Url.T, 
                                filenameextns: string }
-    | Idtable             of { objtype: string, 
-                               context: string option, 
-                               ids: string list }
-    | Setids              of { idtables: XML.content }
-    | Delids              of { idtables: XML.content }
-    | Addids              of { idtables: XML.content }
+    | Setids              of { idtables: PgipTypes.idtable list  }
+    | Delids              of { idtables: PgipTypes.idtable list }
+    | Addids              of { idtables: PgipTypes.idtable list }
     | Hasprefs            of { prefcategory: string option, 
                                prefs: PgipTypes.preference list }
     | Prefval             of { name: string, value: string }
-    | Idvalue             of { name: string, objtype: string, text: XML.content }
+    | Idvalue             of { name: PgipTypes.objname, 
+			       objtype: PgipTypes.objtype, 
+			       text: XML.content }
     | Informguise         of { file : PgipTypes.pgipurl option,  
-                               theory: string option, 
-                               theorem: string option, 
+                               theory: PgipTypes.objname option, 
+                               theorem: PgipTypes.objname option, 
                                proofpos: int option }
-    | Parseresult         of { attrs: XML.attributes, content: XML.content }
+    | Parseresult         of { attrs: XML.attributes, doc:PgipMarkup.pgipdocument, 
+			       errs: XML.content } (* errs to become PGML *)
     | Usespgip            of { version: string, 
                                pgipelems: (string * bool * string list) list }
     | Usespgml            of { version: string }
@@ -77,16 +77,20 @@ datatype pgipoutput =
        | Lexicalstructure    of { content: XML.content }
        | Proverinfo          of { name: string, version: string, instance: string,
                                   descr: string, url: Url.T, filenameextns: string }
-       | Idtable             of { objtype: string, context: string option, ids: string list }
-       | Setids              of { idtables: XML.content }
-       | Delids              of { idtables: XML.content }
-       | Addids              of { idtables: XML.content }
+       | Setids              of { idtables: PgipTypes.idtable list  }
+       | Delids              of { idtables: PgipTypes.idtable list }
+       | Addids              of { idtables: PgipTypes.idtable list }
        | Hasprefs            of { prefcategory: string option, prefs: preference list }
        | Prefval             of { name: string, value: string }
-       | Idvalue             of { name: string, objtype: string, text: XML.content }
-       | Informguise         of { file : pgipurl option,  theory: string option, 
-                                  theorem: string option, proofpos: int option }
-       | Parseresult         of { attrs: XML.attributes, content: XML.content }
+       | Idvalue             of { name: PgipTypes.objname, 
+				  objtype: PgipTypes.objtype, 
+				  text: XML.content }
+       | Informguise         of { file : PgipTypes.pgipurl option,  
+				  theory: PgipTypes.objname option, 
+				  theorem: PgipTypes.objname option, 
+				  proofpos: int option }
+       | Parseresult         of { attrs: XML.attributes, doc: PgipMarkup.pgipdocument,
+				  errs: XML.content } (* errs to become PGML *)
        | Usespgip            of { version: string, 
                                   pgipelems: (string * bool * string list) list }
        | Usespgml            of { version: string }
@@ -189,39 +193,25 @@ fun proverinfo vs =
                  [])
     end
 
-fun idtable vs = 
-    let 
-        val objtype = #objtype vs
-        val objtype_attrs = attr "objtype" objtype
-        val context = #context vs
-        val context_attrs = opt_attr "context" context
-        val ids = #ids vs
-        val ids_content = map (fn x => XML.Elem("identifier",[],[XML.Text x])) ids
-    in 
-        XML.Elem ("idtable",
-                  objtype_attrs @ context_attrs,
-                  ids_content)
-    end
-
 fun setids vs =
     let
         val idtables = #idtables vs
     in
-        XML.Elem ("setids",[],idtables)
+        XML.Elem ("setids",[],map idtable_to_xml idtables)
     end
 
 fun addids vs =
     let
         val idtables = #idtables vs
     in
-        XML.Elem ("addids",[],idtables)
+        XML.Elem ("addids",[],map idtable_to_xml idtables)
     end
 
 fun delids vs =
     let
         val idtables = #idtables vs
     in
-        XML.Elem ("delids",[],idtables)
+        XML.Elem ("delids",[],map idtable_to_xml idtables)
     end
 
 
@@ -258,10 +248,10 @@ fun prefval vs =
 fun idvalue vs =
     let 
         val name = #name vs
-        val objtype = #objtype vs
+	val objtype_attrs = attrs_of_objtype (#objtype vs)
         val text = #text vs
     in
-        XML.Elem("idvalue", [("name",name),("objtype",objtype)], text)
+        XML.Elem("idvalue", attr "name" name @ objtype_attrs, text)
     end 
 
 
@@ -286,9 +276,11 @@ fun informguise vs =
 fun parseresult vs =
     let
         val attrs = #attrs vs
-        val content = #content vs
+        val doc = #doc vs
+        val errs = #errs vs
+	val xmldoc = PgipMarkup.output_doc doc
     in 
-        XML.Elem("parseresult", attrs, content)
+        XML.Elem("parseresult", attrs, errs@xmldoc)
     end
 
 fun usespgip vs =
@@ -341,7 +333,6 @@ fun output pgipoutput = case pgipoutput of
  | Metainforesponse vs     => metainforesponse vs
  | Lexicalstructure vs     => lexicalstructure vs
  | Proverinfo vs           => proverinfo vs
- | Idtable vs              => idtable vs
  | Setids vs               => setids vs
  | Addids vs               => addids vs
  | Delids vs               => delids vs

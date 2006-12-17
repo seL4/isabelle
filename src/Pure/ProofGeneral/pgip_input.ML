@@ -29,11 +29,15 @@ sig
     | Redostep       of { }
     | Abortgoal      of { }
     | Forget         of { thyname: string option, name: string option, 
-                          objtype: string option }
+                          objtype: PgipTypes.objtype option }
     | Restoregoal    of { thmname : string }
     (* context inspection commands *)
-    | Askids         of { thyname:string option, objtype:string option }
-    | Showid         of { thyname:string option, objtype:string, name:string }
+    | Askids         of { url: PgipTypes.pgipurl option,
+			  thyname: PgipTypes.objname option,
+			  objtype: PgipTypes.objtype option }
+    | Showid         of { thyname: PgipTypes.objname option, 
+			  objtype: PgipTypes.objtype, 
+			  name: PgipTypes.objname }
     | Askguise       of { }
     | Parsescript    of { text: string, location: PgipTypes.location,
                           systemdata: string option } 
@@ -89,11 +93,15 @@ datatype pgipinput =
        | Redostep	of { }
        | Abortgoal	of { }
        | Forget		of { thyname: string option, name: string option, 
-			     objtype: string option }
+			     objtype: PgipTypes.objtype option }
        | Restoregoal    of { thmname : string }
        (* context inspection commands *)
-       | Askids		of { thyname:string option, objtype:string option }
-       | Showid		of { thyname:string option, objtype:string, name:string }
+       | Askids         of { url: PgipTypes.pgipurl option,
+			     thyname: PgipTypes.objname option,
+			     objtype: PgipTypes.objtype option }
+       | Showid         of { thyname: PgipTypes.objname option, 
+			     objtype: PgipTypes.objtype, 
+			     name: PgipTypes.objname }
        | Askguise	of { }
        | Parsescript	of { text: string, location: location,
 			     systemdata: string option } 
@@ -123,11 +131,17 @@ local
 
     val thyname_attro = get_attr_opt "thyname"
     val thyname_attr = get_attr "thyname"
-    val objtype_attro = get_attr_opt "objtype"
-    val objtype_attr = get_attr "objtype"
     val name_attr = get_attr "name"
     val name_attro = get_attr_opt "name"
     val thmname_attr = get_attr "thmname"
+
+    fun objtype_attro attrs = if has_attr "objtype" attrs then
+				  SOME (objtype_of_attrs attrs)
+			      else NONE
+
+    fun pgipurl_attro attrs = if has_attr "url" attrs then
+				  SOME (pgipurl_of_attrs attrs)
+			      else NONE
 
     val times_attr = read_pgipnat o (get_attr_dflt "times" "1")
     val prefcat_attr = get_attr_opt "prefcategory"
@@ -173,10 +187,11 @@ SOME
 				  objtype = objtype_attro attrs }
    | "restoregoal"    => Restoregoal { thmname = thmname_attr attrs}
    (* proofctxt: improper commands *)
-   | "askids"         => Askids { thyname = thyname_attro attrs, 
+   | "askids"         => Askids { url = pgipurl_attro attrs,
+				  thyname = thyname_attro attrs, 
 				  objtype = objtype_attro attrs }
    | "showid"         => Showid { thyname = thyname_attro attrs,
-				  objtype = objtype_attr attrs,
+				  objtype = objtype_of_attrs attrs,
 				  name = name_attr attrs }
    | "askguise"       => Askguise { }
    | "parsescript"    => Parsescript { text = (xmltext data),

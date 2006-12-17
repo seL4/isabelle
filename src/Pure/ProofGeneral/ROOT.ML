@@ -3,11 +3,16 @@ use "pgip_markup.ML";
 use "pgip_input.ML";
 use "pgip_output.ML";
 use "pgip.ML";
-use "pgip_tests.ML";
 
 use "pgip_isabelle.ML";
 use "preferences.ML";
 use "parsing.ML";
 
+use "pgip_tests.ML";
+
 (use |> setmp proofs 1 |> setmp quick_and_dirty true) "proof_general_pgip.ML";
 (use |> setmp proofs 1 |> setmp quick_and_dirty true) "proof_general_emacs.ML";
+
+(* desirable to have tests on UI connection:
+  use "pgip_isabelle_tests.ML"
+*)

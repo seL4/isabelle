@@ -31,6 +31,7 @@ The Isabelle specific configuration is in these files:
 For the full PGIP schema and an explanation of it, see:
 
    http://proofgeneral.inf.ed.ac.uk/kit
+   http://proofgeneral.inf.ed.ac.uk/wiki/Main/PGIP
 
 David Aspinall, Dec. 2006.
 $Id$

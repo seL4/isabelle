@@ -294,7 +294,6 @@ fun try_update_thy_only file =
 
 val inform_file_retracted = ThyInfo.if_known_thy ThyInfo.remove_thy o thy_name;
 val inform_file_processed = ThyInfo.if_known_thy ThyInfo.touch_child_thys o thy_name;
-val openfile_retract = Output.no_warnings (ThyInfo.if_known_thy ThyInfo.remove_thy) o thy_name;
 
 fun proper_inform_file_processed file state =
   let val name = thy_name file in
@@ -414,37 +413,6 @@ fun send_pgip_config () =
 end
 
 
-(* PGIP identifier tables (prover objects). [incomplete] *)
-
-local
-    (* TODO: objtypes should be in pgip_types.ML *)
-    val objtype_thy  = "theory"
-    val objtype_thm  = "theorem"
-    val objtype_term = "term"
-    val objtype_type = "type"
-
-    fun xml_idtable ty ctx ids =
-        PgipOutput.output (Idtable {objtype=ty,context=ctx,ids=ids})
-in
-
-fun setids t = issue_pgip (Setids {idtables = [t]})
-fun addids t = issue_pgip (Addids {idtables = [t]})
-fun delids t = issue_pgip (Delids {idtables = [t]})
-
-fun delallids ty = setids (xml_idtable ty NONE [])
-
-fun send_thy_idtable ctx thys = setids (xml_idtable objtype_thy ctx thys)
-fun clear_thy_idtable () = delallids objtype_thy
-
-fun send_thm_idtable ctx thy =
-    addids (xml_idtable objtype_thm ctx (map fst (PureThy.thms_of thy)));
-
-fun clear_thm_idtable () = delallids objtype_thm
-
-(* fun send_type_idtable thy = TODO, it's a bit low-level messy
-   & maybe not so useful anyway *)
-
-end
 
 
 (* Sending commands to Isar *)
@@ -469,7 +437,7 @@ fun use_thy_or_ml_file file =
     end
 
 
-(**** PGIP actions ****)
+(******* PGIP actions *******)
 
 
 (* Responses to each of the PGIP input commands. 
@@ -558,21 +526,45 @@ fun redostep vs = isarcmd "redo"
 fun abortgoal vs = isarcmd "ProofGeneral.kill_proof" 
 
 
+(*** PGIP identifier tables ***)
+
+fun setids t = issue_pgip (Setids {idtables = [t]})
+fun addids t = issue_pgip (Addids {idtables = [t]})
+fun delids t = issue_pgip (Delids {idtables = [t]})
+
+(*
+ fun delallids ty = 
+     issue_pgip (Setids {idtables = 
+	 		[{context=NONE,objtype=ty,ids=[]}]}) *)
+
 fun askids vs = 
     let
-	val thyname = #thyname vs
-	val objtype = #objtype vs
+	val url = #url vs	     (* ask for identifiers within a file *)
+	val thyname = #thyname vs    (* ask for identifiers within a theory *)
+	val objtype = #objtype vs    (* ask for identifiers of a particular type *)
+
+	fun idtable ty ctx ids = {objtype=ty,context=ctx,ids=ids}
+
+	val thms_of_thy = (map fst) o PureThy.thms_of o ThyInfo.get_theory
     in 
+(*	case (url_attr,thyname,objtype) of
+	    (NONE,NONE,NONE) => 
+*)	    (* top-level: return *)
+
 	(* TODO: add askids for "file" here, which returns single theory with same name *)
+        (* FIXME: objtypes on both sides *)
 	case (thyname,objtype) of 
-           (* only theories known in top context *)
-	   (NONE, NONE) =>  send_thy_idtable NONE (ThyInfo.names())
-	 | (NONE, SOME "theory")  => send_thy_idtable NONE (ThyInfo.names())
-	 | (SOME thy, SOME "theory") => send_thy_idtable (SOME thy) (ThyInfo.get_preds thy)
-	 | (SOME thy, SOME "theorem") => send_thm_idtable (SOME thy) (ThyInfo.get_theory thy)
-	 | (SOME thy, NONE) => (send_thy_idtable (SOME thy) (ThyInfo.get_preds thy);
-                               send_thm_idtable (SOME thy) (ThyInfo.get_theory thy))
-	 | (_, SOME ot) => error ("No objects of type "^(quote ot)^" are available here.")
+           (* only files known in top context *)
+	   (NONE, NONE)		      => setids (idtable ObjFile NONE (ThyInfo.names())) (*FIXME: uris?*)
+	 | (NONE, SOME ObjFile)        => setids (idtable ObjFile NONE (ThyInfo.names())) (* ditto *)
+	 | (SOME fi, SOME ObjFile)     => setids (idtable ObjTheory (SOME fi) [fi]) (* FIXME: lookup file *)
+	 | (NONE, SOME ObjTheory)      => setids (idtable ObjTheory NONE (ThyInfo.names()))
+	 | (SOME thy, SOME ObjTheory)  => setids (idtable ObjTheory (SOME thy) (ThyInfo.get_preds thy))
+	 | (SOME thy, SOME ObjTheorem) => setids (idtable ObjTheorem (SOME thy) (thms_of_thy thy))
+         (* next case is both of above.  FIXME: cleanup this *)					 
+	 | (SOME thy, NONE) => (setids (idtable ObjTheory (SOME thy) (ThyInfo.get_preds thy));
+				setids (idtable ObjTheorem (SOME thy) (thms_of_thy thy)))
+	 | (_, SOME ot) => error ("No objects of type "^(PgipTypes.name_of_objtype ot)^" are available here.")
     end
 
 local
@@ -590,7 +582,7 @@ fun showid vs =
     let
 	val thyname = #thyname vs
 	val objtype = #objtype vs
-	val name = #objtype vs
+	val name = #name vs
 	val topthy = Toplevel.theory_of o Toplevel.get_state
 
 	fun idvalue objtype name strings =
@@ -600,17 +592,19 @@ fun showid vs =
 	fun pthm thy name = print_thm (get_thm thy (Name name))
     in 
 	case (thyname, objtype) of 
-	    (_,"theory") =>
-	    with_displaywrap (idvalue "theory" name) 
+	    (_,ObjTheory) =>
+	    with_displaywrap (idvalue ObjTheory name) 
 			     (fn ()=>(print_theory (ThyInfo.get_theory name)))
-	  | (SOME thy, "theorem") =>
-	    with_displaywrap (idvalue "theorem" name) 
+	  | (SOME thy, ObjTheorem) =>
+	    with_displaywrap (idvalue ObjTheorem name) 
 			     (fn ()=>(pthm (ThyInfo.get_theory thy) name))
-	  | (NONE, "theorem") =>
-	    with_displaywrap (idvalue "theorem" name) 
+	  | (NONE, ObjTheorem) =>
+	    with_displaywrap (idvalue ObjTheorem name) 
 			     (fn ()=>pthm (topthy()) name)
-	  | (_, ot) => error ("Cannot show objects of type "^ot)
+	  | (_, ot) => error ("Cannot show objects of type "^(PgipTypes.name_of_objtype ot))
     end
+
+(*** Inspecting state ***)
 
 (* The file which is currently being processed interactively.  
    In the pre-PGIP code, this was informed to Isabelle and the theory loader
@@ -649,15 +643,16 @@ fun parsescript vs =
 	val systemdata = #systemdata vs      
 	val location = #location vs   (* TODO: extract position *)
 
-        val _ = start_delay_msgs ()  (* gather parsing messages *)
-        val xmls = PgipParser.xmls_of_str text
+        val _ = start_delay_msgs ()   (* gather parsing errs/warns *)
+        val doc = PgipParser.pgip_parser text
         val errs = end_delayed_msgs ()
 
 	val sysattrs = PgipTypes.opt_attr "systemdata" systemdata
 	val locattrs = PgipTypes.attrs_of_location location
      in
         issue_pgip (Parseresult { attrs= sysattrs@locattrs,
-				  content = (map PgipOutput.output errs)@xmls })
+				  doc = doc,
+				  errs = (map PgipOutput.output errs) })
     end
 
 fun showproofstate vs = isarcmd "pr"
@@ -685,6 +680,8 @@ fun viewdoc vs =
 	isarcmd ("print_" ^ arg)   (* FIXME: isatool doc?.  Return URLs, maybe? *)
     end
 
+(*** Theory ***)
+
 fun doitem vs =
     let
 	val text = #text vs
@@ -708,23 +705,52 @@ fun retracttheory vs =
 	isarcmd ("kill_thy " ^ quote thyname)
     end
 
-fun loadfile vs = 
+
+(*** Files ***)
+
+(* Path management: we allow theory files to have dependencies in
+   their own directory, but when we change directory for a new file we
+   remove the path.  Leaving it there can cause confusion with
+   difference in batch mode.
+   NB: PGIP does not assume that the prover has a load path. 
+*)
+
+local
+    val current_working_dir = ref (NONE : string option)
+in
+fun changecwd_dir newdirpath = 
+   let 
+       val newdir = File.platform_path newdirpath
+   in 
+       (case (!current_working_dir) of
+            NONE => ()
+          | SOME dir => ThyLoad.del_path dir;
+        ThyLoad.add_path newdir;
+        current_working_dir := SOME newdir)
+   end
+end
+
+fun changecwd vs = 
     let 
 	val url = #url vs
-    in 
-	case !currently_open_file of
-            SOME f => raise PGIP ("<loadfile> when a file is open!")
-          | NONE => use_thy_or_ml_file (File.platform_path url)
+	val newdir = PgipTypes.path_of_pgipurl url
+    in
+	changecwd_dir url
     end
 
 fun openfile vs =
   let 
       val url = #url vs
+      val filepath = PgipTypes.path_of_pgipurl url
+      val filedir = Path.dir filepath
+      val thy_name = Path.implode o #1 o Path.split_ext o Path.base
+      val openfile_retract = Output.no_warnings (ThyInfo.if_known_thy ThyInfo.remove_thy) o thy_name;
   in
       case !currently_open_file of
           SOME f => raise PGIP ("<openfile> when a file is already open! ")
-        | NONE => (openfile_retract (File.platform_path url);
-		   currently_open_file := SOME url) (*(File.platform_path url))*)
+        | NONE => (openfile_retract filepath;
+		   changecwd_dir filedir;
+		   currently_open_file := SOME url)
   end
 
 fun closefile vs =
@@ -733,6 +759,15 @@ fun closefile vs =
 						(Isar.state());
                    currently_open_file := NONE)
       | NONE => raise PGIP ("<closefile> when no file is open!")
+
+fun loadfile vs = 
+    let 
+	val url = #url vs
+    in 
+	case !currently_open_file of
+            SOME f => raise PGIP ("<loadfile> when a file is open!")
+          | NONE => use_thy_or_ml_file (File.platform_path url)
+    end
 
 fun abortfile vs =
     case !currently_open_file of
@@ -749,29 +784,8 @@ fun retractfile vs =
           | NONE => inform_file_retracted (File.platform_path url)
     end
 
-(* Path management: we allow theory files to have dependencies in
-   their own directory, but when we change directory for a new file we
-   remove the path.  Leaving it there can cause confusion with
-   difference in batch mode.
-   NB: PGIP does not assume that the prover has a load path. 
-*)
 
-local
-    val current_working_dir = ref (NONE : string option)
-in
-fun changecwd vs = 
-    let 
-	val url = #url vs
-	val newdir = File.platform_path url
-    in
-        (case (!current_working_dir) of
-             NONE => ()
-           | SOME dir => ThyLoad.del_path dir;
-         ThyLoad.add_path newdir;
-         current_working_dir := SOME newdir)
-    end
-end
-
+(*** System ***)
 
 fun systemcmd vs =
   let 

@@ -5,9 +5,22 @@
 PGIP abstraction: types and conversions
 *)
 
-(* TODO: add objtypes and PGML *)
+(* TODO: PGML *)
 signature PGIPTYPES =
 sig
+    (* Object types: the types of values which can be manipulated externally.
+       Ideally a list of other types would be configured as a parameter. *)
+    datatype objtype = ObjFile | ObjTheory | ObjTheorem | ObjComment  
+		     | ObjTerm | ObjType | ObjOther of string
+  
+    (* Names for values of objtypes (i.e. prover identifiers). Could be a parameter.
+       Names for ObjFiles are URIs. *)
+    type objname = string
+
+    type idtable = { context: objname option,    (* container's objname *)
+                     objtype: objtype, 
+                     ids: objname list }
+
     (* Types and values (used for preferences and dialogs) *)
 
     datatype pgiptype = Pgipnull | Pgipbool | Pgipint of int option * int option | Pgipnat
@@ -50,6 +63,12 @@ end
 signature PGIPTYPES_OPNS = 
 sig
     include PGIPTYPES
+ 
+    (* Object types *)
+    val name_of_objtype  : objtype -> string
+    val attrs_of_objtype : objtype -> XML.attributes
+    val objtype_of_attrs : XML.attributes -> objtype		        (* raises PGIP *)
+    val idtable_to_xml   : idtable -> XML.tree
 
     (* Values as XML strings *)
     val read_pgipint	   : (int option * int option) -> string -> int (* raises PGIP *)
@@ -76,10 +95,12 @@ sig
     val pgipurl_of_url : Url.T -> pgipurl	       (* raises PGIP *)
     val pgipurl_of_string : string -> pgipurl	       (* raises PGIP *)
     val pgipurl_of_path : Path.T -> pgipurl
+    val path_of_pgipurl : pgipurl -> Path.T
     val attrs_of_pgipurl : pgipurl -> XML.attributes
     val pgipurl_of_attrs : XML.attributes -> pgipurl   (* raises PGIP *)
 
     (* XML utils, only for PGIP code *)
+    val has_attr       : string -> XML.attributes -> bool
     val attr	       : string -> string -> XML.attributes
     val opt_attr       : string -> string option -> XML.attributes
     val opt_attr_map   : ('a -> string) -> string -> 'a option -> XML.attributes
@@ -92,7 +113,9 @@ structure PgipTypes : PGIPTYPES_OPNS =
 struct
 exception PGIP of string
 
-(** Utils **)
+(** XML utils **)
+
+fun has_attr attr attrs = AList.defined (op =) attrs attr
 
 fun get_attr_opt attr attrs = AList.lookup (op =) attrs attr
 
@@ -112,6 +135,50 @@ fun opt_attr_map f attr_name opt_val =
   *)
 
 val opt_attr = opt_attr_map I
+
+
+(** Objtypes **)
+
+datatype objtype = ObjFile | ObjTheory | ObjTheorem | ObjComment  
+		 | ObjTerm | ObjType | ObjOther of string
+
+fun name_of_objtype obj = 
+    case obj of 
+	ObjFile    => "file"
+      | ObjTheory  => "theory"
+      | ObjTheorem => "theorem"
+      | ObjComment => "comment"
+      | ObjTerm    => "term"
+      | ObjType    => "type"
+      | ObjOther s => s
+
+val attrs_of_objtype = (attr "objtype") o name_of_objtype
+
+fun objtype_of_attrs attrs = case get_attr "objtype" attrs of
+       "file" => ObjFile
+     | "theory" => ObjTheory
+     | "theorem" => ObjTheorem
+     | "comment" => ObjComment
+     | "term" => ObjTerm
+     | "type" => ObjType
+     | s => ObjOther s    (* where s mem other_objtypes_parameter *)
+
+type objname = string
+type idtable = { context: objname option,    (* container's objname *)
+                 objtype: objtype, 
+                 ids: objname list }
+
+fun idtable_to_xml {context, objtype, ids} = 
+    let 
+        val objtype_attrs = attrs_of_objtype objtype
+        val context_attrs = opt_attr "context" context
+        val ids_content = map (fn x => XML.Elem("identifier",[],[XML.Text x])) ids
+    in 
+        XML.Elem ("idtable",
+                  objtype_attrs @ context_attrs,
+                  ids_content)
+    end
+
 
 (** Types and values **)
 
@@ -258,9 +325,7 @@ fun pgval_to_string (_, Pgvalnull) = ""
   | pgval_to_string (_,(Pgvalstring s)) = string_to_pgstring s
 
 
-(** URLs: only local files **)
-
-type pgipurl = Path.T
+type pgipurl = Path.T    (* URLs: only local files *)
 
 datatype displayarea = Status | Message | Display | Other of string
 
@@ -278,12 +343,15 @@ type location = { descr: string option,
 
 (** Url operations **)
 
+
 fun pgipurl_of_string url = (* only handle file:/// or file://localhost/ *)
 	case Url.explode url of
             (Url.File path) => path
 	  | _ => raise PGIP ("Cannot access non-local URL " ^ url)
 		       
 fun pgipurl_of_path p = p
+
+fun path_of_pgipurl p = p  (* potentially raises PGIP *)
 
 fun attrs_of_pgipurl purl = 
     [("url", "file:" ^ (XML.text (File.platform_path (File.full_path purl))))]

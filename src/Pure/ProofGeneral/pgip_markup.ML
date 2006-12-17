@@ -9,9 +9,9 @@ signature PGIPMARKUP =
 sig
   (* Generic markup on sequential, non-overlapping pieces of proof text *)
   datatype pgipdoc = 
-    Openblock     of { metavarid: string option }
+    Openblock     of { metavarid: string option, name: string option, objtype: string option }
   | Closeblock    of { }
-  | Opentheory    of { thyname: string option, parentnames: string list , text: string}
+  | Opentheory    of { thyname: string, parentnames: string list , text: string}
   | Theoryitem    of { name: string option, objtype: string option, text: string }
   | Closetheory   of { text: string }
   | Opengoal	  of { thmname: string option, text: string }
@@ -24,6 +24,7 @@ sig
   | Whitespace    of { text: string }
   | Spuriouscmd   of { text: string }
   | Badcmd        of { text: string }
+  | Unparseable	  of { text: string } 
   | Metainfo 	  of { name: string option, text: string }
   (* Last three for PGIP literate markup only: *)
   | Litcomment	  of { format: string option, content: XML.content }
@@ -43,10 +44,11 @@ structure PgipMarkup : PGIPMARKUP =
 struct
    open PgipTypes
 
+(* PGIP 3 idea: replace opentheory, opengoal, etc. by just openblock with corresponding objtype? *)
   datatype pgipdoc = 
-    Openblock     of { metavarid: string option }
+    Openblock     of { metavarid: string option, name: string option, objtype: string option }
   | Closeblock    of { }
-  | Opentheory    of { thyname: string option, parentnames: string list , text: string}
+  | Opentheory    of { thyname: string, parentnames: string list, text: string}
   | Theoryitem    of { name: string option, objtype: string option, text: string }
   | Closetheory   of { text: string }
   | Opengoal	  of { thmname: string option, text: string }
@@ -59,6 +61,7 @@ struct
   | Whitespace    of { text: string }
   | Spuriouscmd   of { text: string }
   | Badcmd        of { text: string }
+  | Unparseable	  of { text: string }
   | Metainfo 	  of { name: string option, text: string }
   | Litcomment	  of { format: string option, content: XML.content }
   | Showcode	  of { show: bool }				 
@@ -76,6 +79,15 @@ struct
 	 | Closeblock vs => 
 	   XML.Elem("closeblock", [], [])
 	   
+	 | Opentheory vs  => 
+	   XML.Elem("opentheory", 
+		    attr "thyname" (#thyname vs) @
+		    opt_attr "parentnames"
+			     (case (#parentnames vs) 
+			       of [] => NONE
+				| ps => SOME (space_implode ";" ps)),
+		    [XML.Text (#text vs)])
+
 	 | Theoryitem vs => 
 	   XML.Elem("theoryitem", 
 		    opt_attr "name" (#name vs) @
@@ -105,6 +117,9 @@ struct
 	 | Comment vs => 
 	   XML.Elem("comment", [], [XML.Text (#text vs)])
 
+	 | Whitespace vs => 
+	   XML.Elem("whitespace", [], [XML.Text (#text vs)])
+
 	 | Doccomment vs => 
 	   XML.Elem("doccomment", [], [XML.Text (#text vs)])
 
@@ -113,6 +128,9 @@ struct
 
 	 | Badcmd vs => 
 	   XML.Elem("badcmd", [], [XML.Text (#text vs)])
+
+	 | Unparseable vs => 
+	   XML.Elem("unparseable", [], [XML.Text (#text vs)])
 
 	 | Metainfo vs => 
 	   XML.Elem("metainfo", opt_attr "name" (#name vs), 
@@ -148,6 +166,7 @@ struct
      | Whitespace vs => #text vs
      | Spuriouscmd vs => #text vs
      | Badcmd vs => #text vs
+     | Unparseable vs => #text vs
      | Metainfo vs => #text vs
      | _ => ""
 

@@ -2,12 +2,12 @@
     ID:         $Id$
     Author:     David Aspinall
 
-Parsing theory files to add PGIP markup.
+Parsing Isabelle theory files to add PGIP markup.
 *)
 
 signature PGIP_PARSER =
 sig
-    val xmls_of_str: string -> XML.content
+    val pgip_parser: PgipMarkup.pgip_parser
 end
 
 structure PgipParser : PGIP_PARSER =
@@ -18,6 +18,8 @@ struct
 
 structure P = OuterParse;
 
+structure D = PgipMarkup;
+
 (* Notes.
    This is quite tricky, because 1) we need to put back whitespace which
    was removed during parsing so we can provide markup around commands;
@@ -27,7 +29,7 @@ structure P = OuterParse;
    Markus June '04) helps do this, but the mechanism is still a bad mess.
 
    If we had proper parse trees it would be easy, although having a
-   fixed type of trees might be tricky with Isar's extensible parser.
+   fixed type of trees might be hard with Isar's extensible parser.
 
    Probably the best solution is to produce the meta-information at
    the same time as the parse, for each command, e.g. by recording a
@@ -53,31 +55,17 @@ structure P = OuterParse;
 *)
 
 local
-    fun markup_text str elt = [XML.Elem(elt, [], [XML.Text str])]
-    fun markup_text_attrs str elt attrs = [XML.Elem(elt, attrs, [XML.Text str])]
-    fun empty elt = [XML.Elem(elt, [], [])]
 
-    fun whitespace str = XML.Elem("whitespace", [], [XML.Text str])
+    fun whitespace str = D.Whitespace { text=str }
 
     (* an extra token is needed to terminate the command *)
     val sync = OuterSyntax.scan "\\<^sync>";
 
-    fun named_item_elt_with nameattr toks str elt nameP objtyp =
-        let
-            val name = (fst (nameP (toks@sync)))
-                        handle _ => (error ("Error occurred in name parser for " ^ elt ^
-                                            "(objtype: " ^ objtyp ^ ")");
-                                     "")
-
-        in
-            [XML.Elem(elt,
-                     ((if name="" then [] else [(nameattr, name)])@
-                      (if objtyp="" then [] else [("objtype", objtyp)])),
-                     [XML.Text str])]
-        end
-
-    val named_item_elt = named_item_elt_with "name"
-    val thmnamed_item_elt = named_item_elt_with "thmname"
+    fun nameparse elt objtyp nameP toks = 
+        (fst (nameP (toks@sync)))
+        handle _ => (error ("Error occurred in name parser for " ^ elt ^
+                            "(objtype: " ^ objtyp ^ ")");
+                     "")
 
     fun parse_warning msg = warning ("script->PGIP markup parser: " ^ msg)
 
@@ -100,10 +88,9 @@ local
         let
             val ((thyname,imports,files),_) = ThyHeader.args (toks@sync)
         in
-            markup_text_attrs str "opentheory"
-                              ([("thyname",thyname)] @
-                               (if imports=[] then [] else
-                                [("parentnames", (space_implode ";" imports) ^ ";")]))
+            [D.Opentheory { thyname=thyname, 
+			    parentnames = imports,
+			    text = str }]
         end
 
     fun xmls_of_thy_decl (name,toks,str) = (* see isar_syn.ML/thy_decl cases  *)
@@ -125,9 +112,12 @@ local
                  "oracle",
                  "declare"]
 
-            val plain_item   = markup_text str "theoryitem"
-            val comment_item = markup_text str "doccomment"
-            val named_item   = named_item_elt toks str "theoryitem"
+            fun named_item nameP ty = 
+		[D.Theoryitem {text=str,name=SOME (nameparse "theoryitem" ty nameP toks),objtype=SOME ty}]
+	    val plain_item = 
+		[D.Theoryitem {text=str,name=NONE,objtype=NONE}]
+	    val doccomment = 
+		[D.Doccomment {text=str}]
 
             val opt_overloaded = P.opt_keyword "overloaded";
 
@@ -147,8 +137,8 @@ local
 
             if member (op =) plain_items name then plain_item
             else case name of
-                     "text"      => comment_item
-                   | "text_raw"  => comment_item
+                     "text"      => doccomment
+                   | "text_raw"  => doccomment
                    | "typedecl"  => named_item (P.type_args |-- P.name) "type"
                    | "types"     => named_item (P.type_args |-- P.name) "type"
                    | "classes"   => named_item P.name "class"
@@ -161,7 +151,8 @@ local
                    | "lemmas"    => named_item thmnameP "thmset"
                    | "oracle"    => named_item P.name "oracle"
                    | "locale"    => named_item ((P.opt_keyword "open" >> not) |-- P.name) "locale"
-                   | _ => (parse_warning ("Unrecognized thy-decl command: " ^ name); plain_item)
+                   | _ => (parse_warning ("Unrecognized thy-decl command: " ^ name); 
+			   plain_item)
         end
 
     fun xmls_of_thy_goal (name,toks,str) =
@@ -178,60 +169,65 @@ local
                                                          fst a) (* a : (bstring * Args.src list) *)
 
             val nameP = P.opt_locale_target |-- (Scan.optional ((P.opt_thm_name ":") >> #1) "")
-            (* TODO: add preference values for attributes
-               val prefval = XML.element "prefval" [("name","thm-kind"),("value",name)]
-            *)
+	    val thmname = nameparse "opengoal" "theorem" nameP toks
         in
-            (thmnamed_item_elt toks str "opengoal" nameP "") @
-            (empty "openblock")
+            [D.Opengoal {thmname=SOME thmname, text=str},
+             D.Openblock {metavarid=NONE,name=NONE,objtype=SOME "theorem-proof"}]
         end
 
-    fun xmls_of_qed (name,markup) =
+    fun xmls_of_qed (name,str) =
         let val qedmarkup  =
                 (case name of
-                     "sorry" => markup "postponegoal"
-                   | "oops"  => markup "giveupgoal"
-                   | "done"  => markup "closegoal"
-                   | "by"    => markup "closegoal"  (* nested or toplevel *)
-                   | "qed"   => markup "closegoal"  (* nested or toplevel *)
-                   | "."     => markup "closegoal"  (* nested or toplevel *)
-                   | ".."    => markup "closegoal"  (* nested or toplevel *)
+                     "sorry" => D.Postponegoal {text=str}
+                   | "oops"  => D.Giveupgoal {text=str}
+                   | "done"  => D.Closegoal {text=str}
+                   | "by"    => D.Closegoal {text=str}  (* nested or toplevel *)
+                   | "qed"   => D.Closegoal {text=str}  (* nested or toplevel *)
+                   | "."     => D.Closegoal {text=str}  (* nested or toplevel *)
+                   | ".."    => D.Closegoal {text=str}  (* nested or toplevel *)
                    | other => (* default to closegoal: may be wrong for extns *)
                                   (parse_warning
                                        ("Unrecognized qed command: " ^ quote other);
-                                       markup "closegoal"))
-        in qedmarkup @ (empty "closeblock") end
+                                       D.Closegoal {text=str}))
+        in qedmarkup :: [D.Closeblock {}] end
 
     fun xmls_of_kind kind (name,toks,str) =
-    let val markup = markup_text str in
     case kind of
-      "control"        => markup "badcmd"
-    | "diag"           => markup "spuriouscmd"
+      "control"        => [D.Badcmd {text=str}]
+    | "diag"           => [D.Theoryitem {name=NONE,objtype=NONE,
+					 text=str}] (* FIXME: check NOT spuriouscmd *)
     (* theory/files *)
     | "theory-begin"   => xmls_of_thy_begin (name,toks,str)
     | "theory-decl"    => xmls_of_thy_decl (name,toks,str)
-    | "theory-heading" => markup "doccomment"
-    | "theory-script"  => markup "theorystep"
-    | "theory-end"     => markup "closetheory"
+    | "theory-heading" => [D.Doccomment {text=str}]
+    | "theory-script"  => [D.Theoryitem {name=NONE,objtype=NONE,text=str}]
+    | "theory-end"     => [D.Closetheory {text=str}]
     (* proof control *)
     | "theory-goal"    => xmls_of_thy_goal (name,toks,str)
-    | "proof-heading"  => markup "doccomment"
-    | "proof-goal"     => (markup "opengoal") @ (empty "openblock")  (* nested proof: have, show, ... *)
-    | "proof-block"    => markup "proofstep" (* context-shift: proof, next; really "newgoal" *)
-    | "proof-open"     => (empty "openblock") @ (markup "proofstep")
-    | "proof-close"    => (markup "proofstep") @ (empty "closeblock")
-    | "proof-script"   => markup "proofstep"
-    | "proof-chain"    => markup "proofstep"
-    | "proof-decl"     => markup "proofstep"
-    | "proof-asm"      => markup "proofstep"
-    | "proof-asm-goal" => (markup "opengoal") @ (empty "openblock")  (* nested proof: obtain *)
-    | "qed"            => xmls_of_qed (name,markup)
-    | "qed-block"      => xmls_of_qed (name,markup)
-    | "qed-global"     => xmls_of_qed (name,markup)
-    | other => (* default for anything else is "spuriouscmd", ignored for undo *)
+    | "proof-heading"  => [D.Doccomment {text=str}]
+
+    | "proof-goal"     => (* nested proof: have, show, ... *)
+      [D.Opengoal {text=str,thmname=NONE}, 
+       D.Openblock {metavarid=NONE,name=NONE,objtype=NONE}]
+			  
+    | "proof-block"    => [D.Proofstep {text=str}]
+    | "proof-open"     => [D.Openblock {metavarid=NONE,name=NONE,objtype=NONE}, 
+			   D.Proofstep {text=str} ]
+    | "proof-close"    => [D.Proofstep {text=str}, D.Closeblock {}]
+    | "proof-script"   => [D.Proofstep {text=str}]
+    | "proof-chain"    => [D.Proofstep {text=str}]
+    | "proof-decl"     => [D.Proofstep {text=str}]
+    | "proof-asm"      => [D.Proofstep {text=str}]
+    | "proof-asm-goal" => (* nested proof: obtain, ... *)
+      [D.Opengoal {text=str,thmname=NONE}, 
+       D.Openblock {metavarid=NONE,name=NONE,objtype=NONE}]
+
+    | "qed"            => xmls_of_qed (name,str)
+    | "qed-block"      => xmls_of_qed (name,str)
+    | "qed-global"     => xmls_of_qed (name,str)
+    | other => (* default for anything else is "spuriouscmd", ***ignored for undo*** *)
       (parse_warning ("Internal inconsistency, unrecognized keyword kind: " ^ quote other);
-       markup "spuriouscmd")
-    end
+       [D.Spuriouscmd {text=str}])
 in
 
 fun xmls_of_transition (name,str,toks) =
@@ -241,11 +237,8 @@ fun xmls_of_transition (name,str,toks) =
           SOME k => (xmls_of_kind k (name,toks,str))
         | NONE => (* an uncategorized keyword ignored for undo (maybe wrong) *)
           (parse_warning ("Uncategorized command found: " ^ name ^ " -- using spuriouscmd");
-           markup_text str "spuriouscmd")
+           [D.Spuriouscmd {text=str}])
    end
-
-fun markup_toks [] _ = []
-  | markup_toks toks x = markup_text (implode (map OuterLex.unparse toks)) x
 
 fun markup_comment_whs [] = []
   | markup_comment_whs (toks as t::ts) = (* this would be a lot neater if we could match on toks! *)
@@ -253,10 +246,10 @@ fun markup_comment_whs [] = []
         val (prewhs,rest) = take_prefix (OuterLex.is_kind OuterLex.Space) toks
     in
         if (prewhs <> []) then
-            whitespace (implode (map OuterLex.unparse prewhs))
+            D.Whitespace {text=implode (map OuterLex.unparse prewhs)}
             :: (markup_comment_whs rest)
         else
-            (markup_text (OuterLex.unparse t) "comment") @
+            D.Comment {text=OuterLex.unparse t} ::
             (markup_comment_whs ts)
     end
 
@@ -277,21 +270,25 @@ fun xmls_pre_cmd [] = ([],[])
     in
         ((markup_comment_whs prewhs) @
          (if (length rest2 = length rest1)  then []
-          else markup_text (implode
-                                (map OuterLex.unparse (Library.take (length rest1 - length rest2, rest1))))
-               "doccomment") @
-         (markup_comment_whs postwhs),
-         Library.take (length rest3 - 1,rest3))
+          else 
+	      [D.Doccomment 
+		   {text= implode
+                          (map OuterLex.unparse (Library.take (length rest1 - length rest2, rest1)))}]
+              @
+              (markup_comment_whs postwhs)),
+              Library.take (length rest3 - 1,rest3))
     end
 
 fun xmls_of_impropers toks =
     let
         val (xmls,rest) = xmls_pre_cmd toks
+	val unparsed =  
+	    case rest of [] => []
+		       | _ => [D.Unparseable 
+			      {text= implode (map OuterLex.unparse rest)}]
     in
-        xmls @ (markup_toks rest "unparseable")
+        xmls @ unparsed
     end
-
-fun markup_unparseable str = markup_text str "unparseable"
 
 end
 
@@ -307,7 +304,7 @@ local
         else match_tokens (t::ts,ws,w::vs)
       | match_tokens _ = error ("match_tokens: mismatched input parse")
 in
-    fun xmls_of_str str =
+    fun pgip_parser str =
     let
        (* parsing:   See outer_syntax.ML/toplevel_source *)
        fun parse_loop ([],[],xmls) = xmls
@@ -332,7 +329,7 @@ in
          in
              parse_loop (OuterSyntax.read toks, toks, [])
          end)
-           handle _ => markup_unparseable str
+           handle _ => [D.Unparseable {text=str}]
     end
 end
 
