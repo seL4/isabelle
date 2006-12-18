@@ -150,7 +150,7 @@ fun nterm_to_term thy t =
   let
     fun to_term bounds (C s) tcount =
           let
-            val (c, ty) = CodegenPackage.const_of_idf thy s;
+            val (c, ty) = (CodegenConsts.typ_of_inst thy o the o CodegenNames.const_rev thy) s;
             val ty' = map_type_tvar (fn ((s,i),S) => TypeInfer.param (tcount + i) (s,S)) ty;
             val tcount' = tcount + maxidx_of_typ ty + 1;
           in (Const (c, ty'), tcount') end
