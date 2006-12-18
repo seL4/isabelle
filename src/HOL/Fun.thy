@@ -7,7 +7,7 @@
 header {* Notions about functions *}
 
 theory Fun
-imports Set
+imports Set Code_Generator
 begin
 
 constdefs
@@ -472,6 +472,13 @@ lemma le_funD: "f \<le> g \<Longrightarrow> f x \<le> g x"
   unfolding le_fun_def by simp
 
 instance "fun" :: (type, ord) ord ..
+
+
+subsection {* Code generator setup *}
+
+code_const "op \<circ>"
+  (SML infixl 5 "o")
+  (Haskell infixr 9 ".")
 
 
 subsection {* ML legacy bindings *} 
