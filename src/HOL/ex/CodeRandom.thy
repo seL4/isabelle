@@ -189,6 +189,4 @@ code_const run_random
 code_gen select select_weight
   (SML #)
 
-code_gen (SML -)
-
 end
