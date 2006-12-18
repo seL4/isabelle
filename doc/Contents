@@ -2,8 +2,8 @@ Learning and using Isabelle
   tutorial        Tutorial on Isabelle/HOL
   isar-overview   Tutorial on Isar
   locales         Tutorial on Locales
-  classes         Tutorial on Haskell-style type classes
-  codegen         Tutorial on code generation
+  functions       Tutorial on Function Definitions
+  codegen         Tutorial on Code Generation
   axclass         Tutorial on Axiomatic Type Classes
   sugar           LaTeX sugar for proof documents
   ind-defs        (Co)Inductive Definitions in ZF
