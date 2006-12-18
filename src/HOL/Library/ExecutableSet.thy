@@ -271,6 +271,7 @@ section {* code generator setup *}
 ML {*
 nonfix inter;
 nonfix union;
+nonfix subset;
 *}
 
 code_modulename SML
