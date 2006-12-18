@@ -8,6 +8,8 @@ A trial for automatical reification.
 signature REFLECTION = sig
   val genreify_tac: Proof.context -> thm list -> term option -> int -> tactic
   val reflection_tac: Proof.context -> thm list -> term option -> int -> tactic
+  val gen_reflection_tac: Proof.context -> (cterm -> thm)
+    -> thm list -> term option -> int -> tactic
 end;
 
 structure Reflection : REFLECTION
@@ -279,10 +281,10 @@ fun genreif ctxt raw_eqs t =
  in FWD trans [th'',th']
  end;
 
-fun genreflect ctxt corr_thm raw_eqs t =
+fun genreflect ctxt conv corr_thm raw_eqs t =
     let val th = FWD trans [genreif ctxt raw_eqs t, corr_thm RS sym]
         val ft = (snd o Thm.dest_comb o snd o Thm.dest_comb o snd o Thm.dest_comb o cprop_of) th
-        val rth = NBE.normalization_conv ft
+        val rth = conv ft
     in simplify (HOL_basic_ss addsimps raw_eqs addsimps [nth_Cons_0, nth_Cons_Suc])
                 (simplify (HOL_basic_ss addsimps [rth]) th)
     end
@@ -297,11 +299,14 @@ fun genreify_tac ctxt eqs to i = (fn st =>
 
     (* Reflection calls reification and uses the correctness *)
         (* theorem assumed to be the dead of the list *)
- fun reflection_tac ctxt (corr_thm::raw_eqs) to i =
-    (fn st =>
-        let val P = (HOLogic.dest_Trueprop (List.nth (prems_of st, i - 1)))
-            val t = (case to of NONE => P | SOME x => x)
-            val th = (genreflect ctxt corr_thm raw_eqs t) RS ssubst
-        in rtac th i st end);
+fun gen_reflection_tac ctxt conv (corr_thm :: raw_eqs) to i = (fn st =>
+  let
+    val P = HOLogic.dest_Trueprop (nth (prems_of st) (i - 1));
+    val t = the_default P to;
+    val th = genreflect ctxt conv corr_thm raw_eqs t
+      RS ssubst;
+  in rtac th i st end);
+
+fun reflection_tac ctxt = gen_reflection_tac ctxt NBE.normalization_conv;
 
 end
