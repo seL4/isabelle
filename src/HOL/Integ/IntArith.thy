@@ -407,7 +407,7 @@ code_const "number_of \<Colon> int \<Rightarrow> int"
   (SML "_"
      and "0/ :/ IntInf.int"
      and "~1/ :/ IntInf.int"
-     and "(_; _; raise FAIL \"BIT\")"
+     and "(_; _; raise Fail \"BIT\")"
      and "IntInf.+/ (_,/ 1)"
      and "IntInf.-/ (_,/ 1))")
   (Haskell "_"
