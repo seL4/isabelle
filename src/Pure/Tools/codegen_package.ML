@@ -10,8 +10,7 @@ sig
   include BASIC_CODEGEN_THINGOL;
   val codegen_term: theory -> term -> iterm;
   val eval_term: theory -> (string (*reference name!*) * 'a option ref) * term -> 'a;
-  val const_of_idf: theory -> string -> string * typ;
-  val get_root_module: theory -> CodegenThingol.code;
+  val codegen_command: theory -> string -> unit;
 
   type appgen;
   val add_appconst: string * appgen -> theory -> theory;
@@ -566,6 +565,8 @@ val constsubst_e = gen_constsubst CodegenConsts.read_const;
 
 (** code generation interfaces **)
 
+(* generic generation combinators *)
+
 fun generate thy funcgr targets init gen it =
   let
     val cs = map_filter (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy))
@@ -592,12 +593,6 @@ fun codegen_term thy t =
     val t' = Thm.term_of ct';
   in generate thy funcgr (SOME []) NONE exprgen_term' t' end;
 
-fun const_of_idf thy =
-  CodegenConsts.typ_of_inst thy o the o CodegenNames.const_rev thy;
-
-fun get_root_module thy =
-  Code.get thy;
-
 fun eval_term thy (ref_spec, t) =
   let
     val _ = (Term.fold_types o Term.fold_atyps) (fn _ =>
@@ -606,6 +601,37 @@ fun eval_term thy (ref_spec, t) =
     val t' = codegen_term thy t;
   in CodegenSerializer.eval_term thy (ref_spec, t') (Code.get thy) end;
 
+
+(* constant specifications with wildcards *)
+
+fun consts_of thy thyname =
+  let
+    val this_thy = Option.map theory thyname |> the_default thy;
+    val defs = (#defs o rep_theory) this_thy;
+    val cs_names = (Symtab.keys o snd o #constants o Consts.dest o #consts o Sign.rep_sg) this_thy;
+    val consts = maps (fn c => (map (fn tys => CodegenConsts.norm thy (c, tys))
+      o map #lhs o filter #is_def o map snd o Defs.specifications_of defs) c) cs_names;
+    fun is_const thyname (c, _) =
+      (*this is an approximation*)
+      not (exists (fn thy => Sign.declared_const thy c) (Theory.parents_of this_thy))
+  in case thyname
+   of NONE => consts
+    | SOME thyname => filter (is_const thyname) consts
+  end;
+
+fun filter_generatable thy consts =
+  let
+    fun generatable const =
+      case try (CodegenFuncgr.make thy) [const]
+       of SOME funcgr => can
+            (generate thy funcgr NONE NONE (fold_map oooo ensure_def_const')) [const]
+        | NONE => false;
+  in filter generatable consts end;
+
+fun read_constspec thy "*" = filter_generatable thy (consts_of thy NONE)
+  | read_constspec thy s = if String.isSuffix ".*" s
+      then filter_generatable thy (consts_of thy (SOME (unsuffix ".*" s)))
+      else [CodegenConsts.read_const thy s];
 
 
 (** toplevel interface and setup **)
@@ -617,7 +643,8 @@ and K = OuterKeyword
 
 fun code raw_cs seris thy =
   let
-    val cs = map (CodegenConsts.read_const thy) raw_cs;
+    val cs = maps (read_constspec thy) raw_cs;
+    (*FIXME: assert serializer*)
     val seris' = map (fn (target, args as _ :: _) =>
           (target, SOME (CodegenSerializer.get_serializer thy target args))
       | (target, []) => (CodegenSerializer.assert_serializer thy target, NONE)) seris;
@@ -641,14 +668,22 @@ val (codeK, code_abstypeK, code_axiomsK) =
 
 in
 
-val codeP =
-  OuterSyntax.improper_command codeK "generate and serialize executable code for constants" K.diag (
-    Scan.repeat P.term
+val code_bareP = (
+    P.!!! (Scan.repeat P.term
     -- Scan.repeat (P.$$$ "(" |--
         P.name -- P.arguments
-        --| P.$$$ ")")
-    >> (fn (raw_cs, seris) => Toplevel.keep (code raw_cs seris o Toplevel.theory_of))
+        --| P.$$$ ")"))
+    >> (fn (raw_cs, seris) => code raw_cs seris)
   );
+
+val codeP =
+  OuterSyntax.improper_command codeK "generate and serialize executable code for constants"
+    K.diag (code_bareP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
+
+fun codegen_command thy cmd =
+  case Scan.read OuterLex.stopper code_bareP ((filter OuterLex.is_proper o OuterSyntax.scan) cmd)
+   of SOME f => f thy
+    | NONE => error ("bad directive " ^ quote cmd);
 
 val code_abstypeP =
   OuterSyntax.command code_abstypeK "axiomatic abstypes for code generation" K.thy_decl (
