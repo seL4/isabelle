@@ -64,13 +64,13 @@ lemma [code func, code inline]:  "1 = nat_of_int 1"
   by (simp add: nat_of_int_def)
 lemma [code func]: "Suc n = n + 1"
   by simp
-lemma [code, code inline]: "m + n = nat (int m + int n)"
+lemma [code]: "m + n = nat (int m + int n)"
   by arith
 lemma [code func, code inline]: "m + n = nat_of_int (int m + int n)"
   by (simp add: nat_of_int_def)
 lemma [code, code inline]: "m - n = nat (int m - int n)"
   by arith
-lemma [code, code inline]: "m * n = nat (int m * int n)"
+lemma [code]: "m * n = nat (int m * int n)"
   unfolding zmult_int by simp
 lemma [code func, code inline]: "m * n = nat_of_int (int m * int n)"
 proof -
