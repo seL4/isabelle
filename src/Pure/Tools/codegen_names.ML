@@ -147,6 +147,11 @@ fun thyname_of thy f errmsg x =
       else NONE;
   in case thy_of thy
    of SOME thy => Context.theory_name thy
+        |> explode
+        (*should disappear as soon as hierarchical theory name spaces are available*)
+        |> Symbol.scanner "Malformed name"
+             (Scan.repeat ($$ "_" |-- $$ "_" >> (fn _ => ".") || Scan.one Symbol.not_eof))
+        |> implode
     | NONE => error (errmsg x) end;
 
 fun thyname_of_class thy =
