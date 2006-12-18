@@ -74,34 +74,26 @@ fun is_arith_rel tm = case tm
 (*Function is_arith_rel returns true if and only if the term is an operation of the 
 form [int,int]---> int*) 
  
-(*Transform a natural number to a term*) 
+(*Transform a natural (FIXME?) number to a term*) 
+val mk_number = HOLogic.mk_number HOLogic.intT
  
-fun mk_number 0 = Const("HOL.zero",HOLogic.intT)
-   |mk_number 1 = Const("HOL.one",HOLogic.intT)
-   |mk_number n = (HOLogic.number_of_const HOLogic.intT) $ (HOLogic.mk_numeral n); 
- 
-(*Transform an Term to an natural number*)	  
-	  
-fun dest_number (Const("HOL.zero",Type ("IntDef.int", []))) = 0
-   |dest_number (Const("HOL.one",Type ("IntDef.int", []))) = 1
-   |dest_number (Const ("Numeral.number_of",_) $ n) = 
-       HOLogic.dest_numeral n;
+(*Transform an Term to an natural (FIXME?) number*)
+fun dest_number t = let
+    val (T, n) = HOLogic.dest_number t
+  in if T = HOLogic.intT then n else error ("bad typ: " ^ Display.raw_string_of_typ T) end;
+
 (*Some terms often used for pattern matching*) 
- 
 val zero = mk_number 0; 
 val one = mk_number 1; 
- 
+
 (*Tests if a Term is representing a number*) 
- 
-fun is_numeral t = (t = zero) orelse (t = one) orelse (can dest_number t); 
- 
+val is_numeral = can dest_number; 
+
 (*maps a unary natural function on a term containing an natural number*) 
- 
-fun numeral1 f n = mk_number (f(dest_number n)); 
+fun numeral1 f n = mk_number (f (dest_number n)); 
  
 (*maps a binary natural function on 2 term containing  natural numbers*) 
- 
-fun numeral2 f m n = mk_number(f(dest_number m) (dest_number n)); 
+fun numeral2 f m n = mk_number (f (dest_number m) (dest_number n));
  
 (* ------------------------------------------------------------------------- *) 
 (* Operations on canonical linear terms c1 * x1 + ... + cn * xn + k          *) 

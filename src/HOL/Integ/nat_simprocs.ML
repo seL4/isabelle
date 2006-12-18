@@ -24,14 +24,7 @@ fun rename_numerals th =
 (*Utilities*)
 
 fun mk_number n = HOLogic.number_of_const HOLogic.natT $ HOLogic.mk_numeral n;
-
-(*Decodes a unary or binary numeral to a NATURAL NUMBER*)
-fun dest_number (Const ("HOL.zero", _)) = 0
-  | dest_number (Const ("Suc", _) $ t) = 1 + dest_number t
-  | dest_number (Const("Numeral.number_of", _) $ w) =
-      (IntInf.max (0, HOLogic.dest_numeral w)
-       handle TERM _ => raise TERM("Nat_Numeral_Simprocs.dest_number:1", [w]))
-  | dest_number t = raise TERM("Nat_Numeral_Simprocs.dest_number:2", [t]);
+fun dest_number t = IntInf.max (0, snd (HOLogic.dest_number t));
 
 fun find_first_numeral past (t::terms) =
         ((dest_number t, t, rev past @ terms)

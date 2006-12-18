@@ -183,16 +183,8 @@ val num_ss = HOL_ss settermless numtermless;
 
 fun mk_number T n = HOLogic.number_of_const T $ HOLogic.mk_numeral n;
 
-(*Decodes a binary INTEGER*)
-fun dest_number (Const("HOL.zero", _)) = 0
-  | dest_number (Const("HOL.one", _)) = 1
-  | dest_number (Const("Numeral.number_of", _) $ w) =
-     (HOLogic.dest_numeral w
-      handle TERM _ => raise TERM("Int_Numeral_Simprocs.dest_number:1", [w]))
-  | dest_number t = raise TERM("Int_Numeral_Simprocs.dest_number:2", [t]);
-
 fun find_first_numeral past (t::terms) =
-        ((dest_number t, rev past @ terms)
+        ((snd (HOLogic.dest_number t), rev past @ terms)
          handle TERM _ => find_first_numeral (t::past) terms)
   | find_first_numeral past [] = raise TERM("find_first_numeral", []);
 
