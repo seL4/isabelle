@@ -58,14 +58,15 @@ fun eval_lrx L L = false
   | eval_lrx R R = false
   | eval_lrx _ _ = true;
 
-fun eval_fxy NOBR _ = false
-  | eval_fxy _ BR = true
-  | eval_fxy _ NOBR = false
+fun eval_fxy NOBR NOBR = false
+  | eval_fxy BR NOBR = false
+  | eval_fxy NOBR BR = false
   | eval_fxy (INFX (pr, lr)) (INFX (pr_ctxt, lr_ctxt)) =
       pr < pr_ctxt
       orelse pr = pr_ctxt
         andalso eval_lrx lr lr_ctxt
-  | eval_fxy _ (INFX _) = false;
+  | eval_fxy _ (INFX _) = false
+  | eval_fxy _ _ = true;
 
 fun gen_brackify _ [p] = p
   | gen_brackify true (ps as _::_) = Pretty.enclose "(" ")" ps
@@ -83,9 +84,12 @@ fun mk_app mk_app' from_expr const_syntax fxy (app as ((c, (_, ty)), ts)) =
     | SOME (i, pr) =>
         let
           val k = if i < 0 then (length o fst o CodegenThingol.unfold_fun) ty else i
-        in if k <= length ts
-          then case chop i ts of (ts1, ts2) =>
-            brackify fxy (pr fxy from_expr ts1 :: map (from_expr BR) ts2)
+        in if k = length ts
+          then 
+            pr fxy from_expr ts
+          else if k < length ts
+          then case chop k ts of (ts1, ts2) =>
+            brackify fxy (pr NOBR from_expr ts1 :: map (from_expr BR) ts2)
           else from_expr fxy (CodegenThingol.eta_expand app k)
         end;
 
@@ -104,7 +108,7 @@ fun mk_mixfix (fixity_this, mfx) =
   let
     fun is_arg (Arg _) = true
       | is_arg _ = false;
-    val i = (length o List.filter is_arg) mfx;
+    val i = (length o filter is_arg) mfx;
     fun fillin _ [] [] =
           []
       | fillin pr (Arg fxy :: mfx) (a :: args) =
@@ -145,7 +149,6 @@ fun parse_mixfix s =
     | _ => Scan.!! (the_default ("malformed mixfix annotation: " ^ quote s) o snd) Scan.fail ()
   end;
 
-(*FIXME: use Args.syntax ???*)
 fun parse_args f args =
   case f args
    of (x, []) => x
@@ -211,27 +214,6 @@ fun pretty_imperative_monad_bind c_bind =
 
 
 (* misc *)
-
-fun constructive_fun (name, (eqs, ty)) =
-  let
-    val is_cons = CodegenNames.has_nsp CodegenNames.nsp_dtco;
-    fun is_pat (IConst (c, _)) = is_cons c
-      | is_pat (IVar _) = true
-      | is_pat (t1 `$ t2) =
-          is_pat t1 andalso is_pat t2
-      | is_pat (INum _) = true
-      | is_pat (IChar _) = true
-      | is_pat _ = false;
-    fun check_eq (eq as (lhs, rhs)) =
-      if forall is_pat lhs
-      then SOME eq
-      else (warning ("In function " ^ quote name ^ ", throwing away one "
-        ^ "non-executable function clause"); NONE)
-  in case map_filter check_eq eqs
-   of [] => error ("In function " ^ quote name ^ ", no "
-        ^ "executable function clauses found")
-    | eqs => (name, (eqs, ty))
-  end;
 
 fun dest_name name =
   let
@@ -420,22 +402,8 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv ml_def =
               brackify fxy ((str o deresolv) c :: (ps @ map (pr_term vars BR) ts))
             else
               error ("Cannot apply user defined serialization for function expecting dictionaries: " ^ quote c)
-    fun eta_expand_poly_fun (funn as (_, (_::_, _))) =
-          funn
-      | eta_expand_poly_fun (funn as (_, ([_], ([], _)))) =
-          funn
-      | eta_expand_poly_fun (funn as (_, ([(_::_, _)], _))) =
-          funn
-      | eta_expand_poly_fun (funn as (_, ([(_, _ `|-> _)], _))) =
-          funn
-      | eta_expand_poly_fun (funn as (name, ([([], t)], tysm as (vs, ty)))) =
-          if (null o fst o CodegenThingol.unfold_fun) ty
-              orelse (not o null o filter_out (null o snd)) vs
-            then funn
-            else (name, ([([IVar "x"], t `$ IVar "x")], tysm));
-    fun pr_def (MLFuns raw_funns) =
+    fun pr_def (MLFuns (funns as (funn :: funns'))) =
           let
-            val funns as (funn :: funns') = map (eta_expand_poly_fun o constructive_fun) raw_funns;
             val definer =
               let
                 fun mk [] [] = "val"
@@ -488,7 +456,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv ml_def =
                   (Pretty.block o Pretty.breaks) [
                     str (deresolv co),
                     str "of",
-                    Pretty.enum " *" "" "" (map (pr_typ (INFX (2, L))) tys)
+                    Pretty.enum " *" "" "" (map (pr_typ (INFX (2, X))) tys)
                   ];
             fun pr_data definer (tyco, (vs, cos)) =
               (Pretty.block o Pretty.breaks) (
@@ -759,9 +727,8 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv ml_def =
               orelse (not o null o filter_out (null o snd)) vs
             then funn
             else (name, ([([IVar "x"], t `$ IVar "x")], tysm));
-    fun pr_def (MLFuns raw_funns) =
+    fun pr_def (MLFuns (funns as (funn :: funns'))) =
           let
-            val funns as (funn :: funns') = map (eta_expand_poly_fun o constructive_fun) raw_funns;
             fun pr_funn definer (name, (eqs as eq::eqs', (raw_vs, ty))) =
               let
                 val vs = filter_out (null o snd) raw_vs;
@@ -803,7 +770,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv ml_def =
                   (Pretty.block o Pretty.breaks) [
                     str (deresolv co),
                     str "of",
-                    Pretty.enum " *" "" "" (map (pr_typ (INFX (2, L))) tys)
+                    Pretty.enum " *" "" "" (map (pr_typ (INFX (2, X))) tys)
                   ];
             fun pr_data definer (tyco, (vs, cos)) =
               (Pretty.block o Pretty.breaks) (
@@ -1009,6 +976,7 @@ fun seri_ml pr_def pr_modl output reserved_user module_alias module_prolog
            apsnd (map_node modl' (Graph.new_node (name, (Def (base', SOME def')))
               #> fold2 (fn name' => fn base' => Graph.new_node (name', (Def (base', NONE)))) names' bases')))
         |> apsnd (fold (fn defname => fold (add_dep defname) deps) defnames)
+        |> apsnd (fold (map_node modl' o Graph.add_edge) (product names names))
       end;
     fun group_defs [(_, CodegenThingol.Bot)] =
           I
@@ -1213,7 +1181,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
       (str o deresolv) c :: map (pr_term vars BR) ts
     and pr_app vars fxy =
       mk_app (pr_app' vars) (pr_term vars) const_syntax fxy;
-    fun pr_def (name, CodegenThingol.Fun (funn as (eqs, (vs, ty)))) =
+    fun pr_def (name, CodegenThingol.Fun (eqs, (vs, ty))) =
           let
             val tyvars = CodegenThingol.intro_vars (map fst vs) keyword_vars;
             fun pr_eq (ts, t) =
@@ -1239,7 +1207,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
                 Pretty.brk 1,
                 pr_typscheme tyvars (vs, ty)
               ]
-              :: (map pr_eq o fst o snd o constructive_fun) (name, funn)
+              :: map pr_eq eqs
             )
           end
       | pr_def (name, CodegenThingol.Datatype (vs, [(co, [ty])])) =
