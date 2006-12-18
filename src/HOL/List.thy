@@ -2555,9 +2555,12 @@ code_type char
   (SML "char")
   (Haskell "Char")
 
-code_const Char and char_rec and "size \<Colon> char \<Rightarrow> nat"
-  (SML "raise/ Fail/ \"Char\"" and "raise/ Fail/ \"char_rec\"" and "raise/ Fail/ \"size_char\"")
-  (Haskell "error/ \"Char\"" and "error/ \"char_rec\"" and "error/ \"size_char\"")
+code_const Char and char_rec
+    and char_case and "size \<Colon> char \<Rightarrow> nat"
+  (SML "raise/ Fail/ \"Char\""
+    and "raise/ Fail/ \"char_rec\"" and "raise/ Fail/ \"char_case\"" and "raise/ Fail/ \"size_char\"")
+  (Haskell "error/ \"Char\""
+    and "error/ \"char_rec\"" and "error/ \"char_case\"" and "error/ \"size_char\"")
 
 code_instance list :: eq and char :: eq
   (Haskell - and -)
@@ -2566,6 +2569,7 @@ code_const "op = \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> 
   (Haskell infixl 4 "==")
 
 code_const "op = \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
+  (SML "!((_ : char) = _)")
   (Haskell infixl 4 "==")
 
 code_reserved SML
