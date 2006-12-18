@@ -79,7 +79,7 @@ sig
     -> theory -> theory
   val method_setup: bstring * string * string -> theory -> theory
   val syntax: (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list))
-    -> src -> Proof.context -> Proof.context * 'a
+    -> src -> Proof.context -> 'a * Proof.context
   val simple_args: (Args.T list -> 'a * Args.T list)
     -> ('a -> Proof.context -> method) -> src -> Proof.context -> method
   val ctxt_args: (Proof.context -> method) -> src -> Proof.context -> method
@@ -459,10 +459,10 @@ fun method_setup (name, txt, cmt) =
 fun syntax scan = Args.context_syntax "method" scan;
 
 fun simple_args scan f src ctxt : method =
-  #2 (syntax (Scan.lift (scan >> (fn x => f x ctxt))) src ctxt);
+  fst (syntax (Scan.lift (scan >> (fn x => f x ctxt))) src ctxt);
 
 fun ctxt_args (f: Proof.context -> method) src ctxt =
-  #2 (syntax (Scan.succeed (f ctxt)) src ctxt);
+  fst (syntax (Scan.succeed (f ctxt)) src ctxt);
 
 fun no_args m = ctxt_args (K m);
 
@@ -486,7 +486,7 @@ fun sectioned args ss = args -- Scan.repeat (section ss);
 in
 
 fun sectioned_args args ss f src ctxt =
-  let val (ctxt', (x, _)) = syntax (sectioned args ss) src ctxt
+  let val ((x, _), ctxt') = syntax (sectioned args ss) src ctxt
   in f x ctxt' end;
 
 fun bang_sectioned_args ss f = sectioned_args Args.bang_facts ss f;
@@ -537,15 +537,15 @@ end;
 (* tactic syntax *)
 
 fun nat_thms_args f = uncurry f oo
-  (#2 oo syntax (Scan.lift (Scan.optional (Args.parens Args.nat) 0) -- Attrib.thms));
+  (fst oo syntax (Scan.lift (Scan.optional (Args.parens Args.nat) 0) -- Attrib.thms));
 
-fun goal_args' args tac src ctxt = #2 (syntax (Args.goal_spec HEADGOAL -- args >>
+fun goal_args' args tac src ctxt = fst (syntax (Args.goal_spec HEADGOAL -- args >>
   (fn (quant, s) => SIMPLE_METHOD'' quant (tac s))) src ctxt);
 
 fun goal_args args tac = goal_args' (Scan.lift args) tac;
 
 fun goal_args_ctxt' args tac src ctxt =
-  #2 (syntax (Args.goal_spec HEADGOAL -- args >>
+  fst (syntax (Args.goal_spec HEADGOAL -- args >>
   (fn (quant, s) => SIMPLE_METHOD'' quant (tac ctxt s))) src ctxt);
 
 fun goal_args_ctxt args tac = goal_args_ctxt' (Scan.lift args) tac;
@@ -562,7 +562,7 @@ val _ = Context.add_setup (add_methods
   ("elim", thms_args elim, "repeatedly apply elimination rules"),
   ("unfold", thms_ctxt_args unfold_meth, "unfold definitions"),
   ("fold", thms_ctxt_args fold_meth, "fold definitions"),
-  ("atomize", (atomize o #2) oo syntax (Args.mode "full"),
+  ("atomize", (atomize o fst) oo syntax (Args.mode "full"),
     "present local premises as object-level statements"),
   ("iprover", iprover_meth, "intuitionistic proof search"),
   ("rule", thms_ctxt_args some_rule, "apply some intro/elim rule"),

@@ -29,7 +29,7 @@ fun relation_tac ctxt rel =
 
 
 val setup = Method.add_methods
-  [("relation", (Method.SIMPLE_METHOD' o uncurry relation_tac) oo (Method.syntax Args.term),
+  [("relation", (Method.SIMPLE_METHOD' o (fn (rel, ctxt) => relation_tac ctxt rel)) oo (Method.syntax Args.term),
     "proves termination using a user-specified wellfounded relation")]
 
 end

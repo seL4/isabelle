@@ -60,7 +60,7 @@ fun inductive_cases args thy =
 
 (* ind_cases method *)
 
-fun mk_cases_meth (ctxt, props) =
+fun mk_cases_meth (props, ctxt) =
   props
   |> map (smart_cases (ProofContext.theory_of ctxt) (local_simpset_of ctxt)
     (ProofContext.read_prop ctxt))

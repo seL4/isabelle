@@ -185,7 +185,7 @@ end;
 (** attribute syntax **)
 
 fun syntax scan src (st, th) =
-  let val (st', f) = Args.syntax "attribute" scan src st
+  let val (f, st') = Args.syntax "attribute" scan src st
   in f (st', th) end;
 
 fun no_args x = syntax (Scan.succeed x);

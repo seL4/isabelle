@@ -1088,7 +1088,7 @@ val arith_setup =
     addsimprocs (nat_cancel_sums @ [fast_nat_arith_simproc])
     addSolver (mk_solver' "lin. arith." Fast_Arith.cut_lin_arith_tac)); thy)) #>
   Method.add_methods
-    [("arith", (arith_method o #2) oo Method.syntax Args.bang_facts,
+    [("arith", (arith_method o fst) oo Method.syntax Args.bang_facts,
       "decide linear arithmethic")] #>
   Attrib.add_attributes [("arith_split", Attrib.no_args arith_split_add,
     "declaration of split rules for arithmetic procedure")];

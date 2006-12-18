@@ -553,10 +553,10 @@ INCOMPATIBILITY: If you use recpower and need commutativity or a semiring
 property, add the corresponding classes.
 
 * Locale Lattic_Locales.partial_order changed (to achieve consistency with
-  axclass order):
-  - moved to Orderings.partial_order
-  - additional parameter ``less''
-  INCOMPATIBILITY.
+axclass order):
+- moved to Orderings.partial_order
+- additional parameter ``less''
+INCOMPATIBILITY.
 
 * Constant "List.list_all2" in List.thy now uses authentic syntax.
 INCOMPATIBILITY: translations containing list_all2 may go wrong. On Isar
@@ -767,6 +767,10 @@ versions (INCOMPATIBILITY):
 
 
 *** ML ***
+
+* Pure/Isar/args.ML & Pure/Isar/method.ML
+
+switched argument order in *.syntax lifters.
 
 * Pure/table:
 

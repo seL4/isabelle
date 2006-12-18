@@ -84,9 +84,9 @@ sig
     -> ((int -> tactic) -> tactic) * ('a * T list)
   val attribs: (string -> string) -> T list -> src list * T list
   val opt_attribs: (string -> string) -> T list -> src list * T list
-  val syntax: string -> ('b * T list -> 'a * ('b * T list)) -> src -> 'b -> 'b * 'a
+  val syntax: string -> ('b * T list -> 'a * ('b * T list)) -> src -> 'b -> 'a * 'b
   val context_syntax: string -> (Context.generic * T list -> 'a * (Context.generic * T list)) ->
-    src -> Proof.context -> Proof.context * 'a
+    src -> Proof.context -> 'a * Proof.context
 end;
 
 structure Args: ARGS =
@@ -393,11 +393,11 @@ end;
 
 fun syntax kind scan (src as Src ((s, args), pos)) st =
   (case Scan.error (Scan.finite' stopper (Scan.option scan)) (st, args) of
-    (SOME x, (st', [])) => (st', x)
+    (SOME x, (st', [])) => (x, st')
   | (_, (_, args')) =>
       error (kind ^ " " ^ quote s ^ Position.str_of pos ^ ": bad arguments\n  " ^
         space_implode " " (map string_of args')));
 
-fun context_syntax kind scan src = apfst Context.the_proof o syntax kind scan src o Context.Proof;
+fun context_syntax kind scan src = apsnd Context.the_proof o syntax kind scan src o Context.Proof;
 
 end;

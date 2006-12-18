@@ -154,7 +154,7 @@ fun nominal_induct_method src =
   Method.syntax
    (Args.and_list (Scan.repeat (unless_more_args def_inst)) --
     avoiding -- fixing -- rule_spec) src
-  #> (fn (ctxt, (((x, y), z), w)) =>
+  #> (fn ((((x, y), z), w), ctxt) =>
     Method.RAW_METHOD_CASES (fn facts =>
       HEADGOAL (nominal_induct_tac ctxt x y z w facts)));
 

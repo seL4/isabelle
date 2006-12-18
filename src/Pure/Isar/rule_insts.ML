@@ -349,7 +349,7 @@ val insts =
       Scan.lift (Args.$$$ "in")) [] -- Attrib.thms;
 
 fun inst_args f src ctxt =
-  f ctxt (#2 (Method.syntax (Args.goal_spec HEADGOAL -- insts) src ctxt));
+  f ctxt (fst (Method.syntax (Args.goal_spec HEADGOAL -- insts) src ctxt));
 
 val insts_var =
   Scan.optional
@@ -357,7 +357,7 @@ val insts_var =
       Scan.lift (Args.$$$ "in")) [] -- Attrib.thms;
 
 fun inst_args_var f src ctxt =
-  f ctxt (#2 (Method.syntax (Args.goal_spec HEADGOAL -- insts_var) src ctxt));
+  f ctxt (fst (Method.syntax (Args.goal_spec HEADGOAL -- insts_var) src ctxt));
 
 
 (* setup *)

@@ -583,7 +583,7 @@ val inductive_cases_i = gen_inductive_cases (K I) ProofContext.cert_prop;
 
 (* mk_cases_meth *)
 
-fun mk_cases_meth (ctxt, raw_props) =
+fun mk_cases_meth (raw_props, ctxt) =
   let
     val thy = ProofContext.theory_of ctxt;
     val ss = local_simpset_of ctxt;

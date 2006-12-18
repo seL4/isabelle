@@ -517,7 +517,7 @@ in
 fun cases_meth src =
   Method.syntax (Args.mode openN --
     (Args.and_list (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule)) src
-  #> (fn (ctxt, (is_open, (insts, opt_rule))) =>
+  #> (fn ((is_open, (insts, opt_rule)), ctxt) =>
     Method.METHOD_CASES (fn facts =>
       Seq.DETERM (HEADGOAL (cases_tac ctxt is_open insts opt_rule facts))));
 
@@ -525,14 +525,14 @@ fun induct_meth src =
   Method.syntax (Args.mode openN --
     (Args.and_list (Scan.repeat (unless_more_args def_inst)) --
     (arbitrary -- taking -- Scan.option induct_rule))) src
-  #> (fn (ctxt, (is_open, (insts, ((arbitrary, taking), opt_rule)))) =>
+  #> (fn ((is_open, (insts, ((arbitrary, taking), opt_rule))), ctxt) =>
     Method.RAW_METHOD_CASES (fn facts =>
       Seq.DETERM (HEADGOAL (induct_tac ctxt is_open insts arbitrary taking opt_rule facts))));
 
 fun coinduct_meth src =
   Method.syntax (Args.mode openN --
     (Scan.repeat (unless_more_args inst) -- taking -- Scan.option coinduct_rule)) src
-  #> (fn (ctxt, (is_open, ((insts, taking), opt_rule))) =>
+  #> (fn ((is_open, ((insts, taking), opt_rule)), ctxt) =>
     Method.RAW_METHOD_CASES (fn facts =>
       Seq.DETERM (HEADGOAL (coinduct_tac ctxt is_open insts taking opt_rule facts))));
 

@@ -115,7 +115,7 @@ fun syntax scan = Args.context_syntax "antiquotation" scan;
 fun args scan f src node : string =
   let
     val loc = if ! locale = "" then NONE else SOME (! locale);
-    val (ctxt, x) = syntax scan src (Toplevel.presentation_context node loc);
+    val (x, ctxt) = syntax scan src (Toplevel.presentation_context node loc);
   in f src ctxt x end;
 
 

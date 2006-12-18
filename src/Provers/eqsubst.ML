@@ -538,7 +538,7 @@ should be done to an assumption, false = apply to the conclusion of
 the goal) as well as the theorems to use *)
 fun subst_meth src =
   Method.syntax ((Scan.lift options_syntax) -- (Scan.lift ith_syntax) -- Attrib.thms) src
-  #> (fn (ctxt, ((asmflag, occL), inthms)) =>
+  #> (fn (((asmflag, occL), inthms), ctxt) =>
     (if asmflag then eqsubst_asm_meth else eqsubst_meth) ctxt occL inthms);
 
 

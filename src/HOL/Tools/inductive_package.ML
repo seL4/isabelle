@@ -440,7 +440,7 @@ val inductive_cases_i = gen_inductive_cases (K I) ProofContext.cert_prop;
 
 fun ind_cases src =
   Method.syntax (Scan.repeat1 Args.prop) src
-  #> (fn (ctxt, props) => Method.erule 0 (map (mk_cases ctxt) props));
+  #> (fn (props, ctxt) => Method.erule 0 (map (mk_cases ctxt) props));
 
 
 
