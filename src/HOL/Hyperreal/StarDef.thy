@@ -240,6 +240,53 @@ lemma Standard_starfun2 [simp]:
   "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> starfun2 f x y \<in> Standard"
 by (simp add: starfun2_def)
 
+lemma Standard_starfun_iff:
+  assumes inj: "\<And>x y. f x = f y \<Longrightarrow> x = y"
+  shows "(starfun f x \<in> Standard) = (x \<in> Standard)"
+proof
+  assume "x \<in> Standard"
+  thus "starfun f x \<in> Standard" by simp
+next
+  have inj': "\<And>x y. starfun f x = starfun f y \<Longrightarrow> x = y"
+    using inj by transfer
+  assume "starfun f x \<in> Standard"
+  then obtain b where b: "starfun f x = star_of b"
+    unfolding Standard_def ..
+  hence "\<exists>x. starfun f x = star_of b" ..
+  hence "\<exists>a. f a = b" by transfer
+  then obtain a where "f a = b" ..
+  hence "starfun f (star_of a) = star_of b" by transfer
+  with b have "starfun f x = starfun f (star_of a)" by simp
+  hence "x = star_of a" by (rule inj')
+  thus "x \<in> Standard"
+    unfolding Standard_def by auto
+qed
+
+lemma Standard_starfun2_iff:
+  assumes inj: "\<And>a b a' b'. f a b = f a' b' \<Longrightarrow> a = a' \<and> b = b'"
+  shows "(starfun2 f x y \<in> Standard) = (x \<in> Standard \<and> y \<in> Standard)"
+proof
+  assume "x \<in> Standard \<and> y \<in> Standard"
+  thus "starfun2 f x y \<in> Standard" by simp
+next
+  have inj': "\<And>x y z w. starfun2 f x y = starfun2 f z w \<Longrightarrow> x = z \<and> y = w"
+    using inj by transfer
+  assume "starfun2 f x y \<in> Standard"
+  then obtain c where c: "starfun2 f x y = star_of c"
+    unfolding Standard_def ..
+  hence "\<exists>x y. starfun2 f x y = star_of c" by auto
+  hence "\<exists>a b. f a b = c" by transfer
+  then obtain a b where "f a b = c" by auto
+  hence "starfun2 f (star_of a) (star_of b) = star_of c"
+    by transfer
+  with c have "starfun2 f x y = starfun2 f (star_of a) (star_of b)"
+    by simp
+  hence "x = star_of a \<and> y = star_of b"
+    by (rule inj')
+  thus "x \<in> Standard \<and> y \<in> Standard"
+    unfolding Standard_def by auto
+qed
+
 
 subsection {* Internal predicates *}
 
