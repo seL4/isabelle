@@ -173,24 +173,22 @@ local
 	    delayed_msgs := pgip :: ! delayed_msgs
 	else issue_pgip pgip
 in
-    fun normalmsg area cat urgent prfx s = 
+    fun normalmsg area cat urgent s = 
 	let 
-	    val content = 
-		(* NB: prefixing is obsolete, but let's keep it for a while for familiarity *)
-		    XML.Elem("pgmltext",[],[XML.Rawtext (prefix_lines prfx s)])
+	    val content = XML.Elem("pgmltext",[],[XML.Rawtext s])
 	    val pgip = Normalresponse {area=area,messagecategory=cat,
 				       urgent=urgent,content=[content] }
 	in
 	    queue_or_issue pgip
 	end
 
-    fun errormsg fatality prfx s =
+    fun errormsg fatality s =
 	let
-	    (* FIXME: need a way of passing in locations *)
-              val content =
-		  XML.Elem("pgmltext",[],[XML.Rawtext (prefix_lines prfx s)])
+              val content = XML.Elem("pgmltext",[],[XML.Rawtext s])
 	      val pgip = Errorresponse {area=NONE,fatality=fatality,
-					content=[content], location=NONE}
+					content=[content], 
+					(* FIXME: pass in locations *)
+					location=NONE}
 	in 
 	    queue_or_issue pgip
 	end
@@ -205,14 +203,14 @@ end;
    enough to use Rawtext always above. *)
 
 fun setup_messages () =
- (writeln_fn := (fn s => normalmsg Message Normal false "" s);
-  priority_fn := (fn s => normalmsg Message Normal true "" s);
-  tracing_fn := (fn s => normalmsg  Message Tracing false "" s);
-  info_fn := (fn s => normalmsg Message Information false "+++ " s);
-  debug_fn := (fn s => normalmsg Message Internal false "+++ " s);
-  warning_fn := (fn s => errormsg Nonfatal "### " s);
-  error_fn := (fn s => errormsg Fatal "*** " s);
-  panic_fn := (fn s => errormsg Panic "!!! " s))
+ (writeln_fn := (fn s => normalmsg Message Normal false s);
+  priority_fn := (fn s => normalmsg Message Normal true s);
+  tracing_fn := (fn s => normalmsg  Message Tracing false s);
+  info_fn := (fn s => normalmsg Message Information false s);
+  debug_fn := (fn s => normalmsg Message Internal false s);
+  warning_fn := (fn s => errormsg Nonfatal s);
+  error_fn := (fn s => errormsg Fatal s);
+  panic_fn := (fn s => errormsg Panic s))
 
 (* immediate messages *)
 
@@ -419,9 +417,14 @@ end
 
 fun isarcmd s =
     s |> OuterSyntax.scan |> OuterSyntax.read
-      |> map (Toplevel.position (Position.name "PGIP message") o #3) |> Toplevel.>>>;
+      (*|> map (Toplevel.position (Position.name "PGIP message") o #3)*)
+      |> map #3
+      |> Toplevel.>>>;
 
-(* how TODO: apply a command given a transition function, e.g. IsarCmd.undo *)
+(* TODO: 
+    - apply a command given a transition function, e.g. IsarCmd.undo.
+    - fix position from path of currently open file [line numbers risk garbling though].
+*)
 
 (* load an arbitrary file (must be .thy or .ML) *)
 
