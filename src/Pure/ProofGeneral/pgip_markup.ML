@@ -178,21 +178,25 @@ struct
    val doc_markup_elements =
        ["openblock",
         "closeblock",
-	"opengoal",
-	"proofstep",
-	"closegoal",
-	"comment",
-	"doccomment",
-	"whitespace",
-	"litcomment",
-	"spuriouscmd",
-	"badcmd",
 	"opentheory",
 	"theoryitem",
 	"closetheory",
+	"opengoal",
+	"proofstep",
+	"closegoal",
+	"giveupgoal",
+	"postponegoal",
+	"comment",
+	"doccomment",
+	"whitespace",
+	"spuriouscmd",
+	"badcmd",
+	(* the prover shouldn't really receive the next ones,
+  	   but we include them here so that they are harmlessly
+           ignored. *)
+	"unparseable",
 	"metainfo",
-	(* the prover should never receive the next three,
-  	   but we include them here so that they are ignored. *)
+        (* Broker document format *)
 	"litcomment",
 	"showcode",
 	"setformat"]
