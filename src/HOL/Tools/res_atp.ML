@@ -819,9 +819,9 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
     Output.debug "Sent commands to watcher!"
   end
 
-fun trace_array fname =
+fun trace_vector fname =
   let val path = File.explode_platform_path fname
-  in  Array.app (File.append path o (fn s => s ^ "\n"))  end;
+  in  Vector.app (File.append path o (fn s => s ^ "\n"))  end;
 
 (*Converting a subgoal into negated conjecture clauses*)
 fun neg_clauses th n =
@@ -873,9 +873,9 @@ fun write_problem_files probfile (ctxt,th)  =
                 val arity_clauses = ResClause.arity_clause_thy thy tycons supers
                 val _ = Output.debug ("arity clauses = " ^ Int.toString (length arity_clauses))
                 val clnames = writer logic ccls fname (axcls,classrel_clauses,arity_clauses) []
-                val thm_names = Array.fromList clnames
+                val thm_names = Vector.fromList clnames
                 val _ = if !Output.show_debug_msgs
-                        then trace_array (fname ^ "_thm_names") thm_names else ()
+                        then trace_vector (fname ^ "_thm_names") thm_names else ()
             in  (thm_names,fname) :: write_all ccls_list axcls_list (k+1)  end
       val (thm_names_list, filenames) = ListPair.unzip (write_all goal_cls axcls_list 1)
   in
