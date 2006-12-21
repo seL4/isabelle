@@ -422,18 +422,12 @@ fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arities (raw_na
                 (sort (fn ((tyco1, _, _), (tyco2, _, _)) => string_ord (tyco1, tyco2)) arities))))
       | _ => (true, raw_name);
     val atts = map (prep_att theory) raw_atts;
-    fun already_defined (c, ty_inst) = 
-      is_some (find_first (fn (_, { lhs = [ty_inst'], ...}) =>
-          Sign.typ_instance theory (ty_inst', ty_inst) orelse Sign.typ_instance theory (ty_inst, ty_inst'))
-        (Defs.specifications_of (Theory.defs_of theory) c));
     fun get_consts_class tyco ty class =
       let
         val (_, cs) = AxClass.params_of_class theory class;
         val subst_ty = map_type_tfree (K ty);
       in
-        map_filter (fn (c, ty) =>
-          if already_defined (c, ty)
-          then NONE else SOME ((c, ((tyco, class), subst_ty ty)))) cs
+        map (fn (c, ty) => (c, ((tyco, class), subst_ty ty))) cs
       end;
     fun get_consts_sort (tyco, asorts, sort) =
       let
