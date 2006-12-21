@@ -340,10 +340,10 @@ fun def_class prep_class prep_att prep_param prep_propp
     val params_typs = map (fn param =>
       let
         val ty = Sign.the_const_type thy param;
-        val var = case Term.typ_tvars ty
-         of [(v, _)] => v
+        val _ = case Term.typ_tvars ty
+         of [_] => ()
           | _ => error ("exactly one type variable required in parameter " ^ quote param);
-        val ty' = Term.typ_subst_TVars [(var, TFree (param_tyvarname, []))] ty;
+        val ty' = Term.map_type_tvar (fn _ => TFree (param_tyvarname, [class])) ty;
       in (param, ty') end) params;
     val operational = length params_typs > 0 orelse
       length (filter (the_default false o Option.map
