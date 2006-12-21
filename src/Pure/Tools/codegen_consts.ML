@@ -106,29 +106,16 @@ fun instance_dict thy (class, tyco) =
     val inst_signs = (map o apsnd o map_type_tfree) (K ty_inst) cs;
   in (sort_args, inst_signs) end;
 
-fun disc_typ_of_classop thy (c, [TVar _]) = 
-      let
-        val class = (the o AxClass.class_of_param thy) c;
-        val (v, cs) = AxClass.params_of_class thy class;
-      in
-        (Logic.varifyT o map_type_tfree (K (TFree (v, [class]))))
-          ((the o AList.lookup (op =) cs) c)
-      end
-  | disc_typ_of_classop thy (c, [TFree _]) = 
-      let
-        val class = (the o AxClass.class_of_param thy) c;
-        val (v, cs) = AxClass.params_of_class thy class;
-      in
-        (Logic.varifyT o map_type_tfree (K (TFree (v, [class]))))
-          ((the o AList.lookup (op =) cs) c)
-      end
-  | disc_typ_of_classop thy (c, [Type (tyco, _)]) =
-      let
-        val class = (the o AxClass.class_of_param thy) c;
-        val (_, cs) = instance_dict thy (class, tyco);
-      in
-        Logic.varifyT ((the o AList.lookup (op =) cs) c)
-      end;
+fun disc_typ_of_classop thy (c, [ty]) = 
+  let
+    val class = (the o AxClass.class_of_param thy) c;
+    val cs = case ty
+     of TVar _ => snd (AxClass.params_of_class thy class)
+      | TFree _ => snd (AxClass.params_of_class thy class)
+      | Type (tyco, _) => snd (instance_dict thy (class, tyco));
+  in
+    (Logic.varifyT o the o AList.lookup (op =) cs) c
+  end;
 
 fun disc_typ_of_const thy f (const as (c, [ty])) =
       if (is_some o AxClass.class_of_param thy) c

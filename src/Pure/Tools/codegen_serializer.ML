@@ -150,9 +150,9 @@ fun parse_mixfix s =
   end;
 
 fun parse_args f args =
-  case f args
-   of (x, []) => x
-    | (_, _) => error "bad serializer arguments";
+  case Scan.read Args.stopper f args
+   of SOME x => x
+    | NONE => error "bad serializer arguments";
 
 
 (* list and string serializer *)

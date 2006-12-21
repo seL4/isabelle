@@ -101,7 +101,7 @@ fun get_abstype thy (tyco, tys) = case Symtab.lookup ((fst o snd o CodegenPackag
 
 fun ensure_def_class thy (algbr as ((proj_sort, _), _)) funcgr strct class trns =
   let
-    val (v, cs) = (AxClass.params_of_class thy) class;
+    val (v, cs) = AxClass.params_of_class thy class;
     val superclasses = (proj_sort o Sign.super_classes thy) class;
     val classops' = map (CodegenNames.const thy o CodegenConsts.norm_of_typ thy) cs;
     val class' = CodegenNames.class thy class;
