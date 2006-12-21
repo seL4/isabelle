@@ -2730,4 +2730,56 @@ lemma rev_code [code func, code unfold, code noinline]:
   "rev xs == itrev xs []"
   by simp
 
+text {* code for bounded quantification over nats *}
+
+lemma atMost_upto [code inline]:
+  "{..n} = set [0..n]"
+  by auto
+lemmas atMost_upto' [code unfold] = atMost_upto [THEN eq_reflection]
+
+lemma atLeast_upt [code inline]:
+  "{..<n} = set [0..<n]"
+  by auto
+lemmas atLeast_upt' [code unfold] = atLeast_upt [THEN eq_reflection]
+
+lemma greaterThanLessThan_upd [code inline]:
+  "{n<..<m} = set [Suc n..<m]"
+  by auto
+lemmas greaterThanLessThan_upd' [code unfold] = greaterThanLessThan_upd [THEN eq_reflection]
+
+lemma atLeastLessThan_upd [code inline]:
+  "{n..<m} = set [n..<m]"
+  by auto
+lemmas atLeastLessThan_upd' [code unfold] = atLeastLessThan_upd [THEN eq_reflection]
+
+lemma greaterThanAtMost_upto [code inline]:
+  "{n<..m} = set [Suc n..m]"
+  by auto
+lemmas greaterThanAtMost_upto' [code unfold] = greaterThanAtMost_upto [THEN eq_reflection]
+
+lemma atLeastAtMost_upto [code inline]:
+  "{n..m} = set [n..m]"
+  by auto
+lemmas atLeastAtMost_upto' [code unfold] = atLeastAtMost_upto [THEN eq_reflection]
+
+lemma all_nat_less_eq [code inline]:
+  "(\<forall>m<n\<Colon>nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..<n}. P m)"
+  by auto
+lemmas all_nat_less_eq' [code unfold] = all_nat_less_eq [THEN eq_reflection]
+
+lemma ex_nat_less_eq [code inline]:
+  "(\<exists>m<n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..<n}. P m)"
+  by auto
+lemmas ex_nat_less_eq' [code unfold] = ex_nat_less_eq [THEN eq_reflection]
+
+lemma all_nat_less [code inline]:
+  "(\<forall>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..n}. P m)"
+  by auto
+lemmas all_nat_less' [code unfold] =  all_nat_less [THEN eq_reflection]
+
+lemma ex_nat_less [code inline]:
+  "(\<exists>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)"
+  by auto
+lemmas ex_nat_less' [code unfold] = ex_nat_less [THEN eq_reflection]
+
 end
