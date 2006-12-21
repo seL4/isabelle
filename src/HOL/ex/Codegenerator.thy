@@ -7,7 +7,7 @@ header {* Tests and examples for code generator *}
 theory Codegenerator
 imports
   Main
-  Records
+  "~~/src/HOL/ex/Records"
   AssocList
   Binomial
   Commutative_Ring
