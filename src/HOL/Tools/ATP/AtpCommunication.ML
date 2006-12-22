@@ -11,10 +11,10 @@ signature ATP_COMMUNICATION =
   sig
     val checkEProofFound: 
           TextIO.instream * TextIO.outstream * Posix.Process.pid * 
-          string * string Vector.vector -> bool
+          string * thm * int * string Vector.vector -> bool
     val checkVampProofFound: 
           TextIO.instream * TextIO.outstream * Posix.Process.pid * 
-          string * string Vector.vector -> bool
+          string * thm * int * string Vector.vector -> bool
     val checkSpassProofFound:  
           TextIO.instream * TextIO.outstream * Posix.Process.pid * 
           string * thm * int * string Vector.vector -> bool
@@ -31,7 +31,6 @@ fun trace s = if !Output.show_debug_msgs then File.append (File.tmp_path trace_p
               else ();
 
 exception EOF;
-
 
 (**** retrieve the axioms that were used in the proof ****)
 
@@ -59,20 +58,23 @@ fun get_spass_linenums proofstr =
 fun get_axiom_names_spass proofstr thm_names =
    get_axiom_names thm_names (get_spass_linenums proofstr);
     
- (*String contains multiple lines. We want those of the form 
-   "number : ...: ...: initial..." *)
-fun get_e_linenums proofstr = 
-  let val fields = String.fields (fn c => c = #":")
-      val nospaces = String.translate (fn c => if c = #" " then "" else str c)
-      fun initial s = String.isPrefix "initial" (nospaces s)
-      fun firstno (line :: _ :: _ :: rule :: _) = 
-            if initial rule then Int.fromString line else NONE
-        | firstno _ = NONE
-      val lines = String.tokens (fn c => c = #"\n") proofstr
-  in  List.mapPartial (firstno o fields) lines  end
+fun not_comma c = c <>  #",";
 
-fun get_axiom_names_e proofstr thm_names =
-   get_axiom_names thm_names (get_e_linenums proofstr);
+(*A valid TSTP axiom line has the form  cnf(NNN,axiom,...) where NNN is a positive integer.*)
+fun parse_tstp_line s =
+  let val ss = Substring.full (unprefix "cnf(" (nospaces s))
+      val (intf,rest) = Substring.splitl not_comma ss
+      val (rolef,rest) = Substring.splitl not_comma (Substring.triml 1 rest)
+      (*We only allow negated_conjecture because the line number will be removed in
+        get_axiom_names above, while suppressing the UNSOUND warning*)
+      val ints = if Substring.string rolef mem_string ["axiom","negated_conjecture"]
+                 then Substring.string intf 
+                 else "error" 
+  in  Int.fromString ints  end
+  handle Fail _ => NONE; 
+
+fun get_axiom_names_tstp proofstr thm_names =
+   get_axiom_names thm_names (List.mapPartial parse_tstp_line (split_lines proofstr));
     
  (*String contains multiple lines. We want those of the form 
      "*********** [448, input] ***********".
@@ -97,8 +99,7 @@ fun prover_lemma_list_aux getax proofstr probfile toParent ppid thm_names =
                ("\n\nGetting lemma names. proofstr is " ^ proofstr ^
                 "\nprobfile is " ^ probfile ^
                 "  num of clauses is " ^ string_of_int (Vector.length thm_names))
-     val axiom_names = getax proofstr thm_names
-     val ax_str = rules_to_string axiom_names
+     val ax_str = rules_to_string (getax proofstr thm_names)
     in 
 	 trace ("\nDone. Lemma list is " ^ ax_str);
          TextIO.output (toParent, "Success. Lemmas used in automatic proof: " ^
@@ -116,7 +117,7 @@ fun prover_lemma_list_aux getax proofstr probfile toParent ppid thm_names =
       TextIO.flushOut toParent;
       Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2));
 
-val e_lemma_list = prover_lemma_list_aux get_axiom_names_e;
+val e_lemma_list = prover_lemma_list_aux get_axiom_names_tstp;
 
 val vamp_lemma_list = prover_lemma_list_aux get_axiom_names_vamp;
 
@@ -128,9 +129,9 @@ val spass_lemma_list = prover_lemma_list_aux get_axiom_names_spass;
 (*Return everything in s that comes before the string t*)
 fun cut_before t s = 
   let val (s1,s2) = Substring.position t (Substring.full s)
-      val _ = Substring.size s2 <> 0
-        orelse error "cut_before: string not found"
-  in Substring.string s2 end;
+  in  if Substring.size s2 = 0 then error "cut_before: string not found" 
+      else Substring.string s2
+  end;
 
 val start_E = "# Proof object starts here."
 val end_E   = "# Proof object ends here."
@@ -145,7 +146,7 @@ val end_SPASS = "Formulae used in the proof"
 (*  and if so, transfer output to the input pipe of the main Isabelle process    *)
 (*********************************************************************************)
 
-fun startTransfer (endS, fromChild, toParent, ppid, probfile, thm_names) =
+fun startTransfer (endS, fromChild, toParent, ppid, probfile, th, sgno, thm_names) =
  let fun transferInput currentString =
       let val thisLine = TextIO.inputLine fromChild
       in
@@ -156,6 +157,7 @@ fun startTransfer (endS, fromChild, toParent, ppid, probfile, thm_names) =
 	else if String.isPrefix endS thisLine
 	then let val proofextract = currentString ^ cut_before endS thisLine
 	         val lemma_list = if endS = end_V8 then vamp_lemma_list
+			  	  else if endS = end_SPASS then spass_lemma_list
 			  	  else e_lemma_list
 	     in
 	       trace ("\nExtracted proof:\n" ^ proofextract); 
@@ -179,82 +181,47 @@ fun signal_parent (toParent, ppid, msg, probfile) =
   OS.Process.sleep (Time.fromMilliseconds 600));
 
 (*Called from watcher. Returns true if the Vampire process has returned a verdict.*)
-fun checkVampProofFound (fromChild, toParent, ppid, probfile, thm_names) =
+fun checkVampProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_names) =
  let val thisLine = TextIO.inputLine fromChild
  in   
      trace thisLine;
      if thisLine = "" 
      then (trace "\nNo proof output seen"; false)
      else if String.isPrefix start_V8 thisLine
-     then startTransfer (end_V8, fromChild, toParent, ppid, probfile, thm_names)
+     then startTransfer (end_V8, fromChild, toParent, ppid, probfile, th, sgno, thm_names)
      else if (String.isPrefix "Satisfiability detected" thisLine) orelse
              (String.isPrefix "Refutation not found" thisLine)
      then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
-     else checkVampProofFound  (fromChild, toParent, ppid, probfile, thm_names)
+     else checkVampProofFound  (fromChild, toParent, ppid, probfile, th, sgno, thm_names)
   end
 
 (*Called from watcher. Returns true if the E process has returned a verdict.*)
-fun checkEProofFound (fromChild, toParent, ppid, probfile, thm_names) = 
+fun checkEProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_names) = 
  let val thisLine = TextIO.inputLine fromChild  
  in   
      trace thisLine;
      if thisLine = "" then (trace "\nNo proof output seen"; false)
      else if String.isPrefix start_E thisLine
-     then startTransfer (end_E, fromChild, toParent, ppid, probfile, thm_names)
+     then startTransfer (end_E, fromChild, toParent, ppid, probfile, th, sgno, thm_names)
      else if String.isPrefix "# Problem is satisfiable" thisLine
      then (signal_parent (toParent, ppid, "Invalid\n", probfile);
 	   true)
      else if String.isPrefix "# Cannot determine problem status within resource limit" thisLine
      then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
-     else checkEProofFound (fromChild, toParent, ppid, probfile, thm_names)
- end
-
-(*FIXME: can't these two functions be replaced by startTransfer above?*)
-fun transferSpassInput (fromChild, toParent, ppid, probfile,
-                        currentString, thm, sg_num, thm_names) = 
- let val thisLine = TextIO.inputLine fromChild 
- in 
-    trace thisLine;
-    if thisLine = "" (*end of file?*)
-    then (trace ("\nspass_extraction_failed: " ^ currentString);
-	  raise EOF)                    
-    else if String.isPrefix "Formulae used in the proof" thisLine
-    then 
-      let val proofextract = currentString ^ cut_before end_SPASS thisLine
-      in 
-	 trace ("\nextracted spass proof: " ^ proofextract);
-	 spass_lemma_list proofextract probfile toParent ppid thm_names 
-      end
-    else transferSpassInput (fromChild, toParent, ppid, probfile,
-			     currentString ^ thisLine, thm, sg_num, thm_names)
+     else checkEProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_names)
  end;
 
-(*Inspect the output of a SPASS process to see if it has found a proof,   
-  and if so, transfer output to the input pipe of the main Isabelle process*)
-fun startSpassTransfer (fromChild, toParent, ppid, probfile, thm, sg_num,thm_names) = 
-   let val thisLine = TextIO.inputLine fromChild  
-   in                 
-      if thisLine = "" then false
-      else if String.isPrefix "Here is a proof" thisLine then     
-	 (trace ("\nabout to transfer SPASS proof:\n");
-	  transferSpassInput (fromChild, toParent, ppid, probfile, thisLine, 
- 	                     thm, sg_num,thm_names);
-	  true) handle EOF => false
-      else startSpassTransfer (fromChild, toParent, ppid, probfile, thm, sg_num,thm_names)
-    end
-
-
 (*Called from watcher. Returns true if the SPASS process has returned a verdict.*)
-fun checkSpassProofFound (fromChild, toParent, ppid, probfile, thm, sg_num, thm_names) = 
+fun checkSpassProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_names) = 
  let val thisLine = TextIO.inputLine fromChild  
  in    
      trace thisLine;
      if thisLine = "" then (trace "\nNo proof output seen"; false)
-     else if thisLine = "SPASS beiseite: Proof found.\n"
+     else if String.isPrefix "Here is a proof" thisLine
      then      
-        startSpassTransfer (fromChild, toParent, ppid, probfile, thm, sg_num, thm_names)
+        startTransfer (end_SPASS, fromChild, toParent, ppid, probfile, th, sgno, thm_names)
      else if thisLine = "SPASS beiseite: Completion found.\n"
      then (signal_parent (toParent, ppid, "Invalid\n", probfile);
 	   true)
@@ -262,7 +229,7 @@ fun checkSpassProofFound (fromChild, toParent, ppid, probfile, thm, sg_num, thm_
              thisLine = "SPASS beiseite: Maximal number of loops exceeded.\n"
      then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
-    else checkSpassProofFound (fromChild, toParent, ppid, probfile, thm, sg_num, thm_names)
+    else checkSpassProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_names)
  end
 
 end;

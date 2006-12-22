@@ -226,9 +226,9 @@ fun checkChildren (th, thm_names_list, toParentStr, children) =
 	       let val _ = trace ("\nInput available from child: " ^ file)
 		   val childDone = (case prover of
 		       "vampire" => AtpCommunication.checkVampProofFound
-			    (childIn, toParentStr, ppid, file, thm_names)  
+			    (childIn, toParentStr, ppid, file, th, sgno, thm_names)  
 		     | "E" => AtpCommunication.checkEProofFound
-			    (childIn, toParentStr, ppid, file, thm_names)             
+			    (childIn, toParentStr, ppid, file, th, sgno, thm_names)             
 		     | "spass" => AtpCommunication.checkSpassProofFound
 			    (childIn, toParentStr, ppid, file, th, sgno, thm_names)  
 		     | _ => (trace ("\nBad prover! " ^ prover); true) )

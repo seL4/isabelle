@@ -193,7 +193,7 @@ fun refl_clause th =
 
 (*** The basic CNF transformation ***)
 
-val max_clauses = ref 20;
+val max_clauses = ref 40;
 
 fun sum x y = if x < !max_clauses andalso y < !max_clauses then x+y else !max_clauses;
 fun prod x y = if x < !max_clauses andalso y < !max_clauses then x*y else !max_clauses;
@@ -648,7 +648,7 @@ fun skolemize_tac i st =
 
 (*Top-level conversion to meta-level clauses. Each clause has  
   leading !!-bound universal variables, to express generality. To get 
-  disjunctions instead of meta-clauses, remove "make_meta_clauses" below.*)
+  meta-clauses instead of disjunctions, uncomment "make_meta_clauses" below.*)
 val make_clauses_tac = 
   SUBGOAL
     (fn (prop,_) =>
@@ -658,7 +658,7 @@ val make_clauses_tac =
 	    (fn hyps => 
               (Method.insert_tac
                 (map forall_intr_vars 
-                  (make_meta_clauses (make_clauses hyps))) 1)),
+                  ( (**make_meta_clauses**) (make_clauses hyps))) 1)),
 	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
      end);
      

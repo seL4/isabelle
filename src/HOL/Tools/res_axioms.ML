@@ -23,14 +23,14 @@ sig
   val atpset_rules_of: Proof.context -> (string * thm) list
 end;
 
-structure ResAxioms: RES_AXIOMS =
+structure ResAxioms =
 struct
 
 (*For running the comparison between combinators and abstractions.
   CANNOT be a ref, as the setting is used while Isabelle is built.
   Currently FALSE, i.e. all the "abstraction" code below is unused, but so far
   it seems to be inferior to combinators...*)
-val abstract_lambdas = false;
+val abstract_lambdas = true;
 
 val trace_abs = ref false;
 
@@ -526,9 +526,6 @@ fun cnf_name s =
   in cnf_axiom (PureThy.get_name_hint th, th) end;
 
 (**** Extract and Clausify theorems from a theory's claset and simpset ****)
-
-(*Preserve the name of "th" after the transformation "f"*)
-fun preserve_name f th = PureThy.put_name_hint (PureThy.get_name_hint th) (f th);
 
 fun rules_of_claset cs =
   let val {safeIs,safeEs,hazIs,hazEs,...} = rep_cs cs
