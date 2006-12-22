@@ -76,6 +76,6 @@ hide (open) const keywords
 definition
   "shadow keywords = keywords @ [Codegenerator.keywords 0 0 0 0 0 0]"
 
-code_gen "*" (Haskell -) (SML #)
+(*code_gen "*" (Haskell -) (SML #)*)
 
 end
