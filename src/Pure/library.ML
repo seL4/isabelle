@@ -163,6 +163,7 @@ sig
   val unsuffix: string -> string -> string
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
+  val nospaces: string -> string
 
   (*lists as sets -- see also Pure/General/ord_list.ML*)
   val member: ('b * 'a -> bool) -> 'a list -> 'b -> bool
@@ -770,13 +771,7 @@ val cat_lines = space_implode "\n";
 
 (*space_explode "." "h.e..l.lo" = ["h", "e", "", "l", "lo"]*)
 fun space_explode _ "" = []
-  | space_explode sep str =
-      let
-        fun expl chs =
-          (case take_prefix (fn s => s <> sep) chs of
-            (cs, []) => [implode cs]
-          | (cs, _ :: cs') => implode cs :: expl cs');
-      in expl (explode str) end;
+  | space_explode sep s = String.fields (fn c => str c = sep) s;
 
 val split_lines = space_explode "\n";
 
@@ -813,6 +808,7 @@ fun replicate_string 0 _ = ""
       if k mod 2 = 0 then replicate_string (k div 2) (a ^ a)
       else replicate_string (k div 2) (a ^ a) ^ a;
 
+val nospaces = String.translate (fn c => if Char.isSpace c then "" else str c);
 
 
 (** lists as sets -- see also Pure/General/ord_list.ML **)
