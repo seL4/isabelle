@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Generalized characters with and infinite amount of named symbols.
+Generalized characters with infinitely many named symbols.
 *)
 
 signature SYMBOL =
