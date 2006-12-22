@@ -102,7 +102,48 @@ apply (rule partial_order.total_orderI)
 apply clarsimp
 done
 
-interpretation total_order ["UNIV::int set" "op \<le>"] by (rule int_le_total_order)
+lemma less_int:
+  "order_syntax.less (op \<le>::[int, int] => bool) = (op <)"
+  by (auto simp add: expand_fun_eq order_syntax.less_def)
+
+lemma join_int:
+  "order_syntax.join (UNIV::int set) (op \<le>) = max"
+  apply (simp add: expand_fun_eq max_def)
+  apply (rule+)
+  apply (rule lattice.joinI)
+  apply (simp add: int_le_total_order total_order.axioms)
+  apply (simp add: order_syntax.least_def order_syntax.Upper_def)
+  apply arith
+  apply simp apply simp
+  apply (rule lattice.joinI)
+  apply (simp add: int_le_total_order total_order.axioms)
+  apply (simp add: order_syntax.least_def order_syntax.Upper_def)
+  apply arith
+  apply simp apply simp
+  done
+
+lemma meet_int:
+  "order_syntax.meet (UNIV::int set) (op \<le>) = min"
+  apply (simp add: expand_fun_eq min_def)
+  apply (rule+)
+  apply (rule lattice.meetI)
+  apply (simp add: int_le_total_order total_order.axioms)
+  apply (simp add: order_syntax.greatest_def order_syntax.Lower_def)
+  apply arith
+  apply simp apply simp
+  apply (rule lattice.meetI)
+  apply (simp add: int_le_total_order total_order.axioms)
+  apply (simp add: order_syntax.greatest_def order_syntax.Lower_def)
+  apply arith
+  apply simp apply simp
+  done
+
+text {* Interpretation unfolding @{text less}, @{text join} and @{text
+  meet} since they have natural representations in @{typ int}. *}
+
+interpretation 
+  int [unfolded less_int join_int meet_int]:
+  total_order ["UNIV::int set" "op \<le>"] by (rule int_le_total_order)
 
 
 subsubsection {* Generated Ideals of @{text "\<Z>"} *}

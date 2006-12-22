@@ -454,7 +454,7 @@ proof -
   also from R have "... = \<zero>" by (simp add: l_neg l_null)
   finally have "(\<ominus> x) \<otimes> y \<oplus> x \<otimes> y = \<zero>" .
   with R have "(\<ominus> x) \<otimes> y \<oplus> x \<otimes> y \<oplus> \<ominus> (x \<otimes> y) = \<zero> \<oplus> \<ominus> (x \<otimes> y)" by simp
-  with R show ?thesis by (simp add: a_assoc r_neg )
+  with R show ?thesis by (simp add: a_assoc r_neg)
 qed
 
 lemma (in ring) r_minus:

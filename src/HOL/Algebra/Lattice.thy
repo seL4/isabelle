@@ -34,7 +34,7 @@ definition (in order_syntax)
 text {* Upper and lower bounds of a set. *}
 
 definition (in order_syntax)
-  Upper where
+  Upper :: "'a set => 'a set" where
   "Upper A == {u. (ALL x. x \<in> A \<inter> L --> x \<sqsubseteq> u)} \<inter> L"
 
 definition (in order_syntax)
