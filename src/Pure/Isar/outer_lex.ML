@@ -11,6 +11,7 @@ sig
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
     Nat | String | AltString | Verbatim | Space | Comment | Sync | Malformed | EOF
   eqtype token
+  val eq_token: token * token -> bool
   val str_of_kind: token_kind -> string
   val stopper: token * (token -> bool)
   val not_sync: token -> bool
@@ -80,6 +81,7 @@ val str_of_kind =
   | Malformed => "bad input"
   | EOF => "end-of-file";
 
+val eq_token = op = : token * token -> bool;
 
 (* control tokens *)
 
