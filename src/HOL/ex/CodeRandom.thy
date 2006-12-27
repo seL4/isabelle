@@ -8,8 +8,6 @@ theory CodeRandom
 imports State_Monad
 begin
 
-section {* A simple random engine *}
-
 consts
   pick :: "(nat \<times> 'a) list \<Rightarrow> nat \<Rightarrow> 'a"
 

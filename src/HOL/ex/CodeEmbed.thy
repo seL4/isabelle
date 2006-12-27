@@ -8,9 +8,6 @@ theory CodeEmbed
 imports Main MLString
 begin
 
-section {* Embedding (a subset of) the Pure term algebra in HOL *}
-
-
 subsection {* Definitions *}
 
 types vname = ml_string;
