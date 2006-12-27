@@ -3,7 +3,7 @@
     Author:     Florian Haftmann, TU Muenchen
 
 Naming policies for code generation: prefixing any name by corresponding theory name,
-conversion to alphanumeric representation, shallow name spaces.
+conversion to alphanumeric representation, name space identifier.
 Mappings are incrementally cached.
 *)
 
@@ -20,13 +20,8 @@ sig
   val const: theory -> CodegenConsts.const -> const
   val const_rev: theory -> const -> CodegenConsts.const option
   val purify_var: string -> string
+  val purify_tvar: string -> string
   val check_modulename: string -> string
-  val has_nsp: string -> string -> bool
-  val nsp_class: string
-  val nsp_tyco: string
-  val nsp_inst: string
-  val nsp_fun: string
-  val nsp_dtco: string
 end;
 
 structure CodegenNames: CODEGEN_NAMES =
@@ -225,10 +220,11 @@ fun check_modulename mn =
   end
 
 fun purify_var "" = "x"
-  | purify_var v =
-      if nth (explode v) 0 = "'"
-      then (unprefix "'" #> purify_name #> purify_lower #> prefix "'") v
-      else (purify_name #> purify_lower) v;
+  | purify_var v = (purify_name #> purify_lower) v;
+
+fun purify_tvar "" = "'a"
+  | purify_tvar v =
+      (unprefix "'" #> explode #> filter Symbol.is_ascii_letter #> cons "'" #> implode) v;
 
 val purify_idf = purify_op #> purify_name;
 val purify_prefix = map (purify_idf #> purify_upper);
@@ -274,32 +270,15 @@ fun const_policy thy (c, tys) =
 val nsp_class = "class";
 val nsp_tyco = "tyco";
 val nsp_inst = "inst";
-val nsp_fun = "fun";
-val nsp_dtco = "dtco";
+val nsp_const = "const";
 
-fun add_nsp shallow name =
-  name
-  |> NameSpace.explode
-  |> split_last
-  |> apsnd (single #> cons shallow)
-  |> (op @)
-  |> NameSpace.implode;
+fun add_nsp nsp name =
+  NameSpace.append name nsp
 
-fun dest_nsp nsp nspname =
-  let
-    val xs = NameSpace.explode nspname;
-    val (ys, base) = split_last xs;
-    val (module, shallow) = split_last ys;
-  in
-    if nsp = shallow
-   then (SOME o NameSpace.implode) (module @ [base])
-    else NONE
-  end;
-
-val has_nsp = is_some oo dest_nsp;
-
-fun if_nsp nsp f idf =
-  Option.map f (dest_nsp nsp idf);
+fun dest_nsp nsp name =
+  if NameSpace.base name = nsp
+  then SOME (NameSpace.qualifier name)
+  else NONE;
 
 
 (* external interfaces *)
@@ -313,11 +292,10 @@ fun tyco thy =
 fun instance thy =
   get thy #instance Insttab.lookup map_inst Insttab.update instance_policy
   #> add_nsp nsp_inst;
-fun const thy c_ty = case CodegenConsts.norm thy c_ty
- of (c_tys as (c, tys)) => add_nsp (if (is_some o CodegenData.get_datatype_of_constr thy) c_tys
-     then nsp_dtco
-   else nsp_fun)
-  (get thy #const Consttab.lookup map_const Consttab.update const_policy c_tys);
+fun const thy =
+  CodegenConsts.norm thy
+  #> get thy #const Consttab.lookup map_const Consttab.update const_policy 
+  #> add_nsp nsp_const;
 
 fun class_rev thy =
   dest_nsp nsp_class
@@ -328,12 +306,8 @@ fun tyco_rev thy =
 fun instance_rev thy =
   dest_nsp nsp_inst
   #> Option.map (rev thy #instance "instance");
-fun const_rev thy nspname =
-  (case dest_nsp nsp_fun nspname
-   of name as SOME _ => name
-    | _ => (case dest_nsp nsp_dtco nspname
-   of name as SOME _ => name
-    | _ => NONE))
-  |> Option.map (rev thy #const "constant");
+fun const_rev thy =
+  dest_nsp nsp_const
+  #> Option.map (rev thy #const "constant");
 
 end;

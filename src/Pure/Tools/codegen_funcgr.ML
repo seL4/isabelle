@@ -73,7 +73,7 @@ fun canonical_tvars thy thm =
   let
     fun tvars_subst_for thm = (fold_types o fold_atyps)
       (fn TVar (v_i as (v, _), sort) => let
-            val v' = CodegenNames.purify_var v
+            val v' = CodegenNames.purify_tvar v
           in if v = v' then I
           else insert (op =) (v_i, (v', sort)) end
         | _ => I) (prop_of thm) [];
