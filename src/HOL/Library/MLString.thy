@@ -74,6 +74,5 @@ code_const explode
   (Haskell "_")
 
 code_reserved SML string explode
-code_reserved Haskell string
 
 end
