@@ -480,6 +480,9 @@ code_const "op \<circ>"
   (SML infixl 5 "o")
   (Haskell infixr 9 ".")
 
+code_const "id"
+  (Haskell "id")
+
 
 subsection {* ML legacy bindings *} 
 
