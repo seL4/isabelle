@@ -98,6 +98,7 @@ instance char :: linorder
 
 code_const char_to_int_pair
   (SML "raise/ Fail/ \"char'_to'_int'_pair\"")
+  (OCaml "failwith \"char'_to'_int'_pair\"")
   (Haskell "error/ \"char'_to'_int'_pair\"")
 
 end

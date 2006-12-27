@@ -2545,22 +2545,40 @@ consts_code "Cons" ("(_ ::/ _)")
 
 code_type list
   (SML "_ list")
+  (OCaml "_ list")
   (Haskell "![_]")
 
 code_const Nil
   (SML "[]")
+  (OCaml "[]")
   (Haskell "[]")
 
 code_type char
   (SML "char")
+  (OCaml "char")
   (Haskell "Char")
 
 code_const Char and char_rec
     and char_case and "size \<Colon> char \<Rightarrow> nat"
-  (SML "raise/ Fail/ \"Char\""
-    and "raise/ Fail/ \"char_rec\"" and "raise/ Fail/ \"char_case\"" and "raise/ Fail/ \"size_char\"")
   (Haskell "error/ \"Char\""
     and "error/ \"char_rec\"" and "error/ \"char_case\"" and "error/ \"size_char\"")
+
+setup {*
+  fold (uncurry (CodegenSerializer.add_undefined "SML")) [
+      ("List.char.Char", "(raise Fail \"Char\")"),
+      ("List.char.char_rec", "(raise Fail \"char_rec\")"),
+      ("List.char.char_case", "(raise Fail \"char_case\")")
+    ]
+  #> fold (uncurry (CodegenSerializer.add_undefined "OCaml")) [
+      ("List.char.Char", "(failwith \"Char\")"),
+      ("List.char.char_rec", "(failwith \"char_rec\")"),
+      ("List.char.char_case", "(failwith \"char_case\")")
+    ]    
+*}
+
+code_const "size \<Colon> char \<Rightarrow> nat"
+  (SML "!(_;/ raise Fail \"size'_char\")")
+  (OCaml "!(_;/ failwith \"size'_char\")")
 
 code_instance list :: eq and char :: eq
   (Haskell - and -)
@@ -2570,13 +2588,14 @@ code_const "op = \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> 
 
 code_const "op = \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (SML "!((_ : char) = _)")
+  (OCaml "!((_ : char) = _)")
   (Haskell infixl 4 "==")
 
 code_reserved SML
   list char nil
 
-code_reserved Haskell
-  Char
+code_reserved OCaml
+  list char
 
 setup {*
 let
@@ -2600,6 +2619,8 @@ in
   #> Codegen.add_codegen "char_codegen" char_codegen
   #> CodegenSerializer.add_pretty_list "SML" "List.list.Nil" "List.list.Cons"
        (Pretty.enum "," "[" "]") NONE (7, "::")
+  #> CodegenSerializer.add_pretty_list "OCaml" "List.list.Nil" "List.list.Cons"
+       (Pretty.enum ";" "[" "]") NONE (6, "::")
   #> CodegenSerializer.add_pretty_list "Haskell" "List.list.Nil" "List.list.Cons"
        (Pretty.enum "," "[" "]") (SOME (ML_Syntax.print_char, ML_Syntax.print_string)) (5, ":")
   #> CodegenPackage.add_appconst

@@ -929,6 +929,9 @@ lemma mod_divmod [code]:
 code_modulename SML
   Divides Integer
 
+code_modulename OCaml
+  Divides Integer
+
 hide (open) const divmod
 
 

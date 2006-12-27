@@ -127,10 +127,12 @@ text {*
 
 code_const "0::nat"
   (SML "!(0 : IntInf.int)")
+  (OCaml "Big'_int.big'_int'_of'_int/ 0")
   (Haskell "0")
 
 code_const "Suc"
   (SML "IntInf.+ ((_), 1)")
+  (OCaml "Big_int.succ'_big'_int")
   (Haskell "!((_) + 1)")
 
 setup {*
@@ -148,6 +150,7 @@ fun gen_nat i = random_range 0 i;
 
 code_type nat
   (SML "IntInf.int")
+  (OCaml "Big'_int.big'_int")
   (Haskell "Integer")
 
 consts_code
@@ -174,10 +177,12 @@ fun nat i = if i < 0 then 0 else i;
 
 code_const int
   (SML "_")
+  (OCaml "_")
   (Haskell "_")
 
 code_const nat_of_int
   (SML "_")
+  (OCaml "_")
   (Haskell "_")
 
 
@@ -220,7 +225,7 @@ fun remove_suc thy thms =
     val Suc_if_eq' = Thm.transfer thy Suc_if_eq;
     val vname = Name.variant (map fst
       (fold (Term.add_varnames o Thm.full_prop_of) thms [])) "x";
-    val cv = cterm_of Main.thy (Var ((vname, 0), HOLogic.natT));
+    val cv = cterm_of thy (Var ((vname, 0), HOLogic.natT));
     fun lhs_of th = snd (Thm.dest_comb
       (fst (Thm.dest_comb (snd (Thm.dest_comb (cprop_of th))))));
     fun rhs_of th = snd (Thm.dest_comb (snd (Thm.dest_comb (cprop_of th))));
@@ -333,6 +338,10 @@ setup {*
 subsection {* Module names *}
 
 code_modulename SML
+  Nat Integer
+  EfficientNat Integer
+
+code_modulename OCaml
   Nat Integer
   EfficientNat Integer
 

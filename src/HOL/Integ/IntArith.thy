@@ -361,6 +361,9 @@ subsection {* code generator setup *}
 code_modulename SML
   Numeral Integer
 
+code_modulename OCaml
+  Numeral Integer
+
 lemma Numeral_Pls_refl [code func]:
   "Numeral.Pls = Numeral.Pls" ..
 
@@ -396,9 +399,11 @@ declare int_code_rewrites [code func]
 
 code_type bit
   (SML "bool")
+  (OCaml "bool")
   (Haskell "Bool")
 code_const "Numeral.bit.B0" and "Numeral.bit.B1"
   (SML "false" and "true")
+  (OCaml "false" and "true")
   (Haskell "False" and "True")
 
 code_const "number_of \<Colon> int \<Rightarrow> int"
@@ -407,12 +412,18 @@ code_const "number_of \<Colon> int \<Rightarrow> int"
   (SML "_"
      and "0/ :/ IntInf.int"
      and "~1/ :/ IntInf.int"
-     and "(_; _; raise Fail \"BIT\")"
+     and "!(_; _; raise Fail \"BIT\")"
      and "IntInf.+/ (_,/ 1)"
      and "IntInf.-/ (_,/ 1))")
+  (OCaml "_"
+     and "Big'_int.big'_int'_of'_int/ 0"
+     and "Big'_int.big'_int'_of'_int/ -1"
+     and "!(_; _; failwith \"BIT\")"
+     and "Big'_int.succ'_big'_int"
+     and "Big'_int.pred'_big'_int")
   (Haskell "_"
      and "0"
-     and "negate/ 1"
+     and "!(-1)"
      and "error/ \"BIT\""
      and "(+)/ 1"
      and "(-)/ _/ 1")

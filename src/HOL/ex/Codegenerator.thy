@@ -5,77 +5,14 @@
 header {* Tests and examples for code generator *}
 
 theory Codegenerator
-imports
-  Main
-  "~~/src/HOL/ex/Records"
-  AssocList
-  Binomial
-  Commutative_Ring
-  GCD
-  List_Prefix
-  Nat_Infinity
-  NatPair
-  Nested_Environment
-  Permutation
-  Primes
-  Product_ord
-  SetsAndFunctions
-  State_Monad
-  While_Combinator
-  Word
-  (*a lot of stuff to test*)
+imports ExecutableContent
 begin
 
-definition
-  n :: nat where
-  "n = 42"
+code_gen "*" (SML #) (Haskell -)
 
-definition
-  k :: "int" where
-  "k = -42"
+ML {* set Toplevel.debug *}
+code_gen (OCaml "~/projects/codegen/test/OCaml/ROOT.ocaml")
 
-datatype mut1 = Tip | Top mut2
-  and mut2 = Tip | Top mut1
-
-consts
-  mut1 :: "mut1 \<Rightarrow> mut1"
-  mut2 :: "mut2 \<Rightarrow> mut2"
-
-primrec
-  "mut1 mut1.Tip = mut1.Tip"
-  "mut1 (mut1.Top x) = mut1.Top (mut2 x)"
-  "mut2 mut2.Tip = mut2.Tip"
-  "mut2 (mut2.Top x) = mut2.Top (mut1 x)"
-
-definition
-  "mystring = ''my home is my castle''"
-
-text {* nested lets and such *}
-
-definition
-  "abs_let x = (let (y, z) = x in (\<lambda>u. case u of () \<Rightarrow> (y + y)))"
-
-definition
-  "nested_let x = (let (y, z) = x in let w = y z in w * w)"
-
-definition
-  "case_let x = (let (y, z) = x in case y of () => z)"
-
-definition
-  "base_case f = f list_case"
-
-definition
-  "apply_tower = (\<lambda>x. x (\<lambda>x. x (\<lambda>x. x)))"
-
-definition
-  "keywords fun datatype x instance funa classa =
-    Suc fun + datatype * x mod instance - funa - classa"
-
-hide (open) const keywords
-
-definition
-  "shadow keywords = keywords @ [Codegenerator.keywords 0 0 0 0 0 0]"
-
-(*code_gen "*" (Haskell -) (SML #)*)
+code_gen "*"(OCaml "~/projects/codegen/test/OCaml/ROOT.ocaml")
 
 end

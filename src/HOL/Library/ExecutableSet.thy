@@ -278,6 +278,10 @@ code_modulename SML
   ExecutableSet List
   Set List
 
+code_modulename OCaml
+  ExecutableSet List
+  Set List
+
 code_modulename Haskell
   ExecutableSet List
   Set List

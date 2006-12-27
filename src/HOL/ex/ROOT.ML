@@ -8,10 +8,10 @@ no_document use_thy "Parity";
 no_document use_thy "GCD";
 
 no_document time_use_thy "Classpackage";
-no_document time_use_thy "Codegenerator";
 no_document time_use_thy "CodeCollections";
 no_document time_use_thy "CodeEval";
 no_document time_use_thy "CodeRandom";
+no_document time_use_thy "Codegenerator";
 
 time_use_thy "Higher_Order_Logic";
 time_use_thy "Abstract_NAT";

@@ -105,6 +105,9 @@ section {* code names *}
 code_modulename SML
   ExecutableRat Rational
 
+code_modulename OCaml
+  ExecutableRat Rational
+
 
 section {* rat as abstype *}
 
@@ -124,7 +127,8 @@ code_abstype rat erat where
   "op = \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" \<equiv> eq_erat
 
 code_const div_zero
-  (SML "raise/ (Fail/ \"Division by zero\")")
+  (SML "raise/ Fail/ \"Division by zero\"")
+  (OCaml "failwith \"Division by zero\"")
   (Haskell "error/ \"Division by zero\"")
 
 code_gen

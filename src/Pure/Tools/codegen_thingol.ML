@@ -18,7 +18,7 @@ sig
   type vname = string;
   datatype inst =
       Instance of string * inst list list
-    | Context of class list * (vname * int);
+    | Context of (class list * int) * (vname * int);
   datatype itype =
       `%% of string * itype list
     | ITyVar of vname;
@@ -120,7 +120,7 @@ type vname = string;
 
 datatype inst =
     Instance of string * inst list list
-  | Context of class list * (vname * int);
+  | Context of (class list * int) * (vname * int);
 
 datatype itype =
     `%% of string * itype list

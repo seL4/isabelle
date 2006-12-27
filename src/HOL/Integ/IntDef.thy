@@ -912,6 +912,7 @@ instance int :: eq ..
 
 code_type int
   (SML "IntInf.int")
+  (OCaml "Big'_int.big'_int")
   (Haskell "Integer")
 
 code_instance int :: eq
@@ -919,34 +920,41 @@ code_instance int :: eq
 
 code_const "op = \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "!((_ : IntInf.int) = _)")
+  (OCaml "Big'_int.eq'_big'_int")
   (Haskell infixl 4 "==")
 
 code_const "op \<le> \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "IntInf.<= (_, _)")
+  (OCaml "Big'_int.le'_big'_int")
   (Haskell infix 4 "<=")
 
 code_const "op < \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "IntInf.< (_, _)")
+  (OCaml "Big'_int.lt'_big'_int")
   (Haskell infix 4 "<")
 
 code_const "op + \<Colon> int \<Rightarrow> int \<Rightarrow> int"
   (SML "IntInf.+ (_, _)")
+  (OCaml "Big'_int.add'_big'_int")
   (Haskell infixl 6 "+")
 
 code_const "op - \<Colon> int \<Rightarrow> int \<Rightarrow> int"
   (SML "IntInf.- (_, _)")
+  (OCaml "Big'_int.sub'_big'_int")
   (Haskell infixl 6 "-")
 
 code_const "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
   (SML "IntInf.* (_, _)")
+  (OCaml "Big'_int.mult'_big'_int")
   (Haskell infixl 7 "*")
 
 code_const "uminus \<Colon> int \<Rightarrow> int"
   (SML "IntInf.~")
+  (OCaml "Big'_int.minus'_big'_int")
   (Haskell "negate")
 
 code_reserved SML IntInf
-code_reserved Haskell Integer negate
+code_reserved OCaml Big_int
 
 code_modulename SML
   IntDef Integer
