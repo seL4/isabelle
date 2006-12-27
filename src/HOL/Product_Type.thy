@@ -773,27 +773,55 @@ lemma
 
 subsection {* Code generator setup *}
 
+lemmas [code func] = fst_conv snd_conv
+
 instance unit :: eq ..
 
 lemma [code func]:
   "(u\<Colon>unit) = v \<longleftrightarrow> True" unfolding unit_eq [of u] unit_eq [of v] by rule+
 
+code_type unit
+  (SML "unit")
+  (OCaml "unit")
+  (Haskell "()")
+
 code_instance unit :: eq
   (Haskell -)
+
+code_const "op = \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_const Unity
+  (SML "()")
+  (OCaml "()")
+  (Haskell "()")
+
+code_reserved SML
+  unit
+
+code_reserved OCaml
+  unit
 
 instance * :: (eq, eq) eq ..
 
 lemma [code func]:
   "(x1\<Colon>'a\<Colon>eq, y1\<Colon>'b\<Colon>eq) = (x2, y2) \<longleftrightarrow> x1 = x2 \<and> y1 = y2" by auto
 
+code_type *
+  (SML infix 2 "*")
+  (OCaml infix 2 "*")
+  (Haskell "!((_),/ (_))")
+
 code_instance * :: eq
   (Haskell -)
 
-code_const "op = \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
-  (Haskell infixl 4 "==")
-
 code_const "op = \<Colon> 'a\<Colon>eq \<times> 'b\<Colon>eq \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
   (Haskell infixl 4 "==")
+
+code_const Pair
+  (SML "!((_),/ (_))")
+  (OCaml "!((_),/ (_))")
+  (Haskell "!((_),/ (_))")
 
 types_code
   "*"     ("(_ */ _)")
@@ -807,7 +835,9 @@ fun gen_id_42 aG bG i = (aG i, bG i);
 consts_code
   "Pair"    ("(_,/ _)")
 
-ML {*
+setup {*
+
+let
 
 fun strip_abs_split 0 t = ([], t)
   | strip_abs_split i (Abs (s, T, t)) =
@@ -870,18 +900,17 @@ fun split_codegen thy defs gr dep thyname brack t = (case strip_comb t of
        | _ => NONE)
   | _ => NONE);
 
-val prod_codegen_setup =
+in
+
   Codegen.add_codegen "let_codegen" let_codegen
   #> Codegen.add_codegen "split_codegen" split_codegen
   #> CodegenPackage.add_appconst
        ("Let", CodegenPackage.appgen_let)
 
+end
 *}
 
-setup prod_codegen_setup
-
-ML
-{*
+ML {*
 val Collect_split = thm "Collect_split";
 val Compl_Times_UNIV1 = thm "Compl_Times_UNIV1";
 val Compl_Times_UNIV2 = thm "Compl_Times_UNIV2";
