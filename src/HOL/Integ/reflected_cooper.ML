@@ -51,7 +51,7 @@ fun qf_of_term vs t =
       | _ => error "qf_of_term : unknown term!";
 
 (*
-fun parse s = term_of (read_cterm (sign_of Main.thy) (s,HOLogic.boolT));
+fun parse thy s = term_of (Thm.read_cterm thy (s, HOLogic.boolT));
 
 val t = parse "ALL (i::int) (j::int). i < 8* j --> (i - 1 = j + 3 + 2*j) & (j <= -i + k ) | 4 = i | 5 dvd i";
 *)
