@@ -719,6 +719,8 @@ lemma option_map_o_sum_case [simp]:
 
 subsubsection {* Code generator setup *}
 
+lemmas [code] = fst_conv snd_conv imp_conv_disj
+
 definition
   is_none :: "'a option \<Rightarrow> bool" where
   is_none_none [normal post, symmetric, code inline]: "is_none x \<longleftrightarrow> x = None"
@@ -728,72 +730,20 @@ lemma is_none_code [code]:
     and "is_none (Some x) \<longleftrightarrow> False"
   unfolding is_none_none [symmetric] by simp_all
 
-hide (open) const is_none
-
-lemmas [code] = imp_conv_disj
-
-lemma [code func]:
-  "(\<not> True) = False" by (rule HOL.simp_thms)
-
-lemma [code func]:
-  "(\<not> False) = True" by (rule HOL.simp_thms)
-
-lemma [code func]:
-  shows "(False \<and> x) = False"
-    and "(True \<and> x) = x"
-    and "(x \<and> False) = False"
-    and "(x \<and> True) = x" by simp_all
-
-lemma [code func]:
-  shows "(False \<or> x) = x"
-    and "(True \<or> x) = True"
-    and "(x \<or> False) = x"
-    and "(x \<or> True) = True" by simp_all
-
-declare
-  if_True [code func]
-  if_False [code func]
-  fst_conv [code]
-  snd_conv [code]
-
 lemma split_is_prod_case [code inline]:
-    "split = prod_case"
+  "split = prod_case"
   by (simp add: expand_fun_eq split_def prod.cases)
 
-code_type bool
-  (SML "bool")
-  (Haskell "Bool")
-
-code_const True and False and Not and "op &" and "op |" and If
-  (SML "true" and "false" and "not"
-    and infixl 1 "andalso" and infixl 0 "orelse"
-    and "!(if (_)/ then (_)/ else (_))")
-  (Haskell "True" and "False" and "not"
-    and infixl 3 "&&" and infixl 2 "||"
-    and "!(if (_)/ then (_)/ else (_))")
-
-code_type *
-  (SML infix 2 "*")
-  (Haskell "!((_),/ (_))")
-
-code_const Pair
-  (SML "!((_),/ (_))")
-  (Haskell "!((_),/ (_))")
-
-code_type unit
-  (SML "unit")
-  (Haskell "()")
-
-code_const Unity
-  (SML "()")
-  (Haskell "()")
+hide (open) const is_none
 
 code_type option
   (SML "_ option")
+  (OCaml "_ option")
   (Haskell "Maybe _")
 
 code_const None and Some
   (SML "NONE" and "SOME")
+  (OCaml "None" and "Some _")
   (Haskell "Nothing" and "Just")
 
 code_instance option :: eq
@@ -803,10 +753,10 @@ code_const "op = \<Colon> 'a\<Colon>eq option \<Rightarrow> 'a option \<Rightarr
   (Haskell infixl 4 "==")
 
 code_reserved SML
-  bool true false not unit option NONE SOME
+  option NONE SOME
 
-code_reserved Haskell
-  Bool True False not Maybe Nothing Just
+code_reserved OCaml
+  option None Some
 
 
 subsection {* Basic ML bindings *}
