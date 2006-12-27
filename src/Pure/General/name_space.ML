@@ -28,6 +28,7 @@ sig
   val qualified: string -> string -> string
   val base: string -> string
   val qualifier: string -> string
+  val split: string -> string * string
   val map_base: (string -> string) -> string -> string
   val suffixes_prefixes: 'a list -> 'a list list
   val suffixes_prefixes_split: int -> int -> 'a list -> 'a list list
@@ -86,6 +87,9 @@ fun base "" = ""
 
 fun qualifier "" = ""
   | qualifier name = implode_name (#1 (split_last (explode_name name)));
+
+fun split "" = ("", "")
+  | split name = (apfst implode_name o split_last o explode_name) name;
 
 fun map_base _ "" = ""
   | map_base f name =
