@@ -200,8 +200,8 @@ fun exprgen_typinst thy (algbr as ((proj_sort, algebra), consts)) funcgr strct (
       | mk_dict (Contxt ((v, sort), (classes, k))) trns =
           trns
           |> fold_map (ensure_def_class thy algbr funcgr strct) classes
-          |-> (fn classes => pair (Context (classes, (unprefix "'" v,
-                if length sort = 1 then ~1 else k))))
+          |-> (fn classes => pair (Context ((classes, k), (unprefix "'" v,
+                length sort))))
   in
     trns
     |> fold_map mk_dict insts
@@ -483,6 +483,28 @@ fun add_appconst (c, appgen) thy =
 
 (** abstype and constsubst interface **)
 
+local
+
+fun add_consts thy f (c1, c2 as (c, tys)) =
+  let
+    val string_of_typ = setmp show_sorts true (Sign.string_of_typ thy);
+    val _ = case tys
+     of [TVar _] => if is_some (AxClass.class_of_param thy c)
+          then error ("not a function: " ^ CodegenConsts.string_of_const thy c2)
+          else ()
+      | _ => ();
+    val _ = if is_some (CodegenData.get_datatype_of_constr thy c2)
+      then error ("not a function: " ^ CodegenConsts.string_of_const thy c2)
+      else ();
+    val funcgr = CodegenFuncgr.make thy [c1, c2];
+    val ty1 = (f o CodegenFuncgr.typ funcgr) c1;
+    val ty2 = CodegenFuncgr.typ funcgr c2;
+    val _ = if Sign.typ_equiv thy (ty1, ty2) then () else
+      error ("Incompatiable type signatures of " ^ CodegenConsts.string_of_const thy c1
+        ^ " and " ^ CodegenConsts.string_of_const thy c2 ^ ":\n"
+        ^ string_of_typ ty1 ^ "\n" ^ string_of_typ ty2);
+  in Consttab.update (c1, c2) end;
+
 fun gen_abstyp prep_const prep_typ (raw_abstyp, raw_substtyp) raw_absconsts thy =
   let
     val abstyp = Type.no_tvars (prep_typ thy raw_abstyp);
@@ -507,20 +529,6 @@ fun gen_abstyp prep_const prep_typ (raw_abstyp, raw_substtyp) raw_absconsts thy 
             Type (tyco, tys')
           end
       | apply_typpat ty = ty;
-    val string_of_typ = setmp show_sorts true (Sign.string_of_typ thy);
-    fun add_consts (c1, c2) =
-      let
-        val _ = if CodegenNames.has_nsp CodegenNames.nsp_fun (CodegenNames.const thy c2)
-          then ()
-          else error ("not a function: " ^ CodegenConsts.string_of_const thy c2);
-        val funcgr = CodegenFuncgr.make thy [c1, c2];
-        val ty1 = (apply_typpat o CodegenFuncgr.typ funcgr) c1;
-        val ty2 = CodegenFuncgr.typ funcgr c2;
-        val _ = if Sign.typ_equiv thy (ty1, ty2) then () else
-          error ("Incompatiable type signatures of " ^ CodegenConsts.string_of_const thy c1
-            ^ " and " ^ CodegenConsts.string_of_const thy c2 ^ ":\n"
-            ^ string_of_typ ty1 ^ "\n" ^ string_of_typ ty2);
-      in Consttab.update (c1, c2) end;
     val _ = Code.change thy (K CodegenThingol.empty_code);
   in
     thy
@@ -528,32 +536,20 @@ fun gen_abstyp prep_const prep_typ (raw_abstyp, raw_substtyp) raw_absconsts thy 
           (abstypes
           |> Symtab.update (abstyco, typpat),
           abscs
-          |> fold add_consts absconsts)
+          |> fold (add_consts thy apply_typpat) absconsts)
        )
   end;
 
 fun gen_constsubst prep_const raw_constsubsts thy =
   let
     val constsubsts = (map o pairself) (prep_const thy) raw_constsubsts;
-    val string_of_typ = setmp show_sorts true (Sign.string_of_typ thy);
-    fun add_consts (c1, c2) =
-      let
-        val _ = if CodegenNames.has_nsp CodegenNames.nsp_fun (CodegenNames.const thy c2)
-          then ()
-          else error ("not a function: " ^ CodegenConsts.string_of_const thy c2);
-        val funcgr = CodegenFuncgr.make thy [c1, c2];
-        val ty1 = CodegenFuncgr.typ funcgr c1;
-        val ty2 = CodegenFuncgr.typ funcgr c2;
-        val _ = if Sign.typ_equiv thy (ty1, ty2) then () else
-          error ("Incompatiable type signatures of " ^ CodegenConsts.string_of_const thy c1
-            ^ " and " ^ CodegenConsts.string_of_const thy c2 ^ ":\n"
-            ^ string_of_typ ty1 ^ "\n" ^ string_of_typ ty2);
-      in Consttab.update (c1, c2) end;
     val _ = Code.change thy (K CodegenThingol.empty_code);
   in
     thy
-    |> (CodegenPackageData.map o apsnd o apsnd) (fold add_consts constsubsts)
+    |> (CodegenPackageData.map o apsnd o apsnd) (fold (add_consts thy I) constsubsts)
   end;
+
+in
 
 val abstyp = gen_abstyp CodegenConsts.norm Sign.certify_typ;
 val abstyp_e = gen_abstyp CodegenConsts.read_const (fn thy => Sign.read_typ (thy, K NONE));
@@ -561,6 +557,7 @@ val abstyp_e = gen_abstyp CodegenConsts.read_const (fn thy => Sign.read_typ (thy
 val constsubst = gen_constsubst CodegenConsts.norm;
 val constsubst_e = gen_constsubst CodegenConsts.read_const;
 
+end; (*local*)
 
 
 (** code generation interfaces **)
@@ -599,7 +596,7 @@ fun eval_term thy (ref_spec, t) =
       error ("Term" ^ Sign.string_of_term thy t ^ "is polymorhpic"))
       t;
     val t' = codegen_term thy t;
-  in CodegenSerializer.eval_term thy (ref_spec, t') (Code.get thy) end;
+  in CodegenSerializer.eval_term thy (Code.get thy) (ref_spec, t') end;
 
 
 (* constant specifications with wildcards *)
@@ -669,7 +666,7 @@ val (codeK, code_abstypeK, code_axiomsK) =
 in
 
 val code_bareP = (
-    P.!!! (Scan.repeat P.term
+    (Scan.repeat P.term
     -- Scan.repeat (P.$$$ "(" |--
         P.name -- P.arguments
         --| P.$$$ ")"))
@@ -678,11 +675,11 @@ val code_bareP = (
 
 val codeP =
   OuterSyntax.improper_command codeK "generate and serialize executable code for constants"
-    K.diag (code_bareP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
+    K.diag (P.!!! code_bareP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
 
 fun codegen_command thy cmd =
-  case Scan.read OuterLex.stopper code_bareP ((filter OuterLex.is_proper o OuterSyntax.scan) cmd)
-   of SOME f => f thy
+  case Scan.read OuterLex.stopper (P.!!! code_bareP) ((filter OuterLex.is_proper o OuterSyntax.scan) cmd)
+   of SOME f => (writeln "Now generating code..."; f thy)
     | NONE => error ("bad directive " ^ quote cmd);
 
 val code_abstypeP =
