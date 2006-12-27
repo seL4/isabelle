@@ -446,16 +446,16 @@ fun use_thy_or_ml_file file =
 (* Responses to each of the PGIP input commands. 
    These are programmed uniformly for extensibility. *)
 
-fun askpgip vs = 
+fun askpgip (Askpgip vs) = 
     issue_pgip
         (Usespgip { version = PgipIsabelle.isabelle_pgip_version_supported,
 		    pgipelems = PgipIsabelle.accepted_inputs })
 
-fun askpgml vs = 
+fun askpgml (Askpgml vs) = 
     issue_pgip
 	(Usespgml { version = PgipIsabelle.isabelle_pgml_version_supported })
 
-fun askprefs vs =
+fun askprefs (Askprefs vs) =
     let 
 	fun preference_of {name, descr, default, pgiptype, get, set } = 
 	    { name = name, descr = SOME descr, default = SOME default, 
@@ -467,7 +467,7 @@ fun askprefs vs =
                  Preferences.preferences
     end 
 
-fun askconfig vs = () (* TODO: add config response *)
+fun askconfig (Askconfig vs) = () (* TODO: add config response *)
 
 local
     fun lookuppref pref = 
@@ -477,7 +477,7 @@ local
 	    NONE => error ("Unknown prover preference: " ^ quote pref)
 	  | SOME p => p
 in
-fun setpref vs = 
+fun setpref (Setpref vs) = 
     let 
 	val name = #name vs
 	val value = #value vs
@@ -486,7 +486,7 @@ fun setpref vs =
 	set value
     end
 
-fun getpref vs =
+fun getpref (Getpref vs) =
     let 
 	val name = #name vs
 	val get = #get (lookuppref name)
@@ -510,14 +510,14 @@ fun pgmlsymbolson vs =
 fun pgmlsymbolsoff vs =
     change print_mode (remove (op =) Symbol.xsymbolsN)
 
-fun dostep vs = 
+fun dostep (Dostep vs) = 
     let 
 	val text = #text vs
     in 
 	isarcmd text
     end
 
-fun undostep vs =
+fun undostep (Undostep vs) =
     let 
 	val times = #times vs
     in 
@@ -540,7 +540,7 @@ fun delids t = issue_pgip (Delids {idtables = [t]})
      issue_pgip (Setids {idtables = 
 	 		[{context=NONE,objtype=ty,ids=[]}]}) *)
 
-fun askids vs = 
+fun askids (Askids vs) = 
     let
 	val url = #url vs	     (* ask for identifiers within a file *)
 	val thyname = #thyname vs    (* ask for identifiers within a theory *)
@@ -581,7 +581,7 @@ local
 	  issue_pgip (pgipfn (!lines))
       end;
 in
-fun showid vs = 
+fun showid (Showid vs) = 
     let
 	val thyname = #thyname vs
 	val objtype = #objtype vs
@@ -640,7 +640,7 @@ fun askguise vs =
 				  proofpos = openproofpos })
     end
 
-fun parsescript vs =
+fun parsescript (Parsescript vs) =
     let
 	val text = #text vs
 	val systemdata = #systemdata vs      
@@ -662,21 +662,21 @@ fun showproofstate vs = isarcmd "pr"
 
 fun showctxt vs = isarcmd "print_theory"   (* more useful than print_context *)
 
-fun searchtheorems vs =
+fun searchtheorems (Searchtheorems vs) =
     let 
 	val arg = #arg vs
     in
 	isarcmd ("thms_containing " ^ arg)
     end
 
-fun setlinewidth vs = 
+fun setlinewidth (Setlinewidth vs) = 
     let 
 	val width = #width vs
     in
 	isarcmd ("pretty_setmargin " ^ (Int.toString width)) (* FIXME: conversion back/forth! *)
     end
 
-fun viewdoc vs =
+fun viewdoc (Viewdoc vs) =
     let 
 	val arg = #arg vs
     in 
@@ -685,7 +685,7 @@ fun viewdoc vs =
 
 (*** Theory ***)
 
-fun doitem vs =
+fun doitem (Doitem vs) =
     let
 	val text = #text vs
     in
@@ -701,7 +701,7 @@ fun redoitem vs =
 fun aborttheory vs = 
     isarcmd "init_toplevel"
 
-fun retracttheory vs =
+fun retracttheory (Retracttheory vs) =
     let 
 	val thyname = #thyname vs
     in
@@ -733,7 +733,7 @@ fun changecwd_dir newdirpath =
    end
 end
 
-fun changecwd vs = 
+fun changecwd (Changecwd vs) = 
     let 
 	val url = #url vs
 	val newdir = PgipTypes.path_of_pgipurl url
@@ -741,7 +741,7 @@ fun changecwd vs =
 	changecwd_dir url
     end
 
-fun openfile vs =
+fun openfile (Openfile vs) =
   let 
       val url = #url vs
       val filepath = PgipTypes.path_of_pgipurl url
@@ -763,7 +763,7 @@ fun closefile vs =
                    currently_open_file := NONE)
       | NONE => raise PGIP ("<closefile> when no file is open!")
 
-fun loadfile vs = 
+fun loadfile (Loadfile vs) = 
     let 
 	val url = #url vs
     in 
@@ -778,7 +778,7 @@ fun abortfile vs =
 		   currently_open_file := NONE)
       | NONE => raise PGIP ("<abortfile> when no file is open!")
 
-fun retractfile vs = 
+fun retractfile (Retractfile vs) = 
     let 
 	val url = #url vs
     in
@@ -790,7 +790,7 @@ fun retractfile vs =
 
 (*** System ***)
 
-fun systemcmd vs =
+fun systemcmd (Systemcmd vs) =
   let 
       val arg = #arg vs
   in
@@ -800,47 +800,47 @@ fun systemcmd vs =
 exception PGIP_QUIT;
 fun quitpgip vs = raise PGIP_QUIT
 
-fun process_input inp = case inp of
-     Pgip.Askpgip vs         => askpgip vs
-   | Pgip.Askpgml vs         => askpgml vs
-   | Pgip.Askprefs vs        => askprefs vs 
-   | Pgip.Askconfig vs       => askconfig vs
-   | Pgip.Getpref vs         => getpref vs
-   | Pgip.Setpref vs         => setpref vs
-   | Pgip.Proverinit vs      => proverinit vs
-   | Pgip.Proverexit vs      => proverexit vs
-   | Pgip.Startquiet vs      => startquiet vs
-   | Pgip.Stopquiet vs       => stopquiet vs
-   | Pgip.Pgmlsymbolson vs   => pgmlsymbolson vs
-   | Pgip.Pgmlsymbolsoff vs  => pgmlsymbolsoff vs
-   | Pgip.Dostep vs          => dostep vs
-   | Pgip.Undostep vs        => undostep vs
-   | Pgip.Redostep vs        => redostep vs
-   | Pgip.Forget vs	     => (error "<forget> not implemented")
-   | Pgip.Restoregoal vs     => (error "<restoregoal> not implemented")
-   | Pgip.Abortgoal vs       => abortgoal vs
-   | Pgip.Askids vs          => askids vs
-   | Pgip.Showid vs          => showid vs
-   | Pgip.Askguise vs	     => askguise vs
-   | Pgip.Parsescript vs     => parsescript vs
-   | Pgip.Showproofstate vs  => showproofstate vs
-   | Pgip.Showctxt vs        => showctxt vs
-   | Pgip.Searchtheorems vs  => searchtheorems vs
-   | Pgip.Setlinewidth vs    => setlinewidth vs
-   | Pgip.Viewdoc vs         => viewdoc vs
-   | Pgip.Doitem vs          => doitem vs
-   | Pgip.Undoitem vs        => undoitem vs
-   | Pgip.Redoitem vs        => redoitem vs
-   | Pgip.Aborttheory vs     => aborttheory vs
-   | Pgip.Retracttheory vs   => retracttheory vs
-   | Pgip.Loadfile vs	     => loadfile vs
-   | Pgip.Openfile vs	     => openfile vs
-   | Pgip.Closefile vs	     => closefile vs
-   | Pgip.Abortfile vs	     => abortfile vs
-   | Pgip.Retractfile vs     => retractfile vs
-   | Pgip.Changecwd vs	     => changecwd vs
-   | Pgip.Systemcmd vs	     => systemcmd vs
-   | Pgip.Quitpgip vs        => quitpgip vs
+fun process_input inp = case inp
+ of Pgip.Askpgip _          => askpgip inp
+  | Pgip.Askpgml _          => askpgml inp
+  | Pgip.Askprefs _         => askprefs inp 
+  | Pgip.Askconfig _        => askconfig inp
+  | Pgip.Getpref _          => getpref inp
+  | Pgip.Setpref _          => setpref inp
+  | Pgip.Proverinit _       => proverinit inp
+  | Pgip.Proverexit _       => proverexit inp
+  | Pgip.Startquiet _       => startquiet inp
+  | Pgip.Stopquiet _        => stopquiet inp
+  | Pgip.Pgmlsymbolson _    => pgmlsymbolson inp
+  | Pgip.Pgmlsymbolsoff _   => pgmlsymbolsoff inp
+  | Pgip.Dostep _           => dostep inp
+  | Pgip.Undostep _         => undostep inp
+  | Pgip.Redostep _         => redostep inp
+  | Pgip.Forget _           => error "<forget> not implemented"
+  | Pgip.Restoregoal _      => error "<restoregoal> not implemented"
+  | Pgip.Abortgoal _        => abortgoal inp
+  | Pgip.Askids _           => askids inp
+  | Pgip.Showid _           => showid inp
+  | Pgip.Askguise _         => askguise inp
+  | Pgip.Parsescript _      => parsescript inp
+  | Pgip.Showproofstate _   => showproofstate inp
+  | Pgip.Showctxt _         => showctxt inp
+  | Pgip.Searchtheorems _   => searchtheorems inp
+  | Pgip.Setlinewidth _     => setlinewidth inp
+  | Pgip.Viewdoc _          => viewdoc inp
+  | Pgip.Doitem _           => doitem inp
+  | Pgip.Undoitem _         => undoitem inp
+  | Pgip.Redoitem _         => redoitem inp
+  | Pgip.Aborttheory _      => aborttheory inp
+  | Pgip.Retracttheory _    => retracttheory inp
+  | Pgip.Loadfile _         => loadfile inp
+  | Pgip.Openfile _         => openfile inp
+  | Pgip.Closefile _        => closefile inp
+  | Pgip.Abortfile _        => abortfile inp
+  | Pgip.Retractfile _      => retractfile inp
+  | Pgip.Changecwd _        => changecwd inp
+  | Pgip.Systemcmd _        => systemcmd inp
+  | Pgip.Quitpgip _         => quitpgip inp
 
 
 fun process_pgip_element pgipxml = 

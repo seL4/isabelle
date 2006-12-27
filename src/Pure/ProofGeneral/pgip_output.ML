@@ -105,15 +105,15 @@ datatype pgipoutput =
 
 
 (* Construct output XML messages *)
-        
-fun cleardisplay vs = 
+
+fun cleardisplay (Cleardisplay vs) =
     let
         val area = #area vs
     in
         XML.Elem ("cleardisplay", (attrs_of_displayarea area), [])
     end
 
-fun normalresponse vs =
+fun normalresponse (Normalresponse vs) =
     let 
         val area = #area vs
         val urgent = #urgent vs
@@ -126,8 +126,8 @@ fun normalresponse vs =
                  (attrs_of_messagecategory messagecategory),
                  content)
     end
-                                       
-fun errorresponse vs =
+
+fun errorresponse (Errorresponse vs) =
     let 
         val area = #area vs
         val fatality = #fatality vs
@@ -140,26 +140,29 @@ fun errorresponse vs =
                  (the_default [] (Option.map attrs_of_location location)),
                  content)
     end
-                                       
 
-fun informfile lr vs =
+fun informfileloaded (Informfileloaded vs) =
     let 
         val url = #url vs
     in
-        XML.Elem ("informfile" ^ lr, attrs_of_pgipurl url, [])
+        XML.Elem ("informfileloaded", attrs_of_pgipurl url, [])
     end
 
-val informfileloaded = informfile "loaded"
-val informfileretracted = informfile "retracted"
+fun informfileretracted (Informfileretracted vs) =
+    let 
+        val url = #url vs
+    in
+        XML.Elem ("informfileretracted", attrs_of_pgipurl url, [])
+    end
 
-fun proofstate vs =
+fun proofstate (Proofstate vs) =
     let
         val pgml = #pgml vs
     in
         XML.Elem("proofstate", [], pgml)
     end
 
-fun metainforesponse vs =
+fun metainforesponse (Metainforesponse vs) =
     let 
         val attrs = #attrs vs
         val content = #content vs
@@ -167,14 +170,14 @@ fun metainforesponse vs =
         XML.Elem ("metainforesponse", attrs, content)
     end
 
-fun lexicalstructure vs =
+fun lexicalstructure (Lexicalstructure vs) =
     let
         val content = #content vs
     in
         XML.Elem ("lexicalstructure", [], content)
     end
 
-fun proverinfo vs =
+fun proverinfo (Proverinfo vs) =
     let
         val name = #name vs
         val version = #version vs
@@ -193,43 +196,28 @@ fun proverinfo vs =
                  [])
     end
 
-fun setids vs =
+fun setids (Setids vs) =
     let
         val idtables = #idtables vs
     in
         XML.Elem ("setids",[],map idtable_to_xml idtables)
     end
 
-fun addids vs =
+fun addids (Addids vs) =
     let
         val idtables = #idtables vs
     in
         XML.Elem ("addids",[],map idtable_to_xml idtables)
     end
 
-fun delids vs =
+fun delids (Delids vs) =
     let
         val idtables = #idtables vs
     in
         XML.Elem ("delids",[],map idtable_to_xml idtables)
     end
 
-
-fun acceptedpgipelems vs = 
-    let
-        val pgipelems = #pgipelems vs
-        fun async_attrs b = if b then attr "async" "true" else []
-        fun attrs_attrs attrs = if attrs=[] then [] else attr "attributes" (space_implode "," attrs)
-        fun singlepgipelem (e,async,attrs) = 
-            XML.Elem("pgipelem", ((async_attrs async) @ (attrs_attrs attrs)),[XML.Text e])
-                                                      
-    in
-        XML.Elem ("acceptedpgipelems", [],
-                 map singlepgipelem pgipelems)
-    end
-
-
-fun hasprefs vs =
+fun hasprefs (Hasprefs vs) =
   let 
       val prefcategory = #prefcategory vs
       val prefs = #prefs vs
@@ -237,7 +225,7 @@ fun hasprefs vs =
       XML.Elem("hasprefs",opt_attr "prefcategory" prefcategory, map haspref prefs)
   end
 
-fun prefval vs =
+fun prefval (Prefval vs) =
     let 
         val name = #name vs
         val value = #value vs
@@ -245,17 +233,16 @@ fun prefval vs =
         XML.Elem("prefval", attr "name" name, [XML.Text value])
     end 
 
-fun idvalue vs =
+fun idvalue (Idvalue vs) =
     let 
         val name = #name vs
 	val objtype_attrs = attrs_of_objtype (#objtype vs)
         val text = #text vs
     in
         XML.Elem("idvalue", attr "name" name @ objtype_attrs, text)
-    end 
+    end
 
-
-fun informguise vs =
+fun informguise (Informguise vs) =
   let
       val file = #file vs
       val theory = #theory vs
@@ -273,7 +260,7 @@ fun informguise vs =
       XML.Elem("informguise", [], guisefile @ guisetheory @ guiseproof)
   end
 
-fun parseresult vs =
+fun parseresult (Parseresult vs) =
     let
         val attrs = #attrs vs
         val doc = #doc vs
@@ -283,22 +270,35 @@ fun parseresult vs =
         XML.Elem("parseresult", attrs, errs@xmldoc)
     end
 
-fun usespgip vs =
+fun acceptedpgipelems (Usespgip vs) = 
+    let
+        val pgipelems = #pgipelems vs
+        fun async_attrs b = if b then attr "async" "true" else []
+        fun attrs_attrs attrs = if attrs=[] then [] else attr "attributes" (space_implode "," attrs)
+        fun singlepgipelem (e,async,attrs) = 
+            XML.Elem("pgipelem", ((async_attrs async) @ (attrs_attrs attrs)),[XML.Text e])
+                                                      
+    in
+        XML.Elem ("acceptedpgipelems", [],
+                 map singlepgipelem pgipelems)
+    end
+
+fun usespgip (Usespgip vs) =
     let
         val version = #version vs
-        val acceptedelems = acceptedpgipelems vs
+        val acceptedelems = acceptedpgipelems (Usespgip vs)
     in 
         XML.Elem("usespgip", attr "version" version, [acceptedelems])
     end
 
-fun usespgml vs =
+fun usespgml (Usespgml vs) =
     let
         val version = #version vs
     in 
         XML.Elem("usespgml", attr "version" version, [])
     end
 
-fun pgip vs =
+fun pgip (Pgip vs) =
     let 
         val tag = #tag vs
         val class = #class vs
@@ -320,31 +320,31 @@ fun pgip vs =
                  content)
     end
 
-fun ready vs = XML.Elem("ready",[],[])
+fun ready (Ready vs) = XML.Elem("ready",[],[])
 
 
 fun output pgipoutput = case pgipoutput of
-   Cleardisplay vs         => cleardisplay vs
- | Normalresponse vs       => normalresponse vs
- | Errorresponse vs        => errorresponse vs
- | Informfileloaded vs     => informfileloaded vs
- | Informfileretracted vs  => informfileretracted vs
- | Proofstate vs           => proofstate vs
- | Metainforesponse vs     => metainforesponse vs
- | Lexicalstructure vs     => lexicalstructure vs
- | Proverinfo vs           => proverinfo vs
- | Setids vs               => setids vs
- | Addids vs               => addids vs
- | Delids vs               => delids vs
- | Hasprefs vs             => hasprefs vs
- | Prefval vs              => prefval vs
- | Idvalue vs              => idvalue vs
- | Informguise vs          => informguise vs
- | Parseresult vs          => parseresult vs
- | Usespgip vs             => usespgip vs
- | Usespgml vs             => usespgml vs
- | Pgip vs                 => pgip vs
- | Ready vs                => ready vs
+ of Cleardisplay _          => cleardisplay pgipoutput
+  | Normalresponse _        => normalresponse pgipoutput
+  | Errorresponse _         => errorresponse pgipoutput
+  | Informfileloaded _      => informfileloaded pgipoutput
+  | Informfileretracted _   => informfileretracted pgipoutput
+  | Proofstate _            => proofstate pgipoutput
+  | Metainforesponse _      => metainforesponse pgipoutput
+  | Lexicalstructure _      => lexicalstructure pgipoutput
+  | Proverinfo _            => proverinfo pgipoutput
+  | Setids _                => setids pgipoutput
+  | Addids _                => addids pgipoutput
+  | Delids _                => delids pgipoutput
+  | Hasprefs _              => hasprefs pgipoutput
+  | Prefval _               => prefval pgipoutput
+  | Idvalue _               => idvalue pgipoutput
+  | Informguise _           => informguise pgipoutput
+  | Parseresult _           => parseresult pgipoutput
+  | Usespgip _              => usespgip pgipoutput
+  | Usespgml _              => usespgml pgipoutput
+  | Pgip _                  => pgip pgipoutput
+  | Ready _                 => ready pgipoutput
 
 end
 

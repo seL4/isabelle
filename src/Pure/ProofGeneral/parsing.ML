@@ -245,7 +245,7 @@ fun markup_comment_whs [] = []
     let
         val (prewhs,rest) = take_prefix (OuterLex.is_kind OuterLex.Space) toks
     in
-        if (prewhs <> []) then
+        if not (null prewhs) then
             D.Whitespace {text=implode (map OuterLex.unparse prewhs)}
             :: (markup_comment_whs rest)
         else
@@ -299,9 +299,10 @@ local
     (* TODO: see if duplicating isar_output/parse_thy can help here *)
 
     fun match_tokens ([],us,vs) = (rev vs,us)  (* used, unused *)
-      | match_tokens (t::ts,w::ws,vs) =
-        if (t = w) then match_tokens (ts,ws,w::vs)
-        else match_tokens (t::ts,ws,w::vs)
+      | match_tokens (t::ts, w::ws, vs) =
+        if OuterLex.eq_token (t, w)
+          then match_tokens (ts, ws, w::vs)
+          else match_tokens (t::ts, ws, w::vs)
       | match_tokens _ = error ("match_tokens: mismatched input parse")
 in
     fun pgip_parser str =

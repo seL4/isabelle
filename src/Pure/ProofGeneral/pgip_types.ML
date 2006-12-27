@@ -115,9 +115,9 @@ exception PGIP of string
 
 (** XML utils **)
 
-fun has_attr attr attrs = AList.defined (op =) attrs attr
+fun has_attr (attr : string) attrs = AList.defined (op =) attrs attr
 
-fun get_attr_opt attr attrs = AList.lookup (op =) attrs attr
+fun get_attr_opt (attr : string) attrs = AList.lookup (op =) attrs attr
 
 fun get_attr attr attrs =
     (case get_attr_opt attr attrs of
@@ -134,7 +134,7 @@ fun opt_attr_map f attr_name opt_val =
     the_default [] (Option.map (single o (pair attr_name) o f) opt_val)
   *)
 
-val opt_attr = opt_attr_map I
+fun opt_attr attr_name = opt_attr_map I attr_name
 
 
 (** Objtypes **)
