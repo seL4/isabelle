@@ -80,6 +80,86 @@ end;
 
 subsection {* Generic code generator setup *}
 
+text {* operational equality for code generation *}
+
+axclass eq \<subseteq> type
+  attach "op ="
+
+
+text {* equality for Haskell *}
+
+code_class eq
+  (Haskell "Eq" where "op =" \<equiv> "(==)")
+
+code_const "op ="
+  (Haskell infixl 4 "==")
+
+
+text {* boolean expressions *}
+
+lemma [code func]:
+  shows "(False \<and> x) = False"
+    and "(True \<and> x) = x"
+    and "(x \<and> False) = False"
+    and "(x \<and> True) = x" by simp_all
+
+lemma [code func]:
+  shows "(False \<or> x) = x"
+    and "(True \<or> x) = True"
+    and "(x \<or> False) = x"
+    and "(x \<or> True) = True" by simp_all
+
+lemma [code func]:
+  shows "(\<not> True) = False"
+    and "(\<not> False) = True" by (rule HOL.simp_thms)+
+
+lemmas [code func] = imp_conv_disj
+
+lemmas [code func] = if_True if_False
+
+instance bool :: eq ..
+
+lemma [code func]:
+  "True = P \<longleftrightarrow> P" by simp
+
+lemma [code func]:
+  "False = P \<longleftrightarrow> \<not> P" by simp
+
+lemma [code func]:
+  "P = True \<longleftrightarrow> P" by simp
+
+lemma [code func]:
+  "P = False \<longleftrightarrow> \<not> P" by simp
+
+code_type bool
+  (SML "bool")
+  (OCaml "bool")
+  (Haskell "Bool")
+
+code_instance bool :: eq
+  (Haskell -)
+
+code_const "op = \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_const True and False and Not and "op &" and "op |" and If
+  (SML "true" and "false" and "not"
+    and infixl 1 "andalso" and infixl 0 "orelse"
+    and "!(if (_)/ then (_)/ else (_))")
+  (OCaml "true" and "false" and "not"
+    and infixl 4 "&&" and infixl 2 "||"
+    and "!(if (_)/ then (_)/ else (_))")
+  (Haskell "True" and "False" and "not"
+    and infixl 3 "&&" and infixl 2 "||"
+    and "!(if (_)/ then (_)/ else (_))")
+
+code_reserved SML
+  bool true false not
+
+code_reserved OCaml
+  bool true false not
+
+
 text {* itself as a code generator datatype *}
 
 setup {*
@@ -101,13 +181,14 @@ text {* code generation for arbitrary as exception *}
 
 setup {*
   CodegenSerializer.add_undefined "SML" "arbitrary" "(raise Fail \"arbitrary\")"
+  #> CodegenSerializer.add_undefined "OCaml" "arbitrary" "(failwith \"arbitrary\")"
 *}
 
 code_const arbitrary
   (Haskell "error/ \"arbitrary\"")
 
 code_reserved SML Fail
-code_reserved Haskell error
+code_reserved OCaml failwith
 
 
 subsection {* Evaluation oracle *}
@@ -192,49 +273,6 @@ lemma [code func]:
 lemma [normal pre, symmetric, normal post]:
   "(if b then x else y) = if_delayed b (\<lambda>_. x) (\<lambda>_. y)"
   unfolding if_delayed_def ..
-
-
-subsection {* Operational equality for code generation *}
-
-subsubsection {* eq class *}
-
-axclass eq \<subseteq> type
-  attach "op ="
-
-
-subsubsection {* bool type *}
-
-instance bool :: eq ..
-
-lemma [code func]:
-  "True = P \<longleftrightarrow> P" by simp
-
-lemma [code func]:
-  "False = P \<longleftrightarrow> \<not> P" by simp
-
-lemma [code func]:
-  "P = True \<longleftrightarrow> P" by simp
-
-lemma [code func]:
-  "P = False \<longleftrightarrow> \<not> P" by simp
-
-
-subsubsection {* Haskell *}
-
-code_class eq
-  (Haskell "Eq" where "op =" \<equiv> "(==)")
-
-code_const "op ="
-  (Haskell infixl 4 "==")
-
-code_instance bool :: eq
-  (Haskell -)
-
-code_const "op = \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
-  (Haskell infixl 4 "==")
-
-code_reserved Haskell
-  Eq eq
 
 
 hide (open) const if_delayed
