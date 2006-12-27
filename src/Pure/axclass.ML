@@ -123,7 +123,7 @@ val lookup_def = Symtab.lookup o #1 o get_axclasses;
 fun get_definition thy c =
   (case lookup_def thy c of
     SOME (AxClass info) => info
-  | NONE => error ("Undefined type class " ^ quote c));
+  | NONE => error ("no such axclass: " ^ quote c));
 
 fun class_intros thy =
   let
