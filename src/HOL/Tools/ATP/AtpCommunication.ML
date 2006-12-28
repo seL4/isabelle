@@ -60,6 +60,9 @@ fun get_axiom_names_spass proofstr thm_names =
     
 fun not_comma c = c <>  #",";
 
+val nospaces = String.translate (fn c => if Char.isSpace c then "" else str c);
+
+
 (*A valid TSTP axiom line has the form  cnf(NNN,axiom,...) where NNN is a positive integer.*)
 fun parse_tstp_line s =
   let val ss = Substring.full (unprefix "cnf(" (nospaces s))
