@@ -62,6 +62,8 @@ datatype token_kind =
 
 datatype token = Token of Position.T * (token_kind * string);
 
+val eq_token = op = : token * token -> bool;
+
 val str_of_kind =
  fn Command => "command"
   | Keyword => "keyword"
@@ -81,7 +83,6 @@ val str_of_kind =
   | Malformed => "bad input"
   | EOF => "end-of-file";
 
-val eq_token = op = : token * token -> bool;
 
 (* control tokens *)
 
