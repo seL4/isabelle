@@ -70,7 +70,7 @@ datatype axclass = AxClass of
   axioms: thm list,
   params: (string * typ) list,
   operational: bool (* == at least one class operation,
-    or at least two operational superclasses *)};
+    or at least two operational superclasses *)}    (* FIXME !? *);
 
 type axclasses = axclass Symtab.table * param list;
 
@@ -123,7 +123,7 @@ val lookup_def = Symtab.lookup o #1 o get_axclasses;
 fun get_definition thy c =
   (case lookup_def thy c of
     SOME (AxClass info) => info
-  | NONE => error ("no such axclass: " ^ quote c));
+  | NONE => error ("No such axclass: " ^ quote c));
 
 fun class_intros thy =
   let
@@ -145,6 +145,7 @@ fun class_of_param thy =
 
 fun params_of_class thy class =
   (param_tyvarname, (#params o get_definition thy) class);
+
 
 (* maintain instances *)
 
@@ -351,6 +352,7 @@ fun def_class prep_class prep_att prep_param prep_propp
 
     (* result *)
 
+    val axclass = make_axclass ((def, intro, axioms), (params_typs, operational));
     val result_thy =
       facts_thy
       |> fold put_classrel (map (pair class) super ~~ classrel)
@@ -358,7 +360,7 @@ fun def_class prep_class prep_att prep_param prep_propp
       |> PureThy.note_thmss_i "" (name_atts ~~ map Thm.simple_fact (unflat axiomss axioms)) |> snd
       |> Sign.restore_naming facts_thy
       |> map_axclasses (fn (axclasses, parameters) =>
-        (Symtab.update (class, make_axclass ((def, intro, axioms), (params_typs, operational))) axclasses,
+        (Symtab.update (class, axclass) axclasses,
           fold (fn x => add_param pp (x, class)) params parameters));
 
   in (class, result_thy) end;
