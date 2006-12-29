@@ -424,7 +424,7 @@ struct
 		val rec_names = Symtab.fold (append o #rec_names o snd)
           (DatatypePackage.get_datatypes thy) [];
 		(* string list *)
-		val const_of_class_names = map Logic.const_of_class (Sign.classes thy)
+		val const_of_class_names = map Logic.const_of_class (Sign.all_classes thy)
 		(* given a constant 's' of type 'T', which is a subterm of 't', where  *)
 		(* 't' has a (possibly) more general type, the schematic type          *)
 		(* variables in 't' are instantiated to match the type 'T' (may raise  *)

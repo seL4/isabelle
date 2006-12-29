@@ -126,7 +126,7 @@ fun class_intros thy =
   let
     fun add_intro c =
       (case lookup_def thy c of SOME (AxClass {intro, ...}) => cons intro | _ => I);
-    val classes = Sign.classes thy;
+    val classes = Sign.all_classes thy;
   in map (Thm.class_triv thy) classes @ fold add_intro classes [] end;
 
 
