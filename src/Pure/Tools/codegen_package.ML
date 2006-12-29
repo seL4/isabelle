@@ -566,16 +566,15 @@ end; (*local*)
 
 fun operational_algebra thy =
   let
-    val algebra = Sign.classes_of thy;
     fun add_iff_operational class classes =
       if (not o null o these o Option.map #params o try (AxClass.get_definition thy)) class
         orelse (length o gen_inter (op =))
           ((Sign.certify_sort thy o Sign.super_classes thy) class, classes) >= 2
       then class :: classes
       else classes;
-    val operational_classes = fold add_iff_operational (Sorts.classes algebra) [];
+    val operational_classes = fold add_iff_operational (Sign.all_classes thy) [];
   in
-    Sorts.project_algebra (Sign.pp thy) (member (op =) operational_classes) algebra
+    Sorts.subalgebra (Sign.pp thy) (member (op =) operational_classes) (Sign.classes_of thy)
   end;
 
 fun generate thy funcgr targets init gen it =
