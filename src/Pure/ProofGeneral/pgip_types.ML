@@ -215,8 +215,7 @@ fun read_pgipstring s =  (* non-empty strings, XML escapes decoded *)
        | NONE => raise PGIP ("Expected a non-empty string: "^s))
     handle _ => raise PGIP ("Invalid XML string syntax: "^s)
 
-fun int_to_pgstring i =
-  if i < 0 then "-" ^ string_of_int (~ i) else string_of_int i
+val int_to_pgstring = signed_string_of_int
 
 fun string_to_pgstring s = XML.text s
 
