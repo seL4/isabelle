@@ -115,7 +115,7 @@ fun build_tsig ((space, classes), default, types) =
       Symtab.fold (fn (c, (LogicalType n, _)) => cons (c, n) | _ => I) (snd types) []
       |> Library.sort (Library.int_ord o pairself snd) |> map fst;
     val witness =
-      (case Sorts.witness_sorts classes log_types [] [Sorts.classes classes] of
+      (case Sorts.witness_sorts classes log_types [] [Sorts.minimal_classes classes] of
         [w] => SOME w | _ => NONE);
   in make_tsig ((space, classes), default, types, log_types, witness) end;
 
