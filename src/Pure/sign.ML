@@ -93,7 +93,7 @@ sig
   val syn_of: theory -> Syntax.syntax
   val tsig_of: theory -> Type.tsig
   val classes_of: theory -> Sorts.algebra
-  val classes: theory -> class list
+  val all_classes: theory -> class list
   val super_classes: theory -> class -> class list
   val defaultS: theory -> sort
   val subsort: theory -> sort * sort -> bool
@@ -267,7 +267,8 @@ val syn_of = #syn o rep_sg;
 
 val tsig_of = #tsig o rep_sg;
 val classes_of = #2 o #classes o Type.rep_tsig o tsig_of;
-val classes = Sorts.classes o classes_of;
+val all_classes = Sorts.all_classes o classes_of;
+val minimal_classes = Sorts.minimal_classes o classes_of;
 val super_classes = Sorts.super_classes o classes_of;
 val defaultS = Type.defaultS o tsig_of;
 val subsort = Type.subsort o tsig_of;
