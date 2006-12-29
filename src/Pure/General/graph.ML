@@ -19,6 +19,7 @@ sig
   val fold: (key * ('a * (key list * key list)) -> 'b -> 'b) -> 'a T -> 'b -> 'b
   val minimals: 'a T -> key list
   val maximals: 'a T -> key list
+  val subgraph: (key -> bool) -> 'a T -> 'a T
   val map_nodes: ('a -> 'b) -> 'a T -> 'b T
   val fold_map_nodes: (key * 'a -> 'b -> 'c * 'b) -> 'a T -> 'b -> 'c T * 'b
   val get_node: 'a T -> key -> 'a                                     (*exception UNDEF*)
@@ -29,7 +30,6 @@ sig
   val all_preds: 'a T -> key list -> key list
   val all_succs: 'a T -> key list -> key list
   val strong_conn: 'a T -> key list list
-  val project: (key -> bool) -> 'a T -> 'a T
   val new_node: key * 'a -> 'a T -> 'a T                              (*exception DUP*)
   val default_node: key * 'a -> 'a T -> 'a T
   val del_nodes: key list -> 'a T -> 'a T                             (*exception UNDEF*)
@@ -91,6 +91,12 @@ fun fold_graph f (Graph tab) = Table.fold f tab;
 fun minimals G = fold_graph (fn (m, (_, ([], _))) => cons m | _ => I) G [];
 fun maximals G = fold_graph (fn (m, (_, (_, []))) => cons m | _ => I) G [];
 
+fun subgraph P G =
+  let
+    fun subg (k, (i, (preds, succs))) =
+      if P k then Table.update (k, (i, (filter P preds, filter P succs))) else I;
+  in Graph (fold_graph subg G Table.empty) end;
+
 fun get_entry (Graph tab) x =
   (case Table.lookup tab x of
     SOME entry => entry
@@ -140,13 +146,6 @@ fun all_succs G = flat o fst o reachable (imm_succs G);
   "Structuring Depth First Search Algorithms in Haskell"*)
 fun strong_conn G = filter_out null (fst (reachable (imm_preds G)
   (flat (rev (fst (reachable (imm_succs G) (keys G)))))));
-
-(*subgraph induced by node subset*)
-fun project proj G =
-  let
-    fun subg (k, (i, (preds, succs))) =
-      proj k ? Table.update (k, (i, (filter proj preds, filter proj succs)));
-  in Graph (fold_graph subg G Table.empty) end;
 
 
 (* nodes *)
