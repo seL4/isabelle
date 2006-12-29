@@ -9,7 +9,7 @@ definitions and proofs.
 signature AX_CLASS =
 sig
   val get_definition: theory -> class -> {def: thm, intro: thm, axioms: thm list,
-    params: (string * typ) list, operational: bool}
+    params: (string * typ) list}
   val class_intros: theory -> thm list
   val class_of_param: theory -> string -> class option
   val params_of_class: theory -> class -> string * (string * typ) list
@@ -68,15 +68,12 @@ datatype axclass = AxClass of
  {def: thm,
   intro: thm,
   axioms: thm list,
-  params: (string * typ) list,
-  operational: bool (* == at least one class operation,
-    or at least two operational superclasses *)}    (* FIXME !? *);
+  params: (string * typ) list};
 
 type axclasses = axclass Symtab.table * param list;
 
-fun make_axclass ((def, intro, axioms), (params, operational)) =
-  AxClass {def = def, intro = intro, axioms = axioms, params = params,
-    operational = operational};
+fun make_axclass ((def, intro, axioms), params) =
+  AxClass {def = def, intro = intro, axioms = axioms, params = params};
 
 fun merge_axclasses pp ((tab1, params1), (tab2, params2)) : axclasses =
   (Symtab.merge (K true) (tab1, tab2), merge_params pp (params1, params2));
@@ -178,7 +175,7 @@ fun print_axclasses thy =
     val axclasses = #1 (get_axclasses thy);
     val ctxt = ProofContext.init thy;
 
-    fun pretty_axclass (class, AxClass {def, intro, axioms, params, operational}) =
+    fun pretty_axclass (class, AxClass {def, intro, axioms, params}) =
       Pretty.block (Pretty.fbreaks
        [Pretty.block
           [Pretty.str "class ", ProofContext.pretty_sort ctxt [class], Pretty.str ":"],
@@ -346,13 +343,10 @@ fun def_class prep_class prep_att prep_param prep_propp
           | _ => error ("exactly one type variable required in parameter " ^ quote param);
         val ty' = Term.map_type_tvar (fn _ => TFree (param_tyvarname, [class])) ty;
       in (param, ty') end) params;
-    val operational = length params_typs > 0 orelse
-      length (filter (the_default false o Option.map
-        (fn AxClass { operational, ... } => operational) o lookup_def thy) super) > 1;
 
     (* result *)
 
-    val axclass = make_axclass ((def, intro, axioms), (params_typs, operational));
+    val axclass = make_axclass ((def, intro, axioms), params_typs);
     val result_thy =
       facts_thy
       |> fold put_classrel (map (pair class) super ~~ classrel)
