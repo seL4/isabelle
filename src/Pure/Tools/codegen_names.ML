@@ -13,6 +13,8 @@ sig
   type const = string
   val class: theory -> class -> class
   val class_rev: theory -> class -> class option
+  val classrel: theory -> class * class -> string
+  val classrel_rev: theory -> string -> (class * class) option
   val tyco: theory -> tyco -> tyco
   val tyco_rev: theory -> tyco -> tyco option
   val instance: theory -> class * tyco -> string
@@ -32,53 +34,60 @@ struct
 
 type tyco = string;
 type const = string;
-val inst_ord = prod_ord fast_string_ord fast_string_ord;
-val eq_inst = is_equal o inst_ord;
+val string_pair_ord = prod_ord fast_string_ord fast_string_ord;
+val eq_string_pair = is_equal o string_pair_ord;
 structure Consttab = CodegenConsts.Consttab;
 
-structure Insttab =
+structure StringPairTab =
   TableFun(
-    type key = class * tyco;
-    val ord = inst_ord;
+    type key = string * string;
+    val ord = string_pair_ord;
   );
 
 datatype names = Names of {
   class: class Symtab.table * class Symtab.table,
+  classrel: string StringPairTab.table * (class * class) Symtab.table,
   tyco: tyco Symtab.table * tyco Symtab.table,
-  instance: string Insttab.table * (class * tyco) Symtab.table,
+  instance: string StringPairTab.table * (class * tyco) Symtab.table,
   const: const Consttab.table * (string * typ list) Symtab.table
 }
 
 val empty_names = Names {
   class = (Symtab.empty, Symtab.empty),
+  classrel = (StringPairTab.empty, Symtab.empty),
   tyco = (Symtab.empty, Symtab.empty),
-  instance = (Insttab.empty, Symtab.empty),
+  instance = (StringPairTab.empty, Symtab.empty),
   const = (Consttab.empty, Symtab.empty)
 };
 
 local
-  fun mk_names (class, tyco, instance, const) =
-    Names { class = class, tyco = tyco, instance = instance, const = const};
-  fun map_names f (Names { class, tyco, instance, const }) =
-    mk_names (f (class, tyco, instance, const));
+  fun mk_names (class, classrel, tyco, instance, const) =
+    Names { class = class, classrel = classrel, tyco = tyco, instance = instance, const = const};
+  fun map_names f (Names { class, classrel, tyco, instance, const }) =
+    mk_names (f (class, classrel, tyco, instance, const));
   val eq_string = op = : string * string -> bool;
 in
-  fun merge_names (Names { class = (class1, classrev1), tyco = (tyco1, tycorev1),
+  fun merge_names (Names { class = (class1, classrev1),
+      classrel = (classrel1, classrelrev1), tyco = (tyco1, tycorev1),
       instance = (instance1, instancerev1), const = (const1, constrev1) },
-    Names { class = (class2, classrev2), tyco = (tyco2, tycorev2),
+    Names { class = (class2, classrev2),
+      classrel = (classrel2, classrelrev2), tyco = (tyco2, tycorev2),
       instance = (instance2, instancerev2), const = (const2, constrev2) }) =
     mk_names ((Symtab.merge eq_string (class1, class2), Symtab.merge eq_string (classrev1, classrev2)),
+      (StringPairTab.merge eq_string (classrel1, classrel2), Symtab.merge eq_string_pair (classrelrev1, classrelrev2)),
       (Symtab.merge eq_string (tyco1, tyco2), Symtab.merge eq_string (tycorev1, tycorev2)),
-      (Insttab.merge eq_string (instance1, instance2), Symtab.merge eq_inst (instancerev1, instancerev2)),
+      (StringPairTab.merge eq_string (instance1, instance2), Symtab.merge eq_string_pair (instancerev1, instancerev2)),
       (Consttab.merge eq_string (const1, const2), Symtab.merge CodegenConsts.eq_const (constrev1, constrev2)));
   fun map_class f = map_names
-    (fn (class, tyco, inst, const) => (f class, tyco, inst, const));
+    (fn (class, classrel, tyco, inst, const) => (f class, classrel, tyco, inst, const));
+  fun map_classrel f = map_names
+    (fn (class, classrel, tyco, inst, const) => (class, f classrel, tyco, inst, const));
   fun map_tyco f = map_names
-    (fn (class, tyco, inst, const) => (class, f tyco, inst, const));
+    (fn (class, classrel, tyco, inst, const) => (class, classrel, f tyco, inst, const));
   fun map_inst f = map_names
-    (fn (class, tyco, inst, const) => (class, tyco, f inst, const));
+    (fn (class, classrel, tyco, inst, const) => (class, classrel, tyco, f inst, const));
   fun map_const f = map_names
-    (fn (class, tyco, inst, const) => (class, tyco, inst, f const));
+    (fn (class, classrel, tyco, inst, const) => (class, classrel, tyco, inst, f const));
 
 end; (*local*)
 
@@ -142,16 +151,15 @@ fun thyname_of thy f errmsg x =
       else NONE;
   in case thy_of thy
    of SOME thy => Context.theory_name thy
-        |> explode
-        (*should disappear as soon as hierarchical theory name spaces are available*)
-        |> Symbol.scanner "Malformed name"
-             (Scan.repeat ($$ "_" |-- $$ "_" >> (fn _ => ".") || Scan.one Symbol.not_eof))
-        |> implode
     | NONE => error (errmsg x) end;
 
 fun thyname_of_class thy =
   thyname_of thy (fn thy => member (op =) (Sign.classes thy))
     (fn class => "thyname_of_class: no such class: " ^ quote class);
+
+fun thyname_of_classrel thy =
+  thyname_of thy (fn thy => fn (class1, class2) => Sign.subsort thy ([class1], [class2]))
+    (fn (class1, class2) => "thyname_of_classrel: no such classrel: " ^ quote class1 ^ " in " ^ quote class2);
 
 fun thyname_of_tyco thy =
   thyname_of thy Sign.declared_tyname
@@ -230,16 +238,25 @@ val purify_idf = purify_op #> purify_name;
 val purify_prefix = map (purify_idf #> purify_upper);
 val purify_base = purify_idf #> purify_lower;
 
+val dotify =
+  explode
+  (*should disappear as soon as hierarchical theory name spaces are available*)
+  #> Symbol.scanner "Malformed name"
+      (Scan.repeat ($$ "_" |-- $$ "_" >> (fn _ => ".") || Scan.one Symbol.not_eof))
+  #> implode;
+
 
 (* naming policies *)
 
 fun policy thy get_basename get_thyname name =
   let
-    val prefix = (purify_prefix o NameSpace.explode o get_thyname thy) name;
+    val prefix = (purify_prefix o NameSpace.explode o dotify o get_thyname thy) name;
     val base = (purify_base o get_basename) name;
   in NameSpace.implode (prefix @ [base]) end;
 
 fun class_policy thy = policy thy NameSpace.base thyname_of_class;
+fun classrel_policy thy = policy thy (fn (class1, class2) => 
+  NameSpace.base class2 ^ "_" ^ NameSpace.base class1) thyname_of_classrel;
 fun tyco_policy thy = policy thy NameSpace.base thyname_of_tyco;
 fun instance_policy thy = policy thy (fn (class, tyco) => 
   NameSpace.base class ^ "_" ^ NameSpace.base tyco) thyname_of_instance;
@@ -259,7 +276,7 @@ fun const_policy thy (c, tys) =
   case force_thyname thy (c, tys)
    of NONE => policy thy NameSpace.base thyname_of_const c
     | SOME thyname => let
-        val prefix = (purify_prefix o NameSpace.explode) thyname;
+        val prefix = (purify_prefix o NameSpace.explode o dotify) thyname;
         val tycos = map_filter (fn Type (tyco, _) => SOME tyco | _ => NONE) tys;
         val base = map (purify_base o NameSpace.base) (c :: tycos);
       in NameSpace.implode (prefix @ [space_implode "_" base]) end;
@@ -268,6 +285,7 @@ fun const_policy thy (c, tys) =
 (* shallow name spaces *)
 
 val nsp_class = "class";
+val nsp_classrel = "clsrel"
 val nsp_tyco = "tyco";
 val nsp_inst = "inst";
 val nsp_const = "const";
@@ -286,11 +304,14 @@ fun dest_nsp nsp name =
 fun class thy =
   get thy #class Symtab.lookup map_class Symtab.update class_policy
   #> add_nsp nsp_class;
+fun classrel thy =
+  get thy #classrel StringPairTab.lookup map_classrel StringPairTab.update classrel_policy
+  #> add_nsp nsp_classrel;
 fun tyco thy =
   get thy #tyco Symtab.lookup map_tyco Symtab.update tyco_policy
   #> add_nsp nsp_tyco;
 fun instance thy =
-  get thy #instance Insttab.lookup map_inst Insttab.update instance_policy
+  get thy #instance StringPairTab.lookup map_inst StringPairTab.update instance_policy
   #> add_nsp nsp_inst;
 fun const thy =
   CodegenConsts.norm thy
@@ -300,6 +321,9 @@ fun const thy =
 fun class_rev thy =
   dest_nsp nsp_class
   #> Option.map (rev thy #class "class");
+fun classrel_rev thy =
+  dest_nsp nsp_classrel
+  #> Option.map (rev thy #classrel "class relation");
 fun tyco_rev thy =
   dest_nsp nsp_tyco
   #> Option.map (rev thy #tyco "type constructor");
