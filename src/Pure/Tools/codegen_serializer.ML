@@ -721,15 +721,15 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
             )
           end
     and pr_app' vars (app as ((c, (iss, ty)), ts)) =
-      if is_cons c then let
-        val k = (length o fst o CodegenThingol.unfold_fun) ty
-      in if k = 0 then 
-        [(str o deresolv) c]
-      else if k = length ts then
-        [(str o deresolv) c, Pretty.enum "," "(" ")" (map (pr_term vars NOBR) ts)]
-      else [pr_term vars BR (CodegenThingol.eta_expand app k)] end else
-        (str o deresolv) c
-          :: ((map (pr_insts BR) o filter_out null) iss @ map (pr_term vars BR) ts)
+      if is_cons c then
+        if (length o fst o CodegenThingol.unfold_fun) ty = length ts
+        then case ts
+         of [] => [(str o deresolv) c]
+          | [t] => [(str o deresolv) c, pr_term vars BR t]
+          | _ => [(str o deresolv) c, Pretty.enum "," "(" ")" (map (pr_term vars NOBR) ts)]
+        else [pr_term vars BR (CodegenThingol.eta_expand app ((length o fst o CodegenThingol.unfold_fun) ty))]
+      else (str o deresolv) c
+        :: ((map (pr_insts BR) o filter_out null) iss @ map (pr_term vars BR) ts)
     and pr_app vars fxy (app as ((c, (iss, ty)), ts)) =
       mk_app (pr_app' vars) (pr_term vars) const_syntax fxy app;
     fun pr_def (MLFuns (funns as funn :: funns')) =
@@ -757,7 +757,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                   |> CodegenThingol.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
                       (insert (op =)) ts []);
               in (Pretty.block o Pretty.breaks) [
-                (Pretty.block o Pretty.commas) (map (pr_term vars BR) ts),
+                (Pretty.block o Pretty.commas) (map (pr_term vars NOBR) ts),
                 str "->",
                 pr_term vars NOBR t
               ] end;
@@ -1952,7 +1952,7 @@ val _ = Context.add_setup (
         str "->",
         pr_typ (INFX (1, R)) ty2
       ]))
-  (*IntInt resp. Big_int are added later when CODE extraction for numerals is set up*)
+  (*IntInt resp. Big_int are added later when code extraction for numerals is set up*)
   #> add_reserved "SML" "o" (*dictionary projections use it already*)
   #> fold (add_reserved "Haskell") [
       "Prelude", "Main", "Bool", "Maybe", "Either", "Ordering", "Char", "String", "Int",
