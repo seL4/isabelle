@@ -120,7 +120,8 @@ fun map_arities f (Algebra {classes, arities}) = make_algebra (classes, f aritie
 
 (* classes *)
 
-val classes = Graph.keys o classes_of;
+val classes = flat o rev o Graph.strong_conn o classes_of;
+  (*order allows for left-to-right traversal*)
 val super_classes = Graph.imm_succs o classes_of;
 
 
