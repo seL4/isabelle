@@ -136,6 +136,7 @@ sig
   val radixpand: int * int -> int list
   val radixstring: int * string * int -> string
   val string_of_int: int -> string
+  val signed_string_of_int: int -> string
   val string_of_indexname: string * int -> string
   val read_intinf: int -> string list -> IntInf.int * string list
   val read_int: string list -> int * string list
@@ -704,6 +705,9 @@ fun radixstring (base, zerochar, num) =
 
 
 val string_of_int = Int.toString;
+
+fun signed_string_of_int i =
+  if i < 0 then "-" ^ string_of_int (~ i) else string_of_int i;
 
 fun string_of_indexname (a,0) = a
   | string_of_indexname (a,i) = a ^ "_" ^ Int.toString i;
