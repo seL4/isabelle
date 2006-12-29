@@ -1,3 +1,10 @@
+(*  Title:      Pure/ProofGeneral/ROOT.ML
+    ID:         $Id$
+    Author:     David Aspinall
+
+Proof General interface for Isabelle.
+*)
+
 use "pgip_types.ML";
 use "pgip_markup.ML";
 use "pgip_input.ML";
