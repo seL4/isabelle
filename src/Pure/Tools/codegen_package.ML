@@ -564,19 +564,31 @@ end; (*local*)
 
 (* generic generation combinators *)
 
+fun operational_algebra thy =
+  let
+    val algebra = Sign.classes_of thy;
+    fun add_iff_operational class classes =
+      if (not o null o these o Option.map #params o try (AxClass.get_definition thy)) class
+        orelse (length o gen_inter (op =))
+          ((Sign.certify_sort thy o Sign.super_classes thy) class, classes) >= 2
+      then class :: classes
+      else classes;
+    val operational_classes = fold add_iff_operational (Sorts.classes algebra) [];
+  in
+    Sorts.project_algebra (Sign.pp thy) (member (op =) operational_classes) algebra
+  end;
+
 fun generate thy funcgr targets init gen it =
   let
     val cs = map_filter (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy))
       (CodegenFuncgr.all funcgr);
     val funcgr' = CodegenFuncgr.make thy cs;
     val qnaming = NameSpace.qualified_names NameSpace.default_naming;
-    val algebr = Sorts.project_algebra (Sign.pp thy)
-      (the_default false o Option.map #operational o try (AxClass.get_definition thy)) (Sign.classes_of thy);
     val consttab = Consts.empty
       |> fold (fn c => Consts.declare qnaming
            ((CodegenNames.const thy c, CodegenFuncgr.typ funcgr' c), true))
            (CodegenFuncgr.all funcgr');
-    val algbr = (algebr, consttab);
+    val algbr = (operational_algebra thy, consttab);
   in   
     Code.change_yield thy (CodegenThingol.start_transact init (gen thy algbr funcgr'
         (true, targets) it))
