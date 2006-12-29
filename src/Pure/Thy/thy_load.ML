@@ -19,7 +19,6 @@ end;
 signature THY_LOAD =
 sig
   include BASIC_THY_LOAD
-  val cond_add_path: Path.T -> ('a -> 'b) -> 'a -> 'b
   val ml_exts: string list
   val ml_path: string -> Path.T
   val thy_path: string -> Path.T
@@ -56,9 +55,6 @@ fun path_add s = (del_path s; change_path (fn path => path @ [Path.explode s]));
 fun reset_path () = load_path := [Path.current];
 fun with_paths ss f x = Library.setmp load_path (! load_path @ map Path.explode ss) f x;
 fun with_path s f x = with_paths [s] f x;
-
-fun cond_add_path path f x =
-  if Path.is_current path then f x else Library.setmp load_path (path :: ! load_path) f x;
 
 
 (* file formats *)
@@ -117,6 +113,9 @@ fun check_thy_aux (name, ml) =
         " in dir(s) " ^ commas_quote (show_path ()))
     | SOME thy_info => (thy_info, if ml then check_file NONE (ml_path name) else NONE)
   end;
+
+fun cond_add_path path f x =
+  if Path.is_current path then f x else Library.setmp load_path (path :: ! load_path) f x;
 
 in
 
