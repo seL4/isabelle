@@ -13,6 +13,7 @@ sig
   val class_intros: theory -> thm list
   val class_of_param: theory -> string -> class option
   val params_of_class: theory -> class -> string * (string * typ) list
+  val param_tyvarname: string
   val print_axclasses: theory -> unit
   val cert_classrel: theory -> class * class -> class * class
   val read_classrel: theory -> xstring * xstring -> class * class
@@ -340,7 +341,7 @@ fun def_class prep_class prep_att prep_param prep_propp
         val ty = Sign.the_const_type thy param;
         val _ = case Term.typ_tvars ty
          of [_] => ()
-          | _ => error ("exactly one type variable required in parameter " ^ quote param);
+          | _ => error ("Exactly one type variable required in parameter " ^ quote param);
         val ty' = Term.map_type_tvar (fn _ => TFree (param_tyvarname, [class])) ty;
       in (param, ty') end) params;
 
