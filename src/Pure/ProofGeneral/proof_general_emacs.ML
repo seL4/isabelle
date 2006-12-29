@@ -9,7 +9,6 @@ See http://proofgeneral.inf.ed.ac.uk
 signature PROOF_GENERAL =
 sig
   val init: bool -> unit
-  val init_pgip: bool -> unit           (* for compatibility; always fails *)
   val write_keywords: string -> unit
 end;
 
@@ -68,7 +67,7 @@ val skolem_tag = ("skolem", fn () => special "357");
 fun xml_atom kind x = XML.element "atom" [("kind", kind)] [XML.text x];
 
 fun tagit (kind, bg_tag) x =
-    (bg_tag () ^ x ^ end_tag (), real (Symbol.length (Symbol.explode x)));
+  (bg_tag () ^ x ^ end_tag (), real (Symbol.length (Symbol.explode x)));
 
 fun free_or_skolem x =
   (case try Name.dest_skolem x of
@@ -147,10 +146,10 @@ fun print_state b st =
 in
 
 fun setup_state () =
-  (Display.print_current_goals_fn := print_current_goals;
-   Toplevel.print_state_fn := print_state;
-   Toplevel.prompt_state_fn :=
-     (fn s => suffix (special "372") (Toplevel.prompt_state_default s)));
+ (Display.print_current_goals_fn := print_current_goals;
+  Toplevel.print_state_fn := print_state;
+  Toplevel.prompt_state_fn :=
+    (fn s => suffix (special "372") (Toplevel.prompt_state_default s)));
 
 end;
 
@@ -172,28 +171,9 @@ in
 end;
 
 
-(* prepare theory context *)
+(* get informed about files *)
 
 val thy_name = Path.implode o #1 o Path.split_ext o Path.base o Path.explode;
-
-(* FIXME general treatment of tracing*)
-val update_thy_only = setmp MetaSimplifier.trace_simp false ThyInfo.update_thy_only;
-
-fun dynamic_context () =
-  (case Context.get_context () of
-    SOME thy => "  Using current (dynamic!) one: " ^ quote (Context.theory_name thy)
-  | NONE => "");
-
-fun try_update_thy_only file =
-  ThyLoad.cond_add_path (Path.dir (Path.explode file)) (fn () =>
-    let val name = thy_name file in
-      if is_some (ThyLoad.check_file NONE (ThyLoad.thy_path name))
-      then update_thy_only name
-      else warning ("Unkown theory context of ML file." ^ dynamic_context ())
-    end) ();
-
-
-(* get informed about files *)
 
 val inform_file_retracted = ThyInfo.if_known_thy ThyInfo.remove_thy o thy_name;
 val inform_file_processed = ThyInfo.if_known_thy ThyInfo.touch_child_thys o thy_name;
@@ -233,7 +213,7 @@ local
 val spaces_quote = space_implode " " o map quote;
 
 fun thm_deps_message (thms, deps) =
-    emacs_notify ("Proof General, theorem dependencies of " ^ thms ^ " are " ^ deps);
+  emacs_notify ("Proof General, theorem dependencies of " ^ thms ^ " are " ^ deps);
 
 (* FIXME: check this uses non-transitive closure function here *)
 fun tell_thm_deps ths = conditional (Output.has_mode thm_depsN) (fn () =>
@@ -263,19 +243,6 @@ val undoP = (*undo without output*)
   OuterSyntax.improper_command "ProofGeneral.undo" "(internal)" K.control
     (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
 
-val redoP = (*redo without output*)
-  OuterSyntax.improper_command "ProofGeneral.redo" "(internal)" K.control
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.redo));
-
-val context_thy_onlyP =
-  OuterSyntax.improper_command "ProofGeneral.context_thy_only" "(internal)" K.control
-    (P.name >> (Toplevel.no_timing oo IsarCmd.init_context update_thy_only));
-
-val try_context_thy_onlyP =
-  OuterSyntax.improper_command "ProofGeneral.try_context_thy_only" "(internal)" K.control
-    (P.name >> (Toplevel.no_timing oo
-      (Toplevel.imperative (K ()) oo IsarCmd.init_context try_update_thy_only)));
-
 val restartP =
   OuterSyntax.improper_command "ProofGeneral.restart" "(internal)" K.control
     (P.opt_unit >> (Toplevel.no_timing oo K (Toplevel.imperative restart)));
@@ -302,8 +269,7 @@ val process_pgipP =
       (fn txt => Toplevel.imperative (fn () => ProofGeneralPgip.process_pgip txt))));
 
 fun init_outer_syntax () = OuterSyntax.add_parsers
- [undoP, redoP, restartP, kill_proofP, context_thy_onlyP, try_context_thy_onlyP,
-  inform_file_processedP, inform_file_retractedP, process_pgipP];
+ [undoP, restartP, kill_proofP, inform_file_processedP, inform_file_retractedP, process_pgipP];
 
 end;
 
@@ -313,7 +279,7 @@ end;
 val initialized = ref false;
 
 fun init false =
-      Output.panic "Interface support no longer available for Isabelle/classic mode."
+      Output.panic "Proof General support no longer available for Isabelle/classic mode."
   | init true =
       (conditional (not (! initialized)) (fn () =>
        (setmp warning_fn (K ()) init_outer_syntax ();
@@ -328,9 +294,6 @@ fun init false =
       change print_mode (cons proof_generalN o remove (op =) proof_generalN);
       ml_prompts "ML> " "ML# ";
       Isar.sync_main ());
-
-fun init_pgip false = init true
-  | init_pgip true = Output.panic "No PGIP here, please use ProofGeneralPgip.init_pgip."
 
 
 
