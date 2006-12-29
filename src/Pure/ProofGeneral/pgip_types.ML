@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     David Aspinall
 
-PGIP abstraction: types and conversions
+PGIP abstraction: types and conversions.
 *)
 
 (* TODO: PGML *)
@@ -152,7 +152,7 @@ fun name_of_objtype obj =
       | ObjType    => "type"
       | ObjOther s => s
 
-val attrs_of_objtype = (attr "objtype") o name_of_objtype
+val attrs_of_objtype = attr "objtype" o name_of_objtype
 
 fun objtype_of_attrs attrs = case get_attr "objtype" attrs of
        "file" => ObjFile
@@ -289,7 +289,7 @@ fun pgipdtype_to_xml (desco,ty) =
 	XML.Elem (elt, (desc_attr @ attrs), (map pgipdtype_to_xml typargs))
     end
 
-val pgiptype_to_xml = pgipdtype_to_xml o (pair NONE)
+val pgiptype_to_xml = pgipdtype_to_xml o pair NONE
 
 fun read_pguval Pgipnull s = 
     if s="" then Pgvalnull
@@ -306,7 +306,7 @@ fun read_pguval Pgipnull s =
   | read_pguval (Pgipchoice tydescs) s = 
     let 
 	(* Union type: match first in list *)
-	fun getty (Pgipdtype(_,ty)) = ty
+	fun getty (Pgipdtype(_, ty)) = ty
 	val uval = get_first 
 		       (fn ty => SOME (read_pguval ty s) handle PGIP _ => NONE)
 		       (map getty tydescs)
@@ -318,11 +318,11 @@ fun read_pguval Pgipnull s =
 fun read_pgval ty s = (ty, read_pguval ty s)
 	    
 fun pgval_to_string (_, Pgvalnull) = ""
-  | pgval_to_string (_,(Pgvalbool b)) = bool_to_pgstring b
-  | pgval_to_string (_,(Pgvalnat n))  = int_to_pgstring n
-  | pgval_to_string (_,(Pgvalint i))  = int_to_pgstring i
-  | pgval_to_string (_,(Pgvalconst c)) = string_to_pgstring c
-  | pgval_to_string (_,(Pgvalstring s)) = string_to_pgstring s
+  | pgval_to_string (_, Pgvalbool b) = bool_to_pgstring b
+  | pgval_to_string (_, Pgvalnat n) = int_to_pgstring n
+  | pgval_to_string (_, Pgvalint i) = int_to_pgstring i
+  | pgval_to_string (_, Pgvalconst c) = string_to_pgstring c
+  | pgval_to_string (_, Pgvalstring s) = string_to_pgstring s
 
 
 type pgipurl = Path.T    (* URLs: only local files *)
@@ -356,7 +356,7 @@ fun path_of_pgipurl p = p  (* potentially raises PGIP *)
 fun attrs_of_pgipurl purl = 
     [("url", "file:" ^ (XML.text (File.platform_path (File.full_path purl))))]
 
-val pgipurl_of_attrs = pgipurl_of_string o (get_attr "url")
+val pgipurl_of_attrs = pgipurl_of_string o get_attr "url"
 
 fun pgipurl_of_url (Url.File p) = p
   | pgipurl_of_url url = raise PGIP ("Cannot access non-local/non-file URL " ^ (Url.implode url))
@@ -392,8 +392,8 @@ in
 
   fun attrs_of_location ({ descr, url, line, column, char }:location) =
       let 
-	  val descr = opt_attr  "descr"descr
-	  val url = the_default [] (Option.map attrs_of_pgipurl url)
+	  val descr = opt_attr "descr" descr
+	  val url = these (Option.map attrs_of_pgipurl url)
 	  val line = opt_attr_map int_to_pgstring "line" line
 	  val column = opt_attr_map int_to_pgstring "column"  column
 	  val char = opt_attr_map int_to_pgstring "char" char

@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     David Aspinall
 
-PGIP abstraction: output commands
+PGIP abstraction: output commands.
 *)
 
 signature PGIPOUTPUT =
@@ -110,7 +110,7 @@ fun cleardisplay (Cleardisplay vs) =
     let
         val area = #area vs
     in
-        XML.Elem ("cleardisplay", (attrs_of_displayarea area), [])
+        XML.Elem ("cleardisplay", attrs_of_displayarea area, [])
     end
 
 fun normalresponse (Normalresponse vs) =
@@ -121,9 +121,9 @@ fun normalresponse (Normalresponse vs) =
         val content = #content vs
     in
         XML.Elem ("normalresponse", 
-                 (attrs_of_displayarea area) @
+                 attrs_of_displayarea area @
                  (if urgent then attr "urgent" "true" else []) @
-                 (attrs_of_messagecategory messagecategory),
+                 attrs_of_messagecategory messagecategory,
                  content)
     end
 
@@ -135,9 +135,9 @@ fun errorresponse (Errorresponse vs) =
         val content = #content vs
     in
         XML.Elem ("errorresponse",
-                 (the_default [] (Option.map attrs_of_displayarea area)) @
-                 (attrs_of_fatality fatality) @
-                 (the_default [] (Option.map attrs_of_location location)),
+                 these (Option.map attrs_of_displayarea area) @
+                 attrs_of_fatality fatality @
+                 these (Option.map attrs_of_location location),
                  content)
     end
 
@@ -267,7 +267,7 @@ fun parseresult (Parseresult vs) =
         val errs = #errs vs
 	val xmldoc = PgipMarkup.output_doc doc
     in 
-        XML.Elem("parseresult", attrs, errs@xmldoc)
+        XML.Elem("parseresult", attrs, errs @ xmldoc)
     end
 
 fun acceptedpgipelems (Usespgip vs) = 

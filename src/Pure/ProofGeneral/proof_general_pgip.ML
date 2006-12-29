@@ -3,17 +3,17 @@
     Author:     David Aspinall and Markus Wenzel
 
 Isabelle configuration for Proof General using PGIP protocol.
-See http://proofgeneral.inf.ed.ac.uk/kit  
+See http://proofgeneral.inf.ed.ac.uk/kit
 *)
 
 
 signature PROOF_GENERAL_PGIP =
 sig
-  val init_pgip: bool -> unit		  (* main PGIP loop with true; fail with false *)
+  val init_pgip: bool -> unit             (* main PGIP loop with true; fail with false *)
 
   (* These two are just to support the semi-PGIP Emacs mode *)
-  val init_pgip_channel: (string -> unit) -> unit 
-  val process_pgip: string -> unit     
+  val init_pgip_channel: (string -> unit) -> unit
+  val process_pgip: string -> unit
 end
 
 structure ProofGeneralPgip : PROOF_GENERAL_PGIP  =
@@ -26,7 +26,6 @@ open Pgip;
 (* print modes *)
 
 val proof_generalN = "ProofGeneral";  (*token markup (colouring vars, etc.)*)
-val xsymbolsN = Symbol.xsymbolsN;     (*X-Symbol symbols*)
 val pgmlN = "PGML";                   (*XML escapes and PGML symbol elements*)
 val pgmlatomsN = "PGMLatoms";         (*variable kind decorations*)
 val thm_depsN = "thm_deps";           (*meta-information about theorem deps*)
@@ -40,7 +39,7 @@ fun xsym_output "\\" = "\\\\"
   | xsym_output s = if Symbol.is_raw s then Symbol.decode_raw s else s;
 
 fun xsymbols_output s =
-  if Output.has_mode xsymbolsN andalso exists_string (equal "\\") s then
+  if Output.has_mode Symbol.xsymbolsN andalso exists_string (equal "\\") s then
     let val syms = Symbol.explode s
     in (implode (map xsym_output syms), real (Symbol.length syms)) end
   else Symbol.default_output s;
@@ -49,7 +48,7 @@ fun xsymbols_output s =
 fun pgml_sym s =
   (case Symbol.decode s of
     Symbol.Char s => XML.text s
-  | Symbol.Sym sn => XML.element "sym" [("name", sn)] [XML.text s] 
+  | Symbol.Sym sn => XML.element "sym" [("name", sn)] [XML.text s]
   | Symbol.Ctrl sn => XML.element "ctrl" [("name", sn)] [XML.text s] (* FIXME: no such PGML! *)
   | Symbol.Raw s => s);
 
@@ -60,7 +59,7 @@ fun pgml_output str =
 in
 
 fun setup_xsymbols_output () =
-  Output.add_mode xsymbolsN
+  Output.add_mode Symbol.xsymbolsN
     (xsymbols_output, K xsymbols_output, Symbol.default_indent, Symbol.encode_raw);
 
 fun setup_pgml_output () =
@@ -84,7 +83,7 @@ val skolem_tag = "skolem"
 
 fun xml_atom kind x = XML.element "atom" [("kind", kind)] [XML.text x];
 
-fun tagit kind x = 
+fun tagit kind x =
  (xml_atom kind x, real (Symbol.length (Symbol.explode x)));
 
 fun free_or_skolem x =
@@ -130,15 +129,15 @@ local
   fun pgip_serial () = inc pgip_seq
 
   fun assemble_pgips pgips =
-    Pgip { tag = SOME pgip_tag, 
-	   class = pgip_class,
-	   seq = pgip_serial(),
-	   id = !pgip_id,
-	   destid = !pgip_refid,
-	   (* destid=refid since Isabelle only communicates back to sender *)
-	   refid  = !pgip_refid,
-	   refseq = !pgip_refseq,
-	   content = pgips }
+    Pgip { tag = SOME pgip_tag,
+           class = pgip_class,
+           seq = pgip_serial(),
+           id = !pgip_id,
+           destid = !pgip_refid,
+           (* destid=refid since Isabelle only communicates back to sender *)
+           refid  = !pgip_refid,
+           refseq = !pgip_refseq,
+           content = pgips }
 in
 
 fun init_pgip_session_id () =
@@ -147,10 +146,10 @@ fun init_pgip_session_id () =
 
 fun matching_pgip_id id = (id = !pgip_id)
 
-val output_xml_fn = ref writeln_default  
+val output_xml_fn = ref writeln_default
 fun output_xml s = (!output_xml_fn) (XML.string_of_tree s);  (* TODO: string buffer *)
 
-fun issue_pgip_rawtext str = 
+fun issue_pgip_rawtext str =
     output_xml (PgipOutput.output (assemble_pgips [XML.Rawtext str]))
 
 fun issue_pgips pgipops =
@@ -169,29 +168,29 @@ local
     val delayed_msgs = ref []
 
     fun queue_or_issue pgip =
-	if (! delay_msgs) then
-	    delayed_msgs := pgip :: ! delayed_msgs
-	else issue_pgip pgip
+        if ! delay_msgs then
+            delayed_msgs := pgip :: ! delayed_msgs
+        else issue_pgip pgip
 in
-    fun normalmsg area cat urgent s = 
-	let 
-	    val content = XML.Elem("pgmltext",[],[XML.Rawtext s])
-	    val pgip = Normalresponse {area=area,messagecategory=cat,
-				       urgent=urgent,content=[content] }
-	in
-	    queue_or_issue pgip
-	end
+    fun normalmsg area cat urgent s =
+        let
+            val content = XML.Elem("pgmltext",[],[XML.Rawtext s])
+            val pgip = Normalresponse {area=area,messagecategory=cat,
+                                       urgent=urgent,content=[content] }
+        in
+            queue_or_issue pgip
+        end
 
     fun errormsg fatality s =
-	let
+        let
               val content = XML.Elem("pgmltext",[],[XML.Rawtext s])
-	      val pgip = Errorresponse {area=NONE,fatality=fatality,
-					content=[content], 
-					(* FIXME: pass in locations *)
-					location=NONE}
-	in 
-	    queue_or_issue pgip
-	end
+              val pgip = Errorresponse {area=NONE,fatality=fatality,
+                                        content=[content],
+                                        (* FIXME: pass in locations *)
+                                        location=NONE}
+        in
+            queue_or_issue pgip
+        end
 
     fun start_delay_msgs () = (set delay_msgs; delayed_msgs := [])
     fun end_delayed_msgs () = (reset delay_msgs; ! delayed_msgs)
@@ -199,7 +198,7 @@ end;
 
 (* NB: all of the standard error/message functions now expect already-escaped text.
    FIXME: this may cause us problems now we're generating trees; on the other
-   hand the output functions were tuned some time ago, so it ought to be 
+   hand the output functions were tuned some time ago, so it ought to be
    enough to use Rawtext always above. *)
 
 fun setup_messages () =
@@ -227,10 +226,10 @@ local
 
 fun statedisplay prts =
     let
-	val display = Pretty.output (Pretty.chunks prts)
-	val statedisplay = XML.Elem("statedisplay",[], [XML.Rawtext display])
+        val display = Pretty.output (Pretty.chunks prts)
+        val statedisplay = XML.Elem("statedisplay",[], [XML.Rawtext display])
     in
-	issue_pgip (Proofstate {pgml=[XML.Elem("pgml",[],[statedisplay])]})
+        issue_pgip (Proofstate {pgml=[XML.Elem("pgml",[],[statedisplay])]})
     end
 
 fun print_current_goals n m st =
@@ -245,7 +244,7 @@ fun setup_state () =
   (Display.print_current_goals_fn := print_current_goals;
    Toplevel.print_state_fn := print_state);
       (*    Toplevel.prompt_state_fn := (fn s => suffix (special "372")
-					(Toplevel.prompt_state_default s))); *)
+                                        (Toplevel.prompt_state_default s))); *)
 
 end;
 
@@ -327,12 +326,12 @@ local
 val spaces_quote = space_implode " " o map quote;
 
 fun thm_deps_message (thms, deps) =
-    let 
-	val valuethms = XML.Elem("value",[("name", "thms")],[XML.Text thms])
-	val valuedeps = XML.Elem("value",[("name", "deps")],[XML.Text deps])
+    let
+        val valuethms = XML.Elem("value",[("name", "thms")],[XML.Text thms])
+        val valuedeps = XML.Elem("value",[("name", "deps")],[XML.Text deps])
     in
-	issue_pgip (Metainforesponse {attrs=[("infotype", "isabelle_theorem_dependencies")],
-				      content=[valuethms,valuedeps]})
+        issue_pgip (Metainforesponse {attrs=[("infotype", "isabelle_theorem_dependencies")],
+                                      content=[valuethms,valuedeps]})
     end
 
 (* FIXME: check this uses non-transitive closure function here *)
@@ -356,14 +355,14 @@ end;
 
 (** lexicalstructure element with keywords (PGIP version of elisp keywords file) **)
 
-fun lexicalstructure_keywords () = 
+fun lexicalstructure_keywords () =
     let val commands = OuterSyntax.dest_keywords ()
-	fun category_of k = if (k mem commands) then "major" else "minor"
+        fun category_of k = if k mem commands then "major" else "minor"
          (* NB: we might filter to only include words like elisp case (OuterSyntax.is_keyword). *)
-    	fun keyword_elt (keyword,help,kind,_) = 
-  	    XML.Elem("keyword", [("word", keyword), ("category", category_of kind)],
-	  	     [XML.Elem("shorthelp", [], [XML.Text help])])
-        in 	    	    
+        fun keyword_elt (keyword,help,kind,_) =
+            XML.Elem("keyword", [("word", keyword), ("category", category_of kind)],
+                     [XML.Elem("shorthelp", [], [XML.Text help])])
+        in
             (* Also, note we don't call init_outer_syntax here to add interface commands,
             but they should never appear in scripts anyway so it shouldn't matter *)
             Lexicalstructure {content = map keyword_elt (OuterSyntax.dest_parsers()) }
@@ -378,34 +377,34 @@ fun lexicalstructure_keywords () =
 local
     val isabellewww = "http://isabelle.in.tum.de/"
     val staticconfig = "~~/lib/ProofGeneral/pgip_isar.xml"
-    fun orenv v d = case (getenv v) of "" => d  | s => s
+    fun orenv v d = case getenv v of "" => d  | s => s
     fun config_file()  = orenv "ISABELLE_PGIPCONFIG" staticconfig
     fun isabelle_www() = orenv "ISABELLE_HOMEPAGE" isabellewww
 in
 fun send_pgip_config () =
     let
         val path = Path.explode (config_file())
-        val exists = File.exists path
+        val ex = File.exists path
 
-	val wwwpage = 
-	    (Url.explode (isabelle_www()))
-	    handle _ => 
-		   (Output.panic 
-			("Error in URL in environment variable ISABELLE_HOMEPAGE.");
-			Url.explode isabellewww)
-		     
-	val proverinfo =
+        val wwwpage =
+            (Url.explode (isabelle_www()))
+            handle _ =>
+                   (Output.panic
+                        ("Error in URL in environment variable ISABELLE_HOMEPAGE.");
+                        Url.explode isabellewww)
+
+        val proverinfo =
             Proverinfo { name = "Isabelle",
-			 version = version,
-			 instance = Session.name(), 
-			 descr = "The Isabelle/Isar theorem prover",
-			 url = wwwpage,
-			 filenameextns = ".thy;" }
+                         version = version,
+                         instance = Session.name(),
+                         descr = "The Isabelle/Isar theorem prover",
+                         url = wwwpage,
+                         filenameextns = ".thy;" }
     in
-        if exists then
-            (issue_pgip proverinfo; 
-	     issue_pgip_rawtext (File.read path);
-	     issue_pgip (lexicalstructure_keywords()))
+        if ex then
+            (issue_pgip proverinfo;
+             issue_pgip_rawtext (File.read path);
+             issue_pgip (lexicalstructure_keywords()))
         else Output.panic ("PGIP configuration file \"" ^ config_file() ^ "\" not found")
     end;
 end
@@ -421,7 +420,7 @@ fun isarcmd s =
       |> map #3
       |> Toplevel.>>>;
 
-(* TODO: 
+(* TODO:
     - apply a command given a transition function, e.g. IsarCmd.undo.
     - fix position from path of currently open file [line numbers risk garbling though].
 *)
@@ -433,8 +432,8 @@ fun use_thy_or_ml_file file =
         val (path,extn) = Path.split_ext (Path.explode file)
     in
         case extn of
-            "" => isarcmd ("use_thy " ^ (quote (Path.implode path)))
-          | "thy" => isarcmd ("use_thy " ^ (quote (Path.implode path)))
+            "" => isarcmd ("use_thy " ^ quote (Path.implode path))
+          | "thy" => isarcmd ("use_thy " ^ quote (Path.implode path))
           | "ML" => isarcmd ("use " ^ quote file)
           | other => error ("Don't know how to read a file with extension " ^ other)
     end
@@ -443,54 +442,54 @@ fun use_thy_or_ml_file file =
 (******* PGIP actions *******)
 
 
-(* Responses to each of the PGIP input commands. 
+(* Responses to each of the PGIP input commands.
    These are programmed uniformly for extensibility. *)
 
-fun askpgip (Askpgip vs) = 
+fun askpgip (Askpgip vs) =
     issue_pgip
         (Usespgip { version = PgipIsabelle.isabelle_pgip_version_supported,
-		    pgipelems = PgipIsabelle.accepted_inputs })
+                    pgipelems = PgipIsabelle.accepted_inputs })
 
-fun askpgml (Askpgml vs) = 
+fun askpgml (Askpgml vs) =
     issue_pgip
-	(Usespgml { version = PgipIsabelle.isabelle_pgml_version_supported })
+        (Usespgml { version = PgipIsabelle.isabelle_pgml_version_supported })
 
 fun askprefs (Askprefs vs) =
-    let 
-	fun preference_of {name, descr, default, pgiptype, get, set } = 
-	    { name = name, descr = SOME descr, default = SOME default, 
-	      pgiptype = pgiptype }
+    let
+        fun preference_of {name, descr, default, pgiptype, get, set } =
+            { name = name, descr = SOME descr, default = SOME default,
+              pgiptype = pgiptype }
     in
-	List.app (fn (prefcat, prefs) =>
-		     issue_pgip (Hasprefs {prefcategory=SOME prefcat, 
-					   prefs=map preference_of prefs}))
+        List.app (fn (prefcat, prefs) =>
+                     issue_pgip (Hasprefs {prefcategory=SOME prefcat,
+                                           prefs=map preference_of prefs}))
                  Preferences.preferences
-    end 
+    end
 
 fun askconfig (Askconfig vs) = () (* TODO: add config response *)
 
 local
-    fun lookuppref pref = 
-	case AList.lookup (op =) 
-			  (map (fn p => (#name p,p))
-			       (maps snd Preferences.preferences)) pref of
-	    NONE => error ("Unknown prover preference: " ^ quote pref)
-	  | SOME p => p
+    fun lookuppref pref =
+        case AList.lookup (op =)
+                          (map (fn p => (#name p,p))
+                               (maps snd Preferences.preferences)) pref of
+            NONE => error ("Unknown prover preference: " ^ quote pref)
+          | SOME p => p
 in
-fun setpref (Setpref vs) = 
-    let 
-	val name = #name vs
-	val value = #value vs
-	val set = #set (lookuppref name)
+fun setpref (Setpref vs) =
+    let
+        val name = #name vs
+        val value = #value vs
+        val set = #set (lookuppref name)
     in
-	set value
+        set value
     end
 
 fun getpref (Getpref vs) =
-    let 
-	val name = #name vs
-	val get = #get (lookuppref name)
-    in 
+    let
+        val name = #name vs
+        val get = #get (lookuppref name)
+    in
         issue_pgip (Prefval {name=name, value=get ()})
     end
 end
@@ -503,30 +502,30 @@ fun startquiet vs = isarcmd "disable_pr"
 
 fun stopquiet vs = isarcmd "enable_pr"
 
-fun pgmlsymbolson vs = 
+fun pgmlsymbolson vs =
     change print_mode (fn mode =>
-			  remove (op =) Symbol.xsymbolsN mode @ [Symbol.xsymbolsN])
+                          remove (op =) Symbol.xsymbolsN mode @ [Symbol.xsymbolsN])
 
 fun pgmlsymbolsoff vs =
     change print_mode (remove (op =) Symbol.xsymbolsN)
 
-fun dostep (Dostep vs) = 
-    let 
-	val text = #text vs
-    in 
-	isarcmd text
+fun dostep (Dostep vs) =
+    let
+        val text = #text vs
+    in
+        isarcmd text
     end
 
 fun undostep (Undostep vs) =
-    let 
-	val times = #times vs
-    in 
-	isarcmd ("undos_proof " ^ (Int.toString times))
+    let
+        val times = #times vs
+    in
+        isarcmd ("undos_proof " ^ Int.toString times)
     end
 
 fun redostep vs = isarcmd "redo"
-    
-fun abortgoal vs = isarcmd "ProofGeneral.kill_proof" 
+
+fun abortgoal vs = isarcmd "ProofGeneral.kill_proof"
 
 
 (*** PGIP identifier tables ***)
@@ -536,126 +535,126 @@ fun addids t = issue_pgip (Addids {idtables = [t]})
 fun delids t = issue_pgip (Delids {idtables = [t]})
 
 (*
- fun delallids ty = 
-     issue_pgip (Setids {idtables = 
-	 		[{context=NONE,objtype=ty,ids=[]}]}) *)
+ fun delallids ty =
+     issue_pgip (Setids {idtables =
+                        [{context=NONE,objtype=ty,ids=[]}]}) *)
 
-fun askids (Askids vs) = 
+fun askids (Askids vs) =
     let
-	val url = #url vs	     (* ask for identifiers within a file *)
-	val thyname = #thyname vs    (* ask for identifiers within a theory *)
-	val objtype = #objtype vs    (* ask for identifiers of a particular type *)
+        val url = #url vs            (* ask for identifiers within a file *)
+        val thyname = #thyname vs    (* ask for identifiers within a theory *)
+        val objtype = #objtype vs    (* ask for identifiers of a particular type *)
 
-	fun idtable ty ctx ids = {objtype=ty,context=ctx,ids=ids}
+        fun idtable ty ctx ids = {objtype=ty,context=ctx,ids=ids}
 
-	val thms_of_thy = (map fst) o PureThy.thms_of o ThyInfo.get_theory
-    in 
-(*	case (url_attr,thyname,objtype) of
-	    (NONE,NONE,NONE) => 
-*)	    (* top-level: return *)
+        val thms_of_thy = map fst o PureThy.thms_of o ThyInfo.get_theory
+    in
+(*      case (url_attr,thyname,objtype) of
+            (NONE,NONE,NONE) =>
+*)          (* top-level: return *)
 
-	(* TODO: add askids for "file" here, which returns single theory with same name *)
+        (* TODO: add askids for "file" here, which returns single theory with same name *)
         (* FIXME: objtypes on both sides *)
-	case (thyname,objtype) of 
+        case (thyname,objtype) of
            (* only files known in top context *)
-	   (NONE, NONE)		      => setids (idtable ObjFile NONE (ThyInfo.names())) (*FIXME: uris?*)
-	 | (NONE, SOME ObjFile)        => setids (idtable ObjFile NONE (ThyInfo.names())) (* ditto *)
-	 | (SOME fi, SOME ObjFile)     => setids (idtable ObjTheory (SOME fi) [fi]) (* FIXME: lookup file *)
-	 | (NONE, SOME ObjTheory)      => setids (idtable ObjTheory NONE (ThyInfo.names()))
-	 | (SOME thy, SOME ObjTheory)  => setids (idtable ObjTheory (SOME thy) (ThyInfo.get_preds thy))
-	 | (SOME thy, SOME ObjTheorem) => setids (idtable ObjTheorem (SOME thy) (thms_of_thy thy))
-         (* next case is both of above.  FIXME: cleanup this *)					 
-	 | (SOME thy, NONE) => (setids (idtable ObjTheory (SOME thy) (ThyInfo.get_preds thy));
-				setids (idtable ObjTheorem (SOME thy) (thms_of_thy thy)))
-	 | (_, SOME ot) => error ("No objects of type "^(PgipTypes.name_of_objtype ot)^" are available here.")
+           (NONE, NONE)               => setids (idtable ObjFile NONE (ThyInfo.names())) (*FIXME: uris?*)
+         | (NONE, SOME ObjFile)        => setids (idtable ObjFile NONE (ThyInfo.names())) (* ditto *)
+         | (SOME fi, SOME ObjFile)     => setids (idtable ObjTheory (SOME fi) [fi]) (* FIXME: lookup file *)
+         | (NONE, SOME ObjTheory)      => setids (idtable ObjTheory NONE (ThyInfo.names()))
+         | (SOME thy, SOME ObjTheory)  => setids (idtable ObjTheory (SOME thy) (ThyInfo.get_preds thy))
+         | (SOME thy, SOME ObjTheorem) => setids (idtable ObjTheorem (SOME thy) (thms_of_thy thy))
+         (* next case is both of above.  FIXME: cleanup this *)
+         | (SOME thy, NONE) => (setids (idtable ObjTheory (SOME thy) (ThyInfo.get_preds thy));
+                                setids (idtable ObjTheorem (SOME thy) (thms_of_thy thy)))
+         | (_, SOME ot) => error ("No objects of type "^(PgipTypes.name_of_objtype ot)^" are available here.")
     end
 
 local
   (* accumulate printed output in a single PGIP response (inside <pgmltext>) *)
   fun with_displaywrap pgipfn dispfn =
       let
-	  val lines = ref ([]: string list);
-	  fun wlgrablines s = lines := s :: ! lines;
+          val lines = ref ([]: string list);
+          fun wlgrablines s = lines := s :: ! lines;
       in
-	  setmp writeln_fn wlgrablines dispfn ();
-	  issue_pgip (pgipfn (!lines))
+          setmp writeln_fn wlgrablines dispfn ();
+          issue_pgip (pgipfn (!lines))
       end;
 in
-fun showid (Showid vs) = 
+fun showid (Showid vs) =
     let
-	val thyname = #thyname vs
-	val objtype = #objtype vs
-	val name = #name vs
-	val topthy = Toplevel.theory_of o Toplevel.get_state
+        val thyname = #thyname vs
+        val objtype = #objtype vs
+        val name = #name vs
+        val topthy = Toplevel.theory_of o Toplevel.get_state
 
-	fun idvalue objtype name strings =
-	    Idvalue { name=name, objtype=objtype,
-		      text=[XML.Elem("pgmltext",[],map XML.Text strings)] }
+        fun idvalue objtype name strings =
+            Idvalue { name=name, objtype=objtype,
+                      text=[XML.Elem("pgmltext",[],map XML.Text strings)] }
 
-	fun pthm thy name = print_thm (get_thm thy (Name name))
-    in 
-	case (thyname, objtype) of 
-	    (_,ObjTheory) =>
-	    with_displaywrap (idvalue ObjTheory name) 
-			     (fn ()=>(print_theory (ThyInfo.get_theory name)))
-	  | (SOME thy, ObjTheorem) =>
-	    with_displaywrap (idvalue ObjTheorem name) 
-			     (fn ()=>(pthm (ThyInfo.get_theory thy) name))
-	  | (NONE, ObjTheorem) =>
-	    with_displaywrap (idvalue ObjTheorem name) 
-			     (fn ()=>pthm (topthy()) name)
-	  | (_, ot) => error ("Cannot show objects of type "^(PgipTypes.name_of_objtype ot))
+        fun pthm thy name = print_thm (get_thm thy (Name name))
+    in
+        case (thyname, objtype) of
+            (_,ObjTheory) =>
+            with_displaywrap (idvalue ObjTheory name)
+                             (fn ()=>(print_theory (ThyInfo.get_theory name)))
+          | (SOME thy, ObjTheorem) =>
+            with_displaywrap (idvalue ObjTheorem name)
+                             (fn ()=>(pthm (ThyInfo.get_theory thy) name))
+          | (NONE, ObjTheorem) =>
+            with_displaywrap (idvalue ObjTheorem name)
+                             (fn ()=>pthm (topthy()) name)
+          | (_, ot) => error ("Cannot show objects of type "^(PgipTypes.name_of_objtype ot))
     end
 
 (*** Inspecting state ***)
 
-(* The file which is currently being processed interactively.  
+(* The file which is currently being processed interactively.
    In the pre-PGIP code, this was informed to Isabelle and the theory loader
    on completion, but that allows for circularity in case we read
    ourselves.  So PGIP opens the filename at the start of a script.
    We ought to prevent problems by modifying the theory loader to know
-   about this special status, but for now we just keep a local reference. 
-*) 
+   about this special status, but for now we just keep a local reference.
+*)
 
 val currently_open_file = ref (NONE : pgipurl option)
 
-fun askguise vs = 
+fun askguise vs =
     (* The "guise" is the PGIP abstraction of the prover's state.
        The <informguise> message is merely used for consistency checking. *)
-    let 
-	val openfile = !currently_open_file
+    let
+        val openfile = !currently_open_file
 
-	val topthy = Toplevel.theory_of o Toplevel.get_state
-	val topthy_name = Context.theory_name o topthy
+        val topthy = Toplevel.theory_of o Toplevel.get_state
+        val topthy_name = Context.theory_name o topthy
 
-	val opentheory = SOME (topthy_name()) handle Toplevel.UNDEF => NONE
+        val opentheory = SOME (topthy_name()) handle Toplevel.UNDEF => NONE
 
-	fun topproofpos () = try Toplevel.proof_position_of (Isar.state ());
-	val openproofpos = topproofpos()
+        fun topproofpos () = try Toplevel.proof_position_of (Isar.state ());
+        val openproofpos = topproofpos()
     in
         issue_pgip (Informguise { file = openfile,
-				  theory = opentheory,
-				  (* would be nice to get thm name... *)
-				  theorem = NONE,
-				  proofpos = openproofpos })
+                                  theory = opentheory,
+                                  (* would be nice to get thm name... *)
+                                  theorem = NONE,
+                                  proofpos = openproofpos })
     end
 
 fun parsescript (Parsescript vs) =
     let
-	val text = #text vs
-	val systemdata = #systemdata vs      
-	val location = #location vs   (* TODO: extract position *)
+        val text = #text vs
+        val systemdata = #systemdata vs
+        val location = #location vs   (* TODO: extract position *)
 
         val _ = start_delay_msgs ()   (* gather parsing errs/warns *)
         val doc = PgipParser.pgip_parser text
         val errs = end_delayed_msgs ()
 
-	val sysattrs = PgipTypes.opt_attr "systemdata" systemdata
-	val locattrs = PgipTypes.attrs_of_location location
+        val sysattrs = PgipTypes.opt_attr "systemdata" systemdata
+        val locattrs = PgipTypes.attrs_of_location location
      in
         issue_pgip (Parseresult { attrs= sysattrs@locattrs,
-				  doc = doc,
-				  errs = (map PgipOutput.output errs) })
+                                  doc = doc,
+                                  errs = map PgipOutput.output errs })
     end
 
 fun showproofstate vs = isarcmd "pr"
@@ -663,33 +662,33 @@ fun showproofstate vs = isarcmd "pr"
 fun showctxt vs = isarcmd "print_theory"   (* more useful than print_context *)
 
 fun searchtheorems (Searchtheorems vs) =
-    let 
-	val arg = #arg vs
+    let
+        val arg = #arg vs
     in
-	isarcmd ("thms_containing " ^ arg)
+        isarcmd ("thms_containing " ^ arg)
     end
 
-fun setlinewidth (Setlinewidth vs) = 
-    let 
-	val width = #width vs
+fun setlinewidth (Setlinewidth vs) =
+    let
+        val width = #width vs
     in
-	isarcmd ("pretty_setmargin " ^ (Int.toString width)) (* FIXME: conversion back/forth! *)
+        isarcmd ("pretty_setmargin " ^ Int.toString width) (* FIXME: conversion back/forth! *)
     end
 
 fun viewdoc (Viewdoc vs) =
-    let 
-	val arg = #arg vs
-    in 
-	isarcmd ("print_" ^ arg)   (* FIXME: isatool doc?.  Return URLs, maybe? *)
+    let
+        val arg = #arg vs
+    in
+        isarcmd ("print_" ^ arg)   (* FIXME: isatool doc?.  Return URLs, maybe? *)
     end
 
 (*** Theory ***)
 
 fun doitem (Doitem vs) =
     let
-	val text = #text vs
+        val text = #text vs
     in
-	isarcmd text
+        isarcmd text
     end
 
 fun undoitem vs =
@@ -698,14 +697,14 @@ fun undoitem vs =
 fun redoitem vs =
     isarcmd "ProofGeneral.redo"
 
-fun aborttheory vs = 
+fun aborttheory vs =
     isarcmd "init_toplevel"
 
 fun retracttheory (Retracttheory vs) =
-    let 
-	val thyname = #thyname vs
+    let
+        val thyname = #thyname vs
     in
-	isarcmd ("kill_thy " ^ quote thyname)
+        isarcmd ("kill_thy " ^ quote thyname)
     end
 
 
@@ -715,16 +714,16 @@ fun retracttheory (Retracttheory vs) =
    their own directory, but when we change directory for a new file we
    remove the path.  Leaving it there can cause confusion with
    difference in batch mode.
-   NB: PGIP does not assume that the prover has a load path. 
+   NB: PGIP does not assume that the prover has a load path.
 *)
 
 local
     val current_working_dir = ref (NONE : string option)
 in
-fun changecwd_dir newdirpath = 
-   let 
+fun changecwd_dir newdirpath =
+   let
        val newdir = File.platform_path newdirpath
-   in 
+   in
        (case (!current_working_dir) of
             NONE => ()
           | SOME dir => ThyLoad.del_path dir;
@@ -733,16 +732,16 @@ fun changecwd_dir newdirpath =
    end
 end
 
-fun changecwd (Changecwd vs) = 
-    let 
-	val url = #url vs
-	val newdir = PgipTypes.path_of_pgipurl url
+fun changecwd (Changecwd vs) =
+    let
+        val url = #url vs
+        val newdir = PgipTypes.path_of_pgipurl url
     in
-	changecwd_dir url
+        changecwd_dir url
     end
 
 fun openfile (Openfile vs) =
-  let 
+  let
       val url = #url vs
       val filepath = PgipTypes.path_of_pgipurl url
       val filedir = Path.dir filepath
@@ -752,22 +751,22 @@ fun openfile (Openfile vs) =
       case !currently_open_file of
           SOME f => raise PGIP ("<openfile> when a file is already open! ")
         | NONE => (openfile_retract filepath;
-		   changecwd_dir filedir;
-		   currently_open_file := SOME url)
+                   changecwd_dir filedir;
+                   currently_open_file := SOME url)
   end
 
 fun closefile vs =
     case !currently_open_file of
-        SOME f => (proper_inform_file_processed (File.platform_path f) 
-						(Isar.state());
+        SOME f => (proper_inform_file_processed (File.platform_path f)
+                                                (Isar.state());
                    currently_open_file := NONE)
       | NONE => raise PGIP ("<closefile> when no file is open!")
 
-fun loadfile (Loadfile vs) = 
-    let 
-	val url = #url vs
-    in 
-	case !currently_open_file of
+fun loadfile (Loadfile vs) =
+    let
+        val url = #url vs
+    in
+        case !currently_open_file of
             SOME f => raise PGIP ("<loadfile> when a file is open!")
           | NONE => use_thy_or_ml_file (File.platform_path url)
     end
@@ -775,14 +774,14 @@ fun loadfile (Loadfile vs) =
 fun abortfile vs =
     case !currently_open_file of
         SOME f => (isarcmd "init_toplevel";
-		   currently_open_file := NONE)
+                   currently_open_file := NONE)
       | NONE => raise PGIP ("<abortfile> when no file is open!")
 
-fun retractfile (Retractfile vs) = 
-    let 
-	val url = #url vs
+fun retractfile (Retractfile vs) =
+    let
+        val url = #url vs
     in
-	case !currently_open_file of
+        case !currently_open_file of
             SOME f => raise PGIP ("<retractfile> when a file is open!")
           | NONE => inform_file_retracted (File.platform_path url)
     end
@@ -791,7 +790,7 @@ fun retractfile (Retractfile vs) =
 (*** System ***)
 
 fun systemcmd (Systemcmd vs) =
-  let 
+  let
       val arg = #arg vs
   in
       isarcmd arg
@@ -803,7 +802,7 @@ fun quitpgip vs = raise PGIP_QUIT
 fun process_input inp = case inp
  of Pgip.Askpgip _          => askpgip inp
   | Pgip.Askpgml _          => askpgml inp
-  | Pgip.Askprefs _         => askprefs inp 
+  | Pgip.Askprefs _         => askprefs inp
   | Pgip.Askconfig _        => askconfig inp
   | Pgip.Getpref _          => getpref inp
   | Pgip.Setpref _          => setpref inp
@@ -843,18 +842,18 @@ fun process_input inp = case inp
   | Pgip.Quitpgip _         => quitpgip inp
 
 
-fun process_pgip_element pgipxml = 
+fun process_pgip_element pgipxml =
     case pgipxml of
-	(xml as (XML.Elem elem)) =>
-	(case Pgip.input elem of
-	     NONE => warning ("Unrecognized PGIP command, ignored: \n" ^
-			      (XML.string_of_tree xml))
-	   | SOME inp => (process_input inp)) (* errors later; packet discarded *)
+        (xml as (XML.Elem elem)) =>
+        (case Pgip.input elem of
+             NONE => warning ("Unrecognized PGIP command, ignored: \n" ^
+                              (XML.string_of_tree xml))
+           | SOME inp => (process_input inp)) (* errors later; packet discarded *)
       | (XML.Text t) => ignored_text_warning t
-      |	(XML.Rawtext t) => ignored_text_warning t
+      | (XML.Rawtext t) => ignored_text_warning t
 and ignored_text_warning t =
-    if (size (Symbol.strip_blanks t) > 0) then
-	   warning ("Ignored text in PGIP packet: \n" ^ t)
+    if size (Symbol.strip_blanks t) > 0 then
+           warning ("Ignored text in PGIP packet: \n" ^ t)
     else ()
 
 fun process_pgip_tree xml =
@@ -865,27 +864,27 @@ fun process_pgip_tree xml =
           (let
                val class = PgipTypes.get_attr "class" attrs
                val dest  = PgipTypes.get_attr_opt "destid" attrs
-	       val seq = PgipTypes.read_pgipnat (PgipTypes.get_attr "seq" attrs)
+               val seq = PgipTypes.read_pgipnat (PgipTypes.get_attr "seq" attrs)
                (* Respond to prover broadcasts, or messages for us. Ignore rest *)
-	       val processit = 
-		   case dest of
+               val processit =
+                   case dest of
                        NONE =>    class = "pa"
-		     | SOME id => matching_pgip_id id
-	   in if processit then
-		  (pgip_refid :=  PgipTypes.get_attr_opt "id" attrs;
-		   pgip_refseq := SOME seq;
-		   List.app process_pgip_element pgips; 
-		   (* return true to indicate <ready/> *)
-		   true)
-	      else 
-		  (* no response to ignored messages. *) 
-		  false
+                     | SOME id => matching_pgip_id id
+           in if processit then
+                  (pgip_refid :=  PgipTypes.get_attr_opt "id" attrs;
+                   pgip_refseq := SOME seq;
+                   List.app process_pgip_element pgips;
+                   (* return true to indicate <ready/> *)
+                   true)
+              else
+                  (* no response to ignored messages. *)
+                  false
            end)
         | _ => raise PGIP "Invalid PGIP packet received")
      handle PGIP msg =>
             (Output.error_msg ((msg ^ "\nPGIP error occured in XML text below:\n") ^
-			       (XML.string_of_tree xml));
-	     true))
+                               (XML.string_of_tree xml));
+             true))
 
 (* External input *)
 
@@ -910,8 +909,8 @@ fun loop ready src =
              NONE  => ()
            | SOME (pgip,src') =>
              let
-                 val ready' = (process_pgip_tree pgip) 
-				handle e => (handler (e,SOME src'); true)
+                 val ready' = (process_pgip_tree pgip)
+                                handle e => (handler (e,SOME src'); true)
              in
                  loop ready' src'
              end
@@ -922,12 +921,12 @@ and handler (e,srco) =
         (XML_PARSE,SOME src) =>
         Output.panic "Invalid XML input, aborting"
       | (PGIP_QUIT,_) => ()
-      | (Interrupt,SOME src) => 
-	(Output.error_msg "Interrupt during PGIP processing"; loop true src)
-      | (Toplevel.UNDEF,SOME src) => 
-	(Output.error_msg "No working context defined"; loop true src)
-      | (e,SOME src) => 
-	(Output.error_msg (Toplevel.exn_message e); loop true src)
+      | (Interrupt,SOME src) =>
+        (Output.error_msg "Interrupt during PGIP processing"; loop true src)
+      | (Toplevel.UNDEF,SOME src) =>
+        (Output.error_msg "No working context defined"; loop true src)
+      | (e,SOME src) =>
+        (Output.error_msg (Toplevel.exn_message e); loop true src)
       | (_,NONE) => ()
 in
   (* TODO: add socket interface *)
@@ -940,7 +939,7 @@ in
 end
 
 
-(* additional outer syntax for Isar *)  
+(* additional outer syntax for Isar *)
 (* da: TODO: perhaps we can drop this superfluous syntax now??
    Seems cleaner to support the operations directly above in the PGIP actions.
  *)
@@ -1033,11 +1032,11 @@ in
 
 (* Set recipient for PGIP results *)
 fun init_pgip_channel writefn =
-    (init_pgip_session_id();  
-     pgip_output_channel := writefn)				  
+    (init_pgip_session_id();
+     pgip_output_channel := writefn)
 
-(* Process a PGIP command. 
-   This works for preferences but not generally guaranteed 
+(* Process a PGIP command.
+   This works for preferences but not generally guaranteed
    because we haven't done full setup here (e.g., no pgml mode)  *)
 fun process_pgip str =
      setmp output_xml_fn (!pgip_output_channel) process_pgip_plain str

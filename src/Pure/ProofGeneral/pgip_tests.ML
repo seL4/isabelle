@@ -3,7 +3,7 @@
     Author:     David Aspinall
 
 A test suite for the PGIP abstraction code (in progress).
-Run to provide some mild insurance against breakage in Isabelle/here.
+Run to provide some mild insurance against breakage in Isabelle here.
 *)
 
 (** pgip_types.ML **)
@@ -70,7 +70,7 @@ fun e str = case p str of
 open PgipInput;
 
 fun asseqi a b =
-    if (input (e a))=b then ()
+    if input (e a) = b then ()
     else error("PGIP test: expected two inputs to be equal, for input:\n" ^ a)
 
 in
@@ -103,7 +103,7 @@ local
 open PgipMarkup
 open PgipParser
 fun asseqp a b =
-    if (pgip_parser a)=b then ()
+    if pgip_parser a = b then ()
     else error("PGIP test: expected two parses to be equal, for input:\n" ^ a)
 
 in

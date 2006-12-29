@@ -9,7 +9,7 @@ See http://proofgeneral.inf.ed.ac.uk
 signature PROOF_GENERAL =
 sig
   val init: bool -> unit
-  val init_pgip: bool -> unit	        (* for compatibility; always fails *)
+  val init_pgip: bool -> unit           (* for compatibility; always fails *)
   val write_keywords: string -> unit
 end;
 
@@ -22,7 +22,6 @@ structure P = OuterParse;
 
 val proof_generalN = "ProofGeneralEmacs";  (*token markup (colouring vars, etc.)*)
 val pgasciiN = "PGASCII";                  (*plain 7-bit ASCII communication*)
-val xsymbolsN = Symbol.xsymbolsN;          (*X-Symbol symbols*)
 val thm_depsN = "thm_deps";                (*meta-information about theorem deps*)
 
 fun special oct =
@@ -38,7 +37,7 @@ fun xsym_output "\\" = "\\\\"
   | xsym_output s = if Symbol.is_raw s then Symbol.decode_raw s else s;
 
 fun xsymbols_output s =
-  if Output.has_mode xsymbolsN andalso exists_string (equal "\\") s then
+  if Output.has_mode Symbol.xsymbolsN andalso exists_string (equal "\\") s then
     let val syms = Symbol.explode s
     in (implode (map xsym_output syms), real (Symbol.length syms)) end
   else Symbol.default_output s;
@@ -46,7 +45,7 @@ fun xsymbols_output s =
 in
 
 fun setup_xsymbols_output () =
-  Output.add_mode xsymbolsN
+  Output.add_mode Symbol.xsymbolsN
     (xsymbols_output, K xsymbols_output, Symbol.default_indent, Symbol.encode_raw);
 
 end;
@@ -119,18 +118,16 @@ fun setup_messages () =
 fun emacs_notify s = decorate (special "360") (special "361") "" s;
 
 fun tell_clear_goals () =
-    emacs_notify "Proof General, please clear the goals buffer.";
+  emacs_notify "Proof General, please clear the goals buffer.";
 
 fun tell_clear_response () =
-    emacs_notify "Proof General, please clear the response buffer.";
+  emacs_notify "Proof General, please clear the response buffer.";
 
 fun tell_file_loaded path =
-    emacs_notify ("Proof General, this file is loaded: " ^ 
-		  quote (File.platform_path path));
+  emacs_notify ("Proof General, this file is loaded: " ^ quote (File.platform_path path));
 
 fun tell_file_retracted path =
-    emacs_notify ("Proof General, you can unlock the file " 
-		  ^ quote (File.platform_path path));
+  emacs_notify ("Proof General, you can unlock the file " ^ quote (File.platform_path path));
 
 
 (* theory / proof state output *)
@@ -221,11 +218,11 @@ fun vacuous_inform_file_processed file state =
 val welcome = priority o Session.welcome;
 
 fun restart () =
-    (sync_thy_loader ();
-     tell_clear_goals ();
-     tell_clear_response ();
-     welcome ();
-     raise Toplevel.RESTART)
+ (sync_thy_loader ();
+  tell_clear_goals ();
+  tell_clear_response ();
+  welcome ();
+  raise Toplevel.RESTART);
 
 
 (* theorem dependency output *)
@@ -316,27 +313,25 @@ val initialized = ref false;
 
 fun set_prompts () = ml_prompts "ML> " "ML# "
 
-fun init_setup () =
-  (conditional (not (! initialized)) (fn () =>
-   (setmp warning_fn (K ()) init_outer_syntax ();
-    setup_xsymbols_output ();
-    setup_messages ();
-    ProofGeneralPgip.init_pgip_channel (!priority_fn);
-    setup_state ();
-    setup_thy_loader ();
-    setup_present_hook ();
-    set initialized; ()));
-  sync_thy_loader ();
-  change print_mode (cons proof_generalN o remove (op =) proof_generalN);
-  set_prompts ())
-
-fun init true = (init_setup ();
-		 Isar.sync_main ())
-  | init false = Output.panic "Interface support no longer available for Isabelle/classic mode."
+fun init false =
+      Output.panic "Interface support no longer available for Isabelle/classic mode."
+  | init true =
+      (conditional (not (! initialized)) (fn () =>
+       (setmp warning_fn (K ()) init_outer_syntax ();
+        setup_xsymbols_output ();
+        setup_messages ();
+        ProofGeneralPgip.init_pgip_channel (! priority_fn);
+        setup_state ();
+        setup_thy_loader ();
+        setup_present_hook ();
+        set initialized; ()));
+      sync_thy_loader ();
+      change print_mode (cons proof_generalN o remove (op =) proof_generalN);
+      set_prompts ();
+      Isar.sync_main ());
 
 fun init_pgip false = init true
-  | init_pgip true = Output.panic "No PGIP here, please use ProofGeneralPgip.init_pgip (update your isabelle-process script)."
-
+  | init_pgip true = Output.panic "No PGIP here, please use ProofGeneralPgip.init_pgip."
 
 
 
@@ -345,8 +340,7 @@ fun init_pgip false = init true
 local
 
 val regexp_meta = member (op =) (explode ".*+?[]^$");
-val regexp_quote =
-  implode o map (fn c => if regexp_meta c then "\\\\" ^ c else c) o explode;
+val regexp_quote = translate_string (fn c => if regexp_meta c then "\\\\" ^ c else c);
 
 fun defconst name strs =
   "\n(defconst isar-keywords-" ^ name ^
@@ -363,7 +357,7 @@ fun make_elisp_syntax (keywords, commands) =
   \;; $" ^ "Id$\n\
   \;;\n" ^
   defconst "major" (map #1 commands) ^
-  defconst "minor" (List.filter Syntax.is_identifier keywords) ^
+  defconst "minor" (filter Syntax.is_identifier keywords) ^
   implode (map (make_elisp_commands commands) OuterKeyword.kinds) ^
   "\n(provide 'isar-keywords)\n";
 
@@ -375,6 +369,5 @@ fun write_keywords s =
     (make_elisp_syntax (OuterSyntax.dest_keywords (), OuterSyntax.dest_parsers ())));
 
 end;
-
 
 end;

@@ -53,7 +53,6 @@ fun pgip_emacs_compatibility () = (! pgip_emacs_compatibility_flag);
 
 val proof_generalN = "ProofGeneral";  (*token markup (colouring vars, etc.)*)
 val pgasciiN = "PGASCII";             (*plain 7-bit ASCII communication*)
-val xsymbolsN = Symbol.xsymbolsN;     (*X-Symbol symbols*)
 val pgmlN = "PGML";                   (*XML escapes and PGML symbol elements*)
 val pgmlatomsN = "PGMLatoms";         (*variable kind decorations*)
 val thm_depsN = "thm_deps";           (*meta-information about theorem deps*)
@@ -73,7 +72,7 @@ fun xsym_output "\\" = "\\\\"
   | xsym_output s = if Symbol.is_raw s then Symbol.decode_raw s else s;
 
 fun xsymbols_output s =
-  if Output.has_mode xsymbolsN andalso exists_string (equal "\\") s then
+  if Output.has_mode Symbol.xsymbolsN andalso exists_string (equal "\\") s then
     let val syms = Symbol.explode s
     in (implode (map xsym_output syms), real (Symbol.length syms)) end
   else Symbol.default_output s;
@@ -94,7 +93,7 @@ fun pgml_output str =
 in
 
 fun setup_xsymbols_output () =
-  Output.add_mode xsymbolsN
+  Output.add_mode Symbol.xsymbolsN
     (xsymbols_output, K xsymbols_output, Symbol.default_indent, Symbol.encode_raw);
 
 fun setup_pgml_output () =
@@ -314,20 +313,20 @@ fun tell_clear_response () =
 fun tell_file_loaded path =
   if pgip () then
     issue_pgipe "informfileloaded"
-      [localfile_url_attr  (XML.text (File.platform_path 
-					  (File.full_path path)))]
+      [localfile_url_attr  (XML.text (File.platform_path
+                                          (File.full_path path)))]
   else
-    emacs_notify ("Proof General, this file is loaded: " ^ 
-		  quote (File.platform_path path));
+    emacs_notify ("Proof General, this file is loaded: " ^
+                  quote (File.platform_path path));
 
 fun tell_file_retracted path =
   if pgip() then
     issue_pgipe "informfileretracted"
-      [localfile_url_attr  (XML.text (File.platform_path 
-					  (File.full_path path)))]
+      [localfile_url_attr  (XML.text (File.platform_path
+                                          (File.full_path path)))]
   else
-    emacs_notify ("Proof General, you can unlock the file " 
-		  ^ quote (File.platform_path path));
+    emacs_notify ("Proof General, you can unlock the file "
+                  ^ quote (File.platform_path path));
 
 
 (* theory / proof state output *)
@@ -618,21 +617,21 @@ val preferences = ref
        ("Track theorem dependencies within Proof General",
         thm_deps_option)),
      ("skip-proofs",
-      ("Ignore proof scripts (interactive-only)",
+      ("Skip over proofs (interactive-only)",
        bool_option Toplevel.skip_proofs))])
    ];
 end;
 
 (** lexicalstructure element with keywords (PGIP version of elisp keywords file) **)
 
-fun lexicalstructure_keywords () = 
+fun lexicalstructure_keywords () =
     let val commands = OuterSyntax.dest_keywords ()
-	fun category_of k = if (k mem commands) then "major" else "minor"
+        fun category_of k = if (k mem commands) then "major" else "minor"
          (* NB: we might filter to only include words like elisp case (OuterSyntax.is_keyword). *)
-    	fun keyword_elt (keyword,help,kind,_) = 
-  	    XML.element "keyword" [("word", keyword), ("category", category_of kind)]
-	  	    [XML.element "shorthelp" [] [XML.text help]]
-        in 	    	    
+        fun keyword_elt (keyword,help,kind,_) =
+            XML.element "keyword" [("word", keyword), ("category", category_of kind)]
+                    [XML.element "shorthelp" [] [XML.text help]]
+        in
             (* Also, note we don't call init_outer_syntax here to add interface commands,
             but they should never appear in scripts anyway so it shouldn't matter *)
             XML.element "lexicalstructure" [] (map keyword_elt (OuterSyntax.dest_parsers()))
@@ -657,18 +656,18 @@ fun send_pgip_config () =
         val exists = File.exists path
         val proverinfo =
             XML.element "proverinfo"
-              [("name",     	 "Isabelle"), 
-	       ("version",  	 version),
-	       ("instance", 	 Session.name()), 
-	       ("descr",	 "The Isabelle/Isar theorem prover"),
-	       ("url",      	 isabelle_www()),   
-	       ("filenameextns", ".thy;")]
+              [("name",          "Isabelle"),
+               ("version",       version),
+               ("instance",      Session.name()),
+               ("descr",         "The Isabelle/Isar theorem prover"),
+               ("url",           isabelle_www()),
+               ("filenameextns", ".thy;")]
             []
     in
         if exists then
-            (issue_pgips [proverinfo]; 
-	     issue_pgips [File.read path];
-	     issue_pgips [lexicalstructure_keywords()])
+            (issue_pgips [proverinfo];
+             issue_pgips [File.read path];
+             issue_pgips [lexicalstructure_keywords()])
         else Output.panic ("PGIP configuration file \"" ^ config_file() ^ "\" not found")
     end;
 end
@@ -1257,8 +1256,8 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "closegoal"      => isarscript data
      | "giveupgoal"     => isarscript data
      | "postponegoal"   => isarscript data
-     | "comment"        => isarscript data  
-     | "doccomment"     => isarscript data  
+     | "comment"        => isarscript data
+     | "doccomment"     => isarscript data
      | "whitespace"     => isarscript data  (* NB: should be ignored, but process anyway *)
      | "litcomment"     => isarscript data  (* NB: should be ignored, process for back compat *)
      | "spuriouscmd"    => isarscript data
@@ -1303,14 +1302,14 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "openfile"       => (case !currently_open_file of
                                 SOME f => raise PGIP ("openfile when a file is already open!")
                               | NONE => (openfile_retract (fileurl_of attrs);
-					 currently_open_file := SOME (fileurl_of attrs)))
+                                         currently_open_file := SOME (fileurl_of attrs)))
      | "closefile"      => (case !currently_open_file of
                                 SOME f => (proper_inform_file_processed f (Isar.state());
                                            currently_open_file := NONE)
                               | NONE => raise PGIP ("closefile when no file is open!"))
      | "abortfile"      => (case !currently_open_file of
                                 SOME f => (isarcmd "init_toplevel";
-					   currently_open_file := NONE)
+                                           currently_open_file := NONE)
                               | NONE => raise PGIP ("abortfile when no file is open!"))
      | "retractfile"    => (case !currently_open_file of
                                 SOME f => raise PGIP ("retractfile when a file is open!")

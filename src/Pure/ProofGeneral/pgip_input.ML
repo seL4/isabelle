@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     David Aspinall
 
-PGIP abstraction: input commands
+PGIP abstraction: input commands.
 *)
 
 signature PGIPINPUT =
@@ -146,7 +146,7 @@ local
     val times_attr = read_pgipnat o (get_attr_dflt "times" "1")
     val prefcat_attr = get_attr_opt "prefcategory"
 
-    fun xmltext ((XML.Text text)::ts) = text ^ (xmltext ts)
+    fun xmltext (XML.Text text :: ts) = text ^ xmltext ts
       | xmltext [] = ""
       | xmltext _ = raise PGIP "Expected text (PCDATA/CDATA)"
 

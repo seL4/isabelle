@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     David Aspinall
 
-Prover-side PGIP abstraction: Isabelle configuration
+Prover-side PGIP abstraction: Isabelle configuration.
 *)
 
 signature PGIP_ISABELLE =

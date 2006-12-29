@@ -52,7 +52,7 @@ val bool_pref =
 val proof_pref =
     let 
 	fun get () = PgipTypes.bool_to_pgstring (! proofs >= 2)
-	fun set s = proofs := (if (PgipTypes.read_pgipbool s) then 1 else 2) 
+	fun set s = proofs := (if PgipTypes.read_pgipbool s then 1 else 2)
     in
 	mkpref get set PgipTypes.Pgipbool "full-proofs" 
 	       "Record full proof objects internally"
@@ -61,7 +61,7 @@ val proof_pref =
 val thm_deps_pref = 
     let 
 	fun get () = PgipTypes.bool_to_pgstring (Output.has_mode thm_depsN)
-	fun set s = if (PgipTypes.read_pgipbool s) then 
+	fun set s = if PgipTypes.read_pgipbool s then 
 			change print_mode (insert (op =) thm_depsN)
 		    else 
 			change print_mode (remove (op =) thm_depsN) 
@@ -143,7 +143,7 @@ val proof_preferences =
 	       "Take a few short cuts",
      bool_pref Toplevel.skip_proofs
 	       "skip-proofs"
-	       "Ignore proof scripts (interactive-only)"]
+	       "Skip over proofs (interactive-only)"]
 
 val preferences = 
     [("Display", display_preferences),
