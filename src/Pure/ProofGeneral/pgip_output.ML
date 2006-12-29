@@ -324,7 +324,7 @@ fun ready (Ready vs) = XML.Elem("ready",[],[])
 
 
 fun output pgipoutput = case pgipoutput of
- of Cleardisplay _          => cleardisplay pgipoutput
+    Cleardisplay _          => cleardisplay pgipoutput
   | Normalresponse _        => normalresponse pgipoutput
   | Errorresponse _         => errorresponse pgipoutput
   | Informfileloaded _      => informfileloaded pgipoutput
