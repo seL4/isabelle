@@ -88,7 +88,7 @@ val axclassP =
   OuterSyntax.command "axclass" "define axiomatic type class" K.thy_decl
     (P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
         P.!!! (P.list1 P.xname)) []
-        -- Scan.optional (P.$$$ "attach" |-- Scan.repeat P.term) []
+        -- Scan.optional (P.$$$ "(" |-- P.$$$ "attach" |-- Scan.repeat P.term --| P.$$$ ")") []
         -- Scan.repeat (P.thm_name ":" -- (P.prop >> single))
       >> (fn ((x, y), z) => Toplevel.theory (snd o AxClass.define_class x y z)));
 

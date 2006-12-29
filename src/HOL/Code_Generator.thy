@@ -83,7 +83,7 @@ subsection {* Generic code generator setup *}
 text {* operational equality for code generation *}
 
 axclass eq \<subseteq> type
-  attach "op ="
+  (attach "op =")
 
 
 text {* equality for Haskell *}
