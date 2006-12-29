@@ -31,7 +31,6 @@ sig
   val kill_theory: string -> unit
   val theory: string * string list * (string * bool) list
     -> Toplevel.transition -> Toplevel.transition
-  val init_context: ('a -> unit) -> 'a -> Toplevel.transition -> Toplevel.transition
   val welcome: Toplevel.transition -> Toplevel.transition
   val init_toplevel: Toplevel.transition -> Toplevel.transition
   val exit: Toplevel.transition -> Toplevel.transition
@@ -203,13 +202,6 @@ fun theory (name, imports, uses) =
   Toplevel.init_theory (begin_theory name imports uses)
     (fn thy => (end_theory thy; ()))
     (kill_theory o Context.theory_name);
-
-fun init_context f x = Toplevel.init_theory
-  (fn _ =>
-    (case Context.pass NONE f x of
-      ((), NONE) => raise Toplevel.UNDEF
-    | ((), SOME thy) => thy))
-  (K ()) (K ());
 
 val init_toplevel = Toplevel.imperative (fn () => raise Toplevel.RESTART);
 
