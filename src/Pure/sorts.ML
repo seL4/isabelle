@@ -28,7 +28,8 @@ sig
   val rep_algebra: algebra ->
    {classes: serial Graph.T,
     arities: (class * (class * sort list)) list Symtab.table}
-  val classes: algebra -> class list
+  val all_classes: algebra -> class list
+  val minimal_classes: algebra -> class list
   val super_classes: algebra -> class -> class list
   val class_less: algebra -> class * class -> bool
   val class_le: algebra -> class * class -> bool
@@ -43,7 +44,7 @@ sig
   val add_arities: Pretty.pp -> string * (class * sort list) list -> algebra -> algebra
   val empty_algebra: algebra
   val merge_algebra: Pretty.pp -> algebra * algebra -> algebra
-  val project_algebra: Pretty.pp -> (class -> bool) -> algebra -> (sort -> sort) * algebra
+  val subalgebra: Pretty.pp -> (class -> bool) -> algebra -> (sort -> sort) * algebra
   type class_error
   val class_error: Pretty.pp -> class_error -> 'a
   exception CLASS_ERROR of class_error
@@ -120,8 +121,9 @@ fun map_arities f (Algebra {classes, arities}) = make_algebra (classes, f aritie
 
 (* classes *)
 
-val classes = flat o rev o Graph.strong_conn o classes_of;
-  (*order allows for left-to-right traversal*)
+fun all_classes (Algebra {classes, ...}) = Graph.all_preds classes (Graph.maximals classes);
+
+val minimal_classes = Graph.minimals o classes_of;
 val super_classes = Graph.imm_succs o classes_of;
 
 
@@ -280,14 +282,17 @@ fun merge_algebra pp
       |> add_arities_table pp algebra0 arities2;
   in make_algebra (classes', arities') end;
 
-fun project_algebra pp proj (algebra as Algebra {classes, arities}) =
+
+(* subalgebra *)
+
+fun subalgebra pp P (algebra as Algebra {classes, arities}) =
   let
-    val proj_sort = norm_sort algebra o filter proj o Graph.all_succs classes;
-    fun proj_arity (c, (_, Ss)) =
-      if proj c then SOME (c, (c, map proj_sort Ss)) else NONE;
-    val classes' = classes |> Graph.project proj;
-    val arities' = arities |> (Symtab.map o map_filter) proj_arity;
-  in (proj_sort, rebuild_arities pp (make_algebra (classes', arities'))) end;
+    val restrict_sort = norm_sort algebra o filter P o Graph.all_succs classes;
+    fun restrict_arity (c, (_, Ss)) =
+      if P c then SOME (c, (c, map restrict_sort Ss)) else NONE;
+    val classes' = classes |> Graph.subgraph P;
+    val arities' = arities |> (Symtab.map o map_filter) restrict_arity;
+  in (restrict_sort, rebuild_arities pp (make_algebra (classes', arities'))) end;
 
 
 
