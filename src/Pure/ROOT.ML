@@ -83,12 +83,7 @@ use "Proof/extraction.ML";
 cd "Tools"; use "ROOT.ML"; cd "..";
 
 (*configuration for Proof General*)
-(* Next line is OLD CODE: in case you have problems, uncomment next line and 
-   comment out line after. Please report any problems to da@inf.ed.ac.uk.
-   Plan is to remove old code very soon. *)
-(*(use |> setmp proofs 1 |> setmp quick_and_dirty true) "proof_general.ML"; *)
-(* Next line is NEW CODE.  Hopefully now working on SMLNJ and Poly/ML. *)
-cd "ProofGeneral"; use "ROOT.ML"; cd ".."; 
+cd "ProofGeneral"; use "ROOT.ML"; cd "..";
 
 use_thy "Pure";
 structure Pure = struct val thy = theory "Pure" end;
