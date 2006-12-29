@@ -121,7 +121,7 @@ fun print_classes thy =
     fun mk_entry class = (Pretty.block o Pretty.fbreaks o map_filter I) [
       (SOME o Pretty.str) ("class " ^ class ^ ":"),
       (SOME o Pretty.block) [Pretty.str "supersort: ",
-        (Sign.pretty_sort thy o Sorts.certify_sort algebra o Sorts.super_classes algebra) class],
+        (Sign.pretty_sort thy o Sign.certify_sort thy o Sign.super_classes thy) class],
       Option.map (Pretty.str o prefix "locale: " o #locale) (lookup_class_data thy class),
       ((fn [] => NONE | ps => (SOME o Pretty.block o Pretty.fbreaks) (Pretty.str "parameters:" :: ps)) o map mk_param
         o these o Option.map #params o try (AxClass.get_definition thy)) class,
@@ -131,7 +131,8 @@ fun print_classes thy =
       ]
     ]
   in
-    (Pretty.writeln o Pretty.chunks o separate (Pretty.str "") o map mk_entry o Sorts.classes) algebra
+    (Pretty.writeln o Pretty.chunks o separate (Pretty.str "") o map mk_entry o Sorts.all_classes)
+      algebra
   end;
 
 
