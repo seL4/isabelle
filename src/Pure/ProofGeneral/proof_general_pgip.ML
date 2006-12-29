@@ -6,7 +6,6 @@ Isabelle configuration for Proof General using PGIP protocol.
 See http://proofgeneral.inf.ed.ac.uk/kit
 *)
 
-
 signature PROOF_GENERAL_PGIP =
 sig
   val init_pgip: bool -> unit             (* main PGIP loop with true; fail with false *)
@@ -22,6 +21,7 @@ struct
 structure P = OuterParse;
 
 open Pgip;
+
 
 (* print modes *)
 
@@ -84,7 +84,7 @@ val skolem_tag = "skolem"
 fun xml_atom kind x = XML.element "atom" [("kind", kind)] [XML.text x];
 
 fun tagit kind x =
- (xml_atom kind x, real (Symbol.length (Symbol.explode x)));
+  (xml_atom kind x, real (Symbol.length (Symbol.explode x)));
 
 fun free_or_skolem x =
   (case try Name.dest_skolem x of
@@ -266,28 +266,9 @@ in
 end;
 
 
-(* prepare theory context *)
+(* get informed about files *)
 
 val thy_name = Path.implode o #1 o Path.split_ext o Path.base o Path.explode;
-
-(* FIXME general treatment of tracing*)
-val update_thy_only = setmp MetaSimplifier.trace_simp false ThyInfo.update_thy_only;
-
-fun dynamic_context () =
-  (case Context.get_context () of
-    SOME thy => "  Using current (dynamic!) one: " ^ quote (Context.theory_name thy)
-  | NONE => "");
-
-fun try_update_thy_only file =
-  ThyLoad.cond_add_path (Path.dir (Path.explode file)) (fn () =>
-    let val name = thy_name file in
-      if is_some (ThyLoad.check_file NONE (ThyLoad.thy_path name))
-      then update_thy_only name
-      else warning ("Unkown theory context of ML file." ^ dynamic_context ())
-    end) ();
-
-
-(* get informed about files *)
 
 val inform_file_retracted = ThyInfo.if_known_thy ThyInfo.remove_thy o thy_name;
 val inform_file_processed = ThyInfo.if_known_thy ThyInfo.touch_child_thys o thy_name;
@@ -954,16 +935,6 @@ val redoP = (*redo without output*)
   OuterSyntax.improper_command "ProofGeneral.redo" "(internal)" K.control
     (Scan.succeed (Toplevel.no_timing o IsarCmd.redo));
 
-(* da: what were these context commands ones for? *)
-val context_thy_onlyP =
-  OuterSyntax.improper_command "ProofGeneral.context_thy_only" "(internal)" K.control
-    (P.name >> (Toplevel.no_timing oo IsarCmd.init_context update_thy_only));
-
-val try_context_thy_onlyP =
-  OuterSyntax.improper_command "ProofGeneral.try_context_thy_only" "(internal)" K.control
-    (P.name >> (Toplevel.no_timing oo
-      (Toplevel.imperative (K ()) oo IsarCmd.init_context try_update_thy_only)));
-
 (* ProofGeneral.kill_proof still used above *)
 val kill_proofP =
   OuterSyntax.improper_command "ProofGeneral.kill_proof" "(internal)" K.control
@@ -989,8 +960,7 @@ val process_pgipP =
       (fn txt => Toplevel.imperative (fn () => process_pgip_plain txt))));
 
 fun init_outer_syntax () = OuterSyntax.add_parsers
- [undoP, redoP, kill_proofP, context_thy_onlyP, try_context_thy_onlyP,
-  inform_file_processedP, inform_file_retractedP, process_pgipP];
+ [undoP, redoP, kill_proofP, inform_file_processedP, inform_file_retractedP, process_pgipP];
 
 end;
 
