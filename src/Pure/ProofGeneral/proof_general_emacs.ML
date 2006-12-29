@@ -18,6 +18,7 @@ struct
 
 structure P = OuterParse;
 
+
 (* print modes *)
 
 val proof_generalN = "ProofGeneralEmacs";  (*token markup (colouring vars, etc.)*)
@@ -138,18 +139,18 @@ fun tmp_markers f =
   setmp Display.current_goals_markers (special "366", special "367", "") f ();
 
 fun print_current_goals n m st =
-    tmp_markers (fn () => Display.print_current_goals_default n m st);
+  tmp_markers (fn () => Display.print_current_goals_default n m st);
 
 fun print_state b st =
-    tmp_markers (fn () => Toplevel.print_state_default b st);
+  tmp_markers (fn () => Toplevel.print_state_default b st);
 
 in
 
 fun setup_state () =
   (Display.print_current_goals_fn := print_current_goals;
    Toplevel.print_state_fn := print_state;
-   Toplevel.prompt_state_fn := (fn s => suffix (special "372")
-     (Toplevel.prompt_state_default s)));
+   Toplevel.prompt_state_fn :=
+     (fn s => suffix (special "372") (Toplevel.prompt_state_default s)));
 
 end;
 
@@ -311,8 +312,6 @@ end;
 
 val initialized = ref false;
 
-fun set_prompts () = ml_prompts "ML> " "ML# "
-
 fun init false =
       Output.panic "Interface support no longer available for Isabelle/classic mode."
   | init true =
@@ -327,7 +326,7 @@ fun init false =
         set initialized; ()));
       sync_thy_loader ();
       change print_mode (cons proof_generalN o remove (op =) proof_generalN);
-      set_prompts ();
+      ml_prompts "ML> " "ML# ";
       Isar.sync_main ());
 
 fun init_pgip false = init true
