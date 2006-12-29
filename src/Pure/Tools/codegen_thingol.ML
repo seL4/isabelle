@@ -310,7 +310,7 @@ fun project_code hidden raw_selected code =
           |> subtract (op =) hidden;
   in
     code
-    |> Graph.project (member (op =) selected)
+    |> Graph.subgraph (member (op =) selected)
   end;
 
 fun check_samemodule names =
