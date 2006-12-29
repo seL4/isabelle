@@ -26,7 +26,7 @@ sig
     -> ((string * sort) list * (string * (bool * (string * typ list) list)) list)
   val get_codetypes_arities: theory -> (string * bool) list -> sort
     -> (string * (((string * sort list) * sort) * term list)) list option
-  val prove_codetypes_arities: (thm list -> tactic) -> (string * bool) list -> sort
+  val prove_codetypes_arities: tactic -> (string * bool) list -> sort
     -> (((string * sort list) * sort) list -> (string * term list) list -> theory
     -> ((bstring * attribute list) * term) list * theory)
     -> (((string * sort list) * sort) list -> (string * term list) list -> theory -> theory)
@@ -612,7 +612,7 @@ fun prove_codetypes_arities tac tycos sort f after_qed thy =
         |> not (null arities) ? (
             f arities css
             #-> (fn defs =>
-              ClassPackage.prove_instance_arity tac arities ("", []) defs
+              ClassPackage.prove_instance_arity tac arities defs
             #> after_qed arities css))
       end;
 
@@ -631,7 +631,7 @@ fun eq_hook specs =
         CodegenData.add_funcl (c, CodegenData.lazy get_thms) thy
       end;
   in
-    prove_codetypes_arities (K (ClassPackage.intro_classes_tac []))
+    prove_codetypes_arities (ClassPackage.intro_classes_tac [])
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
       [HOLogic.class_eq] ((K o K o pair) []) ((K o K) (fold add_eq_thms specs))
   end;

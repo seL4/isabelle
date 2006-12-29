@@ -37,7 +37,7 @@ qed
 instance unit :: order
   "u \<le> v \<equiv> True"
   "u < v \<equiv> False"
-  by default (simp_all add: order_unit_def)
+  by default (simp_all add: less_eq_unit_def less_unit_def)
 
 fun le_option' :: "'a\<Colon>order option \<Rightarrow> 'a option \<Rightarrow> bool"
   where "le_option' None y \<longleftrightarrow> True"
@@ -47,7 +47,7 @@ fun le_option' :: "'a\<Colon>order option \<Rightarrow> 'a option \<Rightarrow> 
 instance option :: (order) order
   "x \<le> y \<equiv> le_option' x y"
   "x < y \<equiv> x \<le> y \<and> x \<noteq> y"
-proof (default, unfold order_option_def)
+proof (default, unfold less_eq_option_def less_option_def)
   fix x
   show "le_option' x x" by (cases x) simp_all
 next
@@ -69,7 +69,7 @@ lemma [simp, code]:
   "None \<le> y \<longleftrightarrow> True"
   "Some x \<le> None \<longleftrightarrow> False"
   "Some v \<le> Some w \<longleftrightarrow> v \<le> w"
-  unfolding order_option_def le_option'.simps by rule+
+  unfolding less_eq_option_def less_option_def le_option'.simps by rule+
 
 lemma forall_all [simp]:
   "list_all P xs \<longleftrightarrow> (\<forall>x\<in>set xs. P x)"
@@ -99,12 +99,11 @@ lemma ex_exists [code func, code inline]:
 end
   
 instance bool :: fin
-  (* FIXME: better name handling of definitions *)
-  "_1": "fin == [False, True]"
+  "fin == [False, True]"
   by default (simp_all add: fin_bool_def)
 
 instance unit :: fin
-  "_2": "fin == [()]"
+  "fin == [()]"
   by default (simp_all add: fin_unit_def)
 
 fun
@@ -136,7 +135,7 @@ next
 qed
 
 instance * :: (fin, fin) fin
-  "_3": "fin == product fin fin"
+  "fin == product fin fin"
 apply default
 apply (simp_all add: "fin_*_def")
 apply (unfold split_paired_all)
@@ -145,7 +144,7 @@ apply (rule member_fin)+
 done
 
 instance option :: (fin) fin
-  "_4": "fin == None # map Some fin"
+  "fin == None # map Some fin"
 proof (default, unfold fin_option_def)
   fix x :: "'a::fin option"
   show "x \<in> set (None # map Some fin)"

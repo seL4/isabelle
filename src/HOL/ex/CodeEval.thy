@@ -40,9 +40,8 @@ let
   fun mk arities _ thy =
     (maps (fn ((tyco, asorts), _) => [(("", []), TypOf.mk_typ_of_def
       (Type (tyco, map TFree (Name.names Name.context "'a" asorts))))]) arities, thy);
-  fun tac _ = ClassPackage.intro_classes_tac [];
   fun hook specs =
-    DatatypeCodegen.prove_codetypes_arities tac
+    DatatypeCodegen.prove_codetypes_arities (ClassPackage.intro_classes_tac [])
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
       [TypOf.class_typ_of] mk ((K o K) I)
 in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
@@ -101,11 +100,10 @@ let
       |> PrimrecPackage.gen_primrec thy_note thy_def "" defs'
       |> snd
     end;
-  fun tac _ = ClassPackage.intro_classes_tac [];
   fun hook specs =
     if (fst o hd) specs = (fst o dest_Type) Embed.typ_typ then I
     else
-      DatatypeCodegen.prove_codetypes_arities tac
+      DatatypeCodegen.prove_codetypes_arities (ClassPackage.intro_classes_tac [])
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
       [TermOf.class_term_of] ((K o K o pair) []) mk
 in DatatypeCodegen.add_codetypes_hook_bootstrap hook end

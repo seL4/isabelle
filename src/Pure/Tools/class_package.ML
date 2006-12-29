@@ -12,13 +12,13 @@ sig
   val class_i: bstring -> class list -> Element.context_i Locale.element list -> theory ->
     string * Proof.context
   val instance_arity: ((bstring * string list) * string) list
-    -> bstring * Attrib.src list -> ((bstring * Attrib.src list) * string) list
+    -> ((bstring * Attrib.src list) * string) list
     -> theory -> Proof.state
   val instance_arity_i: ((bstring * sort list) * sort) list
-    -> bstring * attribute list -> ((bstring * attribute list) * term) list
+    -> ((bstring * attribute list) * term) list
     -> theory -> Proof.state
-  val prove_instance_arity: (thm list -> tactic) -> ((string * sort list) * sort) list
-    -> bstring * attribute list -> ((bstring * attribute list) * term) list
+  val prove_instance_arity: tactic -> ((string * sort list) * sort) list
+    -> ((bstring * attribute list) * term) list
     -> theory -> theory
   val instance_sort: string * string -> theory -> Proof.state
   val instance_sort_i: class * sort -> theory -> Proof.state
@@ -49,14 +49,13 @@ struct
 (** theory data **)
 
 datatype class_data = ClassData of {
-  name_locale: string,
-  name_axclass: string,
+  locale: string,
   var: string,
   consts: (string * (string * typ)) list
     (*locale parameter ~> toplevel theory constant*),
   propnames: string list,
   defs: thm list
-} * thm list Symtab.table;
+};
 
 fun rep_classdata (ClassData c) = c;
 
@@ -67,29 +66,12 @@ structure ClassData = TheoryDataFun (
     val empty = Symtab.empty;
     val copy = I;
     val extend = I;
-    fun merge _ = Symtab.join (fn _ => fn (ClassData (classd, instd1), ClassData (_, instd2)) =>
-      (ClassData (classd, Symtab.merge (K true) (instd1, instd2))));
-    fun print thy data =
-      let
-        fun pretty_class (name, ClassData ({name_locale, name_axclass, var, consts, ...}, _)) =
-          (Pretty.block o Pretty.fbreaks) [
-            Pretty.str ("class " ^ name ^ ":"),
-            Pretty.str ("locale: " ^ name_locale),
-            Pretty.str ("axclass: " ^ name_axclass),
-            Pretty.str ("class variable: " ^ var),
-            (Pretty.block o Pretty.fbreaks) (
-              Pretty.str "constants: "
-              :: map (fn (_, (c, ty)) => Pretty.str (c ^ " :: " ^ Sign.string_of_typ thy ty)) consts
-            )
-          ]
-      in
-        (Pretty.writeln o Pretty.chunks o map pretty_class o Symtab.dest) data
-      end;
+    fun merge _ = Symtab.merge (K true);
+    fun print _ _ = ();
   end
 );
 
 val _ = Context.add_setup ClassData.init;
-val print_classes = ClassData.print;
 
 
 (* queries *)
@@ -113,42 +95,64 @@ fun the_ancestry thy classes =
       |> fold ancestry ((maps proj_class o Sign.super_classes thy) class);
   in fold ancestry classes [] end;
 
-val the_parm_map = #consts o fst oo the_class_data;
+val the_parm_map = #consts oo the_class_data;
 
-val the_propnames = #propnames o fst oo the_class_data;
+val the_propnames = #propnames oo the_class_data;
 
 fun subst_clsvar v ty_subst =
   map_type_tfree (fn u as (w, _) =>
     if w = v then ty_subst else TFree u);
 
+fun print_classes thy =
+  let
+    val algebra = Sign.classes_of thy;
+    val arities =
+      Symtab.empty
+      |> Symtab.fold (fn (tyco, arities) => fold (fn (class, _) =>
+           Symtab.map_default (class, []) (insert (op =) tyco)) arities)
+             ((#arities o Sorts.rep_algebra) algebra);
+    val the_arities = these o Symtab.lookup arities;
+    fun mk_arity class tyco =
+      let
+        val Ss = Sorts.mg_domain algebra tyco [class];
+      in Sign.pretty_arity thy (tyco, Ss, [class]) end;
+    fun mk_param (c, ty) = Pretty.str (Sign.extern_const thy c ^ " :: "
+      ^ setmp show_sorts false (Sign.string_of_typ thy o Type.strip_sorts) ty);
+    fun mk_entry class = (Pretty.block o Pretty.fbreaks o map_filter I) [
+      (SOME o Pretty.str) ("class " ^ class ^ ":"),
+      (SOME o Pretty.block) [Pretty.str "supersort: ",
+        (Sign.pretty_sort thy o Sorts.certify_sort algebra o Sorts.super_classes algebra) class],
+      Option.map (Pretty.str o prefix "locale: " o #locale) (lookup_class_data thy class),
+      ((fn [] => NONE | ps => (SOME o Pretty.block o Pretty.fbreaks) (Pretty.str "parameters:" :: ps)) o map mk_param
+        o these o Option.map #params o try (AxClass.get_definition thy)) class,
+      (SOME o Pretty.block o Pretty.breaks) [
+        Pretty.str "instances:",
+        Pretty.list "" "" (map (mk_arity class) (the_arities class))
+      ]
+    ]
+  in
+    (Pretty.writeln o Pretty.chunks o separate (Pretty.str "") o map mk_entry o Sorts.classes) algebra
+  end;
+
 
 (* updaters *)
 
-fun add_class_data (class, (name_locale, name_axclass, var, consts, propnames)) =
+fun add_class_data (class, (locale, var, consts, propnames)) =
   ClassData.map (
-    Symtab.update_new (class, ClassData ({
-      name_locale = name_locale,
-      name_axclass = name_axclass,
+    Symtab.update_new (class, ClassData {
+      locale = locale,
       var = var,
       consts = consts,
       propnames = propnames,
-      defs = []}, Symtab.empty))
+      defs = []})
   );
 
 fun add_def (class, thm) =
-  ClassData.map (
-    Symtab.map_entry class (fn ClassData ({ name_locale, name_axclass,
-      var, consts, propnames, defs }, instd) => ClassData ({ name_locale = name_locale,
-      name_axclass = name_axclass, var = var,
-      consts = consts, propnames = propnames, defs = thm :: defs }, instd))
-  );
-
-
-fun add_inst_def ((class, tyco), thm) =
-  ClassData.map (
-    Symtab.map_entry class (fn ClassData (classd, instd) =>
-      ClassData (classd, Symtab.insert_list eq_thm (tyco, thm) instd))
-  );
+  (ClassData.map o Symtab.map_entry class)
+    (fn ClassData { locale,
+      var, consts, propnames, defs } => ClassData { locale = locale,
+      var = var,
+      consts = consts, propnames = propnames, defs = thm :: defs });
 
 
 (* experimental class target *)
@@ -166,7 +170,7 @@ fun export_typ thy loc =
 fun export_def thy loc =
   let
     val class = loc (*FIXME*);
-    val data = (fst o the_class_data thy) class;
+    val data = the_class_data thy class;
     val consts = #consts data;
     val v = #var data;
     val subst_typ = Term.map_type_tfree (fn var as (w, sort) =>
@@ -183,7 +187,7 @@ fun export_def thy loc =
 fun export_thm thy loc =
   let
     val class = loc (*FIXME*);
-    val thms = (#defs o fst o the_class_data thy) class;
+    val thms = (#defs o the_class_data thy) class;
   in
     MetaSimplifier.rewrite_rule thms
   end;
@@ -312,12 +316,11 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
     val supclasses = map (prep_class thy) raw_supclasses;
     val supsort =
       supclasses
-      |> map (#name_axclass o fst o the_class_data thy)
       |> Sign.certify_sort thy
       |> (fn [] => Sign.defaultS thy | S => S);    (* FIXME Why syntax defaultS? *)
     val expr_supclasses = Locale.Merge
-      (map (Locale.Locale o #name_locale o fst o the_class_data thy) supclasses);
-    val expr = Locale.Merge (map (Locale.Locale o #name_locale o fst o the_class_data thy) supclasses
+      (map (Locale.Locale o #locale o the_class_data thy) supclasses);
+    val expr = Locale.Merge (map (Locale.Locale o #locale o the_class_data thy) supclasses
       @ exprs);
     val mapp_sup = AList.make
       (the o AList.lookup (op =) ((flat o map (the_parm_map thy) o the_ancestry thy) supclasses))
@@ -375,7 +378,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
           add_axclass_i (bname, supsort) (map (fst o snd) mapp_this) loc_axioms
     #-> (fn (name_axclass, (_, ax_axioms)) =>
           fold (add_global_constraint v name_axclass) mapp_this
-    #> add_class_data (name_locale, (name_locale, name_axclass, v, mapp_this,
+    #> add_class_data (name_locale, (name_locale, v, mapp_this,
           map (fst o fst) loc_axioms))
     #> prove_interpretation_i (Logic.const_of_class bname, [])
           (Locale.Locale name_locale) (map (SOME o mk_const thy name_axclass v) (map snd (mapp_sup @ mapp_this)))
@@ -406,7 +409,7 @@ fun gen_read_def thy prep_att read_def ((raw_name, raw_atts), raw_t) =
 fun read_def thy = gen_read_def thy Attrib.attribute read_axm;
 fun read_def_i thy = gen_read_def thy (K I) (K I);
 
-fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arities (raw_name, raw_atts) raw_defs theory =
+fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arities raw_defs theory =
   let
     fun prep_arity' ((tyco, asorts), sort) = prep_arity theory (tyco, asorts, sort);
     val arities = map prep_arity' raw_arities;
@@ -416,12 +419,6 @@ fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arities (raw_na
      of [] => ()
       | dupl_tycos => error ("type constructors occur more than once in arities: "
         ^ (commas o map quote) dupl_tycos);
-    val (bind_always, name) = case raw_name
-     of "" => (false, Thm.def_name ((space_implode "_" o map NameSpace.base)
-                (maps (fn (tyco, _, sort) => sort @ [tyco])
-                (sort (fn ((tyco1, _, _), (tyco2, _, _)) => string_ord (tyco1, tyco2)) arities))))
-      | _ => (true, raw_name);
-    val atts = map (prep_att theory) raw_atts;
     fun get_consts_class tyco ty class =
       let
         val (_, cs) = AxClass.params_of_class theory class;
@@ -469,21 +466,6 @@ fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arities (raw_na
       thy
       |> PureThy.add_defs_i true (map snd defs)
       |-> (fn thms => pair (map fst defs ~~ thms));
-    fun note_all thy =
-      (*FIXME: should avoid binding duplicated names*)
-      let
-        val bind = bind_always orelse not (can (PureThy.get_thms thy) (Name name));
-        val thms = maps (fn (tyco, _, sort) => maps (fn class =>
-          Symtab.lookup_list
-            ((the_default Symtab.empty o Option.map snd o try (the_class_data thy)) class) tyco)
-            (the_ancestry thy sort)) arities;
-      in if bind then
-        thy
-        |> PureThy.note_thmss_i (*qualified*) Thm.internalK [((name, atts), [(thms, [])])]
-        |> snd
-      else
-        thy
-      end;
     fun after_qed cs thy =
       thy
       |> fold Sign.add_const_constraint_i (map (apsnd SOME) cs);
@@ -491,24 +473,21 @@ fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arities (raw_na
     theory
     |> fold_map get_remove_contraint (map fst cs |> distinct (op =))
     ||>> add_defs defs
-    |-> (fn (cs, def_thms) =>
-       fold add_inst_def def_thms
-    #> note_all
-    #> do_proof (map snd def_thms) (after_qed cs) arities)
+    |-> (fn (cs, def_thms) => do_proof (after_qed cs) arities)
   end;
 
 fun instance_arity' do_proof = gen_instance_arity Sign.read_arity Attrib.attribute
   read_def do_proof;
 fun instance_arity_i' do_proof = gen_instance_arity Sign.cert_arity (K I)
   read_def_i do_proof;
-fun tactic_proof tac def_thms after_qed arities =
-  fold (fn arity => AxClass.prove_arity arity (tac def_thms)) arities
+fun tactic_proof tac after_qed arities =
+  fold (fn arity => AxClass.prove_arity arity tac) arities
   #> after_qed;
 
 in
 
-val instance_arity = instance_arity' (K axclass_instance_arity_i);
-val instance_arity_i = instance_arity_i' (K axclass_instance_arity_i);
+val instance_arity = instance_arity' axclass_instance_arity_i;
+val instance_arity_i = instance_arity_i' axclass_instance_arity_i;
 val prove_instance_arity = instance_arity_i' o tactic_proof;
 
 end; (*local*)
@@ -526,11 +505,11 @@ fun gen_instance_sort prep_class prep_sort do_proof (raw_class, raw_sort) theory
   let
     val class = prep_class theory raw_class;
     val sort = prep_sort theory raw_sort;
-    val loc_name = (#name_locale o fst o the_class_data theory) class;
+    val loc_name = (#locale o the_class_data theory) class;
     val loc_expr =
-      (Locale.Merge o map (Locale.Locale o #name_locale o fst o the_class_data theory)) sort;
+      (Locale.Merge o map (Locale.Locale o #locale o the_class_data theory)) sort;
     val const_names = (map (NameSpace.base o fst o snd)
-      o maps (#consts o fst o the_class_data theory)
+      o maps (#consts o the_class_data theory)
       o the_ancestry theory) [class];
     fun get_thms thy =
       the_ancestry thy sort
@@ -604,9 +583,9 @@ val classP =
 val instanceP =
   OuterSyntax.command instanceK "prove type arity or subclass relation" K.thy_goal ((
       P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> wrap_add_instance_sort
-      || P.opt_thm_name ":" -- (P.and_list1 parse_arity -- Scan.repeat (P.opt_thm_name ":" -- P.prop))
-           >> (fn (("", []), ([((tyco, asorts), sort)], [])) => axclass_instance_arity I [(tyco, asorts, sort)]
-                | (natts, (arities, defs)) => instance_arity arities natts defs)
+      || P.and_list1 parse_arity -- Scan.repeat (P.opt_thm_name ":" -- P.prop)
+           >> (fn ([((tyco, asorts), sort)], []) => axclass_instance_arity I [(tyco, asorts, sort)]
+                | (arities, defs) => instance_arity arities defs)
     ) >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 val print_classesP =
