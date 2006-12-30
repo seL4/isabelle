@@ -316,16 +316,18 @@ fun thm_deps_message (thms, deps) =
     end
 
 (* FIXME: check this uses non-transitive closure function here *)
-fun tell_thm_deps ths = conditional (Output.has_mode thm_depsN) (fn () =>
-  let
-    val names = filter_out (equal "") (map PureThy.get_name_hint ths);
-    val deps = filter_out (equal "")
-      (Symtab.keys (fold Proofterm.thms_of_proof
-        (map Thm.proof_of ths) Symtab.empty));
-  in
-    if null names orelse null deps then ()
-    else thm_deps_message (spaces_quote names, spaces_quote deps)
-  end);
+fun tell_thm_deps ths =
+  if Output.has_mode thm_depsN then
+    let
+      val names = filter_out (equal "") (map PureThy.get_name_hint ths);
+      val deps = filter_out (equal "")
+        (Symtab.keys (fold Proofterm.thms_of_proof
+          (map Thm.proof_of ths) Symtab.empty));
+    in
+      if null names orelse null deps then ()
+      else thm_deps_message (spaces_quote names, spaces_quote deps)
+    end
+  else ();
 
 in
 
@@ -369,7 +371,7 @@ fun send_pgip_config () =
 
         val wwwpage =
             (Url.explode (isabelle_www()))
-            handle _ =>
+            handle ERROR _ =>
                    (Output.panic
                         ("Error in URL in environment variable ISABELLE_HOMEPAGE.");
                         Url.explode isabellewww)
@@ -640,13 +642,13 @@ fun parsescript (Parsescript vs) =
 
 fun showproofstate vs = isarcmd "pr"
 
-fun showctxt vs = isarcmd "print_theory"   (* more useful than print_context *)
+fun showctxt vs = isarcmd "print_context"
 
 fun searchtheorems (Searchtheorems vs) =
     let
         val arg = #arg vs
     in
-        isarcmd ("thms_containing " ^ arg)
+        isarcmd ("find_theorems " ^ arg)
     end
 
 fun setlinewidth (Setlinewidth vs) =
@@ -825,13 +827,13 @@ fun process_input inp = case inp
 
 fun process_pgip_element pgipxml =
     case pgipxml of
-        (xml as (XML.Elem elem)) =>
+        xml as (XML.Elem elem) =>
         (case Pgip.input elem of
              NONE => warning ("Unrecognized PGIP command, ignored: \n" ^
                               (XML.string_of_tree xml))
            | SOME inp => (process_input inp)) (* errors later; packet discarded *)
-      | (XML.Text t) => ignored_text_warning t
-      | (XML.Rawtext t) => ignored_text_warning t
+      | XML.Text t => ignored_text_warning t
+      | XML.Rawtext t => ignored_text_warning t
 and ignored_text_warning t =
     if size (Symbol.strip_blanks t) > 0 then
            warning ("Ignored text in PGIP packet: \n" ^ t)
@@ -883,8 +885,10 @@ exception XML_PARSE
 fun loop ready src =
     let
         val _ = if ready then issue_pgip (Ready ()) else ()
-        val pgipo = (Source.get_single src)
-                        handle e => raise XML_PARSE
+        val pgipo =
+          (case try Source.get_single src of
+            SOME pgipo => pgipo
+          | NONE => raise XML_PARSE)
     in
         case pgipo of
              NONE  => ()
@@ -969,28 +973,24 @@ end;
 
 val initialized = ref false;
 
-(* ML top level only for testing, entered on <quitpgip> *)
-fun set_prompts () = ml_prompts "ML> " "ML# ";
-
-fun init_setup () =
-  (conditional (not (! initialized)) (fn () =>
-   (setmp warning_fn (K ()) init_outer_syntax ();
-    setup_xsymbols_output ();
-    setup_pgml_output ();
-    setup_messages ();
-    setup_state ();
-    setup_thy_loader ();
-    setup_present_hook ();
-    init_pgip_session_id ();
-    welcome ();
-    set initialized; ()));
-  sync_thy_loader ();
-  change print_mode (cons proof_generalN o remove (op =) proof_generalN);
-  change print_mode (append [pgmlN, pgmlatomsN] o subtract (op =) [pgmlN, pgmlatomsN]);
-  set_prompts ());
-
-fun init_pgip false = Output.panic "PGIP not supported for Isabelle/classic mode."
-  | init_pgip true = (init_setup (); pgip_toplevel tty_src);
+fun init_pgip false =
+      Output.panic "No Proof General interface support for Isabelle/classic mode."
+  | init_pgip true =
+      (! initialized orelse
+        (setmp warning_fn (K ()) init_outer_syntax ();
+          setup_xsymbols_output ();
+          setup_pgml_output ();
+          setup_messages ();
+          setup_state ();
+          setup_thy_loader ();
+          setup_present_hook ();
+          init_pgip_session_id ();
+          welcome ();
+          set initialized);
+        sync_thy_loader ();
+       change print_mode (cons proof_generalN o remove (op =) proof_generalN);
+       change print_mode (append [pgmlN, pgmlatomsN] o subtract (op =) [pgmlN, pgmlatomsN]);
+       pgip_toplevel tty_src);
 
 
 
