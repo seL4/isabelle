@@ -226,9 +226,10 @@ local
 
 fun thm_name kind th prts =
   let val head =
-    (case PureThy.get_name_hint th of
-      "" => Pretty.command kind
-    | a => Pretty.block [Pretty.command kind, Pretty.brk 1, Pretty.str (Sign.base_name a ^ ":")])
+    if PureThy.has_name_hint th then
+      Pretty.block [Pretty.command kind,
+        Pretty.brk 1, Pretty.str (Sign.base_name (PureThy.get_name_hint th) ^ ":")]
+    else Pretty.command kind
   in Pretty.block (Pretty.fbreaks (head :: prts)) end;
 
 fun obtain prop ctxt =
