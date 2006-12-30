@@ -42,6 +42,9 @@ that has been implemented on top of these primitives.  This concept
 generalizes the existing ``theorem (in ...)'' towards more versatility
 and scalability.
 
+* Proof General interface: proper undo of final 'end' command;
+discontinued Isabelle/classic mode (ML proof scripts).
+
 
 *** Document preparation ***
 
