@@ -177,7 +177,6 @@ val thy_name = Path.implode o #1 o Path.split_ext o Path.base o Path.explode;
 
 val inform_file_retracted = ThyInfo.if_known_thy ThyInfo.remove_thy o thy_name;
 val inform_file_processed = ThyInfo.if_known_thy ThyInfo.touch_child_thys o thy_name;
-val openfile_retract = Output.no_warnings (ThyInfo.if_known_thy ThyInfo.remove_thy) o thy_name;
 
 fun proper_inform_file_processed file state =
   let val name = thy_name file in
@@ -254,9 +253,9 @@ val kill_proofP =
 val inform_file_processedP =
   OuterSyntax.improper_command "ProofGeneral.inform_file_processed" "(internal)" K.control
     (P.name >> (fn file => Toplevel.no_timing o
-      Toplevel.keep (vacuous_inform_file_processed file) o
+      Toplevel.init_empty (vacuous_inform_file_processed file) o
       Toplevel.kill o
-      Toplevel.keep (proper_inform_file_processed file)));
+      Toplevel.init_empty (proper_inform_file_processed file)));
 
 val inform_file_retractedP =
   OuterSyntax.improper_command "ProofGeneral.inform_file_retracted" "(internal)" K.control
