@@ -642,10 +642,6 @@ val cannot_undoP =
   OuterSyntax.improper_command "cannot_undo" "report 'cannot undo' error message" K.control
     (P.name >> (Toplevel.no_timing oo IsarCmd.cannot_undo));
 
-val clear_undosP =
-  OuterSyntax.improper_command "clear_undos" "clear theory-level undo information" K.control
-    (P.nat >> (Toplevel.no_timing oo IsarCmd.clear_undos_theory));
-
 val redoP =
   OuterSyntax.improper_command "redo" "redo last command" K.control
     (Scan.succeed (Toplevel.no_timing o Toplevel.print o IsarCmd.redo));
@@ -938,8 +934,8 @@ val _ = OuterSyntax.add_parsers [
   qedP, terminal_proofP, default_proofP, immediate_proofP,
   done_proofP, skip_proofP, forget_proofP, deferP, preferP, applyP,
   apply_endP, proofP, alsoP, finallyP, moreoverP, ultimatelyP, backP,
-  cannot_undoP, clear_undosP, redoP, undos_proofP, undoP, killP,
-  interpretationP, interpretP,
+  cannot_undoP, redoP, undos_proofP, undoP, killP, interpretationP,
+  interpretP,
   (*diagnostic commands*)
   pretty_setmarginP, helpP, print_commandsP, print_contextP,
   print_theoryP, print_syntaxP, print_abbrevsP, print_factsP,
