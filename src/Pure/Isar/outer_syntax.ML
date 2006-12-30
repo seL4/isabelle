@@ -318,7 +318,7 @@ fun gen_loop term no_pos =
   ml_prompts "ML> " "ML# ");
 
 fun gen_main term no_pos =
- (Toplevel.set_state Toplevel.toplevel;
+ (Toplevel.init_state ();
   writeln (Session.welcome ());
   gen_loop term no_pos);
 

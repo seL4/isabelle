@@ -61,6 +61,7 @@ fun finish () =
   (Output.accumulated_time ();
     ThyInfo.finish ();
     Present.finish ();
+    Toplevel.init_state ();
     session_finished := true);
 
 
