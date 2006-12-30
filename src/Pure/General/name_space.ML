@@ -232,11 +232,11 @@ fun declare (Naming (_, (_, accs))) name space =
   if is_hidden name then
     error ("Attempt to declare hidden name " ^ quote name)
   else
-    let val names = explode_name name in
-      conditional (null names orelse exists (fn s => s = "") names) (fn () =>
-        error ("Bad name declaration " ^ quote name));
-      fold (add_name name) (map implode_name (accs names)) space
-    end;
+    let
+      val names = explode_name name;
+      val _ = (null names orelse exists (fn s => s = "") names) andalso
+        error ("Bad name declaration " ^ quote name);
+    in fold (add_name name) (map implode_name (accs names)) space end;
 
 
 (* manipulate namings *)

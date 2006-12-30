@@ -475,6 +475,7 @@ fun add_fieldext extname_types fields thy =
 
 val get_fieldext = Symtab.lookup o #fieldext o RecordsData.get;
 
+
 (* parent records *)
 
 fun add_parents thy NONE parents = parents
@@ -490,6 +491,7 @@ fun add_parents thy NONE parents = parents
         fun bad_inst ((x, S), T) =
           if Sign.of_sort sign (T, S) then NONE else SOME x
         val bads = List.mapPartial bad_inst (args ~~ types);
+        val _ = null bads orelse err ("Ill-sorted instantiation of " ^ commas bads ^ " in");
 
         val inst = map fst args ~~ types;
         val subst = Term.map_type_tfree (the o AList.lookup (op =) inst o fst);
@@ -497,11 +499,10 @@ fun add_parents thy NONE parents = parents
         val fields' = map (apsnd subst) fields;
         val extension' = apsnd (map subst) extension;
       in
-        conditional (not (null bads)) (fn () =>
-          err ("Ill-sorted instantiation of " ^ commas bads ^ " in"));
         add_parents thy parent'
-          (make_parent_info name fields' extension' induct::parents)
+          (make_parent_info name fields' extension' induct :: parents)
       end;
+
 
 
 (** concrete syntax for records **)

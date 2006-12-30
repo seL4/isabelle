@@ -246,9 +246,10 @@ end;
 val trace_rules = ref false;
 
 fun trace ctxt rules =
-  conditional (! trace_rules andalso not (null rules)) (fn () =>
+  if ! trace_rules andalso not (null rules) then
     Pretty.big_list "rules:" (map (ProofContext.pretty_thm ctxt) rules)
-    |> Pretty.string_of |> tracing);
+    |> Pretty.string_of |> tracing
+  else ();
 
 local
 

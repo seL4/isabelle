@@ -145,8 +145,10 @@ fun declare_theory_data name empty copy extend merge =
   let
     val k = serial ();
     val kind = {name = name, empty = empty, copy = copy, extend = extend, merge = merge};
-    val _ = conditional (Datatab.exists (equal name o #name o #2) (! kinds)) (fn () =>
-      warning ("Duplicate declaration of theory data " ^ quote name));
+    val _ =
+      if Datatab.exists (equal name o #name o #2) (! kinds) then
+        warning ("Duplicate declaration of theory data " ^ quote name)
+      else ();
     val _ = change kinds (Datatab.update (k, kind));
   in k end;
 
@@ -554,8 +556,10 @@ fun declare name init =
   let
     val k = serial ();
     val kind = {name = name, init = init};
-    val _ = conditional (Datatab.exists (equal name o #name o #2) (! kinds)) (fn () =>
-      warning ("Duplicate declaration of proof data " ^ quote name));
+    val _ =
+      if Datatab.exists (equal name o #name o #2) (! kinds) then
+        warning ("Duplicate declaration of proof data " ^ quote name)
+      else ();
     val _ = change kinds (Datatab.update (k, kind));
   in k end;
 

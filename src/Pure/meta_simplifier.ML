@@ -993,8 +993,10 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
                  val b = Name.bound (#1 bounds);
                  val (v, t') = Thm.dest_abs (SOME b) t0;
                  val b' = #1 (Term.dest_Free (Thm.term_of v));
-                 val _ = conditional (b <> b') (fn () =>
-                   warning ("Simplifier: renamed bound variable " ^ quote b ^ " to " ^ quote b'));
+                 val _ =
+                   if b <> b' then
+                     warning ("Simplifier: renamed bound variable " ^ quote b ^ " to " ^ quote b')
+                   else ();
                  val ss' = add_bound ((b', T), a) ss;
                  val skel' = case skel of Abs (_, _, sk) => sk | _ => skel0;
              in case botc skel' ss' t' of
@@ -1171,18 +1173,20 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
 
 val debug_bounds = ref false;
 
-fun check_bounds ss ct = conditional (! debug_bounds) (fn () =>
-  let
-    val Simpset ({bounds = (_, bounds), ...}, _) = ss;
-    val bs = fold_aterms (fn Free (x, _) =>
-        if Name.is_bound x andalso not (AList.defined eq_bound bounds x)
-        then insert (op =) x else I
-      | _ => I) (term_of ct) [];
-  in
-    if null bs then ()
-    else print_term true ("Simplifier: term contains loose bounds: " ^ commas_quote bs) ss
-      (Thm.theory_of_cterm ct) (Thm.term_of ct)
-  end);
+fun check_bounds ss ct =
+  if ! debug_bounds then
+    let
+      val Simpset ({bounds = (_, bounds), ...}, _) = ss;
+      val bs = fold_aterms (fn Free (x, _) =>
+          if Name.is_bound x andalso not (AList.defined eq_bound bounds x)
+          then insert (op =) x else I
+        | _ => I) (term_of ct) [];
+    in
+      if null bs then ()
+      else print_term true ("Simplifier: term contains loose bounds: " ^ commas_quote bs) ss
+        (Thm.theory_of_cterm ct) (Thm.term_of ct)
+    end
+  else ();
 
 fun rewrite_cterm mode prover raw_ss raw_ct =
   let
@@ -1190,8 +1194,10 @@ fun rewrite_cterm mode prover raw_ss raw_ct =
     val {thy, t, maxidx, ...} = Thm.rep_cterm ct;
     val ss = fallback_context thy raw_ss;
     val _ = inc simp_depth;
-    val _ = conditional (!simp_depth mod 20 = 0) (fn () =>
-      warning ("Simplification depth " ^ string_of_int (! simp_depth)));
+    val _ =
+      if ! simp_depth mod 20 = 0 then
+        warning ("Simplification depth " ^ string_of_int (! simp_depth))
+      else ();
     val _ = trace_cterm false "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" ss ct;
     val _ = check_bounds ss ct;
     val res = bottomc (mode, Option.map Drule.flexflex_unique oo prover, thy, maxidx) ss ct

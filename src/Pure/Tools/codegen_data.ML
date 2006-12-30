@@ -426,8 +426,10 @@ fun declare name empty merge purge =
   let
     val k = serial ();
     val kind = {name = name, empty = empty, merge = merge, purge = purge};
-    val _ = conditional (Datatab.exists (equal name o #name o #2) (! kinds)) (fn () =>
-      warning ("Duplicate declaration of code data " ^ quote name));
+    val _ =
+      if Datatab.exists (equal name o #name o #2) (! kinds) then
+        warning ("Duplicate declaration of code data " ^ quote name)
+      else ();
     val _ = change kinds (Datatab.update (k, kind));
   in k end;
 

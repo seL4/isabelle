@@ -1070,10 +1070,10 @@ fun bind_def ctxt (name, ps) eq (xs, env, ths) =
     val th = abstract_thm (ProofContext.theory_of ctxt) eq;
     fun err msg = err_in_locale ctxt (msg ^ ": " ^ quote y) [(name, map fst ps)];
   in
-    conditional (exists (equal y o #1) xs) (fn () =>
-      err "Attempt to define previously specified variable");
-    conditional (exists (fn (Free (y', _), _) => y = y' | _ => false) env) (fn () =>
-      err "Attempt to redefine variable");
+    exists (equal y o #1) xs andalso
+      err "Attempt to define previously specified variable";
+    exists (fn (Free (y', _), _) => y = y' | _ => false) env andalso
+      err "Attempt to redefine variable";
     (Term.add_frees b' xs, (Free (y, T), b') :: env, th :: ths)
   end;
 
@@ -1763,8 +1763,8 @@ fun gen_add_locale prep_ctxt prep_expr
     do_predicate bname raw_import raw_body thy =
   let
     val name = Sign.full_name thy bname;
-    val _ = conditional (is_some (get_locale thy name)) (fn () =>
-      error ("Duplicate definition of locale " ^ quote name));
+    val _ = is_some (get_locale thy name) andalso
+      error ("Duplicate definition of locale " ^ quote name);
 
     val thy_ctxt = ProofContext.init thy;
     val (((import_ctxt, import_elemss), (body_ctxt, body_elemss, syn)),

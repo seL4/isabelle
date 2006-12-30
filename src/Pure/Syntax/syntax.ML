@@ -394,11 +394,12 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root str =
     fun show_pt pt =
       Pretty.string_of (Ast.pretty_ast (hd (SynTrans.pts_to_asts ctxt (K NONE) [pt])));
   in
-    conditional (length pts > ! ambiguity_level) (fn () =>
+    if length pts > ! ambiguity_level then
       if ! ambiguity_is_error then error ("Ambiguous input " ^ quote str)
       else (warning ("Ambiguous input " ^ quote str ^ "\n" ^
           "produces " ^ string_of_int (length pts) ^ " parse trees.");
-         List.app (warning o show_pt) pts));
+         List.app (warning o show_pt) pts)
+    else ();
     SynTrans.pts_to_asts ctxt (lookup_tr parse_ast_trtab) pts
   end;
 

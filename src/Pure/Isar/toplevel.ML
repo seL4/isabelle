@@ -661,8 +661,9 @@ local
 
 fun app int (tr as Transition {trans, int_only, print, no_timing, ...}) state =
   let
-    val _ = conditional (not int andalso int_only) (fn () =>
-      warning (command_msg "Interactive-only " tr));
+    val _ =
+      if not int andalso int_only then warning (command_msg "Interactive-only " tr)
+      else ();
 
     fun do_timing f x = (Output.info (command_msg "" tr); timeap f x);
     fun do_profiling f x = profile (! profiling) f x;
@@ -671,9 +672,9 @@ fun app int (tr as Transition {trans, int_only, print, no_timing, ...}) state =
        state |> (apply_trans int trans
         |> (if ! profiling > 0 then do_profiling else I)
         |> (if ! profiling > 0 orelse ! timing andalso not no_timing then do_timing else I));
-    val _ = conditional (int andalso not (! quiet) andalso
-        exists (member (op =) print) ("" :: ! print_mode))
-      (fn () => print_state false result);
+    val _ =
+      if int andalso not (! quiet) andalso exists (member (op =) print) ("" :: ! print_mode)
+      then print_state false result else ();
   in (result, Option.map (fn UNDEF => type_error tr state | exn => exn) opt_exn) end;
 
 in

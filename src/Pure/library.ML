@@ -75,7 +75,6 @@ sig
   val toggle: bool ref -> bool
   val change: 'a ref -> ('a -> 'a) -> unit
   val setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
-  val conditional: bool -> (unit -> unit) -> unit
 
   (*lists*)
   exception UnequalLengths
@@ -393,11 +392,6 @@ fun setmp flag value f x =
     val result = capture f x;
     val _ = flag := orig_value;
   in release result end;
-
-
-(* conditional execution *)
-
-fun conditional b f = if b then f () else ();
 
 
 

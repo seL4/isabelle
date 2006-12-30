@@ -205,8 +205,9 @@ fun normalize trace stat get_rules pre_ast =
       | rewrite ast = try_headless_rules ast;
 
     fun rewrote old_ast new_ast =
-      conditional trace (fn () =>
-        tracing ("rewrote: " ^ str_of_ast old_ast ^ "  ->  " ^ str_of_ast new_ast));
+      if trace then
+        tracing ("rewrote: " ^ str_of_ast old_ast ^ "  ->  " ^ str_of_ast new_ast)
+      else ();
 
     fun norm_root ast =
       (case rewrite ast of
@@ -234,17 +235,16 @@ fun normalize trace stat get_rules pre_ast =
       end;
 
 
-    val _ = conditional trace (fn () => tracing ("pre: " ^ str_of_ast pre_ast));
-
+    val _ = if trace then tracing ("pre: " ^ str_of_ast pre_ast) else ();
     val post_ast = normal pre_ast;
-  in
-    conditional (trace orelse stat) (fn () =>
-      tracing ("post: " ^ str_of_ast post_ast ^ "\nnormalize: " ^
-        string_of_int (! passes) ^ " passes, " ^
-        string_of_int (! changes) ^ " changes, " ^
-        string_of_int (! failed_matches) ^ " matches failed"));
-    post_ast
-  end;
+    val _ =
+      if trace orelse stat then
+        tracing ("post: " ^ str_of_ast post_ast ^ "\nnormalize: " ^
+          string_of_int (! passes) ^ " passes, " ^
+          string_of_int (! changes) ^ " changes, " ^
+          string_of_int (! failed_matches) ^ " matches failed")
+      else ();
+  in post_ast end;
 
 
 (* normalize_ast *)

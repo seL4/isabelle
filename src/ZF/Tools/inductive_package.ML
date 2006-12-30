@@ -148,8 +148,10 @@ let
   val big_rec_name = Sign.intern_const thy big_rec_base_name;
 
 
-  val dummy = conditional verbose (fn () =>
-    writeln ((if coind then "Coind" else "Ind") ^ "uctive definition " ^ quote big_rec_name));
+  val _ =
+    if verbose then
+      writeln ((if coind then "Coind" else "Ind") ^ "uctive definition " ^ quote big_rec_name)
+    else ();
 
   (*Forbid the inductive definition structure from clashing with a theory
     name.  This restriction may become obsolete as ML is de-emphasized.*)

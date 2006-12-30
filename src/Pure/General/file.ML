@@ -137,12 +137,15 @@ fun eq paths =
     SOME ids => OS.FileSys.compare ids = EQUAL
   | NONE => false);
 
-fun copy src dst = conditional (not (eq (src, dst))) (fn () =>
-  let val target = if is_dir dst then Path.append dst (Path.base src) else dst
-  in write target (read src) end);
+fun copy src dst =
+  if eq (src, dst) then ()
+  else
+    let val target = if is_dir dst then Path.append dst (Path.base src) else dst
+    in write target (read src) end;
 
-fun copy_dir src dst = conditional (not (eq (src, dst))) (fn () =>
-  (system_command ("cp -r -f " ^ shell_path src ^ "/. " ^ shell_path dst); ()))
+fun copy_dir src dst =
+  if eq (src, dst) then ()
+  else (system_command ("cp -r -f " ^ shell_path src ^ "/. " ^ shell_path dst); ());
 
 
 (* use ML files *)

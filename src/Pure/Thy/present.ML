@@ -305,8 +305,8 @@ fun init build info doc doc_graph doc_versions path name doc_prefix2
 
       val (doc_prefix1, documents) =
         if doc = "" then (NONE, [])
-        else if not (File.exists document_path) then (conditional verbose (fn () =>
-          std_error "Warning: missing document directory\n"); (NONE, []))
+        else if not (File.exists document_path) then
+          (if verbose then std_error "Warning: missing document directory\n" else (); (NONE, []))
         else (SOME (Path.append html_prefix document_path, html_prefix),
           read_versions doc_versions);
 
@@ -341,10 +341,10 @@ fun isatool_document verbose format name tags path result_path =
       " 2>&1" ^ (if verbose then "" else " >/dev/null");
     val doc_path = Path.append result_path (Path.ext format (Path.basic name));
   in
-    conditional verbose (fn () => writeln s);
+    if verbose then writeln s else ();
     system s;
-    conditional (not (File.exists doc_path)) (fn () =>
-      error ("No document: " ^ quote (show_path doc_path)));
+    File.exists doc_path orelse
+      error ("No document: " ^ quote (show_path doc_path));
     doc_path
   end;
 
@@ -399,7 +399,7 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
       write_tex_index tex_index path;
       List.app (finish_tex path) thys);
   in
-    conditional info (fn () =>
+    if info then
      (File.mkdir (Path.append html_prefix session_path);
       Buffer.write (Path.append html_prefix pre_index_path) html_index;
       File.write (Path.append html_prefix session_entries_path) "";
@@ -413,12 +413,12 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
       File.copy (Path.explode "~~/lib/html/isabelle.css") html_prefix;
       List.app finish_html thys;
       List.app (uncurry File.write) files;
-      conditional verbose (fn () =>
-        std_error ("Browser info at " ^ show_path html_prefix ^ "\n"))));
+      if verbose then std_error ("Browser info at " ^ show_path html_prefix ^ "\n") else ())
+    else ();
 
     (case doc_prefix2 of NONE => () | SOME (cp, path) =>
      (prepare_sources cp path;
-      conditional verbose (fn () => std_error ("Document sources at " ^ show_path path ^ "\n"))));
+      if verbose then std_error ("Document sources at " ^ show_path path ^ "\n") else ()));
 
     (case doc_prefix1 of NONE => () | SOME (path, result_path) =>
       documents |> List.app (fn (name, tags) =>
@@ -426,7 +426,7 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
          val _ = prepare_sources true path;
          val doc_path = isatool_document true doc_format name tags path result_path;
        in
-         conditional verbose (fn () => std_error ("Document at " ^ show_path doc_path ^ "\n"))
+         if verbose then std_error ("Document at " ^ show_path doc_path ^ "\n") else ()
        end));
 
     browser_info := empty_browser_info;
