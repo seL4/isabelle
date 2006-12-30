@@ -15,8 +15,6 @@ end;
 structure ProofGeneral: PROOF_GENERAL =
 struct
 
-structure P = OuterParse;
-
 
 (* print modes *)
 

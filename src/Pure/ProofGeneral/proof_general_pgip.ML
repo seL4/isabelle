@@ -18,8 +18,6 @@ end
 structure ProofGeneralPgip : PROOF_GENERAL_PGIP  =
 struct
 
-structure P = OuterParse;
-
 open Pgip;
 
 
