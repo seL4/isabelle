@@ -300,7 +300,7 @@ local
 
     fun match_tokens ([],us,vs) = (rev vs,us)  (* used, unused *)
       | match_tokens (t::ts, w::ws, vs) =
-        if OuterLex.eq_token (t, w)
+        if (t: OuterLex.token) = w  (* FIXME !? *)
           then match_tokens (ts, ws, w::vs)
           else match_tokens (t::ts, ws, w::vs)
       | match_tokens _ = error ("match_tokens: mismatched input parse")
