@@ -314,8 +314,7 @@ end;
 
 fun gen_loop term no_pos =
  (Context.reset_context ();
-  Toplevel.loop (isar term no_pos);
-  ml_prompts "ML> " "ML# ");
+  Toplevel.loop (isar term no_pos));
 
 fun gen_main term no_pos =
  (Toplevel.init_state ();
