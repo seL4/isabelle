@@ -33,6 +33,7 @@ sig
   val untag_rule: string -> thm -> thm
   val tag: tag -> attribute
   val untag: string -> attribute
+  val has_name_hint: thm -> bool
   val get_name_hint: thm -> string
   val put_name_hint: string -> thm -> thm
   val get_kind: thm -> string
@@ -120,12 +121,14 @@ fun simple_tag name x = tag (name, []) x;
 
 (* unofficial theorem names *)
 
-fun put_name_hint name = untag_rule "name" #> tag_rule ("name", [name]);
+fun has_name_hint thm = AList.defined (op =) (Thm.get_tags thm) "name";
 
 fun get_name_hint thm =
   (case AList.lookup (op =) (Thm.get_tags thm) "name" of
     SOME (k :: _) => k
   | _ => "??.unknown");
+
+fun put_name_hint name = untag_rule "name" #> tag_rule ("name", [name]);
 
 
 (* theorem kinds *)
@@ -338,7 +341,7 @@ fun name_multi name [x] = [(name, x)]
 
 fun name_thm pre official name thm = thm
   |> (if Thm.get_name thm <> "" andalso pre orelse not official then I else Thm.put_name name)
-  |> (if get_name_hint thm <> "" andalso pre orelse name = "" then I else put_name_hint name);
+  |> (if has_name_hint thm andalso pre orelse name = "" then I else put_name_hint name);
 
 fun name_thms pre official name xs =
   map (uncurry (name_thm pre official)) (name_multi name xs);
