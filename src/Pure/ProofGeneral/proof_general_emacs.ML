@@ -215,16 +215,18 @@ fun thm_deps_message (thms, deps) =
   emacs_notify ("Proof General, theorem dependencies of " ^ thms ^ " are " ^ deps);
 
 (* FIXME: check this uses non-transitive closure function here *)
-fun tell_thm_deps ths = conditional (Output.has_mode thm_depsN) (fn () =>
-  let
-    val names = filter_out (equal "") (map PureThy.get_name_hint ths);
-    val deps = filter_out (equal "")
-      (Symtab.keys (fold Proofterm.thms_of_proof
-        (map Thm.proof_of ths) Symtab.empty));
-  in
-    if null names orelse null deps then ()
-    else thm_deps_message (spaces_quote names, spaces_quote deps)
-  end);
+fun tell_thm_deps ths =
+  if Output.has_mode thm_depsN then
+    let
+      val names = filter_out (equal "") (map PureThy.get_name_hint ths);
+      val deps = filter_out (equal "")
+        (Symtab.keys (fold Proofterm.thms_of_proof
+          (map Thm.proof_of ths) Symtab.empty));
+    in
+      if null names orelse null deps then ()
+      else thm_deps_message (spaces_quote names, spaces_quote deps)
+    end
+  else ();
 
 in
 
@@ -278,25 +280,24 @@ end;
 val initialized = ref false;
 
 fun init false =
-      Output.panic "Proof General support no longer available for Isabelle/classic mode."
+      Output.panic "No Proof General interface support for Isabelle/classic mode."
   | init true =
-      (conditional (not (! initialized)) (fn () =>
-       (setmp warning_fn (K ()) init_outer_syntax ();
-        setup_xsymbols_output ();
-        setup_messages ();
-        ProofGeneralPgip.init_pgip_channel (! priority_fn);
-        setup_state ();
-        setup_thy_loader ();
-        setup_present_hook ();
-        set initialized; ()));
-      sync_thy_loader ();
-      change print_mode (cons proof_generalN o remove (op =) proof_generalN);
-      ml_prompts "ML> " "ML# ";
-      Isar.sync_main ());
+      (! initialized orelse
+        (setmp warning_fn (K ()) init_outer_syntax ();
+          setup_xsymbols_output ();
+          setup_messages ();
+          ProofGeneralPgip.init_pgip_channel (! priority_fn);
+          setup_state ();
+          setup_thy_loader ();
+          setup_present_hook ();
+          set initialized);
+        sync_thy_loader ();
+       change print_mode (cons proof_generalN o remove (op =) proof_generalN);
+       Isar.sync_main ());
 
 
 
-(** generate elisp file for keyword classification **)
+ (** generate elisp file for keyword classification **)
 
 local
 
