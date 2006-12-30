@@ -194,8 +194,7 @@ fun classical_rule rule =
           then Tactic.etac thin_rl i
           else all_tac))
         |> Seq.hd
-        |> Drule.zero_var_indexes
-        |> PureThy.put_name_hint (PureThy.get_name_hint rule);
+        |> Drule.zero_var_indexes;
     in if Drule.equiv_thm (rule, rule'') then rule else rule'' end
   else rule;
 
