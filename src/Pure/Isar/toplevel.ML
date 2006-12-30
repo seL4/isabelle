@@ -15,7 +15,6 @@ sig
   val cases_node: (generic_theory -> 'a) -> (Proof.state -> 'a) -> node -> 'a
   val presentation_context: node option -> xstring option -> Proof.context
   type state
-  val toplevel: state
   val is_toplevel: state -> bool
   val is_theory: state -> bool
   val is_proof: state -> bool
@@ -59,9 +58,10 @@ sig
   val three_buffersN: string
   val print3: transition -> transition
   val no_timing: transition -> transition
-  val reset: transition -> transition
   val init: (bool -> node) -> (node -> unit) -> (node -> unit) -> transition -> transition
+  val init_empty: (state -> unit) -> transition -> transition
   val exit: transition -> transition
+  val undo_exit: transition -> transition
   val kill: transition -> transition
   val history: (node History.T -> node History.T) -> transition -> transition
   val keep: (state -> unit) -> transition -> transition
@@ -99,12 +99,14 @@ sig
   val exn: unit -> (exn * string) option
   val >> : transition -> bool
   val >>> : transition list -> unit
+  val init_state: unit -> unit
   type 'a isar
   val loop: 'a isar -> unit
 end;
 
 structure Toplevel: TOPLEVEL =
 struct
+
 
 (** toplevel state **)
 
@@ -128,7 +130,7 @@ fun loc_finish _ (Context.Theory _) = Context.Theory o loc_exit
   | loc_finish (SOME _) (Context.Proof lthy) = Context.Proof o LocalTheory.reinit lthy o loc_exit;
 
 
-(* datatype state *)
+(* datatype node *)
 
 datatype node =
   Theory of generic_theory * Proof.context option | (*theory with presentation context*)
@@ -150,22 +152,29 @@ fun presentation_context (SOME (Theory (_, SOME ctxt))) NONE = ctxt
       loc_init (SOME loc) (cases_node Context.theory_of Proof.theory_of node)
   | presentation_context NONE _ = raise UNDEF;
 
-datatype state = State of (node History.T * ((node -> unit) * (node -> unit))) option;
 
-val toplevel = State NONE;
+(* datatype state *)
 
-fun is_toplevel (State NONE) = true
+type state_info = node History.T * ((node -> unit) * (node -> unit));
+
+datatype state =
+  Toplevel of state_info option |  (*outer toplevel, leftover end state*)
+  State of state_info;
+
+val toplevel = Toplevel NONE;
+
+fun is_toplevel (Toplevel _) = true
   | is_toplevel _ = false;
 
-fun level (State NONE) = 0
-  | level (State (SOME (node, _))) =
+fun level (Toplevel _) = 0
+  | level (State (node, _)) =
       (case History.current node of
         Theory _ => 0
       | Proof (prf, _) => Proof.level (ProofHistory.current prf)
       | SkipProof (h, _) => History.current h + 1);   (*different notion of proof depth!*)
 
-fun str_of_state (State NONE) = "at top level"
-  | str_of_state (State (SOME (node, _))) =
+fun str_of_state (Toplevel _) = "at top level"
+  | str_of_state (State (node, _)) =
       (case History.current node of
         Theory (Context.Theory _, _) => "in theory mode"
       | Theory (Context.Proof _, _) => "in local theory mode"
@@ -175,8 +184,8 @@ fun str_of_state (State NONE) = "at top level"
 
 (* top node *)
 
-fun node_history_of (State NONE) = raise UNDEF
-  | node_history_of (State (SOME (node, _))) = node;
+fun node_history_of (Toplevel _) = raise UNDEF
+  | node_history_of (State (node, _)) = node;
 
 val node_of = History.current o node_history_of;
 
@@ -199,7 +208,7 @@ val enter_proof_body = node_case (Proof.init o Context.proof_of) Proof.enter_for
 
 (* prompt state *)
 
-fun prompt_state_default (State _) = Source.default_prompt;
+fun prompt_state_default (_: state) = Source.default_prompt;
 
 val prompt_state_fn = ref prompt_state_default;
 fun prompt_state state = ! prompt_state_fn state;
@@ -360,7 +369,7 @@ fun transaction hist f (node, term) =
   let
     val cont_node = map_theory Theory.checkpoint node;
     val back_node = map_theory Theory.copy cont_node;
-    fun state nd = State (SOME (nd, term));
+    fun state nd = State (nd, term);
     fun normal_state nd = (state nd, NONE);
     fun error_state nd exn = (state nd, SOME exn);
 
@@ -388,36 +397,39 @@ end;
   Transaction.*)
 
 datatype trans =
-  Reset |                                               (*empty toplevel*)
   Init of (bool -> node) * ((node -> unit) * (node -> unit)) |
-                                                        (*init node; with exit/kill operation*)
-  Exit |                                                (*conclude node*)
-  Kill |                                                (*abort node*)
-  History of node History.T -> node History.T |         (*history operation (undo etc.)*)
-  Keep of bool -> state -> unit |                       (*peek at state*)
-  Transaction of bool * (bool -> node -> node);         (*node transaction*)
+                                                    (*init node; with exit/kill operation*)
+  InitEmpty of state -> unit |                      (*init empty toplevel*)
+  Exit |                                            (*conclude node -- deferred until init*)
+  UndoExit |                                        (*continue after conclusion*)
+  Kill |                                            (*abort node*)
+  History of node History.T -> node History.T |     (*history operation (undo etc.)*)
+  Keep of bool -> state -> unit |                   (*peek at state*)
+  Transaction of bool * (bool -> node -> node);     (*node transaction*)
 
 fun undo_limit int = if int then NONE else SOME 0;
 
+fun apply_exit (Toplevel (SOME (node, (exit, _)))) = exit (History.current node)
+  | apply_exit _ = ();
+
 local
 
-fun apply_tr _ Reset _ = toplevel
-  | apply_tr int (Init (f, term)) (State NONE) =
-      State (SOME (History.init (undo_limit int) (f int), term))
-  | apply_tr _ (Init _ ) (State (SOME _)) = raise UNDEF
-  | apply_tr _ Exit (State NONE) = raise UNDEF
-  | apply_tr _ Exit (State (SOME (node, (exit, _)))) =
-      (exit (History.current node); State NONE)
-  | apply_tr _ Kill (State NONE) = raise UNDEF
-  | apply_tr _ Kill (State (SOME (node, (_, kill)))) =
-      (kill (History.current node); State NONE)
-  | apply_tr _ (History _) (State NONE) = raise UNDEF
-  | apply_tr _ (History f) (State (SOME (node, term))) = State (SOME (f node, term))
-  | apply_tr int (Keep f) state =
-      controlled_execution (fn x => tap (f int) x) state
-  | apply_tr _ (Transaction _) (State NONE) = raise UNDEF
-  | apply_tr int (Transaction (hist, f)) (State (SOME state)) =
-      transaction hist (fn x => f int x) state;
+fun keep_state int f = controlled_execution (fn x => tap (f int) x);
+
+fun apply_tr int (Init (f, term)) (state as Toplevel _) =
+      let val node = f int
+      in apply_exit state; State (History.init (undo_limit int) node, term) end
+  | apply_tr int (InitEmpty f) state =
+      (keep_state int (K f) state; apply_exit state; toplevel)
+  | apply_tr _ Exit (State state) = Toplevel (SOME state)
+  | apply_tr _ UndoExit (Toplevel (SOME state)) = State state
+  | apply_tr _ Kill (State (node, (_, kill))) =
+      (kill (History.current node); toplevel)
+  | apply_tr _ (History f) (State (node, term)) = State (f node, term)
+  | apply_tr int (Keep f) state = keep_state int f state
+  | apply_tr int (Transaction (hist, f)) (State state) =
+      transaction hist (fn x => f int x) state
+  | apply_tr _ _ _ = raise UNDEF;
 
 fun apply_union _ [] state = raise FAILURE (state, UNDEF)
   | apply_union int (tr :: trs) state =
@@ -501,9 +513,10 @@ val print3 = print' three_buffersN;
 
 (* basic transitions *)
 
-val reset = add_trans Reset;
 fun init f exit kill = add_trans (Init (f, (exit, kill)));
+val init_empty = add_trans o InitEmpty;
 val exit = add_trans Exit;
+val undo_exit = add_trans UndoExit;
 val kill = add_trans Kill;
 val history = add_trans o History;
 val keep' = add_trans o Keep;
@@ -694,8 +707,8 @@ fun no_pr _ _ _ = ();
 in
 
 fun present_excursion trs res =
-  (case excur trs (State NONE, res) of
-    (State NONE, res') => res'
+  (case excur trs (toplevel, res) of
+    (state as Toplevel _, res') => (apply_exit state; res')
   | _ => error "Unfinished development at end of input")
   handle exn => error (exn_message exn);
 
@@ -716,15 +729,6 @@ fun get_state () = fst (! global_state);
 fun exn () = snd (! global_state);
 
 
-(* the Isar source of transitions *)
-
-type 'a isar =
-  (transition, (transition option,
-    (OuterLex.token, (OuterLex.token option, (OuterLex.token, (OuterLex.token,
-      Position.T * (Symbol.symbol, (string, 'a) Source.source) Source.source)
-          Source.source) Source.source) Source.source) Source.source) Source.source) Source.source;
-
-
 (* apply transformers to global state *)
 
 nonfix >> >>>;
@@ -739,6 +743,17 @@ fun >> tr =
 
 fun >>> [] = ()
   | >>> (tr :: trs) = if >> tr then >>> trs else ();
+
+fun init_state () = (>> (init_empty (K ()) empty); ());
+
+
+(* the Isar source of transitions *)
+
+type 'a isar =
+  (transition, (transition option,
+    (OuterLex.token, (OuterLex.token option, (OuterLex.token, (OuterLex.token,
+      Position.T * (Symbol.symbol, (string, 'a) Source.source) Source.source)
+          Source.source) Source.source) Source.source) Source.source) Source.source) Source.source;
 
 (*Spurious interrupts ahead!  Race condition?*)
 fun get_interrupt src = SOME (Source.get_single src) handle Interrupt => NONE;
