@@ -122,7 +122,7 @@ fun get_attr_opt (attr : string) attrs = AList.lookup (op =) attrs attr
 fun get_attr attr attrs =
     (case get_attr_opt attr attrs of
          SOME value => value
-       | NONE => raise PGIP ("Missing attribute: " ^ attr))
+       | NONE => raise PGIP ("Missing attribute: " ^ quote attr))
 
 fun get_attr_dflt attr dflt attrs = the_default dflt (get_attr_opt attr attrs)
 
@@ -188,7 +188,7 @@ fun read_pgipbool s =
     (case s of 
 	 "false" => false 
        | "true" => true 
-       | _ => raise PGIP ("Invalid boolean value: "^s))
+       | _ => raise PGIP ("Invalid boolean value: " ^ quote s))
 
 local
     fun int_in_range (NONE,NONE) _ = true
@@ -199,21 +199,21 @@ in
 fun read_pgipint range s =
     (case Syntax.read_int s of 
 	 SOME i => if int_in_range range i then i
-		   else raise PGIP ("Out of range integer value: "^s)
-       | NONE => raise PGIP ("Invalid integer value: "^s))
+		   else raise PGIP ("Out of range integer value: " ^ quote s)
+       | NONE => raise PGIP ("Invalid integer value: " ^ quote s))
 end;
 
 fun read_pgipnat s =
     (case Syntax.read_nat s of 
 	 SOME i => i
-       | NONE => raise PGIP ("Invalid natural number: "^s))
+       | NONE => raise PGIP ("Invalid natural number: " ^ quote s))
 
 (* NB: we can maybe do without xml decode/encode here. *)
 fun read_pgipstring s =  (* non-empty strings, XML escapes decoded *)
     (case XML.parse_string s of
 	 SOME s => s
-       | NONE => raise PGIP ("Expected a non-empty string: "^s))
-    handle _ => raise PGIP ("Invalid XML string syntax: "^s)
+       | NONE => raise PGIP ("Expected a non-empty string: " ^ quote s))
+    handle _ => raise PGIP ("Invalid XML string syntax: " ^ quote s)
 
 val int_to_pgstring = signed_string_of_int
 
@@ -292,13 +292,13 @@ val pgiptype_to_xml = pgipdtype_to_xml o pair NONE
 
 fun read_pguval Pgipnull s = 
     if s="" then Pgvalnull
-    else raise PGIP ("Expecting empty string for null type, not: "^s)
+    else raise PGIP ("Expecting empty string for null type, not: " ^ quote s)
   | read_pguval Pgipbool s = Pgvalbool (read_pgipbool s)
   | read_pguval (Pgipint range) s = Pgvalint (read_pgipint range s)
   | read_pguval Pgipnat s = Pgvalnat (read_pgipnat s)
   | read_pguval (Pgipconst c) s = 
     if c=s then Pgvalconst c 
-    else raise PGIP ("Given string: "^s^" doesn't match expected string: "^c)
+    else raise PGIP ("Given string: "^quote s^" doesn't match expected string: "^quote c)
   | read_pguval Pgipstring s = 
     if s<>"" then Pgvalstring s
     else raise PGIP ("Expecting non-empty string, empty string illegal.")
@@ -310,7 +310,7 @@ fun read_pguval Pgipnull s =
 		       (fn ty => SOME (read_pguval ty s) handle PGIP _ => NONE)
 		       (map getty tydescs)
     in
-	case uval of SOME pgv => pgv | NONE => raise PGIP ("Can't match string: "^s^
+	case uval of SOME pgv => pgv | NONE => raise PGIP ("Can't match string: "^quote s^
 							   " against any allowed types.")
     end
 
@@ -346,11 +346,11 @@ type location = { descr: string option,
 fun pgipurl_of_string url = (* only handle file:/// or file://localhost/ *)
 	case Url.explode url of
             (Url.File path) => path
-	  | _ => raise PGIP ("Cannot access non-local URL " ^ url)
+	  | _ => raise PGIP ("Cannot access non-local URL " ^ quote url)
 		       
 fun pgipurl_of_path p = p
 
-fun path_of_pgipurl p = p  (* potentially raises PGIP *)
+fun path_of_pgipurl p = p  (* potentially raises PGIP, but not with this implementation *)
 
 fun attrs_of_pgipurl purl = 
     [("url", "file:" ^ (XML.text (File.platform_path (File.full_path purl))))]
@@ -358,7 +358,8 @@ fun attrs_of_pgipurl purl =
 val pgipurl_of_attrs = pgipurl_of_string o get_attr "url"
 
 fun pgipurl_of_url (Url.File p) = p
-  | pgipurl_of_url url = raise PGIP ("Cannot access non-local/non-file URL " ^ (Url.implode url))
+  | pgipurl_of_url url = 
+    raise PGIP ("Cannot access non-local/non-file URL " ^ quote (Url.implode url))
 
 
 (** Messages and errors **)
@@ -403,7 +404,7 @@ in
     fun pgipint_of_string err s = 
 	case Syntax.read_int s of 
 	    SOME i => i
-	  | NONE => raise PGIP ("Type error in " ^ err ^ ": expected integer.")
+	  | NONE => raise PGIP ("Type error in " ^ quote err ^ ": expected integer.")
 
   fun location_of_attrs attrs = 
       let
