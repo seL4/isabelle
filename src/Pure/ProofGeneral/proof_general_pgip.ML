@@ -281,10 +281,6 @@ fun proper_inform_file_processed file state =
     else raise Toplevel.UNDEF
   end;
 
-fun vacuous_inform_file_processed file state =
- (warning ("No theory " ^ quote (thy_name file));
-  tell_file_retracted (Path.base (Path.explode file)));
-
 
 (* restart top-level loop (keeps most state information) *)
 
@@ -506,7 +502,7 @@ fun undostep (Undostep vs) =
 
 fun redostep vs = isarcmd "redo"
 
-fun abortgoal vs = isarcmd "ProofGeneral.kill_proof"
+fun abortgoal vs = isarcmd "kill" (* was: ProofGeneral.kill_proof *)
 
 
 (*** PGIP identifier tables ***)
@@ -673,13 +669,13 @@ fun doitem (Doitem vs) =
     end
 
 fun undoitem vs =
-    isarcmd "ProofGeneral.undo"
+    isarcmd "undo"
 
 fun redoitem vs =
-    isarcmd "ProofGeneral.redo"
+    isarcmd "redo"
 
 fun aborttheory vs =
-    isarcmd "init_toplevel"
+    isarcmd "kill"  (* was: "init_toplevel" *)
 
 fun retracttheory (Retracttheory vs) =
     let
@@ -922,49 +918,20 @@ in
 end
 
 
-(* additional outer syntax for Isar *)
-(* da: TODO: perhaps we can drop this superfluous syntax now??
-   Seems cleaner to support the operations directly above in the PGIP actions.
- *)
+local
+(* Extra command for embedding prover-control inside document (obscure/debug usage). *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
-val undoP = (*undo without output*)
-  OuterSyntax.improper_command "ProofGeneral.undo" "(internal)" K.control
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
-
-val redoP = (*redo without output*)
-  OuterSyntax.improper_command "ProofGeneral.redo" "(internal)" K.control
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.redo));
-
-(* ProofGeneral.kill_proof still used above *)
-val kill_proofP =
-  OuterSyntax.improper_command "ProofGeneral.kill_proof" "(internal)" K.control
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.kill_proof_notify tell_clear_goals));
-
-(* FIXME: Not quite same as commands used above *)
-val inform_file_processedP =
-  OuterSyntax.improper_command "ProofGeneral.inform_file_processed" "(internal)" K.control
-    (P.name >> (fn file => Toplevel.no_timing o
-      Toplevel.init_empty (vacuous_inform_file_processed file) o
-      Toplevel.kill o
-      Toplevel.init_empty (proper_inform_file_processed file)));
-
-val inform_file_retractedP =
-  OuterSyntax.improper_command "ProofGeneral.inform_file_retracted" "(internal)" K.control
-    (P.name >> (Toplevel.no_timing oo
-      (fn file => Toplevel.imperative (fn () => inform_file_retracted file))));
-
-(* This one can actually be used for Daniel's interface scripting idea: generically!! *)
-val process_pgipP =
-  OuterSyntax.improper_command "ProofGeneral.process_pgip" "(internal)" K.control
-    (P.text >> (Toplevel.no_timing oo
+val process_pgipP = 
+  OuterSyntax.improper_command "ProofGeneral.process_pgip" "(internal)" OuterKeyword.control
+    (OuterParse.text >> (Toplevel.no_timing oo
       (fn txt => Toplevel.imperative (fn () => process_pgip_plain txt))));
 
-fun init_outer_syntax () = OuterSyntax.add_parsers
- [undoP, redoP, kill_proofP, inform_file_processedP, inform_file_retractedP, process_pgipP];
+in
 
-end;
+ fun init_outer_syntax () = OuterSyntax.add_parsers [process_pgipP];
+
+end
+
 
 
 (* init *)
@@ -976,6 +943,7 @@ fun init_pgip false =
   | init_pgip true =
       (! initialized orelse
         (setmp warning_fn (K ()) init_outer_syntax ();
+	  PgipParser.init ();
           setup_xsymbols_output ();
           setup_pgml_output ();
           setup_messages ();
