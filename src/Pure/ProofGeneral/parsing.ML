@@ -8,6 +8,7 @@ Parsing Isabelle theory files to add PGIP markup.
 signature PGIP_PARSER =
 sig
     val pgip_parser: PgipMarkup.pgip_parser
+    val init : unit -> unit		     (* clear state *)
 end
 
 structure PgipParser : PGIP_PARSER =
@@ -55,6 +56,26 @@ structure D = PgipMarkup;
 *)
 
 local
+    val keywords_classification_table = ref (NONE: string Symtab.table option)
+
+in
+    fun get_keywords_classification_table () =
+        case (!keywords_classification_table) of
+          SOME t => t
+        | NONE => (let
+                     val tab = fold (fn (c, _, k, _) => Symtab.update (c, k))
+                                    (OuterSyntax.dest_parsers ()) Symtab.empty;
+                   in (keywords_classification_table := SOME tab; tab) end)
+  
+    (* To allow dynamic extensions to language during interactive use
+       we need a hook in outer_syntax.ML to reset our table.  But this is
+       pretty obscure; initialisation at startup should suffice. *)
+
+    fun init () = (keywords_classification_table := NONE)
+end
+
+
+local
 
     fun whitespace str = D.Whitespace { text=str }
 
@@ -68,21 +89,6 @@ local
                      "")
 
     fun parse_warning msg = warning ("script->PGIP markup parser: " ^ msg)
-
-    (* FIXME: allow dynamic extensions to language here: we need a hook in
-       outer_syntax.ML to reset this table. *)
-
-    val keywords_classification_table = ref (NONE: string Symtab.table option)
-
-    fun get_keywords_classification_table () =
-        case (!keywords_classification_table) of
-          SOME t => t
-        | NONE => (let
-                     val tab = fold (fn (c, _, k, _) => Symtab.update (c, k))
-                                    (OuterSyntax.dest_parsers ()) Symtab.empty;
-                   in (keywords_classification_table := SOME tab; tab) end)
-
-
 
     fun xmls_of_thy_begin (name,toks,str) = (* see isar_syn.ML/theoryP *)
         let
@@ -194,8 +200,7 @@ local
     fun xmls_of_kind kind (name,toks,str) =
     case kind of
       "control"        => [D.Badcmd {text=str}]
-    | "diag"           => [D.Theoryitem {name=NONE,objtype=NONE,
-					 text=str}] (* FIXME: check NOT spuriouscmd *)
+    | "diag"           => [D.Spuriouscmd {text=str}]
     (* theory/files *)
     | "theory-begin"   => xmls_of_thy_begin (name,toks,str)
     | "theory-decl"    => xmls_of_thy_decl (name,toks,str)
@@ -226,7 +231,8 @@ local
     | "qed-block"      => xmls_of_qed (name,str)
     | "qed-global"     => xmls_of_qed (name,str)
     | other => (* default for anything else is "spuriouscmd", ***ignored for undo*** *)
-      (parse_warning ("Internal inconsistency, unrecognized keyword kind: " ^ quote other);
+      (parse_warning ("Internal inconsistency, unrecognized keyword kind: " ^ quote other ^
+		      "(treated as spuriouscmd)");
        [D.Spuriouscmd {text=str}])
 in
 
@@ -235,9 +241,9 @@ fun xmls_of_transition (name,str,toks) =
      val classification = Symtab.lookup (get_keywords_classification_table ()) name
    in case classification of
           SOME k => (xmls_of_kind k (name,toks,str))
-        | NONE => (* an uncategorized keyword ignored for undo (maybe wrong) *)
-          (parse_warning ("Uncategorized command found: " ^ name ^ " -- using spuriouscmd");
-           [D.Spuriouscmd {text=str}])
+        | NONE => (* an uncategorized keyword is treated as a theory item (maybe wrong) *)
+          (parse_warning ("Uncategorized command found: " ^ name ^ " -- using theoryitem");
+           [D.Theoryitem {name=NONE,objtype=NONE,text=str}])
    end
 
 fun markup_comment_whs [] = []
@@ -264,7 +270,7 @@ fun xmls_pre_cmd [] = ([],[])
              (P.short_ident || P.long_ident || P.sym_ident || P.string || P.number || P.verbatim) >> op^)
              -- (spaceP || Scan.succeed "") >> op^
         val (prewhs,rest1) = take_prefix (not o OuterLex.is_proper) (toks@sync)
-        (* NB: this collapses  litcomment,(litcomment|whitespace)* to a single litcomment *)
+        (* NB: this collapses  doccomment,(doccomment|whitespace)* to a single doccomment *)
         val (_,rest2) = (Scan.bulk (P.$$$ "--" |-- text_with_whs) >> implode || Scan.succeed "") rest1
         val (postwhs,rest3) = take_prefix (not o OuterLex.is_proper) rest2
     in
