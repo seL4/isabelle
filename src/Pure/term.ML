@@ -913,13 +913,17 @@ fun abstract_over (v, body) =
         | _ => raise SAME);
   in abs 0 body handle SAME => body end;
 
-fun lambda (v as Const (x, T)) t = Abs (NameSpace.base x, T, abstract_over (v, t))
-  | lambda (v as Free (x, T)) t = Abs (x, T, abstract_over (v, t))
-  | lambda (v as Var ((x, _), T)) t = Abs (x, T, abstract_over (v, t))
-  | lambda v t = raise TERM ("lambda", [v, t]);
+fun lambda v t =
+  let val x =
+    (case v of
+      Const (x, _) => NameSpace.base x
+    | Free (x, _) => x
+    | Var ((x, _), _) => x
+    | _ => "uu")
+  in Abs (x, fastype_of v, abstract_over (v, t)) end;
 
 (*Form an abstraction over a free variable.*)
-fun absfree (a,T,body) = Abs(a, T, abstract_over (Free(a,T), body));
+fun absfree (a,T,body) = Abs (a, T, abstract_over (Free (a, T), body));
 fun absdummy (T, body) = Abs (Name.internal "x", T, body);
 
 (*Abstraction over a list of free variables*)

@@ -313,7 +313,7 @@ fun capply
 fun cabs
   (ct1 as Cterm {t = t1, T = T1, maxidx = maxidx1, sorts = sorts1, ...})
   (ct2 as Cterm {t = t2, T = T2, maxidx = maxidx2, sorts = sorts2, ...}) =
-    let val t = lambda t1 t2 handle TERM _ => raise CTERM "cabs: malformed first argument" in
+    let val t = Term.lambda t1 t2 in
       Cterm {thy_ref = merge_thys0 ct1 ct2,
         t = t, T = T1 --> T2,
         maxidx = Int.max (maxidx1, maxidx2),
