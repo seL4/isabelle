@@ -188,7 +188,7 @@ fun morph_values phi = map_args (map_value
   (fn Text s => Text s
     | Typ T => Typ (Morphism.typ phi T)
     | Term t => Term (Morphism.term phi t)
-    | Fact ths => Fact (map (Morphism.thm phi) ths)
+    | Fact ths => Fact (Morphism.fact phi ths)
     | Attribute att => Attribute (fn psi => att (phi $> psi))));
 
 fun maxidx_values (Src ((_, args), _)) = args |> fold
