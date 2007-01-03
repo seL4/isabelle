@@ -1,10 +1,12 @@
 (*  ID:         $Id$
-    Author:     Claire Quigley and L C Paulson
+    Author:     L C Paulson and Claire Quigley
     Copyright   2004  University of Cambridge
 *)
 
+(*FIXME: can we delete the "thm * int" and "th sgno" below?*)
+
 (***************************************************************************)
-(*  Code to deal with the transfer of proofs from a Vampire process          *)
+(*  Code to deal with the transfer of proofs from a prover process         *)
 (***************************************************************************)
 signature RES_RECONSTRUCT =
   sig
@@ -279,7 +281,7 @@ fun clause_of_strees_aux thy vt0 ts =
 (*Quantification over a list of Vars. FUXNE: for term.ML??*)
 fun list_all_var ([], t: term) = t
   | list_all_var ((v as Var(ix,T)) :: vars, t) =
-        (all T) $ Abs(string_of_indexname ix, T, abstract_over (v,t));
+      (all T) $ Abs(string_of_indexname ix, T, abstract_over (v, list_all_var (vars,t)));
 
 fun gen_all_vars t = list_all_var (term_vars t, t);
 
@@ -367,7 +369,7 @@ fun stringify_deps thm_names deps_map [] = []
   | stringify_deps thm_names deps_map ((lno, t, deps) :: lines) =
       if lno <= Vector.length thm_names  (*axiom*)
       then (Vector.sub(thm_names,lno-1), t, []) :: stringify_deps thm_names deps_map lines 
-      else let val lname = "L" ^ Int.toString (length deps_map)
+      else let val lname = Int.toString (length deps_map)
                fun fix lno = if lno <= Vector.length thm_names  
                              then SOME(Vector.sub(thm_names,lno-1))
                              else AList.lookup op= deps_map lno;
@@ -375,10 +377,23 @@ fun stringify_deps thm_names deps_map [] = []
                stringify_deps thm_names ((lno,lname)::deps_map) lines
            end;
 
+val proofstart = "\nproof (rule ccontr, skolemize, make_clauses)\n";
+
+fun string_of_Free (Free (x,_)) = x
+  | string_of_Free _ = "??string_of_Free??";
+
+fun isar_header [] = proofstart
+  | isar_header ts = proofstart ^ "fix " ^ space_implode " " (map string_of_Free ts) ^ "\n";
+
 fun decode_tstp_file ctxt (cnfs,thm_names) =
   let val tuples = map (dest_tstp o tstp_line o explode) cnfs
-      val lines = foldr add_prfline [] (decode_tstp_list (ProofContext.theory_of ctxt) tuples)
-  in  String.concat (isar_lines ctxt (stringify_deps thm_names [] lines))  end;
+      val decoded_tuples = decode_tstp_list (ProofContext.theory_of ctxt) tuples
+      val lines = foldr add_prfline [] decoded_tuples
+      and fixes = foldr add_term_frees [] (map #3 decoded_tuples)
+  in  
+      isar_header fixes ^ 
+      String.concat (isar_lines ctxt (stringify_deps thm_names [] lines))
+  end;
 
 (*Could use split_lines, but it can return blank lines...*)
 val lines = String.tokens (equal #"\n");
