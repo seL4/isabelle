@@ -894,9 +894,8 @@ fun kill_last_watcher () =
            ignore (map (try cond_rm_tmp) files)))
      handle OS.SysErr _ => Output.debug "Attempt to kill watcher failed";
 
-(*writes out the current clasimpset to a tptp file;
-  turns off xsymbol at start of function, restoring it at end    *)
-fun isar_atp_body (ctxt, th) =
+(*writes out the current problems and calls ATPs*)
+fun isar_atp (ctxt, th) =
   if Thm.no_prems th then ()
   else
     let
@@ -910,13 +909,11 @@ fun isar_atp_body (ctxt, th) =
       watcher_call_provers (sign_of_thm th) (Thm.prems_of th) (childin, childout, pid)
     end;
 
-val isar_atp = setmp print_mode [] isar_atp_body;
-
 (*For ML scripts, and primarily, for debugging*)
 fun callatp () =
   let val th = topthm()
       val ctxt = ProofContext.init (theory_of_thm th)
-  in  isar_atp_body (ctxt, th)  end;
+  in  isar_atp (ctxt, th)  end;
 
 val isar_atp_writeonly = setmp print_mode []
       (fn (ctxt,th) =>
