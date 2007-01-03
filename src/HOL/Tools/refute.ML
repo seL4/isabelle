@@ -1,7 +1,7 @@
 (*  Title:      HOL/Tools/refute.ML
     ID:         $Id$
     Author:     Tjark Weber
-    Copyright   2003-2005
+    Copyright   2003-2007
 
 Finite model generation for HOL formulas, using a SAT solver.
 *)
@@ -382,24 +382,336 @@ struct
 
 	fun typ_of_dtyp descr typ_assoc (DatatypeAux.DtTFree a) =
 		(* replace a 'DtTFree' variable by the associated type *)
-		(the o AList.lookup (op =) typ_assoc) (DatatypeAux.DtTFree a)
+		(Option.valOf o AList.lookup (op =) typ_assoc) (DatatypeAux.DtTFree a)
 	  | typ_of_dtyp descr typ_assoc (DatatypeAux.DtType (s, ds)) =
 		Type (s, map (typ_of_dtyp descr typ_assoc) ds)
 	  | typ_of_dtyp descr typ_assoc (DatatypeAux.DtRec i) =
 		let
-			val (s, ds, _) = (the o AList.lookup (op =) descr) i
+			val (s, ds, _) = (Option.valOf o AList.lookup (op =) descr) i
 		in
 			Type (s, map (typ_of_dtyp descr typ_assoc) ds)
 		end;
 
 (* ------------------------------------------------------------------------- *)
-(* collect_axioms: collects (monomorphic, universally quantified versions    *)
-(*                 of) all HOL axioms that are relevant w.r.t 't'            *)
+(* close_form: universal closure over schematic variables in 't'             *)
+(* ------------------------------------------------------------------------- *)
+
+	(* Term.term -> Term.term *)
+
+	fun close_form t =
+	let
+		(* (Term.indexname * Term.typ) list *)
+		val vars = sort_wrt (fst o fst) (map dest_Var (term_vars t))
+	in
+		Library.foldl
+			(fn (t', ((x, i), T)) => (Term.all T) $ Abs (x, T, abstract_over (Var ((x, i), T), t')))
+			(t, vars)
+	end;
+
+(* ------------------------------------------------------------------------- *)
+(* monomorphic_term: applies a type substitution 'typeSubs' for all type     *)
+(*                   variables in a term 't'                                 *)
+(* ------------------------------------------------------------------------- *)
+
+	(* Type.tyenv -> Term.term -> Term.term *)
+
+	fun monomorphic_term typeSubs t =
+		map_types (map_type_tvar
+			(fn v =>
+				case Type.lookup (typeSubs, v) of
+				  NONE =>
+					(* schematic type variable not instantiated *)
+					raise REFUTE ("monomorphic_term",
+						"no substitution for type variable " ^ fst (fst v) ^
+						" in term " ^ Display.raw_string_of_term t)
+				| SOME typ =>
+					typ)) t;
+
+(* ------------------------------------------------------------------------- *)
+(* specialize_type: given a constant 's' of type 'T', which is a subterm of  *)
+(*                  't', where 't' has a (possibly) more general type, the   *)
+(*                  schematic type variables in 't' are instantiated to      *)
+(*                  match the type 'T' (may raise Type.TYPE_MATCH)           *)
+(* ------------------------------------------------------------------------- *)
+
+	(* theory -> (string * Term.typ) -> Term.term -> Term.term *)
+
+	fun specialize_type thy (s, T) t =
+	let
+		fun find_typeSubs (Const (s', T')) =
+			if s=s' then
+				SOME (Sign.typ_match thy (T', T) Vartab.empty)
+					handle Type.TYPE_MATCH => NONE
+			else
+				NONE
+		  | find_typeSubs (Free _)           = NONE
+		  | find_typeSubs (Var _)            = NONE
+		  | find_typeSubs (Bound _)          = NONE
+		  | find_typeSubs (Abs (_, _, body)) = find_typeSubs body
+		  | find_typeSubs (t1 $ t2)          =
+			(case find_typeSubs t1 of SOME x => SOME x
+			                        | NONE   => find_typeSubs t2)
+	in
+		case find_typeSubs t of
+		  SOME typeSubs =>
+			monomorphic_term typeSubs t
+		| NONE =>
+			(* no match found - perhaps due to sort constraints *)
+			raise Type.TYPE_MATCH
+	end;
+
+(* ------------------------------------------------------------------------- *)
+(* is_const_of_class: returns 'true' iff 'Const (s, T)' is a constant that   *)
+(*                    denotes membership to an axiomatic type class          *)
+(* ------------------------------------------------------------------------- *)
+
+	(* theory -> string * Term.typ -> bool *)
+
+	fun is_const_of_class thy (s, T) =
+	let
+		val class_const_names = map Logic.const_of_class (Sign.all_classes thy)
+	in
+		(* I'm not quite sure if checking the name 's' is sufficient, *)
+		(* or if we should also check the type 'T'.                   *)
+		s mem_string class_const_names
+	end;
+
+(* ------------------------------------------------------------------------- *)
+(* is_IDT_constructor: returns 'true' iff 'Const (s, T)' is the constructor  *)
+(*                     of an inductive datatype in 'thy'                     *)
+(* ------------------------------------------------------------------------- *)
+
+	(* theory -> string * Term.typ -> bool *)
+
+	fun is_IDT_constructor thy (s, T) =
+		(case body_type T of
+		  Type (s', _) =>
+			(case DatatypePackage.get_datatype_constrs thy s' of
+			  SOME constrs =>
+				List.exists (fn (cname, cty) =>
+					cname = s andalso Sign.typ_instance thy (T, cty)) constrs
+			| NONE =>
+				false)
+		| _  =>
+			false);
+
+(* ------------------------------------------------------------------------- *)
+(* is_IDT_recursor: returns 'true' iff 'Const (s, T)' is the recursion       *)
+(*                  operator of an inductive datatype in 'thy'               *)
+(* ------------------------------------------------------------------------- *)
+
+	(* theory -> string * Term.typ -> bool *)
+
+	fun is_IDT_recursor thy (s, T) =
+	let
+		val rec_names = Symtab.fold (append o #rec_names o snd)
+			(DatatypePackage.get_datatypes thy) []
+	in
+		(* I'm not quite sure if checking the name 's' is sufficient, *)
+		(* or if we should also check the type 'T'.                   *)
+		s mem_string rec_names
+	end;
+
+(* ------------------------------------------------------------------------- *)
+(* get_def: looks up the definition of a constant, as created by "constdefs" *)
+(* ------------------------------------------------------------------------- *)
+
+	(* theory -> string * Term.typ -> (string * Term.term) option *)
+
+	fun get_def thy (s, T) =
+	let
+		(* maps  f ?t1 ... ?tn == rhs  to  %t1...tn. rhs *)
+		fun norm_rhs eqn =
+		let
+			fun lambda (v as Var ((x, _), T)) t = Abs (x, T, abstract_over (v, t))
+			  | lambda v t                      = raise TERM ("lambda", [v, t])
+			val (lhs, rhs) = Logic.dest_equals eqn
+			val (_, args)  = Term.strip_comb lhs
+		in
+			fold lambda (rev args) rhs
+		end
+		(* (string * Term.term) list -> (string * Term.term) option *)
+		fun get_def_ax [] = NONE
+		  | get_def_ax ((axname, ax) :: axioms) =
+			(let
+				val (lhs, _) = Logic.dest_equals ax  (* equations only *)
+				val c        = Term.head_of lhs
+				val (s', T') = Term.dest_Const c
+			in
+				if s=s' then
+					let
+						val typeSubs = Sign.typ_match thy (T', T) Vartab.empty
+						val ax'      = monomorphic_term typeSubs ax
+						val rhs      = norm_rhs ax'
+					in
+						SOME (axname, rhs)
+					end
+				else
+					get_def_ax axioms
+			end handle ERROR _         => get_def_ax axioms
+			         | TERM _          => get_def_ax axioms
+			         | Type.TYPE_MATCH => get_def_ax axioms)
+	in
+		get_def_ax (Theory.all_axioms_of thy)
+	end;
+
+(* ------------------------------------------------------------------------- *)
+(* get_typedef: looks up the definition of a type, as created by "typedef"   *)
+(* ------------------------------------------------------------------------- *)
+
+	(* theory -> (string * Term.typ) -> (string * Term.term) option *)
+
+	fun get_typedef thy T =
+	let
+		(* (string * Term.term) list -> (string * Term.term) option *)
+		fun get_typedef_ax [] = NONE
+		  | get_typedef_ax ((axname, ax) :: axioms) =
+			(let
+				(* Term.term -> Term.typ option *)
+				fun type_of_type_definition (Const (s', T')) =
+					if s'="Typedef.type_definition" then
+						SOME T'
+					else
+						NONE
+				  | type_of_type_definition (Free _)           = NONE
+				  | type_of_type_definition (Var _)            = NONE
+				  | type_of_type_definition (Bound _)          = NONE
+				  | type_of_type_definition (Abs (_, _, body)) =
+					type_of_type_definition body
+				  | type_of_type_definition (t1 $ t2)          =
+					(case type_of_type_definition t1 of
+					  SOME x => SOME x
+					| NONE   => type_of_type_definition t2)
+			in
+				case type_of_type_definition ax of
+				  SOME T' =>
+					let
+						val T''      = (domain_type o domain_type) T'
+						val typeSubs = Sign.typ_match thy (T'', T) Vartab.empty
+					in
+						SOME (axname, monomorphic_term typeSubs ax)
+					end
+				| NONE =>
+					get_typedef_ax axioms
+			end handle ERROR _         => get_typedef_ax axioms
+			         | MATCH           => get_typedef_ax axioms
+			         | Type.TYPE_MATCH => get_typedef_ax axioms)
+	in
+		get_typedef_ax (Theory.all_axioms_of thy)
+	end;
+
+(* ------------------------------------------------------------------------- *)
+(* get_classdef: looks up the defining axiom for an axiomatic type class, as *)
+(*               created by the "axclass" command                            *)
+(* ------------------------------------------------------------------------- *)
+
+	(* theory -> string -> (string * Term.term) option *)
+
+	fun get_classdef thy class =
+	let
+		val axname = class ^ "_class_def"
+	in
+		Option.map (pair axname)
+			(AList.lookup (op =) (Theory.all_axioms_of thy) axname)
+	end;
+
+(* ------------------------------------------------------------------------- *)
+(* unfold_defs: unfolds all defined constants in a term 't', beta-eta        *)
+(*              normalizes the result term; certain constants are not        *)
+(*              unfolded (cf. 'collect_axioms' and the various interpreters  *)
+(*              below): if the interpretation respects a definition anyway,  *)
+(*              that definition does not need to be unfolded                 *)
+(* ------------------------------------------------------------------------- *)
+
+	(* theory -> Term.term -> Term.term *)
+
+	(* Note: we could intertwine unfolding of constants and beta-(eta-)       *)
+	(*       normalization; this would save some unfolding for terms where    *)
+	(*       constants are eliminated by beta-reduction (e.g. 'K c1 c2').  On *)
+	(*       the other hand, this would cause additional work for terms where *)
+	(*       constants are duplicated by beta-reduction (e.g. 'S c1 c2 c3').  *)
+
+	fun unfold_defs thy t =
+	let
+		(* Term.term -> Term.term *)
+		fun unfold_loop t =
+			case t of
+			(* Pure *)
+			  Const ("all", _)                => t
+			| Const ("==", _)                 => t
+			| Const ("==>", _)                => t
+			| Const ("TYPE", _)               => t  (* axiomatic type classes *)
+			(* HOL *)
+			| Const ("Trueprop", _)           => t
+			| Const ("Not", _)                => t
+			| (* redundant, since 'True' is also an IDT constructor *)
+			  Const ("True", _)               => t
+			| (* redundant, since 'False' is also an IDT constructor *)
+			  Const ("False", _)              => t
+			| Const ("arbitrary", _)          => t
+			| Const ("The", _)                => t
+			| Const ("Hilbert_Choice.Eps", _) => t
+			| Const ("All", _)                => t
+			| Const ("Ex", _)                 => t
+			| Const ("op =", _)               => t
+			| Const ("op &", _)               => t
+			| Const ("op |", _)               => t
+			| Const ("op -->", _)             => t
+			(* sets *)
+			| Const ("Collect", _)            => t
+			| Const ("op :", _)               => t
+			(* other optimizations *)
+			| Const ("Finite_Set.card", _)    => t
+			| Const ("Finite_Set.Finites", _) => t
+			| Const ("Orderings.less", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("bool", [])])])) => t
+			| Const ("HOL.plus", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
+			| Const ("HOL.minus", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
+			| Const ("HOL.times", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
+			| Const ("List.op @", _)          => t
+			| Const ("Lfp.lfp", _)            => t
+			| Const ("Gfp.gfp", _)            => t
+			| Const ("fst", _)                => t
+			| Const ("snd", _)                => t
+			(* simply-typed lambda calculus *)
+			| Const (s, T) =>
+				(if is_IDT_constructor thy (s, T) orelse is_IDT_recursor thy (s, T) then
+					t  (* do not unfold IDT constructors/recursors *)
+				(* unfold the constant if there is a defining equation *)
+				else case get_def thy (s, T) of
+				  SOME (axname, rhs) =>
+					(* Note: if the term to be unfolded (i.e. 'Const (s, T)')  *)
+					(* occurs on the right-hand side of the equation, i.e. in  *)
+					(* 'rhs', we must not use this equation to unfold, because *)
+					(* that would loop.  Here would be the right place to      *)
+					(* check this.  However, getting this really right seems   *)
+					(* difficult because the user may state arbitrary axioms,  *)
+					(* which could interact with overloading to create loops.  *)
+					((*immediate_output (" unfolding: " ^ axname);*)unfold_loop rhs)
+				| NONE => t)
+			| Free _           => t
+			| Var _            => t
+			| Bound _          => t
+			| Abs (s, T, body) => Abs (s, T, unfold_loop body)
+			| t1 $ t2          => (unfold_loop t1) $ (unfold_loop t2)
+		val result = Envir.beta_eta_contract (unfold_loop t)
+	in
+		result
+	end;
+
+(* ------------------------------------------------------------------------- *)
+(* collect_axioms: collects (monomorphic, universally quantified, unfolded   *)
+(*                 versions of) all HOL axioms that are relevant w.r.t 't'   *)
 (* ------------------------------------------------------------------------- *)
 
 	(* Note: to make the collection of axioms more easily extensible, this    *)
 	(*       function could be based on user-supplied "axiom collectors",     *)
 	(*       similar to 'interpret'/interpreters or 'print'/printers          *)
+
+	(* Note: currently we use "inverse" functions to the definitional         *)
+	(*       mechanisms provided by Isabelle/HOL, e.g. for "axclass",         *)
+	(*       "typedef", "constdefs".  A more general approach could consider  *)
+	(*       *every* axiom of the theory and collect it if it has a constant/ *)
+	(*       type/typeclass in common with the term 't'.                      *)
 
 	(* theory -> Term.term -> Term.term list *)
 
@@ -408,109 +720,60 @@ struct
 	(* way below): if the interpretation respects an axiom anyway, the axiom  *)
 	(* does not need to be added as a constraint here.                        *)
 
-	(* When an axiom is added as relevant, further axioms may need to be      *)
-	(* added as well (e.g. when a constant is defined in terms of other       *)
-	(* constants).  To avoid infinite recursion (which should not happen for  *)
-	(* constants anyway, but it could happen for "typedef"-related axioms,    *)
-	(* since they contain the type again), we use an accumulator 'axs' and    *)
-	(* add a relevant axiom only if it is not in 'axs' yet.                   *)
+	(* To avoid collecting the same axiom multiple times, we use an           *)
+	(* accumulator 'axs' which contains all axioms collected so far.          *)
 
 	fun collect_axioms thy t =
 	let
 		val _ = immediate_output "Adding axioms..."
 		(* (string * Term.term) list *)
-		val axioms = Theory.all_axioms_of thy;
-		(* string list *)
-		val rec_names = Symtab.fold (append o #rec_names o snd)
-          (DatatypePackage.get_datatypes thy) [];
-		(* string list *)
-		val const_of_class_names = map Logic.const_of_class (Sign.all_classes thy)
-		(* given a constant 's' of type 'T', which is a subterm of 't', where  *)
-		(* 't' has a (possibly) more general type, the schematic type          *)
-		(* variables in 't' are instantiated to match the type 'T' (may raise  *)
-		(* Type.TYPE_MATCH)                                                    *)
-		(* (string * Term.typ) * Term.term -> Term.term *)
-		fun specialize_type ((s, T), t) =
+		val axioms = Theory.all_axioms_of thy
+		(* string * Term.term -> Term.term list -> Term.term list *)
+		fun collect_this_axiom (axname, ax) axs =
 		let
-			fun find_typeSubs (Const (s', T')) =
-				(if s=s' then
-					SOME (Sign.typ_match thy (T', T) Vartab.empty) handle Type.TYPE_MATCH => NONE
-				else
-					NONE)
-			  | find_typeSubs (Free _)           = NONE
-			  | find_typeSubs (Var _)            = NONE
-			  | find_typeSubs (Bound _)          = NONE
-			  | find_typeSubs (Abs (_, _, body)) = find_typeSubs body
-			  | find_typeSubs (t1 $ t2)          = (case find_typeSubs t1 of SOME x => SOME x | NONE => find_typeSubs t2)
-			val typeSubs = (case find_typeSubs t of
-				  SOME x => x
-				| NONE   => raise Type.TYPE_MATCH (* no match found - perhaps due to sort constraints *))
+			val ax' = unfold_defs thy ax
 		in
-			map_types
-				(map_type_tvar
-					(fn v =>
-						case Type.lookup (typeSubs, v) of
-						  NONE =>
-							(* schematic type variable not instantiated *)
-							raise REFUTE ("collect_axioms", "term " ^ Sign.string_of_term (sign_of thy) t ^ " still has a polymorphic type (after instantiating type of " ^ quote s ^ ")")
-						| SOME typ =>
-							typ))
-					t
+			if member (op aconv) axs ax' then
+				axs
+			else (
+				immediate_output (" " ^ axname);
+				collect_term_axioms (ax' :: axs, ax')
+			)
 		end
-		(* applies a type substitution 'typeSubs' for all type variables in a  *)
-		(* term 't'                                                            *)
-		(* (Term.sort * Term.typ) Term.Vartab.table -> Term.term -> Term.term *)
-		fun monomorphic_term typeSubs t =
-			map_types (map_type_tvar
-				(fn v =>
-					case Type.lookup (typeSubs, v) of
-					  NONE =>
-						(* schematic type variable not instantiated *)
-						error ""
-					| SOME typ =>
-						typ)) t
 		(* Term.term list * Term.typ -> Term.term list *)
-		fun collect_sort_axioms (axs, T) =
-			let
-				(* collect the axioms for a single 'class' (but not for its superclasses) *)
-				(* Term.term list * string -> Term.term list *)
-				fun collect_class_axioms (axs, class) =
-					let
-						(* obtain the axioms generated by the "axclass" command *)
-						(* (string * Term.term) list *)
-						val class_axioms             = List.filter (fn (s, _) => String.isPrefix (Logic.const_of_class class ^ ".axioms_") s) axioms
-						(* replace the one schematic type variable in each axiom by the actual type 'T' *)
-						(* (string * Term.term) list *)
-						val monomorphic_class_axioms = map (fn (axname, ax) =>
-							let
-								val (idx, S) = (case term_tvars ax of
-									  [is] => is
-									| _    => raise REFUTE ("collect_axioms", "class axiom " ^ axname ^ " (" ^ Sign.string_of_term (sign_of thy) ax ^ ") does not contain exactly one type variable"))
-							in
-								(axname, monomorphic_term (Vartab.make [(idx, (S, T))]) ax)
-							end) class_axioms
-						(* Term.term list * (string * Term.term) list -> Term.term list *)
-						fun collect_axiom (axs, (axname, ax)) =
-							if member (op aconv) axs ax then
-								axs
-							else (
-								immediate_output (" " ^ axname);
-								collect_term_axioms (ax :: axs, ax)
-							)
-					in
-						Library.foldl collect_axiom (axs, monomorphic_class_axioms)
-					end
-				(* string list *)
-				val sort = (case T of
-					  TFree (_, sort) => sort
-					| TVar (_, sort)  => sort
-					| _               => raise REFUTE ("collect_axioms", "type " ^ Sign.string_of_typ (sign_of thy) T ^ " is not a variable"))
-				(* obtain all superclasses of classes in 'sort' *)
-				(* string list *)
-				val superclasses = distinct (op =) (sort @ maps (Sign.super_classes thy) sort)
-			in
-				Library.foldl collect_class_axioms (axs, superclasses)
-			end
+		and collect_sort_axioms (axs, T) =
+		let
+			(* string list *)
+			val sort = (case T of
+				  TFree (_, sort) => sort
+				| TVar (_, sort)  => sort
+				| _               => raise REFUTE ("collect_axioms", "type " ^
+					Sign.string_of_typ thy T ^ " is not a variable"))
+			(* obtain axioms for all superclasses *)
+			val superclasses = sort @ (maps (Sign.super_classes thy) sort)
+			(* merely an optimization, because 'collect_this_axiom' disallows *)
+			(* duplicate axioms anyway:                                       *)
+			val superclasses = distinct (op =) superclasses
+			val class_axioms = maps (fn class => map (fn ax =>
+				("<" ^ class ^ ">", Thm.prop_of ax))
+				(#axioms (AxClass.get_definition thy class) handle ERROR _ => []))
+				superclasses
+			(* replace the (at most one) schematic type variable in each axiom *)
+			(* by the actual type 'T'                                          *)
+			val monomorphic_class_axioms = map (fn (axname, ax) =>
+				(case Term.term_tvars ax of
+				  [] =>
+					(axname, ax)
+				| [(idx, S)] =>
+					(axname, monomorphic_term (Vartab.make [(idx, (S, T))]) ax)
+				| _ =>
+					raise REFUTE ("collect_axioms", "class axiom " ^ axname ^ " (" ^
+						Sign.string_of_term thy ax ^
+						") contains more than one type variable")))
+				class_axioms
+		in
+			fold collect_this_axiom monomorphic_class_axioms axs
+		end
 		(* Term.term list * Term.typ -> Term.term list *)
 		and collect_type_axioms (axs, T) =
 			case T of
@@ -520,58 +783,18 @@ struct
 			| Type ("set", [T1])     => collect_type_axioms (axs, T1)
 			| Type ("itself", [T1])  => collect_type_axioms (axs, T1)  (* axiomatic type classes *)
 			| Type (s, Ts)           =>
-				let
-					(* look up the definition of a type, as created by "typedef" *)
-					(* (string * Term.term) list -> (string * Term.term) option *)
-					fun get_typedefn [] =
-						NONE
-					  | get_typedefn ((axname,ax)::axms) =
-						(let
-							(* Term.term -> Term.typ option *)
-							fun type_of_type_definition (Const (s', T')) =
-								if s'="Typedef.type_definition" then
-									SOME T'
-								else
-									NONE
-							  | type_of_type_definition (Free _)           = NONE
-							  | type_of_type_definition (Var _)            = NONE
-							  | type_of_type_definition (Bound _)          = NONE
-							  | type_of_type_definition (Abs (_, _, body)) = type_of_type_definition body
-							  | type_of_type_definition (t1 $ t2)          = (case type_of_type_definition t1 of SOME x => SOME x | NONE => type_of_type_definition t2)
-						in
-							case type_of_type_definition ax of
-							  SOME T' =>
-								let
-									val T''      = (domain_type o domain_type) T'
-									val typeSubs = Sign.typ_match thy (T'', T) Vartab.empty
-								in
-									SOME (axname, monomorphic_term typeSubs ax)
-								end
-							| NONE =>
-								get_typedefn axms
-						end
-						handle ERROR _         => get_typedefn axms
-						     | MATCH           => get_typedefn axms
-						     | Type.TYPE_MATCH => get_typedefn axms)
-				in
-					case DatatypePackage.get_datatype thy s of
-					  SOME info =>  (* inductive datatype *)
-							(* only collect relevant type axioms for the argument types *)
-							Library.foldl collect_type_axioms (axs, Ts)
+				(case DatatypePackage.get_datatype thy s of
+				  SOME info =>  (* inductive datatype *)
+						(* only collect relevant type axioms for the argument types *)
+						Library.foldl collect_type_axioms (axs, Ts)
+				| NONE =>
+					(case get_typedef thy T of
+					  SOME (axname, ax) =>
+						collect_this_axiom (axname, ax) axs
 					| NONE =>
-						(case get_typedefn axioms of
-						  SOME (axname, ax) => 
-							if member (op aconv) axs ax then
-								(* only collect relevant type axioms for the argument types *)
-								Library.foldl collect_type_axioms (axs, Ts)
-							else
-								(immediate_output (" " ^ axname);
-								collect_term_axioms (ax :: axs, ax))
-						| NONE =>
-							(* unspecified type, perhaps introduced with 'typedecl' *)
-							(* at least collect relevant type axioms for the argument types *)
-							Library.foldl collect_type_axioms (axs, Ts))
-				end
+						(* unspecified type, perhaps introduced with "typedecl" *)
+						(* at least collect relevant type axioms for the argument types *)
+						Library.foldl collect_type_axioms (axs, Ts)))
 			| TFree _                => collect_sort_axioms (axs, T)  (* axiomatic type classes *)
 			| TVar _                 => collect_sort_axioms (axs, T)  (* axiomatic type classes *)
 		(* Term.term list * Term.term -> Term.term list *)
@@ -590,27 +813,18 @@ struct
 			| Const ("arbitrary", T)          => collect_type_axioms (axs, T)
 			| Const ("The", T)                =>
 				let
-					val ax = specialize_type (("The", T), (the o AList.lookup (op =) axioms) "HOL.the_eq_trivial")
+					val ax = specialize_type thy ("The", T) ((Option.valOf o AList.lookup (op =) axioms) "HOL.the_eq_trivial")
 				in
-					if member (op aconv) axs ax then
-						collect_type_axioms (axs, T)
-					else
-						(immediate_output " HOL.the_eq_trivial";
-						collect_term_axioms (ax :: axs, ax))
+					collect_this_axiom ("HOL.the_eq_trivial", ax) axs
 				end
 			| Const ("Hilbert_Choice.Eps", T) =>
 				let
-					val ax = specialize_type (("Hilbert_Choice.Eps", T),
-                      (the o AList.lookup (op =) axioms) "Hilbert_Choice.someI")
+					val ax = specialize_type thy ("Hilbert_Choice.Eps", T) ((Option.valOf o AList.lookup (op =) axioms) "Hilbert_Choice.someI")
 				in
-					if member (op aconv) axs ax then
-						collect_type_axioms (axs, T)
-					else
-						(immediate_output " Hilbert_Choice.someI";
-						collect_term_axioms (ax :: axs, ax))
+					collect_this_axiom ("Hilbert_Choice.someI", ax) axs
 				end
-			| Const ("All", _) $ t1           => collect_term_axioms (axs, t1)
-			| Const ("Ex", _) $ t1            => collect_term_axioms (axs, t1)
+			| Const ("All", T)                => collect_type_axioms (axs, T)
+			| Const ("Ex", T)                 => collect_type_axioms (axs, T)
 			| Const ("op =", T)               => collect_type_axioms (axs, T)
 			| Const ("op &", _)               => axs
 			| Const ("op |", _)               => axs
@@ -632,116 +846,36 @@ struct
 			| Const ("snd", T)                => collect_type_axioms (axs, T)
 			(* simply-typed lambda calculus *)
 			| Const (s, T)                    =>
-				let
-					(* look up the definition of a constant, as created by "constdefs" *)
-					(* string -> Term.typ -> (string * Term.term) list -> (string * Term.term) option *)
-					fun get_defn [] =
-						NONE
-					  | get_defn ((axname, ax)::axms) =
-						(let
-							val (lhs, _) = Logic.dest_equals ax  (* equations only *)
-							val c        = head_of lhs
-							val (s', T') = dest_Const c
-						in
-							if s=s' then
-								let
-									val typeSubs = Sign.typ_match thy (T', T) Vartab.empty
-								in
-									SOME (axname, monomorphic_term typeSubs ax)
-								end
-							else
-								get_defn axms
-						end
-						handle ERROR _         => get_defn axms
-						     | TERM _          => get_defn axms
-						     | Type.TYPE_MATCH => get_defn axms)
-					(* axiomatic type classes *)
-					(* unit -> bool *)
-					fun is_const_of_class () =
-						(* I'm not quite sure if checking the name 's' is sufficient, *)
-						(* or if we should also check the type 'T'                    *)
-						s mem const_of_class_names
-					(* inductive data types *)
-					(* unit -> bool *)
-					fun is_IDT_constructor () =
-						(case body_type T of
-						  Type (s', _) =>
-							(case DatatypePackage.get_datatype_constrs thy s' of
-							  SOME constrs =>
-								Library.exists (fn (cname, cty) =>
-								cname = s andalso Sign.typ_instance thy (T, cty))
-									constrs
-							| NONE =>
-								false)
-						| _  =>
-							false)
-					(* unit -> bool *)
-					fun is_IDT_recursor () =
-						(* I'm not quite sure if checking the name 's' is sufficient, *)
-						(* or if we should also check the type 'T'                    *)
-						member (op =) rec_names s
-				in
-					if is_const_of_class () then
-						(* axiomatic type classes: add "OFCLASS(?'a::c, c_class)" and *)
-						(* the introduction rule "class.intro" as axioms              *)
+					if is_const_of_class thy (s, T) then
+						(* axiomatic type classes: add "OFCLASS(?'a::c, c_class)" *)
+						(* and the class definition                               *)
 						let
 							val class   = Logic.class_of_const s
 							val inclass = Logic.mk_inclass (TVar (("'a", 0), [class]), class)
-							(* Term.term option *)
-							val ofclass_ax = (SOME (specialize_type ((s, T), inclass)) handle Type.TYPE_MATCH => NONE)
-							val intro_ax   = (Option.map (fn t => specialize_type ((s, T), t))
-								(AList.lookup (op =) axioms (class ^ ".intro")) handle Type.TYPE_MATCH => NONE)
-							val axs'       = (case ofclass_ax of NONE => axs | SOME ax => if member (op aconv) axs ax then
-									(* collect relevant type axioms *)
-									collect_type_axioms (axs, T)
-								else
-									(immediate_output (" " ^ Sign.string_of_term (sign_of thy) ax);
-									collect_term_axioms (ax :: axs, ax)))
-							val axs''      = (case intro_ax of NONE => axs' | SOME ax => if member (op aconv) axs' ax then
-									(* collect relevant type axioms *)
-									collect_type_axioms (axs', T)
-								else
-									(immediate_output (" " ^ s ^ ".intro");
-									collect_term_axioms (ax :: axs', ax)))
+							val ax_in   = SOME (specialize_type thy (s, T) inclass)
+								(* type match may fail due to sort constraints *)
+								handle Type.TYPE_MATCH => NONE
+							val ax_1 = Option.map (fn ax => (Sign.string_of_term thy ax, ax)) ax_in
+							val ax_2 = Option.map (apsnd (specialize_type thy (s, T))) (get_classdef thy class)
 						in
-							axs''
+							collect_type_axioms (fold collect_this_axiom
+								(map_filter I [ax_1, ax_2]) axs, T)
 						end
-					else if is_IDT_constructor () then
+					else if is_IDT_constructor thy (s, T)
+						orelse is_IDT_recursor thy (s, T) then
 						(* only collect relevant type axioms *)
 						collect_type_axioms (axs, T)
-					else if is_IDT_recursor () then
+					else
+						(* other constants should have been unfolded, with some *)
+						(* exceptions: e.g. Abs_xxx/Rep_xxx functions for       *)
+						(* typedefs, or type-class related constants            *)
 						(* only collect relevant type axioms *)
 						collect_type_axioms (axs, T)
-					else (
-						case get_defn axioms of
-						  SOME (axname, ax) => 
-							if member (op aconv) axs ax then
-								(* collect relevant type axioms *)
-								collect_type_axioms (axs, T)
-							else
-								(immediate_output (" " ^ axname);
-								collect_term_axioms (ax :: axs, ax))
-						| NONE =>
-							(* collect relevant type axioms *)
-							collect_type_axioms (axs, T)
-					)
-				end
-			| Free (_, T)                     => collect_type_axioms (axs, T)
-			| Var (_, T)                      => collect_type_axioms (axs, T)
-			| Bound i                         => axs
-			| Abs (_, T, body)                => collect_term_axioms (collect_type_axioms (axs, T), body)
-			| t1 $ t2                         => collect_term_axioms (collect_term_axioms (axs, t1), t2)
-		(* universal closure over schematic variables *)
-		(* Term.term -> Term.term *)
-		fun close_form t =
-		let
-			(* (Term.indexname * Term.typ) list *)
-			val vars = sort_wrt (fst o fst) (map dest_Var (term_vars t))
-		in
-			Library.foldl
-				(fn (t', ((x, i), T)) => (Term.all T) $ Abs (x, T, abstract_over (Var((x, i), T), t')))
-				(t, vars)
-		end
+			| Free (_, T)      => collect_type_axioms (axs, T)
+			| Var (_, T)       => collect_type_axioms (axs, T)
+			| Bound i          => axs
+			| Abs (_, T, body) => collect_term_axioms (collect_type_axioms (axs, T), body)
+			| t1 $ t2          => collect_term_axioms (collect_term_axioms (axs, t1), t2)
 		(* Term.term list *)
 		val result = map close_form (collect_term_axioms ([], t))
 		val _ = writeln " ...done."
@@ -776,7 +910,7 @@ struct
 						let
 							val index               = #index info
 							val descr               = #descr info
-							val (_, dtyps, constrs) = (the o AList.lookup (op =) descr) index
+							val (_, dtyps, constrs) = (Option.valOf o AList.lookup (op =) descr) index
 							val typ_assoc           = dtyps ~~ Ts
 							(* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
 							val _ = (if Library.exists (fn d =>
@@ -930,11 +1064,12 @@ struct
 		(* unit -> unit *)
 		fun wrapper () =
 		let
-			(* Term.term list *)
-			val axioms = collect_axioms thy t
+			val u      = unfold_defs thy t
+			val _      = writeln ("Unfolded term: " ^ Sign.string_of_term (sign_of thy) u)
+			val axioms = collect_axioms thy u
 			(* Term.typ list *)
-			val types  = Library.foldl (fn (acc, t') => acc union (ground_types thy t')) ([], t :: axioms)
-			val _      = writeln ("Ground types: "
+			val types = Library.foldl (fn (acc, t') => acc union (ground_types thy t')) ([], u :: axioms)
+			val _     = writeln ("Ground types: "
 				^ (if null types then "none."
 				   else commas (map (Sign.string_of_typ (sign_of thy)) types)))
 			(* we can only consider fragments of recursive IDTs, so we issue a  *)
@@ -947,7 +1082,7 @@ struct
 						let
 							val index           = #index info
 							val descr           = #descr info
-							val (_, _, constrs) = (the o AList.lookup (op =) descr) index
+							val (_, _, constrs) = (Option.valOf o AList.lookup (op =) descr) index
 						in
 							(* recursive datatype? *)
 							Library.exists (fn (_, ds) => Library.exists DatatypeAux.is_rec_type ds) constrs
@@ -963,19 +1098,19 @@ struct
 				val init_model             = (universe, [])
 				val init_args              = {maxvars = maxvars, def_eq = false, next_idx = 1, bounds = [], wellformed = True}
 				val _                      = immediate_output ("Translating term (sizes: " ^ commas (map (fn (_, n) => string_of_int n) universe) ^ ") ...")
-				(* translate 't' and all axioms *)
+				(* translate 'u' and all axioms *)
 				val ((model, args), intrs) = foldl_map (fn ((m, a), t') =>
 					let
 						val (i, m', a') = interpret thy m a t'
 					in
 						(* set 'def_eq' to 'true' *)
 						((m', {maxvars = #maxvars a', def_eq = true, next_idx = #next_idx a', bounds = #bounds a', wellformed = #wellformed a'}), i)
-					end) ((init_model, init_args), t :: axioms)
-				(* make 't' either true or false, and make all axioms true, and *)
+					end) ((init_model, init_args), u :: axioms)
+				(* make 'u' either true or false, and make all axioms true, and *)
 				(* add the well-formedness side condition                       *)
-				val fm_t  = (if negate then toFalse else toTrue) (hd intrs)
+				val fm_u  = (if negate then toFalse else toTrue) (hd intrs)
 				val fm_ax = PropLogic.all (map toTrue (tl intrs))
-				val fm    = PropLogic.all [#wellformed args, fm_ax, fm_t]
+				val fm    = PropLogic.all [#wellformed args, fm_ax, fm_u]
 			in
 				immediate_output " invoking SAT solver...";
 				(case SatSolver.invoke_solver satsolver fm of
@@ -1317,10 +1452,11 @@ struct
 
 	fun eta_expand t i =
 	let
-		val Ts = binder_types (fastype_of t)
+		val Ts = Term.binder_types (Term.fastype_of t)
+		val t' = Term.incr_boundvars i t
 	in
-		foldr (fn (T, t) => Abs ("<eta_expand>", T, t))
-			(list_comb (t, map Bound (i-1 downto 0))) (Library.take (i, Ts))
+		foldr (fn (T, term) => Abs ("<eta_expand>", T, term))
+			(Term.list_comb (t', map Bound (i-1 downto 0))) (List.take (Ts, i))
 	end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1377,7 +1513,7 @@ struct
 			(* unit -> (interpretation * model * arguments) option *)
 			fun interpret_groundtype () =
 			let
-				val size = (if T = Term.propT then 2 else (the o AList.lookup (op =) typs) T)                    (* the model MUST specify a size for ground types *)
+				val size = (if T = Term.propT then 2 else (Option.valOf o AList.lookup (op =) typs) T)                    (* the model MUST specify a size for ground types *)
 				val next = next_idx+size
 				val _    = (if next-1>maxvars andalso maxvars>0 then raise MAXVARS_EXCEEDED else ())  (* check if 'maxvars' is large enough *)
 				(* prop_formula list *)
@@ -1473,12 +1609,13 @@ struct
 
 	fun Pure_interpreter thy model args t =
 		case t of
-		  Const ("all", _) $ t1 =>  (* in the meta-logic, 'all' MUST be followed by an argument term *)
+		  Const ("all", _) $ t1 =>
 			let
 				val (i, m, a) = interpret thy model args t1
 			in
 				case i of
 				  Node xs =>
+					(* 3-valued logic *)
 					let
 						val fmTrue  = PropLogic.all (map toTrue xs)
 						val fmFalse = PropLogic.exists (map toFalse xs)
@@ -1488,6 +1625,8 @@ struct
 				| _ =>
 					raise REFUTE ("Pure_interpreter", "\"all\" is not followed by a function")
 			end
+		| Const ("all", _) =>
+			SOME (interpret thy model args (eta_expand t 1))
 		| Const ("==", _) $ t1 $ t2 =>
 			let
 				val (i1, m1, a1) = interpret thy model args t1
@@ -1496,8 +1635,24 @@ struct
 				(* we use either 'make_def_equality' or 'make_equality' *)
 				SOME ((if #def_eq args then make_def_equality else make_equality) (i1, i2), m2, a2)
 			end
-		| Const ("==>", _) =>  (* simpler than translating 'Const ("==>", _) $ t1 $ t2' *)
-			SOME (Node [Node [TT, FF], Node [TT, TT]], model, args)
+		| Const ("==", _) $ t1 =>
+			SOME (interpret thy model args (eta_expand t 1))
+		| Const ("==", _) =>
+			SOME (interpret thy model args (eta_expand t 2))
+		| Const ("==>", _) $ t1 $ t2 =>
+			(* 3-valued logic *)
+			let
+				val (i1, m1, a1) = interpret thy model args t1
+				val (i2, m2, a2) = interpret thy m1 a1 t2
+				val fmTrue       = PropLogic.SOr (toFalse i1, toTrue i2)
+				val fmFalse      = PropLogic.SAnd (toTrue i1, toFalse i2)
+			in
+				SOME (Leaf [fmTrue, fmFalse], m2, a2)
+			end
+		| Const ("==>", _) $ t1 =>
+			SOME (interpret thy model args (eta_expand t 1))
+		| Const ("==>", _) =>
+			SOME (interpret thy model args (eta_expand t 2))
 		| _ => NONE;
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
@@ -1506,8 +1661,7 @@ struct
 	(* ------------------------------------------------------------------------- *)
 	(* Providing interpretations directly is more efficient than unfolding the   *)
 	(* logical constants.  In HOL however, logical constants can themselves be   *)
-	(* arguments.  "All" and "Ex" are then translated just like any other        *)
-	(* constant, with the relevant axiom being added by 'collect_axioms'.        *)
+	(* arguments.  They are then translated using eta-expansion.                 *)
 	(* ------------------------------------------------------------------------- *)
 		case t of
 		  Const ("Trueprop", _) =>
@@ -1518,15 +1672,13 @@ struct
 			SOME (TT, model, args)
 		| Const ("False", _) =>  (* redundant, since 'False' is also an IDT constructor *)
 			SOME (FF, model, args)
-		| Const ("All", _) $ t1 =>
-		(* if "All" occurs without an argument (i.e. as argument to a higher-order *)
-		(* function or predicate), it is handled by the 'stlc_interpreter' (i.e.   *)
-		(* by unfolding its definition)                                            *)
+		| Const ("All", _) $ t1 =>  (* similar to "all" (Pure) *)
 			let
 				val (i, m, a) = interpret thy model args t1
 			in
 				case i of
 				  Node xs =>
+					(* 3-valued logic *)
 					let
 						val fmTrue  = PropLogic.all (map toTrue xs)
 						val fmFalse = PropLogic.exists (map toFalse xs)
@@ -1536,15 +1688,15 @@ struct
 				| _ =>
 					raise REFUTE ("HOLogic_interpreter", "\"All\" is followed by a non-function")
 			end
+		| Const ("All", _) =>
+			SOME (interpret thy model args (eta_expand t 1))
 		| Const ("Ex", _) $ t1 =>
-		(* if "Ex" occurs without an argument (i.e. as argument to a higher-order  *)
-		(* function or predicate), it is handled by the 'stlc_interpreter' (i.e.   *)
-		(* by unfolding its definition)                                            *)
 			let
 				val (i, m, a) = interpret thy model args t1
 			in
 				case i of
 				  Node xs =>
+					(* 3-valued logic *)
 					let
 						val fmTrue  = PropLogic.exists (map toTrue xs)
 						val fmFalse = PropLogic.all (map toFalse xs)
@@ -1554,7 +1706,9 @@ struct
 				| _ =>
 					raise REFUTE ("HOLogic_interpreter", "\"Ex\" is followed by a non-function")
 			end
-		| Const ("op =", _) $ t1 $ t2 =>
+		| Const ("Ex", _) =>
+			SOME (interpret thy model args (eta_expand t 1))
+		| Const ("op =", _) $ t1 $ t2 =>  (* similar to "==" (Pure) *)
 			let
 				val (i1, m1, a1) = interpret thy model args t1
 				val (i2, m2, a2) = interpret thy m1 a1 t2
@@ -1579,6 +1733,8 @@ struct
 			SOME (interpret thy model args (eta_expand t 1))
 		| Const ("op &", _) =>
 			SOME (interpret thy model args (eta_expand t 2))
+			(* this would make "undef" propagate, even for formulae like *)
+			(* "False & undef":                                          *)
 			(* SOME (Node [Node [TT, FF], Node [FF, FF]], model, args) *)
 		| Const ("op |", _) $ t1 $ t2 =>
 			(* 3-valued logic *)
@@ -1594,8 +1750,10 @@ struct
 			SOME (interpret thy model args (eta_expand t 1))
 		| Const ("op |", _) =>
 			SOME (interpret thy model args (eta_expand t 2))
+			(* this would make "undef" propagate, even for formulae like *)
+			(* "True | undef":                                           *)
 			(* SOME (Node [Node [TT, TT], Node [TT, FF]], model, args) *)
-		| Const ("op -->", _) $ t1 $ t2 =>
+		| Const ("op -->", _) $ t1 $ t2 =>  (* similar to "==>" (Pure) *)
 			(* 3-valued logic *)
 			let
 				val (i1, m1, a1) = interpret thy model args t1
@@ -1605,9 +1763,13 @@ struct
 			in
 				SOME (Leaf [fmTrue, fmFalse], m2, a2)
 			end
+		| Const ("op -->", _) $ t1 =>
+			SOME (interpret thy model args (eta_expand t 1))
 		| Const ("op -->", _) =>
-			(* SOME (Node [Node [TT, FF], Node [TT, TT]], model, args) *)
 			SOME (interpret thy model args (eta_expand t 2))
+			(* this would make "undef" propagate, even for formulae like *)
+			(* "False --> undef":                                        *)
+			(* SOME (Node [Node [TT, FF], Node [TT, TT]], model, args) *)
 		| _ => NONE;
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
@@ -1679,7 +1841,7 @@ struct
 						let
 							val index               = #index info
 							val descr               = #descr info
-							val (_, dtyps, constrs) = (the o AList.lookup (op =) descr) index
+							val (_, dtyps, constrs) = (Option.valOf o AList.lookup (op =) descr) index
 							val typ_assoc           = dtyps ~~ Ts
 							(* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
 							val _ = (if Library.exists (fn d =>
@@ -1747,7 +1909,7 @@ struct
 						let
 							val index               = #index info
 							val descr               = #descr info
-							val (_, dtyps, constrs) = (the o AList.lookup (op =) descr) index
+							val (_, dtyps, constrs) = (Option.valOf o AList.lookup (op =) descr) index
 							val typ_assoc           = dtyps ~~ Ts'
 							(* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
 							val _ = (if Library.exists (fn d =>
@@ -1925,8 +2087,8 @@ struct
 						let
 							val index              = #index info
 							val descr              = #descr info
-							val (dtname, dtyps, _) = (the o AList.lookup (op =) descr) index
-							(* number of all constructors, including those of different           *)
+							val (dtname, dtyps, _) = (Option.valOf o AList.lookup (op =) descr) index
+							(* number of all constructors, including those of ({({(a0, True)}, False), ({(a0, False)}, False)}, True)different           *)
 							(* (mutually recursive) datatypes within the same descriptor 'descr'  *)
 							val mconstrs_count     = sum (map (fn (_, (_, _, cs)) => length cs) descr)
 							val params_count       = length params
@@ -2016,7 +2178,7 @@ struct
 												  SOME args => (n, args)
 												| NONE      => get_cargs_rec (n+1, xs))
 										in
-											get_cargs_rec (0, (the o AList.lookup (op =) mc_intrs) idx)
+											get_cargs_rec (0, (Option.valOf o AList.lookup (op =) mc_intrs) idx)
 										end
 									(* returns the number of constructors in datatypes that occur in *)
 									(* the descriptor 'descr' before the datatype given by 'idx'     *)
@@ -2036,7 +2198,7 @@ struct
 									(* where 'idx' gives the datatype and 'elem' the element of it             *)
 									(* int -> int -> interpretation *)
 									fun compute_array_entry idx elem =
-										case Array.sub ((the o AList.lookup (op =) INTRS) idx, elem) of
+										case Array.sub ((Option.valOf o AList.lookup (op =) INTRS) idx, elem) of
 										  SOME result =>
 											(* simply return the previously computed result *)
 											result
@@ -2054,7 +2216,7 @@ struct
 												(* select the correct subtree of the parameter corresponding to constructor 'c' *)
 												val p_intr = select_subtree (List.nth (p_intrs, get_coffset idx + c), args)
 												(* find the indices of the constructor's recursive arguments *)
-												val (_, _, constrs) = (the o AList.lookup (op =) descr) idx
+												val (_, _, constrs) = (Option.valOf o AList.lookup (op =) descr) idx
 												val constr_args     = (snd o List.nth) (constrs, c)
 												val rec_args        = List.filter (DatatypeAux.is_rec_type o fst) (constr_args ~~ args)
 												val rec_args'       = map (fn (dtyp, elem) => (DatatypeAux.dest_DtRec dtyp, elem)) rec_args
@@ -2062,7 +2224,7 @@ struct
 												val result = foldl (fn ((idx, elem), intr) =>
 													interpretation_apply (intr, compute_array_entry idx elem)) p_intr rec_args'
 												(* update 'INTRS' *)
-												val _ = Array.update ((the o AList.lookup (op =) INTRS) idx, elem, SOME result)
+												val _ = Array.update ((Option.valOf o AList.lookup (op =) INTRS) idx, elem, SOME result)
 											in
 												result
 											end
@@ -2081,13 +2243,13 @@ struct
 										in
 											modifyi_loop 0
 										end
-									val _ = modifyi (fn (i, _) => SOME (compute_array_entry index i)) ((the o AList.lookup (op =) INTRS) index)
+									val _ = modifyi (fn (i, _) => SOME (compute_array_entry index i)) ((Option.valOf o AList.lookup (op =) INTRS) index)
 									(* 'a Array.array -> 'a list *)
 									fun toList arr =
 										Array.foldr op:: [] arr
 								in
 									(* return the part of 'INTRS' that corresponds to the current datatype *)
-									SOME ((Node o map the o toList o the o AList.lookup (op =) INTRS) index, model', args')
+									SOME ((Node o map Option.valOf o toList o Option.valOf o AList.lookup (op =) INTRS) index, model', args')
 								end
 						end
 					else
@@ -2576,7 +2738,7 @@ struct
 					val (typs, _)           = model
 					val index               = #index info
 					val descr               = #descr info
-					val (_, dtyps, constrs) = (the o AList.lookup (op =) descr) index
+					val (_, dtyps, constrs) = (Option.valOf o AList.lookup (op =) descr) index
 					val typ_assoc           = dtyps ~~ Ts
 					(* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
 					val _ = (if Library.exists (fn d =>

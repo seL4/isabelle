@@ -1,7 +1,7 @@
 (*  Title:      HOL/ex/Refute_Examples.thy
     ID:         $Id$
     Author:     Tjark Weber
-    Copyright   2003-2005
+    Copyright   2003-2007
 *)
 
 (* See 'HOL/Refute.thy' for help. *)
@@ -23,6 +23,8 @@ lemma "P \<and> Q"
   refute [maxsize=5]           -- {* we can override parameters ... *}
   refute [satsolver="dpll"] 2  -- {* ... and specify a subgoal at the same time *}
 oops
+
+(******************************************************************************)
 
 section {* Examples and Test Cases *}
 
@@ -65,6 +67,8 @@ lemma "(P | Q) \<longrightarrow> (P & Q)"
   refute
 oops
 
+(******************************************************************************)
+
 subsection {* Predicate logic *}
 
 lemma "P x y z"
@@ -78,6 +82,8 @@ oops
 lemma "P (f (f x)) \<longrightarrow> P x \<longrightarrow> P (f x)"
   refute
 oops
+
+(******************************************************************************)
 
 subsection {* Equality *}
 
@@ -110,6 +116,8 @@ lemma "distinct [a,b]"
   apply simp
   refute
 oops
+
+(******************************************************************************)
 
 subsection {* First-Order Logic *}
 
@@ -203,6 +211,8 @@ lemma "((P::('a\<Rightarrow>'b)\<Rightarrow>bool) f = P g) \<longrightarrow> (f 
   refute
 oops
 
+(******************************************************************************)
+
 subsection {* Higher-Order Logic *}
 
 lemma "\<exists>P. P"
@@ -227,15 +237,15 @@ lemma "P Q | Q x"
   refute
 oops
 
-lemma "P All"
+lemma "x \<noteq> All"
   refute
 oops
 
-lemma "P Ex"
+lemma "x \<noteq> Ex"
   refute
 oops
 
-lemma "P Ex1"
+lemma "x \<noteq> Ex1"
   refute
 oops
 
@@ -302,6 +312,8 @@ lemma "(\<forall>x. EX!y. P x y) \<longrightarrow> (EX!f. \<forall>x. P x (f x))
   apply (fast intro: ext)
 done
 
+(******************************************************************************)
+
 subsection {* Meta-logic *}
 
 lemma "!!x. P x"
@@ -320,6 +332,20 @@ lemma "\<lbrakk> P; Q; R \<rbrakk> \<Longrightarrow> S"
   refute
 oops
 
+lemma "(x == all) \<Longrightarrow> False"
+  refute
+oops
+
+lemma "(x == (op ==)) \<Longrightarrow> False"
+  refute
+oops
+
+lemma "(x == (op \<Longrightarrow>)) \<Longrightarrow> False"
+  refute
+oops
+
+(******************************************************************************)
+
 subsection {* Schematic variables *}
 
 lemma "?P"
@@ -331,6 +357,8 @@ lemma "x = ?y"
   refute
   apply auto
 done
+
+(******************************************************************************)
 
 subsection {* Abstractions *}
 
@@ -346,6 +374,8 @@ lemma "(\<lambda>x. x) = (\<lambda>y. y)"
   refute
   apply simp
 done
+
+(******************************************************************************)
 
 subsection {* Sets *}
 
@@ -390,6 +420,8 @@ lemma "Ball A P \<longrightarrow> Bex A P"
   refute
 oops
 
+(******************************************************************************)
+
 subsection {* arbitrary *}
 
 lemma "arbitrary"
@@ -407,6 +439,8 @@ oops
 lemma "arbitrary arbitrary"
   refute
 oops
+
+(******************************************************************************)
 
 subsection {* The *}
 
@@ -429,6 +463,8 @@ oops
 lemma "Ex P \<longrightarrow> P (The P)"
   refute
 oops
+
+(******************************************************************************)
 
 subsection {* Eps *}
 
@@ -968,11 +1004,11 @@ lemma "(x::nat) < x + y"
   refute
 oops
 
-lemma "a @ [] = b @ []"
+lemma "xs @ [] = ys @ []"
   refute
 oops
 
-lemma "a @ b = b @ a"
+lemma "xs @ ys = ys @ xs"
   refute
 oops
 
@@ -1000,7 +1036,7 @@ lemma "P (x::'a::classA)"
   refute
 oops
 
-text {* The axiom of this type class does not contain any type variables, but is internally converted into one that does: *}
+text {* The axiom of this type class does not contain any type variables: *}
 
 axclass classB
   classB_ax: "P | ~ P"
