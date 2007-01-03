@@ -1,0 +1,605 @@
+(*  ID:         $Id$
+    Author:     Claire Quigley and L C Paulson
+    Copyright   2004  University of Cambridge
+*)
+
+(***************************************************************************)
+(*  Code to deal with the transfer of proofs from a Vampire process          *)
+(***************************************************************************)
+signature RES_RECONSTRUCT =
+  sig
+    val checkEProofFound: 
+          TextIO.instream * TextIO.outstream * Posix.Process.pid * 
+          string * thm * int * string Vector.vector -> bool
+    val checkVampProofFound: 
+          TextIO.instream * TextIO.outstream * Posix.Process.pid * 
+          string * thm * int * string Vector.vector -> bool
+    val checkSpassProofFound:  
+          TextIO.instream * TextIO.outstream * Posix.Process.pid * 
+          string * thm * int * string Vector.vector -> bool
+    val signal_parent:  
+          TextIO.outstream * Posix.Process.pid * string * string -> unit
+    val nospaces: string -> string
+
+  end;
+
+structure ResReconstruct =
+struct
+
+val trace_path = Path.basic "atp_trace";
+
+fun trace s = if !Output.show_debug_msgs then File.append (File.tmp_path trace_path) s 
+              else ();
+
+(*Full proof reconstruction wanted*)
+val full = ref true;
+
+(**** PARSING OF TSTP FORMAT ****)
+
+(*Syntax trees, either termlist or formulae*)
+datatype stree = Int of int | Br of string * stree list;
+
+fun atom x = Br(x,[]);
+
+fun scons (x,y) = Br("cons", [x,y]);
+val listof = foldl scons (atom "nil");
+
+(*Strings enclosed in single quotes, e.g. filenames*)
+val quoted = $$"'" |-- Scan.repeat (~$$"'") --| $$"'" >> implode;
+
+(*Intended for $true and $false*)
+fun tf s = "c_" ^ str (Char.toUpper (String.sub(s,0))) ^ String.extract(s,1,NONE);
+val truefalse = $$"$" |-- Symbol.scan_id >> (atom o tf);
+
+(*Integer constants, typically proof line numbers*)
+fun is_digit s = Char.isDigit (String.sub(s,0));
+val integer = Scan.many1 is_digit >> (valOf o Int.fromString o implode);
+
+(*Generalized FO terms, which include filenames, numbers, etc.*)
+fun termlist x = (term -- Scan.repeat ($$"," |-- term) >> op::) x
+and term x = (quoted >> atom || integer>>Int || truefalse ||
+              Symbol.scan_id -- Scan.optional ($$"(" |-- termlist --| $$")") [] >> Br ||
+              $$"(" |-- term --| $$")" ||
+              $$"[" |-- termlist --| $$"]" >> listof) x;
+
+fun negate t = Br("c_Not", [t]);
+fun equate (t1,t2) = Br("c_equal", [t1,t2]);
+
+(*Apply equal or not-equal to a term*)
+fun syn_equal (t, NONE) = t
+  | syn_equal (t1, SOME (NONE, t2)) = equate (t1,t2)
+  | syn_equal (t1, SOME (SOME _, t2)) = negate (equate (t1,t2));
+
+(*Literals can involve negation, = and !=.*)
+val literal = $$"~" |-- term >> negate || 
+              (term -- Scan.option (Scan.option ($$"!") --| $$"=" -- term) >> syn_equal) ;
+
+val literals = literal -- Scan.repeat ($$"|" |-- literal) >> op:: ;
+
+(*Clause: a list of literals separated by the disjunction sign*)
+val clause = $$"(" |-- literals --| $$")";
+
+val annotations = $$"," |-- term -- Scan.option ($$"," |-- termlist);
+
+(*<cnf_annotated> ::=Êcnf(<name>,<formula_role>,<cnf_formula><annotations>).
+  The <name> could be an identifier, but we assume integers.*)
+val tstp_line = (Scan.this_string "cnf" -- $$"(") |-- 
+                integer --| $$"," -- Symbol.scan_id --| $$"," -- 
+                clause -- Scan.option annotations --| $$ ")";
+
+
+(**** DUPLICATE of Susanto's code to remove ASCII armouring from names in proof files ****)
+
+(*original file: Isabelle_ext.sml*)
+
+val A_min_spc = Char.ord #"A" - Char.ord #" ";
+
+fun cList2int chs = getOpt (Int.fromString (String.implode (rev chs)), 0);
+
+(*why such a tiny range?*)
+fun check_valid_int x =
+  let val val_x = cList2int x
+  in (length x = 3) andalso (val_x >= 123) andalso (val_x <= 126)
+  end;
+
+fun normalise_s s [] st_ sti =
+      String.implode(rev(
+        if st_
+        then if null sti
+             then (#"_" :: s)
+             else if check_valid_int sti
+                  then (Char.chr (cList2int sti) :: s)
+                  else (sti @ (#"_" :: s))
+        else s))
+  | normalise_s s (#"_"::cs) st_ sti =
+      if st_
+      then let val s' = if null sti
+                        then (#"_"::s)
+                        else if check_valid_int sti
+                             then (Char.chr (cList2int sti) :: s)
+                             else (sti @ (#"_" :: s))
+           in normalise_s s' cs false [] 
+           end
+      else normalise_s s cs true []
+  | normalise_s s (c::cs) true sti =
+      if (Char.isDigit c)
+      then normalise_s s cs true (c::sti)
+      else let val s' = if null sti
+                        then if ((c >= #"A") andalso (c<= #"P"))
+                             then ((Char.chr(Char.ord c - A_min_spc))::s)
+                             else (c :: (#"_" :: s))
+                        else if check_valid_int sti
+                             then (Char.chr (cList2int sti) :: s)
+                             else (sti @ (#"_" :: s))
+           in normalise_s s' cs false []
+           end
+  | normalise_s s (c::cs) _ _ = normalise_s (c::s) cs false [];
+
+(*This version does not look for standard prefixes first.*)
+fun normalise_string s = normalise_s [] (String.explode s) false [];
+
+
+(**** INTERPRETATION OF TSTP SYNTAX TREES ****)
+
+exception STREE of stree;
+
+(*If string s has the prefix s1, return the result of deleting it.*)
+fun strip_prefix s1 s = 
+  if String.isPrefix s1 s then SOME (normalise_string (String.extract (s, size s1, NONE)))
+  else NONE;
+
+(*Invert the table of translations between Isabelle and ATPs*)
+val type_const_trans_table_inv =
+      Symtab.make (map swap (Symtab.dest ResClause.type_const_trans_table));
+
+fun invert_type_const c =
+    case Symtab.lookup type_const_trans_table_inv c of
+        SOME c' => c'
+      | NONE => c;
+
+fun make_tvar b = TVar(("'" ^ b, 0), HOLogic.typeS);
+fun make_var (b,T) = Var((b,0),T);
+
+(*Type variables are given the basic sort, HOL.type. Some will later be constrained
+  by information from type literals, or by type inference.*)
+fun type_of_stree t =
+  case t of
+      Int _ => raise STREE t
+    | Br (a,ts) => 
+        let val Ts = map type_of_stree ts
+        in 
+          case strip_prefix ResClause.tconst_prefix a of
+              SOME b => Type(invert_type_const b, Ts)
+            | NONE => 
+                if not (null ts) then raise STREE t  (*only tconsts have type arguments*)
+                else 
+                case strip_prefix ResClause.tfree_prefix a of
+                    SOME b => TFree("'" ^ b, HOLogic.typeS)
+                  | NONE => 
+                case strip_prefix ResClause.tvar_prefix a of
+                    SOME b => make_tvar b
+                  | NONE => make_tvar a   (*Variable from the ATP, say X1*)
+        end;
+
+(*Invert the table of translations between Isabelle and ATPs*)
+val const_trans_table_inv =
+      Symtab.make (map swap (Symtab.dest ResClause.const_trans_table));
+
+fun invert_const c =
+    case Symtab.lookup const_trans_table_inv c of
+        SOME c' => c'
+      | NONE => c;
+
+(*The number of type arguments of a constant, zero if it's monomorphic*)
+fun num_typargs thy s = length (Sign.const_typargs thy (s, Sign.the_const_type thy s));
+
+(*Generates a constant, given its type arguments*)
+fun const_of thy (a,Ts) = Const(a, Sign.const_instance thy (a,Ts));
+
+(*First-order translation. No types are known for variables. HOLogic.typeT should allow
+  them to be inferred.*)
+fun term_of_stree thy t =
+  case t of
+      Int _ => raise STREE t
+    | Br (a,ts) => 
+        case strip_prefix ResClause.const_prefix a of
+            SOME "equal" => 
+              if length ts = 2 then
+                list_comb(Const ("op =", HOLogic.typeT), List.map (term_of_stree thy) ts)
+              else raise STREE t  (*equality needs two arguments*)
+          | SOME b => 
+              let val c = invert_const b
+                  val nterms = length ts - num_typargs thy c
+                  val us = List.map (term_of_stree thy) (List.take(ts,nterms))
+                  val Ts = List.map type_of_stree (List.drop(ts,nterms))
+              in  list_comb(const_of thy (c, Ts), us)  end
+          | NONE => (*a variable, not a constant*)
+              let val T = HOLogic.typeT
+                  val opr = (*a Free variable is typically a Skolem function*)
+                    case strip_prefix ResClause.fixed_var_prefix a of
+                        SOME b => Free(b,T)
+                      | NONE => 
+                    case strip_prefix ResClause.schematic_var_prefix a of
+                        SOME b => make_var (b,T)
+                      | NONE => make_var (a,T)    (*Variable from the ATP, say X1*)
+              in  list_comb (opr, List.map (term_of_stree thy) ts)  end;
+
+(*Type class literal applied to a type. Returns triple of polarity, class, type.*)                  
+fun constraint_of_stree pol (Br("c_Not",[t])) = constraint_of_stree (not pol) t
+  | constraint_of_stree pol t = case t of
+        Int _ => raise STREE t
+      | Br (a,ts) => 
+            (case (strip_prefix ResClause.class_prefix a, map type_of_stree ts) of
+                 (SOME b, [T]) => (pol, b, T)
+               | _ => raise STREE t);
+
+(** Accumulate type constraints in a clause: negative type literals **)
+
+fun addix (key,z)  = Vartab.map_default (key,[]) (cons z);
+
+fun add_constraint ((false, cl, TFree(a,_)), vt) = addix ((a,~1),cl) vt
+  | add_constraint ((false, cl, TVar(ix,_)), vt) = addix (ix,cl) vt
+  | add_constraint (_, vt) = vt;
+
+(*False literals (which E includes in its proofs) are deleted*)
+val nofalses = filter (not o equal HOLogic.false_const);
+
+(*Accumulate sort constraints in vt, with "real" literals in lits.*)
+fun lits_of_strees thy (vt, lits) [] = (vt, rev (nofalses lits))
+  | lits_of_strees thy (vt, lits) (t::ts) = 
+      lits_of_strees thy (add_constraint (constraint_of_stree true t, vt), lits) ts
+      handle STREE _ => 
+      lits_of_strees thy (vt, term_of_stree thy t :: lits) ts;
+
+(*Update TVars/TFrees with detected sort constraints.*)
+fun fix_sorts vt =
+  let fun tysubst (Type (a, Ts)) = Type (a, map tysubst Ts)
+        | tysubst (TVar (xi, s)) = TVar (xi, getOpt (Vartab.lookup vt xi, s))
+        | tysubst (TFree (x, s)) = TFree (x, getOpt (Vartab.lookup vt (x,~1), s))
+      fun tmsubst (Const (a, T)) = Const (a, tysubst T)
+        | tmsubst (Free (a, T)) = Free (a, tysubst T)
+        | tmsubst (Var (xi, T)) = Var (xi, tysubst T)
+        | tmsubst (t as Bound _) = t
+        | tmsubst (Abs (a, T, t)) = Abs (a, tysubst T, tmsubst t)
+        | tmsubst (t $ u) = tmsubst t $ tmsubst u;
+  in fn t => if Vartab.is_empty vt then t else tmsubst t end;
+
+(*Interpret a list of syntax trees as a clause, given by "real" literals and sort constraints.
+  vt0 holds the initial sort constraints, from the conjecture clauses.*)
+fun clause_of_strees_aux thy vt0 ts = 
+  case lits_of_strees thy (vt0,[]) ts of
+      (_, []) => HOLogic.false_const
+    | (vt, lits) => 
+        let val dt = fix_sorts vt (foldr1 HOLogic.mk_disj lits)
+            val infer = Sign.infer_types (Sign.pp thy) thy (Sign.consts_of thy)
+        in 
+           #1(infer (K NONE) (K NONE) (Name.make_context []) true ([dt], HOLogic.boolT))
+        end; 
+
+(*Quantification over a list of Vars. FUXNE: for term.ML??*)
+fun list_all_var ([], t: term) = t
+  | list_all_var ((v as Var(ix,T)) :: vars, t) =
+        (all T) $ Abs(string_of_indexname ix, T, abstract_over (v,t));
+
+fun gen_all_vars t = list_all_var (term_vars t, t);
+
+fun clause_of_strees thy vt0 ts =
+  gen_all_vars (HOLogic.mk_Trueprop (clause_of_strees_aux thy vt0 ts));
+
+fun ints_of_stree_aux (Int n, ns) = n::ns
+  | ints_of_stree_aux (Br(_,ts), ns) = foldl ints_of_stree_aux ns ts;
+
+fun ints_of_stree t = ints_of_stree_aux (t, []);
+
+fun decode_tstp thy vt0 (name, role, ts, annots) =
+  let val deps = case annots of NONE => [] | SOME (source,_) => ints_of_stree source
+  in  (name, role, clause_of_strees thy vt0 ts, deps)  end;
+
+fun dest_tstp ((((name, role), ts), annots), chs) =
+  case chs of
+          "."::_ => (name, role, ts, annots)
+        | _ => error ("TSTP line not terminated by \".\": " ^ implode chs);
+
+
+(** Global sort constraints on TFrees (from tfree_tcs) are positive unit clauses. **)
+
+fun add_tfree_constraint ((true, cl, TFree(a,_)), vt) = addix ((a,~1),cl) vt
+  | add_tfree_constraint (_, vt) = vt;
+
+fun tfree_constraints_of_clauses vt [] = vt
+  | tfree_constraints_of_clauses vt ([lit]::tss) = 
+      (tfree_constraints_of_clauses (add_tfree_constraint (constraint_of_stree true lit, vt)) tss
+       handle STREE _ => (*not a positive type constraint: ignore*)
+       tfree_constraints_of_clauses vt tss)
+  | tfree_constraints_of_clauses vt (_::tss) = tfree_constraints_of_clauses vt tss;
+
+
+(**** Translation of TSTP files to Isar Proofs ****)
+
+fun decode_tstp_list thy tuples =
+  let val vt0 = tfree_constraints_of_clauses Vartab.empty (map #3 tuples)
+  in  map (decode_tstp thy vt0) tuples  end;
+
+fun isar_lines ctxt =
+  let val string_of = ProofContext.string_of_term ctxt
+      fun doline hs (lname, t, []) =  (*No deps: it's a conjecture clause, with no proof.*)
+            "assume " ^ lname ^ ": \"" ^ string_of t ^ "\"\n"
+        | doline hs (lname, t, deps) =
+            hs ^ lname ^ ": \"" ^ string_of t ^ 
+            "\"\n  by (meson " ^ space_implode " " deps ^ ")\n"
+      fun dolines [(lname, t, deps)] = [doline "show " (lname, t, deps)]
+        | dolines ((lname, t, deps)::lines) = doline "have " (lname, t, deps) :: dolines lines
+  in setmp show_sorts true dolines end;
+
+fun notequal t (_,t',_) = not (t aconv t');
+
+fun eq_false t = t aconv (HOLogic.mk_Trueprop HOLogic.false_const);
+
+fun replace_dep (old, new) dep = if dep=old then new else [dep];
+
+fun replace_deps (old, new) (lno, t, deps) = 
+      (lno, t, List.concat (map (replace_dep (old, new)) deps));
+
+(*Discard axioms and also False conjecture clauses (which can only contain type information).
+  Consolidate adjacent lines that prove the same clause, since they differ only in type
+  information.*)
+fun add_prfline ((lno, "axiom", t, []), lines) =  (*axioms are not proof lines*)
+      if eq_false t then lines   (*must be clsrel/clsarity: type information*)
+      else (case take_prefix (notequal t) lines of
+               (_,[]) => lines   (*no repetition of proof line*)
+             | (pre, (lno',t',deps')::post) => 
+                 pre @ map (replace_deps (lno', [lno])) post)
+  | add_prfline ((lno, role, t, []), lines) =  (*no deps: conjecture clause*)
+      if eq_false t then lines   (*must be tfree_tcs: type information*)
+      else (lno, t, []) :: lines
+  | add_prfline ((lno, role, t, deps), lines) =
+      (case term_tvars t of (*Delete line if it has TVars: they are forbidden in goals*)
+          _::_ => map (replace_deps (lno, deps)) lines
+        | [] => 
+            case take_prefix (notequal t) lines of
+               (_,[]) => (lno, t, deps) :: lines   (*no repetition of proof line*)
+             | (pre, (lno',t',deps')::post) => 
+                 (lno, t', deps) ::  (*replace later line by earlier one*)
+                 (pre @ map (replace_deps (lno', [lno])) post));
+
+(*Replace numeric proof lines by strings.*)
+fun stringify_deps thm_names deps_map [] = []
+  | stringify_deps thm_names deps_map ((lno, t, deps) :: lines) =
+      if lno <= Vector.length thm_names  (*axiom*)
+      then (Vector.sub(thm_names,lno-1), t, []) :: stringify_deps thm_names deps_map lines 
+      else let val lname = "L" ^ Int.toString (length deps_map)
+               fun fix lno = if lno <= Vector.length thm_names  
+                             then SOME(Vector.sub(thm_names,lno-1))
+                             else AList.lookup op= deps_map lno;
+           in  (lname, t, List.mapPartial fix deps) ::
+               stringify_deps thm_names ((lno,lname)::deps_map) lines
+           end;
+
+fun decode_tstp_file ctxt (cnfs,thm_names) =
+  let val tuples = map (dest_tstp o tstp_line o explode) cnfs
+      val lines = foldr add_prfline [] (decode_tstp_list (ProofContext.theory_of ctxt) tuples)
+  in  String.concat (isar_lines ctxt (stringify_deps thm_names [] lines))  end;
+
+(*Could use split_lines, but it can return blank lines...*)
+val lines = String.tokens (equal #"\n");
+
+val nospaces = String.translate (fn c => if Char.isSpace c then "" else str c);
+
+(*The output to the watcher must be a SINGLE line...clearly \t must not be used.*)
+val encode_newlines = String.translate (fn c => if c = #"\n" then "\t" else str c);
+val restore_newlines = String.translate (fn c => if c = #"\t" then "\n" else str c);
+
+fun signal_success probfile toParent ppid msg = 
+  (trace ("\nReporting Success for" ^ probfile ^ "\n" ^ msg);
+   TextIO.output (toParent, "Success. " ^ encode_newlines msg ^ "\n");
+   TextIO.output (toParent, probfile ^ "\n");
+   TextIO.flushOut toParent;
+   Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2));
+
+fun tstp_extract proofextract probfile toParent ppid th sgno thm_names = 
+  let val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
+      and ctxt = ProofContext.init (Thm.theory_of_thm th)
+       (*The full context could be sent from ResAtp.isar_atp_body to Watcher.createWatcher,
+         then to setupWatcher and checkChildren...but is it needed?*)
+  in  
+    signal_success probfile toParent ppid 
+      (decode_tstp_file ctxt (cnfs,thm_names))
+  end;
+
+
+(**** retrieve the axioms that were used in the proof ****)
+
+(*Get names of axioms used. Axioms are indexed from 1, while the vector is indexed from 0*)
+fun get_axiom_names (thm_names: string vector) step_nums = 
+    let fun is_axiom n = n <= Vector.length thm_names 
+        fun index i = Vector.sub(thm_names, i-1)
+        val axnums = List.filter is_axiom step_nums
+        val axnames = sort_distinct string_ord (map index axnums)
+    in
+	if length axnums = length step_nums then "UNSOUND!!" :: axnames
+	else axnames
+    end
+
+ (*String contains multiple lines. We want those of the form 
+     "253[0:Inp] et cetera..."
+  A list consisting of the first number in each line is returned. *)
+fun get_spass_linenums proofstr = 
+  let val toks = String.tokens (not o Char.isAlphaNum)
+      fun inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok
+        | inputno _ = NONE
+      val lines = String.tokens (fn c => c = #"\n") proofstr
+  in  List.mapPartial (inputno o toks) lines  end
+
+fun get_axiom_names_spass proofstr thm_names =
+   get_axiom_names thm_names (get_spass_linenums proofstr);
+    
+fun not_comma c = c <>  #",";
+
+(*A valid TSTP axiom line has the form  cnf(NNN,axiom,...) where NNN is a positive integer.*)
+fun parse_tstp_line s =
+  let val ss = Substring.full (unprefix "cnf(" (nospaces s))
+      val (intf,rest) = Substring.splitl not_comma ss
+      val (rolef,rest) = Substring.splitl not_comma (Substring.triml 1 rest)
+      (*We only allow negated_conjecture because the line number will be removed in
+        get_axiom_names above, while suppressing the UNSOUND warning*)
+      val ints = if Substring.string rolef mem_string ["axiom","negated_conjecture"]
+                 then Substring.string intf 
+                 else "error" 
+  in  Int.fromString ints  end
+  handle Fail _ => NONE; 
+
+fun get_axiom_names_tstp proofstr thm_names =
+   get_axiom_names thm_names (List.mapPartial parse_tstp_line (split_lines proofstr));
+    
+ (*String contains multiple lines. We want those of the form 
+     "*********** [448, input] ***********".
+  A list consisting of the first number in each line is returned. *)
+fun get_vamp_linenums proofstr = 
+  let val toks = String.tokens (not o Char.isAlphaNum)
+      fun inputno [ntok,"input"] = Int.fromString ntok
+        | inputno _ = NONE
+      val lines = String.tokens (fn c => c = #"\n") proofstr
+  in  List.mapPartial (inputno o toks) lines  end
+
+fun get_axiom_names_vamp proofstr thm_names =
+   get_axiom_names thm_names (get_vamp_linenums proofstr);
+    
+fun rules_to_string [] = "NONE"
+  | rules_to_string xs = space_implode "  " xs
+
+
+(*The signal handler in watcher.ML must be able to read the output of this.*)
+fun prover_lemma_list_aux getax proofstr probfile toParent ppid thm_names = 
+ (trace ("\n\nGetting lemma names. proofstr is " ^ proofstr ^
+         " num of clauses is " ^ string_of_int (Vector.length thm_names));
+  signal_success probfile toParent ppid 
+    ("Lemmas used in automatic proof: " ^ rules_to_string (getax proofstr thm_names)))
+ handle e => (*FIXME: exn handler is too general!*)
+  (trace ("\nprover_lemma_list_aux: In exception handler: " ^ Toplevel.exn_message e);
+   TextIO.output (toParent, "Translation failed for the proof: " ^ 
+                  String.toString proofstr ^ "\n");
+   TextIO.output (toParent, probfile);
+   TextIO.flushOut toParent;
+   Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2));
+
+val e_lemma_list = prover_lemma_list_aux get_axiom_names_tstp;
+
+val vamp_lemma_list = prover_lemma_list_aux get_axiom_names_vamp;
+
+val spass_lemma_list = prover_lemma_list_aux get_axiom_names_spass;
+
+
+(**** Extracting proofs from an ATP's output ****)
+
+(*Return everything in s that comes before the string t*)
+fun cut_before t s = 
+  let val (s1,s2) = Substring.position t (Substring.full s)
+  in  if Substring.size s2 = 0 then error "cut_before: string not found" 
+      else Substring.string s2
+  end;
+
+val start_E = "# Proof object starts here."
+val end_E   = "# Proof object ends here."
+val start_V6 = "%================== Proof: ======================"
+val end_V6   = "%==============  End of proof. =================="
+val start_V8 = "=========== Refutation =========="
+val end_V8 = "======= End of refutation ======="
+val end_SPASS = "Formulae used in the proof"
+
+(*********************************************************************************)
+(*  Inspect the output of an ATP process to see if it has found a proof,     *)
+(*  and if so, transfer output to the input pipe of the main Isabelle process    *)
+(*********************************************************************************)
+
+(*Returns "true" if it successfully returns a lemma list, otherwise "false", but this
+  return value is currently never used!*)
+fun startTransfer (endS, fromChild, toParent, ppid, probfile, th, sgno, thm_names) =
+ let fun transferInput currentString =
+      let val thisLine = TextIO.inputLine fromChild
+      in
+	if thisLine = "" (*end of file?*)
+	then (trace ("\n extraction_failed.  End bracket: " ^ endS ^
+	             "\naccumulated text: " ^ currentString);
+	      false)                    
+	else if String.isPrefix endS thisLine
+	then let val proofextract = currentString ^ cut_before endS thisLine
+	         val lemma_list = if endS = end_V8 then vamp_lemma_list
+			  	  else if endS = end_SPASS then spass_lemma_list
+			  	  else e_lemma_list
+	     in
+	       trace ("\nExtracted proof:\n" ^ proofextract); 
+	       if !full andalso String.isPrefix "cnf(" proofextract
+	       then tstp_extract proofextract probfile toParent ppid th sgno thm_names
+	       else lemma_list proofextract probfile toParent ppid thm_names;
+	       true
+	     end
+	else transferInput (currentString^thisLine)
+      end
+ in
+     transferInput ""
+ end 
+
+
+(*The signal handler in watcher.ML must be able to read the output of this.*)
+fun signal_parent (toParent, ppid, msg, probfile) =
+ (TextIO.output (toParent, msg);
+  TextIO.output (toParent, probfile ^ "\n");
+  TextIO.flushOut toParent;
+  trace ("\nSignalled parent: " ^ msg ^ probfile);
+  Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+  (*Give the parent time to respond before possibly sending another signal*)
+  OS.Process.sleep (Time.fromMilliseconds 600));
+
+(*Called from watcher. Returns true if the Vampire process has returned a verdict.*)
+fun checkVampProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_names) =
+ let val thisLine = TextIO.inputLine fromChild
+ in   
+     trace thisLine;
+     if thisLine = "" 
+     then (trace "\nNo proof output seen"; false)
+     else if String.isPrefix start_V8 thisLine
+     then startTransfer (end_V8, fromChild, toParent, ppid, probfile, th, sgno, thm_names)
+     else if (String.isPrefix "Satisfiability detected" thisLine) orelse
+             (String.isPrefix "Refutation not found" thisLine)
+     then (signal_parent (toParent, ppid, "Failure\n", probfile);
+	   true)
+     else checkVampProofFound  (fromChild, toParent, ppid, probfile, th, sgno, thm_names)
+  end
+
+(*Called from watcher. Returns true if the E process has returned a verdict.*)
+fun checkEProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_names) = 
+ let val thisLine = TextIO.inputLine fromChild  
+ in   
+     trace thisLine;
+     if thisLine = "" then (trace "\nNo proof output seen"; false)
+     else if String.isPrefix start_E thisLine
+     then startTransfer (end_E, fromChild, toParent, ppid, probfile, th, sgno, thm_names)
+     else if String.isPrefix "# Problem is satisfiable" thisLine
+     then (signal_parent (toParent, ppid, "Invalid\n", probfile);
+	   true)
+     else if String.isPrefix "# Cannot determine problem status within resource limit" thisLine
+     then (signal_parent (toParent, ppid, "Failure\n", probfile);
+	   true)
+     else checkEProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_names)
+ end;
+
+(*Called from watcher. Returns true if the SPASS process has returned a verdict.*)
+fun checkSpassProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_names) = 
+ let val thisLine = TextIO.inputLine fromChild  
+ in    
+     trace thisLine;
+     if thisLine = "" then (trace "\nNo proof output seen"; false)
+     else if String.isPrefix "Here is a proof" thisLine
+     then      
+        startTransfer (end_SPASS, fromChild, toParent, ppid, probfile, th, sgno, thm_names)
+     else if thisLine = "SPASS beiseite: Completion found.\n"
+     then (signal_parent (toParent, ppid, "Invalid\n", probfile);
+	   true)
+     else if thisLine = "SPASS beiseite: Ran out of time.\n" orelse
+             thisLine = "SPASS beiseite: Maximal number of loops exceeded.\n"
+     then (signal_parent (toParent, ppid, "Failure\n", probfile);
+	   true)
+    else checkSpassProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_names)
+ end
+
+end;
