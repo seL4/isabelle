@@ -10,10 +10,10 @@ theory ATP_Linkup
 imports Map Hilbert_Choice
 uses
   "Tools/polyhash.ML"
-  "Tools/ATP/AtpCommunication.ML"
+  "Tools/res_clause.ML"
+  "Tools/res_reconstruct.ML"
   "Tools/ATP/watcher.ML"
   "Tools/ATP/reduce_axiomsN.ML"
-  "Tools/res_clause.ML"
   ("Tools/res_hol_clause.ML")
   ("Tools/res_axioms.ML")
   ("Tools/res_atp.ML")

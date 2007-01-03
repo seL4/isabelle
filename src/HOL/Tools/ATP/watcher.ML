@@ -27,6 +27,7 @@ val createWatcher :
 	TextIO.instream * TextIO.outstream * Posix.Process.pid
 val killWatcher : Posix.Process.pid -> unit
 val killChild  : ('a, 'b) Unix.proc -> OS.Process.status
+val command_sep : char
 val setting_sep : char
 val reapAll : unit -> unit
 end
@@ -225,11 +226,11 @@ fun checkChildren (th, thm_names_list, toParentStr, children) =
 	     then (* check here for prover label on child*)
 	       let val _ = trace ("\nInput available from child: " ^ file)
 		   val childDone = (case prover of
-		       "vampire" => AtpCommunication.checkVampProofFound
+		       "vampire" => ResReconstruct.checkVampProofFound
 			    (childIn, toParentStr, ppid, file, th, sgno, thm_names)  
-		     | "E" => AtpCommunication.checkEProofFound
+		     | "E" => ResReconstruct.checkEProofFound
 			    (childIn, toParentStr, ppid, file, th, sgno, thm_names)             
-		     | "spass" => AtpCommunication.checkSpassProofFound
+		     | "spass" => ResReconstruct.checkSpassProofFound
 			    (childIn, toParentStr, ppid, file, th, sgno, thm_names)  
 		     | _ => (trace ("\nBad prover! " ^ prover); true) )
 		in
@@ -363,7 +364,7 @@ fun createWatcher (th, thm_names_list) =
 	    else ())
      fun proofHandler _ = 
        let val _ = trace("\nIn signal handler for pid " ^ string_of_pid childpid)
-           val outcome = TextIO.inputLine childin
+           val outcome = ResReconstruct.restore_newlines (TextIO.inputLine childin)
 	   val probfile = TextIO.inputLine childin
 	   val sgno = number_from_filename probfile
 	   val text = string_of_subgoal th sgno

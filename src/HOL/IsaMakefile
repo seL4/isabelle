@@ -96,7 +96,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   OrderedGroup.ML OrderedGroup.thy Orderings.thy Power.thy PreList.thy		\
   Product_Type.thy ROOT.ML Recdef.thy Record.thy Refute.thy Relation.thy	\
   Relation_Power.thy Ring_and_Field.thy SAT.thy Set.thy SetInterval.thy		\
-  Sum_Type.thy Tools/ATP/AtpCommunication.ML Tools/ATP/reduce_axiomsN.ML	\
+  Sum_Type.thy Tools/res_reconstruct.ML Tools/ATP/reduce_axiomsN.ML	\
   Tools/ATP/watcher.ML Tools/cnf_funcs.ML Tools/datatype_abs_proofs.ML		\
   Tools/datatype_aux.ML Tools/datatype_codegen.ML				\
   Tools/datatype_hooks.ML Tools/datatype_package.ML				\
