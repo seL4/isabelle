@@ -1608,7 +1608,7 @@ val _ = Context.add_setup (
   #> add_serializer (target_diag, (fn _ => fn _ => seri_diagnosis))
 );
 
-fun get_serializer thy target args cs =
+fun get_serializer thy target args = fn cs =>
   let
     val data = case Symtab.lookup (CodegenSerializerData.get thy) target
      of SOME data => data
@@ -1668,7 +1668,7 @@ fun assert_serializer thy target =
 fun has_serialization f thy targets name =
   forall (
     is_some o (fn tab => Symtab.lookup tab name) o f o the_syntax_expr o the
-      o (Symtab.lookup ((CodegenSerializerData.get) thy))
+      o Symtab.lookup (CodegenSerializerData.get thy)
   ) targets;
 
 val tyco_has_serialization = has_serialization #tyco;
