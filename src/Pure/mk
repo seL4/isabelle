@@ -96,7 +96,7 @@ if [ -n "$RAW" ]; then
   RC="$?"
 elif [ -n "$RAW_SESSION" ]; then
   ITEM="RAW-$(basename $(dirname "$RAW_SESSION"))"
-  echo "Building $ITEM ..."
+  echo "Running $ITEM ..."
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE" \
