@@ -162,11 +162,14 @@ fun check_func thy thm = case try (dest_func thy) thm
         val _ =
           if has_duplicates (op =)
             ((fold o fold_aterms) (fn Var (v, _) => cons v
-              | Abs _ => bad_thm "Abstraction on left hand side of function equation" thm
               | _ => I
             ) args [])
           then bad_thm "Repeated variables on left hand side of function equation" thm
           else ()
+        fun no_abs (Abs _) = bad_thm "Abstraction on left hand side of function equation" thm 
+          | no_abs (t1 $ t2) = (no_abs t1; no_abs t2)
+          | no_abs _ = ();
+        val _ = map no_abs args;
         val is_classop = (is_some o AxClass.class_of_param thy) c;
         val const = CodegenConsts.norm_of_typ thy c_ty;
         val ty_decl = CodegenConsts.disc_typ_of_const thy
