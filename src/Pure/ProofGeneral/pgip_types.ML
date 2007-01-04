@@ -44,7 +44,7 @@ sig
     datatype messagecategory = Normal | Information | Tracing | Internal 
 
     (* Error levels *)
-    datatype fatality = Nonfatal | Fatal | Panic | Log | Debug
+    datatype fatality = Warning | Nonfatal | Fatal | Panic | Log | Debug
 
     (* File location *)
     type location = { descr: string option,
@@ -330,7 +330,7 @@ datatype displayarea = Status | Message | Display | Other of string
 
 datatype messagecategory = Normal | Information | Tracing | Internal 
 
-datatype fatality = Nonfatal | Fatal | Panic | Log | Debug
+datatype fatality = Warning | Nonfatal | Fatal | Panic | Log | Debug
 
 type location = { descr: string option,
 		  url: pgipurl option,
@@ -375,7 +375,8 @@ local
     | string_of_msgcat Tracing = "tracing"
     | string_of_msgcat Normal = "normal"   (* omitted in PGIP *)
 
-  fun string_of_fatality Nonfatal = "nonfatal"
+  fun string_of_fatality Warning = "warning"
+    | string_of_fatality Nonfatal = "nonfatal"
     | string_of_fatality Fatal = "fatal"
     | string_of_fatality Panic = "panic"
     | string_of_fatality Log = "log"
