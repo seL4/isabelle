@@ -156,4 +156,9 @@ and ('a, 'b) cair =
 
 ML {* Eval.term "Shift (Cair (4::nat) [Suc 0])" *}
 
+text {* also test evaluation oracle *}
+
+lemma "True \<or> False" by eval
+lemma "\<not> (Suc 0 = Suc 1)" by eval
+
 end
