@@ -823,13 +823,6 @@ fun trace_vector fname =
   let val path = File.explode_platform_path fname
   in  Vector.app (File.append path o (fn s => s ^ "\n"))  end;
 
-(*Converting a subgoal into negated conjecture clauses*)
-fun neg_clauses th n =
-  let val tacs = [rtac ccontr, ObjectLogic.atomize_tac, skolemize_tac]
-      val st = Seq.hd (EVERY' tacs n th)
-      val negs = Option.valOf (metahyps_thms n st)
-  in make_clauses negs |> ResAxioms.assume_abstract_list |> Meson.finish_cnf end;
-
 (*We write out problem files for each subgoal. Argument probfile generates filenames,
   and allows the suppression of the suffix "_1" in problem-generation mode.
   FIXME: does not cope with &&, and it isn't easy because one could have multiple
@@ -839,7 +832,8 @@ fun write_problem_files probfile (ctxt,th)  =
       val _ = Output.debug ("number of subgoals = " ^ Int.toString (length goals))
       val thy = ProofContext.theory_of ctxt
       fun get_neg_subgoals [] _ = []
-        | get_neg_subgoals (gl::gls) n = neg_clauses th n :: get_neg_subgoals gls (n+1)
+        | get_neg_subgoals (gl::gls) n = #1 (ResAxioms.neg_conjecture_clauses th n) :: 
+                                         get_neg_subgoals gls (n+1)
       val goal_cls = get_neg_subgoals goals 1
       val logic = case !linkup_logic_mode of
                 Auto => problem_logic_goals (map ((map prop_of)) goal_cls)

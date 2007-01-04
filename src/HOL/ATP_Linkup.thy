@@ -11,11 +11,11 @@ imports Map Hilbert_Choice
 uses
   "Tools/polyhash.ML"
   "Tools/res_clause.ML"
-  "Tools/res_reconstruct.ML"
-  "Tools/ATP/watcher.ML"
   "Tools/ATP/reduce_axiomsN.ML"
   ("Tools/res_hol_clause.ML")
   ("Tools/res_axioms.ML")
+  ("Tools/res_reconstruct.ML")
+  ("Tools/ATP/watcher.ML")
   ("Tools/res_atp.ML")
   ("Tools/res_atp_provers.ML")
   ("Tools/res_atp_methods.ML")
@@ -83,8 +83,10 @@ by blast
 lemma iff_negative: "~P | ~Q | P=Q"
 by blast
 
-use "Tools/res_axioms.ML"
-use "Tools/res_hol_clause.ML"
+use "Tools/res_axioms.ML"      --{*requires the combinators declared above*}
+use "Tools/res_hol_clause.ML"  --{*requires the combinators*}
+use "Tools/res_reconstruct.ML"
+use "Tools/ATP/watcher.ML"
 use "Tools/res_atp.ML"
 
 setup ResAxioms.meson_method_setup

@@ -18,8 +18,9 @@ sig
   val meson_method_setup : theory -> theory
   val setup : theory -> theory
   val assume_abstract_list: thm list -> thm list
-  val claset_rules_of: Proof.context -> (string * thm) list
-  val simpset_rules_of: Proof.context -> (string * thm) list
+  val neg_conjecture_clauses: thm -> int -> thm list * (string * typ) list
+  val claset_rules_of: Proof.context -> (string * thm) list   (*FIXME DELETE*)
+  val simpset_rules_of: Proof.context -> (string * thm) list  (*FIXME DELETE*)
   val atpset_rules_of: Proof.context -> (string * thm) list
 end;
 
@@ -619,6 +620,32 @@ fun clausify_rule (th,i) = List.nth (meta_cnf_axiom th, i)
 val clausify = Attrib.syntax (Scan.lift Args.nat
   >> (fn i => Thm.rule_attribute (fn _ => fn th => clausify_rule (th, i))));
 
+
+(*** Converting a subgoal into negated conjecture clauses. ***)
+
+val neg_skolemize_tac = EVERY' [rtac ccontr, ObjectLogic.atomize_tac, skolemize_tac];
+val neg_clausify = Meson.finish_cnf o assume_abstract_list o make_clauses;
+
+fun neg_conjecture_clauses st0 n =
+  let val st = Seq.hd (neg_skolemize_tac n st0)
+      val (params,_,_) = strip_context (Logic.nth_prem (n, Thm.prop_of st))
+  in (neg_clausify (Option.valOf (metahyps_thms n st)), params) end;
+
+(*Conversion of a subgoal to conjecture clauses. Each clause has  
+  leading !!-bound universal variables, to express generality. *)
+val neg_clausify_tac = 
+  neg_skolemize_tac THEN' 
+  SUBGOAL
+    (fn (prop,_) =>
+     let val ts = Logic.strip_assums_hyp prop
+     in EVERY1 
+	 [METAHYPS
+	    (fn hyps => 
+              (Method.insert_tac
+                (map forall_intr_vars (neg_clausify hyps)) 1)),
+	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
+     end);
+
 (** The Skolemization attribute **)
 
 fun conj2_rule (th1,th2) = conjI OF [th1,th2];
@@ -635,8 +662,12 @@ fun skolem_attr (Context.Theory thy, th) =
 
 val setup_attrs = Attrib.add_attributes
   [("skolem", Attrib.no_args skolem_attr, "skolemization of a theorem"),
-   ("clausify", clausify, "conversion to clauses")];
+   ("clausify", clausify, "conversion of theorem to clauses")];
+
+val setup_methods = Method.add_methods
+  [("neg_clausify", Method.no_args (Method.SIMPLE_METHOD' neg_clausify_tac), 
+    "conversion of goal to conjecture clauses")];
      
-val setup = clause_cache_setup #> setup_attrs;
+val setup = clause_cache_setup #> setup_attrs #> setup_methods;
 
 end;

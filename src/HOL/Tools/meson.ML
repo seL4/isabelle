@@ -36,7 +36,6 @@ sig
   val negate_head	: thm -> thm
   val select_literal	: int -> thm -> thm
   val skolemize_tac	: int -> tactic
-  val make_clauses_tac	: int -> tactic
 end
 
 
@@ -645,34 +644,6 @@ fun skolemize_tac i st =
             REPEAT_DETERM_N (length ts) o (etac thin_rl)] i st
   end
   handle Subscript => Seq.empty;
-
-(*Top-level conversion to meta-level clauses. Each clause has  
-  leading !!-bound universal variables, to express generality. To get 
-  meta-clauses instead of disjunctions, uncomment "make_meta_clauses" below.*)
-val make_clauses_tac = 
-  SUBGOAL
-    (fn (prop,_) =>
-     let val ts = Logic.strip_assums_hyp prop
-     in EVERY1 
-	 [METAHYPS
-	    (fn hyps => 
-              (Method.insert_tac
-                (map forall_intr_vars 
-                  ( (**make_meta_clauses**) (make_clauses hyps))) 1)),
-	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
-     end);
-     
-     
-(*** setup the special skoklemization methods ***)
-
-(*No CHANGED_PROP here, since these always appear in the preamble*)
-
-val skolemize_setup =
-  Method.add_methods
-    [("skolemize", Method.no_args (Method.SIMPLE_METHOD' skolemize_tac),
-      "Skolemization into existential quantifiers"),
-     ("make_clauses", Method.no_args (Method.SIMPLE_METHOD' make_clauses_tac), 
-      "Conversion to !!-quantified meta-level clauses")];
 
 end;
 

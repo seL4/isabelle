@@ -825,7 +825,7 @@ subsection{*Examples of proof reconstruction*}
 
 text{*A manual resolution proof of problem 19.*}
 lemma "\<exists>x. \<forall>y z. (P(y)-->Q(z)) --> (P(x)-->Q(x))"
-proof (rule ccontr, skolemize, make_clauses)
+proof (neg_clausify)
   fix x
   assume P: "\<And>U. P U" 
      and Q: "\<And>U. ~ Q U"
@@ -844,7 +844,7 @@ lemmas subsetI_1 = subsetI[skolem, clausify 1]
 
 text{*Full single-step proof*}
 lemma "\<And>S::'a set set. \<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
-proof (rule ccontr, skolemize, make_clauses)
+proof (neg_clausify)
   fix S :: "'a set set"
   assume CL1: "\<And>Z. ~ (S \<subseteq> {Z})"
      and CL2: "\<And>X Y. X \<notin> S | Y \<notin> S | X \<subseteq> Y"
@@ -872,7 +872,7 @@ qed
 text{*Partially condensed proof*}
 lemma singleton_example_1:
      "\<And>S::'a set set. \<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
-proof (rule ccontr, skolemize, make_clauses)
+proof (neg_clausify)
   fix S :: "'a set set"
   assume CL1: "\<And>Z. ~ (S \<subseteq> {Z})"
      and CL2: "\<And>X Y. X \<notin> S | Y \<notin> S | X \<subseteq> Y"
@@ -890,7 +890,7 @@ qed
 (**Not working: needs Metis
 text{*More condensed proof*}
 lemma "\<And>S::'a set set. \<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
-proof (rule ccontr, skolemize, make_clauses)
+proof (neg_clausify)
   fix S :: "'a set set"
   assume CL1: "\<And>Z. ~ (S \<subseteq> {Z})"
      and CL2: "\<And>X Y. X \<notin> S | Y \<notin> S | X \<subseteq> Y"

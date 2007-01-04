@@ -620,10 +620,9 @@ val ex_forward = thm "ex_forward";
 *}
 
 
-subsection {* Meson method setup *}
+subsection {* Meson package *}
 
 use "Tools/meson.ML"
-setup Meson.skolemize_setup
 
 
 subsection {* Specification package -- Hilbertized version *}

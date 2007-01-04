@@ -3,8 +3,6 @@
     Copyright   2004  University of Cambridge
 *)
 
-(*FIXME: can we delete the "thm * int" and "th sgno" below?*)
-
 (***************************************************************************)
 (*  Code to deal with the transfer of proofs from a prover process         *)
 (***************************************************************************)
@@ -322,10 +320,30 @@ fun decode_tstp_list thy tuples =
   let val vt0 = tfree_constraints_of_clauses Vartab.empty (map #3 tuples)
   in  map (decode_tstp thy vt0) tuples  end;
 
-fun isar_lines ctxt =
+(*FIXME: simmilar function in res_atp. Move to HOLogic?*)
+fun dest_disj_aux (Const ("op |", _) $ t $ t') disjs = dest_disj_aux t (dest_disj_aux t' disjs)
+  | dest_disj_aux t disjs = t::disjs;
+
+fun dest_disj t = dest_disj_aux t [];
+
+val sort_lits = sort Term.fast_term_ord o dest_disj o HOLogic.dest_Trueprop o strip_all_body;
+
+fun permuted_clause t =
+  let val lits = sort_lits t
+      fun perm [] = NONE
+        | perm (ctm::ctms) = 
+            if forall (op aconv) (ListPair.zip (lits, sort_lits ctm)) then SOME ctm
+            else perm ctms
+  in perm end;
+
+(*ctms is a list of conjecture clauses as yielded by Isabelle. Those returned by the
+  ATP may have their literals reordered.*)
+fun isar_lines ctxt ctms =
   let val string_of = ProofContext.string_of_term ctxt
       fun doline hs (lname, t, []) =  (*No deps: it's a conjecture clause, with no proof.*)
-            "assume " ^ lname ^ ": \"" ^ string_of t ^ "\"\n"
+           (case permuted_clause t ctms of
+                SOME u => "assume " ^ lname ^ ": \"" ^ string_of u ^ "\"\n"
+              | NONE => "assume? " ^ lname ^ ": \"" ^ string_of t ^ "\"\n")  (*no match!!*)
         | doline hs (lname, t, deps) =
             hs ^ lname ^ ": \"" ^ string_of t ^ 
             "\"\n  by (meson " ^ space_implode " " deps ^ ")\n"
@@ -364,7 +382,7 @@ fun add_prfline ((lno, "axiom", t, []), lines) =  (*axioms are not proof lines*)
                  (lno, t', deps) ::  (*replace later line by earlier one*)
                  (pre @ map (replace_deps (lno', [lno])) post));
 
-(*Replace numeric proof lines by strings.*)
+(*Replace numeric proof lines by strings, either from thm_names or sequential line numbers*)
 fun stringify_deps thm_names deps_map [] = []
   | stringify_deps thm_names deps_map ((lno, t, deps) :: lines) =
       if lno <= Vector.length thm_names  (*axiom*)
@@ -377,22 +395,24 @@ fun stringify_deps thm_names deps_map [] = []
                stringify_deps thm_names ((lno,lname)::deps_map) lines
            end;
 
-val proofstart = "\nproof (rule ccontr, skolemize, make_clauses)\n";
-
-fun string_of_Free (Free (x,_)) = x
-  | string_of_Free _ = "??string_of_Free??";
+val proofstart = "\nproof (neg_clausify)\n";
 
 fun isar_header [] = proofstart
-  | isar_header ts = proofstart ^ "fix " ^ space_implode " " (map string_of_Free ts) ^ "\n";
+  | isar_header ts = proofstart ^ "fix " ^ space_implode " " ts ^ "\n";
 
-fun decode_tstp_file ctxt (cnfs,thm_names) =
+fun decode_tstp_file cnfs th sgno thm_names =
   let val tuples = map (dest_tstp o tstp_line o explode) cnfs
+      and ctxt = ProofContext.init (Thm.theory_of_thm th)
+       (*The full context could be sent from ResAtp.isar_atp_body to Watcher.createWatcher,
+         then to setupWatcher and checkChildren...but is it really needed?*)
       val decoded_tuples = decode_tstp_list (ProofContext.theory_of ctxt) tuples
+      val (ccls,fixes) = ResAxioms.neg_conjecture_clauses th sgno
+      val ccls = map forall_intr_vars ccls
       val lines = foldr add_prfline [] decoded_tuples
-      and fixes = foldr add_term_frees [] (map #3 decoded_tuples)
+      and clines = map (fn th => string_of_thm th ^ "\n") ccls
   in  
-      isar_header fixes ^ 
-      String.concat (isar_lines ctxt (stringify_deps thm_names [] lines))
+      isar_header (map #1 fixes) ^ 
+      String.concat (clines @ isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines))
   end;
 
 (*Could use split_lines, but it can return blank lines...*)
@@ -413,12 +433,9 @@ fun signal_success probfile toParent ppid msg =
 
 fun tstp_extract proofextract probfile toParent ppid th sgno thm_names = 
   let val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
-      and ctxt = ProofContext.init (Thm.theory_of_thm th)
-       (*The full context could be sent from ResAtp.isar_atp_body to Watcher.createWatcher,
-         then to setupWatcher and checkChildren...but is it needed?*)
   in  
     signal_success probfile toParent ppid 
-      (decode_tstp_file ctxt (cnfs,thm_names))
+      (decode_tstp_file cnfs th sgno thm_names)
   end;
 
 
