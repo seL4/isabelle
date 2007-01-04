@@ -45,8 +45,8 @@ sig
   val empty_ss: simpset
   val merge_ss: simpset * simpset -> simpset
   type simproc
-  val mk_simproc: string -> cterm list ->
-    (theory -> simpset -> term -> thm option) -> simproc
+  val mk_simproc': string -> cterm list -> (simpset -> cterm -> thm option) -> simproc
+  val mk_simproc: string -> cterm list -> (theory -> simpset -> term -> thm option) -> simproc
   val add_prems: thm list -> simpset -> simpset
   val prems_of_ss: simpset -> thm list
   val addsimps: simpset * thm list -> simpset
@@ -198,7 +198,7 @@ and proc =
   Proc of
    {name: string,
     lhs: cterm,
-    proc: theory -> simpset -> term -> thm option,
+    proc: simpset -> cterm -> thm option,
     id: stamp}
 and solver =
   Solver of
@@ -336,23 +336,6 @@ fun print_ss ss =
   end;
 
 
-(* simprocs *)
-
-exception SIMPROC_FAIL of string * exn;
-
-datatype simproc = Simproc of proc list;
-
-fun mk_simproc name lhss proc =
-  let val id = stamp () in
-    Simproc (lhss |> map (fn lhs =>
-      Proc {name = name, lhs = lhs, proc = proc, id = id}))
-  end;
-
-(* FIXME avoid global thy and Logic.varify *)
-fun simproc_i thy name = mk_simproc name o map (Thm.cterm_of thy o Logic.varify);
-fun simproc thy name = simproc_i thy name o map (Sign.read_term thy);
-
-
 
 (** simpset operations **)
 
@@ -377,8 +360,9 @@ fun context ctxt =
 
 val theory_context = context o ProofContext.init;
 
-fun fallback_context _ (ss as Simpset ({context = SOME _, ...}, _)) = ss
-  | fallback_context thy ss =
+fun activate_context thy (ss as Simpset ({context = SOME ctxt, ...}, _)) =
+      context (Context.transfer_proof (Theory.merge (thy, ProofContext.theory_of ctxt)) ctxt) ss
+  | activate_context thy ss =
      (warning "Simplifier: no proof context in simpset -- fallback to theory context!";
       theory_context thy ss);
 
@@ -616,6 +600,23 @@ end;
 
 
 (* simprocs *)
+
+exception SIMPROC_FAIL of string * exn;
+
+datatype simproc = Simproc of proc list;
+
+fun mk_simproc' name lhss proc =
+  let val id = stamp ()
+  in Simproc (lhss |> map (fn lhs => Proc {name = name, lhs = lhs, proc = proc, id = id})) end;
+
+fun mk_simproc name lhss proc =
+  mk_simproc' name lhss (fn ss => fn ct =>
+    proc (ProofContext.theory_of (the_context ss)) ss (Thm.term_of ct));
+
+(* FIXME avoid global thy and Logic.varify *)
+fun simproc_i thy name = mk_simproc name o map (Thm.cterm_of thy o Logic.varify);
+fun simproc thy name = simproc_i thy name o map (Sign.read_term thy);
+
 
 local
 
@@ -915,7 +916,7 @@ fun rewritec (prover, thyt, maxt) ss t =
           if Pattern.matches thyt (Thm.term_of lhs, Thm.term_of t) then
             (debug_term false ("Trying procedure " ^ quote name ^ " on:") ss thyt eta_t;
              case transform_failure (curry SIMPROC_FAIL name)
-                 (fn () => proc thyt ss eta_t) () of
+                 (fn () => proc ss eta_t') () of
                NONE => (debug false "FAILED"; proc_rews ps)
              | SOME raw_thm =>
                  (trace_thm ("Procedure " ^ quote name ^ " produced rewrite rule:") ss raw_thm;
@@ -1192,7 +1193,7 @@ fun rewrite_cterm mode prover raw_ss raw_ct =
   let
     val ct = Thm.adjust_maxidx_cterm ~1 raw_ct;
     val {thy, t, maxidx, ...} = Thm.rep_cterm ct;
-    val ss = fallback_context thy raw_ss;
+    val ss = activate_context thy raw_ss;
     val _ = inc simp_depth;
     val _ =
       if ! simp_depth mod 20 = 0 then
