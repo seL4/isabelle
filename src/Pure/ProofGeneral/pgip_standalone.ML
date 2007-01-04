@@ -28,8 +28,6 @@ use "General/symbol.ML";
 use "General/xml.ML";      (* used directly *)
 use "General/url.ML";      (* used directly *)
 
-use "ProofGeneral/syntax_standalone.ML";
-
 
 (* Our code *)
 
