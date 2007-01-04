@@ -248,26 +248,27 @@ fun get_prim_def_funcs thy c =
 
 type sdthms = thm list Susp.T * thm list;
 
-fun add_drop_redundant thm thms =
+fun add_drop_redundant thm (sels, dels) =
   let
-    val thy = Context.check_thy (Thm.theory_of_thm thm);
+    val thy = Thm.theory_of_thm thm;
     val args_of = snd o strip_comb o fst o Logic.dest_equals o Drule.plain_prop_of;
     val args = args_of thm;
     fun matches [] _ = true
       | matches (Var _ :: xs) [] = matches xs []
       | matches (_ :: _) [] = false
       | matches (x :: xs) (y :: ys) = Pattern.matches thy (x, y) andalso matches xs ys;
-    fun drop thm' = if matches args (args_of thm')
-      then (warning ("Dropping redundant function theorem\n" ^ string_of_thm thm'); false)
-      else true
-  in thm :: filter drop thms end;
+    fun drop thm' = not (matches args (args_of thm'))
+      orelse (warning ("Dropping redundant function theorem\n" ^ string_of_thm thm'); false);
+    val (keeps, drops) = List.partition drop sels;
+  in (thm :: keeps, dels |> fold (insert eq_thm) drops |> remove eq_thm thm) end;
 
 fun add_thm thm (sels, dels) =
-  (Susp.value (add_drop_redundant thm (Susp.force sels)), remove eq_thm thm dels);
+  apfst Susp.value (add_drop_redundant thm (Susp.force sels, dels));
 
 fun add_lthms lthms (sels, []) =
       (lazy (fn () => fold add_drop_redundant
-          (Susp.force lthms) (Susp.force sels)), [])
+        (Susp.force lthms) (Susp.force sels, []) |> fst), [])
+        (*FIXME*)
   | add_lthms lthms (sels, dels) =
       fold add_thm (Susp.force lthms) (sels, dels);
 
