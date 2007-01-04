@@ -86,6 +86,17 @@ end);
 val _ = Context.add_setup (Code.init #> CodegenPackageData.init);
 
 
+(* preparing function equations *)
+
+fun prep_eqs thy (thms as thm :: _) =
+  let
+    val ty = (Logic.unvarifyT o CodegenData.typ_func thy) thm;
+    val thms' = if (null o Term.typ_tfrees) ty orelse (null o fst o strip_type) ty
+      then thms
+      else map (CodegenFuncgr.expand_eta thy 1) thms;
+  in (ty, thms') end;
+
+
 (* extraction kernel *)
 
 fun check_strict (false, _) has_seri x =
@@ -268,12 +279,12 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr strct (c_tys as (c, tys))
     fun defgen_fun trns =
       case CodegenFuncgr.funcs funcgr
         (perhaps (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy)) c_tys)
-       of eq_thms as eq_thm :: _ =>
+       of thms as _ :: _ =>
             let
+              val (ty, eq_thms) = prep_eqs thy thms;
               val timeap = if !timing then Output.timeap_msg ("time for " ^ c')
                 else I;
               val msg = cat_lines ("generating code for theorems " :: map string_of_thm eq_thms);
-              val ty = (Logic.unvarifyT o CodegenData.typ_func thy) eq_thm;
               val vs = (map dest_TFree o Consts.typargs consts) (c', ty);
               val dest_eqthm =
                 apfst (snd o strip_comb) o Logic.dest_equals o Logic.unvarify o prop_of;
