@@ -15,7 +15,8 @@ sig
   val typ: T -> CodegenConsts.const -> typ
   val deps: T -> CodegenConsts.const list -> CodegenConsts.const list list
   val all: T -> CodegenConsts.const list
-  val norm_vars: theory -> thm list -> thm list
+  val norm_varnames: theory -> thm list -> thm list
+  val expand_eta: theory -> int -> thm -> thm
   val print_codethms: theory -> CodegenConsts.const list -> unit
   structure Constgraph : GRAPH
 end;
@@ -50,24 +51,44 @@ val _ = Context.add_setup Funcgr.init;
 
 (** theorem purification **)
 
-fun abs_norm thy thm =
+fun expand_eta thy k thm =
   let
-    fun eta_expand thm =
-      let
-        val lhs = (fst o Logic.dest_equals o Drule.plain_prop_of) thm;
-        val tys = (fst o strip_type o fastype_of) lhs;
-        val ctxt = Name.make_context (map (fst o fst) (Term.add_vars lhs []));
-        val vs_ct = map (fn (v, ty) => cterm_of thy (Var ((v, 0), ty)))
-          (Name.names ctxt "a" tys);
-      in
-        fold (fn ct => fn thm => Thm.combination thm (Thm.reflexive ct)) vs_ct thm
-      end;
+    val (lhs, rhs) = (Logic.dest_equals o Drule.plain_prop_of) thm;
+    val (head, args) = strip_comb lhs;
+    val l = Int.max (0, k - length args);
+    val used = Name.make_context (map (fst o fst) (Term.add_vars lhs []));
+    fun get_name _ 0 used = ([], used)
+      | get_name (Abs (v, ty, t)) k used =
+          used
+          |> Name.variants [CodegenNames.purify_var v]
+          ||>> get_name t (k - 1)
+          |>> (fn ([v'], vs') => (v', ty) :: vs')
+      | get_name t k used = 
+          let
+            val (tys, _) = (strip_type o fastype_of) t
+          in case tys
+           of [] => raise TERM ("expand_eta", [t])
+            | ty :: _ =>
+                used
+                |> Name.variants [""]
+                |-> (fn [v] => get_name (t $ Var ((v, 0), ty)) (k - 1)
+                #>> (fn vs' => (v, ty) :: vs'))
+          end;
+    val (vs, _) = get_name rhs l used;
+    val vs_refl = map (fn (v, ty) => Thm.reflexive (Thm.cterm_of thy (Var ((v, 0), ty)))) vs;
   in
-    thm
-    |> eta_expand
-    |> Drule.fconv_rule Drule.beta_eta_conversion
+    fold (fn refl => fn thm => Thm.combination thm refl) vs_refl thm
   end;
 
+fun norm_args thy thms =
+  let
+    val num_args_of = length o snd o strip_comb o fst o Logic.dest_equals;
+    val k = fold (curry Int.max o num_args_of o Drule.plain_prop_of) thms 0;
+  in
+    thms
+    |> map (expand_eta thy k)
+    |> map (Drule.fconv_rule Drule.beta_eta_conversion)
+  end;
 
 fun canonical_tvars thy thm =
   let
@@ -105,7 +126,7 @@ fun canonical_vars thy thm =
     val (_, inst) = fold mk_inst (vars_subst_for thm) (maxidx + 1, []);
   in Thm.instantiate ([], inst) thm end;
 
-fun norm_vars thy thms =
+fun norm_varnames thy thms =
   let
     fun burrow_thms f [] = []
       | burrow_thms f thms =
@@ -115,7 +136,7 @@ fun norm_vars thy thms =
           |> Conjunction.elim_list;
   in
     thms
-    |> map (abs_norm thy)
+    |> norm_args thy
     |> burrow_thms (canonical_tvars thy)
     |> map (canonical_vars thy)
     |> map Drule.zero_var_indexes
@@ -219,7 +240,7 @@ fun ensure_const thy funcgr c auxgr =
     |> Constgraph.new_node (c, [])
     |> pair (SOME c)
   else let
-    val thms = norm_vars thy (CodegenData.these_funcs thy c);
+    val thms = norm_varnames thy (CodegenData.these_funcs thy c);
     val rhs = rhs_of thy (c, thms);
   in
     auxgr
@@ -274,17 +295,17 @@ fun specialize_typs thy funcgr eqss =
               end;
             val instmap = map mk_inst tvars;
             val (thms' as thm' :: _) = map (Drule.zero_var_indexes o Thm.instantiate (instmap, [])) thms;
-            val (ty, ty') = pairself (CodegenData.typ_func thy) (thm, thm');
-            val _ = if fst c = ""
-              orelse (is_none o AxClass.class_of_param thy o fst) c andalso
-                Sign.typ_equiv thy (Type.strip_sorts ty, Type.strip_sorts ty')
-              orelse Sign.typ_equiv thy (ty, ty')
-              then ()
-              else raise INVALID ([], "illegal function type instantiation:\n" ^ Sign.string_of_typ thy (CodegenData.typ_func thy thm)
-                ^ "\nto " ^ Sign.string_of_typ thy (CodegenData.typ_func thy thm')
-                ^ ",\nfor constant " ^ CodegenConsts.string_of_const thy c
-                ^ "\nin function theorems\n"
-                ^ (cat_lines o map string_of_thm) thms)
+            val _ = if fst c = "" then ()
+              else case pairself (CodegenData.typ_func thy) (thm, thm')
+               of (ty, ty') => if (is_none o AxClass.class_of_param thy o fst) c
+                  andalso Sign.typ_equiv thy (Type.strip_sorts ty, Type.strip_sorts ty')
+                  orelse Sign.typ_equiv thy (ty, ty')
+                  then ()
+                  else raise INVALID ([], "illegal function type instantiation:\n" ^ Sign.string_of_typ thy (CodegenData.typ_func thy thm)
+                    ^ "\nto " ^ Sign.string_of_typ thy (CodegenData.typ_func thy thm')
+                    ^ ",\nfor constant " ^ CodegenConsts.string_of_const thy c
+                    ^ "\nin function theorems\n"
+                    ^ (cat_lines o map string_of_thm) thms)
           in (c, thms') end;
     fun rhs_of' thy (("", []), thms as [_]) =
           add_things_of thy (cons o snd) (NONE, thms) []
