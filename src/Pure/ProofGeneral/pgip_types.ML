@@ -96,6 +96,7 @@ sig
     val pgipurl_of_string : string -> pgipurl	       (* raises PGIP *)
     val pgipurl_of_path : Path.T -> pgipurl
     val path_of_pgipurl : pgipurl -> Path.T
+    val string_of_pgipurl : pgipurl -> string
     val attrs_of_pgipurl : pgipurl -> XML.attributes
     val pgipurl_of_attrs : XML.attributes -> pgipurl   (* raises PGIP *)
 
@@ -351,6 +352,8 @@ fun pgipurl_of_string url = (* only handle file:/// or file://localhost/ *)
 fun pgipurl_of_path p = p
 
 fun path_of_pgipurl p = p  (* potentially raises PGIP, but not with this implementation *)
+
+fun string_of_pgipurl p = Path.implode p
 
 fun attrs_of_pgipurl purl = 
     [("url", "file:" ^ (XML.text (File.platform_path (File.full_path purl))))]
