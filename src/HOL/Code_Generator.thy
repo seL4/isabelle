@@ -196,8 +196,8 @@ subsection {* Evaluation oracle *}
 ML {*
 signature HOL_EVAL =
 sig
-  val eval_ref: bool option ref
-  val eval_prop: theory -> term -> term
+  val reff: bool option ref
+  val prop: theory -> term -> term
   val tac: int -> tactic
   val method: Method.src -> Proof.context -> Method.method
 end;
@@ -205,19 +205,22 @@ end;
 structure HOL_Eval =
 struct
 
-val eval_ref : bool option ref = ref NONE;
+val reff : bool option ref = ref NONE;
 
-fun eval_prop thy t =
+fun prop thy t =
   if CodegenPackage.eval_term thy
-    (("HOL_Eval.eval_ref", eval_ref), t)
+    (("HOL_Eval.reff", reff), t)
     then HOLogic.true_const
-    else HOLogic.false_const;
+    else HOLogic.false_const
+
+fun mk_eq thy t =
+  Logic.mk_equals (t, prop thy t)
 
 end;
 *}
 
 setup {*
-  PureThy.add_oracle ("invoke", "term", "HOL_Eval.eval_prop")
+  PureThy.add_oracle ("invoke", "term", "HOL_Eval.mk_eq")
 *}
 
 ML {*
