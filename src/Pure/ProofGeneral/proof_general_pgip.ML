@@ -179,14 +179,6 @@ in
             queue_or_issue pgip
         end
 
-    (* Note: PGIP specifies that any fatal Errorresponse which occurs before <ready/>
-       indicates that the previously sent command has failed. To be 100% accurate we 
-       adjust the Isar top level rather than just using Output.error_msg,
-       otherwise degenerate examples like ML_setup {* Output.error_msg "fake"; *}
-       (and perhaps other examples involving user tactics which print errors) 
-       are wrongly considered to have failed. 
-     *)
-
     fun errormsg fatality s =
         let
               val content = XML.Elem("pgmltext",[],[XML.Rawtext s])
@@ -213,9 +205,9 @@ fun setup_messages () =
   tracing_fn := (fn s => normalmsg  Message Tracing false s);
   info_fn := (fn s => normalmsg Message Information false s);
   debug_fn := (fn s => normalmsg Message Internal false s);
-  warning_fn := (fn s => errormsg Nonfatal s);
+  warning_fn := (fn s => errormsg Warning s);
   panic_fn := (fn s => errormsg Panic s);
-  error_fn := (fn s => errormsg Nonfatal s); (* was (fn s => errormsg Fatal s); *)
+  error_fn := (fn s => errormsg Nonfatal s);
   Toplevel.print_exn_fn := (K () o Option.map (errormsg Fatal) o Toplevel.print_exn_str);
   ())
 
