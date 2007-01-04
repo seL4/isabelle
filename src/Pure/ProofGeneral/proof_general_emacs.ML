@@ -109,8 +109,7 @@ fun setup_messages () =
   info_fn := (fn s => decorate (special "362") (special "363") "+++ " s);
   debug_fn := (fn s => decorate (special "362") (special "363") "+++ " s);
   warning_fn := (fn s => decorate (special "362") (special "363") "### " s);
-  error_fn := (fn s => decorate "" "" "" s);
-  Toplevel.print_exn_fn := (K () o Option.map (decorate (special "364") (special "365") "*** ") o Toplevel.print_exn_str);
+  error_fn := (fn s => decorate (special "364") (special "365") "*** " s);
   panic_fn := (fn s => decorate (special "364") (special "365") "!!! " s));
 
 
