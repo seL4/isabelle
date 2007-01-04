@@ -210,7 +210,7 @@ struct
 
 	fun interpret thy model args t =
 		(case get_first (fn (_, f) => f thy model args t) (#interpreters (RefuteData.get thy)) of
-		  NONE   => raise REFUTE ("interpret", "no interpreter for term " ^ quote (Sign.string_of_term (sign_of thy) t))
+		  NONE   => raise REFUTE ("interpret", "no interpreter for term " ^ quote (Sign.string_of_term thy t))
 		| SOME x => x);
 
 (* ------------------------------------------------------------------------- *)
@@ -222,7 +222,7 @@ struct
 
 	fun print thy model t intr assignment =
 		(case get_first (fn (_, f) => f thy model t intr assignment) (#printers (RefuteData.get thy)) of
-		  NONE   => raise REFUTE ("print", "no printer for term " ^ quote (Sign.string_of_term (sign_of thy) t))
+		  NONE   => raise REFUTE ("print", "no printer for term " ^ quote (Sign.string_of_term thy t))
 		| SOME x => x);
 
 (* ------------------------------------------------------------------------- *)
@@ -240,7 +240,7 @@ struct
 			if null typs then
 				"empty universe (no type variables in term)\n"
 			else
-				"Size of types: " ^ commas (map (fn (T, i) => Sign.string_of_typ (sign_of thy) T ^ ": " ^ string_of_int i) typs) ^ "\n"
+				"Size of types: " ^ commas (map (fn (T, i) => Sign.string_of_typ thy T ^ ": " ^ string_of_int i) typs) ^ "\n"
 		val show_consts_msg =
 			if not (!show_consts) andalso Library.exists (is_Const o fst) terms then
 				"set \"show_consts\" to show the interpretation of constants\n"
@@ -253,7 +253,7 @@ struct
 				space_implode "\n" (List.mapPartial (fn (t, intr) =>
 					(* print constants only if 'show_consts' is true *)
 					if (!show_consts) orelse not (is_Const t) then
-						SOME (Sign.string_of_term (sign_of thy) t ^ ": " ^ Sign.string_of_term (sign_of thy) (print thy model t intr assignment))
+						SOME (Sign.string_of_term thy t ^ ": " ^ Sign.string_of_term thy (print thy model t intr assignment))
 					else
 						NONE) terms) ^ "\n"
 	in
@@ -916,7 +916,7 @@ struct
 							val _ = (if Library.exists (fn d =>
 									case d of DatatypeAux.DtTFree _ => false | _ => true) dtyps
 								then
-									raise REFUTE ("ground_types", "datatype argument (for type " ^ Sign.string_of_typ (sign_of thy) (Type (s, Ts)) ^ ") is not a variable")
+									raise REFUTE ("ground_types", "datatype argument (for type " ^ Sign.string_of_typ thy (Type (s, Ts)) ^ ") is not a variable")
 								else
 									())
 							(* if the current type is a recursive IDT (i.e. a depth is required), add it to 'acc' *)
@@ -1065,13 +1065,13 @@ struct
 		fun wrapper () =
 		let
 			val u      = unfold_defs thy t
-			val _      = writeln ("Unfolded term: " ^ Sign.string_of_term (sign_of thy) u)
+			val _      = writeln ("Unfolded term: " ^ Sign.string_of_term thy u)
 			val axioms = collect_axioms thy u
 			(* Term.typ list *)
 			val types = Library.foldl (fn (acc, t') => acc union (ground_types thy t')) ([], u :: axioms)
 			val _     = writeln ("Ground types: "
 				^ (if null types then "none."
-				   else commas (map (Sign.string_of_typ (sign_of thy)) types)))
+				   else commas (map (Sign.string_of_typ thy) types)))
 			(* we can only consider fragments of recursive IDTs, so we issue a  *)
 			(* warning if the formula contains a recursive IDT                  *)
 			(* TODO: no warning needed for /positive/ occurrences of IDTs       *)
@@ -1143,7 +1143,7 @@ struct
 			assert (maxtime>=0) ("\"maxtime\" is " ^ string_of_int maxtime ^ ", must be at least 0");
 			(* enter loop with or without time limit *)
 			writeln ("Trying to find a model that " ^ (if negate then "refutes" else "satisfies") ^ ": "
-				^ Sign.string_of_term (sign_of thy) t);
+				^ Sign.string_of_term thy t);
 			if maxtime>0 then (
 				interrupt_timeout (Time.fromSeconds (Int.toLarge maxtime))
 					wrapper ()
@@ -1847,7 +1847,7 @@ struct
 							val _ = (if Library.exists (fn d =>
 									case d of DatatypeAux.DtTFree _ => false | _ => true) dtyps
 								then
-									raise REFUTE ("IDT_interpreter", "datatype argument (for type " ^ Sign.string_of_typ (sign_of thy) (Type (s, Ts)) ^ ") is not a variable")
+									raise REFUTE ("IDT_interpreter", "datatype argument (for type " ^ Sign.string_of_typ thy (Type (s, Ts)) ^ ") is not a variable")
 								else
 									())
 							(* if the model specifies a depth for the current type, decrement it to avoid infinite recursion *)
@@ -1915,7 +1915,7 @@ struct
 							val _ = (if Library.exists (fn d =>
 									case d of DatatypeAux.DtTFree _ => false | _ => true) dtyps
 								then
-									raise REFUTE ("IDT_constructor_interpreter", "datatype argument (for type " ^ Sign.string_of_typ (sign_of thy) (Type (s', Ts')) ^ ") is not a variable")
+									raise REFUTE ("IDT_constructor_interpreter", "datatype argument (for type " ^ Sign.string_of_typ thy (Type (s', Ts')) ^ ") is not a variable")
 								else
 									())
 							(* split the constructors into those occuring before/after 'Const (s, T)' *)
@@ -2172,7 +2172,7 @@ struct
 										let
 											(* int * interpretation list -> int * int list *)
 											fun get_cargs_rec (_, []) =
-												raise REFUTE ("IDT_recursion_interpreter", "no matching constructor found for element " ^ string_of_int elem ^ " in datatype " ^ Sign.string_of_typ (sign_of thy) IDT ^ " (datatype index " ^ string_of_int idx ^ ")")
+												raise REFUTE ("IDT_recursion_interpreter", "no matching constructor found for element " ^ string_of_int elem ^ " in datatype " ^ Sign.string_of_typ thy IDT ^ " (datatype index " ^ string_of_int idx ^ ")")
 											  | get_cargs_rec (n, x::xs) =
 												(case get_args x elem of
 												  SOME args => (n, args)
@@ -2744,7 +2744,7 @@ struct
 					val _ = (if Library.exists (fn d =>
 							case d of DatatypeAux.DtTFree _ => false | _ => true) dtyps
 						then
-							raise REFUTE ("IDT_printer", "datatype argument (for type " ^ Sign.string_of_typ (sign_of thy) (Type (s, Ts)) ^ ") is not a variable")
+							raise REFUTE ("IDT_printer", "datatype argument (for type " ^ Sign.string_of_typ thy (Type (s, Ts)) ^ ") is not a variable")
 						else
 							())
 					(* the index of the element in the datatype *)
