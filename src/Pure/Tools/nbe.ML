@@ -114,12 +114,12 @@ fun generate thy funs =
         with implicit side effect *)
     fun use_code NONE = ()
       | use_code (SOME s) =
-          (tracing (fn () => "\n---generated code:\n" ^ s);
+          (tracing (fn () => "\n---generated code:\n" ^ s) ();
            use_text (Output.tracing o enclose "\n---compiler echo:\n" "\n---\n",
                 Output.tracing o enclose "\n--- compiler echo (with error!):\n" "\n---\n")
             (!trace) s);
 
-    val _ = tracing (fn () => "new definitions: " ^ (commas o maps (map fst)) funs);
+    val _ = tracing (fn () => "new definitions: " ^ (commas o maps (map fst)) funs) ();
     val _ = tab := NBE_Data.get thy;;
     val _ = Library.seq (use_code o NBE_Codegen.generate thy
       (fn s => Symtab.defined (!tab) s)) funs;
