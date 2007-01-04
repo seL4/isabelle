@@ -198,15 +198,16 @@ local
       | int_in_range (SOME min,SOME max) i = min<= i andalso i<=max
 in
 fun read_pgipint range s =
-    (case Syntax.read_int s of 
+    (case Int.fromString s of 
 	 SOME i => if int_in_range range i then i
 		   else raise PGIP ("Out of range integer value: " ^ quote s)
        | NONE => raise PGIP ("Invalid integer value: " ^ quote s))
 end;
 
 fun read_pgipnat s =
-    (case Syntax.read_nat s of 
-	 SOME i => i
+    (case Int.fromString s of 
+	 SOME i => if i >= 0 then i
+                   else raise PGIP ("Invalid natural number: " ^ quote s)
        | NONE => raise PGIP ("Invalid natural number: " ^ quote s))
 
 (* NB: we can maybe do without xml decode/encode here. *)
@@ -406,7 +407,7 @@ in
       end
 
     fun pgipint_of_string err s = 
-	case Syntax.read_int s of 
+	case Int.fromString s of 
 	    SOME i => i
 	  | NONE => raise PGIP ("Type error in " ^ quote err ^ ": expected integer.")
 
