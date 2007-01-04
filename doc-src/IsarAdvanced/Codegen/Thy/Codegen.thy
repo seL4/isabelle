@@ -182,7 +182,7 @@ setup {* Sign.add_path "foo" *}
 typedecl 'a foo
 
 definition
-  bar :: "'a foo \<Rightarrow> 'a \<Rightarrow> 'a"
+  bar :: "'a foo \<Rightarrow> 'a \<Rightarrow> 'a" where
   "bar x y = y"
 
 (*<*)
@@ -194,7 +194,7 @@ setup {* Sign.parent_path *}
 datatype 'a foo = Foo
 
 definition
-  bar :: "'a foo \<Rightarrow> 'a \<Rightarrow> 'a"
+  bar :: "'a foo \<Rightarrow> 'a \<Rightarrow> 'a" where
   "bar x y = y"
 (*>*)
 
@@ -212,7 +212,7 @@ setup {* Sign.add_path "foo" *}
 (*>*)
 
 definition
-  pick_some :: "'a list \<Rightarrow> 'a"
+  pick_some :: "'a list \<Rightarrow> 'a" where
   "pick_some xs = (SOME x. x \<in> set xs)"
 
 (*<*)
@@ -221,7 +221,7 @@ hide const pick_some
 setup {* Sign.parent_path *}
 
 definition
-  pick_some :: "'a list \<Rightarrow> 'a"
+  pick_some :: "'a list \<Rightarrow> 'a" where
   "pick_some = hd"
 (*>*)
 
@@ -655,7 +655,7 @@ text {*
 *}
 
 definition
-  double_inc :: "int \<Rightarrow> int"
+  double_inc :: "int \<Rightarrow> int" where
   "double_inc k = 2 * k + 1"
 
 code_gen double_inc (SML "examples/integers.ML")
@@ -745,11 +745,11 @@ consts "op =" :: "'a"
 (*>*)
 
 axclass eq \<subseteq> type
-  attach "op ="
+  (attach "op =")
 
 text {*
   This merely introduces a class @{text eq} with corresponding
-  operation @{const "op ="};
+  operation @{text "op ="};
   the preprocessing framework does the rest.
 *}
 
@@ -926,7 +926,7 @@ code_const %tt "{}" and insert
   (SML "![]" and infixl 7 "::")
 
 definition
-  dummy_set :: "(nat \<Rightarrow> nat) set"
+  dummy_set :: "(nat \<Rightarrow> nat) set" where
   "dummy_set = {Suc}"
 
 text {*
@@ -946,7 +946,7 @@ text {*
 *}
 
 definition
-  foobar_set :: "nat set"
+  foobar_set :: "nat set" where
   "foobar_set = {0, 1, 2}"
 
 text {*
@@ -1053,7 +1053,7 @@ text {*
 *}
 
 definition
-  arbitrary_option :: "'a option"
+  arbitrary_option :: "'a option" where
   [symmetric, code inline]: "arbitrary_option = arbitrary"
 
 text {*

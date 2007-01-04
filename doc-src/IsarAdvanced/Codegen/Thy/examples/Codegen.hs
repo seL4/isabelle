@@ -2,11 +2,10 @@ module Codegen where
 import qualified Nat
 
 class Null a where
-  null :: a
+  nulla :: a
 
-head :: (Codegen.Null a_1) => [a_1] -> a_1
-head (y : xs) = y
-head [] = Codegen.null
+heada :: (Codegen.Null a) => ([a] -> a)
+heada (y : xs) = y
 
 null_option :: Maybe b
 null_option = Nothing
@@ -15,4 +14,4 @@ instance Codegen.Null (Maybe b) where
   null = Codegen.null_option
 
 dummy :: Maybe Nat.Nat
-dummy = Codegen.head [Just (Nat.Suc Nat.Zero_nat), Nothing]
+dummy = Codegen.heada [Just (Nat.Suc Nat.Zero_nat), Nothing]

@@ -14,12 +14,11 @@ struct
 type 'a null = {null_ : 'a};
 fun null (A_:'a null) = #null_ A_;
 
-fun head (A_1_:'a_1 null) (y :: xs) = y
-  | head (A_1_:'a_1 null) [] = null A_1_;
+fun head (A_:'a null) (y :: xs) = y;
 
 val null_option : 'b option = NONE;
 
-fun null_optiona () = {null_ = null_option} : ('b option) null
+fun null_optiona () = {null_ = null_option} : ('b option) null ;;
 
 val dummy : Nat.nat option =
   head (null_optiona ()) [SOME (Nat.Suc Nat.Zero_nat), NONE];

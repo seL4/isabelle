@@ -225,7 +225,7 @@ The \isa{{\isasymCODEGEN}} command takes a space-separated list of
 \isanewline
 \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ bar\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ foo\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\isanewline
+\ \ bar\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ foo\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}bar\ x\ y\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
 %
 \isadelimML
@@ -266,7 +266,7 @@ The \isa{{\isasymCODEGEN}} command takes a space-separated list of
 \endisadelimML
 \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ pick{\isacharunderscore}some\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\isanewline
+\ \ pick{\isacharunderscore}some\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}pick{\isacharunderscore}some\ xs\ {\isacharequal}\ {\isacharparenleft}SOME\ x{\isachardot}\ x\ {\isasymin}\ set\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimML
@@ -864,7 +864,7 @@ The initial bang ``\verb|!|'' tells the serializer to never put
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ double{\isacharunderscore}inc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}int\ {\isasymRightarrow}\ int{\isachardoublequoteclose}\isanewline
+\ \ double{\isacharunderscore}inc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}int\ {\isasymRightarrow}\ int{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}double{\isacharunderscore}inc\ k\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ k\ {\isacharplus}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
 \isanewline
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
@@ -981,7 +981,7 @@ Obviously, polymorphic equality is implemented the Haskell
 \isanewline
 \isacommand{axclass}\isamarkupfalse%
 \ eq\ {\isasymsubseteq}\ type\isanewline
-\ \ \isakeyword{attach}\ {\isachardoublequoteopen}op\ {\isacharequal}{\isachardoublequoteclose}%
+\ \ {\isacharparenleft}\isakeyword{attach}\ {\isachardoublequoteopen}op\ {\isacharequal}{\isachardoublequoteclose}{\isacharparenright}%
 \begin{isamarkuptext}%
 This merely introduces a class \isa{eq} with corresponding
   operation \isa{foo{\isachardot}op\ {\isacharequal}};
@@ -1351,7 +1351,7 @@ Imagine the following quick-and-dirty setup for implementing
 \isanewline
 \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ dummy{\isacharunderscore}set\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}nat\ {\isasymRightarrow}\ nat{\isacharparenright}\ set{\isachardoublequoteclose}\isanewline
+\ \ dummy{\isacharunderscore}set\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}nat\ {\isasymRightarrow}\ nat{\isacharparenright}\ set{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}dummy{\isacharunderscore}set\ {\isacharequal}\ {\isacharbraceleft}Suc{\isacharbraceright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 Then code generation for \isa{dummy{\isacharunderscore}set} will fail.
@@ -1371,7 +1371,7 @@ This reveals the function equation \isa{insert\ {\isacharquery}a\ {\isacharquery
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ foobar{\isacharunderscore}set\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
+\ \ foobar{\isacharunderscore}set\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}foobar{\isacharunderscore}set\ {\isacharequal}\ {\isacharbraceleft}{\isadigit{0}}{\isacharcomma}\ {\isadigit{1}}{\isacharcomma}\ {\isadigit{2}}{\isacharbraceright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 In this case the serializer would complain that \isa{insert}
@@ -1513,7 +1513,7 @@ However this has to be considered harmful since this axiom,
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ arbitrary{\isacharunderscore}option\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ option{\isachardoublequoteclose}\isanewline
+\ \ arbitrary{\isacharunderscore}option\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ option{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isacharbrackleft}symmetric{\isacharcomma}\ code\ inline{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}arbitrary{\isacharunderscore}option\ {\isacharequal}\ arbitrary{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 By that, we replace any \isa{arbitrary} with option type
