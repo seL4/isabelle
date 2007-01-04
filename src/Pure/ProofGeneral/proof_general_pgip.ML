@@ -216,7 +216,7 @@ fun setup_messages () =
   warning_fn := (fn s => errormsg Nonfatal s);
   panic_fn := (fn s => errormsg Panic s);
   error_fn := (fn s => errormsg Nonfatal s); (* was (fn s => errormsg Fatal s); *)
-  Toplevel.print_exn_fn := (Option.app (errormsg Fatal) o Toplevel.print_exn_str);
+  Toplevel.print_exn_fn := (K () o Option.map (errormsg Fatal) o Toplevel.print_exn_str);
   ())
 
 

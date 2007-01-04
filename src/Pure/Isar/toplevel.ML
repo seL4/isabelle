@@ -319,7 +319,7 @@ fun exn_message exn = exn_msg (! debug) exn;
 fun print_exn_str NONE = NONE
   | print_exn_str (SOME (exn, s)) = SOME (cat_lines [exn_message exn, s]);
 
-val print_exn_default = Option.app Output.error_msg o print_exn_str
+val print_exn_default = K () o Option.map Output.error_msg o print_exn_str
 
 val print_exn_fn = ref print_exn_default;
 
