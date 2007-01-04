@@ -8,7 +8,7 @@
 
 default: Pure
 images: Pure
-test:
+test: RAW RAW-ProofGeneral
 all: images test
 
 
@@ -74,17 +74,22 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML		\
 
 ## special targets
 
-Pure-copied:
-	@./mk -C
+RAW: $(OUT)/RAW
 
-RAW:
+$(OUT)/RAW: ML-Systems/polyml-4.1.4-patch.ML ML-Systems/polyml-4.2.0.ML		\
+  ML-Systems/polyml-5.0.ML ML-Systems/polyml-interrupt-timeout.ML		\
+  ML-Systems/polyml-posix.ML ML-Systems/polyml.ML ML-Systems/poplogml.ML	\
+  ML-Systems/smlnj.ML
 	@./mk -r
 
-RAW-copied:
-	@./mk -Cr
+RAW-ProofGeneral: RAW $(LOG)/RAW-ProofGeneral.gz
+
+$(LOG)/RAW-ProofGeneral.gz: $(OUT)/RAW ProofGeneral/pgip_standalone.ML
+	@./mk -R ProofGeneral/pgip_standalone.ML
 
 
 ## clean
 
 clean:
-	@rm -f $(OUT)/Pure$(ML_SUFFIX) $(LOG)/Pure.gz $(OUT)/RAW $(LOG)/RAW.gz
+	@rm -f $(OUT)/Pure$(ML_SUFFIX) $(LOG)/Pure.gz $(OUT)/RAW $(LOG)/RAW.gz \
+	$(LOG)/RAW-ProofGeneral.gz
