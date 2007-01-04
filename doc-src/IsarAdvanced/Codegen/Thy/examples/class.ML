@@ -14,7 +14,8 @@ struct
 type 'a null = {null_ : 'a};
 fun null (A_:'a null) = #null_ A_;
 
-fun head (A_:'a null) (y :: xs) = y;
+fun head (A_:'a null) (y :: xs) = y
+  | head (A_:'a null) [] = null A_;
 
 val null_option : 'b option = NONE;
 
