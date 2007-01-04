@@ -112,4 +112,10 @@ normal_form "nat 4 = Suc (Suc (Suc (Suc 0)))"
 
 normal_form "Suc 0 \<in> set ms"
 
+normal_form "f"
+normal_form "f x"
+normal_form "(f o g) x"
+normal_form "(f o id) x"
+normal_form "\<lambda>x. x"
+
 end
