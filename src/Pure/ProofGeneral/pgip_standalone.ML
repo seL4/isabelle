@@ -1,4 +1,4 @@
-(*  Title:      Pure/ProofGeneral/pgip.ML
+(*  Title:      Pure/ProofGeneral/pgip_standalone.ML
     ID:         $Id$
     Author:     David Aspinall
 
@@ -9,23 +9,9 @@
    A lot of Isabelle library code is pulled in, but only a few
    functions are actually used, and the libraries indicated "used
    directly" below could be replaced with other implementations.
-
-   NB: This is *not* part of the Isabelle build.  As such, it's
-   liable to breakage as library functions are changed or moved around.
 *)
 
-val cd = OS.FileSys.chDir;
-cd ".."; 
-
-(* First you have to setup for your ML compiler.
-   This even requires extracting a function from the bash scripts! 
-   See lib/scripts/run-XXX.  This is for polyML 4.2.0. 
-*)
-fun exit 0 = (OS.Process.exit OS.Process.success): unit 
-  | exit _ = OS.Process.exit OS.Process.failure;
-use "ML-Systems/polyml-4.2.0.ML";
-
-(* Now the required parts of Isabelle libraries *)
+(* The required parts of Isabelle libraries *)
 
 use "General/basics.ML";
 use "library.ML";
@@ -38,18 +24,17 @@ use "General/scan.ML";
 use "General/source.ML";
 use "General/file.ML";     (* used directly *)
 use "General/buffer.ML";
-use "General/symbol.ML";  
+use "General/symbol.ML";
 use "General/xml.ML";      (* used directly *)
 use "General/url.ML";      (* used directly *)
 
-cd "ProofGeneral/";
+use "ProofGeneral/syntax_standalone.ML";
 
-use "syntax_standalone.ML"; 
 
-(* Finally, our code *)
+(* Our code *)
 
-use "pgip_types.ML";
-use "pgip_markup.ML";
-use "pgip_input.ML";
-use "pgip_output.ML";
-use "pgip.ML";
+use "ProofGeneral/pgip_types.ML";
+use "ProofGeneral/pgip_markup.ML";
+use "ProofGeneral/pgip_input.ML";
+use "ProofGeneral/pgip_output.ML";
+use "ProofGeneral/pgip.ML";
