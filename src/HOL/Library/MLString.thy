@@ -75,4 +75,14 @@ code_const explode
 
 code_reserved SML string explode
 
+text {* disable something ugly *}
+
+code_const "ml_string_rec" and "ml_string_case" and "size \<Colon> ml_string \<Rightarrow> nat"
+  (SML "!((_); (_); raise Fail \"ml'_string'_rec\")"
+    and "!((_); (_); raise Fail \"ml'_string'_case\")"
+    and "!((_); raise Fail \"size'_ml'_string\")")
+  (OCaml "!((_); (_); failwith \"ml'_string'_rec\")"
+    and "!((_); (_); failwith \"ml'_string'_case\")"
+    and "!((_); failwith \"size'_ml'_string\")")
+
 end
