@@ -2,8 +2,8 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Abstract executable content of theory. Management of data dependent on
-executabl content.
+Abstract executable content of theory.  Management of data dependent on
+executable content.
 *)
 
 signature CODEGEN_DATA =
@@ -240,6 +240,7 @@ fun get_prim_def_funcs thy c =
         |> try (map snd o mk_func thy)
         |> these
         |> map (constrain thm)
+        |> map (CodegenFunc.expand_eta thy ~1)
     | NONE => []
   end;
 
