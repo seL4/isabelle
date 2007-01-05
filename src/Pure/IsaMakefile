@@ -84,7 +84,12 @@ $(OUT)/RAW: ML-Systems/polyml-4.1.4-patch.ML ML-Systems/polyml-4.2.0.ML		\
 
 RAW-ProofGeneral: RAW $(LOG)/RAW-ProofGeneral.gz
 
-$(LOG)/RAW-ProofGeneral.gz: $(OUT)/RAW ProofGeneral/pgip_standalone.ML
+$(LOG)/RAW-ProofGeneral.gz: $(OUT)/RAW ProofGeneral/pgip_standalone.ML		\
+  ProofGeneral/parsing.ML ProofGeneral/pgip_input.ML				\
+  ProofGeneral/pgip_isabelle.ML ProofGeneral/pgip_markup.ML                     \
+  ProofGeneral/pgip.ML ProofGeneral/pgip_output.ML ProofGeneral/pgip_tests.ML	\
+  ProofGeneral/pgip_types.ML ProofGeneral/preferences.ML			\
+  ProofGeneral/proof_general_pgip.ML ProofGeneral/proof_general_emacs.ML
 	@./mk -R ProofGeneral/pgip_standalone.ML
 
 
