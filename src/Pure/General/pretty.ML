@@ -37,6 +37,7 @@ sig
   val breaks: T list -> T list
   val fbreaks: T list -> T list
   val block: T list -> T
+  val block_enclose: T * T -> T list -> T
   val strs: string list -> T
   val chunks: T list -> T
   val chunks2: T list -> T
@@ -220,6 +221,7 @@ fun block prts = blk (2, prts);
 val strs = block o breaks o map str;
 fun chunks prts = blk (0, fbreaks prts);
 fun chunks2 prts = blk (0, flat (Library.separate [fbrk, fbrk] (map single prts)));
+fun block_enclose (p1, p2) ps = chunks [(block  o fbreaks) (p1 :: ps), p2];
 
 fun quote prt = blk (1, [str "\"", prt, str "\""]);
 fun backquote prt = blk (1, [str "`", prt, str "`"]);
