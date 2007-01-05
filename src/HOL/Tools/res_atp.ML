@@ -895,7 +895,7 @@ fun isar_atp (ctxt, th) =
     let
       val _ = kill_last_watcher()
       val (files,thm_names_list) = write_problem_files prob_pathname (ctxt,th)
-      val (childin, childout, pid) = Watcher.createWatcher (th, thm_names_list)
+      val (childin, childout, pid) = Watcher.createWatcher (ctxt, th, thm_names_list)
     in
       last_watcher_pid := SOME (childin, childout, pid, files);
       Output.debug ("problem files: " ^ space_implode ", " files);

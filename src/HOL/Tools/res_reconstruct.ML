@@ -10,16 +10,15 @@ signature RES_RECONSTRUCT =
   sig
     val checkEProofFound: 
           TextIO.instream * TextIO.outstream * Posix.Process.pid * 
-          string * thm * int * string Vector.vector -> bool
+          string * Proof.context * thm * int * string Vector.vector -> bool
     val checkVampProofFound: 
           TextIO.instream * TextIO.outstream * Posix.Process.pid * 
-          string * thm * int * string Vector.vector -> bool
+          string * Proof.context * thm * int * string Vector.vector -> bool
     val checkSpassProofFound:  
           TextIO.instream * TextIO.outstream * Posix.Process.pid * 
-          string * thm * int * string Vector.vector -> bool
+          string * Proof.context * thm * int * string Vector.vector -> bool
     val signal_parent:  
           TextIO.outstream * Posix.Process.pid * string * string -> unit
-    val nospaces: string -> string
 
   end;
 
@@ -245,11 +244,11 @@ fun add_constraint ((false, cl, TFree(a,_)), vt) = addix ((a,~1),cl) vt
 val nofalses = filter (not o equal HOLogic.false_const);
 
 (*Accumulate sort constraints in vt, with "real" literals in lits.*)
-fun lits_of_strees thy (vt, lits) [] = (vt, rev (nofalses lits))
-  | lits_of_strees thy (vt, lits) (t::ts) = 
-      lits_of_strees thy (add_constraint (constraint_of_stree true t, vt), lits) ts
+fun lits_of_strees ctxt (vt, lits) [] = (vt, rev (nofalses lits))
+  | lits_of_strees ctxt (vt, lits) (t::ts) = 
+      lits_of_strees ctxt (add_constraint (constraint_of_stree true t, vt), lits) ts
       handle STREE _ => 
-      lits_of_strees thy (vt, term_of_stree thy t :: lits) ts;
+      lits_of_strees ctxt (vt, term_of_stree (ProofContext.theory_of ctxt) t :: lits) ts;
 
 (*Update TVars/TFrees with detected sort constraints.*)
 fun fix_sorts vt =
@@ -266,14 +265,16 @@ fun fix_sorts vt =
 
 (*Interpret a list of syntax trees as a clause, given by "real" literals and sort constraints.
   vt0 holds the initial sort constraints, from the conjecture clauses.*)
-fun clause_of_strees_aux thy vt0 ts = 
-  case lits_of_strees thy (vt0,[]) ts of
+fun clause_of_strees_aux ctxt vt0 ts = 
+  case lits_of_strees ctxt (vt0,[]) ts of
       (_, []) => HOLogic.false_const
     | (vt, lits) => 
         let val dt = fix_sorts vt (foldr1 HOLogic.mk_disj lits)
-            val infer = Sign.infer_types (Sign.pp thy) thy (Sign.consts_of thy)
+            val infer = Sign.infer_types (ProofContext.pp ctxt) (ProofContext.theory_of ctxt)
+                            (ProofContext.consts_of ctxt) (Variable.def_type ctxt false)
+                            (Variable.def_sort ctxt) (Variable.names_of ctxt) true
         in 
-           #1(infer (K NONE) (K NONE) (Name.make_context []) true ([dt], HOLogic.boolT))
+           #1(infer ([dt], HOLogic.boolT))
         end; 
 
 (*Quantification over a list of Vars. FUXNE: for term.ML??*)
@@ -291,9 +292,9 @@ fun ints_of_stree_aux (Int n, ns) = n::ns
 
 fun ints_of_stree t = ints_of_stree_aux (t, []);
 
-fun decode_tstp thy vt0 (name, role, ts, annots) =
+fun decode_tstp ctxt vt0 (name, role, ts, annots) =
   let val deps = case annots of NONE => [] | SOME (source,_) => ints_of_stree source
-  in  (name, role, clause_of_strees thy vt0 ts, deps)  end;
+  in  (name, role, clause_of_strees ctxt vt0 ts, deps)  end;
 
 fun dest_tstp ((((name, role), ts), annots), chs) =
   case chs of
@@ -316,9 +317,9 @@ fun tfree_constraints_of_clauses vt [] = vt
 
 (**** Translation of TSTP files to Isar Proofs ****)
 
-fun decode_tstp_list thy tuples =
+fun decode_tstp_list ctxt tuples =
   let val vt0 = tfree_constraints_of_clauses Vartab.empty (map #3 tuples)
-  in  map (decode_tstp thy vt0) tuples  end;
+  in  map (decode_tstp ctxt vt0) tuples  end;
 
 (*FIXME: simmilar function in res_atp. Move to HOLogic?*)
 fun dest_disj_aux (Const ("op |", _) $ t $ t') disjs = dest_disj_aux t (dest_disj_aux t' disjs)
@@ -326,7 +327,15 @@ fun dest_disj_aux (Const ("op |", _) $ t $ t') disjs = dest_disj_aux t (dest_dis
 
 fun dest_disj t = dest_disj_aux t [];
 
-val sort_lits = sort Term.fast_term_ord o dest_disj o HOLogic.dest_Trueprop o strip_all_body;
+(*Remove types from a term, to eliminate the randomness of type inference*)
+fun smash_types (Const(a,_)) = Const(a,dummyT)
+  | smash_types (Free(a,_)) = Free(a,dummyT)
+  | smash_types (Var(a,_)) = Var(a,dummyT)
+  | smash_types (f$t) = smash_types f $ smash_types t
+  | smash_types t = t;
+
+val sort_lits = sort Term.fast_term_ord o dest_disj o 
+                smash_types o HOLogic.dest_Trueprop o strip_all_body;
 
 fun permuted_clause t =
   let val lits = sort_lits t
@@ -400,19 +409,17 @@ val proofstart = "\nproof (neg_clausify)\n";
 fun isar_header [] = proofstart
   | isar_header ts = proofstart ^ "fix " ^ space_implode " " ts ^ "\n";
 
-fun decode_tstp_file cnfs th sgno thm_names =
+fun decode_tstp_file cnfs ctxt th sgno thm_names =
   let val tuples = map (dest_tstp o tstp_line o explode) cnfs
-      and ctxt = ProofContext.init (Thm.theory_of_thm th)
-       (*The full context could be sent from ResAtp.isar_atp_body to Watcher.createWatcher,
-         then to setupWatcher and checkChildren...but is it really needed?*)
-      val decoded_tuples = decode_tstp_list (ProofContext.theory_of ctxt) tuples
+      val lines = foldr add_prfline [] (decode_tstp_list ctxt tuples)
       val (ccls,fixes) = ResAxioms.neg_conjecture_clauses th sgno
       val ccls = map forall_intr_vars ccls
-      val lines = foldr add_prfline [] decoded_tuples
-      and clines = map (fn th => string_of_thm th ^ "\n") ccls
   in  
+      if !Output.show_debug_msgs
+      then app (Output.debug o string_of_thm) ccls
+      else ();
       isar_header (map #1 fixes) ^ 
-      String.concat (clines @ isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines))
+      String.concat (isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines))
   end;
 
 (*Could use split_lines, but it can return blank lines...*)
@@ -431,11 +438,11 @@ fun signal_success probfile toParent ppid msg =
    TextIO.flushOut toParent;
    Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2));
 
-fun tstp_extract proofextract probfile toParent ppid th sgno thm_names = 
+fun tstp_extract proofextract probfile toParent ppid ctxt th sgno thm_names = 
   let val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
   in  
     signal_success probfile toParent ppid 
-      (decode_tstp_file cnfs th sgno thm_names)
+      (decode_tstp_file cnfs ctxt th sgno thm_names)
   end;
 
 
@@ -545,7 +552,7 @@ val end_SPASS = "Formulae used in the proof"
 
 (*Returns "true" if it successfully returns a lemma list, otherwise "false", but this
   return value is currently never used!*)
-fun startTransfer (endS, fromChild, toParent, ppid, probfile, th, sgno, thm_names) =
+fun startTransfer endS (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm_names) =
  let fun transferInput currentString =
       let val thisLine = TextIO.inputLine fromChild
       in
@@ -561,7 +568,7 @@ fun startTransfer (endS, fromChild, toParent, ppid, probfile, th, sgno, thm_name
 	     in
 	       trace ("\nExtracted proof:\n" ^ proofextract); 
 	       if !full andalso String.isPrefix "cnf(" proofextract
-	       then tstp_extract proofextract probfile toParent ppid th sgno thm_names
+	       then tstp_extract proofextract probfile toParent ppid ctxt th sgno thm_names
 	       else lemma_list proofextract probfile toParent ppid thm_names;
 	       true
 	     end
@@ -582,48 +589,49 @@ fun signal_parent (toParent, ppid, msg, probfile) =
   (*Give the parent time to respond before possibly sending another signal*)
   OS.Process.sleep (Time.fromMilliseconds 600));
 
+(*FIXME: once TSTP output is produced by all ATPs, these three functions can be combined.*)
+
 (*Called from watcher. Returns true if the Vampire process has returned a verdict.*)
-fun checkVampProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_names) =
+fun checkVampProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm_names)) =
  let val thisLine = TextIO.inputLine fromChild
  in   
      trace thisLine;
      if thisLine = "" 
      then (trace "\nNo proof output seen"; false)
      else if String.isPrefix start_V8 thisLine
-     then startTransfer (end_V8, fromChild, toParent, ppid, probfile, th, sgno, thm_names)
+     then startTransfer end_V8 arg
      else if (String.isPrefix "Satisfiability detected" thisLine) orelse
              (String.isPrefix "Refutation not found" thisLine)
      then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
-     else checkVampProofFound  (fromChild, toParent, ppid, probfile, th, sgno, thm_names)
+     else checkVampProofFound arg
   end
 
 (*Called from watcher. Returns true if the E process has returned a verdict.*)
-fun checkEProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_names) = 
+fun checkEProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm_names)) = 
  let val thisLine = TextIO.inputLine fromChild  
  in   
      trace thisLine;
      if thisLine = "" then (trace "\nNo proof output seen"; false)
      else if String.isPrefix start_E thisLine
-     then startTransfer (end_E, fromChild, toParent, ppid, probfile, th, sgno, thm_names)
+     then startTransfer end_E arg
      else if String.isPrefix "# Problem is satisfiable" thisLine
      then (signal_parent (toParent, ppid, "Invalid\n", probfile);
 	   true)
      else if String.isPrefix "# Cannot determine problem status within resource limit" thisLine
      then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
-     else checkEProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_names)
+     else checkEProofFound arg
  end;
 
 (*Called from watcher. Returns true if the SPASS process has returned a verdict.*)
-fun checkSpassProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_names) = 
+fun checkSpassProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm_names)) = 
  let val thisLine = TextIO.inputLine fromChild  
  in    
      trace thisLine;
      if thisLine = "" then (trace "\nNo proof output seen"; false)
      else if String.isPrefix "Here is a proof" thisLine
-     then      
-        startTransfer (end_SPASS, fromChild, toParent, ppid, probfile, th, sgno, thm_names)
+     then startTransfer end_SPASS arg
      else if thisLine = "SPASS beiseite: Completion found.\n"
      then (signal_parent (toParent, ppid, "Invalid\n", probfile);
 	   true)
@@ -631,7 +639,7 @@ fun checkSpassProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_nam
              thisLine = "SPASS beiseite: Maximal number of loops exceeded.\n"
      then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
-    else checkSpassProofFound (fromChild, toParent, ppid, probfile, th, sgno, thm_names)
+    else checkSpassProofFound arg
  end
 
 end;

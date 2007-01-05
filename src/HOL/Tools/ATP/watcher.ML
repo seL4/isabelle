@@ -23,7 +23,7 @@ val callSlayer : TextIO.outstream -> unit
 
 (* Start a watcher and set up signal handlers*)
 val createWatcher : 
-	thm * string Vector.vector list -> 
+	Proof.context * thm * string Vector.vector list -> 
 	TextIO.instream * TextIO.outstream * Posix.Process.pid
 val killWatcher : Posix.Process.pid -> unit
 val killChild  : ('a, 'b) Unix.proc -> OS.Process.status
@@ -213,7 +213,7 @@ fun execCmds [] procList = procList
 			 Date.toString(Date.fromTimeLocal(Time.now())))
       in execCmds cmds newProcList end
 
-fun checkChildren (th, thm_names_list, toParentStr, children) = 
+fun checkChildren (ctxt, th, thm_names_list) toParentStr children = 
   let fun check [] = []  (* no children to check *)
 	| check (child::children) = 
 	   let val {prover, file, proc_handle, instr=childIn, ...} : cmdproc = child
@@ -227,11 +227,11 @@ fun checkChildren (th, thm_names_list, toParentStr, children) =
 	       let val _ = trace ("\nInput available from child: " ^ file)
 		   val childDone = (case prover of
 		       "vampire" => ResReconstruct.checkVampProofFound
-			    (childIn, toParentStr, ppid, file, th, sgno, thm_names)  
+			    (childIn, toParentStr, ppid, file, ctxt, th, sgno, thm_names)  
 		     | "E" => ResReconstruct.checkEProofFound
-			    (childIn, toParentStr, ppid, file, th, sgno, thm_names)             
+			    (childIn, toParentStr, ppid, file, ctxt, th, sgno, thm_names)             
 		     | "spass" => ResReconstruct.checkSpassProofFound
-			    (childIn, toParentStr, ppid, file, th, sgno, thm_names)  
+			    (childIn, toParentStr, ppid, file, ctxt, th, sgno, thm_names)  
 		     | _ => (trace ("\nBad prover! " ^ prover); true) )
 		in
 		 if childDone (*ATP has reported back (with success OR failure)*)
@@ -248,8 +248,9 @@ fun checkChildren (th, thm_names_list, toParentStr, children) =
   end;
 
 
-fun setupWatcher (th,thm_names_list) = 
+fun setupWatcher (ctxt, th, thm_names_list) = 
   let
+    val checkc = checkChildren (ctxt, th, thm_names_list)
     val p1 = Posix.IO.pipe()   (*pipes for communication between parent and watcher*)
     val p2 = Posix.IO.pipe()
     (****** fork a watcher process and get it set up and going ******)
@@ -285,16 +286,14 @@ fun setupWatcher (th,thm_names_list) =
 		    if length procList < 40 then    (* Execute locally  *)                    
 		      let val _ = trace("\nCommands from parent: " ^ 
 					Int.toString(length cmds))
-			  val newProcList' = checkChildren(th, thm_names_list, toParentStr, 
-						execCmds cmds procList) 
+			  val newProcList' = checkc toParentStr (execCmds cmds procList) 
 		      in trace "\nCommands executed"; keepWatching newProcList' end
 		    else  (* Execute remotely [FIXME: NOT REALLY]  *)
-		      let val newProcList' = checkChildren (th, thm_names_list, toParentStr, 
-						execCmds cmds procList) 
+		      let val newProcList' = checkc toParentStr (execCmds cmds procList)  
 		      in keepWatching newProcList' end
 		| NONE => (* No new input from Isabelle *)
 		    (trace "\nNothing from parent...";  
-		     keepWatching(checkChildren(th, thm_names_list, toParentStr, procList))))
+		     keepWatching(checkc toParentStr procList)))
 	     handle exn => (*FIXME: exn handler is too general!*)
 	       (trace ("\nkeepWatching exception handler: " ^ Toplevel.exn_message exn);
 		keepWatching procList);
@@ -353,8 +352,8 @@ fun string_of_subgoal th i =
 
 fun prems_string_of th = space_implode "\n" (map string_of_cterm (cprems_of th))
 
-fun createWatcher (th, thm_names_list) =
- let val {pid=childpid, instr=childin, outstr=childout} = setupWatcher (th,thm_names_list)
+fun createWatcher (ctxt, th, thm_names_list) =
+ let val {pid=childpid, instr=childin, outstr=childout} = setupWatcher (ctxt,th,thm_names_list)
      fun decr_watched() =
 	  (goals_being_watched := !goals_being_watched - 1;
 	   if !goals_being_watched = 0
