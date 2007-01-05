@@ -23,6 +23,7 @@ imports
   State_Monad
   While_Combinator
   Word
+  "~~/src/HOL/ex/CodeEval"
 begin
 
 definition
