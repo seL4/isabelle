@@ -109,6 +109,19 @@ let
 in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
 *}
 
+text {* Disable for characters and ml_strings *}
+
+code_const "typ_of \<Colon> char itself \<Rightarrow> typ" and "term_of \<Colon> char \<Rightarrow> term"
+  (SML "!((_); raise Fail \"typ'_of'_char\")"
+    and "!((_); raise Fail \"term'_of'_char\")")
+  (OCaml "!((_); failwith \"typ'_of'_char\")"
+    and "!((_); failwith \"term'_of'_char\")")
+  (Haskell "error/ \"typ'_of'_char\""
+    and "error/ \"term'_of'_char\"")
+
+code_const "term_of \<Colon> ml_string \<Rightarrow> term"
+  (SML "!((_); raise Fail \"term'_of'_ml'_string\")")
+  (OCaml "!((_); failwith \"term'_of'_ml'_string\")")
 
 subsection {* Evaluation infrastructure *}
 
