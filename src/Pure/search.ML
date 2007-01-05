@@ -20,6 +20,7 @@ signature SEARCH =
   val DEPTH_SOLVE_1	: tactic -> tactic
   val ITER_DEEPEN	: (thm->bool) -> (int->tactic) -> tactic
   val THEN_ITER_DEEPEN	: tactic -> (thm->bool) -> (int->tactic) -> tactic
+  val iter_deepen_limit : int ref
 
   val has_fewer_prems	: int -> thm -> bool   
   val IF_UNSOLVED	: tactic -> tactic
@@ -131,6 +132,9 @@ fun prune (new as (k', np':int, rgd', stq), qs) =
     in  prune_aux (take (qs, []))  end;
 
 
+(*No known example (on 1-5-2007) needs even thirty*)
+val iter_deepen_limit = ref 50;
+
 (*Depth-first iterative deepening search for a state that satisfies satp
   tactic tac0 sets up the initial goal queue, while tac1 searches it.
   The solution sequence is redundant: the cutoff heuristic makes it impossible
@@ -142,6 +146,11 @@ fun THEN_ITER_DEEPEN tac0 satp tac1 = traced_tac (fn st =>
      and qs0 = tac0 st
      (*bnd = depth bound; inc = estimate of increment required next*)
      fun depth (bnd,inc) [] = 
+          if bnd > !iter_deepen_limit then
+	     (tracing (string_of_int (!countr) ^ 
+		       " inferences so far.  Giving up at " ^ string_of_int bnd);
+	      NONE)
+          else
 	     (tracing (string_of_int (!countr) ^ 
 		       " inferences so far.  Searching to depth " ^ 
 		       string_of_int bnd);
@@ -152,8 +161,7 @@ fun THEN_ITER_DEEPEN tac0 satp tac1 = traced_tac (fn st =>
           else
 	  case (countr := !countr+1;
 		if !trace_DEPTH_FIRST then
-		    tracing (string_of_int np ^ 
-			     implode (map (fn _ => "*") qs))
+		    tracing (string_of_int np ^ implode (map (fn _ => "*") qs))
 		else ();
 		Seq.pull q) of
 	     NONE         => depth (bnd,inc) qs
