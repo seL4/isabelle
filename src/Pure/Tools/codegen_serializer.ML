@@ -30,7 +30,7 @@ sig
   val eval_verbose: bool ref;
   val eval_term: theory -> CodegenThingol.code
     -> (string * 'a option ref) * CodegenThingol.iterm -> 'a;
-  val sml_code_width: int ref;
+  val code_width: int ref;
 end;
 
 structure CodegenSerializer: CODEGEN_SERIALIZER =
@@ -39,14 +39,17 @@ struct
 open BasicCodegenThingol;
 val tracing = CodegenThingol.tracing;
 
-(** syntax **)
-
-(* basics *)
+(** basics **)
 
 infixr 5 @@;
 infixr 5 @|;
 fun x @@ y = [x, y];
 fun xs @| y = xs @ [y];
+val str = setmp print_mode [] Pretty.str;
+val concat = Pretty.block o Pretty.breaks;
+fun semicolon ps = Pretty.block [concat ps, str ";"];
+
+(** syntax **)
 
 datatype lrx = L | R | X;
 
@@ -54,6 +57,8 @@ datatype fixity =
     BR
   | NOBR
   | INFX of (int * lrx);
+
+val APP = INFX (~1, L);
 
 type 'a pretty_syntax = int * (fixity -> (fixity -> 'a -> Pretty.T)
   -> 'a list -> Pretty.T);
@@ -69,7 +74,9 @@ fun eval_fxy NOBR NOBR = false
       pr < pr_ctxt
       orelse pr = pr_ctxt
         andalso eval_lrx lr lr_ctxt
+      orelse pr_ctxt = ~1
   | eval_fxy _ (INFX _) = false
+  | eval_fxy (INFX _) NOBR = false
   | eval_fxy _ _ = true;
 
 fun gen_brackify _ [p] = p
@@ -93,7 +100,7 @@ fun mk_app mk_app' from_expr const_syntax fxy (app as ((c, (_, ty)), ts)) =
             pr fxy from_expr ts
           else if k < length ts
           then case chop k ts of (ts1, ts2) =>
-            brackify fxy (pr NOBR from_expr ts1 :: map (from_expr BR) ts2)
+            brackify fxy (pr APP from_expr ts1 :: map (from_expr BR) ts2)
           else from_expr fxy (CodegenThingol.eta_expand app k)
         end;
 
@@ -102,8 +109,6 @@ val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
 
 
 (* user-defined syntax *)
-
-val str = setmp print_mode [] Pretty.str;
 
 datatype 'a mixfix =
     Arg of fixity
@@ -244,7 +249,7 @@ fun pretty_imperative_monad_bind c_bind =
 
 
 
-(** SML serializer **)
+(** SML/OCaml serializer **)
 
 datatype ml_def =
     MLFuns of (string * ((iterm list * iterm) list * typscheme)) list
@@ -335,7 +340,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                   let
                     val vars' = CodegenThingol.intro_vars [v] vars;
                   in
-                    ((Pretty.block o Pretty.breaks) [str "fn", str (CodegenThingol.lookup_var vars' v), str "=>"], vars')
+                    (concat [str "fn", str (CodegenThingol.lookup_var vars' v), str "=>"], vars')
                   end
               | pr ((v, SOME p), _) vars =
                   let
@@ -343,7 +348,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                     val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
                     val vars'' = CodegenThingol.intro_vars vs vars';
                   in
-                    ((Pretty.block o Pretty.breaks) [str "fn", str (CodegenThingol.lookup_var vars' v), str "as",
+                    (concat [str "fn", str (CodegenThingol.lookup_var vars' v), str "as",
                       pr_term vars'' NOBR p, str "=>"], vars'')
                   end;
             val (ps', vars') = fold_map pr ps vars;
@@ -366,7 +371,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                 val vars' = CodegenThingol.intro_vars vs vars;
               in
                 (Pretty.block [
-                  (Pretty.block o Pretty.breaks) [
+                  concat [
                     str "val",
                     pr_term vars' NOBR p,
                     str "=",
@@ -389,7 +394,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
                 val vars' = CodegenThingol.intro_vars vs vars;
               in
-                (Pretty.block o Pretty.breaks) [
+                concat [
                   str definer,
                   pr_term vars' NOBR p,
                   str "=>",
@@ -444,7 +449,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                       |> CodegenThingol.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
                            (insert (op =)) ts []);
                   in
-                    (Pretty.block o Pretty.breaks) (
+                    concat (
                       [str definer, (str o deresolv) name]
                       @ (if null ts andalso null vs
                            andalso not (ty = ITyVar "_")(*for evaluation*)
@@ -468,13 +473,13 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
             fun pr_co (co, []) =
                   str (deresolv co)
               | pr_co (co, tys) =
-                  (Pretty.block o Pretty.breaks) [
+                  concat [
                     str (deresolv co),
                     str "of",
                     Pretty.enum " *" "" "" (map (pr_typ (INFX (2, X))) tys)
                   ];
             fun pr_data definer (tyco, (vs, cos)) =
-              (Pretty.block o Pretty.breaks) (
+              concat (
                 str definer
                 :: pr_tycoexpr NOBR (tyco, map (ITyVar o fst) vs)
                 :: str "="
@@ -486,16 +491,16 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
           let
             val w = dictvar v;
             fun pr_superclass class =
-              (Pretty.block o Pretty.breaks o map str) [
+              (concat o map str) [
                 label class, ":", "'" ^ v, deresolv class
               ];
             fun pr_classop (classop, ty) =
-              (Pretty.block o Pretty.breaks) [
+              concat [
                 (*FIXME?*)
                 (str o mk_classop_name) classop, str ":", pr_typ NOBR ty
               ];
             fun pr_classop_fun (classop, _) =
-              (Pretty.block o Pretty.breaks) [
+              concat [
                 str "fun",
                 (str o deresolv) classop,
                 Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ deresolv class)],
@@ -505,7 +510,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
               ];
           in
             Pretty.chunks (
-              (Pretty.block o Pretty.breaks) [
+              concat [
                 str ("type '" ^ v),
                 (str o deresolv) class,
                 str "=",
@@ -519,7 +524,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
      | pr_def (MLClassinst (inst, ((class, (tyco, arity)), (superarities, classop_defs)))) =
           let
             fun pr_superclass (superclass, superinst_iss) =
-              (Pretty.block o Pretty.breaks) [
+              concat [
                 (str o label) superclass,
                 str "=",
                 pr_insts NOBR [Instance superinst_iss]
@@ -533,14 +538,14 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                 val vars = keyword_vars
                   |> CodegenThingol.intro_vars consts;
               in
-                (Pretty.block o Pretty.breaks) [
+                concat [
                   (str o mk_classop_name) classop,
                   str "=",
                   pr_term vars NOBR t
                 ]
               end;
           in
-            (Pretty.block o Pretty.breaks) ([
+            concat ([
               str (if null arity then "val" else "fun"),
               (str o deresolv) inst ] @
               map pr_tyvar arity @ [
@@ -686,7 +691,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
                 val vars' = CodegenThingol.intro_vars vs vars;
               in
-                ((Pretty.block o Pretty.breaks) [
+                (concat [
                   str "let",
                   pr_term vars' NOBR p,
                   str "=",
@@ -705,7 +710,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
                 val vars' = CodegenThingol.intro_vars vs vars;
               in
-                (Pretty.block o Pretty.breaks) [
+                concat [
                   str definer,
                   pr_term vars' NOBR p,
                   str "->",
@@ -756,7 +761,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                   |> CodegenThingol.intro_vars consts
                   |> CodegenThingol.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
                       (insert (op =)) ts []);
-              in (Pretty.block o Pretty.breaks) [
+              in concat [
                 (Pretty.block o Pretty.commas) (map (pr_term vars NOBR) ts),
                 str "->",
                 pr_term vars NOBR t
@@ -772,7 +777,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                       |> CodegenThingol.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
                           (insert (op =)) ts []);
                   in
-                    (Pretty.block o Pretty.breaks) (
+                    concat (
                       map (pr_term vars BR) ts
                       @ str "="
                       @@ pr_term vars NOBR t
@@ -813,7 +818,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                     )
                   end;
             fun pr_funn definer (name, (eqs, (vs, ty))) =
-              (Pretty.block o Pretty.breaks) (
+              concat (
                 str definer
                 :: (str o deresolv) name
                 :: map_filter (fn (_, []) => NONE | v => SOME (pr_tyvar v)) vs
@@ -826,13 +831,13 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
             fun pr_co (co, []) =
                   str (deresolv co)
               | pr_co (co, tys) =
-                  (Pretty.block o Pretty.breaks) [
+                  concat [
                     str (deresolv co),
                     str "of",
                     Pretty.enum " *" "" "" (map (pr_typ (INFX (2, X))) tys)
                   ];
             fun pr_data definer (tyco, (vs, cos)) =
-              (Pretty.block o Pretty.breaks) (
+              concat (
                 str definer
                 :: pr_tycoexpr NOBR (tyco, map (ITyVar o fst) vs)
                 :: str "="
@@ -844,15 +849,15 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
           let
             val w = dictvar v;
             fun pr_superclass class =
-              (Pretty.block o Pretty.breaks o map str) [
+              (concat o map str) [
                 deresolv class, ":", "'" ^ v, deresolv class
               ];
             fun pr_classop (classop, ty) =
-              (Pretty.block o Pretty.breaks) [
+              concat [
                 (str o deresolv) classop, str ":", pr_typ NOBR ty
               ];
             fun pr_classop_fun (classop, _) =
-              (Pretty.block o Pretty.breaks) [
+              concat [
                 str "let",
                 (str o deresolv) classop,
                 Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ deresolv class)],
@@ -861,7 +866,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
               ];
           in
             Pretty.chunks (
-              (Pretty.block o Pretty.breaks) [
+              concat [
                 str ("type '" ^ v),
                 (str o deresolv) class,
                 str "=",
@@ -875,7 +880,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
      | pr_def (MLClassinst (inst, ((class, (tyco, arity)), (superarities, classop_defs)))) =
           let
             fun pr_superclass (superclass, superinst_iss) =
-              (Pretty.block o Pretty.breaks) [
+              concat [
                 (str o deresolv) superclass,
                 str "=",
                 pr_insts NOBR [Instance superinst_iss]
@@ -889,14 +894,14 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                 val vars = keyword_vars
                   |> CodegenThingol.intro_vars consts;
               in
-                (Pretty.block o Pretty.breaks) [
+                concat [
                   (str o deresolv) classop,
                   str "=",
                   pr_term vars NOBR t
                 ]
               end;
           in
-            (Pretty.block o Pretty.breaks) (
+            concat (
               str "let"
               :: (str o deresolv) inst
               :: map pr_tyvar arity
@@ -920,7 +925,8 @@ fun pr_ocaml_modl name content =
     str ("end;; (*struct " ^ name ^ "*)")
   ]);
 
-val sml_code_width = ref 80;
+val code_width = ref 80;
+fun code_output p = Pretty.setmp_margin (!code_width) Pretty.output p ^ "\n";
 
 fun seri_ml pr_def pr_modl output reserved_user module_alias module_prolog
   (_ : string -> (string * (string -> string option)) option) tyco_syntax const_syntax code =
@@ -1084,9 +1090,9 @@ fun seri_ml pr_def pr_modl output reserved_user module_alias module_prolog
 
 val isar_seri_sml =
   let
-    fun output_file file p = File.write (Path.explode file) (Pretty.output p ^ "\n");
-    fun output_diag p = Pretty.writeln p;
-    fun output_internal p = use_text Output.ml_output false (Pretty.output p);
+    fun output_file file = File.write (Path.explode file) o code_output;
+    val output_diag = writeln o code_output;
+    val output_internal = use_text Output.ml_output false o code_output;
   in
     parse_args ((Args.$$$ "-" >> K output_diag
       || Args.$$$ "#" >> K output_internal
@@ -1096,8 +1102,8 @@ val isar_seri_sml =
 
 val isar_seri_ocaml =
   let
-    fun output_file file p = File.write (Path.explode file) (Pretty.output p ^ "\n");
-    fun output_diag p = Pretty.writeln p;
+    fun output_file file = File.write (Path.explode file) o code_output;
+    val output_diag = writeln o code_output;
   in
     parse_args ((Args.$$$ "-" >> K output_diag
       || Args.name >> output_file)
@@ -1113,7 +1119,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
      of NONE => deresolv class
       | SOME (class, _) => class;
     fun classop_name class classop = case class_syntax class
-     of NONE => (snd o dest_name) classop
+     of NONE => deresolv_here classop
       | SOME (_, classop_syntax) => case classop_syntax classop
          of NONE => (snd o dest_name) classop
           | SOME classop => classop
@@ -1166,7 +1172,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
                     val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
                     val vars'' = CodegenThingol.intro_vars vs vars';
                   in
-                    ((Pretty.block o Pretty.breaks) [str (CodegenThingol.lookup_var vars' v),
+                    (concat [str (CodegenThingol.lookup_var vars' v),
                       str "@", pr_term vars'' BR p], vars'')
                   end
               | pr ((v, NONE), _) vars =
@@ -1202,17 +1208,19 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
                 val vars' = CodegenThingol.intro_vars vs vars;
               in
-                ((Pretty.block o Pretty.breaks) [
+                (semicolon [
                   pr_term vars' BR p,
                   str "=",
                   pr_term vars NOBR t
                 ], vars')
               end;
             val (binds, vars') = fold_map pr ts vars;
-          in Pretty.chunks [
-            [str "(let", Pretty.fbrk, binds |> Pretty.chunks] |> Pretty.block,
-            [str "in ", pr_term vars' NOBR t, str ")"] |> Pretty.block
-          ] end
+          in
+            Pretty.block_enclose (
+              str "let {",
+              Pretty.block [str "} in ", pr_term vars' NOBR t]
+            ) binds
+          end
       | pr_term vars fxy (ICase ((td, _), bs)) =
           let
             fun pr (p, t) =
@@ -1220,19 +1228,17 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
                 val vars' = CodegenThingol.intro_vars vs vars;
               in
-                (Pretty.block o Pretty.breaks) [
+                semicolon [
                   pr_term vars' NOBR p,
                   str "->",
                   pr_term vars' NOBR t
                 ]
               end
           in
-            (Pretty.enclose "(" ")" o Pretty.breaks) [
-              str "case",
-              pr_term vars NOBR td,
-              str "of",
-              (Pretty.chunks o map pr) bs
-            ]
+            Pretty.block_enclose (
+              concat [str "(case", pr_term vars NOBR td, str "of", str "{"],
+              str "})"
+            ) (map pr bs)
           end
     and pr_app' vars ((c, _), ts) =
       (str o deresolv) c :: map (pr_term vars BR) ts
@@ -1252,10 +1258,11 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
                   |> CodegenThingol.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
                        (insert (op =)) ts []);
               in
-                (Pretty.block o Pretty.breaks) (
+                semicolon (
                   (str o deresolv_here) name
                   :: map (pr_term vars BR) ts
-                  @ [str "=", pr_term vars NOBR t]
+                  @ str "="
+                  @@ pr_term vars NOBR t
                 )
               end;
           in
@@ -1263,7 +1270,8 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
               Pretty.block [
                 (str o suffix " ::" o deresolv_here) name,
                 Pretty.brk 1,
-                pr_typscheme tyvars (vs, ty)
+                pr_typscheme tyvars (vs, ty),
+                str ";"
               ]
               :: map pr_eq eqs
             )
@@ -1272,62 +1280,57 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
           let
             val tyvars = CodegenThingol.intro_vars (map fst vs) keyword_vars;
           in
-            (Pretty.block o Pretty.breaks) ([
-              str "newtype",
-              pr_typscheme_expr tyvars (vs, (deresolv_here name, map (ITyVar o fst) vs)),
-              str "=",
-              (str o deresolv_here) co,
-              pr_typ tyvars BR ty
-            ] @ (if deriving_show name then [str "deriving (Read, Show)"] else []))
+            semicolon (
+              str "newtype"
+              :: pr_typscheme_expr tyvars (vs, (deresolv_here name, map (ITyVar o fst) vs))
+              :: str "="
+              :: (str o deresolv_here) co
+              :: pr_typ tyvars BR ty
+              :: (if deriving_show name then [str "deriving (Read, Show)"] else [])
+            )
           end
       | pr_def (name, CodegenThingol.Datatype (vs, co :: cos)) =
           let
             val tyvars = CodegenThingol.intro_vars (map fst vs) keyword_vars;
             fun pr_co (co, tys) =
-              (Pretty.block o Pretty.breaks) (
+              concat (
                 (str o deresolv_here) co
                 :: map (pr_typ tyvars BR) tys
               )
           in
-            (Pretty.block o Pretty.breaks) ((
+            semicolon (
               str "data"
               :: pr_typscheme_expr tyvars (vs, (deresolv_here name, map (ITyVar o fst) vs))
               :: str "="
               :: pr_co co
               :: map ((fn p => Pretty.block [str "| ", p]) o pr_co) cos
-            ) @ (if deriving_show name then [str "deriving (Read, Show)"] else []))
+              @ (if deriving_show name then [str "deriving (Read, Show)"] else [])
+            )
           end
       | pr_def (name, CodegenThingol.Class (superclasss, (v, classops))) =
           let
             val tyvars = CodegenThingol.intro_vars [v] keyword_vars;
             fun pr_classop (classop, ty) =
-              Pretty.block [
-                str (deresolv_here classop ^ " ::"),
-                Pretty.brk 1,
+              semicolon [
+                (str o classop_name name) classop,
+                str "::",
                 pr_typ tyvars NOBR ty
               ]
           in
-            Pretty.block [
-              str "class ",
-              pr_typparms tyvars [(v, superclasss)],
-              str (deresolv_here name ^ " " ^ CodegenThingol.lookup_var tyvars v),
-              str " where",
-              Pretty.fbrk,
-              Pretty.chunks (map pr_classop classops)
-            ]
+            Pretty.block_enclose (
+              Pretty.block [
+                str "class ",
+                pr_typparms tyvars [(v, superclasss)],
+                str (deresolv_here name ^ " " ^ CodegenThingol.lookup_var tyvars v),
+                str " where {"
+              ],
+              str "};"
+            ) (map pr_classop classops)
           end
       | pr_def (_, CodegenThingol.Classinst ((class, (tyco, vs)), (_, classop_defs))) =
           let
             val tyvars = CodegenThingol.intro_vars (map fst vs) keyword_vars;
-          in
-            Pretty.block [
-              str "instance ",
-              pr_typparms tyvars vs,
-              str (class_name class ^ " "),
-              pr_typ tyvars BR (tyco `%% map (ITyVar o fst) vs),
-              str " where",
-              Pretty.fbrk,
-              Pretty.chunks (map (fn (classop, t) =>
+            fun pr_instdef (classop, t) =
                 let
                   val consts = map_filter
                     (fn c => if (is_some o const_syntax) c
@@ -1336,14 +1339,23 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
                   val vars = keyword_vars
                     |> CodegenThingol.intro_vars consts;
                 in
-                  (Pretty.block o Pretty.breaks) [
+                  semicolon [
                     (str o classop_name class) classop,
                     str "=",
                     pr_term vars NOBR t
                   ]
-                end
-              ) classop_defs)
-            ]
+                end;
+          in
+            Pretty.block_enclose (
+              Pretty.block [
+                str "instance ",
+                pr_typparms tyvars vs,
+                str (class_name class ^ " "),
+                pr_typ tyvars BR (tyco `%% map (ITyVar o fst) vs),
+                str " where {"
+              ],
+              str "};"
+            ) (map pr_instdef classop_defs)
           end;
   in pr_def def end;
 
@@ -1423,16 +1435,15 @@ fun seri_haskell module_prefix destination string_classes reserved_user module_a
       in deriv [] tyco end;
     fun seri_def qualified = pr_haskell class_syntax tyco_syntax const_syntax init_vars
       deresolv_here (if qualified then deresolv else deresolv_here) (if string_classes then deriving_show else K false);
-    fun write_module (SOME destination) modlname p =
+    fun write_module (SOME destination) modlname =
           let
             val filename = case modlname
              of "" => Path.explode "Main.hs"
               | _ => (Path.ext "hs" o Path.explode o implode o separate "/" o NameSpace.explode) modlname;
             val pathname = Path.append destination filename;
             val _ = File.mkdir (Path.dir pathname);
-          in File.write pathname (Pretty.setmp_margin 999999 Pretty.output p ^ "\n") end
-      | write_module NONE _ p =
-          writeln (Pretty.setmp_margin 999999 Pretty.output p ^ "\n");
+          in File.write pathname end
+      | write_module NONE _ = writeln;
     fun seri_module (modlname', (imports, (defs, _))) =
       let
         val imports' =
@@ -1447,19 +1458,24 @@ fun seri_haskell module_prefix destination string_classes reserved_user module_a
           |> has_duplicates (op =);
         val mk_import = str o (if qualified
           then prefix "import qualified "
-          else prefix "import ");
+          else prefix "import ") o suffix ";";
       in
         Pretty.chunks (
-          str ("module " ^ modlname' ^ " where")
+          str ("module " ^ modlname' ^ " where {")
+          :: str ""
           :: map mk_import imports'
-          @ (
-          (case module_prolog modlname'
-           of SOME prolog => [str "", prolog, str ""]
-            | NONE => [str ""])
-          @ separate (str "") (map_filter
+          @ str ""
+          :: separate (str "") ((case module_prolog modlname'
+             of SOME prolog => [prolog]
+              | NONE => [])
+          @ map_filter
             (fn (name, (_, SOME def)) => SOME (seri_def qualified (name, def))
-              | (_, (_, NONE)) => NONE) defs))
-        ) |> write_module destination modlname'
+              | (_, (_, NONE)) => NONE) defs)
+          @ str ""
+          @@ str "}"
+        )
+        |> code_output
+        |> write_module destination modlname'
       end;
   in Symtab.fold (fn modl => fn () => seri_module modl) code' () end;
 
@@ -1480,9 +1496,9 @@ fun seri_diagnosis _ _ _ _ _ code =
   in
     []
     |> Graph.fold (fn (name, (def, _)) => case try pr (name, def) of SOME p => cons p | NONE => I) code
-    |> separate (Pretty.str "")
-    |> Pretty.chunks
-    |> Pretty.writeln
+    |> Pretty.chunks2
+    |> code_output
+    |> writeln
   end;
 
 
