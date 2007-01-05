@@ -33,8 +33,6 @@ sig
   val print_state_default: bool -> state -> unit
   val print_state_fn: (bool -> state -> unit) ref
   val print_state: bool -> state -> unit
-  val print_exn_fn: ((exn * string) option -> unit) ref
-  val print_exn_str: (exn * string) option -> string option
   val pretty_state: bool -> state -> Pretty.T list
   val quiet: bool ref
   val debug: bool ref
@@ -312,16 +310,10 @@ and fail_msg detailed kind ((name, pos), exn) =
 
 in
 
-
-
 fun exn_message exn = exn_msg (! debug) exn;
 
-fun print_exn_str NONE = NONE
-  | print_exn_str (SOME (exn, s)) = SOME (cat_lines [exn_message exn, s]);
-
-val print_exn_default = K () o Option.map Output.error_msg o print_exn_str
-
-val print_exn_fn = ref print_exn_default;
+fun print_exn NONE = ()
+  | print_exn (SOME (exn, s)) = Output.error_msg (cat_lines [exn_message exn, s]);
 
 end;
 
@@ -747,7 +739,7 @@ fun >> tr =
     NONE => false
   | SOME (state', exn_info) =>
       (global_state := (state', exn_info);
-        !print_exn_fn exn_info;
+        print_exn exn_info;
         true));
 
 fun >>> [] = ()

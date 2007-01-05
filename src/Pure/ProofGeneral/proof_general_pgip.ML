@@ -206,10 +206,8 @@ fun setup_messages () =
   info_fn := (fn s => normalmsg Message Information false s);
   debug_fn := (fn s => normalmsg Message Internal false s);
   warning_fn := (fn s => errormsg Warning s);
-  panic_fn := (fn s => errormsg Panic s);
-  error_fn := (fn s => errormsg Nonfatal s);
-  Toplevel.print_exn_fn := (K () o Option.map (errormsg Fatal) o Toplevel.print_exn_str);
-  ())
+  error_fn := (fn s => errormsg Fatal s);
+  panic_fn := (fn s => errormsg Panic s));
 
 
 (* immediate messages *)
@@ -924,7 +922,7 @@ end
 local
 (* Extra command for embedding prover-control inside document (obscure/debug usage). *)
 
-val process_pgipP = 
+val process_pgipP =
   OuterSyntax.improper_command "ProofGeneral.process_pgip" "(internal)" OuterKeyword.control
     (OuterParse.text >> (Toplevel.no_timing oo
       (fn txt => Toplevel.imperative (fn () => process_pgip_plain txt))));
@@ -946,7 +944,7 @@ fun init_pgip false =
   | init_pgip true =
       (! initialized orelse
         (setmp warning_fn (K ()) init_outer_syntax ();
-	  PgipParser.init ();
+          PgipParser.init ();
           setup_xsymbols_output ();
           setup_pgml_output ();
           setup_messages ();
