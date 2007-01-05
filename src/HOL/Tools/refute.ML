@@ -2229,7 +2229,21 @@ struct
 												result
 											end
 									(* compute all entries in INTRS for the current datatype (given by 'index') *)
-									val _ = Array.modifyi (fn (i, _) => SOME (compute_array_entry index i)) ((Option.valOf o AList.lookup (op =) INTRS) index)
+									(* TODO: we can use Array.modify instead once PolyML conforms to the ML standard *)
+									(* (int * 'a -> 'a) -> 'a array -> unit *)
+									fun modifyi f arr =
+										let
+											val size = Array.length arr
+											fun modifyi_loop i =
+												if i < size then (
+													Array.update (arr, i, f (i, Array.sub (arr, i)));
+													modifyi_loop (i+1)
+												) else
+													()
+										in
+											modifyi_loop 0
+										end
+									val _ = modifyi (fn (i, _) => SOME (compute_array_entry index i)) ((Option.valOf o AList.lookup (op =) INTRS) index)
 									(* 'a Array.array -> 'a list *)
 									fun toList arr =
 										Array.foldr op:: [] arr
