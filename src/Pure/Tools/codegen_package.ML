@@ -93,7 +93,7 @@ fun prep_eqs thy (thms as thm :: _) =
     val ty = (Logic.unvarifyT o CodegenData.typ_func thy) thm;
     val thms' = if (null o Term.typ_tfrees) ty orelse (null o fst o strip_type) ty
       then thms
-      else map (CodegenFuncgr.expand_eta thy 1) thms;
+      else map (CodegenFunc.expand_eta thy 1) thms;
   in (ty, thms') end;
 
 
