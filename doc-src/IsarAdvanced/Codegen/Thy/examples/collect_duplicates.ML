@@ -13,7 +13,7 @@ structure List =
 struct
 
 fun memberl (A_:'a Code_Generator.eq) x (y :: ys) =
-  (Code_Generator.op_eq A_ x y orelse memberl A_ x ys)
+  Code_Generator.op_eq A_ x y orelse memberl A_ x ys
   | memberl (A_:'a Code_Generator.eq) x [] = false;
 
 end; (*struct List*)

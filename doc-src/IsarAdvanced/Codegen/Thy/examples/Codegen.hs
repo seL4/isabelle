@@ -1,18 +1,23 @@
-module Codegen where
-import qualified Nat
+module Codegen where {
 
-class Null a where
-  nulla :: a
+import qualified Nat;
 
-heada :: (Codegen.Null a) => ([a] -> a)
-heada (y : xs) = y
-heada [] = Codegen.nulla
+class Null a where {
+  nulla :: a;
+};
 
-null_option :: Maybe b
-null_option = Nothing
+heada :: (Codegen.Null a) => [a] -> a;
+heada (y : xs) = y;
+heada [] = Codegen.nulla;
 
-instance Codegen.Null (Maybe b) where
-  null = Codegen.null_option
+null_option :: Maybe b;
+null_option = Nothing;
 
-dummy :: Maybe Nat.Nat
-dummy = Codegen.heada [Just (Nat.Suc Nat.Zero_nat), Nothing]
+instance Codegen.Null (Maybe b) where {
+  nulla = Codegen.null_option;
+};
+
+dummy :: Maybe Nat.Nat;
+dummy = Codegen.heada [Just (Nat.Suc Nat.Zero_nat), Nothing];
+
+}

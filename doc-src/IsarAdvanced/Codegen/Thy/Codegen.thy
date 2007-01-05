@@ -8,7 +8,7 @@ uses "../../../antiquote_setup.ML"
 begin
 
 ML {*
-CodegenSerializer.sml_code_width := 74;
+CodegenSerializer.code_width := 74;
 *}
 
 (*>*)
