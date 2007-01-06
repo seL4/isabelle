@@ -926,18 +926,6 @@ text {* \bigskip Theorems for transforming predicates on nat to predicates on @{
 theorem all_nat: "(\<forall>x::nat. P x) = (\<forall>x::int. 0 <= x \<longrightarrow> P (nat x))"
   by (simp split add: split_nat)
 
-theorem ex_nat: "(\<exists>x::nat. P x) = (\<exists>x::int. 0 <= x \<and> P (nat x))"
-  apply (simp split add: split_nat)
-  apply (rule iffI)
-  apply (erule exE)
-  apply (rule_tac x = "int x" in exI)
-  apply simp
-  apply (erule exE)
-  apply (rule_tac x = "nat x" in exI)
-  apply (erule conjE)
-  apply (erule_tac x = "nat x" in allE)
-  apply simp
-  done
 
 theorem zdiff_int_split: "P (int (x - y)) =
   ((y \<le> x \<longrightarrow> P (int x - int y)) \<and> (x < y \<longrightarrow> P 0))"
@@ -945,22 +933,6 @@ theorem zdiff_int_split: "P (int (x - y)) =
   apply (simp_all add: zdiff_int)
   done
 
-theorem zdvd_int: "(x dvd y) = (int x dvd int y)"
-  apply (simp only: dvd_def ex_nat int_int_eq [symmetric] zmult_int [symmetric]
-    nat_0_le cong add: conj_cong)
-  apply (rule iffI)
-  apply iprover
-  apply (erule exE)
-  apply (case_tac "x=0")
-  apply (rule_tac x=0 in exI)
-  apply simp
-  apply (case_tac "0 \<le> k")
-  apply iprover
-  apply (simp add: linorder_not_le)
-  apply (drule mult_strict_left_mono_neg [OF iffD2 [OF zero_less_int_conv]])
-  apply assumption
-  apply (simp add: mult_ac)
-  done
 
 theorem number_of1: "(0::int) <= number_of n \<Longrightarrow> (0::int) <= number_of (n BIT b)"
   by simp
