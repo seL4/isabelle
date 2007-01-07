@@ -224,26 +224,29 @@ fun tell_file_retracted path = issue_pgip (Informfileretracted {url=PgipTypes.pg
 local
 
 fun statedisplay prts =
-    let
+    let 
         val display = Pretty.output (Pretty.chunks prts)
+        (* TODO: add extra PGML markup for allow proof state navigation *)
         val statedisplay = XML.Elem("statedisplay",[], [XML.Rawtext display])
     in
         issue_pgip (Proofstate {pgml=[XML.Elem("pgml",[],[statedisplay])]})
     end
 
 fun print_current_goals n m st =
-  statedisplay (Display.pretty_current_goals n m st)
+  case (Display.pretty_current_goals n m st) of 
+   [] => tell_clear_goals()
+ | prts => statedisplay prts
 
 fun print_state b st =
-  statedisplay (Toplevel.pretty_state b st)
+  case (Toplevel.pretty_state b st) of 
+   [] => tell_clear_goals() 
+  | prts => statedisplay prts
 
 in
 
 fun setup_state () =
   (Display.print_current_goals_fn := print_current_goals;
    Toplevel.print_state_fn := print_state);
-      (*    Toplevel.prompt_state_fn := (fn s => suffix (special "372")
-                                        (Toplevel.prompt_state_default s))); *)
 
 end;
 
@@ -292,7 +295,6 @@ fun restart () =
      tell_clear_goals ();
      tell_clear_response ();
      welcome ();
-     priority "Running new version of PGIP code.  In testing.";
      raise Toplevel.RESTART)
 
 
@@ -413,7 +415,7 @@ fun use_thy_or_ml_file file =
             "" => isarcmd ("use_thy " ^ quote (Path.implode path))
           | "thy" => isarcmd ("use_thy " ^ quote (Path.implode path))
           | "ML" => isarcmd ("use " ^ quote file)
-          | other => error ("Don't know how to read a file with extension " ^ other)
+          | other => error ("Don't know how to read a file with extension " ^ quote other)
     end
 
 
@@ -727,9 +729,11 @@ fun openfile (Openfile vs) =
       val openfile_retract = Output.no_warnings (ThyInfo.if_known_thy ThyInfo.remove_thy) o thy_name;
   in
       case !currently_open_file of
-          SOME f => raise PGIP ("<openfile> when a file is already open! ")
+          SOME f => raise PGIP ("<openfile> when a file is already open!\nCurrently open file: " ^
+				PgipTypes.string_of_pgipurl url)
         | NONE => (openfile_retract filepath;
                    changecwd_dir filedir;
+		   priority ("Working in file: " ^ PgipTypes.string_of_pgipurl url);
                    currently_open_file := SOME url)
   end
 
@@ -737,6 +741,7 @@ fun closefile vs =
     case !currently_open_file of
         SOME f => (proper_inform_file_processed (File.platform_path f)
                                                 (Isar.state());
+		   priority ("Finished working in file: " ^ PgipTypes.string_of_pgipurl f);
                    currently_open_file := NONE)
       | NONE => raise PGIP ("<closefile> when no file is open!")
 
@@ -745,13 +750,16 @@ fun loadfile (Loadfile vs) =
         val url = #url vs
     in
         case !currently_open_file of
-            SOME f => raise PGIP ("<loadfile> when a file is open!")
+            SOME f => raise PGIP ("<loadfile> when a file is open!\nCurrently open file: " ^
+				  PgipTypes.string_of_pgipurl url)
           | NONE => use_thy_or_ml_file (File.platform_path url)
     end
 
 fun abortfile vs =
     case !currently_open_file of
         SOME f => (isarcmd "init_toplevel";
+		   priority ("Aborted working in file: " ^ 
+			     PgipTypes.string_of_pgipurl f);
                    currently_open_file := NONE)
       | NONE => raise PGIP ("<abortfile> when no file is open!")
 
@@ -761,7 +769,8 @@ fun retractfile (Retractfile vs) =
     in
         case !currently_open_file of
             SOME f => raise PGIP ("<retractfile> when a file is open!")
-          | NONE => inform_file_retracted (File.platform_path url)
+          | NONE => (priority ("Retracting file: " ^ PgipTypes.string_of_pgipurl url);
+		     inform_file_retracted (File.platform_path url))
     end
 
 
