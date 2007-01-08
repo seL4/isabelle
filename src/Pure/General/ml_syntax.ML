@@ -16,10 +16,10 @@ sig
   val print_option: ('a -> string) -> 'a option -> string
   val print_char: string -> string
   val print_string: string -> string
-  val print_class: Term.class -> string
-  val print_sort: Term.sort -> string
-  val print_typ: Term.typ -> string
-  val print_term: Term.term -> string
+  val print_class: class -> string
+  val print_sort: sort -> string
+  val print_typ: typ -> string
+  val print_term: term -> string
 end;
 
 structure ML_Syntax: ML_SYNTAX =
@@ -72,24 +72,23 @@ val print_class = print_string;
 val print_sort = print_list print_class;
 
 fun print_typ (Type sTs) =
-    "Type " ^ print_pair print_string (print_list print_typ) sTs
+      "Type " ^ print_pair print_string (print_list print_typ) sTs
   | print_typ (TFree sSort) =
-    "TFree " ^ print_pair print_string print_sort sSort
+      "TFree " ^ print_pair print_string print_sort sSort
   | print_typ (TVar siSort) =
-    "TVar " ^ print_pair (print_pair print_string Int.toString)
-                print_sort siSort;
+      "TVar " ^ print_pair (print_pair print_string Int.toString) print_sort siSort;
 
 fun print_term (Const sT) =
-    "Const " ^ print_pair print_string print_typ sT
+      "Const " ^ print_pair print_string print_typ sT
   | print_term (Free sT) =
-    "Free " ^ print_pair print_string print_typ sT
+      "Free " ^ print_pair print_string print_typ sT
   | print_term (Var siT) =
-    "Var " ^ print_pair (print_pair print_string Int.toString) print_typ siT
+      "Var " ^ print_pair (print_pair print_string Int.toString) print_typ siT
   | print_term (Bound i) =
-    "Bound " ^ Int.toString i
+      "Bound " ^ Int.toString i
   | print_term (Abs (s, T, t)) =
-    "Abs (" ^ print_string s ^ ", " ^ print_typ T ^ ", " ^ print_term t ^ ")"
+      "Abs (" ^ print_string s ^ ", " ^ print_typ T ^ ", " ^ print_term t ^ ")"
   | print_term (t1 $ t2) =
-    "(" ^ print_term t1 ^ ") $ (" ^ print_term t2 ^ ")";
+      "(" ^ print_term t1 ^ ") $ (" ^ print_term t2 ^ ")";
 
 end;
