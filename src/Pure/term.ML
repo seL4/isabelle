@@ -173,6 +173,7 @@ sig
   val termless: term * term -> bool
   val term_lpo: (term -> int) -> term * term -> order
   val match_bvars: (term * term) * (string * string) list -> (string * string) list
+  val map_abs_vars: (string -> string) -> term -> term
   val rename_abs: term -> term -> term -> term option
   val eq_tvar: (indexname * sort) * (indexname * sort) -> bool
   val eq_var: (indexname * typ) * (indexname * typ) -> bool
@@ -760,6 +761,10 @@ fun match_bvs(Abs(x,_,s),Abs(y,_,t), al) =
 
 (* strip abstractions created by parameters *)
 fun match_bvars((s,t),al) = match_bvs(strip_abs_body s, strip_abs_body t, al);
+
+fun map_abs_vars f (t $ u) = map_abs_vars f t $ map_abs_vars f u
+  | map_abs_vars f (Abs (a, T, t)) = Abs (f a, T, map_abs_vars f t)
+  | map_abs_vars f t = t;
 
 fun rename_abs pat obj t =
   let
