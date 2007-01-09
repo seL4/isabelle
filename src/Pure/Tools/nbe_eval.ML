@@ -117,7 +117,7 @@ fun prep_term thy (Const c) = Const (CodegenNames.const thy (CodegenConsts.norm_
   | prep_term thy (s $ t) = prep_term thy s $ prep_term thy t
   | prep_term thy (Abs (raw_v, ty, raw_t)) =
       let
-        val (v, t) = Syntax.variant_abs (CodegenNames.purify_var raw_v, ty, raw_t);
+        val (v, t) = Syntax.variant_abs (raw_v, ty, raw_t);
       in Abs (v, ty, prep_term thy t) end;
 
 
