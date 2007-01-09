@@ -20,8 +20,11 @@ sig
   val del_datatype: string -> theory -> theory
   val add_inline: thm -> theory -> theory
   val del_inline: thm -> theory -> theory
-  val add_inline_proc: (theory -> cterm list -> thm list) -> theory -> theory
-  val add_preproc: (theory -> thm list -> thm list) -> theory -> theory
+  val add_inline_proc: string * (theory -> cterm list -> thm list) -> theory -> theory
+  val del_inline_proc: string -> theory -> theory
+  val add_preproc: string * (theory -> thm list -> thm list) -> theory -> theory
+  val del_preproc: string -> theory -> theory
+  val class_arity: theory -> class -> string -> sort list
   val these_funcs: theory -> CodegenConsts.const -> thm list
   val get_datatype: theory -> string
     -> ((string * sort) list * (string * typ list) list) option
@@ -158,8 +161,8 @@ structure Consttab = CodegenConsts.Consttab;
 
 datatype preproc = Preproc of {
   inlines: thm list,
-  inline_procs: (serial * (theory -> cterm list -> thm list)) list,
-  preprocs: (serial * (theory -> thm list -> thm list)) list
+  inline_procs: (string * (serial * (theory -> cterm list -> thm list))) list,
+  preprocs: (string * (serial * (theory -> thm list -> thm list))) list
 };
 
 fun mk_preproc ((inlines, inline_procs), preprocs) =
@@ -170,8 +173,8 @@ fun merge_preproc (Preproc { inlines = inlines1, inline_procs = inline_procs1, p
   Preproc { inlines = inlines2, inline_procs = inline_procs2, preprocs = preprocs2 }) =
     let
       val (touched1, inlines) = merge_thms (inlines1, inlines2);
-      val (touched2, inline_procs) = merge_alist (op =) (K true) (inline_procs1, inline_procs2);
-      val (touched3, preprocs) = merge_alist (op =) (K true) (preprocs1, preprocs2);
+      val (touched2, inline_procs) = merge_alist (op =) (eq_fst (op =)) (inline_procs1, inline_procs2);
+      val (touched3, preprocs) = merge_alist (op =) (eq_fst (op =)) (preprocs1, preprocs2);
     in (touched1 orelse touched2 orelse touched3,
       mk_preproc ((inlines, inline_procs), preprocs)) end;
 
@@ -337,6 +340,8 @@ structure CodeData = TheoryDataFun
                       :: Pretty.breaks (map (Pretty.quote o Sign.pretty_typ thy) tys))) cos)
         )
       val inlines = (#inlines o the_preproc) exec;
+      val inline_procs = (map fst o #inline_procs o the_preproc) exec;
+      val preprocs = (map fst o #preprocs o the_preproc) exec;
       val funs = the_funcs exec
         |> Consttab.dest
         |> (map o apfst) (CodegenConsts.string_of_const thy)
@@ -351,9 +356,19 @@ structure CodeData = TheoryDataFun
         Pretty.str "function theorems:" ] @
           map pretty_func funs @ [
         Pretty.block (
-          Pretty.str "inlined theorems:"
+          Pretty.str "inlining theorems:"
           :: Pretty.fbrk
           :: (Pretty.fbreaks o map (ProofContext.pretty_thm ctxt)) inlines
+        ),
+        Pretty.block (
+          Pretty.str "inlining procedures:"
+          :: Pretty.fbrk
+          :: (Pretty.fbreaks o map Pretty.str) inline_procs
+        ),
+        Pretty.block (
+          Pretty.str "preprocessors:"
+          :: Pretty.fbrk
+          :: (Pretty.fbreaks o map Pretty.str) preprocs
         ),
         Pretty.block (
           Pretty.str "datatypes:"
@@ -492,6 +507,66 @@ fun certify_datatype thy dtco cs thms =
 
 
 
+(** operational sort algebra **)
+
+local
+
+fun aggr_neutr f y [] = y
+  | aggr_neutr f y (x::xs) = aggr_neutr f (f y x) xs;
+
+fun aggregate f [] = NONE
+  | aggregate f (x::xs) = SOME (aggr_neutr f x xs);
+
+fun inter_sorts thy =
+  let
+    val algebra = Sign.classes_of thy;
+    val inters = curry (Sorts.inter_sort algebra);
+  in aggregate (map2 inters) end;
+
+fun get_raw_funcs thy tyco clsop =
+  let
+    val vs = Name.invents Name.context "" (Sign.arity_number thy tyco);
+    val c = CodegenConsts.norm thy (clsop, [Type (tyco, map (TFree o rpair []) vs)])
+  in
+    Consttab.lookup ((the_funcs o get_exec) thy) c
+    |> Option.map (Susp.force o fst)
+    |> these
+    |> map (Thm.transfer thy)
+  end;
+
+fun constraints thy class tyco =
+  let
+    val vs = Name.invents Name.context "" (Sign.arity_number thy tyco);
+    val clsops = (these o Option.map snd o try (AxClass.params_of_class thy)) class;
+    val funcs = maps (get_raw_funcs thy tyco o fst) clsops;
+    val sorts = map (map (snd o dest_TVar) o snd o dest_Type o the_single
+      o Sign.const_typargs thy o fst o CodegenFunc.dest_func) funcs;
+  in inter_sorts thy sorts end;
+
+fun weakest_constraints thy class tyco =
+  case constraints thy class tyco
+   of sorts as SOME _ => sorts
+    | NONE => let
+        val sorts = map_filter (fn class => weakest_constraints thy class tyco)
+          (Sign.super_classes thy class);
+      in inter_sorts thy sorts end;
+
+in
+
+fun class_arity thy class tyco =
+  weakest_constraints thy class tyco
+  |> the_default (Sign.arity_sorts thy tyco [class]);
+
+fun upward_compatible_constraints thy sorts class tyco =
+  case constraints thy class tyco
+   of SOME sorts' => forall (Sign.subsort thy) (sorts ~~ sorts')
+    | NONE => forall (fn class => upward_compatible_constraints thy sorts class tyco)
+        (Graph.imm_preds ((#classes o Sorts.rep_algebra o Sign.classes_of) thy) class);
+
+end;
+
+
+
 (** interfaces **)
 
 fun gen_add_func mk_func thm thy =
@@ -552,11 +627,17 @@ fun add_inline thm thy =
 fun del_inline thm thy =
   (map_exec_purge NONE o map_preproc o apfst o apfst) (fold (remove eq_thm) (CodegenFunc.mk_rew thm)) thy ;
 
-fun add_inline_proc f =
-  (map_exec_purge NONE o map_preproc o apfst o apsnd) (cons (serial (), f));
+fun add_inline_proc (name, f) =
+  (map_exec_purge NONE o map_preproc o apfst o apsnd) (AList.update (op =) (name, (serial (), f)));
 
-fun add_preproc f =
-  (map_exec_purge NONE o map_preproc o apsnd) (cons (serial (), f));
+fun del_inline_proc name =
+  (map_exec_purge NONE o map_preproc o apfst o apsnd) (AList.delete (op =) name);
+
+fun add_preproc (name, f) =
+  (map_exec_purge NONE o map_preproc o apsnd) (AList.update (op =) (name, (serial (), f)));
+
+fun del_preproc name =
+  (map_exec_purge NONE o map_preproc o apsnd) (AList.delete (op =) name);
 
 local
 
@@ -591,9 +672,9 @@ in
 
 fun preprocess thy thms =
   thms
-  |> fold (fn (_, f) => apply_preproc thy f) ((#preprocs o the_preproc o get_exec) thy)
+  |> fold (fn (_, (_, f)) => apply_preproc thy f) ((#preprocs o the_preproc o get_exec) thy)
   |> map (CodegenFunc.rewrite_func ((#inlines o the_preproc o get_exec) thy))
-  |> fold (fn (_, f) => apply_inline_proc thy f) ((#inline_procs o the_preproc o get_exec) thy)
+  |> fold (fn (_, (_, f)) => apply_inline_proc thy f) ((#inline_procs o the_preproc o get_exec) thy)
 (*FIXME - must check: rewrite rule, function equation, proper constant |> map (snd o check_func false thy) *)
   |> sort (cmp_thms thy)
   |> common_typ_funcs;
@@ -606,7 +687,7 @@ fun preprocess_cterm ct =
     |> Thm.reflexive
     |> fold (rhs_conv o MetaSimplifier.rewrite false o single)
       ((#inlines o the_preproc o get_exec) thy)
-    |> fold (fn (_, f) => rhs_conv (apply_inline_proc_cterm thy f))
+    |> fold (fn (_, (_, f)) => rhs_conv (apply_inline_proc_cterm thy f))
       ((#inline_procs o the_preproc o get_exec) thy)
   end;
 
