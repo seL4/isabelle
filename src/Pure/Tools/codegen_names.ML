@@ -21,14 +21,63 @@ sig
   val instance_rev: theory -> string -> (class * tyco) option
   val const: theory -> CodegenConsts.const -> const
   val const_rev: theory -> const -> CodegenConsts.const option
+  val labelled_name: theory -> string -> string
+
+  val check_modulename: string -> string
   val purify_var: string -> string
   val purify_tvar: string -> string
-  val check_modulename: string -> string
+  
+  type var_ctxt;
+  val make_vars: string list -> var_ctxt;
+  val intro_vars: string list -> var_ctxt -> var_ctxt;
+  val lookup_var: var_ctxt -> string -> string;
 end;
 
 structure CodegenNames: CODEGEN_NAMES =
 struct
 
+(** purification **)
+
+val purify_name =
+  let
+    fun is_valid s = Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s orelse s = "'";
+    val is_junk = not o is_valid andf Symbol.not_eof;
+    val junk = Scan.many is_junk;
+    val scan_valids = Symbol.scanner "Malformed input"
+      ((junk |--
+        (Scan.optional (Scan.one Symbol.is_ascii_letter) "x" ^^ (Scan.many is_valid >> implode)
+        --| junk))
+      -- Scan.repeat ((Scan.many1 is_valid >> implode) --| junk) >> op ::);
+  in explode #> scan_valids #> space_implode "_" end;
+
+fun purify_op "0" = "zero"
+  | purify_op "1" = "one"
+  | purify_op s =
+      let
+        fun rep_op "+" = SOME "sum"
+          | rep_op "-" = SOME "diff"
+          | rep_op "*" = SOME "prod"
+          | rep_op "/" = SOME "quotient"
+          | rep_op "&" = SOME "conj"
+          | rep_op "|" = SOME "disj"
+          | rep_op "=" = SOME "eq"
+          | rep_op "~" = SOME "inv"
+          | rep_op "@" = SOME "append"
+          | rep_op s = NONE;
+        val scan_valids = Symbol.scanner "Malformed input"
+           (Scan.repeat (Scan.some rep_op || Scan.one Symbol.not_eof));
+      in (explode #> scan_valids #> implode) s end;
+
+val purify_lower =
+  explode
+  #> (fn cs => (if forall Symbol.is_ascii_upper cs
+        then map else nth_map 0) Symbol.to_ascii_lower cs)
+  #> implode;
+
+val purify_upper = explode #> nth_map 0 Symbol.to_ascii_upper #> implode;
+
+
+(** global names (identifiers) **)
 
 (* theory data *)
 
@@ -178,61 +227,7 @@ fun thyname_of_const thy =
     (fn c => "thyname_of_const: no such constant: " ^ quote c);
 
 
-(* purification of identifiers *)
-
-val purify_name =
-  let
-    fun is_valid s = Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s orelse s = "'";
-    val is_junk = not o is_valid andf Symbol.not_eof;
-    val junk = Scan.many is_junk;
-    val scan_valids = Symbol.scanner "Malformed input"
-      ((junk |--
-        (Scan.optional (Scan.one Symbol.is_ascii_letter) "x" ^^ (Scan.many is_valid >> implode)
-        --| junk))
-      -- Scan.repeat ((Scan.many1 is_valid >> implode) --| junk) >> op ::);
-  in explode #> scan_valids #> space_implode "_" end;
-
-fun purify_op "0" = "zero"
-  | purify_op "1" = "one"
-  | purify_op s =
-      let
-        fun rep_op "+" = SOME "sum"
-          | rep_op "-" = SOME "diff"
-          | rep_op "*" = SOME "prod"
-          | rep_op "/" = SOME "quotient"
-          | rep_op "&" = SOME "conj"
-          | rep_op "|" = SOME "disj"
-          | rep_op "=" = SOME "eq"
-          | rep_op "~" = SOME "inv"
-          | rep_op "@" = SOME "append"
-          | rep_op s = NONE;
-        val scan_valids = Symbol.scanner "Malformed input"
-           (Scan.repeat (Scan.some rep_op || Scan.one Symbol.not_eof));
-      in (explode #> scan_valids #> implode) s end;
-
-val purify_lower =
-  explode
-  #> (fn cs => (if forall Symbol.is_ascii_upper cs
-        then map else nth_map 0) Symbol.to_ascii_lower cs)
-  #> implode;
-
-val purify_upper = explode #> nth_map 0 Symbol.to_ascii_upper #> implode;
-
-fun check_modulename mn =
-  let
-    val mns = NameSpace.explode mn;
-    val mns' = map purify_upper mns;
-  in
-    if mns' = mns then mn else error ("Invalid module name: " ^ quote mn ^ "\n"
-      ^ "perhaps try " ^ quote (NameSpace.implode mns'))
-  end
-
-fun purify_var "" = "x"
-  | purify_var v = (purify_name #> purify_lower) v;
-
-fun purify_tvar "" = "'a"
-  | purify_tvar v =
-      (unprefix "'" #> explode #> filter Symbol.is_ascii_letter #> cons "'" #> implode) v;
+(* naming policies *)
 
 val purify_idf = purify_op #> purify_name;
 val purify_prefix = map (purify_idf #> purify_upper);
@@ -244,9 +239,6 @@ val dotify =
   #> Symbol.scanner "Malformed name"
       (Scan.repeat ($$ "_" |-- $$ "_" >> (fn _ => ".") || Scan.one Symbol.not_eof))
   #> implode;
-
-
-(* naming policies *)
 
 fun policy thy get_basename get_thyname name =
   let
@@ -289,6 +281,14 @@ val nsp_classrel = "clsrel"
 val nsp_tyco = "tyco";
 val nsp_inst = "inst";
 val nsp_const = "const";
+
+val nsp_mapping = [
+  (nsp_class,       "class"),
+  (nsp_classrel,    "class relation"),
+  (nsp_tyco,        "type constructor"),
+  (nsp_inst,        "instance"),
+  (nsp_const,       "constant")
+]
 
 fun add_nsp nsp name =
   NameSpace.append name nsp
@@ -333,5 +333,50 @@ fun instance_rev thy =
 fun const_rev thy =
   dest_nsp nsp_const
   #> Option.map (rev thy #const "constant");
+
+fun labelled_name thy name =
+  let
+    val (base, nsp) = NameSpace.split name
+  in case AList.lookup (op =) nsp_mapping nsp
+   of SOME msg => msg ^ " " ^ quote base
+    | NONE => error ("illegal shallow name space: " ^ quote nsp)
+  end;
+
+
+(** variable and module names **)
+
+fun purify_var "" = "x"
+  | purify_var v = (purify_name #> purify_lower) v;
+
+fun purify_tvar "" = "'a"
+  | purify_tvar v =
+      (unprefix "'" #> explode #> filter Symbol.is_ascii_letter #> cons "'" #> implode) v;
+
+fun check_modulename mn =
+  let
+    val mns = NameSpace.explode mn;
+    val mns' = map purify_upper mns;
+  in
+    if mns' = mns then mn else error ("Invalid module name: " ^ quote mn ^ "\n"
+      ^ "perhaps try " ^ quote (NameSpace.implode mns'))
+  end;
+
+
+(** variable name contexts **)
+
+type var_ctxt = string Symtab.table * Name.context;
+
+fun make_vars names = (fold (fn name => Symtab.update_new (name, name)) names Symtab.empty,
+  Name.make_context names);
+
+fun intro_vars names (namemap, namectxt) =
+  let
+    val (names', namectxt') = Name.variants names namectxt;
+    val namemap' = fold2 (curry Symtab.update) names names' namemap;
+  in (namemap', namectxt') end;
+
+fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
+ of SOME name' => name'
+  | NONE => error ("invalid name in context: " ^ quote name);
 
 end;
