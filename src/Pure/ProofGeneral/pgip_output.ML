@@ -18,8 +18,9 @@ sig
                                area: PgipTypes.displayarea option, 
                                location: PgipTypes.location option, 
                                content: XML.content }
-    | Informfileloaded    of { url: PgipTypes.pgipurl }
-    | Informfileretracted of { url: PgipTypes.pgipurl }
+    | Informfileloaded    of { url: PgipTypes.pgipurl, completed: bool }
+    | Informfileoutdated  of { url: PgipTypes.pgipurl, completed: bool }
+    | Informfileretracted of { url: PgipTypes.pgipurl, completed: bool }
     | Proofstate          of { pgml: XML.content }
     | Metainforesponse    of { attrs: XML.attributes, 
                                content: XML.content }
@@ -70,8 +71,9 @@ datatype pgipoutput =
                                   messagecategory: messagecategory, content: XML.content }
        | Errorresponse       of { area: displayarea option, fatality: fatality, 
                                   location: location option, content: XML.content }
-       | Informfileloaded    of { url: Path.T }
-       | Informfileretracted of { url: Path.T }
+       | Informfileloaded    of { url: Path.T, completed: bool }
+       | Informfileoutdated  of { url: Path.T, completed: bool }
+       | Informfileretracted of { url: Path.T, completed: bool }
        | Proofstate          of { pgml: XML.content }
        | Metainforesponse    of { attrs: XML.attributes, content: XML.content }
        | Lexicalstructure    of { content: XML.content }
@@ -144,15 +146,34 @@ fun errorresponse (Errorresponse vs) =
 fun informfileloaded (Informfileloaded vs) =
     let 
         val url = #url vs
+        val completed = #completed vs
     in
-        XML.Elem ("informfileloaded", attrs_of_pgipurl url, [])
+        XML.Elem ("informfileloaded", 
+		  attrs_of_pgipurl url @ 
+		  (attr "completed" (PgipTypes.bool_to_pgstring completed)),
+		  [])
+    end
+
+fun informfileoutdated (Informfileoutdated vs) =
+    let 
+        val url = #url vs
+        val completed = #completed vs
+    in
+        XML.Elem ("informfileoutdated", 
+		  attrs_of_pgipurl url @ 
+		  (attr "completed" (PgipTypes.bool_to_pgstring completed)),
+		  [])
     end
 
 fun informfileretracted (Informfileretracted vs) =
     let 
         val url = #url vs
+        val completed = #completed vs
     in
-        XML.Elem ("informfileretracted", attrs_of_pgipurl url, [])
+        XML.Elem ("informfileretracted", 
+		  attrs_of_pgipurl url @ 
+		  (attr "completed" (PgipTypes.bool_to_pgstring completed)),
+		  [])
     end
 
 fun proofstate (Proofstate vs) =
@@ -328,6 +349,7 @@ fun output pgipoutput = case pgipoutput of
   | Normalresponse _        => normalresponse pgipoutput
   | Errorresponse _         => errorresponse pgipoutput
   | Informfileloaded _      => informfileloaded pgipoutput
+  | Informfileoutdated _    => informfileoutdated pgipoutput
   | Informfileretracted _   => informfileretracted pgipoutput
   | Proofstate _            => proofstate pgipoutput
   | Metainforesponse _      => metainforesponse pgipoutput
