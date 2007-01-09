@@ -50,18 +50,19 @@ val _ = Context.add_setup Funcgr.init;
 
 (** theorem purification **)
 
-fun norm_args thy thms =
+fun norm_args thms =
   let
     val num_args_of = length o snd o strip_comb o fst o Logic.dest_equals;
     val k = fold (curry Int.max o num_args_of o Drule.plain_prop_of) thms 0;
   in
     thms
-    |> map (CodegenFunc.expand_eta thy k)
+    |> map (CodegenFunc.expand_eta k)
     |> map (Drule.fconv_rule Drule.beta_eta_conversion)
   end;
 
-fun canonical_tvars thy thm =
+fun canonical_tvars thm =
   let
+    val ctyp = Thm.ctyp_of (Thm.theory_of_thm thm);
     fun tvars_subst_for thm = (fold_types o fold_atyps)
       (fn TVar (v_i as (v, _), sort) => let
             val v' = CodegenNames.purify_tvar v
@@ -72,14 +73,15 @@ fun canonical_tvars thy thm =
       let
         val ty = TVar (v_i, sort)
       in
-        (maxidx + 1, (ctyp_of thy ty, ctyp_of thy (TVar ((v', maxidx), sort))) :: acc)
+        (maxidx + 1, (ctyp ty, ctyp (TVar ((v', maxidx), sort))) :: acc)
       end;
     val maxidx = Thm.maxidx_of thm + 1;
     val (_, inst) = fold mk_inst (tvars_subst_for thm) (maxidx + 1, []);
   in Thm.instantiate (inst, []) thm end;
 
-fun canonical_vars thy thm =
+fun canonical_vars thm =
   let
+    val cterm = Thm.cterm_of (Thm.theory_of_thm thm);
     fun vars_subst_for thm = fold_aterms
       (fn Var (v_i as (v, _), ty) => let
             val v' = CodegenNames.purify_var v
@@ -90,11 +92,17 @@ fun canonical_vars thy thm =
       let
         val t = Var (v_i, ty)
       in
-        (maxidx + 1, (cterm_of thy t, cterm_of thy (Var ((v', maxidx), ty))) :: acc)
+        (maxidx + 1, (cterm t, cterm (Var ((v', maxidx), ty))) :: acc)
       end;
     val maxidx = Thm.maxidx_of thm + 1;
     val (_, inst) = fold mk_inst (vars_subst_for thm) (maxidx + 1, []);
   in Thm.instantiate ([], inst) thm end;
+
+fun canonical_absvars thm =
+  let
+    val t = Thm.prop_of thm;
+    val t' = Term.map_abs_vars CodegenNames.purify_var t;
+  in Thm.rename_boundvars t t' thm end;
 
 fun norm_varnames thy thms =
   let
@@ -106,9 +114,10 @@ fun norm_varnames thy thms =
           |> Conjunction.elim_list;
   in
     thms
-    |> norm_args thy
-    |> burrow_thms (canonical_tvars thy)
-    |> map (canonical_vars thy)
+    |> norm_args
+    |> burrow_thms canonical_tvars
+    |> map canonical_vars
+    |> map canonical_absvars
     |> map Drule.zero_var_indexes
   end;
 
@@ -146,8 +155,11 @@ fun add_things_of thy f (c, thms) =
 
 fun rhs_of thy (c, thms) =
   Consttab.empty
-  |> add_things_of thy (Consttab.update o rpair () o fst) (SOME c, thms)
+  |> add_things_of thy (Consttab.update o rpair () o fst) (c, thms)
   |> Consttab.keys;
+
+fun rhs_of' thy (c, thms) =
+  add_things_of thy (cons o snd) (c, thms) [];
 
 fun insts_of thy funcgr (c, ty) =
   let
@@ -176,12 +188,17 @@ fun insts_of thy funcgr (c, ty) =
     flat (maps of_sort_deriv (fold2 mk_inst tys tys_decl []))
   end;
 
+exception MISSING_INSTANCE of string * string; (*FIXME provide reasonable error tracking*)
+
 fun all_classops thy tyco class =
-  try (AxClass.params_of_class thy) class
-  |> Option.map snd
-  |> these
-  |> map (fn (c, _) => (c, CodegenConsts.disc_typ_of_classop thy (c, [Type (tyco, [])])))
-  |> map (CodegenConsts.norm_of_typ thy);
+  if can (Sign.arity_sorts thy tyco) [class]
+  then
+    try (AxClass.params_of_class thy) class
+    |> Option.map snd
+    |> these
+    |> map (fn (c, _) => (c, CodegenConsts.disc_typ_of_classop thy (c, [Type (tyco, [])])))
+    |> map (CodegenConsts.norm_of_typ thy)
+  else raise MISSING_INSTANCE (tyco, class);
 
 fun instdefs_of thy insts =
   let
@@ -198,7 +215,12 @@ fun insts_of_thms thy funcgr (c, thms) =
   let
     val insts = add_things_of thy (fn (_, c_ty) => fold (insert (op =))
       (insts_of thy funcgr c_ty)) (SOME c, thms) [];
-  in instdefs_of thy insts end;
+  in
+    instdefs_of thy insts handle MISSING_INSTANCE (tyco, class) =>
+      error ("No such instance: " ^ quote tyco ^ ", " ^ quote class
+            ^ "\nin function theorems\n"
+            ^ (cat_lines o map string_of_thm) thms)
+  end;
 
 fun ensure_const thy funcgr c auxgr =
   if can (Constgraph.get_node funcgr) c
@@ -211,7 +233,7 @@ fun ensure_const thy funcgr c auxgr =
     |> pair (SOME c)
   else let
     val thms = norm_varnames thy (CodegenData.these_funcs thy c);
-    val rhs = rhs_of thy (c, thms);
+    val rhs = rhs_of thy (SOME c, thms);
   in
     auxgr
     |> Constgraph.new_node (c, thms)
@@ -221,16 +243,12 @@ fun ensure_const thy funcgr c auxgr =
     |> pair (SOME c)
   end;
 
-exception INVALID of CodegenConsts.const list * string;
+exception INVALID of CodegenConsts.const list * string;  (*FIXME provide reasonable error tracking*)
 
-fun specialize_typs thy funcgr eqss =
+(*FIXME: clarify algorithm*)
+fun specialize_typs' thy funcgr eqss =
   let
-    fun max [] = 0
-      | max [l] = l
-      | max (k::l::ls) = max ((if k < l then l else k) :: ls);
-    fun typscheme_of (c, ty) =
-      try (Constgraph.get_node funcgr) (CodegenConsts.norm_of_typ thy (c, ty))
-      |> Option.map fst;
+    fun max xs = fold (curry Int.max) xs 0;
     fun incr_indices (c, thms) maxidx =
       let
         val thms' = map (Thm.incr_indexes (maxidx + 1)) thms;
@@ -239,8 +257,8 @@ fun specialize_typs thy funcgr eqss =
     val (eqss', maxidx) =
       fold_map incr_indices eqss 0;
     fun unify_const (c, ty) (env, maxidx) =
-      case typscheme_of (c, ty)
-       of SOME ty_decl => let
+      case try (Constgraph.get_node funcgr) (CodegenConsts.norm_of_typ thy (c, ty))
+       of SOME (ty_decl, _) => let
             val ty_decl' = Logic.incr_tvar (maxidx + 1) ty_decl;
             val maxidx' = max [maxidx, Term.maxidx_of_typ ty_decl'];
           in Type.unify (Sign.tsig_of thy) (ty_decl', ty) (env, maxidx')
@@ -265,34 +283,34 @@ fun specialize_typs thy funcgr eqss =
               end;
             val instmap = map mk_inst tvars;
             val (thms' as thm' :: _) = map (Drule.zero_var_indexes o Thm.instantiate (instmap, [])) thms;
-            val _ = if fst c = "" then ()
-              else case pairself (CodegenData.typ_func thy) (thm, thm')
+            val _ = case c of NONE => ()
+              | SOME c => (case pairself CodegenFunc.typ_func (thm, thm')
                of (ty, ty') => if (is_none o AxClass.class_of_param thy o fst) c
                   andalso Sign.typ_equiv thy (Type.strip_sorts ty, Type.strip_sorts ty')
                   orelse Sign.typ_equiv thy (ty, ty')
                   then ()
-                  else raise INVALID ([], "illegal function type instantiation:\n" ^ Sign.string_of_typ thy (CodegenData.typ_func thy thm)
-                    ^ "\nto " ^ Sign.string_of_typ thy (CodegenData.typ_func thy thm')
+                  else raise INVALID ([], "illegal function type instantiation:\n" ^ Sign.string_of_typ thy (CodegenFunc.typ_func thm)
+                    ^ "\nto " ^ Sign.string_of_typ thy (CodegenFunc.typ_func thm')
                     ^ ",\nfor constant " ^ CodegenConsts.string_of_const thy c
                     ^ "\nin function theorems\n"
-                    ^ (cat_lines o map string_of_thm) thms)
+                    ^ (cat_lines o map string_of_thm) thms))
           in (c, thms') end;
-    fun rhs_of' thy (("", []), thms as [_]) =
-          add_things_of thy (cons o snd) (NONE, thms) []
-      | rhs_of' thy (c, thms) =
-          add_things_of thy (cons o snd) (SOME c, thms) [];
     val (unif, _) =
       fold (fn (c, thms) => fold unify_const (rhs_of' thy (c, thms)))
         eqss' (Vartab.empty, maxidx);
-    val eqss'' =
-      map (apply_unifier unif) eqss';
+    val eqss'' = map (apply_unifier unif) eqss';
   in eqss'' end;
+
+fun specialize_typs thy funcgr =
+  (map o apfst) SOME
+  #> specialize_typs' thy funcgr
+  #> (map o apfst) the;
 
 fun merge_eqsyss thy raw_eqss funcgr =
   let
     val eqss = specialize_typs thy funcgr raw_eqss;
     val tys = map (CodegenData.typ_funcs thy) eqss;
-    val rhss = map (rhs_of thy) eqss;
+    val rhss = map (rhs_of thy o apfst SOME) eqss;
   in
     funcgr
     |> fold2 (fn (c, thms) => fn ty => Constgraph.new_node (c, (ty, thms))) eqss tys
@@ -339,13 +357,13 @@ fun make_term thy f ct =
   let
     val _ = Sign.no_vars (Sign.pp thy) (Thm.term_of ct);
     val _ = Term.fold_types (Type.no_tvars #> K I) (Thm.term_of ct) ();
-    val thm1 = CodegenData.preprocess_cterm thy ct;
+    val thm1 = CodegenData.preprocess_cterm ct;
     val ct' = Drule.dest_equals_rhs (Thm.cprop_of thm1);
     val consts = CodegenConsts.consts_of thy (Thm.term_of ct');
     val funcgr = make thy consts;
     val (_, thm2) = Thm.varifyT' [] thm1;
     val thm3 = Thm.reflexive (Drule.dest_equals_rhs (Thm.cprop_of thm2));
-    val [(_, [thm4])] = specialize_typs thy funcgr [(("", []), [thm3])];
+    val [(_, [thm4])] = specialize_typs' thy funcgr [(NONE, [thm3])];
     val tfrees = Term.add_tfrees (Thm.prop_of thm1) [];
     fun inst thm =
       let
@@ -358,8 +376,12 @@ fun make_term thy f ct =
     val ct'' = Drule.dest_equals_rhs (Thm.cprop_of thm6);
     val cs = fold_aterms (fn Const c => cons c | _ => I) (Thm.term_of ct'') [];
     val drop = drop_classes thy tfrees;
-    val funcgr' = ensure_consts thy
-      (instdefs_of thy (fold (fold (insert (op =)) o insts_of thy funcgr) cs [])) funcgr
+    val instdefs = instdefs_of thy (fold (fold (insert (op =)) o insts_of thy funcgr) cs [])
+      handle MISSING_INSTANCE (tyco, class) =>
+        error ("No such instance: " ^ quote tyco ^ ", " ^ quote class
+          ^ "\nwhile prcoessing term\n"
+          ^ string_of_cterm ct)
+    val funcgr' = ensure_consts thy instdefs funcgr;
   in (f drop ct'' thm5, Funcgr.change thy (K funcgr')) end;
 
 end; (*local*)
