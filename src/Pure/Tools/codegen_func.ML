@@ -116,28 +116,6 @@ fun gen_check_func strict_functyp thm = case try dest_func thm
 val check_func = gen_check_func true;
 val legacy_check_func = gen_check_func false;
 
-fun check_typ_classop thm =
-  let
-    val thy = Thm.theory_of_thm thm;
-    val (c_ty as (c, ty), _) = dest_func thm;
-  in case AxClass.class_of_param thy c
-   of SOME class => let
-        val const = CodegenConsts.norm_of_typ thy c_ty;
-        val ty_decl = CodegenConsts.disc_typ_of_const thy
-            (snd o CodegenConsts.typ_of_inst thy) const;
-        val string_of_typ = setmp show_sorts true (Sign.string_of_typ thy);
-      in if Sign.typ_equiv thy (ty_decl, ty)
-        then thm
-        else error
-          ("Type\n" ^ string_of_typ ty
-           ^ "\nof function theorem\n"
-           ^ string_of_thm thm
-           ^ "\nis strictly less general than declared function type\n"
-           ^ string_of_typ ty_decl)
-      end
-    | NONE => thm
-  end;
-
 fun gen_mk_func check_func = map_filter check_func o mk_rew;
 val mk_func = gen_mk_func check_func;
 val legacy_mk_func = gen_mk_func legacy_check_func;

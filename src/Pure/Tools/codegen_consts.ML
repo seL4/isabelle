@@ -75,14 +75,11 @@ fun find_def thy (c, tys) =
     get_first get_def specs
   end;
 
-fun mk_classop_typinst thy (c, tyco) =
-  (c, [Type (tyco, map (fn v => TVar ((v, 0), Sign.defaultS thy (*for monotonicity*)))
-    (Name.invents Name.context "'a" (Sign.arity_number thy tyco)))]);
-
 fun norm thy (c, insts) =
   let
     fun disciplined _ [(Type (tyco, _))] =
-          mk_classop_typinst thy (c, tyco)
+          (c, [Type (tyco, map (fn v => TVar ((v, 0), []))
+            (Name.invents Name.context "'a" (Sign.arity_number thy tyco)))])
       | disciplined sort _ =
           (c, [TVar (("'a", 0), sort)]);
     fun ad_hoc c tys =
