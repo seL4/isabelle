@@ -33,6 +33,8 @@ fun trace s = if !Output.show_debug_msgs then File.append (File.tmp_path trace_p
 (*Full proof reconstruction wanted*)
 val full = ref true;
 
+val min_deps = ref 2;    (*consolidate proof lines containing fewer dependencies*)
+
 (**** PARSING OF TSTP FORMAT ****)
 
 (*Syntax trees, either termlist or formulae*)
@@ -373,23 +375,32 @@ fun replace_deps (old, new) (lno, t, deps) =
   Consolidate adjacent lines that prove the same clause, since they differ only in type
   information.*)
 fun add_prfline ((lno, "axiom", t, []), lines) =  (*axioms are not proof lines*)
-      if eq_false t then lines   (*must be clsrel/clsarity: type information*)
+      if eq_false t (*must be clsrel/clsarity: type information, so delete refs to it*)
+      then map (replace_deps (lno, [])) lines   
       else (case take_prefix (notequal t) lines of
-               (_,[]) => lines   (*no repetition of proof line*)
-             | (pre, (lno',t',deps')::post) => 
+               (_,[]) => lines                  (*no repetition of proof line*)
+             | (pre, (lno',t',deps')::post) =>  (*repetition: replace later line by earlier one*)
                  pre @ map (replace_deps (lno', [lno])) post)
   | add_prfline ((lno, role, t, []), lines) =  (*no deps: conjecture clause*)
-      if eq_false t then lines   (*must be tfree_tcs: type information*)
+      if eq_false t (*must be tfree_tcs: type information, so delete refs to it*)
+      then map (replace_deps (lno, [])) lines   
       else (lno, t, []) :: lines
   | add_prfline ((lno, role, t, deps), lines) =
-      (case term_tvars t of (*Delete line if it has TVars: they are forbidden in goals*)
-          _::_ => map (replace_deps (lno, deps)) lines
-        | [] => 
-            case take_prefix (notequal t) lines of
-               (_,[]) => (lno, t, deps) :: lines   (*no repetition of proof line*)
-             | (pre, (lno',t',deps')::post) => 
-                 (lno, t', deps) ::  (*replace later line by earlier one*)
-                 (pre @ map (replace_deps (lno', [lno])) post));
+      case take_prefix (notequal t) lines of
+         (_,[]) => (lno, t, deps) :: lines  (*no repetition of proof line*)
+       | (pre, (lno',t',deps')::post) => 
+           (lno, t', deps) ::               (*repetition: replace later line by earlier one*)
+           (pre @ map (replace_deps (lno', [lno])) post);
+
+(*TVars are forbidden in goals. Also, we don't want lines with too few dependencies. 
+  Deleted lines are replaced by their own dependencies. Note that the previous "add_prfline"
+  phase may delete some dependencies, hence this phase comes later.*)
+fun add_wanted_prfline ((lno, t, []), lines) =
+      (lno, t, []) :: lines   (*conjecture clauses must be kept*)
+  | add_wanted_prfline ((lno, t, deps), lines) =
+      if not (null (term_tvars t)) orelse length deps < !min_deps
+      then map (replace_deps (lno, deps)) lines (*Delete line*)
+      else (lno, t, deps) :: lines;
 
 (*Replace numeric proof lines by strings, either from thm_names or sequential line numbers*)
 fun stringify_deps thm_names deps_map [] = []
@@ -411,7 +422,8 @@ fun isar_header [] = proofstart
 
 fun decode_tstp_file cnfs ctxt th sgno thm_names =
   let val tuples = map (dest_tstp o tstp_line o explode) cnfs
-      val lines = foldr add_prfline [] (decode_tstp_list ctxt tuples)
+      val lines = foldr add_wanted_prfline [] 
+                    (foldr add_prfline [] (decode_tstp_list ctxt tuples))
       val (ccls,fixes) = ResAxioms.neg_conjecture_clauses th sgno
       val ccls = map forall_intr_vars ccls
   in  
