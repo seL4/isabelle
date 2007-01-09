@@ -336,12 +336,13 @@ fun dest_case_app cs ts tys =
     val abs = Name.names Name.context "a" (Library.drop (length ts, tys));
     val (ts', t) = split_last (ts @ map Free abs);
     val (tys', sty) = split_last tys;
-    fun dest_case ((c, tys_decl), ty) t =
-      let
-        val (vs, t') = Term.strip_abs_eta (length tys_decl) t;
-        val c' = list_comb (Const (c, map snd vs ---> sty), map Free vs);
-      in (c', t') end;
-  in (abs, ((t, sty), map2 dest_case (cs ~~ tys') ts')) end;
+    fun dest_case _ (Const ("undefined", _)) = NONE
+      | dest_case ((c, tys_decl), ty) t =
+          let
+            val (vs, t') = Term.strip_abs_eta (length tys_decl) t;
+            val c' = list_comb (Const (c, map snd vs ---> sty), map Free vs);
+          in SOME (c', t') end;
+  in (abs, ((t, sty), map2 dest_case (cs ~~ tys') ts' |> map_filter I)) end;
 
 fun dest_case_expr thy t =
   case strip_comb t
