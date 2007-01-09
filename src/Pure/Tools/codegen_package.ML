@@ -90,10 +90,10 @@ val _ = Context.add_setup (Code.init #> CodegenPackageData.init);
 
 fun prep_eqs thy (thms as thm :: _) =
   let
-    val ty = (Logic.unvarifyT o CodegenData.typ_func thy) thm;
+    val ty = (Logic.unvarifyT o CodegenFunc.typ_func) thm;
     val thms' = if (null o Term.typ_tfrees) ty orelse (null o fst o strip_type) ty
       then thms
-      else map (CodegenFunc.expand_eta thy 1) thms;
+      else map (CodegenFunc.expand_eta 1) thms;
   in (ty, thms') end;
 
 
@@ -109,6 +109,8 @@ fun check_strict (false, _) has_seri x =
 fun get_abstype thy (tyco, tys) = case Symtab.lookup ((fst o snd o CodegenPackageData.get) thy) tyco
  of SOME ty => SOME ((map_atyps (fn TFree (n, _) => nth tys (the (Int.fromString n)))) ty)
   | NONE => NONE;
+
+fun ensure_def thy = CodegenThingol.ensure_def (CodegenNames.labelled_name thy);
 
 fun ensure_def_class thy (algbr as ((proj_sort, _), _)) funcgr strct class trns =
   let
@@ -126,7 +128,7 @@ fun ensure_def_class thy (algbr as ((proj_sort, _), _)) funcgr strct class trns 
   in
     trns
     |> tracing (fn _ => "generating class " ^ quote class)
-    |> CodegenThingol.ensure_def defgen_class true
+    |> ensure_def thy defgen_class true
         ("generating class " ^ quote class) class'
     |> pair class'
   end
@@ -151,7 +153,7 @@ and ensure_def_tyco thy algbr funcgr strct tyco trns =
   in
     trns
     |> tracing (fn _ => "generating type constructor " ^ quote tyco)
-    |> CodegenThingol.ensure_def defgen_datatype strict
+    |> ensure_def thy defgen_datatype strict
         ("generating type constructor " ^ quote tyco) tyco'
     |> pair tyco'
   end
@@ -260,7 +262,7 @@ and ensure_def_inst thy (algbr as ((proj_sort, _), _)) funcgr strct (class, tyco
   in
     trns
     |> tracing (fn _ => "generating instance " ^ quote class ^ " / " ^ quote tyco)
-    |> CodegenThingol.ensure_def defgen_inst true
+    |> ensure_def thy defgen_inst true
          ("generating instance " ^ quote class ^ " / " ^ quote tyco) inst
     |> pair inst
   end
@@ -315,7 +317,7 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr strct (c_tys as (c, tys))
     trns
     |> tracing (fn _ => "generating constant "
         ^ (quote o CodegenConsts.string_of_const thy) c_tys)
-    |> CodegenThingol.ensure_def defgen strict ("generating constant "
+    |> ensure_def thy defgen strict ("generating constant "
          ^ CodegenConsts.string_of_const thy c_tys) c'
     |> pair c'
   end
@@ -330,7 +332,7 @@ and exprgen_term thy algbr funcgr strct (Const (c, ty)) trns =
       |-> (fn _ => pair (IVar v))
   | exprgen_term thy algbr funcgr strct (Abs (raw_v, ty, raw_t)) trns =
       let
-        val (v, t) = Syntax.variant_abs (CodegenNames.purify_var raw_v, ty, raw_t);
+        val (v, t) = Syntax.variant_abs (raw_v, ty, raw_t);
       in
         trns
         |> exprgen_type thy algbr funcgr strct ty
@@ -430,38 +432,10 @@ val debug_term = ref (Bound 0);
 fun appgen_case dest_case_expr thy algbr funcgr strct (app as (c_ty, ts)) trns =
   let
     val SOME ([], ((st, sty), ds)) = dest_case_expr thy (list_comb (Const c_ty, ts));
-    fun fold_map_aterms f (t1 $ t2) s =
-          s
-          |> fold_map_aterms f t1
-          ||>> fold_map_aterms f t2
-          |-> (fn (t1, t2) => pair (t1 $ t2))
-      | fold_map_aterms f (Abs (v, ty, t)) s =
-          s
-          |> fold_map_aterms f t
-          |-> (fn t' => pair (Abs (v, ty, t')))
-      | fold_map_aterms f a s = f a s;
-    fun purify_term_frees (Free (v, ty)) (renaming, ctxt) = 
-          let
-            val ([v'], ctxt') = Name.variants [CodegenNames.purify_var v] ctxt;
-            val renaming' = if v <> v' then Symtab.update (v, v') renaming else renaming;
-          in (Free (v', ty), (renaming', ctxt')) end
-      | purify_term_frees t ctxt = (t, ctxt);
-    fun clausegen (raw_dt, raw_bt) trns =
-      let
-        val d_vs = map fst (Term.add_frees raw_dt []);
-        val b_vs = map fst (Term.add_frees raw_bt []);
-        val (dt, (renaming, ctxt)) =
-          Name.context
-          |> fold Name.declare (subtract (op =) d_vs b_vs)
-          |> pair Symtab.empty
-          |> fold_map_aterms purify_term_frees raw_dt;
-        val bt = map_aterms (fn t as Free (v, ty) => Free (perhaps (Symtab.lookup renaming) v, ty)
-                              | t => t) raw_bt;
-      in
-        trns
-        |> exprgen_term thy algbr funcgr strct dt
-        ||>> exprgen_term thy algbr funcgr strct bt
-      end;
+    fun clausegen (dt, bt) trns =
+      trns
+      |> exprgen_term thy algbr funcgr strct dt
+      ||>> exprgen_term thy algbr funcgr strct bt;
   in
     trns
     |> exprgen_term thy algbr funcgr strct st
