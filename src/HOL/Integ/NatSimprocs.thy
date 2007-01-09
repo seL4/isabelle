@@ -239,7 +239,7 @@ lemmas inverse_eq_divide_number_of =
 declare inverse_eq_divide_number_of [simp]
 
 
-text{*These laws simplify inequalities, moving unary minus from a term
+subsubsection{*These laws simplify inequalities, moving unary minus from a term
 into the literal.*}
 lemmas less_minus_iff_number_of =
     less_minus_iff [of "number_of v", standard]
@@ -267,27 +267,40 @@ lemmas minus_equation_iff_number_of =
 declare minus_equation_iff_number_of [simp]
 
 
-text{*These simplify inequalities where one side is the constant 1.*}
-lemmas less_minus_iff_1 = less_minus_iff [of 1, simplified]
-declare less_minus_iff_1 [simp]
+subsubsection{*To Simplify Inequalities Where One Side is the Constant 1*}
 
-lemmas le_minus_iff_1 = le_minus_iff [of 1, simplified]
-declare le_minus_iff_1 [simp]
+lemma less_minus_iff_1 [simp]: 
+  fixes b::"'b::{ordered_idom,number_ring}" 
+  shows "(1 < - b) = (b < -1)"
+by auto
 
-lemmas equation_minus_iff_1 = equation_minus_iff [of 1, simplified]
-declare equation_minus_iff_1 [simp]
+lemma le_minus_iff_1 [simp]: 
+  fixes b::"'b::{ordered_idom,number_ring}" 
+  shows "(1 \<le> - b) = (b \<le> -1)"
+by auto
 
-lemmas minus_less_iff_1 = minus_less_iff [of _ 1, simplified]
-declare minus_less_iff_1 [simp]
+lemma equation_minus_iff_1 [simp]: 
+  fixes b::"'b::number_ring" 
+  shows "(1 = - b) = (b = -1)"
+by (subst equation_minus_iff, auto) 
 
-lemmas minus_le_iff_1 = minus_le_iff [of _ 1, simplified]
-declare minus_le_iff_1 [simp]
+lemma minus_less_iff_1 [simp]: 
+  fixes a::"'b::{ordered_idom,number_ring}" 
+  shows "(- a < 1) = (-1 < a)"
+by auto
 
-lemmas minus_equation_iff_1 = minus_equation_iff [of _ 1, simplified]
-declare minus_equation_iff_1 [simp]
+lemma minus_le_iff_1 [simp]: 
+  fixes a::"'b::{ordered_idom,number_ring}" 
+  shows "(- a \<le> 1) = (-1 \<le> a)"
+by auto
+
+lemma minus_equation_iff_1 [simp]: 
+  fixes a::"'b::number_ring" 
+  shows "(- a = 1) = (a = -1)"
+by (subst minus_equation_iff, auto) 
 
 
-text {*Cancellation of constant factors in comparisons (@{text "<"} and @{text "\<le>"}) *}
+subsubsection {*Cancellation of constant factors in comparisons (@{text "<"} and @{text "\<le>"}) *}
 
 lemmas mult_less_cancel_left_number_of =
     mult_less_cancel_left [of "number_of v", standard]
@@ -306,7 +319,7 @@ lemmas mult_le_cancel_right_number_of =
 declare mult_le_cancel_right_number_of [simp]
 
 
-text {*Multiplying out constant divisors in comparisons (@{text "<"}, @{text "\<le>"} and @{text "="}) *}
+subsubsection {*Multiplying out constant divisors in comparisons (@{text "<"}, @{text "\<le>"} and @{text "="}) *}
 
 lemmas le_divide_eq_number_of = le_divide_eq [of _ _ "number_of w", standard]
 declare le_divide_eq_number_of [simp]
