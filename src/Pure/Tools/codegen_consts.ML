@@ -4,7 +4,7 @@
 
 Identifying constants by name plus normalized type instantantiation schemes.
 Type normalization is compatible with overloading discipline and user-defined
-ad-hoc overloading. Convenient data structures for constants.
+ad-hoc overloading.  Convenient data structures for constants.
 *)
 
 signature CODEGEN_CONSTS =
