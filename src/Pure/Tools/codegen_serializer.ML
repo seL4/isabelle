@@ -240,9 +240,9 @@ fun pretty_list c_nil c_cons mk_list mk_char_string (target_fxy, target_cons) =
         | NONE => default fxy pr t1 t2;
   in (2, pretty) end;
 
-fun pretty_imperative_monad_bind c_bind =
+val pretty_imperative_monad_bind =
   let
-    fun pretty fxy pr [t1, (v, ty) `|-> t2] =
+    fun pretty fxy (pr : fixity -> iterm -> Pretty.T) [t1, (v, ty) `|-> t2] =
           pr fxy (ICase ((t1, ty), ([(IVar v, t2)])))
       | pretty _ _ _ = error "bad arguments for imperative monad bind";
   in (2, pretty) end;
@@ -327,7 +327,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
     fun pr_term vars fxy (IConst c) =
           pr_app vars fxy (c, [])
       | pr_term vars fxy (IVar v) =
-          str (CodegenThingol.lookup_var vars v)
+          str (CodegenNames.lookup_var vars v)
       | pr_term vars fxy (t as t1 `$ t2) =
           (case CodegenThingol.unfold_const_app t
            of SOME c_ts => pr_app vars fxy c_ts
@@ -338,17 +338,17 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
             val (ps, t') = CodegenThingol.unfold_abs t;
             fun pr ((v, NONE), _) vars =
                   let
-                    val vars' = CodegenThingol.intro_vars [v] vars;
+                    val vars' = CodegenNames.intro_vars [v] vars;
                   in
-                    (concat [str "fn", str (CodegenThingol.lookup_var vars' v), str "=>"], vars')
+                    (concat [str "fn", str (CodegenNames.lookup_var vars' v), str "=>"], vars')
                   end
               | pr ((v, SOME p), _) vars =
                   let
-                    val vars' = CodegenThingol.intro_vars [v] vars;
+                    val vars' = CodegenNames.intro_vars [v] vars;
                     val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                    val vars'' = CodegenThingol.intro_vars vs vars';
+                    val vars'' = CodegenNames.intro_vars vs vars';
                   in
-                    (concat [str "fn", str (CodegenThingol.lookup_var vars' v), str "as",
+                    (concat [str "fn", str (CodegenNames.lookup_var vars' v), str "as",
                       pr_term vars'' NOBR p, str "=>"], vars'')
                   end;
             val (ps', vars') = fold_map pr ps vars;
@@ -368,7 +368,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
             fun mk ((p, _), t'') vars =
               let
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = CodegenThingol.intro_vars vs vars;
+                val vars' = CodegenNames.intro_vars vs vars;
               in
                 (Pretty.block [
                   concat [
@@ -392,7 +392,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
             fun pr definer (p, t) =
               let
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = CodegenThingol.intro_vars vs vars;
+                val vars' = CodegenNames.intro_vars vs vars;
               in
                 concat [
                   str definer,
@@ -445,8 +445,8 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                         then NONE else (SOME o NameSpace.base o deresolv) c)
                         ((fold o CodegenThingol.fold_constnames) (insert (op =)) (t :: ts) []);
                     val vars = keyword_vars
-                      |> CodegenThingol.intro_vars consts
-                      |> CodegenThingol.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
+                      |> CodegenNames.intro_vars consts
+                      |> CodegenNames.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
                            (insert (op =)) ts []);
                   in
                     concat (
@@ -536,7 +536,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                     then NONE else (SOME o NameSpace.base o deresolv) c)
                     (CodegenThingol.fold_constnames (insert (op =)) t []);
                 val vars = keyword_vars
-                  |> CodegenThingol.intro_vars consts;
+                  |> CodegenNames.intro_vars consts;
               in
                 concat [
                   (str o mk_classop_name) classop,
@@ -639,7 +639,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
     fun pr_term vars fxy (IConst c) =
           pr_app vars fxy (c, [])
       | pr_term vars fxy (IVar v) =
-          str (CodegenThingol.lookup_var vars v)
+          str (CodegenNames.lookup_var vars v)
       | pr_term vars fxy (t as t1 `$ t2) =
           (case CodegenThingol.unfold_const_app t
            of SOME c_ts => pr_app vars fxy c_ts
@@ -650,20 +650,20 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
             val (ps, t') = CodegenThingol.unfold_abs t;
             fun pr ((v, NONE), _) vars =
                   let
-                    val vars' = CodegenThingol.intro_vars [v] vars;
+                    val vars' = CodegenNames.intro_vars [v] vars;
                   in
-                    (str (CodegenThingol.lookup_var vars' v), vars')
+                    (str (CodegenNames.lookup_var vars' v), vars')
                   end
               | pr ((v, SOME p), _) vars =
                   let
-                    val vars' = CodegenThingol.intro_vars [v] vars;
+                    val vars' = CodegenNames.intro_vars [v] vars;
                     val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                    val vars'' = CodegenThingol.intro_vars vs vars';
+                    val vars'' = CodegenNames.intro_vars vs vars';
                   in
                     (brackify BR [
                         pr_term vars'' NOBR p,
                         str "as",
-                        str (CodegenThingol.lookup_var vars' v)
+                        str (CodegenNames.lookup_var vars' v)
                     ], vars'')
                   end;
             val (ps', vars') = fold_map pr ps vars;
@@ -689,7 +689,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
             fun mk ((p, _), t'') vars =
               let
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = CodegenThingol.intro_vars vs vars;
+                val vars' = CodegenNames.intro_vars vs vars;
               in
                 (concat [
                   str "let",
@@ -708,7 +708,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
             fun pr definer (p, t) =
               let
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = CodegenThingol.intro_vars vs vars;
+                val vars' = CodegenNames.intro_vars vs vars;
               in
                 concat [
                   str definer,
@@ -749,8 +749,8 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                 val raw_fished = fold (map2 fish_parm) eqs (replicate (length (hd eqs)) NONE);
                 val x = Name.variant (map_filter I raw_fished) "x";
                 val fished = map_index (fillup_parm x) raw_fished;
-                val vars' = CodegenThingol.intro_vars fished vars;
-              in map (CodegenThingol.lookup_var vars') fished end;
+                val vars' = CodegenNames.intro_vars fished vars;
+              in map (CodegenNames.lookup_var vars') fished end;
             fun pr_eq (ts, t) =
               let
                 val consts = map_filter
@@ -758,8 +758,8 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                     then NONE else (SOME o NameSpace.base o deresolv) c)
                     ((fold o CodegenThingol.fold_constnames) (insert (op =)) (t :: ts) []);
                 val vars = keyword_vars
-                  |> CodegenThingol.intro_vars consts
-                  |> CodegenThingol.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
+                  |> CodegenNames.intro_vars consts
+                  |> CodegenNames.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
                       (insert (op =)) ts []);
               in concat [
                 (Pretty.block o Pretty.commas) (map (pr_term vars NOBR) ts),
@@ -773,8 +773,8 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                         then NONE else (SOME o NameSpace.base o deresolv) c)
                         ((fold o CodegenThingol.fold_constnames) (insert (op =)) (t :: ts) []);
                     val vars = keyword_vars
-                      |> CodegenThingol.intro_vars consts
-                      |> CodegenThingol.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
+                      |> CodegenNames.intro_vars consts
+                      |> CodegenNames.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
                           (insert (op =)) ts []);
                   in
                     concat (
@@ -799,7 +799,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                         then NONE else (SOME o NameSpace.base o deresolv) c)
                         ((fold o CodegenThingol.fold_constnames) (insert (op =)) (map snd eqs) []);
                     val vars = keyword_vars
-                      |> CodegenThingol.intro_vars consts;
+                      |> CodegenNames.intro_vars consts;
                     val dummy_parms = (map str o fish_parms vars o map fst) eqs;
                   in
                     Pretty.block (
@@ -892,7 +892,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                     then NONE else (SOME o NameSpace.base o deresolv) c)
                     (CodegenThingol.fold_constnames (insert (op =)) t []);
                 val vars = keyword_vars
-                  |> CodegenThingol.intro_vars consts;
+                  |> CodegenNames.intro_vars consts;
               in
                 concat [
                   (str o deresolv) classop,
@@ -957,7 +957,7 @@ fun seri_ml pr_def pr_modl output reserved_user module_alias module_prolog
                     val (x, nsp_nodes') = map_nsp_yield ms f nsp_nodes
                   in (x, Module (dmodlname, nsp_nodes')) end)
           in (x, (nsp, nodes')) end;
-    val init_vars = CodegenThingol.make_vars (ML_Syntax.reserved_names @ reserved_user);
+    val init_vars = CodegenNames.make_vars (ML_Syntax.reserved_names @ reserved_user);
     val name_modl = mk_modl_name_tab empty_names NONE module_alias code;
     fun name_def upper name nsp =
       let
@@ -1129,7 +1129,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
         | xs => Pretty.block [
             Pretty.enum "," "(" ")" (
               map (fn (v, class) => str
-                (class_name class ^ " " ^ CodegenThingol.lookup_var tyvars v)) xs
+                (class_name class ^ " " ^ CodegenNames.lookup_var tyvars v)) xs
             ),
             str " => "
           ];
@@ -1146,7 +1146,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
                   ^ string_of_int i ^ " expected")
                 else pr fxy (pr_typ tyvars) tys)
       | pr_typ tyvars fxy (ITyVar v) =
-          (str o CodegenThingol.lookup_var tyvars) v;
+          (str o CodegenNames.lookup_var tyvars) v;
     fun pr_typscheme_expr tyvars (vs, tycoexpr) =
       Pretty.block [pr_typparms tyvars vs, pr_tycoexpr tyvars NOBR tycoexpr];
     fun pr_typscheme tyvars (vs, ty) =
@@ -1162,23 +1162,23 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
                   pr_term vars BR t2
                 ])
       | pr_term vars fxy (IVar v) =
-          (str o CodegenThingol.lookup_var vars) v
+          (str o CodegenNames.lookup_var vars) v
       | pr_term vars fxy (t as _ `|-> _) =
           let
             val (ps, t') = CodegenThingol.unfold_abs t;
             fun pr ((v, SOME p), _) vars =
                   let
-                    val vars' = CodegenThingol.intro_vars [v] vars;
+                    val vars' = CodegenNames.intro_vars [v] vars;
                     val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                    val vars'' = CodegenThingol.intro_vars vs vars';
+                    val vars'' = CodegenNames.intro_vars vs vars';
                   in
-                    (concat [str (CodegenThingol.lookup_var vars' v),
+                    (concat [str (CodegenNames.lookup_var vars' v),
                       str "@", pr_term vars'' BR p], vars'')
                   end
               | pr ((v, NONE), _) vars =
                   let
-                    val vars' = CodegenThingol.intro_vars [v] vars;
-                  in (str (CodegenThingol.lookup_var vars' v), vars') end;
+                    val vars' = CodegenNames.intro_vars [v] vars;
+                  in (str (CodegenNames.lookup_var vars' v), vars') end;
             val (ps', vars') = fold_map pr ps vars;
           in
             brackify BR (
@@ -1206,7 +1206,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
             fun pr ((p, _), t) vars =
               let
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = CodegenThingol.intro_vars vs vars;
+                val vars' = CodegenNames.intro_vars vs vars;
               in
                 (semicolon [
                   pr_term vars' BR p,
@@ -1226,7 +1226,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
             fun pr (p, t) =
               let
                 val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = CodegenThingol.intro_vars vs vars;
+                val vars' = CodegenNames.intro_vars vs vars;
               in
                 semicolon [
                   pr_term vars' NOBR p,
@@ -1246,7 +1246,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
       mk_app (pr_app' vars) (pr_term vars) const_syntax fxy;
     fun pr_def (name, CodegenThingol.Fun (eqs, (vs, ty))) =
           let
-            val tyvars = CodegenThingol.intro_vars (map fst vs) keyword_vars;
+            val tyvars = CodegenNames.intro_vars (map fst vs) keyword_vars;
             fun pr_eq (ts, t) =
               let
                 val consts = map_filter
@@ -1254,8 +1254,8 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
                     then NONE else (SOME o NameSpace.base o deresolv) c)
                     ((fold o CodegenThingol.fold_constnames) (insert (op =)) (t :: ts) []);
                 val vars = keyword_vars
-                  |> CodegenThingol.intro_vars consts
-                  |> CodegenThingol.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
+                  |> CodegenNames.intro_vars consts
+                  |> CodegenNames.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
                        (insert (op =)) ts []);
               in
                 semicolon (
@@ -1278,7 +1278,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
           end
       | pr_def (name, CodegenThingol.Datatype (vs, [(co, [ty])])) =
           let
-            val tyvars = CodegenThingol.intro_vars (map fst vs) keyword_vars;
+            val tyvars = CodegenNames.intro_vars (map fst vs) keyword_vars;
           in
             semicolon (
               str "newtype"
@@ -1291,7 +1291,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
           end
       | pr_def (name, CodegenThingol.Datatype (vs, co :: cos)) =
           let
-            val tyvars = CodegenThingol.intro_vars (map fst vs) keyword_vars;
+            val tyvars = CodegenNames.intro_vars (map fst vs) keyword_vars;
             fun pr_co (co, tys) =
               concat (
                 (str o deresolv_here) co
@@ -1309,7 +1309,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
           end
       | pr_def (name, CodegenThingol.Class (superclasss, (v, classops))) =
           let
-            val tyvars = CodegenThingol.intro_vars [v] keyword_vars;
+            val tyvars = CodegenNames.intro_vars [v] keyword_vars;
             fun pr_classop (classop, ty) =
               semicolon [
                 (str o classop_name name) classop,
@@ -1321,7 +1321,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
               Pretty.block [
                 str "class ",
                 pr_typparms tyvars [(v, superclasss)],
-                str (deresolv_here name ^ " " ^ CodegenThingol.lookup_var tyvars v),
+                str (deresolv_here name ^ " " ^ CodegenNames.lookup_var tyvars v),
                 str " where {"
               ],
               str "};"
@@ -1329,7 +1329,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
           end
       | pr_def (_, CodegenThingol.Classinst ((class, (tyco, vs)), (_, classop_defs))) =
           let
-            val tyvars = CodegenThingol.intro_vars (map fst vs) keyword_vars;
+            val tyvars = CodegenNames.intro_vars (map fst vs) keyword_vars;
             fun pr_instdef (classop, t) =
                 let
                   val consts = map_filter
@@ -1337,7 +1337,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
                       then NONE else (SOME o NameSpace.base o deresolv) c)
                       (CodegenThingol.fold_constnames (insert (op =)) t []);
                   val vars = keyword_vars
-                    |> CodegenThingol.intro_vars consts;
+                    |> CodegenNames.intro_vars consts;
                 in
                   semicolon [
                     (str o classop_name class) classop,
@@ -1412,7 +1412,7 @@ fun seri_haskell module_prefix destination string_classes reserved_user module_a
     val code' =
       fold add_def (AList.make (fn name => (Graph.get_node code name, Graph.imm_succs code name))
         (Graph.strong_conn code |> flat)) Symtab.empty;
-    val init_vars = CodegenThingol.make_vars (reserved_haskell @ reserved_user);
+    val init_vars = CodegenNames.make_vars (reserved_haskell @ reserved_user);
     fun deresolv name =
       (fst o fst o the o AList.lookup (op =) ((fst o snd o the
         o Symtab.lookup code') ((name_modl o fst o dest_name) name))) name
@@ -1491,7 +1491,7 @@ val isar_seri_haskell =
 
 fun seri_diagnosis _ _ _ _ _ code =
   let
-    val init_vars = CodegenThingol.make_vars reserved_haskell;
+    val init_vars = CodegenNames.make_vars reserved_haskell;
     val pr = pr_haskell (K NONE) (K NONE) (K NONE) init_vars I I (K false);
   in
     []
@@ -1880,8 +1880,8 @@ fun add_undefined target undef target_undefined thy =
 
 fun add_pretty_imperative_monad_bind target bind thy =
   let
-    val (bind', bind'') = idfs_of_const_names thy bind;
-    val pr = pretty_imperative_monad_bind bind''
+    val (bind', _) = idfs_of_const_names thy bind;
+    val pr = pretty_imperative_monad_bind
   in
     thy
     |> gen_add_syntax_const (K I) target bind' (SOME pr)
