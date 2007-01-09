@@ -830,43 +830,41 @@ proof (neg_clausify)
   assume P: "\<And>U. P U" 
      and Q: "\<And>U. ~ Q U"
      and PQ: "~ P x | Q x"
-  have cl4: "\<And>U. Q x"
+  have 1: "\<And>U. Q x"
     by (meson P PQ)
   show "False"
-    by (meson Q cl4)
+    by (meson Q 1)
 qed
 
 
 text{*A lengthy proof of a significant theorem: @{text singleton_example_1}*}
 
-lemmas subsetI_0 = subsetI[skolem, clausify 0]
-lemmas subsetI_1 = subsetI[skolem, clausify 1]
-
 text{*Full single-step proof*}
 lemma "\<And>S::'a set set. \<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
 proof (neg_clausify)
   fix S :: "'a set set"
-  assume CL1: "\<And>Z. ~ (S \<subseteq> {Z})"
-     and CL2: "\<And>X Y. X \<notin> S | Y \<notin> S | X \<subseteq> Y"
-  have CL10: "!!U V. U \<notin> S | V \<notin> S | ~ V \<subseteq> U | V = U"
-    by (meson equalityI CL2) 
-  have CL11: "!!U V. U \<notin> S | V \<notin> S | V = U"
-    by (meson CL10 CL2) 
-  have CL13: "!!U V. U \<notin> S | S \<subseteq> V | U = Set_XsubsetI_sko1_ S V"
-    by (meson subsetI_0 CL11)
-  have CL14: "!!U V. S \<subseteq> U | S \<subseteq> V | Set_XsubsetI_sko1_ S U = Set_XsubsetI_sko1_ S V"
-    by (meson subsetI_0 CL13)
-  have CL29: "!!U V. S \<subseteq> U |  Set_XsubsetI_sko1_ S U = Set_XsubsetI_sko1_ S {V}"
-    by (meson CL1 CL14)
-  have CL58: "!!U V. Set_XsubsetI_sko1_ S {U} = Set_XsubsetI_sko1_ S {V}"
-    by (meson CL1 CL29)
+  assume 1: "\<And>Z. ~ (S \<subseteq> {Z})"
+     and 2: "\<And>X Y. X \<notin> S | Y \<notin> S | X \<subseteq> Y"
+  have 10: "!!U V. U \<notin> S | V \<notin> S | ~ V \<subseteq> U | V = U"
+    by (meson equalityI 2) 
+  have 11: "!!U V. U \<notin> S | V \<notin> S | V = U"
+    by (meson 10 2) 
+  have 13: "!!U V. U \<notin> S | S \<subseteq> V | U = Set_XsubsetI_sko1_ S V"
+    by (meson subsetI 11)
+  have 14: "!!U V. S \<subseteq> U | S \<subseteq> V | Set_XsubsetI_sko1_ S U = Set_XsubsetI_sko1_ S V"
+    by (meson subsetI 13)
+  have 29: "!!U V. S \<subseteq> U |  Set_XsubsetI_sko1_ S U = Set_XsubsetI_sko1_ S {V}"
+    by (meson 1 14)
+  have 58: "!!U V. Set_XsubsetI_sko1_ S {U} = Set_XsubsetI_sko1_ S {V}"
+    by (meson 1 29)
     (*hacked here while we wait for Metis: !!U V complicates proofs.*)
-  have CL82: "Set_XsubsetI_sko1_ S {U} \<notin> {V} | S \<subseteq> {V}"
-    by (insert CL58 subsetI_1 [of S "{V}"], force) 
-  have CL85: "Set_XsubsetI_sko1_ S {U} \<notin> {V}"
-    by (meson CL1 CL82)
+  have 82: "Set_XsubsetI_sko1_ S {U} \<notin> {V} | S \<subseteq> {V}"
+    apply (insert 58 [of U V], erule ssubst)
+    by (meson 58 subsetI)
+  have 85: "Set_XsubsetI_sko1_ S {U} \<notin> {V}"
+    by (meson 1 82)
   show False
-    by (meson insertI1 CL85)
+    by (meson insertI1 85)
 qed
 
 text{*Partially condensed proof*}
@@ -874,17 +872,18 @@ lemma singleton_example_1:
      "\<And>S::'a set set. \<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
 proof (neg_clausify)
   fix S :: "'a set set"
-  assume CL1: "\<And>Z. ~ (S \<subseteq> {Z})"
-     and CL2: "\<And>X Y. X \<notin> S | Y \<notin> S | X \<subseteq> Y"
-  have CL13: "!!U V. U \<notin> S | S \<subseteq> V | U = Set_XsubsetI_sko1_ S V"
-    by (meson subsetI_0 equalityI CL2)
-  have CL58: "!!U V. Set_XsubsetI_sko1_ S {U} = Set_XsubsetI_sko1_ S {V}"
-    by (meson CL1 subsetI_0 CL13)
+  assume 1: "\<And>Z. ~ (S \<subseteq> {Z})"
+     and 2: "\<And>X Y. X \<notin> S | Y \<notin> S | X \<subseteq> Y"
+  have 13: "!!U V. U \<notin> S | S \<subseteq> V | U = Set_XsubsetI_sko1_ S V"
+    by (meson subsetI equalityI 2)
+  have 58: "!!U V. Set_XsubsetI_sko1_ S {U} = Set_XsubsetI_sko1_ S {V}"
+    by (meson 1 subsetI 13)
     (*hacked here while we wait for Metis: !!U V complicates proofs.*)
-  have CL82: "Set_XsubsetI_sko1_ S {U} \<notin> {V} | S \<subseteq> {V}"
-    by (insert CL58 subsetI_1 [of S "{V}"], force)
+  have 82: "Set_XsubsetI_sko1_ S {U} \<notin> {V} | S \<subseteq> {V}"
+    apply (insert 58 [of U V], erule ssubst)
+    by (meson 58 subsetI)
   show False
-    by (meson insertI1 CL1 CL82)
+    by (meson insertI1 1 82)
 qed
 
 (**Not working: needs Metis
@@ -892,12 +891,12 @@ text{*More condensed proof*}
 lemma "\<And>S::'a set set. \<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
 proof (neg_clausify)
   fix S :: "'a set set"
-  assume CL1: "\<And>Z. ~ (S \<subseteq> {Z})"
-     and CL2: "\<And>X Y. X \<notin> S | Y \<notin> S | X \<subseteq> Y"
-  have CL58: "!!U V. Set_XsubsetI_sko1_ S {U} = Set_XsubsetI_sko1_ S {V}"
-    by (meson CL1 subsetI_0 equalityI CL2)
+  assume 1: "\<And>Z. ~ (S \<subseteq> {Z})"
+     and 2: "\<And>X Y. X \<notin> S | Y \<notin> S | X \<subseteq> Y"
+  have 58: "!!U V. Set_XsubsetI_sko1_ S {U} = Set_XsubsetI_sko1_ S {V}"
+    by (meson 1 subsetI_0 equalityI 2)
   show False
-    by (iprover intro: subsetI_1 insertI1 CL1 CL58 elim: ssubst)  
+    by (iprover intro: subsetI_1 insertI1 1 58 elim: ssubst)  
 qed
 ***)
 
