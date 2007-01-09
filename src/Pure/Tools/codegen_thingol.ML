@@ -74,17 +74,12 @@ sig
     -> code -> code;
   val add_eval_def: string (*bind name*) * iterm -> code -> code;
 
-  val ensure_def: (transact -> def * code) -> bool -> string
+  val ensure_def: (string -> string) -> (transact -> def * code) -> bool -> string
     -> string -> transact -> transact;
   val succeed: 'a -> transact -> 'a * code;
   val fail: string -> transact -> 'a * code;
   val message: string -> (transact -> 'a) -> transact -> 'a;
   val start_transact: string option -> (transact -> 'a * transact) -> code -> 'a * code;
-
-  type var_ctxt;
-  val make_vars: string list -> var_ctxt;
-  val intro_vars: string list -> var_ctxt -> var_ctxt;
-  val lookup_var: var_ctxt -> string -> string;
 
   val trace: bool ref;
   val tracing: ('a -> string) -> 'a -> 'a;
@@ -383,16 +378,16 @@ fun postprocess_def (name, Datatype (_, constrs)) =
 
 (* transaction protocol *)
 
-fun ensure_def defgen strict msg name (dep, code) =
+fun ensure_def labelled_name defgen strict msg name (dep, code) =
   let
-    (*FIXME represent dependencies as tuple (name, name -> string), for better error msgs*)
     val msg' = (case dep
      of NONE => msg
-      | SOME dep => msg ^ ", required for " ^ quote dep)
+      | SOME dep => msg ^ ", required for " ^ labelled_name dep)
       ^ (if strict then " (strict)" else " (non-strict)");
     fun add_dp NONE = I
       | add_dp (SOME dep) =
-          tracing (fn _ => "adding dependency " ^ quote dep ^ " -> " ^ quote name)
+          tracing (fn _ => "adding dependency " ^ labelled_name dep
+            ^ " -> " ^ labelled_name name)
           #> add_dep (dep, name);
     fun prep_def def code =
       (check_prep_def code def, code);
@@ -405,13 +400,14 @@ fun ensure_def defgen strict msg name (dep, code) =
     code
     |> (if can (get_def code) name
         then
-          tracing (fn _ => "asserting node " ^ quote name)
+          tracing (fn _ => "asserting definition " ^ labelled_name name)
           #> add_dp dep
         else
-          tracing (fn _ => "allocating node " ^ quote name ^ (if strict then " (strict)" else " (non-strict)"))
+          tracing (fn _ => "allocating definition " ^ labelled_name name
+            ^ (if strict then " (strict)" else " (non-strict)"))
           #> ensure_bot name
           #> add_dp dep
-          #> tracing (fn _ => "creating node " ^ quote name)
+          #> tracing (fn _ => "creating definition " ^ labelled_name name)
           #> invoke_generator name defgen
           #-> (fn def => prep_def def)
           #-> (fn def =>
@@ -450,24 +446,6 @@ fun add_eval_def (name, t) code =
   code
   |> Graph.new_node (name, Fun ([([], t)], ([("_", [])], ITyVar "_")))
   |> fold (curry Graph.add_edge name) (Graph.keys code);
-
-
-(** variable name contexts **)
-
-type var_ctxt = string Symtab.table * Name.context;
-
-fun make_vars names = (fold (fn name => Symtab.update_new (name, name)) names Symtab.empty,
-  Name.make_context names);
-
-fun intro_vars names (namemap, namectxt) =
-  let
-    val (names', namectxt') = Name.variants names namectxt;
-    val namemap' = fold2 (curry Symtab.update) names names' namemap;
-  in (namemap', namectxt') end;
-
-fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
- of SOME name' => name'
-  | NONE => error ("invalid name in context: " ^ quote name);
 
 end; (*struct*)
 
