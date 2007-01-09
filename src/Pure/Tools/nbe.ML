@@ -72,7 +72,7 @@ fun apply_pres thy =
   let
     val ctxt = ProofContext.init thy;
     val pres = (map (LocalDefs.meta_rewrite_rule ctxt) o fst) (NBE_Rewrite.get thy)
-  in map (CodegenData.rewrite_func pres) end
+  in map (CodegenFunc.rewrite_func pres) end
 
 fun apply_posts thy =
   let
