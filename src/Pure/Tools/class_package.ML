@@ -370,7 +370,6 @@ fun prove_interpretation (prfx, atts) expr insts tac thy =
     |> ProofContext.theory_of
   end;
 
-(*
 fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
   let
     val elems = fold_rev (fn Locale.Elem e => cons e | _ => I) raw_elems [];
@@ -403,21 +402,24 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
       |> (map o apsnd) (TheoryTarget.fork_mixfix false true #> fst)
       |> chop (length supconsts)
       |> snd;
-    val LOC_AXIOMS = ref [] : string list ref;
     fun extract_assumes name_locale params thy cs =
       let
         val consts = supconsts @ (map (fst o fst) params ~~ cs);
         (*FIXME is this type handling correct?*)
         fun subst (Free (c, ty)) =
-          Const ((fst o the o AList.lookup (op =) consts) c, ty);
+              Const ((fst o the o AList.lookup (op =) consts) c, ty)
+          | subst t = t;
         fun prep_asm ((name, atts), ts) =
           (*FIXME*)
           ((NameSpace.base name, map (Attrib.attribute thy) atts), (map o map_aterms) subst ts);
       in
         Locale.local_asms_of thy name_locale
         |> map prep_asm
-        |> tap (fn assms => LOC_AXIOMS := map (fst o fst) assms)
       end;
+    fun extract_axiom_names thy name_locale =
+      name_locale
+      |> Locale.local_asms_of thy
+      |> map (NameSpace.base o fst o fst) (*FIXME*)
     fun mk_const thy class (c, ty) =
       Const (c, Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty);
   in
@@ -429,17 +431,18 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
       #-> (fn params =>
         axclass_params (bname, supsort) params (extract_assumes name_locale params)
       #-> (fn (name_axclass, ((_, ax_axioms), consts)) =>
-        add_class_data ((name_axclass, supclasses), (name_locale, map (fst o fst) params ~~ map fst consts,
-            ! LOC_AXIOMS))
+        `(fn thy => extract_axiom_names thy name_locale)
+      #-> (fn axiom_names =>
+        add_class_data ((name_axclass, supclasses),
+          (name_locale, map (fst o fst) params ~~ map fst consts, axiom_names))
       #> prove_interpretation (Logic.const_of_class bname, [])
             (Locale.Locale name_locale) (map (SOME o mk_const thy name_axclass) (map snd supconsts @ consts))
             ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
       #> pair name_axclass
-      ))))
+      )))))
   end;
-*)
 
-fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
+(*fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
   let
     val elems = fold_rev (fn Locale.Elem e => cons e | _ => I) raw_elems [];
     val supclasses = map (prep_class thy) raw_supclasses;
@@ -515,7 +518,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
           (Locale.Locale name_locale) (map (SOME o mk_const thy name_axclass) (map snd (mapp_sup @ mapp_this)))
           ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
     ))))) #> pair name_locale)
-  end;
+  end;*)
 
 in
 
