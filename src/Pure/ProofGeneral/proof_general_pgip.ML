@@ -13,6 +13,10 @@ sig
   (* These two are just to support the semi-PGIP Emacs mode *)
   val init_pgip_channel: (string -> unit) -> unit
   val process_pgip: string -> unit
+
+  (* Yet more message functions... *)
+  val nonfatal_error : string -> unit     (* recoverable error *)
+  val log_msg : string -> unit	          (* for internal log messages *)
 end
 
 structure ProofGeneralPgip : PROOF_GENERAL_PGIP  =
@@ -170,6 +174,7 @@ local
             delayed_msgs := pgip :: ! delayed_msgs
         else issue_pgip pgip
 in
+    (* Normal responses are messages for the user *)
     fun normalmsg area cat urgent s =
         let
             val content = XML.Elem("pgmltext",[],[XML.Rawtext s])
@@ -179,6 +184,7 @@ in
             queue_or_issue pgip
         end
 
+    (* Error responses are error messages for the user, or system-level messages *)
     fun errormsg fatality s =
         let
               val content = XML.Elem("pgmltext",[],[XML.Rawtext s])
@@ -198,24 +204,38 @@ end;
    FIXME: this may cause us problems now we're generating trees; on the other
    hand the output functions were tuned some time ago, so it ought to be
    enough to use Rawtext always above. *)
+(* NB 2: all of standard functions print strings terminated with new lines, but we don't
+   add new lines explicitly in PGIP: they are left implicit.  It means that PGIP messages 
+   can't be written without newlines. *)
 
 fun setup_messages () =
  (writeln_fn := (fn s => normalmsg Message Normal false s);
   priority_fn := (fn s => normalmsg Message Normal true s);
   tracing_fn := (fn s => normalmsg  Message Tracing false s);
-  info_fn := (fn s => normalmsg Message Information false s);
-  debug_fn := (fn s => normalmsg Message Internal false s);
+  info_fn := (fn s => errormsg Info s);
   warning_fn := (fn s => errormsg Warning s);
   error_fn := (fn s => errormsg Fatal s);
-  panic_fn := (fn s => errormsg Panic s));
+  panic_fn := (fn s => errormsg Panic s);
+  debug_fn := (fn s => errormsg Debug s));
+
+fun nonfatal_error s = errormsg Nonfatal s;
+fun log_msg s = errormsg Log s;
 
 
 (* immediate messages *)
 
 fun tell_clear_goals ()      = issue_pgip (Cleardisplay {area=Display})
 fun tell_clear_response ()   = issue_pgip (Cleardisplay {area=Message})
-fun tell_file_loaded path    = issue_pgip (Informfileloaded {url=PgipTypes.pgipurl_of_path path})
-fun tell_file_retracted path = issue_pgip (Informfileretracted {url=PgipTypes.pgipurl_of_path path})
+
+fun tell_file_loaded completed path   = 
+    issue_pgip (Informfileloaded {url=PgipTypes.pgipurl_of_path path,
+				  completed=completed})
+fun tell_file_outdated completed path   = 
+    issue_pgip (Informfileoutdated {url=PgipTypes.pgipurl_of_path path,
+				    completed=completed})
+fun tell_file_retracted completed path = 
+    issue_pgip (Informfileretracted {url=PgipTypes.pgipurl_of_path path,
+				     completed=completed})
 
 
 
@@ -254,13 +274,23 @@ end;
 (* theory loader actions *)
 
 local
-
+  (* da: TODO: PGIP has a completed flag so the prover can indicate to the 
+     interface which files are busy performing a particular action. 
+     To make use of this we need to adjust the hook in thy_info.ML
+     (may actually be difficult to tell the interface *which* action is in 
+      progress, but we could add a generic "Lock" action which uses
+      informfileloaded: the broker/UI should not infer too much from incomplete
+      operations).
+   *)     
 fun trace_action action name =
   if action = ThyInfo.Update then
-    List.app tell_file_loaded (ThyInfo.loaded_files name)
-  else if action = ThyInfo.Outdate orelse action = ThyInfo.Remove then
-    List.app tell_file_retracted (ThyInfo.loaded_files name)
-  else ();
+    List.app (tell_file_loaded true) (ThyInfo.loaded_files name) 
+  else if action = ThyInfo.Outdate then
+    List.app (tell_file_outdated true) (ThyInfo.loaded_files name)
+  else if action = ThyInfo.Remove then
+      List.app (tell_file_retracted true) (ThyInfo.loaded_files name) 
+  else ()
+
 
 in
   fun setup_thy_loader () = ThyInfo.add_hook trace_action;
@@ -270,18 +300,18 @@ end;
 
 (* get informed about files *)
 
-val thy_name = Path.implode o #1 o Path.split_ext o Path.base o Path.explode;
+val thy_name = Path.implode o #1 o Path.split_ext o Path.base;
 
 val inform_file_retracted = ThyInfo.if_known_thy ThyInfo.remove_thy o thy_name;
 val inform_file_processed = ThyInfo.if_known_thy ThyInfo.touch_child_thys o thy_name;
 
-fun proper_inform_file_processed file state =
-  let val name = thy_name file in
+fun proper_inform_file_processed path state =
+  let val name = thy_name path in
     if Toplevel.is_toplevel state andalso ThyInfo.known_thy name then
      (ThyInfo.touch_child_thys name;
       ThyInfo.pretend_use_thy_only name handle ERROR msg =>
        (warning msg; warning ("Failed to register theory: " ^ quote name);
-        tell_file_retracted (Path.base (Path.explode file))))
+        tell_file_retracted true (Path.base path)))
     else raise Toplevel.UNDEF
   end;
 
@@ -739,8 +769,7 @@ fun openfile (Openfile vs) =
 
 fun closefile vs =
     case !currently_open_file of
-        SOME f => (proper_inform_file_processed (File.platform_path f)
-                                                (Isar.state());
+        SOME f => (proper_inform_file_processed f (Isar.state());
 		   priority ("Finished working in file: " ^ PgipTypes.string_of_pgipurl f);
                    currently_open_file := NONE)
       | NONE => raise PGIP ("<closefile> when no file is open!")
@@ -770,7 +799,11 @@ fun retractfile (Retractfile vs) =
         case !currently_open_file of
             SOME f => raise PGIP ("<retractfile> when a file is open!")
           | NONE => (priority ("Retracting file: " ^ PgipTypes.string_of_pgipurl url);
-		     inform_file_retracted (File.platform_path url))
+		     (* TODO: next should be in thy loader, here just for testing *)
+		     let 
+			 val name = thy_name url
+		     in List.app (tell_file_retracted false) (ThyInfo.loaded_files name) end;
+		     inform_file_retracted url)
     end
 
 
