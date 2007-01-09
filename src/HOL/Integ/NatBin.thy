@@ -819,7 +819,7 @@ end;
 *}
 
 setup {*
-  CodegenData.add_inline_proc NumeralNat.elim_number_of_nat
+  CodegenData.add_inline_proc ("elim_number_of_nat", NumeralNat.elim_number_of_nat)
 *}
 
 subsection {* legacy ML bindings *}

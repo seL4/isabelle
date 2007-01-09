@@ -1171,10 +1171,12 @@ text %mlref {*
   @{index_ML CodegenData.add_funcl: "CodegenConsts.const * thm list Susp.T -> theory -> theory"} \\
   @{index_ML CodegenData.add_inline: "thm -> theory -> theory"} \\
   @{index_ML CodegenData.del_inline: "thm -> theory -> theory"} \\
-  @{index_ML CodegenData.add_inline_proc: "(theory -> cterm list -> thm list)
+  @{index_ML CodegenData.add_inline_proc: "string * (theory -> cterm list -> thm list)
     -> theory -> theory"} \\
-  @{index_ML CodegenData.add_preproc: "(theory -> thm list -> thm list)
+  @{index_ML CodegenData.del_inline_proc: "string -> theory -> theory"} \\
+  @{index_ML CodegenData.add_preproc: "string * (theory -> thm list -> thm list)
     -> theory -> theory"} \\
+  @{index_ML CodegenData.del_preproc: "string -> theory -> theory"} \\
   @{index_ML CodegenData.add_datatype: "string * (((string * sort) list * (string * typ list) list)
     * thm list Susp.T) -> theory -> theory"} \\
   @{index_ML CodegenData.del_datatype: "string -> theory -> theory"} \\
@@ -1201,18 +1203,24 @@ text %mlref {*
   \item @{ML CodegenData.del_inline}~@{text "thm"}~@{text "thy"} remove
      inlining theorem @{text thm} from executable content, if present.
 
-  \item @{ML CodegenData.add_inline_proc}~@{text "f"}~@{text "thy"} adds
-     inline procedure @{text f} to executable content;
+  \item @{ML CodegenData.add_inline_proc}~@{text "(name, f)"}~@{text "thy"} adds
+     inline procedure @{text f} (named @{text name}) to executable content;
      @{text f} is a computation of rewrite rules dependent on
      the current theory context and the list of all arguments
      and right hand sides of the function equations belonging
      to a certain function definition.
 
-  \item @{ML CodegenData.add_preproc}~@{text "f"}~@{text "thy"} adds
-     generic preprocessor @{text f} to executable content;
+  \item @{ML CodegenData.del_inline_proc}~@{text "name"}~@{text "thy"} removes
+     inline procedure named @{text name} from executable content.
+
+  \item @{ML CodegenData.add_preproc}~@{text "(name, f)"}~@{text "thy"} adds
+     generic preprocessor @{text f} (named @{text name}) to executable content;
      @{text f} is a transformation of the function equations belonging
      to a certain function definition, depending on the
      current theory context.
+
+  \item @{ML CodegenData.del_prepproc}~@{text "name"}~@{text "thy"} removes
+     generic preprcoessor named @{text name} from executable content.
 
   \item @{ML CodegenData.add_datatype}~@{text "(name, (spec, cert))"}~@{text "thy"} adds
      a datatype to executable content, with type constructor

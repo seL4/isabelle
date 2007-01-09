@@ -330,8 +330,9 @@ end
 setup {*
   Codegen.add_preprocessor eqn_suc_preproc
   #> Codegen.add_preprocessor clause_suc_preproc
-  #> CodegenData.add_preproc (lift_obj_eq eqn_suc_preproc)
-  #> CodegenData.add_preproc (lift_obj_eq clause_suc_preproc)
+  #> CodegenData.del_inline_proc "elim_number_of_nat"
+  #> CodegenData.add_preproc ("eqn_Suc", lift_obj_eq eqn_suc_preproc)
+  #> CodegenData.add_preproc ("clause_Suc", lift_obj_eq clause_suc_preproc)
 *}
 (*>*)
 
