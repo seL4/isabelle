@@ -1,7 +1,7 @@
 (*  Title:      Sudoku.thy
     ID:         $Id$
     Author:     Tjark Weber
-    Copyright   2005
+    Copyright   2005-2007
 *)
 
 header {* A SAT-based Sudoku Solver *}
@@ -100,7 +100,6 @@ theorem "\<not> sudoku
     x71 x72 x73 x74 x75 x76 x77 x78 x79
     x81 x82 x83 x84 x85 x86 x87 x88 x89
     x91 x92 x93 x94 x95 x96 x97 x98 x99"
-  apply (unfold sudoku_def valid_def)
   refute
 oops
 
@@ -118,7 +117,6 @@ theorem "\<not> sudoku
     x71  6  x73 x74 x75 x76  2   8  x79
     x81 x82 x83  4   1   9  x87 x88  5 
     x91 x92 x93 x94  8  x96 x97  7   9 "
-  apply (unfold sudoku_def valid_def)
   refute
 oops
 
@@ -136,7 +134,6 @@ theorem "\<not> sudoku
     x71 x72 x73 x74  1  x76  7   8  x79
      5  x82 x83 x84 x85  9  x87 x88 x89
     x91 x92 x93 x94 x95 x96 x97  4  x99"
-  apply (unfold sudoku_def valid_def)
   refute
 oops
 
