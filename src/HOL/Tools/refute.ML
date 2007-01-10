@@ -1233,7 +1233,7 @@ struct
 	(* theory -> (string * string) list -> Thm.thm -> int -> unit *)
 
 	fun refute_subgoal thy params thm subgoal =
-		refute_term thy params (List.nth (prems_of thm, subgoal));
+		refute_term thy params (List.nth (Thm.prems_of thm, subgoal));
 
 
 (* ------------------------------------------------------------------------- *)
