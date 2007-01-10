@@ -287,7 +287,7 @@ using 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
 (*
 by sat
 *)
-by rawsat  -- {* this is without CNF conversion time *}
+by rawsat  -- {* this is without CNF conversion *}
 
 (* Translated from TPTP problem library: MSC007-1.008.dimacs *)
 
@@ -510,7 +510,7 @@ using 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
 (*
 by sat
 *)
-by rawsat  -- {* this is without CNF conversion time *}
+by rawsat  -- {* this is without CNF conversion *}
 
 (* Old sequent clause representation ("[c_i, p, ~q, \<dots>] \<turnstile> False"):
    sat, zchaff_with_proofs: 8705 resolution steps in +++ User 1.154  All 1.189 secs
