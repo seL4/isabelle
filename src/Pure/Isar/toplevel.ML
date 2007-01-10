@@ -58,7 +58,8 @@ sig
   val three_buffersN: string
   val print3: transition -> transition
   val no_timing: transition -> transition
-  val init: (bool -> node) -> (node -> unit) -> (node -> unit) -> transition -> transition
+  val init_theory: (bool -> theory) -> (theory -> unit) -> (theory -> unit) ->
+    transition -> transition
   val init_empty: (state -> unit) -> transition -> transition
   val exit: transition -> transition
   val undo_exit: transition -> transition
@@ -67,8 +68,6 @@ sig
   val keep: (state -> unit) -> transition -> transition
   val keep': (bool -> state -> unit) -> transition -> transition
   val imperative: (unit -> unit) -> transition -> transition
-  val init_theory: (bool -> theory) -> (theory -> unit) -> (theory -> unit) ->
-    transition -> transition
   val theory: (theory -> theory) -> transition -> transition
   val theory': (bool -> theory -> theory) -> transition -> transition
   val begin_local_theory: bool -> (theory -> local_theory) -> transition -> transition
@@ -91,7 +90,6 @@ sig
   val unknown_theory: transition -> transition
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
-  val apply: bool -> transition -> state -> (state * (exn * string) option) option
   val present_excursion: (transition * (state -> state -> 'a -> 'a)) list -> 'a -> 'a
   val excursion: transition list -> unit
   val set_state: state -> unit
@@ -139,6 +137,7 @@ datatype node =
   SkipProof of int History.T * (generic_theory * generic_theory);
     (*history of proof depths, resulting theory, original theory*)
 
+val the_global_theory = fn Theory (Context.Theory thy, _) => thy | _ => raise UNDEF;
 val theory_node = fn Theory (gthy, _) => SOME gthy | _ => NONE;
 val proof_node = fn Proof (prf, _) => SOME prf | _ => NONE;
 
@@ -155,7 +154,7 @@ fun presentation_context (SOME (Theory (_, SOME ctxt))) NONE = ctxt
 
 (* datatype state *)
 
-type state_info = node History.T * ((node -> unit) * (node -> unit));
+type state_info = node History.T * ((theory -> unit) * (theory -> unit));
 
 datatype state =
   Toplevel of state_info option |  (*outer toplevel, leftover end state*)
@@ -397,7 +396,7 @@ end;
   Transaction.*)
 
 datatype trans =
-  Init of (bool -> node) * ((node -> unit) * (node -> unit)) |
+  Init of (bool -> theory) * ((theory -> unit) * (theory -> unit)) |
                                                     (*init node; with exit/kill operation*)
   InitEmpty of state -> unit |                      (*init empty toplevel*)
   Exit |                                            (*conclude node -- deferred until init*)
@@ -409,22 +408,26 @@ datatype trans =
 
 fun undo_limit int = if int then NONE else SOME 0;
 
-fun apply_exit (Toplevel (SOME (node, (exit, _)))) = exit (History.current node)
-  | apply_exit _ = ();
+fun safe_exit (Toplevel (SOME (node, (exit, _)))) =
+    (case try the_global_theory (History.current node) of
+      SOME thy => exit thy
+    | NONE => ())
+  | safe_exit _ = ();
 
 local
 
 fun keep_state int f = controlled_execution (fn x => tap (f int) x);
 
 fun apply_tr int (Init (f, term)) (state as Toplevel _) =
-      let val node = f int
-      in apply_exit state; State (History.init (undo_limit int) node, term) end
+      let val node = Theory (Context.Theory (f int), NONE)
+      in safe_exit state; State (History.init (undo_limit int) node, term) end
   | apply_tr int (InitEmpty f) state =
-      (keep_state int (K f) state; apply_exit state; toplevel)
-  | apply_tr _ Exit (State state) = Toplevel (SOME state)
-  | apply_tr _ UndoExit (Toplevel (SOME state)) = State state
+      (keep_state int (K f) state; safe_exit state; toplevel)
+  | apply_tr _ Exit (State (node, term)) =
+      (the_global_theory (History.current node); Toplevel (SOME (node, term)))
+  | apply_tr _ UndoExit (Toplevel (SOME state_info)) = State state_info
   | apply_tr _ Kill (State (node, (_, kill))) =
-      (kill (History.current node); toplevel)
+      (kill (the_global_theory (History.current node)); toplevel)
   | apply_tr _ (History f) (State (node, term)) = State (f node, term)
   | apply_tr int (Keep f) state = keep_state int f state
   | apply_tr int (Transaction (hist, f)) (State state) =
@@ -513,7 +516,7 @@ val print3 = print' three_buffersN;
 
 (* basic transitions *)
 
-fun init f exit kill = add_trans (Init (f, (exit, kill)));
+fun init_theory f exit kill = add_trans (Init (f, (exit, kill)));
 val init_empty = add_trans o InitEmpty;
 val exit = add_trans Exit;
 val undo_exit = add_trans UndoExit;
@@ -525,11 +528,6 @@ fun app_current f = add_trans (Transaction (true, f));
 
 fun keep f = add_trans (Keep (fn _ => f));
 fun imperative f = keep (fn _ => f ());
-
-fun init_theory f exit kill =
-  init (fn int => Theory (Context.Theory (f int), NONE))
-    (fn Theory (Context.Theory thy, _) => exit thy | _ => raise UNDEF)
-    (fn Theory (Context.Theory thy, _) => kill thy | _ => raise UNDEF);
 
 val unknown_theory = imperative (fn () => warning "Unknown theory context");
 val unknown_proof = imperative (fn () => warning "Unknown proof context");
@@ -709,7 +707,7 @@ in
 
 fun present_excursion trs res =
   (case excur trs (toplevel, res) of
-    (state as Toplevel _, res') => (apply_exit state; res')
+    (state as Toplevel _, res') => (safe_exit state; res')
   | _ => error "Unfinished development at end of input")
   handle exn => error (exn_message exn);
 
