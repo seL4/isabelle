@@ -336,9 +336,10 @@ fun const_rev thy =
 
 fun labelled_name thy name =
   let
-    val (base, nsp) = NameSpace.split name
+    val nam = NameSpace.qualifier name;
+    val nsp = NameSpace.base name;
   in case AList.lookup (op =) nsp_mapping nsp
-   of SOME msg => msg ^ " " ^ quote base
+   of SOME msg => msg ^ " " ^ quote nam
     | NONE => error ("illegal shallow name space: " ^ quote nsp)
   end;
 
