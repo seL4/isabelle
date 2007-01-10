@@ -333,7 +333,8 @@ fun dtyp_of_case_const thy c =
 
 fun dest_case_app cs ts tys =
   let
-    val abs = Name.names Name.context "a" (Library.drop (length ts, tys));
+    val names = (Name.make_context o map fst) (fold Term.add_tfrees ts []);
+    val abs = Name.names names "a" (Library.drop (length ts, tys));
     val (ts', t) = split_last (ts @ map Free abs);
     val (tys', sty) = split_last tys;
     fun dest_case ((c, tys_decl), ty) t =
