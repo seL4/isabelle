@@ -382,60 +382,13 @@ next
 qed
 
 lemma int_wf_ge_induct:
-  assumes base:  "P (k::int)"
-  and     ind :  "!!i. (!!j. [| k \<le> j ; j < i |] ==> P j) ==> P i"
-  and     valid: "k \<le> i"
+  assumes ind :  "!!i::int. (!!j. [| k \<le> j ; j < i |] ==> P j) ==> P i"
   shows          "P i"
-proof -
-  have a: "\<forall> j. k \<le> j \<and> j < i --> P j"
-  proof (rule int_ge_induct)
-    show "k \<le> i"
-      .
-  next
-    show "\<forall> j. k \<le> j \<and> j < k --> P j"
-      by auto
-  next
-    fix i
-    assume "k \<le> i"
-    assume a: "\<forall> j. k \<le> j \<and> j < i --> P j"
-    have pi: "P i"
-    proof (rule ind)
-      fix j
-      assume "k \<le> j" and "j < i"
-      with a
-      show "P j"
-        by auto
-    qed
-    show "\<forall> j. k \<le> j \<and> j < i + 1 --> P j"
-    proof auto
-      fix j
-      assume kj: "k \<le> j"
-      assume ji: "j \<le> i"
-      show "P j"
-      proof (cases "j = i")
-        assume "j = i"
-        with pi
-        show "P j"
-          by simp
-      next
-        assume "j ~= i"
-        with ji
-        have "j < i"
-          by simp
-        with kj and a
-        show "P j"
-          by blast
-      qed
-    qed
-  qed
-  show "P i"
-  proof (rule ind)
-    fix j
-    assume "k \<le> j" and "j < i"
-    with a
-    show "P j"
-      by auto
-  qed
+proof (rule wf_induct_rule [OF wf_int_ge_less_than])
+  fix x
+  assume ih: "(\<And>y\<Colon>int. (y, x) \<in> int_ge_less_than k \<Longrightarrow> P y)"
+  thus "P x"
+    by (rule ind, simp add: int_ge_less_than_def) 
 qed
 
 lemma unfold_nat_to_bv_helper:

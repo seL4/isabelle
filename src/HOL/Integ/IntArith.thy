@@ -6,7 +6,7 @@
 header {* Integer arithmetic *}
 
 theory IntArith
-imports Numeral
+imports Numeral "../Wellfounded_Relations"
 uses ("int_arith1.ML")
 begin
 
@@ -221,6 +221,37 @@ done
 
 
 subsection "Induction principles for int"
+
+text{*Well-founded segments of the integers*}
+
+definition
+  int_ge_less_than  ::  "int => (int * int) set"
+where
+  "int_ge_less_than d = {(z',z). d \<le> z' & z' < z}"
+
+theorem wf_int_ge_less_than: "wf (int_ge_less_than d)"
+proof -
+  have "int_ge_less_than d \<subseteq> measure (%z. nat (z-d))"
+    by (auto simp add: int_ge_less_than_def)
+  thus ?thesis 
+    by (rule wf_subset [OF wf_measure]) 
+qed
+
+text{*This variant looks odd, but is typical of the relations suggested
+by RankFinder.*}
+
+definition
+  int_ge_less_than2 ::  "int => (int * int) set"
+where
+  "int_ge_less_than2 d = {(z',z). d \<le> z & z' < z}"
+
+theorem wf_int_ge_less_than2: "wf (int_ge_less_than2 d)"
+proof -
+  have "int_ge_less_than2 d \<subseteq> measure (%z. nat (1+z-d))" 
+    by (auto simp add: int_ge_less_than2_def)
+  thus ?thesis 
+    by (rule wf_subset [OF wf_measure]) 
+qed
 
                      (* `set:int': dummy construction *)
 theorem int_ge_induct[case_names base step,induct set:int]:
