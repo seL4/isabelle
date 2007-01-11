@@ -1,7 +1,7 @@
 (*  Title:      HOL/Refute.thy
     ID:         $Id$
     Author:     Tjark Weber
-    Copyright   2003-2005
+    Copyright   2003-2007
 
 Basic setup and documentation for the 'refute' (and 'refute_params') command.
 *)
@@ -50,10 +50,10 @@ text {*
 (* 'refute' currently accepts formulas of higher-order predicate logic (with *)
 (* equality), including free/bound/schematic variables, lambda abstractions, *)
 (* sets and set membership, "arbitrary", "The", "Eps", records and           *)
-(* inductively defined sets.  Defining equations for constants are added     *)
-(* automatically, as are sort axioms.  Other, user-asserted axioms however   *)
-(* are ignored.  Inductive datatypes and recursive functions are supported,  *)
-(* but may lead to spurious countermodels.                                   *)
+(* inductively defined sets.  Constants are unfolded automatically, and sort *)
+(* axioms are added as well.  Other, user-asserted axioms however are        *)
+(* ignored.  Inductive datatypes and recursive functions are supported, but  *)
+(* may lead to spurious countermodels.                                       *)
 (*                                                                           *)
 (* The (space) complexity of the algorithm is non-elementary.                *)
 (*                                                                           *)
