@@ -685,7 +685,7 @@ subsection {* The Lattice of Subgroups of a Group *}
 text_raw {* \label{sec:subgroup-lattice} *}
 
 theorem (in group) subgroups_partial_order:
-  "partial_order {H. subgroup H G} (op \<subseteq>)"
+  "partial_order (| carrier = {H. subgroup H G}, le = op \<subseteq> |)"
   by (rule partial_order.intro) simp_all
 
 lemma (in group) subgroup_self:
@@ -730,23 +730,23 @@ next
 qed
 
 theorem (in group) subgroups_complete_lattice:
-  "complete_lattice {H. subgroup H G} (op \<subseteq>)"
-    (is "complete_lattice ?car ?le")
+  "complete_lattice (| carrier = {H. subgroup H G}, le = op \<subseteq> |)"
+    (is "complete_lattice ?L")
 proof (rule partial_order.complete_lattice_criterion1)
-  show "partial_order ?car ?le" by (rule subgroups_partial_order)
+  show "partial_order ?L" by (rule subgroups_partial_order)
 next
-  have "order_syntax.greatest ?car ?le (carrier G) ?car"
-    by (unfold order_syntax.greatest_def)
+  have "greatest ?L (carrier G) (carrier ?L)"
+    by (unfold greatest_def)
       (simp add: subgroup.subset subgroup_self)
-  then show "\<exists>G. order_syntax.greatest ?car ?le G ?car" ..
+  then show "\<exists>G. greatest ?L G (carrier ?L)" ..
 next
   fix A
-  assume L: "A \<subseteq> ?car" and non_empty: "A ~= {}"
+  assume L: "A \<subseteq> carrier ?L" and non_empty: "A ~= {}"
   then have Int_subgroup: "subgroup (\<Inter>A) G"
     by (fastsimp intro: subgroups_Inter)
-  have "order_syntax.greatest ?car ?le (\<Inter>A) (order_syntax.Lower ?car ?le A)"
-    (is "order_syntax.greatest _ _ ?Int _")
-  proof (rule order_syntax.greatest_LowerI)
+  have "greatest ?L (\<Inter>A) (Lower ?L A)"
+    (is "greatest _ ?Int _")
+  proof (rule greatest_LowerI)
     fix H
     assume H: "H \<in> A"
     with L have subgroupH: "subgroup H G" by auto
@@ -755,18 +755,18 @@ next
     from groupH have monoidH: "monoid ?H"
       by (rule group.is_monoid)
     from H have Int_subset: "?Int \<subseteq> H" by fastsimp
-    then show "?le ?Int H" by simp
+    then show "le ?L ?Int H" by simp
   next
     fix H
-    assume H: "H \<in> order_syntax.Lower ?car ?le A"
-    with L Int_subgroup show "?le H ?Int"
-      by (fastsimp simp: order_syntax.Lower_def intro: Inter_greatest)
+    assume H: "H \<in> Lower ?L A"
+    with L Int_subgroup show "le ?L H ?Int"
+      by (fastsimp simp: Lower_def intro: Inter_greatest)
   next
-    show "A \<subseteq> ?car" by (rule L)
+    show "A \<subseteq> carrier ?L" by (rule L)
   next
-    show "?Int \<in> ?car" by simp (rule Int_subgroup)
+    show "?Int \<in> carrier ?L" by simp (rule Int_subgroup)
   qed
-  then show "\<exists>I. order_syntax.greatest ?car ?le I (order_syntax.Lower ?car ?le A)" ..
+  then show "\<exists>I. greatest ?L I (Lower ?L A)" ..
 qed
 
 end
