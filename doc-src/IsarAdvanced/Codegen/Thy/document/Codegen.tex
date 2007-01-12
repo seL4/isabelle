@@ -121,12 +121,12 @@ The code generator aims to be usable with no further ado
   The code generator employs a notion of executability
   for three foundational executable ingredients known
   from functional programming:
-  \emph{function equations}, \emph{datatypes}, and
-  \emph{type classes}. A function equation as a first approximation
+  \emph{defining equations}, \emph{datatypes}, and
+  \emph{type classes}. A defining equation as a first approximation
   is a theorem of the form \isa{f\ t\isactrlisub {\isadigit{1}}\ t\isactrlisub {\isadigit{2}}\ {\isasymdots}\ t\isactrlisub n\ {\isasymequiv}\ t}
   (an equation headed by a constant \isa{f} with arguments
   \isa{t\isactrlisub {\isadigit{1}}\ t\isactrlisub {\isadigit{2}}\ {\isasymdots}\ t\isactrlisub n} and right hand side \isa{t}.
-  Code generation aims to turn function equations
+  Code generation aims to turn defining equations
   into a functional program by running through
   a process (see figure \ref{fig:process}):
 
@@ -134,7 +134,7 @@ The code generator aims to be usable with no further ado
 
     \item Out of the vast collection of theorems proven in a
       \qn{theory}, a reasonable subset modeling
-      function equations is \qn{selected}.
+      defining equations is \qn{selected}.
 
     \item On those selected theorems, certain
       transformations are carried out
@@ -194,7 +194,7 @@ The \isa{{\isasymCODEGEN}} command takes a space-separated list of
   depending on the target. In the SML case, a filename
   is given where to write the generated code to.
 
-  Internally, the function equations for all selected
+  Internally, the defining equations for all selected
   constants are taken, including any transitively required
   constants, datatypes and classes, resulting in the following
   code:
@@ -246,7 +246,7 @@ The \isa{{\isasymCODEGEN}} command takes a space-separated list of
 \begin{isamarkuptext}%
 \noindent will result in an error. Likewise, generating code
   for constants not yielding
-  a function equation will fail, e.g.~the Hilbert choice
+  a defining equation will fail, e.g.~the Hilbert choice
   operation \isa{SOME}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -289,7 +289,7 @@ The \isa{{\isasymCODEGEN}} command takes a space-separated list of
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The list of all function equations in a theory may be inspected
+The list of all defining equations in a theory may be inspected
   using the \isa{{\isasymPRINTCODETHMS}} command:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -297,7 +297,7 @@ The list of all function equations in a theory may be inspected
 %
 \begin{isamarkuptext}%
 \noindent which displays a table of constant with corresponding
-  function equations (the additional stuff displayed
+  defining equations (the additional stuff displayed
   shall not bother us for the moment). If this table does
   not provide at least one function
   equation, the table of primitive definitions is searched
@@ -307,7 +307,7 @@ The list of all function equations in a theory may be inspected
   function definitions introduced by \isa{{\isasymFUN}},
   \isa{{\isasymFUNCTION}}, \isa{{\isasymPRIMREC}}
   \isa{{\isasymRECDEF}} are implicitly propagated
-  to this function equation table. Specific theorems may be
+  to this defining equation table. Specific theorems may be
   selected using an attribute: \emph{code func}. As example,
   a weight selector function:%
 \end{isamarkuptext}%
@@ -347,7 +347,7 @@ We want to eliminate the explicit destruction
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
 \ pick\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}pick{\isadigit{1}}{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
 \begin{isamarkuptext}%
-This theorem is now added to the function equation table:
+This theorem is now added to the defining equation table:
 
   \lstsml{Thy/examples/pick1.ML}
 
@@ -365,8 +365,8 @@ This theorem is now added to the function equation table:
 
   Syntactic redundancies are implicitly dropped. For example,
   using a modified version of the \isa{fac} function
-  as function equation, the then redundant (since
-  syntactically subsumed) original function equations
+  as defining equation, the then redundant (since
+  syntactically subsumed) original defining equations
   are dropped, resulting in a warning:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -532,7 +532,7 @@ Code generation is \emph{incremental}: theorems
 \isacommand{print{\isacharunderscore}codethms}\isamarkupfalse%
 \ {\isacharparenleft}{\isacharparenright}%
 \begin{isamarkuptext}%
-\noindent print all cached function equations (i.e.~\emph{after}
+\noindent print all cached defining equations (i.e.~\emph{after}
   any applied transformation). Inside the brackets a
   list of constants may be given; their function
   equations are added to the cache if not already present.%
@@ -603,8 +603,8 @@ Before selected function theorems are turned into abstract
   \emph{inline procedures} and \emph{generic preprocessors}.
 
   \emph{Inline theorems} are rewriting rules applied to each
-  function equation.  Due to the interpretation of theorems
-  of function equations, rewrites are applied to the right
+  defining equation.  Due to the interpretation of theorems
+  of defining equations, rewrites are applied to the right
   hand side and the arguments of the left hand side of an
   equation, but never to the constant heading the left hand side.
   Inline theorems may be declared an undeclared using the
@@ -1355,13 +1355,13 @@ Imagine the following quick-and-dirty setup for implementing
 \ \ {\isachardoublequoteopen}dummy{\isacharunderscore}set\ {\isacharequal}\ {\isacharbraceleft}Suc{\isacharbraceright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 Then code generation for \isa{dummy{\isacharunderscore}set} will fail.
-  Why? A glimpse at the function equations will offer:%
+  Why? A glimpse at the defining equations will offer:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{print{\isacharunderscore}codethms}\isamarkupfalse%
 \ {\isacharparenleft}insert{\isacharparenright}%
 \begin{isamarkuptext}%
-This reveals the function equation \isa{insert\ {\isacharquery}a\ {\isacharquery}B\ {\isasymequiv}\ {\isacharbraceleft}x{\isachardot}\ x\ {\isacharequal}\ {\isacharquery}a{\isacharbraceright}\ {\isasymunion}\ {\isacharquery}B}
+This reveals the defining equation \isa{insert\ {\isacharquery}a\ {\isacharquery}B\ {\isasymequiv}\ {\isacharbraceleft}x{\isachardot}\ x\ {\isacharequal}\ {\isacharquery}a{\isacharbraceright}\ {\isasymunion}\ {\isacharquery}B}
   for \isa{insert}, which is operationally meaningless
   but forces an equality constraint on the set members
   (which is not satisfiable if the set members are functions).
@@ -1404,15 +1404,15 @@ In this case the serializer would complain that \isa{insert}
 \begin{isamarkuptext}%
 \lstsml{Thy/examples/dirty_set.ML}
 
-  Reflexive function equations by convention are dropped.
+  Reflexive defining equations by convention are dropped.
   But their presence prevents primitive definitions to be
-  used as function equations:%
+  used as defining equations:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{print{\isacharunderscore}codethms}\isamarkupfalse%
 \ {\isacharparenleft}insert{\isacharparenright}%
 \begin{isamarkuptext}%
-will show \emph{no} function equations for insert.
+will show \emph{no} defining equations for insert.
 
   Note that the sort constraints of reflexive equations
   are considered; so%
@@ -1517,7 +1517,7 @@ However this has to be considered harmful since this axiom,
 \ \ {\isacharbrackleft}symmetric{\isacharcomma}\ code\ inline{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}arbitrary{\isacharunderscore}option\ {\isacharequal}\ arbitrary{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 By that, we replace any \isa{arbitrary} with option type
-  by \isa{arbitrary{\isacharunderscore}option} in function equations.
+  by \isa{arbitrary{\isacharunderscore}option} in defining equations.
 
   For technical reasons, we further have to provide a
   synonym for \isa{None} which in code generator view
@@ -1674,10 +1674,12 @@ This Pure module implements the core notions of
   \indexml{CodegenData.add-funcl}\verb|CodegenData.add_funcl: CodegenConsts.const * thm list Susp.T -> theory -> theory| \\
   \indexml{CodegenData.add-inline}\verb|CodegenData.add_inline: thm -> theory -> theory| \\
   \indexml{CodegenData.del-inline}\verb|CodegenData.del_inline: thm -> theory -> theory| \\
-  \indexml{CodegenData.add-inline-proc}\verb|CodegenData.add_inline_proc: (theory -> cterm list -> thm list)|\isasep\isanewline%
+  \indexml{CodegenData.add-inline-proc}\verb|CodegenData.add_inline_proc: string * (theory -> cterm list -> thm list)|\isasep\isanewline%
 \verb|    -> theory -> theory| \\
-  \indexml{CodegenData.add-preproc}\verb|CodegenData.add_preproc: (theory -> thm list -> thm list)|\isasep\isanewline%
+  \indexml{CodegenData.del-inline-proc}\verb|CodegenData.del_inline_proc: string -> theory -> theory| \\
+  \indexml{CodegenData.add-preproc}\verb|CodegenData.add_preproc: string * (theory -> thm list -> thm list)|\isasep\isanewline%
 \verb|    -> theory -> theory| \\
+  \indexml{CodegenData.del-preproc}\verb|CodegenData.del_preproc: string -> theory -> theory| \\
   \indexml{CodegenData.add-datatype}\verb|CodegenData.add_datatype: string * (((string * sort) list * (string * typ list) list)|\isasep\isanewline%
 \verb|    * thm list Susp.T) -> theory -> theory| \\
   \indexml{CodegenData.del-datatype}\verb|CodegenData.del_datatype: string -> theory -> theory| \\
@@ -1695,7 +1697,7 @@ This Pure module implements the core notions of
      theorem \isa{thm} from executable content, if present.
 
   \item \verb|CodegenData.add_funcl|~\isa{{\isacharparenleft}const{\isacharcomma}\ lthms{\isacharparenright}}~\isa{thy} adds
-     suspended function equations \isa{lthms} for constant
+     suspended defining equations \isa{lthms} for constant
      \isa{const} to executable content.
 
   \item \verb|CodegenData.add_inline|~\isa{thm}~\isa{thy} adds
@@ -1704,18 +1706,24 @@ This Pure module implements the core notions of
   \item \verb|CodegenData.del_inline|~\isa{thm}~\isa{thy} remove
      inlining theorem \isa{thm} from executable content, if present.
 
-  \item \verb|CodegenData.add_inline_proc|~\isa{f}~\isa{thy} adds
-     inline procedure \isa{f} to executable content;
+  \item \verb|CodegenData.add_inline_proc|~\isa{{\isacharparenleft}name{\isacharcomma}\ f{\isacharparenright}}~\isa{thy} adds
+     inline procedure \isa{f} (named \isa{name}) to executable content;
      \isa{f} is a computation of rewrite rules dependent on
      the current theory context and the list of all arguments
-     and right hand sides of the function equations belonging
+     and right hand sides of the defining equations belonging
      to a certain function definition.
 
-  \item \verb|CodegenData.add_preproc|~\isa{f}~\isa{thy} adds
-     generic preprocessor \isa{f} to executable content;
-     \isa{f} is a transformation of the function equations belonging
+  \item \verb|CodegenData.del_inline_proc|~\isa{name}~\isa{thy} removes
+     inline procedure named \isa{name} from executable content.
+
+  \item \verb|CodegenData.add_preproc|~\isa{{\isacharparenleft}name{\isacharcomma}\ f{\isacharparenright}}~\isa{thy} adds
+     generic preprocessor \isa{f} (named \isa{name}) to executable content;
+     \isa{f} is a transformation of the defining equations belonging
      to a certain function definition, depending on the
      current theory context.
+
+  \item \verb|CodegenData.del_preproc|~\isa{name}~\isa{thy} removes
+     generic preprcoessor named \isa{name} from executable content.
 
   \item \verb|CodegenData.add_datatype|~\isa{{\isacharparenleft}name{\isacharcomma}\ {\isacharparenleft}spec{\isacharcomma}\ cert{\isacharparenright}{\isacharparenright}}~\isa{thy} adds
      a datatype to executable content, with type constructor
@@ -1745,13 +1753,13 @@ This Pure module implements the core notions of
 %
 \endisadelimmlref
 %
-\isamarkupsubsection{Function equation systems: codegen\_funcgr.ML%
+\isamarkupsubsection{defining equation systems: codegen\_funcgr.ML%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Out of the executable content of a theory, a normalized
-  function equation systems may be constructed containing
+  defining equation systems may be constructed containing
   function definitions for constants.  The system is cached
   until its underlying executable content changes.%
 \end{isamarkuptext}%
@@ -1777,10 +1785,10 @@ Out of the executable content of a theory, a normalized
   \begin{description}
 
   \item \verb|CodegenFuncgr.T| represents
-    a normalized function equation system.
+    a normalized defining equation system.
 
   \item \verb|CodegenFuncgr.make|~\isa{thy}~\isa{cs}
-    returns a normalized function equation system,
+    returns a normalized defining equation system,
     with the assertion that it contains any function
     definition for constants \isa{cs} (if existing).
 
@@ -1829,8 +1837,8 @@ Out of the executable content of a theory, a normalized
   \indexml{CodegenConsts.read-const}\verb|CodegenConsts.read_const: theory -> string -> CodegenConsts.const| \\
   \indexmlstructure{CodegenConsts.Consttab}\verb|structure CodegenConsts.Consttab| \\
   \indexmlstructure{CodegenFuncgr.Constgraph}\verb|structure CodegenFuncgr.Constgraph| \\
-  \indexml{CodegenData.typ-func}\verb|CodegenData.typ_func: theory -> thm -> typ| \\
-  \indexml{CodegenData.rewrite-func}\verb|CodegenData.rewrite_func: thm list -> thm -> thm| \\
+  \indexml{CodegenFunc.typ-func}\verb|CodegenFunc.typ_func: thm -> typ| \\
+  \indexml{CodegenFunc.rewrite-func}\verb|CodegenFunc.rewrite_func: thm list -> thm -> thm| \\
   \end{mldecls}
 
   \begin{description}
@@ -1847,13 +1855,13 @@ Out of the executable content of a theory, a normalized
   \item \verb|CodegenConsts.read_const|~\isa{thy}~\isa{s}
      reads a constant as a concrete term expression \isa{s}.
 
-  \item \verb|CodegenData.typ_func|~\isa{thy}~\isa{thm}
-     extracts the type of a constant in a function equation \isa{thm}.
+  \item \verb|CodegenFunc.typ_func|~\isa{thm}
+     extracts the type of a constant in a defining equation \isa{thm}.
 
-  \item \verb|CodegenData.rewrite_func|~\isa{rews}~\isa{thm}
-     rewrites a function equation \isa{thm} with a set of rewrite
+  \item \verb|CodegenFunc.rewrite_func|~\isa{rews}~\isa{thm}
+     rewrites a defining equation \isa{thm} with a set of rewrite
      rules \isa{rews}; only arguments and right hand side are rewritten,
-     not the head of the function equation.
+     not the head of the defining equation.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -1965,7 +1973,7 @@ Due to incrementality of code generation, changes in the
 Isabelle/HOL's datatype package provides a mechanism to
   extend theories depending on datatype declarations:
   \emph{datatype hooks}.  For example, when declaring a new
-  datatype, a hook proves function equations for equality on
+  datatype, a hook proves defining equations for equality on
   that datatype (if possible).%
 \end{isamarkuptext}%
 \isamarkuptrue%

@@ -94,12 +94,12 @@ text {*
   The code generator employs a notion of executability
   for three foundational executable ingredients known
   from functional programming:
-  \emph{function equations}, \emph{datatypes}, and
-  \emph{type classes}. A function equation as a first approximation
+  \emph{defining equations}, \emph{datatypes}, and
+  \emph{type classes}. A defining equation as a first approximation
   is a theorem of the form @{text "f t\<^isub>1 t\<^isub>2 \<dots> t\<^isub>n \<equiv> t"}
   (an equation headed by a constant @{text f} with arguments
   @{text "t\<^isub>1 t\<^isub>2 \<dots> t\<^isub>n"} and right hand side @{text t}.
-  Code generation aims to turn function equations
+  Code generation aims to turn defining equations
   into a functional program by running through
   a process (see figure \ref{fig:process}):
 
@@ -107,7 +107,7 @@ text {*
 
     \item Out of the vast collection of theorems proven in a
       \qn{theory}, a reasonable subset modeling
-      function equations is \qn{selected}.
+      defining equations is \qn{selected}.
 
     \item On those selected theorems, certain
       transformations are carried out
@@ -163,7 +163,7 @@ text {*
   depending on the target. In the SML case, a filename
   is given where to write the generated code to.
 
-  Internally, the function equations for all selected
+  Internally, the defining equations for all selected
   constants are taken, including any transitively required
   constants, datatypes and classes, resulting in the following
   code:
@@ -203,7 +203,7 @@ code_gen bar (SML "examples/fail_type.ML")
 text {*
   \noindent will result in an error. Likewise, generating code
   for constants not yielding
-  a function equation will fail, e.g.~the Hilbert choice
+  a defining equation will fail, e.g.~the Hilbert choice
   operation @{text "SOME"}:
 *}
 
@@ -230,7 +230,7 @@ code_gen pick_some (SML "examples/fail_const.ML")
 subsection {* Theorem selection *}
 
 text {*
-  The list of all function equations in a theory may be inspected
+  The list of all defining equations in a theory may be inspected
   using the @{text "\<PRINTCODETHMS>"} command:
 *}
 
@@ -238,7 +238,7 @@ print_codethms
 
 text {*
   \noindent which displays a table of constant with corresponding
-  function equations (the additional stuff displayed
+  defining equations (the additional stuff displayed
   shall not bother us for the moment). If this table does
   not provide at least one function
   equation, the table of primitive definitions is searched
@@ -248,7 +248,7 @@ text {*
   function definitions introduced by @{text "\<FUN>"},
   @{text "\<FUNCTION>"}, @{text "\<PRIMREC>"}
   @{text "\<RECDEF>"} are implicitly propagated
-  to this function equation table. Specific theorems may be
+  to this defining equation table. Specific theorems may be
   selected using an attribute: \emph{code func}. As example,
   a weight selector function:
 *}
@@ -272,7 +272,7 @@ lemma [code func]:
 code_gen pick (*<*)(SML #)(*>*)(SML "examples/pick1.ML")
 
 text {*
-  This theorem is now added to the function equation table:
+  This theorem is now added to the defining equation table:
 
   \lstsml{Thy/examples/pick1.ML}
 
@@ -289,8 +289,8 @@ text {*
 
   Syntactic redundancies are implicitly dropped. For example,
   using a modified version of the @{const fac} function
-  as function equation, the then redundant (since
-  syntactically subsumed) original function equations
+  as defining equation, the then redundant (since
+  syntactically subsumed) original defining equations
   are dropped, resulting in a warning:
 *}
 
@@ -406,7 +406,7 @@ text {*
 print_codethms ()
 
 text {*
-  \noindent print all cached function equations (i.e.~\emph{after}
+  \noindent print all cached defining equations (i.e.~\emph{after}
   any applied transformation). Inside the brackets a
   list of constants may be given; their function
   equations are added to the cache if not already present.
@@ -469,8 +469,8 @@ text {*
   \emph{inline procedures} and \emph{generic preprocessors}.
 
   \emph{Inline theorems} are rewriting rules applied to each
-  function equation.  Due to the interpretation of theorems
-  of function equations, rewrites are applied to the right
+  defining equation.  Due to the interpretation of theorems
+  of defining equations, rewrites are applied to the right
   hand side and the arguments of the left hand side of an
   equation, but never to the constant heading the left hand side.
   Inline theorems may be declared an undeclared using the
@@ -931,13 +931,13 @@ definition
 
 text {*
   Then code generation for @{const dummy_set} will fail.
-  Why? A glimpse at the function equations will offer:
+  Why? A glimpse at the defining equations will offer:
 *}
 
 print_codethms (insert)
 
 text {*
-  This reveals the function equation @{thm insert_def}
+  This reveals the defining equation @{thm insert_def}
   for @{const insert}, which is operationally meaningless
   but forces an equality constraint on the set members
   (which is not satisfiable if the set members are functions).
@@ -965,15 +965,15 @@ code_gen dummy_set foobar_set (*<*)(SML #)(*>*)(SML "examples/dirty_set.ML")
 text {*
   \lstsml{Thy/examples/dirty_set.ML}
 
-  Reflexive function equations by convention are dropped.
+  Reflexive defining equations by convention are dropped.
   But their presence prevents primitive definitions to be
-  used as function equations:
+  used as defining equations:
 *}
 
 print_codethms (insert)
 
 text {*
-  will show \emph{no} function equations for insert.
+  will show \emph{no} defining equations for insert.
 
   Note that the sort constraints of reflexive equations
   are considered; so
@@ -1058,7 +1058,7 @@ definition
 
 text {*
   By that, we replace any @{const arbitrary} with option type
-  by @{const arbitrary_option} in function equations.
+  by @{const arbitrary_option} in defining equations.
 
   For technical reasons, we further have to provide a
   synonym for @{const None} which in code generator view
@@ -1194,7 +1194,7 @@ text %mlref {*
      theorem @{text "thm"} from executable content, if present.
 
   \item @{ML CodegenData.add_funcl}~@{text "(const, lthms)"}~@{text "thy"} adds
-     suspended function equations @{text lthms} for constant
+     suspended defining equations @{text lthms} for constant
      @{text const} to executable content.
 
   \item @{ML CodegenData.add_inline}~@{text "thm"}~@{text "thy"} adds
@@ -1207,7 +1207,7 @@ text %mlref {*
      inline procedure @{text f} (named @{text name}) to executable content;
      @{text f} is a computation of rewrite rules dependent on
      the current theory context and the list of all arguments
-     and right hand sides of the function equations belonging
+     and right hand sides of the defining equations belonging
      to a certain function definition.
 
   \item @{ML CodegenData.del_inline_proc}~@{text "name"}~@{text "thy"} removes
@@ -1215,11 +1215,11 @@ text %mlref {*
 
   \item @{ML CodegenData.add_preproc}~@{text "(name, f)"}~@{text "thy"} adds
      generic preprocessor @{text f} (named @{text name}) to executable content;
-     @{text f} is a transformation of the function equations belonging
+     @{text f} is a transformation of the defining equations belonging
      to a certain function definition, depending on the
      current theory context.
 
-  \item @{ML CodegenData.del_prepproc}~@{text "name"}~@{text "thy"} removes
+  \item @{ML CodegenData.del_preproc}~@{text "name"}~@{text "thy"} removes
      generic preprcoessor named @{text name} from executable content.
 
   \item @{ML CodegenData.add_datatype}~@{text "(name, (spec, cert))"}~@{text "thy"} adds
@@ -1242,11 +1242,11 @@ text %mlref {*
   \end{description}
 *}
 
-subsection {* Function equation systems: codegen\_funcgr.ML *}
+subsection {* defining equation systems: codegen\_funcgr.ML *}
 
 text {*
   Out of the executable content of a theory, a normalized
-  function equation systems may be constructed containing
+  defining equation systems may be constructed containing
   function definitions for constants.  The system is cached
   until its underlying executable content changes.
 *}
@@ -1265,10 +1265,10 @@ text %mlref {*
   \begin{description}
 
   \item @{ML_type CodegenFuncgr.T} represents
-    a normalized function equation system.
+    a normalized defining equation system.
 
   \item @{ML CodegenFuncgr.make}~@{text thy}~@{text cs}
-    returns a normalized function equation system,
+    returns a normalized defining equation system,
     with the assertion that it contains any function
     definition for constants @{text cs} (if existing).
 
@@ -1301,8 +1301,8 @@ text %mlref {*
   @{index_ML CodegenConsts.read_const: "theory -> string -> CodegenConsts.const"} \\
   @{index_ML_structure CodegenConsts.Consttab} \\
   @{index_ML_structure CodegenFuncgr.Constgraph} \\
-  @{index_ML CodegenData.typ_func: "theory -> thm -> typ"} \\
-  @{index_ML CodegenData.rewrite_func: "thm list -> thm -> thm"} \\
+  @{index_ML CodegenFunc.typ_func: "thm -> typ"} \\
+  @{index_ML CodegenFunc.rewrite_func: "thm list -> thm -> thm"} \\
   \end{mldecls}
 
   \begin{description}
@@ -1319,13 +1319,13 @@ text %mlref {*
   \item @{ML CodegenConsts.read_const}~@{text thy}~@{text s}
      reads a constant as a concrete term expression @{text s}.
 
-  \item @{ML CodegenData.typ_func}~@{text thy}~@{text thm}
-     extracts the type of a constant in a function equation @{text thm}.
+  \item @{ML CodegenFunc.typ_func}~@{text thm}
+     extracts the type of a constant in a defining equation @{text thm}.
 
-  \item @{ML CodegenData.rewrite_func}~@{text rews}~@{text thm}
-     rewrites a function equation @{text thm} with a set of rewrite
+  \item @{ML CodegenFunc.rewrite_func}~@{text rews}~@{text thm}
+     rewrites a defining equation @{text thm} with a set of rewrite
      rules @{text rews}; only arguments and right hand side are rewritten,
-     not the head of the function equation.
+     not the head of the defining equation.
 
   \end{description}
 
@@ -1422,7 +1422,7 @@ text {*
   Isabelle/HOL's datatype package provides a mechanism to
   extend theories depending on datatype declarations:
   \emph{datatype hooks}.  For example, when declaring a new
-  datatype, a hook proves function equations for equality on
+  datatype, a hook proves defining equations for equality on
   that datatype (if possible).
 *}
 
