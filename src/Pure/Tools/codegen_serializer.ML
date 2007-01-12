@@ -47,7 +47,9 @@ fun x @@ y = [x, y];
 fun xs @| y = xs @ [y];
 val str = setmp print_mode [] Pretty.str;
 val concat = Pretty.block o Pretty.breaks;
+val brackets = Pretty.enclose "(" ")" o Pretty.breaks;
 fun semicolon ps = Pretty.block [concat ps, str ";"];
+
 
 (** syntax **)
 
@@ -60,8 +62,10 @@ datatype fixity =
 
 val APP = INFX (~1, L);
 
-type 'a pretty_syntax = int * (fixity -> (fixity -> 'a -> Pretty.T)
-  -> 'a list -> Pretty.T);
+type typ_syntax = int * ((fixity -> itype -> Pretty.T) -> fixity
+  -> itype list -> Pretty.T);
+type term_syntax = int * ((vname list -> fixity -> iterm -> Pretty.T) -> fixity
+  -> iterm list -> Pretty.T);
 
 fun eval_lrx L L = false
   | eval_lrx R R = false
@@ -89,24 +93,6 @@ fun brackify fxy_ctxt ps =
 fun brackify_infix infx fxy_ctxt ps =
   gen_brackify (eval_fxy (INFX infx) fxy_ctxt) (Pretty.breaks ps);
 
-fun mk_app mk_app' from_expr const_syntax fxy (app as ((c, (_, ty)), ts)) =
-  case const_syntax c
-   of NONE => brackify fxy (mk_app' app)
-    | SOME (i, pr) =>
-        let
-          val k = if i < 0 then (length o fst o CodegenThingol.unfold_fun) ty else i
-        in if k = length ts
-          then 
-            pr fxy from_expr ts
-          else if k < length ts
-          then case chop k ts of (ts1, ts2) =>
-            brackify fxy (pr APP from_expr ts1 :: map (from_expr BR) ts2)
-          else from_expr fxy (CodegenThingol.eta_expand app k)
-        end;
-
-val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
-val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
-
 
 (* user-defined syntax *)
 
@@ -130,7 +116,7 @@ fun mk_mixfix (fixity_this, mfx) =
       | fillin _ _ [] =
           error ("Inconsistent mixfix: too less arguments");
   in
-    (i, fn fixity_ctxt => fn pr => fn args =>
+    (i, fn pr => fn fixity_ctxt => fn args =>
       gen_brackify (eval_fxy fixity_this fixity_ctxt) (fillin pr mfx args))
   end;
 
@@ -165,7 +151,131 @@ fun parse_args f args =
     | NONE => error "bad serializer arguments";
 
 
-(* module names *)
+(* generic serializer combinators *)
+
+fun gen_pr_app pr_app' pr_term const_syntax fxy (app as ((c, (_, ty)), ts)) =
+  case const_syntax c
+   of NONE => brackify fxy (pr_app' app)
+    | SOME (i, pr) =>
+        let
+          val k = if i < 0 then (length o fst o CodegenThingol.unfold_fun) ty else i
+        in if k = length ts
+          then 
+            pr pr_term fxy ts
+          else if k < length ts
+          then case chop k ts of (ts1, ts2) =>
+            brackify fxy (pr pr_term APP ts1 :: map (pr_term [] BR) ts2)
+          else pr_term [] fxy (CodegenThingol.eta_expand app k)
+        end;
+
+fun gen_pr_bind pr_bind' pr_term fxy ((v, pat), ty) vars =
+  let
+    val vs = case pat
+     of SOME pat => CodegenThingol.fold_varnames (insert (op =)) pat []
+      | NONE => [];
+    val vars' = CodegenNames.intro_vars (the_list v) vars;
+    val vars'' = CodegenNames.intro_vars vs vars';
+    val v' = Option.map (CodegenNames.lookup_var vars') v;
+    val pat' = Option.map (pr_term vars'' fxy) pat;
+  in (pr_bind' ((v', pat'), ty), vars'') end;
+
+
+(* list, string and monad serializers *)
+
+fun implode_list c_nil c_cons t =
+  let
+    fun dest_cons (IConst (c, _) `$ t1 `$ t2) =
+          if c = c_cons
+          then SOME (t1, t2)
+          else NONE
+      | dest_cons _ = NONE;
+    val (ts, t') = CodegenThingol.unfoldr dest_cons t;
+  in case t'
+   of IConst (c, _) => if c = c_nil then SOME ts else NONE
+    | _ => NONE
+  end;
+
+fun implode_string mk_char mk_string ts =
+  if forall (fn IChar _ => true | _ => false) ts
+  then (SOME o str o mk_string o implode o map (fn IChar c => mk_char c)) ts
+  else NONE;
+
+fun implode_monad c_mbind c_kbind t =
+  let
+    fun dest_monad (IConst (c, _) `$ t1 `$ t2) =
+          if c = c_mbind
+            then case CodegenThingol.split_abs t2
+             of SOME (((v, pat), ty), t') => SOME ((SOME (((SOME v, pat), ty), true), t1), t')
+              | NONE => NONE
+          else if c = c_kbind
+            then SOME ((NONE, t1), t2)
+            else NONE
+      | dest_monad t = case CodegenThingol.split_let t
+           of SOME (((pat, ty), tbind), t') => SOME ((SOME (((NONE, SOME pat), ty), false), tbind), t')
+            | NONE => NONE;
+  in CodegenThingol.unfoldr dest_monad t end;
+
+fun pretty_ml_string c_nil c_cons mk_char mk_string target_implode =
+  let
+    fun pretty pr fxy [t] =
+      case implode_list c_nil c_cons t
+       of SOME ts => (case implode_string mk_char mk_string ts
+           of SOME p => p
+            | NONE => Pretty.block [str target_implode, Pretty.brk 1, pr [] BR t])
+        | NONE => Pretty.block [str target_implode, Pretty.brk 1, pr [] BR t]
+  in (1, pretty) end;
+
+fun pretty_list c_nil c_cons mk_list mk_char_string (target_fxy, target_cons) =
+  let
+    fun default pr fxy t1 t2 =
+      brackify_infix (target_fxy, R) fxy [
+        pr (INFX (target_fxy, X)) t1,
+        str target_cons,
+        pr (INFX (target_fxy, R)) t2
+      ];
+    fun pretty pr fxy [t1, t2] =
+      case Option.map (cons t1) (implode_list c_nil c_cons t2)
+       of SOME ts =>
+            (case mk_char_string
+             of SOME (mk_char, mk_string) =>
+                  (case implode_string mk_char mk_string ts
+                   of SOME p => p
+                    | NONE => mk_list (map (pr [] NOBR) ts))
+              | NONE => mk_list (map (pr [] NOBR) ts))
+        | NONE => default (pr []) fxy t1 t2;
+  in (2, pretty) end;
+
+val pretty_imperative_monad_bind =
+  let
+    fun pretty (pr : vname list -> fixity -> iterm -> Pretty.T) fxy [t1, (v, ty) `|-> t2] =
+          pr [] fxy (ICase ((t1, ty), ([(IVar v, t2)])))
+      | pretty _ _ _ = error "bad arguments for imperative monad bind";
+  in (2, pretty) end;
+
+fun pretty_haskell_monad c_mbind c_kbind =
+  let
+    fun pr_bnd pr ((SOME v, NONE), _) = str "<FOO>"
+      | pr_bnd pr ((NONE, SOME t), _) = str "<FOO>"
+      | pr_bnd pr ((SOME v, SOME t), _) = str "<FOO>";
+    fun pr_bind pr (NONE, t) = semicolon [pr [] NOBR t]
+      | pr_bind pr (SOME (bind, true), t) = semicolon [pr_bnd pr bind, str "<-", pr [] NOBR t]
+      | pr_bind pr (SOME (bind, false), t) = semicolon [str "let", pr_bnd pr bind, str "=", pr [] NOBR t];
+    fun brack fxy p = if eval_fxy BR fxy then Pretty.block [str "(", p, str ")"] else p;
+    fun pretty pr fxy [t] =
+      let
+        val (binds, t) = implode_monad c_mbind c_kbind t;
+      in (brack fxy o Pretty.block_enclose (str "do {", str "}")) (
+        map (pr_bind pr) binds
+        @| pr [] NOBR t
+      ) end;
+  in (1, pretty) end;
+
+
+
+(** name auxiliary **)
+
+val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
+val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
 
 val dest_name =
   apfst NameSpace.implode o split_last o fst o split_last o NameSpace.explode;
@@ -188,64 +298,6 @@ fun mk_modl_name_tab empty_names prefix module_alias code =
            o fst o dest_name o fst)
              code
   in (fn name => (the o Symtab.lookup tab) name) end;
-
-
-(* list and string serializer *)
-
-fun implode_list c_nil c_cons e =
-  let
-    fun dest_cons (IConst (c, _) `$ e1 `$ e2) =
-          if c = c_cons
-          then SOME (e1, e2)
-          else NONE
-      | dest_cons  _ = NONE;
-    val (es, e') = CodegenThingol.unfoldr dest_cons e;
-  in case e'
-   of IConst (c, _) => if c = c_nil then SOME es else NONE
-    | _ => NONE
-  end;
-
-fun implode_string mk_char mk_string es =
-  if forall (fn IChar _ => true | _ => false) es
-  then (SOME o str o mk_string o implode o map (fn IChar c => mk_char c)) es
-  else NONE;
-
-fun pretty_ml_string c_nil c_cons mk_char mk_string target_implode =
-  let
-    fun pretty fxy pr [t] =
-      case implode_list c_nil c_cons t
-       of SOME ts => (case implode_string mk_char mk_string ts
-           of SOME p => p
-            | NONE => Pretty.block [str target_implode, Pretty.brk 1, pr BR t])
-        | NONE => Pretty.block [str target_implode, Pretty.brk 1, pr BR t]
-  in (1, pretty) end;
-
-fun pretty_list c_nil c_cons mk_list mk_char_string (target_fxy, target_cons) =
-  let
-    fun default fxy pr t1 t2 =
-      brackify_infix (target_fxy, R) fxy [
-        pr (INFX (target_fxy, X)) t1,
-        str target_cons,
-        pr (INFX (target_fxy, R)) t2
-      ];
-    fun pretty fxy pr [t1, t2] =
-      case Option.map (cons t1) (implode_list c_nil c_cons t2)
-       of SOME ts =>
-            (case mk_char_string
-             of SOME (mk_char, mk_string) =>
-                  (case implode_string mk_char mk_string ts
-                   of SOME p => p
-                    | NONE => mk_list (map (pr NOBR) ts))
-              | NONE => mk_list (map (pr NOBR) ts))
-        | NONE => default fxy pr t1 t2;
-  in (2, pretty) end;
-
-val pretty_imperative_monad_bind =
-  let
-    fun pretty fxy (pr : fixity -> iterm -> Pretty.T) [t1, (v, ty) `|-> t2] =
-          pr fxy (ICase ((t1, ty), ([(IVar v, t2)])))
-      | pretty _ _ _ = error "bad arguments for imperative monad bind";
-  in (2, pretty) end;
 
 
 
@@ -288,9 +340,9 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
         fun pr_lookup [] p =
               p
           | pr_lookup [p'] p =
-              brackify BR [p', p]
+              brackets [p', p]
           | pr_lookup (ps as _ :: _) p =
-              brackify BR [Pretty.enum " o" "(" ")" ps, p];
+              brackets [Pretty.enum " o" "(" ")" ps, p];
         fun pr_inst fxy (Instance (inst, iss)) =
               brackify fxy (
                 (str o deresolv) inst
@@ -321,7 +373,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                 then error ("Number of argument mismatch in customary serialization: "
                   ^ (string_of_int o length) tys ^ " given, "
                   ^ string_of_int i ^ " expected")
-                else pr fxy pr_typ tys)
+                else pr pr_typ fxy tys)
       | pr_typ fxy (ITyVar v) =
           str ("'" ^ v);
     fun pr_term vars fxy (IConst c) =
@@ -335,26 +387,14 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                 brackify fxy [pr_term vars NOBR t1, pr_term vars BR t2])
       | pr_term vars fxy (t as _ `|-> _) =
           let
-            val (ps, t') = CodegenThingol.unfold_abs t;
-            fun pr ((v, NONE), _) vars =
-                  let
-                    val vars' = CodegenNames.intro_vars [v] vars;
-                  in
-                    (concat [str "fn", str (CodegenNames.lookup_var vars' v), str "=>"], vars')
-                  end
-              | pr ((v, SOME p), _) vars =
-                  let
-                    val vars' = CodegenNames.intro_vars [v] vars;
-                    val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                    val vars'' = CodegenNames.intro_vars vs vars';
-                  in
-                    (concat [str "fn", str (CodegenNames.lookup_var vars' v), str "as",
-                      pr_term vars'' NOBR p, str "=>"], vars'')
-                  end;
-            val (ps', vars') = fold_map pr ps vars;
-          in brackify BR (ps' @ [pr_term vars' NOBR t']) end
+            val (binds, t') = CodegenThingol.unfold_abs t;
+            fun pr ((v, pat), ty) =
+              pr_bind NOBR ((SOME v, pat), ty)
+              #>> (fn p => concat [str "fn", p, str "=>"]);
+            val (ps, vars') = fold_map pr binds vars;
+          in brackets (ps @ [pr_term vars' NOBR t']) end
       | pr_term vars fxy (INum n) =
-          brackify BR [(str o IntInf.toString) n, str ":", str "IntInf.int"]
+          brackets [(str o IntInf.toString) n, str ":", str "IntInf.int"]
       | pr_term vars _ (IChar c) =
           (str o prefix "#" o quote)
             (let val i = ord c
@@ -364,42 +404,26 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
               end)
       | pr_term vars fxy (t as ICase (_, [_])) =
           let
-            val (ts, t') = CodegenThingol.unfold_let t;
-            fun mk ((p, _), t'') vars =
-              let
-                val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = CodegenNames.intro_vars vs vars;
-              in
-                (Pretty.block [
-                  concat [
-                    str "val",
-                    pr_term vars' NOBR p,
-                    str "=",
-                    pr_term vars NOBR t''
-                  ],
-                  str ";"
-                ], vars')
-              end
-            val (binds, vars') = fold_map mk ts vars;
+            val (binds, t') = CodegenThingol.unfold_let t;
+            fun pr ((pat, ty), t) vars =
+              vars
+              |> pr_bind NOBR ((NONE, SOME pat), ty)
+              |>> (fn p => semicolon [str "val", p, str "=", pr_term vars NOBR t])
+            val (ps, vars') = fold_map pr binds vars;
           in
             Pretty.chunks [
-              [str ("let"), Pretty.fbrk, binds |> Pretty.chunks] |> Pretty.block,
+              [str ("let"), Pretty.fbrk, Pretty.chunks ps] |> Pretty.block,
               [str ("in"), Pretty.fbrk, pr_term vars' NOBR t'] |> Pretty.block,
               str ("end")
-            ] end
+            ]
+          end
       | pr_term vars fxy (ICase ((td, ty), b::bs)) =
           let
-            fun pr definer (p, t) =
+            fun pr delim (pat, t) =
               let
-                val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = CodegenNames.intro_vars vs vars;
+                val (p, vars') = pr_bind NOBR ((NONE, SOME pat), ty) vars;
               in
-                concat [
-                  str definer,
-                  pr_term vars' NOBR p,
-                  str "=>",
-                  pr_term vars' NOBR t
-                ]
+                concat [str delim, p, str "=>", pr_term vars' NOBR t]
               end;
           in
             (Pretty.enclose "(" ")" o single o brackify fxy) (
@@ -420,7 +444,13 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
         (str o deresolv) c
           :: ((map (pr_insts BR) o filter_out null) iss @ map (pr_term vars BR) ts)
     and pr_app vars fxy (app as ((c, (iss, ty)), ts)) =
-      mk_app (pr_app' vars) (pr_term vars) const_syntax fxy app;
+      gen_pr_app (pr_app' vars) (fn vars' => pr_term (CodegenNames.intro_vars vars' vars))
+        const_syntax fxy app
+    and pr_bind' ((NONE, NONE), _) = str "_"
+      | pr_bind' ((SOME v, NONE), _) = str v
+      | pr_bind' ((NONE, SOME p), _) = p
+      | pr_bind' ((SOME v, SOME p), _) = concat [str v, str "as", p]
+    and pr_bind fxy = gen_pr_bind pr_bind' pr_term fxy;
     fun pr_def (MLFuns (funns as (funn :: funns'))) =
           let
             val definer =
@@ -591,7 +621,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
     fun pr_insts fxy iys =
       let
         fun dot p2 p1 = Pretty.block [p1, str ".", str p2];
-        fun proj k i p = (brackify BR o map str) [
+        fun proj k i p = (brackets o map str) [
             "match",
             p,
             "with",
@@ -633,7 +663,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                 then error ("Number of argument mismatch in customary serialization: "
                   ^ (string_of_int o length) tys ^ " given, "
                   ^ string_of_int i ^ " expected")
-                else pr fxy pr_typ tys)
+                else pr pr_typ fxy tys)
       | pr_typ fxy (ITyVar v) =
           str ("'" ^ v);
     fun pr_term vars fxy (IConst c) =
@@ -647,35 +677,12 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                 brackify fxy [pr_term vars NOBR t1, pr_term vars BR t2])
       | pr_term vars fxy (t as _ `|-> _) =
           let
-            val (ps, t') = CodegenThingol.unfold_abs t;
-            fun pr ((v, NONE), _) vars =
-                  let
-                    val vars' = CodegenNames.intro_vars [v] vars;
-                  in
-                    (str (CodegenNames.lookup_var vars' v), vars')
-                  end
-              | pr ((v, SOME p), _) vars =
-                  let
-                    val vars' = CodegenNames.intro_vars [v] vars;
-                    val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                    val vars'' = CodegenNames.intro_vars vs vars';
-                  in
-                    (brackify BR [
-                        pr_term vars'' NOBR p,
-                        str "as",
-                        str (CodegenNames.lookup_var vars' v)
-                    ], vars'')
-                  end;
-            val (ps', vars') = fold_map pr ps vars;
-          in brackify BR (
-              str "fun"
-              :: ps'
-              @ str "->"
-              @@ pr_term vars' NOBR t'
-            )
-          end
+            val (binds, t') = CodegenThingol.unfold_abs t;
+            fun pr ((v, pat), ty) = pr_bind BR ((SOME v, pat), ty);
+            val (ps, vars') = fold_map pr binds vars;
+          in brackets (str "fun" :: ps @ str "->" @@ pr_term vars' NOBR t') end
       | pr_term vars fxy (INum n) =
-          brackify BR [str "Big_int.big_int_of_int", (str o IntInf.toString) n]
+          brackets [str "Big_int.big_int_of_int", (str o IntInf.toString) n]
       | pr_term vars _ (IChar c) =
           (str o enclose "'" "'")
             (let val i = ord c
@@ -685,38 +692,19 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
               end)
       | pr_term vars fxy (t as ICase (_, [_])) =
           let
-            val (ts, t') = CodegenThingol.unfold_let t;
-            fun mk ((p, _), t'') vars =
-              let
-                val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = CodegenNames.intro_vars vs vars;
-              in
-                (concat [
-                  str "let",
-                  pr_term vars' NOBR p,
-                  str "=",
-                  pr_term vars NOBR t'',
-                  str "in"
-                ], vars')
-              end
-            val (binds, vars') = fold_map mk ts vars;
-          in
-            Pretty.chunks (binds @ [pr_term vars' NOBR t'])
-          end
+            val (binds, t') = CodegenThingol.unfold_let t;
+            fun pr ((pat, ty), t) vars =
+              vars
+              |> pr_bind NOBR ((NONE, SOME pat), ty)
+              |>> (fn p => concat [str "let", p, str "=", pr_term vars NOBR t, str "in"])
+            val (ps, vars') = fold_map pr binds vars;
+          in Pretty.chunks (ps @| pr_term vars' NOBR t') end
       | pr_term vars fxy (ICase ((td, ty), b::bs)) =
           let
-            fun pr definer (p, t) =
+            fun pr delim (pat, t) =
               let
-                val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = CodegenNames.intro_vars vs vars;
-              in
-                concat [
-                  str definer,
-                  pr_term vars' NOBR p,
-                  str "->",
-                  pr_term vars' NOBR t
-                ]
-              end;
+                val (p, vars') = pr_bind NOBR ((NONE, SOME pat), ty) vars;
+              in concat [str delim, p, str "->", pr_term vars' NOBR t] end;
           in
             (Pretty.enclose "(" ")" o single o brackify fxy) (
               str "match"
@@ -736,7 +724,13 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
       else (str o deresolv) c
         :: ((map (pr_insts BR) o filter_out null) iss @ map (pr_term vars BR) ts)
     and pr_app vars fxy (app as ((c, (iss, ty)), ts)) =
-      mk_app (pr_app' vars) (pr_term vars) const_syntax fxy app;
+      gen_pr_app (pr_app' vars) (fn vars' => pr_term (CodegenNames.intro_vars vars' vars))
+        const_syntax fxy app
+    and pr_bind' ((NONE, NONE), _) = str "_"
+      | pr_bind' ((SOME v, NONE), _) = str v
+      | pr_bind' ((NONE, SOME p), _) = p
+      | pr_bind' ((SOME v, SOME p), _) = brackets [p, str "as", str v]
+    and pr_bind fxy = gen_pr_bind pr_bind' pr_term fxy;
     fun pr_def (MLFuns (funns as funn :: funns')) =
           let
             fun fish_parm _ (w as SOME _) = w
@@ -1144,13 +1138,13 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
                 then error ("Number of argument mismatch in customary serialization: "
                   ^ (string_of_int o length) tys ^ " given, "
                   ^ string_of_int i ^ " expected")
-                else pr fxy (pr_typ tyvars) tys)
+                else pr (pr_typ tyvars) fxy tys)
       | pr_typ tyvars fxy (ITyVar v) =
           (str o CodegenNames.lookup_var tyvars) v;
     fun pr_typscheme_expr tyvars (vs, tycoexpr) =
-      Pretty.block [pr_typparms tyvars vs, pr_tycoexpr tyvars NOBR tycoexpr];
+      Pretty.block (pr_typparms tyvars vs @@ pr_tycoexpr tyvars NOBR tycoexpr);
     fun pr_typscheme tyvars (vs, ty) =
-      Pretty.block [pr_typparms tyvars vs, pr_typ tyvars NOBR ty];
+      Pretty.block (pr_typparms tyvars vs @@ pr_typ tyvars NOBR ty);
     fun pr_term vars fxy (IConst c) =
           pr_app vars fxy (c, [])
       | pr_term vars fxy (t as (t1 `$ t2)) =
@@ -1165,34 +1159,15 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
           (str o CodegenNames.lookup_var vars) v
       | pr_term vars fxy (t as _ `|-> _) =
           let
-            val (ps, t') = CodegenThingol.unfold_abs t;
-            fun pr ((v, SOME p), _) vars =
-                  let
-                    val vars' = CodegenNames.intro_vars [v] vars;
-                    val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                    val vars'' = CodegenNames.intro_vars vs vars';
-                  in
-                    (concat [str (CodegenNames.lookup_var vars' v),
-                      str "@", pr_term vars'' BR p], vars'')
-                  end
-              | pr ((v, NONE), _) vars =
-                  let
-                    val vars' = CodegenNames.intro_vars [v] vars;
-                  in (str (CodegenNames.lookup_var vars' v), vars') end;
-            val (ps', vars') = fold_map pr ps vars;
-          in
-            brackify BR (
-              str "\\"
-              :: ps' @ [
-              str "->",
-              pr_term vars' NOBR t'
-            ])
-          end
+            val (binds, t') = CodegenThingol.unfold_abs t;
+            fun pr ((v, pat), ty) = pr_bind BR ((SOME v, pat), ty);
+            val (ps, vars') = fold_map pr binds vars;
+          in brackets (str "\\" :: ps @ str "->" @@ pr_term vars' NOBR t') end
       | pr_term vars fxy (INum n) =
           if n > 0 then
             (str o IntInf.toString) n
           else
-            brackify BR [(str o Library.prefix "-" o IntInf.toString o IntInf.~) n]
+            (str o enclose "(" ")" o Library.prefix "-" o IntInf.toString o IntInf.~) n
       | pr_term vars fxy (IChar c) =
           (str o enclose "'" "'")
             (let val i = (Char.ord o the o Char.fromString) c
@@ -1202,38 +1177,24 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
               end)
       | pr_term vars fxy (t as ICase (_, [_])) =
           let
-            val (ts, t) = CodegenThingol.unfold_let t;
-            fun pr ((p, _), t) vars =
-              let
-                val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = CodegenNames.intro_vars vs vars;
-              in
-                (semicolon [
-                  pr_term vars' BR p,
-                  str "=",
-                  pr_term vars NOBR t
-                ], vars')
-              end;
-            val (binds, vars') = fold_map pr ts vars;
+            val (binds, t) = CodegenThingol.unfold_let t;
+            fun pr ((pat, ty), t) vars =
+              vars
+              |> pr_bind BR ((NONE, SOME pat), ty)
+              |>> (fn p => semicolon [p, str "=", pr_term vars NOBR t])
+            val (ps, vars') = fold_map pr binds vars;
           in
             Pretty.block_enclose (
               str "let {",
-              Pretty.block [str "} in ", pr_term vars' NOBR t]
-            ) binds
+              concat [str "}", str "in", pr_term vars' NOBR t]
+            ) ps
           end
-      | pr_term vars fxy (ICase ((td, _), bs)) =
+      | pr_term vars fxy (ICase ((td, ty), bs)) =
           let
-            fun pr (p, t) =
+            fun pr (pat, t) =
               let
-                val vs = CodegenThingol.fold_varnames (insert (op =)) p [];
-                val vars' = CodegenNames.intro_vars vs vars;
-              in
-                semicolon [
-                  pr_term vars' NOBR p,
-                  str "->",
-                  pr_term vars' NOBR t
-                ]
-              end
+                val (p, vars') = pr_bind NOBR ((NONE, SOME pat), ty) vars;
+              in semicolon [p, str "->", pr_term vars' NOBR t] end;
           in
             Pretty.block_enclose (
               concat [str "(case", pr_term vars NOBR td, str "of", str "{"],
@@ -1243,7 +1204,13 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
     and pr_app' vars ((c, _), ts) =
       (str o deresolv) c :: map (pr_term vars BR) ts
     and pr_app vars fxy =
-      mk_app (pr_app' vars) (pr_term vars) const_syntax fxy;
+      gen_pr_app (pr_app' vars) (fn vars' => pr_term (CodegenNames.intro_vars vars' vars))
+        const_syntax fxy
+    and pr_bind' ((NONE, NONE), _) = str "_"
+      | pr_bind' ((SOME v, NONE), _) = str v
+      | pr_bind' ((NONE, SOME p), _) = p
+      | pr_bind' ((SOME v, SOME p), _) = brackets [str v, str "@", p]
+    and pr_bind fxy = gen_pr_bind pr_bind' pr_term fxy;
     fun pr_def (name, CodegenThingol.Fun (eqs, (vs, ty))) =
           let
             val tyvars = CodegenNames.intro_vars (map fst vs) keyword_vars;
@@ -1508,8 +1475,8 @@ fun seri_diagnosis _ _ _ _ _ code =
 datatype syntax_expr = SyntaxExpr of {
   class: ((string * (string -> string option)) * serial) Symtab.table,
   inst: unit Symtab.table,
-  tyco: (itype pretty_syntax * serial) Symtab.table,
-  const: (iterm pretty_syntax * serial) Symtab.table
+  tyco: (typ_syntax * serial) Symtab.table,
+  const: (term_syntax * serial) Symtab.table
 };
 
 fun mk_syntax_expr ((class, inst), (tyco, const)) =
@@ -1546,8 +1513,8 @@ type serializer = Args.T list
   -> (string -> string option)
   -> (string -> Pretty.T option)
   -> (string -> (string * (string -> string option)) option)
-  -> (string -> (int * (fixity -> (fixity -> itype -> Pretty.T) -> itype list -> Pretty.T)) option)
-  -> (string -> (int * (fixity -> (fixity -> iterm -> Pretty.T) -> iterm list -> Pretty.T))  option)
+  -> (string -> typ_syntax option)
+  -> (string -> term_syntax option)
   -> CodegenThingol.code -> unit;
 
 datatype target = Target of {
@@ -1773,13 +1740,6 @@ fun gen_add_syntax_const prep_const target raw_c raw_syn thy =
            (Symtab.delete_safe c')
   end;
 
-(*fun gen_add_syntax_monad prep_tyco target raw_tyco monad_tyco thy =
-  let
-    val _ = if 
-  in
-    thy
-  end;*)
-
 fun read_class thy raw_class =
   let
     val class = Sign.intern_class thy raw_class;
@@ -1828,6 +1788,9 @@ fun parse_multi_syntax parse_thing parse_syntax =
   P.and_list1 parse_thing
   #-> (fn things => Scan.repeat1 (P.$$$ "(" |-- P.name --
         (zip_list things parse_syntax (P.$$$ "and")) --| P.$$$ ")"));
+
+fun no_bindings x = (Option.map o apsnd)
+  (fn pretty => fn pr => pretty (pr [])) x;
 
 val (infixK, infixlK, infixrK) = ("infix", "infixl", "infixr");
 
@@ -1915,11 +1878,11 @@ val code_constP =
   OuterSyntax.command code_constK "define code syntax for constant" K.thy_decl (
     parse_multi_syntax P.term parse_syntax
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
-          fold (fn (raw_const, syn) => add_syntax_const target raw_const syn) syns)
+          fold (fn (raw_const, syn) => add_syntax_const target raw_const (no_bindings syn)) syns)
   );
 
 (*val code_monadP =
-  OuterSyntax.command code_typeK "define code syntax for open state monads" K.thy_decl (
+  OuterSyntax.command code_typeK "define code syntax for Haskell monads" K.thy_decl (
     parse_multi_syntax P.xname parse_syntax
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
           fold (fn (raw_tyco, syn) => add_syntax_monad target raw_tyco syn) syns)
@@ -1950,19 +1913,19 @@ val _ = OuterSyntax.add_parsers [code_classP, code_instanceP, code_typeP, code_c
 
 (*including serializer defaults*)
 val _ = Context.add_setup (
-  gen_add_syntax_tyco (K I) "SML" "fun" (SOME (2, fn fxy => fn pr_typ => fn [ty1, ty2] =>
+  gen_add_syntax_tyco (K I) "SML" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
       (gen_brackify (case fxy of NOBR => false | _ => eval_fxy (INFX (1, R)) fxy) o Pretty.breaks) [
         pr_typ (INFX (1, X)) ty1,
         str "->",
         pr_typ (INFX (1, R)) ty2
       ]))
-  #> gen_add_syntax_tyco (K I) "OCaml" "fun" (SOME (2, fn fxy => fn pr_typ => fn [ty1, ty2] =>
+  #> gen_add_syntax_tyco (K I) "OCaml" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
       (gen_brackify (case fxy of NOBR => false | _ => eval_fxy (INFX (1, R)) fxy) o Pretty.breaks) [
         pr_typ (INFX (1, X)) ty1,
         str "->",
         pr_typ (INFX (1, R)) ty2
       ]))
-  #> gen_add_syntax_tyco (K I) "Haskell" "fun" (SOME (2, fn fxy => fn pr_typ => fn [ty1, ty2] =>
+  #> gen_add_syntax_tyco (K I) "Haskell" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy [
         pr_typ (INFX (1, X)) ty1,
         str "->",
