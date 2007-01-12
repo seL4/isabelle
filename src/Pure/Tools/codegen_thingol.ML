@@ -46,7 +46,9 @@ sig
   val unfoldr: ('a -> ('b * 'a) option) -> 'a -> 'b list * 'a;
   val unfold_fun: itype -> itype list * itype;
   val unfold_app: iterm -> iterm * iterm list;
+  val split_abs: iterm -> (((vname * iterm option) * itype) * iterm) option;
   val unfold_abs: iterm -> ((vname * iterm option) * itype) list * iterm;
+  val split_let: iterm -> (((iterm * itype) * iterm) * iterm) option;
   val unfold_let: iterm -> ((iterm * itype) * iterm) list * iterm;
   val unfold_const_app: iterm ->
     ((string * (inst list list * itype)) * iterm list) option;
@@ -104,7 +106,6 @@ fun unfoldr dest x =
    of NONE => ([], x)
     | SOME (x1, x2) =>
         let val (xs', x') = unfoldr dest x2 in (x1::xs', x') end;
-
 
 
 (** language core - types, pattern, expressions **)
@@ -169,15 +170,19 @@ val unfold_app = unfoldl
   (fn op `$ t => SOME t
     | _ => NONE);
 
-val unfold_abs = unfoldr
+val split_abs =
   (fn (v, ty) `|-> (t as ICase ((IVar w, _), [(p, t')])) =>
         if v = w then SOME (((v, SOME p), ty), t') else SOME (((v, NONE), ty), t)
     | (v, ty) `|-> t => SOME (((v, NONE), ty), t)
-    | _ => NONE)
+    | _ => NONE);
 
-val unfold_let = unfoldr
+val unfold_abs = unfoldr split_abs;
+
+val split_let = 
   (fn ICase ((td, ty), [(p, t)]) => SOME (((p, ty), td), t)
     | _ => NONE);
+
+val unfold_let = unfoldr split_let;
 
 fun unfold_const_app t =
  case unfold_app t
