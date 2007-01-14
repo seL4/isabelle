@@ -25,9 +25,25 @@ val equal_imp_fequal = thm "ATP_Linkup.equal_imp_fequal";
   combinators appear to work best.*)
 val use_Turner = ref false;
 
+(*If true, each function will be directly applied to as many arguments as possible, avoiding
+  use of the "apply" operator. Use of hBOOL is also minimized.*)
+val minimize_applies = ref false;
+
 val const_typargs = ref (Library.K [] : (string*typ -> typ list));
 
-fun init thy = (const_typargs := Sign.const_typargs thy);
+val const_min_arity = ref (Symtab.empty : int Symtab.table);
+
+val const_needs_hBOOL = ref (Symtab.empty : bool Symtab.table);
+
+fun min_arity_of c = getOpt (Symtab.lookup(!const_min_arity) c, 0);
+
+fun needs_hBOOL c = not (!minimize_applies) orelse 
+                    getOpt (Symtab.lookup(!const_needs_hBOOL) c, false);
+
+fun init thy = 
+  (const_typargs := Sign.const_typargs thy; 
+   const_min_arity := Symtab.empty; 
+   const_needs_hBOOL := Symtab.empty);
 
 (**********************************************************************)
 (* convert a Term.term with lambdas into a Term.term with combinators *) 
@@ -38,14 +54,11 @@ fun is_free (Bound(a)) n = (a = n)
   | is_free (P $ Q) n = ((is_free P n) orelse (is_free Q n))
   | is_free _ _ = false;
 
-
-(*******************************************)
 fun mk_compact_comb (tm as (Const("ATP_Linkup.COMBB",_)$p) $ (Const("ATP_Linkup.COMBB",_)$q$r)) bnds =
       let val tp_p = Term.type_of1(bnds,p)
 	  val tp_q = Term.type_of1(bnds,q)
 	  val tp_r = Term.type_of1(bnds,r)
-	  val typ = Term.type_of1(bnds,tm)
-	  val typ_B' = [tp_p,tp_q,tp_r] ---> typ
+	  val typ_B' = [tp_p,tp_q,tp_r] ---> Term.type_of1(bnds,tm)
       in
 	  Const("ATP_Linkup.COMBB'",typ_B') $ p $ q $ r
       end
@@ -53,8 +66,7 @@ fun mk_compact_comb (tm as (Const("ATP_Linkup.COMBB",_)$p) $ (Const("ATP_Linkup.
       let val tp_p = Term.type_of1(bnds,p)
 	  val tp_q = Term.type_of1(bnds,q)
 	  val tp_r = Term.type_of1(bnds,r)
-	  val typ = Term.type_of1(bnds,tm)
-	  val typ_C' = [tp_p,tp_q,tp_r] ---> typ
+	  val typ_C' = [tp_p,tp_q,tp_r] ---> Term.type_of1(bnds,tm)
       in
 	  Const("ATP_Linkup.COMBC'",typ_C') $ p $ q $ r
       end
@@ -62,8 +74,7 @@ fun mk_compact_comb (tm as (Const("ATP_Linkup.COMBB",_)$p) $ (Const("ATP_Linkup.
       let val tp_p = Term.type_of1(bnds,p)
 	  val tp_q = Term.type_of1(bnds,q)
 	  val tp_r = Term.type_of1(bnds,r)
-	  val typ = Term.type_of1(bnds,tm)
-	  val typ_S' = [tp_p,tp_q,tp_r] ---> typ
+	  val typ_S' = [tp_p,tp_q,tp_r] ---> Term.type_of1(bnds,tm)
       in
 	  Const("ATP_Linkup.COMBS'",typ_S') $ p $ q $ r
       end
@@ -75,9 +86,7 @@ fun compact_comb t bnds =
 fun lam2comb (Abs(x,tp,Bound 0)) _ = Const("ATP_Linkup.COMBI",tp-->tp) 
   | lam2comb (Abs(x,tp,Bound n)) bnds = 
       let val tb = List.nth(bnds,n-1)
-      in
-	  Const("ATP_Linkup.COMBK", [tb,tp] ---> tb) $ Bound (n-1)
-      end
+      in  Const("ATP_Linkup.COMBK", [tb,tp] ---> tb) $ Bound (n-1)  end
   | lam2comb (Abs(x,t1,Const(c,t2))) _ = Const("ATP_Linkup.COMBK",[t2,t1] ---> t2) $ Const(c,t2) 
   | lam2comb (Abs(x,t1,Free(v,t2))) _ = Const("ATP_Linkup.COMBK",[t2,t1] ---> t2) $ Free(v,t2)
   | lam2comb (Abs(x,t1,Var(ind,t2))) _ = Const("ATP_Linkup.COMBK", [t2,t1] ---> t2) $ Var(ind,t2)
@@ -86,8 +95,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ = Const("ATP_Linkup.COMBI",tp-->tp)
 	  let val tI = [t1] ---> t1
 	      val P' = lam2comb (Abs(x,t1,P)) bnds
 	      val tp' = Term.type_of1(bnds,P')
-	      val tr = Term.type_of1(t1::bnds,P)
-	      val tS = [tp',tI] ---> tr
+	      val tS = [tp',tI] ---> Term.type_of1(t1::bnds,P)
 	  in
 	      compact_comb (Const("ATP_Linkup.COMBS",tS) $ P' $ 
 	                     Const("ATP_Linkup.COMBI",tI)) bnds
@@ -101,44 +109,32 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ = Const("ATP_Linkup.COMBI",tp-->tp)
 	  if nfreeP andalso nfreeQ 
 	  then 
 	    let val tK = [tpq,t1] ---> tpq
-		val PQ' = incr_boundvars ~1 (P $ Q)
-	    in 
-		Const("ATP_Linkup.COMBK",tK) $ PQ'
-	    end
+	    in  Const("ATP_Linkup.COMBK",tK) $ incr_boundvars ~1 (P $ Q)  end
 	  else if nfreeP then 
 	    let val Q' = lam2comb (Abs(x,t1,Q)) bnds
 		val P' = incr_boundvars ~1 P
 		val tp = Term.type_of1(bnds,P')
 		val tq' = Term.type_of1(bnds, Q')
 		val tB = [tp,tq',t1] ---> tpq
-	    in
-		compact_comb (Const("ATP_Linkup.COMBB",tB) $ P' $ Q') bnds 
-	    end
+	    in  compact_comb (Const("ATP_Linkup.COMBB",tB) $ P' $ Q') bnds  end
 	  else if nfreeQ then 
 	    let val P' = lam2comb (Abs(x,t1,P)) bnds
 		val Q' = incr_boundvars ~1 Q
 		val tq = Term.type_of1(bnds,Q')
 		val tp' = Term.type_of1(bnds, P')
 		val tC = [tp',tq,t1] ---> tpq
-	    in
-		compact_comb (Const("ATP_Linkup.COMBC",tC) $ P' $ Q') bnds
-	    end
+	    in  compact_comb (Const("ATP_Linkup.COMBC",tC) $ P' $ Q') bnds  end
           else
 	    let val P' = lam2comb (Abs(x,t1,P)) bnds
 		val Q' = lam2comb (Abs(x,t1,Q)) bnds 
 		val tp' = Term.type_of1(bnds,P')
 		val tq' = Term.type_of1(bnds,Q')
 		val tS = [tp',tq',t1] ---> tpq
-	    in
-		compact_comb (Const("ATP_Linkup.COMBS",tS) $ P' $ Q') bnds
-	    end
+	    in  compact_comb (Const("ATP_Linkup.COMBS",tS) $ P' $ Q') bnds  end
       end
   | lam2comb (t as (Abs(x,t1,_))) _ = raise ResClause.CLAUSE("HOL CLAUSE",t);
 
-(*********************)
-
-fun to_comb (Abs(x,tp,b)) bnds =
-      lam2comb (Abs(x, tp, to_comb b (tp::bnds))) bnds 
+fun to_comb (Abs(x,tp,b)) bnds = lam2comb (Abs(x, tp, to_comb b (tp::bnds))) bnds 
   | to_comb (P $ Q) bnds = (to_comb P bnds) $ (to_comb Q bnds)
   | to_comb t _ = t;
 
@@ -328,12 +324,16 @@ val bool_tp = ResClause.make_fixed_type_const "bool";
 
 val app_str = "hAPP";
 
-val bool_str = "hBOOL";
-
 fun type_of_combterm (CombConst(c,tp,_)) = tp
   | type_of_combterm (CombFree(v,tp)) = tp
   | type_of_combterm (CombVar(v,tp)) = tp
   | type_of_combterm (CombApp(t1,t2,tp)) = tp;
+
+(*gets the head of a combinator application, along with the list of arguments*)
+fun strip_comb u =
+    let fun stripc (CombApp(t,u,_), ts) = stripc (t, u::ts)
+        |   stripc  x =  x
+    in  stripc(u,[])  end;
 
 fun string_of_combterm1 (CombConst(c,tp,_)) = 
       let val c' = if c = "equal" then "c_fequal" else c
@@ -355,25 +355,48 @@ fun string_of_combterm1 (CombConst(c,tp,_)) =
 	    | T_CONST => raise ERROR "string_of_combterm1"
       end;
 
-fun string_of_combterm2 (CombConst(c,tp,tvars)) = 
-      let val tvars' = map ResClause.string_of_fol_type tvars
-	  val c' = if c = "equal" then "c_fequal" else c
+fun rev_apply (v, []) = v
+  | rev_apply (v, arg::args) = app_str ^ ResClause.paren_pack [rev_apply (v, args), arg];
+
+fun string_apply (v, args) = rev_apply (v, rev args);
+
+(*Apply an operator to the argument strings, using either the "apply" operator or
+  direct function application.*)
+fun string_of_applic (CombConst(c,tp,tvars), args) =
+      let val c = if c = "equal" then "c_fequal" else c
+          val nargs = min_arity_of c
+          val args1 = List.take(args, nargs) @ (map ResClause.string_of_fol_type tvars)
+            handle Subscript => raise ERROR ("string_of_applic: " ^ c ^ " has arity " ^
+					     Int.toString nargs ^ " but is applied to " ^ 
+					     space_implode ", " args) 
+          val args2 = List.drop(args, nargs)
       in
-	  c' ^ ResClause.paren_pack tvars'
+	  string_apply (c ^ ResClause.paren_pack args1, args2)
       end
-  | string_of_combterm2 (CombFree(v,tp)) = v
-  | string_of_combterm2 (CombVar(v,tp)) = v
-  | string_of_combterm2 (CombApp(t1,t2,_)) =
-      app_str ^ ResClause.paren_pack [string_of_combterm2 t1, string_of_combterm2 t2];
+  | string_of_applic (CombFree(v,tp), args) = string_apply (v, args)
+  | string_of_applic (CombVar(v,tp), args) = string_apply (v, args)  
+  | string_of_applic _ = raise ERROR "string_of_applic";
+
+fun string_of_combterm2 t = 
+  let val (head, args) = strip_comb t
+  in  string_of_applic (head, map string_of_combterm2 args)  end;
 
 fun string_of_combterm t = 
     case !typ_level of T_CONST => string_of_combterm2 t
 		           | _ => string_of_combterm1 t;
-		           
-fun string_of_predicate (CombApp(CombApp(CombConst("equal",_,_),t1,_),t2,_)) =
-      ("equal" ^ ResClause.paren_pack [string_of_combterm t1, string_of_combterm t2])
-  | string_of_predicate t = 
-      bool_str ^ ResClause.paren_pack [string_of_combterm t]
+
+(*Boolean-valued terms are here converted to literals.*)
+fun boolify t = "hBOOL" ^ ResClause.paren_pack [string_of_combterm t];
+
+fun string_of_predicate t = 
+  case t of
+      (CombApp(CombApp(CombConst("equal",_,_),t1,_),t2,_)) =>
+	  (*DFG only: new TPTP prefers infix equality*)
+	  ("equal" ^ ResClause.paren_pack [string_of_combterm t1, string_of_combterm t2])
+    | _ => 
+          case #1 (strip_comb t) of
+              CombConst(c,_,_) => if needs_hBOOL c then boolify t else string_of_combterm t
+            | _ => boolify t;
 
 fun string_of_clausename (cls_id,ax_name) = 
     ResClause.clause_prefix ^ ResClause.ascii_of ax_name ^ "_" ^ Int.toString cls_id;
@@ -393,6 +416,8 @@ fun tptp_literal (Literal(pol, CombApp(CombApp(CombConst("equal",_,_),t1,_),t2,_
   | tptp_literal (Literal(pol,pred)) = 
       ResClause.tptp_sign pol (string_of_predicate pred);
  
+(*Given a clause, returns its literals paired with a list of literals concerning TFrees;
+  the latter should only occur in conjecture clauses.*)
 fun tptp_type_lits (Clause cls) = 
     let val lits = map tptp_literal (#literals cls)
 	val ctvar_lits_strs =
@@ -404,7 +429,6 @@ fun tptp_type_lits (Clause cls) =
     in
 	(ctvar_lits_strs @ lits, ctfree_lits)
     end; 
-    
     
 fun clause2tptp (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
     let val (lits,ctfree_lits) = tptp_type_lits cls
@@ -449,35 +473,43 @@ fun clause2dfg (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
 	val cls_str = ResClause.gen_dfg_cls(clause_id, axiom_name, knd, lits_str, tvars@vars) 
     in (cls_str, tfree_lits) end;
 
+(** For DFG format: accumulate function and predicate declarations **)
 
-fun init_funcs_tab funcs = 
-    let val funcs1 = case !typ_level of T_PARTIAL => Symtab.update ("hAPP",3) funcs
-				      | _ => Symtab.update ("hAPP",2) funcs
-    in
-	Symtab.update ("typeinfo",2) funcs1
-    end;
+fun addtypes tvars tab = foldl ResClause.add_foltype_funcs tab tvars;
 
-
-fun add_funcs (CombConst(c,_,tvars),funcs) =
-      if c = "equal" then foldl ResClause.add_foltype_funcs funcs tvars
+fun add_decls (CombConst(c,_,tvars), (funcs,preds)) =
+      if c = "equal" then (addtypes tvars funcs, preds)
       else
 	(case !typ_level of
-	     T_CONST => foldl ResClause.add_foltype_funcs (Symtab.update(c,length tvars) funcs) tvars
-           | _ => foldl ResClause.add_foltype_funcs (Symtab.update(c,0) funcs) tvars)
-  | add_funcs (CombFree(v,ctp),funcs) = ResClause.add_foltype_funcs (ctp,Symtab.update (v,0) funcs) 
-  | add_funcs (CombVar(_,ctp),funcs) = ResClause.add_foltype_funcs (ctp,funcs)
-  | add_funcs (CombApp(P,Q,_),funcs) = add_funcs(P,add_funcs (Q,funcs));
+	     T_CONST => 
+               let val arity = min_arity_of c + length tvars
+                   val addit = Symtab.update(c,arity) 
+               in
+                   if needs_hBOOL c then (addtypes tvars (addit funcs), preds)
+                   else (addtypes tvars funcs, addit preds)
+               end
+           | _ => (addtypes tvars (Symtab.update(c,0) funcs), preds))
+  | add_decls (CombFree(v,ctp), (funcs,preds)) = 
+      (ResClause.add_foltype_funcs (ctp,Symtab.update (v,0) funcs), preds)
+  | add_decls (CombVar(_,ctp), (funcs,preds)) = 
+      (ResClause.add_foltype_funcs (ctp,funcs), preds)
+  | add_decls (CombApp(P,Q,_),decls) = add_decls(P,add_decls (Q,decls));
 
-fun add_literal_funcs (Literal(_,c), funcs) = add_funcs (c,funcs);
+fun add_literal_decls (Literal(_,c), decls) = add_decls (c,decls);
 
-fun add_clause_funcs (Clause {literals, ...}, funcs) =
-    foldl add_literal_funcs funcs literals
+fun add_clause_decls (Clause {literals, ...}, decls) =
+    foldl add_literal_decls decls literals
     handle Symtab.DUP a => raise ERROR ("function " ^ a ^ " has multiple arities")
 
-fun funcs_of_clauses clauses arity_clauses =
-    Symtab.dest (foldl ResClause.add_arityClause_funcs 
-                       (foldl add_clause_funcs (init_funcs_tab Symtab.empty) clauses)
-                       arity_clauses)
+fun decls_of_clauses clauses arity_clauses =
+  let val happ_ar = case !typ_level of T_PARTIAL => 3 | _ => 2
+      val init_functab = Symtab.update ("typeinfo",2) (Symtab.update ("hAPP",happ_ar) Symtab.empty)
+      val init_predtab = Symtab.update ("hBOOL",1) Symtab.empty
+      val (functab,predtab) = (foldl add_clause_decls (init_functab, init_predtab) clauses)
+  in
+      (Symtab.dest (foldl ResClause.add_arityClause_funcs functab arity_clauses), 
+       Symtab.dest predtab)
+  end;
 
 fun add_clause_preds (Clause {ctypes_sorts, ...}, preds) =
   foldl ResClause.add_type_sort_preds preds ctypes_sorts
@@ -488,8 +520,7 @@ fun preds_of_clauses clauses clsrel_clauses arity_clauses =
     Symtab.dest
 	(foldl ResClause.add_classrelClause_preds 
 	       (foldl ResClause.add_arityClause_preds
-		      (Symtab.update ("hBOOL",1) 
-		        (foldl add_clause_preds Symtab.empty clauses))
+		      (foldl add_clause_preds Symtab.empty clauses) 
 		      arity_clauses)
 	       clsrel_clauses)
 
@@ -523,8 +554,10 @@ fun count_user_clause user_lemmas (Clause{axiom_name,literals,...}, ct) =
 
 val cnf_helper_thms = ResAxioms.cnf_rules_pairs o (map ResAxioms.pairname)
 
-fun get_helper_clauses ct =
-    let fun needed c = valOf (Symtab.lookup ct c) > 0
+fun get_helper_clauses (conjectures, axclauses, user_lemmas) =
+    let val ct0 = foldl count_clause init_counters conjectures
+        val ct = foldl (count_user_clause user_lemmas) ct0 axclauses
+        fun needed c = valOf (Symtab.lookup ct c) > 0
         val IK = if needed "c_COMBI" orelse needed "c_COMBK" 
                  then (Output.debug "Include combinator I K"; cnf_helper_thms [comb_I,comb_K]) 
                  else []
@@ -542,24 +575,57 @@ fun get_helper_clauses ct =
 	         else []
 	val other = cnf_helper_thms [ext,fequal_imp_equal,equal_imp_fequal]
     in
-	make_axiom_clauses (other @ IK @ BC @ S @ B'C' @ S')
+	map #2 (make_axiom_clauses (other @ IK @ BC @ S @ B'C' @ S'))
     end
+
+(*Find the minimal arity of each function mentioned in the term. Also, note which uses
+  are not at top level, to see if hBOOL is needed.*)
+fun count_constants_term toplev t =
+  let val (head, args) = strip_comb t
+      val n = length args
+      val _ = List.app (count_constants_term false) args
+  in
+      case head of
+	  CombConst (a,_,_) => (*predicate or function version of "equal"?*)
+	    let val a = if a="equal" andalso not toplev then "c_fequal" else a
+	    in  
+	      const_min_arity := Symtab.map_default (a,n) (curry Int.min n) (!const_min_arity);
+	      if toplev then ()
+	      else const_needs_hBOOL := Symtab.update (a,true) (!const_needs_hBOOL)
+	    end
+	| ts => ()
+  end;
+
+(*A literal is a top-level term*)
+fun count_constants_lit (Literal (_,t)) = count_constants_term true t;
+
+fun count_constants_clause (Clause{literals,...}) = List.app count_constants_lit literals;
+
+fun display_arity (c,n) =
+  Output.debug ("Constant: " ^ c ^ " arity:\t" ^ Int.toString n ^ 
+                (if needs_hBOOL c then " needs hBOOL" else ""));
+
+fun count_constants (conjectures, axclauses, helper_clauses) = 
+  if !minimize_applies then
+    (List.app count_constants_clause conjectures;
+     List.app count_constants_clause axclauses;
+     List.app count_constants_clause helper_clauses;
+     List.app display_arity (Symtab.dest (!const_min_arity)))
+  else ();
 
 (* tptp format *)
 						  
 (* write TPTP format to a single file *)
-fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) user_lemmas =
+fun tptp_write_file thms filename (ax_tuples,classrel_clauses,arity_clauses) user_lemmas =
     let val conjectures = make_conjecture_clauses thms
-        val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses)
+        val (clnames,axclauses) = ListPair.unzip (make_axiom_clauses ax_tuples)
+	val helper_clauses = get_helper_clauses (conjectures, axclauses, user_lemmas)
+	val _ = count_constants (conjectures, axclauses, helper_clauses);
 	val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp conjectures)
 	val tfree_clss = map ResClause.tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
-	val out = TextIO.openOut filename
-	val ct = foldl (count_user_clause user_lemmas) 
-	            (foldl count_clause init_counters conjectures)
-	            axclauses'
-	val helper_clauses = map #2 (get_helper_clauses ct)
+        val out = TextIO.openOut filename
     in
-	List.app (curry TextIO.output out o #1 o clause2tptp) axclauses';
+	List.app (curry TextIO.output out o #1 o clause2tptp) axclauses;
 	ResClause.writeln_strs out tfree_clss;
 	ResClause.writeln_strs out tptp_clss;
 	List.app (curry TextIO.output out o ResClause.tptp_classrelClause) classrel_clauses;
@@ -573,26 +639,25 @@ fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) use
 
 (* dfg format *)
 
-fun dfg_write_file  thms filename (axclauses,classrel_clauses,arity_clauses) user_lemmas =
-    let val _ = Output.debug ("Preparing to write the DFG file " ^ filename) 
-	val conjectures = make_conjecture_clauses thms
-        val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses)
+fun dfg_write_file  thms filename (ax_tuples,classrel_clauses,arity_clauses) user_lemmas =
+    let val conjectures = make_conjecture_clauses thms
+        val (clnames,axclauses) = ListPair.unzip (make_axiom_clauses ax_tuples)
+	val helper_clauses = get_helper_clauses (conjectures, axclauses, user_lemmas)
+	val _ = count_constants (conjectures, axclauses, helper_clauses);
 	val (dfg_clss,tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
 	and probname = Path.implode (Path.base (Path.explode filename))
-	val axstrs = map (#1 o clause2dfg) axclauses'
+	val axstrs = map (#1 o clause2dfg) axclauses
 	val tfree_clss = map ResClause.dfg_tfree_clause (ResClause.union_all tfree_litss)
 	val out = TextIO.openOut filename
-	val ct = foldl (count_user_clause user_lemmas) 
-	            (foldl count_clause init_counters conjectures)
-	            axclauses'
-	val helper_clauses = map #2 (get_helper_clauses ct)
 	val helper_clauses_strs = map (#1 o clause2dfg) helper_clauses
-	val funcs = funcs_of_clauses (helper_clauses @ conjectures @ axclauses') arity_clauses
-	and preds = preds_of_clauses axclauses' classrel_clauses arity_clauses
+	val (funcs,cl_preds) = decls_of_clauses (helper_clauses @ conjectures @ axclauses) arity_clauses
+	and ty_preds = preds_of_clauses axclauses classrel_clauses arity_clauses
     in
 	TextIO.output (out, ResClause.string_of_start probname); 
 	TextIO.output (out, ResClause.string_of_descrip probname); 
-	TextIO.output (out, ResClause.string_of_symbols (ResClause.string_of_funcs funcs) (ResClause.string_of_preds preds)); 
+	TextIO.output (out, ResClause.string_of_symbols 
+	                      (ResClause.string_of_funcs funcs) 
+	                      (ResClause.string_of_preds (cl_preds @ ty_preds))); 
 	TextIO.output (out, "list_of_clauses(axioms,cnf).\n");
 	ResClause.writeln_strs out axstrs;
 	List.app (curry TextIO.output out o ResClause.dfg_classrelClause) classrel_clauses;
