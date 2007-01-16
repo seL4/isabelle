@@ -288,57 +288,37 @@ fun mk_modl_name_tab empty_names prefix module_alias code =
 datatype ml_def =
     MLFuns of (string * ((iterm list * iterm) list * typscheme)) list
   | MLDatas of (string * ((vname * sort) list * (string * itype list) list)) list
-  | MLClass of string * (class list * (vname * (string * itype) list))
+  | MLClass of string * ((class * string) list * (vname * (string * itype) list))
   | MLClassinst of string * ((class * (string * (vname * sort) list))
-        * ((class * (string * inst list list)) list
+        * ((class * (string * (string * dict list list))) list
       * (string * iterm) list));
 
 fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
   let
-    fun dictvar v = 
-      first_upper v ^ "_";
-    val label = translate_string (fn "." => "__" | c => c) o NameSpace.qualifier;
-    val mk_classop_name = suffix "_" o snd o dest_name;
-    fun pr_tyvar (v, []) =
-          str "()"
-      | pr_tyvar (v, sort) =
-          let
-            fun pr_class class =
-              str ("'" ^ v ^ " " ^ deresolv class);
-          in
-            Pretty.block [
-              str "(",
-              (str o dictvar) v,
-              str ":",
-              case sort
-               of [class] => pr_class class
-                | _ => Pretty.enum " *" "" "" (map pr_class sort),
-              str ")"
-            ]
-          end;
-    fun pr_insts fxy iys =
+    val pr_label = translate_string (fn "." => "__" | c => c) o NameSpace.qualifier;
+    fun pr_dicts fxy ds =
       let
-        fun pr_proj s = str ("#" ^ s);
-        fun pr_lookup [] p =
+        fun pr_dictvar (v, (_, 1)) = first_upper v ^ "_"
+          | pr_dictvar (v, (i, _)) = first_upper v ^ string_of_int (i+1) ^ "_";
+        fun pr_proj [] p =
               p
-          | pr_lookup [p'] p =
+          | pr_proj [p'] p =
               brackets [p', p]
-          | pr_lookup (ps as _ :: _) p =
+          | pr_proj (ps as _ :: _) p =
               brackets [Pretty.enum " o" "(" ")" ps, p];
-        fun pr_inst fxy (Instance (inst, iss)) =
-              brackify fxy (
-                (str o deresolv) inst
-                :: map (pr_insts BR) iss
-              )
-          | pr_inst fxy (Context ((classes, i), (v, k))) =
-              pr_lookup (map (pr_proj o label) classes
-                @ (if k = 1 then [] else [(pr_proj o string_of_int) (i+1)])
-              ) ((str o dictvar) v);
-      in case iys
+        fun pr_dictc fxy (DictConst (inst, dss)) =
+              brackify fxy ((str o deresolv) inst :: map (pr_dicts BR) dss)
+          | pr_dictc fxy (DictVar (classrels, v)) =
+              pr_proj (map (str o deresolv) classrels) ((str o pr_dictvar) v)
+      in case ds
        of [] => str "()"
-        | [iy] => pr_inst fxy iy
-        | _ :: _ => (Pretty.list "(" ")" o map (pr_inst NOBR)) iys
+        | [d] => pr_dictc fxy d
+        | _ :: _ => (Pretty.list "(" ")" o map (pr_dictc NOBR)) ds
       end;
+    fun pr_tyvars vs =
+      vs
+      |> map (fn (v, sort) => map_index (fn (i, _) => DictVar ([], (v, (i, length sort)))) sort)
+      |> map (pr_dicts BR);
     fun pr_tycoexpr fxy (tyco, tys) =
       let
         val tyco' = (str o deresolv) tyco
@@ -424,7 +404,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
         [(str o deresolv) c, Pretty.enum "," "(" ")" (map (pr_term vars NOBR) ts)]
       else [pr_term vars BR (CodegenThingol.eta_expand app k)] end else
         (str o deresolv) c
-          :: ((map (pr_insts BR) o filter_out null) iss @ map (pr_term vars BR) ts)
+          :: ((map (pr_dicts BR) o filter_out null) iss @ map (pr_term vars BR) ts)
     and pr_app vars = gen_pr_app pr_app' pr_term const_syntax vars
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
@@ -465,7 +445,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                            andalso not (ty = ITyVar "_")(*for evaluation*)
                          then [str ":", pr_typ NOBR ty]
                          else
-                           map pr_tyvar vs
+                           pr_tyvars vs
                            @ map (pr_term vars BR) ts)
                    @ [str "=", pr_term vars NOBR t]
                     )
@@ -499,24 +479,32 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";"])]) end
      | pr_def (MLClass (class, (superclasses, (v, classops)))) =
           let
-            val w = dictvar v;
-            fun pr_superclass class =
+            val w = first_upper v ^ "_";
+            fun pr_superclass_field (class, classrel) =
               (concat o map str) [
-                label class, ":", "'" ^ v, deresolv class
+                pr_label classrel, ":", "'" ^ v, deresolv class
               ];
-            fun pr_classop (classop, ty) =
+            fun pr_classop_field (classop, ty) =
               concat [
-                (*FIXME?*)
-                (str o mk_classop_name) classop, str ":", pr_typ NOBR ty
+                (str o pr_label) classop, str ":", pr_typ NOBR ty
               ];
-            fun pr_classop_fun (classop, _) =
-              concat [
+            fun pr_classop_proj (classop, _) =
+              semicolon [
                 str "fun",
                 (str o deresolv) classop,
                 Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ deresolv class)],
                 str "=",
-                str ("#" ^ mk_classop_name classop),
-                str (w ^ ";")
+                str ("#" ^ pr_label classop),
+                str w
+              ];
+            fun pr_superclass_proj (_, classrel) =
+              semicolon [
+                str "fun",
+                (str o deresolv) classrel,
+                Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ deresolv class)],
+                str "=",
+                str ("#" ^ pr_label classrel),
+                str w
               ];
           in
             Pretty.chunks (
@@ -525,45 +513,44 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                 (str o deresolv) class,
                 str "=",
                 Pretty.enum "," "{" "};" (
-                  map pr_superclass superclasses @ map pr_classop classops
+                  map pr_superclass_field superclasses @ map pr_classop_field classops
                 )
               ]
-              :: map pr_classop_fun classops
+              :: map pr_superclass_proj superclasses
+              @ map pr_classop_proj classops
             )
           end
      | pr_def (MLClassinst (inst, ((class, (tyco, arity)), (superarities, classop_defs)))) =
           let
-            fun pr_superclass (superclass, superinst_iss) =
+            fun pr_superclass (_, (classrel, dss)) =
               concat [
-                (str o label) superclass,
+                (str o pr_label) classrel,
                 str "=",
-                pr_insts NOBR [Instance superinst_iss]
+                pr_dicts NOBR [DictConst dss]
               ];
-            fun pr_classop_def (classop, t) =
+            fun pr_classop (classop, t) =
               let
                 val consts = map_filter
                   (fn c => if (is_some o const_syntax) c
                     then NONE else (SOME o NameSpace.base o deresolv) c)
                     (CodegenThingol.fold_constnames (insert (op =)) t []);
-                val vars = keyword_vars
-                  |> CodegenNames.intro_vars consts;
+                val vars = CodegenNames.intro_vars consts keyword_vars;
               in
                 concat [
-                  (str o mk_classop_name) classop,
+                  (str o pr_label) classop,
                   str "=",
                   pr_term vars NOBR t
                 ]
               end;
           in
-            concat ([
+            semicolon ([
               str (if null arity then "val" else "fun"),
               (str o deresolv) inst ] @
-              map pr_tyvar arity @ [
+              pr_tyvars arity @ [
               str "=",
-              Pretty.enum "," "{" "}" (map pr_superclass superarities @ map pr_classop_def classop_defs),
+              Pretty.enum "," "{" "}" (map pr_superclass superarities @ map pr_classop classop_defs),
               str ":",
-              pr_tycoexpr NOBR (class, [tyco `%% map (ITyVar o fst) arity]),
-              str ";;"
+              pr_tycoexpr NOBR (class, [tyco `%% map (ITyVar o fst) arity])
             ])
           end;
   in pr_def ml_def end;
@@ -580,53 +567,25 @@ fun pr_sml_modl name content =
 
 fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
   let
-    fun dictvar v = "_" ^ first_upper v;
-    fun pr_tyvar (v, []) =
-          str "()"
-      | pr_tyvar (v, sort) =
-          let
-            fun pr_class class =
-              str ("'" ^ v ^ " " ^ deresolv class);
-          in
-            Pretty.block [
-              str "(",
-              (str o dictvar) v,
-              str ":",
-              case sort
-               of [class] => pr_class class
-                | _ => Pretty.enum " *" "" "" (map pr_class sort),
-              str ")"
-            ]
-          end;
-    fun pr_insts fxy iys =
+    fun pr_dicts fxy ds =
       let
-        fun dot p2 p1 = Pretty.block [p1, str ".", str p2];
-        fun proj k i p = (brackets o map str) [
-            "match",
-            p,
-            "with",
-            replicate i "_" |> nth_map k (K "d") |> separate (", ") |> implode,
-            "-> d"
-          ]
-        fun pr_lookup [] p =
-              p
-          | pr_lookup [p'] p =
-              dot p' p
-          | pr_lookup (ps as _ :: _) p =
-              fold_rev dot ps p;
-        fun pr_inst fxy (Instance (inst, iss)) =
-              brackify fxy (
-                (str o deresolv) inst
-                :: map (pr_insts BR) iss
-              )
-          | pr_inst fxy (Context ((classes, k), (v, i))) =
-              if i = 1 then pr_lookup (map deresolv classes) ((str o dictvar) v)
-              else pr_lookup (map deresolv classes) (proj k i (dictvar v));
-      in case iys
+        fun pr_dictvar (v, (_, 1)) = "_" ^ first_upper v
+          | pr_dictvar (v, (i, _)) = "_" ^ first_upper v ^ string_of_int (i+1);
+        fun pr_proj ps p =
+          fold_rev (fn p2 => fn p1 => Pretty.block [p1, str ".", str p2]) ps p
+        fun pr_dictc fxy (DictConst (inst, dss)) =
+              brackify fxy ((str o deresolv) inst :: map (pr_dicts BR) dss)
+          | pr_dictc fxy (DictVar (classrels, v)) =
+              pr_proj (map deresolv classrels) ((str o pr_dictvar) v)
+      in case ds
        of [] => str "()"
-        | [iy] => pr_inst fxy iy
-        | _ :: _ => (Pretty.list "(" ")" o map (pr_inst NOBR)) iys
+        | [d] => pr_dictc fxy d
+        | _ :: _ => (Pretty.list "(" ")" o map (pr_dictc NOBR)) ds
       end;
+    fun pr_tyvars vs =
+      vs
+      |> map (fn (v, sort) => map_index (fn (i, _) => DictVar ([], (v, (i, length sort)))) sort)
+      |> map (pr_dicts BR);
     fun pr_tycoexpr fxy (tyco, tys) =
       let
         val tyco' = (str o deresolv) tyco
@@ -702,7 +661,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
           | _ => [(str o deresolv) c, Pretty.enum "," "(" ")" (map (pr_term vars NOBR) ts)]
         else [pr_term vars BR (CodegenThingol.eta_expand app ((length o fst o CodegenThingol.unfold_fun) ty))]
       else (str o deresolv) c
-        :: ((map (pr_insts BR) o filter_out null) iss @ map (pr_term vars BR) ts)
+        :: ((map (pr_dicts BR) o filter_out null) iss @ map (pr_term vars BR) ts)
     and pr_app vars = gen_pr_app pr_app' pr_term const_syntax vars
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
@@ -793,7 +752,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
               concat (
                 str definer
                 :: (str o deresolv) name
-                :: map_filter (fn (_, []) => NONE | v => SOME (pr_tyvar v)) vs
+                :: pr_tyvars (filter_out (null o snd) vs)
                 @| pr_eqs eqs
               );
             val (ps, p) = split_last (pr_funn "let rec" funn :: map (pr_funn "and") funns');
@@ -819,43 +778,41 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";;"])]) end
      | pr_def (MLClass (class, (superclasses, (v, classops)))) =
           let
-            val w = dictvar v;
-            fun pr_superclass class =
+            val w = "_" ^ first_upper v;
+            fun pr_superclass_field (class, classrel) =
               (concat o map str) [
-                deresolv class, ":", "'" ^ v, deresolv class
+                deresolv classrel, ":", "'" ^ v, deresolv class
               ];
-            fun pr_classop (classop, ty) =
+            fun pr_classop_field (classop, ty) =
               concat [
                 (str o deresolv) classop, str ":", pr_typ NOBR ty
               ];
-            fun pr_classop_fun (classop, _) =
+            fun pr_classop_proj (classop, _) =
               concat [
                 str "let",
                 (str o deresolv) classop,
-                Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ deresolv class)],
+                str w,
                 str "=",
                 str (w ^ "." ^ deresolv classop ^ ";;")
               ];
-          in
-            Pretty.chunks (
-              concat [
-                str ("type '" ^ v),
-                (str o deresolv) class,
-                str "=",
-                Pretty.enum ";" "{" "};;" (
-                  map pr_superclass superclasses @ map pr_classop classops
-                )
-              ]
-              :: map pr_classop_fun classops
-            )
-          end
+          in Pretty.chunks (
+            concat [
+              str ("type '" ^ v),
+              (str o deresolv) class,
+              str "=",
+              Pretty.enum ";" "{" "};;" (
+                map pr_superclass_field superclasses @ map pr_classop_field classops
+              )
+            ]
+            :: map pr_classop_proj classops
+          ) end
      | pr_def (MLClassinst (inst, ((class, (tyco, arity)), (superarities, classop_defs)))) =
           let
-            fun pr_superclass (superclass, superinst_iss) =
+            fun pr_superclass (_, (classrel, dss)) =
               concat [
-                (str o deresolv) superclass,
+                (str o deresolv) classrel,
                 str "=",
-                pr_insts NOBR [Instance superinst_iss]
+                pr_dicts NOBR [DictConst dss]
               ];
             fun pr_classop_def (classop, t) =
               let
@@ -863,8 +820,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
                   (fn c => if (is_some o const_syntax) c
                     then NONE else (SOME o NameSpace.base o deresolv) c)
                     (CodegenThingol.fold_constnames (insert (op =)) t []);
-                val vars = keyword_vars
-                  |> CodegenNames.intro_vars consts;
+                val vars = CodegenNames.intro_vars consts keyword_vars;
               in
                 concat [
                   (str o deresolv) classop,
@@ -876,7 +832,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
             concat (
               str "let"
               :: (str o deresolv) inst
-              :: map pr_tyvar arity
+              :: pr_tyvars arity
               @ str "="
               @@ (Pretty.enclose "(" ");;" o Pretty.breaks) [
                 Pretty.enum ";" "{" "}" (map pr_superclass superarities @ map pr_classop_def classop_defs),
@@ -967,6 +923,8 @@ fun seri_ml pr_def pr_modl output reserved_user module_alias module_prolog
       fold_map
         (fn (name, CodegenThingol.Class info) =>
               map_nsp_typ (name_def false name) >> (fn base => (base, SOME (name, info)))
+          | (name, CodegenThingol.Classrel _) =>
+              map_nsp_fun (name_def false name) >> (fn base => (base, NONE))
           | (name, CodegenThingol.Classop _) =>
               map_nsp_fun (name_def false name) >> (fn base => (base, NONE))
           | (name, def) => error ("Class block containing illegal def: " ^ quote name)
@@ -1023,6 +981,8 @@ fun seri_ml pr_def pr_modl output reserved_user module_alias module_prolog
       | group_defs ((defs as (_, CodegenThingol.Datatype _)::_)) =
           add_group mk_datatype defs
       | group_defs ((defs as (_, CodegenThingol.Class _)::_)) =
+          add_group mk_class defs
+      | group_defs ((defs as (_, CodegenThingol.Classrel _)::_)) =
           add_group mk_class defs
       | group_defs ((defs as (_, CodegenThingol.Classop _)::_)) =
           add_group mk_class defs
@@ -1270,7 +1230,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
             Pretty.block_enclose (
               Pretty.block [
                 str "class ",
-                pr_typparms tyvars [(v, superclasss)],
+                pr_typparms tyvars [(v, map fst superclasss)],
                 str (deresolv_here name ^ " " ^ CodegenNames.lookup_var tyvars v),
                 str " where {"
               ],
@@ -1361,14 +1321,16 @@ fun seri_haskell module_prefix destination string_classes reserved_user module_a
             | CodegenThingol.Datatype _ => add_typ
             | CodegenThingol.Datatypecons _ => add_fun true
             | CodegenThingol.Class _ => add_typ
+            | CodegenThingol.Classrel _ => pair base
             | CodegenThingol.Classop _ => add_fun false
             | CodegenThingol.Classinst _ => pair base;
         val modlname' = name_modl modl;
         fun add_def base' =
           case def
            of CodegenThingol.Bot => I
-            | CodegenThingol.Datatypecons _ => I
+            | CodegenThingol.Datatypecons _ =>
                 cons (name, ((NameSpace.append modlname' base', base'), NONE))
+            | CodegenThingol.Classrel _ => I
             | CodegenThingol.Classop _ =>
                 cons (name, ((NameSpace.append modlname' base', base'), NONE))
             | _ => cons (name, ((NameSpace.append modlname' base', base'), SOME def));
@@ -1766,18 +1728,29 @@ fun idfs_of_const thy c =
     val c'' = CodegenConsts.norm_of_typ thy c';
   in (c'', CodegenNames.const thy c'') end;
 
+fun no_bindings x = (Option.map o apsnd)
+  (fn pretty => fn pr => fn vars => pretty (pr vars)) x;
+
 fun gen_add_haskell_monad prep_const c_run c_mbind c_kbind thy =
   let
     val c_run' =
       (CodegenConsts.norm thy o prep_const thy) c_run;
+    val c_mbind' =
+      (CodegenConsts.norm thy o prep_const thy) c_mbind;
     val c_mbind'' =
-      (CodegenNames.const thy o CodegenConsts.norm thy o prep_const thy) c_mbind;
+      CodegenNames.const thy c_mbind';
+    val c_kbind' =
+      (CodegenConsts.norm thy o prep_const thy) c_kbind;
     val c_kbind'' =
-      (CodegenNames.const thy o CodegenConsts.norm thy o prep_const thy) c_kbind;
+      CodegenNames.const thy c_kbind';
     val pr = pretty_haskell_monad c_mbind'' c_kbind''
   in
     thy
     |> gen_add_syntax_const (K I) target_Haskell c_run' (SOME pr)
+    |> gen_add_syntax_const (K I) target_Haskell c_mbind'
+          (no_bindings (SOME (parse_infix (L, 1) ">>=")))
+    |> gen_add_syntax_const (K I) target_Haskell c_kbind'
+          (no_bindings (SOME (parse_infix (L, 1) ">>")))
   end;
 
 val add_syntax_class = gen_add_syntax_class read_class CodegenConsts.read_const;
@@ -1809,9 +1782,6 @@ fun parse_multi_syntax parse_thing parse_syntax =
   P.and_list1 parse_thing
   #-> (fn things => Scan.repeat1 (P.$$$ "(" |-- P.name --
         (zip_list things parse_syntax (P.$$$ "and")) --| P.$$$ ")"));
-
-fun no_bindings x = (Option.map o apsnd)
-  (fn pretty => fn pr => fn vars => pretty (pr vars)) x;
 
 val (infixK, infixlK, infixrK) = ("infix", "infixl", "infixr");
 

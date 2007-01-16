@@ -114,17 +114,17 @@ fun ensure_def thy = CodegenThingol.ensure_def (CodegenNames.labelled_name thy);
 
 fun ensure_def_class thy (algbr as ((proj_sort, _), _)) funcgr strct class trns =
   let
-    val (v, cs) = AxClass.params_of_class thy class;
     val superclasses = (proj_sort o Sign.super_classes thy) class;
-    val classops' = map (CodegenNames.const thy o CodegenConsts.norm_of_typ thy) cs;
+    val (v, cs) = AxClass.params_of_class thy class;
     val class' = CodegenNames.class thy class;
+    val classrels' = map (curry (CodegenNames.classrel thy) class) superclasses;
+    val classops' = map (CodegenNames.const thy o CodegenConsts.norm_of_typ thy) cs;
     fun defgen_class trns =
       trns
       |> fold_map (ensure_def_class thy algbr funcgr strct) superclasses
       ||>> (fold_map (exprgen_type thy algbr funcgr strct) o map snd) cs
       |-> (fn (superclasses, classoptyps) => succeed
-        (CodegenThingol.Class (superclasses,
-          (unprefix "'" v, classops' ~~ classoptyps))))
+        (CodegenThingol.Class (superclasses ~~ classrels', (unprefix "'" v, classops' ~~ classoptyps))))
   in
     trns
     |> tracing (fn _ => "generating class " ^ quote class)
@@ -132,6 +132,10 @@ fun ensure_def_class thy (algbr as ((proj_sort, _), _)) funcgr strct class trns 
         ("generating class " ^ quote class) class'
     |> pair class'
   end
+and ensure_def_classrel thy algbr funcgr strct (subclass, superclass) trns =
+  trns
+  |> ensure_def_class thy algbr funcgr strct subclass
+  |-> (fn _ => pair (CodegenNames.classrel thy (subclass, superclass)))
 and ensure_def_tyco thy algbr funcgr strct tyco trns =
   let
     fun defgen_datatype trns =
@@ -186,40 +190,39 @@ and exprgen_type thy algbr funcgr strct (TVar _) trns =
 exception CONSTRAIN of (string * typ) * typ;
 val timing = ref false;
 
-fun exprgen_typinst thy (algbr as ((proj_sort, algebra), consts)) funcgr strct (ty_ctxt, sort_decl) trns =
+fun exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr strct (ty_ctxt, sort_decl) trns =
   let
     val pp = Sign.pp thy;
-    datatype inst =
-        Inst of (class * string) * inst list list
-      | Contxt of (string * sort) * (class list * int);
-    fun classrel (l as Contxt (v_sort, (classes, n)), _) class  =
-          Contxt (v_sort, (class :: classes, n))
-      | classrel (Inst ((_, tyco), lss), _) class =
-          Inst ((class, tyco), lss);
-    fun constructor tyco iss class =
-      Inst ((class, tyco), (map o map) fst iss);
+    datatype typarg =
+        Global of (class * string) * typarg list list
+      | Local of (class * class) list * (string * (int * sort));
+    fun classrel (Global ((_, tyco), yss), _) class =
+          Global ((class, tyco), yss)
+      | classrel (Local (classrels, v), subclass) superclass =
+          Local ((subclass, superclass) :: classrels, v);
+    fun constructor tyco yss class =
+      Global ((class, tyco), (map o map) fst yss);
     fun variable (TFree (v, sort)) =
       let
         val sort' = proj_sort sort;
-      in map_index (fn (n, class) => (Contxt ((v, sort'), ([], n)), class)) sort' end;
-    val insts = Sorts.of_sort_derivation pp algebra
+      in map_index (fn (n, class) => (Local ([], (v, (n, sort'))), class)) sort' end;
+    val typargs = Sorts.of_sort_derivation pp algebra
       {classrel = classrel, constructor = constructor, variable = variable}
       (ty_ctxt, proj_sort sort_decl);
-    fun mk_dict (Inst (inst, instss)) trns =
+    fun mk_dict (Global (inst, yss)) trns =
           trns
           |> ensure_def_inst thy algbr funcgr strct inst
-          ||>> (fold_map o fold_map) mk_dict instss
-          |-> (fn (inst, instss) => pair (Instance (inst, instss)))
-      | mk_dict (Contxt ((v, sort), (classes, k))) trns =
+          ||>> (fold_map o fold_map) mk_dict yss
+          |-> (fn (inst, dss) => pair (DictConst (inst, dss)))
+      | mk_dict (Local (classrels, (v, (k, sort)))) trns =
           trns
-          |> fold_map (ensure_def_class thy algbr funcgr strct) classes
-          |-> (fn classes => pair (Context ((classes, k), (unprefix "'" v,
-                length sort))))
+          |> fold_map (ensure_def_classrel thy algbr funcgr strct) classrels
+          |-> (fn classrels => pair (DictVar (classrels, (unprefix "'" v, (k, length sort)))))
   in
     trns
-    |> fold_map mk_dict insts
+    |> fold_map mk_dict typargs
   end
-and exprgen_typinst_const thy (algbr as (_, consts)) funcgr strct (c, ty_ctxt) trns =
+and exprgen_dict_parms thy (algbr as (_, consts)) funcgr strct (c, ty_ctxt) trns =
   let
     val c' = CodegenConsts.norm_of_typ thy (c, ty_ctxt)
     val idf = CodegenNames.const thy c';
@@ -230,7 +233,7 @@ and exprgen_typinst_const thy (algbr as (_, consts)) funcgr strct (c, ty_ctxt) t
       then raise CONSTRAIN ((c, ty_decl), ty_ctxt) else ();
   in
     trns
-    |> fold_map (exprgen_typinst thy algbr funcgr strct) insts
+    |> fold_map (exprgen_dicts thy algbr funcgr strct) insts
   end
 and ensure_def_inst thy (algbr as ((proj_sort, _), _)) funcgr strct (class, tyco) trns =
   let
@@ -243,8 +246,10 @@ and ensure_def_inst thy (algbr as ((proj_sort, _), _)) funcgr strct (class, tyco
     fun gen_superarity superclass trns =
       trns
       |> ensure_def_class thy algbr funcgr strct superclass
-      ||>> exprgen_typinst thy algbr funcgr strct (arity_typ, [superclass])
-      |-> (fn (superclass, [Instance (inst, iss)]) => pair (superclass, (inst, iss)));
+      ||>> ensure_def_classrel thy algbr funcgr strct (class, superclass)
+      ||>> exprgen_dicts thy algbr funcgr strct (arity_typ, [superclass])
+      |-> (fn ((superclass, classrel), [DictConst (inst, dss)]) =>
+        pair (superclass, (classrel, (inst, dss))));
     fun gen_classop_def (classop, t) trns =
       trns
       |> ensure_def_const thy algbr funcgr strct classop
@@ -354,7 +359,7 @@ and appgen_default thy algbr funcgr strct ((c, ty), ts) trns =
   trns
   |> ensure_def_const thy algbr funcgr strct (CodegenConsts.norm_of_typ thy (c, ty))
   ||>> exprgen_type thy algbr funcgr strct ty
-  ||>> exprgen_typinst_const thy algbr funcgr strct (c, ty)
+  ||>> exprgen_dict_parms thy algbr funcgr strct (c, ty)
   ||>> fold_map (exprgen_term thy algbr funcgr strct) ts
   |-> (fn (((c, ty), iss), ts) =>
          pair (IConst (c, (iss, ty)) `$$ ts))

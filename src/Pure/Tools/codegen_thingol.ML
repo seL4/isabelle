@@ -16,14 +16,14 @@ infixr 3 `|-->;
 signature BASIC_CODEGEN_THINGOL =
 sig
   type vname = string;
-  datatype inst =
-      Instance of string * inst list list
-    | Context of (class list * int) * (vname * int);
+  datatype dict =
+      DictConst of string * dict list list
+    | DictVar of string list * (vname * (int * int));
   datatype itype =
       `%% of string * itype list
     | ITyVar of vname;
   datatype iterm =
-      IConst of string * (inst list list * itype)
+      IConst of string * (dict list list * itype)
     | IVar of vname
     | `$ of iterm * iterm
     | `|-> of (vname * itype) * iterm
@@ -51,8 +51,8 @@ sig
   val split_let: iterm -> (((iterm * itype) * iterm) * iterm) option;
   val unfold_let: iterm -> ((iterm * itype) * iterm) list * iterm;
   val unfold_const_app: iterm ->
-    ((string * (inst list list * itype)) * iterm list) option;
-  val eta_expand: (string * (inst list list * itype)) * iterm list -> int -> iterm;
+    ((string * (dict list list * itype)) * iterm list) option;
+  val eta_expand: (string * (dict list list * itype)) * iterm list -> int -> iterm;
   val fold_constnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
   val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
   val fold_unbound_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
@@ -62,10 +62,11 @@ sig
     | Fun of (iterm list * iterm) list * typscheme
     | Datatype of (vname * sort) list * (string * itype list) list
     | Datatypecons of string
-    | Class of class list * (vname * (string * itype) list)
+    | Class of (class * string) list * (vname * (string * itype) list)
     | Classop of class
+    | Classrel of class * class
     | Classinst of (class * (string * (vname * sort) list))
-          * ((class * (string * inst list list)) list
+          * ((class * (string * (string * dict list list))) list
         * (string * iterm) list);
   type code = def Graph.T;
   type transact;
@@ -114,16 +115,16 @@ fun unfoldr dest x =
 
 type vname = string;
 
-datatype inst =
-    Instance of string * inst list list
-  | Context of (class list * int) * (vname * int);
+datatype dict =
+    DictConst of string * dict list list
+  | DictVar of string list * (vname * (int * int));
 
 datatype itype =
     `%% of string * itype list
   | ITyVar of vname;
 
 datatype iterm =
-    IConst of string * (inst list list * itype)
+    IConst of string * (dict list list * itype)
   | IVar of vname
   | `$ of iterm * iterm
   | `|-> of (vname * itype) * iterm
@@ -255,10 +256,11 @@ datatype def =
   | Fun of (iterm list * iterm) list * typscheme
   | Datatype of (vname * sort) list * (string * itype list) list
   | Datatypecons of string
-  | Class of class list * (vname * (string * itype) list)
+  | Class of (class * string) list * (vname * (string * itype) list)
   | Classop of class
+  | Classrel of class * class
   | Classinst of (class * (string * (vname * sort) list))
-        * ((class * (string * inst list list)) list
+        * ((class * (string * (string * dict list list))) list
       * (string * iterm) list);
 val eq_def = (op =) : def * def -> bool;
 
@@ -346,37 +348,40 @@ fun check_prep_def code Bot =
   | check_prep_def code (d as Class _) =
       d
   | check_prep_def code (Classop _) =
-      error "Attempted to add bare class member"
-  | check_prep_def code (d as Classinst ((class, (tyco, arity)), (_, memdefs))) =
+      error "Attempted to add bare class operation"
+  | check_prep_def code (Classrel _) =
+      error "Attempted to add bare class relation"
+  | check_prep_def code (d as Classinst ((class, (tyco, arity)), (_, inst_classops))) =
       let
-        val Class (_, (v, membrs)) = get_def code class;
-        val _ = if length memdefs > length memdefs
-          then error "Too many member definitions given"
+        val Class (_, (_, classops)) = get_def code class;
+        val _ = if length inst_classops > length classops
+          then error "Too many class operations given"
           else ();
-        fun check_memdef (m, _) =
-          if AList.defined (op =) memdefs m
-          then () else error ("Missing definition for member " ^ quote m);
-        val _ = map check_memdef memdefs;
-      in d end
-  | check_prep_def code Classinstmember =
-      error "Attempted to add bare class instance member";
+        fun check_classop (f, _) =
+          if AList.defined (op =) inst_classops f
+          then () else error ("Missing definition for class operation " ^ quote f);
+        val _ = map check_classop classops;
+      in d end;
 
 fun postprocess_def (name, Datatype (_, constrs)) =
-      (check_samemodule (name :: map fst constrs);
-      fold (fn (co, _) =>
+      tap (fn _ => check_samemodule (name :: map fst constrs))
+      #> fold (fn (co, _) =>
         add_def_incr true (co, Datatypecons name)
         #> add_dep (co, name)
         #> add_dep (name, co)
       ) constrs
-      )
-  | postprocess_def (name, Class (_, (_, membrs))) =
-      (check_samemodule (name :: map fst membrs);
-      fold (fn (m, _) =>
-        add_def_incr true (m, Classop name)
-        #> add_dep (m, name)
-        #> add_dep (name, m)
-      ) membrs
-      )
+  | postprocess_def (name, Class (classrels, (_, classops))) =
+      tap (fn _ => check_samemodule (name :: map fst classops @ map snd classrels))
+      #> fold (fn (f, _) =>
+        add_def_incr true (f, Classop name)
+        #> add_dep (f, name)
+        #> add_dep (name, f)
+      ) classops
+      #> fold (fn (superclass, classrel) =>
+        add_def_incr true (classrel, Classrel (name, superclass))
+        #> add_dep (classrel, name)
+        #> add_dep (name, classrel)
+      ) classrels
   | postprocess_def _ =
       I;
 
