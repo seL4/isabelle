@@ -11,6 +11,7 @@ no_document time_use_thy "Classpackage";
 no_document time_use_thy "CodeCollections";
 no_document time_use_thy "CodeEval";
 no_document time_use_thy "CodeRandom";
+no_document time_use_thy "Codegenerator_Rat";
 no_document time_use_thy "Codegenerator";
 
 time_use_thy "Higher_Order_Logic";
