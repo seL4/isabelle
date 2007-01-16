@@ -248,7 +248,7 @@ fun policy thy get_basename get_thyname name =
 
 fun class_policy thy = policy thy NameSpace.base thyname_of_class;
 fun classrel_policy thy = policy thy (fn (class1, class2) => 
-  NameSpace.base class2 ^ "_" ^ NameSpace.base class1) thyname_of_classrel;
+  NameSpace.base class1 ^ "_" ^ NameSpace.base class2) thyname_of_classrel;
 fun tyco_policy thy = policy thy NameSpace.base thyname_of_tyco;
 fun instance_policy thy = policy thy (fn (class, tyco) => 
   NameSpace.base class ^ "_" ^ NameSpace.base tyco) thyname_of_instance;
