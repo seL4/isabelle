@@ -62,10 +62,10 @@ datatype fixity =
 
 val APP = INFX (~1, L);
 
-type typ_syntax = int * ((fixity -> itype -> Pretty.T) -> fixity
-  -> itype list -> Pretty.T);
-type term_syntax = int * ((vname list -> fixity -> iterm -> Pretty.T) -> fixity
-  -> iterm list -> Pretty.T);
+type typ_syntax = int * ((fixity -> itype -> Pretty.T)
+  -> fixity -> itype list -> Pretty.T);
+type term_syntax = int * ((CodegenNames.var_ctxt -> fixity -> iterm -> Pretty.T)
+  -> CodegenNames.var_ctxt ->  fixity -> iterm list -> Pretty.T);
 
 fun eval_lrx L L = false
   | eval_lrx R R = false
@@ -153,19 +153,19 @@ fun parse_args f args =
 
 (* generic serializer combinators *)
 
-fun gen_pr_app pr_app' pr_term const_syntax fxy (app as ((c, (_, ty)), ts)) =
+fun gen_pr_app pr_app' pr_term const_syntax vars fxy (app as ((c, (_, ty)), ts)) =
   case const_syntax c
-   of NONE => brackify fxy (pr_app' app)
+   of NONE => brackify fxy (pr_app' vars app)
     | SOME (i, pr) =>
         let
           val k = if i < 0 then (length o fst o CodegenThingol.unfold_fun) ty else i
         in if k = length ts
           then 
-            pr pr_term fxy ts
+            pr pr_term vars fxy ts
           else if k < length ts
           then case chop k ts of (ts1, ts2) =>
-            brackify fxy (pr pr_term APP ts1 :: map (pr_term [] BR) ts2)
-          else pr_term [] fxy (CodegenThingol.eta_expand app k)
+            brackify fxy (pr pr_term vars APP ts1 :: map (pr_term vars BR) ts2)
+          else pr_term vars fxy (CodegenThingol.eta_expand app k)
         end;
 
 fun gen_pr_bind pr_bind' pr_term fxy ((v, pat), ty) vars =
@@ -217,12 +217,12 @@ fun implode_monad c_mbind c_kbind t =
 
 fun pretty_ml_string c_nil c_cons mk_char mk_string target_implode =
   let
-    fun pretty pr fxy [t] =
+    fun pretty pr vars fxy [t] =
       case implode_list c_nil c_cons t
        of SOME ts => (case implode_string mk_char mk_string ts
            of SOME p => p
-            | NONE => Pretty.block [str target_implode, Pretty.brk 1, pr [] BR t])
-        | NONE => Pretty.block [str target_implode, Pretty.brk 1, pr [] BR t]
+            | NONE => Pretty.block [str target_implode, Pretty.brk 1, pr vars BR t])
+        | NONE => Pretty.block [str target_implode, Pretty.brk 1, pr vars BR t]
   in (1, pretty) end;
 
 fun pretty_list c_nil c_cons mk_list mk_char_string (target_fxy, target_cons) =
@@ -233,42 +233,24 @@ fun pretty_list c_nil c_cons mk_list mk_char_string (target_fxy, target_cons) =
         str target_cons,
         pr (INFX (target_fxy, R)) t2
       ];
-    fun pretty pr fxy [t1, t2] =
+    fun pretty pr vars fxy [t1, t2] =
       case Option.map (cons t1) (implode_list c_nil c_cons t2)
        of SOME ts =>
             (case mk_char_string
              of SOME (mk_char, mk_string) =>
                   (case implode_string mk_char mk_string ts
                    of SOME p => p
-                    | NONE => mk_list (map (pr [] NOBR) ts))
-              | NONE => mk_list (map (pr [] NOBR) ts))
-        | NONE => default (pr []) fxy t1 t2;
+                    | NONE => mk_list (map (pr vars NOBR) ts))
+              | NONE => mk_list (map (pr vars NOBR) ts))
+        | NONE => default (pr vars) fxy t1 t2;
   in (2, pretty) end;
 
 val pretty_imperative_monad_bind =
   let
-    fun pretty (pr : vname list -> fixity -> iterm -> Pretty.T) fxy [t1, (v, ty) `|-> t2] =
-          pr [] fxy (ICase ((t1, ty), ([(IVar v, t2)])))
-      | pretty _ _ _ = error "bad arguments for imperative monad bind";
+    fun pretty (pr : CodegenNames.var_ctxt -> fixity -> iterm -> Pretty.T) vars fxy [t1, (v, ty) `|-> t2] =
+          pr vars fxy (ICase ((t1, ty), ([(IVar v, t2)])))
+      | pretty _ _ _ _ = error "bad arguments for imperative monad bind";
   in (2, pretty) end;
-
-fun pretty_haskell_monad c_mbind c_kbind =
-  let
-    fun pr_bnd pr ((SOME v, NONE), _) = str "<FOO>"
-      | pr_bnd pr ((NONE, SOME t), _) = str "<FOO>"
-      | pr_bnd pr ((SOME v, SOME t), _) = str "<FOO>";
-    fun pr_bind pr (NONE, t) = semicolon [pr [] NOBR t]
-      | pr_bind pr (SOME (bind, true), t) = semicolon [pr_bnd pr bind, str "<-", pr [] NOBR t]
-      | pr_bind pr (SOME (bind, false), t) = semicolon [str "let", pr_bnd pr bind, str "=", pr [] NOBR t];
-    fun brack fxy p = if eval_fxy BR fxy then Pretty.block [str "(", p, str ")"] else p;
-    fun pretty pr fxy [t] =
-      let
-        val (binds, t) = implode_monad c_mbind c_kbind t;
-      in (brack fxy o Pretty.block_enclose (str "do {", str "}")) (
-        map (pr_bind pr) binds
-        @| pr [] NOBR t
-      ) end;
-  in (1, pretty) end;
 
 
 
@@ -443,9 +425,7 @@ fun pr_sml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
       else [pr_term vars BR (CodegenThingol.eta_expand app k)] end else
         (str o deresolv) c
           :: ((map (pr_insts BR) o filter_out null) iss @ map (pr_term vars BR) ts)
-    and pr_app vars fxy (app as ((c, (iss, ty)), ts)) =
-      gen_pr_app (pr_app' vars) (fn vars' => pr_term (CodegenNames.intro_vars vars' vars))
-        const_syntax fxy app
+    and pr_app vars = gen_pr_app pr_app' pr_term const_syntax vars
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
       | pr_bind' ((NONE, SOME p), _) = p
@@ -723,9 +703,7 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
         else [pr_term vars BR (CodegenThingol.eta_expand app ((length o fst o CodegenThingol.unfold_fun) ty))]
       else (str o deresolv) c
         :: ((map (pr_insts BR) o filter_out null) iss @ map (pr_term vars BR) ts)
-    and pr_app vars fxy (app as ((c, (iss, ty)), ts)) =
-      gen_pr_app (pr_app' vars) (fn vars' => pr_term (CodegenNames.intro_vars vars' vars))
-        const_syntax fxy app
+    and pr_app vars = gen_pr_app pr_app' pr_term const_syntax vars
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
       | pr_bind' ((NONE, SOME p), _) = p
@@ -1107,6 +1085,17 @@ val isar_seri_ocaml =
 
 (** Haskell serializer **)
 
+local
+
+fun pr_bind' ((NONE, NONE), _) = str "_"
+  | pr_bind' ((SOME v, NONE), _) = str v
+  | pr_bind' ((NONE, SOME p), _) = p
+  | pr_bind' ((SOME v, SOME p), _) = brackets [str v, str "@", p]
+
+val pr_bind_haskell = gen_pr_bind pr_bind';
+
+in
+
 fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here deresolv deriving_show def =
   let
     fun class_name class = case class_syntax class
@@ -1203,14 +1192,8 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
           end
     and pr_app' vars ((c, _), ts) =
       (str o deresolv) c :: map (pr_term vars BR) ts
-    and pr_app vars fxy =
-      gen_pr_app (pr_app' vars) (fn vars' => pr_term (CodegenNames.intro_vars vars' vars))
-        const_syntax fxy
-    and pr_bind' ((NONE, NONE), _) = str "_"
-      | pr_bind' ((SOME v, NONE), _) = str v
-      | pr_bind' ((NONE, SOME p), _) = p
-      | pr_bind' ((SOME v, SOME p), _) = brackets [str v, str "@", p]
-    and pr_bind fxy = gen_pr_bind pr_bind' pr_term fxy;
+    and pr_app vars = gen_pr_app pr_app' pr_term const_syntax vars
+    and pr_bind fxy = pr_bind_haskell pr_term fxy;
     fun pr_def (name, CodegenThingol.Fun (eqs, (vs, ty))) =
           let
             val tyvars = CodegenNames.intro_vars (map fst vs) keyword_vars;
@@ -1325,6 +1308,27 @@ fun pr_haskell class_syntax tyco_syntax const_syntax keyword_vars deresolv_here 
             ) (map pr_instdef classop_defs)
           end;
   in pr_def def end;
+
+fun pretty_haskell_monad c_mbind c_kbind =
+  let
+    fun pretty pr vars fxy [t] =
+      let
+        val pr_bind = pr_bind_haskell pr;
+        fun pr_mbind (NONE, t) vars =
+              (semicolon [pr vars NOBR t], vars)
+          | pr_mbind (SOME (bind, true), t) vars = vars
+              |> pr_bind NOBR bind
+              |>> (fn p => semicolon [p, str "<-", pr vars NOBR t])
+          | pr_mbind (SOME (bind, false), t) vars = vars
+              |> pr_bind NOBR bind
+              |>> (fn p => semicolon [str "let", p, str "=", pr vars NOBR t]);
+        val (binds, t) = implode_monad c_mbind c_kbind t;
+        val (ps, vars') = fold_map pr_mbind binds vars;
+        fun brack p = if eval_fxy BR fxy then Pretty.block [str "(", p, str ")"] else p;
+      in (brack o Pretty.block_enclose (str "do {", str "}")) (ps @| pr vars' NOBR t) end;
+  in (1, pretty) end;
+
+end; (*local*)
 
 val reserved_haskell = [
   "hiding", "deriving", "where", "case", "of", "infix", "infixl", "infixr",
@@ -1581,13 +1585,16 @@ fun map_seri_data target f thy =
     |> (CodegenSerializerData.map o Symtab.map_entry target o map_target) f
   end;
 
+val target_SML = "SML";
+val target_OCaml = "OCaml";
+val target_Haskell = "Haskell";
 val target_diag = "diag";
 
 val _ = Context.add_setup (
   CodegenSerializerData.init
-  #> add_serializer ("SML", isar_seri_sml)
-  #> add_serializer ("OCaml", isar_seri_ocaml)
-  #> add_serializer ("Haskell", isar_seri_haskell)
+  #> add_serializer (target_SML, isar_seri_sml)
+  #> add_serializer (target_OCaml, isar_seri_ocaml)
+  #> add_serializer (target_Haskell, isar_seri_haskell)
   #> add_serializer (target_diag, (fn _ => fn _ => seri_diagnosis))
 );
 
@@ -1753,11 +1760,25 @@ fun read_type thy raw_tyco =
       else error ("No such type constructor: " ^ quote raw_tyco);
   in tyco end;
 
-fun idfs_of_const_names thy c =
+fun idfs_of_const thy c =
   let
     val c' = (c, Sign.the_const_type thy c);
     val c'' = CodegenConsts.norm_of_typ thy c';
   in (c'', CodegenNames.const thy c'') end;
+
+fun gen_add_haskell_monad prep_const c_run c_mbind c_kbind thy =
+  let
+    val c_run' =
+      (CodegenConsts.norm thy o prep_const thy) c_run;
+    val c_mbind'' =
+      (CodegenNames.const thy o CodegenConsts.norm thy o prep_const thy) c_mbind;
+    val c_kbind'' =
+      (CodegenNames.const thy o CodegenConsts.norm thy o prep_const thy) c_kbind;
+    val pr = pretty_haskell_monad c_mbind'' c_kbind''
+  in
+    thy
+    |> gen_add_syntax_const (K I) target_Haskell c_run' (SOME pr)
+  end;
 
 val add_syntax_class = gen_add_syntax_class read_class CodegenConsts.read_const;
 val add_syntax_inst = gen_add_syntax_inst read_class read_type;
@@ -1790,7 +1811,7 @@ fun parse_multi_syntax parse_thing parse_syntax =
         (zip_list things parse_syntax (P.$$$ "and")) --| P.$$$ ")"));
 
 fun no_bindings x = (Option.map o apsnd)
-  (fn pretty => fn pr => pretty (pr [])) x;
+  (fn pretty => fn pr => fn vars => pretty (pr vars)) x;
 
 val (infixK, infixlK, infixrK) = ("infix", "infixl", "infixr");
 
@@ -1813,8 +1834,8 @@ in
 
 fun add_pretty_list target nill cons mk_list mk_char_string target_cons thy =
   let
-    val (_, nil'') = idfs_of_const_names thy nill;
-    val (cons', cons'') = idfs_of_const_names thy cons;
+    val (_, nil'') = idfs_of_const thy nill;
+    val (cons', cons'') = idfs_of_const thy cons;
     val pr = pretty_list nil'' cons'' mk_list mk_char_string target_cons;
   in
     thy
@@ -1823,9 +1844,9 @@ fun add_pretty_list target nill cons mk_list mk_char_string target_cons thy =
 
 fun add_pretty_ml_string target nill cons str mk_char mk_string target_implode thy =
   let
-    val (_, nil'') = idfs_of_const_names thy nill;
-    val (_, cons'') = idfs_of_const_names thy cons;
-    val (str', _) = idfs_of_const_names thy str;
+    val (_, nil'') = idfs_of_const thy nill;
+    val (_, cons'') = idfs_of_const thy cons;
+    val (str', _) = idfs_of_const thy str;
     val pr = pretty_ml_string nil'' cons'' mk_char mk_string target_implode;
   in
     thy
@@ -1834,8 +1855,8 @@ fun add_pretty_ml_string target nill cons str mk_char mk_string target_implode t
 
 fun add_undefined target undef target_undefined thy =
   let
-    val (undef', _) = idfs_of_const_names thy undef;
-    fun pr _ _ _ = str target_undefined;
+    val (undef', _) = idfs_of_const thy undef;
+    fun pr _ _ _ _ = str target_undefined;
   in
     thy
     |> gen_add_syntax_const (K I) target undef' (SOME (~1, pr))
@@ -1843,12 +1864,14 @@ fun add_undefined target undef target_undefined thy =
 
 fun add_pretty_imperative_monad_bind target bind thy =
   let
-    val (bind', _) = idfs_of_const_names thy bind;
+    val (bind', _) = idfs_of_const thy bind;
     val pr = pretty_imperative_monad_bind
   in
     thy
     |> gen_add_syntax_const (K I) target bind' (SOME pr)
   end;
+
+val add_haskell_monad = gen_add_haskell_monad CodegenConsts.read_const;
 
 val code_classP =
   OuterSyntax.command code_classK "define code syntax for class" K.thy_decl (
@@ -1881,12 +1904,12 @@ val code_constP =
           fold (fn (raw_const, syn) => add_syntax_const target raw_const (no_bindings syn)) syns)
   );
 
-(*val code_monadP =
-  OuterSyntax.command code_typeK "define code syntax for Haskell monads" K.thy_decl (
-    parse_multi_syntax P.xname parse_syntax
-    >> (Toplevel.theory oo fold) (fn (target, syns) =>
-          fold (fn (raw_tyco, syn) => add_syntax_monad target raw_tyco syn) syns)
-  );*)
+val code_monadP =
+  OuterSyntax.command code_monadK "define code syntax for Haskell monads" K.thy_decl (
+    P.term -- P.term -- P.term
+    >> (fn ((raw_run, raw_mbind), raw_kbind) => Toplevel.theory 
+          (add_haskell_monad raw_run raw_mbind raw_kbind))
+  );
 
 val code_reservedP =
   OuterSyntax.command code_reservedK "declare words as reserved for target language" K.thy_decl (
@@ -1909,7 +1932,7 @@ val code_moduleprologP =
 val _ = OuterSyntax.add_keywords [infixK, infixlK, infixrK];
 
 val _ = OuterSyntax.add_parsers [code_classP, code_instanceP, code_typeP, code_constP,
-  code_reservedP, code_modulenameP, code_moduleprologP];
+  code_reservedP, code_modulenameP, code_moduleprologP, code_monadP];
 
 (*including serializer defaults*)
 val _ = Context.add_setup (
