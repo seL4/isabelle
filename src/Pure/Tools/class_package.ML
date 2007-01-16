@@ -388,6 +388,8 @@ fun instance_sort' do_proof (class, sort) theory =
     |> do_proof after_qed (loc_name, loc_expr)
   end;
 
+val prove_instance_sort = instance_sort' o prove_interpretation_in;
+
 
 (* classes and instances *)
 
@@ -487,8 +489,6 @@ end; (*local*)
 
 local
 
-val prove_instance_sort = instance_sort' o prove_interpretation_in;
-
 fun gen_instance_sort prep_class prep_sort (raw_class, raw_sort) theory =
   let
     val class = prep_class theory raw_class;
@@ -507,7 +507,6 @@ in
 
 val instance_sort_e = gen_instance_sort Sign.read_class Sign.read_sort;
 val instance_sort = gen_instance_sort Sign.certify_class Sign.certify_sort;
-val prove_instance_sort = prove_instance_sort;
 
 end; (* local *)
 
