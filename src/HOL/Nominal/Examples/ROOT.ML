@@ -13,3 +13,4 @@ use_thy "Height";
 use_thy "Lambda_mu";
 use_thy "SN";
 use_thy "Weakening";
+use_thy "Crary";
