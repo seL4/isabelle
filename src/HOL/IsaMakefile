@@ -734,7 +734,7 @@ $(OUT)/HOL-Nominal: $(OUT)/HOL Nominal/ROOT.ML Nominal/Nominal.thy		\
 HOL-Nominal-Examples: HOL-Nominal $(LOG)/HOL-Nominal-Examples.gz
 
 $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
-  Nominal/Examples/ROOT.ML 
+  Nominal/Examples/ROOT.ML \
   Nominal/Examples/CR.thy \
   Nominal/Examples/Class.thy \
   Nominal/Examples/Compile.thy \
