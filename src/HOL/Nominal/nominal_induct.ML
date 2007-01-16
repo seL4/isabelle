@@ -29,23 +29,21 @@ val split_all_tuples =
 
 (* prepare rule *)
 
-(*conclusions: ?P avoiding_struct ... insts*)
 fun inst_mutual_rule ctxt insts avoiding rules =
   let
-    val (concls, rule) =
-      (case RuleCases.mutual_rule ctxt rules of
-        NONE => error "Failed to join given rules into one mutual rule"
-      | SOME res => res);
-    val (cases, consumes) = RuleCases.get rule;
+
+    val (nconcls, joined_rule) = RuleCases.strict_mutual_rule ctxt rules;
+    val concls = Logic.dest_conjunctions (Thm.concl_of joined_rule);
+    val (cases, consumes) = RuleCases.get joined_rule;
 
     val l = length rules;
     val _ =
       if length insts = l then ()
       else error ("Bad number of instantiations for " ^ string_of_int l ^ " rules");
 
-    fun subst inst rule =
+    fun subst inst concl =
       let
-        val vars = InductAttrib.vars_of (Thm.concl_of rule);
+        val vars = InductAttrib.vars_of concl;
         val m = length vars and n = length inst;
         val _ = if m >= n + 2 then () else error "Too few variables in conclusion of rule";
         val P :: x :: ys = vars;
@@ -56,9 +54,11 @@ fun inst_mutual_rule ctxt insts avoiding rules =
         List.mapPartial (fn (z, SOME t) => SOME (z, t) | _ => NONE) (zs ~~ inst)
       end;
      val substs =
-       map2 subst insts rules |> List.concat |> distinct (op =)
+       map2 subst insts concls |> List.concat |> distinct (op =)
        |> map (pairself (Thm.cterm_of (ProofContext.theory_of ctxt)));
-  in (((cases, concls), consumes), Drule.cterm_instantiate substs rule) end;
+  in 
+    (((cases, nconcls), consumes), Drule.cterm_instantiate substs joined_rule) 
+  end;
 
 fun rename_params_rule internal xs rule =
   let
