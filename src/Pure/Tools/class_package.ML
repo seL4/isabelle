@@ -333,24 +333,8 @@ val _ = Context.add_setup (Method.add_methods
     "apply some intro/elim rule")]);
 
 
-(* classes and instances *)
+(* FIXME workarounds for locale package *)
 
-local
-
-fun add_axclass (name, supsort) params axs thy =
-  let
-    val (c, thy') = thy
-      |> AxClass.define_class_i (name, supsort) params axs;
-    val {intro, axioms, ...} = AxClass.get_definition thy' c;
-  in ((c, (intro, axioms)), thy') end;
-
-fun certify_class thy class =
-  tap (the_class_data thy) (Sign.certify_class thy class);
-
-fun read_class thy =
-  certify_class thy o Sign.intern_class thy;
-
-(*FIXME proper locale interface*)
 fun prove_interpretation (prfx, atts) expr insts tac thy =
   let
     fun ad_hoc_term (Const (c, ty)) =
@@ -369,6 +353,58 @@ fun prove_interpretation (prfx, atts) expr insts tac thy =
     |> Proof.global_terminal_proof (Method.Basic (fn _ => Method.SIMPLE_METHOD tac), NONE)
     |> ProofContext.theory_of
   end;
+
+fun prove_interpretation_in tac after_qed (name, expr) thy =
+  thy
+  |> Locale.interpretation_in_locale (ProofContext.theory after_qed) (name, expr)
+  |> Proof.global_terminal_proof (Method.Basic (fn _ => Method.SIMPLE_METHOD tac), NONE)
+  |> ProofContext.theory_of;
+
+fun instance_sort' do_proof (class, sort) theory =
+  let
+    val loc_name = (#locale o the_class_data theory) class;
+    val loc_expr =
+      (Locale.Merge o map (Locale.Locale o #locale o the_class_data theory)) sort;
+    val const_names = (map (NameSpace.base o snd)
+      o maps (#consts o the_class_data theory)
+      o the_ancestry theory) [class];
+    fun get_thms thy =
+      the_ancestry thy sort
+      |> AList.make (the_propnames thy)
+      |> map (apsnd (map (NameSpace.append (Logic.const_of_class loc_name))))
+      |> map_filter (fn (superclass, thm_names) =>
+          case map_filter (try (PureThy.get_thm thy o Name)) thm_names
+           of [] => NONE
+            | thms => SOME (superclass, thms));
+    fun after_qed thy =
+      thy
+      |> `get_thms
+      |-> fold (fn (supclass, thms) => I
+            AxClass.prove_classrel (class, supclass)
+              (ALLGOALS (K (intro_classes_tac [])) THEN
+                (ALLGOALS o ProofContext.fact_tac) thms))
+  in
+    theory
+    |> do_proof after_qed (loc_name, loc_expr)
+  end;
+
+
+(* classes and instances *)
+
+local
+
+fun add_axclass (name, supsort) params axs thy =
+  let
+    val (c, thy') = thy
+      |> AxClass.define_class_i (name, supsort) params axs;
+    val {intro, axioms, ...} = AxClass.get_definition thy' c;
+  in ((c, (intro, axioms)), thy') end;
+
+fun certify_class thy class =
+  tap (the_class_data thy) (Sign.certify_class thy class);
+
+fun read_class thy =
+  certify_class thy o Sign.intern_class thy;
 
 fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
   let
@@ -442,84 +478,6 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
       )))))
   end;
 
-(*fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
-  let
-    val elems = fold_rev (fn Locale.Elem e => cons e | _ => I) raw_elems [];
-    val supclasses = map (prep_class thy) raw_supclasses;
-    val supsort =
-      supclasses
-      |> Sign.certify_sort thy
-      |> (fn [] => Sign.defaultS thy | S => S);    (* FIXME Why syntax defaultS? *)
-    val expr = Locale.Merge (map (Locale.Locale o #locale o the_class_data thy) supclasses);
-    val mapp_sup = AList.make
-      (the o AList.lookup (op =) ((maps (the_parm_map thy) o the_ancestry thy) supclasses))
-      ((map (fst o fst) o Locale.parameters_of_expr thy) expr);
-    fun extract_consts thy name_locale =
-      let
-        val tfrees =
-          []
-          |> fold (fold Term.add_tfrees o snd) (Locale.global_asms_of thy name_locale)
-          |> fold (Term.add_tfreesT o snd o fst) (Locale.parameters_of thy name_locale);
-        val _ = case tfrees
-         of [(_, _)] => ()
-          (*| [(_, sort)] => error ("Additional sort constraint on class variable: "
-              ^ Sign.string_of_sort thy sort) FIXME what to do about this?*)
-          | [] => error ("No type variable in class specification")
-          | tfrees => error ("More than one type variable in class specification: " ^
-              (commas o map fst) tfrees);
-        val consts =
-          Locale.parameters_of thy name_locale
-          |> (map o apfst o apsnd o Term.map_type_tfree) (K (TFree (AxClass.param_tyvarname, [])))
-          |> (map o apsnd) (TheoryTarget.fork_mixfix false true #> fst);
-      in chop (length mapp_sup) consts |> snd end;
-    fun add_consts raw_cs_this thy =
-      let
-        fun add_global_const ((c, ty), syn) thy =
-          ((c, (Sign.full_name thy c, ty)),
-            thy
-            |> Sign.add_consts_authentic
-                 [(c, ty |> Term.map_type_tfree (fn (v, _) => TFree (v, Sign.defaultS thy)), syn)]);
-      in
-        thy
-        |> fold_map add_global_const raw_cs_this
-      end;
-    fun extract_assumes thy name_locale cs_mapp =
-      let
-        val subst_assume =
-          map_aterms (fn Free (c, ty) => Const ((fst o the o AList.lookup (op =) cs_mapp) c, ty)
-                       | t => t)
-        fun prep_asm ((name, atts), ts) =
-          (*FIXME*)
-          ((NameSpace.base name, map (Attrib.attribute thy) atts), map subst_assume ts)
-      in
-        (map prep_asm o Locale.local_asms_of thy) name_locale
-      end;
-    fun add_global_constraint class (_, (c, ty)) thy =
-      thy
-      |> Sign.add_const_constraint_i (c, SOME (Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty));
-    fun mk_const thy class (c, ty) =
-      Const (c, Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty);
-  in
-    thy
-    |> add_locale bname expr elems
-    |-> (fn name_locale => ProofContext.theory
-          (`(fn thy => extract_consts thy name_locale)
-    #-> (fn raw_cs_this =>
-          add_consts raw_cs_this
-    #-> (fn mapp_this =>
-          `(fn thy => extract_assumes thy name_locale (mapp_sup @ mapp_this))
-    #-> (fn loc_axioms =>
-          add_axclass (bname, supsort) (map (fst o snd) mapp_this) loc_axioms
-    #-> (fn (name_axclass, (_, ax_axioms)) =>
-          fold (add_global_constraint name_axclass) mapp_this
-    #> add_class_data ((name_axclass, supclasses), (name_locale, map (apsnd fst) mapp_this,
-          map (fst o fst) loc_axioms))
-    #> prove_interpretation (Logic.const_of_class bname, [])
-          (Locale.Locale name_locale) (map (SOME o mk_const thy name_axclass) (map snd (mapp_sup @ mapp_this)))
-          ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
-    ))))) #> pair name_locale)
-  end;*)
-
 in
 
 val class_e = gen_class (Locale.add_locale false) read_class;
@@ -528,41 +486,6 @@ val class = gen_class (Locale.add_locale_i false) certify_class;
 end; (*local*)
 
 local
-
-fun prove_interpretation_in tac after_qed (name, expr) thy =
-  thy
-  |> Locale.interpretation_in_locale (ProofContext.theory after_qed) (name, expr)
-  |> Proof.global_terminal_proof (Method.Basic (fn _ => Method.SIMPLE_METHOD tac), NONE)
-  |> ProofContext.theory_of;
-
-(*FIXME very ad-hoc, needs proper locale interface*)
-fun instance_sort' do_proof (class, sort) theory =
-  let
-    val loc_name = (#locale o the_class_data theory) class;
-    val loc_expr =
-      (Locale.Merge o map (Locale.Locale o #locale o the_class_data theory)) sort;
-    val const_names = (map (NameSpace.base o snd)
-      o maps (#consts o the_class_data theory)
-      o the_ancestry theory) [class];
-    fun get_thms thy =
-      the_ancestry thy sort
-      |> AList.make (the_propnames thy)
-      |> map (apsnd (map (NameSpace.append (Logic.const_of_class loc_name))))
-      |> map_filter (fn (superclass, thm_names) =>
-          case map_filter (try (PureThy.get_thm thy o Name)) thm_names
-           of [] => NONE
-            | thms => SOME (superclass, thms));
-    fun after_qed thy =
-      thy
-      |> `get_thms
-      |-> fold (fn (supclass, thms) => I
-            AxClass.prove_classrel (class, supclass)
-              (ALLGOALS (K (intro_classes_tac [])) THEN
-                (ALLGOALS o ProofContext.fact_tac) thms))
-  in
-    theory
-    |> do_proof after_qed (loc_name, loc_expr)
-  end;
 
 val prove_instance_sort = instance_sort' o prove_interpretation_in;
 
