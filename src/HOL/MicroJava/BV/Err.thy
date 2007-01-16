@@ -101,10 +101,10 @@ lemma OK_le_err_OK:
 lemma order_le_err [iff]:
   "order(le r) = order r"
 apply (rule iffI)
- apply (subst order_def)
+ apply (subst Semilat.order_def)
  apply (blast dest: order_antisym OK_le_err_OK [THEN iffD2]
               intro: order_trans OK_le_err_OK [THEN iffD1])
-apply (subst order_def)
+apply (subst Semilat.order_def)
 apply (blast intro: le_err_refl le_err_trans le_err_antisym
              dest: order_refl)
 done 
@@ -252,7 +252,7 @@ done
 
 lemma eq_order_le:
   "\<lbrakk> x=y; order r \<rbrakk> \<Longrightarrow> x <=_r y"
-apply (unfold order_def)
+apply (unfold Semilat.order_def)
 apply blast
 done
 

@@ -1,4 +1,4 @@
- (*  ID:         $Id$
+(*  ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 *)
 
@@ -7,8 +7,6 @@ header {* Collection classes as examples for code generation *}
 theory CodeCollections
 imports Main Product_ord List_lexord
 begin
-
-section {* Collection classes as examples for code generation *}
 
 fun
   abs_sorted :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
@@ -22,7 +20,7 @@ abbreviation (in ord)
 abbreviation
   "sorted \<equiv> abs_sorted less_eq"
 
-lemma (in partial_order) sorted_weakening:
+lemma (in order) sorted_weakening:
   assumes "sorted (x # xs)"
   shows "sorted xs"
 using prems proof (induct xs)

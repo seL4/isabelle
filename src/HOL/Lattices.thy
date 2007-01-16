@@ -16,12 +16,12 @@ operations. The extension to finite sets is done in theory @{text
 Finite_Set}. In the longer term it may be better to define arbitrary
 sups and infs via @{text THE}. *}
 
-locale lower_semilattice = partial_order +
+locale lower_semilattice = order +
   fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
   assumes inf_le1[simp]: "x \<sqinter> y \<sqsubseteq> x" and inf_le2[simp]: "x \<sqinter> y \<sqsubseteq> y"
   and inf_greatest: "x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<sqinter> z"
 
-locale upper_semilattice = partial_order +
+locale upper_semilattice = order +
   fixes sup :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
   assumes sup_ge1[simp]: "x \<sqsubseteq> x \<squnion> y" and sup_ge2[simp]: "y \<sqsubseteq> x \<squnion> y"
   and sup_least: "y \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> x \<Longrightarrow> y \<squnion> z \<sqsubseteq> x"

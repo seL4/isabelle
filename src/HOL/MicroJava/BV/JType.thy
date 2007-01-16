@@ -87,7 +87,7 @@ qed
 
 lemma order_widen:
   "acyclic (subcls1 G) \<Longrightarrow> order (subtype G)"
-  apply (unfold order_def lesub_def subtype_def)
+  apply (unfold Semilat.order_def lesub_def subtype_def)
   apply (auto intro: widen_trans)
   apply (case_tac x)
    apply (case_tac y)

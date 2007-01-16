@@ -124,7 +124,7 @@ done
 
 lemma order_listI [simp, intro!]:
   "order r \<Longrightarrow> order(Listn.le r)"
-apply (subst order_def)
+apply (subst Semilat.order_def)
 apply (blast intro: le_list_refl le_list_trans le_list_antisym
              dest: order_refl)
 done

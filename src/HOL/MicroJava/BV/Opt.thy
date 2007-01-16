@@ -54,7 +54,7 @@ done
 
 lemma order_le_opt [intro!,simp]:
   "order r \<Longrightarrow> order(le r)"
-apply (subst order_def)
+apply (subst Semilat.order_def)
 apply (blast intro: le_opt_refl le_opt_trans le_opt_antisym)
 done 
 

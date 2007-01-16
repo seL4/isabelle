@@ -122,10 +122,10 @@ end
 
 subsection {* Partial orderings *}
 
-locale partial_order = preorder + 
+locale order = preorder + 
   assumes antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
 
-context partial_order
+context order
 begin
 
 text {* Asymmetry. *}
@@ -181,7 +181,7 @@ axclass order < ord
   order_less_le: "(x < y) = (x <= y & x ~= y)"
 
 interpretation order:
-  partial_order ["op \<le> \<Colon> 'a\<Colon>order \<Rightarrow> 'a \<Rightarrow> bool" "op < \<Colon> 'a\<Colon>order \<Rightarrow> 'a \<Rightarrow> bool"]
+  order ["op \<le> \<Colon> 'a\<Colon>order \<Rightarrow> 'a \<Rightarrow> bool" "op < \<Colon> 'a\<Colon>order \<Rightarrow> 'a \<Rightarrow> bool"]
 apply unfold_locales
 apply (rule order_refl)
 apply (erule (1) order_trans)
@@ -192,7 +192,7 @@ done
 
 subsection {* Linear (total) orders *}
 
-locale linorder = partial_order +
+locale linorder = order +
   assumes linear: "x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
 begin
 
