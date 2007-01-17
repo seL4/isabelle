@@ -1,10 +1,12 @@
 (* "$Id$" *)
 (*                                                    *)
-(* Formalisation of the chapter                       *)
-(* Logical Relations and a Case Study in Equivalence  *)
-(* Checking                                           *)
-(* by Crary.                                          *)
-(* Formalisation by Julien Narboux and Christian Urban*)
+(* Formalisation of the chapter on Logical Relations  *)
+(* and a Case Study in Equivalence Checking           *)
+(* by Karl Crary from the book on Advanced Topics in  *)
+(* Types and Programming Languages, MIT Press 2005    *)
+
+(* The formalisation was done by Julien Narboux and   *)
+(* Christian Urban                                    *)
 
 theory Crary
   imports "Nominal"
@@ -22,7 +24,7 @@ nominal_datatype trm = Unit
                      | App "trm" "trm"
                      | Const "nat"
 
-(* FIXME: the next lemma needs to be in Nominal.thy *)
+(* The next 3 lemmas should be in the nominal library *)
 lemma eq_eqvt:
   fixes pi::"name prm"
   and   x::"'a::pt_name"
@@ -42,8 +44,7 @@ lemma set_eqvt:
   and   xs::"('a::pt_name) list"
   shows "pi\<bullet>(set xs) = set (pi\<bullet>xs)"
   by (perm_simp add: pt_list_set_pi[OF pt_name_inst])
-
-(* End of library *)
+(* end of library *)
 
 lemma perm_ty[simp]: 
   fixes T::"ty"
@@ -60,9 +61,7 @@ lemma fresh_ty[simp]:
 lemma ty_cases:
   fixes T::ty
   shows "(\<exists> T1 T2. T=T1\<rightarrow>T2) \<or> T=TUnit \<or> T=TBase"
-apply (induct T rule:ty.induct_weak)
-apply (auto)
-done
+by (induct T rule:ty.induct_weak) (auto)
 
 text {* Size Functions *} 
 
@@ -100,7 +99,7 @@ text {* valid contexts *}
 inductive2
   valid :: "(name \<times> 'a::pt_name) list \<Rightarrow> bool"
 where
-    v_nil[intro]: "valid []"
+    v_nil[intro]:  "valid []"
   | v_cons[intro]: "\<lbrakk>valid \<Gamma>;a\<sharp>\<Gamma>\<rbrakk> \<Longrightarrow> valid ((a,\<sigma>)#\<Gamma>)"
 
 lemma valid_eqvt:
@@ -113,7 +112,7 @@ lemma valid_eqvt:
 inductive_cases2  
   valid_cons_elim_auto[elim]:"valid ((x,T)#\<Gamma>)"
 
-text {* typing judgements for trms *}
+text {* typing judgements for terms *}
 
 inductive2
   typing :: "(name\<times>ty) list\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [60,60,60] 60) 
@@ -423,13 +422,10 @@ proof -
 	by (simp, blast intro: equiv_def_eqvt)
     next
       case (Q_Ext x \<Gamma> s t T1 T2 pi c)
-      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) (T1\<rightarrow>T2)" using a7 
-	apply -
-	apply(simp)
-	apply(rule_tac x="pi\<bullet>x" in a7)
-	apply(simp add: fresh_bij)
+      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) (T1\<rightarrow>T2)"  
+	apply(auto intro!: a7 simp add: fresh_bij)
 	apply(drule equiv_def_eqvt)
-	apply(simp)+
+	apply(simp)
 	done
     next
       case (Q_Abs x \<Gamma> T1 s2 t2 T2 pi c)
@@ -539,25 +535,23 @@ lemma whr_eqvt:
   fixes pi::"name prm"
   assumes a: "t \<leadsto> t'"
   shows "(pi\<bullet>t) \<leadsto> (pi\<bullet>t')"
-  using a
-  apply(induct)
-  apply(auto simp add: subst_eqvt fresh_bij)
-  done
+using a
+by (induct) (auto simp add: subst_eqvt fresh_bij)
 
 lemma whn_eqvt:
   fixes pi::"name prm"
   assumes a: "t \<Down> t'"
   shows "(pi\<bullet>t) \<Down> (pi\<bullet>t')"
-  using a
-  apply(induct)
-  apply(rule QAN_Reduce)
-  apply(rule whr_eqvt)
-  apply(assumption)+
-  apply(rule QAN_Normal)
-  apply(auto)
-  apply(drule_tac pi="rev pi" in whr_eqvt)
-  apply(perm_simp)
-  done
+using a
+apply(induct)
+apply(rule QAN_Reduce)
+apply(rule whr_eqvt)
+apply(assumption)+
+apply(rule QAN_Normal)
+apply(auto)
+apply(drule_tac pi="rev pi" in whr_eqvt)
+apply(perm_simp)
+done
 
 text {* Algorithmic term equivalence and algorithmic path equivalence *}
 
@@ -677,9 +671,8 @@ proof -
   then show ?thesis by simp
 qed
 
-(* post-processing of the strong induction principle     *) 
-(* extracts the strong_inducts-version from strong_induct *)
-
+(* post-processing of the strong induction principle proved above; *) 
+(* the code extracts the strong_inducts-version from strong_induct *)
 setup {*
   PureThy.add_thmss
     [(("alg_equiv_alg_path_equiv_strong_inducts",
@@ -747,9 +740,10 @@ function log_equiv :: "((name\<times>ty) list \<Rightarrow> trm \<Rightarrow> tr
 where    
    "\<Gamma> \<turnstile> s is t : TUnit = valid \<Gamma>"
  | "\<Gamma> \<turnstile> s is t : TBase = \<Gamma> \<turnstile> s <=> t : TBase"
- | "\<Gamma> \<turnstile> s is t : (T1 \<rightarrow> T2) =  (valid \<Gamma> \<and> (\<forall>\<Gamma>' s' t'. \<Gamma>\<lless>\<Gamma>' \<longrightarrow> \<Gamma>' \<turnstile> s' is t' : T1 \<longrightarrow>  (\<Gamma>' \<turnstile> (App s s') is (App t t') : T2)))"
+ | "\<Gamma> \<turnstile> s is t : (T1 \<rightarrow> T2) =  
+           (valid \<Gamma> \<and> (\<forall>\<Gamma>' s' t'. \<Gamma>\<lless>\<Gamma>' \<longrightarrow> \<Gamma>' \<turnstile> s' is t' : T1 \<longrightarrow>  (\<Gamma>' \<turnstile> (App s s') is (App t t') : T2)))"
 apply (auto simp add: ty.inject)
-apply (subgoal_tac "(\<exists> T1 T2. b=T1 \<rightarrow> T2) \<or> b=TUnit \<or> b=TBase" )
+apply (subgoal_tac "(\<exists>T1 T2. b=T1 \<rightarrow> T2) \<or> b=TUnit \<or> b=TBase" )
 apply (force)
 apply (rule ty_cases)
 done
@@ -791,8 +785,8 @@ lemma forget:
   assumes a: "x\<sharp>L" 
   shows "L[x::=P] = L"
   using a
-  by (nominal_induct L avoiding: x P rule: trm.induct)
-     (auto simp add: fresh_atm abs_fresh)
+by (nominal_induct L avoiding: x P rule: trm.induct)
+   (auto simp add: fresh_atm abs_fresh)
 
 lemma subst_fun_eq:
   fixes u::trm
@@ -820,15 +814,14 @@ lemma psubst_subst_psubst:
   assumes h:"c \<sharp> \<theta>"
   shows "\<theta><t>[c::=s] = (c,s)#\<theta><t>"
   using h
-  apply(nominal_induct t avoiding: \<theta> c s rule: trm.induct)
-  apply(auto simp add: fresh_list_cons fresh_atm forget lookup_fresh lookup_fresh' fresh_psubst)
-  done
+by (nominal_induct t avoiding: \<theta> c s rule: trm.induct)
+   (auto simp add: fresh_list_cons fresh_atm forget lookup_fresh lookup_fresh' fresh_psubst)
 
 lemma subst_fresh_simpl:
-  assumes "x\<sharp>\<theta>"
+  assumes a: "x\<sharp>\<theta>"
   shows "\<theta><Var x> = Var x"
-  using assms
-  by (induct \<theta> arbitrary: x, auto simp add:fresh_list_cons fresh_prod fresh_atm)
+using a
+by (induct \<theta> arbitrary: x, auto simp add:fresh_list_cons fresh_prod fresh_atm)
 
 lemma psubst_subst_propagate: 
   assumes "x\<sharp>\<theta>" 
@@ -873,15 +866,13 @@ lemma path_equiv_implies_nf:
   assumes "\<Gamma> \<turnstile> s \<leftrightarrow> t : T"
   shows "s \<leadsto>|" and "t \<leadsto>|"
 using assms
-by (induct rule: alg_equiv_alg_path_equiv.inducts (2)) (simp, auto)
+by (induct rule: alg_equiv_alg_path_equiv.inducts(2)) (simp, auto)
 
 lemma path_equiv_implies_nf:
   shows "\<Gamma> \<turnstile> s <=> t : T \<Longrightarrow> True"
     and "\<Gamma> \<turnstile> s \<leftrightarrow> t : T \<Longrightarrow> s \<leadsto>|"
         "\<Gamma> \<turnstile> s \<leftrightarrow> t : T \<Longrightarrow> t \<leadsto>|"
-  apply (induct rule: alg_equiv_alg_path_equiv.inducts)
-  apply auto
-  done
+by (induct rule: alg_equiv_alg_path_equiv.inducts) (auto)
 
 lemma main_lemma:
   shows "\<Gamma> \<turnstile> s is t : T \<Longrightarrow> \<Gamma> \<turnstile> s <=> t : T" and "\<Gamma> \<turnstile> p \<leftrightarrow> q : T \<Longrightarrow> \<Gamma> \<turnstile> p is q : T"
@@ -928,33 +919,35 @@ next
 qed (auto elim:alg_equiv_valid)
 
 corollary corollary_main:
-  assumes "\<Gamma> \<turnstile> s \<leftrightarrow> t : T"
+  assumes a: "\<Gamma> \<turnstile> s \<leftrightarrow> t : T"
   shows "\<Gamma> \<turnstile> s <=> t : T"
-using assms main_lemma by blast
+using a main_lemma by blast
 
 lemma algorithmic_symmetry_aux:
-  shows "(\<Gamma> \<turnstile> s <=> t : T \<longrightarrow> \<Gamma> \<turnstile> t <=> s : T) \<and> (\<Gamma> \<turnstile> s \<leftrightarrow> t : T \<longrightarrow> \<Gamma> \<turnstile> t \<leftrightarrow> s : T)"
-by (rule alg_equiv_alg_path_equiv.induct,auto)
+  shows "\<Gamma> \<turnstile> s <=> t : T \<Longrightarrow> \<Gamma> \<turnstile> t <=> s : T" 
+  and   "\<Gamma> \<turnstile> s \<leftrightarrow> t : T \<Longrightarrow> \<Gamma> \<turnstile> t \<leftrightarrow> s : T"
+by (induct rule: alg_equiv_alg_path_equiv.inducts) (auto)
 
 lemma algorithmic_symmetry:
-  assumes "\<Gamma> \<turnstile> s <=> t : T"
+  assumes a: "\<Gamma> \<turnstile> s <=> t : T"
   shows "\<Gamma> \<turnstile> t <=> s : T"
-using assms by (simp add: algorithmic_symmetry_aux)
+using a by (simp add: algorithmic_symmetry_aux)
 
 lemma algorithmic_path_symmetry:
-  assumes "\<Gamma> \<turnstile> s \<leftrightarrow> t : T"
+  assumes a: "\<Gamma> \<turnstile> s \<leftrightarrow> t : T"
   shows "\<Gamma> \<turnstile> t \<leftrightarrow> s : T"
-using assms by (simp add: algorithmic_symmetry_aux)
+using a by (simp add: algorithmic_symmetry_aux)
 
 lemma red_unicity : 
-  assumes "x \<leadsto> a" "x \<leadsto> b"
+  assumes a: "x \<leadsto> a" 
+  and     b: "x \<leadsto> b"
   shows "a=b"
-  using assms
+  using a b
 apply (induct arbitrary: b)
 apply (erule whr_App_Lam)
 apply (clarify)
 apply (rule subst_fun_eq)
-apply (force)
+apply (simp)
 apply (force)
 apply (erule whr_App)
 apply (blast)+
@@ -975,7 +968,7 @@ proof (induct arbitrary: b)
 qed (auto)
 
 lemma Q_eqvt :
-  fixes pi:: "(name \<times> name) list"
+  fixes pi:: "name prm"
   shows "\<Gamma> \<turnstile> s <=> t : T \<Longrightarrow> (pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>s) <=> (pi\<bullet>t) : T"
   and "\<Gamma> \<turnstile> s \<leftrightarrow> t : T \<Longrightarrow> (pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>s) \<leftrightarrow> (pi\<bullet>t) : T"
 using assms
@@ -998,7 +991,7 @@ qed (auto elim:whn_eqvt valid_eqvt)
 (* FIXME this lemma should not be here I am reinventing the wheel I guess *)
 
 lemma perm_basic[simp]:
- fixes x y ::name
+ fixes x y::"name"
 shows "[(x,y)]\<bullet>y = x"
 using assms using calc_atm by perm_simp
 
@@ -1006,13 +999,15 @@ lemma Q_Arrow_strong_inversion:
   assumes fs:"x\<sharp>\<Gamma>" "x\<sharp>t" "x\<sharp>u" and h:"\<Gamma> \<turnstile> t <=> u : T1\<rightarrow>T2"
   shows "(x,T1)#\<Gamma> \<turnstile> App t (Var x) <=> App u (Var x) : T2"
 proof -
-obtain y where  fs2:"y\<sharp>\<Gamma>" "y\<sharp>u" "y\<sharp>t" and "(y,T1)#\<Gamma> \<turnstile> App t (Var y) <=> App u (Var y) : T2" using h by auto
-then have "([(x,y)]\<bullet>((y,T1)#\<Gamma>)) \<turnstile> [(x,y)]\<bullet> App t (Var y) <=> [(x,y)]\<bullet> App u (Var y) : T2" using Q_eqvt by blast
-then show ?thesis using fs fs2 by (perm_simp)
+  obtain y where  fs2:"y\<sharp>\<Gamma>" "y\<sharp>u" "y\<sharp>t" and "(y,T1)#\<Gamma> \<turnstile> App t (Var y) <=> App u (Var y) : T2" 
+    using h by auto
+  then have "([(x,y)]\<bullet>((y,T1)#\<Gamma>)) \<turnstile> [(x,y)]\<bullet> App t (Var y) <=> [(x,y)]\<bullet> App u (Var y) : T2" 
+    using Q_eqvt by blast
+  then show ?thesis using fs fs2 by (perm_simp)
 qed
 
-lemma fresh_context[rule_format]: 
-  fixes  \<Gamma> :: "(name\<times>ty)list"
+lemma fresh_context: 
+  fixes  \<Gamma> :: "(name\<times>ty) list"
   and    a :: "name"
   assumes "a\<sharp>\<Gamma>"
   shows "\<not>(\<exists>\<tau>::ty. (a,\<tau>)\<in>set \<Gamma>)"
@@ -1042,7 +1037,8 @@ Here is the counter example :
 
 lemma algorithmic_path_type_unicity:
   shows "\<lbrakk> \<Gamma> \<turnstile> s \<leftrightarrow> t : T ; \<Gamma> \<turnstile> s \<leftrightarrow> u : T' \<rbrakk> \<Longrightarrow> T = T'"
-proof (induct arbitrary:  u T' rule:alg_equiv_alg_path_equiv.inducts(2) [of _ _ _ _ _  "%a b c d . True"    ])
+proof (induct arbitrary:  u T' 
+       rule: alg_equiv_alg_path_equiv.inducts(2) [of _ _ _ _ _  "%a b c d . True"    ])
   case (QAP_Var \<Gamma> x T u T')
   have "\<Gamma> \<turnstile> Var x \<leftrightarrow> u : T'" by fact
   then have "u=Var x" and "(x,T') \<in> set \<Gamma>" by auto
@@ -1073,10 +1069,12 @@ next
   case (QAT_Arrow  x \<Gamma> s t T1 T2 u)
   have fs:"x\<sharp>\<Gamma>" "x\<sharp>s" "x\<sharp>t" by fact
   moreover have h:"\<Gamma> \<turnstile> t <=> u : T1\<rightarrow>T2" by fact
-  moreover then obtain y where "y\<sharp>\<Gamma>" "y\<sharp>t" "y\<sharp>u" and "(y,T1)#\<Gamma> \<turnstile> App t (Var y) <=> App u (Var y) : T2" by auto
+  moreover then obtain y where "y\<sharp>\<Gamma>" "y\<sharp>t" "y\<sharp>u" and "(y,T1)#\<Gamma> \<turnstile> App t (Var y) <=> App u (Var y) : T2" 
+    by auto
   moreover have fs2:"x\<sharp>u" by fact
   ultimately have "(x,T1)#\<Gamma> \<turnstile> App t (Var x) <=> App u (Var x) : T2" using Q_Arrow_strong_inversion by blast
-  moreover have ih:"\<And> v. (x,T1)#\<Gamma> \<turnstile> App t (Var x) <=> v : T2 \<Longrightarrow> (x,T1)#\<Gamma> \<turnstile> App s (Var x) <=> v : T2" by fact
+  moreover have ih:"\<And> v. (x,T1)#\<Gamma> \<turnstile> App t (Var x) <=> v : T2 \<Longrightarrow> (x,T1)#\<Gamma> \<turnstile> App s (Var x) <=> v : T2" 
+    by fact
   ultimately have "(x,T1)#\<Gamma> \<turnstile> App s (Var x) <=> App u (Var x) : T2" by auto
   then show "\<Gamma> \<turnstile> s <=> u : T1\<rightarrow>T2" using fs fs2 by auto
 next
@@ -1086,7 +1084,8 @@ next
   have "\<Gamma> \<turnstile> s <=> t : T1" by fact
   have ih2:"\<And>u. \<Gamma> \<turnstile> t <=> u : T1 \<Longrightarrow> \<Gamma> \<turnstile> s <=> u : T1" by fact
   have "\<Gamma> \<turnstile> App q t \<leftrightarrow> u : T2" by fact
-  then obtain r T1' v where ha:"\<Gamma> \<turnstile> q \<leftrightarrow> r : T1'\<rightarrow>T2" and hb:"\<Gamma> \<turnstile> t <=> v : T1'" and eq:"u = App r v" by auto
+  then obtain r T1' v where ha:"\<Gamma> \<turnstile> q \<leftrightarrow> r : T1'\<rightarrow>T2" and hb:"\<Gamma> \<turnstile> t <=> v : T1'" and eq:"u = App r v" 
+    by auto
   moreover have "\<Gamma> \<turnstile> q \<leftrightarrow> p : T1\<rightarrow>T2" using h1 algorithmic_path_symmetry by auto
   ultimately have "T1'\<rightarrow>T2 = T1\<rightarrow>T2" using algorithmic_path_type_unicity by auto
   then have "T1' = T1" using ty.inject by auto
@@ -1101,9 +1100,10 @@ by (nominal_induct \<Gamma> s t T avoiding: s' t'
    (auto)
 
 lemma logical_symmetry:
-  assumes "\<Gamma> \<turnstile> s is t : T"
+  assumes a: "\<Gamma> \<turnstile> s is t : T"
   shows "\<Gamma> \<turnstile> t is s : T"
-using assms by (nominal_induct arbitrary: \<Gamma> s t rule:ty.induct, auto simp add: algorithmic_symmetry)
+using a 
+by (nominal_induct arbitrary: \<Gamma> s t rule:ty.induct) (auto simp add: algorithmic_symmetry)
 
 lemma logical_transitivity:
   assumes "\<Gamma> \<turnstile> s is t : T" "\<Gamma> \<turnstile> t is u : T" 
@@ -1132,19 +1132,19 @@ next
 qed (auto)
 
 lemma logical_weak_head_closure:
-  assumes "\<Gamma> \<turnstile> s is t : T" "s' \<leadsto> s" "t' \<leadsto> t"
+  assumes a: "\<Gamma> \<turnstile> s is t : T" "s' \<leadsto> s" "t' \<leadsto> t"
   shows "\<Gamma> \<turnstile> s' is t' : T"
-using assms 
-apply (nominal_induct arbitrary: \<Gamma> s t s' t' rule:ty.induct)
-apply (auto simp add: algorithmic_weak_head_closure)
-apply (blast)
+using a
+apply(nominal_induct arbitrary: \<Gamma> s t s' t' rule:ty.induct)
+apply(auto simp add: algorithmic_weak_head_closure)
+apply(blast)
 done
 
 lemma logical_weak_head_closure':
   assumes "\<Gamma> \<turnstile> s is t : T" "s' \<leadsto> s" 
   shows "\<Gamma> \<turnstile> s' is t : T"
 using assms
-proof (nominal_induct arbitrary: \<Gamma> s t s' rule:ty.induct)
+proof (nominal_induct arbitrary: \<Gamma> s t s' rule: ty.induct)
   case (TBase  \<Gamma> s t s')
   then show ?case by force
 next
@@ -1243,7 +1243,6 @@ moreover have "valid \<Gamma>'" using h by auto
 ultimately show "\<Gamma>' \<turnstile> \<gamma><Lam [x].t2> is \<theta><Lam [x].t2> : T1\<rightarrow>T2" using fs by auto 
 qed (auto)
 
- 
 theorem fundamental_theorem_2:
   assumes h1: "\<Gamma> \<turnstile> s == t : T" 
   and     h2: "\<Gamma>' \<turnstile> \<gamma> is \<theta> over \<Gamma>"
@@ -1321,7 +1320,8 @@ next
     then have "\<Gamma>'' \<turnstile> \<gamma> is \<theta> over \<Gamma>" using h2 logical_subst_monotonicity by blast
     then have "\<Gamma>'' \<turnstile> (x,s')#\<gamma> is (x,t')#\<theta> over (x,T1)#\<Gamma>" using equiv_subst_ext hl fs by blast
     then have "\<Gamma>'' \<turnstile> (x,s')#\<gamma><App s (Var x)>  is (x,t')#\<theta><App t (Var x)> : T2" using ih by blast
-    then have "\<Gamma>'' \<turnstile> App (((x,s')#\<gamma>)<s>)  (((x,s')#\<gamma>)<(Var x)>) is App ((x,t')#\<theta><t>) ((x,t')#\<theta><(Var x)>) : T2" by auto
+    then have "\<Gamma>'' \<turnstile> App (((x,s')#\<gamma>)<s>) (((x,s')#\<gamma>)<(Var x)>) is App ((x,t')#\<theta><t>) ((x,t')#\<theta><(Var x)>) : T2"
+      by auto
     then have "\<Gamma>'' \<turnstile> App ((x,s')#\<gamma><s>) s'  is App ((x,t')#\<theta><t>) t' : T2" by auto
     then have "\<Gamma>'' \<turnstile> App (\<gamma><s>) s' is App (\<theta><t>) t' : T2" using fs fresh_psubst_simpl by auto
   }
@@ -1346,12 +1346,12 @@ proof -
   then show  "\<Gamma> \<turnstile> s <=> t : T" using main_lemma by simp
 qed
 
-(* Soundness is left as an exercise - like in the book*)
+(* Soundness is left as an exercise - like in the book - for the avid formalist 
 
-(*
 theorem soundness:
-  shows "\<lbrakk> \<Gamma> \<turnstile> s <=> t : T ; \<Gamma> \<turnstile> t : T ; \<Gamma> \<turnstile> s : T \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s == t : T"
-  and "\<lbrakk> \<Gamma> \<turnstile> s \<leftrightarrow> t : T ; \<Gamma> \<turnstile> t : T ; \<Gamma> \<turnstile> s : T \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s == t : T"
+  shows "\<lbrakk>\<Gamma> \<turnstile> s <=> t : T; \<Gamma> \<turnstile> t : T; \<Gamma> \<turnstile> s : T\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s == t : T"
+  and   "\<lbrakk>\<Gamma> \<turnstile> s \<leftrightarrow> t : T; \<Gamma> \<turnstile> t : T; \<Gamma> \<turnstile> s : T\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s == t : T"
+
 *)
 
 end
