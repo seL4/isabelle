@@ -108,6 +108,12 @@ lemma rtranclE:
   apply (erule asm_rl exE disjE conjE cases)+
   done
 
+lemma rtrancl_Int_subset: "[| Id \<subseteq> s; r O (r^* \<inter> s) \<subseteq> s|] ==> r^* \<subseteq> s"
+  apply (rule subsetI)
+  apply (rule_tac p="x" in PairE, clarify)
+  apply (erule rtrancl_induct, auto) 
+  done
+
 lemma converse_rtrancl_into_rtrancl:
   "(a, b) \<in> r \<Longrightarrow> (b, c) \<in> r\<^sup>* \<Longrightarrow> (a, c) \<in> r\<^sup>*"
   by (rule rtrancl_trans) iprover+
@@ -262,6 +268,12 @@ lemma trancl_trans_induct:
   by (iprover intro: r_into_trancl major [THEN trancl_induct] cases)
 
 inductive_cases tranclE: "(a, b) : r^+"
+
+lemma trancl_Int_subset: "[| r \<subseteq> s; r O (r^+ \<inter> s) \<subseteq> s|] ==> r^+ \<subseteq> s"
+  apply (rule subsetI)
+  apply (rule_tac p="x" in PairE, clarify)
+  apply (erule trancl_induct, auto) 
+  done
 
 lemma trancl_unfold: "r^+ = r Un r O r^+"
   by (auto intro: trancl_into_trancl elim: tranclE)
