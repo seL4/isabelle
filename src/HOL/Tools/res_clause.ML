@@ -48,7 +48,6 @@ signature RES_CLAUSE =
   val make_schematic_type_var : string * int -> string
   val make_schematic_var : string * int -> string
   val make_type_class : string -> string
-  val mk_fol_type: string * string * fol_type list -> fol_type
   val mk_typ_var_sort : Term.typ -> typ_var * sort
   val paren_pack : string list -> string
   val schematic_var_prefix : string
@@ -222,11 +221,6 @@ fun string_of_fol_type (AtomV x) = x
   | string_of_fol_type (Comp(tcon,tps)) = 
       tcon ^ (paren_pack (map string_of_fol_type tps));
       
-fun mk_fol_type ("Var",x,_) = AtomV(x)
-  | mk_fol_type ("Fixed",x,_) = AtomF(x)
-  | mk_fol_type ("Comp",con,args) = Comp(con,args)
-
-
 (*First string is the type class; the second is a TVar or TFfree*)
 datatype type_literal = LTVar of string * string | LTFree of string * string;
 
