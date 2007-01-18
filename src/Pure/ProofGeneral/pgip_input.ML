@@ -177,6 +177,7 @@ SOME
    | "startquiet"     => Startquiet { }
    | "stopquiet"      => Stopquiet { }
    | "pgmlsymbolson"  => Pgmlsymbolson { }
+   | "pgmlsymbolsoff" => Pgmlsymbolsoff { }
    (* improperproofcmd: improper commands not in script *)
    | "dostep"         => Dostep    { text = xmltext data }
    | "undostep"       => Undostep  { times = times_attr attrs }
