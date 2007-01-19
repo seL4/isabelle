@@ -12,7 +12,7 @@ recdef gcd "measure snd"
 
 
 ML "Pretty.setmargin 64"
-ML "IsarOutput.indent := 5"  (*that is, Doc/TutorialI/settings.ML*)
+ML "ThyOutput.indent := 5"  (*that is, Doc/TutorialI/settings.ML*)
 
 
 text {*Now in Basic.thy!

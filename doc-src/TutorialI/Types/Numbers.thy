@@ -2,7 +2,7 @@
 theory Numbers imports Real begin
 
 ML "Pretty.setmargin 64"
-ML "IsarOutput.indent := 0"  (*we don't want 5 for listing theorems*)
+ML "ThyOutput.indent := 0"  (*we don't want 5 for listing theorems*)
 
 text{*
 

@@ -1,1 +1,3 @@
-IsarOutput.indent := 5;
+(* $Id$ *)
+
+ThyOutput.indent := 5;
