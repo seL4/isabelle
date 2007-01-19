@@ -1,11 +1,11 @@
-(*  Title:      Pure/Isar/isar_output.ML
+(*  Title:      Pure/Thy/thy_output.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Isar theory output.
+Theory document output.
 *)
 
-signature ISAR_OUTPUT =
+signature THY_OUTPUT =
 sig
   val display: bool ref
   val quotes: bool ref
@@ -28,7 +28,7 @@ sig
   val output: (Proof.context -> 'a -> Pretty.T) -> Args.src -> Proof.context -> 'a -> string
 end;
 
-structure IsarOutput: ISAR_OUTPUT =
+structure ThyOutput: THY_OUTPUT =
 struct
 
 structure T = OuterLex;
@@ -58,7 +58,7 @@ val global_options =
 
 fun add_item kind (name, x) tab =
  (if not (Symtab.defined tab name) then ()
-  else warning ("Redefined antiquotation " ^ kind ^ ": " ^ quote name);
+  else warning ("Redefined text antiquotation " ^ kind ^ ": " ^ quote name);
   Symtab.update (name, x) tab);
 
 in
@@ -69,13 +69,13 @@ val add_options = Library.change global_options o fold (add_item "option");
 fun command src =
   let val ((name, _), pos) = Args.dest_src src in
     (case Symtab.lookup (! global_commands) name of
-      NONE => error ("Unknown antiquotation command: " ^ quote name ^ Position.str_of pos)
+      NONE => error ("Unknown text antiquotation command: " ^ quote name ^ Position.str_of pos)
     | SOME f => transform_failure (curry Antiquote.ANTIQUOTE_FAIL (name, pos)) (f src))
   end;
 
 fun option (name, s) f () =
   (case Symtab.lookup (! global_options) name of
-    NONE => error ("Unknown antiquotation option: " ^ quote name)
+    NONE => error ("Unknown text antiquotation option: " ^ quote name)
   | SOME opt => opt s f ());
 
 fun options [] f = f
@@ -83,8 +83,9 @@ fun options [] f = f
 
 
 fun print_antiquotations () =
- [Pretty.big_list "antiquotation commands:" (map Pretty.str (Symtab.keys (! global_commands))),
-  Pretty.big_list "antiquotation options:" (map Pretty.str (Symtab.keys (! global_options)))]
+ [Pretty.big_list "text antiquotation commands:"
+    (map Pretty.str (Symtab.keys (! global_commands))),
+  Pretty.big_list "text antiquotation options:" (map Pretty.str (Symtab.keys (! global_options)))]
  |> Pretty.chunks |> Pretty.writeln;
 
 end;
@@ -110,7 +111,7 @@ fun integer s =
 
 (* args syntax *)
 
-fun syntax scan = Args.context_syntax "antiquotation" scan;
+fun syntax scan = Args.context_syntax "text antiquotation" scan;
 
 fun args scan f src node : string =
   let
@@ -126,24 +127,10 @@ local
 val property = P.xname -- Scan.optional (P.$$$ "=" |-- P.!!! P.xname) "";
 val properties = Scan.optional (P.$$$ "[" |-- P.!!! (P.enum "," property --| P.$$$ "]")) [];
 
-val antiq = P.position P.xname -- properties -- P.arguments --| Scan.ahead P.eof
-  >> (fn (((x, pos), y), z) => (y, Args.src ((x, z), pos)));
-
-fun antiq_args_aux keyword_lexicon (str, pos) =
-  Source.of_string str
-  |> Symbol.source false
-  |> T.source false (K (keyword_lexicon, Scan.empty_lexicon)) pos
-  |> T.source_proper
-  |> Source.source T.stopper (Scan.error (Scan.bulk (P.!!! antiq))) NONE
-  |> Source.exhaust;
-
 in
 
-fun antiq_args lex (s, pos) =
-  let
-    fun err msg = cat_error msg
-      ("Malformed antiquotation: " ^ quote ("@{" ^ s ^ "}") ^ Position.str_of pos);
-  in (case antiq_args_aux lex (s, pos) of [x] => x | _ => err "") handle ERROR msg => err msg end;
+val antiq = P.!!! (P.position P.xname -- properties -- P.arguments --| Scan.ahead P.eof)
+  >> (fn (((x, pos), y), z) => (y, Args.src ((x, z), pos)));
 
 end;
 
@@ -156,15 +143,15 @@ fun eval_antiquote lex node (str, pos) =
   let
     fun expand (Antiquote.Text s) = s
       | expand (Antiquote.Antiq x) =
-          let val (opts, src) = antiq_args lex x in
+          let val (opts, src) = Antiquote.scan_arguments lex antiq x in
             options opts (fn () => command src node) ();  (*preview errors!*)
             Library.setmp print_mode (! modes @ Latex.modes @ ! print_mode)
               (Output.no_warnings (options opts (fn () => command src node))) ()
           end;
-    val ants = Antiquote.antiquotes_of (str, pos);
+    val ants = Antiquote.scan_antiquotes (str, pos);
   in
     if is_none node andalso exists Antiquote.is_antiq ants then
-      error ("Cannot expand antiquotations at top-level" ^ Position.str_of pos)
+      error ("Cannot expand text antiquotations at top-level" ^ Position.str_of pos)
     else implode (map expand ants)
   end;
 
@@ -509,7 +496,7 @@ fun ml_type txt = "val _ = NONE : (" ^ txt ^ ") option;";
 fun ml_struct txt = "functor DUMMY_FUNCTOR() = struct structure DUMMY = " ^ txt ^ " end;"
 
 fun output_ml ml src ctxt txt =
- (Context.use_mltext (ml txt) false (SOME (Context.Proof ctxt));
+ (ML_Context.use_mltext (ml txt) false (SOME (Context.Proof ctxt));
   (if ! source then str_of_source src else txt)
   |> (if ! quotes then quote else I)
   |> (if ! display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
