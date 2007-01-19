@@ -67,14 +67,7 @@ use "Proof/proof_syntax.ML";
 use "Proof/proof_rewrite_rules.ML";
 use "Proof/proofchecker.ML";
 
-(*theory auto loader database*)
-use "Thy/thy_load.ML";
-use "Thy/thy_info.ML";
-
-(*theory syntax*)
-use "Isar/outer_lex.ML";
-
-(*the Isar system*)
+(*the main Isar system*)
 cd "Isar"; use "ROOT.ML"; cd "..";
 use "subgoal.ML";
 
