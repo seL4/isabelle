@@ -33,7 +33,7 @@ sig
     (Url.T option * Url.T * bool option) list -> text -> text
   val end_theory: text
   val ml_file: Url.T -> string -> text
-  val results: string -> (string * thm list) list -> text
+  val results: Proof.context -> string -> (string * thm list) list -> text
   val chapter: string -> text
   val section: string -> text
   val subsection: string -> text
@@ -411,21 +411,21 @@ fun ml_file path str =
 
 local
 
-val string_of_thm =
+fun string_of_thm ctxt =
   Output.output o Pretty.setmp_margin 80 Pretty.string_of o
-    setmp show_question_marks false (ProofContext.pretty_thm_legacy false);
+    setmp show_question_marks false (ProofContext.pretty_thm ctxt);
 
-fun thm th = preform (prefix_lines "  " (html_mode string_of_thm th));
+fun thm ctxt th = preform (prefix_lines "  " (html_mode (string_of_thm ctxt) th));
 
 fun thm_name "" = ""
   | thm_name a = " " ^ name (a ^ ":");
 
 in
 
-fun result k (a, ths) = para (cat_lines ((keyword k ^ thm_name a) :: map thm ths));
+fun result ctxt k (a, ths) = para (cat_lines ((keyword k ^ thm_name a) :: map (thm ctxt) ths));
 
-fun results _ [] = ""
-  | results k (res :: ress) = cat_lines (result k res :: map (result "and") ress);
+fun results _ _ [] = ""
+  | results ctxt k (res :: ress) = cat_lines (result ctxt k res :: map (result ctxt "and") ress);
 
 end;
 
