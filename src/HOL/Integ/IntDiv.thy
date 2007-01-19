@@ -1243,7 +1243,7 @@ theorem zdvd_int: "(x dvd y) = (int x dvd int y)"
   apply (simp add: mult_ac)
   done
 
-lemma zdvd1_eq: "(x::int) dvd 1 = ( \<bar>x\<bar> = 1)"
+lemma zdvd1_eq[simp]: "(x::int) dvd 1 = ( \<bar>x\<bar> = 1)"
 proof
   assume d: "x dvd 1" hence "int (nat \<bar>x\<bar>) dvd int (nat 1)" by (simp add: zdvd_abs1)
   hence "nat \<bar>x\<bar> dvd 1" by (simp add: zdvd_int)
