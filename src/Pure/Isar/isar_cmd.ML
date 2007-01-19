@@ -11,6 +11,7 @@ sig
   val add_defs: (bool * bool) * ((bstring * string) * Attrib.src list) list -> theory -> theory
   val apply_theorems: (thmref * Attrib.src list) list -> theory -> thm list * theory
   val apply_theorems_i: (thm list * attribute list) list -> theory -> thm list * theory
+  val declaration: string -> local_theory -> local_theory
   val have: ((string * Attrib.src list) * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
   val hence: ((string * Attrib.src list) * (string * string list) list) list ->
@@ -141,6 +142,14 @@ fun apply_theorems args thy =
 fun apply_theorems_i args = apfst (maps snd) o PureThy.note_thmss_i "" [(("", []), args)];
 
 
+(* declarations *)
+
+val declaration =
+  Context.use_let "val declaration: morphism -> Context.generic -> Context.generic"
+  "Context.map_proof (LocalTheory.declaration declaration)"
+  #> Context.proof_map;
+
+
 (* goals *)
 
 fun goal opt_chain goal stmt int =
@@ -207,7 +216,7 @@ val init_toplevel = Toplevel.imperative (fn () => raise Toplevel.RESTART);
 val welcome = Toplevel.imperative (writeln o Session.welcome);
 
 val exit = Toplevel.keep (fn state =>
-  (Context.set_context (try Toplevel.theory_of state); raise Toplevel.TERMINATE));
+  (Context.set_context (try Toplevel.generic_theory_of state); raise Toplevel.TERMINATE));
 
 val quit = Toplevel.imperative quit;
 
@@ -274,14 +283,14 @@ val back =
 (* use ML text *)
 
 fun use path = Toplevel.keep (fn state =>
-  Context.setmp (try Toplevel.theory_of state) (ThyInfo.load_file false) path);
+  Context.setmp (try Toplevel.generic_theory_of state) (ThyInfo.load_file false) path);
 
 (*passes changes of theory context*)
-val use_mltext_theory = Toplevel.theory' o Context.use_mltext_theory;
+val use_mltext_theory = Toplevel.theory' o (Context.theory_map oo Context.use_mltext_update);
 
 (*ignore result theory context*)
 fun use_mltext v txt = Toplevel.keep' (fn verb => fn state =>
-  (Context.use_mltext txt (v andalso verb) (try Toplevel.theory_of state)));
+  (Context.use_mltext txt (v andalso verb) (try Toplevel.generic_theory_of state)));
 
 val use_commit = Toplevel.imperative Secure.commit;
 
@@ -494,7 +503,7 @@ local
 
 fun present _ txt true node = OuterSyntax.check_text txt (SOME node)
   | present f (s, _) false node =
-      Context.setmp (try (Toplevel.cases_node Context.theory_of Proof.theory_of) node) f s;
+      Context.setmp (try (Toplevel.cases_node I (Context.Proof o Proof.context_of)) node) f s;
 
 fun present_local_theory f (loc, txt) = Toplevel.present_local_theory loc (present f txt);
 fun present_proof f txt = Toplevel.print o Toplevel.present_proof (present f txt);
