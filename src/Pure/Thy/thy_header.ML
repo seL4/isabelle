@@ -1,8 +1,8 @@
-(*  Title:      Pure/Isar/thy_header.ML
+(*  Title:      Pure/Thy/thy_header.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Theory headers -- processed separately with minimal outer syntax.
+Theory headers -- independent of outer syntax.
 *)
 
 signature THY_HEADER =
