@@ -240,17 +240,11 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML context: "theory -> unit"} \\
   @{index_ML the_context: "unit -> theory"} \\
   @{index_ML "Context.>> ": "(theory -> theory) -> unit"} \\
   \end{mldecls}
 
   \begin{description}
-
-  \item @{ML context}~@{text thy} sets the {\ML} theory context to
-  @{text thy}.  This is usually performed automatically by the system,
-  when dropping out of the interactive Isar toplevel into {\ML}, or
-  when Isar invokes {\ML} to process code from a string or a file.
 
   \item @{ML "the_context ()"} refers to the theory context of the
   {\ML} toplevel --- at compile time!  {\ML} code needs to take care
