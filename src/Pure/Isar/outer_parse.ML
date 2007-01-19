@@ -27,6 +27,7 @@ sig
   val type_var: token list -> string * token list
   val number: token list -> string * token list
   val string: token list -> string * token list
+  val alt_string: token list -> string * token list
   val verbatim: token list -> string * token list
   val sync: token list -> string * token list
   val eof: token list -> string * token list
@@ -65,6 +66,7 @@ sig
   val opt_mixfix': token list -> mixfix * token list
   val where_: token list -> string * token list
   val const: token list -> (string * string * mixfix) * token list
+  val params: token list -> (string * string option) list * token list
   val simple_fixes: token list -> (string * string option) list * token list
   val fixes: token list -> (string * string option * mixfix) list * token list
   val for_fixes: token list -> (string * string option * mixfix) list * token list
@@ -73,41 +75,12 @@ sig
   val prop: token list -> string * token list
   val propp: token list -> (string * string list) * token list
   val termp: token list -> (string * string list) * token list
+  val keyword_sid: token list -> string * token list
+  val args: (string -> bool) -> bool -> token list -> Args.T list * token list
+  val args1: (string -> bool) -> bool -> token list -> Args.T list * token list
   val arguments: token list -> Args.T list * token list
-  val attrib: token list -> Attrib.src * token list
-  val attribs: token list -> Attrib.src list * token list
-  val opt_attribs: token list -> Attrib.src list * token list
-  val thm_name: string -> token list -> (bstring * Attrib.src list) * token list
-  val opt_thm_name: string -> token list -> (bstring * Attrib.src list) * token list
-  val spec: token list -> ((bstring * Attrib.src list) * string list) * token list
-  val named_spec: token list -> ((bstring * Attrib.src list) * string list) * token list
-  val spec_name: token list -> ((bstring * string) * Attrib.src list) * token list
-  val spec_opt_name: token list -> ((bstring * string) * Attrib.src list) * token list
-  val xthm: token list -> (thmref * Attrib.src list) * token list
-  val xthms1: token list -> (thmref * Attrib.src list) list * token list
-  val name_facts: token list ->
-    ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list * token list
-  val locale_mixfix: token list -> mixfix * token list
-  val locale_fixes: token list -> (string * string option * mixfix) list * token list
-  val locale_insts: token list -> string option list * token list
-  val locale_target: token list -> xstring * token list
-  val opt_locale_target: token list -> xstring option * token list
-  val locale_expr: token list -> Locale.expr * token list
-  val locale_expr_unless: (token list -> 'a * token list) ->
-    token list -> Locale.expr * token list
-  val locale_keyword: token list -> string * token list
-  val locale_element: token list -> Element.context Locale.element * token list
-  val context_element: token list -> Element.context * token list
-  val statement: token list ->
-    ((bstring * Attrib.src list) * (string * string list) list) list * token list
-  val general_statement: token list ->
-    (Element.context Locale.element list * Element.statement) * OuterLex.token list
-  val statement_keyword: token list -> string * token list
-  val specification: token list ->
-    (string *
-      (((bstring * Attrib.src list) * string list) list * (string * string option) list)) list *
-    token list
-  val method: token list -> Method.text * token list
+  val target: token list -> xstring * token list
+  val opt_target: token list -> xstring option * token list
 end;
 
 structure OuterParse: OUTER_PARSE =
@@ -331,130 +304,9 @@ and args1 is_symid blk x =
 val arguments = args T.is_sid false;
 
 
-(* theorem specifications *)
+(* targets *)
 
-val attrib = position ((keyword_sid || xname) -- !!! arguments) >> Args.src;
-val attribs = $$$ "[" |-- !!! (list attrib --| $$$ "]");
-val opt_attribs = Scan.optional attribs [];
-
-fun thm_name s = name -- opt_attribs --| $$$ s;
-fun opt_thm_name s =
-  Scan.optional ((name -- opt_attribs || (attribs >> pair "")) --| $$$ s) ("", []);
-
-val spec = opt_thm_name ":" -- Scan.repeat1 prop;
-val named_spec = thm_name ":" -- Scan.repeat1 prop;
-
-val spec_name = thm_name ":" -- prop >> (fn ((x, y), z) => ((x, z), y));
-val spec_opt_name = opt_thm_name ":" -- prop >> (fn ((x, y), z) => ((x, z), y));
-
-val thm_sel = $$$ "(" |-- list1
- (nat --| minus -- nat >> PureThy.FromTo ||
-  nat --| minus >> PureThy.From ||
-  nat >> PureThy.Single) --| $$$ ")";
-
-val xthm = (alt_string >> Fact || xname -- thm_sel >> NameSelection || xname >> Name)
-  -- opt_attribs;
-val xthms1 = Scan.repeat1 xthm;
-
-val name_facts = and_list1 (opt_thm_name "=" -- xthms1);
-
-
-(* locale and context elements *)
-
-val locale_mixfix = $$$ "(" -- $$$ "structure" -- !!! ($$$ ")") >> K Structure || mixfix;
-
-val locale_fixes =
-  and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- locale_mixfix >> (single o triple1) ||
-    params >> map Syntax.no_syn) >> flat;
-
-val locale_insts =
-  Scan.optional ($$$ "[" |-- !!! (Scan.repeat1 (maybe term) --| $$$ "]")) [];
-
-local
-
-val loc_keyword = $$$ "fixes" || $$$ "constrains" || $$$ "assumes" ||
-   $$$ "defines" || $$$ "notes" || $$$ "includes";
-
-val loc_element =
-  $$$ "fixes" |-- !!! locale_fixes >> Element.Fixes ||
-  $$$ "constrains" |-- !!! (and_list1 (name -- ($$$ "::" |-- typ)))
-    >> Element.Constrains ||
-  $$$ "assumes" |-- !!! (and_list1 (opt_thm_name ":" -- Scan.repeat1 propp))
-    >> Element.Assumes ||
-  $$$ "defines" |-- !!! (and_list1 (opt_thm_name ":" -- propp))
-    >> Element.Defines ||
-  $$$ "notes" |-- !!! (and_list1 (opt_thm_name "=" -- xthms1))
-    >> (curry Element.Notes "");
-
-fun plus1 test scan =
-  scan -- Scan.repeat ($$$ "+" |-- Scan.unless test (!!! scan)) >> op ::;
-
-val rename = name -- Scan.option mixfix;
-
-fun expr test =
-  let
-    fun expr2 x = (xname >> Locale.Locale || $$$ "(" |-- !!! (expr0 --| $$$ ")")) x
-    and expr1 x = (expr2 -- Scan.repeat1 (maybe rename) >> Locale.Rename || expr2) x
-    and expr0 x = (plus1 test expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
-  in expr0 end;
-in
-
-val locale_target = ($$$ "(" -- $$$ "in") |-- !!! (xname --| $$$ ")");
-val opt_locale_target = Scan.option locale_target;
-val locale_expr_unless = expr
-val locale_expr = expr loc_keyword;
-val locale_keyword = loc_keyword;
-
-val locale_element = group "locale element"
-  (loc_element >> Locale.Elem || $$$ "includes" |-- !!! locale_expr >> Locale.Expr);
-
-val context_element = group "context element" loc_element;
-
-end;
-
-
-(* statements *)
-
-val statement = and_list1 (opt_thm_name ":" -- Scan.repeat1 propp);
-
-val obtain_case =
-  parname -- (Scan.optional (simple_fixes --| $$$ "where") [] --
-    (and_list1 (Scan.repeat1 prop) >> flat));
-
-val general_statement =
-  statement >> (fn x => ([], Element.Shows x)) ||
-  Scan.repeat locale_element --
-   ($$$ "obtains" |-- !!! (enum1 "|" obtain_case) >> Element.Obtains ||
-    $$$ "shows" |-- !!! statement >> Element.Shows);
-
-val statement_keyword =  $$$ "obtains" || $$$ "shows";
-
-
-(* specifications *)
-
-val specification = enum1 "|" (parname -- (and_list1 spec -- for_simple_fixes));
-
-
-(* proof methods *)
-
-fun is_symid_meth s =
-  s <> "|" andalso s <> "?" andalso s <> "+" andalso T.is_sid s;
-
-fun meth4 x =
- (position (xname >> rpair []) >> (Method.Source o Args.src) ||
-  $$$ "(" |-- !!! (meth0 --| $$$ ")")) x
-and meth3 x =
- (meth4 --| $$$ "?" >> Method.Try ||
-  meth4 --| $$$ "+" >> Method.Repeat1 ||
-  meth4 -- ($$$ "[" |-- Scan.optional nat 1 --| $$$ "]") >> (Method.SelectGoals o swap) ||
-  meth4) x
-and meth2 x =
- (position (xname -- args1 is_symid_meth false) >> (Method.Source o Args.src) ||
-  meth3) x
-and meth1 x = (enum1 "," meth2 >> (fn [m] => m | ms => Method.Then ms)) x
-and meth0 x = (enum1 "|" meth1 >> (fn [m] => m | ms => Method.Orelse ms)) x;
-
-val method = meth3;
-
+val target = ($$$ "(" -- $$$ "in") |-- !!! (xname --| $$$ ")");
+val opt_target = Scan.option target;
 
 end;
