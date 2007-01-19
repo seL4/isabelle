@@ -43,6 +43,7 @@ sig
   val qed_goalw_spec_mp: string -> theory -> thm list -> string
     -> (thm list -> tactic list) -> unit
   val no_qed: unit -> unit
+  val inst: string -> string -> thm -> thm
 end;
 
 signature OLD_GOALS =
@@ -366,7 +367,7 @@ val goalw = agoalw false;
 fun goal thy = goalw thy [];
 
 (*now the versions that wrap the goal up in `Goal' to make it atomic*)
-fun Goalw thms s = agoalw true (Context.the_context ()) thms s;
+fun Goalw thms s = agoalw true (ML_Context.the_context ()) thms s;
 val Goal = Goalw [];
 
 (*simple version with minimal amount of checking and postprocessing*)
@@ -513,6 +514,9 @@ fun qed_goalw_spec_mp name thy defs s p =
   bind_thm (name, ObjectLogic.rulify_no_asm (prove_goalw thy defs s p));
 
 fun no_qed () = ();
+
+(*shorthand for instantiating just one variable in the current theory*)
+fun inst x t = read_instantiate_sg (the_context()) [(x,t)];
 
 end;
 

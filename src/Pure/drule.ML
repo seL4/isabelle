@@ -81,7 +81,6 @@ sig
   val equal_intr_rule: thm
   val equal_elim_rule1: thm
   val equal_elim_rule2: thm
-  val inst: string -> string -> thm -> thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
 end;
 
@@ -987,10 +986,6 @@ fun term_rule thy f t = Thm.term_of (cterm_rule f (Thm.cterm_of thy t));
 
 
 (** variations on instantiate **)
-
-(*shorthand for instantiating just one variable in the current theory*)
-fun inst x t = read_instantiate_sg (the_context()) [(x,t)];
-
 
 (* instantiate by left-to-right occurrence of variables *)
 
