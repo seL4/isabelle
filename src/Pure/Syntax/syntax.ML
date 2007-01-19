@@ -223,7 +223,7 @@ fun extend_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   in
     Syntax
     ({input = if_inout xprods @ input,
-      lexicon = Scan.extend_lexicon lexicon (if_inout (SynExt.delims_of xprods)),
+      lexicon = Scan.extend_lexicon (if_inout (SynExt.delims_of xprods)) lexicon,
       gram = Parser.extend_gram gram (if_inout xprods),
       consts = Library.merge (op =) (consts1, filter_out NameSpace.is_qualified consts2),
       prmodes = insert (op =) mode (Library.merge (op =) (prmodes1, prmodes2)),
