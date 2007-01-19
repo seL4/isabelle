@@ -28,7 +28,7 @@ sig
   type parser
   val command: string -> string -> OuterKeyword.T ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
-  val markup_command: IsarOutput.markup -> string -> string -> OuterKeyword.T ->
+  val markup_command: ThyOutput.markup -> string -> string -> OuterKeyword.T ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val improper_command: string -> string -> OuterKeyword.T ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
@@ -62,7 +62,7 @@ type token = T.token;
 type parser_fn = token list -> (Toplevel.transition -> Toplevel.transition) * token list;
 
 datatype parser =
-  Parser of string * (string * OuterKeyword.T * IsarOutput.markup option) * bool * parser_fn;
+  Parser of string * (string * OuterKeyword.T * ThyOutput.markup option) * bool * parser_fn;
 
 fun parser int_only markup name comment kind parse =
   Parser (name, (comment, kind, markup), int_only, parse);
@@ -104,9 +104,9 @@ local
 
 val global_lexicons = ref (Scan.empty_lexicon, Scan.empty_lexicon);
 val global_parsers =
-  ref (Symtab.empty: (((string * OuterKeyword.T) * (bool * parser_fn)) * IsarOutput.markup option)
+  ref (Symtab.empty: (((string * OuterKeyword.T) * (bool * parser_fn)) * ThyOutput.markup option)
     Symtab.table);
-val global_markups = ref ([]: (string * IsarOutput.markup) list);
+val global_markups = ref ([]: (string * ThyOutput.markup) list);
 
 fun change_lexicons f =
   let val lexs = f (! global_lexicons) in
@@ -142,8 +142,8 @@ fun is_markup kind name = (AList.lookup (op =) (! global_markups) name = SOME ki
 
 (* augment syntax *)
 
-fun add_keywords keywords = change_lexicons (apfst (fn lex =>
-  (Scan.extend_lexicon lex (map Symbol.explode keywords))));
+fun add_keywords keywords =
+  change_lexicons (apfst (Scan.extend_lexicon (map Symbol.explode keywords)));
 
 fun add_parser (Parser (name, (comment, kind, markup), int_only, parse)) tab =
  (if not (Symtab.defined tab name) then ()
@@ -152,7 +152,7 @@ fun add_parser (Parser (name, (comment, kind, markup), int_only, parse)) tab =
 
 fun add_parsers parsers =
   (change_parsers (fold add_parser parsers);
-    change_lexicons (apsnd (fn lex => Scan.extend_lexicon lex
+    change_lexicons (apsnd (Scan.extend_lexicon
       (map (fn Parser (name, _, _, _) => Symbol.explode name) parsers))));
 
 end;
@@ -239,7 +239,7 @@ fun read toks =
 
 (* check_text *)
 
-fun check_text s state = (IsarOutput.eval_antiquote (#1 (get_lexicons ())) state s; ());
+fun check_text s state = (ThyOutput.eval_antiquote (#1 (get_lexicons ())) state s; ());
 
 
 (* deps_thy *)
@@ -287,7 +287,7 @@ fun run_thy name path =
       |> toplevel_source false false false (K (get_parser ()))
       |> Source.exhaust;
   in
-    IsarOutput.present_thy (#1 (get_lexicons ())) command_tags is_markup trs toks
+    ThyOutput.present_thy (#1 (get_lexicons ())) command_tags is_markup trs toks
     |> Buffer.content
     |> Present.theory_output name
   end;
@@ -301,7 +301,7 @@ fun load_thy name ml time path =
       run_thy name path;
       writeln ("**** Finished theory " ^ quote name ^ " ****\n")))
   else run_thy name path;
-  Context.set_context (SOME (Context.Theory (ThyInfo.get_theory name)));
+  ML_Context.set_context (SOME (Context.Theory (ThyInfo.get_theory name)));
   if ml then try_ml_file name time else ());
 
 end;
@@ -313,7 +313,7 @@ end;
 (* main loop *)
 
 fun gen_loop term no_pos =
- (Context.set_context NONE;
+ (ML_Context.set_context NONE;
   Toplevel.loop (isar term no_pos));
 
 fun gen_main term no_pos =
