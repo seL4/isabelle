@@ -301,7 +301,7 @@ fun load_thy name ml time path =
       run_thy name path;
       writeln ("**** Finished theory " ^ quote name ^ " ****\n")))
   else run_thy name path;
-  Context.context (ThyInfo.get_theory name);
+  Context.set_context (SOME (Context.Theory (ThyInfo.get_theory name)));
   if ml then try_ml_file name time else ());
 
 end;
@@ -313,7 +313,7 @@ end;
 (* main loop *)
 
 fun gen_loop term no_pos =
- (Context.reset_context ();
+ (Context.set_context NONE;
   Toplevel.loop (isar term no_pos));
 
 fun gen_main term no_pos =

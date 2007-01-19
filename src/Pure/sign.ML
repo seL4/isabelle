@@ -840,31 +840,37 @@ in
 fun parse_ast_translation (a, txt) =
   txt |> Context.use_let ("val parse_ast_translation: (string * (" ^ advancedT a ^
       "Syntax.ast list -> Syntax.ast)) list")
-    ("Sign.add_" ^ advancedN a ^ "trfuns (parse_ast_translation, [], [], [])");
+    ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns (parse_ast_translation, [], [], []))")
+  |> Context.theory_map;
 
 fun parse_translation (a, txt) =
   txt |> Context.use_let ("val parse_translation: (string * (" ^ advancedT a ^
       "term list -> term)) list")
-    ("Sign.add_" ^ advancedN a ^ "trfuns ([], parse_translation, [], [])");
+    ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], parse_translation, [], []))")
+  |> Context.theory_map;
 
 fun print_translation (a, txt) =
   txt |> Context.use_let ("val print_translation: (string * (" ^ advancedT a ^
       "term list -> term)) list")
-    ("Sign.add_" ^ advancedN a ^ "trfuns ([], [], print_translation, [])");
+    ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], [], print_translation, []))")
+  |> Context.theory_map;
 
 fun print_ast_translation (a, txt) =
   txt |> Context.use_let ("val print_ast_translation: (string * (" ^ advancedT a ^
       "Syntax.ast list -> Syntax.ast)) list")
-    ("Sign.add_" ^ advancedN a ^ "trfuns ([], [], [], print_ast_translation)");
+    ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], [], [], print_ast_translation))")
+  |> Context.theory_map;
 
 fun typed_print_translation (a, txt) =
   txt |> Context.use_let ("val typed_print_translation: (string * (" ^ advancedT a ^
       "bool -> typ -> term list -> term)) list")
-    ("Sign.add_" ^ advancedN a ^ "trfunsT typed_print_translation");
+    ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfunsT typed_print_translation)")
+  |> Context.theory_map;
 
 val token_translation =
   Context.use_let "val token_translation: (string * string * (string -> string * real)) list"
-    "Sign.add_tokentrfuns token_translation";
+    "Context.map_theory (Sign.add_tokentrfuns token_translation)"
+  #> Context.theory_map;
 
 end;
 

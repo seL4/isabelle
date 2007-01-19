@@ -99,7 +99,8 @@ fun legacy_bindings thy =
     |> cat_lines
   end;
 
-fun use_legacy_bindings thy = Context.use_mltext (legacy_bindings thy) true (SOME thy);
+fun use_legacy_bindings thy =
+  Context.use_mltext (legacy_bindings thy) true (SOME (Context.Theory thy));
 
 end;
 

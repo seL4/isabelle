@@ -348,7 +348,7 @@ fun tactic txt ctxt = METHOD (fn facts =>
        ^ txt ^
        "\nend in Method.set_tactic tactic end")
     false NONE;
-    Context.setmp (SOME (ProofContext.theory_of ctxt)) (! tactic_ref ctxt) facts));
+    Context.setmp (SOME (Context.Proof ctxt)) (! tactic_ref ctxt) facts));
 
 
 
@@ -448,8 +448,9 @@ fun method_setup (name, txt, cmt) =
     "val thm = PureThy.get_thm_closure (Context.the_context ()) o PureThy.Name;\n\
     \val thms = PureThy.get_thms_closure (Context.the_context ()) o PureThy.Name;\n\
     \val method: bstring * (Method.src -> Proof.context -> Proof.method) * string"
-    "Method.add_method method"
-    ("(" ^ Library.quote name ^ ", " ^ txt ^ ", " ^ Library.quote cmt ^ ")");
+    "Context.map_theory (Method.add_method method)"
+    ("(" ^ quote name ^ ", " ^ txt ^ ", " ^ quote cmt ^ ")")
+  |> Context.theory_map;
 
 
 

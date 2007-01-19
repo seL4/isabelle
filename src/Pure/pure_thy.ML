@@ -506,7 +506,9 @@ end;
 (* generic_setup *)
 
 fun generic_setup NONE = (fn thy => thy |> Context.setup ())
-  | generic_setup (SOME txt) = Context.use_let "val setup: theory -> theory" "setup" txt;
+  | generic_setup (SOME txt) =
+      Context.use_let "val setup: theory -> theory" "Context.map_theory setup" txt
+      |> Context.theory_map;
 
 
 (* add_oracle *)
@@ -524,7 +526,8 @@ fun add_oracle (name, T, oracle) =
     \in\n\
     \  fun " ^ name ^ " thy x = invoke_" ^ name ^ " (thy, Arg x);\n\
     \end;\n";
-  in Context.use_mltext_theory txt false end;
+  in Context.use_mltext_update txt false end
+  |> Context.theory_map;
 
 
 
