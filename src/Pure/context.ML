@@ -12,7 +12,6 @@ sig
   type theory
   type theory_ref
   exception THEORY of string * theory list
-  val context: theory -> unit
   val the_context: unit -> theory
 end;
 
@@ -49,20 +48,6 @@ sig
   val theory_data_of: theory -> string list
   val pre_pure_thy: theory
   val begin_thy: (theory -> Pretty.pp) -> string -> theory list -> theory
-  (*ML theory context*)
-  val get_context: unit -> theory option
-  val set_context: theory option -> unit
-  val reset_context: unit -> unit
-  val setmp: theory option -> ('a -> 'b) -> 'a -> 'b
-  val pass: theory option -> ('a -> 'b) -> 'a -> 'b * theory option
-  val pass_theory: theory -> ('a -> 'b) -> 'a -> 'b * theory
-  val save: ('a -> 'b) -> 'a -> 'b
-  val >> : (theory -> theory) -> unit
-  val use_mltext: string -> bool -> theory option -> unit
-  val use_mltext_theory: string -> bool -> theory -> theory
-  val use_let: string -> string -> string -> theory -> theory
-  val add_setup: (theory -> theory) -> unit
-  val setup: unit -> theory -> theory
   (*proof context*)
   type proof
   val theory_of_proof: proof -> theory
@@ -82,6 +67,21 @@ sig
   val proof_map: (generic -> generic) -> proof -> proof
   val theory_of: generic -> theory   (*total*)
   val proof_of: generic -> proof     (*total*)
+  (*ML context*)
+  val get_context: unit -> generic option
+  val set_context: generic option -> unit
+  val setmp: generic option -> ('a -> 'b) -> 'a -> 'b
+  val the_generic_context: unit -> generic
+  val the_local_context: unit -> proof
+  val pass: generic option -> ('a -> 'b) -> 'a -> 'b * generic option
+  val pass_context: generic -> ('a -> 'b) -> 'a -> 'b * generic
+  val save: ('a -> 'b) -> 'a -> 'b
+  val >> : (theory -> theory) -> unit
+  val use_mltext: string -> bool -> generic option -> unit
+  val use_mltext_update: string -> bool -> generic -> generic
+  val use_let: string -> string -> string -> generic -> generic
+  val add_setup: (theory -> theory) -> unit
+  val setup: unit -> theory -> theory
 end;
 
 signature PRIVATE_CONTEXT =
@@ -447,66 +447,6 @@ end;
 
 
 
-(*** ML theory context ***)
-
-local
-  val current_theory = ref (NONE: theory option);
-in
-  fun get_context () = ! current_theory;
-  fun set_context opt_thy = current_theory := opt_thy;
-  fun setmp opt_thy f x = Library.setmp current_theory opt_thy f x;
-end;
-
-fun the_context () =
-  (case get_context () of
-    SOME thy => thy
-  | _ => error "Unknown theory context");
-
-fun context thy = set_context (SOME thy);
-fun reset_context () = set_context NONE;
-
-fun pass opt_thy f x =
-  setmp opt_thy (fn x => let val y = f x in (y, get_context ()) end) x;
-
-fun pass_theory thy f x =
-  (case pass (SOME thy) f x of
-    (y, SOME thy') => (y, thy')
-  | (_, NONE) => error "Lost theory context in ML");
-
-fun save f x = setmp (get_context ()) f x;
-
-
-(* map context *)
-
-nonfix >>;
-fun >> f = set_context (SOME (f (the_context ())));
-
-
-(* use ML text *)
-
-fun use_output verbose txt =
-  Output.ML_errors (use_text Output.ml_output verbose) (Symbol.escape txt);
-
-fun use_mltext txt verbose opt_thy = setmp opt_thy (fn () => use_output verbose txt) ();
-fun use_mltext_theory txt verbose thy = #2 (pass_theory thy (use_output verbose) txt);
-
-fun use_context txt = use_mltext_theory ("Context.>> (" ^ txt ^ ");") false;
-
-fun use_let bind body txt =
-  use_context ("let " ^ bind ^ " = " ^ txt ^ " in\n" ^ body ^ " end");
-
-
-(* delayed theory setup *)
-
-local
-  val setup_fn = ref (I: theory -> theory);
-in
-  fun add_setup f = setup_fn := (! setup_fn #> f);
-  fun setup () = let val f = ! setup_fn in setup_fn := I; f end;
-end;
-
-
-
 (*** proof context ***)
 
 (* datatype proof *)
@@ -600,6 +540,67 @@ fun proof_map f = the_proof o f o Proof;
 
 val theory_of = cases I theory_of_proof;
 val proof_of = cases init_proof I;
+
+
+
+(*** ML context ***)
+
+local
+  val current_context = ref (NONE: generic option);
+in
+  fun get_context () = ! current_context;
+  fun set_context opt_context = current_context := opt_context;
+  fun setmp opt_context f x = Library.setmp current_context opt_context f x;
+end;
+
+fun the_generic_context () =
+  (case get_context () of
+    SOME context => context
+  | _ => error "Unknown context");
+
+val the_context = theory_of o the_generic_context;
+val the_local_context = the_proof o the_generic_context;
+
+fun pass opt_context f x =
+  setmp opt_context (fn x => let val y = f x in (y, get_context ()) end) x;
+
+fun pass_context context f x =
+  (case pass (SOME context) f x of
+    (y, SOME context') => (y, context')
+  | (_, NONE) => error "Lost context in ML");
+
+fun save f x = setmp (get_context ()) f x;
+
+
+(* map context *)
+
+nonfix >>;
+fun >> f = set_context (SOME (map_theory f (the_generic_context ())));
+
+
+(* use ML text *)
+
+fun use_output verbose txt =
+  Output.ML_errors (use_text Output.ml_output verbose) (Symbol.escape txt);
+
+fun use_mltext txt verbose opt_context = setmp opt_context (fn () => use_output verbose txt) ();
+fun use_mltext_update txt verbose context = #2 (pass_context context (use_output verbose) txt);
+
+fun use_context txt = use_mltext_update
+    ("Context.set_context (SOME ((" ^ txt ^ ") (Context.the_generic_context ())));") false;
+
+fun use_let bind body txt =
+  use_context ("let " ^ bind ^ " = " ^ txt ^ " in\n" ^ body ^ " end");
+
+
+(* delayed theory setup *)
+
+local
+  val setup_fn = ref (I: theory -> theory);
+in
+  fun add_setup f = setup_fn := (! setup_fn #> f);
+  fun setup () = let val f = ! setup_fn in setup_fn := I; f end;
+end;
 
 end;
 
