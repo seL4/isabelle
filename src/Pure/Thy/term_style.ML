@@ -1,4 +1,4 @@
-(*  Title:      Pure/Isar/term_style.ML
+(*  Title:      Pure/Thy/term_style.ML
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
