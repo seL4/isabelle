@@ -12,7 +12,6 @@ sig
   type method
   val trace_rules: bool ref
   val print_methods: theory -> unit
-  val Method: bstring -> (Args.src -> Proof.context -> method) -> string -> unit
 end;
 
 signature METHOD =
@@ -110,6 +109,7 @@ sig
     (Proof.context -> 'a -> int -> tactic) -> src -> Proof.context -> method
   val goal_args_ctxt': (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
     (Proof.context -> 'a -> int -> tactic) -> src -> Proof.context -> method
+  val parse: OuterLex.token list -> text * OuterLex.token list
 end;
 
 structure Method: METHOD =
@@ -341,14 +341,14 @@ val tactic_ref = ref ((fn _ => raise Match): Proof.context -> thm list -> tactic
 fun set_tactic f = tactic_ref := f;
 
 fun tactic txt ctxt = METHOD (fn facts =>
-  (Context.use_mltext
+  (ML_Context.use_mltext
     ("let fun tactic (ctxt: Proof.context) (facts: thm list) : tactic = \
        \let val thm = ProofContext.get_thm_closure ctxt o PureThy.Name\n\
        \  and thms = ProofContext.get_thms_closure ctxt o PureThy.Name in\n"
        ^ txt ^
        "\nend in Method.set_tactic tactic end")
     false NONE;
-    Context.setmp (SOME (Context.Proof ctxt)) (! tactic_ref ctxt) facts));
+    ML_Context.setmp (SOME (Context.Proof ctxt)) (! tactic_ref ctxt) facts));
 
 
 
@@ -438,16 +438,12 @@ fun add_methods raw_meths thy =
 
 val add_method = add_methods o Library.single;
 
-fun Method name meth cmt = Context.>> (add_method (name, meth, cmt));
-
 
 (* method_setup *)
 
 fun method_setup (name, txt, cmt) =
-  Context.use_let
-    "val thm = PureThy.get_thm_closure (Context.the_context ()) o PureThy.Name;\n\
-    \val thms = PureThy.get_thms_closure (Context.the_context ()) o PureThy.Name;\n\
-    \val method: bstring * (Method.src -> Proof.context -> Proof.method) * string"
+  ML_Context.use_let
+    "val method: bstring * (Method.src -> Proof.context -> Proof.method) * string"
     "Context.map_theory (Method.add_method method)"
     ("(" ^ quote name ^ ", " ^ txt ^ ", " ^ quote cmt ^ ")")
   |> Context.theory_map;
@@ -579,6 +575,33 @@ val _ = Context.add_setup (add_methods
   ("rotate_tac", goal_args (Scan.optional Args.int 1) Tactic.rotate_tac,
     "rotate assumptions of goal"),
   ("tactic", simple_args Args.name tactic, "ML tactic as proof method")]);
+
+
+(* outer parser *)
+
+local
+
+structure T = OuterLex;
+structure P = OuterParse;
+
+fun is_symid_meth s =
+  s <> "|" andalso s <> "?" andalso s <> "+" andalso T.is_sid s;
+
+fun meth4 x =
+ (P.position (P.xname >> rpair []) >> (Source o Args.src) ||
+  P.$$$ "(" |-- P.!!! (meth0 --| P.$$$ ")")) x
+and meth3 x =
+ (meth4 --| P.$$$ "?" >> Try ||
+  meth4 --| P.$$$ "+" >> Repeat1 ||
+  meth4 -- (P.$$$ "[" |-- Scan.optional P.nat 1 --| P.$$$ "]") >> (SelectGoals o swap) ||
+  meth4) x
+and meth2 x =
+ (P.position (P.xname -- P.args1 is_symid_meth false) >> (Source o Args.src) ||
+  meth3) x
+and meth1 x = (P.enum1 "," meth2 >> (fn [m] => m | ms => Then ms)) x
+and meth0 x = (P.enum1 "|" meth1 >> (fn [m] => m | ms => Orelse ms)) x;
+
+in val parse = meth3 end;
 
 
 (*final declarations of this structure!*)
