@@ -845,10 +845,10 @@ fun flatten_specification specs = specs |> maps
     | (a, _) => error ("Illegal local specification parameters for " ^ quote a));
 
 fun ind_decl coind =
-  P.opt_locale_target --
+  P.opt_target --
   P.fixes -- P.for_fixes --
-  Scan.optional (P.$$$ "where" |-- P.!!! P.specification) [] --
-  Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1) []
+  Scan.optional (P.$$$ "where" |-- P.!!! SpecParse.specification) [] --
+  Scan.optional (P.$$$ "monos" |-- P.!!! SpecParse.xthms1) []
   >> (fn ((((loc, preds), params), specs), monos) =>
     Toplevel.local_theory loc
       (fn lthy => lthy
@@ -864,7 +864,7 @@ val coinductiveP =
 val inductive_casesP =
   OuterSyntax.command "inductive_cases2"
     "create simplified instances of elimination rules (improper)" K.thy_script
-    (P.opt_locale_target -- P.and_list1 P.spec
+    (P.opt_target -- P.and_list1 SpecParse.spec
       >> (fn (loc, specs) => Toplevel.local_theory loc (snd o inductive_cases specs)));
 
 val _ = OuterSyntax.add_keywords ["monos"];

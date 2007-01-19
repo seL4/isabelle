@@ -184,7 +184,7 @@ local structure P = OuterParse and K = OuterKeyword in
 
 fun or_list1 s = P.enum1 "|" s
 val otherwise = P.$$$ "(" |-- P.$$$ "otherwise" --| P.$$$ ")"
-val statement_ow = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 (P.prop -- Scan.optional (otherwise >> K true) false))
+val statement_ow = P.and_list1 (SpecParse.opt_thm_name ":" -- Scan.repeat1 (P.prop -- Scan.optional (otherwise >> K true) false))
 val statements_ow = or_list1 statement_ow
 
 
@@ -197,7 +197,7 @@ fun fun_cmd fixes statements lthy =
 
 val funP =
   OuterSyntax.command "fun" "define general recursive functions (short version)" K.thy_decl
-  ((P.opt_locale_target -- P.fixes --| P.$$$ "where" -- statements_ow)
+  ((P.opt_target -- P.fixes --| P.$$$ "where" -- statements_ow)
      >> (fn ((target, fixes), statements) =>
             (Toplevel.local_theory target (fun_cmd fixes statements))));
 

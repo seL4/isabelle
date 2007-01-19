@@ -227,13 +227,13 @@ fun or_list1 s = P.enum1 "|" s
 val opt_sequential = Scan.optional ((P.$$$ "(" |-- P.$$$ "sequential" --| P.$$$ ")") >> K true) false
 
 val otherwise = P.$$$ "(" |-- P.$$$ "otherwise" --| P.$$$ ")"
-val statement_ow = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 (P.prop -- Scan.optional (otherwise >> K true) false))
+val statement_ow = P.and_list1 (SpecParse.opt_thm_name ":" -- Scan.repeat1 (P.prop -- Scan.optional (otherwise >> K true) false))
 val statements_ow = or_list1 statement_ow
 
 
 val functionP =
   OuterSyntax.command "function" "define general recursive functions" K.thy_goal
-  ((config_parser default_config -- P.opt_locale_target -- P.fixes --| P.$$$ "where" -- statements_ow)
+  ((config_parser default_config -- P.opt_target -- P.fixes --| P.$$$ "where" -- statements_ow)
      >> (fn (((config, target), fixes), statements) =>
             Toplevel.local_theory_to_proof target (add_fundef fixes statements config #> snd)
             #> Toplevel.print));
@@ -242,7 +242,7 @@ val functionP =
 
 val terminationP =
   OuterSyntax.command "termination" "prove termination of a recursive function" K.thy_goal
-  (P.opt_locale_target -- Scan.option P.name
+  (P.opt_target -- Scan.option P.name
     >> (fn (target, name) =>
            Toplevel.print o
            Toplevel.local_theory_to_proof target (setup_termination_proof name)));
