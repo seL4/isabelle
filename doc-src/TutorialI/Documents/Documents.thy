@@ -140,7 +140,7 @@ text {*
 
 (*<*)
 hide const xor
-ML_setup {* Context.>> (Theory.add_path "version1") *}
+setup {* Theory.add_path "version1" *}
 (*>*)
 constdefs
   xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "\<oplus>" 60)
@@ -164,7 +164,7 @@ text {*
 
 (*<*)
 hide const xor
-ML_setup {* Context.>> (Theory.add_path "version2") *}
+setup {* Theory.add_path "version2" *}
 (*>*)
 constdefs
   xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "[+]\<ignore>" 60)
