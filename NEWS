@@ -774,10 +774,6 @@ versions (INCOMPATIBILITY):
 
 *** ML ***
 
-* Pure/Isar/args.ML & Pure/Isar/method.ML
-
-switched argument order in *.syntax lifters.
-
 * Pure/table:
 
 Function `...tab.foldl` removed.
