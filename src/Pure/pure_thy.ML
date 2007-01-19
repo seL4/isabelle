@@ -15,8 +15,6 @@ sig
   val get_thm: theory -> thmref -> thm
   val get_thms: theory -> thmref -> thm list
   val get_thmss: theory -> thmref list -> thm list
-  val thm: xstring -> thm
-  val thms: xstring -> thm list
   structure ProtoPure:
     sig
       val thy: theory
@@ -98,8 +96,6 @@ sig
     theory -> thm list list * theory
   val add_defss_i: bool -> ((bstring * term list) * attribute list) list ->
     theory -> thm list list * theory
-  val generic_setup: string option -> theory -> theory
-  val add_oracle: bstring * string * string -> theory -> theory
 end;
 
 structure PureThy: PURE_THY =
@@ -279,9 +275,6 @@ fun get_thms theory thmref =
 
 fun get_thmss thy thmrefs = maps (get_thms thy) thmrefs;
 fun get_thm thy thmref = single_thm (name_of_thmref thmref) (get_thms thy thmref);
-
-fun thm name = get_thm (the_context ()) (Name name);
-fun thms name = get_thms (the_context ()) (Name name);
 
 
 (* thms_containing etc. *)
@@ -498,36 +491,6 @@ in
   val add_defss            = add_multis o (Theory.add_defs false);
   val add_defss_i          = add_multis o (Theory.add_defs_i false);
 end;
-
-
-
-(*** ML setup ***)
-
-(* generic_setup *)
-
-fun generic_setup NONE = (fn thy => thy |> Context.setup ())
-  | generic_setup (SOME txt) =
-      Context.use_let "val setup: theory -> theory" "Context.map_theory setup" txt
-      |> Context.theory_map;
-
-
-(* add_oracle *)
-
-fun add_oracle (name, T, oracle) =
-  let val txt =
-    "local\n\
-    \  type T = " ^ T ^ ";\n\
-    \  val oracle: theory -> T -> term = " ^ oracle ^ ";\n\
-    \  val name = " ^ quote name ^ ";\n\
-    \  exception Arg of T;\n\
-    \  val _ = Context.>> (Theory.add_oracle (name, fn (thy, Arg x) => oracle thy x));\n\
-    \  val thy = Context.the_context ();\n\
-    \  val invoke_" ^ name ^ " = Thm.invoke_oracle_i thy (Sign.full_name thy name);\n\
-    \in\n\
-    \  fun " ^ name ^ " thy x = invoke_" ^ name ^ " (thy, Arg x);\n\
-    \end;\n";
-  in Context.use_mltext_update txt false end
-  |> Context.theory_map;
 
 
 
