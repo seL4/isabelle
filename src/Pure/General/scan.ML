@@ -81,7 +81,7 @@ sig
   val dest_lexicon: lexicon -> string list
   val make_lexicon: string list list -> lexicon
   val empty_lexicon: lexicon
-  val extend_lexicon: lexicon -> string list list -> lexicon
+  val extend_lexicon: string list list -> lexicon -> lexicon
   val merge_lexicons: lexicon -> lexicon -> lexicon
   val is_literal: lexicon -> string list -> bool
   val literal: lexicon -> string list -> string list * string list
@@ -299,8 +299,8 @@ val dest_lexicon = map implode o dest_lex;
 
 val empty_lexicon = Empty;
 
-fun extend_lexicon lexicon [] = lexicon
-  | extend_lexicon lexicon chrss =
+fun extend_lexicon [] lexicon = lexicon
+  | extend_lexicon chrss lexicon =
       let
         fun ext chrs lex =
           let
@@ -315,7 +315,7 @@ fun extend_lexicon lexicon [] = lexicon
           in add chrs lex end;
       in lexicon |> fold ext (chrss |> subtract (op =) (dest_lex lexicon)) end;
 
-val make_lexicon = extend_lexicon empty_lexicon;
+fun make_lexicon chrss = extend_lexicon chrss empty_lexicon;
 
 fun merge_lexicons lex1 lex2 =
   let
@@ -324,7 +324,7 @@ fun merge_lexicons lex1 lex2 =
   in
     if chss2 subset chss1 then lex1
     else if chss1 subset chss2 then lex2
-    else extend_lexicon lex1 chss2
+    else extend_lexicon chss2 lex1
   end;
 
 
