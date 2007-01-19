@@ -245,7 +245,7 @@ fun make_session_info
 val session_info = ref (NONE: session_info option);
 
 fun with_session x f = (case ! session_info of NONE => x | SOME info => f info);
-fun with_context f = f (Context.theory_name (Context.the_context ()));
+fun with_context f = f (Context.theory_name (ML_Context.the_context ()));
 
 
 
@@ -504,10 +504,11 @@ fun add_hook f = hooks := (f :: ! hooks);
 
 fun results k xs =
  (List.app (fn f => (try (fn () => f k xs) (); ())) (! hooks);
-  with_session () (fn _ => with_context add_html (HTML.results k xs)));
+  with_session () (fn _ => with_context add_html
+    (HTML.results (ML_Context.the_local_context ()) k xs)));
 
-fun theorem a th = results "theorem" [(a, [th])];
-fun theorems a ths = results "theorems" [(a, ths)];
+fun theorem a th = results Thm.theoremK [(a, [th])];
+fun theorems a ths = results Thm.theoremK [(a, ths)];
 fun chapter s = with_session () (fn _ => with_context add_html (HTML.chapter s));
 fun section s = with_session () (fn _ => with_context add_html (HTML.section s));
 fun subsection s = with_session () (fn _ => with_context add_html (HTML.subsection s));
