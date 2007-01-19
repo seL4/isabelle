@@ -306,6 +306,11 @@ val method_setupP =
     (((P.name -- P.!!! (P.$$$ "=" |-- P.text -- P.text) >> P.triple2))
       >> (Toplevel.theory o Method.method_setup));
 
+val declarationP =
+  OuterSyntax.command "declaration" "generic ML declaration" (K.tag_ml K.thy_decl)
+    (P.opt_locale_target -- P.text
+    >> (fn (loc, txt) => Toplevel.local_theory loc (IsarCmd.declaration txt)));
+
 
 (* translation functions *)
 
@@ -923,7 +928,7 @@ val _ = OuterSyntax.add_parsers [
   no_syntaxP, translationsP, no_translationsP, axiomsP, defsP,
   constdefsP, definitionP, abbreviationP, notationP, axiomatizationP,
   theoremsP, lemmasP, declareP, globalP, localP, hideP, useP, mlP,
-  ml_commandP, ml_setupP, setupP, method_setupP,
+  ml_commandP, ml_setupP, setupP, method_setupP, declarationP,
   parse_ast_translationP, parse_translationP, print_translationP,
   typed_print_translationP, print_ast_translationP,
   token_translationP, oracleP, contextP, localeP,
