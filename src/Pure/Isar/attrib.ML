@@ -8,7 +8,6 @@ Symbolic representation of attributes -- with name and syntax.
 signature BASIC_ATTRIB =
 sig
   val print_attributes: theory -> unit
-  val Attribute: bstring -> (Args.src -> attribute) -> string -> unit
 end;
 
 signature ATTRIB =
@@ -137,8 +136,6 @@ fun add_attributes raw_attrs thy =
       handle Symtab.DUPS dups =>
         error ("Duplicate declaration of attributes(s) " ^ commas_quote dups);
   in AttributesData.map add thy end;
-
-fun Attribute name att cmt = Context.>> (add_attributes [(name, att, cmt)]);
 
 
 
