@@ -13,7 +13,17 @@ use "local_syntax.ML";
 use "proof_context.ML";
 use "local_defs.ML";
 
-(*theory presentation*)
+(*outer syntax*)
+use "outer_lex.ML";
+use "args.ML";
+use "outer_parse.ML";
+use "outer_keyword.ML";
+use "antiquote.ML";
+
+(*theory sources*)
+use "../Thy/ml_context.ML";
+use "../Thy/thy_load.ML";
+use "../Thy/thy_info.ML";
 use "../Thy/html.ML";
 use "../Thy/latex.ML";
 use "../Thy/present.ML";
@@ -22,7 +32,6 @@ use "../Thy/thm_database.ML";
 
 (*basic proof engine*)
 use "proof_display.ML";
-use "args.ML";
 use "attrib.ML";
 use "context_rules.ML";
 use "skip_proof.ML";
@@ -37,26 +46,22 @@ use "local_theory.ML";
 use "calculation.ML";
 use "obtain.ML";
 use "locale.ML";
+use "spec_parse.ML";
 use "../axclass.ML";
 use "theory_target.ML";
 use "specification.ML";
 use "constdefs.ML";
-
-(*outer syntax*)
-use "antiquote.ML";
-use "outer_parse.ML";
-use "outer_keyword.ML";
 
 (*toplevel environment*)
 use "proof_history.ML";
 use "toplevel.ML";
 
 (*theory presentation*)
-use "term_style.ML";
-use "isar_output.ML";
+use "../Thy/term_style.ML";
+use "../Thy/thy_output.ML";
 
 (*theory syntax*)
-use "thy_header.ML";
+use "../Thy/thy_header.ML";
 use "session.ML";
 use "../old_goals.ML";
 use "outer_syntax.ML";
