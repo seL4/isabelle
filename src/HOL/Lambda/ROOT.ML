@@ -6,7 +6,6 @@
 
 Syntax.ambiguity_level := 100;
 proofs := 2;
-IsarOutput.modes := "no_brackets" :: !IsarOutput.modes;
 
 use_thy "Eta";
 no_document use_thy "Accessible_Part";
