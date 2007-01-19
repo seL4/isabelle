@@ -291,7 +291,7 @@ val add_fixpat_i = gen_add_fixpat Sign.cert_term (K I);
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val fixrec_eqn = P.opt_thm_name ":" -- P.prop;
+val fixrec_eqn = SpecParse.opt_thm_name ":" -- P.prop;
 
 val fixrec_strict = P.opt_keyword "permissive" >> not;
 
@@ -304,7 +304,7 @@ val fixrecP =
     (fixrec_decl >> (Toplevel.theory o uncurry add_fixrec));
 
 (* fixpat parser *)
-val fixpat_decl = P.opt_thm_name ":" -- Scan.repeat1 P.prop;
+val fixpat_decl = SpecParse.opt_thm_name ":" -- Scan.repeat1 P.prop;
 
 val fixpatP =
   OuterSyntax.command "fixpat" "define rewrites for fixrec functions" K.thy_decl

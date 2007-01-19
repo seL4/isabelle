@@ -321,7 +321,7 @@ val opt_unchecked_name =
       P.name >> pair false) --| P.$$$ ")")) (false, "");
 
 val primrec_decl =
-  opt_unchecked_name -- Scan.repeat1 (P.opt_thm_name ":" -- P.prop);
+  opt_unchecked_name -- Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop);
 
 val primrecP =
   OuterSyntax.command "primrec" "define primitive recursive functions on datatypes" K.thy_decl

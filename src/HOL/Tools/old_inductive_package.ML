@@ -888,8 +888,8 @@ fun mk_ind coind ((sets, intrs), monos) =
 fun ind_decl coind =
   Scan.repeat1 P.term --
   (P.$$$ "intros" |--
-    P.!!! (Scan.repeat (P.opt_thm_name ":" -- P.prop))) --
-  Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1) []
+    P.!!! (Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop))) --
+  Scan.optional (P.$$$ "monos" |-- P.!!! SpecParse.xthms1) []
   >> (Toplevel.theory o mk_ind coind);
 
 val inductiveP =
@@ -900,7 +900,7 @@ val coinductiveP =
 
 
 val ind_cases =
-  P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.prop)
+  P.and_list1 (SpecParse.opt_thm_name ":" -- Scan.repeat1 P.prop)
   >> (Toplevel.theory o inductive_cases);
 
 val inductive_casesP =

@@ -119,7 +119,7 @@ val invokeP =
   OuterSyntax.command "invoke"
     "schematic invocation of locale expression in proof context"
     (K.tag_proof K.prf_goal)
-    (P.opt_thm_name ":" -- P.locale_expr -- P.locale_insts -- P.for_fixes
+    (SpecParse.opt_thm_name ":" -- SpecParse.locale_expr -- SpecParse.locale_insts -- P.for_fixes
       >> (fn (((name, expr), insts), fixes) =>
           Toplevel.print o Toplevel.proof' (invoke name expr insts fixes)));
 

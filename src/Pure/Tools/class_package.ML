@@ -560,7 +560,7 @@ in
 val (classK, instanceK, print_classesK) = ("class", "instance", "print_classes")
 
 val class_subP = P.name -- Scan.repeat (P.$$$ "+" |-- P.name) >> (op ::);
-val class_bodyP = P.!!! (Scan.repeat1 P.locale_element);
+val class_bodyP = P.!!! (Scan.repeat1 SpecParse.locale_element);
 
 val parse_arity =
   (P.xname --| P.$$$ "::" -- P.!!! P.arity)
@@ -582,7 +582,7 @@ val instanceP =
   OuterSyntax.command instanceK "prove type arity or subclass relation" K.thy_goal ((
       P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
            >> instance_sort_e
-      || P.and_list1 parse_arity -- Scan.repeat (P.opt_thm_name ":" -- P.prop)
+      || P.and_list1 parse_arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
            >> (fn (arities, defs) => instance_arity_e arities defs)
     ) >> (Toplevel.print oo Toplevel.theory_to_proof));
 

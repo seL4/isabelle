@@ -82,7 +82,7 @@ val setup =
 local structure P = OuterParse and K = OuterKeyword in
 
 val ind_cases =
-  P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.prop)
+  P.and_list1 (SpecParse.opt_thm_name ":" -- Scan.repeat1 P.prop)
   >> (Toplevel.theory o inductive_cases);
 
 val inductive_casesP =

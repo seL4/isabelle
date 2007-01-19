@@ -417,9 +417,9 @@ val con_decl =
 val datatype_decl =
   (Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<=") |-- P.!!! P.term) "") --
   P.and_list1 (P.term -- (P.$$$ "=" |-- P.enum1 "|" con_decl)) --
-  Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1) [] --
-  Scan.optional (P.$$$ "type_intros" |-- P.!!! P.xthms1) [] --
-  Scan.optional (P.$$$ "type_elims" |-- P.!!! P.xthms1) []
+  Scan.optional (P.$$$ "monos" |-- P.!!! SpecParse.xthms1) [] --
+  Scan.optional (P.$$$ "type_intros" |-- P.!!! SpecParse.xthms1) [] --
+  Scan.optional (P.$$$ "type_elims" |-- P.!!! SpecParse.xthms1) []
   >> (Toplevel.theory o mk_datatype);
 
 val coind_prefix = if coind then "co" else "";

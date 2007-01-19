@@ -199,10 +199,10 @@ val setup =
 local structure P = OuterParse and K = OuterKeyword in
 
 val rep_datatype_decl =
-  (P.$$$ "elimination" |-- P.!!! P.xthm) --
-  (P.$$$ "induction" |-- P.!!! P.xthm) --
-  (P.$$$ "case_eqns" |-- P.!!! P.xthms1) --
-  Scan.optional (P.$$$ "recursor_eqns" |-- P.!!! P.xthms1) []
+  (P.$$$ "elimination" |-- P.!!! SpecParse.xthm) --
+  (P.$$$ "induction" |-- P.!!! SpecParse.xthm) --
+  (P.$$$ "case_eqns" |-- P.!!! SpecParse.xthms1) --
+  Scan.optional (P.$$$ "recursor_eqns" |-- P.!!! SpecParse.xthms1) []
   >> (fn (((x, y), z), w) => rep_datatype x y z w);
 
 val rep_datatypeP =

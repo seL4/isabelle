@@ -426,7 +426,7 @@ val options =
     (parser4 --| P.$$$ ")")) (false, ("", (NONE, NONE)));
 
 val primrec_decl =
-  options -- Scan.repeat1 (P.opt_thm_name ":" -- P.prop);
+  options -- Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop);
 
 val primrecP =
   OuterSyntax.command "nominal_primrec" "define primitive recursive functions on nominal datatypes" K.thy_goal

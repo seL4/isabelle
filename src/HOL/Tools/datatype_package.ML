@@ -1030,9 +1030,9 @@ val datatypeP =
 
 val rep_datatype_decl =
   Scan.option (Scan.repeat1 P.name) --
-    Scan.optional (P.$$$ "distinct" |-- P.!!! (P.and_list1 P.xthms1)) [[]] --
-    Scan.optional (P.$$$ "inject" |-- P.!!! (P.and_list1 P.xthms1)) [[]] --
-    (P.$$$ "induction" |-- P.!!! P.xthm);
+    Scan.optional (P.$$$ "distinct" |-- P.!!! (P.and_list1 SpecParse.xthms1)) [[]] --
+    Scan.optional (P.$$$ "inject" |-- P.!!! (P.and_list1 SpecParse.xthms1)) [[]] --
+    (P.$$$ "induction" |-- P.!!! SpecParse.xthm);
 
 fun mk_rep_datatype (((opt_ts, dss), iss), ind) = #2 o rep_datatype opt_ts dss iss ind;
 

@@ -129,8 +129,8 @@ local
 
             val thmnameP = (* see isar_syn.ML/theoremsP *)
                 let
-                    val name_facts = P.and_list1 ((P.opt_thm_name "=" --| P.xthms1) >> #1)
-                    val theoremsP = P.opt_locale_target |-- name_facts >> (fn [] => "" | x::_ => x)
+                    val name_facts = P.and_list1 ((SpecParse.opt_thm_name "=" --| SpecParse.xthms1) >> #1)
+                    val theoremsP = P.opt_target |-- name_facts >> (fn [] => "" | x::_ => x)
                 in
                     theoremsP
                 end
@@ -150,8 +150,8 @@ local
                    | "classes"   => named_item P.name "class"
                    | "classrel"  => named_item P.name "class"
                    | "consts"    => named_item (P.const >> #1) "term"
-                   | "axioms"    => named_item (P.spec_name >> (#1 o #1)) "theorem"
-                   | "defs"      => named_item (opt_overloaded |-- P.spec_name >> (#1 o #1)) "theorem"
+                   | "axioms"    => named_item (SpecParse.spec_name >> (#1 o #1)) "theorem"
+                   | "defs"      => named_item (opt_overloaded |-- SpecParse.spec_name >> (#1 o #1)) "theorem"
                    | "constdefs" => named_item P.name (* FIXME: heavily simplified/wrong *) "term"
                    | "theorems"  => named_item thmnameP "thmset"
                    | "lemmas"    => named_item thmnameP "thmset"
@@ -164,17 +164,17 @@ local
     fun xmls_of_thy_goal (name,toks,str) =
         let
             (* see isar_syn.ML/gen_theorem *)
-         val statement = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp);
+         val statement = P.and_list1 (SpecParse.opt_thm_name ":" -- Scan.repeat1 P.propp);
          val general_statement =
-            statement >> pair [] || Scan.repeat P.locale_element -- (P.$$$ "shows" |-- statement);
+            statement >> pair [] || Scan.repeat SpecParse.locale_element -- (P.$$$ "shows" |-- statement);
 
             val gen_theoremP =
-                P.opt_locale_target -- Scan.optional (P.opt_thm_name ":" --|
-                 Scan.ahead (P.locale_keyword || P.$$$ "shows")) ("", []) --
+                P.opt_target -- Scan.optional (SpecParse.opt_thm_name ":" --|
+                 Scan.ahead (SpecParse.locale_keyword || P.$$$ "shows")) ("", []) --
                                  general_statement >> (fn ((locale, a), (elems, concl)) =>
                                                          fst a) (* a : (bstring * Args.src list) *)
 
-            val nameP = P.opt_locale_target |-- (Scan.optional ((P.opt_thm_name ":") >> #1) "")
+            val nameP = P.opt_target |-- (Scan.optional ((SpecParse.opt_thm_name ":") >> #1) "")
 	    val thmname = nameparse "opengoal" "theorem" nameP toks
         in
             [D.Opengoal {thmname=SOME thmname, text=str},
