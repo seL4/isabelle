@@ -81,7 +81,7 @@ fun change_clasimpset_of thy f =
     Simplifier.change_simpset_of thy (fn _ => ss')
   end;
 
-fun change_clasimpset f = change_clasimpset_of (Context.the_context ()) f;
+fun change_clasimpset f = change_clasimpset_of (ML_Context.the_context ()) f;
 fun clasimpset () = (Classical.claset (), Simplifier.simpset ());
 
 

@@ -261,7 +261,7 @@ fun provide path name info (deps as SOME {present, outdated, master, files}) =
   | provide _ _ _ NONE = NONE;
 
 fun run_file path =
-  (case Option.map (Context.theory_name o Context.the_theory) (Context.get_context ()) of
+  (case Option.map (Context.theory_name o Context.the_theory) (ML_Context.get_context ()) of
     NONE => (ThyLoad.load_file NONE path; ())
   | SOME name => (case lookup_deps name of
       SOME deps => change_deps name (provide path name
@@ -382,7 +382,7 @@ fun require_thy really ml time strict keep_strict initiators prfx (visited, str)
 
 fun gen_use_thy' req prfx s = Output.toplevel_errors (fn () =>
   let val (_, (_, name)) = req [] prfx ([], s)
-  in Context.set_context (SOME (Context.Theory (get_theory name))) end) ();
+  in ML_Context.set_context (SOME (Context.Theory (get_theory name))) end) ();
 
 fun gen_use_thy req = gen_use_thy' req Path.current;
 
@@ -445,7 +445,7 @@ fun begin_theory present name parents uses int =
     val theory' = theory |> present dir' name bparents uses;
     val _ = put_theory name (Theory.copy theory');
     val ((), theory'') =
-      Context.pass_context (Context.Theory theory') (List.app (load_file false)) uses_now
+      ML_Context.pass_context (Context.Theory theory') (List.app (load_file false)) uses_now
       ||> Context.the_theory;
     val _ = put_theory name (Theory.copy theory'');
   in theory'' end;

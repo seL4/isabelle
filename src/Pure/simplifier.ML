@@ -104,10 +104,10 @@ val print_simpset = GlobalSimpset.print;
 val get_simpset = ! o GlobalSimpset.get;
 
 val change_simpset_of = change o GlobalSimpset.get;
-fun change_simpset f = change_simpset_of (Context.the_context ()) f;
+fun change_simpset f = change_simpset_of (ML_Context.the_context ()) f;
 
 fun simpset_of thy = MetaSimplifier.context (ProofContext.init thy) (get_simpset thy);
-val simpset = simpset_of o Context.the_context;
+val simpset = simpset_of o ML_Context.the_context;
 
 
 fun SIMPSET tacf st = tacf (simpset_of (Thm.theory_of_thm st)) st;

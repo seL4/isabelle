@@ -267,7 +267,7 @@ exception FAILURE of state * exn;
 local
 
 fun with_context f xs =
-  (case Context.get_context () of NONE => []
+  (case ML_Context.get_context () of NONE => []
   | SOME context => map (f (Context.proof_of context)) xs);
 
 fun raised name [] = "exception " ^ name ^ " raised"
