@@ -24,43 +24,43 @@ val endP =
 
 (** markup commands **)
 
-val headerP = OuterSyntax.markup_command IsarOutput.Markup "header" "theory header" K.diag
+val headerP = OuterSyntax.markup_command ThyOutput.Markup "header" "theory header" K.diag
   (P.position P.text >> IsarCmd.add_header);
 
-val chapterP = OuterSyntax.markup_command IsarOutput.Markup "chapter" "chapter heading"
-  K.thy_heading (P.opt_locale_target -- P.position P.text >> IsarCmd.add_chapter);
+val chapterP = OuterSyntax.markup_command ThyOutput.Markup "chapter" "chapter heading"
+  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.add_chapter);
 
-val sectionP = OuterSyntax.markup_command IsarOutput.Markup "section" "section heading"
-  K.thy_heading (P.opt_locale_target -- P.position P.text >> IsarCmd.add_section);
+val sectionP = OuterSyntax.markup_command ThyOutput.Markup "section" "section heading"
+  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.add_section);
 
-val subsectionP = OuterSyntax.markup_command IsarOutput.Markup "subsection" "subsection heading"
-  K.thy_heading (P.opt_locale_target -- P.position P.text >> IsarCmd.add_subsection);
+val subsectionP = OuterSyntax.markup_command ThyOutput.Markup "subsection" "subsection heading"
+  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.add_subsection);
 
 val subsubsectionP =
-  OuterSyntax.markup_command IsarOutput.Markup "subsubsection" "subsubsection heading"
-  K.thy_heading (P.opt_locale_target -- P.position P.text >> IsarCmd.add_subsubsection);
+  OuterSyntax.markup_command ThyOutput.Markup "subsubsection" "subsubsection heading"
+  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.add_subsubsection);
 
-val textP = OuterSyntax.markup_command IsarOutput.MarkupEnv "text" "formal comment (theory)"
-  K.thy_decl (P.opt_locale_target -- P.position P.text >> IsarCmd.add_text);
+val textP = OuterSyntax.markup_command ThyOutput.MarkupEnv "text" "formal comment (theory)"
+  K.thy_decl (P.opt_target -- P.position P.text >> IsarCmd.add_text);
 
-val text_rawP = OuterSyntax.markup_command IsarOutput.Verbatim "text_raw"
+val text_rawP = OuterSyntax.markup_command ThyOutput.Verbatim "text_raw"
   "raw document preparation text"
   K.thy_decl (P.position P.text >> IsarCmd.add_text_raw);
 
-val sectP = OuterSyntax.markup_command IsarOutput.Markup "sect" "formal comment (proof)"
+val sectP = OuterSyntax.markup_command ThyOutput.Markup "sect" "formal comment (proof)"
   (K.tag_proof K.prf_heading) (P.position P.text >> IsarCmd.add_sect);
 
-val subsectP = OuterSyntax.markup_command IsarOutput.Markup "subsect" "formal comment (proof)"
+val subsectP = OuterSyntax.markup_command ThyOutput.Markup "subsect" "formal comment (proof)"
   (K.tag_proof K.prf_heading) (P.position P.text >> IsarCmd.add_subsect);
 
-val subsubsectP = OuterSyntax.markup_command IsarOutput.Markup "subsubsect"
+val subsubsectP = OuterSyntax.markup_command ThyOutput.Markup "subsubsect"
   "formal comment (proof)" (K.tag_proof K.prf_heading)
   (P.position P.text >> IsarCmd.add_subsubsect);
 
-val txtP = OuterSyntax.markup_command IsarOutput.MarkupEnv "txt" "formal comment (proof)"
+val txtP = OuterSyntax.markup_command ThyOutput.MarkupEnv "txt" "formal comment (proof)"
   (K.tag_proof K.prf_decl) (P.position P.text >> IsarCmd.add_txt);
 
-val txt_rawP = OuterSyntax.markup_command IsarOutput.Verbatim "txt_raw"
+val txt_rawP = OuterSyntax.markup_command ThyOutput.Verbatim "txt_raw"
   "raw document preparation text (proof)" (K.tag_proof K.prf_decl)
   (P.position P.text >> IsarCmd.add_txt_raw);
 
@@ -89,7 +89,7 @@ val axclassP =
     (P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
         P.!!! (P.list1 P.xname)) []
         -- Scan.optional (P.$$$ "(" |-- P.$$$ "attach" |-- Scan.repeat P.term --| P.$$$ ")") []
-        -- Scan.repeat (P.thm_name ":" -- (P.prop >> single))
+        -- Scan.repeat (SpecParse.thm_name ":" -- (P.prop >> single))
       >> (fn ((x, y), z) => Toplevel.theory (snd o AxClass.define_class x y z)));
 
 
@@ -175,7 +175,7 @@ val no_translationsP =
 
 val axiomsP =
   OuterSyntax.command "axioms" "state arbitrary propositions (axiomatic!)" K.thy_decl
-    (Scan.repeat1 P.spec_name >> (Toplevel.theory o IsarCmd.add_axioms));
+    (Scan.repeat1 SpecParse.spec_name >> (Toplevel.theory o IsarCmd.add_axioms));
 
 val opt_unchecked_overloaded =
   Scan.optional (P.$$$ "(" |-- P.!!!
@@ -184,7 +184,7 @@ val opt_unchecked_overloaded =
 
 val defsP =
   OuterSyntax.command "defs" "define constants" K.thy_decl
-    (opt_unchecked_overloaded -- Scan.repeat1 P.spec_name
+    (opt_unchecked_overloaded -- Scan.repeat1 SpecParse.spec_name
       >> (Toplevel.theory o IsarCmd.add_defs));
 
 
@@ -196,7 +196,7 @@ val old_constdecl =
     --| Scan.option P.where_ >> P.triple1 ||
   P.name -- (P.mixfix >> pair NONE) --| Scan.option P.where_ >> P.triple2;
 
-val old_constdef = Scan.option old_constdecl -- (P.opt_thm_name ":" -- P.prop);
+val old_constdef = Scan.option old_constdecl -- (SpecParse.opt_thm_name ":" -- P.prop);
 
 val structs =
   Scan.optional ((P.$$$ "(" -- P.$$$ "structure") |-- P.!!! (P.simple_fixes --| P.$$$ ")")) [];
@@ -215,22 +215,22 @@ val constdecl =
       Scan.ahead (P.$$$ "(") |-- P.!!! (P.mixfix' --| P.where_ >> pair NONE))
   >> P.triple2;
 
-val constdef = Scan.option constdecl -- (P.opt_thm_name ":" -- P.prop);
+val constdef = Scan.option constdecl -- (SpecParse.opt_thm_name ":" -- P.prop);
 
 val definitionP =
   OuterSyntax.command "definition" "constant definition" K.thy_decl
-    (P.opt_locale_target -- constdef
+    (P.opt_target -- constdef
     >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.definition args)));
 
 val abbreviationP =
   OuterSyntax.command "abbreviation" "constant abbreviation" K.thy_decl
-    (P.opt_locale_target -- opt_mode -- (Scan.option constdecl -- P.prop)
+    (P.opt_target -- opt_mode -- (Scan.option constdecl -- P.prop)
     >> (fn ((loc, mode), args) =>
         Toplevel.local_theory loc (Specification.abbreviation mode args)));
 
 val notationP =
   OuterSyntax.command "notation" "variable/constant syntax" K.thy_decl
-    (P.opt_locale_target -- opt_mode -- P.and_list1 (P.xname -- P.mixfix)
+    (P.opt_target -- opt_mode -- P.and_list1 (P.xname -- P.mixfix)
     >> (fn ((loc, mode), args) =>
         Toplevel.local_theory loc (Specification.notation mode args)));
 
@@ -239,15 +239,15 @@ val notationP =
 
 val axiomatizationP =
   OuterSyntax.command "axiomatization" "axiomatic constant specification" K.thy_decl
-    (P.opt_locale_target --
+    (P.opt_target --
      (Scan.optional P.fixes [] --
-      Scan.optional (P.where_ |-- P.!!! (P.and_list1 P.spec)) [])
+      Scan.optional (P.where_ |-- P.!!! (P.and_list1 SpecParse.spec)) [])
     >> (fn (loc, (x, y)) => Toplevel.local_theory loc (#2 o Specification.axiomatization x y)));
 
 
 (* theorems *)
 
-fun theorems kind = P.opt_locale_target -- P.name_facts
+fun theorems kind = P.opt_target -- SpecParse.name_facts
   >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.theorems kind args));
 
 val theoremsP =
@@ -258,7 +258,7 @@ val lemmasP =
 
 val declareP =
   OuterSyntax.command "declare" "declare theorems (improper)" K.thy_script
-    (P.opt_locale_target -- (P.and_list1 P.xthms1 >> flat)
+    (P.opt_target -- (P.and_list1 SpecParse.xthms1 >> flat)
       >> (fn (loc, args) => Toplevel.local_theory loc
           (#2 o Specification.theorems "" [(("", []), args)])));
 
@@ -299,7 +299,7 @@ val ml_setupP =
 
 val setupP =
   OuterSyntax.command "setup" "apply ML theory setup" (K.tag_ml K.thy_decl)
-    (Scan.option P.text >> (Toplevel.theory o PureThy.generic_setup));
+    (Scan.option P.text >> (Toplevel.theory o IsarCmd.generic_setup));
 
 val method_setupP =
   OuterSyntax.command "method_setup" "define proof method in ML" (K.tag_ml K.thy_decl)
@@ -308,7 +308,7 @@ val method_setupP =
 
 val declarationP =
   OuterSyntax.command "declaration" "generic ML declaration" (K.tag_ml K.thy_decl)
-    (P.opt_locale_target -- P.text
+    (P.opt_target -- P.text
     >> (fn (loc, txt) => Toplevel.local_theory loc (IsarCmd.declaration txt)));
 
 
@@ -319,32 +319,32 @@ val trfun = P.opt_keyword "advanced" -- P.text;
 val parse_ast_translationP =
   OuterSyntax.command "parse_ast_translation" "install parse ast translation functions"
     (K.tag_ml K.thy_decl)
-    (trfun >> (Toplevel.theory o Sign.parse_ast_translation));
+    (trfun >> (Toplevel.theory o IsarCmd.parse_ast_translation));
 
 val parse_translationP =
   OuterSyntax.command "parse_translation" "install parse translation functions"
     (K.tag_ml K.thy_decl)
-    (trfun >> (Toplevel.theory o Sign.parse_translation));
+    (trfun >> (Toplevel.theory o IsarCmd.parse_translation));
 
 val print_translationP =
   OuterSyntax.command "print_translation" "install print translation functions"
     (K.tag_ml K.thy_decl)
-    (trfun >> (Toplevel.theory o Sign.print_translation));
+    (trfun >> (Toplevel.theory o IsarCmd.print_translation));
 
 val typed_print_translationP =
   OuterSyntax.command "typed_print_translation" "install typed print translation functions"
     (K.tag_ml K.thy_decl)
-    (trfun >> (Toplevel.theory o Sign.typed_print_translation));
+    (trfun >> (Toplevel.theory o IsarCmd.typed_print_translation));
 
 val print_ast_translationP =
   OuterSyntax.command "print_ast_translation" "install print ast translation functions"
     (K.tag_ml K.thy_decl)
-    (trfun >> (Toplevel.theory o Sign.print_ast_translation));
+    (trfun >> (Toplevel.theory o IsarCmd.print_ast_translation));
 
 val token_translationP =
   OuterSyntax.command "token_translation" "install token translation functions"
     (K.tag_ml K.thy_decl)
-    (P.text >> (Toplevel.theory o Sign.token_translation));
+    (P.text >> (Toplevel.theory o IsarCmd.token_translation));
 
 
 (* oracles *)
@@ -352,7 +352,7 @@ val token_translationP =
 val oracleP =
   OuterSyntax.command "oracle" "declare oracle" (K.tag_ml K.thy_decl)
     (P.name -- (P.$$$ "(" |-- P.text --| P.$$$ ")" --| P.$$$ "=")
-      -- P.text >> (Toplevel.theory o PureThy.add_oracle o P.triple1));
+      -- P.text >> (Toplevel.theory o IsarCmd.oracle o P.triple1));
 
 
 (* local theories *)
@@ -366,9 +366,9 @@ val contextP =
 (* locales *)
 
 val locale_val =
-  (P.locale_expr --
-    Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 P.context_element)) [] ||
-  Scan.repeat1 P.context_element >> pair Locale.empty);
+  (SpecParse.locale_expr --
+    Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 SpecParse.context_element)) [] ||
+  Scan.repeat1 SpecParse.context_element >> pair Locale.empty);
 
 val localeP =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
@@ -382,17 +382,17 @@ val localeP =
 val interpretationP =
   OuterSyntax.command "interpretation"
     "prove and register interpretation of locale expression in theory or locale" K.thy_goal
-    (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! P.locale_expr
+    (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! SpecParse.locale_expr
       >> (Toplevel.print oo (Toplevel.theory_to_proof o Locale.interpretation_in_locale I)) ||
-      P.opt_thm_name ":" -- P.locale_expr -- P.locale_insts >> (fn ((x, y), z) =>
+      SpecParse.opt_thm_name ":" -- SpecParse.locale_expr -- SpecParse.locale_insts >> (fn ((x, y), z) =>
         Toplevel.print o Toplevel.theory_to_proof (Locale.interpretation I x y z)));
 
 val interpretP =
   OuterSyntax.command "interpret"
     "prove and register interpretation of locale expression in proof context"
     (K.tag_proof K.prf_goal)
-    (P.opt_thm_name ":" -- P.locale_expr -- P.locale_insts >> (fn ((x, y), z) =>
-      Toplevel.print o Toplevel.proof' (Locale.interpret Seq.single x y z)));
+    (SpecParse.opt_thm_name ":" -- SpecParse.locale_expr -- SpecParse.locale_insts
+      >> (fn ((x, y), z) => Toplevel.print o Toplevel.proof' (Locale.interpret Seq.single x y z)));
 
 
 
@@ -402,9 +402,9 @@ val interpretP =
 
 fun gen_theorem kind =
   OuterSyntax.command kind ("state " ^ kind) K.thy_goal
-    (P.opt_locale_target -- Scan.optional (P.opt_thm_name ":" --|
-      Scan.ahead (P.locale_keyword || P.statement_keyword)) ("", []) --
-      P.general_statement >> (fn ((loc, a), (elems, concl)) =>
+    (P.opt_target -- Scan.optional (SpecParse.opt_thm_name ":" --|
+      Scan.ahead (SpecParse.locale_keyword || SpecParse.statement_keyword)) ("", []) --
+      SpecParse.general_statement >> (fn ((loc, a), (elems, concl)) =>
       (Toplevel.print o
        Toplevel.local_theory_to_proof loc
          (Specification.theorem kind NONE (K I) a elems concl))));
@@ -416,27 +416,27 @@ val corollaryP = gen_theorem Thm.corollaryK;
 val haveP =
   OuterSyntax.command "have" "state local goal"
     (K.tag_proof K.prf_goal)
-    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.have));
+    (SpecParse.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.have));
 
 val henceP =
   OuterSyntax.command "hence" "abbreviates \"then have\""
     (K.tag_proof K.prf_goal)
-    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.hence));
+    (SpecParse.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.hence));
 
 val showP =
   OuterSyntax.command "show" "state local goal, solving current obligation"
     (K.tag_proof K.prf_asm_goal)
-    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.show));
+    (SpecParse.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.show));
 
 val thusP =
   OuterSyntax.command "thus" "abbreviates \"then show\""
     (K.tag_proof K.prf_asm_goal)
-    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.thus));
+    (SpecParse.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.thus));
 
 
 (* facts *)
 
-val facts = P.and_list1 P.xthms1;
+val facts = P.and_list1 SpecParse.xthms1;
 
 val thenP =
   OuterSyntax.command "then" "forward chaining"
@@ -456,7 +456,7 @@ val withP =
 val noteP =
   OuterSyntax.command "note" "define facts"
     (K.tag_proof K.prf_decl)
-    (P.name_facts >> (Toplevel.print oo (Toplevel.proof o Proof.note_thmss)));
+    (SpecParse.name_facts >> (Toplevel.print oo (Toplevel.proof o Proof.note_thmss)));
 
 val usingP =
   OuterSyntax.command "using" "augment goal facts"
@@ -479,25 +479,25 @@ val fixP =
 val assumeP =
   OuterSyntax.command "assume" "assume propositions"
     (K.tag_proof K.prf_asm)
-    (P.statement >> (Toplevel.print oo (Toplevel.proof o Proof.assume)));
+    (SpecParse.statement >> (Toplevel.print oo (Toplevel.proof o Proof.assume)));
 
 val presumeP =
   OuterSyntax.command "presume" "assume propositions, to be established later"
     (K.tag_proof K.prf_asm)
-    (P.statement >> (Toplevel.print oo (Toplevel.proof o Proof.presume)));
+    (SpecParse.statement >> (Toplevel.print oo (Toplevel.proof o Proof.presume)));
 
 val defP =
   OuterSyntax.command "def" "local definition"
     (K.tag_proof K.prf_asm)
     (P.and_list1
-      (P.opt_thm_name ":" --
+      (SpecParse.opt_thm_name ":" --
         ((P.name -- P.opt_mixfix) -- ((P.$$$ "\\<equiv>" || P.$$$ "==") |-- P.!!! P.termp)))
     >> (Toplevel.print oo (Toplevel.proof o Proof.def)));
 
 val obtainP =
   OuterSyntax.command "obtain" "generalized existence"
     (K.tag_proof K.prf_asm_goal)
-    (P.parname -- Scan.optional (P.fixes --| P.where_) [] -- P.statement
+    (P.parname -- Scan.optional (P.fixes --| P.where_) [] -- SpecParse.statement
       >> (fn ((x, y), z) => Toplevel.print o Toplevel.proof' (Obtain.obtain x y z)));
 
 val guessP =
@@ -513,7 +513,7 @@ val letP =
 
 val case_spec =
   (P.$$$ "(" |-- P.!!! (P.xname -- Scan.repeat1 (P.maybe P.name) --| P.$$$ ")") ||
-    P.xname >> rpair []) -- P.opt_attribs >> P.triple1;
+    P.xname >> rpair []) -- SpecParse.opt_attribs >> P.triple1;
 
 val caseP =
   OuterSyntax.command "case" "invoke local context"
@@ -544,12 +544,12 @@ val nextP =
 val qedP =
   OuterSyntax.command "qed" "conclude (sub-)proof"
     (K.tag_proof K.qed_block)
-    (Scan.option P.method >> (Toplevel.print3 oo IsarCmd.qed));
+    (Scan.option Method.parse >> (Toplevel.print3 oo IsarCmd.qed));
 
 val terminal_proofP =
   OuterSyntax.command "by" "terminal backward proof"
     (K.tag_proof K.qed)
-    (P.method -- Scan.option P.method >> (Toplevel.print3 oo IsarCmd.terminal_proof));
+    (Method.parse -- Scan.option Method.parse >> (Toplevel.print3 oo IsarCmd.terminal_proof));
 
 val default_proofP =
   OuterSyntax.command ".." "default proof"
@@ -592,17 +592,17 @@ val preferP =
 val applyP =
   OuterSyntax.command "apply" "initial refinement step (unstructured)"
     (K.tag_proof K.prf_script)
-    (P.method >> (Toplevel.print oo (Toplevel.proofs o Proof.apply)));
+    (Method.parse >> (Toplevel.print oo (Toplevel.proofs o Proof.apply)));
 
 val apply_endP =
   OuterSyntax.command "apply_end" "terminal refinement (unstructured)"
     (K.tag_proof K.prf_script)
-    (P.method >> (Toplevel.print oo (Toplevel.proofs o Proof.apply_end)));
+    (Method.parse >> (Toplevel.print oo (Toplevel.proofs o Proof.apply_end)));
 
 val proofP =
   OuterSyntax.command "proof" "backward proof"
     (K.tag_proof K.prf_block)
-    (Scan.option P.method >> (fn m => Toplevel.print o
+    (Scan.option Method.parse >> (fn m => Toplevel.print o
       Toplevel.actual_proof (ProofHistory.applys (Proof.proof m)) o
       Toplevel.skip_proof (History.apply (fn i => i + 1))));
 
@@ -610,7 +610,7 @@ val proofP =
 (* calculational proof commands *)
 
 val calc_args =
-  Scan.option (P.$$$ "(" |-- P.!!! ((P.xthms1 --| P.$$$ ")")));
+  Scan.option (P.$$$ "(" |-- P.!!! ((SpecParse.xthms1 --| P.$$$ ")")));
 
 val alsoP =
   OuterSyntax.command "also" "combine calculation and current facts"
@@ -751,7 +751,7 @@ val class_depsP =
 
 val thm_depsP =
   OuterSyntax.improper_command "thm_deps" "visualize theorem dependencies"
-    K.diag (P.xthms1 >> (Toplevel.no_timing oo IsarCmd.thm_deps));
+    K.diag (SpecParse.xthms1 >> (Toplevel.no_timing oo IsarCmd.thm_deps));
 
 val criterion =
   P.reserved "name" |-- P.!!! (P.$$$ ":" |-- P.xname) >> FindTheorems.Name ||
@@ -782,19 +782,19 @@ val print_casesP =
 
 val print_stmtsP =
   OuterSyntax.improper_command "print_statement" "print theorems as long statements" K.diag
-    (opt_modes -- P.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_stmts));
+    (opt_modes -- SpecParse.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_stmts));
 
 val print_thmsP =
   OuterSyntax.improper_command "thm" "print theorems" K.diag
-    (opt_modes -- P.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_thms));
+    (opt_modes -- SpecParse.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_thms));
 
 val print_prfsP =
   OuterSyntax.improper_command "prf" "print proof terms of theorems" K.diag
-    (opt_modes -- Scan.option P.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_prfs false));
+    (opt_modes -- Scan.option SpecParse.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_prfs false));
 
 val print_full_prfsP =
   OuterSyntax.improper_command "full_prf" "print full proof terms of theorems" K.diag
-    (opt_modes -- Scan.option P.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_prfs true));
+    (opt_modes -- Scan.option SpecParse.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_prfs true));
 
 val print_propP =
   OuterSyntax.improper_command "prop" "read and print proposition" K.diag
