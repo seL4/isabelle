@@ -302,21 +302,21 @@ abbreviations on output.
 
 * Isar/locales: changed the way locales with predicates are defined.
 Instead of accumulating the specification, the imported expression is
-now an interpretation.
-INCOMPATIBILITY: different normal form of locale expressions.
-In particular, in interpretations of locales with predicates,
-goals repesenting already interpreted fragments are not removed
-automatically.  Use methods `intro_locales' and `unfold_locales'; see below.
+now an interpretation.  INCOMPATIBILITY: different normal form of
+locale expressions.  In particular, in interpretations of locales with
+predicates, goals repesenting already interpreted fragments are not
+removed automatically.  Use methods `intro_locales' and
+`unfold_locales'; see below.
 
-* Isar/locales: new methods `intro_locales' and `unfold_locales' provide
-backward reasoning on locales predicates.  The methods are aware of
-interpretations and discharge corresponding goals.  `intro_locales' is
-less aggressive then `unfold_locales' and does not unfold predicates to
-assumptions.
+* Isar/locales: new methods `intro_locales' and `unfold_locales'
+provide backward reasoning on locales predicates.  The methods are
+aware of interpretations and discharge corresponding goals.
+`intro_locales' is less aggressive then `unfold_locales' and does not
+unfold predicates to assumptions.
 
 * Isar/locales: the order in which locale fragments are accumulated
-has changed.  This enables to override declarations from fragments
-due to interpretations -- for example, unwanted simp rules.
+has changed.  This enables to override declarations from fragments due
+to interpretations -- for example, unwanted simp rules.
 
 * Provers/induct: improved internal context management to support
 local fixes and defines on-the-fly.  Thus explicit meta-level
@@ -469,10 +469,10 @@ src/HOL/Library/Coinductive_List.thy for various examples.
 * Attribute "symmetric" produces result with standardized schematic
 variables (index 0).  Potential INCOMPATIBILITY.
 
-* Simplifier: by default the simplifier trace only shows top level rewrites
-now. That is, trace_simp_depth_limit is set to 1 by default. Thus there is
-less danger of being flooded by the trace. The trace indicates where parts
-have been suppressed.
+* Simplifier: by default the simplifier trace only shows top level
+rewrites now. That is, trace_simp_depth_limit is set to 1 by
+default. Thus there is less danger of being flooded by the trace. The
+trace indicates where parts have been suppressed.
   
 * Provers/classical: removed obsolete classical version of elim_format
 attribute; classical elim/dest rules are now treated uniformly when
@@ -507,80 +507,53 @@ the graph browser tool.
 
 *** HOL ***
 
-* New syntactic class "size"; overloaded constant "size" now
-has type "'a::size ==> bool"
+* Added syntactic class "size"; overloaded constant "size" now has
+type "'a::size ==> bool"
 
-* Constants "Divides.op div", "Divides.op mod" and "Divides.op dvd" no named
-  "Divides.div", "Divides.mod" and "Divides.dvd"
-  INCOMPATIBILITY for ML code directly refering to constant names.
+* Renamed constants "Divides.op div", "Divides.op mod" and "Divides.op
+dvd" to "Divides.div", "Divides.mod" and
+"Divides.dvd". INCOMPATIBILITY.
 
-* Replaced "auto_term" by the conceptually simpler method "relation",
-which just applies the instantiated termination rule with no further
-simplifications.
-INCOMPATIBILITY: 
-Replace 
-        termination by (auto_term "MYREL")
-with 
-        termination by (relation "MYREL") auto
+* Added method "lexicographic_order" automatically synthesizes
+termination relations as lexicographic combinations of size measures
+-- 'function' package.
 
-* Automated termination proofs "by lexicographic_order" are now
-included in the abbreviated function command "fun". No explicit
-"termination" command is necessary anymore.
-INCOMPATIBILITY: If a "fun"-definition cannot be proved terminating by
-a lexicographic size order, then the command fails. Use the expanded
-version "function" for these cases.
-
-* New method "lexicographic_order" automatically synthesizes
-termination relations as lexicographic combinations of size measures. 
-Usage for (function package) termination proofs:
-
-termination 
-by lexicographic_order
-
-* Records: generalised field-update to take a function on the field 
-rather than the new value: r(|A := x|) is translated to A_update (K x) r
-The K-combinator that is internally used is called K_record.
+* HOL/records: generalised field-update to take a function on the
+field rather than the new value: r(|A := x|) is translated to A_update
+(K x) r The K-combinator that is internally used is called K_record.
 INCOMPATIBILITY: Usage of the plain update functions has to be
 adapted.
  
-* axclass "semiring_0" now contains annihilation axioms 
-("x * 0 = 0","0 * x = 0"), which are required for a semiring. Richer 
-structures do not inherit from semiring_0 anymore, because this property 
-is a theorem there, not an axiom.
-INCOMPATIBILITY: In instances of semiring_0, there is more to prove, but 
-this is mostly trivial.
+* axclass "semiring_0" now contains annihilation axioms x * 0 = 0 and
+0 * x = 0, which are required for a semiring.  Richer structures do
+not inherit from semiring_0 anymore, because this property is a
+theorem there, not an axiom.  INCOMPATIBILITY: In instances of
+semiring_0, there is more to prove, but this is mostly trivial.
 
-* axclass "recpower" was generalized to arbitrary monoids, not just 
-commutative semirings.
-INCOMPATIBILITY: If you use recpower and need commutativity or a semiring
-property, add the corresponding classes.
+* axclass "recpower" was generalized to arbitrary monoids, not just
+commutative semirings.  INCOMPATIBILITY: If you use recpower and need
+commutativity or a semiring property, add the corresponding classes.
 
-* Locale Lattic_Locales.partial_order changed (to achieve consistency with
-axclass order):
-- moved to Orderings.partial_order
-- additional parameter ``less''
-INCOMPATIBILITY.
+* Unified locale partial_order with class definition (cf. theory
+Orderings), added parameter ``less''.  INCOMPATIBILITY.
 
 * Constant "List.list_all2" in List.thy now uses authentic syntax.
-INCOMPATIBILITY: translations containing list_all2 may go wrong. On Isar
-level, use abbreviations instead.
+INCOMPATIBILITY: translations containing list_all2 may go wrong.  On
+Isar level, use abbreviations instead.
 
-* Constant "List.op mem" in List.thy now has proper name: "List.memberl"
-INCOMPATIBILITY: rarely occuring name references (e.g. ``List.op mem.simps'')
-require renaming (e.g. ``List.memberl.simps'').
+* Renamed constant "List.op mem" to "List.memberl" INCOMPATIBILITY:
+rarely occuring name references (e.g. ``List.op mem.simps'') require
+renaming (e.g. ``List.memberl.simps'').
 
-* Renamed constants in HOL.thy:
-    0      ~> HOL.zero
-    1      ~> HOL.one
-INCOMPATIBILITY: ML code directly refering to constant names may need adaption
-This in general only affects hand-written proof tactics, simprocs and so on.
+* Renamed constants "0" to "HOL.zero" and "1" to "HOL.one".
+INCOMPATIBILITY.
 
-* New theory Code_Generator providing class 'eq',
-allowing for code generation with polymorphic equality.
+* Added theory Code_Generator providing class 'eq', allowing for code
+generation with polymorphic equality.
 
-* Numeral syntax: type 'bin' which was a mere type copy of 'int' has been
-abandoned in favour of plain 'int'. INCOMPATIBILITY -- Significant changes
-for setting up numeral syntax for types:
+* Numeral syntax: type 'bin' which was a mere type copy of 'int' has
+been abandoned in favour of plain 'int'. INCOMPATIBILITY --
+significant changes for setting up numeral syntax for types:
 
   - new constants Numeral.pred and Numeral.succ instead
       of former Numeral.bin_pred and Numeral.bin_succ.
@@ -590,12 +563,11 @@ for setting up numeral syntax for types:
 
 See HOL/Integ/IntArith.thy for an example setup.
 
-* New top level command 'normal_form' computes the normal form of a term
-that may contain free variables. For example 'normal_form "rev[a,b,c]"'
-prints '[b,c,a]'. This command is suitable for heavy-duty computations
-because the functions are compiled to ML first.
-INCOMPATIBILITY: new keywords 'normal_form' must quoted when used as
-an identifier.
+* New top level command 'normal_form' computes the normal form of a
+term that may contain free variables. For example ``normal_form
+"rev[a,b,c]"'' produces ``[b,c,a]'' (without proof).  This command is
+suitable for heavy-duty computations because the functions are
+compiled to ML first.
 
 * Alternative iff syntax "A <-> B" for equality on bool (with priority
 25 like -->); output depends on the "iff" print_mode, the default is
@@ -639,34 +611,37 @@ e.g. "(x < y) < z" or "x < (y < z)", but NOT "x < y < z".
 * Relation composition operator "op O" now has precedence 75 and binds
 stronger than union and intersection. INCOMPATIBILITY.
 
-* The old set interval syntax "{m..n(}" (and relatives) has been removed.
-  Use "{m..<n}" (and relatives) instead.
+* The old set interval syntax "{m..n(}" (and relatives) has been
+removed.  Use "{m..<n}" (and relatives) instead.
 
 * In the context of the assumption "~(s = t)" the Simplifier rewrites
 "t = s" to False (by simproc "neq_simproc").  For backward
 compatibility this can be disabled by ML "reset use_neq_simproc".
 
-* "m dvd n" where m and n are numbers is evaluated to True/False by simp.
+* "m dvd n" where m and n are numbers is evaluated to True/False by
+simp.
 
-* Theorem Cons_eq_map_conv no longer has attribute `simp'.
+* Theorem Cons_eq_map_conv no longer declared as ``simp''.
 
 * Theorem setsum_mult renamed to setsum_right_distrib.
 
 * Prefer ex1I over ex_ex1I in single-step reasoning, e.g. by the
-'rule' method.
+``rule'' method.
 
-* Tactics 'sat' and 'satx' reimplemented, several improvements: goals
-no longer need to be stated as "<prems> ==> False", equivalences (i.e.
-"=" on type bool) are handled, variable names of the form "lit_<n>"
-are no longer reserved, significant speedup.
+* Reimplemented methods ``sat'' and ``satx'', with several
+improvements: goals no longer need to be stated as "<prems> ==>
+False", equivalences (i.e. "=" on type bool) are handled, variable
+names of the form "lit_<n>" are no longer reserved, significant
+speedup.
 
-* Tactics 'sat' and 'satx' can now replay MiniSat proof traces.  zChaff is
-still supported as well.
+* Methods ``sat'' and ``satx'' can now replay MiniSat proof traces.
+zChaff is still supported as well.
 
-* inductive and datatype: provide projections of mutual rules, bundled
-as foo_bar.inducts;
+* 'inductive' and 'datatype': provide projections of mutual rules,
+bundled as foo_bar.inducts;
 
-* Library: moved theories Parity, GCD, Binomial, Infinite_Set to Library.
+* Library: moved theories Parity, GCD, Binomial, Infinite_Set to
+Library.
 
 * Library: moved theory Accessible_Part to main HOL.
 
@@ -676,16 +651,16 @@ as greatest fixed-point.
 * Library: added theory AssocList which implements (finite) maps as
 association lists.
 
-* New proof method "evaluation" for efficiently solving a goal (i.e. a
-boolean expression) by compiling it to ML. The goal is "proved" (via
-the oracle "Evaluation") if it evaluates to True.
+* Added proof method ``evaluation'' for efficiently solving a goal
+(i.e. a boolean expression) by compiling it to ML. The goal is
+"proved" (via an oracle) if it evaluates to True.
 
 * Linear arithmetic now splits certain operators (e.g. min, max, abs)
 also when invoked by the simplifier.  This results in the simplifier
 being more powerful on arithmetic goals.  INCOMPATIBILITY.  Set
 fast_arith_split_limit to 0 to obtain the old behavior.
 
-* Support for hex (0x20) and binary (0b1001) numerals. 
+* Support for hex (0x20) and binary (0b1001) numerals.
 
 * New method: reify eqs (t), where eqs are equations for an
 interpretation I :: 'a list => 'b => 'c and t::'c is an optional
@@ -713,14 +688,14 @@ is available in HOL/ex/ReflectionEx.thy
 * Order and lattice theory no longer based on records.
 INCOMPATIBILITY.
 
-* Renamed lemmas least_carrier -> least_closed and
-greatest_carrier -> greatest_closed.  INCOMPATIBILITY.
+* Renamed lemmas least_carrier -> least_closed and greatest_carrier ->
+greatest_closed.  INCOMPATIBILITY.
 
 * Method algebra is now set up via an attribute.  For examples see
 Ring.thy.  INCOMPATIBILITY: the method is now weaker on combinations
 of algebraic structures.
 
-* Renamed `CRing.thy' to `Ring.thy'.  INCOMPATIBILITY.
+* Renamed theory CRing to Ring.
 
 
 *** HOL-Complex ***
@@ -734,13 +709,14 @@ means a goal is either solved or left unchanged, no simplification.
 algebras, using new overloaded constants scaleR :: real => 'a => 'a
 and norm :: 'a => real.
 
-* Real: New constant of_real :: real => 'a::real_algebra_1 injects from
-reals into other types. The overloaded constant Reals :: 'a set is now
-defined as range of_real; potential INCOMPATIBILITY.
+* Real: New constant of_real :: real => 'a::real_algebra_1 injects
+from reals into other types. The overloaded constant Reals :: 'a set
+is now defined as range of_real; potential INCOMPATIBILITY.
 
-* Hyperreal: Several constants that previously worked only for the reals
-have been generalized, so they now work over arbitrary vector spaces. Type
-annotations may need to be added in some cases; potential INCOMPATIBILITY.
+* Hyperreal: Several constants that previously worked only for the
+reals have been generalized, so they now work over arbitrary vector
+spaces. Type annotations may need to be added in some cases; potential
+INCOMPATIBILITY.
 
   Infinitesimal  :: ('a::real_normed_vector) star set"
   HFinite        :: ('a::real_normed_vector) star set"
@@ -757,9 +733,9 @@ annotations may need to be added in some cases; potential INCOMPATIBILITY.
   deriv          :: ['a::real_normed_field => 'a, 'a, 'a] => bool
 
 * Complex: Some complex-specific constants are now abbreviations for
-overloaded ones: complex_of_real = of_real, cmod = norm, hcmod = hnorm.
-Other constants have been entirely removed in favor of the polymorphic
-versions (INCOMPATIBILITY):
+overloaded ones: complex_of_real = of_real, cmod = norm, hcmod =
+hnorm.  Other constants have been entirely removed in favor of the
+polymorphic versions (INCOMPATIBILITY):
 
   approx        <-- capprox
   HFinite       <-- CFinite
@@ -774,33 +750,6 @@ versions (INCOMPATIBILITY):
 
 *** ML ***
 
-* Pure/table:
-
-Function `...tab.foldl` removed.
-INCOMPATIBILITY: use `...tabfold` instead
-
-* Pure/library:
-
-`gen_rem(s)` abandoned in favour of `remove` / `subtract`.
-INCOMPATIBILITY:
-rewrite "gen_rem eq (xs, x)" to "remove (eq o swap) x xs"
-rewrite "gen_rems eq (xs, ys)" to "subtract (eq o swap) ys xs"
-drop "swap" if "eq" is symmetric.
-
-* Pure/library:
-
-infixes `ins` `ins_string` `ins_int` have been abandoned in favour of `insert`.
-INCOMPATIBILITY: rewrite "x ins(_...) xs" to "insert (op =) x xs"
-
-* Pure/General/susp.ML:
-
-New module for delayed evaluations.
-
-* Pure/library:
-
-Semantically identical functions "equal_list" and "eq_list" have been
-unified to "eq_list".
-
 * Pure/library:
 
   val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
@@ -808,12 +757,9 @@ unified to "eq_list".
 
 The semantics of "burrow" is: "take a function with *simulatanously*
 transforms a list of value, and apply it *simulatanously* to a list of
-list of values of the appropriate type". Confer this with "map" which
+list of values of the appropriate type". Compare this with "map" which
 would *not* apply its argument function simulatanously but in
-sequence. "fold_burrow" has an additional context.
-
-Both actually avoid the usage of "unflat" since they hide away
-"unflat" from the user.
+sequence; "fold_burrow" has an additional context.
 
 * Pure/library: functions map2 and fold2 with curried syntax for
 simultanous mapping and folding:
@@ -833,12 +779,8 @@ functions for alists, tables, etc:
 Note that fold_index starts counting at index 0, not 1 like foldln
 used to.
 
-* Pure/library: general ``divide_and_conquer'' combinator on lists.
-
-* Pure/General/name_mangler.ML provides a functor for generic name
-mangling (bijective mapping from expression values to strings).
-
-* Pure/General/rat.ML implements rational numbers.
+* Pure/library: added general ``divide_and_conquer'' combinator on
+lists.
 
 * Pure/General/table.ML: the join operations now works via exceptions
 DUP/SAME instead of type option.  This is simpler in simple cases, and
@@ -862,7 +804,8 @@ declarations and definitions.
 
 * Pure/kernel: consts certification ignores sort constraints given in
 signature declarations.  (This information is not relevant to the
-logic, but only for type inference.)  IMPORTANT INTERNAL CHANGE.
+logic, but only for type inference.)  IMPORTANT INTERNAL CHANGE,
+potential INCOMPATIBILITY.
 
 * Pure: axiomatic type classes are now purely definitional, with
 explicit proofs of class axioms and super class relations performed
