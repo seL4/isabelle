@@ -7,6 +7,14 @@ Derived Isar commands.
 
 signature ISAR_CMD =
 sig
+  val generic_setup: string option -> theory -> theory
+  val parse_ast_translation: bool * string -> theory -> theory
+  val parse_translation: bool * string -> theory -> theory
+  val print_translation: bool * string -> theory -> theory
+  val typed_print_translation: bool * string -> theory -> theory
+  val print_ast_translation: bool * string -> theory -> theory
+  val token_translation: string -> theory -> theory
+  val oracle: bstring * string * string -> theory -> theory
   val add_axioms: ((bstring * string) * Attrib.src list) list -> theory -> theory
   val add_defs: (bool * bool) * ((bstring * string) * Attrib.src list) list -> theory -> theory
   val apply_theorems: (thmref * Attrib.src list) list -> theory -> thm list * theory
@@ -121,6 +129,85 @@ structure IsarCmd: ISAR_CMD =
 struct
 
 
+(** theory declarations **)
+
+(* generic_setup *)
+
+fun generic_setup NONE = (fn thy => thy |> Context.setup ())
+  | generic_setup (SOME txt) =
+      ML_Context.use_let "val setup: theory -> theory" "Context.map_theory setup" txt
+      |> Context.theory_map;
+
+
+(* translation functions *)
+
+local
+
+fun advancedT false = ""
+  | advancedT true = "Proof.context -> ";
+
+fun advancedN false = ""
+  | advancedN true = "advanced_";
+
+in
+
+fun parse_ast_translation (a, txt) =
+  txt |> ML_Context.use_let ("val parse_ast_translation: (string * (" ^ advancedT a ^
+      "Syntax.ast list -> Syntax.ast)) list")
+    ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns (parse_ast_translation, [], [], []))")
+  |> Context.theory_map;
+
+fun parse_translation (a, txt) =
+  txt |> ML_Context.use_let ("val parse_translation: (string * (" ^ advancedT a ^
+      "term list -> term)) list")
+    ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], parse_translation, [], []))")
+  |> Context.theory_map;
+
+fun print_translation (a, txt) =
+  txt |> ML_Context.use_let ("val print_translation: (string * (" ^ advancedT a ^
+      "term list -> term)) list")
+    ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], [], print_translation, []))")
+  |> Context.theory_map;
+
+fun print_ast_translation (a, txt) =
+  txt |> ML_Context.use_let ("val print_ast_translation: (string * (" ^ advancedT a ^
+      "Syntax.ast list -> Syntax.ast)) list")
+    ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], [], [], print_ast_translation))")
+  |> Context.theory_map;
+
+fun typed_print_translation (a, txt) =
+  txt |> ML_Context.use_let ("val typed_print_translation: (string * (" ^ advancedT a ^
+      "bool -> typ -> term list -> term)) list")
+    ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfunsT typed_print_translation)")
+  |> Context.theory_map;
+
+val token_translation =
+  ML_Context.use_let "val token_translation: (string * string * (string -> string * real)) list"
+    "Context.map_theory (Sign.add_tokentrfuns token_translation)"
+  #> Context.theory_map;
+
+end;
+
+
+(* oracles *)
+
+fun oracle (name, T, oracle) =
+  let val txt =
+    "local\n\
+    \  type T = " ^ T ^ ";\n\
+    \  val oracle: theory -> T -> term = " ^ oracle ^ ";\n\
+    \  val name = " ^ quote name ^ ";\n\
+    \  exception Arg of T;\n\
+    \  val _ = ML_Context.>> (Theory.add_oracle (name, fn (thy, Arg x) => oracle thy x));\n\
+    \  val thy = ML_Context.the_context ();\n\
+    \  val invoke_" ^ name ^ " = Thm.invoke_oracle_i thy (Sign.full_name thy name);\n\
+    \in\n\
+    \  fun " ^ name ^ " thy x = invoke_" ^ name ^ " (thy, Arg x);\n\
+    \end;\n";
+  in ML_Context.use_mltext_update txt false end
+  |> Context.theory_map;
+
+
 (* axioms *)
 
 fun add_axms f args thy =
@@ -145,7 +232,8 @@ fun apply_theorems_i args = apfst (maps snd) o PureThy.note_thmss_i "" [(("", []
 (* declarations *)
 
 val declaration =
-  Context.use_let "val declaration: morphism -> Context.generic -> Context.generic"
+  ML_Context.use_let
+    "val declaration: Morphism.morphism -> Context.generic -> Context.generic"
   "Context.map_proof (LocalTheory.declaration declaration)"
   #> Context.proof_map;
 
@@ -216,7 +304,7 @@ val init_toplevel = Toplevel.imperative (fn () => raise Toplevel.RESTART);
 val welcome = Toplevel.imperative (writeln o Session.welcome);
 
 val exit = Toplevel.keep (fn state =>
-  (Context.set_context (try Toplevel.generic_theory_of state); raise Toplevel.TERMINATE));
+  (ML_Context.set_context (try Toplevel.generic_theory_of state); raise Toplevel.TERMINATE));
 
 val quit = Toplevel.imperative quit;
 
@@ -283,14 +371,14 @@ val back =
 (* use ML text *)
 
 fun use path = Toplevel.keep (fn state =>
-  Context.setmp (try Toplevel.generic_theory_of state) (ThyInfo.load_file false) path);
+  ML_Context.setmp (try Toplevel.generic_theory_of state) (ThyInfo.load_file false) path);
 
 (*passes changes of theory context*)
-val use_mltext_theory = Toplevel.theory' o (Context.theory_map oo Context.use_mltext_update);
+val use_mltext_theory = Toplevel.theory' o (Context.theory_map oo ML_Context.use_mltext_update);
 
 (*ignore result theory context*)
 fun use_mltext v txt = Toplevel.keep' (fn verb => fn state =>
-  (Context.use_mltext txt (v andalso verb) (try Toplevel.generic_theory_of state)));
+  (ML_Context.use_mltext txt (v andalso verb) (try Toplevel.generic_theory_of state)));
 
 val use_commit = Toplevel.imperative Secure.commit;
 
@@ -303,11 +391,11 @@ val pwd = Toplevel.imperative (fn () => writeln (Path.implode (File.pwd ())));
 
 (* load theory files *)
 
-fun use_thy name = Toplevel.imperative (fn () => Context.save ThyInfo.use_thy name);
-fun use_thy_only name = Toplevel.imperative (fn () => Context.save ThyInfo.use_thy_only name);
-fun update_thy name = Toplevel.imperative (fn () => Context.save ThyInfo.update_thy name);
+fun use_thy name = Toplevel.imperative (fn () => ML_Context.save ThyInfo.use_thy name);
+fun use_thy_only name = Toplevel.imperative (fn () => ML_Context.save ThyInfo.use_thy_only name);
+fun update_thy name = Toplevel.imperative (fn () => ML_Context.save ThyInfo.update_thy name);
 fun update_thy_only name =
-  Toplevel.imperative (fn () => Context.save ThyInfo.update_thy_only name);
+  Toplevel.imperative (fn () => ML_Context.save ThyInfo.update_thy_only name);
 
 
 (* present draft files *)
@@ -388,7 +476,7 @@ val print_trans_rules = Toplevel.unknown_context o
 val print_methods = Toplevel.unknown_theory o
   Toplevel.keep (Method.print_methods o Toplevel.theory_of);
 
-val print_antiquotations = Toplevel.imperative IsarOutput.print_antiquotations;
+val print_antiquotations = Toplevel.imperative ThyOutput.print_antiquotations;
 
 val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
@@ -503,7 +591,7 @@ local
 
 fun present _ txt true node = OuterSyntax.check_text txt (SOME node)
   | present f (s, _) false node =
-      Context.setmp (try (Toplevel.cases_node I (Context.Proof o Proof.context_of)) node) f s;
+      ML_Context.setmp (try (Toplevel.cases_node I (Context.Proof o Proof.context_of)) node) f s;
 
 fun present_local_theory f (loc, txt) = Toplevel.present_local_theory loc (present f txt);
 fun present_proof f txt = Toplevel.print o Toplevel.present_proof (present f txt);
