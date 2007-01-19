@@ -61,21 +61,14 @@ end
 
 text {* Evaluation *}
 
-setup {*
+method_setup evaluation = {*
 let
 
-val TrueI = thm "TrueI"
 fun evaluation_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
   (Drule.goals_conv (equal i) Codegen.evaluation_conv));
-val evaluation_meth =
-  Method.no_args (Method.SIMPLE_METHOD' (evaluation_tac THEN' rtac TrueI));
 
-in
-
-Method.add_method ("evaluation", evaluation_meth, "solve goal by evaluation")
-
-end;
-*}
+in Method.no_args (Method.SIMPLE_METHOD' (evaluation_tac THEN' rtac TrueI)) end
+*} "solve goal by evaluation"
 
 
 subsection {* Generic code generator setup *}
@@ -163,17 +156,14 @@ code_reserved OCaml
 text {* itself as a code generator datatype *}
 
 setup {*
-let fun add_itself thy =
   let
     val v = ("'a", []);
     val t = Logic.mk_type (TFree v);
     val Const (c, ty) = t;
     val (_, Type (dtco, _)) = strip_type ty;
   in
-    thy
-    |> CodegenData.add_datatype (dtco, (([v], [(c, [])]), CodegenData.lazy (fn () => [])))
+    CodegenData.add_datatype (dtco, (([v], [(c, [])]), CodegenData.lazy (fn () => [])))
   end
-in add_itself end;
 *} 
 
 
@@ -194,15 +184,11 @@ code_reserved OCaml failwith
 subsection {* Evaluation oracle *}
 
 ML {*
-signature HOL_EVAL =
+structure HOL_Eval:
 sig
   val reff: bool option ref
   val prop: theory -> term -> term
-  val tac: int -> tactic
-  val method: Method.src -> Proof.context -> Method.method
-end;
-
-structure HOL_Eval =
+end =
 struct
 
 val reff : bool option ref = ref NONE;
@@ -213,54 +199,39 @@ fun prop thy t =
     then HOLogic.true_const
     else HOLogic.false_const
 
-fun mk_eq thy t =
-  Logic.mk_equals (t, prop thy t)
-
-end;
+end
 *}
 
-setup {*
-  PureThy.add_oracle ("invoke", "term", "HOL_Eval.mk_eq")
+oracle eval_oracle ("term") = {*
+  fn thy => fn t => Logic.mk_equals (t, HOL_Eval.prop thy t)
 *}
 
-ML {*
-structure HOL_Eval : HOL_EVAL =
-struct
-
-open HOL_Eval;
+method_setup eval = {*
+let
 
 fun conv ct =
-  let
-    val {thy, t, ...} = rep_cterm ct;
-  in invoke thy t end;
+  let val {thy, t, ...} = rep_cterm ct
+  in eval_oracle thy t end;
 
-fun tac i = Tactical.PRIMITIVE (Drule.fconv_rule
+fun eval_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
   (Drule.goals_conv (equal i) (HOLogic.Trueprop_conv conv)));
 
-val method =
-  Method.no_args (Method.SIMPLE_METHOD' (tac THEN' rtac TrueI));
-
-end;
-*}
-
-setup {*
-  Method.add_method ("eval", HOL_Eval.method, "solve goal by evaluation")
-*}
+in Method.no_args (Method.SIMPLE_METHOD' (eval_tac THEN' rtac TrueI)) end
+*} "solve goal by evaluation"
 
 
 subsection {* Normalization by evaluation *}
 
-setup {*
+method_setup normalization = {*
 let
   fun normalization_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
     (Drule.goals_conv (equal i) (HOLogic.Trueprop_conv
       NBE.normalization_conv)));
-  val normalization_meth =
-    Method.no_args (Method.SIMPLE_METHOD' (normalization_tac THEN' resolve_tac [TrueI, refl]));
 in
-  Method.add_method ("normalization", normalization_meth, "solve goal by normalization")
-end;
-*}
+  Method.no_args (Method.SIMPLE_METHOD' (normalization_tac THEN' resolve_tac [TrueI, refl]))
+end
+*} "solve goal by normalization"
+
 
 text {* lazy @{const If} *}
 
