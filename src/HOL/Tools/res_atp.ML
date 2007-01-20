@@ -56,7 +56,7 @@ end;
 structure ResAtp =
 struct
 
-fun timestamp s = Output.debug ("At " ^ Time.toString (Time.now()) ^ ": " ^ s);
+fun timestamp s = Output.debug (fn () => ("At " ^ Time.toString (Time.now()) ^ ": " ^ s));
 
 (********************************************************************)
 (* some settings for both background automatic ATP calling procedure*)
@@ -237,7 +237,7 @@ fun term_lg [] (lg,seen) = (lg,seen)
                             else fn_lg f (FOL,seen)
       in
         if is_fol_logic lg' then ()
-        else Output.debug ("Found a HOL term: " ^ Display.raw_string_of_term f);
+        else Output.debug (fn () => ("Found a HOL term: " ^ Display.raw_string_of_term f));
         term_lg (args@tms) (lg',seen')
       end
   | term_lg _ (lg,seen) = (lg,seen)
@@ -261,7 +261,7 @@ fun lit_lg (Const("Not",_) $ P) (lg,seen) = lit_lg P (lg,seen)
                             else pred_lg pred (lg,seen)
       in
         if is_fol_logic lg' then ()
-        else Output.debug ("Found a HOL predicate: " ^ Display.raw_string_of_term pred);
+        else Output.debug (fn () => ("Found a HOL predicate: " ^ Display.raw_string_of_term pred));
         term_lg args (lg',seen')
       end;
 
@@ -270,7 +270,7 @@ fun lits_lg [] (lg,seen) = (lg,seen)
       let val (lg,seen') = lit_lg lit (FOL,seen)
       in
         if is_fol_logic lg then ()
-        else Output.debug ("Found a HOL literal: " ^ Display.raw_string_of_term lit);
+        else Output.debug (fn () => ("Found a HOL literal: " ^ Display.raw_string_of_term lit));
         lits_lg lits (lg,seen')
       end
   | lits_lg lits (lg,seen) = (lg,seen);
@@ -288,7 +288,7 @@ fun logic_of_clauses [] (lg,seen) = (lg,seen)
     let val (lg,seen') = logic_of_clause cls (FOL,seen)
         val _ =
           if is_fol_logic lg then ()
-          else Output.debug ("Found a HOL clause: " ^ Display.raw_string_of_term cls)
+          else Output.debug (fn () => ("Found a HOL clause: " ^ Display.raw_string_of_term cls))
     in
         logic_of_clauses clss (lg,seen')
     end
@@ -506,7 +506,7 @@ fun mk_clause_table n =
 fun make_unique xs =
   let val ht = mk_clause_table 7000
   in
-      Output.debug("make_unique gets " ^ Int.toString (length xs) ^ " clauses");
+      Output.debug (fn () => ("make_unique gets " ^ Int.toString (length xs) ^ " clauses"));
       app (ignore o Polyhash.peekInsert ht) xs;
       Polyhash.listItems ht
   end;
@@ -529,7 +529,7 @@ fun get_relevant_clauses thy cls_thms white_cls goals =
 fun display_thms [] = ()
   | display_thms ((name,thm)::nthms) =
       let val nthm = name ^ ": " ^ (string_of_thm thm)
-      in Output.debug nthm; display_thms nthms  end;
+      in Output.debug (fn () => nthm); display_thms nthms  end;
 
 fun all_valid_thms ctxt =
   PureThy.thms_containing (ProofContext.theory_of ctxt) ([], []) @
@@ -571,7 +571,7 @@ fun get_clasimp_atp_lemmas ctxt user_thms =
   let val included_thms =
         if !include_all
         then (tap (fn ths => Output.debug
-                     ("Including all " ^ Int.toString (length ths) ^ " theorems"))
+                     (fn () => ("Including all " ^ Int.toString (length ths) ^ " theorems")))
                   (name_thm_pairs ctxt))
         else
         let val claset_thms =
@@ -583,8 +583,8 @@ fun get_clasimp_atp_lemmas ctxt user_thms =
             val atpset_thms =
                 if !include_atpset then ResAxioms.atpset_rules_of ctxt
                 else []
-            val _ = if !Output.show_debug_msgs
-                    then (Output.debug "ATP theorems: "; display_thms atpset_thms)
+            val _ = if !Output.debugging
+                    then (Output.debug (fn () => "ATP theorems: "); display_thms atpset_thms)
                     else ()
         in  claset_thms @ simpset_thms @ atpset_thms  end
       val user_rules = filter check_named
@@ -600,12 +600,11 @@ fun blacklist_filter ths =
       let val banned = make_banned_test (map #1 ths)
           fun ok (a,_) = not (banned a)
           val (good,bad) = List.partition ok ths
-      in  if !Output.show_debug_msgs then
-             (Output.debug("blacklist filter gets " ^ Int.toString (length ths) ^ " theorems");
-              Output.debug("filtered: " ^ space_implode ", " (map #1 bad));
-              Output.debug("...and returns " ^ Int.toString (length good)))
-          else ();
-          good 
+      in
+        Output.debug (fn () => "blacklist filter gets " ^ Int.toString (length ths) ^ " theorems");
+        Output.debug (fn () => "filtered: " ^ space_implode ", " (map #1 bad));
+        Output.debug (fn () => "...and returns " ^ Int.toString (length good));
+        good 
       end
   else ths;
 
@@ -751,14 +750,15 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
         and user_lemmas_names = map #1 user_rules
     in
         writer logic goal_cls file (axclauses,classrel_clauses,arity_clauses) user_lemmas_names;
-        Output.debug ("Writing to " ^ file);
+        Output.debug (fn () => "Writing to " ^ file);
         file
     end;
 
 
 (**** remove tmp files ****)
 fun cond_rm_tmp file =
-    if !Output.show_debug_msgs orelse !destdir <> "" then Output.debug "ATP input kept..."
+    if !Output.debugging orelse !destdir <> ""
+    then Output.debug (fn () => "ATP input kept...")
     else OS.FileSys.remove file;
 
 
@@ -785,7 +785,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
             val probfile = prob_pathname n
             val time = Int.toString (!time_limit)
           in
-            Output.debug ("problem file in watcher_call_provers is " ^ probfile);
+            Output.debug (fn () => "problem file in watcher_call_provers is " ^ probfile);
             (*options are separated by Watcher.setting_sep, currently #"%"*)
             if !prover = "spass"
             then
@@ -816,7 +816,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
     val atp_list = make_atp_list sg_terms 1
   in
     Watcher.callResProvers(childout,atp_list);
-    Output.debug "Sent commands to watcher!"
+    Output.debug (fn () => "Sent commands to watcher!")
   end
 
 fun trace_vector fname =
@@ -829,7 +829,7 @@ fun trace_vector fname =
   subgoals, each involving &&.*)
 fun write_problem_files probfile (ctxt,th)  =
   let val goals = Thm.prems_of th
-      val _ = Output.debug ("number of subgoals = " ^ Int.toString (length goals))
+      val _ = Output.debug (fn () => "number of subgoals = " ^ Int.toString (length goals))
       val thy = ProofContext.theory_of ctxt
       fun get_neg_subgoals [] _ = []
         | get_neg_subgoals (gl::gls) n = #1 (ResAxioms.neg_conjecture_clauses th n) :: 
@@ -844,11 +844,11 @@ fun write_problem_files probfile (ctxt,th)  =
                                        |> ResAxioms.cnf_rules_pairs |> make_unique
                                        |> restrict_to_logic logic
                                        |> remove_unwanted_clauses
-      val _ = Output.debug ("included clauses = " ^ Int.toString(length included_cls))
+      val _ = Output.debug (fn () => "included clauses = " ^ Int.toString(length included_cls))
       val white_cls = ResAxioms.cnf_rules_pairs white_thms
       (*clauses relevant to goal gl*)
       val axcls_list = map (fn ngcls => get_relevant_clauses thy included_cls white_cls (map prop_of ngcls)) goal_cls
-      val _ = app (fn axcls => Output.debug ("filtered clauses = " ^ Int.toString(length axcls)))
+      val _ = app (fn axcls => Output.debug (fn () => "filtered clauses = " ^ Int.toString(length axcls)))
                   axcls_list
       val writer = if !prover = "spass" then dfg_writer else tptp_writer
       fun write_all [] [] _ = []
@@ -863,12 +863,12 @@ fun write_problem_files probfile (ctxt,th)  =
                 and tycons = type_consts_of_terms thy (ccltms@axtms)
                 (*TFrees in conjecture clauses; TVars in axiom clauses*)
                 val classrel_clauses = ResClause.make_classrel_clauses thy subs supers
-                val _ = Output.debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
+                val _ = Output.debug (fn () => "classrel clauses = " ^ Int.toString (length classrel_clauses))
                 val arity_clauses = ResClause.arity_clause_thy thy tycons supers
-                val _ = Output.debug ("arity clauses = " ^ Int.toString (length arity_clauses))
+                val _ = Output.debug (fn () => "arity clauses = " ^ Int.toString (length arity_clauses))
                 val clnames = writer logic ccls fname (axcls,classrel_clauses,arity_clauses) []
                 val thm_names = Vector.fromList clnames
-                val _ = if !Output.show_debug_msgs
+                val _ = if !Output.debugging
                         then trace_vector (fname ^ "_thm_names") thm_names else ()
             in  (thm_names,fname) :: write_all ccls_list axcls_list (k+1)  end
       val (thm_names_list, filenames) = ListPair.unzip (write_all goal_cls axcls_list 1)
@@ -883,10 +883,10 @@ fun kill_last_watcher () =
     (case !last_watcher_pid of
          NONE => ()
        | SOME (_, _, pid, files) =>
-          (Output.debug ("Killing old watcher, pid = " ^ string_of_pid pid);
+          (Output.debug (fn () => "Killing old watcher, pid = " ^ string_of_pid pid);
            Watcher.killWatcher pid;
            ignore (map (try cond_rm_tmp) files)))
-     handle OS.SysErr _ => Output.debug "Attempt to kill watcher failed";
+     handle OS.SysErr _ => Output.debug (fn () => "Attempt to kill watcher failed");
 
 (*writes out the current problems and calls ATPs*)
 fun isar_atp (ctxt, th) =
@@ -898,8 +898,8 @@ fun isar_atp (ctxt, th) =
       val (childin, childout, pid) = Watcher.createWatcher (ctxt, th, thm_names_list)
     in
       last_watcher_pid := SOME (childin, childout, pid, files);
-      Output.debug ("problem files: " ^ space_implode ", " files);
-      Output.debug ("pid: " ^ string_of_pid pid);
+      Output.debug (fn () => "problem files: " ^ space_implode ", " files);
+      Output.debug (fn () => "pid: " ^ string_of_pid pid);
       watcher_call_provers (sign_of_thm th) (Thm.prems_of th) (childin, childout, pid)
     end;
 
@@ -923,12 +923,12 @@ val isar_atp_writeonly = setmp print_mode []
 fun invoke_atp_ml (ctxt, goal) =
   let val thy = ProofContext.theory_of ctxt;
   in
-    Output.debug ("subgoals in isar_atp:\n" ^
+    Output.debug (fn () => "subgoals in isar_atp:\n" ^
                   Pretty.string_of (ProofContext.pretty_term ctxt
                     (Logic.mk_conjunction_list (Thm.prems_of goal))));
-    Output.debug ("current theory: " ^ Context.theory_name thy);
+    Output.debug (fn () => "current theory: " ^ Context.theory_name thy);
     inc hook_count;
-    Output.debug ("in hook for time: " ^ Int.toString (!hook_count));
+    Output.debug (fn () => "in hook for time: " ^ Int.toString (!hook_count));
     ResClause.init thy;
     ResHolClause.init thy;
     if !time_limit > 0 then isar_atp (ctxt, goal)

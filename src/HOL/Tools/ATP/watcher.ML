@@ -45,7 +45,7 @@ val goals_being_watched = ref 0;
 
 val trace_path = Path.basic "watcher_trace";
 
-fun trace s = if !Output.show_debug_msgs then File.append (File.tmp_path trace_path) s 
+fun trace s = if !Output.debugging then File.append (File.tmp_path trace_path) s 
               else ();
 
 (*Representation of a watcher process*)
@@ -236,7 +236,7 @@ fun checkChildren (ctxt, th, thm_names_list) toParentStr children =
 		in
 		 if childDone (*ATP has reported back (with success OR failure)*)
 		 then (Unix.reap proc_handle;  
-		       if !Output.show_debug_msgs then () else OS.FileSys.remove file;
+		       if !Output.debugging then () else OS.FileSys.remove file;
 		       check children)
 		 else child :: check children
 	      end
@@ -358,7 +358,7 @@ fun createWatcher (ctxt, th, thm_names_list) =
 	  (goals_being_watched := !goals_being_watched - 1;
 	   if !goals_being_watched = 0
 	   then 
-	     (Output.debug ("\nReaping a watcher, childpid = " ^ string_of_pid childpid);
+	     (Output.debug (fn () => ("\nReaping a watcher, childpid = " ^ string_of_pid childpid));
 	      killWatcher childpid (*???; reapWatcher (childpid, childin, childout)*) )
 	    else ())
      fun proofHandler _ = 
@@ -369,9 +369,9 @@ fun createWatcher (ctxt, th, thm_names_list) =
 	   val text = string_of_subgoal th sgno
 	   fun report s = priority ("Subgoal " ^ Int.toString sgno ^ ": " ^ s);
        in 
-	 Output.debug ("In signal handler. outcome = \"" ^ outcome ^ 
+	 Output.debug (fn () => ("In signal handler. outcome = \"" ^ outcome ^ 
 		       "\"\nprobfile = " ^ probfile ^
-		       "\nGoals being watched: "^  Int.toString (!goals_being_watched));
+		       "\nGoals being watched: "^  Int.toString (!goals_being_watched)));
 	 if String.isPrefix "Invalid" outcome
 	 then (report ("Subgoal is not provable:\n" ^ text);
 	       decr_watched())
@@ -389,7 +389,7 @@ fun createWatcher (ctxt, th, thm_names_list) =
 	 else (report "System error in proof handler";
 	       decr_watched())
        end
- in Output.debug ("subgoals forked to createWatcher: "^ prems_string_of th);
+ in Output.debug (fn () => ("subgoals forked to createWatcher: "^ prems_string_of th));
     IsaSignal.signal (IsaSignal.usr2, IsaSignal.SIG_HANDLE proofHandler);
     (childin, childout, childpid)
   end

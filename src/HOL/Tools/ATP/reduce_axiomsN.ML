@@ -184,7 +184,7 @@ fun defines thy (thm,(name,n)) gctypes =
     in    
 	case tm of Const ("Trueprop",_) $ (Const("op =",_) $ lhs $ rhs) => 
 		   defs lhs rhs andalso
-		   (Output.debug ("Definition found: " ^ name ^ "_" ^ Int.toString n); true)
+		   (Output.debug (fn () => "Definition found: " ^ name ^ "_" ^ Int.toString n); true)
 		 | _ => false
     end;
 
@@ -201,15 +201,14 @@ fun take_best (newpairs : (annotd_cls*real) list) =
     else 
       let val cls = sort compare_pairs newpairs
           val accepted = List.take (cls, !max_new)
-      in  if !Output.show_debug_msgs then
-              (Output.debug ("Number of candidates, " ^ Int.toString nnew ^ 
-			", exceeds the limit of " ^ Int.toString (!max_new));
-               Output.debug ("Effective pass mark: " ^ Real.toString (#2 (List.last accepted)));
-               Output.debug ("Actually passed: " ^ 
-                             space_implode ", " (map (fn (((_,(name,_)),_),_) => name) accepted)))
-	  else ();
-	  (map #1 accepted, 
-	   map #1 (List.drop (cls, !max_new)))
+      in
+        Output.debug (fn () => ("Number of candidates, " ^ Int.toString nnew ^ 
+		       ", exceeds the limit of " ^ Int.toString (!max_new)));
+        Output.debug (fn () => ("Effective pass mark: " ^ Real.toString (#2 (List.last accepted))));
+        Output.debug (fn () => "Actually passed: " ^
+          space_implode ", " (map (fn (((_,(name,_)),_),_) => name) accepted));
+
+	(map #1 accepted, map #1 (List.drop (cls, !max_new)))
       end
   end;
 
@@ -220,7 +219,8 @@ fun relevant_clauses thy ctab p rel_consts =
 		val new_consts = List.concat (map #2 newrels)
 		val rel_consts' = foldl add_const_typ_table rel_consts new_consts
 		val newp = p + (1.0-p) / !convergence
-	    in Output.debug ("relevant this iteration: " ^ Int.toString (length newrels));
+	    in
+              Output.debug (fn () => ("relevant this iteration: " ^ Int.toString (length newrels)));
 	       (map #1 newrels) @ 
 	       (relevant_clauses thy ctab newp rel_consts' (more_rejects@rejects))
 	    end
@@ -228,28 +228,26 @@ fun relevant_clauses thy ctab p rel_consts =
 	    let val weight = clause_weight ctab rel_consts consts_typs
 	    in
 	      if p <= weight orelse (!follow_defs andalso defines thy clsthm rel_consts)
-	      then (Output.debug (name ^ " passes: " ^ Real.toString weight); 
+	      then (Output.debug (fn () => (name ^ " passes: " ^ Real.toString weight));
 	            relevant ((ax,weight)::newrels, rejects) axs)
 	      else relevant (newrels, ax::rejects) axs
 	    end
-    in  Output.debug ("relevant_clauses, current pass mark = " ^ Real.toString p);
+    in  Output.debug (fn () => ("relevant_clauses, current pass mark = " ^ Real.toString p));
         relevant ([],[]) 
     end;
 	
 fun relevance_filter thy axioms goals = 
  if !run_relevance_filter andalso !pass_mark >= 0.1
  then
-  let val _ = Output.debug "Start of relevance filtering";
+  let val _ = Output.debug (fn () => "Start of relevance filtering");
       val const_tab = List.foldl (count_axiom_consts thy) Symtab.empty axioms
       val goal_const_tab = get_goal_consts_typs thy goals
-      val _ = if !Output.show_debug_msgs
-              then Output.debug ("Initial constants: " ^
-                                 space_implode ", " (Symtab.keys goal_const_tab))
-              else ()
+      val _ = Output.debug (fn () => ("Initial constants: " ^
+                                 space_implode ", " (Symtab.keys goal_const_tab)));
       val rels = relevant_clauses thy const_tab (!pass_mark) 
                    goal_const_tab  (map (pair_consts_typs_axiom thy) axioms)
   in
-      Output.debug ("Total relevant: " ^ Int.toString (length rels));
+      Output.debug (fn () => ("Total relevant: " ^ Int.toString (length rels)));
       rels
   end
  else axioms;

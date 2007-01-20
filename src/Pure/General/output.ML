@@ -27,7 +27,7 @@ sig
   val change_warn: ('b -> 'a -> bool) -> ('a -> 'b -> 'b) -> ('a -> string) -> 'a -> 'b -> 'b
   val update_warn: ('a * 'a -> bool) -> string -> ('a * 'b) -> ('a * 'b) list -> ('a * 'b) list
   val overwrite_warn: (''a * 'b) list * (''a * 'b) -> string -> (''a * 'b) list
-  val show_debug_msgs: bool ref
+  val debugging: bool ref
   val no_warnings: ('a -> 'b) -> 'a -> 'b
   val timing: bool ref
   val cond_timeit: bool -> (unit -> 'a) -> 'a
@@ -53,7 +53,7 @@ sig
   val ML_errors: ('a -> 'b) -> 'a -> 'b
   val panic: string -> unit
   val info: string -> unit
-  val debug: string -> unit
+  val debug: (unit -> string) -> unit
   val error_msg: string -> unit
   val ml_output: (string -> unit) * (string -> unit)
   val add_mode: string ->
@@ -128,8 +128,8 @@ fun info s = ! info_fn (output s);
 
 fun no_warnings f = setmp warning_fn (K ()) f;
 
-val show_debug_msgs = ref false;
-fun debug s = if ! show_debug_msgs then ! debug_fn (output s) else ()
+val debugging = ref false;
+fun debug s = if ! debugging then ! debug_fn (output (s ())) else ()
 
 fun error_msg s = ! error_fn (output s);
 

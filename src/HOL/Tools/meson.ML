@@ -271,7 +271,7 @@ fun cnf skoths (th,ths) =
       and cnf_nil th = cnf_aux (th,[])
   in 
     if too_many_clauses (concl_of th) 
-    then (Output.debug ("cnf is ignoring: " ^ string_of_thm th); ths)
+    then (Output.debug (fn () => ("cnf is ignoring: " ^ string_of_thm th)); ths)
     else cnf_aux (th,ths)
   end;
 
@@ -574,12 +574,11 @@ fun iter_deepen_meson_tac ths = MESON
 	   [] => no_tac  (*no goal clauses*)
 	 | goes => 
 	     let val horns = make_horns (cls@ths)
-	         val _ = if !Output.show_debug_msgs 
-	                 then Output.debug ("meson method called:\n" ^ 
+	         val _ =
+	             Output.debug (fn () => ("meson method called:\n" ^ 
 	     	                  space_implode "\n" (map string_of_thm (cls@ths)) ^ 
 	     	                  "\nclauses:\n" ^ 
-	     	                  space_implode "\n" (map string_of_thm horns))
-	     	         else ()
+	     	                  space_implode "\n" (map string_of_thm horns)))
 	     in THEN_ITER_DEEPEN (resolve_tac goes 1) (has_fewer_prems 1) (prolog_step_tac' horns)
 	     end
  );

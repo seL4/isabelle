@@ -536,19 +536,19 @@ fun get_helper_clauses (conjectures, axclauses, user_lemmas) =
         val ct = foldl (count_user_clause user_lemmas) ct0 axclauses
         fun needed c = valOf (Symtab.lookup ct c) > 0
         val IK = if needed "c_COMBI" orelse needed "c_COMBK" 
-                 then (Output.debug "Include combinator I K"; cnf_helper_thms [comb_I,comb_K]) 
+                 then (Output.debug (fn () => "Include combinator I K"); cnf_helper_thms [comb_I,comb_K]) 
                  else []
 	val BC = if needed "c_COMBB" orelse needed "c_COMBC" 
-	         then (Output.debug "Include combinator B C"; cnf_helper_thms [comb_B,comb_C]) 
+	         then (Output.debug (fn () => "Include combinator B C"); cnf_helper_thms [comb_B,comb_C]) 
 	         else []
 	val S = if needed "c_COMBS" 
-	        then (Output.debug "Include combinator S"; cnf_helper_thms [comb_S]) 
+	        then (Output.debug (fn () => "Include combinator S"); cnf_helper_thms [comb_S]) 
 	        else []
 	val B'C' = if needed "c_COMBB_e" orelse needed "c_COMBC_e" 
-	           then (Output.debug "Include combinator B' C'"; cnf_helper_thms [comb_B', comb_C']) 
+	           then (Output.debug (fn () => "Include combinator B' C'"); cnf_helper_thms [comb_B', comb_C']) 
 	           else []
 	val S' = if needed "c_COMBS_e" 
-	         then (Output.debug "Include combinator S'"; cnf_helper_thms [comb_S']) 
+	         then (Output.debug (fn () => "Include combinator S'"); cnf_helper_thms [comb_S']) 
 	         else []
 	val other = cnf_helper_thms [ext,fequal_imp_equal,equal_imp_fequal]
     in
@@ -579,7 +579,7 @@ fun count_constants_lit (Literal (_,t)) = count_constants_term true t;
 fun count_constants_clause (Clause{literals,...}) = List.app count_constants_lit literals;
 
 fun display_arity (c,n) =
-  Output.debug ("Constant: " ^ c ^ " arity:\t" ^ Int.toString n ^ 
+  Output.debug (fn () => "Constant: " ^ c ^ " arity:\t" ^ Int.toString n ^ 
                 (if needs_hBOOL c then " needs hBOOL" else ""));
 
 fun count_constants (conjectures, axclauses, helper_clauses) = 

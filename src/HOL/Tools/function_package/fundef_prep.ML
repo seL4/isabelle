@@ -349,14 +349,14 @@ fun prove_stuff thy congs globals G f R clauses complete compat compat_store G_e
         val ih_intro = ihyp_thm RS inst_ex1_ex
         val ih_elim = ihyp_thm RS inst_ex1_un
 
-        val _ = Output.debug "Proving Replacement lemmas..."
+        val _ = Output.debug (fn () => "Proving Replacement lemmas...")
         val repLemmas = map (mk_replacement_lemma thy h ih_elim) clauses
 
-        val _ = Output.debug "Proving cases for unique existence..."
+        val _ = Output.debug (fn () => "Proving cases for unique existence...")
         val (ex1s, values) = 
             split_list (map (mk_uniqueness_case thy globals G f ihyp ih_intro G_elim compat_store clauses repLemmas) clauses)
 
-        val _ = Output.debug "Proving: Graph is a function" (* FIXME: Rewrite this proof. *)
+        val _ = Output.debug (fn () => "Proving: Graph is a function") (* FIXME: Rewrite this proof. *)
         val graph_is_function = complete
                                   |> forall_elim_vars 0
                                   |> fold (curry op COMP) ex1s

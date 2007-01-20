@@ -27,7 +27,7 @@ struct
 
 val trace_path = Path.basic "atp_trace";
 
-fun trace s = if !Output.show_debug_msgs then File.append (File.tmp_path trace_path) s 
+fun trace s = if !Output.debugging then File.append (File.tmp_path trace_path) s 
               else ();
 
 (*Full proof reconstruction wanted*)
@@ -427,11 +427,9 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
       val (ccls,fixes) = ResAxioms.neg_conjecture_clauses th sgno
       val ccls = map forall_intr_vars ccls
   in  
-      if !Output.show_debug_msgs
-      then app (Output.debug o string_of_thm) ccls
-      else ();
-      isar_header (map #1 fixes) ^ 
-      String.concat (isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines))
+    app (fn th => Output.debug (fn () => string_of_thm th)) ccls;
+    isar_header (map #1 fixes) ^ 
+    String.concat (isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines))
   end;
 
 (*Could use split_lines, but it can return blank lines...*)

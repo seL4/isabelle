@@ -133,9 +133,9 @@ val tracing_preferences =
      bool_pref Output.timing
 	       "global-timing"
 	       "Whether to enable timing in Isabelle.",
-     bool_pref Output.show_debug_msgs
-		"debug-messages"
-		"Whether to show debugging messages."]
+     bool_pref Toplevel.debug
+		"debugging"
+		"Whether to enable debugging."]
 
 val proof_preferences = 
     [bool_pref quick_and_dirty

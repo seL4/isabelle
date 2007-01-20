@@ -467,7 +467,7 @@ fun flatten_name s = space_implode "_X" (NameSpace.explode s);
   It returns a modified theory, unless skolemization fails.*)
 fun skolem thy (name,th) =
   let val cname = (case name of "" => gensym "" | s => flatten_name s)
-      val _ = Output.debug ("skolemizing " ^ name ^ ": ")
+      val _ = Output.debug (fn () => "skolemizing " ^ name ^ ": ")
   in Option.map
         (fn nnfth =>
           let val (thy',defs) = declare_skofuns cname nnfth thy
@@ -495,28 +495,29 @@ fun skolem_cache_thm (name,th) thy =
                end)
     | SOME (th',cls) =>
         if eq_thm(th,th') then (cls,thy)
-        else (Output.debug ("skolem_cache: Ignoring variant of theorem " ^ name);
-              Output.debug (string_of_thm th);
-              Output.debug (string_of_thm th');
+        else (Output.debug (fn () => "skolem_cache: Ignoring variant of theorem " ^ name);
+              Output.debug (fn () => string_of_thm th);
+              Output.debug (fn () => string_of_thm th');
               ([th],thy));
 
 (*Exported function to convert Isabelle theorems into axiom clauses*)
 fun cnf_axiom (name,th) =
- (Output.debug ("cnf_axiom called, theorem name = " ^ name);
+ (Output.debug (fn () => "cnf_axiom called, theorem name = " ^ name);
   case name of
         "" => skolem_thm th (*no name, so can't cache*)
       | s  => case Symtab.lookup (!clause_cache) s of
                 NONE => 
                   let val cls = map Goal.close_result (skolem_thm th)
-                  in Output.debug "inserted into cache";
+                  in Output.debug (fn () => "inserted into cache");
                      change clause_cache (Symtab.update (s, (th, cls))); cls 
                   end
               | SOME(th',cls) =>
                   if eq_thm(th,th') then cls
-                  else (Output.debug ("cnf_axiom: duplicate or variant of theorem " ^ name);
-                        Output.debug (string_of_thm th);
-                        Output.debug (string_of_thm th');
-                        cls)
+                  else
+                    (Output.debug (fn () => "cnf_axiom: duplicate or variant of theorem " ^ name);
+                     Output.debug (fn () => string_of_thm th);
+                     Output.debug (fn () => string_of_thm th');
+                     cls)
  );
 
 fun pairname th = (PureThy.get_name_hint th, th);
@@ -533,7 +534,7 @@ fun rules_of_claset cs =
       val intros = safeIs @ hazIs
       val elims  = map Classical.classical_rule (safeEs @ hazEs)
   in
-     Output.debug ("rules_of_claset intros: " ^ Int.toString(length intros) ^
+     Output.debug (fn () => "rules_of_claset intros: " ^ Int.toString(length intros) ^
             " elims: " ^ Int.toString(length elims));
      map pairname (intros @ elims)
   end;
@@ -542,8 +543,8 @@ fun rules_of_simpset ss =
   let val ({rules,...}, _) = rep_ss ss
       val simps = Net.entries rules
   in
-      Output.debug ("rules_of_simpset: " ^ Int.toString(length simps));
-      map (fn r => (#name r, #thm r)) simps
+    Output.debug (fn () => "rules_of_simpset: " ^ Int.toString(length simps));
+    map (fn r => (#name r, #thm r)) simps
   end;
 
 fun claset_rules_of ctxt = rules_of_claset (local_claset_of ctxt);

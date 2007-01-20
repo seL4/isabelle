@@ -425,7 +425,7 @@ val make_conjecture_clauses = make_conjecture_clauses_aux 0
 fun make_axiom_clause thm (ax_name,cls_id) =
   if Meson.is_fol_term (prop_of thm) 
   then (SOME (make_clause(cls_id, ax_name, thm, Axiom)) handle MAKE_CLAUSE => NONE)
-  else (Output.debug ("Omitting " ^ ax_name ^ ": Axiom is not FOL"); NONE)
+  else (Output.debug (fn () => ("Omitting " ^ ax_name ^ ": Axiom is not FOL")); NONE)
     
 fun make_axiom_clauses [] = []
   | make_axiom_clauses ((thm,(name,id))::thms) =
@@ -732,7 +732,7 @@ fun dfg_arity_clause (ArityClause{axiom_name,kind,conclLit,premLits,...}) =
 (* write out a subgoal in DFG format to the file "xxxx_N"*)
 fun dfg_write_file thms filename (ax_tuples,classrel_clauses,arity_clauses) = 
   let 
-    val _ = Output.debug ("Preparing to write the DFG file " ^ filename)
+    val _ = Output.debug (fn () => ("Preparing to write the DFG file " ^ filename))
     val conjectures = make_conjecture_clauses thms
     val (clnames,axclauses) = ListPair.unzip (make_axiom_clauses ax_tuples)
     val (dfg_clss, tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
@@ -818,7 +818,7 @@ fun tptp_classrelClause (ClassrelClause {axiom_name,subclass,superclass,...}) =
 (* write out a subgoal as tptp clauses to the file "xxxx_N"*)
 fun tptp_write_file thms filename (ax_tuples,classrel_clauses,arity_clauses) =
   let
-    val _ = Output.debug ("Preparing to write the TPTP file " ^ filename)
+    val _ = Output.debug (fn () => ("Preparing to write the TPTP file " ^ filename))
     val clss = make_conjecture_clauses thms
     val (clnames,axclauses) = ListPair.unzip (make_axiom_clauses ax_tuples)
     val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
