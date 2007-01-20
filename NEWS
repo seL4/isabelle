@@ -750,6 +750,25 @@ polymorphic versions (INCOMPATIBILITY):
 
 *** ML ***
 
+* ML within Isar: antiquotations allow to embed statically-checked
+formal entities in the source, referring to the context available at
+compile-time.  For example:
+
+ML {* @{typ "'a => 'b"} *}
+ML {* @{term "%x. x"} *}
+ML {* @{prop "x == y"} *}
+ML {* @{ctyp "'a => 'b"} *}
+ML {* @{cterm "%x. x"} *}
+ML {* @{cprop "x == y"} *}
+ML {* @{thm asm_rl} *}
+ML {* @{thms asm_rl} *}
+ML {* @{context} *}
+ML {* @{theory} *}
+ML {* @{theory Pure} *}
+ML {* @{simpset} *}
+ML {* @{claset} *}
+ML {* @{clasimpset} *}
+
 * Pure/library:
 
   val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
