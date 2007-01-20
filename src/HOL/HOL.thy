@@ -817,27 +817,30 @@ struct
   val dest_eq = HOLogic.dest_eq
   val dest_Trueprop = HOLogic.dest_Trueprop
   val dest_imp = HOLogic.dest_imp
-  val eq_reflection = thm "HOL.eq_reflection"
-  val rev_eq_reflection = thm "HOL.def_imp_eq"
-  val imp_intr = thm "HOL.impI"
-  val rev_mp = thm "HOL.rev_mp"
-  val subst = thm "HOL.subst"
-  val sym = thm "HOL.sym"
-  val thin_refl = thm "thin_refl";
+  val eq_reflection = @{thm HOL.eq_reflection}
+  val rev_eq_reflection = @{thm HOL.def_imp_eq}
+  val imp_intr = @{thm HOL.impI}
+  val rev_mp = @{thm HOL.rev_mp}
+  val subst = @{thm HOL.subst}
+  val sym = @{thm HOL.sym}
+  val thin_refl = @{thm thin_refl};
 end);
 open Hypsubst;
 
 structure Classical = ClassicalFun(
 struct
-  val mp = thm "HOL.mp"
-  val not_elim = thm "HOL.notE"
-  val classical = thm "HOL.classical"
+  val mp = @{thm HOL.mp}
+  val not_elim = @{thm HOL.notE}
+  val classical = @{thm HOL.classical}
   val sizef = Drule.size_of_thm
   val hyp_subst_tacs = [Hypsubst.hyp_subst_tac]
 end);
 
 structure BasicClassical: BASIC_CLASSICAL = Classical; 
 open BasicClassical;
+
+ML_Context.value_antiq "claset"
+  (Scan.succeed ("claset", "Classical.local_claset_of (ML_Context.the_local_context ())"));
 *}
 
 setup {*
@@ -899,9 +902,10 @@ lemma alt_ex1E [elim!]:
   shows R
 apply (rule ex1E [OF major])
 apply (rule prem)
-apply (tactic {* ares_tac [thm "allI"] 1 *})+
-apply (tactic {* etac (Classical.dup_elim (thm "allE")) 1 *})
-by iprover
+apply (tactic {* ares_tac @{thms allI} 1 *})+
+apply (tactic {* etac (Classical.dup_elim @{thm allE}) 1 *})
+apply iprover
+done
 
 ML {*
 structure Blast = BlastFun(
@@ -909,8 +913,8 @@ struct
   type claset = Classical.claset
   val equality_name = "op ="
   val not_name = "Not"
-  val notE = thm "HOL.notE"
-  val ccontr = thm "HOL.ccontr"
+  val notE = @{thm HOL.notE}
+  val ccontr = @{thm HOL.ccontr}
   val contr_tac = Classical.contr_tac
   val dup_intr = Classical.dup_intr
   val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
@@ -1306,9 +1310,9 @@ text {* Rule projections: *}
 ML {*
 structure ProjectRule = ProjectRuleFun
 (struct
-  val conjunct1 = thm "conjunct1";
-  val conjunct2 = thm "conjunct2";
-  val mp = thm "mp";
+  val conjunct1 = @{thm conjunct1};
+  val conjunct2 = @{thm conjunct2};
+  val mp = @{thm mp};
 end)
 *}
 
@@ -1364,10 +1368,10 @@ text {* Method setup. *}
 ML {*
   structure InductMethod = InductMethodFun
   (struct
-    val cases_default = thm "case_split"
-    val atomize = thms "induct_atomize"
-    val rulify = thms "induct_rulify"
-    val rulify_fallback = thms "induct_rulify_fallback"
+    val cases_default = @{thm case_split}
+    val atomize = @{thms induct_atomize}
+    val rulify = @{thms induct_rulify}
+    val rulify_fallback = @{thms induct_rulify_fallback}
   end);
 *}
 
@@ -1410,54 +1414,54 @@ lemma mk_left_commute:
 subsection {* Basic ML bindings *}
 
 ML {*
-val FalseE = thm "FalseE"
-val Let_def = thm "Let_def"
-val TrueI = thm "TrueI";
-val allE = thm "allE";
-val allI = thm "allI";
-val all_dupE = thm "all_dupE"
-val arg_cong = thm "arg_cong";
-val box_equals = thm "box_equals"
-val ccontr = thm "ccontr";
-val classical = thm "classical";
-val conjE = thm "conjE";
-val conjI = thm "conjI";
-val conjunct1 = thm "conjunct1";
-val conjunct2 = thm "conjunct2";
-val disjCI = thm "disjCI";
-val disjE = thm "disjE";
-val disjI1 = thm "disjI1"
-val disjI2 = thm "disjI2"
-val eq_reflection = thm "eq_reflection";
-val ex1E = thm "ex1E"
-val ex1I = thm "ex1I"
-val ex1_implies_ex = thm "ex1_implies_ex"
-val exE = thm "exE";
-val exI = thm "exI";
-val excluded_middle = thm "excluded_middle"
-val ext = thm "ext"
-val fun_cong = thm "fun_cong"
-val iffD1 = thm "iffD1";
-val iffD2 = thm "iffD2";
-val iffI = thm "iffI";
-val impE = thm "impE"
-val impI = thm "impI";
-val meta_eq_to_obj_eq = thm "meta_eq_to_obj_eq";
-val mp = thm "mp";
-val notE = thm "notE";
-val notI = thm "notI";
-val not_all = thm "not_all";
-val not_ex = thm "not_ex";
-val not_iff = thm "not_iff";
-val not_not = thm "not_not";
-val not_sym = thm "not_sym"
-val refl = thm "refl";
-val rev_mp = thm "rev_mp"
-val spec = thm "spec";
-val ssubst = thm "ssubst"
-val subst = thm "subst";
-val sym = thm "sym";
-val trans = thm "trans";
+val FalseE = @{thm FalseE}
+val Let_def = @{thm Let_def}
+val TrueI = @{thm TrueI}
+val allE = @{thm allE}
+val allI = @{thm allI}
+val all_dupE = @{thm all_dupE}
+val arg_cong = @{thm arg_cong}
+val box_equals = @{thm box_equals}
+val ccontr = @{thm ccontr}
+val classical = @{thm classical}
+val conjE = @{thm conjE}
+val conjI = @{thm conjI}
+val conjunct1 = @{thm conjunct1}
+val conjunct2 = @{thm conjunct2}
+val disjCI = @{thm disjCI}
+val disjE = @{thm disjE}
+val disjI1 = @{thm disjI1}
+val disjI2 = @{thm disjI2}
+val eq_reflection = @{thm eq_reflection}
+val ex1E = @{thm ex1E}
+val ex1I = @{thm ex1I}
+val ex1_implies_ex = @{thm ex1_implies_ex}
+val exE = @{thm exE}
+val exI = @{thm exI}
+val excluded_middle = @{thm excluded_middle}
+val ext = @{thm ext}
+val fun_cong = @{thm fun_cong}
+val iffD1 = @{thm iffD1}
+val iffD2 = @{thm iffD2}
+val iffI = @{thm iffI}
+val impE = @{thm impE}
+val impI = @{thm impI}
+val meta_eq_to_obj_eq = @{thm meta_eq_to_obj_eq}
+val mp = @{thm mp}
+val notE = @{thm notE}
+val notI = @{thm notI}
+val not_all = @{thm not_all}
+val not_ex = @{thm not_ex}
+val not_iff = @{thm not_iff}
+val not_not = @{thm not_not}
+val not_sym = @{thm not_sym}
+val refl = @{thm refl}
+val rev_mp = @{thm rev_mp}
+val spec = @{thm spec}
+val ssubst = @{thm ssubst}
+val subst = @{thm subst}
+val sym = @{thm sym}
+val trans = @{thm trans}
 *}
 
 
@@ -1472,8 +1476,6 @@ local
     | wrong_prem (Bound _) = true
     | wrong_prem _ = false;
   val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);
-  val spec = thm "spec"
-  val mp = thm "mp"
 in
   fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp]);
   fun smp_tac j = EVERY'[dresolve_tac (smp j), atac];
