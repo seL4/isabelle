@@ -342,4 +342,7 @@ structure Clasimp = ClasimpFun
   val iffD1 = iffD1 val iffD2 = iffD2 val notE = notE);
 open Clasimp;
 
+ML_Context.value_antiq "clasimpset"
+  (Scan.succeed ("clasimpset", "Clasimp.local_clasimpset_of (ML_Context.the_local_context ())"));
+
 val FOL_css = (FOL_cs, FOL_ss);

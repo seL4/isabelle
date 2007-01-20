@@ -177,8 +177,11 @@ val Delsplits        = Splitter.Delsplits;
 structure Clasimp = ClasimpFun
  (structure Simplifier = Simplifier and Splitter = Splitter
   and Classical  = Classical and Blast = Blast
-  val iffD1 = thm "iffD1" val iffD2 = thm "iffD2" val notE = thm "notE")
+  val iffD1 = thm "iffD1" val iffD2 = thm "iffD2" val notE = thm "notE");
 open Clasimp;
+
+val _ = ML_Context.value_antiq "clasimpset"
+  (Scan.succeed ("clasimpset", "Clasimp.local_clasimpset_of (ML_Context.the_local_context ())"));
 
 val mksimps_pairs =
   [("op -->", [thm "mp"]), ("op &", [thm "conjunct1", thm "conjunct2"]),
