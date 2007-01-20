@@ -20,13 +20,16 @@ sig
   val setmp: Context.generic option -> ('a -> 'b) -> 'a -> 'b
   val the_generic_context: unit -> Context.generic
   val the_local_context: unit -> Proof.context
+  val the_context_finished: unit -> theory
   val pass: Context.generic option -> ('a -> 'b) -> 'a -> 'b * Context.generic option
   val pass_context: Context.generic -> ('a -> 'b) -> 'a -> 'b * Context.generic
   val save: ('a -> 'b) -> 'a -> 'b
   val >> : (theory -> theory) -> unit
   val add_keywords: string list -> unit
-  val inline_antiq: string -> (Args.T list -> string * Args.T list) -> unit
-  val value_antiq: string -> (Args.T list -> (string * string) * Args.T list) -> unit
+  val inline_antiq: string ->
+    (Context.generic * Args.T list -> string * (Context.generic * Args.T list)) -> unit
+  val value_antiq: string ->
+    (Context.generic * Args.T list -> (string * string) * (Context.generic * Args.T list)) -> unit
   val use_mltext: string -> bool -> Context.generic option -> unit
   val use_mltext_update: string -> bool -> Context.generic -> Context.generic
   val use_let: string -> string -> string -> Context.generic -> Context.generic
@@ -50,8 +53,18 @@ fun the_generic_context () =
     SOME context => context
   | _ => error "Unknown context");
 
-val the_context = Context.theory_of o the_generic_context;
 val the_local_context = Context.proof_of o the_generic_context;
+
+val the_context = Context.theory_of o the_generic_context;
+
+fun the_context_finished () =
+  let
+    val thy = the_context ();
+    val _ =
+      if Context.is_finished_thy thy then ()
+      else warning ("Static reference to unfinished theory:\n" ^
+        Pretty.string_of (Context.pretty_abbrev_thy thy));
+  in thy end;
 
 fun pass opt_context f x =
   setmp opt_context (fn x => let val y = f x in (y, get_context ()) end) x;
@@ -65,6 +78,12 @@ fun save f x = setmp (get_context ()) f x;
 
 fun change_theory f =
   set_context (SOME (Context.map_theory f (the_generic_context ())));
+
+
+(* fact references *)
+
+fun thm name = ProofContext.get_thm (the_local_context ()) (Name name);
+fun thms name = ProofContext.get_thms (the_local_context ()) (Name name);
 
 
 
@@ -81,7 +100,8 @@ fun add_keywords keywords =
 (* maintain commands *)
 
 datatype antiq = Inline of string | Value of string * string;
-val global_parsers = ref (Symtab.empty: (Args.T list -> antiq * Args.T list) Symtab.table);
+val global_parsers = ref (Symtab.empty:
+  (Context.generic * Args.T list -> antiq * (Context.generic * Args.T list)) Symtab.table);
 
 local
 
@@ -101,7 +121,7 @@ end;
 (* command syntax *)
 
 fun syntax scan src =
-  #1 (Args.context_syntax "ML antiquotation" (Scan.lift scan) src (the_local_context ()));
+  #1 (Args.context_syntax "ML antiquotation" scan src (the_local_context ()));
 
 fun command src =
   let val ((name, _), pos) = Args.dest_src src in
@@ -124,6 +144,8 @@ val antiq =
 
 (* input/output wrappers *)
 
+val parens = enclose "(" ")";
+
 local
 
 val isabelle_struct = enclose "structure Isabelle =\nstruct\n" "end;";
@@ -136,7 +158,7 @@ fun eval_antiquotes txt =
     fun expand (Antiquote.Text s) names = (("", Symbol.escape s), names)
       | expand (Antiquote.Antiq x) names =
           (case command (Antiquote.scan_arguments (! global_lexicon) antiq x) of
-            Inline s => (("", s), names)
+            Inline s => (("", parens s), names)
           | Value (a, s) =>
               let
                 val a' = if ML_Syntax.is_identifier a then a else "val";
@@ -154,14 +176,15 @@ fun eval verbose txt =
 in
 
 fun eval_wrapper verbose txt =
-  let val (txt1, txt2) = eval_antiquotes txt
+  let
+    val (txt1, txt2) = eval_antiquotes txt;
+    val _ = Output.debug (fn () => cat_lines [txt1, txt2]);
   in eval false txt1; eval verbose txt2; eval false isabelle_struct0 end;
 
 end;
 
 
-
-(** ML evaluation **)
+(* ML evaluation *)
 
 fun use_mltext txt verbose opt_context = setmp opt_context (fn () => eval_wrapper verbose txt) ();
 fun use_mltext_update txt verbose context = #2 (pass_context context (eval_wrapper verbose) txt);
@@ -173,17 +196,28 @@ fun use_let bind body txt =
   use_context ("let " ^ bind ^ " = " ^ txt ^ " in\n" ^ body ^ " end");
 
 
+(* basic antiquotations *)
 
-(** implicit fact references **)
+val _ = inline_antiq "typ" (Args.typ >> ML_Syntax.print_typ);
+val _ = inline_antiq "term" (Args.term >> ML_Syntax.print_term);
+val _ = inline_antiq "prop" (Args.prop >> ML_Syntax.print_term);
 
-fun thm name = ProofContext.get_thm (the_local_context ()) (Name name);
-fun thms name = ProofContext.get_thms (the_local_context ()) (Name name);
+val _ = value_antiq "ctyp" (Args.typ >> (fn T =>
+  ("ctyp", "Thm.ctyp_of (ML_Context.the_context ()) " ^ parens (ML_Syntax.print_typ T))));
+
+val _ = value_antiq "cterm" (Args.term >> (fn t =>
+  ("cterm", "Thm.cterm_of (ML_Context.the_context ()) " ^ parens (ML_Syntax.print_term t))));
+
+val _ = value_antiq "cprop" (Args.prop >> (fn t =>
+  ("cprop", "Thm.cterm_of (ML_Context.the_context ()) " ^ parens (ML_Syntax.print_term t))));
 
 val _ = value_antiq "thm"
-  (Args.name >> (fn s => (s, "ML_Context.thm " ^ ML_Syntax.print_string s)));
-val _ = value_antiq "thms"
-  (Args.name >> (fn s => (s, "ML_Context.thms " ^ ML_Syntax.print_string s)));
+  (Scan.lift Args.name >> (fn s => (s, "ML_Context.thm " ^ ML_Syntax.print_string s)));
 
+val _ = value_antiq "thms"
+  (Scan.lift Args.name >> (fn s => (s, "ML_Context.thms " ^ ML_Syntax.print_string s)));
+
+val _ = value_antiq "context" (Scan.succeed ("context", "ML_Context.the_local_context ()"));
 
 (*final declarations of this structure!*)
 nonfix >>;
