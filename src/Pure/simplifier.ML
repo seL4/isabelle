@@ -138,6 +138,9 @@ val put_local_simpset = LocalSimpset.put;
 
 fun local_simpset_of ctxt = MetaSimplifier.context ctxt (get_local_simpset ctxt);
 
+val _ = ML_Context.value_antiq "simpset"
+  (Scan.succeed ("simpset", "Simplifier.local_simpset_of (ML_Context.the_local_context ())"));
+
 
 (* attributes *)
 
