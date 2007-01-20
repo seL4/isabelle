@@ -341,14 +341,10 @@ val tactic_ref = ref ((fn _ => raise Match): Proof.context -> thm list -> tactic
 fun set_tactic f = tactic_ref := f;
 
 fun tactic txt ctxt = METHOD (fn facts =>
-  (ML_Context.use_mltext
-    ("let fun tactic (ctxt: Proof.context) (facts: thm list) : tactic = \
-       \let val thm = ProofContext.get_thm_closure ctxt o PureThy.Name\n\
-       \  and thms = ProofContext.get_thms_closure ctxt o PureThy.Name in\n"
-       ^ txt ^
-       "\nend in Method.set_tactic tactic end")
-    false NONE;
-    ML_Context.setmp (SOME (Context.Proof ctxt)) (! tactic_ref ctxt) facts));
+ (ML_Context.use_mltext
+   ("let fun tactic (ctxt: Proof.context) (facts: thm list) : tactic =\n"
+     ^ txt ^ "\nin Method.set_tactic tactic end") false (SOME (Context.Proof ctxt));
+  ML_Context.setmp (SOME (Context.Proof ctxt)) (! tactic_ref ctxt) facts));
 
 
 
