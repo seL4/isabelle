@@ -250,7 +250,7 @@ fun print_state prf_only state = ! print_state_fn prf_only state;
 (** toplevel transitions **)
 
 val quiet = ref false;
-val debug = ref false;
+val debug = Output.debugging;
 val interact = ref false;
 val timing = Output.timing;
 val profiling = ref 0;
