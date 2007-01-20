@@ -231,13 +231,8 @@ lemma contrapos:
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
 ML {*
-  local
-    val notE = thm "notE"
-    val impE = thm "impE"
-  in
-    fun mp_tac i = eresolve_tac [notE,impE] i  THEN  assume_tac i
-    fun eq_mp_tac i = eresolve_tac [notE,impE] i  THEN  eq_assume_tac i
-  end
+  fun mp_tac i = eresolve_tac [@{thm notE}, @{thm impE}] i  THEN  assume_tac i
+  fun eq_mp_tac i = eresolve_tac [@{thm notE}, @{thm impE}] i  THEN  eq_assume_tac i
 *}
 
 
@@ -337,14 +332,9 @@ lemma ex1E:
 
 (*Use iffE on a premise.  For conj_cong, imp_cong, all_cong, ex_cong*)
 ML {*
-  local
-    val iffE = thm "iffE"
-    val mp = thm "mp"
-  in
-    fun iff_tac prems i =
-      resolve_tac (prems RL [iffE]) i THEN
-      REPEAT1 (eresolve_tac [asm_rl, mp] i)
-  end
+  fun iff_tac prems i =
+    resolve_tac (prems RL @{thms iffE}) i THEN
+    REPEAT1 (eresolve_tac [@{thm asm_rl}, @{thm mp}] i)
 *}
 
 lemma conj_cong:
@@ -525,7 +515,7 @@ ML {*
 bind_thms ("pred_congs",
   List.concat (map (fn c => 
                map (fn th => read_instantiate [("P",c)] th)
-                   [thm "pred1_cong", thm "pred2_cong", thm "pred3_cong"])
+                   [@{thm pred1_cong}, @{thm pred2_cong}, @{thm pred3_cong}])
                (explode"PQRS")))
 *}
 
@@ -614,9 +604,9 @@ lemma disj_imp_disj:
 ML {*
 structure ProjectRule = ProjectRuleFun
 (struct
-  val conjunct1 = thm "conjunct1";
-  val conjunct2 = thm "conjunct2";
-  val mp = thm "mp";
+  val conjunct1 = @{thm conjunct1}
+  val conjunct2 = @{thm conjunct2}
+  val mp = @{thm mp}
 end)
 *}
 
@@ -791,41 +781,41 @@ lemma LetI:
 subsection {* ML bindings *}
 
 ML {*
-val refl = thm "refl"
-val trans = thm "trans"
-val sym = thm "sym"
-val subst = thm "subst"
-val ssubst = thm "ssubst"
-val conjI = thm "conjI"
-val conjE = thm "conjE"
-val conjunct1 = thm "conjunct1"
-val conjunct2 = thm "conjunct2"
-val disjI1 = thm "disjI1"
-val disjI2 = thm "disjI2"
-val disjE = thm "disjE"
-val impI = thm "impI"
-val impE = thm "impE"
-val mp = thm "mp"
-val rev_mp = thm "rev_mp"
-val TrueI = thm "TrueI"
-val FalseE = thm "FalseE"
-val iff_refl = thm "iff_refl"
-val iff_trans = thm "iff_trans"
-val iffI = thm "iffI"
-val iffE = thm "iffE"
-val iffD1 = thm "iffD1"
-val iffD2 = thm "iffD2"
-val notI = thm "notI"
-val notE = thm "notE"
-val allI = thm "allI"
-val allE = thm "allE"
-val spec = thm "spec"
-val exI = thm "exI"
-val exE = thm "exE"
-val eq_reflection = thm "eq_reflection"
-val iff_reflection = thm "iff_reflection"
-val meta_eq_to_obj_eq = thm "meta_eq_to_obj_eq"
-val meta_eq_to_iff = thm "meta_eq_to_iff"
+val refl = @{thm refl}
+val trans = @{thm trans}
+val sym = @{thm sym}
+val subst = @{thm subst}
+val ssubst = @{thm ssubst}
+val conjI = @{thm conjI}
+val conjE = @{thm conjE}
+val conjunct1 = @{thm conjunct1}
+val conjunct2 = @{thm conjunct2}
+val disjI1 = @{thm disjI1}
+val disjI2 = @{thm disjI2}
+val disjE = @{thm disjE}
+val impI = @{thm impI}
+val impE = @{thm impE}
+val mp = @{thm mp}
+val rev_mp = @{thm rev_mp}
+val TrueI = @{thm TrueI}
+val FalseE = @{thm FalseE}
+val iff_refl = @{thm iff_refl}
+val iff_trans = @{thm iff_trans}
+val iffI = @{thm iffI}
+val iffE = @{thm iffE}
+val iffD1 = @{thm iffD1}
+val iffD2 = @{thm iffD2}
+val notI = @{thm notI}
+val notE = @{thm notE}
+val allI = @{thm allI}
+val allE = @{thm allE}
+val spec = @{thm spec}
+val exI = @{thm exI}
+val exE = @{thm exE}
+val eq_reflection = @{thm eq_reflection}
+val iff_reflection = @{thm iff_reflection}
+val meta_eq_to_obj_eq = @{thm meta_eq_to_obj_eq}
+val meta_eq_to_iff = @{thm meta_eq_to_iff}
 *}
 
 end

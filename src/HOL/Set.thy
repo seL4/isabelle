@@ -391,7 +391,8 @@ lemma bspec [dest?]: "ALL x:A. P x ==> x:A ==> P x"
 
 lemma ballE [elim]: "ALL x:A. P x ==> (P x ==> Q) ==> (x ~: A ==> Q) ==> Q"
   by (unfold Ball_def) blast
-ML {* bind_thm("rev_ballE",permute_prems 1 1 (thm "ballE")) *}
+
+ML {* bind_thm ("rev_ballE", permute_prems 1 1 @{thm ballE}) *}
 
 text {*
   \medskip This tactic takes assumptions @{prop "ALL x:A. P x"} and
@@ -399,8 +400,7 @@ text {*
 *}
 
 ML {*
-  local val ballE = thm "ballE"
-  in fun ball_tac i = etac ballE i THEN contr_tac (i + 1) end;
+  fun ball_tac i = etac @{thm ballE} i THEN contr_tac (i + 1)
 *}
 
 text {*
@@ -408,7 +408,7 @@ text {*
 *}
 
 ML_setup {*
-  change_claset (fn cs => cs addbefore ("bspec", datac (thm "bspec") 1));
+  change_claset (fn cs => cs addbefore ("bspec", datac @{thm bspec} 1))
 *}
 
 lemma bexI [intro]: "P x ==> x:A ==> EX x:A. P x"
@@ -454,11 +454,11 @@ lemma ball_one_point2 [simp]: "(ALL x:A. a = x --> P x) = (a:A --> P a)"
 
 ML_setup {*
   local
-    val unfold_bex_tac = unfold_tac [thm "Bex_def"];
+    val unfold_bex_tac = unfold_tac @{thms "Bex_def"};
     fun prove_bex_tac ss = unfold_bex_tac ss THEN Quantifier1.prove_one_point_ex_tac;
     val rearrange_bex = Quantifier1.rearrange_bex prove_bex_tac;
 
-    val unfold_ball_tac = unfold_tac [thm "Ball_def"];
+    val unfold_ball_tac = unfold_tac @{thms "Ball_def"};
     fun prove_ball_tac ss = unfold_ball_tac ss THEN Quantifier1.prove_one_point_all_tac;
     val rearrange_ball = Quantifier1.rearrange_ball prove_ball_tac;
   in
@@ -524,8 +524,7 @@ text {*
 *}
 
 ML {*
-  local val rev_subsetD = thm "rev_subsetD"
-  in fun impOfSubs th = th RSN (2, rev_subsetD) end;
+  fun impOfSubs th = th RSN (2, @{thm rev_subsetD})
 *}
 
 lemma subsetCE [elim]: "A \<subseteq>  B ==> (c \<notin> A ==> P) ==> (c \<in> B ==> P) ==> P"
@@ -538,8 +537,7 @@ text {*
 *}
 
 ML {*
-  local val subsetCE = thm "subsetCE"
-  in fun set_mp_tac i = etac subsetCE i THEN mp_tac i end;
+  fun set_mp_tac i = etac @{thm subsetCE} i THEN mp_tac i
 *}
 
 lemma contra_subsetD: "A \<subseteq> B ==> c \<notin> B ==> c \<notin> A"
@@ -990,7 +988,7 @@ lemmas mem_simps =
  *)
 
 ML_setup {*
-  val mksimps_pairs = [("Ball", [thm "bspec"])] @ mksimps_pairs;
+  val mksimps_pairs = [("Ball", @{thms bspec})] @ mksimps_pairs;
   change_simpset (fn ss => ss setmksimps (mksimps mksimps_pairs));
 *}
 
@@ -2121,61 +2119,61 @@ lemmas basic_trans_rules [trans] =
 subsection {* Basic ML bindings *}
 
 ML {*
-val Ball_def = thm "Ball_def";
-val Bex_def = thm "Bex_def";
-val CollectD = thm "CollectD";
-val CollectE = thm "CollectE";
-val CollectI = thm "CollectI";
-val Collect_conj_eq = thm "Collect_conj_eq";
-val Collect_mem_eq = thm "Collect_mem_eq";
-val IntD1 = thm "IntD1";
-val IntD2 = thm "IntD2";
-val IntE = thm "IntE";
-val IntI = thm "IntI";
-val Int_Collect = thm "Int_Collect";
-val UNIV_I = thm "UNIV_I";
-val UNIV_witness = thm "UNIV_witness";
-val UnE = thm "UnE";
-val UnI1 = thm "UnI1";
-val UnI2 = thm "UnI2";
-val ballE = thm "ballE";
-val ballI = thm "ballI";
-val bexCI = thm "bexCI";
-val bexE = thm "bexE";
-val bexI = thm "bexI";
-val bex_triv = thm "bex_triv";
-val bspec = thm "bspec";
-val contra_subsetD = thm "contra_subsetD";
-val distinct_lemma = thm "distinct_lemma";
-val eq_to_mono = thm "eq_to_mono";
-val eq_to_mono2 = thm "eq_to_mono2";
-val equalityCE = thm "equalityCE";
-val equalityD1 = thm "equalityD1";
-val equalityD2 = thm "equalityD2";
-val equalityE = thm "equalityE";
-val equalityI = thm "equalityI";
-val imageE = thm "imageE";
-val imageI = thm "imageI";
-val image_Un = thm "image_Un";
-val image_insert = thm "image_insert";
-val insert_commute = thm "insert_commute";
-val insert_iff = thm "insert_iff";
-val mem_Collect_eq = thm "mem_Collect_eq";
-val rangeE = thm "rangeE";
-val rangeI = thm "rangeI";
-val range_eqI = thm "range_eqI";
-val subsetCE = thm "subsetCE";
-val subsetD = thm "subsetD";
-val subsetI = thm "subsetI";
-val subset_refl = thm "subset_refl";
-val subset_trans = thm "subset_trans";
-val vimageD = thm "vimageD";
-val vimageE = thm "vimageE";
-val vimageI = thm "vimageI";
-val vimageI2 = thm "vimageI2";
-val vimage_Collect = thm "vimage_Collect";
-val vimage_Int = thm "vimage_Int";
-val vimage_Un = thm "vimage_Un";
+val Ball_def = @{thm Ball_def}
+val Bex_def = @{thm Bex_def}
+val CollectD = @{thm CollectD}
+val CollectE = @{thm CollectE}
+val CollectI = @{thm CollectI}
+val Collect_conj_eq = @{thm Collect_conj_eq}
+val Collect_mem_eq = @{thm Collect_mem_eq}
+val IntD1 = @{thm IntD1}
+val IntD2 = @{thm IntD2}
+val IntE = @{thm IntE}
+val IntI = @{thm IntI}
+val Int_Collect = @{thm Int_Collect}
+val UNIV_I = @{thm UNIV_I}
+val UNIV_witness = @{thm UNIV_witness}
+val UnE = @{thm UnE}
+val UnI1 = @{thm UnI1}
+val UnI2 = @{thm UnI2}
+val ballE = @{thm ballE}
+val ballI = @{thm ballI}
+val bexCI = @{thm bexCI}
+val bexE = @{thm bexE}
+val bexI = @{thm bexI}
+val bex_triv = @{thm bex_triv}
+val bspec = @{thm bspec}
+val contra_subsetD = @{thm contra_subsetD}
+val distinct_lemma = @{thm distinct_lemma}
+val eq_to_mono = @{thm eq_to_mono}
+val eq_to_mono2 = @{thm eq_to_mono2}
+val equalityCE = @{thm equalityCE}
+val equalityD1 = @{thm equalityD1}
+val equalityD2 = @{thm equalityD2}
+val equalityE = @{thm equalityE}
+val equalityI = @{thm equalityI}
+val imageE = @{thm imageE}
+val imageI = @{thm imageI}
+val image_Un = @{thm image_Un}
+val image_insert = @{thm image_insert}
+val insert_commute = @{thm insert_commute}
+val insert_iff = @{thm insert_iff}
+val mem_Collect_eq = @{thm mem_Collect_eq}
+val rangeE = @{thm rangeE}
+val rangeI = @{thm rangeI}
+val range_eqI = @{thm range_eqI}
+val subsetCE = @{thm subsetCE}
+val subsetD = @{thm subsetD}
+val subsetI = @{thm subsetI}
+val subset_refl = @{thm subset_refl}
+val subset_trans = @{thm subset_trans}
+val vimageD = @{thm vimageD}
+val vimageE = @{thm vimageE}
+val vimageI = @{thm vimageI}
+val vimageI2 = @{thm vimageI2}
+val vimage_Collect = @{thm vimage_Collect}
+val vimage_Int = @{thm vimage_Int}
+val vimage_Un = @{thm vimage_Un}
 *}
 
 end

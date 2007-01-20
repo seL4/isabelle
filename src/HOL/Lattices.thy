@@ -280,26 +280,26 @@ lemmas min_ac = min_max.inf_assoc min_max.inf_commute
 text {* ML legacy bindings *}
 
 ML {*
-val Least_def = thm "Least_def";
-val Least_equality = thm "Least_equality";
-val min_def = thm "min_def";
-val min_of_mono = thm "min_of_mono";
-val max_def = thm "max_def";
-val max_of_mono = thm "max_of_mono";
-val min_leastL = thm "min_leastL";
-val max_leastL = thm "max_leastL";
-val min_leastR = thm "min_leastR";
-val max_leastR = thm "max_leastR";
-val le_max_iff_disj = thm "le_max_iff_disj";
-val le_maxI1 = thm "le_maxI1";
-val le_maxI2 = thm "le_maxI2";
-val less_max_iff_disj = thm "less_max_iff_disj";
-val max_less_iff_conj = thm "max_less_iff_conj";
-val min_less_iff_conj = thm "min_less_iff_conj";
-val min_le_iff_disj = thm "min_le_iff_disj";
-val min_less_iff_disj = thm "min_less_iff_disj";
-val split_min = thm "split_min";
-val split_max = thm "split_max";
+val Least_def = @{thm Least_def}
+val Least_equality = @{thm Least_equality}
+val min_def = @{thm min_def}
+val min_of_mono = @{thm min_of_mono}
+val max_def = @{thm max_def}
+val max_of_mono = @{thm max_of_mono}
+val min_leastL = @{thm min_leastL}
+val max_leastL = @{thm max_leastL}
+val min_leastR = @{thm min_leastR}
+val max_leastR = @{thm max_leastR}
+val le_max_iff_disj = @{thm le_max_iff_disj}
+val le_maxI1 = @{thm le_maxI1}
+val le_maxI2 = @{thm le_maxI2}
+val less_max_iff_disj = @{thm less_max_iff_disj}
+val max_less_iff_conj = @{thm max_less_iff_conj}
+val min_less_iff_conj = @{thm min_less_iff_conj}
+val min_le_iff_disj = @{thm min_le_iff_disj}
+val min_less_iff_disj = @{thm min_less_iff_disj}
+val split_min = @{thm split_min}
+val split_max = @{thm split_max}
 *}
 
 end

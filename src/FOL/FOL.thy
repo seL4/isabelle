@@ -55,13 +55,8 @@ lemma excluded_middle: "~P | P"
 
 (*For disjunctive case analysis*)
 ML {*
-  local
-    val excluded_middle = thm "excluded_middle"
-    val disjE = thm "disjE"
-  in
-    fun excluded_middle_tac sP =
-      res_inst_tac [("Q",sP)] (excluded_middle RS disjE)
-  end
+  fun excluded_middle_tac sP =
+    res_inst_tac [("Q",sP)] (@{thm excluded_middle} RS @{thm disjE})
 *}
 
 lemma case_split_thm:
@@ -77,11 +72,7 @@ lemmas case_split = case_split_thm [case_names True False, cases type: o]
 
 (*HOL's more natural case analysis tactic*)
 ML {*
-  local
-    val case_split_thm = thm "case_split_thm"
-  in
-    fun case_tac a = res_inst_tac [("P",a)] case_split_thm
-  end
+  fun case_tac a = res_inst_tac [("P",a)] @{thm case_split_thm}
 *}
 
 
@@ -278,10 +269,10 @@ text {* Method setup. *}
 ML {*
   structure InductMethod = InductMethodFun
   (struct
-    val cases_default = thm "case_split";
-    val atomize = thms "induct_atomize";
-    val rulify = thms "induct_rulify";
-    val rulify_fallback = thms "induct_rulify_fallback";
+    val cases_default = @{thm case_split}
+    val atomize = @{thms induct_atomize}
+    val rulify = @{thms induct_rulify}
+    val rulify_fallback = @{thms induct_rulify_fallback}
   end);
 *}
 
