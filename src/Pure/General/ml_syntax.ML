@@ -45,7 +45,7 @@ fun is_identifier name =
   not (is_reserved name) andalso Syntax.is_ascii_identifier name;
 
 
-(* unformatted output *)
+(* literal output -- unformatted *)
 
 fun print_pair f1 f2 (x, y) = "(" ^ f1 x ^ ", " ^ f2 y ^ ")";
 
@@ -71,19 +71,19 @@ val print_class = print_string;
 
 val print_sort = print_list print_class;
 
-fun print_typ (Type sTs) =
-      "Type " ^ print_pair print_string (print_list print_typ) sTs
-  | print_typ (TFree sSort) =
-      "TFree " ^ print_pair print_string print_sort sSort
-  | print_typ (TVar siSort) =
-      "TVar " ^ print_pair (print_pair print_string Int.toString) print_sort siSort;
+fun print_typ (Type arg) =
+      "Type " ^ print_pair print_string (print_list print_typ) arg
+  | print_typ (TFree arg) =
+      "TFree " ^ print_pair print_string print_sort arg
+  | print_typ (TVar arg) =
+      "TVar " ^ print_pair (print_pair print_string Int.toString) print_sort arg;
 
-fun print_term (Const sT) =
-      "Const " ^ print_pair print_string print_typ sT
-  | print_term (Free sT) =
-      "Free " ^ print_pair print_string print_typ sT
-  | print_term (Var siT) =
-      "Var " ^ print_pair (print_pair print_string Int.toString) print_typ siT
+fun print_term (Const arg) =
+      "Const " ^ print_pair print_string print_typ arg
+  | print_term (Free arg) =
+      "Free " ^ print_pair print_string print_typ arg
+  | print_term (Var arg) =
+      "Var " ^ print_pair (print_pair print_string Int.toString) print_typ arg
   | print_term (Bound i) =
       "Bound " ^ Int.toString i
   | print_term (Abs (s, T, t)) =
