@@ -619,7 +619,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy			\
   ex/Codegenerator.thy ex/Codegenerator_Rat.thy \
   ex/Commutative_RingEx.thy ex/Hex_Bin_Examples.thy	\
   ex/Commutative_Ring_Complete.thy ex/ExecutableContent.thy	\
-  ex/Guess.thy ex/Hebrew.thy			\
+  ex/Guess.thy ex/Hebrew.thy ex/Binary.thy			\
   ex/Higher_Order_Logic.thy ex/Hilbert_Classical.thy ex/InSort.thy		\
   ex/InductiveInvariant.thy ex/InductiveInvariant_examples.thy			\
   ex/Intuitionistic.thy ex/Lagrange.thy ex/Locales.thy ex/MT.ML			\
