@@ -127,7 +127,7 @@ local
   val plus = nat_op "HOL.plus";
   val mult = nat_op "HOL.times";
 
-  fun prove ctxt prop =  (* FIXME avoid re-certification *)
+  fun prove ctxt prop =
     Goal.prove ctxt [] [] prop (fn _ => ALLGOALS (full_simp_tac binary_ss));
 
 

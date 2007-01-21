@@ -44,7 +44,6 @@ sig
   val copy_thy: theory -> theory
   val checkpoint_thy: theory -> theory
   val finish_thy: theory -> theory
-  val is_finished_thy: theory -> bool
   val theory_data_of: theory -> string list
   val pre_pure_thy: theory
   val begin_thy: (theory -> Pretty.pp) -> string -> theory list -> theory
@@ -405,9 +404,6 @@ fun finish_thy thy =
     val thy'' = vitalize (Theory (identity', data', ancestry', history'));
     val _ = List.app (fn r => r := thy'') rs;
   in thy'' end;
-
-fun is_finished_thy thy =
-  (check_thy thy; not (is_draft thy) andalso #version (history_of thy) = 0);
 
 
 (* theory data *)

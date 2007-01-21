@@ -205,7 +205,7 @@ fun put_theory name theory = change_thy name (fn (deps, _) => (deps, SOME theory
 val _ = ML_Context.value_antiq "theory"
   (Scan.lift Args.name
     >> (fn name => (name ^ "_thy", "ThyInfo.theory " ^ ML_Syntax.print_string name))
-  || Scan.succeed ("thy", "ML_Context.the_context_finished ()"));
+  || Scan.succeed ("thy", "ML_Context.the_context ()"));
 
 
 
