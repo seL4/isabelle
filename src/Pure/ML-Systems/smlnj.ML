@@ -96,7 +96,7 @@ fun install_pp (path, pp) = CompilerPPTable.install_pp path pp;
 
 (* ML command execution *)
 
-fun use_text (print, err) verbose txt =
+fun use_text name (print, err) verbose txt =
   let
     val ref out_orig = Control.Print.out;
 
@@ -108,7 +108,8 @@ fun use_text (print, err) verbose txt =
   in
     Control.Print.out := out;
     Backend.Interact.useStream (TextIO.openString txt) handle exn =>
-      (Control.Print.out := out_orig; err (output ()); raise exn);
+      (Control.Print.out := out_orig;
+        err ((if name = "" then "" else "Error in " ^ name ^ "\n") ^ output ()); raise exn);
     Control.Print.out := out_orig;
     if verbose then print (output ()) else ()
   end;

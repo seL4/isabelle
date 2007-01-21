@@ -12,9 +12,7 @@ val pointer_eq = PolyML.pointerEq;
 
 (* improved versions of use_text/file *)
 
-local
-
-fun use_ml name (print, err) verbose txt =
+fun use_text name (print, err) verbose txt =
   let
     val in_buffer = ref (explode txt);
     val out_buffer = ref ([]: string list);
@@ -37,14 +35,8 @@ fun use_ml name (print, err) verbose txt =
     if verbose then print (output ()) else ()
   end;
 
-in
-
-fun use_text output = use_ml "ML text" output;
-
 fun use_file output verbose name =
   let
     val instream = TextIO.openIn name;
     val txt = TextIO.inputAll instream before TextIO.closeIn instream;
-  in use_ml name output verbose txt end;
-
-end;
+  in use_text name output verbose txt end;

@@ -90,7 +90,7 @@ fun make_pp _ pprint (str, blk, brk, en) _ _ obj =
 
 (* ML command execution -- 'eval' *)
 
-fun use_text (print, err) verbose txt =
+fun use_text name (print, err) verbose txt =
   let
     val in_buffer = ref (explode txt);
     val out_buffer = ref ([]: string list);
@@ -107,7 +107,8 @@ fun use_text (print, err) verbose txt =
         [] => ()
       | _ => (PolyML.compiler (get, put) (); exec ()));
   in
-    exec () handle exn => (err (output ()); raise exn);
+    exec () handle exn =>
+      (err ((if name = "" then "" else "Error in " ^ name ^ "\n") ^ output ()); raise exn);
     if verbose then print (output ()) else ()
   end;
 
@@ -119,7 +120,7 @@ local
   fun println s =
     (TextIO.output (TextIO.stdOut, s ^ "\n"); TextIO.flushOut TextIO.stdOut);
   fun eval "-q" = ()
-    | eval txt = use_text (println, println) false txt;
+    | eval txt = use_text "" (println, println) false txt;
 in
   val _ = PolyML.onEntry (fn () => app eval (CommandLine.arguments ()));
 end;

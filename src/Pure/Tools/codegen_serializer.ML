@@ -1024,7 +1024,7 @@ val isar_seri_sml =
   let
     fun output_file file = File.write (Path.explode file) o code_output;
     val output_diag = writeln o code_output;
-    val output_internal = use_text Output.ml_output false o code_output;
+    val output_internal = use_text "" Output.ml_output false o code_output;
   in
     parse_args ((Args.$$$ "-" >> K output_diag
       || Args.$$$ "#" >> K output_internal
@@ -1592,7 +1592,7 @@ fun eval_term thy code ((ref_name, reff), t) =
     fun eval p = (
       reff := NONE;
       if !eval_verbose then Pretty.writeln p else ();
-      use_text Output.ml_output (!eval_verbose)
+      use_text "" Output.ml_output (!eval_verbose)
         ((Pretty.output o Pretty.chunks) [p,
           str ("val _ = (" ^ ref_name ^ " := SOME " ^ val_name' ^ ")")
         ]);

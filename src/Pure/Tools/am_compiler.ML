@@ -216,7 +216,7 @@ fun load_rules sname name prog =
 	    end
     in
 	compiled_rewriter := NONE;	
-	use_text (K (), K ()) false (!buffer);
+	use_text "" Output.ml_output false (!buffer);
 	case !compiled_rewriter of 
 	    NONE => raise (Compile "cannot communicate with compiled function")
 	  | SOME r => (compiled_rewriter := NONE; fn t => term_of_clos (r t))

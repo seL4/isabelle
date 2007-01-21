@@ -115,7 +115,7 @@ fun generate thy funs =
     fun use_code NONE = ()
       | use_code (SOME s) =
           (tracing (fn () => "\n---generated code:\n" ^ s) ();
-           use_text (Output.tracing o enclose "\n---compiler echo:\n" "\n---\n",
+           use_text "" (Output.tracing o enclose "\n---compiler echo:\n" "\n---\n",
                 Output.tracing o enclose "\n--- compiler echo (with error!):\n" "\n---\n")
             (!trace) s);
 
