@@ -681,7 +681,6 @@ fun print ctxt = Data.print ctxt (get ctxt);
 
 end;
 
-
 (*hide private interface*)
 structure Context: CONTEXT = Context;
 
