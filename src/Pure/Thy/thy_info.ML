@@ -496,7 +496,6 @@ fun register_theory theory =
 
 val _ = register_theory ProtoPure.thy;
 
-
 (*final declarations of this structure*)
 val theory = get_theory;
 val names = get_names;
