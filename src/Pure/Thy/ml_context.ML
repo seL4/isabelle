@@ -71,13 +71,6 @@ fun change_theory f =
   set_context (SOME (Context.map_theory f (the_generic_context ())));
 
 
-(* fact references *)
-
-fun thm name = ProofContext.get_thm (the_local_context ()) (Name name);
-fun thms name = ProofContext.get_thms (the_local_context ()) (Name name);
-
-
-
 (** ML antiquotations **)
 
 (* maintain keywords *)
@@ -135,8 +128,6 @@ val antiq =
 
 (* input/output wrappers *)
 
-val parens = enclose "(" ")";
-
 local
 
 val isabelle_struct = enclose "structure Isabelle =\nstruct\n" "end;";
@@ -149,7 +140,7 @@ fun eval_antiquotes txt =
     fun expand (Antiquote.Text s) names = (("", Symbol.escape s), names)
       | expand (Antiquote.Antiq x) names =
           (case command (Antiquote.scan_arguments (! global_lexicon) antiq x) of
-            Inline s => (("", parens s), names)
+            Inline s => (("", ML_Syntax.atomic s), names)
           | Value (a, s) =>
               let
                 val a' = if ML_Syntax.is_identifier a then a else "val";
@@ -194,26 +185,56 @@ fun use path = eval_wrapper (Path.implode path) true (File.read path);
 
 (* basic antiquotations *)
 
+val _ = value_antiq "context" (Scan.succeed ("context", "ML_Context.the_local_context ()"));
+
 val _ = inline_antiq "typ" (Args.typ >> ML_Syntax.print_typ);
 val _ = inline_antiq "term" (Args.term >> ML_Syntax.print_term);
 val _ = inline_antiq "prop" (Args.prop >> ML_Syntax.print_term);
 
 val _ = value_antiq "ctyp" (Args.typ >> (fn T =>
-  ("ctyp", "Thm.ctyp_of (ML_Context.the_context ()) " ^ parens (ML_Syntax.print_typ T))));
+  ("ctyp",
+    "Thm.ctyp_of (ML_Context.the_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_typ T))));
 
 val _ = value_antiq "cterm" (Args.term >> (fn t =>
-  ("cterm", "Thm.cterm_of (ML_Context.the_context ()) " ^ parens (ML_Syntax.print_term t))));
+  ("cterm",
+    "Thm.cterm_of (ML_Context.the_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))));
 
 val _ = value_antiq "cprop" (Args.prop >> (fn t =>
-  ("cprop", "Thm.cterm_of (ML_Context.the_context ()) " ^ parens (ML_Syntax.print_term t))));
+  ("cprop",
+    "Thm.cterm_of (ML_Context.the_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))));
 
-val _ = value_antiq "thm"
-  (Scan.lift Args.name >> (fn s => (s, "ML_Context.thm " ^ ML_Syntax.print_string s)));
 
-val _ = value_antiq "thms"
-  (Scan.lift Args.name >> (fn s => (s, "ML_Context.thms " ^ ML_Syntax.print_string s)));
 
-val _ = value_antiq "context" (Scan.succeed ("context", "ML_Context.the_local_context ()"));
+(** fact references **)
+
+fun thm name = ProofContext.get_thm (the_local_context ()) (Name name);
+fun thms name = ProofContext.get_thms (the_local_context ()) (Name name);
+
+
+local
+
+fun print_interval (FromTo arg) =
+      "PureThy.FromTo " ^ ML_Syntax.print_pair ML_Syntax.print_int ML_Syntax.print_int arg
+  | print_interval (From i) = "PureThy.From " ^ ML_Syntax.print_int i
+  | print_interval (Single i) = "PureThy.Single " ^ ML_Syntax.print_int i;
+
+fun thm_sel name =
+  Args.thm_sel >> (fn is => "PureThy.NameSelection " ^
+    ML_Syntax.print_pair ML_Syntax.print_string (ML_Syntax.print_list print_interval) (name, is))
+  || Scan.succeed ("PureThy.Name " ^ ML_Syntax.print_string name);
+
+fun thm_antiq kind = value_antiq kind
+  (Scan.lift (Args.name :-- thm_sel) >> apsnd (fn sel =>
+    "ProofContext.get_" ^ kind ^ " (ML_Context.the_local_context ()) " ^ ML_Syntax.atomic sel));
+
+in
+
+val _ = add_keywords ["(", ")", "-", ","];
+val _ = thm_antiq "thm";
+val _ = thm_antiq "thms";
+
+end;
+
 
 (*final declarations of this structure!*)
 nonfix >>;
