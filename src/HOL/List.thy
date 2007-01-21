@@ -279,6 +279,58 @@ apply(case_tac ys)
 apply(simp)
 done
 
+lemma neq_if_length_neq: "length xs \<noteq> length ys \<Longrightarrow> (xs = ys) == False"
+apply(rule Eq_FalseI)
+by auto
+
+(*
+Reduces xs=ys to False if xs and ys cannot be of the same length.
+This is the case if the atomic sublists of one are a submultiset
+of those of the other list and there are fewer Cons's in one than the other.
+*)
+ML_setup {*
+local
+
+val neq_if_length_neq = thm "neq_if_length_neq";
+
+fun len (Const("List.list.Nil",_)) acc = acc
+  | len (Const("List.list.Cons",_) $ _ $ xs) (ts,n) = len xs (ts,n+1)
+  | len (Const("List.op @",_) $ xs $ ys) acc = len xs (len ys acc)
+  | len (Const("List.rev",_) $ xs) acc = len xs acc
+  | len (Const("List.map",_) $ _ $ xs) acc = len xs acc
+  | len t (ts,n) = (t::ts,n);
+
+val list_ss = simpset_of(the_context());
+
+fun list_eq ss (Const(_,eqT) $ lhs $ rhs) =
+  let
+    val (ls,m) = len lhs ([],0) and (rs,n) = len rhs ([],0);
+    fun prove_neq() =
+      let
+        val Type(_,listT::_) = eqT;
+        val size = Const("Nat.size", listT --> HOLogic.natT);
+        val eq_len = HOLogic.mk_eq (size $ lhs, size $ rhs);
+        val neq_len = HOLogic.mk_Trueprop (HOLogic.Not $ eq_len);
+        val thm = Goal.prove (Simplifier.the_context ss) [] [] neq_len
+          (K (simp_tac (Simplifier.inherit_context ss list_ss) 1));
+      in SOME (thm RS neq_if_length_neq) end
+  in
+    if m < n andalso gen_submultiset (op aconv) (ls,rs) orelse
+       n < m andalso gen_submultiset (op aconv) (rs,ls)
+    then prove_neq() else NONE
+  end;
+
+in
+
+val list_neq_simproc =
+  Simplifier.simproc (the_context ()) "list_neq" ["(xs::'a list) = ys"] (K list_eq);
+
+end;
+
+Addsimprocs [list_neq_simproc];
+*}
+
+
 subsubsection {* @{text "@"} -- append *}
 
 lemma append_assoc [simp]: "(xs @ ys) @ zs = xs @ (ys @ zs)"
