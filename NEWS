@@ -771,6 +771,9 @@ ML {* @{clasimpset} *}
 
 The same works for sources being ``used'' within an Isar context.
 
+* ML in Isar: improved error reporting; extra verbosity with
+Toplevel.debug enabled.
+
 * Pure/library:
 
   val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
