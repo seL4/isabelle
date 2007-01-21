@@ -33,7 +33,6 @@ sig
   val eq: Path.T * Path.T -> bool
   val copy: Path.T -> Path.T -> unit
   val copy_dir: Path.T -> Path.T -> unit
-  val use: Path.T -> unit
 end;
 
 structure File: FILE =
@@ -146,10 +145,5 @@ fun copy src dst =
 fun copy_dir src dst =
   if eq (src, dst) then ()
   else (system_command ("cp -r -f " ^ shell_path src ^ "/. " ^ shell_path dst); ());
-
-
-(* use ML files *)
-
-val use = Output.ML_errors use o platform_path;
 
 end;

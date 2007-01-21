@@ -92,7 +92,7 @@ fun check_file current src_path =
 fun load_file current raw_path =
   (case check_file current raw_path of
     NONE => error ("Could not find ML file " ^ quote (Path.implode raw_path))
-  | SOME (path, info) => (File.use path; (path, info)));
+  | SOME (path, info) => (ML_Context.use path; (path, info)));
 
 
 (* datatype master *)
