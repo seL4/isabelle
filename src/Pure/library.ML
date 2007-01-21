@@ -194,6 +194,10 @@ sig
   val duplicates: ('a * 'a -> bool) -> 'a list -> 'a list
   val has_duplicates: ('a * 'a -> bool) -> 'a list -> bool
 
+  (* lists as multisets *)
+  val remove1: ('b * 'a -> bool) -> 'b -> 'a list -> 'a list
+  val gen_submultiset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
+
   (*lists as tables -- see also Pure/General/alist.ML*)
   val gen_merge_lists: ('a * 'a -> bool) -> 'a list -> 'a list -> 'a list
   val merge_lists: ''a list -> ''a list -> ''a list
@@ -650,7 +654,6 @@ fun prefixes xs = [] :: prefixes1 xs;
 fun suffixes1 xs = map rev (prefixes1 (rev xs));
 fun suffixes xs = [] :: suffixes1 xs;
 
-
 (** integers **)
 
 fun gcd (x, y) =
@@ -931,6 +934,16 @@ fun has_duplicates eq =
     fun dups [] = false
       | dups (x :: xs) = member eq xs x orelse dups xs;
   in dups end;
+
+
+(** lists as multisets **)
+
+fun remove1 _ _ [] = raise Empty
+  | remove1 eq y (x::xs) = if eq(y,x) then xs else x :: remove1 eq y xs;
+
+fun gen_submultiset _  ([],    _)  = true
+  | gen_submultiset eq (x::xs, ys) =
+      member eq ys x  andalso  gen_submultiset eq (xs, remove1 eq x ys);
 
 
 (** association lists -- legacy operations **)
