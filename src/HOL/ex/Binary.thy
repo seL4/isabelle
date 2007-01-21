@@ -113,15 +113,14 @@ ML {*
 ML {*
 local
   val binary_ss = HOL_basic_ss addsimps @{thms binary_simps};
+  fun prove ctxt prop =
+    Goal.prove ctxt [] [] prop (fn _ => ALLGOALS (full_simp_tac binary_ss));
 
   infix ==;
   val op == = Logic.mk_equals;
 
   fun plus m n = @{term "plus :: nat \<Rightarrow> nat \<Rightarrow> nat"} $ m $ n;
   fun mult m n = @{term "times :: nat \<Rightarrow> nat \<Rightarrow> nat"} $ m $ n;
-
-  fun prove ctxt prop =
-    Goal.prove ctxt [] [] prop (fn _ => ALLGOALS (full_simp_tac binary_ss));
 
 
   exception FAIL;
