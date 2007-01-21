@@ -20,7 +20,6 @@ sig
   val setmp: Context.generic option -> ('a -> 'b) -> 'a -> 'b
   val the_generic_context: unit -> Context.generic
   val the_local_context: unit -> Proof.context
-  val the_context_finished: unit -> theory
   val pass: Context.generic option -> ('a -> 'b) -> 'a -> 'b * Context.generic option
   val pass_context: Context.generic -> ('a -> 'b) -> 'a -> 'b * Context.generic
   val save: ('a -> 'b) -> 'a -> 'b
@@ -33,6 +32,7 @@ sig
   val use_mltext: string -> bool -> Context.generic option -> unit
   val use_mltext_update: string -> bool -> Context.generic -> Context.generic
   val use_let: string -> string -> string -> Context.generic -> Context.generic
+  val use: Path.T -> unit
 end;
 
 structure ML_Context: ML_CONTEXT =
@@ -56,15 +56,6 @@ fun the_generic_context () =
 val the_local_context = Context.proof_of o the_generic_context;
 
 val the_context = Context.theory_of o the_generic_context;
-
-fun the_context_finished () =
-  let
-    val thy = the_context ();
-    val _ =
-      if Context.is_finished_thy thy then ()
-      else warning ("Static reference to unfinished theory:\n" ^
-        Pretty.string_of (Context.pretty_abbrev_thy thy));
-  in thy end;
 
 fun pass opt_context f x =
   setmp opt_context (fn x => let val y = f x in (y, get_context ()) end) x;
@@ -170,30 +161,35 @@ fun eval_antiquotes txt =
       |> #1 |> split_list |> pairself implode;
   in (isabelle_struct decls, body) end;
 
-fun eval verbose txt =
-  Output.ML_errors (use_text Output.ml_output verbose) txt;
+fun eval name verbose txt =
+  Output.ML_errors (use_text name Output.ml_output verbose) txt;
 
 in
 
-fun eval_wrapper verbose txt =
+fun eval_wrapper name verbose txt =
   let
     val (txt1, txt2) = eval_antiquotes txt;
     val _ = Output.debug (fn () => cat_lines [txt1, txt2]);
-  in eval false txt1; eval verbose txt2; eval false isabelle_struct0 end;
+  in eval "" false txt1; eval name verbose txt2; eval "" false isabelle_struct0 end;
 
 end;
 
 
 (* ML evaluation *)
 
-fun use_mltext txt verbose opt_context = setmp opt_context (fn () => eval_wrapper verbose txt) ();
-fun use_mltext_update txt verbose context = #2 (pass_context context (eval_wrapper verbose) txt);
+fun use_mltext txt verbose opt_context =
+  setmp opt_context (fn () => eval_wrapper "ML" verbose txt) ();
+
+fun use_mltext_update txt verbose context =
+  #2 (pass_context context (eval_wrapper "ML" verbose) txt);
 
 fun use_context txt = use_mltext_update
   ("ML_Context.set_context (SOME ((" ^ txt ^ ") (ML_Context.the_generic_context ())));") false;
 
 fun use_let bind body txt =
   use_context ("let " ^ bind ^ " = " ^ txt ^ " in\n" ^ body ^ " end");
+
+fun use path = eval_wrapper (Path.implode path) true (File.read path);
 
 
 (* basic antiquotations *)
