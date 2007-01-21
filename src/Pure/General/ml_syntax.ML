@@ -11,6 +11,8 @@ sig
   val reserved: Name.context
   val is_reserved: string -> bool
   val is_identifier: string -> bool
+  val atomic: string -> string
+  val print_int: int -> string
   val print_pair: ('a -> string) -> ('b -> string) -> 'a * 'b -> string
   val print_list: ('a -> string) -> 'a list -> string
   val print_option: ('a -> string) -> 'a option -> string
@@ -47,6 +49,10 @@ fun is_identifier name =
 
 (* literal output -- unformatted *)
 
+val atomic = enclose "(" ")";
+
+val print_int = Int.toString;
+
 fun print_pair f1 f2 (x, y) = "(" ^ f1 x ^ ", " ^ f2 y ^ ")";
 
 fun print_list f = enclose "[" "]" o commas o map f;
@@ -71,24 +77,16 @@ val print_class = print_string;
 
 val print_sort = print_list print_class;
 
-fun print_typ (Type arg) =
-      "Type " ^ print_pair print_string (print_list print_typ) arg
-  | print_typ (TFree arg) =
-      "TFree " ^ print_pair print_string print_sort arg
-  | print_typ (TVar arg) =
-      "TVar " ^ print_pair (print_pair print_string Int.toString) print_sort arg;
+fun print_typ (Type arg) = "Type " ^ print_pair print_string (print_list print_typ) arg
+  | print_typ (TFree arg) = "TFree " ^ print_pair print_string print_sort arg
+  | print_typ (TVar arg) = "TVar " ^ print_pair (print_pair print_string print_int) print_sort arg;
 
-fun print_term (Const arg) =
-      "Const " ^ print_pair print_string print_typ arg
-  | print_term (Free arg) =
-      "Free " ^ print_pair print_string print_typ arg
-  | print_term (Var arg) =
-      "Var " ^ print_pair (print_pair print_string Int.toString) print_typ arg
-  | print_term (Bound i) =
-      "Bound " ^ Int.toString i
+fun print_term (Const arg) = "Const " ^ print_pair print_string print_typ arg
+  | print_term (Free arg) = "Free " ^ print_pair print_string print_typ arg
+  | print_term (Var arg) = "Var " ^ print_pair (print_pair print_string print_int) print_typ arg
+  | print_term (Bound i) = "Bound " ^ print_int i
   | print_term (Abs (s, T, t)) =
       "Abs (" ^ print_string s ^ ", " ^ print_typ T ^ ", " ^ print_term t ^ ")"
-  | print_term (t1 $ t2) =
-      "(" ^ print_term t1 ^ ") $ (" ^ print_term t2 ^ ")";
+  | print_term (t1 $ t2) = "(" ^ print_term t1 ^ ") $ (" ^ print_term t2 ^ ")";
 
 end;
