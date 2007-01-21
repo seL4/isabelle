@@ -97,35 +97,28 @@ ML {*
         2 * dest_binary bs + IntInf.fromInt (dest_bit b)
     | dest_binary t = raise TERM ("dest_binary", [t]);
 
-  val bit_const = Const ("Binary.bit", HOLogic.natT --> HOLogic.boolT --> HOLogic.natT);
-
-  fun mk_bit 0 = HOLogic.false_const
-    | mk_bit 1 = HOLogic.true_const
+  fun mk_bit 0 = @{term False}
+    | mk_bit 1 = @{term True}
     | mk_bit _ = raise TERM ("mk_bit", []);
 
-  fun mk_binary 0 = Const ("HOL.zero", HOLogic.natT)
-    | mk_binary 1 = Const ("HOL.one", HOLogic.natT)
+  fun mk_binary 0 = @{term "0::nat"}
+    | mk_binary 1 = @{term "1::nat"}
     | mk_binary n =
         if n < 0 then raise TERM ("mk_binary", [])
         else
           let val (q, r) = IntInf.divMod (n, 2)
-          in bit_const $ mk_binary q $ mk_bit (IntInf.toInt r) end;
+          in @{term bit} $ mk_binary q $ mk_bit (IntInf.toInt r) end;
 *}
 
 ML {*
 local
   val binary_ss = HOL_basic_ss addsimps @{thms binary_simps};
-  val [binary_less_eq1, binary_less_eq2] = @{thms binary_less_eq};
-  val [binary_less1, binary_less2] = @{thms binary_less}
-  val [binary_diff1, binary_diff2] = @{thms binary_diff}
-  val [binary_div, binary_mod] = @{thms binary_divmod}
 
   infix ==;
   val op == = Logic.mk_equals;
 
-  fun nat_op c t u = Const (c, HOLogic.natT --> HOLogic.natT --> HOLogic.natT) $ t $ u;
-  val plus = nat_op "HOL.plus";
-  val mult = nat_op "HOL.times";
+  fun plus m n = @{term "plus :: nat \<Rightarrow> nat \<Rightarrow> nat"} $ m $ n;
+  fun mult m n = @{term "times :: nat \<Rightarrow> nat \<Rightarrow> nat"} $ m $ n;
 
   fun prove ctxt prop =
     Goal.prove ctxt [] [] prop (fn _ => ALLGOALS (full_simp_tac binary_ss));
@@ -134,8 +127,7 @@ local
   exception FAIL;
   fun the_arg t = (t, dest_binary t handle TERM _ => raise FAIL);
 
-  val read =
-    let val thy = the_context () in Thm.cterm_of thy o Sign.read_term thy end;
+  val read = Thm.cterm_of @{theory} o Sign.read_term @{theory};
   fun mk_proc name pat proc = Simplifier.mk_simproc' name [read pat]
     (fn ss => fn ct =>
       (case Thm.term_of ct of
@@ -147,23 +139,24 @@ local
   val less_eq_simproc = mk_proc "binary_nat_less_eq" "?m <= (?n::nat)"
     (fn ctxt => fn (t, m) => fn (u, n) =>
       let val k = n - m in
-        if k >= 0 then binary_less_eq1 OF [prove ctxt (u == plus t (mk_binary k))]
-        else binary_less_eq2 OF
+        if k >= 0 then @{thm binary_less_eq(1)} OF [prove ctxt (u == plus t (mk_binary k))]
+        else @{thm binary_less_eq(2)} OF
           [prove ctxt (t == plus (plus u (mk_binary (~ k - 1))) (mk_binary 1))]
       end);
 
   val less_simproc = mk_proc "binary_nat_less" "?m < (?n::nat)"
     (fn ctxt => fn (t, m) => fn (u, n) =>
       let val k = m - n in
-        if k >= 0 then binary_less1 OF [prove ctxt (t == plus u (mk_binary k))]
-        else binary_less2 OF [prove ctxt (u == plus (plus t (mk_binary (~ k - 1))) (mk_binary 1))]
+        if k >= 0 then @{thm binary_less(1)} OF [prove ctxt (t == plus u (mk_binary k))]
+        else @{thm binary_less(2)} OF
+          [prove ctxt (u == plus (plus t (mk_binary (~ k - 1))) (mk_binary 1))]
       end);
 
   val diff_simproc = mk_proc "binary_nat_diff" "?m - (?n::nat)"
     (fn ctxt => fn (t, m) => fn (u, n) =>
       let val k = m - n in
-        if k >= 0 then binary_diff1 OF [prove ctxt (t == plus u (mk_binary k))]
-        else binary_diff2 OF [prove ctxt (u == plus t (mk_binary (~ k)))]
+        if k >= 0 then @{thm binary_diff(1)} OF [prove ctxt (t == plus u (mk_binary k))]
+        else @{thm binary_diff(2)} OF [prove ctxt (u == plus t (mk_binary (~ k)))]
       end);
 
   fun divmod_proc rule ctxt (t, m) (u, n) =
@@ -172,9 +165,10 @@ local
       let val (k, l) = IntInf.divMod (m, n)
       in rule OF [prove ctxt (t == plus (mult u (mk_binary k)) (mk_binary l))] end;
 
-  val div_simproc = mk_proc "binary_nat_div" "?m div (?n::nat)" (divmod_proc binary_div);
-  val mod_simproc = mk_proc "binary_nat_mod" "?m mod (?n::nat)" (divmod_proc binary_mod);
-
+  val div_simproc = mk_proc "binary_nat_div" "?m div (?n::nat)"
+    (divmod_proc @{thm binary_divmod(1)});
+  val mod_simproc = mk_proc "binary_nat_mod" "?m mod (?n::nat)"
+    (divmod_proc @{thm binary_divmod(2)});
 in
   val binary_nat_simprocs =
     [less_eq_simproc, less_simproc, diff_simproc, div_simproc, mod_simproc];
@@ -290,16 +284,16 @@ lemma "$1111111111222222222233333333334444444444 div $998877665544332211 =
     $1112359550673033707875"
   by binary_simp
 
-lemma "(1111111111222222222233333333334444444444::int) div 998877665544332211 =
-    1112359550673033707875"
-  by simp  -- {* existing numerals: slower by factor 30 *}
-
 lemma "$1111111111222222222233333333334444444444 mod $998877665544332211 =
     $42245174317582819"
   by binary_simp
 
+lemma "(1111111111222222222233333333334444444444::int) div 998877665544332211 =
+    1112359550673033707875"
+  by simp  -- {* legacy numerals: 30 times slower *}
+
 lemma "(1111111111222222222233333333334444444444::int) mod 998877665544332211 =
     42245174317582819"
-  by simp  -- {* existing numerals: slower by factor 30 *}
+  by simp  -- {* legacy numerals: 30 times slower *}
 
 end
