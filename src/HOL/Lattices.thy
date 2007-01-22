@@ -58,12 +58,7 @@ lemma le_inf_iff [simp]:
 by blast
 
 lemma le_iff_inf: "(x \<sqsubseteq> y) = (x \<sqinter> y = x)"
-apply rule
- apply(simp add: antisym)
-apply(subgoal_tac "x \<sqinter> y \<sqsubseteq> y")
- apply(simp)
-apply(simp (no_asm))
-done
+by(blast dest:eq_iff[THEN iffD1])
 
 end
 
@@ -96,12 +91,7 @@ lemma ge_sup_conv[simp]:
 by blast
 
 lemma le_iff_sup: "(x \<sqsubseteq> y) = (x \<squnion> y = y)"
-apply rule
- apply(simp add: antisym)
-apply(subgoal_tac "x \<sqsubseteq> x \<squnion> y")
-apply(simp)
- apply(simp (no_asm))
-done
+by(blast dest:eq_iff[THEN iffD1])
 
 end
 
