@@ -10,14 +10,34 @@ Some fairly general functions that should probably go somewhere else...
 
 structure FundefLib = struct
 
+(* ==> library/string *)
 fun plural sg pl [x] = sg
   | plural sg pl _ = pl
 
+
+
+fun map_option f NONE = NONE 
+  | map_option f (SOME x) = SOME (f x);
+
+fun fold_option f NONE y = y
+  | fold_option f (SOME x) y = f x y;
+
+fun fold_map_option f NONE y = (NONE, y)
+  | fold_map_option f (SOME x) y = apfst SOME (f x y);
+
+
+
+
+
+
+(* ??? *)
 fun eq_str (s : string, t) = (s = t) (* monomorphic equality on strings *)
 
+(* ==> logic.ML? *)
 fun mk_forall v t = all (fastype_of v) $ lambda v t
 
-(* Constructs a tupled abstraction from an arbitrarily nested tuple of variables and a term. *)
+(* lambda-abstracts over an arbitrarily nested tuple
+  ==> hologic.ML? *)
 fun tupled_lambda vars t =
     case vars of
       (Free v) => lambda (Free v) t
@@ -86,16 +106,12 @@ fun map7 _ [] [] [] [] [] [] [] = []
 
 
 (* forms all "unordered pairs": [1, 2, 3] ==> [(1, 1), (1, 2), (1, 3), (2, 2), (2, 3), (3, 3)] *)
+(* ==> library *)
 fun unordered_pairs [] = []
   | unordered_pairs (x::xs) = map (pair x) (x::xs) @ unordered_pairs xs
 
 
-(* Replaces Frees by name. Probably quicker than Pattern.rewrite_terms, and works with loose Bounds. *)
-fun replace_frees assoc =
-    map_aterms (fn c as Free (n, _) => the_default c (AList.lookup (op =) assoc n)
-                 | t => t)
-
-
+(* term.ML *)
 fun forall_aterms P (t $ u) = forall_aterms P t andalso forall_aterms P u
   | forall_aterms P (Abs (_, _, t)) = forall_aterms P t
   | forall_aterms P a = P a
@@ -103,6 +119,11 @@ fun forall_aterms P (t $ u) = forall_aterms P t andalso forall_aterms P u
 fun exists_aterm P = not o forall_aterms (not o P)
 
 
+
+(* Replaces Frees by name. Probably quicker than Pattern.rewrite_terms, and works with loose Bounds. *)
+fun replace_frees assoc =
+    map_aterms (fn c as Free (n, _) => the_default c (AList.lookup (op =) assoc n)
+                 | t => t)
 
 
 fun rename_bound n (Q $ Abs(_, T, b)) = (Q $ Abs(n, T, b))
@@ -116,7 +137,7 @@ val dummy_term = Free ("", dummyT)
 fun forall_intr_rename (n, cv) thm =
     let
       val allthm = forall_intr cv thm
-      val (_, abs) = Logic.dest_all (prop_of allthm)
+      val (_ $ abs) = prop_of allthm
     in
       Thm.rename_boundvars abs (Abs (n, dummyT, dummy_term)) allthm
     end
@@ -127,11 +148,6 @@ fun frees_in_term ctxt t =
     Term.add_frees t []
     |> filter_out (Variable.is_fixed ctxt o fst)
     |> rev
-(*
-    rev (fold_aterms (fn  Free (v as (x, _)) =>
-                          if Variable.is_fixed ctxt x then I else insert (fn ((x, _),(y, _)) => x = y) v | _ => I) t [])
-*)
-
 
 
 end

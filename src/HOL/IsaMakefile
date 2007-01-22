@@ -107,8 +107,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   Tools/function_package/fundef_datatype.ML					\
   Tools/function_package/fundef_lib.ML						\
   Tools/function_package/fundef_package.ML					\
-  Tools/function_package/fundef_prep.ML						\
-  Tools/function_package/fundef_proof.ML					\
+  Tools/function_package/fundef_core.ML						\
   Tools/function_package/inductive_wrap.ML					\
   Tools/function_package/lexicographic_order.ML					\
   Tools/function_package/mutual.ML						\

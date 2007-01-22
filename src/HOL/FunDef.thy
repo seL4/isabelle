@@ -13,13 +13,11 @@ uses
 ("Tools/function_package/fundef_lib.ML")
 ("Tools/function_package/inductive_wrap.ML")
 ("Tools/function_package/context_tree.ML")
-("Tools/function_package/fundef_prep.ML")
-("Tools/function_package/fundef_proof.ML")
+("Tools/function_package/fundef_core.ML")
 ("Tools/function_package/termination.ML")
 ("Tools/function_package/mutual.ML")
 ("Tools/function_package/pattern_split.ML")
 ("Tools/function_package/fundef_package.ML")
-(*("Tools/function_package/fundef_datatype.ML")*)
 ("Tools/function_package/auto_term.ML")
 begin
 
@@ -69,6 +67,27 @@ theorem accP_downward: "accP r b ==> r a b ==> accP r a"
   apply (erule accP.cases)
   apply fast
   done
+
+
+lemma not_accP_down:
+  assumes na: "\<not> accP R x"
+  obtains z where "R z x" and "\<not>accP R z"
+proof -
+  assume a: "\<And>z. \<lbrakk>R z x; \<not> accP R z\<rbrakk> \<Longrightarrow> thesis"
+
+  show thesis
+  proof (cases "\<forall>z. R z x \<longrightarrow> accP R z")
+    case True
+    hence "\<And>z. R z x \<Longrightarrow> accP R z" by auto
+    hence "accP R x"
+      by (rule accPI)
+    with na show thesis ..
+  next
+    case False then obtain z where "R z x" and "\<not>accP R z"
+      by auto
+    with a show thesis .
+  qed
+qed
 
 
 lemma accP_subset:
@@ -195,8 +214,7 @@ use "Tools/function_package/fundef_common.ML"
 use "Tools/function_package/fundef_lib.ML"
 use "Tools/function_package/inductive_wrap.ML"
 use "Tools/function_package/context_tree.ML"
-use "Tools/function_package/fundef_prep.ML"
-use "Tools/function_package/fundef_proof.ML"
+use "Tools/function_package/fundef_core.ML"
 use "Tools/function_package/termination.ML"
 use "Tools/function_package/mutual.ML"
 use "Tools/function_package/pattern_split.ML"

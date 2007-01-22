@@ -12,7 +12,6 @@ struct
 (* Theory Dependencies *)
 val acc_const_name = "FunDef.accP"
 
-val domintros = ref true;
 val profile = ref false;
 
 fun PROFILE msg = if !profile then timeap_msg msg else I
@@ -20,6 +19,7 @@ fun PROFILE msg = if !profile then timeap_msg msg else I
 fun mk_acc domT R =
     Const (acc_const_name, (fastype_of R) --> domT --> HOLogic.boolT) $ R 
 
+(* FIXME, unused *)
 val function_name = suffix "C"
 val graph_name = suffix "_graph"
 val rel_name = suffix "_rel"
@@ -35,163 +35,29 @@ datatype ctx_tree
   | Cong of (term * thm * depgraph * ((string * typ) list * thm list * ctx_tree) list)
   | RCall of (term * ctx_tree)
 
-type glrs = (term list * term list * term * term) list
 
-
-datatype globals =
-   Globals of { 
-         fvar: term, 
-         domT: typ, 
-         ranT: typ,
-         h: term, 
-         y: term, 
-         x: term, 
-         z: term, 
-         a:term, 
-         P: term, 
-         D: term, 
-         Pbool:term
-}
-
-
-datatype rec_call_info = 
-  RCInfo of
-  {
-   RIvs: (string * typ) list,  (* Call context: fixes and assumes *)
-   CCas: thm list,
-   rcarg: term,                 (* The recursive argument *)
-
-   llRI: thm,
-   h_assum: term
-  } 
-
-
-datatype clause_context =
-  ClauseContext of
-  {
-    ctxt : Proof.context,
-
-    qs : term list,
-    gs : term list,
-    lhs: term,
-    rhs: term,
-
-    cqs: cterm list,
-    ags: thm list,     
-    case_hyp : thm
-  }
-
-
-fun transfer_clause_ctx thy (ClauseContext { ctxt, qs, gs, lhs, rhs, cqs, ags, case_hyp }) =
-    ClauseContext { ctxt = ProofContext.transfer thy ctxt,
-                    qs = qs, gs = gs, lhs = lhs, rhs = rhs, cqs = cqs, ags = ags, case_hyp = case_hyp }
-
-
-datatype clause_info =
-  ClauseInfo of 
-     {
-      no: int,
-      qglr : ((string * typ) list * term list * term * term),
-      cdata : clause_context,
-
-      tree: ctx_tree,
-      lGI: thm,
-      RCs: rec_call_info list
-     }
-
-
-
-
-type qgar = string * (string * typ) list * term list * term list * term
-
-fun name_of_fqgar (f, _, _, _, _) = f
-
-datatype mutual_part =
-  MutualPart of 
-   {
-    fvar : string * typ,
-    cargTs: typ list,
-    pthA: SumTools.sum_path,
-    pthR: SumTools.sum_path,
-    f_def: term,
-
-    f: term option,
-    f_defthm : thm option
-   }
-   
-
-datatype mutual_info =
-  Mutual of 
-   { 
-    defname: string,
-    fsum_var : string * typ,
-
-    ST: typ,
-    RST: typ,
-    streeA: SumTools.sum_tree,
-    streeR: SumTools.sum_tree,
-
-    parts: mutual_part list,
-    fqgars: qgar list,
-    qglrs: ((string * typ) list * term list * term * term) list,
-
-    fsum : term option
-   }
-
-
-datatype prep_result =
-  Prep of
-     {
-      globals: globals,
-      f: term,
-      G: term,
-      R: term,
- 
-      goal: term,
-      goalI: thm,
-      values: thm list,
-      clauses: clause_info list,
-
-      R_cases: thm,
-      ex1_iff: thm
-     }
 
 datatype fundef_result =
   FundefResult of
      {
       f: term,
-      G : term,
-      R : term,
-      completeness : thm,
-
-      psimps : thm list, 
-      subset_pinduct : thm, 
-      simple_pinduct : thm, 
-      total_intro : thm,
-      dom_intros : thm list
-     }
-
-datatype fundef_mresult =
-  FundefMResult of
-     {
-      f: term,
       G: term,
       R: term,
 
       psimps : thm list, 
+      trsimps : thm list option, 
+
       subset_pinducts : thm list, 
       simple_pinducts : thm list, 
       cases : thm,
       termination : thm,
-      domintros : thm list
+      domintros : thm list option
      }
 
 datatype fundef_context_data =
   FundefCtxData of
      {
-      fixes : ((string * typ) * mixfix) list,
-      spec : ((string * Attrib.src list) * term list) list list,
-      mutual: mutual_info,
+      add_simps : string -> Attrib.src list -> thm list -> local_theory -> thm list * local_theory,
 
       f : term,
       R : term,
@@ -261,6 +127,7 @@ datatype fundef_opt
   | Preprocessor of string
   | Target of xstring
   | DomIntros
+  | Tailrec
 
 datatype fundef_config
   = FundefConfig of
@@ -269,23 +136,29 @@ datatype fundef_config
     default: string,
     preprocessor: string option,
     target: xstring option,
-    domintros: bool
+    domintros: bool,
+    tailrec: bool
    }
 
 
-val default_config = FundefConfig { sequential=false, default="%x. arbitrary", preprocessor=NONE, target=NONE, domintros=false }
-val fun_config = FundefConfig { sequential=true, default="%x. arbitrary", preprocessor=NONE, target=NONE, domintros=false }
+val default_config = FundefConfig { sequential=false, default="%x. arbitrary", preprocessor=NONE,
+                                    target=NONE, domintros=false, tailrec=false }
 
-fun apply_opt Sequential (FundefConfig {sequential, default, preprocessor, target, domintros}) = 
-    FundefConfig {sequential=true, default=default, preprocessor=preprocessor, target=target, domintros=domintros }
-  | apply_opt (Default d) (FundefConfig {sequential, default, preprocessor, target, domintros}) = 
-    FundefConfig {sequential=sequential, default=d, preprocessor=preprocessor, target=target, domintros=domintros }
-  | apply_opt (Preprocessor p) (FundefConfig {sequential, default, preprocessor, target, domintros}) = 
-    FundefConfig {sequential=sequential, default=default, preprocessor=SOME p, target=target, domintros=domintros }
-  | apply_opt (Target t) (FundefConfig {sequential, default, preprocessor, target, domintros }) =
-    FundefConfig {sequential=sequential, default=default, preprocessor=preprocessor, target=SOME t, domintros=domintros }
-  | apply_opt Domintros (FundefConfig {sequential, default, preprocessor, target, domintros }) =
-    FundefConfig {sequential=sequential, default=default, preprocessor=preprocessor, target=target, domintros=true }
+val fun_config = FundefConfig { sequential=true, default="%x. arbitrary", preprocessor=NONE, 
+                                target=NONE, domintros=false, tailrec=false }
+
+fun apply_opt Sequential (FundefConfig {sequential, default, preprocessor, target, domintros,tailrec}) = 
+    FundefConfig {sequential=true, default=default, preprocessor=preprocessor, target=target, domintros=domintros, tailrec=tailrec }
+  | apply_opt (Default d) (FundefConfig {sequential, default, preprocessor, target, domintros,tailrec}) = 
+    FundefConfig {sequential=sequential, default=d, preprocessor=preprocessor, target=target, domintros=domintros, tailrec=tailrec }
+  | apply_opt (Preprocessor p) (FundefConfig {sequential, default, preprocessor, target, domintros,tailrec}) = 
+    FundefConfig {sequential=sequential, default=default, preprocessor=SOME p, target=target, domintros=domintros, tailrec=tailrec }
+  | apply_opt (Target t) (FundefConfig {sequential, default, preprocessor, target, domintros,tailrec }) =
+    FundefConfig {sequential=sequential, default=default, preprocessor=preprocessor, target=SOME t, domintros=domintros, tailrec=tailrec }
+  | apply_opt DomIntros (FundefConfig {sequential, default, preprocessor, target, domintros,tailrec }) =
+    FundefConfig {sequential=sequential, default=default, preprocessor=preprocessor, target=target, domintros=true,tailrec=tailrec }
+  | apply_opt Tailrec (FundefConfig {sequential, default, preprocessor, target, domintros,tailrec }) =
+    FundefConfig {sequential=sequential, default=default, preprocessor=preprocessor, target=target, domintros=domintros,tailrec=true } 
 
 
 local structure P = OuterParse and K = OuterKeyword in
@@ -295,24 +168,13 @@ val opt_sequential = Scan.optional ((P.$$$ "(" |-- P.$$$ "sequential" --| P.$$$ 
 val option_parser = (P.$$$ "sequential" >> K Sequential)
                || ((P.reserved "default" |-- P.term) >> Default)
                || (P.reserved "domintros" >> K DomIntros)
+               || (P.reserved "tailrec" >> K Tailrec)
                || ((P.$$$ "in" |-- P.xname) >> Target)
 
 fun config_parser def = (Scan.optional (P.$$$ "(" |-- P.list1 option_parser --| P.$$$ ")") [])
                           >> (fn opts => fold apply_opt opts def)
+
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

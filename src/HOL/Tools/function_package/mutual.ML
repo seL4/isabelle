@@ -9,17 +9,16 @@ Tools for mutual recursive definitions.
 signature FUNDEF_MUTUAL =
 sig
 
-  val prepare_fundef_mutual : ((string * typ) * mixfix) list
+  val prepare_fundef_mutual : FundefCommon.fundef_config
+                              -> string (* defname *)
+                              -> ((string * typ) * mixfix) list
                               -> term list
                               -> string (* default, unparsed term *)
                               -> local_theory
-                              -> ((FundefCommon.mutual_info * string * FundefCommon.prep_result) * local_theory)
-
-
-  val mk_partial_rules_mutual : Proof.context -> FundefCommon.mutual_info -> FundefCommon.prep_result -> thm ->
-                                FundefCommon.fundef_mresult
-
-  val sort_by_function : FundefCommon.mutual_info -> string list -> 'a list -> 'a list list
+                              -> ((thm (* goalstate *)
+                                   * (thm -> FundefCommon.fundef_result) (* proof continuation *)
+                                   * (thm list -> thm list list)         (* sorting continuation *)
+                                  ) * local_theory)
 
 end
 
@@ -33,6 +32,45 @@ open FundefCommon
 (* Theory dependencies *)
 val sum_case_rules = thms "Datatype.sum.cases"
 val split_apply = thm "Product_Type.split"
+
+type qgar = string * (string * typ) list * term list * term list * term
+
+fun name_of_fqgar (f, _, _, _, _) = f
+
+datatype mutual_part =
+  MutualPart of 
+   {
+    fvar : string * typ,
+    cargTs: typ list,
+    pthA: SumTools.sum_path,
+    pthR: SumTools.sum_path,
+    f_def: term,
+
+    f: term option,
+    f_defthm : thm option
+   }
+   
+
+datatype mutual_info =
+  Mutual of 
+   { 
+    fsum_var : string * typ,
+
+    ST: typ,
+    RST: typ,
+    streeA: SumTools.sum_tree,
+    streeR: SumTools.sum_tree,
+
+    parts: mutual_part list,
+    fqgars: qgar list,
+    qglrs: ((string * typ) list * term list * term * term) list,
+
+    fsum : term option
+   }
+
+
+
+
 
 
 
@@ -100,7 +138,7 @@ fun mk_prod_abs e (t1, t2) =
     end;
 
 
-fun analyze_eqs ctxt fs eqs =
+fun analyze_eqs ctxt defname fs eqs =
     let
         val fnames = map fst fs
         val (fqgars, arities) = fold_map (split_def ctxt fnames) eqs Symtab.empty
@@ -119,10 +157,9 @@ fun analyze_eqs ctxt fs eqs =
         val (RST,streeR, pthsR) = SumTools.mk_tree_distinct resultTs
         val (ST, streeA, pthsA) = SumTools.mk_tree argTs
 
-        val def_name = foldr1 (fn (a,b) => a ^ "_" ^ b) (map Sign.base_name fnames)
         val fsum_type = ST --> RST
 
-        val ([fsum_var_name], _) = Variable.add_fixes [ def_name ^ "_sum" ] ctxt
+        val ([fsum_var_name], _) = Variable.add_fixes [ defname ^ "_sum" ] ctxt
         val fsum_var = (fsum_var_name, fsum_type)
 
         fun define (fvar as (n, T)) caTs pthA pthR =
@@ -150,7 +187,7 @@ fun analyze_eqs ctxt fs eqs =
 
         val qglrs = map convert_eqs fqgars
     in
-        Mutual {defname=def_name,fsum_var=fsum_var, ST=ST, RST=RST, streeA=streeA, streeR=streeR,
+        Mutual {fsum_var=fsum_var, ST=ST, RST=RST, streeA=streeA, streeR=streeR,
                 parts=parts, fqgars=fqgars, qglrs=qglrs, fsum=NONE}
     end
 
@@ -171,28 +208,14 @@ fun define_projections fixes mutual fsum lthy =
              lthy')
           end
           
-      val Mutual { defname, fsum_var, ST, RST, streeA, streeR, parts, fqgars, qglrs, ... } = mutual
+      val Mutual { fsum_var, ST, RST, streeA, streeR, parts, fqgars, qglrs, ... } = mutual
       val (parts', lthy') = fold_map def (parts ~~ fixes) lthy
     in
-      (Mutual { defname=defname, fsum_var=fsum_var, ST=ST, RST=RST, streeA=streeA, streeR=streeR, parts=parts',
+      (Mutual { fsum_var=fsum_var, ST=ST, RST=RST, streeA=streeA, streeR=streeR, parts=parts',
                 fqgars=fqgars, qglrs=qglrs, fsum=SOME fsum },
        lthy')
     end
 
-
-fun prepare_fundef_mutual fixes eqss default lthy =
-    let
-      val mutual = analyze_eqs lthy (map fst fixes) eqss
-      val Mutual {defname, fsum_var=(n, T), qglrs, ...} = mutual
-          
-      val (prep_result, fsum, lthy') =
-          FundefPrep.prepare_fundef defname (n, T, NoSyn) qglrs default lthy
-          
-      val (mutual', lthy'') = define_projections fixes mutual fsum lthy'
-    in
-      ((mutual', defname, prep_result), lthy'')
-    end
-      
 
 (* Beta-reduce both sides of a meta-equality *)
 fun beta_norm_eq thm =
@@ -315,7 +338,7 @@ fun mutual_induct_rules thy induct all_f_defs (Mutual {RST, parts, streeA, ...})
 
 
 
-fun mk_partial_rules_mutual lthy (m as Mutual {RST, parts, streeR, fqgars, ...}) data prep_result =
+fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {RST, parts, streeR, fqgars, ...}) proof =
     let
       val thy = ProofContext.theory_of lthy
                                        
@@ -323,8 +346,9 @@ fun mk_partial_rules_mutual lthy (m as Mutual {RST, parts, streeR, fqgars, ...})
       val expand = Assumption.export false lthy (LocalTheory.target_of lthy)
       val expand_term = Drule.term_rule thy expand
                         
-      val result = FundefProof.mk_partial_rules thy data prep_result
-      val FundefResult {f, G, R, completeness, psimps, subset_pinduct,simple_pinduct,total_intro,dom_intros} = result
+      val result = inner_cont proof
+      val FundefResult {f, G, R, cases, psimps, trsimps, subset_pinducts=[subset_pinduct],simple_pinducts=[simple_pinduct],
+                        termination,domintros} = result
                                                                                                                
       val all_f_defs = map (fn MutualPart {f_defthm = SOME f_def, cargTs, ...} =>
                                mk_applied_form lthy cargTs (symmetric (Thm.freezeT f_def)))
@@ -333,18 +357,19 @@ fun mk_partial_rules_mutual lthy (m as Mutual {RST, parts, streeR, fqgars, ...})
       fun mk_mpsimp fqgar sum_psimp =
           in_context lthy fqgar (recover_mutual_psimp thy RST streeR all_f_defs parts) sum_psimp
           
-      val mpsimps = PROFILE "making mpsimps" (map2 mk_mpsimp fqgars) psimps
-      val minducts = PROFILE "making mpinduct" (mutual_induct_rules thy simple_pinduct all_f_defs) m
-      val termination = PROFILE "making mtermination" (full_simplify (HOL_basic_ss addsimps all_f_defs)) total_intro
+      val mpsimps = map2 mk_mpsimp fqgars psimps
+      val mtrsimps = map_option (map2 mk_mpsimp fqgars) trsimps
+      val minducts = mutual_induct_rules thy simple_pinduct all_f_defs m
+      val mtermination = full_simplify (HOL_basic_ss addsimps all_f_defs) termination
     in
-      FundefMResult { f=expand_term f, G=expand_term G, R=expand_term R,
-                      psimps=map expand mpsimps, subset_pinducts=[expand subset_pinduct], simple_pinducts=map expand minducts,
-                      cases=expand completeness, termination=expand termination,
-                      domintros=map expand dom_intros }
+      FundefResult { f=expand_term f, G=expand_term G, R=expand_term R,
+                     psimps=map expand mpsimps, subset_pinducts=[expand subset_pinduct], simple_pinducts=map expand minducts,
+                     cases=expand cases, termination=expand mtermination,
+                     domintros=map_option (map expand) domintros,
+                     trsimps=map_option (map expand) trsimps}
     end
       
-      
-      
+
 (* puts an object in the "right bucket" *)
 fun store_grouped P x [] = []
   | store_grouped P x ((l, xs)::bs) =
@@ -356,5 +381,23 @@ fun sort_by_function (Mutual {fqgars, ...}) names xs =
              (map (rpair []) names)                (* in the empty buckets labeled with names *)
              
              |> map (snd #> map snd)                     (* and remove the labels afterwards *)
+
+
+fun prepare_fundef_mutual config defname fixes eqss default lthy =
+    let
+      val mutual = analyze_eqs lthy defname (map fst fixes) eqss
+      val Mutual {fsum_var=(n, T), qglrs, ...} = mutual
+          
+      val ((fsum, goalstate, cont), lthy') =
+          FundefCore.prepare_fundef config defname (n, T, NoSyn) qglrs default lthy
+          
+      val (mutual', lthy'') = define_projections fixes mutual fsum lthy'
+
+      val mutual_cont = mk_partial_rules_mutual lthy'' cont mutual'
+      val sort_cont = sort_by_function mutual' (map (fst o fst) fixes)
+    in
+      ((goalstate, mutual_cont, sort_cont), lthy'')
+    end
+
     
 end

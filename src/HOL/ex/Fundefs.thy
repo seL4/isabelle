@@ -24,7 +24,6 @@ thm fib.pinduct
 text {* There is also a cases rule to distinguish cases along the definition *}
 thm fib.cases
 
-thm fib.domintros
 
 text {* total simp and induction rules: *}
 thm fib.simps
@@ -172,8 +171,6 @@ thm od.simps
 
 thm evn_od.pinduct
 thm evn_od.termination
-thm evn_od.domintros
-
 
 
 

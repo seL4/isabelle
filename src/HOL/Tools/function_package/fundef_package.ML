@@ -40,6 +40,8 @@ open FundefCommon
 
 val note_theorem = LocalTheory.note Thm.theoremK
 
+fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_" 
+
 fun burrow_snd f ps = (* ('a list -> 'b list) -> ('c * 'a) list -> ('c * 'b) list *)
     let val (xs, ys) = split_list ps
     in xs ~~ f ys end
@@ -47,49 +49,46 @@ fun burrow_snd f ps = (* ('a list -> 'b list) -> ('c * 'a) list -> ('c * 'b) lis
 fun restore_spec_structure reps spec =
     (burrow o burrow_snd o burrow o K) reps spec
 
-fun add_simps label moreatts mutual_info fixes psimps spec lthy =
+fun add_simps fixes spec sort label moreatts simps lthy =
     let
       val fnames = map (fst o fst) fixes
 
-      val (saved_spec_psimps, lthy) =
-        fold_map (fold_map note_theorem) (restore_spec_structure psimps spec) lthy
-      val saved_psimps = flat (map snd (flat saved_spec_psimps))
+      val (saved_spec_simps, lthy) =
+        fold_map (fold_map note_theorem) (restore_spec_structure simps spec) lthy
+      val saved_simps = flat (map snd (flat saved_spec_simps))
 
-      val psimps_by_f = FundefMutual.sort_by_function mutual_info fnames saved_psimps
+      val simps_by_f = sort saved_simps
 
-      fun add_for_f fname psimps =
+      fun add_for_f fname simps =
         note_theorem
           ((NameSpace.qualified fname label, Attrib.internal (K Simplifier.simp_add) :: moreatts),
-            psimps) #> snd
+            simps) #> snd
     in
-      (saved_psimps,
-       fold2 add_for_f fnames psimps_by_f lthy)
+      (saved_simps,
+       fold2 add_for_f fnames simps_by_f lthy)
     end
 
 
-fun fundef_afterqed config fixes spec mutual_info defname data [[result]] lthy =
+fun fundef_afterqed config fixes spec defname cont sort_cont [[proof]] lthy =
     let
-      val FundefConfig { domintros, ...} = config
-      val Prep {f, R, ...} = data
-      val fundef_data = FundefMutual.mk_partial_rules_mutual lthy mutual_info data result
-      val FundefMResult {psimps, subset_pinducts, simple_pinducts, termination, domintros, cases, ...} = fundef_data
+      val FundefResult {f, R, psimps, trsimps, subset_pinducts, simple_pinducts, termination, domintros, cases, ...} = 
+          cont (Goal.close_result proof)
+
       val qualify = NameSpace.qualified defname
+      val addsimps = add_simps fixes spec sort_cont
 
       val (((psimps', pinducts'), (_, [termination'])), lthy) =
           lthy
-            |> PROFILE "adding_psimps" (add_simps "psimps" [] mutual_info fixes psimps spec)
-            ||>> PROFILE "adding pinduct"
-              (note_theorem ((qualify "pinduct",
-                [Attrib.internal (K (InductAttrib.induct_set ""))]), simple_pinducts))
-            ||>> PROFILE "adding termination"
-              (note_theorem ((qualify "termination", []), [termination]))
-            ||> (snd o PROFILE "adding cases" (note_theorem ((qualify "cases", []), [cases])))
-            ||> (snd o PROFILE "adding domintros" (note_theorem ((qualify "domintros", []), domintros)))
+            |> addsimps "psimps" [] psimps
+            ||> fold_option (snd oo addsimps "simps" []) trsimps
+            ||>> note_theorem ((qualify "pinduct",
+                                [Attrib.internal (K (InductAttrib.induct_set ""))]), simple_pinducts)
+            ||>> note_theorem ((qualify "termination", []), [termination])
+            ||> (snd o note_theorem ((qualify "cases", []), [cases]))
+            ||> fold_option (snd oo curry note_theorem (qualify "domintros", [])) domintros
 
-      val cdata = FundefCtxData { fixes=fixes, spec=spec, mutual=mutual_info, psimps=psimps',
+      val cdata = FundefCtxData { add_simps=addsimps, psimps=psimps',
                                   pinducts=snd pinducts', termination=termination', f=f, R=R }
-
-
     in
       lthy  (* FIXME proper handling of morphism *)
         |> LocalTheory.declaration (fn phi => add_fundef_data defname cdata) (* save in target *)
@@ -117,33 +116,36 @@ fun prep_with_flags prep fixspec eqnss_flags global_flag lthy =
 
 fun gen_add_fundef prep_spec fixspec eqnss_flags config lthy =
     let
-      val FundefConfig {sequential, default, ...} = config
+      val FundefConfig {sequential, default, tailrec, ...} = config
 
       val ((fixes, spec), ctxt') = prep_with_flags prep_spec fixspec eqnss_flags sequential lthy
+
+      val defname = mk_defname fixes
+
       val t_eqns = spec
                      |> flat |> map snd |> flat (* flatten external structure *)
 
-      val ((mutual_info, name, prep_result as Prep {goal, goalI, ...}), lthy) =
-          FundefMutual.prepare_fundef_mutual fixes t_eqns default lthy
+      val ((goalstate, cont, sort_cont), lthy) =
+          FundefMutual.prepare_fundef_mutual config defname fixes t_eqns default lthy
 
-      val afterqed = fundef_afterqed config fixes spec mutual_info name prep_result
+      val afterqed = fundef_afterqed config fixes spec defname cont sort_cont
     in
-      (name, lthy
-         |> Proof.theorem_i NONE afterqed [[(goal, [])]]
-         |> Proof.refine (Method.primitive_text (fn _ => goalI)) |> Seq.hd)
+      (defname, lthy
+         |> Proof.theorem_i NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
+         |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd)
     end
 
 
 fun total_termination_afterqed defname data [[totality]] lthy =
     let
-      val FundefCtxData { fixes, spec, mutual, psimps, pinducts, ... } = data
+      val FundefCtxData { add_simps, psimps, pinducts, ... } = data
 
-      val totality = PROFILE "closing" Goal.close_result totality
+      val totality = Goal.close_result totality
 
       val remove_domain_condition = full_simplify (HOL_basic_ss addsimps [totality, True_implies_equals])
 
-      val tsimps = PROFILE "making tsimps" (map remove_domain_condition) psimps
-      val tinduct = PROFILE "making tinduct" (map remove_domain_condition) pinducts
+      val tsimps = map remove_domain_condition psimps
+      val tinduct = map remove_domain_condition pinducts
 
         (* FIXME: How to generate code from (possibly) local contexts*)
       val has_guards = exists ((fn (Const ("Trueprop", _) $ _) => false | _ => true) o prop_of) tsimps
@@ -152,26 +154,26 @@ fun total_termination_afterqed defname data [[totality]] lthy =
       val qualify = NameSpace.qualified defname;
     in
       lthy
-        |> PROFILE "adding tsimps" (add_simps "simps" allatts mutual fixes tsimps spec) |> snd
-        |> PROFILE "adding tinduct" (note_theorem ((qualify "induct", []), tinduct)) |> snd
+        |> add_simps "simps" allatts tsimps |> snd
+        |> note_theorem ((qualify "induct", []), tinduct) |> snd
     end
 
 
 fun setup_termination_proof name_opt lthy =
     let
-        val name = the_default (get_last_fundef (Context.Proof lthy)) name_opt
-        val data = the (get_fundef_data name (Context.Proof lthy))
-                   handle Option.Option => raise ERROR ("No such function definition: " ^ name)
+        val defname = the_default (get_last_fundef (Context.Proof lthy)) name_opt
+        val data = the (get_fundef_data defname (Context.Proof lthy))
+                   handle Option.Option => raise ERROR ("No such function definition: " ^ defname)
 
-        val FundefCtxData {termination, f, R, ...} = data
-        val goal = FundefTermination.mk_total_termination_goal f R
+        val FundefCtxData {termination, R, ...} = data
+        val goal = FundefTermination.mk_total_termination_goal R
     in
       lthy
         |> ProofContext.note_thmss_i ""
           [(("termination", [ContextRules.intro_query NONE]),
             [([Goal.norm_result termination], [])])] |> snd
         |> set_termination_rule termination
-        |> Proof.theorem_i NONE (total_termination_afterqed name data) [[(goal, [])]]
+        |> Proof.theorem_i NONE (total_termination_afterqed defname data) [[(goal, [])]]
     end
 
 

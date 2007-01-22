@@ -11,7 +11,7 @@ signature FUNDEF_INDUCTIVE_WRAP =
 sig
   val inductive_def :  term list 
                        -> ((bstring * typ) * mixfix) * local_theory
-                       -> thm list * (term * thm * local_theory)
+                       -> thm list * (term * thm * thm * local_theory)
 end
 
 structure FundefInductiveWrap =
@@ -40,7 +40,7 @@ fun inductive_def defs (((R, T), mixfix), lthy) =
     let
       val qdefs = map dest_all_all defs
                   
-      val ({intrs = intrs_gen, elims = [elim_gen], preds = [ Rdef ], ...}, lthy) =
+      val ({intrs = intrs_gen, elims = [elim_gen], preds = [ Rdef ], induct, ...}, lthy) =
           InductivePackage.add_inductive_i true (*verbose*)
                                            "" (* no altname *)
                                            false (* no coind *)
@@ -70,7 +70,7 @@ fun inductive_def defs (((R, T), mixfix), lthy) =
                        |> Term.strip_comb |> snd |> hd (* Trueprop *)
                        |> Term.strip_comb |> fst
     in
-      (intrs, (Rdef_real, elim, lthy))
+      (intrs, (Rdef_real, elim, induct, lthy))
     end
     
 end
