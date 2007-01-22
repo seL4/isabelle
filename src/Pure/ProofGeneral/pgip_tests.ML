@@ -68,6 +68,7 @@ fun e str = case p str of
 	      | _ => error("Expected to get an XML Element")
 
 open PgipInput;
+open PgipTypes;
 
 fun asseqi a b =
     if input (e a) = b then ()
@@ -82,6 +83,8 @@ val _ = asseqi "<pgmlsymbolson/>" (SOME (Pgmlsymbolson()));
 val _ = asseqi "<pgmlsymbolsoff/>" (SOME (Pgmlsymbolsoff()));
 val _ = asseqi "<startquiet/>" (SOME (Startquiet()));
 val _ = asseqi "<stopquiet/>" (SOME (Stopquiet()));
+val _ = asseqi "<askrefs thyname='foo' objtype='theory'/>" (SOME (Askrefs {url=NONE, thyname=SOME "foo",
+									  objtype=SOME ObjTheory,name=NONE}));
 val _ = asseqi "<otherelt/>" NONE;
 
 end
