@@ -35,6 +35,10 @@ sig
     | Askids         of { url: PgipTypes.pgipurl option,
 			  thyname: PgipTypes.objname option,
 			  objtype: PgipTypes.objtype option }
+    | Askrefs        of { url: PgipTypes.pgipurl option,
+			  thyname: PgipTypes.objname option,
+			  objtype: PgipTypes.objtype option,
+			  name: PgipTypes.objname option }
     | Showid         of { thyname: PgipTypes.objname option, 
 			  objtype: PgipTypes.objtype, 
 			  name: PgipTypes.objname }
@@ -99,6 +103,10 @@ datatype pgipinput =
        | Askids         of { url: PgipTypes.pgipurl option,
 			     thyname: PgipTypes.objname option,
 			     objtype: PgipTypes.objtype option }
+       | Askrefs        of { url: PgipTypes.pgipurl option,
+			     thyname: PgipTypes.objname option,
+			     objtype: PgipTypes.objtype option,
+			     name: PgipTypes.objname option }
        | Showid         of { thyname: PgipTypes.objname option, 
 			     objtype: PgipTypes.objtype, 
 			     name: PgipTypes.objname }
@@ -191,6 +199,10 @@ SOME
    | "askids"         => Askids { url = pgipurl_attro attrs,
 				  thyname = thyname_attro attrs, 
 				  objtype = objtype_attro attrs }
+   | "askrefs"        => Askrefs { url = pgipurl_attro attrs,
+				   thyname = thyname_attro attrs, 
+				   objtype = objtype_attro attrs,
+				   name = name_attro attrs }
    | "showid"         => Showid { thyname = thyname_attro attrs,
 				  objtype = objtype_of_attrs attrs,
 				  name = name_attr attrs }

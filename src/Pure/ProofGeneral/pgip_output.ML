@@ -37,6 +37,12 @@ sig
     | Hasprefs            of { prefcategory: string option, 
                                prefs: PgipTypes.preference list }
     | Prefval             of { name: string, value: string }
+    | Setrefs             of { url: PgipTypes.pgipurl option,
+			       thyname: PgipTypes.objname option,
+			       objtype: PgipTypes.objtype option,
+			       name: PgipTypes.objname option,
+			       idtables: PgipTypes.idtable list,
+			       fileurls : PgipTypes.pgipurl list }
     | Idvalue             of { name: PgipTypes.objname, 
 			       objtype: PgipTypes.objtype, 
 			       text: XML.content }
@@ -87,6 +93,12 @@ datatype pgipoutput =
        | Idvalue             of { name: PgipTypes.objname, 
 				  objtype: PgipTypes.objtype, 
 				  text: XML.content }
+       | Setrefs             of { url: PgipTypes.pgipurl option,
+				  thyname: PgipTypes.objname option,
+				  objtype: PgipTypes.objtype option,
+				  name: PgipTypes.objname option,
+				  idtables: PgipTypes.idtable list,
+				  fileurls : PgipTypes.pgipurl list }
        | Informguise         of { file : PgipTypes.pgipurl option,  
 				  theory: PgipTypes.objname option, 
 				  theorem: PgipTypes.objname option, 
@@ -224,6 +236,25 @@ fun setids (Setids vs) =
         XML.Elem ("setids",[],map idtable_to_xml idtables)
     end
 
+fun setrefs (Setrefs vs) =
+    let
+	val url = #url vs
+	val thyname = #thyname vs
+	val objtype = #objtype vs
+	val name = #name vs
+        val idtables = #idtables vs
+        val fileurls = #fileurls vs
+	fun fileurl_to_xml url = XML.Elem ("fileurl", attrs_of_pgipurl url, [])
+    in
+        XML.Elem ("setrefs",
+		  (Option.getOpt (Option.map attrs_of_pgipurl url,[])) @ 
+		  (Option.getOpt (Option.map attrs_of_objtype objtype,[])) @
+		  (opt_attr "thyname" thyname) @
+		  (opt_attr "name" name),
+		  (map idtable_to_xml idtables) @ 
+		  (map fileurl_to_xml fileurls))
+    end
+
 fun addids (Addids vs) =
     let
         val idtables = #idtables vs
@@ -356,6 +387,7 @@ fun output pgipoutput = case pgipoutput of
   | Lexicalstructure _      => lexicalstructure pgipoutput
   | Proverinfo _            => proverinfo pgipoutput
   | Setids _                => setids pgipoutput
+  | Setrefs _               => setrefs pgipoutput
   | Addids _                => addids pgipoutput
   | Delids _                => delids pgipoutput
   | Hasprefs _              => hasprefs pgipoutput
