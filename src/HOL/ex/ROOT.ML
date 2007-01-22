@@ -20,6 +20,7 @@ time_use_thy "Guess";
 time_use_thy "Binary";
 
 time_use_thy "Recdefs";
+time_use_thy "Fundefs";
 time_use_thy "InductiveInvariant_examples";
 time_use_thy "Primrec";
 time_use_thy "Locales";
