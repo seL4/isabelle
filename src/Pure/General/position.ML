@@ -14,6 +14,8 @@ sig
   val line_name: int -> string -> T
   val inc: T -> T
   val str_of: T -> string
+  val line_of: T -> int option
+  val name_of: T -> string option
 end;
 
 structure Position: POSITION =
@@ -44,5 +46,10 @@ fun str_of (Pos (NONE, NONE)) = ""
   | str_of (Pos (NONE, SOME s)) = " (" ^ s ^ ")"
   | str_of (Pos (SOME n, SOME s)) = " (line " ^ string_of_int n ^ " of " ^ s ^ ")";
 
+fun line_of (Pos (SOME n,_)) = SOME n
+  | line_of _ = NONE
+
+fun name_of (Pos (_,SOME s)) = SOME s
+  | name_of _ = NONE
 
 end;
