@@ -216,7 +216,7 @@ fun thm_deps_message (thms, deps) =
 fun tell_thm_deps ths =
   if Output.has_mode thm_depsN then
     let
-      val names = filter_out (equal "") (map PureThy.get_name_hint ths);
+      val names = filter_out (equal "") (map PureThy.get_name_hint ths); (* da: HAS THIS NOW BECOME "??.unknown"? *)
       val deps = filter_out (equal "")
         (Symtab.keys (fold Proofterm.thms_of_proof
           (map Thm.proof_of ths) Symtab.empty));

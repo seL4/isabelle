@@ -17,6 +17,8 @@ sig
   (* Yet more message functions... *)
   val nonfatal_error : string -> unit     (* recoverable error *)
   val log_msg : string -> unit	          (* for internal log messages *)
+
+  val error_with_pos : PgipTypes.fatality -> Position.T -> string -> unit
 end
 
 structure ProofGeneralPgip : PROOF_GENERAL_PGIP  =
@@ -190,8 +192,18 @@ in
               val content = XML.Elem("pgmltext",[],[XML.Rawtext s])
               val pgip = Errorresponse {area=NONE,fatality=fatality,
                                         content=[content],
-                                        (* FIXME: pass in locations *)
                                         location=NONE}
+        in
+            queue_or_issue pgip
+        end
+
+    (* Error responses with useful locations *)
+    fun error_with_pos fatality pos s =
+        let
+              val content = XML.Elem("pgmltext",[],[XML.Rawtext s])
+              val pgip = Errorresponse {area=NONE,fatality=fatality,
+                                        content=[content],
+                                        location=SOME (PgipIsabelle.location_of_position pos)}
         in
             queue_or_issue pgip
         end
@@ -346,7 +358,7 @@ fun thm_deps_message (thms, deps) =
 fun tell_thm_deps ths =
   if Output.has_mode thm_depsN then
     let
-      val names = filter_out (equal "") (map PureThy.get_name_hint ths);
+      val names = filter_out (equal "") (map PureThy.get_name_hint ths); (* da: HAS THIS NOW BECOME "??.unknown"? *)
       val deps = filter_out (equal "")
         (Symtab.keys (fold Proofterm.thms_of_proof
           (map Thm.proof_of ths) Symtab.empty));
@@ -540,14 +552,11 @@ fun abortgoal vs = isarcmd "kill" (* was: ProofGeneral.kill_proof *)
 
 (*** PGIP identifier tables ***)
 
-fun setids t = issue_pgip (Setids {idtables = [t]})
-fun addids t = issue_pgip (Addids {idtables = [t]})
-fun delids t = issue_pgip (Delids {idtables = [t]})
+(* TODO: these ones should be triggered by hooks after a 
+   declaration addition/removal, to be sent automatically. *)
 
-(*
- fun delallids ty =
-     issue_pgip (Setids {idtables =
-                        [{context=NONE,objtype=ty,ids=[]}]}) *)
+fun addids t  = issue_pgip (Addids {idtables = [t]})
+fun delids t  = issue_pgip (Delids {idtables = [t]})
 
 fun askids (Askids vs) =
     let
@@ -556,6 +565,8 @@ fun askids (Askids vs) =
         val objtype = #objtype vs    (* ask for identifiers of a particular type *)
 
         fun idtable ty ctx ids = {objtype=ty,context=ctx,ids=ids}
+
+	fun setids t  = issue_pgip (Setids {idtables = [t]})
 
         val thms_of_thy = map fst o PureThy.thms_of o ThyInfo.get_theory
     in
@@ -578,6 +589,63 @@ fun askids (Askids vs) =
                                 setids (idtable ObjTheorem (SOME thy) (thms_of_thy thy)))
          | (_, SOME ot) => error ("No objects of type "^(PgipTypes.name_of_objtype ot)^" are available here.")
     end
+
+fun askrefs (Askrefs vs) =
+    let
+        val url = #url vs            (* ask for references of a file (i.e. immediate pre-requisites) *)
+        val thyname = #thyname vs    (* ask for references of a theory (other theories) *)
+        val objtype = #objtype vs    (* ask for references of a particular type... *)
+        val name = #name vs          (*   ... with this name *)
+
+        fun idtable ty ctx ids = {objtype=ty,context=ctx,ids=ids}
+
+        val thms_of_thy = map fst o PureThy.thms_of o ThyInfo.get_theory
+
+	val thy_name = Path.implode o #1 o Path.split_ext o Path.base
+
+	fun filerefs f = 
+	    let val thy = thy_name f
+		val (_,filerefs) = OuterSyntax.deps_thy thy true f (* (Path.unpack f); *)
+	    in 
+		issue_pgip (Setrefs {url=url, thyname=NONE, objtype=SOME PgipTypes.ObjFile,
+				     name=NONE, idtables=[], fileurls=filerefs})
+	    end
+
+	fun thyrefs thy = 
+	    let val ml_path = ThyLoad.ml_path thy
+		val (thyrefs,_) = OuterSyntax.deps_thy thy true ml_path (* (Path.unpack f); *)
+	    in 
+		issue_pgip (Setrefs {url=url, thyname=thyname, objtype=SOME PgipTypes.ObjTheory,
+				     name=NONE, idtables=[{context=NONE, objtype=PgipTypes.ObjTheory,
+							   ids=thyrefs}], fileurls=[]})
+	    end
+
+	fun thmrefs thmname = 
+	    let
+		(* TODO: interim: this is probably not right.  
+		   What we want is mapping onto simple PGIP name/context model. *)
+		val ctx = Toplevel.context_of (Toplevel.get_state()) (* NB: raises UNDEF *)
+		val thy = Context.theory_of_proof ctx
+		val ths = [PureThy.get_thm thy (PureThy.Name thmname)]
+		val deps = filter_out (equal "")
+				      (Symtab.keys (fold Proofterm.thms_of_proof
+							 (map Thm.proof_of ths) Symtab.empty))
+	    in
+		if null deps then ()
+		else issue_pgip (Setrefs {url=url, thyname=thyname, name=name,
+					  objtype=SOME PgipTypes.ObjTheorem,
+					  idtables=[{context=NONE, objtype=PgipTypes.ObjTheorem,
+						     ids=deps}], fileurls=[]})
+	    end 
+    in
+        case (url,thyname,objtype,name) of
+	    (SOME file, NONE, _, _)  => filerefs file           
+	  | (_,SOME thy,_,_)         => thyrefs thy
+	  | (_,_,SOME PgipTypes.ObjTheorem,SOME thmname) => thmrefs thmname
+          | _  => error ("Unimplemented/invalid case of <askrefs>")
+    end
+
+
 
 local
   (* accumulate printed output in a single PGIP response (inside <pgmltext>) *)
@@ -839,6 +907,7 @@ fun process_input inp = case inp
   | Pgip.Restoregoal _      => error "<restoregoal> not implemented"
   | Pgip.Abortgoal _        => abortgoal inp
   | Pgip.Askids _           => askids inp
+  | Pgip.Askrefs _          => askrefs inp
   | Pgip.Showid _           => showid inp
   | Pgip.Askguise _         => askguise inp
   | Pgip.Parsescript _      => parsescript inp
