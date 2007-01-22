@@ -51,7 +51,8 @@ sig
 		      url: pgipurl option,
 		      line: int option,
 		      column: int option,
-		      char: int option }
+		      char: int option,
+		      length: int option }
 
     (* Prover preference *)   
     type preference = { name: string,
@@ -338,7 +339,8 @@ type location = { descr: string option,
 		  url: pgipurl option,
 		  line: int option,
 		  column: int option,
-		  char: int option }
+		  char: int option,
+		  length: int option }
 
 
 
@@ -356,8 +358,8 @@ fun path_of_pgipurl p = p  (* potentially raises PGIP, but not with this impleme
 
 fun string_of_pgipurl p = Path.implode p
 
-fun attrs_of_pgipurl purl = 
-    [("url", "file:" ^ (XML.text (File.platform_path (File.full_path purl))))]
+fun attrval_of_pgipurl purl = "file:" ^ (XML.text (File.platform_path (File.full_path purl)))
+fun attrs_of_pgipurl purl = [("url", attrval_of_pgipurl purl)]
 
 val pgipurl_of_attrs = pgipurl_of_string o get_attr "url"
 
@@ -396,15 +398,16 @@ in
 
   fun attrs_of_fatality fatality = [("fatality", string_of_fatality fatality)]
 
-  fun attrs_of_location ({ descr, url, line, column, char }:location) =
+  fun attrs_of_location ({ descr, url, line, column, char, length }:location) =
       let 
-	  val descr = opt_attr "descr" descr
-	  val url = these (Option.map attrs_of_pgipurl url)
-	  val line = opt_attr_map int_to_pgstring "line" line
-	  val column = opt_attr_map int_to_pgstring "column"  column
-	  val char = opt_attr_map int_to_pgstring "char" char
+	  val descr = opt_attr "location_descr" descr
+	  val url = opt_attr_map attrval_of_pgipurl "location_url" url
+	  val line = opt_attr_map int_to_pgstring "locationline" line
+	  val column = opt_attr_map int_to_pgstring "locationcolumn"  column
+	  val char = opt_attr_map int_to_pgstring "locationcharacter" char
+	  val length = opt_attr_map int_to_pgstring "locationlength" length
       in 
-	  descr @ url @ line @ column @ char
+	  descr @ url @ line @ column @ char @ length
       end
 
     fun pgipint_of_string err s = 
@@ -414,16 +417,18 @@ in
 
   fun location_of_attrs attrs = 
       let
-	  val descr = get_attr_opt "descr" attrs
-	  val url = Option.map  pgipurl_of_string (get_attr_opt "url" attrs)
+	  val descr = get_attr_opt "location_descr" attrs
+	  val url = Option.map  pgipurl_of_string (get_attr_opt "location_url" attrs)
 	  val line = Option.map (pgipint_of_string "location element line attribute")
-				(get_attr_opt "line" attrs)
+				(get_attr_opt "locationline" attrs)
 	  val column = Option.map (pgipint_of_string "location element column attribute")
-				  (get_attr_opt "column" attrs)
+				  (get_attr_opt "locationcolumn" attrs)
 	  val char = Option.map (pgipint_of_string "location element char attribute")
-				(get_attr_opt "char" attrs)
+				(get_attr_opt "locationcharacter" attrs)
+	  val length = Option.map (pgipint_of_string "location element length attribute")
+				  (get_attr_opt "locationlength" attrs)
       in 
-	  {descr=descr, url=url, line=line, column=column, char=char}
+	  {descr=descr, url=url, line=line, column=column, char=char, length=length}
       end
 end
 
