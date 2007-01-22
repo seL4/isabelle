@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     David Aspinall
 
-Prover-side PGIP abstraction: Isabelle configuration.
+Prover-side PGIP abstraction: Isabelle configuration and mapping to Isabelle types.
 *)
 
 signature PGIP_ISABELLE =
@@ -10,6 +10,8 @@ sig
     val isabelle_pgml_version_supported : string
     val isabelle_pgip_version_supported : string
     val accepted_inputs : (string * bool * (string list)) list 
+
+    val location_of_position : Position.T -> PgipTypes.location
 end
 
 structure PgipIsabelle : PGIP_ISABELLE =
@@ -54,5 +56,34 @@ val accepted_inputs =
          accepted_names);
 end
 
+
+(* Now we have to parse strings constructed elsewhere in Isabelle, which is silly!
+   This is another case where Isabelle should use structured types
+   from the ground up to help its interfaces, instead of just plain
+   strings.
+*)
+fun unquote s = case explode s of 
+		    "\""::xs => (case (rev xs) of
+				    "\""::_ => SOME (String.substring(s,1,(String.size s) - 2))
+			         | _ => NONE)
+		  | _ => NONE
+
+fun location_of_position pos = 
+    let val line = Position.line_of pos
+	val (url,descr) = 
+	    (case Position.name_of pos of
+		 NONE => (NONE,NONE)
+	       | SOME possiblyfile => 
+		 (case unquote possiblyfile of
+		      SOME fname => let val path = (Path.explode fname) in
+					case ThyLoad.check_file NONE path of
+					    SOME _ => (SOME (PgipTypes.pgipurl_of_path path), NONE)
+					  | NONE => (NONE,SOME fname)
+				    end
+		    | _ => (NONE,SOME possiblyfile)))
+    in 
+	{ descr=descr, url=url, line=line, column=NONE, char=NONE, length=NONE }
+    end 
+	
 end
 
