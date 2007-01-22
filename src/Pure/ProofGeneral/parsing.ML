@@ -246,8 +246,10 @@ fun xmls_of_transition (name,str,toks) =
            [D.Theoryitem {name=NONE,objtype=NONE,text=str}])
    end
 
+
+(* this would be a lot neater if we could match on toks! *)
 fun markup_comment_whs [] = []
-  | markup_comment_whs (toks as t::ts) = (* this would be a lot neater if we could match on toks! *)
+  | markup_comment_whs (toks as t::ts) = 
     let
         val (prewhs,rest) = take_prefix (OuterLex.is_kind OuterLex.Space) toks
     in
@@ -320,8 +322,9 @@ in
            let
                (* first proper token after whitespace/litcomment/whitespace is command *)
                val (xmls_pre_cmd,cmditoks') = xmls_pre_cmd itoks
-               val (cmdtok,itoks') = case cmditoks' of x::xs => (x,xs)
-                                                     | _ => error("proof_general/parse_loop impossible")
+               val (cmdtok,itoks') = 
+		   case cmditoks' of x::xs => (x,xs)
+                                   | _ => error("proof_general/parse_loop impossible")
                val (utoks,itoks'') = match_tokens (toks,itoks',[])
                (* FIXME: should take trailing [w/s+] semicolon too in utoks *)
 
