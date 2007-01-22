@@ -1305,4 +1305,10 @@ lemma of_nat_diff [simp]:
 by (simp del: of_nat_add
 	 add: compare_rls of_nat_add [symmetric] split add: nat_diff_split)
 
+
+subsection {* Size function *}
+
+lemma nat_size[simp]: "size (n::nat) = n"
+  by (induct n) simp_all
+
 end
