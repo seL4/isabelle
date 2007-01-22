@@ -17,8 +17,9 @@ sig
   (* Yet more message functions... *)
   val nonfatal_error : string -> unit     (* recoverable error *)
   val log_msg : string -> unit	          (* for internal log messages *)
-
   val error_with_pos : PgipTypes.fatality -> Position.T -> string -> unit
+
+  val get_currently_open_file : unit -> Path.T option  (* interface focus *)
 end
 
 structure ProofGeneralPgip : PROOF_GENERAL_PGIP  =
@@ -695,6 +696,8 @@ fun showid (Showid vs) =
 *)
 
 val currently_open_file = ref (NONE : pgipurl option)
+
+fun get_currently_open_file () = ! currently_open_file;
 
 fun askguise vs =
     (* The "guise" is the PGIP abstraction of the prover's state.
