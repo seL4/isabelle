@@ -10,14 +10,14 @@ Isar commands.
 signature FUNDEF_PACKAGE =
 sig
     val add_fundef :  (string * string option * mixfix) list
-                      -> ((bstring * Attrib.src list) * string list) list list
+                      -> ((bstring * Attrib.src list) * (string * bool) list) list list
                       -> FundefCommon.fundef_config
                       -> local_theory
                       -> string * Proof.state
 
     val add_fundef_i:  (string * typ option * mixfix) list
-                       -> ((bstring * Attrib.src list) * term list) list list
-                       -> bool
+                       -> ((bstring * Attrib.src list) * (term * bool) list) list list
+                       -> FundefCommon.fundef_config
                        -> local_theory
                        -> string * Proof.state
 
@@ -32,7 +32,7 @@ sig
 end
 
 
-structure FundefPackage  =
+structure FundefPackage : FUNDEF_PACKAGE =
 struct
 
 open FundefLib
@@ -75,19 +75,19 @@ fun fundef_afterqed config fixes spec defname cont sort_cont [[proof]] lthy =
           cont (Goal.close_result proof)
 
       val qualify = NameSpace.qualified defname
-      val addsimps = add_simps fixes spec sort_cont
+      val addsmps = add_simps fixes spec sort_cont
 
       val (((psimps', pinducts'), (_, [termination'])), lthy) =
           lthy
-            |> addsimps "psimps" [] psimps
-            ||> fold_option (snd oo addsimps "simps" []) trsimps
+            |> addsmps "psimps" [] psimps
+            ||> fold_option (snd oo addsmps "simps" []) trsimps
             ||>> note_theorem ((qualify "pinduct",
                                 [Attrib.internal (K (InductAttrib.induct_set ""))]), simple_pinducts)
             ||>> note_theorem ((qualify "termination", []), [termination])
             ||> (snd o note_theorem ((qualify "cases", []), [cases]))
             ||> fold_option (snd oo curry note_theorem (qualify "domintros", [])) domintros
 
-      val cdata = FundefCtxData { add_simps=addsimps, psimps=psimps',
+      val cdata = FundefCtxData { add_simps=addsmps, psimps=psimps',
                                   pinducts=snd pinducts', termination=termination', f=f, R=R }
     in
       lthy  (* FIXME proper handling of morphism *)
