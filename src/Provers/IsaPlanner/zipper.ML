@@ -80,7 +80,8 @@ sig
 
   val depth : T -> int;
   val map : (D.dtrm -> D.dtrm) -> T -> T
-  val fold : (D.dtrm -> 'a -> 'a) -> T -> 'a -> 'a
+  val fold_up : (D.dtrm -> 'a -> 'a) -> T -> 'a -> 'a
+  val fold_down : (D.dtrm -> 'a -> 'a) -> T -> 'a -> 'a
 
 end;
 
@@ -113,7 +114,8 @@ sig
 
   val depth_of_ctxt : T -> int;
   val map_on_ctxt : (C.D.dtrm -> C.D.dtrm) -> T -> T
-  val fold_on_ctxt : (C.D.dtrm -> 'a -> 'a) -> T -> 'a -> 'a
+  val fold_up_ctxt : (C.D.dtrm -> 'a -> 'a) -> T -> 'a -> 'a
+  val fold_down_ctxt : (C.D.dtrm -> 'a -> 'a) -> T -> 'a -> 'a
 
   (* searching through a zipper *)
   datatype zsearch = Here of T | LookIn of T;
@@ -228,7 +230,8 @@ struct
 
   val map = List.map : (D.dtrm -> D.dtrm) -> T -> T
 
-  val fold = Basics.fold : (D.dtrm -> 'a -> 'a) -> T -> 'a -> 'a;
+  val fold_up = Basics.fold : (D.dtrm -> 'a -> 'a) -> T -> 'a -> 'a;
+  val fold_down = Basics.fold_rev : (D.dtrm -> 'a -> 'a) -> T -> 'a -> 'a;
 
 end;
 
@@ -266,7 +269,8 @@ functor ZipperFUN(C : TRM_CTXT)
 
   fun depth_of_ctxt x = C.depth (ctxt x);
   fun map_on_ctxt x = apsnd (C.map x);
-  fun fold_on_ctxt f = C.fold f o ctxt;
+  fun fold_up_ctxt f = C.fold_up f o ctxt;
+  fun fold_down_ctxt f = C.fold_down f o ctxt;
 
   fun omove_up (t,(d::c)) = SOME (D.apply d t, c)
     | omove_up (z as (_,[])) = NONE;
@@ -329,10 +333,10 @@ functor ZipperFUN(C : TRM_CTXT)
 
   (* follow the given path down the given zipper *)
   (* implicit arguments: C.D.dtrm list, then T *)
-  val zipto = 
-      C.fold (fn C.D.Abs _ => move_down_abs 
-               | C.D.AppL _ => move_down_right
-               | C.D.AppR _ => move_down_left); 
+  val zipto = C.fold_down 
+                (fn C.D.Abs _ => move_down_abs 
+                  | C.D.AppL _ => move_down_right
+                  | C.D.AppR _ => move_down_left); 
 
   (* Note: interpretted as being examined depth first *)
   datatype zsearch = Here of T | LookIn of T;
