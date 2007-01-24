@@ -259,6 +259,10 @@ proof -
   thus ?thesis by iprover
 qed
 
+lemmas trancl_induct2 =
+  trancl_induct[of "(ax,ay)" "(bx,by)", split_format (complete),
+                 consumes 1, case_names base step]
+
 lemma trancl_trans_induct:
   assumes major: "(x,y) : r^+"
     and cases: "!!x y. (x,y) : r ==> P x y"

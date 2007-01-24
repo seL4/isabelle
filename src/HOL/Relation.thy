@@ -356,6 +356,11 @@ lemma Domain_Union: "Domain (Union S) = (\<Union>A\<in>S. Domain A)"
 lemma Domain_mono: "r \<subseteq> s ==> Domain r \<subseteq> Domain s"
   by blast
 
+lemma fst_eq_Domain: "fst ` R = Domain R";
+  apply auto
+  apply (rule image_eqI, auto) 
+  done
+
 
 subsection {* Range *}
 
@@ -391,6 +396,11 @@ lemma Range_Diff_subset: "Range(A) - Range(B) \<subseteq> Range(A - B)"
 
 lemma Range_Union: "Range (Union S) = (\<Union>A\<in>S. Range A)"
   by blast
+
+lemma snd_eq_Range: "snd ` R = Range R";
+  apply auto
+  apply (rule image_eqI, auto) 
+  done
 
 
 subsection {* Image of a set under a relation *}

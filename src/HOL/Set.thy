@@ -1422,6 +1422,9 @@ lemma Un_subset_iff [simp]: "(A \<union> B \<subseteq> C) = (A \<subseteq> C & B
 lemma Un_Diff_Int: "(A - B) \<union> (A \<inter> B) = A"
   by blast
 
+lemma Diff_Int2: "A \<inter> C - B \<inter> C = A \<inter> C - B"
+  by blast
+
 
 text {* \medskip Set complement *}
 
