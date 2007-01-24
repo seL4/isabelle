@@ -849,10 +849,14 @@ fun loadfile (Loadfile vs) =
     let
         val url = #url vs
     in
-        case !currently_open_file of
+        (* da: this doesn't seem to cause a problem, batch loading uses
+           a different state context.  Of course confusion is still possible,
+           e.g. file loaded depends on open file which is not yet saved. *)
+        (* case !currently_open_file of
             SOME f => raise PGIP ("<loadfile> when a file is open!\nCurrently open file: " ^
 				  PgipTypes.string_of_pgipurl url)
-          | NONE => use_thy_or_ml_file (File.platform_path url)
+          | NONE => *)
+	use_thy_or_ml_file (File.platform_path url)
     end
 
 fun abortfile vs =
