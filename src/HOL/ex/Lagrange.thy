@@ -41,7 +41,7 @@ lemma Lagrange_lemma:
 
 
 text {*
-  A challenge by John Harrison. Takes about 22s on a 1.6GHz machine.
+  A challenge by John Harrison. Takes about 17s on a 1.6GHz machine.
 *}
 
 lemma
