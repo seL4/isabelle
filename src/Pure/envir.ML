@@ -215,31 +215,41 @@ fun head_norm env t =
 
 (*Eta-contract a term (fully)*)
 
-fun eta_contract t =
-  let
-    fun decr lev (Bound i) = if i >= lev then Bound (i - 1) else raise SAME
-      | decr lev (Abs (a, T, body)) = Abs (a, T, decr (lev + 1) body)
-      | decr lev (t $ u) = (decr lev t $ decrh lev u handle SAME => t $ decr lev u)
-      | decr _ _ = raise SAME
-    and decrh lev t = (decr lev t handle SAME => t);
+local
 
-    fun eta (Abs (a, T, body)) =
-        ((case eta body of
-            body' as (f $ Bound 0) =>
-              if loose_bvar1 (f, 0) then Abs (a, T, body')
-              else decrh 0 f
-         | body' => Abs (a, T, body')) handle SAME =>
-            (case body of
-              f $ Bound 0 =>
-                if loose_bvar1 (f, 0) then raise SAME
-                else decrh 0 f
-            | _ => raise SAME))
-      | eta (t $ u) = (eta t $ etah u handle SAME => t $ eta u)
-      | eta _ = raise SAME
-    and etah t = (eta t handle SAME => t);
-  in etah t end;
+fun decr lev (Bound i) = if i >= lev then Bound (i - 1) else raise SAME
+  | decr lev (Abs (a, T, body)) = Abs (a, T, decr (lev + 1) body)
+  | decr lev (t $ u) = (decr lev t $ decrh lev u handle SAME => t $ decr lev u)
+  | decr _ _ = raise SAME
+and decrh lev t = (decr lev t handle SAME => t);
+
+fun eta (Abs (a, T, body)) =
+    ((case eta body of
+        body' as (f $ Bound 0) =>
+          if loose_bvar1 (f, 0) then Abs (a, T, body')
+          else decrh 0 f
+     | body' => Abs (a, T, body')) handle SAME =>
+        (case body of
+          f $ Bound 0 =>
+            if loose_bvar1 (f, 0) then raise SAME
+            else decrh 0 f
+        | _ => raise SAME))
+  | eta (t $ u) = (eta t $ etah u handle SAME => t $ eta u)
+  | eta _ = raise SAME
+and etah t = (eta t handle SAME => t);
+
+fun has_abs (Abs _) = true
+  | has_abs (t $ u) = has_abs t orelse has_abs u
+  | has_abs _ = false;
+
+in
+
+fun eta_contract t =
+  if has_abs t then etah t else t;
 
 val beta_eta_contract = eta_contract o beta_norm;
+
+end;
 
 
 (*finds type of term without checking that combinations are consistent
