@@ -448,7 +448,7 @@ code_const "number_of \<Colon> int \<Rightarrow> int"
      and "IntInf.-/ (_,/ 1))")
   (OCaml "_"
      and "Big'_int.big'_int'_of'_int/ 0"
-     and "Big'_int.big'_int'_of'_int/ -1"
+     and "Big'_int.big'_int'_of'_int/ (-1)"
      and "!(_; _; failwith \"BIT\")"
      and "Big'_int.succ'_big'_int"
      and "Big'_int.pred'_big'_int")
