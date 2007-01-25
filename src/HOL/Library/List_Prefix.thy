@@ -280,4 +280,21 @@ next
   then show "xs >>= ys" ..
 qed
 
+
+subsection {* Exeuctable code *}
+
+lemma less_eq_code [code func]:
+  "([]\<Colon>'a\<Colon>{eq, ord} list) \<le> xs \<longleftrightarrow> True"
+  "(x\<Colon>'a\<Colon>{eq, ord}) # xs \<le> [] \<longleftrightarrow> False"
+  "(x\<Colon>'a\<Colon>{eq, ord}) # xs \<le> y # ys \<longleftrightarrow> x = y \<and> xs \<le> ys"
+  by simp_all
+
+lemma less_code [code func]:
+  "xs < ([]\<Colon>'a\<Colon>{eq, ord} list) \<longleftrightarrow> False"
+  "[] < (x\<Colon>'a\<Colon>{eq, ord})# xs \<longleftrightarrow> True"
+  "(x\<Colon>'a\<Colon>{eq, ord}) # xs < y # ys \<longleftrightarrow> x = y \<and> xs < ys"
+  unfolding strict_prefix_def by auto
+
+lemmas [code func] = postfix_to_prefix
+
 end
