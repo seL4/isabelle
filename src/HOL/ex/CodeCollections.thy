@@ -77,7 +77,7 @@ lemma exists_ex [simp]:
   "list_ex P xs \<longleftrightarrow> (\<exists>x\<in>set xs. P x)"
   by (induct xs) auto
 
-class fin =
+class finite =
   fixes fin :: "'a list"
   assumes member_fin: "x \<in> set fin"
 begin
@@ -96,11 +96,11 @@ lemma ex_exists [code func, code inline]:
 
 end
   
-instance bool :: fin
+instance bool :: finite
   "fin == [False, True]"
   by default (simp_all add: fin_bool_def)
 
-instance unit :: fin
+instance unit :: finite
   "fin == [()]"
   by default (simp_all add: fin_unit_def)
 
@@ -132,24 +132,24 @@ next
   qed
 qed
 
-instance * :: (fin, fin) fin
+instance * :: (finite, finite) finite
   "fin == product fin fin"
 apply default
 apply (simp_all add: "fin_*_def")
 apply (unfold split_paired_all)
 apply (rule product_all)
-apply (rule member_fin)+
+apply (rule finite_class.member_fin)+
 done
 
-instance option :: (fin) fin
+instance option :: (finite) finite
   "fin == None # map Some fin"
 proof (default, unfold fin_option_def)
-  fix x :: "'a::fin option"
+  fix x :: "'a::finite option"
   show "x \<in> set (None # map Some fin)"
   proof (cases x)
     case None then show ?thesis by auto
   next
-    case (Some x) then show ?thesis by (auto intro: member_fin)
+    case (Some x) then show ?thesis by (auto intro: finite_class.member_fin)
   qed
 qed
 
@@ -193,9 +193,6 @@ primrec
 (*definition "test2 = (inf :: nat \<times> unit)"*)
 definition "test3 \<longleftrightarrow> (\<exists>x \<Colon> bool option. case x of Some P \<Rightarrow> P | None \<Rightarrow> False)"
 
-code_gen test3
-
-code_gen (SML #)
-code_gen (Haskell -)
+code_gen test3 (SML #) (OCaml -) (Haskell -)
 
 end
