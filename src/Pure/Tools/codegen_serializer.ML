@@ -621,7 +621,11 @@ fun pr_ocaml tyco_syntax const_syntax keyword_vars deresolv is_cons ml_def =
             val (ps, vars') = fold_map pr binds vars;
           in brackets (str "fun" :: ps @ str "->" @@ pr_term vars' NOBR t') end
       | pr_term vars fxy (INum n) =
-          brackets [str "Big_int.big_int_of_int", (str o IntInf.toString) n]
+          if n > 0 then
+            brackify fxy [str "Big_int.big_int_of_int", (str o IntInf.toString) n]
+          else
+            brackify fxy [str "Big_int.big_int_of_int",
+              (str o enclose "(" ")" o prefix "-" o IntInf.toString o op ~) n]
       | pr_term vars _ (IChar c) =
           (str o enclose "'" "'")
             (let val i = ord c
