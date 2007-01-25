@@ -3,8 +3,7 @@
     Author:     Florian Haftmann, TU Muenchen
 
 Identifying constants by name plus normalized type instantantiation schemes.
-Type normalization is compatible with overloading discipline and user-defined
-ad-hoc overloading.  Convenient data structures for constants.
+Convenient data structures for constants.
 *)
 
 signature CODEGEN_CONSTS =
@@ -17,12 +16,7 @@ sig
   val typ_of_inst: theory -> const -> string * typ
   val norm: theory -> const -> const
   val norm_of_typ: theory -> string * typ -> const
-  val find_def: theory -> const
-    -> ((string (*theory name*) * thm) * typ list) option
-  val instance_dict: theory -> class * string
-    -> (string * sort) list * (string * typ) list
-  val disc_typ_of_classop: theory -> const -> typ
-  val disc_typ_of_const: theory -> (const -> typ) -> const -> typ
+  val find_def: theory -> const -> (string (*theory name*) * thm) option
   val consts_of: theory -> term -> const list
   val read_const: theory -> string -> const
   val string_of_const: theory -> const -> string
@@ -68,7 +62,7 @@ fun find_def thy (c, tys) =
     fun get_def (_, { is_def, thyname, name, lhs, rhs }) =
       if is_def andalso forall typ_instance (tys ~~ lhs) then
         case try (Thm.get_axiom_i thy) name
-         of SOME thm => SOME ((thyname, thm), lhs)
+         of SOME thm => SOME (thyname, thm)
           | NONE => NONE
       else NONE
   in
@@ -77,48 +71,20 @@ fun find_def thy (c, tys) =
 
 fun norm thy (c, insts) =
   let
-    fun disciplined _ [(Type (tyco, _))] =
-          (c, [Type (tyco, map (fn v => TVar ((v, 0), []))
-            (Name.invents Name.context "'a" (Sign.arity_number thy tyco)))])
-      | disciplined sort _ =
-          (c, [TVar (("'a", 0), sort)]);
-    fun ad_hoc c tys =
-      case find_def thy (c, tys)
-       of SOME (_, tys) => (c, tys)
-        | NONE => inst_of_typ thy (c, Sign.the_const_type thy c);
+    fun disciplined class [ty as Type (tyco, _)] =
+          (case try (Sorts.mg_domain (Sign.classes_of thy) tyco) [class]
+           of SOME sorts => (c, [Type (tyco, map (fn v => TVar ((v, 0), []))
+                (Name.invents Name.context "'a" (length sorts)))])
+            | NONE => error ("no such instance: " ^ quote c ^ ", " ^ quote tyco))
+      | disciplined class _ =
+          (c, [TVar (("'a", 0), [class])]);
   in case AxClass.class_of_param thy c
-     of SOME class => disciplined [class] insts
-      | _ => ad_hoc c insts
+   of SOME class => disciplined class insts
+    | _ => inst_of_typ thy (c, Sign.the_const_type thy c)
   end;
 
 fun norm_of_typ thy (c, ty) =
   norm thy (c, Consts.typargs (Sign.consts_of thy) (c, ty));
-
-fun instance_dict thy (class, tyco) =
-  let
-    val (var, cs) = AxClass.params_of_class thy class;
-    val sort_args = Name.names (Name.declare var Name.context) "'a"
-      (Sign.arity_sorts thy tyco [class]);
-    val ty_inst = Type (tyco, map TFree sort_args);
-    val inst_signs = (map o apsnd o map_type_tfree) (K ty_inst) cs;
-  in (sort_args, inst_signs) end;
-
-fun disc_typ_of_classop thy (c, [ty]) = 
-  let
-    val class = (the o AxClass.class_of_param thy) c;
-    val cs = case ty
-     of TVar _ => snd (AxClass.params_of_class thy class)
-      | TFree _ => snd (AxClass.params_of_class thy class)
-      | Type (tyco, _) => snd (instance_dict thy (class, tyco));
-  in
-    (Logic.varifyT o the o AList.lookup (op =) cs) c
-  end;
-
-fun disc_typ_of_const thy f (const as (c, [ty])) =
-      if (is_some o AxClass.class_of_param thy) c
-      then disc_typ_of_classop thy const
-      else f const
-  | disc_typ_of_const thy f const = f const;
 
 fun consts_of thy t =
   fold_aterms (fn Const c => cons (norm_of_typ thy c) | _ => I) t []
