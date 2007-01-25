@@ -552,7 +552,7 @@ fun the_codetypes_mut_specs thy ([(tyco, is_dt)]) =
         val tycos = map fst tycos';
         val tycos'' = (map (#1 o snd) o #descr o DatatypePackage.the_datatype thy) tyco;
         val _ = if gen_subset (op =) (tycos, tycos'') then () else
-          error ("datatype constructors are not mutually recursive: " ^ (commas o map quote) tycos);
+          error ("type constructors are not mutually recursive: " ^ (commas o map quote) tycos);
         val (vs::_, css) = split_list (map (the o DatatypePackage.get_datatype_spec thy) tycos);
       in (vs, map2 (fn (tyco, is_dt) => fn cs => (tyco, (is_dt, cs))) tycos' css) end;
 

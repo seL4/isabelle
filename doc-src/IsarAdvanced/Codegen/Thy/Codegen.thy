@@ -1062,7 +1062,7 @@ text {*
 
   For technical reasons, we further have to provide a
   synonym for @{const None} which in code generator view
-  is a function rather than a datatype constructor:
+  is a function rather than a term constructor:
 *}
 
 definition
