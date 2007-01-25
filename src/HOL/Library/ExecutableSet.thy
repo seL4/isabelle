@@ -13,26 +13,6 @@ section {* Definitional rewrites *}
 
 instance set :: (eq) eq ..
 
-definition
-  minus_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "minus_set xs ys = ys - xs"
-
-lemma [code inline]:
-  "op - = (\<lambda>xs ys. minus_set ys xs)"
-  unfolding minus_set_def ..
-
-definition
-  subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
-  "subset = op \<subseteq>"
-
-lemmas [symmetric, code inline] = subset_def
-
-definition
-  strict_subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where 
-  "strict_subset = op \<subset>"
-
-lemmas [symmetric, code inline] = strict_subset_def
-
 lemma [code target: Set]:
   "A = B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
   by blast
@@ -42,12 +22,12 @@ lemma [code func]:
   by blast
 
 lemma [code func]:
-  "subset A B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
-  unfolding subset_def Set.subset_def ..
+  "(A\<Colon>'a\<Colon>eq set) \<subseteq> B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
+  unfolding subset_def ..
 
 lemma [code func]:
-  "strict_subset A B \<longleftrightarrow> subset A B \<and> A \<noteq> B"
-  unfolding subset_def strict_subset_def by blast
+  "(A\<Colon>'a\<Colon>eq set) \<subset> B \<longleftrightarrow> A \<subseteq> B \<and> A \<noteq> B"
+  by blast
 
 lemma [code]:
   "a \<in> A \<longleftrightarrow> (\<exists>x\<in>A. x = a)"
@@ -81,10 +61,8 @@ lemma
   and [code target: List]: "member (x#xs) y = (y = x \<or> member xs y)"
 unfolding member_def by (induct xs) simp_all
 
-consts
-  drop_first :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list"
-
-primrec
+fun
+  drop_first :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "drop_first f [] = []"
   "drop_first f (x#xs) = (if f x then xs else x # drop_first f xs)"
 declare drop_first.simps [code del]
@@ -215,12 +193,16 @@ lemma iso_intersect:
   "set (intersect xs ys) = set xs \<inter> set ys"
   unfolding intersect_def Int_def by (simp add: Int_def iso_member) auto
 
+definition
+  subtract' :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+  "subtract' = flip subtract"
+
 lemma iso_subtract:
   fixes ys
   assumes distnct: "distinct ys"
-  shows "set (subtract xs ys) = minus_set (set xs) (set ys)"
-  and "distinct (subtract xs ys)"
-  unfolding subtract_def minus_set_def
+  shows "set (subtract' ys xs) = set ys - set xs"
+  and "distinct (subtract' ys xs)"
+  unfolding subtract'_def flip_def subtract_def
   using distnct by (induct xs arbitrary: ys) auto
 
 lemma iso_map_distinct:
@@ -299,7 +281,7 @@ lemma [code func]:
   "(xs \<Colon> 'a\<Colon>eq set) \<inter> ys = xs \<inter> ys" ..
 
 lemma [code func]:
-  "minus_set xs = minus_set (xs \<Colon> 'a\<Colon>eq set)" ..
+  "(op -) (xs \<Colon> 'a\<Colon>eq set) = (op -) (xs \<Colon> 'a\<Colon>eq set)" ..
 
 lemma [code func]:
   "image (f \<Colon> 'a \<Rightarrow> 'b\<Colon>eq) = image f" ..
@@ -324,7 +306,7 @@ code_abstype "'a set" "'a list" where
   insert \<equiv> insertl
   "op \<union>" \<equiv> unionl
   "op \<inter>" \<equiv> intersect
-  minus_set \<equiv> subtract
+  "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" \<equiv> subtract'
   image \<equiv> map_distinct
   Union \<equiv> unions
   Inter \<equiv> intersects
@@ -334,7 +316,7 @@ code_abstype "'a set" "'a list" where
   Bex \<equiv> Blex
   filter_set \<equiv> filter
 
-code_gen "{}" insert "op \<union>" "op \<inter>" minus_set
+code_gen "{}" insert "op \<union>" "op \<inter>" "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
   image Union Inter UNION INTER Ball Bex filter_set (SML -)
 
 

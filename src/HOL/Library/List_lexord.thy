@@ -34,22 +34,34 @@ instance list :: (linorder) linorder
   apply simp
   done
 
-lemma not_less_Nil [simp, code func]: "~(x < [])"
+lemma not_less_Nil [simp]: "\<not> (x < [])"
   by (unfold list_less_def) simp
 
-lemma Nil_less_Cons [simp, code func]: "[] < a # x"
+lemma Nil_less_Cons [simp]: "[] < a # x"
   by (unfold list_less_def) simp
 
-lemma Cons_less_Cons [simp, code func]: "(a # x < b # y) = (a < b | a = b & x < y)"
+lemma Cons_less_Cons [simp]: "a # x < b # y \<longleftrightarrow> a < b \<or> a = b \<and> x < y"
   by (unfold list_less_def) simp
 
-lemma le_Nil [simp, code func]: "(x <= []) = (x = [])"
+lemma le_Nil [simp]: "x \<le> [] \<longleftrightarrow> x = []"
   by (unfold list_ord_defs, cases x) auto
 
-lemma Nil_le_Cons [simp, code func]: "([] <= x)"
+lemma Nil_le_Cons [simp]: "[] \<le> x"
   by (unfold list_ord_defs, cases x) auto
 
-lemma Cons_le_Cons [simp, code func]: "(a # x <= b # y) = (a < b | a = b & x <= y)"
+lemma Cons_le_Cons [simp]: "a # x \<le> b # y \<longleftrightarrow> a < b \<or> a = b \<and> x \<le> y"
   by (unfold list_ord_defs) auto
+
+lemma less_code [code func]:
+  "xs < ([]\<Colon>'a\<Colon>{eq, order} list) \<longleftrightarrow> False"
+  "[] < (x\<Colon>'a\<Colon>{eq, order}) # xs \<longleftrightarrow> True"
+  "(x\<Colon>'a\<Colon>{eq, order}) # xs < y # ys \<longleftrightarrow> x < y \<or> x = y \<and> xs < ys"
+  by simp_all
+
+lemma less_eq_code [code func]:
+  "x # xs \<le> ([]\<Colon>'a\<Colon>{eq, order} list) \<longleftrightarrow> False"
+  "[] \<le> (xs\<Colon>'a\<Colon>{eq, order} list) \<longleftrightarrow> True"
+  "(x\<Colon>'a\<Colon>{eq, order}) # xs \<le> y # ys \<longleftrightarrow> x < y \<or> x = y \<and> xs \<le> ys"
+  by simp_all
 
 end
