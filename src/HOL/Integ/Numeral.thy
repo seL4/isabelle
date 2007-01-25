@@ -74,6 +74,11 @@ definition
   pred :: "int \<Rightarrow> int" where
   "pred k = k - 1"
 
+declare
+ max_def[of "number_of u" "number_of v", standard, simp]
+ min_def[of "number_of u" "number_of v", standard, simp]
+  -- {* unfolding @{text minx} and @{text max} on numerals *}
+
 lemmas numeral_simps = 
   succ_def pred_def Pls_def Min_def Bit_def
 
