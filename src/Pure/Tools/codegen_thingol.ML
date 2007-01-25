@@ -82,7 +82,7 @@ sig
   val succeed: 'a -> transact -> 'a * code;
   val fail: string -> transact -> 'a * code;
   val message: string -> (transact -> 'a) -> transact -> 'a;
-  val start_transact: string option -> (transact -> 'a * transact) -> code -> 'a * code;
+  val start_transact: (transact -> 'a * transact) -> code -> 'a * code;
 
   val trace: bool ref;
   val tracing: ('a -> string) -> 'a -> 'a;
@@ -344,7 +344,7 @@ fun check_prep_def code Bot =
   | check_prep_def code (d as Datatype _) =
       d
   | check_prep_def code (Datatypecons dtco) =
-      error "Attempted to add bare datatype constructor"
+      error "Attempted to add bare term constructor"
   | check_prep_def code (d as Class _) =
       d
   | check_prep_def code (Classop _) =
@@ -438,16 +438,14 @@ fun message msg f trns =
   f trns handle FAIL msgs =>
     raise FAIL (msg :: msgs);
 
-fun start_transact init f code =
+fun start_transact f code =
   let
     fun handle_fail f x =
       (f x
       handle FAIL msgs =>
         (error o cat_lines) ("Code generation failed, while:" :: msgs))
   in
-    code
-    |> (if is_some init then ensure_bot (the init) else I)
-    |> pair init
+    (NONE, code)
     |> handle_fail f
     |-> (fn x => fn (_, code) => (x, code))
   end;

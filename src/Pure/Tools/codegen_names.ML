@@ -261,7 +261,7 @@ fun force_thyname thy (const as (c, tys)) =
     | NONE => (case CodegenData.get_datatype_of_constr thy const
    of SOME dtco => SOME (thyname_of_tyco thy dtco)
     | NONE => (case CodegenConsts.find_def thy const
-   of SOME ((thyname, _), _) => SOME thyname
+   of SOME (thyname, _) => SOME thyname
     | NONE => NONE));
 
 fun const_policy thy (c, tys) =

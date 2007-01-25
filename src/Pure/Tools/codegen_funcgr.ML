@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Retrieving, normalizing and structuring code function theorems
+Retrieving, normalizing and structuring defining equations
 in graph with explicit dependencies.
 *)
 
@@ -10,14 +10,16 @@ signature CODEGEN_FUNCGR =
 sig
   type T;
   val make: theory -> CodegenConsts.const list -> T
+  val make_consts: theory -> CodegenConsts.const list -> CodegenConsts.const list * T
   val make_term: theory -> ((thm -> thm) -> cterm -> thm -> 'a) -> cterm -> 'a * T
   val funcs: T -> CodegenConsts.const -> thm list
   val typ: T -> CodegenConsts.const -> typ
   val deps: T -> CodegenConsts.const list -> CodegenConsts.const list list
   val all: T -> CodegenConsts.const list
-  val norm_varnames: theory -> thm list -> thm list
+  val norm_varnames: thm list -> thm list
   val print_codethms: theory -> CodegenConsts.const list -> unit
   structure Constgraph : GRAPH
+  val timing: bool ref
 end;
 
 structure CodegenFuncgr: CODEGEN_FUNCGR =
@@ -46,6 +48,26 @@ structure Funcgr = CodeDataFun
 end);
 
 val _ = Context.add_setup Funcgr.init;
+
+
+(** retrieval **)
+
+fun funcs funcgr =
+  these o Option.map snd o try (Constgraph.get_node funcgr);
+
+fun typ funcgr =
+  fst o Constgraph.get_node funcgr;
+
+fun deps funcgr cs =
+  let
+    val conn = Constgraph.strong_conn funcgr;
+    val order = rev conn;
+  in
+    (map o filter) (member (op =) (Constgraph.all_succs funcgr cs)) order
+    |> filter_out null
+  end;
+
+fun all funcgr = Constgraph.keys funcgr;
 
 
 (** theorem purification **)
@@ -104,7 +126,7 @@ fun canonical_absvars thm =
     val t' = Term.map_abs_vars CodegenNames.purify_var t;
   in Thm.rename_boundvars t t' thm end;
 
-fun norm_varnames thy thms =
+fun norm_varnames thms =
   let
     fun burrow_thms f [] = []
       | burrow_thms f thms =
@@ -122,52 +144,28 @@ fun norm_varnames thy thms =
   end;
 
 
+(** generic combinators **)
 
-(** retrieval **)
+fun fold_consts f thms =
+  thms
+  |> maps (op :: o swap o apfst (snd o strip_comb) o Logic.dest_equals o Drule.plain_prop_of)
+  |> (fold o fold_aterms) (fn Const c => f c | _ => I);
 
-fun funcs funcgr =
-  these o Option.map snd o try (Constgraph.get_node funcgr);
+fun consts_of (const, []) = []
+  | consts_of (const, thms as thm :: _) = 
+      let
+        val thy = Thm.theory_of_thm thm;
+        val is_refl = curry CodegenConsts.eq_const const;
+        fun the_const c = case try (CodegenConsts.norm_of_typ thy) c
+         of SOME const => if is_refl const then I else insert CodegenConsts.eq_const const
+          | NONE => I
+      in fold_consts the_const thms [] end;
 
-fun typ funcgr =
-  fst o Constgraph.get_node funcgr;
-
-fun deps funcgr cs =
+fun insts_of thy algebra c ty_decl ty =
   let
-    val conn = Constgraph.strong_conn funcgr;
-    val order = rev conn;
-  in
-    (map o filter) (member (op =) (Constgraph.all_succs funcgr cs)) order
-    |> filter_out null
-  end;
-
-fun all funcgr = Constgraph.keys funcgr;
-
-local
-
-fun add_things_of thy f (c, thms) =
-  (fold o fold_aterms)
-     (fn Const c_ty => let
-            val c' = CodegenConsts.norm_of_typ thy c_ty
-          in if is_some c andalso CodegenConsts.eq_const (the c, c') then I
-          else f (c', c_ty) end
-       | _ => I) (maps (op :: o swap o apfst (snd o strip_comb)
-            o Logic.dest_equals o Drule.plain_prop_of) thms)
-
-fun rhs_of thy (c, thms) =
-  Consttab.empty
-  |> add_things_of thy (Consttab.update o rpair () o fst) (c, thms)
-  |> Consttab.keys;
-
-fun rhs_of' thy (c, thms) =
-  add_things_of thy (cons o snd) (c, thms) [];
-
-fun insts_of thy funcgr (c, ty) =
-  let
-    val tys = Sign.const_typargs thy (c, ty);
-    val c' = CodegenConsts.norm thy (c, tys);
-    val ty_decl = CodegenConsts.disc_typ_of_const thy
-      (fst o Constgraph.get_node funcgr o CodegenConsts.norm thy) (c, tys);
     val tys_decl = Sign.const_typargs thy (c, ty_decl);
+    val tys = Sign.const_typargs thy (c, ty);
+    fun classrel (x, _) _ = x;
     fun constructor tyco xs class =
       (tyco, class) :: maps (maps fst) xs;
     fun variable (TVar (_, sort)) = map (pair []) sort
@@ -177,76 +175,24 @@ fun insts_of thy funcgr (c, ty) =
       | mk_inst (Type (tyco1, tys1)) (Type (tyco2, tys2)) =
           if tyco1 <> tyco2 then error "bad instance"
           else fold2 mk_inst tys1 tys2;
-    val pp = Sign.pp thy;
-    val algebra = Sign.classes_of thy;
-    fun classrel (x, _) _ = x;
     fun of_sort_deriv (ty, sort) =
-      Sorts.of_sort_derivation pp algebra
+      Sorts.of_sort_derivation (Sign.pp thy) algebra
         { classrel = classrel, constructor = constructor, variable = variable }
         (ty, sort)
   in
     flat (maps of_sort_deriv (fold2 mk_inst tys tys_decl []))
   end;
 
-exception MISSING_INSTANCE of string * string; (*FIXME provide reasonable error tracking*)
 
-fun all_classops thy tyco class =
-  if can (Sign.arity_sorts thy tyco) [class]
-  then
-    try (AxClass.params_of_class thy) class
-    |> Option.map snd
-    |> these
-    |> map (fn (c, _) => (c, CodegenConsts.disc_typ_of_classop thy (c, [Type (tyco, [])])))
-    |> map (CodegenConsts.norm_of_typ thy)
-  else raise MISSING_INSTANCE (tyco, class);
+(** graph algorithm **)
 
-fun instdefs_of thy insts =
-  let
-    val thy_classes = (#classes o Sorts.rep_algebra o Sign.classes_of) thy;
-  in
-    Symtab.empty
-    |> fold (fn (tyco, class) =>
-        Symtab.map_default (tyco, []) (insert (op =) class)) insts
-    |> (fn tab => Symtab.fold (fn (tyco, classes) => append (maps (all_classops thy tyco)
-         (Graph.all_succs thy_classes classes))) tab [])
-  end;
+val timing = ref false;
 
-fun insts_of_thms thy funcgr (c, thms) =
-  let
-    val insts = add_things_of thy (fn (_, c_ty) => fold (insert (op =))
-      (insts_of thy funcgr c_ty)) (SOME c, thms) [];
-  in
-    instdefs_of thy insts handle MISSING_INSTANCE (tyco, class) =>
-      error ("No such instance: " ^ quote tyco ^ ", " ^ quote class
-            ^ "\nin function theorems\n"
-            ^ (cat_lines o map string_of_thm) thms)
-  end;
+local
 
-fun ensure_const thy funcgr c auxgr =
-  if can (Constgraph.get_node funcgr) c
-    then (NONE, auxgr)
-  else if can (Constgraph.get_node auxgr) c
-    then (SOME c, auxgr)
-  else if is_some (CodegenData.get_datatype_of_constr thy c) then
-    auxgr
-    |> Constgraph.new_node (c, [])
-    |> pair (SOME c)
-  else let
-    val thms = norm_varnames thy (CodegenData.these_funcs thy c);
-    val rhs = rhs_of thy (SOME c, thms);
-  in
-    auxgr
-    |> Constgraph.new_node (c, thms)
-    |> fold_map (ensure_const thy funcgr) rhs
-    |-> (fn rhs' => fold (fn SOME c' => Constgraph.add_edge (c, c')
-                           | NONE => I) rhs')
-    |> pair (SOME c)
-  end;
+exception INVALID of CodegenConsts.const list * string;
 
-exception INVALID of CodegenConsts.const list * string;  (*FIXME provide reasonable error tracking*)
-
-(*FIXME: clarify algorithm*)
-fun specialize_typs' thy funcgr eqss =
+fun specialize_typs' thy funcgr funcss =
   let
     fun max xs = fold (curry Int.max) xs 0;
     fun incr_indices (c, thms) maxidx =
@@ -254,11 +200,14 @@ fun specialize_typs' thy funcgr eqss =
         val thms' = map (Thm.incr_indexes (maxidx + 1)) thms;
         val maxidx' = max (maxidx :: map Thm.maxidx_of thms');
       in ((c, thms'), maxidx') end;
-    val (eqss', maxidx) =
-      fold_map incr_indices eqss 0;
+    val (funcss', maxidx) =
+      fold_map incr_indices funcss 0;
+    fun typ_of_const (c, ty) = case try (CodegenConsts.norm_of_typ thy) (c, ty)
+     of SOME const => Option.map fst (try (Constgraph.get_node funcgr) const)
+      | NONE => NONE;
     fun unify_const (c, ty) (env, maxidx) =
-      case try (Constgraph.get_node funcgr) (CodegenConsts.norm_of_typ thy (c, ty))
-       of SOME (ty_decl, _) => let
+      case typ_of_const (c, ty)
+       of SOME ty_decl => let
             val ty_decl' = Logic.incr_tvar (maxidx + 1) ty_decl;
             val maxidx' = max [maxidx, Term.maxidx_of_typ ty_decl'];
           in Type.unify (Sign.tsig_of thy) (ty_decl', ty) (env, maxidx')
@@ -267,7 +216,7 @@ fun specialize_typs' thy funcgr eqss =
             ^ (Sign.string_of_typ thy o Envir.norm_type env) ty
             ^ ",\nfor constant " ^ quote c
             ^ "\nin function theorems\n"
-            ^ (cat_lines o maps (map (Sign.string_of_term thy o map_types (Envir.norm_type env) o Thm.prop_of) o snd)) eqss')))
+            ^ (cat_lines o maps (map (Sign.string_of_term thy o map_types (Envir.norm_type env) o Thm.prop_of) o snd)) funcss')))
           end
         | NONE => (env, maxidx);
     fun apply_unifier unif (c, []) = (c, [])
@@ -296,39 +245,126 @@ fun specialize_typs' thy funcgr eqss =
                     ^ (cat_lines o map string_of_thm) thms))
           in (c, thms') end;
     val (unif, _) =
-      fold (fn (c, thms) => fold unify_const (rhs_of' thy (c, thms)))
-        eqss' (Vartab.empty, maxidx);
-    val eqss'' = map (apply_unifier unif) eqss';
-  in eqss'' end;
+      fold (fn (_, thms) => fold unify_const (fold_consts (insert (op =)) thms []))
+        funcss' (Vartab.empty, maxidx);
+    val funcss'' = map (apply_unifier unif) funcss';
+  in funcss'' end;
 
 fun specialize_typs thy funcgr =
   (map o apfst) SOME
   #> specialize_typs' thy funcgr
   #> (map o apfst) the;
 
-fun merge_eqsyss thy raw_eqss funcgr =
+fun classop_const thy algebra class classop tyco =
   let
-    val eqss = specialize_typs thy funcgr raw_eqss;
-    val tys = map (CodegenData.typ_funcs thy) eqss;
-    val rhss = map (rhs_of thy o apfst SOME) eqss;
+    val sorts = Sorts.mg_domain algebra tyco [class]
+    val (var, _) = try (AxClass.params_of_class thy) class |> the_default ("'a", []);
+    val vs = Name.names (Name.declare var Name.context) "'a" sorts;
+    val arity_typ = Type (tyco, map TFree vs);
+  in (classop, [arity_typ]) end;
+
+fun instances_of thy algebra insts =
+  let
+    val thy_classes = (#classes o Sorts.rep_algebra o Sign.classes_of) thy;
+    fun all_classops tyco class =
+      try (AxClass.params_of_class thy) class
+      |> Option.map snd
+      |> these
+      |> map (fn (c, _) => classop_const thy algebra class c tyco)
+      |> map (CodegenConsts.norm thy)
+  in
+    Symtab.empty
+    |> fold (fn (tyco, class) =>
+        Symtab.map_default (tyco, []) (insert (op =) class)) insts
+    |> (fn tab => Symtab.fold (fn (tyco, classes) => append (maps (all_classops tyco)
+         (Graph.all_succs thy_classes classes))) tab [])
+  end;
+
+fun instances_of_consts thy algebra funcgr consts =
+  let
+    fun inst (const as (c, ty)) = case try (CodegenConsts.norm_of_typ thy) const
+     of SOME const => insts_of thy algebra c (fst (Constgraph.get_node funcgr const)) ty
+      | NONE => [];
+  in
+    []
+    |> fold (fold (insert (op =)) o inst) consts
+    |> instances_of thy algebra
+  end;
+
+fun ensure_const' thy algebra funcgr const auxgr =
+  if can (Constgraph.get_node funcgr) const
+    then (NONE, auxgr)
+  else if can (Constgraph.get_node auxgr) const
+    then (SOME const, auxgr)
+  else if is_some (CodegenData.get_datatype_of_constr thy const) then
+    auxgr
+    |> Constgraph.new_node (const, [])
+    |> pair (SOME const)
+  else let
+    val thms = norm_varnames (CodegenData.these_funcs thy const);
+    val rhs = consts_of (const, thms);
+  in
+    auxgr
+    |> Constgraph.new_node (const, thms)
+    |> fold_map (ensure_const thy algebra funcgr) rhs
+    |-> (fn rhs' => fold (fn SOME const' => Constgraph.add_edge (const, const')
+                           | NONE => I) rhs')
+    |> pair (SOME const)
+  end
+and ensure_const thy algebra funcgr const =
+  let
+    val timeap = if !timing
+      then Output.timeap_msg ("time for " ^ CodegenConsts.string_of_const thy const)
+      else I;
+  in timeap (ensure_const' thy algebra funcgr const) end;
+
+fun merge_funcss thy algebra raw_funcss funcgr =
+  let
+    val funcss = specialize_typs thy funcgr raw_funcss;
+    fun default_typ (const as (c, tys)) = case CodegenData.tap_typ thy const
+     of SOME ty => ty
+      | NONE => let
+          val ty = Sign.the_const_type thy c
+        in case AxClass.class_of_param thy c
+         of SOME class => let
+               val inst = case tys
+                of [Type (tyco, _)] => classop_const thy algebra class c tyco
+                      |> snd
+                      |> the_single
+                      |> Logic.varifyT
+                 | _ => TVar (("'a", 0), [class]);
+              in Term.map_type_tvar (K inst) ty end
+          | NONE => ty
+        end;
+    fun add_funcs (const, thms as thm :: _) =
+          Constgraph.new_node (const, (CodegenFunc.typ_func thm, thms))
+      | add_funcs (const, []) =
+          Constgraph.new_node (const, (default_typ const, []));
+    val _ = writeln ("constants " ^ (commas o map (CodegenConsts.string_of_const thy o fst)) funcss);
+    val _ = writeln ("funcs " ^ (cat_lines o maps (map string_of_thm o snd)) funcss);
+    fun add_deps (funcs as (const, thms)) funcgr =
+      let
+        val deps = consts_of funcs;
+        val _ = writeln ("constant " ^ CodegenConsts.string_of_const thy const);
+        val insts = instances_of_consts thy algebra funcgr
+          (fold_consts (insert (op =)) thms []);
+      in
+        funcgr
+        |> ensure_consts' thy algebra insts
+        |> fold (curry Constgraph.add_edge const) deps
+        |> fold (curry Constgraph.add_edge const) insts
+       end;
   in
     funcgr
-    |> fold2 (fn (c, thms) => fn ty => Constgraph.new_node (c, (ty, thms))) eqss tys
-    |> `(fn funcgr => map (insts_of_thms thy funcgr) eqss)
-    |-> (fn rhs_insts => fold2 (fn (c, _) => fn rhs_inst =>
-          ensure_consts thy rhs_inst #> fold (curry Constgraph.add_edge c) rhs_inst) eqss rhs_insts)
-    |> fold2 (fn (c, _) => fn rhs => fold (curry Constgraph.add_edge c) rhs) eqss rhss
+    |> fold add_funcs funcss
+    |> fold add_deps funcss
   end
-and merge_new_eqsyss thy raw_eqss funcgr =
-  if exists (member CodegenConsts.eq_const (Constgraph.keys funcgr)) (map fst raw_eqss)
-  then funcgr
-  else merge_eqsyss thy raw_eqss funcgr
-and ensure_consts thy cs funcgr =
-  fold (snd oo ensure_const thy funcgr) cs Constgraph.empty
-  |> (fn auxgr => fold (merge_new_eqsyss thy)
+and ensure_consts' thy algebra cs funcgr =
+  fold (snd oo ensure_const thy algebra funcgr) cs Constgraph.empty
+  |> (fn auxgr => fold (merge_funcss thy algebra)
        (map (AList.make (Constgraph.get_node auxgr))
        (rev (Constgraph.strong_conn auxgr))) funcgr)
-  handle INVALID (cs', msg) => raise INVALID (cs @ cs', msg);
+  handle INVALID (cs', msg) => raise INVALID (fold (insert CodegenConsts.eq_const) cs' cs, msg);
 
 fun drop_classes thy tfrees thm =
   let
@@ -344,14 +380,30 @@ fun drop_classes thy tfrees thm =
     |> Tactic.rule_by_tactic ((REPEAT o CHANGED o ALLGOALS o Tactic.resolve_tac) (AxClass.class_intros thy))
   end;
 
+fun ensure_consts thy consts funcgr =
+  let
+    val algebra = CodegenData.coregular_algebra thy
+  in ensure_consts' thy algebra consts funcgr
+    handle INVALID (cs', msg) => error (msg ^ ",\nwhile preprocessing equations for constant(s) "
+    ^ commas (map (CodegenConsts.string_of_const thy) cs'))
+  end;
+
 in
 
-val ensure_consts = (fn thy => fn cs => fn funcgr => ensure_consts thy
-  cs funcgr handle INVALID (cs', msg) => error (msg ^ ",\nwhile preprocessing equations for constant(s) "
-    ^ commas (map (CodegenConsts.string_of_const thy) cs')));
+
+(** graph retrieval **)
 
 fun make thy consts =
   Funcgr.change thy (ensure_consts thy consts);
+
+fun make_consts thy consts =
+  let
+    val algebra = CodegenData.coregular_algebra thy;
+    fun try_const const funcgr =
+      (SOME const, ensure_consts' thy algebra [const] funcgr)
+      handle INVALID (cs', msg) => (NONE, funcgr);
+    val (consts', funcgr) = Funcgr.change_yield thy (fold_map try_const consts);
+  in (map_filter I consts', funcgr) end;
 
 fun make_term thy f ct =
   let
@@ -376,15 +428,15 @@ fun make_term thy f ct =
     val ct'' = Drule.dest_equals_rhs (Thm.cprop_of thm6);
     val cs = fold_aterms (fn Const c => cons c | _ => I) (Thm.term_of ct'') [];
     val drop = drop_classes thy tfrees;
-    val instdefs = instdefs_of thy (fold (fold (insert (op =)) o insts_of thy funcgr) cs [])
-      handle MISSING_INSTANCE (tyco, class) =>
-        error ("No such instance: " ^ quote tyco ^ ", " ^ quote class
-          ^ "\nwhile prcoessing term\n"
-          ^ string_of_cterm ct)
+    val algebra = CodegenData.coregular_algebra thy;
+    val instdefs = instances_of_consts thy algebra funcgr cs;
     val funcgr' = ensure_consts thy instdefs funcgr;
   in (f drop ct'' thm5, Funcgr.change thy (K funcgr')) end;
 
 end; (*local*)
+
+
+(** diagnostics **)
 
 fun print_funcgr thy funcgr =
   AList.make (snd o Constgraph.get_node funcgr) (Constgraph.keys funcgr)
@@ -405,7 +457,7 @@ fun print_codethms_e thy cs =
   print_codethms thy (map (CodegenConsts.read_const thy) cs);
 
 
-(** Isar **)
+(** Isar setup **)
 
 structure P = OuterParse;
 

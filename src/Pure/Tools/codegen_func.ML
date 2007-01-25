@@ -2,22 +2,21 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Handling defining equations ("func"s) for code generator framework.
+Basic handling of defining equations ("func"s) for code generator framework.
 *)
 
 signature CODEGEN_FUNC =
 sig
-  val check_rew: thm -> thm
+  val assert_rew: thm -> thm
   val mk_rew: thm -> thm list
-  val check_func: thm -> (CodegenConsts.const * thm) option
+  val assert_func: thm -> thm
   val mk_func: thm -> (CodegenConsts.const * thm) list
-  val dest_func: thm -> (string * typ) * term list
   val mk_head: thm -> CodegenConsts.const * thm
+  val dest_func: thm -> (string * typ) * term list
   val typ_func: thm -> typ
-  val legacy_mk_func: thm -> (CodegenConsts.const * thm) list
+
   val expand_eta: int -> thm -> thm
   val rewrite_func: thm list -> thm -> thm
-  val get_prim_def_funcs: theory -> string * typ list -> thm list
 end;
 
 structure CodegenFunc : CODEGEN_FUNC =
@@ -31,7 +30,7 @@ fun bad_thm msg thm =
 
 (* making rewrite theorems *)
 
-fun check_rew thm =
+fun assert_rew thm =
   let
     val thy = Thm.theory_of_thm thm;
     val (lhs, rhs) = (Logic.dest_equals o Thm.prop_of) thm;
@@ -59,7 +58,7 @@ fun mk_rew thm =
     val thy = Thm.theory_of_thm thm;
     val thms = (#mk o #mk_rews o snd o MetaSimplifier.rep_ss o Simplifier.simpset_of) thy thm;
   in
-    map check_rew thms
+    map assert_rew thms
   end;
 
 
@@ -75,7 +74,7 @@ val dest_func = lift_thm_thy (fn thy => apfst dest_Const o strip_comb
 val mk_head = lift_thm_thy (fn thy => fn thm =>
   ((CodegenConsts.norm_of_typ thy o fst o dest_func) thm, thm));
 
-fun gen_check_func strict_functyp thm = case try dest_func thm
+fun assert_func thm = case try dest_func thm
  of SOME (c_ty as (c, ty), args) =>
       let
         val thy = Thm.theory_of_thm thm;
@@ -90,35 +89,10 @@ fun gen_check_func strict_functyp thm = case try dest_func thm
           | no_abs (t1 $ t2) = (no_abs t1; no_abs t2)
           | no_abs _ = ();
         val _ = map no_abs args;
-        val is_classop = (is_some o AxClass.class_of_param thy) c;
-        val const = CodegenConsts.norm_of_typ thy c_ty;
-        val ty_decl = CodegenConsts.disc_typ_of_const thy
-          (snd o CodegenConsts.typ_of_inst thy) const;
-        val string_of_typ = setmp show_sorts true (Sign.string_of_typ thy);
-        val error_warning = if strict_functyp
-          then error
-          else warning #> K NONE
-      in if Sign.typ_equiv thy (ty_decl, ty)
-        then SOME (const, thm)
-        else (if is_classop
-            then error_warning
-          else if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty)
-            then warning #> (K o SOME) (const, thm)
-          else error_warning)
-          ("Type\n" ^ string_of_typ ty
-           ^ "\nof function theorem\n"
-           ^ string_of_thm thm
-           ^ "\nis strictly less general than declared function type\n"
-           ^ string_of_typ ty_decl)
-      end
+      in thm end
   | NONE => bad_thm "Not a function equation" thm;
 
-val check_func = gen_check_func true;
-val legacy_check_func = gen_check_func false;
-
-fun gen_mk_func check_func = map_filter check_func o mk_rew;
-val mk_func = gen_mk_func check_func;
-val legacy_mk_func = gen_mk_func legacy_check_func;
+val mk_func = map (mk_head o assert_func) o mk_rew;
 
 
 (* utilities *)
@@ -153,31 +127,6 @@ fun expand_eta k thm =
     val vs_refl = map (fn (v, ty) => Thm.reflexive (Thm.cterm_of thy (Var ((v, 0), ty)))) vs;
   in
     fold (fn refl => fn thm => Thm.combination thm refl) vs_refl thm
-  end;
-
-fun get_prim_def_funcs thy c =
-  let
-    fun constrain thm0 thm = case AxClass.class_of_param thy (fst c)
-     of SOME _ =>
-          let
-            val ty_decl = CodegenConsts.disc_typ_of_classop thy c;
-            val max = maxidx_of_typ ty_decl + 1;
-            val thm = Thm.incr_indexes max thm;
-            val ty = typ_func thm;
-            val (env, _) = Sign.typ_unify thy (ty_decl, ty) (Vartab.empty, max);
-            val instT = Vartab.fold (fn (x_i, (sort, ty)) =>
-              cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
-          in Thm.instantiate (instT, []) thm end
-      | NONE => thm
-  in case CodegenConsts.find_def thy c
-   of SOME ((_, thm), _) =>
-        thm
-        |> Thm.transfer thy
-        |> try (map snd o mk_func)
-        |> these
-        |> map (constrain thm)
-        |> map (expand_eta ~1)
-    | NONE => []
   end;
 
 fun rewrite_func rewrites thm =
