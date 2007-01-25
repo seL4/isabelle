@@ -218,6 +218,7 @@ datatype class_data = ClassData of {
   consts: (string * string) list
     (*locale parameter ~> toplevel theory constant*),
   propnames: string list,
+    (*for ad-hoc instance in*)
   defs: thm list
     (*for experimental class target*)
 };
@@ -307,17 +308,23 @@ fun add_class_data ((class, superclasses), (locale, consts, propnames)) =
 
 fun add_def (class, thm) =
   (ClassData.map o Graph.map_node class)
-    (fn ClassData { locale,
-      consts, propnames, defs } => ClassData { locale = locale,
+    (fn ClassData { locale, consts, propnames, defs } => ClassData { locale = locale,
       consts = consts, propnames = propnames, defs = thm :: defs });
 
 
 (* tactics and methods *)
 
 fun intro_classes_tac facts st =
-  (ALLGOALS (Method.insert_tac facts THEN'
-      REPEAT_ALL_NEW (resolve_tac (AxClass.class_intros (Thm.theory_of_thm st))))
-    THEN Tactic.distinct_subgoals_tac) st;
+  let
+    val thy = Thm.theory_of_thm st;
+    val ctxt = ProofContext.init thy;
+    val intro_classes_tac = ALLGOALS
+      (Method.insert_tac facts THEN' REPEAT_ALL_NEW (resolve_tac (AxClass.class_intros thy)))
+        THEN Tactic.distinct_subgoals_tac;
+    val intro_locales_tac = Locale.intro_locales_tac true ctxt facts;
+  in
+    (intro_classes_tac THEN TRY intro_locales_tac) st
+  end;
 
 fun default_intro_classes_tac [] = intro_classes_tac []
   | default_intro_classes_tac _ = Tactical.no_tac;    (*no error message!*)
@@ -451,15 +458,34 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
           (*FIXME*)
           ((NameSpace.base name, map (Attrib.attribute thy) atts), (map o map_aterms) subst ts);
       in
-        Locale.local_asms_of thy name_locale
+        Locale.global_asms_of thy name_locale
         |> map prep_asm
       end;
     fun extract_axiom_names thy name_locale =
       name_locale
-      |> Locale.local_asms_of thy
+      |> Locale.global_asms_of thy
       |> map (NameSpace.base o fst o fst) (*FIXME*)
     fun mk_const thy class (c, ty) =
       Const (c, Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty);
+    (*fun note_thms class name_locale cs thy =
+      let (*FIXME just an ad-hoc feature*)
+        val names = fold (fn Element.Assumes xs => fold (cons o fst o fst) xs
+          | Element.Notes (name, _) => cons name
+          | _ => I) elems []
+        val const_names = cs;
+        val path = NameSpace.base class;
+        val prefix = NameSpace.implode [class ^ "_class", space_implode "_" const_names];
+        fun note_thm name thy =
+          case try (PureThy.get_thm thy) (Name (NameSpace.append prefix name))
+           of SOME thm =>
+                thy
+                |> PureThy.note_thmss_qualified "" path [((name, []), [([thm], [])])]
+                |> snd
+            | NONE => error name;
+      in
+        thy
+        |> fold note_thm names
+      end;*)
   in
     thy
     |> add_locale bname supexpr elems
@@ -474,16 +500,17 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
         add_class_data ((name_axclass, supclasses),
           (name_locale, map (fst o fst) params ~~ map fst consts, axiom_names))
       #> prove_interpretation (Logic.const_of_class bname, [])
-            (Locale.Locale name_locale) (map (SOME o mk_const thy name_axclass) (map snd supconsts @ consts))
+          (Locale.Locale name_locale) (map (SOME o mk_const thy name_axclass) (map snd supconsts @ consts))
             ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
+      (*#> note_thms name_axclass name_locale (map fst supconsts @ map (fst o fst) params)*)
       #> pair name_axclass
       )))))
   end;
 
 in
 
-val class_e = gen_class (Locale.add_locale false) read_class;
-val class = gen_class (Locale.add_locale_i false) certify_class;
+val class_e = gen_class (Locale.add_locale true) read_class;
+val class = gen_class (Locale.add_locale_i true) certify_class;
 
 end; (*local*)
 
