@@ -4,7 +4,6 @@
 %
 \isadelimtheory
 \isanewline
-\isanewline
 %
 \endisadelimtheory
 %
@@ -490,6 +489,21 @@ Type classes offer a suitable occasion to introduce
   the file system, with root given by the user.%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{ML}\isamarkupfalse%
+\ {\isacharverbatimopen}\ set\ Toplevel{\isachardot}debug\ {\isacharverbatimclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+\isanewline
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
 \ dummy\ {\isacharparenleft}Haskell\ {\isachardoublequoteopen}examples{\isacharslash}{\isachardoublequoteclose}{\isacharparenright}%
 \begin{isamarkuptext}%
@@ -1095,7 +1109,7 @@ Then everything goes fine:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsubsection{lexicographic orderings and coregularity%
+\isamarkupsubsubsection{lexicographic orderings%
 }
 \isamarkuptrue%
 %
@@ -1106,32 +1120,18 @@ Another subtlety
   us define a lexicographic ordering on tuples:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-%
-\isadelimML
-%
-\endisadelimML
-%
-\isatagML
-%
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-%
-\endisadelimML
-\isanewline
 \isacommand{instance}\isamarkupfalse%
 \ {\isacharasterisk}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}ord{\isacharcomma}\ ord{\isacharparenright}\ ord\isanewline
 \ \ {\isachardoublequoteopen}p{\isadigit{1}}\ {\isacharless}\ p{\isadigit{2}}\ {\isasymequiv}\ let\ {\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}ord{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}ord{\isacharparenright}\ {\isacharequal}\ p{\isadigit{1}}{\isacharsemicolon}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ p{\isadigit{2}}\ in\isanewline
 \ \ \ \ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isacharless}\ y{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}p{\isadigit{1}}\ {\isasymle}\ p{\isadigit{2}}\ {\isasymequiv}\ p{\isadigit{1}}\ {\isacharless}\ p{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}p{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}ord\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}ord{\isacharparenright}\ \ {\isacharequal}\ p{\isadigit{2}}{\isachardoublequoteclose}%
+\ \ {\isachardoublequoteopen}p{\isadigit{1}}\ {\isasymle}\ p{\isadigit{2}}\ {\isasymequiv}\ let\ {\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}ord{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}ord{\isacharparenright}\ {\isacharequal}\ p{\isadigit{1}}{\isacharsemicolon}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ p{\isadigit{2}}\ in\isanewline
+\ \ \ \ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isasymle}\ y{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}%
 \isadelimproof
 \ %
 \endisadelimproof
 %
 \isatagproof
 \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
-\isanewline
 %
 \endisatagproof
 {\isafoldproof}%
@@ -1139,19 +1139,27 @@ Another subtlety
 \isadelimproof
 %
 \endisadelimproof
+\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ ord{\isacharunderscore}prod\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}{\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}ord{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}ord{\isacharparenright}\ {\isacharless}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isasymlongleftrightarrow}\ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isacharless}\ y{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}{\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}ord{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}ord{\isacharparenright}\ {\isasymle}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isasymlongleftrightarrow}\ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isasymle}\ y{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
-\isadelimML
+\isadelimproof
+\ \ %
+\endisadelimproof
 %
-\endisadelimML
+\isatagproof
+\isacommand{unfolding}\isamarkupfalse%
+\ {\isachardoublequoteopen}less{\isacharunderscore}eq{\isacharunderscore}{\isacharasterisk}{\isacharunderscore}def{\isachardoublequoteclose}\ {\isachardoublequoteopen}less{\isacharunderscore}{\isacharasterisk}{\isacharunderscore}def{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ simp{\isacharunderscore}all%
+\endisatagproof
+{\isafoldproof}%
 %
-\isatagML
+\isadelimproof
 %
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-%
-\endisadelimML
+\endisadelimproof
 %
 \begin{isamarkuptext}%
 Then code generation will fail.  Why?  The definition
@@ -1160,21 +1168,24 @@ Then code generation will fail.  Why?  The definition
   class constraint, thus violating the type discipline
   for class operations.
 
-  The solution is to add \isa{eq} to both sort arguments:%
+  The solution is to add \isa{eq} explicitly to the first sort arguments in the
+  code theorems:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{instance}\isamarkupfalse%
-\ {\isacharasterisk}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}{\isachardoublequoteopen}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}{\isachardoublequoteclose}{\isacharcomma}\ {\isachardoublequoteopen}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}{\isachardoublequoteclose}{\isacharparenright}\ ord\isanewline
-\ \ {\isachardoublequoteopen}p{\isadigit{1}}\ {\isacharless}\ p{\isadigit{2}}\ {\isasymequiv}\ let\ {\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}{\isacharparenright}\ {\isacharequal}\ p{\isadigit{1}}{\isacharsemicolon}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ p{\isadigit{2}}\ in\isanewline
-\ \ \ \ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isacharless}\ y{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}p{\isadigit{1}}\ {\isasymle}\ p{\isadigit{2}}\ {\isasymequiv}\ p{\isadigit{1}}\ {\isacharless}\ p{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}p{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}{\isacharparenright}\ \ {\isacharequal}\ p{\isadigit{2}}{\isachardoublequoteclose}%
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ ord{\isacharunderscore}prod{\isacharunderscore}code\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}{\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}ord{\isacharcomma}\ eq{\isacharbraceright}{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}ord{\isacharparenright}\ {\isacharless}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isasymlongleftrightarrow}\ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isacharless}\ y{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}{\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}ord{\isacharcomma}\ eq{\isacharbraceright}{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}ord{\isacharparenright}\ {\isasymle}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isasymlongleftrightarrow}\ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isasymle}\ y{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
 \isadelimproof
-\ %
+\ \ %
 \endisadelimproof
 %
 \isatagproof
-\isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
-%
+\isacommand{unfolding}\isamarkupfalse%
+\ ord{\isacharunderscore}prod\ \isacommand{by}\isamarkupfalse%
+\ rule{\isacharplus}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1187,10 +1198,19 @@ Then code generation succeeds:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}ord\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}lexicographic{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
 \begin{isamarkuptext}%
 \lstsml{Thy/examples/lexicographic.ML}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In general, code theorems for overloaded constants may have more
+  restrictive sort constraints than the underlying instance relation
+  between class and type constructor as long as the whole system of
+  constraints is coregular; code theorems violating coregularity
+  are rejected immediately.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1298,9 +1318,9 @@ A problem now occurs whenever a type which
 %
 \begin{isamarkuptext}%
 The code generator would produce
-    an additional instance, which of course is rejected.
-    To suppress this additional instance, use
-    \isa{{\isasymCODEINSTANCE}}:%
+  an additional instance, which of course is rejected.
+  To suppress this additional instance, use
+  \isa{{\isasymCODEINSTANCE}}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1521,7 +1541,7 @@ By that, we replace any \isa{arbitrary} with option type
 
   For technical reasons, we further have to provide a
   synonym for \isa{None} which in code generator view
-  is a function rather than a datatype constructor:%
+  is a function rather than a term constructor:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%

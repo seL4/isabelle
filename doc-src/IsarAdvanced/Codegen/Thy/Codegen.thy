@@ -1,4 +1,3 @@
-
 (* $Id$ *)
 
 (*<*)
@@ -365,6 +364,7 @@ text {*
   the file system, with root given by the user.
 *}
 
+ML {* set Toplevel.debug *}
 code_gen dummy (Haskell "examples/")
   (* NOTE: you may use Haskell only once in this document, otherwise
   you have to work in distinct subdirectories *)
@@ -809,7 +809,7 @@ text {*
   \lstsml{Thy/examples/lookup.ML}
 *}
 
-subsubsection {* lexicographic orderings and coregularity *}
+subsubsection {* lexicographic orderings *}
 
 text {*
   Another subtlety
@@ -818,23 +818,16 @@ text {*
   us define a lexicographic ordering on tuples:
 *}
 
-(*<*)
-setup {* Sign.add_path "foobar" *}
-class ord =
-  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" ("(_/ \<^loc>\<le> _)" [50, 51] 50)
-  fixes less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" ("(_/ \<^loc>< _)" [50, 51] 50)
-(*>*)
-
 instance * :: (ord, ord) ord
   "p1 < p2 \<equiv> let (x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) = p1; (x2, y2) = p2 in
     x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
-  "p1 \<le> p2 \<equiv> p1 < p2 \<or> (p1 \<Colon> 'a\<Colon>ord \<times> 'b\<Colon>ord)  = p2" ..
+  "p1 \<le> p2 \<equiv> let (x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) = p1; (x2, y2) = p2 in
+    x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)" ..
 
-(*<*)
-hide "class"  ord
-hide const less_eq less
-setup {* Sign.parent_path *}
-(*>*)
+lemma ord_prod [code func]:
+  "(x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
+  "(x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)"
+  unfolding "less_eq_*_def" "less_*_def" by simp_all
 
 text {*
   Then code generation will fail.  Why?  The definition
@@ -843,23 +836,36 @@ text {*
   class constraint, thus violating the type discipline
   for class operations.
 
-  The solution is to add @{text eq} to both sort arguments:
+  The solution is to add @{text eq} explicitly to the first sort arguments in the
+  code theorems:
 *}
 
-instance * :: ("{eq, ord}", "{eq, ord}") ord
-  "p1 < p2 \<equiv> let (x1 \<Colon> 'a\<Colon>{eq, ord}, y1 \<Colon> 'b\<Colon>{eq, ord}) = p1; (x2, y2) = p2 in
-    x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
-  "p1 \<le> p2 \<equiv> p1 < p2 \<or> (p1 \<Colon> 'a\<Colon>{eq, ord} \<times> 'b\<Colon>{eq, ord})  = p2" ..
+(*<*)
+declare ord_prod [code del]
+(*>*)
+
+lemma ord_prod_code [code func]:
+  "(x1 \<Colon> 'a\<Colon>{ord, eq}, y1 \<Colon> 'b\<Colon>ord) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
+  "(x1 \<Colon> 'a\<Colon>{ord, eq}, y1 \<Colon> 'b\<Colon>ord) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)"
+  unfolding ord_prod by rule+
 
 text {*
   Then code generation succeeds:
 *}
 
-code_gen "op \<le> \<Colon> 'a\<Colon>{eq, ord} \<times> 'b\<Colon>{eq, ord} \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
+code_gen "op \<le> \<Colon> 'a\<Colon>{eq, ord} \<times> 'b\<Colon>ord \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
   (*<*)(SML #)(*>*)(SML "examples/lexicographic.ML")
 
 text {*
   \lstsml{Thy/examples/lexicographic.ML}
+*}
+
+text {*
+  In general, code theorems for overloaded constants may have more
+  restrictive sort constraints than the underlying instance relation
+  between class and type constructor as long as the whole system of
+  constraints is coregular; code theorems violating coregularity
+  are rejected immediately.
 *}
 
 subsubsection {* Haskell serialization *}
@@ -903,10 +909,10 @@ code_type %tt bar
   (Haskell "Integer")
 
 text {*
-    The code generator would produce
-    an additional instance, which of course is rejected.
-    To suppress this additional instance, use
-    @{text "\<CODEINSTANCE>"}:
+  The code generator would produce
+  an additional instance, which of course is rejected.
+  To suppress this additional instance, use
+  @{text "\<CODEINSTANCE>"}:
 *}
 
 code_instance %tt bar :: eq

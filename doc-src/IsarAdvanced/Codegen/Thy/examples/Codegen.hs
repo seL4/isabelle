@@ -10,7 +10,7 @@ heada :: (Codegen.Null a) => [a] -> a;
 heada (y : xs) = y;
 heada [] = Codegen.nulla;
 
-null_option :: Maybe b;
+null_option :: Maybe a;
 null_option = Nothing;
 
 instance Codegen.Null (Maybe b) where {
