@@ -337,6 +337,7 @@ val blacklist = ref
    "Fun.vimage_image_eq",   (*involves an existential quantifier*)
    "HOL.split_if_asm",     (*splitting theorem*)
    "HOL.split_if",         (*splitting theorem*)
+   "HOL.All_def",          (*far worse than useless!!*)
    "IntDef.abs_split",
    "IntDef.Integ.Abs_Integ_inject",
    "IntDef.Integ.Abs_Integ_inverse",
@@ -423,7 +424,7 @@ val blacklist = ref
    "Set.Diff_insert0",
    "Set.empty_Union_conv",   (*redundant with paramodulation*)
    "Set.full_SetCompr_eq",   (*involves an existential quantifier*)
-   "Set.image_Collect",      (*involves an existential quantifier*)
+   "Set.image_Collect",      (*involves Collect and a boolean variable...*)
    "Set.image_def",          (*involves an existential quantifier*)
    "Set.Int_UNIV",  (*redundant with paramodulation*)
    "Set.Inter_iff", (*We already have InterI, InterE*)
@@ -526,11 +527,6 @@ fun subtract_cls c_clauses ax_clauses =
 fun get_relevant_clauses thy cls_thms white_cls goals =
   white_cls @ (ReduceAxiomsN.relevance_filter thy cls_thms goals);
 
-fun display_thms [] = ()
-  | display_thms ((name,thm)::nthms) =
-      let val nthm = name ^ ": " ^ (string_of_thm thm)
-      in Output.debug (fn () => nthm); display_thms nthms  end;
-
 fun all_valid_thms ctxt =
   PureThy.thms_containing (ProofContext.theory_of ctxt) ([], []) @
   filter (ProofContext.valid_thms ctxt)
@@ -566,6 +562,8 @@ fun name_thm_pairs ctxt =
 fun check_named ("",th) = (warning ("No name for theorem " ^ string_of_thm th); false)
   | check_named (_,th) = true;
 
+fun display_thm (name,th) = Output.debug (fn () => name ^ ": " ^ string_of_thm th);
+
 (* get lemmas from claset, simpset, atpset and extra supplied rules *)
 fun get_clasimp_atp_lemmas ctxt user_thms =
   let val included_thms =
@@ -583,9 +581,7 @@ fun get_clasimp_atp_lemmas ctxt user_thms =
             val atpset_thms =
                 if !include_atpset then ResAxioms.atpset_rules_of ctxt
                 else []
-            val _ = if !Output.debugging
-                    then (Output.debug (fn () => "ATP theorems: "); display_thms atpset_thms)
-                    else ()
+            val _ = (Output.debug (fn () => "ATP theorems: ");  app display_thm atpset_thms)
         in  claset_thms @ simpset_thms @ atpset_thms  end
       val user_rules = filter check_named
                          (map (ResAxioms.pairname)
@@ -819,8 +815,9 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
     Output.debug (fn () => "Sent commands to watcher!")
   end
 
+(*For debugging the generated set of theorem names*)
 fun trace_vector fname =
-  let val path = File.explode_platform_path fname
+  let val path = File.explode_platform_path (fname ^ "_thm_names")
   in  Vector.app (File.append path o (fn s => s ^ "\n"))  end;
 
 (*We write out problem files for each subgoal. Argument probfile generates filenames,
@@ -868,8 +865,7 @@ fun write_problem_files probfile (ctxt,th)  =
                 val _ = Output.debug (fn () => "arity clauses = " ^ Int.toString (length arity_clauses))
                 val clnames = writer logic ccls fname (axcls,classrel_clauses,arity_clauses) []
                 val thm_names = Vector.fromList clnames
-                val _ = if !Output.debugging
-                        then trace_vector (fname ^ "_thm_names") thm_names else ()
+                val _ = if !Output.debugging then trace_vector fname thm_names else ()
             in  (thm_names,fname) :: write_all ccls_list axcls_list (k+1)  end
       val (thm_names_list, filenames) = ListPair.unzip (write_all goal_cls axcls_list 1)
   in
@@ -932,7 +928,8 @@ fun invoke_atp_ml (ctxt, goal) =
     ResClause.init thy;
     ResHolClause.init thy;
     if !time_limit > 0 then isar_atp (ctxt, goal)
-    else (warning "Writing problem file only"; isar_atp_writeonly (ctxt, goal))
+    else (warning ("Writing problem file only: " ^ !problem_name); 
+          isar_atp_writeonly (ctxt, goal))
   end;
 
 val invoke_atp = Toplevel.no_timing o Toplevel.unknown_proof o Toplevel.keep
