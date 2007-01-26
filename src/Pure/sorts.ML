@@ -47,6 +47,7 @@ sig
   val subalgebra: Pretty.pp -> (class -> bool) -> (class * string -> sort list)
     -> algebra -> (sort -> sort) * algebra
   type class_error
+  val msg_class_error: Pretty.pp -> class_error -> string
   val class_error: Pretty.pp -> class_error -> 'a
   exception CLASS_ERROR of class_error
   val mg_domain: algebra -> string -> sort -> sort list   (*exception CLASS_ERROR*)
@@ -306,10 +307,12 @@ fun subalgebra pp P sargs (algebra as Algebra {classes, arities}) =
 
 datatype class_error = NoClassrel of class * class | NoArity of string * class;
 
-fun class_error pp (NoClassrel (c1, c2)) =
-      error ("No class relation " ^ Pretty.string_of_classrel pp [c1, c2])
-  | class_error pp (NoArity (a, c)) =
-      error ("No type arity " ^ Pretty.string_of_arity pp (a, [], [c]));
+fun msg_class_error pp (NoClassrel (c1, c2)) =
+      "No class relation " ^ Pretty.string_of_classrel pp [c1, c2]
+  | msg_class_error pp (NoArity (a, c)) =
+      "No type arity " ^ Pretty.string_of_arity pp (a, [], [c]);
+
+fun class_error pp = error o msg_class_error pp;
 
 exception CLASS_ERROR of class_error;
 
