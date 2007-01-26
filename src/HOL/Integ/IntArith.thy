@@ -91,8 +91,24 @@ lemmas le_special =
     binop_eq [of "op \<le>", OF le_number_of_eq refl numeral_0_eq_0, standard]
     binop_eq [of "op \<le>", OF le_number_of_eq refl numeral_1_eq_1, standard]
 
-lemmas arith_special = 
+lemmas arith_special[simp] = 
        add_special diff_special eq_special less_special le_special
+
+
+lemma min_max_01: "min (0::int) 1 = 0 & min (1::int) 0 = 0 &
+                   max (0::int) 1 = 1 & max (1::int) 0 = 1"
+by(simp add:min_def max_def)
+
+lemmas min_max_special[simp] =
+ min_max_01
+ max_def[of "0::int" "number_of v", standard, simp]
+ min_def[of "0::int" "number_of v", standard, simp]
+ max_def[of "number_of u" "0::int", standard, simp]
+ min_def[of "number_of u" "0::int", standard, simp]
+ max_def[of "1::int" "number_of v", standard, simp]
+ min_def[of "1::int" "number_of v", standard, simp]
+ max_def[of "number_of u" "1::int", standard, simp]
+ min_def[of "number_of u" "1::int", standard, simp]
 
 
 use "int_arith1.ML"

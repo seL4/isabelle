@@ -132,7 +132,6 @@ structure Int_Numeral_Base_Simprocs =
   end;
 
 
-Addsimps arith_special;
 Addsimprocs [Int_Numeral_Base_Simprocs.reorient_simproc];
 
 
