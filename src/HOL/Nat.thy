@@ -568,6 +568,14 @@ lemma min_0R [simp]: "min n 0 = (0::nat)"
 lemma min_Suc_Suc [simp]: "min (Suc m) (Suc n) = Suc (min m n)"
   by (simp add: min_of_mono)
 
+lemma min_Suc1:
+   "min (Suc n) m = (case m of 0 => 0 | Suc m' => Suc(min n m'))"
+  by (simp split: nat.split) 
+
+lemma min_Suc2:
+   "min m (Suc n) = (case m of 0 => 0 | Suc m' => Suc(min m' n))"
+  by (simp split: nat.split)
+
 lemma max_0L [simp]: "max 0 n = (n::nat)"
   by (rule max_leastL) simp
 
@@ -576,6 +584,14 @@ lemma max_0R [simp]: "max n 0 = (n::nat)"
 
 lemma max_Suc_Suc [simp]: "max (Suc m) (Suc n) = Suc(max m n)"
   by (simp add: max_of_mono)
+
+lemma max_Suc1:
+   "max (Suc n) m = (case m of 0 => Suc n | Suc m' => Suc(max n m'))"
+  by (simp split: nat.split) 
+
+lemma max_Suc2:
+   "max m (Suc n) = (case m of 0 => Suc n | Suc m' => Suc(max m' n))"
+  by (simp split: nat.split)
 
 
 subsection {* Basic rewrite rules for the arithmetic operators *}
