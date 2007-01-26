@@ -443,7 +443,7 @@ by (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric] iszero_0)
 
 
 
-subsection{*Comparisons involving Suc *}
+subsection{*Comparisons involving  @{term Suc} *}
 
 lemma eq_number_of_Suc [simp]:
      "(number_of v = Suc n) =  
@@ -543,6 +543,48 @@ by auto
 
 
 
+subsection{*Max and Min Combined with @{term Suc} *}
+
+lemma max_number_of_Suc [simp]:
+     "max (Suc n) (number_of v) =  
+        (let pv = number_of (Numeral.pred v) in  
+         if neg pv then Suc n else Suc(max n (nat pv)))"
+apply (simp only: Let_def neg_eq_less_0 number_of_pred nat_number_of_def 
+            split add: split_if nat.split)
+apply (rule_tac x = "number_of v" in spec) 
+apply auto
+done
+ 
+lemma max_Suc_number_of [simp]:
+     "max (number_of v) (Suc n) =  
+        (let pv = number_of (Numeral.pred v) in  
+         if neg pv then Suc n else Suc(max (nat pv) n))"
+apply (simp only: Let_def neg_eq_less_0 number_of_pred nat_number_of_def 
+            split add: split_if nat.split)
+apply (rule_tac x = "number_of v" in spec) 
+apply auto
+done
+ 
+lemma min_number_of_Suc [simp]:
+     "min (Suc n) (number_of v) =  
+        (let pv = number_of (Numeral.pred v) in  
+         if neg pv then 0 else Suc(min n (nat pv)))"
+apply (simp only: Let_def neg_eq_less_0 number_of_pred nat_number_of_def 
+            split add: split_if nat.split)
+apply (rule_tac x = "number_of v" in spec) 
+apply auto
+done
+ 
+lemma min_Suc_number_of [simp]:
+     "min (number_of v) (Suc n) =  
+        (let pv = number_of (Numeral.pred v) in  
+         if neg pv then 0 else Suc(min (nat pv) n))"
+apply (simp only: Let_def neg_eq_less_0 number_of_pred nat_number_of_def 
+            split add: split_if nat.split)
+apply (rule_tac x = "number_of v" in spec) 
+apply auto
+done
+ 
 subsection{*Literal arithmetic involving powers*}
 
 lemma nat_power_eq: "(0::int) <= z ==> nat (z^n) = nat z ^ n"
