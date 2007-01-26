@@ -3,7 +3,7 @@
     Author:     Florian Haftmann, TU Muenchen
 
 Identifying constants by name plus normalized type instantantiation schemes.
-Convenient data structures for constants.
+Convenient data structures for constants.  Auxiliary.
 *)
 
 signature CODEGEN_CONSTS =
@@ -16,12 +16,15 @@ sig
   val typ_of_inst: theory -> const -> string * typ
   val norm: theory -> const -> const
   val norm_of_typ: theory -> string * typ -> const
+  val typ_sort_inst: Sorts.algebra -> typ * sort -> sort Vartab.table -> sort Vartab.table
+  val typargs: theory -> string * typ -> typ list
   val find_def: theory -> const -> (string (*theory name*) * thm) option
   val consts_of: theory -> term -> const list
   val read_const: theory -> string -> const
   val string_of_const: theory -> const -> string
   val raw_string_of_const: const -> string
   val string_of_const_typ: theory -> string * typ -> string
+  val string_of_typ: theory -> typ -> string
 end;
 
 structure CodegenConsts: CODEGEN_CONSTS =
@@ -43,11 +46,13 @@ structure Consttab =
 
 (* type instantiations, overloading, dictionary values *)
 
+fun string_of_typ thy = setmp show_sorts true (Sign.string_of_typ thy);
+
 fun inst_of_typ thy (c_ty as (c, ty)) =
-  (c, Consts.typargs (Sign.consts_of thy) c_ty);
+  (c, Sign.const_typargs thy c_ty);
 
 fun typ_of_inst thy (c_tys as (c, tys)) =
-  (c, Consts.instance (Sign.consts_of thy) c_tys);
+  (c, Sign.const_instance thy c_tys);
 
 fun find_def thy (c, tys) =
   let
@@ -72,22 +77,42 @@ fun find_def thy (c, tys) =
 fun norm thy (c, insts) =
   let
     fun disciplined class [ty as Type (tyco, _)] =
-          (case try (Sorts.mg_domain (Sign.classes_of thy) tyco) [class]
-           of SOME sorts => (c, [Type (tyco, map (fn v => TVar ((v, 0), []))
-                (Name.invents Name.context "'a" (length sorts)))])
-            | NONE => error ("no such instance: " ^ quote c ^ ", " ^ quote tyco))
+          let
+            val sorts = Sorts.mg_domain (Sign.classes_of thy) tyco [class];
+            val vs = Name.invents Name.context "'a" (length sorts);
+          in
+            (c, [Type (tyco, map (fn v => TVar ((v, 0), [])) vs)])
+          end
       | disciplined class _ =
           (c, [TVar (("'a", 0), [class])]);
   in case AxClass.class_of_param thy c
    of SOME class => disciplined class insts
-    | _ => inst_of_typ thy (c, Sign.the_const_type thy c)
+    | NONE => inst_of_typ thy (c, Sign.the_const_type thy c)
   end;
 
 fun norm_of_typ thy (c, ty) =
-  norm thy (c, Consts.typargs (Sign.consts_of thy) (c, ty));
+  norm thy (c, Sign.const_typargs thy (c, ty));
 
 fun consts_of thy t =
   fold_aterms (fn Const c => cons (norm_of_typ thy c) | _ => I) t []
+
+fun typ_sort_inst algebra =
+  let
+    val inters = Sorts.inter_sort algebra;
+    fun match _ [] = I
+      | match (TVar (v, S)) S' = Vartab.map_default (v, []) (fn S'' => inters (S, inters (S', S'')))
+      | match (Type (a, Ts)) S =
+          fold2 match Ts (Sorts.mg_domain algebra a S)
+  in uncurry match end;
+
+fun typargs thy (c_ty as (c, ty)) =
+  let
+    val opt_class = AxClass.class_of_param thy c;
+    val tys = Sign.const_typargs thy (c, ty);
+  in case (opt_class, tys)
+   of (SOME _, [Type (_, tys')]) => tys'
+    | _ => tys
+  end;
 
 
 (* reading constants as terms *)
@@ -104,7 +129,7 @@ fun read_const thy =
   norm_of_typ thy o read_const_typ thy;
 
 
-(* printing constants *)
+(* printing *)
 
 fun string_of_const thy (c, tys) =
   space_implode " " (Sign.extern_const thy c

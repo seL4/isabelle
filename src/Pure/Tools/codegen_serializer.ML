@@ -148,7 +148,7 @@ fun parse_mixfix s =
 fun parse_args f args =
   case Scan.read Args.stopper f args
    of SOME x => x
-    | NONE => error "bad serializer arguments";
+    | NONE => error "Bad serializer arguments";
 
 
 (* generic serializer combinators *)
@@ -249,7 +249,7 @@ val pretty_imperative_monad_bind =
   let
     fun pretty (pr : CodegenNames.var_ctxt -> fixity -> iterm -> Pretty.T) vars fxy [t1, (v, ty) `|-> t2] =
           pr vars fxy (ICase ((t1, ty), ([(IVar v, t2)])))
-      | pretty _ _ _ _ = error "bad arguments for imperative monad bind";
+      | pretty _ _ _ _ = error "Bad arguments for imperative monad bind";
   in (2, pretty) end;
 
 
@@ -1007,8 +1007,10 @@ fun seri_ml pr_def pr_modl output reserved_user module_alias module_prolog
           |> fold (fn m => fn g => case Graph.get_node g m
               of Module (_, (_, g)) => g) modl'
           |> (fn g => case Graph.get_node g name of Def (defname, _) => defname);
-      in NameSpace.implode (remainder @ [defname']) end handle Graph.UNDEF _ =>
-        "(raise Fail \"undefined name " ^ name ^ "\")";
+      in
+        NameSpace.implode (remainder @ [defname'])
+      end handle Graph.UNDEF _ =>
+        error "Unknown name: " ^ quote name;
     fun the_prolog modlname = case module_prolog modlname
      of NONE => []
       | SOME p => [p, str ""];
@@ -1028,7 +1030,7 @@ val isar_seri_sml =
   let
     fun output_file file = File.write (Path.explode file) o code_output;
     val output_diag = writeln o code_output;
-    val output_internal = use_text "" Output.ml_output false o code_output;
+    val output_internal = use_text "generated code" Output.ml_output false o code_output;
   in
     parse_args ((Args.$$$ "-" >> K output_diag
       || Args.$$$ "#" >> K output_internal
@@ -1596,7 +1598,7 @@ fun eval_term thy code ((ref_name, reff), t) =
     fun eval p = (
       reff := NONE;
       if !eval_verbose then Pretty.writeln p else ();
-      use_text "" Output.ml_output (!eval_verbose)
+      use_text "generated code for evaluation" Output.ml_output (!eval_verbose)
         ((Pretty.output o Pretty.chunks) [p,
           str ("val _ = (" ^ ref_name ^ " := SOME " ^ val_name' ^ ")")
         ]);

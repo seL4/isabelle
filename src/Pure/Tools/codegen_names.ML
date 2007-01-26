@@ -340,7 +340,7 @@ fun labelled_name thy name =
     val nsp = NameSpace.base name;
   in case AList.lookup (op =) nsp_mapping nsp
    of SOME msg => msg ^ " " ^ quote nam
-    | NONE => error ("illegal shallow name space: " ^ quote nsp)
+    | NONE => error ("Illegal shallow name space: " ^ quote nsp)
   end;
 
 
@@ -378,6 +378,6 @@ fun intro_vars names (namemap, namectxt) =
 
 fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
  of SOME name' => name'
-  | NONE => error ("invalid name in context: " ^ quote name);
+  | NONE => error ("Invalid name in context: " ^ quote name);
 
 end;

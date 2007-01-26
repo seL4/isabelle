@@ -86,7 +86,7 @@ end);
 val _ = Context.add_setup (Code.init #> CodegenPackageData.init);
 
 
-(* preparing function equations *)
+(* preparing defining equations *)
 
 fun prep_eqs thy (thms as thm :: _) =
   let
@@ -112,30 +112,27 @@ fun get_abstype thy (tyco, tys) = case Symtab.lookup ((fst o snd o CodegenPackag
 
 fun ensure_def thy = CodegenThingol.ensure_def (CodegenNames.labelled_name thy);
 
-fun ensure_def_class thy (algbr as ((_, algebra), _)) funcgr strct class trns =
+fun ensure_def_class thy (algbr as ((_, algebra), _)) funcgr strct class =
   let
     val superclasses = (Sorts.certify_sort algebra o Sorts.super_classes algebra) class;
     val (v, cs) = AxClass.params_of_class thy class;
     val class' = CodegenNames.class thy class;
     val classrels' = map (curry (CodegenNames.classrel thy) class) superclasses;
     val classops' = map (CodegenNames.const thy o CodegenConsts.norm_of_typ thy) cs;
-    fun defgen_class trns =
-      trns
-      |> fold_map (ensure_def_class thy algbr funcgr strct) superclasses
-      ||>> (fold_map (exprgen_type thy algbr funcgr strct) o map snd) cs
-      |-> (fn (superclasses, classoptyps) => succeed
+    val defgen_class =
+      fold_map (ensure_def_class thy algbr funcgr strct) superclasses
+      ##>> (fold_map (exprgen_type thy algbr funcgr strct) o map snd) cs
+      #-> (fn (superclasses, classoptyps) => succeed
         (CodegenThingol.Class (superclasses ~~ classrels', (unprefix "'" v, classops' ~~ classoptyps))))
   in
-    trns
-    |> tracing (fn _ => "generating class " ^ quote class)
-    |> ensure_def thy defgen_class true
+    tracing (fn _ => "generating class " ^ quote class)
+    #> ensure_def thy defgen_class true
         ("generating class " ^ quote class) class'
-    |> pair class'
+    #> pair class'
   end
-and ensure_def_classrel thy algbr funcgr strct (subclass, superclass) trns =
-  trns
-  |> ensure_def_class thy algbr funcgr strct subclass
-  |>> (fn _ => CodegenNames.classrel thy (subclass, superclass))
+and ensure_def_classrel thy algbr funcgr strct (subclass, superclass) =
+  ensure_def_class thy algbr funcgr strct subclass
+  #>> (fn _ => CodegenNames.classrel thy (subclass, superclass))
 and ensure_def_tyco thy algbr funcgr strct tyco trns =
   let
     fun defgen_datatype trns =
@@ -165,9 +162,7 @@ and exprgen_tyvar_sort thy (algbr as ((proj_sort, _), _)) funcgr strct (v, sort)
   trns
   |> fold_map (ensure_def_class thy algbr funcgr strct) (proj_sort sort)
   |>> (fn sort => (unprefix "'" v, sort))
-and exprgen_type thy algbr funcgr strct (TVar _) trns =
-      error "TVar encountered in typ during code generation"
-  | exprgen_type thy algbr funcgr strct (TFree vs) trns =
+and exprgen_type thy algbr funcgr strct (TFree vs) trns =
       trns
       |> exprgen_tyvar_sort thy algbr funcgr strct vs
       |>> (fn (v, sort) => ITyVar v)
@@ -190,7 +185,7 @@ and exprgen_type thy algbr funcgr strct (TVar _) trns =
 exception CONSTRAIN of (string * typ) * typ;
 val timing = ref false;
 
-fun exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr strct (ty_ctxt, sort_decl) trns =
+fun exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr strct (ty_ctxt, sort_decl) =
   let
     val pp = Sign.pp thy;
     datatype typarg =
@@ -209,31 +204,25 @@ fun exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr strct (ty
     val typargs = Sorts.of_sort_derivation pp algebra
       {classrel = classrel, constructor = constructor, variable = variable}
       (ty_ctxt, proj_sort sort_decl);
-    fun mk_dict (Global (inst, yss)) trns =
-          trns
-          |> ensure_def_inst thy algbr funcgr strct inst
-          ||>> (fold_map o fold_map) mk_dict yss
-          |>> (fn (inst, dss) => DictConst (inst, dss))
-      | mk_dict (Local (classrels, (v, (k, sort)))) trns =
-          trns
-          |> fold_map (ensure_def_classrel thy algbr funcgr strct) classrels
-          |>> (fn classrels => DictVar (classrels, (unprefix "'" v, (k, length sort))))
+    fun mk_dict (Global (inst, yss)) =
+          ensure_def_inst thy algbr funcgr strct inst
+          ##>> (fold_map o fold_map) mk_dict yss
+          #>> (fn (inst, dss) => DictConst (inst, dss))
+      | mk_dict (Local (classrels, (v, (k, sort)))) =
+          fold_map (ensure_def_classrel thy algbr funcgr strct) classrels
+          #>> (fn classrels => DictVar (classrels, (unprefix "'" v, (k, length sort))))
   in
-    trns
-    |> fold_map mk_dict typargs
+    fold_map mk_dict typargs
   end
-and exprgen_dict_parms thy (algbr as (_, consts)) funcgr strct (c, ty_ctxt) trns =
+and exprgen_dict_parms thy (algbr as (_, consts)) funcgr strct (c, ty_ctxt) =
   let
     val c' = CodegenConsts.norm_of_typ thy (c, ty_ctxt)
     val idf = CodegenNames.const thy c';
     val ty_decl = Consts.the_declaration consts idf;
-    val insts = (op ~~ o apsnd (map (snd o dest_TVar)) oo pairself)
-      (curry (Consts.typargs consts) idf) (ty_ctxt, ty_decl);
-    val _ = if exists not (map (Sign.of_sort thy) insts)
-      then raise CONSTRAIN ((c, ty_decl), ty_ctxt) else ();
+    val (tys, tys_decl) = pairself (curry (Consts.typargs consts) idf) (ty_ctxt, ty_decl);
+    val sorts = map (snd o dest_TVar) tys_decl;
   in
-    trns
-    |> fold_map (exprgen_dicts thy algbr funcgr strct) insts
+    fold_map (exprgen_dicts thy algbr funcgr strct) (tys ~~ sorts)
   end
 and ensure_def_inst thy (algbr as ((_, algebra), _)) funcgr strct (class, tyco) trns =
   let
@@ -326,8 +315,6 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr strct (c_tys as (c, tys))
 and exprgen_term thy algbr funcgr strct (Const (c, ty)) trns =
       trns
       |> select_appgen thy algbr funcgr strct ((c, ty), [])
-  | exprgen_term thy algbr funcgr strct (Var _) trns =
-      error "Var encountered in term during code generation"
   | exprgen_term thy algbr funcgr strct (Free (v, ty)) trns =
       trns
       |> exprgen_type thy algbr funcgr strct ty
@@ -393,9 +380,9 @@ fun ensure_def_const' thy algbr funcgr strct c trns =
   ensure_def_const thy algbr funcgr strct c trns
   handle CONSTRAIN ((c, ty), ty_decl) => error (
     "Constant " ^ c ^ " with most general type\n"
-    ^ Sign.string_of_typ thy ty
+    ^ CodegenConsts.string_of_typ thy ty
     ^ "\noccurs with type\n"
-    ^ Sign.string_of_typ thy ty_decl);
+    ^ CodegenConsts.string_of_typ thy ty_decl);
 
 fun perhaps_def_const thy algbr funcgr strct c trns =
   case try (ensure_def_const thy algbr funcgr strct c) trns
@@ -406,9 +393,9 @@ fun exprgen_term' thy algbr funcgr strct t trns =
   exprgen_term thy algbr funcgr strct t trns
   handle CONSTRAIN ((c, ty), ty_decl) => error ("In term " ^ (quote o Sign.string_of_term thy) t
     ^ ",\nconstant " ^ c ^ " with most general type\n"
-    ^ Sign.string_of_typ thy ty
+    ^ CodegenConsts.string_of_typ thy ty
     ^ "\noccurs with type\n"
-    ^ Sign.string_of_typ thy ty_decl);
+    ^ CodegenConsts.string_of_typ thy ty_decl);
 
 
 (* parametrized application generators, for instantiation in object logic *)
@@ -478,14 +465,13 @@ local
 
 fun add_consts thy f (c1, c2 as (c, tys)) =
   let
-    val string_of_typ = setmp show_sorts true (Sign.string_of_typ thy);
     val _ = case tys
      of [TVar _] => if is_some (AxClass.class_of_param thy c)
-          then error ("not a function: " ^ CodegenConsts.string_of_const thy c2)
+          then error ("Not a function: " ^ CodegenConsts.string_of_const thy c2)
           else ()
       | _ => ();
     val _ = if is_some (CodegenData.get_datatype_of_constr thy c2)
-      then error ("not a function: " ^ CodegenConsts.string_of_const thy c2)
+      then error ("Not a function: " ^ CodegenConsts.string_of_const thy c2)
       else ();
     val funcgr = CodegenFuncgr.make thy [c1, c2];
     val ty1 = (f o CodegenFuncgr.typ funcgr) c1;
@@ -493,7 +479,7 @@ fun add_consts thy f (c1, c2 as (c, tys)) =
     val _ = if Sign.typ_equiv thy (ty1, ty2) then () else
       error ("Incompatiable type signatures of " ^ CodegenConsts.string_of_const thy c1
         ^ " and " ^ CodegenConsts.string_of_const thy c2 ^ ":\n"
-        ^ string_of_typ ty1 ^ "\n" ^ string_of_typ ty2);
+        ^ CodegenConsts.string_of_typ thy ty1 ^ "\n" ^ CodegenConsts.string_of_typ thy ty2);
   in Consttab.update (c1, c2) end;
 
 fun gen_abstyp prep_const prep_typ (raw_abstyp, raw_substtyp) raw_absconsts thy =
@@ -501,13 +487,13 @@ fun gen_abstyp prep_const prep_typ (raw_abstyp, raw_substtyp) raw_absconsts thy 
     val abstyp = Type.no_tvars (prep_typ thy raw_abstyp);
     val substtyp = Type.no_tvars (prep_typ thy raw_substtyp);
     val absconsts = (map o pairself) (prep_const thy) raw_absconsts;
-    val Type (abstyco, tys) = abstyp handle BIND => error ("bad type: " ^ Sign.string_of_typ thy abstyp);
-    val typarms = map (fst o dest_TFree) tys handle MATCH => error ("bad type: " ^ Sign.string_of_typ thy abstyp);
+    val Type (abstyco, tys) = abstyp handle BIND => error ("Bad type: " ^ Sign.string_of_typ thy abstyp);
+    val typarms = map (fst o dest_TFree) tys handle MATCH => error ("Bad type: " ^ Sign.string_of_typ thy abstyp);
     fun mk_index v = 
       let
         val k = find_index (fn w => v = w) typarms;
       in if k = ~1
-        then error ("free type variable: " ^ quote v)
+        then error ("Free type variable: " ^ quote v)
         else TFree (string_of_int k, [])
       end;
     val typpat = map_atyps (fn TFree (v, _) => mk_index v) substtyp;
@@ -668,7 +654,7 @@ val codeP =
 fun codegen_command thy cmd =
   case Scan.read OuterLex.stopper (P.!!! code_bareP) ((filter OuterLex.is_proper o OuterSyntax.scan) cmd)
    of SOME f => (writeln "Now generating code..."; f thy)
-    | NONE => error ("bad directive " ^ quote cmd);
+    | NONE => error ("Bad directive " ^ quote cmd);
 
 val code_abstypeP =
   OuterSyntax.command code_abstypeK "axiomatic abstypes for code generation" K.thy_decl (

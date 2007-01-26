@@ -109,7 +109,7 @@ fun merge_lthms (r1, r2) =
 
 (** code theorems **)
 
-(* pairs of (selected, deleted) function theorems *)
+(* pairs of (selected, deleted) defining equations *)
 
 type sdthms = thm list Susp.T * thm list;
 
@@ -123,7 +123,7 @@ fun add_drop_redundant thm (sels, dels) =
       | matches (_ :: _) [] = false
       | matches (x :: xs) (y :: ys) = Pattern.matches thy (x, y) andalso matches xs ys;
     fun drop thm' = not (matches args (args_of thm'))
-      orelse (warning ("Dropping redundant function theorem\n" ^ string_of_thm thm'); false);
+      orelse (warning ("Dropping redundant defining equation\n" ^ string_of_thm thm'); false);
     val (keeps, drops) = List.partition drop sels;
   in (thm :: keeps, dels |> fold (insert eq_thm) drops |> remove eq_thm thm) end;
 
@@ -353,7 +353,7 @@ structure CodeData = TheoryDataFun
     in
       (Pretty.writeln o Pretty.block o Pretty.fbreaks) ([
         Pretty.str "code theorems:",
-        Pretty.str "function theorems:" ] @
+        Pretty.str "defining equations:" ] @
           map pretty_func funs @ [
         Pretty.block (
           Pretty.str "inlining theorems:"
@@ -418,10 +418,10 @@ fun common_typ_funcs [] = []
         val (ty1::tys) = map CodegenFunc.typ_func thms';
         fun unify ty env = Sign.typ_unify thy (ty1, ty) env
           handle Type.TUNIFY =>
-            error ("Type unificaton failed, while unifying function equations\n"
+            error ("Type unificaton failed, while unifying defining equations\n"
             ^ (cat_lines o map Display.string_of_thm) thms
             ^ "\nwith types\n"
-            ^ (cat_lines o map (Sign.string_of_typ thy)) (ty1 :: tys));
+            ^ (cat_lines o map (CodegenConsts.string_of_typ thy)) (ty1 :: tys));
         val (env, _) = fold unify tys (Vartab.empty, maxidx)
         val instT = Vartab.fold (fn (x_i, (sort, ty)) =>
           cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
@@ -430,7 +430,7 @@ fun common_typ_funcs [] = []
 fun certify_const thy c c_thms =
   let
     fun cert (c', thm) = if CodegenConsts.eq_const (c, c')
-      then thm else error ("Wrong head of function equation,\nexpected constant "
+      then thm else error ("Wrong head of defining equation,\nexpected constant "
         ^ CodegenConsts.string_of_const thy c ^ "\n" ^ string_of_thm thm)
   in map cert c_thms end;
 
@@ -593,7 +593,6 @@ fun gen_mk_func_typ strict_functyp thm =
     val thy = Thm.theory_of_thm thm;
     val raw_funcs = CodegenFunc.mk_func thm;
     val error_warning = if strict_functyp then error else warning #> K NONE;
-    val string_of_typ = setmp show_sorts true (Sign.string_of_typ thy);
     fun check_typ_classop class (const as (c, [Type (tyco, _)]), thm) =
           let
             val ((_, ty), _) = CodegenFunc.dest_func thm;
@@ -611,22 +610,22 @@ fun gen_mk_func_typ strict_functyp thm =
           in if Sign.typ_instance thy (ty_strongest, ty)
             then if Sign.typ_instance thy (ty, ty_decl)
             then SOME (const, thm)
-            else (warning ("Constraining type\n" ^ string_of_typ ty
-              ^ "\nof function theorem\n"
+            else (warning ("Constraining type\n" ^ CodegenConsts.string_of_typ thy ty
+              ^ "\nof defining equation\n"
               ^ string_of_thm thm
               ^ "\nto permitted most general type\n"
-              ^ string_of_typ ty_decl);
+              ^ CodegenConsts.string_of_typ thy ty_decl);
               SOME (const, constrain thm))
-            else error_warning ("Type\n" ^ string_of_typ ty
-              ^ "\nof function theorem\n"
+            else error_warning ("Type\n" ^ CodegenConsts.string_of_typ thy ty
+              ^ "\nof defining equation\n"
               ^ string_of_thm thm
               ^ "\nis incompatible with permitted least general type\n"
-              ^ string_of_typ ty_strongest)
+              ^ CodegenConsts.string_of_typ thy ty_strongest)
           end
       | check_typ_classop class ((c, [_]), thm) =
           (if strict_functyp then error else warning #> K NONE)
            ("Illegal type for class operation " ^ quote c
-           ^ "\nin function theorem\n"
+           ^ "\nin defining equation\n"
            ^ string_of_thm thm);
     fun check_typ_fun (const as (c, _), thm) =
       let
@@ -634,11 +633,11 @@ fun gen_mk_func_typ strict_functyp thm =
         val ty_decl = Sign.the_const_type thy c;
       in if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty)
         then SOME (const, thm)
-        else error_warning ("Type\n" ^ string_of_typ ty
-           ^ "\nof function theorem\n"
+        else error_warning ("Type\n" ^ CodegenConsts.string_of_typ thy ty
+           ^ "\nof defining equation\n"
            ^ string_of_thm thm
            ^ "\nis incompatible declared function type\n"
-           ^ string_of_typ ty_decl)
+           ^ CodegenConsts.string_of_typ thy ty_decl)
       end;
     fun check_typ (const as (c, tys), thm) =
       case AxClass.class_of_param thy c
@@ -758,7 +757,7 @@ fun preprocess thy thms =
   |> fold (fn (_, (_, f)) => apply_preproc thy f) ((#preprocs o the_preproc o get_exec) thy)
   |> map (CodegenFunc.rewrite_func ((#inlines o the_preproc o get_exec) thy))
   |> fold (fn (_, (_, f)) => apply_inline_proc thy f) ((#inline_procs o the_preproc o get_exec) thy)
-(*FIXME - must check: rewrite rule, function equation, proper constant |> map (snd o check_func false thy) *)
+(*FIXME - must check: rewrite rule, defining equation, proper constant |> map (snd o check_func false thy) *)
   |> sort (cmp_thms thy)
   |> common_typ_funcs;
 
