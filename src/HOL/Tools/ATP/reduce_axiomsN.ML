@@ -228,7 +228,8 @@ fun relevant_clauses thy ctab p rel_consts =
 	    let val weight = clause_weight ctab rel_consts consts_typs
 	    in
 	      if p <= weight orelse (!follow_defs andalso defines thy clsthm rel_consts)
-	      then (Output.debug (fn () => (name ^ " passes: " ^ Real.toString weight));
+	      then (Output.debug (fn () => (name ^ " clause " ^ Int.toString n ^ 
+	                                    " passes: " ^ Real.toString weight));
 	            relevant ((ax,weight)::newrels, rejects) axs)
 	      else relevant (newrels, ax::rejects) axs
 	    end
