@@ -87,7 +87,7 @@ fun lt (Rat (false, _, _), Rat (true, _, _)) = true
   | lt (Rat (true, _, _), Rat (false, _, _)) = false
   | lt (Rat (a, p1, q1), Rat (_, p2, q2)) =
       let val (r1, r2, _) = common (p1, q1, p2, q2)
-      in if a then r1 <= r2 else r2 <= r1 end;
+      in if a then r1 < r2 else r2 < r1 end;
 
 fun ord (Rat (false, _, _), Rat (true, _, _)) = LESS
   | ord (Rat (true, _, _), Rat (false, _, _)) = GREATER
