@@ -69,6 +69,10 @@ sig
   val simp_del: attribute
   val cong_add: attribute
   val cong_del: attribute
+  val def_simproc: string -> string list -> (morphism -> simpset -> cterm -> thm option) ->
+    local_theory -> local_theory
+  val def_simproc_i: string -> term list -> (morphism -> simpset -> cterm -> thm option) ->
+    local_theory -> local_theory
   val cong_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val simp_modifiers': (Args.T list -> (Method.modifier * Args.T list)) list
   val simp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
@@ -142,16 +146,91 @@ val _ = ML_Context.value_antiq "simpset"
   (Scan.succeed ("simpset", "Simplifier.local_simpset_of (ML_Context.the_local_context ())"));
 
 
+(* generic simpsets *)
+
+fun get_ss (Context.Theory thy) = simpset_of thy
+  | get_ss (Context.Proof ctxt) = local_simpset_of ctxt;
+
+fun map_ss f (Context.Theory thy) = (change_simpset_of thy f; Context.Theory thy)
+  | map_ss f (Context.Proof ctxt) = Context.Proof (LocalSimpset.map f ctxt);
+
+
 (* attributes *)
 
-fun attrib f = Thm.declaration_attribute (fn th =>
-   fn Context.Theory thy => (change_simpset_of thy (fn ss => f (ss, [th])); Context.Theory thy)
-    | Context.Proof ctxt => Context.Proof (LocalSimpset.map (fn ss => f (ss, [th])) ctxt));
+fun attrib f = Thm.declaration_attribute (fn th => map_ss (fn ss => f (ss, [th])));
 
 val simp_add = attrib (op addsimps);
 val simp_del = attrib (op delsimps);
 val cong_add = attrib (op addcongs);
 val cong_del = attrib (op delcongs);
+
+
+
+(** named simprocs **)
+
+fun err_dup_simprocs ds =
+  error ("Duplicate simproc(s): " ^ commas_quote ds);
+
+structure Simprocs = GenericDataFun
+(
+  val name = "Pure/simprocs";
+  type T = (simproc * stamp) NameSpace.table;
+  val empty = NameSpace.empty_table;
+  val extend = I;
+  fun merge _ simprocs = NameSpace.merge_tables (eq_snd (op =)) simprocs
+    handle Symtab.DUPS ds => err_dup_simprocs ds;
+  fun print _ _ = ();
+);
+
+val _ = Context.add_setup Simprocs.init;
+
+local
+
+(* FIXME *)
+fun read_terms ctxt ts =
+  #1 (ProofContext.read_termTs ctxt (K false) (K NONE) (K NONE) []
+    (map (rpair TypeInfer.logicT) ts));
+
+(* FIXME *)
+fun cert_terms ctxt ts = map (ProofContext.cert_term ctxt) ts;
+
+fun prep_pats prep ctxt raw_pats =
+  let
+    val pats = prep ctxt raw_pats;
+    val ctxt' = ctxt
+      |> fold Variable.declare_term pats
+      |> fold Variable.auto_fixes pats;
+  in Variable.export_terms ctxt' ctxt pats end;
+
+fun gen_simproc prep name raw_pats proc lthy =
+  let
+    val pats =
+      prep_pats prep lthy raw_pats
+      |> map (Morphism.term (LocalTheory.target_morphism lthy));
+    val naming = LocalTheory.target_naming lthy;
+  in
+    lthy |> LocalTheory.declaration (fn phi => fn context =>
+      let
+        val cert = Thm.cterm_of (Context.theory_of context);
+        val pats' = map (cert o Morphism.term phi) pats;
+        val name' = Morphism.name phi name;
+        val proc' = proc phi;
+        val simproc = mk_simproc' (NameSpace.full naming name') pats' proc';
+      in
+        context
+        |> Simprocs.map (fn simprocs =>
+            NameSpace.extend_table naming (simprocs, [(name', (simproc, stamp ()))])
+              handle Symtab.DUPS ds => err_dup_simprocs ds)
+        |> map_ss (fn ss => ss addsimprocs [simproc])
+      end)
+  end;
+
+in
+
+val def_simproc = gen_simproc read_terms;
+val def_simproc_i = gen_simproc cert_terms;
+
+end;
 
 
 
@@ -250,9 +329,6 @@ fun conv_mode x =
     Args.parens (Args.$$$ no_asm_simpN) >> K asm_simplify ||
     Args.parens (Args.$$$ no_asm_useN) >> K full_simplify ||
     Scan.succeed asm_full_simplify) |> Scan.lift) x;
-
-fun get_ss (Context.Theory thy) = simpset_of thy
-  | get_ss (Context.Proof ctxt) = local_simpset_of ctxt;
 
 in
 
