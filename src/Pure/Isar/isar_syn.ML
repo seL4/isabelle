@@ -311,6 +311,12 @@ val declarationP =
     (P.opt_target -- P.text
     >> (fn (loc, txt) => Toplevel.local_theory loc (IsarCmd.declaration txt)));
 
+val simproc_setupP =
+  OuterSyntax.command "simproc_setup" "define simproc in ML" (K.tag_ml K.thy_decl)
+    (P.opt_target --
+      P.name -- (P.$$$ "(" |-- P.enum1 "|" P.term --| P.$$$ ")" --| P.$$$ "=") -- P.text
+    >> (fn (((loc, x), y), z) => Toplevel.local_theory loc (IsarCmd.simproc_setup (x, y, z))));
+
 
 (* translation functions *)
 
@@ -929,9 +935,10 @@ val _ = OuterSyntax.add_parsers [
   constdefsP, definitionP, abbreviationP, notationP, axiomatizationP,
   theoremsP, lemmasP, declareP, globalP, localP, hideP, useP, mlP,
   ml_commandP, ml_setupP, setupP, method_setupP, declarationP,
-  parse_ast_translationP, parse_translationP, print_translationP,
-  typed_print_translationP, print_ast_translationP,
-  token_translationP, oracleP, contextP, localeP,
+  simproc_setupP, parse_ast_translationP, parse_translationP,
+  print_translationP, typed_print_translationP,
+  print_ast_translationP, token_translationP, oracleP, contextP,
+  localeP,
   (*proof commands*)
   theoremP, lemmaP, corollaryP, haveP, henceP, showP, thusP, fixP,
   assumeP, presumeP, defP, obtainP, guessP, letP, caseP, thenP, fromP,

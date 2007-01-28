@@ -20,6 +20,7 @@ sig
   val apply_theorems: (thmref * Attrib.src list) list -> theory -> thm list * theory
   val apply_theorems_i: (thm list * attribute list) list -> theory -> thm list * theory
   val declaration: string -> local_theory -> local_theory
+  val simproc_setup: string * string list * string -> local_theory -> local_theory
   val have: ((string * Attrib.src list) * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
   val hence: ((string * Attrib.src list) * (string * string list) list) list ->
@@ -236,6 +237,16 @@ val declaration =
     "val declaration: Morphism.morphism -> Context.generic -> Context.generic"
   "Context.map_proof (LocalTheory.declaration declaration)"
   #> Context.proof_map;
+
+
+(* simprocs *)
+
+fun simproc_setup (name, pats, proc) =
+  ML_Context.use_let
+    "val simproc: Morphism.morphism -> Simplifier.simpset -> cterm -> thm option"
+  ("Context.map_proof (Simplifier.def_simproc " ^ ML_Syntax.print_string name ^ " " ^
+    ML_Syntax.print_list ML_Syntax.print_string pats ^ " simproc)") proc
+  |> Context.proof_map;
 
 
 (* goals *)
