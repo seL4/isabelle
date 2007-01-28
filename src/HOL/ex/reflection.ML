@@ -38,7 +38,7 @@ fun mk_congeq ctxt fs th =
    val (((_,_),[th']), ctxt') = Variable.import true [th] ctxt
    val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of th'))
    fun add_fterms (t as t1 $ t2) = 
-       if exists (fn f => (t |> strip_comb |> fst) aconv f) fs then insert (op aconv) t
+       if exists (fn f => could_unify (t |> strip_comb |> fst, f)) fs then insert (op aconv) t
        else add_fterms t1 #> add_fterms t2
      | add_fterms (t as Abs(xn,xT,t')) = 
        if (fN mem (term_consts t)) then (fn _ => [t]) else (fn _ => [])
@@ -92,7 +92,7 @@ fun index_of t =
  let 
   val tt = HOLogic.listT (fastype_of t)
  in 
-  (case AList.lookup (op =) (!bds) tt of
+  (case AList.lookup Type.could_unify (!bds) tt of
     NONE => error "index_of : type not found in environements!"
   | SOME (tbs,tats) =>
     let
@@ -160,8 +160,8 @@ fun mk_decompatom eqs (t,ctxt) =
    in exists_Const 
 	  (fn (n,ty) => n="List.nth" 
 			andalso 
-			AList.defined (op =) (!bds) (domain_type ty)) rhs 
-	  andalso fastype_of rhs = tT
+			AList.defined Type.could_unify (!bds) (domain_type ty)) rhs 
+	  andalso Type.could_unify (fastype_of rhs, tT)
    end
   fun get_nth t = 
    case t of

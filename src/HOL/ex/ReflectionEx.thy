@@ -355,4 +355,38 @@ lemma " \<forall>x. \<exists>n. ((Suc n) * length (([(3::int) * x + (f t)*y - 9 
   apply (reify Irifm.simps Irnat_simps Irlist.simps Irint_simps)
 oops
 
+
+  (* An example for equations containing type variables *)	
+datatype prod = Zero | One | Var nat | Mul prod prod 
+  | Pw prod nat | PNM nat nat prod
+consts Iprod :: "('a::{ordered_idom,recpower}) list \<Rightarrow> prod \<Rightarrow> 'a" 
+primrec
+  "Iprod vs Zero = 0"
+  "Iprod vs One = 1"
+  "Iprod vs (Var n) = vs!n"
+  "Iprod vs (Mul a b) = (Iprod vs a * Iprod vs b)"
+  "Iprod vs (Pw a n) = ((Iprod vs a) ^ n)"
+  "Iprod vs (PNM n k t) = (vs ! n)^k * Iprod vs t"
+consts prodmul:: "prod \<times> prod \<Rightarrow> prod"
+datatype sgn = Pos prod | Neg prod | ZeroEq prod | NZeroEq prod | Tr | F 
+  | Or sgn sgn | And sgn sgn
+
+consts Isgn :: "('a::{ordered_idom, recpower}) list \<Rightarrow> sgn \<Rightarrow> bool"
+primrec 
+  "Isgn vs Tr = True"
+  "Isgn vs F = False"
+  "Isgn vs (ZeroEq t) = (Iprod vs t = 0)"
+  "Isgn vs (NZeroEq t) = (Iprod vs t \<noteq> 0)"
+  "Isgn vs (Pos t) = (Iprod vs t > 0)"
+  "Isgn vs (Neg t) = (Iprod vs t < 0)"
+  "Isgn vs (And p q) = (Isgn vs p \<and> Isgn vs q)"
+  "Isgn vs (Or p q) = (Isgn vs p \<or> Isgn vs q)"
+
+lemmas eqs = Isgn.simps Iprod.simps
+
+lemma "(x::int)^4 * y * z * y^2 * z^23 > 0"
+  apply (reify eqs)
+  oops
+
+
 end

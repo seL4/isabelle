@@ -7,11 +7,12 @@ header {* Generic reflection and reification *}
 
 theory Reflection
 imports Main
-uses ("reflection.ML")
+  uses ("reflection.ML")
 begin
 
 lemma ext2: "(\<forall>x. f x = g x) \<Longrightarrow> f = g"
   by (blast intro: ext)
+
 use "reflection.ML"
 
 method_setup reify = {*
