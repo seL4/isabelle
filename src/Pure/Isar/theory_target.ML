@@ -295,11 +295,10 @@ fun target_morphism loc lthy =
   ProofContext.export_morphism lthy (LocalTheory.target_of lthy) $>
   Morphism.thm_morphism Goal.norm_result;
 
-fun target_name loc lthy =
+fun target_naming loc lthy =
   (if loc = "" then Sign.naming_of (ProofContext.theory_of lthy)
    else ProofContext.naming_of (LocalTheory.target_of lthy))
-  |> NameSpace.qualified_names
-  |> NameSpace.full;
+  |> NameSpace.qualified_names;
 
 
 (* init and exit *)
@@ -318,7 +317,7 @@ fun begin is_class loc =
       term_syntax = term_syntax loc,
       declaration = declaration loc,
       target_morphism = target_morphism loc,
-      target_name = target_name loc,
+      target_naming = target_naming loc,
       reinit = fn _ =>
         begin is_class loc o (if is_loc then Locale.init loc else ProofContext.init),
       exit = LocalTheory.target_of}

@@ -39,6 +39,7 @@ sig
     local_theory -> (bstring * thm list) * Proof.context
   val notation: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val target_morphism: local_theory -> morphism
+  val target_naming: local_theory -> NameSpace.naming
   val target_name: local_theory -> bstring -> string
   val init: string -> operations -> Proof.context -> local_theory
   val restore: local_theory -> local_theory
@@ -69,7 +70,7 @@ type operations =
   term_syntax: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory,
   declaration: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory,
   target_morphism: local_theory -> morphism,
-  target_name: local_theory -> bstring -> string,
+  target_naming: local_theory -> NameSpace.naming,
   reinit: local_theory -> theory -> local_theory,
   exit: local_theory -> Proof.context};
 
@@ -164,7 +165,7 @@ val type_syntax = operation1 #type_syntax;
 val term_syntax = operation1 #term_syntax;
 val declaration = operation1 #declaration;
 val target_morphism = operation #target_morphism;
-val target_name = operation #target_name;
+val target_naming = operation #target_naming;
 
 fun def kind arg lthy = lthy |> defs kind [arg] |>> hd;
 fun note kind (a, ths) lthy = lthy |> notes kind [(a, [(ths, [])])] |>> hd;
@@ -172,6 +173,8 @@ fun note kind (a, ths) lthy = lthy |> notes kind [(a, [(ths, [])])] |>> hd;
 fun notation mode raw_args lthy =
   let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args
   in term_syntax (ProofContext.target_notation mode args) lthy end;
+
+val target_name = NameSpace.full o target_naming;
 
 
 (* init -- exit *)
