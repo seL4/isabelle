@@ -69,6 +69,7 @@ sig
   val simp_del: attribute
   val cong_add: attribute
   val cong_del: attribute
+  val get_simproc: Proof.context -> xstring -> simproc
   val def_simproc: string -> string list -> (morphism -> simpset -> cterm -> thm option) ->
     local_theory -> local_theory
   val def_simproc_i: string -> term list -> (morphism -> simpset -> cterm -> thm option) ->
@@ -171,6 +172,8 @@ val cong_del = attrib (op delcongs);
 fun err_dup_simprocs ds =
   error ("Duplicate simproc(s): " ^ commas_quote ds);
 
+(* data *)
+
 structure Simprocs = GenericDataFun
 (
   val name = "Pure/simprocs";
@@ -181,8 +184,27 @@ structure Simprocs = GenericDataFun
     handle Symtab.DUPS ds => err_dup_simprocs ds;
   fun print _ _ = ();
 );
-
 val _ = Context.add_setup Simprocs.init;
+
+
+(* get simprocs *)
+
+fun get_simproc ctxt xname =
+  let
+    val (space, tab) = Simprocs.get (Context.Proof ctxt);
+    val name = NameSpace.intern space xname;
+  in
+    (case Symtab.lookup tab name of
+      SOME (proc, _) => proc
+    | NONE => error ("Undefined simplification procedure: " ^ quote name))
+  end;
+
+val _ = ML_Context.value_antiq "simproc" (Scan.lift Args.name >> (fn name =>
+  ("simproc",
+    "Simplifier.get_simproc (ML_Context.the_local_context ()) " ^ ML_Syntax.print_string name)));
+
+
+(* define simprocs *)
 
 local
 
