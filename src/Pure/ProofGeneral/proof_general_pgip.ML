@@ -433,6 +433,16 @@ fun send_pgip_config () =
 end
 
 
+(* Preferences: tweak for PGIP interfaces *)
+
+val preferences = ref Preferences.preferences;
+
+fun setup_preferences_tweak() =
+    preferences :=
+     (* PGIP uses markup for distinguishing variable types *)
+     (!preferences |> Preferences.set_default ("show-question-marks","false")
+	           |> Preferences.remove "show-question-marks");
+		 
 
 
 (* Sending commands to Isar *)
@@ -486,7 +496,7 @@ fun askprefs (Askprefs vs) =
         List.app (fn (prefcat, prefs) =>
                      issue_pgip (Hasprefs {prefcategory=SOME prefcat,
                                            prefs=map preference_of prefs}))
-                 Preferences.preferences
+                 (!preferences)
     end
 
 fun askconfig (Askconfig vs) = () (* TODO: add config response *)
@@ -495,7 +505,7 @@ local
     fun lookuppref pref =
         case AList.lookup (op =)
                           (map (fn p => (#name p,p))
-                               (maps snd Preferences.preferences)) pref of
+                               (maps snd (!preferences))) pref of
             NONE => error ("Unknown prover preference: " ^ quote pref)
           | SOME p => p
 in
@@ -583,7 +593,7 @@ fun askids (Askids vs) =
          | (NONE, SOME ObjFile)        => setids (idtable ObjFile NONE (ThyInfo.names())) (* ditto *)
          | (SOME fi, SOME ObjFile)     => setids (idtable ObjTheory (SOME fi) [fi]) (* FIXME: lookup file *)
          | (NONE, SOME ObjTheory)      => setids (idtable ObjTheory NONE (ThyInfo.names()))
-         | (SOME thy, SOME ObjTheory)  => setids (idtable ObjTheory (SOME thy) (ThyInfo.get_preds thy))
+         | (SOME thy, SOME ObjTheory)  => setids (idtable ObjTheory (SOME thy) (ThyInfo.get_succs thy))
          | (SOME thy, SOME ObjTheorem) => setids (idtable ObjTheorem (SOME thy) (thms_of_thy thy))
          (* next case is both of above.  FIXME: cleanup this *)
          | (SOME thy, NONE) => (setids (idtable ObjTheory (SOME thy) (ThyInfo.get_preds thy));
@@ -1063,6 +1073,7 @@ fun init_pgip false =
       (! initialized orelse
         (setmp warning_fn (K ()) init_outer_syntax ();
           PgipParser.init ();
+	  setup_preferences_tweak ();
           setup_xsymbols_output ();
           setup_pgml_output ();
           setup_messages ();
