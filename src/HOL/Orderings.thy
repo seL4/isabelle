@@ -293,7 +293,7 @@ end
 axclass linorder < order
   linorder_linear: "x <= y | y <= x"
 
-interpretation linorder:
+interpretation order:
   linorder ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op < \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool"]
   by unfold_locales (rule linorder_linear)
 
@@ -320,20 +320,20 @@ lemmas order_less_imp_not_eq2 [where 'b = "?'a::order"] = order.less_imp_not_eq2
 lemmas order_neq_le_trans [where 'b = "?'a::order"] = order.neq_le_trans
 lemmas order_le_neq_trans [where 'b = "?'a::order"] = order.le_neq_trans
 lemmas order_less_asym' [where 'b = "?'a::order"] = order.less_asym'
-lemmas linorder_less_linear [where 'b = "?'a::linorder"] = linorder.less_linear
-lemmas linorder_le_less_linear [where 'b = "?'a::linorder"] = linorder.le_less_linear
-lemmas linorder_le_cases [where 'b = "?'a::linorder"] = linorder.le_cases
-lemmas linorder_cases [where 'b = "?'a::linorder"] = linorder.cases
-lemmas linorder_not_less [where 'b = "?'a::linorder"] = linorder.not_less
-lemmas linorder_not_le [where 'b = "?'a::linorder"] = linorder.not_le
-lemmas linorder_neq_iff [where 'b = "?'a::linorder"] = linorder.neq_iff
-lemmas linorder_neqE [where 'b = "?'a::linorder"] = linorder.neqE
-lemmas linorder_antisym_conv1 [where 'b = "?'a::linorder"] = linorder.antisym_conv1
-lemmas linorder_antisym_conv2 [where 'b = "?'a::linorder"] = linorder.antisym_conv2
-lemmas linorder_antisym_conv3 [where 'b = "?'a::linorder"] = linorder.antisym_conv3
-lemmas leI [where 'b = "?'a::linorder"] = linorder.leI
-lemmas leD [where 'b = "?'a::linorder"] = linorder.leD
-lemmas not_leE [where 'b = "?'a::linorder"] = linorder.not_leE
+lemmas linorder_less_linear [where 'b = "?'a::linorder"] = order.less_linear
+lemmas linorder_le_less_linear [where 'b = "?'a::linorder"] = order.le_less_linear
+lemmas linorder_le_cases [where 'b = "?'a::linorder"] = order.le_cases
+lemmas linorder_cases [where 'b = "?'a::linorder"] = order.cases
+lemmas linorder_not_less [where 'b = "?'a::linorder"] = order.not_less
+lemmas linorder_not_le [where 'b = "?'a::linorder"] = order.not_le
+lemmas linorder_neq_iff [where 'b = "?'a::linorder"] = order.neq_iff
+lemmas linorder_neqE [where 'b = "?'a::linorder"] = order.neqE
+lemmas linorder_antisym_conv1 [where 'b = "?'a::linorder"] = order.antisym_conv1
+lemmas linorder_antisym_conv2 [where 'b = "?'a::linorder"] = order.antisym_conv2
+lemmas linorder_antisym_conv3 [where 'b = "?'a::linorder"] = order.antisym_conv3
+lemmas leI [where 'b = "?'a::linorder"] = order.leI
+lemmas leD [where 'b = "?'a::linorder"] = order.leD
+lemmas not_leE [where 'b = "?'a::linorder"] = order.not_leE
 
 
 subsection {* Reasoning tools setup *}
@@ -866,24 +866,24 @@ constdefs
   max :: "['a::ord, 'a] => 'a"
   "max a b == (if a <= b then b else a)"
 
-hide const linorder.less_eq_less.max linorder.less_eq_less.min  (* FIXME !? *)
+hide const order.less_eq_less.max order.less_eq_less.min  (* FIXME !? *)
 
 lemma min_linorder:
   "linorder.min (op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool) = min"
-  by (rule+) (simp add: min_def linorder.min_def)
+  by (rule+) (simp add: min_def order.min_def)
 
 lemma max_linorder:
   "linorder.max (op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool) = max"
-  by (rule+) (simp add: max_def linorder.max_def)
+  by (rule+) (simp add: max_def order.max_def)
 
-lemmas min_le_iff_disj = linorder.min_le_iff_disj [where 'b = "?'a::linorder", simplified min_linorder]
-lemmas le_max_iff_disj = linorder.le_max_iff_disj [where 'b = "?'a::linorder", simplified max_linorder]
-lemmas min_less_iff_disj = linorder.min_less_iff_disj [where 'b = "?'a::linorder", simplified min_linorder]
-lemmas less_max_iff_disj = linorder.less_max_iff_disj [where 'b = "?'a::linorder", simplified max_linorder]
-lemmas min_less_iff_conj [simp] = linorder.min_less_iff_conj [where 'b = "?'a::linorder", simplified min_linorder]
-lemmas max_less_iff_conj [simp] = linorder.max_less_iff_conj [where 'b = "?'a::linorder", simplified max_linorder]
-lemmas split_min = linorder.split_min [where 'b = "?'a::linorder", simplified min_linorder]
-lemmas split_max = linorder.split_max [where 'b = "?'a::linorder", simplified max_linorder]
+lemmas min_le_iff_disj = order.min_le_iff_disj [where 'b = "?'a::linorder", simplified min_linorder]
+lemmas le_max_iff_disj = order.le_max_iff_disj [where 'b = "?'a::linorder", simplified max_linorder]
+lemmas min_less_iff_disj = order.min_less_iff_disj [where 'b = "?'a::linorder", simplified min_linorder]
+lemmas less_max_iff_disj = order.less_max_iff_disj [where 'b = "?'a::linorder", simplified max_linorder]
+lemmas min_less_iff_conj [simp] = order.min_less_iff_conj [where 'b = "?'a::linorder", simplified min_linorder]
+lemmas max_less_iff_conj [simp] = order.max_less_iff_conj [where 'b = "?'a::linorder", simplified max_linorder]
+lemmas split_min = order.split_min [where 'b = "?'a::linorder", simplified min_linorder]
+lemmas split_max = order.split_max [where 'b = "?'a::linorder", simplified max_linorder]
 
 lemma min_leastL: "(!!x. least <= x) ==> min least x = least"
   by (simp add: min_def)
