@@ -28,7 +28,7 @@ sig
   val parse_elem: string list -> tree * string list
   val parse_document: string list -> (string option * tree) * string list
   val tree_of_string: string -> tree
-  (* scanner for stream parser in proof_general.ML *)				
+  (* scanner for stream parser in proof_general.ML *)
   val scan_comment_whspc : string list -> unit * string list
 end;
 
