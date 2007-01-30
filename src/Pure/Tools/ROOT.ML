@@ -4,6 +4,8 @@
 Miscellaneous tools and packages for Pure Isabelle.
 *)
 
+(*XML syntax for terms and types*)
+use "xml_syntax.ML";
 
 (*derived theory and proof elements*)
 use "invoke.ML";
@@ -32,6 +34,3 @@ use "compute.ML";
 use "nbe_eval.ML";
 use "nbe_codegen.ML";
 use "nbe.ML";
-
-(*XML syntax for terms and types*)
-use "xml_syntax.ML";
