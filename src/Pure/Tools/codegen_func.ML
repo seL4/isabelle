@@ -18,6 +18,8 @@ sig
   val inst_thm: sort Vartab.table -> thm -> thm
   val expand_eta: int -> thm -> thm
   val rewrite_func: thm list -> thm -> thm
+  val norm_args: thm list -> thm list 
+  val norm_varnames: (string -> string) -> (string -> string) -> thm list -> thm list 
 end;
 
 structure CodegenFunc : CODEGEN_FUNC =
@@ -151,5 +153,75 @@ fun rewrite_func rewrites thm =
     val lhs' = Thm.symmetric (fold (fn th1 => fn th2 => Thm.combination th2 th1)
       args' (Thm.reflexive ct_f));
   in Thm.transitive (Thm.transitive lhs' thm) rhs' end;
+
+fun norm_args thms =
+  let
+    val num_args_of = length o snd o strip_comb o fst o Logic.dest_equals;
+    val k = fold (curry Int.max o num_args_of o Drule.plain_prop_of) thms 0;
+  in
+    thms
+    |> map (expand_eta k)
+    |> map (Drule.fconv_rule Drule.beta_eta_conversion)
+  end;
+
+fun canonical_tvars purify_tvar thm =
+  let
+    val ctyp = Thm.ctyp_of (Thm.theory_of_thm thm);
+    fun tvars_subst_for thm = (fold_types o fold_atyps)
+      (fn TVar (v_i as (v, _), sort) => let
+            val v' = purify_tvar v
+          in if v = v' then I
+          else insert (op =) (v_i, (v', sort)) end
+        | _ => I) (prop_of thm) [];
+    fun mk_inst (v_i, (v', sort)) (maxidx, acc) =
+      let
+        val ty = TVar (v_i, sort)
+      in
+        (maxidx + 1, (ctyp ty, ctyp (TVar ((v', maxidx), sort))) :: acc)
+      end;
+    val maxidx = Thm.maxidx_of thm + 1;
+    val (_, inst) = fold mk_inst (tvars_subst_for thm) (maxidx + 1, []);
+  in Thm.instantiate (inst, []) thm end;
+
+fun canonical_vars purify_var thm =
+  let
+    val cterm = Thm.cterm_of (Thm.theory_of_thm thm);
+    fun vars_subst_for thm = fold_aterms
+      (fn Var (v_i as (v, _), ty) => let
+            val v' = purify_var v
+          in if v = v' then I
+          else insert (op =) (v_i, (v', ty)) end
+        | _ => I) (prop_of thm) [];
+    fun mk_inst (v_i as (v, i), (v', ty)) (maxidx, acc) =
+      let
+        val t = Var (v_i, ty)
+      in
+        (maxidx + 1, (cterm t, cterm (Var ((v', maxidx), ty))) :: acc)
+      end;
+    val maxidx = Thm.maxidx_of thm + 1;
+    val (_, inst) = fold mk_inst (vars_subst_for thm) (maxidx + 1, []);
+  in Thm.instantiate ([], inst) thm end;
+
+fun canonical_absvars purify_var thm =
+  let
+    val t = Thm.prop_of thm;
+    val t' = Term.map_abs_vars purify_var t;
+  in Thm.rename_boundvars t t' thm end;
+
+fun norm_varnames purify_tvar purify_var thms =
+  let
+    fun burrow_thms f [] = []
+      | burrow_thms f thms =
+          thms
+          |> Conjunction.intr_list
+          |> f
+          |> Conjunction.elim_list;
+  in
+    thms
+    |> burrow_thms (canonical_tvars purify_tvar)
+    |> map (canonical_vars purify_var)
+    |> map (canonical_absvars purify_var)
+    |> map Drule.zero_var_indexes
+  end;
 
 end;
