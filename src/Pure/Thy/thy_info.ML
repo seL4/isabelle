@@ -34,6 +34,7 @@ sig
   val get_theory: string -> theory
   val the_theory: string -> theory -> theory
   val get_preds: string -> string list
+  val get_succs: string -> string list
   val loaded_files: string -> Path.T list
   val touch_child_thys: string -> unit
   val touch_all_thys: unit -> unit
@@ -236,6 +237,10 @@ fun touch_thys names =
 
 fun touch_thy name = touch_thys [name];
 fun touch_child_thys name = touch_thys (thy_graph Graph.imm_succs name);
+
+fun get_succs name =
+  (thy_graph Graph.imm_succs name) handle Graph.UNDEF _ =>
+    error (loader_msg "nothing known about theory" [name]);
 
 fun touch_all_thys () = List.app outdate_thy (get_names ());
 
