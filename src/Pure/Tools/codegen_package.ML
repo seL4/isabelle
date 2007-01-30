@@ -36,25 +36,6 @@ val fail = CodegenThingol.fail;
 
 (* theory data *)
 
-structure Code = CodeDataFun
-(struct
-  val name = "Pure/code";
-  type T = CodegenThingol.code;
-  val empty = CodegenThingol.empty_code;
-  fun merge _ = CodegenThingol.merge_code;
-  fun purge _ NONE _ = CodegenThingol.empty_code
-    | purge NONE _ _ = CodegenThingol.empty_code
-    | purge (SOME thy) (SOME cs) code =
-        let
-          val cs_exisiting =
-            map_filter (CodegenNames.const_rev thy) (Graph.keys code);
-          val dels = (Graph.all_preds code
-              o map (CodegenNames.const thy)
-              o filter (member CodegenConsts.eq_const cs_exisiting)
-            ) cs;
-        in Graph.del_nodes dels code end;
-end);
-
 type appgen = theory -> ((sort -> sort) * Sorts.algebra) * Consts.T
   -> CodegenFuncgr.T
   -> bool * string list option
@@ -73,7 +54,7 @@ fun merge_abstypes ((typs1, consts1) : abstypes, (typs2, consts2) : abstypes) =
 
 structure CodegenPackageData = TheoryDataFun
 (struct
-  val name = "Pure/codegen_package";
+  val name = "Pure/codegen_package_setup";
   type T = appgens * abstypes;
   val empty = (Symtab.empty, (Symtab.empty, Consttab.empty));
   val copy = I;
@@ -83,7 +64,34 @@ structure CodegenPackageData = TheoryDataFun
   fun print _ _ = ();
 end);
 
-val _ = Context.add_setup (Code.init #> CodegenPackageData.init);
+structure Funcgr = CodegenFuncgrRetrieval (
+  val name = "Pure/codegen_package_thms";
+  fun rewrites thy = [];
+);
+
+fun print_codethms thy =
+  Pretty.writeln o CodegenFuncgr.pretty thy o Funcgr.make thy;
+
+structure Code = CodeDataFun
+(struct
+  val name = "Pure/codegen_package_code";
+  type T = CodegenThingol.code;
+  val empty = CodegenThingol.empty_code;
+  fun merge _ = CodegenThingol.merge_code;
+  fun purge _ NONE _ = CodegenThingol.empty_code
+    | purge NONE _ _ = CodegenThingol.empty_code
+    | purge (SOME thy) (SOME cs) code =
+        let
+          val cs_exisiting =
+            map_filter (CodegenNames.const_rev thy) (Graph.keys code);
+          val dels = (Graph.all_preds code
+              o map (CodegenNames.const thy)
+              o filter (member CodegenConsts.eq_const cs_exisiting)
+            ) cs;
+        in Graph.del_nodes dels code end;
+end);
+
+val _ = Context.add_setup (CodegenPackageData.init #> Funcgr.init #> Code.init);
 
 
 (* preparing defining equations *)
@@ -473,7 +481,7 @@ fun add_consts thy f (c1, c2 as (c, tys)) =
     val _ = if is_some (CodegenData.get_datatype_of_constr thy c2)
       then error ("Not a function: " ^ CodegenConsts.string_of_const thy c2)
       else ();
-    val funcgr = CodegenFuncgr.make thy [c1, c2];
+    val funcgr = Funcgr.make thy [c1, c2];
     val ty1 = (f o CodegenFuncgr.typ funcgr) c1;
     val ty2 = CodegenFuncgr.typ funcgr c2;
     val _ = if Sign.typ_equiv thy (ty1, ty2) then () else
@@ -545,7 +553,7 @@ fun generate thy funcgr targets gen it =
   let
     val cs = map_filter (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy))
       (CodegenFuncgr.all funcgr);
-    val funcgr' = CodegenFuncgr.make thy cs;
+    val funcgr' = Funcgr.make thy cs;
     val qnaming = NameSpace.qualified_names NameSpace.default_naming;
     val consttab = Consts.empty
       |> fold (fn c => Consts.declare qnaming
@@ -561,7 +569,7 @@ fun generate thy funcgr targets gen it =
 fun codegen_term thy t =
   let
     val ct = Thm.cterm_of thy t;
-    val (ct', funcgr) = CodegenFuncgr.make_term thy (K K) ct;
+    val (ct', funcgr) = Funcgr.make_term thy (K (K K)) ct;
     val t' = Thm.term_of ct';
   in generate thy funcgr (SOME []) exprgen_term' t' end;
 
@@ -593,7 +601,7 @@ fun consts_of thy thyname =
 
 fun filter_generatable thy targets consts =
   let
-    val (consts', funcgr) = CodegenFuncgr.make_consts thy consts;
+    val (consts', funcgr) = Funcgr.make_consts thy consts;
     val consts'' = generate thy funcgr targets (fold_map oooo perhaps_def_const) consts';
     val consts''' = map_filter (fn (const, SOME _) => SOME const | (_, NONE) => NONE)
       (consts' ~~ consts'');
@@ -622,7 +630,7 @@ fun code raw_cs seris thy =
     fun generate' thy = case cs
      of [] => []
       | _ =>
-          generate thy (CodegenFuncgr.make thy cs) targets
+          generate thy (Funcgr.make thy cs) targets
             (fold_map oooo ensure_def_const') cs;
     fun serialize' [] code seri =
           seri NONE code 
@@ -634,12 +642,11 @@ fun code raw_cs seris thy =
     (map (serialize' cs code) (map_filter snd seris'); ())
   end;
 
-val (codeK, code_abstypeK, code_axiomsK) =
-  ("code_gen", "code_abstype", "code_axioms");
+fun print_codethms_e thy =
+  print_codethms thy o map (CodegenConsts.read_const thy);
 
-in
 
-val code_bareP = (
+val code_exprP = (
     (Scan.repeat P.term
     -- Scan.repeat (P.$$$ "(" |--
         P.name -- P.arguments
@@ -647,12 +654,17 @@ val code_bareP = (
     >> (fn (raw_cs, seris) => code raw_cs seris)
   );
 
+val (print_codethmsK, codeK, code_abstypeK, code_axiomsK) =
+  ("print_codethms", "code_gen", "code_abstype", "code_axioms");
+
+in
+
 val codeP =
   OuterSyntax.improper_command codeK "generate and serialize executable code for constants"
-    K.diag (P.!!! code_bareP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
+    K.diag (P.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
 
 fun codegen_command thy cmd =
-  case Scan.read OuterLex.stopper (P.!!! code_bareP) ((filter OuterLex.is_proper o OuterSyntax.scan) cmd)
+  case Scan.read OuterLex.stopper (P.!!! code_exprP) ((filter OuterLex.is_proper o OuterSyntax.scan) cmd)
    of SOME f => (writeln "Now generating code..."; f thy)
     | NONE => error ("Bad directive " ^ quote cmd);
 
@@ -669,7 +681,15 @@ val code_axiomsP =
     >> (Toplevel.theory o constsubst_e)
   );
 
-val _ = OuterSyntax.add_parsers [codeP, code_abstypeP, code_axiomsP];
+val print_codethmsP =
+  OuterSyntax.improper_command print_codethmsK "print code theorems of this theory" OuterKeyword.diag
+    (Scan.option (P.$$$ "(" |-- Scan.repeat P.term --| P.$$$ ")")
+      >> (fn NONE => CodegenData.print_thms
+           | SOME cs => fn thy => print_codethms_e thy cs)
+      >> (fn f => Toplevel.no_timing o Toplevel.unknown_theory
+      o Toplevel.keep (f o Toplevel.theory_of)));
+
+val _ = OuterSyntax.add_parsers [codeP, code_abstypeP, code_axiomsP, print_codethmsP];
 
 end; (* local *)
 
