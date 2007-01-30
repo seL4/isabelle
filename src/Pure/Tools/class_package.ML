@@ -467,25 +467,6 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
       |> map (NameSpace.base o fst o fst) (*FIXME*)
     fun mk_const thy class (c, ty) =
       Const (c, Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty);
-    (*fun note_thms class name_locale cs thy =
-      let (*FIXME just an ad-hoc feature*)
-        val names = fold (fn Element.Assumes xs => fold (cons o fst o fst) xs
-          | Element.Notes (name, _) => cons name
-          | _ => I) elems []
-        val const_names = cs;
-        val path = NameSpace.base class;
-        val prefix = NameSpace.implode [class ^ "_class", space_implode "_" const_names];
-        fun note_thm name thy =
-          case try (PureThy.get_thm thy) (Name (NameSpace.append prefix name))
-           of SOME thm =>
-                thy
-                |> PureThy.note_thmss_qualified "" path [((name, []), [([thm], [])])]
-                |> snd
-            | NONE => error name;
-      in
-        thy
-        |> fold note_thm names
-      end;*)
   in
     thy
     |> add_locale bname supexpr elems
@@ -502,7 +483,6 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
       #> prove_interpretation (Logic.const_of_class bname, [])
           (Locale.Locale name_locale) (map (SOME o mk_const thy name_axclass) (map snd supconsts @ consts))
             ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
-      (*#> note_thms name_axclass name_locale (map fst supconsts @ map (fst o fst) params)*)
       #> pair name_axclass
       )))))
   end;
