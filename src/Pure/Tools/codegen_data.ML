@@ -874,13 +874,16 @@ val kind = CodegenData.declare Data.name (Data Data.empty)
   (fn thy_opt => fn cs => fn Data x => Data (Data.purge thy_opt cs x));
 
 val init = CodegenData.init kind;
+
 fun get thy = CodegenData.get kind dest ((! o snd o CodegenData.CodeData.get) thy);
+
 fun change thy f =
   let
     val data_ref = (snd o CodegenData.CodeData.get) thy;
     val x = (f o CodegenData.get kind dest o !) data_ref;
     val data = CodegenData.put kind Data x (! data_ref);
   in (data_ref := data; x) end;
+
 fun change_yield thy f =
   let
     val data_ref = (snd o CodegenData.CodeData.get) thy;
