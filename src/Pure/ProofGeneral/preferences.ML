@@ -16,7 +16,13 @@ sig
 			  get: unit -> string,
 			  set: string -> unit }
 
-  val preferences : (string * isa_preference list) list
+  (* table of categorised and preferences; names must be unique *)
+  type isa_preference_table = (string * isa_preference list) list
+
+  val preferences : isa_preference_table
+
+  val remove      : string -> isa_preference_table -> isa_preference_table
+  val set_default : string * string -> isa_preference_table -> isa_preference_table
 end
 
 structure Preferences : PREFERENCES =
@@ -150,5 +156,23 @@ val preferences =
      ("Advanced Display", advanced_display_preferences),
      ("Tracing", tracing_preferences),
      ("Proof", proof_preferences)]
+
+type isa_preference_table = (string * isa_preference list) list
+
+fun remove name (preftable : isa_preference_table)  = 
+    map (fn (cat,prefs) => 
+	    (cat, filter_out (curry op= name o #name) prefs))
+        preftable;
+
+fun set_default (setname,newdefault) (preftable : isa_preference_table)  = 
+    map (fn (cat,prefs) => 
+	    (cat, map (fn (pref as {name,descr,default,pgiptype,get,set})
+			  => if (name = setname) then 
+				 (set newdefault;
+				  {name=name,descr=descr,default=newdefault,
+				  pgiptype=pgiptype,get=get,set=set})
+			     else pref)
+   		  prefs))
+        preftable;
 
 end
