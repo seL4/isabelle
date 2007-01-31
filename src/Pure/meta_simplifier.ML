@@ -312,14 +312,13 @@ fun print_ss ss =
   let
     val pretty_thms = map Display.pretty_thm;
 
-    fun pretty_cong (name, th) =
-      Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, Display.pretty_thm th];
+    fun pretty_cong (name, {thm, lhs}) =
+      Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, Display.pretty_thm thm];
     fun pretty_proc (name, lhss) =
       Pretty.big_list (name ^ ":") (map Display.pretty_cterm lhss);
 
     val Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...}) = ss;
     val smps = map #thm (Net.entries rules);
-    val cngs = map (fn (name, {thm, ...}) => (name, thm)) (#1 congs);
     val prcs = Net.entries procs |>
       map (fn Proc {name, lhs, id, ...} => ((name, lhs), id))
       |> partition_eq (eq_snd (op =))
@@ -328,7 +327,7 @@ fun print_ss ss =
   in
     [Pretty.big_list "simplification rules:" (pretty_thms smps),
       Pretty.big_list "simplification procedures:" (map pretty_proc prcs),
-      Pretty.big_list "congruences:" (map pretty_cong cngs),
+      Pretty.big_list "congruences:" (map pretty_cong (fst congs)),
       Pretty.strs ("loopers:" :: map (quote o fst) loop_tacs),
       Pretty.strs ("unsafe solvers:" :: map (quote o solver_name) (#1 solvers)),
       Pretty.strs ("safe solvers:" :: map (quote o solver_name) (#2 solvers))]
@@ -566,11 +565,13 @@ fun add_cong (ss, thm) = ss |>
     (*val lhs = Envir.eta_contract lhs;*)
       val a = the (cong_name (head_of (term_of lhs))) handle Option.Option =>
         raise SIMPLIFIER ("Congruence must start with a constant or free variable", thm);
-      val (alist, weak) = congs;
-      val alist2 = overwrite_warn (alist, (a, {lhs = lhs, thm = thm}))
-        ("Overwriting congruence rule for " ^ quote a);
-      val weak2 = if is_full_cong thm then weak else a :: weak;
-    in ((alist2, weak2), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
+      val (xs, weak) = congs;
+      val _ =  if AList.defined (op =) xs a
+        then warning ("Overwriting congruence rule for " ^ quote a)
+        else ();
+      val xs' = AList.update (op =) (a, {lhs = lhs, thm = thm}) xs;
+      val weak' = if is_full_cong thm then weak else a :: weak;
+    in ((xs', weak'), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
 
 fun del_cong (ss, thm) = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
@@ -580,11 +581,11 @@ fun del_cong (ss, thm) = ss |>
     (*val lhs = Envir.eta_contract lhs;*)
       val a = the (cong_name (head_of lhs)) handle Option.Option =>
         raise SIMPLIFIER ("Congruence must start with a constant", thm);
-      val (alist, _) = congs;
-      val alist2 = List.filter (fn (x, _) => x <> a) alist;
-      val weak2 = alist2 |> map_filter (fn (a, {thm, ...}: cong) =>
+      val (xs, _) = congs;
+      val xs' = filter_out (fn (x : string, _) => x = a) xs;
+      val weak' = xs' |> map_filter (fn (a, {thm, ...}: cong) =>
         if is_full_cong thm then NONE else SOME a);
-    in ((alist2, weak2), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
+    in ((xs', weak'), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
 
 fun mk_cong (Simpset (_, {mk_rews = {mk_cong = f, ...}, ...})) = f;
 
@@ -768,8 +769,8 @@ fun merge_ss (ss1, ss2) =
     val rules' = Net.merge eq_rrule (rules1, rules2);
     val prems' = gen_merge_lists Drule.eq_thm_prop prems1 prems2;
     val bounds' = if #1 bounds1 < #1 bounds2 then bounds2 else bounds1;
-    val congs' = gen_merge_lists (eq_cong o pairself #2) congs1 congs2;
-    val weak' = merge_lists weak1 weak2;
+    val congs' = merge (eq_cong o pairself #2) (congs1, congs2);
+    val weak' = merge (op =) (weak1, weak2);
     val procs' = Net.merge eq_proc (procs1, procs2);
     val loop_tacs' = AList.merge (op =) (K true) (loop_tacs1, loop_tacs2);
     val unsafe_solvers' = merge_solvers unsafe_solvers1 unsafe_solvers2;
