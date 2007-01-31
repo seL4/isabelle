@@ -472,10 +472,8 @@ fun is_package_def a =
   end;
 
 fun make_banned_test xs =
-  let val ht = Polyhash.mkTable (Polyhash.hash_string, op =)
-                                (6000, HASH_STRING)
-      fun banned s =
-            isSome (Polyhash.peek ht s) orelse is_package_def s
+  let val ht = Polyhash.mkTable (Polyhash.hash_string, op =) (6000, HASH_STRING)
+      fun banned s = isSome (Polyhash.peek ht s) orelse is_package_def s
   in  app (fn x => Polyhash.insert ht (x,())) (!blacklist);
       banned
   end;
@@ -696,14 +694,19 @@ fun has_typed_var tycons =
         | var_tycon _ = false
   in  exists var_tycon o term_vars  end;
 
+(*Clauses are forbidden to contain variables of these types. The typical reason is that
+  they lead to unsoundness. Note that "unit" satisfies numerous equations like ?X=().
+  The resulting clause will have no type constraint, yielding false proofs. Even "bool"
+  leads to many unsound proofs, though (obviously) only for higher-order problems.*)
+val unwanted_types = ref ["Product_Type.unit","bool"];
+
 fun unwanted t =
-    is_taut t orelse has_typed_var ["Product_Type.unit","bool"] t orelse
+    is_taut t orelse has_typed_var (!unwanted_types) t orelse
     forall too_general_equality (dest_disj t);
 
 (*Clauses containing variables of type "unit" or "bool" are unlikely to be useful and
   likely to lead to unsound proofs.*)
-fun remove_unwanted_clauses cls =
-  filter (not o unwanted o prop_of o fst) cls;
+fun remove_unwanted_clauses cls = filter (not o unwanted o prop_of o fst) cls;
 
 fun tptp_writer logic goals filename (axioms,classrels,arities) user_lemmas =
     if is_fol_logic logic
@@ -851,8 +854,13 @@ fun write_problem_files probfile (ctxt,th)  =
       fun write_all [] [] _ = []
         | write_all (ccls::ccls_list) (axcls::axcls_list) k =
             let val fname = probfile k
+                val _ = Output.debug (fn () => "About to write file " ^ fname)
                 val axcls = make_unique axcls
+                val _ = Output.debug (fn () => "Conjecture Clauses (before duplicate removal)")
+                val _ = app (fn th => Output.debug (fn _ => string_of_thm th)) ccls
                 val ccls = subtract_cls ccls axcls
+                val _ = Output.debug (fn () => "Conjecture Clauses (AFTER duplicate removal)")
+                val _ = app (fn th => Output.debug (fn _ => string_of_thm th)) ccls
                 val ccltms = map prop_of ccls
                 and axtms = map (prop_of o #1) axcls
                 val subs = tfree_classes_of_terms ccltms
