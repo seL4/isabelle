@@ -789,34 +789,34 @@ fun record_type_tr' sep mark record record_scheme ctxt t =
 
     fun field_lst T =
       (case T of
-        Type (ext,args)
+        Type (ext, args)
          => (case try (unsuffix ext_typeN) ext of
                SOME ext'
                => (case get_extfields thy ext' of
                      SOME flds
                      => (case get_fieldext thy (fst (hd flds)) of
-                           SOME (_,alphas)
+                           SOME (_, alphas)
                            => (let
-                                val (f::fs) = but_last flds;
+                                val (f :: fs) = but_last flds;
                                 val flds' = apfst (Sign.extern_const thy) f
-                                            ::map (apfst NameSpace.base) fs;
-                                val (args',more) = split_last args;
+                                  :: map (apfst NameSpace.base) fs;
+                                val (args', more) = split_last args;
                                 val alphavars = map varifyT (but_last alphas);
-                                val subst= fold (Sign.typ_match thy) (alphavars~~args')
-                                                    Vartab.empty;
-                                val flds'' =map (apsnd (Envir.norm_type subst o varifyT))
-                                                flds';
-                              in flds''@field_lst more end
-                              handle TYPE_MATCH     => [("",T)]
-                                   | Library.UnequalLengths => [("",T)])
-                         | NONE => [("",T)])
-                   | NONE => [("",T)])
-             | NONE => [("",T)])
-        | _ => [("",T)])
+                                val subst = fold2 (curry (Sign.typ_match thy))
+                                  alphavars args' Vartab.empty;
+                                val flds'' = (map o apsnd)
+                                  (Envir.norm_type subst o varifyT) flds';
+                              in flds'' @ field_lst more end
+                              handle TYPE_MATCH => [("", T)]
+                                  | Library.UnequalLengths => [("", T)])
+                         | NONE => [("", T)])
+                   | NONE => [("", T)])
+             | NONE => [("", T)])
+        | _ => [("", T)])
 
-    val (flds,(_,moreT)) = split_last (field_lst T);
-    val flds' = map (fn (n,T)=>Syntax.const mark$Syntax.const n$term_of_type T) flds;
-    val flds'' = foldr1 (fn (x,y) => Syntax.const sep$x$y) flds';
+    val (flds, (_, moreT)) = split_last (field_lst T);
+    val flds' = map (fn (n, T) => Syntax.const mark $ Syntax.const n $ term_of_type T) flds;
+    val flds'' = foldr1 (fn (x, y) => Syntax.const sep $ x $ y) flds' handle Empty => raise Match;
 
   in if not (!print_record_type_as_fields) orelse null flds then raise Match
      else if moreT = HOLogic.unitT
