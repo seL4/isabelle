@@ -260,7 +260,7 @@ fun merge_funcss rewrites thy algebra raw_funcss funcgr =
       | NONE => (case AxClass.class_of_param thy c
          of SOME class => classop_typ const class
           | NONE => Sign.the_const_type thy c)
-    fun typ_func (const as (c, tys)) thm =
+    fun typ_func (const as (c, tys)) thms thm =
       let
         val ty = CodegenFunc.typ_func thm;
       in case AxClass.class_of_param thy c
@@ -270,13 +270,15 @@ fun merge_funcss rewrites thy algebra raw_funcss funcgr =
               else raise raise INVALID ([const], "Illegal instantation for class operation "
                     ^ CodegenConsts.string_of_const thy const
                     ^ ":\n" ^ CodegenConsts.string_of_typ thy ty_decl
-                    ^ "\nto " ^ CodegenConsts.string_of_typ thy ty)
+                    ^ "\nto " ^ CodegenConsts.string_of_typ thy ty
+                    ^ "\nin defining equations\n"
+                    ^ (cat_lines o map string_of_thm) thms)
               end
             | _ => ty)
         | NONE => ty
       end;
     fun add_funcs (const, thms as thm :: _) =
-          Constgraph.new_node (const, (typ_func const thm, thms))
+          Constgraph.new_node (const, (typ_func const thms thm, thms))
       | add_funcs (const, []) =
           Constgraph.new_node (const, (default_typ const, []));
     fun add_deps (funcs as (const, thms)) funcgr =
