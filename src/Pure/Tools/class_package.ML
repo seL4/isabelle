@@ -574,7 +574,7 @@ val parse_arity =
     >> (fn (tyco, (asorts, sort)) => ((tyco, asorts), sort));
 
 val classP =
-  OuterSyntax.command classK "define operational type class" K.thy_decl (
+  OuterSyntax.command classK "define type class" K.thy_decl (
     P.name --| P.$$$ "="
     -- (
       class_subP --| P.$$$ "+" -- class_bodyP
