@@ -823,7 +823,7 @@ lemma neg_number_of_Min:
   "neg ((number_of Numeral.Min) \<Colon> int)"
   by auto
 
-lemmas nat_number_expand = nat_number Let_def if_def2 if_True if_False
+lemmas nat_number_expand = nat_number Let_def if_bool_eq_conj if_True if_False
   neg_number_of_Pls neg_number_of_Min neg_number_of_BIT Nat.plus.simps
 
 ML {*

@@ -507,11 +507,17 @@ the graph browser tool.
 
 *** HOL ***
 
+* Dropped lemma duplicate def_imp_eq in favor of meta_eq_to_obj_eq.
+INCOMPATIBILITY.
+
+* Dropped lemma duplicate if_def2 in favor of if_bool_eq_conj.
+INCOMPATIBILITY.
+
 * Added syntactic class "size"; overloaded constant "size" now has
 type "'a::size ==> bool"
 
 * Renamed constants "Divides.op div", "Divides.op mod" and "Divides.op
-dvd" to "Divides.div", "Divides.mod" and
+dvd" to "Divides.div", "Divides.mod" and "Divides.dvd"
 "Divides.dvd". INCOMPATIBILITY.
 
 * Added method "lexicographic_order" automatically synthesizes

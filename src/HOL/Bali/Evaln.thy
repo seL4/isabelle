@@ -191,7 +191,7 @@ where
           \<Longrightarrow>
 		 G\<turnstile>Norm s0 \<midarrow>Init C\<midarrow>n\<rightarrow> s3"
 monos
-  if_def2
+  if_bool_eq_conj
 
 
 declare split_if     [split del] split_if_asm     [split del]

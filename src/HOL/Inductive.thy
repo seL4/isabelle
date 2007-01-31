@@ -64,7 +64,7 @@ use "Tools/old_inductive_package.ML"
 setup OldInductivePackage.setup
 
 theorems basic_monos [mono] =
-  subset_refl imp_refl disj_mono conj_mono ex_mono all_mono if_def2
+  subset_refl imp_refl disj_mono conj_mono ex_mono all_mono if_bool_eq_conj
   Collect_mono in_mono vimage_mono
   imp_conv_disj not_not de_Morgan_disj de_Morgan_conj
   not_all not_ex
@@ -75,7 +75,7 @@ use "Tools/inductive_package.ML"
 setup InductivePackage.setup
 
 theorems [mono2] =
-  imp_refl disj_mono conj_mono ex_mono all_mono if_def2
+  imp_refl disj_mono conj_mono ex_mono all_mono if_bool_eq_conj
   imp_conv_disj not_not de_Morgan_disj de_Morgan_conj
   not_all not_ex
   Ball_def Bex_def

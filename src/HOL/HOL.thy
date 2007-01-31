@@ -249,12 +249,6 @@ lemma ssubst: "t = s ==> P s ==> P t"
 lemma trans: "[| r=s; s=t |] ==> r=t"
   by (erule subst)
 
-lemma def_imp_eq:
-  assumes meq: "A == B"
-  shows "A = B"
-  by (unfold meq) (rule refl)
-
-(*a mere copy*)
 lemma meta_eq_to_obj_eq: 
   assumes meq: "A == B"
   shows "A = B"
@@ -818,7 +812,7 @@ struct
   val dest_Trueprop = HOLogic.dest_Trueprop
   val dest_imp = HOLogic.dest_imp
   val eq_reflection = @{thm HOL.eq_reflection}
-  val rev_eq_reflection = @{thm HOL.def_imp_eq}
+  val rev_eq_reflection = @{thm HOL.meta_eq_to_obj_eq}
   val imp_intr = @{thm HOL.impI}
   val rev_mp = @{thm HOL.rev_mp}
   val subst = @{thm HOL.subst}
@@ -1381,9 +1375,6 @@ setup InductMethod.setup
 
 subsection {* Other simple lemmas and lemma duplicates *}
 
-lemmas eq_sym_conv = eq_commute
-lemmas if_def2 = if_bool_eq_conj
-
 lemma ex1_eq [iff]: "EX! x. x = t" "EX! x. t = x"
   by blast+
 
@@ -1409,6 +1400,8 @@ lemma mk_left_commute:
           c: "\<And>x y. x \<otimes> y = y \<otimes> x"
   shows "x \<otimes> (y \<otimes> z) = y \<otimes> (x \<otimes> z)"
   by (rule trans [OF trans [OF c a] arg_cong [OF c, of "f y"]])
+
+lemmas eq_sym_conv = eq_commute
 
 
 subsection {* Basic ML bindings *}

@@ -176,7 +176,8 @@ fun strip_lambdas 0 th = th
 
 (*Convert meta- to object-equality. Fails for theorems like split_comp_eq,
   where some types have the empty sort.*)
-fun mk_object_eq th = th RS def_imp_eq
+val meta_eq_to_obj_eq = thm "meta_eq_to_obj_eq";
+fun mk_object_eq th = th RS meta_eq_to_obj_eq
     handle THM _ => error ("Theorem contains empty sort: " ^ string_of_thm th);
 
 (*Apply a function definition to an argument, beta-reducing the result.*)

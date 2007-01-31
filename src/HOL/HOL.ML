@@ -14,7 +14,6 @@ val choice_eq = thm "choice_eq"
 val cong = thm "cong"
 val conj_comms = thms "conj_comms";
 val conj_cong = thm "conj_cong";
-val def_imp_eq = thm "def_imp_eq";
 val de_Morgan_conj = thm "de_Morgan_conj";
 val de_Morgan_disj = thm "de_Morgan_disj";
 val disj_assoc = thm "disj_assoc";
