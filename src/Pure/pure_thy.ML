@@ -31,6 +31,7 @@ sig
   val untag_rule: string -> thm -> thm
   val tag: tag -> attribute
   val untag: string -> attribute
+  val unknown_name_hint: string
   val has_name_hint: thm -> bool
   val get_name_hint: thm -> string
   val put_name_hint: string -> thm -> thm
@@ -117,12 +118,14 @@ fun simple_tag name x = tag (name, []) x;
 
 (* unofficial theorem names *)
 
+val unknown_name_hint = "??.unknown";
+
 fun has_name_hint thm = AList.defined (op =) (Thm.get_tags thm) "name";
 
 fun get_name_hint thm =
   (case AList.lookup (op =) (Thm.get_tags thm) "name" of
     SOME (k :: _) => k
-  | _ => "??.unknown");
+  | _ => unknown_name_hint);
 
 fun put_name_hint name = untag_rule "name" #> tag_rule ("name", [name]);
 
