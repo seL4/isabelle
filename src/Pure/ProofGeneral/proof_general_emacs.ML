@@ -212,14 +212,13 @@ val spaces_quote = space_implode " " o map quote;
 fun thm_deps_message (thms, deps) =
   emacs_notify ("Proof General, theorem dependencies of " ^ thms ^ " are " ^ deps);
 
-(* FIXME: check this uses non-transitive closure function here *)
 fun tell_thm_deps ths =
   if Output.has_mode thm_depsN then
     let
-      val names = filter_out (equal "") (map PureThy.get_name_hint ths); (* da: HAS THIS NOW BECOME "??.unknown"? *)
-      val deps = filter_out (equal "")
-        (Symtab.keys (fold Proofterm.thms_of_proof
-          (map Thm.proof_of ths) Symtab.empty));
+      val names = filter_out (equal PureThy.unknown_name_hint) 
+			     (map PureThy.get_name_hint ths); 
+      val deps = Symtab.keys (fold Proofterm.thms_of_proof'
+				   (map Thm.proof_of ths) Symtab.empty);
     in
       if null names orelse null deps then ()
       else thm_deps_message (spaces_quote names, spaces_quote deps)

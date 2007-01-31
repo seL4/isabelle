@@ -355,19 +355,17 @@ fun thm_deps_message (thms, deps) =
                                       content=[valuethms,valuedeps]})
     end
 
-(* FIXME: check this uses non-transitive closure function here *)
 fun tell_thm_deps ths =
-  if Output.has_mode thm_depsN then
-    let
-      val names = filter_out (equal "") (map PureThy.get_name_hint ths); (* da: HAS THIS NOW BECOME "??.unknown"? *)
-      val deps = filter_out (equal "")
-        (Symtab.keys (fold Proofterm.thms_of_proof
-          (map Thm.proof_of ths) Symtab.empty));
-    in
-      if null names orelse null deps then ()
-      else thm_deps_message (spaces_quote names, spaces_quote deps)
-    end
-  else ();
+  if Output.has_mode thm_depsN then 
+      let 
+	  val names = filter_out (equal PureThy.unknown_name_hint) (map PureThy.get_name_hint ths) 
+	  val deps = (Symtab.keys (fold Proofterm.thms_of_proof'
+					(map Thm.proof_of ths) Symtab.empty))
+      in 
+	  if null names orelse null deps then ()
+	  else thm_deps_message (spaces_quote names, spaces_quote deps)
+      end
+  else ()
 
 in
 
@@ -577,28 +575,49 @@ fun askids (Askids vs) =
 
         fun idtable ty ctx ids = {objtype=ty,context=ctx,ids=ids}
 
-	fun setids t  = issue_pgip (Setids {idtables = [t]})
+	fun setids t = issue_pgip (Setids {idtables = [t]})
 
-        val thms_of_thy = map fst o PureThy.thms_of o ThyInfo.get_theory
-    in
-(*      case (url_attr,thyname,objtype) of
-            (NONE,NONE,NONE) =>
-*)          (* top-level: return *)
-
-        (* TODO: add askids for "file" here, which returns single theory with same name *)
-        (* FIXME: objtypes on both sides *)
+        (* fake one-level nested "subtheories" by picking apart names. *)
+        val thms_of_thy = 
+	    map fst o NameSpace.extern_table o PureThy.theorems_of o ThyInfo.get_theory;
+        val isnested_id =  String.isSubstring NameSpace.separator
+        val immed_thms_of_thy = filter_out isnested_id o thms_of_thy
+        fun thy_prefix s = case space_explode NameSpace.separator s of
+				    x::_::_ => SOME x  (* String.find? *)
+				  | _ => NONE
+	fun subthys_of_thy s = 
+	    foldl  (fn (NONE,xs) => xs | (SOME x,xs) => insert op= x xs) [] 
+		   (map thy_prefix (thms_of_thy s))
+	fun subthms_of_thy thy = 
+	    (case thy_prefix thy of 
+		 NONE => immed_thms_of_thy thy
+	       | SOME prf => filter (String.isPrefix (unprefix (prf ^ NameSpace.separator) thy))
+				    (thms_of_thy prf))
+       val qualified_thms_of_thy = (* for global query with single response *)
+	    filter_out (equal PureThy.unknown_name_hint) o 
+	    (map fst) o PureThy.thms_of o ThyInfo.get_theory;
+    in 
         case (thyname,objtype) of
-           (* only files known in top context *)
-           (NONE, NONE)               => setids (idtable ObjFile NONE (ThyInfo.names())) (*FIXME: uris?*)
-         | (NONE, SOME ObjFile)        => setids (idtable ObjFile NONE (ThyInfo.names())) (* ditto *)
-         | (SOME fi, SOME ObjFile)     => setids (idtable ObjTheory (SOME fi) [fi]) (* FIXME: lookup file *)
-         | (NONE, SOME ObjTheory)      => setids (idtable ObjTheory NONE (ThyInfo.names()))
-         | (SOME thy, SOME ObjTheory)  => setids (idtable ObjTheory (SOME thy) (ThyInfo.get_succs thy))
-         | (SOME thy, SOME ObjTheorem) => setids (idtable ObjTheorem (SOME thy) (thms_of_thy thy))
-         (* next case is both of above.  FIXME: cleanup this *)
-         | (SOME thy, NONE) => (setids (idtable ObjTheory (SOME thy) (ThyInfo.get_preds thy));
-                                setids (idtable ObjTheorem (SOME thy) (thms_of_thy thy)))
-         | (_, SOME ot) => error ("No objects of type "^(PgipTypes.name_of_objtype ot)^" are available here.")
+           (NONE, NONE) => 
+	   setids (idtable ObjFile NONE (ThyInfo.names())) (*FIXME: uris*)
+         | (NONE, SOME ObjFile) => 
+	   setids (idtable ObjFile NONE (ThyInfo.names())) (*FIXME: uris*)
+         | (SOME fi, SOME ObjFile) => 
+	   setids (idtable ObjTheory (SOME fi) [fi])       (* TODO: check exists *)
+         | (NONE, SOME ObjTheory) =>
+	   setids (idtable ObjTheory NONE (ThyInfo.names()))
+         | (SOME thy, SOME ObjTheory) =>
+	   setids (idtable ObjTheory (SOME thy) (subthys_of_thy thy))
+         | (SOME thy, SOME ObjTheorem) => 
+	   setids (idtable ObjTheorem (SOME thy) (subthms_of_thy thy))
+         | (NONE, SOME ObjTheorem) => 
+	   (* A large query, but not unreasonable. ~5000 results for HOL.*)
+	   (* Several setids should be allowed, but Eclipse code is currently broken:
+              Library.seq (fn thy => setids (idtable ObjTheorem (SOME thy) (subthms_of_thy thy)))
+		         (ThyInfo.names()) *)
+           setids (idtable ObjTheorem NONE (* this one gives ~7000 for HOL *)
+			   (flat (map qualified_thms_of_thy (ThyInfo.names()))))
+         | _ => warning ("askids: ignored argument combination")
     end
 
 fun askrefs (Askrefs vs) =
