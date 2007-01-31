@@ -24,8 +24,6 @@ sig
   val priority: string -> unit
   val tracing: string -> unit
   val warning: string -> unit
-  val change_warn: ('b -> 'a -> bool) -> ('a -> 'b -> 'b) -> ('a -> string) -> 'a -> 'b -> 'b
-  val update_warn: ('a * 'a -> bool) -> string -> ('a * 'b) -> ('a * 'b) list -> ('a * 'b) list
   val overwrite_warn: (''a * 'b) list * (''a * 'b) -> string -> (''a * 'b) list
   val debugging: bool ref
   val no_warnings: ('a -> 'b) -> 'a -> 'b
@@ -155,12 +153,6 @@ fun ML_errors f = setmp do_toplevel_errors true (toplevel_errors f);
 
 (* overwriting change with warning *)
 
-fun change_warn ex upd msg x xs =
-  (if ex xs x then warning (msg x) else (); upd x xs);
-
-
-(* AList operations *)
-
 fun overwrite (al, p as (key, _)) =
   let fun over ((q as (keyi, _)) :: pairs) =
             if keyi = key then p :: pairs else q :: (over pairs)
@@ -170,10 +162,6 @@ fun overwrite (al, p as (key, _)) =
 fun overwrite_warn (args as (alist, (a, _))) msg =
  (if is_none (AList.lookup (op =) alist a) then () else warning msg;
   overwrite args);
-
-fun update_warn eq msg (kv as (key, value)) xs =
- (if (not o AList.defined eq xs) key then () else warning msg;
-  AList.update eq kv xs);
 
 
 (* add_mode *)
