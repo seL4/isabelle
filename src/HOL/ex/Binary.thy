@@ -195,7 +195,7 @@ let
 
 val syntax_consts = map_aterms (fn Const (c, T) => Const (Syntax.constN ^ c, T) | a => a);
 
-fun binary_tr [t as Const (num, _)] =
+fun binary_tr [Const (num, _)] =
       let
         val {leading_zeros = z, value = n, ...} = Syntax.read_xnum num;
         val _ = z = 0 andalso n >= 0 orelse error ("Bad binary number: " ^ num);
