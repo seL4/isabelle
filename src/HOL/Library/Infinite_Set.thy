@@ -215,6 +215,15 @@ proof
   then show False by simp
 qed
 
+lemma int_infinite [simp]:
+  shows "infinite (UNIV::int set)"
+proof -
+  from inj_int have "infinite (range int)" by (rule range_inj_infinite)
+  moreover 
+  have "range int \<subseteq> (UNIV::int set)" by simp
+  ultimately show "infinite (UNIV::int set)" by (simp add: infinite_super)
+qed
+
 text {*
   The ``only if'' direction is harder because it requires the
   construction of a sequence of pairwise different elements of an
