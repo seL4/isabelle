@@ -28,7 +28,6 @@ sig
   val parse_elem: string list -> tree * string list
   val parse_document: string list -> (string option * tree) * string list
   val tree_of_string: string -> tree
-  (* scanner for stream parser in proof_general.ML *)
   val scan_comment_whspc : string list -> unit * string list
 end;
 
@@ -84,8 +83,8 @@ type attributes = (string * string) list
 
 datatype tree =
     Elem of string * attributes * tree list
-  | Text of string      
-  | Rawtext of string;  
+  | Text of string
+  | Rawtext of string;
 
 type content = tree list
 
@@ -140,8 +139,8 @@ val parse_comment = Scan.this_string "<!--" --
   Scan.repeat (Scan.unless (Scan.this_string "-->") (Scan.one Symbol.not_eof)) --
   Scan.this_string "-->";
 
-val scan_comment_whspc = 
-    (scan_whspc >> K()) --| (Scan.repeat (parse_comment |-- (scan_whspc >> K())));
+val scan_comment_whspc =
+  (scan_whspc >> K()) --| (Scan.repeat (parse_comment |-- (scan_whspc >> K())));
 
 val parse_pi = Scan.this_string "<?" |--
   Scan.repeat (Scan.unless (Scan.this_string "?>") (Scan.one Symbol.not_eof)) --|
