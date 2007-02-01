@@ -16,7 +16,7 @@ sig
 
   (* Yet more message functions... *)
   val nonfatal_error : string -> unit     (* recoverable error *)
-  val log_msg : string -> unit	          (* for internal log messages *)
+  val log_msg : string -> unit            (* for internal log messages *)
   val error_with_pos : PgipTypes.fatality -> Position.T -> string -> unit
 
   val get_currently_open_file : unit -> Path.T option  (* interface focus *)
@@ -218,7 +218,7 @@ end;
    hand the output functions were tuned some time ago, so it ought to be
    enough to use Rawtext always above. *)
 (* NB 2: all of standard functions print strings terminated with new lines, but we don't
-   add new lines explicitly in PGIP: they are left implicit.  It means that PGIP messages 
+   add new lines explicitly in PGIP: they are left implicit.  It means that PGIP messages
    can't be written without newlines. *)
 
 fun setup_messages () =
@@ -240,15 +240,15 @@ fun log_msg s = errormsg Log s;
 fun tell_clear_goals ()      = issue_pgip (Cleardisplay {area=Display})
 fun tell_clear_response ()   = issue_pgip (Cleardisplay {area=Message})
 
-fun tell_file_loaded completed path   = 
+fun tell_file_loaded completed path   =
     issue_pgip (Informfileloaded {url=PgipTypes.pgipurl_of_path path,
-				  completed=completed})
-fun tell_file_outdated completed path   = 
+                                  completed=completed})
+fun tell_file_outdated completed path   =
     issue_pgip (Informfileoutdated {url=PgipTypes.pgipurl_of_path path,
-				    completed=completed})
-fun tell_file_retracted completed path = 
+                                    completed=completed})
+fun tell_file_retracted completed path =
     issue_pgip (Informfileretracted {url=PgipTypes.pgipurl_of_path path,
-				     completed=completed})
+                                     completed=completed})
 
 
 
@@ -257,7 +257,7 @@ fun tell_file_retracted completed path =
 local
 
 fun statedisplay prts =
-    let 
+    let
         val display = Pretty.output (Pretty.chunks prts)
         (* TODO: add extra PGML markup for allow proof state navigation *)
         val statedisplay = XML.Elem("statedisplay",[], [XML.Rawtext display])
@@ -266,13 +266,13 @@ fun statedisplay prts =
     end
 
 fun print_current_goals n m st =
-  case (Display.pretty_current_goals n m st) of 
+  case (Display.pretty_current_goals n m st) of
    [] => tell_clear_goals()
  | prts => statedisplay prts
 
 fun print_state b st =
-  case (Toplevel.pretty_state b st) of 
-   [] => tell_clear_goals() 
+  case (Toplevel.pretty_state b st) of
+   [] => tell_clear_goals()
   | prts => statedisplay prts
 
 in
@@ -287,21 +287,21 @@ end;
 (* theory loader actions *)
 
 local
-  (* da: TODO: PGIP has a completed flag so the prover can indicate to the 
-     interface which files are busy performing a particular action. 
+  (* da: TODO: PGIP has a completed flag so the prover can indicate to the
+     interface which files are busy performing a particular action.
      To make use of this we need to adjust the hook in thy_info.ML
-     (may actually be difficult to tell the interface *which* action is in 
+     (may actually be difficult to tell the interface *which* action is in
       progress, but we could add a generic "Lock" action which uses
       informfileloaded: the broker/UI should not infer too much from incomplete
       operations).
-   *)     
+   *)
 fun trace_action action name =
   if action = ThyInfo.Update then
-    List.app (tell_file_loaded true) (ThyInfo.loaded_files name) 
+    List.app (tell_file_loaded true) (ThyInfo.loaded_files name)
   else if action = ThyInfo.Outdate then
     List.app (tell_file_outdated true) (ThyInfo.loaded_files name)
   else if action = ThyInfo.Remove then
-      List.app (tell_file_retracted true) (ThyInfo.loaded_files name) 
+      List.app (tell_file_retracted true) (ThyInfo.loaded_files name)
   else ()
 
 
@@ -356,14 +356,14 @@ fun thm_deps_message (thms, deps) =
     end
 
 fun tell_thm_deps ths =
-  if Output.has_mode thm_depsN then 
-      let 
-	  val names = filter_out (equal PureThy.unknown_name_hint) (map PureThy.get_name_hint ths) 
-	  val deps = (Symtab.keys (fold Proofterm.thms_of_proof'
-					(map Thm.proof_of ths) Symtab.empty))
-      in 
-	  if null names orelse null deps then ()
-	  else thm_deps_message (spaces_quote names, spaces_quote deps)
+  if Output.has_mode thm_depsN then
+      let
+        val names = map PureThy.get_name_hint (filter PureThy.has_name_hint ths);
+        val deps = (Symtab.keys (fold Proofterm.thms_of_proof'
+                                        (map Thm.proof_of ths) Symtab.empty))
+      in
+          if null names orelse null deps then ()
+          else thm_deps_message (spaces_quote names, spaces_quote deps)
       end
   else ()
 
@@ -439,8 +439,8 @@ fun setup_preferences_tweak() =
     preferences :=
      (* PGIP uses markup for distinguishing variable types *)
      (!preferences |> Preferences.set_default ("show-question-marks","false")
-	           |> Preferences.remove "show-question-marks");
-		 
+                   |> Preferences.remove "show-question-marks");
+
 
 
 (* Sending commands to Isar *)
@@ -561,7 +561,7 @@ fun abortgoal vs = isarcmd "kill" (* was: ProofGeneral.kill_proof *)
 
 (*** PGIP identifier tables ***)
 
-(* TODO: these ones should be triggered by hooks after a 
+(* TODO: these ones should be triggered by hooks after a
    declaration addition/removal, to be sent automatically. *)
 
 fun addids t  = issue_pgip (Addids {idtables = [t]})
@@ -575,48 +575,48 @@ fun askids (Askids vs) =
 
         fun idtable ty ctx ids = {objtype=ty,context=ctx,ids=ids}
 
-	fun setids t = issue_pgip (Setids {idtables = [t]})
+        fun setids t = issue_pgip (Setids {idtables = [t]})
 
         (* fake one-level nested "subtheories" by picking apart names. *)
-        val thms_of_thy = 
-	    map fst o NameSpace.extern_table o PureThy.theorems_of o ThyInfo.get_theory;
+        val thms_of_thy =
+            map fst o NameSpace.extern_table o PureThy.theorems_of o ThyInfo.get_theory;
         val isnested_id =  String.isSubstring NameSpace.separator
         val immed_thms_of_thy = filter_out isnested_id o thms_of_thy
         fun thy_prefix s = case space_explode NameSpace.separator s of
-				    x::_::_ => SOME x  (* String.find? *)
-				  | _ => NONE
-	fun subthys_of_thy s = 
-	    foldl  (fn (NONE,xs) => xs | (SOME x,xs) => insert op= x xs) [] 
-		   (map thy_prefix (thms_of_thy s))
-	fun subthms_of_thy thy = 
-	    (case thy_prefix thy of 
-		 NONE => immed_thms_of_thy thy
-	       | SOME prf => filter (String.isPrefix (unprefix (prf ^ NameSpace.separator) thy))
-				    (thms_of_thy prf))
+                                    x::_::_ => SOME x  (* String.find? *)
+                                  | _ => NONE
+        fun subthys_of_thy s =
+            foldl  (fn (NONE,xs) => xs | (SOME x,xs) => insert op= x xs) []
+                   (map thy_prefix (thms_of_thy s))
+        fun subthms_of_thy thy =
+            (case thy_prefix thy of
+                 NONE => immed_thms_of_thy thy
+               | SOME prf => filter (String.isPrefix (unprefix (prf ^ NameSpace.separator) thy))
+                                    (thms_of_thy prf))
        val qualified_thms_of_thy = (* for global query with single response *)
-	    filter_out (equal PureThy.unknown_name_hint) o 
-	    (map fst) o PureThy.thms_of o ThyInfo.get_theory;
-    in 
+            map PureThy.get_name_hint o filter PureThy.has_name_hint o
+            map snd o PureThy.thms_of o ThyInfo.get_theory;
+    in
         case (thyname,objtype) of
-           (NONE, NONE) => 
-	   setids (idtable ObjFile NONE (ThyInfo.names())) (*FIXME: uris*)
-         | (NONE, SOME ObjFile) => 
-	   setids (idtable ObjFile NONE (ThyInfo.names())) (*FIXME: uris*)
-         | (SOME fi, SOME ObjFile) => 
-	   setids (idtable ObjTheory (SOME fi) [fi])       (* TODO: check exists *)
+           (NONE, NONE) =>
+           setids (idtable ObjFile NONE (ThyInfo.names())) (*FIXME: uris*)
+         | (NONE, SOME ObjFile) =>
+           setids (idtable ObjFile NONE (ThyInfo.names())) (*FIXME: uris*)
+         | (SOME fi, SOME ObjFile) =>
+           setids (idtable ObjTheory (SOME fi) [fi])       (* TODO: check exists *)
          | (NONE, SOME ObjTheory) =>
-	   setids (idtable ObjTheory NONE (ThyInfo.names()))
+           setids (idtable ObjTheory NONE (ThyInfo.names()))
          | (SOME thy, SOME ObjTheory) =>
-	   setids (idtable ObjTheory (SOME thy) (subthys_of_thy thy))
-         | (SOME thy, SOME ObjTheorem) => 
-	   setids (idtable ObjTheorem (SOME thy) (subthms_of_thy thy))
-         | (NONE, SOME ObjTheorem) => 
-	   (* A large query, but not unreasonable. ~5000 results for HOL.*)
-	   (* Several setids should be allowed, but Eclipse code is currently broken:
+           setids (idtable ObjTheory (SOME thy) (subthys_of_thy thy))
+         | (SOME thy, SOME ObjTheorem) =>
+           setids (idtable ObjTheorem (SOME thy) (subthms_of_thy thy))
+         | (NONE, SOME ObjTheorem) =>
+           (* A large query, but not unreasonable. ~5000 results for HOL.*)
+           (* Several setids should be allowed, but Eclipse code is currently broken:
               Library.seq (fn thy => setids (idtable ObjTheorem (SOME thy) (subthms_of_thy thy)))
-		         (ThyInfo.names()) *)
+                         (ThyInfo.names()) *)
            setids (idtable ObjTheorem NONE (* this one gives ~7000 for HOL *)
-			   (flat (map qualified_thms_of_thy (ThyInfo.names()))))
+                           (maps qualified_thms_of_thy (ThyInfo.names())))
          | _ => warning ("askids: ignored argument combination")
     end
 
@@ -631,47 +631,47 @@ fun askrefs (Askrefs vs) =
 
         val thms_of_thy = map fst o PureThy.thms_of o ThyInfo.get_theory
 
-	val thy_name = Path.implode o #1 o Path.split_ext o Path.base
+        val thy_name = Path.implode o #1 o Path.split_ext o Path.base
 
-	fun filerefs f = 
-	    let val thy = thy_name f
-		val (_,filerefs) = OuterSyntax.deps_thy thy true f (* (Path.unpack f); *)
-	    in 
-		issue_pgip (Setrefs {url=url, thyname=NONE, objtype=SOME PgipTypes.ObjFile,
-				     name=NONE, idtables=[], fileurls=filerefs})
-	    end
+        fun filerefs f =
+            let val thy = thy_name f
+                val (_,filerefs) = OuterSyntax.deps_thy thy true f (* (Path.unpack f); *)
+            in
+                issue_pgip (Setrefs {url=url, thyname=NONE, objtype=SOME PgipTypes.ObjFile,
+                                     name=NONE, idtables=[], fileurls=filerefs})
+            end
 
-	fun thyrefs thy = 
-	    let val ml_path = ThyLoad.ml_path thy
-		val (thyrefs,_) = OuterSyntax.deps_thy thy true ml_path (* (Path.unpack f); *)
-	    in 
-		issue_pgip (Setrefs {url=url, thyname=thyname, objtype=SOME PgipTypes.ObjTheory,
-				     name=NONE, idtables=[{context=NONE, objtype=PgipTypes.ObjTheory,
-							   ids=thyrefs}], fileurls=[]})
-	    end
+        fun thyrefs thy =
+            let val ml_path = ThyLoad.ml_path thy
+                val (thyrefs,_) = OuterSyntax.deps_thy thy true ml_path (* (Path.unpack f); *)
+            in
+                issue_pgip (Setrefs {url=url, thyname=thyname, objtype=SOME PgipTypes.ObjTheory,
+                                     name=NONE, idtables=[{context=NONE, objtype=PgipTypes.ObjTheory,
+                                                           ids=thyrefs}], fileurls=[]})
+            end
 
-	fun thmrefs thmname = 
-	    let
-		(* TODO: interim: this is probably not right.  
-		   What we want is mapping onto simple PGIP name/context model. *)
-		val ctx = Toplevel.context_of (Toplevel.get_state()) (* NB: raises UNDEF *)
-		val thy = Context.theory_of_proof ctx
-		val ths = [PureThy.get_thm thy (PureThy.Name thmname)]
-		val deps = filter_out (equal "")
-				      (Symtab.keys (fold Proofterm.thms_of_proof
-							 (map Thm.proof_of ths) Symtab.empty))
-	    in
-		if null deps then ()
-		else issue_pgip (Setrefs {url=url, thyname=thyname, name=name,
-					  objtype=SOME PgipTypes.ObjTheorem,
-					  idtables=[{context=NONE, objtype=PgipTypes.ObjTheorem,
-						     ids=deps}], fileurls=[]})
-	    end 
+        fun thmrefs thmname =
+            let
+                (* TODO: interim: this is probably not right.
+                   What we want is mapping onto simple PGIP name/context model. *)
+                val ctx = Toplevel.context_of (Toplevel.get_state()) (* NB: raises UNDEF *)
+                val thy = Context.theory_of_proof ctx
+                val ths = [PureThy.get_thm thy (PureThy.Name thmname)]
+                val deps = filter_out (equal "")
+                                      (Symtab.keys (fold Proofterm.thms_of_proof
+                                                         (map Thm.proof_of ths) Symtab.empty))
+            in
+                if null deps then ()
+                else issue_pgip (Setrefs {url=url, thyname=thyname, name=name,
+                                          objtype=SOME PgipTypes.ObjTheorem,
+                                          idtables=[{context=NONE, objtype=PgipTypes.ObjTheorem,
+                                                     ids=deps}], fileurls=[]})
+            end
     in
         case (url,thyname,objtype,name) of
-	    (SOME file, NONE, _, _)  => filerefs file           
-	  | (_,SOME thy,_,_)         => thyrefs thy
-	  | (_,_,SOME PgipTypes.ObjTheorem,SOME thmname) => thmrefs thmname
+            (SOME file, NONE, _, _)  => filerefs file
+          | (_,SOME thy,_,_)         => thyrefs thy
+          | (_,_,SOME PgipTypes.ObjTheorem,SOME thmname) => thmrefs thmname
           | _  => error ("Unimplemented/invalid case of <askrefs>")
     end
 
@@ -860,17 +860,17 @@ fun openfile (Openfile vs) =
   in
       case !currently_open_file of
           SOME f => raise PGIP ("<openfile> when a file is already open!\nCurrently open file: " ^
-				PgipTypes.string_of_pgipurl url)
+                                PgipTypes.string_of_pgipurl url)
         | NONE => (openfile_retract filepath;
                    changecwd_dir filedir;
-		   priority ("Working in file: " ^ PgipTypes.string_of_pgipurl url);
+                   priority ("Working in file: " ^ PgipTypes.string_of_pgipurl url);
                    currently_open_file := SOME url)
   end
 
 fun closefile vs =
     case !currently_open_file of
         SOME f => (proper_inform_file_processed f (Isar.state());
-		   priority ("Finished working in file: " ^ PgipTypes.string_of_pgipurl f);
+                   priority ("Finished working in file: " ^ PgipTypes.string_of_pgipurl f);
                    currently_open_file := NONE)
       | NONE => raise PGIP ("<closefile> when no file is open!")
 
@@ -883,16 +883,16 @@ fun loadfile (Loadfile vs) =
            e.g. file loaded depends on open file which is not yet saved. *)
         (* case !currently_open_file of
             SOME f => raise PGIP ("<loadfile> when a file is open!\nCurrently open file: " ^
-				  PgipTypes.string_of_pgipurl url)
+                                  PgipTypes.string_of_pgipurl url)
           | NONE => *)
-	use_thy_or_ml_file (File.platform_path url)
+        use_thy_or_ml_file (File.platform_path url)
     end
 
 fun abortfile vs =
     case !currently_open_file of
         SOME f => (isarcmd "init_toplevel";
-		   priority ("Aborted working in file: " ^ 
-			     PgipTypes.string_of_pgipurl f);
+                   priority ("Aborted working in file: " ^
+                             PgipTypes.string_of_pgipurl f);
                    currently_open_file := NONE)
       | NONE => raise PGIP ("<abortfile> when no file is open!")
 
@@ -903,11 +903,11 @@ fun retractfile (Retractfile vs) =
         case !currently_open_file of
             SOME f => raise PGIP ("<retractfile> when a file is open!")
           | NONE => (priority ("Retracting file: " ^ PgipTypes.string_of_pgipurl url);
-		     (* TODO: next should be in thy loader, here just for testing *)
-		     let 
-			 val name = thy_name url
-		     in List.app (tell_file_retracted false) (ThyInfo.loaded_files name) end;
-		     inform_file_retracted url)
+                     (* TODO: next should be in thy loader, here just for testing *)
+                     let
+                         val name = thy_name url
+                     in List.app (tell_file_retracted false) (ThyInfo.loaded_files name) end;
+                     inform_file_retracted url)
     end
 
 
@@ -1092,7 +1092,7 @@ fun init_pgip false =
       (! initialized orelse
         (setmp warning_fn (K ()) init_outer_syntax ();
           PgipParser.init ();
-	  setup_preferences_tweak ();
+          setup_preferences_tweak ();
           setup_xsymbols_output ();
           setup_pgml_output ();
           setup_messages ();
@@ -1129,4 +1129,3 @@ fun process_pgip str =
 end
 
 end;
-
