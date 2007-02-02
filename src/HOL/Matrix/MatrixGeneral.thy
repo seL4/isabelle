@@ -986,7 +986,6 @@ lemma mult_matrix_singleton_right[simp]:
   shows "(mult_matrix fmul fadd A (singleton_matrix j i e)) = apply_matrix (% x. fmul x e) (move_matrix (column_of_matrix A j) 0 (int i))"
   apply (simp add: mult_matrix_def)
   apply (subst mult_matrix_nm[of _ _ _ "max (ncols A) (Suc j)"])
-  apply (simp add: max_def)+
   apply (auto)
   apply (simp add: prems)+
   apply (simp add: mult_matrix_n_def apply_matrix_def apply_infmatrix_def)

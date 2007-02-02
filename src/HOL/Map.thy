@@ -86,48 +86,11 @@ primrec
 defs
   map_upds_def: "m(xs [|->] ys) == m ++ map_of (rev(zip xs ys))"
 
-(* special purpose constants that should be defined somewhere else and
-whose syntax is a bit odd as well:
-
- "@chg_map" :: "('a ~=> 'b) => 'a => ('b => 'b) => ('a ~=> 'b)"
-                                          ("_/'(_/\<mapsto>\<lambda>_. _')"  [900,0,0,0] 900)
-  "m(x\<mapsto>\<lambda>y. f)" == "chg_map (\<lambda>y. f) x m"
-
-map_upd_s::"('a ~=> 'b) => 'a set => 'b =>
-            ('a ~=> 'b)"                         ("_/'(_{|->}_/')" [900,0,0]900)
-map_subst::"('a ~=> 'b) => 'b => 'b =>
-            ('a ~=> 'b)"                         ("_/'(_~>_/')"    [900,0,0]900)
-
-map_upd_s_def: "m(as{|->}b) == %x. if x : as then Some b else m x"
-map_subst_def: "m(a~>b)     == %x. if m x = Some a then Some b else m x"
-
-  map_upd_s  :: "('a ~=> 'b) => 'a set => 'b => ('a ~=> 'b)"
-                                                 ("_/'(_/{\<mapsto>}/_')" [900,0,0]900)
-  map_subst :: "('a ~=> 'b) => 'b => 'b =>
-                ('a ~=> 'b)"                     ("_/'(_\<leadsto>_/')"    [900,0,0]900)
-
-
-subsection {* @{term [source] map_upd_s} *}
-
-lemma map_upd_s_apply [simp]:
-  "(m(as{|->}b)) x = (if x : as then Some b else m x)"
-by (simp add: map_upd_s_def)
-
-lemma map_subst_apply [simp]:
-  "(m(a~>b)) x = (if m x = Some a then Some b else m x)"
-by (simp add: map_subst_def)
-
-*)
-
 
 subsection {* @{term [source] empty} *}
 
 lemma empty_upd_none [simp]: "empty(x := None) = empty"
   by (rule ext) simp
-
-(* FIXME: what is this sum_case nonsense?? *)
-lemma sum_case_empty_empty[simp]: "sum_case empty empty = empty"
-  by (rule ext) (simp split: sum.split)
 
 
 subsection {* @{term [source] map_upd} *}
@@ -164,22 +127,6 @@ lemma finite_range_updI: "finite (range f) ==> finite (range (f(a|->b)))"
    prefer 2 apply assumption
   apply auto
   done
-
-
-(* FIXME: what is this sum_case nonsense?? *)
-subsection {* @{term [source] sum_case} and @{term [source] empty}/@{term [source] map_upd} *}
-
-lemma sum_case_map_upd_empty [simp]:
-    "sum_case (m(k|->y)) empty = (sum_case m empty)(Inl k|->y)"
-  by (rule ext) (simp split: sum.split)
-
-lemma sum_case_empty_map_upd [simp]:
-    "sum_case empty (m(k|->y)) = (sum_case empty m)(Inr k|->y)"
-  by (rule ext) (simp split: sum.split)
-
-lemma sum_case_map_upd_map_upd [simp]:
-    "sum_case (m1(k1|->y1)) (m2(k2|->y2)) = (sum_case (m1(k1|->y1)) m2)(Inr k2|->y2)"
-  by (rule ext) (simp split: sum.split)
 
 
 subsection {* @{term [source] map_of} *}
@@ -506,6 +453,11 @@ lemma dom_override_on [simp]:
 lemma map_add_comm: "dom m1 \<inter> dom m2 = {} \<Longrightarrow> m1++m2 = m2++m1"
   by (rule ext) (force simp: map_add_def dom_def split: option.split)
 
+(* Due to John Matthews - could be rephrased with dom *)
+lemma finite_map_freshness:
+  "finite (dom (f :: 'a \<rightharpoonup> 'b)) \<Longrightarrow> \<not> finite (UNIV :: 'a set) \<Longrightarrow>
+   \<exists>x. f x = None"
+by(bestsimp dest:ex_new_if_finite)
 
 subsection {* @{term [source] ran} *}
 

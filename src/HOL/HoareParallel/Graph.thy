@@ -222,7 +222,7 @@ apply(case_tac "\<exists>i<length path - 1. (fst(E!R),T)=(path!(Suc i),path!i)")
    apply clarify
    apply(rule_tac x = "j" in exI)
    apply(case_tac "Suc i<m")
-    apply(simp add: nth_append min_def)
+    apply(simp add: nth_append)
     apply(case_tac "R=j")
      apply(simp add: nth_list_update)
      apply(case_tac "i=m")
@@ -230,7 +230,7 @@ apply(case_tac "\<exists>i<length path - 1. (fst(E!R),T)=(path!(Suc i),path!i)")
      apply(erule_tac x = "i" in allE)
      apply force
     apply(force simp add: nth_list_update)
-   apply(simp add: nth_append min_def)
+   apply(simp add: nth_append)
    apply(subgoal_tac "i=m - 1")
     prefer 2 apply arith
    apply(case_tac "R=j")

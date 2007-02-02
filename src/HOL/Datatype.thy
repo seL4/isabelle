@@ -558,6 +558,9 @@ rep_datatype sum
   inject Inl_eq Inr_eq
   induction sum_induct
 
+lemma sum_case_KK[simp]: "sum_case (%x. a) (%x. a) = (%x. a)"
+  by (rule ext) (simp split: sum.split)
+
 lemma surjective_sum: "sum_case (%x::'a. f (Inl x)) (%y::'b. f (Inr y)) s = f(s)"
   apply (rule_tac s = s in sumE)
    apply (erule ssubst)
