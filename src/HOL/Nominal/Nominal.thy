@@ -4,6 +4,7 @@ theory Nominal
 imports Main Infinite_Set
 uses
   ("nominal_atoms.ML")
+  ("nominal_tags.ML")
   ("nominal_package.ML")
   ("nominal_induct.ML") 
   ("nominal_permeq.ML")
@@ -3006,22 +3007,19 @@ qed
 (* setup for the individial atom-kinds *)
 (* and nominal datatypes               *)
 use "nominal_atoms.ML"
+setup "NominalAtoms.setup"
+
+(******************************************)
+(* Setup of the tags: eqvt, fresh and bij *)
+
+use "nominal_tags.ML"
+setup "EqvtRules.setup"
+setup "FreshRules.setup"
+setup "BijRules.setup"
+
+(*******************************)
 (* permutation equality tactic *)
 use "nominal_permeq.ML";
-use "nominal_package.ML"
-setup "NominalAtoms.setup"
-setup "NominalPackage.setup"
-
-(** primitive recursive functions on nominal datatypes **)
-use "nominal_primrec.ML"
-
-(*****************************************)
-(* setup for induction principles method *)
-
-use "nominal_induct.ML";
-method_setup nominal_induct =
-  {* NominalInduct.nominal_induct_method *}
-  {* nominal induction *}
 
 method_setup perm_simp =
   {* NominalPermeq.perm_eq_meth *}
@@ -3062,5 +3060,23 @@ method_setup fresh_guess =
 method_setup fresh_guess_debug =
   {* NominalPermeq.fresh_gs_meth_debug *}
   {* tactic for deciding whether an atom is fresh for something including debugging facilities *}
+
+(*********************************)
+(* nominal datatype construction *)
+use "nominal_package.ML"
+setup "NominalPackage.setup"
+
+(******************************************************)
+(* primitive recursive functions on nominal datatypes *)
+use "nominal_primrec.ML"
+
+(*****************************************)
+(* setup for induction principles method *)
+
+use "nominal_induct.ML";
+method_setup nominal_induct =
+  {* NominalInduct.nominal_induct_method *}
+  {* nominal induction *}
+
 
 end

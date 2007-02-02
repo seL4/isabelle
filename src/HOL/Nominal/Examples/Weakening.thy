@@ -32,13 +32,15 @@ where
     v1[intro]: "valid []"
   | v2[intro]: "\<lbrakk>valid \<Gamma>;a\<sharp>\<Gamma>\<rbrakk>\<Longrightarrow> valid ((a,\<sigma>)#\<Gamma>)"
 
-lemma eqvt_valid:
+lemma eqvt_valid[eqvt]:
   fixes   pi:: "name prm"
   assumes a: "valid \<Gamma>"
   shows   "valid (pi\<bullet>\<Gamma>)"
 using a
 by (induct)
    (auto simp add: fresh_bij)
+
+thm eqvt
 
 text{* typing judgements *}
 inductive2
@@ -48,22 +50,22 @@ where
   | t_App[intro]: "\<lbrakk>\<Gamma> \<turnstile> t1 : \<tau>\<rightarrow>\<sigma>; \<Gamma> \<turnstile> t2 : \<tau>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> App t1 t2 : \<sigma>"
   | t_Lam[intro]: "\<lbrakk>a\<sharp>\<Gamma>;((a,\<tau>)#\<Gamma>) \<turnstile> t : \<sigma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [a].t : \<tau>\<rightarrow>\<sigma>"
 
-lemma eqvt_typing: 
+lemma eqvt_typing[eqvt]: 
   fixes pi:: "name prm"
   assumes a: "\<Gamma> \<turnstile> t : \<tau>"
-  shows "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>t) : \<tau>"
+  shows "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>t) : (pi\<bullet>\<tau>)"
 using a
 proof (induct)
   case (t_Var \<Gamma> a \<tau>)
   have "valid (pi\<bullet>\<Gamma>)" by (rule eqvt_valid)
   moreover
   have "(pi\<bullet>(a,\<tau>))\<in>(pi\<bullet>set \<Gamma>)" by (rule pt_set_bij2[OF pt_name_inst, OF at_name_inst])
-  ultimately show "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>Var a) : \<tau>"
+  ultimately show "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>Var a) : (pi\<bullet>\<tau>)"
     using typing.intros by (force simp add: pt_list_set_pi[OF pt_name_inst, symmetric])
 next 
   case (t_Lam a \<Gamma> \<tau> t \<sigma>)
   moreover have "(pi\<bullet>a)\<sharp>(pi\<bullet>\<Gamma>)" by (simp add: fresh_bij)
-  ultimately show "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>Lam [a].t) :\<tau>\<rightarrow>\<sigma>" by force 
+  ultimately show "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>Lam [a].t) :(pi\<bullet>\<tau>\<rightarrow>\<sigma>)" by force 
 qed (auto)
 
 text {* the strong induction principle needs to be derived manually *}
@@ -76,26 +78,26 @@ lemma typing_induct[consumes 1, case_names t_Var t_App t_Lam]:
   and    x :: "'a::fs_name"
   assumes a: "\<Gamma> \<turnstile> t : \<tau>"
   and a1:    "\<And>\<Gamma> a \<tau> x. \<lbrakk>valid \<Gamma>; (a,\<tau>) \<in> set \<Gamma>\<rbrakk> \<Longrightarrow> P x \<Gamma> (Var a) \<tau>"
-  and a2:    "\<And>\<Gamma> \<tau> \<sigma> t1 t2 x. 
-              \<lbrakk>\<Gamma> \<turnstile> t1 : \<tau>\<rightarrow>\<sigma>; (\<And>z. P z \<Gamma> t1 (\<tau>\<rightarrow>\<sigma>)); \<Gamma> \<turnstile> t2 : \<tau>; (\<And>z. P z \<Gamma> t2 \<tau>)\<rbrakk>
+  and a2:    "\<And>\<Gamma> \<tau> \<sigma> t1 t2 x. \<lbrakk>\<And>z. P z \<Gamma> t1 (\<tau>\<rightarrow>\<sigma>); \<And>z. P z \<Gamma> t2 \<tau>\<rbrakk>
               \<Longrightarrow> P x \<Gamma> (App t1 t2) \<sigma>"
-  and a3:    "\<And>a \<Gamma> \<tau> \<sigma> t x. \<lbrakk>a\<sharp>x; a\<sharp>\<Gamma>; ((a,\<tau>)#\<Gamma>) \<turnstile> t : \<sigma>; (\<And>z. P z ((a,\<tau>)#\<Gamma>) t \<sigma>)\<rbrakk>
+  and a3:    "\<And>a \<Gamma> \<tau> \<sigma> t x. \<lbrakk>a\<sharp>x; a\<sharp>\<Gamma>; \<And>z. P z ((a,\<tau>)#\<Gamma>) t \<sigma>\<rbrakk>
               \<Longrightarrow> P x \<Gamma> (Lam [a].t) (\<tau>\<rightarrow>\<sigma>)"
   shows "P x \<Gamma> t \<tau>"
 proof -
-  from a have "\<And>(pi::name prm) x. P x (pi\<bullet>\<Gamma>) (pi\<bullet>t) \<tau>"
+  from a have "\<And>(pi::name prm) x. P x (pi\<bullet>\<Gamma>) (pi\<bullet>t) (pi\<bullet>\<tau>)"
   proof (induct)
     case (t_Var \<Gamma> a \<tau>)
     have "valid \<Gamma>" by fact
-    then have "valid (pi\<bullet>\<Gamma>)" by (rule eqvt_valid)
+    then have "valid (pi\<bullet>\<Gamma>)" by (rule eqvt)
     moreover
     have "(a,\<tau>)\<in>set \<Gamma>" by fact
     then have "pi\<bullet>(a,\<tau>)\<in>pi\<bullet>(set \<Gamma>)" by (simp only: pt_set_bij[OF pt_name_inst, OF at_name_inst])  
     then have "(pi\<bullet>a,\<tau>)\<in>set (pi\<bullet>\<Gamma>)" by (simp add: pt_list_set_pi[OF pt_name_inst])
-    ultimately show "P x (pi\<bullet>\<Gamma>) (pi\<bullet>(Var a)) \<tau>" using a1 by simp
+    ultimately show "P x (pi\<bullet>\<Gamma>) (pi\<bullet>(Var a)) (pi\<bullet>\<tau>)" using a1 by simp
   next
     case (t_App \<Gamma> t1 \<tau> \<sigma> t2)
-    thus "P x (pi\<bullet>\<Gamma>) (pi\<bullet>(App t1 t2)) \<sigma>" using a2 by (simp, blast intro: eqvt_typing)
+    thus "P x (pi\<bullet>\<Gamma>) (pi\<bullet>(App t1 t2)) (pi\<bullet>\<sigma>)" using a2 
+      by (simp only: eqvt) (blast)
   next
     case (t_Lam a \<Gamma> \<tau> t \<sigma>)
     obtain c::"name" where fs: "c\<sharp>(pi\<bullet>a,pi\<bullet>t,pi\<bullet>\<Gamma>,x)" by (rule exists_fresh[OF fs_name1])
@@ -104,22 +106,18 @@ proof -
     have f1: "a\<sharp>\<Gamma>" by fact
     have f2: "(pi\<bullet>a)\<sharp>(pi\<bullet>\<Gamma>)" using f1 by (simp add: fresh_bij)
     have f3: "c\<sharp>?pi'\<bullet>\<Gamma>" using f1 by (auto simp add: pt_name2 fresh_left calc_atm perm_pi_simp)
-    have pr1: "((a,\<tau>)#\<Gamma>)\<turnstile>t:\<sigma>" by fact
-    then have "(?pi'\<bullet>((a,\<tau>)#\<Gamma>)) \<turnstile> (?pi'\<bullet>t) : \<sigma>" by (rule eqvt_typing)
-    then have "((c,\<tau>)#(?pi'\<bullet>\<Gamma>)) \<turnstile> (?pi'\<bullet>t) : \<sigma>" by (simp add: calc_atm)
-    moreover    
-    have ih1: "\<And>x. P x (?pi'\<bullet>((a,\<tau>)#\<Gamma>)) (?pi'\<bullet>t) \<sigma>" by fact
-    then have "\<And>x. P x ((c,\<tau>)#(?pi'\<bullet>\<Gamma>)) (?pi'\<bullet>t) \<sigma>" by (simp add: calc_atm)
-    ultimately have "P x (?pi'\<bullet>\<Gamma>) (Lam [c].(?pi'\<bullet>t)) (\<tau> \<rightarrow> \<sigma>)" using a3 f3 fs by simp
-    then have "P x (?sw\<bullet>pi\<bullet>\<Gamma>) (?sw\<bullet>(Lam [(pi\<bullet>a)].(pi\<bullet>t))) (\<tau> \<rightarrow> \<sigma>)" 
+    have ih1: "\<And>x. P x (?pi'\<bullet>((a,\<tau>)#\<Gamma>)) (?pi'\<bullet>t) (?pi'\<bullet>\<sigma>)" by fact
+    then have "\<And>x. P x ((c,\<tau>)#(?pi'\<bullet>\<Gamma>)) (?pi'\<bullet>t) (?pi'\<bullet>\<sigma>)" by (simp add: calc_atm)
+    then have "P x (?pi'\<bullet>\<Gamma>) (Lam [c].(?pi'\<bullet>t)) (\<tau>\<rightarrow>\<sigma>)" using a3 f3 fs by simp
+    then have "P x (?sw\<bullet>pi\<bullet>\<Gamma>) (?sw\<bullet>(Lam [(pi\<bullet>a)].(pi\<bullet>t))) (\<tau>\<rightarrow>\<sigma>)" 
       by (simp del: append_Cons add: calc_atm pt_name2)
     moreover have "(?sw\<bullet>(pi\<bullet>\<Gamma>)) = (pi\<bullet>\<Gamma>)" 
       by (rule perm_fresh_fresh) (simp_all add: fs f2)
     moreover have "(?sw\<bullet>(Lam [(pi\<bullet>a)].(pi\<bullet>t))) = Lam [(pi\<bullet>a)].(pi\<bullet>t)" 
       by (rule perm_fresh_fresh) (simp_all add: fs f2 abs_fresh)
-    ultimately show "P x (pi\<bullet>\<Gamma>) (pi\<bullet>(Lam [a].t)) (\<tau> \<rightarrow> \<sigma>)" by (simp only: , simp)
+    ultimately show "P x (pi\<bullet>\<Gamma>) (pi\<bullet>(Lam [a].t)) (pi\<bullet>\<tau>\<rightarrow>\<sigma>)" by (simp)
   qed
-  hence "P x (([]::name prm)\<bullet>\<Gamma>) (([]::name prm)\<bullet>t) \<tau>" by blast
+  hence "P x (([]::name prm)\<bullet>\<Gamma>) (([]::name prm)\<bullet>t) (([]::name prm)\<bullet>\<tau>)" by blast
   thus "P x \<Gamma> t \<tau>" by simp
 qed
 

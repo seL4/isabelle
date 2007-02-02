@@ -102,7 +102,7 @@ where
     v_nil[intro]:  "valid []"
   | v_cons[intro]: "\<lbrakk>valid \<Gamma>;a\<sharp>\<Gamma>\<rbrakk> \<Longrightarrow> valid ((a,\<sigma>)#\<Gamma>)"
 
-lemma valid_eqvt:
+lemma valid_eqvt[eqvt]:
   fixes   pi:: "name prm"
   assumes a: "valid \<Gamma>"
   shows "valid (pi\<bullet>\<Gamma>)"
@@ -129,10 +129,10 @@ lemma typing_valid:
   using assms
   by (induct) (auto)
  
-lemma typing_eqvt :
+lemma typing_eqvt[eqvt]:
   fixes pi::"name prm"
   assumes "\<Gamma> \<turnstile> t : T"
-  shows "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>t) : T"
+  shows "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>t) : (pi\<bullet>T)"
   using assms
   apply(induct)
   apply(auto simp add: fresh_bij set_eqvt valid_eqvt) 
@@ -163,29 +163,28 @@ lemma typing_induct_strong
     and    x :: "'a::fs_name"
     assumes a: "\<Gamma> \<turnstile> e : T"
     and a1: "\<And>\<Gamma> x T c. \<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> P c \<Gamma> (Var x) T"
-    and a2: "\<And>\<Gamma> e1 T1 T2 e2 c. 
-             \<lbrakk>\<Gamma> \<turnstile> e1 : T1\<rightarrow>T2 ; \<And>c. P c \<Gamma> e1 (T1\<rightarrow>T2); \<Gamma> \<turnstile> e2 : T1 ; \<And>c. P c \<Gamma> e2 T1\<rbrakk> 
+    and a2: "\<And>\<Gamma> e1 T1 T2 e2 c. \<lbrakk>\<And>c. P c \<Gamma> e1 (T1\<rightarrow>T2); \<And>c. P c \<Gamma> e2 T1\<rbrakk> 
              \<Longrightarrow> P c \<Gamma> (App e1 e2) T2"
-    and a3: "\<And>x \<Gamma> T1 t T2 c.
-             \<lbrakk>x\<sharp>(\<Gamma>,c); (x,T1)#\<Gamma> \<turnstile> t : T2 ; \<And>c. P c ((x,T1)#\<Gamma>) t T2\<rbrakk>
+    and a3: "\<And>x \<Gamma> T1 t T2 c.\<lbrakk>x\<sharp>(\<Gamma>,c); \<And>c. P c ((x,T1)#\<Gamma>) t T2\<rbrakk>
              \<Longrightarrow> P c \<Gamma> (Lam [x].t) (T1\<rightarrow>T2)"
     and a4: "\<And>\<Gamma> n c. valid \<Gamma> \<Longrightarrow> P c \<Gamma> (Const n) TBase"
     and a5: "\<And>\<Gamma> c. valid \<Gamma> \<Longrightarrow> P c \<Gamma> Unit TUnit"
     shows "P c \<Gamma> e T"
 proof -
-  from a have "\<And>(pi::name prm) c. P c (pi\<bullet>\<Gamma>) (pi\<bullet>e) T"
+  from a have "\<And>(pi::name prm) c. P c (pi\<bullet>\<Gamma>) (pi\<bullet>e) (pi\<bullet>T)"
   proof (induct)
     case (t_Var \<Gamma> x T pi c)
     have "valid \<Gamma>" by fact
-    then have "valid (pi\<bullet>\<Gamma>)" by (simp only: valid_eqvt)
+    then have "valid (pi\<bullet>\<Gamma>)" by (simp only: eqvt)
     moreover
     have "(x,T)\<in>set \<Gamma>" by fact
     then have "pi\<bullet>(x,T)\<in>pi\<bullet>(set \<Gamma>)" by (simp only: pt_set_bij[OF pt_name_inst, OF at_name_inst])  
     then have "(pi\<bullet>x,T)\<in>set (pi\<bullet>\<Gamma>)" by (simp add: set_eqvt)
-    ultimately show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Var x)) T" using a1 by simp
+    ultimately show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Var x)) (pi\<bullet>T)" using a1 by simp
   next
     case (t_App \<Gamma> e1 T1 T2 e2 pi c)
-    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(App e1 e2)) T2" using a2 by (simp, blast intro: typing_eqvt)
+    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(App e1 e2)) (pi\<bullet>T2)" using a2 
+      by (simp only: eqvt) (blast)
   next
     case (t_Lam x \<Gamma> T1 t T2 pi c)
     obtain y::"name" where fs: "y\<sharp>(pi\<bullet>x,pi\<bullet>\<Gamma>,pi\<bullet>t,c)" by (erule exists_fresh[OF fs_name1])
@@ -194,11 +193,8 @@ proof -
     have f0: "x\<sharp>\<Gamma>" by fact
     have f1: "(pi\<bullet>x)\<sharp>(pi\<bullet>\<Gamma>)" using f0 by (simp add: fresh_bij)
     have f2: "y\<sharp>?pi'\<bullet>\<Gamma>" by (auto simp add: pt_name2 fresh_left calc_atm perm_pi_simp)
-    have pr1: "(x,T1)#\<Gamma> \<turnstile> t : T2" by fact
-    then have "(?pi'\<bullet>((x,T1)#\<Gamma>)) \<turnstile> (?pi'\<bullet>t) : T2" by (simp only: typing_eqvt)
-    moreover
-    have ih1: "\<And>c. P c (?pi'\<bullet>((x,T1)#\<Gamma>)) (?pi'\<bullet>t) T2" by fact
-    ultimately have "P c (?pi'\<bullet>\<Gamma>) (Lam [y].(?pi'\<bullet>t)) (T1\<rightarrow>T2)" using fs f2 a3
+      have ih1: "\<And>c. P c (?pi'\<bullet>((x,T1)#\<Gamma>)) (?pi'\<bullet>t) (?pi'\<bullet>T2)" by fact
+    then have "P c (?pi'\<bullet>\<Gamma>) (Lam [y].(?pi'\<bullet>t)) (T1\<rightarrow>T2)" using fs f2 a3
       by (simp add: calc_atm)
     then have "P c (?sw\<bullet>pi\<bullet>\<Gamma>) (?sw\<bullet>(Lam [(pi\<bullet>x)].(pi\<bullet>t))) (T1\<rightarrow>T2)" 
       by (simp del: append_Cons add: calc_atm pt_name2)
@@ -206,18 +202,17 @@ proof -
       by (rule perm_fresh_fresh) (simp_all add: fs f1)
     moreover have "(?sw\<bullet>(Lam [(pi\<bullet>x)].(pi\<bullet>t))) = Lam [(pi\<bullet>x)].(pi\<bullet>t)"
       by (rule perm_fresh_fresh) (simp_all add: fs f1 fresh_atm abs_fresh)
-    ultimately show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Lam [x].t)) (T1\<rightarrow>T2)" 
-      by simp
+    ultimately show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Lam [x].t)) (pi\<bullet>T1\<rightarrow>T2)" by simp
   next
     case (t_Const \<Gamma> n pi c)
-    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Const n)) (TBase)" using a4 by (simp, blast intro: valid_eqvt)
+    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Const n)) (pi\<bullet>TBase)" using a4 by (simp, blast intro: valid_eqvt)
   next
     case (t_Unit \<Gamma> pi c)
-    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>Unit) (TUnit)" using a5 by (simp, blast intro: valid_eqvt)
+    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>Unit) (pi\<bullet>TUnit)" using a5 by (simp, blast intro: valid_eqvt)
   qed 
-  then have "P c (([]::name prm)\<bullet>\<Gamma>) (([]::name prm)\<bullet>e) T" by blast
+  then have "P c (([]::name prm)\<bullet>\<Gamma>) (([]::name prm)\<bullet>e) (([]::name prm)\<bullet>T)" by blast
   then show "P c \<Gamma> e T" by simp
-qed 
+qed
 
 text {* capture-avoiding substitution *}
 
@@ -279,7 +274,7 @@ lemma subst[simp]:
   and   "Unit [y::=t'] = Unit"
   by (simp_all add: fresh_list_cons fresh_list_nil)
 
-lemma subst_eqvt:
+lemma subst_eqvt[eqvt]:
   fixes pi::"name prm" 
   and   t::"trm"
   shows "pi\<bullet>(t[x::=t']) = (pi\<bullet>t)[(pi\<bullet>x)::=(pi\<bullet>t')]"
@@ -371,13 +366,13 @@ lemma equiv_def_valid:
   shows "valid \<Gamma>"
 using assms by (induct,auto elim:typing_valid)
 
-lemma equiv_def_eqvt:
+lemma equiv_def_eqvt[eqvt]:
   fixes pi::"name prm"
   assumes a: "\<Gamma> \<turnstile> s == t : T"
-  shows "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>s) == (pi\<bullet>t) : T"
+  shows "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>s) == (pi\<bullet>t) : (pi\<bullet>T)"
 using a
 apply(induct)
-apply(auto intro: typing_eqvt valid_eqvt simp add: fresh_bij subst_eqvt)
+apply(auto intro: typing_eqvt valid_eqvt simp add: fresh_bij subst_eqvt simp del: perm_ty)
 apply(rule_tac x="pi\<bullet>x" in Q_Ext)
 apply(simp add: fresh_bij)+
 done
@@ -387,46 +382,39 @@ lemma equiv_def_strong_induct
   fixes c::"'a::fs_name"
   assumes a0: "\<Gamma> \<turnstile> s == t : T" 
   and     a1: "\<And>\<Gamma> t T c.  \<Gamma> \<turnstile> t : T  \<Longrightarrow> P c \<Gamma> t t T"
-  and     a2: "\<And>\<Gamma> t s T c. \<lbrakk>\<Gamma> \<turnstile> t == s : T; \<And>d. P d \<Gamma> t s T\<rbrakk> \<Longrightarrow>  P c \<Gamma> s t T"
-  and     a3: "\<And>\<Gamma> s t T u c. 
-               \<lbrakk>\<Gamma> \<turnstile> s == t : T; \<And>d. P d \<Gamma> s t T; \<Gamma> \<turnstile> t == u : T; \<And>d. P d \<Gamma> t u T\<rbrakk> 
+  and     a2: "\<And>\<Gamma> t s T c. \<lbrakk>\<And>d. P d \<Gamma> t s T\<rbrakk> \<Longrightarrow>  P c \<Gamma> s t T"
+  and     a3: "\<And>\<Gamma> s t T u c. \<lbrakk>\<And>d. P d \<Gamma> s t T; \<And>d. P d \<Gamma> t u T\<rbrakk> 
                \<Longrightarrow> P c \<Gamma> s u T"
-  and     a4: "\<And>x \<Gamma> T1 s2 t2 T2 c. \<lbrakk>x\<sharp>\<Gamma>; x\<sharp>c; (x,T1)#\<Gamma> \<turnstile> s2 == t2 : T2; \<And>d. P d ((x,T1)#\<Gamma>) s2 t2 T2\<rbrakk>
+  and     a4: "\<And>x \<Gamma> T1 s2 t2 T2 c. \<lbrakk>x\<sharp>\<Gamma>; x\<sharp>c; \<And>d. P d ((x,T1)#\<Gamma>) s2 t2 T2\<rbrakk>
                \<Longrightarrow> P c \<Gamma> (Lam [x].s2) (Lam [x].t2) (T1\<rightarrow>T2)"
-  and     a5: "\<And>\<Gamma> s1 t1 T1 T2 s2 t2 c.
-               \<lbrakk>\<Gamma> \<turnstile> s1 == t1 : T1\<rightarrow>T2; \<And>d. P d \<Gamma> s1 t1 (T1\<rightarrow>T2); 
-                \<Gamma> \<turnstile> s2 == t2 : T1; \<And>d. P d \<Gamma> s2 t2 T1\<rbrakk> \<Longrightarrow> P c \<Gamma> (App s1 s2) (App t1 t2) T2"
+  and     a5: "\<And>\<Gamma> s1 t1 T1 T2 s2 t2 c. \<lbrakk>\<And>d. P d \<Gamma> s1 t1 (T1\<rightarrow>T2); \<And>d. P d \<Gamma> s2 t2 T1\<rbrakk> 
+               \<Longrightarrow> P c \<Gamma> (App s1 s2) (App t1 t2) T2"
   and     a6: "\<And>x \<Gamma> T1 s12 t12 T2 s2 t2 c.
-               \<lbrakk>x\<sharp>(\<Gamma>,s2,t2); x\<sharp>c; (x,T1)#\<Gamma> \<turnstile> s12 == t12 : T2; \<And>d. P d ((x,T1)#\<Gamma>) s12 t12 T2;
-               \<Gamma> \<turnstile> s2 == t2 : T1; \<And>d. P d \<Gamma> s2 t2 T1\<rbrakk> 
+               \<lbrakk>x\<sharp>(\<Gamma>,s2,t2); x\<sharp>c; \<And>d. P d ((x,T1)#\<Gamma>) s12 t12 T2; \<And>d. P d \<Gamma> s2 t2 T1\<rbrakk> 
                \<Longrightarrow> P c \<Gamma> (App (Lam [x].s12) s2) (t12[x::=t2]) T2"
   and     a7: "\<And>x \<Gamma> s t T1 T2 c.
-               \<lbrakk>x\<sharp>(\<Gamma>,s,t); (x,T1)#\<Gamma> \<turnstile> App s (Var x) == App t (Var x) : T2;
-               \<And>d. P d ((x,T1)#\<Gamma>) (App s (Var x)) (App t (Var x)) T2\<rbrakk>
+               \<lbrakk>x\<sharp>(\<Gamma>,s,t); \<And>d. P d ((x,T1)#\<Gamma>) (App s (Var x)) (App t (Var x)) T2\<rbrakk>
                \<Longrightarrow> P c \<Gamma> s t (T1\<rightarrow>T2)"
  shows "P c \<Gamma>  s t T"
 proof -
-  from a0 have "\<And>(pi::name prm) c. P c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) T" 
+  from a0 have "\<And>(pi::name prm) c. P c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) (pi\<bullet>T)" 
     proof(induct)
       case (Q_Refl \<Gamma> t T pi c)
-      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>t) (pi\<bullet>t) T" using a1 by (simp add: typing_eqvt)
+      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>t) (pi\<bullet>t) (pi\<bullet>T)" using a1 by (simp only: eqvt)
     next
       case (Q_Symm \<Gamma> t s T pi c)
-      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) T" using a2 by (simp only: equiv_def_eqvt)
+      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) (pi\<bullet>T)" using a2 by (simp only: equiv_def_eqvt)
     next
       case (Q_Trans \<Gamma> s t T u pi c)
-      then show " P c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>u) T" using a3 by (blast intro: equiv_def_eqvt)
+      then show " P c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>u) (pi\<bullet>T)" using a3 by (blast intro: equiv_def_eqvt)
     next
       case (Q_App \<Gamma> s1 t1 T1 T2 s2 t2 pi c)
-      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>App s1 s2) (pi\<bullet>App t1 t2) T2" using a5 
-	by (simp, blast intro: equiv_def_eqvt)
+      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>App s1 s2) (pi\<bullet>App t1 t2) (pi\<bullet>T2)" using a5 
+	by (simp only: eqvt) (blast)
     next
       case (Q_Ext x \<Gamma> s t T1 T2 pi c)
-      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) (T1\<rightarrow>T2)"  
-	apply(auto intro!: a7 simp add: fresh_bij)
-	apply(drule equiv_def_eqvt)
-	apply(simp)
-	done
+      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) (pi\<bullet>T1\<rightarrow>T2)"  
+	by (auto intro!: a7 simp add: fresh_bij)
     next
       case (Q_Abs x \<Gamma> T1 s2 t2 T2 pi c)
       obtain y::"name" where fs: "y\<sharp>(pi\<bullet>x,pi\<bullet>s2,pi\<bullet>t2,pi\<bullet>\<Gamma>,c)" by (rule exists_fresh[OF fs_name1])
@@ -435,13 +423,9 @@ proof -
       have f1: "x\<sharp>\<Gamma>" by fact
       have f2: "(pi\<bullet>x)\<sharp>(pi\<bullet>\<Gamma>)" using f1 by (simp add: fresh_bij)
       have f3: "y\<sharp>?pi'\<bullet>\<Gamma>" using f1 by (auto simp add: pt_name2 fresh_left calc_atm perm_pi_simp)
-      have pr1: "(x,T1)#\<Gamma> \<turnstile> s2 == t2 : T2" by fact
-      then have "?pi'\<bullet>((x,T1)#\<Gamma>) \<turnstile> (?pi'\<bullet>s2) == (?pi'\<bullet>t2) : T2" by (rule equiv_def_eqvt)
-      then have "((y,T1)#(?pi'\<bullet>\<Gamma>)) \<turnstile> (?pi'\<bullet>s2) == (?pi'\<bullet>t2) : T2" by (simp add: calc_atm)
-      moreover    
-      have ih1: "\<And>c. P c (?pi'\<bullet>((x,T1)#\<Gamma>)) (?pi'\<bullet>s2) (?pi'\<bullet>t2) T2" by fact
+      have ih1: "\<And>c. P c (?pi'\<bullet>((x,T1)#\<Gamma>)) (?pi'\<bullet>s2) (?pi'\<bullet>t2) (?pi'\<bullet>T2)" by fact
       then have "\<And>c. P c ((y,T1)#(?pi'\<bullet>\<Gamma>)) (?pi'\<bullet>s2) (?pi'\<bullet>t2) T2" by (simp add: calc_atm)
-      ultimately have "P c  (?pi'\<bullet>\<Gamma>) (?pi'\<bullet>Lam [x].s2) (?pi'\<bullet>Lam [x].t2) (T1\<rightarrow>T2)" using a4 f3 fs
+      then have "P c  (?pi'\<bullet>\<Gamma>) (?pi'\<bullet>Lam [x].s2) (?pi'\<bullet>Lam [x].t2) (T1\<rightarrow>T2)" using a4 f3 fs
 	by (simp add: calc_atm)
       then have "P c (?sw\<bullet>pi\<bullet>\<Gamma>) (?sw\<bullet>Lam [(pi\<bullet>x)].(pi\<bullet>s2)) (?sw\<bullet>Lam [(pi\<bullet>x)].(pi\<bullet>t2)) (T1\<rightarrow>T2)" 
 	by (simp del: append_Cons add: calc_atm pt_name2)
@@ -452,7 +436,7 @@ proof -
       moreover have "(?sw\<bullet>(Lam [(pi\<bullet>x)].(pi\<bullet>t2))) = Lam [(pi\<bullet>x)].(pi\<bullet>t2)" 
 	by (rule perm_fresh_fresh) (simp_all add: fs f2 abs_fresh)
       ultimately have "P c (pi\<bullet>\<Gamma>) (Lam [(pi\<bullet>x)].(pi\<bullet>s2)) (Lam [(pi\<bullet>x)].(pi\<bullet>t2)) (T1\<rightarrow>T2)" by simp
-      then show  "P c (pi\<bullet>\<Gamma>) (pi\<bullet>Lam [x].s2) (pi\<bullet>Lam [x].t2) (T1\<rightarrow>T2)" by simp 
+      then show  "P c (pi\<bullet>\<Gamma>) (pi\<bullet>Lam [x].s2) (pi\<bullet>Lam [x].t2) (pi\<bullet>T1\<rightarrow>T2)" by simp 
     next 
       case (Q_Beta x \<Gamma> s2 t2 T1 s12 t12 T2 pi c) 
       obtain y::"name" where fs: "y\<sharp>(pi\<bullet>x,pi\<bullet>s12,pi\<bullet>t12,pi\<bullet>s2,pi\<bullet>t2,pi\<bullet>\<Gamma>,c)" 
@@ -463,19 +447,12 @@ proof -
       have f2: "(pi\<bullet>x)\<sharp>(pi\<bullet>(\<Gamma>,s2,t2))" using f1 by (simp add: fresh_bij)
       have f3: "y\<sharp>(?pi'\<bullet>(\<Gamma>,s2,t2))" using f1 
 	by (auto simp add: pt_name2 fresh_left calc_atm perm_pi_simp fresh_prod)
-      have pr1: "(x,T1)#\<Gamma> \<turnstile> s12 == t12 : T2" by fact
-      then have "?pi'\<bullet>((x,T1)#\<Gamma>) \<turnstile> (?pi'\<bullet>s12) == (?pi'\<bullet>t12) : T2" by (rule equiv_def_eqvt)
-      then have "((y,T1)#(?pi'\<bullet>\<Gamma>)) \<turnstile> (?pi'\<bullet>s12) == (?pi'\<bullet>t12) : T2" by (simp add: calc_atm)
-      moreover    
-      have ih1: "\<And>c. P c (?pi'\<bullet>((x,T1)#\<Gamma>)) (?pi'\<bullet>s12) (?pi'\<bullet>t12) T2" by fact
-      then have "\<And>c. P c ((y,T1)#(?pi'\<bullet>\<Gamma>)) (?pi'\<bullet>s12) (?pi'\<bullet>t12) T2" by (simp add: calc_atm)
+      have ih1: "\<And>c. P c (?pi'\<bullet>((x,T1)#\<Gamma>)) (?pi'\<bullet>s12) (?pi'\<bullet>t12) (?pi'\<bullet>T2)" by fact
+      then have "\<And>c. P c ((y,T1)#(?pi'\<bullet>\<Gamma>)) (?pi'\<bullet>s12) (?pi'\<bullet>t12) (?pi'\<bullet>T2)" by (simp add: calc_atm)
       moreover
-      have pr2: "\<Gamma> \<turnstile> s2 == t2 : T1" by fact
-      then have "(?pi'\<bullet>\<Gamma>) \<turnstile> (?pi'\<bullet>s2) == (?pi'\<bullet>t2) : T1" by (rule equiv_def_eqvt)
-      moreover    
-      have ih2: "\<And>c. P c (?pi'\<bullet>\<Gamma>) (?pi'\<bullet>s2) (?pi'\<bullet>t2) T1" by fact
-      ultimately have "P c  (?pi'\<bullet>\<Gamma>) (?pi'\<bullet>(App (Lam [x].s12) s2)) (?pi'\<bullet>(t12[x::=t2])) T2" 
-	using a6 f3 fs by (simp add: subst_eqvt calc_atm)
+      have ih2: "\<And>c. P c (?pi'\<bullet>\<Gamma>) (?pi'\<bullet>s2) (?pi'\<bullet>t2) (?pi'\<bullet>T1)" by fact
+      ultimately have "P c  (?pi'\<bullet>\<Gamma>) (?pi'\<bullet>(App (Lam [x].s12) s2)) (?pi'\<bullet>(t12[x::=t2])) (?pi'\<bullet>T2)" 
+	using a6 f3 fs by (force simp add: subst_eqvt calc_atm del: perm_ty)
       then have "P c (?sw\<bullet>pi\<bullet>\<Gamma>) (?sw\<bullet>(App (Lam [(pi\<bullet>x)].(pi\<bullet>s12)) (pi\<bullet>s2))) 
 	(?sw\<bullet>((pi\<bullet>t12)[(pi\<bullet>x)::=(pi\<bullet>t2)])) T2" 
 	by (simp del: append_Cons add: calc_atm pt_name2 subst_eqvt)
@@ -488,9 +465,9 @@ proof -
 	   (simp_all add: fs[simplified] f2[simplified] fresh_subst fresh_subst'')
       ultimately have "P c (pi\<bullet>\<Gamma>) (App (Lam [(pi\<bullet>x)].(pi\<bullet>s12)) (pi\<bullet>s2)) ((pi\<bullet>t12)[(pi\<bullet>x)::=(pi\<bullet>t2)]) T2"
 	by simp
-      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>App (Lam [x].s12) s2) (pi\<bullet>t12[x::=t2]) T2" by (simp add: subst_eqvt)	
+      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>App (Lam [x].s12) s2) (pi\<bullet>t12[x::=t2]) (pi\<bullet>T2)" by (simp add: subst_eqvt)
     qed
-  then have "P c (([]::name prm)\<bullet>\<Gamma>) (([]::name prm)\<bullet>s) (([]::name prm)\<bullet>t) T" by blast
+  then have "P c (([]::name prm)\<bullet>\<Gamma>) (([]::name prm)\<bullet>s) (([]::name prm)\<bullet>t) (([]::name prm)\<bullet>T)" by blast
   then show "P c \<Gamma> s t T" by simp
 qed
 
@@ -538,7 +515,7 @@ lemma whr_eqvt:
 using a
 by (induct) (auto simp add: subst_eqvt fresh_bij)
 
-lemma whn_eqvt:
+lemma whn_eqvt[eqvt]:
   fixes pi::"name prm"
   assumes a: "t \<Down> t'"
   shows "(pi\<bullet>t) \<Down> (pi\<bullet>t')"
@@ -568,10 +545,10 @@ where
 | QAP_App[intro]:   "\<lbrakk>\<Gamma> \<turnstile> p \<leftrightarrow> q : T1 \<rightarrow> T2; \<Gamma> \<turnstile> s <=> t : T1 \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App p s \<leftrightarrow> App q t : T2"
 | QAP_Const[intro]: "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Const n \<leftrightarrow> Const n : TBase"
 
-lemma alg_equiv_alg_path_equiv_eqvt:
+lemma alg_equiv_alg_path_equiv_eqvt[eqvt]:
   fixes pi::"name prm"
-  shows "\<Gamma> \<turnstile> s <=> t : T \<Longrightarrow> (pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>s) <=> (pi\<bullet>t) : T" 
-  and   "\<Gamma> \<turnstile> p \<leftrightarrow> q : T \<Longrightarrow> (pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>p) \<leftrightarrow> (pi\<bullet>q) : T"
+  shows "\<Gamma> \<turnstile> s <=> t : T \<Longrightarrow> (pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>s) <=> (pi\<bullet>t) : (pi\<bullet>T)" 
+  and   "\<Gamma> \<turnstile> p \<leftrightarrow> q : T \<Longrightarrow> (pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>p) \<leftrightarrow> (pi\<bullet>q) : (pi\<bullet>T)"
 apply(induct rule: alg_equiv_alg_path_equiv.inducts)
 apply(auto intro: whn_eqvt simp add: fresh_bij valid_eqvt)
 apply(rule_tac x="pi\<bullet>x" in  QAT_Arrow)
@@ -606,7 +583,7 @@ proof -
     then show "\<forall>c (pi::name prm). P1 c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) TBase"
       apply(auto)
       apply(rule_tac p="pi\<bullet>q" and q="pi\<bullet>p" in  a1)
-      apply(simp_all add: whn_eqvt alg_equiv_alg_path_equiv_eqvt)
+      apply(simp_all add: whn_eqvt alg_equiv_alg_path_equiv_eqvt[simplified])
       done
   next
     case (QAT_Arrow x \<Gamma> s t T1 T2)
@@ -623,8 +600,8 @@ proof -
 	by (simp only: pt_name2 fresh_left, auto simp add: perm_pi_simp calc_atm)
       then have f3': "y\<sharp>?pi'\<bullet>\<Gamma>" "y\<sharp>?pi'\<bullet>s" "y\<sharp>?pi'\<bullet>t" by (auto simp add: fresh_prod)
       have pr1: "(x,T1)#\<Gamma> \<turnstile> App s (Var x) <=> App t (Var x) : T2" by fact
-      then have "(?pi'\<bullet>((x,T1)#\<Gamma>)) \<turnstile> (?pi'\<bullet>(App s (Var x))) <=> (?pi'\<bullet>(App t (Var x))) : T2" 
-	by (simp only: alg_equiv_alg_path_equiv_eqvt)
+      then have "(?pi'\<bullet>((x,T1)#\<Gamma>)) \<turnstile> (?pi'\<bullet>(App s (Var x))) <=> (?pi'\<bullet>(App t (Var x))) : (?pi'\<bullet>T2)" 
+	by (rule alg_equiv_alg_path_equiv_eqvt)
       then have "(y,T1)#(?pi'\<bullet>\<Gamma>) \<turnstile> (App (?pi'\<bullet>s) (Var y)) <=> (App (?pi'\<bullet>t) (Var y)) : T2" 
 	by (simp add: calc_atm)
       moreover    
@@ -659,7 +636,7 @@ proof -
   next
     case (QAP_App \<Gamma> p q T1 T2 s t)
     then show "\<forall>c (pi::name prm). P2 c (pi\<bullet>\<Gamma>) (pi\<bullet>App p s) (pi\<bullet>App q t) T2"
-      by (auto intro!: a5 simp add: alg_equiv_alg_path_equiv_eqvt)
+      by (auto intro!: a5 simp add: alg_equiv_alg_path_equiv_eqvt[simplified])
   next
     case (QAP_Const \<Gamma> n)
     then show "\<forall>c (pi::name prm). P2 c (pi\<bullet>\<Gamma>) (pi\<bullet>Const n) (pi\<bullet>Const n) TBase"
@@ -724,7 +701,6 @@ lemma algorithmic_monotonicity:
 proof (nominal_induct \<Gamma> s t T and \<Gamma> s t T avoiding: \<Gamma>' rule: alg_equiv_alg_path_equiv_strong_inducts)
   case (QAT_Arrow x \<Gamma> s t T1 T2 \<Gamma>')
   have fs:"x\<sharp>\<Gamma>" "x\<sharp>s" "x\<sharp>t" by fact
-  have h1:"(x,T1)#\<Gamma> \<turnstile> App s (Var x) <=> App t (Var x) : T2" by fact
   have h2:"\<Gamma>\<lless>\<Gamma>'" by fact
   have ih:"\<And>\<Gamma>'. \<lbrakk>(x,T1)#\<Gamma> \<lless> \<Gamma>'\<rbrakk>  \<Longrightarrow> \<Gamma>' \<turnstile> App s (Var x) <=> App t (Var x) : T2" by fact
   have "x\<sharp>\<Gamma>'" by fact
@@ -984,7 +960,8 @@ next
   have "(pi\<bullet>((x,T1)#\<Gamma>)) \<turnstile> pi \<bullet> (App s (Var x)) <=> pi \<bullet> (App t (Var x)) : T2" by fact
   then have "(pi\<bullet>((x,T1)#\<Gamma>)) \<turnstile> (App (pi\<bullet>s) (Var (pi\<bullet>x))) <=> (App (pi\<bullet>t) (Var (pi\<bullet>x))) : T2" by auto
   moreover have "pi\<bullet>((x,T1)#\<Gamma>) = (pi\<bullet>x,pi\<bullet>T1)#(pi\<bullet>\<Gamma>)" by auto
-  ultimately have "((pi\<bullet>x,T1)#(pi\<bullet>\<Gamma>))  \<turnstile> (App (pi\<bullet>s) (Var (pi\<bullet>x))) <=> (App (pi\<bullet>t) (Var (pi\<bullet>x))) : T2" using perm_ty by auto
+  ultimately have "((pi\<bullet>x,T1)#(pi\<bullet>\<Gamma>))  \<turnstile> (App (pi\<bullet>s) (Var (pi\<bullet>x))) <=> (App (pi\<bullet>t) (Var (pi\<bullet>x))) : T2" 
+    using perm_ty by auto
   then show ?case using h by auto
 qed (auto elim:whn_eqvt valid_eqvt)
  
@@ -1271,7 +1248,6 @@ next
   case (Q_Abs x \<Gamma> T1 s2 t2 T2 \<Gamma>' \<gamma> \<theta>)
   have fs:"x\<sharp>\<Gamma>" by fact
   have fs2: "x\<sharp>\<gamma>" "x\<sharp>\<theta>" by fact 
-  have h1:"(x,T1)#\<Gamma> \<turnstile> s2 == t2 : T2" by fact
   have h2:"\<Gamma>' \<turnstile> \<gamma> is \<theta> over \<Gamma>" by fact
   have ih:"\<And>\<Gamma>' \<gamma> \<theta>. \<Gamma>' \<turnstile> \<gamma> is \<theta> over (x,T1)#\<Gamma> \<Longrightarrow> \<Gamma>' \<turnstile> \<gamma><s2> is \<theta><t2> : T2" by fact
   {

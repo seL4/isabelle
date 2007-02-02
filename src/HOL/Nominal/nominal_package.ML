@@ -1104,6 +1104,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       end) atoms;
 
     val simp_atts = replicate (length new_type_names) [Simplifier.simp_add];
+    val simp_eqvt_atts = replicate (length new_type_names) [Simplifier.simp_add,  EqvtRules.eqvt_add];
 
     val (_, thy9) = thy8 |>
       Theory.add_path big_name |>
@@ -1112,7 +1113,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       Theory.parent_path ||>>
       DatatypeAux.store_thmss_atts "distinct" new_type_names simp_atts distinct_thms ||>>
       DatatypeAux.store_thmss "constr_rep" new_type_names constr_rep_thmss ||>>
-      DatatypeAux.store_thmss_atts "perm" new_type_names simp_atts perm_simps' ||>>
+      DatatypeAux.store_thmss_atts "perm" new_type_names simp_eqvt_atts perm_simps' ||>>
       DatatypeAux.store_thmss "inject" new_type_names inject_thms ||>>
       DatatypeAux.store_thmss "supp" new_type_names supp_thms ||>>
       DatatypeAux.store_thmss_atts "fresh" new_type_names simp_atts fresh_thms ||>
