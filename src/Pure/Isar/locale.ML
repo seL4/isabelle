@@ -1533,9 +1533,13 @@ fun note_thmss_registrations target (kind, args) thy =
       let
         val (insts, prems) = collect_global_witnesses thy parms ids vts;
         val attrib = Attrib.attribute_i thy;
-        val inst_atts = Args.morph_values (Element.inst_morphism thy insts);
+        val inst_atts = Args.morph_values
+          (Morphism.name_morphism (NameSpace.qualified prfx) $>
+            Element.inst_morphism thy insts $>
+            Element.satisfy_morphism prems $>
+            Morphism.thm_morphism Drule.standard);
         val inst_thm =
-          Drule.standard o Element.satisfy_thm prems o Element.inst_thm thy insts;
+          Element.inst_thm thy insts #> Element.satisfy_thm prems #> Drule.standard;
         val args' = args |> map (fn ((name, atts), bs) =>
             ((name, map (attrib o inst_atts) atts),
               bs |> map (fn (ths, more_atts) =>
@@ -1910,9 +1914,11 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
   let
     fun activate_elem disch (prfx, atts) (Notes (kind, facts)) thy_ctxt =
         let
+          val fact_morphism =
+            Morphism.name_morphism (NameSpace.qualified prfx) $> Morphism.thm_morphism disch;
           val facts' = facts
             (* discharge hyps in attributes *)
-            |> Attrib.map_facts (attrib thy_ctxt o Args.morph_values (Morphism.thm_morphism disch))
+            |> Attrib.map_facts (attrib thy_ctxt o Args.morph_values fact_morphism)
             (* append interpretation attributes *)
             |> map (apfst (apsnd (fn a => a @ map (attrib thy_ctxt) atts)))
             (* discharge hyps *)
@@ -2155,6 +2161,7 @@ fun prep_registration_in_locale target expr thy =
             fun activate_elem (Notes (kind, facts)) thy =
                 let
                   val att_morphism =
+                    Morphism.name_morphism (NameSpace.qualified prfx) $>
                     Morphism.thm_morphism satisfy $>
                     Element.inst_morphism thy insts $>
                     Morphism.thm_morphism disch;
