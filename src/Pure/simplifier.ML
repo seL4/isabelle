@@ -70,9 +70,11 @@ sig
   val cong_add: attribute
   val cong_del: attribute
   val get_simproc: Proof.context -> xstring -> simproc
-  val def_simproc: string -> string list -> (morphism -> simpset -> cterm -> thm option) ->
+  val def_simproc: {name: string, lhss: string list,
+    proc: morphism -> simpset -> cterm -> thm option, identifier: thm list} ->
     local_theory -> local_theory
-  val def_simproc_i: string -> term list -> (morphism -> simpset -> cterm -> thm option) ->
+  val def_simproc_i: {name: string, lhss: term list,
+    proc: morphism -> simpset -> cterm -> thm option, identifier: thm list} ->
     local_theory -> local_theory
   val cong_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val simp_modifiers': (Args.T list -> (Method.modifier * Args.T list)) list
@@ -172,15 +174,16 @@ val cong_del = attrib (op delcongs);
 fun err_dup_simprocs ds =
   error ("Duplicate simproc(s): " ^ commas_quote ds);
 
+
 (* data *)
 
 structure Simprocs = GenericDataFun
 (
   val name = "Pure/simprocs";
-  type T = (simproc * stamp) NameSpace.table;
+  type T = simproc NameSpace.table;
   val empty = NameSpace.empty_table;
   val extend = I;
-  fun merge _ simprocs = NameSpace.merge_tables (eq_snd (op =)) simprocs
+  fun merge _ simprocs = NameSpace.merge_tables eq_simproc simprocs
     handle Symtab.DUPS ds => err_dup_simprocs ds;
   fun print _ _ = ();
 );
@@ -195,7 +198,7 @@ fun get_simproc ctxt xname =
     val name = NameSpace.intern space xname;
   in
     (case Symtab.lookup tab name of
-      SOME (proc, _) => proc
+      SOME proc => proc
     | NONE => error ("Undefined simplification procedure: " ^ quote name))
   end;
 
@@ -216,34 +219,33 @@ fun read_terms ctxt ts =
 (* FIXME *)
 fun cert_terms ctxt ts = map (ProofContext.cert_term ctxt) ts;
 
-fun prep_pats prep ctxt raw_pats =
+fun gen_simproc prep {name, lhss, proc, identifier} lthy =
   let
-    val pats = prep ctxt raw_pats;
-    val ctxt' = ctxt
-      |> fold Variable.declare_term pats
-      |> fold Variable.auto_fixes pats;
-  in Variable.export_terms ctxt' ctxt pats end;
-
-fun gen_simproc prep name raw_pats proc lthy =
-  let
-    val pats =
-      prep_pats prep lthy raw_pats
-      |> map (Morphism.term (LocalTheory.target_morphism lthy));
-    val naming = LocalTheory.target_naming lthy;
+    val naming = LocalTheory.full_naming lthy;
+    val simproc = make_simproc
+      {name = LocalTheory.full_name lthy name,
+       lhss =
+        let
+          val lhss' = prep lthy lhss;
+          val ctxt' = lthy
+            |> fold Variable.declare_term lhss'
+            |> fold Variable.auto_fixes lhss';
+        in Variable.export_terms ctxt' lthy lhss' end
+        |> map (Thm.cterm_of (ProofContext.theory_of lthy)),
+       proc = proc,
+       identifier = identifier}
+      |> morph_simproc (LocalTheory.target_morphism lthy);
   in
     lthy |> LocalTheory.declaration (fn phi => fn context =>
       let
-        val cert = Thm.cterm_of (Context.theory_of context);
-        val pats' = map (cert o Morphism.term phi) pats;
         val name' = Morphism.name phi name;
-        val proc' = proc phi;
-        val simproc = mk_simproc' (NameSpace.full naming name') pats' proc';
+        val simproc' = morph_simproc phi simproc;
       in
         context
         |> Simprocs.map (fn simprocs =>
-            NameSpace.extend_table naming (simprocs, [(name', (simproc, stamp ()))])
+            NameSpace.extend_table naming (simprocs, [(name', simproc')])
               handle Symtab.DUPS ds => err_dup_simprocs ds)
-        |> map_ss (fn ss => ss addsimprocs [simproc])
+        |> map_ss (fn ss => ss addsimprocs [simproc'])
       end)
   end;
 
