@@ -18,6 +18,7 @@ sig
   val print_option: ('a -> string) -> 'a option -> string
   val print_char: string -> string
   val print_string: string -> string
+  val print_strings: string list -> string
   val print_class: class -> string
   val print_sort: sort -> string
   val print_typ: typ -> string
@@ -72,6 +73,7 @@ fun print_char s =
     end;
 
 val print_string = quote o translate_string print_char;
+val print_strings = print_list print_string;
 
 val print_class = print_string;
 
