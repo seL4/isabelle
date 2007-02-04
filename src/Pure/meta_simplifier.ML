@@ -45,7 +45,10 @@ sig
   val empty_ss: simpset
   val merge_ss: simpset * simpset -> simpset
   type simproc
-  val mk_simproc': string -> cterm list -> (simpset -> cterm -> thm option) -> simproc
+  val eq_simproc: simproc * simproc -> bool
+  val morph_simproc: morphism -> simproc -> simproc
+  val make_simproc: {name: string, lhss: cterm list,
+    proc: morphism -> simpset -> cterm -> thm option, identifier: thm list} -> simproc
   val mk_simproc: string -> cterm list -> (theory -> simpset -> term -> thm option) -> simproc
   val add_prems: thm list -> simpset -> simpset
   val prems_of_ss: simpset -> thm list
@@ -199,7 +202,7 @@ and proc =
    {name: string,
     lhs: cterm,
     proc: simpset -> cterm -> thm option,
-    id: stamp}
+    id: stamp * thm list}
 and solver =
   Solver of
    {name: string,
@@ -234,8 +237,9 @@ fun map_simpset2 f (Simpset (r1, r2)) = Simpset (r1, map_ss2 f r2);
 
 fun prems_of_ss (Simpset ({prems, ...}, _)) = prems;
 
-
-fun eq_proc (Proc {id = id1, ...}, Proc {id = id2, ...}) = (id1 = id2);
+fun eq_procid ((s1: stamp, ths1: thm list), (s2, ths2)) =
+  s1 = s2 andalso eq_list eq_thm (ths1, ths2);
+fun eq_proc (Proc {id = id1, ...}, Proc {id = id2, ...}) = eq_procid (id1, id2);
 
 fun mk_solver' name solver = Solver {name = name, solver = solver, id = stamp ()};
 fun mk_solver name solver = mk_solver' name (solver o prems_of_ss);
@@ -321,7 +325,7 @@ fun print_ss ss =
     val smps = map #thm (Net.entries rules);
     val prcs = Net.entries procs |>
       map (fn Proc {name, lhs, id, ...} => ((name, lhs), id))
-      |> partition_eq (eq_snd (op =))
+      |> partition_eq (eq_snd eq_procid)
       |> map (fn ps => (fst (fst (hd ps)), map (snd o fst) ps))
       |> Library.sort_wrt fst;
   in
@@ -604,15 +608,28 @@ end;
 
 exception SIMPROC_FAIL of string * exn;
 
-datatype simproc = Simproc of proc list;
+datatype simproc =
+  Simproc of
+    {name: string,
+     lhss: cterm list,
+     proc: morphism -> simpset -> cterm -> thm option,
+     id: stamp * thm list};
 
-fun mk_simproc' name lhss proc =
-  let val id = stamp ()
-  in Simproc (lhss |> map (fn lhs => Proc {name = name, lhs = lhs, proc = proc, id = id})) end;
+fun eq_simproc (Simproc {id = id1, ...}, Simproc {id = id2, ...}) = eq_procid (id1, id2);
+
+fun morph_simproc phi (Simproc {name, lhss, proc, id = (s, ths)}) =
+  Simproc
+   {name = name,
+    lhss = map (Morphism.cterm phi) lhss,
+    proc = fn psi => proc (phi $> psi),
+    id = (s, Morphism.fact phi ths)};
+
+fun make_simproc {name, lhss, proc, identifier} =
+  Simproc {name = name, lhss = lhss, proc = proc, id = (stamp (), identifier)};
 
 fun mk_simproc name lhss proc =
-  mk_simproc' name lhss (fn ss => fn ct =>
-    proc (ProofContext.theory_of (the_context ss)) ss (Thm.term_of ct));
+  make_simproc {name = name, lhss = lhss, proc = fn _ => fn ss => fn ct =>
+    proc (ProofContext.theory_of (the_context ss)) ss (Thm.term_of ct), identifier = []};
 
 (* FIXME avoid global thy and Logic.varify *)
 fun simproc_i thy name = mk_simproc name o map (Thm.cterm_of thy o Logic.varify);
@@ -636,10 +653,13 @@ fun del_proc (proc as Proc {name, lhs, ...}) ss =
   handle Net.DELETE =>
     (warning ("Simplification procedure " ^ quote name ^ " not in simpset"); ss);
 
+fun prep_procs (Simproc {name, lhss, proc, id}) =
+  lhss |> map (fn lhs => Proc {name = name, lhs = lhs, proc = proc Morphism.identity, id = id});
+
 in
 
-fun ss addsimprocs ps = fold (fn Simproc procs => fold add_proc procs) ps ss;
-fun ss delsimprocs ps = fold (fn Simproc procs => fold del_proc procs) ps ss;
+fun ss addsimprocs ps = fold (fold add_proc o prep_procs) ps ss;
+fun ss delsimprocs ps = fold (fold del_proc o prep_procs) ps ss;
 
 end;
 
@@ -1238,7 +1258,7 @@ fun rewrite_goals_rule thms th =
 fun rewrite_goal_rule mode prover ss i thm =
   if 0 < i  andalso  i <= nprems_of thm
   then Drule.fconv_rule (Drule.goals_conv (fn j => j=i) (rewrite_cterm mode prover ss)) thm
-  else raise THM("rewrite_goal_rule",i,[thm]);
+  else raise THM("rewrite_goal_rule", i, [thm]);
 
 
 (** meta-rewriting tactics **)
