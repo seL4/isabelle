@@ -173,7 +173,6 @@ text{*Simplify the terms @{term "int 0"}, @{term "int(Suc 0)"} and
 declare Zero_int_def [symmetric, simp]
 declare One_int_def [symmetric, simp]
 
-text{*cooper.ML refers to this theorem*}
 lemmas diff_int_def_symmetric = diff_int_def [symmetric, simp]
 
 lemma nat_0: "nat 0 = 0"
