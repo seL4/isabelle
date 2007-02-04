@@ -22,6 +22,7 @@ sig
   val term: morphism -> term -> term
   val fact: morphism -> thm list -> thm list
   val thm: morphism -> thm -> thm
+  val cterm: morphism -> cterm -> cterm
   val morphism:
    {name: string -> string,
     var: string * mixfix -> string * mixfix,
@@ -54,6 +55,7 @@ fun typ (Morphism {typ, ...}) = typ;
 fun term (Morphism {term, ...}) = term;
 fun fact (Morphism {fact, ...}) = fact;
 val thm = singleton o fact;
+val cterm = Drule.cterm_rule o thm;
 
 val morphism = Morphism;
 
