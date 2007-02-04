@@ -314,8 +314,9 @@ val declarationP =
 val simproc_setupP =
   OuterSyntax.command "simproc_setup" "define simproc in ML" (K.tag_ml K.thy_decl)
     (P.opt_target --
-      P.name -- (P.$$$ "(" |-- P.enum1 "|" P.term --| P.$$$ ")" --| P.$$$ "=") -- P.text
-    >> (fn (((loc, x), y), z) => Toplevel.local_theory loc (IsarCmd.simproc_setup (x, y, z))));
+      P.name -- (P.$$$ "(" |-- P.enum1 "|" P.term --| P.$$$ ")" --| P.$$$ "=") -- P.text --
+      Scan.optional (P.$$$ "identifier" |-- Scan.repeat1 P.xname) []
+    >> (fn ((((loc, a), b), c), d) => Toplevel.local_theory loc (IsarCmd.simproc_setup a b c d)));
 
 
 (* translation functions *)
@@ -358,7 +359,7 @@ val token_translationP =
 val oracleP =
   OuterSyntax.command "oracle" "declare oracle" (K.tag_ml K.thy_decl)
     (P.name -- (P.$$$ "(" |-- P.text --| P.$$$ ")" --| P.$$$ "=")
-      -- P.text >> (Toplevel.theory o IsarCmd.oracle o P.triple1));
+      -- P.text >> (fn ((x, y), z) => Toplevel.theory (IsarCmd.oracle x y z)));
 
 
 (* local theories *)
@@ -913,14 +914,14 @@ val welcomeP =
   outer_parse.ML, otherwise be prepared for unexpected errors*)
 
 val _ = OuterSyntax.add_keywords
- ["!", "!!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
-  "=", "==", "=>", "?", "[", "]", "advanced", "and", "assumes", "attach",
-  "begin", "binder", "concl", "constrains", "defines", "fixes", "for",
-  "imports", "if", "in", "includes", "infix", "infixl", "infixr",
-  "is", "notes", "obtains", "open", "output", "overloaded", "shows",
-  "structure", "unchecked", "uses", "where", "|", "\\<equiv>",
-  "\\<leftharpoondown>", "\\<rightharpoonup>",
-  "\\<rightleftharpoons>", "\\<subseteq>"];
+ ["!!", "!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
+  "=", "==", "=>", "?", "[", "\\<equiv>", "\\<leftharpoondown>",
+  "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>", "]",
+  "advanced", "and", "assumes", "attach", "begin", "binder", "concl",
+  "constrains", "defines", "fixes", "for", "identifier", "if",
+  "imports", "in", "includes", "infix", "infixl", "infixr", "is",
+  "notes", "obtains", "open", "output", "overloaded", "shows",
+  "structure", "unchecked", "uses", "where", "|"];
 
 val _ = OuterSyntax.add_parsers [
   (*theory structure*)

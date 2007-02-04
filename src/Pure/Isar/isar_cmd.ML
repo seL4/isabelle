@@ -14,13 +14,13 @@ sig
   val typed_print_translation: bool * string -> theory -> theory
   val print_ast_translation: bool * string -> theory -> theory
   val token_translation: string -> theory -> theory
-  val oracle: bstring * string * string -> theory -> theory
+  val oracle: bstring -> string -> string -> theory -> theory
   val add_axioms: ((bstring * string) * Attrib.src list) list -> theory -> theory
   val add_defs: (bool * bool) * ((bstring * string) * Attrib.src list) list -> theory -> theory
   val apply_theorems: (thmref * Attrib.src list) list -> theory -> thm list * theory
   val apply_theorems_i: (thm list * attribute list) list -> theory -> thm list * theory
   val declaration: string -> local_theory -> local_theory
-  val simproc_setup: string * string list * string -> local_theory -> local_theory
+  val simproc_setup: string -> string list -> string -> string list -> local_theory -> local_theory
   val have: ((string * Attrib.src list) * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
   val hence: ((string * Attrib.src list) * (string * string list) list) list ->
@@ -192,10 +192,10 @@ end;
 
 (* oracles *)
 
-fun oracle (name, T, oracle) =
+fun oracle name typ oracle =
   let val txt =
     "local\n\
-    \  type T = " ^ T ^ ";\n\
+    \  type T = " ^ typ ^ ";\n\
     \  val oracle: theory -> T -> term = " ^ oracle ^ ";\n\
     \  val name = " ^ quote name ^ ";\n\
     \  exception Arg of T;\n\
@@ -241,11 +241,12 @@ val declaration =
 
 (* simprocs *)
 
-fun simproc_setup (name, pats, proc) =
+fun simproc_setup name lhss proc identifier =
   ML_Context.use_let
-    "val simproc: Morphism.morphism -> Simplifier.simpset -> cterm -> thm option"
-  ("Context.map_proof (Simplifier.def_simproc " ^ ML_Syntax.print_string name ^ " " ^
-    ML_Syntax.print_list ML_Syntax.print_string pats ^ " simproc)") proc
+    "val proc: Morphism.morphism -> Simplifier.simpset -> cterm -> thm option"
+  ("Context.map_proof (Simplifier.def_simproc {name = " ^ ML_Syntax.print_string name ^ ", \
+    \lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc, \
+    \identifier = Library.maps ML_Context.thms " ^ ML_Syntax.print_strings identifier ^ "})") proc
   |> Context.proof_map;
 
 
