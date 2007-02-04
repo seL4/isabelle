@@ -181,6 +181,8 @@ end;
 structure Thm: THM =
 struct
 
+structure Pt = Proofterm;
+
 
 (*** Certified terms and types ***)
 
@@ -198,11 +200,12 @@ fun may_insert_env_sorts thy (env as Envir.Envir {iTs, ...}) =
 
 (** certified types **)
 
-datatype ctyp = Ctyp of
+abstype ctyp = Ctyp of
  {thy_ref: theory_ref,
   T: typ,
   maxidx: int,
-  sorts: sort list};
+  sorts: sort list}
+with
 
 fun rep_ctyp (Ctyp {thy_ref, T, maxidx, sorts}) =
   let val thy = Theory.deref thy_ref
@@ -233,12 +236,13 @@ fun dest_ctyp (Ctyp {thy_ref, T = Type (s, Ts), maxidx, sorts}) =
 (** certified terms **)
 
 (*certified terms with checked typ, maxidx, and sorts*)
-datatype cterm = Cterm of
+abstype cterm = Cterm of
  {thy_ref: theory_ref,
   t: term,
   T: typ,
   maxidx: int,
-  sorts: sort list};
+  sorts: sort list}
+with
 
 exception CTERM of string;
 
@@ -380,11 +384,9 @@ fun read_cterm thy = #1 o read_def_cterm (thy, K NONE, K NONE) [] true;
 
 (*** Meta theorems ***)
 
-structure Pt = Proofterm;
-
 type tag = string * string list;
 
-datatype thm = Thm of
+abstype thm = Thm of
  {thy_ref: theory_ref,         (*dynamic reference to theory*)
   der: bool * Pt.proof,        (*derivation*)
   tags: tag list,              (*additional annotations/comments*)
@@ -392,7 +394,8 @@ datatype thm = Thm of
   shyps: sort list,            (*sort hypotheses as ordered list*)
   hyps: term list,             (*hypotheses as ordered list*)
   tpairs: (term * term) list,  (*flex-flex pairs*)
-  prop: term};                 (*conclusion*)
+  prop: term}                  (*conclusion*)
+with
 
 (*errors involving theorems*)
 exception THM of string * int * thm list;
@@ -1679,6 +1682,10 @@ fun invoke_oracle_i thy1 name =
 fun invoke_oracle thy =
   invoke_oracle_i thy o NameSpace.intern (Theory.oracle_space thy);
 
+
+end;
+end;
+end;
 end;
 
 structure BasicThm: BASIC_THM = Thm;
