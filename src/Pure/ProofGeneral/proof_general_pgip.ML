@@ -579,9 +579,8 @@ fun askids (Askids vs) =
 
         (* fake one-level nested "subtheories" by picking apart names. *)
         val thms_of_thy =
-            map fst o NameSpace.extern_table o PureThy.theorems_of o ThyInfo.get_theory;
-        val isnested_id =  String.isSubstring NameSpace.separator
-        val immed_thms_of_thy = filter_out isnested_id o thms_of_thy
+            map fst o NameSpace.extern_table o PureThy.theorems_of o ThyInfo.get_theory
+        val immed_thms_of_thy = filter_out NameSpace.is_qualified o thms_of_thy
         fun thy_prefix s = case space_explode NameSpace.separator s of
                                     x::_::_ => SOME x  (* String.find? *)
                                   | _ => NONE
