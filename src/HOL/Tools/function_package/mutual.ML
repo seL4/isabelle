@@ -366,7 +366,7 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {RST, parts, streeR, fq
                      psimps=map expand mpsimps, subset_pinducts=[expand subset_pinduct], simple_pinducts=map expand minducts,
                      cases=expand cases, termination=expand mtermination,
                      domintros=map_option (map expand) domintros,
-                     trsimps=map_option (map expand) trsimps}
+                     trsimps=map_option (map expand) mtrsimps}
     end
       
 
