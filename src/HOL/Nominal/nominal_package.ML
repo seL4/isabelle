@@ -1104,8 +1104,12 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       end) atoms;
 
     val simp_atts = replicate (length new_type_names) [Simplifier.simp_add];
-    val simp_eqvt_atts = replicate (length new_type_names) [Simplifier.simp_add,  EqvtRules.eqvt_add];
 
+	(* Function to add both the simp and eqvt attributes *)
+        (* These two attributes are duplicated on all the types in the mutual nominal datatypes *)
+
+    val simp_eqvt_atts = replicate (length new_type_names) [Simplifier.simp_add, NominalThmDecls.eqvt_add];
+ 
     val (_, thy9) = thy8 |>
       Theory.add_path big_name |>
       PureThy.add_thms [(("induct_weak", dt_induct), [case_names_induct])] ||>>

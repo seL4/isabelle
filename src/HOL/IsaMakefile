@@ -721,9 +721,14 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MIParameters.thy \
 
 HOL-Nominal: HOL $(OUT)/HOL-Nominal
 
-$(OUT)/HOL-Nominal: $(OUT)/HOL Nominal/ROOT.ML Nominal/Nominal.thy		\
-  Nominal/nominal_atoms.ML Nominal/nominal_induct.ML				\
-  Nominal/nominal_package.ML Nominal/nominal_permeq.ML Nominal/nominal_primrec.ML \
+$(OUT)/HOL-Nominal: $(OUT)/HOL Nominal/ROOT.ML \
+  Nominal/Nominal.thy \
+  Nominal/nominal_atoms.ML \
+  Nominal/nominal_induct.ML \				\
+  Nominal/nominal_package.ML \
+  Nominal/nominal_permeq.ML \
+  Nominal/nominal_primrec.ML \
+  Nominal/nominal_thmdecls.ML \
   Library/Infinite_Set.thy
 	@cd Nominal; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-Nominal
 
