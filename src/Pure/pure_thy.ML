@@ -34,6 +34,7 @@ sig
   val has_name_hint: thm -> bool
   val get_name_hint: thm -> string
   val put_name_hint: string -> thm -> thm
+  val has_kind: thm -> bool
   val get_kind: thm -> string
   val kind_rule: string -> thm -> thm
   val kind: string -> attribute
@@ -117,22 +118,26 @@ fun simple_tag name x = tag (name, []) x;
 
 (* unofficial theorem names *)
 
-fun has_name_hint thm = AList.defined (op =) (Thm.get_tags thm) "name";
-
-fun get_name_hint thm =
+fun the_name_hint thm =
   (case AList.lookup (op =) (Thm.get_tags thm) "name" of
     SOME (k :: _) => k
-  | _ => "??.unknown");
+  | _ => raise Option);
+
+val has_name_hint = can the_name_hint;
+val get_name_hint = the_default "??.unknown" o try the_name_hint;
 
 fun put_name_hint name = untag_rule "name" #> tag_rule ("name", [name]);
 
 
 (* theorem kinds *)
 
-fun get_kind thm =
+fun the_kind thm =
   (case AList.lookup (op =) (Thm.get_tags thm) "kind" of
     SOME (k :: _) => k
-  | _ => "??.unknown");
+  | _ => raise Option);
+
+val has_kind = can the_kind;
+val get_kind = the_default "??.unknown" o try the_kind;
 
 fun kind_rule k = tag_rule ("kind", [k]) o untag_rule "kind";
 fun kind k x = if k = "" then x else Thm.rule_attribute (K (kind_rule k)) x;
