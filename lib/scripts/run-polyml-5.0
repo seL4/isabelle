@@ -89,7 +89,7 @@ RC="$?"
 
 if [ -n "$OUTFILE" ]; then
   if [ -e "${OUTFILE}.o" ]; then
-    cc -o "$OUTFILE" "${OUTFILE}.o" -L"$POLYLIB" -lpolymain -lpolyml -lstdc++ || fail_out
+    cc -o "$OUTFILE" "${OUTFILE}.o" -L"$POLYLIB" -lpolymain -lpolyml || fail_out
     rm -f "${OUTFILE}.o"
     [ -e "${OUTFILE}.exe" ] && mv "${OUTFILE}.exe" "$OUTFILE"
   fi
