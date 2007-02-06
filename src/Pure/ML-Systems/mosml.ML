@@ -67,6 +67,9 @@ struct
   structure FileSys = FileSys
 end;
 
+exception Option = Option.Option;
+
+
 (*limit the printing depth*)
 fun print_depth n =
  (Meta.printDepth := n div 2;
@@ -144,7 +147,7 @@ fun use_text _ _ _ txt =
     FileSys.remove tmp_name
   end;
 
-fun use_file _ _ name = PolyML.use name;
+fun use_file _ _ name = use name;
 
 
 
