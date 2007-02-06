@@ -249,7 +249,15 @@ val pretty_imperative_monad_bind =
   let
     fun pretty (pr : CodegenNames.var_ctxt -> fixity -> iterm -> Pretty.T) vars fxy [t1, (v, ty) `|-> t2] =
           pr vars fxy (ICase ((t1, ty), ([(IVar v, t2)])))
-      | pretty _ _ _ _ = error "Bad arguments for imperative monad bind";
+      | pretty pr vars fxy [t1, t2] =
+          let
+            (*this code suffers from the lack of a proper concept for bindings*)
+            val vs = CodegenThingol.fold_varnames cons t2 [];
+            val v = Name.variant vs "x";
+            val vars' = CodegenNames.intro_vars [v] vars;
+            val var = IVar v;
+            val ty = "" `%% []; (*an approximation*)
+          in pr vars' fxy (ICase ((t1, ty), ([(var, t2 `$ var)]))) end;
   in (2, pretty) end;
 
 
