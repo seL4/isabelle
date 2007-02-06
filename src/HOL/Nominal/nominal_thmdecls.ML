@@ -12,7 +12,7 @@
 
 signature NOMINAL_THMDECLS =
 sig
-  val print_eqvtset: Proof.context -> unit
+  val print_data: Proof.context -> unit
   val eqvt_add: attribute
   val eqvt_del: attribute
   val setup: theory -> theory
@@ -27,14 +27,22 @@ structure Data = GenericDataFun
 (
   val name = "HOL/Nominal/eqvt";
   type T = {eqvt:thm list, fresh:thm list, bij:thm list};
-  val empty = {eqvt=[], fresh=[], bij=[]};
+  val empty = ({eqvt=[], fresh=[], bij=[]}:T);
   val extend = I;
-  fun merge _ (r1,r2) = {eqvt  = Drule.merge_rules (#eqvt r1, #eqvt r2), 
-                         fresh = Drule.merge_rules (#fresh r1, #fresh r2), 
-                         bij   = Drule.merge_rules (#bij r1, #bij r2)}
-  fun print context rules =
-    Pretty.writeln (Pretty.big_list "Equivariance lemmas:"
-      (map (ProofContext.pretty_thm (Context.proof_of context)) (#eqvt rules)));
+  fun merge _ (r1:T,r2:T) = {eqvt  = Drule.merge_rules (#eqvt r1, #eqvt r2), 
+                             fresh = Drule.merge_rules (#fresh r1, #fresh r2), 
+                             bij   = Drule.merge_rules (#bij r1, #bij r2)}
+  fun print context (data:T) =
+    let 
+       fun print_aux msg thms =
+         Pretty.writeln (Pretty.big_list msg
+           (map (ProofContext.pretty_thm (Context.proof_of context)) thms))
+    in
+      (print_aux "Equivariance lemmas: " (#eqvt data);
+       print_aux "Freshness lemmas: " (#fresh data);
+       print_aux "Bijection lemmas: " (#bij data))
+    end;
+ 
 );
 
 (* Exception for when a theorem does not conform with form of an equivariance lemma. *)
@@ -48,7 +56,7 @@ structure Data = GenericDataFun
 (* eqality-lemma can be derived. *)
 exception EQVT_FORM;
 
-val print_eqvtset = Data.print o Context.Proof;
+val print_data = Data.print o Context.Proof;
 
 (* FIXME: should be a function in a library *)
 fun mk_permT T = HOLogic.listT (HOLogic.mk_prodT (T, T));
@@ -176,21 +184,12 @@ fun simple_add_del_aux record_access name flag th context =
      Context.mapping (snd o PureThy.add_thmss [((name,(record_access (Data.get context'))),[])]) I context' 
    end
 
-(*
-fun simple_add_del_aux record_access name flag th context = 
-  let 
-     val context' = Data.map th context 
-  in 
-     Context.mapping (snd o PureThy.add_thmss [((name,(record_access (Data.get context'))),[])]) I context'
-  end
-*)
+fun bij_add_del_aux f   = simple_add_del_aux #bij "bij" f
+fun fresh_add_del_aux f = simple_add_del_aux #fresh "fresh" f
 
-val bij_add_del_aux   = simple_add_del_aux #bij "bij"
-val fresh_add_del_aux = simple_add_del_aux #fresh "fresh"
-
-fun eqvt_map f th r  = {eqvt = (f th (#eqvt r)), fresh = #fresh r, bij = #bij r};
-fun fresh_map f th r = {eqvt = #eqvt r, fresh = (f th (#fresh r)), bij = #bij r};
-fun bij_map f th r   = {eqvt = #eqvt r, fresh = #fresh r, bij = (f th (#bij r))};
+fun eqvt_map f th (r:Data.T)  = {eqvt = (f th (#eqvt r)), fresh = #fresh r, bij = #bij r};
+fun fresh_map f th (r:Data.T) = {eqvt = #eqvt r, fresh = (f th (#fresh r)), bij = #bij r};
+fun bij_map f th (r:Data.T)   = {eqvt = #eqvt r, fresh = #fresh r, bij = (f th (#bij r))};
 
 val eqvt_add  = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map Drule.add_rule)); 
 val eqvt_del  = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map Drule.del_rule)); 
