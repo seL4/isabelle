@@ -410,15 +410,14 @@ fun equiv thy (t, u) = matches thy (t, u) andalso matches thy (u, t);
 
 
 (* Does pat match a subterm of obj? *)
-fun matches_subterm thy (pat,obj) =
-  let fun msub(bounds,obj) = matches thy (pat,obj) orelse
-            (case obj of
-              Abs(x,T,t) => let val y = Name.variant bounds x
-                                val f = Free(":" ^ y,T)
-                            in msub(x::bounds,subst_bound(f,t)) end
-            | s$t => msub(bounds,s) orelse msub(bounds,t)
-            | _ => false)
-  in msub([],obj) end;
+fun matches_subterm thy (pat, obj) =
+  let
+    fun msub bounds obj = matches thy (pat, obj) orelse
+      (case obj of
+        Abs (x, T, t) => msub (bounds + 1) (snd (Term.dest_abs (Name.bound bounds, T, t)))
+      | t $ u => msub bounds t orelse msub bounds u
+      | _ => false)
+  in msub 0 obj end;
 
 fun first_order(Abs(_,_,t)) = first_order t
   | first_order(t $ u) = first_order t andalso first_order u andalso
