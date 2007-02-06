@@ -593,9 +593,13 @@ fun askids (Askids vs) =
                | SOME prf => filter (String.isPrefix (unprefix (prf ^ NameSpace.separator) thy))
                                     (thms_of_thy prf))
        val qualified_thms_of_thy = (* for global query with single response *)
+	    (map fst) o NameSpace.dest_table o PureThy.theorems_of o ThyInfo.get_theory; 
+(* da: this version is equivalent to my previous, but splits up theorem sets with names
+   that I can't get to access later with get_thm.  Anyway, would rather use sets.
+   Is above right way to get qualified names in that case?  Filtering required again?
             map PureThy.get_name_hint o filter PureThy.has_name_hint o
-            map snd o PureThy.thms_of o ThyInfo.get_theory;
-    in
+              map snd o PureThy.thms_of o ThyInfo.get_theory; *)
+    in 
         case (thyname,objtype) of
            (NONE, NONE) =>
            setids (idtable ObjFile NONE (ThyInfo.names())) (*FIXME: uris*)
@@ -698,7 +702,7 @@ fun showid (Showid vs) =
             Idvalue { name=name, objtype=objtype,
                       text=[XML.Elem("pgmltext",[],map XML.Text strings)] }
 
-        fun pthm thy name = print_thm (get_thm thy (Name name))
+        fun pthm thy name = map print_thm (get_thms thy (Name name))
     in
         case (thyname, objtype) of
             (_,ObjTheory) =>
