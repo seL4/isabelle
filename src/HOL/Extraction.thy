@@ -49,7 +49,7 @@ end
 *}
 
 lemmas [extraction_expand] =
-  atomize_eq atomize_all atomize_imp atomize_conj
+  meta_spec atomize_eq atomize_all atomize_imp atomize_conj
   allE rev_mp conjE Eq_TrueI Eq_FalseI eqTrueI eqTrueE eq_cong2
   notE' impE' impE iffE imp_cong simp_thms eq_True eq_False
   induct_forall_eq induct_implies_eq induct_equal_eq induct_conj_eq
