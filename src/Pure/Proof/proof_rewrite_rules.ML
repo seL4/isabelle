@@ -12,6 +12,8 @@ sig
   val rewrite_terms : (term -> term) -> Proofterm.proof -> Proofterm.proof
   val elim_defs : theory -> bool -> thm list -> Proofterm.proof -> Proofterm.proof
   val elim_vars : (typ -> term) -> Proofterm.proof -> Proofterm.proof
+  val hhf_proof : term -> term -> Proofterm.proof -> Proofterm.proof
+  val un_hhf_proof : term -> term -> Proofterm.proof -> Proofterm.proof
 end;
 
 structure ProofRewriteRules : PROOF_REWRITE_RULES =
@@ -280,6 +282,46 @@ fun elim_vars mk_default prf =
   in
     map_proof_terms (fn t =>
       if Term.exists_subterm hidden_variable t then Envir.beta_norm (elim_varst t) else t) I prf
+  end;
+
+
+(**** convert between hhf and non-hhf form ****)
+
+fun hhf_proof P Q prf =
+  let
+    val params = Logic.strip_params Q;
+    val Hs = Logic.strip_assums_hyp P;
+    val Hs' = Logic.strip_assums_hyp Q;
+    val k = length Hs;
+    val l = length params;
+    fun mk_prf i j Hs Hs' (Const ("all", _) $ Abs (_, _, P)) prf =
+          mk_prf i (j - 1) Hs Hs' P (prf %> Bound j)
+      | mk_prf i j (H :: Hs) (H' :: Hs') (Const ("==>", _) $ _ $ P) prf =
+          mk_prf (i - 1) j Hs Hs' P (prf %% un_hhf_proof H' H (PBound i))
+      | mk_prf _ _ _ _ _ prf = prf
+  in
+    prf |> Proofterm.incr_pboundvars k l |> mk_prf (k - 1) (l - 1) Hs Hs' P |>
+    fold_rev (fn P => fn prf => AbsP ("H", SOME P, prf)) Hs' |>
+    fold_rev (fn (s, T) => fn prf => Abst (s, SOME T, prf)) params
+  end
+and un_hhf_proof P Q prf =
+  let
+    val params = Logic.strip_params Q;
+    val Hs = Logic.strip_assums_hyp P;
+    val Hs' = Logic.strip_assums_hyp Q;
+    val k = length Hs;
+    val l = length params;
+    fun mk_prf (Const ("all", _) $ Abs (s, T, P)) prf =
+          Abst (s, SOME T, mk_prf P prf)
+      | mk_prf (Const ("==>", _) $ P $ Q) prf =
+          AbsP ("H", SOME P, mk_prf Q prf)
+      | mk_prf _ prf = prf
+  in
+    prf |> Proofterm.incr_pboundvars k l |>
+    fold (fn i => fn prf => prf %> Bound i) (l - 1 downto 0) |>
+    fold (fn ((H, H'), i) => fn prf => prf %% hhf_proof H' H (PBound i))
+      (Hs ~~ Hs' ~~ (k - 1 downto 0)) |>
+    mk_prf Q
   end;
 
 end;
