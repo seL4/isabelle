@@ -27,7 +27,7 @@ apply simp
 apply (case_tac "ref_ty")
 apply (clarsimp simp add: conf_def)
 apply simp
-apply (ind_cases "G \<turnstile> Class cname \<preceq>? Class D", simp) 
+apply (ind_cases2 "G \<turnstile> Class cname \<preceq>? Class D" for cname, simp)
 apply (rule conf_widen, assumption+) apply (erule widen.subcls)
 
 apply (unfold cast_ok_def)
@@ -205,7 +205,7 @@ apply( unfold c_hupd_def)
 -- "several simplifications, XcptE, XcptEs, XcptS, Skip, Nil??"
 apply( simp_all)
 apply( tactic "ALLGOALS strip_tac")
-apply( tactic {* ALLGOALS (eresolve_tac (thms "ty_expr_ty_exprs_wt_stmt.elims") 
+apply( tactic {* ALLGOALS (eresolve_tac [thm "ty_expr.cases", thm "ty_exprs.cases", thm "wt_stmt.cases"]
                  THEN_ALL_NEW Full_simp_tac) *})
 apply(tactic "ALLGOALS (EVERY' [REPEAT o (etac conjE), REPEAT o hyp_subst_tac])")
 
@@ -222,7 +222,7 @@ apply( clarsimp)
 apply( rule conjI)
 apply(  force elim!: NewC_conforms)
 apply( rule conf_obj_AddrI)
-apply(  rule_tac [2] rtrancl_refl)
+apply(  rule_tac [2] rtrancl.rtrancl_refl)
 apply( simp (no_asm))
 
 -- "for Cast"
@@ -245,22 +245,22 @@ apply simp
 apply( fast elim: conforms_localD [THEN lconfD])
 
 -- "for FAss"
-apply( tactic {* EVERY'[eresolve_tac (thms "ty_expr_ty_exprs_wt_stmt.elims") 
+apply( tactic {* EVERY'[eresolve_tac [thm "ty_expr.cases", thm "ty_exprs.cases", thm "wt_stmt.cases"] 
        THEN_ALL_NEW Full_simp_tac, REPEAT o (etac conjE), hyp_subst_tac] 3*})
 
 -- "for if"
-apply( tactic {* (case_tac "the_Bool v" THEN_ALL_NEW Asm_full_simp_tac) 8*})
+apply( tactic {* (case_tac "the_Bool v" THEN_ALL_NEW Asm_full_simp_tac) 7*})
 
 apply (tactic "forward_hyp_tac")
 
 -- "11+1 if"
-prefer 8
+prefer 7
 apply(  fast intro: hext_trans)
-prefer 8
+prefer 7
 apply(  fast intro: hext_trans)
 
 -- "10 Expr"
-prefer 7
+prefer 6
 apply( fast)
 
 -- "9 ???"
@@ -280,7 +280,7 @@ apply (rule conjI)
 
 -- "7 LAss"
 apply (fold fun_upd_def)
-apply( tactic {* (eresolve_tac (thms "ty_expr_ty_exprs_wt_stmt.elims") 
+apply( tactic {* (eresolve_tac [thm "ty_expr.cases", thm "ty_exprs.cases", thm "wt_stmt.cases"] 
                  THEN_ALL_NEW Full_simp_tac) 1 *})
 apply (intro strip)
 apply (case_tac E)
@@ -315,7 +315,7 @@ apply( fast dest: evals_no_xcpt intro: conf_hext hext_trans)
 
 
 -- "2 FAss"
-apply (subgoal_tac "(np a' x1, ab, ba) ::\<preceq> (G, lT)")
+apply (subgoal_tac "(np a' x1, aa, ba) ::\<preceq> (G, lT)")
   prefer 2
   apply (simp add: np_def)
   apply (fast intro: conforms_xcpt_change xconf_raise_if)

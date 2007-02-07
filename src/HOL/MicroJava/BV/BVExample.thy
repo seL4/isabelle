@@ -65,27 +65,27 @@ lemma E_classes [simp]:
 
 text {* The subclass releation spelled out: *}
 lemma subcls1:
-  "subcls1 E = {(list_name,Object), (test_name,Object), (Xcpt NullPointer, Object),
+  "subcls1 E = member2 {(list_name,Object), (test_name,Object), (Xcpt NullPointer, Object),
                 (Xcpt ClassCast, Object), (Xcpt OutOfMemory, Object)}"
   apply (simp add: subcls1_def2)
   apply (simp add: name_defs class_defs system_defs E_def class_def)
-  apply (auto split: split_if_asm)
+  apply (auto simp: member2_inject split: split_if_asm)
   done
 
 text {* The subclass relation is acyclic; hence its converse is well founded: *}
 lemma notin_rtrancl:
-  "(a,b) \<in> r\<^sup>* \<Longrightarrow> a \<noteq> b \<Longrightarrow> (\<And>y. (a,y) \<notin> r) \<Longrightarrow> False"
-  by (auto elim: converse_rtranclE)  
+  "r\<^sup>*\<^sup>* a b \<Longrightarrow> a \<noteq> b \<Longrightarrow> (\<And>y. \<not> r a y) \<Longrightarrow> False"
+  by (auto elim: converse_rtranclE')
 
-lemma acyclic_subcls1_E: "acyclic (subcls1 E)"
-  apply (rule acyclicI)
+lemma acyclic_subcls1_E: "acyclicP (subcls1 E)"
+  apply (rule acyclicI [to_pred])
   apply (simp add: subcls1)
-  apply (auto dest!: tranclD)
+  apply (auto dest!: tranclD')
   apply (auto elim!: notin_rtrancl simp add: name_defs distinct_classes)
   done
 
-lemma wf_subcls1_E: "wf ((subcls1 E)\<inverse>)"
-  apply (rule finite_acyclic_wf_converse)
+lemma wf_subcls1_E: "wfP ((subcls1 E)\<inverse>\<inverse>)"
+  apply (rule finite_acyclic_wf_converse [to_pred])
   apply (simp add: subcls1)
   apply (rule acyclic_subcls1_E)
   done  
@@ -431,8 +431,6 @@ lemma [code]:
   apply simp+
   done
 
-lemmas [code] = lessThan_0 lessThan_Suc
-
 constdefs
   some_elem :: "'a set \<Rightarrow> 'a"
   "some_elem == (%S. SOME x. x : S)"
@@ -464,7 +462,7 @@ lemmas [code] =
   meta_eq_to_obj_eq [OF JType.sup_def [unfolded exec_lub_def]]
   meta_eq_to_obj_eq [OF JVM_le_unfold]
 
-lemmas [code ind] = rtrancl_refl converse_rtrancl_into_rtrancl
+lemmas [code ind] = rtrancl.rtrancl_refl converse_rtrancl_into_rtrancl'
 
 code_module BV
 contains

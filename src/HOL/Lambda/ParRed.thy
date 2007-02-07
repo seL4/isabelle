@@ -14,21 +14,14 @@ theory ParRed imports Lambda Commutation begin
 
 subsection {* Parallel reduction *}
 
-consts
-  par_beta :: "(dB \<times> dB) set"
-
-abbreviation
-  par_beta_red :: "[dB, dB] => bool"  (infixl "=>" 50) where
-  "s => t == (s, t) \<in> par_beta"
-
-inductive par_beta
-  intros
+inductive2 par_beta :: "[dB, dB] => bool"  (infixl "=>" 50)
+  where
     var [simp, intro!]: "Var n => Var n"
-    abs [simp, intro!]: "s => t ==> Abs s => Abs t"
-    app [simp, intro!]: "[| s => s'; t => t' |] ==> s \<degree> t => s' \<degree> t'"
-    beta [simp, intro!]: "[| s => s'; t => t' |] ==> (Abs s) \<degree> t => s'[t'/0]"
+  | abs [simp, intro!]: "s => t ==> Abs s => Abs t"
+  | app [simp, intro!]: "[| s => s'; t => t' |] ==> s \<degree> t => s' \<degree> t'"
+  | beta [simp, intro!]: "[| s => s'; t => t' |] ==> (Abs s) \<degree> t => s'[t'/0]"
 
-inductive_cases par_beta_cases [elim!]:
+inductive_cases2 par_beta_cases [elim!]:
   "Var n => t"
   "Abs s => Abs t"
   "(Abs s) \<degree> t => u"
@@ -48,18 +41,16 @@ lemma par_beta_refl [simp]: "t => t"  (* par_beta_refl [intro!] causes search to
   by (induct t) simp_all
 
 lemma beta_subset_par_beta: "beta <= par_beta"
-  apply (rule subsetI)
-  apply clarify
+  apply (rule predicate2I)
   apply (erule beta.induct)
      apply (blast intro!: par_beta_refl)+
   done
 
-lemma par_beta_subset_beta: "par_beta <= beta^*"
-  apply (rule subsetI)
-  apply clarify
+lemma par_beta_subset_beta: "par_beta <= beta^**"
+  apply (rule predicate2I)
   apply (erule par_beta.induct)
      apply blast
-    apply (blast del: rtrancl_refl intro: rtrancl_into_rtrancl)+
+    apply (blast del: rtrancl.rtrancl_refl intro: rtrancl.rtrancl_into_rtrancl)+
       -- {* @{thm[source] rtrancl_refl} complicates the proof by increasing the branching factor *}
   done
 

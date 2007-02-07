@@ -14,14 +14,14 @@ declare wf_prog_ws_prog [simp add]
 (* If no exception is present after evaluation/execution, 
   none can have been present before *)
 lemma eval_evals_exec_xcpt:
- "((xs,ex,val,xs') \<in> Eval.eval G \<longrightarrow> gx xs' = None \<longrightarrow> gx xs = None) \<and>
-  ((xs,exs,vals,xs') \<in> Eval.evals G \<longrightarrow> gx xs' = None \<longrightarrow> gx xs = None) \<and>
-  ((xs,st,xs') \<in> Eval.exec G \<longrightarrow> gx xs' = None \<longrightarrow> gx xs = None)"
+ "(G \<turnstile> xs -ex\<succ>val-> xs' \<longrightarrow> gx xs' = None \<longrightarrow> gx xs = None) \<and>
+  (G \<turnstile> xs -exs[\<succ>]vals-> xs' \<longrightarrow> gx xs' = None \<longrightarrow> gx xs = None) \<and>
+  (G \<turnstile> xs -st-> xs' \<longrightarrow> gx xs' = None \<longrightarrow> gx xs = None)"
 by (induct rule: eval_evals_exec.induct, auto)
 
 
 (* instance of eval_evals_exec_xcpt for eval *)
-lemma eval_xcpt: "(xs,ex,val,xs') \<in> Eval.eval G \<Longrightarrow> gx xs' = None \<Longrightarrow> gx xs = None"
+lemma eval_xcpt: "G \<turnstile> xs -ex\<succ>val-> xs' \<Longrightarrow> gx xs' = None \<Longrightarrow> gx xs = None"
  (is "?H1 \<Longrightarrow> ?H2 \<Longrightarrow> ?T")
 proof-
   assume h1: ?H1
@@ -30,7 +30,7 @@ proof-
 qed
 
 (* instance of eval_evals_exec_xcpt for evals *)
-lemma evals_xcpt: "(xs,exs,vals,xs') \<in> Eval.evals G \<Longrightarrow> gx xs' = None \<Longrightarrow> gx xs = None"
+lemma evals_xcpt: "G \<turnstile> xs -exs[\<succ>]vals-> xs' \<Longrightarrow> gx xs' = None \<Longrightarrow> gx xs = None"
  (is "?H1 \<Longrightarrow> ?H2 \<Longrightarrow> ?T")
 proof-
   assume h1: ?H1
@@ -39,7 +39,7 @@ proof-
 qed
 
 (* instance of eval_evals_exec_xcpt for exec *)
-lemma exec_xcpt: "(xs,st,xs') \<in> Eval.exec G \<Longrightarrow> gx xs' = None \<Longrightarrow> gx xs = None"
+lemma exec_xcpt: "G \<turnstile> xs -st-> xs' \<Longrightarrow> gx xs' = None \<Longrightarrow> gx xs = None"
  (is "?H1 \<Longrightarrow> ?H2 \<Longrightarrow> ?T")
 proof-
   assume h1: ?H1
@@ -404,7 +404,7 @@ lemma wtpd_expr_call: "wtpd_expr E ({C}a..mn({pTs'}ps))
        E\<turnstile>ps[::]pTs & max_spec (prg E) C (mn, pTs) = {((md,rT),pTs')})"
 apply (simp only: wtpd_expr_def wtpd_exprs_def)
 apply (erule exE)
-apply (ind_cases "E \<turnstile> {C}a..mn( {pTs'}ps) :: T")
+apply (ind_cases2 "E \<turnstile> {C}a..mn( {pTs'}ps) :: T" for T)
 apply (auto simp: max_spec_preserves_length)
 done
 
@@ -437,7 +437,7 @@ apply (subgoal_tac
   "\<forall> xs'. (G \<turnstile> xk -xj\<succ>xi-> xh \<longrightarrow> True) & 
   (G\<turnstile> xs -es[\<succ>]vs-> xs' \<longrightarrow>  (\<exists> s. (xs' = (None, s))) \<longrightarrow> 
   length es = length vs) &
-  ((xc, xb, xa) \<in> Eval.exec G \<longrightarrow> True)")
+  (G \<turnstile> xc -xb-> xa \<longrightarrow> True)")
 apply blast
 apply (rule allI)
 apply (rule Eval.eval_evals_exec.induct)
@@ -576,7 +576,7 @@ apply (auto intro: eval_type_sound [THEN conjunct1])
 done
 
 lemma state_ok_evals: "\<lbrakk>xs::\<preceq>E; wf_java_prog (prg E); wtpd_exprs E es;
-  (xs,es,vs,xs') \<in> Eval.evals (prg E)\<rbrakk> \<Longrightarrow> xs'::\<preceq>E"
+  prg E \<turnstile> xs -es[\<succ>]vs-> xs'\<rbrakk> \<Longrightarrow> xs'::\<preceq>E"
 apply (simp only: wtpd_exprs_def)
 apply (erule exE)
 apply (case_tac xs) apply (case_tac xs')
@@ -584,7 +584,7 @@ apply (auto intro: evals_type_sound [THEN conjunct1])
 done
 
 lemma state_ok_exec: "\<lbrakk>xs::\<preceq>E; wf_java_prog (prg E); wtpd_stmt E st;
-  (xs,st,xs') \<in> Eval.exec (prg E)\<rbrakk> \<Longrightarrow>  xs'::\<preceq>E"
+  prg E \<turnstile> xs -st-> xs'\<rbrakk> \<Longrightarrow>  xs'::\<preceq>E"
 apply (simp only: wtpd_stmt_def)
 apply (case_tac xs', case_tac xs)
 apply (auto dest: exec_type_sound)
@@ -618,13 +618,13 @@ apply (rule list.induct)
 apply simp
 apply (rule allI)
 apply (rule iffI)
-  apply (ind_cases "E \<turnstile> [] [::] Ts", assumption)
+  apply (ind_cases2 "E \<turnstile> [] [::] Ts" for Ts, assumption)
   apply simp apply (rule WellType.Nil)
 apply (simp add: list_all2_Cons1)
 apply (rule allI)
 apply (rule iffI)
   apply (rename_tac a exs Ts)
-  apply (ind_cases "E \<turnstile> a # exs  [::] Ts") apply blast
+  apply (ind_cases2 "E \<turnstile> a # exs  [::] Ts" for a exs Ts) apply blast
   apply (auto intro: WellType.Cons)
 done
 
@@ -718,7 +718,7 @@ done
 (* 2. possibly skip env_of_jmb ??? *)
 theorem compiler_correctness: 
   "wf_java_prog G \<Longrightarrow>
-  ((xs,ex,val,xs') \<in> Eval.eval G \<longrightarrow>
+  (G \<turnstile> xs -ex\<succ>val-> xs' \<longrightarrow>
   gx xs = None \<longrightarrow> gx xs' = None \<longrightarrow>
   (\<forall> os CL S.
   (class_sig_defined G CL S) \<longrightarrow> 
@@ -729,7 +729,7 @@ theorem compiler_correctness:
     >- (compExpr (gmb G CL S) ex) \<rightarrow>
     {gh xs', val#os, locvars_xstate G CL S xs'}))) \<and> 
 
- ((xs,exs,vals,xs') \<in> Eval.evals G \<longrightarrow>
+ (G \<turnstile> xs -exs[\<succ>]vals-> xs' \<longrightarrow>
   gx xs = None \<longrightarrow> gx xs' = None \<longrightarrow>
   (\<forall> os CL S.
   (class_sig_defined G CL S) \<longrightarrow> 
@@ -740,7 +740,7 @@ theorem compiler_correctness:
     >- (compExprs (gmb G CL S) exs) \<rightarrow>
     {gh xs', (rev vals)@os, (locvars_xstate G CL S xs')}))) \<and> 
 
-  ((xs,st,xs') \<in> Eval.exec G \<longrightarrow>
+  (G \<turnstile> xs -st-> xs' \<longrightarrow>
    gx xs = None \<longrightarrow> gx xs' = None \<longrightarrow>
   (\<forall> os CL S.
   (class_sig_defined G CL S) \<longrightarrow> 
@@ -1189,7 +1189,7 @@ apply (rule widen_Class_Class [THEN iffD1], rule widen.refl)
   (* show list_all2 (conf G h) pvs pTs *)
 apply (erule exE)+ apply (erule conjE)+
 apply (rule_tac Ts="pTsa" in conf_list_gext_widen) apply assumption
-apply (subgoal_tac "((gx s1, gs s1), ps, pvs, x, h, l) \<in> evals G")
+apply (subgoal_tac "G \<turnstile> (gx s1, gs s1) -ps[\<succ>]pvs-> (x, h, l)")
 apply (frule_tac E="env_of_jmb G CL S" in evals_type_sound)
 apply assumption+
 apply (simp only: env_of_jmb_fst) 
@@ -1247,7 +1247,7 @@ apply (auto simp: gh_def gx_def gs_def gl_def locvars_xstate_def)
 done
 
 theorem compiler_correctness_exec: "
-  \<lbrakk> ((None,hp,loc), st, (None,hp',loc')) \<in> Eval.exec G;
+  \<lbrakk> G \<turnstile> Norm (hp, loc) -st-> Norm (hp', loc');
   wf_java_prog G;
   class_sig_defined G C S;
   wtpd_stmt (env_of_jmb G C S) st;

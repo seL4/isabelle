@@ -193,7 +193,7 @@ theorem sup_ty_opt_OK:
 
 lemma widen_PrimT_conv1 [simp]:
   "\<lbrakk> G \<turnstile> S \<preceq> T; S = PrimT x\<rbrakk> \<Longrightarrow> T = PrimT x"
-  by (auto elim: widen.elims)
+  by (auto elim: widen.cases)
 
 theorem sup_PTS_eq:
   "(G \<turnstile> OK (PrimT p) <=o X) = (X=Err \<or> X = OK (PrimT p))"

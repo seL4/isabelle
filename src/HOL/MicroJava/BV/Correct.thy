@@ -224,7 +224,7 @@ lemma approx_stk_append:
   by (simp add: list_all2_append2 approx_stk_def approx_loc_def)
 
 lemma approx_stk_all_widen:
-  "\<lbrakk> approx_stk G hp stk ST; \<forall>x \<in> set (zip ST ST'). x \<in> widen G; length ST = length ST'; wf_prog wt G \<rbrakk> 
+  "\<lbrakk> approx_stk G hp stk ST; \<forall>(x, y) \<in> set (zip ST ST'). G \<turnstile> x \<preceq> y; length ST = length ST'; wf_prog wt G \<rbrakk> 
   \<Longrightarrow> approx_stk G hp stk ST'"
 apply (unfold approx_stk_def)
 apply (clarsimp simp add: approx_loc_conv_all_nth all_set_conv_all_nth)

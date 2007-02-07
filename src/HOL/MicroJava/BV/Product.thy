@@ -51,8 +51,8 @@ done
 lemma acc_le_prodI [intro!]:
   "\<lbrakk> acc rA; acc rB \<rbrakk> \<Longrightarrow> acc(Product.le rA rB)"
 apply (unfold acc_def)
-apply (rule wf_subset)
- apply (erule wf_lex_prod)
+apply (rule wfP_subset)
+ apply (erule wf_lex_prod [to_pred, THEN wfP_wf_eq [THEN iffD2]])
  apply assumption
 apply (auto simp add: lesssub_def less_prod_Pair_conv lex_prod_def)
 done

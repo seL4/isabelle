@@ -10,7 +10,7 @@ theory EffectMono imports Effect begin
 
 
 lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"
-  by (auto elim: widen.elims)
+  by (auto elim: widen.cases)
 
 
 lemma sup_loc_some [rule_format]:
@@ -42,7 +42,7 @@ qed
 
 lemma all_widen_is_sup_loc:
 "\<forall>b. length a = length b \<longrightarrow> 
-     (\<forall>x\<in>set (zip a b). x \<in> widen G) = (G \<turnstile> (map OK a) <=l (map OK b))" 
+     (\<forall>(x, y)\<in>set (zip a b). G \<turnstile> x \<preceq> y) = (G \<turnstile> (map OK a) <=l (map OK b))" 
  (is "\<forall>b. length a = length b \<longrightarrow> ?Q a b" is "?P a")
 proof (induct "a")
   show "?P []" by simp
@@ -219,7 +219,7 @@ proof -
         l:  "length apTs = length list" and
         c:  "is_class G cname" and
         C:  "G \<turnstile> X \<preceq> Class cname" and
-        w:  "\<forall>x \<in> set (zip apTs list). x \<in> widen G" and
+        w:  "\<forall>(x, y) \<in> set (zip apTs list). G \<turnstile> x \<preceq> y" and
         m:  "method (G, cname) (mname, list) = Some (mD', rT', b')" and
         x:  "\<forall>C \<in> set (match_any G pc et). is_class G C"
         by (simp del: not_None_eq, elim exE conjE) (rule that)
@@ -261,7 +261,7 @@ proof -
       have "G \<turnstile> map OK apTs' <=l map OK list" .
 
       with l'
-      have w': "\<forall>x \<in> set (zip apTs' list). x \<in> widen G"
+      have w': "\<forall>(x, y) \<in> set (zip apTs' list). G \<turnstile> x \<preceq> y"
         by (simp add: all_widen_is_sup_loc)
 
       from Invoke s2 l' w' C' m c x

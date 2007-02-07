@@ -155,7 +155,7 @@ by(simp add: err_semilat_eslI_aux split_tupled_all)
 
 lemma acc_err [simp, intro!]:  "acc r \<Longrightarrow> acc(le r)"
 apply (unfold acc_def lesub_def le_def lesssub_def)
-apply (simp add: wf_eq_minimal split: err.split)
+apply (simp add: wfP_eq_minimal split: err.split)
 apply clarify
 apply (case_tac "Err : Q")
  apply blast

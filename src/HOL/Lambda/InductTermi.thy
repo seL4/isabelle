@@ -14,21 +14,18 @@ theory InductTermi imports ListBeta begin
 
 subsection {* Terminating lambda terms *}
 
-consts
-  IT :: "dB set"
-
-inductive IT
-  intros
-    Var [intro]: "rs : lists IT ==> Var n \<degree>\<degree> rs : IT"
-    Lambda [intro]: "r : IT ==> Abs r : IT"
-    Beta [intro]: "(r[s/0]) \<degree>\<degree> ss : IT ==> s : IT ==> (Abs r \<degree> s) \<degree>\<degree> ss : IT"
+inductive2 IT :: "dB => bool"
+  where
+    Var [intro]: "listsp IT rs ==> IT (Var n \<degree>\<degree> rs)"
+  | Lambda [intro]: "IT r ==> IT (Abs r)"
+  | Beta [intro]: "IT ((r[s/0]) \<degree>\<degree> ss) ==> IT s ==> IT ((Abs r \<degree> s) \<degree>\<degree> ss)"
 
 
 subsection {* Every term in IT terminates *}
 
 lemma double_induction_lemma [rule_format]:
-  "s : termi beta ==> \<forall>t. t : termi beta -->
-    (\<forall>r ss. t = r[s/0] \<degree>\<degree> ss --> Abs r \<degree> s \<degree>\<degree> ss : termi beta)"
+  "termi beta s ==> \<forall>t. termi beta t -->
+    (\<forall>r ss. t = r[s/0] \<degree>\<degree> ss --> termi beta (Abs r \<degree> s \<degree>\<degree> ss))"
   apply (erule acc_induct)
   apply (rule allI)
   apply (rule impI)
@@ -39,17 +36,15 @@ lemma double_induction_lemma [rule_format]:
   apply (safe elim!: apps_betasE)
      apply assumption
     apply (blast intro: subst_preserves_beta apps_preserves_beta)
-   apply (blast intro: apps_preserves_beta2 subst_preserves_beta2 rtrancl_converseI
+   apply (blast intro: apps_preserves_beta2 subst_preserves_beta2 rtrancl_converseI'
      dest: acc_downwards)  (* FIXME: acc_downwards can be replaced by acc(R ^* ) = acc(r) *)
   apply (blast dest: apps_preserves_betas)
   done
 
-lemma IT_implies_termi: "t : IT ==> t : termi beta"
+lemma IT_implies_termi: "IT t ==> termi beta t"
   apply (induct set: IT)
-    apply (drule rev_subsetD)
-     apply (rule lists_mono)
-     apply (rule Int_lower2)
-    apply simp
+    apply (drule rev_predicate1D [OF _ listsp_mono [where B="termi beta"]])
+    apply fast
     apply (drule lists_accD)
     apply (erule acc_induct)
     apply (rule accI)
@@ -72,12 +67,12 @@ lemma [simp]:
   "(Abs r \<degree> s \<degree>\<degree> ss = Abs r' \<degree> s' \<degree>\<degree> ss') = (r = r' \<and> s = s' \<and> ss = ss')"
   by (simp add: foldl_Cons [symmetric] del: foldl_Cons)
 
-inductive_cases [elim!]:
-  "Var n \<degree>\<degree> ss : IT"
-  "Abs t : IT"
-  "Abs r \<degree> s \<degree>\<degree> ts : IT"
+inductive_cases2 [elim!]:
+  "IT (Var n \<degree>\<degree> ss)"
+  "IT (Abs t)"
+  "IT (Abs r \<degree> s \<degree>\<degree> ts)"
 
-theorem termi_implies_IT: "r : termi beta ==> r : IT"
+theorem termi_implies_IT: "termi beta r ==> IT r"
   apply (erule acc_induct)
   apply (rename_tac r)
   apply (erule thin_rl)
@@ -90,8 +85,8 @@ theorem termi_implies_IT: "r : termi beta ==> r : IT"
    apply (drule bspec, assumption)
    apply (erule mp)
    apply clarify
-   apply (drule converseI)
-   apply (drule ex_step1I, assumption)
+   apply (drule_tac r=beta in conversepI)
+   apply (drule_tac r="beta^--1" in ex_step1I, assumption)
    apply clarify
    apply (rename_tac us)
    apply (erule_tac x = "Var n \<degree>\<degree> us" in allE)

@@ -402,7 +402,7 @@ apply(clarsimp simp add: stables_def split_paired_all)
 -- "Well-foundedness of the termination relation:"
 apply (rule wf_lex_prod)
  apply (insert orderI [THEN acc_le_listI])
- apply (simp only: acc_def lesssub_def)
+ apply (simp add: acc_def lesssub_def wfP_wf_eq [symmetric])
 apply (rule wf_finite_psubset) 
 
 -- "Loop decreases along termination relation:"

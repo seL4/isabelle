@@ -272,7 +272,7 @@ done
 lemma acc_le_optI [intro!]:
   "acc r \<Longrightarrow> acc(le r)"
 apply (unfold acc_def lesub_def le_def lesssub_def)
-apply (simp add: wf_eq_minimal split: option.split)
+apply (simp add: wfP_eq_minimal split: option.split)
 apply clarify
 apply (case_tac "? a. Some a : Q")
  apply (erule_tac x = "{a . Some a : Q}" in allE)

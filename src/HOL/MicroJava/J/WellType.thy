@@ -106,74 +106,57 @@ types
   java_mb = "vname list \<times> (vname \<times> ty) list \<times> stmt \<times> expr"
 -- "method body with parameter names, local variables, block, result expression."
 -- "local variables might include This, which is hidden anyway"
-
-consts
-  ty_expr :: "('c env \<times> expr      \<times> ty     ) set"
-  ty_exprs:: "('c env \<times> expr list \<times> ty list) set"
-  wt_stmt :: "('c env \<times> stmt               ) set"
-
-syntax (xsymbols)
-  ty_expr :: "'c env => [expr     , ty     ] => bool" ("_ \<turnstile> _ :: _"   [51,51,51]50)
-  ty_exprs:: "'c env => [expr list, ty list] => bool" ("_ \<turnstile> _ [::] _" [51,51,51]50)
-  wt_stmt :: "'c env =>  stmt                => bool" ("_ \<turnstile> _ \<surd>"      [51,51   ]50)
-
-syntax
-  ty_expr :: "'c env => [expr     , ty     ] => bool" ("_ |- _ :: _"   [51,51,51]50)
-  ty_exprs:: "'c env => [expr list, ty list] => bool" ("_ |- _ [::] _" [51,51,51]50)
-  wt_stmt :: "'c env =>  stmt                => bool" ("_ |- _ [ok]"   [51,51   ]50)
-
-
-translations
-  "E\<turnstile>e :: T" == "(E,e,T) \<in> ty_expr"
-  "E\<turnstile>e[::]T" == "(E,e,T) \<in> ty_exprs"
-  "E\<turnstile>c \<surd>"    == "(E,c)   \<in> wt_stmt"
   
-inductive "ty_expr" "ty_exprs" "wt_stmt" intros
+inductive2
+  ty_expr :: "'c env => expr => ty => bool" ("_ \<turnstile> _ :: _" [51, 51, 51] 50)
+  and ty_exprs :: "'c env => expr list => ty list => bool" ("_ \<turnstile> _ [::] _" [51, 51, 51] 50)
+  and wt_stmt :: "'c env => stmt => bool" ("_ \<turnstile> _ \<surd>" [51, 51] 50)
+where
   
   NewC: "[| is_class (prg E) C |] ==>
          E\<turnstile>NewC C::Class C"  -- "cf. 15.8"
 
   -- "cf. 15.15"
-  Cast: "[| E\<turnstile>e::C; is_class (prg E) D;
+| Cast: "[| E\<turnstile>e::C; is_class (prg E) D;
             prg E\<turnstile>C\<preceq>? Class D |] ==>
          E\<turnstile>Cast D e:: Class D"
 
   -- "cf. 15.7.1"
-  Lit:    "[| typeof (\<lambda>v. None) x = Some T |] ==>
+| Lit:    "[| typeof (\<lambda>v. None) x = Some T |] ==>
          E\<turnstile>Lit x::T"
 
   
   -- "cf. 15.13.1"
-  LAcc: "[| localT E v = Some T; is_type (prg E) T |] ==>
+| LAcc: "[| localT E v = Some T; is_type (prg E) T |] ==>
          E\<turnstile>LAcc v::T"
 
-  BinOp:"[| E\<turnstile>e1::T;
+| BinOp:"[| E\<turnstile>e1::T;
             E\<turnstile>e2::T;
             if bop = Eq then T' = PrimT Boolean
                         else T' = T \<and> T = PrimT Integer|] ==>
             E\<turnstile>BinOp bop e1 e2::T'"
 
   -- "cf. 15.25, 15.25.1"
-  LAss: "[| v ~= This;
+| LAss: "[| v ~= This;
             E\<turnstile>LAcc v::T;
             E\<turnstile>e::T';
             prg E\<turnstile>T'\<preceq>T |] ==>
          E\<turnstile>v::=e::T'"
 
   -- "cf. 15.10.1"
-  FAcc: "[| E\<turnstile>a::Class C; 
+| FAcc: "[| E\<turnstile>a::Class C; 
             field (prg E,C) fn = Some (fd,fT) |] ==>
             E\<turnstile>{fd}a..fn::fT"
 
   -- "cf. 15.25, 15.25.1"
-  FAss: "[| E\<turnstile>{fd}a..fn::T;
+| FAss: "[| E\<turnstile>{fd}a..fn::T;
             E\<turnstile>v        ::T';
             prg E\<turnstile>T'\<preceq>T |] ==>
          E\<turnstile>{fd}a..fn:=v::T'"
 
 
   -- "cf. 15.11.1, 15.11.2, 15.11.3"
-  Call: "[| E\<turnstile>a::Class C;
+| Call: "[| E\<turnstile>a::Class C;
             E\<turnstile>ps[::]pTs;
             max_spec (prg E) C (mn, pTs) = {((md,rT),pTs')} |] ==>
          E\<turnstile>{C}a..mn({pTs'}ps)::rT"
@@ -181,32 +164,32 @@ inductive "ty_expr" "ty_exprs" "wt_stmt" intros
 -- "well-typed expression lists"
 
   -- "cf. 15.11.???"
-  Nil: "E\<turnstile>[][::][]"
+| Nil: "E\<turnstile>[][::][]"
 
   -- "cf. 15.11.???"
-  Cons:"[| E\<turnstile>e::T;
+| Cons:"[| E\<turnstile>e::T;
            E\<turnstile>es[::]Ts |] ==>
         E\<turnstile>e#es[::]T#Ts"
 
 -- "well-typed statements"
 
-  Skip:"E\<turnstile>Skip\<surd>"
+| Skip:"E\<turnstile>Skip\<surd>"
 
-  Expr:"[| E\<turnstile>e::T |] ==>
+| Expr:"[| E\<turnstile>e::T |] ==>
         E\<turnstile>Expr e\<surd>"
 
-  Comp:"[| E\<turnstile>s1\<surd>; 
+| Comp:"[| E\<turnstile>s1\<surd>; 
            E\<turnstile>s2\<surd> |] ==>
         E\<turnstile>s1;; s2\<surd>"
 
   -- "cf. 14.8"
-  Cond:"[| E\<turnstile>e::PrimT Boolean;
+| Cond:"[| E\<turnstile>e::PrimT Boolean;
            E\<turnstile>s1\<surd>;
            E\<turnstile>s2\<surd> |] ==>
          E\<turnstile>If(e) s1 Else s2\<surd>"
 
   -- "cf. 14.10"
-  Loop:"[| E\<turnstile>e::PrimT Boolean;
+| Loop:"[| E\<turnstile>e::PrimT Boolean;
            E\<turnstile>s\<surd> |] ==>
         E\<turnstile>While(e) s\<surd>"
 

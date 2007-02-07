@@ -190,7 +190,7 @@ lemma isRefI [intro, simp]: "G,hp \<turnstile> v ::\<preceq> RefT T \<Longrighta
 lemma isIntgI [intro, simp]: "G,hp \<turnstile> v ::\<preceq> PrimT Integer \<Longrightarrow> isIntg v"
   apply (unfold conf_def)
   apply auto
-  apply (erule widen.elims)
+  apply (erule widen.cases)
   apply auto
   apply (cases v)
   apply auto
@@ -322,7 +322,7 @@ proof -
       obtain apTs X ST' where
         ST: "ST = rev apTs @ X # ST'" and
         ps: "length apTs = length ps" and
-        w:   "\<forall>x\<in>set (zip apTs ps). x \<in> widen G" and
+        w:   "\<forall>(x, y)\<in>set (zip apTs ps). G \<turnstile> x \<preceq> y" and
         C:   "G \<turnstile> X \<preceq> Class C" and
         mth: "method (G, C) (mn, ps) \<noteq> None"
         by (simp del: app'.simps) blast

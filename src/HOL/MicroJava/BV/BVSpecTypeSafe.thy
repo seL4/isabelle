@@ -91,7 +91,7 @@ proof (induct et)
     from False C
     have "\<not> match_exception_entry G C pc e"
       by - (erule contrapos_nn, 
-            auto simp add: match_exception_entry_def elim: rtrancl_trans)
+            auto simp add: match_exception_entry_def)
     with m
     have "match_exception_table G C pc (e#es) = Some pc'" by simp
     moreover note C
@@ -640,7 +640,7 @@ apply (elim exE disjE)
  apply (simp add: null)
 apply (clarsimp simp add: conf_def obj_ty_def)
 apply (cases v)
-apply (auto intro: rtrancl_trans)
+apply auto
 done
 
 lemmas defs2 = defs1 raise_system_xcpt_def
@@ -838,7 +838,7 @@ proof -
     s:  "s = (rev apTs @ X # ST, LT)" and
     l:  "length apTs = length pTs" and
     X:  "G\<turnstile> X \<preceq> Class C'" and
-    w:  "\<forall>x\<in>set (zip apTs pTs). x \<in> widen G" and
+    w:  "\<forall>(x, y)\<in>set (zip apTs pTs). G \<turnstile> x \<preceq> y" and
     mC':"method (G, C') (mn, pTs) = Some (D', rT, body)" and
     pc: "Suc pc < length ins" and
     eff: "G \<turnstile> norm_eff (Invoke C' mn pTs) G (Some s) <=' phi C sig!Suc pc"

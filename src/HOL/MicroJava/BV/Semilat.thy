@@ -40,16 +40,13 @@ syntax (xsymbols)
 
 
 constdefs
- ord :: "('a*'a)set \<Rightarrow> 'a ord"
-"ord r == %x y. (x,y):r"
-
  order :: "'a ord \<Rightarrow> bool"
 "order r == (!x. x <=_r x) &
             (!x y. x <=_r y & y <=_r x \<longrightarrow> x=y) &
             (!x y z. x <=_r y & y <=_r z \<longrightarrow> x <=_r z)"
 
  acc :: "'a ord \<Rightarrow> bool"
-"acc r == wf{(y,x) . x <_r y}"
+"acc r == wfP (\<lambda>y x. x <_r y)"
 
  top :: "'a ord \<Rightarrow> 'a \<Rightarrow> bool"
 "top r T == !x. x <=_r T"
@@ -63,13 +60,13 @@ constdefs
                 (!x:A. !y:A. y <=_r x +_f y)  &
                 (!x:A. !y:A. !z:A. x <=_r z & y <=_r z \<longrightarrow> x +_f y <=_r z)"
 
- is_ub :: "('a*'a)set \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
-"is_ub r x y u == (x,u):r & (y,u):r"
+ is_ub :: "'a ord \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
+"is_ub r x y u == r x u & r y u"
 
- is_lub :: "('a*'a)set \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
-"is_lub r x y u == is_ub r x y u & (!z. is_ub r x y z \<longrightarrow> (u,z):r)"
+ is_lub :: "'a ord \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
+"is_lub r x y u == is_ub r x y u & (!z. is_ub r x y z \<longrightarrow> r u z)"
 
- some_lub :: "('a*'a)set \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
+ some_lub :: "'a ord \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
 "some_lub r x y == SOME z. is_lub r x y z";
 
 locale (open) semilat =
@@ -244,113 +241,113 @@ lemma (in semilat) plus_commutative:
 by(blast intro: order_antisym plus_com_lemma)
 
 lemma is_lubD:
-  "is_lub r x y u \<Longrightarrow> is_ub r x y u & (!z. is_ub r x y z \<longrightarrow> (u,z):r)"
+  "is_lub r x y u \<Longrightarrow> is_ub r x y u & (!z. is_ub r x y z \<longrightarrow> r u z)"
   by (simp add: is_lub_def)
 
 lemma is_ubI:
-  "\<lbrakk> (x,u) : r; (y,u) : r \<rbrakk> \<Longrightarrow> is_ub r x y u"
+  "\<lbrakk> r x u; r y u \<rbrakk> \<Longrightarrow> is_ub r x y u"
   by (simp add: is_ub_def)
 
 lemma is_ubD:
-  "is_ub r x y u \<Longrightarrow> (x,u) : r & (y,u) : r"
+  "is_ub r x y u \<Longrightarrow> r x u & r y u"
   by (simp add: is_ub_def)
 
 
 lemma is_lub_bigger1 [iff]:  
-  "is_lub (r^* ) x y y = ((x,y):r^* )"
+  "is_lub (r^** ) x y y = r^** x y"
 apply (unfold is_lub_def is_ub_def)
 apply blast
 done
 
 lemma is_lub_bigger2 [iff]:
-  "is_lub (r^* ) x y x = ((y,x):r^* )"
+  "is_lub (r^** ) x y x = r^** y x"
 apply (unfold is_lub_def is_ub_def)
 apply blast 
 done
 
 lemma extend_lub:
-  "\<lbrakk> single_valued r; is_lub (r^* ) x y u; (x',x) : r \<rbrakk> 
-  \<Longrightarrow> EX v. is_lub (r^* ) x' y v"
+  "\<lbrakk> single_valuedP r; is_lub (r^** ) x y u; r x' x \<rbrakk> 
+  \<Longrightarrow> EX v. is_lub (r^** ) x' y v"
 apply (unfold is_lub_def is_ub_def)
-apply (case_tac "(y,x) : r^*")
- apply (case_tac "(y,x') : r^*")
+apply (case_tac "r^** y x")
+ apply (case_tac "r^** y x'")
   apply blast
- apply (blast elim: converse_rtranclE dest: single_valuedD)
+ apply (blast elim: converse_rtranclE' dest: single_valuedD)
 apply (rule exI)
 apply (rule conjI)
- apply (blast intro: converse_rtrancl_into_rtrancl dest: single_valuedD)
-apply (blast intro: rtrancl_into_rtrancl converse_rtrancl_into_rtrancl 
-             elim: converse_rtranclE dest: single_valuedD)
+ apply (blast intro: converse_rtrancl_into_rtrancl' dest: single_valuedD)
+apply (blast intro: rtrancl.rtrancl_into_rtrancl converse_rtrancl_into_rtrancl'
+             elim: converse_rtranclE' dest: single_valuedD)
 done
 
 lemma single_valued_has_lubs [rule_format]:
-  "\<lbrakk> single_valued r; (x,u) : r^* \<rbrakk> \<Longrightarrow> (!y. (y,u) : r^* \<longrightarrow> 
-  (EX z. is_lub (r^* ) x y z))"
-apply (erule converse_rtrancl_induct)
+  "\<lbrakk> single_valuedP r; r^** x u \<rbrakk> \<Longrightarrow> (!y. r^** y u \<longrightarrow> 
+  (EX z. is_lub (r^** ) x y z))"
+apply (erule converse_rtrancl_induct')
  apply clarify
- apply (erule converse_rtrancl_induct)
+ apply (erule converse_rtrancl_induct')
   apply blast
- apply (blast intro: converse_rtrancl_into_rtrancl)
+ apply (blast intro: converse_rtrancl_into_rtrancl')
 apply (blast intro: extend_lub)
 done
 
 lemma some_lub_conv:
-  "\<lbrakk> acyclic r; is_lub (r^* ) x y u \<rbrakk> \<Longrightarrow> some_lub (r^* ) x y = u"
+  "\<lbrakk> acyclicP r; is_lub (r^** ) x y u \<rbrakk> \<Longrightarrow> some_lub (r^** ) x y = u"
 apply (unfold some_lub_def is_lub_def)
 apply (rule someI2)
  apply assumption
-apply (blast intro: antisymD dest!: acyclic_impl_antisym_rtrancl)
+apply (blast intro: antisymD dest!: acyclic_impl_antisym_rtrancl [to_pred])
 done
 
 lemma is_lub_some_lub:
-  "\<lbrakk> single_valued r; acyclic r; (x,u):r^*; (y,u):r^* \<rbrakk> 
-  \<Longrightarrow> is_lub (r^* ) x y (some_lub (r^* ) x y)";
+  "\<lbrakk> single_valuedP r; acyclicP r; r^** x u; r^** y u \<rbrakk> 
+  \<Longrightarrow> is_lub (r^** ) x y (some_lub (r^** ) x y)";
   by (fastsimp dest: single_valued_has_lubs simp add: some_lub_conv)
 
 subsection{*An executable lub-finder*}
 
 constdefs
- exec_lub :: "('a * 'a) set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a binop"
-"exec_lub r f x y == while (\<lambda>z. (x,z) \<notin> r\<^sup>*) f y"
+ exec_lub :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a binop"
+"exec_lub r f x y == while (\<lambda>z. \<not> r\<^sup>*\<^sup>* x z) f y"
 
 
 lemma acyclic_single_valued_finite:
- "\<lbrakk>acyclic r; single_valued r; (x,y) \<in> r\<^sup>*\<rbrakk>
-  \<Longrightarrow> finite (r \<inter> {a. (x, a) \<in> r\<^sup>*} \<times> {b. (b, y) \<in> r\<^sup>*})"
-apply(erule converse_rtrancl_induct)
+ "\<lbrakk>acyclicP r; single_valuedP r; r\<^sup>*\<^sup>* x y \<rbrakk>
+  \<Longrightarrow> finite (Collect2 r \<inter> {a. r\<^sup>*\<^sup>* x a} \<times> {b. r\<^sup>*\<^sup>* b y})"
+apply(erule converse_rtrancl_induct')
  apply(rule_tac B = "{}" in finite_subset)
-  apply(simp only:acyclic_def)
-  apply(blast intro:rtrancl_into_trancl2 rtrancl_trancl_trancl)
+  apply(simp only:acyclic_def [to_pred])
+  apply(blast intro:rtrancl_into_trancl2' rtrancl_trancl_trancl')
  apply simp
 apply(rename_tac x x')
-apply(subgoal_tac "r \<inter> {a. (x,a) \<in> r\<^sup>*} \<times> {b. (b,y) \<in> r\<^sup>*} =
-                   insert (x,x') (r \<inter> {a. (x', a) \<in> r\<^sup>*} \<times> {b. (b, y) \<in> r\<^sup>*})")
+apply(subgoal_tac "Collect2 r \<inter> {a. r\<^sup>*\<^sup>* x a} \<times> {b. r\<^sup>*\<^sup>* b y} =
+                   insert (x,x') (Collect2 r \<inter> {a. r\<^sup>*\<^sup>* x' a} \<times> {b. r\<^sup>*\<^sup>* b y})")
  apply simp
-apply(blast intro:converse_rtrancl_into_rtrancl
-            elim:converse_rtranclE dest:single_valuedD)
+apply(blast intro:converse_rtrancl_into_rtrancl'
+            elim:converse_rtranclE' dest:single_valuedD)
 done
 
 
 lemma exec_lub_conv:
-  "\<lbrakk> acyclic r; !x y. (x,y) \<in> r \<longrightarrow> f x = y; is_lub (r\<^sup>*) x y u \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> acyclicP r; !x y. r x y \<longrightarrow> f x = y; is_lub (r\<^sup>*\<^sup>*) x y u \<rbrakk> \<Longrightarrow>
   exec_lub r f x y = u";
 apply(unfold exec_lub_def)
-apply(rule_tac P = "\<lambda>z. (y,z) \<in> r\<^sup>* \<and> (z,u) \<in> r\<^sup>*" and
-               r = "(r \<inter> {(a,b). (y,a) \<in> r\<^sup>* \<and> (b,u) \<in> r\<^sup>*})^-1" in while_rule)
+apply(rule_tac P = "\<lambda>z. r\<^sup>*\<^sup>* y z \<and> r\<^sup>*\<^sup>* z u" and
+               r = "(Collect2 r \<inter> {(a,b). r\<^sup>*\<^sup>* y a \<and> r\<^sup>*\<^sup>* b u})^-1" in while_rule)
     apply(blast dest: is_lubD is_ubD)
    apply(erule conjE)
-   apply(erule_tac z = u in converse_rtranclE)
+   apply(erule_tac z = u in converse_rtranclE')
     apply(blast dest: is_lubD is_ubD)
-   apply(blast dest:rtrancl_into_rtrancl)
+   apply(blast dest: rtrancl.rtrancl_into_rtrancl)
   apply(rename_tac s)
-  apply(subgoal_tac "is_ub (r\<^sup>*) x y s")
+  apply(subgoal_tac "is_ub (r\<^sup>*\<^sup>*) x y s")
    prefer 2; apply(simp add:is_ub_def)
-  apply(subgoal_tac "(u, s) \<in> r\<^sup>*")
+  apply(subgoal_tac "r\<^sup>*\<^sup>* u s")
    prefer 2; apply(blast dest:is_lubD)
-  apply(erule converse_rtranclE)
+  apply(erule converse_rtranclE')
    apply blast
-  apply(simp only:acyclic_def)
-  apply(blast intro:rtrancl_into_trancl2 rtrancl_trancl_trancl)
+  apply(simp only:acyclic_def [to_pred])
+  apply(blast intro:rtrancl_into_trancl2' rtrancl_trancl_trancl')
  apply(rule finite_acyclic_wf)
   apply simp
   apply(erule acyclic_single_valued_finite)
@@ -361,14 +358,14 @@ apply(rule_tac P = "\<lambda>z. (y,z) \<in> r\<^sup>* \<and> (z,u) \<in> r\<^sup
  apply blast
 apply simp
 apply(erule conjE)
-apply(erule_tac z = u in converse_rtranclE)
+apply(erule_tac z = u in converse_rtranclE')
  apply(blast dest: is_lubD is_ubD)
-apply(blast dest:rtrancl_into_rtrancl)
+apply blast
 done
 
 lemma is_lub_exec_lub:
-  "\<lbrakk> single_valued r; acyclic r; (x,u):r^*; (y,u):r^*; !x y. (x,y) \<in> r \<longrightarrow> f x = y \<rbrakk>
-  \<Longrightarrow> is_lub (r^* ) x y (exec_lub r f x y)"
+  "\<lbrakk> single_valuedP r; acyclicP r; r^** x u; r^** y u; !x y. r x y \<longrightarrow> f x = y \<rbrakk>
+  \<Longrightarrow> is_lub (r^** ) x y (exec_lub r f x y)"
   by (fastsimp dest: single_valued_has_lubs simp add: exec_lub_conv)
 
 end

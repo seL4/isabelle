@@ -45,62 +45,42 @@ nominal_datatype trmI = IVar "name"
 
 text {* valid contexts *}
 
-consts
-  ctxts :: "((name\<times>'a::pt_name) list) set" 
-  valid :: "(name\<times>'a::pt_name) list \<Rightarrow> bool"
-translations
-  "valid \<Gamma>" \<rightleftharpoons> "\<Gamma> \<in> ctxts"  
-
-inductive ctxts
-intros
-v1[intro]: "valid []"
-v2[intro]: "\<lbrakk>valid \<Gamma>;a\<sharp>\<Gamma>\<rbrakk>\<Longrightarrow> valid ((a,\<sigma>)#\<Gamma>)" (* maybe dom of \<Gamma> *)
+inductive2 valid :: "(name\<times>'a::pt_name) list \<Rightarrow> bool"
+where
+  v1[intro]: "valid []"
+| v2[intro]: "\<lbrakk>valid \<Gamma>;a\<sharp>\<Gamma>\<rbrakk>\<Longrightarrow> valid ((a,\<sigma>)#\<Gamma>)" (* maybe dom of \<Gamma> *)
 
 text {* typing judgements for trms *}
 
-consts
-  typing :: "(((name\<times>ty) list)\<times>trm\<times>ty) set" 
-syntax
-  "_typing_judge" :: "(name\<times>ty) list\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [80,80,80] 80) 
-translations
-  "\<Gamma> \<turnstile> t : \<tau>" \<rightleftharpoons> "(\<Gamma>,t,\<tau>) \<in> typing"  
-
-inductive typing
-intros
-t0[intro]: "\<lbrakk>valid \<Gamma>; (x,\<tau>)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> Var x : \<tau>"
-t1[intro]: "\<lbrakk>\<Gamma> \<turnstile> e1 : \<tau>1\<rightarrow>\<tau>2; \<Gamma> \<turnstile> e2 : \<tau>1\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> App e1 e2 : \<tau>2"
-t2[intro]: "\<lbrakk>x\<sharp>\<Gamma>;((x,\<tau>1)#\<Gamma>) \<turnstile> t : \<tau>2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x].t : \<tau>1\<rightarrow>\<tau>2"
-t3[intro]: "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Const n : Data(DNat)"
-t4[intro]: "\<lbrakk>\<Gamma> \<turnstile> e1 : Data(\<sigma>1); \<Gamma> \<turnstile> e2 : Data(\<sigma>2)\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Pr e1 e2 : Data (DProd \<sigma>1 \<sigma>2)"
-t5[intro]: "\<lbrakk>\<Gamma> \<turnstile> e : Data(DProd \<sigma>1 \<sigma>2)\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Fst e : Data(\<sigma>1)"
-t6[intro]: "\<lbrakk>\<Gamma> \<turnstile> e : Data(DProd \<sigma>1 \<sigma>2)\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Snd e : Data(\<sigma>2)"
-t7[intro]: "\<lbrakk>\<Gamma> \<turnstile> e : Data(\<sigma>1)\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> InL e : Data(DSum \<sigma>1 \<sigma>2)"
-t8[intro]: "\<lbrakk>\<Gamma> \<turnstile> e : Data(\<sigma>2)\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> InR e : Data(DSum \<sigma>1 \<sigma>2)"
-t9[intro]: "\<lbrakk>x1\<sharp>\<Gamma>; x2\<sharp>\<Gamma>; \<Gamma> \<turnstile> e: Data(DSum \<sigma>1 \<sigma>2); 
+inductive2 typing :: "(name\<times>ty) list\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [80,80,80] 80)
+where
+  t0[intro]: "\<lbrakk>valid \<Gamma>; (x,\<tau>)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> Var x : \<tau>"
+| t1[intro]: "\<lbrakk>\<Gamma> \<turnstile> e1 : \<tau>1\<rightarrow>\<tau>2; \<Gamma> \<turnstile> e2 : \<tau>1\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> App e1 e2 : \<tau>2"
+| t2[intro]: "\<lbrakk>x\<sharp>\<Gamma>;((x,\<tau>1)#\<Gamma>) \<turnstile> t : \<tau>2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x].t : \<tau>1\<rightarrow>\<tau>2"
+| t3[intro]: "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Const n : Data(DNat)"
+| t4[intro]: "\<lbrakk>\<Gamma> \<turnstile> e1 : Data(\<sigma>1); \<Gamma> \<turnstile> e2 : Data(\<sigma>2)\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Pr e1 e2 : Data (DProd \<sigma>1 \<sigma>2)"
+| t5[intro]: "\<lbrakk>\<Gamma> \<turnstile> e : Data(DProd \<sigma>1 \<sigma>2)\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Fst e : Data(\<sigma>1)"
+| t6[intro]: "\<lbrakk>\<Gamma> \<turnstile> e : Data(DProd \<sigma>1 \<sigma>2)\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Snd e : Data(\<sigma>2)"
+| t7[intro]: "\<lbrakk>\<Gamma> \<turnstile> e : Data(\<sigma>1)\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> InL e : Data(DSum \<sigma>1 \<sigma>2)"
+| t8[intro]: "\<lbrakk>\<Gamma> \<turnstile> e : Data(\<sigma>2)\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> InR e : Data(DSum \<sigma>1 \<sigma>2)"
+| t9[intro]: "\<lbrakk>x1\<sharp>\<Gamma>; x2\<sharp>\<Gamma>; \<Gamma> \<turnstile> e: Data(DSum \<sigma>1 \<sigma>2); 
              ((x1,Data(\<sigma>1))#\<Gamma>) \<turnstile> e1 : \<tau>; ((x2,Data(\<sigma>2))#\<Gamma>) \<turnstile> e2 : \<tau>\<rbrakk> 
              \<Longrightarrow> \<Gamma> \<turnstile> (Case e of inl x1 \<rightarrow> e1 | inr x2 \<rightarrow> e2) : \<tau>"
 
 text {* typing judgements for Itrms *}
 
-consts
-  Ityping :: "(((name\<times>tyI) list)\<times>trmI\<times>tyI) set" 
-syntax
-  "_typing_judge" :: "(name\<times>tyI) list\<Rightarrow>trmI\<Rightarrow>tyI\<Rightarrow>bool" (" _ I\<turnstile> _ : _ " [80,80,80] 80) 
-translations
-  "\<Gamma> I\<turnstile> t : \<tau>" \<rightleftharpoons> "(\<Gamma>,t,\<tau>) \<in> Ityping"  
-
-inductive Ityping
-intros
-t0[intro]: "\<lbrakk>valid \<Gamma>; (x,\<tau>)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> I\<turnstile> IVar x : \<tau>"
-t1[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e1 : \<tau>1\<rightarrow>\<tau>2; \<Gamma> I\<turnstile> e2 : \<tau>1\<rbrakk>\<Longrightarrow> \<Gamma> I\<turnstile> IApp e1 e2 : \<tau>2"
-t2[intro]: "\<lbrakk>x\<sharp>\<Gamma>;((x,\<tau>1)#\<Gamma>) I\<turnstile> t : \<tau>2\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> ILam [x].t : \<tau>1\<rightarrow>\<tau>2"
-t3[intro]: "valid \<Gamma> \<Longrightarrow> \<Gamma> I\<turnstile> IUnit : DataI(OneI)"
-t4[intro]: "valid \<Gamma> \<Longrightarrow> \<Gamma> I\<turnstile> INat(n) : DataI(NatI)"
-t5[intro]: "\<Gamma> I\<turnstile> e : DataI(NatI) \<Longrightarrow> \<Gamma> I\<turnstile> ISucc(e) : DataI(NatI)"
-t6[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e : DataI(NatI)\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> IRef e : DataI (NatI)"
-t7[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e1 : DataI(NatI); \<Gamma> I\<turnstile> e2 : DataI(NatI)\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> e1\<mapsto>e2 : DataI(OneI)"
-t8[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e1 : DataI(NatI); \<Gamma> I\<turnstile> e2 : \<tau>\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> e1;;e2 : \<tau>"
-t9[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e: DataI(NatI); \<Gamma> I\<turnstile> e1 : \<tau>; \<Gamma> I\<turnstile> e2 : \<tau>\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> Iif e e1 e2 : \<tau>"
+inductive2 Ityping :: "(name\<times>tyI) list\<Rightarrow>trmI\<Rightarrow>tyI\<Rightarrow>bool" (" _ I\<turnstile> _ : _ " [80,80,80] 80)
+where
+  t0[intro]: "\<lbrakk>valid \<Gamma>; (x,\<tau>)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> I\<turnstile> IVar x : \<tau>"
+| t1[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e1 : \<tau>1\<rightarrow>\<tau>2; \<Gamma> I\<turnstile> e2 : \<tau>1\<rbrakk>\<Longrightarrow> \<Gamma> I\<turnstile> IApp e1 e2 : \<tau>2"
+| t2[intro]: "\<lbrakk>x\<sharp>\<Gamma>;((x,\<tau>1)#\<Gamma>) I\<turnstile> t : \<tau>2\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> ILam [x].t : \<tau>1\<rightarrow>\<tau>2"
+| t3[intro]: "valid \<Gamma> \<Longrightarrow> \<Gamma> I\<turnstile> IUnit : DataI(OneI)"
+| t4[intro]: "valid \<Gamma> \<Longrightarrow> \<Gamma> I\<turnstile> INat(n) : DataI(NatI)"
+| t5[intro]: "\<Gamma> I\<turnstile> e : DataI(NatI) \<Longrightarrow> \<Gamma> I\<turnstile> ISucc(e) : DataI(NatI)"
+| t6[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e : DataI(NatI)\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> IRef e : DataI (NatI)"
+| t7[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e1 : DataI(NatI); \<Gamma> I\<turnstile> e2 : DataI(NatI)\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> e1\<mapsto>e2 : DataI(OneI)"
+| t8[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e1 : DataI(NatI); \<Gamma> I\<turnstile> e2 : \<tau>\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> e1;;e2 : \<tau>"
+| t9[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e: DataI(NatI); \<Gamma> I\<turnstile> e1 : \<tau>; \<Gamma> I\<turnstile> e2 : \<tau>\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> Iif e e1 e2 : \<tau>"
 
 text {* capture-avoiding substitution *}
 
@@ -257,46 +237,32 @@ done
 
 text {* big-step evaluation for trms *}
 
-consts
-  big :: "(trm\<times>trm) set" 
-syntax
-  "_big_judge" :: "trm\<Rightarrow>trm\<Rightarrow>bool" ("_ \<Down> _" [80,80] 80) 
-translations
-  "e1 \<Down> e2" \<rightleftharpoons> "(e1,e2) \<in> big"
+inductive2 big :: "trm\<Rightarrow>trm\<Rightarrow>bool" ("_ \<Down> _" [80,80] 80)
+where
+  b0[intro]: "Lam [x].e \<Down> Lam [x].e"
+| b1[intro]: "\<lbrakk>e1\<Down>Lam [x].e; e2\<Down>e2'; e[x::=e2']\<Down>e'\<rbrakk> \<Longrightarrow> App e1 e2 \<Down> e'"
+| b2[intro]: "Const n \<Down> Const n"
+| b3[intro]: "\<lbrakk>e1\<Down>e1'; e2\<Down>e2'\<rbrakk> \<Longrightarrow> Pr e1 e2 \<Down> Pr e1' e2'"
+| b4[intro]: "e\<Down>Pr e1 e2 \<Longrightarrow> Fst e\<Down>e1"
+| b5[intro]: "e\<Down>Pr e1 e2 \<Longrightarrow> Snd e\<Down>e2"
+| b6[intro]: "e\<Down>e' \<Longrightarrow> InL e \<Down> InL e'"
+| b7[intro]: "e\<Down>e' \<Longrightarrow> InR e \<Down> InR e'"
+| b8[intro]: "\<lbrakk>e\<Down>InL e'; e1[x::=e']\<Down>e''\<rbrakk> \<Longrightarrow> Case e of inl x1 \<rightarrow> e1 | inr x2 \<rightarrow> e2 \<Down> e''"
+| b9[intro]: "\<lbrakk>e\<Down>InR e'; e2[x::=e']\<Down>e''\<rbrakk> \<Longrightarrow> Case e of inl x1 \<rightarrow> e1 | inr x2 \<rightarrow> e2 \<Down> e''"
 
-inductive big
-intros
-b0[intro]: "Lam [x].e \<Down> Lam [x].e"
-b1[intro]: "\<lbrakk>e1\<Down>Lam [x].e; e2\<Down>e2'; e[x::=e2']\<Down>e'\<rbrakk> \<Longrightarrow> App e1 e2 \<Down> e'"
-b2[intro]: "Const n \<Down> Const n"
-b3[intro]: "\<lbrakk>e1\<Down>e1'; e2\<Down>e2'\<rbrakk> \<Longrightarrow> Pr e1 e2 \<Down> Pr e1' e2'"
-b4[intro]: "e\<Down>Pr e1 e2 \<Longrightarrow> Fst e\<Down>e1"
-b5[intro]: "e\<Down>Pr e1 e2 \<Longrightarrow> Snd e\<Down>e2"
-b6[intro]: "e\<Down>e' \<Longrightarrow> InL e \<Down> InL e'"
-b7[intro]: "e\<Down>e' \<Longrightarrow> InR e \<Down> InR e'"
-b8[intro]: "\<lbrakk>e\<Down>InL e'; e1[x::=e']\<Down>e''\<rbrakk> \<Longrightarrow> Case e of inl x1 \<rightarrow> e1 | inr x2 \<rightarrow> e2 \<Down> e''"
-b9[intro]: "\<lbrakk>e\<Down>InR e'; e2[x::=e']\<Down>e''\<rbrakk> \<Longrightarrow> Case e of inl x1 \<rightarrow> e1 | inr x2 \<rightarrow> e2 \<Down> e''"
-
-consts
-  Ibig :: "(((nat\<Rightarrow>nat)\<times>trmI)\<times>((nat\<Rightarrow>nat)\<times>trmI)) set" 
-syntax
-  "_Ibig_judge" :: "((nat\<Rightarrow>nat)\<times>trmI)\<Rightarrow>((nat\<Rightarrow>nat)\<times>trmI)\<Rightarrow>bool" ("_ I\<Down> _" [80,80] 80) 
-translations
-  "(m,e1) I\<Down> (m',e2)" \<rightleftharpoons> "((m,e1),(m',e2)) \<in> Ibig"
-
-inductive Ibig
-intros
-m0[intro]: "(m,ILam [x].e) I\<Down> (m,ILam [x].e)"
-m1[intro]: "\<lbrakk>(m,e1)I\<Down>(m',ILam [x].e); (m',e2)I\<Down>(m'',e3); (m'',e[x::=e3])I\<Down>(m''',e4)\<rbrakk> 
+inductive2 Ibig :: "((nat\<Rightarrow>nat)\<times>trmI)\<Rightarrow>((nat\<Rightarrow>nat)\<times>trmI)\<Rightarrow>bool" ("_ I\<Down> _" [80,80] 80)
+where
+  m0[intro]: "(m,ILam [x].e) I\<Down> (m,ILam [x].e)"
+| m1[intro]: "\<lbrakk>(m,e1)I\<Down>(m',ILam [x].e); (m',e2)I\<Down>(m'',e3); (m'',e[x::=e3])I\<Down>(m''',e4)\<rbrakk> 
             \<Longrightarrow> (m,IApp e1 e2) I\<Down> (m''',e4)"
-m2[intro]: "(m,IUnit) I\<Down> (m,IUnit)"
-m3[intro]: "(m,INat(n))I\<Down>(m,INat(n))"
-m4[intro]: "(m,e)I\<Down>(m',INat(n)) \<Longrightarrow> (m,ISucc(e))I\<Down>(m',INat(n+1))"
-m5[intro]: "(m,e)I\<Down>(m',INat(n)) \<Longrightarrow> (m,IRef(e))I\<Down>(m',INat(m' n))"
-m6[intro]: "\<lbrakk>(m,e1)I\<Down>(m',INat(n1)); (m',e2)I\<Down>(m'',INat(n2))\<rbrakk> \<Longrightarrow> (m,e1\<mapsto>e2)I\<Down>(m''(n1:=n2),IUnit)"
-m7[intro]: "\<lbrakk>(m,e1)I\<Down>(m',IUnit); (m',e2)I\<Down>(m'',e)\<rbrakk> \<Longrightarrow> (m,e1;;e2)I\<Down>(m'',e)"
-m8[intro]: "\<lbrakk>(m,e)I\<Down>(m',INat(n)); n\<noteq>0; (m',e1)I\<Down>(m'',e)\<rbrakk> \<Longrightarrow> (m,Iif e e1 e2)I\<Down>(m'',e)"
-m9[intro]: "\<lbrakk>(m,e)I\<Down>(m',INat(0)); (m',e2)I\<Down>(m'',e)\<rbrakk> \<Longrightarrow> (m,Iif e e1 e2)I\<Down>(m'',e)"
+| m2[intro]: "(m,IUnit) I\<Down> (m,IUnit)"
+| m3[intro]: "(m,INat(n))I\<Down>(m,INat(n))"
+| m4[intro]: "(m,e)I\<Down>(m',INat(n)) \<Longrightarrow> (m,ISucc(e))I\<Down>(m',INat(n+1))"
+| m5[intro]: "(m,e)I\<Down>(m',INat(n)) \<Longrightarrow> (m,IRef(e))I\<Down>(m',INat(m' n))"
+| m6[intro]: "\<lbrakk>(m,e1)I\<Down>(m',INat(n1)); (m',e2)I\<Down>(m'',INat(n2))\<rbrakk> \<Longrightarrow> (m,e1\<mapsto>e2)I\<Down>(m''(n1:=n2),IUnit)"
+| m7[intro]: "\<lbrakk>(m,e1)I\<Down>(m',IUnit); (m',e2)I\<Down>(m'',e)\<rbrakk> \<Longrightarrow> (m,e1;;e2)I\<Down>(m'',e)"
+| m8[intro]: "\<lbrakk>(m,e)I\<Down>(m',INat(n)); n\<noteq>0; (m',e1)I\<Down>(m'',e)\<rbrakk> \<Longrightarrow> (m,Iif e e1 e2)I\<Down>(m'',e)"
+| m9[intro]: "\<lbrakk>(m,e)I\<Down>(m',INat(0)); (m',e2)I\<Down>(m'',e)\<rbrakk> \<Longrightarrow> (m,Iif e e1 e2)I\<Down>(m'',e)"
 
 text {* Translation functions *}
 

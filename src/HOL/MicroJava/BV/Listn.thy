@@ -321,22 +321,22 @@ lemma acc_le_listI [intro!]:
   "\<lbrakk> order r; acc r \<rbrakk> \<Longrightarrow> acc(Listn.le r)"
 apply (unfold acc_def)
 apply (subgoal_tac
- "wf(UN n. {(ys,xs). size xs = n & size ys = n & xs <_(Listn.le r) ys})")
- apply (erule wf_subset)
+ "wfP (SUP n. (\<lambda>ys xs. size xs = n & size ys = n & xs <_(Listn.le r) ys))")
+ apply (erule wfP_subset)
  apply (blast intro: lesssub_list_impl_same_size)
-apply (rule wf_UN)
+apply (rule wfP_SUP)
  prefer 2
  apply clarify
  apply (rename_tac m n)
  apply (case_tac "m=n")
   apply simp
- apply (fast intro!: equals0I dest: not_sym)
+ apply (fast intro!: equals0I [to_pred] dest: not_sym)
 apply clarify
 apply (rename_tac n)
 apply (induct_tac n)
  apply (simp add: lesssub_def cong: conj_cong)
 apply (rename_tac k)
-apply (simp add: wf_eq_minimal)
+apply (simp add: wfP_eq_minimal)
 apply (simp (no_asm) add: length_Suc_conv cong: conj_cong)
 apply clarify
 apply (rename_tac M m)
