@@ -1320,43 +1320,43 @@ val NUM024_1 = prove_hard
   meson_tac 1);
 
 val SET004_0_ax =
-  "(\\<forall>X U Y. subclass(X::'a,Y) & member(U::'a,X) --> member(U::'a,Y)) &     \
-\  (\\<forall>X Y. member(not_subclass_element(X::'a,Y),X) | subclass(X::'a,Y)) &      \
-\  (\\<forall>X Y. member(not_subclass_element(X::'a,Y),Y) --> subclass(X::'a,Y)) &     \
+  "(\\<forall>X U Y. subclass(X::'a,Y) & memb(U::'a,X) --> memb(U::'a,Y)) &     \
+\  (\\<forall>X Y. memb(not_subclass_element(X::'a,Y),X) | subclass(X::'a,Y)) &      \
+\  (\\<forall>X Y. memb(not_subclass_element(X::'a,Y),Y) --> subclass(X::'a,Y)) &     \
 \  (\\<forall>X. subclass(X::'a,universal_class)) & \
 \  (\\<forall>X Y. equal(X::'a,Y) --> subclass(X::'a,Y)) &      \
 \  (\\<forall>Y X. equal(X::'a,Y) --> subclass(Y::'a,X)) &      \
 \  (\\<forall>X Y. subclass(X::'a,Y) & subclass(Y::'a,X) --> equal(X::'a,Y)) &      \
-\  (\\<forall>X U Y. member(U::'a,unordered_pair(X::'a,Y)) --> equal(U::'a,X) | equal(U::'a,Y)) &      \
-\  (\\<forall>X Y. member(X::'a,universal_class) --> member(X::'a,unordered_pair(X::'a,Y))) &       \
-\  (\\<forall>X Y. member(Y::'a,universal_class) --> member(Y::'a,unordered_pair(X::'a,Y))) &       \
-\  (\\<forall>X Y. member(unordered_pair(X::'a,Y),universal_class)) &       \
+\  (\\<forall>X U Y. memb(U::'a,unordered_pair(X::'a,Y)) --> equal(U::'a,X) | equal(U::'a,Y)) &      \
+\  (\\<forall>X Y. memb(X::'a,universal_class) --> memb(X::'a,unordered_pair(X::'a,Y))) &       \
+\  (\\<forall>X Y. memb(Y::'a,universal_class) --> memb(Y::'a,unordered_pair(X::'a,Y))) &       \
+\  (\\<forall>X Y. memb(unordered_pair(X::'a,Y),universal_class)) &       \
 \  (\\<forall>X. equal(unordered_pair(X::'a,X),singleton(X))) &     \
 \  (\\<forall>X Y. equal(unordered_pair(singleton(X),unordered_pair(X::'a,singleton(Y))),ordered_pair(X::'a,Y))) &      \
-\  (\\<forall>V Y U X. member(ordered_pair(U::'a,V),cross_product(X::'a,Y)) --> member(U::'a,X)) &  \
-\  (\\<forall>U X V Y. member(ordered_pair(U::'a,V),cross_product(X::'a,Y)) --> member(V::'a,Y)) &  \
-\  (\\<forall>U V X Y. member(U::'a,X) & member(V::'a,Y) --> member(ordered_pair(U::'a,V),cross_product(X::'a,Y))) &    \
-\  (\\<forall>X Y Z. member(Z::'a,cross_product(X::'a,Y)) --> equal(ordered_pair(first(Z),second(Z)),Z)) &      \
+\  (\\<forall>V Y U X. memb(ordered_pair(U::'a,V),cross_product(X::'a,Y)) --> memb(U::'a,X)) &  \
+\  (\\<forall>U X V Y. memb(ordered_pair(U::'a,V),cross_product(X::'a,Y)) --> memb(V::'a,Y)) &  \
+\  (\\<forall>U V X Y. memb(U::'a,X) & memb(V::'a,Y) --> memb(ordered_pair(U::'a,V),cross_product(X::'a,Y))) &    \
+\  (\\<forall>X Y Z. memb(Z::'a,cross_product(X::'a,Y)) --> equal(ordered_pair(first(Z),second(Z)),Z)) &      \
 \  (subclass(element_relation::'a,cross_product(universal_class::'a,universal_class))) &        \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),element_relation) --> member(X::'a,Y)) &        \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),cross_product(universal_class::'a,universal_class)) & member(X::'a,Y) --> member(ordered_pair(X::'a,Y),element_relation)) &     \
-\  (\\<forall>Y Z X. member(Z::'a,intersection(X::'a,Y)) --> member(Z::'a,X)) &     \
-\  (\\<forall>X Z Y. member(Z::'a,intersection(X::'a,Y)) --> member(Z::'a,Y)) &     \
-\  (\\<forall>Z X Y. member(Z::'a,X) & member(Z::'a,Y) --> member(Z::'a,intersection(X::'a,Y))) &       \
-\  (\\<forall>Z X. ~(member(Z::'a,complement(X)) & member(Z::'a,X))) &  \
-\  (\\<forall>Z X. member(Z::'a,universal_class) --> member(Z::'a,complement(X)) | member(Z::'a,X)) &      \
+\  (\\<forall>X Y. memb(ordered_pair(X::'a,Y),element_relation) --> memb(X::'a,Y)) &        \
+\  (\\<forall>X Y. memb(ordered_pair(X::'a,Y),cross_product(universal_class::'a,universal_class)) & memb(X::'a,Y) --> memb(ordered_pair(X::'a,Y),element_relation)) &     \
+\  (\\<forall>Y Z X. memb(Z::'a,intersection(X::'a,Y)) --> memb(Z::'a,X)) &     \
+\  (\\<forall>X Z Y. memb(Z::'a,intersection(X::'a,Y)) --> memb(Z::'a,Y)) &     \
+\  (\\<forall>Z X Y. memb(Z::'a,X) & memb(Z::'a,Y) --> memb(Z::'a,intersection(X::'a,Y))) &       \
+\  (\\<forall>Z X. ~(memb(Z::'a,complement(X)) & memb(Z::'a,X))) &  \
+\  (\\<forall>Z X. memb(Z::'a,universal_class) --> memb(Z::'a,complement(X)) | memb(Z::'a,X)) &      \
 \  (\\<forall>X Y. equal(complement(intersection(complement(X),complement(Y))),union(X::'a,Y))) &   \
 \  (\\<forall>X Y. equal(intersection(complement(intersection(X::'a,Y)),complement(intersection(complement(X),complement(Y)))),difference(X::'a,Y))) &  \
 \  (\\<forall>Xr X Y. equal(intersection(Xr::'a,cross_product(X::'a,Y)),restrct(Xr::'a,X,Y))) &    \
 \  (\\<forall>Xr X Y. equal(intersection(cross_product(X::'a,Y),Xr),restrct(Xr::'a,X,Y))) &    \
-\  (\\<forall>Z X. ~(equal(restrct(X::'a,singleton(Z),universal_class),null_class) & member(Z::'a,domain_of(X)))) &    \
-\  (\\<forall>Z X. member(Z::'a,universal_class) --> equal(restrct(X::'a,singleton(Z),universal_class),null_class) | member(Z::'a,domain_of(X))) &        \
+\  (\\<forall>Z X. ~(equal(restrct(X::'a,singleton(Z),universal_class),null_class) & memb(Z::'a,domain_of(X)))) &    \
+\  (\\<forall>Z X. memb(Z::'a,universal_class) --> equal(restrct(X::'a,singleton(Z),universal_class),null_class) | memb(Z::'a,domain_of(X))) &        \
 \  (\\<forall>X. subclass(rot(X),cross_product(cross_product(universal_class::'a,universal_class),universal_class))) &   \
-\  (\\<forall>V W U X. member(ordered_pair(ordered_pair(U::'a,V),W),rot(X)) --> member(ordered_pair(ordered_pair(V::'a,W),U),X)) &   \
-\  (\\<forall>U V W X. member(ordered_pair(ordered_pair(V::'a,W),U),X) & member(ordered_pair(ordered_pair(U::'a,V),W),cross_product(cross_product(universal_class::'a,universal_class),universal_class)) --> member(ordered_pair(ordered_pair(U::'a,V),W),rot(X))) & \
+\  (\\<forall>V W U X. memb(ordered_pair(ordered_pair(U::'a,V),W),rot(X)) --> memb(ordered_pair(ordered_pair(V::'a,W),U),X)) &   \
+\  (\\<forall>U V W X. memb(ordered_pair(ordered_pair(V::'a,W),U),X) & memb(ordered_pair(ordered_pair(U::'a,V),W),cross_product(cross_product(universal_class::'a,universal_class),universal_class)) --> memb(ordered_pair(ordered_pair(U::'a,V),W),rot(X))) & \
 \  (\\<forall>X. subclass(flip(X),cross_product(cross_product(universal_class::'a,universal_class),universal_class))) &     \
-\  (\\<forall>V U W X. member(ordered_pair(ordered_pair(U::'a,V),W),flip(X)) --> member(ordered_pair(ordered_pair(V::'a,U),W),X)) &     \
-\  (\\<forall>U V W X. member(ordered_pair(ordered_pair(V::'a,U),W),X) & member(ordered_pair(ordered_pair(U::'a,V),W),cross_product(cross_product(universal_class::'a,universal_class),universal_class)) --> member(ordered_pair(ordered_pair(U::'a,V),W),flip(X))) &   \
+\  (\\<forall>V U W X. memb(ordered_pair(ordered_pair(U::'a,V),W),flip(X)) --> memb(ordered_pair(ordered_pair(V::'a,U),W),X)) &     \
+\  (\\<forall>U V W X. memb(ordered_pair(ordered_pair(V::'a,U),W),X) & memb(ordered_pair(ordered_pair(U::'a,V),W),cross_product(cross_product(universal_class::'a,universal_class),universal_class)) --> memb(ordered_pair(ordered_pair(U::'a,V),W),flip(X))) &   \
 \  (\\<forall>Y. equal(domain_of(flip(cross_product(Y::'a,universal_class))),INVERSE(Y))) & \
 \  (\\<forall>Z. equal(domain_of(INVERSE(Z)),range_of(Z))) &    \
 \  (\\<forall>Z X Y. equal(first(not_subclass_element(restrct(Z::'a,X,singleton(Y)),null_class)),domain(Z::'a,X,Y))) & \
@@ -1364,32 +1364,32 @@ val SET004_0_ax =
 \  (\\<forall>Xr X. equal(range_of(restrct(Xr::'a,X,universal_class)),image_(Xr::'a,X))) &      \
 \  (\\<forall>X. equal(union(X::'a,singleton(X)),successor(X))) &   \
 \  (subclass(successor_relation::'a,cross_product(universal_class::'a,universal_class))) &      \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),successor_relation) --> equal(successor(X),Y)) &    \
-\  (\\<forall>X Y. equal(successor(X),Y) & member(ordered_pair(X::'a,Y),cross_product(universal_class::'a,universal_class)) --> member(ordered_pair(X::'a,Y),successor_relation)) & \
-\  (\\<forall>X. inductive(X) --> member(null_class::'a,X)) &       \
+\  (\\<forall>X Y. memb(ordered_pair(X::'a,Y),successor_relation) --> equal(successor(X),Y)) &    \
+\  (\\<forall>X Y. equal(successor(X),Y) & memb(ordered_pair(X::'a,Y),cross_product(universal_class::'a,universal_class)) --> memb(ordered_pair(X::'a,Y),successor_relation)) & \
+\  (\\<forall>X. inductive(X) --> memb(null_class::'a,X)) &       \
 \  (\\<forall>X. inductive(X) --> subclass(image_(successor_relation::'a,X),X)) &    \
-\  (\\<forall>X. member(null_class::'a,X) & subclass(image_(successor_relation::'a,X),X) --> inductive(X)) &     \
+\  (\\<forall>X. memb(null_class::'a,X) & subclass(image_(successor_relation::'a,X),X) --> inductive(X)) &     \
 \  (inductive(omega)) & \
 \  (\\<forall>Y. inductive(Y) --> subclass(omega::'a,Y)) &  \
-\  (member(omega::'a,universal_class)) &    \
+\  (memb(omega::'a,universal_class)) &    \
 \  (\\<forall>X. equal(domain_of(restrct(element_relation::'a,universal_class,X)),sum_class(X))) & \
-\  (\\<forall>X. member(X::'a,universal_class) --> member(sum_class(X),universal_class)) &  \
+\  (\\<forall>X. memb(X::'a,universal_class) --> memb(sum_class(X),universal_class)) &  \
 \  (\\<forall>X. equal(complement(image_(element_relation::'a,complement(X))),powerClass(X))) &     \
-\  (\\<forall>U. member(U::'a,universal_class) --> member(powerClass(U),universal_class)) &        \
+\  (\\<forall>U. memb(U::'a,universal_class) --> memb(powerClass(U),universal_class)) &        \
 \  (\\<forall>Yr Xr. subclass(compos(Yr::'a,Xr),cross_product(universal_class::'a,universal_class))) & \
-\  (\\<forall>Z Yr Xr Y. member(ordered_pair(Y::'a,Z),compos(Yr::'a,Xr)) --> member(Z::'a,image_(Yr::'a,image_(Xr::'a,singleton(Y))))) &     \
-\  (\\<forall>Y Z Yr Xr. member(Z::'a,image_(Yr::'a,image_(Xr::'a,singleton(Y)))) & member(ordered_pair(Y::'a,Z),cross_product(universal_class::'a,universal_class)) --> member(ordered_pair(Y::'a,Z),compos(Yr::'a,Xr))) &  \
+\  (\\<forall>Z Yr Xr Y. memb(ordered_pair(Y::'a,Z),compos(Yr::'a,Xr)) --> memb(Z::'a,image_(Yr::'a,image_(Xr::'a,singleton(Y))))) &     \
+\  (\\<forall>Y Z Yr Xr. memb(Z::'a,image_(Yr::'a,image_(Xr::'a,singleton(Y)))) & memb(ordered_pair(Y::'a,Z),cross_product(universal_class::'a,universal_class)) --> memb(ordered_pair(Y::'a,Z),compos(Yr::'a,Xr))) &  \
 \  (\\<forall>X. single_valued_class(X) --> subclass(compos(X::'a,INVERSE(X)),identity_relation)) &        \
 \  (\\<forall>X. subclass(compos(X::'a,INVERSE(X)),identity_relation) --> single_valued_class(X)) &        \
 \  (\\<forall>Xf. function(Xf) --> subclass(Xf::'a,cross_product(universal_class::'a,universal_class))) &       \
 \  (\\<forall>Xf. function(Xf) --> subclass(compos(Xf::'a,INVERSE(Xf)),identity_relation)) &       \
 \  (\\<forall>Xf. subclass(Xf::'a,cross_product(universal_class::'a,universal_class)) & subclass(compos(Xf::'a,INVERSE(Xf)),identity_relation) --> function(Xf)) & \
-\  (\\<forall>Xf X. function(Xf) & member(X::'a,universal_class) --> member(image_(Xf::'a,X),universal_class)) & \
-\  (\\<forall>X. equal(X::'a,null_class) | member(regular(X),X)) & \
+\  (\\<forall>Xf X. function(Xf) & memb(X::'a,universal_class) --> memb(image_(Xf::'a,X),universal_class)) & \
+\  (\\<forall>X. equal(X::'a,null_class) | memb(regular(X),X)) & \
 \  (\\<forall>X. equal(X::'a,null_class) | equal(intersection(X::'a,regular(X)),null_class)) & \
 \  (\\<forall>Xf Y. equal(sum_class(image_(Xf::'a,singleton(Y))),apply(Xf::'a,Y))) &     \
 \  (function(choice)) & \
-\  (\\<forall>Y. member(Y::'a,universal_class) --> equal(Y::'a,null_class) | member(apply(choice::'a,Y),Y)) &      \
+\  (\\<forall>Y. memb(Y::'a,universal_class) --> equal(Y::'a,null_class) | memb(apply(choice::'a,Y),Y)) &      \
 \  (\\<forall>Xf. one_to_one(Xf) --> function(Xf)) &    \
 \  (\\<forall>Xf. one_to_one(Xf) --> function(INVERSE(Xf))) &   \
 \  (\\<forall>Xf. function(INVERSE(Xf)) & function(Xf) --> one_to_one(Xf)) &    \
@@ -1408,8 +1408,8 @@ val SET004_0_ax =
 \  (\\<forall>Xh Xf2 Xf1. homomorphism(Xh::'a,Xf1,Xf2) --> operation(Xf1)) &        \
 \  (\\<forall>Xh Xf1 Xf2. homomorphism(Xh::'a,Xf1,Xf2) --> operation(Xf2)) &        \
 \  (\\<forall>Xh Xf1 Xf2. homomorphism(Xh::'a,Xf1,Xf2) --> compatible(Xh::'a,Xf1,Xf2)) &        \
-\  (\\<forall>Xf2 Xh Xf1 X Y. homomorphism(Xh::'a,Xf1,Xf2) & member(ordered_pair(X::'a,Y),domain_of(Xf1)) --> equal(apply(Xf2::'a,ordered_pair(apply(Xh::'a,X),apply(Xh::'a,Y))),apply(Xh::'a,apply(Xf1::'a,ordered_pair(X::'a,Y))))) & \
-\  (\\<forall>Xh Xf1 Xf2. operation(Xf1) & operation(Xf2) & compatible(Xh::'a,Xf1,Xf2) --> member(ordered_pair(not_homomorphism1(Xh::'a,Xf1,Xf2),not_homomorphism2(Xh::'a,Xf1,Xf2)),domain_of(Xf1)) | homomorphism(Xh::'a,Xf1,Xf2)) &  \
+\  (\\<forall>Xf2 Xh Xf1 X Y. homomorphism(Xh::'a,Xf1,Xf2) & memb(ordered_pair(X::'a,Y),domain_of(Xf1)) --> equal(apply(Xf2::'a,ordered_pair(apply(Xh::'a,X),apply(Xh::'a,Y))),apply(Xh::'a,apply(Xf1::'a,ordered_pair(X::'a,Y))))) & \
+\  (\\<forall>Xh Xf1 Xf2. operation(Xf1) & operation(Xf2) & compatible(Xh::'a,Xf1,Xf2) --> memb(ordered_pair(not_homomorphism1(Xh::'a,Xf1,Xf2),not_homomorphism2(Xh::'a,Xf1,Xf2)),domain_of(Xf1)) | homomorphism(Xh::'a,Xf1,Xf2)) &  \
 \  (\\<forall>Xh Xf1 Xf2. operation(Xf1) & operation(Xf2) & compatible(Xh::'a,Xf1,Xf2) & equal(apply(Xf2::'a,ordered_pair(apply(Xh::'a,not_homomorphism1(Xh::'a,Xf1,Xf2)),apply(Xh::'a,not_homomorphism2(Xh::'a,Xf1,Xf2)))),apply(Xh::'a,apply(Xf1::'a,ordered_pair(not_homomorphism1(Xh::'a,Xf1,Xf2),not_homomorphism2(Xh::'a,Xf1,Xf2))))) --> homomorphism(Xh::'a,Xf1,Xf2))";
 
 val SET004_0_eq =
@@ -1471,8 +1471,8 @@ val SET004_0_eq =
 \  (\\<forall>P6 R6 Q6 S6. equal(P6::'a,Q6) & homomorphism(R6::'a,P6,S6) --> homomorphism(R6::'a,Q6,S6)) &  \
 \  (\\<forall>T6 V6 W6 U6. equal(T6::'a,U6) & homomorphism(V6::'a,W6,T6) --> homomorphism(V6::'a,W6,U6)) &  \
 \  (\\<forall>X6 Y6. equal(X6::'a,Y6) & inductive(X6) --> inductive(Y6)) &  \
-\  (\\<forall>Z6 A7 B7. equal(Z6::'a,A7) & member(Z6::'a,B7) --> member(A7::'a,B7)) &       \
-\  (\\<forall>C7 E7 D7. equal(C7::'a,D7) & member(E7::'a,C7) --> member(E7::'a,D7)) &       \
+\  (\\<forall>Z6 A7 B7. equal(Z6::'a,A7) & memb(Z6::'a,B7) --> memb(A7::'a,B7)) &       \
+\  (\\<forall>C7 E7 D7. equal(C7::'a,D7) & memb(E7::'a,C7) --> memb(E7::'a,D7)) &       \
 \  (\\<forall>F7 G7. equal(F7::'a,G7) & one_to_one(F7) --> one_to_one(G7)) &        \
 \  (\\<forall>H7 I7. equal(H7::'a,I7) & operation(H7) --> operation(I7)) &  \
 \  (\\<forall>J7 K7. equal(J7::'a,K7) & single_valued_class(J7) --> single_valued_class(K7)) &      \
@@ -1481,22 +1481,22 @@ val SET004_0_eq =
 
 val SET004_1_ax =
   "(\\<forall>X. subclass(compose_class(X),cross_product(universal_class::'a,universal_class))) &   \
-\  (\\<forall>X Y Z. member(ordered_pair(Y::'a,Z),compose_class(X)) --> equal(compos(X::'a,Y),Z)) &    \
-\  (\\<forall>Y Z X. member(ordered_pair(Y::'a,Z),cross_product(universal_class::'a,universal_class)) & equal(compos(X::'a,Y),Z) --> member(ordered_pair(Y::'a,Z),compose_class(X))) & \
+\  (\\<forall>X Y Z. memb(ordered_pair(Y::'a,Z),compose_class(X)) --> equal(compos(X::'a,Y),Z)) &    \
+\  (\\<forall>Y Z X. memb(ordered_pair(Y::'a,Z),cross_product(universal_class::'a,universal_class)) & equal(compos(X::'a,Y),Z) --> memb(ordered_pair(Y::'a,Z),compose_class(X))) & \
 \  (subclass(composition_function::'a,cross_product(universal_class::'a,cross_product(universal_class::'a,universal_class)))) &     \
-\  (\\<forall>X Y Z. member(ordered_pair(X::'a,ordered_pair(Y::'a,Z)),composition_function) --> equal(compos(X::'a,Y),Z)) &        \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),cross_product(universal_class::'a,universal_class)) --> member(ordered_pair(X::'a,ordered_pair(Y::'a,compos(X::'a,Y))),composition_function)) &    \
+\  (\\<forall>X Y Z. memb(ordered_pair(X::'a,ordered_pair(Y::'a,Z)),composition_function) --> equal(compos(X::'a,Y),Z)) &        \
+\  (\\<forall>X Y. memb(ordered_pair(X::'a,Y),cross_product(universal_class::'a,universal_class)) --> memb(ordered_pair(X::'a,ordered_pair(Y::'a,compos(X::'a,Y))),composition_function)) &    \
 \  (subclass(domain_relation::'a,cross_product(universal_class::'a,universal_class))) & \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),domain_relation) --> equal(domain_of(X),Y)) &       \
-\  (\\<forall>X. member(X::'a,universal_class) --> member(ordered_pair(X::'a,domain_of(X)),domain_relation)) &  \
+\  (\\<forall>X Y. memb(ordered_pair(X::'a,Y),domain_relation) --> equal(domain_of(X),Y)) &       \
+\  (\\<forall>X. memb(X::'a,universal_class) --> memb(ordered_pair(X::'a,domain_of(X)),domain_relation)) &  \
 \  (\\<forall>X. equal(first(not_subclass_element(compos(X::'a,INVERSE(X)),identity_relation)),single_valued1(X))) &       \
 \  (\\<forall>X. equal(second(not_subclass_element(compos(X::'a,INVERSE(X)),identity_relation)),single_valued2(X))) &      \
 \  (\\<forall>X. equal(domain(X::'a,image_(INVERSE(X),singleton(single_valued1(X))),single_valued2(X)),single_valued3(X))) & \
 \  (equal(intersection(complement(compos(element_relation::'a,complement(identity_relation))),element_relation),singleton_relation)) &     \
 \  (subclass(application_function::'a,cross_product(universal_class::'a,cross_product(universal_class::'a,universal_class)))) &     \
-\  (\\<forall>Z Y X. member(ordered_pair(X::'a,ordered_pair(Y::'a,Z)),application_function) --> member(Y::'a,domain_of(X))) &       \
-\  (\\<forall>X Y Z. member(ordered_pair(X::'a,ordered_pair(Y::'a,Z)),application_function) --> equal(apply(X::'a,Y),Z)) &  \
-\  (\\<forall>Z X Y. member(ordered_pair(X::'a,ordered_pair(Y::'a,Z)),cross_product(universal_class::'a,cross_product(universal_class::'a,universal_class))) & member(Y::'a,domain_of(X)) --> member(ordered_pair(X::'a,ordered_pair(Y::'a,apply(X::'a,Y))),application_function)) &    \
+\  (\\<forall>Z Y X. memb(ordered_pair(X::'a,ordered_pair(Y::'a,Z)),application_function) --> memb(Y::'a,domain_of(X))) &       \
+\  (\\<forall>X Y Z. memb(ordered_pair(X::'a,ordered_pair(Y::'a,Z)),application_function) --> equal(apply(X::'a,Y),Z)) &  \
+\  (\\<forall>Z X Y. memb(ordered_pair(X::'a,ordered_pair(Y::'a,Z)),cross_product(universal_class::'a,cross_product(universal_class::'a,universal_class))) & memb(Y::'a,domain_of(X)) --> memb(ordered_pair(X::'a,ordered_pair(Y::'a,apply(X::'a,Y))),application_function)) &    \
 \  (\\<forall>X Y Xf. maps(Xf::'a,X,Y) --> function(Xf)) &  \
 \  (\\<forall>Y Xf X. maps(Xf::'a,X,Y) --> equal(domain_of(Xf),X)) &        \
 \  (\\<forall>X Xf Y. maps(Xf::'a,X,Y) --> subclass(range_of(Xf),Y)) &      \
@@ -1523,41 +1523,41 @@ val NUM004_0_ax =
 \  (\\<forall>Xr Y. equal(restrct(intersection(Xr::'a,INVERSE(Xr)),Y,Y),null_class) --> asymmetric(Xr::'a,Y)) &        \
 \  (\\<forall>Xr Y Z. equal(segment(Xr::'a,Y,Z),domain_of(restrct(Xr::'a,Y,singleton(Z))))) &  \
 \  (\\<forall>X Y. well_ordering(X::'a,Y) --> connected(X::'a,Y)) &     \
-\  (\\<forall>Y Xr U. well_ordering(Xr::'a,Y) & subclass(U::'a,Y) --> equal(U::'a,null_class) | member(least(Xr::'a,U),U)) &   \
-\  (\\<forall>Y V Xr U. well_ordering(Xr::'a,Y) & subclass(U::'a,Y) & member(V::'a,U) --> member(least(Xr::'a,U),U)) &  \
+\  (\\<forall>Y Xr U. well_ordering(Xr::'a,Y) & subclass(U::'a,Y) --> equal(U::'a,null_class) | memb(least(Xr::'a,U),U)) &   \
+\  (\\<forall>Y V Xr U. well_ordering(Xr::'a,Y) & subclass(U::'a,Y) & memb(V::'a,U) --> memb(least(Xr::'a,U),U)) &  \
 \  (\\<forall>Y Xr U. well_ordering(Xr::'a,Y) & subclass(U::'a,Y) --> equal(segment(Xr::'a,U,least(Xr::'a,U)),null_class)) &    \
-\  (\\<forall>Y V U Xr. ~(well_ordering(Xr::'a,Y) & subclass(U::'a,Y) & member(V::'a,U) & member(ordered_pair(V::'a,least(Xr::'a,U)),Xr))) &        \
+\  (\\<forall>Y V U Xr. ~(well_ordering(Xr::'a,Y) & subclass(U::'a,Y) & memb(V::'a,U) & memb(ordered_pair(V::'a,least(Xr::'a,U)),Xr))) &        \
 \  (\\<forall>Xr Y. connected(Xr::'a,Y) & equal(not_well_ordering(Xr::'a,Y),null_class) --> well_ordering(Xr::'a,Y)) &      \
 \  (\\<forall>Xr Y. connected(Xr::'a,Y) --> subclass(not_well_ordering(Xr::'a,Y),Y) | well_ordering(Xr::'a,Y)) &   \
-\  (\\<forall>V Xr Y. member(V::'a,not_well_ordering(Xr::'a,Y)) & equal(segment(Xr::'a,not_well_ordering(Xr::'a,Y),V),null_class) & connected(Xr::'a,Y) --> well_ordering(Xr::'a,Y)) &  \
+\  (\\<forall>V Xr Y. memb(V::'a,not_well_ordering(Xr::'a,Y)) & equal(segment(Xr::'a,not_well_ordering(Xr::'a,Y),V),null_class) & connected(Xr::'a,Y) --> well_ordering(Xr::'a,Y)) &  \
 \  (\\<forall>Xr Y Z. section(Xr::'a,Y,Z) --> subclass(Y::'a,Z)) &      \
 \  (\\<forall>Xr Z Y. section(Xr::'a,Y,Z) --> subclass(domain_of(restrct(Xr::'a,Z,Y)),Y)) &    \
 \  (\\<forall>Xr Y Z. subclass(Y::'a,Z) & subclass(domain_of(restrct(Xr::'a,Z,Y)),Y) --> section(Xr::'a,Y,Z)) &    \
-\  (\\<forall>X. member(X::'a,ordinal_numbers) --> well_ordering(element_relation::'a,X)) &     \
-\  (\\<forall>X. member(X::'a,ordinal_numbers) --> subclass(sum_class(X),X)) &      \
-\  (\\<forall>X. well_ordering(element_relation::'a,X) & subclass(sum_class(X),X) & member(X::'a,universal_class) --> member(X::'a,ordinal_numbers)) &      \
-\  (\\<forall>X. well_ordering(element_relation::'a,X) & subclass(sum_class(X),X) --> member(X::'a,ordinal_numbers) | equal(X::'a,ordinal_numbers)) &      \
+\  (\\<forall>X. memb(X::'a,ordinal_numbers) --> well_ordering(element_relation::'a,X)) &     \
+\  (\\<forall>X. memb(X::'a,ordinal_numbers) --> subclass(sum_class(X),X)) &      \
+\  (\\<forall>X. well_ordering(element_relation::'a,X) & subclass(sum_class(X),X) & memb(X::'a,universal_class) --> memb(X::'a,ordinal_numbers)) &      \
+\  (\\<forall>X. well_ordering(element_relation::'a,X) & subclass(sum_class(X),X) --> memb(X::'a,ordinal_numbers) | equal(X::'a,ordinal_numbers)) &      \
 \  (equal(union(singleton(null_class),image_(successor_relation::'a,ordinal_numbers)),kind_1_ordinals)) &    \
 \  (equal(intersection(complement(kind_1_ordinals),ordinal_numbers),limit_ordinals)) &  \
 \  (\\<forall>X. subclass(rest_of(X),cross_product(universal_class::'a,universal_class))) & \
-\  (\\<forall>V U X. member(ordered_pair(U::'a,V),rest_of(X)) --> member(U::'a,domain_of(X))) & \
-\  (\\<forall>X U V. member(ordered_pair(U::'a,V),rest_of(X)) --> equal(restrct(X::'a,U,universal_class),V)) & \
-\  (\\<forall>U V X. member(U::'a,domain_of(X)) & equal(restrct(X::'a,U,universal_class),V) --> member(ordered_pair(U::'a,V),rest_of(X))) &        \
+\  (\\<forall>V U X. memb(ordered_pair(U::'a,V),rest_of(X)) --> memb(U::'a,domain_of(X))) & \
+\  (\\<forall>X U V. memb(ordered_pair(U::'a,V),rest_of(X)) --> equal(restrct(X::'a,U,universal_class),V)) & \
+\  (\\<forall>U V X. memb(U::'a,domain_of(X)) & equal(restrct(X::'a,U,universal_class),V) --> memb(ordered_pair(U::'a,V),rest_of(X))) &        \
 \  (subclass(rest_relation::'a,cross_product(universal_class::'a,universal_class))) &   \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),rest_relation) --> equal(rest_of(X),Y)) &   \
-\  (\\<forall>X. member(X::'a,universal_class) --> member(ordered_pair(X::'a,rest_of(X)),rest_relation)) &      \
-\  (\\<forall>X Z. member(X::'a,recursion_equation_functions(Z)) --> function(Z)) & \
-\  (\\<forall>Z X. member(X::'a,recursion_equation_functions(Z)) --> function(X)) & \
-\  (\\<forall>Z X. member(X::'a,recursion_equation_functions(Z)) --> member(domain_of(X),ordinal_numbers)) &        \
-\  (\\<forall>Z X. member(X::'a,recursion_equation_functions(Z)) --> equal(compos(Z::'a,rest_of(X)),X)) &      \
-\  (\\<forall>X Z. function(Z) & function(X) & member(domain_of(X),ordinal_numbers) & equal(compos(Z::'a,rest_of(X)),X) --> member(X::'a,recursion_equation_functions(Z))) &   \
+\  (\\<forall>X Y. memb(ordered_pair(X::'a,Y),rest_relation) --> equal(rest_of(X),Y)) &   \
+\  (\\<forall>X. memb(X::'a,universal_class) --> memb(ordered_pair(X::'a,rest_of(X)),rest_relation)) &      \
+\  (\\<forall>X Z. memb(X::'a,recursion_equation_functions(Z)) --> function(Z)) & \
+\  (\\<forall>Z X. memb(X::'a,recursion_equation_functions(Z)) --> function(X)) & \
+\  (\\<forall>Z X. memb(X::'a,recursion_equation_functions(Z)) --> memb(domain_of(X),ordinal_numbers)) &        \
+\  (\\<forall>Z X. memb(X::'a,recursion_equation_functions(Z)) --> equal(compos(Z::'a,rest_of(X)),X)) &      \
+\  (\\<forall>X Z. function(Z) & function(X) & memb(domain_of(X),ordinal_numbers) & equal(compos(Z::'a,rest_of(X)),X) --> memb(X::'a,recursion_equation_functions(Z))) &   \
 \  (subclass(union_of_range_map::'a,cross_product(universal_class::'a,universal_class))) &      \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),union_of_range_map) --> equal(sum_class(range_of(X)),Y)) &  \
-\  (\\<forall>X Y. member(ordered_pair(X::'a,Y),cross_product(universal_class::'a,universal_class)) & equal(sum_class(range_of(X)),Y) --> member(ordered_pair(X::'a,Y),union_of_range_map)) &       \
+\  (\\<forall>X Y. memb(ordered_pair(X::'a,Y),union_of_range_map) --> equal(sum_class(range_of(X)),Y)) &  \
+\  (\\<forall>X Y. memb(ordered_pair(X::'a,Y),cross_product(universal_class::'a,universal_class)) & equal(sum_class(range_of(X)),Y) --> memb(ordered_pair(X::'a,Y),union_of_range_map)) &       \
 \  (\\<forall>X Y. equal(apply(recursion(X::'a,successor_relation,union_of_range_map),Y),ordinal_add(X::'a,Y))) &       \
 \  (\\<forall>X Y. equal(recursion(null_class::'a,apply(add_relation::'a,X),union_of_range_map),ordinal_multiply(X::'a,Y))) &       \
-\  (\\<forall>X. member(X::'a,omega) --> equal(integer_of(X),X)) &  \
-\  (\\<forall>X. member(X::'a,omega) | equal(integer_of(X),null_class))";
+\  (\\<forall>X. memb(X::'a,omega) --> equal(integer_of(X),X)) &  \
+\  (\\<forall>X. memb(X::'a,omega) | equal(integer_of(X),null_class))";
 
 val NUM004_0_eq =
   "(\\<forall>D E. equal(D::'a,E) --> equal(integer_of(D),integer_of(E))) & \
@@ -2191,18 +2191,18 @@ val ROB021_1 = prove_hard
 
 (*35532 inferences so far.  Searching to depth 19.  54.3 secs*)
 val SET005_1 = prove_hard
- ("(\\<forall>Subset Element Superset. member(Element::'a,Subset) & subset(Subset::'a,Superset) --> member(Element::'a,Superset)) & \
-\  (\\<forall>Superset Subset. subset(Subset::'a,Superset) | member(member_of_1_not_of_2(Subset::'a,Superset),Subset)) &       \
-\  (\\<forall>Subset Superset. member(member_of_1_not_of_2(Subset::'a,Superset),Superset) --> subset(Subset::'a,Superset)) &    \
+ ("(\\<forall>Subset Element Superset. memb(Element::'a,Subset) & subset(Subset::'a,Superset) --> memb(Element::'a,Superset)) & \
+\  (\\<forall>Superset Subset. subset(Subset::'a,Superset) | memb(member_of_1_not_of_2(Subset::'a,Superset),Subset)) &       \
+\  (\\<forall>Subset Superset. memb(member_of_1_not_of_2(Subset::'a,Superset),Superset) --> subset(Subset::'a,Superset)) &    \
 \  (\\<forall>Subset Superset. equal_sets(Subset::'a,Superset) --> subset(Subset::'a,Superset)) &       \
 \  (\\<forall>Subset Superset. equal_sets(Superset::'a,Subset) --> subset(Subset::'a,Superset)) &       \
 \  (\\<forall>Set2 Set1. subset(Set1::'a,Set2) & subset(Set2::'a,Set1) --> equal_sets(Set2::'a,Set1)) &     \
-\  (\\<forall>Set2 Intersection Element Set1. intersection(Set1::'a,Set2,Intersection) & member(Element::'a,Intersection) --> member(Element::'a,Set1)) &   \
-\  (\\<forall>Set1 Intersection Element Set2. intersection(Set1::'a,Set2,Intersection) & member(Element::'a,Intersection) --> member(Element::'a,Set2)) &   \
-\  (\\<forall>Set2 Set1 Element Intersection. intersection(Set1::'a,Set2,Intersection) & member(Element::'a,Set2) & member(Element::'a,Set1) --> member(Element::'a,Intersection)) &    \
-\  (\\<forall>Set2 Intersection Set1. member(h(Set1::'a,Set2,Intersection),Intersection) | intersection(Set1::'a,Set2,Intersection) | member(h(Set1::'a,Set2,Intersection),Set1)) &       \
-\  (\\<forall>Set1 Intersection Set2. member(h(Set1::'a,Set2,Intersection),Intersection) | intersection(Set1::'a,Set2,Intersection) | member(h(Set1::'a,Set2,Intersection),Set2)) &       \
-\  (\\<forall>Set1 Set2 Intersection. member(h(Set1::'a,Set2,Intersection),Intersection) & member(h(Set1::'a,Set2,Intersection),Set2) & member(h(Set1::'a,Set2,Intersection),Set1) --> intersection(Set1::'a,Set2,Intersection)) &      \
+\  (\\<forall>Set2 Intersection Element Set1. intersection(Set1::'a,Set2,Intersection) & memb(Element::'a,Intersection) --> memb(Element::'a,Set1)) &   \
+\  (\\<forall>Set1 Intersection Element Set2. intersection(Set1::'a,Set2,Intersection) & memb(Element::'a,Intersection) --> memb(Element::'a,Set2)) &   \
+\  (\\<forall>Set2 Set1 Element Intersection. intersection(Set1::'a,Set2,Intersection) & memb(Element::'a,Set2) & memb(Element::'a,Set1) --> memb(Element::'a,Intersection)) &    \
+\  (\\<forall>Set2 Intersection Set1. memb(h(Set1::'a,Set2,Intersection),Intersection) | intersection(Set1::'a,Set2,Intersection) | memb(h(Set1::'a,Set2,Intersection),Set1)) &       \
+\  (\\<forall>Set1 Intersection Set2. memb(h(Set1::'a,Set2,Intersection),Intersection) | intersection(Set1::'a,Set2,Intersection) | memb(h(Set1::'a,Set2,Intersection),Set2)) &       \
+\  (\\<forall>Set1 Set2 Intersection. memb(h(Set1::'a,Set2,Intersection),Intersection) & memb(h(Set1::'a,Set2,Intersection),Set2) & memb(h(Set1::'a,Set2,Intersection),Set1) --> intersection(Set1::'a,Set2,Intersection)) &      \
 \  (intersection(a::'a,b,aIb)) &    \
 \  (intersection(b::'a,c,bIc)) &    \
 \  (intersection(a::'a,bIc,aIbIc)) &        \
@@ -2212,18 +2212,18 @@ val SET005_1 = prove_hard
 
 (*6450 inferences so far.  Searching to depth 14.  4.2 secs*)
 val SET009_1 = prove
- ("(\\<forall>Subset Element Superset. member(Element::'a,Subset) & ssubset(Subset::'a,Superset) --> member(Element::'a,Superset)) & \
-\  (\\<forall>Superset Subset. ssubset(Subset::'a,Superset) | member(member_of_1_not_of_2(Subset::'a,Superset),Subset)) &       \
-\  (\\<forall>Subset Superset. member(member_of_1_not_of_2(Subset::'a,Superset),Superset) --> ssubset(Subset::'a,Superset)) &    \
+ ("(\\<forall>Subset Element Superset. memb(Element::'a,Subset) & ssubset(Subset::'a,Superset) --> memb(Element::'a,Superset)) & \
+\  (\\<forall>Superset Subset. ssubset(Subset::'a,Superset) | memb(member_of_1_not_of_2(Subset::'a,Superset),Subset)) &       \
+\  (\\<forall>Subset Superset. memb(member_of_1_not_of_2(Subset::'a,Superset),Superset) --> ssubset(Subset::'a,Superset)) &    \
 \  (\\<forall>Subset Superset. equal_sets(Subset::'a,Superset) --> ssubset(Subset::'a,Superset)) &       \
 \  (\\<forall>Subset Superset. equal_sets(Superset::'a,Subset) --> ssubset(Subset::'a,Superset)) &       \
 \  (\\<forall>Set2 Set1. ssubset(Set1::'a,Set2) & ssubset(Set2::'a,Set1) --> equal_sets(Set2::'a,Set1)) &     \
-\  (\\<forall>Set2 Difference Element Set1. difference(Set1::'a,Set2,Difference) & member(Element::'a,Difference) --> member(Element::'a,Set1)) &   \
-\  (\\<forall>Element A_set Set1 Set2. ~(member(Element::'a,Set1) & member(Element::'a,Set2) & difference(A_set::'a,Set1,Set2))) &  \
-\  (\\<forall>Set1 Difference Element Set2. member(Element::'a,Set1) & difference(Set1::'a,Set2,Difference) --> member(Element::'a,Difference) | member(Element::'a,Set2)) &   \
-\  (\\<forall>Set1 Set2 Difference. difference(Set1::'a,Set2,Difference) | member(k(Set1::'a,Set2,Difference),Set1) | member(k(Set1::'a,Set2,Difference),Difference)) &   \
-\  (\\<forall>Set1 Set2 Difference. member(k(Set1::'a,Set2,Difference),Set2) --> member(k(Set1::'a,Set2,Difference),Difference) | difference(Set1::'a,Set2,Difference)) &  \
-\  (\\<forall>Set1 Set2 Difference. member(k(Set1::'a,Set2,Difference),Difference) & member(k(Set1::'a,Set2,Difference),Set1) --> member(k(Set1::'a,Set2,Difference),Set2) | difference(Set1::'a,Set2,Difference)) &   \
+\  (\\<forall>Set2 Difference Element Set1. difference(Set1::'a,Set2,Difference) & memb(Element::'a,Difference) --> memb(Element::'a,Set1)) &   \
+\  (\\<forall>Element A_set Set1 Set2. ~(memb(Element::'a,Set1) & memb(Element::'a,Set2) & difference(A_set::'a,Set1,Set2))) &  \
+\  (\\<forall>Set1 Difference Element Set2. memb(Element::'a,Set1) & difference(Set1::'a,Set2,Difference) --> memb(Element::'a,Difference) | memb(Element::'a,Set2)) &   \
+\  (\\<forall>Set1 Set2 Difference. difference(Set1::'a,Set2,Difference) | memb(k(Set1::'a,Set2,Difference),Set1) | memb(k(Set1::'a,Set2,Difference),Difference)) &   \
+\  (\\<forall>Set1 Set2 Difference. memb(k(Set1::'a,Set2,Difference),Set2) --> memb(k(Set1::'a,Set2,Difference),Difference) | difference(Set1::'a,Set2,Difference)) &  \
+\  (\\<forall>Set1 Set2 Difference. memb(k(Set1::'a,Set2,Difference),Difference) & memb(k(Set1::'a,Set2,Difference),Set1) --> memb(k(Set1::'a,Set2,Difference),Set2) | difference(Set1::'a,Set2,Difference)) &   \
 \  (ssubset(d::'a,a)) &      \
 \  (difference(b::'a,a,bDa)) &      \
 \  (difference(b::'a,d,bDd)) &      \
@@ -2233,13 +2233,13 @@ val SET009_1 = prove
 (*34726 inferences so far.  Searching to depth 6.  2420 secs: 40 mins! BIG*)
 val SET025_4 = prove_hard
  (EQU001_0_ax ^ " &  \
-\  (\\<forall>Y X. member(X::'a,Y) --> little_set(X)) &     \
+\  (\\<forall>Y X. memb(X::'a,Y) --> little_set(X)) &     \
 \  (\\<forall>X Y. little_set(f1(X::'a,Y)) | equal(X::'a,Y)) & \
-\  (\\<forall>X Y. member(f1(X::'a,Y),X) | member(f1(X::'a,Y),Y) | equal(X::'a,Y)) &      \
-\  (\\<forall>X Y. member(f1(X::'a,Y),X) & member(f1(X::'a,Y),Y) --> equal(X::'a,Y)) &      \
-\  (\\<forall>X U Y. member(U::'a,non_ordered_pair(X::'a,Y)) --> equal(U::'a,X) | equal(U::'a,Y)) &    \
-\  (\\<forall>Y U X. little_set(U) & equal(U::'a,X) --> member(U::'a,non_ordered_pair(X::'a,Y))) &  \
-\  (\\<forall>X U Y. little_set(U) & equal(U::'a,Y) --> member(U::'a,non_ordered_pair(X::'a,Y))) &  \
+\  (\\<forall>X Y. memb(f1(X::'a,Y),X) | memb(f1(X::'a,Y),Y) | equal(X::'a,Y)) &      \
+\  (\\<forall>X Y. memb(f1(X::'a,Y),X) & memb(f1(X::'a,Y),Y) --> equal(X::'a,Y)) &      \
+\  (\\<forall>X U Y. memb(U::'a,non_ordered_pair(X::'a,Y)) --> equal(U::'a,X) | equal(U::'a,Y)) &    \
+\  (\\<forall>Y U X. little_set(U) & equal(U::'a,X) --> memb(U::'a,non_ordered_pair(X::'a,Y))) &  \
+\  (\\<forall>X U Y. little_set(U) & equal(U::'a,Y) --> memb(U::'a,non_ordered_pair(X::'a,Y))) &  \
 \  (\\<forall>X Y. little_set(non_ordered_pair(X::'a,Y))) & \
 \  (\\<forall>X. equal(singleton_set(X),non_ordered_pair(X::'a,X))) &       \
 \  (\\<forall>X Y. equal(ordered_pair(X::'a,Y),non_ordered_pair(singleton_set(X),non_ordered_pair(X::'a,Y)))) & \
@@ -2247,110 +2247,110 @@ val SET025_4 = prove_hard
 \  (\\<forall>X. ordered_pair_predicate(X) --> little_set(f3(X))) &     \
 \  (\\<forall>X. ordered_pair_predicate(X) --> equal(X::'a,ordered_pair(f2(X),f3(X)))) &    \
 \  (\\<forall>X Y Z. little_set(Y) & little_set(Z) & equal(X::'a,ordered_pair(Y::'a,Z)) --> ordered_pair_predicate(X)) &        \
-\  (\\<forall>Z X. member(Z::'a,first(X)) --> little_set(f4(Z::'a,X))) &        \
-\  (\\<forall>Z X. member(Z::'a,first(X)) --> little_set(f5(Z::'a,X))) &        \
-\  (\\<forall>Z X. member(Z::'a,first(X)) --> equal(X::'a,ordered_pair(f4(Z::'a,X),f5(Z::'a,X)))) &     \
-\  (\\<forall>Z X. member(Z::'a,first(X)) --> member(Z::'a,f4(Z::'a,X))) &  \
-\  (\\<forall>X V Z U. little_set(U) & little_set(V) & equal(X::'a,ordered_pair(U::'a,V)) & member(Z::'a,U) --> member(Z::'a,first(X))) &       \
-\  (\\<forall>Z X. member(Z::'a,second(X)) --> little_set(f6(Z::'a,X))) &       \
-\  (\\<forall>Z X. member(Z::'a,second(X)) --> little_set(f7(Z::'a,X))) &       \
-\  (\\<forall>Z X. member(Z::'a,second(X)) --> equal(X::'a,ordered_pair(f6(Z::'a,X),f7(Z::'a,X)))) &    \
-\  (\\<forall>Z X. member(Z::'a,second(X)) --> member(Z::'a,f7(Z::'a,X))) & \
-\  (\\<forall>X U Z V. little_set(U) & little_set(V) & equal(X::'a,ordered_pair(U::'a,V)) & member(Z::'a,V) --> member(Z::'a,second(X))) &      \
-\  (\\<forall>Z. member(Z::'a,estin) --> ordered_pair_predicate(Z)) &       \
-\  (\\<forall>Z. member(Z::'a,estin) --> member(first(Z),second(Z))) &      \
-\  (\\<forall>Z. little_set(Z) & ordered_pair_predicate(Z) & member(first(Z),second(Z)) --> member(Z::'a,estin)) &  \
-\  (\\<forall>Y Z X. member(Z::'a,intersection(X::'a,Y)) --> member(Z::'a,X)) &     \
-\  (\\<forall>X Z Y. member(Z::'a,intersection(X::'a,Y)) --> member(Z::'a,Y)) &     \
-\  (\\<forall>X Z Y. member(Z::'a,X) & member(Z::'a,Y) --> member(Z::'a,intersection(X::'a,Y))) &       \
-\  (\\<forall>Z X. ~(member(Z::'a,complement(X)) & member(Z::'a,X))) &  \
-\  (\\<forall>Z X. little_set(Z) --> member(Z::'a,complement(X)) | member(Z::'a,X)) &  \
+\  (\\<forall>Z X. memb(Z::'a,first(X)) --> little_set(f4(Z::'a,X))) &        \
+\  (\\<forall>Z X. memb(Z::'a,first(X)) --> little_set(f5(Z::'a,X))) &        \
+\  (\\<forall>Z X. memb(Z::'a,first(X)) --> equal(X::'a,ordered_pair(f4(Z::'a,X),f5(Z::'a,X)))) &     \
+\  (\\<forall>Z X. memb(Z::'a,first(X)) --> memb(Z::'a,f4(Z::'a,X))) &  \
+\  (\\<forall>X V Z U. little_set(U) & little_set(V) & equal(X::'a,ordered_pair(U::'a,V)) & memb(Z::'a,U) --> memb(Z::'a,first(X))) &       \
+\  (\\<forall>Z X. memb(Z::'a,second(X)) --> little_set(f6(Z::'a,X))) &       \
+\  (\\<forall>Z X. memb(Z::'a,second(X)) --> little_set(f7(Z::'a,X))) &       \
+\  (\\<forall>Z X. memb(Z::'a,second(X)) --> equal(X::'a,ordered_pair(f6(Z::'a,X),f7(Z::'a,X)))) &    \
+\  (\\<forall>Z X. memb(Z::'a,second(X)) --> memb(Z::'a,f7(Z::'a,X))) & \
+\  (\\<forall>X U Z V. little_set(U) & little_set(V) & equal(X::'a,ordered_pair(U::'a,V)) & memb(Z::'a,V) --> memb(Z::'a,second(X))) &      \
+\  (\\<forall>Z. memb(Z::'a,estin) --> ordered_pair_predicate(Z)) &       \
+\  (\\<forall>Z. memb(Z::'a,estin) --> memb(first(Z),second(Z))) &      \
+\  (\\<forall>Z. little_set(Z) & ordered_pair_predicate(Z) & memb(first(Z),second(Z)) --> memb(Z::'a,estin)) &  \
+\  (\\<forall>Y Z X. memb(Z::'a,intersection(X::'a,Y)) --> memb(Z::'a,X)) &     \
+\  (\\<forall>X Z Y. memb(Z::'a,intersection(X::'a,Y)) --> memb(Z::'a,Y)) &     \
+\  (\\<forall>X Z Y. memb(Z::'a,X) & memb(Z::'a,Y) --> memb(Z::'a,intersection(X::'a,Y))) &       \
+\  (\\<forall>Z X. ~(memb(Z::'a,complement(X)) & memb(Z::'a,X))) &  \
+\  (\\<forall>Z X. little_set(Z) --> memb(Z::'a,complement(X)) | memb(Z::'a,X)) &  \
 \  (\\<forall>X Y. equal(union(X::'a,Y),complement(intersection(complement(X),complement(Y))))) &   \
-\  (\\<forall>Z X. member(Z::'a,domain_of(X)) --> ordered_pair_predicate(f8(Z::'a,X))) &        \
-\  (\\<forall>Z X. member(Z::'a,domain_of(X)) --> member(f8(Z::'a,X),X)) &      \
-\  (\\<forall>Z X. member(Z::'a,domain_of(X)) --> equal(Z::'a,first(f8(Z::'a,X)))) &        \
-\  (\\<forall>X Z Xp. little_set(Z) & ordered_pair_predicate(Xp) & member(Xp::'a,X) & equal(Z::'a,first(Xp)) --> member(Z::'a,domain_of(X))) &      \
-\  (\\<forall>X Y Z. member(Z::'a,cross_product(X::'a,Y)) --> ordered_pair_predicate(Z)) &      \
-\  (\\<forall>Y Z X. member(Z::'a,cross_product(X::'a,Y)) --> member(first(Z),X)) &     \
-\  (\\<forall>X Z Y. member(Z::'a,cross_product(X::'a,Y)) --> member(second(Z),Y)) &    \
-\  (\\<forall>X Z Y. little_set(Z) & ordered_pair_predicate(Z) & member(first(Z),X) & member(second(Z),Y) --> member(Z::'a,cross_product(X::'a,Y))) &   \
-\  (\\<forall>X Z. member(Z::'a,inv1 X) --> ordered_pair_predicate(Z)) &       \
-\  (\\<forall>Z X. member(Z::'a,inv1 X) --> member(ordered_pair(second(Z),first(Z)),X)) &      \
-\  (\\<forall>Z X. little_set(Z) & ordered_pair_predicate(Z) & member(ordered_pair(second(Z),first(Z)),X) --> member(Z::'a,inv1 X)) &  \
-\  (\\<forall>Z X. member(Z::'a,rot_right(X)) --> little_set(f9(Z::'a,X))) & \
-\  (\\<forall>Z X. member(Z::'a,rot_right(X)) --> little_set(f10(Z::'a,X))) &        \
-\  (\\<forall>Z X. member(Z::'a,rot_right(X)) --> little_set(f11(Z::'a,X))) &        \
-\  (\\<forall>Z X. member(Z::'a,rot_right(X)) --> equal(Z::'a,ordered_pair(f9(Z::'a,X),ordered_pair(f10(Z::'a,X),f11(Z::'a,X))))) &      \
-\  (\\<forall>Z X. member(Z::'a,rot_right(X)) --> member(ordered_pair(f10(Z::'a,X),ordered_pair(f11(Z::'a,X),f9(Z::'a,X))),X)) &     \
-\  (\\<forall>Z V W U X. little_set(Z) & little_set(U) & little_set(V) & little_set(W) & equal(Z::'a,ordered_pair(U::'a,ordered_pair(V::'a,W))) & member(ordered_pair(V::'a,ordered_pair(W::'a,U)),X) --> member(Z::'a,rot_right(X))) &      \
-\  (\\<forall>Z X. member(Z::'a,flip_range_of(X)) --> little_set(f12(Z::'a,X))) &       \
-\  (\\<forall>Z X. member(Z::'a,flip_range_of(X)) --> little_set(f13(Z::'a,X))) &       \
-\  (\\<forall>Z X. member(Z::'a,flip_range_of(X)) --> little_set(f14(Z::'a,X))) &       \
-\  (\\<forall>Z X. member(Z::'a,flip_range_of(X)) --> equal(Z::'a,ordered_pair(f12(Z::'a,X),ordered_pair(f13(Z::'a,X),f14(Z::'a,X))))) &    \
-\  (\\<forall>Z X. member(Z::'a,flip_range_of(X)) --> member(ordered_pair(f12(Z::'a,X),ordered_pair(f14(Z::'a,X),f13(Z::'a,X))),X)) &   \
-\  (\\<forall>Z U W V X. little_set(Z) & little_set(U) & little_set(V) & little_set(W) & equal(Z::'a,ordered_pair(U::'a,ordered_pair(V::'a,W))) & member(ordered_pair(U::'a,ordered_pair(W::'a,V)),X) --> member(Z::'a,flip_range_of(X))) &     \
+\  (\\<forall>Z X. memb(Z::'a,domain_of(X)) --> ordered_pair_predicate(f8(Z::'a,X))) &        \
+\  (\\<forall>Z X. memb(Z::'a,domain_of(X)) --> memb(f8(Z::'a,X),X)) &      \
+\  (\\<forall>Z X. memb(Z::'a,domain_of(X)) --> equal(Z::'a,first(f8(Z::'a,X)))) &        \
+\  (\\<forall>X Z Xp. little_set(Z) & ordered_pair_predicate(Xp) & memb(Xp::'a,X) & equal(Z::'a,first(Xp)) --> memb(Z::'a,domain_of(X))) &      \
+\  (\\<forall>X Y Z. memb(Z::'a,cross_product(X::'a,Y)) --> ordered_pair_predicate(Z)) &      \
+\  (\\<forall>Y Z X. memb(Z::'a,cross_product(X::'a,Y)) --> memb(first(Z),X)) &     \
+\  (\\<forall>X Z Y. memb(Z::'a,cross_product(X::'a,Y)) --> memb(second(Z),Y)) &    \
+\  (\\<forall>X Z Y. little_set(Z) & ordered_pair_predicate(Z) & memb(first(Z),X) & memb(second(Z),Y) --> memb(Z::'a,cross_product(X::'a,Y))) &   \
+\  (\\<forall>X Z. memb(Z::'a,inv1 X) --> ordered_pair_predicate(Z)) &       \
+\  (\\<forall>Z X. memb(Z::'a,inv1 X) --> memb(ordered_pair(second(Z),first(Z)),X)) &      \
+\  (\\<forall>Z X. little_set(Z) & ordered_pair_predicate(Z) & memb(ordered_pair(second(Z),first(Z)),X) --> memb(Z::'a,inv1 X)) &  \
+\  (\\<forall>Z X. memb(Z::'a,rot_right(X)) --> little_set(f9(Z::'a,X))) & \
+\  (\\<forall>Z X. memb(Z::'a,rot_right(X)) --> little_set(f10(Z::'a,X))) &        \
+\  (\\<forall>Z X. memb(Z::'a,rot_right(X)) --> little_set(f11(Z::'a,X))) &        \
+\  (\\<forall>Z X. memb(Z::'a,rot_right(X)) --> equal(Z::'a,ordered_pair(f9(Z::'a,X),ordered_pair(f10(Z::'a,X),f11(Z::'a,X))))) &      \
+\  (\\<forall>Z X. memb(Z::'a,rot_right(X)) --> memb(ordered_pair(f10(Z::'a,X),ordered_pair(f11(Z::'a,X),f9(Z::'a,X))),X)) &     \
+\  (\\<forall>Z V W U X. little_set(Z) & little_set(U) & little_set(V) & little_set(W) & equal(Z::'a,ordered_pair(U::'a,ordered_pair(V::'a,W))) & memb(ordered_pair(V::'a,ordered_pair(W::'a,U)),X) --> memb(Z::'a,rot_right(X))) &      \
+\  (\\<forall>Z X. memb(Z::'a,flip_range_of(X)) --> little_set(f12(Z::'a,X))) &       \
+\  (\\<forall>Z X. memb(Z::'a,flip_range_of(X)) --> little_set(f13(Z::'a,X))) &       \
+\  (\\<forall>Z X. memb(Z::'a,flip_range_of(X)) --> little_set(f14(Z::'a,X))) &       \
+\  (\\<forall>Z X. memb(Z::'a,flip_range_of(X)) --> equal(Z::'a,ordered_pair(f12(Z::'a,X),ordered_pair(f13(Z::'a,X),f14(Z::'a,X))))) &    \
+\  (\\<forall>Z X. memb(Z::'a,flip_range_of(X)) --> memb(ordered_pair(f12(Z::'a,X),ordered_pair(f14(Z::'a,X),f13(Z::'a,X))),X)) &   \
+\  (\\<forall>Z U W V X. little_set(Z) & little_set(U) & little_set(V) & little_set(W) & equal(Z::'a,ordered_pair(U::'a,ordered_pair(V::'a,W))) & memb(ordered_pair(U::'a,ordered_pair(W::'a,V)),X) --> memb(Z::'a,flip_range_of(X))) &     \
 \  (\\<forall>X. equal(successor(X),union(X::'a,singleton_set(X)))) &       \
-\  (\\<forall>Z. ~member(Z::'a,empty_set)) &        \
-\  (\\<forall>Z. little_set(Z) --> member(Z::'a,universal_set)) &   \
+\  (\\<forall>Z. ~memb(Z::'a,empty_set)) &        \
+\  (\\<forall>Z. little_set(Z) --> memb(Z::'a,universal_set)) &   \
 \  (little_set(infinity)) &     \
-\  (member(empty_set::'a,infinity)) &       \
-\  (\\<forall>X. member(X::'a,infinity) --> member(successor(X),infinity)) &        \
-\  (\\<forall>Z X. member(Z::'a,sigma(X)) --> member(f16(Z::'a,X),X)) & \
-\  (\\<forall>Z X. member(Z::'a,sigma(X)) --> member(Z::'a,f16(Z::'a,X))) & \
-\  (\\<forall>X Z Y. member(Y::'a,X) & member(Z::'a,Y) --> member(Z::'a,sigma(X))) &        \
+\  (memb(empty_set::'a,infinity)) &       \
+\  (\\<forall>X. memb(X::'a,infinity) --> memb(successor(X),infinity)) &        \
+\  (\\<forall>Z X. memb(Z::'a,sigma(X)) --> memb(f16(Z::'a,X),X)) & \
+\  (\\<forall>Z X. memb(Z::'a,sigma(X)) --> memb(Z::'a,f16(Z::'a,X))) & \
+\  (\\<forall>X Z Y. memb(Y::'a,X) & memb(Z::'a,Y) --> memb(Z::'a,sigma(X))) &        \
 \  (\\<forall>U. little_set(U) --> little_set(sigma(U))) &      \
-\  (\\<forall>X U Y. ssubset(X::'a,Y) & member(U::'a,X) --> member(U::'a,Y)) &       \
-\  (\\<forall>Y X. ssubset(X::'a,Y) | member(f17(X::'a,Y),X)) & \
-\  (\\<forall>X Y. member(f17(X::'a,Y),Y) --> ssubset(X::'a,Y)) &        \
+\  (\\<forall>X U Y. ssubset(X::'a,Y) & memb(U::'a,X) --> memb(U::'a,Y)) &       \
+\  (\\<forall>Y X. ssubset(X::'a,Y) | memb(f17(X::'a,Y),X)) & \
+\  (\\<forall>X Y. memb(f17(X::'a,Y),Y) --> ssubset(X::'a,Y)) &        \
 \  (\\<forall>X Y. proper_subset(X::'a,Y) --> ssubset(X::'a,Y)) &        \
 \  (\\<forall>X Y. ~(proper_subset(X::'a,Y) & equal(X::'a,Y))) &        \
 \  (\\<forall>X Y. ssubset(X::'a,Y) --> proper_subset(X::'a,Y) | equal(X::'a,Y)) &  \
-\  (\\<forall>Z X. member(Z::'a,powerset(X)) --> ssubset(Z::'a,X)) &     \
-\  (\\<forall>Z X. little_set(Z) & ssubset(Z::'a,X) --> member(Z::'a,powerset(X))) &     \
+\  (\\<forall>Z X. memb(Z::'a,powerset(X)) --> ssubset(Z::'a,X)) &     \
+\  (\\<forall>Z X. little_set(Z) & ssubset(Z::'a,X) --> memb(Z::'a,powerset(X))) &     \
 \  (\\<forall>U. little_set(U) --> little_set(powerset(U))) &   \
-\  (\\<forall>Z X. relation(Z) & member(X::'a,Z) --> ordered_pair_predicate(X)) &   \
-\  (\\<forall>Z. relation(Z) | member(f18(Z),Z)) &     \
+\  (\\<forall>Z X. relation(Z) & memb(X::'a,Z) --> ordered_pair_predicate(X)) &   \
+\  (\\<forall>Z. relation(Z) | memb(f18(Z),Z)) &     \
 \  (\\<forall>Z. ordered_pair_predicate(f18(Z)) --> relation(Z)) &      \
-\  (\\<forall>U X V W. single_valued_set(X) & little_set(U) & little_set(V) & little_set(W) & member(ordered_pair(U::'a,V),X) & member(ordered_pair(U::'a,W),X) --> equal(V::'a,W)) &       \
+\  (\\<forall>U X V W. single_valued_set(X) & little_set(U) & little_set(V) & little_set(W) & memb(ordered_pair(U::'a,V),X) & memb(ordered_pair(U::'a,W),X) --> equal(V::'a,W)) &       \
 \  (\\<forall>X. single_valued_set(X) | little_set(f19(X))) &  \
 \  (\\<forall>X. single_valued_set(X) | little_set(f20(X))) &  \
 \  (\\<forall>X. single_valued_set(X) | little_set(f21(X))) &  \
-\  (\\<forall>X. single_valued_set(X) | member(ordered_pair(f19(X),f20(X)),X)) &       \
-\  (\\<forall>X. single_valued_set(X) | member(ordered_pair(f19(X),f21(X)),X)) &       \
+\  (\\<forall>X. single_valued_set(X) | memb(ordered_pair(f19(X),f20(X)),X)) &       \
+\  (\\<forall>X. single_valued_set(X) | memb(ordered_pair(f19(X),f21(X)),X)) &       \
 \  (\\<forall>X. equal(f20(X),f21(X)) --> single_valued_set(X)) &       \
 \  (\\<forall>Xf. function(Xf) --> relation(Xf)) &      \
 \  (\\<forall>Xf. function(Xf) --> single_valued_set(Xf)) &     \
 \  (\\<forall>Xf. relation(Xf) & single_valued_set(Xf) --> function(Xf)) &      \
-\  (\\<forall>Z X Xf. member(Z::'a,image_(X::'a,Xf)) --> ordered_pair_predicate(f22(Z::'a,X,Xf))) &  \
-\  (\\<forall>Z X Xf. member(Z::'a,image_(X::'a,Xf)) --> member(f22(Z::'a,X,Xf),Xf)) &       \
-\  (\\<forall>Z Xf X. member(Z::'a,image_(X::'a,Xf)) --> member(first(f22(Z::'a,X,Xf)),X)) & \
-\  (\\<forall>X Xf Z. member(Z::'a,image_(X::'a,Xf)) --> equal(second(f22(Z::'a,X,Xf)),Z)) & \
-\  (\\<forall>Xf X Y Z. little_set(Z) & ordered_pair_predicate(Y) & member(Y::'a,Xf) & member(first(Y),X) & equal(second(Y),Z) --> member(Z::'a,image_(X::'a,Xf))) & \
+\  (\\<forall>Z X Xf. memb(Z::'a,image_(X::'a,Xf)) --> ordered_pair_predicate(f22(Z::'a,X,Xf))) &  \
+\  (\\<forall>Z X Xf. memb(Z::'a,image_(X::'a,Xf)) --> memb(f22(Z::'a,X,Xf),Xf)) &       \
+\  (\\<forall>Z Xf X. memb(Z::'a,image_(X::'a,Xf)) --> memb(first(f22(Z::'a,X,Xf)),X)) & \
+\  (\\<forall>X Xf Z. memb(Z::'a,image_(X::'a,Xf)) --> equal(second(f22(Z::'a,X,Xf)),Z)) & \
+\  (\\<forall>Xf X Y Z. little_set(Z) & ordered_pair_predicate(Y) & memb(Y::'a,Xf) & memb(first(Y),X) & equal(second(Y),Z) --> memb(Z::'a,image_(X::'a,Xf))) & \
 \  (\\<forall>X Xf. little_set(X) & function(Xf) --> little_set(image_(X::'a,Xf))) & \
-\  (\\<forall>X U Y. ~(disjoint(X::'a,Y) & member(U::'a,X) & member(U::'a,Y))) &    \
-\  (\\<forall>Y X. disjoint(X::'a,Y) | member(f23(X::'a,Y),X)) &       \
-\  (\\<forall>X Y. disjoint(X::'a,Y) | member(f23(X::'a,Y),Y)) &       \
-\  (\\<forall>X. equal(X::'a,empty_set) | member(f24(X),X)) &      \
+\  (\\<forall>X U Y. ~(disjoint(X::'a,Y) & memb(U::'a,X) & memb(U::'a,Y))) &    \
+\  (\\<forall>Y X. disjoint(X::'a,Y) | memb(f23(X::'a,Y),X)) &       \
+\  (\\<forall>X Y. disjoint(X::'a,Y) | memb(f23(X::'a,Y),Y)) &       \
+\  (\\<forall>X. equal(X::'a,empty_set) | memb(f24(X),X)) &      \
 \  (\\<forall>X. equal(X::'a,empty_set) | disjoint(f24(X),X)) &    \
 \  (function(f25)) &    \
-\  (\\<forall>X. little_set(X) --> equal(X::'a,empty_set) | member(f26(X),X)) &    \
-\  (\\<forall>X. little_set(X) --> equal(X::'a,empty_set) | member(ordered_pair(X::'a,f26(X)),f25)) &  \
-\  (\\<forall>Z X. member(Z::'a,range_of(X)) --> ordered_pair_predicate(f27(Z::'a,X))) &        \
-\  (\\<forall>Z X. member(Z::'a,range_of(X)) --> member(f27(Z::'a,X),X)) &      \
-\  (\\<forall>Z X. member(Z::'a,range_of(X)) --> equal(Z::'a,second(f27(Z::'a,X)))) &       \
-\  (\\<forall>X Z Xp. little_set(Z) & ordered_pair_predicate(Xp) & member(Xp::'a,X) & equal(Z::'a,second(Xp)) --> member(Z::'a,range_of(X))) &      \
-\  (\\<forall>Z. member(Z::'a,identity_relation) --> ordered_pair_predicate(Z)) &   \
-\  (\\<forall>Z. member(Z::'a,identity_relation) --> equal(first(Z),second(Z))) &   \
-\  (\\<forall>Z. little_set(Z) & ordered_pair_predicate(Z) & equal(first(Z),second(Z)) --> member(Z::'a,identity_relation)) &       \
+\  (\\<forall>X. little_set(X) --> equal(X::'a,empty_set) | memb(f26(X),X)) &    \
+\  (\\<forall>X. little_set(X) --> equal(X::'a,empty_set) | memb(ordered_pair(X::'a,f26(X)),f25)) &  \
+\  (\\<forall>Z X. memb(Z::'a,range_of(X)) --> ordered_pair_predicate(f27(Z::'a,X))) &        \
+\  (\\<forall>Z X. memb(Z::'a,range_of(X)) --> memb(f27(Z::'a,X),X)) &      \
+\  (\\<forall>Z X. memb(Z::'a,range_of(X)) --> equal(Z::'a,second(f27(Z::'a,X)))) &       \
+\  (\\<forall>X Z Xp. little_set(Z) & ordered_pair_predicate(Xp) & memb(Xp::'a,X) & equal(Z::'a,second(Xp)) --> memb(Z::'a,range_of(X))) &      \
+\  (\\<forall>Z. memb(Z::'a,identity_relation) --> ordered_pair_predicate(Z)) &   \
+\  (\\<forall>Z. memb(Z::'a,identity_relation) --> equal(first(Z),second(Z))) &   \
+\  (\\<forall>Z. little_set(Z) & ordered_pair_predicate(Z) & equal(first(Z),second(Z)) --> memb(Z::'a,identity_relation)) &       \
 \  (\\<forall>X Y. equal(restrct(X::'a,Y),intersection(X::'a,cross_product(Y::'a,universal_set)))) &       \
 \  (\\<forall>Xf. one_to_one_function(Xf) --> function(Xf)) &   \
 \  (\\<forall>Xf. one_to_one_function(Xf) --> function(inv1 Xf)) & \
 \  (\\<forall>Xf. function(Xf) & function(inv1 Xf) --> one_to_one_function(Xf)) &  \
-\  (\\<forall>Z Xf Y. member(Z::'a,apply(Xf::'a,Y)) --> ordered_pair_predicate(f28(Z::'a,Xf,Y))) &  \
-\  (\\<forall>Z Y Xf. member(Z::'a,apply(Xf::'a,Y)) --> member(f28(Z::'a,Xf,Y),Xf)) &       \
-\  (\\<forall>Z Xf Y. member(Z::'a,apply(Xf::'a,Y)) --> equal(first(f28(Z::'a,Xf,Y)),Y)) &  \
-\  (\\<forall>Z Xf Y. member(Z::'a,apply(Xf::'a,Y)) --> member(Z::'a,second(f28(Z::'a,Xf,Y)))) &        \
-\  (\\<forall>Xf Y Z W. ordered_pair_predicate(W) & member(W::'a,Xf) & equal(first(W),Y) & member(Z::'a,second(W)) --> member(Z::'a,apply(Xf::'a,Y))) & \
+\  (\\<forall>Z Xf Y. memb(Z::'a,apply(Xf::'a,Y)) --> ordered_pair_predicate(f28(Z::'a,Xf,Y))) &  \
+\  (\\<forall>Z Y Xf. memb(Z::'a,apply(Xf::'a,Y)) --> memb(f28(Z::'a,Xf,Y),Xf)) &       \
+\  (\\<forall>Z Xf Y. memb(Z::'a,apply(Xf::'a,Y)) --> equal(first(f28(Z::'a,Xf,Y)),Y)) &  \
+\  (\\<forall>Z Xf Y. memb(Z::'a,apply(Xf::'a,Y)) --> memb(Z::'a,second(f28(Z::'a,Xf,Y)))) &        \
+\  (\\<forall>Xf Y Z W. ordered_pair_predicate(W) & memb(W::'a,Xf) & equal(first(W),Y) & memb(Z::'a,second(W)) --> memb(Z::'a,apply(Xf::'a,Y))) & \
 \  (\\<forall>Xf X Y. equal(apply_to_two_arguments(Xf::'a,X,Y),apply(Xf::'a,ordered_pair(X::'a,Y)))) &      \
 \  (\\<forall>X Y Xf. maps(Xf::'a,X,Y) --> function(Xf)) &  \
 \  (\\<forall>Y Xf X. maps(Xf::'a,X,Y) --> equal(domain_of(Xf),X)) &        \
@@ -2360,19 +2360,19 @@ val SET025_4 = prove_hard
 \  (\\<forall>Xs Xf. closed(Xs::'a,Xf) --> little_set(Xf)) &        \
 \  (\\<forall>Xf Xs. closed(Xs::'a,Xf) --> maps(Xf::'a,cross_product(Xs::'a,Xs),Xs)) &      \
 \  (\\<forall>Xf Xs. little_set(Xs) & little_set(Xf) & maps(Xf::'a,cross_product(Xs::'a,Xs),Xs) --> closed(Xs::'a,Xf)) &    \
-\  (\\<forall>Z Xf Xg. member(Z::'a,composition(Xf::'a,Xg)) --> little_set(f29(Z::'a,Xf,Xg))) &     \
-\  (\\<forall>Z Xf Xg. member(Z::'a,composition(Xf::'a,Xg)) --> little_set(f30(Z::'a,Xf,Xg))) &     \
-\  (\\<forall>Z Xf Xg. member(Z::'a,composition(Xf::'a,Xg)) --> little_set(f31(Z::'a,Xf,Xg))) &     \
-\  (\\<forall>Z Xf Xg. member(Z::'a,composition(Xf::'a,Xg)) --> equal(Z::'a,ordered_pair(f29(Z::'a,Xf,Xg),f30(Z::'a,Xf,Xg)))) &     \
-\  (\\<forall>Z Xg Xf. member(Z::'a,composition(Xf::'a,Xg)) --> member(ordered_pair(f29(Z::'a,Xf,Xg),f31(Z::'a,Xf,Xg)),Xf)) &   \
-\  (\\<forall>Z Xf Xg. member(Z::'a,composition(Xf::'a,Xg)) --> member(ordered_pair(f31(Z::'a,Xf,Xg),f30(Z::'a,Xf,Xg)),Xg)) &   \
-\  (\\<forall>Z X Xf W Y Xg. little_set(Z) & little_set(X) & little_set(Y) & little_set(W) & equal(Z::'a,ordered_pair(X::'a,Y)) & member(ordered_pair(X::'a,W),Xf) & member(ordered_pair(W::'a,Y),Xg) --> member(Z::'a,composition(Xf::'a,Xg))) &       \
+\  (\\<forall>Z Xf Xg. memb(Z::'a,composition(Xf::'a,Xg)) --> little_set(f29(Z::'a,Xf,Xg))) &     \
+\  (\\<forall>Z Xf Xg. memb(Z::'a,composition(Xf::'a,Xg)) --> little_set(f30(Z::'a,Xf,Xg))) &     \
+\  (\\<forall>Z Xf Xg. memb(Z::'a,composition(Xf::'a,Xg)) --> little_set(f31(Z::'a,Xf,Xg))) &     \
+\  (\\<forall>Z Xf Xg. memb(Z::'a,composition(Xf::'a,Xg)) --> equal(Z::'a,ordered_pair(f29(Z::'a,Xf,Xg),f30(Z::'a,Xf,Xg)))) &     \
+\  (\\<forall>Z Xg Xf. memb(Z::'a,composition(Xf::'a,Xg)) --> memb(ordered_pair(f29(Z::'a,Xf,Xg),f31(Z::'a,Xf,Xg)),Xf)) &   \
+\  (\\<forall>Z Xf Xg. memb(Z::'a,composition(Xf::'a,Xg)) --> memb(ordered_pair(f31(Z::'a,Xf,Xg),f30(Z::'a,Xf,Xg)),Xg)) &   \
+\  (\\<forall>Z X Xf W Y Xg. little_set(Z) & little_set(X) & little_set(Y) & little_set(W) & equal(Z::'a,ordered_pair(X::'a,Y)) & memb(ordered_pair(X::'a,W),Xf) & memb(ordered_pair(W::'a,Y),Xg) --> memb(Z::'a,composition(Xf::'a,Xg))) &       \
 \  (\\<forall>Xh Xs2 Xf2 Xs1 Xf1. homomorphism(Xh::'a,Xs1,Xf1,Xs2,Xf2) --> closed(Xs1::'a,Xf1)) &       \
 \  (\\<forall>Xh Xs1 Xf1 Xs2 Xf2. homomorphism(Xh::'a,Xs1,Xf1,Xs2,Xf2) --> closed(Xs2::'a,Xf2)) &       \
 \  (\\<forall>Xf1 Xf2 Xh Xs1 Xs2. homomorphism(Xh::'a,Xs1,Xf1,Xs2,Xf2) --> maps(Xh::'a,Xs1,Xs2)) &      \
-\  (\\<forall>Xs2 Xs1 Xf1 Xf2 X Xh Y. homomorphism(Xh::'a,Xs1,Xf1,Xs2,Xf2) & member(X::'a,Xs1) & member(Y::'a,Xs1) --> equal(apply(Xh::'a,apply_to_two_arguments(Xf1::'a,X,Y)),apply_to_two_arguments(Xf2::'a,apply(Xh::'a,X),apply(Xh::'a,Y)))) &      \
-\  (\\<forall>Xh Xf1 Xs2 Xf2 Xs1. closed(Xs1::'a,Xf1) & closed(Xs2::'a,Xf2) & maps(Xh::'a,Xs1,Xs2) --> homomorphism(Xh::'a,Xs1,Xf1,Xs2,Xf2) | member(f32(Xh::'a,Xs1,Xf1,Xs2,Xf2),Xs1)) &   \
-\  (\\<forall>Xh Xf1 Xs2 Xf2 Xs1. closed(Xs1::'a,Xf1) & closed(Xs2::'a,Xf2) & maps(Xh::'a,Xs1,Xs2) --> homomorphism(Xh::'a,Xs1,Xf1,Xs2,Xf2) | member(f33(Xh::'a,Xs1,Xf1,Xs2,Xf2),Xs1)) &   \
+\  (\\<forall>Xs2 Xs1 Xf1 Xf2 X Xh Y. homomorphism(Xh::'a,Xs1,Xf1,Xs2,Xf2) & memb(X::'a,Xs1) & memb(Y::'a,Xs1) --> equal(apply(Xh::'a,apply_to_two_arguments(Xf1::'a,X,Y)),apply_to_two_arguments(Xf2::'a,apply(Xh::'a,X),apply(Xh::'a,Y)))) &      \
+\  (\\<forall>Xh Xf1 Xs2 Xf2 Xs1. closed(Xs1::'a,Xf1) & closed(Xs2::'a,Xf2) & maps(Xh::'a,Xs1,Xs2) --> homomorphism(Xh::'a,Xs1,Xf1,Xs2,Xf2) | memb(f32(Xh::'a,Xs1,Xf1,Xs2,Xf2),Xs1)) &   \
+\  (\\<forall>Xh Xf1 Xs2 Xf2 Xs1. closed(Xs1::'a,Xf1) & closed(Xs2::'a,Xf2) & maps(Xh::'a,Xs1,Xs2) --> homomorphism(Xh::'a,Xs1,Xf1,Xs2,Xf2) | memb(f33(Xh::'a,Xs1,Xf1,Xs2,Xf2),Xs1)) &   \
 \  (\\<forall>Xh Xs1 Xf1 Xs2 Xf2. closed(Xs1::'a,Xf1) & closed(Xs2::'a,Xf2) & maps(Xh::'a,Xs1,Xs2) & equal(apply(Xh::'a,apply_to_two_arguments(Xf1::'a,f32(Xh::'a,Xs1,Xf1,Xs2,Xf2),f33(Xh::'a,Xs1,Xf1,Xs2,Xf2))),apply_to_two_arguments(Xf2::'a,apply(Xh::'a,f32(Xh::'a,Xs1,Xf1,Xs2,Xf2)),apply(Xh::'a,f33(Xh::'a,Xs1,Xf1,Xs2,Xf2)))) --> homomorphism(Xh::'a,Xs1,Xf1,Xs2,Xf2)) &   \
 \  (\\<forall>A B C. equal(A::'a,B) --> equal(f1(A::'a,C),f1(B::'a,C))) &   \
 \  (\\<forall>D F' E. equal(D::'a,E) --> equal(f1(F'::'a,D),f1(F'::'a,E))) &        \
@@ -2486,8 +2486,8 @@ val SET025_4 = prove_hard
 \  (\\<forall>Q14 R14 S14 T14. equal(Q14::'a,R14) & maps(Q14::'a,S14,T14) --> maps(R14::'a,S14,T14)) &      \
 \  (\\<forall>U14 W14 V14 X14. equal(U14::'a,V14) & maps(W14::'a,U14,X14) --> maps(W14::'a,V14,X14)) &      \
 \  (\\<forall>Y14 A15 B15 Z14. equal(Y14::'a,Z14) & maps(A15::'a,B15,Y14) --> maps(A15::'a,B15,Z14)) &      \
-\  (\\<forall>C15 D15 E15. equal(C15::'a,D15) & member(C15::'a,E15) --> member(D15::'a,E15)) &      \
-\  (\\<forall>F15 H15 G15. equal(F15::'a,G15) & member(H15::'a,F15) --> member(H15::'a,G15)) &      \
+\  (\\<forall>C15 D15 E15. equal(C15::'a,D15) & memb(C15::'a,E15) --> memb(D15::'a,E15)) &      \
+\  (\\<forall>F15 H15 G15. equal(F15::'a,G15) & memb(H15::'a,F15) --> memb(H15::'a,G15)) &      \
 \  (\\<forall>I15 J15. equal(I15::'a,J15) & one_to_one_function(I15) --> one_to_one_function(J15)) &        \
 \  (\\<forall>K15 L15. equal(K15::'a,L15) & ordered_pair_predicate(K15) --> ordered_pair_predicate(L15)) &  \
 \  (\\<forall>M15 N15 O15. equal(M15::'a,N15) & proper_subset(M15::'a,O15) --> proper_subset(N15::'a,O15)) &        \
