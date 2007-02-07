@@ -81,15 +81,19 @@ functor Trancl_Tac_Fun (Cls : TRANCL_ARITH): TRANCL_TAC =
 struct
 
  
- datatype proof
+datatype proof
   = Asm of int 
   | Thm of proof list * thm; 
 
- exception Cannot; (* internal exception: raised if no proof can be found *)
+exception Cannot; (* internal exception: raised if no proof can be found *)
 
- fun prove asms = 
-  let fun pr (Asm i) = List.nth (asms, i)
-  |       pr (Thm (prfs, thm)) = (map pr prfs) MRS thm
+fun prove thy r asms = 
+  let
+    fun inst thm =
+      let val SOME (_, _, r', _) = Cls.decomp (concl_of thm)
+      in Drule.cterm_instantiate [(cterm_of thy r', cterm_of thy r)] thm end;
+    fun pr (Asm i) = List.nth (asms, i)
+      | pr (Thm (prfs, thm)) = map pr prfs MRS inst thm
   in pr end;
 
   
@@ -525,8 +529,9 @@ in
 end;
  
    
-val trancl_tac =   SUBGOAL (fn (A, n) =>
+val trancl_tac =   SUBGOAL (fn (A, n) => fn st =>
  let
+  val thy = theory_of_thm st;
   val Hs = Logic.strip_assums_hyp A;
   val C = Logic.strip_assums_concl A;
   val (rel,subgoals, prf) = mkconcl_trancl C;
@@ -535,15 +540,16 @@ val trancl_tac =   SUBGOAL (fn (A, n) =>
 
  in
   METAHYPS (fn asms =>
-    let val thms = map (prove asms) prfs
-    in rtac (prove thms prf) 1 end) n
+    let val thms = map (prove thy rel asms) prfs
+    in rtac (prove thy rel thms prf) 1 end) n st
  end
-handle  Cannot  => no_tac);
+handle  Cannot  => no_tac st);
 
  
  
-val rtrancl_tac =   SUBGOAL (fn (A, n) =>
+val rtrancl_tac =   SUBGOAL (fn (A, n) => fn st =>
  let
+  val thy = theory_of_thm st;
   val Hs = Logic.strip_assums_hyp A;
   val C = Logic.strip_assums_concl A;
   val (rel,subgoals, prf) = mkconcl_rtrancl C;
@@ -552,9 +558,9 @@ val rtrancl_tac =   SUBGOAL (fn (A, n) =>
   val prfs = solveRtrancl (prems, C);
  in
   METAHYPS (fn asms =>
-    let val thms = map (prove asms) prfs
-    in rtac (prove thms prf) 1 end) n
+    let val thms = map (prove thy rel asms) prfs
+    in rtac (prove thy rel thms prf) 1 end) n st
  end
-handle  Cannot  => no_tac);
+handle  Cannot  => no_tac st);
 
 end;
