@@ -79,6 +79,8 @@ lemmas [recdef_wf] =
   wf_pred_nat
   wf_same_fst
   wf_empty
+  wf_implies_wfP
+  wfP_implies_wf
 
 (* The following should really go into Datatype or Finite_Set, but
 each one lacks the other theory as a parent . . . *)
