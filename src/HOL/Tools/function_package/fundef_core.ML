@@ -95,17 +95,17 @@ datatype clause_info =
 (* Theory dependencies. *)
 val Pair_inject = thm "Product_Type.Pair_inject";
 
-val acc_induct_rule = thm "FunDef.accP_induct_rule"
+val acc_induct_rule = thm "Accessible_Part.acc_induct_rule"
 
 val ex1_implies_ex = thm "FunDef.fundef_ex1_existence"
 val ex1_implies_un = thm "FunDef.fundef_ex1_uniqueness"
 val ex1_implies_iff = thm "FunDef.fundef_ex1_iff"
 
-val acc_downward = thm "FunDef.accP_downward"
-val accI = thm "FunDef.accPI"
+val acc_downward = thm "Accessible_Part.acc_downward"
+val accI = thm "Accessible_Part.accI"
 val case_split = thm "HOL.case_split_thm"
 val fundef_default_value = thm "FunDef.fundef_default_value"
-val not_accP_down = thm "FunDef.not_accP_down"
+val not_acc_down = thm "Accessible_Part.not_acc_down"
 
 
 
@@ -572,7 +572,8 @@ fun mk_psimps thy globals R clauses valthms f_iff graph_is_function =
 (** Induction rule **)
 
 
-val acc_subset_induct = thm "FunDef.accP_subset_induct"
+val acc_subset_induct = thm "FixedPoint.predicate1I" RS
+  thm "Accessible_Part.acc_subset_induct"
 
 fun mk_partial_induct_rule thy globals R complete_thm clauses =
     let
@@ -702,9 +703,9 @@ fun mk_domain_intro thy (Globals {domT, ...}) R R_cases clause =
 
 (** Termination rule **)
 
-val wf_induct_rule = thm "FunDef.wfP_induct_rule";
-val wf_in_rel = thm "FunDef.wf_in_rel";
-val in_rel_def = thm "FunDef.in_rel_def";
+val wf_induct_rule = thm "Wellfounded_Recursion.wfP_induct_rule";
+val wf_in_rel = thm "Wellfounded_Recursion.wf_implies_wfP";
+val in_rel_def = thm "Predicate.member2_eq";
 
 fun mk_nest_term_case thy globals R' ihyp clause =
     let
@@ -767,9 +768,9 @@ fun mk_nest_term_rule thy globals R R_cases clauses =
       val R' = Free ("R", fastype_of R)
                
       val Rrel = Free ("R", mk_relT (domT, domT))
-      val inrel_R = Const ("FunDef.in_rel", mk_relT (domT, domT) --> fastype_of R) $ Rrel
+      val inrel_R = Const ("Predicate.member2", mk_relT (domT, domT) --> fastype_of R) $ Rrel
                     
-      val wfR' = cterm_of thy (Trueprop (Const ("FunDef.wfP", (domT --> domT --> boolT) --> boolT) $ R')) (* "wf R'" *)
+      val wfR' = cterm_of thy (Trueprop (Const ("Wellfounded_Recursion.wfP", (domT --> domT --> boolT) --> boolT) $ R')) (* "wf R'" *)
                           
       (* Inductive Hypothesis: !!z. (z,x):R' ==> z : acc R *)
       val ihyp = all domT $ Abs ("z", domT, 
@@ -845,7 +846,7 @@ fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
                            rtac (instantiate' [] [SOME (cterm_of thy lhs_acc)] case_split) 1
                                 THEN (rtac (forall_elim_vars 0 psimp) THEN_ALL_NEW assume_tac) 1
                                 THEN (SIMPSET (fn ss => asm_full_simp_tac (ss addsimps [default_thm]) 1))
-                                THEN (etac not_accP_down 1)
+                                THEN (etac not_acc_down 1)
                                 THEN ((etac R_cases) THEN_ALL_NEW (SIMPSET' (fn ss => asm_full_simp_tac (ss addsimps [default_thm])))) 1)
               |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
           end

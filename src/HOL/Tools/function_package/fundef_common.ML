@@ -10,7 +10,7 @@ structure FundefCommon =
 struct
 
 (* Theory Dependencies *)
-val acc_const_name = "FunDef.accP"
+val acc_const_name = "Accessible_Part.acc"
 
 val profile = ref false;
 
