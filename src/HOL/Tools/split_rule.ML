@@ -150,7 +150,9 @@ fun split_format x = Attrib.syntax
 val setup =
   Attrib.add_attributes
     [("split_format", split_format,
-      "split pair-typed subterms in premises, or function arguments")];
+      "split pair-typed subterms in premises, or function arguments"),
+     ("split_rule", Attrib.no_args (Thm.rule_attribute (K split_rule)),
+      "curries ALL function variables occurring in a rule's conclusion")];
 
 end;
 
