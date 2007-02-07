@@ -71,7 +71,7 @@ lemma aux_induct:
       "!!F a. F \<subseteq> A ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F)"
   shows "P F"
   using major subs
-  apply (induct set: Finites)
+  apply (induct set: finite)
    apply (blast intro: cases)+
   done
 

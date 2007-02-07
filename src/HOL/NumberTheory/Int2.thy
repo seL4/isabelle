@@ -175,7 +175,7 @@ lemma zcong_zero: "[| 0 \<le> x; x < m; [x = 0](mod m) |] ==> x = 0"
 
 lemma all_relprime_prod_relprime: "[| finite A; \<forall>x \<in> A. (zgcd(x,y) = 1) |]
     ==> zgcd (setprod id A,y) = 1"
-  by (induct set: Finites) (auto simp add: zgcd_zgcd_zmult)
+  by (induct set: finite) (auto simp add: zgcd_zgcd_zmult)
 
 
 subsection {* Some properties of MultInv *}

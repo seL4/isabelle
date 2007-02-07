@@ -444,7 +444,7 @@ proof -
                                "setprod uminus E"], auto)
     done
   also have "setprod uminus E = (setprod id E) * (-1)^(card E)"
-    using finite_E by (induct set: Finites) auto
+    using finite_E by (induct set: finite) auto
   then have "setprod uminus E = (-1) ^ (card E) * (setprod id E)"
     by (simp add: zmult_commute)
   with two show ?thesis
@@ -484,7 +484,7 @@ proof -
     by (simp add:finite_A inj_on_xa_A setprod_reindex_id[symmetric])
   moreover have "setprod (%x. x * a) A =
     setprod (%x. a) A * setprod id A"
-    using finite_A by (induct set: Finites) auto
+    using finite_A by (induct set: finite) auto
   ultimately have "[setprod id A = ((-1)^(card E) * (setprod (%x. a) A *
     setprod id A))] (mod p)"
     by simp

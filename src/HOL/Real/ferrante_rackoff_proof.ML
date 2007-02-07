@@ -47,7 +47,7 @@ fun inusetthms sg x fm =
         fun inC T = Const("op :",[T,Type("set",[T])] ---> HOLogic.boolT);
         val ss = simpset_of sg
         fun proveinU t = prove_bysimp sg ss ((inC rT)$t$hU)
-        val uf = prove_bysimp sg ss ((inC rsT)$hU$Const("Finite_Set.Finites",Type("set",[rsT])))
+        val uf = prove_bysimp sg ss (Const ("Finite_Set.finite", rsT --> HOLogic.boolT) $ hU)
     in (U,cterm_of sg hU,map proveinU U,uf)
     end;
 

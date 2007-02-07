@@ -16,7 +16,7 @@ end
 structure NominalAtoms : NOMINAL_ATOMS =
 struct
 
-val Finites_emptyI = thm "Finites.emptyI";
+val finite_emptyI = thm "finite.emptyI";
 val Collect_const = thm "Collect_const";
 
 
@@ -67,8 +67,8 @@ fun create_nom_typedecls ak_names thy =
       let 
     val name = ak_name ^ "_infinite"
         val axiom = HOLogic.mk_Trueprop (HOLogic.mk_not
-                    (HOLogic.mk_mem (HOLogic.mk_UNIV T,
-                     Const ("Finite_Set.Finites", HOLogic.mk_setT (HOLogic.mk_setT T)))))
+                    (Const ("Finite_Set.finite", HOLogic.mk_setT T --> HOLogic.boolT) $
+                       HOLogic.mk_UNIV T))
       in
         ((name, axiom), []) 
       end) ak_names_types) thy1;
@@ -252,9 +252,9 @@ fun create_nom_typedecls ak_names thy =
           val ty = TFree("'a",["HOL.type"]);
           val x   = Free ("x", ty);
           val csupp    = Const ("Nominal.supp", ty --> HOLogic.mk_setT T);
-          val cfinites = Const ("Finite_Set.Finites", HOLogic.mk_setT (HOLogic.mk_setT T))
+          val cfinite  = Const ("Finite_Set.finite", HOLogic.mk_setT T --> HOLogic.boolT)
           
-          val axiom1   = HOLogic.mk_Trueprop (HOLogic.mk_mem (csupp $ x, cfinites));
+          val axiom1   = HOLogic.mk_Trueprop (cfinite $ (csupp $ x));
 
        in  
         AxClass.define_class_i (cl_name, [pt_name]) [] [((cl_name ^ "1", []), [axiom1])] thy            
@@ -481,7 +481,7 @@ fun create_nom_typedecls ak_names thy =
                              rtac ((at_thm RS fs_at_inst) RS fs1) 1] end
                 else
                   let val dj_inst = PureThy.get_thm thy' (Name ("dj_"^ak_name'^"_"^ak_name));
-                      val simp_s = HOL_basic_ss addsimps [dj_inst RS dj_supp, Finites_emptyI];
+                      val simp_s = HOL_basic_ss addsimps [dj_inst RS dj_supp, finite_emptyI];
                   in EVERY [ClassPackage.intro_classes_tac [], asm_simp_tac simp_s 1] end)
         in
          AxClass.prove_arity (qu_name,[],[qu_class]) proof thy'
@@ -618,7 +618,7 @@ fun create_nom_typedecls ak_names thy =
 	     let
 	       val qu_class = Sign.full_name thy ("fs_"^ak_name);
 	       val supp_def = thm "Nominal.supp_def";
-               val simp_s = HOL_ss addsimps [supp_def,Collect_const,Finites_emptyI,defn];
+               val simp_s = HOL_ss addsimps [supp_def,Collect_const,finite_emptyI,defn];
                val proof = EVERY [ClassPackage.intro_classes_tac [], asm_simp_tac simp_s 1];
              in 
 	       AxClass.prove_arity (discrete_ty,[],[qu_class]) proof thy

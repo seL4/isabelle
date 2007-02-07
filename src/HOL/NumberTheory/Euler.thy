@@ -118,7 +118,7 @@ lemma Union_SetS_finite: "2 < p ==> finite (Union (SetS a p))"
 
 lemma card_setsum_aux: "[| finite S; \<forall>X \<in> S. finite (X::int set); 
     \<forall>X \<in> S. card X = n |] ==> setsum card S = setsum (%x. n) S"
-  by (induct set: Finites) auto
+  by (induct set: finite) auto
 
 lemma SetS_card: "[| zprime p; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==> 
                   int(card(SetS a p)) = (p - 1) div 2"

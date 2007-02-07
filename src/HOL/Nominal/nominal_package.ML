@@ -18,7 +18,7 @@ end
 structure NominalPackage : NOMINAL_PACKAGE =
 struct
 
-val Finites_emptyI = thm "Finites.emptyI";
+val finite_emptyI = thm "finite.emptyI";
 val finite_Diff = thm "finite_Diff";
 val finite_Un = thm "finite_Un";
 val Un_iff = thm "Un_iff";
@@ -1016,7 +1016,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             (fn _ =>
               simp_tac (HOL_basic_ss addsimps (supp_def ::
                  Un_assoc :: de_Morgan_conj :: Collect_disj_eq :: finite_Un ::
-                 symmetric empty_def :: Finites_emptyI :: simp_thms @
+                 symmetric empty_def :: finite_emptyI :: simp_thms @
                  abs_perm @ abs_fresh @ inject_thms' @ perm_thms')) 1)
         in
           (supp_thm,
@@ -1091,9 +1091,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       let val atomT = Type (atom, [])
       in map standard (List.take
         (split_conj_thm (Goal.prove_global thy8 [] [] (HOLogic.mk_Trueprop
-           (foldr1 HOLogic.mk_conj (map (fn (s, T) => HOLogic.mk_mem
-             (Const ("Nominal.supp", T --> HOLogic.mk_setT atomT) $ Free (s, T),
-              Const ("Finite_Set.Finites", HOLogic.mk_setT (HOLogic.mk_setT atomT))))
+           (foldr1 HOLogic.mk_conj (map (fn (s, T) =>
+             Const ("Finite_Set.finite", HOLogic.mk_setT atomT --> HOLogic.boolT) $
+               (Const ("Nominal.supp", T --> HOLogic.mk_setT atomT) $ Free (s, T)))
                (indnames ~~ recTs))))
            (fn _ => indtac dt_induct indnames 1 THEN
             ALLGOALS (asm_full_simp_tac (simpset_of thy8 addsimps
@@ -1202,8 +1202,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val ind_prems' =
       map (fn (_, f as Free (_, T)) => list_all_free ([("x", fsT')],
-        HOLogic.mk_Trueprop (HOLogic.mk_mem (f $ Free ("x", fsT'),
-          Const ("Finite_Set.Finites", HOLogic.mk_setT (body_type T)))))) fresh_fs @
+        HOLogic.mk_Trueprop (Const ("Finite_Set.finite", body_type T -->
+          HOLogic.boolT) $ (f $ Free ("x", fsT'))))) fresh_fs @
       List.concat (map (fn (((i, (_, _, constrs)), (_, idxss)), T) =>
         map (make_ind_prem fsT' (fn T => fn t => fn u => HOLogic.Not $
           HOLogic.mk_mem (t, the (AList.lookup op = fresh_fs T) $ u)) i T)
@@ -1480,8 +1480,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           HOLogic.mk_Trueprop (List.nth (rec_preds, i) $ Free y)) (recs ~~ frees'');
         val prems5 = mk_fresh3 (recs ~~ frees'') frees';
         val prems6 = maps (fn aT => map (fn y as (_, T) => HOLogic.mk_Trueprop
-          (HOLogic.mk_mem (Const ("Nominal.supp", T --> HOLogic.mk_setT aT) $ Free y,
-             Const ("Finite_Set.Finites", HOLogic.mk_setT (HOLogic.mk_setT aT)))))
+          (Const ("Finite_Set.finite", HOLogic.mk_setT aT --> HOLogic.boolT) $
+             (Const ("Nominal.supp", T --> HOLogic.mk_setT aT) $ Free y)))
                frees'') atomTs;
         val prems7 = map (fn x as (_, T) => HOLogic.mk_Trueprop
           (Const ("Nominal.fresh", T --> fsT' --> HOLogic.boolT) $
@@ -1563,9 +1563,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val name = Sign.base_name (fst (dest_Type aT));
         val fs_name = PureThy.get_thm thy11 (Name ("fs_" ^ name ^ "1"));
         val aset = HOLogic.mk_setT aT;
-        val finites = Const ("Finite_Set.Finites", HOLogic.mk_setT aset);
-        val fins = map (fn (f, T) => HOLogic.mk_Trueprop (HOLogic.mk_mem
-          (Const ("Nominal.supp", T --> aset) $ f, finites)))
+        val finite = Const ("Finite_Set.finite", aset --> HOLogic.boolT);
+        val fins = map (fn (f, T) => HOLogic.mk_Trueprop
+          (finite $ (Const ("Nominal.supp", T --> aset) $ f)))
             (rec_fns ~~ rec_fn_Ts)
       in
         map (fn th => standard (th RS mp)) (split_conj_thm
@@ -1577,7 +1577,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                    val y = Free ("y" ^ string_of_int i, U)
                  in
                    HOLogic.mk_imp (R $ x $ y,
-                     HOLogic.mk_mem (Const ("Nominal.supp", U --> aset) $ y, finites))
+                     finite $ (Const ("Nominal.supp", U --> aset) $ y))
                  end) (recTs ~~ rec_result_Ts ~~ rec_sets ~~ (1 upto length recTs)))))
             (fn fins => (rtac rec_induct THEN_ALL_NEW cut_facts_tac fins) 1 THEN REPEAT
                (NominalPermeq.finite_guess_tac (HOL_ss addsimps [fs_name]) 1))))
@@ -1597,9 +1597,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       end;
 
     val finite_premss = map (fn aT =>
-      map (fn (f, T) => HOLogic.mk_Trueprop (HOLogic.mk_mem
-        (Const ("Nominal.supp", T --> HOLogic.mk_setT aT) $ f,
-         Const ("Finite_Set.Finites", HOLogic.mk_setT (HOLogic.mk_setT aT)))))
+      map (fn (f, T) => HOLogic.mk_Trueprop
+        (Const ("Finite_Set.finite", HOLogic.mk_setT aT --> HOLogic.boolT) $
+           (Const ("Nominal.supp", T --> HOLogic.mk_setT aT) $ f)))
            (rec_fns ~~ rec_fn_Ts)) dt_atomTs;
 
     val rec_fresh_thms = map (fn ((aT, eqvt_ths), finite_prems) =>
@@ -1715,9 +1715,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       in (freshs1 @ [term_of cx], freshs2 @ ths, ctxt') end;
 
     val finite_ctxt_prems = map (fn aT =>
-      HOLogic.mk_Trueprop (HOLogic.mk_mem
-        (Const ("Nominal.supp", fsT' --> HOLogic.mk_setT aT) $ rec_ctxt,
-         Const ("Finite_Set.Finites", HOLogic.mk_setT (HOLogic.mk_setT aT))))) dt_atomTs;
+      HOLogic.mk_Trueprop
+        (Const ("Finite_Set.finite", HOLogic.mk_setT aT --> HOLogic.boolT) $
+           (Const ("Nominal.supp", fsT' --> HOLogic.mk_setT aT) $ rec_ctxt))) dt_atomTs;
 
     val rec_unique_thms = split_conj_thm (Goal.prove
       (ProofContext.init thy11) (map fst rec_unique_frees)

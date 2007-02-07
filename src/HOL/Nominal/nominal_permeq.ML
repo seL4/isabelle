@@ -48,7 +48,7 @@ end
 structure NominalPermeq : NOMINAL_PERMEQ =
 struct
 
-val Finites_emptyI = thm "Finites.emptyI";
+val finite_emptyI = thm "finite.emptyI";
 val finite_Un = thm "finite_Un";
 
 (* pulls out dynamically a thm via the proof state *)
@@ -264,8 +264,7 @@ fun finite_guess_tac tactical ss i st =
     let val goal = List.nth(cprems_of st, i-1)
     in
       case Logic.strip_assums_concl (term_of goal) of
-          _ $ (Const ("op :", _) $ (Const ("Nominal.supp", T) $ x) $
-            Const ("Finite_Set.Finites", _)) =>
+          _ $ (Const ("Finite_Set.finite", _) $ (Const ("Nominal.supp", T) $ x)) =>
           let
             val cert = Thm.cterm_of (sign_of_thm st);
             val ps = Logic.strip_params (term_of goal);
@@ -281,7 +280,7 @@ fun finite_guess_tac tactical ss i st =
               Logic.strip_assums_concl (hd (prems_of supports_rule'));
             val supports_rule'' = Drule.cterm_instantiate
               [(cert (head_of S), cert s')] supports_rule'
-            val ss' = ss addsimps [supp_prod, supp_unit, finite_Un, Finites_emptyI]
+            val ss' = ss addsimps [supp_prod, supp_unit, finite_Un, finite_emptyI]
           in
             (tactical ("guessing of the right supports-set",
                       EVERY [compose_tac (false, supports_rule'', 2) i,
@@ -319,7 +318,7 @@ fun fresh_guess_tac tactical ss i st =
             val supports_fresh_rule'' = Drule.cterm_instantiate
               [(cert (head_of S), cert s')] supports_fresh_rule'
 	    val ss1 = ss addsimps [symmetric fresh_def,fresh_prod,fresh_unit]
-            val ss2 = ss addsimps [supp_prod,supp_unit,finite_Un,Finites_emptyI]
+            val ss2 = ss addsimps [supp_prod,supp_unit,finite_Un,finite_emptyI]
             (* FIXME sometimes these rewrite rules are already in the ss, *)
             (* which produces a warning                                   *)
           in
