@@ -32,9 +32,9 @@ notation
   mod (infixl "mod" 70)
 
 instance nat :: "Divides.div"
-  mod_def: "m mod n == wfrec (trancl pred_nat)
+  mod_def: "m mod n == wfrec (pred_nat^+)
                           (%f j. if j<n | n=0 then j else f (j-n)) m"
-  div_def:   "m div n == wfrec (trancl pred_nat) 
+  div_def:   "m div n == wfrec (pred_nat^+) 
                           (%f j. if j<n | n=0 then 0 else Suc (f (j-n))) m" ..
 
 definition
@@ -61,10 +61,10 @@ lemmas wf_less_trans =
                   standard]
 
 lemma mod_eq: "(%m. m mod n) = 
-              wfrec (trancl pred_nat) (%f j. if j<n | n=0 then j else f (j-n))"
+              wfrec (pred_nat^+) (%f j. if j<n | n=0 then j else f (j-n))"
 by (simp add: mod_def)
 
-lemma div_eq: "(%m. m div n) = wfrec (trancl pred_nat)  
+lemma div_eq: "(%m. m div n) = wfrec (pred_nat^+)  
                (%f j. if j<n | n=0 then 0 else Suc (f (j-n)))"
 by (simp add: div_def)
 

@@ -16,7 +16,7 @@ lexicographic product, and therefore does not need to be defined separately.*}
 
 constdefs
  less_than :: "(nat*nat)set"
-    "less_than == trancl pred_nat"
+    "less_than == pred_nat^+"
 
  measure   :: "('a => nat) => ('a * 'a)set"
     "measure == inv_image less_than"
