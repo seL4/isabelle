@@ -67,12 +67,23 @@ fun mk_base_fun_header fulltyp (t, typ) =
 fun mk_base_funs (tt: typ) = 
     mk_base_fun_bodys (Bound 0) tt |>
                       map (mk_base_fun_header tt)
-    
+
+fun mk_funorder_funs (tt : typ) =
+    case tt of
+      Type("+", [ft, st]) => product (mk_funorder_funs ft) (mk_funorder_funs st)
+                                    |> map mk_sum_case
+    | _ => [Abs ("x", tt, HOLogic.zero), Abs ("x", tt, HOLogic.Suc_zero)]
+
 fun mk_ext_base_funs (tt : typ) =
     case tt of
       Type("+", [ft, st]) =>
       product (mk_ext_base_funs ft) (mk_ext_base_funs st)
               |> map mk_sum_case
+    | _ => mk_base_funs tt
+
+fun mk_all_measure_funs (tt : typ) =
+    case tt of
+      Type("+", _) => (mk_ext_base_funs tt) @ (mk_funorder_funs tt)
     | _ => mk_base_funs tt
            
 fun dest_term (t : term) =
@@ -118,16 +129,17 @@ fun mk_cell (thy : theory) (vars, prems) (lhs, rhs) =
         end
     end
     
-fun mk_row (thy: theory) base_funs (t : term) =
+fun mk_row (thy: theory) measure_funs (t : term) =
     let
       val (vars, prems, lhs, rhs, _) = dest_term t
-      val lhs_list = map (fn x => x $ lhs) base_funs
-      val rhs_list = map (fn x => x $ rhs) base_funs
+      val lhs_list = map (fn x => x $ lhs) measure_funs
+      val rhs_list = map (fn x => x $ rhs) measure_funs
     in
       map (mk_cell thy (vars, prems)) (lhs_list ~~ rhs_list)
     end
       
 (* simple depth-first search algorithm for the table *)
+
 fun search_table table =
     case table of
       [] => SOME []
@@ -146,7 +158,40 @@ fun search_table table =
               | SOME order =>SOME (col::(transform_order col order))
            end
       end
-      
+
+
+(* find all positions of elements in a list *) 
+fun find_index_list pred =
+  let fun find _ [] = []
+        | find n (x :: xs) = if pred x then n::(find (n + 1) xs) else find (n + 1) xs;
+  in find 0 end;
+
+(* simple breadth-first search algorithm for the table *) 
+(*
+fun bfs_search_table tables =
+    case tables of
+      [] => sys_error "INTERNAL ERROR IN lexicographic order termination tactic - fun search_table (breadth search finished)" 
+    | (table::rtables) => let
+        val check_col = forall (fn c => is_Less c orelse is_LessEq c)
+        val cols = find_index_list (check_col) (transpose table)
+	val _ = print "table"
+	val _ = print table
+	val _ = print "possible columns:"
+	val _ = print cols
+      in case cols of
+	[] => NONE
+      | _ => let 
+	val s =
+          map (fn f => f table) (map (fn col => filter_out (fn x => is_Less (nth x col)) |> map (curry del_index col)) cols)
+          |> append rtables
+        val _ = print s 
+        in SOME [1]
+        end
+      end
+
+fun search_table table = let val _ = bfs_search_table [table] in SOME [1] end
+*) 	       
+
 fun prove_row row (st : thm) =
     case row of
       [] => sys_error "INTERNAL ERROR IN lexicographic order termination tactic - fun prove_row (row is empty)" 
@@ -189,14 +234,14 @@ fun pr_cell cell = case cell of Less _ => " <  "
                               | False _ => " F  "
                                              
 (* fun pr_err: prints the table if tactic failed *)
-fun pr_err table thy tl base_funs =  
+fun pr_err table thy tl measure_funs =  
     let 
       val gc = map (fn i => chr (i + 96)) (1 upto (length table))
-      val mc = 1 upto (length base_funs)
+      val mc = 1 upto (length measure_funs)
       val tstr = ("   " ^ (concat (map (fn i => " " ^ (string_of_int i) ^ "  ") mc))) ::
                  (map2 (fn r => fn i => i ^ ": " ^ (concat (map pr_cell r))) table gc)
       val gstr = ("Goals:"::(map2 (pr_goal thy) tl gc))
-      val mstr = ("Measures:"::(map2 (pr_fun thy) base_funs mc))   
+      val mstr = ("Measures:"::(map2 (pr_fun thy) measure_funs mc))   
       val ustr = ("Unfinished subgoals:"::(pr_unprovable_subgoals table))
     in
       tstr @ gstr @ mstr @ ustr
@@ -217,17 +262,17 @@ fun lexicographic_order_tac ctxt (st: thm) =
     val (var, prop) = FundefLib.dest_all wf
     val rel = HOLogic.dest_Trueprop prop |> dest_wf |> head_of
     val crel = cterm_of thy rel
-    val base_funs = mk_ext_base_funs (fastype_of var)
+    val measure_funs = mk_all_measure_funs (fastype_of var)
     val _ = writeln "Creating table"
-    val table = map (mk_row thy base_funs) tl
+    val table = map (mk_row thy measure_funs) tl
     val _ = writeln "Searching for lexicographic order"
     val possible_order = search_table table
       in
     case possible_order of 
-        NONE => error (cat_lines ("Could not find lexicographic termination order:"::(pr_err table thy tl base_funs)))
+        NONE => error (cat_lines ("Could not find lexicographic termination order:"::(pr_err table thy tl measure_funs)))
       | SOME order  => let
       val clean_table = map (fn x => map (nth x) order) table
-      val funs = map (nth base_funs) order
+      val funs = map (nth measure_funs) order
       val list = HOLogic.mk_list (fastype_of var --> HOLogic.natT) funs
       val relterm = Abs ("x", fastype_of var, Const(measures, (fastype_of list) --> (range_type (fastype_of rel))) $ list)
       val crelterm = cterm_of thy relterm
