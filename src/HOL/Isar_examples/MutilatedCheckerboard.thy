@@ -186,8 +186,8 @@ lemma domino_finite:
   using d
 proof induct
   fix i j :: nat
-  show "finite {(i, j), (i, j + 1)}" by (intro Finites.intros)
-  show "finite {(i, j), (i + 1, j)}" by (intro Finites.intros)
+  show "finite {(i, j), (i, j + 1)}" by (intro finite.intros)
+  show "finite {(i, j), (i + 1, j)}" by (intro finite.intros)
 qed
 
 
@@ -198,7 +198,7 @@ lemma tiling_domino_finite:
   shows "finite t"  (is "?F t")
   using t
 proof induct
-  show "?F {}" by (rule Finites.emptyI)
+  show "?F {}" by (rule finite.emptyI)
   fix a t assume "?F t"
   assume "a : domino" then have "?F a" by (rule domino_finite)
   then show "?F (a Un t)" by (rule finite_UnI)
