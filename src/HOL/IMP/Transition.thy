@@ -200,7 +200,7 @@ lemma stuck [elim!]: "\<langle>s\<rangle> \<longrightarrow>\<^sub>1 y \<Longrigh
   by (auto elim: evalc1.elims)
 
 lemma evalc_None_retrancl [simp, dest!]: "\<langle>s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* s' \<Longrightarrow> s' = \<langle>s\<rangle>"
-  by (induct set: rtrancl) auto
+  by (induct set: rtrancl_set) auto
 
 (*<*)
 (* FIXME: relpow.simps don't work *)

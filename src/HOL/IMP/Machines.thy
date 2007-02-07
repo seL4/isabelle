@@ -4,7 +4,7 @@
 theory Machines imports Natural begin
 
 lemma rtrancl_eq: "R^* = Id \<union> (R O R^*)"
-  by (fast intro: rtrancl.intros elim: rtranclE)
+  by (fast intro: rtrancl_into_rtrancl elim: rtranclE)
 
 lemma converse_rtrancl_eq: "R^* = Id \<union> (R^* O R)"
   by (subst r_comp_rtrancl_eq[symmetric], rule rtrancl_eq)

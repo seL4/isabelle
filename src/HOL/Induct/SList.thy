@@ -65,7 +65,7 @@ definition
   
 definition
   List_rec  :: "['a item, 'b, ['a item, 'a item, 'b]=>'b] => 'b" where
-  "List_rec M c d = wfrec (trancl pred_sexp)
+  "List_rec M c d = wfrec (pred_sexp^+)
                            (%g. List_case c (%x y. d x y (g y))) M"
 
 
@@ -362,7 +362,7 @@ by (simp add: List_case_def CONS_def)
 
 lemma List_rec_unfold_lemma:
      "(%M. List_rec M c d) == 
-      wfrec (trancl pred_sexp) (%g. List_case c (%x y. d x y (g y)))"
+      wfrec (pred_sexp^+) (%g. List_case c (%x y. d x y (g y)))"
 by (simp add: List_rec_def)
 
 lemmas List_rec_unfold = 
