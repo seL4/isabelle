@@ -21,109 +21,6 @@ uses
 ("Tools/function_package/auto_term.ML")
 begin
 
-section {* Wellfoundedness and Accessibility: Predicate versions *}
-
-
-constdefs
-  wfP         :: "('a \<Rightarrow> 'a \<Rightarrow> bool) => bool"
-  "wfP(r) == (!P. (!x. (!y. r y x --> P(y)) --> P(x)) --> (!x. P(x)))"
-
-lemma wfP_induct: 
-    "[| wfP r;           
-        !!x.[| ALL y. r y x --> P(y) |] ==> P(x)  
-     |]  ==>  P(a)"
-by (unfold wfP_def, blast)
-
-lemmas wfP_induct_rule = wfP_induct [rule_format, consumes 1, case_names less]
-
-definition in_rel_def[simp]:
-  "in_rel R x y == (x, y) \<in> R"
-
-lemma wf_in_rel:
-  "wf R \<Longrightarrow> wfP (in_rel R)"
-  unfolding wfP_def wf_def in_rel_def .
-
-
-inductive2 accP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
-  for r :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-where
-  accPI: "(!!y. r y x ==> accP r y) ==> accP r x"
-
-
-theorem accP_induct:
-  assumes major: "accP r a"
-  assumes hyp: "!!x. accP r x ==> \<forall>y. r y x --> P y ==> P x"
-  shows "P a"
-  apply (rule major [THEN accP.induct])
-  apply (rule hyp)
-   apply (rule accPI)
-   apply fast
-  apply fast
-  done
-
-theorems accP_induct_rule = accP_induct [rule_format, induct set: accP]
-
-theorem accP_downward: "accP r b ==> r a b ==> accP r a"
-  apply (erule accP.cases)
-  apply fast
-  done
-
-
-lemma not_accP_down:
-  assumes na: "\<not> accP R x"
-  obtains z where "R z x" and "\<not>accP R z"
-proof -
-  assume a: "\<And>z. \<lbrakk>R z x; \<not> accP R z\<rbrakk> \<Longrightarrow> thesis"
-
-  show thesis
-  proof (cases "\<forall>z. R z x \<longrightarrow> accP R z")
-    case True
-    hence "\<And>z. R z x \<Longrightarrow> accP R z" by auto
-    hence "accP R x"
-      by (rule accPI)
-    with na show thesis ..
-  next
-    case False then obtain z where "R z x" and "\<not>accP R z"
-      by auto
-    with a show thesis .
-  qed
-qed
-
-
-lemma accP_subset:
-  assumes sub: "\<And>x y. R1 x y \<Longrightarrow> R2 x y"
-  shows "\<And>x. accP R2 x \<Longrightarrow> accP R1 x"
-proof-
-  fix x assume "accP R2 x"
-  then show "accP R1 x"
-  proof (induct x)
-    fix x
-    assume ih: "\<And>y. R2 y x \<Longrightarrow> accP R1 y"
-    with sub show "accP R1 x"
-      by (blast intro:accPI)
-  qed
-qed
-
-
-lemma accP_subset_induct:
-  assumes subset: "\<And>x. D x \<Longrightarrow> accP R x"
-    and dcl: "\<And>x z. \<lbrakk>D x; R z x\<rbrakk> \<Longrightarrow> D z"
-    and "D x"
-    and istep: "\<And>x. \<lbrakk>D x; (\<And>z. R z x \<Longrightarrow> P z)\<rbrakk> \<Longrightarrow> P x"
-  shows "P x"
-proof -
-  from subset and `D x` 
-  have "accP R x" .
-  then show "P x" using `D x`
-  proof (induct x)
-    fix x
-    assume "D x"
-      and "\<And>y. R y x \<Longrightarrow> D y \<Longrightarrow> P y"
-    with dcl and istep show "P x" by blast
-  qed
-qed
-
-
 section {* Definitions with default value *}
 
 definition
@@ -188,19 +85,16 @@ qed
 
 
 section {* Projections *}
-consts
-  lpg::"(('a + 'b) * 'a) set"
-  rpg::"(('a + 'b) * 'b) set"
 
-inductive lpg
-intros
-  "(Inl x, x) : lpg"
-inductive rpg
-intros
-  "(Inr y, y) : rpg"
+inductive2 lpg :: "('a + 'b) \<Rightarrow> 'a \<Rightarrow> bool"
+where
+  "lpg (Inl x) x"
+inductive2 rpg :: "('a + 'b) \<Rightarrow> 'b \<Rightarrow> bool"
+where
+  "rpg (Inr y) y"
 
-definition "lproj x = (THE y. (x,y) : lpg)"
-definition "rproj x = (THE y. (x,y) : rpg)"
+definition "lproj x = (THE y. lpg x y)"
+definition "rproj x = (THE y. rpg x y)"
 
 lemma lproj_inl:
   "lproj (Inl x) = x"
