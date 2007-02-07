@@ -47,7 +47,7 @@ text{*Proving that it is an equivalence relation*}
 
 lemma exprel_refl: "X \<sim> X"
   and list_exprel_refl: "(Xs,Xs) \<in> listrel(exprel)"
-  by (induct X and Xs) (blast intro: exprel.intros listrel.intros)+
+  by (induct X and Xs) (blast intro: exprel.intros listrel_intros)+
 
 theorem equiv_exprel: "equiv UNIV exprel"
 proof -
@@ -63,13 +63,13 @@ theorem equiv_list_exprel: "equiv UNIV (listrel exprel)"
 
 lemma FNCALL_Nil: "FNCALL F [] \<sim> FNCALL F []"
 apply (rule exprel.intros) 
-apply (rule listrel.intros) 
+apply (rule listrel_intros) 
 done
 
 lemma FNCALL_Cons:
      "\<lbrakk>X \<sim> X'; (Xs,Xs') \<in> listrel(exprel)\<rbrakk>
       \<Longrightarrow> FNCALL F (X#Xs) \<sim> FNCALL F (X'#Xs')"
-by (blast intro: exprel.intros listrel.intros) 
+by (blast intro: exprel.intros listrel_intros) 
 
 
 
@@ -98,7 +98,7 @@ equivalence relation.  It also helps us prove that Variable
   (the abstract constructor) is injective*}
 theorem exprel_imp_eq_freevars: "U \<sim> V \<Longrightarrow> freevars U = freevars V"
 apply (induct set: exprel) 
-apply (erule_tac [4] listrel.induct) 
+apply (erule_tac [4] listrel_induct) 
 apply (simp_all add: Un_assoc)
 done
 
@@ -129,7 +129,7 @@ primrec
 
 theorem exprel_imp_eq_freefun:
      "U \<sim> V \<Longrightarrow> freefun U = freefun V"
-  by (induct set: exprel) (simp_all add: listrel.intros)
+  by (induct set: exprel) (simp_all add: listrel_intros)
 
 
 text{*This function, which returns the list of function arguments, is used to
@@ -143,8 +143,8 @@ primrec
 theorem exprel_imp_eqv_freeargs:
      "U \<sim> V \<Longrightarrow> (freeargs U, freeargs V) \<in> listrel exprel"
 apply (induct set: exprel)
-apply (erule_tac [4] listrel.induct) 
-apply (simp_all add: listrel.intros)
+apply (erule_tac [4] listrel_induct) 
+apply (simp_all add: listrel_intros)
 apply (blast intro: symD [OF equiv.sym [OF equiv_list_exprel]])
 apply (blast intro: transD [OF equiv.trans [OF equiv_list_exprel]])
 done
@@ -258,7 +258,7 @@ lemma FnCall_sing:
      "FnCall F [Abs_Exp(exprel``{U})] = Abs_Exp (exprel``{FNCALL F [U]})"
 proof -
   have "(\<lambda>U. exprel `` {FNCALL F [U]}) respects exprel"
-    by (simp add: congruent_def FNCALL_Cons listrel.intros)
+    by (simp add: congruent_def FNCALL_Cons listrel_intros)
   thus ?thesis
     by (simp add: FnCall_def UN_equiv_class [OF equiv_exprel])
 qed
