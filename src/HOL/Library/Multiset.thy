@@ -381,28 +381,28 @@ subsection {* Multiset orderings *}
 subsubsection {* Well-foundedness *}
 
 definition
-  mult1 :: "('a \<times> 'a) set => ('a multiset \<times> 'a multiset) set" where
+  mult1 :: "('a => 'a => bool) => 'a multiset => 'a multiset => bool" where
   "mult1 r =
-    {(N, M). \<exists>a M0 K. M = M0 + {#a#} \<and> N = M0 + K \<and>
-      (\<forall>b. b :# K --> (b, a) \<in> r)}"
+    (%N M. \<exists>a M0 K. M = M0 + {#a#} \<and> N = M0 + K \<and>
+      (\<forall>b. b :# K --> r b a))"
 
 definition
-  mult :: "('a \<times> 'a) set => ('a multiset \<times> 'a multiset) set" where
-  "mult r = (mult1 r)\<^sup>+"
+  mult :: "('a => 'a => bool) => 'a multiset => 'a multiset => bool" where
+  "mult r = (mult1 r)\<^sup>+\<^sup>+"
 
-lemma not_less_empty [iff]: "(M, {#}) \<notin> mult1 r"
+lemma not_less_empty [iff]: "\<not> mult1 r M {#}"
   by (simp add: mult1_def)
 
-lemma less_add: "(N, M0 + {#a#}) \<in> mult1 r ==>
-    (\<exists>M. (M, M0) \<in> mult1 r \<and> N = M + {#a#}) \<or>
-    (\<exists>K. (\<forall>b. b :# K --> (b, a) \<in> r) \<and> N = M0 + K)"
+lemma less_add: "mult1 r N (M0 + {#a#})==>
+    (\<exists>M. mult1 r M M0 \<and> N = M + {#a#}) \<or>
+    (\<exists>K. (\<forall>b. b :# K --> r b a) \<and> N = M0 + K)"
   (is "_ \<Longrightarrow> ?case1 (mult1 r) \<or> ?case2")
 proof (unfold mult1_def)
-  let ?r = "\<lambda>K a. \<forall>b. b :# K --> (b, a) \<in> r"
+  let ?r = "\<lambda>K a. \<forall>b. b :# K --> r b a"
   let ?R = "\<lambda>N M. \<exists>a M0 K. M = M0 + {#a#} \<and> N = M0 + K \<and> ?r K a"
-  let ?case1 = "?case1 {(N, M). ?R N M}"
+  let ?case1 = "?case1 ?R"
 
-  assume "(N, M0 + {#a#}) \<in> {(N, M). ?R N M}"
+  assume "?R N (M0 + {#a#})"
   then have "\<exists>a' M0' K.
       M0 + {#a#} = M0' + {#a'#} \<and> N = M0' + K \<and> ?r K a'" by simp
   then show "?case1 \<or> ?case2"
@@ -430,80 +430,80 @@ proof (unfold mult1_def)
   qed
 qed
 
-lemma all_accessible: "wf r ==> \<forall>M. M \<in> acc (mult1 r)"
+lemma all_accessible: "wfP r ==> \<forall>M. acc (mult1 r) M"
 proof
   let ?R = "mult1 r"
   let ?W = "acc ?R"
   {
     fix M M0 a
-    assume M0: "M0 \<in> ?W"
-      and wf_hyp: "!!b. (b, a) \<in> r ==> (\<forall>M \<in> ?W. M + {#b#} \<in> ?W)"
-      and acc_hyp: "\<forall>M. (M, M0) \<in> ?R --> M + {#a#} \<in> ?W"
-    have "M0 + {#a#} \<in> ?W"
-    proof (rule accI [of "M0 + {#a#}"])
+    assume M0: "?W M0"
+      and wf_hyp: "!!b. r b a ==> \<forall>M \<triangleright> ?W. ?W (M + {#b#})"
+      and acc_hyp: "\<forall>M. ?R M M0 --> ?W (M + {#a#})"
+    have "?W (M0 + {#a#})"
+    proof (rule accI [of _ "M0 + {#a#}"])
       fix N
-      assume "(N, M0 + {#a#}) \<in> ?R"
-      then have "((\<exists>M. (M, M0) \<in> ?R \<and> N = M + {#a#}) \<or>
-          (\<exists>K. (\<forall>b. b :# K --> (b, a) \<in> r) \<and> N = M0 + K))"
+      assume "?R N (M0 + {#a#})"
+      then have "((\<exists>M. ?R M M0 \<and> N = M + {#a#}) \<or>
+          (\<exists>K. (\<forall>b. b :# K --> r b a) \<and> N = M0 + K))"
         by (rule less_add)
-      then show "N \<in> ?W"
+      then show "?W N"
       proof (elim exE disjE conjE)
-        fix M assume "(M, M0) \<in> ?R" and N: "N = M + {#a#}"
-        from acc_hyp have "(M, M0) \<in> ?R --> M + {#a#} \<in> ?W" ..
-        then have "M + {#a#} \<in> ?W" ..
-        then show "N \<in> ?W" by (simp only: N)
+        fix M assume "?R M M0" and N: "N = M + {#a#}"
+        from acc_hyp have "?R M M0 --> ?W (M + {#a#})" ..
+        then have "?W (M + {#a#})" ..
+        then show "?W N" by (simp only: N)
       next
         fix K
         assume N: "N = M0 + K"
-        assume "\<forall>b. b :# K --> (b, a) \<in> r"
-        then have "M0 + K \<in> ?W"
+        assume "\<forall>b. b :# K --> r b a"
+        then have "?W (M0 + K)"
         proof (induct K)
           case empty
-          from M0 show "M0 + {#} \<in> ?W" by simp
+          from M0 show "?W (M0 + {#})" by simp
         next
           case (add K x)
-          from add.prems have "(x, a) \<in> r" by simp
-          with wf_hyp have "\<forall>M \<in> ?W. M + {#x#} \<in> ?W" by blast
-          moreover from add have "M0 + K \<in> ?W" by simp
-          ultimately have "(M0 + K) + {#x#} \<in> ?W" ..
-          then show "M0 + (K + {#x#}) \<in> ?W" by (simp only: union_assoc)
+          from add.prems have "r x a" by simp
+          with wf_hyp have "\<forall>M \<triangleright> ?W. ?W (M + {#x#})" by blast
+          moreover from add have "?W (M0 + K)" by simp
+          ultimately have "?W ((M0 + K) + {#x#})" ..
+          then show "?W (M0 + (K + {#x#}))" by (simp only: union_assoc)
         qed
-        then show "N \<in> ?W" by (simp only: N)
+        then show "?W N" by (simp only: N)
       qed
     qed
   } note tedious_reasoning = this
 
-  assume wf: "wf r"
+  assume wf: "wfP r"
   fix M
-  show "M \<in> ?W"
+  show "?W M"
   proof (induct M)
-    show "{#} \<in> ?W"
+    show "?W {#}"
     proof (rule accI)
-      fix b assume "(b, {#}) \<in> ?R"
-      with not_less_empty show "b \<in> ?W" by contradiction
+      fix b assume "?R b {#}"
+      with not_less_empty show "?W b" by contradiction
     qed
 
-    fix M a assume "M \<in> ?W"
-    from wf have "\<forall>M \<in> ?W. M + {#a#} \<in> ?W"
+    fix M a assume "?W M"
+    from wf have "\<forall>M \<triangleright> ?W. ?W (M + {#a#})"
     proof induct
       fix a
-      assume "!!b. (b, a) \<in> r ==> (\<forall>M \<in> ?W. M + {#b#} \<in> ?W)"
-      show "\<forall>M \<in> ?W. M + {#a#} \<in> ?W"
+      assume "!!b. r b a ==> \<forall>M \<triangleright> ?W. ?W (M + {#b#})"
+      show "\<forall>M \<triangleright> ?W. ?W (M + {#a#})"
       proof
-        fix M assume "M \<in> ?W"
-        then show "M + {#a#} \<in> ?W"
+        fix M assume "?W M"
+        then show "?W (M + {#a#})"
           by (rule acc_induct) (rule tedious_reasoning)
       qed
     qed
-    then show "M + {#a#} \<in> ?W" ..
+    then show "?W (M + {#a#})" ..
   qed
 qed
 
-theorem wf_mult1: "wf r ==> wf (mult1 r)"
+theorem wf_mult1: "wfP r ==> wfP (mult1 r)"
   by (rule acc_wfI, rule all_accessible)
 
-theorem wf_mult: "wf r ==> wf (mult r)"
-  by (unfold mult_def, rule wf_trancl, rule wf_mult1)
+theorem wf_mult: "wfP r ==> wfP (mult r)"
+  by (unfold mult_def, rule wfP_trancl, rule wf_mult1)
 
 
 subsubsection {* Closure-free presentation *}
@@ -516,16 +516,16 @@ by (simp add: multiset_eq_conv_count_eq)
 text {* One direction. *}
 
 lemma mult_implies_one_step:
-  "trans r ==> (M, N) \<in> mult r ==>
+  "transP r ==> mult r M N ==>
     \<exists>I J K. N = I + J \<and> M = I + K \<and> J \<noteq> {#} \<and>
-    (\<forall>k \<in> set_of K. \<exists>j \<in> set_of J. (k, j) \<in> r)"
+    (\<forall>k \<in> set_of K. \<exists>j \<in> set_of J. r k j)"
   apply (unfold mult_def mult1_def set_of_def)
-  apply (erule converse_trancl_induct, clarify)
+  apply (erule converse_trancl_induct', clarify)
    apply (rule_tac x = M0 in exI, simp, clarify)
-  apply (case_tac "a :# K")
+  apply (case_tac "a :# Ka")
    apply (rule_tac x = I in exI)
    apply (simp (no_asm))
-   apply (rule_tac x = "(K - {#a#}) + Ka" in exI)
+   apply (rule_tac x = "(Ka - {#a#}) + K" in exI)
    apply (simp (no_asm_simp) add: union_assoc [symmetric])
    apply (drule_tac f = "\<lambda>M. M - {#a#}" in arg_cong)
    apply (simp add: diff_union_single_conv)
@@ -556,30 +556,29 @@ lemma size_eq_Suc_imp_eq_union: "size M = Suc n ==> \<exists>a N. M = N + {#a#}"
   done
 
 lemma one_step_implies_mult_aux:
-  "trans r ==>
-    \<forall>I J K. (size J = n \<and> J \<noteq> {#} \<and> (\<forall>k \<in> set_of K. \<exists>j \<in> set_of J. (k, j) \<in> r))
-      --> (I + K, I + J) \<in> mult r"
+  "\<forall>I J K. (size J = n \<and> J \<noteq> {#} \<and> (\<forall>k \<in> set_of K. \<exists>j \<in> set_of J. r k j))
+    --> mult r (I + K) (I + J)"
   apply (induct_tac n, auto)
   apply (frule size_eq_Suc_imp_eq_union, clarify)
   apply (rename_tac "J'", simp)
   apply (erule notE, auto)
   apply (case_tac "J' = {#}")
    apply (simp add: mult_def)
-   apply (rule r_into_trancl)
+   apply (rule trancl.r_into_trancl)
    apply (simp add: mult1_def set_of_def, blast)
   txt {* Now we know @{term "J' \<noteq> {#}"}. *}
-  apply (cut_tac M = K and P = "\<lambda>x. (x, a) \<in> r" in multiset_partition)
+  apply (cut_tac M = K and P = "\<lambda>x. r x a" in multiset_partition)
   apply (erule_tac P = "\<forall>k \<in> set_of K. ?P k" in rev_mp)
   apply (erule ssubst)
   apply (simp add: Ball_def, auto)
   apply (subgoal_tac
-    "((I + {# x : K. (x, a) \<in> r #}) + {# x : K. (x, a) \<notin> r #},
-      (I + {# x : K. (x, a) \<in> r #}) + J') \<in> mult r")
+    "mult r ((I + {# x : K. r x a #}) + {# x : K. \<not> r x a #})
+      ((I + {# x : K. r x a #}) + J')")
    prefer 2
    apply force
   apply (simp (no_asm_use) add: union_assoc [symmetric] mult_def)
-  apply (erule trancl_trans)
-  apply (rule r_into_trancl)
+  apply (erule trancl_trans')
+  apply (rule trancl.r_into_trancl)
   apply (simp add: mult1_def set_of_def)
   apply (rule_tac x = a in exI)
   apply (rule_tac x = "I + J'" in exI)
@@ -587,8 +586,8 @@ lemma one_step_implies_mult_aux:
   done
 
 lemma one_step_implies_mult:
-  "trans r ==> J \<noteq> {#} ==> \<forall>k \<in> set_of K. \<exists>j \<in> set_of J. (k, j) \<in> r
-    ==> (I + K, I + J) \<in> mult r"
+  "J \<noteq> {#} ==> \<forall>k \<in> set_of K. \<exists>j \<in> set_of J. r k j
+    ==> mult r (I + K) (I + J)"
   apply (insert one_step_implies_mult_aux, blast)
   done
 
@@ -598,10 +597,10 @@ subsubsection {* Partial-order properties *}
 instance multiset :: (type) ord ..
 
 defs (overloaded)
-  less_multiset_def: "M' < M == (M', M) \<in> mult {(x', x). x' < x}"
+  less_multiset_def: "op < == mult op <"
   le_multiset_def: "M' <= M == M' = M \<or> M' < (M::'a multiset)"
 
-lemma trans_base_order: "trans {(x', x). x' < (x::'a::order)}"
+lemma trans_base_order: "transP (op < :: 'a::order => 'a => bool)"
   unfolding trans_def by (blast intro: order_less_trans)
 
 text {*
@@ -629,7 +628,7 @@ text {* Transitivity. *}
 
 theorem mult_less_trans: "K < M ==> M < N ==> K < (N::'a::order multiset)"
   apply (unfold less_multiset_def mult_def)
-  apply (blast intro: trancl_trans)
+  apply (blast intro: trancl_trans')
   done
 
 text {* Asymmetry. *}
@@ -676,7 +675,7 @@ instance multiset :: (order) order
 subsubsection {* Monotonicity of multiset union *}
 
 lemma mult1_union:
-    "(B, D) \<in> mult1 r ==> trans r ==> (C + B, C + D) \<in> mult1 r"
+    "mult1 r B D ==> mult1 r (C + B) (C + D)"
   apply (unfold mult1_def, auto)
   apply (rule_tac x = a in exI)
   apply (rule_tac x = "C + M0" in exI)
@@ -685,9 +684,9 @@ lemma mult1_union:
 
 lemma union_less_mono2: "B < D ==> C + B < C + (D::'a::order multiset)"
   apply (unfold less_multiset_def mult_def)
-  apply (erule trancl_induct)
-   apply (blast intro: mult1_union transI order_less_trans r_into_trancl)
-  apply (blast intro: mult1_union transI order_less_trans r_into_trancl trancl_trans)
+  apply (erule trancl_induct')
+   apply (blast intro: mult1_union)
+  apply (blast intro: mult1_union trancl.r_into_trancl trancl_trans')
   done
 
 lemma union_less_mono1: "B < D ==> B + C < D + (C::'a::order multiset)"
@@ -710,10 +709,10 @@ lemma empty_leI [iff]: "{#} <= (M::'a::order multiset)"
   apply (unfold le_multiset_def less_multiset_def)
   apply (case_tac "M = {#}")
    prefer 2
-   apply (subgoal_tac "({#} + {#}, {#} + M) \<in> mult (Collect (split op <))")
+   apply (subgoal_tac "mult op < ({#} + {#}) ({#} + M)")
     prefer 2
     apply (rule one_step_implies_mult)
-      apply (simp only: trans_def, auto)
+      apply auto
   done
 
 lemma union_upper1: "A <= A + (B::'a::order multiset)"
