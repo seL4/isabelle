@@ -17,22 +17,22 @@ text {*
  relation; see also \cite{paulin-tlca}.
 *}
 
-consts
-  acc :: "('a \<times> 'a) set => 'a set"
-inductive "acc r"
-  intros
-    accI: "(!!y. (y, x) \<in> r ==> y \<in> acc r) ==> x \<in> acc r"
+inductive2
+  acc :: "('a => 'a => bool) => 'a => bool"
+  for r :: "'a => 'a => bool"
+  where
+    accI: "(!!y. r y x ==> acc r y) ==> acc r x"
 
 abbreviation
-  termi :: "('a \<times> 'a) set => 'a set" where
-  "termi r == acc (r\<inverse>)"
+  termi :: "('a => 'a => bool) => 'a => bool" where
+  "termi r == acc (r\<inverse>\<inverse>)"
 
 
 subsection {* Induction rules *}
 
 theorem acc_induct:
-  assumes major: "a \<in> acc r"
-  assumes hyp: "!!x. x \<in> acc r ==> \<forall>y. (y, x) \<in> r --> P y ==> P x"
+  assumes major: "acc r a"
+  assumes hyp: "!!x. acc r x ==> \<forall>y. r y x --> P y ==> P x"
   shows "P a"
   apply (rule major [THEN acc.induct])
   apply (rule hyp)
@@ -43,35 +43,55 @@ theorem acc_induct:
 
 theorems acc_induct_rule = acc_induct [rule_format, induct set: acc]
 
-theorem acc_downward: "b \<in> acc r ==> (a, b) \<in> r ==> a \<in> acc r"
-  apply (erule acc.elims)
+theorem acc_downward: "acc r b ==> r a b ==> acc r a"
+  apply (erule acc.cases)
   apply fast
   done
 
-lemma acc_downwards_aux: "(b, a) \<in> r\<^sup>* ==> a \<in> acc r --> b \<in> acc r"
-  apply (erule rtrancl_induct)
+lemma not_acc_down:
+  assumes na: "\<not> acc R x"
+  obtains z where "R z x" and "\<not> acc R z"
+proof -
+  assume a: "\<And>z. \<lbrakk>R z x; \<not> acc R z\<rbrakk> \<Longrightarrow> thesis"
+
+  show thesis
+  proof (cases "\<forall>z. R z x \<longrightarrow> acc R z")
+    case True
+    hence "\<And>z. R z x \<Longrightarrow> acc R z" by auto
+    hence "acc R x"
+      by (rule accI)
+    with na show thesis ..
+  next
+    case False then obtain z where "R z x" and "\<not> acc R z"
+      by auto
+    with a show thesis .
+  qed
+qed
+
+lemma acc_downwards_aux: "r\<^sup>*\<^sup>* b a ==> acc r a --> acc r b"
+  apply (erule rtrancl_induct')
    apply blast
   apply (blast dest: acc_downward)
   done
 
-theorem acc_downwards: "a \<in> acc r ==> (b, a) \<in> r\<^sup>* ==> b \<in> acc r"
+theorem acc_downwards: "acc r a ==> r\<^sup>*\<^sup>* b a ==> acc r b"
   apply (blast dest: acc_downwards_aux)
   done
 
-theorem acc_wfI: "\<forall>x. x \<in> acc r ==> wf r"
-  apply (rule wfUNIVI)
+theorem acc_wfI: "\<forall>x. acc r x ==> wfP r"
+  apply (rule wfPUNIVI)
   apply (induct_tac P x rule: acc_induct)
    apply blast
   apply blast
   done
 
-theorem acc_wfD: "wf r ==> x \<in> acc r"
-  apply (erule wf_induct)
+theorem acc_wfD: "wfP r ==> acc r x"
+  apply (erule wfP_induct_rule)
   apply (rule accI)
   apply blast
   done
 
-theorem wf_acc_iff: "wf r = (\<forall>x. x \<in> acc r)"
+theorem wf_acc_iff: "wfP r = (\<forall>x. acc r x)"
   apply (blast intro: acc_wfI dest: acc_wfD)
   done
 
@@ -79,16 +99,16 @@ theorem wf_acc_iff: "wf r = (\<forall>x. x \<in> acc r)"
 text {* Smaller relations have bigger accessible parts: *}
 
 lemma acc_subset:
-  assumes sub: "R1 \<subseteq> R2"
-  shows "acc R2 \<subseteq> acc R1"
+  assumes sub: "R1 \<le> R2"
+  shows "acc R2 \<le> acc R1"
 proof
-  fix x assume "x \<in> acc R2"
-  then show "x \<in> acc R1"
+  fix x assume "acc R2 x"
+  then show "acc R1 x"
   proof (induct x)
     fix x
-    assume ih: "\<And>y. (y, x) \<in> R2 \<Longrightarrow> y \<in> acc R1"
-    with sub show "x \<in> acc R1"
-      by (blast intro:accI)
+    assume ih: "\<And>y. R2 y x \<Longrightarrow> acc R1 y"
+    with sub show "acc R1 x"
+      by (blast intro: accI)
   qed
 qed
 
@@ -97,19 +117,19 @@ text {* This is a generalized induction theorem that works on
   subsets of the accessible part. *}
 
 lemma acc_subset_induct:
-  assumes subset: "D \<subseteq> acc R"
-    and dcl: "\<And>x z. \<lbrakk>x \<in> D; (z, x)\<in>R\<rbrakk> \<Longrightarrow> z \<in> D"
-    and "x \<in> D"
-    and istep: "\<And>x. \<lbrakk>x \<in> D; (\<And>z. (z, x)\<in>R \<Longrightarrow> P z)\<rbrakk> \<Longrightarrow> P x"
+  assumes subset: "D \<le> acc R"
+    and dcl: "\<And>x z. \<lbrakk>D x; R z x\<rbrakk> \<Longrightarrow> D z"
+    and "D x"
+    and istep: "\<And>x. \<lbrakk>D x; (\<And>z. R z x \<Longrightarrow> P z)\<rbrakk> \<Longrightarrow> P x"
   shows "P x"
 proof -
-  from `x \<in> D` and subset 
-  have "x \<in> acc R" ..
-  then show "P x" using `x \<in> D`
+  from subset and `D x`
+  have "acc R x" ..
+  then show "P x" using `D x`
   proof (induct x)
     fix x
-    assume "x \<in> D"
-      and "\<And>y. (y, x) \<in> R \<Longrightarrow> y \<in> D \<Longrightarrow> P y"
+    assume "D x"
+      and "\<And>y. R y x \<Longrightarrow> D y \<Longrightarrow> P y"
     with dcl and istep show "P x" by blast
   qed
 qed

@@ -12,14 +12,10 @@ begin
 
 subsection {* Definition and basic properties *}
 
-consts Finites :: "'a set set"
-abbreviation
-  "finite A == A : Finites"
-
-inductive Finites
-  intros
-    emptyI [simp, intro!]: "{} : Finites"
-    insertI [simp, intro!]: "A : Finites ==> insert a A : Finites"
+inductive2 finite :: "'a set => bool"
+  where
+    emptyI [simp, intro!]: "finite {}"
+  | insertI [simp, intro!]: "finite A ==> finite (insert a A)"
 
 axclass finite \<subseteq> type
   finite: "finite UNIV"
@@ -32,7 +28,7 @@ proof -
   thus ?thesis by blast
 qed
 
-lemma finite_induct [case_names empty insert, induct set: Finites]:
+lemma finite_induct [case_names empty insert, induct set: finite]:
   "finite F ==>
     P {} ==> (!!x F. finite F ==> x \<notin> F ==> P F ==> P (insert x F)) ==> P F"
   -- {* Discharging @{text "x \<notin> F"} entails extra work. *}
@@ -146,7 +142,7 @@ subsubsection{* Finiteness and set theoretic constructions *}
 
 lemma finite_UnI: "finite F ==> finite G ==> finite (F Un G)"
   -- {* The union of two finite sets is finite. *}
-  by (induct set: Finites) simp_all
+  by (induct set: finite) simp_all
 
 lemma finite_subset: "A \<subseteq> B ==> finite B ==> finite A"
   -- {* Every subset of a finite set is finite. *}
@@ -244,7 +240,7 @@ text {* Image and Inverse Image over Finite Sets *}
 
 lemma finite_imageI[simp]: "finite F ==> finite (h ` F)"
   -- {* The image of a finite set is finite. *}
-  by (induct set: Finites) simp_all
+  by (induct set: finite) simp_all
 
 lemma finite_surj: "finite A ==> B <= f ` A ==> finite B"
   apply (frule finite_imageI)
@@ -286,7 +282,7 @@ lemma inj_vimage_singleton: "inj f ==> f-`{a} \<subseteq> {THE x. f x = a}"
 lemma finite_vimageI: "[|finite F; inj h|] ==> finite (h -` F)"
   -- {* The inverse image of a finite set under an injective function
          is finite. *}
-  apply (induct set: Finites)
+  apply (induct set: finite)
    apply simp_all
   apply (subst vimage_insert)
   apply (simp add: finite_Un finite_subset [OF inj_vimage_singleton])
@@ -296,7 +292,7 @@ lemma finite_vimageI: "[|finite F; inj h|] ==> finite (h -` F)"
 text {* The finite UNION of finite sets *}
 
 lemma finite_UN_I: "finite A ==> (!!a. a:A ==> finite (B a)) ==> finite (UN a:A. B a)"
-  by (induct set: Finites) simp_all
+  by (induct set: finite) simp_all
 
 text {*
   Strengthen RHS to
@@ -398,7 +394,7 @@ Ehmety) *}
 
 lemma finite_Field: "finite r ==> finite (Field r)"
   -- {* A finite relation has a finite field (@{text "= domain \<union> range"}. *}
-  apply (induct set: Finites)
+  apply (induct set: finite)
    apply (auto simp add: Field_def Domain_insert Range_insert)
   done
 
@@ -427,38 +423,39 @@ if @{text f} is associative-commutative. For an application of @{text fold}
 se the definitions of sums and products over finite sets.
 *}
 
-consts
-  foldSet :: "('a => 'a => 'a) => ('b => 'a) => 'a => ('b set \<times> 'a) set"
+inductive2
+  foldSet :: "('a => 'a => 'a) => ('b => 'a) => 'a => 'b set => 'a => bool"
+  for f ::  "'a => 'a => 'a"
+  and g :: "'b => 'a"
+  and z :: 'a
+where
+  emptyI [intro]: "foldSet f g z {} z"
+| insertI [intro]:
+     "\<lbrakk> x \<notin> A; foldSet f g z A y \<rbrakk>
+      \<Longrightarrow> foldSet f g z (insert x A) (f (g x) y)"
 
-inductive "foldSet f g z"
-intros
-emptyI [intro]: "({}, z) : foldSet f g z"
-insertI [intro]:
-     "\<lbrakk> x \<notin> A; (A, y) : foldSet f g z \<rbrakk>
-      \<Longrightarrow> (insert x A, f (g x) y) : foldSet f g z"
-
-inductive_cases empty_foldSetE [elim!]: "({}, x) : foldSet f g z"
+inductive_cases2 empty_foldSetE [elim!]: "foldSet f g z {} x"
 
 constdefs
   fold :: "('a => 'a => 'a) => ('b => 'a) => 'a => 'b set => 'a"
-  "fold f g z A == THE x. (A, x) : foldSet f g z"
+  "fold f g z A == THE x. foldSet f g z A x"
 
 text{*A tempting alternative for the definiens is
-@{term "if finite A then THE x. (A, x) : foldSet f g e else e"}.
+@{term "if finite A then THE x. foldSet f g e A x else e"}.
 It allows the removal of finiteness assumptions from the theorems
 @{text fold_commute}, @{text fold_reindex} and @{text fold_distrib}.
 The proofs become ugly, with @{text rule_format}. It is not worth the effort.*}
 
 
 lemma Diff1_foldSet:
-  "(A - {x}, y) : foldSet f g z ==> x: A ==> (A, f (g x) y) : foldSet f g z"
+  "foldSet f g z (A - {x}) y ==> x: A ==> foldSet f g z A (f (g x) y)"
 by (erule insert_Diff [THEN subst], rule foldSet.intros, auto)
 
-lemma foldSet_imp_finite: "(A, x) : foldSet f g z ==> finite A"
+lemma foldSet_imp_finite: "foldSet f g z A x==> finite A"
   by (induct set: foldSet) auto
 
-lemma finite_imp_foldSet: "finite A ==> EX x. (A, x) : foldSet f g z"
-  by (induct set: Finites) auto
+lemma finite_imp_foldSet: "finite A ==> EX x. foldSet f g z A x"
+  by (induct set: finite) auto
 
 
 subsubsection {* Commutative monoids *}
@@ -554,33 +551,31 @@ qed
 
 lemma (in ACf) foldSet_determ_aux:
   "!!A x x' h. \<lbrakk> A = h`{i::nat. i<n}; inj_on h {i. i<n}; 
-                (A,x) : foldSet f g z; (A,x') : foldSet f g z \<rbrakk>
+                foldSet f g z A x; foldSet f g z A x' \<rbrakk>
    \<Longrightarrow> x' = x"
 proof (induct n rule: less_induct)
   case (less n)
     have IH: "!!m h A x x'. 
                \<lbrakk>m<n; A = h ` {i. i<m}; inj_on h {i. i<m}; 
-                (A,x) \<in> foldSet f g z; (A, x') \<in> foldSet f g z\<rbrakk> \<Longrightarrow> x' = x" .
-    have Afoldx: "(A,x) \<in> foldSet f g z" and Afoldx': "(A,x') \<in> foldSet f g z"
+                foldSet f g z A x; foldSet f g z A x'\<rbrakk> \<Longrightarrow> x' = x" .
+    have Afoldx: "foldSet f g z A x" and Afoldx': "foldSet f g z A x'"
      and A: "A = h`{i. i<n}" and injh: "inj_on h {i. i<n}" .
     show ?case
     proof (rule foldSet.cases [OF Afoldx])
-      assume "(A, x) = ({}, z)"
+      assume "A = {}" and "x = z"
       with Afoldx' show "x' = x" by blast
     next
       fix B b u
-      assume "(A,x) = (insert b B, g b \<cdot> u)" and notinB: "b \<notin> B"
-         and Bu: "(B,u) \<in> foldSet f g z"
-      hence AbB: "A = insert b B" and x: "x = g b \<cdot> u" by auto
+      assume AbB: "A = insert b B" and x: "x = g b \<cdot> u"
+         and notinB: "b \<notin> B" and Bu: "foldSet f g z B u"
       show "x'=x" 
       proof (rule foldSet.cases [OF Afoldx'])
-        assume "(A, x') = ({}, z)"
+        assume "A = {}" and "x' = z"
         with AbB show "x' = x" by blast
       next
 	fix C c v
-	assume "(A,x') = (insert c C, g c \<cdot> v)" and notinC: "c \<notin> C"
-	   and Cv: "(C,v) \<in> foldSet f g z"
-	hence AcC: "A = insert c C" and x': "x' = g c \<cdot> v" by auto
+	assume AcC: "A = insert c C" and x': "x' = g c \<cdot> v"
+           and notinC: "c \<notin> C" and Cv: "foldSet f g z C v"
 	from A AbB have Beq: "insert b B = h`{i. i<n}" by simp
         from insert_inj_onE [OF Beq notinB injh]
         obtain hB mB where inj_onB: "inj_on hB {i. i < mB}" 
@@ -604,15 +599,15 @@ proof (induct n rule: less_induct)
 	    using AbB AcC notinB notinC diff by(blast elim!:equalityE)+
 	  have "finite A" by(rule foldSet_imp_finite[OF Afoldx])
 	  with AbB have "finite ?D" by simp
-	  then obtain d where Dfoldd: "(?D,d) \<in> foldSet f g z"
+	  then obtain d where Dfoldd: "foldSet f g z ?D d"
 	    using finite_imp_foldSet by iprover
 	  moreover have cinB: "c \<in> B" using B by auto
-	  ultimately have "(B,g c \<cdot> d) \<in> foldSet f g z"
+	  ultimately have "foldSet f g z B (g c \<cdot> d)"
 	    by(rule Diff1_foldSet)
 	  hence "g c \<cdot> d = u" by (rule IH [OF lessB Beq inj_onB Bu]) 
           moreover have "g b \<cdot> d = v"
 	  proof (rule IH[OF lessC Ceq inj_onC Cv])
-	    show "(C, g b \<cdot> d) \<in> foldSet f g z" using C notinB Dfoldd
+	    show "foldSet f g z C (g b \<cdot> d)" using C notinB Dfoldd
 	      by fastsimp
 	  qed
 	  ultimately show ?thesis using x x' by (auto simp: AC)
@@ -623,12 +618,12 @@ proof (induct n rule: less_induct)
 
 
 lemma (in ACf) foldSet_determ:
-  "(A,x) : foldSet f g z ==> (A,y) : foldSet f g z ==> y = x"
+  "foldSet f g z A x ==> foldSet f g z A y ==> y = x"
 apply (frule foldSet_imp_finite [THEN finite_imp_nat_seg_image_inj_on]) 
 apply (blast intro: foldSet_determ_aux [rule_format])
 done
 
-lemma (in ACf) fold_equality: "(A, y) : foldSet f g z ==> fold f g z A = y"
+lemma (in ACf) fold_equality: "foldSet f g z A y ==> fold f g z A = y"
   by (unfold fold_def) (blast intro: foldSet_determ)
 
 text{* The base case for @{text fold}: *}
@@ -637,8 +632,8 @@ lemma fold_empty [simp]: "fold f g z {} = z"
   by (unfold fold_def) blast
 
 lemma (in ACf) fold_insert_aux: "x \<notin> A ==>
-    ((insert x A, v) : foldSet f g z) =
-    (EX y. (A, y) : foldSet f g z & v = f (g x) y)"
+    (foldSet f g z (insert x A) v) =
+    (EX y. foldSet f g z A y & v = f (g x) y)"
   apply auto
   apply (rule_tac A1 = A and f1 = f in finite_imp_foldSet [THEN exE])
    apply (fastsimp dest: foldSet_imp_finite)
@@ -700,7 +695,7 @@ subsubsection{*Lemmas about @{text fold}*}
 
 lemma (in ACf) fold_commute:
   "finite A ==> (!!z. f x (fold f g z A) = fold f g (f x z) A)"
-  apply (induct set: Finites)
+  apply (induct set: finite)
    apply simp
   apply (simp add: left_commute [of x])
   done
@@ -708,7 +703,7 @@ lemma (in ACf) fold_commute:
 lemma (in ACf) fold_nest_Un_Int:
   "finite A ==> finite B
     ==> fold f g (fold f g z B) A = fold f g (fold f g z (A Int B)) (A Un B)"
-  apply (induct set: Finites)
+  apply (induct set: finite)
    apply simp
   apply (simp add: fold_commute Int_insert_left insert_absorb)
   done
@@ -730,7 +725,7 @@ lemma (in ACe) fold_Un_Int:
   "finite A ==> finite B ==>
     fold f g e A \<cdot> fold f g e B =
     fold f g e (A Un B) \<cdot> fold f g e (A Int B)"
-  apply (induct set: Finites, simp)
+  apply (induct set: finite, simp)
   apply (simp add: AC insert_absorb Int_insert_left)
   done
 
@@ -744,7 +739,7 @@ lemma (in ACe) fold_UN_disjoint:
      ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {} \<rbrakk>
    \<Longrightarrow> fold f g e (UNION I A) =
        fold f (%i. fold f g e (A i)) e I"
-  apply (induct set: Finites, simp, atomize)
+  apply (induct set: finite, simp, atomize)
   apply (subgoal_tac "ALL i:F. x \<noteq> i")
    prefer 2 apply blast
   apply (subgoal_tac "A x Int UNION F A = {}")
@@ -762,7 +757,7 @@ lemma (in ACf) fold_fusion:
 	"finite A ==> 
 	 (!!x y. h (g x y) = f x (h y)) ==>
          h (fold g j w A) = fold f j (h w) A"
-  by (induct set: Finites) simp_all
+  by (induct set: finite) simp_all
 
 lemma (in ACf) fold_cong:
   "finite A \<Longrightarrow> (!!x. x:A ==> g x = h x) ==> fold f g z A = fold f h z A"
@@ -954,7 +949,7 @@ lemma setsum_SucD: "setsum f A = Suc n ==> EX a:A. 0 < f a"
 
 lemma setsum_eq_0_iff [simp]:
     "finite F ==> (setsum f F = 0) = (ALL a:F. f a = (0::nat))"
-  by (induct set: Finites) auto
+  by (induct set: finite) auto
 
 lemma setsum_Un_nat: "finite A ==> finite B ==>
     (setsum f (A Un B) :: nat) = setsum f A + setsum f B - setsum f (A Int B)"
@@ -1064,7 +1059,7 @@ qed
 lemma setsum_negf:
   "setsum (%x. - (f x)::'a::ab_group_add) A = - setsum f A"
 proof (cases "finite A")
-  case True thus ?thesis by (induct set: Finites) auto
+  case True thus ?thesis by (induct set: finite) auto
 next
   case False thus ?thesis by (simp add: setsum_def)
 qed
@@ -1398,18 +1393,18 @@ subsubsection {* Properties in more restricted classes of structures *}
 
 lemma setprod_eq_1_iff [simp]:
     "finite F ==> (setprod f F = 1) = (ALL a:F. f a = (1::nat))"
-  by (induct set: Finites) auto
+  by (induct set: finite) auto
 
 lemma setprod_zero:
      "finite A ==> EX x: A. f x = (0::'a::comm_semiring_1_cancel) ==> setprod f A = 0"
-  apply (induct set: Finites, force, clarsimp)
+  apply (induct set: finite, force, clarsimp)
   apply (erule disjE, auto)
   done
 
 lemma setprod_nonneg [rule_format]:
      "(ALL x: A. (0::'a::ordered_idom) \<le> f x) --> 0 \<le> setprod f A"
   apply (case_tac "finite A")
-  apply (induct set: Finites, force, clarsimp)
+  apply (induct set: finite, force, clarsimp)
   apply (subgoal_tac "0 * 0 \<le> f x * setprod f F", force)
   apply (rule mult_mono, assumption+)
   apply (auto simp add: setprod_def)
@@ -1418,7 +1413,7 @@ lemma setprod_nonneg [rule_format]:
 lemma setprod_pos [rule_format]: "(ALL x: A. (0::'a::ordered_idom) < f x)
      --> 0 < setprod f A"
   apply (case_tac "finite A")
-  apply (induct set: Finites, force, clarsimp)
+  apply (induct set: finite, force, clarsimp)
   apply (subgoal_tac "0 * 0 < f x * setprod f F", force)
   apply (rule mult_strict_mono, assumption+)
   apply (auto simp add: setprod_def)
@@ -1546,7 +1541,7 @@ lemma card_mono: "\<lbrakk> finite B; A \<subseteq> B \<rbrakk> \<Longrightarrow
 by (simp add: card_def setsum_mono2)
 
 lemma card_seteq: "finite B ==> (!!A. A <= B ==> card B <= card A ==> A = B)"
-  apply (induct set: Finites, simp, clarify)
+  apply (induct set: finite, simp, clarify)
   apply (subgoal_tac "finite A & A - {x} <= F")
    prefer 2 apply (blast intro: finite_subset, atomize)
   apply (drule_tac x = "A - {x}" in spec)
@@ -1698,7 +1693,7 @@ lemma image_eq_fold: "finite A ==> f ` A = fold (op Un) (%x. {f x}) {} A"
   done
 
 lemma card_image_le: "finite A ==> card (f ` A) <= card A"
-  apply (induct set: Finites)
+  apply (induct set: finite)
    apply simp
   apply (simp add: le_SucI finite_imageI card_insert_if)
   done
@@ -1763,7 +1758,7 @@ by (simp add: card_cartesian_product)
 subsubsection {* Cardinality of the Powerset *}
 
 lemma card_Pow: "finite A ==> card (Pow A) = Suc (Suc 0) ^ card A"  (* FIXME numeral 2 (!?) *)
-  apply (induct set: Finites)
+  apply (induct set: finite)
    apply (simp_all add: Pow_insert)
   apply (subst card_Un_disjoint, blast)
     apply (blast intro: finite_imageI, blast)
@@ -1783,7 +1778,7 @@ lemma dvd_partition:
   k dvd card (Union C)"
 apply(frule finite_UnionD)
 apply(rotate_tac -1)
-  apply (induct set: Finites, simp_all, clarify)
+  apply (induct set: finite, simp_all, clarify)
   apply (subst card_Un_disjoint)
   apply (auto simp add: dvd_add disjoint_eq_subset_Compl)
   done
@@ -1793,36 +1788,35 @@ subsection{* A fold functional for non-empty sets *}
 
 text{* Does not require start value. *}
 
-consts
-  fold1Set :: "('a => 'a => 'a) => ('a set \<times> 'a) set"
-
-inductive "fold1Set f"
-intros
+inductive2
+  fold1Set :: "('a => 'a => 'a) => 'a set => 'a => bool"
+  for f :: "'a => 'a => 'a"
+where
   fold1Set_insertI [intro]:
-   "\<lbrakk> (A,x) \<in> foldSet f id a; a \<notin> A \<rbrakk> \<Longrightarrow> (insert a A, x) \<in> fold1Set f"
+   "\<lbrakk> foldSet f id a A x; a \<notin> A \<rbrakk> \<Longrightarrow> fold1Set f (insert a A) x"
 
 constdefs
   fold1 :: "('a => 'a => 'a) => 'a set => 'a"
-  "fold1 f A == THE x. (A, x) : fold1Set f"
+  "fold1 f A == THE x. fold1Set f A x"
 
 lemma fold1Set_nonempty:
- "(A, x) : fold1Set f \<Longrightarrow> A \<noteq> {}"
+ "fold1Set f A x \<Longrightarrow> A \<noteq> {}"
 by(erule fold1Set.cases, simp_all) 
 
 
-inductive_cases empty_fold1SetE [elim!]: "({}, x) : fold1Set f"
+inductive_cases2 empty_fold1SetE [elim!]: "fold1Set f {} x"
 
-inductive_cases insert_fold1SetE [elim!]: "(insert a X, x) : fold1Set f"
+inductive_cases2 insert_fold1SetE [elim!]: "fold1Set f (insert a X) x"
 
 
-lemma fold1Set_sing [iff]: "(({a},b) : fold1Set f) = (a = b)"
+lemma fold1Set_sing [iff]: "(fold1Set f {a} b) = (a = b)"
   by (blast intro: foldSet.intros elim: foldSet.cases)
 
 lemma fold1_singleton[simp]: "fold1 f {a} = a"
   by (unfold fold1_def) blast
 
 lemma finite_nonempty_imp_fold1Set:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> EX x. (A, x) : fold1Set f"
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> EX x. fold1Set f A x"
 apply (induct A rule: finite_induct)
 apply (auto dest: finite_imp_foldSet [of _ f id])  
 done
@@ -1830,26 +1824,26 @@ done
 text{*First, some lemmas about @{term foldSet}.*}
 
 lemma (in ACf) foldSet_insert_swap:
-assumes fold: "(A,y) \<in> foldSet f id b"
-shows "b \<notin> A \<Longrightarrow> (insert b A, z \<cdot> y) \<in> foldSet f id z"
+assumes fold: "foldSet f id b A y"
+shows "b \<notin> A \<Longrightarrow> foldSet f id z (insert b A) (z \<cdot> y)"
 using fold
 proof (induct rule: foldSet.induct)
   case emptyI thus ?case by (force simp add: fold_insert_aux commute)
 next
-  case (insertI A x y)
-    have "(insert x (insert b A), x \<cdot> (z \<cdot> y)) \<in> foldSet f (\<lambda>u. u) z"
+  case (insertI x A y)
+    have "foldSet f (\<lambda>u. u) z (insert x (insert b A)) (x \<cdot> (z \<cdot> y))"
       using insertI by force  --{*how does @{term id} get unfolded?*}
     thus ?case by (simp add: insert_commute AC)
 qed
 
 lemma (in ACf) foldSet_permute_diff:
-assumes fold: "(A,x) \<in> foldSet f id b"
-shows "!!a. \<lbrakk>a \<in> A; b \<notin> A\<rbrakk> \<Longrightarrow> (insert b (A-{a}), x) \<in> foldSet f id a"
+assumes fold: "foldSet f id b A x"
+shows "!!a. \<lbrakk>a \<in> A; b \<notin> A\<rbrakk> \<Longrightarrow> foldSet f id a (insert b (A-{a})) x"
 using fold
 proof (induct rule: foldSet.induct)
   case emptyI thus ?case by simp
 next
-  case (insertI A x y)
+  case (insertI x A y)
   have "a = x \<or> a \<in> A" using insertI by simp
   thus ?case
   proof
@@ -1858,7 +1852,7 @@ next
       by (simp add: id_def [symmetric], blast intro: foldSet_insert_swap) 
   next
     assume ainA: "a \<in> A"
-    hence "(insert x (insert b (A - {a})), x \<cdot> y) \<in> foldSet f id a"
+    hence "foldSet f id a (insert x (insert b (A - {a}))) (x \<cdot> y)"
       using insertI by (force simp: id_def)
     moreover
     have "insert x (insert b (A - {a})) = insert b (insert x A - {a})"
@@ -1875,7 +1869,7 @@ apply (best intro: foldSet_determ theI dest: finite_imp_foldSet [of _ f id])
 apply (rule sym, clarify)
 apply (case_tac "Aa=A")
  apply (best intro: the_equality foldSet_determ)  
-apply (subgoal_tac "(A,x) \<in> foldSet f id a") 
+apply (subgoal_tac "foldSet f id a A x")
  apply (best intro: the_equality foldSet_determ)  
 apply (subgoal_tac "insert aa (Aa - {a}) = A") 
  prefer 2 apply (blast elim: equalityE) 
@@ -1943,18 +1937,18 @@ subsubsection{* Determinacy for @{term fold1Set} *}
 text{*Not actually used!!*}
 
 lemma (in ACf) foldSet_permute:
-  "[|(insert a A, x) \<in> foldSet f id b; a \<notin> A; b \<notin> A|]
-   ==> (insert b A, x) \<in> foldSet f id a"
+  "[|foldSet f id b (insert a A) x; a \<notin> A; b \<notin> A|]
+   ==> foldSet f id a (insert b A) x"
 apply (case_tac "a=b") 
 apply (auto dest: foldSet_permute_diff) 
 done
 
 lemma (in ACf) fold1Set_determ:
-  "(A, x) \<in> fold1Set f ==> (A, y) \<in> fold1Set f ==> y = x"
+  "fold1Set f A x ==> fold1Set f A y ==> y = x"
 proof (clarify elim!: fold1Set.cases)
   fix A x B y a b
-  assume Ax: "(A, x) \<in> foldSet f id a"
-  assume By: "(B, y) \<in> foldSet f id b"
+  assume Ax: "foldSet f id a A x"
+  assume By: "foldSet f id b B y"
   assume anotA:  "a \<notin> A"
   assume bnotB:  "b \<notin> B"
   assume eq: "insert a A = insert b B"
@@ -1970,16 +1964,16 @@ proof (clarify elim!: fold1Set.cases)
      and aB: "a \<in> B" and bA: "b \<in> A"
       using eq anotA bnotB diff by (blast elim!:equalityE)+
     with aB bnotB By
-    have "(insert b ?D, y) \<in> foldSet f id a" 
+    have "foldSet f id a (insert b ?D) y" 
       by (auto intro: foldSet_permute simp add: insert_absorb)
     moreover
-    have "(insert b ?D, x) \<in> foldSet f id a"
+    have "foldSet f id a (insert b ?D) x"
       by (simp add: A [symmetric] Ax) 
     ultimately show ?thesis by (blast intro: foldSet_determ) 
   qed
 qed
 
-lemma (in ACf) fold1Set_equality: "(A, y) : fold1Set f ==> fold1 f A = y"
+lemma (in ACf) fold1Set_equality: "fold1Set f A y ==> fold1 f A = y"
   by (unfold fold1_def) (blast intro: fold1Set_determ)
 
 declare

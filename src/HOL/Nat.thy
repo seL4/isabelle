@@ -30,20 +30,18 @@ subsection {* Type nat *}
 
 text {* Type definition *}
 
-consts
-  Nat :: "ind set"
-
-inductive Nat
-intros
-  Zero_RepI: "Zero_Rep : Nat"
-  Suc_RepI: "i : Nat ==> Suc_Rep i : Nat"
+inductive2 Nat :: "ind \<Rightarrow> bool"
+where
+    Zero_RepI: "Nat Zero_Rep"
+  | Suc_RepI: "Nat i ==> Nat (Suc_Rep i)"
 
 global
 
 typedef (open Nat)
-  nat = Nat
+  nat = "Collect Nat"
 proof
-  show "Zero_Rep : Nat" by (rule Nat.Zero_RepI)
+  from Nat.Zero_RepI
+  show "Zero_Rep : Collect Nat" ..
 qed
 
 text {* Abstract constants and syntax *}
@@ -61,22 +59,25 @@ defs
 instance nat :: "{ord, zero, one}"
   Zero_nat_def: "0 == Abs_Nat Zero_Rep"
   One_nat_def [simp]: "1 == Suc 0"
-  less_def: "m < n == (m, n) : trancl pred_nat"
+  less_def: "m < n == (m, n) : pred_nat^+"
   le_def: "m \<le> (n::nat) == ~ (n < m)" ..
 
 text {* Induction *}
 
+lemmas Rep_Nat' = Rep_Nat [simplified mem_Collect_eq]
+lemmas Abs_Nat_inverse' = Abs_Nat_inverse [simplified mem_Collect_eq]
+
 theorem nat_induct: "P 0 ==> (!!n. P n ==> P (Suc n)) ==> P n"
   apply (unfold Zero_nat_def Suc_def)
   apply (rule Rep_Nat_inverse [THEN subst]) -- {* types force good instantiation *}
-  apply (erule Rep_Nat [THEN Nat.induct])
-  apply (iprover elim: Abs_Nat_inverse [THEN subst])
+  apply (erule Rep_Nat' [THEN Nat.induct])
+  apply (iprover elim: Abs_Nat_inverse' [THEN subst])
   done
 
 text {* Distinctness of constructors *}
 
 lemma Suc_not_Zero [iff]: "Suc m \<noteq> 0"
-  by (simp add: Zero_nat_def Suc_def Abs_Nat_inject Rep_Nat Suc_RepI Zero_RepI
+  by (simp add: Zero_nat_def Suc_def Abs_Nat_inject Rep_Nat' Suc_RepI Zero_RepI
                 Suc_Rep_not_Zero_Rep) 
 
 lemma Zero_not_Suc [iff]: "0 \<noteq> Suc m"
@@ -91,7 +92,7 @@ lemma Zero_neq_Suc: "0 = Suc m ==> R"
 text {* Injectiveness of @{term Suc} *}
 
 lemma inj_Suc[simp]: "inj_on Suc N"
-  by (simp add: Suc_def inj_on_def Abs_Nat_inject Rep_Nat Suc_RepI 
+  by (simp add: Suc_def inj_on_def Abs_Nat_inject Rep_Nat' Suc_RepI 
                 inj_Suc_Rep [THEN inj_eq] Rep_Nat_inject) 
 
 lemma Suc_inject: "Suc x = Suc y ==> x = y"
