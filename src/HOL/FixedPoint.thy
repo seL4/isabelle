@@ -182,7 +182,7 @@ Handy introduction and elimination rules for @{text "\<le>"}
 on unary and binary predicates
 *}
 
-lemma predicate1I [intro]:
+lemma predicate1I [Pure.intro!, intro!]:
   assumes PQ: "\<And>x. P x \<Longrightarrow> Q x"
   shows "P \<le> Q"
   apply (rule le_funI)
@@ -191,13 +191,13 @@ lemma predicate1I [intro]:
   apply assumption
   done
 
-lemma predicate1D [elim]: "P \<le> Q \<Longrightarrow> P x \<Longrightarrow> Q x"
+lemma predicate1D [Pure.dest, dest]: "P \<le> Q \<Longrightarrow> P x \<Longrightarrow> Q x"
   apply (erule le_funE)
   apply (erule le_boolE)
   apply assumption+
   done
 
-lemma predicate2I [intro]:
+lemma predicate2I [Pure.intro!, intro!]:
   assumes PQ: "\<And>x y. P x y \<Longrightarrow> Q x y"
   shows "P \<le> Q"
   apply (rule le_funI)+
@@ -206,11 +206,17 @@ lemma predicate2I [intro]:
   apply assumption
   done
 
-lemma predicate2D [elim]: "P \<le> Q \<Longrightarrow> P x y \<Longrightarrow> Q x y"
+lemma predicate2D [Pure.dest, dest]: "P \<le> Q \<Longrightarrow> P x y \<Longrightarrow> Q x y"
   apply (erule le_funE)+
   apply (erule le_boolE)
   apply assumption+
   done
+
+lemma rev_predicate1D: "P x ==> P <= Q ==> Q x"
+  by (rule predicate1D)
+
+lemma rev_predicate2D: "P x y ==> P <= Q ==> Q x y"
+  by (rule predicate2D)
 
 defs Meet_fun_def: "Meet A == (\<lambda>x. Meet {y. EX f:A. y = f x})"
 
@@ -556,6 +562,7 @@ val le_boolI' = thm "le_boolI'";
 val meet_fun_eq = thm "meet_fun_eq";
 val meet_bool_eq = thm "meet_bool_eq";
 val le_funE = thm "le_funE";
+val le_funD = thm "le_funD";
 val le_boolE = thm "le_boolE";
 val le_boolD = thm "le_boolD";
 val le_bool_def = thm "le_bool_def";
