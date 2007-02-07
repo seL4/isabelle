@@ -308,7 +308,7 @@ fun make_subst Ts prf xs (_, []) = prf
 fun make_sym Ts ((x, y), prf) =
   ((y, x), change_type (SOME [fastype_of1 (Ts, x)]) sym_prf %> x %> y %% prf);
 
-fun mk_AbsP P t = AbsP ("H", P, t);
+fun mk_AbsP P t = AbsP ("H", Option.map HOLogic.mk_Trueprop P, t);
 
 fun elim_cong Ts (PThm ("HOL.iffD1", _, _, _) % _ % _ %% prf1 %% prf2) =
       Option.map (make_subst Ts prf2 []) (strip_cong [] prf1)
