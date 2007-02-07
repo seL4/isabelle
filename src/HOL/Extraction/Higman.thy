@@ -15,76 +15,61 @@ text {*
 
 datatype letter = A | B
 
-consts
-  emb :: "(letter list \<times> letter list) set"
+inductive2 emb :: "letter list \<Rightarrow> letter list \<Rightarrow> bool"
+where
+   emb0 [Pure.intro]: "emb [] bs"
+ | emb1 [Pure.intro]: "emb as bs \<Longrightarrow> emb as (b # bs)"
+ | emb2 [Pure.intro]: "emb as bs \<Longrightarrow> emb (a # as) (a # bs)"
 
-inductive emb
-intros
-  emb0 [Pure.intro]: "([], bs) \<in> emb"
-  emb1 [Pure.intro]: "(as, bs) \<in> emb \<Longrightarrow> (as, b # bs) \<in> emb"
-  emb2 [Pure.intro]: "(as, bs) \<in> emb \<Longrightarrow> (a # as, a # bs) \<in> emb"
+inductive2 L :: "letter list \<Rightarrow> letter list list \<Rightarrow> bool"
+  for v :: "letter list"
+where
+   L0 [Pure.intro]: "emb w v \<Longrightarrow> L v (w # ws)"
+ | L1 [Pure.intro]: "L v ws \<Longrightarrow> L v (w # ws)"
 
-consts
-  L :: "letter list \<Rightarrow> letter list list set"
+inductive2 good :: "letter list list \<Rightarrow> bool"
+where
+    good0 [Pure.intro]: "L w ws \<Longrightarrow> good (w # ws)"
+  | good1 [Pure.intro]: "good ws \<Longrightarrow> good (w # ws)"
 
-inductive "L v"
-intros
-  L0 [Pure.intro]: "(w, v) \<in> emb \<Longrightarrow> w # ws \<in> L v"
-  L1 [Pure.intro]: "ws \<in> L v \<Longrightarrow> w # ws \<in> L v"
+inductive2 R :: "letter \<Rightarrow> letter list list \<Rightarrow> letter list list \<Rightarrow> bool"
+  for a :: letter
+where
+    R0 [Pure.intro]: "R a [] []"
+  | R1 [Pure.intro]: "R a vs ws \<Longrightarrow> R a (w # vs) ((a # w) # ws)"
 
-consts
-  good :: "letter list list set"
+inductive2 T :: "letter \<Rightarrow> letter list list \<Rightarrow> letter list list \<Rightarrow> bool"
+  for a :: letter
+where
+    T0 [Pure.intro]: "a \<noteq> b \<Longrightarrow> R b ws zs \<Longrightarrow> T a (w # zs) ((a # w) # zs)"
+  | T1 [Pure.intro]: "T a ws zs \<Longrightarrow> T a (w # ws) ((a # w) # zs)"
+  | T2 [Pure.intro]: "a \<noteq> b \<Longrightarrow> T a ws zs \<Longrightarrow> T a ws ((b # w) # zs)"
 
-inductive good
-intros
-  good0 [Pure.intro]: "ws \<in> L w \<Longrightarrow> w # ws \<in> good"
-  good1 [Pure.intro]: "ws \<in> good \<Longrightarrow> w # ws \<in> good"
+inductive2 bar :: "letter list list \<Rightarrow> bool"
+where
+    bar1 [Pure.intro]: "good ws \<Longrightarrow> bar ws"
+  | bar2 [Pure.intro]: "(\<And>w. bar (w # ws)) \<Longrightarrow> bar ws"
 
-consts
-  R :: "letter \<Rightarrow> (letter list list \<times> letter list list) set"
+theorem prop1: "bar ([] # ws)" by iprover
 
-inductive "R a"
-intros
-  R0 [Pure.intro]: "([], []) \<in> R a"
-  R1 [Pure.intro]: "(vs, ws) \<in> R a \<Longrightarrow> (w # vs, (a # w) # ws) \<in> R a"
-
-consts
-  T :: "letter \<Rightarrow> (letter list list \<times> letter list list) set"
-
-inductive "T a"
-intros
-  T0 [Pure.intro]: "a \<noteq> b \<Longrightarrow> (ws, zs) \<in> R b \<Longrightarrow> (w # zs, (a # w) # zs) \<in> T a"
-  T1 [Pure.intro]: "(ws, zs) \<in> T a \<Longrightarrow> (w # ws, (a # w) # zs) \<in> T a"
-  T2 [Pure.intro]: "a \<noteq> b \<Longrightarrow> (ws, zs) \<in> T a \<Longrightarrow> (ws, (b # w) # zs) \<in> T a"
-
-consts
-  bar :: "letter list list set"
-
-inductive bar
-intros
-  bar1 [Pure.intro]: "ws \<in> good \<Longrightarrow> ws \<in> bar"
-  bar2 [Pure.intro]: "(\<And>w. w # ws \<in> bar) \<Longrightarrow> ws \<in> bar"
-
-theorem prop1: "([] # ws) \<in> bar" by iprover
-
-theorem lemma1: "ws \<in> L as \<Longrightarrow> ws \<in> L (a # as)"
+theorem lemma1: "L as ws \<Longrightarrow> L (a # as) ws"
   by (erule L.induct, iprover+)
 
-lemma lemma2': "(vs, ws) \<in> R a \<Longrightarrow> vs \<in> L as \<Longrightarrow> ws \<in> L (a # as)"
+lemma lemma2': "R a vs ws \<Longrightarrow> L as vs \<Longrightarrow> L (a # as) ws"
   apply (induct set: R)
-  apply (erule L.elims)
+  apply (erule L.cases)
   apply simp+
-  apply (erule L.elims)
+  apply (erule L.cases)
   apply simp_all
   apply (rule L0)
   apply (erule emb2)
   apply (erule L1)
   done
 
-lemma lemma2: "(vs, ws) \<in> R a \<Longrightarrow> vs \<in> good \<Longrightarrow> ws \<in> good"
+lemma lemma2: "R a vs ws \<Longrightarrow> good vs \<Longrightarrow> good ws"
   apply (induct set: R)
   apply iprover
-  apply (erule good.elims)
+  apply (erule good.cases)
   apply simp_all
   apply (rule good0)
   apply (erule lemma2')
@@ -92,38 +77,38 @@ lemma lemma2: "(vs, ws) \<in> R a \<Longrightarrow> vs \<in> good \<Longrightarr
   apply (erule good1)
   done
 
-lemma lemma3': "(vs, ws) \<in> T a \<Longrightarrow> vs \<in> L as \<Longrightarrow> ws \<in> L (a # as)"
+lemma lemma3': "T a vs ws \<Longrightarrow> L as vs \<Longrightarrow> L (a # as) ws"
   apply (induct set: T)
-  apply (erule L.elims)
+  apply (erule L.cases)
   apply simp_all
   apply (rule L0)
   apply (erule emb2)
   apply (rule L1)
   apply (erule lemma1)
-  apply (erule L.elims)
+  apply (erule L.cases)
   apply simp_all
   apply iprover+
   done
 
-lemma lemma3: "(ws, zs) \<in> T a \<Longrightarrow> ws \<in> good \<Longrightarrow> zs \<in> good"
+lemma lemma3: "T a ws zs \<Longrightarrow> good ws \<Longrightarrow> good zs"
   apply (induct set: T)
-  apply (erule good.elims)
+  apply (erule good.cases)
   apply simp_all
   apply (rule good0)
   apply (erule lemma1)
   apply (erule good1)
-  apply (erule good.elims)
+  apply (erule good.cases)
   apply simp_all
   apply (rule good0)
   apply (erule lemma3')
   apply iprover+
   done
 
-lemma lemma4: "(ws, zs) \<in> R a \<Longrightarrow> ws \<noteq> [] \<Longrightarrow> (ws, zs) \<in> T a"
+lemma lemma4: "R a ws zs \<Longrightarrow> ws \<noteq> [] \<Longrightarrow> T a ws zs"
   apply (induct set: R)
   apply iprover
   apply (case_tac vs)
-  apply (erule R.elims)
+  apply (erule R.cases)
   apply simp
   apply (case_tac a)
   apply (rule_tac b=B in T0)
@@ -158,26 +143,26 @@ lemma letter_eq_dec: "(a::letter) = b \<or> a \<noteq> b"
   done
 
 theorem prop2:
-  assumes ab: "a \<noteq> b" and bar: "xs \<in> bar"
-  shows "\<And>ys zs. ys \<in> bar \<Longrightarrow> (xs, zs) \<in> T a \<Longrightarrow> (ys, zs) \<in> T b \<Longrightarrow> zs \<in> bar" using bar
+  assumes ab: "a \<noteq> b" and bar: "bar xs"
+  shows "\<And>ys zs. bar ys \<Longrightarrow> T a xs zs \<Longrightarrow> T b ys zs \<Longrightarrow> bar zs" using bar
 proof induct
-  fix xs zs assume "xs \<in> good" and "(xs, zs) \<in> T a"
-  show "zs \<in> bar" by (rule bar1) (rule lemma3)
+  fix xs zs assume "good xs" and "T a xs zs"
+  show "bar zs" by (rule bar1) (rule lemma3)
 next
   fix xs ys
-  assume I: "\<And>w ys zs. ys \<in> bar \<Longrightarrow> (w # xs, zs) \<in> T a \<Longrightarrow> (ys, zs) \<in> T b \<Longrightarrow> zs \<in> bar"
-  assume "ys \<in> bar"
-  thus "\<And>zs. (xs, zs) \<in> T a \<Longrightarrow> (ys, zs) \<in> T b \<Longrightarrow> zs \<in> bar"
+  assume I: "\<And>w ys zs. bar ys \<Longrightarrow> T a (w # xs) zs \<Longrightarrow> T b ys zs \<Longrightarrow> bar zs"
+  assume "bar ys"
+  thus "\<And>zs. T a xs zs \<Longrightarrow> T b ys zs \<Longrightarrow> bar zs"
   proof induct
-    fix ys zs assume "ys \<in> good" and "(ys, zs) \<in> T b"
-    show "zs \<in> bar" by (rule bar1) (rule lemma3)
+    fix ys zs assume "good ys" and "T b ys zs"
+    show "bar zs" by (rule bar1) (rule lemma3)
   next
-    fix ys zs assume I': "\<And>w zs. (xs, zs) \<in> T a \<Longrightarrow> (w # ys, zs) \<in> T b \<Longrightarrow> zs \<in> bar"
-    and ys: "\<And>w. w # ys \<in> bar" and Ta: "(xs, zs) \<in> T a" and Tb: "(ys, zs) \<in> T b"
-    show "zs \<in> bar"
+    fix ys zs assume I': "\<And>w zs. T a xs zs \<Longrightarrow> T b (w # ys) zs \<Longrightarrow> bar zs"
+    and ys: "\<And>w. bar (w # ys)" and Ta: "T a xs zs" and Tb: "T b ys zs"
+    show "bar zs"
     proof (rule bar2)
       fix w
-      show "w # zs \<in> bar"
+      show "bar (w # zs)"
       proof (cases w)
 	case Nil
 	thus ?thesis by simp (rule prop1)
@@ -186,12 +171,12 @@ next
 	from letter_eq_dec show ?thesis
 	proof
 	  assume ca: "c = a"
-	  from ab have "(a # cs) # zs \<in> bar" by (iprover intro: I ys Ta Tb)
+	  from ab have "bar ((a # cs) # zs)" by (iprover intro: I ys Ta Tb)
 	  thus ?thesis by (simp add: Cons ca)
 	next
 	  assume "c \<noteq> a"
 	  with ab have cb: "c = b" by (rule letter_neq)
-	  from ab have "(b # cs) # zs \<in> bar" by (iprover intro: I' Ta Tb)
+	  from ab have "bar ((b # cs) # zs)" by (iprover intro: I' Ta Tb)
 	  thus ?thesis by (simp add: Cons cb)
 	qed
       qed
@@ -200,20 +185,20 @@ next
 qed
 
 theorem prop3:
-  assumes bar: "xs \<in> bar"
-  shows "\<And>zs. xs \<noteq> [] \<Longrightarrow> (xs, zs) \<in> R a \<Longrightarrow> zs \<in> bar" using bar
+  assumes bar: "bar xs"
+  shows "\<And>zs. xs \<noteq> [] \<Longrightarrow> R a xs zs \<Longrightarrow> bar zs" using bar
 proof induct
   fix xs zs
-  assume "xs \<in> good" and "(xs, zs) \<in> R a"
-  show "zs \<in> bar" by (rule bar1) (rule lemma2)
+  assume "good xs" and "R a xs zs"
+  show "bar zs" by (rule bar1) (rule lemma2)
 next
   fix xs zs
-  assume I: "\<And>w zs. w # xs \<noteq> [] \<Longrightarrow> (w # xs, zs) \<in> R a \<Longrightarrow> zs \<in> bar"
-  and xsb: "\<And>w. w # xs \<in> bar" and xsn: "xs \<noteq> []" and R: "(xs, zs) \<in> R a"
-  show "zs \<in> bar"
+  assume I: "\<And>w zs. w # xs \<noteq> [] \<Longrightarrow> R a (w # xs) zs \<Longrightarrow> bar zs"
+  and xsb: "\<And>w. bar (w # xs)" and xsn: "xs \<noteq> []" and R: "R a xs zs"
+  show "bar zs"
   proof (rule bar2)
     fix w
-    show "w # zs \<in> bar"
+    show "bar (w # zs)"
     proof (induct w)
       case Nil
       show ?case by (rule prop1)
@@ -224,7 +209,7 @@ next
 	assume "c = a"
 	thus ?thesis by (iprover intro: I [simplified] R)
       next
-	from R xsn have T: "(xs, zs) \<in> T a" by (rule lemma4)
+	from R xsn have T: "T a xs zs" by (rule lemma4)
 	assume "c \<noteq> a"
 	thus ?thesis by (iprover intro: prop2 Cons xsb xsn R T)
       qed
@@ -232,15 +217,15 @@ next
   qed
 qed
 
-theorem higman: "[] \<in> bar"
+theorem higman: "bar []"
 proof (rule bar2)
   fix w
-  show "[w] \<in> bar"
+  show "bar [w]"
   proof (induct w)
-    show "[[]] \<in> bar" by (rule prop1)
+    show "bar [[]]" by (rule prop1)
   next
-    fix c cs assume "[cs] \<in> bar"
-    thus "[c # cs] \<in> bar" by (rule prop3) (simp, iprover)
+    fix c cs assume "bar [cs]"
+    thus "bar [c # cs]" by (rule prop3) (simp, iprover)
   qed
 qed
 
@@ -251,9 +236,64 @@ primrec
   "is_prefix [] f = True"
   "is_prefix (x # xs) f = (x = f (length xs) \<and> is_prefix xs f)"
 
+theorem L_idx:
+  assumes L: "L w ws"
+  shows "is_prefix ws f \<Longrightarrow> \<exists>i. emb (f i) w \<and> i < length ws" using L
+proof induct
+  case (L0 v ws)
+  hence "emb (f (length ws)) w" by simp
+  moreover have "length ws < length (v # ws)" by simp
+  ultimately show ?case by iprover
+next
+  case (L1 ws v)
+  then obtain i where emb: "emb (f i) w" and "i < length ws"
+    by simp iprover
+  hence "i < length (v # ws)" by simp
+  with emb show ?case by iprover
+qed
+
+theorem good_idx:
+  assumes good: "good ws"
+  shows "is_prefix ws f \<Longrightarrow> \<exists>i j. emb (f i) (f j) \<and> i < j" using good
+proof induct
+  case (good0 w ws)
+  hence "w = f (length ws)" and "is_prefix ws f" by simp_all
+  with good0 show ?case by (iprover dest: L_idx)
+next
+  case (good1 ws w)
+  thus ?case by simp
+qed
+
+theorem bar_idx:
+  assumes bar: "bar ws"
+  shows "is_prefix ws f \<Longrightarrow> \<exists>i j. emb (f i) (f j) \<and> i < j" using bar
+proof induct
+  case (bar1 ws)
+  thus ?case by (rule good_idx)
+next
+  case (bar2 ws)
+  hence "is_prefix (f (length ws) # ws) f" by simp
+  thus ?case by (rule bar2)
+qed
+
+text {*
+Strong version: yields indices of words that can be embedded into each other.
+*}
+
+theorem higman_idx: "\<exists>(i::nat) j. emb (f i) (f j) \<and> i < j"
+proof (rule bar_idx)
+  show "bar []" by (rule higman)
+  show "is_prefix [] f" by simp
+qed
+
+text {*
+Weak version: only yield sequence containing words
+that can be embedded into each other.
+*}
+
 theorem good_prefix_lemma:
-  assumes bar: "ws \<in> bar"
-  shows "is_prefix ws f \<Longrightarrow> \<exists>vs. is_prefix vs f \<and> vs \<in> good" using bar
+  assumes bar: "bar ws"
+  shows "is_prefix ws f \<Longrightarrow> \<exists>vs. is_prefix vs f \<and> good vs" using bar
 proof induct
   case bar1
   thus ?case by iprover
@@ -263,23 +303,25 @@ next
   thus ?case by (iprover intro: bar2)
 qed
 
-theorem good_prefix: "\<exists>vs. is_prefix vs f \<and> vs \<in> good"
+theorem good_prefix: "\<exists>vs. is_prefix vs f \<and> good vs"
   using higman
   by (rule good_prefix_lemma) simp+
 
 subsection {* Extracting the program *}
 
+declare R.induct [ind_realizer]
+declare T.induct [ind_realizer]
+declare L.induct [ind_realizer]
+declare good.induct [ind_realizer]
 declare bar.induct [ind_realizer]
 
-extract good_prefix
+extract higman_idx
 
 text {*
-  Program extracted from the proof of @{text good_prefix}:
-  @{thm [display] good_prefix_def [no_vars]}
+  Program extracted from the proof of @{text higman_idx}:
+  @{thm [display] higman_idx_def [no_vars]}
   Corresponding correctness theorem:
-  @{thm [display] good_prefix_correctness [no_vars]}
-  Program extracted from the proof of @{text good_prefix_lemma}:
-  @{thm [display] good_prefix_lemma_def [no_vars]}
+  @{thm [display] higman_idx_correctness [no_vars]}
   Program extracted from the proof of @{text higman}:
   @{thm [display] higman_def [no_vars]}
   Program extracted from the proof of @{text prop1}:
@@ -290,9 +332,13 @@ text {*
   @{thm [display] prop3_def [no_vars]}
 *}
 
+consts_code
+  arbitrary :: "LT"  ("({* L0 [] [] *})")
+  arbitrary :: "TT"  ("({* T0 A [] [] [] R0 *})")
+
 code_module Higman
 contains
-  test = good_prefix
+  test = higman_idx
 
 ML {*
 local open Higman in
@@ -312,32 +358,55 @@ fun mk_word seed l =
     apsnd (cons (if i mod 2 = 0 then A else B)) (mk_word r (l+1))
   end;
 
-fun f s id_0 = mk_word s 0
+fun f s zero = mk_word s 0
   | f s (Suc n) = f (fst (mk_word s 0)) n;
 
 val g1 = snd o (f 20000.0);
 
 val g2 = snd o (f 50000.0);
 
-fun f1 id_0 = [A,A]
-  | f1 (Suc id_0) = [B]
-  | f1 (Suc (Suc id_0)) = [A,B]
+fun f1 zero = [A,A]
+  | f1 (Suc zero) = [B]
+  | f1 (Suc (Suc zero)) = [A,B]
   | f1 _ = [];
 
-fun f2 id_0 = [A,A]
-  | f2 (Suc id_0) = [B]
-  | f2 (Suc (Suc id_0)) = [B,A]
+fun f2 zero = [A,A]
+  | f2 (Suc zero) = [B]
+  | f2 (Suc (Suc zero)) = [B,A]
   | f2 _ = [];
 
-val xs1 = test g1;
-val xs2 = test g2;
-val xs3 = test f1;
-val xs4 = test f2;
+val (i1, j1) = test g1;
+val (v1, w1) = (g1 i1, g1 j1);
+val (i2, j2) = test g2;
+val (v2, w2) = (g2 i2, g2 j2);
+val (i3, j3) = test f1;
+val (v3, w3) = (f1 i3, f1 j3);
+val (i4, j4) = test f2;
+val (v4, w4) = (f2 i4, f2 j4);
 
 end;
 *}
 
-code_gen good_prefix (SML #)
+definition
+  arbitrary_LT :: "LT" where
+  [symmetric, code inline]: "arbitrary_LT = arbitrary"
+
+definition
+  arbitrary_TT :: "TT" where
+  [symmetric, code inline]: "arbitrary_TT = arbitrary"
+
+
+definition
+  "arbitrary_LT' = L0 [] []"
+
+definition
+  "arbitrary_TT' = T0 A [] [] [] R0"
+
+code_axioms
+  arbitrary_LT \<equiv> arbitrary_LT'
+  arbitrary_TT \<equiv> arbitrary_TT'
+
+code_gen higman_idx (SML #)
 
 ML {*
 local
@@ -360,27 +429,31 @@ fun mk_word seed l =
     apsnd (cons (if i mod 2 = 0 then A else B)) (mk_word r (l+1))
   end;
 
-fun f s id_0 = mk_word s 0
+fun f s Zero_nat = mk_word s 0
   | f s (Suc n) = f (fst (mk_word s 0)) n;
 
 val g1 = snd o (f 20000.0);
 
 val g2 = snd o (f 50000.0);
 
-fun f1 id_0 = [A,A]
-  | f1 (Suc id_0) = [B]
-  | f1 (Suc (Suc id_0)) = [A,B]
+fun f1 Zero_nat = [A,A]
+  | f1 (Suc Zero_nat) = [B]
+  | f1 (Suc (Suc Zero_nat)) = [A,B]
   | f1 _ = [];
 
-fun f2 id_0 = [A,A]
-  | f2 (Suc id_0) = [B]
-  | f2 (Suc (Suc id_0)) = [B,A]
+fun f2 Zero_nat = [A,A]
+  | f2 (Suc Zero_nat) = [B]
+  | f2 (Suc (Suc Zero_nat)) = [B,A]
   | f2 _ = [];
 
-val xs1 = good_prefix g1;
-val xs2 = good_prefix g2;
-val xs3 = good_prefix f1;
-val xs4 = good_prefix f2;
+val (i1, j1) = higman_idx g1;
+val (v1, w1) = (g1 i1, g1 j1);
+val (i2, j2) = higman_idx g2;
+val (v2, w2) = (g2 i2, g2 j2);
+val (i3, j3) = higman_idx f1;
+val (v3, w3) = (f1 i3, f1 j3);
+val (i4, j4) = higman_idx f2;
+val (v4, w4) = (f2 i4, f2 j4);
 
 end;
 *}
