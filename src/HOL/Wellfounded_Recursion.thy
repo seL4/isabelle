@@ -9,17 +9,20 @@ theory Wellfounded_Recursion
 imports Transitive_Closure
 begin
 
-consts
-  wfrec_rel :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => ('a * 'b) set"
-
-inductive "wfrec_rel R F"
-intros
-  wfrecI: "ALL z. (z, x) : R --> (z, g z) : wfrec_rel R F ==>
-            (x, F g x) : wfrec_rel R F"
+inductive2
+  wfrec_rel :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => 'a => 'b => bool"
+  for R :: "('a * 'a) set"
+  and F :: "('a => 'b) => 'a => 'b"
+where
+  wfrecI: "ALL z. (z, x) : R --> wfrec_rel R F z (g z) ==>
+            wfrec_rel R F x (F g x)"
 
 constdefs
   wf         :: "('a * 'a)set => bool"
   "wf(r) == (!P. (!x. (!y. (y,x):r --> P(y)) --> P(x)) --> (!x. P(x)))"
+
+  wfP :: "('a => 'a => bool) => bool"
+  "wfP r == wf (Collect2 r)"
 
   acyclic :: "('a*'a)set => bool"
   "acyclic r == !x. (x,x) ~: r^+"
@@ -32,15 +35,29 @@ constdefs
      (ALL z. (z, x) : R --> f z = g z) --> F f x = F g x"
 
   wfrec :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => 'a => 'b"
-  "wfrec R F == %x. THE y. (x, y) : wfrec_rel R (%f x. F (cut f R x) x)"
+  "wfrec R F == %x. THE y. wfrec_rel R (%f x. F (cut f R x) x) x y"
+
+abbreviation acyclicP :: "('a => 'a => bool) => bool" where
+  "acyclicP r == acyclic (Collect2 r)"
 
 axclass wellorder \<subseteq> linorder
   wf: "wf {(x,y::'a::ord). x<y}"
 
 
+lemma wfP_wf_eq [pred_set_conv]: "wfP (member2 r) = wf r"
+  by (simp add: wfP_def)
+
+lemma wf_implies_wfP: "wf r \<Longrightarrow> wfP (member2 r)"
+  by (simp add: wfP_def)
+
+lemma wfP_implies_wf: "wfP r \<Longrightarrow> wf (Collect2 r)"
+  by (simp add: wfP_def)
+
 lemma wfUNIVI: 
    "(!!P x. (ALL x. (ALL y. (y,x) : r --> P(y)) --> P(x)) ==> P(x)) ==> wf(r)"
 by (unfold wf_def, blast)
+
+lemmas wfPUNIVI = wfUNIVI [to_pred]
 
 text{*Restriction to domain @{term A} and range @{term B}.  If @{term r} is
     well-founded over their intersection, then @{term "wf r"}*}
@@ -56,7 +73,12 @@ lemma wf_induct:
      |]  ==>  P(a)"
 by (unfold wf_def, blast)
 
+lemmas wfP_induct = wf_induct [to_pred]
+
 lemmas wf_induct_rule = wf_induct [rule_format, consumes 1, case_names less, induct set: wf]
+
+lemmas wfP_induct_rule =
+  wf_induct_rule [to_pred, consumes 1, case_names less, induct set: wfP]
 
 lemma wf_not_sym [rule_format]: "wf(r) ==> ALL x. (a,x):r --> (x,a)~:r"
 by (erule_tac a=a in wf_induct, blast)
@@ -80,6 +102,8 @@ apply (erule_tac a = x in wf_induct)
 apply (blast elim: tranclE)
 done
 
+lemmas wfP_trancl = wf_trancl [to_pred]
+
 lemma wf_converse_trancl: "wf (r^-1) ==> wf ((r^+)^-1)"
 apply (subst trancl_converse [symmetric])
 apply (erule wf_trancl)
@@ -102,15 +126,21 @@ next
   thus "wf r" by (unfold wf_def, force)
 qed
 
+lemmas wfP_eq_minimal = wf_eq_minimal [to_pred]
+
 text{*Well-foundedness of subsets*}
 lemma wf_subset: "[| wf(r);  p<=r |] ==> wf(p)"
 apply (simp (no_asm_use) add: wf_eq_minimal)
 apply fast
 done
 
+lemmas wfP_subset = wf_subset [to_pred]
+
 text{*Well-foundedness of the empty relation*}
 lemma wf_empty [iff]: "wf({})"
 by (simp add: wf_def)
+
+lemmas wfP_empty [iff] = wf_empty [to_pred]
 
 lemma wf_Int1: "wf r ==> wf (r Int r')"
 by (erule wf_subset, rule Int_lower1)
@@ -166,6 +196,9 @@ apply (erule_tac x="{a. a:A & (EX b:A. (b,a) : r i) }" in allE)
 apply (blast elim!: allE)  
 done
 
+lemmas wfP_SUP = wf_UN [where I=UNIV and r="\<lambda>i. Collect2 (r i)",
+  to_pred member2_SUP, simplified, standard]
+
 lemma wf_Union: 
  "[| ALL r:R. wf r;  
      ALL r:R. ALL s:R. r ~= s --> Domain r Int Range s = {}  
@@ -209,6 +242,8 @@ apply (simp add: acyclic_def)
 apply (blast elim: wf_trancl [THEN wf_irrefl])
 done
 
+lemmas wfP_acyclicP = wf_acyclic [to_pred]
+
 lemma acyclic_insert [iff]:
      "acyclic(insert (y,x) r) = (acyclic r & (x,y) ~: r^*)"
 apply (simp add: acyclic_def trancl_insert)
@@ -217,6 +252,8 @@ done
 
 lemma acyclic_converse [iff]: "acyclic(r^-1) = acyclic r"
 by (simp add: acyclic_def trancl_converse)
+
+lemmas acyclicP_converse [iff] = acyclic_converse [to_pred]
 
 lemma acyclic_impl_antisym_rtrancl: "acyclic r ==> antisym(r^*)"
 apply (simp add: acyclic_def antisym_def)
@@ -249,11 +286,11 @@ by (simp add: cut_def)
 text{*Inductive characterization of wfrec combinator; for details see:  
 John Harrison, "Inductive definitions: automation and application"*}
 
-lemma wfrec_unique: "[| adm_wf R F; wf R |] ==> EX! y. (x, y) : wfrec_rel R F"
+lemma wfrec_unique: "[| adm_wf R F; wf R |] ==> EX! y. wfrec_rel R F x y"
 apply (simp add: adm_wf_def)
 apply (erule_tac a=x in wf_induct) 
 apply (rule ex1I)
-apply (rule_tac g = "%x. THE y. (x, y) : wfrec_rel R F" in wfrec_rel.wfrecI)
+apply (rule_tac g = "%x. THE y. wfrec_rel R F x y" in wfrec_rel.wfrecI)
 apply (fast dest!: theI')
 apply (erule wfrec_rel.cases, simp)
 apply (erule allE, erule allE, erule allE, erule mp)
