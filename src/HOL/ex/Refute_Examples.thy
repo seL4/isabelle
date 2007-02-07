@@ -980,10 +980,6 @@ lemma "card x = 0"
   refute
 oops
 
-lemma "x \<in> Finites"
-  refute  -- {* no finite countermodel exists *}
-oops
-
 lemma "finite x"
   refute  -- {* no finite countermodel exists *}
 oops
