@@ -145,17 +145,21 @@ val map_monos = InductiveData.map o apsnd;
 
 fun mk_mono thm =
   let
-    fun eq2mono thm' = [(*standard*) (thm' RS (thm' RS eq_to_mono))] @
-      (case concl_of thm of
+    val concl = concl_of thm;
+    fun eq2mono thm' = [thm' RS (thm' RS eq_to_mono)] @
+      (case concl of
           (_ $ (_ $ (Const ("Not", _) $ _) $ _)) => []
-        | _ => [(*standard*) (thm' RS (thm' RS eq_to_mono2))]);
-    val concl = concl_of thm
+        | _ => [thm' RS (thm' RS eq_to_mono2)]);
+    fun dest_less_concl thm = dest_less_concl (thm RS le_funD)
+      handle THM _ => thm RS le_boolD      
   in
-    if can Logic.dest_equals concl then
-      eq2mono (thm RS meta_eq_to_obj_eq)
-    else if can (HOLogic.dest_eq o HOLogic.dest_Trueprop) concl then
-      eq2mono thm
-    else [thm]
+    case concl of
+      Const ("==", _) $ _ $ _ => eq2mono (thm RS meta_eq_to_obj_eq)
+    | _ $ (Const ("op =", _) $ _ $ _) => eq2mono thm
+    | _ $ (Const ("Orderings.less_eq", _) $ _ $ _) =>
+      [dest_less_concl (Seq.hd (REPEAT (FIRSTGOAL
+         (resolve_tac [le_funI, le_boolI'])) thm))]
+    | _ => [thm]
   end;
 
 val mono_add = Thm.declaration_attribute (map_monos o fold Drule.add_rule o mk_mono);
@@ -438,9 +442,15 @@ val inductive_cases = gen_inductive_cases Attrib.intern_src ProofContext.read_pr
 val inductive_cases_i = gen_inductive_cases (K I) ProofContext.cert_prop;
 
 
-fun ind_cases src =
-  Method.syntax (Scan.repeat1 Args.prop) src
-  #> (fn (props, ctxt) => Method.erule 0 (map (mk_cases ctxt) props));
+fun ind_cases src = Method.syntax (Scan.lift (Scan.repeat1 Args.name --
+    Scan.optional (Args.$$$ "for" |-- Scan.repeat1 Args.name) [])) src
+  #> (fn ((raw_props, fixes), ctxt) =>
+    let
+      val (_, ctxt') = Variable.add_fixes fixes ctxt;
+      val props = map (ProofContext.read_prop ctxt') raw_props;
+      val ctxt'' = fold Variable.declare_term props ctxt';
+      val rules = ProofContext.export ctxt'' ctxt (map (mk_cases ctxt'') props)
+    in Method.erule 0 rules end);
 
 
 
