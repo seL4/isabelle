@@ -782,13 +782,14 @@ fun untabify chs =
   let
     val tab_width = 8;
 
-    fun untab (_, "\n") = (0, ["\n"])
-      | untab (pos, "\t") =
-          let val d = tab_width - (pos mod tab_width) in (pos + d, replicate d " ") end
-      | untab (pos, c) = (pos + 1, [c]);
+    fun untab pos [] ys = rev ys 
+      | untab pos ("\n" :: xs) ys = untab 0 xs ("\n" :: ys)
+      | untab pos ("\t" :: xs) ys =
+          let val d = tab_width - (pos mod tab_width) in untab (pos + d) xs (replicate d " " @ ys) end
+      | untab pos (c :: xs) ys = untab (pos + 1) xs (c :: ys);
   in
     if not (exists (fn c => c = "\t") chs) then chs
-    else flat (#2 (foldl_map untab (0, chs)))
+    else untab 0 chs []
   end;
 
 fun prefix prfx s = prfx ^ s;
