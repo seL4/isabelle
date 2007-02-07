@@ -286,30 +286,30 @@ subsection{*Supply fresh nonces for possibility theorems.*}
 
 
 lemma Nonce_supply1: "\<exists>N. Nonce N \<notin> used evs"
-apply (rule Finites.emptyI [THEN Nonce_supply_ax, THEN exE], blast)
+apply (rule finite.emptyI [THEN Nonce_supply_ax, THEN exE], blast)
 done
 
 lemma Nonce_supply2: 
   "\<exists>N N'. Nonce N \<notin> used evs & Nonce N' \<notin> used evs' & N \<noteq> N'"
-apply (cut_tac evs = evs in Finites.emptyI [THEN Nonce_supply_ax])
+apply (cut_tac evs = evs in finite.emptyI [THEN Nonce_supply_ax])
 apply (erule exE)
-apply (cut_tac evs = evs' in Finites.emptyI [THEN Finites.insertI, THEN Nonce_supply_ax]) 
+apply (cut_tac evs = evs' in finite.emptyI [THEN finite.insertI, THEN Nonce_supply_ax]) 
 apply auto
 done
 
 
 lemma Nonce_supply3: "\<exists>N N' N''. Nonce N \<notin> used evs & Nonce N' \<notin> used evs' &  
                     Nonce N'' \<notin> used evs'' & N \<noteq> N' & N' \<noteq> N'' & N \<noteq> N''"
-apply (cut_tac evs = evs in Finites.emptyI [THEN Nonce_supply_ax])
+apply (cut_tac evs = evs in finite.emptyI [THEN Nonce_supply_ax])
 apply (erule exE)
-apply (cut_tac evs = evs' and a1 = N in Finites.emptyI [THEN Finites.insertI, THEN Nonce_supply_ax]) 
+apply (cut_tac evs = evs' and a1 = N in finite.emptyI [THEN finite.insertI, THEN Nonce_supply_ax]) 
 apply (erule exE)
-apply (cut_tac evs = evs'' and a1 = Na and a2 = N in Finites.emptyI [THEN Finites.insertI, THEN Finites.insertI, THEN Nonce_supply_ax]) 
+apply (cut_tac evs = evs'' and a1 = Na and a2 = N in finite.emptyI [THEN finite.insertI, THEN finite.insertI, THEN Nonce_supply_ax]) 
 apply blast
 done
 
 lemma Nonce_supply: "Nonce (@ N. Nonce N \<notin> used evs) \<notin> used evs"
-apply (rule Finites.emptyI [THEN Nonce_supply_ax, THEN exE])
+apply (rule finite.emptyI [THEN Nonce_supply_ax, THEN exE])
 apply (rule someI, blast)
 done
 

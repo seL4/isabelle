@@ -552,7 +552,7 @@ subsubsection {* Sums over Finite Sets *}
 lemma (in cring) finsum_ldistr:
   "[| finite A; a \<in> carrier R; f \<in> A -> carrier R |] ==>
    finsum R f A \<otimes> a = finsum R (%i. f i \<otimes> a) A"
-proof (induct set: Finites)
+proof (induct set: finite)
   case empty then show ?case by simp
 next
   case (insert x F) then show ?case by (simp add: Pi_def l_distr)
@@ -561,7 +561,7 @@ qed
 lemma (in cring) finsum_rdistr:
   "[| finite A; a \<in> carrier R; f \<in> A -> carrier R |] ==>
    a \<otimes> finsum R f A = finsum R (%i. a \<otimes> f i) A"
-proof (induct set: Finites)
+proof (induct set: finite)
   case empty then show ?case by simp
 next
   case (insert x F) then show ?case by (simp add: Pi_def r_distr)
@@ -745,7 +745,7 @@ qed
 lemma (in ring_hom_cring) hom_finsum [simp]:
   "[| finite A; f \<in> A -> carrier R |] ==>
   h (finsum R f A) = finsum S (h o f) A"
-proof (induct set: Finites)
+proof (induct set: finite)
   case empty then show ?case by simp
 next
   case insert then show ?case by (simp add: Pi_def)
@@ -754,7 +754,7 @@ qed
 lemma (in ring_hom_cring) hom_finprod:
   "[| finite A; f \<in> A -> carrier R |] ==>
   h (finprod R f A) = finprod S (h o f) A"
-proof (induct set: Finites)
+proof (induct set: finite)
   case empty then show ?case by simp
 next
   case insert then show ?case by (simp add: Pi_def)

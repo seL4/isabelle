@@ -318,7 +318,7 @@ qed
 
 lemma (in lattice) finite_sup_least:
   "[| finite A; A \<subseteq> carrier L; A ~= {} |] ==> least L (\<Squnion>A) (Upper L A)"
-proof (induct set: Finites)
+proof (induct set: finite)
   case empty
   then show ?case by simp
 next
@@ -349,7 +349,7 @@ qed
 
 lemma (in lattice) finite_sup_closed:
   "[| finite A; A \<subseteq> carrier L; A ~= {} |] ==> \<Squnion>A \<in> carrier L"
-proof (induct set: Finites)
+proof (induct set: finite)
   case empty then show ?case by simp
 next
   case insert then show ?case
@@ -544,7 +544,7 @@ qed
 
 lemma (in lattice) finite_inf_greatest:
   "[| finite A; A \<subseteq> carrier L; A ~= {} |] ==> greatest L (\<Sqinter>A) (Lower L A)"
-proof (induct set: Finites)
+proof (induct set: finite)
   case empty then show ?case by simp
 next
   case (insert x A)
@@ -575,7 +575,7 @@ qed
 
 lemma (in lattice) finite_inf_closed:
   "[| finite A; A \<subseteq> carrier L; A ~= {} |] ==> \<Sqinter>A \<in> carrier L"
-proof (induct set: Finites)
+proof (induct set: finite)
   case empty then show ?case by simp
 next
   case insert then show ?case

@@ -51,7 +51,7 @@ lemma foldSetD_imp_finite [simp]: "(A, x) \<in> foldSetD D f e ==> finite A"
 lemma finite_imp_foldSetD:
   "[| finite A; e \<in> D; !!x y. [| x \<in> A; y \<in> D |] ==> f x y \<in> D |] ==>
    EX x. (A, x) \<in> foldSetD D f e"
-proof (induct set: Finites)
+proof (induct set: finite)
   case empty then show ?case by auto
 next
   case (insert x F)
@@ -92,7 +92,7 @@ lemma (in LCD) foldSetD_imp_finite [simp]:
 
 lemma (in LCD) finite_imp_foldSetD:
   "[| finite A; A \<subseteq> B; e \<in> D |] ==> EX x. (A, x) \<in> foldSetD D f e"
-proof (induct set: Finites)
+proof (induct set: finite)
   case empty then show ?case by auto
 next
   case (insert x F)
@@ -191,7 +191,7 @@ lemma (in LCD) foldD_insert:
 
 lemma (in LCD) foldD_closed [simp]:
   "[| finite A; e \<in> D; A \<subseteq> B |] ==> foldD D f e A \<in> D"
-proof (induct set: Finites)
+proof (induct set: finite)
   case empty then show ?case by (simp add: foldD_empty)
 next
   case insert then show ?case by (simp add: foldD_insert)
@@ -200,7 +200,7 @@ qed
 lemma (in LCD) foldD_commute:
   "[| finite A; x \<in> B; e \<in> D; A \<subseteq> B |] ==>
    f x (foldD D f e A) = foldD D f (f x e) A"
-  apply (induct set: Finites)
+  apply (induct set: finite)
    apply simp
   apply (auto simp add: left_commute foldD_insert)
   done
@@ -212,7 +212,7 @@ lemma Int_mono2:
 lemma (in LCD) foldD_nest_Un_Int:
   "[| finite A; finite C; e \<in> D; A \<subseteq> B; C \<subseteq> B |] ==>
    foldD D f (foldD D f e C) A = foldD D f (foldD D f e (A Int C)) (A Un C)"
-  apply (induct set: Finites)
+  apply (induct set: finite)
    apply simp
   apply (simp add: foldD_insert foldD_commute Int_insert_left insert_absorb
     Int_mono2 Un_subset_iff)
@@ -272,7 +272,7 @@ lemma (in ACeD) foldD_Un_Int:
   "[| finite A; finite B; A \<subseteq> D; B \<subseteq> D |] ==>
     foldD D f e A \<cdot> foldD D f e B =
     foldD D f e (A Un B) \<cdot> foldD D f e (A Int B)"
-  apply (induct set: Finites)
+  apply (induct set: finite)
    apply (simp add: left_commute LCD.foldD_closed [OF LCD.intro [of D]])
   apply (simp add: AC insert_absorb Int_insert_left
     LCD.foldD_insert [OF LCD.intro [of D]]
@@ -335,7 +335,7 @@ lemma (in comm_monoid) finprod_insert [simp]:
 
 lemma (in comm_monoid) finprod_one [simp]:
   "finite A ==> (\<Otimes>i:A. \<one>) = \<one>"
-proof (induct set: Finites)
+proof (induct set: finite)
   case empty show ?case by simp
 next
   case (insert a A)
@@ -370,7 +370,7 @@ lemma (in comm_monoid) finprod_Un_Int:
      finprod G g (A Un B) \<otimes> finprod G g (A Int B) =
      finprod G g A \<otimes> finprod G g B"
 -- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
-proof (induct set: Finites)
+proof (induct set: finite)
   case empty then show ?case by (simp add: finprod_closed)
 next
   case (insert a A)
@@ -392,7 +392,7 @@ lemma (in comm_monoid) finprod_Un_disjoint:
 lemma (in comm_monoid) finprod_multf:
   "[| finite A; f \<in> A -> carrier G; g \<in> A -> carrier G |] ==>
    finprod G (%x. f x \<otimes> g x) A = (finprod G f A \<otimes> finprod G g A)"
-proof (induct set: Finites)
+proof (induct set: finite)
   case empty show ?case by simp
 next
   case (insert a A) then
