@@ -908,7 +908,7 @@ in
 fun cterm_instantiate ctpairs0 th =
   let val (thy,tye,_) = foldr add_types (Thm.theory_of_thm th, Vartab.empty, 0) ctpairs0
       fun instT(ct,cu) =
-        let val inst = cterm_of thy o Envir.subst_TVars tye o term_of
+        let val inst = cterm_of thy o Term.map_types (Envir.norm_type tye) o term_of
         in (inst ct, inst cu) end
       fun ctyp2 (ixn, (S, T)) = (ctyp_of thy (TVar (ixn, S)), ctyp_of thy T)
   in  instantiate (map ctyp2 (Vartab.dest tye), map instT ctpairs0) th  end
