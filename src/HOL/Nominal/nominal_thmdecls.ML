@@ -16,6 +16,10 @@ sig
   val eqvt_add: attribute
   val eqvt_del: attribute
   val setup: theory -> theory
+  val get_eqvt_thms: theory -> thm list
+  val get_fresh_thms: theory -> thm list
+  val get_bij_thms: theory -> thm list
+  
 
   val NOMINAL_EQVT_DEBUG : bool ref
 end;
@@ -57,6 +61,9 @@ structure Data = GenericDataFun
 exception EQVT_FORM;
 
 val print_data = Data.print o Context.Proof;
+val get_eqvt_thms = Context.Theory #> Data.get #> #eqvt;
+val get_fresh_thms = Context.Theory #> Data.get #> #fresh;
+val get_bij_thms = Context.Theory #> Data.get #> #bij;
 
 (* FIXME: should be a function in a library *)
 fun mk_permT T = HOLogic.listT (HOLogic.mk_prodT (T, T));
