@@ -28,7 +28,7 @@ sig
     -> (string * (((string * sort list) * sort) * term list)) list option
   val prove_codetypes_arities: tactic -> (string * bool) list -> sort
     -> (((string * sort list) * sort) list -> (string * term list) list -> theory
-    -> ((bstring * attribute list) * term) list * theory)
+    -> ((bstring * Attrib.src list) * term) list * theory)
     -> (((string * sort list) * sort) list -> (string * term list) list -> theory -> theory)
     -> theory -> theory
 
