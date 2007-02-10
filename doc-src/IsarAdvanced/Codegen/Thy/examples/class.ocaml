@@ -1,0 +1,29 @@
+module ROOT = 
+struct
+
+module Nat = 
+struct
+
+type nat = Zero_nat | Suc of nat;;
+
+end;; (*struct Nat*)
+
+module Codegen = 
+struct
+
+type 'a null = {null : 'a};;
+let null _A = _A.null;;
+
+let rec head _A = function y :: xs -> y
+                  | [] -> null _A;;
+
+let rec null_option = None;;
+
+let null_optiona () = ({null = null_option} : ('b option) null);;
+
+let rec dummy
+  = head (null_optiona ()) [Some (Nat.Suc Nat.Zero_nat); None];;
+
+end;; (*struct Codegen*)
+
+end;; (*struct ROOT*)
