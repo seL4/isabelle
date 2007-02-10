@@ -8,6 +8,7 @@ theory Codegenerator
 imports ExecutableContent
 begin
 
-code_gen "*" (SML #) (Haskell -) (OCaml -)
+code_gen "*" (SML) (Haskell) (OCaml)
+code_gen (SML #) (Haskell -) (OCaml -)
 
 end
