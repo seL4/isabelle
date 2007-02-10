@@ -61,7 +61,7 @@ Executing formal specifications as programs is a well-established
   \qn{target language} for which code shall ultimately be
   generated is not fixed but may be an arbitrary state-of-the-art
   functional programming language (currently, the implementation
-  supports SML \cite{web:sml} and Haskell \cite{web:haskell}).
+  supports SML \cite{SML}, OCaml \cite{OCaml} and Haskell \cite{haskell-revised-report}).
   We aim to provide a
   versatile environment
   suitable for software development and verification,
@@ -71,7 +71,7 @@ Executing formal specifications as programs is a well-established
   with maximum flexibility.
 
   For readers, some familiarity and experience
-  with the the ingredients
+  with the ingredients
   of the HOL \emph{Main} theory is assumed.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -289,10 +289,10 @@ The \isa{{\isasymCODEGEN}} command takes a space-separated list of
 %
 \begin{isamarkuptext}%
 The list of all defining equations in a theory may be inspected
-  using the \isa{{\isasymPRINTCODETHMS}} command:%
+  using the \isa{{\isasymPRINTCODESETUP}} command:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{print{\isacharunderscore}codethms}\isamarkupfalse%
+\isacommand{print{\isacharunderscore}codesetup}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent which displays a table of constant with corresponding
@@ -394,11 +394,7 @@ This theorem is now added to the defining equation table:
 \lstsml{Thy/examples/fac_case.ML}
 
   \begin{warn}
-    Some statements in this section have to be treated with some
-    caution. First, since the HOL function package is still
-    under development, its setup with respect to code generation
-    may differ from what is presumed here.
-    Further, the attributes \emph{code} and \emph{code del}
+    The attributes \emph{code} and \emph{code del}
     associated with the existing code generator also apply to
     the new one: \emph{code} implies \emph{code func},
     and \emph{code del} implies \emph{code nofunc}.
@@ -489,21 +485,6 @@ Type classes offer a suitable occasion to introduce
   the file system, with root given by the user.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-%
-\isadelimML
-%
-\endisadelimML
-%
-\isatagML
-\isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\ set\ Toplevel{\isachardot}debug\ {\isacharverbatimclose}%
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-%
-\endisadelimML
-\isanewline
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
 \ dummy\ {\isacharparenleft}Haskell\ {\isachardoublequoteopen}examples{\isacharslash}{\isachardoublequoteclose}{\isacharparenright}%
 \begin{isamarkuptext}%
@@ -518,6 +499,17 @@ Type classes offer a suitable occasion to introduce
 \ dummy\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}class{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
 \begin{isamarkuptext}%
 \lstsml{Thy/examples/class.ML}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+or in OCaml:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
+\ dummy\ {\isacharparenleft}OCaml\ {\isachardoublequoteopen}examples{\isacharslash}class{\isachardot}ocaml{\isachardoublequoteclose}{\isacharparenright}%
+\begin{isamarkuptext}%
+\lstsml{Thy/examples/class.ocaml}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -539,15 +531,15 @@ Code generation is \emph{incremental}: theorems
   is generated and cached; if no constants are given, the
   current cache is serialized.
 
-  For explorative purpose, an extended version of the
-  \isa{{\isasymCODEGEN}} command may prove useful:%
+  For explorative purpose, the
+  \isa{{\isasymCODETHMS}} command may prove useful:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{print{\isacharunderscore}codethms}\isamarkupfalse%
-\ {\isacharparenleft}{\isacharparenright}%
+\isacommand{code{\isacharunderscore}thms}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent print all cached defining equations (i.e.~\emph{after}
-  any applied transformation). Inside the brackets a
+  any applied transformation).  A
   list of constants may be given; their function
   equations are added to the cache if not already present.%
 \end{isamarkuptext}%
@@ -687,7 +679,7 @@ Before selected function theorems are turned into abstract
 %
 \begin{isamarkuptext}%
 The current set of inline theorems may be inspected using
-  the \isa{{\isasymPRINTCODETHMS}} command.
+  the \isa{{\isasymPRINTCODESETUP}} command.
 
   \emph{Inline procedures} are a generalized version of inline
   theorems written in ML -- rewrite rules are generated dependent
@@ -872,7 +864,7 @@ The initial bang ``\verb|!|'' tells the serializer to never put
   So far, we did only provide more idiomatic serializations for
   constructs which would be executable on their own.  Target-specific
   serializations may also be used to \emph{implement} constructs
-  which have no implicit notion of executability.  For example,
+  which have no explicit notion of executability.  For example,
   take the HOL integers:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1378,8 +1370,8 @@ Then code generation for \isa{dummy{\isacharunderscore}set} will fail.
   Why? A glimpse at the defining equations will offer:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{print{\isacharunderscore}codethms}\isamarkupfalse%
-\ {\isacharparenleft}insert{\isacharparenright}%
+\isacommand{code{\isacharunderscore}thms}\isamarkupfalse%
+\ insert%
 \begin{isamarkuptext}%
 This reveals the defining equation \isa{insert\ {\isacharquery}a\ {\isacharquery}B\ {\isasymequiv}\ {\isacharbraceleft}x{\isachardot}\ x\ {\isacharequal}\ {\isacharquery}a{\isacharbraceright}\ {\isasymunion}\ {\isacharquery}B}
   for \isa{insert}, which is operationally meaningless
@@ -1429,8 +1421,8 @@ In this case the serializer would complain that \isa{insert}
   used as defining equations:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{print{\isacharunderscore}codethms}\isamarkupfalse%
-\ {\isacharparenleft}insert{\isacharparenright}%
+\isacommand{code{\isacharunderscore}thms}\isamarkupfalse%
+\ insert%
 \begin{isamarkuptext}%
 will show \emph{no} defining equations for insert.
 
@@ -1677,7 +1669,7 @@ This Pure module implements the core notions of
 %
 \endisadelimmlref
 %
-\isamarkupsubsubsection{Executable content%
+\isamarkupsubsubsection{Managing executable content%
 }
 \isamarkuptrue%
 %
@@ -1773,73 +1765,7 @@ This Pure module implements the core notions of
 %
 \endisadelimmlref
 %
-\isamarkupsubsection{defining equation systems: codegen\_funcgr.ML%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-Out of the executable content of a theory, a normalized
-  defining equation systems may be constructed containing
-  function definitions for constants.  The system is cached
-  until its underlying executable content changes.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimmlref
-%
-\endisadelimmlref
-%
-\isatagmlref
-%
-\begin{isamarkuptext}%
-\begin{mldecls}
-  \indexmltype{CodegenFuncgr.T}\verb|type CodegenFuncgr.T| \\
-  \indexml{CodegenFuncgr.make}\verb|CodegenFuncgr.make: theory -> CodegenConsts.const list -> CodegenFuncgr.T| \\
-  \indexml{CodegenFuncgr.funcs}\verb|CodegenFuncgr.funcs: CodegenFuncgr.T -> CodegenConsts.const -> thm list| \\
-  \indexml{CodegenFuncgr.typ}\verb|CodegenFuncgr.typ: CodegenFuncgr.T -> CodegenConsts.const -> typ| \\
-  \indexml{CodegenFuncgr.deps}\verb|CodegenFuncgr.deps: CodegenFuncgr.T|\isasep\isanewline%
-\verb|    -> CodegenConsts.const list -> CodegenConsts.const list list| \\
-  \indexml{CodegenFuncgr.all}\verb|CodegenFuncgr.all: CodegenFuncgr.T -> CodegenConsts.const list|
-  \end{mldecls}
-
-  \begin{description}
-
-  \item \verb|CodegenFuncgr.T| represents
-    a normalized defining equation system.
-
-  \item \verb|CodegenFuncgr.make|~\isa{thy}~\isa{cs}
-    returns a normalized defining equation system,
-    with the assertion that it contains any function
-    definition for constants \isa{cs} (if existing).
-
-  \item \verb|CodegenFuncgr.funcs|~\isa{funcgr}~\isa{c}
-    retrieves function definition for constant \isa{c}.
-
-  \item \verb|CodegenFuncgr.typ|~\isa{funcgr}~\isa{c}
-    retrieves function type for constant \isa{c}.
-
-  \item \verb|CodegenFuncgr.deps|~\isa{funcgr}~\isa{cs}
-    returns the transitive closure of dependencies for
-    constants \isa{cs} as a partitioning where each partition
-    corresponds to a strongly connected component of
-    dependencies and any partition does \emph{not}
-    depend on partitions further left.
-
-  \item \verb|CodegenFuncgr.all|~\isa{funcgr}
-    returns all currently represented constants.
-
-  \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\endisatagmlref
-{\isafoldmlref}%
-%
-\isadelimmlref
-%
-\endisadelimmlref
-%
-\isamarkupsubsection{Further auxiliary%
+\isamarkupsubsection{Auxiliary%
 }
 \isamarkuptrue%
 %
@@ -1856,7 +1782,6 @@ Out of the executable content of a theory, a normalized
   \indexml{CodegenConsts.consts-of}\verb|CodegenConsts.consts_of: theory -> term -> CodegenConsts.const list| \\
   \indexml{CodegenConsts.read-const}\verb|CodegenConsts.read_const: theory -> string -> CodegenConsts.const| \\
   \indexmlstructure{CodegenConsts.Consttab}\verb|structure CodegenConsts.Consttab| \\
-  \indexmlstructure{CodegenFuncgr.Constgraph}\verb|structure CodegenFuncgr.Constgraph| \\
   \indexml{CodegenFunc.typ-func}\verb|CodegenFunc.typ_func: thm -> typ| \\
   \indexml{CodegenFunc.rewrite-func}\verb|CodegenFunc.rewrite_func: thm list -> thm -> thm| \\
   \end{mldecls}
@@ -1866,8 +1791,8 @@ Out of the executable content of a theory, a normalized
   \item \verb|CodegenConsts.const_ord|,~\verb|CodegenConsts.eq_const|
      provide order and equality on constant identifiers.
 
-  \item \verb|CodegenConsts.Consttab|,~\verb|CodegenFuncgr.Constgraph|
-     provide advanced data structures with constant identifiers as keys.
+  \item \verb|CodegenConsts.Consttab|
+     provides table structures with constant identifiers as keys.
 
   \item \verb|CodegenConsts.consts_of|~\isa{thy}~\isa{t}
      returns all constant identifiers mentioned in a term \isa{t}.

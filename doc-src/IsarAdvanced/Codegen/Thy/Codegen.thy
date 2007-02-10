@@ -38,7 +38,7 @@ text {*
   \qn{target language} for which code shall ultimately be
   generated is not fixed but may be an arbitrary state-of-the-art
   functional programming language (currently, the implementation
-  supports SML \cite{web:sml} and Haskell \cite{web:haskell}).
+  supports SML \cite{SML}, OCaml \cite{OCaml} and Haskell \cite{haskell-revised-report}).
   We aim to provide a
   versatile environment
   suitable for software development and verification,
@@ -48,7 +48,7 @@ text {*
   with maximum flexibility.
 
   For readers, some familiarity and experience
-  with the the ingredients
+  with the ingredients
   of the HOL \emph{Main} theory is assumed.
 *}
 
@@ -230,10 +230,10 @@ subsection {* Theorem selection *}
 
 text {*
   The list of all defining equations in a theory may be inspected
-  using the @{text "\<PRINTCODETHMS>"} command:
+  using the @{text "\<PRINTCODESETUP>"} command:
 *}
 
-print_codethms
+print_codesetup
 
 text {*
   \noindent which displays a table of constant with corresponding
@@ -303,11 +303,7 @@ text {*
   \lstsml{Thy/examples/fac_case.ML}
 
   \begin{warn}
-    Some statements in this section have to be treated with some
-    caution. First, since the HOL function package is still
-    under development, its setup with respect to code generation
-    may differ from what is presumed here.
-    Further, the attributes \emph{code} and \emph{code del}
+    The attributes \emph{code} and \emph{code del}
     associated with the existing code generator also apply to
     the new one: \emph{code} implies \emph{code func},
     and \emph{code del} implies \emph{code nofunc}.
@@ -364,7 +360,6 @@ text {*
   the file system, with root given by the user.
 *}
 
-ML {* set Toplevel.debug *}
 code_gen dummy (Haskell "examples/")
   (* NOTE: you may use Haskell only once in this document, otherwise
   you have to work in distinct subdirectories *)
@@ -383,6 +378,16 @@ text {*
   \lstsml{Thy/examples/class.ML}
 *}
 
+text {*
+  or in OCaml:
+*}
+
+code_gen dummy (OCaml "examples/class.ocaml")
+
+text {*
+  \lstsml{Thy/examples/class.ocaml}
+*}
+
 subsection {* Incremental code generation *}
 
 text {*
@@ -399,15 +404,15 @@ text {*
   is generated and cached; if no constants are given, the
   current cache is serialized.
 
-  For explorative purpose, an extended version of the
-  @{text "\<CODEGEN>"} command may prove useful:
+  For explorative purpose, the
+  @{text "\<CODETHMS>"} command may prove useful:
 *}
 
-print_codethms ()
+code_thms
 
 text {*
   \noindent print all cached defining equations (i.e.~\emph{after}
-  any applied transformation). Inside the brackets a
+  any applied transformation).  A
   list of constants may be given; their function
   equations are added to the cache if not already present.
 *}
@@ -507,7 +512,7 @@ text_raw {*
 
 text {*
   The current set of inline theorems may be inspected using
-  the @{text "\<PRINTCODETHMS>"} command.
+  the @{text "\<PRINTCODESETUP>"} command.
 
   \emph{Inline procedures} are a generalized version of inline
   theorems written in ML -- rewrite rules are generated dependent
@@ -650,7 +655,7 @@ text {*
   So far, we did only provide more idiomatic serializations for
   constructs which would be executable on their own.  Target-specific
   serializations may also be used to \emph{implement} constructs
-  which have no implicit notion of executability.  For example,
+  which have no explicit notion of executability.  For example,
   take the HOL integers:
 *}
 
@@ -940,7 +945,7 @@ text {*
   Why? A glimpse at the defining equations will offer:
 *}
 
-print_codethms (insert)
+code_thms insert
 
 text {*
   This reveals the defining equation @{thm insert_def}
@@ -976,7 +981,7 @@ text {*
   used as defining equations:
 *}
 
-print_codethms (insert)
+code_thms insert
 
 text {*
   will show \emph{no} defining equations for insert.
@@ -1168,7 +1173,7 @@ text %mlref {*
   \end{description}
 *}
 
-subsubsection {* Executable content *}
+subsubsection {* Managing executable content *}
 
 text %mlref {*
   \begin{mldecls}
@@ -1248,56 +1253,7 @@ text %mlref {*
   \end{description}
 *}
 
-subsection {* defining equation systems: codegen\_funcgr.ML *}
-
-text {*
-  Out of the executable content of a theory, a normalized
-  defining equation systems may be constructed containing
-  function definitions for constants.  The system is cached
-  until its underlying executable content changes.
-*}
-
-text %mlref {*
-  \begin{mldecls}
-  @{index_ML_type CodegenFuncgr.T} \\
-  @{index_ML CodegenFuncgr.make: "theory -> CodegenConsts.const list -> CodegenFuncgr.T"} \\
-  @{index_ML CodegenFuncgr.funcs: "CodegenFuncgr.T -> CodegenConsts.const -> thm list"} \\
-  @{index_ML CodegenFuncgr.typ: "CodegenFuncgr.T -> CodegenConsts.const -> typ"} \\
-  @{index_ML CodegenFuncgr.deps: "CodegenFuncgr.T
-    -> CodegenConsts.const list -> CodegenConsts.const list list"} \\
-  @{index_ML CodegenFuncgr.all: "CodegenFuncgr.T -> CodegenConsts.const list"}
-  \end{mldecls}
-
-  \begin{description}
-
-  \item @{ML_type CodegenFuncgr.T} represents
-    a normalized defining equation system.
-
-  \item @{ML CodegenFuncgr.make}~@{text thy}~@{text cs}
-    returns a normalized defining equation system,
-    with the assertion that it contains any function
-    definition for constants @{text cs} (if existing).
-
-  \item @{ML CodegenFuncgr.funcs}~@{text funcgr}~@{text c}
-    retrieves function definition for constant @{text c}.
-
-  \item @{ML CodegenFuncgr.typ}~@{text funcgr}~@{text c}
-    retrieves function type for constant @{text c}.
-
-  \item @{ML CodegenFuncgr.deps}~@{text funcgr}~@{text cs}
-    returns the transitive closure of dependencies for
-    constants @{text cs} as a partitioning where each partition
-    corresponds to a strongly connected component of
-    dependencies and any partition does \emph{not}
-    depend on partitions further left.
-
-  \item @{ML CodegenFuncgr.all}~@{text funcgr}
-    returns all currently represented constants.
-
-  \end{description}
-*}
-
-subsection {* Further auxiliary *}
+subsection {* Auxiliary *}
 
 text %mlref {*
   \begin{mldecls}
@@ -1306,7 +1262,6 @@ text %mlref {*
   @{index_ML CodegenConsts.consts_of: "theory -> term -> CodegenConsts.const list"} \\
   @{index_ML CodegenConsts.read_const: "theory -> string -> CodegenConsts.const"} \\
   @{index_ML_structure CodegenConsts.Consttab} \\
-  @{index_ML_structure CodegenFuncgr.Constgraph} \\
   @{index_ML CodegenFunc.typ_func: "thm -> typ"} \\
   @{index_ML CodegenFunc.rewrite_func: "thm list -> thm -> thm"} \\
   \end{mldecls}
@@ -1316,8 +1271,8 @@ text %mlref {*
   \item @{ML CodegenConsts.const_ord},~@{ML CodegenConsts.eq_const}
      provide order and equality on constant identifiers.
 
-  \item @{ML_struct CodegenConsts.Consttab},~@{ML_struct CodegenFuncgr.Constgraph}
-     provide advanced data structures with constant identifiers as keys.
+  \item @{ML_struct CodegenConsts.Consttab}
+     provides table structures with constant identifiers as keys.
 
   \item @{ML CodegenConsts.consts_of}~@{text thy}~@{text t}
      returns all constant identifiers mentioned in a term @{text t}.
@@ -1421,6 +1376,55 @@ text {*
 
   \end{description}
 *}
+
+(* subsubsection {* Building implementable systems fo defining equations *}
+
+text {*
+  Out of the executable content of a theory, a normalized
+  defining equation systems may be constructed containing
+  function definitions for constants.  The system is cached
+  until its underlying executable content changes.
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type CodegenFuncgr.T} \\
+  @{index_ML CodegenFuncgr.make: "theory -> CodegenConsts.const list -> CodegenFuncgr.T"} \\
+  @{index_ML CodegenFuncgr.funcs: "CodegenFuncgr.T -> CodegenConsts.const -> thm list"} \\
+  @{index_ML CodegenFuncgr.typ: "CodegenFuncgr.T -> CodegenConsts.const -> typ"} \\
+  @{index_ML CodegenFuncgr.deps: "CodegenFuncgr.T
+    -> CodegenConsts.const list -> CodegenConsts.const list list"} \\
+  @{index_ML CodegenFuncgr.all: "CodegenFuncgr.T -> CodegenConsts.const list"}
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_type CodegenFuncgr.T} represents
+    a normalized defining equation system.
+
+  \item @{ML CodegenFuncgr.make}~@{text thy}~@{text cs}
+    returns a normalized defining equation system,
+    with the assertion that it contains any function
+    definition for constants @{text cs} (if existing).
+
+  \item @{ML CodegenFuncgr.funcs}~@{text funcgr}~@{text c}
+    retrieves function definition for constant @{text c}.
+
+  \item @{ML CodegenFuncgr.typ}~@{text funcgr}~@{text c}
+    retrieves function type for constant @{text c}.
+
+  \item @{ML CodegenFuncgr.deps}~@{text funcgr}~@{text cs}
+    returns the transitive closure of dependencies for
+    constants @{text cs} as a partitioning where each partition
+    corresponds to a strongly connected component of
+    dependencies and any partition does \emph{not}
+    depend on partitions further left.
+
+  \item @{ML CodegenFuncgr.all}~@{text funcgr}
+    returns all currently represented constants.
+
+  \end{description}
+*} *)
 
 subsubsection {* Datatype hooks *}
 
