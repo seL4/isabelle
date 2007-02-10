@@ -23,7 +23,7 @@ sig
       `%% of string * itype list
     | ITyVar of vname;
   datatype iterm =
-      IConst of string * (dict list list * itype)
+      IConst of string * (dict list list * itype list (*types of arguments*))
     | IVar of vname
     | `$ of iterm * iterm
     | `|-> of (vname * itype) * iterm
@@ -51,8 +51,8 @@ sig
   val split_let: iterm -> (((iterm * itype) * iterm) * iterm) option;
   val unfold_let: iterm -> ((iterm * itype) * iterm) list * iterm;
   val unfold_const_app: iterm ->
-    ((string * (dict list list * itype)) * iterm list) option;
-  val eta_expand: (string * (dict list list * itype)) * iterm list -> int -> iterm;
+    ((string * (dict list list * itype list)) * iterm list) option;
+  val eta_expand: (string * (dict list list * itype list)) * iterm list -> int -> iterm;
   val fold_constnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
   val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
   val fold_unbound_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
@@ -124,7 +124,7 @@ datatype itype =
   | ITyVar of vname;
 
 datatype iterm =
-    IConst of string * (dict list list * itype)
+    IConst of string * (dict list list * itype list)
   | IVar of vname
   | `$ of iterm * iterm
   | `|-> of (vname * itype) * iterm
@@ -236,13 +236,12 @@ fun fold_unbound_varnames f =
           add vs td #> fold (fn (p, t) => add vs p #> add vs t) bs;
   in add [] end;
 
-fun eta_expand (c as (_, (_, ty)), ts) k =
+fun eta_expand (c as (_, (_, tys)), ts) k =
   let
     val j = length ts;
     val l = k - j;
-    val tys = (curry Library.take l o curry Library.drop j o fst o unfold_fun) ty;
     val ctxt = (fold o fold_varnames) Name.declare ts Name.context;
-    val vs_tys = Name.names ctxt "a" tys;
+    val vs_tys = Name.names ctxt "a" ((curry Library.take l o curry Library.drop j) tys);
   in vs_tys `|--> IConst c `$$ ts @ map (fn (v, _) => IVar v) vs_tys end;
 
 
@@ -410,22 +409,15 @@ fun ensure_def labelled_name defgen strict msg name (dep, code) =
     code
     |> (if can (get_def code) name
         then
-          tracing (fn _ => "asserting definition " ^ labelled_name name)
-          #> add_dp dep
+          add_dp dep
         else
-          tracing (fn _ => "allocating definition " ^ labelled_name name
-            ^ (if strict then " (strict)" else " (non-strict)"))
-          #> ensure_bot name
+          ensure_bot name
           #> add_dp dep
-          #> tracing (fn _ => "creating definition " ^ labelled_name name)
           #> invoke_generator name defgen
           #-> (fn def => prep_def def)
           #-> (fn def =>
-             tracing (fn _ => "adding")
-          #> add_def_incr strict (name, def)
-          #> tracing (fn _ => "postprocessing")
+             add_def_incr strict (name, def)
           #> postprocess_def (name, def)
-          #> tracing (fn _ => "adding done")
        ))
     |> pair dep
   end;

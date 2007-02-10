@@ -349,10 +349,11 @@ and exprgen_term thy algbr funcgr strct (Const (c, ty)) trns =
 and appgen_default thy algbr funcgr strct ((c, ty), ts) trns =
   trns
   |> ensure_def_const thy algbr funcgr strct (CodegenConsts.norm_of_typ thy (c, ty))
-  ||>> exprgen_type thy algbr funcgr strct ty
+  ||>> fold_map (exprgen_type thy algbr funcgr strct) ((fst o Term.strip_type) ty)
+  ||>> exprgen_type thy algbr funcgr strct ((snd o Term.strip_type) ty)
   ||>> exprgen_dict_parms thy algbr funcgr strct (c, ty)
   ||>> fold_map (exprgen_term thy algbr funcgr strct) ts
-  |>> (fn (((c, ty), iss), ts) => IConst (c, (iss, ty)) `$$ ts)
+  |>> (fn ((((c, tys), ty), iss), ts) => IConst (c, (iss, tys)) `$$ ts)
 and select_appgen thy algbr funcgr strct ((c, ty), ts) trns =
   case Symtab.lookup (fst (CodegenPackageData.get thy)) c
    of SOME (i, (appgen, _)) =>
@@ -579,7 +580,7 @@ fun eval_term thy (ref_spec, t) =
       error ("Term" ^ Sign.string_of_term thy t ^ "is polymorhpic"))
       t;
     val t' = codegen_term thy t;
-  in CodegenSerializer.eval_term thy (Code.get thy) (ref_spec, t') end;
+  in CodegenSerializer.eval_term thy CodegenNames.labelled_name (Code.get thy) (ref_spec, t') end;
 
 
 (* constant specifications with wildcards *)
@@ -623,7 +624,7 @@ and K = OuterKeyword
 fun code raw_cs seris thy =
   let
     val seris' = map (fn (target, args as _ :: _) =>
-          (target, SOME (CodegenSerializer.get_serializer thy target args))
+          (target, SOME (CodegenSerializer.get_serializer thy target args CodegenNames.labelled_name))
       | (target, []) => (CodegenSerializer.assert_serializer thy target, NONE)) seris;
     val targets = case map fst seris' of [] => NONE | xs => SOME xs;
     val cs = maps (read_constspec thy targets) raw_cs;
@@ -654,8 +655,8 @@ val code_exprP = (
     >> (fn (raw_cs, seris) => code raw_cs seris)
   );
 
-val (print_codethmsK, codeK, code_abstypeK, code_axiomsK) =
-  ("print_codethms", "code_gen", "code_abstype", "code_axioms");
+val (codeK, code_abstypeK, code_axiomsK, code_thmsK) =
+  ("code_gen", "code_abstype", "code_axioms", "code_thms");
 
 in
 
@@ -681,15 +682,13 @@ val code_axiomsP =
     >> (Toplevel.theory o constsubst_e)
   );
 
-val print_codethmsP =
-  OuterSyntax.improper_command print_codethmsK "print code theorems of this theory" OuterKeyword.diag
-    (Scan.option (P.$$$ "(" |-- Scan.repeat P.term --| P.$$$ ")")
-      >> (fn NONE => CodegenData.print_thms
-           | SOME cs => fn thy => print_codethms_e thy cs)
-      >> (fn f => Toplevel.no_timing o Toplevel.unknown_theory
-      o Toplevel.keep (f o Toplevel.theory_of)));
+val code_thmsP =
+  OuterSyntax.improper_command code_thmsK "print cached defining equations" OuterKeyword.diag
+    (Scan.repeat P.term
+      >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
+        o Toplevel.keep ((fn thy => print_codethms_e thy cs) o Toplevel.theory_of)));
 
-val _ = OuterSyntax.add_parsers [codeP, code_abstypeP, code_axiomsP, print_codethmsP];
+val _ = OuterSyntax.add_parsers [codeP, code_abstypeP, code_axiomsP, code_thmsP];
 
 end; (* local *)
 
