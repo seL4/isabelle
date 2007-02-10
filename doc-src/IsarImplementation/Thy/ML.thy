@@ -1,4 +1,3 @@
-
 (* $Id$ *)
 
 theory "ML" imports base begin
@@ -95,8 +94,141 @@ text {* This style guide is loosely based on
 
 chapter {* Basic library functions *}
 
-text {* FIXME beyond the NJ basis library proposal *}
+text {*
+  Beyond the proposal of the SML/NJ basis library, Isabelle comes
+  with its own library, from which selected parts are given here.
+  See further files \emph{Pure/library.ML} and \emph{Pure/General/*.ML}.
+*}
 
+section {* Linear transformations *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML "(op |>)": "'a * ('a -> 'b) -> 'b"} \\
+  @{index_ML fold: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
+  @{index_ML fold_rev: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
+  \end{mldecls}
+*}
+
+text FIXME
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML "(op |->)": "('c * 'a) * ('c -> 'a -> 'b) -> 'b"} \\
+  @{index_ML "(op |>>)": "('a * 'c) * ('a -> 'b) -> 'b * 'c"} \\
+  @{index_ML "(op ||>)": "('c * 'a) * ('a -> 'b) -> 'c * 'b"} \\
+  @{index_ML "(op ||>>)": "('c * 'a) * ('a -> 'd * 'b) -> ('c * 'd) * 'b"} \\
+  @{index_ML fold_map: "('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b"} \\
+  \end{mldecls}
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML "(op #>)": "('a -> 'b) * ('b -> 'c) -> 'a -> 'c"} \\
+  @{index_ML "(op #->)": "('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd"} \\
+  @{index_ML "(op #>>)": "('a -> 'c * 'b) * ('c -> 'd) -> 'a -> 'd * 'b"} \\
+  @{index_ML "(op ##>)": "('a -> 'c * 'b) * ('b -> 'd) -> 'a -> 'c * 'd"} \\
+  @{index_ML "(op ##>>)": "('a -> 'c * 'b) * ('b -> 'e * 'd) -> 'a -> ('c * 'e) * 'd"} \\
+  \end{mldecls}
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML "(op `)": "('b -> 'a) -> 'b -> 'a * 'b"} \\
+  @{index_ML tap: "('b -> 'a) -> 'b -> 'b"} \\
+  \end{mldecls}
+*}
+
+section {* Options and partiality *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML is_some: "'a option -> bool"} \\
+  @{index_ML is_none: "'a option -> bool"} \\
+  @{index_ML the: "'a option -> 'a"} \\
+  @{index_ML these: "'a list option -> 'a list"} \\
+  @{index_ML the_list: "'a option -> 'a list"} \\
+  @{index_ML the_default: "'a -> 'a option -> 'a"} \\
+  @{index_ML try: "('a -> 'b) -> 'a -> 'b option"} \\
+  @{index_ML can: "('a -> 'b) -> 'a -> bool"} \\
+  \end{mldecls}
+*}
+
+text FIXME
+
+section {* Common data structures *}
+
+text "FIXME chronicle"
+
+subsection {* Lists (as set-like data structures) *}
+
+text {*
+  \begin{mldecls}
+  @{index_ML member: "('b * 'a -> bool) -> 'a list -> 'b -> bool"} \\
+  @{index_ML insert: "('a * 'a -> bool) -> 'a -> 'a list -> 'a list"} \\
+  @{index_ML remove: "('b * 'a -> bool) -> 'b -> 'a list -> 'a list"} \\
+  @{index_ML merge: "('a * 'a -> bool) -> 'a list * 'a list -> 'a list"} \\
+  \end{mldecls}
+*}
+
+text FIXME
+
+subsection {* Association lists *}
+
+text {*
+  \begin{mldecls}
+  @{index_ML_exc AList.DUP} \\
+  @{index_ML AList.lookup: "('a * 'b -> bool) -> ('b * 'c) list -> 'a -> 'c option"} \\
+  @{index_ML AList.defined: "('a * 'b -> bool) -> ('b * 'c) list -> 'a -> bool"} \\
+  @{index_ML AList.update: "('a * 'a -> bool) -> ('a * 'b) -> ('a * 'b) list -> ('a * 'b) list"} \\
+  @{index_ML AList.default: "('a * 'a -> bool) -> ('a * 'b) -> ('a * 'b) list -> ('a * 'b) list"} \\
+  @{index_ML AList.delete: "('a * 'b -> bool) -> 'a -> ('b * 'c) list -> ('b * 'c) list"} \\
+  @{index_ML AList.map_entry: "('a * 'b -> bool) -> 'a
+    -> ('c -> 'c) -> ('b * 'c) list -> ('b * 'c) list"} \\
+  @{index_ML AList.map_default: "('a * 'a -> bool) -> 'a * 'b -> ('b -> 'b)
+    -> ('a * 'b) list -> ('a * 'b) list"} \\
+  @{index_ML AList.join: "('a * 'a -> bool) -> ('a -> 'b * 'b -> 'b) (*exception DUP*)
+    -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list (*exception AList.DUP*)"} \\
+  @{index_ML AList.merge: "('a * 'a -> bool) -> ('b * 'b -> bool)
+    -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list (*exception AList.DUP*)"}
+  \end{mldecls}
+*}
+
+text FIXME
+
+subsection {* Tables *}
+
+text {*
+  \begin{mldecls}
+  @{index_ML_type Symtab.key} \\
+  @{index_ML_type "'a Symtab.table"} \\
+  @{index_ML_exc Symtab.DUP: Symtab.key} \\
+  @{index_ML_exc Symtab.DUPS: "Symtab.key list"} \\
+  @{index_ML_exc Symtab.SAME} \\
+  @{index_ML_exc Symtab.UNDEF: Symtab.key} \\
+  @{index_ML Symtab.empty: "'a Symtab.table"} \\
+  @{index_ML Symtab.dest: "'a Symtab.table -> (Symtab.key * 'a) list"} \\
+  @{index_ML Symtab.keys: "'a Symtab.table -> Symtab.key list"} \\
+  @{index_ML Symtab.lookup: "'a Symtab.table -> Symtab.key -> 'a option"} \\
+  @{index_ML Symtab.defined: "'a Symtab.table -> Symtab.key -> bool"} \\
+  @{index_ML Symtab.update: "(Symtab.key * 'a) -> 'a Symtab.table -> 'a Symtab.table"} \\
+  @{index_ML Symtab.default: "Symtab.key * 'a -> 'a Symtab.table -> 'a Symtab.table"} \\
+  @{index_ML Symtab.delete: "Symtab.key
+    -> 'a Symtab.table -> 'a Symtab.table (*exception Symtab.UNDEF*)"} \\
+  @{index_ML Symtab.map_entry: "Symtab.key -> ('a -> 'a)
+    -> 'a Symtab.table -> 'a Symtab.table"} \\
+  @{index_ML Symtab.map_default: "(Symtab.key * 'a) -> ('a -> 'a)
+    -> 'a Symtab.table -> 'a Symtab.table"} \\
+  @{index_ML Symtab.join: "(Symtab.key -> 'a * 'a -> 'a) (*exception Symtab.DUP/Symtab.SAME*)
+    -> 'a Symtab.table * 'a Symtab.table
+    -> 'a Symtab.table (*exception Symtab.DUPS*)"} \\
+  @{index_ML Symtab.merge: "('a * 'a -> bool)
+    -> 'a Symtab.table * 'a Symtab.table
+    -> 'a Symtab.table (*exception Symtab.DUPS*)"}
+  \end{mldecls}
+*}
+
+text FIXME
 
 chapter {* Cookbook *}
 
