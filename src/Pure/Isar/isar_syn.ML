@@ -402,6 +402,49 @@ val interpretP =
       >> (fn ((x, y), z) => Toplevel.print o Toplevel.proof' (Locale.interpret Seq.single x y z)));
 
 
+(* classes *)
+
+local
+
+val (classK, instanceK, print_classesK) = ("class", "instance", "print_classes")
+
+val class_subP = P.name -- Scan.repeat (P.$$$ "+" |-- P.name) >> (op ::);
+val class_bodyP = P.!!! (Scan.repeat1 SpecParse.locale_element);
+
+val parse_arity =
+  (P.xname --| P.$$$ "::" -- P.!!! P.arity)
+    >> (fn (tyco, (asorts, sort)) => ((tyco, asorts), sort));
+
+in
+
+val classP =
+  OuterSyntax.command classK "define type class" K.thy_decl (
+    P.name --| P.$$$ "="
+    -- (
+      class_subP --| P.$$$ "+" -- class_bodyP
+      || class_subP >> rpair []
+      || class_bodyP >> pair [])
+    -- P.opt_begin
+    >> (fn ((bname, (supclasses, elems)), begin) =>
+        Toplevel.begin_local_theory begin
+          (ClassPackage.class_e bname supclasses elems #-> TheoryTarget.begin true)));
+
+val instanceP =
+  OuterSyntax.command instanceK "prove type arity or subclass relation" K.thy_goal ((
+      P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
+           >> ClassPackage.instance_sort_e
+      || P.and_list1 parse_arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
+           >> (fn (arities, defs) => ClassPackage.instance_arity_e arities defs)
+    ) >> (Toplevel.print oo Toplevel.theory_to_proof));
+
+val print_classesP =
+  OuterSyntax.improper_command print_classesK "print classes of this theory" K.diag
+    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory
+      o Toplevel.keep (ClassPackage.print_classes o Toplevel.theory_of)));
+
+end;
+
+
 
 (** proof commands **)
 
@@ -939,7 +982,7 @@ val _ = OuterSyntax.add_parsers [
   simproc_setupP, parse_ast_translationP, parse_translationP,
   print_translationP, typed_print_translationP,
   print_ast_translationP, token_translationP, oracleP, contextP,
-  localeP,
+  localeP, classP, instanceP,
   (*proof commands*)
   theoremP, lemmaP, corollaryP, haveP, henceP, showP, thusP, fixP,
   assumeP, presumeP, defP, obtainP, guessP, letP, caseP, thenP, fromP,
@@ -950,7 +993,7 @@ val _ = OuterSyntax.add_parsers [
   cannot_undoP, redoP, undos_proofP, undoP, killP, interpretationP,
   interpretP,
   (*diagnostic commands*)
-  pretty_setmarginP, helpP, print_commandsP, print_contextP,
+  pretty_setmarginP, helpP, print_classesP, print_commandsP, print_contextP,
   print_theoryP, print_syntaxP, print_abbrevsP, print_factsP,
   print_theoremsP, print_localesP, print_localeP,
   print_registrationsP, print_attributesP, print_simpsetP,
