@@ -479,7 +479,7 @@ introduction on type classes.
 
   classexpr: ((superclassexpr '+' (contextelem+)) | superclassexpr | (contextelem+))
   ;
-  instarity: (axmdecl)? (nameref '::' arity + 'and') (axmdecl prop +)?
+  instarity: (nameref '::' arity + 'and') (axmdecl prop +)?
   ;
   instsubsort: nameref ('<' | subseteq) sort
   ;
@@ -507,13 +507,12 @@ introduction on type classes.
   of the type classes involved.
   The $defs$, if given, must correspond to the class parameters
   involved in the $arities$ and are introduces in the theory
-  before proof. Name and attributes given after the $\INSTANCE$
-  command refer to \emph{all} definitions as a whole.
+  before proof.
   After finishing the proof, the theory will be
   augmented by a type signature declaration corresponding to the
   resulting theorems.
-  Note that this $\isarcmd{instance}$ command is different
-  from primitive axclass $\isarcmd{instance}$ (see \ref{sec:axclass}).
+  This $\isarcmd{instance}$ command is actually an extension
+  of primitive axclass $\isarcmd{instance}$ (see \ref{sec:axclass}).
   
 \item [$\INSTANCE~c \subseteq \vec{c}$] sets up a
   goal stating 
@@ -522,7 +521,7 @@ introduction on type classes.
   After finishing the proof, it is automatically lifted to
   prove the additional class relation $c \subseteq \vec{c}$.
 
-\item [$\isarkeyword{print_classes}$] prints the names of all classes
+\item [$\isarkeyword{print_classes}$] prints all classes
   in the current theory.
 
 \end{descr}
