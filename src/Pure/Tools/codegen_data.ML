@@ -32,8 +32,6 @@ sig
     -> ((string * sort) list * (string * typ list) list) option
   val get_datatype_of_constr: theory -> CodegenConsts.const -> string option
 
-  val print_thms: theory -> unit
-
   val preprocess_cterm: cterm -> thm
 
   val trace: bool ref
@@ -351,10 +349,11 @@ structure CodeData = TheoryDataFun
         |> map (fn (dtco, ((vs, cos), _)) => (Sign.string_of_typ thy (Type (dtco, map TFree vs)), cos))
         |> sort (string_ord o pairself fst)
     in
-      (Pretty.writeln o Pretty.block o Pretty.fbreaks) ([
-        Pretty.str "code theorems:",
-        Pretty.str "defining equations:" ] @
-          map pretty_func funs @ [
+      (Pretty.writeln o Pretty.chunks) [
+        Pretty.block (
+          Pretty.str "defining equations:"
+          :: map pretty_func funs
+        ),
         Pretty.block (
           Pretty.str "inlining theorems:"
           :: Pretty.fbrk
@@ -374,12 +373,10 @@ structure CodeData = TheoryDataFun
           Pretty.str "datatypes:"
           :: Pretty.fbrk
           :: (Pretty.fbreaks o map pretty_dtyp) dtyps
-        )]
-      )
+        )
+      ]
     end;
 end);
-
-fun print_thms thy = CodeData.print thy;
 
 fun init k = CodeData.map
   (fn (exec, data) => (exec, ref (Datatab.update (k, invoke_empty k) (! data))));
@@ -836,6 +833,27 @@ in
     ("inline", add_inline),
     ("noinline", del_inline)
   ]
+end; (*local*)
+
+
+(** Isar setup **)
+
+local
+
+structure P = OuterParse
+and K = OuterKeyword
+
+val print_codesetupK = "print_codesetup";
+
+in
+
+val print_codesetupP =
+  OuterSyntax.improper_command print_codesetupK "print code generator setup of this theory" OuterKeyword.diag
+    (Scan.succeed
+      (Toplevel.no_timing o Toplevel.unknown_theory o Toplevel.keep (CodeData.print o Toplevel.theory_of)));
+
+val _ = OuterSyntax.add_parsers [print_codesetupP];
+
 end; (*local*)
 
 end; (*struct*)
