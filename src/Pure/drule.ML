@@ -910,7 +910,7 @@ fun cterm_instantiate ctpairs0 th =
       fun instT(ct,cu) =
         let val inst = cterm_of thy o Term.map_types (Envir.norm_type tye) o term_of
         in (inst ct, inst cu) end
-      fun ctyp2 (ixn, (S, T)) = (ctyp_of thy (TVar (ixn, S)), ctyp_of thy T)
+      fun ctyp2 (ixn, (S, T)) = (ctyp_of thy (TVar (ixn, S)), ctyp_of thy (Envir.norm_type tye T))
   in  instantiate (map ctyp2 (Vartab.dest tye), map instT ctpairs0) th  end
   handle TERM _ =>
            raise THM("cterm_instantiate: incompatible theories",0,[th])
