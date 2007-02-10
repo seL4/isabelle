@@ -3,12 +3,20 @@
     Author:     Florian Haftmann, TU Muenchen
 
 Naming policies for code generation: prefixing any name by corresponding theory name,
-conversion to alphanumeric representation, name space identifier.
+conversion to alphanumeric representation.
 Mappings are incrementally cached.
 *)
 
 signature CODEGEN_NAMES =
 sig
+  val purify_var: string -> string
+  val purify_tvar: string -> string
+  val check_modulename: string -> string
+  type var_ctxt;
+  val make_vars: string list -> var_ctxt;
+  val intro_vars: string list -> var_ctxt -> var_ctxt;
+  val lookup_var: var_ctxt -> string -> string;
+
   type tyco = string
   type const = string
   val class: theory -> class -> class
@@ -22,15 +30,6 @@ sig
   val const: theory -> CodegenConsts.const -> const
   val const_rev: theory -> const -> CodegenConsts.const option
   val labelled_name: theory -> string -> string
-
-  val check_modulename: string -> string
-  val purify_var: string -> string
-  val purify_tvar: string -> string
-  
-  type var_ctxt;
-  val make_vars: string list -> var_ctxt;
-  val intro_vars: string list -> var_ctxt -> var_ctxt;
-  val lookup_var: var_ctxt -> string -> string;
 end;
 
 structure CodegenNames: CODEGEN_NAMES =
@@ -75,6 +74,76 @@ val purify_lower =
   #> implode;
 
 val purify_upper = explode #> nth_map 0 Symbol.to_ascii_upper #> implode;
+
+fun purify_var "" = "x"
+  | purify_var v = (purify_name #> purify_lower) v;
+
+fun purify_tvar "" = "'a"
+  | purify_tvar v =
+      (unprefix "'" #> explode #> filter Symbol.is_ascii_letter #> cons "'" #> implode) v;
+
+fun check_modulename mn =
+  let
+    val mns = NameSpace.explode mn;
+    val mns' = map purify_upper mns;
+  in
+    if mns' = mns then mn else error ("Invalid module name: " ^ quote mn ^ "\n"
+      ^ "perhaps try " ^ quote (NameSpace.implode mns'))
+  end;
+
+
+(** variable name contexts **)
+
+type var_ctxt = string Symtab.table * Name.context;
+
+fun make_vars names = (fold (fn name => Symtab.update_new (name, name)) names Symtab.empty,
+  Name.make_context names);
+
+fun intro_vars names (namemap, namectxt) =
+  let
+    val (names', namectxt') = Name.variants names namectxt;
+    val namemap' = fold2 (curry Symtab.update) names names' namemap;
+  in (namemap', namectxt') end;
+
+fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
+ of SOME name' => name'
+  | NONE => error ("Invalid name in context: " ^ quote name);
+
+
+(** identifier categories **)
+
+val idf_class = "class";
+val idf_classrel = "clsrel"
+val idf_tyco = "tyco";
+val idf_instance = "inst";
+val idf_const = "const";
+
+fun string_of_classrel (class, superclass) = class ^ " < " ^ superclass;
+fun string_of_instance (class, tyco) = tyco ^ " :: " ^ class;
+
+fun add_idf nsp name =
+  NameSpace.append name nsp;
+
+fun dest_idf nsp name =
+  if NameSpace.base name = nsp
+  then SOME (NameSpace.qualifier name)
+  else NONE;
+
+local
+
+val name_mapping  = [
+  (idf_class,       "class"),
+  (idf_classrel,    "subclass relation"),
+  (idf_tyco,        "type constructor"),
+  (idf_instance,    "instance"),
+  (idf_const,       "constant")
+]
+
+in
+
+val category_of = the o AList.lookup (op =) name_mapping o NameSpace.base;
+
+end;
 
 
 (** global names (identifiers) **)
@@ -133,7 +202,7 @@ in
     (fn (class, classrel, tyco, inst, const) => (class, f classrel, tyco, inst, const));
   fun map_tyco f = map_names
     (fn (class, classrel, tyco, inst, const) => (class, classrel, f tyco, inst, const));
-  fun map_inst f = map_names
+  fun map_instance f = map_names
     (fn (class, classrel, tyco, inst, const) => (class, classrel, tyco, f inst, const));
   fun map_const f = map_names
     (fn (class, classrel, tyco, inst, const) => (class, classrel, tyco, inst, f const));
@@ -178,14 +247,14 @@ fun get thy get_tabs get upd_names upd policy x =
 
 (* backward lookup *)
 
-fun rev thy get_tabs errname name =
+fun rev thy get_tabs name =
   let
     val names_ref = CodeName.get thy
     val (Names names) = ! names_ref;
     val tab = (snd o get_tabs) names;
   in case Symtab.lookup tab name
    of SOME x => x
-    | NONE => error ("No such " ^ errname ^ ": " ^ quote name)
+    | NONE => error ("No such " ^ category_of name ^ ": " ^ quote name)
   end;
 
 
@@ -208,7 +277,8 @@ fun thyname_of_class thy =
 
 fun thyname_of_classrel thy =
   thyname_of thy (fn thy => fn (class1, class2) => Sign.subsort thy ([class1], [class2]))
-    (fn (class1, class2) => "thyname_of_classrel: no such classrel: " ^ quote class1 ^ " in " ^ quote class2);
+    (fn (class1, class2) => "thyname_of_classrel: no such subclass relation: "
+      ^ (quote o string_of_classrel) (class1, class2));
 
 fun thyname_of_tyco thy =
   thyname_of thy Sign.declared_tyname
@@ -219,7 +289,8 @@ fun thyname_of_instance thy =
     fun test_instance thy (class, tyco) =
       can (Sorts.mg_domain (Sign.classes_of thy) tyco) [class]
   in thyname_of thy test_instance
-    (fn (class, tyco) => "thyname_of_instance: no such instance: " ^ quote class ^ ", " ^ quote tyco)
+    (fn (class, tyco) => "thyname_of_instance: no such instance: "
+      ^ (quote o string_of_instance) (class, tyco))
   end;
 
 fun thyname_of_const thy =
@@ -274,110 +345,63 @@ fun const_policy thy (c, tys) =
       in NameSpace.implode (prefix @ [space_implode "_" base]) end;
 
 
-(* shallow name spaces *)
-
-val nsp_class = "class";
-val nsp_classrel = "clsrel"
-val nsp_tyco = "tyco";
-val nsp_inst = "inst";
-val nsp_const = "const";
-
-val nsp_mapping = [
-  (nsp_class,       "class"),
-  (nsp_classrel,    "class relation"),
-  (nsp_tyco,        "type constructor"),
-  (nsp_inst,        "instance"),
-  (nsp_const,       "constant")
-]
-
-fun add_nsp nsp name =
-  NameSpace.append name nsp
-
-fun dest_nsp nsp name =
-  if NameSpace.base name = nsp
-  then SOME (NameSpace.qualifier name)
-  else NONE;
-
-
 (* external interfaces *)
 
 fun class thy =
   get thy #class Symtab.lookup map_class Symtab.update class_policy
-  #> add_nsp nsp_class;
+  #> add_idf idf_class;
 fun classrel thy =
   get thy #classrel StringPairTab.lookup map_classrel StringPairTab.update classrel_policy
-  #> add_nsp nsp_classrel;
+  #> add_idf idf_classrel;
 fun tyco thy =
   get thy #tyco Symtab.lookup map_tyco Symtab.update tyco_policy
-  #> add_nsp nsp_tyco;
+  #> add_idf idf_tyco;
 fun instance thy =
-  get thy #instance StringPairTab.lookup map_inst StringPairTab.update instance_policy
-  #> add_nsp nsp_inst;
+  get thy #instance StringPairTab.lookup map_instance StringPairTab.update instance_policy
+  #> add_idf idf_instance;
 fun const thy =
   CodegenConsts.norm thy
   #> get thy #const Consttab.lookup map_const Consttab.update const_policy 
-  #> add_nsp nsp_const;
+  #> add_idf idf_const;
 
 fun class_rev thy =
-  dest_nsp nsp_class
-  #> Option.map (rev thy #class "class");
+  dest_idf idf_class
+  #> Option.map (rev thy #class);
 fun classrel_rev thy =
-  dest_nsp nsp_classrel
-  #> Option.map (rev thy #classrel "class relation");
+  dest_idf idf_classrel
+  #> Option.map (rev thy #classrel);
 fun tyco_rev thy =
-  dest_nsp nsp_tyco
-  #> Option.map (rev thy #tyco "type constructor");
+  dest_idf idf_tyco
+  #> Option.map (rev thy #tyco);
 fun instance_rev thy =
-  dest_nsp nsp_inst
-  #> Option.map (rev thy #instance "instance");
+  dest_idf idf_instance
+  #> Option.map (rev thy #instance);
 fun const_rev thy =
-  dest_nsp nsp_const
-  #> Option.map (rev thy #const "constant");
+  dest_idf idf_const
+  #> Option.map (rev thy #const);
 
-fun labelled_name thy name =
+local
+
+val f_mapping = [
+  (idf_class,       class_rev),
+  (idf_classrel,    Option.map string_of_classrel oo classrel_rev),
+  (idf_tyco,        tyco_rev),
+  (idf_instance,    Option.map string_of_instance oo instance_rev),
+  (idf_const,       fn thy => Option.map (CodegenConsts.string_of_const thy) o const_rev thy)
+];
+
+in
+
+fun labelled_name thy idf =
   let
-    val nam = NameSpace.qualifier name;
-    val nsp = NameSpace.base name;
-  in case AList.lookup (op =) nsp_mapping nsp
-   of SOME msg => msg ^ " " ^ quote nam
-    | NONE => error ("Illegal shallow name space: " ^ quote nsp)
+    val category = category_of idf;
+    val name = NameSpace.qualifier idf;
+    val f = (the o AList.lookup (op =) f_mapping o NameSpace.base) idf
+  in case f thy idf
+   of SOME thing => category ^ " " ^ quote thing
+    | NONE => error ("Unknown name: " ^ quote name)
   end;
 
-
-(** variable and module names **)
-
-fun purify_var "" = "x"
-  | purify_var v = (purify_name #> purify_lower) v;
-
-fun purify_tvar "" = "'a"
-  | purify_tvar v =
-      (unprefix "'" #> explode #> filter Symbol.is_ascii_letter #> cons "'" #> implode) v;
-
-fun check_modulename mn =
-  let
-    val mns = NameSpace.explode mn;
-    val mns' = map purify_upper mns;
-  in
-    if mns' = mns then mn else error ("Invalid module name: " ^ quote mn ^ "\n"
-      ^ "perhaps try " ^ quote (NameSpace.implode mns'))
-  end;
-
-
-(** variable name contexts **)
-
-type var_ctxt = string Symtab.table * Name.context;
-
-fun make_vars names = (fold (fn name => Symtab.update_new (name, name)) names Symtab.empty,
-  Name.make_context names);
-
-fun intro_vars names (namemap, namectxt) =
-  let
-    val (names', namectxt') = Name.variants names namectxt;
-    val namemap' = fold2 (curry Symtab.update) names names' namemap;
-  in (namemap', namectxt') end;
-
-fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
- of SOME name' => name'
-  | NONE => error ("Invalid name in context: " ^ quote name);
+end;
 
 end;
