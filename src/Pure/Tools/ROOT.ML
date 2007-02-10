@@ -9,7 +9,7 @@ use "xml_syntax.ML";
 
 (*derived theory and proof elements*)
 use "invoke.ML";
-use "class_package.ML";
+(* use "class_package.ML"; see Pure/Isar/ROOT.ML *)
 
 (*code generator, 1st generation*)
 use "../codegen.ML";

@@ -48,6 +48,7 @@ use "obtain.ML";
 use "locale.ML";
 use "spec_parse.ML";
 use "../axclass.ML";
+use "../Tools/class_package.ML";
 use "theory_target.ML";
 use "specification.ML";
 use "constdefs.ML";
