@@ -749,7 +749,8 @@ attachment: 'attach' modespec ? verblbrace text verbrbrace;
 \end{descr}
 
 The other framework generates code from functional programs
-(including overloading using type classes) to SML and Haskell.
+(including overloading using type classes) to SML \cite{SML},
+OCaml \cite{OCaml} and Haskell \cite{haskell-revised-report}.
 Conceptually, code generation is split up in three steps: \emph{selection}
 of code theorems, \emph{extraction} into an abstract executable view
 and \emph{serialization} to a specific \emph{target language}.
@@ -760,12 +761,14 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
 \indexisarcmd{code-type}
 \indexisarcmd{code-class}
 \indexisarcmd{code-instance}
+\indexisarcmd{code-monad}
 \indexisarcmd{code-reserved}
 \indexisarcmd{code-modulename}
 \indexisarcmd{code-moduleprolog}
 \indexisarcmd{code-axioms}
 \indexisarcmd{code-abstype}
-\indexisarcmd{print-codethms}
+\indexisarcmd{code-thms}
+\indexisarcmd{print-codesetup}
 \indexisaratt{code func}
 \indexisaratt{code nofunc}
 \indexisaratt{code inline}
@@ -777,12 +780,14 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
   \isarcmd{code_type} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_class} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_instance} & : & \isartrans{theory}{theory} \\
+  \isarcmd{code_monad} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_reserved} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_modulename} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_moduleprolog} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_axioms} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_abstype} & : & \isartrans{theory}{theory} \\
-  \isarcmd{print_codethms}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{code_thms}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{print_codesetup}^* & : & \isarkeep{theory~|~proof} \\
   code\ func & : & \isaratt \\
   code\ nofunc & : & \isaratt \\
   code\ inline & : & \isaratt \\
@@ -790,7 +795,7 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
 \end{matharray}
 
 \begin{rail}
-'code\_gen' ( ( const + ) ( seri + ) | ( const + ) | ( seri + ) );
+'code\_gen' ( ( const | 'name.*' | '*' ) + ) ? ( seri + ) ?;
 
 const : term;
 
@@ -798,9 +803,9 @@ typeconstructor : nameref;
 
 class : nameref;
 
-seri : target | 'SML' ( string | '-' ) | 'Haskell' ( 'root:' string ) ? 'string\_classes' ? string;
+seri : target | 'SML' ( string | '-' ) | 'OCaml' ( string | '-' ) | 'Haskell' ( 'root:' string ) ? 'string\_classes' ? string;
 
-target : 'SML' | 'Haskell';
+target : 'OCaml' | 'SML' | 'Haskell';
 
 'code\_const' (const + 'and') \\
   ( ( '(' target ( syntax + 'and' ) ')' ) + );
@@ -815,6 +820,8 @@ target : 'SML' | 'Haskell';
 'code\_instance' (( typeconstructor '::' class ) + 'and') \\
   ( ( '(' target ( '-' + 'and' ) ')' ) + );
 
+'code\_monad' term term term;
+
 'code\_reserved' target ( string + );
 
 'code\_modulename' target ( ( string string ) + );
@@ -825,9 +832,11 @@ target : 'SML' | 'Haskell';
 
 'code\_abstype' typ typ 'where' ( const ( '==' | equiv ) const + );
 
-syntax : ( 'target\_atom' ? string ) | ( 'infix' | 'infixl' | 'infixr' ) nat string;
+syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
 
-'print\_codethms' ( '(' ( const + ) ? ')' ) ?;
+'code\_thms' ( const + ) ?;
+
+'print\_codesetup';
 
 ('code\ func' | 'code\ nofunc' | 'code\ inline' | 'code\ noinline');
 \end{rail}
@@ -840,9 +849,18 @@ syntax : ( 'target\_atom' ? string ) | ( 'infix' | 'infixl' | 'infixr' ) nat str
   the whole current cache is serialized.  If no serialization instruction
   is given, only abstract code is cached.
 
-  The \emph{SML} serializer takes either a filename or an ``-'' as argument.
-  In the first case, code is written to the specified file, in the latter
+  Constants may be specified by giving them literally, referring
+  to all exeuctable contants within a certain theory named ``name''
+  by giving (``name.*''), or referring to \emph{all} exeuctable
+  constants currently available (``*'').
+
+  The \emph{SML} serializer takes either a filename or an ``-'' or ``*''
+  as argument.  In the first case, code is written to the specified file,
+  in the second to standard output and in the last case
   it is compiled internally in the context of the current ML session.
+
+  The \emph{OCaml} serializer is like the \emph{SML} serializer
+  but it produces code for OCaml and does not support internal compilation.
 
   For \emph{Haskell}, a directory name is specified; different modules
   are serialized to different files in this directory or
@@ -850,6 +868,7 @@ syntax : ( 'target\_atom' ? string ) | ( 'infix' | 'infixl' | 'infixr' ) nat str
   a module name prefix may be given using the ``root:'' argument;
   ``string\_classes'' adds a ``deriving (Read, Show)'' clause
   to each appropriate datatype declaration.
+  A ``-'' instead of a directory name prints code to standard output.
 
 \item [$\isarcmd{code_const}$] associates a list of constants
   with target-specific serializations.
@@ -865,6 +884,9 @@ syntax : ( 'target\_atom' ? string ) | ( 'infix' | 'infixl' | 'infixr' ) nat str
 \item [$\isarcmd{code_instance}$] declares a list of type constructor / class
   instance relations as ``already present'' for a given target.
   Applies only to \emph{Haskell}.
+
+\item [$\isarcmd{code_monad}$] provides an auxiliary mechanism
+  to generate monad code in \emph{Haskell}.
 
 \item [$\isarcmd{code_reserved}$] declares a list of names
   as reserved for a given target, preventing it to be shadowed
@@ -884,18 +906,22 @@ syntax : ( 'target\_atom' ? string ) | ( 'infix' | 'infixl' | 'infixr' ) nat str
   an abstract type plus operations by executable counterparts.
 
 \item [$code\ func$ and $code\ nofunc$] select or deselect explicitly
-  a function theorem for code generation.  Usually packages introducing
-  function theorems provide a resonable default setup for selection.
-  If no theorem has been selected for a constant, its definition
-  is used as function theorem if possible.
+  a defining equation for code generation.  Usually packages introducing
+  defining equations provide a resonable default setup for selection.
+  If no theorem has been selected explicitly
+  for a constant, its primitive definition
+  is used as defining equations if possible.
 
 \item [$code\ inline$ and $code\ noinline$] select or deselect
-  inlining theorems which are applied as rewrite rules to any function theorem.
+  inlining theorems which are applied as rewrite rules to any defining equation.
 
-\item [$\isarcmd{print_thms}$] gives an overview on selected
-  function theorems, code generator datatypes and inlining theorems.
-  When constants are given, it displays the function theorems
-  for those constants \emph{after} any preprocessing step has been carried out.
+\item [$\isarcmd{code_thms}$] lists currently cached defining equations
+  (i.e.~\emph{after} any preprocessing step has been carried out);
+  when constants are given, it adds the defining equations
+  for those constants, too.
+
+\item [$\isarcmd{print_codesetup}$] gives an overview on selected
+  defining equations, code generator datatypes and inlining theorems.
 
 \end{descr}
 
