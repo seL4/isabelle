@@ -100,11 +100,17 @@ sig
   val add_declaration: string -> (morphism -> Context.generic -> Context.generic) ->
     Proof.context -> Proof.context
 
+  val interpretation_i: (Proof.context -> Proof.context) ->
+    string * Attrib.src list -> expr -> typ Symtab.table * term Symtab.table ->
+    theory -> Proof.state
   val interpretation: (Proof.context -> Proof.context) ->
     string * Attrib.src list -> expr -> string option list ->
     theory -> Proof.state
   val interpretation_in_locale: (Proof.context -> Proof.context) ->
     xstring * expr -> theory -> Proof.state
+  val interpret_i: (Proof.state -> Proof.state Seq.seq) ->
+    string * Attrib.src list -> expr -> typ Symtab.table * term Symtab.table ->
+    bool -> Proof.state -> Proof.state
   val interpret: (Proof.state -> Proof.state Seq.seq) ->
     string * Attrib.src list -> expr -> string option list ->
     bool -> Proof.state -> Proof.state
@@ -1915,10 +1921,12 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
     fun activate_elem disch (prfx, atts) (Notes (kind, facts)) thy_ctxt =
         let
           val fact_morphism =
-            Morphism.name_morphism (NameSpace.qualified prfx) $> Morphism.thm_morphism disch;
+            Morphism.name_morphism (NameSpace.qualified prfx)
+            $> Morphism.thm_morphism disch;
           val facts' = facts
             (* discharge hyps in attributes *)
-            |> Attrib.map_facts (attrib thy_ctxt o Args.morph_values fact_morphism)
+            |> Attrib.map_facts
+                (attrib thy_ctxt o Args.morph_values fact_morphism)
             (* append interpretation attributes *)
             |> map (apfst (apsnd (fn a => a @ map (attrib thy_ctxt) atts)))
             (* discharge hyps *)
@@ -1973,24 +1981,8 @@ fun local_activate_facts_elemss x = gen_activate_facts_elemss
       put_local_registration
       add_local_witness x;
 
-fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
-    attn expr insts thy_ctxt =
+fun read_instantiations read_terms is_local parms insts =
   let
-    val ctxt = mk_ctxt thy_ctxt;
-    val thy = ProofContext.theory_of ctxt;
-
-    val ctxt' = ctxt |> ProofContext.theory_of |> ProofContext.init;
-    val pts = params_of_expr ctxt' [] (intern_expr thy expr)
-          ([], Symtab.empty, Symtab.empty);
-    val params_ids = make_params_ids (#1 pts);
-    val raw_params_elemss = make_raw_params_elemss pts;
-    val ((ids, _), raw_elemss) = flatten (ctxt', intern_expr thy)
-          (([], Symtab.empty), Expr expr);
-    val ((parms, all_elemss, _), (_, (_, defs, _))) =
-          read_elemss false ctxt' [] (raw_params_elemss @ raw_elemss) [];
-
-    (** compute instantiation **)
-
     (* user input *)
     val insts = if length parms < length insts
          then error "More arguments than parameters in instantiation."
@@ -2002,46 +1994,71 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
     val given = map_filter (fn (_, (NONE, _)) => NONE
          | (x, (SOME inst, T)) => SOME (x, (inst, T))) (ps ~~ (insts ~~ pvTs));
     val (given_ps, given_insts) = split_list given;
-    val tvars = foldr Term.add_typ_tvars [] pvTs;
-    val used = foldr Term.add_typ_varnames [] pvTs;
-    fun sorts (a, i) = AList.lookup (op =) tvars (a, i);
-    val (vs, vinst) = read_terms thy_ctxt sorts used given_insts;
-    val vars = foldl Term.add_term_tvar_ixns [] vs \\ map fst tvars;
-    val vars' = fold Term.add_varnames vs vars;
-    val _ = if null vars' then ()
+    val tvars = fold Term.add_tvarsT pvTs [];
+    val tfrees = fold Term.add_tfreesT pvTs [];
+    val used = map (fst o fst) tvars @ map fst tfrees;
+    val sorts = AList.lookup (op =) tvars;
+    val (vs, vinst) = read_terms sorts used given_insts;
+    val vars = foldl Term.add_term_tvar_ixns [] vs
+      |> subtract (op =) (map fst tvars)
+      |> fold Term.add_varnames vs
+    val _ = if null vars then ()
          else error ("Illegal schematic variable(s) in instantiation: " ^
-           commas_quote (map Syntax.string_of_vname vars'));
+           commas_quote (map Syntax.string_of_vname vars));
+
     (* replace new types (which are TFrees) by ones with new names *)
-    val new_Tnames = foldr Term.add_term_tfree_names [] vs;
-    val new_Tnames' = Name.invent_list used "'a" (length new_Tnames);
+    val new_Tnames = map fst (fold Term.add_tfrees vs [])
+      |> Name.names (Name.make_context used) "'a"
+      |> map swap;
     val renameT =
-          if is_local then I
-          else Logic.legacy_unvarifyT o Term.map_type_tfree (fn (a, s) =>
-            TFree ((the o AList.lookup (op =) (new_Tnames ~~ new_Tnames')) a, s));
+      if is_local then I
+      else Logic.legacy_unvarifyT o Term.map_type_tfree (fn (a, s) =>
+        TFree ((the o AList.lookup (op =) new_Tnames) a, s));
     val rename =
-          if is_local then I
-          else Term.map_types renameT;
+      if is_local then I
+      else Term.map_types renameT
+    val instT = Symtab.empty
+      |> fold (fn ((x, 0), T) => Symtab.update (x, renameT T)) vinst;
+    val inst = Symtab.empty
+      |> fold2 (fn x => fn t => Symtab.update (x, rename t)) given_ps vs;
 
-    val tinst = Symtab.make (map
-                (fn ((x, 0), T) => (x, T |> renameT)
-                  | ((_, n), _) => sys_error "Internal error var in prep_registration") vinst);
-    val inst = Symtab.make (given_ps ~~ map rename vs);
+  in (instT, inst) end;
 
-    (* defined params without user input *)
-    val not_given = map_filter (fn (x, (NONE, T)) => SOME (x, T)
-         | (_, (SOME _, _)) => NONE) (ps ~~ (insts ~~ pTs));
+fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
+    prep_attr prep_expr prep_instantiations
+    thy_ctxt raw_attn raw_expr raw_insts =
+  let
+    val ctxt = mk_ctxt thy_ctxt;
+    val thy = ProofContext.theory_of ctxt;
+    val ctxt' = ProofContext.init thy;
+
+    val attn = (apsnd o map)
+      (Attrib.crude_closure ctxt o Args.assignable o prep_attr thy) raw_attn;
+    val expr = prep_expr thy raw_expr;
+
+    val pts = params_of_expr ctxt' [] expr ([], Symtab.empty, Symtab.empty);
+    val params_ids = make_params_ids (#1 pts);
+    val raw_params_elemss = make_raw_params_elemss pts;
+    val ((ids, _), raw_elemss) = flatten (ctxt', I) (([], Symtab.empty), Expr expr);
+    val ((parms, all_elemss, _), (_, (_, defs, _))) =
+      read_elemss false ctxt' [] (raw_params_elemss @ raw_elemss) [];
+
+    (** compute instantiation **)
+
+    val (instT, inst1) = prep_instantiations (read_terms thy_ctxt) is_local parms raw_insts;
+
+    (* defined params without given instantiation *)
+    val not_given = filter_out (Symtab.defined inst1 o fst) parms;
     fun add_def (p, pT) inst =
       let
         val (t, T) = case find_first (fn (Free (a, _), _) => a = p) defs of
                NONE => error ("Instance missing for parameter " ^ quote p)
              | SOME (Free (_, T), t) => (t, T);
-        val d = Element.inst_term (tinst, inst) t;
+        val d = Element.inst_term (instT, inst) t;
       in Symtab.update_new (p, d) inst end;
-    val inst = fold add_def not_given inst;
-    val insts = (tinst, inst);
-    val inst_morphism = Element.inst_morphism thy insts;
+    val inst2 = fold add_def not_given inst1;
+    val inst_morphism = Element.inst_morphism thy (instT, inst2);
     (* Note: insts contain no vars. *)
-
 
     (** compute proof obligations **)
 
@@ -2057,30 +2074,30 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
       |> apfst (fn id => (id, map_mode (map (Element.morph_witness inst_morphism)) mode)));
 
     (* remove fragments already registered with theory or context *)
-    val new_inst_elemss = filter (fn ((id, _), _) =>
-          not (test_reg thy_ctxt id)) inst_elemss;
-    val new_ids = map #1 new_inst_elemss;
-
+    val new_inst_elemss = filter_out (fn ((id, _), _) => test_reg thy_ctxt id) inst_elemss;
     val propss = map extract_asms_elems new_inst_elemss;
 
-    val bind_attrib = Attrib.crude_closure ctxt o Args.assignable;
-    val attn' = apsnd (map (bind_attrib o Attrib.intern_src thy)) attn;
+  in (propss, activate attn inst_elemss new_inst_elemss propss) end;
 
-  in (propss, activate attn' inst_elemss new_inst_elemss propss) end;
+fun gen_prep_global_registration mk_ctxt = gen_prep_registration ProofContext.init false
+  (fn thy => fn sorts => fn used => Sign.read_def_terms (thy, K NONE, sorts) used true)
+  (fn thy => fn (name, ps) => test_global_registration thy (name, map Logic.varify ps))
+  global_activate_facts_elemss mk_ctxt;
 
-val prep_global_registration = gen_prep_registration
-     ProofContext.init false
-     (fn thy => fn sorts => fn used =>
-       Sign.read_def_terms (thy, K NONE, sorts) used true)
-     (fn thy => fn (name, ps) =>
-       test_global_registration thy (name, map Logic.varify ps))
-     global_activate_facts_elemss;
+fun gen_prep_local_registration mk_ctxt = gen_prep_registration I true
+  (fn ctxt => ProofContext.read_termTs ctxt (K false) (K NONE))
+  smart_test_registration
+  local_activate_facts_elemss mk_ctxt;
 
-val prep_local_registration = gen_prep_registration
-     I true
-     (fn ctxt => ProofContext.read_termTs ctxt (K false) (K NONE))
-     smart_test_registration
-     local_activate_facts_elemss;
+val prep_global_registration = gen_prep_global_registration
+  Attrib.intern_src intern_expr read_instantiations;
+val prep_global_registration_i = gen_prep_global_registration
+  (K I) (K I) ((K o K o K) I);
+
+val prep_local_registration = gen_prep_local_registration
+  Attrib.intern_src intern_expr read_instantiations;
+val prep_local_registration_i = gen_prep_local_registration
+  (K I) (K I) ((K o K o K) I);
 
 fun prep_registration_in_locale target expr thy =
   (* target already in internal form *)
@@ -2194,19 +2211,40 @@ fun prep_propp propss = propss |> map (fn (_, props) =>
 fun prep_result propps thmss =
   ListPair.map (fn ((_, props), thms) => map2 Element.make_witness props thms) (propps, thmss);
 
-in
-
-fun interpretation after_qed (prfx, atts) expr insts thy =
+fun gen_interpretation prep_registration after_qed (prfx, raw_atts) raw_expr raw_insts thy =
   let
-    val (propss, activate) = prep_global_registration (prfx, atts) expr insts thy;
+    val (propss, activate) = prep_registration thy (prfx, raw_atts) raw_expr raw_insts;
     fun after_qed' results =
       ProofContext.theory (activate (prep_result propss results))
       #> after_qed;
   in
-    ProofContext.init thy
+    thy
+    |> ProofContext.init 
     |> Proof.theorem_i NONE after_qed' (prep_propp propss)
+    |> Element.refine_witness
+    |> Seq.hd
+  end;
+
+fun gen_interpret prep_registration after_qed (prfx, atts) expr insts int state =
+  let
+    val _ = Proof.assert_forward_or_chain state;
+    val ctxt = Proof.context_of state;
+    val (propss, activate) = prep_registration ctxt (prfx, atts) expr insts;
+    fun after_qed' results =
+      Proof.map_context (K (ctxt |> activate (prep_result propss results)))
+      #> Proof.put_facts NONE
+      #> after_qed;
+  in
+    state
+    |> Proof.local_goal (ProofDisplay.print_results int) (K I) ProofContext.bind_propp_i
+      "interpret" NONE after_qed' (map (pair ("", [])) (prep_propp propss))
     |> Element.refine_witness |> Seq.hd
   end;
+
+in
+
+val interpretation = gen_interpretation prep_global_registration;
+val interpretation_i = gen_interpretation prep_global_registration_i;
 
 fun interpretation_in_locale after_qed (raw_target, expr) thy =
   let
@@ -2227,21 +2265,8 @@ fun interpretation_in_locale after_qed (raw_target, expr) thy =
     |> Element.refine_witness |> Seq.hd
   end;
 
-fun interpret after_qed (prfx, atts) expr insts int state =
-  let
-    val _ = Proof.assert_forward_or_chain state;
-    val ctxt = Proof.context_of state;
-    val (propss, activate) = prep_local_registration (prfx, atts) expr insts ctxt;
-    fun after_qed' results =
-      Proof.map_context (K (ctxt |> activate (prep_result propss results)))
-      #> Proof.put_facts NONE
-      #> after_qed;
-  in
-    state
-    |> Proof.local_goal (ProofDisplay.print_results int) (K I) ProofContext.bind_propp_i
-      "interpret" NONE after_qed' (map (pair ("", [])) (prep_propp propss))
-    |> Element.refine_witness |> Seq.hd
-  end;
+val interpret = gen_interpret prep_local_registration;
+val interpret_i = gen_interpret prep_local_registration_i;
 
 end;
 
