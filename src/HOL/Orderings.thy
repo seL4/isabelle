@@ -876,14 +876,14 @@ lemma max_linorder:
   "linorder.max (op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool) = max"
   by (rule+) (simp add: max_def order.max_def)
 
-lemmas min_le_iff_disj = order.min_le_iff_disj [where 'b = "?'a::linorder", simplified min_linorder]
-lemmas le_max_iff_disj = order.le_max_iff_disj [where 'b = "?'a::linorder", simplified max_linorder]
-lemmas min_less_iff_disj = order.min_less_iff_disj [where 'b = "?'a::linorder", simplified min_linorder]
-lemmas less_max_iff_disj = order.less_max_iff_disj [where 'b = "?'a::linorder", simplified max_linorder]
-lemmas min_less_iff_conj [simp] = order.min_less_iff_conj [where 'b = "?'a::linorder", simplified min_linorder]
-lemmas max_less_iff_conj [simp] = order.max_less_iff_conj [where 'b = "?'a::linorder", simplified max_linorder]
-lemmas split_min = order.split_min [where 'b = "?'a::linorder", simplified min_linorder]
-lemmas split_max = order.split_max [where 'b = "?'a::linorder", simplified max_linorder]
+lemmas min_le_iff_disj = order.min_le_iff_disj [where 'b = "?'a::linorder", unfolded min_linorder]
+lemmas le_max_iff_disj = order.le_max_iff_disj [where 'b = "?'a::linorder", unfolded max_linorder]
+lemmas min_less_iff_disj = order.min_less_iff_disj [where 'b = "?'a::linorder", unfolded min_linorder]
+lemmas less_max_iff_disj = order.less_max_iff_disj [where 'b = "?'a::linorder", unfolded max_linorder]
+lemmas min_less_iff_conj [simp] = order.min_less_iff_conj [where 'b = "?'a::linorder", unfolded min_linorder]
+lemmas max_less_iff_conj [simp] = order.max_less_iff_conj [where 'b = "?'a::linorder", unfolded max_linorder]
+lemmas split_min = order.split_min [where 'b = "?'a::linorder", unfolded min_linorder]
+lemmas split_max = order.split_max [where 'b = "?'a::linorder", unfolded max_linorder]
 
 lemma min_leastL: "(!!x. least <= x) ==> min least x = least"
   by (simp add: min_def)
