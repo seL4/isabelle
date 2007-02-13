@@ -9,6 +9,7 @@ uses
   ("nominal_induct.ML") 
   ("nominal_permeq.ML")
   ("nominal_primrec.ML")
+  ("nominal_inductive.ML")
 begin 
 
 section {* Permutations *}
@@ -3019,6 +3020,9 @@ setup "NominalPackage.setup"
 
 (** primitive recursive functions on nominal datatypes **)
 use "nominal_primrec.ML"
+
+(** inductive predicates involving nominal datatypes **)
+use "nominal_inductive.ML"
 
 (*****************************************)
 (* setup for induction principles method *)
