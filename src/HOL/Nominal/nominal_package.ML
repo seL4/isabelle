@@ -12,6 +12,7 @@ sig
   type nominal_datatype_info
   val get_nominal_datatypes : theory -> nominal_datatype_info Symtab.table
   val get_nominal_datatype : theory -> string -> nominal_datatype_info option
+  val mk_perm: typ list -> term -> term -> term
   val setup: theory -> theory
 end
 
@@ -209,6 +210,12 @@ val rev_simps = thms "rev.simps";
 val app_simps = thms "op @.simps";
 
 val collect_simp = rewrite_rule [mk_meta_eq mem_Collect_eq];
+
+fun mk_perm Ts t u =
+  let
+    val T = fastype_of1 (Ts, t);
+    val U = fastype_of1 (Ts, u)
+  in Const ("Nominal.perm", T --> U --> U) $ t $ u end;
 
 fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
   let
@@ -1214,12 +1221,6 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         (descr'' ~~ recTs ~~ tnames ~~ zs)));
     val induct' = Logic.list_implies (ind_prems', ind_concl');
 
-    fun mk_perm Ts (t, u) =
-      let
-        val T = fastype_of1 (Ts, t);
-        val U = fastype_of1 (Ts, u)
-      in Const ("Nominal.perm", T --> U --> U) $ t $ u end;
-
     val aux_ind_vars =
       (DatatypeProp.indexify_names (replicate (length dt_atomTs) "pi") ~~
        map mk_permT dt_atomTs) @ [("z", fsT')];
@@ -1227,8 +1228,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val aux_ind_concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop "op &")
       (map (fn (((i, _), T), tname) =>
         HOLogic.list_all (aux_ind_vars, make_pred fsT' i T $ Bound 0 $
-          foldr (mk_perm aux_ind_Ts) (Free (tname, T))
-            (map Bound (length dt_atomTs downto 1))))
+          fold_rev (mk_perm aux_ind_Ts) (map Bound (length dt_atomTs downto 1))
+            (Free (tname, T))))
         (descr'' ~~ recTs ~~ tnames)));
 
     fun mk_ind_perm i k p l vs j =
@@ -1239,10 +1240,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val pT = NominalAtoms.mk_permT T
       in
         Const ("List.list.Cons", HOLogic.mk_prodT (T, T) --> pT --> pT) $
-          (HOLogic.pair_const T T $ Bound (l - j) $ foldr (mk_perm Ts)
-            (Bound (i - j))
+          (HOLogic.pair_const T T $ Bound (l - j) $ fold_rev (mk_perm Ts)
             (map (mk_ind_perm i k p l vs) (j - 1 downto 0) @
-             map Bound (n - k - 1 downto n - k - p))) $
+             map Bound (n - k - 1 downto n - k - p))
+            (Bound (i - j))) $
           Const ("List.list.Nil", pT)
       end;
 
@@ -1262,7 +1263,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (List.take (vs, n - k - p - 1) ~~ (1 upto n - k - p - 1)));
         val ts = map (fn i =>
           Const ("Nominal.supp", List.nth (Ts, n - i - 1) --> S) $
-            foldr (mk_perm (T :: Ts)) (Bound (n - i)) prms') is
+            fold_rev (mk_perm (T :: Ts)) prms' (Bound (n - i))) is
       in
         HOLogic.mk_Trueprop (Const ("Ex", (T --> HOLogic.boolT) --> HOLogic.boolT) $
           Abs ("a", T, HOLogic.Not $
@@ -1271,8 +1272,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                 (foldl (fn (t, u) => Const ("op Un", S --> S --> S) $ u $ t)
                   (f $ Bound (n - k - p))
                   (Const ("Nominal.supp", U --> S) $
-                     foldr (mk_perm (T :: Ts)) (Bound (n - i')) prms :: ts))
-                (foldr (mk_perm (T :: Ts)) (Bound (n - i - j)) prms :: bs)))))
+                     fold_rev (mk_perm (T :: Ts)) prms (Bound (n - i')) :: ts))
+                (fold_rev (mk_perm (T :: Ts)) prms (Bound (n - i - j)) :: bs)))))
       end;
 
     fun mk_fresh_constr is p vs _ concl =
@@ -1286,10 +1287,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val ps = map Bound (n - k - 1 downto n - k - p);
         val (_, _, ts, us) = foldl (fn ((_, i), (m, n, ts, us)) =>
           (m - i - 1, n - i,
-           ts @ map Bound (n downto n - i + 1) @
-             [foldr (mk_perm Ts) (Bound (m - i))
-                (map (mk_ind_perm m k p n vs) (i - 1 downto 0) @ ps)],
-           us @ map (fn j => foldr (mk_perm Ts) (Bound j) ps) (m downto m - i)))
+           ts @ map Bound (n downto n - i + 1) @ [fold_rev (mk_perm Ts)
+             (map (mk_ind_perm m k p n vs) (i - 1 downto 0) @ ps)
+             (Bound (m - i))],
+           us @ map (fn j => fold_rev (mk_perm Ts) ps (Bound j)) (m downto m - i)))
           (n - 1, n - k - p - 2, [], []) is
       in
         HOLogic.mk_Trueprop (HOLogic.eq_const T $ list_comb (c, ts) $ list_comb (c, us))
@@ -1529,7 +1530,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       let
         val permT = mk_permT aT;
         val pi = Free ("pi", permT);
-        val rec_fns_pi = map (curry (mk_perm []) pi o uncurry (mk_Free "f"))
+        val rec_fns_pi = map (mk_perm [] pi o uncurry (mk_Free "f"))
           (rec_fn_Ts ~~ (1 upto (length rec_fn_Ts)));
         val rec_sets_pi = map (fn c => list_comb (Const c, rec_fns_pi))
           (rec_set_names ~~ rec_set_Ts);
@@ -1538,7 +1539,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             val x = Free ("x" ^ string_of_int i, T);
             val y = Free ("y" ^ string_of_int i, U)
           in
-            (R $ x $ y, R' $ mk_perm [] (pi, x) $ mk_perm [] (pi, y))
+            (R $ x $ y, R' $ mk_perm [] pi x $ mk_perm [] pi y)
           end) (recTs ~~ rec_result_Ts ~~ rec_sets ~~ rec_sets_pi ~~ (1 upto length recTs));
         val ths = map (fn th => standard (th RS mp)) (split_conj_thm
           (Goal.prove_global thy11 [] []
@@ -1821,7 +1822,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                     val _ = warning "step 3: pi1 o (K as ts) = pi2 o (K bs us)";
                     val pi1_pi2_eq = Goal.prove context'' [] []
                       (HOLogic.mk_Trueprop (HOLogic.mk_eq
-                        (foldr (mk_perm []) lhs pi1, foldr (mk_perm []) rhs pi2)))
+                        (fold_rev (mk_perm []) pi1 lhs, fold_rev (mk_perm []) pi2 rhs)))
                       (fn _ => EVERY
                          [cut_facts_tac constr_fresh_thms 1,
                           asm_simp_tac (HOL_basic_ss addsimps perm_fresh_fresh) 1,
@@ -1832,7 +1833,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                     val pi1_pi2_eqs = map (fn (t, u) =>
                       Goal.prove context'' [] []
                         (HOLogic.mk_Trueprop (HOLogic.mk_eq
-                          (foldr (mk_perm []) t pi1, foldr (mk_perm []) u pi2)))
+                          (fold_rev (mk_perm []) pi1 t, fold_rev (mk_perm []) pi2 u)))
                         (fn _ => EVERY
                            [cut_facts_tac [pi1_pi2_eq] 1,
                             asm_full_simp_tac (HOL_ss addsimps
@@ -1846,7 +1847,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                     val rpi1_pi2_eqs = map (fn ((t, u), eq) =>
                       Goal.prove context'' [] []
                         (HOLogic.mk_Trueprop (HOLogic.mk_eq
-                          (foldr (mk_perm []) u (rpi1 @ pi2), t)))
+                          (fold_rev (mk_perm []) (rpi1 @ pi2) u, t)))
                         (fn _ => simp_tac (HOL_ss addsimps
                            ((eq RS sym) :: perm_swap)) 1))
                         (map snd cargsl' ~~ map snd cargsr' ~~ pi1_pi2_eqs);
@@ -1861,7 +1862,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                         val _ $ (S $ x $ y) = prop_of th;
                         val k = find_index (equal S) rec_sets;
                         val pi = rpi1 @ pi2;
-                        fun mk_pi z = foldr (mk_perm []) z pi;
+                        fun mk_pi z = fold_rev (mk_perm []) pi z;
                         fun eqvt_tac p =
                           let
                             val U as Type (_, [Type (_, [T, _])]) = fastype_of p;
@@ -1897,8 +1898,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                       in
                         Goal.prove context'' [] []
                            (HOLogic.mk_Trueprop (HOLogic.mk_eq
-                              (foldr (mk_perm []) lhs pi1,
-                               foldr (mk_perm []) (strip_perm rhs) pi2)))
+                              (fold_rev (mk_perm []) pi1 lhs,
+                               fold_rev (mk_perm []) pi2 (strip_perm rhs))))
                            (fn _ => simp_tac (HOL_basic_ss addsimps
                               (th' :: perm_swap)) 1)
                       end) (rec_prems' ~~ ihs);
@@ -1950,8 +1951,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                       let val th' = Goal.prove context'' [] []
                         (HOLogic.mk_Trueprop (Const ("Nominal.fresh",
                           aT --> rT --> HOLogic.boolT) $
-                            foldr (mk_perm []) a (rpi2 @ pi1) $
-                            foldr (mk_perm []) rhs' (rpi2 @ pi1)))
+                            fold_rev (mk_perm []) (rpi2 @ pi1) a $
+                            fold_rev (mk_perm []) (rpi2 @ pi1) rhs'))
                         (fn _ => simp_tac (HOL_ss addsimps fresh_bij) 1 THEN
                            rtac th 1)
                       in
@@ -1992,7 +1993,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                     val _ = warning "step 11: pi1 o (fK as ts rs) = pi2 o (fK bs us vs)";
                     val pi1_pi2_result = Goal.prove context'' [] []
                       (HOLogic.mk_Trueprop (HOLogic.mk_eq
-                        (foldr (mk_perm []) rhs' pi1, foldr (mk_perm []) lhs' pi2)))
+                        (fold_rev (mk_perm []) pi1 rhs', fold_rev (mk_perm []) pi2 lhs')))
                       (fn _ => NominalPermeq.perm_simp_tac (HOL_ss addsimps
                            pi1_pi2_eqs @ rec_eqns) 1 THEN
                          TRY (simp_tac (HOL_ss addsimps
