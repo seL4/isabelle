@@ -557,7 +557,7 @@ fun compose_single (tha,i,thb) =
 
 (*compose Q and [Q1,Q2,...,Qk]==>R to [Q2,...,Qk]==>R getting unique result*)
 fun tha COMP thb =
-    case compose(tha,1,thb) of
+    case distinct eq_thm (compose(tha,1,thb)) of
         [th] => th
       | _ =>   raise THM("COMP", 1, [tha,thb]);
 
