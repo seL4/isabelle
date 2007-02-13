@@ -12,7 +12,7 @@ sig
   (* exported for use by size-change termination prototype.
      FIXME: provide a common interface later *)
   val mk_base_funs : typ -> term list
-
+  (* exported for debugging *)
   val setup: theory -> theory
 end
 
@@ -68,11 +68,19 @@ fun mk_base_funs (tt: typ) =
     mk_base_fun_bodys (Bound 0) tt |>
                       map (mk_base_fun_header tt)
 
-fun mk_funorder_funs (tt : typ) =
+fun mk_funorder_funs (tt : typ) (one : bool) : Term.term list =
     case tt of
-      Type("+", [ft, st]) => product (mk_funorder_funs ft) (mk_funorder_funs st)
+      Type("+", [ft, st]) => let
+                               val ft_funs = mk_funorder_funs ft
+                               val st_funs = mk_funorder_funs st 
+                             in
+                               (if one then 
+                                 (product (ft_funs true) (st_funs false)) @ (product (ft_funs false) (st_funs true))
+                               else
+                                 product (ft_funs false) (st_funs false)) 
                                     |> map mk_sum_case
-    | _ => [Abs ("x", tt, HOLogic.zero), Abs ("x", tt, HOLogic.Suc_zero)]
+                             end
+    | _ => if one then [Abs ("x", tt, HOLogic.Suc_zero)] else [Abs ("x", tt, HOLogic.zero)]
 
 fun mk_ext_base_funs (tt : typ) =
     case tt of
@@ -83,7 +91,7 @@ fun mk_ext_base_funs (tt : typ) =
 
 fun mk_all_measure_funs (tt : typ) =
     case tt of
-      Type("+", _) => (mk_ext_base_funs tt) @ (mk_funorder_funs tt)
+      Type("+", _) => (mk_ext_base_funs tt) @ (mk_funorder_funs tt true)
     | _ => mk_base_funs tt
            
 fun dest_term (t : term) =
@@ -137,28 +145,37 @@ fun mk_row (thy: theory) measure_funs (t : term) =
     in
       map (mk_cell thy (vars, prems)) (lhs_list ~~ rhs_list)
     end
+    
+fun pr_cell cell = case cell of Less _ => " <  " 
+                              | LessEq _ => " <= " 
+                              | None _ => " N  "
+                              | False _ => " F  "
+
+fun pr_table table = writeln (cat_lines (map (fn r => concat (map pr_cell r)) table))
+
+fun check_col ls = (forall (fn c => is_Less c orelse is_LessEq c) ls) andalso not (forall (fn c => is_LessEq c) ls)
+
+fun transform_table table col = table |> filter_out (fn x => is_Less (nth x col)) |> map (curry del_index col)
+
+fun transform_order col order = map (fn x => if x>=col then x+1 else x) order
       
 (* simple depth-first search algorithm for the table *)
-
 fun search_table table =
     case table of
       [] => SOME []
     | _ =>
       let
-        val check_col = forall (fn c => is_Less c orelse is_LessEq c)
         val col = find_index (check_col) (transpose table)
       in case col of
            ~1 => NONE 
          | _ =>
            let
-             val order_opt = table |> filter_out (fn x => is_Less (nth x col)) |> map (curry del_index col) |> search_table
-             val transform_order = (fn col => map (fn x => if x>=col then x+1 else x))
+             val order_opt = (table, col) |-> transform_table |> search_table
            in case order_opt of
                 NONE => NONE
               | SOME order =>SOME (col::(transform_order col order))
            end
       end
-
 
 (* find all positions of elements in a list *) 
 fun find_index_list pred =
@@ -167,30 +184,30 @@ fun find_index_list pred =
   in find 0 end;
 
 (* simple breadth-first search algorithm for the table *) 
-(*
-fun bfs_search_table tables =
-    case tables of
+fun bfs_search_table nodes =
+    case nodes of
       [] => sys_error "INTERNAL ERROR IN lexicographic order termination tactic - fun search_table (breadth search finished)" 
-    | (table::rtables) => let
-        val check_col = forall (fn c => is_Less c orelse is_LessEq c)
-        val cols = find_index_list (check_col) (transpose table)
-	val _ = print "table"
-	val _ = print table
-	val _ = print "possible columns:"
-	val _ = print cols
-      in case cols of
-	[] => NONE
-      | _ => let 
-	val s =
-          map (fn f => f table) (map (fn col => filter_out (fn x => is_Less (nth x col)) |> map (curry del_index col)) cols)
-          |> append rtables
-        val _ = print s 
-        in SOME [1]
-        end
+    | (node::rnodes) => let
+	val (order, table) = node
+      in
+        case table of
+          [] => SOME (foldr (fn (c, order) => c::transform_order c order) [] (rev order))
+        | _ => let
+	    val cols = find_index_list (check_col) (transpose table)
+          in
+            case cols of
+	      [] => NONE
+            | _ => let 
+              val newtables = map (transform_table table) cols 
+              val neworders = map (fn c => c::order) cols
+              val newnodes = neworders ~~ newtables
+            in
+              bfs_search_table (rnodes @ newnodes)
+            end 
+          end
       end
 
-fun search_table table = let val _ = bfs_search_table [table] in SOME [1] end
-*) 	       
+fun nsearch_table table = bfs_search_table [([], table)] 	       
 
 fun prove_row row (st : thm) =
     case row of
@@ -227,11 +244,6 @@ fun pr_goal thy t i =
     
 fun pr_fun thy t i =
     (string_of_int i) ^ ") " ^ (string_of_cterm (cterm_of thy t))
-    
-fun pr_cell cell = case cell of Less _ => " <  " 
-                              | LessEq _ => " <= " 
-                              | None _ => " N  "
-                              | False _ => " F  "
                                              
 (* fun pr_err: prints the table if tactic failed *)
 fun pr_err table thy tl measure_funs =  
@@ -266,6 +278,7 @@ fun lexicographic_order_tac ctxt (st: thm) =
     val _ = writeln "Creating table"
     val table = map (mk_row thy measure_funs) tl
     val _ = writeln "Searching for lexicographic order"
+    (* val _ = pr_table table *)
     val possible_order = search_table table
       in
     case possible_order of 
