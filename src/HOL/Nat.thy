@@ -439,7 +439,7 @@ lemma nat_le_linear: "(m::nat) \<le> n | n \<le> m"
 
 text {* Type {@typ nat} is a wellfounded linear order *}
 
-instance nat :: "{order, linorder, wellorder}"
+instance nat :: wellorder
   by intro_classes
     (assumption |
       rule le_refl le_trans le_anti_sym nat_less_le nat_le_linear wf_less)+
