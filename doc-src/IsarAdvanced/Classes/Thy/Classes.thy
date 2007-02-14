@@ -1,11 +1,15 @@
 
 (* $Id$ *)
 
+(*<*)
 theory Classes
 imports Main
 begin
 
-(*<*)
+ML {*
+CodegenSerializer.code_width := 74;
+*}
+
 syntax
   "_alpha" :: "type"  ("\<alpha>")
   "_alpha_ofsort" :: "sort \<Rightarrow> type"  ("\<alpha>()::_" [0] 1000)
@@ -69,45 +73,85 @@ chapter {* Haskell-style classes with Isabelle/Isar *}
 section {* Introduction *}
 
 text {*
-  The well-known concept of type classes
-  \cite{wadler89how,peterson93implementing,hall96type,Nipkow-Prehofer:1993,Nipkow:1993,Wenzel:1997}
-  offers a useful structuring mechanism for programs and proofs, which
-  is more light-weight than a fully featured module mechanism.  Type
-  classes are able to qualify types by associating operations and
-  logical properties.  For example, class @{text "eq"} could provide
-  an equivalence relation @{text "="} on type @{text "\<alpha>"}, and class
-  @{text "ord"} could extend @{text "eq"} by providing a strict order
-  @{text "<"} etc.
+  Type classes were introduces by Wadler and Blott \cite{wadler89how}
+  into the Haskell language, to allow for a reasonable implementation
+  of overloading\footnote{throughout this tutorial, we are referring
+  to classical Haskell 1.0 type classes, not considering
+  later additions in expressiveness}.
+  As a canonical example, a polymorphic equality function
+  @{text "eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} which is overloaded on different
+  types for @{text "\<alpha>"}, which is achieves by splitting introduction
+  of the @{text eq} function from its overloaded definitions by means
+  of @{text class} and @{text instance} declarations:
 
-  Isabelle/Isar offers Haskell-style type classes, combining operational
-  and logical specifications.
-*}
+  \medskip\noindent\hspace*{2ex}@{text "class eq where"}\footnote{syntax here is a kind of isabellized Haskell} \\
+  \hspace*{4ex}@{text "eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
 
-section {* A simple algebra example \label{sec:example} *}
+  \medskip\noindent\hspace*{2ex}@{text "instance nat \<Colon> eq where"} \\
+  \hspace*{4ex}@{text "eq 0 0 = True"} \\
+  \hspace*{4ex}@{text "eq 0 _ = False"} \\
+  \hspace*{4ex}@{text "eq _ 0 = False"} \\
+  \hspace*{4ex}@{text "eq (Suc n) (Suc m) = eq n m"}
 
-text {*
-  We demonstrate common elements of structured specifications and
-  abstract reasoning with type classes by the algebraic hierarchy of
+  \medskip\noindent\hspace*{2ex}@{text "instance (\<alpha>\<Colon>eq, \<beta>\<Colon>eq) pair \<Colon> eq where"} \\
+  \hspace*{4ex}@{text "eq (x1, y1) (x2, y2) = eq x1 x2 && eq y1 y2"}
+
+  \medskip\noindent\hspace*{2ex}@{text "class ord extends eq where"} \\
+  \hspace*{4ex}@{text "less_eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
+  \hspace*{4ex}@{text "less \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
+
+  \medskip Type variables are annotated with (finitly many) classes;
+  these annotations are assertions that a particular polymorphic type
+  provides definitions for overloaded functions.
+
+  Indeed, type classes not only allow for simple overloading
+  but form a generic calculus, an instance of order-sorted
+  algebra \cite{Nipkow-Prehofer:1993,Nipkow:1993,Wenzel:1997}.
+
+  From a software enigineering point of view, type classes
+  correspond to interfaces in object-oriented languages like Java;
+  so, it is naturally desirable that type classes do not only
+  provide functions (class operations) but also state specifications
+  implementations must obey.  For example, the @{text "class eq"}
+  above could be given the following specification:
+
+  \medskip\noindent\hspace*{2ex}@{text "class eq where"} \\
+  \hspace*{4ex}@{text "eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
+  \hspace*{2ex}@{text "satisfying"} \\
+  \hspace*{4ex}@{text "refl: eq x x"} \\
+  \hspace*{4ex}@{text "sym: eq x y \<longleftrightarrow> eq x y"} \\
+  \hspace*{4ex}@{text "trans: eq x y \<and> eq y z \<longrightarrow> eq x z"}
+
+  \medskip From a theoretic point of view, type classes are leightweight
+  modules; indeed, Haskell type classes may be emulated by
+  SML functors \cite{classes_modules}. 
+  Isabelle/Isar offers a discipline of type classes which brings
+  all those aspects together:
+
+  \begin{enumerate}
+    \item specifying abstract operations togehter with
+       corresponding specifications,
+    \item instantating those abstract operations by a particular
+       type
+    \item in connection with a ``less ad-hoc'' approach to overloading,
+    \item with a direct link to the Isabelle module system (aka locales).
+  \end{enumerate}
+
+  Isar type classes also directly support code generation
+  in as Haskell like fashion.
+
+  This tutorial demonstrates common elements of structured specifications
+  and abstract reasoning with type classes by the algebraic hierarchy of
   semigroups, monoids and groups.  Our background theory is that of
-  Isabelle/HOL \cite{Nipkow-et-al:2002:tutorial}, which uses fairly
-  standard notation from mathematics and functional programming.  We
-  also refer to basic vernacular commands for definitions and
-  statements, e.g.\ @{text "\<DEFINITION>"} and @{text "\<LEMMA>"};
-  proofs will be recorded using structured elements of Isabelle/Isar
-  \cite{Wenzel-PhD,Nipkow:2002}, notably @{text "\<PROOF>"}/@{text
-  "\<QED>"} and @{text "\<FIX>"}/@{text "\<ASSUME>"}/@{text
-  "\<SHOW>"}.
+  Isabelle/HOL \cite{Nipkow-et-al:2002:tutorial}, for which some
+  familiarity is assumed.
 
-  Our main concern are the new @{text "\<CLASS>"}
-  and @{text "\<INSTANCE>"} elements used below.
-  Here we merely present the
-  look-and-feel for end users, which is quite similar to Haskell's
-  \texttt{class} and \texttt{instance} \cite{hall96type}, but
-  augmented by logical specifications and proofs;
+  Here we merely present the look-and-feel for end users.
   Internally, those are mapped to more primitive Isabelle concepts.
   See \cite{haftmann_wenzel2006classes} for more detail.
 *}
 
+section {* A simple algebra example \label{sec:example} *}
 
 subsection {* Class definition *}
 
@@ -142,10 +186,10 @@ text {*
 *}
 
     instance int :: semigroup
-        mult_int_def: "\<And>i j :: int. i \<otimes> j \<equiv> i + j"
+      mult_int_def: "\<And>i j :: int. i \<otimes> j \<equiv> i + j"
     proof
-        fix i j k :: int have "(i + j) + k = i + (j + k)" by simp
-        then show "(i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)" unfolding mult_int_def .
+      fix i j k :: int have "(i + j) + k = i + (j + k)" by simp
+      then show "(i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)" unfolding mult_int_def .
     qed
 
 text {*
@@ -153,14 +197,20 @@ text {*
   as a @{text "semigroup"} automatically, i.e.\ any general results
   are immediately available on concrete instances.
 
+  Note that the first proof step is the @{text default} method,
+  which for instantiation proofs maps to the @{text intro_classes} method.
+  This boils down an instantiation judgement to the relevant primitive
+  proof goals and should conveniently always be the first method applied
+  in an instantiation proof.
+
   Another instance of @{text "semigroup"} are the natural numbers:
 *}
 
     instance nat :: semigroup
-      "m \<otimes> n \<equiv> m + n"
+      mult_nat_def: "m \<otimes> n \<equiv> m + n"
     proof
       fix m n q :: nat 
-      show "m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)" unfolding semigroup_nat_def by simp
+      show "m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)" unfolding mult_nat_def by simp
     qed
 
 text {*
@@ -169,12 +219,12 @@ text {*
 *}
 
     instance list :: (type) semigroup
-      "xs \<otimes> ys \<equiv> xs @ ys"
+      mult_list_def: "xs \<otimes> ys \<equiv> xs @ ys"
     proof
       fix xs ys zs :: "\<alpha> list"
       show "xs \<otimes> ys \<otimes> zs = xs \<otimes> (ys \<otimes> zs)"
       proof -
-        from semigroup_list_def have "\<And>xs ys\<Colon>\<alpha> list. xs \<otimes> ys \<equiv> xs @ ys" .
+        from mult_list_def have "\<And>xs ys\<Colon>\<alpha> list. xs \<otimes> ys \<equiv> xs @ ys" .
         thus ?thesis by simp
       qed
     qed
@@ -183,7 +233,7 @@ text {*
 subsection {* Subclasses *}
 
 text {*
-  We define a subclass @{text "monoidl"} (a semigroup with an left-hand neutral)
+  We define a subclass @{text "monoidl"} (a semigroup with a left-hand neutral)
   by extending @{text "semigroup"}
   with one additional operation @{text "neutral"} together
   with its property:
@@ -200,21 +250,21 @@ text {*
 *}
 
     instance nat :: monoidl
-      "\<one> \<equiv> 0"
+      neutral_nat_def: "\<one> \<equiv> 0"
     proof
       fix n :: nat
       show "\<one> \<otimes> n = n" unfolding neutral_nat_def mult_nat_def by simp
     qed
 
     instance int :: monoidl
-      "\<one> \<equiv> 0"
+      neutral_int_def: "\<one> \<equiv> 0"
     proof
       fix k :: int
       show "\<one> \<otimes> k = k" unfolding neutral_int_def mult_int_def by simp
     qed
 
     instance list :: (type) monoidl
-      "\<one> \<equiv> []"
+      neutral_list_def: "\<one> \<equiv> []"
     proof
       fix xs :: "\<alpha> list"
       show "\<one> \<otimes> xs = xs"
@@ -226,27 +276,26 @@ text {*
     qed  
 
 text {*
-  To finish our small algebra example, we add @{text "monoid"}
-  and @{text "group"} classes with corresponding instances
+  \noindent Fully-fledged monoids are modelled by another subclass
+  which does not add new operations but tightens the specification:
 *}
 
     class monoid = monoidl +
       assumes neutr: "x \<^loc>\<otimes> \<^loc>\<one> = x"
 
-    instance nat :: monoid
+text {*
+  \noindent Instantiations may also be given simultaneously for different
+  type constructors:
+*}
+
+    instance nat :: monoid and int :: monoid and list :: (type) monoid
     proof
       fix n :: nat
       show "n \<otimes> \<one> = n" unfolding neutral_nat_def mult_nat_def by simp
-    qed
-
-    instance int :: monoid
-    proof
+    next
       fix k :: int
       show "k \<otimes> \<one> = k" unfolding neutral_int_def mult_int_def by simp
-    qed
-
-    instance list :: (type) monoid
-    proof
+    next
       fix xs :: "\<alpha> list"
       show "xs \<otimes> \<one> = xs"
       proof -
@@ -254,20 +303,34 @@ text {*
 	moreover from mult_list_def neutral_list_def have "\<one> \<equiv> []\<Colon>'a list" by simp
 	ultimately show ?thesis by simp
       qed
-    qed  
+    qed
+
+text {*
+  \noindent To finish our small algebra example, we add a @{text "group"} class
+  with a corresponding instance:
+*}
 
     class group = monoidl +
       fixes inverse :: "\<alpha> \<Rightarrow> \<alpha>"    ("(_\<^loc>\<div>)" [1000] 999)
       assumes invl: "x\<^loc>\<div> \<^loc>\<otimes> x = \<^loc>\<one>"
 
     instance int :: group
-      "i\<div> \<equiv> - i"
+      inverse_int_def: "i\<div> \<equiv> - i"
     proof
       fix i :: int
       have "-i + i = 0" by simp
       then show "i\<div> \<otimes> i = \<one>" unfolding mult_int_def and neutral_int_def and inverse_int_def .
     qed
 
+section {* Type classes as locales *}
+
+subsection {* A look behind the scene *}
+
+(* write here: locale *)
+
+text {*
+
+*}
 
 subsection {* Abstract reasoning *}
 
@@ -305,8 +368,61 @@ text {*
 text {*
 *}*)
 
+section {* Further issues *}
 
-subsection {* Additional subclass relations *}
+subsection {* Code generation *}
+
+text {*
+  Turning back to the first motivation for type classes,
+  namely overloading, it is obvious that overloading
+  stemming from @{text "\<CLASS>"} and @{text "\<INSTANCE>"}
+  statements naturally maps to Haskell type classes.
+  The code generator framework \cite{isabelle-codegen} 
+  takes this into account.  Concerning target languages
+  lacking type classes (e.g.~SML), type classes
+  are implemented by explicit dictionary construction.
+  As example, the natural power function on groups:
+*}
+
+    fun
+      pow_nat :: "nat \<Rightarrow> 'a\<Colon>monoidl \<Rightarrow> 'a\<Colon>monoidl" where
+      "pow_nat 0 x = \<one>"
+      "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
+
+    definition
+      pow_int :: "int \<Rightarrow> 'a\<Colon>group \<Rightarrow> 'a\<Colon>group" where
+      "pow_int k x = (if k >= 0
+        then pow_nat (nat k) x
+        else (pow_nat (nat (- k)) x)\<div>)"
+
+    definition
+      example :: int where
+      "example = pow_int 10 (-2)"
+
+text {*
+  \noindent This maps to Haskell as:
+*}
+
+code_gen example (Haskell "code_examples/")
+  (* NOTE: you may use Haskell only once in this document, otherwise
+  you have to work in distinct subdirectories *)
+
+text {*
+  \lsthaskell{Thy/code_examples/Classes.hs}
+
+  \noindent (we have left out all other modules).
+
+  \noindent The whole code in SML with explicit dictionary passing:
+*}
+
+code_gen example (*<*)(SML #)(*>*)(SML "code_examples/classes.ML")
+
+text {*
+  \lstsml{Thy/code_examples/classes.ML}
+*}
+
+
+(* subsection {* Additional subclass relations *}
 
 text {*
   Any @{text "group"} is also a @{text "monoid"};  this
@@ -320,54 +436,15 @@ text {*
       from invl have "x\<^loc>\<div> \<^loc>\<otimes> x = \<^loc>\<one>" by simp
       with assoc [symmetric] neutl invl have "x\<^loc>\<div> \<^loc>\<otimes> (x \<^loc>\<otimes> \<^loc>\<one>) = x\<^loc>\<div> \<^loc>\<otimes> x" by simp
       with left_cancel show "x \<^loc>\<otimes> \<^loc>\<one> = x" by simp
-    qed
+    qed *)
 
-
-(* subsection {* Same logical content -- different syntax *}
+(* subsection {* Different syntax for same specifications *}
 
 text {*
+
+(* subsection {* Syntactic classes *}
+*)
 
 *} *)
-
-
-section {* Code generation *}
-
-text {*
-  Code generation takes account of type classes,
-  resulting either in Haskell type classes or SML dictionaries.
-  As example, we define the natural power function on groups:
-*}
-
-    function
-      pow_nat :: "nat \<Rightarrow> 'a\<Colon>monoidl \<Rightarrow> 'a\<Colon>monoidl" where
-      "pow_nat 0 x = \<one>"
-      "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
-      by pat_completeness auto
-    termination pow_nat by (auto_term "measure fst")
-    declare pow_nat.simps [code func]
-
-    definition
-      pow_int :: "int \<Rightarrow> 'a\<Colon>group \<Rightarrow> 'a\<Colon>group"
-      "pow_int k x = (if k >= 0
-        then pow_nat (nat k) x
-        else (pow_nat (nat (- k)) x)\<div>)"
-
-    definition
-      example :: int
-      "example = pow_int 10 (-2)"
-
-text {*
-  \noindent Now we generate and compile code for SML:
-*}
-
-    code_gen example (SML -)
-
-text {*
-  \noindent The result is as expected:
-*}
-
-    ML {*
-      if ROOT.Classes.example = ~20 then () else error "Wrong result"
-    *}
 
 end

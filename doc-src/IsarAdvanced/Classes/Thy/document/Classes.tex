@@ -13,14 +13,32 @@
 \isacommand{theory}\isamarkupfalse%
 \ Classes\isanewline
 \isakeyword{imports}\ Main\isanewline
-\isakeyword{begin}\isanewline
-%
+\isakeyword{begin}%
 \endisatagtheory
 {\isafoldtheory}%
 %
 \isadelimtheory
+\isanewline
 %
 \endisadelimtheory
+%
+\isadelimML
+\isanewline
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{ML}\isamarkupfalse%
+\ {\isacharverbatimopen}\isanewline
+CodegenSerializer{\isachardot}code{\isacharunderscore}width\ {\isacharcolon}{\isacharequal}\ {\isadigit{7}}{\isadigit{4}}{\isacharsemicolon}\isanewline
+{\isacharverbatimclose}\isanewline
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
 %
 \isadelimML
 %
@@ -44,45 +62,87 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The well-known concept of type classes
-  \cite{wadler89how,peterson93implementing,hall96type,Nipkow-Prehofer:1993,Nipkow:1993,Wenzel:1997}
-  offers a useful structuring mechanism for programs and proofs, which
-  is more light-weight than a fully featured module mechanism.  Type
-  classes are able to qualify types by associating operations and
-  logical properties.  For example, class \isa{eq} could provide
-  an equivalence relation \isa{{\isacharequal}} on type \isa{{\isasymalpha}}, and class
-  \isa{ord} could extend \isa{eq} by providing a strict order
-  \isa{{\isacharless}} etc.
+Type classes were introduces by Wadler and Blott \cite{wadler89how}
+  into the Haskell language, to allow for a reasonable implementation
+  of overloading\footnote{throughout this tutorial, we are referring
+  to classical Haskell 1.0 type classes, not considering
+  later additions in expressiveness}.
+  As a canonical example, a polymorphic equality function
+  \isa{eq\ {\isasymColon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ bool} which is overloaded on different
+  types for \isa{{\isasymalpha}}, which is achieves by splitting introduction
+  of the \isa{eq} function from its overloaded definitions by means
+  of \isa{class} and \isa{instance} declarations:
 
-  Isabelle/Isar offers Haskell-style type classes, combining operational
-  and logical specifications.%
+  \medskip\noindent\hspace*{2ex}\isa{class\ eq\ where}\footnote{syntax here is a kind of isabellized Haskell} \\
+  \hspace*{4ex}\isa{eq\ {\isasymColon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ bool}
+
+  \medskip\noindent\hspace*{2ex}\isa{instance\ nat\ {\isasymColon}\ eq\ where} \\
+  \hspace*{4ex}\isa{eq\ {\isadigit{0}}\ {\isadigit{0}}\ {\isacharequal}\ True} \\
+  \hspace*{4ex}\isa{eq\ {\isadigit{0}}\ {\isacharunderscore}\ {\isacharequal}\ False} \\
+  \hspace*{4ex}\isa{eq\ {\isacharunderscore}\ {\isadigit{0}}\ {\isacharequal}\ False} \\
+  \hspace*{4ex}\isa{eq\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharparenleft}Suc\ m{\isacharparenright}\ {\isacharequal}\ eq\ n\ m}
+
+  \medskip\noindent\hspace*{2ex}\isa{instance\ {\isacharparenleft}{\isasymalpha}{\isasymColon}eq{\isacharcomma}\ {\isasymbeta}{\isasymColon}eq{\isacharparenright}\ pair\ {\isasymColon}\ eq\ where} \\
+  \hspace*{4ex}\isa{eq\ {\isacharparenleft}x{\isadigit{1}}{\isacharcomma}\ y{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ eq\ x{\isadigit{1}}\ x{\isadigit{2}}\ {\isacharampersand}{\isacharampersand}\ eq\ y{\isadigit{1}}\ y{\isadigit{2}}}
+
+  \medskip\noindent\hspace*{2ex}\isa{class\ ord\ extends\ eq\ where} \\
+  \hspace*{4ex}\isa{less{\isacharunderscore}eq\ {\isasymColon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ bool} \\
+  \hspace*{4ex}\isa{less\ {\isasymColon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ bool}
+
+  \medskip Type variables are annotated with (finitly many) classes;
+  these annotations are assertions that a particular polymorphic type
+  provides definitions for overloaded functions.
+
+  Indeed, type classes not only allow for simple overloading
+  but form a generic calculus, an instance of order-sorted
+  algebra \cite{Nipkow-Prehofer:1993,Nipkow:1993,Wenzel:1997}.
+
+  From a software enigineering point of view, type classes
+  correspond to interfaces in object-oriented languages like Java;
+  so, it is naturally desirable that type classes do not only
+  provide functions (class operations) but also state specifications
+  implementations must obey.  For example, the \isa{class\ eq}
+  above could be given the following specification:
+
+  \medskip\noindent\hspace*{2ex}\isa{class\ eq\ where} \\
+  \hspace*{4ex}\isa{eq\ {\isasymColon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ bool} \\
+  \hspace*{2ex}\isa{satisfying} \\
+  \hspace*{4ex}\isa{refl{\isacharcolon}\ eq\ x\ x} \\
+  \hspace*{4ex}\isa{sym{\isacharcolon}\ eq\ x\ y\ {\isasymlongleftrightarrow}\ eq\ x\ y} \\
+  \hspace*{4ex}\isa{trans{\isacharcolon}\ eq\ x\ y\ {\isasymand}\ eq\ y\ z\ {\isasymlongrightarrow}\ eq\ x\ z}
+
+  \medskip From a theoretic point of view, type classes are leightweight
+  modules; indeed, Haskell type classes may be emulated by
+  SML functors \cite{classes_modules}. 
+  Isabelle/Isar offers a discipline of type classes which brings
+  all those aspects together:
+
+  \begin{enumerate}
+    \item specifying abstract operations togehter with
+       corresponding specifications,
+    \item instantating those abstract operations by a particular
+       type
+    \item in connection with a ``less ad-hoc'' approach to overloading,
+    \item with a direct link to the Isabelle module system (aka locales).
+  \end{enumerate}
+
+  Isar type classes also directly support code generation
+  in as Haskell like fashion.
+
+  This tutorial demonstrates common elements of structured specifications
+  and abstract reasoning with type classes by the algebraic hierarchy of
+  semigroups, monoids and groups.  Our background theory is that of
+  Isabelle/HOL \cite{Nipkow-et-al:2002:tutorial}, for which some
+  familiarity is assumed.
+
+  Here we merely present the look-and-feel for end users.
+  Internally, those are mapped to more primitive Isabelle concepts.
+  See \cite{haftmann_wenzel2006classes} for more detail.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
 \isamarkupsection{A simple algebra example \label{sec:example}%
 }
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-We demonstrate common elements of structured specifications and
-  abstract reasoning with type classes by the algebraic hierarchy of
-  semigroups, monoids and groups.  Our background theory is that of
-  Isabelle/HOL \cite{Nipkow-et-al:2002:tutorial}, which uses fairly
-  standard notation from mathematics and functional programming.  We
-  also refer to basic vernacular commands for definitions and
-  statements, e.g.\ \isa{{\isasymDEFINITION}} and \isa{{\isasymLEMMA}};
-  proofs will be recorded using structured elements of Isabelle/Isar
-  \cite{Wenzel-PhD,Nipkow:2002}, notably \isa{{\isasymPROOF}}/\isa{{\isasymQED}} and \isa{{\isasymFIX}}/\isa{{\isasymASSUME}}/\isa{{\isasymSHOW}}.
-
-  Our main concern are the new \isa{{\isasymCLASS}}
-  and \isa{{\isasymINSTANCE}} elements used below.
-  Here we merely present the
-  look-and-feel for end users, which is quite similar to Haskell's
-  \texttt{class} and \texttt{instance} \cite{hall96type}, but
-  augmented by logical specifications and proofs;
-  Internally, those are mapped to more primitive Isabelle concepts.
-  See \cite{haftmann_wenzel2006classes} for more detail.%
-\end{isamarkuptext}%
 \isamarkuptrue%
 %
 \isamarkupsubsection{Class definition%
@@ -119,7 +179,7 @@ The concrete type \isa{int} is made a \isa{semigroup}
 \isamarkuptrue%
 \ \ \ \ \isacommand{instance}\isamarkupfalse%
 \ int\ {\isacharcolon}{\isacharcolon}\ semigroup\isanewline
-\ \ \ \ \ \ \ \ mult{\isacharunderscore}int{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymAnd}i\ j\ {\isacharcolon}{\isacharcolon}\ int{\isachardot}\ i\ {\isasymotimes}\ j\ {\isasymequiv}\ i\ {\isacharplus}\ j{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ mult{\isacharunderscore}int{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymAnd}i\ j\ {\isacharcolon}{\isacharcolon}\ int{\isachardot}\ i\ {\isasymotimes}\ j\ {\isasymequiv}\ i\ {\isacharplus}\ j{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 \ \ \ \ %
@@ -128,11 +188,11 @@ The concrete type \isa{int} is made a \isa{semigroup}
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ i\ j\ k\ {\isacharcolon}{\isacharcolon}\ int\ \isacommand{have}\isamarkupfalse%
 \ {\isachardoublequoteopen}{\isacharparenleft}i\ {\isacharplus}\ j{\isacharparenright}\ {\isacharplus}\ k\ {\isacharequal}\ i\ {\isacharplus}\ {\isacharparenleft}j\ {\isacharplus}\ k{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
-\ \ \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}{\isacharparenleft}i\ {\isasymotimes}\ j{\isacharparenright}\ {\isasymotimes}\ k\ {\isacharequal}\ i\ {\isasymotimes}\ {\isacharparenleft}j\ {\isasymotimes}\ k{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{unfolding}\isamarkupfalse%
 \ mult{\isacharunderscore}int{\isacharunderscore}def\ \isacommand{{\isachardot}}\isamarkupfalse%
@@ -151,12 +211,18 @@ The concrete type \isa{int} is made a \isa{semigroup}
   as a \isa{semigroup} automatically, i.e.\ any general results
   are immediately available on concrete instances.
 
+  Note that the first proof step is the \isa{default} method,
+  which for instantiation proofs maps to the \isa{intro{\isacharunderscore}classes} method.
+  This boils down an instantiation judgement to the relevant primitive
+  proof goals and should conveniently always be the first method applied
+  in an instantiation proof.
+
   Another instance of \isa{semigroup} are the natural numbers:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \ \ \isacommand{instance}\isamarkupfalse%
 \ nat\ {\isacharcolon}{\isacharcolon}\ semigroup\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}m\ {\isasymotimes}\ n\ {\isasymequiv}\ m\ {\isacharplus}\ n{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ mult{\isacharunderscore}nat{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}m\ {\isasymotimes}\ n\ {\isasymequiv}\ m\ {\isacharplus}\ n{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 \ \ \ \ %
@@ -169,7 +235,7 @@ The concrete type \isa{int} is made a \isa{semigroup}
 \ m\ n\ q\ {\isacharcolon}{\isacharcolon}\ nat\ \isanewline
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}m\ {\isasymotimes}\ n\ {\isasymotimes}\ q\ {\isacharequal}\ m\ {\isasymotimes}\ {\isacharparenleft}n\ {\isasymotimes}\ q{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{unfolding}\isamarkupfalse%
-\ semigroup{\isacharunderscore}nat{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ mult{\isacharunderscore}nat{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \ \ \ \ \isacommand{qed}\isamarkupfalse%
 %
@@ -187,7 +253,7 @@ Also \isa{list}s form a semigroup with \isa{op\ {\isacharat}} as
 \isamarkuptrue%
 \ \ \ \ \isacommand{instance}\isamarkupfalse%
 \ list\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}type{\isacharparenright}\ semigroup\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}xs\ {\isasymotimes}\ ys\ {\isasymequiv}\ xs\ {\isacharat}\ ys{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ mult{\isacharunderscore}list{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}xs\ {\isasymotimes}\ ys\ {\isasymequiv}\ xs\ {\isacharat}\ ys{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 \ \ \ \ %
@@ -203,7 +269,7 @@ Also \isa{list}s form a semigroup with \isa{op\ {\isacharat}} as
 \ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
-\ semigroup{\isacharunderscore}list{\isacharunderscore}def\ \isacommand{have}\isamarkupfalse%
+\ mult{\isacharunderscore}list{\isacharunderscore}def\ \isacommand{have}\isamarkupfalse%
 \ {\isachardoublequoteopen}{\isasymAnd}xs\ ys{\isasymColon}{\isasymalpha}\ list{\isachardot}\ xs\ {\isasymotimes}\ ys\ {\isasymequiv}\ xs\ {\isacharat}\ ys{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{thus}\isamarkupfalse%
@@ -225,7 +291,7 @@ Also \isa{list}s form a semigroup with \isa{op\ {\isacharat}} as
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-We define a subclass \isa{monoidl} (a semigroup with an left-hand neutral)
+We define a subclass \isa{monoidl} (a semigroup with a left-hand neutral)
   by extending \isa{semigroup}
   with one additional operation \isa{neutral} together
   with its property:%
@@ -243,7 +309,7 @@ We define a subclass \isa{monoidl} (a semigroup with an left-hand neutral)
 \isamarkuptrue%
 \ \ \ \ \isacommand{instance}\isamarkupfalse%
 \ nat\ {\isacharcolon}{\isacharcolon}\ monoidl\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}{\isasymone}\ {\isasymequiv}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ neutral{\isacharunderscore}nat{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isasymequiv}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 \ \ \ \ %
@@ -270,7 +336,7 @@ We define a subclass \isa{monoidl} (a semigroup with an left-hand neutral)
 \isanewline
 \ \ \ \ \isacommand{instance}\isamarkupfalse%
 \ int\ {\isacharcolon}{\isacharcolon}\ monoidl\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}{\isasymone}\ {\isasymequiv}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ neutral{\isacharunderscore}int{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isasymequiv}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 \ \ \ \ %
@@ -297,7 +363,7 @@ We define a subclass \isa{monoidl} (a semigroup with an left-hand neutral)
 \isanewline
 \ \ \ \ \isacommand{instance}\isamarkupfalse%
 \ list\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}type{\isacharparenright}\ monoidl\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}{\isasymone}\ {\isasymequiv}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ neutral{\isacharunderscore}list{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isasymequiv}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 \ \ \ \ %
@@ -337,16 +403,20 @@ We define a subclass \isa{monoidl} (a semigroup with an left-hand neutral)
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-To finish our small algebra example, we add \isa{monoid}
-  and \isa{group} classes with corresponding instances%
+\noindent Fully-fledged monoids are modelled by another subclass
+  which does not add new operations but tightens the specification:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \ \ \isacommand{class}\isamarkupfalse%
 \ monoid\ {\isacharequal}\ monoidl\ {\isacharplus}\isanewline
-\ \ \ \ \ \ \isakeyword{assumes}\ neutr{\isacharcolon}\ {\isachardoublequoteopen}x\ \isactrlloc {\isasymotimes}\ \isactrlloc {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
-\isanewline
+\ \ \ \ \ \ \isakeyword{assumes}\ neutr{\isacharcolon}\ {\isachardoublequoteopen}x\ \isactrlloc {\isasymotimes}\ \isactrlloc {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent Instantiations may also be given simultaneously for different
+  type constructors:%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \ \ \ \ \isacommand{instance}\isamarkupfalse%
-\ nat\ {\isacharcolon}{\isacharcolon}\ monoid\isanewline
+\ nat\ {\isacharcolon}{\isacharcolon}\ monoid\ \isakeyword{and}\ int\ {\isacharcolon}{\isacharcolon}\ monoid\ \isakeyword{and}\ list\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}type{\isacharparenright}\ monoid\isanewline
 %
 \isadelimproof
 \ \ \ \ %
@@ -361,25 +431,7 @@ To finish our small algebra example, we add \isa{monoid}
 \ {\isachardoublequoteopen}n\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ n{\isachardoublequoteclose}\ \isacommand{unfolding}\isamarkupfalse%
 \ neutral{\isacharunderscore}nat{\isacharunderscore}def\ mult{\isacharunderscore}nat{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
-\ \ \ \ \isacommand{qed}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-\isanewline
-%
-\endisadelimproof
-\isanewline
-\ \ \ \ \isacommand{instance}\isamarkupfalse%
-\ int\ {\isacharcolon}{\isacharcolon}\ monoid\isanewline
-%
-\isadelimproof
-\ \ \ \ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{proof}\isamarkupfalse%
+\ \ \ \ \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ k\ {\isacharcolon}{\isacharcolon}\ int\isanewline
@@ -387,25 +439,7 @@ To finish our small algebra example, we add \isa{monoid}
 \ {\isachardoublequoteopen}k\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ k{\isachardoublequoteclose}\ \isacommand{unfolding}\isamarkupfalse%
 \ neutral{\isacharunderscore}int{\isacharunderscore}def\ mult{\isacharunderscore}int{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
-\ \ \ \ \isacommand{qed}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-\isanewline
-%
-\endisadelimproof
-\isanewline
-\ \ \ \ \isacommand{instance}\isamarkupfalse%
-\ list\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}type{\isacharparenright}\ monoid\isanewline
-%
-\isadelimproof
-\ \ \ \ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{proof}\isamarkupfalse%
+\ \ \ \ \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ xs\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}\ list{\isachardoublequoteclose}\isanewline
@@ -434,10 +468,14 @@ To finish our small algebra example, we add \isa{monoid}
 {\isafoldproof}%
 %
 \isadelimproof
-\ \ \isanewline
 %
 \endisadelimproof
-\isanewline
+%
+\begin{isamarkuptext}%
+\noindent To finish our small algebra example, we add a \isa{group} class
+  with a corresponding instance:%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \ \ \ \ \isacommand{class}\isamarkupfalse%
 \ group\ {\isacharequal}\ monoidl\ {\isacharplus}\isanewline
 \ \ \ \ \ \ \isakeyword{fixes}\ inverse\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isacharparenleft}{\isacharunderscore}\isactrlloc {\isasymdiv}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
@@ -445,7 +483,7 @@ To finish our small algebra example, we add \isa{monoid}
 \isanewline
 \ \ \ \ \isacommand{instance}\isamarkupfalse%
 \ int\ {\isacharcolon}{\isacharcolon}\ group\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}i{\isasymdiv}\ {\isasymequiv}\ {\isacharminus}\ i{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ inverse{\isacharunderscore}int{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}i{\isasymdiv}\ {\isasymequiv}\ {\isacharminus}\ i{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 \ \ \ \ %
@@ -472,6 +510,19 @@ To finish our small algebra example, we add \isa{monoid}
 \isadelimproof
 %
 \endisadelimproof
+%
+\isamarkupsection{Type classes as locales%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{A look behind the scene%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsubsection{Abstract reasoning%
 }
@@ -535,139 +586,65 @@ Abstract theories enable reasoning at a general level, while results
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Additional subclass relations%
+\isamarkupsection{Further issues%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Code generation%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Any \isa{group} is also a \isa{monoid};  this
-  can be made explicit by claiming an additional subclass relation,
-  together with a proof of the logical difference:%
+Turning back to the first motivation for type classes,
+  namely overloading, it is obvious that overloading
+  stemming from \isa{{\isasymCLASS}} and \isa{{\isasymINSTANCE}}
+  statements naturally maps to Haskell type classes.
+  The code generator framework \cite{isabelle-codegen} 
+  takes this into account.  Concerning target languages
+  lacking type classes (e.g.~SML), type classes
+  are implemented by explicit dictionary construction.
+  As example, the natural power function on groups:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ \ \ \ \isacommand{instance}\isamarkupfalse%
-\ group\ {\isacharless}\ monoid\isanewline
-%
-\isadelimproof
-\ \ \ \ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
-\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
-\ x\isanewline
-\ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
-\ invl\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\isactrlloc {\isasymdiv}\ \isactrlloc {\isasymotimes}\ x\ {\isacharequal}\ \isactrlloc {\isasymone}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ simp\isanewline
-\ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
-\ assoc\ {\isacharbrackleft}symmetric{\isacharbrackright}\ neutl\ invl\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\isactrlloc {\isasymdiv}\ \isactrlloc {\isasymotimes}\ {\isacharparenleft}x\ \isactrlloc {\isasymotimes}\ \isactrlloc {\isasymone}{\isacharparenright}\ {\isacharequal}\ x\isactrlloc {\isasymdiv}\ \isactrlloc {\isasymotimes}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ simp\isanewline
-\ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
-\ left{\isacharunderscore}cancel\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ \isactrlloc {\isasymotimes}\ \isactrlloc {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ simp\isanewline
-\ \ \ \ \isacommand{qed}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isamarkupsection{Code generation%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-Code generation takes account of type classes,
-  resulting either in Haskell type classes or SML dictionaries.
-  As example, we define the natural power function on groups:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\ \ \ \ \isacommand{function}\isamarkupfalse%
+\ \ \ \ \isacommand{fun}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ pow{\isacharunderscore}nat\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ {\isacharprime}a{\isasymColon}monoidl\ {\isasymRightarrow}\ {\isacharprime}a{\isasymColon}monoidl{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ \ \ \ \ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isadigit{0}}\ x\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
 \ \ \ \ \ \ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isacharparenleft}Suc\ n{\isacharparenright}\ x\ {\isacharequal}\ x\ {\isasymotimes}\ pow{\isacharunderscore}nat\ n\ x{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-\ \ \ \ \ \ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ pat{\isacharunderscore}completeness\ auto%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-\isanewline
-%
-\endisadelimproof
-\ \ \ \ \isacommand{termination}\isamarkupfalse%
-\ pow{\isacharunderscore}nat%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}auto{\isacharunderscore}term\ {\isachardoublequoteopen}measure\ fst{\isachardoublequoteclose}{\isacharparenright}%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-\isanewline
-\ \ \ \ \isacommand{declare}\isamarkupfalse%
-\ pow{\isacharunderscore}nat{\isachardot}simps\ {\isacharbrackleft}code\ func{\isacharbrackright}\isanewline
 \isanewline
 \ \ \ \ \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ pow{\isacharunderscore}int\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}int\ {\isasymRightarrow}\ {\isacharprime}a{\isasymColon}group\ {\isasymRightarrow}\ {\isacharprime}a{\isasymColon}group{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ pow{\isacharunderscore}int\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}int\ {\isasymRightarrow}\ {\isacharprime}a{\isasymColon}group\ {\isasymRightarrow}\ {\isacharprime}a{\isasymColon}group{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ \ \ \ \ {\isachardoublequoteopen}pow{\isacharunderscore}int\ k\ x\ {\isacharequal}\ {\isacharparenleft}if\ k\ {\isachargreater}{\isacharequal}\ {\isadigit{0}}\isanewline
 \ \ \ \ \ \ \ \ then\ pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ k{\isacharparenright}\ x\isanewline
 \ \ \ \ \ \ \ \ else\ {\isacharparenleft}pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ {\isacharparenleft}{\isacharminus}\ k{\isacharparenright}{\isacharparenright}\ x{\isacharparenright}{\isasymdiv}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isanewline
 \ \ \ \ \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ example\ {\isacharcolon}{\isacharcolon}\ int\isanewline
+\ \ \ \ \ \ example\ {\isacharcolon}{\isacharcolon}\ int\ \isakeyword{where}\isanewline
 \ \ \ \ \ \ {\isachardoublequoteopen}example\ {\isacharequal}\ pow{\isacharunderscore}int\ {\isadigit{1}}{\isadigit{0}}\ {\isacharparenleft}{\isacharminus}{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-\noindent Now we generate and compile code for SML:%
+\noindent This maps to Haskell as:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ \ \ \ \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ example\ {\isacharparenleft}SML\ {\isacharminus}{\isacharparenright}%
+\isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
+\ example\ {\isacharparenleft}Haskell\ {\isachardoublequoteopen}code{\isacharunderscore}examples{\isacharslash}{\isachardoublequoteclose}{\isacharparenright}%
 \begin{isamarkuptext}%
-\noindent The result is as expected:%
+\lsthaskell{Thy/code_examples/Classes.hs}
+
+  \noindent (we have left out all other modules).
+
+  \noindent The whole code in SML with explicit dictionary passing:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-%
-\isadelimML
-\ \ \ \ %
-\endisadelimML
-%
-\isatagML
-\isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ \ \ \ \ if\ ROOT{\isachardot}Classes{\isachardot}example\ {\isacharequal}\ {\isachartilde}{\isadigit{2}}{\isadigit{0}}\ then\ {\isacharparenleft}{\isacharparenright}\ else\ error\ {\isachardoublequote}Wrong\ result{\isachardoublequote}\isanewline
-\ \ \ \ {\isacharverbatimclose}%
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-%
-\endisadelimML
-\isanewline
+\isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
+\ example\ {\isacharparenleft}SML\ {\isachardoublequoteopen}code{\isacharunderscore}examples{\isacharslash}classes{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\begin{isamarkuptext}%
+\lstsml{Thy/code_examples/classes.ML}%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
-\isanewline
 %
 \endisadelimtheory
 %
