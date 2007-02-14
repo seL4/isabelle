@@ -110,7 +110,56 @@ text %mlref {*
   \end{mldecls}
 *}
 
-text FIXME
+(*<*)
+typedecl foo
+consts foo :: foo
+ML {*
+val dummy_const = ("bar", @{typ foo}, NoSyn)
+val dummy_def = ("bar", @{term foo})
+val thy = Theory.copy @{theory}
+*}
+(*>*)
+
+text {*
+  Many problems in functional programming can be thought of
+  as linear transformations, i.e.~a caluclation starts with a
+  particular value @{text "x \<Colon> foo"} which is then transformed
+  by application of a function @{text "f \<Colon> foo \<Rightarrow> foo"},
+  continued by an application of a function @{text "g \<Colon> foo \<Rightarrow> bar"},
+  and so on.  As a canoncial example, take primitive functions enriching
+  theories by constants and definitions:
+  @{ML "Sign.add_consts_i: (string * typ * mixfix) list -> theory -> theory"}
+  and @{ML "Theory.add_defs_i: bool -> bool -> (bstring * term) list -> theory -> theory"}.
+  Written with naive application, an addition of a constant with
+  a corresponding definition would look like:
+  @{ML "Theory.add_defs_i false false [dummy_def] (Sign.add_consts_i [dummy_const] thy)"}
+  With increasing numbers of applications, this code gets quite unreadable.
+  Using composition, at least the nesting of brackets may be reduced:
+  @{ML "(Theory.add_defs_i false false [dummy_def] o Sign.add_consts_i [dummy_const]) thy"}
+  What remains unsatisfactory is that things are written down in the opposite order
+  as they actually ``happen''.
+*}
+
+(*<*)
+ML {*
+val thy = Theory.copy @{theory}
+*}
+(*>*)
+
+text {*
+  At this stage, Isabelle offers some combinators which allow for more convenient
+  notation, most notably reverse application:
+  @{ML "
+thy
+|> Sign.add_consts_i [dummy_const]
+|> Theory.add_defs_i false false [dummy_def]"}
+*}
+
+text {*
+  When iterating over a list of parameters @{text "[x\<^isub>1, x\<^isub>2, \<dots> x\<^isub>n] \<Colon> 'a list"},
+  the @{ML fold} combinator lifts a single function @{text "f \<Colon> 'a -> 'b -> 'b"}:
+  @{text "y |> fold f [x\<^isub>1, x\<^isub>2, \<dots> x\<^isub>n] \<equiv> y |> f x\<^isub>1 |> f x\<^isub>2 |> \<dots> |> f x\<^isub>n"}
+*}
 
 text %mlref {*
   \begin{mldecls}
@@ -122,6 +171,10 @@ text %mlref {*
   \end{mldecls}
 *}
 
+text {*
+  FIXME transformations involving side results
+*}
+
 text %mlref {*
   \begin{mldecls}
   @{index_ML "(op #>)": "('a -> 'b) * ('b -> 'c) -> 'a -> 'c"} \\
@@ -130,6 +183,10 @@ text %mlref {*
   @{index_ML "(op ##>)": "('a -> 'c * 'b) * ('b -> 'd) -> 'a -> 'c * 'd"} \\
   @{index_ML "(op ##>>)": "('a -> 'c * 'b) * ('b -> 'e * 'd) -> 'a -> ('c * 'e) * 'd"} \\
   \end{mldecls}
+*}
+
+text {*
+  FIXME higher-order variants
 *}
 
 text %mlref {*

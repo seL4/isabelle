@@ -151,8 +151,67 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 %
 \endisadelimmlref
 %
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
 \begin{isamarkuptext}%
-FIXME%
+Many problems in functional programming can be thought of
+  as linear transformations, i.e.~a caluclation starts with a
+  particular value \isa{x\ {\isasymColon}\ foo} which is then transformed
+  by application of a function \isa{f\ {\isasymColon}\ foo\ {\isasymRightarrow}\ foo},
+  continued by an application of a function \isa{g\ {\isasymColon}\ foo\ {\isasymRightarrow}\ bar},
+  and so on.  As a canoncial example, take primitive functions enriching
+  theories by constants and definitions:
+  \verb|Sign.add_consts_i: (string * typ * mixfix) list -> theory -> theory|
+  and \verb|Theory.add_defs_i: bool -> bool -> (bstring * term) list -> theory -> theory|.
+  Written with naive application, an addition of a constant with
+  a corresponding definition would look like:
+  \verb|Theory.add_defs_i false false [dummy_def] (Sign.add_consts_i [dummy_const] thy)|
+  With increasing numbers of applications, this code gets quite unreadable.
+  Using composition, at least the nesting of brackets may be reduced:
+  \verb|(Theory.add_defs_i false false [dummy_def] o Sign.add_consts_i [dummy_const]) thy|
+  What remains unsatisfactory is that things are written down in the opposite order
+  as they actually ``happen''.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+At this stage, Isabelle offers some combinators which allow for more convenient
+  notation, most notably reverse application:
+  \isasep\isanewline%
+\verb|thy|\isasep\isanewline%
+\verb||\verb,|,\verb|> Sign.add_consts_i [dummy_const]|\isasep\isanewline%
+\verb||\verb,|,\verb|> Theory.add_defs_i false false [dummy_def]|%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+When iterating over a list of parameters \isa{{\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ x\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ x\isactrlisub n{\isacharbrackright}\ {\isasymColon}\ {\isacharprime}a\ list},
+  the \verb|fold| combinator lifts a single function \isa{f\ {\isasymColon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b}:
+  \isa{y\ {\isacharbar}{\isachargreater}\ fold\ f\ {\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ x\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ x\isactrlisub n{\isacharbrackright}\ {\isasymequiv}\ y\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{1}}\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{2}}\ {\isacharbar}{\isachargreater}\ {\isasymdots}\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub n}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -173,6 +232,24 @@ FIXME%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\begin{isamarkuptext}%
+FIXME transformations involving side results%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexml{(op \#$>$)}\verb|(op #>): ('a -> 'b) * ('b -> 'c) -> 'a -> 'c| \\
@@ -183,6 +260,24 @@ FIXME%
   \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\begin{isamarkuptext}%
+FIXME higher-order variants%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
