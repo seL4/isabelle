@@ -658,6 +658,10 @@ fun gen_add_func strict_functyp thm thy =
        (c, (Susp.value [], [])) (add_thm thm)) funcs)) thy
   end;
 
+fun delete_force msg key xs =
+  if AList.defined (op =) xs key then AList.delete (op =) key xs
+  else error ("No such " ^ msg ^ ": " ^ quote key);
+
 val add_func = gen_add_func true;
 val add_func_legacy = gen_add_func false;
 
@@ -710,13 +714,13 @@ fun add_inline_proc (name, f) =
   (map_exec_purge NONE o map_preproc o apfst o apsnd) (AList.update (op =) (name, (serial (), f)));
 
 fun del_inline_proc name =
-  (map_exec_purge NONE o map_preproc o apfst o apsnd) (AList.delete (op =) name);
+  (map_exec_purge NONE o map_preproc o apfst o apsnd) (delete_force "inline procedure" name);
 
 fun add_preproc (name, f) =
   (map_exec_purge NONE o map_preproc o apsnd) (AList.update (op =) (name, (serial (), f)));
 
 fun del_preproc name =
-  (map_exec_purge NONE o map_preproc o apsnd) (AList.delete (op =) name);
+  (map_exec_purge NONE o map_preproc o apsnd) (delete_force "preprocessor" name);
 
 local
 
@@ -763,9 +767,7 @@ fun preprocess_cterm ct =
     val thy = Thm.theory_of_cterm ct;
   in
     ct
-    |> Thm.reflexive
-    |> fold (rhs_conv o MetaSimplifier.rewrite false o single)
-        ((#inlines o the_preproc o get_exec) thy)
+    |> MetaSimplifier.rewrite false ((#inlines o the_preproc o get_exec) thy)
     |> fold (fn (_, (_, f)) => rhs_conv (apply_inline_proc_cterm thy f))
         ((#inline_procs o the_preproc o get_exec) thy)
   end;

@@ -14,10 +14,8 @@ text {*
   Arithmetic for naturals is reduced to that for the non-negative integers.
 *}
 
-instance nat :: number ..
-
-defs (overloaded)
-  nat_number_of_def: "number_of v == nat (number_of (v\<Colon>int))"
+instance nat :: number
+  nat_number_of_def: "number_of v == nat (number_of (v\<Colon>int))" ..
 
 abbreviation (xsymbols)
   square :: "'a::power => 'a"  ("(_\<twosuperior>)" [1000] 999) where

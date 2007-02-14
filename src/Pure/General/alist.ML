@@ -23,9 +23,9 @@ sig
   val map_default: ('a * 'a -> bool) -> 'a * 'b -> ('b -> 'b)
     -> ('a * 'b) list -> ('a * 'b) list
   val join: ('a * 'a -> bool) -> ('a -> 'b * 'b -> 'b) (*exception DUP*)
-    -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list      (*exception DUP*)
+    -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list    (*exception DUP*)
   val merge: ('a * 'a -> bool) -> ('b * 'b -> bool)
-    -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list      (*exception DUP*)
+    -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list    (*exception DUP*)
   val make: ('a -> 'b) -> 'a list -> ('a * 'b) list
   val find: ('a * 'b -> bool) -> ('c * 'b) list -> 'a -> 'c list
   val coalesce: ('a * 'a -> bool) -> ('a * 'b) list -> ('a * 'b list) list

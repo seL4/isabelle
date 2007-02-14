@@ -154,6 +154,7 @@ end;
 
 subsection {* Small examples *}
 
+ML {* Eval.term "(Suc 2 + 1) * 4" *}
 ML {* Eval.term "(Suc 2 + Suc 0) * Suc 3" *}
 ML {* Eval.term "[]::nat list" *}
 ML {* Eval.term "fst ([]::nat list, Suc 0) = []" *}
