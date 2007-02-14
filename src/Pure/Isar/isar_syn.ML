@@ -427,14 +427,16 @@ val classP =
     -- P.opt_begin
     >> (fn ((bname, (supclasses, elems)), begin) =>
         Toplevel.begin_local_theory begin
-          (ClassPackage.class_e bname supclasses elems #-> TheoryTarget.begin true)));
+          (ClassPackage.class_cmd bname supclasses elems #-> TheoryTarget.begin true)));
 
 val instanceP =
   OuterSyntax.command instanceK "prove type arity or subclass relation" K.thy_goal ((
       P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
-           >> ClassPackage.instance_sort_e
+           >> ClassPackage.instance_class_cmd
+      || P.$$$ "advanced" |-- P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
+           >> ClassPackage.instance_sort_cmd (*experimental: by interpretation of locales*)
       || P.and_list1 parse_arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
-           >> (fn (arities, defs) => ClassPackage.instance_arity_e arities defs)
+           >> (fn (arities, defs) => ClassPackage.instance_arity_cmd arities defs)
     ) >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 val print_classesP =

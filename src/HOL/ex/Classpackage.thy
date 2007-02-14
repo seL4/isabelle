@@ -219,7 +219,7 @@ proof -
   with cancel show ?thesis ..
 qed
 
-instance group < monoid
+instance advanced group < monoid
 proof unfold_locales
   fix x
   from neutr show "x \<^loc>\<otimes> \<^loc>\<one> = x" .
