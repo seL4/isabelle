@@ -2520,7 +2520,7 @@ apply(subgoal_tac "!!x y. k + min x y = min (k + x) (k + y)")
 using hom_Min_commute[of "op + k" N]
 apply simp apply(rule arg_cong[where f = Min]) apply blast
 apply(simp add:min_def linorder_not_le)
-apply(blast intro:order.antisym order_less_imp_le add_left_mono)
+apply(blast intro:order_class.antisym order_less_imp_le add_left_mono)
 done
 
 lemma add_Max_commute: fixes k::"'a::{pordered_ab_semigroup_add,linorder}"
@@ -2529,7 +2529,7 @@ apply(subgoal_tac "!!x y. k + max x y = max (k + x) (k + y)")
 using hom_Max_commute[of "op + k" N]
 apply simp apply(rule arg_cong[where f = Max]) apply blast
 apply(simp add:max_def linorder_not_le)
-apply(blast intro:order.antisym order_less_imp_le add_left_mono)
+apply(blast intro:order_class.antisym order_less_imp_le add_left_mono)
 done
 
 

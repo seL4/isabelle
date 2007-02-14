@@ -11,33 +11,41 @@ begin
 
 subsection {* Syntactic classes *}
 
-instance star :: (ord) ord ..
-instance star :: (zero) zero ..
-instance star :: (one) one ..
-instance star :: (plus) plus ..
-instance star :: (times) times ..
-instance star :: (minus) minus ..
-instance star :: (inverse) inverse ..
-instance star :: (number) number ..
-instance star :: ("Divides.div") "Divides.div" ..
-instance star :: (power) power ..
-
-defs (overloaded)
-  star_zero_def:    "0 \<equiv> star_of 0"
-  star_one_def:     "1 \<equiv> star_of 1"
-  star_number_def:  "number_of b \<equiv> star_of (number_of b)"
-  star_add_def:     "(op +) \<equiv> *f2* (op +)"
-  star_diff_def:    "(op -) \<equiv> *f2* (op -)"
-  star_minus_def:   "uminus \<equiv> *f* uminus"
-  star_mult_def:    "(op *) \<equiv> *f2* (op *)"
-  star_divide_def:  "(op /) \<equiv> *f2* (op /)"
-  star_inverse_def: "inverse \<equiv> *f* inverse"
+instance star :: (ord) ord
   star_le_def:      "(op \<le>) \<equiv> *p2* (op \<le>)"
-  star_less_def:    "(op <) \<equiv> *p2* (op <)"
-  star_abs_def:     "abs \<equiv> *f* abs"
+  star_less_def:    "(op <) \<equiv> *p2* (op <)" ..
+
+instance star :: (zero) zero
+  star_zero_def:    "0 \<equiv> star_of 0" ..
+
+instance star :: (one) one
+  star_one_def:     "1 \<equiv> star_of 1" ..
+
+instance star :: (plus) plus
+  star_add_def:     "(op +) \<equiv> *f2* (op +)" ..
+
+
+instance star :: (times) times
+  star_mult_def:    "(op *) \<equiv> *f2* (op *)" ..
+
+instance star :: (minus) minus
+  star_minus_def:   "uminus \<equiv> *f* uminus"
+  star_diff_def:    "(op -) \<equiv> *f2* (op -)"
+  star_abs_def:     "abs \<equiv> *f* abs" ..
+
+instance star :: (inverse) inverse
+  star_divide_def:  "(op /) \<equiv> *f2* (op /)"
+  star_inverse_def: "inverse \<equiv> *f* inverse" ..
+
+instance star :: (number) number
+  star_number_def:  "number_of b \<equiv> star_of (number_of b)" ..
+
+instance star :: ("Divides.div") "Divides.div"
   star_div_def:     "(op div) \<equiv> *f2* (op div)"
-  star_mod_def:     "(op mod) \<equiv> *f2* (op mod)"
-  star_power_def:   "(op ^) \<equiv> \<lambda>x n. ( *f* (\<lambda>x. x ^ n)) x"
+  star_mod_def:     "(op mod) \<equiv> *f2* (op mod)" ..
+
+instance star :: (power) power
+  star_power_def:   "(op ^) \<equiv> \<lambda>x n. ( *f* (\<lambda>x. x ^ n)) x" ..
 
 lemmas star_class_defs [transfer_unfold] =
   star_zero_def     star_one_def      star_number_def
@@ -202,10 +210,10 @@ subsection {* Ordering classes *}
 
 instance star :: (order) order
 apply (intro_classes)
+apply (transfer, rule order_less_le)
 apply (transfer, rule order_refl)
 apply (transfer, erule (1) order_trans)
 apply (transfer, erule (1) order_antisym)
-apply (transfer, rule order_less_le)
 done
 
 instance star :: (linorder) linorder

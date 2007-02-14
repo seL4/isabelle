@@ -79,8 +79,6 @@ code for ML and Haskell (including "class"es). A short usage sketch:
 
 Reasonable default setup of framework in HOL/Main.
 
-See HOL/ex/Code*.thy for examples.
-
 Theorem attributs for selecting and transforming function equations theorems:
 
     [code fun]:       select a theorem as function equation for a specific constant
@@ -507,6 +505,10 @@ the graph browser tool.
 
 *** HOL ***
 
+* Addes class (axclass + locale) "preorder" as superclass of "order";
+potential INCOMPATIBILITY: order of proof goals in order/linorder instance
+proofs changed.
+
 * Dropped lemma duplicate def_imp_eq in favor of meta_eq_to_obj_eq.
 INCOMPATIBILITY.
 
@@ -517,8 +519,7 @@ INCOMPATIBILITY.
 type "'a::size ==> bool"
 
 * Renamed constants "Divides.op div", "Divides.op mod" and "Divides.op
-dvd" to "Divides.div", "Divides.mod" and "Divides.dvd"
-"Divides.dvd". INCOMPATIBILITY.
+dvd" to "Divides.div", "Divides.mod" and "Divides.dvd". INCOMPATIBILITY.
 
 * Added method "lexicographic_order" automatically synthesizes
 termination relations as lexicographic combinations of size measures

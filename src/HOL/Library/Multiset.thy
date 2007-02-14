@@ -665,10 +665,10 @@ text {* Partial order. *}
 
 instance multiset :: (order) order
   apply intro_classes
-     apply (rule mult_le_refl)
+    apply (rule mult_less_le)
+    apply (rule mult_le_refl)
     apply (erule mult_le_trans, assumption)
-   apply (erule mult_le_antisym, assumption)
-  apply (rule mult_less_le)
+    apply (erule mult_le_antisym, assumption)
   done
 
 

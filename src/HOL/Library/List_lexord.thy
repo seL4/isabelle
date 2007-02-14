@@ -17,14 +17,14 @@ lemmas list_ord_defs = list_less_def list_le_def
 
 instance list :: (order) order
   apply (intro_classes, unfold list_ord_defs)
-     apply (rule disjI2, safe)
-    apply (blast intro: lexord_trans transI order_less_trans)
-   apply (rule_tac r1 = "{(a::'a,b). a < b}" in lexord_irreflexive [THEN notE])
-    apply simp
-   apply (blast intro: lexord_trans transI order_less_trans)
+  apply safe
   apply (rule_tac r1 = "{(a::'a,b). a < b}" in lexord_irreflexive [THEN notE])
   apply simp
   apply assumption
+  apply (blast intro: lexord_trans transI order_less_trans)
+  apply (rule_tac r1 = "{(a::'a,b). a < b}" in lexord_irreflexive [THEN notE])
+  apply simp
+  apply (blast intro: lexord_trans transI order_less_trans)
   done
 
 instance list :: (linorder) linorder

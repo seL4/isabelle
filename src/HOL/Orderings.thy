@@ -71,10 +71,10 @@ notation (input)
 
 subsection {* Quasiorders (preorders) *}
 
-locale preorder = ord +
-  assumes refl [iff]: "x \<sqsubseteq> x"
+class preorder = ord +
+  assumes less_le: "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<noteq> y"
+  and refl [iff]: "x \<sqsubseteq> x"
   and trans: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
-  and less_le: "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<noteq> y"
 begin
 
 text {* Reflexivity. *}
@@ -122,7 +122,7 @@ end
 
 subsection {* Partial orderings *}
 
-locale order = preorder + 
+class order = preorder + 
   assumes antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
 
 context order
@@ -174,25 +174,10 @@ lemma less_asym': "\<lbrakk> a \<sqsubset> b; b \<sqsubset> a \<rbrakk> \<Longri
 
 end
 
-axclass order < ord
-  order_refl [iff]: "x <= x"
-  order_trans: "x <= y ==> y <= z ==> x <= z"
-  order_antisym: "x <= y ==> y <= x ==> x = y"
-  order_less_le: "(x < y) = (x <= y & x ~= y)"
-
-interpretation order:
-  order ["op \<le> \<Colon> 'a\<Colon>order \<Rightarrow> 'a \<Rightarrow> bool" "op < \<Colon> 'a\<Colon>order \<Rightarrow> 'a \<Rightarrow> bool"]
-apply unfold_locales
-apply (rule order_refl)
-apply (erule (1) order_trans)
-apply (rule order_less_le)
-apply (erule (1) order_antisym)
-done
-
 
 subsection {* Linear (total) orders *}
 
-locale linorder = order +
+class linorder = order +
   assumes linear: "x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
 begin
 
@@ -290,50 +275,50 @@ lemma split_max:
 
 end
 
-axclass linorder < order
-  linorder_linear: "x <= y | y <= x"
-
-interpretation order:
-  linorder ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op < \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool"]
-  by unfold_locales (rule linorder_linear)
-
 
 subsection {* Name duplicates *}
 
-lemmas order_eq_refl [where 'b = "?'a::order"] = order.eq_refl
-lemmas order_less_irrefl [where 'b = "?'a::order"] = order.less_irrefl
-lemmas order_le_less [where 'b = "?'a::order"] = order.le_less
-lemmas order_le_imp_less_or_eq [where 'b = "?'a::order"] = order.le_imp_less_or_eq
-lemmas order_less_imp_le [where 'b = "?'a::order"] = order.less_imp_le
-lemmas order_less_not_sym [where 'b = "?'a::order"] = order.less_not_sym
-lemmas order_less_asym [where 'b = "?'a::order"] = order.less_asym
-lemmas order_eq_iff [where 'b = "?'a::order"] = order.eq_iff
-lemmas order_antisym_conv [where 'b = "?'a::order"] = order.antisym_conv
-lemmas less_imp_neq [where 'b = "?'a::order"] = order.less_imp_neq
-lemmas order_less_trans [where 'b = "?'a::order"] = order.less_trans
-lemmas order_le_less_trans [where 'b = "?'a::order"] = order.le_less_trans
-lemmas order_less_le_trans [where 'b = "?'a::order"] = order.less_le_trans
-lemmas order_less_imp_not_less [where 'b = "?'a::order"] = order.less_imp_not_less
-lemmas order_less_imp_triv [where 'b = "?'a::order"] = order.less_imp_triv
-lemmas order_less_imp_not_eq [where 'b = "?'a::order"] = order.less_imp_not_eq
-lemmas order_less_imp_not_eq2 [where 'b = "?'a::order"] = order.less_imp_not_eq2
-lemmas order_neq_le_trans [where 'b = "?'a::order"] = order.neq_le_trans
-lemmas order_le_neq_trans [where 'b = "?'a::order"] = order.le_neq_trans
-lemmas order_less_asym' [where 'b = "?'a::order"] = order.less_asym'
-lemmas linorder_less_linear [where 'b = "?'a::linorder"] = order.less_linear
-lemmas linorder_le_less_linear [where 'b = "?'a::linorder"] = order.le_less_linear
-lemmas linorder_le_cases [where 'b = "?'a::linorder"] = order.le_cases
-lemmas linorder_cases [where 'b = "?'a::linorder"] = order.cases
-lemmas linorder_not_less [where 'b = "?'a::linorder"] = order.not_less
-lemmas linorder_not_le [where 'b = "?'a::linorder"] = order.not_le
-lemmas linorder_neq_iff [where 'b = "?'a::linorder"] = order.neq_iff
-lemmas linorder_neqE [where 'b = "?'a::linorder"] = order.neqE
-lemmas linorder_antisym_conv1 [where 'b = "?'a::linorder"] = order.antisym_conv1
-lemmas linorder_antisym_conv2 [where 'b = "?'a::linorder"] = order.antisym_conv2
-lemmas linorder_antisym_conv3 [where 'b = "?'a::linorder"] = order.antisym_conv3
-lemmas leI [where 'b = "?'a::linorder"] = order.leI
-lemmas leD [where 'b = "?'a::linorder"] = order.leD
-lemmas not_leE [where 'b = "?'a::linorder"] = order.not_leE
+lemmas order_refl [iff] = preorder_class.refl
+lemmas order_trans = preorder_class.trans
+lemmas order_less_le = preorder_class.less_le
+lemmas order_eq_refl = preorder_class.eq_refl
+lemmas order_less_irrefl = preorder_class.less_irrefl
+lemmas order_le_less = preorder_class.le_less
+lemmas order_le_imp_less_or_eq = preorder_class.le_imp_less_or_eq
+lemmas order_less_imp_le = preorder_class.less_imp_le
+lemmas order_less_imp_not_eq = preorder_class.less_imp_not_eq
+lemmas order_less_imp_not_eq2 = preorder_class.less_imp_not_eq2
+lemmas order_neq_le_trans = preorder_class.neq_le_trans
+lemmas order_le_neq_trans = preorder_class.le_neq_trans
+
+lemmas order_antisym = order_class.antisym
+lemmas order_less_not_sym = order_class.less_not_sym
+lemmas order_less_asym = order_class.less_asym
+lemmas order_eq_iff = order_class.eq_iff
+lemmas order_antisym_conv = order_class.antisym_conv
+lemmas less_imp_neq = order_class.less_imp_neq
+lemmas order_less_trans = order_class.less_trans
+lemmas order_le_less_trans = order_class.le_less_trans
+lemmas order_less_le_trans = order_class.less_le_trans
+lemmas order_less_imp_not_less = order_class.less_imp_not_less
+lemmas order_less_imp_triv = order_class.less_imp_triv
+lemmas order_less_asym' = order_class.less_asym'
+
+lemmas linorder_linear = linorder_class.linear
+lemmas linorder_less_linear = linorder_class.less_linear
+lemmas linorder_le_less_linear = linorder_class.le_less_linear
+lemmas linorder_le_cases = linorder_class.le_cases
+lemmas linorder_cases = linorder_class.cases
+lemmas linorder_not_less = linorder_class.not_less
+lemmas linorder_not_le = linorder_class.not_le
+lemmas linorder_neq_iff = linorder_class.neq_iff
+lemmas linorder_neqE = linorder_class.neqE
+lemmas linorder_antisym_conv1 = linorder_class.antisym_conv1
+lemmas linorder_antisym_conv2 = linorder_class.antisym_conv2
+lemmas linorder_antisym_conv3 = linorder_class.antisym_conv3
+lemmas leI = linorder_class.leI
+lemmas leD = linorder_class.leD
+lemmas not_leE = linorder_class.not_leE
 
 
 subsection {* Reasoning tools setup *}
@@ -866,24 +851,22 @@ constdefs
   max :: "['a::ord, 'a] => 'a"
   "max a b == (if a <= b then b else a)"
 
-hide const order.less_eq_less.max order.less_eq_less.min  (* FIXME !? *)
-
 lemma min_linorder:
   "linorder.min (op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool) = min"
-  by (rule+) (simp add: min_def order.min_def)
+  by rule+ (simp add: min_def linorder_class.min_def)
 
 lemma max_linorder:
   "linorder.max (op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool) = max"
-  by (rule+) (simp add: max_def order.max_def)
+  by rule+ (simp add: max_def linorder_class.max_def)
 
-lemmas min_le_iff_disj = order.min_le_iff_disj [where 'b = "?'a::linorder", unfolded min_linorder]
-lemmas le_max_iff_disj = order.le_max_iff_disj [where 'b = "?'a::linorder", unfolded max_linorder]
-lemmas min_less_iff_disj = order.min_less_iff_disj [where 'b = "?'a::linorder", unfolded min_linorder]
-lemmas less_max_iff_disj = order.less_max_iff_disj [where 'b = "?'a::linorder", unfolded max_linorder]
-lemmas min_less_iff_conj [simp] = order.min_less_iff_conj [where 'b = "?'a::linorder", unfolded min_linorder]
-lemmas max_less_iff_conj [simp] = order.max_less_iff_conj [where 'b = "?'a::linorder", unfolded max_linorder]
-lemmas split_min = order.split_min [where 'b = "?'a::linorder", unfolded min_linorder]
-lemmas split_max = order.split_max [where 'b = "?'a::linorder", unfolded max_linorder]
+lemmas min_le_iff_disj = linorder_class.min_le_iff_disj [unfolded min_linorder]
+lemmas le_max_iff_disj = linorder_class.le_max_iff_disj [unfolded max_linorder]
+lemmas min_less_iff_disj = linorder_class.min_less_iff_disj [unfolded min_linorder]
+lemmas less_max_iff_disj = linorder_class.less_max_iff_disj [unfolded max_linorder]
+lemmas min_less_iff_conj [simp] = linorder_class.min_less_iff_conj [unfolded min_linorder]
+lemmas max_less_iff_conj [simp] = linorder_class.max_less_iff_conj [unfolded max_linorder]
+lemmas split_min = linorder_class.split_min [unfolded min_linorder]
+lemmas split_max = linorder_class.split_max [unfolded max_linorder]
 
 lemma min_leastL: "(!!x. least <= x) ==> min least x = least"
   by (simp add: min_def)
