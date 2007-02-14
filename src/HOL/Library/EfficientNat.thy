@@ -22,6 +22,9 @@ subsection {* Logical rewrites *}
 text {*
   A int-to-nat conversion with domain
   restricted to non-negative ints (in contrast to @{const nat}).
+  Note that this restriction has no logical relevance and
+  is just a kind of proof hint -- nothing prevents you from 
+  writing nonsense like @{term "nat_of_int (-4)"}
 *}
 
 definition
@@ -118,7 +121,6 @@ proof -
   then show ?thesis unfolding int_aux_def by simp
 qed
 
-
 subsection {* Code generator setup for basic functions *}
 
 text {*
@@ -184,6 +186,8 @@ code_const nat_of_int
   (SML "_")
   (OCaml "_")
   (Haskell "_")
+
+hide const nat_of_int
 
 
 subsection {* Preprocessors *}
