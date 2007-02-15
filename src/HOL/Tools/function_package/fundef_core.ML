@@ -758,8 +758,8 @@ fun mk_nest_term_case thy globals R' ihyp clause =
     in
       FundefCtxTree.traverse_tree step tree
     end
-    
-    
+
+
 fun mk_nest_term_rule thy globals R R_cases clauses =
     let
       val Globals { domT, x, z, ... } = globals
@@ -797,6 +797,8 @@ fun mk_nest_term_rule thy globals R R_cases clauses =
         |> forall_intr (cterm_of thy x)
         |> (fn it => Drule.compose_single(it,2,wf_induct_rule))
         |> curry op RS (assume wfR')
+        |> forall_intr_vars
+        |> (fn it => it COMP allI)
         |> fold implies_intr hyps
         |> implies_intr wfR'
         |> forall_intr (cterm_of thy R')

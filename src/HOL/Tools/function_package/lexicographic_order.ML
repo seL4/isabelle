@@ -270,11 +270,11 @@ fun lexicographic_order_tac ctxt (st: thm) =
     in
       case premlist of 
             [] => error "invalid number of subgoals for this tactic - expecting at least 1 subgoal" 
-          | (wf::tl) => let
-    val (var, prop) = FundefLib.dest_all wf
-    val rel = HOLogic.dest_Trueprop prop |> dest_wf |> head_of
+          | (wfR::tl) => let
+    val trueprop $ (wf $ rel) = wfR
     val crel = cterm_of thy rel
-    val measure_funs = mk_all_measure_funs (fastype_of var)
+    val (domT, _) = HOLogic.dest_prodT (HOLogic.dest_setT (fastype_of rel))
+    val measure_funs = mk_all_measure_funs domT
     val _ = writeln "Creating table"
     val table = map (mk_row thy measure_funs) tl
     val _ = writeln "Searching for lexicographic order"
@@ -286,8 +286,8 @@ fun lexicographic_order_tac ctxt (st: thm) =
       | SOME order  => let
       val clean_table = map (fn x => map (nth x) order) table
       val funs = map (nth measure_funs) order
-      val list = HOLogic.mk_list (fastype_of var --> HOLogic.natT) funs
-      val relterm = Abs ("x", fastype_of var, Const(measures, (fastype_of list) --> (range_type (fastype_of rel))) $ list)
+      val list = HOLogic.mk_list (domT --> HOLogic.natT) funs
+      val relterm = Const(measures, (fastype_of list) --> (fastype_of rel)) $ list
       val crelterm = cterm_of thy relterm
       val _ = writeln ("Instantiating R with " ^ (string_of_cterm crelterm))
       val _ = writeln "Proving subgoals"

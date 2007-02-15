@@ -166,11 +166,14 @@ fun setup_termination_proof name_opt lthy =
                    handle Option.Option => raise ERROR ("No such function definition: " ^ defname)
 
         val FundefCtxData {termination, R, ...} = data
-        val goal = FundefTermination.mk_total_termination_goal R
+        val domT = domain_type (fastype_of R)
+        val goal = HOLogic.mk_Trueprop (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
     in
       lthy
+        |> ProofContext.note_thmss_i "" [(("", [ContextRules.rule_del]), [([allI], [])])] |> snd
+        |> ProofContext.note_thmss_i "" [(("", [ContextRules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
         |> ProofContext.note_thmss_i ""
-          [(("termination", [ContextRules.intro_query NONE]),
+          [(("termination", [ContextRules.intro_bang (SOME 0)]),
             [([Goal.norm_result termination], [])])] |> snd
         |> set_termination_rule termination
         |> Proof.theorem_i NONE (total_termination_afterqed defname data) [[(goal, [])]]
