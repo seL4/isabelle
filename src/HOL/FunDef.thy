@@ -126,5 +126,9 @@ lemma split_cong[fundef_cong]:
   \<Longrightarrow> split f p = split g q"
   by (auto simp:split_def)
 
+lemma comp_cong[fundef_cong]:
+  "f (g x) = f' (g' x')
+  ==>  (f o g) x = (f' o g') x'"
+unfolding o_apply .
 
 end
