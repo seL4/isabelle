@@ -3008,6 +3008,10 @@ qed
 use "nominal_thmdecls.ML"
 setup "NominalThmDecls.setup"
 
+lemmas  [eqvt] = perm_list.simps perm_prod.simps 
+
+
+
 (***************************************)
 (* setup for the individial atom-kinds *)
 (* and nominal datatypes               *)
