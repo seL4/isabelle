@@ -385,7 +385,7 @@ fun sort_by_function (Mutual {fqgars, ...}) names xs =
 
 fun prepare_fundef_mutual config defname fixes eqss default lthy =
     let
-      val mutual = analyze_eqs lthy defname (map fst fixes) eqss
+      val mutual = analyze_eqs lthy defname (map fst fixes) (map Envir.beta_eta_contract eqss)
       val Mutual {fsum_var=(n, T), qglrs, ...} = mutual
           
       val ((fsum, goalstate, cont), lthy') =
