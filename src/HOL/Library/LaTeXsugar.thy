@@ -79,6 +79,10 @@ syntax (Rule output)
 
   "_asm" :: "prop \<Rightarrow> asms" ("\<^raw:\mbox{>_\<^raw:}>")
 
+syntax (Axiom output)
+  "Trueprop" :: "bool \<Rightarrow> prop"
+  ("\<^raw:\mbox{}\inferrule{\mbox{}}{\mbox{>_\<^raw:}}>")
+
 syntax (IfThen output)
   "==>" :: "prop \<Rightarrow> prop \<Rightarrow> prop"
   ("\<^raw:{\rmfamily\upshape\normalsize{}>If\<^raw:\,}> _/ \<^raw:{\rmfamily\upshape\normalsize \,>then\<^raw:\,}>/ _.")
