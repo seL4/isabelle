@@ -38,7 +38,7 @@ end;
 setup {*
 let
   fun mk arities _ thy =
-    (maps (fn ((tyco, asorts), _) => [(("", []), TypOf.mk_typ_of_def
+    (maps (fn (tyco, asorts, _) => [(("", []), TypOf.mk_typ_of_def
       (Type (tyco, map TFree (Name.names Name.context "'a" asorts))))]) arities, thy);
   fun hook specs =
     DatatypeCodegen.prove_codetypes_arities (ClassPackage.intro_classes_tac [])
@@ -92,7 +92,8 @@ let
     PureThy.add_defs_i false [((name, t), atts)] #-> (fn [thm] => pair (name, thm));
   fun mk arities css thy =
     let
-      val vs = (Name.names Name.context "'a" o snd o fst o hd) arities;
+      val (_, asorts, _) :: _ = arities;
+      val vs = Name.names Name.context "'a" asorts;
       val defs = map (TermOf.mk_terms_of_defs vs) css;
       val defs' = (map (pair ("", []) o ObjectLogic.ensure_propT thy) o flat) defs;
     in
