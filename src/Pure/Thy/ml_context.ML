@@ -160,7 +160,9 @@ in
 fun eval_wrapper name verbose txt =
   let
     val (txt1, txt2) = eval_antiquotes txt;
-    val _ = Output.debug (fn () => cat_lines [txt1, txt2]);
+    val _ =
+      if txt1 = isabelle_struct0 andalso txt2 = txt then ()
+      else Output.debug (fn () => cat_lines [txt1, txt2]);
   in eval "" false txt1; eval name verbose txt2; eval "" false isabelle_struct0 end;
 
 end;
