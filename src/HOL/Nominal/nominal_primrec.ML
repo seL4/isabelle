@@ -243,7 +243,7 @@ fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
                forall (fn (_, (ls', _, rs', _, _)) =>
                  ls = ls' andalso rs = rs') eqns
            | _ => true) rec_eqns
-       then () else raise RecError param_err);
+       then () else primrec_err param_err);
     val tnames = distinct (op =) (map (#1 o snd) rec_eqns);
     val dts = find_dts dt_info tnames tnames;
     val main_fns = 
