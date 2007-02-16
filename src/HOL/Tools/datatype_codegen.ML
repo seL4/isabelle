@@ -25,11 +25,11 @@ sig
   val the_codetypes_mut_specs: theory -> (string * bool) list
     -> ((string * sort) list * (string * (bool * (string * typ list) list)) list)
   val get_codetypes_arities: theory -> (string * bool) list -> sort
-    -> (string * (((string * sort list) * sort) * term list)) list option
+    -> (string * (arity * term list)) list option
   val prove_codetypes_arities: tactic -> (string * bool) list -> sort
-    -> (((string * sort list) * sort) list -> (string * term list) list -> theory
+    -> (arity list -> (string * term list) list -> theory
     -> ((bstring * Attrib.src list) * term) list * theory)
-    -> (((string * sort list) * sort) list -> (string * term list) list -> theory -> theory)
+    -> (arity list -> (string * term list) list -> theory -> theory)
     -> theory -> theory
 
   val setup: theory -> theory
@@ -584,11 +584,10 @@ fun get_codetypes_arities thy tycos sort =
           (fn TFree (v, _) => TFree (v, the (AList.lookup (op =) vs v))) tys
       in (c, tys') end;
     val css = map (fn (tyco, (_, cs)) => (tyco, (map (inst_type tyco) cs))) css_proto;
-    fun mk_arity tyco =
-      ((tyco, map snd vs), sort);
+    fun mk_arity tyco = (tyco, map snd vs, sort);
     fun typ_of_sort ty =
       let
-        val arities = map (fn (tyco, _) => ((tyco, map snd vs), sort)) css;
+        val arities = map (fn (tyco, _) => (tyco, map snd vs, sort)) css;
       in ClassPackage.assume_arities_of_sort thy arities (ty, sort) end;
     fun mk_cons tyco (c, tys) =
       let
@@ -605,7 +604,7 @@ fun prove_codetypes_arities tac tycos sort f after_qed thy =
   case get_codetypes_arities thy tycos sort
    of NONE => thy
     | SOME insts => let
-        fun proven ((tyco, asorts), sort) =
+        fun proven (tyco, asorts, sort) =
           Sorts.of_sort (Sign.classes_of thy)
             (Type (tyco, map TFree (Name.names Name.context "'a" asorts)), sort);
         val (arities, css) = (split_list o map_filter

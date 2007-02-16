@@ -13,13 +13,12 @@ sig
     string * Proof.context
   val class_cmd: bstring -> string list -> Element.context Locale.element list -> theory ->
     string * Proof.context
-  val instance_arity: ((bstring * sort list) * sort) list
-    -> ((bstring * Attrib.src list) * term) list
+  val instance_arity: arity list -> ((bstring * Attrib.src list) * term) list
     -> theory -> Proof.state
-  val instance_arity_cmd: ((bstring * string list) * string) list
+  val instance_arity_cmd: (bstring * string list * string) list
     -> ((bstring * Attrib.src list) * string) list
     -> theory -> Proof.state
-  val prove_instance_arity: tactic -> ((string * sort list) * sort) list
+  val prove_instance_arity: tactic -> arity list
     -> ((bstring * Attrib.src list) * term) list
     -> theory -> theory
   val instance_class: class * class -> theory -> Proof.state
@@ -28,9 +27,7 @@ sig
   val instance_sort_cmd: string * string -> theory -> Proof.state
   val prove_instance_sort: tactic -> class * sort -> theory -> theory
 
-  val assume_arities_of_sort: theory -> ((string * sort list) * sort) list -> typ * sort -> bool
-  val assume_arities_thy: theory -> ((string * sort list) * sort) list -> (theory -> 'a) -> 'a
-    (*'a must not keep any reference to theory*)
+  val assume_arities_of_sort: theory -> arity list -> typ * sort -> bool
 
   (* experimental class target *)
   val class_of_locale: theory -> string -> class option
@@ -113,15 +110,9 @@ fun assume_arities_of_sort thy arities ty_sort =
   let
     val pp = Sign.pp thy;
     val algebra = Sign.classes_of thy
-      |> fold (fn ((tyco, asorts), sort) =>
+      |> fold (fn (tyco, asorts, sort) =>
            Sorts.add_arities pp (tyco, map (fn class => (class, asorts)) sort)) arities;
   in Sorts.of_sort algebra ty_sort end;
-
-fun assume_arities_thy thy arities f =
-  let
-    val thy_read = (fold (fn ((tyco, asorts), sort)
-      => Sign.primitive_arity (tyco, asorts, sort)) arities o Theory.copy) thy
-  in f thy_read end;
 
 
 (* instances with implicit parameter handling *)
@@ -144,9 +135,7 @@ fun read_def thy = gen_read_def thy (K I) (K I);
 
 fun gen_instance_arity prep_arity read_def do_proof raw_arities raw_defs theory =
   let
-    fun prep_arity' ((tyco, asorts), sort) = prep_arity theory (tyco, asorts, sort);
-    val arities = map prep_arity' raw_arities;
-    val arities_pair = map (fn (tyco, asorts, sort) => ((tyco, asorts), sort)) arities;
+    val arities = map (prep_arity theory) raw_arities;
     val _ = if null arities then error "at least one arity must be given" else ();
     val _ = case (duplicates (op =) o map #1) arities
      of [] => ()
@@ -187,7 +176,9 @@ fun gen_instance_arity prep_arity read_def do_proof raw_arities raw_defs theory 
               | SOME norm => map_types norm t
           in (((class, tyco), ((name, t'), atts)), AList.delete (op =) c cs) end;
       in fold_map read defs cs end;
-    val (defs, _) = assume_arities_thy theory arities_pair (read_defs raw_defs cs);
+    val (defs, _) = read_defs raw_defs cs
+      (fold Sign.primitive_arity arities (Theory.copy theory));
+
     fun get_remove_contraint c thy =
       let
         val ty = Sign.the_const_constraint thy c;
@@ -272,7 +263,7 @@ fun the_class_data thy class =
 
 val ancestry = Graph.all_succs o fst o ClassData.get;
 
-fun param_map thy = 
+fun param_map thy =
   let
     fun params thy class =
       let
