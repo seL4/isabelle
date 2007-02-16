@@ -196,6 +196,21 @@ Limitations: 1. Premises and conclusion must each not be longer than
 the line.  2. Premises that are @{text"\<Longrightarrow>"}-implications are again
 displayed with a horizontal line, which looks at least unusual.
 
+
+In case you print theorems without premises no rule will be printed by the
+\texttt{Rule} print mode. However, you can use \texttt{Axiom} instead:
+\begin{quote}
+\verb!\begin{center}\isastyle!\\
+\verb!@!\verb!{thm[mode=Axiom] refl} {\sc refl}! \\
+\verb!\end{center}!
+\end{quote}
+yields
+\begin{center}\isastyle
+@{thm[mode=Axiom] refl} {\sc refl} 
+\end{center}
+
+
+
 *}
 
 subsection{*If-then*}
