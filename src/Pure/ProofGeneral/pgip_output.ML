@@ -43,8 +43,9 @@ sig
 			       name: PgipTypes.objname option,
 			       idtables: PgipTypes.idtable list,
 			       fileurls : PgipTypes.pgipurl list }
-    | Idvalue             of { name: PgipTypes.objname, 
+    | Idvalue             of { thyname: PgipTypes.objname option,
 			       objtype: PgipTypes.objtype, 
+			       name: PgipTypes.objname, 
 			       text: XML.content }
     | Informguise         of { file : PgipTypes.pgipurl option,  
                                theory: PgipTypes.objname option, 
@@ -90,8 +91,9 @@ datatype pgipoutput =
        | Addids              of { idtables: PgipTypes.idtable list }
        | Hasprefs            of { prefcategory: string option, prefs: preference list }
        | Prefval             of { name: string, value: string }
-       | Idvalue             of { name: PgipTypes.objname, 
+       | Idvalue             of { thyname: PgipTypes.objname option,
 				  objtype: PgipTypes.objtype, 
+				  name: PgipTypes.objname, 
 				  text: XML.content }
        | Setrefs             of { url: PgipTypes.pgipurl option,
 				  thyname: PgipTypes.objname option,
@@ -287,11 +289,16 @@ fun prefval (Prefval vs) =
 
 fun idvalue (Idvalue vs) =
     let 
-        val name = #name vs
 	val objtype_attrs = attrs_of_objtype (#objtype vs)
+	val thyname = #thyname vs
+        val name = #name vs
         val text = #text vs
     in
-        XML.Elem("idvalue", attr "name" name @ objtype_attrs, text)
+        XML.Elem("idvalue", 
+		 objtype_attrs @
+		 (opt_attr "thyname" thyname) @
+		 (attr "name" name),
+		 text)
     end
 
 fun informguise (Informguise vs) =
