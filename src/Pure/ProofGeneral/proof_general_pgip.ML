@@ -32,7 +32,6 @@ open Pgip;
 
 val proof_generalN = "ProofGeneral";  (*token markup (colouring vars, etc.)*)
 val pgmlN = "PGML";                   (*XML escapes and PGML symbol elements*)
-val pgmlatomsN = "PGMLatoms";         (*variable kind decorations*)
 val thm_depsN = "thm_deps";           (*meta-information about theorem deps*)
 
 
@@ -55,7 +54,7 @@ fun pgml_sym s =
     Symbol.Char s => XML.text s
   | Symbol.Sym sn => XML.element "sym" [("name", sn)] [XML.text s]
   | Symbol.Ctrl sn => XML.element "ctrl" [("name", sn)] [XML.text s] (* FIXME: no such PGML! *)
-  | Symbol.Raw s => s);
+  | Symbol.Raw s => Symbol.decode_raw s);
 
 fun pgml_output str =
   let val syms = Symbol.explode str
@@ -69,7 +68,7 @@ fun setup_xsymbols_output () =
 
 fun setup_pgml_output () =
   Output.add_mode pgmlN
-    (pgml_output, K pgml_output, Symbol.default_indent, Symbol.encode_raw);
+    (pgml_output, K pgml_output, Symbol.default_indent, I); (* Symbol.encode_raw); *)
 
 end;
 
@@ -680,40 +679,46 @@ fun askrefs (Askrefs vs) =
 
 
 
-local
-  (* accumulate printed output in a single PGIP response (inside <pgmltext>) *)
-  fun with_displaywrap pgipfn dispfn =
-      let
-          val lines = ref ([]: string list);
-          fun wlgrablines s = lines := s :: ! lines;
-      in
-          setmp writeln_fn wlgrablines dispfn ();
-          issue_pgip (pgipfn (!lines))
-      end;
-in
 fun showid (Showid vs) =
     let
         val thyname = #thyname vs
         val objtype = #objtype vs
         val name = #name vs
+
         val topthy = Toplevel.theory_of o Toplevel.get_state
 
-        fun idvalue objtype name strings =
-            Idvalue { name=name, objtype=objtype,
-                      text=[XML.Elem("pgmltext",[],map XML.Text strings)] }
+        (* Decompose qualified name.  FIXME: Should be a better way of doing this *)
+	fun splitthy id =
+	    let 
+		val comps = scanwords (not o (curry op= ".")) (explode id)
+	    in case comps of
+		   (thy::(rest as _::_)) => (ThyInfo.get_theory thy, space_implode "." rest)
+		 | [plainid] => (topthy(),plainid)
+		 | _ => raise Toplevel.UNDEF (* assert false *)
+	    end 
+					    
 
-        fun pthm thy name = map print_thm (get_thms thy (Name name))
+        fun idvalue strings =
+            issue_pgip (Idvalue { thyname=thyname, objtype=objtype, name=name, 
+				  text=[XML.Elem("pgmltext",[],
+						 map XML.Rawtext strings)] })
+
+	fun string_of_thm th = Pretty.string_of
+				   (Display.pretty_thm_aux
+					(Sign.pp (Thm.theory_of_thm th))
+					false (* quote *)
+					false (* show hyps *)
+					[] (* asms *)
+					th)
+
+        fun strings_of_thm (thy, name) = map string_of_thm (get_thms thy (Name name))
+
+	val string_of_thy = Pretty.string_of o (ProofDisplay.pretty_full_theory false)
     in
         case (thyname, objtype) of
-            (_,ObjTheory) =>
-            with_displaywrap (idvalue ObjTheory name)
-                             (fn ()=>(print_theory (ThyInfo.get_theory name)))
-          | (SOME thy, ObjTheorem) =>
-            with_displaywrap (idvalue ObjTheorem name)
-                             (fn ()=>(pthm (ThyInfo.get_theory thy) name))
-          | (NONE, ObjTheorem) =>
-            with_displaywrap (idvalue ObjTheorem name)
-                             (fn ()=>pthm (topthy()) name)
+            (_,ObjTheory) => idvalue [string_of_thy (ThyInfo.get_theory name)]
+          | (SOME thy, ObjTheorem) => idvalue (strings_of_thm (ThyInfo.get_theory thy, name))
+          | (NONE, ObjTheorem) => idvalue (strings_of_thm (splitthy name))
           | (_, ot) => error ("Cannot show objects of type "^(PgipTypes.name_of_objtype ot))
     end
 
@@ -1018,9 +1023,6 @@ fun process_pgip_tree xml =
 
 val process_pgip_plain = K () o process_pgip_tree o XML.tree_of_string
 
-end
-
-
 (* PGIP loop: process PGIP input only *)
 
 local
@@ -1040,7 +1042,8 @@ fun loop ready src =
            | SOME (pgip,src') =>
              let
                  val ready' = (process_pgip_tree pgip)
-                                handle e => (handler (e,SOME src'); true)
+                                handle PGIP_QUIT => raise PGIP_QUIT
+				     | e => (handler (e,SOME src'); true)
              in
                  loop ready' src'
              end
@@ -1049,14 +1052,14 @@ fun loop ready src =
 and handler (e,srco) =
     case (e,srco) of
         (XML_PARSE,SOME src) =>
-        Output.panic "Invalid XML input, aborting"
-      | (PGIP_QUIT,_) => ()
+        Output.panic "Invalid XML input, aborting" (* TODO: attempt recovery  *)
       | (Interrupt,SOME src) =>
         (Output.error_msg "Interrupt during PGIP processing"; loop true src)
       | (Toplevel.UNDEF,SOME src) =>
         (Output.error_msg "No working context defined"; loop true src)
       | (e,SOME src) =>
         (Output.error_msg (Toplevel.exn_message e); loop true src)
+      | (PGIP_QUIT,_) => ()
       | (_,NONE) => ()
 in
   (* TODO: add socket interface *)
@@ -1107,7 +1110,7 @@ fun init_pgip false =
           set initialized);
         sync_thy_loader ();
        change print_mode (cons proof_generalN o remove (op =) proof_generalN);
-       change print_mode (append [pgmlN, pgmlatomsN] o subtract (op =) [pgmlN, pgmlatomsN]);
+       change print_mode (append [pgmlN] o subtract (op =) [pgmlN]);
        pgip_toplevel tty_src);
 
 
