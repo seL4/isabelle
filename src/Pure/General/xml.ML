@@ -18,7 +18,7 @@ sig
   datatype tree =
       Elem of string * attributes * tree list
     | Text of string    (* native string, subject to XML.text on output *)
-    | Rawtext of string (* XML string: not parsed and output directly   *)
+    | Rawtext of string (* XML string: output directly, not parsed      *)
   type content = tree list
   type element = string * attributes * content
   val string_of_tree: tree -> string
