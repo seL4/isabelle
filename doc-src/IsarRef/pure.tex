@@ -1528,7 +1528,7 @@ way to include formal items into the printed text document.
   'print\_theory' ( '!'?)
   ;
 
-  'find\_theorems' (('(' nat ')')?) (criterion *)
+  'find\_theorems' (('(' nat ')')?) ('with_dups')? (criterion *)
   ;
   criterion: ('-'?) ('name' ':' nameref | 'intro' | 'elim' | 'dest' |
     'simp' ':' term | term)
@@ -1581,7 +1581,8 @@ for simplifications.
   Criteria can be preceded by ``$-$'' to select theorems that do \emph{not}
   match. Note that giving the empty list of criteria yields \emph{all}
   currently known facts.  An optional limit for the number of printed facts
-  may be given; the default is 40.
+  may be given; the default is 40. Per default, duplicates are removed from 
+  the search result. Use $\isarkeyword{with_dups}$ to display duplicates.
   
 \item [$\isarkeyword{thm_deps}~\vec a$] visualizes dependencies of facts,
   using Isabelle's graph browser tool (see also \cite{isabelle-sys}).
