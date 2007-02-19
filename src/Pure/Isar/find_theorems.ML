@@ -11,7 +11,7 @@ signature FIND_THEOREMS =
 sig
   datatype 'term criterion =
     Name of string | Intro | Elim | Dest | Simp of 'term | Pattern of 'term
-  val print_theorems: Proof.context -> term option -> int option ->
+  val print_theorems: Proof.context -> term option -> int option -> bool ->
     (bool * string criterion) list -> unit
 end;
 
@@ -227,10 +227,41 @@ fun all_filters filters thms =
   in
     map (`(eval_filters filters)) thms
     |> map_filter (fn (SOME x, y) => SOME (x, y) | (NONE, _) => NONE)
-    |> sort thm_ord |> map #2
+    |> sort thm_ord |> map #2 
   end;
 
 end;
+
+
+(* removing duplicates, preferring nicer names *)
+
+fun rem_thm_dups xs =
+    let 
+      fun nicer (Fact x) (Fact y) = size x <= size y
+        | nicer (Fact _) _        = true
+        | nicer (PureThy.Name x) (PureThy.Name y) = size x <= size y
+        | nicer (PureThy.Name _) (Fact _) = false
+        | nicer (PureThy.Name _) _ = true
+        | nicer (NameSelection (x,_)) (NameSelection (y,_)) = size x <= size y
+        | nicer (NameSelection _) _ = false;
+
+      fun is_in [] _ = NONE
+        | is_in ((n,t) :: xs) t' = if eq_thm (t, t') 
+                                   then SOME (n,t) 
+                                   else is_in xs t';
+
+      fun eq ((_,t1),(_,t2)) = eq_thm (t1,t2)
+
+      fun rem_d (rev_seen, []) = rev rev_seen
+        | rem_d (rev_seen, (x as (n',t')) :: xs) = 
+          case is_in rev_seen t' of 
+            NONE => rem_d (x::rev_seen, xs)
+          | SOME (n,t) => if nicer n n' 
+                          then rem_d (rev_seen, xs) 
+                          else rem_d (x::remove eq (n,t) rev_seen,xs)
+
+    in rem_d ([], xs) end;
+
 
 
 (* print_theorems *)
@@ -243,25 +274,28 @@ fun find_thms ctxt spec =
     |> distinct (fn ((r1, th1), (r2, th2)) =>
         r1 = r2 andalso Drule.eq_thm_prop (th1, th2)));
 
-fun print_theorems ctxt opt_goal opt_limit raw_criteria =
+fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
   let
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
     val filters = map (filter_criterion ctxt opt_goal) criteria;
 
-    val matches = all_filters filters (find_thms ctxt ([], []));
+    val raw_matches = all_filters filters (find_thms ctxt ([], []));
+    val matches = if rem_dups then rem_thm_dups raw_matches else raw_matches;
+
     val len = length matches;
     val limit = the_default (! thms_containing_limit) opt_limit;
+    val thms = Library.drop (len - limit, matches);
 
     fun prt_fact (thmref, thm) =
       ProofContext.pretty_fact ctxt (PureThy.string_of_thmref thmref, [thm]);
   in
     Pretty.big_list "searched for:" (map (pretty_criterion ctxt) criteria) :: Pretty.str "" ::
-     (if null matches then [Pretty.str "nothing found"]
+     (if null thms then [Pretty.str "nothing found"]
       else
         [Pretty.str ("found " ^ string_of_int len ^ " theorems" ^
           (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":"),
          Pretty.str ""] @
-        map prt_fact (Library.drop (len - limit, matches)))
+        map prt_fact thms)
     |> Pretty.chunks |> Pretty.writeln
   end;
 

@@ -94,7 +94,7 @@ sig
   val print_antiquotations: Toplevel.transition -> Toplevel.transition
   val class_deps: Toplevel.transition -> Toplevel.transition
   val thm_deps: (thmref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
-  val find_theorems: int option * (bool * string FindTheorems.criterion) list
+  val find_theorems: (int option * bool) * (bool * string FindTheorems.criterion) list
     -> Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_cases: Toplevel.transition -> Toplevel.transition
@@ -509,12 +509,13 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   ThmDeps.thm_deps (Proof.get_thmss (Toplevel.enter_proof_body state) args));
 
-fun find_theorems (opt_lim, spec) = Toplevel.unknown_theory o Toplevel.keep (fn state =>
+fun find_theorems ((opt_lim, rem_dups), spec) = 
+  Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
     val proof_state = Toplevel.enter_proof_body state;
     val ctxt = Proof.context_of proof_state;
     val opt_goal = try Proof.get_goal proof_state |> Option.map (Thm.prop_of o #2 o #2);
-  in FindTheorems.print_theorems ctxt opt_goal opt_lim spec end);
+  in FindTheorems.print_theorems ctxt opt_goal opt_lim rem_dups spec end);
 
 
 (* print proof context contents *)
