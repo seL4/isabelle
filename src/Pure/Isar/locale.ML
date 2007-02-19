@@ -603,9 +603,13 @@ fun unify_parms ctxt fixed_parms raw_parmss =
 
     fun unify T U envir = Sign.typ_unify thy (U, T) envir
       handle Type.TUNIFY =>
-        let val prt = Sign.string_of_typ thy in
+        let 
+          val T' = Envir.norm_type (fst envir) T;
+          val U' = Envir.norm_type (fst envir) U;
+          val prt = Sign.string_of_typ thy; 
+        in
           raise TYPE ("unify_parms: failed to unify types " ^
-            prt U ^ " and " ^ prt T, [U, T], [])
+            prt U' ^ " and " ^ prt T', [U', T'], [])
         end;
     fun unify_list (T :: Us) = fold (unify T) Us
       | unify_list [] = I;
