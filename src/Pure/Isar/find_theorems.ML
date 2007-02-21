@@ -280,7 +280,9 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
     val filters = map (filter_criterion ctxt opt_goal) criteria;
 
     val raw_matches = all_filters filters (find_thms ctxt ([], []));
-    val matches = if rem_dups then rem_thm_dups raw_matches else raw_matches;
+    val matches = if rem_dups andalso not (null filters) 
+                  then rem_thm_dups raw_matches 
+                  else raw_matches;
 
     val len = length matches;
     val limit = the_default (! thms_containing_limit) opt_limit;
