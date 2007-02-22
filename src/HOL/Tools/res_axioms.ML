@@ -474,7 +474,7 @@ fun skolem thy (name,th) =
           let val (thy',defs) = declare_skofuns cname nnfth thy
               val cnfs = Meson.make_cnf (map skolem_of_def defs) nnfth
               val (thy'',cnfs') = declare_abstract (thy',cnfs)
-          in (thy'', Meson.finish_cnf cnfs')
+          in (map Goal.close_result (Meson.finish_cnf cnfs'), thy'')
           end)
       (SOME (to_nnf th)  handle THM _ => NONE)
   end;
@@ -486,20 +486,17 @@ fun skolem_cache_thm (name,th) thy =
       NONE =>
         (case skolem thy (name, Thm.transfer thy th) of
              NONE => ([th],thy)
-           | SOME (thy',cls) => 
-               let val cls = map Goal.close_result cls
-               in
-                  if null cls then warning ("skolem_cache: empty clause set for " ^ name)
+           | SOME (cls,thy') => 
+                 (if null cls then warning ("skolem_cache: empty clause set for " ^ name)
                   else ();
                   change clause_cache (Symtab.update (name, (th, cls))); 
-                  (cls,thy')
-               end)
+                  (cls,thy')))
     | SOME (th',cls) =>
         if eq_thm(th,th') then (cls,thy)
         else (Output.debug (fn () => "skolem_cache: Ignoring variant of theorem " ^ name);
               Output.debug (fn () => string_of_thm th);
               Output.debug (fn () => string_of_thm th');
-              ([th],thy));
+              getOpt (skolem thy (name, Thm.transfer thy th), ([th],thy)));
 
 (*Exported function to convert Isabelle theorems into axiom clauses*)
 fun cnf_axiom (name,th) =
@@ -518,7 +515,7 @@ fun cnf_axiom (name,th) =
                     (Output.debug (fn () => "cnf_axiom: duplicate or variant of theorem " ^ name);
                      Output.debug (fn () => string_of_thm th);
                      Output.debug (fn () => string_of_thm th');
-                     cls)
+                     skolem_thm th)
  );
 
 fun pairname th = (PureThy.get_name_hint th, th);
