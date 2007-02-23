@@ -141,31 +141,34 @@ fun ensure_def_class thy (algbr as ((_, algebra), _)) funcgr strct class =
 and ensure_def_classrel thy algbr funcgr strct (subclass, superclass) =
   ensure_def_class thy algbr funcgr strct subclass
   #>> (fn _ => CodegenNames.classrel thy (subclass, superclass))
-and ensure_def_tyco thy algbr funcgr strct tyco trns =
-  let
-    fun defgen_datatype trns =
-      case CodegenData.get_datatype thy tyco
-       of SOME (vs, cos) =>
-            trns
-            |> fold_map (exprgen_tyvar_sort thy algbr funcgr strct) vs
-            ||>> fold_map (fn (c, tys) =>
-              fold_map (exprgen_type thy algbr funcgr strct) tys
-              #-> (fn tys' =>
-                pair ((CodegenNames.const thy o CodegenConsts.norm_of_typ thy)
-                  (c, tys ---> Type (tyco, map TFree vs)), tys'))) cos
-            |-> (fn (vs, cos) => succeed (CodegenThingol.Datatype (vs, cos)))
-        | NONE =>
-            trns
-            |> fail ("No such datatype: " ^ quote tyco)
-    val tyco' = CodegenNames.tyco thy tyco;
-    val strict = check_strict strct (CodegenSerializer.tyco_has_serialization thy) tyco';
-  in
-    trns
-    |> tracing (fn _ => "generating type constructor " ^ quote tyco)
-    |> ensure_def thy defgen_datatype strict
-        ("generating type constructor " ^ quote tyco) tyco'
-    |> pair tyco'
-  end
+and ensure_def_tyco thy algbr funcgr strct "fun" trns =
+      trns
+      |> pair "fun"
+  | ensure_def_tyco thy algbr funcgr strct tyco trns =
+      let
+        fun defgen_datatype trns =
+          case CodegenData.get_datatype thy tyco
+           of SOME (vs, cos) =>
+                trns
+                |> fold_map (exprgen_tyvar_sort thy algbr funcgr strct) vs
+                ||>> fold_map (fn (c, tys) =>
+                  fold_map (exprgen_type thy algbr funcgr strct) tys
+                  #-> (fn tys' =>
+                    pair ((CodegenNames.const thy o CodegenConsts.norm_of_typ thy)
+                      (c, tys ---> Type (tyco, map TFree vs)), tys'))) cos
+                |-> (fn (vs, cos) => succeed (CodegenThingol.Datatype (vs, cos)))
+            | NONE =>
+                trns
+                |> fail ("No such datatype: " ^ quote tyco)
+        val tyco' = CodegenNames.tyco thy tyco;
+        val strict = check_strict strct (CodegenSerializer.tyco_has_serialization thy) tyco';
+      in
+        trns
+        |> tracing (fn _ => "generating type constructor " ^ quote tyco)
+        |> ensure_def thy defgen_datatype strict
+            ("generating type constructor " ^ quote tyco) tyco'
+        |> pair tyco'
+      end
 and exprgen_tyvar_sort thy (algbr as ((proj_sort, _), _)) funcgr strct (v, sort) trns =
   trns
   |> fold_map (ensure_def_class thy algbr funcgr strct) (proj_sort sort)
@@ -174,11 +177,6 @@ and exprgen_type thy algbr funcgr strct (TFree vs) trns =
       trns
       |> exprgen_tyvar_sort thy algbr funcgr strct vs
       |>> (fn (v, sort) => ITyVar v)
-  | exprgen_type thy algbr funcgr strct (Type ("fun", [t1, t2])) trns =
-      trns
-      |> exprgen_type thy algbr funcgr strct t1
-      ||>> exprgen_type thy algbr funcgr strct t2
-      |>> (fn (t1', t2') => t1' `-> t2')
   | exprgen_type thy algbr funcgr strct (Type (tyco, tys)) trns =
       case get_abstype thy (tyco, tys)
        of SOME ty =>
