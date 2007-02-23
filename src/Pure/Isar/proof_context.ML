@@ -104,6 +104,7 @@ sig
   val get_thms_closure: Proof.context -> thmref -> thm list
   val valid_thms: Proof.context -> string * thm list -> bool
   val lthms_containing: Proof.context -> FactIndex.spec -> (string * thm list) list
+  val add_path: string -> Proof.context -> Proof.context
   val no_base_names: Proof.context -> Proof.context
   val qualified_names: Proof.context -> Proof.context
   val sticky_prefix: string -> Proof.context -> Proof.context
@@ -763,6 +764,7 @@ fun lthms_containing ctxt spec =
 
 (* name space operations *)
 
+val add_path        = map_naming o NameSpace.add_path;
 val no_base_names   = map_naming NameSpace.no_base_names;
 val qualified_names = map_naming NameSpace.qualified_names;
 val sticky_prefix   = map_naming o NameSpace.sticky_prefix;
