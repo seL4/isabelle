@@ -1,4 +1,4 @@
-    (*  Title:      Pure/Tools/codegen_serializer.ML
+(*  Title:      Pure/Tools/codegen_serializer.ML
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
@@ -9,6 +9,14 @@ target languages (like SML or Haskell).
 signature CODEGEN_SERIALIZER =
 sig
   include BASIC_CODEGEN_THINGOL;
+
+  val add_syntax_class: string -> class
+    -> (string * ((string * typ list) * string) list) option -> theory -> theory;
+  val add_syntax_inst: string -> string * class -> bool -> theory -> theory;
+  val add_syntax_tycoP: string -> string -> OuterParse.token list
+    -> (theory -> theory) * OuterParse.token list;
+  val add_syntax_constP: string -> string -> OuterParse.token list
+    -> (theory -> theory) * OuterParse.token list;
 
   val add_pretty_list: string -> string -> string -> (Pretty.T list -> Pretty.T)
    -> ((string -> string) * (string -> string)) option -> int * string
@@ -33,7 +41,7 @@ sig
   val code_width: int ref;
 end;
 
-structure CodegenSerializer: CODEGEN_SERIALIZER =
+structure CodegenSerializer : CODEGEN_SERIALIZER =
 struct
 
 open BasicCodegenThingol;
@@ -1727,13 +1735,24 @@ fun gen_add_syntax_const prep_const target raw_c raw_syn thy =
            (Symtab.delete_safe c')
   end;
 
+fun cert_class thy class =
+  let
+    val _ = AxClass.get_definition thy class;
+  in class end;
+
 fun read_class thy raw_class =
   let
     val class = Sign.intern_class thy raw_class;
     val _ = AxClass.get_definition thy class;
   in class end;
 
-fun read_type thy raw_tyco =
+fun cert_tyco thy tyco =
+  let
+    val _ = if Sign.declared_tyname thy tyco then ()
+      else error ("No such type constructor: " ^ quote tyco);
+  in tyco end;
+
+fun read_tyco thy raw_tyco =
   let
     val tyco = Sign.intern_type thy raw_tyco;
     val _ = if Sign.declared_tyname thy tyco then ()
@@ -1770,11 +1789,6 @@ fun gen_add_haskell_monad prep_const c_run c_mbind c_kbind thy =
     |> gen_add_syntax_const (K I) target_Haskell c_kbind'
           (no_bindings (SOME (parse_infix fst (L, 1) ">>")))
   end;
-
-val add_syntax_class = gen_add_syntax_class read_class CodegenConsts.read_const;
-val add_syntax_inst = gen_add_syntax_inst read_class read_type;
-val add_syntax_tyco = gen_add_syntax_tyco read_type;
-val add_syntax_const = gen_add_syntax_const CodegenConsts.read_const;
 
 fun add_reserved target =
   map_reserveds target o insert (op =);
@@ -1820,6 +1834,21 @@ val (code_classK, code_instanceK, code_typeK, code_constK, code_monadK,
 
 in
 
+val parse_syntax = parse_syntax;
+
+val add_syntax_class = gen_add_syntax_class cert_class (K I);
+val add_syntax_inst = gen_add_syntax_inst cert_class cert_tyco;
+val add_syntax_tyco = gen_add_syntax_tyco cert_tyco;
+val add_syntax_const = gen_add_syntax_const (K I);
+
+val add_syntax_class_cmd = gen_add_syntax_class read_class CodegenConsts.read_const;
+val add_syntax_inst_cmd = gen_add_syntax_inst read_class read_tyco;
+val add_syntax_tyco_cmd = gen_add_syntax_tyco read_tyco;
+val add_syntax_const_cmd = gen_add_syntax_const CodegenConsts.read_const;
+
+fun add_syntax_tycoP target tyco = parse_syntax I >> add_syntax_tyco_cmd target tyco;
+fun add_syntax_constP target c = parse_syntax fst >> (add_syntax_const_cmd target c o no_bindings);
+
 fun add_pretty_list target nill cons mk_list mk_char_string target_cons thy =
   let
     val (_, nil'') = idfs_of_const thy nill;
@@ -1827,7 +1856,7 @@ fun add_pretty_list target nill cons mk_list mk_char_string target_cons thy =
     val pr = pretty_list nil'' cons'' mk_list mk_char_string target_cons;
   in
     thy
-    |> gen_add_syntax_const (K I) target cons' (SOME pr)
+    |> add_syntax_const target cons' (SOME pr)
   end;
 
 fun add_pretty_ml_string target nill cons str mk_char mk_string target_implode thy =
@@ -1838,7 +1867,7 @@ fun add_pretty_ml_string target nill cons str mk_char mk_string target_implode t
     val pr = pretty_ml_string nil'' cons'' mk_char mk_string target_implode;
   in
     thy
-    |> gen_add_syntax_const (K I) target str' (SOME pr)
+    |> add_syntax_const target str' (SOME pr)
   end;
 
 fun add_undefined target undef target_undefined thy =
@@ -1847,7 +1876,7 @@ fun add_undefined target undef target_undefined thy =
     fun pr _ _ _ _ = str target_undefined;
   in
     thy
-    |> gen_add_syntax_const (K I) target undef' (SOME (~1, pr))
+    |> add_syntax_const target undef' (SOME (~1, pr))
   end;
 
 fun add_pretty_imperative_monad_bind target bind thy =
@@ -1856,7 +1885,7 @@ fun add_pretty_imperative_monad_bind target bind thy =
     val pr = pretty_imperative_monad_bind
   in
     thy
-    |> gen_add_syntax_const (K I) target bind' (SOME pr)
+    |> add_syntax_const target bind' (SOME pr)
   end;
 
 val add_haskell_monad = gen_add_haskell_monad CodegenConsts.read_const;
@@ -1867,7 +1896,7 @@ val code_classP =
       (Scan.option (P.string -- Scan.optional (P.$$$ "where" |-- Scan.repeat1
         (P.term --| (P.$$$ "\\<equiv>" || P.$$$ "==") -- P.string)) []))
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
-          fold (fn (raw_class, syn) => add_syntax_class target raw_class syn) syns)
+          fold (fn (raw_class, syn) => add_syntax_class_cmd target raw_class syn) syns)
   );
 
 val code_instanceP =
@@ -1875,21 +1904,21 @@ val code_instanceP =
     parse_multi_syntax (P.xname --| P.$$$ "::" -- P.xname)
       ((P.minus >> K true) || Scan.succeed false)
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
-          fold (fn (raw_inst, add_del) => add_syntax_inst target raw_inst add_del) syns)
+          fold (fn (raw_inst, add_del) => add_syntax_inst_cmd target raw_inst add_del) syns)
   );
 
 val code_typeP =
   OuterSyntax.command code_typeK "define code syntax for type constructor" K.thy_decl (
     parse_multi_syntax P.xname (parse_syntax I)
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
-          fold (fn (raw_tyco, syn) => add_syntax_tyco target raw_tyco syn) syns)
+          fold (fn (raw_tyco, syn) => add_syntax_tyco_cmd target raw_tyco syn) syns)
   );
 
 val code_constP =
   OuterSyntax.command code_constK "define code syntax for constant" K.thy_decl (
     parse_multi_syntax P.term (parse_syntax fst)
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
-          fold (fn (raw_const, syn) => add_syntax_const target raw_const (no_bindings syn)) syns)
+          fold (fn (raw_const, syn) => add_syntax_const_cmd target raw_const (no_bindings syn)) syns)
   );
 
 val code_monadP =
@@ -1924,19 +1953,19 @@ val _ = OuterSyntax.add_parsers [code_classP, code_instanceP, code_typeP, code_c
 
 (*including serializer defaults*)
 val _ = Context.add_setup (
-  gen_add_syntax_tyco (K I) "SML" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
+  add_syntax_tyco "SML" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
       (gen_brackify (case fxy of NOBR => false | _ => eval_fxy (INFX (1, R)) fxy) o Pretty.breaks) [
         pr_typ (INFX (1, X)) ty1,
         str "->",
         pr_typ (INFX (1, R)) ty2
       ]))
-  #> gen_add_syntax_tyco (K I) "OCaml" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
+  #> add_syntax_tyco "OCaml" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
       (gen_brackify (case fxy of NOBR => false | _ => eval_fxy (INFX (1, R)) fxy) o Pretty.breaks) [
         pr_typ (INFX (1, X)) ty1,
         str "->",
         pr_typ (INFX (1, R)) ty2
       ]))
-  #> gen_add_syntax_tyco (K I) "Haskell" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
+  #> add_syntax_tyco "Haskell" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy [
         pr_typ (INFX (1, X)) ty1,
         str "->",
