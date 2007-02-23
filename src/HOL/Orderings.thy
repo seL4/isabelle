@@ -124,8 +124,6 @@ subsection {* Partial orderings *}
 
 class order = preorder + 
   assumes antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
-
-context order
 begin
 
 text {* Asymmetry. *}
@@ -814,6 +812,13 @@ lemma le_boolE: "P \<le> Q \<Longrightarrow> P \<Longrightarrow> (Q \<Longrighta
 
 lemma le_boolD: "P \<le> Q \<Longrightarrow> P \<longrightarrow> Q"
   by (simp add: le_bool_def)
+
+lemma [code func]:
+  "False \<le> b \<longleftrightarrow> True"
+  "True \<le> b \<longleftrightarrow> b"
+  "False < b \<longleftrightarrow> b"
+  "True < b \<longleftrightarrow> False"
+  unfolding le_bool_def less_bool_def by simp_all
 
 subsection {* Monotonicity, syntactic least value operator and min/max *}
 
