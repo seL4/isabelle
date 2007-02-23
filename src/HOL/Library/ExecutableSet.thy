@@ -50,15 +50,15 @@ definition
 
 definition
   member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool" where
-  "member xs x = (x \<in> set xs)"
+  "member xs x \<longleftrightarrow> x \<in> set xs"
 
 definition
   insertl :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "insertl x xs = (if member xs x then xs else x#xs)"
 
 lemma
-  [code target: List]: "member [] y = False"
-  and [code target: List]: "member (x#xs) y = (y = x \<or> member xs y)"
+  [code target: List]: "member [] y \<longleftrightarrow> False"
+  and [code target: List]: "member (x#xs) y \<longleftrightarrow> y = x \<or> member xs y"
 unfolding member_def by (induct xs) simp_all
 
 fun
@@ -172,7 +172,7 @@ definition
 section {* Isomorphism proofs *}
 
 lemma iso_member:
-  "member xs x = (x \<in> set xs)"
+  "member xs x \<longleftrightarrow> x \<in> set xs"
   unfolding member_def mem_iff ..
 
 lemma iso_insert:
@@ -315,9 +315,6 @@ code_abstype "'a set" "'a list" where
   Ball \<equiv> Blall
   Bex \<equiv> Blex
   filter_set \<equiv> filter
-
-code_gen "{}" insert "op \<union>" "op \<inter>" "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
-  image Union Inter UNION INTER Ball Bex filter_set (SML -)
 
 
 subsection {* type serializations *}
