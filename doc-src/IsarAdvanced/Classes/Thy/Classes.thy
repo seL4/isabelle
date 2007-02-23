@@ -123,7 +123,7 @@ text {*
   \hspace*{4ex}@{text "trans: eq x y \<and> eq y z \<longrightarrow> eq x z"}
 
   \medskip From a theoretic point of view, type classes are leightweight
-  modules; indeed, Haskell type classes may be emulated by
+  modules; Haskell type classes may be emulated by
   SML functors \cite{classes_modules}. 
   Isabelle/Isar offers a discipline of type classes which brings
   all those aspects together:
@@ -269,7 +269,7 @@ text {*
       fix xs :: "\<alpha> list"
       show "\<one> \<otimes> xs = xs"
       proof -
-	from mult_list_def have "\<And>xs ys\<Colon>'a list. xs \<otimes> ys \<equiv> xs @ ys" .
+	from mult_list_def have "\<And>xs ys\<Colon>\<alpha> list. xs \<otimes> ys \<equiv> xs @ ys" .
 	moreover from mult_list_def neutral_list_def have "\<one> \<equiv> []\<Colon>\<alpha> list" by simp
 	ultimately show ?thesis by simp
       qed
@@ -300,7 +300,7 @@ text {*
       show "xs \<otimes> \<one> = xs"
       proof -
 	from mult_list_def have "\<And>xs ys\<Colon>\<alpha> list. xs \<otimes> ys \<equiv> xs @ ys" .
-	moreover from mult_list_def neutral_list_def have "\<one> \<equiv> []\<Colon>'a list" by simp
+	moreover from mult_list_def neutral_list_def have "\<one> \<equiv> []\<Colon>\<alpha> list" by simp
 	ultimately show ?thesis by simp
       qed
     qed
@@ -326,16 +326,52 @@ section {* Type classes as locales *}
 
 subsection {* A look behind the scene *}
 
-(* write here: locale *)
+text {*
+  The example above gives an impression how Isar type classes work
+  in practice.  As stated in the introduction, classes also provide
+  a link to Isar's locale system.  Indeed, the logical core of a class
+  is nothing else than a locale:
+*}
+
+class idem =
+  fixes f :: "\<alpha> \<Rightarrow> \<alpha>"
+  assumes idem: "f (f x) = f x"
 
 text {*
+  \noindent essentially introduces the locale
+*}
 
+(*<*) setup {* Sign.add_path "foo" *} (*>*)
+
+locale idem =
+  fixes f :: "\<alpha> \<Rightarrow> \<alpha>"
+  assumes idem: "f (f x) = f x"
+
+text {* \noindent together with corresponding constant(s) and axclass *}
+
+consts f :: "\<alpha> \<Rightarrow> \<alpha>"
+
+axclass idem < type
+  idem: "f (f x) = f x"
+
+text {* This axclass is coupled to the locale by means of an interpretation: *}
+
+interpretation idem_class:
+  idem ["f \<Colon> ('a\<Colon>idem) \<Rightarrow> \<alpha>"]
+by unfold_locales (rule idem)
+
+(*<*) setup {* Sign.parent_path *} (*>*)
+
+text {*
+  This give you at hand the full power of the Isabelle module system;
+  conclusions in locale @{text idem} are implicitly propagated
+  to class @{idem}.
 *}
 
 subsection {* Abstract reasoning *}
 
 text {*
-  Abstract theories enable reasoning at a general level, while results
+  Isabelle locales enable reasoning at a general level, while results
   are implicitly transferred to all instances.  For example, we can
   now establish the @{text "left_cancel"} lemma for groups, which
   states that the function @{text "(x \<circ>)"} is injective:
@@ -344,12 +380,12 @@ text {*
     lemma (in group) left_cancel: "x \<^loc>\<otimes> y = x \<^loc>\<otimes> z \<longleftrightarrow> y = z"
     proof
     assume "x \<^loc>\<otimes> y = x \<^loc>\<otimes> z"
-        then have "x\<^loc>\<div> \<^loc>\<otimes> (x \<^loc>\<otimes> y) = x\<^loc>\<div> \<^loc>\<otimes> (x \<^loc>\<otimes> z)" by simp
-        then have "(x\<^loc>\<div> \<^loc>\<otimes> x) \<^loc>\<otimes> y = (x\<^loc>\<div> \<^loc>\<otimes> x) \<^loc>\<otimes> z" using assoc by simp
-        then show "y = z" using neutl and invl by simp
+      then have "x\<^loc>\<div> \<^loc>\<otimes> (x \<^loc>\<otimes> y) = x\<^loc>\<div> \<^loc>\<otimes> (x \<^loc>\<otimes> z)" by simp
+      then have "(x\<^loc>\<div> \<^loc>\<otimes> x) \<^loc>\<otimes> y = (x\<^loc>\<div> \<^loc>\<otimes> x) \<^loc>\<otimes> z" using assoc by simp
+      then show "y = z" using neutl and invl by simp
     next
     assume "y = z"
-        then show "x \<^loc>\<otimes> y = x \<^loc>\<otimes> z" by simp
+      then show "x \<^loc>\<otimes> y = x \<^loc>\<otimes> z" by simp
     qed
 
 text {*
@@ -368,6 +404,22 @@ text {*
 text {*
 *}*)
 
+(* subsection {* Additional subclass relations *}
+
+text {*
+  Any @{text "group"} is also a @{text "monoid"};  this
+  can be made explicit by claiming an additional subclass relation,
+  together with a proof of the logical difference:
+*}
+
+    instance group < monoid
+    proof -
+      fix x
+      from invl have "x\<^loc>\<div> \<^loc>\<otimes> x = \<^loc>\<one>" by simp
+      with assoc [symmetric] neutl invl have "x\<^loc>\<div> \<^loc>\<otimes> (x \<^loc>\<otimes> \<^loc>\<one>) = x\<^loc>\<div> \<^loc>\<otimes> x" by simp
+      with left_cancel show "x \<^loc>\<otimes> \<^loc>\<one> = x" by simp
+    qed *)
+
 section {* Further issues *}
 
 subsection {* Code generation *}
@@ -385,12 +437,12 @@ text {*
 *}
 
     fun
-      pow_nat :: "nat \<Rightarrow> 'a\<Colon>monoidl \<Rightarrow> 'a\<Colon>monoidl" where
+      pow_nat :: "nat \<Rightarrow> \<alpha>\<Colon>monoidl \<Rightarrow> \<alpha>\<Colon>monoidl" where
       "pow_nat 0 x = \<one>"
       "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
 
     definition
-      pow_int :: "int \<Rightarrow> 'a\<Colon>group \<Rightarrow> 'a\<Colon>group" where
+      pow_int :: "int \<Rightarrow> \<alpha>\<Colon>group \<Rightarrow> \<alpha>\<Colon>group" where
       "pow_int k x = (if k >= 0
         then pow_nat (nat k) x
         else (pow_nat (nat (- k)) x)\<div>)"
@@ -421,22 +473,6 @@ text {*
   \lstsml{Thy/code_examples/classes.ML}
 *}
 
-
-(* subsection {* Additional subclass relations *}
-
-text {*
-  Any @{text "group"} is also a @{text "monoid"};  this
-  can be made explicit by claiming an additional subclass relation,
-  together with a proof of the logical difference:
-*}
-
-    instance group < monoid
-    proof -
-      fix x
-      from invl have "x\<^loc>\<div> \<^loc>\<otimes> x = \<^loc>\<one>" by simp
-      with assoc [symmetric] neutl invl have "x\<^loc>\<div> \<^loc>\<otimes> (x \<^loc>\<otimes> \<^loc>\<one>) = x\<^loc>\<div> \<^loc>\<otimes> x" by simp
-      with left_cancel show "x \<^loc>\<otimes> \<^loc>\<one> = x" by simp
-    qed *)
 
 (* subsection {* Different syntax for same specifications *}
 
