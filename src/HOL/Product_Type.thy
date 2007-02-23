@@ -33,7 +33,7 @@ text {*
 ML_setup {*
   val unit_eq_proc =
     let val unit_meta_eq = mk_meta_eq (thm "unit_eq") in
-      Simplifier.simproc (Theory.sign_of (the_context ())) "unit_eq" ["x::unit"]
+      Simplifier.simproc (the_context ()) "unit_eq" ["x::unit"]
       (fn _ => fn _ => fn t => if HOLogic.is_unit t then NONE else SOME unit_meta_eq)
     end;
 
