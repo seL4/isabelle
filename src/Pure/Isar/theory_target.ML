@@ -8,7 +8,7 @@ Common theory/locale targets.
 signature THEORY_TARGET =
 sig
   val peek: local_theory -> string option
-  val begin: bool -> bstring -> Proof.context -> local_theory
+  val begin: bstring -> Proof.context -> local_theory
   val init: xstring option -> theory -> local_theory
   val init_i: string option -> theory -> local_theory
 end;
@@ -60,7 +60,7 @@ fun internal_abbrev prmode ((c, mx), t) =
   LocalTheory.term_syntax (ProofContext.target_abbrev prmode ((c, mx), t)) #>
   ProofContext.add_abbrev Syntax.internalM (c, t) #> snd;
 
-fun consts is_class is_loc depends decls lthy =
+fun consts is_loc some_class depends decls lthy =
   let
     val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
 
@@ -68,7 +68,7 @@ fun consts is_class is_loc depends decls lthy =
       let
         val U = map #2 xs ---> T;
         val t = Term.list_comb (Const (Sign.full_name thy c, U), map Free xs);
-        val (mx1, mx2) = ClassPackage.fork_mixfix is_class is_loc mx;
+        val (mx1, mx2) = ClassPackage.fork_mixfix is_loc some_class mx;
         val thy' = Sign.add_consts_authentic [(c, U, mx1)] thy;
       in (((c, mx2), t), thy') end;
 
@@ -87,7 +87,7 @@ fun occ_params ctxt ts =
   #1 (ProofContext.inferred_fixes ctxt)
   |> filter (member (op =) (fold (Variable.add_fixed ctxt) ts []));
 
-fun abbrev is_class is_loc prmode ((raw_c, mx), raw_t) lthy =
+fun abbrev is_loc some_class  prmode ((raw_c, mx), raw_t) lthy =
   let
     val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
     val target = LocalTheory.target_of lthy;
@@ -102,7 +102,7 @@ fun abbrev is_class is_loc prmode ((raw_c, mx), raw_t) lthy =
 
     val ((lhs as Const (full_c, _), rhs), lthy1) = lthy
       |> LocalTheory.theory_result (Sign.add_abbrev (#1 prmode) (c, u'));
-    val (mx1, mx2) = ClassPackage.fork_mixfix is_class is_loc mx;
+    val (mx1, mx2) = ClassPackage.fork_mixfix is_loc some_class mx;
   in
     lthy1
     |> LocalTheory.theory (Sign.add_notation prmode [(lhs, mx1)])
@@ -129,7 +129,7 @@ fun add_def (name, prop) =
 
 in
 
-fun defs loc is_class kind args lthy0 =
+fun defs loc some_class kind args lthy0 =
   let
     fun def ((c, mx), ((name, atts), rhs)) lthy1 =
       let
@@ -147,12 +147,12 @@ fun defs loc is_class kind args lthy0 =
           [(*c == loc.c xs*) lhs_def,
            (*lhs' == rhs'*)  def,
            (*rhs' == rhs*)   Thm.symmetric rhs_conv];
-        val lthy4 = if is_class
-          then
-            LocalTheory.raw_theory
-              (ClassPackage.add_def_in_class lthy3 loc
-                ((c, mx), ((name, atts), (rhs, eq)))) lthy3
-          else lthy3;
+        val lthy4 = case some_class
+         of SOME class => 
+              LocalTheory.raw_theory
+                (ClassPackage.add_def_in_class lthy3 class
+                  ((c, mx), ((name, atts), (rhs, eq)))) lthy3
+          | _ => lthy3;
       in ((lhs, ((name', atts), [([eq], [])])), lthy4) end;
 
     val ((lhss, facts), lthy') = lthy0 |> fold_map def args |>> split_list;
@@ -298,15 +298,20 @@ fun target_naming loc lthy =
 
 (* init and exit *)
 
-fun begin is_class loc =
-  let val is_loc = loc <> "" in
-    Data.put (if is_loc then SOME loc else NONE) #>
-    LocalTheory.init (NameSpace.base loc)
+fun begin loc ctxt =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val is_loc = loc <> "";
+    val some_class = ClassPackage.class_of_locale thy loc;
+  in
+    ctxt
+    |> Data.put (if is_loc then SOME loc else NONE)
+    |> LocalTheory.init (NameSpace.base loc)
      {pretty = pretty loc,
-      consts = consts is_class is_loc,
+      consts = consts is_loc some_class,
       axioms = axioms,
-      abbrev = abbrev is_class is_loc,
-      defs = defs loc is_class,
+      abbrev = abbrev is_loc some_class,
+      defs = defs loc some_class,
       notes = notes loc,
       type_syntax = type_syntax loc,
       term_syntax = term_syntax loc,
@@ -314,14 +319,12 @@ fun begin is_class loc =
       target_morphism = target_morphism loc,
       target_naming = target_naming loc,
       reinit = fn _ =>
-        begin is_class loc o (if is_loc then Locale.init loc else ProofContext.init),
+        begin loc o (if is_loc then Locale.init loc else ProofContext.init),
       exit = LocalTheory.target_of}
   end;
 
-fun init_i NONE thy = begin false "" (ProofContext.init thy)
-  | init_i (SOME loc) thy =
-      begin ((is_some o ClassPackage.class_of_locale thy) loc)
-        loc (Locale.init loc thy);
+fun init_i NONE thy = begin "" (ProofContext.init thy)
+  | init_i (SOME loc) thy = begin loc (Locale.init loc thy);
 
 fun init (SOME "-") thy = init_i NONE thy
   | init loc thy = init_i (Option.map (Locale.intern thy) loc) thy;

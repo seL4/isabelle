@@ -7,7 +7,7 @@ Type classes derived from primitive axclasses and locales.
 
 signature CLASS_PACKAGE =
 sig
-  val fork_mixfix: bool -> bool -> mixfix -> mixfix * mixfix
+  val fork_mixfix: bool -> string option -> mixfix -> mixfix * mixfix
 
   val class: bstring -> class list -> Element.context_i Locale.element list -> theory ->
     string * Proof.context
@@ -44,12 +44,12 @@ struct
 
 (** auxiliary **)
 
-fun fork_mixfix is_class is_loc mx =
+fun fork_mixfix is_loc some_class mx =
   let
     val mx' = Syntax.unlocalize_mixfix mx;
-    val mx1 = if is_class orelse (is_loc andalso mx = mx') then NoSyn else mx';
-    val mx2 = if is_loc then mx else NoSyn;
-  in (mx1, mx2) end;
+    val mx_global = if is_some some_class orelse (is_loc andalso mx = mx') then NoSyn else mx';
+    val mx_local = if is_loc then mx else NoSyn;
+  in (mx_global, mx_local) end;
 
 
 (** AxClasses with implicit parameter handling **)
@@ -100,7 +100,7 @@ fun axclass_params (name, raw_superclasses) raw_consts raw_dep_axioms thy =
     #-> (fn axioms_prop => AxClass.define_class_i (name, superclasses) (map fst cs) axioms_prop
     #-> (fn class => `(fn thy => AxClass.get_definition thy class)
     #-> (fn {intro, axioms, ...} => fold (add_constraint class) cs
-    #> pair (class, ((intro, (maps snd axioms_prop, axioms)), cs))))))
+    #> pair (class, ((intro, (map Thm.prop_of axioms, axioms)), cs))))))
   end;
 
 
@@ -471,7 +471,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
       in
         (map (fst o fst) params, params
         |> (map o apfst o apsnd o Term.map_type_tfree) (K (TFree (AxClass.param_tyvarname, Sign.defaultS thy)))
-        |> (map o apsnd) (fork_mixfix false true #> fst)
+        |> (map o apsnd) (fork_mixfix true NONE #> fst)
         |> chop (length supconsts)
         |> snd)
       end;
@@ -501,7 +501,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
     fun make_witness t thm = Element.make_witness t (Goal.protect thm);
   in
     thy
-    |> add_locale bname supexpr ((*elems_constrains @*) elems)
+    |> add_locale (SOME (bname ^ "_pred")) bname supexpr ((*elems_constrains @*) elems)
     |-> (fn name_locale => ProofContext.theory_result (
       `(fn thy => extract_params thy name_locale)
       #-> (fn (param_names, params) =>
@@ -513,7 +513,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
           (name_locale, map (fst o fst) params ~~ map fst consts,
             map2 make_witness ax_terms ax_axioms, axiom_names))
       #> prove_interpretation ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
-          (Logic.const_of_class bname, []) (Locale.Locale name_locale)
+          ((true, Logic.const_of_class bname), []) (Locale.Locale name_locale)
           (mk_instT name_axclass, mk_inst name_axclass param_names (map snd supconsts @ consts))
       #> pair name_axclass
       )))))
@@ -521,8 +521,8 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
 
 in
 
-val class_cmd = gen_class (Locale.add_locale true) read_class;
-val class = gen_class (Locale.add_locale_i true) certify_class;
+val class_cmd = gen_class Locale.add_locale read_class;
+val class = gen_class Locale.add_locale_i certify_class;
 
 end; (*local*)
 
@@ -558,11 +558,24 @@ end; (* local *)
 
 (** experimental class target **)
 
-fun add_def_in_class lthy loc ((c, syn), ((name, atts), (rhs, eq))) thy =
+fun print_witness wit =
   let
-    val SOME class = class_of_locale thy loc;
+    val (t, thm) = Element.dest_witness wit;
+    val prop = Thm.prop_of thm;
+    fun string_of_tfree (v, sort) = v ^ "::" ^ Display.raw_string_of_sort sort;
+    fun string_of_tvar (v, sort) = Library.string_of_indexname v ^ "::" ^ Display.raw_string_of_sort sort;
+    fun print_term t =
+      let
+        val term = Display.raw_string_of_term t;
+        val tfrees = map string_of_tfree (Term.add_tfrees t []);
+        val tvars = map string_of_tvar (Term.add_tvars t []);
+      in term :: tfrees @ tvars end;
+  in (map Output.info (print_term t); map Output.info (print_term prop)) end;
+
+fun add_def_in_class lthy class ((c, syn), ((name, atts), (rhs, eq))) thy =
+  let
     val rhs' = global_term thy [class] rhs;
-    val (syn', _) = fork_mixfix true true syn;
+    val (syn', _) = fork_mixfix true NONE syn;
     val ty = Term.fastype_of rhs';
     fun add_const (c, ty, syn) =
       Sign.add_consts_authentic [(c, ty, syn)]
@@ -581,7 +594,9 @@ fun add_def_in_class lthy loc ((c, syn), ((name, atts), (rhs, eq))) thy =
     val witness = the_witness thy class;
     val _ = Output.info "------ WIT ------";
     fun print_wit (t, thm) = "(" ^ Sign.string_of_term thy t ^ ", " ^ Display.string_of_thm thm ^ ")"
+    fun print_raw_wit (t, thm) = "(" ^ Display.raw_string_of_term t ^ ", " ^ (Display.raw_string_of_term o Thm.prop_of) thm ^ ")"
     val _ = (Output.info o cat_lines o map (print_wit o Element.dest_witness)) witness;
+    val _ = map print_witness witness;
     val _ = (Output.info o string_of_thm) eq';
     val eq'' = Element.satisfy_thm witness eq';
     val _ = (Output.info o string_of_thm) eq'';*)
