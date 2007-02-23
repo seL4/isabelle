@@ -378,12 +378,12 @@ val locale_val =
 
 val localeP =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
-    ((P.opt_keyword "open" >> not) -- P.name
+    ((P.opt_keyword "open" >> (fn true => NONE | false => SOME "")) -- P.name
         -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
         -- P.opt_begin
       >> (fn (((is_open, name), (expr, elems)), begin) =>
           (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
-            (Locale.add_locale is_open name expr elems #-> TheoryTarget.begin false)));
+            (Locale.add_locale is_open name expr elems #-> TheoryTarget.begin)));
 
 val interpretationP =
   OuterSyntax.command "interpretation"
@@ -391,14 +391,14 @@ val interpretationP =
     (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! SpecParse.locale_expr
       >> (Toplevel.print oo (Toplevel.theory_to_proof o Locale.interpretation_in_locale I)) ||
       SpecParse.opt_thm_name ":" -- SpecParse.locale_expr -- SpecParse.locale_insts >> (fn ((x, y), z) =>
-        Toplevel.print o Toplevel.theory_to_proof (Locale.interpretation I x y z)));
+        Toplevel.print o Toplevel.theory_to_proof (Locale.interpretation I (apfst (pair true) x) y z)));
 
 val interpretP =
   OuterSyntax.command "interpret"
     "prove and register interpretation of locale expression in proof context"
     (K.tag_proof K.prf_goal)
     (SpecParse.opt_thm_name ":" -- SpecParse.locale_expr -- SpecParse.locale_insts
-      >> (fn ((x, y), z) => Toplevel.print o Toplevel.proof' (Locale.interpret Seq.single x y z)));
+      >> (fn ((x, y), z) => Toplevel.print o Toplevel.proof' (Locale.interpret Seq.single (apfst (pair true) x) y z)));
 
 
 (* classes *)
@@ -420,7 +420,7 @@ val classP =
     -- P.opt_begin
     >> (fn ((bname, (supclasses, elems)), begin) =>
         Toplevel.begin_local_theory begin
-          (ClassPackage.class_cmd bname supclasses elems #-> TheoryTarget.begin true)));
+          (ClassPackage.class_cmd bname supclasses elems #-> TheoryTarget.begin)));
 
 val instanceP =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal ((
