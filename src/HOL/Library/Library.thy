@@ -27,6 +27,7 @@ imports
   Quotient
   Ramsey
   State_Monad
+  Size_Change_Termination
   While_Combinator
   Word
   Zorn
