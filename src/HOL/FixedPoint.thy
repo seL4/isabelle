@@ -343,6 +343,9 @@ lemma lfp_lemma3: "mono f ==> lfp f \<le> f (lfp f)"
 lemma lfp_unfold: "mono f ==> lfp f = f (lfp f)"
   by (iprover intro: order_antisym lfp_lemma2 lfp_lemma3)
 
+lemma lfp_const: "lfp (\<lambda>x. t) = t"
+  by (rule lfp_unfold) (simp add:mono_def)
+
 subsection{*General induction rules for least fixed points*}
 
 theorem lfp_induct:
