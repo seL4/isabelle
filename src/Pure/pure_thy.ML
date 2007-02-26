@@ -50,7 +50,6 @@ sig
   val select_thm: thmref -> thm list -> thm list
   val selections: string * thm list -> (thmref * thm) list
   val theorems_of: theory -> thm list NameSpace.table
-  val theorem_space: theory -> NameSpace.T
   val fact_index_of: theory -> FactIndex.T
   val valid_thms: theory -> thmref * thm list -> bool
   val thms_containing: theory -> FactIndex.spec -> (string * thm list) list
@@ -171,7 +170,6 @@ end);
 val get_theorems_ref = TheoremsData.get;
 val get_theorems = ! o get_theorems_ref;
 val theorems_of = #theorems o get_theorems;
-val theorem_space = #1 o theorems_of;
 val fact_index_of = #index o get_theorems;
 
 
