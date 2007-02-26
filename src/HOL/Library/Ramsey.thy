@@ -235,10 +235,9 @@ qed
 
 subsection {*Disjunctive Well-Foundedness*}
 
-text{*An application of Ramsey's theorem to program termination. See
-
-Andreas Podelski and Andrey Rybalchenko, Transition Invariants, 19th Annual
-IEEE Symposium on Logic in Computer Science (LICS'04), pages 32--41 (2004).
+text {*
+  An application of Ramsey's theorem to program termination. See
+  \cite{Podelski-Rybalchenko}.
 *}
 
 definition

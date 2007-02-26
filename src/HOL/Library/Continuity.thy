@@ -9,20 +9,22 @@ theory Continuity
 imports Main
 begin
 
-subsection{*Continuity for complete lattices*}
+subsection {* Continuity for complete lattices *}
 
-constdefs
- chain :: "(nat \<Rightarrow> 'a::order) \<Rightarrow> bool"
-"chain M == !i. M i \<le> M(Suc i)"
- continuous :: "('a::order \<Rightarrow> 'a::order) \<Rightarrow> bool"
-"continuous F == !M. chain M \<longrightarrow> F(SUP i. M i) = (SUP i. F(M i))"
+definition
+  chain :: "(nat \<Rightarrow> 'a::order) \<Rightarrow> bool" where
+  "chain M \<longleftrightarrow> (\<forall>i. M i \<le> M (Suc i))"
+
+definition
+  continuous :: "('a::order \<Rightarrow> 'a::order) \<Rightarrow> bool" where
+  "continuous F \<longleftrightarrow> (\<forall>M. chain M \<longrightarrow> F (SUP i. M i) = (SUP i. F (M i)))"
 
 abbreviation
   bot :: "'a::order" where
-  "bot == Sup {}"
+  "bot \<equiv> Sup {}"
 
 lemma SUP_nat_conv:
- "(SUP n::nat. M n::'a::comp_lat) = join (M 0) (SUP n. M(Suc n))"
+  "(SUP n::nat. M n::'a::comp_lat) = join (M 0) (SUP n. M(Suc n))"
 apply(rule order_antisym)
  apply(rule SUP_leI)
  apply(case_tac n)

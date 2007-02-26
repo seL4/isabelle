@@ -180,10 +180,10 @@ lemma gcd_add1 [simp]: "gcd (m + n, n) = gcd (m, n)"
 
 lemma gcd_add2 [simp]: "gcd (m, m + n) = gcd (m, n)"
 proof -
-  have "gcd (m, m + n) = gcd (m + n, m)" by (rule gcd_commute) 
+  have "gcd (m, m + n) = gcd (m + n, m)" by (rule gcd_commute)
   also have "... = gcd (n + m, m)" by (simp add: add_commute)
   also have "... = gcd (n, m)" by simp
-  also have  "... = gcd (m, n)" by (rule gcd_commute) 
+  also have  "... = gcd (m, n)" by (rule gcd_commute)
   finally show ?thesis .
 qed
 
@@ -195,110 +195,124 @@ lemma gcd_add2' [simp]: "gcd (m, n + m) = gcd (m, n)"
 lemma gcd_add_mult: "gcd (m, k * m + n) = gcd (m, n)"
   by (induct k) (simp_all add: add_assoc)
 
-  (* Division by gcd yields rrelatively primes *)
 
+text {*
+  \medskip Division by gcd yields rrelatively primes.
+*}
 
 lemma div_gcd_relprime:
-  assumes nz:"a\<noteq>0 \<or> b\<noteq>0"
+  assumes nz: "a \<noteq> 0 \<or> b \<noteq> 0"
   shows "gcd (a div gcd(a,b), b div gcd(a,b)) = 1"
-proof-
-  let ?g = "gcd (a,b)"
+proof -
+  let ?g = "gcd (a, b)"
   let ?a' = "a div ?g"
   let ?b' = "b div ?g"
   let ?g' = "gcd (?a', ?b')"
   have dvdg: "?g dvd a" "?g dvd b" by simp_all
   have dvdg': "?g' dvd ?a'" "?g' dvd ?b'" by simp_all
-  from dvdg dvdg' obtain ka kb ka' kb' where 
-   kab: "a = ?g*ka" "b = ?g*kb" "?a' = ?g'*ka'" "?b' = ?g' * kb'" 
+  from dvdg dvdg' obtain ka kb ka' kb' where
+      kab: "a = ?g * ka" "b = ?g * kb" "?a' = ?g' * ka'" "?b' = ?g' * kb'"
     unfolding dvd_def by blast
-  hence	"?g* ?a' = (?g * ?g') * ka'" "?g* ?b' = (?g * ?g') * kb'" by simp_all
-  hence dvdgg':"?g * ?g' dvd a" "?g* ?g' dvd b"
-    by (auto simp add: dvd_mult_div_cancel[OF dvdg(1)] 
-      dvd_mult_div_cancel[OF dvdg(2)] dvd_def)
+  then have "?g * ?a' = (?g * ?g') * ka'" "?g * ?b' = (?g * ?g') * kb'" by simp_all
+  then have dvdgg':"?g * ?g' dvd a" "?g* ?g' dvd b"
+    by (auto simp add: dvd_mult_div_cancel [OF dvdg(1)]
+      dvd_mult_div_cancel [OF dvdg(2)] dvd_def)
   have "?g \<noteq> 0" using nz by (simp add: gcd_zero)
-  hence gp: "?g > 0" by simp 
-  from gcd_greatest[OF dvdgg'] have "?g * ?g' dvd ?g" .
-  with dvd_mult_cancel1[OF gp] show "?g' = 1" by simp
+  then have gp: "?g > 0" by simp
+  from gcd_greatest [OF dvdgg'] have "?g * ?g' dvd ?g" .
+  with dvd_mult_cancel1 [OF gp] show "?g' = 1" by simp
 qed
 
-  (* gcd on integers *)
-constdefs igcd:: "int \<Rightarrow> int \<Rightarrow> int"
-  "igcd i j \<equiv> int (gcd (nat (abs i),nat (abs j)))"
-lemma igcd_dvd1[simp]:"igcd i j dvd i"
+
+text {*
+  \medskip Gcd on integers.
+*}
+
+definition
+  igcd :: "int \<Rightarrow> int \<Rightarrow> int" where
+  "igcd i j = int (gcd (nat (abs i), nat (abs j)))"
+
+lemma igcd_dvd1 [simp]: "igcd i j dvd i"
   by (simp add: igcd_def int_dvd_iff)
 
-lemma igcd_dvd2[simp]:"igcd i j dvd j"
-by (simp add: igcd_def int_dvd_iff)
+lemma igcd_dvd2 [simp]: "igcd i j dvd j"
+  by (simp add: igcd_def int_dvd_iff)
 
 lemma igcd_pos: "igcd i j \<ge> 0"
-by (simp add: igcd_def)
-lemma igcd0[simp]: "(igcd i j = 0) = (i = 0 \<and> j = 0)"
-by (simp add: igcd_def gcd_zero) arith
+  by (simp add: igcd_def)
+
+lemma igcd0 [simp]: "(igcd i j = 0) = (i = 0 \<and> j = 0)"
+  by (simp add: igcd_def gcd_zero) arith
 
 lemma igcd_commute: "igcd i j = igcd j i"
   unfolding igcd_def by (simp add: gcd_commute)
-lemma igcd_neg1[simp]: "igcd (- i) j = igcd i j"
+
+lemma igcd_neg1 [simp]: "igcd (- i) j = igcd i j"
   unfolding igcd_def by simp
-lemma igcd_neg2[simp]: "igcd i (- j) = igcd i j"
+
+lemma igcd_neg2 [simp]: "igcd i (- j) = igcd i j"
   unfolding igcd_def by simp
+
 lemma zrelprime_dvd_mult: "igcd i j = 1 \<Longrightarrow> i dvd k * j \<Longrightarrow> i dvd k"
   unfolding igcd_def
-proof-
-  assume H: "int (gcd (nat \<bar>i\<bar>, nat \<bar>j\<bar>)) = 1" "i dvd k * j"
-  hence g: "gcd (nat \<bar>i\<bar>, nat \<bar>j\<bar>) = 1" by simp
-  from H(2) obtain h where h:"k*j = i*h" unfolding dvd_def by blast  
+proof -
+  assume "int (gcd (nat \<bar>i\<bar>, nat \<bar>j\<bar>)) = 1" "i dvd k * j"
+  then have g: "gcd (nat \<bar>i\<bar>, nat \<bar>j\<bar>) = 1" by simp
+  from `i dvd k * j` obtain h where h: "k*j = i*h" unfolding dvd_def by blast
   have th: "nat \<bar>i\<bar> dvd nat \<bar>k\<bar> * nat \<bar>j\<bar>"
-    unfolding dvd_def 
-    by (rule_tac x= "nat \<bar>h\<bar>" in exI,simp add: h nat_abs_mult_distrib[symmetric])
-  from relprime_dvd_mult[OF g th] obtain h' where h': "nat \<bar>k\<bar> = nat \<bar>i\<bar> * h'" 
+    unfolding dvd_def
+    by (rule_tac x= "nat \<bar>h\<bar>" in exI, simp add: h nat_abs_mult_distrib [symmetric])
+  from relprime_dvd_mult [OF g th] obtain h' where h': "nat \<bar>k\<bar> = nat \<bar>i\<bar> * h'"
     unfolding dvd_def by blast
   from h' have "int (nat \<bar>k\<bar>) = int (nat \<bar>i\<bar> * h')" by simp
-  hence "\<bar>k\<bar> = \<bar>i\<bar> * int h'" by (simp add: int_mult)
+  then have "\<bar>k\<bar> = \<bar>i\<bar> * int h'" by (simp add: int_mult)
   then show ?thesis
-    apply (subst zdvd_abs1[symmetric])
-    apply (subst zdvd_abs2[symmetric])
+    apply (subst zdvd_abs1 [symmetric])
+    apply (subst zdvd_abs2 [symmetric])
     apply (unfold dvd_def)
-    apply (rule_tac x="int h'" in exI, simp)
+    apply (rule_tac x = "int h'" in exI, simp)
     done
 qed
 
 lemma int_nat_abs: "int (nat (abs x)) = abs x"  by arith
-lemma igcd_greatest: assumes km:"k dvd m" and kn:"k dvd n"  shows "k dvd igcd m n"
-proof-
+
+lemma igcd_greatest:
+  assumes "k dvd m" and "k dvd n"
+  shows "k dvd igcd m n"
+proof -
   let ?k' = "nat \<bar>k\<bar>"
   let ?m' = "nat \<bar>m\<bar>"
   let ?n' = "nat \<bar>n\<bar>"
-  from km kn have dvd': "?k' dvd ?m'" "?k' dvd ?n'"
+  from `k dvd m` and `k dvd n` have dvd': "?k' dvd ?m'" "?k' dvd ?n'"
     unfolding zdvd_int by (simp_all only: int_nat_abs zdvd_abs1 zdvd_abs2)
-  from gcd_greatest[OF dvd'] have "int (nat \<bar>k\<bar>) dvd igcd m n"
+  from gcd_greatest [OF dvd'] have "int (nat \<bar>k\<bar>) dvd igcd m n"
     unfolding igcd_def by (simp only: zdvd_int)
-  hence "\<bar>k\<bar> dvd igcd m n" by (simp only: int_nat_abs)
-  thus "k dvd igcd m n" by (simp add: zdvd_abs1)
+  then have "\<bar>k\<bar> dvd igcd m n" by (simp only: int_nat_abs)
+  then show "k dvd igcd m n" by (simp add: zdvd_abs1)
 qed
 
 lemma div_igcd_relprime:
-  assumes nz:"a\<noteq>0 \<or> b\<noteq>0"
+  assumes nz: "a \<noteq> 0 \<or> b \<noteq> 0"
   shows "igcd (a div (igcd a b)) (b div (igcd a b)) = 1"
-proof-
+proof -
   from nz have nz': "nat \<bar>a\<bar> \<noteq> 0 \<or> nat \<bar>b\<bar> \<noteq> 0" by simp
-  have th1: "(1::int) = int 1" by simp
   let ?g = "igcd a b"
   let ?a' = "a div ?g"
   let ?b' = "b div ?g"
   let ?g' = "igcd ?a' ?b'"
   have dvdg: "?g dvd a" "?g dvd b" by (simp_all add: igcd_dvd1 igcd_dvd2)
   have dvdg': "?g' dvd ?a'" "?g' dvd ?b'" by (simp_all add: igcd_dvd1 igcd_dvd2)
-  from dvdg dvdg' obtain ka kb ka' kb' where 
-   kab: "a = ?g*ka" "b = ?g*kb" "?a' = ?g'*ka'" "?b' = ?g' * kb'" 
+  from dvdg dvdg' obtain ka kb ka' kb' where
+   kab: "a = ?g*ka" "b = ?g*kb" "?a' = ?g'*ka'" "?b' = ?g' * kb'"
     unfolding dvd_def by blast
-  hence	"?g* ?a' = (?g * ?g') * ka'" "?g* ?b' = (?g * ?g') * kb'" by simp_all
-  hence dvdgg':"?g * ?g' dvd a" "?g* ?g' dvd b"
-    by (auto simp add: zdvd_mult_div_cancel[OF dvdg(1)] 
-      zdvd_mult_div_cancel[OF dvdg(2)] dvd_def)
+  then have "?g* ?a' = (?g * ?g') * ka'" "?g* ?b' = (?g * ?g') * kb'" by simp_all
+  then have dvdgg':"?g * ?g' dvd a" "?g* ?g' dvd b"
+    by (auto simp add: zdvd_mult_div_cancel [OF dvdg(1)]
+      zdvd_mult_div_cancel [OF dvdg(2)] dvd_def)
   have "?g \<noteq> 0" using nz by simp
-  hence gp: "?g \<noteq> 0" using igcd_pos[where i="a" and j="b"] by arith
-  from igcd_greatest[OF dvdgg'] have "?g * ?g' dvd ?g" .
-  with zdvd_mult_cancel1[OF gp] have "\<bar>?g'\<bar> = 1" by simp 
+  then have gp: "?g \<noteq> 0" using igcd_pos[where i="a" and j="b"] by arith
+  from igcd_greatest [OF dvdgg'] have "?g * ?g' dvd ?g" .
+  with zdvd_mult_cancel1 [OF gp] have "\<bar>?g'\<bar> = 1" by simp
   with igcd_pos show "?g' = 1" by simp
 qed
 

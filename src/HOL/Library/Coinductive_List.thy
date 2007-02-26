@@ -280,7 +280,7 @@ next
 qed
 
 
-subsection {* Equality as greatest fixed-point; the bisimulation principle. *}
+subsection {* Equality as greatest fixed-point -- the bisimulation principle *}
 
 consts
   EqLList :: "('a Datatype.item \<times> 'a Datatype.item) set \<Rightarrow>
