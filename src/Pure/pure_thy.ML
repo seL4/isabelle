@@ -140,8 +140,8 @@ val get_kind = the_default "??.unknown" o try the_kind;
 
 fun kind_rule k = tag_rule ("kind", [k]) o untag_rule "kind";
 fun kind k x = if k = "" then x else Thm.rule_attribute (K (kind_rule k)) x;
-fun kind_internal x = kind internalK x;
-fun has_internal tags = exists (fn ("kind", [k]) => k = internalK | _ => false) tags;
+fun kind_internal x = kind Thm.internalK x;
+fun has_internal tags = exists (fn ("kind", [k]) => k = Thm.internalK | _ => false) tags;
 val is_internal = has_internal o Thm.get_tags;
 
 
