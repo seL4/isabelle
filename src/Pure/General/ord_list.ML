@@ -12,7 +12,6 @@ sig
   val insert: ('a * 'a -> order) -> 'a -> 'a list -> 'a list
   val remove: ('b * 'a -> order) -> 'b -> 'a list -> 'a list
   val subset: ('b * 'a -> order) -> 'b list * 'a list -> bool
-  val eq_set: ('b * 'a -> order) -> 'b list * 'a list -> bool
   val union: ('a * 'a -> order) -> 'a list -> 'a list -> 'a list
   val inter: ('b * 'a -> order) -> 'b list -> 'a list -> 'a list
   val subtract: ('b * 'a -> order) -> 'b list -> 'a list -> 'a list
@@ -64,8 +63,6 @@ fun subset ord (list1, list2) =
           | EQUAL => sub xs ys
           | GREATER => sub lst1 ys);
   in sub list1 list2 end;
-
-fun eq_set ord lists = (list_ord ord lists = EQUAL);
 
 
 (* algebraic operations *)

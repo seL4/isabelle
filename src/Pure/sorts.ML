@@ -15,7 +15,6 @@ minimal classes (wrt. current class inclusion).
 
 signature SORTS =
 sig
-  val eq_set: sort list * sort list -> bool
   val union: sort list -> sort list -> sort list
   val subtract: sort list -> sort list -> sort list
   val remove_sort: sort -> sort list -> sort list
@@ -66,7 +65,6 @@ struct
 
 (** ordered lists of sorts **)
 
-val eq_set = OrdList.eq_set Term.sort_ord;
 val op union = OrdList.union Term.sort_ord;
 val subtract = OrdList.subtract Term.sort_ord;
 
