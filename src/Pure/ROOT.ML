@@ -47,6 +47,7 @@ use "defs.ML";
 use "theory.ML";
 use "proofterm.ML";
 use "thm.ML";
+use "more_thm.ML";
 use "fact_index.ML";
 use "pure_thy.ML";
 use "display.ML";
