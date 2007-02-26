@@ -392,9 +392,9 @@ fun by_com tac ((th,ths), pairs) : gstack =
   (case  Seq.pull(tac th)  of
      NONE      => error"by: tactic failed"
    | SOME(th2,ths2) =>
-       (if eq_thm(th,th2)
+       (if Thm.eq_thm(th,th2)
           then warning "Warning: same as previous level"
-          else if eq_thm_thy(th,th2) then ()
+          else if Thm.eq_thm_thy(th,th2) then ()
           else warning ("Warning: theory of proof state has changed" ^
                        thy_error (Thm.theory_of_thm th, Thm.theory_of_thm th2));
        ((th2,ths2)::(th,ths)::pairs)));
@@ -414,9 +414,9 @@ fun backtrack [] = error"back: no alternatives"
      (case Seq.pull thstr of
           NONE      => (writeln"Going back a level..."; backtrack pairs)
         | SOME(th2,thstr2) =>
-           (if eq_thm(th,th2)
+           (if Thm.eq_thm(th,th2)
               then warning "Warning: same as previous choice at this level"
-              else if eq_thm_thy(th,th2) then ()
+              else if Thm.eq_thm_thy(th,th2) then ()
               else warning "Warning: theory of proof state has changed";
             (th2,thstr2)::pairs));
 

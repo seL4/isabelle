@@ -64,7 +64,7 @@ val rhs_of = #3 o dest_red;
 
 (*** Indexing and filtering of theorems ***)
 
-fun eq_brl ((b1 : bool, th1), (b2, th2)) = b1 = b2 andalso Drule.eq_thm_prop (th1, th2);
+fun eq_brl ((b1 : bool, th1), (b2, th2)) = b1 = b2 andalso Thm.eq_thm_prop (th1, th2);
 
 (*insert a thm in a discrimination net by its lhs*)
 fun lhs_insert_thm (th,net) =
@@ -248,7 +248,7 @@ val empty_ss = SS{auto_tac= K no_tac, congs=[], cong_net=Net.empty,
 
 (*insert a thm in a thm net*)
 fun insert_thm_warn th net = 
-  Net.insert_term Drule.eq_thm_prop (concl_of th, th) net
+  Net.insert_term Thm.eq_thm_prop (concl_of th, th) net
   handle Net.INSERT => 
     (writeln"\nDuplicate rewrite or congruence rule:"; print_thm th;
      net);
@@ -274,7 +274,7 @@ end;
 
 (*delete a thm from a thm net*)
 fun delete_thm_warn th net = 
-  Net.delete_term Drule.eq_thm_prop (concl_of th, th) net
+  Net.delete_term Thm.eq_thm_prop (concl_of th, th) net
   handle Net.DELETE => 
     (writeln"\nNo such rewrite or congruence rule:";  print_thm th;
      net);
@@ -282,7 +282,7 @@ fun delete_thm_warn th net =
 val delete_thms = fold_rev delete_thm_warn;
 
 fun op delcongs(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thms) =
-let val congs' = fold (remove Drule.eq_thm_prop) thms congs
+let val congs' = fold (remove Thm.eq_thm_prop) thms congs
 in SS{auto_tac=auto_tac, congs= congs',
       cong_net= delete_thms (map mk_trans thms) cong_net,
       mk_simps= normed_rews congs', simps=simps, simp_net=simp_net}
@@ -290,7 +290,7 @@ end;
 
 fun delrew(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thm) =
 let fun find((p as (th,ths))::ps',ps) =
-          if Drule.eq_thm_prop(thm,th) then (ths,ps@ps') else find(ps',p::ps)
+          if Thm.eq_thm_prop(thm,th) then (ths,ps@ps') else find(ps',p::ps)
       | find([],simps') = (writeln"\nNo such rewrite or congruence rule:";
                            print_thm thm;
                            ([],simps'))

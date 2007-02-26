@@ -27,16 +27,16 @@ datatype tcset = TC of
   net: thm Net.net};   (*discrimination net of the same rules*)
 
 fun add_rule th (tcs as TC {rules, net}) =
-  if member Drule.eq_thm_prop rules th then
+  if member Thm.eq_thm_prop rules th then
     (warning ("Ignoring duplicate type-checking rule\n" ^ Display.string_of_thm th); tcs)
   else
     TC {rules = th :: rules,
         net = Net.insert_term (K false) (Thm.concl_of th, th) net};
 
 fun del_rule th (tcs as TC {rules, net}) =
-  if member Drule.eq_thm_prop rules th then
-    TC {net = Net.delete_term Drule.eq_thm_prop (Thm.concl_of th, th) net,
-        rules = remove Drule.eq_thm_prop th rules}
+  if member Thm.eq_thm_prop rules th then
+    TC {net = Net.delete_term Thm.eq_thm_prop (Thm.concl_of th, th) net,
+        rules = remove Thm.eq_thm_prop th rules}
   else (warning ("No such type-checking rule\n" ^ Display.string_of_thm th); tcs);
 
 
@@ -51,7 +51,7 @@ structure Data = GenericDataFun
 
   fun merge _ (TC {rules, net}, TC {rules = rules', net = net'}) =
     TC {rules = Drule.merge_rules (rules, rules'),
-        net = Net.merge Drule.eq_thm_prop (net, net')};
+        net = Net.merge Thm.eq_thm_prop (net, net')};
 
   fun print context (TC {rules, ...}) =
     Pretty.writeln (Pretty.big_list "type-checking rules:"

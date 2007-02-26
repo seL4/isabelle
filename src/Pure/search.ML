@@ -64,7 +64,7 @@ fun DEPTH_FIRST satp tac =
 	  case Seq.pull q of
 	      NONE         => depth used qs
 	    | SOME(st,stq) => 
-		if satp st andalso not (member eq_thm used st)
+		if satp st andalso not (member Thm.eq_thm used st)
 		then SOME(st, Seq.make
 			         (fn()=> depth (st::used) (stq::qs)))
 		else depth used (tac st :: stq :: qs)
@@ -211,7 +211,7 @@ fun some_of_list []     = NONE
 (*Check for and delete duplicate proof states*)
 fun deleteAllMin prf heap = 
       if ThmHeap.is_empty heap then heap
-      else if eq_thm (prf, #2 (ThmHeap.min heap))
+      else if Thm.eq_thm (prf, #2 (ThmHeap.min heap))
       then deleteAllMin prf (ThmHeap.delete_min heap)
       else heap;
 
@@ -269,7 +269,7 @@ val QUIET_BREADTH_FIRST = gen_BREADTH_FIRST (K ());
 fun insert_with_level (lnth: int*int*thm, []) = [lnth]
   | insert_with_level ((l,m,th), (l',n,th')::nths) = 
       if  n<m then (l',n,th') :: insert_with_level ((l,m,th), nths)
-      else if  n=m andalso eq_thm(th,th')
+      else if  n=m andalso Thm.eq_thm(th,th')
               then (l',n,th')::nths
               else (l,m,th)::(l',n,th')::nths;
 

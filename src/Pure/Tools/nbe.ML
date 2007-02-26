@@ -35,7 +35,7 @@ structure NBE_Rewrite = TheoryDataFun
   val extend = I;
 
   fun merge _ ((pres1,posts1), (pres2,posts2)) =
-    (Library.merge eq_thm (pres1,pres2), Library.merge eq_thm (posts1,posts2))
+    (Library.merge Thm.eq_thm (pres1,pres2), Library.merge Thm.eq_thm (posts1,posts2))
 
   fun print _ _ = ()
 end);
@@ -44,9 +44,9 @@ val _ =
   let
     fun map_data f = Context.mapping (NBE_Rewrite.map f) I;
     fun attr_pre (thy, thm) =
-      ((map_data o apfst) (insert eq_thm thm) thy, thm)
+      ((map_data o apfst) (insert Thm.eq_thm thm) thy, thm)
     fun attr_post (thy, thm) = 
-      ((map_data o apsnd) (insert eq_thm thm) thy, thm)
+      ((map_data o apsnd) (insert Thm.eq_thm thm) thy, thm)
     val attr = Attrib.syntax (Scan.lift (Args.$$$ "pre" >> K attr_pre
       || Args.$$$ "post" >> K attr_post));
   in

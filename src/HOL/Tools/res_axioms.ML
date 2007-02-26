@@ -51,7 +51,7 @@ val rhs_of = #2 o Logic.dest_equals o Thm.prop_of;
 fun seed th net =
   let val (_,ct) = Thm.dest_abs NONE (Drule.rhs_of th)
       val t = Logic.legacy_varify (term_of ct)
-  in  Net.insert_term eq_thm (t, th) net end;
+  in  Net.insert_term Thm.eq_thm (t, th) net end;
   
 val abstraction_cache = ref 
       (seed (thm"ATP_Linkup.I_simp") 
@@ -492,7 +492,7 @@ fun skolem_cache_thm (name,th) thy =
                   change clause_cache (Symtab.update (name, (th, cls))); 
                   (cls,thy')))
     | SOME (th',cls) =>
-        if eq_thm(th,th') then (cls,thy)
+        if Thm.eq_thm(th,th') then (cls,thy)
         else (Output.debug (fn () => "skolem_cache: Ignoring variant of theorem " ^ name);
               Output.debug (fn () => string_of_thm th);
               Output.debug (fn () => string_of_thm th');
@@ -510,7 +510,7 @@ fun cnf_axiom (name,th) =
                      change clause_cache (Symtab.update (s, (th, cls))); cls 
                   end
               | SOME(th',cls) =>
-                  if eq_thm(th,th') then cls
+                  if Thm.eq_thm(th,th') then cls
                   else
                     (Output.debug (fn () => "cnf_axiom: duplicate or variant of theorem " ^ name);
                      Output.debug (fn () => string_of_thm th);
@@ -601,7 +601,7 @@ fun skolem_use_cache_thm th =
   case Symtab.lookup (!clause_cache) (PureThy.get_name_hint th) of
       NONE => skolem_thm th
     | SOME (th',cls) =>
-        if eq_thm(th,th') then cls else skolem_thm th;
+        if Thm.eq_thm(th,th') then cls else skolem_thm th;
 
 fun cnf_rules_of_ths ths = List.concat (map skolem_use_cache_thm ths);
 

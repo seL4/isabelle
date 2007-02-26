@@ -109,7 +109,7 @@ structure GlobalRecdefData = TheoryDataFun
     (tab2, {simps = simps2, congs = congs2, wfs = wfs2})) : T =
       (Symtab.merge (K true) (tab1, tab2),
         mk_hints (Drule.merge_rules (simps1, simps2),
-          AList.merge (op =) eq_thm (congs1, congs2),
+          AList.merge (op =) Thm.eq_thm (congs1, congs2),
           Drule.merge_rules (wfs1, wfs2)));
 
   fun print thy (tab, hints) =

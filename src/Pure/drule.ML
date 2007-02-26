@@ -59,9 +59,6 @@ sig
   val read_instantiate_sg: theory -> (string*string)list -> thm -> thm
   val read_instantiate: (string*string)list -> thm -> thm
   val cterm_instantiate: (cterm*cterm)list -> thm -> thm
-  val eq_thm_thy: thm * thm -> bool
-  val eq_thm_prop: thm * thm -> bool
-  val equiv_thm: thm * thm -> bool
   val size_of_thm: thm -> int
   val reflexive_thm: thm
   val symmetric_thm: thm
@@ -557,30 +554,21 @@ fun compose_single (tha,i,thb) =
 
 (*compose Q and [Q1,Q2,...,Qk]==>R to [Q2,...,Qk]==>R getting unique result*)
 fun tha COMP thb =
-    case distinct eq_thm (compose(tha,1,thb)) of
+    case distinct Thm.eq_thm (compose(tha,1,thb)) of
         [th] => th
       | _ =>   raise THM("COMP", 1, [tha,thb]);
 
 
 (** theorem equality **)
 
-(*True if the two theorems have the same theory.*)
-val eq_thm_thy = eq_thy o pairself Thm.theory_of_thm;
-
-(*True if the two theorems have the same prop field, ignoring hyps, der, etc.*)
-val eq_thm_prop = op aconv o pairself Thm.full_prop_of;
-
 (*Useful "distance" function for BEST_FIRST*)
 val size_of_thm = size_of_term o Thm.full_prop_of;
 
 (*maintain lists of theorems --- preserving canonical order*)
-val del_rule = remove eq_thm_prop;
+val del_rule = remove Thm.eq_thm_prop;
 fun add_rule th = cons th o del_rule th;
-val merge_rules = Library.merge eq_thm_prop;
+val merge_rules = Library.merge Thm.eq_thm_prop;
 
-(*pattern equivalence*)
-fun equiv_thm ths =
-  Pattern.equiv (Theory.merge (pairself Thm.theory_of_thm ths)) (pairself Thm.full_prop_of ths);
 
 
 (*** Meta-Rewriting Rules ***)

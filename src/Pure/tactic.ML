@@ -421,7 +421,7 @@ fun build_netpair netpair brls =
     foldr insert_tagged_brl netpair (taglist 1 brls);
 
 (*delete one kbrl from the pair of nets*)
-fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Drule.eq_thm_prop (th, th')
+fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Thm.eq_thm_prop (th, th')
 
 fun delete_tagged_brl (brl as (eres, th), (inet, enet)) =
   (if eres then

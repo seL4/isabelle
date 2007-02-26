@@ -92,7 +92,7 @@ fun merge_alist eq_key eq (xys as (xs, ys)) =
   then (false, xs)
   else (true, AList.merge eq_key eq xys);
 
-val merge_thms = merge' eq_thm;
+val merge_thms = merge' Thm.eq_thm;
 
 fun merge_lthms (r1, r2) =
   if Susp.same (r1, r2)
@@ -123,7 +123,7 @@ fun add_drop_redundant thm (sels, dels) =
     fun drop thm' = not (matches args (args_of thm'))
       orelse (warning ("Dropping redundant defining equation\n" ^ string_of_thm thm'); false);
     val (keeps, drops) = List.partition drop sels;
-  in (thm :: keeps, dels |> fold (insert eq_thm) drops |> remove eq_thm thm) end;
+  in (thm :: keeps, dels |> fold (insert Thm.eq_thm) drops |> remove Thm.eq_thm thm) end;
 
 fun add_thm thm (sels, dels) =
   apfst Susp.value (add_drop_redundant thm (Susp.force sels, dels));
@@ -136,7 +136,7 @@ fun add_lthms lthms (sels, []) =
       fold add_thm (Susp.force lthms) (sels, dels);
 
 fun del_thm thm (sels, dels) =
-  (Susp.value (remove eq_thm thm (Susp.force sels)), thm :: dels);
+  (Susp.value (remove Thm.eq_thm thm (Susp.force sels)), thm :: dels);
 
 fun pretty_sdthms ctxt (sels, _) = pretty_lthms ctxt sels;
 
@@ -145,8 +145,8 @@ fun merge_sdthms ((sels1, dels1), (sels2, dels2)) =
     val (dels_t, dels) = merge_thms (dels1, dels2);
   in if dels_t
     then let
-      val (_, sels) = merge_thms (Susp.force sels1, subtract eq_thm dels1 (Susp.force sels2))
-      val (_, dels) = merge_thms (dels1, subtract eq_thm (Susp.force sels1) dels2)
+      val (_, sels) = merge_thms (Susp.force sels1, subtract Thm.eq_thm dels1 (Susp.force sels2))
+      val (_, dels) = merge_thms (dels1, subtract Thm.eq_thm (Susp.force sels1) dels2)
     in (true, ((lazy o K) sels, dels)) end
     else let
       val (sels_t, sels) = merge_lthms (sels1, sels2)
@@ -705,10 +705,10 @@ fun del_datatype tyco thy =
   in map_exec_purge (SOME consts) del thy end;
 
 fun add_inline thm thy =
-  (map_exec_purge NONE o map_preproc o apfst o apfst) (fold (insert eq_thm) (CodegenFunc.mk_rew thm)) thy;
+  (map_exec_purge NONE o map_preproc o apfst o apfst) (fold (insert Thm.eq_thm) (CodegenFunc.mk_rew thm)) thy;
 
 fun del_inline thm thy =
-  (map_exec_purge NONE o map_preproc o apfst o apfst) (fold (remove eq_thm) (CodegenFunc.mk_rew thm)) thy ;
+  (map_exec_purge NONE o map_preproc o apfst o apfst) (fold (remove Thm.eq_thm) (CodegenFunc.mk_rew thm)) thy ;
 
 fun add_inline_proc (name, f) =
   (map_exec_purge NONE o map_preproc o apfst o apsnd) (AList.update (op =) (name, (serial (), f)));

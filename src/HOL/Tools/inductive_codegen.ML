@@ -31,7 +31,7 @@ fun params_of induct =
 
 fun merge_rules tabs =
   Symtab.join (fn _ => fn (ths, ths') =>
-    gen_merge_lists (Drule.eq_thm_prop o pairself fst) ths ths') tabs;
+    gen_merge_lists (Thm.eq_thm_prop o pairself fst) ths ths') tabs;
 
 structure CodegenData = TheoryDataFun
 (struct

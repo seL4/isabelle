@@ -195,7 +195,7 @@ fun classical_rule rule =
           else all_tac))
         |> Seq.hd
         |> Drule.zero_var_indexes;
-    in if Drule.equiv_thm (rule, rule'') then rule else rule'' end
+    in if Thm.equiv_thm (rule, rule'') then rule else rule'' end
   else rule;
 
 
@@ -342,8 +342,8 @@ fun delete_tagged_list brls netpr = foldr Tactic.delete_tagged_brl netpr brls;
 fun delete x = delete_tagged_list (joinrules x);
 fun delete' x = delete_tagged_list (joinrules' x);
 
-val mem_thm = member Drule.eq_thm_prop
-and rem_thm = remove Drule.eq_thm_prop;
+val mem_thm = member Thm.eq_thm_prop
+and rem_thm = remove Thm.eq_thm_prop;
 
 (*Warn if the rule is already present ELSEWHERE in the claset.  The addition
   is still allowed.*)

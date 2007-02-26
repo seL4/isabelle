@@ -160,7 +160,7 @@ local
     | evyBack ((st',q,tacs)::trail) =
           case Seq.pull q of
               NONE        => evyBack trail
-            | SOME(st,q') => if eq_thm (st',st)
+            | SOME(st,q') => if Thm.eq_thm (st',st)
                              then evyBack ((st',q',tacs)::trail)
                              else EVY ((st,q',tacs)::trail, tacs) st
 in
@@ -302,7 +302,7 @@ fun CHANGED tac st =
 (*Accept only next states that change the theorem's prop field
   (changes to signature, hyps, etc. don't count)*)
 fun CHANGED_PROP tac st =
-  let fun diff st' = not (Drule.eq_thm_prop (st, st'));
+  let fun diff st' = not (Thm.eq_thm_prop (st, st'));
   in Seq.filter diff (tac st) end;
 
 

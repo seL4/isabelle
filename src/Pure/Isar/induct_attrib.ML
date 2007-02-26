@@ -83,7 +83,7 @@ type rules = (string * thm) NetRules.T;
 
 val init_rules =
   NetRules.init (fn ((s1: string, th1), (s2, th2)) => s1 = s2 andalso
-    Drule.eq_thm_prop (th1, th2));
+    Thm.eq_thm_prop (th1, th2));
 
 fun lookup_rule (rs: rules) = AList.lookup (op =) (NetRules.rules rs);
 

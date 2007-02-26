@@ -147,7 +147,7 @@ Remarks:
 *)
 
 fun eq_rrule ({thm = thm1, ...}: rrule, {thm = thm2, ...}: rrule) =
-  Drule.eq_thm_prop (thm1, thm2);
+  Thm.eq_thm_prop (thm1, thm2);
 
 
 (* congruences *)
@@ -155,7 +155,7 @@ fun eq_rrule ({thm = thm1, ...}: rrule, {thm = thm2, ...}: rrule) =
 type cong = {thm: thm, lhs: cterm};
 
 fun eq_cong ({thm = thm1, ...}: cong, {thm = thm2, ...}: cong) =
-  Drule.eq_thm_prop (thm1, thm2);
+  Thm.eq_thm_prop (thm1, thm2);
 
 
 (* simplification sets, procedures, and solvers *)
@@ -238,7 +238,7 @@ fun map_simpset2 f (Simpset (r1, r2)) = Simpset (r1, map_ss2 f r2);
 fun prems_of_ss (Simpset ({prems, ...}, _)) = prems;
 
 fun eq_procid ((s1: stamp, ths1: thm list), (s2, ths2)) =
-  s1 = s2 andalso eq_list eq_thm (ths1, ths2);
+  s1 = s2 andalso eq_list Thm.eq_thm (ths1, ths2);
 fun eq_proc (Proc {id = id1, ...}, Proc {id = id2, ...}) = eq_procid (id1, id2);
 
 fun mk_solver' name solver = Solver {name = name, solver = solver, id = stamp ()};
@@ -789,7 +789,7 @@ fun merge_ss (ss1, ss2) =
       loop_tacs = loop_tacs2, solvers = (unsafe_solvers2, solvers2)}) = ss2;
 
     val rules' = Net.merge eq_rrule (rules1, rules2);
-    val prems' = gen_merge_lists Drule.eq_thm_prop prems1 prems2;
+    val prems' = gen_merge_lists Thm.eq_thm_prop prems1 prems2;
     val bounds' = if #1 bounds1 < #1 bounds2 then bounds2 else bounds1;
     val congs' = merge (eq_cong o pairself #2) (congs1, congs2);
     val weak' = merge (op =) (weak1, weak2);

@@ -24,7 +24,7 @@ structure RecCodegenData = TheoryDataFun
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
-  fun merge _ = Symtab.merge_list (Drule.eq_thm_prop o pairself fst);
+  fun merge _ = Symtab.merge_list (Thm.eq_thm_prop o pairself fst);
   fun print _ _ = ();
 end);
 
@@ -56,7 +56,7 @@ fun del_thm thm thy =
   in case Symtab.lookup tab s of
       NONE => thy
     | SOME thms =>
-        RecCodegenData.put (Symtab.update (s, remove (eq_thm o apsnd fst) thm thms) tab) thy
+        RecCodegenData.put (Symtab.update (s, remove (Thm.eq_thm o apsnd fst) thm thms) tab) thy
   end handle TERM _ => (warn thm; thy);
 
 val del = Thm.declaration_attribute
