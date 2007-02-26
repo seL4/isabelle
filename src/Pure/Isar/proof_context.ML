@@ -20,6 +20,7 @@ sig
   val const_syntax_name: Proof.context -> string -> string
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
+  val theorems_of: Proof.context -> thm list NameSpace.table
   val fact_index_of: Proof.context -> FactIndex.T
   val transfer: theory -> Proof.context -> Proof.context
   val theory: (theory -> theory) -> Proof.context -> Proof.context
@@ -250,6 +251,7 @@ val consts_of = #2 o #consts o rep_context;
 val const_syntax_name = Consts.syntax_name o consts_of;
 
 val thms_of = #thms o rep_context;
+val theorems_of = #1 o thms_of;
 val fact_index_of = #2 o thms_of;
 
 val cases_of = #cases o rep_context;
