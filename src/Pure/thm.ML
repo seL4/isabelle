@@ -51,6 +51,7 @@ signature BASIC_THM =
 
   (*meta theorems*)
   type thm
+  type attribute     (* = Context.generic * thm -> Context.generic * thm *)
   val rep_thm: thm ->
    {thy: theory,
     sign: theory,       (*obsolete*)
@@ -72,16 +73,6 @@ signature BASIC_THM =
     tpairs: (cterm * cterm) list,
     prop: cterm}
   exception THM of string * int * thm list
-  val axiomK: string
-  val assumptionK: string
-  val definitionK: string
-  val theoremK: string
-  val lemmaK: string
-  val corollaryK: string
-  val internalK: string
-  type attribute     (* = Context.generic * thm -> Context.generic * thm *)
-  val eq_thm: thm * thm -> bool
-  val eq_thms: thm list * thm list -> bool
   val theory_of_thm: thm -> theory
   val sign_of_thm: thm -> theory    (*obsolete*)
   val prop_of: thm -> term
@@ -152,12 +143,6 @@ sig
   val cabs: cterm -> cterm -> cterm
   val major_prem_of: thm -> term
   val no_prems: thm -> bool
-  val rule_attribute: (Context.generic -> thm -> thm) -> attribute
-  val declaration_attribute: (thm -> Context.generic -> Context.generic) -> attribute
-  val theory_attributes: attribute list -> theory * thm -> theory * thm
-  val proof_attributes: attribute list -> Proof.context * thm -> Proof.context * thm
-  val no_attributes: 'a -> 'a * 'b list
-  val simple_fact: 'a -> ('a * 'b list) list
   val terms_of_tpairs: (term * term) list -> term list
   val maxidx_of: thm -> int
   val maxidx_thm: thm -> int -> int
@@ -397,6 +382,9 @@ abstype thm = Thm of
   prop: term}                  (*conclusion*)
 with
 
+(*attributes subsume any kind of rules or context modifiers*)
+type attribute = Context.generic * thm -> Context.generic * thm;
+
 (*errors involving theorems*)
 exception THM of string * int * thm list;
 
@@ -429,6 +417,8 @@ fun attach_tpairs tpairs prop =
 
 fun full_prop_of (Thm {tpairs, prop, ...}) = attach_tpairs tpairs prop;
 
+val union_hyps = OrdList.union Term.fast_term_ord;
+
 
 (* merge theories of cterms/thms; raise exception if incompatible *)
 
@@ -438,59 +428,8 @@ fun merge_thys1 (Cterm {thy_ref = r1, ...}) (th as Thm {thy_ref = r2, ...}) =
 fun merge_thys2 (th1 as Thm {thy_ref = r1, ...}) (th2 as Thm {thy_ref = r2, ...}) =
   Theory.merge_refs (r1, r2) handle TERM (msg, _) => raise THM (msg, 0, [th1, th2]);
 
-(*theorem kinds*)
-val axiomK = "axiom";
-val assumptionK = "assumption";
-val definitionK = "definition";
-val theoremK = "theorem";
-val lemmaK = "lemma";
-val corollaryK = "corollary";
-val internalK = "internal";
 
-(*attributes subsume any kind of rules or context modifiers*)
-type attribute = Context.generic * thm -> Context.generic * thm;
-
-fun rule_attribute f (x, th) = (x, f x th);
-fun declaration_attribute f (x, th) = (f th x, th);
-
-fun apply_attributes mk dest =
-  let
-    fun app [] = I
-      | app ((f: attribute) :: fs) = fn (x, th) => f (mk x, th) |>> dest |> app fs;
-  in app end;
-
-val theory_attributes = apply_attributes Context.Theory Context.the_theory;
-val proof_attributes = apply_attributes Context.Proof Context.the_proof;
-
-fun no_attributes x = (x, []);
-fun simple_fact x = [(x, [])];
-
-
-(* hyps *)
-
-val insert_hyps = OrdList.insert Term.fast_term_ord;
-val remove_hyps = OrdList.remove Term.fast_term_ord;
-val union_hyps = OrdList.union Term.fast_term_ord;
-val eq_set_hyps = OrdList.eq_set Term.fast_term_ord;
-
-
-(* eq_thm(s) *)
-
-fun eq_thm (th1, th2) =
-  let
-    val {thy = thy1, shyps = shyps1, hyps = hyps1, tpairs = tpairs1, prop = prop1, ...} =
-      rep_thm th1;
-    val {thy = thy2, shyps = shyps2, hyps = hyps2, tpairs = tpairs2, prop = prop2, ...} =
-      rep_thm th2;
-  in
-    Context.joinable (thy1, thy2) andalso
-    Sorts.eq_set (shyps1, shyps2) andalso
-    eq_set_hyps (hyps1, hyps2) andalso
-    eq_list eq_tpairs (tpairs1, tpairs2) andalso
-    prop1 aconv prop2
-  end;
-
-val eq_thms = eq_list eq_thm;
+(* basic components *)
 
 fun theory_of_thm (Thm {thy_ref, ...}) = Theory.deref thy_ref;
 val sign_of_thm = theory_of_thm;
@@ -556,7 +495,7 @@ fun weaken raw_ct th =
         tags = tags,
         maxidx = maxidx,
         shyps = Sorts.union sorts shyps,
-        hyps = insert_hyps A hyps,
+        hyps = OrdList.insert Term.fast_term_ord A hyps,
         tpairs = tpairs,
         prop = prop}
   end;
@@ -713,7 +652,7 @@ fun implies_intr
       tags = [],
       maxidx = Int.max (maxidxA, maxidx),
       shyps = Sorts.union sorts shyps,
-      hyps = remove_hyps A hyps,
+      hyps = OrdList.remove Term.fast_term_ord A hyps,
       tpairs = tpairs,
       prop = implies $ A $ prop};
 
