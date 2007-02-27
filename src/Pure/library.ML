@@ -1134,22 +1134,21 @@ fun partition_eq (eq:'a * 'a -> bool) =
 (* generating identifiers *)
 
 (** Freshly generated identifiers; supplied prefix MUST start with a letter **)
-(*Maps 0-63 to A-Z, a-z, 0-9 or _ or ' for generating random identifiers*)
+local
+(*Maps 0-61 to A-Z, a-z, 0-9; exclude _ or ' to avoid clash with internal/unusual indentifiers*)
 fun gensym_char i = 
   if i<26 then chr (ord "A" + i)
   else if i<52 then chr (ord "a" + i - 26)
-  else if i<62 then chr (ord"0" + i - 52)
-  else if i=62 then "_"
-  else  (*i=63*)    "'";
+  else chr (ord "0" + i - 52);
 
-val charVec = Vector.tabulate (64, gensym_char);
-
-(*Not 64, as _ and ' could cause problems (especially _).*)
-fun newid n = implode (map (fn i => Vector.sub(charVec,i)) (radixpand (62,n)));
+val char_vec = Vector.tabulate (62, gensym_char);
+fun newid n = implode (map (fn i => Vector.sub (char_vec, i)) (radixpand (62, n)));
 
 val gensym_seed = ref 0;
 
-fun gensym pre = pre ^ newid (inc gensym_seed);
+in
+  fun gensym pre = pre ^ newid (inc gensym_seed);
+end;
 
 
 (* lexical scanning *)
