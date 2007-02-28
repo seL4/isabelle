@@ -217,11 +217,10 @@ translations
 
 typed_print_translation {*
 let
-  val thy = the_context ();
   fun tr' c = (c, fn show_sorts => fn T => fn ts =>
     if T = dummyT orelse not (! show_types) andalso can Term.dest_Type T then raise Match
     else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
-in map (tr' o Sign.const_syntax_name thy) ["HOL.one", "HOL.zero"] end;
+in map tr' [@{const_syntax "HOL.one"}, @{const_syntax "HOL.zero"}] end;
 *} -- {* show types that are presumably too general *}
 
 
@@ -874,9 +873,7 @@ declare ex_ex1I [intro!]
 declare exE [elim!]
   allE [elim]
 
-ML {*
-val HOL_cs = Classical.claset_of (the_context ());
-*}
+ML {* val HOL_cs = @{claset} *}
 
 lemma contrapos_np: "~ Q ==> (~ P ==> Q) ==> P"
   apply (erule swap)
@@ -1254,9 +1251,7 @@ lemmas [simp] =
 lemmas [cong] = imp_cong simp_implies_cong
 lemmas [split] = split_if
 
-ML {*
-val HOL_ss = Simplifier.simpset_of (the_context ());
-*}
+ML {* val HOL_ss = @{simpset} *}
 
 text {* Simplifies x assuming c and y assuming ~c *}
 lemma if_cong:

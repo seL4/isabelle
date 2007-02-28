@@ -517,14 +517,12 @@ translations
 
 print_translation {*
 let
-  val syntax_name = Sign.const_syntax_name (the_context ());
-  val binder_name = Syntax.binder_name o syntax_name;
-  val All_binder = binder_name "All";
-  val Ex_binder = binder_name "Ex";
-  val impl = syntax_name "op -->";
-  val conj = syntax_name "op &";
-  val less = syntax_name "Orderings.less";
-  val less_eq = syntax_name "Orderings.less_eq";
+  val All_binder = Syntax.binder_name @{const_syntax "All"};
+  val Ex_binder = Syntax.binder_name @{const_syntax "Ex"};
+  val impl = @{const_syntax "op -->"};
+  val conj = @{const_syntax "op &"};
+  val less = @{const_syntax "less"};
+  val less_eq = @{const_syntax "less_eq"};
 
   val trans =
    [((All_binder, impl, less), ("_All_less", "_All_greater")),

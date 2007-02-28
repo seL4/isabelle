@@ -87,9 +87,9 @@ syntax (xsymbols)
 abbreviation (input)
   "return \<equiv> Pair"
 
-print_ast_translation {*[
-  (Sign.const_syntax_name (the_context ()) "State_Monad.run", fn (f::ts) => Syntax.mk_appl f ts)
-]*}
+print_ast_translation {*
+  [(@{const_syntax "run"}, fn (f::ts) => Syntax.mk_appl f ts)]
+*}
 
 text {*
   Given two transformations @{term f} and @{term g}, they
@@ -226,9 +226,8 @@ translations
 
 print_translation {*
 let
-  val syntax_name = Sign.const_syntax_name (the_context ());
-  val name_mbind = syntax_name "State_Monad.mbind";
-  val name_fcomp = syntax_name "State_Monad.fcomp";
+  val name_mbind = @{const_syntax "mbind"};
+  val name_fcomp = @{const_syntax "fcomp"};
   fun unfold_monad (t as Const (name, _) $ f $ g) =
         if name = name_mbind then let
             val ([(v, ty)], g') = Term.strip_abs_eta 1 g;
@@ -246,9 +245,7 @@ let
     | unfold_monad f = f;
   fun tr' (f::ts) =
     list_comb (Const ("_do", dummyT) $ unfold_monad f, ts)
-in [
-  (syntax_name "State_Monad.run", tr')
-] end;
+in [(@{const_syntax "run"}, tr')] end;
 *}
 
 subsection {* Combinators *}

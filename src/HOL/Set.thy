@@ -228,16 +228,13 @@ translations
 
 print_translation {*
 let
-  val thy = the_context ();
-  val syntax_name = Sign.const_syntax_name thy;
-  val set_type = Sign.intern_type thy "set";
-  val binder_name = Syntax.binder_name o syntax_name;
-  val All_binder = binder_name "All";
-  val Ex_binder = binder_name "Ex";
-  val impl = syntax_name "op -->";
-  val conj = syntax_name "op &";
-  val sbset = syntax_name "Set.subset";
-  val sbset_eq = syntax_name "Set.subset_eq";
+  val Type (set_type, _) = @{typ "'a set"};
+  val All_binder = Syntax.binder_name @{const_syntax "All"};
+  val Ex_binder = Syntax.binder_name @{const_syntax "Ex"};
+  val impl = @{const_syntax "op -->"};
+  val conj = @{const_syntax "op &"};
+  val sbset = @{const_syntax "subset"};
+  val sbset_eq = @{const_syntax "subset_eq"};
 
   val trans =
    [((All_binder, impl, sbset), "_setlessAll"),
