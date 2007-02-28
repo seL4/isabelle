@@ -1,3 +1,8 @@
+(*  Title:      HOL/Library/SCT_Implementation.thy
+    ID:         $Id$
+    Author:     Alexander Krauss, TU Muenchen
+*)
+
 theory SCT_Implementation
 imports ExecutableSet SCT_Definition
 begin

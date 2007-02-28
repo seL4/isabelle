@@ -1,11 +1,12 @@
+(*  Title:      HOL/Library/Size_Change_Termination.thy
+    ID:         $Id$
+    Author:     Alexander Krauss, TU Muenchen
+*)
+
 theory Size_Change_Termination
 imports SCT_Theorem SCT_Interpretation SCT_Implementation 
 uses "size_change_termination.ML"
 begin
-
-use "size_change_termination.ML"
-
-
 
 section {* Simplifier setup *}
 
@@ -98,7 +99,5 @@ lemmas sctTest_simps =
 
 lemmas sctTest_congs = 
   if_weak_cong let_weak_cong setbcomp_cong
-
-
 
 end

@@ -1,3 +1,8 @@
+(*  Title:      HOL/Library/SCT_Definition.thy
+    ID:         $Id$
+    Author:     Alexander Krauss, TU Muenchen
+*)
+
 theory SCT_Definition
 imports Graphs Infinite_Set
 begin

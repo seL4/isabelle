@@ -1,3 +1,8 @@
+(*  Title:      HOL/Library/Kleene_Algebras.thy
+    ID:         $Id$
+    Author:     Alexander Krauss, TU Muenchen
+*)
+
 theory Kleene_Algebras
 imports Main 
 begin

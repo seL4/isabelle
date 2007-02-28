@@ -1,8 +1,11 @@
+(*  Title:      HOL/Library/SCT_Examples.thy
+    ID:         $Id$
+    Author:     Alexander Krauss, TU Muenchen
+*)
+
 theory SCT_Examples
 imports Size_Change_Termination
 begin
-
-
 
 function f :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
@@ -22,7 +25,6 @@ termination
   apply (simp add:finite_acg_ins finite_acg_empty) (* show finiteness *)
   apply (rule SCT'_exec)
   by eval (* Evaluate to true *)
-
 
 function p :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat"
 where
@@ -61,7 +63,6 @@ termination
   apply (rule SCT'_exec)
   by eval
 
-
 function (sequential) 
   bar :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat"
 where
@@ -78,6 +79,5 @@ termination
   apply (rule LJA_apply)            
   apply (simp add:finite_acg_ins finite_acg_empty) 
   by (rule SCT'_empty)
-
 
 end

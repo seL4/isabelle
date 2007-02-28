@@ -1,3 +1,8 @@
+(*  Title:      HOL/Library/Graphs.thy
+    ID:         $Id$
+    Author:     Alexander Krauss, TU Muenchen
+*)
+
 theory Graphs
 imports Main SCT_Misc Kleene_Algebras ExecutableSet
 begin

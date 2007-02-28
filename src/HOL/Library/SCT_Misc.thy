@@ -1,7 +1,11 @@
+(*  Title:      HOL/Library/SCT_Misc.thy
+    ID:         $Id$
+    Author:     Alexander Krauss, TU Muenchen
+*)
+
 theory SCT_Misc
 imports Main
 begin
-
 
 subsection {* Searching in lists *}
 
@@ -17,8 +21,6 @@ lemma index_of_member:
 lemma index_of_length:
   "(x \<in> set l) = (index_of l x < length l)"
   by (induct l) auto
-
-
 
 subsection {* Some reasoning tools *}
 
@@ -56,7 +58,6 @@ next
   thus "P i" by (rule step)
 qed
 
-
 lemma three_cases:
   assumes "a1 \<Longrightarrow> thesis"
   assumes "a2 \<Longrightarrow> thesis"
@@ -65,7 +66,6 @@ lemma three_cases:
   shows "thesis"
   using prems
   by auto
-
 
 section {* Sequences *}
 
@@ -101,7 +101,6 @@ proof (induct n)
   show ?case by auto
 qed auto
 
-
 lemma increasing_bij:
   assumes [simp]: "increasing s"
   shows "(s i < s j) = (i < j)"
@@ -116,9 +115,6 @@ proof
   qed
 qed (simp add:increasing_strict)
 
-
-
-
 subsection {* Sections induced by an increasing sequence *}
 
 abbreviation
@@ -126,7 +122,6 @@ abbreviation
 
 definition
   "section_of s n = (LEAST i. n < s (Suc i))"
-
 
 lemma section_help:
   assumes [intro, simp]: "increasing s"
@@ -142,7 +137,6 @@ lemma section_of2:
   shows "n < s (Suc (section_of s n))"
   unfolding section_of_def
   by (rule LeastI_ex) (rule section_help)
-
 
 lemma section_of1:
   assumes [simp, intro]: "increasing s"
@@ -193,7 +187,6 @@ proof (rule classical)
     ultimately show ?thesis by simp
   qed
 qed 
-
   
 lemma in_section_of: 
   assumes [simp, intro]: "increasing s"
@@ -201,6 +194,5 @@ lemma in_section_of:
   shows "k \<in> section s (section_of s k)"
   using prems
   by (auto intro:section_of1 section_of2)
-
 
 end

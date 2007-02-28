@@ -1,10 +1,13 @@
+(*  Title:      HOL/Library/SCT_Theorem.thy
+    ID:         $Id$
+    Author:     Alexander Krauss, TU Muenchen
+*)
+
 theory SCT_Theorem
 imports Main Ramsey SCT_Misc SCT_Definition
 begin
 
-
 section {* The size change criterion SCT *}
-
 
 definition is_thread :: "nat \<Rightarrow> nat sequence \<Rightarrow> (nat, scg) ipath \<Rightarrow> bool"
 where
@@ -30,8 +33,6 @@ definition
   "has_desc_fth p i j n m = 
   (\<exists>\<theta>. is_desc_fthread \<theta> p i j \<and> \<theta> i = n \<and> \<theta> j = m)"
 
-
-
 section {* Bounded graphs and threads *}
 
 definition 
@@ -48,13 +49,11 @@ definition
 definition (* = finite (range \<theta>) *)
   "bounded_th (P::nat) n \<theta> = (\<forall>i>n. \<theta> i < P)"
 
-
 definition 
   "finite_scg (G::scg) = (\<exists>P. bounded_scg P G)"
 
 definition
   "finite_acg (A::acg) = (\<exists>P. bounded_acg P A)"
-
 
 lemma "finite (insert x A) = finite A"
 by simp
@@ -82,7 +81,6 @@ proof
       by (auto intro: finite_cartesian_product finite_atLeastAtMost)
   qed
 next
-
   assume "finite G"
   thus "finite_scg (Graph G)"
   proof induct
@@ -110,18 +108,14 @@ next
   qed
 qed
 
-
 lemma finite_acg_empty:
   "finite_acg (Graph {})"
 unfolding finite_acg_def bounded_acg_def has_edge_def
 by auto
 
-
-
 lemma bounded_scg_up: "bounded_scg P G \<Longrightarrow> P \<le> Q \<Longrightarrow> bounded_scg Q G"
   unfolding bounded_scg_def
   by force
-
 
 lemma bounded_up: "bounded_acg P G \<Longrightarrow> P \<le> Q \<Longrightarrow> bounded_acg Q G"
   unfolding bounded_acg_def 
@@ -1401,16 +1395,4 @@ proof -
     by simp
 qed
 
-
-
-
-
-
 end
-
-
-
-
-
-
-

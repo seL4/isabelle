@@ -1,3 +1,7 @@
+(*  Title:      HOL/Library/size_change_termination.ML
+    ID:         $Id$
+    Author:     Alexander Krauss, TU Muenchen
+*)
 
 structure SCT = struct
 

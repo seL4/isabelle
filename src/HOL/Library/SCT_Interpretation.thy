@@ -1,7 +1,11 @@
+(*  Title:      HOL/Library/SCT_Interpretation.thy
+    ID:         $Id$
+    Author:     Alexander Krauss, TU Muenchen
+*)
+
 theory SCT_Interpretation
 imports Main SCT_Misc SCT_Definition
 begin
-
 
 definition
   "idseq R s x = (s 0 = x \<and> (\<forall>i. R (s (Suc i)) (s i)))"
@@ -408,6 +412,5 @@ proof (rule, rule classical)
     by (rule no_inf_desc_nat_sequence[of "Suc n"]) simp
   thus "acc R x" ..
 qed
-
 
 end
