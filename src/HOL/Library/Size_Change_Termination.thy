@@ -5,7 +5,7 @@
 
 theory Size_Change_Termination
 imports SCT_Theorem SCT_Interpretation SCT_Implementation 
-uses "size_change_termination.ML"
+uses "sct.ML"
 begin
 
 section {* Simplifier setup *}

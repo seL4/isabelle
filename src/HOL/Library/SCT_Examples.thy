@@ -18,9 +18,9 @@ by pat_completeness auto
 termination
   unfolding f_rel_def lfp_const
   apply (rule SCT_on_relations)
-  apply (tactic "SCT.abs_rel_tac") (* Build call descriptors *)
+  apply (tactic "Sct.abs_rel_tac") (* Build call descriptors *)
   apply (rule ext, rule ext, simp) (* Show that they are correct *)
-  apply (tactic "SCT.mk_call_graph") (* Build control graph *)
+  apply (tactic "Sct.mk_call_graph") (* Build control graph *)
   apply (rule LJA_apply)                 (* Apply main theorem *)
   apply (simp add:finite_acg_ins finite_acg_empty) (* show finiteness *)
   apply (rule SCT'_exec)
@@ -36,9 +36,9 @@ by pat_completeness auto
 termination
   unfolding p_rel_def lfp_const
   apply (rule SCT_on_relations)
-  apply (tactic "SCT.abs_rel_tac") 
+  apply (tactic "Sct.abs_rel_tac") 
   apply (rule ext, rule ext, simp) 
-  apply (tactic "SCT.mk_call_graph")
+  apply (tactic "Sct.mk_call_graph")
   apply (rule LJA_apply)            
   apply (simp add:finite_acg_ins finite_acg_empty) 
   apply (rule SCT'_exec)
@@ -55,9 +55,9 @@ by pat_completeness auto
 termination
   unfolding foo_rel_def lfp_const
   apply (rule SCT_on_relations)
-  apply (tactic "SCT.abs_rel_tac") 
+  apply (tactic "Sct.abs_rel_tac") 
   apply (rule ext, rule ext, simp) 
-  apply (tactic "SCT.mk_call_graph")
+  apply (tactic "Sct.mk_call_graph")
   apply (rule LJA_apply)            
   apply (simp add:finite_acg_ins finite_acg_empty) 
   apply (rule SCT'_exec)
@@ -73,9 +73,9 @@ by pat_completeness auto
 termination
   unfolding bar_rel_def lfp_const
   apply (rule SCT_on_relations)
-  apply (tactic "SCT.abs_rel_tac") 
+  apply (tactic "Sct.abs_rel_tac") 
   apply (rule ext, rule ext, simp) 
-  apply (tactic "SCT.mk_call_graph")
+  apply (tactic "Sct.mk_call_graph")
   apply (rule LJA_apply)            
   apply (simp add:finite_acg_ins finite_acg_empty) 
   by (rule SCT'_empty)

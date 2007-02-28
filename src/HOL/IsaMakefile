@@ -211,7 +211,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL \
   Library/Graphs.thy Library/Kleene_Algebras.thy Library/SCT_Misc.thy \
   Library/SCT_Definition.thy Library/SCT_Theorem.thy Library/SCT_Interpretation.thy \
   Library/SCT_Implementation.thy Library/Size_Change_Termination.thy \
-  Library/SCT_Examples.thy
+  Library/SCT_Examples.thy Library/sct.ML
 	@cd Library; $(ISATOOL) usedir $(OUT)/HOL Library
 
 
