@@ -64,6 +64,8 @@ sig
   val print_local_simpset: Proof.context -> unit
   val get_local_simpset: Proof.context -> simpset
   val put_local_simpset: simpset -> Proof.context -> Proof.context
+  val get_ss: Context.generic -> simpset
+  val map_ss: (simpset -> simpset) -> Context.generic -> Context.generic
   val attrib: (simpset * thm list -> simpset) -> attribute
   val simp_add: attribute
   val simp_del: attribute
