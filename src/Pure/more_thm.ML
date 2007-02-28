@@ -76,7 +76,6 @@ val corollaryK = "corollary";
 val internalK = "internal";
 
 
-
 (* attributes *)
 
 fun rule_attribute f (x, th) = (x, f x th);
