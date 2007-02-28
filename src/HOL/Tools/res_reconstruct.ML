@@ -357,7 +357,7 @@ fun isar_lines ctxt ctms =
               | NONE => "assume? " ^ lname ^ ": \"" ^ string_of t ^ "\"\n")  (*no match!!*)
         | doline hs (lname, t, deps) =
             hs ^ lname ^ ": \"" ^ string_of t ^ 
-            "\"\n  by (meson " ^ space_implode " " deps ^ ")\n"
+            "\"\n  by (metis " ^ space_implode " " deps ^ ")\n"
       fun dolines [(lname, t, deps)] = [doline "show " (lname, t, deps)]
         | dolines ((lname, t, deps)::lines) = doline "have " (lname, t, deps) :: dolines lines
   in setmp show_sorts true dolines end;
@@ -513,8 +513,8 @@ fun get_vamp_linenums proofstr =
 fun get_axiom_names_vamp proofstr thm_names =
    get_axiom_names thm_names (get_vamp_linenums proofstr);
     
-fun rules_to_string [] = "NONE"
-  | rules_to_string xs = space_implode "  " xs
+fun rules_to_metis [] = "metis"
+  | rules_to_metis xs = "metis (" ^ space_implode " " xs ^ ")"
 
 
 (*The signal handler in watcher.ML must be able to read the output of this.*)
@@ -522,7 +522,8 @@ fun prover_lemma_list_aux getax proofstr probfile toParent ppid thm_names =
  (trace ("\n\nGetting lemma names. proofstr is " ^ proofstr ^
          " num of clauses is " ^ string_of_int (Vector.length thm_names));
   signal_success probfile toParent ppid 
-    ("Lemmas used in automatic proof: " ^ rules_to_string (getax proofstr thm_names)))
+    ("Try this proof method: \n" ^ rules_to_metis (getax proofstr thm_names))
+ )
  handle e => (*FIXME: exn handler is too general!*)
   (trace ("\nprover_lemma_list_aux: In exception handler: " ^ Toplevel.exn_message e);
    TextIO.output (toParent, "Translation failed for the proof: " ^ 
