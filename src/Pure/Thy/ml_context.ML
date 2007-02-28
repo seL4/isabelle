@@ -206,6 +206,15 @@ val _ = value_antiq "cprop" (Args.prop >> (fn t =>
     "Thm.cterm_of (ML_Context.the_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))));
 
 
+fun const syn = (Scan.state >> Context.proof_of) -- Scan.lift Args.name >> (fn (ctxt, c) =>
+  #1 (Term.dest_Const (Consts.read_const (ProofContext.consts_of ctxt) c))
+  |> syn ? ProofContext.const_syntax_name ctxt
+  |> ML_Syntax.print_string);
+
+val _ = inline_antiq "const_name" (const false);
+val _ = inline_antiq "const_syntax" (const true);
+
+
 
 (** fact references **)
 
