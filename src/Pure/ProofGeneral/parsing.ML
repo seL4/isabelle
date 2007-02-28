@@ -210,12 +210,11 @@ local
     (* proof control *)
     | "theory-goal"    => xmls_of_thy_goal (name,toks,str)
     | "proof-heading"  => [D.Doccomment {text=str}]
-
-    | "proof-goal"     => (* nested proof: have, show, ... *)
-      [D.Opengoal {text=str,thmname=NONE}, 
-       D.Openblock {metavarid=NONE,name=NONE,objtype=NONE}]
-			  
-    | "proof-block"    => [D.Proofstep {text=str}]
+    | "proof-goal"     => [D.Opengoal {text=str,thmname=NONE}, 
+			   D.Openblock {metavarid=NONE,name=NONE,objtype=NONE}]
+    | "proof-block"    => [D.Closeblock {}, 
+			   D.Proofstep {text=str},
+			   D.Openblock {metavarid=NONE,name=NONE,objtype=NONE}]
     | "proof-open"     => [D.Openblock {metavarid=NONE,name=NONE,objtype=NONE}, 
 			   D.Proofstep {text=str} ]
     | "proof-close"    => [D.Proofstep {text=str}, D.Closeblock {}]
