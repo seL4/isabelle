@@ -9,58 +9,39 @@ structure ResAtpProvers =
 
 struct
 
-fun if_proof_vampire instr = (TextIO.inputLine instr = "Refutation found. Thanks to Tanya!\n");
-
-fun if_proof_E instr =
+fun seek_line s instr =
   let val thisLine = TextIO.inputLine instr
   in thisLine <> "" andalso 
-     (thisLine = "# Proof found!\n" orelse if_proof_E instr) 
+     (thisLine = s orelse seek_line s instr) 
   end;
 
-fun if_proof_spass instr = 
-    let val thisLine = TextIO.inputLine instr
-    in thisLine <> "" andalso 
-       (thisLine = "SPASS beiseite: Proof found.\n" orelse if_proof_spass instr) 
-    end;
-
-local 
-
 fun location s = warning ("ATP input at: " ^ s);
-
-in 
 
 fun call_vampire (file:string, time: int) = 
   let val _ = location file
       val runtime = "-t " ^ (string_of_int time)
       val vampire = ResAtp.helper_path "VAMPIRE_HOME" "vampire"
-      val ch:(TextIO.instream,TextIO.outstream) Unix.proc = 
-          Unix.execute(vampire, [runtime,file])
-      val (instr,outstr) = Unix.streamsOf ch
-  in if_proof_vampire instr
+      val (instr,outstr) = Unix.streamsOf (Unix.execute(vampire, [runtime,"--mode casc",file]))
+  in seek_line "--------------------- PROVED ----------------------\n" instr
   end;
 
 fun call_eprover (file:string, time:int) =
   let val _ = location file
-      val eprover = ResAtp.helper_path "E_HOME" "/PROVER/eprover"
+      val eprover = ResAtp.helper_path "E_HOME" "eprover"
       val runtime = "--cpu-limit=" ^ (string_of_int time)
-      val ch:(TextIO.instream,TextIO.outstream) Unix.proc = 
-          Unix.execute(eprover, [runtime,"--tptp-format","-tAuto","-xAuto",file])
-      val (instr,outstr) = Unix.streamsOf ch
-  in if_proof_E instr
+      val (instr,outstr) = Unix.streamsOf (Unix.execute(eprover, 
+                              [runtime,"--tstp-in","-tAutoDev","-xAutoDev",file]))
+  in seek_line "# Proof found!\n" instr
   end; 
 
 fun call_spass (file:string, time:int) =
-    let val _ = location file
-	val runtime = "-TimeLimit=" ^ (string_of_int time)
-	val spass = ResAtp.helper_path "SPASS_HOME" "SPASS"
-	val ch:(TextIO.instream,TextIO.outstream) Unix.proc =
-	    Unix.execute(spass, [runtime,"-Splits=0", "-FullRed=0", "-SOS=1",file])
-	val (instr,outstr) = Unix.streamsOf ch
-    in if_proof_spass instr
-    end;
-
-
-end
+  let val _ = location file
+      val runtime = "-TimeLimit=" ^ (string_of_int time)
+      val spass = ResAtp.helper_path "SPASS_HOME" "SPASS"
+      val (instr,outstr) = Unix.streamsOf (Unix.execute(spass, 
+			      [runtime,"-Splits=0", "-FullRed=0", "-SOS=1",file]))
+  in seek_line "SPASS beiseite: Proof found.\n" instr
+  end;
 
 fun vampire_o _ (file,time) = 
   if call_vampire (file,time) 
