@@ -57,7 +57,8 @@ fun pretty loc ctxt =
 (* consts *)
 
 fun internal_abbrev prmode ((c, mx), t) =
-  LocalTheory.term_syntax (ProofContext.target_abbrev prmode ((c, mx), t)) #>
+  (* FIXME really permissive *)
+  LocalTheory.term_syntax (perhaps o try o ProofContext.target_abbrev prmode ((c, mx), t)) #>
   ProofContext.add_abbrev Syntax.internalM (c, t) #> snd;
 
 fun consts is_loc some_class depends decls lthy =
