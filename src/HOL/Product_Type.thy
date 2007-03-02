@@ -823,6 +823,9 @@ code_const Pair
   (OCaml "!((_),/ (_))")
   (Haskell "!((_),/ (_))")
 
+code_const fst and snd
+  (Haskell "fst" and "snd")
+
 types_code
   "*"     ("(_ */ _)")
 attach (term_of) {*
