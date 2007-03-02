@@ -311,7 +311,7 @@ fun is_fol_thms ths = ((fst(logic_of_clauses (map prop_of ths) (FOL,[]))) = FOL)
 (*The rule subsetI is frequently omitted by the relevance filter.*)
 val whitelist = ref [subsetI];
 
-(*Names of theorems (not theorem lists! See multi_blacklist below) to be banned.
+(*Names of theorems and theorem lists to be blacklisted.
 
   These theorems typically produce clauses that are prolific (match too many equality or
   membership literals) and relate to seldom-used facts. Some duplicate other rules.
@@ -418,6 +418,7 @@ val blacklist = ref
    "Ring_and_Field.less_divide_eq_1_neg", (*obscure and prolific*)
    "Ring_and_Field.less_divide_eq_1_pos", (*obscure and prolific*)
    "Ring_and_Field.one_eq_divide_iff",  (*duplicate by symmetry*)
+   "Set.ball_simps", "Set.bex_simps",  (*quantifier rewriting: useless*)
    "Set.Collect_bex_eq",   (*involves an existential quantifier*)
    "Set.Collect_ex_eq",   (*involves an existential quantifier*)
    "Set.Diff_eq_empty_iff", (*redundant with paramodulation*)
@@ -426,7 +427,9 @@ val blacklist = ref
    "Set.full_SetCompr_eq",   (*involves an existential quantifier*)
    "Set.image_Collect",      (*involves Collect and a boolean variable...*)
    "Set.image_def",          (*involves an existential quantifier*)
+   "Set.disjoint_insert", "Set.insert_disjoint",
    "Set.Int_UNIV",  (*redundant with paramodulation*)
+   "Set.Inter_UNIV_conv",
    "Set.Inter_iff", (*We already have InterI, InterE*)
    "Set.psubsetE",    (*too prolific and obscure*)
    "Set.psubsetI",
@@ -444,7 +447,6 @@ val blacklist = ref
    "SetInterval.greaterThanLessThan_iff", (*obscure and prolific*)
    "SetInterval.ivl_subset"];  (*excessive case analysis*)
 
-
 (*These might be prolific but are probably OK, and min and max are basic.
    "Orderings.max_less_iff_conj",
    "Orderings.min_less_iff_conj",
@@ -459,7 +461,7 @@ Very prolific and somewhat obscure:
 
 (*Hashing to detect duplicate and variant clauses, e.g. from the [iff] attribute*)
 
-exception HASH_CLAUSE and HASH_STRING;
+fun setinsert (x,s) = Symtab.update (x,()) s;
 
 (*Reject theorems with names like "List.filter.filter_list_def" or
   "Accessible_Part.acc.defs", as these are definitions arising from packages.*)
@@ -469,13 +471,6 @@ fun is_package_def a =
      length names > 2 andalso
      not (hd names = "local") andalso
      String.isSuffix "_def" a  orelse  String.isSuffix "_defs" a
-  end;
-
-fun make_banned_test xs =
-  let val ht = Polyhash.mkTable (Polyhash.hash_string, op =) (6000, HASH_STRING)
-      fun banned s = isSome (Polyhash.peek ht s) orelse is_package_def s
-  in  app (fn x => Polyhash.insert ht (x,())) (!blacklist);
-      banned
   end;
 
 (** a hash function from Term.term to int, and also a hash table **)
@@ -494,6 +489,8 @@ fun hash_literal (Const("Not",_)$P) = Word.notb(hashw_term(P,0w0))
 fun hash_term t = Word.toIntX (xor_words (map hash_literal (dest_disj t)));
 
 fun equal_thm (thm1,thm2) = Term.aconv(prop_of thm1, prop_of thm2);
+
+exception HASH_CLAUSE;
 
 (*Create a hash table for clauses, of the given size*)
 fun mk_clause_table n =
@@ -526,36 +523,52 @@ fun get_relevant_clauses thy cls_thms white_cls goals =
   white_cls @ (ReduceAxiomsN.relevance_filter thy cls_thms goals);
 
 fun all_valid_thms ctxt =
-  PureThy.thms_containing (ProofContext.theory_of ctxt) ([], []) @
-  filter (ProofContext.valid_thms ctxt)
-    (FactIndex.find (ProofContext.fact_index_of ctxt) ([], []));
+  let
+    val banned_tab = foldl setinsert Symtab.empty (!blacklist) 
+    fun blacklisted s = !run_blacklist_filter andalso
+                        (isSome (Symtab.lookup banned_tab s) orelse is_package_def s)
+
+    fun extern_valid space (name, ths) =
+      let
+        val is_valid = ProofContext.valid_thms ctxt;
+        val xname = NameSpace.extern space name;
+      in
+        if blacklisted name then I
+        else if is_valid (xname, ths) then cons (xname, ths)
+        else if is_valid (name, ths) then cons (name, ths)
+        else I
+      end;
+    val thy = ProofContext.theory_of ctxt;
+    val all_thys = thy :: Theory.ancestors_of thy;
+
+    fun dest_valid (space, tab) = Symtab.fold (extern_valid space) tab [];
+  in
+    maps (dest_valid o PureThy.theorems_of) all_thys @
+    fold (extern_valid (#1 (ProofContext.theorems_of ctxt)))
+      (FactIndex.find (ProofContext.fact_index_of ctxt) ([], [])) []
+  end;
 
 fun multi_name a (th, (n,pairs)) =
   (n+1, (a ^ "(" ^ Int.toString n ^ ")", th) :: pairs)
 
-fun add_multi_names_aux ((a, []), pairs) = pairs
-  | add_multi_names_aux ((a, [th]), pairs) = (a,th)::pairs
-  | add_multi_names_aux ((a, ths), pairs) = #2 (foldl (multi_name a) (1,pairs) ths);
-
-val multi_blacklist =
-  ["Set.ball_simps", "Set.bex_simps",  (*quantifier rewriting: useless*)
-   "Set.disjoint_insert", "Set.insert_disjoint", "Set.Inter_UNIV_conv"];
+fun add_single_names ((a, []), pairs) = pairs
+  | add_single_names ((a, [th]), pairs) = (a,th)::pairs
+  | add_single_names ((a, ths), pairs) = #2 (foldl (multi_name a) (1,pairs) ths);
 
 val multi_base_blacklist =
   ["defs","select_defs","update_defs","induct","inducts","split","splits","split_asm"];
 
-(*Ignore blacklisted theorem lists*)
+(*Ignore blacklisted basenames*)
 fun add_multi_names ((a, ths), pairs) =
-  if a mem_string multi_blacklist orelse (Sign.base_name a) mem_string multi_base_blacklist
-  then pairs
-  else add_multi_names_aux ((a, ths), pairs);
+  if (Sign.base_name a) mem_string multi_base_blacklist  then pairs
+  else add_single_names ((a, ths), pairs);
 
 fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 
 (*The single theorems go BEFORE the multiple ones*)
 fun name_thm_pairs ctxt =
   let val (mults,singles) = List.partition is_multi (all_valid_thms ctxt)
-  in  foldl add_multi_names (foldl add_multi_names [] mults) singles  end;
+  in  foldl add_single_names  (foldl add_multi_names [] mults) singles end;
 
 fun check_named ("",th) = (warning ("No name for theorem " ^ string_of_thm th); false)
   | check_named (_,th) = true;
@@ -582,31 +595,15 @@ fun get_clasimp_atp_lemmas ctxt user_thms =
             val _ = (Output.debug (fn () => "ATP theorems: ");  app display_thm atpset_thms)
         in  claset_thms @ simpset_thms @ atpset_thms  end
       val user_rules = filter check_named
-                         (map (ResAxioms.pairname)
+                         (map ResAxioms.pairname
                            (if null user_thms then !whitelist else user_thms))
   in
       (filter check_named included_thms, user_rules)
   end;
 
-(*Remove lemmas that are banned from the backlist. Also remove duplicates. *)
-fun blacklist_filter ths =
-  if !run_blacklist_filter then
-      let val banned = make_banned_test (map #1 ths)
-          fun ok (a,_) = not (banned a)
-          val (good,bad) = List.partition ok ths
-      in
-        Output.debug (fn () => "blacklist filter gets " ^ Int.toString (length ths) ^ " theorems");
-        Output.debug (fn () => "filtered: " ^ space_implode ", " (map #1 bad));
-        Output.debug (fn () => "...and returns " ^ Int.toString (length good));
-        good 
-      end
-  else ths;
-
 (***************************************************************)
 (* Type Classes Present in the Axiom or Conjecture Clauses     *)
 (***************************************************************)
-
-fun setinsert (x,s) = Symtab.update (x,()) s;
 
 fun add_classes (sorts, cset) = foldl setinsert cset (List.concat sorts);
 
@@ -654,8 +651,8 @@ datatype mode = Auto | Fol | Hol;
 val linkup_logic_mode = ref Auto;
 
 (*Ensures that no higher-order theorems "leak out"*)
-fun restrict_to_logic logic cls =
-  if is_fol_logic logic then filter (Meson.is_fol_term o prop_of o fst) cls
+fun restrict_to_logic thy logic cls =
+  if is_fol_logic logic then filter (Meson.is_fol_term thy o prop_of o fst) cls
                         else cls;
 
 (**** Predicates to detect unwanted clauses (prolific or likely to cause unsoundness) ****)
@@ -725,17 +722,17 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
         val hyp_cls = cnf_hyps_thms ctxt
         val goal_cls = conj_cls@hyp_cls
         val goal_tms = map prop_of goal_cls
+        val thy = ProofContext.theory_of ctxt
         val logic = case mode of
                             Auto => problem_logic_goals [goal_tms]
                           | Fol => FOL
                           | Hol => HOL
         val (included_thms,user_rules) = get_clasimp_atp_lemmas ctxt user_thms
-        val cla_simp_atp_clauses = included_thms |> blacklist_filter
+        val cla_simp_atp_clauses = included_thms 
                                      |> ResAxioms.cnf_rules_pairs |> make_unique
-                                     |> restrict_to_logic logic
+                                     |> restrict_to_logic thy logic
                                      |> remove_unwanted_clauses
         val user_cls = ResAxioms.cnf_rules_pairs user_rules
-        val thy = ProofContext.theory_of ctxt
         val axclauses = make_unique (get_relevant_clauses thy cla_simp_atp_clauses user_cls goal_tms)
         val subs = tfree_classes_of_terms goal_tms
         and axtms = map (prop_of o #1) axclauses
@@ -840,9 +837,8 @@ fun write_problem_files probfile (ctxt,th)  =
               | Fol => FOL
               | Hol => HOL
       val (included_thms,white_thms) = get_clasimp_atp_lemmas ctxt []
-      val included_cls = included_thms |> blacklist_filter
-                                       |> ResAxioms.cnf_rules_pairs |> make_unique
-                                       |> restrict_to_logic logic
+      val included_cls = included_thms |> ResAxioms.cnf_rules_pairs |> make_unique
+                                       |> restrict_to_logic thy logic
                                        |> remove_unwanted_clauses
       val _ = Output.debug (fn () => "included clauses = " ^ Int.toString(length included_cls))
       val white_cls = ResAxioms.cnf_rules_pairs white_thms
