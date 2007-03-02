@@ -354,13 +354,21 @@ val is_conn = member (op =)
 val has_bool_arg_const = 
     exists_Const
       (fn (c,T) => not(is_conn c) andalso exists (has_bool) (binder_types T));
-      
+
+(*A higher-order instance of a first-order constant? Example is the definition of 
+  HOL.one, 1, at a function type in theory SetsAndFunctions.*)
+fun higher_inst_const thy (c,T) = 
+  case binder_types T of
+      [] => false (*not a function type, OK*)
+    | Ts => length (binder_types (Sign.the_const_type thy c)) <> length Ts;
+
 (*Raises an exception if any Vars in the theorem mention type bool. 
   Also rejects functions whose arguments are Booleans or other functions.*)
-fun is_fol_term t =
+fun is_fol_term thy t =
+    Term.is_first_order ["all","All","Ex"] t andalso
     not (exists (has_bool o fastype_of) (term_vars t)  orelse
-	 not (Term.is_first_order ["all","All","Ex"] t) orelse
 	 has_bool_arg_const t  orelse  
+	 exists_Const (higher_inst_const thy) t orelse
 	 has_meta_conn t);
 
 fun rigid t = not (is_Var (head_of t));
