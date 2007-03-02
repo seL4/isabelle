@@ -33,7 +33,6 @@ sig
   val assert_serializer: theory -> string -> string;
 
   val const_has_serialization: theory -> string list -> string -> bool;
-  val tyco_has_serialization: theory -> string list -> string -> bool;
 
   val eval_verbose: bool ref;
   val eval_term: theory -> (theory -> string -> string) -> CodegenThingol.code
@@ -312,7 +311,8 @@ datatype ml_def =
 
 fun pr_sml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons ml_def =
   let
-    val pr_label = translate_string (fn "." => "__" | c => c) o NameSpace.qualifier;
+    val pr_label_classrel = translate_string (fn "." => "__" | c => c) o NameSpace.qualifier;
+    val pr_label_classop = NameSpace.base o NameSpace.qualifier;
     fun pr_dicts fxy ds =
       let
         fun pr_dictvar (v, (_, 1)) = first_upper v ^ "_"
@@ -486,13 +486,20 @@ fun pr_sml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons 
                     str "of",
                     Pretty.enum " *" "" "" (map (pr_typ (INFX (2, X))) tys)
                   ];
-            fun pr_data definer (tyco, (vs, cos)) =
-              concat (
-                str definer
-                :: pr_tycoexpr NOBR (tyco, map (ITyVar o fst) vs)
-                :: str "="
-                :: separate (str "|") (map pr_co cos)
-              );
+            fun pr_data definer (tyco, (vs, [])) =
+                  concat (
+                    str definer
+                    :: pr_tycoexpr NOBR (tyco, map (ITyVar o fst) vs)
+                    :: str "="
+                    @@ str "EMPTY__" 
+                  )
+              | pr_data definer (tyco, (vs, cos)) =
+                  concat (
+                    str definer
+                    :: pr_tycoexpr NOBR (tyco, map (ITyVar o fst) vs)
+                    :: str "="
+                    :: separate (str "|") (map pr_co cos)
+                  );
             val (ps, p) = split_last (pr_data "datatype" data :: map (pr_data "and") datas');
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";"])]) end
      | pr_def (MLClass (class, (superclasses, (v, classops)))) =
@@ -500,11 +507,11 @@ fun pr_sml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons 
             val w = first_upper v ^ "_";
             fun pr_superclass_field (class, classrel) =
               (concat o map str) [
-                pr_label classrel, ":", "'" ^ v, deresolv class
+                pr_label_classrel classrel, ":", "'" ^ v, deresolv class
               ];
             fun pr_classop_field (classop, ty) =
               concat [
-                (str o pr_label) classop, str ":", pr_typ NOBR ty
+                (str o pr_label_classop) classop, str ":", pr_typ NOBR ty
               ];
             fun pr_classop_proj (classop, _) =
               semicolon [
@@ -512,7 +519,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons 
                 (str o deresolv) classop,
                 Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ deresolv class)],
                 str "=",
-                str ("#" ^ pr_label classop),
+                str ("#" ^ pr_label_classop classop),
                 str w
               ];
             fun pr_superclass_proj (_, classrel) =
@@ -521,7 +528,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons 
                 (str o deresolv) classrel,
                 Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ deresolv class)],
                 str "=",
-                str ("#" ^ pr_label classrel),
+                str ("#" ^ pr_label_classrel classrel),
                 str w
               ];
           in
@@ -542,7 +549,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons 
           let
             fun pr_superclass (_, (classrel, dss)) =
               concat [
-                (str o pr_label) classrel,
+                (str o pr_label_classrel) classrel,
                 str "=",
                 pr_dicts NOBR [DictConst dss]
               ];
@@ -555,7 +562,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons 
                 val vars = CodegenNames.intro_vars consts keyword_vars;
               in
                 concat [
-                  (str o pr_label) classop,
+                  (str o pr_label_classop) classop,
                   str "=",
                   pr_term vars NOBR t
                 ]
@@ -789,13 +796,20 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_con
                     str "of",
                     Pretty.enum " *" "" "" (map (pr_typ (INFX (2, X))) tys)
                   ];
-            fun pr_data definer (tyco, (vs, cos)) =
-              concat (
-                str definer
-                :: pr_tycoexpr NOBR (tyco, map (ITyVar o fst) vs)
-                :: str "="
-                :: separate (str "|") (map pr_co cos)
-              );
+            fun pr_data definer (tyco, (vs, [])) =
+                  concat (
+                    str definer
+                    :: pr_tycoexpr NOBR (tyco, map (ITyVar o fst) vs)
+                    :: str "="
+                    @@ str "EMPTY_"
+                  )
+              | pr_data definer (tyco, (vs, cos)) =
+                  concat (
+                    str definer
+                    :: pr_tycoexpr NOBR (tyco, map (ITyVar o fst) vs)
+                    :: str "="
+                    :: separate (str "|") (map pr_co cos)
+                  );
             val (ps, p) = split_last (pr_data "type" data :: map (pr_data "and") datas');
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";;"])]) end
      | pr_def (MLClass (class, (superclasses, (v, classops)))) =
@@ -1209,6 +1223,15 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name keyword_vars 
               ]
               :: map pr_eq eqs
             )
+          end
+      | pr_def (name, CodegenThingol.Datatype (vs, [])) =
+          let
+            val tyvars = CodegenNames.intro_vars (map fst vs) keyword_vars;
+          in
+            semicolon [
+              str "data",
+              pr_typscheme_expr tyvars (vs, (deresolv_here name, map (ITyVar o fst) vs))
+            ]
           end
       | pr_def (name, CodegenThingol.Datatype (vs, [(co, [ty])])) =
           let
@@ -1649,7 +1672,6 @@ fun has_serialization f thy targets name =
       o Symtab.lookup (CodegenSerializerData.get thy)
   ) targets;
 
-val tyco_has_serialization = has_serialization #tyco;
 val const_has_serialization = has_serialization #const;
 
 

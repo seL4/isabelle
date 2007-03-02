@@ -147,25 +147,27 @@ and ensure_def_tyco thy algbr funcgr strct "fun" trns =
   | ensure_def_tyco thy algbr funcgr strct tyco trns =
       let
         fun defgen_datatype trns =
-          case CodegenData.get_datatype thy tyco
-           of SOME (vs, cos) =>
-                trns
-                |> fold_map (exprgen_tyvar_sort thy algbr funcgr strct) vs
-                ||>> fold_map (fn (c, tys) =>
-                  fold_map (exprgen_type thy algbr funcgr strct) tys
-                  #-> (fn tys' =>
-                    pair ((CodegenNames.const thy o CodegenConsts.norm_of_typ thy)
-                      (c, tys ---> Type (tyco, map TFree vs)), tys'))) cos
-                |-> (fn (vs, cos) => succeed (CodegenThingol.Datatype (vs, cos)))
-            | NONE =>
-                trns
-                |> fail ("No such datatype: " ^ quote tyco)
+          let
+            val (vs, cos) = case CodegenData.get_datatype thy tyco
+             of SOME x => x
+              | NONE => (Name.invents Name.context "'a" (Sign.arity_number thy tyco)
+                  |> map (rpair (Sign.defaultS thy)) , [])
+              (*FIXME move to CodegenData*)
+          in
+            trns
+            |> fold_map (exprgen_tyvar_sort thy algbr funcgr strct) vs
+            ||>> fold_map (fn (c, tys) =>
+              fold_map (exprgen_type thy algbr funcgr strct) tys
+              #-> (fn tys' =>
+                pair ((CodegenNames.const thy o CodegenConsts.norm_of_typ thy)
+                  (c, tys ---> Type (tyco, map TFree vs)), tys'))) cos
+            |-> (fn (vs, cos) => succeed (CodegenThingol.Datatype (vs, cos)))
+          end;
         val tyco' = CodegenNames.tyco thy tyco;
-        val strict = check_strict strct (CodegenSerializer.tyco_has_serialization thy) tyco';
       in
         trns
         |> tracing (fn _ => "generating type constructor " ^ quote tyco)
-        |> ensure_def thy defgen_datatype strict
+        |> ensure_def thy defgen_datatype true
             ("generating type constructor " ^ quote tyco) tyco'
         |> pair tyco'
       end
