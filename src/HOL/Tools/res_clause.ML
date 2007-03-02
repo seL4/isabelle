@@ -412,7 +412,8 @@ fun get_tvar_strs [] = []
 
 (* check if a clause is first-order before making a conjecture clause*)
 fun make_conjecture_clause n th =
-  if Meson.is_fol_term (prop_of th) then make_clause(n, "conjecture", th, Conjecture)
+  if Meson.is_fol_term (theory_of_thm th) (prop_of th) 
+  then make_clause(n, "conjecture", th, Conjecture)
   else raise CLAUSE("Goal is not FOL", prop_of th);
   
 fun make_conjecture_clauses_aux _ [] = []
@@ -422,14 +423,14 @@ fun make_conjecture_clauses_aux _ [] = []
 val make_conjecture_clauses = make_conjecture_clauses_aux 0
 
 (*before converting an axiom clause to "clause" format, check if it is FOL*)
-fun make_axiom_clause thm (ax_name,cls_id) =
-  if Meson.is_fol_term (prop_of thm) 
-  then (SOME (make_clause(cls_id, ax_name, thm, Axiom)) handle MAKE_CLAUSE => NONE)
+fun make_axiom_clause th (ax_name,cls_id) =
+  if Meson.is_fol_term (theory_of_thm th) (prop_of th) 
+  then (SOME (make_clause(cls_id, ax_name, th, Axiom)) handle MAKE_CLAUSE => NONE)
   else (Output.debug (fn () => ("Omitting " ^ ax_name ^ ": Axiom is not FOL")); NONE)
     
 fun make_axiom_clauses [] = []
-  | make_axiom_clauses ((thm,(name,id))::thms) =
-      case make_axiom_clause thm (name,id) of 
+  | make_axiom_clauses ((th,(name,id))::thms) =
+      case make_axiom_clause th (name,id) of 
           SOME cls => if isTaut cls then make_axiom_clauses thms 
                       else (name,cls) :: make_axiom_clauses thms
         | NONE => make_axiom_clauses thms;
