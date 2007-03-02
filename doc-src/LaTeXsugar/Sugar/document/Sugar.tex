@@ -249,7 +249,20 @@ premises for one line:
 
 Limitations: 1. Premises and conclusion must each not be longer than
 the line.  2. Premises that are \isa{{\isasymLongrightarrow}}-implications are again
-displayed with a horizontal line, which looks at least unusual.%
+displayed with a horizontal line, which looks at least unusual.
+
+
+In case you print theorems without premises no rule will be printed by the
+\texttt{Rule} print mode. However, you can use \texttt{Axiom} instead:
+\begin{quote}
+\verb!\begin{center}\isastyle!\\
+\verb!@!\verb!{thm[mode=Axiom] refl} {\sc refl}! \\
+\verb!\end{center}!
+\end{quote}
+yields
+\begin{center}\isastyle
+\isa{\mbox{}\inferrule{\mbox{}}{\mbox{t\ {\isacharequal}\ t}}} {\sc refl} 
+\end{center}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
