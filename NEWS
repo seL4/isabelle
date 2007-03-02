@@ -505,6 +505,10 @@ the graph browser tool.
 
 *** HOL ***
 
+* Class (axclass + locale) "preorder" and "linear": facts "refl", "trans" and
+"cases" renamed ro "order_refl", "order_trans" and "linorder_cases", to
+avoid clashes with HOL "refl" and "trans". INCOMPATIBILITY.
+
 * Addes class (axclass + locale) "preorder" as superclass of "order";
 potential INCOMPATIBILITY: order of proof goals in order/linorder instance
 proofs changed.

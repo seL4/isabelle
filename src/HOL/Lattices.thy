@@ -37,13 +37,13 @@ lemmas antisym_intro[intro!] = antisym
 
 lemma le_infI1[intro]: "a \<sqsubseteq> x \<Longrightarrow> a \<sqinter> b \<sqsubseteq> x"
 apply(subgoal_tac "a \<sqinter> b \<sqsubseteq> a")
- apply(blast intro:trans)
+ apply(blast intro: order_trans)
 apply simp
 done
 
 lemma le_infI2[intro]: "b \<sqsubseteq> x \<Longrightarrow> a \<sqinter> b \<sqsubseteq> x"
 apply(subgoal_tac "a \<sqinter> b \<sqsubseteq> b")
- apply(blast intro:trans)
+ apply(blast intro: order_trans)
 apply simp
 done
 
@@ -51,7 +51,7 @@ lemma le_infI[intro!]: "x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<
 by(blast intro: inf_greatest)
 
 lemma le_infE[elim!]: "x \<sqsubseteq> a \<sqinter> b \<Longrightarrow> (x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> P) \<Longrightarrow> P"
-by(blast intro: trans)
+by(blast intro: order_trans)
 
 lemma le_inf_iff [simp]:
  "x \<sqsubseteq> y \<sqinter> z = (x \<sqsubseteq> y \<and> x \<sqsubseteq> z)"
@@ -70,13 +70,13 @@ lemmas antisym_intro[intro!] = antisym
 
 lemma le_supI1[intro]: "x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> a \<squnion> b"
 apply(subgoal_tac "a \<sqsubseteq> a \<squnion> b")
- apply(blast intro:trans)
+ apply(blast intro: order_trans)
 apply simp
 done
 
 lemma le_supI2[intro]: "x \<sqsubseteq> b \<Longrightarrow> x \<sqsubseteq> a \<squnion> b"
 apply(subgoal_tac "b \<sqsubseteq> a \<squnion> b")
- apply(blast intro:trans)
+ apply(blast intro: order_trans)
 apply simp
 done
 
@@ -84,7 +84,7 @@ lemma le_supI[intro!]: "a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<
 by(blast intro: sup_least)
 
 lemma le_supE[elim!]: "a \<squnion> b \<sqsubseteq> x \<Longrightarrow> (a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> P) \<Longrightarrow> P"
-by(blast intro: trans)
+by(blast intro: order_trans)
 
 lemma ge_sup_conv[simp]:
  "x \<squnion> y \<sqsubseteq> z = (x \<sqsubseteq> z \<and> y \<sqsubseteq> z)"

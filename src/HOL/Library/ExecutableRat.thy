@@ -96,7 +96,7 @@ lemma number_of_rat [code unfold]:
   unfolding Fract_of_int_eq rat_number_of_def by simp
 
 lemma rat_minus [code func]:
-  "(a\<Colon>rat) - b = a + (- b)" unfolding ab_group_add_class.diff_minus ..
+  "(a\<Colon>rat) - b = a + (- b)" unfolding diff_minus ..
 
 lemma rat_divide [code func]:
   "(a\<Colon>rat) / b = a * inverse b" unfolding divide_inverse ..

@@ -103,6 +103,11 @@ definition
   units :: "'a set" where
   "units = {y. \<exists>x. x \<^loc>\<otimes> y = \<^loc>\<one> \<and> y \<^loc>\<otimes> x = \<^loc>\<one>}"
 
+end
+
+context monoid
+begin
+
 lemma inv_obtain:
   assumes "x \<in> units"
   obtains y where "y \<^loc>\<otimes> x = \<^loc>\<one>" and "x \<^loc>\<otimes> y = \<^loc>\<one>"
@@ -149,6 +154,11 @@ begin
 definition
   npow :: "nat \<Rightarrow> 'a \<Rightarrow> 'a" where
   npow_def_prim: "npow n x = reduce (op \<^loc>\<otimes>) \<^loc>\<one> n x"
+
+end
+
+context monoid
+begin
 
 abbreviation
   npow_syn :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75) where
@@ -299,24 +309,24 @@ using pow_def nat_pow_one inv_one by simp
 instance * :: (semigroup, semigroup) semigroup
   mult_prod_def: "x \<otimes> y \<equiv> let (x1, x2) = x; (y1, y2) = y in
               (x1 \<otimes> y1, x2 \<otimes> y2)"
-by default (simp_all add: split_paired_all mult_prod_def semigroup_class.assoc)
+by default (simp_all add: split_paired_all mult_prod_def assoc)
 
 instance * :: (monoidl, monoidl) monoidl
   one_prod_def: "\<one> \<equiv> (\<one>, \<one>)"
-by default (simp_all add: split_paired_all mult_prod_def one_prod_def monoidl_class.neutl)
+by default (simp_all add: split_paired_all mult_prod_def one_prod_def neutl)
 
 instance * :: (monoid, monoid) monoid
-by default (simp_all add: split_paired_all mult_prod_def one_prod_def monoid_class.neutr)
+by default (simp_all add: split_paired_all mult_prod_def one_prod_def monoid_class.mult_one.neutr)
 
 instance * :: (monoid_comm, monoid_comm) monoid_comm
-by default (simp_all add: split_paired_all mult_prod_def monoid_comm_class.comm)
+by default (simp_all add: split_paired_all mult_prod_def comm)
 
 instance * :: (group, group) group
   inv_prod_def: "\<div> x \<equiv> let (x1, x2) = x in (\<div> x1, \<div> x2)"
-by default (simp_all add: split_paired_all mult_prod_def one_prod_def inv_prod_def group_class.invl)
+by default (simp_all add: split_paired_all mult_prod_def one_prod_def inv_prod_def invl)
 
 instance * :: (group_comm, group_comm) group_comm
-by default (simp_all add: split_paired_all mult_prod_def monoid_comm_class.comm)
+by default (simp_all add: split_paired_all mult_prod_def comm)
 
 definition
   "X a b c = (a \<otimes> \<one> \<otimes> b, a \<otimes> \<one> \<otimes> b, [a, b] \<otimes> \<one> \<otimes> [a, b, c])"

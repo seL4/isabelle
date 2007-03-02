@@ -318,7 +318,7 @@ instance star :: (ab_semigroup_mult) ab_semigroup_mult
 by (intro_classes, transfer, rule mult_commute)
 
 instance star :: (comm_monoid_add) comm_monoid_add
-by (intro_classes, transfer, rule comm_monoid_add_class.add_0)
+by (intro_classes, transfer, rule comm_monoid_add_class.zero_plus.add_0)
 
 instance star :: (monoid_mult) monoid_mult
 apply (intro_classes)
@@ -427,12 +427,12 @@ apply (transfer, erule (1) mult_strict_right_mono)
 done
 
 instance star :: (pordered_comm_semiring) pordered_comm_semiring
-by (intro_classes, transfer, rule mult_mono1_class.mult_mono)
+by (intro_classes, transfer, rule mult_mono1_class.times_zero_less_eq_less.mult_mono)
 
 instance star :: (pordered_cancel_comm_semiring) pordered_cancel_comm_semiring ..
 
 instance star :: (ordered_comm_semiring_strict) ordered_comm_semiring_strict
-by (intro_classes, transfer, rule ordered_comm_semiring_strict_class.mult_strict_mono)
+by (intro_classes, transfer, rule ordered_comm_semiring_strict_class.plus_times_zero_less_eq_less.mult_strict_mono)
 
 instance star :: (pordered_ring) pordered_ring ..
 instance star :: (lordered_ring) lordered_ring ..

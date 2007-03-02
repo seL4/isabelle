@@ -73,15 +73,15 @@ subsection {* Quasiorders (preorders) *}
 
 class preorder = ord +
   assumes less_le: "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<noteq> y"
-  and refl [iff]: "x \<sqsubseteq> x"
-  and trans: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
+  and order_refl [iff]: "x \<sqsubseteq> x"
+  and order_trans: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
 begin
 
 text {* Reflexivity. *}
 
 lemma eq_refl: "x = y \<Longrightarrow> x \<sqsubseteq> y"
     -- {* This form is useful with the classical reasoner. *}
-  by (erule ssubst) (rule refl)
+  by (erule ssubst) (rule order_refl)
 
 lemma less_irrefl [iff]: "\<not> x \<sqsubset> x"
   by (simp add: less_le)
@@ -119,7 +119,6 @@ lemma le_neq_trans: "\<lbrakk> a \<sqsubseteq> b; a \<noteq> b \<rbrakk> \<Longr
 
 end
 
-
 subsection {* Partial orderings *}
 
 class order = preorder + 
@@ -147,13 +146,13 @@ lemma less_imp_neq: "x \<sqsubset> y \<Longrightarrow> x \<noteq> y"
 text {* Transitivity. *}
 
 lemma less_trans: "\<lbrakk> x \<sqsubset> y; y \<sqsubset> z \<rbrakk> \<Longrightarrow> x \<sqsubset> z"
-  by (simp add: less_le) (blast intro: trans antisym)
+  by (simp add: less_le) (blast intro: order_trans antisym)
 
 lemma le_less_trans: "\<lbrakk> x \<sqsubseteq> y; y \<sqsubset> z \<rbrakk> \<Longrightarrow> x \<sqsubset> z"
-  by (simp add: less_le) (blast intro: trans antisym)
+  by (simp add: less_le) (blast intro: order_trans antisym)
 
 lemma less_le_trans: "\<lbrakk> x \<sqsubset> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubset> z"
-  by (simp add: less_le) (blast intro: trans antisym)
+  by (simp add: less_le) (blast intro: order_trans antisym)
 
 
 text {* Useful for simplification, but too risky to include by default. *}
@@ -189,7 +188,7 @@ lemma le_cases [case_names le ge]:
   "\<lbrakk> x \<sqsubseteq> y \<Longrightarrow> P; y \<sqsubseteq> x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   using linear by blast
 
-lemma cases [case_names less equal greater]:
+lemma linorder_cases [case_names less equal greater]:
     "\<lbrakk> x \<sqsubset> y \<Longrightarrow> P; x = y \<Longrightarrow> P; y \<sqsubset> x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   using less_linear by blast
 
@@ -239,13 +238,18 @@ definition
   max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   "max a b = (if a \<sqsubseteq> b then b else a)"
 
+end
+
+context linorder
+begin
+
 lemma min_le_iff_disj:
   "min x y \<sqsubseteq> z \<longleftrightarrow> x \<sqsubseteq> z \<or> y \<sqsubseteq> z"
-  unfolding min_def using linear by (auto intro: trans)
+  unfolding min_def using linear by (auto intro: order_trans)
 
 lemma le_max_iff_disj:
   "z \<sqsubseteq> max x y \<longleftrightarrow> z \<sqsubseteq> x \<or> z \<sqsubseteq> y"
-  unfolding max_def using linear by (auto intro: trans)
+  unfolding max_def using linear by (auto intro: order_trans)
 
 lemma min_less_iff_disj:
   "min x y \<sqsubset> z \<longleftrightarrow> x \<sqsubset> z \<or> y \<sqsubset> z"
@@ -276,9 +280,9 @@ end
 
 subsection {* Name duplicates *}
 
-lemmas order_refl [iff] = preorder_class.refl
-lemmas order_trans = preorder_class.trans
-lemmas order_less_le = preorder_class.less_le
+(*lemmas order_refl [iff] = preorder_class.order_refl
+lemmas order_trans = preorder_class.order_trans*)
+lemmas order_less_le = less_le
 lemmas order_eq_refl = preorder_class.eq_refl
 lemmas order_less_irrefl = preorder_class.less_irrefl
 lemmas order_le_less = preorder_class.le_less
@@ -289,7 +293,7 @@ lemmas order_less_imp_not_eq2 = preorder_class.less_imp_not_eq2
 lemmas order_neq_le_trans = preorder_class.neq_le_trans
 lemmas order_le_neq_trans = preorder_class.le_neq_trans
 
-lemmas order_antisym = order_class.antisym
+lemmas order_antisym = antisym
 lemmas order_less_not_sym = order_class.less_not_sym
 lemmas order_less_asym = order_class.less_asym
 lemmas order_eq_iff = order_class.eq_iff
@@ -302,11 +306,11 @@ lemmas order_less_imp_not_less = order_class.less_imp_not_less
 lemmas order_less_imp_triv = order_class.less_imp_triv
 lemmas order_less_asym' = order_class.less_asym'
 
-lemmas linorder_linear = linorder_class.linear
+lemmas linorder_linear = linear
 lemmas linorder_less_linear = linorder_class.less_linear
 lemmas linorder_le_less_linear = linorder_class.le_less_linear
 lemmas linorder_le_cases = linorder_class.le_cases
-lemmas linorder_cases = linorder_class.cases
+(*lemmas linorder_cases = linorder_class.linorder_cases*)
 lemmas linorder_not_less = linorder_class.not_less
 lemmas linorder_not_le = linorder_class.not_le
 lemmas linorder_neq_iff = linorder_class.neq_iff
@@ -895,7 +899,6 @@ lemma min_of_mono:
 lemma max_of_mono:
     "(!!x y. (f x <= f y) = (x <= y)) ==> max (f m) (f n) = f (max m n)"
   by (simp add: max_def)
-
 
 subsection {* Basic ML bindings *}
 

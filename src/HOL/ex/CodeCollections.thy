@@ -17,9 +17,6 @@ fun
 abbreviation (in ord)
   "sorted \<equiv> abs_sorted less_eq"
 
-abbreviation
-  "sorted \<equiv> abs_sorted less_eq"
-
 lemma (in order) sorted_weakening:
   assumes "sorted (x # xs)"
   shows "sorted xs"
@@ -138,7 +135,7 @@ apply default
 apply (simp_all add: "fin_*_def")
 apply (unfold split_paired_all)
 apply (rule product_all)
-apply (rule finite_class.member_fin)+
+apply (rule member_fin)+
 done
 
 instance option :: (finite) finite
@@ -149,7 +146,7 @@ proof (default, unfold fin_option_def)
   proof (cases x)
     case None then show ?thesis by auto
   next
-    case (Some x) then show ?thesis by (auto intro: finite_class.member_fin)
+    case (Some x) then show ?thesis by (auto intro: member_fin)
   qed
 qed
 

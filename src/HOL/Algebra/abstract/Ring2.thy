@@ -256,7 +256,7 @@ lemma natsum_Suc2:
 proof (induct n)
   case 0 show ?case by simp
 next
-  case Suc thus ?case by (simp add: semigroup_add_class.add_assoc) 
+  case Suc thus ?case by (simp add: add_assoc) 
 qed
 
 lemma natsum_cong [cong]:
