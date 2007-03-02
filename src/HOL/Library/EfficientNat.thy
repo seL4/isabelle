@@ -31,6 +31,18 @@ definition
   nat_of_int :: "int \<Rightarrow> nat" where
   "k \<ge> 0 \<Longrightarrow> nat_of_int k = nat k"
 
+lemma nat_of_int_of_number_of:
+  fixes k
+  assumes "k \<ge> 0"
+  shows "number_of k = nat_of_int k"
+  unfolding nat_of_int_def [OF prems] nat_number_of_def number_of_is_id ..
+
+lemma nat_of_int_of_number_of_aux:
+  fixes k
+  assumes "Numeral.Pls \<le> k \<equiv> True"
+  shows "k \<ge> 0"
+  using prems unfolding Pls_def by simp
+
 lemma nat_of_int_int:
   "nat_of_int (int n) = n"
   using zero_zle_int nat_of_int_def by simp
@@ -121,6 +133,15 @@ proof -
   then show ?thesis unfolding int_aux_def by simp
 qed
 
+lemma div_nat_code [code func]:
+  "m div k = nat_of_int (fst (divAlg (int m, int k)))"
+  unfolding div_def [symmetric] zdiv_int [symmetric] nat_of_int_int ..
+
+lemma mod_nat_code [code func]:
+  "m mod k = nat_of_int (snd (divAlg (int m, int k)))"
+  unfolding mod_def [symmetric] zmod_int [symmetric] nat_of_int_int ..
+
+
 subsection {* Code generator setup for basic functions *}
 
 text {*
@@ -187,10 +208,38 @@ code_const nat_of_int
   (OCaml "_")
   (Haskell "_")
 
-hide const nat_of_int
-
 
 subsection {* Preprocessors *}
+
+text {*
+  Natural numerals should be expressed using @{const nat_of_int}.
+*}
+
+lemmas [code noinline] = nat_number_of_def
+
+ML {*
+fun nat_of_int_of_number_of thy cts =
+  let
+    val simplify_less = Simplifier.rewrite 
+      (HOL_basic_ss addsimps (@{thms less_numeral_code} @ @{thms less_eq_numeral_code}));
+    fun mk_rew (t, ty) =
+      if ty = HOLogic.natT andalso IntInf.<= (0, HOLogic.dest_numeral t) then
+        Thm.capply @{cterm "(op \<le>) Numeral.Pls"} (Thm.cterm_of thy t)
+        |> simplify_less
+        |> (fn thm => @{thm nat_of_int_of_number_of_aux} OF [thm])
+        |> (fn thm => @{thm nat_of_int_of_number_of} OF [thm])
+        |> (fn thm => @{thm eq_reflection} OF [thm])
+        |> SOME
+      else NONE
+  in
+    fold (HOLogic.add_numerals_of o Thm.term_of) cts []
+    |> map_filter mk_rew
+  end;
+*}
+
+setup {*
+  CodegenData.add_inline_proc ("nat_of_int_of_number_of", nat_of_int_of_number_of)
+*}
 
 text {*
   In contrast to @{term "Suc n"}, the term @{term "n + (1::nat)"} is no longer
@@ -334,7 +383,6 @@ end
 setup {*
   Codegen.add_preprocessor eqn_suc_preproc
   #> Codegen.add_preprocessor clause_suc_preproc
-  #> CodegenData.del_inline_proc "elim_number_of_nat"
   #> CodegenData.add_preproc ("eqn_Suc", lift_obj_eq eqn_suc_preproc)
   #> CodegenData.add_preproc ("clause_Suc", lift_obj_eq clause_suc_preproc)
 *}
@@ -349,5 +397,7 @@ code_modulename SML
 code_modulename OCaml
   Nat Integer
   EfficientNat Integer
+
+hide const nat_of_int
 
 end
