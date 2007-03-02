@@ -11,7 +11,7 @@ begin
 
 text {*
  We introduce the notion of quotient types over equivalence relations
- via axiomatic type classes.
+ via type classes.
 *}
 
 subsection {* Equivalence relations and quotient types *}
@@ -21,14 +21,13 @@ text {*
  "\<sim> :: 'a => 'a => bool"}.
 *}
 
-axclass eqv \<subseteq> type
-consts
-  eqv :: "('a::eqv) => 'a => bool"    (infixl "\<sim>" 50)
+class eqv =
+  fixes eqv :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infixl "\<^loc>\<sim>" 50)
 
-axclass equiv \<subseteq> eqv
-  equiv_refl [intro]: "x \<sim> x"
-  equiv_trans [trans]: "x \<sim> y ==> y \<sim> z ==> x \<sim> z"
-  equiv_sym [sym]: "x \<sim> y ==> y \<sim> x"
+class equiv = eqv +
+  assumes equiv_refl [intro]: "x \<^loc>\<sim> x"
+  assumes equiv_trans [trans]: "x \<^loc>\<sim> y \<Longrightarrow> y \<^loc>\<sim> z \<Longrightarrow> x \<^loc>\<sim> z"
+  assumes equiv_sym [sym]: "x \<^loc>\<sim> y \<Longrightarrow> y \<^loc>\<sim> x"
 
 lemma equiv_not_sym [sym]: "\<not> (x \<sim> y) ==> \<not> (y \<sim> (x::'a::equiv))"
 proof -

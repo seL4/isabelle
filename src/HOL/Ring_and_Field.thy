@@ -23,17 +23,17 @@ text {*
   \end{itemize}
 *}
 
-axclass semiring \<subseteq> ab_semigroup_add, semigroup_mult
-  left_distrib: "(a + b) * c = a * c + b * c"
-  right_distrib: "a * (b + c) = a * b + a * c"
+class semiring = ab_semigroup_add + semigroup_mult +
+  assumes left_distrib: "(a \<^loc>+ b) \<^loc>* c = a \<^loc>* c \<^loc>+ b \<^loc>* c"
+  assumes right_distrib: "a \<^loc>* (b \<^loc>+ c) = a \<^loc>* b \<^loc>+ a \<^loc>* c"
 
-axclass mult_zero \<subseteq> times, zero
-  mult_zero_left [simp]: "0 * a = 0"
-  mult_zero_right [simp]: "a * 0 = 0"
+class mult_zero = times + zero +
+  assumes mult_zero_left [simp]: "\<^loc>0 \<^loc>* a = \<^loc>0"
+  assumes mult_zero_right [simp]: "a \<^loc>* \<^loc>0 = \<^loc>0"
 
-axclass semiring_0 \<subseteq> semiring, comm_monoid_add, mult_zero
+class semiring_0 = semiring + comm_monoid_add + mult_zero
 
-axclass semiring_0_cancel \<subseteq> semiring, comm_monoid_add, cancel_ab_semigroup_add
+class semiring_0_cancel = semiring + comm_monoid_add + cancel_ab_semigroup_add
 
 instance semiring_0_cancel \<subseteq> semiring_0
 proof
@@ -49,8 +49,8 @@ proof
     by (simp only: add_left_cancel)
 qed
 
-axclass comm_semiring \<subseteq> ab_semigroup_add, ab_semigroup_mult  
-  distrib: "(a + b) * c = a * c + b * c"
+class comm_semiring = ab_semigroup_add + ab_semigroup_mult +
+  assumes distrib: "(a \<^loc>+ b) \<^loc>* c = a \<^loc>* c \<^loc>+ b \<^loc>* c"
 
 instance comm_semiring \<subseteq> semiring
 proof
@@ -62,37 +62,38 @@ proof
   finally show "a * (b + c) = a * b + a * c" by blast
 qed
 
-axclass comm_semiring_0 \<subseteq> comm_semiring, comm_monoid_add, mult_zero
+class comm_semiring_0 = comm_semiring + comm_monoid_add + mult_zero
 
 instance comm_semiring_0 \<subseteq> semiring_0 ..
 
-axclass comm_semiring_0_cancel \<subseteq> comm_semiring, comm_monoid_add, cancel_ab_semigroup_add
+class comm_semiring_0_cancel = comm_semiring + comm_monoid_add + cancel_ab_semigroup_add
 
 instance comm_semiring_0_cancel \<subseteq> semiring_0_cancel ..
 
 instance comm_semiring_0_cancel \<subseteq> comm_semiring_0 ..
 
-axclass zero_neq_one \<subseteq> zero, one
-  zero_neq_one [simp]: "0 \<noteq> 1"
+class zero_neq_one = zero + one +
+  assumes zero_neq_one [simp]: "\<^loc>0 \<noteq> \<^loc>1"
 
-axclass semiring_1 \<subseteq> zero_neq_one, semiring_0, monoid_mult
+class semiring_1 = zero_neq_one + semiring_0 + monoid_mult
 
-axclass comm_semiring_1 \<subseteq> zero_neq_one, comm_semiring_0, comm_monoid_mult (* previously almost_semiring *)
+class comm_semiring_1 = zero_neq_one + comm_semiring_0 + comm_monoid_mult
+  (*previously almost_semiring*)
 
 instance comm_semiring_1 \<subseteq> semiring_1 ..
 
-axclass no_zero_divisors \<subseteq> zero, times
-  no_zero_divisors: "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a * b \<noteq> 0"
+class no_zero_divisors = zero + times +
+  assumes no_zero_divisors: "a \<noteq> \<^loc>0 \<Longrightarrow> b \<noteq> \<^loc>0 \<Longrightarrow> a \<^loc>* b \<noteq> \<^loc>0"
 
-axclass semiring_1_cancel \<subseteq> semiring, comm_monoid_add, zero_neq_one, cancel_ab_semigroup_add, monoid_mult
+class semiring_1_cancel = semiring + comm_monoid_add + zero_neq_one
+  + cancel_ab_semigroup_add + monoid_mult
 
 instance semiring_1_cancel \<subseteq> semiring_0_cancel ..
 
 instance semiring_1_cancel \<subseteq> semiring_1 ..
 
-axclass comm_semiring_1_cancel \<subseteq> 
-  comm_semiring, comm_monoid_add, comm_monoid_mult,
-  zero_neq_one, cancel_ab_semigroup_add
+class comm_semiring_1_cancel = comm_semiring + comm_monoid_add + comm_monoid_mult
+  + zero_neq_one + cancel_ab_semigroup_add
 
 instance comm_semiring_1_cancel \<subseteq> semiring_1_cancel ..
 
@@ -100,38 +101,40 @@ instance comm_semiring_1_cancel \<subseteq> comm_semiring_0_cancel ..
 
 instance comm_semiring_1_cancel \<subseteq> comm_semiring_1 ..
 
-axclass ring \<subseteq> semiring, ab_group_add
+class ring = semiring + ab_group_add
 
 instance ring \<subseteq> semiring_0_cancel ..
 
-axclass comm_ring \<subseteq> comm_semiring, ab_group_add
+class comm_ring = comm_semiring + ab_group_add
 
 instance comm_ring \<subseteq> ring ..
 
 instance comm_ring \<subseteq> comm_semiring_0_cancel ..
 
-axclass ring_1 \<subseteq> ring, zero_neq_one, monoid_mult
+class ring_1 = ring + zero_neq_one + monoid_mult
 
 instance ring_1 \<subseteq> semiring_1_cancel ..
 
-axclass comm_ring_1 \<subseteq> comm_ring, zero_neq_one, comm_monoid_mult (* previously ring *)
+class comm_ring_1 = comm_ring + zero_neq_one + comm_monoid_mult
+  (*previously ring*)
 
 instance comm_ring_1 \<subseteq> ring_1 ..
 
 instance comm_ring_1 \<subseteq> comm_semiring_1_cancel ..
 
-axclass idom \<subseteq> comm_ring_1, no_zero_divisors
+class idom = comm_ring_1 + no_zero_divisors
 
-axclass division_ring \<subseteq> ring_1, inverse
-  left_inverse [simp]:  "a \<noteq> 0 ==> inverse a * a = 1"
-  right_inverse [simp]: "a \<noteq> 0 ==> a * inverse a = 1"
+class division_ring = ring_1 + inverse +
+  assumes left_inverse [simp]:  "a \<noteq> \<^loc>0 \<Longrightarrow> inverse a \<^loc>* a = \<^loc>1"
+  assumes right_inverse [simp]: "a \<noteq> \<^loc>0 \<Longrightarrow> a \<^loc>* inverse a = \<^loc>1"
 
-axclass field \<subseteq> comm_ring_1, inverse
-  field_left_inverse: "a \<noteq> 0 ==> inverse a * a = 1"
-  divide_inverse:     "a / b = a * inverse b"
+class field = comm_ring_1 + inverse +
+  assumes field_left_inverse: "a \<noteq> 0 \<Longrightarrow> inverse a \<^loc>* a = \<^loc>1"
+  assumes divide_inverse:     "a \<^loc>/ b = a \<^loc>* inverse b"
 
 lemma field_right_inverse:
-      assumes not0: "a \<noteq> 0" shows "a * inverse (a::'a::field) = 1"
+  assumes not0: "a \<noteq> 0"
+  shows "a * inverse (a::'a::field) = 1"
 proof -
   have "a * inverse a = inverse a * a" by (rule mult_commute)
   also have "... = 1" using not0 by (rule field_left_inverse)
@@ -156,8 +159,8 @@ qed
 instance field \<subseteq> idom
 by (intro_classes, simp)
 
-axclass division_by_zero \<subseteq> zero, inverse
-  inverse_zero [simp]: "inverse 0 = 0"
+class division_by_zero = zero + inverse +
+  assumes inverse_zero [simp]: "inverse \<^loc>0 = \<^loc>0"
 
 subsection {* Distribution rules *}
 
@@ -192,24 +195,23 @@ lemma left_diff_distrib: "(a - b) * c = a * c - b * (c::'a::ring)"
 by (simp add: left_distrib diff_minus 
               minus_mult_left [symmetric] minus_mult_right [symmetric]) 
 
-axclass mult_mono \<subseteq> times, zero, ord
-  mult_left_mono: "a <= b \<Longrightarrow> 0 <= c \<Longrightarrow> c * a <= c * b"
-  mult_right_mono: "a <= b \<Longrightarrow> 0 <= c \<Longrightarrow> a * c <= b * c"
+class mult_mono = times + zero + ord +
+  assumes mult_left_mono: "a \<sqsubseteq> b \<Longrightarrow> \<^loc>0 \<sqsubseteq> c \<Longrightarrow> c \<^loc>* a \<sqsubseteq> c \<^loc>* b"
+  assumes mult_right_mono: "a \<sqsubseteq> b \<Longrightarrow> \<^loc>0 \<sqsubseteq> c \<Longrightarrow> a \<^loc>* c \<sqsubseteq> b \<^loc>* c"
 
-axclass pordered_semiring \<subseteq> mult_mono, semiring_0, pordered_ab_semigroup_add 
+class pordered_semiring = mult_mono + semiring_0 + pordered_ab_semigroup_add 
 
-axclass pordered_cancel_semiring \<subseteq> 
-  mult_mono, pordered_ab_semigroup_add,
-  semiring, comm_monoid_add, 
-  pordered_ab_semigroup_add, cancel_ab_semigroup_add
+class pordered_cancel_semiring = mult_mono + pordered_ab_semigroup_add
+  + semiring + comm_monoid_add + pordered_ab_semigroup_add
+  + cancel_ab_semigroup_add
 
 instance pordered_cancel_semiring \<subseteq> semiring_0_cancel ..
 
 instance pordered_cancel_semiring \<subseteq> pordered_semiring .. 
 
-axclass ordered_semiring_strict \<subseteq> semiring, comm_monoid_add, ordered_cancel_ab_semigroup_add
-  mult_strict_left_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
-  mult_strict_right_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> a * c < b * c"
+class ordered_semiring_strict = semiring + comm_monoid_add + ordered_cancel_ab_semigroup_add +
+  assumes mult_strict_left_mono: "a \<sqsubset> b \<Longrightarrow> \<^loc>0 \<sqsubset> c \<Longrightarrow> c \<^loc>* a \<sqsubset> c \<^loc>* b"
+  assumes mult_strict_right_mono: "a \<sqsubset> b \<Longrightarrow> \<^loc>0 \<sqsubset> c \<Longrightarrow> a \<^loc>* c \<sqsubset> b \<^loc>* c"
 
 instance ordered_semiring_strict \<subseteq> semiring_0_cancel ..
 
@@ -221,18 +223,19 @@ apply (auto simp add: mult_strict_left_mono order_le_less)
 apply (simp add: mult_strict_right_mono)
 done
 
-axclass mult_mono1 \<subseteq> times, zero, ord
-  mult_mono: "a <= b \<Longrightarrow> 0 <= c \<Longrightarrow> c * a <= c * b"
+class mult_mono1 = times + zero + ord +
+  assumes mult_mono: "a \<sqsubseteq> b \<Longrightarrow> \<^loc>0 \<sqsubseteq> c \<Longrightarrow> c \<^loc>* a \<sqsubseteq> c \<^loc>* b"
 
-axclass pordered_comm_semiring \<subseteq> comm_semiring_0, pordered_ab_semigroup_add, mult_mono1
+class pordered_comm_semiring = comm_semiring_0
+  + pordered_ab_semigroup_add + mult_mono1
 
-axclass pordered_cancel_comm_semiring \<subseteq> 
-  comm_semiring_0_cancel, pordered_ab_semigroup_add, mult_mono1
+class pordered_cancel_comm_semiring = comm_semiring_0_cancel
+  + pordered_ab_semigroup_add + mult_mono1
   
 instance pordered_cancel_comm_semiring \<subseteq> pordered_comm_semiring ..
 
-axclass ordered_comm_semiring_strict \<subseteq> comm_semiring_0, ordered_cancel_ab_semigroup_add
-  mult_strict_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
+class ordered_comm_semiring_strict = comm_semiring_0 + ordered_cancel_ab_semigroup_add +
+  assumes mult_strict_mono: "a \<sqsubset> b \<Longrightarrow> \<^loc>0 \<sqsubset> c \<Longrightarrow> c \<^loc>* a \<sqsubset> c \<^loc>* b"
 
 instance pordered_comm_semiring \<subseteq> pordered_semiring
 proof
@@ -258,7 +261,7 @@ apply (auto simp add: mult_strict_left_mono order_less_le)
 apply (auto simp add: mult_strict_left_mono order_le_less)
 done
 
-axclass pordered_ring \<subseteq> ring, pordered_cancel_semiring 
+class pordered_ring = ring + pordered_cancel_semiring 
 
 instance pordered_ring \<subseteq> pordered_ab_group_add ..
 
@@ -268,26 +271,28 @@ instance lordered_ring \<subseteq> lordered_ab_group_meet ..
 
 instance lordered_ring \<subseteq> lordered_ab_group_join ..
 
-axclass abs_if \<subseteq> minus, ord, zero
-  abs_if: "abs a = (if (a < 0) then (-a) else a)"
+class abs_if = minus + ord + zero +
+  assumes abs_if: "abs a = (if a \<sqsubset> 0 then (uminus a) else a)"
 
-axclass ordered_ring_strict \<subseteq> ring, ordered_semiring_strict, abs_if
+class ordered_ring_strict = ring + ordered_semiring_strict + abs_if
 
 instance ordered_ring_strict \<subseteq> lordered_ab_group ..
 
 instance ordered_ring_strict \<subseteq> lordered_ring
-by (intro_classes, simp add: abs_if join_eq_if)
+  by (intro_classes, simp add: abs_if join_eq_if)
 
-axclass pordered_comm_ring \<subseteq> comm_ring, pordered_comm_semiring
+class pordered_comm_ring = comm_ring + pordered_comm_semiring
 
-axclass ordered_semidom \<subseteq> comm_semiring_1_cancel, ordered_comm_semiring_strict (* previously ordered_semiring *)
-  zero_less_one [simp]: "0 < 1"
+class ordered_semidom = comm_semiring_1_cancel + ordered_comm_semiring_strict +
+  (*previously ordered_semiring*)
+  assumes zero_less_one [simp]: "\<^loc>0 \<sqsubset> \<^loc>1"
 
-axclass ordered_idom \<subseteq> comm_ring_1, ordered_comm_semiring_strict, abs_if (* previously ordered_ring *)
+class ordered_idom = comm_ring_1 + ordered_comm_semiring_strict + abs_if
+  (*previously ordered_ring*)
 
 instance ordered_idom \<subseteq> ordered_ring_strict ..
 
-axclass ordered_field \<subseteq> field, ordered_idom
+class ordered_field = field + ordered_idom
 
 lemmas linorder_neqE_ordered_idom =
  linorder_neqE[where 'a = "?'b::ordered_idom"]

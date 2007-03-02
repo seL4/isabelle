@@ -28,9 +28,9 @@ abbreviation
   bot :: "'a::order" where
   "bot == Sup {}"
 *)
-axclass comp_lat < order
-  Meet_lower: "x \<in> A \<Longrightarrow> Meet A <= x"
-  Meet_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z <= x) \<Longrightarrow> z <= Meet A"
+class comp_lat = order +
+  assumes Meet_lower: "x \<in> A \<Longrightarrow> Meet A \<sqsubseteq> x"
+  assumes Meet_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> Meet A"
 
 theorem Sup_upper: "(x::'a::comp_lat) \<in> A \<Longrightarrow> x <= Sup A"
   by (auto simp: Sup_def intro: Meet_greatest)

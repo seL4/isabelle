@@ -9,21 +9,18 @@ theory Parity
 imports Main
 begin
 
-axclass even_odd < type
-
-consts
-  even :: "'a::even_odd => bool"
-
-instance int :: even_odd ..
-instance nat :: even_odd ..
-
-defs (overloaded)
-  even_def: "even (x::int) == x mod 2 = 0"
-  even_nat_def: "even (x::nat) == even (int x)"
+class even_odd =
+  fixes even :: "'a \<Rightarrow> bool"
 
 abbreviation
-  odd :: "'a::even_odd => bool" where
-  "odd x == \<not> even x"
+  odd :: "'a\<Colon>even_odd \<Rightarrow> bool" where
+  "odd x \<equiv> \<not> even x"
+
+instance int :: even_odd
+  even_def: "even x \<equiv> x mod 2 = 0" ..
+
+instance nat :: even_odd
+  even_nat_def: "even x \<equiv> even (int x)" ..
 
 
 subsection {* Even and odd are mutually exclusive *}

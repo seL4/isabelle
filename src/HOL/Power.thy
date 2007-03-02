@@ -13,9 +13,9 @@ begin
 
 subsection{*Powers for Arbitrary Monoids*}
 
-axclass recpower \<subseteq> monoid_mult, power
-  power_0 [simp]: "a ^ 0       = 1"
-  power_Suc:      "a ^ (Suc n) = a * (a ^ n)"
+class recpower = monoid_mult + power +
+  assumes power_0 [simp]: "a \<^loc>^ 0       = \<^loc>1"
+  assumes power_Suc:      "a \<^loc>^ Suc n = a \<^loc>* (a \<^loc>^ n)"
 
 lemma power_0_Suc [simp]: "(0::'a::{recpower,semiring_0}) ^ (Suc n) = 0"
 by (simp add: power_Suc)

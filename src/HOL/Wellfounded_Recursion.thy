@@ -40,8 +40,8 @@ constdefs
 abbreviation acyclicP :: "('a => 'a => bool) => bool" where
   "acyclicP r == acyclic (Collect2 r)"
 
-axclass wellorder \<subseteq> linorder
-  wf: "wf {(x,y::'a::ord). x<y}"
+class wellorder = linorder +
+  assumes wf: "wf {(x, y). x \<sqsubset> y}"
 
 
 lemma wfP_wf_eq [pred_set_conv]: "wfP (member2 r) = wf r"
