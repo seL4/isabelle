@@ -4,8 +4,8 @@ struct
 structure Code_Generator = 
 struct
 
-type 'a eq = {Code_Generator__op_eq : 'a -> 'a -> bool};
-fun op_eq (A_:'a eq) = #Code_Generator__op_eq A_;
+type 'a eq = {op_eq : 'a -> 'a -> bool};
+fun op_eq (A_:'a eq) = #op_eq A_;
 
 end; (*struct Code_Generator*)
 

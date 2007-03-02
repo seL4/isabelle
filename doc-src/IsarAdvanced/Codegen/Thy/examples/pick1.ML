@@ -6,9 +6,10 @@ struct
 
 datatype nat = Zero_nat | Suc of nat;
 
-fun less_nat Zero_nat (Suc n) = true
+fun less_nat n (Suc m) = less_eq_nat n m
   | less_nat n Zero_nat = false
-  | less_nat (Suc m) (Suc n) = less_nat m n;
+and less_eq_nat (Suc n) m = less_nat n m
+  | less_eq_nat Zero_nat m = true;
 
 fun minus_nat (Suc m) (Suc n) = minus_nat m n
   | minus_nat Zero_nat n = Zero_nat

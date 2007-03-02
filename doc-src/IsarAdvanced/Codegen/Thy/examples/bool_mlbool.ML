@@ -1,24 +1,15 @@
 structure ROOT = 
 struct
 
-structure HOL = 
-struct
-
-fun nota false = true
-  | nota true = false;
-
-end; (*struct HOL*)
-
 structure Nat = 
 struct
 
 datatype nat = Zero_nat | Suc of nat;
 
-fun less_nat Zero_nat (Suc n) = true
+fun less_nat n (Suc m) = less_eq_nat n m
   | less_nat n Zero_nat = false
-  | less_nat (Suc m) (Suc n) = less_nat m n;
-
-fun less_eq_nat m n = HOL.nota (less_nat n m);
+and less_eq_nat (Suc n) m = less_nat n m
+  | less_eq_nat Zero_nat m = true;
 
 end; (*struct Nat*)
 

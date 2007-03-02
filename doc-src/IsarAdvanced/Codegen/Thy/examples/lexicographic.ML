@@ -4,19 +4,17 @@ struct
 structure Orderings = 
 struct
 
-type 'a ord =
-  {Orderings__less_eq : 'a -> 'a -> bool,
-    Orderings__less : 'a -> 'a -> bool};
-fun less_eq (A_:'a ord) = #Orderings__less_eq A_;
-fun less (A_:'a ord) = #Orderings__less A_;
+type 'a ord = {less_eq : 'a -> 'a -> bool, less : 'a -> 'a -> bool};
+fun less_eq (A_:'a ord) = #less_eq A_;
+fun less (A_:'a ord) = #less A_;
 
 end; (*struct Orderings*)
 
 structure Code_Generator = 
 struct
 
-type 'a eq = {Code_Generator__op_eq : 'a -> 'a -> bool};
-fun op_eq (A_:'a eq) = #Code_Generator__op_eq A_;
+type 'a eq = {op_eq : 'a -> 'a -> bool};
+fun op_eq (A_:'a eq) = #op_eq A_;
 
 end; (*struct Code_Generator*)
 

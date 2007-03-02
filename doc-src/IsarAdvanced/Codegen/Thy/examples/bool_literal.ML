@@ -6,9 +6,6 @@ struct
 
 datatype boola = True | False;
 
-fun nota False = True
-  | nota True = False;
-
 fun op_conj y True = y
   | op_conj x False = False
   | op_conj True y = y
@@ -21,11 +18,10 @@ struct
 
 datatype nat = Zero_nat | Suc of nat;
 
-fun less_nat Zero_nat (Suc n) = HOL.True
+fun less_nat n (Suc m) = less_eq_nat n m
   | less_nat n Zero_nat = HOL.False
-  | less_nat (Suc m) (Suc n) = less_nat m n;
-
-fun less_eq_nat m n = HOL.nota (less_nat n m);
+and less_eq_nat (Suc n) m = less_nat n m
+  | less_eq_nat Zero_nat m = HOL.True;
 
 end; (*struct Nat*)
 
