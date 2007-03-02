@@ -749,8 +749,7 @@ setup {* Sign.add_path "foo" *}
 consts "op =" :: "'a"
 (*>*)
 
-axclass eq \<subseteq> type
-  (attach "op =")
+class eq (attach "op =") = notes reflexive
 
 text {*
   This merely introduces a class @{text eq} with corresponding

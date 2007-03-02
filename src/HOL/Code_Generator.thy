@@ -8,7 +8,7 @@ theory Code_Generator
 imports HOL
 begin
 
-subsection {* ML code generator *}
+subsection {* SML code generator setup *}
 
 types_code
   "bool"  ("bool")
@@ -75,8 +75,7 @@ subsection {* Generic code generator setup *}
 
 text {* operational equality for code generation *}
 
-axclass eq \<subseteq> type
-  (attach "op =")
+class eq (attach "op =") = notes reflexive
 
 
 text {* equality for Haskell *}

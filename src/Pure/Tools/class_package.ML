@@ -9,10 +9,10 @@ signature CLASS_PACKAGE =
 sig
   val fork_mixfix: bool -> string option -> mixfix -> mixfix * mixfix
 
-  val class: bstring -> class list -> Element.context_i Locale.element list -> theory ->
-    string * Proof.context
-  val class_cmd: bstring -> string list -> Element.context Locale.element list -> theory ->
-    string * Proof.context
+  val class: bstring -> class list -> Element.context_i Locale.element list
+    -> string list -> theory -> string * Proof.context
+  val class_cmd: bstring -> string list -> Element.context Locale.element list
+    -> string list -> theory -> string * Proof.context
   val instance_arity: arity list -> ((bstring * Attrib.src list) * term) list
     -> theory -> Proof.state
   val instance_arity_cmd: (bstring * string list * string) list
@@ -33,6 +33,7 @@ sig
   val class_of_locale: theory -> string -> class option
   val add_def_in_class: local_theory -> string
     -> (string * Syntax.mixfix) * ((string * Attrib.src list) * (term * thm)) -> theory -> theory
+  val fully_qualified: bool ref;
 
   val print_classes: theory -> unit
   val intro_classes_tac: thm list -> tactic
@@ -81,7 +82,7 @@ end; (* local *)
 
 (* introducing axclasses with implicit parameter handling *)
 
-fun axclass_params (name, raw_superclasses) raw_consts raw_dep_axioms thy =
+fun axclass_params (name, raw_superclasses) raw_consts raw_dep_axioms other_consts thy =
   let
     val superclasses = map (Sign.certify_class thy) raw_superclasses;
     val consts = (map o apfst o apsnd) (Sign.certify_typ thy) raw_consts;
@@ -97,7 +98,7 @@ fun axclass_params (name, raw_superclasses) raw_consts raw_dep_axioms thy =
     thy
     |> fold_map add_const consts
     |-> (fn cs => mk_axioms cs
-    #-> (fn axioms_prop => AxClass.define_class_i (name, superclasses) (map fst cs) axioms_prop
+    #-> (fn axioms_prop => AxClass.define_class_i (name, superclasses) (map fst cs @ other_consts) axioms_prop
     #-> (fn class => `(fn thy => AxClass.get_definition thy class)
     #-> (fn {intro, axioms, ...} => fold (add_constraint class) cs
     #> pair (class, ((intro, (map Thm.prop_of axioms, axioms)), cs))))))
@@ -426,6 +427,8 @@ val prove_instance_sort = instance_sort' o prove_interpretation_in;
 
 (* classes and instances *)
 
+val fully_qualified = ref false;
+
 local
 
 fun add_axclass (name, supsort) params axs thy =
@@ -441,7 +444,7 @@ fun certify_class thy class =
 fun read_class thy =
   certify_class thy o Sign.intern_class thy;
 
-fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
+fun gen_class add_locale prep_class prep_param bname raw_supclasses raw_elems raw_other_consts thy =
   let
     (*FIXME need proper concept for reading locale statements*)
     fun subst_classtyvar (_, _) =
@@ -450,6 +453,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
           error ("Sort constraint illegal in type class, for type variable " ^ v ^ "::" ^ Sign.string_of_sort thy sort);
     (*val subst_classtyvars = Element.map_ctxt {name = I, var = I, term = I,
       typ = Term.map_type_tfree subst_classtyvar, fact = I, attrib = I};*)
+    val other_consts = map (prep_param thy) raw_other_consts;
     val elems = fold_rev (fn Locale.Elem e => cons e | _ => I)
       raw_elems []; (*FIXME make include possible here?*)
     val supclasses = map (prep_class thy) raw_supclasses;
@@ -505,7 +509,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
     |-> (fn name_locale => ProofContext.theory_result (
       `(fn thy => extract_params thy name_locale)
       #-> (fn (param_names, params) =>
-        axclass_params (bname, supsort) params (extract_assumes name_locale params)
+        axclass_params (bname, supsort) params (extract_assumes name_locale params) other_consts
       #-> (fn (name_axclass, ((_, (ax_terms, ax_axioms)), consts)) =>
         `(fn thy => extract_axiom_names thy name_locale)
       #-> (fn axiom_names =>
@@ -513,7 +517,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
           (name_locale, map (fst o fst) params ~~ map fst consts,
             map2 make_witness ax_terms ax_axioms, axiom_names))
       #> prove_interpretation ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
-          ((true, Logic.const_of_class bname), []) (Locale.Locale name_locale)
+          ((!fully_qualified, Logic.const_of_class bname), []) (Locale.Locale name_locale)
           (mk_instT name_axclass, mk_inst name_axclass param_names (map snd supconsts @ consts))
       #> pair name_axclass
       )))))
@@ -521,8 +525,8 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
 
 in
 
-val class_cmd = gen_class Locale.add_locale read_class;
-val class = gen_class Locale.add_locale_i certify_class;
+val class_cmd = gen_class Locale.add_locale read_class AxClass.read_param;
+val class = gen_class Locale.add_locale_i certify_class (K I);
 
 end; (*local*)
 

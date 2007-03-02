@@ -25,6 +25,7 @@ sig
     ((bstring * Attrib.src list) * string list) list -> theory -> class * theory
   val define_class_i: bstring * class list -> string list ->
     ((bstring * attribute list) * term list) list -> theory -> class * theory
+  val read_param: theory -> string -> string
   val axiomatize_class: bstring * xstring list -> theory -> theory
   val axiomatize_class_i: bstring * class list -> theory -> theory
   val axiomatize_classrel: (xstring * xstring) list -> theory -> theory
@@ -269,8 +270,6 @@ fun prove_arity raw_arity tac thy =
 
 (** class definitions **)
 
-local
-
 fun read_param thy raw_t =
   let
     val t = Sign.read_term thy raw_t
@@ -278,6 +277,8 @@ fun read_param thy raw_t =
    of SOME (c, _) => c
     | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t)
   end;
+
+local
 
 fun def_class prep_class prep_att prep_param prep_propp
     (bclass, raw_super) raw_params raw_specs thy =

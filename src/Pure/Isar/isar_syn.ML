@@ -88,9 +88,8 @@ val axclassP =
   OuterSyntax.command "axclass" "define axiomatic type class" K.thy_decl
     (P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
         P.!!! (P.list1 P.xname)) []
-        -- Scan.optional (P.$$$ "(" |-- P.$$$ "attach" |-- Scan.repeat P.term --| P.$$$ ")") []
         -- Scan.repeat (SpecParse.thm_name ":" -- (P.prop >> single))
-      >> (fn ((x, y), z) => Toplevel.theory (snd o AxClass.define_class x y z)));
+      >> (fn (x, y) => Toplevel.theory (snd o AxClass.define_class x [] y)));
 
 
 (* types *)
@@ -412,15 +411,16 @@ in
 
 val classP =
   OuterSyntax.command "class" "define type class" K.thy_decl (
-    P.name --| P.$$$ "="
-    -- (
+    P.name
+    -- Scan.optional (P.$$$ "(" |-- P.$$$ "attach" |-- Scan.repeat P.term --| P.$$$ ")") []
+    --| P.$$$ "=" -- (
       class_subP --| P.$$$ "+" -- class_bodyP
       || class_subP >> rpair []
       || class_bodyP >> pair [])
     -- P.opt_begin
-    >> (fn ((bname, (supclasses, elems)), begin) =>
+    >> (fn (((bname, add_consts), (supclasses, elems)), begin) =>
         Toplevel.begin_local_theory begin
-          (ClassPackage.class_cmd bname supclasses elems #-> TheoryTarget.begin)));
+          (ClassPackage.class_cmd bname supclasses elems add_consts #-> TheoryTarget.begin)));
 
 val instanceP =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal ((
