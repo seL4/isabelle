@@ -104,11 +104,9 @@ lemma "(2::int) < 3" by normalization
 lemma "(2::int) <= 3" by normalization
 lemma "abs ((-4::int) + 2 * 1) = 2" by normalization
 lemma "4 - 42 * abs (3 + (-7\<Colon>int)) = -164" by normalization
-normal_form "min 0 x"
-normal_form "min 0 (x::nat)"
 lemma "(if (0\<Colon>nat) \<le> (x\<Colon>nat) then 0\<Colon>nat else x) = 0" by normalization
-
-normal_form "nat 4 = Suc (Suc (Suc (Suc 0)))"
+lemma "4 = Suc (Suc (Suc (Suc 0)))" by normalization
+lemma "nat 4 = Suc (Suc (Suc (Suc 0)))" by normalization
 
 normal_form "Suc 0 \<in> set ms"
 

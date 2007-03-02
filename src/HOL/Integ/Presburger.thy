@@ -1069,11 +1069,6 @@ text {*
 lemma eq_number_of [code func]:
   "((number_of k)\<Colon>int) = number_of l \<longleftrightarrow> k = l"
   unfolding number_of_is_id ..
-
-lemma less_eq_number_of [code func]:
-  "((number_of k)\<Colon>int) <= number_of l \<longleftrightarrow> k <= l"
-  unfolding number_of_is_id ..
-
 lemma eq_Pls_Pls:
   "Numeral.Pls = Numeral.Pls" ..
 
@@ -1140,6 +1135,10 @@ lemmas eq_numeral_code [code func] =
   eq_Min_Pls eq_Min_Min eq_Min_Bit0 eq_Min_Bit1
   eq_Bit0_Pls eq_Bit1_Pls eq_Bit0_Min eq_Bit1_Min eq_Bit_Bit
 
+lemma less_eq_number_of [code func]:
+  "(number_of k \<Colon> int) \<le> number_of l \<longleftrightarrow> k \<le> l"
+  unfolding number_of_is_id ..
+
 lemma less_eq_Pls_Pls:
   "Numeral.Pls \<le> Numeral.Pls" ..
 
@@ -1180,14 +1179,76 @@ lemma less_eq_Bit_Min:
 
 lemma less_eq_Bit0_Bit:
   "Numeral.Bit k1 bit.B0 \<le> Numeral.Bit k2 v \<longleftrightarrow> k1 \<le> k2"
-  unfolding Min_def Bit_def bit.cases by (cases v) auto
+  unfolding Bit_def bit.cases by (cases v) auto
 
 lemma less_eq_Bit_Bit1:
   "Numeral.Bit k1 v \<le> Numeral.Bit k2 bit.B1 \<longleftrightarrow> k1 \<le> k2"
-  unfolding Min_def Bit_def bit.cases by (cases v) auto
+  unfolding Bit_def bit.cases by (cases v) auto
+
+lemma less_eq_Bit1_Bit0:
+  "Numeral.Bit k1 bit.B1 \<le> Numeral.Bit k2 bit.B0 \<longleftrightarrow> k1 < k2"
+  unfolding Bit_def by (auto split: bit.split)
 
 lemmas less_eq_numeral_code [code func] = less_eq_Pls_Pls less_eq_Pls_Min less_eq_Pls_Bit
   less_eq_Min_Pls less_eq_Min_Min less_eq_Min_Bit0 less_eq_Min_Bit1
-  less_eq_Bit0_Pls less_eq_Bit1_Pls less_eq_Bit_Min less_eq_Bit0_Bit less_eq_Bit_Bit1
+  less_eq_Bit0_Pls less_eq_Bit1_Pls less_eq_Bit_Min less_eq_Bit0_Bit less_eq_Bit_Bit1 less_eq_Bit1_Bit0
+
+lemma less_eq_number_of [code func]:
+  "(number_of k \<Colon> int) < number_of l \<longleftrightarrow> k < l"
+  unfolding number_of_is_id ..
+
+lemma less_Pls_Pls:
+  "\<not> (Numeral.Pls < Numeral.Pls)" by auto
+
+lemma less_Pls_Min:
+  "\<not> (Numeral.Pls < Numeral.Min)"
+  unfolding Pls_def Min_def by auto
+
+lemma less_Pls_Bit0:
+  "Numeral.Pls < Numeral.Bit k bit.B0 \<longleftrightarrow> Numeral.Pls < k"
+  unfolding Pls_def Bit_def by auto
+
+lemma less_Pls_Bit1:
+  "Numeral.Pls < Numeral.Bit k bit.B1 \<longleftrightarrow> Numeral.Pls \<le> k"
+  unfolding Pls_def Bit_def by auto
+
+lemma less_Min_Pls:
+  "Numeral.Min < Numeral.Pls"
+  unfolding Pls_def Min_def by auto
+
+lemma less_Min_Min:
+  "\<not> (Numeral.Min < Numeral.Min)" by auto
+
+lemma less_Min_Bit:
+  "Numeral.Min < Numeral.Bit k v \<longleftrightarrow> Numeral.Min < k"
+  unfolding Min_def Bit_def by (auto split: bit.split)
+
+lemma less_Bit_Pls:
+  "Numeral.Bit k v < Numeral.Pls \<longleftrightarrow> k < Numeral.Pls"
+  unfolding Pls_def Bit_def by (auto split: bit.split)
+
+lemma less_Bit0_Min:
+  "Numeral.Bit k bit.B0 < Numeral.Min \<longleftrightarrow> k \<le> Numeral.Min"
+  unfolding Min_def Bit_def by auto
+
+lemma less_Bit1_Min:
+  "Numeral.Bit k bit.B1 < Numeral.Min \<longleftrightarrow> k < Numeral.Min"
+  unfolding Min_def Bit_def by auto
+
+lemma less_Bit_Bit0:
+  "Numeral.Bit k1 v < Numeral.Bit k2 bit.B0 \<longleftrightarrow> k1 < k2"
+  unfolding Bit_def by (auto split: bit.split)
+
+lemma less_Bit1_Bit:
+  "Numeral.Bit k1 bit.B1 < Numeral.Bit k2 v \<longleftrightarrow> k1 < k2"
+  unfolding Bit_def by (auto split: bit.split)
+
+lemma less_Bit0_Bit1:
+  "Numeral.Bit k1 bit.B0 < Numeral.Bit k2 bit.B1 \<longleftrightarrow> k1 \<le> k2"
+  unfolding Bit_def bit.cases by auto
+
+lemmas less_numeral_code [code func] = less_Pls_Pls less_Pls_Min less_Pls_Bit0
+  less_Pls_Bit1 less_Min_Pls less_Min_Min less_Min_Bit less_Bit_Pls
+  less_Bit0_Min less_Bit1_Min less_Bit_Bit0 less_Bit1_Bit less_Bit0_Bit1
 
 end
