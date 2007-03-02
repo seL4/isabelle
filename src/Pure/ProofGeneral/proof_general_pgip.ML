@@ -54,7 +54,7 @@ fun pgml_sym s =
     Symbol.Char s => XML.text s
   | Symbol.Sym sn => XML.element "sym" [("name", sn)] [XML.text s]
   | Symbol.Ctrl sn => XML.element "ctrl" [("name", sn)] [XML.text s] (* FIXME: no such PGML! *)
-  | Symbol.Raw s => Symbol.decode_raw s);
+  | Symbol.Raw rs => rs);
 
 fun pgml_output str =
   let val syms = Symbol.explode str
@@ -68,7 +68,7 @@ fun setup_xsymbols_output () =
 
 fun setup_pgml_output () =
   Output.add_mode pgmlN
-    (pgml_output, K pgml_output, Symbol.default_indent, I); (* Symbol.encode_raw); *)
+    (pgml_output, K pgml_output, Symbol.default_indent, Symbol.encode_raw);
 
 end;
 
@@ -703,17 +703,19 @@ fun showid (Showid vs) =
 				  text=[XML.Elem("pgmltext",[],
 						 map XML.Rawtext strings)] })
 
-	fun string_of_thm th = Pretty.string_of
+	fun string_of_thm th = Output.output
+			       (Pretty.string_of
 				   (Display.pretty_thm_aux
 					(Sign.pp (Thm.theory_of_thm th))
 					false (* quote *)
 					false (* show hyps *)
 					[] (* asms *)
-					th)
+					th))
 
         fun strings_of_thm (thy, name) = map string_of_thm (get_thms thy (Name name))
 
-	val string_of_thy = Pretty.string_of o (ProofDisplay.pretty_full_theory false)
+	val string_of_thy = Output.output o
+				Pretty.string_of o (ProofDisplay.pretty_full_theory false)
     in
         case (thyname, objtype) of
             (_,ObjTheory) => idvalue [string_of_thy (ThyInfo.get_theory name)]
