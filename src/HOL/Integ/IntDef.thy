@@ -263,14 +263,10 @@ by (cases i, cases j, cases k, simp add: le)
 lemma zle_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::int)"
 by (cases w, cases z, simp add: le)
 
-(* Axiom 'order_less_le' of class 'order': *)
-lemma zless_le [code func]: "((w::int) < z) = (w \<le> z & w \<noteq> z)"
-by (simp add: less_int_def)
-
 instance int :: order
   by intro_classes
     (assumption |
-      rule zle_refl zle_trans zle_anti_sym zless_le)+
+      rule zle_refl zle_trans zle_anti_sym less_int_def [THEN meta_eq_to_obj_eq])+
 
 (* Axiom 'linorder_linear' of class 'linorder': *)
 lemma zle_linear: "(z::int) \<le> w | w \<le> z"
@@ -855,6 +851,7 @@ apply (cases z)
 apply (simp_all add: not_zle_0_negative del: int_Suc)
 done
 
+lemmas zless_le = less_int_def [THEN meta_eq_to_obj_eq]
 
 subsection {* Configuration of the code generator *}
 
@@ -891,12 +888,12 @@ lemma [code]: "nat i = nat_aux 0 i"
   by (simp add: nat_aux_def)
 
 lemma [code inline]:
-  "neg k = (k < 0)"
+  "neg k \<longleftrightarrow> k < 0"
   unfolding neg_def ..
 
 lemma [code func]:
-  "\<bar>k\<Colon>int\<bar> = (if k \<le> 0 then - k else k)"
-  unfolding zabs_def by auto
+  "\<bar>k\<Colon>int\<bar> = (if k < 0 then - k else k)"
+  unfolding zabs_def ..
 
 consts_code
   "HOL.zero" :: "int"                ("0")
