@@ -17,9 +17,6 @@ inductive2 finite :: "'a set => bool"
     emptyI [simp, intro!]: "finite {}"
   | insertI [simp, intro!]: "finite A ==> finite (insert a A)"
 
-axclass finite \<subseteq> type
-  finite: "finite UNIV"
-
 lemma ex_new_if_finite: -- "does not depend on def of finite at all"
   assumes "\<not> finite (UNIV :: 'a set)" and "finite A"
   shows "\<exists>a::'a. a \<notin> A"
@@ -2233,7 +2230,7 @@ apply(unfold Sup_def Inf_def)
 apply(subgoal_tac "EX a. a:A")
 prefer 2 apply blast
 apply(erule exE)
-apply(rule trans)
+apply(rule order_trans)
 apply(erule (2) ACIfSL.fold1_belowI[OF ACIfSL_inf])
 apply(erule (2) ACIfSL.fold1_belowI[OF ACIfSL_sup])
 done
@@ -2520,7 +2517,7 @@ apply(subgoal_tac "!!x y. k + min x y = min (k + x) (k + y)")
 using hom_Min_commute[of "op + k" N]
 apply simp apply(rule arg_cong[where f = Min]) apply blast
 apply(simp add:min_def linorder_not_le)
-apply(blast intro:order_class.antisym order_less_imp_le add_left_mono)
+apply(blast intro: antisym order_less_imp_le add_left_mono)
 done
 
 lemma add_Max_commute: fixes k::"'a::{pordered_ab_semigroup_add,linorder}"
@@ -2529,33 +2526,41 @@ apply(subgoal_tac "!!x y. k + max x y = max (k + x) (k + y)")
 using hom_Max_commute[of "op + k" N]
 apply simp apply(rule arg_cong[where f = Max]) apply blast
 apply(simp add:max_def linorder_not_le)
-apply(blast intro:order_class.antisym order_less_imp_le add_left_mono)
+apply(blast intro: antisym order_less_imp_le add_left_mono)
 done
 
 
+subsection {* Class @{text finite} *}
 
-subsection {* Properties of axclass @{text finite} *}
-
-text{* Many of these are by Brian Huffman. *}
+class finite (attach UNIV) =
+  assumes finite: "finite UNIV"
 
 lemma finite_set: "finite (A::'a::finite set)"
-by (rule finite_subset [OF subset_UNIV finite])
+  by (rule finite_subset [OF subset_UNIV finite])
 
+lemma univ_unit:
+  "UNIV = {()}" by auto
 
 instance unit :: finite
 proof
   have "finite {()}" by simp
-  also have "{()} = UNIV" by auto
+  also note univ_unit [symmetric]
   finally show "finite (UNIV :: unit set)" .
 qed
 
+lemmas [code func] = univ_unit
+
+lemma univ_bool:
+  "UNIV = {False, True}" by auto
+
 instance bool :: finite
 proof
-  have "finite {True, False}" by simp
-  also have "{True, False} = UNIV" by auto
+  have "finite {False, True}" by simp
+  also note univ_bool [symmetric]
   finally show "finite (UNIV :: bool set)" .
 qed
 
+lemmas [code func] = univ_bool
 
 instance * :: (finite, finite) finite
 proof
@@ -2566,6 +2571,10 @@ proof
   qed
 qed
 
+lemma univ_prod [code func]:
+  "UNIV = (UNIV \<Colon> 'a\<Colon>finite set) \<times> (UNIV \<Colon> 'b\<Colon>finite set)"
+  unfolding UNIV_Times_UNIV ..
+
 instance "+" :: (finite, finite) finite
 proof
   have a: "finite (UNIV :: 'a set)" by (rule finite)
@@ -2575,6 +2584,9 @@ proof
   thus "finite (UNIV :: ('a + 'b) set)" by simp
 qed
 
+lemma univ_sum [code func]:
+  "UNIV = (UNIV \<Colon> 'a\<Colon>finite set) <+> (UNIV \<Colon> 'b\<Colon>finite set)"
+  unfolding UNIV_Plus_UNIV ..
 
 instance set :: (finite) finite
 proof
@@ -2584,8 +2596,11 @@ proof
   thus "finite (UNIV :: 'a set set)" by simp
 qed
 
+lemma univ_set [code func]:
+  "UNIV = Pow (UNIV \<Colon> 'a\<Colon>finite set)" unfolding Pow_UNIV ..
+
 lemma inj_graph: "inj (%f. {(x, y). y = f x})"
-by (rule inj_onI, auto simp add: expand_set_eq expand_fun_eq)
+  by (rule inj_onI, auto simp add: expand_set_eq expand_fun_eq)
 
 instance "fun" :: (finite, finite) finite
 proof
@@ -2596,5 +2611,14 @@ proof
     show "inj ?graph" by (rule inj_graph)
   qed
 qed
+
+
+subsection {* Equality on functions *}
+
+instance "fun" :: (finite, eq) eq ..
+
+lemma eq_fun [code func]:
+  "f = g \<longleftrightarrow> (\<forall>x\<Colon>'a\<Colon>finite \<in> UNIV. (f x \<Colon> 'b\<Colon>eq) = g x)"
+  unfolding expand_fun_eq by auto
 
 end
