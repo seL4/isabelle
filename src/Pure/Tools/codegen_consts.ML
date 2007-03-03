@@ -78,7 +78,9 @@ fun norm thy (c, insts) =
   let
     fun disciplined class [ty as Type (tyco, _)] =
           let
-            val sorts = Sorts.mg_domain (Sign.classes_of thy) tyco [class];
+            val sorts = Sorts.mg_domain (Sign.classes_of thy) tyco [class]
+              handle CLASS_ERROR => error ("No such instance: " ^ tyco ^ " :: " ^ class
+                ^ ",\nrequired for overloaded constant " ^ c);
             val vs = Name.invents Name.context "'a" (length sorts);
           in
             (c, [Type (tyco, map (fn v => TVar ((v, 0), [])) vs)])
