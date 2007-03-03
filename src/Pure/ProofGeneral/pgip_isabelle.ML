@@ -12,6 +12,19 @@ sig
     val accepted_inputs : (string * bool * (string list)) list 
 
     val location_of_position : Position.T -> PgipTypes.location
+
+    (* Additional types of objects in Isar scripts *)
+
+    val ObjTheoryBody : PgipTypes.objtype
+    val ObjTheoryDecl : PgipTypes.objtype
+    val ObjTheoryBodySubsection : PgipTypes.objtype
+    val ObjProofBody : PgipTypes.objtype
+    val ObjFormalComment : PgipTypes.objtype
+    val ObjClass : PgipTypes.objtype
+    val ObjTheoremSet : PgipTypes.objtype
+    val ObjOracle : PgipTypes.objtype
+    val ObjLocale : PgipTypes.objtype
+	
 end
 
 structure PgipIsabelle : PGIP_ISABELLE =
@@ -84,6 +97,28 @@ fun location_of_position pos =
     in 
 	{ descr=descr, url=url, line=line, column=NONE, char=NONE, length=NONE }
     end 
+
+
+val [ObjTheoryBody,
+     ObjTheoryDecl,
+     ObjTheoryBodySubsection,
+     ObjProofBody,
+     ObjFormalComment,
+     ObjClass,
+     ObjTheoremSet,
+     ObjOracle,
+     ObjLocale] =
+    map PgipTypes.ObjOther 
+	["theory body", 
+	 "theory declaration",
+	 "theory subsection",
+	 "proof body",
+	 "formal comment",
+	 "class",
+	 "theorem set declaration",
+	 "oracle",
+	 "locale"];
+
 	
 end
 
