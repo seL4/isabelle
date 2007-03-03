@@ -7,7 +7,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-imports Power Divides Inductive Lattices
+imports Divides
 begin
 
 subsection {* Definition and basic properties *}
@@ -1639,7 +1639,6 @@ apply (erule finite_induct)
 apply (auto simp add: ring_distrib add_ac)
 done
 
-
 lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::{recpower, comm_monoid_mult})) = y^(card A)"
   apply (erule finite_induct)
   apply (auto simp add: power_Suc)
@@ -2587,6 +2586,22 @@ qed
 lemma univ_sum [code func]:
   "UNIV = (UNIV \<Colon> 'a\<Colon>finite set) <+> (UNIV \<Colon> 'b\<Colon>finite set)"
   unfolding UNIV_Plus_UNIV ..
+
+lemma insert_None_conv_UNIV: "insert None (range Some) = UNIV"
+  by (rule set_ext, case_tac x, auto)
+
+instance option :: (finite) finite
+proof
+  have "finite (UNIV :: 'a set)" by (rule finite)
+  hence "finite (insert None (Some ` (UNIV :: 'a set)))" by simp
+  also have "insert None (Some ` (UNIV :: 'a set)) = UNIV"
+    by (rule insert_None_conv_UNIV)
+  finally show "finite (UNIV :: 'a option set)" .
+qed
+
+lemma univ_option [code func]:
+  "UNIV = insert (None \<Colon> 'a\<Colon>finite option) (image Some UNIV)"
+  unfolding insert_None_conv_UNIV ..
 
 instance set :: (finite) finite
 proof
