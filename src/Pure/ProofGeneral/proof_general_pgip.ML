@@ -28,33 +28,25 @@ struct
 open Pgip;
 
 
-(* print modes *)
+(* print mode *)
 
-val proof_generalN = "ProofGeneral";  (*token markup (colouring vars, etc.)*)
-val pgmlN = "PGML";                   (*XML escapes and PGML symbol elements*)
-val thm_depsN = "thm_deps";           (*meta-information about theorem deps*)
-
-
-(* text output: print modes for xsymbol and PGML *)
+val proof_generalN = "ProofGeneral";
+val pgmlsymbols_flag = ref true;
 
 local
 
 fun xsym_output "\\" = "\\\\"
   | xsym_output s = if Symbol.is_raw s then Symbol.decode_raw s else s;
 
-fun xsymbols_output s =
-  if Output.has_mode Symbol.xsymbolsN andalso exists_string (equal "\\") s then
-    let val syms = Symbol.explode s
-    in (implode (map xsym_output syms), real (Symbol.length syms)) end
-  else Symbol.default_output s;
-
-(* XML immediately rendered pretty printer. Take care not to double escape *)
 fun pgml_sym s =
   (case Symbol.decode s of
     Symbol.Char s => XML.text s
-  | Symbol.Sym sn => XML.element "sym" [("name", sn)] [XML.text s]
-  | Symbol.Ctrl sn => XML.element "ctrl" [("name", sn)] [XML.text s] (* FIXME: no such PGML! *)
-  | Symbol.Raw rs => rs);
+  | Symbol.Sym sn => 
+    let val ascii = implode (map xsym_output (Symbol.explode s))
+    in if !pgmlsymbols_flag then XML.element "sym" [("name", sn)] [XML.text ascii]
+       else  ascii end
+  | Symbol.Ctrl sn => XML.element "ctrl" [("name", sn)] [XML.text sn] (* FIXME: no such PGML *)
+  | Symbol.Raw raw => raw);
 
 fun pgml_output str =
   let val syms = Symbol.explode str
@@ -62,12 +54,8 @@ fun pgml_output str =
 
 in
 
-fun setup_xsymbols_output () =
-  Output.add_mode Symbol.xsymbolsN
-    (xsymbols_output, K xsymbols_output, Symbol.default_indent, Symbol.encode_raw);
-
-fun setup_pgml_output () =
-  Output.add_mode pgmlN
+fun setup_proofgeneral_output () =
+  Output.add_mode proof_generalN
     (pgml_output, K pgml_output, Symbol.default_indent, Symbol.encode_raw);
 
 end;
@@ -341,6 +329,9 @@ fun restart () =
 
 
 (* theorem dependency output *)
+
+val show_theorem_dependencies = ref false;
+
 local
 
 val spaces_quote = space_implode " " o map quote;
@@ -355,7 +346,7 @@ fun thm_deps_message (thms, deps) =
     end
 
 fun tell_thm_deps ths =
-  if Output.has_mode thm_depsN then
+  if !show_theorem_dependencies then
       let
         val names = map PureThy.get_name_hint (filter PureThy.has_name_hint ths);
         val deps = (Symtab.keys (fold Proofterm.thms_of_proof'
@@ -436,9 +427,10 @@ val preferences = ref Preferences.preferences;
 
 fun setup_preferences_tweak() =
     preferences :=
-     (* PGIP uses markup for distinguishing variable types *)
      (!preferences |> Preferences.set_default ("show-question-marks","false")
-                   |> Preferences.remove "show-question-marks");
+                   |> Preferences.remove "show-question-marks"    (* we use markup, not ?s *)
+		   |> Preferences.remove "theorem-dependencies"   (* set internally *)
+		   |> Preferences.remove "full-proofs")		  (* set internally *)
 
 
 
@@ -528,16 +520,36 @@ fun proverinit vs = restart ()
 
 fun proverexit vs = isarcmd "quit"
 
-fun startquiet vs = isarcmd "disable_pr"
+fun set_proverflag_quiet b = 
+    isarcmd (if b then "disable_pr" else "enable_pr")
 
-fun stopquiet vs = isarcmd "enable_pr"
+fun set_proverflag_pgmlsymbols b =
+    (pgmlsymbols_flag := b;
+     change print_mode 
+	    (fn mode =>
+                remove (op =) Symbol.xsymbolsN mode @ (if b then [Symbol.xsymbolsN] else [])))
 
-fun pgmlsymbolson vs =
-    change print_mode (fn mode =>
-                          remove (op =) Symbol.xsymbolsN mode @ [Symbol.xsymbolsN])
+fun set_proverflag_thmdeps b =
+    (show_theorem_dependencies := b;
+     proofs := (if b then 1 else 2))
 
-fun pgmlsymbolsoff vs =
-    change print_mode (remove (op =) Symbol.xsymbolsN)
+fun startquiet vs = set_proverflag_quiet true;		  (* TO BE REMOVED *)
+fun stopquiet vs =  set_proverflag_quiet false;           (* TO BE REMOVED *)
+fun pgmlsymbolson vs = set_proverflag_pgmlsymbols true;   (* TO BE REMOVED *)
+fun pgmlsymbolsoff vs = set_proverflag_pgmlsymbols false; (* TO BE REMOVED *)
+
+fun setproverflag (Setproverflag vs) =
+    let 
+	val flagname = #flagname vs
+	val value = #value vs
+    in
+	(case flagname of
+	     "quiet"            => set_proverflag_quiet value
+	   | "pgmlsymbols"      => set_proverflag_pgmlsymbols value
+	   | "metainfo:thmdeps" => set_proverflag_thmdeps value 
+	   | _ => log_msg ("Unrecognised prover control flag: " ^ (quote flagname) ^ " ignored."))
+    end 
+
 
 fun dostep (Dostep vs) =
     let
@@ -946,6 +958,7 @@ fun process_input inp = case inp
   | Pgip.Stopquiet _        => stopquiet inp
   | Pgip.Pgmlsymbolson _    => pgmlsymbolson inp
   | Pgip.Pgmlsymbolsoff _   => pgmlsymbolsoff inp
+  | Pgip.Setproverflag _    => setproverflag inp
   | Pgip.Dostep _           => dostep inp
   | Pgip.Undostep _         => undostep inp
   | Pgip.Redostep _         => redostep inp
@@ -1101,8 +1114,7 @@ fun init_pgip false =
         (setmp warning_fn (K ()) init_outer_syntax ();
           PgipParser.init ();
           setup_preferences_tweak ();
-          setup_xsymbols_output ();
-          setup_pgml_output ();
+	  setup_proofgeneral_output ();
           setup_messages ();
           setup_state ();
           setup_thy_loader ();
@@ -1112,7 +1124,6 @@ fun init_pgip false =
           set initialized);
         sync_thy_loader ();
        change print_mode (cons proof_generalN o remove (op =) proof_generalN);
-       change print_mode (append [pgmlN] o subtract (op =) [pgmlN]);
        pgip_toplevel tty_src);
 
 
