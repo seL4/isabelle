@@ -244,7 +244,9 @@ and ensure_const rewrites thy algebra funcgr const =
 
 fun merge_funcss rewrites thy algebra raw_funcss funcgr =
   let
-    val funcss = resort_funcss thy algebra funcgr raw_funcss;
+    val funcss = raw_funcss
+      |> resort_funcss thy algebra funcgr
+      |> filter_out (can (Constgraph.get_node funcgr) o fst);
     fun classop_typ (c, [typarg]) class =
       let
         val ty = Sign.the_const_type thy c;
@@ -298,11 +300,16 @@ fun merge_funcss rewrites thy algebra raw_funcss funcgr =
     |> fold add_deps funcss
   end
 and ensure_consts' rewrites thy algebra cs funcgr =
-  fold (snd oo ensure_const rewrites thy algebra funcgr) cs Constgraph.empty
-  |> (fn auxgr => fold (merge_funcss rewrites thy algebra)
-       (map (AList.make (Constgraph.get_node auxgr))
-       (rev (Constgraph.strong_conn auxgr))) funcgr)
-  handle INVALID (cs', msg) => raise INVALID (fold (insert CodegenConsts.eq_const) cs' cs, msg);
+  let
+    val auxgr = Constgraph.empty
+      |> fold (snd oo ensure_const rewrites thy algebra funcgr) cs;
+  in
+    funcgr
+    |> fold (merge_funcss rewrites thy algebra)
+         (map (AList.make (Constgraph.get_node auxgr))
+         (rev (Constgraph.strong_conn auxgr)))
+  end handle INVALID (cs', msg)
+    => raise INVALID (fold (insert CodegenConsts.eq_const) cs' cs, msg);
 
 fun ensure_consts rewrites thy consts funcgr =
   let
