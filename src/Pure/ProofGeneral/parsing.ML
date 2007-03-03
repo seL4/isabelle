@@ -20,6 +20,8 @@ struct
 structure P = OuterParse;
 
 structure D = PgipMarkup;
+structure I = PgipIsabelle;
+structure T = PgipTypes;
 
 (* Notes.
    This is quite tricky, because 1) we need to put back whitespace which
@@ -85,7 +87,7 @@ local
     fun nameparse elt objtyp nameP toks = 
         (fst (nameP (toks@sync)))
         handle _ => (error ("Error occurred in name parser for " ^ elt ^
-                            "(objtype: " ^ objtyp ^ ")");
+                            "(objtype: " ^ (T.name_of_objtype objtyp) ^ ")");
                      "")
 
     fun parse_warning msg = warning ("script->PGIP markup parser: " ^ msg)
@@ -96,7 +98,8 @@ local
         in
             [D.Opentheory { thyname=thyname, 
 			    parentnames = imports,
-			    text = str }]
+			    text = str },
+	     D.Openblock { metavarid=NONE,name=NONE,objtype=SOME I.ObjTheoryBody }]
         end
 
     fun xmls_of_thy_decl (name,toks,str) = (* see isar_syn.ML/thy_decl cases  *)
@@ -119,7 +122,9 @@ local
                  "declare"]
 
             fun named_item nameP ty = 
-		[D.Theoryitem {text=str,name=SOME (nameparse "theoryitem" ty nameP toks),objtype=SOME ty}]
+		[D.Theoryitem {text=str,
+			       name=SOME (nameparse "theoryitem" ty nameP toks),
+			       objtype=SOME ty}]
 	    val plain_item = 
 		[D.Theoryitem {text=str,name=NONE,objtype=NONE}]
 	    val doccomment = 
@@ -145,18 +150,19 @@ local
             else case name of
                      "text"      => doccomment
                    | "text_raw"  => doccomment
-                   | "typedecl"  => named_item (P.type_args |-- P.name) "type"
-                   | "types"     => named_item (P.type_args |-- P.name) "type"
-                   | "classes"   => named_item P.name "class"
-                   | "classrel"  => named_item P.name "class"
-                   | "consts"    => named_item (P.const >> #1) "term"
-                   | "axioms"    => named_item (SpecParse.spec_name >> (#1 o #1)) "theorem"
-                   | "defs"      => named_item (opt_overloaded |-- SpecParse.spec_name >> (#1 o #1)) "theorem"
-                   | "constdefs" => named_item P.name (* FIXME: heavily simplified/wrong *) "term"
-                   | "theorems"  => named_item thmnameP "thmset"
-                   | "lemmas"    => named_item thmnameP "thmset"
-                   | "oracle"    => named_item P.name "oracle"
-                   | "locale"    => named_item ((P.opt_keyword "open" >> not) |-- P.name) "locale"
+                   | "typedecl"  => named_item (P.type_args |-- P.name) T.ObjType
+                   | "types"     => named_item (P.type_args |-- P.name) T.ObjType
+                   | "classes"   => named_item P.name I.ObjClass
+                   | "classrel"  => named_item P.name I.ObjClass
+                   | "consts"    => named_item (P.const >> #1) T.ObjTerm
+                   | "axioms"    => named_item (SpecParse.spec_name >> (#1 o #1)) T.ObjTheorem
+                   | "defs"      => named_item (opt_overloaded |-- SpecParse.spec_name >> (#1 o #1)) T.ObjTheorem
+                   | "constdefs" => named_item P.name (* FIXME: heavily simplified/wrong *) T.ObjTerm
+                   | "theorems"  => named_item thmnameP I.ObjTheoremSet
+                   | "lemmas"    => named_item thmnameP I.ObjTheoremSet
+                   | "oracle"    => named_item P.name I.ObjOracle
+		   (* FIXME: locale needs to introduce a block *)
+                   | "locale"    => named_item ((P.opt_keyword "open" >> not) |-- P.name) I.ObjLocale
                    | _ => (parse_warning ("Unrecognized thy-decl command: " ^ name); 
 			   plain_item)
         end
@@ -175,10 +181,10 @@ local
                                                          fst a) (* a : (bstring * Args.src list) *)
 
             val nameP = P.opt_target |-- (Scan.optional ((SpecParse.opt_thm_name ":") >> #1) "")
-	    val thmname = nameparse "opengoal" "theorem" nameP toks
+	    val thmname = nameparse "opengoal" T.ObjTheorem nameP toks
         in
             [D.Opengoal {thmname=SOME thmname, text=str},
-             D.Openblock {metavarid=NONE,name=NONE,objtype=SOME "theorem-proof"}]
+             D.Openblock {metavarid=NONE,name=NONE,objtype=SOME I.ObjProofBody}]
         end
 
     fun xmls_of_qed (name,str) =
@@ -204,28 +210,28 @@ local
     (* theory/files *)
     | "theory-begin"   => xmls_of_thy_begin (name,toks,str)
     | "theory-decl"    => xmls_of_thy_decl (name,toks,str)
-    | "theory-heading" => [D.Doccomment {text=str}]
-    | "theory-script"  => [D.Theoryitem {name=NONE,objtype=NONE,text=str}]
-    | "theory-end"     => [D.Closetheory {text=str}]
+    | "theory-heading" => [D.Closeblock {},
+			   D.Doccomment {text=str},
+			   D.Openblock {metavarid=NONE,name=NONE,objtype=SOME I.ObjTheoryBody}]
+    | "theory-script"  => [D.Theoryitem {name=NONE,objtype=SOME I.ObjTheoryDecl,text=str}]
+    | "theory-end"     => [D.Closeblock {}, D.Closetheory {text=str}]
     (* proof control *)
     | "theory-goal"    => xmls_of_thy_goal (name,toks,str)
     | "proof-heading"  => [D.Doccomment {text=str}]
     | "proof-goal"     => [D.Opengoal {text=str,thmname=NONE}, 
-			   D.Openblock {metavarid=NONE,name=NONE,objtype=NONE}]
+			   D.Openblock {metavarid=NONE,name=NONE,objtype=SOME I.ObjProofBody}]
     | "proof-block"    => [D.Closeblock {}, 
 			   D.Proofstep {text=str},
-			   D.Openblock {metavarid=NONE,name=NONE,objtype=NONE}]
-    | "proof-open"     => [D.Openblock {metavarid=NONE,name=NONE,objtype=NONE}, 
+			   D.Openblock {metavarid=NONE,name=NONE,objtype=SOME I.ObjProofBody}]
+    | "proof-open"     => [D.Openblock {metavarid=NONE,name=NONE,objtype=SOME I.ObjProofBody}, 
 			   D.Proofstep {text=str} ]
     | "proof-close"    => [D.Proofstep {text=str}, D.Closeblock {}]
     | "proof-script"   => [D.Proofstep {text=str}]
     | "proof-chain"    => [D.Proofstep {text=str}]
     | "proof-decl"     => [D.Proofstep {text=str}]
     | "proof-asm"      => [D.Proofstep {text=str}]
-    | "proof-asm-goal" => (* nested proof: obtain, ... *)
-      [D.Opengoal {text=str,thmname=NONE}, 
-       D.Openblock {metavarid=NONE,name=NONE,objtype=NONE}]
-
+    | "proof-asm-goal" => [D.Opengoal {text=str,thmname=NONE}, 
+			   D.Openblock {metavarid=NONE,name=NONE,objtype=NONE}]
     | "qed"            => xmls_of_qed (name,str)
     | "qed-block"      => xmls_of_qed (name,str)
     | "qed-global"     => xmls_of_qed (name,str)
