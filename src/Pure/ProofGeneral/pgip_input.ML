@@ -23,6 +23,7 @@ sig
     | Stopquiet      of { } 
     | Pgmlsymbolson  of { } 
     | Pgmlsymbolsoff of { }
+    | Setproverflag  of { flagname:string, value: bool }
     (* improper proof commands: control proof state *)
     | Dostep         of { text: string }
     | Undostep       of { times: int }
@@ -91,6 +92,7 @@ datatype pgipinput =
        | Stopquiet	of { } 
        | Pgmlsymbolson  of { } 
        | Pgmlsymbolsoff of { }
+       | Setproverflag  of { flagname:string, value: bool }
        (* improper proof commands: control proof state *)
        | Dostep		of { text: string }
        | Undostep	of { times: int }
@@ -142,6 +144,8 @@ local
     val name_attr = get_attr "name"
     val name_attro = get_attr_opt "name"
     val thmname_attr = get_attr "thmname"
+    val flagname_attr = get_attr "flagname"
+    val value_attr = get_attr "value"
 
     fun objtype_attro attrs = if has_attr "objtype" attrs then
 				  SOME (objtype_of_attrs attrs)
@@ -186,6 +190,8 @@ SOME
    | "stopquiet"      => Stopquiet { }
    | "pgmlsymbolson"  => Pgmlsymbolson { }
    | "pgmlsymbolsoff" => Pgmlsymbolsoff { }
+   | "setproverflag"  => Setproverflag { flagname = flagname_attr attrs,
+					 value = read_pgipbool (value_attr attrs) }
    (* improperproofcmd: improper commands not in script *)
    | "dostep"         => Dostep    { text = xmltext data }
    | "undostep"       => Undostep  { times = times_attr attrs }
