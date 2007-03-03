@@ -5,7 +5,7 @@
 PGIP abstraction: types and conversions.
 *)
 
-(* TODO: PGML *)
+(* TODO: PGML, proverflag *)
 signature PGIPTYPES =
 sig
     (* Object types: the types of values which can be manipulated externally.
