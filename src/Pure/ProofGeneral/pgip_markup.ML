@@ -9,10 +9,10 @@ signature PGIPMARKUP =
 sig
   (* Generic markup on sequential, non-overlapping pieces of proof text *)
   datatype pgipdoc = 
-    Openblock     of { metavarid: string option, name: string option, objtype: string option }
+    Openblock     of { metavarid: string option, name: string option, objtype: PgipTypes.objtype option }
   | Closeblock    of { }
   | Opentheory    of { thyname: string, parentnames: string list , text: string}
-  | Theoryitem    of { name: string option, objtype: string option, text: string }
+  | Theoryitem    of { name: string option, objtype: PgipTypes.objtype option, text: string }
   | Closetheory   of { text: string }
   | Opengoal	  of { thmname: string option, text: string }
   | Proofstep     of { text: string }
@@ -46,10 +46,10 @@ struct
 
 (* PGIP 3 idea: replace opentheory, opengoal, etc. by just openblock with corresponding objtype? *)
   datatype pgipdoc = 
-    Openblock     of { metavarid: string option, name: string option, objtype: string option }
+    Openblock     of { metavarid: string option, name: string option, objtype: PgipTypes.objtype option }
   | Closeblock    of { }
   | Opentheory    of { thyname: string, parentnames: string list, text: string}
-  | Theoryitem    of { name: string option, objtype: string option, text: string }
+  | Theoryitem    of { name: string option, objtype: PgipTypes.objtype option, text: string }
   | Closetheory   of { text: string }
   | Opengoal	  of { thmname: string option, text: string }
   | Proofstep     of { text: string }
@@ -74,7 +74,10 @@ struct
        case docelt of
 
 	   Openblock vs  => 
-	   XML.Elem("openblock", opt_attr "metavarid" (#metavarid vs), [])
+	   XML.Elem("openblock", opt_attr "name" (#metavarid vs) @
+				 opt_attr_map PgipTypes.name_of_objtype "objtype" (#objtype vs) @
+				 opt_attr "metavarid" (#metavarid vs),
+		    [])
 	   
 	 | Closeblock vs => 
 	   XML.Elem("closeblock", [], [])
@@ -91,7 +94,7 @@ struct
 	 | Theoryitem vs => 
 	   XML.Elem("theoryitem", 
 		    opt_attr "name" (#name vs) @
-		    opt_attr "objtype" (#objtype vs),
+		    opt_attr_map PgipTypes.name_of_objtype "objtype" (#objtype vs),
 		    [XML.Text (#text vs)])
 	   
 	 | Closetheory vs => 
