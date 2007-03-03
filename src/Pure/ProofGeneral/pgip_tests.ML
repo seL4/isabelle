@@ -69,6 +69,7 @@ fun e str = case p str of
 
 open PgipInput;
 open PgipTypes;
+open PgipIsabelle;
 
 fun asseqi a b =
     if input (e a) = b then ()
@@ -109,6 +110,8 @@ end
 local
 open PgipMarkup
 open PgipParser
+open PgipIsabelle
+
 fun asseqp a b =
     if pgip_parser a = b then ()
     else error("PGIP test: expected two parses to be equal, for input:\n" ^ a)
@@ -119,10 +122,11 @@ val _ =
     [Opentheory
          {text = "theory A imports Bthy Cthy Dthy begin",
           thyname = "A",
-          parentnames = ["Bthy", "Cthy", "Dthy"]}];
+          parentnames = ["Bthy", "Cthy", "Dthy"]},
+     Openblock {metavarid=NONE,name=NONE,objtype=SOME ObjTheoryBody}];
 
 val _ = 
     asseqp "end" 
-   [Closetheory {text = "end"}];
+   [Closeblock {}, Closetheory {text = "end"}];
 
 end
