@@ -89,6 +89,8 @@ echo ------------------- prepared test successfully --- `date` --- $HOSTNAME >> 
 ELAPSED=$("$HOME/bin/showtime" "$SECONDS")
 echo "$(date) $HOSTNAME $PRG: dist build successful, elapsed time $ELAPSED." >> $MASTERLOG
 
+## clean up var/running
+rm -f $RUNNING/*
 
 ## spawn test runs
 
