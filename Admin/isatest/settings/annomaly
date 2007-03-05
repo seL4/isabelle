@@ -1,0 +1,4 @@
+ML_SYSTEM=annomaly
+ML_HOME="$SMLNJ_HOME/bin"
+ML_OPTIONS="-m $SMLNJ_HOME/annomaly/annomaly.cm @SMLdebug=/dev/null"
+ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
