@@ -6,7 +6,7 @@
 # DESCRIPTION: Run isatool makeall from specified distribution and settings.
 
 ## global settings
-. ~/admin/isatest-settings
+. ~/admin/isatest/isatest-settings
 
 # max time until test is aborted (in sec)
 MAXTIME=28800

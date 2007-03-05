@@ -7,7 +7,7 @@
 #              generates development snapshot if test ok
 
 ## global settings
-. ~/admin/isatest-settings
+. ~/admin/isatest/isatest-settings
 
 # produce empty list for patterns like isatest-*.log if no 
 # such file exists 

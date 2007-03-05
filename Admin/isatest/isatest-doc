@@ -11,7 +11,7 @@
 . ~/.bashrc
 
 ## global settings
-. ~/admin/isatest-settings
+. ~/admin/isatest/isatest-settings
 
 DOCDIR=$HOME/Doc
 

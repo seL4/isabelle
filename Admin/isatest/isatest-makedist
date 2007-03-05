@@ -6,7 +6,7 @@
 # DESCRIPTION: Build distribution and run isatest-make for lots of platforms.
 
 ## global settings
-. ~/admin/isatest-settings
+. ~/admin/isatest/isatest-settings
 
 TMP=/tmp/isatest-makedist.$$
 MAIL=$HOME/bin/pmail
