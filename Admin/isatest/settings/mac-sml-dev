@@ -1,0 +1,33 @@
+# -*- shell-script -*-
+
+# Standard ML of New Jersey 110 or later
+ML_SYSTEM=smlnj
+ML_HOME="/home/proj/smlnj/110.60/bin"
+ML_OPTIONS="@SMLdebug=/dev/null"
+ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
+
+ISABELLE_HOME_USER="$HOME/isabelle-mac-sml-dev"
+
+# Where to look for isabelle tools (multiple dirs separated by ':').
+ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
+
+# Location for temporary files (should be on a local file system).
+ISABELLE_TMP_PREFIX="/tmp/isabelle-$USER"
+
+
+# Heap input locations. ML system identifier is included in lookup.
+ISABELLE_PATH="$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps"
+
+# Heap output location. ML system identifier is appended automatically later on.
+if [ "$THIS_IS_ISABELLE_BUILD" = true ]; then
+  #Isabelle build tells us to store heaps etc. within the distribution.
+  ISABELLE_OUTPUT="$ISABELLE_HOME/heaps"
+  ISABELLE_BROWSER_INFO="$ISABELLE_HOME/browser_info"
+else
+  ISABELLE_OUTPUT="$ISABELLE_HOME_USER/heaps"
+  ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
+fi
+
+ISABELLE_USEDIR_OPTIONS="-i true -d pdf -v true"
+
+HOL_USEDIR_OPTIONS="-p 2"
