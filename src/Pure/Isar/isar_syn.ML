@@ -812,7 +812,7 @@ val find_theoremsP =
     (Scan.optional (P.$$$ "(" |-- P.!!!
                         (Scan.option P.nat --
                          Scan.optional (P.reserved "with_dups" >> K false) true
-                         --| P.$$$ ")")) (NONE, false) --
+                         --| P.$$$ ")")) (NONE, true) --
      Scan.repeat (((Scan.option P.minus >> is_none) -- criterion))
       >> (Toplevel.no_timing oo IsarCmd.find_theorems));
 
