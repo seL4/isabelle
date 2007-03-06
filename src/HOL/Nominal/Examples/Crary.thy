@@ -31,7 +31,7 @@ syntax (IfThen output)
   "==>" :: "prop \<Rightarrow> prop \<Rightarrow> prop"
   ("\<^raw:{\rmfamily\upshape\normalsize{}>If\<^raw:\,}> _/ \<^raw:{\rmfamily\upshape\normalsize \,>then\<^raw:\,}>/ _.")
   "_bigimpl" :: "asms \<Rightarrow> prop \<Rightarrow> prop"
-  ("\<^raw:{\rmfamily\upshape\normalsize{}>If\<^raw:\,}> _ /\<^raw:{\rmfamily\upshapce\normalsize \,>then\<^raw:\,}>/ _.")
+  ("\<^raw:{\rmfamily\upshape\normalsize{}>If\<^raw:\,}> _ /\<^raw:{\rmfamily\upshape\normalsize \,>then\<^raw:\,}>/ _.")
   "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" ("\<^raw:\mbox{>_\<^raw:}> /\<^raw:{\rmfamily\upshape\normalsize \,>and\<^raw:\,}>/ _")
   "_asm" :: "prop \<Rightarrow> asms" ("\<^raw:\mbox{>_\<^raw:}>")
 
