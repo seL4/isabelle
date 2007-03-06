@@ -32,15 +32,15 @@ constdefs
 defs (unchecked overloaded)
   perm_set_def:  "pi\<bullet>(X::'a set) \<equiv> {pi\<bullet>a | a. a\<in>X}"
 
-lemma perm_empty:
+lemma empty_eqvt:
   shows "pi\<bullet>{} = {}"
   by (simp add: perm_set_def)
 
-lemma perm_union:
+lemma union_eqvt:
   shows "pi \<bullet> (X \<union> Y) = (pi \<bullet> X) \<union> (pi \<bullet> Y)"
   by (auto simp add: perm_set_def)
 
-lemma perm_insert:
+lemma insert_eqvt:
   shows "pi\<bullet>(insert x X) = insert (pi\<bullet>x) (pi\<bullet>X)"
   by (auto simp add: perm_set_def)
 
@@ -51,40 +51,44 @@ primrec (unchecked perm_unit)
 primrec (unchecked perm_prod)
   "pi\<bullet>(a,b) = (pi\<bullet>a,pi\<bullet>b)"
 
-lemma perm_fst:
+lemma fst_eqvt:
   "pi\<bullet>(fst x) = fst (pi\<bullet>x)"
  by (cases x) simp
 
-lemma perm_snd:
+lemma snd_eqvt:
   "pi\<bullet>(snd x) = snd (pi\<bullet>x)"
  by (cases x) simp
 
 (* permutation on lists *)
 primrec (unchecked perm_list)
-  perm_nil_def:  "pi\<bullet>[]     = []"
-  perm_cons_def: "pi\<bullet>(x#xs) = (pi\<bullet>x)#(pi\<bullet>xs)"
+  nil_eqvt:  "pi\<bullet>[]     = []"
+  cons_eqvt: "pi\<bullet>(x#xs) = (pi\<bullet>x)#(pi\<bullet>xs)"
 
-lemma perm_append:
+lemma append_eqvt:
   fixes pi :: "'x prm"
   and   l1 :: "'a list"
   and   l2 :: "'a list"
   shows "pi\<bullet>(l1@l2) = (pi\<bullet>l1)@(pi\<bullet>l2)"
   by (induct l1) auto
 
-lemma perm_rev:
+lemma rev_eqvt:
   fixes pi :: "'x prm"
   and   l  :: "'a list"
   shows "pi\<bullet>(rev l) = rev (pi\<bullet>l)"
-  by (induct l) (simp_all add: perm_append)
+  by (induct l) (simp_all add: append_eqvt)
 
 (* permutation on functions *)
 defs (unchecked overloaded)
   perm_fun_def: "pi\<bullet>(f::'a\<Rightarrow>'b) \<equiv> (\<lambda>x. pi\<bullet>f((rev pi)\<bullet>x))"
 
+lemma swap_fun: 
+  shows "[(a,b)]\<bullet>(f::'a\<Rightarrow>'b) \<equiv> (\<lambda>x. [(a,b)]\<bullet>f([(a,b)]\<bullet>x))"
+by (unfold perm_fun_def,auto)
+
 (* permutation on bools *)
 primrec (unchecked perm_bool)
-  perm_true_def:  "pi\<bullet>True  = True"
-  perm_false_def: "pi\<bullet>False = False"
+  true_eqvt:  "pi\<bullet>True  = True"
+  false_eqvt: "pi\<bullet>False = False"
 
 lemma perm_bool:
   shows "pi\<bullet>(b::bool) = b"
@@ -100,25 +104,24 @@ lemma perm_boolE:
   shows "P"
   using a by (simp add: perm_bool)
 
-lemma perm_if:
+lemma if_eqvt:
   fixes pi::"'a prm"
   shows "pi\<bullet>(if b then c1 else c2) = (if (pi\<bullet>b) then (pi\<bullet>c1) else (pi\<bullet>c2))"
 apply(simp add: perm_fun_def)
 done
 
-
 (* permutation on options *)
 
 primrec (unchecked perm_option)
-  perm_some_def:  "pi\<bullet>Some(x) = Some(pi\<bullet>x)"
-  perm_none_def:  "pi\<bullet>None    = None"
+  some_eqvt:  "pi\<bullet>Some(x) = Some(pi\<bullet>x)"
+  none_eqvt:  "pi\<bullet>None    = None"
 
 (* a "private" copy of the option type used in the abstraction function *)
 datatype 'a noption = nSome 'a | nNone
 
 primrec (unchecked perm_noption)
-  perm_nSome_def: "pi\<bullet>nSome(x) = nSome(pi\<bullet>x)"
-  perm_nNone_def: "pi\<bullet>nNone    = nNone"
+  nSome_eqvt: "pi\<bullet>nSome(x) = nSome(pi\<bullet>x)"
+  nNone_eqvt: "pi\<bullet>nNone    = nNone"
 
 (* a "private" copy of the product type used in the nominal induct method *)
 datatype ('a,'b) nprod = nPair 'a 'b
@@ -1134,6 +1137,16 @@ next
   thus "pi\<bullet>x = pi\<bullet>y" by simp
 qed
 
+lemma pt_eq_eqvt:
+  fixes pi :: "'x prm"
+  and   x  :: "'a"
+  and   y  :: "'a"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "pi \<bullet> (x=y) = (pi\<bullet>x = pi\<bullet>y)"
+using assms
+by (auto simp add: pt_bij perm_bool)
+
 lemma pt_bij3:
   fixes pi :: "'x prm"
   and   x  :: "'a"
@@ -1201,6 +1214,16 @@ lemma pt_set_bij:
   and     at: "at TYPE('x)"
   shows "((pi\<bullet>x)\<in>(pi\<bullet>X)) = (x\<in>X)"
   by (simp add: perm_set_def pt_bij[OF pt, OF at])
+
+lemma pt_in_eqvt:
+  fixes pi :: "'x prm"
+  and   x  :: "'a"
+  and   X  :: "'a set"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "pi\<bullet>(x\<in>X)=((pi\<bullet>x)\<in>(pi\<bullet>X))"
+using assms
+by (auto simp add:  pt_set_bij perm_bool)
 
 lemma pt_set_bij2:
   fixes pi :: "'x prm"
@@ -1668,6 +1691,17 @@ apply(drule_tac x="pi\<bullet>x" in spec)
 apply(simp add: pt_rev_pi[OF pt, OF at])
 done
 
+lemma pt_ex_eqvt:
+  fixes  pi :: "'x prm"
+  and     x :: "'a"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "pi\<bullet>(\<exists>(x::'a). P x) = (\<exists> (x::'a). (pi\<bullet>P) x)"
+apply(auto simp add: perm_bool perm_fun_def)
+apply(rule_tac x="pi\<bullet>x" in exI) 
+apply(simp add: pt_rev_pi[OF pt, OF at])
+done
+
 lemma imp_eqvt:
   fixes pi::"'x prm"
   shows "pi\<bullet>(A\<longrightarrow>B) = ((pi\<bullet>A)\<longrightarrow>(pi\<bullet>B))"
@@ -1676,6 +1710,16 @@ lemma imp_eqvt:
 lemma conj_eqvt:
   fixes pi::"'x prm"
   shows "pi\<bullet>(A\<and>B) = ((pi\<bullet>A)\<and>(pi\<bullet>B))"
+  by (simp add: perm_bool)
+
+lemma disj_eqvt:
+  fixes pi::"'x prm"
+  shows "pi\<bullet>(A\<or>B) = ((pi\<bullet>A)\<or>(pi\<bullet>B))"
+  by (simp add: perm_bool)
+
+lemma neg_eqvt:
+  fixes pi::"'x prm"
+  shows "pi\<bullet>(\<not> A) = (\<not> (pi\<bullet>A))"
   by (simp add: perm_bool)
 
 section {* facts about supports *}
@@ -2223,7 +2267,7 @@ using a1 a2
 apply(simp add: fresh_fin_insert[OF pt, OF at, OF fs, OF f])
 done
 
-lemma pt_list_set_pi:
+lemma pt_set_eqvt:
   fixes pi :: "'x prm"
   and   xs :: "'a list"
   assumes pt: "pt TYPE('a) TYPE('x)"
@@ -2331,7 +2375,7 @@ lemma cp_fun_inst:
   shows "cp TYPE ('a\<Rightarrow>'b) TYPE('x) TYPE('y)"
 using c1 c2
 apply(auto simp add: cp_def perm_fun_def expand_fun_eq)
-apply(simp add: perm_rev[symmetric])
+apply(simp add: rev_eqvt[symmetric])
 apply(simp add: pt_rev_pi[OF pt_list_inst[OF pt_prod_inst[OF pt, OF pt]], OF at])
 done
 
@@ -3003,53 +3047,94 @@ proof -
     done
 qed
 
+(************************)
+(* Various eqvt-lemmas  *)
+
+lemma Zero_nat_eqvt:
+ shows "pi\<bullet> (0::nat) = 0" 
+by (auto simp add: perm_nat_def)
+
+lemma One_nat_eqvt:
+ shows "pi\<bullet> (1::nat) = 1"
+by (simp add: perm_nat_def)
+
+lemma Suc_eqvt:
+ shows "pi\<bullet> Suc x = Suc (pi\<bullet>x)" 
+by (auto simp add: perm_nat_def)
+
+lemma numeral_nat_eqvt: 
+ shows "pi\<bullet> ((number_of n)::nat) = number_of ( n)" 
+by (simp add: perm_nat_def perm_int_def)
+
+lemma max_nat_eqvt:
+ shows "pi\<bullet>(max (x::nat) y) = max (pi\<bullet>x) (pi\<bullet>y)" 
+by (simp add:perm_nat_def) 
+
+lemma min_nat_eqvt:
+ shows "pi\<bullet> max (x::nat) y = max (pi\<bullet>x) (pi\<bullet>y)" 
+by (simp add:perm_nat_def) 
+
+lemma plus_nat_eqvt:
+ shows "pi\<bullet>((x::nat) + y) = (pi\<bullet>x) + (pi\<bullet>y)" 
+by (simp add:perm_nat_def) 
+
+lemma minus_nat_eqvt:
+ shows "pi\<bullet>((x::nat) - y) = (pi\<bullet>x) - (pi\<bullet>y)" 
+by (simp add:perm_nat_def) 
+
+lemma mult_nat_eqvt:
+ shows "pi\<bullet>((x::nat) * y) = (pi\<bullet>x) * (pi\<bullet>y)" 
+by (simp add:perm_nat_def) 
+
+lemma div_nat_eqvt:
+ shows "pi\<bullet>((x::nat) div y) = (pi\<bullet>x) div (pi\<bullet>y)" 
+by (simp add:perm_nat_def) 
+
 (*******************************************************)
 (* Setup of the theorem attributes eqvt, fresh and bij *)
 use "nominal_thmdecls.ML"
 setup "NominalThmDecls.setup"
 
-lemmas  [eqvt] = perm_list.simps perm_prod.simps 
-
-
+lemmas [eqvt] = 
+  if_eqvt
+  perm_unit.simps
+  perm_list.simps 
+  perm_prod.simps 
+  imp_eqvt disj_eqvt conj_eqvt neg_eqvt
+  Suc_eqvt Zero_nat_eqvt One_nat_eqvt
+  min_nat_eqvt max_nat_eqvt
+  plus_nat_eqvt minus_nat_eqvt mult_nat_eqvt div_nat_eqvt
+  union_eqvt empty_eqvt insert_eqvt
+  fst_eqvt snd_eqvt
+ 
+(* this lemma does not conform with the form of an eqvt-lemma but is *)
+(* still useful to have when analysing permutations on numbers       *)
+lemmas [eqvt_force] = numeral_nat_eqvt 
 
 (***************************************)
 (* setup for the individial atom-kinds *)
 (* and nominal datatypes               *)
 use "nominal_atoms.ML"
-(* permutation equality tactic *)
-use "nominal_permeq.ML";
-use "nominal_package.ML"
 setup "NominalAtoms.setup"
-setup "NominalPackage.setup"
 
-(** primitive recursive functions on nominal datatypes **)
-use "nominal_primrec.ML"
-
-(** inductive predicates involving nominal datatypes **)
-use "nominal_inductive.ML"
-
-(*****************************************)
-(* setup for induction principles method *)
-
-use "nominal_induct.ML";
-method_setup nominal_induct =
-  {* NominalInduct.nominal_induct_method *}
-  {* nominal induction *}
+(************************************************************)
+(* various tactics for analysing permutations, supports etc *)
+use "nominal_permeq.ML";
 
 method_setup perm_simp =
-  {* NominalPermeq.perm_eq_meth *}
+  {* NominalPermeq.perm_simp_meth *}
   {* simp rules and simprocs for analysing permutations *}
 
 method_setup perm_simp_debug =
-  {* NominalPermeq.perm_eq_meth_debug *}
+  {* NominalPermeq.perm_simp_meth_debug *}
   {* simp rules and simprocs for analysing permutations including debugging facilities *}
 
 method_setup perm_full_simp =
-  {* NominalPermeq.perm_full_eq_meth *}
+  {* NominalPermeq.perm_full_simp_meth *}
   {* tactic for deciding equalities involving permutations *}
 
 method_setup perm_full_simp_debug =
-  {* NominalPermeq.perm_full_eq_meth_debug *}
+  {* NominalPermeq.perm_full_simp_meth_debug *}
   {* tactic for deciding equalities involving permutations including debugging facilities *}
 
 method_setup supports_simp =
@@ -3061,19 +3146,40 @@ method_setup supports_simp_debug =
   {* tactic for deciding whether something supports something else including debugging facilities *}
 
 method_setup finite_guess =
-  {* NominalPermeq.finite_gs_meth *}
+  {* NominalPermeq.finite_guess_meth *}
   {* tactic for deciding whether something has finite support *}
 
 method_setup finite_guess_debug =
-  {* NominalPermeq.finite_gs_meth_debug *}
+  {* NominalPermeq.finite_guess_meth_debug *}
   {* tactic for deciding whether something has finite support including debugging facilities *}
 
 method_setup fresh_guess =
-  {* NominalPermeq.fresh_gs_meth *}
+  {* NominalPermeq.fresh_guess_meth *}
   {* tactic for deciding whether an atom is fresh for something*}
 
 method_setup fresh_guess_debug =
-  {* NominalPermeq.fresh_gs_meth_debug *}
+  {* NominalPermeq.fresh_guess_meth_debug *}
   {* tactic for deciding whether an atom is fresh for something including debugging facilities *}
+
+(************************************************)
+(* main file for constructing nominal datatypes *)
+use "nominal_package.ML"
+setup "NominalPackage.setup"
+
+(******************************************************)
+(* primitive recursive functions on nominal datatypes *)
+use "nominal_primrec.ML"
+
+(****************************************************)
+(* inductive definition involving nominal datatypes *)
+use "nominal_inductive.ML"
+
+(*****************************************)
+(* setup for induction principles method *)
+use "nominal_induct.ML";
+method_setup nominal_induct =
+  {* NominalInduct.nominal_induct_method *}
+  {* nominal induction *}
+
 
 end

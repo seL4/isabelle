@@ -58,7 +58,7 @@ structure Data = GenericDataFun
 (* the implicational case it is also checked that the variables and permutation fit  *)
 (* together, i.e. are of the right "pt_class", so that a stronger version of the     *)
 (* eqality-lemma can be derived. *)
-exception EQVT_FORM;
+exception EQVT_FORM of string;
 
 val print_data = Data.print o Context.Proof;
 val get_eqvt_thms = Context.Theory #> Data.get #> #eqvt;
@@ -69,6 +69,7 @@ val get_bij_thms = Context.Theory #> Data.get #> #bij;
 fun mk_permT T = HOLogic.listT (HOLogic.mk_prodT (T, T));
 
 val perm_bool = thm "perm_bool";
+val perm_fun_def = thm "perm_fun_def";
 
 val NOMINAL_EQVT_DEBUG = ref false;
 
@@ -77,11 +78,13 @@ fun tactic (msg,tac) =
     then (EVERY [tac, print_tac ("after "^msg)])
     else tac 
 
+fun dynamic_thms thy name = PureThy.get_thms thy (Name name)
+
 fun tactic_eqvt ctx orig_thm pi typi = 
     let 
         val mypi = Thm.cterm_of ctx (Var (pi,typi))
         val mypifree = Thm.cterm_of ctx (Const ("List.rev",typi --> typi) $ Free (fst pi,typi))
-        val perm_pi_simp = PureThy.get_thms ctx (Name "perm_pi_simp")
+        val perm_pi_simp = dynamic_thms ctx "perm_pi_simp"
     in
         EVERY [tactic ("iffI applied",rtac iffI 1), 
                tactic ("simplifies with orig_thm and perm_bool", 
@@ -136,7 +139,7 @@ fun get_pi t thy =
 	     in 
 		if (Type.of_sort (Sign.tsig_of thy) (ty,[class_name])) 
                 then [(pi,typi)] 
-                else raise EQVT_FORM 
+                else raise EQVT_FORM "Could not find a permutation" 
              end 
         | Abs (_,_,t1) => get_pi_aux t1
         | (t1 $ t2) => get_pi_aux t1 @ get_pi_aux t2
@@ -147,8 +150,28 @@ fun get_pi t thy =
     (* a singleton-list  *)
     (case (distinct (op =) (get_pi_aux t)) of 
       [(pi,typi)] => (pi,typi)
-    | _ => raise EQVT_FORM)
+    | _ => raise EQVT_FORM "All permutation should be the same")
   end;
+
+fun tactic_eqvt_simple_form thy orig_thm = 
+  let val perm_pi_simp = dynamic_thms thy "perm_pi_simp"
+      val _ = (warning "perm_pi_simp :";map print_thm perm_pi_simp)
+  in
+   tactic ("Try to prove simple eqvt form.",
+    asm_full_simp_tac (HOL_basic_ss addsimps [perm_fun_def,orig_thm]@perm_pi_simp) 1)
+  end
+
+fun derive_simple_statement thy oldlhs orig_thm pi typi typrm =
+let val goal_term =
+  case (strip_comb oldlhs) of   
+    (Const (f,t),args) =>  
+       let val lhs = Const ("Nominal.perm",Type ("fun",[typi,Type ("fun",[t,t])])) $ Var(pi,typi) $ Const (f,t)
+       in  Logic.unvarify (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,Const(f,t)))) end
+   | _ => raise EQVT_FORM "Error deriving simple version."
+  val _ = Display.print_cterm (cterm_of thy goal_term)  
+in
+  Goal.prove_global thy [] [] goal_term (fn _ =>  tactic_eqvt_simple_form thy orig_thm)
+end
 
 (* Either adds a theorem (orig_thm) to or deletes one from the equivaraince *)
 (* lemma list depending on flag. To be added the lemma has to satisfy a     *)
@@ -166,20 +189,26 @@ fun eqvt_add_del_aux flag orig_thm context =
              then 
                (warning ("equivariance lemma of the relational form");
                 [orig_thm, get_derived_thm thy hyp concl orig_thm pi typi])
-             else raise EQVT_FORM
+             else raise EQVT_FORM "Type Implication"
           end
-        (* case: eqvt-lemma is of the equational form *)  
+       (* case: eqvt-lemma is of the equational form *)  
       | (Const ("Trueprop", _) $ (Const ("op =", _) $ 
-            (Const ("Nominal.perm",_) $ Var (pi,typi) $ lhs) $ rhs)) =>
-	      (if (apply_pi lhs (pi,typi)) = rhs 
-               then [orig_thm] 
-               else raise EQVT_FORM)
-      | _ => raise EQVT_FORM)
+            (Const ("Nominal.perm",typrm) $ Var (pi,typi) $ lhs) $ rhs)) =>
+	   let val optth = ([derive_simple_statement thy lhs orig_thm pi typi typrm] 
+		handle (ERROR s) => (warning ("Couldn't prove the simple version:\n"^s);[])
+			| _ => (warning "Couldn't prove the simple version";[])
+		)
+	    in
+	   (if (apply_pi lhs (pi,typi)) = rhs 
+               then orig_thm::optth   
+               else raise EQVT_FORM "Type Equality")
+	   end
+      | _ => raise EQVT_FORM "Type unknown")
   in 
       update_context flag thms_to_be_added context
   end
-  handle EQVT_FORM => 
-      error (string_of_thm orig_thm ^ " does not comply with the form of an equivariance lemma.")
+  handle EQVT_FORM s => 
+      error (string_of_thm orig_thm ^ " does not comply with the form of an equivariance lemma ("^s^").")
 
 (* in cases of bij- and freshness, we just add the lemmas to the *)
 (* data-slot *) 
@@ -193,6 +222,7 @@ fun simple_add_del_aux record_access name flag th context =
 
 fun bij_add_del_aux f   = simple_add_del_aux #bij "bij" f
 fun fresh_add_del_aux f = simple_add_del_aux #fresh "fresh" f
+fun eqvt_force_add_del_aux f = simple_add_del_aux #eqvt "eqvt" f
 
 fun eqvt_map f th (r:Data.T)  = {eqvt = (f th (#eqvt r)), fresh = #fresh r, bij = #bij r};
 fun fresh_map f th (r:Data.T) = {eqvt = #eqvt r, fresh = (f th (#fresh r)), bij = #bij r};
@@ -205,10 +235,14 @@ val bij_del   = Thm.declaration_attribute (bij_add_del_aux (bij_map Drule.del_ru
 val fresh_add = Thm.declaration_attribute (fresh_add_del_aux (fresh_map Drule.add_rule)); 
 val fresh_del = Thm.declaration_attribute (fresh_add_del_aux (fresh_map Drule.del_rule));
 
+val eqvt_force_add  = Thm.declaration_attribute (eqvt_force_add_del_aux (eqvt_map Drule.add_rule)); 
+val eqvt_force_del  = Thm.declaration_attribute (eqvt_force_add_del_aux (eqvt_map Drule.del_rule)); 
+
 val setup =
   Data.init #>
   Attrib.add_attributes 
      [("eqvt",  Attrib.add_del_args eqvt_add eqvt_del,   "equivariance theorem declaration"),
+      ("eqvt_force",  Attrib.add_del_args eqvt_force_add eqvt_force_del,"equivariance theorem declaration (without checking the form of the lemma)"),
       ("fresh", Attrib.add_del_args fresh_add fresh_del, "freshness theorem declaration"),
       ("bij",   Attrib.add_del_args bij_add bij_del,     "bijection theorem declaration")];
 

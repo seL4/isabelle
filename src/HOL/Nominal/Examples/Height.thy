@@ -1,9 +1,9 @@
 (* $Id$ *)
 
-(*  Simple, but artificial, problem suggested by D. Wang *)
+(*  Simple problem suggested by D. Wang *)
 
 theory Height
-imports "Nominal"
+imports "../Nominal"
 begin
 
 atom_decl name
@@ -12,7 +12,7 @@ nominal_datatype lam = Var "name"
                      | App "lam" "lam"
                      | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
-text {* definition of the height-function *} 
+text {* definition of the height-function on lambda-terms *} 
 
 consts 
   height :: "lam \<Rightarrow> int"
@@ -29,13 +29,6 @@ nominal_primrec
 
 text {* definition of capture-avoiding substitution *}
 
-lemma eq_eqvt:
-  fixes pi::"name prm"
-  and   x::"'a::pt_name"
-  shows "pi\<bullet>(x=y) = ((pi\<bullet>x)=(pi\<bullet>y))"
-  apply(simp add: perm_bool perm_bij)
-  done
-
 consts
   subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
 
@@ -43,21 +36,21 @@ nominal_primrec
   "(Var x)[y::=t'] = (if x=y then t' else (Var x))"
   "(App t1 t2)[y::=t'] = App (t1[y::=t']) (t2[y::=t'])"
   "\<lbrakk>x\<sharp>y; x\<sharp>t'\<rbrakk> \<Longrightarrow> (Lam [x].t)[y::=t'] = Lam [x].(t[y::=t'])"
-apply(finite_guess add: eq_eqvt perm_if fs_name1)+
+apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh)
-apply(fresh_guess add: eq_eqvt perm_if fs_name1)+
+apply(fresh_guess)+
 done
 
 text{* the next lemma is needed in the Var-case of the theorem *}
 
 lemma height_ge_one: 
   shows "1 \<le> (height e)"
-  by (nominal_induct e rule: lam.induct) 
-     (simp | arith)+
+by (nominal_induct e rule: lam.induct) 
+   (simp | arith)+
 
 text {* unlike the proplem suggested by Wang, however, the 
-        theorem is here formulated here entirely by using 
+        theorem is here formulated  entirely by using 
         functions *}
 
 theorem height_subst:

@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory Lam_Funs
-imports Nominal
+imports "../Nominal"
 begin
 
 atom_decl name
@@ -16,13 +16,13 @@ consts
   depth :: "lam \<Rightarrow> nat"
 
 nominal_primrec
-  "depth (Var x) = 1"
+  "depth (Var x) = (1::nat)"
   "depth (App t1 t2) = (max (depth t1) (depth t2)) + 1"
-  "depth (Lam [a].t) = (depth t) + 1"
-  apply(finite_guess add: perm_nat_def)+
+  "depth (Lam [a].t) = (depth t) + (1::nat)"
+  apply(finite_guess)+
   apply(rule TrueI)+
   apply(simp add: fresh_nat)
-  apply(fresh_guess add: perm_nat_def)+
+  apply(fresh_guess)+
   done
 
 text {* free variables of a lambda-term *}
@@ -34,20 +34,13 @@ nominal_primrec (invariant: "\<lambda>s::name set. finite s")
   "frees (Var a) = {a}"
   "frees (App t1 t2) = (frees t1) \<union> (frees t2)"
   "frees (Lam [a].t) = (frees t) - {a}"
-apply(finite_guess add: perm_insert perm_set_def)
-apply(finite_guess add: perm_union)
-apply(finite_guess add: pt_set_diff_eqvt[OF pt_name_inst, OF at_name_inst] perm_insert)
-apply(simp add: perm_set_def)
-apply(simp add: fs_name1)
-apply(simp)+
+apply(finite_guess)+
+apply(simp)+ 
 apply(simp add: fresh_def)
 apply(simp add: supp_of_fin_sets[OF pt_name_inst, OF at_name_inst, OF fs_at_inst[OF at_name_inst]])
 apply(simp add: supp_atm)
 apply(force)
-apply(fresh_guess add: perm_insert perm_set_def)
-apply(fresh_guess add: perm_union)
-apply(fresh_guess add: pt_set_diff_eqvt[OF pt_name_inst, OF at_name_inst] perm_insert)
-apply(simp add: perm_set_def)
+apply(fresh_guess)+
 done
 
 lemma frees_equals_support:
@@ -57,12 +50,6 @@ by (nominal_induct t rule: lam.induct)
 
 text {* capture-avoiding substitution *}
 
-lemma eq_eqvt:
-  fixes pi::"name prm"
-  and   x::"'a::pt_name"
-  shows "pi\<bullet>(x=y) = ((pi\<bullet>x)=(pi\<bullet>y))"
-  apply(simp add: perm_bool perm_bij)
-  done
 
 consts
   subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
@@ -71,10 +58,10 @@ nominal_primrec
   "(Var x)[y::=t'] = (if x=y then t' else (Var x))"
   "(App t1 t2)[y::=t'] = App (t1[y::=t']) (t2[y::=t'])"
   "x\<sharp>(y,t') \<Longrightarrow> (Lam [x].t)[y::=t'] = Lam [x].(t[y::=t'])"
-apply(finite_guess add: eq_eqvt perm_if fs_name1)+
+apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh)
-apply(fresh_guess add: eq_eqvt perm_if fs_name1)+
+apply(fresh_guess)+
 done
 
 lemma subst_eqvt[simp]:
@@ -97,43 +84,43 @@ done
 text{* parallel substitution *}
 
 consts
-  "domain" :: "(name\<times>lam) list \<Rightarrow> (name list)"
-primrec
-  "domain []    = []"
-  "domain (x#\<theta>) = (fst x)#(domain \<theta>)" 
+ psubst :: "(name\<times>lam) list \<Rightarrow> lam \<Rightarrow> lam" ("_<_>" [100,100] 900)
 
-consts
-  "apply_sss"  :: "(name\<times>lam) list \<Rightarrow> name \<Rightarrow> lam" (" _ < _ >" [80,80] 80)
-primrec  
-"(x#\<theta>)<a>  = (if (a = fst x) then (snd x) else \<theta><a>)" 
+fun
+  lookup :: "(name\<times>lam) list \<Rightarrow> name \<Rightarrow> lam"   
+where
+  "lookup [] x        = Var x"
+  "lookup ((y,T)#\<theta>) x = (if x=y then T else lookup \<theta> x)"
 
-lemma apply_sss_eqvt:
+lemma lookup_eqvt[eqvt]:
   fixes pi::"name prm"
-  assumes a: "a\<in>set (domain \<theta>)"
-  shows "pi\<bullet>(\<theta><a>) = (pi\<bullet>\<theta>)<pi\<bullet>a>"
-using a
-by (induct \<theta>)
-   (auto simp add: perm_bij)
+  and   \<theta>::"(name\<times>lam) list"
+  and   x::"name"
+  shows "pi\<bullet>(lookup \<theta> x) = lookup (pi\<bullet>\<theta>) (pi\<bullet>x)"
+by (induct \<theta>) (auto simp add: perm_bij)
 
-lemma domain_eqvt:
-  fixes pi::"name prm"
-  shows "((pi\<bullet>a)\<in>set (domain \<theta>)) = (a\<in>set (domain ((rev pi)\<bullet>\<theta>)))"
-apply(induct \<theta>)
-apply(auto)
-apply(perm_simp)+
-done
+lemma lookup_fresh:
+  fixes z::"name"
+  assumes "z\<sharp>\<theta>" "z\<sharp>x"
+  shows "z\<sharp> lookup \<theta> x"
+using assms 
+by (induct rule: lookup.induct) (auto simp add: fresh_list_cons)
 
-consts
- psubst :: "lam \<Rightarrow> (name\<times>lam) list \<Rightarrow> lam" ("_[<_>]" [100,100] 900)
+lemma lookup_fresh':
+  assumes "z\<sharp>\<theta>"
+  shows "lookup \<theta> z = Var z"
+using assms 
+by (induct rule: lookup.induct)
+   (auto simp add: fresh_list_cons fresh_prod fresh_atm)
 
 nominal_primrec
-  "(Var x)[<\<theta>>] = (if x\<in>set (domain \<theta>) then \<theta><x> else (Var x))"
-  "(App t1 t2)[<\<theta>>] = App (t1[<\<theta>>]) (t2[<\<theta>>])"
-  "x\<sharp>\<theta>\<Longrightarrow>(Lam [x].t)[<\<theta>>] = Lam [x].(t[<\<theta>>])"
-apply(finite_guess add: domain_eqvt apply_sss_eqvt fs_name1)+
+  "\<theta><(Var x)> = (lookup \<theta> x)"
+  "\<theta><(App t1 t2)> = App (\<theta><t1>) (\<theta><t2>)"
+  "x\<sharp>\<theta>\<Longrightarrow>\<theta><(Lam [x].t)> = Lam [x].(\<theta><t>)"
+apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh)
-apply(fresh_guess add: domain_eqvt apply_sss_eqvt fs_name1)+
+apply(fresh_guess)+
 done
 
 end

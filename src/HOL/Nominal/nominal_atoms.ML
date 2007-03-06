@@ -8,6 +8,9 @@ Declaration of atom types to be used in nominal datatypes.
 signature NOMINAL_ATOMS =
 sig
   val create_nom_typedecls : string list -> theory -> theory
+  type atom_info
+  val get_atom_infos : theory -> atom_info Symtab.table
+  val get_atom_info : theory -> string -> atom_info option
   val atoms_of : theory -> string list
   val mk_permT : typ -> typ
   val setup : theory -> theory
@@ -22,10 +25,15 @@ val Collect_const = thm "Collect_const";
 
 (* data kind 'HOL/nominal' *)
 
+type atom_info =
+  {pt_class : string,
+   fs_class : string,
+   cp_classes : (string * string) list};
+
 structure NominalArgs =
 struct
   val name = "HOL/nominal";
-  type T = unit Symtab.table;
+  type T = atom_info Symtab.table;
 
   val empty = Symtab.empty;
   val copy = I;
@@ -36,6 +44,14 @@ struct
 end;
 
 structure NominalData = TheoryDataFun(NominalArgs);
+
+fun make_atom_info ((pt_class, fs_class), cp_classes) =
+  {pt_class = pt_class,
+   fs_class = fs_class,
+   cp_classes = cp_classes};
+
+val get_atom_infos = NominalData.get;
+val get_atom_info = Symtab.lookup o NominalData.get;
 
 fun atoms_of thy = map fst (Symtab.dest (NominalData.get thy));
 
@@ -259,7 +275,7 @@ fun create_nom_typedecls ak_names thy =
        in  
         AxClass.define_class_i (cl_name, [pt_name]) [] [((cl_name ^ "1", []), [axiom1])] thy            
        end) ak_names_types thy8; 
-
+	 
      (* proves that every fs_<ak>-type together with <ak>-type   *)
      (* instance of fs-type                                      *)
      (* lemma abst_<ak>_inst:                                    *)
@@ -290,7 +306,7 @@ fun create_nom_typedecls ak_names thy =
        (* declares for every atom-kind combination an axclass            *)
        (* cp_<ak1>_<ak2> giving a composition property                   *)
        (* cp_<ak1>_<ak2>1: pi1 o pi2 o x = (pi1 o pi2) o (pi1 o x)       *)
-        val (_,thy12b) = fold_map (fn (ak_name, T) => fn thy =>
+        val (cp_ax_classes,thy12b) = fold_map (fn (ak_name, T) => fn thy =>
 	 fold_map (fn (ak_name', T') => fn thy' =>
 	     let
 	       val cl_name = "cp_"^ak_name^"_"^ak_name';
@@ -684,7 +700,12 @@ fun create_nom_typedecls ak_names thy =
        val fresh_aux_ineq      = thm "Nominal.pt_fresh_aux_ineq";
        val fresh_aux           = thm "Nominal.pt_fresh_aux";
        val fresh_eqvt          = thm "Nominal.pt_fresh_eqvt";
+       val set_eqvt            = thm "Nominal.pt_set_eqvt";
+       val set_diff_eqvt       = thm "Nominal.pt_set_diff_eqvt";
+       val in_eqvt             = thm "Nominal.pt_in_eqvt";
+       val eq_eqvt             = thm "Nominal.pt_eq_eqvt";
        val all_eqvt            = thm "Nominal.pt_all_eqvt";
+       val ex_eqvt             = thm "Nominal.pt_ex_eqvt";
        val pt_pi_rev           = thm "Nominal.pt_pi_rev";
        val pt_rev_pi           = thm "Nominal.pt_rev_pi";
        val at_exists_fresh     = thm "Nominal.at_exists_fresh";
@@ -716,6 +737,7 @@ fun create_nom_typedecls ak_names thy =
 
              (* FIXME: these lists do not need to be created dynamically again *)
 
+             
              (* list of all at_inst-theorems *)
              val ats = map (fn ak => PureThy.get_thm thy32 (Name ("at_"^ak^"_inst"))) ak_names
              (* list of all pt_inst-theorems *)
@@ -736,6 +758,8 @@ fun create_nom_typedecls ak_names thy =
 	       in List.mapPartial I (map djs_fun (Library.product ak_names ak_names)) end;
              (* list of all fs_inst-theorems *)
              val fss = map (fn ak => PureThy.get_thm thy32 (Name ("fs_"^ak^"_inst"))) ak_names
+             (* list of all at_inst-theorems *)
+             val fs_axs = map (fn ak => PureThy.get_thm thy32 (Name ("fs_"^ak^"1"))) ak_names
 
              fun inst_pt thms = Library.flat (map (fn ti => instR ti pts) thms);
              fun inst_at thms = Library.flat (map (fn ti => instR ti ats) thms);
@@ -770,7 +794,8 @@ fun create_nom_typedecls ak_names thy =
             ||>> PureThy.add_thmss [(("supp_atm", (inst_at [at_supp]) @ (inst_dj [dj_supp])),[])]
             ||>> PureThy.add_thmss [(("exists_fresh", inst_at [at_exists_fresh]),[])]
             ||>> PureThy.add_thmss [(("exists_fresh'", inst_at [at_exists_fresh']),[])]
-            ||>> PureThy.add_thmss [(("all_eqvt", inst_pt_at [all_eqvt]),[])]
+            ||>> PureThy.add_thmss [(("all_eqvt", inst_pt_at [all_eqvt]),[NominalThmDecls.eqvt_add])] 
+            ||>> PureThy.add_thmss [(("ex_eqvt", inst_pt_at [ex_eqvt]),[NominalThmDecls.eqvt_add])]
             ||>> PureThy.add_thmss 
 	      let val thms1 = inst_at [at_fresh]
 		  val thms2 = inst_dj [at_fresh_ineq]
@@ -808,19 +833,35 @@ fun create_nom_typedecls ak_names thy =
 	      in [(("fresh_right", thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [fresh_bij]
-		  and thms2 = inst_pt_pt_at_cp [fresh_bij_ineq]
+ 		  and thms2 = inst_pt_pt_at_cp [fresh_bij_ineq]
 	      in [(("fresh_bij", thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [fresh_eqvt]
-	      in [(("fresh_eqvt", thms1),[])] end
+	      in [(("fresh_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
+            ||>> PureThy.add_thmss
+	      let val thms1 = inst_pt_at [in_eqvt]
+	      in [(("in_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
+  	    ||>> PureThy.add_thmss
+	      let val thms1 = inst_pt_at [eq_eqvt]
+	      in [(("eq_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
+	    ||>> PureThy.add_thmss
+	      let val thms1 = inst_pt [set_eqvt]
+	      in [(("set_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
+	    ||>> PureThy.add_thmss
+	      let val thms1 = inst_pt_at [set_diff_eqvt]
+	      in [(("set_diff_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
             ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [fresh_aux]
 		  and thms2 = inst_pt_pt_at_cp_dj [fresh_aux_ineq]
 	      in [(("fresh_aux", thms1 @ thms2),[])] end
+            ||>> PureThy.add_thmss [(("fin_supp",fs_axs),[])]
 	   end;
 
-    in NominalData.put (fold Symtab.update (map (rpair ()) full_ak_names)
-      (NominalData.get thy11)) thy33
+    in 
+      NominalData.map (fold Symtab.update (full_ak_names ~~ map make_atom_info
+        (pt_ax_classes ~~
+         fs_ax_classes ~~
+         map (fn cls => full_ak_names ~~ cls) cp_ax_classes))) thy33
     end;
 
 

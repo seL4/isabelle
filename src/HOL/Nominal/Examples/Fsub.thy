@@ -90,7 +90,7 @@ primrec
 lemma domain_eqvt:
   fixes pi::"tyvrs prm"
   shows "pi\<bullet>(domain \<Gamma>) = domain (pi\<bullet>\<Gamma>)" 
-  by (induct \<Gamma>, simp_all add: perm_empty perm_insert perm_fst)
+  by (induct \<Gamma>) (simp_all add: eqvt)
 
 lemma finite_domain:
   shows "finite (domain \<Gamma>)"
@@ -239,17 +239,10 @@ nominal_primrec
   "size_ty (Top) = 1"
   "size_ty (T1 \<rightarrow> T2) = (size_ty T1) + (size_ty T2) + 1"
   "X\<sharp>T1 \<Longrightarrow> size_ty (\<forall>[X<:T1].T2) = (size_ty T1) + (size_ty T2) + 1"
-  apply (finite_guess add: perm_nat_def)+
+  apply (finite_guess)+
   apply (rule TrueI)+
-  apply (simp add: fresh_def supp_nat)
-  apply (assumption | fresh_guess add: perm_nat_def)+
-  done
-
-lemma eq_eqvt:
-  fixes pi::"tyvrs prm"
-  and   x::"'a::pt_tyvrs"
-  shows "pi\<bullet>(x=y) = ((pi\<bullet>x)=(pi\<bullet>y))"
-  apply(simp add: perm_bool perm_bij)
+  apply (simp add: fresh_nat)
+  apply (fresh_guess)+
   done
 
 consts subst_ty :: "tyvrs \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty"
@@ -265,20 +258,10 @@ nominal_primrec
   "(Top)[Y:=T]\<^isub>t\<^isub>y = Top"
   "(T\<^isub>1 \<rightarrow> T\<^isub>2)[Y:=T]\<^isub>t\<^isub>y = (T\<^isub>1[Y:=T]\<^isub>t\<^isub>y) \<rightarrow> (T\<^isub>2[Y:=T]\<^isub>t\<^isub>y)"
   "\<lbrakk>X\<sharp>(Y,T); X\<sharp>T\<^isub>1\<rbrakk> \<Longrightarrow> (\<forall>[X<:T\<^isub>1].T\<^isub>2)[Y:=T]\<^isub>t\<^isub>y = (\<forall>[X<:(T\<^isub>1[Y:=T]\<^isub>t\<^isub>y)].(T\<^isub>2[Y:=T]\<^isub>t\<^isub>y))"
-  apply (finite_guess add: perm_if eq_eqvt fs_tyvrs1)
-  apply finite_guess
-  apply finite_guess
-  apply finite_guess
-  apply perm_full_simp
-  apply (simp add: supp_unit)
+  apply (finite_guess)+
   apply (rule TrueI)+
   apply (simp add: abs_fresh)
-  apply (fresh_guess add: fs_tyvrs1 perm_if eq_eqvt)
-  apply fresh_guess
-  apply fresh_guess
-  apply fresh_guess
-  apply perm_full_simp
-  apply assumption
+  apply (fresh_guess)+
   done
 
 consts subst_tyc :: "ty_context \<Rightarrow> tyvrs \<Rightarrow> ty \<Rightarrow> ty_context" ("_[_:=_]\<^isub>t\<^isub>y\<^isub>c" [100,100,100] 100)
@@ -357,11 +340,11 @@ lemma subtype_eqvt:
   fixes pi::"tyvrs prm"
   shows "\<Gamma> \<turnstile> S <: T \<Longrightarrow> (pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>S) <: (pi\<bullet>T)"
 apply(erule subtype_of.induct)
-apply(force intro: valid_eqvt closed_in_eqvt)
+apply(force intro: valid_eqvt closed_in_eqvt eqvt)
 apply(force intro!: S_Var
             intro: closed_in_eqvt valid_eqvt 
             dest: pt_set_bij2[OF pt_tyvrs_inst, OF at_tyvrs_inst]
-            simp add: pt_list_set_pi[OF pt_tyvrs_inst, symmetric])
+            simp add: set_eqvt)
 apply(force intro: valid_eqvt
             dest: pt_set_bij2[OF pt_tyvrs_inst, OF at_tyvrs_inst]
             simp add: domain_eqvt)
@@ -400,7 +383,7 @@ proof -
     case (S_Var S T X \<Gamma>)
     have "(X,S) \<in> set \<Gamma>" by fact
     hence "pi\<bullet>(X,S)\<in>pi\<bullet>(set \<Gamma>)" by (rule pt_set_bij2[OF pt_tyvrs_inst, OF at_tyvrs_inst])
-    hence "(pi\<bullet>X,pi\<bullet>S)\<in>set (pi\<bullet>\<Gamma>)" by (simp add: pt_list_set_pi[OF pt_tyvrs_inst])
+    hence "(pi\<bullet>X,pi\<bullet>S)\<in>set (pi\<bullet>\<Gamma>)" by (simp add: set_eqvt)
     moreover
     have "\<Gamma> \<turnstile> S <: T" by fact
     hence "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>S) <: (pi\<bullet>T)" by (rule subtype_eqvt)
@@ -416,7 +399,7 @@ proof -
     moreover
     have "X \<in> domain \<Gamma>" by fact
     hence "(pi\<bullet>X)\<in>pi\<bullet>domain \<Gamma>" by (rule pt_set_bij2[OF pt_tyvrs_inst, OF at_tyvrs_inst])
-    hence "(pi\<bullet>X)\<in>domain (pi\<bullet>\<Gamma>)" by (simp add: domain_eqvt pt_list_set_pi[OF pt_tyvrs_inst])
+    hence "(pi\<bullet>X)\<in>domain (pi\<bullet>\<Gamma>)" by (simp add: domain_eqvt set_eqvt)
     ultimately show "P x (pi\<bullet>\<Gamma>) (pi\<bullet>(Tvar X)) (pi\<bullet>(Tvar X))" by (simp add: a3)
   next
     case S_Arrow thus ?case by (auto intro: a4 subtype_eqvt)

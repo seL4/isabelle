@@ -3,7 +3,7 @@
 (* A challenge suggested by Adam Chlipala *)
 
 theory Compile
-imports "Nominal"
+imports "../Nominal"
 begin
 
 atom_decl name 
@@ -84,19 +84,6 @@ where
 
 text {* capture-avoiding substitution *}
 
-lemma perm_if:
-  fixes pi::"'a prm"
-  shows "pi\<bullet>(if b then c1 else c2) = (if (pi\<bullet>b) then (pi\<bullet>c1) else (pi\<bullet>c2))"
-apply(simp add: perm_fun_def)
-done
-
-lemma eq_eqvt:
-  fixes pi::"name prm"
-  and   x::"'a::pt_name"
-  shows "pi\<bullet>(x=y) = ((pi\<bullet>x)=(pi\<bullet>y))"
-  apply(simp add: perm_bool perm_bij)
-  done
-
 consts
   subst :: "'a \<Rightarrow> name \<Rightarrow> 'a \<Rightarrow> 'a"  ("_[_::=_]" [100,100,100] 100)
 
@@ -113,54 +100,10 @@ nominal_primrec
   "\<lbrakk>z\<noteq>x; x\<sharp>y; x\<sharp>e; x\<sharp>e2; z\<sharp>y; z\<sharp>e; z\<sharp>e1; x\<sharp>t'; z\<sharp>t'\<rbrakk> \<Longrightarrow>
      (Case e of inl x \<rightarrow> e1 | inr z \<rightarrow> e2)[y::=t'] =
        (Case (e[y::=t']) of inl x \<rightarrow> (e1[y::=t']) | inr z \<rightarrow> (e2[y::=t']))"
-  apply (finite_guess add: fs_name1 perm_if eq_eqvt)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess only: fs_name1)
-  apply perm_simp
-  apply (simp add: supp_unit)
-  apply (rule TrueI)+
-  apply (simp add: abs_fresh)
-  apply (simp_all add: abs_fresh)
-  apply (fresh_guess add: fs_name1 perm_if eq_eqvt)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess only: fs_name1)
-  apply perm_simp
-  apply (fresh_guess add: fs_name1 perm_if eq_eqvt)
-  apply (fresh_guess add: fs_name1 perm_if eq_eqvt)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess only: fs_name1)
-  apply perm_simp
-  apply (fresh_guess only: fs_name1)
-  apply perm_simp
+  apply(finite_guess)+
+  apply(rule TrueI)+
+  apply(simp add: abs_fresh)+
+  apply(fresh_guess)+
   done
 
 nominal_primrec (Isubst)
@@ -174,41 +117,20 @@ nominal_primrec (Isubst)
   "(IRef e)[y::=t'] = IRef (e[y::=t'])"
   "(ISeq e1 e2)[y::=t'] = ISeq (e1[y::=t']) (e2[y::=t'])"
   "(Iif e e1 e2)[y::=t'] = Iif (e[y::=t']) (e1[y::=t']) (e2[y::=t'])"
-  apply (finite_guess add: fs_name1 perm_if eq_eqvt)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess only: fs_name1)
-  apply perm_simp
-  apply (simp add: supp_unit)
-  apply (rule TrueI)+
-  apply (simp add: abs_fresh)
-  apply (fresh_guess add: fs_name1 perm_if eq_eqvt)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess only: fs_name1)
-  apply perm_simp
+  apply(finite_guess)+
+  apply(rule TrueI)+
+  apply(simp add: abs_fresh)+
+  apply(fresh_guess)+
   done
 
-lemma Isubst_eqvt:
+lemma Isubst_eqvt[eqvt]:
   fixes pi::"name prm"
   and   t1::"trmI"
   and   t2::"trmI"
   and   x::"name"
   shows "pi\<bullet>(t1[x::=t2]) = ((pi\<bullet>t1)[(pi\<bullet>x)::=(pi\<bullet>t2)])"
   apply (nominal_induct t1 avoiding: x t2 rule: trmI.induct)
-  apply (simp_all add: Isubst.simps perm_if eq_eqvt fresh_bij)
+  apply (simp_all add: Isubst.simps eqvt fresh_bij)
   done
 
 lemma Isubst_supp:
@@ -294,50 +216,10 @@ nominal_primrec
         let v1 = (trans e1) in
         let v2 = (trans e2) in 
         Iif (IRef (ISucc v)) (v2[x2::=IRef (ISucc (ISucc v))]) (v1[x1::=IRef (ISucc (ISucc v))]))"
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1 Let_def perm_nat_def)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1)
-  apply (finite_guess add: fs_name1 Let_def perm_nat_def)
-  apply (finite_guess add: fs_name1 Let_def perm_nat_def)
-  apply (finite_guess add: fs_name1 Let_def Isubst_eqvt)
-  apply (simp add: supp_unit)
-  apply (rule TrueI)+
-  apply (simp add: abs_fresh)
-  apply (simp_all add: abs_fresh Isubst_fresh)
-  apply (fresh_guess add: fs_name1 perm_if eq_eqvt)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1 Let_def perm_nat_def)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1 Let_def perm_nat_def)
-  apply (fresh_guess add: fs_name1 Let_def perm_nat_def)
-  apply (fresh_guess add: fs_name1 Let_def Isubst_eqvt)
-  apply (fresh_guess add: fs_name1 perm_if eq_eqvt)
-  apply (fresh_guess add: fs_name1 perm_if eq_eqvt)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1 Let_def perm_nat_def)
-  apply (fresh_guess add: fs_name1 Let_def perm_nat_def)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1)
-  apply (fresh_guess add: fs_name1 Let_def perm_nat_def)
-  apply (fresh_guess add: fs_name1 Let_def perm_nat_def)
-  apply (fresh_guess add: fs_name1 Let_def perm_nat_def)
-  apply (fresh_guess add: fs_name1 Let_def perm_nat_def)
-  apply (fresh_guess add: fs_name1 Let_def Isubst_eqvt)
-  apply (fresh_guess add: fs_name1 Let_def Isubst_eqvt)
+  apply(finite_guess add: Let_def)+
+  apply(rule TrueI)+
+  apply(simp add: abs_fresh Isubst_fresh)+
+  apply(fresh_guess add: Let_def)+
   done
 
 consts trans_type :: "ty \<Rightarrow> tyI"
