@@ -796,92 +796,44 @@ apply(simp add: CR1_def SN_def)
 apply(force simp add: RED_props)
 done
 
-(* HERE *)
-
-(*
-lemma fresh_domain: 
-  assumes a: "a\<sharp>\<theta>"
-  shows "a\<notin>set(domain \<theta>)"
-using a
-apply(induct \<theta>)
-apply(auto simp add: fresh_prod fresh_list_cons fresh_atm)
-done
-
-lemma fresh_at: 
-  assumes a: "a\<in>set(domain \<theta>)" 
-  and     b: "c\<sharp>\<theta>" 
-  shows "c\<sharp>(\<theta><a>)"
-using a b
-apply(induct \<theta>)   
-apply(auto simp add: fresh_prod fresh_list_cons)
-done
-
-lemma fresh_psubst: 
-  fixes z::"name"
-  and   t::"lam"
-  assumes "z\<sharp>t" "z\<sharp>\<theta>"
-  shows "z\<sharp>(t[<\<theta>>])"
-using assms
-by (nominal_induct t avoiding: z \<theta> t rule: lam.induct)
-   (auto simp add: abs_fresh lookup_fresh)
-
 lemma psubst_subst:
   assumes h:"c\<sharp>\<theta>"
-  shows "(t[<\<theta>>])[c::=s] = t[<((c,s)#\<theta>)>]"
+  shows "(\<theta><t>)[c::=s] = ((c,s)#\<theta>)<t>"
   using h
 by (nominal_induct t avoiding: \<theta> c s rule: lam.induct)
- (auto simp add: fresh_list_cons fresh_atm forget lookup_fresh lookup_fresh' fresh_psubst)
+   (auto simp add: fresh_list_cons fresh_atm forget lookup_fresh lookup_fresh')
+ 
 
+abbreviation 
+ mapsto :: "(name\<times>lam) list \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> bool" ("_ maps _ to _" [55,55,55] 55) 
+where
+ "\<theta> maps x to e\<equiv> (lookup \<theta> x) = e"
+
+abbreviation 
+  closes :: "(name\<times>lam) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" ("_ closes _" [55,55] 55) 
+where
+  "\<theta> closes \<Gamma> \<equiv> \<forall>x T. ((x,T) \<in> set \<Gamma> \<longrightarrow> (\<exists>t. \<theta> maps x to t \<and> t \<in> RED T))"
 
 lemma all_RED: 
-  assumes a: "\<Gamma>\<turnstile>t:\<tau>"
-  and     b: "\<forall>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>) \<longrightarrow> (a\<in>set(domain \<theta>)\<and>\<theta><a>\<in>RED \<sigma>)" 
-  shows "t[<\<theta>>]\<in>RED \<tau>"
+  assumes a: "\<Gamma> \<turnstile> t : \<tau>"
+  and     b: "\<theta> closes \<Gamma>"
+  shows "\<theta><t> \<in> RED \<tau>"
 using a b
-sorry
-
 proof(nominal_induct t avoiding: \<Gamma> \<tau> \<theta> rule: lam.induct)
   case (Lam a t) --"lambda case"
-  have ih: "\<And>\<Gamma> \<tau> \<theta>. \<Gamma> \<turnstile> t:\<tau> \<Longrightarrow> 
-                    (\<forall>c \<sigma>. (c,\<sigma>)\<in>set \<Gamma> \<longrightarrow> c\<in>set (domain \<theta>) \<and>  \<theta><c>\<in>RED \<sigma>) 
-                    \<Longrightarrow> t[<\<theta>>]\<in>RED \<tau>" 
-  and  \<theta>_cond: "\<forall>c \<sigma>. (c,\<sigma>)\<in>set \<Gamma> \<longrightarrow> c\<in>set (domain \<theta>) \<and>  \<theta><c>\<in>RED \<sigma>" 
+  have ih: "\<And>\<Gamma> \<tau> \<theta>. \<Gamma> \<turnstile> t : \<tau> \<Longrightarrow> \<theta> closes \<Gamma> \<Longrightarrow> \<theta><t> \<in> RED \<tau>" 
+  and  \<theta>_cond: "\<theta> closes \<Gamma>" 
   and fresh: "a\<sharp>\<Gamma>" "a\<sharp>\<theta>" 
   and "\<Gamma> \<turnstile> Lam [a].t:\<tau>" by fact
   hence "\<exists>\<tau>1 \<tau>2. \<tau>=\<tau>1\<rightarrow>\<tau>2 \<and> ((a,\<tau>1)#\<Gamma>)\<turnstile>t:\<tau>2" using t3_elim fresh by simp
   then obtain \<tau>1 \<tau>2 where \<tau>_inst: "\<tau>=\<tau>1\<rightarrow>\<tau>2" and typing: "((a,\<tau>1)#\<Gamma>)\<turnstile>t:\<tau>2" by blast
-  from ih have "\<forall>s\<in>RED \<tau>1. t[<\<theta>>][a::=s] \<in> RED \<tau>2" using fresh typing \<theta>_cond
+  from ih have "\<forall>s\<in>RED \<tau>1. \<theta><t>[a::=s] \<in> RED \<tau>2" using fresh typing \<theta>_cond
     by (force dest: fresh_context simp add: psubst_subst)
-  hence "(Lam [a].(t[<\<theta>>])) \<in> RED (\<tau>1 \<rightarrow> \<tau>2)" by (simp only: abs_RED)
-  thus "(Lam [a].t)[<\<theta>>] \<in> RED \<tau>" using fresh \<tau>_inst by simp
+  hence "(Lam [a].(\<theta><t>)) \<in> RED (\<tau>1 \<rightarrow> \<tau>2)" by (simp only: abs_RED)
+  thus "\<theta><(Lam [a].t)> \<in> RED \<tau>" using fresh \<tau>_inst by simp
 qed (force dest!: t1_elim t2_elim)+
-
-
-lemma all_RED: 
-  assumes a: "\<Gamma>\<turnstile>t:\<tau>"
-  and     b: "\<forall>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>) \<longrightarrow> (a\<in>set(domain \<theta>)\<and>\<theta><a>\<in>RED \<sigma>)" 
-  shows "t[<\<theta>>]\<in>RED \<tau>"
-using a b
-sorry
-
-proof(nominal_induct t avoiding: \<Gamma> \<tau> \<theta> rule: lam.induct)
-  case (Lam a t) --"lambda case"
-  have ih: "\<And>\<Gamma> \<tau> \<theta>. \<lbrakk>\<Gamma> \<turnstile> t:\<tau>; \<forall>c \<sigma>. (c,\<sigma>)\<in>set \<Gamma> \<longrightarrow> c\<in>set (domain \<theta>) \<and>  \<theta><c>\<in>RED \<sigma>\<rbrakk> 
-                    \<Longrightarrow> t[<\<theta>>]\<in>RED \<tau>" 
-  and  \<theta>_cond: "\<forall>c \<sigma>. (c,\<sigma>)\<in>set \<Gamma> \<longrightarrow> c\<in>set (domain \<theta>) \<and>  \<theta><c>\<in>RED \<sigma>" 
-  and fresh: "a\<sharp>\<Gamma>" "a\<sharp>\<theta>" 
-  and "\<Gamma> \<turnstile> Lam [a].t:\<tau>" by fact
-  hence "\<exists>\<tau>1 \<tau>2. \<tau>=\<tau>1\<rightarrow>\<tau>2 \<and> ((a,\<tau>1)#\<Gamma>)\<turnstile>t:\<tau>2" using t3_elim fresh by simp
-  then obtain \<tau>1 \<tau>2 where \<tau>_inst: "\<tau>=\<tau>1\<rightarrow>\<tau>2" and typing: "((a,\<tau>1)#\<Gamma>)\<turnstile>t:\<tau>2" by blast
-  from ih have "\<forall>s\<in>RED \<tau>1. t[<\<theta>>][a::=s] \<in> RED \<tau>2" using fresh typing \<theta>_cond
-    by (force dest: fresh_context simp add: psubst_subst)
-  hence "(Lam [a].(t[<\<theta>>])) \<in> RED (\<tau>1 \<rightarrow> \<tau>2)" by (simp only: abs_RED)
-  thus "(Lam [a].t)[<\<theta>>] \<in> RED \<tau>" using fresh \<tau>_inst by simp
-qed (force dest!: t1_elim t2_elim)+
-*)
 
 (* identity substitution generated from a context \<Gamma> *)
-(*
 consts
   "id" :: "(name\<times>ty) list \<Rightarrow> (name\<times>lam) list"
 primrec
@@ -889,9 +841,7 @@ primrec
   "id (x#\<Gamma>) = ((fst x),Var (fst x))#(id \<Gamma>)"
 
 lemma id_var:
-  assumes a: "a \<in> set (domain (id \<Gamma>))"
-  shows "(id \<Gamma>)<a> = Var a"
-using a
+  shows "(id \<Gamma>) maps a to Var a"
 apply(induct \<Gamma>, auto)
 done
 
@@ -904,35 +854,31 @@ apply(induct \<Gamma>)
 apply(auto simp add: fresh_list_nil fresh_list_cons fresh_prod)
 done
 
+
 lemma id_apply:  
-  shows "t[<(id \<Gamma>)>] = t"
+  shows "(id \<Gamma>)<t> = t"
 apply(nominal_induct t avoiding: \<Gamma> rule: lam.induct)
 apply(auto)
-sorry
-
-apply(simp add: id_var)
+apply(rule id_var)
 apply(drule id_fresh)+
 apply(simp)
 done
 
-
 lemma id_mem:
   assumes a: "(a,\<tau>)\<in>set \<Gamma>"
-  shows "a \<in> set (domain (id \<Gamma>))"
+  shows "lookup (id \<Gamma>) a = Var a"
 using a
 apply(induct \<Gamma>, auto)
 done
 
 lemma id_prop:
-  shows "\<forall>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>) \<longrightarrow> (a\<in>set(domain (id \<Gamma>))\<and>(id \<Gamma>)<a>\<in>RED \<sigma>)"
+  shows "(id \<Gamma>) closes \<Gamma>"
 apply(auto)
 apply(simp add: id_mem)
-apply(frule id_mem)
-apply(simp add: id_var)
-apply(subgoal_tac "CR3 \<sigma>") --"A"
+apply(subgoal_tac "CR3 T") --"A"
 apply(drule CR3_CR4)
 apply(simp add: CR4_def)
-apply(drule_tac x="Var a" in spec)
+apply(drule_tac x="Var x" in spec)
 apply(force simp add: NEUT_def NORMAL_Var)
 --"A"
 apply(rule RED_props)
@@ -942,9 +888,9 @@ lemma typing_implies_RED:
   assumes a: "\<Gamma>\<turnstile>t:\<tau>"
   shows "t \<in> RED \<tau>"
 proof -
-  have "t[<id \<Gamma>>]\<in>RED \<tau>" 
+  have "(id \<Gamma>)<t>\<in>RED \<tau>" 
   proof -
-    have "\<forall>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>) \<longrightarrow> (a\<in>set(domain (id \<Gamma>))\<and>(id \<Gamma>)<a>\<in>RED \<sigma>)" by (rule id_prop)
+    have "(id \<Gamma>) closes \<Gamma>" by (rule id_prop)
     with a show ?thesis by (rule all_RED)
   qed
   thus"t \<in> RED \<tau>" by (simp add: id_apply)
@@ -960,5 +906,4 @@ proof -
   ultimately show "SN(t)" by (simp add: CR1_def)
 qed
 
-*)
 end
