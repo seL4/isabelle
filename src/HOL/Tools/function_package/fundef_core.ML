@@ -628,7 +628,7 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
     val P_lhs = assume step
            |> fold forall_elim cqs
            |> implies_elim_swp lhs_D 
-           |> fold_rev implies_elim_swp ags
+           |> fold implies_elim_swp ags
            |> fold implies_elim_swp P_recs
           
     val res = cterm_of thy (Trueprop (P $ x))
