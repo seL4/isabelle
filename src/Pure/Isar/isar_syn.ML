@@ -809,8 +809,10 @@ val criterion =
 val find_theoremsP =
   OuterSyntax.improper_command "find_theorems"
     "print theorems meeting specified criteria" K.diag
-    (Scan.option (P.$$$ "(" |-- P.!!! (P.nat --| P.$$$ ")")) --
-     Scan.optional (P.reserved "with_dups" >> K false) true -- 
+    (Scan.optional (P.$$$ "(" |-- P.!!!
+                        (Scan.option P.nat --
+                         Scan.optional (P.reserved "with_dups" >> K false) true
+                         --| P.$$$ ")")) (NONE, false) --
      Scan.repeat (((Scan.option P.minus >> is_none) -- criterion))
       >> (Toplevel.no_timing oo IsarCmd.find_theorems));
 
