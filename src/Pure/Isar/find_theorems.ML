@@ -233,7 +233,7 @@ fun all_filters filters thms =
 end;
 
 
-(* removing duplicates, preferring nicer names *)
+(* removing duplicates, preferring nicer names, roughly n log n *)
 
 fun rem_thm_dups xs =
   let
@@ -245,21 +245,24 @@ fun rem_thm_dups xs =
       | nicer (NameSelection (x, _)) (NameSelection (y, _)) = size x <= size y
       | nicer (NameSelection _) _ = false;
 
-    fun is_in [] _ = NONE
-      | is_in ((n, t) :: xs) t' =
-          if Thm.eq_thm (t, t') then SOME (n, t) else is_in xs t';
+    fun rem_cdups xs =
+      let
+        fun rem_c rev_seen [] = rev rev_seen
+          | rem_c rev_seen [x] = rem_c (x::rev_seen) []
+          | rem_c rev_seen ((x as ((n,t),_))::(y as ((n',t'),_))::xs) =
+            if Thm.eq_thm_prop (t,t')
+            then if nicer n n'
+                 then rem_c rev_seen (x::xs)
+                 else rem_c rev_seen (y::xs)
+            else rem_c (x::rev_seen) (y::xs)
+      in rem_c [] xs end;
 
-    fun eq ((_, t1), (_, t2)) = Thm.eq_thm (t1, t2);
-
-    fun rem_d (rev_seen, []) = rev rev_seen
-      | rem_d (rev_seen, (x as (n', t')) :: xs) =
-          (case is_in rev_seen t' of
-            NONE => rem_d (x :: rev_seen, xs)
-          | SOME (n, t) =>
-              if nicer n n'
-              then rem_d (rev_seen, xs)
-              else rem_d (x :: remove eq (n, t) rev_seen, xs))
-  in rem_d ([], xs) end;
+  in ListPair.zip (xs, 1 upto length xs)
+     |> sort (Term.fast_term_ord o pairself (prop_of o #2 o #1))
+     |> rem_cdups
+     |> sort (int_ord o pairself #2)
+     |> map #1
+  end;
 
 
 (* print_theorems *)
@@ -279,7 +282,7 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
 
     val raw_matches = all_filters filters (find_thms ctxt ([], []));
     val matches =
-      if rem_dups andalso not (null filters)
+      if rem_dups
       then rem_thm_dups raw_matches
       else raw_matches;
 
