@@ -150,14 +150,16 @@ fun defs loc some_class kind args lthy0 =
            (*rhs' == rhs*)   Thm.symmetric rhs_conv];
         val lthy4 = case some_class
          of SOME class => 
-              LocalTheory.raw_theory
+              lthy3
+              |> LocalTheory.raw_theory
                 (ClassPackage.add_def_in_class lthy3 class
-                  ((c, mx), ((name, atts), (rhs, eq)))) lthy3
+                  ((c, mx), ((name, atts), (rhs, eq))))
           | _ => lthy3;
       in ((lhs, ((name', atts), [([eq], [])])), lthy4) end;
 
     val ((lhss, facts), lthy') = lthy0 |> fold_map def args |>> split_list;
     val (res, lthy'') = lthy' |> LocalTheory.notes kind facts;
+
   in (lhss ~~ map (apsnd the_single) res, lthy'') end;
 
 end;

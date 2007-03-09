@@ -1634,8 +1634,7 @@ proof -
 	by (auto dest!: stat_overrides_commonD)
       from super old wf accmodi_old
       have accmodi_super_method: "Protected \<le> accmodi super_method"
-	by (auto dest!: wf_prog_stat_overridesD
-                 intro: order_trans)
+	by (auto dest!: wf_prog_stat_overridesD)
       from super accmodi_old wf
       have inheritable: "G\<turnstile>Methd sig super_method inheritable_in (pid C)"
 	by (auto dest!: wf_prog_stat_overridesD
@@ -1747,8 +1746,7 @@ proof -
     then have "\<not> is_static new" by (auto dest: stat_overrides_commonD)
     with Overriding not_static_old accmodi_old wf 
     show ?thesis 
-      by (auto dest!: wf_prog_stat_overridesD
-               intro: order_trans)
+      by (auto dest!: wf_prog_stat_overridesD)
   qed
 qed
  	      

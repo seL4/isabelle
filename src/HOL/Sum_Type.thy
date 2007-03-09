@@ -7,7 +7,7 @@
 header{*The Disjoint Sum of Two Types*}
 
 theory Sum_Type
-imports Product_Type
+imports Typedef Fun
 begin
 
 text{*The representations of the two injections*}

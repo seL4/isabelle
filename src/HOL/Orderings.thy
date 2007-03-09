@@ -228,7 +228,7 @@ lemma leD: "y \<sqsubseteq> x \<Longrightarrow> \<not> x \<sqsubset> y"
 lemma not_leE: "\<not> y \<sqsubseteq> x \<Longrightarrow> x \<sqsubset> y"
   unfolding not_le .
 
-(* min/max *)
+text {* min/max *}
 
 definition
   min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
@@ -821,6 +821,7 @@ lemma [code func]:
   "False < b \<longleftrightarrow> b"
   "True < b \<longleftrightarrow> False"
   unfolding le_bool_def less_bool_def by simp_all
+
 
 subsection {* Monotonicity, syntactic least value operator and min/max *}
 

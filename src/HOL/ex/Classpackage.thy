@@ -2,7 +2,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Test and examples for new class package *}
+header {* Test and examples for Isar class package *}
 
 theory Classpackage
 imports Main
@@ -328,6 +328,7 @@ by default (simp_all add: split_paired_all mult_prod_def one_prod_def inv_prod_d
 instance * :: (group_comm, group_comm) group_comm
 by default (simp_all add: split_paired_all mult_prod_def comm)
 
+ 
 definition
   "X a b c = (a \<otimes> \<one> \<otimes> b, a \<otimes> \<one> \<otimes> b, [a, b] \<otimes> \<one> \<otimes> [a, b, c])"
 definition

@@ -323,7 +323,7 @@ lemma msg_Nonce_supply: "\<exists>N. \<forall>n. N\<le>n --> Nonce n \<notin> pa
 apply (induct_tac "msg")
 apply (simp_all (no_asm_simp) add: exI parts_insert2)
  txt{*MPair case: blast works out the necessary sum itself!*}
- prefer 2 apply (blast elim!: add_leE)
+ prefer 2 apply auto apply (blast elim!: add_leE)
 txt{*Nonce case*}
 apply (rule_tac x = "N + Suc nat" in exI, auto) 
 done

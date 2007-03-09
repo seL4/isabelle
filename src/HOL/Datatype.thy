@@ -726,7 +726,9 @@ lemmas [code] = fst_conv snd_conv imp_conv_disj
 
 definition
   is_none :: "'a option \<Rightarrow> bool" where
-  is_none_none [normal post, symmetric, code inline]: "is_none x \<longleftrightarrow> x = None"
+  is_none_none [normal post, symmetric]: "is_none x \<longleftrightarrow> x = None"
+
+lemmas [code inline] = is_none_none
 
 lemma is_none_code [code]:
   shows "is_none None \<longleftrightarrow> True"
