@@ -53,15 +53,16 @@ fun purify_op "0" = "zero"
   | purify_op "1" = "one"
   | purify_op s =
       let
-        fun rep_op "+" = SOME "sum"
-          | rep_op "-" = SOME "diff"
-          | rep_op "*" = SOME "prod"
-          | rep_op "/" = SOME "quotient"
-          | rep_op "&" = SOME "conj"
-          | rep_op "|" = SOME "disj"
+        fun rep_op "+" = SOME "plus"
+          | rep_op "-" = SOME "minus"
+          | rep_op "*" = SOME "times"
+          | rep_op "/" = SOME "divide"
+          | rep_op "&" = SOME "and"
+          | rep_op "|" = SOME "or"
           | rep_op "=" = SOME "eq"
           | rep_op "~" = SOME "inv"
           | rep_op "@" = SOME "append"
+          | rep_op "{" = SOME "empty"
           | rep_op s = NONE;
         val scan_valids = Symbol.scanner "Malformed input"
            (Scan.repeat (Scan.some rep_op || Scan.one Symbol.not_eof));
@@ -110,7 +111,10 @@ fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
   | NONE => error ("Invalid name in context: " ^ quote name);
 
 
-(** identifier categories **)
+
+(** global names (identifiers) **)
+
+(* identifier categories *)
 
 val idf_class = "class";
 val idf_classrel = "clsrel"
@@ -144,118 +148,6 @@ in
 val category_of = the o AList.lookup (op =) name_mapping o NameSpace.base;
 
 end;
-
-
-(** global names (identifiers) **)
-
-(* theory data *)
-
-type tyco = string;
-type const = string;
-val string_pair_ord = prod_ord fast_string_ord fast_string_ord;
-val eq_string_pair = is_equal o string_pair_ord;
-structure Consttab = CodegenConsts.Consttab;
-
-structure StringPairTab =
-  TableFun(
-    type key = string * string;
-    val ord = string_pair_ord;
-  );
-
-datatype names = Names of {
-  class: class Symtab.table * class Symtab.table,
-  classrel: string StringPairTab.table * (class * class) Symtab.table,
-  tyco: tyco Symtab.table * tyco Symtab.table,
-  instance: string StringPairTab.table * (class * tyco) Symtab.table,
-  const: const Consttab.table * (string * typ list) Symtab.table
-}
-
-val empty_names = Names {
-  class = (Symtab.empty, Symtab.empty),
-  classrel = (StringPairTab.empty, Symtab.empty),
-  tyco = (Symtab.empty, Symtab.empty),
-  instance = (StringPairTab.empty, Symtab.empty),
-  const = (Consttab.empty, Symtab.empty)
-};
-
-local
-  fun mk_names (class, classrel, tyco, instance, const) =
-    Names { class = class, classrel = classrel, tyco = tyco, instance = instance, const = const};
-  fun map_names f (Names { class, classrel, tyco, instance, const }) =
-    mk_names (f (class, classrel, tyco, instance, const));
-  val eq_string = op = : string * string -> bool;
-in
-  fun merge_names (Names { class = (class1, classrev1),
-      classrel = (classrel1, classrelrev1), tyco = (tyco1, tycorev1),
-      instance = (instance1, instancerev1), const = (const1, constrev1) },
-    Names { class = (class2, classrev2),
-      classrel = (classrel2, classrelrev2), tyco = (tyco2, tycorev2),
-      instance = (instance2, instancerev2), const = (const2, constrev2) }) =
-    mk_names ((Symtab.merge eq_string (class1, class2), Symtab.merge eq_string (classrev1, classrev2)),
-      (StringPairTab.merge eq_string (classrel1, classrel2), Symtab.merge eq_string_pair (classrelrev1, classrelrev2)),
-      (Symtab.merge eq_string (tyco1, tyco2), Symtab.merge eq_string (tycorev1, tycorev2)),
-      (StringPairTab.merge eq_string (instance1, instance2), Symtab.merge eq_string_pair (instancerev1, instancerev2)),
-      (Consttab.merge eq_string (const1, const2), Symtab.merge CodegenConsts.eq_const (constrev1, constrev2)));
-  fun map_class f = map_names
-    (fn (class, classrel, tyco, inst, const) => (f class, classrel, tyco, inst, const));
-  fun map_classrel f = map_names
-    (fn (class, classrel, tyco, inst, const) => (class, f classrel, tyco, inst, const));
-  fun map_tyco f = map_names
-    (fn (class, classrel, tyco, inst, const) => (class, classrel, f tyco, inst, const));
-  fun map_instance f = map_names
-    (fn (class, classrel, tyco, inst, const) => (class, classrel, tyco, f inst, const));
-  fun map_const f = map_names
-    (fn (class, classrel, tyco, inst, const) => (class, classrel, tyco, inst, f const));
-
-end; (*local*)
-
-structure CodeName = TheoryDataFun
-(struct
-  val name = "Pure/codegen_names";
-  type T = names ref;
-  val empty = ref empty_names;
-  fun copy (ref names) = ref names;
-  val extend = copy;
-  fun merge _ (ref names1, ref names2) = ref (merge_names (names1, names2));
-  fun print _ _ = ();
-end);
-
-val _ = Context.add_setup CodeName.init;
-
-
-(* forward lookup with cache update *)
-
-fun get thy get_tabs get upd_names upd policy x =
-  let
-    val names_ref = CodeName.get thy
-    val (Names names) = ! names_ref;
-    val tabs = get_tabs names;
-    fun declare name =
-      let
-        val names' = upd_names (K (upd (x, name) (fst tabs),
-          Symtab.update_new (name, x) (snd tabs))) (Names names)
-      in (names_ref := names'; name) end;
-  in case get (fst tabs) x
-   of SOME name => name
-    | NONE => 
-        x
-        |> policy thy
-        |> Name.variant (Symtab.keys (snd tabs))
-        |> declare
-  end;
-
-
-(* backward lookup *)
-
-fun rev thy get_tabs name =
-  let
-    val names_ref = CodeName.get thy
-    val (Names names) = ! names_ref;
-    val tab = (snd o get_tabs) names;
-  in case Symtab.lookup tab name
-   of SOME x => x
-    | NONE => error ("No such " ^ category_of name ^ ": " ^ quote name)
-  end;
 
 
 (* theory name lookup *)
@@ -345,6 +237,154 @@ fun const_policy thy (c, tys) =
       in NameSpace.implode (prefix @ [space_implode "_" base]) end;
 
 
+(* theory and code data *)
+
+type tyco = string;
+type const = string;
+val string_pair_ord = prod_ord fast_string_ord fast_string_ord;
+val eq_string_pair = is_equal o string_pair_ord;
+structure Consttab = CodegenConsts.Consttab;
+
+structure StringPairTab =
+  TableFun(
+    type key = string * string;
+    val ord = string_pair_ord;
+  );
+
+datatype names = Names of {
+  class: class Symtab.table * class Symtab.table,
+  classrel: string StringPairTab.table * (class * class) Symtab.table,
+  tyco: tyco Symtab.table * tyco Symtab.table,
+  instance: string StringPairTab.table * (class * tyco) Symtab.table,
+  const: const Consttab.table * (string * typ list) Symtab.table
+}
+
+val empty_names = Names {
+  class = (Symtab.empty, Symtab.empty),
+  classrel = (StringPairTab.empty, Symtab.empty),
+  tyco = (Symtab.empty, Symtab.empty),
+  instance = (StringPairTab.empty, Symtab.empty),
+  const = (Consttab.empty, Symtab.empty)
+};
+
+val eq_string = op = : string * string -> bool;
+
+local
+  fun mk_names (class, classrel, tyco, instance, const) =
+    Names { class = class, classrel = classrel, tyco = tyco, instance = instance, const = const};
+  fun map_names f (Names { class, classrel, tyco, instance, const }) =
+    mk_names (f (class, classrel, tyco, instance, const));
+in
+  fun merge_names (Names { class = (class1, classrev1),
+      classrel = (classrel1, classrelrev1), tyco = (tyco1, tycorev1),
+      instance = (instance1, instancerev1), const = (const1, constrev1) },
+    Names { class = (class2, classrev2),
+      classrel = (classrel2, classrelrev2), tyco = (tyco2, tycorev2),
+      instance = (instance2, instancerev2), const = (const2, constrev2) }) =
+    mk_names ((Symtab.merge eq_string (class1, class2), Symtab.merge eq_string (classrev1, classrev2)),
+      (StringPairTab.merge eq_string (classrel1, classrel2), Symtab.merge eq_string_pair (classrelrev1, classrelrev2)),
+      (Symtab.merge eq_string (tyco1, tyco2), Symtab.merge eq_string (tycorev1, tycorev2)),
+      (StringPairTab.merge eq_string (instance1, instance2), Symtab.merge eq_string_pair (instancerev1, instancerev2)),
+      (Consttab.merge eq_string (const1, const2), Symtab.merge CodegenConsts.eq_const (constrev1, constrev2)));
+  fun map_class f = map_names
+    (fn (class, classrel, tyco, inst, const) => (f class, classrel, tyco, inst, const));
+  fun map_classrel f = map_names
+    (fn (class, classrel, tyco, inst, const) => (class, f classrel, tyco, inst, const));
+  fun map_tyco f = map_names
+    (fn (class, classrel, tyco, inst, const) => (class, classrel, f tyco, inst, const));
+  fun map_instance f = map_names
+    (fn (class, classrel, tyco, inst, const) => (class, classrel, tyco, f inst, const));
+  fun map_const f = map_names
+    (fn (class, classrel, tyco, inst, const) => (class, classrel, tyco, inst, f const));
+end; (*local*)
+
+structure CodeName = TheoryDataFun
+(struct
+  val name = "Pure/codegen_names";
+  type T = names ref;
+  val empty = ref empty_names;
+  fun copy (ref names) = ref names;
+  val extend = copy;
+  fun merge _ (ref names1, ref names2) = ref (merge_names (names1, names2));
+  fun print _ _ = ();
+end);
+
+structure ConstName = CodeDataFun
+(struct
+  val name = "Pure/codegen_names";
+  type T = const Consttab.table * (string * typ list) Symtab.table;
+  val empty = (Consttab.empty, Symtab.empty);
+  fun merge _ ((const1, constrev1), (const2, constrev2)) =
+    (Consttab.merge eq_string (const1, const2),
+      Symtab.merge CodegenConsts.eq_const (constrev1, constrev2));
+  fun purge _ NONE _ = empty
+    | purge _ (SOME cs) (const, constrev) = (fold Consttab.delete_safe cs const,
+        fold Symtab.delete (map_filter (Consttab.lookup const) cs) constrev);
+end);
+
+val _ = Context.add_setup (CodeName.init #> ConstName.init);
+
+
+(* forward lookup with cache update *)
+
+fun get thy get_tabs get upd_names upd policy x =
+  let
+    val names_ref = CodeName.get thy;
+    val (Names names) = ! names_ref;
+    val tabs = get_tabs names;
+    fun declare name =
+      let
+        val names' = upd_names (K (upd (x, name) (fst tabs),
+          Symtab.update_new (name, x) (snd tabs))) (Names names)
+      in (names_ref := names'; name) end;
+  in case get (fst tabs) x
+   of SOME name => name
+    | NONE => 
+        x
+        |> policy thy
+        |> Name.variant (Symtab.keys (snd tabs))
+        |> declare
+  end;
+
+fun get_const thy const =
+  let
+    val tabs = ConstName.get thy;
+    fun declare name =
+      let
+        val names' = (Consttab.update (const, name) (fst tabs),
+          Symtab.update_new (name, const) (snd tabs))
+      in (ConstName.change thy (K names'); name) end;
+  in case Consttab.lookup (fst tabs) const
+   of SOME name => name
+    | NONE => 
+        const
+        |> const_policy thy
+        |> Name.variant (Symtab.keys (snd tabs))
+        |> declare
+  end;
+
+
+(* backward lookup *)
+
+fun rev thy get_tabs name =
+  let
+    val names_ref = CodeName.get thy
+    val (Names names) = ! names_ref;
+    val tab = (snd o get_tabs) names;
+  in case Symtab.lookup tab name
+   of SOME x => x
+    | NONE => error ("No such " ^ category_of name ^ ": " ^ quote name)
+  end;
+
+fun rev_const thy name =
+  let
+    val tab = snd (ConstName.get thy);
+  in case Symtab.lookup tab name
+   of SOME const => const
+    | NONE => error ("No such " ^ category_of name ^ ": " ^ quote name)
+  end;
+
+
 (* external interfaces *)
 
 fun class thy =
@@ -361,7 +401,7 @@ fun instance thy =
   #> add_idf idf_instance;
 fun const thy =
   CodegenConsts.norm thy
-  #> get thy #const Consttab.lookup map_const Consttab.update const_policy 
+  #> get_const thy
   #> add_idf idf_const;
 
 fun class_rev thy =
@@ -378,7 +418,7 @@ fun instance_rev thy =
   #> Option.map (rev thy #instance);
 fun const_rev thy =
   dest_idf idf_const
-  #> Option.map (rev thy #const);
+  #> Option.map (rev_const thy);
 
 local
 
