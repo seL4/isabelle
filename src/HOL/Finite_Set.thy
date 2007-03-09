@@ -2447,10 +2447,10 @@ using max.fold1_in
 by(fastsimp simp: Max_def max_def)
 
 lemma Min_antimono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Min N \<le> Min M"
-by(simp add:Finite_Set.Min_def min.fold1_antimono)
+  by (simp add: Min_def min.fold1_antimono)
 
 lemma Max_mono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Max M \<le> Max N"
-by(simp add:Max_def max.fold1_antimono)
+  by (simp add: Max_def max.fold1_antimono)
 
 lemma Min_le [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> Min A \<le> x"
 by(simp add: Min_def min.fold1_belowI)
@@ -2502,12 +2502,12 @@ by(simp add:Max_def max.f.fold1_Un2)
 lemma hom_Min_commute:
  "(!!x y::'a::linorder. h(min x y) = min (h x) (h y::'a))
   \<Longrightarrow> finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> h(Min N) = Min(h ` N)"
-by(simp add:Finite_Set.Min_def min.hom_fold1_commute)
+  by (simp add: Min_def min.hom_fold1_commute)
 
 lemma hom_Max_commute:
  "(!!x y::'a::linorder. h(max x y) = max (h x) (h y::'a))
   \<Longrightarrow> finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> h(Max N) = Max(h ` N)"
-by(simp add:Max_def max.hom_fold1_commute)
+  by( simp add: Max_def max.hom_fold1_commute)
 
 
 lemma add_Min_commute: fixes k::"'a::{pordered_ab_semigroup_add,linorder}"
@@ -2628,12 +2628,18 @@ proof
 qed
 
 
-subsection {* Equality on functions *}
+subsection {* Equality and order on functions *}
 
 instance "fun" :: (finite, eq) eq ..
 
 lemma eq_fun [code func]:
   "f = g \<longleftrightarrow> (\<forall>x\<Colon>'a\<Colon>finite \<in> UNIV. (f x \<Colon> 'b\<Colon>eq) = g x)"
   unfolding expand_fun_eq by auto
+
+lemma order_fun [code func]:
+  "f \<le> g \<longleftrightarrow> (\<forall>x\<Colon>'a\<Colon>finite \<in> UNIV. (f x \<Colon> 'b\<Colon>order) \<le> g x)"
+  "f < g \<longleftrightarrow> f \<le> g \<and> (\<exists>x\<Colon>'a\<Colon>finite \<in> UNIV. (f x \<Colon> 'b\<Colon>order) < g x)"
+  unfolding le_fun_def less_fun_def less_le
+  by (auto simp add: expand_fun_eq)
 
 end
