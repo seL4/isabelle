@@ -148,11 +148,7 @@ and ensure_def_tyco thy algbr funcgr strct "fun" trns =
       let
         fun defgen_datatype trns =
           let
-            val (vs, cos) = case CodegenData.get_datatype thy tyco
-             of SOME x => x
-              | NONE => (Name.invents Name.context "'a" (Sign.arity_number thy tyco)
-                  |> map (rpair (Sign.defaultS thy)) , [])
-              (*FIXME move to CodegenData*)
+            val (vs, cos) = CodegenData.get_datatype thy tyco;
           in
             trns
             |> fold_map (exprgen_tyvar_sort thy algbr funcgr strct) vs

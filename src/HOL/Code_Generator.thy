@@ -87,7 +87,9 @@ code_const "op ="
   (Haskell infixl 4 "==")
 
 
-text {* boolean expressions *}
+text {* type bool *}
+
+code_datatype True False
 
 lemma [code func]:
   shows "(False \<and> x) = False"
@@ -152,18 +154,22 @@ code_reserved OCaml
   bool true false not
 
 
-text {* itself as a code generator datatype *}
+text {* type prop *}
 
-setup {*
-  let
-    val v = ("'a", []);
-    val t = Logic.mk_type (TFree v);
-    val Const (c, ty) = t;
-    val (_, Type (dtco, _)) = strip_type ty;
-  in
-    CodegenData.add_datatype (dtco, (([v], [(c, [])]), CodegenData.lazy (fn () => [])))
-  end
-*} 
+code_datatype Trueprop "prop"
+
+
+text {* type itself *}
+
+code_datatype "TYPE('a)"
+
+
+text {* prevent unfolding of quantifier definitions *}
+
+lemma [code func]:
+  "Ex = Ex"
+  "All = All"
+  by rule+
 
 
 text {* code generation for arbitrary as exception *}

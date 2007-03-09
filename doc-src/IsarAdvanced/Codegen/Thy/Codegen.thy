@@ -1187,8 +1187,8 @@ text %mlref {*
   @{index_ML CodegenData.add_preproc: "string * (theory -> thm list -> thm list)
     -> theory -> theory"} \\
   @{index_ML CodegenData.del_preproc: "string -> theory -> theory"} \\
-  @{index_ML CodegenData.add_datatype: "string * (((string * sort) list * (string * typ list) list)
-    * thm list Susp.T) -> theory -> theory"} \\
+  @{index_ML CodegenData.add_datatype: "string * ((string * sort) list * (string * typ list) list)
+    -> theory -> theory"} \\
   @{index_ML CodegenData.del_datatype: "string -> theory -> theory"} \\
   @{index_ML CodegenData.get_datatype: "theory -> string
     -> ((string * sort) list * (string * typ list) list) option"} \\
@@ -1232,14 +1232,12 @@ text %mlref {*
   \item @{ML CodegenData.del_preproc}~@{text "name"}~@{text "thy"} removes
      generic preprcoessor named @{text name} from executable content.
 
-  \item @{ML CodegenData.add_datatype}~@{text "(name, (spec, cert))"}~@{text "thy"} adds
+  \item @{ML CodegenData.add_datatype}~@{text "(name, spec)"}~@{text "thy"} adds
      a datatype to executable content, with type constructor
      @{text name} and specification @{text spec}; @{text spec} is
      a pair consisting of a list of type variable with sort
      constraints and a list of constructors with name
-     and types of arguments.  The addition as datatype
-     has to be justified giving a certificate of suspended
-     theorems as witnesses for injectiveness and distinctness.
+     and types of arguments.
 
   \item @{ML CodegenData.del_datatype}~@{text "name"}~@{text "thy"}
      remove a datatype from executable content, if present.

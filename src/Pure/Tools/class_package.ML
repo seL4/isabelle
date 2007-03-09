@@ -27,8 +27,6 @@ sig
   val instance_sort_cmd: string * string -> theory -> Proof.state
   val prove_instance_sort: tactic -> class * sort -> theory -> theory
 
-  val assume_arities_of_sort: theory -> arity list -> typ * sort -> bool
-
   (* experimental class target *)
   val class_of_locale: theory -> string -> class option
   val add_def_in_class: local_theory -> string
@@ -105,17 +103,6 @@ fun axclass_params (name, raw_superclasses) raw_consts raw_dep_axioms other_cons
   end;
 
 
-(* contexts with arity assumptions *)
-
-fun assume_arities_of_sort thy arities ty_sort =
-  let
-    val pp = Sign.pp thy;
-    val algebra = Sign.classes_of thy
-      |> fold (fn (tyco, asorts, sort) =>
-           Sorts.add_arities pp (tyco, map (fn class => (class, asorts)) sort)) arities;
-  in Sorts.of_sort algebra ty_sort end;
-
-
 (* instances with implicit parameter handling *)
 
 local
@@ -141,7 +128,7 @@ fun gen_instance_arity prep_arity read_def do_proof raw_arities raw_defs theory 
     val _ = case (duplicates (op =) o map #1) arities
      of [] => ()
       | dupl_tycos => error ("type constructors occur more than once in arities: "
-        ^ (commas o map quote) dupl_tycos);
+          ^ (commas o map quote) dupl_tycos);
     val super_sort = (Graph.all_succs o #classes o Sorts.rep_algebra o Sign.classes_of) theory
     fun get_consts_class tyco ty class =
       let
@@ -179,7 +166,6 @@ fun gen_instance_arity prep_arity read_def do_proof raw_arities raw_defs theory 
       in fold_map read defs cs end;
     val (defs, _) = read_defs raw_defs cs
       (fold Sign.primitive_arity arities (Theory.copy theory));
-
     fun get_remove_contraint c thy =
       let
         val ty = Sign.the_const_constraint thy c;
@@ -334,7 +320,6 @@ fun add_primdef (class, thm) thy =
 
 
 (* exporting terms and theorems to global toplevel *)
-(*FIXME should also be used when introducing classes*)
 
 fun globalize thy classes =
   let
@@ -379,6 +364,7 @@ val _ = Context.add_setup (Method.add_methods
     "back-chain introduction rules of classes"),
   ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac),
     "apply some intro/elim rule")]);
+
 
 (* tactical interfaces to locale commands *)
 
@@ -431,13 +417,6 @@ val fully_qualified = ref false;
 
 local
 
-fun add_axclass (name, supsort) params axs thy =
-  let
-    val (c, thy') = thy
-      |> AxClass.define_class_i (name, supsort) params axs;
-    val {intro, axioms, ...} = AxClass.get_definition thy' c;
-  in ((c, (intro, axioms)), thy') end;
-
 fun certify_class thy class =
   tap (the_class_data thy) (Sign.certify_class thy class);
 
@@ -454,27 +433,28 @@ fun gen_class add_locale prep_class prep_param bname raw_supclasses raw_elems ra
     (*val subst_classtyvars = Element.map_ctxt {name = I, var = I, term = I,
       typ = Term.map_type_tfree subst_classtyvar, fact = I, attrib = I};*)
     val other_consts = map (prep_param thy) raw_other_consts;
-    val elems = fold_rev (fn Locale.Elem e => cons e | _ => I)
-      raw_elems []; (*FIXME make include possible here?*)
+    val (elems, includes) = fold_rev (fn Locale.Elem e => apfst (cons e)
+      | Locale.Expr i => apsnd (cons i)) raw_elems ([], []);
     val supclasses = map (prep_class thy) raw_supclasses;
     val supsort =
       supclasses
       |> Sign.certify_sort thy
-      |> (fn [] => Sign.defaultS thy | S => S);    (*FIXME Why syntax defaultS?*)
-    val supexpr = Locale.Merge
-      (map (Locale.Locale o #locale o the_class_data thy) supclasses);
-    val supparams = (map fst o Locale.parameters_of_expr thy) supexpr;
+      |> (fn [] => Sign.defaultS thy | S => S); (*FIXME Why syntax defaultS?*)
+    val suplocales = map (Locale.Locale o #locale o the_class_data thy) supclasses;
+    val supexpr = Locale.Merge (suplocales @ includes);
+    val supparams = (map fst o Locale.parameters_of_expr thy)
+      (Locale.Merge suplocales);
     val supconsts = AList.make
       (the o AList.lookup (op =) (param_map thy supclasses)) (map fst supparams);
-      (*FIXME include proper*)
     (*val elems_constrains = map
       (Element.Constrains o apsnd (Term.map_type_tfree subst_classtyvar)) supparams;*)
     fun extract_params thy name_locale =
-      let
+      let   
         val params = Locale.parameters_of thy name_locale;
       in
         (map (fst o fst) params, params
-        |> (map o apfst o apsnd o Term.map_type_tfree) (K (TFree (AxClass.param_tyvarname, Sign.defaultS thy)))
+        |> (map o apfst o apsnd o Term.map_type_tfree)
+             (K (TFree (AxClass.param_tyvarname, Sign.defaultS thy)))
         |> (map o apsnd) (fork_mixfix true NONE #> fst)
         |> chop (length supconsts)
         |> snd)
@@ -486,8 +466,8 @@ fun gen_class add_locale prep_class prep_param bname raw_supclasses raw_elems ra
               Const ((fst o the o AList.lookup (op =) consts) c, ty)
           | subst t = t;
         fun prep_asm ((name, atts), ts) =
-          (*FIXME: name handling?*)
-          ((NameSpace.base name, map (Attrib.attribute thy) atts), (map o map_aterms) subst ts);
+          ((NameSpace.base name, map (Attrib.attribute thy) atts),
+            (map o map_aterms) subst ts);
       in
         Locale.global_asms_of thy name_locale
         |> map prep_asm
@@ -578,17 +558,24 @@ fun print_witness wit =
 
 fun add_def_in_class lthy class ((c, syn), ((name, atts), (rhs, eq))) thy =
   let
+    val prfx = (Logic.const_of_class o NameSpace.base) class;
     val rhs' = global_term thy [class] rhs;
     val (syn', _) = fork_mixfix true NONE syn;
     val ty = Term.fastype_of rhs';
+    fun mk_name thy c =
+      let
+        val n1 = Sign.full_name thy c;
+        val n2 = NameSpace.qualifier n1;
+        val n3 = NameSpace.base n1;
+      in NameSpace.implode [n2, prfx, n3] end;
     fun add_const (c, ty, syn) =
       Sign.add_consts_authentic [(c, ty, syn)]
-      #> pair (Sign.full_name thy c, ty);
+      #> pair (mk_name thy c, ty);
     fun add_def ((name, atts), prop) thy =
       thy
       |> PureThy.add_defs_i false [((name, prop), map (Attrib.attribute thy) atts)]
       |>> the_single;
-    (*val _ = Output.info "------ DEF ------";
+    val _ = Output.info "------ DEF ------";
     val _ = Output.info c;
     val _ = Output.info name;
     val _ = (Output.info o Sign.string_of_term thy) rhs';
@@ -603,12 +590,14 @@ fun add_def_in_class lthy class ((c, syn), ((name, atts), (rhs, eq))) thy =
     val _ = map print_witness witness;
     val _ = (Output.info o string_of_thm) eq';
     val eq'' = Element.satisfy_thm witness eq';
-    val _ = (Output.info o string_of_thm) eq'';*)
+    val _ = (Output.info o string_of_thm) eq'';
   in
     thy
-    (*|> add_const (c, ty, syn')
+    |> Sign.add_path prfx
+    |> add_const (c, ty, syn')
     |-> (fn c => add_def ((name, atts), Logic.mk_equals (Const c, rhs')))
-    |-> (fn global_def_thm => tap (fn _ => (Output.info o string_of_thm) global_def_thm))*)
+    |-> (fn global_def_thm => tap (fn _ => (Output.info o string_of_thm) global_def_thm))
+    |> Sign.restore_naming thy
   end;
 
 end;

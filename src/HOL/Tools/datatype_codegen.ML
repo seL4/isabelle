@@ -9,8 +9,6 @@ signature DATATYPE_CODEGEN =
 sig
   val get_eq: theory -> string -> thm list
   val get_eq_datatype: theory -> string -> thm list
-  val get_cert: theory -> bool * string -> thm list
-  val get_cert_datatype: theory -> string -> thm list
   val dest_case_expr: theory -> term
     -> ((string * typ) list * ((term * typ) * (term * term) list)) option
   val add_datatype_case_const: string -> theory -> theory
@@ -28,7 +26,7 @@ sig
     -> (string * (arity * term list)) list option
   val prove_codetypes_arities: tactic -> (string * bool) list -> sort
     -> (arity list -> (string * term list) list -> theory
-    -> ((bstring * Attrib.src list) * term) list * theory)
+      -> ((bstring * Attrib.src list) * term) list * theory)
     -> (arity list -> (string * term list) list -> theory -> theory)
     -> theory -> theory
 
@@ -379,35 +377,6 @@ fun mk_distinct cos =
   in map mk_dist (sym_product cos) end;
 
 local
-  val bool_eq_implies = iffD1;
-  val rew_eq = thm "HOL.atomize_eq" |> Thm.symmetric;
-  val rew_conj = thm "HOL.atomize_conj" |> Thm.symmetric;
-  val not_false_true = iffD2 OF [nth (thms "HOL.simp_thms") 7, TrueI];
-  val not_eq_quodlibet = thm "not_eq_quodlibet";
-in
-
-fun get_cert_datatype thy dtco =
-  let
-    val SOME (vs, cs) = DatatypePackage.get_datatype_spec thy dtco;
-    val inject = (#inject o DatatypePackage.the_datatype thy) dtco
-      |> map (fn thm => bool_eq_implies OF [thm] )
-      |> map (MetaSimplifier.rewrite_rule [rew_eq, rew_conj]);
-    val ctxt = ProofContext.init thy;
-    val simpset = Simplifier.context ctxt
-      (MetaSimplifier.empty_ss addsimprocs [DatatypePackage.distinct_simproc]);
-    val cos = map (fn (co, tys) =>
-        (Const (co, tys ---> Type (dtco, map TFree vs)), tys)) cs;
-    val tac = ALLGOALS (simp_tac simpset)
-      THEN ALLGOALS (ProofContext.fact_tac [not_false_true, TrueI]);
-    val distinct =
-      mk_distinct cos
-      |> map (fn t => Goal.prove_global thy [] [] t (K tac))
-      |> map (fn thm => not_eq_quodlibet OF [thm])
-  in inject @ distinct end
-
-end;
-
-local
   val not_sym = thm "HOL.not_sym";
   val not_false_true = iffD2 OF [nth (thms "HOL.simp_thms") 7, TrueI];
   val refl = thm "refl";
@@ -496,9 +465,6 @@ fun get_spec thy (dtco, true) =
   | get_spec thy (tyco, false) =
       TypecopyPackage.get_spec thy tyco;
 
-fun get_cert thy (true, dtco) = get_cert_datatype thy dtco
-  | get_cert thy (false, dtco) = [TypecopyPackage.get_cert thy dtco];
-
 local
   fun get_eq_thms thy tyco = case DatatypePackage.get_datatype thy tyco
    of SOME _ => get_eq_datatype thy tyco
@@ -559,19 +525,19 @@ fun the_codetypes_mut_specs thy ([(tyco, is_dt)]) =
 
 (* registering code types in code generator *)
 
-fun codetype_hook specs =
-  let
-    fun add (dtco, (flag, spec)) thy =
-      let
-        fun cert thy_ref = (fn () => get_cert (Theory.deref thy_ref) (flag, dtco));
-      in
-        CodegenData.add_datatype
-          (dtco, (spec, CodegenData.lazy (cert (Theory.self_ref thy)))) thy
-      end;
-  in fold add specs end;
+val codetype_hook =
+  fold (fn (dtco, (_, spec)) => CodegenData.add_datatype (dtco, spec));
 
 
 (* instrumentalizing the sort algebra *)
+
+(*fun assume_arities_of_sort thy arities ty_sort =
+  let
+    val pp = Sign.pp thy;
+    val algebra = Sign.classes_of thy
+      |> fold (fn (tyco, asorts, sort) =>
+           Sorts.add_arities pp (tyco, map (fn class => (class, asorts)) sort)) arities;
+  in Sorts.of_sort algebra ty_sort end;
 
 fun get_codetypes_arities thy tycos sort =
   let
@@ -588,7 +554,7 @@ fun get_codetypes_arities thy tycos sort =
     fun typ_of_sort ty =
       let
         val arities = map (fn (tyco, _) => (tyco, map snd vs, sort)) css;
-      in ClassPackage.assume_arities_of_sort thy arities (ty, sort) end;
+      in assume_arities_of_sort thy arities (ty, sort) end;
     fun mk_cons tyco (c, tys) =
       let
         val ts = Name.names Name.context "a" tys;
@@ -598,7 +564,34 @@ fun get_codetypes_arities thy tycos sort =
     then SOME (
       map (fn (tyco, cs) => (tyco, (mk_arity tyco, map (mk_cons tyco) cs))) css
     ) else NONE
-  end;
+  end;*)
+
+fun get_codetypes_arities thy tycos sort =
+  let
+    val pp = Sign.pp thy;
+    val algebra = Sign.classes_of thy;
+    val (vs_proto, css_proto) = the_codetypes_mut_specs thy tycos;
+    val vs = map (fn (v, vsort) => (v, Sorts.inter_sort algebra (vsort, sort))) vs_proto;
+    val css = map (fn (tyco, (_, cs)) => (tyco, cs)) css_proto;
+    val algebra' = algebra
+      |> fold (fn (tyco, _) =>
+           Sorts.add_arities pp (tyco, map (fn class => (class, map snd vs)) sort)) css;
+    fun typ_sort_inst ty = CodegenConsts.typ_sort_inst algebra' (Logic.varifyT ty, sort);
+    val venv = Vartab.empty
+      |> fold (fn (v, sort) => Vartab.update_new ((v, 0), sort)) vs
+      |> fold (fn (_, cs) => fold (fn (_, tys) => fold typ_sort_inst tys) cs) css;
+    fun inst (v, _) = (v, (the o Vartab.lookup venv) (v, 0));
+    val vs' = map inst vs;
+    fun mk_arity tyco = (tyco, map snd vs', sort);
+    fun mk_cons tyco (c, tys) =
+      let
+        val tys' = (map o Term.map_type_tfree) (TFree o inst) tys;
+        val ts = Name.names Name.context "a" tys';
+        val ty = (tys' ---> Type (tyco, map TFree vs'));
+      in list_comb (Const (c, ty), map Free ts) end;
+  in
+    map (fn (tyco, cs) => (tyco, (mk_arity tyco, map (mk_cons tyco) cs))) css |> SOME
+  end handle Class_Error => NONE;
 
 fun prove_codetypes_arities tac tycos sort f after_qed thy =
   case get_codetypes_arities thy tycos sort

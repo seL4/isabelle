@@ -159,7 +159,7 @@ code_const "Suc"
   (Haskell "!((_) + 1)")
 
 setup {*
-  CodegenData.del_datatype "nat"
+  CodegenData.add_datatype ("nat", ([], []))
 *}
 
 types_code
