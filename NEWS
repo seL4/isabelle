@@ -505,6 +505,105 @@ the graph browser tool.
 
 *** HOL ***
 
+* Some steps towards more uniform lattice theory development in HOL.  Obvious changes:
+
+    constants "meet" and "join" now named "inf" and "sup"
+    constant "Meet" now named "Inf"
+
+  theorem renames:
+    meet_left_le            ~> inf_le1
+    meet_right_le           ~> inf_le2
+    join_left_le            ~> sup_ge1
+    join_right_le           ~> sup_ge2
+    meet_join_le            ~> inf_sup_ord
+    le_meetI                ~> le_infI
+    join_leI                ~> le_supI
+    le_meet                 ~> le_inf_iff
+    le_join                 ~> ge_sup_conv
+    meet_idempotent         ~> inf_idem
+    join_idempotent         ~> sup_idem
+    meet_comm               ~> inf_commute
+    join_comm               ~> sup_commute
+    meet_leI1               ~> le_infI1
+    meet_leI2               ~> le_infI2
+    le_joinI1               ~> le_supI1
+    le_joinI2               ~> le_supI2
+    meet_assoc              ~> inf_assoc
+    join_assoc              ~> sup_assoc
+    meet_left_comm          ~> inf_left_commute
+    meet_left_idempotent    ~> inf_left_idem
+    join_left_comm          ~> sup_left_commute
+    join_left_idempotent    ~> sup_left_idem
+    meet_aci                ~> inf_aci
+    join_aci                ~> sup_aci
+    le_def_meet             ~> le_iff_inf
+    le_def_join             ~> le_iff_sup
+    join_absorp2            ~> sup_absorb2
+    join_absorp1            ~> sup_absorb1
+    meet_absorp1            ~> inf_absorb1
+    meet_absorp2            ~> inf_absorb2
+    meet_join_absorp        ~> inf_sup_absorb
+    join_meet_absorp        ~> sup_inf_absorb
+    distrib_join_le         ~> distrib_sup_le
+    distrib_meet_le         ~> distrib_inf_le
+
+    add_meet_distrib_left   ~> add_inf_distrib_left
+    add_join_distrib_left   ~> add_sup_distrib_left
+    is_join_neg_meet        ~> is_join_neg_inf
+    is_meet_neg_join        ~> is_meet_neg_sup
+    add_meet_distrib_right  ~> add_inf_distrib_right
+    add_join_distrib_right  ~> add_sup_distrib_right
+    add_meet_join_distribs  ~> add_sup_inf_distribs
+    join_eq_neg_meet        ~> sup_eq_neg_inf
+    meet_eq_neg_join        ~> inf_eq_neg_sup
+    add_eq_meet_join        ~> add_eq_inf_sup
+    meet_0_imp_0            ~> inf_0_imp_0
+    join_0_imp_0            ~> sup_0_imp_0
+    meet_0_eq_0             ~> inf_0_eq_0
+    join_0_eq_0             ~> sup_0_eq_0
+    neg_meet_eq_join        ~> neg_inf_eq_sup
+    neg_join_eq_meet        ~> neg_sup_eq_inf
+    join_eq_if              ~> sup_eq_if
+
+    mono_meet               ~> mono_inf
+    mono_join               ~> mono_sup
+    meet_bool_eq            ~> inf_bool_eq
+    join_bool_eq            ~> sup_bool_eq
+    meet_fun_eq             ~> inf_fun_eq
+    join_fun_eq             ~> sup_fun_eq
+    meet_set_eq             ~> inf_set_eq
+    join_set_eq             ~> sup_set_eq
+    meet1_iff               ~> inf1_iff
+    meet2_iff               ~> inf2_iff
+    meet1I                  ~> inf1I
+    meet2I                  ~> inf2I
+    meet1D1                 ~> inf1D1
+    meet2D1                 ~> inf2D1
+    meet1D2                 ~> inf1D2
+    meet2D2                 ~> inf2D2
+    meet1E                  ~> inf1E
+    meet2E                  ~> inf2E
+    join1_iff               ~> sup1_iff
+    join2_iff               ~> sup2_iff
+    join1I1                 ~> sup1I1
+    join2I1                 ~> sup2I1
+    join1I1                 ~> sup1I1
+    join2I2                 ~> sup1I2
+    join1CI                 ~> sup1CI
+    join2CI                 ~> sup2CI
+    join1E                  ~> sup1E
+    join2E                  ~> sup2E
+
+    is_meet_Meet            ~> is_meet_Inf
+    Meet_bool_def           ~> Inf_bool_def
+    Meet_fun_def            ~> Inf_fun_def
+    Meet_greatest           ~> Inf_greatest
+    Meet_lower              ~> Inf_lower
+    Meet_set_def            ~> Inf_set_def
+
+    listsp_meetI            ~> listsp_infI
+    listsp_meet_eq          ~> listsp_inf_eq
+
 * Class (axclass + locale) "preorder" and "linear": facts "refl", "trans" and
 "cases" renamed ro "order_refl", "order_trans" and "linorder_cases", to
 avoid clashes with HOL "refl" and "trans". INCOMPATIBILITY.

@@ -374,8 +374,8 @@ val blacklist = ref
    "NatSimprocs.zero_less_divide_iff_number_of",
    "OrderedGroup.abs_0_eq", (*duplicate by symmetry*)
    "OrderedGroup.diff_eq_0_iff_eq", (*prolific?*)
-   "OrderedGroup.join_0_eq_0",
-   "OrderedGroup.meet_0_eq_0",
+   "OrderedGroup.sup_0_eq_0",
+   "OrderedGroup.inf_0_eq_0",
    "OrderedGroup.pprt_eq_0",   (*obscure*)
    "OrderedGroup.pprt_eq_id",   (*obscure*)
    "OrderedGroup.pprt_mono",   (*obscure*)

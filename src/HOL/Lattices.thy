@@ -16,42 +16,47 @@ operations. The extension to finite sets is done in theory @{text
 Finite_Set}. In the longer term it may be better to define arbitrary
 sups and infs via @{text THE}. *}
 
-locale lower_semilattice = order +
+class lower_semilattice = order +
   fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
-  assumes inf_le1[simp]: "x \<sqinter> y \<sqsubseteq> x" and inf_le2[simp]: "x \<sqinter> y \<sqsubseteq> y"
+  assumes inf_le1 [simp]: "x \<sqinter> y \<sqsubseteq> x" and inf_le2 [simp]: "x \<sqinter> y \<sqsubseteq> y"
   and inf_greatest: "x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<sqinter> z"
 
-locale upper_semilattice = order +
+class upper_semilattice = order +
   fixes sup :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
-  assumes sup_ge1[simp]: "x \<sqsubseteq> x \<squnion> y" and sup_ge2[simp]: "y \<sqsubseteq> x \<squnion> y"
+  assumes sup_ge1 [simp]: "x \<sqsubseteq> x \<squnion> y" and sup_ge2 [simp]: "y \<sqsubseteq> x \<squnion> y"
   and sup_least: "y \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> x \<Longrightarrow> y \<squnion> z \<sqsubseteq> x"
 
-locale lattice = lower_semilattice + upper_semilattice
+class lattice = lower_semilattice + upper_semilattice
 
 subsubsection{* Intro and elim rules*}
 
 context lower_semilattice
 begin
 
-lemmas antisym_intro[intro!] = antisym
+lemmas antisym_intro [intro!] = antisym
+lemmas (in -) [rule del] = antisym_intro
 
 lemma le_infI1[intro]: "a \<sqsubseteq> x \<Longrightarrow> a \<sqinter> b \<sqsubseteq> x"
 apply(subgoal_tac "a \<sqinter> b \<sqsubseteq> a")
  apply(blast intro: order_trans)
 apply simp
 done
+lemmas (in -) [rule del] = le_infI1
 
 lemma le_infI2[intro]: "b \<sqsubseteq> x \<Longrightarrow> a \<sqinter> b \<sqsubseteq> x"
 apply(subgoal_tac "a \<sqinter> b \<sqsubseteq> b")
  apply(blast intro: order_trans)
 apply simp
 done
+lemmas (in -) [rule del] = le_infI2
 
 lemma le_infI[intro!]: "x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> x \<sqsubseteq> a \<sqinter> b"
 by(blast intro: inf_greatest)
+lemmas (in -) [rule del] = le_infI
 
-lemma le_infE[elim!]: "x \<sqsubseteq> a \<sqinter> b \<Longrightarrow> (x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> P) \<Longrightarrow> P"
-by(blast intro: order_trans)
+lemma le_infE [elim!]: "x \<sqsubseteq> a \<sqinter> b \<Longrightarrow> (x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> P) \<Longrightarrow> P"
+  by (blast intro: order_trans)
+lemmas (in -) [rule del] = le_infE
 
 lemma le_inf_iff [simp]:
  "x \<sqsubseteq> y \<sqinter> z = (x \<sqsubseteq> y \<and> x \<sqsubseteq> z)"
@@ -66,25 +71,31 @@ end
 context upper_semilattice
 begin
 
-lemmas antisym_intro[intro!] = antisym
+lemmas antisym_intro [intro!] = antisym
+lemmas (in -) [rule del] = antisym_intro
 
 lemma le_supI1[intro]: "x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> a \<squnion> b"
 apply(subgoal_tac "a \<sqsubseteq> a \<squnion> b")
  apply(blast intro: order_trans)
 apply simp
 done
+lemmas (in -) [rule del] = le_supI1
 
 lemma le_supI2[intro]: "x \<sqsubseteq> b \<Longrightarrow> x \<sqsubseteq> a \<squnion> b"
 apply(subgoal_tac "b \<sqsubseteq> a \<squnion> b")
  apply(blast intro: order_trans)
 apply simp
 done
+lemmas (in -) [rule del] = le_supI2
 
 lemma le_supI[intro!]: "a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> a \<squnion> b \<sqsubseteq> x"
 by(blast intro: sup_least)
+lemmas (in -) [rule del] = le_supI
 
 lemma le_supE[elim!]: "a \<squnion> b \<sqsubseteq> x \<Longrightarrow> (a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> P) \<Longrightarrow> P"
-by(blast intro: order_trans)
+  by (blast intro: order_trans)
+lemmas (in -) [rule del] = le_supE
+
 
 lemma ge_sup_conv[simp]:
  "x \<squnion> y \<sqsubseteq> z = (x \<sqsubseteq> z \<and> y \<sqsubseteq> z)"
@@ -247,25 +258,24 @@ apply (simp add: max_def linorder_not_le order_less_imp_le)
 apply (simp add: max_def linorder_not_le order_less_imp_le)
 unfolding min_def max_def by auto
 
-text{* Now we have inherited antisymmetry as an intro-rule on all
-linear orders. This is a problem because it applies to bool, which is
-undesirable. *}
+text {*
+  Now we have inherited antisymmetry as an intro-rule on all
+  linear orders. This is a problem because it applies to bool, which is
+  undesirable.
+*}
 
-declare
- min_max.antisym_intro[rule del]
- min_max.le_infI[rule del] min_max.le_supI[rule del]
- min_max.le_supE[rule del] min_max.le_infE[rule del]
- min_max.le_supI1[rule del] min_max.le_supI2[rule del]
- min_max.le_infI1[rule del] min_max.le_infI2[rule del]
+lemmas [rule del] = min_max.antisym_intro  min_max.le_infI min_max.le_supI
+  min_max.le_supE min_max.le_infE min_max.le_supI1 min_max.le_supI2
+  min_max.le_infI1 min_max.le_infI2
 
 lemmas le_maxI1 = min_max.sup_ge1
 lemmas le_maxI2 = min_max.sup_ge2
  
 lemmas max_ac = min_max.sup_assoc min_max.sup_commute
-               mk_left_commute[of max,OF min_max.sup_assoc min_max.sup_commute]
+  mk_left_commute [of max, OF min_max.sup_assoc min_max.sup_commute]
 
 lemmas min_ac = min_max.inf_assoc min_max.inf_commute
-               mk_left_commute[of min,OF min_max.inf_assoc min_max.inf_commute]
+  mk_left_commute [of min, OF min_max.inf_assoc min_max.inf_commute]
 
 text {* ML legacy bindings *}
 

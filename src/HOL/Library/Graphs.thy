@@ -155,10 +155,10 @@ qed
 
 
 defs (overloaded)
-  Meet_graph_def: "Meet == \<lambda>Gs. Graph (\<Inter>(dest_graph ` Gs))"
+  Inf_graph_def: "Inf == \<lambda>Gs. Graph (\<Inter>(dest_graph ` Gs))"
 
 instance graph :: (type, type) comp_lat
-  by default (auto simp:Meet_graph_def is_join_def graph_leq_def le_fun_def le_bool_def in_grplus has_edge_def)
+  by default (auto simp: Inf_graph_def is_join_def graph_leq_def le_fun_def le_bool_def in_grplus has_edge_def)
 
 lemma plus_graph_is_join: "is_join ((op +)::('a::type, 'b::monoid_mult) graph \<Rightarrow> ('a,'b) graph \<Rightarrow> ('a,'b) graph)"
   unfolding is_join_def 
@@ -172,7 +172,7 @@ qed
 
 lemma plus_is_join:
   "(op +) =
-  (join :: ('a::type, 'b::monoid_mult) graph \<Rightarrow> ('a,'b) graph \<Rightarrow> ('a,'b) graph)"
+  (sup :: ('a::type, 'b::monoid_mult) graph \<Rightarrow> ('a,'b) graph \<Rightarrow> ('a,'b) graph)"
   using plus_graph_is_join by (simp add:join_unique)
 
 instance graph :: (type, monoid_mult) semiring_1
@@ -693,7 +693,7 @@ lemma sub_path_loop:
 proof (rule prod_eqI)
   show "fst ?\<omega> = fst loop"
     by (auto simp:path_loop_def path_nth_def split_def k)
-  
+
   show "snd ?\<omega> = snd loop"
   proof (rule nth_equalityI[rule_format])
     show leneq: "length (snd ?\<omega>) = length (snd loop)"
@@ -716,11 +716,5 @@ proof (rule prod_eqI)
       by (simp add:path_nth_def)
   qed
 qed
-      
-
-
-
-
-
 
 end

@@ -163,7 +163,7 @@ lemma square_beta_eta: "square beta eta (eta^**) (beta^==)"
     iff del: dB.distinct simp: dB.distinct)    (*23 seconds?*)
   done
 
-lemma confluent_beta_eta: "confluent (join beta eta)"
+lemma confluent_beta_eta: "confluent (sup beta eta)"
   apply (assumption |
     rule square_rtrancl_reflcl_commute confluent_Un
       beta_confluent eta_confluent square_beta_eta)+
@@ -366,7 +366,7 @@ next
 qed
 
 theorem eta_postponement:
-  assumes st: "(join beta eta)\<^sup>*\<^sup>* s t"
+  assumes st: "(sup beta eta)\<^sup>*\<^sup>* s t"
   shows "(eta\<^sup>*\<^sup>* OO beta\<^sup>*\<^sup>*) s t" using st
 proof induct
   case 1

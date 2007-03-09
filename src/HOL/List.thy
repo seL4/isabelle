@@ -2228,21 +2228,21 @@ lemma listsp_mono [mono2]: "A \<le> B ==> listsp A \<le> listsp B"
 
 lemmas lists_mono [mono] = listsp_mono [to_set]
 
-lemma listsp_meetI:
-  assumes l: "listsp A l" shows "listsp B l ==> listsp (meet A B) l" using l
+lemma listsp_infI:
+  assumes l: "listsp A l" shows "listsp B l ==> listsp (inf A B) l" using l
   by induct blast+
 
-lemmas lists_IntI = listsp_meetI [to_set]
+lemmas lists_IntI = listsp_infI [to_set]
 
-lemma listsp_meet_eq [simp]: "listsp (meet A B) = meet (listsp A) (listsp B)"
-proof (rule mono_meet [where f=listsp, THEN order_antisym])
+lemma listsp_inf_eq [simp]: "listsp (inf A B) = inf (listsp A) (listsp B)"
+proof (rule mono_inf [where f=listsp, THEN order_antisym])
   show "mono listsp" by (simp add: mono_def listsp_mono)
-  show "meet (listsp A) (listsp B) \<le> listsp (meet A B)" by (blast intro: listsp_meetI)
+  show "inf (listsp A) (listsp B) \<le> listsp (inf A B)" by (blast intro: listsp_infI)
 qed
 
-lemmas listsp_conj_eq [simp] = listsp_meet_eq [simplified meet_fun_eq meet_bool_eq]
+lemmas listsp_conj_eq [simp] = listsp_inf_eq [simplified inf_fun_eq inf_bool_eq]
 
-lemmas lists_Int_eq [simp] = listsp_meet_eq [to_set]
+lemmas lists_Int_eq [simp] = listsp_inf_eq [to_set]
 
 lemma append_in_listsp_conv [iff]:
      "(listsp A (xs @ ys)) = (listsp A xs \<and> listsp A ys)"
@@ -2791,14 +2791,14 @@ text {*
 *}
 
 lemma mem_iff [normal post]:
-  "(x mem xs) = (x \<in> set xs)"
+  "x mem xs \<longleftrightarrow> x \<in> set xs"
   by (induct xs) auto
 
 lemmas in_set_code [code unfold] =
   mem_iff [symmetric, THEN eq_reflection]
 
 lemma empty_null [code inline]:
-  "(xs = []) = null xs"
+  "xs = [] \<longleftrightarrow> null xs"
   by (cases xs) simp_all
 
 lemmas null_empty [normal post] =
@@ -2809,22 +2809,22 @@ lemma list_inter_conv:
   by (induct xs) auto
 
 lemma list_all_iff [normal post]:
-  "list_all P xs = (\<forall>x \<in> set xs. P x)"
+  "list_all P xs \<longleftrightarrow> (\<forall>x \<in> set xs. P x)"
   by (induct xs) auto
 
 lemmas list_ball_code [code unfold] =
   list_all_iff [symmetric, THEN eq_reflection]
 
 lemma list_all_append [simp]:
-  "list_all P (xs @ ys) = (list_all P xs \<and> list_all P ys)"
+  "list_all P (xs @ ys) \<longleftrightarrow> (list_all P xs \<and> list_all P ys)"
   by (induct xs) auto
 
 lemma list_all_rev [simp]:
-  "list_all P (rev xs) = list_all P xs"
+  "list_all P (rev xs) \<longleftrightarrow> list_all P xs"
   by (simp add: list_all_iff)
 
 lemma list_ex_iff [normal post]:
-  "list_ex P xs = (\<exists>x \<in> set xs. P x)"
+  "list_ex P xs \<longleftrightarrow> (\<exists>x \<in> set xs. P x)"
   by (induct xs) simp_all
 
 lemmas list_bex_code [code unfold] =

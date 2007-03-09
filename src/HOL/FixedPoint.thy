@@ -12,16 +12,17 @@ imports Product_Type LOrder
 begin
 
 subsection {* Complete lattices *}
-(*FIXME Meet \<rightarrow> Inf *)
-consts
-  Meet :: "'a::order set \<Rightarrow> 'a"
-  Sup :: "'a::order set \<Rightarrow> 'a"
 
-defs Sup_def: "Sup A == Meet {b. \<forall>a \<in> A. a <= b}"
+consts
+  Inf :: "'a::order set \<Rightarrow> 'a"
+
+definition
+  Sup :: "'a::order set \<Rightarrow> 'a" where
+  "Sup A = Inf {b. \<forall>a \<in> A. a \<le> b}"
 
 definition
   SUP :: "('a \<Rightarrow> 'b::order) \<Rightarrow> 'b"  (binder "SUP " 10) where
-  "SUP x. f x == Sup (f ` UNIV)"
+  "(SUP x. f x) = Sup (f ` UNIV)"
 
 (*
 abbreviation
@@ -29,69 +30,69 @@ abbreviation
   "bot == Sup {}"
 *)
 class comp_lat = order +
-  assumes Meet_lower: "x \<in> A \<Longrightarrow> Meet A \<sqsubseteq> x"
-  assumes Meet_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> Meet A"
+  assumes Inf_lower: "x \<in> A \<Longrightarrow> Inf A \<sqsubseteq> x"
+  assumes Inf_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> Inf A"
 
 theorem Sup_upper: "(x::'a::comp_lat) \<in> A \<Longrightarrow> x <= Sup A"
-  by (auto simp: Sup_def intro: Meet_greatest)
+  by (auto simp: Sup_def intro: Inf_greatest)
 
 theorem Sup_least: "(\<And>x::'a::comp_lat. x \<in> A \<Longrightarrow> x <= z) \<Longrightarrow> Sup A <= z"
-  by (auto simp: Sup_def intro: Meet_lower)
+  by (auto simp: Sup_def intro: Inf_lower)
 
 text {* A complete lattice is a lattice *}
 
-lemma is_meet_Meet: "is_meet (\<lambda>(x::'a::comp_lat) y. Meet {x, y})"
-  by (auto simp: is_meet_def intro: Meet_lower Meet_greatest)
+lemma is_meet_Inf: "is_meet (\<lambda>(x::'a::comp_lat) y. Inf {x, y})"
+  by (auto simp: is_meet_def intro: Inf_lower Inf_greatest)
 
 lemma is_join_Sup: "is_join (\<lambda>(x::'a::comp_lat) y. Sup {x, y})"
   by (auto simp: is_join_def intro: Sup_upper Sup_least)
 
 instance comp_lat < lorder
 proof
-  from is_meet_Meet show "\<exists>m::'a\<Rightarrow>'a\<Rightarrow>'a. is_meet m" by iprover
+  from is_meet_Inf show "\<exists>m::'a\<Rightarrow>'a\<Rightarrow>'a. is_meet m" by iprover
   from is_join_Sup show "\<exists>j::'a\<Rightarrow>'a\<Rightarrow>'a. is_join j" by iprover
 qed
 
 subsubsection {* Properties *}
 
-lemma mono_join: "mono f \<Longrightarrow> join (f A) (f B) <= f (join A B)"
+lemma mono_inf: "mono f \<Longrightarrow> f (inf A B) <= inf (f A) (f B)"
   by (auto simp add: mono_def)
 
-lemma mono_meet: "mono f \<Longrightarrow> f (meet A B) <= meet (f A) (f B)"
+lemma mono_sup: "mono f \<Longrightarrow> sup (f A) (f B) <= f (sup A B)"
   by (auto simp add: mono_def)
 
-lemma Sup_insert[simp]: "Sup (insert (a::'a::comp_lat) A) = join a (Sup A)"
+lemma Sup_insert[simp]: "Sup (insert (a::'a::comp_lat) A) = sup a (Sup A)"
 apply(simp add:Sup_def)
 apply(rule order_antisym)
- apply(rule Meet_lower)
+ apply(rule Inf_lower)
  apply(clarsimp)
- apply(rule le_joinI2)
- apply(rule Meet_greatest)
+ apply(rule le_supI2)
+ apply(rule Inf_greatest)
  apply blast
 apply simp
 apply rule
- apply(rule Meet_greatest)apply blast
-apply(rule Meet_greatest)
-apply(rule Meet_lower)
+ apply(rule Inf_greatest)apply blast
+apply(rule Inf_greatest)
+apply(rule Inf_lower)
 apply blast
 done
 
 lemma bot_least[simp]: "Sup{} \<le> (x::'a::comp_lat)"
 apply(simp add: Sup_def)
-apply(rule Meet_lower)
+apply(rule Inf_lower)
 apply blast
 done
 (*
-lemma Meet_singleton[simp]: "Meet{a} = (a::'a::comp_lat)"
+lemma Inf_singleton[simp]: "Inf{a} = (a::'a::comp_lat)"
 apply(rule order_antisym)
- apply(simp add: Meet_lower)
-apply(rule Meet_greatest)
+ apply(simp add: Inf_lower)
+apply(rule Inf_greatest)
 apply(simp)
 done
 *)
 lemma le_SupI: "(l::'a::comp_lat) : M \<Longrightarrow> l \<le> Sup M"
 apply(simp add:Sup_def)
-apply(rule Meet_greatest)
+apply(rule Inf_greatest)
 apply(simp)
 done
 
@@ -102,7 +103,7 @@ done
 
 lemma Sup_leI: "(!!x. x:M \<Longrightarrow> x \<le> u) \<Longrightarrow> Sup M \<le> (u::'a::comp_lat)"
 apply(simp add:Sup_def)
-apply(rule Meet_lower)
+apply(rule Inf_lower)
 apply(blast)
 done
 
@@ -113,42 +114,43 @@ apply(blast intro!:Sup_leI)
 done
 
 lemma SUP_const[simp]: "(SUP i. M) = (M::'a::comp_lat)"
-by(simp add:SUP_def image_constant_conv join_absorp1)
+by(simp add:SUP_def image_constant_conv sup_absorb1)
 
 
 subsection {* Some instances of the type class of complete lattices *}
 
 subsubsection {* Booleans *}
 
-defs Meet_bool_def: "Meet A == ALL x:A. x"
+defs
+  Inf_bool_def: "Inf A == ALL x:A. x"
 
 instance bool :: comp_lat
   apply intro_classes
-  apply (unfold Meet_bool_def)
+  apply (unfold Inf_bool_def)
   apply (iprover intro!: le_boolI elim: ballE)
   apply (iprover intro!: ballI le_boolI elim: ballE le_boolE)
   done
 
-theorem meet_bool_eq: "meet P Q = (P \<and> Q)"
+theorem inf_bool_eq: "inf P Q \<longleftrightarrow> P \<and> Q"
   apply (rule order_antisym)
   apply (rule le_boolI)
   apply (rule conjI)
   apply (rule le_boolE)
-  apply (rule meet_left_le)
+  apply (rule inf_le1)
   apply assumption+
   apply (rule le_boolE)
-  apply (rule meet_right_le)
+  apply (rule inf_le2)
   apply assumption+
-  apply (rule le_meetI)
+  apply (rule le_infI)
   apply (rule le_boolI)
   apply (erule conjunct1)
   apply (rule le_boolI)
   apply (erule conjunct2)
   done
 
-theorem join_bool_eq: "join P Q = (P \<or> Q)"
+theorem sup_bool_eq: "sup P Q \<longleftrightarrow> P \<or> Q"
   apply (rule order_antisym)
-  apply (rule join_leI)
+  apply (rule le_supI)
   apply (rule le_boolI)
   apply (erule disjI1)
   apply (rule le_boolI)
@@ -156,14 +158,14 @@ theorem join_bool_eq: "join P Q = (P \<or> Q)"
   apply (rule le_boolI)
   apply (erule disjE)
   apply (rule le_boolE)
-  apply (rule join_left_le)
+  apply (rule sup_ge1)
   apply assumption+
   apply (rule le_boolE)
-  apply (rule join_right_le)
+  apply (rule sup_ge2)
   apply assumption+
   done
 
-theorem Sup_bool_eq: "Sup A = (EX x:A. x)"
+theorem Sup_bool_eq: "Sup A \<longleftrightarrow> (\<exists>x \<in> A. x)"
   apply (rule order_antisym)
   apply (rule Sup_least)
   apply (rule le_boolI)
@@ -175,11 +177,12 @@ theorem Sup_bool_eq: "Sup A = (EX x:A. x)"
   apply assumption+
   done
 
+
 subsubsection {* Functions *}
 
 text {*
-Handy introduction and elimination rules for @{text "\<le>"}
-on unary and binary predicates
+  Handy introduction and elimination rules for @{text "\<le>"}
+  on unary and binary predicates
 *}
 
 lemma predicate1I [Pure.intro!, intro!]:
@@ -218,48 +221,49 @@ lemma rev_predicate1D: "P x ==> P <= Q ==> Q x"
 lemma rev_predicate2D: "P x y ==> P <= Q ==> Q x y"
   by (rule predicate2D)
 
-defs Meet_fun_def: "Meet A == (\<lambda>x. Meet {y. EX f:A. y = f x})"
+defs
+  Inf_fun_def: "Inf A == (\<lambda>x. Inf {y. EX f:A. y = f x})"
 
 instance "fun" :: (type, comp_lat) comp_lat
   apply intro_classes
-  apply (unfold Meet_fun_def)
+  apply (unfold Inf_fun_def)
   apply (rule le_funI)
-  apply (rule Meet_lower)
+  apply (rule Inf_lower)
   apply (rule CollectI)
   apply (rule bexI)
   apply (rule refl)
   apply assumption
   apply (rule le_funI)
-  apply (rule Meet_greatest)
+  apply (rule Inf_greatest)
   apply (erule CollectE)
   apply (erule bexE)
   apply (iprover elim: le_funE)
   done
 
-theorem meet_fun_eq: "meet f g = (\<lambda>x. meet (f x) (g x))"
+theorem inf_fun_eq: "inf f g = (\<lambda>x. inf (f x) (g x))"
   apply (rule order_antisym)
   apply (rule le_funI)
-  apply (rule le_meetI)
-  apply (rule le_funD [OF meet_left_le])
-  apply (rule le_funD [OF meet_right_le])
-  apply (rule le_meetI)
+  apply (rule le_infI)
+  apply (rule le_funD [OF inf_le1])
+  apply (rule le_funD [OF inf_le2])
+  apply (rule le_infI)
   apply (rule le_funI)
-  apply (rule meet_left_le)
+  apply (rule inf_le1)
   apply (rule le_funI)
-  apply (rule meet_right_le)
+  apply (rule inf_le2)
   done
 
-theorem join_fun_eq: "join f g = (\<lambda>x. join (f x) (g x))"
+theorem sup_fun_eq: "sup f g = (\<lambda>x. sup (f x) (g x))"
   apply (rule order_antisym)
-  apply (rule join_leI)
+  apply (rule le_supI)
   apply (rule le_funI)
-  apply (rule join_left_le)
+  apply (rule sup_ge1)
   apply (rule le_funI)
-  apply (rule join_right_le)
+  apply (rule sup_ge2)
   apply (rule le_funI)
-  apply (rule join_leI)
-  apply (rule le_funD [OF join_left_le])
-  apply (rule le_funD [OF join_right_le])
+  apply (rule le_supI)
+  apply (rule le_funD [OF sup_ge1])
+  apply (rule le_funD [OF sup_ge2])
   done
 
 theorem Sup_fun_eq: "Sup A = (\<lambda>x. Sup {y::'a::comp_lat. EX f:A. y = f x})"
@@ -278,29 +282,30 @@ theorem Sup_fun_eq: "Sup A = (\<lambda>x. Sup {y::'a::comp_lat. EX f:A. y = f x}
 
 subsubsection {* Sets *}
 
-defs Meet_set_def: "Meet S == \<Inter>S"
+defs
+  Inf_set_def: "Inf S == \<Inter>S"
 
 instance set :: (type) comp_lat
-  by intro_classes (auto simp add: Meet_set_def)
+  by intro_classes (auto simp add: Inf_set_def)
 
-theorem meet_set_eq: "meet A B = A \<inter> B"
+theorem inf_set_eq: "inf A B = A \<inter> B"
   apply (rule subset_antisym)
   apply (rule Int_greatest)
-  apply (rule meet_left_le)
-  apply (rule meet_right_le)
-  apply (rule le_meetI)
+  apply (rule inf_le1)
+  apply (rule inf_le2)
+  apply (rule le_infI)
   apply (rule Int_lower1)
   apply (rule Int_lower2)
   done
 
-theorem join_set_eq: "join A B = A \<union> B"
+theorem sup_set_eq: "sup A B = A \<union> B"
   apply (rule subset_antisym)
-  apply (rule join_leI)
+  apply (rule le_supI)
   apply (rule Un_upper1)
   apply (rule Un_upper2)
   apply (rule Un_least)
-  apply (rule join_left_le)
-  apply (rule join_right_le)
+  apply (rule sup_ge1)
+  apply (rule sup_ge2)
   done
 
 theorem Sup_set_eq: "Sup S = \<Union>S"
@@ -314,25 +319,25 @@ theorem Sup_set_eq: "Sup S = \<Union>S"
 
 subsection {* Least and greatest fixed points *}
 
-constdefs
-  lfp :: "(('a::comp_lat) => 'a) => 'a"
-  "lfp f == Meet {u. f u <= u}"    --{*least fixed point*}
+definition
+  lfp :: "('a\<Colon>comp_lat \<Rightarrow> 'a) \<Rightarrow> 'a" where
+  "lfp f = Inf {u. f u \<le> u}"    --{*least fixed point*}
 
-  gfp :: "(('a::comp_lat) => 'a) => 'a"
-  "gfp f == Sup {u. u <= f u}"    --{*greatest fixed point*}
+definition
+  gfp :: "('a\<Colon>comp_lat \<Rightarrow> 'a) \<Rightarrow> 'a" where
+  "gfp f = Sup {u. u \<le> f u}"    --{*greatest fixed point*}
 
 
 subsection{*Proof of Knaster-Tarski Theorem using @{term lfp}*}
-
 
 text{*@{term "lfp f"} is the least upper bound of 
       the set @{term "{u. f(u) \<le> u}"} *}
 
 lemma lfp_lowerbound: "f A \<le> A ==> lfp f \<le> A"
-  by (auto simp add: lfp_def intro: Meet_lower)
+  by (auto simp add: lfp_def intro: Inf_lower)
 
 lemma lfp_greatest: "(!!u. f u \<le> u ==> A \<le> u) ==> A \<le> lfp f"
-  by (auto simp add: lfp_def intro: Meet_greatest)
+  by (auto simp add: lfp_def intro: Inf_greatest)
 
 lemma lfp_lemma2: "mono f ==> f (lfp f) \<le> lfp f"
   by (iprover intro: lfp_greatest order_trans monoD lfp_lowerbound)
@@ -349,16 +354,16 @@ lemma lfp_const: "lfp (\<lambda>x. t) = t"
 subsection{*General induction rules for least fixed points*}
 
 theorem lfp_induct:
-  assumes mono: "mono f" and ind: "f (meet (lfp f) P) <= P"
+  assumes mono: "mono f" and ind: "f (inf (lfp f) P) <= P"
   shows "lfp f <= P"
 proof -
-  have "meet (lfp f) P <= lfp f" by (rule meet_left_le)
-  with mono have "f (meet (lfp f) P) <= f (lfp f)" ..
+  have "inf (lfp f) P <= lfp f" by (rule inf_le1)
+  with mono have "f (inf (lfp f) P) <= f (lfp f)" ..
   also from mono have "f (lfp f) = lfp f" by (rule lfp_unfold [symmetric])
-  finally have "f (meet (lfp f) P) <= lfp f" .
-  from this and ind have "f (meet (lfp f) P) <= meet (lfp f) P" by (rule le_meetI)
-  hence "lfp f <= meet (lfp f) P" by (rule lfp_lowerbound)
-  also have "meet (lfp f) P <= P" by (rule meet_right_le)
+  finally have "f (inf (lfp f) P) <= lfp f" .
+  from this and ind have "f (inf (lfp f) P) <= inf (lfp f) P" by (rule le_infI)
+  hence "lfp f <= inf (lfp f) P" by (rule lfp_lowerbound)
+  also have "inf (lfp f) P <= P" by (rule inf_le2)
   finally show ?thesis .
 qed
 
@@ -368,7 +373,7 @@ lemma lfp_induct_set:
       and indhyp: "!!x. [| x: f(lfp(f) Int {x. P(x)}) |] ==> P(x)"
   shows "P(a)"
   by (rule lfp_induct [THEN subsetD, THEN CollectD, OF mono _ lfp])
-    (auto simp: meet_set_eq intro: indhyp)
+    (auto simp: inf_set_eq intro: indhyp)
 
 
 text{*Version of induction for binary relations*}
@@ -399,7 +404,7 @@ by (auto intro!: lfp_unfold)
 
 lemma def_lfp_induct: 
     "[| A == lfp(f); mono(f);
-        f (meet A P) \<le> P
+        f (inf A P) \<le> P
      |] ==> A \<le> P"
   by (blast intro: lfp_induct)
 
@@ -447,25 +452,25 @@ apply (erule imageI)
 done
 
 lemma coinduct_lemma:
-     "[| X \<le> f (join X (gfp f));  mono f |] ==> join X (gfp f) \<le> f (join X (gfp f))"
+     "[| X \<le> f (sup X (gfp f));  mono f |] ==> sup X (gfp f) \<le> f (sup X (gfp f))"
   apply (frule gfp_lemma2)
-  apply (drule mono_join)
-  apply (rule join_leI)
+  apply (drule mono_sup)
+  apply (rule le_supI)
   apply assumption
   apply (rule order_trans)
   apply (rule order_trans)
   apply assumption
-  apply (rule join_right_le)
+  apply (rule sup_ge2)
   apply assumption
   done
 
 text{*strong version, thanks to Coen and Frost*}
 lemma coinduct_set: "[| mono(f);  a: X;  X \<subseteq> f(X Un gfp(f)) |] ==> a : gfp(f)"
-by (blast intro: weak_coinduct [OF _ coinduct_lemma, simplified join_set_eq])
+by (blast intro: weak_coinduct [OF _ coinduct_lemma, simplified sup_set_eq])
 
-lemma coinduct: "[| mono(f); X \<le> f (join X (gfp f)) |] ==> X \<le> gfp(f)"
+lemma coinduct: "[| mono(f); X \<le> f (sup X (gfp f)) |] ==> X \<le> gfp(f)"
   apply (rule order_trans)
-  apply (rule join_left_le)
+  apply (rule sup_ge1)
   apply (erule gfp_upperbound [OF coinduct_lemma])
   apply assumption
   done
@@ -507,7 +512,7 @@ lemma def_gfp_unfold: "[| A==gfp(f);  mono(f) |] ==> A = f(A)"
 by (auto intro!: gfp_unfold)
 
 lemma def_coinduct:
-     "[| A==gfp(f);  mono(f);  X \<le> f(join X A) |] ==> X \<le> A"
+     "[| A==gfp(f);  mono(f);  X \<le> f(sup X A) |] ==> X \<le> A"
 by (iprover intro!: coinduct)
 
 lemma def_coinduct_set:
@@ -562,8 +567,8 @@ val gfp_mono = thm "gfp_mono";
 val le_funI = thm "le_funI";
 val le_boolI = thm "le_boolI";
 val le_boolI' = thm "le_boolI'";
-val meet_fun_eq = thm "meet_fun_eq";
-val meet_bool_eq = thm "meet_bool_eq";
+val inf_fun_eq = thm "inf_fun_eq";
+val inf_bool_eq = thm "inf_bool_eq";
 val le_funE = thm "le_funE";
 val le_funD = thm "le_funD";
 val le_boolE = thm "le_boolE";

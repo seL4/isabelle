@@ -108,7 +108,7 @@ lemma order_widen:
 lemma wf_converse_subcls1_impl_acc_subtype:
   "wfP ((subcls1 G)^--1) \<Longrightarrow> acc (subtype G)"
 apply (unfold Semilat.acc_def lesssub_def)
-apply (drule_tac p = "meet ((subcls1 G)^--1) op \<noteq>" in wfP_subset)
+apply (drule_tac p = "inf ((subcls1 G)^--1) op \<noteq>" in wfP_subset)
  apply auto
 apply (drule wfP_trancl)
 apply (simp add: wfP_eq_minimal)
@@ -151,7 +151,7 @@ apply simp
 apply (erule rtrancl.cases)
  apply blast
 apply (drule rtrancl_converseI')
-apply (subgoal_tac "(meet (subcls1 G) op \<noteq>)^--1 = (meet ((subcls1 G)^--1) op \<noteq>)")
+apply (subgoal_tac "(inf (subcls1 G) op \<noteq>)^--1 = (inf ((subcls1 G)^--1) op \<noteq>)")
  prefer 2
  apply (simp add: converse_meet)
 apply simp

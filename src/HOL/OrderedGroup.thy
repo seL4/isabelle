@@ -1,3 +1,4 @@
+
 (*  Title:   HOL/OrderedGroup.thy
     ID:      $Id$
     Author:  Gertrud Bauer, Steven Obua, Lawrence C Paulson, and Markus Wenzel,
@@ -570,97 +571,99 @@ axclass lordered_ab_group_meet < pordered_ab_group_add, meet_semilorder
 
 axclass lordered_ab_group_join < pordered_ab_group_add, join_semilorder
 
-lemma add_meet_distrib_left: "a + (meet b c) = meet (a + b) (a + (c::'a::{pordered_ab_group_add, meet_semilorder}))"
+lemma add_inf_distrib_left: "a + (inf b c) = inf (a + b) (a + (c::'a::{pordered_ab_group_add, meet_semilorder}))"
 apply (rule order_antisym)
-apply (simp_all add: le_meetI)
+apply (simp_all add: le_infI)
 apply (rule add_le_imp_le_left [of "-a"])
 apply (simp only: add_assoc[symmetric], simp)
 apply rule
 apply (rule add_le_imp_le_left[of "a"], simp only: add_assoc[symmetric], simp)+
 done
 
-lemma add_join_distrib_left: "a + (join b c) = join (a + b) (a+ (c::'a::{pordered_ab_group_add, join_semilorder}))" 
+lemma add_sup_distrib_left: "a + (sup b c) = sup (a + b) (a+ (c::'a::{pordered_ab_group_add, join_semilorder}))" 
 apply (rule order_antisym)
 apply (rule add_le_imp_le_left [of "-a"])
 apply (simp only: add_assoc[symmetric], simp)
 apply rule
 apply (rule add_le_imp_le_left [of "a"], simp only: add_assoc[symmetric], simp)+
-apply (rule join_leI)
+apply (rule le_supI)
 apply (simp_all)
 done
 
-lemma is_join_neg_meet: "is_join (% (a::'a::{pordered_ab_group_add, meet_semilorder}) b. - (meet (-a) (-b)))"
+lemma is_join_neg_inf: "is_join (% (a::'a::{pordered_ab_group_add, meet_semilorder}) b. - (inf (-a) (-b)))"
 apply (auto simp add: is_join_def)
-apply (rule_tac c="meet (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_meet_distrib_left)
-apply (rule_tac c="meet (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_meet_distrib_left)
+apply (rule_tac c="inf (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_inf_distrib_left)
+apply (rule_tac c="inf (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_inf_distrib_left)
 apply (subst neg_le_iff_le[symmetric]) 
-apply (simp add: le_meetI)
+apply (simp add: le_infI)
 done
 
-lemma is_meet_neg_join: "is_meet (% (a::'a::{pordered_ab_group_add, join_semilorder}) b. - (join (-a) (-b)))"
+lemma is_meet_neg_sup: "is_meet (% (a::'a::{pordered_ab_group_add, join_semilorder}) b. - (sup (-a) (-b)))"
 apply (auto simp add: is_meet_def)
-apply (rule_tac c="join (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_join_distrib_left)
-apply (rule_tac c="join (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_join_distrib_left)
+apply (rule_tac c="sup (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_sup_distrib_left)
+apply (rule_tac c="sup (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_sup_distrib_left)
 apply (subst neg_le_iff_le[symmetric]) 
-apply (simp add: join_leI)
+apply (simp add: le_supI)
 done
 
 axclass lordered_ab_group \<subseteq> pordered_ab_group_add, lorder
 
-instance lordered_ab_group_meet \<subseteq> lordered_ab_group
-proof 
-  show "? j. is_join (j::'a\<Rightarrow>'a\<Rightarrow>('a::lordered_ab_group_meet))" by (blast intro: is_join_neg_meet)
-qed
-
 instance lordered_ab_group_join \<subseteq> lordered_ab_group
 proof
-  show "? m. is_meet (m::'a\<Rightarrow>'a\<Rightarrow>('a::lordered_ab_group_join))" by (blast intro: is_meet_neg_join)
+  show "? m. is_meet (m::'a\<Rightarrow>'a\<Rightarrow>('a::lordered_ab_group_join))" by (blast intro: is_meet_neg_sup)
 qed
 
-lemma add_join_distrib_right: "(join a b) + (c::'a::lordered_ab_group) = join (a+c) (b+c)"
+instance lordered_ab_group_meet \<subseteq> lordered_ab_group
+proof 
+  show "? j. is_join (j::'a\<Rightarrow>'a\<Rightarrow>('a::lordered_ab_group_meet))" by (blast intro: is_join_neg_inf)
+qed
+
+lemma add_inf_distrib_right: "(inf a b) + (c::'a::lordered_ab_group) = inf (a+c) (b+c)"
 proof -
-  have "c + (join a b) = join (c+a) (c+b)" by (simp add: add_join_distrib_left)
+  have "c + (inf a b) = inf (c+a) (c+b)" by (simp add: add_inf_distrib_left)
   thus ?thesis by (simp add: add_commute)
 qed
 
-lemma add_meet_distrib_right: "(meet a b) + (c::'a::lordered_ab_group) = meet (a+c) (b+c)"
+lemma add_sup_distrib_right: "(sup a b) + (c::'a::lordered_ab_group) = sup (a+c) (b+c)"
 proof -
-  have "c + (meet a b) = meet (c+a) (c+b)" by (simp add: add_meet_distrib_left)
+  have "c + (sup a b) = sup (c+a) (c+b)" by (simp add: add_sup_distrib_left)
   thus ?thesis by (simp add: add_commute)
 qed
 
-lemmas add_meet_join_distribs = add_meet_distrib_right add_meet_distrib_left add_join_distrib_right add_join_distrib_left
+lemmas add_sup_inf_distribs = add_inf_distrib_right add_inf_distrib_left add_sup_distrib_right add_sup_distrib_left
 
-lemma join_eq_neg_meet: "join a (b::'a::lordered_ab_group) = - meet (-a) (-b)"
-by (simp add: is_join_unique[OF is_join_join is_join_neg_meet])
+lemma sup_eq_neg_inf: "sup a (b::'a::lordered_ab_group) = - inf (-a) (-b)"
+by (simp add: is_join_unique[OF is_join_join is_join_neg_inf])
 
-lemma meet_eq_neg_join: "meet a (b::'a::lordered_ab_group) = - join (-a) (-b)"
-by (simp add: is_meet_unique[OF is_meet_meet is_meet_neg_join])
+lemma inf_eq_neg_sup: "inf a (b::'a::lordered_ab_group) = - sup (-a) (-b)"
+by (simp add: is_meet_unique[OF is_meet_meet is_meet_neg_sup])
 
-lemma add_eq_meet_join: "a + b = (join a b) + (meet a (b::'a::lordered_ab_group))"
+lemma add_eq_inf_sup: "a + b = (sup a b) + (inf a (b::'a::lordered_ab_group))"
 proof -
-  have "0 = - meet 0 (a-b) + meet (a-b) 0" by (simp add: meet_comm)
-  hence "0 = join 0 (b-a) + meet (a-b) 0" by (simp add: meet_eq_neg_join)
-  hence "0 = (-a + join a b) + (meet a b + (-b))"
-    apply (simp add: add_join_distrib_left add_meet_distrib_right)
+  have "0 = - inf 0 (a-b) + inf (a-b) 0" by (simp add: inf_commute)
+  hence "0 = sup 0 (b-a) + inf (a-b) 0" by (simp add: inf_eq_neg_sup)
+  hence "0 = (-a + sup a b) + (inf a b + (-b))"
+    apply (simp add: add_sup_distrib_left add_inf_distrib_right)
     by (simp add: diff_minus add_commute)
   thus ?thesis
     apply (simp add: compare_rls)
-    apply (subst add_left_cancel[symmetric, of "a+b" "join a b + meet a b" "-a"])
+    apply (subst add_left_cancel[symmetric, of "a+b" "sup a b + inf a b" "-a"])
     apply (simp only: add_assoc, simp add: add_assoc[symmetric])
     done
 qed
 
 subsection {* Positive Part, Negative Part, Absolute Value *}
 
-constdefs
-  pprt :: "'a \<Rightarrow> ('a::lordered_ab_group)"
-  "pprt x == join x 0"
-  nprt :: "'a \<Rightarrow> ('a::lordered_ab_group)"
-  "nprt x == meet x 0"
+definition
+  nprt :: "'a \<Rightarrow> ('a::lordered_ab_group)" where
+  "nprt x = inf x 0"
+
+definition
+  pprt :: "'a \<Rightarrow> ('a::lordered_ab_group)" where
+  "pprt x = sup x 0"
 
 lemma prts: "a = pprt a + nprt a"
-by (simp add: pprt_def nprt_def add_eq_meet_join[symmetric])
+by (simp add: pprt_def nprt_def add_eq_inf_sup[symmetric])
 
 lemma zero_le_pprt[simp]: "0 \<le> pprt a"
 by (simp add: pprt_def)
@@ -687,53 +690,53 @@ lemma pprt_0[simp]: "pprt 0 = 0" by (simp add: pprt_def)
 lemma nprt_0[simp]: "nprt 0 = 0" by (simp add: nprt_def)
 
 lemma pprt_eq_id[simp]: "0 <= x \<Longrightarrow> pprt x = x"
-  by (simp add: pprt_def le_def_join join_aci)
+  by (simp add: pprt_def le_iff_sup sup_aci)
 
 lemma nprt_eq_id[simp]: "x <= 0 \<Longrightarrow> nprt x = x"
-  by (simp add: nprt_def le_def_meet meet_aci)
+  by (simp add: nprt_def le_iff_inf inf_aci)
 
 lemma pprt_eq_0[simp]: "x <= 0 \<Longrightarrow> pprt x = 0"
-  by (simp add: pprt_def le_def_join join_aci)
+  by (simp add: pprt_def le_iff_sup sup_aci)
 
 lemma nprt_eq_0[simp]: "0 <= x \<Longrightarrow> nprt x = 0"
-  by (simp add: nprt_def le_def_meet meet_aci)
+  by (simp add: nprt_def le_iff_inf inf_aci)
 
-lemma join_0_imp_0: "join a (-a) = 0 \<Longrightarrow> a = (0::'a::lordered_ab_group)"
+lemma sup_0_imp_0: "sup a (-a) = 0 \<Longrightarrow> a = (0::'a::lordered_ab_group)"
 proof -
   {
     fix a::'a
-    assume hyp: "join a (-a) = 0"
-    hence "join a (-a) + a = a" by (simp)
-    hence "join (a+a) 0 = a" by (simp add: add_join_distrib_right) 
-    hence "join (a+a) 0 <= a" by (simp)
-    hence "0 <= a" by (blast intro: order_trans meet_join_le)
+    assume hyp: "sup a (-a) = 0"
+    hence "sup a (-a) + a = a" by (simp)
+    hence "sup (a+a) 0 = a" by (simp add: add_sup_distrib_right) 
+    hence "sup (a+a) 0 <= a" by (simp)
+    hence "0 <= a" by (blast intro: order_trans inf_sup_ord)
   }
   note p = this
-  assume hyp:"join a (-a) = 0"
-  hence hyp2:"join (-a) (-(-a)) = 0" by (simp add: join_comm)
+  assume hyp:"sup a (-a) = 0"
+  hence hyp2:"sup (-a) (-(-a)) = 0" by (simp add: sup_commute)
   from p[OF hyp] p[OF hyp2] show "a = 0" by simp
 qed
 
-lemma meet_0_imp_0: "meet a (-a) = 0 \<Longrightarrow> a = (0::'a::lordered_ab_group)"
-apply (simp add: meet_eq_neg_join)
-apply (simp add: join_comm)
-apply (erule join_0_imp_0)
+lemma inf_0_imp_0: "inf a (-a) = 0 \<Longrightarrow> a = (0::'a::lordered_ab_group)"
+apply (simp add: inf_eq_neg_sup)
+apply (simp add: sup_commute)
+apply (erule sup_0_imp_0)
 done
 
-lemma join_0_eq_0[simp]: "(join a (-a) = 0) = (a = (0::'a::lordered_ab_group))"
-by (auto, erule join_0_imp_0)
+lemma inf_0_eq_0[simp]: "(inf a (-a) = 0) = (a = (0::'a::lordered_ab_group))"
+by (auto, erule inf_0_imp_0)
 
-lemma meet_0_eq_0[simp]: "(meet a (-a) = 0) = (a = (0::'a::lordered_ab_group))"
-by (auto, erule meet_0_imp_0)
+lemma sup_0_eq_0[simp]: "(sup a (-a) = 0) = (a = (0::'a::lordered_ab_group))"
+by (auto, erule sup_0_imp_0)
 
 lemma zero_le_double_add_iff_zero_le_single_add[simp]: "(0 \<le> a + a) = (0 \<le> (a::'a::lordered_ab_group))"
 proof
   assume "0 <= a + a"
-  hence a:"meet (a+a) 0 = 0" by (simp add: le_def_meet meet_comm)
-  have "(meet a 0)+(meet a 0) = meet (meet (a+a) 0) a" (is "?l=_") by (simp add: add_meet_join_distribs meet_aci)
-  hence "?l = 0 + meet a 0" by (simp add: a, simp add: meet_comm)
-  hence "meet a 0 = 0" by (simp only: add_right_cancel)
-  then show "0 <= a" by (simp add: le_def_meet meet_comm)    
+  hence a:"inf (a+a) 0 = 0" by (simp add: le_iff_inf inf_commute)
+  have "(inf a 0)+(inf a 0) = inf (inf (a+a) 0) a" (is "?l=_") by (simp add: add_sup_inf_distribs inf_aci)
+  hence "?l = 0 + inf a 0" by (simp add: a, simp add: inf_commute)
+  hence "inf a 0 = 0" by (simp only: add_right_cancel)
+  then show "0 <= a" by (simp add: le_iff_inf inf_commute)    
 next  
   assume a: "0 <= a"
   show "0 <= a + a" by (simp add: add_mono[OF a a, simplified])
@@ -759,7 +762,7 @@ next
 qed
 
 axclass lordered_ab_group_abs \<subseteq> lordered_ab_group
-  abs_lattice: "abs x = join x (-x)"
+  abs_lattice: "abs x = sup x (-x)"
 
 lemma abs_zero[simp]: "abs 0 = (0::'a::lordered_ab_group_abs)"
 by (simp add: abs_lattice)
@@ -773,22 +776,22 @@ proof -
   thus ?thesis by simp
 qed
 
-lemma neg_meet_eq_join[simp]: "- meet a (b::_::lordered_ab_group) = join (-a) (-b)"
-by (simp add: meet_eq_neg_join)
+lemma neg_inf_eq_sup[simp]: "- inf a (b::_::lordered_ab_group) = sup (-a) (-b)"
+by (simp add: inf_eq_neg_sup)
 
-lemma neg_join_eq_meet[simp]: "- join a (b::_::lordered_ab_group) = meet (-a) (-b)"
-by (simp del: neg_meet_eq_join add: join_eq_neg_meet)
+lemma neg_sup_eq_inf[simp]: "- sup a (b::_::lordered_ab_group) = inf (-a) (-b)"
+by (simp del: neg_inf_eq_sup add: sup_eq_neg_inf)
 
-lemma join_eq_if: "join a (-a) = (if a < 0 then -a else (a::'a::{lordered_ab_group, linorder}))"
+lemma sup_eq_if: "sup a (-a) = (if a < 0 then -a else (a::'a::{lordered_ab_group, linorder}))"
 proof -
   note b = add_le_cancel_right[of a a "-a",symmetric,simplified]
   have c: "a + a = 0 \<Longrightarrow> -a = a" by (rule add_right_imp_eq[of _ a], simp)
-  show ?thesis by (auto simp add: join_max max_def b linorder_not_less)
+  show ?thesis by (auto simp add: max_def b linorder_not_less join_max)
 qed
 
 lemma abs_if_lattice: "\<bar>a\<bar> = (if a < 0 then -a else (a::'a::{lordered_ab_group_abs, linorder}))"
 proof -
-  show ?thesis by (simp add: abs_lattice join_eq_if)
+  show ?thesis by (simp add: abs_lattice sup_eq_if)
 qed
 
 lemma abs_ge_zero[simp]: "0 \<le> abs (a::'a::lordered_ab_group_abs)"
@@ -824,16 +827,16 @@ by (simp add: abs_lattice)
 
 lemma abs_prts: "abs (a::_::lordered_ab_group_abs) = pprt a - nprt a"
 apply (simp add: pprt_def nprt_def diff_minus)
-apply (simp add: add_meet_join_distribs join_aci abs_lattice[symmetric])
-apply (subst join_absorp2, auto)
+apply (simp add: add_sup_inf_distribs sup_aci abs_lattice[symmetric])
+apply (subst sup_absorb2, auto)
 done
 
 lemma abs_minus_cancel [simp]: "abs (-a) = abs(a::'a::lordered_ab_group_abs)"
-by (simp add: abs_lattice join_comm)
+by (simp add: abs_lattice sup_commute)
 
 lemma abs_idempotent [simp]: "abs (abs a) = abs (a::'a::lordered_ab_group_abs)"
 apply (simp add: abs_lattice[of "abs a"])
-apply (subst join_absorp1)
+apply (subst sup_absorb1)
 apply (rule order_trans[of _ 0])
 by auto
 
@@ -847,22 +850,22 @@ proof -
 qed
 
 lemma zero_le_iff_zero_nprt: "(0 \<le> a) = (nprt a = 0)"
-by (simp add: le_def_meet nprt_def meet_comm)
+by (simp add: le_iff_inf nprt_def inf_commute)
 
 lemma le_zero_iff_zero_pprt: "(a \<le> 0) = (pprt a = 0)"
-by (simp add: le_def_join pprt_def join_comm)
+by (simp add: le_iff_sup pprt_def sup_commute)
 
 lemma le_zero_iff_pprt_id: "(0 \<le> a) = (pprt a = a)"
-by (simp add: le_def_join pprt_def join_comm)
+by (simp add: le_iff_sup pprt_def sup_commute)
 
 lemma zero_le_iff_nprt_id: "(a \<le> 0) = (nprt a = a)"
-by (simp add: le_def_meet nprt_def meet_comm)
+by (simp add: le_iff_inf nprt_def inf_commute)
 
 lemma pprt_mono[simp]: "(a::_::lordered_ab_group) <= b \<Longrightarrow> pprt a <= pprt b"
-  by (simp add: le_def_join pprt_def join_aci)
+  by (simp add: le_iff_sup pprt_def sup_aci)
 
 lemma nprt_mono[simp]: "(a::_::lordered_ab_group) <= b \<Longrightarrow> nprt a <= nprt b"
-  by (simp add: le_def_meet nprt_def meet_aci)
+  by (simp add: le_iff_inf nprt_def inf_aci)
 
 lemma pprt_neg: "pprt (-x) = - nprt x"
   by (simp add: pprt_def nprt_def)
@@ -887,7 +890,7 @@ lemma abs_of_neg: "(x::'a::lordered_ab_group_abs) <  0 ==>
 by (rule abs_of_nonpos, rule order_less_imp_le)
 
 lemma abs_leI: "[|a \<le> b; -a \<le> b|] ==> abs a \<le> (b::'a::lordered_ab_group_abs)"
-by (simp add: abs_lattice join_leI)
+by (simp add: abs_lattice le_supI)
 
 lemma le_minus_self_iff: "(a \<le> -a) = (a \<le> (0::'a::lordered_ab_group))"
 proof -
@@ -914,14 +917,14 @@ by (blast intro: abs_leI dest: abs_le_D1 abs_le_D2)
 
 lemma abs_triangle_ineq: "abs(a+b) \<le> abs a + abs(b::'a::lordered_ab_group_abs)"
 proof -
-  have g:"abs a + abs b = join (a+b) (join (-a-b) (join (-a+b) (a + (-b))))" (is "_=join ?m ?n")
-    by (simp add: abs_lattice add_meet_join_distribs join_aci diff_minus)
-  have a:"a+b <= join ?m ?n" by (simp)
+  have g:"abs a + abs b = sup (a+b) (sup (-a-b) (sup (-a+b) (a + (-b))))" (is "_=sup ?m ?n")
+    by (simp add: abs_lattice add_sup_inf_distribs sup_aci diff_minus)
+  have a:"a+b <= sup ?m ?n" by (simp)
   have b:"-a-b <= ?n" by (simp) 
-  have c:"?n <= join ?m ?n" by (simp)
-  from b c have d: "-a-b <= join ?m ?n" by(rule order_trans)
+  have c:"?n <= sup ?m ?n" by (simp)
+  from b c have d: "-a-b <= sup ?m ?n" by(rule order_trans)
   have e:"-a-b = -(a+b)" by (simp add: diff_minus)
-  from a d e have "abs(a+b) <= join ?m ?n" 
+  from a d e have "abs(a+b) <= sup ?m ?n" 
     by (drule_tac abs_leI, auto)
   with g[symmetric] show ?thesis by simp
 qed
@@ -1126,24 +1129,24 @@ val le_diff_eq = thm "le_diff_eq";
 val compare_rls = thms "compare_rls";
 val eq_iff_diff_eq_0 = thm "eq_iff_diff_eq_0";
 val le_iff_diff_le_0 = thm "le_iff_diff_le_0";
-val add_meet_distrib_left = thm "add_meet_distrib_left";
-val add_join_distrib_left = thm "add_join_distrib_left";
-val is_join_neg_meet = thm "is_join_neg_meet";
-val is_meet_neg_join = thm "is_meet_neg_join";
-val add_join_distrib_right = thm "add_join_distrib_right";
-val add_meet_distrib_right = thm "add_meet_distrib_right";
-val add_meet_join_distribs = thms "add_meet_join_distribs";
-val join_eq_neg_meet = thm "join_eq_neg_meet";
-val meet_eq_neg_join = thm "meet_eq_neg_join";
-val add_eq_meet_join = thm "add_eq_meet_join";
+val add_inf_distrib_left = thm "add_inf_distrib_left";
+val add_sup_distrib_left = thm "add_sup_distrib_left";
+val is_join_neg_inf = thm "is_join_neg_inf";
+val is_meet_neg_sup = thm "is_meet_neg_sup";
+val add_sup_distrib_right = thm "add_sup_distrib_right";
+val add_inf_distrib_right = thm "add_inf_distrib_right";
+val add_sup_inf_distribs = thms "add_sup_inf_distribs";
+val sup_eq_neg_inf = thm "sup_eq_neg_inf";
+val inf_eq_neg_sup = thm "inf_eq_neg_sup";
+val add_eq_inf_sup = thm "add_eq_inf_sup";
 val prts = thm "prts";
 val zero_le_pprt = thm "zero_le_pprt";
 val nprt_le_zero = thm "nprt_le_zero";
 val le_eq_neg = thm "le_eq_neg";
-val join_0_imp_0 = thm "join_0_imp_0";
-val meet_0_imp_0 = thm "meet_0_imp_0";
-val join_0_eq_0 = thm "join_0_eq_0";
-val meet_0_eq_0 = thm "meet_0_eq_0";
+val sup_0_imp_0 = thm "sup_0_imp_0";
+val inf_0_imp_0 = thm "inf_0_imp_0";
+val sup_0_eq_0 = thm "sup_0_eq_0";
+val inf_0_eq_0 = thm "inf_0_eq_0";
 val zero_le_double_add_iff_zero_le_single_add = thm "zero_le_double_add_iff_zero_le_single_add";
 val double_add_le_zero_iff_single_add_le_zero = thm "double_add_le_zero_iff_single_add_le_zero";
 val double_add_less_zero_iff_single_less_zero = thm "double_add_less_zero_iff_single_less_zero";
@@ -1151,9 +1154,9 @@ val abs_lattice = thm "abs_lattice";
 val abs_zero = thm "abs_zero";
 val abs_eq_0 = thm "abs_eq_0";
 val abs_0_eq = thm "abs_0_eq";
-val neg_meet_eq_join = thm "neg_meet_eq_join";
-val neg_join_eq_meet = thm "neg_join_eq_meet";
-val join_eq_if = thm "join_eq_if";
+val neg_inf_eq_sup = thm "neg_inf_eq_sup";
+val neg_sup_eq_inf = thm "neg_sup_eq_inf";
+val sup_eq_if = thm "sup_eq_if";
 val abs_if_lattice = thm "abs_if_lattice";
 val abs_ge_zero = thm "abs_ge_zero";
 val abs_le_zero_iff = thm "abs_le_zero_iff";
@@ -1161,10 +1164,10 @@ val zero_less_abs_iff = thm "zero_less_abs_iff";
 val abs_not_less_zero = thm "abs_not_less_zero";
 val abs_ge_self = thm "abs_ge_self";
 val abs_ge_minus_self = thm "abs_ge_minus_self";
-val le_imp_join_eq = thm "join_absorp2";
-val ge_imp_join_eq = thm "join_absorp1";
-val le_imp_meet_eq = thm "meet_absorp1";
-val ge_imp_meet_eq = thm "meet_absorp2";
+val le_imp_join_eq = thm "sup_absorb2";
+val ge_imp_join_eq = thm "sup_absorb1";
+val le_imp_meet_eq = thm "inf_absorb1";
+val ge_imp_meet_eq = thm "inf_absorb2";
 val abs_prts = thm "abs_prts";
 val abs_minus_cancel = thm "abs_minus_cancel";
 val abs_idempotent = thm "abs_idempotent";
@@ -1173,8 +1176,6 @@ val le_zero_iff_zero_pprt = thm "le_zero_iff_zero_pprt";
 val le_zero_iff_pprt_id = thm "le_zero_iff_pprt_id";
 val zero_le_iff_nprt_id = thm "zero_le_iff_nprt_id";
 val iff2imp = thm "iff2imp";
-(* val imp_abs_id = thm "imp_abs_id";
-val imp_abs_neg_id = thm "imp_abs_neg_id"; *)
 val abs_leI = thm "abs_leI";
 val le_minus_self_iff = thm "le_minus_self_iff";
 val minus_le_self_iff = thm "minus_le_self_iff";

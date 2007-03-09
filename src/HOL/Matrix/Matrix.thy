@@ -7,23 +7,21 @@ theory Matrix
 imports MatrixGeneral
 begin
 
-instance matrix :: (minus) minus ..
+instance matrix :: ("{plus, zero}") plus
+  plus_matrix_def: "A + B \<equiv> combine_matrix (op +) A B" ..
 
-instance matrix :: (plus) plus ..
+instance matrix :: ("{minus, zero}") minus
+  minus_matrix_def: "- A \<equiv> apply_matrix uminus A"
+  diff_matrix_def: "A - B \<equiv> combine_matrix (op -) A B" ..
 
-instance matrix :: ("{plus,times}") times ..
+instance matrix :: ("{plus, times, zero}") times
+  times_matrix_def: "A * B \<equiv> mult_matrix (op *) (op +) A B" ..
 
-defs (overloaded)
-  plus_matrix_def: "A + B == combine_matrix (op +) A B"
-  diff_matrix_def: "A - B == combine_matrix (op -) A B"
-  minus_matrix_def: "- A == apply_matrix uminus A"
-  times_matrix_def: "A * B == mult_matrix (op *) (op +) A B"
+lemma is_meet_combine_matrix_meet: "is_meet (combine_matrix inf)"
+  by (simp_all add: is_meet_def le_matrix_def inf_le1 inf_le2 le_infI)
 
-lemma is_meet_combine_matrix_meet: "is_meet (combine_matrix meet)"
-  by (simp_all add: is_meet_def le_matrix_def meet_left_le meet_right_le le_meetI)
-
-lemma is_join_combine_matrix_join: "is_join (combine_matrix join)"
-  by (simp_all add: is_join_def le_matrix_def join_left_le join_right_le join_leI)
+lemma is_join_combine_matrix_join: "is_join (combine_matrix sup)"
+  by (simp_all add: is_join_def le_matrix_def sup_ge1 sup_ge2 le_supI)
 
 instance matrix :: (lordered_ab_group) lordered_ab_group_meet
 proof 
@@ -58,7 +56,7 @@ proof
 qed
 
 defs (overloaded)
-  abs_matrix_def: "abs (A::('a::lordered_ab_group) matrix) == join A (- A)"
+  abs_matrix_def: "abs (A::('a::lordered_ab_group) matrix) == sup A (- A)"
 
 instance matrix :: (lordered_ring) lordered_ring
 proof
@@ -78,7 +76,7 @@ proof
     apply (rule r_distributive_matrix[simplified r_distributive_def, THEN spec, THEN spec, THEN spec])
     apply (simp_all add: associative_def commutative_def ring_eq_simps)
     done  
-  show "abs A = join A (-A)" 
+  show "abs A = sup A (-A)" 
     by (simp add: abs_matrix_def)
   assume a: "A \<le> B"
   assume b: "0 \<le> C"
@@ -102,7 +100,6 @@ lemma Rep_matrix_mult: "Rep_matrix ((a::('a::lordered_ring) matrix) * b) j i =
 apply (simp add: times_matrix_def)
 apply (simp add: Rep_mult_matrix)
 done
- 
 
 lemma apply_matrix_add: "! x y. f (x+y) = (f x) + (f y) \<Longrightarrow> f 0 = (0::'a) \<Longrightarrow> apply_matrix f ((a::('a::lordered_ab_group) matrix) + b) = (apply_matrix f a) + (apply_matrix f b)"
 apply (subst Rep_matrix_inject[symmetric])
@@ -122,9 +119,9 @@ by (simp add: times_matrix_def mult_nrows)
 lemma ncols_mult: "ncols ((A::('a::lordered_ring) matrix) * B) <= ncols B"
 by (simp add: times_matrix_def mult_ncols)
 
-constdefs
-  one_matrix :: "nat \<Rightarrow> ('a::{zero,one}) matrix"
-  "one_matrix n == Abs_matrix (% j i. if j = i & j < n then 1 else 0)"
+definition
+  one_matrix :: "nat \<Rightarrow> ('a::{zero,one}) matrix" where
+  "one_matrix n = Abs_matrix (% j i. if j = i & j < n then 1 else 0)"
 
 lemma Rep_one_matrix[simp]: "Rep_matrix (one_matrix n) j i = (if (j = i & j < n) then 1 else 0)"
 apply (simp add: one_matrix_def)
@@ -289,13 +286,13 @@ lemma scalar_mult_singleton[simp]: "scalar_mult y (singleton_matrix j i x) = sin
 lemma Rep_minus[simp]: "Rep_matrix (-(A::_::lordered_ab_group)) x y = - (Rep_matrix A x y)"
   by (simp add: minus_matrix_def)
 
-lemma join_matrix: "join (A::('a::lordered_ring) matrix) B = combine_matrix join A B"  
-  apply (insert join_unique[of "(combine_matrix join)::('a matrix \<Rightarrow> 'a matrix \<Rightarrow> 'a matrix)", simplified is_join_combine_matrix_join])
+lemma join_matrix: "sup (A::('a::lordered_ring) matrix) B = combine_matrix sup A B"  
+  apply (insert join_unique[of "(combine_matrix sup)::('a matrix \<Rightarrow> 'a matrix \<Rightarrow> 'a matrix)", simplified is_join_combine_matrix_join])
   apply (simp)
   done
 
-lemma meet_matrix: "meet (A::('a::lordered_ring) matrix) B = combine_matrix meet A B"
-  apply (insert meet_unique[of "(combine_matrix meet)::('a matrix \<Rightarrow> 'a matrix \<Rightarrow> 'a matrix)", simplified is_meet_combine_matrix_meet])
+lemma meet_matrix: "inf (A::('a::lordered_ring) matrix) B = combine_matrix inf A B"
+  apply (insert meet_unique[of "(combine_matrix inf)::('a matrix \<Rightarrow> 'a matrix \<Rightarrow> 'a matrix)", simplified is_meet_combine_matrix_meet])
   apply (simp)
   done
 

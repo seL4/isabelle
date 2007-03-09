@@ -24,12 +24,12 @@ abbreviation
   "bot \<equiv> Sup {}"
 
 lemma SUP_nat_conv:
-  "(SUP n::nat. M n::'a::comp_lat) = join (M 0) (SUP n. M(Suc n))"
+  "(SUP n::nat. M n::'a::comp_lat) = sup (M 0) (SUP n. M(Suc n))"
 apply(rule order_antisym)
  apply(rule SUP_leI)
  apply(case_tac n)
   apply simp
- apply (blast intro:le_SUPI le_joinI2)
+ apply (blast intro:le_SUPI le_supI2)
 apply(simp)
 apply (blast intro:SUP_leI le_SUPI)
 done
@@ -40,16 +40,16 @@ proof
   fix A B :: "'a" assume "A <= B"
   let ?C = "%i::nat. if i=0 then A else B"
   have "chain ?C" using `A <= B` by(simp add:chain_def)
-  have "F B = join (F A) (F B)"
+  have "F B = sup (F A) (F B)"
   proof -
-    have "join A B = B" using `A <= B` by (simp add:join_absorp2)
+    have "sup A B = B" using `A <= B` by (simp add:sup_absorb2)
     hence "F B = F(SUP i. ?C i)" by(simp add: SUP_nat_conv)
     also have "\<dots> = (SUP i. F(?C i))"
       using `chain ?C` `continuous F` by(simp add:continuous_def)
-    also have "\<dots> = join (F A) (F B)" by(simp add: SUP_nat_conv)
+    also have "\<dots> = sup (F A) (F B)" by(simp add: SUP_nat_conv)
     finally show ?thesis .
   qed
-  thus "F A \<le> F B" by(subst le_def_join, simp)
+  thus "F A \<le> F B" by(subst le_iff_sup, simp)
 qed
 
 lemma continuous_lfp:

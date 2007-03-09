@@ -26,7 +26,7 @@ definition
 definition
   Church_Rosser :: "('a => 'a => bool) => bool" where
   "Church_Rosser R =
-    (\<forall>x y. (join R (R^--1))^** x y --> (\<exists>z. R^** x z \<and> R^** y z))"
+    (\<forall>x y. (sup R (R^--1))^** x y --> (\<exists>z. R^** x z \<and> R^** y z))"
 
 abbreviation
   confluent :: "('a => 'a => bool) => bool" where
@@ -83,7 +83,7 @@ lemma commute_rtrancl: "commute R S ==> commute (R^**) (S^**)"
   done
 
 lemma commute_Un:
-    "[| commute R T; commute S T |] ==> commute (join R S) T"
+    "[| commute R T; commute S T |] ==> commute (sup R S) T"
   apply (unfold commute_def square_def)
   apply blast
   done
@@ -92,7 +92,7 @@ lemma commute_Un:
 subsubsection {* diamond, confluence, and union *}
 
 lemma diamond_Un:
-    "[| diamond R; diamond S; commute R S |] ==> diamond (join R S)"
+    "[| diamond R; diamond S; commute R S |] ==> diamond (sup R S)"
   apply (unfold diamond_def)
   apply (assumption | rule commute_Un commute_sym)+
   done
@@ -109,7 +109,7 @@ lemma square_reflcl_confluent:
   done
 
 lemma confluent_Un:
-    "[| confluent R; confluent S; commute (R^**) (S^**) |] ==> confluent (join R S)"
+    "[| confluent R; confluent S; commute (R^**) (S^**) |] ==> confluent (sup R S)"
   apply (rule rtrancl_Un_rtrancl' [THEN subst])
   apply (blast dest: diamond_Un intro: diamond_confluent)
   done
@@ -128,9 +128,9 @@ lemma Church_Rosser_confluent: "Church_Rosser R = confluent R"
   apply (tactic {* safe_tac HOL_cs *})
    apply (tactic {*
      blast_tac (HOL_cs addIs
-       [thm "join_right_le" RS thm "rtrancl_mono'" RS thm "predicate2D" RS thm "rtrancl_trans'",
+       [thm "sup_ge2" RS thm "rtrancl_mono'" RS thm "predicate2D" RS thm "rtrancl_trans'",
         thm "rtrancl_converseI'", thm "conversepI",
-        thm "join_left_le" RS thm "rtrancl_mono'" RS thm "predicate2D"]) 1 *})
+        thm "sup_ge1" RS thm "rtrancl_mono'" RS thm "predicate2D"]) 1 *})
   apply (erule rtrancl_induct')
    apply blast
   apply (blast del: rtrancl.rtrancl_refl intro: rtrancl_trans')

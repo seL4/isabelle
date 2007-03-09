@@ -3,9 +3,9 @@
     Author:  Steven Obua, TU Muenchen
 
 FIXME integrate properly with lattice locales
-- make it a class?
-- get rid of the implicit there-is-a-meet/join but require eplicit ops.
-Also rename meet/join to inf/sup. 
+- get rid of the implicit there-is-a-meet/join but require explicit ops.
+- abandone semilorder axclasses, instead turn lattice locales into classes
+- rename meet/join to inf/sup in all theorems
 *)
 
 header "Lattice Orders"
@@ -61,143 +61,134 @@ proof -
   show "u = v" by ((rule ext)+, simp_all add: order_antisym prems f_le) 
 qed
 
-axclass join_semilorder < order
-  join_exists: "? j. is_join j"
+lemma is_meet_inf: "is_meet (inf \<Colon> 'a\<Colon>lower_semilattice \<Rightarrow> 'a \<Rightarrow> 'a)"
+unfolding is_meet_def by auto
+
+lemma is_join_sup: "is_join (sup \<Colon> 'a\<Colon>upper_semilattice \<Rightarrow> 'a \<Rightarrow> 'a)"
+unfolding is_join_def by auto
 
 axclass meet_semilorder < order
   meet_exists: "? m. is_meet m"
 
-axclass lorder < join_semilorder, meet_semilorder
+axclass join_semilorder < order
+  join_exists: "? j. is_join j"
 
-constdefs
-  meet :: "('a::meet_semilorder) \<Rightarrow> 'a \<Rightarrow> 'a"
-  "meet == THE m. is_meet m"
-  join :: "('a::join_semilorder) \<Rightarrow> 'a \<Rightarrow> 'a"
-  "join ==  THE j. is_join j"
+axclass lorder < meet_semilorder, join_semilorder
 
-lemma is_meet_meet: "is_meet (meet::'a \<Rightarrow> 'a \<Rightarrow> ('a::meet_semilorder))"
+definition
+  inf :: "('a::meet_semilorder) \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "inf = (THE m. is_meet m)"
+
+definition
+  sup :: "('a::join_semilorder) \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "sup = (THE j. is_join j)"
+
+lemma is_meet_meet: "is_meet (inf::'a \<Rightarrow> 'a \<Rightarrow> ('a::meet_semilorder))"
 proof -
   from meet_exists obtain k::"'a \<Rightarrow> 'a \<Rightarrow> 'a" where "is_meet k" ..
   with is_meet_unique[of _ k] show ?thesis
-    by (simp add: meet_def theI[of is_meet])    
+    by (simp add: inf_def theI [of is_meet])    
 qed
 
-lemma meet_unique: "(is_meet m) = (m = meet)" 
-by (insert is_meet_meet, auto simp add: is_meet_unique)
-
-lemma is_join_join: "is_join (join::'a \<Rightarrow> 'a \<Rightarrow> ('a::join_semilorder))"
+lemma is_join_join: "is_join (sup::'a \<Rightarrow> 'a \<Rightarrow> ('a::join_semilorder))"
 proof -
   from join_exists obtain k::"'a \<Rightarrow> 'a \<Rightarrow> 'a" where "is_join k" ..
   with is_join_unique[of _ k] show ?thesis
-    by (simp add: join_def theI[of is_join])    
+    by (simp add: sup_def theI[of is_join])    
 qed
 
-lemma join_unique: "(is_join j) = (j = join)"
+lemma meet_unique: "(is_meet m) = (m = inf)" 
+by (insert is_meet_meet, auto simp add: is_meet_unique)
+
+lemma join_unique: "(is_join j) = (j = sup)"
 by (insert is_join_join, auto simp add: is_join_unique)
 
-interpretation meet_semilat:
-  lower_semilattice ["op \<le> \<Colon> 'a\<Colon>meet_semilorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" meet]
+lemma inf_unique: "(is_meet m) = (m = (Lattices.inf \<Colon> 'a \<Rightarrow> 'a \<Rightarrow> 'a\<Colon>lower_semilattice))" 
+by (insert is_meet_inf, auto simp add: is_meet_unique)
+
+lemma sup_unique: "(is_join j) = (j = (Lattices.sup \<Colon> 'a \<Rightarrow> 'a \<Rightarrow> 'a\<Colon>upper_semilattice))"
+by (insert is_join_sup, auto simp add: is_join_unique)
+
+interpretation inf_semilat:
+  lower_semilattice ["op \<le> \<Colon> 'a\<Colon>meet_semilorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" inf]
 proof unfold_locales
   fix x y z :: "'a\<Colon>meet_semilorder"
-  from is_meet_meet have "is_meet meet" by blast
+  from is_meet_meet have "is_meet inf" by blast
   note meet = this is_meet_def
-  from meet show "meet x y \<le> x" by blast
-  from meet show "meet x y \<le> y" by blast
-  from meet show "x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> meet y z" by blast
+  from meet show "inf x y \<le> x" by blast
+  from meet show "inf x y \<le> y" by blast
+  from meet show "x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> inf y z" by blast
 qed
 
-interpretation join_semilat:
-  upper_semilattice ["op \<le> \<Colon> 'a\<Colon>join_semilorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" join]
+interpretation sup_semilat:
+  upper_semilattice ["op \<le> \<Colon> 'a\<Colon>join_semilorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" sup]
 proof unfold_locales
   fix x y z :: "'a\<Colon>join_semilorder"
-  from is_join_join have "is_join join" by blast
+  from is_join_join have "is_join sup" by blast
   note join = this is_join_def
-  from join show "x \<le> join x y" by blast
-  from join show "y \<le> join x y" by blast
-  from join show "x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> join x y \<le> z" by blast
+  from join show "x \<le> sup x y" by blast
+  from join show "y \<le> sup x y" by blast
+  from join show "x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> sup x y \<le> z" by blast
 qed
 
-declare
- join_semilat.antisym_intro[rule del] meet_semilat.antisym_intro[rule del]
- join_semilat.le_supE[rule del] meet_semilat.le_infE[rule del]
-
-interpretation meet_join_lat:
-  lattice ["op \<le> \<Colon> 'a\<Colon>lorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" meet join]
-by unfold_locales
-
-lemmas meet_left_le = meet_semilat.inf_le1
-lemmas meet_right_le = meet_semilat.inf_le2
-lemmas le_meetI[rule del] = meet_semilat.le_infI
-(* intro! breaks a proof in Hyperreal/SEQ and NumberTheory/IntPrimes *)
-lemmas join_left_le = join_semilat.sup_ge1
-lemmas join_right_le = join_semilat.sup_ge2
-lemmas join_leI[rule del] = join_semilat.le_supI
-
-lemmas meet_join_le = meet_left_le meet_right_le join_left_le join_right_le
-
-lemmas le_meet = meet_semilat.le_inf_iff
-
-lemmas le_join = join_semilat.ge_sup_conv
+interpretation inf_sup_lat:
+  lattice ["op \<le> \<Colon> 'a\<Colon>lorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" inf sup]
+  by unfold_locales
 
 lemma is_meet_min: "is_meet (min::'a \<Rightarrow> 'a \<Rightarrow> ('a::linorder))"
-by (auto simp add: is_meet_def min_def)
+  by (auto simp add: is_meet_def min_def)
+ lemma is_join_max: "is_join (max::'a \<Rightarrow> 'a \<Rightarrow> ('a::linorder))"
+  by (auto simp add: is_join_def max_def)
 
-lemma is_join_max: "is_join (max::'a \<Rightarrow> 'a \<Rightarrow> ('a::linorder))"
-by (auto simp add: is_join_def max_def)
-
-instance linorder \<subseteq> meet_semilorder
+instance linorder \<subseteq> lorder
 proof
   from is_meet_min show "? (m::'a\<Rightarrow>'a\<Rightarrow>('a::linorder)). is_meet m" by auto
-qed
-
-instance linorder \<subseteq> join_semilorder
-proof
   from is_join_max show "? (j::'a\<Rightarrow>'a\<Rightarrow>('a::linorder)). is_join j" by auto 
 qed
-    
-instance linorder \<subseteq> lorder ..
 
-lemma meet_min: "meet = (min :: 'a\<Rightarrow>'a\<Rightarrow>('a::linorder))" 
-by (simp add: is_meet_meet is_meet_min is_meet_unique)
+lemma meet_min: "inf = (min \<Colon> 'a\<Colon>{linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
+  by (simp add: is_meet_meet is_meet_min is_meet_unique)
+lemma join_max: "sup = (max \<Colon> 'a\<Colon>{linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
+  by (simp add: is_join_join is_join_max is_join_unique)
 
-lemma join_max: "join = (max :: 'a\<Rightarrow>'a\<Rightarrow>('a::linorder))"
-by (simp add: is_join_join is_join_max is_join_unique)
+lemmas [rule del] = sup_semilat.antisym_intro inf_semilat.antisym_intro
+  sup_semilat.le_supE inf_semilat.le_infE
 
-lemmas meet_idempotent = meet_semilat.inf_idem
-lemmas join_idempotent = join_semilat.sup_idem
-lemmas meet_comm = meet_semilat.inf_commute
-lemmas join_comm = join_semilat.sup_commute
-lemmas meet_leI1[rule del] = meet_semilat.le_infI1
-lemmas meet_leI2[rule del] = meet_semilat.le_infI2
-lemmas le_joinI1[rule del] = join_semilat.le_supI1
-lemmas le_joinI2[rule del] = join_semilat.le_supI2
-lemmas meet_assoc = meet_semilat.inf_assoc
-lemmas join_assoc = join_semilat.sup_assoc
-lemmas meet_left_comm = meet_semilat.inf_left_commute
-lemmas meet_left_idempotent = meet_semilat.inf_left_idem
-lemmas join_left_comm = join_semilat.sup_left_commute
-lemmas join_left_idempotent= join_semilat.sup_left_idem
-    
-lemmas meet_aci = meet_assoc meet_comm meet_left_comm meet_left_idempotent
-lemmas join_aci = join_assoc join_comm join_left_comm join_left_idempotent
-
-lemmas le_def_meet = meet_semilat.le_iff_inf
-lemmas le_def_join = join_semilat.le_iff_sup
-
-lemmas join_absorp2 = join_semilat.sup_absorb2
-lemmas join_absorp1 = join_semilat.sup_absorb1
-
-lemmas meet_absorp1 = meet_semilat.inf_absorb1
-lemmas meet_absorp2 = meet_semilat.inf_absorb2
-
-interpretation meet_join_lat:
-  lattice ["op \<le> \<Colon> 'a\<Colon>{meet_semilorder,join_semilorder} \<Rightarrow> 'a \<Rightarrow> bool" "op <" meet join]
-by unfold_locales
-
-lemmas meet_join_absorp = meet_join_lat.inf_sup_absorb
-lemmas join_meet_absorp = meet_join_lat.sup_inf_absorb
-
-lemmas distrib_join_le = meet_join_lat.distrib_sup_le
-lemmas distrib_meet_le = meet_join_lat.distrib_inf_le
+lemmas inf_le1 = inf_semilat.inf_le1
+lemmas inf_le2 = inf_semilat.inf_le2
+lemmas le_infI [rule del] = inf_semilat.le_infI
+  (*intro! breaks a proof in Hyperreal/SEQ and NumberTheory/IntPrimes*)
+lemmas sup_ge1 = sup_semilat.sup_ge1
+lemmas sup_ge2 = sup_semilat.sup_ge2
+lemmas le_supI [rule del] = sup_semilat.le_supI
+lemmas inf_sup_ord = inf_le1 inf_le2 sup_ge1 sup_ge2
+lemmas le_inf_iff = inf_semilat.le_inf_iff
+lemmas ge_sup_conv = sup_semilat.ge_sup_conv
+lemmas inf_idem = inf_semilat.inf_idem
+lemmas sup_idem = sup_semilat.sup_idem
+lemmas inf_commute = inf_semilat.inf_commute
+lemmas sup_commute = sup_semilat.sup_commute
+lemmas le_infI1 [rule del] = inf_semilat.le_infI1
+lemmas le_infI2 [rule del] = inf_semilat.le_infI2
+lemmas le_supI1 [rule del] = sup_semilat.le_supI1
+lemmas le_supI2 [rule del] = sup_semilat.le_supI2
+lemmas inf_assoc = inf_semilat.inf_assoc
+lemmas sup_assoc = sup_semilat.sup_assoc
+lemmas inf_left_commute = inf_semilat.inf_left_commute
+lemmas inf_left_idem = inf_semilat.inf_left_idem
+lemmas sup_left_commute = sup_semilat.sup_left_commute
+lemmas sup_left_idem= sup_semilat.sup_left_idem
+lemmas inf_aci = inf_assoc inf_commute inf_left_commute inf_left_idem
+lemmas sup_aci = sup_assoc sup_commute sup_left_commute sup_left_idem
+lemmas le_iff_inf = inf_semilat.le_iff_inf
+lemmas le_iff_sup = sup_semilat.le_iff_sup
+lemmas sup_absorb2 = sup_semilat.sup_absorb2
+lemmas sup_absorb1 = sup_semilat.sup_absorb1
+lemmas inf_absorb1 = inf_semilat.inf_absorb1
+lemmas inf_absorb2 = inf_semilat.inf_absorb2
+lemmas inf_sup_absorb = inf_sup_lat.inf_sup_absorb
+lemmas sup_inf_absorb = inf_sup_lat.sup_inf_absorb
+lemmas distrib_sup_le = inf_sup_lat.distrib_sup_le
+lemmas distrib_inf_le = inf_sup_lat.distrib_inf_le
 
 end

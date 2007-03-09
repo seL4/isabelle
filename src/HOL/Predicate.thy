@@ -202,28 +202,28 @@ lemma member2_empty [pred_set_conv]: "(%x y. False) = member2 {}"
 
 subsubsection {* Binary union *}
 
-lemma member_Un [pred_set_conv]: "join (member R) (member S) = member (R Un S)"
-  by (simp add: expand_fun_eq join_fun_eq join_bool_eq)
+lemma member_Un [pred_set_conv]: "sup (member R) (member S) = member (R Un S)"
+  by (simp add: expand_fun_eq sup_fun_eq sup_bool_eq)
 
-lemma member2_Un [pred_set_conv]: "join (member2 R) (member2 S) = member2 (R Un S)"
-  by (simp add: expand_fun_eq join_fun_eq join_bool_eq)
+lemma member2_Un [pred_set_conv]: "sup (member2 R) (member2 S) = member2 (R Un S)"
+  by (simp add: expand_fun_eq sup_fun_eq sup_bool_eq)
 
-lemma join1_iff [simp]: "(join A B x) = (A x | B x)"
-  by (simp add: join_fun_eq join_bool_eq)
+lemma sup1_iff [simp]: "sup A B x \<longleftrightarrow> A x | B x"
+  by (simp add: sup_fun_eq sup_bool_eq)
 
-lemma join2_iff [simp]: "(join A B x y) = (A x y | B x y)"
-  by (simp add: join_fun_eq join_bool_eq)
+lemma sup2_iff [simp]: "sup A B x y \<longleftrightarrow> A x y | B x y"
+  by (simp add: sup_fun_eq sup_bool_eq)
 
-lemma join1I1 [elim?]: "A x ==> join A B x"
+lemma sup1I1 [elim?]: "A x \<Longrightarrow> sup A B x"
   by simp
 
-lemma join2I1 [elim?]: "A x y ==> join A B x y"
+lemma sup2I1 [elim?]: "A x y \<Longrightarrow> sup A B x y"
   by simp
 
-lemma join1I2 [elim?]: "B x ==> join A B x"
+lemma join1I2 [elim?]: "B x \<Longrightarrow> sup A B x"
   by simp
 
-lemma join2I2 [elim?]: "B x y ==> join A B x y"
+lemma sup1I2 [elim?]: "B x y \<Longrightarrow> sup A B x y"
   by simp
 
 text {*
@@ -231,55 +231,55 @@ text {*
   @{text B}.
 *}
 
-lemma join1CI [intro!]: "(~ B x ==> A x) ==> join A B x"
+lemma sup1CI [intro!]: "(~ B x ==> A x) ==> sup A B x"
   by auto
 
-lemma join2CI [intro!]: "(~ B x y ==> A x y) ==> join A B x y"
+lemma sup2CI [intro!]: "(~ B x y ==> A x y) ==> sup A B x y"
   by auto
 
-lemma join1E [elim!]: "join A B x ==> (A x ==> P) ==> (B x ==> P) ==> P"
+lemma sup1E [elim!]: "sup A B x ==> (A x ==> P) ==> (B x ==> P) ==> P"
   by simp iprover
 
-lemma join2E [elim!]: "join A B x y ==> (A x y ==> P) ==> (B x y ==> P) ==> P"
+lemma sup2E [elim!]: "sup A B x y ==> (A x y ==> P) ==> (B x y ==> P) ==> P"
   by simp iprover
 
 
 subsubsection {* Binary intersection *}
 
-lemma member_Int [pred_set_conv]: "meet (member R) (member S) = member (R Int S)"
-  by (simp add: expand_fun_eq meet_fun_eq meet_bool_eq)
+lemma member_Int [pred_set_conv]: "inf (member R) (member S) = member (R Int S)"
+  by (simp add: expand_fun_eq inf_fun_eq inf_bool_eq)
 
-lemma member2_Int [pred_set_conv]: "meet (member2 R) (member2 S) = member2 (R Int S)"
-  by (simp add: expand_fun_eq meet_fun_eq meet_bool_eq)
+lemma member2_Int [pred_set_conv]: "inf (member2 R) (member2 S) = member2 (R Int S)"
+  by (simp add: expand_fun_eq inf_fun_eq inf_bool_eq)
 
-lemma meet1_iff [simp]: "(meet A B x) = (A x & B x)"
-  by (simp add: meet_fun_eq meet_bool_eq)
+lemma inf1_iff [simp]: "inf A B x \<longleftrightarrow> A x \<and> B x"
+  by (simp add: inf_fun_eq inf_bool_eq)
 
-lemma meet2_iff [simp]: "(meet A B x y) = (A x y & B x y)"
-  by (simp add: meet_fun_eq meet_bool_eq)
+lemma inf2_iff [simp]: "inf A B x y \<longleftrightarrow> A x y \<and> B x y"
+  by (simp add: inf_fun_eq inf_bool_eq)
 
-lemma meet1I [intro!]: "A x ==> B x ==> meet A B x"
+lemma inf1I [intro!]: "A x ==> B x ==> inf A B x"
   by simp
 
-lemma meet2I [intro!]: "A x y ==> B x y ==> meet A B x y"
+lemma inf2I [intro!]: "A x y ==> B x y ==> inf A B x y"
   by simp
 
-lemma meet1D1: "meet A B x ==> A x"
+lemma inf1D1: "inf A B x ==> A x"
   by simp
 
-lemma meet2D1: "meet A B x y ==> A x y"
+lemma inf2D1: "inf A B x y ==> A x y"
   by simp
 
-lemma meet1D2: "meet A B x ==> B x"
+lemma inf1D2: "inf A B x ==> B x"
   by simp
 
-lemma meet2D2: "meet A B x y ==> B x y"
+lemma inf2D2: "inf A B x y ==> B x y"
   by simp
 
-lemma meet1E [elim!]: "meet A B x ==> (A x ==> B x ==> P) ==> P"
+lemma inf1E [elim!]: "inf A B x ==> (A x ==> B x ==> P) ==> P"
   by simp
 
-lemma meet2E [elim!]: "meet A B x y ==> (A x y ==> B x y ==> P) ==> P"
+lemma inf2E [elim!]: "inf A B x y ==> (A x y ==> B x y ==> P) ==> P"
   by simp
 
 
@@ -357,12 +357,12 @@ lemma converse_pred_comp: "(r OO s)^--1 = s^--1 OO r^--1"
   by (iprover intro: order_antisym conversepI pred_compI
     elim: pred_compE dest: conversepD)
 
-lemma converse_meet: "(meet r s)^--1 = meet r^--1 s^--1"
-  by (simp add: meet_fun_eq meet_bool_eq)
+lemma converse_meet: "(inf r s)^--1 = inf r^--1 s^--1"
+  by (simp add: inf_fun_eq inf_bool_eq)
     (iprover intro: conversepI ext dest: conversepD)
 
-lemma converse_join: "(join r s)^--1 = join r^--1 s^--1"
-  by (simp add: join_fun_eq join_bool_eq)
+lemma converse_join: "(sup r s)^--1 = sup r^--1 s^--1"
+  by (simp add: sup_fun_eq sup_bool_eq)
     (iprover intro: conversepI ext dest: conversepD)
 
 lemma conversep_noteq [simp]: "(op ~=)^--1 = op ~="

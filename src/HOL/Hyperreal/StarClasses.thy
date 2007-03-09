@@ -249,7 +249,7 @@ subsection {* Lattice ordering classes *}
 
 text {*
   Some extra trouble is necessary because the class axioms 
-  for @{term meet} and @{term join} use quantification over
+  for @{term inf} and @{term sup} use quantification over
   function spaces.
 *}
 
@@ -279,28 +279,28 @@ done
 
 instance star :: (lorder) lorder ..
 
-lemma star_meet_def [transfer_unfold]: "meet = *f2* meet"
+lemma star_inf_def [transfer_unfold]: "inf = *f2* inf"
 apply (rule is_meet_unique [OF is_meet_meet])
 apply (transfer is_meet_def, rule is_meet_meet)
 done
 
-lemma star_join_def [transfer_unfold]: "join = *f2* join"
+lemma star_sup_def [transfer_unfold]: "sup = *f2* sup"
 apply (rule is_join_unique [OF is_join_join])
 apply (transfer is_join_def, rule is_join_join)
 done
 
-lemma Standard_meet [simp]:
-  "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> meet x y \<in> Standard"
-by (simp add: star_meet_def)
+lemma Standard_inf [simp]:
+  "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> inf x y \<in> Standard"
+by (simp add: star_inf_def)
 
-lemma Standard_join [simp]:
-  "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> join x y \<in> Standard"
-by (simp add: star_join_def)
+lemma Standard_sup [simp]:
+  "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> sup x y \<in> Standard"
+by (simp add: star_sup_def)
 
-lemma star_of_meet [simp]: "star_of (meet x y) = meet (star_of x) (star_of y)"
+lemma star_of_inf [simp]: "star_of (inf x y) = inf (star_of x) (star_of y)"
 by transfer (rule refl)
 
-lemma star_of_join [simp]: "star_of (join x y) = join (star_of x) (star_of y)"
+lemma star_of_sup [simp]: "star_of (sup x y) = sup (star_of x) (star_of y)"
 by transfer (rule refl)
 
 subsection {* Ordered group classes *}

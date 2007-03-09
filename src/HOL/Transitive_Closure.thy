@@ -43,7 +43,7 @@ constdefs
 
 abbreviation
   reflcl :: "('a => 'a => bool) => 'a => 'a => bool"  ("(_^==)" [1000] 1000) where
-  "r^== == join r op ="
+  "r^== == sup r op ="
 
 abbreviation
   reflcl_set :: "('a \<times> 'a) set => ('a \<times> 'a) set"  ("(_^=)" [1000] 999) where
@@ -71,7 +71,7 @@ subsection {* Reflexive-transitive closure *}
 lemma rtrancl_set_eq [pred_set_conv]: "(member2 r)^** = member2 (r^*)"
   by (simp add: rtrancl_set_def)
 
-lemma reflcl_set_eq [pred_set_conv]: "(join (member2 r) op =) = member2 (r Un Id)"
+lemma reflcl_set_eq [pred_set_conv]: "(sup (member2 r) op =) = member2 (r Un Id)"
   by (simp add: expand_fun_eq)
 
 lemmas rtrancl_refl [intro!, Pure.intro!, simp] = rtrancl_refl [to_set]
@@ -190,7 +190,7 @@ lemma rtrancl_subset': "R \<le> S ==> S \<le> R^** ==> S^** = R^**"
 
 lemmas rtrancl_subset = rtrancl_subset' [to_set]
 
-lemma rtrancl_Un_rtrancl': "(join (R^**) (S^**))^** = (join R S)^**"
+lemma rtrancl_Un_rtrancl': "(sup (R^**) (S^**))^** = (sup R S)^**"
   by (blast intro!: rtrancl_subset' intro: rtrancl_mono' [THEN predicate2D])
 
 lemmas rtrancl_Un_rtrancl = rtrancl_Un_rtrancl' [to_set]
@@ -208,7 +208,7 @@ lemma rtrancl_r_diff_Id: "(r - Id)^* = r^*"
   apply (blast intro!: r_into_rtrancl)
   done
 
-lemma rtrancl_r_diff_Id': "(meet r op ~=)^** = r^**"
+lemma rtrancl_r_diff_Id': "(inf r op ~=)^** = r^**"
   apply (rule sym)
   apply (rule rtrancl_subset')
   apply blast+

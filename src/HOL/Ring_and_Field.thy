@@ -279,7 +279,7 @@ class ordered_ring_strict = ring + ordered_semiring_strict + abs_if
 instance ordered_ring_strict \<subseteq> lordered_ab_group ..
 
 instance ordered_ring_strict \<subseteq> lordered_ring
-  by (intro_classes, simp add: abs_if join_eq_if)
+  by intro_classes (simp add: abs_if sup_eq_if)
 
 class pordered_comm_ring = comm_ring + pordered_comm_semiring
 
