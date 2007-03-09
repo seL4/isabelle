@@ -806,8 +806,8 @@ where
                 G\<turnstile>(Class class) accessible_in (pid accclass);
                 membr=(C,mdecl new);
                 G\<turnstile>(C,new) overrides\<^sub>S old; 
-                G\<turnstile>class \<prec>\<^sub>C sup;
-                G\<turnstile>Method old of sup accessible_from accclass
+                G\<turnstile>class \<prec>\<^sub>C supr;
+                G\<turnstile>Method old of supr accessible_from accclass
                \<rbrakk>\<Longrightarrow> G\<turnstile>membr of class accessible_from accclass"
 
 syntax 
@@ -848,8 +848,8 @@ where
 | Overriding: "\<lbrakk>G\<turnstile>membr member_in class;
                 membr=(C,mdecl new);
                 G\<turnstile>(C,new) overrides old; 
-                G\<turnstile>class \<prec>\<^sub>C sup;
-                G\<turnstile>Method old in sup dyn_accessible_from accclass
+                G\<turnstile>class \<prec>\<^sub>C supr;
+                G\<turnstile>Method old in supr dyn_accessible_from accclass
                \<rbrakk>\<Longrightarrow> G\<turnstile>membr in class dyn_accessible_from accclass"
 
 syntax 

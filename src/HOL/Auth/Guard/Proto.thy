@@ -340,21 +340,21 @@ secret R n s Ks = secret R' n' s' Ks"
 by (unfold uniq_def, blast)
 
 constdefs ord :: "proto => (rule => rule => bool) => bool"
-"ord p inf == ALL R R'. R:p --> R':p --> ~ inf R R' --> inf R' R"
+"ord p inff == ALL R R'. R:p --> R':p --> ~ inff R R' --> inff R' R"
 
-lemma ordD: "[| ord p inf; ~ inf R R'; R:p; R':p |] ==> inf R' R"
+lemma ordD: "[| ord p inff; ~ inff R R'; R:p; R':p |] ==> inff R' R"
 by (unfold ord_def, blast)
 
 constdefs uniq' :: "proto => (rule => rule => bool) => secfun => bool"
-"uniq' p inf secret == ALL evs R R' n n' Ks s s'. R:p --> R':p -->
-inf R R' --> n:newn R --> n':newn R' --> nonce s n = nonce s' n' -->
+"uniq' p inff secret == ALL evs R R' n n' Ks s s'. R:p --> R':p -->
+inff R R' --> n:newn R --> n':newn R' --> nonce s n = nonce s' n' -->
 Nonce (nonce s n):parts {apm' s R} --> Nonce (nonce s n):parts {apm' s' R'} -->
 apm' s R:guard (nonce s n) Ks --> apm' s' R':guard (nonce s n) Ks -->
 evs:tr p --> Nonce (nonce s n) ~:analz (spies evs) -->
 secret R n s Ks:parts (spies evs) --> secret R' n' s' Ks:parts (spies evs) -->
 secret R n s Ks = secret R' n' s' Ks"
 
-lemma uniq'D: "[| uniq' p inf secret; evs: tr p; inf R R'; R:p; R':p; n:newn R;
+lemma uniq'D: "[| uniq' p inff secret; evs: tr p; inff R R'; R:p; R':p; n:newn R;
 n':newn R'; nonce s n = nonce s' n'; Nonce (nonce s n) ~:analz (spies evs);
 Nonce (nonce s n):parts {apm' s R}; Nonce (nonce s n):parts {apm' s' R'};
 secret R n s Ks:parts (spies evs); secret R' n' s' Ks:parts (spies evs);
@@ -362,10 +362,10 @@ apm' s R:guard (nonce s n) Ks; apm' s' R':guard (nonce s n) Ks |] ==>
 secret R n s Ks = secret R' n' s' Ks"
 by (unfold uniq'_def, blast)
 
-lemma uniq'_imp_uniq: "[| uniq' p inf secret; ord p inf |] ==> uniq p secret"
+lemma uniq'_imp_uniq: "[| uniq' p inff secret; ord p inff |] ==> uniq p secret"
 apply (unfold uniq_def)
 apply (rule allI)+
-apply (case_tac "inf R R'")
+apply (case_tac "inff R R'")
 apply (blast dest: uniq'D)
 by (auto dest: ordD uniq'D intro: sym)
 
