@@ -199,19 +199,23 @@ fun const_of thy (a,Ts) = Const(a, Sign.const_instance thy (a,Ts));
 
 (*First-order translation. No types are known for variables. HOLogic.typeT should allow
   them to be inferred.*)
-fun term_of_stree thy t =
+fun term_of_stree args thy t =
   case t of
       Int _ => raise STREE t
+    | Br ("hBOOL",[t]) => term_of_stree [] thy t  (*ignore hBOOL*)
+    | Br ("hAPP",[t,u]) => term_of_stree (u::args) thy t
     | Br (a,ts) => 
         case strip_prefix ResClause.const_prefix a of
             SOME "equal" => 
               if length ts = 2 then
-                list_comb(Const ("op =", HOLogic.typeT), List.map (term_of_stree thy) ts)
+                list_comb(Const ("op =", HOLogic.typeT), List.map (term_of_stree [] thy) ts)
               else raise STREE t  (*equality needs two arguments*)
           | SOME b => 
               let val c = invert_const b
                   val nterms = length ts - num_typargs thy c
-                  val us = List.map (term_of_stree thy) (List.take(ts,nterms))
+                  val us = List.map (term_of_stree [] thy) (List.take(ts,nterms) @ args)
+                  (*Extra args from hAPP come AFTER any arguments given directly to the
+                    constant.*)
                   val Ts = List.map type_of_stree (List.drop(ts,nterms))
               in  list_comb(const_of thy (c, Ts), us)  end
           | NONE => (*a variable, not a constant*)
@@ -223,7 +227,7 @@ fun term_of_stree thy t =
                     case strip_prefix ResClause.schematic_var_prefix a of
                         SOME b => make_var (b,T)
                       | NONE => make_var (a,T)    (*Variable from the ATP, say X1*)
-              in  list_comb (opr, List.map (term_of_stree thy) ts)  end;
+              in  list_comb (opr, List.map (term_of_stree [] thy) (args@ts))  end;
 
 (*Type class literal applied to a type. Returns triple of polarity, class, type.*)                  
 fun constraint_of_stree pol (Br("c_Not",[t])) = constraint_of_stree (not pol) t
@@ -250,7 +254,7 @@ fun lits_of_strees ctxt (vt, lits) [] = (vt, rev (nofalses lits))
   | lits_of_strees ctxt (vt, lits) (t::ts) = 
       lits_of_strees ctxt (add_constraint (constraint_of_stree true t, vt), lits) ts
       handle STREE _ => 
-      lits_of_strees ctxt (vt, term_of_stree (ProofContext.theory_of ctxt) t :: lits) ts;
+      lits_of_strees ctxt (vt, term_of_stree [] (ProofContext.theory_of ctxt) t :: lits) ts;
 
 (*Update TVars/TFrees with detected sort constraints.*)
 fun fix_sorts vt =
