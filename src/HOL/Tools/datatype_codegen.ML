@@ -525,8 +525,8 @@ fun the_codetypes_mut_specs thy ([(tyco, is_dt)]) =
 
 (* registering code types in code generator *)
 
-val codetype_hook =
-  fold (fn (dtco, (_, spec)) => CodegenData.add_datatype (dtco, spec));
+fun codetype_hook x =
+  fold (fn (dtco, (_, spec)) => CodegenData.add_datatype (dtco, spec)) x;
 
 
 (* instrumentalizing the sort algebra *)
