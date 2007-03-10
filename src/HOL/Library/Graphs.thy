@@ -245,7 +245,7 @@ lemma graph_union_least:
 
 lemma Sup_graph_eq:
   "(SUP n. Graph (G n)) = Graph (\<Union>n. G n)"
-  unfolding SUP_def 
+  unfolding SUPR_def
   apply (rule order_antisym)
   apply (rule Sup_least)
   apply auto

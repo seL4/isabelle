@@ -104,7 +104,7 @@ lemma le_SUPI':
   assumes "l \<le> M i"
   shows "l \<le> (SUP i. M i)"
   using prems
-  by (rule order_trans) (rule le_SUPI, rule refl)
+  by (rule order_trans) (rule le_SUPI [OF UNIV_I])
 
 
 lemma zero_minimum[simp]: "(0::'a::pre_kleene) \<le> x"
@@ -117,21 +117,20 @@ proof
   
   have [simp]: "1 \<le> star a"
     unfolding star_cont[of 1 a 1, simplified] 
-    by (rule le_SUPI) (rule power_0[symmetric])
+    by (subst power_0[symmetric]) (rule le_SUPI [OF UNIV_I])
   
   show "1 + a * star a \<le> star a" 
     apply (rule plus_leI, simp)
     apply (simp add:star_cont[of a a 1, simplified])
     apply (simp add:star_cont[of 1 a 1, simplified])
-    apply (intro SUP_leI le_SUPI)
-    by (rule power_Suc[symmetric])
+    apply (subst power_Suc[symmetric])
+    by (intro SUP_leI le_SUPI UNIV_I)
 
   show "1 + star a * a \<le> star a" 
     apply (rule plus_leI, simp)
     apply (simp add:star_cont[of 1 a a, simplified])
     apply (simp add:star_cont[of 1 a 1, simplified])
-    apply (intro SUP_leI le_SUPI)
-    by (simp add:power_Suc[symmetric] power_commutes)
+    by (auto intro: SUP_leI le_SUPI UNIV_I simp add: power_Suc[symmetric] power_commutes)
 
   show "a * x \<le> x \<Longrightarrow> star a * x \<le> x"
   proof -

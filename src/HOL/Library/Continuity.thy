@@ -16,7 +16,7 @@ definition
   "chain M \<longleftrightarrow> (\<forall>i. M i \<le> M (Suc i))"
 
 definition
-  continuous :: "('a::order \<Rightarrow> 'a::order) \<Rightarrow> bool" where
+  continuous :: "('a::comp_lat \<Rightarrow> 'a::comp_lat) \<Rightarrow> bool" where
   "continuous F \<longleftrightarrow> (\<forall>M. chain M \<longrightarrow> F (SUP i. M i) = (SUP i. F (M i)))"
 
 abbreviation
@@ -24,12 +24,12 @@ abbreviation
   "bot \<equiv> Sup {}"
 
 lemma SUP_nat_conv:
-  "(SUP n::nat. M n::'a::comp_lat) = sup (M 0) (SUP n. M(Suc n))"
+  "(SUP n. M n) = sup (M 0) (SUP n. M(Suc n))"
 apply(rule order_antisym)
  apply(rule SUP_leI)
  apply(case_tac n)
   apply simp
- apply (blast intro:le_SUPI le_supI2)
+ apply (fast intro:le_SUPI le_supI2)
 apply(simp)
 apply (blast intro:SUP_leI le_SUPI)
 done
@@ -43,10 +43,10 @@ proof
   have "F B = sup (F A) (F B)"
   proof -
     have "sup A B = B" using `A <= B` by (simp add:sup_absorb2)
-    hence "F B = F(SUP i. ?C i)" by(simp add: SUP_nat_conv)
+    hence "F B = F(SUP i. ?C i)" by (subst SUP_nat_conv) simp
     also have "\<dots> = (SUP i. F(?C i))"
       using `chain ?C` `continuous F` by(simp add:continuous_def)
-    also have "\<dots> = sup (F A) (F B)" by(simp add: SUP_nat_conv)
+    also have "\<dots> = sup (F A) (F B)" by (subst SUP_nat_conv) simp
     finally show ?thesis .
   qed
   thus "F A \<le> F B" by(subst le_iff_sup, simp)
@@ -80,7 +80,7 @@ proof -
       thus ?thesis by(auto simp add:chain_def)
     qed
     hence "F ?U = (SUP i. (F^(i+1)) bot)" using `continuous F` by (simp add:continuous_def)
-    also have "\<dots> \<le> ?U" by(blast intro:SUP_leI le_SUPI)
+    also have "\<dots> \<le> ?U" by(fast intro:SUP_leI le_SUPI)
     finally show "F ?U \<le> ?U" .
   qed
   ultimately show ?thesis by (blast intro:order_antisym)
