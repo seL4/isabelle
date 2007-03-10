@@ -255,6 +255,9 @@ fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
       if null dts then
         primrec_err ("datatypes " ^ commas_quote tnames ^ "\nare not mutually recursive")
       else snd (hd dts);
+    val descr = map (fn (i, (tname, args, constrs)) => (i, (tname, args,
+      map (fn (cname, cargs) => (cname, fold (fn (dTs, dT) => fn dTs' =>
+        dTs' @ dTs @ [dT]) cargs [])) constrs))) descr;
     val (fnameTs, fnss) =
       fold_rev (process_fun thy descr rec_eqns) main_fns ([], []);
     val (fs, defs) = fold_rev (get_fns fnss) (descr ~~ rec_names) ([], []);
@@ -289,7 +292,7 @@ fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
       HOLogic.dest_eq |> fst |> strip_comb |> snd |> take_prefix is_Var |> fst;
     val (pvars, ctxtvars) = List.partition
       (equal HOLogic.boolT o body_type o snd)
-      (fold Term.add_vars (map Logic.strip_assums_concl
+      (fold_rev Term.add_vars (map Logic.strip_assums_concl
         (prems_of (hd rec_rewrites))) [] \\ map dest_Var fvars);
     val cfs = defs' |> hd |> snd |> strip_comb |> snd |>
       curry (List.take o swap) (length fvars) |> map cert;
