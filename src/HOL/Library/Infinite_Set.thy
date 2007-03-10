@@ -358,12 +358,12 @@ text {*
 *}
 
 definition
-  Inf_many :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "INF " 10) where
+  Inf_many :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "INFM " 10) where
   "Inf_many P = infinite {x. P x}"
 
 definition
   Alm_all :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "MOST " 10) where
-  "Alm_all P = (\<not> (INF x. \<not> P x))"
+  "Alm_all P = (\<not> (INFM x. \<not> P x))"
 
 notation (xsymbols)
   Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10) and
