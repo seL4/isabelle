@@ -9,6 +9,7 @@ signature NOMINAL_PACKAGE =
 sig
   val add_nominal_datatype : bool -> string list -> (string list * bstring * mixfix *
     (bstring * string list * mixfix) list) list -> theory -> theory
+  type descr
   type nominal_datatype_info
   val get_nominal_datatypes : theory -> nominal_datatype_info Symtab.table
   val get_nominal_datatype : theory -> string -> nominal_datatype_info option
@@ -65,6 +66,8 @@ fun mk_case_names_exhausts descr new =
 end;
 
 (* data kind 'HOL/nominal_datatypes' *)
+
+type descr = (int * (string * dtyp list * (string * (dtyp list * dtyp) list) list)) list;
 
 type nominal_datatype_info =
   {index : int,
@@ -1545,7 +1548,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (Goal.prove_global thy11 [] []
             (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map HOLogic.mk_imp ps)))
             (fn _ => rtac rec_induct 1 THEN REPEAT
-               (NominalPermeq.perm_simp_tac (simpset_of thy11) 1 THEN
+               (NominalPermeq.perm_simp_tac (HOL_basic_ss addsimps flat perm_simps') 1 THEN
                 (resolve_tac rec_intrs THEN_ALL_NEW
                  asm_simp_tac (HOL_ss addsimps (fresh_bij @ perm_bij))) 1))))
         val ths' = map (fn ((P, Q), th) =>
@@ -2059,7 +2062,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       end) (rec_eq_prems ~~
         DatatypeProp.make_primrecs new_type_names descr' sorts' thy12);
 
-    val dt_infos = map (make_dt_info descr'' sorts induct reccomb_names rec_thms)
+    val dt_infos = map (make_dt_info pdescr sorts induct reccomb_names rec_thms)
       ((0 upto length descr1 - 1) ~~ descr1 ~~ distinct_thms ~~ inject_thms);
 
     (* FIXME: theorems are stored in database for testing only *)
