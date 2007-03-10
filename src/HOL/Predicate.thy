@@ -286,28 +286,61 @@ lemma inf2E [elim!]: "inf A B x y ==> (A x y ==> B x y ==> P) ==> P"
 subsubsection {* Unions of families *}
 
 lemma member_SUP: "(SUP i. member (r i)) = member (UN i. r i)"
-  by (simp add: SUP_def Sup_fun_eq Sup_bool_eq expand_fun_eq) blast
+  by (simp add: SUPR_def Sup_fun_eq Sup_bool_eq expand_fun_eq) blast
 
 lemma member2_SUP: "(SUP i. member2 (r i)) = member2 (UN i. r i)"
-  by (simp add: SUP_def Sup_fun_eq Sup_bool_eq expand_fun_eq) blast
+  by (simp add: SUPR_def Sup_fun_eq Sup_bool_eq expand_fun_eq) blast
 
-lemma SUP1_iff [simp]: "((SUP x. B x) b) = (EX x. B x b)"
-  by (simp add: SUP_def Sup_fun_eq Sup_bool_eq) blast
+lemma SUP1_iff [simp]: "(SUP x:A. B x) b = (EX x:A. B x b)"
+  by (simp add: SUPR_def Sup_fun_eq Sup_bool_eq) blast
 
-lemma SUP2_iff [simp]: "((SUP x. B x) b c) = (EX x. B x b c)"
-  by (simp add: SUP_def Sup_fun_eq Sup_bool_eq) blast
+lemma SUP2_iff [simp]: "(SUP x:A. B x) b c = (EX x:A. B x b c)"
+  by (simp add: SUPR_def Sup_fun_eq Sup_bool_eq) blast
 
-lemma SUP1_I [intro]: "B a b ==> (SUP x. B x) b"
+lemma SUP1_I [intro]: "a : A ==> B a b ==> (SUP x:A. B x) b"
   by auto
 
-lemma SUP2_I [intro]: "B a b c ==> (SUP x. B x) b c"
+lemma SUP2_I [intro]: "a : A ==> B a b c ==> (SUP x:A. B x) b c"
   by auto
 
-lemma SUP1_E [elim!]: "(SUP x. B x) b ==> (!!x. B x b ==> R) ==> R"
-  by simp iprover
+lemma SUP1_E [elim!]: "(SUP x:A. B x) b ==> (!!x. x : A ==> B x b ==> R) ==> R"
+  by auto
 
-lemma SUP2_E [elim!]: "(SUP x. B x) b c ==> (!!x. B x b c ==> R) ==> R"
-  by simp iprover
+lemma SUP2_E [elim!]: "(SUP x:A. B x) b c ==> (!!x. x : A ==> B x b c ==> R) ==> R"
+  by auto
+
+
+subsubsection {* Intersections of families *}
+
+lemma member_INF: "(INF i. member (r i)) = member (INT i. r i)"
+  by (simp add: INFI_def Inf_fun_def Inf_bool_def expand_fun_eq) blast
+
+lemma member2_INF: "(INF i. member2 (r i)) = member2 (INT i. r i)"
+  by (simp add: INFI_def Inf_fun_def Inf_bool_def expand_fun_eq) blast
+
+lemma INF1_iff [simp]: "(INF x:A. B x) b = (ALL x:A. B x b)"
+  by (simp add: INFI_def Inf_fun_def Inf_bool_def) blast
+
+lemma INF2_iff [simp]: "(INF x:A. B x) b c = (ALL x:A. B x b c)"
+  by (simp add: INFI_def Inf_fun_def Inf_bool_def) blast
+
+lemma INF1_I [intro!]: "(!!x. x : A ==> B x b) ==> (INF x:A. B x) b"
+  by auto
+
+lemma INF2_I [intro!]: "(!!x. x : A ==> B x b c) ==> (INF x:A. B x) b c"
+  by auto
+
+lemma INF1_D [elim]: "(INF x:A. B x) b ==> a : A ==> B a b"
+  by auto
+
+lemma INF2_D [elim]: "(INF x:A. B x) b c ==> a : A ==> B a b c"
+  by auto
+
+lemma INF1_E [elim]: "(INF x:A. B x) b ==> (B a b ==> R) ==> (a ~: A ==> R) ==> R"
+  by auto
+
+lemma INF2_E [elim]: "(INF x:A. B x) b c ==> (B a b c ==> R) ==> (a ~: A ==> R) ==> R"
+  by auto
 
 
 subsection {* Composition of two relations *}

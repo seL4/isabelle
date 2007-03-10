@@ -20,15 +20,6 @@ definition
   Sup :: "'a::order set \<Rightarrow> 'a" where
   "Sup A = Inf {b. \<forall>a \<in> A. a \<le> b}"
 
-definition
-  SUP :: "('a \<Rightarrow> 'b::order) \<Rightarrow> 'b"  (binder "SUP " 10) where
-  "(SUP x. f x) = Sup (f ` UNIV)"
-
-(*
-abbreviation
-  bot :: "'a::order" where
-  "bot == Sup {}"
-*)
 class comp_lat = order +
   assumes Inf_lower: "x \<in> A \<Longrightarrow> Inf A \<sqsubseteq> x"
   assumes Inf_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> Inf A"
@@ -38,6 +29,54 @@ theorem Sup_upper: "(x::'a::comp_lat) \<in> A \<Longrightarrow> x <= Sup A"
 
 theorem Sup_least: "(\<And>x::'a::comp_lat. x \<in> A \<Longrightarrow> x <= z) \<Longrightarrow> Sup A <= z"
   by (auto simp: Sup_def intro: Inf_lower)
+
+definition
+  SUPR :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::comp_lat) \<Rightarrow> 'b" where
+  "SUPR A f == Sup (f ` A)"
+
+definition
+  INFI :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::comp_lat) \<Rightarrow> 'b" where
+  "INFI A f == Inf (f ` A)"
+
+syntax
+  "_SUP1"     :: "pttrns => 'b => 'b"           ("(3SUP _./ _)" 10)
+  "_SUP"      :: "pttrn => 'a set => 'b => 'b"  ("(3SUP _:_./ _)" 10)
+  "_INF1"     :: "pttrns => 'b => 'b"           ("(3INF _./ _)" 10)
+  "_INF"      :: "pttrn => 'a set => 'b => 'b"  ("(3INF _:_./ _)" 10)
+
+translations
+  "SUP x y. B"   == "SUP x. SUP y. B"
+  "SUP x. B"     == "CONST SUPR UNIV (%x. B)"
+  "SUP x. B"     == "SUP x:UNIV. B"
+  "SUP x:A. B"   == "CONST SUPR A (%x. B)"
+  "INF x y. B"   == "INF x. INF y. B"
+  "INF x. B"     == "CONST INFI UNIV (%x. B)"
+  "INF x. B"     == "INF x:UNIV. B"
+  "INF x:A. B"   == "CONST INFI A (%x. B)"
+
+(* To avoid eta-contraction of body: *)
+print_translation {*
+let
+  fun btr' syn (A :: Abs abs :: ts) =
+    let val (x,t) = atomic_abs_tr' abs
+    in list_comb (Syntax.const syn $ x $ A $ t, ts) end
+  val const_syntax_name = Sign.const_syntax_name @{theory} o fst o dest_Const
+in
+[(const_syntax_name @{term SUPR}, btr' "_SUP"),(const_syntax_name @{term "INFI"}, btr' "_INF")]
+end
+*}
+
+lemma le_SUPI: "i : A \<Longrightarrow> M i \<le> (SUP i:A. M i)"
+  by (auto simp add: SUPR_def intro: Sup_upper)
+
+lemma SUP_leI: "(\<And>i. i : A \<Longrightarrow> M i \<le> u) \<Longrightarrow> (SUP i:A. M i) \<le> u"
+  by (auto simp add: SUPR_def intro: Sup_least)
+
+lemma INF_leI: "i : A \<Longrightarrow> (INF i:A. M i) \<le> M i"
+  by (auto simp add: INFI_def intro: Inf_lower)
+
+lemma le_INFI: "(\<And>i. i : A \<Longrightarrow> u \<le> M i) \<Longrightarrow> u \<le> (INF i:A. M i)"
+  by (auto simp add: INFI_def intro: Inf_greatest)
 
 text {* A complete lattice is a lattice *}
 
@@ -62,59 +101,48 @@ lemma mono_sup: "mono f \<Longrightarrow> sup (f A) (f B) <= f (sup A B)"
   by (auto simp add: mono_def)
 
 lemma Sup_insert[simp]: "Sup (insert (a::'a::comp_lat) A) = sup a (Sup A)"
-apply(simp add:Sup_def)
-apply(rule order_antisym)
- apply(rule Inf_lower)
- apply(clarsimp)
- apply(rule le_supI2)
- apply(rule Inf_greatest)
- apply blast
-apply simp
-apply rule
- apply(rule Inf_greatest)apply blast
-apply(rule Inf_greatest)
-apply(rule Inf_lower)
-apply blast
-done
+  apply (rule order_antisym)
+  apply (rule Sup_least)
+  apply (erule insertE)
+  apply (rule le_supI1)
+  apply simp
+  apply (rule le_supI2)
+  apply (erule Sup_upper)
+  apply (rule le_supI)
+  apply (rule Sup_upper)
+  apply simp
+  apply (rule Sup_least)
+  apply (rule Sup_upper)
+  apply simp
+  done
+
+lemma Inf_insert[simp]: "Inf (insert (a::'a::comp_lat) A) = inf a (Inf A)"
+  apply (rule order_antisym)
+  apply (rule le_infI)
+  apply (rule Inf_lower)
+  apply simp
+  apply (rule Inf_greatest)
+  apply (rule Inf_lower)
+  apply simp
+  apply (rule Inf_greatest)
+  apply (erule insertE)
+  apply (rule le_infI1)
+  apply simp
+  apply (rule le_infI2)
+  apply (erule Inf_lower)
+  done
 
 lemma bot_least[simp]: "Sup{} \<le> (x::'a::comp_lat)"
-apply(simp add: Sup_def)
-apply(rule Inf_lower)
-apply blast
-done
-(*
-lemma Inf_singleton[simp]: "Inf{a} = (a::'a::comp_lat)"
-apply(rule order_antisym)
- apply(simp add: Inf_lower)
-apply(rule Inf_greatest)
-apply(simp)
-done
-*)
-lemma le_SupI: "(l::'a::comp_lat) : M \<Longrightarrow> l \<le> Sup M"
-apply(simp add:Sup_def)
-apply(rule Inf_greatest)
-apply(simp)
-done
+  by (rule Sup_least) simp
 
-lemma le_SUPI: "(l::'a::comp_lat) = M i \<Longrightarrow> l \<le> (SUP i. M i)"
-apply(simp add:SUP_def)
-apply(blast intro:le_SupI)
-done
+lemma top_greatest[simp]: "(x::'a::comp_lat) \<le> Inf{}"
+  by (rule Inf_greatest) simp
 
-lemma Sup_leI: "(!!x. x:M \<Longrightarrow> x \<le> u) \<Longrightarrow> Sup M \<le> (u::'a::comp_lat)"
-apply(simp add:Sup_def)
-apply(rule Inf_lower)
-apply(blast)
-done
+lemma SUP_const[simp]: "A \<noteq> {} \<Longrightarrow> (SUP i:A. M) = M"
+  by (auto intro: order_antisym SUP_leI le_SUPI)
 
-
-lemma SUP_leI: "(!!i. M i \<le> u) \<Longrightarrow> (SUP i. M i) \<le> (u::'a::comp_lat)"
-apply(simp add:SUP_def)
-apply(blast intro!:Sup_leI)
-done
-
-lemma SUP_const[simp]: "(SUP i. M) = (M::'a::comp_lat)"
-by(simp add:SUP_def image_constant_conv sup_absorb1)
+lemma INF_const[simp]: "A \<noteq> {} \<Longrightarrow> (INF i:A. M) = M"
+  by (auto intro: order_antisym INF_leI le_INFI)
 
 
 subsection {* Some instances of the type class of complete lattices *}
