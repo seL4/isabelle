@@ -39,10 +39,10 @@ definition
   "INFI A f == Inf (f ` A)"
 
 syntax
-  "_SUP1"     :: "pttrns => 'b => 'b"           ("(3SUP _./ _)" 10)
-  "_SUP"      :: "pttrn => 'a set => 'b => 'b"  ("(3SUP _:_./ _)" 10)
-  "_INF1"     :: "pttrns => 'b => 'b"           ("(3INF _./ _)" 10)
-  "_INF"      :: "pttrn => 'a set => 'b => 'b"  ("(3INF _:_./ _)" 10)
+  "_SUP1"     :: "pttrns => 'b => 'b"           ("(3SUP _./ _)" [0, 10] 10)
+  "_SUP"      :: "pttrn => 'a set => 'b => 'b"  ("(3SUP _:_./ _)" [0, 10] 10)
+  "_INF1"     :: "pttrns => 'b => 'b"           ("(3INF _./ _)" [0, 10] 10)
+  "_INF"      :: "pttrn => 'a set => 'b => 'b"  ("(3INF _:_./ _)" [0, 10] 10)
 
 translations
   "SUP x y. B"   == "SUP x. SUP y. B"

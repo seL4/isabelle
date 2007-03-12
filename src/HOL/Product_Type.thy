@@ -138,7 +138,7 @@ syntax
   "_pattern"    :: "[pttrn, patterns] => pttrn"         ("'(_,/ _')")
   ""            :: "pttrn => patterns"                  ("_")
   "_patterns"   :: "[pttrn, patterns] => patterns"      ("_,/ _")
-  "@Sigma" ::"[pttrn, 'a set, 'b set] => ('a * 'b) set" ("(3SIGMA _:_./ _)" 10)
+  "@Sigma" ::"[pttrn, 'a set, 'b set] => ('a * 'b) set" ("(3SIGMA _:_./ _)" [0, 0, 10] 10)
 
 translations
   "(x, y)"       == "Pair x y"
