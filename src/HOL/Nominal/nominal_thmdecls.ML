@@ -153,26 +153,6 @@ fun get_pi t thy =
     | _ => raise EQVT_FORM "All permutation should be the same")
   end;
 
-fun tactic_eqvt_simple_form thy orig_thm = 
-  let val perm_pi_simp = dynamic_thms thy "perm_pi_simp"
-      val _ = (warning "perm_pi_simp :";map print_thm perm_pi_simp)
-  in
-   tactic ("Try to prove simple eqvt form.",
-    asm_full_simp_tac (HOL_basic_ss addsimps [perm_fun_def,orig_thm]@perm_pi_simp) 1)
-  end
-
-fun derive_simple_statement thy oldlhs orig_thm pi typi typrm =
-let val goal_term =
-  case (strip_comb oldlhs) of   
-    (Const (f,t),args) =>  
-       let val lhs = Const ("Nominal.perm",Type ("fun",[typi,Type ("fun",[t,t])])) $ Var(pi,typi) $ Const (f,t)
-       in  Logic.unvarify (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,Const(f,t)))) end
-   | _ => raise EQVT_FORM "Error deriving simple version."
-  val _ = Display.print_cterm (cterm_of thy goal_term)  
-in
-  Goal.prove_global thy [] [] goal_term (fn _ =>  tactic_eqvt_simple_form thy orig_thm)
-end
-
 (* Either adds a theorem (orig_thm) to or deletes one from the equivaraince *)
 (* lemma list depending on flag. To be added the lemma has to satisfy a     *)
 (* certain form. *) 
@@ -194,15 +174,9 @@ fun eqvt_add_del_aux flag orig_thm context =
        (* case: eqvt-lemma is of the equational form *)  
       | (Const ("Trueprop", _) $ (Const ("op =", _) $ 
             (Const ("Nominal.perm",typrm) $ Var (pi,typi) $ lhs) $ rhs)) =>
-	   let val optth = ([derive_simple_statement thy lhs orig_thm pi typi typrm] 
-		handle (ERROR s) => (warning ("Couldn't prove the simple version:\n"^s);[])
-			| _ => (warning "Couldn't prove the simple version";[])
-		)
-	    in
 	   (if (apply_pi lhs (pi,typi)) = rhs 
-               then orig_thm::optth   
+               then [orig_thm]
                else raise EQVT_FORM "Type Equality")
-	   end
       | _ => raise EQVT_FORM "Type unknown")
   in 
       update_context flag thms_to_be_added context
