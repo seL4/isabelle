@@ -502,38 +502,15 @@ done
 
 section {* Candidates *}
 
-lemma ty_cases:
-  fixes x::ty
-  shows "(\<exists>X. x= TVar X) \<or> (\<exists>T1 T2. x=T1\<rightarrow>T2)"
-by (induct x rule: ty.induct_weak) (auto)
-
-function
+consts
   RED :: "ty \<Rightarrow> lam set"
-where
-  "RED (TVar X) = {t. SN(t)}"
-| "RED (\<tau>\<rightarrow>\<sigma>) =   {t. \<forall>u. (u\<in>RED \<tau> \<longrightarrow> (App t u)\<in>RED \<sigma>)}"
-apply(auto simp add: ty.inject)
-apply(subgoal_tac "(\<exists>X. x= TVar X) \<or> (\<exists>T1 T2. x=T1\<rightarrow>T2)")
-apply(blast)
-apply(rule ty_cases)
-done
-
-instance ty :: size ..
 
 nominal_primrec
-  "size (TVar X) = 1"
-  "size (T\<^isub>1\<rightarrow>T\<^isub>2) = size T\<^isub>1 + size T\<^isub>2"
-by (rule TrueI)+
-
-lemma ty_size_greater_zero[simp]:
-  fixes T::"ty"
-  shows "size T > 0"
-by (nominal_induct T rule: ty.induct) (simp_all)
-
-termination
-apply(relation "measure size") 
-apply(auto)
+  "RED (TVar X) = {t. SN(t)}"
+  "RED (\<tau>\<rightarrow>\<sigma>) =   {t. \<forall>u. (u\<in>RED \<tau> \<longrightarrow> (App t u)\<in>RED \<sigma>)}"
+apply(rule TrueI)+
 done
+
 
 constdefs
   NEUT :: "lam \<Rightarrow> bool"
