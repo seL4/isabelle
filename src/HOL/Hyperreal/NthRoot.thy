@@ -386,4 +386,21 @@ apply (auto simp add: numeral_2_eq_2 [symmetric] real_sqrt_ge_zero simp
             del: realpow_Suc)
 done
 
+lemma sqrt_divide_self_eq:
+  assumes nneg: "0 \<le> x"
+  shows "sqrt x / x = inverse (sqrt x)"
+proof cases
+  assume "x=0" thus ?thesis by simp
+next
+  assume nz: "x\<noteq>0" 
+  hence pos: "0<x" using nneg by arith
+  show ?thesis
+  proof (rule right_inverse_eq [THEN iffD1, THEN sym]) 
+    show "sqrt x / x \<noteq> 0" by (simp add: divide_inverse nneg nz) 
+    show "inverse (sqrt x) / (sqrt x / x) = 1"
+      by (simp add: divide_inverse mult_assoc [symmetric] 
+                  power2_eq_square [symmetric] real_inv_sqrt_pow2 pos nz) 
+  qed
+qed
+
 end
