@@ -292,25 +292,7 @@ proof (rule LIM_imp_LIM [OF f])
   finally show "norm (g x - 0) \<le> norm (f x - 0)" .
 qed
 
-subsubsection {* Bounded Linear Operators *}
-
-locale bounded_linear = additive +
-  constrains f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
-  assumes scaleR: "f (scaleR r x) = scaleR r (f x)"
-  assumes bounded: "\<exists>K. \<forall>x. norm (f x) \<le> norm x * K"
-
-lemma (in bounded_linear) pos_bounded:
-  "\<exists>K>0. \<forall>x. norm (f x) \<le> norm x * K"
-apply (cut_tac bounded, erule exE)
-apply (rule_tac x="max 1 K" in exI, safe)
-apply (rule order_less_le_trans [OF zero_less_one le_maxI1])
-apply (drule spec, erule order_trans)
-apply (rule mult_left_mono [OF le_maxI2 norm_ge_zero])
-done
-
-lemma (in bounded_linear) pos_boundedE:
-  obtains K where "0 < K" and "\<forall>x. norm (f x) \<le> norm x * K"
-  using pos_bounded by fast
+text {* Bounded Linear Operators *}
 
 lemma (in bounded_linear) cont: "f -- a --> f a"
 proof (rule LIM_I)
@@ -337,53 +319,7 @@ lemma (in bounded_linear) LIM_zero:
   "g -- a --> 0 \<Longrightarrow> (\<lambda>x. f (g x)) -- a --> 0"
 by (drule LIM, simp only: zero)
 
-subsubsection {* Bounded Bilinear Operators *}
-
-locale bounded_bilinear =
-  fixes prod :: "['a::real_normed_vector, 'b::real_normed_vector]
-                 \<Rightarrow> 'c::real_normed_vector"
-    (infixl "**" 70)
-  assumes add_left: "prod (a + a') b = prod a b + prod a' b"
-  assumes add_right: "prod a (b + b') = prod a b + prod a b'"
-  assumes scaleR_left: "prod (scaleR r a) b = scaleR r (prod a b)"
-  assumes scaleR_right: "prod a (scaleR r b) = scaleR r (prod a b)"
-  assumes bounded: "\<exists>K. \<forall>a b. norm (prod a b) \<le> norm a * norm b * K"
-
-lemma (in bounded_bilinear) pos_bounded:
-  "\<exists>K>0. \<forall>a b. norm (a ** b) \<le> norm a * norm b * K"
-apply (cut_tac bounded, erule exE)
-apply (rule_tac x="max 1 K" in exI, safe)
-apply (rule order_less_le_trans [OF zero_less_one le_maxI1])
-apply (drule spec, drule spec, erule order_trans)
-apply (rule mult_left_mono [OF le_maxI2])
-apply (intro mult_nonneg_nonneg norm_ge_zero)
-done
-
-lemma (in bounded_bilinear) additive_right: "additive (\<lambda>b. prod a b)"
-by (rule additive.intro, rule add_right)
-
-lemma (in bounded_bilinear) additive_left: "additive (\<lambda>a. prod a b)"
-by (rule additive.intro, rule add_left)
-
-lemma (in bounded_bilinear) zero_left: "prod 0 b = 0"
-by (rule additive.zero [OF additive_left])
-
-lemma (in bounded_bilinear) zero_right: "prod a 0 = 0"
-by (rule additive.zero [OF additive_right])
-
-lemma (in bounded_bilinear) minus_left: "prod (- a) b = - prod a b"
-by (rule additive.minus [OF additive_left])
-
-lemma (in bounded_bilinear) minus_right: "prod a (- b) = - prod a b"
-by (rule additive.minus [OF additive_right])
-
-lemma (in bounded_bilinear) diff_left:
-  "prod (a - a') b = prod a b - prod a' b"
-by (rule additive.diff [OF additive_left])
-
-lemma (in bounded_bilinear) diff_right:
-  "prod a (b - b') = prod a b - prod a b'"
-by (rule additive.diff [OF additive_right])
+text {* Bounded Bilinear Operators *}
 
 lemma (in bounded_bilinear) LIM_prod_zero:
   assumes f: "f -- a --> 0"
@@ -419,26 +355,6 @@ proof (rule LIM_I)
   qed
 qed
 
-lemma (in bounded_bilinear) bounded_linear_left:
-  "bounded_linear (\<lambda>a. a ** b)"
-apply (unfold_locales)
-apply (rule add_left)
-apply (rule scaleR_left)
-apply (cut_tac bounded, safe)
-apply (rule_tac x="norm b * K" in exI)
-apply (simp add: mult_ac)
-done
-
-lemma (in bounded_bilinear) bounded_linear_right:
-  "bounded_linear (\<lambda>b. a ** b)"
-apply (unfold_locales)
-apply (rule add_right)
-apply (rule scaleR_right)
-apply (cut_tac bounded, safe)
-apply (rule_tac x="norm a * K" in exI)
-apply (simp add: mult_ac)
-done
-
 lemma (in bounded_bilinear) LIM_left_zero:
   "f -- a --> 0 \<Longrightarrow> (\<lambda>x. f x ** c) -- a --> 0"
 by (rule bounded_linear.LIM_zero [OF bounded_linear_left])
@@ -446,10 +362,6 @@ by (rule bounded_linear.LIM_zero [OF bounded_linear_left])
 lemma (in bounded_bilinear) LIM_right_zero:
   "f -- a --> 0 \<Longrightarrow> (\<lambda>x. c ** f x) -- a --> 0"
 by (rule bounded_linear.LIM_zero [OF bounded_linear_right])
-
-lemma (in bounded_bilinear) prod_diff_prod:
-  "(x ** y - a ** b) = (x - a) ** (y - b) + (x - a) ** b + a ** (y - b)"
-by (simp add: diff_left diff_right)
 
 lemma (in bounded_bilinear) LIM:
   "\<lbrakk>f -- a --> L; g -- a --> M\<rbrakk> \<Longrightarrow> (\<lambda>x. f x ** g x) -- a --> L ** M"
@@ -462,28 +374,6 @@ apply (rule LIM_add_zero)
 apply (erule (1) LIM_prod_zero)
 apply (erule LIM_left_zero)
 apply (erule LIM_right_zero)
-done
-
-interpretation bounded_bilinear_mult:
-  bounded_bilinear ["op * :: 'a \<Rightarrow> 'a \<Rightarrow> 'a::real_normed_algebra"]
-apply (rule bounded_bilinear.intro)
-apply (rule left_distrib)
-apply (rule right_distrib)
-apply (rule mult_scaleR_left)
-apply (rule mult_scaleR_right)
-apply (rule_tac x="1" in exI)
-apply (simp add: norm_mult_ineq)
-done
-
-interpretation bounded_bilinear_scaleR:
-  bounded_bilinear ["scaleR"]
-apply (rule bounded_bilinear.intro)
-apply (rule scaleR_left_distrib)
-apply (rule scaleR_right_distrib)
-apply (simp add: real_scaleR_def)
-apply (rule scaleR_left_commute)
-apply (rule_tac x="1" in exI)
-apply (simp add: norm_scaleR)
 done
 
 lemmas LIM_mult = bounded_bilinear_mult.LIM

@@ -524,4 +524,144 @@ lemma norm_power:
   shows "norm (x ^ n) = norm x ^ n"
 by (induct n) (simp_all add: power_Suc norm_mult)
 
+
+subsection {* Bounded Linear and Bilinear Operators *}
+
+locale bounded_linear = additive +
+  constrains f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes scaleR: "f (scaleR r x) = scaleR r (f x)"
+  assumes bounded: "\<exists>K. \<forall>x. norm (f x) \<le> norm x * K"
+
+lemma (in bounded_linear) pos_bounded:
+  "\<exists>K>0. \<forall>x. norm (f x) \<le> norm x * K"
+proof -
+  obtain K where K: "\<And>x. norm (f x) \<le> norm x * K"
+    using bounded by fast
+  show ?thesis
+  proof (intro exI impI conjI allI)
+    show "0 < max 1 K"
+      by (rule order_less_le_trans [OF zero_less_one le_maxI1])
+  next
+    fix x
+    have "norm (f x) \<le> norm x * K" using K .
+    also have "\<dots> \<le> norm x * max 1 K"
+      by (rule mult_left_mono [OF le_maxI2 norm_ge_zero])
+    finally show "norm (f x) \<le> norm x * max 1 K" .
+  qed
+qed
+
+lemma (in bounded_linear) nonneg_bounded:
+  "\<exists>K\<ge>0. \<forall>x. norm (f x) \<le> norm x * K"
+proof -
+  from pos_bounded
+  show ?thesis by (auto intro: order_less_imp_le)
+qed
+
+locale bounded_bilinear =
+  fixes prod :: "['a::real_normed_vector, 'b::real_normed_vector]
+                 \<Rightarrow> 'c::real_normed_vector"
+    (infixl "**" 70)
+  assumes add_left: "prod (a + a') b = prod a b + prod a' b"
+  assumes add_right: "prod a (b + b') = prod a b + prod a b'"
+  assumes scaleR_left: "prod (scaleR r a) b = scaleR r (prod a b)"
+  assumes scaleR_right: "prod a (scaleR r b) = scaleR r (prod a b)"
+  assumes bounded: "\<exists>K. \<forall>a b. norm (prod a b) \<le> norm a * norm b * K"
+
+lemma (in bounded_bilinear) pos_bounded:
+  "\<exists>K>0. \<forall>a b. norm (a ** b) \<le> norm a * norm b * K"
+apply (cut_tac bounded, erule exE)
+apply (rule_tac x="max 1 K" in exI, safe)
+apply (rule order_less_le_trans [OF zero_less_one le_maxI1])
+apply (drule spec, drule spec, erule order_trans)
+apply (rule mult_left_mono [OF le_maxI2])
+apply (intro mult_nonneg_nonneg norm_ge_zero)
+done
+
+lemma (in bounded_bilinear) nonneg_bounded:
+  "\<exists>K\<ge>0. \<forall>a b. norm (a ** b) \<le> norm a * norm b * K"
+proof -
+  from pos_bounded
+  show ?thesis by (auto intro: order_less_imp_le)
+qed
+
+lemma (in bounded_bilinear) additive_right: "additive (\<lambda>b. prod a b)"
+by (rule additive.intro, rule add_right)
+
+lemma (in bounded_bilinear) additive_left: "additive (\<lambda>a. prod a b)"
+by (rule additive.intro, rule add_left)
+
+lemma (in bounded_bilinear) zero_left: "prod 0 b = 0"
+by (rule additive.zero [OF additive_left])
+
+lemma (in bounded_bilinear) zero_right: "prod a 0 = 0"
+by (rule additive.zero [OF additive_right])
+
+lemma (in bounded_bilinear) minus_left: "prod (- a) b = - prod a b"
+by (rule additive.minus [OF additive_left])
+
+lemma (in bounded_bilinear) minus_right: "prod a (- b) = - prod a b"
+by (rule additive.minus [OF additive_right])
+
+lemma (in bounded_bilinear) diff_left:
+  "prod (a - a') b = prod a b - prod a' b"
+by (rule additive.diff [OF additive_left])
+
+lemma (in bounded_bilinear) diff_right:
+  "prod a (b - b') = prod a b - prod a b'"
+by (rule additive.diff [OF additive_right])
+
+lemma (in bounded_bilinear) bounded_linear_left:
+  "bounded_linear (\<lambda>a. a ** b)"
+apply (unfold_locales)
+apply (rule add_left)
+apply (rule scaleR_left)
+apply (cut_tac bounded, safe)
+apply (rule_tac x="norm b * K" in exI)
+apply (simp add: mult_ac)
+done
+
+lemma (in bounded_bilinear) bounded_linear_right:
+  "bounded_linear (\<lambda>b. a ** b)"
+apply (unfold_locales)
+apply (rule add_right)
+apply (rule scaleR_right)
+apply (cut_tac bounded, safe)
+apply (rule_tac x="norm a * K" in exI)
+apply (simp add: mult_ac)
+done
+
+lemma (in bounded_bilinear) prod_diff_prod:
+  "(x ** y - a ** b) = (x - a) ** (y - b) + (x - a) ** b + a ** (y - b)"
+by (simp add: diff_left diff_right)
+
+interpretation bounded_bilinear_mult:
+  bounded_bilinear ["op * :: 'a \<Rightarrow> 'a \<Rightarrow> 'a::real_normed_algebra"]
+apply (rule bounded_bilinear.intro)
+apply (rule left_distrib)
+apply (rule right_distrib)
+apply (rule mult_scaleR_left)
+apply (rule mult_scaleR_right)
+apply (rule_tac x="1" in exI)
+apply (simp add: norm_mult_ineq)
+done
+
+interpretation bounded_linear_mult_left:
+  bounded_linear ["(\<lambda>x::'a::real_normed_algebra. x * y)"]
+by (rule bounded_bilinear_mult.bounded_linear_left)
+
+interpretation bounded_linear_mult_right:
+  bounded_linear ["(\<lambda>y::'a::real_normed_algebra. x * y)"]
+by (rule bounded_bilinear_mult.bounded_linear_right)
+
+interpretation bounded_bilinear_scaleR:
+  bounded_bilinear ["scaleR"]
+apply (rule bounded_bilinear.intro)
+apply (rule scaleR_left_distrib)
+apply (rule scaleR_right_distrib)
+apply (simp add: real_scaleR_def)
+apply (rule scaleR_left_commute)
+apply (rule_tac x="1" in exI)
+apply (simp add: norm_scaleR)
+done
+
 end
