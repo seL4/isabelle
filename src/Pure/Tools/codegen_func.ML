@@ -88,10 +88,13 @@ fun assert_func thm = case try dest_func thm
             ) args [])
           then bad_thm "Repeated variables on left hand side of defining equation" thm
           else ()
-        fun no_abs (Abs _) = bad_thm "Abstraction on left hand side of defining equation" thm 
-          | no_abs (t1 $ t2) = (no_abs t1; no_abs t2)
-          | no_abs _ = ();
-        val _ = map no_abs args;
+        fun check _ (Abs _) = bad_thm
+              "Abstraction on left hand side of defining equation" thm
+          | check false (Var _) = bad_thm
+              "Variable with application on left hand side of defining equation" thm
+          | check _ (t1 $ t2) = (check false t1; check true t2)
+          | check _ _ = ();
+        val _ = map (check true) args;
       in thm end
   | NONE => bad_thm "Not a defining equation" thm;
 
