@@ -725,7 +725,10 @@ proof -
   with 1 show R by (rule notE)
 qed
 
-lemmas [Pure.elim!] = disjE iffE FalseE conjE exE
+lemma TrueE: "True ==> P ==> P" .
+lemma notFalseE: "~ False ==> P ==> P" .
+
+lemmas [Pure.elim!] = disjE iffE FalseE conjE exE TrueE notFalseE
   and [Pure.intro!] = iffI conjI impI TrueI notI allI refl
   and [Pure.elim 2] = allE notE' impE'
   and [Pure.intro] = exI disjI2 disjI1
