@@ -12,16 +12,16 @@ text {* A type class of kleene algebras *}
 class star = 
   fixes star :: "'a \<Rightarrow> 'a"
 
-axclass idem_add \<subseteq> ab_semigroup_add
-  add_idem[simp]: "x + x = x"
+class idem_add = ab_semigroup_add +
+  assumes add_idem [simp]: "x \<^loc>+ x = x"
 
 lemma add_idem2[simp]: "(x::'a::idem_add) + (x + y) = x + y"
   unfolding add_assoc[symmetric]
   by simp
 
-axclass order_by_add \<subseteq> idem_add, ord
-  order_def: "a \<le> b \<longleftrightarrow> a + b = b"
-  strict_order_def: "a < b \<longleftrightarrow> a \<le> b \<and> a \<noteq> b"
+class order_by_add = idem_add + ord +
+  assumes order_def: "a \<sqsubseteq> b \<longleftrightarrow> a \<^loc>+ b = b"
+  assumes strict_order_def: "a \<sqsubset> b \<longleftrightarrow> a \<sqsubseteq> b \<and> a \<noteq> b"
 
 lemma ord_simp1[simp]: "(x::'a::order_by_add) \<le> y \<Longrightarrow> x + y = y"
   unfolding order_def .
@@ -51,7 +51,7 @@ proof
 qed
 
 
-axclass pre_kleene \<subseteq> semiring_1, order_by_add
+class pre_kleene = semiring_1 + order_by_add
 
 instance pre_kleene \<subseteq> pordered_semiring
 proof
@@ -79,38 +79,32 @@ proof
   qed
 qed
 
-axclass kleene \<subseteq> pre_kleene, star
-  star1: "1 + a * star a \<le> star a"
-  star2: "1 + star a * a \<le> star a"
-  star3: "a * x \<le> x \<Longrightarrow> star a * x \<le> x"
-  star4: "x * a \<le> x \<Longrightarrow> x * star a \<le> x"
+class kleene = pre_kleene + star +
+  assumes star1: "\<^loc>1 \<^loc>+ a \<^loc>* star a \<sqsubseteq> star a"
+  and star2: "\<^loc>1 \<^loc>+ star a \<^loc>* a \<sqsubseteq> star a"
+  and star3: "a \<^loc>* x \<sqsubseteq> x \<Longrightarrow> star a \<^loc>* x \<sqsubseteq> x"
+  and star4: "x \<^loc>* a \<sqsubseteq> x \<Longrightarrow> x \<^loc>* star a \<sqsubseteq> x"
 
-axclass kleene_by_comp_lat \<subseteq> 
-  pre_kleene, comp_lat, recpower, star
-
-  star_cont: "a * star b * c = (SUP n. a * b ^ n * c)"
-
+class kleene_by_complete_lattice =
+  pre_kleene + complete_lattice + recpower + star +
+  assumes star_cont: "a \<^loc>* star b \<^loc>* c = (SUP n. a \<^loc>* b ^ n \<^loc>* c)"
 
 lemma plus_leI: 
   fixes x :: "'a :: order_by_add"
   shows "x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> x + y \<le> z"
   unfolding order_def by (simp add:add_assoc)
 
-
-
-
 lemma le_SUPI':
-  fixes l :: "'a :: comp_lat"
+  fixes l :: "'a :: complete_lattice"
   assumes "l \<le> M i"
   shows "l \<le> (SUP i. M i)"
   using prems
   by (rule order_trans) (rule le_SUPI [OF UNIV_I])
 
-
 lemma zero_minimum[simp]: "(0::'a::pre_kleene) \<le> x"
   unfolding order_def by simp
 
-instance kleene_by_comp_lat \<subseteq> kleene
+instance kleene_by_complete_lattice \<subseteq> kleene
 proof
 
   fix a x :: 'a
@@ -454,22 +448,4 @@ lemma mk_tcl_correctness2:
   unfolding tcl_def 
   by (auto simp:star_commute)
 
-
-
-
-
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
