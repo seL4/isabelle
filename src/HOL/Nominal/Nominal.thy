@@ -3051,65 +3051,124 @@ qed
 (* Various eqvt-lemmas  *)
 
 lemma Zero_nat_eqvt:
- shows "pi\<bullet> (0::nat) = 0" 
+  shows "pi\<bullet>(0::nat) = 0" 
 by (auto simp add: perm_nat_def)
 
 lemma One_nat_eqvt:
- shows "pi\<bullet> (1::nat) = 1"
+  shows "pi\<bullet>(1::nat) = 1"
 by (simp add: perm_nat_def)
 
 lemma Suc_eqvt:
- shows "pi\<bullet> Suc x = Suc (pi\<bullet>x)" 
+  shows "pi\<bullet>(Suc x) = Suc (pi\<bullet>x)" 
 by (auto simp add: perm_nat_def)
 
 lemma numeral_nat_eqvt: 
- shows "pi\<bullet> ((number_of n)::nat) = number_of ( n)" 
+ shows "pi\<bullet>((number_of n)::nat) = number_of n" 
 by (simp add: perm_nat_def perm_int_def)
 
 lemma max_nat_eqvt:
- shows "pi\<bullet>(max (x::nat) y) = max (pi\<bullet>x) (pi\<bullet>y)" 
+  fixes x::"nat"
+  shows "pi\<bullet>(max x y) = max (pi\<bullet>x) (pi\<bullet>y)" 
 by (simp add:perm_nat_def) 
 
 lemma min_nat_eqvt:
- shows "pi\<bullet> max (x::nat) y = max (pi\<bullet>x) (pi\<bullet>y)" 
+  fixes x::"nat"
+  shows "pi\<bullet>(max x y) = max (pi\<bullet>x) (pi\<bullet>y)" 
 by (simp add:perm_nat_def) 
 
 lemma plus_nat_eqvt:
- shows "pi\<bullet>((x::nat) + y) = (pi\<bullet>x) + (pi\<bullet>y)" 
+  fixes x::"nat"
+  shows "pi\<bullet>(x + y) = (pi\<bullet>x) + (pi\<bullet>y)" 
 by (simp add:perm_nat_def) 
 
 lemma minus_nat_eqvt:
- shows "pi\<bullet>((x::nat) - y) = (pi\<bullet>x) - (pi\<bullet>y)" 
+  fixes x::"nat"
+  shows "pi\<bullet>(x - y) = (pi\<bullet>x) - (pi\<bullet>y)" 
 by (simp add:perm_nat_def) 
 
 lemma mult_nat_eqvt:
- shows "pi\<bullet>((x::nat) * y) = (pi\<bullet>x) * (pi\<bullet>y)" 
+  fixes x::"nat"
+  shows "pi\<bullet>(x * y) = (pi\<bullet>x) * (pi\<bullet>y)" 
 by (simp add:perm_nat_def) 
 
 lemma div_nat_eqvt:
- shows "pi\<bullet>((x::nat) div y) = (pi\<bullet>x) div (pi\<bullet>y)" 
+  fixes x::"nat"
+  shows "pi\<bullet>(x div y) = (pi\<bullet>x) div (pi\<bullet>y)" 
 by (simp add:perm_nat_def) 
 
-(*******************************************************)
-(* Setup of the theorem attributes eqvt, fresh and bij *)
+lemma Zero_int_eqvt:
+  shows "pi\<bullet>(0::int) = 0" 
+by (auto simp add: perm_int_def)
+
+lemma One_int_eqvt:
+  shows "pi\<bullet>(1::int) = 1"
+by (simp add: perm_int_def)
+
+lemma numeral_int_eqvt: 
+ shows "pi\<bullet>((number_of n)::int) = number_of n" 
+by (simp add: perm_int_def perm_int_def)
+
+lemma max_int_eqvt:
+  fixes x::"int"
+  shows "pi\<bullet>(max (x::int) y) = max (pi\<bullet>x) (pi\<bullet>y)" 
+by (simp add:perm_int_def) 
+
+lemma min_int_eqvt:
+  fixes x::"int"
+  shows "pi\<bullet>(max x y) = max (pi\<bullet>x) (pi\<bullet>y)" 
+by (simp add:perm_int_def) 
+
+lemma plus_int_eqvt:
+  fixes x::"int"
+  shows "pi\<bullet>(x + y) = (pi\<bullet>x) + (pi\<bullet>y)" 
+by (simp add:perm_int_def) 
+
+lemma minus_int_eqvt:
+  fixes x::"int"
+  shows "pi\<bullet>(x - y) = (pi\<bullet>x) - (pi\<bullet>y)" 
+by (simp add:perm_int_def) 
+
+lemma mult_int_eqvt:
+  fixes x::"int"
+  shows "pi\<bullet>(x * y) = (pi\<bullet>x) * (pi\<bullet>y)" 
+by (simp add:perm_int_def) 
+
+lemma div_int_eqvt:
+  fixes x::"int"
+  shows "pi\<bullet>(x div y) = (pi\<bullet>x) div (pi\<bullet>y)" 
+by (simp add:perm_int_def) 
+
+(*******************************************************************)
+(* Setup of the theorem attributes eqvt, eqvt_force, fresh and bij *)
 use "nominal_thmdecls.ML"
 setup "NominalThmDecls.setup"
 
 lemmas [eqvt] = 
-  if_eqvt
+  (* connectives *)
+  if_eqvt imp_eqvt disj_eqvt conj_eqvt neg_eqvt
+  
+  (* datatypes *)
   perm_unit.simps
-  perm_list.simps 
-  perm_prod.simps 
-  imp_eqvt disj_eqvt conj_eqvt neg_eqvt
-  Suc_eqvt Zero_nat_eqvt One_nat_eqvt
-  min_nat_eqvt max_nat_eqvt
-  plus_nat_eqvt minus_nat_eqvt mult_nat_eqvt div_nat_eqvt
-  union_eqvt empty_eqvt insert_eqvt
+  perm_list.simps append_eqvt
+  perm_prod.simps
   fst_eqvt snd_eqvt
+
+  (* nats *)
+  Suc_eqvt Zero_nat_eqvt One_nat_eqvt min_nat_eqvt max_nat_eqvt
+  plus_nat_eqvt minus_nat_eqvt mult_nat_eqvt div_nat_eqvt
+  
+  (* ints *)
+  Zero_int_eqvt One_int_eqvt min_int_eqvt max_int_eqvt
+  plus_int_eqvt minus_int_eqvt mult_int_eqvt div_int_eqvt
+  
+  (* sets *)
+  union_eqvt empty_eqvt insert_eqvt
+  
  
-(* this lemma does not conform with the form of an eqvt-lemma but is *)
-(* still useful to have when analysing permutations on numbers       *)
-lemmas [eqvt_force] = numeral_nat_eqvt 
+(* the lemmas numeral_nat_eqvt numeral_int_eqvt do not conform with the *)
+(* usual form of an eqvt-lemma, but they are needed for analysing       *)
+(* permutations on nats and ints *)
+lemmas [eqvt_force] = numeral_nat_eqvt numeral_int_eqvt
 
 (***************************************)
 (* setup for the individial atom-kinds *)
@@ -3180,6 +3239,5 @@ use "nominal_induct.ML";
 method_setup nominal_induct =
   {* NominalInduct.nominal_induct_method *}
   {* nominal induction *}
-
 
 end
