@@ -505,12 +505,21 @@ the graph browser tool.
 
 *** HOL ***
 
-* Some steps towards more uniform lattice theory development in HOL.  Obvious changes:
+* Some steps towards more uniform lattice theory development in HOL.
 
     constants "meet" and "join" now named "inf" and "sup"
     constant "Meet" now named "Inf"
 
-  theorem renames:
+    classes "meet_semilorder" and "join_semilorder" now named
+      "lower_semilattice" and "upper_semilattice"
+    class "lorder" now named "lattice"
+    class "comp_lat" now named "complete_lattice"
+
+    Instantiation of lattice classes allows explicit definitions
+    for "inf" and "sup" operations.
+
+  INCOMPATIBILITY. Theorem renames:
+
     meet_left_le            ~> inf_le1
     meet_right_le           ~> inf_le2
     join_left_le            ~> sup_ge1
@@ -603,6 +612,9 @@ the graph browser tool.
 
     listsp_meetI            ~> listsp_infI
     listsp_meet_eq          ~> listsp_inf_eq
+
+    meet_min                ~> inf_min
+    join_max                ~> sup_max
 
 * Class (axclass + locale) "preorder" and "linear": facts "refl", "trans" and
 "cases" renamed ro "order_refl", "order_trans" and "linorder_cases", to
