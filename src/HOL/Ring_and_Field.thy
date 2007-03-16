@@ -265,7 +265,7 @@ class pordered_ring = ring + pordered_cancel_semiring
 
 instance pordered_ring \<subseteq> pordered_ab_group_add ..
 
-axclass lordered_ring \<subseteq> pordered_ring, lordered_ab_group_abs
+class lordered_ring = pordered_ring + lordered_ab_group_abs
 
 instance lordered_ring \<subseteq> lordered_ab_group_meet ..
 
@@ -274,9 +274,7 @@ instance lordered_ring \<subseteq> lordered_ab_group_join ..
 class abs_if = minus + ord + zero +
   assumes abs_if: "abs a = (if a \<sqsubset> 0 then (uminus a) else a)"
 
-class ordered_ring_strict = ring + ordered_semiring_strict + abs_if
-
-instance ordered_ring_strict \<subseteq> lordered_ab_group ..
+class ordered_ring_strict = ring + ordered_semiring_strict + abs_if + lordered_ab_group
 
 instance ordered_ring_strict \<subseteq> lordered_ring
   by intro_classes (simp add: abs_if sup_eq_if)
@@ -287,7 +285,7 @@ class ordered_semidom = comm_semiring_1_cancel + ordered_comm_semiring_strict +
   (*previously ordered_semiring*)
   assumes zero_less_one [simp]: "\<^loc>0 \<sqsubset> \<^loc>1"
 
-class ordered_idom = comm_ring_1 + ordered_comm_semiring_strict + abs_if
+class ordered_idom = comm_ring_1 + ordered_comm_semiring_strict + abs_if + lordered_ab_group
   (*previously ordered_ring*)
 
 instance ordered_idom \<subseteq> ordered_ring_strict ..

@@ -1,4 +1,3 @@
-
 (*  Title:   HOL/OrderedGroup.thy
     ID:      $Id$
     Author:  Gertrud Bauer, Steven Obua, Lawrence C Paulson, and Markus Wenzel,
@@ -8,7 +7,7 @@
 header {* Ordered Groups *}
 
 theory OrderedGroup
-imports LOrder
+imports Lattices
 uses "~~/src/Provers/Arith/abel_cancel.ML"
 begin
 
@@ -204,7 +203,7 @@ class pordered_cancel_ab_semigroup_add =
 instance pordered_cancel_ab_semigroup_add \<subseteq> pordered_ab_semigroup_add ..
 
 class pordered_ab_semigroup_add_imp_le = pordered_cancel_ab_semigroup_add +
-  assumes add_le_imp_le_left: "c \<^loc>+ a \<sqsubseteq> c + b \<Longrightarrow> a \<sqsubseteq> b"
+  assumes add_le_imp_le_left: "c \<^loc>+ a \<sqsubseteq> c \<^loc>+ b \<Longrightarrow> a \<sqsubseteq> b"
 
 class pordered_ab_group_add = ab_group_add + pordered_ab_semigroup_add
 
@@ -565,13 +564,19 @@ by (simp add: compare_rls)
 lemma le_iff_diff_le_0: "(a \<le> b) = (a-b \<le> (0::'a::pordered_ab_group_add))"
 by (simp add: compare_rls)
 
+
 subsection {* Lattice Ordered (Abelian) Groups *}
 
-axclass lordered_ab_group_meet < pordered_ab_group_add, meet_semilorder
+class lordered_ab_group_meet = pordered_ab_group_add + lower_semilattice
 
-axclass lordered_ab_group_join < pordered_ab_group_add, join_semilorder
+class lordered_ab_group_join = pordered_ab_group_add + upper_semilattice
 
-lemma add_inf_distrib_left: "a + (inf b c) = inf (a + b) (a + (c::'a::{pordered_ab_group_add, meet_semilorder}))"
+class lordered_ab_group = pordered_ab_group_add + lattice
+
+instance lordered_ab_group \<subseteq> lordered_ab_group_meet by default
+instance lordered_ab_group \<subseteq> lordered_ab_group_join by default
+
+lemma add_inf_distrib_left: "a + inf b c = inf (a + b) (a + (c::'a::{pordered_ab_group_add, lower_semilattice}))"
 apply (rule order_antisym)
 apply (simp_all add: le_infI)
 apply (rule add_le_imp_le_left [of "-a"])
@@ -580,7 +585,7 @@ apply rule
 apply (rule add_le_imp_le_left[of "a"], simp only: add_assoc[symmetric], simp)+
 done
 
-lemma add_sup_distrib_left: "a + (sup b c) = sup (a + b) (a+ (c::'a::{pordered_ab_group_add, join_semilorder}))" 
+lemma add_sup_distrib_left: "a + sup b c = sup (a + b) (a+ (c::'a::{pordered_ab_group_add, upper_semilattice}))" 
 apply (rule order_antisym)
 apply (rule add_le_imp_le_left [of "-a"])
 apply (simp only: add_assoc[symmetric], simp)
@@ -590,55 +595,53 @@ apply (rule le_supI)
 apply (simp_all)
 done
 
-lemma is_join_neg_inf: "is_join (% (a::'a::{pordered_ab_group_add, meet_semilorder}) b. - (inf (-a) (-b)))"
-apply (auto simp add: is_join_def)
-apply (rule_tac c="inf (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_inf_distrib_left)
-apply (rule_tac c="inf (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_inf_distrib_left)
-apply (subst neg_le_iff_le[symmetric]) 
-apply (simp add: le_infI)
-done
-
-lemma is_meet_neg_sup: "is_meet (% (a::'a::{pordered_ab_group_add, join_semilorder}) b. - (sup (-a) (-b)))"
-apply (auto simp add: is_meet_def)
-apply (rule_tac c="sup (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_sup_distrib_left)
-apply (rule_tac c="sup (-a) (-b)" in add_le_imp_le_right, simp, simp add: add_sup_distrib_left)
-apply (subst neg_le_iff_le[symmetric]) 
-apply (simp add: le_supI)
-done
-
-axclass lordered_ab_group \<subseteq> pordered_ab_group_add, lorder
-
-instance lordered_ab_group_join \<subseteq> lordered_ab_group
-proof
-  show "? m. is_meet (m::'a\<Rightarrow>'a\<Rightarrow>('a::lordered_ab_group_join))" by (blast intro: is_meet_neg_sup)
-qed
-
-instance lordered_ab_group_meet \<subseteq> lordered_ab_group
-proof 
-  show "? j. is_join (j::'a\<Rightarrow>'a\<Rightarrow>('a::lordered_ab_group_meet))" by (blast intro: is_join_neg_inf)
-qed
-
-lemma add_inf_distrib_right: "(inf a b) + (c::'a::lordered_ab_group) = inf (a+c) (b+c)"
+lemma add_inf_distrib_right: "inf a b + (c::'a::lordered_ab_group) = inf (a+c) (b+c)"
 proof -
-  have "c + (inf a b) = inf (c+a) (c+b)" by (simp add: add_inf_distrib_left)
+  have "c + inf a b = inf (c+a) (c+b)" by (simp add: add_inf_distrib_left)
   thus ?thesis by (simp add: add_commute)
 qed
 
-lemma add_sup_distrib_right: "(sup a b) + (c::'a::lordered_ab_group) = sup (a+c) (b+c)"
+lemma add_sup_distrib_right: "sup a b + (c::'a::lordered_ab_group) = sup (a+c) (b+c)"
 proof -
-  have "c + (sup a b) = sup (c+a) (c+b)" by (simp add: add_sup_distrib_left)
+  have "c + sup a b = sup (c+a) (c+b)" by (simp add: add_sup_distrib_left)
   thus ?thesis by (simp add: add_commute)
 qed
 
 lemmas add_sup_inf_distribs = add_inf_distrib_right add_inf_distrib_left add_sup_distrib_right add_sup_distrib_left
 
-lemma sup_eq_neg_inf: "sup a (b::'a::lordered_ab_group) = - inf (-a) (-b)"
-by (simp add: is_join_unique[OF is_join_join is_join_neg_inf])
+lemma inf_eq_neg_sup: "inf a (b\<Colon>'a\<Colon>lordered_ab_group) = - sup (-a) (-b)"
+proof (rule inf_unique)
+  fix a b :: 'a
+  show "- sup (-a) (-b) \<le> a" by (rule add_le_imp_le_right [of _ "sup (-a) (-b)"])
+    (simp, simp add: add_sup_distrib_left)
+next
+  fix a b :: 'a
+  show "- sup (-a) (-b) \<le> b" by (rule add_le_imp_le_right [of _ "sup (-a) (-b)"])
+    (simp, simp add: add_sup_distrib_left)
+next
+  fix a b c :: 'a
+  assume "a \<le> b" "a \<le> c"
+  then show "a \<le> - sup (-b) (-c)" by (subst neg_le_iff_le [symmetric])
+    (simp add: le_supI)
+qed
+  
+lemma sup_eq_neg_inf: "sup a (b\<Colon>'a\<Colon>lordered_ab_group) = - inf (-a) (-b)"
+proof (rule sup_unique)
+  fix a b :: 'a
+  show "a \<le> - inf (-a) (-b)" by (rule add_le_imp_le_right [of _ "inf (-a) (-b)"])
+    (simp, simp add: add_inf_distrib_left)
+next
+  fix a b :: 'a
+  show "b \<le> - inf (-a) (-b)" by (rule add_le_imp_le_right [of _ "inf (-a) (-b)"])
+    (simp, simp add: add_inf_distrib_left)
+next
+  fix a b c :: 'a
+  assume "a \<le> c" "b \<le> c"
+  then show "- inf (-a) (-b) \<le> c" by (subst neg_le_iff_le [symmetric])
+    (simp add: le_infI)
+qed
 
-lemma inf_eq_neg_sup: "inf a (b::'a::lordered_ab_group) = - sup (-a) (-b)"
-by (simp add: is_meet_unique[OF is_meet_meet is_meet_neg_sup])
-
-lemma add_eq_inf_sup: "a + b = (sup a b) + (inf a (b::'a::lordered_ab_group))"
+lemma add_eq_inf_sup: "a + b = sup a b + inf a (b\<Colon>'a\<Colon>lordered_ab_group)"
 proof -
   have "0 = - inf 0 (a-b) + inf (a-b) 0" by (simp add: inf_commute)
   hence "0 = sup 0 (b-a) + inf (a-b) 0" by (simp add: inf_eq_neg_sup)
@@ -761,8 +764,8 @@ next
   with a show ?thesis by simp 
 qed
 
-axclass lordered_ab_group_abs \<subseteq> lordered_ab_group
-  abs_lattice: "abs x = sup x (-x)"
+class lordered_ab_group_abs = lordered_ab_group +
+  assumes abs_lattice: "abs x = sup x (uminus x)"
 
 lemma abs_zero[simp]: "abs 0 = (0::'a::lordered_ab_group_abs)"
 by (simp add: abs_lattice)
@@ -786,7 +789,7 @@ lemma sup_eq_if: "sup a (-a) = (if a < 0 then -a else (a::'a::{lordered_ab_group
 proof -
   note b = add_le_cancel_right[of a a "-a",symmetric,simplified]
   have c: "a + a = 0 \<Longrightarrow> -a = a" by (rule add_right_imp_eq[of _ a], simp)
-  show ?thesis by (auto simp add: max_def b linorder_not_less join_max)
+  show ?thesis by (auto simp add: max_def b linorder_not_less sup_max)
 qed
 
 lemma abs_if_lattice: "\<bar>a\<bar> = (if a < 0 then -a else (a::'a::{lordered_ab_group_abs, linorder}))"
@@ -1131,8 +1134,6 @@ val eq_iff_diff_eq_0 = thm "eq_iff_diff_eq_0";
 val le_iff_diff_le_0 = thm "le_iff_diff_le_0";
 val add_inf_distrib_left = thm "add_inf_distrib_left";
 val add_sup_distrib_left = thm "add_sup_distrib_left";
-val is_join_neg_inf = thm "is_join_neg_inf";
-val is_meet_neg_sup = thm "is_meet_neg_sup";
 val add_sup_distrib_right = thm "add_sup_distrib_right";
 val add_inf_distrib_right = thm "add_inf_distrib_right";
 val add_sup_inf_distribs = thms "add_sup_inf_distribs";

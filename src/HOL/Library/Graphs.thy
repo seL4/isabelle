@@ -20,6 +20,19 @@ lemma graph_dest_graph[simp]:
   "Graph (dest_graph G) = G"
   by (cases G) simp
 
+lemma split_graph_all:
+  "(\<And>gr. PROP P gr) \<equiv> (\<And>set. PROP P (Graph set))"
+proof
+  fix set
+  assume "\<And>gr. PROP P gr"
+  then show "PROP P (Graph set)" .
+next
+  fix gr
+  assume "\<And>set. PROP P (Graph set)"
+  then have "PROP P (Graph (dest_graph gr))" .
+  then show "PROP P gr" by simp
+qed
+
 definition 
   has_edge :: "('n,'e) graph \<Rightarrow> 'n \<Rightarrow> 'e \<Rightarrow> 'n \<Rightarrow> bool"
 ("_ \<turnstile> _ \<leadsto>\<^bsup>_\<^esup> _")
@@ -132,11 +145,9 @@ instance graph :: (type, monoid_mult) recpower
 
 subsection {* Order on Graphs *}
 
-instance graph :: (type, type) ord 
-  graph_leq_def: "G \<le> H == dest_graph G \<subseteq> dest_graph H"
-  graph_less_def: "G < H == dest_graph G \<subset> dest_graph H" ..
-
 instance graph :: (type, type) order
+  graph_leq_def: "G \<le> H \<equiv> dest_graph G \<subseteq> dest_graph H"
+  graph_less_def: "G < H \<equiv> dest_graph G \<subset> dest_graph H"
 proof
   fix x y z :: "('a,'b) graph"
 
@@ -153,27 +164,14 @@ proof
     by (cases x, cases y) auto
 qed
 
+instance graph :: (type, type) distrib_lattice
+  "inf G H \<equiv> Graph (dest_graph G \<inter> dest_graph H)"
+  "sup G H \<equiv> G + H"
+  by default (auto simp add: split_graph_all graph_plus_def inf_graph_def sup_graph_def graph_leq_def graph_less_def)
 
-defs (overloaded)
+instance graph :: (type, type) complete_lattice
   Inf_graph_def: "Inf == \<lambda>Gs. Graph (\<Inter>(dest_graph ` Gs))"
-
-instance graph :: (type, type) comp_lat
-  by default (auto simp: Inf_graph_def is_join_def graph_leq_def le_fun_def le_bool_def in_grplus has_edge_def)
-
-lemma plus_graph_is_join: "is_join ((op +)::('a::type, 'b::monoid_mult) graph \<Rightarrow> ('a,'b) graph \<Rightarrow> ('a,'b) graph)"
-  unfolding is_join_def 
-proof (intro allI conjI impI)
-  fix a b x :: "('a, 'b) graph"
-
-  show "a \<le> a + b" "b \<le> a + b" "a \<le> x \<and> b \<le> x \<Longrightarrow> a + b \<le> x"
-    unfolding graph_leq_def graph_plus_def
-    by (cases a, cases b) auto
-qed
-
-lemma plus_is_join:
-  "(op +) =
-  (sup :: ('a::type, 'b::monoid_mult) graph \<Rightarrow> ('a,'b) graph \<Rightarrow> ('a,'b) graph)"
-  using plus_graph_is_join by (simp add:join_unique)
+  by default (auto simp: Inf_graph_def graph_leq_def le_fun_def le_bool_def in_grplus has_edge_def)
 
 instance graph :: (type, monoid_mult) semiring_1
 proof
@@ -199,11 +197,10 @@ proof
     by simp
 qed
 
-
 instance graph :: (type, monoid_mult) idem_add
 proof
   fix a :: "('a, 'b) graph"
-  show "a + a = a" unfolding plus_is_join by simp
+  show "a + a = a" unfolding graph_plus_def by simp
 qed
 
 
@@ -270,7 +267,7 @@ lemma in_SUP:
   unfolding Sup_graph_eq2 has_edge_leq graph_leq_def
   by simp
 
-instance graph :: (type, monoid_mult) kleene_by_comp_lat
+instance graph :: (type, monoid_mult) kleene_by_complete_lattice
 proof
   fix a b c :: "('a, 'b) graph"
 

@@ -12,15 +12,15 @@ begin
 subsection {* Continuity for complete lattices *}
 
 definition
-  chain :: "(nat \<Rightarrow> 'a::order) \<Rightarrow> bool" where
+  chain :: "(nat \<Rightarrow> 'a::complete_lattice) \<Rightarrow> bool" where
   "chain M \<longleftrightarrow> (\<forall>i. M i \<le> M (Suc i))"
 
 definition
-  continuous :: "('a::comp_lat \<Rightarrow> 'a::comp_lat) \<Rightarrow> bool" where
+  continuous :: "('a::complete_lattice \<Rightarrow> 'a::complete_lattice) \<Rightarrow> bool" where
   "continuous F \<longleftrightarrow> (\<forall>M. chain M \<longrightarrow> F (SUP i. M i) = (SUP i. F (M i)))"
 
 abbreviation
-  bot :: "'a::order" where
+  bot :: "'a::complete_lattice" where
   "bot \<equiv> Sup {}"
 
 lemma SUP_nat_conv:
@@ -34,7 +34,7 @@ apply(simp)
 apply (blast intro:SUP_leI le_SUPI)
 done
 
-lemma continuous_mono: fixes F :: "'a::comp_lat \<Rightarrow> 'a::comp_lat"
+lemma continuous_mono: fixes F :: "'a::complete_lattice \<Rightarrow> 'a::complete_lattice"
   assumes "continuous F" shows "mono F"
 proof
   fix A B :: "'a" assume "A <= B"

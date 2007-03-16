@@ -922,7 +922,7 @@ primrec
 
 
 lemma pprt_add: "disj_matrices A (B::(_::lordered_ring) matrix) \<Longrightarrow> pprt (A+B) = pprt A + pprt B"
-  apply (simp add: pprt_def join_matrix)
+  apply (simp add: pprt_def sup_matrix_def)
   apply (simp add: Rep_matrix_inject[symmetric])
   apply (rule ext)+
   apply simp
@@ -931,7 +931,7 @@ lemma pprt_add: "disj_matrices A (B::(_::lordered_ring) matrix) \<Longrightarrow
   done
 
 lemma nprt_add: "disj_matrices A (B::(_::lordered_ring) matrix) \<Longrightarrow> nprt (A+B) = nprt A + nprt B"
-  apply (simp add: nprt_def meet_matrix)
+  apply (simp add: nprt_def inf_matrix_def)
   apply (simp add: Rep_matrix_inject[symmetric])
   apply (rule ext)+
   apply simp
@@ -940,14 +940,14 @@ lemma nprt_add: "disj_matrices A (B::(_::lordered_ring) matrix) \<Longrightarrow
   done
 
 lemma pprt_singleton[simp]: "pprt (singleton_matrix j i (x::_::lordered_ring)) = singleton_matrix j i (pprt x)"
-  apply (simp add: pprt_def join_matrix)
+  apply (simp add: pprt_def sup_matrix_def)
   apply (simp add: Rep_matrix_inject[symmetric])
   apply (rule ext)+
   apply simp
   done
 
 lemma nprt_singleton[simp]: "nprt (singleton_matrix j i (x::_::lordered_ring)) = singleton_matrix j i (nprt x)"
-  apply (simp add: nprt_def meet_matrix)
+  apply (simp add: nprt_def inf_matrix_def)
   apply (simp add: Rep_matrix_inject[symmetric])
   apply (rule ext)+
   apply simp
@@ -978,7 +978,7 @@ lemma sparse_row_vector_nprt: "sorted_spvec v \<Longrightarrow> sparse_row_vecto
   
 lemma pprt_move_matrix: "pprt (move_matrix (A::('a::lordered_ring) matrix) j i) = move_matrix (pprt A) j i"
   apply (simp add: pprt_def)
-  apply (simp add: join_matrix)
+  apply (simp add: sup_matrix_def)
   apply (simp add: Rep_matrix_inject[symmetric])
   apply (rule ext)+
   apply (simp)
@@ -986,7 +986,7 @@ lemma pprt_move_matrix: "pprt (move_matrix (A::('a::lordered_ring) matrix) j i) 
 
 lemma nprt_move_matrix: "nprt (move_matrix (A::('a::lordered_ring) matrix) j i) = move_matrix (nprt A) j i"
   apply (simp add: nprt_def)
-  apply (simp add: meet_matrix)
+  apply (simp add: inf_matrix_def)
   apply (simp add: Rep_matrix_inject[symmetric])
   apply (rule ext)+
   apply (simp)

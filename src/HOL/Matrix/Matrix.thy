@@ -7,6 +7,11 @@ theory Matrix
 imports MatrixGeneral
 begin
 
+instance matrix :: ("{zero, lattice}") lattice
+  "inf \<equiv> combine_matrix inf"
+  "sup \<equiv> combine_matrix sup"
+  by default (auto simp add: inf_le1 inf_le2 le_infI le_matrix_def inf_matrix_def sup_matrix_def)
+
 instance matrix :: ("{plus, zero}") plus
   plus_matrix_def: "A + B \<equiv> combine_matrix (op +) A B" ..
 
@@ -17,13 +22,8 @@ instance matrix :: ("{minus, zero}") minus
 instance matrix :: ("{plus, times, zero}") times
   times_matrix_def: "A * B \<equiv> mult_matrix (op *) (op +) A B" ..
 
-lemma is_meet_combine_matrix_meet: "is_meet (combine_matrix inf)"
-  by (simp_all add: is_meet_def le_matrix_def inf_le1 inf_le2 le_infI)
-
-lemma is_join_combine_matrix_join: "is_join (combine_matrix sup)"
-  by (simp_all add: is_join_def le_matrix_def sup_ge1 sup_ge2 le_supI)
-
 instance matrix :: (lordered_ab_group) lordered_ab_group_meet
+  abs_matrix_def: "abs (A::('a::lordered_ab_group) matrix) == sup A (- A)"
 proof 
   fix A B C :: "('a::lordered_ab_group) matrix"
   show "A + B + C = A + (B + C)"    
@@ -45,8 +45,6 @@ proof
     by (simp add: plus_matrix_def minus_matrix_def Rep_matrix_inject[symmetric] ext)
   show "A - B = A + - B" 
     by (simp add: plus_matrix_def diff_matrix_def minus_matrix_def Rep_matrix_inject[symmetric] ext)
-  show "\<exists>m\<Colon>'a matrix \<Rightarrow> 'a matrix \<Rightarrow> 'a matrix. is_meet m"
-    by (auto intro: is_meet_combine_matrix_meet)
   assume "A <= B"
   then show "C + A <= C + B"
     apply (simp add: plus_matrix_def)
@@ -54,9 +52,6 @@ proof
     apply (simp_all)
     done
 qed
-
-defs (overloaded)
-  abs_matrix_def: "abs (A::('a::lordered_ab_group) matrix) == sup A (- A)"
 
 instance matrix :: (lordered_ring) lordered_ring
 proof
@@ -90,7 +85,7 @@ proof
     apply (rule le_right_mult)
     apply (simp_all add: add_mono mult_right_mono)
     done
-qed
+qed 
 
 lemma Rep_matrix_add[simp]: "Rep_matrix ((a::('a::lordered_ab_group)matrix)+b) j i  = (Rep_matrix a j i) + (Rep_matrix b j i)"
 by (simp add: plus_matrix_def)
@@ -286,17 +281,7 @@ lemma scalar_mult_singleton[simp]: "scalar_mult y (singleton_matrix j i x) = sin
 lemma Rep_minus[simp]: "Rep_matrix (-(A::_::lordered_ab_group)) x y = - (Rep_matrix A x y)"
   by (simp add: minus_matrix_def)
 
-lemma join_matrix: "sup (A::('a::lordered_ring) matrix) B = combine_matrix sup A B"  
-  apply (insert join_unique[of "(combine_matrix sup)::('a matrix \<Rightarrow> 'a matrix \<Rightarrow> 'a matrix)", simplified is_join_combine_matrix_join])
-  apply (simp)
-  done
-
-lemma meet_matrix: "inf (A::('a::lordered_ring) matrix) B = combine_matrix inf A B"
-  apply (insert meet_unique[of "(combine_matrix inf)::('a matrix \<Rightarrow> 'a matrix \<Rightarrow> 'a matrix)", simplified is_meet_combine_matrix_meet])
-  apply (simp)
-  done
-
 lemma Rep_abs[simp]: "Rep_matrix (abs (A::_::lordered_ring)) x y = abs (Rep_matrix A x y)"
-  by (simp add: abs_lattice join_matrix)
+  by (simp add: abs_lattice sup_matrix_def)
 
 end

@@ -11,10 +11,6 @@ begin
 
 subsection {* Syntactic classes *}
 
-instance star :: (ord) ord
-  star_le_def:      "(op \<le>) \<equiv> *p2* (op \<le>)"
-  star_less_def:    "(op <) \<equiv> *p2* (op <)" ..
-
 instance star :: (zero) zero
   star_zero_def:    "0 \<equiv> star_of 0" ..
 
@@ -23,7 +19,6 @@ instance star :: (one) one
 
 instance star :: (plus) plus
   star_add_def:     "(op +) \<equiv> *f2* (op +)" ..
-
 
 instance star :: (times) times
   star_mult_def:    "(op *) \<equiv> *f2* (op *)" ..
@@ -46,6 +41,10 @@ instance star :: ("Divides.div") "Divides.div"
 
 instance star :: (power) power
   star_power_def:   "(op ^) \<equiv> \<lambda>x n. ( *f* (\<lambda>x. x ^ n)) x" ..
+
+instance star :: (ord) ord
+  star_le_def:      "(op \<le>) \<equiv> *p2* (op \<le>)"
+  star_less_def:    "(op <) \<equiv> *p2* (op <)" ..
 
 lemmas star_class_defs [transfer_unfold] =
   star_zero_def     star_one_def      star_number_def
@@ -206,7 +205,7 @@ lemmas star_of_simps [simp] =
   star_of_number_less star_of_number_le star_of_number_eq
   star_of_less_number star_of_le_number star_of_eq_number
 
-subsection {* Ordering classes *}
+subsection {* Ordering and lattice classes *}
 
 instance star :: (order) order
 apply (intro_classes)
@@ -215,6 +214,33 @@ apply (transfer, rule order_refl)
 apply (transfer, erule (1) order_trans)
 apply (transfer, erule (1) order_antisym)
 done
+
+instance star :: (lower_semilattice) lower_semilattice
+  star_inf_def [transfer_unfold]: "inf \<equiv> *f2* inf"
+  by default (transfer star_inf_def, auto)+
+
+instance star :: (upper_semilattice) upper_semilattice
+  star_sup_def [transfer_unfold]: "sup \<equiv> *f2* sup"
+  by default (transfer star_sup_def, auto)+
+
+instance star :: (lattice) lattice ..
+
+instance star :: (distrib_lattice) distrib_lattice
+  by default (transfer, auto simp add: sup_inf_distrib1)
+
+lemma Standard_inf [simp]:
+  "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> inf x y \<in> Standard"
+by (simp add: star_inf_def)
+
+lemma Standard_sup [simp]:
+  "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> sup x y \<in> Standard"
+by (simp add: star_sup_def)
+
+lemma star_of_inf [simp]: "star_of (inf x y) = inf (star_of x) (star_of y)"
+by transfer (rule refl)
+
+lemma star_of_sup [simp]: "star_of (sup x y) = sup (star_of x) (star_of y)"
+by transfer (rule refl)
 
 instance star :: (linorder) linorder
 by (intro_classes, transfer, rule linorder_linear)
@@ -245,63 +271,6 @@ by transfer (rule refl)
 lemma star_of_min [simp]: "star_of (min x y) = min (star_of x) (star_of y)"
 by transfer (rule refl)
 
-subsection {* Lattice ordering classes *}
-
-text {*
-  Some extra trouble is necessary because the class axioms 
-  for @{term inf} and @{term sup} use quantification over
-  function spaces.
-*}
-
-lemma ex_star_fun:
-  "\<exists>f::('a \<Rightarrow> 'b) star. P (\<lambda>x. f \<star> x)
-   \<Longrightarrow> \<exists>f::'a star \<Rightarrow> 'b star. P f"
-by (erule exE, erule exI)
-
-lemma ex_star_fun2:
-  "\<exists>f::('a \<Rightarrow> 'b \<Rightarrow> 'c) star. P (\<lambda>x y. f \<star> x \<star> y)
-   \<Longrightarrow> \<exists>f::'a star \<Rightarrow> 'b star \<Rightarrow> 'c star. P f"
-by (erule exE, erule exI)
-
-instance star :: (join_semilorder) join_semilorder
-apply (intro_classes)
-apply (rule ex_star_fun2)
-apply (transfer is_join_def)
-apply (rule join_exists)
-done
-
-instance star :: (meet_semilorder) meet_semilorder
-apply (intro_classes)
-apply (rule ex_star_fun2)
-apply (transfer is_meet_def)
-apply (rule meet_exists)
-done
-
-instance star :: (lorder) lorder ..
-
-lemma star_inf_def [transfer_unfold]: "inf = *f2* inf"
-apply (rule is_meet_unique [OF is_meet_meet])
-apply (transfer is_meet_def, rule is_meet_meet)
-done
-
-lemma star_sup_def [transfer_unfold]: "sup = *f2* sup"
-apply (rule is_join_unique [OF is_join_join])
-apply (transfer is_join_def, rule is_join_join)
-done
-
-lemma Standard_inf [simp]:
-  "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> inf x y \<in> Standard"
-by (simp add: star_inf_def)
-
-lemma Standard_sup [simp]:
-  "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> sup x y \<in> Standard"
-by (simp add: star_sup_def)
-
-lemma star_of_inf [simp]: "star_of (inf x y) = inf (star_of x) (star_of y)"
-by transfer (rule refl)
-
-lemma star_of_sup [simp]: "star_of (sup x y) = sup (star_of x) (star_of y)"
-by transfer (rule refl)
 
 subsection {* Ordered group classes *}
 

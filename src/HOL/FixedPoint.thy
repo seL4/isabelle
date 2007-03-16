@@ -5,37 +5,35 @@
     Copyright   1992  University of Cambridge
 *)
 
-header{* Fixed Points and the Knaster-Tarski Theorem*}
+header {* Fixed Points and the Knaster-Tarski Theorem*}
 
 theory FixedPoint
-imports Product_Type LOrder
+imports Product_Type
 begin
 
 subsection {* Complete lattices *}
 
-consts
-  Inf :: "'a::order set \<Rightarrow> 'a"
-
-definition
-  Sup :: "'a::order set \<Rightarrow> 'a" where
-  "Sup A = Inf {b. \<forall>a \<in> A. a \<le> b}"
-
-class comp_lat = order +
+class complete_lattice = lattice +
+  fixes Inf :: "'a set \<Rightarrow> 'a"
   assumes Inf_lower: "x \<in> A \<Longrightarrow> Inf A \<sqsubseteq> x"
   assumes Inf_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> Inf A"
 
-theorem Sup_upper: "(x::'a::comp_lat) \<in> A \<Longrightarrow> x <= Sup A"
+definition
+  Sup :: "'a\<Colon>complete_lattice set \<Rightarrow> 'a" where
+  "Sup A = Inf {b. \<forall>a \<in> A. a \<le> b}"
+
+theorem Sup_upper: "(x::'a::complete_lattice) \<in> A \<Longrightarrow> x <= Sup A"
   by (auto simp: Sup_def intro: Inf_greatest)
 
-theorem Sup_least: "(\<And>x::'a::comp_lat. x \<in> A \<Longrightarrow> x <= z) \<Longrightarrow> Sup A <= z"
+theorem Sup_least: "(\<And>x::'a::complete_lattice. x \<in> A \<Longrightarrow> x <= z) \<Longrightarrow> Sup A <= z"
   by (auto simp: Sup_def intro: Inf_lower)
 
 definition
-  SUPR :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::comp_lat) \<Rightarrow> 'b" where
+  SUPR :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::complete_lattice) \<Rightarrow> 'b" where
   "SUPR A f == Sup (f ` A)"
 
 definition
-  INFI :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::comp_lat) \<Rightarrow> 'b" where
+  INFI :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::complete_lattice) \<Rightarrow> 'b" where
   "INFI A f == Inf (f ` A)"
 
 syntax
@@ -80,17 +78,6 @@ lemma le_INFI: "(\<And>i. i : A \<Longrightarrow> u \<le> M i) \<Longrightarrow>
 
 text {* A complete lattice is a lattice *}
 
-lemma is_meet_Inf: "is_meet (\<lambda>(x::'a::comp_lat) y. Inf {x, y})"
-  by (auto simp: is_meet_def intro: Inf_lower Inf_greatest)
-
-lemma is_join_Sup: "is_join (\<lambda>(x::'a::comp_lat) y. Sup {x, y})"
-  by (auto simp: is_join_def intro: Sup_upper Sup_least)
-
-instance comp_lat < lorder
-proof
-  from is_meet_Inf show "\<exists>m::'a\<Rightarrow>'a\<Rightarrow>'a. is_meet m" by iprover
-  from is_join_Sup show "\<exists>j::'a\<Rightarrow>'a\<Rightarrow>'a. is_join j" by iprover
-qed
 
 subsubsection {* Properties *}
 
@@ -100,7 +87,7 @@ lemma mono_inf: "mono f \<Longrightarrow> f (inf A B) <= inf (f A) (f B)"
 lemma mono_sup: "mono f \<Longrightarrow> sup (f A) (f B) <= f (sup A B)"
   by (auto simp add: mono_def)
 
-lemma Sup_insert[simp]: "Sup (insert (a::'a::comp_lat) A) = sup a (Sup A)"
+lemma Sup_insert[simp]: "Sup (insert (a::'a::complete_lattice) A) = sup a (Sup A)"
   apply (rule order_antisym)
   apply (rule Sup_least)
   apply (erule insertE)
@@ -116,7 +103,7 @@ lemma Sup_insert[simp]: "Sup (insert (a::'a::comp_lat) A) = sup a (Sup A)"
   apply simp
   done
 
-lemma Inf_insert[simp]: "Inf (insert (a::'a::comp_lat) A) = inf a (Inf A)"
+lemma Inf_insert[simp]: "Inf (insert (a::'a::complete_lattice) A) = inf a (Inf A)"
   apply (rule order_antisym)
   apply (rule le_infI)
   apply (rule Inf_lower)
@@ -132,10 +119,10 @@ lemma Inf_insert[simp]: "Inf (insert (a::'a::comp_lat) A) = inf a (Inf A)"
   apply (erule Inf_lower)
   done
 
-lemma bot_least[simp]: "Sup{} \<le> (x::'a::comp_lat)"
+lemma bot_least[simp]: "Sup{} \<le> (x::'a::complete_lattice)"
   by (rule Sup_least) simp
 
-lemma top_greatest[simp]: "(x::'a::comp_lat) \<le> Inf{}"
+lemma top_greatest[simp]: "(x::'a::complete_lattice) \<le> Inf{}"
   by (rule Inf_greatest) simp
 
 lemma SUP_const[simp]: "A \<noteq> {} \<Longrightarrow> (SUP i:A. M) = M"
@@ -149,51 +136,15 @@ subsection {* Some instances of the type class of complete lattices *}
 
 subsubsection {* Booleans *}
 
-defs
-  Inf_bool_def: "Inf A == ALL x:A. x"
-
-instance bool :: comp_lat
+instance bool :: complete_lattice
+  Inf_bool_def: "Inf A \<equiv> \<forall>x\<in>A. x"
   apply intro_classes
   apply (unfold Inf_bool_def)
   apply (iprover intro!: le_boolI elim: ballE)
   apply (iprover intro!: ballI le_boolI elim: ballE le_boolE)
   done
 
-theorem inf_bool_eq: "inf P Q \<longleftrightarrow> P \<and> Q"
-  apply (rule order_antisym)
-  apply (rule le_boolI)
-  apply (rule conjI)
-  apply (rule le_boolE)
-  apply (rule inf_le1)
-  apply assumption+
-  apply (rule le_boolE)
-  apply (rule inf_le2)
-  apply assumption+
-  apply (rule le_infI)
-  apply (rule le_boolI)
-  apply (erule conjunct1)
-  apply (rule le_boolI)
-  apply (erule conjunct2)
-  done
-
-theorem sup_bool_eq: "sup P Q \<longleftrightarrow> P \<or> Q"
-  apply (rule order_antisym)
-  apply (rule le_supI)
-  apply (rule le_boolI)
-  apply (erule disjI1)
-  apply (rule le_boolI)
-  apply (erule disjI2)
-  apply (rule le_boolI)
-  apply (erule disjE)
-  apply (rule le_boolE)
-  apply (rule sup_ge1)
-  apply assumption+
-  apply (rule le_boolE)
-  apply (rule sup_ge2)
-  apply assumption+
-  done
-
-theorem Sup_bool_eq: "Sup A \<longleftrightarrow> (\<exists>x \<in> A. x)"
+theorem Sup_bool_eq: "Sup A \<longleftrightarrow> (\<exists>x\<in>A. x)"
   apply (rule order_antisym)
   apply (rule Sup_least)
   apply (rule le_boolI)
@@ -208,51 +159,8 @@ theorem Sup_bool_eq: "Sup A \<longleftrightarrow> (\<exists>x \<in> A. x)"
 
 subsubsection {* Functions *}
 
-text {*
-  Handy introduction and elimination rules for @{text "\<le>"}
-  on unary and binary predicates
-*}
-
-lemma predicate1I [Pure.intro!, intro!]:
-  assumes PQ: "\<And>x. P x \<Longrightarrow> Q x"
-  shows "P \<le> Q"
-  apply (rule le_funI)
-  apply (rule le_boolI)
-  apply (rule PQ)
-  apply assumption
-  done
-
-lemma predicate1D [Pure.dest, dest]: "P \<le> Q \<Longrightarrow> P x \<Longrightarrow> Q x"
-  apply (erule le_funE)
-  apply (erule le_boolE)
-  apply assumption+
-  done
-
-lemma predicate2I [Pure.intro!, intro!]:
-  assumes PQ: "\<And>x y. P x y \<Longrightarrow> Q x y"
-  shows "P \<le> Q"
-  apply (rule le_funI)+
-  apply (rule le_boolI)
-  apply (rule PQ)
-  apply assumption
-  done
-
-lemma predicate2D [Pure.dest, dest]: "P \<le> Q \<Longrightarrow> P x y \<Longrightarrow> Q x y"
-  apply (erule le_funE)+
-  apply (erule le_boolE)
-  apply assumption+
-  done
-
-lemma rev_predicate1D: "P x ==> P <= Q ==> Q x"
-  by (rule predicate1D)
-
-lemma rev_predicate2D: "P x y ==> P <= Q ==> Q x y"
-  by (rule predicate2D)
-
-defs
-  Inf_fun_def: "Inf A == (\<lambda>x. Inf {y. EX f:A. y = f x})"
-
-instance "fun" :: (type, comp_lat) comp_lat
+instance "fun" :: (type, complete_lattice) complete_lattice
+  Inf_fun_def: "Inf A \<equiv> (\<lambda>x. Inf {y. \<exists>f\<in>A. y = f x})"
   apply intro_classes
   apply (unfold Inf_fun_def)
   apply (rule le_funI)
@@ -268,33 +176,7 @@ instance "fun" :: (type, comp_lat) comp_lat
   apply (iprover elim: le_funE)
   done
 
-theorem inf_fun_eq: "inf f g = (\<lambda>x. inf (f x) (g x))"
-  apply (rule order_antisym)
-  apply (rule le_funI)
-  apply (rule le_infI)
-  apply (rule le_funD [OF inf_le1])
-  apply (rule le_funD [OF inf_le2])
-  apply (rule le_infI)
-  apply (rule le_funI)
-  apply (rule inf_le1)
-  apply (rule le_funI)
-  apply (rule inf_le2)
-  done
-
-theorem sup_fun_eq: "sup f g = (\<lambda>x. sup (f x) (g x))"
-  apply (rule order_antisym)
-  apply (rule le_supI)
-  apply (rule le_funI)
-  apply (rule sup_ge1)
-  apply (rule le_funI)
-  apply (rule sup_ge2)
-  apply (rule le_funI)
-  apply (rule le_supI)
-  apply (rule le_funD [OF sup_ge1])
-  apply (rule le_funD [OF sup_ge2])
-  done
-
-theorem Sup_fun_eq: "Sup A = (\<lambda>x. Sup {y::'a::comp_lat. EX f:A. y = f x})"
+theorem Sup_fun_eq: "Sup A = (\<lambda>x. Sup {y. \<exists>f\<in>A. y = f x})"
   apply (rule order_antisym)
   apply (rule Sup_least)
   apply (rule le_funI)
@@ -308,33 +190,12 @@ theorem Sup_fun_eq: "Sup A = (\<lambda>x. Sup {y::'a::comp_lat. EX f:A. y = f x}
   apply simp
   done
 
+
 subsubsection {* Sets *}
 
-defs
-  Inf_set_def: "Inf S == \<Inter>S"
-
-instance set :: (type) comp_lat
+instance set :: (type) complete_lattice
+  Inf_set_def: "Inf S \<equiv> \<Inter>S"
   by intro_classes (auto simp add: Inf_set_def)
-
-theorem inf_set_eq: "inf A B = A \<inter> B"
-  apply (rule subset_antisym)
-  apply (rule Int_greatest)
-  apply (rule inf_le1)
-  apply (rule inf_le2)
-  apply (rule le_infI)
-  apply (rule Int_lower1)
-  apply (rule Int_lower2)
-  done
-
-theorem sup_set_eq: "sup A B = A \<union> B"
-  apply (rule subset_antisym)
-  apply (rule le_supI)
-  apply (rule Un_upper1)
-  apply (rule Un_upper2)
-  apply (rule Un_least)
-  apply (rule sup_ge1)
-  apply (rule sup_ge2)
-  done
 
 theorem Sup_set_eq: "Sup S = \<Union>S"
   apply (rule subset_antisym)
@@ -348,11 +209,11 @@ theorem Sup_set_eq: "Sup S = \<Union>S"
 subsection {* Least and greatest fixed points *}
 
 definition
-  lfp :: "('a\<Colon>comp_lat \<Rightarrow> 'a) \<Rightarrow> 'a" where
+  lfp :: "('a\<Colon>complete_lattice \<Rightarrow> 'a) \<Rightarrow> 'a" where
   "lfp f = Inf {u. f u \<le> u}"    --{*least fixed point*}
 
 definition
-  gfp :: "('a\<Colon>comp_lat \<Rightarrow> 'a) \<Rightarrow> 'a" where
+  gfp :: "('a\<Colon>complete_lattice \<Rightarrow> 'a) \<Rightarrow> 'a" where
   "gfp f = Sup {u. u \<le> f u}"    --{*greatest fixed point*}
 
 
@@ -403,10 +264,8 @@ lemma lfp_induct_set:
   by (rule lfp_induct [THEN subsetD, THEN CollectD, OF mono _ lfp])
     (auto simp: inf_set_eq intro: indhyp)
 
-
-text{*Version of induction for binary relations*}
-lemmas lfp_induct2 =  lfp_induct_set [of "(a,b)", split_format (complete)]
-
+text {* Version of induction for binary relations *}
+lemmas lfp_induct2 =  lfp_induct_set [of "(a, b)", split_format (complete)]
 
 lemma lfp_ordinal_induct: 
   assumes mono: "mono f"
@@ -562,8 +421,6 @@ by (auto intro!: coinduct3)
 text{*Monotonicity of @{term gfp}!*}
 lemma gfp_mono: "(!!Z. f Z \<le> g Z) ==> gfp f \<le> gfp g"
   by (rule gfp_upperbound [THEN gfp_least], blast intro: order_trans)
-
-
 
 ML
 {*
