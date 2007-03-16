@@ -728,7 +728,7 @@ qed
 lemma TrueE: "True ==> P ==> P" .
 lemma notFalseE: "~ False ==> P ==> P" .
 
-lemmas [Pure.elim!] = disjE iffE FalseE conjE exE TrueE notFalseE
+lemmas [Pure.elim!] = disjE iffE FalseE conjE exE 
   and [Pure.intro!] = iffI conjI impI TrueI notI allI refl
   and [Pure.elim 2] = allE notE' impE'
   and [Pure.intro] = exI disjI2 disjI1
