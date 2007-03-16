@@ -10,6 +10,8 @@ sig
   include BASIC_CODEGEN_THINGOL;
   val codegen_term: theory -> term -> iterm;
   val eval_term: theory -> (string (*reference name!*) * 'a option ref) * term -> 'a;
+  val satisfies_ref: bool option ref;
+  val satisfies: theory -> term -> string list -> bool;
   val codegen_command: theory -> string -> unit;
 
   type appgen;
@@ -570,13 +572,22 @@ fun codegen_term thy t =
     val t' = Thm.term_of ct';
   in generate thy funcgr (SOME []) exprgen_term' t' end;
 
-fun eval_term thy (ref_spec, t) =
+fun raw_eval_term thy (ref_spec, t) args =
   let
     val _ = (Term.fold_types o Term.fold_atyps) (fn _ =>
-      error ("Term" ^ Sign.string_of_term thy t ^ "is polymorhpic"))
+      error ("Term" ^ Sign.string_of_term thy t ^ "is polymorphic"))
       t;
     val t' = codegen_term thy t;
-  in CodegenSerializer.eval_term thy CodegenNames.labelled_name (Code.get thy) (ref_spec, t') end;
+  in
+    CodegenSerializer.eval_term thy CodegenNames.labelled_name
+      (Code.get thy) (ref_spec, t') args
+  end;
+
+val satisfies_ref : bool option ref = ref NONE;
+
+fun eval_term thy t = raw_eval_term thy t [];
+fun satisfies thy t witnesses = raw_eval_term thy
+  (("CodegenPackage.satisfies_ref", satisfies_ref), t) witnesses;
 
 
 (* constant specifications with wildcards *)

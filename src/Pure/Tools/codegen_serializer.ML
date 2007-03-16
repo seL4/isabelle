@@ -36,7 +36,7 @@ sig
 
   val eval_verbose: bool ref;
   val eval_term: theory -> (theory -> string -> string) -> CodegenThingol.code
-    -> (string * 'a option ref) * CodegenThingol.iterm -> 'a;
+    -> (string * 'a option ref) * CodegenThingol.iterm -> string list -> 'a;
   val code_width: int ref;
 end;
 
@@ -1629,10 +1629,11 @@ fun get_serializer thy target args labelled_name = fn cs =>
 
 val eval_verbose = ref false;
 
-fun eval_term thy labelled_name code ((ref_name, reff), t) =
+fun eval_term thy labelled_name code ((ref_name, reff), t) args =
   let
     val val_name = "eval.EVAL.EVAL";
     val val_name' = "ROOT.eval.EVAL";
+    val val_name'_args = space_implode " " (val_name' :: map (enclose "(" ")") args);
     val data = (the o Symtab.lookup (CodegenSerializerData.get thy)) "SML"
     val reserved = the_reserved data;
     val { alias, prolog } = the_syntax_modl data;
@@ -1643,7 +1644,7 @@ fun eval_term thy labelled_name code ((ref_name, reff), t) =
       if !eval_verbose then Pretty.writeln p else ();
       use_text "generated code for evaluation" Output.ml_output (!eval_verbose)
         ((Pretty.output o Pretty.chunks) [p,
-          str ("val _ = (" ^ ref_name ^ " := SOME " ^ val_name' ^ ")")
+          str ("val _ = (" ^ ref_name ^ " := SOME (" ^ val_name'_args ^ "))")
         ]);
       case !reff
        of NONE => error ("Could not retrieve value of ML reference " ^ quote ref_name
