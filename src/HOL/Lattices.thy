@@ -3,7 +3,7 @@
     Author:     Tobias Nipkow
 *)
 
-header {* Lattices via Locales *}
+header {* Abstract lattices *}
 
 theory Lattices
 imports Orderings
@@ -11,10 +11,11 @@ begin
 
 subsection{* Lattices *}
 
-text{* This theory of lattice locales only defines binary sup and inf
-operations. The extension to finite sets is done in theory @{text
-Finite_Set}. In the longer term it may be better to define arbitrary
-sups and infs via @{text THE}. *}
+text{*
+  This theory of lattices only defines binary sup and inf
+  operations. The extension to (finite) sets is done in theories @{text FixedPoint}
+  and @{text Finite_Set}.
+*}
 
 class lower_semilattice = order +
   fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
@@ -178,6 +179,8 @@ by(blast intro: antisym sup_ge1 sup_least inf_le1)
 
 lemmas ACI = inf_ACI sup_ACI
 
+lemmas inf_sup_ord = inf_le1 inf_le2 sup_ge1 sup_ge2
+
 text{* Towards distributivity *}
 
 lemma distrib_sup_le: "x \<squnion> (y \<sqinter> z) \<sqsubseteq> (x \<squnion> y) \<sqinter> (x \<squnion> z)"
@@ -222,7 +225,7 @@ end
 
 subsection{* Distributive lattices *}
 
-locale distrib_lattice = lattice +
+class distrib_lattice = lattice +
   assumes sup_inf_distrib1: "x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
 
 context distrib_lattice
@@ -246,10 +249,37 @@ lemmas distrib =
 end
 
 
+subsection {* Uniqueness of inf and sup *}
+
+lemma inf_unique:
+  fixes f (infixl "\<triangle>" 70)
+  assumes le1: "\<And>x y. x \<triangle> y \<le> x" and le2: "\<And>x y. x \<triangle> y \<le> y"
+  and greatest: "\<And>x y z. x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> y \<triangle> z"
+  shows "inf x y = f x y"
+proof (rule antisym)
+  show "x \<triangle> y \<le> inf x y" by (rule le_infI) (rule le1 le2)
+next
+  have leI: "\<And>x y z. x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> y \<triangle> z" by (blast intro: greatest)
+  show "inf x y \<le> x \<triangle> y" by (rule leI) simp_all
+qed
+
+lemma sup_unique:
+  fixes f (infixl "\<nabla>" 70)
+  assumes ge1 [simp]: "\<And>x y. x \<le> x \<nabla> y" and ge2: "\<And>x y. y \<le> x \<nabla> y"
+  and least: "\<And>x y z. y \<le> x \<Longrightarrow> z \<le> x \<Longrightarrow> y \<nabla> z \<le> x"
+  shows "sup x y = f x y"
+proof (rule antisym)
+  show "sup x y \<le> x \<nabla> y" by (rule le_supI) (rule ge1 ge2)
+next
+  have leI: "\<And>x y z. x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> x \<nabla> y \<le> z" by (blast intro: least)
+  show "x \<nabla> y \<le> sup x y" by (rule leI) simp_all
+qed
+  
+
 subsection {* min/max on linear orders as special case of inf/sup *}
 
 interpretation min_max:
-  distrib_lattice ["op \<le>" "op <" "min \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
+  distrib_lattice ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" min max]
 apply unfold_locales
 apply (simp add: min_def linorder_not_le order_less_imp_le)
 apply (simp add: min_def linorder_not_le order_less_imp_le)
@@ -258,15 +288,11 @@ apply (simp add: max_def linorder_not_le order_less_imp_le)
 apply (simp add: max_def linorder_not_le order_less_imp_le)
 unfolding min_def max_def by auto
 
-text {*
-  Now we have inherited antisymmetry as an intro-rule on all
-  linear orders. This is a problem because it applies to bool, which is
-  undesirable.
-*}
+lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{lower_semilattice, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
+  by (rule ext)+ auto
 
-lemmas [rule del] = min_max.antisym_intro  min_max.le_infI min_max.le_supI
-  min_max.le_supE min_max.le_infE min_max.le_supI1 min_max.le_supI2
-  min_max.le_infI1 min_max.le_infI2
+lemma sup_max: "sup = (max \<Colon> 'a\<Colon>{upper_semilattice, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
+  by (rule ext)+ auto
 
 lemmas le_maxI1 = min_max.sup_ge1
 lemmas le_maxI2 = min_max.sup_ge2
@@ -276,6 +302,31 @@ lemmas max_ac = min_max.sup_assoc min_max.sup_commute
 
 lemmas min_ac = min_max.inf_assoc min_max.inf_commute
   mk_left_commute [of min, OF min_max.inf_assoc min_max.inf_commute]
+
+text {*
+  Now we have inherited antisymmetry as an intro-rule on all
+  linear orders. This is a problem because it applies to bool, which is
+  undesirable.
+*}
+
+lemmas [rule del] = min_max.antisym_intro min_max.le_infI min_max.le_supI
+  min_max.le_supE min_max.le_infE min_max.le_supI1 min_max.le_supI2
+  min_max.le_infI1 min_max.le_infI2
+
+
+subsection {* Bool as lattice *}
+
+instance bool :: distrib_lattice
+  inf_bool_eq: "inf P Q \<equiv> P \<and> Q"
+  sup_bool_eq: "sup P Q \<equiv> P \<or> Q"
+  by intro_classes (auto simp add: inf_bool_eq sup_bool_eq le_bool_def)
+
+
+text {* duplicates *}
+
+lemmas inf_aci = inf_ACI
+lemmas sup_aci = sup_ACI
+
 
 text {* ML legacy bindings *}
 
