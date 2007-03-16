@@ -2,6 +2,11 @@
 Contributions to Isabelle
 -------------------------
 
+* 2006/2007: Florian Haftmann, TUM
+  Pure: generic code generator framework.
+  Pure: class package.
+  HOL: theory tuning, code generator setup.
+
 * November 2006: Lukas Bulwahn, TUM
   HOL/function: method "lexicographic_order".
 
