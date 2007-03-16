@@ -255,47 +255,42 @@ datatype names = Names of {
   class: class Symtab.table * class Symtab.table,
   classrel: string StringPairTab.table * (class * class) Symtab.table,
   tyco: tyco Symtab.table * tyco Symtab.table,
-  instance: string StringPairTab.table * (class * tyco) Symtab.table,
-  const: const Consttab.table * (string * typ list) Symtab.table
+  instance: string StringPairTab.table * (class * tyco) Symtab.table
 }
 
 val empty_names = Names {
   class = (Symtab.empty, Symtab.empty),
   classrel = (StringPairTab.empty, Symtab.empty),
   tyco = (Symtab.empty, Symtab.empty),
-  instance = (StringPairTab.empty, Symtab.empty),
-  const = (Consttab.empty, Symtab.empty)
+  instance = (StringPairTab.empty, Symtab.empty)
 };
 
 val eq_string = op = : string * string -> bool;
 
 local
-  fun mk_names (class, classrel, tyco, instance, const) =
-    Names { class = class, classrel = classrel, tyco = tyco, instance = instance, const = const};
-  fun map_names f (Names { class, classrel, tyco, instance, const }) =
-    mk_names (f (class, classrel, tyco, instance, const));
+  fun mk_names (class, classrel, tyco, instance) =
+    Names { class = class, classrel = classrel, tyco = tyco, instance = instance };
+  fun map_names f (Names { class, classrel, tyco, instance }) =
+    mk_names (f (class, classrel, tyco, instance));
 in
   fun merge_names (Names { class = (class1, classrev1),
       classrel = (classrel1, classrelrev1), tyco = (tyco1, tycorev1),
-      instance = (instance1, instancerev1), const = (const1, constrev1) },
+      instance = (instance1, instancerev1) },
     Names { class = (class2, classrev2),
       classrel = (classrel2, classrelrev2), tyco = (tyco2, tycorev2),
-      instance = (instance2, instancerev2), const = (const2, constrev2) }) =
+      instance = (instance2, instancerev2) }) =
     mk_names ((Symtab.merge eq_string (class1, class2), Symtab.merge eq_string (classrev1, classrev2)),
       (StringPairTab.merge eq_string (classrel1, classrel2), Symtab.merge eq_string_pair (classrelrev1, classrelrev2)),
       (Symtab.merge eq_string (tyco1, tyco2), Symtab.merge eq_string (tycorev1, tycorev2)),
-      (StringPairTab.merge eq_string (instance1, instance2), Symtab.merge eq_string_pair (instancerev1, instancerev2)),
-      (Consttab.merge eq_string (const1, const2), Symtab.merge CodegenConsts.eq_const (constrev1, constrev2)));
+      (StringPairTab.merge eq_string (instance1, instance2), Symtab.merge eq_string_pair (instancerev1, instancerev2)));
   fun map_class f = map_names
-    (fn (class, classrel, tyco, inst, const) => (f class, classrel, tyco, inst, const));
+    (fn (class, classrel, tyco, inst) => (f class, classrel, tyco, inst));
   fun map_classrel f = map_names
-    (fn (class, classrel, tyco, inst, const) => (class, f classrel, tyco, inst, const));
+    (fn (class, classrel, tyco, inst) => (class, f classrel, tyco, inst));
   fun map_tyco f = map_names
-    (fn (class, classrel, tyco, inst, const) => (class, classrel, f tyco, inst, const));
+    (fn (class, classrel, tyco, inst) => (class, classrel, f tyco, inst));
   fun map_instance f = map_names
-    (fn (class, classrel, tyco, inst, const) => (class, classrel, tyco, f inst, const));
-  fun map_const f = map_names
-    (fn (class, classrel, tyco, inst, const) => (class, classrel, tyco, inst, f const));
+    (fn (class, classrel, tyco, inst) => (class, classrel, tyco, f inst));
 end; (*local*)
 
 structure CodeName = TheoryDataFun
