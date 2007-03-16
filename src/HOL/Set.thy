@@ -1036,11 +1036,14 @@ lemmas [symmetric, rulify] = atomize_ball
   and [symmetric, defn] = atomize_ball
 
 
-subsection {* Further set-theory lemmas *}
+subsection {* Order on sets *}
 
 instance set :: (type) order
   by (intro_classes,
       (assumption | rule subset_refl subset_trans subset_antisym psubset_eq)+)
+
+
+subsection {* Further set-theory lemmas *}
 
 subsubsection {* Derived rules involving subsets. *}
 
@@ -2114,6 +2117,14 @@ lemma set_mp: "A \<subseteq> B ==> x:A ==> x:B"
 
 lemmas basic_trans_rules [trans] =
   order_trans_rules set_rev_mp set_mp
+
+
+subsection {* Sets as lattice *}
+
+instance set :: (type) distrib_lattice
+  inf_set_eq: "inf A B \<equiv> A \<inter> B"
+  sup_set_eq: "sup A B \<equiv> A \<union> B"
+  by intro_classes (auto simp add: inf_set_eq sup_set_eq)
 
 
 subsection {* Basic ML bindings *}
