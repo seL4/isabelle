@@ -1274,11 +1274,9 @@ apply (simp add: Rep_matrix_inject[THEN sym])
 apply (rule ext)+
 by simp
 
-instance matrix :: ("{ord, zero}") ord ..
-
-defs (overloaded)
-  le_matrix_def: "(A::('a::{ord,zero}) matrix) <= B == ! j i. (Rep_matrix A j i) <= (Rep_matrix B j i)"
-  less_def: "(A::('a::{ord,zero}) matrix) < B == (A <= B) & (A \<noteq> B)"
+instance matrix :: ("{ord, zero}") ord
+  le_matrix_def: "A \<le> B \<equiv> \<forall>j i. Rep_matrix A j i \<le> Rep_matrix B j i"
+  less_def: "A < B \<equiv> A \<le> B \<and> A \<noteq> B" ..
 
 instance matrix :: ("{order, zero}") order
 apply intro_classes
