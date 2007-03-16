@@ -1979,6 +1979,7 @@ declare
 
 subsubsection{* Semi-Lattices *}
 
+(*FIXME integrate with Orderings.thy/OrderedGroup.thy*)
 locale ACIfSL = ACIf +
   fixes below :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubseteq>" 50)
   and strict_below :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubset>" 50)
@@ -2167,6 +2168,7 @@ qed
 
 subsubsection{* Lattices *}
 
+(*FIXME integrate with FixedPoint.thy*)
 locale Lattice = lattice +
   fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
   and Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
