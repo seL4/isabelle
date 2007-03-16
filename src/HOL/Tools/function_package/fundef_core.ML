@@ -572,7 +572,7 @@ fun mk_psimps thy globals R clauses valthms f_iff graph_is_function =
 (** Induction rule **)
 
 
-val acc_subset_induct = thm "FixedPoint.predicate1I" RS
+val acc_subset_induct = thm "Fun.predicate1I" RS
   thm "Accessible_Part.acc_subset_induct"
 
 fun mk_partial_induct_rule thy globals R complete_thm clauses =
