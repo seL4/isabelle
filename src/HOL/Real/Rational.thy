@@ -348,6 +348,11 @@ proof
   }
 qed
 
+instance rat :: distrib_lattice
+  "inf r s \<equiv> min r s"
+  "sup r s \<equiv> max r s"
+  by default (auto simp add: min_max.sup_inf_distrib1 inf_rat_def sup_rat_def)
+
 instance rat :: ordered_field
 proof
   fix q r s :: rat
@@ -390,7 +395,7 @@ proof
   qed
   show "\<bar>q\<bar> = (if q < 0 then -q else q)"
     by (simp only: abs_rat_def)
-qed
+qed auto
 
 instance rat :: division_by_zero
 proof
@@ -461,11 +466,8 @@ qed
 
 subsection {* Numerals and Arithmetic *}
 
-instance rat :: number ..
-
-defs (overloaded)
-  rat_number_of_def: "(number_of w :: rat) == of_int w"
-    --{*the type constraint is essential!*}
+instance rat :: number
+  rat_number_of_def: "(number_of w :: rat) \<equiv> of_int w" ..
 
 instance rat :: number_ring
   by default (simp add: rat_number_of_def) 

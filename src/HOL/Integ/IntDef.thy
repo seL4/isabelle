@@ -361,13 +361,14 @@ defs (overloaded)
 
 text{*The integers form an ordered @{text comm_ring_1}*}
 instance int :: ordered_idom
+  "inf \<equiv> min"
+  "sup \<equiv> max"
 proof
   fix i j k :: int
   show "i \<le> j ==> k + i \<le> k + j" by (rule zadd_left_mono)
   show "i < j ==> 0 < k ==> k * i < k * j" by (rule zmult_zless_mono2)
   show "\<bar>i\<bar> = (if i < 0 then -i else i)" by (simp only: zabs_def)
-qed
-
+qed (unfold inf_int_def sup_int_def, auto)
 
 lemma zless_imp_add1_zle: "w<z ==> w + (1::int) \<le> z"
 apply (cases w, cases z) 

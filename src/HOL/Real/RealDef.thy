@@ -434,6 +434,11 @@ lemma real_zero_le_one: "0 \<le> (1::real)"
 by (simp add: real_zero_def real_one_def real_le 
                  preal_self_less_add_left order_less_imp_le)
 
+instance real :: distrib_lattice
+  "inf x y \<equiv> min x y"
+  "sup x y \<equiv> max x y"
+  by default (auto simp add: inf_real_def sup_real_def min_max.sup_inf_distrib1)
+
 
 subsection{*The Reals Form an Ordered Field*}
 
@@ -445,8 +450,6 @@ proof
   show "\<bar>x\<bar> = (if x < 0 then -x else x)"
     by (auto dest: order_le_less_trans simp add: real_abs_def linorder_not_le)
 qed
-
-
 
 text{*The function @{term real_of_preal} requires many proofs, but it seems
 to be essential for proving completeness of the reals from that of the
