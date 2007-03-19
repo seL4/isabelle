@@ -602,16 +602,23 @@ fun update_uwrappers
     safe0_netpair = safe0_netpair, safep_netpair = safep_netpair,
     haz_netpair = haz_netpair, dup_netpair = dup_netpair, xtra_netpair = xtra_netpair};
 
+fun overwrite_warn msg (p as (key : string, v)) xs =
+  let
+    fun over ((q as (keyi, _)) :: xs) =
+          if keyi = key then p :: xs else q :: over xs
+      | over [] = [p];
+  in (
+    if AList.defined (op =) xs key then () else warning msg;
+    over xs
+  ) end;
 
 (*Add/replace a safe wrapper*)
-fun cs addSWrapper new_swrapper = update_swrappers cs (fn swrappers =>
-    overwrite_warn (swrappers, new_swrapper)
-       ("Overwriting safe wrapper " ^ fst new_swrapper));
+fun cs addSWrapper new_swrapper = update_swrappers cs
+  (overwrite_warn ("Overwriting safe wrapper " ^ fst new_swrapper) new_swrapper);
 
 (*Add/replace an unsafe wrapper*)
-fun cs addWrapper new_uwrapper = update_uwrappers cs (fn uwrappers =>
-    overwrite_warn (uwrappers, new_uwrapper)
-        ("Overwriting unsafe wrapper "^fst new_uwrapper));
+fun cs addWrapper new_uwrapper = update_uwrappers cs
+  (overwrite_warn ("Overwriting unsafe wrapper "^fst new_uwrapper) new_uwrapper);
 
 (*Remove a safe wrapper*)
 fun cs delSWrapper name = update_swrappers cs (fn swrappers =>
