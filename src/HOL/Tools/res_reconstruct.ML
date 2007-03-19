@@ -273,7 +273,7 @@ fun fix_sorts vt =
   vt0 holds the initial sort constraints, from the conjecture clauses.*)
 fun clause_of_strees_aux ctxt vt0 ts = 
   case lits_of_strees ctxt (vt0,[]) ts of
-      (_, []) => HOLogic.false_const
+      (vt, []) => HOLogic.false_const
     | (vt, lits) => 
         let val dt = fix_sorts vt (foldr1 HOLogic.mk_disj lits)
             val infer = Sign.infer_types (ProofContext.pp ctxt) (ProofContext.theory_of ctxt)
@@ -351,16 +351,19 @@ fun permuted_clause t =
             else perm ctms
   in perm end;
 
+fun have_or_show "show " lname = "show \""
+  | have_or_show have lname = have ^ lname ^ ": \""
+
 (*ctms is a list of conjecture clauses as yielded by Isabelle. Those returned by the
   ATP may have their literals reordered.*)
 fun isar_lines ctxt ctms =
   let val string_of = ProofContext.string_of_term ctxt
-      fun doline hs (lname, t, []) =  (*No deps: it's a conjecture clause, with no proof.*)
+      fun doline have (lname, t, []) =  (*No deps: it's a conjecture clause, with no proof.*)
            (case permuted_clause t ctms of
                 SOME u => "assume " ^ lname ^ ": \"" ^ string_of u ^ "\"\n"
               | NONE => "assume? " ^ lname ^ ": \"" ^ string_of t ^ "\"\n")  (*no match!!*)
-        | doline hs (lname, t, deps) =
-            hs ^ lname ^ ": \"" ^ string_of t ^ 
+        | doline have (lname, t, deps) =
+            have_or_show have lname ^ string_of t ^ 
             "\"\n  by (metis " ^ space_implode " " deps ^ ")\n"
       fun dolines [(lname, t, deps)] = [doline "show " (lname, t, deps)]
         | dolines ((lname, t, deps)::lines) = doline "have " (lname, t, deps) :: dolines lines
@@ -379,22 +382,32 @@ fun replace_deps (old, new) (lno, t, deps) =
   Consolidate adjacent lines that prove the same clause, since they differ only in type
   information.*)
 fun add_prfline ((lno, "axiom", t, []), lines) =  (*axioms are not proof lines*)
-      if eq_false t (*must be clsrel/clsarity: type information, so delete refs to it*)
-      then map (replace_deps (lno, [])) lines   
-      else (case take_prefix (notequal t) lines of
-               (_,[]) => lines                  (*no repetition of proof line*)
-             | (pre, (lno',t',deps')::post) =>  (*repetition: replace later line by earlier one*)
-                 pre @ map (replace_deps (lno', [lno])) post)
+      if eq_false t then lines  (*clsrel/clsarity clause: type information, ignore*)
+      else
+       (case take_prefix (notequal t) lines of
+           (_,[]) => lines                  (*no repetition of proof line*)
+         | (pre, (lno',t',deps')::post) =>  (*repetition: replace later line by earlier one*)
+             pre @ map (replace_deps (lno', [lno])) post)
   | add_prfline ((lno, role, t, []), lines) =  (*no deps: conjecture clause*)
-      if eq_false t (*must be tfree_tcs: type information, so delete refs to it*)
-      then map (replace_deps (lno, [])) lines   
-      else (lno, t, []) :: lines
+      (lno, t, []) :: lines
   | add_prfline ((lno, role, t, deps), lines) =
+      if eq_false t then (lno, t, deps) :: lines
+      (*Type information will be deleted later; we skip repetition test to avoid
+        mistaking it with the empty clause.*)
+      else (*Doesn't this code risk conflating proofs involving different types??*)
       case take_prefix (notequal t) lines of
          (_,[]) => (lno, t, deps) :: lines  (*no repetition of proof line*)
        | (pre, (lno',t',deps')::post) => 
            (lno, t', deps) ::               (*repetition: replace later line by earlier one*)
            (pre @ map (replace_deps (lno', [lno])) post);
+
+(*Recursively delete empty lines (type information) from the proof.*)
+fun add_nonnull_prfline ((lno, t, []), lines) = (*no dependencies, so a conjecture clause*)
+     if eq_false t (*must be type information, tfree_tcs, clsrel, clsarity: delete refs to it*)
+     then delete_dep lno lines   
+     else (lno, t, []) :: lines   
+  | add_nonnull_prfline ((lno, t, deps), lines) = (lno, t, deps) :: lines
+and delete_dep lno lines = foldr add_nonnull_prfline [] (map (replace_deps (lno, [])) lines);
 
 (*TVars are forbidden in goals. Also, we don't want lines with too few dependencies. 
   Deleted lines are replaced by their own dependencies. Note that the previous "add_prfline"
@@ -427,7 +440,8 @@ fun isar_header [] = proofstart
 fun decode_tstp_file cnfs ctxt th sgno thm_names =
   let val tuples = map (dest_tstp o tstp_line o explode) cnfs
       val lines = foldr add_wanted_prfline [] 
-                    (foldr add_prfline [] (decode_tstp_list ctxt tuples))
+                   (foldr add_nonnull_prfline [] 
+                    (foldr add_prfline [] (decode_tstp_list ctxt tuples)))
       val (ccls,fixes) = ResAxioms.neg_conjecture_clauses th sgno
       val ccls = map forall_intr_vars ccls
   in  
@@ -518,7 +532,7 @@ fun get_axiom_names_vamp proofstr thm_names =
    get_axiom_names thm_names (get_vamp_linenums proofstr);
     
 fun rules_to_metis [] = "metis"
-  | rules_to_metis xs = "metis (" ^ space_implode " " xs ^ ")"
+  | rules_to_metis xs = "(metis " ^ space_implode " " xs ^ ")"
 
 
 (*The signal handler in watcher.ML must be able to read the output of this.*)
