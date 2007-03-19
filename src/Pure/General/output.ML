@@ -24,7 +24,6 @@ sig
   val priority: string -> unit
   val tracing: string -> unit
   val warning: string -> unit
-  val overwrite_warn: (''a * 'b) list * (''a * 'b) -> string -> (''a * 'b) list
   val debugging: bool ref
   val no_warnings: ('a -> 'b) -> 'a -> 'b
   val timing: bool ref
@@ -149,19 +148,6 @@ fun toplevel_errors f x =
   else f x;
 
 fun ML_errors f = setmp do_toplevel_errors true (toplevel_errors f);
-
-
-(* overwriting change with warning *)
-
-fun overwrite (al, p as (key, _)) =
-  let fun over ((q as (keyi, _)) :: pairs) =
-            if keyi = key then p :: pairs else q :: (over pairs)
-        | over [] = [p]
-  in over al end;
-
-fun overwrite_warn (args as (alist, (a, _))) msg =
- (if is_none (AList.lookup (op =) alist a) then () else warning msg;
-  overwrite args);
 
 
 (* add_mode *)
