@@ -1,10 +1,12 @@
 (* "$Id$" *)
 (*                                                   *)
-(* Formalisation of some typical SOS-proofs from a   *)
-(* challenge suggested by Adam Chlipala.             *)
+(* Formalisation of some typical SOS-proofs          *)
 (*                                                   *) 
-(* We thank Nick Benton for hellping us with the     *) 
-(* termination-proof for evaluation .                *)
+(* This work arose from challenge suggested by Adam  *)
+(* Chlipala suggested on the POPLmark mailing list.  *)
+(*                                                   *) 
+(* We thank Nick Benton for helping us with the      *) 
+(* termination-proof for evaluation.                 *)
 
 theory SOS
   imports "Nominal"
@@ -87,6 +89,8 @@ using assms
 by (induct rule: lookup.induct)
    (auto simp add: fresh_list_cons fresh_prod fresh_atm)
 
+text {* Parallel Substitution *}
+
 consts
   psubst :: "(name\<times>trm) list \<Rightarrow> trm \<Rightarrow> trm"  ("_<_>" [95,95] 105)
  
@@ -101,20 +105,19 @@ nominal_primrec
   "\<theta><(InL e)> = InL (\<theta><e>)"
   "\<theta><(InR e)> = InR (\<theta><e>)"
   "\<lbrakk>y\<noteq>x; x\<sharp>(e,e\<^isub>2,\<theta>); y\<sharp>(e,e\<^isub>1,\<theta>)\<rbrakk> 
-   \<Longrightarrow> \<theta><(Case e of inl x \<rightarrow> e\<^isub>1 | inr y \<rightarrow> e\<^isub>2)> =
-                            (Case (\<theta><e>) of inl x \<rightarrow> (\<theta><e\<^isub>1>) | inr y \<rightarrow> (\<theta><e\<^isub>2>))"
-  apply(finite_guess add: lookup_eqvt)+
-  apply(rule TrueI)+
-  apply(simp add: abs_fresh)+
-  apply(fresh_guess add: fs_name1 lookup_eqvt)+
-  done
+   \<Longrightarrow> \<theta><Case e of inl x \<rightarrow> e\<^isub>1 | inr y \<rightarrow> e\<^isub>2> = (Case (\<theta><e>) of inl x \<rightarrow> (\<theta><e\<^isub>1>) | inr y \<rightarrow> (\<theta><e\<^isub>2>))"
+apply(finite_guess add: lookup_eqvt)+
+apply(rule TrueI)+
+apply(simp add: abs_fresh)+
+apply(fresh_guess add: fs_name1 lookup_eqvt)+
+done
 
 lemma psubst_eqvt[eqvt]:
   fixes pi::"name prm" 
   and   t::"trm"
   shows "pi\<bullet>(\<theta><t>) = (pi\<bullet>\<theta>)<(pi\<bullet>t)>"
-  by (nominal_induct t avoiding: \<theta> rule: trm.induct)
-     (perm_simp add: fresh_bij lookup_eqvt)+
+by (nominal_induct t avoiding: \<theta> rule: trm.induct)
+   (perm_simp add: fresh_bij lookup_eqvt)+
 
 lemma fresh_psubst: 
   fixes z::"name"
@@ -142,7 +145,7 @@ lemma subst[simp]:
   and   "\<lbrakk>z\<noteq>x; x\<sharp>(y,e,e\<^isub>2,t'); z\<sharp>(y,e,e\<^isub>1,t')\<rbrakk> 
          \<Longrightarrow> (Case e of inl x \<rightarrow> e\<^isub>1 | inr z \<rightarrow> e\<^isub>2)[y::=t'] =
                    (Case (e[y::=t']) of inl x \<rightarrow> (e\<^isub>1[y::=t']) | inr z \<rightarrow> (e\<^isub>2[y::=t']))"
-  by (simp_all add: fresh_list_cons fresh_list_nil)
+by (simp_all add: fresh_list_cons fresh_list_nil)
 
 lemma subst_eqvt[eqvt]:
   fixes pi::"name prm" 
@@ -150,60 +153,6 @@ lemma subst_eqvt[eqvt]:
   shows "pi\<bullet>(t[x::=t']) = (pi\<bullet>t)[(pi\<bullet>x)::=(pi\<bullet>t')]"
   by (nominal_induct t avoiding: x t' rule: trm.induct)
      (perm_simp add: fresh_bij)+
-
-
-lemma subst_rename: 
-  fixes c::"name"
-  and   t\<^isub>1::"trm"
-  assumes "c\<sharp>t\<^isub>1"
-  shows "t\<^isub>1[a::=t\<^isub>2] = ([(c,a)]\<bullet>t\<^isub>1)[c::=t\<^isub>2]"
-  using assms
-  apply(nominal_induct t\<^isub>1 avoiding: a c t\<^isub>2 rule: trm.induct)
-  apply(simp add: trm.inject calc_atm fresh_atm abs_fresh perm_nat_def)
-  apply(simp add: trm.inject calc_atm fresh_atm abs_fresh perm_nat_def)
-  apply(simp add: trm.inject calc_atm fresh_atm abs_fresh perm_nat_def)
-  apply(simp add: trm.inject calc_atm fresh_atm abs_fresh perm_nat_def)
-  apply(simp add: trm.inject calc_atm fresh_atm abs_fresh perm_nat_def)
-  apply(simp add: trm.inject calc_atm fresh_atm abs_fresh perm_nat_def)
-  apply(simp add: trm.inject calc_atm fresh_atm abs_fresh perm_nat_def)
-  apply(simp add: trm.inject calc_atm fresh_atm abs_fresh perm_nat_def)
-  apply(simp add: trm.inject calc_atm fresh_atm abs_fresh perm_nat_def) 
-  apply(simp (no_asm_use))
-  apply(rule sym)
-  apply(rule trans)
-  apply(rule subst)
-  apply(simp add: perm_bij)
-  apply(simp add: fresh_prod)
-  apply(simp add: fresh_bij)
-  apply(simp add: calc_atm fresh_atm)
-  apply(simp add: fresh_prod)
-  apply(simp add: fresh_bij)
-  apply(simp add: calc_atm fresh_atm)
-  apply(rule sym)
-  apply(rule trans)
-  apply(rule subst)
-  apply(simp add: fresh_atm)
-  apply(simp)
-  apply(simp)
-  apply(simp (no_asm_use) add: trm.inject)
-  apply(rule conjI)
-  apply(blast)
-  apply(rule conjI)
-  apply(rotate_tac 12)
-  apply(drule_tac x="a" in meta_spec)
-  apply(rotate_tac 14)
-  apply(drule_tac x="c" in meta_spec)
-  apply(rotate_tac 14)
-  apply(drule_tac x="t\<^isub>2" in meta_spec)
-  apply(simp add: calc_atm fresh_atm alpha abs_fresh)
-  apply(rotate_tac 13)
-  apply(drule_tac x="a" in meta_spec)
-  apply(rotate_tac 14)
-  apply(drule_tac x="c" in meta_spec)
-  apply(rotate_tac 14)
-  apply(drule_tac x="t\<^isub>2" in meta_spec)
-  apply(simp add: calc_atm fresh_atm alpha abs_fresh)
-  done
 
 lemma fresh_subst:
   fixes z::"name"
@@ -234,24 +183,6 @@ lemma forget:
   by (nominal_induct L avoiding: x P rule: trm.induct)
      (auto simp add: fresh_atm abs_fresh)
 
-lemma subst_fun_eq:
-  fixes u::trm
-  assumes "[x].t\<^isub>1 = [y].t\<^isub>2"
-  shows "t\<^isub>1[x::=u] = t\<^isub>2[y::=u]"
-proof -
-  { 
-    assume "x=y" and "t\<^isub>1=t\<^isub>2"
-    then have ?thesis using assms by simp
-  }
-  moreover 
-  {
-    assume h1:"x \<noteq> y" and h2:"t\<^isub>1=[(x,y)]\<bullet>t\<^isub>2" and h3:"x \<sharp> t\<^isub>2"
-    then have "([(x,y)]\<bullet>t\<^isub>2)[x::=u] = t\<^isub>2[y::=u]" by (simp add: subst_rename)
-    then have ?thesis using h2 by simp 
-  }
-  ultimately show ?thesis using alpha assms by blast
-qed
-
 lemma psubst_empty[simp]:
   shows "[]<t> = t"
   by (nominal_induct t rule: trm.induct, auto simp add:fresh_list_nil)
@@ -271,7 +202,7 @@ using assms
 by (nominal_induct t avoiding: a e rule: trm.induct)
    (auto simp add: fresh_atm abs_fresh fresh_nat) 
 
-text {* Typing *}
+text {* Typing-Judgements *}
 
 inductive2
   valid :: "(name \<times> 'a::pt_name) list \<Rightarrow> bool"
@@ -335,7 +266,7 @@ where
                    (x\<^isub>1,Data(S\<^isub>1))#\<Gamma> \<turnstile> e\<^isub>1 : T; (x\<^isub>2,Data(S\<^isub>2))#\<Gamma> \<turnstile> e\<^isub>2 : T\<rbrakk> 
                    \<Longrightarrow> \<Gamma> \<turnstile> (Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2) : T"
 
-lemma typing_valid:
+lemma typing_implies_valid:
   assumes "\<Gamma> \<turnstile> t : T"
   shows "valid \<Gamma>"
   using assms
@@ -535,7 +466,7 @@ proof -
   have "[(x\<^isub>1',c)]\<bullet>((x\<^isub>1',Data \<sigma>\<^isub>1)# \<Gamma>) \<turnstile> [(x\<^isub>1',c)]\<bullet>e\<^isub>1' : T" using h1 typing_eqvt by blast
   then have x:"(c,Data \<sigma>\<^isub>1)#( [(x\<^isub>1',c)]\<bullet>\<Gamma>) \<turnstile> [(x\<^isub>1',c)]\<bullet>e\<^isub>1': T" using f' 
     by (auto simp add: fresh_atm calc_atm)
-  have "x\<^isub>1' \<sharp> \<Gamma>" using h1 typing_valid by auto
+  have "x\<^isub>1' \<sharp> \<Gamma>" using h1 typing_implies_valid by auto
   then have "(c,Data \<sigma>\<^isub>1)#\<Gamma> \<turnstile> [(x\<^isub>1 ,c)]\<bullet>e\<^isub>1 : T" using f' x e1' by (auto simp add: perm_fresh_fresh)
   then have "[(x\<^isub>1,c)]\<bullet>((c,Data \<sigma>\<^isub>1)#\<Gamma>) \<turnstile> [(x\<^isub>1,c)]\<bullet>[(x\<^isub>1 ,c)]\<bullet>e\<^isub>1 : T" using typing_eqvt by blast 
   then have "([(x\<^isub>1,c)]\<bullet>(c,Data \<sigma>\<^isub>1)) #\<Gamma> \<turnstile> [(x\<^isub>1,c)]\<bullet>[(x\<^isub>1 ,c)]\<bullet>e\<^isub>1 : T" using f f' 
@@ -548,7 +479,7 @@ proof -
   have "[(x\<^isub>2',c)]\<bullet>((x\<^isub>2',Data \<sigma>\<^isub>2)# \<Gamma>) \<turnstile> [(x\<^isub>2',c)]\<bullet>e\<^isub>2' : T" using h2 typing_eqvt by blast
   then have x:"(c,Data \<sigma>\<^isub>2)#([(x\<^isub>2',c)]\<bullet>\<Gamma>) \<turnstile> [(x\<^isub>2',c)]\<bullet>e\<^isub>2': T" using f' 
     by (auto simp add: fresh_atm calc_atm)
-  have "x\<^isub>2' \<sharp> \<Gamma>" using h2 typing_valid by auto
+  have "x\<^isub>2' \<sharp> \<Gamma>" using h2 typing_implies_valid by auto
   then have "(c,Data \<sigma>\<^isub>2)#\<Gamma> \<turnstile> [(x\<^isub>2 ,c)]\<bullet>e\<^isub>2 : T" using f' x e2' by (auto simp add: perm_fresh_fresh)
   then have "[(x\<^isub>2,c)]\<bullet>((c,Data \<sigma>\<^isub>2)#\<Gamma>) \<turnstile> [(x\<^isub>2,c)]\<bullet>[(x\<^isub>2 ,c)]\<bullet>e\<^isub>2 : T" using typing_eqvt by blast 
   then have "([(x\<^isub>2,c)]\<bullet>(c,Data \<sigma>\<^isub>2))#\<Gamma> \<turnstile> [(x\<^isub>2,c)]\<bullet>[(x\<^isub>2 ,c)]\<bullet>e\<^isub>2 : T" using f f' 
@@ -589,7 +520,7 @@ lemma context_exchange:
   assumes a: "(x\<^isub>1,T\<^isub>1)#(x\<^isub>2,T\<^isub>2)#\<Gamma> \<turnstile> e : T"
   shows "(x\<^isub>2,T\<^isub>2)#(x\<^isub>1,T\<^isub>1)#\<Gamma> \<turnstile> e : T"
 proof -
-  from  a have "valid ((x\<^isub>1,T\<^isub>1)#(x\<^isub>2,T\<^isub>2)#\<Gamma>)" by (simp add: typing_valid)
+  from  a have "valid ((x\<^isub>1,T\<^isub>1)#(x\<^isub>2,T\<^isub>2)#\<Gamma>)" by (simp add: typing_implies_valid)
   then have "x\<^isub>1\<noteq>x\<^isub>2" "x\<^isub>1\<sharp>\<Gamma>" "x\<^isub>2\<sharp>\<Gamma>" "valid \<Gamma>"
     by (auto simp: fresh_list_cons fresh_atm[symmetric])
   then have "valid ((x\<^isub>2,T\<^isub>2)#(x\<^isub>1,T\<^isub>1)#\<Gamma>)"
@@ -606,7 +537,6 @@ proof -
   have "(x,t\<^isub>2) \<in> set ((x,t\<^isub>1)#\<Gamma>)" and "valid ((x,t\<^isub>1)#\<Gamma>)" using assms by auto
   thus "t\<^isub>1=t\<^isub>2" by (simp only: type_unicity_in_context)
 qed
-
 
 lemma typing_substitution: 
   fixes \<Gamma>::"(name \<times> ty) list"
@@ -630,7 +560,7 @@ proof (nominal_induct e avoiding: \<Gamma> e' x arbitrary: T rule: trm.induct)
     have "(y,T) \<in> set ((x,T')#\<Gamma>)" using h1 by auto
     then have "(y,T) \<in> set \<Gamma>" using as by auto
     moreover 
-    have "valid \<Gamma>" using h2 by (simp only: typing_valid)
+    have "valid \<Gamma>" using h2 by (simp only: typing_implies_valid)
     ultimately show "\<Gamma> \<turnstile> (Var y)[x::=e'] : T" using as by (simp add: t_Var)
   qed
 next
@@ -642,7 +572,7 @@ next
     using vc by (auto simp add: fresh_list_cons)
   then have pr2'':"(x,T')#(y,T\<^isub>1)#\<Gamma> \<turnstile> t : T\<^isub>2" by (simp add: context_exchange)
   have ih: "\<lbrakk>(x,T')#(y,T\<^isub>1)#\<Gamma> \<turnstile> t : T\<^isub>2; (y,T\<^isub>1)#\<Gamma> \<turnstile> e' : T'\<rbrakk> \<Longrightarrow> (y,T\<^isub>1)#\<Gamma> \<turnstile> t[x::=e'] : T\<^isub>2" by fact
-  have "valid \<Gamma>" using pr1 by (simp add: typing_valid)
+  have "valid \<Gamma>" using pr1 by (simp add: typing_implies_valid)
   then have "valid ((y,T\<^isub>1)#\<Gamma>)" using vc by auto
   then have "(y,T\<^isub>1)#\<Gamma> \<turnstile> e' : T'" using pr1 by (auto intro: weakening)
   then have "(y,T\<^isub>1)#\<Gamma> \<turnstile> t[x::=e'] : T\<^isub>2" using ih pr2'' by simp
@@ -667,11 +597,11 @@ next
   from h3 have h3': "(x,T')#(x\<^isub>2,Data S\<^isub>2)#\<Gamma> \<turnstile> t3 : T" by (rule context_exchange)
   have "\<Gamma> \<turnstile> t\<^isub>1[x::=e'] : Data (DSum S\<^isub>1 S\<^isub>2)" using h1 ih1 as1 by simp
   moreover
-  have "valid ((x\<^isub>1,Data S\<^isub>1)#\<Gamma>)" using h2' by (auto dest: typing_valid)
+  have "valid ((x\<^isub>1,Data S\<^isub>1)#\<Gamma>)" using h2' by (auto dest: typing_implies_valid)
   then have "(x\<^isub>1,Data S\<^isub>1)#\<Gamma> \<turnstile> e' : T'" using as1 by (auto simp add: weakening)
   then have "(x\<^isub>1,Data S\<^isub>1)#\<Gamma> \<turnstile> t\<^isub>2[x::=e'] : T" using ih2 h2' by simp
   moreover 
-  have "valid ((x\<^isub>2,Data S\<^isub>2)#\<Gamma>)" using h3' by (auto dest: typing_valid)
+  have "valid ((x\<^isub>2,Data S\<^isub>2)#\<Gamma>)" using h3' by (auto dest: typing_implies_valid)
   then have "(x\<^isub>2,Data S\<^isub>2)#\<Gamma> \<turnstile> e' : T'" using as1 by (auto simp add: weakening)
   then have "(x\<^isub>2,Data S\<^isub>2)#\<Gamma> \<turnstile> t3[x::=e'] : T" using ih3 h3' by simp
   ultimately have "\<Gamma> \<turnstile> Case (t\<^isub>1[x::=e']) of inl x\<^isub>1 \<rightarrow> (t\<^isub>2[x::=e']) | inr x\<^isub>2 \<rightarrow> (t3[x::=e']) : T"
@@ -698,6 +628,27 @@ where
                    \<Longrightarrow> Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 \<Down> e''"
 
 nominal_inductive big
+
+lemma big_eqvt[eqvt]:
+  fixes pi::"name prm"
+  assumes a: "t \<Down> t'"
+  shows "(pi\<bullet>t) \<Down> (pi\<bullet>t')"
+  using a
+  apply(induct)
+  apply(auto simp add: eqvt)
+  apply(rule_tac x="pi\<bullet>x" in b_App)
+  apply(auto simp add: eqvt fresh_bij fresh_prod)
+  done
+
+lemma big_eqvt':
+  fixes pi::"name prm"
+  assumes a: "(pi\<bullet>t) \<Down> (pi\<bullet>t')"
+  shows "t \<Down> t'"
+using a
+apply -
+apply(drule_tac pi="rev pi" in big_eqvt)
+apply(perm_simp)
+done
 
 lemma fresh_preserved:
   fixes x::name
@@ -732,24 +683,20 @@ lemma big_induct_strong
     assumes a: "t \<Down> t'"
     and a1: "\<And>x e c. P c (Lam [x].e) (Lam [x].e)"
     and a2: "\<And>x e\<^isub>1 e\<^isub>2 e\<^isub>2' e' e\<^isub>1' c. 
-             \<lbrakk>x\<sharp>(e\<^isub>1,e\<^isub>2,e',c); e\<^isub>1\<Down>Lam [x].e\<^isub>1'; (\<And>c. P c e\<^isub>1 (Lam [x].e\<^isub>1')); 
-             e\<^isub>2\<Down>e\<^isub>2'; (\<And>c. P c e\<^isub>2 e\<^isub>2');  e\<^isub>1'[x::=e\<^isub>2']\<Down>e'; (\<And>c. P c (e\<^isub>1'[x::=e\<^isub>2']) e')\<rbrakk> 
+             \<lbrakk>x\<sharp>(e\<^isub>1,e\<^isub>2,e',c); \<And>c. P c e\<^isub>1 (Lam [x].e\<^isub>1'); \<And>c. P c e\<^isub>2 e\<^isub>2'; \<And>c. P c (e\<^isub>1'[x::=e\<^isub>2']) e'\<rbrakk> 
              \<Longrightarrow> P c (App e\<^isub>1 e\<^isub>2) e'"
     and a3: "\<And>n c. P c (Const n) (Const n)"
-    and a4: "\<And>e\<^isub>1 e\<^isub>1' e\<^isub>2 e\<^isub>2' c.
-             \<lbrakk>e\<^isub>1 \<Down> e\<^isub>1'; (\<And>c. P c e\<^isub>1 e\<^isub>1'); e\<^isub>2 \<Down> e\<^isub>2'; (\<And>c. P c e\<^isub>2 e\<^isub>2')\<rbrakk>
+    and a4: "\<And>e\<^isub>1 e\<^isub>1' e\<^isub>2 e\<^isub>2' c. \<lbrakk>\<And>c. P c e\<^isub>1 e\<^isub>1'; \<And>c. P c e\<^isub>2 e\<^isub>2'\<rbrakk>
              \<Longrightarrow> P c (Pr e\<^isub>1 e\<^isub>2) (Pr e\<^isub>1' e\<^isub>2')"
-    and a5: "\<And>e e\<^isub>1 e\<^isub>2 c. \<lbrakk>e \<Down> Pr e\<^isub>1 e\<^isub>2; (\<And>c. P c e (Pr e\<^isub>1 e\<^isub>2))\<rbrakk> \<Longrightarrow> P c (Fst e) e\<^isub>1"
-    and a6: "\<And>e e\<^isub>1 e\<^isub>2 c. \<lbrakk>e \<Down> Pr e\<^isub>1 e\<^isub>2; (\<And>c. P c e (Pr e\<^isub>1 e\<^isub>2))\<rbrakk> \<Longrightarrow> P c (Snd e) e\<^isub>2"
-    and a7: "\<And>e e' c. \<lbrakk>e \<Down> e'; (\<And>c. P c e e')\<rbrakk> \<Longrightarrow> P c (InL e) (InL e')"
-    and a8: "\<And>e e' c. \<lbrakk>e \<Down> e'; (\<And>c. P c e e')\<rbrakk> \<Longrightarrow> P c (InR e) (InR e')"
+    and a5: "\<And>e e\<^isub>1 e\<^isub>2 c. \<lbrakk>\<And>c. P c e (Pr e\<^isub>1 e\<^isub>2)\<rbrakk> \<Longrightarrow> P c (Fst e) e\<^isub>1"
+    and a6: "\<And>e e\<^isub>1 e\<^isub>2 c. \<lbrakk>\<And>c. P c e (Pr e\<^isub>1 e\<^isub>2)\<rbrakk> \<Longrightarrow> P c (Snd e) e\<^isub>2"
+    and a7: "\<And>e e' c. \<lbrakk>\<And>c. P c e e'\<rbrakk> \<Longrightarrow> P c (InL e) (InL e')"
+    and a8: "\<And>e e' c. \<lbrakk>\<And>c. P c e e'\<rbrakk> \<Longrightarrow> P c (InR e) (InR e')"
     and a9: "\<And>x\<^isub>1 e e\<^isub>2 e'' x\<^isub>2 e\<^isub>1 e' c.
-             \<lbrakk>x\<^isub>1\<sharp>(e,e\<^isub>2,e'',x\<^isub>2,c); x\<^isub>2\<sharp>(e,e\<^isub>1,e'',x\<^isub>1,c);  e \<Down> InL e'; (\<And>c. P c e (InL e')); 
-             e\<^isub>1[x\<^isub>1::=e'] \<Down> e''; (\<And>c. P c (e\<^isub>1[x\<^isub>1::=e']) e'')\<rbrakk>
+             \<lbrakk>x\<^isub>1\<sharp>(e,e\<^isub>2,e'',x\<^isub>2,c); x\<^isub>2\<sharp>(e,e\<^isub>1,e'',x\<^isub>1,c);  \<And>c. P c e (InL e'); \<And>c. P c (e\<^isub>1[x\<^isub>1::=e']) e''\<rbrakk>
              \<Longrightarrow> P c (Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2) e''"
     and a10:"\<And>x\<^isub>1 e e\<^isub>2 e'' x\<^isub>2 e\<^isub>1 e' c.
-             \<lbrakk>x\<^isub>1\<sharp>(e,e\<^isub>2,e'',x\<^isub>2,c); x\<^isub>2\<sharp>(e,e\<^isub>1,e'',x\<^isub>1,c); e \<Down> InR e'; (\<And>c. P c e (InR e')); 
-             e\<^isub>2[x\<^isub>2::=e'] \<Down> e''; (\<And>c. P c (e\<^isub>2[x\<^isub>2::=e']) e'')\<rbrakk>
+             \<lbrakk>x\<^isub>1\<sharp>(e,e\<^isub>2,e'',x\<^isub>2,c); x\<^isub>2\<sharp>(e,e\<^isub>1,e'',x\<^isub>1,c); \<And>c. P c e (InR e'); \<And>c. P c (e\<^isub>2[x\<^isub>2::=e']) e''\<rbrakk>
              \<Longrightarrow> P c (Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2) e''"
     shows "P c t t'"
 proof -
@@ -767,16 +714,6 @@ proof -
     have f1: "(pi\<bullet>x)\<sharp>(pi\<bullet>e\<^isub>1,pi\<bullet>e\<^isub>2,pi\<bullet>e')" using f0 by (simp add: fresh_bij)
     have f2: "y\<sharp>(?pi'\<bullet>e\<^isub>1,?pi'\<bullet>e\<^isub>2,?pi'\<bullet>e')" using f0 
       by (auto simp add: pt_name2 fresh_left calc_atm perm_pi_simp fresh_prod)
-    have p1: "e\<^isub>1 \<Down> Lam [x].e\<^isub>1'" by fact
-    then have "(?pi'\<bullet>e\<^isub>1)\<Down>(?pi'\<bullet>Lam [x].e\<^isub>1')" by (simp only: big_eqvt)
-    moreover
-    have p2: "e\<^isub>2 \<Down> e\<^isub>2'" by fact
-    then have "(?pi'\<bullet>e\<^isub>2) \<Down> (?pi'\<bullet>e\<^isub>2')" by (simp only: big_eqvt)
-    moreover
-    have p3: "e\<^isub>1'[x::=e\<^isub>2'] \<Down> e'" by fact
-    then have "(?pi'\<bullet>(e\<^isub>1'[x::=e\<^isub>2'])) \<Down> (?pi'\<bullet>e')" by (simp only: big_eqvt)
-    then have "(?pi'\<bullet>e\<^isub>1')[y::=(?pi'\<bullet>e\<^isub>2')] \<Down> (?pi'\<bullet>e')" by (simp add: subst_eqvt calc_atm)
-    moreover
     have ih1: "\<And>c. P c (?pi'\<bullet>e\<^isub>1) (?pi'\<bullet>(Lam [x].e\<^isub>1'))" by fact
     then have "\<And>c. P c (?pi'\<bullet>e\<^isub>1) (Lam [y].(?pi'\<bullet>e\<^isub>1'))" by (simp add: calc_atm)
     moreover
@@ -799,36 +736,25 @@ proof -
     show "P c (pi\<bullet>(Const n)) (pi\<bullet>(Const n))" using a3 by simp
   next
     case (b_Pr e\<^isub>1 e\<^isub>1' e\<^isub>2 e\<^isub>2' pi c)
-    then show "P c (pi\<bullet>(Pr e\<^isub>1 e\<^isub>2)) (pi\<bullet>(Pr e\<^isub>1' e\<^isub>2'))" using a4 
-      by (simp, blast intro: big_eqvt)
+    then show "P c (pi\<bullet>(Pr e\<^isub>1 e\<^isub>2)) (pi\<bullet>(Pr e\<^isub>1' e\<^isub>2'))" using a4 by simp
   next
     case (b_Fst e e\<^isub>1 e\<^isub>2 pi c)
-    have p1: "e \<Down> Pr e\<^isub>1 e\<^isub>2" by fact
-    then have "(pi\<bullet>e)\<Down>(pi\<bullet>(Pr e\<^isub>1 e\<^isub>2))" by (simp only: big_eqvt) 
-    moreover
-    have ih1: "\<And>c. P c (pi\<bullet>e) (pi\<bullet>(Pr e\<^isub>1 e\<^isub>2))" by fact
-    ultimately show "P c (pi\<bullet>(Fst e)) (pi\<bullet>e\<^isub>1)" using a5 by simp
+    then show "P c (pi\<bullet>(Fst e)) (pi\<bullet>e\<^isub>1)" using a5 by (simp, blast)
   next
     case (b_Snd e e\<^isub>1 e\<^isub>2 pi c)
-    have p1: "e \<Down> Pr e\<^isub>1 e\<^isub>2" by fact
-    then have "(pi\<bullet>e)\<Down>(pi\<bullet>(Pr e\<^isub>1 e\<^isub>2))" by (simp only: big_eqvt) 
-    moreover
-    have ih1: "\<And>c. P c (pi\<bullet>e) (pi\<bullet>(Pr e\<^isub>1 e\<^isub>2))" by fact
-    ultimately show "P c (pi\<bullet>(Snd e)) (pi\<bullet>e\<^isub>2)" using a6 by simp
+    then show "P c (pi\<bullet>(Snd e)) (pi\<bullet>e\<^isub>2)" using a6 by (simp, blast)
   next
     case (b_InL e e' pi c)
-    then show "P c (pi\<bullet>(InL e)) (pi\<bullet>(InL e'))" using a7
-      by (simp, blast intro: big_eqvt)
+    then show "P c (pi\<bullet>(InL e)) (pi\<bullet>(InL e'))" using a7 by (simp)
   next
     case (b_InR e e' pi c)
-    then show "P c (pi\<bullet>(InR e)) (pi\<bullet>(InR e'))" using a8
-      by (simp, blast intro: big_eqvt)
+    then show "P c (pi\<bullet>(InR e)) (pi\<bullet>(InR e'))" using a8 by (simp)
   next
     case (b_CaseL x\<^isub>1 e e\<^isub>2 e'' x\<^isub>2 e\<^isub>1 e' pi c)
     obtain y\<^isub>1::"name" where fs1: "y\<^isub>1\<sharp>(pi\<bullet>x\<^isub>1,pi\<bullet>e,pi\<bullet>e\<^isub>1,pi\<bullet>e\<^isub>2,pi\<bullet>e'',pi\<bullet>x\<^isub>2,c)"
-      by (rule exists_fresh[OF fs_name1])
+      by (rule exists_fresh[OF fin_supp])
     obtain y\<^isub>2::"name" where fs2: "y\<^isub>2\<sharp>(pi\<bullet>x\<^isub>2,pi\<bullet>e,pi\<bullet>e\<^isub>1,pi\<bullet>e\<^isub>2,pi\<bullet>e'',pi\<bullet>x\<^isub>1,c,y\<^isub>1)"
-      by (rule exists_fresh[OF fs_name1])
+      by (rule exists_fresh[OF fin_supp])
     let ?sw1 = "[(pi\<bullet>x\<^isub>1,y\<^isub>1)]"
     let ?sw2 = "[(pi\<bullet>x\<^isub>2,y\<^isub>2)]"
     let ?pi' = "?sw2@?sw1@pi"
@@ -840,14 +766,6 @@ proof -
     have f12: "(pi\<bullet>x\<^isub>2)\<sharp>(pi\<bullet>e,pi\<bullet>e\<^isub>1,pi\<bullet>e'',pi\<bullet>x\<^isub>1)" using f02 by (simp add: fresh_bij)
     have f22: "y\<^isub>2\<sharp>(?pi'\<bullet>e,?pi'\<bullet>e\<^isub>1,?pi'\<bullet>e'')" using f02 fs1 fs2 
       by (auto simp add: fresh_atm fresh_prod fresh_left calc_atm pt_name2 perm_pi_simp)
-    have p1: "e \<Down> InL e'" by fact
-    then have "(?pi'\<bullet>e) \<Down> (?pi'\<bullet>(InL e'))" by (simp only: big_eqvt)
-    moreover
-    have p2: "e\<^isub>1[x\<^isub>1::=e'] \<Down> e''" by fact
-    then have "(?pi'\<bullet>(e\<^isub>1[x\<^isub>1::=e'])) \<Down> (?pi'\<bullet>e'')" by (simp only: big_eqvt)
-    then have "(?pi'\<bullet>e\<^isub>1)[y\<^isub>1::=(?pi'\<bullet>e')] \<Down> (?pi'\<bullet>e'')" using fs1 fs2 
-      by (auto simp add: calc_atm subst_eqvt fresh_prod fresh_atm del: append_Cons)
-    moreover
     have ih1: "\<And>c. P c (?pi'\<bullet>e) (?pi'\<bullet>(InL e'))" by fact
     moreover
     have ih2: "\<And>c. P c (?pi'\<bullet>(e\<^isub>1[x\<^isub>1::=e'])) (?pi'\<bullet>e'')" by fact
@@ -874,9 +792,9 @@ proof -
   next
     case (b_CaseR x\<^isub>1 e e\<^isub>2 e'' x\<^isub>2 e\<^isub>1 e' pi c)
     obtain y\<^isub>1::"name" where fs1: "y\<^isub>1\<sharp>(pi\<bullet>x\<^isub>1,pi\<bullet>e,pi\<bullet>e\<^isub>1,pi\<bullet>e\<^isub>2,pi\<bullet>e'',pi\<bullet>x\<^isub>2,c)"
-      by (rule exists_fresh[OF fs_name1])
+      by (rule exists_fresh[OF fin_supp])
     obtain y\<^isub>2::"name" where fs2: "y\<^isub>2\<sharp>(pi\<bullet>x\<^isub>2,pi\<bullet>e,pi\<bullet>e\<^isub>1,pi\<bullet>e\<^isub>2,pi\<bullet>e'',pi\<bullet>x\<^isub>1,c,y\<^isub>1)"
-      by (rule exists_fresh[OF fs_name1])
+      by (rule exists_fresh[OF fin_supp])
     let ?sw1 = "[(pi\<bullet>x\<^isub>1,y\<^isub>1)]"
     let ?sw2 = "[(pi\<bullet>x\<^isub>2,y\<^isub>2)]"
     let ?pi' = "?sw2@?sw1@pi"
@@ -888,14 +806,6 @@ proof -
     have f12: "(pi\<bullet>x\<^isub>2)\<sharp>(pi\<bullet>e,pi\<bullet>e\<^isub>1,pi\<bullet>e'',pi\<bullet>x\<^isub>1)" using f02 by (simp add: fresh_bij)
     have f22: "y\<^isub>2\<sharp>(?pi'\<bullet>e,?pi'\<bullet>e\<^isub>1,?pi'\<bullet>e'')" using f02 fs1 fs2 
       by (auto simp add: fresh_atm fresh_prod fresh_left calc_atm pt_name2 perm_pi_simp)
-    have p1: "e \<Down> InR e'" by fact
-    then have "(?pi'\<bullet>e) \<Down> (?pi'\<bullet>(InR e'))" by (simp only: big_eqvt)
-    moreover
-    have p2: "e\<^isub>2[x\<^isub>2::=e'] \<Down> e''" by fact
-    then have "(?pi'\<bullet>(e\<^isub>2[x\<^isub>2::=e'])) \<Down> (?pi'\<bullet>e'')" by (simp only: big_eqvt)
-    then have "(?pi'\<bullet>e\<^isub>2)[y\<^isub>2::=(?pi'\<bullet>e')] \<Down> (?pi'\<bullet>e'')" using fs1 fs2 f11 f12
-      by (auto simp add: calc_atm subst_eqvt fresh_prod fresh_atm del: append_Cons)
-    moreover
     have ih1: "\<And>c. P c (?pi'\<bullet>e) (?pi'\<bullet>(InR e'))" by fact
     moreover
     have ih2: "\<And>c. P c (?pi'\<bullet>(e\<^isub>2[x\<^isub>2::=e'])) (?pi'\<bullet>e'')" by fact
@@ -937,24 +847,62 @@ lemma b_App_elim[elim]:
   done
 
 lemma  b_CaseL_elim[elim]: 
-  assumes "Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 \<Down> e''" and "(\<And> t. \<not>  e \<Down> InR t)"
+  assumes "Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 \<Down> e''" 
+  and     "\<And> t. \<not>  e \<Down> InR t"
+  and     "x\<^isub>1\<sharp>e''" "x\<^isub>1\<sharp>e" "x\<^isub>2\<sharp>e''" "x\<^isub>1\<sharp>e"
   obtains e' where "e \<Down> InL e'" and "e\<^isub>1[x\<^isub>1::=e'] \<Down> e''"
   using assms 
   apply -
-  apply (rule b_Case_inv_auto, auto) 
-  apply(drule_tac u="e'" in subst_fun_eq)
-  apply(simp)
-  done
+  apply(rule b_Case_inv_auto)
+  apply(auto)
+  apply(simp add: alpha)
+  apply(auto)
+  apply(drule_tac x="[(x\<^isub>1,x\<^isub>1')]\<bullet>e'" in meta_spec)
+  apply(drule meta_mp)
+  apply(rule_tac pi="[(x\<^isub>1,x\<^isub>1')]" in big_eqvt')
+  apply(perm_simp add: fresh_prod)
+  apply(drule meta_mp)
+  apply(rule_tac pi="[(x\<^isub>1,x\<^isub>1')]" in big_eqvt')
+  apply(perm_simp add: eqvt calc_atm)
+  apply(assumption)
+  apply(drule_tac x="[(x\<^isub>1,x\<^isub>1')]\<bullet>e'" in meta_spec)
+  apply(drule meta_mp)
+  apply(rule_tac pi="[(x\<^isub>1,x\<^isub>1')]" in big_eqvt')
+  apply(perm_simp add: fresh_prod)
+  apply(drule meta_mp)
+  apply(rule_tac pi="[(x\<^isub>1,x\<^isub>1')]" in big_eqvt')
+  apply(perm_simp add: eqvt calc_atm)
+  apply(assumption)
+done
 
 lemma b_CaseR_elim[elim]: 
-  assumes "Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 \<Down> e''" and "\<And> t. \<not> e \<Down> InL t"
+  assumes "Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 \<Down> e''" 
+  and     "\<And> t. \<not> e \<Down> InL t"
+  and     "x\<^isub>1\<sharp>e''" "x\<^isub>1\<sharp>e" "x\<^isub>2\<sharp>e''" "x\<^isub>2\<sharp>e"
   obtains e' where "e \<Down> InR e'" and "e\<^isub>2[x\<^isub>2::=e'] \<Down> e''"
-  using assms
+  using assms 
   apply -
-  apply (rule b_Case_inv_auto, auto)
-  apply(drule_tac u="e'" in subst_fun_eq)+
-  apply(simp)
-  done
+  apply(rule b_Case_inv_auto)
+  apply(auto)
+  apply(simp add: alpha)
+  apply(auto)
+  apply(drule_tac x="[(x\<^isub>2,x\<^isub>2')]\<bullet>e'" in meta_spec)
+  apply(drule meta_mp)
+  apply(rule_tac pi="[(x\<^isub>2,x\<^isub>2')]" in big_eqvt')
+  apply(perm_simp add: fresh_prod)
+  apply(drule meta_mp)
+  apply(rule_tac pi="[(x\<^isub>2,x\<^isub>2')]" in big_eqvt')
+  apply(perm_simp add: eqvt calc_atm)
+  apply(assumption)
+  apply(drule_tac x="[(x\<^isub>2,x\<^isub>2')]\<bullet>e'" in meta_spec)
+  apply(drule meta_mp)
+  apply(rule_tac pi="[(x\<^isub>2,x\<^isub>2')]" in big_eqvt')
+  apply(perm_simp add: fresh_prod)
+  apply(drule meta_mp)
+  apply(rule_tac pi="[(x\<^isub>2,x\<^isub>2')]" in big_eqvt')
+  apply(perm_simp add: eqvt calc_atm)
+  apply(assumption)
+done
 
 inductive2
   val :: "trm\<Rightarrow>bool" 
@@ -964,7 +912,6 @@ where
 | v_Pr[intro]:    "\<lbrakk>val e\<^isub>1; val e\<^isub>2\<rbrakk> \<Longrightarrow> val (Pr e\<^isub>1 e\<^isub>2)"
 | v_InL[intro]:   "val e \<Longrightarrow> val (InL e)"
 | v_InR[intro]:   "val e \<Longrightarrow> val (InR e)"
-
 
 declare trm.inject  [simp add]
 declare ty.inject  [simp add]
@@ -986,17 +933,18 @@ declare ty.inject  [simp del]
 declare data.inject [simp del]
 
 lemma subject_reduction:
-  assumes "e \<Down> e'" and "\<Gamma> \<turnstile> e : T"
+  assumes a: "e \<Down> e'" 
+  and     b: "\<Gamma> \<turnstile> e : T"
   shows "\<Gamma> \<turnstile> e' : T"
-  using assms
+  using a b
 proof (nominal_induct avoiding: \<Gamma> arbitrary: T rule: big_induct_strong) 
   case (b_App x e\<^isub>1 e\<^isub>2 e\<^isub>2' e' e \<Gamma> T)
   have vc: "x\<sharp>\<Gamma>" by fact
   have "\<Gamma> \<turnstile> App e\<^isub>1 e\<^isub>2 : T" by fact
- then obtain T' where 
+  then obtain T' where 
     a1: "\<Gamma> \<turnstile> e\<^isub>1 : T'\<rightarrow>T" and  
     a2: "\<Gamma> \<turnstile> e\<^isub>2 : T'" by auto
-  have ih1: "\<Gamma> \<turnstile> e\<^isub>1 : T'\<rightarrow>T \<Longrightarrow> \<Gamma> \<turnstile> Lam [x].e : T'\<rightarrow>T" by fact
+  have ih1: "\<Gamma> \<turnstile> e\<^isub>1 : T' \<rightarrow> T \<Longrightarrow> \<Gamma> \<turnstile> Lam [x].e : T' \<rightarrow> T" by fact
   have ih2: "\<Gamma> \<turnstile> e\<^isub>2 : T' \<Longrightarrow> \<Gamma> \<turnstile> e\<^isub>2' : T'" by fact 
   have ih3: "\<Gamma> \<turnstile> e[x::=e\<^isub>2'] : T \<Longrightarrow> \<Gamma> \<turnstile> e' : T" by fact
   have "\<Gamma> \<turnstile> Lam [x].e : T'\<rightarrow>T" using ih1 a1 by simp 
@@ -1023,76 +971,57 @@ next
  then show "\<Gamma> \<turnstile> e'' : T" by (blast intro: typing_substitution)
 qed (blast)+
 
-lemma challenge_5: 
-  assumes "x\<noteq>y"
-  shows "App (App (Lam [x].(Lam [y].Var y)) (Const n\<^isub>1)) (Const n\<^isub>2) \<Down> (Const n\<^isub>2)"
-  using assms
-  by (auto intro!: big.intros simp add: forget abs_fresh fresh_atm fresh_nat)
-
-lemma challenge_6:
- shows "Fst (App (Lam [x].Pr (Var x) (Var x)) (Const n)) \<Down> Const n"
-  by (auto intro!: big.intros) (simp add: fresh_nat abs_fresh)
-
-lemma challenge_4_unicity:
-  assumes "e \<Down> e\<^isub>1" and "e \<Down> e\<^isub>2"
+lemma unicity_of_evaluation:
+  assumes a: "e \<Down> e\<^isub>1" 
+  and     b: "e \<Down> e\<^isub>2"
   shows "e\<^isub>1 = e\<^isub>2"
-  using assms
-proof (induct arbitrary: e\<^isub>2)
+  using a b
+proof (nominal_induct e e\<^isub>1 avoiding: e\<^isub>2 rule: big_induct_strong)
   case (b_Lam x e t\<^isub>2)
   have "Lam [x].e \<Down> t\<^isub>2" by fact
   thus "Lam [x].e = t\<^isub>2" by (cases, simp_all add: trm.inject)
 next
-  case (b_Fst e e\<^isub>1 e\<^isub>2 t\<^isub>2)
-  have "Fst e \<Down> t\<^isub>2" by fact
-  then obtain e\<^isub>1' e\<^isub>2' where "e \<Down> Pr e\<^isub>1' e\<^isub>2'" and eq: "t\<^isub>2 = e\<^isub>1'" by auto
-  then have "Pr e\<^isub>1 e\<^isub>2 = Pr e\<^isub>1' e\<^isub>2'" by auto 
-  thus "e\<^isub>1 = t\<^isub>2" using eq by (simp add: trm.inject)
-next
-  case (b_Snd e e\<^isub>1 e\<^isub>2 t\<^isub>2)
-  thus ?case by (force simp add: trm.inject)
-next
-  case (b_App x e\<^isub>1 e\<^isub>2 e' e\<^isub>1' e\<^isub>2' t\<^isub>2)
-  have "e\<^isub>1 \<Down> Lam [x].e\<^isub>1'" by fact
+  case (b_App x e\<^isub>1 e\<^isub>2 e\<^isub>2' e' e\<^isub>1' t\<^isub>2)
   have ih1: "\<And>t. e\<^isub>1 \<Down> t \<Longrightarrow> Lam [x].e\<^isub>1' = t" by fact
-  have "e\<^isub>2 \<Down> e\<^isub>2'" by fact
   have ih2:"\<And>t. e\<^isub>2 \<Down> t \<Longrightarrow> e\<^isub>2' = t" by fact
-  have "e\<^isub>1'[x::=e\<^isub>2'] \<Down> e'" by fact
   have ih3: "\<And>t. e\<^isub>1'[x::=e\<^isub>2'] \<Down> t \<Longrightarrow> e' = t" by fact
-  have f:"x\<sharp>(e\<^isub>1,e\<^isub>2,e')" by fact
+  have app: "App e\<^isub>1 e\<^isub>2 \<Down> t\<^isub>2" by fact
+  have vc: "x\<sharp>e\<^isub>1" "x\<sharp>e\<^isub>2" by fact
   then have "x \<sharp> App e\<^isub>1 e\<^isub>2" by auto
-  moreover
-  have app:"App e\<^isub>1 e\<^isub>2 \<Down> t\<^isub>2" by fact
-  ultimately have "x\<sharp>t\<^isub>2" using fresh_preserved by blast
-  then have "x\<sharp>(e\<^isub>1,e\<^isub>2,t\<^isub>2)" using f by auto 
-  then obtain f\<^isub>1'' f\<^isub>2'' where x1:"e\<^isub>1 \<Down> Lam [x]. f\<^isub>1''" and x2:"e\<^isub>2 \<Down> f\<^isub>2''" and x3:"f\<^isub>1''[x::=f\<^isub>2''] \<Down> t\<^isub>2"
-    using app by auto
-  then have "Lam [x]. f\<^isub>1'' = Lam [x]. e\<^isub>1'" using ih1 by simp
-  then have "f\<^isub>1'' = e\<^isub>1'" by (auto simp add: trm.inject alpha) 
-  moreover have "f\<^isub>2''=e\<^isub>2'" using x2 ih2 by simp
+  then have vc': "x\<sharp>t\<^isub>2" using fresh_preserved app by blast
+  from vc vc' obtain f\<^isub>1 f\<^isub>2 where x1: "e\<^isub>1 \<Down> Lam [x]. f\<^isub>1" and x2: "e\<^isub>2 \<Down> f\<^isub>2" and x3: "f\<^isub>1[x::=f\<^isub>2] \<Down> t\<^isub>2"
+    using app by (auto simp add: fresh_prod)
+  then have "Lam [x]. f\<^isub>1 = Lam [x]. e\<^isub>1'" using ih1 by simp
+  then 
+  have "f\<^isub>1 = e\<^isub>1'" by (auto simp add: trm.inject alpha) 
+  moreover 
+  have "f\<^isub>2 = e\<^isub>2'" using x2 ih2 by simp
   ultimately have "e\<^isub>1'[x::=e\<^isub>2'] \<Down> t\<^isub>2" using x3 by simp
   thus ?case using ih3 by simp
 next
-  case (b_CaseL  x\<^isub>1 e e\<^isub>2 e'' x\<^isub>2 e\<^isub>1 e' t\<^isub>2) 
-  have ih1:"\<And> t. e \<Down> t \<Longrightarrow> InL e' = t" by fact 
+  case (b_CaseL  x\<^isub>1 e e\<^isub>2 e'' x\<^isub>2 e\<^isub>1 e' t\<^isub>2)
+  have fs: "x\<^isub>1\<sharp>e" "x\<^isub>1\<sharp>t\<^isub>2" "x\<^isub>2\<sharp>e" "x\<^isub>2\<sharp>t\<^isub>2" by fact 
+  have ih1:"\<And>t. e \<Down> t \<Longrightarrow> InL e' = t" by fact 
   have ih2:"\<And>t. e\<^isub>1[x\<^isub>1::=e'] \<Down> t \<Longrightarrow> e'' = t" by fact
-  have ha:"\<And> t. (e \<Down> InR t) \<Longrightarrow> False" using ih1 by force
+  have ha: "\<not>(\<exists>t. e \<Down> InR t)" using ih1 by force
   have "Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 \<Down> t\<^isub>2" by fact
-  then obtain xe' where "e\<Down>InL xe'" and h:"e\<^isub>1[x\<^isub>1::=xe']\<Down>t\<^isub>2" using ha by auto
-  then have "InL xe'=InL e'" using ih1 by simp
-  then have "xe'=e'" by (simp add: trm.inject)
+  then obtain f' where "e \<Down> InL f'" and h: "e\<^isub>1[x\<^isub>1::=f']\<Down>t\<^isub>2" using ha fs by auto
+  then have "InL f' = InL e'" using ih1 by simp
+  then have "f' = e'" by (simp add: trm.inject)
   then have "e\<^isub>1[x\<^isub>1::=e'] \<Down> t\<^isub>2" using h by simp
-  then show "e''=t\<^isub>2" using ih2 by simp
+  then show "e'' = t\<^isub>2" using ih2 by simp
 next 
   case (b_CaseR x\<^isub>1 e e\<^isub>2 e'' x\<^isub>2 e\<^isub>1 e' t\<^isub>2 )
-  have ih1:"\<And> t. e \<Down> t \<Longrightarrow> InR e' = t" by fact
-  have ih2:"\<And>t. e\<^isub>2[x\<^isub>2::=e'] \<Down> t \<Longrightarrow> e'' = t" by fact
-  have a:"\<And> t. (e \<Down> InL t \<Longrightarrow> False)" using ih1 by force
+  have fs: "x\<^isub>1\<sharp>e" "x\<^isub>1\<sharp>t\<^isub>2" "x\<^isub>2\<sharp>e" "x\<^isub>2\<sharp>t\<^isub>2" by fact 
+  have ih1: "\<And>t. e \<Down> t \<Longrightarrow> InR e' = t" by fact
+  have ih2: "\<And>t. e\<^isub>2[x\<^isub>2::=e'] \<Down> t \<Longrightarrow> e'' = t" by fact
+  have ha: "\<not>(\<exists>t. e \<Down> InL t)" using ih1 by force
   have "Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 \<Down> t\<^isub>2" by fact
-  then obtain xe' where "e\<Down>InR xe'" and h:"e\<^isub>2[x\<^isub>2::=xe']\<Down>t\<^isub>2"  using a by auto
-  then have "InR xe'=InR e'" using ih1 by simp
+  then obtain f' where "e \<Down> InR f'" and h: "e\<^isub>2[x\<^isub>2::=f']\<Down>t\<^isub>2"  using ha fs by auto
+  then have "InR f' = InR e'" using ih1 by simp
   then have "e\<^isub>2[x\<^isub>2::=e'] \<Down> t\<^isub>2" using h by (simp add: trm.inject)
-  thus "e''=t\<^isub>2" using ih2 by simp
-qed (fast)+
+  thus "e'' = t\<^isub>2" using ih2 by simp
+qed (force simp add: trm.inject)+
 
 lemma not_val_App[simp]:
   shows 
@@ -1103,51 +1032,52 @@ lemma not_val_App[simp]:
   "\<not> val (Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2)"
 by auto
 
-lemma reduces_to_value:
+lemma reduces_evaluates_to_values:
   assumes h:"t \<Down> t'"
   shows "val t'"
-  using h by (induct, auto)
+  using h by (induct) (auto)
 
-lemma type_prod_down_pair:
-  assumes "\<Gamma> \<turnstile> t : Data (DProd S\<^isub>1 S\<^isub>2)" and "t \<Down> t'"
+lemma type_prod_evaluates_to_pairs:
+  assumes a: "\<Gamma> \<turnstile> t : Data (DProd S\<^isub>1 S\<^isub>2)" 
+  and     b: "t \<Down> t'"
   obtains t\<^isub>1 t\<^isub>2 where "t' = Pr t\<^isub>1 t\<^isub>2"
 proof -
    have "\<Gamma> \<turnstile> t' : Data (DProd S\<^isub>1 S\<^isub>2)" using assms subject_reduction by simp
    moreover
-   have "val t'" using reduces_to_value assms by simp
+   have "val t'" using reduces_evaluates_to_values assms by simp
    ultimately obtain t\<^isub>1 t\<^isub>2 where "t' = Pr t\<^isub>1 t\<^isub>2" by (cases, auto simp add:ty.inject data.inject)
    thus ?thesis using prems by auto
 qed
 
-lemma type_sum_down_or:
+lemma type_sum_evaluates_to_ins:
   assumes "\<Gamma> \<turnstile> t : Data (DSum \<sigma>\<^isub>1 \<sigma>\<^isub>2)" and "t \<Down> t'"
-  shows "(\<exists> t''. t' = InL t'') \<or> (\<exists> t''. t' = InR t'')"
+  shows "(\<exists>t''. t' = InL t'') \<or> (\<exists>t''. t' = InR t'')"
 proof -
   have "\<Gamma> \<turnstile> t' : Data (DSum \<sigma>\<^isub>1 \<sigma>\<^isub>2)" using assms subject_reduction by simp
   moreover
-  have "val t'" using reduces_to_value assms by simp
+  have "val t'" using reduces_evaluates_to_values assms by simp
   ultimately obtain t'' where "t' = InL t'' \<or>  t' = InR t''"
     by (cases, auto simp add:ty.inject data.inject)
   thus ?thesis by auto
 qed
 
-lemma type_arrow_down_lam:
+lemma type_arrow_evaluates_to_lams:
   assumes "\<Gamma> \<turnstile> t : \<sigma> \<rightarrow> \<tau>" and "t \<Down> t'"
   obtains  x t'' where "t' = Lam [x]. t''"
 proof -
   have "\<Gamma> \<turnstile> t' : \<sigma> \<rightarrow> \<tau>" using assms subject_reduction by simp
   moreover
-  have "val t'" using reduces_to_value assms by simp
+  have "val t'" using reduces_evaluates_to_values assms by simp
   ultimately obtain x t'' where "t' = Lam [x]. t''" by (cases, auto simp add:ty.inject data.inject)
   thus ?thesis using prems by auto
 qed
 
-lemma type_nat_down_const:
+lemma type_nat_evaluates_to_consts:
   assumes "\<Gamma> \<turnstile> t : Data DNat" and "t \<Down> t'"
   obtains n where "t' = Const n"
 proof -
   have "\<Gamma> \<turnstile> t' : Data DNat " using assms subject_reduction by simp
-  moreover have "val t'" using reduces_to_value assms by simp
+  moreover have "val t'" using reduces_evaluates_to_values assms by simp
   ultimately obtain n where "t' = Const n" by (cases, auto simp add:ty.inject data.inject)
   thus ?thesis using prems by auto
 qed
@@ -1170,6 +1100,14 @@ using h
 by (nominal_induct S arbitrary: e rule:data.induct)
    (auto)
 
+lemma V'_eqvt:
+  fixes pi::"name prm"
+  assumes a: "v \<in> V' S"
+  shows "(pi\<bullet>v) \<in> V' S"
+using a
+by (nominal_induct S arbitrary: v rule: data.induct)
+   (auto simp add: trm.inject)
+
 consts
   V :: "ty \<Rightarrow> trm set" 
 
@@ -1179,6 +1117,27 @@ nominal_primrec
 apply(rule TrueI)+ 
 done
 
+lemma V_eqvt:
+  fixes pi::"name prm"
+  assumes a: "x\<in>V T"
+  shows "(pi\<bullet>x)\<in>V T"
+using a
+apply(nominal_induct T arbitrary: pi x rule: ty.induct)
+apply(auto simp add: trm.inject perm_set_def)
+apply(perm_simp add: V'_eqvt)
+apply(rule_tac x="pi\<bullet>xa" in exI)
+apply(rule_tac x="pi\<bullet>e" in exI)
+apply(simp)
+apply(auto)
+apply(drule_tac x="(rev pi)\<bullet>v" in bspec)
+apply(force)
+apply(auto)
+apply(rule_tac x="pi\<bullet>v'" in exI)
+apply(auto)
+apply(drule_tac pi="pi" in big_eqvt)
+apply(perm_simp add: eqvt)
+done
+
 lemma V_arrow_elim_weak[elim] :
   assumes h:"u \<in> (V (T\<^isub>1 \<rightarrow> T\<^isub>2))"
   obtains a t where "u = Lam[a].t" and "\<forall> v \<in> (V T\<^isub>1). \<exists> v'. t[a::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2"
@@ -1186,27 +1145,34 @@ using h by (auto)
 
 lemma V_arrow_elim_strong[elim]:
   fixes c::"'a::fs_name"
-  assumes h: "u \<in> (V (T\<^isub>1 \<rightarrow> T\<^isub>2))"
-  obtains a t where "a\<sharp>c" "u = Lam[a].t" "\<forall> v \<in> (V T\<^isub>1). \<exists> v'. t[a::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2"
+  assumes h: "u \<in> V (T\<^isub>1 \<rightarrow> T\<^isub>2)"
+  obtains a t where "a\<sharp>c" "u = Lam[a].t" "\<forall>v \<in> (V T\<^isub>1). \<exists> v'. t[a::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2"
 using h
 apply -
 apply(erule V_arrow_elim_weak)
-apply(subgoal_tac "\<exists>a'::name. a'\<sharp>(a,t,c)")
+apply(subgoal_tac "\<exists>a'::name. a'\<sharp>(a,t,c)") (*A*)
 apply(erule exE)
 apply(drule_tac x="a'" in meta_spec)
-apply(simp)
 apply(drule_tac x="[(a,a')]\<bullet>t" in meta_spec)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm)
-apply(perm_simp)
-apply(simp add: fresh_left calc_atm)
-apply(auto)
-apply(simp add: subst_rename)
-apply(subgoal_tac "[(a',a)]\<bullet>t = [(a,a')]\<bullet>t")
+apply(drule meta_mp)
 apply(simp)
-apply(rule pt_name3)
-apply(rule at_ds5[OF at_name_inst])
+apply(drule meta_mp)
+apply(simp add: trm.inject alpha fresh_left fresh_prod calc_atm fresh_atm)
+apply(perm_simp)
+apply(force)
+apply(drule meta_mp)
+apply(rule ballI)
+apply(drule_tac x="[(a,a')]\<bullet>v" in bspec)
+apply(simp add: V_eqvt)
+apply(auto)
+apply(rule_tac x="[(a,a')]\<bullet>v'" in exI)
+apply(auto)
+apply(drule_tac pi="[(a,a')]" in big_eqvt)
+apply(perm_simp add: eqvt calc_atm)
+apply(simp add: V_eqvt)
+(*A*)
 apply(rule exists_fresh')
-apply(simp add: fs_name1)
+apply(simp add: fin_supp)
 done
 
 lemma V_are_values :
@@ -1306,7 +1272,7 @@ next
   then obtain v\<^isub>1 v\<^isub>2 where "\<theta><t\<^isub>1> \<Down> v\<^isub>1 \<and> v\<^isub>1 \<in> V (Data T\<^isub>a)" "\<theta><t\<^isub>2> \<Down> v\<^isub>2 \<and> v\<^isub>2 \<in> V (Data T\<^isub>b)" 
     using prems by blast
   thus "\<exists>v. \<theta><Pr t\<^isub>1 t\<^isub>2> \<Down> v \<and> v \<in> V T" using eq by auto
-next
+next 
   case (Lam x e \<Gamma> \<theta> T)
   have ih:"\<And>\<theta> \<Gamma> T. \<lbrakk>\<theta> Vcloses \<Gamma>; \<Gamma> \<turnstile> e : T\<rbrakk> \<Longrightarrow> \<exists>v. \<theta><e> \<Down> v \<and> v \<in> V T" by fact
   have as\<^isub>1: "\<theta> Vcloses \<Gamma>" by fact
@@ -1314,15 +1280,14 @@ next
   have fs: "x\<sharp>\<Gamma>" "x\<sharp>\<theta>" by fact
   from as\<^isub>2 fs obtain T\<^isub>1 T\<^isub>2 
     where "(i)": "(x,T\<^isub>1)#\<Gamma> \<turnstile> e:T\<^isub>2" and "(ii)": "T = T\<^isub>1 \<rightarrow> T\<^isub>2" by auto
-  from "(i)" have "(iii)": "valid ((x,T\<^isub>1)#\<Gamma>)" by (simp add: typing_valid)
+  from "(i)" have "(iii)": "valid ((x,T\<^isub>1)#\<Gamma>)" by (simp add: typing_implies_valid)
   have "\<forall>v \<in> (V T\<^isub>1). \<exists>v'. (\<theta><e>)[x::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2"
   proof
     fix v
     assume "v \<in> (V T\<^isub>1)"
     with "(iii)" as\<^isub>1 have "(x,v)#\<theta> Vcloses (x,T\<^isub>1)#\<Gamma>" using monotonicity by auto
     with ih "(i)" obtain v' where "((x,v)#\<theta>)<e> \<Down> v' \<and> v' \<in> V T\<^isub>2" by blast
-    then have "\<theta><e>[x::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2" using fs 
-      by (simp add: psubst_subst_psubst)
+    then have "\<theta><e>[x::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2" using fs by (simp add: psubst_subst_psubst)
     then show "\<exists>v'. \<theta><e>[x::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2" by auto
   qed
   then have "Lam[x].\<theta><e> \<in> V (T\<^isub>1 \<rightarrow> T\<^isub>2)" by auto
@@ -1336,21 +1301,20 @@ next
   have th:"\<Gamma> \<turnstile> Case t' of inl n\<^isub>1 \<rightarrow> t\<^isub>1 | inr n\<^isub>2 \<rightarrow> t\<^isub>2 : T" by fact
   then obtain S\<^isub>1 S\<^isub>2 where 
     hm:"\<Gamma> \<turnstile> t' : Data (DSum S\<^isub>1 S\<^isub>2)" and
-    hl:"(n\<^isub>1,Data S\<^isub>1)# \<Gamma> \<turnstile> t\<^isub>1 : T" and
-    hr:"(n\<^isub>2,Data S\<^isub>2)# \<Gamma> \<turnstile> t\<^isub>2 : T" using f by auto
+    hl:"(n\<^isub>1,Data S\<^isub>1)#\<Gamma> \<turnstile> t\<^isub>1 : T" and
+    hr:"(n\<^isub>2,Data S\<^isub>2)#\<Gamma> \<turnstile> t\<^isub>2 : T" using f by auto
   then obtain v\<^isub>0 where ht':"\<theta><t'> \<Down> v\<^isub>0" and hS:"v\<^isub>0 \<in> V (Data (DSum S\<^isub>1 S\<^isub>2))" using prems h by blast
   (* We distinguish between the cases InL and InR *)
-  { 
-    fix v\<^isub>0'
+  { fix v\<^isub>0'
     assume eqc:"v\<^isub>0 = InL v\<^isub>0'" and "v\<^isub>0' \<in> V' S\<^isub>1"
     then have inc: "v\<^isub>0' \<in> V (Data S\<^isub>1)" by auto
-    have "valid \<Gamma>" using th typing_valid by auto
+    have "valid \<Gamma>" using th typing_implies_valid by auto
     then moreover have "valid ((n\<^isub>1,Data S\<^isub>1)#\<Gamma>)" using f by auto
     then moreover have "(n\<^isub>1,v\<^isub>0')#\<theta> Vcloses (n\<^isub>1,Data S\<^isub>1)#\<Gamma>" 
       using inc h monotonicity by blast
-    moreover have ih:"\<And>\<Gamma> \<theta> T. \<lbrakk>\<theta> Vcloses \<Gamma>; \<Gamma> \<turnstile> t\<^isub>1 : T\<rbrakk> \<Longrightarrow> 
-      \<exists>v. \<theta><t\<^isub>1> \<Down> v \<and> v \<in> V T" by fact
-    ultimately obtain v\<^isub>1 where ho:"((n\<^isub>1,v\<^isub>0')#\<theta>)<t\<^isub>1> \<Down> v\<^isub>1 \<and> v\<^isub>1 \<in> V T" using hl by blast
+    moreover 
+    have ih:"\<And>\<Gamma> \<theta> T. \<lbrakk>\<theta> Vcloses \<Gamma>; \<Gamma> \<turnstile> t\<^isub>1 : T\<rbrakk> \<Longrightarrow> \<exists>v. \<theta><t\<^isub>1> \<Down> v \<and> v \<in> V T" by fact
+    ultimately obtain v\<^isub>1 where ho: "((n\<^isub>1,v\<^isub>0')#\<theta>)<t\<^isub>1> \<Down> v\<^isub>1 \<and> v\<^isub>1 \<in> V T" using hl by blast
     then have r:"\<theta><t\<^isub>1>[n\<^isub>1::=v\<^isub>0'] \<Down> v\<^isub>1 \<and> v\<^isub>1 \<in> V T" using psubst_subst_psubst f by simp
     then moreover have "n\<^isub>1\<sharp>(\<theta><t'>,\<theta><t\<^isub>2>,v\<^isub>1,n\<^isub>2)" 
       proof -
@@ -1375,11 +1339,10 @@ next
     ultimately have "\<exists>v. \<theta><Case t' of inl n\<^isub>1 \<rightarrow> t\<^isub>1 | inr n\<^isub>2 \<rightarrow> t\<^isub>2> \<Down> v \<and> v \<in> V T" by auto
   }
   moreover 
-  {
-    fix v\<^isub>0'
+  { fix v\<^isub>0'
     assume eqc:"v\<^isub>0 = InR v\<^isub>0'" and "v\<^isub>0' \<in> V' S\<^isub>2"
     then have inc:"v\<^isub>0' \<in> V (Data S\<^isub>2)" by auto
-    have "valid \<Gamma>" using th typing_valid by auto
+    have "valid \<Gamma>" using th typing_implies_valid by auto
     then moreover have "valid ((n\<^isub>2,Data S\<^isub>2)#\<Gamma>)" using f by auto
     then moreover have "(n\<^isub>2,v\<^isub>0')#\<theta> Vcloses (n\<^isub>2,Data S\<^isub>2)#\<Gamma>" 
       using inc h monotonicity by blast
@@ -1407,7 +1370,7 @@ next
       qed
     ultimately have "Case \<theta><t'> of inl n\<^isub>1 \<rightarrow> \<theta><t\<^isub>1> | inr n\<^isub>2 \<rightarrow> \<theta><t\<^isub>2> \<Down> v\<^isub>2 \<and> v\<^isub>2 \<in> V T" using ht' eqc by auto
     then have "\<exists>v. \<theta><Case t' of inl n\<^isub>1 \<rightarrow> t\<^isub>1 | inr n\<^isub>2 \<rightarrow> t\<^isub>2> \<Down> v \<and> v \<in> V T" using f by auto
-}
+  }
   ultimately show "\<exists>v. \<theta><Case t' of inl n\<^isub>1 \<rightarrow> t\<^isub>1 | inr n\<^isub>2 \<rightarrow> t\<^isub>2> \<Down> v \<and> v \<in> V T" using hS V_sum by blast
 qed (force)+
 
