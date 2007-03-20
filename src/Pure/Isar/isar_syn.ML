@@ -790,6 +790,10 @@ val print_antiquotationsP =
   OuterSyntax.improper_command "print_antiquotations" "print antiquotations (global)" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_antiquotations));
 
+val thy_depsP =
+  OuterSyntax.improper_command "thy_deps" "visualize theory dependencies"
+    K.diag (Scan.succeed (Toplevel.no_timing o IsarCmd.thy_deps));
+
 val class_depsP =
   OuterSyntax.improper_command "class_deps" "visualize class dependencies"
     K.diag (Scan.succeed (Toplevel.no_timing o IsarCmd.class_deps));
@@ -996,7 +1000,7 @@ val _ = OuterSyntax.add_parsers [
   print_theoremsP, print_localesP, print_localeP,
   print_registrationsP, print_attributesP, print_simpsetP,
   print_rulesP, print_induct_rulesP, print_trans_rulesP,
-  print_methodsP, print_antiquotationsP, class_depsP, thm_depsP,
+  print_methodsP, print_antiquotationsP, thy_depsP, class_depsP, thm_depsP,
   find_theoremsP, print_bindsP, print_casesP, print_stmtsP,
   print_thmsP, print_prfsP, print_full_prfsP, print_propP,
   print_termP, print_typeP,

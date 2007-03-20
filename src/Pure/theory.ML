@@ -52,6 +52,7 @@ sig
   val add_finals: bool -> string list -> theory -> theory
   val add_finals_i: bool -> term list -> theory -> theory
   val add_oracle: bstring * (theory * Object.T -> term) -> theory -> theory
+  val dep_graph: theory -> unit Graph.T;
 end
 
 structure Theory: THEORY =
@@ -331,6 +332,25 @@ end;
 fun add_oracle (bname, oracle) thy = thy |> map_oracles (fn oracles =>
   NameSpace.extend_table (Sign.naming_of thy) (oracles, [(bname, (oracle, stamp ()))])
     handle Symtab.DUPS dups => err_dup_oras dups);
+
+
+
+(** graph of theory parents **)
+
+fun dep_graph thy =
+  let
+    fun add_thy thy gr =
+      let
+        val name = Context.theory_name thy;
+      in if can (Graph.get_node gr) name then (name, gr)
+      else
+        gr
+        |> Graph.new_node (name, ())
+        |> fold_map add_thy (parents_of thy)
+        |-> (fn names => fold (fn name' => Graph.add_edge (name, name')) names)
+        |> pair name
+      end;
+  in snd (add_thy thy Graph.empty) end;
 
 end;
 

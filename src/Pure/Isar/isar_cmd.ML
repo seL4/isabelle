@@ -93,6 +93,7 @@ sig
   val print_methods: Toplevel.transition -> Toplevel.transition
   val print_antiquotations: Toplevel.transition -> Toplevel.transition
   val class_deps: Toplevel.transition -> Toplevel.transition
+  val thy_deps: Toplevel.transition -> Toplevel.transition
   val thm_deps: (thmref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
   val find_theorems: (int option * bool) * (bool * string FindTheorems.criterion) list
     -> Toplevel.transition -> Toplevel.transition
@@ -489,6 +490,16 @@ val print_methods = Toplevel.unknown_theory o
   Toplevel.keep (Method.print_methods o Toplevel.theory_of);
 
 val print_antiquotations = Toplevel.imperative ThyOutput.print_antiquotations;
+
+val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
+  let
+    val thy = Toplevel.theory_of state;
+    val gr = Theory.dep_graph thy;
+    fun mk_entry (name, ((), (_, parents))) =
+      { name = name, ID = name, dir = "", unfold = true,
+        path = "", parents = parents };
+    val prgr = Graph.fold ((fn x => fn xs => xs @ [x]) o mk_entry) gr [];
+  in Present.display_graph prgr end);
 
 val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
