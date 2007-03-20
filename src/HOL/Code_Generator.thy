@@ -185,40 +185,20 @@ code_reserved OCaml failwith
 
 subsection {* Evaluation oracle *}
 
-ML {*
-structure HOL_Eval:
-sig
-  val reff: bool option ref
-  val prop: theory -> term -> term
-end =
-struct
-
-val reff : bool option ref = ref NONE;
-
-fun prop thy t =
-  if CodegenPackage.eval_term thy
-    (("HOL_Eval.reff", reff), t)
-    then HOLogic.true_const
-    else HOLogic.false_const
-
-end
-*}
-
-oracle eval_oracle ("term") = {*
-  fn thy => fn t => Logic.mk_equals (t, HOL_Eval.prop thy t)
+oracle eval_oracle ("term") = {* fn thy => fn t => 
+  if CodegenPackage.satisfies thy (HOLogic.dest_Trueprop t) [] 
+  then t
+  else HOLogic.Trueprop $ (HOLogic.true_const) (*dummy*)
 *}
 
 method_setup eval = {*
 let
-
-fun conv ct =
-  let val {thy, t, ...} = rep_cterm ct
-  in eval_oracle thy t end;
-
-fun eval_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
-  (Drule.goals_conv (equal i) (HOLogic.Trueprop_conv conv)));
-
-in Method.no_args (Method.SIMPLE_METHOD' (eval_tac THEN' rtac TrueI)) end
+  fun eval_tac thy = 
+    SUBGOAL (fn (t, i) => rtac (eval_oracle thy t) i)
+in 
+  Method.ctxt_args (fn ctxt => 
+    Method.SIMPLE_METHOD' (eval_tac (ProofContext.theory_of ctxt)))
+end
 *} "solve goal by evaluation"
 
 
