@@ -46,7 +46,7 @@ fun add optmod =
       handle TERM _ => tap (fn _ => warn thm);
   in
     Thm.declaration_attribute (fn thm => Context.mapping
-      (add thm #> CodegenData.add_func_legacy thm) I)
+      (add thm #> CodegenData.add_func false thm) I)
   end;
 
 fun del_thm thm thy =

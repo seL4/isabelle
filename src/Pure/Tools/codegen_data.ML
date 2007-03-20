@@ -11,8 +11,7 @@ sig
   val lazy: (unit -> thm list) -> thm list Susp.T
   val eval_always: bool ref
 
-  val add_func: thm -> theory -> theory
-  val add_func_legacy: thm -> theory -> theory
+  val add_func: bool -> thm -> theory -> theory
   val del_func: thm -> theory -> theory
   val add_funcl: CodegenConsts.const * thm list Susp.T -> theory -> theory
   val add_datatype: string * ((string * sort) list * (string * typ list) list)
@@ -515,11 +514,11 @@ fun operational_algebra thy =
 val classop_weakest_typ = gen_classop_typ weakest_constraints;
 val classop_strongest_typ = gen_classop_typ strongest_constraints;
 
-fun gen_mk_func_typ strict_functyp thm =
+fun gen_mk_func_typ strict thm =
   let
     val thy = Thm.theory_of_thm thm;
-    val raw_funcs = CodegenFunc.mk_func thm;
-    val error_warning = if strict_functyp then error else warning #> K NONE;
+    val raw_funcs = CodegenFunc.mk_func strict thm;
+    val error_warning = if strict then error else warning #> K NONE;
     fun check_typ_classop class (const as (c, [Type (tyco, _)]), thm) =
           let
             val ((_, ty), _) = CodegenFunc.dest_func thm;
@@ -550,8 +549,7 @@ fun gen_mk_func_typ strict_functyp thm =
               ^ CodegenConsts.string_of_typ thy ty_strongest)
           end
       | check_typ_classop class ((c, [_]), thm) =
-          (if strict_functyp then error else warning #> K NONE)
-           ("Illegal type for class operation " ^ quote c
+          error_warning ("Illegal type for class operation " ^ quote c
            ^ "\nin defining equation\n"
            ^ string_of_thm thm);
     fun check_typ_fun (const as (c, _), thm) =
@@ -578,9 +576,9 @@ end;
 
 (** interfaces **)
 
-fun gen_add_func strict_functyp thm thy =
+fun add_func strict thm thy =
   let
-    val funcs = gen_mk_func_typ strict_functyp thm;
+    val funcs = gen_mk_func_typ strict thm;
     val cs = map fst funcs;
   in
     map_exec_purge (SOME cs) (map_funcs 
@@ -591,9 +589,6 @@ fun gen_add_func strict_functyp thm thy =
 fun delete_force msg key xs =
   if AList.defined (op =) xs key then AList.delete (op =) key xs
   else error ("No such " ^ msg ^ ": " ^ quote key);
-
-val add_func = gen_add_func true;
-val add_func_legacy = gen_add_func false;
 
 fun del_func thm thy =
   let
@@ -608,7 +603,7 @@ fun del_func thm thy =
 fun add_funcl (c, lthms) thy =
   let
     val c' = CodegenConsts.norm thy c;
-    val lthms' = certificate thy (fn thy => certify_const thy c' o maps (CodegenFunc.mk_func)) lthms;
+    val lthms' = certificate thy (fn thy => certify_const thy c' o maps (CodegenFunc.mk_func true)) lthms;
   in
     map_exec_purge (SOME [c]) (map_funcs (Consttab.map_default (c', (Susp.value [], []))
       (add_lthms lthms'))) thy
@@ -835,7 +830,7 @@ local
       (fn th => Context.mapping (f th) I);
 in
   val _ = map (Context.add_setup o add_simple_attribute) [
-    ("func", add_func),
+    ("func", add_func true),
     ("nofunc", del_func),
     ("unfold", (fn thm => Codegen.add_unfold thm #> add_inline thm)),
     ("inline", add_inline),

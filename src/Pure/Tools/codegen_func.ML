@@ -9,8 +9,8 @@ signature CODEGEN_FUNC =
 sig
   val assert_rew: thm -> thm
   val mk_rew: thm -> thm list
-  val assert_func: thm -> thm
-  val mk_func: thm -> (CodegenConsts.const * thm) list
+  val assert_func: bool -> thm -> thm option
+  val mk_func: bool -> thm -> (CodegenConsts.const * thm) list
   val mk_head: thm -> CodegenConsts.const * thm
   val dest_func: thm -> (string * typ) * term list
   val typ_func: thm -> typ
@@ -77,8 +77,18 @@ val dest_func = lift_thm_thy (fn thy => apfst dest_Const o strip_comb
 val mk_head = lift_thm_thy (fn thy => fn thm =>
   ((CodegenConsts.norm_of_typ thy o fst o dest_func) thm, thm));
 
-fun assert_func thm = case try dest_func thm
- of SOME (c_ty as (c, ty), args) =>
+local
+
+exception BAD of string;
+
+fun handle_bad strict thm msg =
+  if strict then error (msg ^ ": " ^ string_of_thm thm)
+    else (warning (msg ^ ": " ^ string_of_thm thm); NONE);
+
+in
+
+fun assert_func strict thm = case try dest_func thm
+ of SOME (c_ty as (c, ty), args) => (
       let
         val thy = Thm.theory_of_thm thm;
         val _ =
@@ -86,23 +96,25 @@ fun assert_func thm = case try dest_func thm
             ((fold o fold_aterms) (fn Var (v, _) => cons v
               | _ => I
             ) args [])
-          then bad_thm "Repeated variables on left hand side of defining equation" thm
+          then raise BAD "Repeated variables on left hand side of defining equation"
           else ()
-        fun check _ (Abs _) = bad_thm
-              "Abstraction on left hand side of defining equation" thm
+        fun check _ (Abs _) = raise BAD
+              "Abstraction on left hand side of defining equation"
           | check 0 (Var _) = ()
-          | check _ (Var _) = bad_thm
-              "Variable with application on left hand side of defining equation" thm
+          | check _ (Var _) = raise BAD
+              "Variable with application on left hand side of defining equation"
           | check n (t1 $ t2) = (check (n+1) t1; check 0 t2)
           | check n (Const (_, ty)) = if n <> (length o fst o strip_type) ty
-              then bad_thm
-                ("Partially applied constant on left hand side of defining equation") thm
+              then raise BAD
+                ("Partially applied constant on left hand side of defining equation")
               else ();
         val _ = map (check 0) args;
-      in thm end
-  | NONE => bad_thm "Not a defining equation" thm;
+      in SOME thm end handle BAD msg => handle_bad strict thm msg)
+  | NONE => handle_bad strict thm "Not a defining equation";
 
-val mk_func = map (mk_head o assert_func) o mk_rew;
+end;
+
+fun mk_func strict = map_filter (Option.map mk_head o assert_func strict) o mk_rew;
 
 
 (* utilities *)
