@@ -608,7 +608,7 @@ fun overwrite_warn msg (p as (key : string, v)) xs =
           if keyi = key then p :: xs else q :: over xs
       | over [] = [p];
   in (
-    if AList.defined (op =) xs key then () else warning msg;
+    if AList.defined (op =) xs key then warning msg else ();
     over xs
   ) end;
 
