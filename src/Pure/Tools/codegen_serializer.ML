@@ -1473,7 +1473,14 @@ val isar_seri_haskell =
 fun seri_diagnosis labelled_name _ _ _ _ _ code =
   let
     val init_vars = CodegenNames.make_vars reserved_haskell;
-    val pr = pr_haskell (K NONE) (K NONE) (K NONE) labelled_name init_vars I I (K false);
+    fun pr_fun "fun" = SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
+          brackify_infix (1, R) fxy [
+            pr_typ (INFX (1, X)) ty1,
+            str "->",
+            pr_typ (INFX (1, R)) ty2
+          ])
+      | pr_fun _ = NONE
+    val pr = pr_haskell (K NONE) pr_fun (K NONE) labelled_name init_vars I I (K false);
   in
     []
     |> Graph.fold (fn (name, (def, _)) => case try pr (name, def) of SOME p => cons p | NONE => I) code
