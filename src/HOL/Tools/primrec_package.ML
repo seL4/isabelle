@@ -142,7 +142,7 @@ fun process_fun thy descr rec_eqns (i, fnameT as (fname, _)) (fnameTs, fnss) =
       (case AList.lookup (op =) eqns cname of
           NONE => (warning ("No equation for constructor " ^ quote cname ^
             "\nin definition of function " ^ quote fname);
-              (fnameTs', fnss', (Const ("arbitrary", dummyT))::fns))
+              (fnameTs', fnss', (Const ("HOL.undefined", dummyT))::fns))
         | SOME (ls, cargs', rs, rhs, eq) =>
             let
               val recs = filter (is_rec_type o snd) (cargs' ~~ cargs);
@@ -182,7 +182,7 @@ fun get_fns fns ((i : int, (tname, _, constrs)), rec_name) (fs, defs) =
   case AList.lookup (op =) fns i of
      NONE =>
        let
-         val dummy_fns = map (fn (_, cargs) => Const ("arbitrary",
+         val dummy_fns = map (fn (_, cargs) => Const ("HOL.undefined",
            replicate ((length cargs) + (length (List.filter is_rec_type cargs)))
              dummyT ---> HOLogic.unitT)) constrs;
          val _ = warning ("No function definition for datatype " ^ quote tname)

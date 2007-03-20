@@ -172,15 +172,12 @@ lemma [code func]:
   by rule+
 
 
-text {* code generation for arbitrary as exception *}
+text {* code generation for undefined as exception *}
 
-setup {*
-  CodegenSerializer.add_undefined "SML" "arbitrary" "(raise Fail \"arbitrary\")"
-  #> CodegenSerializer.add_undefined "OCaml" "arbitrary" "(failwith \"arbitrary\")"
-*}
-
-code_const arbitrary
-  (Haskell "error/ \"arbitrary\"")
+code_const undefined
+  (SML "(raise Fail \"undefined\")")
+  (OCaml "(failwith \"undefined\")")
+  (Haskell "error/ \"undefined\"")
 
 code_reserved SML Fail
 code_reserved OCaml failwith

@@ -340,7 +340,7 @@ fun dest_case_app cs ts tys =
         val (vs, t') = Term.strip_abs_eta (length tys_decl) t;
         val c' = list_comb (Const (c, map snd vs ---> sty), map Free vs);
       in case t'
-       of Const ("undefined", _) => NONE
+       of Const ("HOL.undefined", _) => NONE
         | _ => SOME (c', t')
       end;
   in (abs, ((t, sty), map2 dest_case (cs ~~ tys') ts' |> map_filter I)) end;
@@ -423,7 +423,7 @@ fun add_datatype_case_defs dtco thy =
   let
     val {case_rewrites, ...} = DatatypePackage.the_datatype thy dtco
   in
-    fold_rev CodegenData.add_func case_rewrites thy
+    fold_rev (CodegenData.add_func true) case_rewrites thy
   end;
 
 

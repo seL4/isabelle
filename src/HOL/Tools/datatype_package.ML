@@ -433,7 +433,7 @@ fun case_tr ctxt [t, u] =
                  (DatatypeProp.make_tnames (map (typ_of_dtyp descr sorts) dt)),
                  case default of
                    NONE => (warning ("No clause for constructor " ^ s ^
-                     " in case expression"); Const ("undefined", dummyT))
+                     " in case expression"); Const ("HOL.undefined", dummyT))
                  | SOME t => t), cases)
              | SOME (c as ((_, vs), t)) =>
                  if length dt <> length vs then
@@ -486,7 +486,7 @@ fun case_tr' constrs ctxt ts =
       (fold_rev count_cases cases []);
     fun mk_case1 (cname, (vs, body), _) = Syntax.const "_case1" $
       list_comb (Syntax.const cname, vs) $ body;
-    fun is_undefined (Const ("undefined", _)) = true
+    fun is_undefined (Const ("HOL.undefined", _)) = true
       | is_undefined _ = false;
   in
     Syntax.const "_case_syntax" $ x $
