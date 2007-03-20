@@ -105,6 +105,46 @@ The code generator aims to be usable with no further ado
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsubsection{An exmaple: a simple theory of search trees%
+}
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ searchtree\ {\isacharequal}\ Leaf\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}linorder{\isachardoublequoteclose}\ {\isacharprime}b\isanewline
+\ \ {\isacharbar}\ Branch\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ searchtree{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ searchtree{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\isanewline
+\ \ find\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isasymColon}linorder{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ searchtree\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}find\ {\isacharparenleft}Leaf\ key\ val{\isacharparenright}\ it\ {\isacharequal}\ {\isacharparenleft}if\ it\ {\isacharequal}\ key\ then\ Some\ val\ else\ None{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isacharbar}\ {\isachardoublequoteopen}find\ {\isacharparenleft}Branch\ t{\isadigit{1}}\ key\ t{\isadigit{2}}{\isacharparenright}\ it\ {\isacharequal}\ {\isacharparenleft}if\ it\ {\isasymle}\ key\ then\ find\ t{\isadigit{1}}\ it\ else\ find\ t{\isadigit{2}}\ it{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\isanewline
+\ \ update\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}linorder\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ searchtree\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ searchtree{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}update\ {\isacharparenleft}it{\isacharcomma}\ entry{\isacharparenright}\ {\isacharparenleft}Leaf\ key\ val{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}\isanewline
+\ \ \ \ if\ it\ {\isacharequal}\ key\ then\ Leaf\ key\ entry\isanewline
+\ \ \ \ \ \ else\ if\ it\ {\isasymle}\ key\isanewline
+\ \ \ \ \ \ then\ Branch\ {\isacharparenleft}Leaf\ it\ entry{\isacharparenright}\ it\ {\isacharparenleft}Leaf\ key\ val{\isacharparenright}\isanewline
+\ \ \ \ \ \ else\ Branch\ {\isacharparenleft}Leaf\ key\ val{\isacharparenright}\ it\ {\isacharparenleft}Leaf\ it\ entry{\isacharparenright}\isanewline
+\ \ \ {\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isacharbar}\ {\isachardoublequoteopen}update\ {\isacharparenleft}it{\isacharcomma}\ entry{\isacharparenright}\ {\isacharparenleft}Branch\ t{\isadigit{1}}\ key\ t{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}\isanewline
+\ \ \ \ if\ it\ {\isasymle}\ key\isanewline
+\ \ \ \ \ \ then\ {\isacharparenleft}Branch\ {\isacharparenleft}update\ {\isacharparenleft}it{\isacharcomma}\ entry{\isacharparenright}\ t{\isadigit{1}}{\isacharparenright}\ key\ t{\isadigit{2}}{\isacharparenright}\isanewline
+\ \ \ \ \ \ else\ {\isacharparenleft}Branch\ t{\isadigit{1}}\ key\ {\isacharparenleft}update\ {\isacharparenleft}it{\isacharcomma}\ entry{\isacharparenright}\ t{\isadigit{2}}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \ {\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\isanewline
+\ \ example\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ {\isacharparenleft}nat{\isacharcomma}\ string{\isacharparenright}\ searchtree{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}example\ n\ {\isacharequal}\ update\ {\isacharparenleft}n{\isacharcomma}\ {\isacharprime}{\isacharprime}bar{\isacharprime}{\isacharprime}{\isacharparenright}\ {\isacharparenleft}Leaf\ {\isadigit{0}}\ {\isacharprime}{\isacharprime}foo{\isacharprime}{\isacharprime}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
+\ example\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}tree{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\begin{isamarkuptext}%
+\lstsml{Thy/examples/tree.ML}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Code generation process%
 }
 \isamarkuptrue%
@@ -142,7 +182,7 @@ The code generator aims to be usable with no further ado
       specifications into equivalent but executable counterparts.
       The result is a structured collection of \qn{code theorems}.
 
-    \item These \qn{code theorems} then are extracted
+    \item These \qn{code theorems} then are \qn{translated}
       into an Haskell-like intermediate
       language.
 
@@ -171,14 +211,11 @@ Thanks to a reasonable setup of the HOL theories, in
   most cases code generation proceeds without further ado:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
+\isacommand{fun}\isamarkupfalse%
 \isanewline
-\ \ fac\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{primrec}\isamarkupfalse%
-\isanewline
-\ \ {\isachardoublequoteopen}fac\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}fac\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ Suc\ n\ {\isacharasterisk}\ fac\ n{\isachardoublequoteclose}%
+\ \ fac\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ \ \ {\isachardoublequoteopen}fac\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+\ \ {\isacharbar}\ {\isachardoublequoteopen}fac\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ Suc\ n\ {\isacharasterisk}\ fac\ n{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 This executable specification is now turned to SML code:%
 \end{isamarkuptext}%
@@ -419,7 +456,7 @@ Type classes enter the game via the Isar class package.
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{class}\isamarkupfalse%
-\ null\ {\isacharequal}\isanewline
+\ null\ {\isacharequal}\ type\ {\isacharplus}\isanewline
 \ \ \isakeyword{fixes}\ null\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\isanewline
 \isanewline
 \isacommand{consts}\isamarkupfalse%
@@ -721,7 +758,8 @@ Consider the following function and its corresponding
 \isacommand{fun}\isamarkupfalse%
 \isanewline
 \ \ in{\isacharunderscore}interval\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymtimes}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}in{\isacharunderscore}interval\ {\isacharparenleft}k{\isacharcomma}\ l{\isacharparenright}\ n\ {\isasymlongleftrightarrow}\ k\ {\isasymle}\ n\ {\isasymand}\ n\ {\isasymle}\ l{\isachardoublequoteclose}%
+\ \ {\isachardoublequoteopen}in{\isacharunderscore}interval\ {\isacharparenleft}k{\isacharcomma}\ l{\isacharparenright}\ n\ {\isasymlongleftrightarrow}\ k\ {\isasymle}\ n\ {\isasymand}\ n\ {\isasymle}\ l{\isachardoublequoteclose}\isanewline
+%
 \isadelimtt
 %
 \endisadelimtt
@@ -946,12 +984,12 @@ Surely you have already noticed how equality is treated
 \isacommand{fun}\isamarkupfalse%
 \isanewline
 \ \ collect{\isacharunderscore}duplicates\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}collect{\isacharunderscore}duplicates\ xs\ ys\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}collect{\isacharunderscore}duplicates\ xs\ ys\ {\isacharparenleft}z{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ z\ {\isasymin}\ set\ xs\isanewline
-\ \ \ \ then\ if\ z\ {\isasymin}\ set\ ys\isanewline
-\ \ \ \ \ \ then\ collect{\isacharunderscore}duplicates\ xs\ ys\ zs\isanewline
-\ \ \ \ \ \ else\ collect{\isacharunderscore}duplicates\ xs\ {\isacharparenleft}z{\isacharhash}ys{\isacharparenright}\ zs\isanewline
-\ \ \ \ else\ collect{\isacharunderscore}duplicates\ {\isacharparenleft}z{\isacharhash}xs{\isacharparenright}\ {\isacharparenleft}z{\isacharhash}ys{\isacharparenright}\ zs{\isacharparenright}{\isachardoublequoteclose}%
+\ \ \ \ {\isachardoublequoteopen}collect{\isacharunderscore}duplicates\ xs\ ys\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs{\isachardoublequoteclose}\isanewline
+\ \ {\isacharbar}\ {\isachardoublequoteopen}collect{\isacharunderscore}duplicates\ xs\ ys\ {\isacharparenleft}z{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ z\ {\isasymin}\ set\ xs\isanewline
+\ \ \ \ \ \ then\ if\ z\ {\isasymin}\ set\ ys\isanewline
+\ \ \ \ \ \ \ \ then\ collect{\isacharunderscore}duplicates\ xs\ ys\ zs\isanewline
+\ \ \ \ \ \ \ \ else\ collect{\isacharunderscore}duplicates\ xs\ {\isacharparenleft}z{\isacharhash}ys{\isacharparenright}\ zs\isanewline
+\ \ \ \ \ \ else\ collect{\isacharunderscore}duplicates\ {\isacharparenleft}z{\isacharhash}xs{\isacharparenright}\ {\isacharparenleft}z{\isacharhash}ys{\isacharparenright}\ zs{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 The membership test during preprocessing is rewritten,
   resulting in \isa{op\ mem}, which itself
@@ -986,7 +1024,7 @@ Obviously, polymorphic equality is implemented the Haskell
 \endisadelimML
 \isanewline
 \isacommand{class}\isamarkupfalse%
-\ eq\ {\isacharparenleft}\isakeyword{attach}\ {\isachardoublequoteopen}op\ {\isacharequal}{\isachardoublequoteclose}{\isacharparenright}\ {\isacharequal}\ \isakeyword{notes}\ reflexive%
+\ eq\ {\isacharparenleft}\isakeyword{attach}\ {\isachardoublequoteopen}op\ {\isacharequal}{\isachardoublequoteclose}{\isacharparenright}\ {\isacharequal}\ type%
 \begin{isamarkuptext}%
 This merely introduces a class \isa{eq} with corresponding
   operation \isa{op\ {\isacharequal}};
@@ -1031,10 +1069,11 @@ A common idiom is to use unspecified types for formalizations
 \isacommand{fun}\isamarkupfalse%
 \isanewline
 \ \ lookup\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}key\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ list\ {\isasymRightarrow}\ key\ {\isasymRightarrow}\ {\isacharprime}a\ option{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}lookup\ {\isacharbrackleft}{\isacharbrackright}\ l\ {\isacharequal}\ None{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}lookup\ {\isacharparenleft}{\isacharparenleft}k{\isacharcomma}\ v{\isacharparenright}\ {\isacharhash}\ xs{\isacharparenright}\ l\ {\isacharequal}\ {\isacharparenleft}if\ k\ {\isacharequal}\ l\ then\ Some\ v\ else\ lookup\ xs\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ {\isachardoublequoteopen}lookup\ {\isacharbrackleft}{\isacharbrackright}\ l\ {\isacharequal}\ None{\isachardoublequoteclose}\isanewline
+\ \ {\isacharbar}\ {\isachardoublequoteopen}lookup\ {\isacharparenleft}{\isacharparenleft}k{\isacharcomma}\ v{\isacharparenright}\ {\isacharhash}\ xs{\isacharparenright}\ l\ {\isacharequal}\ {\isacharparenleft}if\ k\ {\isacharequal}\ l\ then\ Some\ v\ else\ lookup\ xs\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimtt
+\isanewline
 %
 \endisadelimtt
 %
@@ -1552,8 +1591,9 @@ A dummy example:%
 \isacommand{fun}\isamarkupfalse%
 \isanewline
 \ \ dummy{\isacharunderscore}option\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ option{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}dummy{\isacharunderscore}option\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ Some\ x{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}dummy{\isacharunderscore}option\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ arbitrary{\isachardoublequoteclose}\isanewline
+\ \ \ \ {\isachardoublequoteopen}dummy{\isacharunderscore}option\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ Some\ x{\isachardoublequoteclose}\isanewline
+\ \ {\isacharbar}\ {\isachardoublequoteopen}dummy{\isacharunderscore}option\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ arbitrary{\isachardoublequoteclose}\isanewline
+\isanewline
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
 \ dummy{\isacharunderscore}option\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}arbitrary{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
 \begin{isamarkuptext}%
@@ -1691,11 +1731,10 @@ This Pure module implements the core notions of
   \indexml{CodegenData.add-preproc}\verb|CodegenData.add_preproc: string * (theory -> thm list -> thm list)|\isasep\isanewline%
 \verb|    -> theory -> theory| \\
   \indexml{CodegenData.del-preproc}\verb|CodegenData.del_preproc: string -> theory -> theory| \\
-  \indexml{CodegenData.add-datatype}\verb|CodegenData.add_datatype: string * (((string * sort) list * (string * typ list) list)|\isasep\isanewline%
-\verb|    * thm list Susp.T) -> theory -> theory| \\
-  \indexml{CodegenData.del-datatype}\verb|CodegenData.del_datatype: string -> theory -> theory| \\
+  \indexml{CodegenData.add-datatype}\verb|CodegenData.add_datatype: string * ((string * sort) list * (string * typ list) list)|\isasep\isanewline%
+\verb|    -> theory -> theory| \\
   \indexml{CodegenData.get-datatype}\verb|CodegenData.get_datatype: theory -> string|\isasep\isanewline%
-\verb|    -> ((string * sort) list * (string * typ list) list) option| \\
+\verb|    -> (string * sort) list * (string * typ list) list| \\
   \indexml{CodegenData.get-datatype-of-constr}\verb|CodegenData.get_datatype_of_constr: theory -> CodegenConsts.const -> string option|
   \end{mldecls}
 
@@ -1736,17 +1775,12 @@ This Pure module implements the core notions of
   \item \verb|CodegenData.del_preproc|~\isa{name}~\isa{thy} removes
      generic preprcoessor named \isa{name} from executable content.
 
-  \item \verb|CodegenData.add_datatype|~\isa{{\isacharparenleft}name{\isacharcomma}\ {\isacharparenleft}spec{\isacharcomma}\ cert{\isacharparenright}{\isacharparenright}}~\isa{thy} adds
+  \item \verb|CodegenData.add_datatype|~\isa{{\isacharparenleft}name{\isacharcomma}\ spec{\isacharparenright}}~\isa{thy} adds
      a datatype to executable content, with type constructor
      \isa{name} and specification \isa{spec}; \isa{spec} is
      a pair consisting of a list of type variable with sort
      constraints and a list of constructors with name
-     and types of arguments.  The addition as datatype
-     has to be justified giving a certificate of suspended
-     theorems as witnesses for injectiveness and distinctness.
-
-  \item \verb|CodegenData.del_datatype|~\isa{name}~\isa{thy}
-     remove a datatype from executable content, if present.
+     and types of arguments.
 
   \item \verb|CodegenData.get_datatype_of_constr|~\isa{thy}~\isa{const}
      returns type constructor corresponding to

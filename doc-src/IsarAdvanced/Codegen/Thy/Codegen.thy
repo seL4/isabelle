@@ -80,6 +80,40 @@ text {*
 *}
 
 
+subsection {* An exmaple: a simple theory of search trees *}
+
+datatype ('a, 'b) searchtree = Leaf "'a\<Colon>linorder" 'b
+  | Branch "('a, 'b) searchtree" "'a" "('a, 'b) searchtree"
+
+fun
+  find :: "('a\<Colon>linorder, 'b) searchtree \<Rightarrow> 'a \<Rightarrow> 'b option" where
+  "find (Leaf key val) it = (if it = key then Some val else None)"
+  | "find (Branch t1 key t2) it = (if it \<le> key then find t1 it else find t2 it)"
+
+fun
+  update :: "'a\<Colon>linorder \<times> 'b \<Rightarrow> ('a, 'b) searchtree \<Rightarrow> ('a, 'b) searchtree" where
+  "update (it, entry) (Leaf key val) = (
+    if it = key then Leaf key entry
+      else if it \<le> key
+      then Branch (Leaf it entry) it (Leaf key val)
+      else Branch (Leaf key val) it (Leaf it entry)
+   )"
+  | "update (it, entry) (Branch t1 key t2) = (
+    if it \<le> key
+      then (Branch (update (it, entry) t1) key t2)
+      else (Branch t1 key (update (it, entry) t2))
+   )"
+
+fun
+  example :: "nat \<Rightarrow> (nat, string) searchtree" where
+  "example n = update (n, ''bar'') (Leaf 0 ''foo'')"
+
+code_gen example (*<*)(SML #)(*>*)(SML "examples/tree.ML")
+
+text {*
+  \lstsml{Thy/examples/tree.ML}
+*}
+
 subsection {* Code generation process *}
 
 text {*
@@ -115,7 +149,7 @@ text {*
       specifications into equivalent but executable counterparts.
       The result is a structured collection of \qn{code theorems}.
 
-    \item These \qn{code theorems} then are extracted
+    \item These \qn{code theorems} then are \qn{translated}
       into an Haskell-like intermediate
       language.
 
@@ -1175,9 +1209,8 @@ text %mlref {*
   @{index_ML CodegenData.del_preproc: "string -> theory -> theory"} \\
   @{index_ML CodegenData.add_datatype: "string * ((string * sort) list * (string * typ list) list)
     -> theory -> theory"} \\
-  @{index_ML CodegenData.del_datatype: "string -> theory -> theory"} \\
   @{index_ML CodegenData.get_datatype: "theory -> string
-    -> ((string * sort) list * (string * typ list) list) option"} \\
+    -> (string * sort) list * (string * typ list) list"} \\
   @{index_ML CodegenData.get_datatype_of_constr: "theory -> CodegenConsts.const -> string option"}
   \end{mldecls}
 
@@ -1224,9 +1257,6 @@ text %mlref {*
      a pair consisting of a list of type variable with sort
      constraints and a list of constructors with name
      and types of arguments.
-
-  \item @{ML CodegenData.del_datatype}~@{text "name"}~@{text "thy"}
-     remove a datatype from executable content, if present.
 
   \item @{ML CodegenData.get_datatype_of_constr}~@{text "thy"}~@{text "const"}
      returns type constructor corresponding to

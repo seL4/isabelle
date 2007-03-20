@@ -6,10 +6,10 @@ struct
 
 datatype boola = True | False;
 
-fun op_conj y True = y
-  | op_conj x False = False
-  | op_conj True y = y
-  | op_conj False x = False;
+fun op_and y True = y
+  | op_and x False = False
+  | op_and True y = y
+  | op_and False x = False;
 
 end; (*struct HOL*)
 
@@ -29,7 +29,7 @@ structure Codegen =
 struct
 
 fun in_interval (k, l) n =
-  HOL.op_conj (Nat.less_eq_nat k n) (Nat.less_eq_nat n l);
+  HOL.op_and (Nat.less_eq_nat k n) (Nat.less_eq_nat n l);
 
 end; (*struct Codegen*)
 

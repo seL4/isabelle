@@ -12,17 +12,17 @@ CodegenSerializer.code_width := 74;
 
 syntax
   "_alpha" :: "type"  ("\<alpha>")
-  "_alpha_ofsort" :: "sort \<Rightarrow> type"  ("\<alpha>()::_" [0] 1000)
+  "_alpha_ofsort" :: "sort \<Rightarrow> type"  ("\<alpha>()\<Colon>_" [0] 1000)
   "_beta" :: "type"  ("\<beta>")
-  "_beta_ofsort" :: "sort \<Rightarrow> type"  ("\<beta>()::_" [0] 1000)
+  "_beta_ofsort" :: "sort \<Rightarrow> type"  ("\<beta>()\<Colon>_" [0] 1000)
   "_gamma" :: "type"  ("\<gamma>")
-  "_gamma_ofsort" :: "sort \<Rightarrow> type"  ("\<gamma>()::_" [0] 1000)
+  "_gamma_ofsort" :: "sort \<Rightarrow> type"  ("\<gamma>()\<Colon>_" [0] 1000)
   "_alpha_f" :: "type"  ("\<alpha>\<^sub>f")
-  "_alpha_f_ofsort" :: "sort \<Rightarrow> type"  ("\<alpha>\<^sub>f()::_" [0] 1000)
+  "_alpha_f_ofsort" :: "sort \<Rightarrow> type"  ("\<alpha>\<^sub>f()\<Colon>_" [0] 1000)
   "_beta_f" :: "type"  ("\<beta>\<^sub>f")
-  "_beta_f_ofsort" :: "sort \<Rightarrow> type"  ("\<beta>\<^sub>f()::_" [0] 1000)
+  "_beta_f_ofsort" :: "sort \<Rightarrow> type"  ("\<beta>\<^sub>f()\<Colon>_" [0] 1000)
   "_gamma_f" :: "type"  ("\<gamma>\<^sub>f")
-  "_gamma_ofsort_f" :: "sort \<Rightarrow> type"  ("\<gamma>\<^sub>f()::_" [0] 1000)
+  "_gamma_ofsort_f" :: "sort \<Rightarrow> type"  ("\<gamma>\<^sub>f()\<Colon>_" [0] 1000)
 
 parse_ast_translation {*
   let
@@ -171,9 +171,9 @@ text {*
   "\<FIXES>"}), the \qn{logical} part specifies properties on them
   (@{text "\<ASSUMES>"}).  The local @{text "\<FIXES>"} and @{text
   "\<ASSUMES>"} are lifted to the theory toplevel, yielding the global
-  operation @{term [source] "mult :: \<alpha>::semigroup \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"} and the
+  operation @{term [source] "mult \<Colon> \<alpha>\<Colon>semigroup \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"} and the
   global theorem @{text "semigroup.assoc:"}~@{prop [source] "\<And>x y
-  z::\<alpha>::semigroup. (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"}.
+  z \<Colon> \<alpha>\<Colon>semigroup. (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"}.
 *}
 
 
@@ -186,7 +186,7 @@ text {*
 *}
 
     instance int :: semigroup
-      mult_int_def: "\<And>i j :: int. i \<otimes> j \<equiv> i + j"
+      mult_int_def: "\<And>i j \<Colon> int. i \<otimes> j \<equiv> i + j"
     proof
       fix i j k :: int have "(i + j) + k = i + (j + k)" by simp
       then show "(i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)" unfolding mult_int_def .
@@ -365,7 +365,7 @@ by unfold_locales (rule idem)
 text {*
   This give you at hand the full power of the Isabelle module system;
   conclusions in locale @{text idem} are implicitly propagated
-  to class @{idem}.
+  to class @{text idem}.
 *}
 
 subsection {* Abstract reasoning *}
@@ -392,10 +392,10 @@ text {*
   \noindent Here the \qt{@{text "\<IN> group"}} target specification
   indicates that the result is recorded within that context for later
   use.  This local theorem is also lifted to the global one @{text
-  "group.left_cancel:"} @{prop [source] "\<And>x y z::\<alpha>::group. x \<otimes> y = x \<otimes>
+  "group.left_cancel:"} @{prop [source] "\<And>x y z \<Colon> \<alpha>\<Colon>group. x \<otimes> y = x \<otimes>
   z \<longleftrightarrow> y = z"}.  Since type @{text "int"} has been made an instance of
   @{text "group"} before, we may refer to that fact as well: @{prop
-  [source] "\<And>x y z::int. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"}.
+  [source] "\<And>x y z \<Colon> int. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"}.
 *}
 
 
@@ -439,7 +439,7 @@ text {*
     fun
       pow_nat :: "nat \<Rightarrow> \<alpha>\<Colon>monoidl \<Rightarrow> \<alpha>\<Colon>monoidl" where
       "pow_nat 0 x = \<one>"
-      "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
+      | "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
 
     definition
       pow_int :: "int \<Rightarrow> \<alpha>\<Colon>group \<Rightarrow> \<alpha>\<Colon>group" where
@@ -478,8 +478,7 @@ text {*
 
 text {*
 
-(* subsection {* Syntactic classes *}
-*)
+subsection {* Syntactic classes *}
 
 *} *)
 

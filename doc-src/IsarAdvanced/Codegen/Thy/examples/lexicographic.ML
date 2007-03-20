@@ -21,7 +21,7 @@ end; (*struct Code_Generator*)
 structure Codegen = 
 struct
 
-fun less_eq_prod (A1_, A2_) B_ (x1, y1) (x2, y2) =
+fun less_eq_times (A1_, A2_) B_ (x1, y1) (x2, y2) =
   Orderings.less A2_ x1 x2 orelse
     Code_Generator.op_eq A1_ x1 x2 andalso Orderings.less_eq B_ y1 y2;
 
