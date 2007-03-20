@@ -90,11 +90,15 @@ fun assert_func thm = case try dest_func thm
           else ()
         fun check _ (Abs _) = bad_thm
               "Abstraction on left hand side of defining equation" thm
-          | check false (Var _) = bad_thm
+          | check 0 (Var _) = ()
+          | check _ (Var _) = bad_thm
               "Variable with application on left hand side of defining equation" thm
-          | check _ (t1 $ t2) = (check false t1; check true t2)
-          | check _ _ = ();
-        val _ = map (check true) args;
+          | check n (t1 $ t2) = (check (n+1) t1; check 0 t2)
+          | check n (Const (_, ty)) = if n <> (length o fst o strip_type) ty
+              then bad_thm
+                ("Partially applied constant on left hand side of defining equation") thm
+              else ();
+        val _ = map (check 0) args;
       in thm end
   | NONE => bad_thm "Not a defining equation" thm;
 
