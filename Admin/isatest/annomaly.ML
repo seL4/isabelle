@@ -4,8 +4,9 @@ local
 
   val smlnj_use_text = use_text
 
-  fun strip ([], name, _) = name
+  fun strip ([], "src" :: name, _) = name
     | strip (["Distribution"], name, _) = name
+    | strip ([], name, _) = name
     | strip (h1 :: t1, h2 :: t2, def) =
       if h1 = h2 then strip (t1, t2, def) else def
 
