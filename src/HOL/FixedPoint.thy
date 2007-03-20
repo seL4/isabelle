@@ -125,6 +125,28 @@ lemma bot_least[simp]: "Sup{} \<le> (x::'a::complete_lattice)"
 lemma top_greatest[simp]: "(x::'a::complete_lattice) \<le> Inf{}"
   by (rule Inf_greatest) simp
 
+lemma inf_Inf_empty:
+  "inf a (Inf {}) = a"
+proof -
+  have "a \<le> Inf {}" by (rule top_greatest)
+  then show ?thesis by (rule inf_absorb1)
+qed
+
+lemma inf_binary:
+  "Inf {a, b} = inf a b"
+unfolding Inf_insert inf_Inf_empty ..
+
+lemma sup_Sup_empty:
+  "sup a (Sup {}) = a"
+proof -
+  have "Sup {} \<le> a" by (rule bot_least)
+  then show ?thesis by (rule sup_absorb1)
+qed
+
+lemma sup_binary:
+  "Sup {a, b} = sup a b"
+unfolding Sup_insert sup_Sup_empty ..
+
 lemma SUP_const[simp]: "A \<noteq> {} \<Longrightarrow> (SUP i:A. M) = M"
   by (auto intro: order_antisym SUP_leI le_SUPI)
 
