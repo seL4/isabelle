@@ -7,14 +7,17 @@
 # Abort on any error
 set -e -o pipefail
 
-ISABELLE_CVS="$(cd "$HOME/isabelle.cvs"; pwd -P)"
-ISABELLE_HOME="$ISABELLE_CVS/Distribution"
+BUILD_DIR="$HOME/isabelle.annomaly"
+ISABELLE_HOME="$BUILD_DIR/Isabelle"
+ISABELLE_CVS="$HOME/isabelle.cvs"
+ADMIN_CVS="$ISABELLE_CVS/Admin"
+# ISABELLE_HOME="$ISABELLE_CVS/Distribution"
+ISABELLE_SRC="$ISABELLE_HOME/src"
 HTML_DIR="$HOME/html-data/isabelle-doc"
 export CVS_RSH=ssh
 export SMLNJ_HOME="$HOME/annomaly"
 export PATH="$SMLNJ_HOME/bin:$PATH"
 export SML_DOC_DIR="$HTML_DIR.tmp"
-export SML_DOC_REWRITE="isabelle=$ISABELLE_CVS"
 # export SML_DOC_DEBUG="all"
 TARGET=HOL
 CVSUP=true
@@ -25,6 +28,34 @@ for ARG in "$@"; do case "$ARG" in
 	-n) CVSUP=false ;;
 	-l) export SML_LOG_DIR="$HOME/logs" ;;
 esac; done
+
+# Update CVS
+cd "$ADMIN_CVS"
+if $CVSUP; then
+  echo "Updating CVS"
+  cvs -q up -d
+fi
+
+# Find nightly isabelle tarball
+ISABELLE_TAR=""
+for i in /home/html/isatest/Isabelle_[0-9]*-20[0-9][0-9].tar.gz; do
+  if [[ -r "$i" ]]; then ISABELLE_TAR="$i"; fi
+done
+if [[ -z $ISABELLE_TAR ]]; then
+  echo "No isabelle tarball found!" >&2
+  exit 1
+fi
+
+# Create build environemnt
+mkdir -p "$BUILD_DIR"
+cd "$BUILD_DIR"
+if [[ -d Isabelle ]]; then
+  rm -rf *
+fi
+tar xzf "$ISABELLE_TAR"
+cd "$ISABELLE_HOME"
+cp "$ADMIN_CVS"/isatest/annomaly.ML src/Pure/ML-Systems/annomaly.ML
+ln -s run-smlnj lib/scripts/run-annomaly
 
 # Create clean output directory
 rm -rf "$SML_DOC_DIR"
@@ -38,17 +69,14 @@ SetOutputFilter DEFLATE
 AddType text/plain .dot
 EOF
 
-# Update CVS
-cd "$ISABELLE_CVS"
-if $CVSUP; then
-  echo "Updating CVS"
-  cvs -q up -d
-fi
-
 # Build isabelle
+ISABELLE_HOME="$(cd "$ISABELLE_HOME"; pwd -P)"
 cd "$ISABELLE_HOME"
-rm -rf heaps/*
+export SML_DOC_REWRITE="isabelle=$(cd src; pwd -P)"
+rm -rf heaps
 ./build -b $TARGET
+cd "$BUILD_DIR"
+rm -rf *
 
 # Postprocess created files
 cd $SML_DOC_DIR
@@ -59,7 +87,7 @@ dot -Tps2 depGraph.dot > depGraph.ps
 ps2pdf depGraph.ps depGraph.pdf
 grep -rl "$ISABELLE_HOME" . | xargs sed -i "s@$ISABELLE_HOME@\$ISABELLE_HOME@g"
 
-# Install result by renaming to be almost atomic
+# Install result by renaming, to be almost atomic
 rm -rf "$HTML_DIR.bac"
 if [[ -d $HTML_DIR ]]; then mv "$HTML_DIR" "$HTML_DIR.bac"; fi
 mv "$SML_DOC_DIR" "$HTML_DIR"
