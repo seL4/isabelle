@@ -161,7 +161,7 @@ text {*
   assumed to be associative:
 *}
 
-    class semigroup =
+    class semigroup = type +
       fixes mult :: "\<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"    (infixl "\<^loc>\<otimes>" 70)
       assumes assoc: "(x \<^loc>\<otimes> y) \<^loc>\<otimes> z = x \<^loc>\<otimes> (y \<^loc>\<otimes> z)"
 
@@ -333,7 +333,7 @@ text {*
   is nothing else than a locale:
 *}
 
-class idem =
+class idem = type +
   fixes f :: "\<alpha> \<Rightarrow> \<alpha>"
   assumes idem: "f (f x) = f x"
 

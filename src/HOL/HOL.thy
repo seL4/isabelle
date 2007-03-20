@@ -179,26 +179,26 @@ finalconsts
 
 subsubsection {* Generic algebraic operations *}
 
-class zero =
+class zero = type + 
   fixes zero :: "'a"  ("\<^loc>0")
 
-class one =
+class one = type +
   fixes one  :: "'a"  ("\<^loc>1")
 
 hide (open) const zero one
 
-class plus =
+class plus = type +
   fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>+" 65)
 
-class minus =
+class minus = type +
   fixes uminus :: "'a \<Rightarrow> 'a" 
     and minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>-" 65)
     and abs :: "'a \<Rightarrow> 'a"
 
-class times =
+class times = type +
   fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>*" 70)
 
-class inverse = 
+class inverse = type +
   fixes inverse :: "'a \<Rightarrow> 'a"
     and divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>'/" 70)
 

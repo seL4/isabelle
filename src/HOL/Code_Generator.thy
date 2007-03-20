@@ -75,7 +75,7 @@ subsection {* Generic code generator setup *}
 
 text {* operational equality for code generation *}
 
-class eq (attach "op =") = notes reflexive
+class eq (attach "op =") = type
 
 
 text {* equality for Haskell *}

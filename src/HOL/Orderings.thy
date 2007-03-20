@@ -11,7 +11,7 @@ begin
 
 subsection {* Order syntax *}
 
-class ord =
+class ord = type +
   fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<sqsubseteq>" 50)
     and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<sqsubset>" 50)
 begin

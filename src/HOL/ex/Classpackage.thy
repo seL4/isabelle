@@ -8,7 +8,7 @@ theory Classpackage
 imports Main
 begin
 
-class semigroup =
+class semigroup = type +
   fixes mult :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<^loc>\<otimes>" 70)
   assumes assoc: "x \<^loc>\<otimes> y \<^loc>\<otimes> z = x \<^loc>\<otimes> (y \<^loc>\<otimes> z)"
 

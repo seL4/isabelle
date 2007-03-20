@@ -74,7 +74,7 @@ lemma exists_ex [simp]:
   "list_ex P xs \<longleftrightarrow> (\<exists>x\<in>set xs. P x)"
   by (induct xs) auto
 
-class finite =
+class finite = type +
   fixes fin :: "'a list"
   assumes member_fin: "x \<in> set fin"
 begin

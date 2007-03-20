@@ -2533,7 +2533,7 @@ done
 
 subsection {* Class @{text finite} *}
 
-class finite (attach UNIV) =
+class finite (attach UNIV) = type +
   assumes finite: "finite UNIV"
 
 lemma finite_set: "finite (A::'a::finite set)"

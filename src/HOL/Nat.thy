@@ -106,7 +106,7 @@ lemma nat_not_singleton: "(\<forall>x. x = (0::nat)) = False"
 
 text {* size of a datatype value *}
 
-class size =
+class size = type +
   fixes size :: "'a \<Rightarrow> nat"
 
 text {* @{typ nat} is a datatype *}
@@ -476,7 +476,7 @@ lemma one_reorient: "(1 = x) = (x = 1)"
 
 subsection {* Arithmetic operators *}
 
-class power =
+class power = type +
   fixes power :: "'a \<Rightarrow> nat \<Rightarrow> 'a"            (infixr "\<^loc>^" 80)
 
 text {* arithmetic operators @{text "+ -"} and @{text "*"} *}

@@ -12,7 +12,7 @@ begin
 
 (*We use the same class for div and mod;
   moreover, dvd is defined whenever multiplication is*)
-class div =
+class div = type +
   fixes div :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
   fixes mod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 begin

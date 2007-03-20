@@ -417,13 +417,8 @@ val fully_qualified = ref false;
 
 local
 
-fun certify_class thy class =
-  tap (the_class_data thy) (Sign.certify_class thy class);
-
-fun read_class thy =
-  certify_class thy o Sign.intern_class thy;
-
-fun gen_class add_locale prep_class prep_param bname raw_supclasses raw_elems raw_other_consts thy =
+fun gen_class add_locale prep_class prep_param bname
+    raw_supclasses raw_elems raw_other_consts thy =
   let
     (*FIXME need proper concept for reading locale statements*)
     fun subst_classtyvar (_, _) =
@@ -436,25 +431,27 @@ fun gen_class add_locale prep_class prep_param bname raw_supclasses raw_elems ra
     val (elems, includes) = fold_rev (fn Locale.Elem e => apfst (cons e)
       | Locale.Expr i => apsnd (cons i)) raw_elems ([], []);
     val supclasses = map (prep_class thy) raw_supclasses;
-    val supsort =
-      supclasses
-      |> Sign.certify_sort thy
-      |> (fn [] => Sign.defaultS thy | S => S); (*FIXME Why syntax defaultS?*)
-    val suplocales = map (Locale.Locale o #locale o the_class_data thy) supclasses;
+    val sups = filter (is_some o lookup_class_data thy) supclasses;
+    val supsort = Sign.certify_sort thy supclasses;
+    val suplocales = map (Locale.Locale o #locale o the_class_data thy) sups;
     val supexpr = Locale.Merge (suplocales @ includes);
     val supparams = (map fst o Locale.parameters_of_expr thy)
       (Locale.Merge suplocales);
-    val supconsts = AList.make
-      (the o AList.lookup (op =) (param_map thy supclasses)) (map fst supparams);
+    val supconsts = AList.make (the o AList.lookup (op =) (param_map thy sups))
+      (map fst supparams);
     (*val elems_constrains = map
       (Element.Constrains o apsnd (Term.map_type_tfree subst_classtyvar)) supparams;*)
+    fun mk_tyvar (_, sort) = TFree (AxClass.param_tyvarname,
+      if Sign.subsort thy (supsort, sort) then sort else error
+        ("Sort " ^ Sign.string_of_sort thy sort
+          ^ " is less general than permitted least general sort "
+          ^ Sign.string_of_sort thy supsort));
     fun extract_params thy name_locale =
-      let   
+      let
         val params = Locale.parameters_of thy name_locale;
       in
         (map (fst o fst) params, params
-        |> (map o apfst o apsnd o Term.map_type_tfree)
-             (K (TFree (AxClass.param_tyvarname, Sign.defaultS thy)))
+        |> (map o apfst o apsnd o Term.map_type_tfree) mk_tyvar
         |> (map o apsnd) (fork_mixfix true NONE #> fst)
         |> chop (length supconsts)
         |> snd)
@@ -493,7 +490,7 @@ fun gen_class add_locale prep_class prep_param bname raw_supclasses raw_elems ra
       #-> (fn (name_axclass, ((_, (ax_terms, ax_axioms)), consts)) =>
         `(fn thy => extract_axiom_names thy name_locale)
       #-> (fn axiom_names =>
-        add_class_data ((name_axclass, supclasses),
+        add_class_data ((name_axclass, sups),
           (name_locale, map (fst o fst) params ~~ map fst consts,
             map2 make_witness ax_terms ax_axioms, axiom_names))
       #> prove_interpretation ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
@@ -505,8 +502,8 @@ fun gen_class add_locale prep_class prep_param bname raw_supclasses raw_elems ra
 
 in
 
-val class_cmd = gen_class Locale.add_locale read_class AxClass.read_param;
-val class = gen_class Locale.add_locale_i certify_class (K I);
+val class_cmd = gen_class Locale.add_locale Sign.intern_class AxClass.read_param;
+val class = gen_class Locale.add_locale_i Sign.certify_class (K I);
 
 end; (*local*)
 

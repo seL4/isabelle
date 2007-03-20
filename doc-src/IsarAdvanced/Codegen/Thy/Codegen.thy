@@ -141,12 +141,10 @@ text {*
   most cases code generation proceeds without further ado:
 *}
 
-consts
-  fac :: "nat \<Rightarrow> nat"
-
-primrec
-  "fac 0 = 1"
-  "fac (Suc n) = Suc n * fac n"
+fun
+  fac :: "nat \<Rightarrow> nat" where
+    "fac 0 = 1"
+  | "fac (Suc n) = Suc n * fac n"
 
 text {*
   This executable specification is now turned to SML code:
@@ -324,7 +322,7 @@ text {*
   assigning to each of its inhabitants a \qt{null} value:
 *}
 
-class null =
+class null = type +
   fixes null :: 'a
 
 consts
@@ -551,9 +549,6 @@ text {*
 fun
   in_interval :: "nat \<times> nat \<Rightarrow> nat \<Rightarrow> bool" where
   "in_interval (k, l) n \<longleftrightarrow> k \<le> n \<and> n \<le> l"
-(*<*)
-declare in_interval.simps [code func]
-(*>*)
 
 (*<*)
 code_type %tt bool
@@ -716,15 +711,12 @@ text {*
 
 fun
   collect_duplicates :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-  "collect_duplicates xs ys [] = xs"
-  "collect_duplicates xs ys (z#zs) = (if z \<in> set xs
-    then if z \<in> set ys
-      then collect_duplicates xs ys zs
-      else collect_duplicates xs (z#ys) zs
-    else collect_duplicates (z#xs) (z#ys) zs)"
-(*<*)
-lemmas [code func] = collect_duplicates.simps
-(*>*)
+    "collect_duplicates xs ys [] = xs"
+  | "collect_duplicates xs ys (z#zs) = (if z \<in> set xs
+      then if z \<in> set ys
+        then collect_duplicates xs ys zs
+        else collect_duplicates xs (z#ys) zs
+      else collect_duplicates (z#xs) (z#ys) zs)"
 
 text {*
   The membership test during preprocessing is rewritten,
@@ -749,7 +741,7 @@ setup {* Sign.add_path "foo" *}
 consts "op =" :: "'a"
 (*>*)
 
-class eq (attach "op =") = notes reflexive
+class eq (attach "op =") = type
 
 text {*
   This merely introduces a class @{text eq} with corresponding
@@ -782,11 +774,8 @@ typedecl key
 
 fun
   lookup :: "(key \<times> 'a) list \<Rightarrow> key \<Rightarrow> 'a option" where
-  "lookup [] l = None"
-  "lookup ((k, v) # xs) l = (if k = l then Some v else lookup xs l)"
-(*<*)
-lemmas [code func] = lookup.simps
-(*>*)
+    "lookup [] l = None"
+  | "lookup ((k, v) # xs) l = (if k = l then Some v else lookup xs l)"
 
 code_type %tt key
   (SML "string")
@@ -883,7 +872,7 @@ text {*
 
 (*<*)
 setup {* Sign.add_path "bar" *}
-class eq = fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+class eq = type + fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 (*>*)
 
 code_class %tt eq
@@ -1091,11 +1080,8 @@ text {*
 
 fun
   dummy_option :: "'a list \<Rightarrow> 'a option" where
-  "dummy_option (x#xs) = Some x"
-  "dummy_option [] = arbitrary"
-(*<*)
-declare dummy_option.simps [code func]
-(*>*)
+    "dummy_option (x#xs) = Some x"
+  | "dummy_option [] = arbitrary"
 
 code_gen dummy_option (*<*)(SML #)(*>*)(SML "examples/arbitrary.ML")
 

@@ -10,7 +10,7 @@ begin
 
 subsection {* The typ_of class *}
 
-class typ_of =
+class typ_of = type +
   fixes typ_of :: "'a itself \<Rightarrow> typ"
 
 ML {*

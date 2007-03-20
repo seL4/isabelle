@@ -9,7 +9,7 @@ theory Parity
 imports Main
 begin
 
-class even_odd =
+class even_odd = type + 
   fixes even :: "'a \<Rightarrow> bool"
 
 abbreviation
