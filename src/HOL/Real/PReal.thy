@@ -219,6 +219,11 @@ done
 instance preal :: linorder
   by intro_classes (rule preal_le_linear)
 
+instance preal :: distrib_lattice
+  "inf \<equiv> min"
+  "sup \<equiv> max"
+  by intro_classes
+    (auto simp add: inf_preal_def sup_preal_def min_max.sup_inf_distrib1)
 
 
 subsection{*Properties of Addition*}

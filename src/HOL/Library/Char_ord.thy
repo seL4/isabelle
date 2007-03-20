@@ -11,25 +11,24 @@ begin
 
 text {* Conversions between nibbles and integers in [0..15]. *}
 
-consts
-  nibble_to_int:: "nibble \<Rightarrow> int"
-primrec
+fun
+  nibble_to_int:: "nibble \<Rightarrow> int" where
   "nibble_to_int Nibble0 = 0"
-  "nibble_to_int Nibble1 = 1"
-  "nibble_to_int Nibble2 = 2"
-  "nibble_to_int Nibble3 = 3"
-  "nibble_to_int Nibble4 = 4"
-  "nibble_to_int Nibble5 = 5"
-  "nibble_to_int Nibble6 = 6"
-  "nibble_to_int Nibble7 = 7"
-  "nibble_to_int Nibble8 = 8"
-  "nibble_to_int Nibble9 = 9"
-  "nibble_to_int NibbleA = 10"
-  "nibble_to_int NibbleB = 11"
-  "nibble_to_int NibbleC = 12"
-  "nibble_to_int NibbleD = 13"
-  "nibble_to_int NibbleE = 14"
-  "nibble_to_int NibbleF = 15"
+  | "nibble_to_int Nibble1 = 1"
+  | "nibble_to_int Nibble2 = 2"
+  | "nibble_to_int Nibble3 = 3"
+  | "nibble_to_int Nibble4 = 4"
+  | "nibble_to_int Nibble5 = 5"
+  | "nibble_to_int Nibble6 = 6"
+  | "nibble_to_int Nibble7 = 7"
+  | "nibble_to_int Nibble8 = 8"
+  | "nibble_to_int Nibble9 = 9"
+  | "nibble_to_int NibbleA = 10"
+  | "nibble_to_int NibbleB = 11"
+  | "nibble_to_int NibbleC = 12"
+  | "nibble_to_int NibbleD = 13"
+  | "nibble_to_int NibbleE = 14"
+  | "nibble_to_int NibbleF = 15"
 
 definition
   int_to_nibble :: "int \<Rightarrow> nibble" where
@@ -51,7 +50,7 @@ definition
     if y = 14 then NibbleE else
     NibbleF)"
 
-lemma int_to_nibble_nibble_to_int: "int_to_nibble(nibble_to_int x) = x"
+lemma int_to_nibble_nibble_to_int: "int_to_nibble (nibble_to_int x) = x"
   by (cases x) (auto simp: int_to_nibble_def Let_def)
 
 lemma inj_nibble_to_int: "inj nibble_to_int"
@@ -67,9 +66,8 @@ lemma nibble_to_int_less_16: "nibble_to_int x < 16"
 
 text {* Conversion between chars and int pairs. *}
 
-consts
-  char_to_int_pair :: "char \<Rightarrow> int \<times> int"
-primrec
+fun
+  char_to_int_pair :: "char \<Rightarrow> int \<times> int" where
   "char_to_int_pair (Char a b) = (nibble_to_int a, nibble_to_int b)"
 
 lemma inj_char_to_int_pair: "inj char_to_int_pair"
@@ -80,13 +78,12 @@ lemma inj_char_to_int_pair: "inj char_to_int_pair"
 
 lemmas char_to_int_pair_eq = inj_char_to_int_pair [THEN inj_eq]
 
+
 text {* Instantiation of order classes *}
 
-instance char :: ord ..
-
-defs (overloaded)
+instance char :: ord
   char_le_def: "c \<le> d \<equiv> (char_to_int_pair c \<le> char_to_int_pair d)"
-  char_less_def: "c < d \<equiv> (char_to_int_pair c < char_to_int_pair d)"
+  char_less_def: "c < d \<equiv> (char_to_int_pair c < char_to_int_pair d)"  ..
 
 lemmas char_ord_defs = char_less_def char_le_def
 
@@ -95,6 +92,15 @@ instance char :: order
 
 instance char :: linorder
   by default (auto simp: char_le_def)
+
+instance char :: distrib_lattice
+  "inf \<equiv> min"
+  "sup \<equiv> max"
+  by intro_classes
+    (auto simp add: inf_char_def sup_char_def min_max.sup_inf_distrib1)
+
+
+text {* code generator setup *}
 
 code_const char_to_int_pair
   (SML "raise/ Fail/ \"char'_to'_int'_pair\"")

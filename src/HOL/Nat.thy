@@ -1324,6 +1324,11 @@ lemma of_nat_diff [simp]:
 by (simp del: of_nat_add
 	 add: compare_rls of_nat_add [symmetric] split add: nat_diff_split)
 
+instance nat :: distrib_lattice
+  "inf \<equiv> min"
+  "sup \<equiv> max"
+  by intro_classes (auto simp add: inf_nat_def sup_nat_def)
+
 
 subsection {* Size function *}
 

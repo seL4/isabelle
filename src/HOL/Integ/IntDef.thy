@@ -354,21 +354,23 @@ apply (frule order_less_imp_le [THEN zero_le_imp_eq_int])
 apply (auto simp add: zmult_zless_mono2_lemma)
 done
 
+instance int :: minus
+  zabs_def:  "abs(i::int) == if i < 0 then -i else i" ..
 
-defs (overloaded)
-    zabs_def:  "abs(i::int) == if i < 0 then -i else i"
-
+instance int :: distrib_lattice
+  "inf \<equiv> min"
+  "sup \<equiv> max"
+  by intro_classes
+    (auto simp add: inf_int_def sup_int_def min_max.sup_inf_distrib1)
 
 text{*The integers form an ordered @{text comm_ring_1}*}
 instance int :: ordered_idom
-  "inf \<equiv> min"
-  "sup \<equiv> max"
 proof
   fix i j k :: int
   show "i \<le> j ==> k + i \<le> k + j" by (rule zadd_left_mono)
   show "i < j ==> 0 < k ==> k * i < k * j" by (rule zmult_zless_mono2)
   show "\<bar>i\<bar> = (if i < 0 then -i else i)" by (simp only: zabs_def)
-qed (unfold inf_int_def sup_int_def, auto)
+qed
 
 lemma zless_imp_add1_zle: "w<z ==> w + (1::int) \<le> z"
 apply (cases w, cases z) 

@@ -34,6 +34,12 @@ instance list :: (linorder) linorder
   apply simp
   done
 
+instance list :: (linorder) distrib_lattice
+  "inf \<equiv> min"
+  "sup \<equiv> max"
+  by intro_classes
+    (auto simp add: inf_list_def sup_list_def min_max.sup_inf_distrib1)
+
 lemma not_less_Nil [simp]: "\<not> (x < [])"
   by (unfold list_less_def) simp
 

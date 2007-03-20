@@ -31,4 +31,10 @@ instance * :: (order, order) order
 instance * :: (linorder, linorder) linorder
   by default (auto simp: prod_le_def)
 
+instance * :: (linorder, linorder) distrib_lattice
+  inf_prod_def: "inf \<equiv> min"
+  sup_prod_def: "sup \<equiv> max"
+  by intro_classes
+    (auto simp add: inf_prod_def sup_prod_def min_max.sup_inf_distrib1)
+
 end
