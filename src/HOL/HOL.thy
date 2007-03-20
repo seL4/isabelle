@@ -33,7 +33,6 @@ consts
   True          :: bool
   False         :: bool
   arbitrary     :: 'a
-  undefined     :: 'a
 
   The           :: "('a => bool) => 'a"
   All           :: "('a => bool) => bool"           (binder "ALL " 10)
@@ -174,10 +173,18 @@ finalconsts
   "op -->"
   The
   arbitrary
-  undefined
+
+axiomatization
+  undefined :: 'a
+
+axioms
+  undefined_fun: "undefined x = undefined"
 
 
-subsubsection {* Generic algebraic operations *}
+subsubsection {* Generic classes and algebraic operations *}
+
+class default = type +
+  fixes default :: "'a"
 
 class zero = type + 
   fixes zero :: "'a"  ("\<^loc>0")
