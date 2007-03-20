@@ -1042,6 +1042,9 @@ proof -
   show ?thesis by (rule le_add_right_mono[OF 2 3])
 qed
 
+
+subsection {* Tools setup *}
+
 text{*Simplification of @{term "x-y < 0"}, etc.*}
 lemmas diff_less_0_iff_less = less_iff_diff_less_0 [symmetric]
 lemmas diff_eq_0_iff_eq = eq_iff_diff_eq_0 [symmetric]
@@ -1050,6 +1053,58 @@ declare diff_less_0_iff_less [simp]
 declare diff_eq_0_iff_eq [simp]
 declare diff_le_0_iff_le [simp]
 
+ML {*
+structure ab_group_add_cancel = Abel_Cancel(
+struct
+
+(* term order for abelian groups *)
+
+fun agrp_ord (Const (a, _)) = find_index (fn a' => a = a')
+      ["HOL.zero", "HOL.plus", "HOL.uminus", "HOL.minus"]
+  | agrp_ord _ = ~1;
+
+fun termless_agrp (a, b) = (Term.term_lpo agrp_ord (a, b) = LESS);
+
+local
+  val ac1 = mk_meta_eq @{thm add_assoc};
+  val ac2 = mk_meta_eq @{thm add_commute};
+  val ac3 = mk_meta_eq @{thm add_left_commute};
+  fun solve_add_ac thy _ (_ $ (Const ("HOL.plus",_) $ _ $ _) $ _) =
+        SOME ac1
+    | solve_add_ac thy _ (_ $ x $ (Const ("HOL.plus",_) $ y $ z)) =
+        if termless_agrp (y, x) then SOME ac3 else NONE
+    | solve_add_ac thy _ (_ $ x $ y) =
+        if termless_agrp (y, x) then SOME ac2 else NONE
+    | solve_add_ac thy _ _ = NONE
+in
+  val add_ac_proc = Simplifier.simproc @{theory}
+    "add_ac_proc" ["x + y::'a::ab_semigroup_add"] solve_add_ac;
+end;
+
+val cancel_ss = HOL_basic_ss settermless termless_agrp
+  addsimprocs [add_ac_proc] addsimps
+  [@{thm add_0}, @{thm add_0_right}, @{thm diff_def},
+   @{thm minus_add_distrib}, @{thm minus_minus}, @{thm minus_zero},
+   @{thm right_minus}, @{thm left_minus}, @{thm add_minus_cancel},
+   @{thm minus_add_cancel}];
+  
+val eq_reflection = @{thm eq_reflection}
+  
+val thy_ref = Theory.self_ref @{theory}
+
+val T = TFree("'a", ["OrderedGroup.ab_group_add"])
+
+val eqI_rules = [@{thm less_eqI}, @{thm le_eqI}, @{thm eq_eqI}]
+
+val dest_eqI = 
+  fst o HOLogic.dest_bin "op =" HOLogic.boolT o HOLogic.dest_Trueprop o concl_of;
+
+end);
+*}
+
+ML_setup {*
+  Addsimprocs [ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv];
+*}
 
 ML {*
 val add_assoc = thm "add_assoc";
