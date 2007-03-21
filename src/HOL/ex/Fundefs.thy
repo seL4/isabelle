@@ -114,9 +114,9 @@ text {* We can reformulate the above example using guarded patterns *}
 function gcd3 :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
   "gcd3 x 0 = x"
-  "gcd3 0 y = y"
-  "x < y \<Longrightarrow> gcd3 (Suc x) (Suc y) = gcd3 (Suc x) (y - x)"
-  "\<not> x < y \<Longrightarrow> gcd3 (Suc x) (Suc y) = gcd3 (x - y) (Suc y)"
+| "gcd3 0 y = y"
+| "x < y \<Longrightarrow> gcd3 (Suc x) (Suc y) = gcd3 (Suc x) (y - x)"
+| "\<not> x < y \<Longrightarrow> gcd3 (Suc x) (Suc y) = gcd3 (x - y) (Suc y)"
   apply (case_tac x, case_tac a, auto)
   apply (case_tac ba, auto)
   done
@@ -131,7 +131,7 @@ text {* General patterns allow even strange definitions: *}
 function ev :: "nat \<Rightarrow> bool"
 where
   "ev (2 * n) = True"
-  "ev (2 * n + 1) = False"
+| "ev (2 * n + 1) = False"
 proof -  -- {* completeness is more difficult here \dots *}
   fix P :: bool
     and x :: nat

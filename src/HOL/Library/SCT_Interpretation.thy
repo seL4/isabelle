@@ -65,7 +65,7 @@ where
 fun mk_rel :: "('a, 'q) cdesc list \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
 where
   "mk_rel [] x y = False"
-  "mk_rel (c#cs) x y =
+| "mk_rel (c#cs) x y =
   (in_cdesc c x y \<or> mk_rel cs x y)"
 
 

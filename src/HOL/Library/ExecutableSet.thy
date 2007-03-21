@@ -64,7 +64,7 @@ unfolding member_def by (induct xs) simp_all
 fun
   drop_first :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "drop_first f [] = []"
-  "drop_first f (x#xs) = (if f x then xs else x # drop_first f xs)"
+| "drop_first f (x#xs) = (if f x then xs else x # drop_first f xs)"
 declare drop_first.simps [code del]
 declare drop_first.simps [code target: List]
 
@@ -150,7 +150,7 @@ lemmas map_distinct_def = map_distinct.simps(2)
 function unions :: "'a list list \<Rightarrow> 'a list"
 where
   "unions [] = []"
-  "unions xs = foldr unionl xs []"
+| "unions xs = foldr unionl xs []"
 by pat_completeness auto
 termination by lexicographic_order
 

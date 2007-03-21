@@ -340,7 +340,7 @@ fun
   lookup :: "(name\<times>trm) list \<Rightarrow> name \<Rightarrow> trm"   
 where
   "lookup [] X        = Var X"
-  "lookup ((Y,T)#\<theta>) X = (if X=Y then T else lookup \<theta> X)"
+| "lookup ((Y,T)#\<theta>) X = (if X=Y then T else lookup \<theta> X)"
 
 lemma lookup_eqvt[eqvt]:
   fixes pi::"name prm"

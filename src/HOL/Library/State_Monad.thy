@@ -257,12 +257,12 @@ definition
 fun
   list :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
   "list f [] = id"
-  "list f (x#xs) = (do f x; list f xs done)"
+| "list f (x#xs) = (do f x; list f xs done)"
 lemmas [code] = list.simps
 
 fun list_yield :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<times> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'c list \<times> 'b" where
   "list_yield f [] = return []"
-  "list_yield f (x#xs) = (do y \<leftarrow> f x; ys \<leftarrow> list_yield f xs; return (y#ys) done)"
+| "list_yield f (x#xs) = (do y \<leftarrow> f x; ys \<leftarrow> list_yield f xs; return (y#ys) done)"
 lemmas [code] = list_yield.simps
   
 text {* combinator properties *}

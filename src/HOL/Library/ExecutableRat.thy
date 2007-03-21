@@ -34,9 +34,9 @@ definition
 fun
   add_sign :: "bool * nat \<Rightarrow> bool * nat \<Rightarrow> bool * nat" where
   "add_sign (True, n) (True, m) = (True, n + m)"
-  "add_sign (False, n) (False, m) = (False, n + m)"
-  "add_sign (True, n) (False, m) = minus_sign n m"
-  "add_sign (False, n) (True, m) = minus_sign m n"
+| "add_sign (False, n) (False, m) = (False, n + m)"
+| "add_sign (True, n) (False, m) = minus_sign n m"
+| "add_sign (False, n) (True, m) = minus_sign m n"
 
 definition
   erat_of_quotient :: "int \<Rightarrow> int \<Rightarrow> erat" where

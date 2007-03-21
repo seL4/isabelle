@@ -11,8 +11,8 @@ begin
 fun
   abs_sorted :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
   "abs_sorted cmp [] \<longleftrightarrow> True"
-  "abs_sorted cmp [x] \<longleftrightarrow> True"
-  "abs_sorted cmp (x#y#xs) \<longleftrightarrow> cmp x y \<and> abs_sorted cmp (y#xs)"
+| "abs_sorted cmp [x] \<longleftrightarrow> True"
+| "abs_sorted cmp (x#y#xs) \<longleftrightarrow> cmp x y \<and> abs_sorted cmp (y#xs)"
 
 abbreviation (in ord)
   "sorted \<equiv> abs_sorted less_eq"
@@ -105,7 +105,7 @@ fun
   product :: "'a list \<Rightarrow> 'b list \<Rightarrow> ('a * 'b) list"
   where
   "product [] ys = []"
-  "product (x#xs) ys = map (Pair x) ys @ product xs ys"
+| "product (x#xs) ys = map (Pair x) ys @ product xs ys"
 
 lemma product_all:
   assumes "x \<in> set xs" "y \<in> set ys"
