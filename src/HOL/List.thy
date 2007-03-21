@@ -279,6 +279,14 @@ apply(case_tac ys)
 apply(simp)
 done
 
+lemma list_induct2': 
+  "\<lbrakk> P [] [];
+  \<And>x xs. P (x#xs) [];
+  \<And>y ys. P [] (y#ys);
+   \<And>x xs y ys. P xs ys  \<Longrightarrow> P (x#xs) (y#ys) \<rbrakk>
+ \<Longrightarrow> P xs ys"
+by (induct xs arbitrary: ys) (case_tac x, auto)+
+
 lemma neq_if_length_neq: "length xs \<noteq> length ys \<Longrightarrow> (xs = ys) == False"
 apply(rule Eq_FalseI)
 by auto
@@ -1384,24 +1392,18 @@ lemma zip_Cons1:
 by(auto split:list.split)
 
 lemma length_zip [simp]:
-"!!xs. length (zip xs ys) = min (length xs) (length ys)"
-apply (induct ys, simp)
-apply (case_tac xs, auto)
-done
+"length (zip xs ys) = min (length xs) (length ys)"
+by (induct xs ys rule:list_induct2') auto
 
 lemma zip_append1:
-"!!xs. zip (xs @ ys) zs =
+"zip (xs @ ys) zs =
 zip xs (take (length xs) zs) @ zip ys (drop (length xs) zs)"
-apply (induct zs, simp)
-apply (case_tac xs, simp_all)
-done
+by (induct xs zs rule:list_induct2') auto
 
 lemma zip_append2:
-"!!ys. zip xs (ys @ zs) =
+"zip xs (ys @ zs) =
 zip (take (length ys) xs) ys @ zip (drop (length ys) xs) zs"
-apply (induct xs, simp)
-apply (case_tac ys, simp_all)
-done
+by (induct xs ys rule:list_induct2') auto
 
 lemma zip_append [simp]:
  "[| length xs = length us; length ys = length vs |] ==>
@@ -1449,6 +1451,13 @@ apply (case_tac xs, simp)
 apply (case_tac ys, simp_all)
 done
 
+lemma set_zip_leftD:
+  "(x,y)\<in> set (zip xs ys) \<Longrightarrow> x \<in> set xs"
+by (induct xs ys rule:list_induct2') auto
+
+lemma set_zip_rightD:
+  "(x,y)\<in> set (zip xs ys) \<Longrightarrow> y \<in> set ys"
+by (induct xs ys rule:list_induct2') auto
 
 subsubsection {* @{text list_all2} *}
 
