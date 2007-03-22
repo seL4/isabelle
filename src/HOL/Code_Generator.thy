@@ -175,8 +175,8 @@ lemma [code func]:
 text {* code generation for undefined as exception *}
 
 code_const undefined
-  (SML "(raise Fail \"undefined\")")
-  (OCaml "(failwith \"undefined\")")
+  (SML "raise/ Fail/ \"undefined\"")
+  (OCaml "failwith/ \"undefined\"")
   (Haskell "error/ \"undefined\"")
 
 code_reserved SML Fail

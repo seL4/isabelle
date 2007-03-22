@@ -18,9 +18,7 @@ subsection {* Terms in normal form *}
 
 definition
   listall :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
-  "listall P xs == (\<forall>i. i < length xs \<longrightarrow> P (xs ! i))"
-
-declare listall_def [extraction_expand]
+  [extraction_expand]: "listall P xs \<equiv> (\<forall>i. i < length xs \<longrightarrow> P (xs ! i))"
 
 theorem listall_nil: "listall P []"
   by (simp add: listall_def)
@@ -573,19 +571,21 @@ text {*
 The same story again for code next generation.
 *}
 
+setup {*
+  CodegenSerializer.add_undefined "SML" "arbitrary" "(raise Fail \"arbitrary\")"
+*}
+
 code_gen
-  type_NF (SML #)
+  type_NF nat int (SML #)
 
 ML {*
 structure Norm = ROOT.WeakNorm;
 structure Type = ROOT.Type;
 structure Lambda = ROOT.Lambda;
+structure Nat = ROOT.Nat;
 
-fun nat_of_int 0 = ROOT.Nat.Zero_nat
-  | nat_of_int n = ROOT.Nat.Suc (nat_of_int (n-1));
-
-fun int_of_nat ROOT.Nat.Zero_nat = 0
-  | int_of_nat (ROOT.Nat.Suc n) = 1 + int_of_nat n;
+val nat_of_int = ROOT.Integer.nat;
+val int_of_nat = ROOT.Integer.int;
 
 fun dBtype_of_typ (Type ("fun", [T, U])) =
       Type.Fun (dBtype_of_typ T, dBtype_of_typ U)
@@ -622,7 +622,7 @@ fun typing_of_term Ts e (Bound i) =
       let val dBT = dBtype_of_typ T
       in Norm.Absa (e, dBT, dB_of_term t,
         dBtype_of_typ (fastype_of1 (T :: Ts, t)),
-        typing_of_term (T :: Ts) (Type.shift e ROOT.Nat.Zero_nat dBT) t)
+        typing_of_term (T :: Ts) (Type.shift e Nat.Zero_nat dBT) t)
       end
   | typing_of_term _ _ _ = error "typing_of_term: bad term";
 
