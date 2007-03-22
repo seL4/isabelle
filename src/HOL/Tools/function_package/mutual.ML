@@ -68,12 +68,6 @@ datatype mutual_info =
     fsum : term option
    }
 
-
-
-
-
-
-
 fun mutual_induct_Pnames n =
     if n < 5 then fst (chop n ["P","Q","R","S"])
     else map (fn i => "P" ^ string_of_int i) (1 upto n)
@@ -81,8 +75,6 @@ fun mutual_induct_Pnames n =
 
 fun open_all_all (Const ("all", _) $ Abs (n, T, b)) = apfst (cons (n, T)) (open_all_all b)
   | open_all_all t = ([], t)
-
-
 
 (* Builds a curried clause description in abstracted form *)
 fun split_def ctxt fnames geq arities =
@@ -252,34 +244,26 @@ fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
       val export = fold_rev (implies_intr o cprop_of) ags
                    #> fold_rev forall_intr_rename (oqnames ~~ cqs)
     in
-      F (f, qs, gs, args, rhs) import export
+      F ctxt (f, qs, gs, args, rhs) import export
     end
 
-
-fun recover_mutual_psimp thy RST streeR all_f_defs parts (f, _, _, args, _) import (export : thm -> thm) sum_psimp_eq =
+fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs) import (export : thm -> thm) sum_psimp_eq =
     let
-      val (MutualPart {f_defthm=SOME f_def, pthR, ...}) = get_part f parts
-          
+      val (MutualPart {f=SOME f, f_defthm=SOME f_def, pthR, ...}) = get_part fname parts
+
       val psimp = import sum_psimp_eq
       val (simp, restore_cond) = case cprems_of psimp of
                                    [] => (psimp, I)
                                  | [cond] => (implies_elim psimp (assume cond), implies_intr cond)
                                  | _ => sys_error "Too many conditions"
-
-      val x = Free ("x", RST)
-
-      val f_def_inst = fold (fn arg => fn thm => combination thm (reflexive (cterm_of thy arg))) args (Thm.freezeT f_def) (* FIXME *)
-                            |> beta_reduce
     in
-      reflexive (cterm_of thy (lambda x (SumTools.mk_proj streeR pthR x)))  (*  PR(x) == PR(x) *)
-                |> (fn it => combination it (simp RS eq_reflection))
-                |> beta_norm_eq (*  PR(S(I(as))) == PR(IR(...)) *)
-                |> transitive f_def_inst (*  f ... == PR(IR(...)) *)
-                |> simplify (HOL_basic_ss addsimps [SumTools.projl_inl, SumTools.projr_inr]) (*  f ... == ... *)
-                |> simplify (HOL_basic_ss addsimps all_f_defs) (*  f ... == ... *)
-                |> (fn it => it RS meta_eq_to_obj_eq)
-                |> restore_cond
-                |> export
+      Goal.prove ctxt [] [] 
+                 (HOLogic.Trueprop $ HOLogic.mk_eq (list_comb (f, args), rhs))
+                 (fn _ => SIMPSET (unfold_tac all_orig_fdefs)
+                          THEN EqSubst.eqsubst_tac ctxt [0] [simp] 1
+                          THEN SIMPSET' simp_tac 1)
+        |> restore_cond 
+        |> export
     end
 
 
@@ -353,9 +337,11 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {RST, parts, streeR, fq
       val all_f_defs = map (fn MutualPart {f_defthm = SOME f_def, cargTs, ...} =>
                                mk_applied_form lthy cargTs (symmetric (Thm.freezeT f_def)))
                            parts
+
+      val all_orig_fdefs = map (fn MutualPart {f_defthm = SOME f_def, ...} => f_def) parts
                            
       fun mk_mpsimp fqgar sum_psimp =
-          in_context lthy fqgar (recover_mutual_psimp thy RST streeR all_f_defs parts) sum_psimp
+          in_context lthy fqgar (recover_mutual_psimp all_orig_fdefs parts) sum_psimp
           
       val mpsimps = map2 mk_mpsimp fqgars psimps
       val mtrsimps = map_option (map2 mk_mpsimp fqgars) trsimps
