@@ -139,7 +139,8 @@ fun get_pi t thy =
 	     in 
 		if (Type.of_sort (Sign.tsig_of thy) (ty,[class_name])) 
                 then [(pi,typi)] 
-                else raise EQVT_FORM "Could not find a permutation" 
+                else raise 
+                EQVT_FORM ("Could not find any permutation or an argument is not an instance of "^class_name) 
              end 
         | Abs (_,_,t1) => get_pi_aux t1
         | (t1 $ t2) => get_pi_aux t1 @ get_pi_aux t2
