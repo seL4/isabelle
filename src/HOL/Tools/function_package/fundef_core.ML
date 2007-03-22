@@ -479,9 +479,9 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
           Abs ("x", domT, Const ("FunDef.THE_default", ranT --> (ranT --> boolT) --> ranT) $ (default $ Bound 0) $
                                 Abs ("y", ranT, G $ Bound 1 $ Bound 0))
               |> Envir.beta_norm (* FIXME: LocalTheory.def does not work if not beta-normal *)
-          
+
       val ((f, (_, f_defthm)), lthy) =
-        LocalTheory.def Thm.internalK ((fname ^ "C", mixfix), ((fdefname, []), f_def)) lthy
+        LocalTheory.def Thm.internalK ((function_name fname, mixfix), ((fdefname, []), f_def)) lthy
     in
       ((f, f_defthm), lthy)
     end
@@ -897,7 +897,7 @@ fun prepare_fundef config defname (fname, fT, mixfix) abstract_qglrs default_str
           PROFILE "def_rel" (define_recursion_relation (rel_name defname) domT ranT fvar f abstract_qglrs clauses RCss) lthy
 
       val (_, lthy) = 
-          LocalTheory.abbrev Syntax.default_mode ((defname ^ "_dom", NoSyn), mk_acc domT R) lthy
+          LocalTheory.abbrev Syntax.default_mode ((dom_name defname, NoSyn), mk_acc domT R) lthy
 
       val newthy = ProofContext.theory_of lthy
       val clauses = map (transfer_clause_ctx newthy) clauses

@@ -23,8 +23,8 @@ fun relation_tac ctxt rel =
       val rule = FundefCommon.get_termination_rule ctxt |> the
                   |> Thm.incr_indexes (#maxidx (Thm.rep_cterm rel') + 1)
 
-      val prem = #1 (Logic.dest_implies (Thm.prop_of rule))
-      val Rvar = cert (Var (the_single (Term.add_vars prem [])))
+      val _ $ premise $ _ = Thm.prop_of rule
+      val Rvar = cert (Var (the_single (Term.add_vars premise [])))
     in rtac (Drule.cterm_instantiate [(Rvar, rel')] rule) end
 
 
