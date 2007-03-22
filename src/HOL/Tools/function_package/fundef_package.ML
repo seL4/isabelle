@@ -10,13 +10,13 @@ Isar commands.
 signature FUNDEF_PACKAGE =
 sig
     val add_fundef :  (string * string option * mixfix) list
-                      -> ((bstring * Attrib.src list) * (string * bool) list) list list
+                      -> ((bstring * Attrib.src list) * (string * bool)) list 
                       -> FundefCommon.fundef_config
                       -> local_theory
                       -> string * Proof.state
 
     val add_fundef_i:  (string * typ option * mixfix) list
-                       -> ((bstring * Attrib.src list) * (term * bool) list) list list
+                       -> ((bstring * Attrib.src list) * (term * bool)) list
                        -> FundefCommon.fundef_config
                        -> local_theory
                        -> string * Proof.state
@@ -47,15 +47,15 @@ fun burrow_snd f ps = (* ('a list -> 'b list) -> ('c * 'a) list -> ('c * 'b) lis
     in xs ~~ f ys end
 
 fun restore_spec_structure reps spec =
-    (burrow o burrow_snd o burrow o K) reps spec
+    (burrow_snd o burrow o K) reps spec
 
 fun add_simps fixes spec sort label moreatts simps lthy =
     let
       val fnames = map (fst o fst) fixes
 
       val (saved_spec_simps, lthy) =
-        fold_map (fold_map note_theorem) (restore_spec_structure simps spec) lthy
-      val saved_simps = flat (map snd (flat saved_spec_simps))
+        fold_map note_theorem (restore_spec_structure simps spec) lthy
+      val saved_simps = flat (map snd saved_spec_simps)
 
       val simps_by_f = sort saved_simps
 
@@ -99,20 +99,20 @@ fun fundef_afterqed config fixes spec defname cont sort_cont [[proof]] lthy =
 
 fun prep_with_flags prep fixspec eqnss_flags global_flag lthy =
     let
-      val eqnss = map (map (apsnd (map fst))) eqnss_flags
-      val flags = map (map (map (fn (_, f) => global_flag orelse f) o snd)) eqnss_flags
+      val flags = map (fn x => global_flag orelse (snd (snd x))) eqnss_flags
+      val eqns = map (apsnd (single o fst)) eqnss_flags
 
       val ((fixes, _), ctxt') = prep fixspec [] lthy
-      val spec = map (fn eqns => snd (fst (prep [] eqns ctxt'))) eqnss
-                     |> map (map (apsnd (map (fn t => fold_rev (mk_forall o Free) (frees_in_term ctxt' t) t)))) (* Add quantifiers *)
-                     |> map2 (map2 (fn fs => fn (r, thms) => (r, fs ~~ thms))) flags
-                     |> (burrow o burrow_snd o burrow)
-                          (FundefSplit.split_some_equations lthy)
-                     |> map (map (apsnd flat))
+
+      fun prep_eqn e = the_single (snd (fst (prep [] [e] ctxt')))
+                         |> apsnd the_single
+
+      val spec = map prep_eqn eqns
+                     |> map (apsnd (fn t => fold_rev (mk_forall o Free) (frees_in_term ctxt' t) t)) (* Add quantifiers *)
+                     |> burrow_snd (fn ts => FundefSplit.split_some_equations ctxt' (flags ~~ ts))
     in
       ((fixes, spec), ctxt')
     end
-
 
 fun gen_add_fundef prep_spec fixspec eqnss_flags config lthy =
     let
@@ -122,8 +122,7 @@ fun gen_add_fundef prep_spec fixspec eqnss_flags config lthy =
 
       val defname = mk_defname fixes
 
-      val t_eqns = spec
-                     |> flat |> map snd |> flat (* flatten external structure *)
+      val t_eqns = spec |> map snd |> flat (* flatten external structure *)
 
       val ((goalstate, cont, sort_cont), lthy) =
           FundefMutual.prepare_fundef_mutual config defname fixes t_eqns default lthy
@@ -225,25 +224,12 @@ val get_congs = FundefCommon.get_fundef_congs o Context.Theory
 
 local structure P = OuterParse and K = OuterKeyword in
 
-
-
-fun or_list1 s = P.enum1 "|" s
-
-val opt_sequential = Scan.optional ((P.$$$ "(" |-- P.$$$ "sequential" --| P.$$$ ")") >> K true) false
-
-val otherwise = P.$$$ "(" |-- P.$$$ "otherwise" --| P.$$$ ")"
-val statement_ow = P.and_list1 (SpecParse.opt_thm_name ":" -- Scan.repeat1 (P.prop -- Scan.optional (otherwise >> K true) false))
-val statements_ow = or_list1 statement_ow
-
-
 val functionP =
   OuterSyntax.command "function" "define general recursive functions" K.thy_goal
-  ((config_parser default_config -- P.opt_target -- P.fixes --| P.$$$ "where" -- statements_ow)
-     >> (fn (((config, target), fixes), statements) =>
-            Toplevel.local_theory_to_proof target (add_fundef fixes statements config #> snd)
+  (fundef_parser default_config
+     >> (fn ((config, fixes), statements) =>
+            Toplevel.local_theory_to_proof (target_of config) (add_fundef fixes statements config #> snd)
             #> Toplevel.print));
-
-
 
 val terminationP =
   OuterSyntax.command "termination" "prove termination of a recursive function" K.thy_goal
@@ -251,7 +237,6 @@ val terminationP =
     >> (fn (target, name) =>
            Toplevel.print o
            Toplevel.local_theory_to_proof target (setup_termination_proof name)));
-
 
 val _ = OuterSyntax.add_parsers [functionP];
 val _ = OuterSyntax.add_parsers [terminationP];

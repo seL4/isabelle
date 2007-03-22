@@ -9,26 +9,22 @@ Common type definitions and other infrastructure.
 structure FundefCommon =
 struct
 
-(* Theory Dependencies *)
-val acc_const_name = "Accessible_Part.acc"
-
+(* Profiling *)
 val profile = ref false;
 
 fun PROFILE msg = if !profile then timeap_msg msg else I
 
+
+val acc_const_name = "Accessible_Part.acc"
 fun mk_acc domT R =
     Const (acc_const_name, (fastype_of R) --> domT --> HOLogic.boolT) $ R 
 
-(* FIXME, unused *)
 val function_name = suffix "C"
 val graph_name = suffix "_graph"
 val rel_name = suffix "_rel"
 val dom_name = suffix "_dom"
 
-val dest_rel_name = unsuffix "_rel"
-
 type depgraph = int IntGraph.T
-
 
 datatype ctx_tree 
   = Leaf of term
@@ -160,29 +156,37 @@ fun apply_opt Sequential (FundefConfig {sequential, default, preprocessor, targe
   | apply_opt Tailrec (FundefConfig {sequential, default, preprocessor, target, domintros,tailrec }) =
     FundefConfig {sequential=sequential, default=default, preprocessor=preprocessor, target=target, domintros=domintros,tailrec=true } 
 
+fun target_of (FundefConfig {target, ...}) = target
 
-local structure P = OuterParse and K = OuterKeyword in
+local 
+  structure P = OuterParse and K = OuterKeyword 
 
-val opt_sequential = Scan.optional ((P.$$$ "(" |-- P.$$$ "sequential" --| P.$$$ ")") >> K true) false
+  val opt_sequential = Scan.optional ((P.$$$ "(" |-- P.$$$ "sequential" --| P.$$$ ")") >> K true) false
+                       
+  val option_parser = (P.$$$ "sequential" >> K Sequential)
+                   || ((P.reserved "default" |-- P.term) >> Default)
+                   || (P.reserved "domintros" >> K DomIntros)
+                   || (P.reserved "tailrec" >> K Tailrec)
+                   || ((P.$$$ "in" |-- P.xname) >> Target)
 
-val option_parser = (P.$$$ "sequential" >> K Sequential)
-               || ((P.reserved "default" |-- P.term) >> Default)
-               || (P.reserved "domintros" >> K DomIntros)
-               || (P.reserved "tailrec" >> K Tailrec)
-               || ((P.$$$ "in" |-- P.xname) >> Target)
-
-fun config_parser def = (Scan.optional (P.$$$ "(" |-- P.list1 option_parser --| P.$$$ ")") [])
+  fun config_parser def = (Scan.optional (P.$$$ "(" |-- P.!!! (P.list1 (P.group "option" option_parser)) --| P.$$$ ")") [])
                           >> (fn opts => fold apply_opt opts def)
 
+  fun pipe_list1 s = P.enum1 "|" s
+
+  val otherwise = P.$$$ "(" |-- P.$$$ "otherwise" --| P.$$$ ")"
+
+  fun pipe_error t = P.!!! (Scan.fail_with (K (cat_lines ["Equations must be separated by " ^ quote "|", quote t])))
+
+  val statement_ow = SpecParse.opt_thm_name ":" -- (P.prop -- Scan.optional (otherwise >> K true) false)
+                     --| Scan.ahead ((P.term :-- pipe_error) || Scan.succeed ("",""))
+
+  val statements_ow = pipe_list1 statement_ow
+in
+  fun fundef_parser default_cfg = config_parser default_cfg -- P.fixes --| P.$$$ "where" -- statements_ow
 end
 
-
-
-
-
 end
-
-
 
 (* Common Abbreviations *)
 
@@ -191,32 +195,13 @@ struct
 
 fun implies_elim_swp x y = implies_elim y x
 
-(* Some HOL things frequently used *)
+(* HOL abbreviations *)
 val boolT = HOLogic.boolT
 val mk_prod = HOLogic.mk_prod
-val mk_mem = HOLogic.mk_mem
 val mk_eq = HOLogic.mk_eq
 val eq_const = HOLogic.eq_const
 val Trueprop = HOLogic.mk_Trueprop
-
 val mk_relT = HOLogic.mk_setT o HOLogic.mk_prodT
-fun mk_relmem (x,y) R = Trueprop (mk_mem (mk_prod (x, y), R))
-
-fun mk_subset T A B = 
-    let val sT = HOLogic.mk_setT T
-    in Const ("Orderings.less_eq", sT --> sT --> boolT) $ A $ B end
-
-
-(* with explicit types: Needed with loose bounds *)
-fun mk_relmemT xT yT (x,y) R = 
-    let 
-  val pT = HOLogic.mk_prodT (xT, yT)
-  val RT = HOLogic.mk_setT pT
-    in
-  Const ("op :", [pT, RT] ---> boolT)
-        $ (HOLogic.pair_const xT yT $ x $ y)
-        $ R
-    end
 
 fun free_to_var (Free (v,T)) = Var ((v,0),T)
   | free_to_var _ = raise Match
