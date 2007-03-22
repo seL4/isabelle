@@ -2388,12 +2388,12 @@ lemma freshness_lemma:
   assumes pta: "pt TYPE('a) TYPE('x)"
   and     at:  "at TYPE('x)" 
   and     f1:  "finite ((supp h)::'x set)"
-  and     a: "\<exists>a::'x. (a\<sharp>h \<and> a\<sharp>(h a))"
+  and     a: "\<exists>a::'x. a\<sharp>(h,h a)"
   shows  "\<exists>fr::'a. \<forall>a::'x. a\<sharp>h \<longrightarrow> (h a) = fr"
 proof -
   have ptb: "pt TYPE('x) TYPE('x)" by (simp add: at_pt_inst[OF at]) 
   have ptc: "pt TYPE('x\<Rightarrow>'a) TYPE('x)" by (simp add: pt_fun_inst[OF ptb, OF pta, OF at]) 
-  from a obtain a0 where a1: "a0\<sharp>h" and a2: "a0\<sharp>(h a0)" by force
+  from a obtain a0 where a1: "a0\<sharp>h" and a2: "a0\<sharp>(h a0)" by (force simp add: fresh_prod)
   show ?thesis
   proof
     let ?fr = "h (a0::'x)"
@@ -2432,7 +2432,7 @@ lemma freshness_lemma_unique:
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)" 
   and     f1: "finite ((supp h)::'x set)"
-  and     a: "\<exists>(a::'x). (a\<sharp>h \<and> a\<sharp>(h a))"
+  and     a: "\<exists>(a::'x). a\<sharp>(h,h a)"
   shows  "\<exists>!(fr::'a). \<forall>(a::'x). a\<sharp>h \<longrightarrow> (h a) = fr"
 proof (rule ex_ex1I)
   from pt at f1 a show "\<exists>fr::'a. \<forall>a::'x. a\<sharp>h \<longrightarrow> h a = fr" by (simp add: freshness_lemma)
@@ -2440,7 +2440,7 @@ next
   fix fr1 fr2
   assume b1: "\<forall>a::'x. a\<sharp>h \<longrightarrow> h a = fr1"
   assume b2: "\<forall>a::'x. a\<sharp>h \<longrightarrow> h a = fr2"
-  from a obtain a where "(a::'x)\<sharp>h" by force 
+  from a obtain a where "(a::'x)\<sharp>h" by (force simp add: fresh_prod) 
   with b1 b2 have "h a = fr1 \<and> h a = fr2" by force
   thus "fr1 = fr2" by force
 qed
@@ -2456,7 +2456,7 @@ lemma fresh_fun_app:
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)" 
   and     f1: "finite ((supp h)::'x set)"
-  and     a: "\<exists>(a::'x). (a\<sharp>h \<and> a\<sharp>(h a))"
+  and     a: "\<exists>(a::'x). a\<sharp>(h,h a)"
   and     b: "a\<sharp>h"
   shows "(fresh_fun h) = (h a)"
 proof (unfold fresh_fun_def, rule the_equality)
@@ -2484,7 +2484,7 @@ lemma fresh_fun_equiv_ineq:
   and     cpa: "cp TYPE('a) TYPE('x) TYPE('y)"
   and     cpb: "cp TYPE('y) TYPE('x) TYPE('y)"
   and     f1: "finite ((supp h)::'y set)"
-  and     a1: "\<exists>(a::'y). (a\<sharp>h \<and> a\<sharp>(h a))"
+  and     a1: "\<exists>(a::'y). a\<sharp>(h,h a)"
   shows "pi\<bullet>(fresh_fun h) = fresh_fun(pi\<bullet>h)" (is "?LHS = ?RHS")
 proof -
   have ptd: "pt TYPE('y) TYPE('y)" by (simp add: at_pt_inst[OF at']) 
@@ -2497,8 +2497,8 @@ proof -
     thus ?thesis
       by (simp add: pt_perm_supp_ineq[OF ptc, OF ptb, OF at, OF cpc])
   qed
-  from a1 obtain a' where c0: "a'\<sharp>h \<and> a'\<sharp>(h a')" by force
-  hence c1: "a'\<sharp>h" and c2: "a'\<sharp>(h a')" by simp_all
+  from a1 obtain a' where c0: "a'\<sharp>(h,h a')" by force
+  hence c1: "a'\<sharp>h" and c2: "a'\<sharp>(h a')" by (simp_all add: fresh_prod)
   have c3: "(pi\<bullet>a')\<sharp>(pi\<bullet>h)" using c1
   by (simp add: pt_fresh_bij_ineq[OF ptc, OF ptb, OF at, OF cpc])
   have c4: "(pi\<bullet>a')\<sharp>(pi\<bullet>h) (pi\<bullet>a')"
@@ -2507,7 +2507,7 @@ proof -
       by (simp add: pt_fresh_bij_ineq[OF pta, OF ptb, OF at,OF cpa])
     thus ?thesis by (simp add: pt_fun_app_eq[OF ptb, OF at])
   qed
-  have a2: "\<exists>(a::'y). (a\<sharp>(pi\<bullet>h) \<and> a\<sharp>((pi\<bullet>h) a))" using c3 c4 by force
+  have a2: "\<exists>(a::'y). a\<sharp>(pi\<bullet>h,(pi\<bullet>h) a)" using c3 c4 by (force simp add: fresh_prod)
   have d1: "?LHS = pi\<bullet>(h a')" using c1 a1 by (simp add: fresh_fun_app[OF ptb', OF at', OF f1])
   have d2: "?RHS = (pi\<bullet>h) (pi\<bullet>a')" using c3 a2 
     by (simp add: fresh_fun_app[OF ptb', OF at', OF f2])
@@ -2520,7 +2520,7 @@ lemma fresh_fun_equiv:
   assumes pta: "pt TYPE('a) TYPE('x)"
   and     at:  "at TYPE('x)" 
   and     f1:  "finite ((supp h)::'x set)"
-  and     a1: "\<exists>(a::'x). (a\<sharp>h \<and> a\<sharp>(h a))"
+  and     a1: "\<exists>(a::'x). a\<sharp>(h,h a)"
   shows "pi\<bullet>(fresh_fun h) = fresh_fun(pi\<bullet>h)" (is "?LHS = ?RHS")
 proof -
   have ptb: "pt TYPE('x) TYPE('x)" by (simp add: at_pt_inst[OF at]) 
@@ -2530,15 +2530,15 @@ proof -
     from f1 have "finite (pi\<bullet>((supp h)::'x set))" by (simp add: pt_set_finite_ineq[OF ptb, OF at])
     thus ?thesis by (simp add: pt_perm_supp[OF ptc, OF at])
   qed
-  from a1 obtain a' where c0: "a'\<sharp>h \<and> a'\<sharp>(h a')" by force
-  hence c1: "a'\<sharp>h" and c2: "a'\<sharp>(h a')" by simp_all
+  from a1 obtain a' where c0: "a'\<sharp>(h,h a')" by force
+  hence c1: "a'\<sharp>h" and c2: "a'\<sharp>(h a')" by (simp_all add: fresh_prod)
   have c3: "(pi\<bullet>a')\<sharp>(pi\<bullet>h)" using c1 by (simp add: pt_fresh_bij[OF ptc, OF at])
   have c4: "(pi\<bullet>a')\<sharp>(pi\<bullet>h) (pi\<bullet>a')"
   proof -
     from c2 have "(pi\<bullet>a')\<sharp>(pi\<bullet>(h a'))" by (simp add: pt_fresh_bij[OF pta, OF at])
     thus ?thesis by (simp add: pt_fun_app_eq[OF ptb, OF at])
   qed
-  have a2: "\<exists>(a::'x). (a\<sharp>(pi\<bullet>h) \<and> a\<sharp>((pi\<bullet>h) a))" using c3 c4 by force
+  have a2: "\<exists>(a::'x). a\<sharp>(pi\<bullet>h,(pi\<bullet>h) a)" using c3 c4 by (force simp add: fresh_prod)
   have d1: "?LHS = pi\<bullet>(h a')" using c1 a1 by (simp add: fresh_fun_app[OF pta, OF at, OF f1])
   have d2: "?RHS = (pi\<bullet>h) (pi\<bullet>a')" using c3 a2 by (simp add: fresh_fun_app[OF pta, OF at, OF f2])
   show ?thesis using d1 d2 by (simp add: pt_fun_app_eq[OF ptb, OF at])
@@ -2549,7 +2549,7 @@ lemma fresh_fun_supports:
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)" 
   and     f1: "finite ((supp h)::'x set)"
-  and     a: "\<exists>(a::'x). (a\<sharp>h \<and> a\<sharp>(h a))"
+  and     a: "\<exists>(a::'x). a\<sharp>(h,h a)"
   shows "((supp h)::'x set) supports (fresh_fun h)"
   apply(simp add: "op supports_def" fresh_def[symmetric])
   apply(auto)
@@ -3073,7 +3073,7 @@ by (simp add:perm_nat_def)
 
 lemma min_nat_eqvt:
   fixes x::"nat"
-  shows "pi\<bullet>(max x y) = max (pi\<bullet>x) (pi\<bullet>y)" 
+  shows "pi\<bullet>(min x y) = min (pi\<bullet>x) (pi\<bullet>y)" 
 by (simp add:perm_nat_def) 
 
 lemma plus_nat_eqvt:
@@ -3115,7 +3115,7 @@ by (simp add:perm_int_def)
 
 lemma min_int_eqvt:
   fixes x::"int"
-  shows "pi\<bullet>(max x y) = max (pi\<bullet>x) (pi\<bullet>y)" 
+  shows "pi\<bullet>(min x y) = min (pi\<bullet>x) (pi\<bullet>y)" 
 by (simp add:perm_int_def) 
 
 lemma plus_int_eqvt:
