@@ -14,20 +14,23 @@ sig
   val add_func: bool -> thm -> theory -> theory
   val del_func: thm -> theory -> theory
   val add_funcl: CodegenConsts.const * thm list Susp.T -> theory -> theory
-  val add_datatype: string * ((string * sort) list * (string * typ list) list)
-    -> theory -> theory
   val add_inline: thm -> theory -> theory
   val del_inline: thm -> theory -> theory
   val add_inline_proc: string * (theory -> cterm list -> thm list) -> theory -> theory
   val del_inline_proc: string -> theory -> theory
   val add_preproc: string * (theory -> thm list -> thm list) -> theory -> theory
   val del_preproc: string -> theory -> theory
+  val add_datatype: string * ((string * sort) list * (string * typ list) list)
+    -> theory -> theory
+  val add_datatype_consts: CodegenConsts.const list -> theory -> theory
+
   val coregular_algebra: theory -> Sorts.algebra
   val operational_algebra: theory -> (sort -> sort) * Sorts.algebra
   val these_funcs: theory -> CodegenConsts.const -> thm list
   val tap_typ: theory -> CodegenConsts.const -> typ option
   val get_datatype: theory -> string -> ((string * sort) list * (string * typ list) list)
   val get_datatype_of_constr: theory -> CodegenConsts.const -> string option
+  val get_constr_typ: theory -> CodegenConsts.const -> typ option
 
   val preprocess_cterm: cterm -> thm
 
@@ -190,38 +193,37 @@ fun merge_funcs (thms1, thms2) =
     in (SOME consts, thms) end;
 
 val eq_string = op = : string * string -> bool;
+val eq_co = eq_pair eq_string (eq_list (is_equal o Term.typ_ord));
 fun eq_dtyp ((vs1, cs1), (vs2, cs2)) = 
   gen_eq_set (eq_pair eq_string (gen_eq_set eq_string)) (vs1, vs2)
-    andalso gen_eq_set (eq_pair eq_string (eq_list (is_equal o Term.typ_ord))) (cs1, cs2);
+    andalso gen_eq_set eq_co (cs1, cs2);
 fun merge_dtyps (tabs as (tab1, tab2)) =
   let
     val tycos1 = Symtab.keys tab1;
     val tycos2 = Symtab.keys tab2;
     val tycos' = filter (member eq_string tycos2) tycos1;
-    val touched = not (gen_eq_set (op =) (tycos1, tycos2) andalso
-      gen_eq_set (eq_pair (op =) (eq_dtyp))
+    val new_types = not (gen_eq_set (op =) (tycos1, tycos2));
+    val diff_types = not (gen_eq_set (eq_pair (op =) eq_dtyp)
       (AList.make (the o Symtab.lookup tab1) tycos',
        AList.make (the o Symtab.lookup tab2) tycos'));
-  in (touched, Symtab.merge (K true) tabs) end;
+  in ((new_types, diff_types), Symtab.merge (K true) tabs) end;
 
 datatype spec = Spec of {
   funcs: sdthms Consttab.table,
-  dconstrs: string Consttab.table,
   dtyps: ((string * sort) list * (string * typ list) list) Symtab.table
 };
 
-fun mk_spec ((funcs, dconstrs), dtyps) =
-  Spec { funcs = funcs, dconstrs = dconstrs, dtyps = dtyps };
-fun map_spec f (Spec { funcs = funcs, dconstrs = dconstrs, dtyps = dtyps }) =
-  mk_spec (f ((funcs, dconstrs), dtyps));
-fun merge_spec (Spec { funcs = funcs1, dconstrs = dconstrs1, dtyps = dtyps1 },
-  Spec { funcs = funcs2, dconstrs = dconstrs2, dtyps = dtyps2 }) =
+fun mk_spec (funcs, dtyps) =
+  Spec { funcs = funcs, dtyps = dtyps };
+fun map_spec f (Spec { funcs = funcs, dtyps = dtyps }) =
+  mk_spec (f (funcs, dtyps));
+fun merge_spec (Spec { funcs = funcs1, dtyps = dtyps1 },
+  Spec { funcs = funcs2, dtyps = dtyps2 }) =
   let
     val (touched_cs, funcs) = merge_funcs (funcs1, funcs2);
-    val dconstrs = Consttab.merge (K true) (dconstrs1, dconstrs2);
-    val (touched', dtyps) = merge_dtyps (dtyps1, dtyps2);
-    val touched = if touched' then NONE else touched_cs;
-  in (touched, mk_spec ((funcs, dconstrs), dtyps)) end;
+    val ((new_types, diff_types), dtyps) = merge_dtyps (dtyps1, dtyps2);
+    val touched = if new_types orelse diff_types then NONE else touched_cs;
+  in (touched, mk_spec (funcs, dtyps)) end;
 
 datatype exec = Exec of {
   preproc: preproc,
@@ -240,16 +242,14 @@ fun merge_exec (Exec { preproc = preproc1, spec = spec1 },
     val touched = if touched' then NONE else touched_cs;
   in (touched, mk_exec (preproc, spec)) end;
 val empty_exec = mk_exec (mk_preproc (([], []), []),
-  mk_spec ((Consttab.empty, Consttab.empty), Symtab.empty));
+  mk_spec (Consttab.empty, Symtab.empty));
 
 fun the_preproc (Exec { preproc = Preproc x, ...}) = x;
 fun the_spec (Exec { spec = Spec x, ...}) = x;
 val the_funcs = #funcs o the_spec;
-val the_dcontrs = #dconstrs o the_spec;
 val the_dtyps = #dtyps o the_spec;
 val map_preproc = map_exec o apfst o map_preproc;
-val map_funcs = map_exec o apsnd o map_spec o apfst o apfst;
-val map_dconstrs = map_exec o apsnd o map_spec o apfst o apsnd;
+val map_funcs = map_exec o apsnd o map_spec o apfst;
 val map_dtyps = map_exec o apsnd o map_spec o apsnd;
 
 
@@ -491,7 +491,6 @@ fun gen_classop_typ constr thy class (c, tyco) =
     val ty_inst = Type (tyco, map TFree sort_args);
   in Logic.varifyT (map_type_tfree (K ty_inst) ty) end;
 
-(*FIXME: make distinct step: building algebra from code theorems*)
 fun retrieve_algebra thy operational =
   Sorts.subalgebra (Sign.pp thy) operational
     (weakest_constraints thy)
@@ -611,80 +610,29 @@ fun add_funcl (c, lthms) thy =
 
 local
 
-fun consts_of_cos thy tyco vs cos =
-  let
-    val dty = Type (tyco, map TFree vs);
-    fun mk_co (co, tys) = CodegenConsts.norm_of_typ thy (co, tys ---> dty);
-  in map mk_co cos end;
-
-fun co_of_const thy (c, ty) =
-  let
-    fun err () = error
-     ("Illegal type for datatype constructor: " ^ Sign.string_of_typ thy ty);
-    val (tys, ty') = strip_type ty;
-    val (tyco, vs) = ((apsnd o map) dest_TFree o dest_Type) ty'
-      handle TYPE _ => err ();
-    val sorts = if has_duplicates (eq_fst op =) vs then err ()
-      else map snd vs;
-    val vs_names = Name.invent_list [] "'a" (length vs);
-    val vs_map = map fst vs ~~ vs_names;
-    val vs' = vs_names ~~ sorts;
-    val tys' = (map o map_type_tfree) (fn (v, sort) =>
-      (TFree ((the o AList.lookup (op =) vs_map) v, sort))) tys
-      handle Option => err ();
-  in (tyco, (vs', (c, tys'))) end;
-
 fun del_datatype tyco thy =
   case Symtab.lookup ((the_dtyps o get_exec) thy) tyco
    of SOME (vs, cos) => let
-        val consts = consts_of_cos thy tyco vs cos;
-        val del =
-          map_dtyps (Symtab.delete tyco)
-          #> map_dconstrs (fold Consttab.delete consts)
-      in map_exec_purge (SOME consts) del thy end
+        val consts = CodegenConsts.consts_of_cos thy tyco vs cos;
+      in map_exec_purge (SOME consts) (map_dtyps (Symtab.delete tyco)) thy end
     | NONE => thy;
-
-(*FIXME integrate this auxiliary properly*)
 
 in
 
 fun add_datatype (tyco, (vs_cos as (vs, cos))) thy =
   let
-    val consts = consts_of_cos thy tyco vs cos;
-    val add =
-      map_dtyps (Symtab.update_new (tyco, vs_cos))
-      #> map_dconstrs (fold (fn c => Consttab.update (c, tyco)) consts)
+    val consts = CodegenConsts.consts_of_cos thy tyco vs cos;
   in
     thy
     |> del_datatype tyco
-    |> map_exec_purge (SOME consts) add
+    |> map_exec_purge (SOME consts) (map_dtyps (Symtab.update_new (tyco, vs_cos)))
   end;
 
-fun add_datatype_consts cs thy =
-  let
-    val raw_cos = map (co_of_const thy) cs;
-    val (tyco, (vs_names, sorts_cos)) = if (length o distinct (eq_fst op =)) raw_cos = 1
-      then ((fst o hd) raw_cos, ((map fst o fst o snd o hd) raw_cos,
-        map ((apfst o map) snd o snd) raw_cos))
-      else error ("Term constructors not referring to the same type: "
-        ^ commas (map (CodegenConsts.string_of_const_typ thy) cs));
-    val sorts = foldr1 ((uncurry o map2 o curry o Sorts.inter_sort) (Sign.classes_of thy))
-      (map fst sorts_cos);
-    val cos = map snd sorts_cos;
-    val vs = vs_names ~~ sorts;
-  in
-    thy
-    |> add_datatype (tyco, (vs, cos))
-  end;
+fun add_datatype_consts consts thy =
+  add_datatype (CodegenConsts.cos_of_consts thy consts) thy;
 
 fun add_datatype_consts_cmd raw_cs thy =
-  let
-    val cs = map (apsnd Logic.unvarifyT o CodegenConsts.typ_of_inst thy
-      o CodegenConsts.read_const thy) raw_cs
-  in
-    thy
-    |> add_datatype_consts cs
-  end;
+  add_datatype_consts (map (CodegenConsts.read_const thy) raw_cs) thy
 
 end; (*local*)
 
@@ -711,6 +659,10 @@ fun add_preproc (name, f) =
 
 fun del_preproc name =
   (map_exec_purge NONE o map_preproc o apsnd) (delete_force "preprocessor" name);
+
+
+
+(** retrieval **)
 
 local
 
@@ -764,25 +716,6 @@ fun preprocess_cterm ct =
 
 end; (*local*)
 
-fun get_datatype thy tyco =
-  case Symtab.lookup ((the_dtyps o get_exec) thy) tyco
-   of SOME spec => spec
-    | NONE => Sign.arity_number thy tyco
-        |> Name.invents Name.context "'a"
-        |> map (rpair [])
-        |> rpair [];
-
-fun get_datatype_of_constr thy =
-  Consttab.lookup ((the_dcontrs o get_exec) thy);
-
-fun get_datatype_constr thy const =
-  case Consttab.lookup ((the_dcontrs o get_exec) thy) const
-   of SOME tyco => let
-        val (vs, cs) = get_datatype thy tyco;
-        (*FIXME continue here*)
-      in NONE end
-    | NONE => NONE;
-
 local
 
 fun get_funcs thy const =
@@ -820,6 +753,33 @@ fun tap_typ thy const =
     | [] => NONE;
 
 end; (*local*)
+
+fun get_datatype thy tyco =
+  case Symtab.lookup ((the_dtyps o get_exec) thy) tyco
+   of SOME spec => spec
+    | NONE => Sign.arity_number thy tyco
+        |> Name.invents Name.context "'a"
+        |> map (rpair [])
+        |> rpair [];
+
+fun get_datatype_of_constr thy const =
+  case CodegenConsts.co_of_const' thy const
+   of SOME (tyco, (_, co)) => if member eq_co
+        (Symtab.lookup (((the_dtyps o get_exec) thy)) tyco
+          |> Option.map snd
+          |> the_default []) co then SOME tyco else NONE
+    | NONE => NONE;
+
+fun get_constr_typ thy const =
+  case get_datatype_of_constr thy const
+   of SOME tyco => let
+        val (vs, cos) = get_datatype thy tyco;
+        val (_, (_, (co, tys))) = CodegenConsts.co_of_const thy const
+      in (tys ---> Type (tyco, map TFree vs))
+        |> map_atyps (fn TFree (v, _) => TFree (v, AList.lookup (op =) vs v |> the))
+        |> Logic.varifyT
+        |> SOME end
+    | NONE => NONE;
 
 
 (** code attributes **)

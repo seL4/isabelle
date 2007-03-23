@@ -282,50 +282,55 @@ In order to analyze the speed of the above programs,
 we generate ML code from them.
 *}
 
-consts_code
-  arbitrary :: "nat \<times> nat" ("{* (0::nat, 0::nat) *}")
-
-code_module PH
-contains
-  test = "\<lambda>n. pigeonhole n (\<lambda>m. m - 1)"
-  test' = "\<lambda>n. pigeonhole_slow n (\<lambda>m. m - 1)"
-  sel = "op !"
-
-ML "timeit (fn () => PH.test 10)"
-ML "timeit (fn () => PH.test' 10)"
-ML "timeit (fn () => PH.test 20)"
-ML "timeit (fn () => PH.test' 20)"
-ML "timeit (fn () => PH.test 25)"
-ML "timeit (fn () => PH.test' 25)"
-ML "timeit (fn () => PH.test 500)"
-
-ML "PH.pigeonhole 8 (PH.sel [0,1,2,3,4,5,6,3,7,8])"
-
-definition
-  arbitrary_nat :: "nat \<times> nat" where
-  [symmetric, code inline]: "arbitrary_nat = arbitrary"
-definition
-  arbitrary_nat_subst :: "nat \<times> nat" where
-  "arbitrary_nat_subst = (0, 0)"
-
-code_axioms
-  arbitrary_nat \<equiv> arbitrary_nat_subst
-
 definition
   "test n = pigeonhole n (\<lambda>m. m - 1)"
 definition
   "test' n = pigeonhole_slow n (\<lambda>m. m - 1)"
+definition
+  "test'' u = pigeonhole 8 (op ! [0, 1, 2, 3, 4, 5, 6, 3, 7, 8])"
 
-code_gen test test' "op !" (SML #)
 
+consts_code
+  arbitrary :: "nat \<times> nat" ("{* (0::nat, 0::nat) *}")
+
+definition
+  arbitrary_nat_pair :: "nat \<times> nat" where
+  [symmetric, code inline]: "arbitrary_nat_pair = arbitrary"
+
+code_const arbitrary_nat_pair (SML "(~1, ~1)")
+  (* this is justified since for valid inputs this "arbitrary" will be dropped
+     in the next recursion step in pigeonhole_def *)
+
+code_module PH
+contains
+  test = test
+  test' = test'
+  test'' = test''
+
+code_gen test test' test'' (SML #)
+
+ML "timeit (fn () => PH.test 10)"
 ML "timeit (fn () => ROOT.Pigeonhole.test 10)"
+
+ML "timeit (fn () => PH.test' 10)"
 ML "timeit (fn () => ROOT.Pigeonhole.test' 10)"
+
+ML "timeit (fn () => PH.test 20)"
 ML "timeit (fn () => ROOT.Pigeonhole.test 20)"
+
+ML "timeit (fn () => PH.test' 20)"
 ML "timeit (fn () => ROOT.Pigeonhole.test' 20)"
+
+ML "timeit (fn () => PH.test 25)"
 ML "timeit (fn () => ROOT.Pigeonhole.test 25)"
+
+ML "timeit (fn () => PH.test' 25)"
 ML "timeit (fn () => ROOT.Pigeonhole.test' 25)"
+
+ML "timeit (fn () => PH.test 500)"
 ML "timeit (fn () => ROOT.Pigeonhole.test 500)"
 
-ML "ROOT.Pigeonhole.pigeonhole 8 (ROOT.List.nth [0,1,2,3,4,5,6,3,7,8])"
+ML "timeit PH.test''"
+ML "timeit ROOT.Pigeonhole.test''"
 
 end

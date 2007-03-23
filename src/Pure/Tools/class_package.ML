@@ -112,13 +112,13 @@ fun gen_read_def thy prep_att read_def ((raw_name, raw_atts), raw_t) =
     val (_, t) = read_def thy (raw_name, raw_t);
     val ((c, ty), _) = Sign.cert_def (Sign.pp thy) t;
     val atts = map (prep_att thy) raw_atts;
-    val insts = (Consts.typargs (Sign.consts_of thy) (c, ty))
+    val insts = Consts.typargs (Sign.consts_of thy) (c, ty);
     val name = case raw_name
      of "" => NONE
       | _ => SOME raw_name;
   in (c, (insts, ((name, t), atts))) end;
 
-fun read_def_cmd thy = gen_read_def thy Attrib.intern_src read_axm;
+fun read_def_cmd thy = gen_read_def thy Attrib.intern_src Theory.read_axm;
 fun read_def thy = gen_read_def thy (K I) (K I);
 
 fun gen_instance_arity prep_arity read_def do_proof raw_arities raw_defs theory =
@@ -153,13 +153,13 @@ fun gen_instance_arity prep_arity read_def do_proof raw_arities raw_defs theory 
             val (c, (inst, ((name_opt, t), atts))) = read_def thy_read raw_def;
             val ty = Consts.instance (Sign.consts_of thy_read) (c, inst);
             val ((tyco, class), ty') = case AList.lookup (op =) cs c
-             of NONE => error ("superfluous definition for constant " ^ quote c)
+             of NONE => error ("illegal definition for constant " ^ quote c)
               | SOME class_ty => class_ty;
             val name = case name_opt
              of NONE => Thm.def_name (Logic.name_arity (tyco, [], c))
               | SOME name => name;
             val t' = case mk_typnorm thy_read (ty', ty)
-             of NONE => error ("superfluous definition for constant " ^
+             of NONE => error ("illegal definition for constant " ^
                   quote c ^ "::" ^ Sign.string_of_typ thy_read ty)
               | SOME norm => map_types norm t
           in (((class, tyco), ((name, t'), atts)), AList.delete (op =) c cs) end;

@@ -74,6 +74,19 @@ structure Funcgr = CodegenFuncgrRetrieval (
 fun print_codethms thy =
   Pretty.writeln o CodegenFuncgr.pretty thy o Funcgr.make thy;
 
+fun code_deps thy consts =
+  let
+    val gr = Funcgr.make thy consts;
+    fun mk_entry (const, (_, (_, parents))) =
+      let
+        val name = CodegenConsts.string_of_const thy const;
+        val nameparents = map (CodegenConsts.string_of_const thy) parents;
+      in { name = name, ID = name, dir = "", unfold = true,
+        path = "", parents = nameparents }
+      end;
+    val prgr = CodegenFuncgr.Constgraph.fold ((fn x => fn xs => xs @ [x]) o mk_entry) gr [];
+  in Present.display_graph prgr end;
+
 structure Code = CodeDataFun
 (struct
   val name = "Pure/codegen_package_code";
@@ -574,8 +587,8 @@ fun codegen_term thy t =
 
 fun raw_eval_term thy (ref_spec, t) args =
   let
-    val _ = (Term.fold_types o Term.fold_atyps) (fn _ =>
-      error ("Term" ^ Sign.string_of_term thy t ^ "is polymorphic"))
+    val _ = (Term.map_types o Term.map_atyps) (fn _ =>
+      error ("Term " ^ Sign.string_of_term thy t ^ " contains polymorphic type"))
       t;
     val t' = codegen_term thy t;
   in
@@ -650,9 +663,11 @@ fun code raw_cs seris thy =
     (map (serialize' cs code) (map_filter snd seris'); ())
   end;
 
-fun print_codethms_e thy =
+fun print_codethms_cmd thy =
   print_codethms thy o map (CodegenConsts.read_const thy);
 
+fun code_deps_cmd thy =
+  code_deps thy o map (CodegenConsts.read_const thy);
 
 val code_exprP = (
     (Scan.repeat P.term
@@ -662,8 +677,8 @@ val code_exprP = (
     >> (fn (raw_cs, seris) => code raw_cs seris)
   );
 
-val (codeK, code_abstypeK, code_axiomsK, code_thmsK) =
-  ("code_gen", "code_abstype", "code_axioms", "code_thms");
+val (codeK, code_abstypeK, code_axiomsK, code_thmsK, code_depsK) =
+  ("code_gen", "code_abstype", "code_axioms", "code_thms", "code_deps");
 
 in
 
@@ -693,9 +708,15 @@ val code_thmsP =
   OuterSyntax.improper_command code_thmsK "print cached defining equations" OuterKeyword.diag
     (Scan.repeat P.term
       >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
-        o Toplevel.keep ((fn thy => print_codethms_e thy cs) o Toplevel.theory_of)));
+        o Toplevel.keep ((fn thy => print_codethms_cmd thy cs) o Toplevel.theory_of)));
 
-val _ = OuterSyntax.add_parsers [codeP, code_abstypeP, code_axiomsP, code_thmsP];
+val code_depsP =
+  OuterSyntax.improper_command code_depsK "visualize dependencies of defining equations" OuterKeyword.diag
+    (Scan.repeat P.term
+      >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
+        o Toplevel.keep ((fn thy => code_deps_cmd thy cs) o Toplevel.theory_of)));
+
+val _ = OuterSyntax.add_parsers [codeP, code_abstypeP, code_axiomsP, code_thmsP, code_depsP];
 
 end; (* local *)
 

@@ -148,6 +148,8 @@ text {*
   @{typ nat} is no longer a datatype but embedded into the integers.
 *}
 
+code_datatype nat_of_int
+
 code_const "0::nat"
   (SML "!(0 : IntInf.int)")
   (OCaml "Big'_int.big'_int'_of'_int/ 0")
@@ -157,10 +159,6 @@ code_const "Suc"
   (SML "IntInf.+ ((_), 1)")
   (OCaml "Big_int.succ'_big'_int")
   (Haskell "!((_) + 1)")
-
-setup {*
-  CodegenData.add_datatype ("nat", ([], []))
-*}
 
 types_code
   nat ("int")

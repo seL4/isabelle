@@ -15,6 +15,7 @@ sig
   val deps: T -> CodegenConsts.const list -> CodegenConsts.const list list
   val all: T -> CodegenConsts.const list
   val pretty: theory -> T -> Pretty.T
+  structure Constgraph : GRAPH
 end
 
 signature CODEGEN_FUNCGR_RETRIEVAL =
@@ -257,11 +258,13 @@ fun merge_funcss rewrites thy algebra raw_funcss funcgr =
               |> Logic.varifyT
           | _ => TVar (("'a", 0), [class]);
       in Term.map_type_tvar (K inst) ty end;
-    fun default_typ (const as (c, tys)) = case CodegenData.tap_typ thy const
-     of SOME ty => ty
-      | NONE => (case AxClass.class_of_param thy c
+    fun default_typ (const as (c, tys)) = case AxClass.class_of_param thy c
          of SOME class => classop_typ const class
-          | NONE => Sign.the_const_type thy c)
+          | NONE => (case CodegenData.tap_typ thy const
+             of SOME ty => ty
+              | NONE => (case CodegenData.get_constr_typ thy const
+                 of SOME ty => ty
+                  | NONE => Sign.the_const_type thy c))
     fun typ_func (const as (c, tys)) thms thm =
       let
         val ty = CodegenFunc.typ_func thm;
