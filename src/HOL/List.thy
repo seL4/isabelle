@@ -2832,12 +2832,20 @@ lemma list_all_rev [simp]:
   "list_all P (rev xs) \<longleftrightarrow> list_all P xs"
   by (simp add: list_all_iff)
 
+lemma list_all_length:
+  "list_all P xs \<longleftrightarrow> (\<forall>n < length xs. P (xs ! n))"
+  unfolding list_all_iff by (auto intro: all_nth_imp_all_set)
+
 lemma list_ex_iff [normal post]:
   "list_ex P xs \<longleftrightarrow> (\<exists>x \<in> set xs. P x)"
   by (induct xs) simp_all
 
 lemmas list_bex_code [code unfold] =
   list_ex_iff [symmetric, THEN eq_reflection]
+
+lemma list_ex_length:
+  "list_ex P xs \<longleftrightarrow> (\<exists>n < length xs. P (xs ! n))"
+  unfolding list_ex_iff set_conv_nth by auto
 
 lemma itrev [simp]:
   "itrev xs ys = rev xs @ ys"
