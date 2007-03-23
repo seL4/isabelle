@@ -6,7 +6,9 @@
 
 header {* Weak normalization for simply-typed lambda calculus *}
 
-theory WeakNorm imports Type begin
+theory WeakNorm
+imports Type
+begin
 
 text {*
 Formalization by Stefan Berghofer. Partly based on a paper proof by
@@ -554,15 +556,11 @@ We now try out the extracted program @{text "type_NF"} on some example terms.
 *}
 
 ML {*
-val thy = the_context ();
-fun rd s = read_cterm thy (s, TypeInfer.logicT);
-
-val ct1 = rd "%f. ((%f x. f (f (f x))) ((%f x. f (f (f (f x)))) f))";
+val ct1 = @{cterm "%f. ((%f x. f (f (f x))) ((%f x. f (f (f (f x)))) f))"};
 val (dB1, _) = Norm.type_NF (typing_of_term [] dummyf (term_of ct1));
 val ct1' = cterm_of thy (term_of_dB [] (#T (rep_cterm ct1)) dB1);
 
-val ct2 = rd
-  "%f x. (%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) x)))))";
+val ct2 = @{cterm "%f x. (%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) x)))))"};
 val (dB2, _) = Norm.type_NF (typing_of_term [] dummyf (term_of ct2));
 val ct2' = cterm_of thy (term_of_dB [] (#T (rep_cterm ct2)) dB2);
 *}
@@ -584,8 +582,8 @@ structure Type = ROOT.Type;
 structure Lambda = ROOT.Lambda;
 structure Nat = ROOT.Nat;
 
-val nat_of_int = ROOT.Integer.nat;
-val int_of_nat = ROOT.Integer.int;
+val nat_of_int = ROOT.Integer.nat o IntInf.fromInt;
+val int_of_nat = IntInf.toInt o ROOT.Integer.int;
 
 fun dBtype_of_typ (Type ("fun", [T, U])) =
       Type.Fun (dBtype_of_typ T, dBtype_of_typ U)
@@ -630,13 +628,12 @@ fun dummyf _ = error "dummy";
 *}
 
 ML {*
-val ct1 = rd "%f. ((%f x. f (f (f x))) ((%f x. f (f (f (f x)))) f))";
+val ct1 = @{cterm "%f. ((%f x. f (f (f x))) ((%f x. f (f (f (f x)))) f))"};
 val (dB1, _) = ROOT.WeakNorm.type_NF (typing_of_term [] dummyf (term_of ct1));
 val ct1' = cterm_of thy (term_of_dB [] (#T (rep_cterm ct1)) dB1);
 
-val ct2 = rd
-  "%f x. (%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) x)))))";
-val (dB2, _) = Norm.type_NF (typing_of_term [] dummyf (term_of ct2));
+val ct2 = @{cterm "%f x. (%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) x)))))"};
+val (dB2, _) = ROOT.WeakNorm.type_NF (typing_of_term [] dummyf (term_of ct2));
 val ct2' = cterm_of thy (term_of_dB [] (#T (rep_cterm ct2)) dB2);
 *}
 
