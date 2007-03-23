@@ -215,8 +215,6 @@ text FIXME
 
 section {* Common data structures *}
 
-text "FIXME chronicle"
-
 subsection {* Lists (as set-like data structures) *}
 
 text {*
@@ -228,7 +226,21 @@ text {*
   \end{mldecls}
 *}
 
-text FIXME
+text {*
+  Lists are often used as set-like data structures -- set-like in
+  then sense that they support notion of @{ML member}-ship,
+  @{ML insert}-ing and @{ML remove}-ing, but are order-sensitive.
+  This is convenient when implementing a history-like mechanism:
+  @{ML insert} adds an element \emph{to the front} of a list,
+  if not yet present; @{ML remove} removes \emph{all} occurences
+  of a particular element.  Correspondingly @{ML merge} implements a 
+  a merge on two lists suitable for merges of context data
+  (\secref{sec:context-theory}).
+
+  Functions are parametrized by an explicit equality function
+  to accomplish overloaded equality;  in most cases of monomorphic
+  equality, writing @{ML "(op =)"} should suffice.
+*}
 
 subsection {* Association lists *}
 
@@ -251,7 +263,22 @@ text {*
   \end{mldecls}
 *}
 
-text FIXME
+text {*
+  Association lists can be seens as an extension of set-like lists:
+  on the one hand, they may be used to implement finite mappings,
+  on the other hand, they remain order-sensitive and allow for
+  multiple key-value-pair with the same key: @{ML AList.lookup}
+  returns the \emph{first} value corresponding to a particular
+  key, if present.  @{ML AList.update} updates
+  the \emph{first} occurence of a particular key; if no such
+  key exists yet, the key-value-pair is added \emph{to the front}.
+  @{ML AList.delete} only deletes the \emph{first} occurence of a key.
+  @{ML AList.merge} provides an operation suitable for merges of context data
+  (\secref{sec:context-theory}), where an equality parameter on
+  values determines whether a merge should be considered a conflict.
+  A slightly generalized operation if implementend by the @{ML AList.join}
+  function which allows for explicit conflict resolution.
+*}
 
 subsection {* Tables *}
 
@@ -285,7 +312,19 @@ text {*
   \end{mldecls}
 *}
 
-text FIXME
+text {*
+  Tables are an efficient representation of finite mappings without
+  any notion of order;  due to their efficiency they should be used
+  whenever such pure finite mappings are neccessary.
+
+  The key type of tables must be given explicitly by instantiating
+  the @{ML_functor TableFun} functor which takes the key type
+  together with its @{ML_type order}; for convience, we restrict
+  here to the @{ML_struct Symtab} instance with @{ML_type string}
+  as key type.
+
+  Most table functions correspond to those of association lists.
+*}
 
 chapter {* Cookbook *}
 
