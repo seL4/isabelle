@@ -3152,6 +3152,7 @@ lemmas [eqvt] =
   perm_list.simps append_eqvt
   perm_prod.simps
   fst_eqvt snd_eqvt
+  perm_option.simps
 
   (* nats *)
   Suc_eqvt Zero_nat_eqvt One_nat_eqvt min_nat_eqvt max_nat_eqvt
