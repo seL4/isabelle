@@ -16,8 +16,19 @@ sig
   val typ_of_inst: theory -> const -> string * typ
   val norm: theory -> const -> const
   val norm_of_typ: theory -> string * typ -> const
-  val typ_sort_inst: Sorts.algebra -> typ * sort -> sort Vartab.table -> sort Vartab.table
+  val typ_sort_inst: Sorts.algebra -> typ * sort
+    -> sort Vartab.table -> sort Vartab.table
   val typargs: theory -> string * typ -> typ list
+  val co_of_const: theory -> const
+    -> string * ((string * sort) list * (string * typ list))
+  val co_of_const': theory -> const
+    -> (string * ((string * sort) list * (string * typ list))) option
+  val cos_of_consts: theory -> const list
+    -> string * ((string * sort) list * (string * typ list) list)
+  val const_of_co: theory -> string -> (string * sort) list
+    -> string * typ list -> const
+  val consts_of_cos: theory -> string -> (string * sort) list
+    -> (string * typ list) list -> const list
   val find_def: theory -> const -> (string (*theory name*) * thm) option
   val consts_of: theory -> term -> const list
   val read_const: theory -> string -> const
@@ -117,6 +128,75 @@ fun typargs thy (c_ty as (c, ty)) =
   end;
 
 
+(* printing *)
+
+fun string_of_const thy (c, tys) =
+  space_implode " " (Sign.extern_const thy c
+    :: map (enclose "[" "]" o Sign.string_of_typ thy) tys);
+
+fun raw_string_of_const (c, tys) =
+  space_implode " " (c
+    :: map (enclose "[" "]" o Display.raw_string_of_typ) tys);
+
+fun string_of_const_typ thy (c, ty) =
+  string_of_const thy (c, Consts.typargs (Sign.consts_of thy) (c, ty));
+
+
+(* conversion between constants and datatype constructors *)
+
+fun const_of_co thy tyco vs (co, tys) =
+  norm_of_typ thy (co, tys ---> Type (tyco, map TFree vs));
+
+fun consts_of_cos thy tyco vs cos =
+  let
+    val dty = Type (tyco, map TFree vs);
+    fun mk_co (co, tys) = norm_of_typ thy (co, tys ---> dty);
+  in map mk_co cos end;
+
+local
+
+exception BAD of string;
+
+fun gen_co_of_const thy const =
+  let
+    val (c, ty) = (apsnd Logic.unvarifyT o typ_of_inst thy) const;
+    fun err () = raise BAD
+     ("Illegal type for datatype constructor: " ^ Sign.string_of_typ thy ty);
+    val (tys, ty') = strip_type ty;
+    val (tyco, vs) = ((apsnd o map) dest_TFree o dest_Type) ty'
+      handle TYPE _ => err ();
+    val sorts = if has_duplicates (eq_fst op =) vs then err ()
+      else map snd vs;
+    val vs_names = Name.invent_list [] "'a" (length vs);
+    val vs_map = map fst vs ~~ vs_names;
+    val vs' = vs_names ~~ sorts;
+    val tys' = (map o map_type_tfree) (fn (v, sort) =>
+      (TFree ((the o AList.lookup (op =) vs_map) v, sort))) tys
+      handle Option => err ();
+  in (tyco, (vs', (c, tys'))) end;
+
+in
+
+fun co_of_const thy const = gen_co_of_const thy const handle BAD msg => error msg;
+fun co_of_const' thy const = SOME (gen_co_of_const thy const) handle BAD msg => NONE;
+
+end;
+
+fun cos_of_consts thy consts =
+  let
+    val raw_cos  = map (co_of_const thy) consts;
+    val (tyco, (vs_names, sorts_cos)) = if (length o distinct (eq_fst op =)) raw_cos = 1
+      then ((fst o hd) raw_cos, ((map fst o fst o snd o hd) raw_cos,
+        map ((apfst o map) snd o snd) raw_cos))
+      else error ("Term constructors not referring to the same type: "
+        ^ commas (map (string_of_const thy) consts));
+    val sorts = foldr1 ((uncurry o map2 o curry o Sorts.inter_sort) (Sign.classes_of thy))
+      (map fst sorts_cos);
+    val cos = map snd sorts_cos;
+    val vs = vs_names ~~ sorts;
+  in (tyco, (vs, cos)) end;
+
+
 (* reading constants as terms *)
 
 fun read_const_typ thy raw_t =
@@ -130,18 +210,5 @@ fun read_const_typ thy raw_t =
 fun read_const thy =
   norm_of_typ thy o read_const_typ thy;
 
-
-(* printing *)
-
-fun string_of_const thy (c, tys) =
-  space_implode " " (Sign.extern_const thy c
-    :: map (enclose "[" "]" o Sign.string_of_typ thy) tys);
-
-fun raw_string_of_const (c, tys) =
-  space_implode " " (c
-    :: map (enclose "[" "]" o Display.raw_string_of_typ) tys);
-
-fun string_of_const_typ thy (c, ty) =
-  string_of_const thy (c, Consts.typargs (Sign.consts_of thy) (c, ty));
 
 end;
