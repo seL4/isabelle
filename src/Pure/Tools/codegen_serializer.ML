@@ -412,6 +412,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons 
               :: map (pr "|") bs
             )
           end
+      | pr_term vars fxy (t as ICase (_, [])) = str "raise Fail \"empty case\""
     and pr_app' vars (app as ((c, (iss, tys)), ts)) =
       if is_cons c then let
         val k = length tys
@@ -681,6 +682,7 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_con
               :: map (pr "|") bs
             )
           end
+      | pr_term vars fxy (t as ICase (_, [])) = str "failwith \"empty case\""
     and pr_app' vars (app as ((c, (iss, tys)), ts)) =
       if is_cons c then
         if length tys = length ts
@@ -1176,7 +1178,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name keyword_vars 
               concat [str "}", str "in", pr_term vars' NOBR t]
             ) ps
           end
-      | pr_term vars fxy (ICase ((td, ty), bs)) =
+      | pr_term vars fxy (ICase ((td, ty), bs as _ :: _)) =
           let
             fun pr (pat, t) =
               let
@@ -1188,6 +1190,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name keyword_vars 
               str "})"
             ) (map pr bs)
           end
+      | pr_term vars fxy (t as ICase (_, [])) = str "error \"empty case\""
     and pr_app' vars ((c, _), ts) =
       (str o deresolv) c :: map (pr_term vars BR) ts
     and pr_app vars = gen_pr_app pr_app' pr_term const_syntax vars
