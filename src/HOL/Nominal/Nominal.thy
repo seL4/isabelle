@@ -110,6 +110,22 @@ lemma if_eqvt:
 apply(simp add: perm_fun_def)
 done
 
+lemma imp_eqvt:
+  shows "pi\<bullet>(A\<longrightarrow>B) = ((pi\<bullet>A)\<longrightarrow>(pi\<bullet>B))"
+  by (simp add: perm_bool)
+
+lemma conj_eqvt:
+  shows "pi\<bullet>(A\<and>B) = ((pi\<bullet>A)\<and>(pi\<bullet>B))"
+  by (simp add: perm_bool)
+
+lemma disj_eqvt:
+  shows "pi\<bullet>(A\<or>B) = ((pi\<bullet>A)\<or>(pi\<bullet>B))"
+  by (simp add: perm_bool)
+
+lemma neg_eqvt:
+  shows "pi\<bullet>(\<not> A) = (\<not> (pi\<bullet>A))"
+  by (simp add: perm_bool)
+
 (* permutation on options *)
 
 primrec (unchecked perm_option)
@@ -1678,7 +1694,6 @@ proof -
 qed
 
 section {* equivaraince for some connectives *}
-(* FIXME: maybe not really needed *)
 
 lemma pt_all_eqvt:
   fixes  pi :: "'x prm"
@@ -1696,31 +1711,11 @@ lemma pt_ex_eqvt:
   and     x :: "'a"
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
-  shows "pi\<bullet>(\<exists>(x::'a). P x) = (\<exists> (x::'a). (pi\<bullet>P) x)"
+  shows "pi\<bullet>(\<exists>(x::'a). P x) = (\<exists>(x::'a). (pi\<bullet>P) x)"
 apply(auto simp add: perm_bool perm_fun_def)
 apply(rule_tac x="pi\<bullet>x" in exI) 
 apply(simp add: pt_rev_pi[OF pt, OF at])
 done
-
-lemma imp_eqvt:
-  fixes pi::"'x prm"
-  shows "pi\<bullet>(A\<longrightarrow>B) = ((pi\<bullet>A)\<longrightarrow>(pi\<bullet>B))"
-  by (simp add: perm_bool)
-
-lemma conj_eqvt:
-  fixes pi::"'x prm"
-  shows "pi\<bullet>(A\<and>B) = ((pi\<bullet>A)\<and>(pi\<bullet>B))"
-  by (simp add: perm_bool)
-
-lemma disj_eqvt:
-  fixes pi::"'x prm"
-  shows "pi\<bullet>(A\<or>B) = ((pi\<bullet>A)\<or>(pi\<bullet>B))"
-  by (simp add: perm_bool)
-
-lemma neg_eqvt:
-  fixes pi::"'x prm"
-  shows "pi\<bullet>(\<not> A) = (\<not> (pi\<bullet>A))"
-  by (simp add: perm_bool)
 
 section {* facts about supports *}
 (*==============================*)
