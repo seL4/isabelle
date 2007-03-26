@@ -1,11 +1,12 @@
-(*  ID:         $Id$
+(*  Title:      HOL/Library/Eval.thy
+    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* A simple embedded term evaluation mechanism *}
+header {* A simple term evaluation mechanism *}
 
-theory CodeEval
-imports CodeEmbed
+theory Eval
+imports Pure_term
 begin
 
 subsection {* The typ_of class *}
@@ -17,20 +18,18 @@ ML {*
 structure TypOf =
 struct
 
-local
-  val thy = the_context ();
-  val const_typ_of = Sign.intern_const thy "typ_of";
-  fun term_typ_of ty = Const (const_typ_of, Term.itselfT ty --> Embed.typ_typ);
-in
-  val class_typ_of = Sign.intern_class thy "typ_of";
-  fun term_typ_of_type ty =
-    term_typ_of ty $ Logic.mk_type ty;
-  fun mk_typ_of_def ty =
-    let
-      val lhs = term_typ_of ty $ Free ("x", Term.itselfT ty)
-      val rhs = Embed.term_typ (fn v => term_typ_of_type (TFree v)) ty
-    in Logic.mk_equals (lhs, rhs) end;
-end;
+val class_typ_of = Sign.intern_class @{theory} "typ_of";
+
+fun term_typ_of_type ty =
+  Const (@{const_name typ_of}, Term.itselfT ty --> @{typ typ})
+    $ Logic.mk_type ty;
+
+fun mk_typ_of_def ty =
+  let
+    val lhs = Const (@{const_name typ_of}, Term.itselfT ty --> @{typ typ})
+      $ Free ("x", Term.itselfT ty)
+    val rhs = Pure_term.mk_typ (fn v => term_typ_of_type (TFree v)) ty
+  in Logic.mk_equals (lhs, rhs) end;
 
 end;
 *}
@@ -39,7 +38,8 @@ setup {*
 let
   fun mk arities _ thy =
     (maps (fn (tyco, asorts, _) => [(("", []), TypOf.mk_typ_of_def
-      (Type (tyco, map TFree (Name.names Name.context "'a" asorts))))]) arities, thy);
+      (Type (tyco,
+        map TFree (Name.names Name.context "'a" asorts))))]) arities, thy);
   fun hook specs =
     DatatypeCodegen.prove_codetypes_arities (ClassPackage.intro_classes_tac [])
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
@@ -59,20 +59,19 @@ structure TermOf =
 struct
 
 local
-  val thy = the_context ();
-  val const_term_of = Sign.intern_const thy "term_of";
-  fun term_term_of ty = Const (const_term_of, ty --> Embed.typ_term);
+  fun term_term_of ty =
+    Const (@{const_name term_of}, ty --> @{typ term});
 in
-  val class_term_of = Sign.intern_class thy "term_of";
+  val class_term_of = Sign.intern_class @{theory} "term_of";
   fun mk_terms_of_defs vs (tyco, cs) =
     let
       val dty = Type (tyco, map TFree vs);
       fun mk_eq c =
         let
           val lhs : term = term_term_of dty $ c;
-          val rhs : term = Embed.term_term
+          val rhs : term = Pure_term.mk_term
             (fn (v, ty) => term_term_of ty $ Free (v, ty))
-            (Embed.term_typ (fn (v, sort) => TypOf.term_typ_of_type (TFree (v, sort)))) c
+            (Pure_term.mk_typ (fn (v, sort) => TypOf.term_typ_of_type (TFree (v, sort)))) c
         in
           HOLogic.mk_eq (lhs, rhs)
         end;
@@ -102,7 +101,7 @@ let
       |> snd
     end;
   fun hook specs =
-    if (fst o hd) specs = (fst o dest_Type) Embed.typ_typ then I
+    if (fst o hd) specs = (fst o dest_Type) @{typ typ} then I
     else
       DatatypeCodegen.prove_codetypes_arities (ClassPackage.intro_classes_tac [])
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
@@ -151,29 +150,5 @@ fun term t =
 
 end;
 *}
-
-
-subsection {* Small examples *}
-
-ML {* Eval.term "(Suc 2 + 1) * 4" *}
-ML {* Eval.term "(Suc 2 + Suc 0) * Suc 3" *}
-ML {* Eval.term "[]::nat list" *}
-ML {* Eval.term "fst ([]::nat list, Suc 0) = []" *}
-
-text {* a fancy datatype *}
-
-datatype ('a, 'b) bair =
-    Bair "'a\<Colon>order" 'b
-  | Shift "('a, 'b) cair"
-  | Dummy unit
-and ('a, 'b) cair =
-    Cair 'a 'b
-
-ML {* Eval.term "Shift (Cair (4::nat) [Suc 0])" *}
-
-text {* also test evaluation oracle *}
-
-lemma "True \<or> False" by eval
-lemma "\<not> (Suc 0 = Suc 1)" by eval
 
 end
