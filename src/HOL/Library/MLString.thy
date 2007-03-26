@@ -28,10 +28,9 @@ subsection {* Datatype of monolithic strings *}
 
 datatype ml_string = STR string
 
-consts
+fun
   explode :: "ml_string \<Rightarrow> string"
-
-primrec
+where
   "explode (STR s) = s"
 
 
@@ -41,14 +40,7 @@ ML {*
 structure MLString =
 struct
 
-local
-  val thy = the_context ();
-  val const_STR = Sign.intern_const thy "STR";
-in
-  val typ_ml_string = Type (Sign.intern_type thy "ml_string", []);
-  fun term_ml_string s = Const (const_STR, HOLogic.stringT --> typ_ml_string)
-    $ HOLogic.mk_string s
-end;
+fun mk s = @{term STR} $ HOLogic.mk_string s;
 
 end;
 *}
@@ -65,7 +57,7 @@ code_const STR
 
 setup {*
   CodegenSerializer.add_pretty_ml_string "SML"
-    "List.list.Nil" "List.list.Cons" "MLString.ml_string.STR"
+    @{const_name Nil} @{const_name Cons} @{const_name STR}
     ML_Syntax.print_char ML_Syntax.print_string "String.implode"
 *}
 
