@@ -7,6 +7,7 @@ header {* A huge set of executable constants *}
 theory ExecutableContent
 imports
   Main
+  Eval
   "~~/src/HOL/ex/Records"
   AssocList
   Binomial
@@ -23,7 +24,6 @@ imports
   State_Monad
   While_Combinator
   Word
-  "~~/src/HOL/ex/CodeEval"
 begin
 
 definition
