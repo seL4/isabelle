@@ -10,6 +10,7 @@ imports
   Commutative_Ring
   Continuity
   EfficientNat
+  Eval
   ExecutableRat
   ExecutableSet
   FuncSet
