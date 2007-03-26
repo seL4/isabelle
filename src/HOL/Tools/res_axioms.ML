@@ -413,12 +413,6 @@ fun to_nnf th =
        |> transform_elim |> zero_var_indexes |> freeze_thm
        |> ObjectLogic.atomize_thm |> make_nnf |> strip_lambdas ~1;
 
-(*The cache prevents repeated clausification of a theorem,
-  and also repeated declaration of Skolem functions*)
-  (* FIXME  use theory data!!*)
-val clause_cache = ref (Thmtab.empty : thm list Thmtab.table)
-
-
 (*Generate Skolem functions for a theorem supplied in nnf*)
 fun skolem_of_nnf th =
   map (skolem_of_def o assume o (cterm_of (theory_of_thm th))) (assume_skofuns th);
@@ -479,9 +473,25 @@ fun skolem thy th =
       (SOME (to_nnf th)  handle THM _ => NONE)
   end;
 
+structure ThmCache = TheoryDataFun
+(struct
+  val name = "ATP/thm_cache";
+  type T = (thm list) Thmtab.table ref;
+  val empty : T = ref Thmtab.empty;
+  fun copy (ref tab) : T = ref tab;
+  val extend = copy;
+  fun merge _ (ref tab1, ref tab2) : T = ref (Thmtab.merge (K true) (tab1, tab2));
+  fun print _ _ = ();
+end);
+
+(*The cache prevents repeated clausification of a theorem, and also repeated declaration of 
+  Skolem functions. The global one holds theorems proved prior to this point. Theory data
+  holds the remaining ones.*)
+val global_clause_cache = ref (Thmtab.empty : (thm list) Thmtab.table);
+
 (*Populate the clause cache using the supplied theorem. Return the clausal form
   and modified theory.*)
-fun skolem_cache_thm th thy =
+fun skolem_cache_thm clause_cache th thy =
   case Thmtab.lookup (!clause_cache) th of
       NONE =>
         (case skolem thy (Thm.transfer thy th) of
@@ -496,13 +506,21 @@ fun skolem_cache_thm th thy =
 
 (*Exported function to convert Isabelle theorems into axiom clauses*)
 fun cnf_axiom th =
-  case Thmtab.lookup (!clause_cache) th of
-      NONE => 
-	let val cls = map Goal.close_result (skolem_thm th)
-	in Output.debug (fn () => "inserted into cache");
-	   change clause_cache (Thmtab.update (th, cls)); cls 
-	end
-    | SOME cls => cls;
+  let val cache = ThmCache.get (Thm.theory_of_thm th)
+                  handle ERROR _ => global_clause_cache
+      val in_cache = if cache = global_clause_cache then NONE else Thmtab.lookup (!cache) th
+  in
+     case in_cache of
+       NONE => 
+	 (case Thmtab.lookup (!global_clause_cache) th of
+	   NONE => 
+	     let val cls = map Goal.close_result (skolem_thm th)
+	     in Output.debug (fn () => "inserted into cache: " ^ PureThy.get_name_hint th);
+		change cache (Thmtab.update (th, cls)); cls 
+	     end
+	 | SOME cls => cls)
+     | SOME cls => cls
+  end;
 
 fun pairname th = (PureThy.get_name_hint th, th);
 
@@ -557,33 +575,18 @@ fun cnf_rules_pairs l = cnf_rules_pairs_aux [] (rev l);
 
 (*Setup function: takes a theory and installs ALL known theorems into the clause cache*)
 
-fun skolem_cache th thy =
-  let val prop = Thm.prop_of th
-  in
-      if lambda_free prop 
-         (*Monomorphic theorems can be Skolemized on demand,
-           but there are problems with re-use of abstraction functions if we don't
-           do them now, even for monomorphic theorems.*)
-      then thy  
-      else #2 (skolem_cache_thm th thy)
-  end;
+fun skolem_cache clause_cache th thy = #2 (skolem_cache_thm clause_cache th thy);
 
-(*The cache can be kept smaller by augmenting the condition above with 
-    orelse (not abstract_lambdas andalso monomorphic prop).
-  However, while this step does not reduce the time needed to build HOL, 
-  it doubles the time taken by the first call to the ATP link-up.*)
+(*The cache can be kept smaller by inspecting the prop of each thm. Can ignore all that are
+  lambda_free, but then the individual theory caches become much bigger.*)
 
-fun clause_cache_setup thy = fold skolem_cache (map #2 (PureThy.all_thms_of thy)) thy;
+fun clause_cache_setup thy = 
+  fold (skolem_cache global_clause_cache) (map #2 (PureThy.all_thms_of thy)) thy;
 
 
 (*** meson proof methods ***)
 
-fun skolem_use_cache_thm th =
-  case Thmtab.lookup (!clause_cache) th of
-      NONE => skolem_thm th
-    | SOME cls => cls;
-
-fun cnf_rules_of_ths ths = List.concat (map skolem_use_cache_thm ths);
+fun cnf_rules_of_ths ths = List.concat (map cnf_axiom ths);
 
 val meson_method_setup = Method.add_methods
   [("meson", Method.thms_args (fn ths =>
@@ -611,7 +614,8 @@ val neg_clausify = map Thm.freezeT o Meson.finish_cnf o assume_abstract_list o m
 fun neg_conjecture_clauses st0 n =
   let val st = Seq.hd (neg_skolemize_tac n st0)
       val (params,_,_) = strip_context (Logic.nth_prem (n, Thm.prop_of st))
-  in (neg_clausify (Option.valOf (metahyps_thms n st)), params) end;
+  in (neg_clausify (Option.valOf (metahyps_thms n st)), params) end
+  handle Option => raise ERROR "unable to Skolemize subgoal";
 
 (*Conversion of a subgoal to conjecture clauses. Each clause has  
   leading !!-bound universal variables, to express generality. *)
@@ -637,9 +641,9 @@ fun conj_rule []  = TrueI
   | conj_rule ths = foldr1 conj2_rule ths;
 
 fun skolem_attr (Context.Theory thy, th) =
-      let val (cls, thy') = skolem_cache_thm th thy
+      let val (cls, thy') = skolem_cache_thm (ThmCache.get thy) th thy
       in (Context.Theory thy', conj_rule cls) end
-  | skolem_attr (context, th) = (context, conj_rule (skolem_use_cache_thm th));
+  | skolem_attr (context, th) = (context, conj_rule (cnf_axiom th));
 
 val setup_attrs = Attrib.add_attributes
   [("skolem", Attrib.no_args skolem_attr, "skolemization of a theorem"),
@@ -649,6 +653,6 @@ val setup_methods = Method.add_methods
   [("neg_clausify", Method.no_args (Method.SIMPLE_METHOD' neg_clausify_tac), 
     "conversion of goal to conjecture clauses")];
      
-val setup = clause_cache_setup #> setup_attrs #> setup_methods;
+val setup = clause_cache_setup #> ThmCache.init #> setup_attrs #> setup_methods;
 
 end;
