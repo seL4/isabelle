@@ -49,7 +49,6 @@ sig
   val init: string -> theory -> Proof.context
 
   (* The specification of a locale *)
-
   val parameters_of: theory -> string ->
     ((string * typ) * mixfix) list
   val parameters_of_expr: theory -> expr ->
@@ -58,6 +57,8 @@ sig
     ((string * Attrib.src list) * term list) list
   val global_asms_of: theory -> string ->
     ((string * Attrib.src list) * term list) list
+  val intros: theory -> string ->
+    thm list * thm list
 
   (* Processing of locale statements *)
   val read_context_statement: xstring option -> Element.context element list ->
@@ -1373,6 +1374,11 @@ fun global_asms_of thy name =
   gen_asms_of I thy name;
 
 end;
+
+fun intros thy =
+  #intros o the o Symtab.lookup (#2 (GlobalLocalesData.get thy));
+    (*returns introduction rule for delta predicate and locale predicate
+      as a pair of singleton lists*)
 
 
 (* full context statements: import + elements + conclusion *)
