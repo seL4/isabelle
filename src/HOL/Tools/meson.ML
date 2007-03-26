@@ -225,7 +225,7 @@ val nclauses = signed_nclauses true;
 fun too_many_clauses t = nclauses t >= !max_clauses;
 
 (*Replaces universally quantified variables by FREE variables -- because
-  assumptions may not contain scheme variables.  Later, call "generalize". *)
+  assumptions may not contain scheme variables.  Later, we call "generalize". *)
 fun freeze_spec th =
   let val newname = gensym "mes_"
       val spec' = read_instantiate [("x", newname)] spec
@@ -233,7 +233,8 @@ fun freeze_spec th =
 
 (*Used with METAHYPS below. There is one assumption, which gets bound to prem
   and then normalized via function nf. The normal form is given to resolve_tac,
-  presumably to instantiate a Boolean variable.*)
+  instantiate a Boolean variable created by resolution with disj_forward. Since
+  (nf prem) returns a LIST of theorems, we can backtrack to get all combinations.*)
 fun resop nf [prem] = resolve_tac (nf prem) 1;
 
 (*Any need to extend this list with 
@@ -245,7 +246,7 @@ fun apply_skolem_ths (th, rls) =
   let fun tryall [] = raise THM("apply_skolem_ths", 0, th::rls)
         | tryall (rl::rls) = (first_order_resolve th rl handle THM _ => tryall rls)
   in  tryall rls  end;
-  
+
 (*Conjunctive normal form, adding clauses from th in front of ths (for foldr).
   Strips universal quantifiers and breaks up conjunctions.
   Eliminates existential quantifiers using skoths: Skolemization theorems.*)
@@ -258,11 +259,13 @@ fun cnf skoths (th,ths) =
 	    Const ("op &", _) => (*conjunction*)
 		cnf_aux (th RS conjunct1, cnf_aux (th RS conjunct2, ths))
 	  | Const ("All", _) => (*universal quantifier*)
-	        cnf_aux (freeze_spec th,  ths)
+	        cnf_aux (freeze_spec th, ths)
 	  | Const ("Ex", _) => 
 	      (*existential quantifier: Insert Skolem functions*)
 	      cnf_aux (apply_skolem_ths (th,skoths), ths)
-	  | Const ("op |", _) => (*disjunction*)
+	  | Const ("op |", _) => 
+	      (*Disjunction of P, Q: Create new goal of proving ?P | ?Q and solve it using
+	        all combinations of converting P, Q to CNF.*)
 	      let val tac =
 		  (METAHYPS (resop cnf_nil) 1) THEN
 		   (fn st' => st' |> METAHYPS (resop cnf_nil) 1)
@@ -275,9 +278,23 @@ fun cnf skoths (th,ths) =
     else cnf_aux (th,ths)
   end;
 
+fun all_names (Const ("all", _) $ Abs(x,_,P)) = x :: all_names P
+  | all_names _ = [];
+
+fun new_names n [] = []
+  | new_names n (x::xs) = 
+      if String.isPrefix "mes_" x then (x, radixstring(26,"A",n)) :: new_names (n+1) xs
+      else new_names n xs;
+
+(*The gensym names are ugly, so don't let the user see them. When forall_elim_vars
+  is called, it will ensure that no name clauses ensue.*)
+fun nice_names th =
+  let val old_names = all_names (prop_of th)
+  in  Drule.rename_bvars (new_names 0 old_names) th  end;
+
 (*Convert all suitable free variables to schematic variables, 
   but don't discharge assumptions.*)
-fun generalize th = Thm.varifyT (forall_elim_vars 0 (forall_intr_frees th));
+fun generalize th = Thm.varifyT (forall_elim_vars 0 (nice_names (forall_intr_frees th)));
 
 fun make_cnf skoths th = cnf skoths (th, []);
 
