@@ -211,7 +211,8 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL \
   Library/Graphs.thy Library/Kleene_Algebras.thy Library/SCT_Misc.thy \
   Library/SCT_Definition.thy Library/SCT_Theorem.thy Library/SCT_Interpretation.thy \
   Library/SCT_Implementation.thy Library/Size_Change_Termination.thy \
-  Library/SCT_Examples.thy Library/sct.ML
+  Library/SCT_Examples.thy Library/sct.ML \
+  Library/Pure_term.thy Library/Eval.thy
 	@cd Library; $(ISATOOL) usedir $(OUT)/HOL Library
 
 
@@ -618,7 +619,7 @@ HOL-ex: HOL $(LOG)/HOL-ex.gz
 $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy			\
   ex/Abstract_NAT.thy ex/Antiquote.thy ex/BT.thy ex/BinEx.thy			\
   ex/Chinese.thy ex/Classical.thy ex/Classpackage.thy                           \
-  ex/CodeEmbed.thy ex/CodeRandom.thy ex/CodeRevappl.thy			 	\
+  ex/Eval_examples.thy ex/CodeRandom.thy ex/CodeRevappl.thy			\
   ex/Codegenerator.thy ex/Codegenerator_Rat.thy                                 \
   ex/Commutative_RingEx.thy ex/Hex_Bin_Examples.thy                             \
   ex/Commutative_Ring_Complete.thy ex/ExecutableContent.thy                     \
