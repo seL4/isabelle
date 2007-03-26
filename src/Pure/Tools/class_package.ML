@@ -31,7 +31,6 @@ sig
   val class_of_locale: theory -> string -> class option
   val add_def_in_class: local_theory -> string
     -> (string * Syntax.mixfix) * ((string * Attrib.src list) * (term * thm)) -> theory -> theory
-  val fully_qualified: bool ref;
 
   val print_classes: theory -> unit
   val intro_classes_tac: thm list -> tactic
@@ -212,11 +211,12 @@ datatype class_data = ClassData of {
   locale: string,
   consts: (string * string) list
     (*locale parameter ~> toplevel theory constant*),
+  intro: thm,
   witness: Element.witness list,
-  propnames: string list,
-    (*for ad-hoc instance_in*)
-  primdefs: thm list
+  primdefs: thm list,
     (*for experimental class target*)
+  propnames: string list
+    (*for ad-hoc instance_in*)
 };
 
 fun rep_classdata (ClassData c) = c;
@@ -261,6 +261,9 @@ fun param_map thy =
       end;
   in maps (params thy) o ancestry thy end;
 
+fun these_intros thy =
+  Graph.fold (fn (_, (data, _)) => insert Thm.eq_thm ((#intro o rep_classdata) data))
+    ((fst o ClassData.get) thy) [];
 val the_witness = #witness oo the_class_data;
 val the_propnames = #propnames oo the_class_data;
 
@@ -299,12 +302,13 @@ fun print_classes thy =
 
 (* updaters *)
 
-fun add_class_data ((class, superclasses), (locale, consts, witness, propnames)) =
+fun add_class_data ((class, superclasses), (locale, consts, intro, witness, propnames)) =
   ClassData.map (fn (gr, tab) => (
     gr
     |> Graph.new_node (class, ClassData {
       locale = locale,
       consts = consts,
+      intro = intro,
       witness = witness,
       propnames = propnames,
       primdefs = []})
@@ -315,8 +319,9 @@ fun add_class_data ((class, superclasses), (locale, consts, witness, propnames))
 
 fun add_primdef (class, thm) thy =
   (ClassData.map o apfst o Graph.map_node class)
-    (fn ClassData { locale, consts, witness, propnames, primdefs } => ClassData { locale = locale,
-      consts = consts, witness = witness, propnames = propnames, primdefs = thm :: primdefs });
+    (fn ClassData { locale, consts, intro, witness, propnames, primdefs } =>
+      ClassData { locale = locale, consts = consts, intro = intro,
+        witness = witness, propnames = propnames, primdefs = thm :: primdefs });
 
 
 (* exporting terms and theorems to global toplevel *)
@@ -339,7 +344,7 @@ val global_term = snd oo globalize
 (* tactics and methods *)
 
 (*FIXME adjust these when minimal intro rules are at hand*)
-fun intro_classes_tac facts st =
+fun intro_classes_tac' facts st =
   let
     val thy = Thm.theory_of_thm st;
     val ctxt = ProofContext.init thy;
@@ -352,6 +357,22 @@ fun intro_classes_tac facts st =
     (intro_classes_tac THEN REPEAT (intro_locales_tac ORELSE intro_locales_tac)) st
   end;
 
+fun intro_classes_tac facts st =
+  let
+    val thy = Thm.theory_of_thm st;
+    val classes = Sign.all_classes thy;
+    val class_trivs = map (Thm.class_triv thy) classes;
+    val class_intros = these_intros thy;
+    fun add_axclass_intro class =
+      case try (AxClass.get_definition thy) class of SOME {intro, ...} => cons intro | _ => I;
+    val axclass_intros = fold add_axclass_intro classes [];
+  in
+    st
+    |> ((ALLGOALS (Method.insert_tac facts THEN'
+          REPEAT_ALL_NEW (resolve_tac (class_trivs @ class_intros @ axclass_intros))))
+            THEN Tactic.distinct_subgoals_tac)
+  end;
+
 fun default_intro_classes_tac [] = intro_classes_tac []
   | default_intro_classes_tac _ = Tactical.no_tac;    (*no error message!*)
 
@@ -360,7 +381,9 @@ fun default_tac rules ctxt facts =
     default_intro_classes_tac facts;
 
 val _ = Context.add_setup (Method.add_methods
- [("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
+ [("intro_classes2", Method.no_args (Method.METHOD intro_classes_tac'),
+    "back-chain introduction rules of classes"),
+  ("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
     "back-chain introduction rules of classes"),
   ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac),
     "apply some intro/elim rule")]);
@@ -411,9 +434,50 @@ fun instance_sort' do_proof (class, sort) theory =
 val prove_instance_sort = instance_sort' o prove_interpretation_in;
 
 
-(* classes and instances *)
+(* constructing class introduction rules from axclass and locale rules *)
 
-val fully_qualified = ref false;
+fun class_intro thy locale class sups =
+  let
+    fun OF_LAST thm1 thm2 =
+      let
+        val n = (length o Logic.strip_imp_prems o prop_of) thm2;
+      in (thm1 RSN (n, thm2)) end;
+    fun prem_inclass t =
+      case Logic.strip_imp_prems t
+       of ofcls :: _ => try Logic.dest_inclass ofcls
+        | [] => NONE;
+    val typ = TVar ((AxClass.param_tyvarname, 0), Sign.super_classes thy class);
+    fun strip_ofclass class thm =
+      thm OF (fst o AxClass.of_sort thy (typ, [class])) AxClass.cache;
+    fun strip_all_ofclass thm =
+      case (prem_inclass o Thm.prop_of) thm
+       of SOME (_, class) => thm |> strip_ofclass class |> strip_all_ofclass
+        | NONE => thm;
+    fun class_elim class =
+      case (map Drule.unconstrainTs o #axioms o AxClass.get_definition thy) class
+       of [thm] => SOME thm
+        | [] => NONE;
+    val pred_intro = case Locale.intros thy locale
+     of ([ax_intro], [intro]) => intro |> OF_LAST ax_intro |> SOME
+      | ([intro], []) => SOME intro
+      | ([], [intro]) => SOME intro
+      | _ => NONE;
+    val pred_intro' = pred_intro
+      |> Option.map (fn intro => intro OF map_filter class_elim sups);
+    val class_intro = (#intro o AxClass.get_definition thy) class;
+    val raw_intro = case pred_intro'
+     of SOME pred_intro => class_intro |> OF_LAST pred_intro
+      | NONE => class_intro;
+  in
+    raw_intro
+    |> Drule.instantiate' [SOME (Thm.ctyp_of thy typ)] []
+    |> strip_all_ofclass
+    |> Thm.strip_shyps
+    |> Drule.unconstrainTs
+  end;
+
+
+(* classes and instances *)
 
 local
 
@@ -431,7 +495,8 @@ fun gen_class add_locale prep_class prep_param bname
     val (elems, includes) = fold_rev (fn Locale.Elem e => apfst (cons e)
       | Locale.Expr i => apsnd (cons i)) raw_elems ([], []);
     val supclasses = map (prep_class thy) raw_supclasses;
-    val sups = filter (is_some o lookup_class_data thy) supclasses;
+    val sups = filter (is_some o lookup_class_data thy) supclasses
+      |> Sign.certify_sort thy;
     val supsort = Sign.certify_sort thy supclasses;
     val suplocales = map (Locale.Locale o #locale o the_class_data thy) sups;
     val supexpr = Locale.Merge (suplocales @ includes);
@@ -472,7 +537,7 @@ fun gen_class add_locale prep_class prep_param bname
     fun extract_axiom_names thy name_locale =
       name_locale
       |> Locale.global_asms_of thy
-      |> map (NameSpace.base o fst o fst) (*FIXME - is finally dropped*)
+      |> map (NameSpace.base o fst o fst) (*FIXME - is finally dropped*);
     fun mk_instT class = Symtab.empty
       |> Symtab.update (AxClass.param_tyvarname, TFree (AxClass.param_tyvarname, [class]));
     fun mk_inst class param_names cs =
@@ -480,6 +545,10 @@ fun gen_class add_locale prep_class prep_param bname
       |> fold2 (fn v => fn (c, ty) => Symtab.update (v, Const
            (c, Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty))) param_names cs;
     fun make_witness t thm = Element.make_witness t (Goal.protect thm);
+    fun note_intro name_axclass class_intro =
+      PureThy.note_thmss_qualified "" ((Logic.const_of_class o NameSpace.base) name_axclass)
+        [(("intro", []), [([class_intro], [])])]
+      #> snd
   in
     thy
     |> add_locale (SOME (bname ^ "_pred")) bname supexpr ((*elems_constrains @*) elems)
@@ -488,13 +557,15 @@ fun gen_class add_locale prep_class prep_param bname
       #-> (fn (param_names, params) =>
         axclass_params (bname, supsort) params (extract_assumes name_locale params) other_consts
       #-> (fn (name_axclass, ((_, (ax_terms, ax_axioms)), consts)) =>
-        `(fn thy => extract_axiom_names thy name_locale)
-      #-> (fn axiom_names =>
+        `(fn thy => class_intro thy name_locale name_axclass sups)
+      ##>> `(fn thy => extract_axiom_names thy name_locale)
+      #-> (fn (class_intro, axiom_names) =>
         add_class_data ((name_axclass, sups),
           (name_locale, map (fst o fst) params ~~ map fst consts,
-            map2 make_witness ax_terms ax_axioms, axiom_names))
+            class_intro, map2 make_witness ax_terms ax_axioms, axiom_names))
+      #> note_intro name_axclass class_intro
       #> prove_interpretation ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
-          ((!fully_qualified, Logic.const_of_class bname), []) (Locale.Locale name_locale)
+          ((false, Logic.const_of_class bname), []) (Locale.Locale name_locale)
           (mk_instT name_axclass, mk_inst name_axclass param_names (map snd supconsts @ consts))
       #> pair name_axclass
       )))))
