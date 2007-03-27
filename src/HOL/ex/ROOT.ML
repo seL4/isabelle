@@ -9,7 +9,7 @@ no_document use_thy "GCD";
 
 no_document time_use_thy "Classpackage";
 no_document time_use_thy "Eval_examples";
-no_document time_use_thy "CodeRandom";
+no_document time_use_thy "Random";
 no_document time_use_thy "Codegenerator_Rat";
 no_document time_use_thy "Codegenerator";
 

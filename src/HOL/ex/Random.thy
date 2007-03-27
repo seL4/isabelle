@@ -4,20 +4,16 @@
 
 header {* A simple random engine *}
 
-theory CodeRandom
+theory Random
 imports State_Monad
 begin
 
-consts
+fun
   pick :: "(nat \<times> 'a) list \<Rightarrow> nat \<Rightarrow> 'a"
-
-primrec
-  "pick (x#xs) n = (let (k, v) = x in
-    if n < k then v else pick xs (n - k))"
-
-lemma pick_def [code, simp]:
-  "pick ((k, v)#xs) n = (if n < k then v else pick xs (n - k))" by simp
-declare pick.simps [simp del, code del]
+where
+  pick_undef: "pick [] n = undefined"
+  | pick_simp: "pick ((k, v)#xs) n = (if n < k then v else pick xs (n - k))"
+lemmas [code nofunc] = pick_undef
 
 typedecl randseed
 
