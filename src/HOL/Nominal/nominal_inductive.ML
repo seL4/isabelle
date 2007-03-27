@@ -2,30 +2,321 @@
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
-Infrastructure for proving additional properties of inductive predicates
-involving nominal datatypes
+Infrastructure for proving equivariance and strong induction theorems
+for inductive predicates involving nominal datatypes.
 *)
 
 signature NOMINAL_INDUCTIVE =
 sig
-  val nominal_inductive: string -> theory -> theory
+  val nominal_inductive: string -> (string * string list) list -> theory -> Proof.state
+  val equivariance: string -> theory -> theory
 end
 
 structure NominalInductive : NOMINAL_INDUCTIVE =
 struct
 
+val finite_Un = thm "finite_Un";
+val supp_prod = thm "supp_prod";
+val fresh_prod = thm "fresh_prod";
+
 val perm_boolI = thm "perm_boolI";
 val (_, [perm_boolI_pi, _]) = Drule.strip_comb (snd (Thm.dest_comb
   (Drule.strip_imp_concl (cprop_of perm_boolI))));
 
+val allE_Nil = read_instantiate_sg (the_context()) [("x", "[]")] allE;
+
 fun transp ([] :: _) = []
   | transp xs = map hd xs :: transp (map tl xs);
 
-fun nominal_inductive s thy =
+fun add_binders thy i (t as (_ $ _)) bs = (case strip_comb t of
+      (Const (s, T), ts) => (case strip_type T of
+        (Ts, Type (tname, _)) =>
+          (case NominalPackage.get_nominal_datatype thy tname of
+             NONE => fold (add_binders thy i) ts bs
+           | SOME {descr, index, ...} => (case AList.lookup op =
+                 (#3 (the (AList.lookup op = descr index))) s of
+               NONE => fold (add_binders thy i) ts bs
+             | SOME cargs => fst (fold (fn (xs, x) => fn (bs', cargs') =>
+                 let val (cargs1, (u, _) :: cargs2) = chop (length xs) cargs'
+                 in (add_binders thy i u
+                   (fold (fn (u, T) =>
+                      if exists (fn j => j < i) (loose_bnos u) then I
+                      else insert (op aconv o pairself fst)
+                        (incr_boundvars (~i) u, T)) cargs1 bs'), cargs2)
+                 end) cargs (bs, ts ~~ Ts))))
+      | _ => fold (add_binders thy i) ts bs)
+    | (u, ts) => add_binders thy i u (fold (add_binders thy i) ts bs))
+  | add_binders thy i (Abs (_, _, t)) bs = add_binders thy (i + 1) t bs
+  | add_binders thy i _ bs = bs;
+
+fun prove_strong_ind raw_induct names avoids thy =
   let
     val ctxt = ProofContext.init thy;
-    val ({names, ...}, {raw_induct, intrs, ...}) =
-      InductivePackage.the_inductive ctxt (Sign.intern_const thy s);
+    val induct_cases = map fst (fst (RuleCases.get (the
+      (InductAttrib.lookup_inductS ctxt (hd names)))));
+    val raw_induct' = Logic.unvarify (prop_of raw_induct);
+    val concls = raw_induct' |> Logic.strip_imp_concl |> HOLogic.dest_Trueprop |>
+      HOLogic.dest_conj |> map (HOLogic.dest_imp ##> strip_comb);
+    val ps = map (fst o snd) concls;
+
+    val _ = (case duplicates (op = o pairself fst) avoids of
+        [] => ()
+      | xs => error ("Duplicate case names: " ^ commas_quote (map fst xs)));
+    val _ = assert_all (null o duplicates op = o snd) avoids
+      (fn (a, _) => error ("Duplicate variable names for case " ^ quote a));
+    val _ = (case map fst avoids \\ induct_cases of
+        [] => ()
+      | xs => error ("No such case(s) in inductive definition: " ^ commas_quote xs));
+    val avoids' = map (fn name =>
+      (name, the_default [] (AList.lookup op = avoids name))) induct_cases;
+    fun mk_avoids params (name, ps) =
+      let val k = length params - 1
+      in map (fn x => case find_index (equal x o fst) params of
+          ~1 => error ("No such variable in case " ^ quote name ^
+            " of inductive definition: " ^ quote x)
+        | i => (Bound (k - i), snd (nth params i))) ps
+      end;
+
+    val prems = map (fn (prem, avoid) =>
+      let
+        val prems = map (incr_boundvars 1) (Logic.strip_assums_hyp prem);
+        val concl = incr_boundvars 1 (Logic.strip_assums_concl prem);
+        val params = Logic.strip_params prem
+      in
+        (params,
+         fold (add_binders thy 0) (prems @ [concl]) [] @
+           map (apfst (incr_boundvars 1)) (mk_avoids params avoid),
+         prems, strip_comb (HOLogic.dest_Trueprop concl))
+      end) (Logic.strip_imp_prems raw_induct' ~~ avoids');
+
+    val atomTs = distinct op = (maps (map snd o #2) prems);
+    val ind_sort = if null atomTs then HOLogic.typeS
+      else Sign.certify_sort thy (map (fn T => Sign.intern_class thy
+        ("fs_" ^ Sign.base_name (fst (dest_Type T)))) atomTs);
+    val fs_ctxt_tyname = Name.variant (map fst (term_tfrees raw_induct')) "'n";
+    val fs_ctxt_name = Name.variant (add_term_names (raw_induct', [])) "z";
+    val fsT = TFree (fs_ctxt_tyname, ind_sort);
+
+    fun lift_pred' t (Free (s, T)) ts =
+      list_comb (Free (s, fsT --> T), t :: ts);
+    val lift_pred = lift_pred' (Bound 0);
+
+    fun lift_prem (Const ("Trueprop", _) $ t) =
+          let val (u, ts) = strip_comb t
+          in
+            if u mem ps then
+              all fsT $ Abs ("z", fsT, HOLogic.mk_Trueprop
+                (lift_pred u (map (incr_boundvars 1) ts)))
+            else HOLogic.mk_Trueprop (lift_prem t)
+          end
+      | lift_prem (t as (f $ u)) =
+          let val (p, ts) = strip_comb t
+          in
+            if p mem ps then
+              HOLogic.all_const fsT $ Abs ("z", fsT,
+                lift_pred p (map (incr_boundvars 1) ts))
+            else lift_prem f $ lift_prem u
+          end
+      | lift_prem (Abs (s, T, t)) = Abs (s, T, lift_prem t)
+      | lift_prem t = t;
+
+    fun mk_distinct [] = []
+      | mk_distinct ((x, T) :: xs) = List.mapPartial (fn (y, U) =>
+          if T = U then SOME (HOLogic.mk_Trueprop
+            (HOLogic.mk_not (HOLogic.eq_const T $ x $ y)))
+          else NONE) xs @ mk_distinct xs;
+
+    fun mk_fresh (x, T) = HOLogic.mk_Trueprop
+      (Const ("Nominal.fresh", T --> fsT --> HOLogic.boolT) $ x $ Bound 0);
+
+    val (prems', prems'') = split_list (map (fn (params, bvars, prems, (p, ts)) =>
+      let
+        val params' = params @ [("y", fsT)];
+        val prem = Logic.list_implies
+          (map mk_fresh bvars @ mk_distinct bvars @
+           map (fn prem =>
+             if null (term_frees prem inter ps) then prem
+             else lift_prem prem) prems,
+           HOLogic.mk_Trueprop (lift_pred p ts));
+        val vs = map (Var o apfst (rpair 0)) (rename_wrt_term prem params')
+      in
+        (list_all (params', prem), (rev vs, subst_bounds (vs, prem)))
+      end) prems);
+
+    val ind_vars =
+      (DatatypeProp.indexify_names (replicate (length atomTs) "pi") ~~
+       map NominalAtoms.mk_permT atomTs) @ [("z", fsT)];
+    val ind_Ts = rev (map snd ind_vars);
+
+    val concl = HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
+      (map (fn (prem, (p, ts)) => HOLogic.mk_imp (prem,
+        HOLogic.list_all (ind_vars, lift_pred p
+          (map (fold_rev (NominalPackage.mk_perm ind_Ts)
+            (map Bound (length atomTs downto 1))) ts)))) concls));
+
+    val concl' = HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
+      (map (fn (prem, (p, ts)) => HOLogic.mk_imp (prem,
+        lift_pred' (Free (fs_ctxt_name, fsT)) p ts)) concls));
+
+    val vc_compat = map (fn (params, bvars, prems, (p, ts)) =>
+      map (fn q => list_all (params, incr_boundvars ~1 (Logic.list_implies
+          (filter (fn prem => null (ps inter term_frees prem)) prems, q))))
+        (mk_distinct bvars @
+         maps (fn (t, T) => map (fn (u, U) => HOLogic.mk_Trueprop
+           (Const ("Nominal.fresh", U --> T --> HOLogic.boolT) $ u $ t)) bvars)
+             (ts ~~ binder_types (fastype_of p)))) prems;
+
+    val eqvt_ss = HOL_basic_ss addsimps NominalThmDecls.get_eqvt_thms thy;
+    val fresh_bij = PureThy.get_thms thy (Name "fresh_bij");
+    val perm_bij = PureThy.get_thms thy (Name "perm_bij");
+    val fs_atoms = map (fn aT => PureThy.get_thm thy
+      (Name ("fs_" ^ Sign.base_name (fst (dest_Type aT)) ^ "1"))) atomTs;
+    val exists_fresh' = PureThy.get_thms thy (Name "exists_fresh'");
+    val fresh_atm = PureThy.get_thms thy (Name "fresh_atm");
+    val calc_atm = PureThy.get_thms thy (Name "calc_atm");
+    val perm_fresh_fresh = PureThy.get_thms thy (Name "perm_fresh_fresh");
+    val pt2_atoms = map (fn aT => PureThy.get_thm thy
+      (Name ("pt_" ^ Sign.base_name (fst (dest_Type aT)) ^ "2")) RS sym) atomTs;
+
+    fun obtain_fresh_name ts T (freshs1, freshs2, ctxt) =
+      let
+        (** protect terms to avoid that supp_prod interferes with   **)
+        (** pairs used in introduction rules of inductive predicate **)
+        fun protect t =
+          let val T = fastype_of t in Const ("Fun.id", T --> T) $ t end;
+        val p = foldr1 HOLogic.mk_prod (map protect ts @ freshs1);
+        val ex = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop
+            (HOLogic.exists_const T $ Abs ("x", T,
+              Const ("Nominal.fresh", T --> fastype_of p --> HOLogic.boolT) $
+                Bound 0 $ p)))
+          (fn _ => EVERY
+            [resolve_tac exists_fresh' 1,
+             simp_tac (HOL_ss addsimps (supp_prod :: finite_Un :: fs_atoms)) 1]);
+        val (([cx], ths), ctxt') = Obtain.result
+          (fn _ => EVERY
+            [etac exE 1,
+             full_simp_tac (HOL_ss addsimps (fresh_prod :: fresh_atm)) 1,
+             full_simp_tac (HOL_basic_ss addsimps [id_apply]) 1,
+             REPEAT (etac conjE 1)])
+          [ex] ctxt
+      in (freshs1 @ [term_of cx], freshs2 @ ths, ctxt') end;
+
+    fun mk_proof thy thss =
+      let val ctxt = ProofContext.init thy
+      in Goal.prove_global thy [] prems' concl' (fn ihyps =>
+        let val th = Goal.prove ctxt [] [] concl (fn {context, ...} =>
+          rtac raw_induct 1 THEN
+          EVERY (maps (fn ((((_, bvars, oprems, _), vc_compat_ths), ihyp), (vs, ihypt)) =>
+            [REPEAT (rtac allI 1), simp_tac eqvt_ss 1,
+             SUBPROOF (fn {prems = gprems, params, concl, context = ctxt', ...} =>
+               let
+                 val (params', (pis, z)) =
+                   chop (length params - length atomTs - 1) (map term_of params) ||>
+                   split_last;
+                 val bvars' = map
+                   (fn (Bound i, T) => (nth params' (length params' - i), T)
+                     | (t, T) => (t, T)) bvars;
+                 val pi_bvars = map (fn (t, _) =>
+                   fold_rev (NominalPackage.mk_perm []) pis t) bvars';
+                 val (P, ts) = strip_comb (HOLogic.dest_Trueprop (term_of concl));
+                 val (freshs1, freshs2, ctxt'') = fold
+                   (obtain_fresh_name (ts @ pi_bvars))
+                   (map snd bvars') ([], [], ctxt');
+                 val freshs2' = NominalPackage.mk_not_sym freshs2;
+                 val pis' = map NominalPackage.perm_of_pair (pi_bvars ~~ freshs1);
+                 val env = Pattern.first_order_match thy (ihypt, prop_of ihyp)
+                   (Vartab.empty, Vartab.empty);
+                 val ihyp' = Thm.instantiate ([], map (pairself (cterm_of thy))
+                   (map (Envir.subst_vars env) vs ~~
+                    map (fold_rev (NominalPackage.mk_perm [])
+                      (rev pis' @ pis)) params' @ [z])) ihyp;
+                 val (gprems1, gprems2) = pairself (map fst) (List.partition
+                   (fn (th, t) => null (term_frees t inter ps)) (gprems ~~ oprems));
+                 val vc_compat_ths' = map (fn th =>
+                   let
+                     val th' = gprems1 MRS
+                       Thm.instantiate (Thm.cterm_first_order_match
+                         (Conjunction.mk_conjunction_list (cprems_of th),
+                          Conjunction.mk_conjunction_list (map cprop_of gprems1))) th;
+                     val (bop, lhs, rhs) = (case concl_of th' of
+                         _ $ (fresh $ lhs $ rhs) =>
+                           (fn t => fn u => fresh $ t $ u, lhs, rhs)
+                       | _ $ (_ $ (_ $ lhs $ rhs)) =>
+                           (curry (HOLogic.mk_not o HOLogic.mk_eq), lhs, rhs));
+                     val th'' = Goal.prove ctxt'' [] [] (HOLogic.mk_Trueprop
+                         (bop (fold_rev (NominalPackage.mk_perm []) pis lhs)
+                            (fold_rev (NominalPackage.mk_perm []) pis rhs)))
+                       (fn _ => simp_tac (HOL_basic_ss addsimps
+                          (fresh_bij @ perm_bij)) 1 THEN rtac th' 1)
+                   in Simplifier.simplify (eqvt_ss addsimps fresh_atm) th'' end)
+                     vc_compat_ths;
+                 val vc_compat_ths'' = NominalPackage.mk_not_sym vc_compat_ths';
+                 val gprems1' = map (fn th => fold_rev (fn pi => fn th' =>
+                   Simplifier.simplify eqvt_ss (th' RS Drule.cterm_instantiate
+                     [(perm_boolI_pi, cterm_of thy pi)] perm_boolI))
+                       (rev pis' @ pis) th) gprems1;
+                 val gprems2' = map (Simplifier.simplify eqvt_ss) gprems2;
+                 (** Since calc_atm simplifies (pi :: 'a prm) o (x :: 'b) to x **)
+                 (** we have to pre-simplify the rewrite rules                 **)
+                 val calc_atm_ss = HOL_ss addsimps calc_atm @
+                    map (Simplifier.simplify (HOL_ss addsimps calc_atm))
+                      (vc_compat_ths'' @ freshs2');
+                 val th = Goal.prove ctxt'' [] []
+                   (HOLogic.mk_Trueprop (list_comb (P $ hd ts,
+                     map (fold (NominalPackage.mk_perm []) pis') (tl ts))))
+                   (fn _ => EVERY ([simp_tac eqvt_ss 1, rtac ihyp' 1,
+                     REPEAT_DETERM_N (nprems_of ihyp - length gprems)
+                       (simp_tac calc_atm_ss 1),
+                     REPEAT_DETERM_N (length gprems)
+                       (resolve_tac gprems1' 1 ORELSE
+                        simp_tac (HOL_basic_ss addsimps pt2_atoms @ gprems2'
+                          addsimprocs [NominalPackage.perm_simproc]) 1)]));
+                 val final = Goal.prove ctxt'' [] [] (term_of concl)
+                   (fn _ => cut_facts_tac [th] 1 THEN full_simp_tac (HOL_ss
+                     addsimps vc_compat_ths'' @ freshs2' @
+                       perm_fresh_fresh @ fresh_atm) 1);
+                 val final' = ProofContext.export ctxt'' ctxt' [final];
+               in resolve_tac final' 1 end) context 1])
+                 (prems ~~ thss ~~ ihyps ~~ prems'')))
+        in
+          cut_facts_tac [th] 1 THEN REPEAT (etac conjE 1) THEN
+          REPEAT (REPEAT (resolve_tac [conjI, impI] 1) THEN
+            etac impE 1 THEN atac 1 THEN REPEAT (etac allE_Nil 1) THEN
+            asm_full_simp_tac (simpset_of thy) 1)
+        end)
+      end;
+
+  in
+    thy |>
+    ProofContext.init |>
+    Proof.theorem_i NONE (fn thss => ProofContext.theory (fn thy =>
+      let
+        val ctxt = ProofContext.init thy;
+        val rec_name = space_implode "_" (map Sign.base_name names);
+        val ind_case_names = RuleCases.case_names induct_cases;
+        val strong_raw_induct = mk_proof thy thss;
+        val strong_induct =
+          if length names > 1 then
+            (strong_raw_induct, [ind_case_names, RuleCases.consumes 0])
+          else (strong_raw_induct RSN (2, rev_mp),
+            [ind_case_names, RuleCases.consumes 1]);
+        val ([strong_induct'], thy') = thy |>
+          Theory.add_path rec_name |>
+          PureThy.add_thms [(("strong_induct", #1 strong_induct), #2 strong_induct)];
+        val strong_inducts =
+          ProjectRule.projects ctxt (1 upto length names) strong_induct'
+      in
+        thy' |>
+        PureThy.add_thmss [(("strong_inducts", strong_inducts),
+          [ind_case_names, RuleCases.consumes 1])] |> snd |>
+        Theory.parent_path
+      end))
+      (map (map (rpair [])) vc_compat)
+  end;
+
+fun prove_eqvt names raw_induct intrs thy =
+  let
+    val ctxt = ProofContext.init thy;
     val atoms = NominalAtoms.atoms_of thy;
     val eqvt_ss = HOL_basic_ss addsimps NominalThmDecls.get_eqvt_thms thy;
     val t = Logic.unvarify (concl_of raw_induct);
@@ -33,7 +324,9 @@ fun nominal_inductive s thy =
     val ps = map (fst o HOLogic.dest_imp)
       (HOLogic.dest_conj (HOLogic.dest_Trueprop t));
     fun eqvt_tac th intr = SUBPROOF (fn {prems, ...} =>
-      let val prems' = map (fn th' => th' RS th) prems
+      let val prems' = map (fn th' =>
+        if null (names inter term_consts (prop_of th')) then th' RS th
+        else th') prems
       in (rtac intr THEN_ALL_NEW
         (resolve_tac prems ORELSE'
           (cut_facts_tac prems' THEN' full_simp_tac eqvt_ss))) 1
@@ -43,7 +336,7 @@ fun nominal_inductive s thy =
         val pi' = Free (pi, NominalAtoms.mk_permT (Type (atom, [])));
         val perm_boolI' = Drule.cterm_instantiate
           [(perm_boolI_pi, cterm_of thy pi')] perm_boolI
-      in map (fn th => standard (th RS mp))
+      in map (fn th => zero_var_indexes (th RS mp))
         (DatatypeAux.split_conj_thm (Goal.prove_global thy [] []
           (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map (fn p =>
             HOLogic.mk_imp (p, list_comb
@@ -57,6 +350,20 @@ fun nominal_inductive s thy =
       (names ~~ transp thss)) thy;
   in thy' end;
 
+fun gen_nominal_inductive f s avoids thy =
+  let
+    val ctxt = ProofContext.init thy;
+    val ({names, ...}, {raw_induct, intrs, ...}) =
+      InductivePackage.the_inductive ctxt (Sign.intern_const thy s);
+  in
+    thy |>
+    prove_eqvt names raw_induct intrs |>
+    f raw_induct names avoids
+  end;
+
+val nominal_inductive = gen_nominal_inductive prove_strong_ind;
+fun equivariance s = gen_nominal_inductive (K (K (K I))) s [];
+
 
 (* outer syntax *)
 
@@ -64,10 +371,18 @@ local structure P = OuterParse and K = OuterKeyword in
 
 val nominal_inductiveP =
   OuterSyntax.command "nominal_inductive"
-    "prove additional properties of inductive predicate involving nominal datatypes" K.thy_decl
-    (P.name >> (Toplevel.theory o nominal_inductive));
+    "prove equivariance and strong induction theorem for inductive predicate involving nominal datatypes" K.thy_goal
+    (P.name -- Scan.optional (P.$$$ "avoids" |-- P.and_list1 (P.name --
+      (P.$$$ ":" |-- Scan.repeat1 P.name))) [] >> (fn (name, avoids) =>
+        Toplevel.print o Toplevel.theory_to_proof (nominal_inductive name avoids)));
 
-val _ = OuterSyntax.add_parsers [nominal_inductiveP];
+val equivarianceP =
+  OuterSyntax.command "equivariance"
+    "prove equivariance for inductive predicate involving nominal datatypes" K.thy_decl
+    (P.name >> (Toplevel.theory o equivariance));
+
+val _ = OuterSyntax.add_keywords ["avoids"];
+val _ = OuterSyntax.add_parsers [nominal_inductiveP, equivarianceP];
 
 end;
 
