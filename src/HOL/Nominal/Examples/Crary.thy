@@ -261,7 +261,7 @@ where
   v_nil[intro]:  "valid []"
 | v_cons[intro]: "\<lbrakk>valid \<Gamma>;a\<sharp>\<Gamma>\<rbrakk> \<Longrightarrow> valid ((a,T)#\<Gamma>)"
 
-nominal_inductive valid .
+equivariance valid 
 
 inductive_cases2  
   valid_cons_elim_auto[elim]:"valid ((x,T)#\<Gamma>)"
@@ -562,7 +562,6 @@ next
   with ih have "(x,T\<^isub>1)#\<Gamma> \<turnstile> App s (Var x) \<Leftrightarrow> App u (Var x) : T\<^isub>2" by simp
   then show "\<Gamma> \<turnstile> s \<Leftrightarrow> u : T\<^isub>1\<rightarrow>T\<^isub>2" using fs by (auto simp add: fresh_prod)
 next
-  (* HERE *)
   case (QAP_App \<Gamma> p q T\<^isub>1 T\<^isub>2 s t u)
   have "\<Gamma> \<turnstile> App q t \<leftrightarrow> u : T\<^isub>2" by fact
   then obtain r T\<^isub>1' v where ha: "\<Gamma> \<turnstile> q \<leftrightarrow> r : T\<^isub>1'\<rightarrow>T\<^isub>2" and hb: "\<Gamma> \<turnstile> t \<Leftrightarrow> v : T\<^isub>1'" and eq: "u = App r v" 
