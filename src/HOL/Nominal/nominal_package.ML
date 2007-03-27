@@ -14,6 +14,9 @@ sig
   val get_nominal_datatypes : theory -> nominal_datatype_info Symtab.table
   val get_nominal_datatype : theory -> string -> nominal_datatype_info option
   val mk_perm: typ list -> term -> term -> term
+  val perm_of_pair: term * term -> term
+  val mk_not_sym: thm list -> thm list
+  val perm_simproc: simproc
   val setup: theory -> theory
 end
 
@@ -219,6 +222,18 @@ fun mk_perm Ts t u =
     val T = fastype_of1 (Ts, t);
     val U = fastype_of1 (Ts, u)
   in Const ("Nominal.perm", T --> U --> U) $ t $ u end;
+
+fun perm_of_pair (x, y) =
+  let
+    val T = fastype_of x;
+    val pT = mk_permT T
+  in Const ("List.list.Cons", HOLogic.mk_prodT (T, T) --> pT --> pT) $
+    HOLogic.mk_prod (x, y) $ Const ("List.list.Nil", pT)
+  end;
+
+fun mk_not_sym ths = maps (fn th => case prop_of th of
+    _ $ (Const ("Not", _) $ _) => [th, th RS not_sym]
+  | _ => [th]) ths;
 
 fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
   let
@@ -1592,14 +1607,6 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val perm_fresh_fresh = PureThy.get_thms thy11 (Name "perm_fresh_fresh");
     val perm_swap = PureThy.get_thms thy11 (Name "perm_swap");
 
-    fun perm_of_pair (x, y) =
-      let
-        val T = fastype_of x;
-        val pT = mk_permT T
-      in Const ("List.list.Cons", HOLogic.mk_prodT (T, T) --> pT --> pT) $
-        HOLogic.mk_prod (x, y) $ Const ("List.list.Nil", pT)
-      end;
-
     val finite_premss = map (fn aT =>
       map (fn (f, T) => HOLogic.mk_Trueprop
         (Const ("Finite_Set.finite", HOLogic.mk_setT aT --> HOLogic.boolT) $
@@ -1798,10 +1805,6 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                     val pi2 = map perm_of_pair (boundsr ~~ freshs1);
                     val rpi2 = rev pi2;
 
-                    fun mk_not_sym ths = List.concat (map (fn th =>
-                      case prop_of th of
-                          _ $ (Const ("Not", _) $ _) => [th, th RS not_sym]
-                        | _ => [th]) ths);
                     val fresh_prems' = mk_not_sym fresh_prems;
                     val freshs2' = mk_not_sym freshs2;
 
