@@ -210,7 +210,7 @@ where
     v_nil[intro]:  "valid []"
   | v_cons[intro]: "\<lbrakk>valid \<Gamma>;x\<sharp>\<Gamma>\<rbrakk> \<Longrightarrow> valid ((x,T)#\<Gamma>)"
 
-nominal_inductive valid
+nominal_inductive valid .
 
 inductive_cases2  
   valid_cons_inv_auto[elim]:"valid ((x,T)#\<Gamma>)"
@@ -266,25 +266,16 @@ where
                    (x\<^isub>1,Data(S\<^isub>1))#\<Gamma> \<turnstile> e\<^isub>1 : T; (x\<^isub>2,Data(S\<^isub>2))#\<Gamma> \<turnstile> e\<^isub>2 : T\<rbrakk> 
                    \<Longrightarrow> \<Gamma> \<turnstile> (Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2) : T"
 
+nominal_inductive typing
+  by (simp_all add: abs_fresh fresh_prod fresh_atm)
+
+lemmas typing_eqvt' = typing_eqvt [simplified]
+
 lemma typing_implies_valid:
   assumes "\<Gamma> \<turnstile> t : T"
   shows "valid \<Gamma>"
   using assms
   by (induct) (auto)
-
-lemma typing_eqvt:
-  fixes pi::"name prm"
-  assumes a: "\<Gamma> \<turnstile> t : T"
-  shows "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>t) : T"
-using a
-apply(induct)
-apply(auto simp add: fresh_bij set_eqvt valid_eqvt) 
-apply(rule t_Var)
-apply(drule valid_eqvt)
-apply(assumption)
-apply(drule in_eqvt)
-apply(simp add: set_eqvt)
-done
 
 declare trm.inject [simp add]
 declare ty.inject  [simp add]
@@ -463,12 +454,12 @@ proof -
     by auto
   obtain c::name where f':"c \<sharp> (x\<^isub>1,x\<^isub>1',e\<^isub>1,e\<^isub>1',\<Gamma>)" by (erule exists_fresh[OF fs_name1])
   have e1':"[(x\<^isub>1,c)]\<bullet>e\<^isub>1 = [(x\<^isub>1',c)]\<bullet>e\<^isub>1'" using e1 f' by (auto simp add: alpha' fresh_prod fresh_atm)
-  have "[(x\<^isub>1',c)]\<bullet>((x\<^isub>1',Data \<sigma>\<^isub>1)# \<Gamma>) \<turnstile> [(x\<^isub>1',c)]\<bullet>e\<^isub>1' : T" using h1 typing_eqvt by blast
+  have "[(x\<^isub>1',c)]\<bullet>((x\<^isub>1',Data \<sigma>\<^isub>1)# \<Gamma>) \<turnstile> [(x\<^isub>1',c)]\<bullet>e\<^isub>1' : T" using h1 typing_eqvt' by blast
   then have x:"(c,Data \<sigma>\<^isub>1)#( [(x\<^isub>1',c)]\<bullet>\<Gamma>) \<turnstile> [(x\<^isub>1',c)]\<bullet>e\<^isub>1': T" using f' 
     by (auto simp add: fresh_atm calc_atm)
   have "x\<^isub>1' \<sharp> \<Gamma>" using h1 typing_implies_valid by auto
   then have "(c,Data \<sigma>\<^isub>1)#\<Gamma> \<turnstile> [(x\<^isub>1 ,c)]\<bullet>e\<^isub>1 : T" using f' x e1' by (auto simp add: perm_fresh_fresh)
-  then have "[(x\<^isub>1,c)]\<bullet>((c,Data \<sigma>\<^isub>1)#\<Gamma>) \<turnstile> [(x\<^isub>1,c)]\<bullet>[(x\<^isub>1 ,c)]\<bullet>e\<^isub>1 : T" using typing_eqvt by blast 
+  then have "[(x\<^isub>1,c)]\<bullet>((c,Data \<sigma>\<^isub>1)#\<Gamma>) \<turnstile> [(x\<^isub>1,c)]\<bullet>[(x\<^isub>1 ,c)]\<bullet>e\<^isub>1 : T" using typing_eqvt' by blast 
   then have "([(x\<^isub>1,c)]\<bullet>(c,Data \<sigma>\<^isub>1)) #\<Gamma> \<turnstile> [(x\<^isub>1,c)]\<bullet>[(x\<^isub>1 ,c)]\<bullet>e\<^isub>1 : T" using f f' 
     by (auto simp add: perm_fresh_fresh)
   then have "([(x\<^isub>1,c)]\<bullet>(c,Data \<sigma>\<^isub>1)) #\<Gamma> \<turnstile> e\<^isub>1 : T" by perm_simp
@@ -476,12 +467,12 @@ proof -
     (* The second part of the proof is the same *)
   obtain c::name where f':"c \<sharp> (x\<^isub>2,x\<^isub>2',e\<^isub>2,e\<^isub>2',\<Gamma>)" by (erule exists_fresh[OF fs_name1])
   have e2':"[(x\<^isub>2,c)]\<bullet>e\<^isub>2 = [(x\<^isub>2',c)]\<bullet>e\<^isub>2'" using e2 f' by (auto simp add: alpha' fresh_prod fresh_atm)
-  have "[(x\<^isub>2',c)]\<bullet>((x\<^isub>2',Data \<sigma>\<^isub>2)# \<Gamma>) \<turnstile> [(x\<^isub>2',c)]\<bullet>e\<^isub>2' : T" using h2 typing_eqvt by blast
+  have "[(x\<^isub>2',c)]\<bullet>((x\<^isub>2',Data \<sigma>\<^isub>2)# \<Gamma>) \<turnstile> [(x\<^isub>2',c)]\<bullet>e\<^isub>2' : T" using h2 typing_eqvt' by blast
   then have x:"(c,Data \<sigma>\<^isub>2)#([(x\<^isub>2',c)]\<bullet>\<Gamma>) \<turnstile> [(x\<^isub>2',c)]\<bullet>e\<^isub>2': T" using f' 
     by (auto simp add: fresh_atm calc_atm)
   have "x\<^isub>2' \<sharp> \<Gamma>" using h2 typing_implies_valid by auto
   then have "(c,Data \<sigma>\<^isub>2)#\<Gamma> \<turnstile> [(x\<^isub>2 ,c)]\<bullet>e\<^isub>2 : T" using f' x e2' by (auto simp add: perm_fresh_fresh)
-  then have "[(x\<^isub>2,c)]\<bullet>((c,Data \<sigma>\<^isub>2)#\<Gamma>) \<turnstile> [(x\<^isub>2,c)]\<bullet>[(x\<^isub>2 ,c)]\<bullet>e\<^isub>2 : T" using typing_eqvt by blast 
+  then have "[(x\<^isub>2,c)]\<bullet>((c,Data \<sigma>\<^isub>2)#\<Gamma>) \<turnstile> [(x\<^isub>2,c)]\<bullet>[(x\<^isub>2 ,c)]\<bullet>e\<^isub>2 : T" using typing_eqvt' by blast 
   then have "([(x\<^isub>2,c)]\<bullet>(c,Data \<sigma>\<^isub>2))#\<Gamma> \<turnstile> [(x\<^isub>2,c)]\<bullet>[(x\<^isub>2 ,c)]\<bullet>e\<^isub>2 : T" using f f' 
     by (auto simp add: perm_fresh_fresh)
   then have "([(x\<^isub>2,c)]\<bullet>(c,Data \<sigma>\<^isub>2)) #\<Gamma> \<turnstile> e\<^isub>2 : T" by perm_simp
@@ -628,17 +619,7 @@ where
                    \<Longrightarrow> Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 \<Down> e''"
 
 nominal_inductive big
-
-lemma big_eqvt[eqvt]:
-  fixes pi::"name prm"
-  assumes a: "t \<Down> t'"
-  shows "(pi\<bullet>t) \<Down> (pi\<bullet>t')"
-  using a
-  apply(induct)
-  apply(auto simp add: eqvt)
-  apply(rule_tac x="pi\<bullet>x" in b_App)
-  apply(auto simp add: eqvt fresh_bij fresh_prod)
-  done
+  by (simp_all add: abs_fresh fresh_prod fresh_atm)
 
 lemma big_eqvt':
   fixes pi::"name prm"

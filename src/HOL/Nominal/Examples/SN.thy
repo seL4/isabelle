@@ -61,8 +61,8 @@ where
 abbreviation "Beta_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta>\<^sup>* _" [80,80] 80) where
   "t1 \<longrightarrow>\<^isub>\<beta>\<^sup>* t2 \<equiv> Beta\<^sup>*\<^sup>* t1 t2"
 
-nominal_inductive Beta
- 
+equivariance Beta
+
 lemma beta_induct[consumes 1, case_names b1 b2 b3 b4]:
   fixes  P :: "'a::fs_name\<Rightarrow>lam \<Rightarrow> lam \<Rightarrow>bool"
   and    t :: "lam"
@@ -188,7 +188,7 @@ where
   v1[intro]: "valid []"
 | v2[intro]: "\<lbrakk>valid \<Gamma>;a\<sharp>\<Gamma>\<rbrakk>\<Longrightarrow> valid ((a,\<sigma>)#\<Gamma>)"
 
-nominal_inductive valid
+nominal_inductive valid .
 
 (* typing judgements *)
 

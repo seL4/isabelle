@@ -261,7 +261,7 @@ where
   v_nil[intro]:  "valid []"
 | v_cons[intro]: "\<lbrakk>valid \<Gamma>;a\<sharp>\<Gamma>\<rbrakk> \<Longrightarrow> valid ((a,T)#\<Gamma>)"
 
-nominal_inductive valid
+nominal_inductive valid .
 
 inductive_cases2  
   valid_cons_elim_auto[elim]:"valid ((x,T)#\<Gamma>)"
@@ -305,6 +305,7 @@ where
 | t_Unit[intro]:  "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Unit : TUnit"
 
 nominal_inductive typing
+  by (simp_all add: abs_fresh)
 
 lemma typing_implies_valid:
   assumes a: "\<Gamma> \<turnstile> t : T"
@@ -323,63 +324,6 @@ inductive_cases2  t_Unit_elim_auto[elim]: "\<Gamma> \<turnstile> Unit : TUnit"
 declare trm.inject [simp del]
 declare ty.inject [simp del]
 
-lemma typing_induct_strong
-  [consumes 1, case_names t_Var t_App t_Lam t_Const t_Unit]:
-    fixes  P::"'a::fs_name \<Rightarrow> Ctxt \<Rightarrow> trm \<Rightarrow> ty \<Rightarrow>bool"
-    and    x :: "'a::fs_name"
-    assumes a: "\<Gamma> \<turnstile> e : T"
-    and a1: "\<And>\<Gamma> x T c. \<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> P c \<Gamma> (Var x) T"
-    and a2: "\<And>\<Gamma> e\<^isub>1 T\<^isub>1 T\<^isub>2 e\<^isub>2 c. \<lbrakk>\<And>c. P c \<Gamma> e\<^isub>1 (T\<^isub>1\<rightarrow>T\<^isub>2); \<And>c. P c \<Gamma> e\<^isub>2 T\<^isub>1\<rbrakk> 
-             \<Longrightarrow> P c \<Gamma> (App e\<^isub>1 e\<^isub>2) T\<^isub>2"
-    and a3: "\<And>x \<Gamma> T\<^isub>1 t T\<^isub>2 c.\<lbrakk>x\<sharp>(\<Gamma>,c); \<And>c. P c ((x,T\<^isub>1)#\<Gamma>) t T\<^isub>2\<rbrakk>
-             \<Longrightarrow> P c \<Gamma> (Lam [x].t) (T\<^isub>1\<rightarrow>T\<^isub>2)"
-    and a4: "\<And>\<Gamma> n c. valid \<Gamma> \<Longrightarrow> P c \<Gamma> (Const n) TBase"
-    and a5: "\<And>\<Gamma> c. valid \<Gamma> \<Longrightarrow> P c \<Gamma> Unit TUnit"
-    shows "P c \<Gamma> e T"
-proof -
-  from a have "\<And>(pi::name prm) c. P c (pi\<bullet>\<Gamma>) (pi\<bullet>e) (pi\<bullet>T)"
-  proof (induct)
-    case (t_Var \<Gamma> x T pi c)
-    have "valid \<Gamma>" by fact
-    then have "valid (pi\<bullet>\<Gamma>)" by (simp only: eqvt)
-    moreover
-    have "(x,T)\<in>set \<Gamma>" by fact
-    then have "pi\<bullet>(x,T)\<in>pi\<bullet>(set \<Gamma>)" by (simp only: pt_set_bij[OF pt_name_inst, OF at_name_inst])  
-    then have "(pi\<bullet>x,T)\<in>set (pi\<bullet>\<Gamma>)" by (simp add: eqvt)
-    ultimately show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Var x)) (pi\<bullet>T)" using a1 by simp
-  next
-    case (t_App \<Gamma> e\<^isub>1 T\<^isub>1 T\<^isub>2 e\<^isub>2 pi c)
-    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(App e\<^isub>1 e\<^isub>2)) (pi\<bullet>T\<^isub>2)" using a2 
-      by (simp only: eqvt) (blast)
-  next
-    case (t_Lam x \<Gamma> T\<^isub>1 t T\<^isub>2 pi c)
-    obtain y::"name" where fs: "y\<sharp>(pi\<bullet>x,pi\<bullet>\<Gamma>,pi\<bullet>t,c)" by (erule exists_fresh[OF fs_name1])
-    let ?sw = "[(pi\<bullet>x,y)]"
-    let ?pi' = "?sw@pi"
-    have f0: "x\<sharp>\<Gamma>" by fact
-    have f1: "(pi\<bullet>x)\<sharp>(pi\<bullet>\<Gamma>)" using f0 by (simp add: fresh_bij)
-    have f2: "y\<sharp>?pi'\<bullet>\<Gamma>" by (auto simp add: pt_name2 fresh_left calc_atm perm_pi_simp)
-      have ih1: "\<And>c. P c (?pi'\<bullet>((x,T\<^isub>1)#\<Gamma>)) (?pi'\<bullet>t) (?pi'\<bullet>T\<^isub>2)" by fact
-    then have "P c (?pi'\<bullet>\<Gamma>) (Lam [y].(?pi'\<bullet>t)) (T\<^isub>1\<rightarrow>T\<^isub>2)" using fs f2 a3
-      by (simp add: calc_atm)
-    then have "P c (?sw\<bullet>pi\<bullet>\<Gamma>) (?sw\<bullet>(Lam [(pi\<bullet>x)].(pi\<bullet>t))) (T\<^isub>1\<rightarrow>T\<^isub>2)" 
-      by (simp del: append_Cons add: calc_atm pt_name2)
-    moreover have "(?sw\<bullet>pi\<bullet>\<Gamma>) = (pi\<bullet>\<Gamma>)"
-      by (rule perm_fresh_fresh) (simp_all add: fs f1)
-    moreover have "(?sw\<bullet>(Lam [(pi\<bullet>x)].(pi\<bullet>t))) = Lam [(pi\<bullet>x)].(pi\<bullet>t)"
-      by (rule perm_fresh_fresh) (simp_all add: fs f1 fresh_atm abs_fresh)
-    ultimately show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Lam [x].t)) (pi\<bullet>T\<^isub>1\<rightarrow>T\<^isub>2)" by simp
-  next
-    case (t_Const \<Gamma> n pi c)
-    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Const n)) (pi\<bullet>TBase)" using a4 by (simp, blast intro: valid_eqvt)
-  next
-    case (t_Unit \<Gamma> pi c)
-    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>Unit) (pi\<bullet>TUnit)" using a5 by (simp, blast intro: valid_eqvt)
-  qed 
-  then have "P c (([]::name prm)\<bullet>\<Gamma>) (([]::name prm)\<bullet>e) (([]::name prm)\<bullet>T)" by blast
-  then show "P c \<Gamma> e T" by simp
-qed
-
 section {* Definitional Equivalence *}
 
 inductive2
@@ -396,105 +340,12 @@ where
                    \<Longrightarrow> \<Gamma> \<turnstile> s \<equiv> t : T\<^isub>1 \<rightarrow> T\<^isub>2"
 
 nominal_inductive def_equiv
+  by (simp_all add: abs_fresh fresh_subst'')
 
 lemma def_equiv_implies_valid:
   assumes a: "\<Gamma> \<turnstile> t \<equiv> s : T"
   shows "valid \<Gamma>"
 using a by (induct) (auto elim: typing_implies_valid)
-
-lemma def_equiv_strong_induct
-  [consumes 1, case_names Q_Refl Q_Symm Q_Trans Q_Abs Q_App Q_Beta Q_Ext]:
-  fixes c::"'a::fs_name"
-  assumes a0: "\<Gamma> \<turnstile> s \<equiv> t : T" 
-  and     a1: "\<And>\<Gamma> t T c.  \<Gamma> \<turnstile> t : T  \<Longrightarrow> P c \<Gamma> t t T"
-  and     a2: "\<And>\<Gamma> t s T c. \<lbrakk>\<And>d. P d \<Gamma> t s T\<rbrakk> \<Longrightarrow>  P c \<Gamma> s t T"
-  and     a3: "\<And>\<Gamma> s t T u c. \<lbrakk>\<And>d. P d \<Gamma> s t T; \<And>d. P d \<Gamma> t u T\<rbrakk> 
-               \<Longrightarrow> P c \<Gamma> s u T"
-  and     a4: "\<And>x \<Gamma> T\<^isub>1 s\<^isub>2 t\<^isub>2 T\<^isub>2 c. \<lbrakk>x\<sharp>\<Gamma>; x\<sharp>c; \<And>d. P d ((x,T\<^isub>1)#\<Gamma>) s\<^isub>2 t\<^isub>2 T\<^isub>2\<rbrakk>
-               \<Longrightarrow> P c \<Gamma> (Lam [x].s\<^isub>2) (Lam [x].t\<^isub>2) (T\<^isub>1\<rightarrow>T\<^isub>2)"
-  and     a5: "\<And>\<Gamma> s\<^isub>1 t\<^isub>1 T\<^isub>1 T\<^isub>2 s\<^isub>2 t\<^isub>2 c. \<lbrakk>\<And>d. P d \<Gamma> s\<^isub>1 t\<^isub>1 (T\<^isub>1\<rightarrow>T\<^isub>2); \<And>d. P d \<Gamma> s\<^isub>2 t\<^isub>2 T\<^isub>1\<rbrakk> 
-               \<Longrightarrow> P c \<Gamma> (App s\<^isub>1 s\<^isub>2) (App t\<^isub>1 t\<^isub>2) T\<^isub>2"
-  and     a6: "\<And>x \<Gamma> T\<^isub>1 s12 t12 T\<^isub>2 s\<^isub>2 t\<^isub>2 c.
-               \<lbrakk>x\<sharp>(\<Gamma>,s\<^isub>2,t\<^isub>2); x\<sharp>c; \<And>d. P d ((x,T\<^isub>1)#\<Gamma>) s12 t12 T\<^isub>2; \<And>d. P d \<Gamma> s\<^isub>2 t\<^isub>2 T\<^isub>1\<rbrakk> 
-               \<Longrightarrow> P c \<Gamma> (App (Lam [x].s12) s\<^isub>2) (t12[x::=t\<^isub>2]) T\<^isub>2"
-  and     a7: "\<And>x \<Gamma> s t T\<^isub>1 T\<^isub>2 c.
-               \<lbrakk>x\<sharp>(\<Gamma>,s,t); \<And>d. P d ((x,T\<^isub>1)#\<Gamma>) (App s (Var x)) (App t (Var x)) T\<^isub>2\<rbrakk>
-               \<Longrightarrow> P c \<Gamma> s t (T\<^isub>1\<rightarrow>T\<^isub>2)"
- shows "P c \<Gamma>  s t T"
-proof -
-  from a0 have "\<And>(pi::name prm) c. P c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) (pi\<bullet>T)" 
-    proof(induct)
-      case (Q_Refl \<Gamma> t T pi c)
-      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>t) (pi\<bullet>t) (pi\<bullet>T)" using a1 by (simp only: eqvt)
-    next
-      case (Q_Symm \<Gamma> t s T pi c)
-      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) (pi\<bullet>T)" using a2 by (simp only: def_equiv_eqvt)
-    next
-      case (Q_Trans \<Gamma> s t T u pi c)
-      then show " P c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>u) (pi\<bullet>T)" using a3 by (blast intro: def_equiv_eqvt)
-    next
-      case (Q_App \<Gamma> s\<^isub>1 t\<^isub>1 T\<^isub>1 T\<^isub>2 s\<^isub>2 t\<^isub>2 pi c)
-      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>App s\<^isub>1 s\<^isub>2) (pi\<bullet>App t\<^isub>1 t\<^isub>2) (pi\<bullet>T\<^isub>2)" using a5 
-	by (simp only: eqvt) (blast)
-    next
-      case (Q_Ext x \<Gamma> s t T\<^isub>1 T\<^isub>2 pi c)
-      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) (pi\<bullet>T\<^isub>1\<rightarrow>T\<^isub>2)"  
-	by (auto intro!: a7 simp add: fresh_bij)
-    next
-      case (Q_Abs x \<Gamma> T\<^isub>1 s\<^isub>2 t\<^isub>2 T\<^isub>2 pi c)
-      obtain y::"name" where fs: "y\<sharp>(pi\<bullet>x,pi\<bullet>s\<^isub>2,pi\<bullet>t\<^isub>2,pi\<bullet>\<Gamma>,c)" by (rule exists_fresh[OF fs_name1])
-      let ?sw="[(pi\<bullet>x,y)]"
-      let ?pi'="?sw@pi"
-      have f1: "x\<sharp>\<Gamma>" by fact
-      have f2: "(pi\<bullet>x)\<sharp>(pi\<bullet>\<Gamma>)" using f1 by (simp add: fresh_bij)
-      have f3: "y\<sharp>?pi'\<bullet>\<Gamma>" using f1 by (auto simp add: pt_name2 fresh_left calc_atm perm_pi_simp)
-      have ih1: "\<And>c. P c (?pi'\<bullet>((x,T\<^isub>1)#\<Gamma>)) (?pi'\<bullet>s\<^isub>2) (?pi'\<bullet>t\<^isub>2) (?pi'\<bullet>T\<^isub>2)" by fact
-      then have "\<And>c. P c ((y,T\<^isub>1)#(?pi'\<bullet>\<Gamma>)) (?pi'\<bullet>s\<^isub>2) (?pi'\<bullet>t\<^isub>2) T\<^isub>2" by (simp add: calc_atm)
-      then have "P c  (?pi'\<bullet>\<Gamma>) (?pi'\<bullet>Lam [x].s\<^isub>2) (?pi'\<bullet>Lam [x].t\<^isub>2) (T\<^isub>1\<rightarrow>T\<^isub>2)" using a4 f3 fs
-	by (simp add: calc_atm)
-      then have "P c (?sw\<bullet>pi\<bullet>\<Gamma>) (?sw\<bullet>Lam [(pi\<bullet>x)].(pi\<bullet>s\<^isub>2)) (?sw\<bullet>Lam [(pi\<bullet>x)].(pi\<bullet>t\<^isub>2)) (T\<^isub>1\<rightarrow>T\<^isub>2)" 
-	by (simp del: append_Cons add: calc_atm pt_name2)
-      moreover have "(?sw\<bullet>(pi\<bullet>\<Gamma>)) = (pi\<bullet>\<Gamma>)" 
-	by (rule perm_fresh_fresh) (simp_all add: fs f2)
-      moreover have "(?sw\<bullet>(Lam [(pi\<bullet>x)].(pi\<bullet>s\<^isub>2))) = Lam [(pi\<bullet>x)].(pi\<bullet>s\<^isub>2)" 
-	by (rule perm_fresh_fresh) (simp_all add: fs f2 abs_fresh)
-      moreover have "(?sw\<bullet>(Lam [(pi\<bullet>x)].(pi\<bullet>t\<^isub>2))) = Lam [(pi\<bullet>x)].(pi\<bullet>t\<^isub>2)" 
-	by (rule perm_fresh_fresh) (simp_all add: fs f2 abs_fresh)
-      ultimately have "P c (pi\<bullet>\<Gamma>) (Lam [(pi\<bullet>x)].(pi\<bullet>s\<^isub>2)) (Lam [(pi\<bullet>x)].(pi\<bullet>t\<^isub>2)) (T\<^isub>1\<rightarrow>T\<^isub>2)" by simp
-      then show  "P c (pi\<bullet>\<Gamma>) (pi\<bullet>Lam [x].s\<^isub>2) (pi\<bullet>Lam [x].t\<^isub>2) (pi\<bullet>T\<^isub>1\<rightarrow>T\<^isub>2)" by simp 
-    next 
-      case (Q_Beta x \<Gamma> s\<^isub>2 t\<^isub>2 T\<^isub>1 s12 t12 T\<^isub>2 pi c) 
-      obtain y::"name" where fs: "y\<sharp>(pi\<bullet>x,pi\<bullet>s12,pi\<bullet>t12,pi\<bullet>s\<^isub>2,pi\<bullet>t\<^isub>2,pi\<bullet>\<Gamma>,c)" 
-	by (rule exists_fresh[OF fs_name1])
-      let ?sw="[(pi\<bullet>x,y)]"
-      let ?pi'="?sw@pi"
-      have f1: "x\<sharp>(\<Gamma>,s\<^isub>2,t\<^isub>2)" by fact 
-      have f2: "(pi\<bullet>x)\<sharp>(pi\<bullet>(\<Gamma>,s\<^isub>2,t\<^isub>2))" using f1 by (simp add: fresh_bij)
-      have f3: "y\<sharp>(?pi'\<bullet>(\<Gamma>,s\<^isub>2,t\<^isub>2))" using f1 
-	by (auto simp add: pt_name2 fresh_left calc_atm perm_pi_simp fresh_prod)
-      have ih1: "\<And>c. P c (?pi'\<bullet>((x,T\<^isub>1)#\<Gamma>)) (?pi'\<bullet>s12) (?pi'\<bullet>t12) (?pi'\<bullet>T\<^isub>2)" by fact
-      then have "\<And>c. P c ((y,T\<^isub>1)#(?pi'\<bullet>\<Gamma>)) (?pi'\<bullet>s12) (?pi'\<bullet>t12) (?pi'\<bullet>T\<^isub>2)" by (simp add: calc_atm)
-      moreover
-      have ih2: "\<And>c. P c (?pi'\<bullet>\<Gamma>) (?pi'\<bullet>s\<^isub>2) (?pi'\<bullet>t\<^isub>2) (?pi'\<bullet>T\<^isub>1)" by fact
-      ultimately have "P c  (?pi'\<bullet>\<Gamma>) (?pi'\<bullet>(App (Lam [x].s12) s\<^isub>2)) (?pi'\<bullet>(t12[x::=t\<^isub>2])) (?pi'\<bullet>T\<^isub>2)" 
-	using a6 f3 fs by (force simp add: subst_eqvt calc_atm del: perm_ty)
-      then have "P c (?sw\<bullet>pi\<bullet>\<Gamma>) (?sw\<bullet>(App (Lam [(pi\<bullet>x)].(pi\<bullet>s12)) (pi\<bullet>s\<^isub>2))) 
-	(?sw\<bullet>((pi\<bullet>t12)[(pi\<bullet>x)::=(pi\<bullet>t\<^isub>2)])) T\<^isub>2" 
-	by (simp del: append_Cons add: calc_atm pt_name2 subst_eqvt)
-      moreover have "(?sw\<bullet>(pi\<bullet>\<Gamma>)) = (pi\<bullet>\<Gamma>)" 
-	by (rule perm_fresh_fresh) (simp_all add: fs[simplified] f2[simplified])
-      moreover have "(?sw\<bullet>(App (Lam [(pi\<bullet>x)].(pi\<bullet>s12)) (pi\<bullet>s\<^isub>2))) = App (Lam [(pi\<bullet>x)].(pi\<bullet>s12)) (pi\<bullet>s\<^isub>2)" 
-	by (rule perm_fresh_fresh) (simp_all add: fs[simplified] f2[simplified] abs_fresh)
-      moreover have "(?sw\<bullet>((pi\<bullet>t12)[(pi\<bullet>x)::=(pi\<bullet>t\<^isub>2)])) = ((pi\<bullet>t12)[(pi\<bullet>x)::=(pi\<bullet>t\<^isub>2)])" 
-	by (rule perm_fresh_fresh) 
-	   (simp_all add: fs[simplified] f2[simplified] fresh_subst fresh_subst'')
-      ultimately have "P c (pi\<bullet>\<Gamma>) (App (Lam [(pi\<bullet>x)].(pi\<bullet>s12)) (pi\<bullet>s\<^isub>2)) ((pi\<bullet>t12)[(pi\<bullet>x)::=(pi\<bullet>t\<^isub>2)]) T\<^isub>2"
-	by simp
-      then show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>App (Lam [x].s12) s\<^isub>2) (pi\<bullet>t12[x::=t\<^isub>2]) (pi\<bullet>T\<^isub>2)" by (simp add: subst_eqvt)
-    qed
-  then have "P c (([]::name prm)\<bullet>\<Gamma>) (([]::name prm)\<bullet>s) (([]::name prm)\<bullet>t) (([]::name prm)\<bullet>T)" by blast
-  then show "P c \<Gamma> s t T" by simp
-qed
 
 section {* Weak Head Reduction *}
 
@@ -520,7 +371,7 @@ inductive_cases2 whr_App_Right[elim]: "t \<leadsto> App p q"
 declare trm.inject  [simp del]
 declare ty.inject  [simp del]
 
-nominal_inductive whr_def
+equivariance whr_def
 
 section {* Weak Head Normalisation *}
 
@@ -600,107 +451,9 @@ where
 | QAP_App[intro]:   "\<lbrakk>\<Gamma> \<turnstile> p \<leftrightarrow> q : T\<^isub>1 \<rightarrow> T\<^isub>2; \<Gamma> \<turnstile> s \<Leftrightarrow> t : T\<^isub>1 \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App p s \<leftrightarrow> App q t : T\<^isub>2"
 | QAP_Const[intro]: "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Const n \<leftrightarrow> Const n : TBase"
 
-nominal_inductive  alg_equiv
-
-lemma alg_equiv_alg_path_equiv_strong_induct
-  [case_names QAT_Base QAT_Arrow QAT_One QAP_Var QAP_App QAP_Const]:
-  fixes c::"'a::fs_name"
-  assumes a1: "\<And>s p t q \<Gamma> c. \<lbrakk>s \<Down> p; t \<Down> q; \<Gamma> \<turnstile> p \<leftrightarrow> q : TBase; \<And>d. P2 d \<Gamma> p q TBase\<rbrakk> 
-               \<Longrightarrow> P1 c \<Gamma> s t TBase"
-  and     a2: "\<And>x \<Gamma> s t T\<^isub>1 T\<^isub>2 c.
-               \<lbrakk>x\<sharp>\<Gamma>; x\<sharp>s; x\<sharp>t; x\<sharp>c; (x,T\<^isub>1)#\<Gamma> \<turnstile> App s (Var x) \<Leftrightarrow> App t (Var x) : T\<^isub>2;
-               \<And>d. P1 d ((x,T\<^isub>1)#\<Gamma>) (App s (Var x)) (App t (Var x)) T\<^isub>2\<rbrakk>
-               \<Longrightarrow> P1 c \<Gamma> s t (T\<^isub>1\<rightarrow>T\<^isub>2)"
-  and     a3: "\<And>\<Gamma> s t c. valid \<Gamma> \<Longrightarrow> P1 c \<Gamma> s t TUnit"
-  and     a4: "\<And>\<Gamma> x T c. \<lbrakk>valid \<Gamma>; (x,T) \<in> set \<Gamma>\<rbrakk> \<Longrightarrow> P2 c \<Gamma> (Var x) (Var x) T"
-  and     a5: "\<And>\<Gamma> p q T\<^isub>1 T\<^isub>2 s t c.
-               \<lbrakk>\<Gamma> \<turnstile> p \<leftrightarrow> q : T\<^isub>1\<rightarrow>T\<^isub>2; \<And>d. P2 d \<Gamma> p q (T\<^isub>1\<rightarrow>T\<^isub>2); \<Gamma> \<turnstile> s \<Leftrightarrow> t : T\<^isub>1; \<And>d. P1 d \<Gamma> s t T\<^isub>1\<rbrakk>
-               \<Longrightarrow> P2 c \<Gamma> (App p s) (App q t) T\<^isub>2"
-  and     a6: "\<And>\<Gamma> n c. valid \<Gamma> \<Longrightarrow> P2 c \<Gamma> (Const n) (Const n) TBase"
-  shows "(\<Gamma> \<turnstile> s \<Leftrightarrow> t : T \<longrightarrow>P1 c \<Gamma> s t T) \<and> (\<Gamma>' \<turnstile> s' \<leftrightarrow> t' : T' \<longrightarrow> P2 c \<Gamma>' s' t' T')"
-proof -
-  have "(\<Gamma> \<turnstile> s \<Leftrightarrow> t : T \<longrightarrow> (\<forall>c (pi::name prm). P1 c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) T)) \<and> 
-        (\<Gamma>' \<turnstile> s' \<leftrightarrow> t' : T' \<longrightarrow> (\<forall>c (pi::name prm). P2 c (pi\<bullet>\<Gamma>') (pi\<bullet>s') (pi\<bullet>t') T'))"
-  proof(induct rule: alg_equiv_alg_path_equiv.induct)
-    case (QAT_Base s q t p \<Gamma>)
-    then show "\<forall>c (pi::name prm). P1 c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) TBase"
-      apply(auto)
-      apply(rule_tac p="pi\<bullet>q" and q="pi\<bullet>p" in  a1)
-      apply(simp_all add: eqvt[simplified])
-      done
-  next
-    case (QAT_Arrow x \<Gamma> s t T\<^isub>1 T\<^isub>2)
-    show ?case
-    proof (rule allI, rule allI)
-      fix c::"'a::fs_name" and pi::"name prm"
-      obtain y::"name" where fs: "y\<sharp>(pi\<bullet>s,pi\<bullet>t,pi\<bullet>\<Gamma>,c)" by (rule exists_fresh[OF fs_name1])
-      let ?sw="[(pi\<bullet>x,y)]"
-      let ?pi'="?sw@pi"
-      have f1: "x\<sharp>(\<Gamma>,s,t)" by fact
-      have f2: "(pi\<bullet>x)\<sharp>(pi\<bullet>(\<Gamma>,s,t))" using f1 by (simp add: fresh_bij)
-      have f3: "y\<sharp>?pi'\<bullet>(\<Gamma>,s,t)" using f1 
-	by (simp only: pt_name2 fresh_left, auto simp add: perm_pi_simp calc_atm)
-      then have f3': "y\<sharp>?pi'\<bullet>\<Gamma>" "y\<sharp>?pi'\<bullet>s" "y\<sharp>?pi'\<bullet>t" by (auto simp add: fresh_prod)
-      have pr1: "(x,T\<^isub>1)#\<Gamma> \<turnstile> App s (Var x) \<Leftrightarrow> App t (Var x) : T\<^isub>2" by fact
-      then have "?pi'\<bullet> ((x,T\<^isub>1)#\<Gamma> \<turnstile> App s (Var x) \<Leftrightarrow> App t (Var x) : T\<^isub>2)" using perm_bool by simp
-      then have "(?pi'\<bullet>((x,T\<^isub>1)#\<Gamma>)) \<turnstile> (?pi'\<bullet>(App s (Var x))) \<Leftrightarrow> (?pi'\<bullet>(App t (Var x))) : (?pi'\<bullet>T\<^isub>2)" 
-	by (auto simp add: eqvt)
-      then have "(y,T\<^isub>1)#(?pi'\<bullet>\<Gamma>) \<turnstile> (App (?pi'\<bullet>s) (Var y)) \<Leftrightarrow> (App (?pi'\<bullet>t) (Var y)) : T\<^isub>2" 
-	by (simp add: calc_atm)
-      moreover    
-      have ih1: "\<forall>c (pi::name prm).  P1 c (pi\<bullet>((x,T\<^isub>1)#\<Gamma>)) (pi\<bullet>App s (Var x)) (pi\<bullet>App t (Var x)) T\<^isub>2"
-	by fact
-      then have "\<And>c.  P1 c (?pi'\<bullet>((x,T\<^isub>1)#\<Gamma>)) (?pi'\<bullet>App s (Var x)) (?pi'\<bullet>App t (Var x)) T\<^isub>2"
-	by auto
-      then have "\<And>c.  P1 c ((y,T\<^isub>1)#(?pi'\<bullet>\<Gamma>)) (App (?pi'\<bullet>s) (Var y)) (App (?pi'\<bullet>t) (Var y)) T\<^isub>2"
-	by (simp add: calc_atm)     
-      ultimately have "P1 c (?pi'\<bullet>\<Gamma>) (?pi'\<bullet>s) (?pi'\<bullet>t) (T\<^isub>1\<rightarrow>T\<^isub>2)" using a2 f3' fs by simp
-      then have "P1 c (?sw\<bullet>pi\<bullet>\<Gamma>) (?sw\<bullet>pi\<bullet>s) (?sw\<bullet>pi\<bullet>t) (T\<^isub>1\<rightarrow>T\<^isub>2)" 
-	by (simp del: append_Cons add: calc_atm pt_name2)
-      moreover have "(?sw\<bullet>(pi\<bullet>\<Gamma>)) = (pi\<bullet>\<Gamma>)" 
-	by (rule perm_fresh_fresh) (simp_all add: fs[simplified] f2[simplified])
-      moreover have "(?sw\<bullet>(pi\<bullet>s)) = (pi\<bullet>s)" 
-	by (rule perm_fresh_fresh) (simp_all add: fs[simplified] f2[simplified])
-      moreover have "(?sw\<bullet>(pi\<bullet>t)) = (pi\<bullet>t)" 
-	by (rule perm_fresh_fresh) (simp_all add: fs[simplified] f2[simplified])
-      ultimately show "P1 c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) (T\<^isub>1\<rightarrow>T\<^isub>2)" by (simp)
-    qed
-  next
-    case (QAT_One \<Gamma> s t)
-    then show "\<forall>c (pi::name prm). P1 c (pi\<bullet>\<Gamma>) (pi\<bullet>s) (pi\<bullet>t) TUnit"
-      by (auto intro!: a3 simp add: valid_eqvt)
-  next
-    case (QAP_Var \<Gamma> x T)
-    then show "\<forall>c (pi::name prm). P2 c (pi \<bullet> \<Gamma>) (pi \<bullet> Var x) (pi \<bullet> Var x) T"
-      apply(auto intro!: a4 simp add: valid_eqvt)
-      apply(simp add: set_eqvt[symmetric])
-      apply(perm_simp add: pt_set_bij1a[OF pt_name_inst, OF at_name_inst])
-      done
-  next
-    case (QAP_App \<Gamma> p q T\<^isub>1 T\<^isub>2 s t)
-    then show "\<forall>c (pi::name prm). P2 c (pi\<bullet>\<Gamma>) (pi\<bullet>App p s) (pi\<bullet>App q t) T\<^isub>2"
-      by (auto intro!: a5 simp add: eqvt[simplified])
-  next
-    case (QAP_Const \<Gamma> n)
-    then show "\<forall>c (pi::name prm). P2 c (pi\<bullet>\<Gamma>) (pi\<bullet>Const n) (pi\<bullet>Const n) TBase"
-      by (auto intro!: a6 simp add: eqvt)
-  qed
-  then have "(\<Gamma> \<turnstile> s \<Leftrightarrow> t : T \<longrightarrow> P1 c (([]::name prm)\<bullet>\<Gamma>) (([]::name prm)\<bullet>s) (([]::name prm)\<bullet>t) T) \<and> 
-             (\<Gamma>' \<turnstile> s' \<leftrightarrow> t' : T' \<longrightarrow> P2 c (([]::name prm)\<bullet>\<Gamma>') (([]::name prm)\<bullet>s') (([]::name prm)\<bullet>t') T')"
-    by blast
-  then show ?thesis by simp
-qed
-
-(* post-processing of the strong induction principle proved above; *) 
-(* the code extracts the strong_inducts-version from strong_induct *)
-(*<*)
-setup {*
-  PureThy.add_thmss
-    [(("alg_equiv_alg_path_equiv_strong_inducts",
-      ProjectRule.projects (ProofContext.init (the_context())) [1,2]
-        (thm "alg_equiv_alg_path_equiv_strong_induct")), [])] #> snd
-*}
-
+nominal_inductive alg_equiv
+  avoids QAT_Arrow: x
+  by simp_all
 
 declare trm.inject [simp add]
 declare ty.inject  [simp add]
@@ -787,7 +540,7 @@ by (induct rule: alg_equiv_alg_path_equiv.inducts)
 lemma algorithmic_transitivity:
   shows "\<Gamma> \<turnstile> s \<Leftrightarrow> t : T \<Longrightarrow> \<Gamma> \<turnstile> t \<Leftrightarrow> u : T \<Longrightarrow> \<Gamma> \<turnstile> s \<Leftrightarrow> u : T"
   and   "\<Gamma> \<turnstile> s \<leftrightarrow> t : T \<Longrightarrow> \<Gamma> \<turnstile> t \<leftrightarrow> u : T \<Longrightarrow> \<Gamma> \<turnstile> s \<leftrightarrow> u : T"
-proof (nominal_induct \<Gamma> s t T and \<Gamma> s t T avoiding: u rule: alg_equiv_alg_path_equiv_strong_inducts)
+proof (nominal_induct \<Gamma> s t T and \<Gamma> s t T avoiding: u rule: alg_equiv_alg_path_equiv.strong_inducts)
   case (QAT_Base s p t q \<Gamma> u)
   have "\<Gamma> \<turnstile> t \<Leftrightarrow> u : TBase" by fact
   then obtain r' q' where b1: "t \<Down> q'" and b2: "u \<Down> r'" and b3: "\<Gamma> \<turnstile> q' \<leftrightarrow> r' : TBase" by auto
@@ -827,14 +580,14 @@ qed (auto)
 lemma algorithmic_weak_head_closure:
   shows "\<Gamma> \<turnstile> s \<Leftrightarrow> t : T \<Longrightarrow> s' \<leadsto> s \<Longrightarrow> t' \<leadsto> t \<Longrightarrow> \<Gamma> \<turnstile> s' \<Leftrightarrow> t' : T"
 apply (nominal_induct \<Gamma> s t T avoiding: s' t'  
-    rule: alg_equiv_alg_path_equiv_strong_inducts(1) [of _ _ _ _ "%a b c d e. True"])
+    rule: alg_equiv_alg_path_equiv.strong_inducts(1) [of _ _ _ _ "%a b c d e. True"])
 apply(auto intro!: QAT_Arrow)
 done
 
 lemma algorithmic_monotonicity:
   shows "\<Gamma> \<turnstile> s \<Leftrightarrow> t : T \<Longrightarrow> \<Gamma> \<lless> \<Gamma>' \<Longrightarrow> valid \<Gamma>' \<Longrightarrow> \<Gamma>' \<turnstile> s \<Leftrightarrow> t : T"
   and   "\<Gamma> \<turnstile> s \<leftrightarrow> t : T \<Longrightarrow> \<Gamma> \<lless> \<Gamma>' \<Longrightarrow> valid \<Gamma>' \<Longrightarrow> \<Gamma>' \<turnstile> s \<leftrightarrow> t : T"
-proof (nominal_induct \<Gamma> s t T and \<Gamma> s t T avoiding: \<Gamma>' rule: alg_equiv_alg_path_equiv_strong_inducts)
+proof (nominal_induct \<Gamma> s t T and \<Gamma> s t T avoiding: \<Gamma>' rule: alg_equiv_alg_path_equiv.strong_inducts)
  case (QAT_Arrow x \<Gamma> s t T\<^isub>1 T\<^isub>2 \<Gamma>')
   have fs:"x\<sharp>\<Gamma>" "x\<sharp>s" "x\<sharp>t" "x\<sharp>\<Gamma>'"by fact
   have h2:"\<Gamma>\<lless>\<Gamma>'" by fact
@@ -1063,7 +816,7 @@ theorem fundamental_theorem_1:
   and     h3: "valid \<Gamma>'" 
   shows "\<Gamma>' \<turnstile> \<theta><t> is \<theta>'<t> : T"   
 using h1 h2 h3
-proof (nominal_induct \<Gamma> t T avoiding: \<Gamma>' \<theta> \<theta>'  rule: typing_induct_strong)
+proof (nominal_induct \<Gamma> t T avoiding: \<Gamma>' \<theta> \<theta>'  rule: typing.strong_induct)
   case (t_Lam x \<Gamma> T\<^isub>1 t\<^isub>2 T\<^isub>2 \<Gamma>' \<theta> \<theta>')
   have fs:"x\<sharp>\<theta>" "x\<sharp>\<theta>'" "x\<sharp>\<Gamma>" by fact
   have h:"\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>" by fact
@@ -1089,7 +842,7 @@ theorem fundamental_theorem_2:
   and     h3: "valid \<Gamma>'"
   shows "\<Gamma>' \<turnstile> \<theta><s> is \<theta>'<t> : T"
 using h1 h2 h3
-proof (nominal_induct \<Gamma> s t T avoiding: \<Gamma>' \<theta> \<theta>' rule: def_equiv_strong_induct)
+proof (nominal_induct \<Gamma> s t T avoiding: \<Gamma>' \<theta> \<theta>' rule: def_equiv.strong_induct)
   case (Q_Refl \<Gamma> t T \<Gamma>' \<theta> \<theta>')
   have "\<Gamma> \<turnstile> t : T" 
   and  "valid \<Gamma>'" by fact
@@ -1139,7 +892,7 @@ next
   case (Q_App \<Gamma> s\<^isub>1 t\<^isub>1 T\<^isub>1 T\<^isub>2 s\<^isub>2 t\<^isub>2 \<Gamma>' \<theta> \<theta>')
   then show "\<Gamma>' \<turnstile> \<theta><App s\<^isub>1 s\<^isub>2> is \<theta>'<App t\<^isub>1 t\<^isub>2> : T\<^isub>2" by auto 
 next
-  case (Q_Beta x \<Gamma> T\<^isub>1 s12 t12 T\<^isub>2 s\<^isub>2 t\<^isub>2 \<Gamma>' \<theta> \<theta>')
+  case (Q_Beta x \<Gamma> s\<^isub>2 t\<^isub>2 T\<^isub>1 s12 t12 T\<^isub>2 \<Gamma>' \<theta> \<theta>')
   have h: "\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>" 
   and  h': "valid \<Gamma>'" by fact
   have fs: "x\<sharp>\<Gamma>" by fact
