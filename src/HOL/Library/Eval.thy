@@ -9,7 +9,7 @@ theory Eval
 imports Pure_term
 begin
 
-subsection {* The typ_of class *}
+subsection {* @{text typ_of} class *}
 
 class typ_of = type +
   fixes typ_of :: "'a itself \<Rightarrow> typ"
@@ -48,7 +48,7 @@ in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
 *}
 
 
-subsection {* term_of class *}
+subsection {* @{text term_of} class *}
 
 class term_of = typ_of +
   constrains typ_of :: "'a itself \<Rightarrow> typ"
@@ -109,7 +109,7 @@ let
 in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
 *}
 
-text {* Disable for characters and ml_strings *}
+text {* Disable for @{typ char}acters and @{typ ml_string}s *}
 
 code_const "typ_of \<Colon> char itself \<Rightarrow> typ" and "term_of \<Colon> char \<Rightarrow> term"
   (SML "!((_); raise Fail \"typ'_of'_char\")"
