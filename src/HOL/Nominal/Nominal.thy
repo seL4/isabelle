@@ -1590,6 +1590,18 @@ lemma pt_fresh_aux_ineq:
   shows "c\<sharp>(pi\<bullet>x)"
 using a by (simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp] dj_perm_forget[OF dj])
 
+lemma pt_fresh_eqvt_ineq:
+  fixes pi::"'x prm"
+  and   c::"'y"
+  and   x::"'a"
+  assumes pta: "pt TYPE('a) TYPE('x)"
+  and     ptb: "pt TYPE('y) TYPE('x)"
+  and     at:  "at TYPE('x)"
+  and     cp:  "cp TYPE('a) TYPE('x) TYPE('y)"
+  and     dj:  "disjoint TYPE('y) TYPE('x)"
+  shows "pi\<bullet>(c\<sharp>x) = (pi\<bullet>c)\<sharp>(pi\<bullet>x)"
+by (simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp] dj_perm_forget[OF dj] perm_bool)
+
 -- "three helper lemmas for the perm_fresh_fresh-lemma"
 lemma comprehension_neg_UNIV: "{b. \<not> P b} = UNIV - {b. P b}"
   by (auto)
