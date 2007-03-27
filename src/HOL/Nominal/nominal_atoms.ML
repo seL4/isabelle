@@ -543,6 +543,7 @@ fun create_nom_typedecls ak_names thy =
        val cp_fun_inst     = thm "cp_fun_inst";
        val cp_option_inst  = thm "cp_option_inst";
        val cp_noption_inst = thm "cp_noption_inst";
+       val cp_set_inst     = thm "cp_set_inst";
        val pt_perm_compose = thm "pt_perm_compose";
 
        val dj_pp_forget    = thm "dj_perm_perm_forget";
@@ -586,6 +587,7 @@ fun create_nom_typedecls ak_names thy =
        (*      functions                                                *)
        (*      options                                                  *)
        (*      noptions                                                 *)
+       (*      sets                                                     *)
        (* are instances of cp_<ak>_<ai> for every <ak>/<ai>-combination *)
        val thy26 = fold (fn ak_name => fn thy =>
 	fold (fn ak_name' => fn thy' =>
@@ -603,6 +605,7 @@ fun create_nom_typedecls ak_names thy =
             val cp_thm_fun  = at_inst RS (pt_inst RS (cp_inst RS (cp_inst RS cp_fun_inst)));
             val cp_thm_optn = cp_inst RS cp_option_inst;
             val cp_thm_noptn = cp_inst RS cp_noption_inst;
+            val cp_thm_set = cp_inst RS cp_set_inst;
         in
          thy'
          |> AxClass.prove_arity ("Product_Type.unit",[],[cls_name]) (cp_proof cp_thm_unit)
@@ -611,6 +614,7 @@ fun create_nom_typedecls ak_names thy =
          |> AxClass.prove_arity ("fun",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_fun)
          |> AxClass.prove_arity ("Datatype.option",[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)
          |> AxClass.prove_arity ("Nominal.noption",[[cls_name]],[cls_name]) (cp_proof cp_thm_noptn)
+         |> AxClass.prove_arity ("set",[[cls_name]],[cls_name]) (cp_proof cp_thm_set)
         end) ak_names thy) ak_names thy25;
 
      (* show that discrete nominal types are permutation types, finitely     *)
