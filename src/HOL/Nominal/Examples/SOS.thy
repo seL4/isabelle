@@ -9,7 +9,7 @@
 (* termination-proof for evaluation.                 *)
 
 theory SOS
-  imports "Nominal"
+  imports "../Nominal"
 begin
 
 atom_decl name 
@@ -210,7 +210,7 @@ where
     v_nil[intro]:  "valid []"
   | v_cons[intro]: "\<lbrakk>valid \<Gamma>;x\<sharp>\<Gamma>\<rbrakk> \<Longrightarrow> valid ((x,T)#\<Gamma>)"
 
-nominal_inductive valid .
+equivariance valid 
 
 inductive_cases2  
   valid_cons_inv_auto[elim]:"valid ((x,T)#\<Gamma>)"
@@ -269,7 +269,7 @@ where
 nominal_inductive typing
   by (simp_all add: abs_fresh fresh_prod fresh_atm)
 
-lemmas typing_eqvt' = typing_eqvt [simplified]
+lemmas typing_eqvt' = typing_eqvt[simplified]
 
 lemma typing_implies_valid:
   assumes "\<Gamma> \<turnstile> t : T"
@@ -299,129 +299,7 @@ declare trm.inject [simp del]
 declare ty.inject [simp del]
 declare data.inject [simp del]
 
-lemma typing_induct_strong
-  [consumes 1, case_names t_Var t_App t_Lam t_Const t_Pr t_Fst t_Snd t_InL t_InR t_Case]:
-    fixes  P::"'a::fs_name \<Rightarrow> (name\<times>ty) list \<Rightarrow> trm \<Rightarrow> ty \<Rightarrow>bool"
-    and    x :: "'a::fs_name"
-    assumes a: "\<Gamma> \<turnstile> e : T"
-    and a1: "\<And>\<Gamma> x T c. \<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> P c \<Gamma> (Var x) T"
-    and a2: "\<And>\<Gamma> e\<^isub>1 T\<^isub>1 T\<^isub>2 e\<^isub>2 c. \<lbrakk>\<And>c. P c \<Gamma> e\<^isub>1 (T\<^isub>1\<rightarrow>T\<^isub>2); \<And>c. P c \<Gamma> e\<^isub>2 T\<^isub>1\<rbrakk> \<Longrightarrow> P c \<Gamma> (App e\<^isub>1 e\<^isub>2) T\<^isub>2"
-    and a3: "\<And>x \<Gamma> T\<^isub>1 t T\<^isub>2 c. \<lbrakk>x\<sharp>(\<Gamma>,c); \<And>c. P c ((x,T\<^isub>1)#\<Gamma>) t T\<^isub>2\<rbrakk> \<Longrightarrow> P c \<Gamma> (Lam [x].t) (T\<^isub>1\<rightarrow>T\<^isub>2)"
-    and a4: "\<And>\<Gamma> n c. valid \<Gamma> \<Longrightarrow> P c \<Gamma> (Const n) (Data DNat)"
-    and a5: "\<And>\<Gamma> e\<^isub>1 S\<^isub>1 e\<^isub>2 S\<^isub>2 c. \<lbrakk>\<And>c. P c \<Gamma> e\<^isub>1 (Data S\<^isub>1); \<And>c. P c \<Gamma> e\<^isub>2 (Data S\<^isub>2)\<rbrakk>
-            \<Longrightarrow> P c \<Gamma> (Pr e\<^isub>1 e\<^isub>2) (Data (DProd S\<^isub>1 S\<^isub>2))"
-    and a6: "\<And>\<Gamma> e S\<^isub>1 S\<^isub>2 c. \<lbrakk>\<And>c. P c \<Gamma> e (Data (DProd S\<^isub>1 S\<^isub>2))\<rbrakk> \<Longrightarrow> P c \<Gamma> (Fst e) (Data S\<^isub>1)"
-    and a7: "\<And>\<Gamma> e S\<^isub>1 S\<^isub>2 c. \<lbrakk>\<And>c. P c \<Gamma> e (Data (DProd S\<^isub>1 S\<^isub>2))\<rbrakk> \<Longrightarrow> P c \<Gamma> (Snd e) (Data S\<^isub>2)"
-    and a8: "\<And>\<Gamma> e S\<^isub>1 S\<^isub>2 c. \<lbrakk>\<And>c. P c \<Gamma> e (Data S\<^isub>1)\<rbrakk> \<Longrightarrow> P c \<Gamma> (InL e) (Data (DSum S\<^isub>1 S\<^isub>2))"
-    and a9: "\<And>\<Gamma> e S\<^isub>2 S\<^isub>1 c. \<lbrakk>\<And>c. P c \<Gamma> e (Data S\<^isub>2)\<rbrakk> \<Longrightarrow> P c \<Gamma> (InR e) (Data (DSum S\<^isub>1 S\<^isub>2))"
-    and a10:"\<And>x\<^isub>1 \<Gamma> e e\<^isub>2 x\<^isub>2 e\<^isub>1 S\<^isub>1 S\<^isub>2 T c.
-             \<lbrakk>x\<^isub>1\<sharp>(\<Gamma>,e,e\<^isub>2,x\<^isub>2,c); x\<^isub>2\<sharp>(\<Gamma>,e,e\<^isub>1,x\<^isub>1,c); 
-             \<And>c. P c \<Gamma> e (Data (DSum S\<^isub>1 S\<^isub>2)); 
-             \<And>c. P c ((x\<^isub>1,Data S\<^isub>1)#\<Gamma>) e\<^isub>1 T; 
-             \<And>c. P c ((x\<^isub>2,Data S\<^isub>2)#\<Gamma>) e\<^isub>2 T\<rbrakk>
-             \<Longrightarrow> P c \<Gamma> (Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2) T"
-    shows "P c \<Gamma> e T"
-proof -
-  from a have "\<And>(pi::name prm) c. P c (pi\<bullet>\<Gamma>) (pi\<bullet>e) T"
-  proof (induct)
-    case (t_Var \<Gamma> x T pi c)
-    have "valid \<Gamma>" by fact
-    then have "valid (pi\<bullet>\<Gamma>)" by (simp only: eqvt)
-    moreover
-    have "(x,T)\<in>set \<Gamma>" by fact
-    then have "pi\<bullet>(x,T)\<in>pi\<bullet>(set \<Gamma>)" by (simp only: pt_set_bij[OF pt_name_inst, OF at_name_inst])  
-    then have "(pi\<bullet>x,T)\<in>set (pi\<bullet>\<Gamma>)" by (simp add: eqvt)
-    ultimately show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Var x)) T" using a1 by simp
-  next
-    case (t_App \<Gamma> e\<^isub>1 T\<^isub>1 T\<^isub>2 e\<^isub>2 pi c)
-    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(App e\<^isub>1 e\<^isub>2)) T\<^isub>2" using a2 by (simp, blast)
-  next
-    case (t_Lam x \<Gamma> T\<^isub>1 t T\<^isub>2 pi c)
-    obtain y::"name" where fs: "y\<sharp>(pi\<bullet>x,pi\<bullet>\<Gamma>,pi\<bullet>t,c)" by (erule exists_fresh[OF fs_name1])
-    let ?sw = "[(pi\<bullet>x,y)]"
-    let ?pi' = "?sw@pi"
-    have f0: "x\<sharp>\<Gamma>" by fact
-    have f1: "(pi\<bullet>x)\<sharp>(pi\<bullet>\<Gamma>)" using f0 by (simp add: fresh_bij)
-    have f2: "y\<sharp>?pi'\<bullet>\<Gamma>" by (auto simp add: pt_name2 fresh_left calc_atm perm_pi_simp)
-    have ih1: "\<And>c. P c (?pi'\<bullet>((x,T\<^isub>1)#\<Gamma>)) (?pi'\<bullet>t) T\<^isub>2" by fact
-    then have "P c (?pi'\<bullet>\<Gamma>) (Lam [y].(?pi'\<bullet>t)) (T\<^isub>1\<rightarrow>T\<^isub>2)" using fs f2 a3 by (simp add: calc_atm)
-    then have "P c (?sw\<bullet>pi\<bullet>\<Gamma>) (?sw\<bullet>(Lam [(pi\<bullet>x)].(pi\<bullet>t))) (T\<^isub>1\<rightarrow>T\<^isub>2)" 
-      by (simp del: append_Cons add: calc_atm pt_name2)
-    moreover have "(?sw\<bullet>pi\<bullet>\<Gamma>) = (pi\<bullet>\<Gamma>)"
-      by (rule perm_fresh_fresh) (simp_all add: fs f1)
-    moreover have "(?sw\<bullet>(Lam [(pi\<bullet>x)].(pi\<bullet>t))) = Lam [(pi\<bullet>x)].(pi\<bullet>t)"
-      by (rule perm_fresh_fresh) (simp_all add: fs f1 fresh_atm abs_fresh)
-    ultimately show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Lam [x].t)) (T\<^isub>1\<rightarrow>T\<^isub>2)" 
-      by simp
-  next
-    case (t_Const \<Gamma> n pi c)
-    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Const n)) (Data DNat)" using a4 by (simp, blast intro: eqvt)
-  next 
-    case (t_Pr \<Gamma> e\<^isub>1 S\<^isub>1 e\<^isub>2 S\<^isub>2 pi c)
-    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Pr e\<^isub>1 e\<^isub>2)) (Data (DProd S\<^isub>1 S\<^isub>2))" using a5 
-      by (simp)
-  next
-    case (t_Fst \<Gamma> e S\<^isub>1 S\<^isub>2 pi c)
-    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Fst e)) (Data S\<^isub>1)" using a6 by (simp, blast)
-  next
-    case (t_Snd \<Gamma> e S\<^isub>1 S\<^isub>2 pi c)
-    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Snd e)) (Data S\<^isub>2)" using a7 by (simp, blast)
-  next
-    case (t_InL \<Gamma> e S\<^isub>1 S\<^isub>2 pi c)
-    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(InL e)) (Data (DSum S\<^isub>1 S\<^isub>2))" using a8 by (simp)
-  next
-    case (t_InR \<Gamma> e S\<^isub>2 S\<^isub>1 pi c)
-    thus "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(InR e)) (Data (DSum S\<^isub>1 S\<^isub>2))" using a9 by (simp)
-  next
-    case (t_Case x\<^isub>1 \<Gamma> e e\<^isub>2 x\<^isub>2 e\<^isub>1 S\<^isub>1 S\<^isub>2 T pi c)
-    obtain y\<^isub>1::"name" where fs1: "y\<^isub>1\<sharp>(pi\<bullet>x\<^isub>1,pi\<bullet>x\<^isub>2,pi\<bullet>e,pi\<bullet>e\<^isub>1,pi\<bullet>e\<^isub>2,pi\<bullet>\<Gamma>,c)" 
-      by (erule exists_fresh[OF fs_name1])
-    obtain y\<^isub>2::"name" where fs2: "y\<^isub>2\<sharp>(pi\<bullet>x\<^isub>1,pi\<bullet>x\<^isub>2,pi\<bullet>e,pi\<bullet>e\<^isub>1,pi\<bullet>e\<^isub>2,pi\<bullet>\<Gamma>,c,y\<^isub>1)" 
-      by (erule exists_fresh[OF fs_name1])
-    let ?sw1 = "[(pi\<bullet>x\<^isub>1,y\<^isub>1)]"
-    let ?sw2 = "[(pi\<bullet>x\<^isub>2,y\<^isub>2)]"
-    let ?pi' = "?sw2@?sw1@pi"
-    have f01: "x\<^isub>1\<sharp>(\<Gamma>,e,e\<^isub>2,x\<^isub>2)" by fact
-    have f11: "(pi\<bullet>x\<^isub>1)\<sharp>(pi\<bullet>\<Gamma>,pi\<bullet>e,pi\<bullet>e\<^isub>2,pi\<bullet>x\<^isub>2)" using f01 by (simp add: fresh_bij)
-    have f21: "y\<^isub>1\<sharp>(?pi'\<bullet>\<Gamma>,?pi'\<bullet>e,?pi'\<bullet>e\<^isub>2)" using f01 fs1 fs2
-      by (simp add: fresh_atm fresh_prod fresh_left calc_atm pt_name2 perm_pi_simp)
-    have f02: "x\<^isub>2\<sharp>(\<Gamma>,e,e\<^isub>1,x\<^isub>1)" by fact
-    have f12: "(pi\<bullet>x\<^isub>2)\<sharp>(pi\<bullet>\<Gamma>,pi\<bullet>e,pi\<bullet>e\<^isub>1,pi\<bullet>x\<^isub>1)" using f02 by (simp add: fresh_bij)
-    have f22: "y\<^isub>2\<sharp>(?pi'\<bullet>\<Gamma>,?pi'\<bullet>e,?pi'\<bullet>e\<^isub>1)" using f02 fs1 fs2
-      by (auto simp add: fresh_atm fresh_prod fresh_left calc_atm pt_name2 perm_pi_simp)
-    have ih1: "\<And>c. P c (?pi'\<bullet>\<Gamma>) (?pi'\<bullet>e) (Data (DSum S\<^isub>1 S\<^isub>2))" by fact
-    moreover
-    have ih2: "\<And>c. P c (?pi'\<bullet>((x\<^isub>1,Data S\<^isub>1)#\<Gamma>)) (?pi'\<bullet>e\<^isub>1) T" by fact
-    then have "\<And>c. P c ((y\<^isub>1,Data S\<^isub>1)#(?pi'\<bullet>\<Gamma>)) (?pi'\<bullet>e\<^isub>1) T" using fs1 fs2
-      by (auto simp add: calc_atm fresh_prod fresh_atm)
-    moreover
-    have ih3: "\<And>c. P c (?pi'\<bullet>((x\<^isub>2,Data S\<^isub>2)#\<Gamma>)) (?pi'\<bullet>e\<^isub>2) T" by fact
-    then have "\<And>c. P c ((y\<^isub>2,Data S\<^isub>2)#(?pi'\<bullet>\<Gamma>)) (?pi'\<bullet>e\<^isub>2) T" using fs1 fs2 f11 f12
-      by (simp add: calc_atm fresh_prod fresh_atm)
-    ultimately have "P c (?pi'\<bullet>\<Gamma>) (Case (?pi'\<bullet>e) of inl y\<^isub>1 \<rightarrow> (?pi'\<bullet>e\<^isub>1) | inr y\<^isub>2 \<rightarrow> (?pi'\<bullet>e\<^isub>2)) T"
-      using f21 f22 fs1 fs2 a10 by (force simp add: fresh_atm fresh_prod)
-    then have "P c (?sw2\<bullet>?sw1\<bullet>pi\<bullet>\<Gamma>) 
-                   (?sw2\<bullet>?sw1\<bullet>(Case (pi\<bullet>e) of inl (pi\<bullet>x\<^isub>1) \<rightarrow> (pi\<bullet>e\<^isub>1) | inr (pi\<bullet>x\<^isub>2) \<rightarrow> (pi\<bullet>e\<^isub>2))) T"
-      using fs1 fs2 f01 f02 f11 f12 
-      by (auto simp del: append_Cons simp add: pt_name2 fresh_atm fresh_prod calc_atm)
-    moreover have "(?sw1\<bullet>pi\<bullet>\<Gamma>) = (pi\<bullet>\<Gamma>)"
-      by (rule perm_fresh_fresh) (simp_all add: fs1 f11)
-    moreover have "(?sw2\<bullet>pi\<bullet>\<Gamma>) = (pi\<bullet>\<Gamma>)"
-      by (rule perm_fresh_fresh) (simp_all add: fs2 f12)
-    moreover have "?sw1\<bullet>(Case (pi\<bullet>e) of inl (pi\<bullet>x\<^isub>1) \<rightarrow> (pi\<bullet>e\<^isub>1) | inr (pi\<bullet>x\<^isub>2) \<rightarrow> (pi\<bullet>e\<^isub>2))
-                    = (Case (pi\<bullet>e) of inl (pi\<bullet>x\<^isub>1) \<rightarrow> (pi\<bullet>e\<^isub>1) | inr (pi\<bullet>x\<^isub>2) \<rightarrow> (pi\<bullet>e\<^isub>2))"
-      by (rule perm_fresh_fresh) (simp_all add: fs1 fs2 f11 f12 abs_fresh)
-    moreover have "?sw2\<bullet>(Case (pi\<bullet>e) of inl (pi\<bullet>x\<^isub>1) \<rightarrow> (pi\<bullet>e\<^isub>1) | inr (pi\<bullet>x\<^isub>2) \<rightarrow> (pi\<bullet>e\<^isub>2))
-                    = (Case (pi\<bullet>e) of inl (pi\<bullet>x\<^isub>1) \<rightarrow> (pi\<bullet>e\<^isub>1) | inr (pi\<bullet>x\<^isub>2) \<rightarrow> (pi\<bullet>e\<^isub>2))"
-      by (rule perm_fresh_fresh) (simp_all add: fs1 fs2 f11 f12 abs_fresh)
-    ultimately show "P c (pi\<bullet>\<Gamma>) (pi\<bullet>(Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2)) T" 
-      by (simp only:, simp) 
-  qed 
-  then have "P c (([]::name prm)\<bullet>\<Gamma>) (([]::name prm)\<bullet>e) T" by blast
-  then show "P c \<Gamma> e T" by simp
-qed 
-
-lemma t_Lam_elim [elim] : 
+lemma t_Lam_elim[elim]: 
   assumes a1:"\<Gamma> \<turnstile> Lam [x].t : T" 
   and     a2: "x\<sharp>\<Gamma>"
   obtains T\<^isub>1 and T\<^isub>2 where "(x,T\<^isub>1)#\<Gamma> \<turnstile> t : T\<^isub>2" and "T=T\<^isub>1\<rightarrow>T\<^isub>2"
@@ -438,7 +316,7 @@ proof -
   then show ?thesis using prems b4 by simp
 qed
 
-lemma t_Case_elim[elim] : 
+lemma t_Case_elim[elim]: 
   assumes "\<Gamma> \<turnstile> Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 : T" and "x\<^isub>1\<sharp>\<Gamma>" and "x\<^isub>2\<sharp>\<Gamma>" 
   obtains \<sigma>\<^isub>1 \<sigma>\<^isub>2 where "\<Gamma> \<turnstile> e : Data (DSum \<sigma>\<^isub>1 \<sigma>\<^isub>2)" 
                   and "(x\<^isub>1, Data \<sigma>\<^isub>1)#\<Gamma> \<turnstile> e\<^isub>1 : T" 
@@ -484,7 +362,7 @@ lemma weakening:
   assumes "\<Gamma>\<^isub>1 \<turnstile> e: T" and "valid \<Gamma>\<^isub>2" and "\<Gamma>\<^isub>1 \<lless> \<Gamma>\<^isub>2"
   shows "\<Gamma>\<^isub>2 \<turnstile> e: T"
   using assms
-proof(nominal_induct \<Gamma>\<^isub>1 e T avoiding: \<Gamma>\<^isub>2 rule: typing_induct_strong)
+proof(nominal_induct \<Gamma>\<^isub>1 e T avoiding: \<Gamma>\<^isub>2 rule: typing.strong_induct)
   case (t_Lam x \<Gamma>\<^isub>1 T\<^isub>1 t T\<^isub>2 \<Gamma>\<^isub>2)
   have ih: "\<lbrakk>valid ((x,T\<^isub>1)#\<Gamma>\<^isub>2); (x,T\<^isub>1)#\<Gamma>\<^isub>1 \<lless> (x,T\<^isub>1)#\<Gamma>\<^isub>2\<rbrakk> \<Longrightarrow> (x,T\<^isub>1)#\<Gamma>\<^isub>2 \<turnstile> t : T\<^isub>2" by fact
   have H1: "valid \<Gamma>\<^isub>2" by fact
@@ -657,164 +535,6 @@ declare trm.inject  [simp del]
 declare ty.inject  [simp del]
 declare data.inject [simp del]
 
-lemma big_induct_strong
-  [consumes 1, case_names b_Lam b_App b_Const b_Pr b_Fst b_Snd b_InL b_InR b_CaseL b_CaseR]:
-    fixes  P::"'a::fs_name \<Rightarrow> trm \<Rightarrow> trm \<Rightarrow>bool"
-    and    x :: "'a::fs_name"
-    assumes a: "t \<Down> t'"
-    and a1: "\<And>x e c. P c (Lam [x].e) (Lam [x].e)"
-    and a2: "\<And>x e\<^isub>1 e\<^isub>2 e\<^isub>2' e' e\<^isub>1' c. 
-             \<lbrakk>x\<sharp>(e\<^isub>1,e\<^isub>2,e',c); \<And>c. P c e\<^isub>1 (Lam [x].e\<^isub>1'); \<And>c. P c e\<^isub>2 e\<^isub>2'; \<And>c. P c (e\<^isub>1'[x::=e\<^isub>2']) e'\<rbrakk> 
-             \<Longrightarrow> P c (App e\<^isub>1 e\<^isub>2) e'"
-    and a3: "\<And>n c. P c (Const n) (Const n)"
-    and a4: "\<And>e\<^isub>1 e\<^isub>1' e\<^isub>2 e\<^isub>2' c. \<lbrakk>\<And>c. P c e\<^isub>1 e\<^isub>1'; \<And>c. P c e\<^isub>2 e\<^isub>2'\<rbrakk>
-             \<Longrightarrow> P c (Pr e\<^isub>1 e\<^isub>2) (Pr e\<^isub>1' e\<^isub>2')"
-    and a5: "\<And>e e\<^isub>1 e\<^isub>2 c. \<lbrakk>\<And>c. P c e (Pr e\<^isub>1 e\<^isub>2)\<rbrakk> \<Longrightarrow> P c (Fst e) e\<^isub>1"
-    and a6: "\<And>e e\<^isub>1 e\<^isub>2 c. \<lbrakk>\<And>c. P c e (Pr e\<^isub>1 e\<^isub>2)\<rbrakk> \<Longrightarrow> P c (Snd e) e\<^isub>2"
-    and a7: "\<And>e e' c. \<lbrakk>\<And>c. P c e e'\<rbrakk> \<Longrightarrow> P c (InL e) (InL e')"
-    and a8: "\<And>e e' c. \<lbrakk>\<And>c. P c e e'\<rbrakk> \<Longrightarrow> P c (InR e) (InR e')"
-    and a9: "\<And>x\<^isub>1 e e\<^isub>2 e'' x\<^isub>2 e\<^isub>1 e' c.
-             \<lbrakk>x\<^isub>1\<sharp>(e,e\<^isub>2,e'',x\<^isub>2,c); x\<^isub>2\<sharp>(e,e\<^isub>1,e'',x\<^isub>1,c);  \<And>c. P c e (InL e'); \<And>c. P c (e\<^isub>1[x\<^isub>1::=e']) e''\<rbrakk>
-             \<Longrightarrow> P c (Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2) e''"
-    and a10:"\<And>x\<^isub>1 e e\<^isub>2 e'' x\<^isub>2 e\<^isub>1 e' c.
-             \<lbrakk>x\<^isub>1\<sharp>(e,e\<^isub>2,e'',x\<^isub>2,c); x\<^isub>2\<sharp>(e,e\<^isub>1,e'',x\<^isub>1,c); \<And>c. P c e (InR e'); \<And>c. P c (e\<^isub>2[x\<^isub>2::=e']) e''\<rbrakk>
-             \<Longrightarrow> P c (Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2) e''"
-    shows "P c t t'"
-proof -
-  from a have "\<And>(pi::name prm) c. P c (pi\<bullet>t) (pi\<bullet>t')"
-  proof (induct)
-    case (b_Lam x e pi c)
-    show "P c (pi\<bullet>(Lam [x].e)) (pi\<bullet>(Lam [x].e))" using a1 by simp
-  next
-    case (b_App x e\<^isub>1 e\<^isub>2 e' e\<^isub>1' e\<^isub>2' pi c)
-    obtain y::"name" where fs: "y\<sharp>(pi\<bullet>x,pi\<bullet>e\<^isub>1,pi\<bullet>e\<^isub>2,pi\<bullet>e\<^isub>2',pi\<bullet>e',pi\<bullet>e\<^isub>1,c)" 
-      by (erule exists_fresh[OF fs_name1])
-    let ?sw = "[(pi\<bullet>x,y)]"
-    let ?pi' = "?sw@pi"
-    have f0: "x\<sharp>(e\<^isub>1,e\<^isub>2,e')" by fact
-    have f1: "(pi\<bullet>x)\<sharp>(pi\<bullet>e\<^isub>1,pi\<bullet>e\<^isub>2,pi\<bullet>e')" using f0 by (simp add: fresh_bij)
-    have f2: "y\<sharp>(?pi'\<bullet>e\<^isub>1,?pi'\<bullet>e\<^isub>2,?pi'\<bullet>e')" using f0 
-      by (auto simp add: pt_name2 fresh_left calc_atm perm_pi_simp fresh_prod)
-    have ih1: "\<And>c. P c (?pi'\<bullet>e\<^isub>1) (?pi'\<bullet>(Lam [x].e\<^isub>1'))" by fact
-    then have "\<And>c. P c (?pi'\<bullet>e\<^isub>1) (Lam [y].(?pi'\<bullet>e\<^isub>1'))" by (simp add: calc_atm)
-    moreover
-    have ih2: "\<And>c. P c (?pi'\<bullet>e\<^isub>2) (?pi'\<bullet>e\<^isub>2')" by fact
-    moreover
-    have ih3: "\<And>c. P c (?pi'\<bullet>(e\<^isub>1'[x::=e\<^isub>2'])) (?pi'\<bullet>e')" by fact
-    then have "\<And>c. P c ((?pi'\<bullet>e\<^isub>1')[y::=(?pi'\<bullet>e\<^isub>2')]) (?pi'\<bullet>e')" by (simp add: calc_atm subst_eqvt)
-    ultimately have "P c (App (?pi'\<bullet>e\<^isub>1) (?pi'\<bullet>e\<^isub>2)) (?pi'\<bullet>e')" using fs f2
-      by (auto intro!: a2 simp add: calc_atm)
-    then have "P c (?sw\<bullet>(App (pi\<bullet>e\<^isub>1) (pi\<bullet>e\<^isub>2))) (?sw\<bullet>(pi\<bullet>e'))"
-      by (simp del: append_Cons add: pt_name2)
-    moreover have "(?sw\<bullet>(App (pi\<bullet>e\<^isub>1) (pi\<bullet>e\<^isub>2))) = App (pi\<bullet>e\<^isub>1) (pi\<bullet>e\<^isub>2)" 
-      by (rule perm_fresh_fresh) (simp_all add: fs f1)
-    moreover have "(?sw\<bullet>(pi\<bullet>e')) = pi\<bullet>e'" 
-      by (rule perm_fresh_fresh) (simp_all add: fs f1)
-    ultimately show "P c (pi\<bullet>(App e\<^isub>1 e\<^isub>2)) (pi\<bullet>e')" 
-      by simp
-  next
-    case (b_Const n pi c)
-    show "P c (pi\<bullet>(Const n)) (pi\<bullet>(Const n))" using a3 by simp
-  next
-    case (b_Pr e\<^isub>1 e\<^isub>1' e\<^isub>2 e\<^isub>2' pi c)
-    then show "P c (pi\<bullet>(Pr e\<^isub>1 e\<^isub>2)) (pi\<bullet>(Pr e\<^isub>1' e\<^isub>2'))" using a4 by simp
-  next
-    case (b_Fst e e\<^isub>1 e\<^isub>2 pi c)
-    then show "P c (pi\<bullet>(Fst e)) (pi\<bullet>e\<^isub>1)" using a5 by (simp, blast)
-  next
-    case (b_Snd e e\<^isub>1 e\<^isub>2 pi c)
-    then show "P c (pi\<bullet>(Snd e)) (pi\<bullet>e\<^isub>2)" using a6 by (simp, blast)
-  next
-    case (b_InL e e' pi c)
-    then show "P c (pi\<bullet>(InL e)) (pi\<bullet>(InL e'))" using a7 by (simp)
-  next
-    case (b_InR e e' pi c)
-    then show "P c (pi\<bullet>(InR e)) (pi\<bullet>(InR e'))" using a8 by (simp)
-  next
-    case (b_CaseL x\<^isub>1 e e\<^isub>2 e'' x\<^isub>2 e\<^isub>1 e' pi c)
-    obtain y\<^isub>1::"name" where fs1: "y\<^isub>1\<sharp>(pi\<bullet>x\<^isub>1,pi\<bullet>e,pi\<bullet>e\<^isub>1,pi\<bullet>e\<^isub>2,pi\<bullet>e'',pi\<bullet>x\<^isub>2,c)"
-      by (rule exists_fresh[OF fin_supp])
-    obtain y\<^isub>2::"name" where fs2: "y\<^isub>2\<sharp>(pi\<bullet>x\<^isub>2,pi\<bullet>e,pi\<bullet>e\<^isub>1,pi\<bullet>e\<^isub>2,pi\<bullet>e'',pi\<bullet>x\<^isub>1,c,y\<^isub>1)"
-      by (rule exists_fresh[OF fin_supp])
-    let ?sw1 = "[(pi\<bullet>x\<^isub>1,y\<^isub>1)]"
-    let ?sw2 = "[(pi\<bullet>x\<^isub>2,y\<^isub>2)]"
-    let ?pi' = "?sw2@?sw1@pi"
-    have f01: "x\<^isub>1\<sharp>(e,e\<^isub>2,e'',x\<^isub>2)" by fact
-    have f11: "(pi\<bullet>x\<^isub>1)\<sharp>(pi\<bullet>e,pi\<bullet>e\<^isub>2,pi\<bullet>e'',pi\<bullet>x\<^isub>2)" using f01 by (simp add: fresh_bij)
-    have f21: "y\<^isub>1\<sharp>(?pi'\<bullet>e,?pi'\<bullet>e\<^isub>2,?pi'\<bullet>e'')" using f01 fs1 fs2 
-      by (simp add: fresh_atm fresh_prod fresh_left calc_atm pt_name2 perm_pi_simp)
-    have f02: "x\<^isub>2\<sharp>(e,e\<^isub>1,e'',x\<^isub>1)" by fact
-    have f12: "(pi\<bullet>x\<^isub>2)\<sharp>(pi\<bullet>e,pi\<bullet>e\<^isub>1,pi\<bullet>e'',pi\<bullet>x\<^isub>1)" using f02 by (simp add: fresh_bij)
-    have f22: "y\<^isub>2\<sharp>(?pi'\<bullet>e,?pi'\<bullet>e\<^isub>1,?pi'\<bullet>e'')" using f02 fs1 fs2 
-      by (auto simp add: fresh_atm fresh_prod fresh_left calc_atm pt_name2 perm_pi_simp)
-    have ih1: "\<And>c. P c (?pi'\<bullet>e) (?pi'\<bullet>(InL e'))" by fact
-    moreover
-    have ih2: "\<And>c. P c (?pi'\<bullet>(e\<^isub>1[x\<^isub>1::=e'])) (?pi'\<bullet>e'')" by fact
-    then have "\<And>c. P c ((?pi'\<bullet>e\<^isub>1)[y\<^isub>1::=(?pi'\<bullet>e')]) (?pi'\<bullet>e'')" using fs1 fs2 
-      by (auto simp add: calc_atm subst_eqvt fresh_prod fresh_atm del: append_Cons)
-    ultimately have "P c (Case (?pi'\<bullet>e) of inl y\<^isub>1 \<rightarrow> (?pi'\<bullet>e\<^isub>1) | inr y\<^isub>2 \<rightarrow> (?pi'\<bullet>e\<^isub>2)) (?pi'\<bullet>e'')"
-      using f21 f22 fs1 fs2  by (auto intro!: a9 simp add: fresh_atm fresh_prod)
-    then have "P c (?sw2\<bullet>?sw1\<bullet>(Case (pi\<bullet>e) of inl (pi\<bullet>x\<^isub>1) \<rightarrow> (pi\<bullet>e\<^isub>1) | inr (pi\<bullet>x\<^isub>2) \<rightarrow> (pi\<bullet>e\<^isub>2))) 
-                   (?sw2\<bullet>?sw1\<bullet>(pi\<bullet>e''))"
-      using fs1 fs2 f01 f02 f11 f12 
-      by (auto simp del: append_Cons simp add: pt_name2 fresh_atm fresh_prod calc_atm)
-    moreover have "?sw1\<bullet>(Case (pi\<bullet>e) of inl (pi\<bullet>x\<^isub>1) \<rightarrow> (pi\<bullet>e\<^isub>1) | inr (pi\<bullet>x\<^isub>2) \<rightarrow> (pi\<bullet>e\<^isub>2))
-                    = (Case (pi\<bullet>e) of inl (pi\<bullet>x\<^isub>1) \<rightarrow> (pi\<bullet>e\<^isub>1) | inr (pi\<bullet>x\<^isub>2) \<rightarrow> (pi\<bullet>e\<^isub>2))"
-      by (rule perm_fresh_fresh) (simp_all add: fs1 fs2 f11 f12 abs_fresh)
-    moreover have "?sw2\<bullet>(Case (pi\<bullet>e) of inl (pi\<bullet>x\<^isub>1) \<rightarrow> (pi\<bullet>e\<^isub>1) | inr (pi\<bullet>x\<^isub>2) \<rightarrow> (pi\<bullet>e\<^isub>2))
-                    = (Case (pi\<bullet>e) of inl (pi\<bullet>x\<^isub>1) \<rightarrow> (pi\<bullet>e\<^isub>1) | inr (pi\<bullet>x\<^isub>2) \<rightarrow> (pi\<bullet>e\<^isub>2))"
-      by (rule perm_fresh_fresh) (simp_all add: fs1 fs2 f11 f12 abs_fresh)
-    moreover have "(?sw1\<bullet>(pi\<bullet>e'')) = (pi\<bullet>e'')"
-      by (rule perm_fresh_fresh) (simp_all add: fs1 fs2 f11 f12)
-    moreover have "(?sw2\<bullet>(pi\<bullet>e'')) = (pi\<bullet>e'')"
-      by (rule perm_fresh_fresh) (simp_all add: fs1 fs2 f11 f12)
-    ultimately show "P c (pi\<bullet>(Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2)) (pi\<bullet>e'')" 
-      by (simp only:, simp)
-  next
-    case (b_CaseR x\<^isub>1 e e\<^isub>2 e'' x\<^isub>2 e\<^isub>1 e' pi c)
-    obtain y\<^isub>1::"name" where fs1: "y\<^isub>1\<sharp>(pi\<bullet>x\<^isub>1,pi\<bullet>e,pi\<bullet>e\<^isub>1,pi\<bullet>e\<^isub>2,pi\<bullet>e'',pi\<bullet>x\<^isub>2,c)"
-      by (rule exists_fresh[OF fin_supp])
-    obtain y\<^isub>2::"name" where fs2: "y\<^isub>2\<sharp>(pi\<bullet>x\<^isub>2,pi\<bullet>e,pi\<bullet>e\<^isub>1,pi\<bullet>e\<^isub>2,pi\<bullet>e'',pi\<bullet>x\<^isub>1,c,y\<^isub>1)"
-      by (rule exists_fresh[OF fin_supp])
-    let ?sw1 = "[(pi\<bullet>x\<^isub>1,y\<^isub>1)]"
-    let ?sw2 = "[(pi\<bullet>x\<^isub>2,y\<^isub>2)]"
-    let ?pi' = "?sw2@?sw1@pi"
-    have f01: "x\<^isub>1\<sharp>(e,e\<^isub>2,e'',x\<^isub>2)" by fact
-    have f11: "(pi\<bullet>x\<^isub>1)\<sharp>(pi\<bullet>e,pi\<bullet>e\<^isub>2,pi\<bullet>e'',pi\<bullet>x\<^isub>2)" using f01 by (simp add: fresh_bij)
-    have f21: "y\<^isub>1\<sharp>(?pi'\<bullet>e,?pi'\<bullet>e\<^isub>2,?pi'\<bullet>e'')" using f01 fs1 fs2 
-      by (simp add: fresh_atm fresh_prod fresh_left calc_atm pt_name2 perm_pi_simp)
-    have f02: "x\<^isub>2\<sharp>(e,e\<^isub>1,e'',x\<^isub>1)" by fact
-    have f12: "(pi\<bullet>x\<^isub>2)\<sharp>(pi\<bullet>e,pi\<bullet>e\<^isub>1,pi\<bullet>e'',pi\<bullet>x\<^isub>1)" using f02 by (simp add: fresh_bij)
-    have f22: "y\<^isub>2\<sharp>(?pi'\<bullet>e,?pi'\<bullet>e\<^isub>1,?pi'\<bullet>e'')" using f02 fs1 fs2 
-      by (auto simp add: fresh_atm fresh_prod fresh_left calc_atm pt_name2 perm_pi_simp)
-    have ih1: "\<And>c. P c (?pi'\<bullet>e) (?pi'\<bullet>(InR e'))" by fact
-    moreover
-    have ih2: "\<And>c. P c (?pi'\<bullet>(e\<^isub>2[x\<^isub>2::=e'])) (?pi'\<bullet>e'')" by fact
-    then have "\<And>c. P c ((?pi'\<bullet>e\<^isub>2)[y\<^isub>2::=(?pi'\<bullet>e')]) (?pi'\<bullet>e'')" using fs1 fs2 f11 f12 
-      by (auto simp add: calc_atm subst_eqvt fresh_prod fresh_atm del: append_Cons)
-    ultimately have "P c (Case (?pi'\<bullet>e) of inl y\<^isub>1 \<rightarrow> (?pi'\<bullet>e\<^isub>1) | inr y\<^isub>2 \<rightarrow> (?pi'\<bullet>e\<^isub>2)) (?pi'\<bullet>e'')"
-      using f21 f22 fs1 fs2  by (auto intro!: a10 simp add: fresh_atm fresh_prod)
-    then have "P c (?sw2\<bullet>?sw1\<bullet>(Case (pi\<bullet>e) of inl (pi\<bullet>x\<^isub>1) \<rightarrow> (pi\<bullet>e\<^isub>1) | inr (pi\<bullet>x\<^isub>2) \<rightarrow> (pi\<bullet>e\<^isub>2))) 
-                   (?sw2\<bullet>?sw1\<bullet>(pi\<bullet>e''))"
-      using fs1 fs2 f01 f02 f11 f12 
-      by (auto simp del: append_Cons simp add: pt_name2 fresh_atm fresh_prod calc_atm)
-    moreover have "?sw1\<bullet>(Case (pi\<bullet>e) of inl (pi\<bullet>x\<^isub>1) \<rightarrow> (pi\<bullet>e\<^isub>1) | inr (pi\<bullet>x\<^isub>2) \<rightarrow> (pi\<bullet>e\<^isub>2))
-                    = (Case (pi\<bullet>e) of inl (pi\<bullet>x\<^isub>1) \<rightarrow> (pi\<bullet>e\<^isub>1) | inr (pi\<bullet>x\<^isub>2) \<rightarrow> (pi\<bullet>e\<^isub>2))"
-      by (rule perm_fresh_fresh) (simp_all add: fs1 fs2 f11 f12 abs_fresh)
-    moreover have "?sw2\<bullet>(Case (pi\<bullet>e) of inl (pi\<bullet>x\<^isub>1) \<rightarrow> (pi\<bullet>e\<^isub>1) | inr (pi\<bullet>x\<^isub>2) \<rightarrow> (pi\<bullet>e\<^isub>2))
-                    = (Case (pi\<bullet>e) of inl (pi\<bullet>x\<^isub>1) \<rightarrow> (pi\<bullet>e\<^isub>1) | inr (pi\<bullet>x\<^isub>2) \<rightarrow> (pi\<bullet>e\<^isub>2))"
-      by (rule perm_fresh_fresh) (simp_all add: fs1 fs2 f11 f12 abs_fresh)
-    moreover have "(?sw1\<bullet>(pi\<bullet>e'')) = (pi\<bullet>e'')"
-      by (rule perm_fresh_fresh) (simp_all add: fs1 fs2 f11 f12)
-    moreover have "(?sw2\<bullet>(pi\<bullet>e'')) = (pi\<bullet>e'')"
-      by (rule perm_fresh_fresh) (simp_all add: fs1 fs2 f11 f12)
-    ultimately show "P c (pi\<bullet>(Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2)) (pi\<bullet>e'')" 
-      by (simp only:, simp)
-  qed
-  then have "P c (([]::name prm)\<bullet>t) (([]::name prm)\<bullet>t')" by blast
-  then show "P c t t'" by simp
-qed
-
 lemma b_App_elim[elim]:
   assumes "App e\<^isub>1 e\<^isub>2 \<Down> e'" and "x\<sharp>(e\<^isub>1,e\<^isub>2,e')"
   obtains f\<^isub>1 and f\<^isub>2 where "e\<^isub>1 \<Down> Lam [x]. f\<^isub>1" "e\<^isub>2 \<Down> f\<^isub>2" "f\<^isub>1[x::=f\<^isub>2] \<Down> e'"
@@ -918,8 +638,8 @@ lemma subject_reduction:
   and     b: "\<Gamma> \<turnstile> e : T"
   shows "\<Gamma> \<turnstile> e' : T"
   using a b
-proof (nominal_induct avoiding: \<Gamma> arbitrary: T rule: big_induct_strong) 
-  case (b_App x e\<^isub>1 e\<^isub>2 e\<^isub>2' e' e \<Gamma> T)
+proof (nominal_induct avoiding: \<Gamma> arbitrary: T rule: big.strong_induct) 
+  case (b_App x e\<^isub>1 e\<^isub>2 e' e e\<^isub>2' \<Gamma> T)
   have vc: "x\<sharp>\<Gamma>" by fact
   have "\<Gamma> \<turnstile> App e\<^isub>1 e\<^isub>2 : T" by fact
   then obtain T' where 
@@ -957,12 +677,12 @@ lemma unicity_of_evaluation:
   and     b: "e \<Down> e\<^isub>2"
   shows "e\<^isub>1 = e\<^isub>2"
   using a b
-proof (nominal_induct e e\<^isub>1 avoiding: e\<^isub>2 rule: big_induct_strong)
+proof (nominal_induct e e\<^isub>1 avoiding: e\<^isub>2 rule: big.strong_induct)
   case (b_Lam x e t\<^isub>2)
   have "Lam [x].e \<Down> t\<^isub>2" by fact
   thus "Lam [x].e = t\<^isub>2" by (cases, simp_all add: trm.inject)
 next
-  case (b_App x e\<^isub>1 e\<^isub>2 e\<^isub>2' e' e\<^isub>1' t\<^isub>2)
+  case (b_App x e\<^isub>1 e\<^isub>2 e' e\<^isub>1' e\<^isub>2' t\<^isub>2)
   have ih1: "\<And>t. e\<^isub>1 \<Down> t \<Longrightarrow> Lam [x].e\<^isub>1' = t" by fact
   have ih2:"\<And>t. e\<^isub>2 \<Down> t \<Longrightarrow> e\<^isub>2' = t" by fact
   have ih3: "\<And>t. e\<^isub>1'[x::=e\<^isub>2'] \<Down> t \<Longrightarrow> e' = t" by fact
@@ -1002,7 +722,25 @@ next
   then have "InR f' = InR e'" using ih1 by simp
   then have "e\<^isub>2[x\<^isub>2::=e'] \<Down> t\<^isub>2" using h by (simp add: trm.inject)
   thus "e'' = t\<^isub>2" using ih2 by simp
-qed (force simp add: trm.inject)+
+next
+  case b_Const
+  then show ?case by force
+next
+  case b_Pr
+  then show ?case by blast
+next
+  case b_Fst
+  then show ?case by (force simp add: trm.inject)
+next
+  case b_Snd
+  then show ?case by (force simp add: trm.inject)
+next
+  case b_InL 
+  then show ?case by blast 
+next
+  case b_InR 
+  then show ?case by blast
+qed 
 
 lemma not_val_App[simp]:
   shows 
