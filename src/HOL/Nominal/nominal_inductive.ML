@@ -323,14 +323,26 @@ fun prove_eqvt names raw_induct intrs thy =
     val pi = Name.variant (add_term_names (t, [])) "pi";
     val ps = map (fst o HOLogic.dest_imp)
       (HOLogic.dest_conj (HOLogic.dest_Trueprop t));
-    fun eqvt_tac th intr = SUBPROOF (fn {prems, ...} =>
-      let val prems' = map (fn th' =>
-        if null (names inter term_consts (prop_of th')) then th' RS th
-        else th') prems
-      in (rtac intr THEN_ALL_NEW
-        (resolve_tac prems ORELSE'
-          (cut_facts_tac prems' THEN' full_simp_tac eqvt_ss))) 1
-      end) ctxt;
+    fun eqvt_tac th intr st =
+      let
+        fun eqvt_err s = error
+          ("Could not prove equivariance for introduction rule\n" ^
+           Sign.string_of_term (theory_of_thm intr)
+             (Logic.unvarify (prop_of intr)) ^ "\n" ^ s);
+        val res = SUBPROOF (fn {prems, ...} =>
+          let val prems' = map (fn th' =>
+            if null (names inter term_consts (prop_of th')) then th' RS th
+            else th') prems
+          in (rtac intr THEN_ALL_NEW
+            (resolve_tac prems ORELSE'
+              (cut_facts_tac prems' THEN' full_simp_tac eqvt_ss))) 1
+          end) ctxt 1 st
+      in
+        case (Seq.pull res handle THM (s, _, _) => eqvt_err s) of
+          NONE => eqvt_err ("Rule does not match goal\n" ^
+            Sign.string_of_term (theory_of_thm st) (hd (prems_of st)))
+        | SOME (th, _) => Seq.single th
+      end;
     val thss = map (fn atom =>
       let
         val pi' = Free (pi, NominalAtoms.mk_permT (Type (atom, [])));
@@ -341,14 +353,15 @@ fun prove_eqvt names raw_induct intrs thy =
           (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map (fn p =>
             HOLogic.mk_imp (p, list_comb
              (apsnd (map (NominalPackage.mk_perm [] pi')) (strip_comb p)))) ps)))
-          (fn _ => EVERY (rtac raw_induct 1 :: map (fn (intr, i) =>
-              full_simp_tac eqvt_ss i THEN TRY (eqvt_tac perm_boolI' intr i))
-            (rev intrs ~~ (length intrs downto 1))))))
-      end) atoms;
-    val (_, thy') = PureThy.add_thmss (map (fn (name, ths) =>
-        ((Sign.base_name name ^ "_eqvt", ths), [NominalThmDecls.eqvt_add]))
-      (names ~~ transp thss)) thy;
-  in thy' end;
+          (fn _ => EVERY (rtac raw_induct 1 :: map (fn intr =>
+              full_simp_tac eqvt_ss 1 THEN eqvt_tac perm_boolI' intr) intrs))))
+      end) atoms
+  in
+    fold (fn (name, ths) =>
+      Theory.add_path (Sign.base_name name) #>
+      PureThy.add_thmss [(("eqvt", ths), [NominalThmDecls.eqvt_add])] #> snd #>
+      Theory.parent_path) (names ~~ transp thss) thy
+  end;
 
 fun gen_nominal_inductive f s avoids thy =
   let
