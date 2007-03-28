@@ -544,7 +544,7 @@ lemma b_App_elim[elim]:
   apply(drule_tac pi="[(xa,x)]" in big_eqvt)
   apply(drule_tac pi="[(xa,x)]" in big_eqvt)
   apply(drule_tac pi="[(xa,x)]" in big_eqvt)
-  apply(perm_simp add: calc_atm eqvt)
+  apply(perm_simp add: calc_atm eqvts)
   done
 
 lemma  b_CaseL_elim[elim]: 
@@ -564,7 +564,7 @@ lemma  b_CaseL_elim[elim]:
   apply(perm_simp add: fresh_prod)
   apply(drule meta_mp)
   apply(rule_tac pi="[(x\<^isub>1,x\<^isub>1')]" in big_eqvt')
-  apply(perm_simp add: eqvt calc_atm)
+  apply(perm_simp add: eqvts calc_atm)
   apply(assumption)
   apply(drule_tac x="[(x\<^isub>1,x\<^isub>1')]\<bullet>e'" in meta_spec)
   apply(drule meta_mp)
@@ -572,7 +572,7 @@ lemma  b_CaseL_elim[elim]:
   apply(perm_simp add: fresh_prod)
   apply(drule meta_mp)
   apply(rule_tac pi="[(x\<^isub>1,x\<^isub>1')]" in big_eqvt')
-  apply(perm_simp add: eqvt calc_atm)
+  apply(perm_simp add: eqvts calc_atm)
   apply(assumption)
 done
 
@@ -593,7 +593,7 @@ lemma b_CaseR_elim[elim]:
   apply(perm_simp add: fresh_prod)
   apply(drule meta_mp)
   apply(rule_tac pi="[(x\<^isub>2,x\<^isub>2')]" in big_eqvt')
-  apply(perm_simp add: eqvt calc_atm)
+  apply(perm_simp add: eqvts calc_atm)
   apply(assumption)
   apply(drule_tac x="[(x\<^isub>2,x\<^isub>2')]\<bullet>e'" in meta_spec)
   apply(drule meta_mp)
@@ -601,7 +601,7 @@ lemma b_CaseR_elim[elim]:
   apply(perm_simp add: fresh_prod)
   apply(drule meta_mp)
   apply(rule_tac pi="[(x\<^isub>2,x\<^isub>2')]" in big_eqvt')
-  apply(perm_simp add: eqvt calc_atm)
+  apply(perm_simp add: eqvts calc_atm)
   apply(assumption)
 done
 
@@ -854,7 +854,7 @@ apply(auto)
 apply(rule_tac x="pi\<bullet>v'" in exI)
 apply(auto)
 apply(drule_tac pi="pi" in big_eqvt)
-apply(perm_simp add: eqvt)
+apply(perm_simp add: eqvts)
 done
 
 lemma V_arrow_elim_weak[elim] :
@@ -887,7 +887,7 @@ apply(auto)
 apply(rule_tac x="[(a,a')]\<bullet>v'" in exI)
 apply(auto)
 apply(drule_tac pi="[(a,a')]" in big_eqvt)
-apply(perm_simp add: eqvt calc_atm)
+apply(perm_simp add: eqvts calc_atm)
 apply(simp add: V_eqvt)
 (*A*)
 apply(rule exists_fresh')

@@ -92,7 +92,7 @@ lemma domain_eqvt[eqvt]:
   and   pi'::"vrs prm"
   shows "pi\<bullet>(domain \<Gamma>) = domain (pi\<bullet>\<Gamma>)"
   and   "pi'\<bullet>(domain \<Gamma>) = domain (pi'\<bullet>\<Gamma>)"
-  by (induct \<Gamma>) (simp_all add: eqvt)
+  by (induct \<Gamma>) (simp_all add: eqvts)
 
 lemma finite_domain:
   shows "finite (domain \<Gamma>)"

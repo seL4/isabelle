@@ -151,7 +151,7 @@ fun perm_simp_gen dyn_thms ss i =
 
 (* general simplification of permutations and permutation that arose from eqvt-problems *)
 val perm_simp = perm_simp_gen ["perm_swap","perm_fresh_fresh","perm_bij","perm_pi_simp"];
-val eqvt_simp = perm_simp_gen ["perm_swap","perm_fresh_fresh","perm_pi_simp","eqvt"];
+val eqvt_simp = perm_simp_gen ["perm_swap","perm_fresh_fresh","perm_pi_simp","eqvts"];
 
 (* main simplification tactics for permutations *)
 (* FIXME: perm_simp_tac should simplify more permutations *)

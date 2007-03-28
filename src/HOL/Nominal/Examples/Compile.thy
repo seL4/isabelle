@@ -130,7 +130,7 @@ lemma Isubst_eqvt[eqvt]:
   and   x::"name"
   shows "pi\<bullet>(t1[x::=t2]) = ((pi\<bullet>t1)[(pi\<bullet>x)::=(pi\<bullet>t2)])"
   apply (nominal_induct t1 avoiding: x t2 rule: trmI.induct)
-  apply (simp_all add: Isubst.simps eqvt fresh_bij)
+  apply (simp_all add: Isubst.simps eqvts fresh_bij)
   done
 
 lemma Isubst_supp:

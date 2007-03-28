@@ -93,7 +93,7 @@ apply(simp add: at_ds5[OF at_name_inst])
 apply(rule conjI)
 apply(simp add: pt_fresh_left[OF pt_name_inst, OF at_name_inst] calc_atm)
 apply(force dest!: supp_beta simp add: fresh_def)
-apply(force intro!: eqvt)
+apply(force intro!: eqvts)
 done
 
 lemma beta_subst: 

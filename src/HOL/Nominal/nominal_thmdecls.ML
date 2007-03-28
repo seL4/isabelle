@@ -30,10 +30,10 @@ struct
 structure Data = GenericDataFun
 (
   val name = "HOL/Nominal/eqvt";
-  type T = {eqvt:thm list, fresh:thm list, bij:thm list};
-  val empty = ({eqvt=[], fresh=[], bij=[]}:T);
+  type T = {eqvts:thm list, fresh:thm list, bij:thm list};
+  val empty = ({eqvts=[], fresh=[], bij=[]}:T);
   val extend = I;
-  fun merge _ (r1:T,r2:T) = {eqvt  = Drule.merge_rules (#eqvt r1, #eqvt r2), 
+  fun merge _ (r1:T,r2:T) = {eqvts  = Drule.merge_rules (#eqvts r1, #eqvts r2), 
                              fresh = Drule.merge_rules (#fresh r1, #fresh r2), 
                              bij   = Drule.merge_rules (#bij r1, #bij r2)}
   fun print context (data:T) =
@@ -42,7 +42,7 @@ structure Data = GenericDataFun
          Pretty.writeln (Pretty.big_list msg
            (map (ProofContext.pretty_thm (Context.proof_of context)) thms))
     in
-      (print_aux "Equivariance lemmas: " (#eqvt data);
+      (print_aux "Equivariance lemmas: " (#eqvts data);
        print_aux "Freshness lemmas: " (#fresh data);
        print_aux "Bijection lemmas: " (#bij data))
     end;
@@ -61,7 +61,7 @@ structure Data = GenericDataFun
 exception EQVT_FORM of string;
 
 val print_data = Data.print o Context.Proof;
-val get_eqvt_thms = Context.Theory #> Data.get #> #eqvt;
+val get_eqvt_thms = Context.Theory #> Data.get #> #eqvts;
 val get_fresh_thms = Context.Theory #> Data.get #> #fresh;
 val get_bij_thms = Context.Theory #> Data.get #> #bij;
 
@@ -111,7 +111,7 @@ fun update_context flag thms context =
   let 
      val context' = fold (fn thm => Data.map (flag thm)) thms context 
   in 
-    Context.mapping (snd o PureThy.add_thmss [(("eqvt",(#eqvt (Data.get context'))),[])]) I context'
+    Context.mapping (snd o PureThy.add_thmss [(("eqvts",(#eqvts (Data.get context'))),[])]) I context'
   end;
 
 (* replaces every variable x in t with pi o x *) 
@@ -197,11 +197,11 @@ fun simple_add_del_aux record_access name flag th context =
 
 fun bij_add_del_aux f   = simple_add_del_aux #bij "bij" f
 fun fresh_add_del_aux f = simple_add_del_aux #fresh "fresh" f
-fun eqvt_force_add_del_aux f = simple_add_del_aux #eqvt "eqvt" f
+fun eqvt_force_add_del_aux f = simple_add_del_aux #eqvts "eqvts" f
 
-fun eqvt_map f th (r:Data.T)  = {eqvt = (f th (#eqvt r)), fresh = #fresh r, bij = #bij r};
-fun fresh_map f th (r:Data.T) = {eqvt = #eqvt r, fresh = (f th (#fresh r)), bij = #bij r};
-fun bij_map f th (r:Data.T)   = {eqvt = #eqvt r, fresh = #fresh r, bij = (f th (#bij r))};
+fun eqvt_map f th (r:Data.T)  = {eqvts = (f th (#eqvts r)), fresh = #fresh r, bij = #bij r};
+fun fresh_map f th (r:Data.T) = {eqvts = #eqvts r, fresh = (f th (#fresh r)), bij = #bij r};
+fun bij_map f th (r:Data.T)   = {eqvts = #eqvts r, fresh = #fresh r, bij = (f th (#bij r))};
 
 val eqvt_add  = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map Drule.add_rule)); 
 val eqvt_del  = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map Drule.del_rule)); 
