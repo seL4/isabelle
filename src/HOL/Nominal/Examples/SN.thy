@@ -211,7 +211,7 @@ done
 lemma t3_elim: "\<lbrakk>\<Gamma> \<turnstile> Lam [a].t : \<sigma>;a\<sharp>\<Gamma>\<rbrakk>\<Longrightarrow> \<exists>\<tau> \<tau>'. \<sigma>=\<tau>\<rightarrow>\<tau>' \<and> ((a,\<tau>)#\<Gamma>) \<turnstile> t : \<tau>'"
 apply(ind_cases2 "\<Gamma> \<turnstile> Lam [a].t : \<sigma>")
 apply(auto simp add: lam.distinct lam.inject alpha) 
-apply(drule_tac pi="[(a,aa)]::name prm" in typing_eqvt)
+apply(drule_tac pi="[(a,aa)]::name prm" in typing.eqvt)
 apply(simp)
 apply(subgoal_tac "([(a,aa)]::name prm)\<bullet>\<Gamma> = \<Gamma>")(*A*)
 apply(force simp add: calc_atm)

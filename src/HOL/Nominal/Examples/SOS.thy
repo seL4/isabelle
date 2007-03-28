@@ -46,13 +46,13 @@ lemma perm_data[simp]:
   fixes D::"data"
   and   pi::"name prm"
   shows "pi\<bullet>D = D"
-  by (induct D rule: data.induct_weak) (simp_all)
+  by (induct D rule: data.weak_induct) (simp_all)
 
 lemma perm_ty[simp]: 
   fixes T::"ty"
   and   pi::"name prm"
   shows "pi\<bullet>T = T"
-  by (induct T rule: ty.induct_weak) (simp_all)
+  by (induct T rule: ty.weak_induct) (simp_all)
 
 lemma fresh_ty[simp]:
   fixes x::"name" 
@@ -269,7 +269,7 @@ where
 nominal_inductive typing
   by (simp_all add: abs_fresh fresh_prod fresh_atm)
 
-lemmas typing_eqvt' = typing_eqvt[simplified]
+lemmas typing_eqvt' = typing.eqvt[simplified]
 
 lemma typing_implies_valid:
   assumes "\<Gamma> \<turnstile> t : T"
@@ -311,7 +311,7 @@ proof -
   then have fs: "c\<sharp>\<Gamma>" "c\<noteq>x" "c\<noteq>x'" "c\<sharp>t" "c\<sharp>t'" by (simp_all add: fresh_atm[symmetric]) 
   then have b5: "[(x',c)]\<bullet>t'=[(x,c)]\<bullet>t" using b3 fs by (simp add: alpha')
   have "([(x,c)]\<bullet>[(x',c)]\<bullet>((x',T\<^isub>1)#\<Gamma>)) \<turnstile> ([(x,c)]\<bullet>[(x',c)]\<bullet>t') : T\<^isub>2" using b2
-    by (simp only: typing_eqvt[simplified perm_ty])
+    by (simp only: typing_eqvt')
   then have "(x,T\<^isub>1)#\<Gamma> \<turnstile> t : T\<^isub>2" using fs b1 a2 b5 by (perm_simp add: calc_atm)
   then show ?thesis using prems b4 by simp
 qed
@@ -505,7 +505,7 @@ lemma big_eqvt':
   shows "t \<Down> t'"
 using a
 apply -
-apply(drule_tac pi="rev pi" in big_eqvt)
+apply(drule_tac pi="rev pi" in big.eqvt)
 apply(perm_simp)
 done
 
@@ -541,9 +541,9 @@ lemma b_App_elim[elim]:
   using assms
   apply -
   apply(erule b_App_inv_auto)
-  apply(drule_tac pi="[(xa,x)]" in big_eqvt)
-  apply(drule_tac pi="[(xa,x)]" in big_eqvt)
-  apply(drule_tac pi="[(xa,x)]" in big_eqvt)
+  apply(drule_tac pi="[(xa,x)]" in big.eqvt)
+  apply(drule_tac pi="[(xa,x)]" in big.eqvt)
+  apply(drule_tac pi="[(xa,x)]" in big.eqvt)
   apply(perm_simp add: calc_atm eqvts)
   done
 
@@ -853,7 +853,7 @@ apply(force)
 apply(auto)
 apply(rule_tac x="pi\<bullet>v'" in exI)
 apply(auto)
-apply(drule_tac pi="pi" in big_eqvt)
+apply(drule_tac pi="pi" in big.eqvt)
 apply(perm_simp add: eqvts)
 done
 
@@ -886,7 +886,7 @@ apply(simp add: V_eqvt)
 apply(auto)
 apply(rule_tac x="[(a,a')]\<bullet>v'" in exI)
 apply(auto)
-apply(drule_tac pi="[(a,a')]" in big_eqvt)
+apply(drule_tac pi="[(a,a')]" in big.eqvt)
 apply(perm_simp add: eqvts calc_atm)
 apply(simp add: V_eqvt)
 (*A*)

@@ -35,7 +35,7 @@ nominal_datatype trm =
 
 text {* Induction principles *}
 
-thm trm.induct_weak --"weak"
+thm trm.weak_induct --"weak"
 thm trm.induct      --"strong"
 thm trm.induct'     --"strong with explicit context (rarely needed)"
 

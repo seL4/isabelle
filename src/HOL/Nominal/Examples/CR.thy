@@ -271,7 +271,7 @@ lemma one_abs:
   apply(rule conjI)
   apply(simp add: pt_fresh_left[OF pt_name_inst, OF at_name_inst])
   apply(simp add: calc_atm)
-  apply(force intro!: One_eqvt)
+  apply(force intro!: One.eqvt)
   done
 
 lemma one_app: 
@@ -314,7 +314,7 @@ lemma one_red:
   apply(simp add: subst_rename)
   (*A*)
   apply(force intro: one_fresh_preserv)
-  apply(force intro: One_eqvt)
+  apply(force intro: One.eqvt)
   done
 
 text {* first case in Lemma 3.2.4*}

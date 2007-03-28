@@ -32,7 +32,7 @@ lemma perm_ty[simp]:
   fixes T::"ty"
   and   pi::"name prm"
   shows "pi\<bullet>T = T"
-  by (induct T rule: ty.induct_weak) (simp_all)
+  by (induct T rule: ty.weak_induct) (simp_all)
 
 lemma fresh_ty[simp]:
   fixes x::"name" 
@@ -43,7 +43,7 @@ lemma fresh_ty[simp]:
 lemma ty_cases:
   fixes T::ty
   shows "(\<exists> T\<^isub>1 T\<^isub>2. T=T\<^isub>1\<rightarrow>T\<^isub>2) \<or> T=TUnit \<or> T=TBase"
-by (induct T rule:ty.induct_weak) (auto)
+by (induct T rule:ty.weak_induct) (auto)
 
 instance ty :: size ..
 
@@ -399,11 +399,11 @@ lemma whn_eqvt[eqvt]:
 using a
 apply(induct)
 apply(rule QAN_Reduce)
-apply(rule whr_def_eqvt)
+apply(rule whr_def.eqvt)
 apply(assumption)+
 apply(rule QAN_Normal)
 apply(auto)
-apply(drule_tac pi="rev pi" in whr_def_eqvt)
+apply(drule_tac pi="rev pi" in whr_def.eqvt)
 apply(perm_simp)
 done
 
@@ -494,7 +494,7 @@ proof -
   obtain y where fs2: "y\<sharp>(\<Gamma>,t,u)" and "(y,T\<^isub>1)#\<Gamma> \<turnstile> App t (Var y) \<Leftrightarrow> App u (Var y) : T\<^isub>2" 
     using h by auto
   then have "([(x,y)]\<bullet>((y,T\<^isub>1)#\<Gamma>)) \<turnstile> [(x,y)]\<bullet> App t (Var y) \<Leftrightarrow> [(x,y)]\<bullet> App u (Var y) : T\<^isub>2" 
-    using  alg_equiv_eqvt[simplified] by blast
+    using  alg_equiv.eqvt[simplified] by blast
   then show ?thesis using fs fs2 by (perm_simp)
 qed
 

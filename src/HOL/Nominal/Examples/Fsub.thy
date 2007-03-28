@@ -159,7 +159,7 @@ lemma ty_vrs_prm_simp:
   fixes pi::"vrs prm"
   and   S::"ty"
   shows "pi\<bullet>S = S"
-by (induct S rule: ty.induct_weak) (auto simp add: calc_atm)
+by (induct S rule: ty.weak_induct) (auto simp add: calc_atm)
 
 lemma ty_context_vrs_prm_simp:
   fixes pi::"vrs prm"
@@ -530,7 +530,7 @@ lemma S_ForallE_left:
   apply(drule_tac X="Xa" in subtype_implies_fresh)
   apply(assumption)
   apply(simp add: fresh_prod)
-  apply(drule_tac pi="[(X,Xa)]" in subtype_of_eqvt(2))
+  apply(drule_tac pi="[(X,Xa)]" in subtype_of.eqvt(2))
   apply(simp add: calc_atm)
   apply(simp add: pt_fresh_fresh[OF pt_tyvrs_inst, OF at_tyvrs_inst])
   done
