@@ -2710,11 +2710,8 @@ fun list_codegen thy defs gr dep thyname b t =
   in SOME (gr', Pretty.list "[" "]" ps) end handle TERM _ => NONE;
 
 fun char_codegen thy defs gr dep thyname b t =
-  case (Option.map chr o try HOLogic.dest_char) t 
-   of SOME c =>
-        if Symbol.is_printable c
-        then SOME (gr, (Pretty.quote o Pretty.str) c)
-        else NONE
+  case Option.map chr (try HOLogic.dest_char t) of
+      SOME c => SOME (gr, Pretty.quote (Pretty.str (ML_Syntax.print_char c)))
     | NONE => NONE;
 
 in
