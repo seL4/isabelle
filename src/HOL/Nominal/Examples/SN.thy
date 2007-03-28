@@ -26,9 +26,17 @@ lemma fresh_fact:
   fixes a::"name"
   assumes a: "a\<sharp>t1"
   and     b: "a\<sharp>t2"
-  shows "a\<sharp>(t1[b::=t2])"
+  shows "a\<sharp>t1[b::=t2]"
 using a b
 by (nominal_induct t1 avoiding: a b t2 rule: lam.induct)
+   (auto simp add: abs_fresh fresh_atm)
+
+lemma fresh_fact': 
+  fixes a::"name"
+  assumes a: "a\<sharp>t2"
+  shows "a\<sharp>t1[a::=t2]"
+using a 
+by (nominal_induct t1 avoiding: a t2 rule: lam.induct)
    (auto simp add: abs_fresh fresh_atm)
 
 lemma subst_lemma:  
@@ -56,10 +64,10 @@ where
   b1[intro!]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (App s1 t)\<longrightarrow>\<^isub>\<beta>(App s2 t)"
 | b2[intro!]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (App t s1)\<longrightarrow>\<^isub>\<beta>(App t s2)"
 | b3[intro!]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (Lam [a].s1)\<longrightarrow>\<^isub>\<beta> (Lam [a].s2)"
-| b4[intro!]: "a\<sharp>(s1,s2) \<Longrightarrow>(App (Lam [a].s1) s2)\<longrightarrow>\<^isub>\<beta>(s1[a::=s2])"
+| b4[intro!]: "a\<sharp>s2 \<Longrightarrow>(App (Lam [a].s1) s2)\<longrightarrow>\<^isub>\<beta>(s1[a::=s2])"
 
 nominal_inductive Beta
-  by (simp_all add: abs_fresh fresh_fact)
+  by (simp_all add: abs_fresh fresh_fact')
 
 abbreviation "Beta_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta>\<^sup>* _" [80,80] 80) where
   "t1 \<longrightarrow>\<^isub>\<beta>\<^sup>* t2 \<equiv> Beta\<^sup>*\<^sup>* t1 t2"
@@ -314,7 +322,7 @@ next
   then obtain \<tau>1 \<tau>2 where "\<tau>=\<tau>1\<rightarrow>\<tau>2" and "((a,\<tau>1)#\<Gamma>) \<turnstile> s1 : \<tau>2" by blast
   with ih show "\<Gamma> \<turnstile> Lam [a].s2 : \<tau>" using fr by blast
 next
-  case (b4 a s1 s2) --"Beta-redex"
+  case (b4 a s2 s1) --"Beta-redex"
   have fr: "a\<sharp>\<Gamma>" by fact
   have "\<Gamma> \<turnstile> App (Lam [a].s1) s2 : \<tau>" by fact
   hence "\<exists>\<sigma>. (\<Gamma> \<turnstile> (Lam [a].s1) : \<sigma>\<rightarrow>\<tau> \<and> \<Gamma> \<turnstile> s2 : \<sigma>)" by (simp add: t2_elim)
@@ -693,7 +701,6 @@ using a
 apply(induct \<Gamma>)
 apply(auto simp add: fresh_list_nil fresh_list_cons fresh_prod)
 done
-
 
 lemma id_apply:  
   shows "(id \<Gamma>)<t> = t"

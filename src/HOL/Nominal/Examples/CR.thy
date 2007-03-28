@@ -76,6 +76,14 @@ lemma fresh_fact_automatic:
 by (nominal_induct N avoiding: z y L rule: lam.induct)
    (auto simp add: abs_fresh fresh_atm)
 
+lemma fresh_fact': 
+  fixes a::"name"
+  assumes a: "a\<sharp>t2"
+  shows "a\<sharp>t1[a::=t2]"
+using a 
+by (nominal_induct t1 avoiding: a t2 rule: lam.induct)
+   (auto simp add: abs_fresh fresh_atm)
+
 lemma substitution_lemma:  
   assumes a: "x\<noteq>y"
   and     b: "x\<sharp>L"
@@ -137,39 +145,6 @@ lemma substitution_lemma_automatic:
 by (nominal_induct M avoiding: x y N L rule: lam.induct)
    (auto simp add: fresh_fact forget)
 
-lemma subst_rename: 
-  assumes a: "y\<sharp>N"
-  shows "N[x::=L] = ([(y,x)]\<bullet>N)[y::=L]"
-using a
-proof (nominal_induct N avoiding: x y L rule: lam.induct)
-  case (Var b)
-  thus "(Var b)[x::=L] = ([(y,x)]\<bullet>(Var b))[y::=L]" by (simp add: calc_atm fresh_atm)
-next
-  case App thus ?case by force
-next
-  case (Lam b N1)
-  have ih: "y\<sharp>N1 \<Longrightarrow> (N1[x::=L] = ([(y,x)]\<bullet>N1)[y::=L])" by fact
-  have vc: "b\<sharp>y" "b\<sharp>x" "b\<sharp>L" by fact
-  have "y\<sharp>Lam [b].N1" by fact
-  hence "y\<sharp>N1" using vc by (simp add: abs_fresh fresh_atm)
-  hence d: "N1[x::=L] = ([(y,x)]\<bullet>N1)[y::=L]" using ih by simp
-  show "(Lam [b].N1)[x::=L] = ([(y,x)]\<bullet>(Lam [b].N1))[y::=L]" (is "?LHS = ?RHS")
-  proof -
-    have    "?LHS = Lam [b].(N1[x::=L])" using vc by simp
-    also have "\<dots> = Lam [b].(([(y,x)]\<bullet>N1)[y::=L])" using d by simp
-    also have "\<dots> = (Lam [b].([(y,x)]\<bullet>N1))[y::=L]" using vc by simp
-    also have "\<dots> = ?RHS" using vc by (simp add: calc_atm fresh_atm)
-    finally show "?LHS = ?RHS" by simp
-  qed
-qed
-
-lemma subst_rename_automatic: 
-  assumes a: "y\<sharp>N"
-  shows "N[x::=L] = ([(y,x)]\<bullet>N)[y::=L]"
-  using a
-by (nominal_induct N avoiding: y x L rule: lam.induct)
-   (auto simp add: calc_atm fresh_atm abs_fresh)
-
 section {* Beta Reduction *}
 
 inductive2
@@ -178,7 +153,10 @@ where
     b1[intro]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (App s1 t)\<longrightarrow>\<^isub>\<beta>(App s2 t)"
   | b2[intro]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (App t s1)\<longrightarrow>\<^isub>\<beta>(App t s2)"
   | b3[intro]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (Lam [a].s1)\<longrightarrow>\<^isub>\<beta> (Lam [a].s2)"
-  | b4[intro]: "(App (Lam [a].s1) s2)\<longrightarrow>\<^isub>\<beta>(s1[a::=s2])"
+  | b4[intro]: "a\<sharp>s2 \<Longrightarrow> (App (Lam [a].s1) s2)\<longrightarrow>\<^isub>\<beta>(s1[a::=s2])"
+
+nominal_inductive Beta
+  by (simp_all add: abs_fresh fresh_fact')
 
 inductive2
   "Beta_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta>\<^sup>* _" [80,80] 80)
@@ -186,79 +164,14 @@ where
     bs1[intro, simp]: "M \<longrightarrow>\<^isub>\<beta>\<^sup>* M"
   | bs2[intro]: "\<lbrakk>M1\<longrightarrow>\<^isub>\<beta>\<^sup>* M2; M2 \<longrightarrow>\<^isub>\<beta> M3\<rbrakk> \<Longrightarrow> M1 \<longrightarrow>\<^isub>\<beta>\<^sup>* M3"
 
+equivariance Beta_star
+
 lemma beta_star_trans:
   assumes a1: "M1\<longrightarrow>\<^isub>\<beta>\<^sup>* M2"
   and     a2: "M2\<longrightarrow>\<^isub>\<beta>\<^sup>* M3"
   shows "M1 \<longrightarrow>\<^isub>\<beta>\<^sup>* M3"
 using a2 a1
 by (induct) (auto)
-
-lemma eqvt_beta:  
-  fixes pi :: "name prm"
-  assumes a: "t\<longrightarrow>\<^isub>\<beta>s"
-  shows "(pi\<bullet>t)\<longrightarrow>\<^isub>\<beta>(pi\<bullet>s)"
-  using a 
-by (induct) (auto)
-
-lemma beta_induct[consumes 1, case_names b1 b2 b3 b4]:
-  fixes  P :: "'a::fs_name\<Rightarrow>lam \<Rightarrow> lam \<Rightarrow>bool"
-  and    t :: "lam"
-  and    s :: "lam"
-  and    x :: "'a::fs_name"
-  assumes a: "t\<longrightarrow>\<^isub>\<beta>s"
-  and a1:    "\<And>t s1 s2 x. \<lbrakk>s1\<longrightarrow>\<^isub>\<beta>s2; (\<And>z. P z s1 s2)\<rbrakk> \<Longrightarrow> P x (App s1 t) (App s2 t)"
-  and a2:    "\<And>t s1 s2 x. \<lbrakk>s1\<longrightarrow>\<^isub>\<beta>s2; (\<And>z. P z s1 s2)\<rbrakk> \<Longrightarrow> P x (App t s1) (App t s2)"
-  and a3:    "\<And>a s1 s2 x. \<lbrakk>a\<sharp>x; s1\<longrightarrow>\<^isub>\<beta>s2; (\<And>z. P z s1 s2)\<rbrakk> \<Longrightarrow> P x (Lam [a].s1) (Lam [a].s2)"
-  and a4:    "\<And>a t1 s1 x. a\<sharp>x \<Longrightarrow> P x (App (Lam [a].t1) s1) (t1[a::=s1])"
-  shows "P x t s"
-proof -
-  from a have "\<And>(pi::name prm) x. P x (pi\<bullet>t) (pi\<bullet>s)"
-  proof (induct)
-    case b1 thus ?case using a1 by (simp, blast intro: eqvt_beta)
-  next
-    case b2 thus ?case using a2 by (simp, blast intro: eqvt_beta)
-  next
-    case (b3 s1 s2 a)
-    have j1: "s1 \<longrightarrow>\<^isub>\<beta> s2" by fact
-    have j2: "\<And>x (pi::name prm). P x (pi\<bullet>s1) (pi\<bullet>s2)" by fact
-    show ?case 
-    proof (simp)
-      have f: "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>s1,pi\<bullet>s2,x)"
-	by (rule exists_fresh', simp add: fs_name1)
-      then obtain c::"name" 
-	where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>s1)" and f4: "c\<sharp>(pi\<bullet>s2)"
-	by (force simp add: fresh_prod fresh_atm)
-      have x: "P x (Lam [c].(([(c,pi\<bullet>a)]@pi)\<bullet>s1)) (Lam [c].(([(c,pi\<bullet>a)]@pi)\<bullet>s2))"
-	using a3 f2 j1 j2 by (simp, blast intro: eqvt_beta)
-      have alpha1: "(Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>s1))) = (Lam [(pi\<bullet>a)].(pi\<bullet>s1))" using f1 f3
-	by (simp add: lam.inject alpha)
-      have alpha2: "(Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>s2))) = (Lam [(pi\<bullet>a)].(pi\<bullet>s2))" using f1 f3
-	by (simp add: lam.inject alpha)
-      show " P x (Lam [(pi\<bullet>a)].(pi\<bullet>s1)) (Lam [(pi\<bullet>a)].(pi\<bullet>s2))"
-	using x alpha1 alpha2 by (simp only: pt_name2)
-    qed
-  next
-    case (b4 a s1 s2)
-    show ?case
-    proof (simp add: subst_eqvt)
-      have f: "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>s1,pi\<bullet>s2,x)"
-	by (rule exists_fresh', simp add: fs_name1)
-      then obtain c::"name" 
-	where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>s1)" and f4: "c\<sharp>(pi\<bullet>s2)"
-	by (force simp add: fresh_prod fresh_atm)
-      have x: "P x (App (Lam [c].(([(c,pi\<bullet>a)]@pi)\<bullet>s1)) (pi\<bullet>s2)) ((([(c,pi\<bullet>a)]@pi)\<bullet>s1)[c::=(pi\<bullet>s2)])"
-	using a4 f2 by (blast intro!: eqvt_beta)
-      have alpha1: "(Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>s1))) = (Lam [(pi\<bullet>a)].(pi\<bullet>s1))" using f1 f3
-	by (simp add: lam.inject alpha)
-      have alpha2: "(([(c,pi\<bullet>a)]@pi)\<bullet>s1)[c::=(pi\<bullet>s2)] = (pi\<bullet>s1)[(pi\<bullet>a)::=(pi\<bullet>s2)]"
-	using f3 by (simp only: subst_rename[symmetric] pt_name2)
-      show "P x (App (Lam [(pi\<bullet>a)].(pi\<bullet>s1)) (pi\<bullet>s2)) ((pi\<bullet>s1)[(pi\<bullet>a)::=(pi\<bullet>s2)])"
-	using x alpha1 alpha2 by (simp only: pt_name2)
-    qed
-  qed
-  hence "P x (([]::name prm)\<bullet>t) (([]::name prm)\<bullet>s)" by blast 
-  thus ?thesis by simp
-qed
 
 section {* One-Reduction *}
 
@@ -268,7 +181,10 @@ where
     o1[intro!]:      "M\<longrightarrow>\<^isub>1M"
   | o2[simp,intro!]: "\<lbrakk>t1\<longrightarrow>\<^isub>1t2;s1\<longrightarrow>\<^isub>1s2\<rbrakk> \<Longrightarrow> (App t1 s1)\<longrightarrow>\<^isub>1(App t2 s2)"
   | o3[simp,intro!]: "s1\<longrightarrow>\<^isub>1s2 \<Longrightarrow> (Lam [a].s1)\<longrightarrow>\<^isub>1(Lam [a].s2)"
-  | o4[simp,intro!]: "\<lbrakk>s1\<longrightarrow>\<^isub>1s2;t1\<longrightarrow>\<^isub>1t2\<rbrakk> \<Longrightarrow> (App (Lam [a].t1) s1)\<longrightarrow>\<^isub>1(t2[a::=s2])"
+  | o4[simp,intro!]: "\<lbrakk>a\<sharp>(s1,s2); s1\<longrightarrow>\<^isub>1s2;t1\<longrightarrow>\<^isub>1t2\<rbrakk> \<Longrightarrow> (App (Lam [a].t1) s1)\<longrightarrow>\<^isub>1(t2[a::=s2])"
+
+nominal_inductive One
+  by (simp_all add: abs_fresh fresh_fact')
 
 inductive2
   "One_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>1\<^sup>* _" [80,80] 80)
@@ -276,13 +192,7 @@ where
     os1[intro, simp]: "M \<longrightarrow>\<^isub>1\<^sup>* M"
   | os2[intro]: "\<lbrakk>M1\<longrightarrow>\<^isub>1\<^sup>* M2; M2 \<longrightarrow>\<^isub>1 M3\<rbrakk> \<Longrightarrow> M1 \<longrightarrow>\<^isub>1\<^sup>* M3"
 
-lemma eqvt_one: 
-  fixes pi :: "name prm"
-  and   t  :: "lam"
-  and   s  :: "lam"
-  assumes a: "t\<longrightarrow>\<^isub>1s"
-  shows "(pi\<bullet>t)\<longrightarrow>\<^isub>1(pi\<bullet>s)"
-  using a by (induct) (auto)
+equivariance One_star 
 
 lemma one_star_trans:
   assumes a1: "M1\<longrightarrow>\<^isub>1\<^sup>* M2" 
@@ -290,91 +200,6 @@ lemma one_star_trans:
   shows "M1\<longrightarrow>\<^isub>1\<^sup>* M3"
 using a2 a1
 by (induct) (auto)
-
-lemma one_induct[consumes 1, case_names o1 o2 o3 o4]:
-  fixes  P :: "'a::fs_name\<Rightarrow>lam \<Rightarrow> lam \<Rightarrow>bool"
-  and    t :: "lam"
-  and    s :: "lam"
-  and    x :: "'a::fs_name"
-  assumes a: "t\<longrightarrow>\<^isub>1s"
-  and a1:    "\<And>t x. P x t t"
-  and a2:    "\<And>t1 t2 s1 s2 x. \<lbrakk>t1\<longrightarrow>\<^isub>1t2; (\<And>z. P z t1 t2); s1\<longrightarrow>\<^isub>1s2; (\<And>z. P z s1 s2)\<rbrakk> \<Longrightarrow> 
-              P x (App t1 s1) (App t2 s2)"
-  and a3:    "\<And>a s1 s2 x. \<lbrakk>a\<sharp>x; s1\<longrightarrow>\<^isub>1s2; (\<And>z. P z s1 s2)\<rbrakk> \<Longrightarrow> P x (Lam [a].s1) (Lam [a].s2)"
-  and a4:    "\<And>a t1 t2 s1 s2 x. 
-              \<lbrakk>a\<sharp>x; t1\<longrightarrow>\<^isub>1t2; (\<And>z. P z t1 t2); s1\<longrightarrow>\<^isub>1s2; (\<And>z. P z s1 s2)\<rbrakk> 
-              \<Longrightarrow> P x (App (Lam [a].t1) s1) (t2[a::=s2])"
-  shows "P x t s"
-proof -
-  from a have "\<And>(pi::name prm) x. P x (pi\<bullet>t) (pi\<bullet>s)"
-  proof (induct)
-    case o1 show ?case using a1 by force
-  next
-    case (o2 s1 s2 t1 t2) 
-    thus ?case using a2 by (simp, blast intro: eqvt_one)
-  next
-    case (o3 t1 t2 a)
-    have j1: "t1 \<longrightarrow>\<^isub>1 t2" by fact
-    have j2: "\<And>(pi::name prm) x. P x (pi\<bullet>t1) (pi\<bullet>t2)" by fact
-    show ?case 
-    proof (simp)
-      have f: "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>t1,pi\<bullet>t2,x)"
-	by (rule exists_fresh', simp add: fs_name1)
-      then obtain c::"name" 
-	where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>t1)" and f4: "c\<sharp>(pi\<bullet>t2)"
-	by (force simp add: fresh_prod fresh_atm)
-      have x: "P x (Lam [c].(([(c,pi\<bullet>a)]@pi)\<bullet>t1)) (Lam [c].(([(c,pi\<bullet>a)]@pi)\<bullet>t2))"
-	using a3 f2 j1 j2 by (simp, blast intro: eqvt_one)
-      have alpha1: "(Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t1))) = (Lam [(pi\<bullet>a)].(pi\<bullet>t1))" using f1 f3
-	by (simp add: lam.inject alpha)
-      have alpha2: "(Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t2))) = (Lam [(pi\<bullet>a)].(pi\<bullet>t2))" using f1 f3
-	by (simp add: lam.inject alpha)
-      show " P x (Lam [(pi\<bullet>a)].(pi\<bullet>t1)) (Lam [(pi\<bullet>a)].(pi\<bullet>t2))"
-	using x alpha1 alpha2 by (simp only: pt_name2)
-    qed
-  next
-    case (o4 s1 s2 t1 t2 a)
-    have j0: "t1 \<longrightarrow>\<^isub>1 t2" by fact
-    have j1: "s1 \<longrightarrow>\<^isub>1 s2" by fact
-    have j2: "\<And>(pi::name prm) x. P x (pi\<bullet>t1) (pi\<bullet>t2)" by fact
-    have j3: "\<And>(pi::name prm) x. P x (pi\<bullet>s1) (pi\<bullet>s2)" by fact
-    show ?case
-    proof (simp)
-      have f: "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>t1,pi\<bullet>t2,pi\<bullet>s1,pi\<bullet>s2,x)"
-	by (rule exists_fresh', simp add: fs_name1)
-      then obtain c::"name" 
-	where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>t1)" and f4: "c\<sharp>(pi\<bullet>t2)"
-	by (force simp add: fresh_prod at_fresh[OF at_name_inst])
-      have x: "P x (App (Lam [c].(([(c,pi\<bullet>a)]@pi)\<bullet>t1)) (pi\<bullet>s1)) ((([(c,pi\<bullet>a)]@pi)\<bullet>t2)[c::=(pi\<bullet>s2)])"
-	using a4 f2 j0 j1 j2 j3 by (simp, blast intro!: eqvt_one)
-      have alpha1: "(Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t1))) = (Lam [(pi\<bullet>a)].(pi\<bullet>t1))" using f1 f3
-	by (simp add: lam.inject alpha)
-      have alpha2: "(([(c,pi\<bullet>a)]@pi)\<bullet>t2)[c::=(pi\<bullet>s2)] = (pi\<bullet>t2)[(pi\<bullet>a)::=(pi\<bullet>s2)]"
-	using f4 by (simp only: subst_rename[symmetric] pt_name2)
-      show "P x (App (Lam [(pi\<bullet>a)].(pi\<bullet>t1)) (pi\<bullet>s1)) ((pi\<bullet>t2)[(pi\<bullet>a)::=(pi\<bullet>s2)])"
-	using x alpha1 alpha2 by (simp only: pt_name2)
-    qed
-  qed
-  hence "P x (([]::name prm)\<bullet>t) (([]::name prm)\<bullet>s)" by blast
-  thus ?thesis by simp
-qed
-
-lemma fresh_fact':  
-  assumes a: "a\<sharp>t2" 
-  shows "a\<sharp>(t1[a::=t2])"
-using a 
-proof (nominal_induct t1 avoiding: a t2 rule: lam.induct)
-  case (Var b) 
-  thus ?case by (simp add: fresh_atm)
-next
-  case App thus ?case by simp
-next
-  case (Lam c t)
-  have "a\<sharp>t2" "c\<sharp>a" "c\<sharp>t2" by fact
-  moreover
-  have ih: "\<And>a t2. a\<sharp>t2 \<Longrightarrow> a\<sharp>(t[a::=t2])" by fact
-  ultimately show ?case by (simp add: abs_fresh)
-qed
 
 lemma one_fresh_preserv:
   fixes a :: "name"
@@ -400,7 +225,7 @@ next
     thus "a\<sharp>Lam [c].s2" using d by (simp add: abs_fresh) 
   qed
 next 
-  case (o4 t1 t2 s1 s2 c)
+  case (o4 c t1 t2 s1 s2)
   have i1: "a\<sharp>t1 \<Longrightarrow> a\<sharp>t2" by fact
   have i2: "a\<sharp>s1 \<Longrightarrow> a\<sharp>s2" by fact
   have as: "a\<sharp>App (Lam [c].s1) t1" by fact
@@ -417,6 +242,13 @@ next
     thus "a\<sharp>s2[c::=t2]" using c3 by (simp add: fresh_fact)
   qed
 qed
+
+lemma subst_rename: 
+  assumes a: "c\<sharp>t1"
+  shows "t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2]"
+using a
+by (nominal_induct t1 avoiding: a c t2 rule: lam.induct)
+   (auto simp add: calc_atm fresh_atm abs_fresh)
 
 lemma one_abs: 
   fixes    t :: "lam"
@@ -439,13 +271,13 @@ lemma one_abs:
   apply(rule conjI)
   apply(simp add: pt_fresh_left[OF pt_name_inst, OF at_name_inst])
   apply(simp add: calc_atm)
-  apply(force intro!: eqvt_one)
+  apply(force intro!: One_eqvt)
   done
 
 lemma one_app: 
   assumes a: "App t1 t2 \<longrightarrow>\<^isub>1 t'"
   shows "(\<exists>s1 s2. t' = App s1 s2 \<and> t1 \<longrightarrow>\<^isub>1 s1 \<and> t2 \<longrightarrow>\<^isub>1 s2) \<or> 
-         (\<exists>a s s1 s2. t1 = Lam [a].s \<and> t' = s1[a::=s2] \<and> s \<longrightarrow>\<^isub>1 s1 \<and> t2 \<longrightarrow>\<^isub>1 s2)" 
+         (\<exists>a s s1 s2. t1 = Lam [a].s \<and> a\<sharp>(t2,s2) \<and> t' = s1[a::=s2] \<and> s \<longrightarrow>\<^isub>1 s1 \<and> t2 \<longrightarrow>\<^isub>1 s2)" 
   using a
   apply -
   apply(ind_cases2 "App t1 t2 \<longrightarrow>\<^isub>1 t'")
@@ -482,7 +314,7 @@ lemma one_red:
   apply(simp add: subst_rename)
   (*A*)
   apply(force intro: one_fresh_preserv)
-  apply(force intro: eqvt_one)
+  apply(force intro: One_eqvt)
   done
 
 text {* first case in Lemma 3.2.4*}
@@ -515,7 +347,7 @@ lemma one_subst:
   and     b: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N]\<longrightarrow>\<^isub>1M'[x::=N']" 
 using a b
-proof (nominal_induct M M' avoiding: N N' x rule: one_induct)
+proof (nominal_induct M M' avoiding: N N' x rule: One.strong_induct)
   case (o1 M)
   thus ?case by (simp add: one_subst_aux)
 next
@@ -525,15 +357,16 @@ next
   case (o3 a M1 M2)
   thus ?case by simp
 next
-  case (o4 a M1 M2 N1 N2)
-  have e3: "a\<sharp>N" "a\<sharp>N'" "a\<sharp>x" by fact
+  case (o4 a N1 N2 M1 M2 N N' x)
+  have vc: "a\<sharp>N" "a\<sharp>N'" "a\<sharp>x" "a\<sharp>N1" "a\<sharp>N2" by fact
+  have asm: "N\<longrightarrow>\<^isub>1N'" by fact
   show ?case
   proof -
-    have "(App (Lam [a].M1) N1)[x::=N] = App (Lam [a].(M1[x::=N])) (N1[x::=N])" using e3 by simp
+    have "(App (Lam [a].M1) N1)[x::=N] = App (Lam [a].(M1[x::=N])) (N1[x::=N])" using vc by simp
     moreover have "App (Lam [a].(M1[x::=N])) (N1[x::=N]) \<longrightarrow>\<^isub>1 M2[x::=N'][a::=N2[x::=N']]" 
-      using  o4 b by force
+      using o4 asm by (simp add: fresh_fact)
     moreover have "M2[x::=N'][a::=N2[x::=N']] = M2[a::=N2][x::=N']" 
-      using e3 by (simp add: substitution_lemma fresh_atm)
+      using vc by (simp add: substitution_lemma fresh_atm)
     ultimately show "(App (Lam [a].M1) N1)[x::=N] \<longrightarrow>\<^isub>1 M2[a::=N2][x::=N']" by simp
   qed
 qed
@@ -543,8 +376,8 @@ lemma one_subst_automatic:
   and     b: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N]\<longrightarrow>\<^isub>1M'[x::=N']" 
 using a b
-apply(nominal_induct M M' avoiding: N N' x rule: one_induct)
-apply(auto simp add: one_subst_aux substitution_lemma fresh_atm)
+apply(nominal_induct M M' avoiding: N N' x rule: One.strong_induct)
+apply(auto simp add: one_subst_aux substitution_lemma fresh_atm fresh_fact)
 done
 
 lemma diamond[rule_format]:
@@ -554,11 +387,12 @@ lemma diamond[rule_format]:
   and     b: "M\<longrightarrow>\<^isub>1M2"
   shows "\<exists>M3. M1\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3"
   using a b
-proof (induct arbitrary: M2)
+proof (nominal_induct avoiding: M1 M2 rule: One.strong_induct)
   case (o1 M) (* case 1 --- M1 = M *)
   thus "\<exists>M3. M\<longrightarrow>\<^isub>1M3 \<and>  M2\<longrightarrow>\<^isub>1M3" by blast
 next
-  case (o4 Q Q' P P' x) (* case 2 --- a beta-reduction occurs*)
+  case (o4 x Q Q' P P') (* case 2 --- a beta-reduction occurs*)
+  have vc: "x\<sharp>Q" "x\<sharp>Q'" by fact
   have i1: "\<And>M2. Q \<longrightarrow>\<^isub>1M2 \<Longrightarrow> (\<exists>M3. Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)" by fact
   have i2: "\<And>M2. P \<longrightarrow>\<^isub>1M2 \<Longrightarrow> (\<exists>M3. P'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)" by fact
   have "App (Lam [x].P) Q \<longrightarrow>\<^isub>1 M2" by fact
@@ -576,7 +410,7 @@ next
       d1: "Q'\<longrightarrow>\<^isub>1Q'''" and d2: "Q''\<longrightarrow>\<^isub>1Q'''" by force
     from c1 c2 d1 d2 
     have "P'[x::=Q']\<longrightarrow>\<^isub>1P'''[x::=Q'''] \<and> App (Lam [x].P'') Q'' \<longrightarrow>\<^isub>1 P'''[x::=Q''']" 
-      by (force simp add: one_subst)
+      using vc b3 by (auto simp add: one_subst one_fresh_preserv)
     hence "\<exists>M3. P'[x::=Q']\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" using b1 by blast
   }
   moreover (* subcase 2.2 *)
@@ -598,11 +432,12 @@ next
 next
   case (o2 P P' Q Q') (* case 3 *)
   have i0: "P\<longrightarrow>\<^isub>1P'" by fact
+  have i0': "Q\<longrightarrow>\<^isub>1Q'" by fact
   have i1: "\<And>M2. Q \<longrightarrow>\<^isub>1M2 \<Longrightarrow> (\<exists>M3. Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)" by fact
   have i2: "\<And>M2. P \<longrightarrow>\<^isub>1M2 \<Longrightarrow> (\<exists>M3. P'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)" by fact
   assume "App P Q \<longrightarrow>\<^isub>1 M2"
   hence "(\<exists>P'' Q''. M2 = App P'' Q'' \<and> P\<longrightarrow>\<^isub>1P'' \<and> Q\<longrightarrow>\<^isub>1Q'') \<or> 
-         (\<exists>x P' P'' Q'. P = Lam [x].P' \<and> M2 = P''[x::=Q'] \<and> P'\<longrightarrow>\<^isub>1 P'' \<and> Q\<longrightarrow>\<^isub>1Q')" 
+         (\<exists>x P' P'' Q'. P = Lam [x].P' \<and> x\<sharp>(Q,Q') \<and> M2 = P''[x::=Q'] \<and> P'\<longrightarrow>\<^isub>1 P'' \<and> Q\<longrightarrow>\<^isub>1Q')" 
     by (simp add: one_app[simplified])
   moreover (* subcase 3.1 *)
   { assume "\<exists>P'' Q''. M2 = App P'' Q'' \<and> P\<longrightarrow>\<^isub>1P'' \<and> Q\<longrightarrow>\<^isub>1Q''"
@@ -619,10 +454,10 @@ next
     hence "\<exists>M3. App P' Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" using b1 by blast
   }
   moreover (* subcase 3.2 *)
-  { assume "\<exists>x P1 P'' Q''. P = Lam [x].P1 \<and> M2 = P''[x::=Q''] \<and> P1\<longrightarrow>\<^isub>1 P'' \<and> Q\<longrightarrow>\<^isub>1Q''"
+  { assume "\<exists>x P1 P'' Q''. P = Lam [x].P1 \<and> x\<sharp>(Q,Q'') \<and> M2 = P''[x::=Q''] \<and> P1\<longrightarrow>\<^isub>1 P'' \<and> Q\<longrightarrow>\<^isub>1Q''"
     then obtain x P1 P1'' Q'' where
-      b0: "P=Lam [x].P1" and b1: "M2=P1''[x::=Q'']" and 
-      b2: "P1\<longrightarrow>\<^isub>1P1''" and  b3: "Q\<longrightarrow>\<^isub>1Q''" by blast
+      b0: "P = Lam [x].P1" and b1: "M2 = P1''[x::=Q'']" and 
+      b2: "P1\<longrightarrow>\<^isub>1P1''" and  b3: "Q\<longrightarrow>\<^isub>1Q''" and vc: "x\<sharp>(Q,Q'')" by blast
     from b0 i0 have "\<exists>P1'. P'=Lam [x].P1' \<and> P1\<longrightarrow>\<^isub>1P1'" by (simp add: one_abs)
     then obtain P1' where g1: "P'=Lam [x].P1'" and g2: "P1\<longrightarrow>\<^isub>1P1'" by blast 
     from g1 b0 b2 i2 have "(\<exists>M3. (Lam [x].P1')\<longrightarrow>\<^isub>1M3 \<and> (Lam [x].P1'')\<longrightarrow>\<^isub>1M3)" by simp
@@ -637,7 +472,8 @@ next
     then obtain Q''' where
       d1: "Q'\<longrightarrow>\<^isub>1Q'''" and d2: "Q''\<longrightarrow>\<^isub>1Q'''" by blast
     from g1 r2 d1 r4 r5 d2 
-    have "App P' Q'\<longrightarrow>\<^isub>1R1[x::=Q'''] \<and> P1''[x::=Q'']\<longrightarrow>\<^isub>1R1[x::=Q''']" by (simp add: one_subst)
+    have "App P' Q'\<longrightarrow>\<^isub>1R1[x::=Q'''] \<and> P1''[x::=Q'']\<longrightarrow>\<^isub>1R1[x::=Q''']" 
+      using vc i0' by (simp add: one_subst one_fresh_preserv)
     hence "\<exists>M3. App P' Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" using b1 by blast
   }
   ultimately show "\<exists>M3. App P' Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" by blast
@@ -706,16 +542,17 @@ lemma one_beta_star:
   assumes a: "(t1\<longrightarrow>\<^isub>1t2)" 
   shows "(t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2)"
   using a
-proof induct
+proof(nominal_induct rule: One.strong_induct)
   case o1 thus ?case by simp
 next
   case o2 thus ?case by (blast intro!: one_app_cong)
 next
   case o3 thus ?case by (blast intro!: one_lam_cong)
 next 
-  case (o4 s1 s2 t1 t2 a)
+  case (o4 a s1 s2 t1 t2)
+  have vc: "a\<sharp>s1" "a\<sharp>s2" by fact
   have a1: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" and a2: "s1\<longrightarrow>\<^isub>\<beta>\<^sup>*s2" by fact
-  have c1: "(App (Lam [a].t2) s2) \<longrightarrow>\<^isub>\<beta> (t2 [a::= s2])" by (rule b4)
+  have c1: "(App (Lam [a].t2) s2) \<longrightarrow>\<^isub>\<beta> (t2 [a::= s2])" using vc by (simp add: b4)
   from a1 a2 have c2: "App (Lam [a].t1 ) s1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App (Lam [a].t2 ) s2" 
     by (blast intro!: one_app_cong one_lam_cong)
   show ?case using c2 c1 by (blast intro: beta_star_trans)
@@ -755,14 +592,14 @@ lemma beta_one_star:
   assumes a: "t1\<longrightarrow>\<^isub>\<beta>t2" 
   shows "t1\<longrightarrow>\<^isub>1\<^sup>*t2"
   using a
-proof induct
+proof(induct)
   case b1 thus ?case by (blast intro!: one_star_app_congL)
 next
   case b2 thus ?case by (blast intro!: one_star_app_congR)
 next
   case b3 thus ?case by (blast intro!: one_star_lam_cong)
 next
-  case b4 thus ?case by blast
+  case b4 thus ?case by auto 
 qed
 
 lemma trans_closure: 

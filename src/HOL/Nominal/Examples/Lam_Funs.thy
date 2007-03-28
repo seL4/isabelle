@@ -64,7 +64,7 @@ apply(simp add: abs_fresh)
 apply(fresh_guess)+
 done
 
-lemma subst_eqvt[simp]:
+lemma subst_eqvt[eqvt]:
   fixes pi:: "name prm"
   and   t1:: "lam"
   and   t2:: "lam"
