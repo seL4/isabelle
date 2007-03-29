@@ -1088,13 +1088,13 @@ val cancel_ss = HOL_basic_ss settermless termless_agrp
    @{thm right_minus}, @{thm left_minus}, @{thm add_minus_cancel},
    @{thm minus_add_cancel}];
   
-val eq_reflection = @{thm eq_reflection}
+val eq_reflection = @{thm eq_reflection};
   
-val thy_ref = Theory.self_ref @{theory}
+val thy_ref = Theory.self_ref @{theory};
 
-val T = TFree("'a", ["OrderedGroup.ab_group_add"])
+val T = TFree("'a", ["OrderedGroup.ab_group_add"]);
 
-val eqI_rules = [@{thm less_eqI}, @{thm le_eqI}, @{thm eq_eqI}]
+val eqI_rules = [@{thm less_eqI}, @{thm le_eqI}, @{thm eq_eqI}];
 
 val dest_eqI = 
   fst o HOLogic.dest_bin "op =" HOLogic.boolT o HOLogic.dest_Trueprop o concl_of;
@@ -1104,142 +1104,6 @@ end);
 
 ML_setup {*
   Addsimprocs [ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv];
-*}
-
-ML {*
-val add_assoc = thm "add_assoc";
-val add_commute = thm "add_commute";
-val add_left_commute = thm "add_left_commute";
-val add_ac = thms "add_ac";
-val mult_assoc = thm "mult_assoc";
-val mult_commute = thm "mult_commute";
-val mult_left_commute = thm "mult_left_commute";
-val mult_ac = thms "mult_ac";
-val add_0 = thm "add_0";
-val mult_1_left = thm "mult_1_left";
-val mult_1_right = thm "mult_1_right";
-val mult_1 = thm "mult_1";
-val add_left_imp_eq = thm "add_left_imp_eq";
-val add_right_imp_eq = thm "add_right_imp_eq";
-val add_imp_eq = thm "add_imp_eq";
-val left_minus = thm "left_minus";
-val diff_minus = thm "diff_minus";
-val add_0_right = thm "add_0_right";
-val add_left_cancel = thm "add_left_cancel";
-val add_right_cancel = thm "add_right_cancel";
-val right_minus = thm "right_minus";
-val right_minus_eq = thm "right_minus_eq";
-val minus_minus = thm "minus_minus";
-val equals_zero_I = thm "equals_zero_I";
-val minus_zero = thm "minus_zero";
-val diff_self = thm "diff_self";
-val diff_0 = thm "diff_0";
-val diff_0_right = thm "diff_0_right";
-val diff_minus_eq_add = thm "diff_minus_eq_add";
-val neg_equal_iff_equal = thm "neg_equal_iff_equal";
-val neg_equal_0_iff_equal = thm "neg_equal_0_iff_equal";
-val neg_0_equal_iff_equal = thm "neg_0_equal_iff_equal";
-val equation_minus_iff = thm "equation_minus_iff";
-val minus_equation_iff = thm "minus_equation_iff";
-val minus_add_distrib = thm "minus_add_distrib";
-val minus_diff_eq = thm "minus_diff_eq";
-val add_left_mono = thm "add_left_mono";
-val add_le_imp_le_left = thm "add_le_imp_le_left";
-val add_right_mono = thm "add_right_mono";
-val add_mono = thm "add_mono";
-val add_strict_left_mono = thm "add_strict_left_mono";
-val add_strict_right_mono = thm "add_strict_right_mono";
-val add_strict_mono = thm "add_strict_mono";
-val add_less_le_mono = thm "add_less_le_mono";
-val add_le_less_mono = thm "add_le_less_mono";
-val add_less_imp_less_left = thm "add_less_imp_less_left";
-val add_less_imp_less_right = thm "add_less_imp_less_right";
-val add_less_cancel_left = thm "add_less_cancel_left";
-val add_less_cancel_right = thm "add_less_cancel_right";
-val add_le_cancel_left = thm "add_le_cancel_left";
-val add_le_cancel_right = thm "add_le_cancel_right";
-val add_le_imp_le_right = thm "add_le_imp_le_right";
-val add_increasing = thm "add_increasing";
-val le_imp_neg_le = thm "le_imp_neg_le";
-val neg_le_iff_le = thm "neg_le_iff_le";
-val neg_le_0_iff_le = thm "neg_le_0_iff_le";
-val neg_0_le_iff_le = thm "neg_0_le_iff_le";
-val neg_less_iff_less = thm "neg_less_iff_less";
-val neg_less_0_iff_less = thm "neg_less_0_iff_less";
-val neg_0_less_iff_less = thm "neg_0_less_iff_less";
-val less_minus_iff = thm "less_minus_iff";
-val minus_less_iff = thm "minus_less_iff";
-val le_minus_iff = thm "le_minus_iff";
-val minus_le_iff = thm "minus_le_iff";
-val add_diff_eq = thm "add_diff_eq";
-val diff_add_eq = thm "diff_add_eq";
-val diff_eq_eq = thm "diff_eq_eq";
-val eq_diff_eq = thm "eq_diff_eq";
-val diff_diff_eq = thm "diff_diff_eq";
-val diff_diff_eq2 = thm "diff_diff_eq2";
-val diff_add_cancel = thm "diff_add_cancel";
-val add_diff_cancel = thm "add_diff_cancel";
-val less_iff_diff_less_0 = thm "less_iff_diff_less_0";
-val diff_less_eq = thm "diff_less_eq";
-val less_diff_eq = thm "less_diff_eq";
-val diff_le_eq = thm "diff_le_eq";
-val le_diff_eq = thm "le_diff_eq";
-val compare_rls = thms "compare_rls";
-val eq_iff_diff_eq_0 = thm "eq_iff_diff_eq_0";
-val le_iff_diff_le_0 = thm "le_iff_diff_le_0";
-val add_inf_distrib_left = thm "add_inf_distrib_left";
-val add_sup_distrib_left = thm "add_sup_distrib_left";
-val add_sup_distrib_right = thm "add_sup_distrib_right";
-val add_inf_distrib_right = thm "add_inf_distrib_right";
-val add_sup_inf_distribs = thms "add_sup_inf_distribs";
-val sup_eq_neg_inf = thm "sup_eq_neg_inf";
-val inf_eq_neg_sup = thm "inf_eq_neg_sup";
-val add_eq_inf_sup = thm "add_eq_inf_sup";
-val prts = thm "prts";
-val zero_le_pprt = thm "zero_le_pprt";
-val nprt_le_zero = thm "nprt_le_zero";
-val le_eq_neg = thm "le_eq_neg";
-val sup_0_imp_0 = thm "sup_0_imp_0";
-val inf_0_imp_0 = thm "inf_0_imp_0";
-val sup_0_eq_0 = thm "sup_0_eq_0";
-val inf_0_eq_0 = thm "inf_0_eq_0";
-val zero_le_double_add_iff_zero_le_single_add = thm "zero_le_double_add_iff_zero_le_single_add";
-val double_add_le_zero_iff_single_add_le_zero = thm "double_add_le_zero_iff_single_add_le_zero";
-val double_add_less_zero_iff_single_less_zero = thm "double_add_less_zero_iff_single_less_zero";
-val abs_lattice = thm "abs_lattice";
-val abs_zero = thm "abs_zero";
-val abs_eq_0 = thm "abs_eq_0";
-val abs_0_eq = thm "abs_0_eq";
-val neg_inf_eq_sup = thm "neg_inf_eq_sup";
-val neg_sup_eq_inf = thm "neg_sup_eq_inf";
-val sup_eq_if = thm "sup_eq_if";
-val abs_if_lattice = thm "abs_if_lattice";
-val abs_ge_zero = thm "abs_ge_zero";
-val abs_le_zero_iff = thm "abs_le_zero_iff";
-val zero_less_abs_iff = thm "zero_less_abs_iff";
-val abs_not_less_zero = thm "abs_not_less_zero";
-val abs_ge_self = thm "abs_ge_self";
-val abs_ge_minus_self = thm "abs_ge_minus_self";
-val le_imp_join_eq = thm "sup_absorb2";
-val ge_imp_join_eq = thm "sup_absorb1";
-val le_imp_meet_eq = thm "inf_absorb1";
-val ge_imp_meet_eq = thm "inf_absorb2";
-val abs_prts = thm "abs_prts";
-val abs_minus_cancel = thm "abs_minus_cancel";
-val abs_idempotent = thm "abs_idempotent";
-val zero_le_iff_zero_nprt = thm "zero_le_iff_zero_nprt";
-val le_zero_iff_zero_pprt = thm "le_zero_iff_zero_pprt";
-val le_zero_iff_pprt_id = thm "le_zero_iff_pprt_id";
-val zero_le_iff_nprt_id = thm "zero_le_iff_nprt_id";
-val iff2imp = thm "iff2imp";
-val abs_leI = thm "abs_leI";
-val le_minus_self_iff = thm "le_minus_self_iff";
-val minus_le_self_iff = thm "minus_le_self_iff";
-val abs_le_D1 = thm "abs_le_D1";
-val abs_le_D2 = thm "abs_le_D2";
-val abs_le_iff = thm "abs_le_iff";
-val abs_triangle_ineq = thm "abs_triangle_ineq";
-val abs_diff_triangle_ineq = thm "abs_diff_triangle_ineq";
 *}
 
 end

@@ -319,7 +319,7 @@ fun provediv thy m n =
 val ncmul_congh = thm "ncmul_congh";
 val ncmul_cong = thm "ncmul_cong";
 fun decomp_ncmulh thy c t = 
-    if c = 0 then ([],fn _ => instantiate' [SOME crT] [SOME (cterm_of thy t)] mult_zero_left) else 
+    if c = 0 then ([],fn _ => instantiate' [SOME crT] [SOME (cterm_of thy t)] @{thm mult_zero_left}) else 
     case t of 
         Const("HOL.plus",_)$(Const("HOL.times",_)$c'$v)$b => 
         ([b],FWD (instantiate' [] [NONE, NONE, SOME (cterm_of thy v)] 

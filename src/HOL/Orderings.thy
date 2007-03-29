@@ -901,26 +901,12 @@ lemma max_of_mono:
     "(!!x y. (f x <= f y) = (x <= y)) ==> max (f m) (f n) = f (max m n)"
   by (simp add: max_def)
 
-subsection {* Basic ML bindings *}
+
+subsection {* legacy ML bindings *}
 
 ML {*
-val leD = thm "leD";
-val leI = thm "leI";
-val linorder_neqE = thm "linorder_neqE";
-val linorder_neq_iff = thm "linorder_neq_iff";
-val linorder_not_le = thm "linorder_not_le";
-val linorder_not_less = thm "linorder_not_less";
-val monoD = thm "monoD";
-val monoI = thm "monoI";
-val order_antisym = thm "order_antisym";
-val order_less_irrefl = thm "order_less_irrefl";
-val order_refl = thm "order_refl";
-val order_trans = thm "order_trans";
-val split_max = thm "split_max";
-val split_min = thm "split_min";
-*}
+val monoI = @{thm monoI};
 
-ML {*
 structure HOL =
 struct
   val thy = theory "HOL";

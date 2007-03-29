@@ -72,7 +72,7 @@ fun mp_step n th = if n = 0 then th else mp_step (n - 1) th RS mp;
 val context_ss = simpset_of (the_context ());
 
 fun ferrack_tac q i =  ObjectLogic.atomize_tac i
-  THEN REPEAT_DETERM (split_tac [split_min, split_max,abs_split] i)
+  THEN REPEAT_DETERM (split_tac [@{thm split_min}, @{thm split_max}, abs_split] i)
   THEN (fn st =>
   let
     val g = nth (prems_of st) (i - 1)
@@ -80,7 +80,7 @@ fun ferrack_tac q i =  ObjectLogic.atomize_tac i
     (* Transform the term*)
     val (t,np,nh) = prepare_for_linr q g
     (* Some simpsets for dealing with mod div abs and nat*)
-    val simpset0 = HOL_basic_ss addsimps comp_arith addsplits [split_min, split_max]
+    val simpset0 = HOL_basic_ss addsimps comp_arith addsplits [@{thm split_min}, @{thm split_max}]
     (* simp rules for elimination of abs *)
     val simpset3 = HOL_basic_ss addsplits [abs_split]
     val ct = cterm_of thy (HOLogic.mk_Trueprop t)

@@ -301,9 +301,9 @@ fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
                         addsimps add_ac
                         addsimprocs [cancel_div_mod_proc]
     val simpset0 = HOL_basic_ss
-      addsimps [mod_div_equality', Suc_plus1]
+      addsimps [@{thm mod_div_equality'}, @{thm Suc_plus1}]
       addsimps comp_arith
-      addsplits [split_zdiv, split_zmod, split_div', split_min, split_max]
+      addsplits [split_zdiv, split_zmod, split_div', @{thm split_min}, @{thm split_max}]
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 = HOL_basic_ss
       addsimps [nat_number_of_def, zdvd_int] @ map (fn r => r RS sym)

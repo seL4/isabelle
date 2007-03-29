@@ -351,9 +351,8 @@ fun find_first_t past u []         = raise TERM("find_first_t", [])
         handle TERM _ => find_first_t (t::past) u terms;
 
 (** Final simplification for the CancelFactor simprocs **)
-val simplify_one = 
-    Int_Numeral_Simprocs.simplify_meta_eq  
-       [mult_1_left, mult_1_right, div_1, numeral_1_eq_Suc_0];
+val simplify_one = Int_Numeral_Simprocs.simplify_meta_eq  
+  [@{thm mult_1_left}, @{thm mult_1_right}, @{thm div_1}, @{thm numeral_1_eq_Suc_0}];
 
 fun cancel_simplify_meta_eq cancel_th ss th =
     simplify_one ss (([th, cancel_th]) MRS trans);
@@ -538,8 +537,8 @@ val add_rules =
    eq_number_of_0, eq_0_number_of, less_0_number_of,
    of_int_number_of_eq, of_nat_number_of_eq, nat_number_of, if_True, if_False];
 
-val simprocs = [Nat_Numeral_Simprocs.combine_numerals]@
-                Nat_Numeral_Simprocs.cancel_numerals;
+val simprocs = Nat_Numeral_Simprocs.combine_numerals
+  :: Nat_Numeral_Simprocs.cancel_numerals;
 
 in
 

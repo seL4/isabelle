@@ -81,11 +81,11 @@ qed "lfp_ind2";
 
 val [cih,monoh] = goal (the_context ()) "[| x:f({x} Un gfp(f)); mono(f) |] ==> x:gfp(f)";
 by (rtac (cih RSN (2,gfp_upperbound RS subsetD)) 1);
-by (rtac (monoh RS monoD) 1);
+by (rtac (monoh RS @{thm monoD}) 1);
 by (rtac (UnE RS subsetI) 1);
 by (assume_tac 1);
 by (blast_tac (claset() addSIs [cih]) 1);
-by (rtac (monoh RS monoD RS subsetD) 1);
+by (rtac (monoh RS @{thm monoD} RS subsetD) 1);
 by (rtac (thm "Un_upper2") 1);
 by (etac (monoh RS gfp_lemma2 RS subsetD) 1);
 qed "gfp_coind2";

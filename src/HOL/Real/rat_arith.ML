@@ -12,11 +12,11 @@ local
 
 val simprocs = field_cancel_numeral_factors
 
-val simps = [order_less_irrefl, neg_less_iff_less, True_implies_equals,
-             inst "a" "(number_of ?v)" right_distrib,
-             divide_1, divide_zero_left,
-             times_divide_eq_right, times_divide_eq_left,
-             minus_divide_left RS sym, minus_divide_right RS sym,
+val simps = [@{thm order_less_irrefl}, @{thm neg_less_iff_less}, @{thm True_implies_equals},
+             inst "a" "(number_of ?v)" @{thm right_distrib},
+             @{thm divide_1}, @{thm divide_zero_left},
+             @{thm times_divide_eq_right}, @{thm times_divide_eq_left},
+             @{thm minus_divide_left} RS sym, @{thm minus_divide_right} RS sym,
              of_int_0, of_int_1, of_int_add, of_int_minus, of_int_diff,
              of_int_mult, of_int_of_nat_eq]
 
@@ -32,10 +32,9 @@ val int_inj_thms = [of_int_le_iff RS iffD2,
 
 in
 
-val fast_rat_arith_simproc =
- Simplifier.simproc (the_context ())
+val fast_rat_arith_simproc = Simplifier.simproc @{theory}
   "fast_rat_arith" ["(m::rat) < n","(m::rat) <= n", "(m::rat) = n"]
-  Fast_Arith.lin_arith_prover
+    Fast_Arith.lin_arith_prover
 
 val ratT = Type ("Rational.rat", [])
 

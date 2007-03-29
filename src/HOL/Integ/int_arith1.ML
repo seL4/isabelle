@@ -280,19 +280,19 @@ val minus_simps = [numeral_m1_eq_minus_1 RS sym, number_of_minus RS sym,
                    pred_1, pred_0, pred_Pls, pred_Min];
 
 (*To let us treat subtraction as addition*)
-val diff_simps = [diff_minus, minus_add_distrib, minus_minus];
+val diff_simps = [@{thm diff_minus}, @{thm minus_add_distrib}, @{thm minus_minus}];
 
 (*push the unary minus down: - x * y = x * - y *)
 val minus_mult_eq_1_to_2 =
-    [minus_mult_left RS sym, minus_mult_right] MRS trans |> standard;
+    [@{thm minus_mult_left} RS sym, @{thm minus_mult_right}] MRS trans |> standard;
 
 (*to extract again any uncancelled minuses*)
 val minus_from_mult_simps =
-    [minus_minus, minus_mult_left RS sym, minus_mult_right RS sym];
+    [@{thm minus_minus}, @{thm minus_mult_left} RS sym, @{thm minus_mult_right} RS sym];
 
 (*combine unary minus with numeric literals, however nested within a product*)
 val mult_minus_simps =
-    [mult_assoc, minus_mult_left, minus_mult_eq_1_to_2];
+    [@{thm mult_assoc}, @{thm minus_mult_left}, minus_mult_eq_1_to_2];
 
 (*Apply the given rewrite (if present) just once*)
 fun trans_tac NONE      = all_tac
@@ -495,26 +495,26 @@ local
 (* reduce contradictory <= to False *)
 val add_rules =
     simp_thms @ arith_simps @ rel_simps @ arith_special @
-    [neg_le_iff_le, numeral_0_eq_0, numeral_1_eq_1,
-     minus_zero, diff_minus, left_minus, right_minus,
-     mult_zero_left, mult_zero_right, mult_num1, mult_1_right,
-     minus_mult_left RS sym, minus_mult_right RS sym,
-     minus_add_distrib, minus_minus, mult_assoc,
+    [@{thm neg_le_iff_le}, @{thm numeral_0_eq_0}, @{thm numeral_1_eq_1},
+     @{thm minus_zero}, @{thm diff_minus}, @{thm left_minus}, @{thm right_minus},
+     @{thm mult_zero_left}, @{thm mult_zero_right}, @{thm mult_num1}, @{thm mult_1_right},
+     @{thm minus_mult_left} RS sym, @{thm minus_mult_right} RS sym,
+     @{thm minus_add_distrib}, @{thm minus_minus}, @{thm mult_assoc},
      of_nat_0, of_nat_1, of_nat_Suc, of_nat_add, of_nat_mult,
      of_int_0, of_int_1, of_int_add, of_int_mult, int_eq_of_nat]
 
-val nat_inj_thms = [zle_int RS iffD2,
-                    int_int_eq RS iffD2]
+val nat_inj_thms = [zle_int RS iffD2, int_int_eq RS iffD2]
 
-val Int_Numeral_Base_Simprocs = [assoc_fold_simproc, Int_Numeral_Simprocs.combine_numerals]@
-               Int_Numeral_Simprocs.cancel_numerals
+val Int_Numeral_Base_Simprocs = assoc_fold_simproc
+  :: Int_Numeral_Simprocs.combine_numerals
+  :: Int_Numeral_Simprocs.cancel_numerals;
 
 in
 
 val int_arith_setup =
   Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
    {add_mono_thms = add_mono_thms,
-    mult_mono_thms = [mult_strict_left_mono,mult_left_mono] @ mult_mono_thms,
+    mult_mono_thms = @{thm mult_strict_left_mono} :: @{thm mult_left_mono} :: mult_mono_thms,
     inj_thms = nat_inj_thms @ inj_thms,
     lessD = lessD @ [zless_imp_add1_zle],
     neqE = neqE,
@@ -528,45 +528,10 @@ val int_arith_setup =
 end;
 
 val fast_int_arith_simproc =
-  Simplifier.simproc (Theory.sign_of (the_context()))
+  Simplifier.simproc @{theory}
   "fast_int_arith" 
      ["(m::'a::{ordered_idom,number_ring}) < n",
       "(m::'a::{ordered_idom,number_ring}) <= n",
       "(m::'a::{ordered_idom,number_ring}) = n"] Fast_Arith.lin_arith_prover;
 
 Addsimprocs [fast_int_arith_simproc];
-
-
-(* Some test data
-Goal "!!a::int. [| a <= b; c <= d; x+y<z |] ==> a+c <= b+d";
-by (fast_arith_tac 1);
-Goal "!!a::int. [| a < b; c < d |] ==> a-d+ 2 <= b+(-c)";
-by (fast_arith_tac 1);
-Goal "!!a::int. [| a < b; c < d |] ==> a+c+ 1 < b+d";
-by (fast_arith_tac 1);
-Goal "!!a::int. [| a <= b; b+b <= c |] ==> a+a <= c";
-by (fast_arith_tac 1);
-Goal "!!a::int. [| a+b <= i+j; a<=b; i<=j |] \
-\     ==> a+a <= j+j";
-by (fast_arith_tac 1);
-Goal "!!a::int. [| a+b < i+j; a<b; i<j |] \
-\     ==> a+a - - -1 < j+j - 3";
-by (fast_arith_tac 1);
-Goal "!!a::int. a+b+c <= i+j+k & a<=b & b<=c & i<=j & j<=k --> a+a+a <= k+k+k";
-by (arith_tac 1);
-Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> a <= l";
-by (fast_arith_tac 1);
-Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> a+a+a+a <= l+l+l+l";
-by (fast_arith_tac 1);
-Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> a+a+a+a+a <= l+l+l+l+i";
-by (fast_arith_tac 1);
-Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> a+a+a+a+a+a <= l+l+l+l+i+l";
-by (fast_arith_tac 1);
-Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> 6*a <= 5*l+i";
-by (fast_arith_tac 1);
-*)

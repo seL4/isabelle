@@ -196,7 +196,7 @@ lemma new_tv_subst:
   apply (unfold new_tv_def)
   apply (tactic "safe_tac HOL_cs")
   -- {* @{text \<Longrightarrow>} *}
-    apply (tactic {* fast_tac (HOL_cs addDs [leD] addss (simpset()
+    apply (tactic {* fast_tac (HOL_cs addDs [@{thm leD}] addss (simpset()
       addsimps [thm "free_tv_subst", thm "dom_def"])) 1 *})
    apply (subgoal_tac "m \<in> cod s \<or> s l = TVar l")
     apply (tactic "safe_tac HOL_cs")

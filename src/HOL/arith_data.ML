@@ -89,7 +89,7 @@ struct
   val dest_sum = dest_sum;
   val prove_conv = prove_conv;
   val norm_tac1 = simp_all_tac add_rules;
-  val norm_tac2 = simp_all_tac add_ac;
+  val norm_tac2 = simp_all_tac @{thms add_ac};
   fun norm_tac ss = norm_tac1 ss THEN norm_tac2 ss;
 end;
 
@@ -172,8 +172,8 @@ val ccontr = ccontr;
 val conjI = conjI;
 val notI = notI;
 val sym = sym;
-val not_lessD = linorder_not_less RS iffD1;
-val not_leD = linorder_not_le RS iffD1;
+val not_lessD = @{thm linorder_not_less} RS iffD1;
+val not_leD = @{thm linorder_not_le} RS iffD1;
 val le0 = thm "le0";
 
 fun mk_Eq thm = (thm RS Eq_FalseI) handle THM _ => (thm RS Eq_TrueI);
@@ -937,7 +937,7 @@ val add_rules =
 
 val add_mono_thms_ordered_semiring = map (fn s => prove_goal (the_context ()) s
  (fn prems => [cut_facts_tac prems 1,
-               blast_tac (claset() addIs [add_mono]) 1]))
+               blast_tac (claset() addIs [@{thm add_mono}]) 1]))
 ["(i <= j) & (k <= l) ==> i + k <= j + (l::'a::pordered_ab_semigroup_add)",
  "(i  = j) & (k <= l) ==> i + k <= j + (l::'a::pordered_ab_semigroup_add)",
  "(i <= j) & (k  = l) ==> i + k <= j + (l::'a::pordered_ab_semigroup_add)",
@@ -945,7 +945,8 @@ val add_mono_thms_ordered_semiring = map (fn s => prove_goal (the_context ()) s
 ];
 
 val mono_ss = simpset() addsimps
-                [add_mono,add_strict_mono,add_less_le_mono,add_le_less_mono];
+  [@{thm add_mono}, @{thm add_strict_mono},
+     @{thm add_less_le_mono}, @{thm add_le_less_mono}];
 
 val add_mono_thms_ordered_field =
   map (fn s => prove_goal (the_context ()) s
@@ -966,7 +967,7 @@ val init_lin_arith_data =
     mult_mono_thms = mult_mono_thms,
     inj_thms = inj_thms,
     lessD = lessD @ [thm "Suc_leI"],
-    neqE = [thm "linorder_neqE_nat",
+    neqE = [@{thm linorder_neqE_nat},
       get_thm (theory "Ring_and_Field") (Name "linorder_neqE_ordered_idom")],
     simpset = HOL_basic_ss addsimps add_rules
                    addsimprocs [ab_group_add_cancel.sum_conv,
@@ -1041,7 +1042,7 @@ end;
 
 local
 val antisym = mk_meta_eq order_antisym
-val not_lessD = linorder_not_less RS iffD1
+val not_lessD = @{thm linorder_not_less} RS iffD1
 fun prp t thm = (#prop(rep_thm thm) = t)
 in
 fun antisym_eq prems thm =
