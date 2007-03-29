@@ -375,12 +375,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons 
       | pr_term vars fxy (INum n) =
           brackets [(str o IntInf.toString) n, str ":", str "IntInf.int"]
       | pr_term vars _ (IChar c) =
-          (str o prefix "#" o quote)
-            (let val i = ord c
-              in if i < 32 orelse i = 34 orelse i = 92
-                then prefix "\\" (string_of_int i)
-                else c
-              end)
+          (str o prefix "#" o quote o ML_Syntax.print_char) c
       | pr_term vars fxy (t as ICase (_, [_])) =
           let
             val (binds, t') = CodegenThingol.unfold_let t;
