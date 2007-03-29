@@ -431,7 +431,7 @@ by (simp add: A_def)
 lemma (in CLF) monotone_f: "monotone f A r"
 by (simp add: A_def r_def)
 
-lemma (in CLF) CLF_dual: "(cl,f) \<in> CLF ==> (dual cl, f) \<in> CLF"
+lemma (in CLF) CLF_dual: "(dual cl, f) \<in> CLF"
 apply (simp add: CLF_def  CL_dualCL monotone_dual)
 apply (simp add: dualA_iff)
 done
@@ -536,7 +536,7 @@ apply (rule dualA_iff [THEN subst])
 apply (rule CLF.lubH_is_fixp)
 apply (rule dualPO)
 apply (rule CL_dualCL)
-apply (rule f_cl [THEN CLF_dual])
+apply (rule CLF_dual)
 apply (simp add: dualr_iff dualA_iff)
 done
 
@@ -700,7 +700,7 @@ done
 lemma (in CLF) Top_in_lattice: "Top cl \<in> A"
 apply (simp add: Top_dual_Bot A_def)
 apply (rule dualA_iff [THEN subst])
-apply (blast intro!: CLF.Bot_in_lattice dualPO CL_dualCL CLF_dual f_cl)
+apply (blast intro!: CLF.Bot_in_lattice dualPO CL_dualCL CLF_dual)
 done
 
 lemma (in CLF) Top_prop: "x \<in> A ==> (x, Top cl) \<in> r"
@@ -731,8 +731,7 @@ apply (subst interval_dual)
 prefer 2 apply assumption
 apply (simp add: A_def)
 apply (rule dualA_iff [THEN subst])
-apply (blast intro!: CLF.Top_in_lattice
-                 f_cl dualPO CL_dualCL CLF_dual)
+apply (blast intro!: CLF.Top_in_lattice dualPO CL_dualCL CLF_dual)
 apply (simp add: CLF.Top_intv_not_empty [of _ f]
                  dualA_iff A_def dualPO CL_dualCL CLF_dual)
 done
