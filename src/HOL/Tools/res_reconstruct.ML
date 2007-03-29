@@ -424,7 +424,8 @@ fun add_wanted_prfline ((lno, t, []), (nlines, lines)) =
       (nlines, (lno, t, []) :: lines)   (*conjecture clauses must be kept*)
   | add_wanted_prfline (line, (nlines, [])) = (nlines, [line])   (*final line must be kept*)
   | add_wanted_prfline ((lno, t, deps), (nlines, lines)) =
-      if not (null (term_tvars t)) orelse length deps < 2 orelse nlines mod !modulus <> 0
+      if eq_types t orelse not (null (term_tvars t)) orelse
+         length deps < 2 orelse nlines mod !modulus <> 0
       then (nlines+1, map (replace_deps (lno, deps)) lines) (*Delete line*)
       else (nlines+1, (lno, t, deps) :: lines);
 
