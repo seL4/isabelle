@@ -25,7 +25,7 @@ sig
   val depth_prolog_tac	: thm list -> tactic
   val gocls		: thm list -> thm list
   val skolemize_prems_tac	: thm list -> int -> tactic
-  val MESON		: (thm list -> tactic) -> int -> tactic
+  val MESON		: (thm list -> thm list) -> (thm list -> tactic) -> int -> tactic
   val best_meson_tac	: (thm -> int) -> int -> tactic
   val safe_best_meson_tac	: int -> tactic
   val depth_meson_tac	: int -> tactic
@@ -546,13 +546,14 @@ fun expand_defs_tac st =
   let val defs = filter (can dest_equals) (#hyps (crep_thm st))
   in  PRIMITIVE (LocalDefs.expand defs) st  end;
 
-(*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions*)
-fun MESON cltac i st = 
+(*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions.
+  Function mkcl converts theorems to clauses.*)
+fun MESON mkcl cltac i st = 
   SELECT_GOAL
     (EVERY [rtac ccontr 1,
 	    METAHYPS (fn negs =>
 		      EVERY1 [skolemize_prems_tac negs,
-			      METAHYPS (cltac o make_clauses)]) 1,
+			      METAHYPS (cltac o mkcl)]) 1,
             expand_defs_tac]) i st
   handle THM _ => no_tac st;	(*probably from make_meta_clause, not first-order*)		      
 
@@ -560,7 +561,8 @@ fun MESON cltac i st =
 
 (*ths is a list of additional clauses (HOL disjunctions) to use.*)
 fun best_meson_tac sizef =
-  MESON (fn cls =>
+  MESON make_clauses 
+    (fn cls =>
          THEN_BEST_FIRST (resolve_tac (gocls cls) 1)
                          (has_fewer_prems 1, sizef)
                          (prolog_step_tac (make_horns cls) 1));
@@ -573,8 +575,8 @@ val safe_best_meson_tac =
 (** Depth-first search version **)
 
 val depth_meson_tac =
-     MESON (fn cls => EVERY [resolve_tac (gocls cls) 1,
-                             depth_prolog_tac (make_horns cls)]);
+  MESON make_clauses
+    (fn cls => EVERY [resolve_tac (gocls cls) 1, depth_prolog_tac (make_horns cls)]);
 
 
 (** Iterative deepening version **)
@@ -593,7 +595,7 @@ fun prolog_step_tac' horns =
 fun iter_deepen_prolog_tac horns =
     ITER_DEEPEN (has_fewer_prems 1) (prolog_step_tac' horns);
 
-fun iter_deepen_meson_tac ths = MESON 
+fun iter_deepen_meson_tac ths = MESON make_clauses 
  (fn cls =>
       case (gocls (cls@ths)) of
 	   [] => no_tac  (*no goal clauses*)
