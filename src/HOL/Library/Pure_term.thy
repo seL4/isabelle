@@ -67,6 +67,11 @@ end;
 
 subsection {* Code generator setup *}
 
+lemma [code func]:
+  "tyco1 {\<struct>} tys1 = tyco2 {\<struct>} tys2 \<longleftrightarrow> tyco1 = tyco2
+     \<and> list_all2 (op =) tys1 tys2"
+  by (auto simp add: list_all2_eq [symmetric])
+
 definition
   Bound :: "int \<Rightarrow> term"
 where
@@ -107,9 +112,19 @@ code_const Const and App and Fix
     and "Term.Abs/ (_, _, _)" and "Term.Bound/ (IntInf.toInt/ _)")
 
 code_const term_rec and term_case and "size \<Colon> term \<Rightarrow> nat"
+    and "op = \<Colon> term \<Rightarrow> term \<Rightarrow> bool"
   (SML "!(_; _; _; _; _; raise Fail \"term'_rec\")"
     and "!(_; _; _; _; _; raise Fail \"term'_case\")"
-    and "!(_; raise Fail \"size'_term\")")
+    and "!(_; raise Fail \"size'_term\")"
+    and "!(_; _; raise Fail \"eq'_term\")")
+  (OCaml "!(_; _; _; _; _; failwith \"term'_rec\")"
+    and "!(_; _; _; _; _; failwith \"term'_case\")"
+    and "!(_; failwith \"size'_term\")"
+    and "!(_; _; failwith \"eq'_term\")")
+  (Haskell "error/ \"term'_rec\""
+    and "error/ \"term'_case\""
+    and "error/ \"size'_term\""
+    and "error/ \"eq'_term\"")
 
 code_reserved SML Term
 
