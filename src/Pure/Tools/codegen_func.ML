@@ -75,7 +75,7 @@ val dest_func = lift_thm_thy (fn thy => apfst dest_Const o strip_comb
   o Drule.fconv_rule Drule.beta_eta_conversion);
 
 val mk_head = lift_thm_thy (fn thy => fn thm =>
-  ((CodegenConsts.norm_of_typ thy o fst o dest_func) thm, thm));
+  ((CodegenConsts.const_of_cexpr thy o fst o dest_func) thm, thm));
 
 local
 

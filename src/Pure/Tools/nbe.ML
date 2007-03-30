@@ -121,7 +121,9 @@ fun generate thy funs =
 
 fun ensure_funs thy funcgr t =
   let
-    val consts = CodegenConsts.consts_of thy t;
+    fun consts_of thy t =
+      fold_aterms (fn Const c => cons (CodegenConsts.const_of_cexpr thy c) | _ => I) t []
+    val consts = consts_of thy t;
     val nbe_tab = NBE_Data.get thy;
   in
     CodegenFuncgr.deps funcgr consts

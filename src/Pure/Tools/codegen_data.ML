@@ -27,10 +27,9 @@ sig
   val coregular_algebra: theory -> Sorts.algebra
   val operational_algebra: theory -> (sort -> sort) * Sorts.algebra
   val these_funcs: theory -> CodegenConsts.const -> thm list
-  val tap_typ: theory -> CodegenConsts.const -> typ option
   val get_datatype: theory -> string -> ((string * sort) list * (string * typ list) list)
   val get_datatype_of_constr: theory -> CodegenConsts.const -> string option
-  val get_constr_typ: theory -> CodegenConsts.const -> typ option
+  val default_typ: theory -> CodegenConsts.const -> typ
 
   val preprocess_cterm: cterm -> thm
 
@@ -454,7 +453,7 @@ fun specific_constraints thy (class, tyco) =
     val vs = Name.invents Name.context "" (Sign.arity_number thy tyco);
     val clsops = (these o Option.map snd o try (AxClass.params_of_class thy)) class;
     val funcs = clsops
-      |> map (fn (clsop, _) => CodegenConsts.norm thy (clsop, [Type (tyco, map (TFree o rpair []) vs)]))
+      |> map (fn (clsop, _) => (clsop, SOME tyco))
       |> map (Consttab.lookup ((the_funcs o get_exec) thy))
       |> (map o Option.map) (Susp.force o fst)
       |> maps these
@@ -518,7 +517,7 @@ fun gen_mk_func_typ strict thm =
     val thy = Thm.theory_of_thm thm;
     val raw_funcs = CodegenFunc.mk_func strict thm;
     val error_warning = if strict then error else warning #> K NONE;
-    fun check_typ_classop class (const as (c, [Type (tyco, _)]), thm) =
+    fun check_typ_classop class (const as (c, SOME tyco), thm) =
           let
             val ((_, ty), _) = CodegenFunc.dest_func thm;
             val ty_decl = classop_weakest_typ thy class (c, tyco);
@@ -547,7 +546,7 @@ fun gen_mk_func_typ strict thm =
               ^ "\nis incompatible with permitted least general type\n"
               ^ CodegenConsts.string_of_typ thy ty_strongest)
           end
-      | check_typ_classop class ((c, [_]), thm) =
+      | check_typ_classop class ((c, NONE), thm) =
           error_warning ("Illegal type for class operation " ^ quote c
            ^ "\nin defining equation\n"
            ^ string_of_thm thm);
@@ -563,7 +562,7 @@ fun gen_mk_func_typ strict thm =
            ^ "\nis incompatible declared function type\n"
            ^ CodegenConsts.string_of_typ thy ty_decl)
       end;
-    fun check_typ (const as (c, tys), thm) =
+    fun check_typ (const as (c, _), thm) =
       case AxClass.class_of_param thy c
        of SOME class => check_typ_classop class (const, thm)
         | NONE => check_typ_fun (const, thm);
@@ -599,12 +598,12 @@ fun del_func thm thy =
        (del_thm thm)) funcs)) thy
   end;
 
-fun add_funcl (c, lthms) thy =
+fun add_funcl (const, lthms) thy =
   let
-    val c' = CodegenConsts.norm thy c;
-    val lthms' = certificate thy (fn thy => certify_const thy c' o maps (CodegenFunc.mk_func true)) lthms;
+    val lthms' = certificate thy (fn thy => certify_const thy const
+      o maps (CodegenFunc.mk_func true)) lthms;
   in
-    map_exec_purge (SOME [c]) (map_funcs (Consttab.map_default (c', (Susp.value [], []))
+    map_exec_purge (SOME [const]) (map_funcs (Consttab.map_default (const, (Susp.value [], []))
       (add_lthms lthms'))) thy
   end;
 
@@ -682,8 +681,8 @@ fun apply_preproc thy f [] = []
   | apply_preproc thy f (thms as (thm :: _)) =
       let
         val thms' = f thy thms;
-        val c = (CodegenConsts.norm_of_typ thy o fst o CodegenFunc.dest_func) thm;
-      in (certify_const thy c o map CodegenFunc.mk_head) thms' end;
+        val thms'' as ((const, _) :: _) = map CodegenFunc.mk_head thms'
+      in (certify_const thy const o map CodegenFunc.mk_head) thms' end;
 
 fun cmp_thms thy =
   make_ord (fn (thm1, thm2) => not (Sign.typ_instance thy (CodegenFunc.typ_func thm1, CodegenFunc.typ_func thm2)));
@@ -716,44 +715,6 @@ fun preprocess_cterm ct =
 
 end; (*local*)
 
-local
-
-fun get_funcs thy const =
-  Consttab.lookup ((the_funcs o get_exec) thy) const
-  |> Option.map (Susp.force o fst)
-  |> these
-  |> map (Thm.transfer thy);
-
-in
-
-fun these_funcs thy const =
-  let
-    fun get_prim_def_funcs (const as (c, tys)) =
-      case CodegenConsts.find_def thy const
-       of SOME (_, thm) =>
-            thm
-            |> Thm.transfer thy
-            |> gen_mk_func_typ false
-            |> map (CodegenFunc.expand_eta ~1 o snd)
-        | NONE => []
-    fun drop_refl thy = filter_out (is_equal o Term.fast_term_ord o Logic.dest_equals
-      o ObjectLogic.drop_judgment thy o Drule.plain_prop_of);
-    val funcs = case get_funcs thy const
-     of [] => get_prim_def_funcs const
-    | funcs => funcs
-  in
-    funcs
-    |> preprocess thy
-    |> drop_refl thy
-  end;
-
-fun tap_typ thy const =
-  case get_funcs thy const
-   of thm :: _ => SOME (CodegenFunc.typ_func thm)
-    | [] => NONE;
-
-end; (*local*)
-
 fun get_datatype thy tyco =
   case Symtab.lookup ((the_dtyps o get_exec) thy) tyco
    of SOME spec => spec
@@ -780,6 +741,65 @@ fun get_constr_typ thy const =
         |> Logic.varifyT
         |> SOME end
     | NONE => NONE;
+
+fun default_typ_proto thy (const as (c, SOME tyco)) = classop_weakest_typ thy
+      ((the o AxClass.class_of_param thy) c) (c, tyco) |> SOME
+  | default_typ_proto thy (const as (c, NONE)) = case AxClass.class_of_param thy c
+       of SOME class => SOME (Term.map_type_tvar
+            (K (TVar (("'a", 0), [class]))) (Sign.the_const_type thy c))
+        | NONE => get_constr_typ thy const;
+
+local
+
+fun get_funcs thy const =
+  Consttab.lookup ((the_funcs o get_exec) thy) const
+  |> Option.map (Susp.force o fst)
+  |> these
+  |> map (Thm.transfer thy);
+
+fun find_def thy (const as (c, _)) =
+  let
+    val specs = Defs.specifications_of (Theory.defs_of thy) c;
+    val ty = case try (default_typ_proto thy) const
+     of NONE => NONE
+      | SOME ty => ty;
+    val tys = Sign.const_typargs thy (c, ty |> the_default (Sign.the_const_type thy c));
+    fun get_def (_, { is_def, name, lhs, rhs, thyname }) =
+      if is_def andalso forall (Sign.typ_instance thy) (tys ~~ lhs) then
+        try (Thm.get_axiom_i thy) name
+      else NONE
+  in get_first get_def specs end;
+
+in
+
+fun these_funcs thy const =
+  let
+    fun get_prim_def_funcs (const as (c, tys)) =
+      case find_def thy const
+       of SOME thm =>
+            thm
+            |> Thm.transfer thy
+            |> gen_mk_func_typ false
+            |> map (CodegenFunc.expand_eta ~1 o snd)
+        | NONE => []
+    fun drop_refl thy = filter_out (is_equal o Term.fast_term_ord o Logic.dest_equals
+      o ObjectLogic.drop_judgment thy o Drule.plain_prop_of);
+    val funcs = case get_funcs thy const
+     of [] => get_prim_def_funcs const
+    | funcs => funcs
+  in
+    funcs
+    |> preprocess thy
+    |> drop_refl thy
+  end;
+
+fun default_typ thy (const as (c, _)) = case default_typ_proto thy const
+ of SOME ty => ty
+  | NONE => (case get_funcs thy const
+     of thm :: _ => CodegenFunc.typ_func thm
+      | [] => Sign.the_const_type thy c);
+
+end; (*local*)
 
 
 (** code attributes **)

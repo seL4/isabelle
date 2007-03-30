@@ -80,7 +80,7 @@ fun consts_of (const, []) = []
       let
         val thy = Thm.theory_of_thm thm;
         val is_refl = curry CodegenConsts.eq_const const;
-        fun the_const c = case try (CodegenConsts.norm_of_typ thy) c
+        fun the_const c = case try (CodegenConsts.const_of_cexpr thy) c
          of SOME const => if is_refl const then I else insert CodegenConsts.eq_const const
           | NONE => I
       in fold_consts the_const thms [] end;
@@ -147,7 +147,7 @@ fun resort_thms algebra tap_typ [] = []
 
 fun resort_funcss thy algebra funcgr =
   let
-    val typ_funcgr = try (fst o Constgraph.get_node funcgr o CodegenConsts.norm_of_typ thy);
+    val typ_funcgr = try (fst o Constgraph.get_node funcgr o CodegenConsts.const_of_cexpr thy);
     fun resort_dep (const, thms) = (const, resort_thms algebra typ_funcgr thms)
       handle Sorts.CLASS_ERROR e => raise INVALID ([const], Sorts.msg_class_error (Sign.pp thy) e
                     ^ ",\nfor constant " ^ CodegenConsts.string_of_const thy const
@@ -162,7 +162,7 @@ fun resort_funcss thy algebra funcgr =
           in (Sign.typ_equiv thy (ty, ty'), (const, thms')) end;
     fun resort_recs funcss =
       let
-        fun tap_typ c_ty = case try (CodegenConsts.norm_of_typ thy) c_ty
+        fun tap_typ c_ty = case try (CodegenConsts.const_of_cexpr thy) c_ty
          of SOME const => AList.lookup (CodegenConsts.eq_const) funcss const
               |> these
               |> try hd
@@ -177,14 +177,6 @@ fun resort_funcss thy algebra funcgr =
       in if unchanged then funcss' else resort_rec_until funcss' end;
   in map resort_dep #> resort_rec_until end;
 
-fun classop_const thy algebra class classop tyco =
-  let
-    val sorts = Sorts.mg_domain algebra tyco [class]
-    val (var, _) = try (AxClass.params_of_class thy) class |> the_default ("'a", []);
-    val vs = Name.names (Name.declare var Name.context) "'a" sorts;
-    val arity_typ = Type (tyco, map TFree vs);
-  in (classop, [arity_typ]) end;
-
 fun instances_of thy algebra insts =
   let
     val thy_classes = (#classes o Sorts.rep_algebra o Sign.classes_of) thy;
@@ -192,8 +184,7 @@ fun instances_of thy algebra insts =
       try (AxClass.params_of_class thy) class
       |> Option.map snd
       |> these
-      |> map (fn (c, _) => classop_const thy algebra class c tyco)
-      |> map (CodegenConsts.norm thy)
+      |> map (fn (c, _) => (c, SOME tyco))
   in
     Symtab.empty
     |> fold (fn (tyco, class) =>
@@ -204,9 +195,9 @@ fun instances_of thy algebra insts =
 
 fun instances_of_consts thy algebra funcgr consts =
   let
-    fun inst (const as (c, ty)) = case try (CodegenConsts.norm_of_typ thy) const
-     of SOME const => insts_of thy algebra c (fst (Constgraph.get_node funcgr const)) ty
-      | NONE => [];
+    fun inst (cexpr as (c, ty)) = insts_of thy algebra c
+      ((fst o Constgraph.get_node funcgr o CodegenConsts.const_of_cexpr thy) cexpr)
+      ty handle CLASS_ERROR => [];
   in
     []
     |> fold (fold (insert (op =)) o inst) consts
@@ -248,44 +239,23 @@ fun merge_funcss rewrites thy algebra raw_funcss funcgr =
     val funcss = raw_funcss
       |> resort_funcss thy algebra funcgr
       |> filter_out (can (Constgraph.get_node funcgr) o fst);
-    fun classop_typ (c, [typarg]) class =
-      let
-        val ty = Sign.the_const_type thy c;
-        val inst = case typarg
-         of Type (tyco, _) => classop_const thy algebra class c tyco
-              |> snd
-              |> the_single
-              |> Logic.varifyT
-          | _ => TVar (("'a", 0), [class]);
-      in Term.map_type_tvar (K inst) ty end;
-    fun default_typ (const as (c, tys)) = case AxClass.class_of_param thy c
-         of SOME class => classop_typ const class
-          | NONE => (case CodegenData.tap_typ thy const
-             of SOME ty => ty
-              | NONE => (case CodegenData.get_constr_typ thy const
-                 of SOME ty => ty
-                  | NONE => Sign.the_const_type thy c))
-    fun typ_func (const as (c, tys)) thms thm =
-      let
-        val ty = CodegenFunc.typ_func thm;
-      in case AxClass.class_of_param thy c
-       of SOME class => (case tys
-           of [Type _] => let val ty_decl = classop_typ const class
-              in if Sign.typ_equiv thy (ty, ty_decl) then ty
-              else raise raise INVALID ([const], "Illegal instantation for class operation "
-                    ^ CodegenConsts.string_of_const thy const
-                    ^ ":\n" ^ CodegenConsts.string_of_typ thy ty_decl
-                    ^ "\nto " ^ CodegenConsts.string_of_typ thy ty
-                    ^ "\nin defining equations\n"
-                    ^ (cat_lines o map string_of_thm) thms)
-              end
-            | _ => ty)
-        | NONE => ty
-      end;
-    fun add_funcs (const, thms as thm :: _) =
-          Constgraph.new_node (const, (typ_func const thms thm, thms))
-      | add_funcs (const, []) =
-          Constgraph.new_node (const, (default_typ const, []));
+    fun typ_func const [] = CodegenData.default_typ thy const
+      | typ_func (_, NONE) (thm :: _) = CodegenFunc.typ_func thm
+      | typ_func (const as (c, SOME tyco)) (thms as (thm :: _)) =
+          let
+            val ty = CodegenFunc.typ_func thm;
+            val SOME class = AxClass.class_of_param thy c;
+            val sorts_decl = Sorts.mg_domain algebra tyco [class];
+            val tys = CodegenConsts.typargs thy (c, ty);
+            val sorts = map (snd o dest_TVar) tys;
+          in if sorts = sorts_decl then ty
+            else raise INVALID ([const], "Illegal instantation for class operation "
+              ^ CodegenConsts.string_of_const thy const
+              ^ "\nin defining equations\n"
+              ^ (cat_lines o map string_of_thm) thms)
+          end;
+    fun add_funcs (const, thms) =
+      Constgraph.new_node (const, (typ_func const thms, thms));
     fun add_deps (funcs as (const, thms)) funcgr =
       let
         val deps = consts_of funcs;
@@ -339,6 +309,8 @@ fun check_consts rewrites thy consts funcgr =
 
 fun ensure_consts_term rewrites thy f ct funcgr =
   let
+    fun consts_of thy t =
+      fold_aterms (fn Const c => cons (CodegenConsts.const_of_cexpr thy c) | _ => I) t []
     fun rhs_conv conv thm =
       let
         val thm' = (conv o snd o Drule.dest_equals o Thm.cprop_of) thm;
@@ -348,12 +320,12 @@ fun ensure_consts_term rewrites thy f ct funcgr =
     val thm1 = CodegenData.preprocess_cterm ct
       |> fold (rhs_conv o MetaSimplifier.rewrite false o single) (rewrites thy);
     val ct' = Drule.dest_equals_rhs (Thm.cprop_of thm1);
-    val consts = CodegenConsts.consts_of thy (Thm.term_of ct');
+    val consts = consts_of thy (Thm.term_of ct');
     val funcgr' = ensure_consts rewrites thy consts funcgr;
     val algebra = CodegenData.coregular_algebra thy;
     val (_, thm2) = Thm.varifyT' [] thm1;
     val thm3 = Thm.reflexive (Drule.dest_equals_rhs (Thm.cprop_of thm2));
-    val typ_funcgr = try (fst o Constgraph.get_node funcgr' o CodegenConsts.norm_of_typ thy);
+    val typ_funcgr = try (fst o Constgraph.get_node funcgr' o CodegenConsts.const_of_cexpr thy);
     val [thm4] = resort_thms algebra typ_funcgr [thm3];
     val tfrees = Term.add_tfrees (Thm.prop_of thm1) [];
     fun inst thm =

@@ -216,23 +216,21 @@ fun tyco_policy thy = policy thy NameSpace.base thyname_of_tyco;
 fun instance_policy thy = policy thy (fn (class, tyco) => 
   NameSpace.base class ^ "_" ^ NameSpace.base tyco) thyname_of_instance;
 
-fun force_thyname thy (const as (c, tys)) =
+fun force_thyname thy (const as (c, opt_tyco)) =
   case AxClass.class_of_param thy c
-   of SOME class => (case tys
-       of [Type (tyco, _)] => SOME (thyname_of_instance thy (class, tyco))
-        | _ => SOME (thyname_of_class thy class))
+   of SOME class => (case opt_tyco
+       of SOME tyco => SOME (thyname_of_instance thy (class, tyco))
+        | NONE => SOME (thyname_of_class thy class))
     | NONE => (case CodegenData.get_datatype_of_constr thy const
    of SOME dtco => SOME (thyname_of_tyco thy dtco)
-    | NONE => (case CodegenConsts.find_def thy const
-   of SOME (thyname, _) => SOME thyname
-    | NONE => NONE));
+    | NONE => NONE);
 
-fun const_policy thy (c, tys) =
-  case force_thyname thy (c, tys)
+fun const_policy thy (const as (c, opt_tyco)) =
+  case force_thyname thy const
    of NONE => policy thy NameSpace.base thyname_of_const c
     | SOME thyname => let
         val prefix = (purify_prefix o NameSpace.explode o dotify) thyname;
-        val tycos = map_filter (fn Type (tyco, _) => SOME tyco | _ => NONE) tys;
+        val tycos = the_list opt_tyco;
         val base = map (purify_base o NameSpace.base) (c :: tycos);
       in NameSpace.implode (prefix @ [space_implode "_" base]) end;
 
@@ -307,7 +305,7 @@ end);
 structure ConstName = CodeDataFun
 (struct
   val name = "Pure/codegen_names";
-  type T = const Consttab.table * (string * typ list) Symtab.table;
+  type T = const Consttab.table * (string * string option) Symtab.table;
   val empty = (Consttab.empty, Symtab.empty);
   fun merge _ ((const1, constrev1), (const2, constrev2)) =
     (Consttab.merge eq_string (const1, const2),
@@ -395,8 +393,7 @@ fun instance thy =
   get thy #instance StringPairTab.lookup map_instance StringPairTab.update instance_policy
   #> add_idf idf_instance;
 fun const thy =
-  CodegenConsts.norm thy
-  #> get_const thy
+  get_const thy
   #> add_idf idf_const;
 
 fun class_rev thy =

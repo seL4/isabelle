@@ -141,7 +141,7 @@ fun ensure_def_class thy (algbr as ((_, algebra), _)) funcgr strct class =
     val (v, cs) = AxClass.params_of_class thy class;
     val class' = CodegenNames.class thy class;
     val classrels' = map (curry (CodegenNames.classrel thy) class) superclasses;
-    val classops' = map (CodegenNames.const thy o CodegenConsts.norm_of_typ thy) cs;
+    val classops' = map (CodegenNames.const thy o CodegenConsts.const_of_cexpr thy) cs;
     val defgen_class =
       fold_map (ensure_def_class thy algbr funcgr strct) superclasses
       ##>> (fold_map (exprgen_type thy algbr funcgr strct) o map snd) cs
@@ -170,7 +170,7 @@ and ensure_def_tyco thy algbr funcgr strct "fun" trns =
             ||>> fold_map (fn (c, tys) =>
               fold_map (exprgen_type thy algbr funcgr strct) tys
               #-> (fn tys' =>
-                pair ((CodegenNames.const thy o CodegenConsts.norm_of_typ thy)
+                pair ((CodegenNames.const thy o CodegenConsts.const_of_cexpr thy)
                   (c, tys ---> Type (tyco, map TFree vs)), tys'))) cos
             |-> (fn (vs, cos) => succeed (CodegenThingol.Datatype (vs, cos)))
           end;
@@ -235,7 +235,7 @@ fun exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr strct (ty
   end
 and exprgen_dict_parms thy (algbr as (_, consts)) funcgr strct (c, ty_ctxt) =
   let
-    val c' = CodegenConsts.norm_of_typ thy (c, ty_ctxt)
+    val c' = CodegenConsts.const_of_cexpr thy (c, ty_ctxt)
     val idf = CodegenNames.const thy c';
     val ty_decl = Consts.the_declaration consts idf;
     val (tys, tys_decl) = pairself (curry (Consts.typargs consts) idf) (ty_ctxt, ty_decl);
@@ -258,7 +258,7 @@ and ensure_def_inst thy (algbr as ((_, algebra), _)) funcgr strct (class, tyco) 
             (superclass, (classrel, (inst, dss))));
     fun gen_classop_def (classop as (c, ty)) trns =
       trns
-      |> ensure_def_const thy algbr funcgr strct (CodegenConsts.norm_of_typ thy classop)
+      |> ensure_def_const thy algbr funcgr strct (CodegenConsts.const_of_cexpr thy classop)
       ||>> exprgen_term thy algbr funcgr strct (Const (c, map_type_tfree (K arity_typ) ty));
     fun defgen_inst trns =
       trns
@@ -276,13 +276,13 @@ and ensure_def_inst thy (algbr as ((_, algebra), _)) funcgr strct (class, tyco) 
     |> ensure_def thy defgen_inst true ("generating instance " ^ quote class ^ " / " ^ quote tyco) inst
     |> pair inst
   end
-and ensure_def_const thy (algbr as (_, consts)) funcgr strct (c_tys as (c, tys)) trns =
+and ensure_def_const thy (algbr as (_, consts)) funcgr strct (const as (c, opt_tyco)) trns =
   let
-    val c' = CodegenNames.const thy c_tys;
+    val c' = CodegenNames.const thy const;
     fun defgen_datatypecons trns =
       trns
       |> ensure_def_tyco thy algbr funcgr strct
-          ((the o CodegenData.get_datatype_of_constr thy) c_tys)
+          ((the o CodegenData.get_datatype_of_constr thy) const)
       |-> (fn _ => succeed CodegenThingol.Bot);
     fun defgen_classop trns =
       trns
@@ -290,7 +290,7 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr strct (c_tys as (c, tys))
       |-> (fn _ => succeed CodegenThingol.Bot);
     fun defgen_fun trns =
       case CodegenFuncgr.funcs funcgr
-        (perhaps (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy)) c_tys)
+        (perhaps (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy)) const)
        of thms as _ :: _ =>
             let
               val (ty, eq_thms) = prep_eqs thy thms;
@@ -315,20 +315,20 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr strct (c_tys as (c, tys))
         | [] =>
               trns
               |> fail ("No defining equations found for "
-                   ^ (quote o CodegenConsts.string_of_const thy) c_tys);
-    val defgen = if (is_some o CodegenData.get_datatype_of_constr thy) c_tys
+                   ^ (quote o CodegenConsts.string_of_const thy) const);
+    val defgen = if (is_some o CodegenData.get_datatype_of_constr thy) const
       then defgen_datatypecons
-      else if (is_some o AxClass.class_of_param thy) c andalso
-        case tys of [TFree _] => true | [TVar _] => true | _ => false
-      then defgen_classop
-      else defgen_fun
+      else if is_some opt_tyco
+        orelse (not o is_some o AxClass.class_of_param thy) c
+      then defgen_fun
+      else defgen_classop
     val strict = check_strict strct (CodegenSerializer.const_has_serialization thy) c';
   in
     trns
     |> tracing (fn _ => "generating constant "
-        ^ (quote o CodegenConsts.string_of_const thy) c_tys)
+        ^ (quote o CodegenConsts.string_of_const thy) const)
     |> ensure_def thy defgen strict ("generating constant "
-         ^ CodegenConsts.string_of_const thy c_tys) c'
+         ^ CodegenConsts.string_of_const thy const) c'
     |> pair c'
   end
 and exprgen_term thy algbr funcgr strct (Const (c, ty)) trns =
@@ -359,7 +359,7 @@ and exprgen_term thy algbr funcgr strct (Const (c, ty)) trns =
             |>> (fn (t, ts) => t `$$ ts)
 and appgen_default thy algbr funcgr strct ((c, ty), ts) trns =
   trns
-  |> ensure_def_const thy algbr funcgr strct (CodegenConsts.norm_of_typ thy (c, ty))
+  |> ensure_def_const thy algbr funcgr strct (CodegenConsts.const_of_cexpr thy (c, ty))
   ||>> fold_map (exprgen_type thy algbr funcgr strct) ((fst o Term.strip_type) ty)
   ||>> exprgen_type thy algbr funcgr strct ((snd o Term.strip_type) ty)
   ||>> exprgen_dict_parms thy algbr funcgr strct (c, ty)
@@ -483,14 +483,11 @@ fun add_appconst (c, appgen) thy =
 
 local
 
-fun add_consts thy f (c1, c2 as (c, tys)) =
+fun add_consts thy f (c1, c2 as (c, opt_tyco)) =
   let
-    val _ = case tys
-     of [TVar _] => if is_some (AxClass.class_of_param thy c)
-          then error ("Not a function: " ^ CodegenConsts.string_of_const thy c2)
-          else ()
-      | _ => ();
-    val _ = if is_some (CodegenData.get_datatype_of_constr thy c2)
+    val _ = if
+        is_some (AxClass.class_of_param thy c) andalso is_none opt_tyco
+        orelse is_some (CodegenData.get_datatype_of_constr thy c2)
       then error ("Not a function: " ^ CodegenConsts.string_of_const thy c2)
       else ();
     val funcgr = Funcgr.make thy [c1, c2];
@@ -548,10 +545,10 @@ fun gen_constsubst prep_const raw_constsubsts thy =
 
 in
 
-val abstyp = gen_abstyp CodegenConsts.norm Sign.certify_typ;
+val abstyp = gen_abstyp (K I) Sign.certify_typ;
 val abstyp_e = gen_abstyp CodegenConsts.read_const (fn thy => Sign.read_typ (thy, K NONE));
 
-val constsubst = gen_constsubst CodegenConsts.norm;
+val constsubst = gen_constsubst (K I);
 val constsubst_e = gen_constsubst CodegenConsts.read_const;
 
 end; (*local*)
@@ -608,16 +605,27 @@ fun satisfies thy t witnesses = raw_eval_term thy
 fun consts_of thy thyname =
   let
     val this_thy = Option.map theory thyname |> the_default thy;
-    val defs = (#defs o rep_theory) this_thy;
-    val cs_names = (Symtab.keys o snd o #constants o Consts.dest o #consts o Sign.rep_sg) this_thy;
-    val consts = maps (fn c => (map (fn tys => CodegenConsts.norm thy (c, tys))
-      o map #lhs o filter #is_def o map snd o Defs.specifications_of defs) c) cs_names;
-    fun is_const thyname (c, _) =
-      (*this is an approximation*)
-      not (exists (fn thy => Sign.declared_const thy c) (Theory.parents_of this_thy))
+    val defs = (#defs o rep_theory) thy;
+    val cs = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
+      ((snd o #constants o Consts.dest o #consts o Sign.rep_sg) this_thy) [];
+    fun classop c = case AxClass.class_of_param thy c
+     of NONE => [(c, NONE)]
+      | SOME class => Symtab.fold
+          (fn (tyco, classes) => if AList.defined (op =) classes class
+            then cons (c, SOME tyco) else I)
+          ((#arities o Sorts.rep_algebra o Sign.classes_of) this_thy)
+          [(c, NONE)];
+    val consts = maps classop cs;
+    fun test_instance thy (class, tyco) =
+      can (Sorts.mg_domain (Sign.classes_of thy) tyco) [class]
+    fun belongs_here thyname (c, NONE) =
+          not (exists (fn thy => Sign.declared_const thy c) (Theory.parents_of this_thy))
+      | belongs_here thyname (c, SOME tyco) =
+          not (exists (fn thy => test_instance thy ((the o AxClass.class_of_param thy) c, tyco))
+            (Theory.parents_of this_thy))
   in case thyname
    of NONE => consts
-    | SOME thyname => filter (is_const thyname) consts
+    | SOME thyname => filter (belongs_here thyname) consts
   end;
 
 fun filter_generatable thy targets consts =

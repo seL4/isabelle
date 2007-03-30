@@ -620,11 +620,10 @@ fun eq_hook specs =
     fun add_eq_thms (dtco, (_, (vs, cs))) thy =
       let
         val thy_ref = Theory.self_ref thy;
-        val ty = Type (dtco, map TFree vs) |> Logic.varifyT;
-        val c = CodegenConsts.norm thy ("op =", [ty]);
+        val const = ("op =", SOME dtco);
         val get_thms = (fn () => get_eq (Theory.deref thy_ref) dtco |> rev);
       in
-        CodegenData.add_funcl (c, CodegenData.lazy get_thms) thy
+        CodegenData.add_funcl (const, CodegenData.lazy get_thms) thy
       end;
   in
     prove_codetypes_arities (ClassPackage.intro_classes_tac [])

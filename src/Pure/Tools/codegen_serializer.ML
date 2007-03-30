@@ -11,7 +11,7 @@ sig
   include BASIC_CODEGEN_THINGOL;
 
   val add_syntax_class: string -> class
-    -> (string * ((string * typ list) * string) list) option -> theory -> theory;
+    -> (string * (CodegenConsts.const * string) list) option -> theory -> theory;
   val add_syntax_inst: string -> string * class -> bool -> theory -> theory;
   val add_syntax_tycoP: string -> string -> OuterParse.token list
     -> (theory -> theory) * OuterParse.token list;
@@ -422,7 +422,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons 
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
       | pr_bind' ((NONE, SOME p), _) = p
-      | pr_bind' ((SOME v, SOME p), _) = concat [str v, str "as", p]
+      | pr_bind' ((SOME v, SOME p), _) = 
     and pr_bind fxy = gen_pr_bind pr_bind' pr_term fxy;
     fun pr_def (MLFuns (funns as (funn :: funns'))) =
           let
@@ -889,7 +889,7 @@ fun pr_ocaml_modl name content =
 val code_width = ref 80;
 fun code_output p = Pretty.setmp_margin (!code_width) Pretty.output p ^ "\n";
 
-fun seri_ml pr_def pr_modl output labelled_name reserved_user module_alias module_prolog
+fun seri_ml pr_def pr_modl reserved_ml output labelled_name reserved_user module_alias module_prolog
   (_ : string -> class_syntax option) tyco_syntax const_syntax code =
   let
     val is_cons = fn node => case CodegenThingol.get_def code node
@@ -898,7 +898,7 @@ fun seri_ml pr_def pr_modl output labelled_name reserved_user module_alias modul
     datatype node =
         Def of string * ml_def option
       | Module of string * ((Name.context * Name.context) * node Graph.T);
-    val empty_names = ML_Syntax.reserved |> fold Name.declare reserved_user;
+    val empty_names = reserved_ml |> fold Name.declare reserved_user;
     val empty_module = ((empty_names, empty_names), Graph.empty);
     fun map_node [] f = f
       | map_node (m::ms) f =
@@ -1064,8 +1064,16 @@ val isar_seri_sml =
     parse_args ((Args.$$$ "-" >> K output_diag
       || Args.$$$ "#" >> K output_internal
       || Args.name >> output_file)
-    >> (fn output => seri_ml pr_sml pr_sml_modl output))
+    >> (fn output => seri_ml pr_sml pr_sml_modl ML_Syntax.reserved output))
   end;
+
+val reserved_ocaml = Name.make_context ["and", "as", "assert", "begin", "class",
+  "constraint", "do", "done", "downto", "else", "end", "exception",
+  "external", "false", "for", "fun", "function", "functor", "if",
+  "in", "include", "inherit", "initializer", "lazy", "let", "match", "method",
+  "module", "mutable", "new", "object", "of", "open", "or", "private", "rec",
+  "sig", "struct", "then", "to", "true", "try", "type", "val",
+  "virtual", "when", "while", "with", "mod"];
 
 val isar_seri_ocaml =
   let
@@ -1074,7 +1082,7 @@ val isar_seri_ocaml =
   in
     parse_args ((Args.$$$ "-" >> K output_diag
       || Args.name >> output_file)
-    >> (fn output => seri_ml pr_ocaml pr_ocaml_modl output))
+    >> (fn output => seri_ml pr_ocaml pr_ocaml_modl reserved_ocaml output))
   end;
 
 
@@ -1662,7 +1670,8 @@ fun eval_term thy labelled_name code ((ref_name, reff), t) args =
     |> CodegenThingol.project_code
         (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const)
           (SOME [val_name])
-    |> seri_ml pr_sml pr_sml_modl I (labelled_name thy) reserved (Symtab.lookup alias) (Symtab.lookup prolog)
+    |> seri_ml pr_sml pr_sml_modl ML_Syntax.reserved I (labelled_name thy) reserved
+        (Symtab.lookup alias) (Symtab.lookup prolog)
         (fun_of class) (fun_of tyco) (fun_of const)
     |> eval
   end;
@@ -1790,7 +1799,7 @@ fun read_tyco thy raw_tyco =
 fun idfs_of_const thy c =
   let
     val c' = (c, Sign.the_const_type thy c);
-    val c'' = CodegenConsts.norm_of_typ thy c';
+    val c'' = CodegenConsts.const_of_cexpr thy c';
   in (c'', CodegenNames.const thy c'') end;
 
 fun no_bindings x = (Option.map o apsnd)
@@ -1798,16 +1807,11 @@ fun no_bindings x = (Option.map o apsnd)
 
 fun gen_add_haskell_monad prep_const c_run c_mbind c_kbind thy =
   let
-    val c_run' =
-      (CodegenConsts.norm thy o prep_const thy) c_run;
-    val c_mbind' =
-      (CodegenConsts.norm thy o prep_const thy) c_mbind;
-    val c_mbind'' =
-      CodegenNames.const thy c_mbind';
-    val c_kbind' =
-      (CodegenConsts.norm thy o prep_const thy) c_kbind;
-    val c_kbind'' =
-      CodegenNames.const thy c_kbind';
+    val c_run' = prep_const thy c_run;
+    val c_mbind' = prep_const thy c_mbind;
+    val c_mbind'' = CodegenNames.const thy c_mbind';
+    val c_kbind' = prep_const thy c_kbind;
+    val c_kbind'' = CodegenNames.const thy c_kbind';
     val pr = pretty_haskell_monad c_mbind'' c_kbind''
   in
     thy
