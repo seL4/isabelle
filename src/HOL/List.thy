@@ -1601,6 +1601,10 @@ lemma list_all2_mono [intro?]:
   apply (case_tac y, auto)
   done
 
+lemma list_all2_eq:
+  "xs = ys \<longleftrightarrow> list_all2 (op =) xs ys"
+  by (induct xs ys rule: list_induct2') auto
+
 
 subsubsection {* @{text foldl} and @{text foldr} *}
 
