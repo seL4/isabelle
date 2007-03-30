@@ -49,7 +49,7 @@ Executing formal specifications as programs is a well-established
   for running test cases and rapid prototyping.  In logical
   calculi like constructive type theory,
   a notion of executability is implicit due to the nature
-  of the calculus.  In contrast, specifications in Isabelle/HOL
+  of the calculus.  In contrast, specifications in Isabelle
   can be highly non-executable.  In order to bridge
   the gap between logic and executable specifications,
   an explicit non-trivial transformation has to be applied:
@@ -61,7 +61,8 @@ Executing formal specifications as programs is a well-established
   \qn{target language} for which code shall ultimately be
   generated is not fixed but may be an arbitrary state-of-the-art
   functional programming language (currently, the implementation
-  supports SML \cite{SML}, OCaml \cite{OCaml} and Haskell \cite{haskell-revised-report}).
+  supports SML \cite{SML}, OCaml \cite{OCaml} and Haskell
+  \cite{haskell-revised-report}).
   We aim to provide a
   versatile environment
   suitable for software development and verification,
@@ -70,9 +71,14 @@ Executing formal specifications as programs is a well-established
   while achieving a big coverage of application areas
   with maximum flexibility.
 
-  For readers, some familiarity and experience
-  with the ingredients
-  of the HOL \emph{Main} theory is assumed.%
+  Conceptually the code generator framework is part
+  of Isabelle's \isa{Pure} meta logic; the object logic
+  \isa{HOL} which is an extension of \isa{Pure}
+  already comes with a reasonable framework setup and thus provides
+  a good working horse for raising code-generation-driven
+  applications.  So, we assume some familiarity and experience
+  with the ingredients of the \isa{HOL} \emph{Main} theory
+  (see also \cite{isa-tutorial}).%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -83,8 +89,10 @@ Executing formal specifications as programs is a well-established
 \begin{isamarkuptext}%
 The code generator aims to be usable with no further ado
   in most cases while allowing for detailed customization.
-  This manifests in the structure of this tutorial: this introduction
-  continues with a short introduction of concepts.  Section
+  This manifests in the structure of this tutorial:
+  we start with a generic example \secref{sec:example}
+  and introduce code generation concepts \secref{sec:concept}.
+  Section
   \secref{sec:basics} explains how to use the framework naively,
   presuming a reasonable default setup.  Then, section
   \secref{sec:advanced} deals with advanced topics,
@@ -99,19 +107,36 @@ The code generator aims to be usable with no further ado
     So, for the moment, there are two distinct code generators
     in Isabelle.
     Also note that while the framework itself is largely
-    object-logic independent, only HOL provides a reasonable
+    object-logic independent, only \isa{HOL} provides a reasonable
     framework setup.    
   \end{warn}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{An exmaple: a simple theory of search trees%
+\isamarkupsection{An example: a simple theory of search trees \label{sec:example}%
 }
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+When writing executable specifications, it is convenient to use
+  three existing packages: the datatype package for defining
+  datatypes, the function package for (recursive) functions,
+  and the class package for overloaded definitions.
+
+  We develope a small theory of search trees; trees are represented
+  as a datatype with key type \isa{{\isacharprime}a} and value type \isa{{\isacharprime}b}:%
+\end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
 \ {\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ searchtree\ {\isacharequal}\ Leaf\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}linorder{\isachardoublequoteclose}\ {\isacharprime}b\isanewline
-\ \ {\isacharbar}\ Branch\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ searchtree{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ searchtree{\isachardoublequoteclose}\isanewline
-\isanewline
+\ \ {\isacharbar}\ Branch\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ searchtree{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ searchtree{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent Note that we have constrained the type of keys
+  to the class of total orders, \isa{linorder}.
+
+  We define \isa{find} and \isa{update} functions:%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
 \isanewline
 \ \ find\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isasymColon}linorder{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ searchtree\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
@@ -131,21 +156,30 @@ The code generator aims to be usable with no further ado
 \ \ \ \ if\ it\ {\isasymle}\ key\isanewline
 \ \ \ \ \ \ then\ {\isacharparenleft}Branch\ {\isacharparenleft}update\ {\isacharparenleft}it{\isacharcomma}\ entry{\isacharparenright}\ t{\isadigit{1}}{\isacharparenright}\ key\ t{\isadigit{2}}{\isacharparenright}\isanewline
 \ \ \ \ \ \ else\ {\isacharparenleft}Branch\ t{\isadigit{1}}\ key\ {\isacharparenleft}update\ {\isacharparenleft}it{\isacharcomma}\ entry{\isacharparenright}\ t{\isadigit{2}}{\isacharparenright}{\isacharparenright}\isanewline
-\ \ \ {\isacharparenright}{\isachardoublequoteclose}\isanewline
-\isanewline
+\ \ \ {\isacharparenright}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent For testing purpose, we define a small example
+  using natural numbers \isa{nat} (which are a \isa{linorder})
+  as keys and strings values:%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
 \isanewline
 \ \ example\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ {\isacharparenleft}nat{\isacharcomma}\ string{\isacharparenright}\ searchtree{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}example\ n\ {\isacharequal}\ update\ {\isacharparenleft}n{\isacharcomma}\ {\isacharprime}{\isacharprime}bar{\isacharprime}{\isacharprime}{\isacharparenright}\ {\isacharparenleft}Leaf\ {\isadigit{0}}\ {\isacharprime}{\isacharprime}foo{\isacharprime}{\isacharprime}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\isanewline
+\ \ {\isachardoublequoteopen}example\ n\ {\isacharequal}\ update\ {\isacharparenleft}n{\isacharcomma}\ {\isacharprime}{\isacharprime}bar{\isacharprime}{\isacharprime}{\isacharparenright}\ {\isacharparenleft}Leaf\ {\isadigit{0}}\ {\isacharprime}{\isacharprime}foo{\isacharprime}{\isacharprime}{\isacharparenright}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent Then we generate code%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
 \ example\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}tree{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
 \begin{isamarkuptext}%
-\lstsml{Thy/examples/tree.ML}%
+\noindent which looks like:
+  \lstsml{Thy/examples/tree.ML}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Code generation process%
+\isamarkupsection{Code generation concepts and process \label{sec:concept}%
 }
 \isamarkuptrue%
 %
@@ -217,13 +251,13 @@ Thanks to a reasonable setup of the HOL theories, in
 \ \ \ \ {\isachardoublequoteopen}fac\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
 \ \ {\isacharbar}\ {\isachardoublequoteopen}fac\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ Suc\ n\ {\isacharasterisk}\ fac\ n{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-This executable specification is now turned to SML code:%
+\noindent This executable specification is now turned to SML code:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
 \ fac\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}fac{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
 \begin{isamarkuptext}%
-The \isa{{\isasymCODEGEN}} command takes a space-separated list of
+\noindent  The \isa{{\isasymCODEGEN}} command takes a space-separated list of
   constants together with \qn{serialization directives}
   in parentheses. These start with a \qn{target language}
   identifier, followed by arguments, their semantics
@@ -238,52 +272,11 @@ The \isa{{\isasymCODEGEN}} command takes a space-separated list of
   \lstsml{Thy/examples/fac.ML}
 
   The code generator will complain when a required
-  ingredient does not provide a executable counterpart.
-  This is the case if an involved type is not a datatype:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimML
-%
-\endisadelimML
-%
-\isatagML
-%
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-\isanewline
-%
-\endisadelimML
-\isacommand{typedecl}\isamarkupfalse%
-\ {\isacharprime}a\ foo\isanewline
-\isanewline
-\isacommand{definition}\isamarkupfalse%
-\isanewline
-\ \ bar\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ foo\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}bar\ x\ y\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
-%
-\isadelimML
-%
-\endisadelimML
-%
-\isatagML
-%
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-%
-\endisadelimML
-\isanewline
-\isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ bar\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}fail{\isacharunderscore}type{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
-\begin{isamarkuptext}%
-\noindent will result in an error. Likewise, generating code
+  ingredient does not provide a executable counterpart,
+  e.g.~generating code
   for constants not yielding
-  a defining equation will fail, e.g.~the Hilbert choice
-  operation \isa{SOME}:%
+  a defining equation (e.g.~the Hilbert choice
+  operation \isa{SOME}):%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -320,6 +313,11 @@ The \isa{{\isasymCODEGEN}} command takes a space-separated list of
 \isanewline
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
 \ pick{\isacharunderscore}some\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}fail{\isacharunderscore}const{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent will fail.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Theorem selection%
 }
 \isamarkuptrue%
@@ -335,8 +333,9 @@ The list of all defining equations in a theory may be inspected
 \noindent which displays a table of constant with corresponding
   defining equations (the additional stuff displayed
   shall not bother us for the moment). If this table does
-  not provide at least one function
-  equation, the table of primitive definitions is searched
+  not provide at least one defining
+  equation for a particular constant, the table of primitive
+  definitions is searched
   whether it provides one.
 
   The typical HOL tools are already set up in a way that
@@ -578,7 +577,10 @@ Code generation is \emph{incremental}: theorems
 \noindent print all cached defining equations (i.e.~\emph{after}
   any applied transformation).  A
   list of constants may be given; their function
-  equations are added to the cache if not already present.%
+  equations are added to the cache if not already present.
+
+  Similarly, the \isa{{\isasymCODEDEPS}} command shows a graph
+  visualizing dependencies between defining equations.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1491,6 +1493,15 @@ would mean nothing else than to introduce the evil
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsubsection{Constructor sets for datatypes%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\fixme%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Cyclic module dependencies%
 }
 \isamarkuptrue%
@@ -1636,9 +1647,8 @@ This Pure module manages identification of (probably overloaded)
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexmltype{CodegenConsts.const}\verb|type CodegenConsts.const = string * typ list| \\
-  \indexml{CodegenConsts.norm-of-typ}\verb|CodegenConsts.norm_of_typ: theory -> string * typ -> CodegenConsts.const| \\
-  \indexml{CodegenConsts.typ-of-inst}\verb|CodegenConsts.typ_of_inst: theory -> CodegenConsts.const -> string * typ| \\
+  \indexmltype{CodegenConsts.const}\verb|type CodegenConsts.const = string * string option| \\
+  \indexml{CodegenConsts.const-of-cexpr}\verb|CodegenConsts.const_of_cexpr: theory -> string * typ -> CodegenConsts.const| \\
  \end{mldecls}
 
   \begin{description}
@@ -1646,15 +1656,13 @@ This Pure module manages identification of (probably overloaded)
   \item \verb|CodegenConsts.const| is the identifier type:
      the product of a \emph{string} with a list of \emph{typs}.
      The \emph{string} is the constant name as represented inside Isabelle;
-     the \emph{typs} are a type instantiation in the sense of System F,
-     with canonical names for type variables.
+     for overloaded constants, the attached \emph{string option}
+     is either \isa{SOME} type constructor denoting an instance,
+     or \isa{NONE} for the polymorphic constant.
 
-  \item \verb|CodegenConsts.norm_of_typ|~\isa{thy}~\isa{{\isacharparenleft}constname{\isacharcomma}\ typ{\isacharparenright}}
-     maps a constant expression \isa{{\isacharparenleft}constname{\isacharcomma}\ typ{\isacharparenright}} to its canonical identifier.
-
-  \item \verb|CodegenConsts.typ_of_inst|~\isa{thy}~\isa{const}
-     maps a canonical identifier \isa{const} to a constant
-     expression with appropriate type.
+  \item \verb|CodegenConsts.const_of_cexpr|~\isa{thy}~\isa{{\isacharparenleft}constname{\isacharcomma}\ typ{\isacharparenright}}
+     maps a constant expression \isa{{\isacharparenleft}constname{\isacharcomma}\ typ{\isacharparenright}}
+     to its canonical identifier.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -1720,7 +1728,7 @@ This Pure module implements the core notions of
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{CodegenData.add-func}\verb|CodegenData.add_func: thm -> theory -> theory| \\
+  \indexml{CodegenData.add-func}\verb|CodegenData.add_func: bool -> thm -> theory -> theory| \\
   \indexml{CodegenData.del-func}\verb|CodegenData.del_func: thm -> theory -> theory| \\
   \indexml{CodegenData.add-funcl}\verb|CodegenData.add_funcl: CodegenConsts.const * thm list Susp.T -> theory -> theory| \\
   \indexml{CodegenData.add-inline}\verb|CodegenData.add_inline: thm -> theory -> theory| \\
@@ -1812,7 +1820,6 @@ This Pure module implements the core notions of
 \begin{mldecls}
   \indexml{CodegenConsts.const-ord}\verb|CodegenConsts.const_ord: CodegenConsts.const * CodegenConsts.const -> order| \\
   \indexml{CodegenConsts.eq-const}\verb|CodegenConsts.eq_const: CodegenConsts.const * CodegenConsts.const -> bool| \\
-  \indexml{CodegenConsts.consts-of}\verb|CodegenConsts.consts_of: theory -> term -> CodegenConsts.const list| \\
   \indexml{CodegenConsts.read-const}\verb|CodegenConsts.read_const: theory -> string -> CodegenConsts.const| \\
   \indexmlstructure{CodegenConsts.Consttab}\verb|structure CodegenConsts.Consttab| \\
   \indexml{CodegenFunc.typ-func}\verb|CodegenFunc.typ_func: thm -> typ| \\
@@ -1826,9 +1833,6 @@ This Pure module implements the core notions of
 
   \item \verb|CodegenConsts.Consttab|
      provides table structures with constant identifiers as keys.
-
-  \item \verb|CodegenConsts.consts_of|~\isa{thy}~\isa{t}
-     returns all constant identifiers mentioned in a term \isa{t}.
 
   \item \verb|CodegenConsts.read_const|~\isa{thy}~\isa{s}
      reads a constant as a concrete term expression \isa{s}.

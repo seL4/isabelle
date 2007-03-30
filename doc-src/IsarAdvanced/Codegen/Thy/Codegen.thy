@@ -26,7 +26,7 @@ text {*
   for running test cases and rapid prototyping.  In logical
   calculi like constructive type theory,
   a notion of executability is implicit due to the nature
-  of the calculus.  In contrast, specifications in Isabelle/HOL
+  of the calculus.  In contrast, specifications in Isabelle
   can be highly non-executable.  In order to bridge
   the gap between logic and executable specifications,
   an explicit non-trivial transformation has to be applied:
@@ -38,7 +38,8 @@ text {*
   \qn{target language} for which code shall ultimately be
   generated is not fixed but may be an arbitrary state-of-the-art
   functional programming language (currently, the implementation
-  supports SML \cite{SML}, OCaml \cite{OCaml} and Haskell \cite{haskell-revised-report}).
+  supports SML \cite{SML}, OCaml \cite{OCaml} and Haskell
+  \cite{haskell-revised-report}).
   We aim to provide a
   versatile environment
   suitable for software development and verification,
@@ -47,9 +48,14 @@ text {*
   while achieving a big coverage of application areas
   with maximum flexibility.
 
-  For readers, some familiarity and experience
-  with the ingredients
-  of the HOL \emph{Main} theory is assumed.
+  Conceptually the code generator framework is part
+  of Isabelle's @{text Pure} meta logic; the object logic
+  @{text HOL} which is an extension of @{text Pure}
+  already comes with a reasonable framework setup and thus provides
+  a good working horse for raising code-generation-driven
+  applications.  So, we assume some familiarity and experience
+  with the ingredients of the @{text HOL} \emph{Main} theory
+  (see also \cite{isa-tutorial}).
 *}
 
 
@@ -58,8 +64,10 @@ subsection {* Overview *}
 text {*
   The code generator aims to be usable with no further ado
   in most cases while allowing for detailed customization.
-  This manifests in the structure of this tutorial: this introduction
-  continues with a short introduction of concepts.  Section
+  This manifests in the structure of this tutorial:
+  we start with a generic example \secref{sec:example}
+  and introduce code generation concepts \secref{sec:concept}.
+  Section
   \secref{sec:basics} explains how to use the framework naively,
   presuming a reasonable default setup.  Then, section
   \secref{sec:advanced} deals with advanced topics,
@@ -74,16 +82,33 @@ text {*
     So, for the moment, there are two distinct code generators
     in Isabelle.
     Also note that while the framework itself is largely
-    object-logic independent, only HOL provides a reasonable
+    object-logic independent, only @{text HOL} provides a reasonable
     framework setup.    
   \end{warn}
 *}
 
 
-subsection {* An exmaple: a simple theory of search trees *}
+section {* An example: a simple theory of search trees \label{sec:example} *}
+
+text {*
+  When writing executable specifications, it is convenient to use
+  three existing packages: the datatype package for defining
+  datatypes, the function package for (recursive) functions,
+  and the class package for overloaded definitions.
+
+  We develope a small theory of search trees; trees are represented
+  as a datatype with key type @{typ "'a"} and value type @{typ "'b"}:
+*}
 
 datatype ('a, 'b) searchtree = Leaf "'a\<Colon>linorder" 'b
   | Branch "('a, 'b) searchtree" "'a" "('a, 'b) searchtree"
+
+text {*
+  \noindent Note that we have constrained the type of keys
+  to the class of total orders, @{text linorder}.
+
+  We define @{text find} and @{text update} functions:
+*}
 
 fun
   find :: "('a\<Colon>linorder, 'b) searchtree \<Rightarrow> 'a \<Rightarrow> 'b option" where
@@ -104,17 +129,29 @@ fun
       else (Branch t1 key (update (it, entry) t2))
    )"
 
+text {*
+  \noindent For testing purpose, we define a small example
+  using natural numbers @{typ nat} (which are a @{text linorder})
+  as keys and strings values:
+*}
+
 fun
   example :: "nat \<Rightarrow> (nat, string) searchtree" where
   "example n = update (n, ''bar'') (Leaf 0 ''foo'')"
 
+text {*
+  \noindent Then we generate code
+*}
+
 code_gen example (*<*)(SML #)(*>*)(SML "examples/tree.ML")
 
 text {*
+  \noindent which looks like:
   \lstsml{Thy/examples/tree.ML}
 *}
 
-subsection {* Code generation process *}
+
+section {* Code generation concepts and process \label{sec:concept} *}
 
 text {*
   \begin{figure}[h]
@@ -181,13 +218,13 @@ fun
   | "fac (Suc n) = Suc n * fac n"
 
 text {*
-  This executable specification is now turned to SML code:
+  \noindent This executable specification is now turned to SML code:
 *}
 
 code_gen fac (*<*)(SML #)(*>*)(SML "examples/fac.ML")
 
 text {*
-  The @{text "\<CODEGEN>"} command takes a space-separated list of
+  \noindent  The @{text "\<CODEGEN>"} command takes a space-separated list of
   constants together with \qn{serialization directives}
   in parentheses. These start with a \qn{target language}
   identifier, followed by arguments, their semantics
@@ -202,40 +239,11 @@ text {*
   \lstsml{Thy/examples/fac.ML}
 
   The code generator will complain when a required
-  ingredient does not provide a executable counterpart.
-  This is the case if an involved type is not a datatype:
-*}
-
-(*<*)
-setup {* Sign.add_path "foo" *}
-(*>*)
-
-typedecl 'a foo
-
-definition
-  bar :: "'a foo \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "bar x y = y"
-
-(*<*)
-hide type foo
-hide const bar
-
-setup {* Sign.parent_path *}
-
-datatype 'a foo = Foo
-
-definition
-  bar :: "'a foo \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "bar x y = y"
-(*>*)
-
-code_gen bar (SML "examples/fail_type.ML")
-
-text {*
-  \noindent will result in an error. Likewise, generating code
+  ingredient does not provide a executable counterpart,
+  e.g.~generating code
   for constants not yielding
-  a defining equation will fail, e.g.~the Hilbert choice
-  operation @{text "SOME"}:
+  a defining equation (e.g.~the Hilbert choice
+  operation @{text "SOME"}):
 *}
 
 (*<*)
@@ -258,6 +266,8 @@ definition
 
 code_gen pick_some (SML "examples/fail_const.ML")
 
+text {* \noindent will fail. *}
+
 subsection {* Theorem selection *}
 
 text {*
@@ -271,8 +281,9 @@ text {*
   \noindent which displays a table of constant with corresponding
   defining equations (the additional stuff displayed
   shall not bother us for the moment). If this table does
-  not provide at least one function
-  equation, the table of primitive definitions is searched
+  not provide at least one defining
+  equation for a particular constant, the table of primitive
+  definitions is searched
   whether it provides one.
 
   The typical HOL tools are already set up in a way that
@@ -447,7 +458,11 @@ text {*
   any applied transformation).  A
   list of constants may be given; their function
   equations are added to the cache if not already present.
+
+  Similarly, the @{text "\<CODEDEPS>"} command shows a graph
+  visualizing dependencies between defining equations.
 *}
+
 
 
 section {* Recipes and advanced topics \label{sec:advanced} *}
@@ -1020,6 +1035,14 @@ text {*
   sort constraint by hand.
 *}
 
+
+subsection {* Constructor sets for datatypes *}
+
+text {*
+  \fixme
+*}
+
+
 subsection {* Cyclic module dependencies *}
 
 text {*
@@ -1147,9 +1170,8 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML_type CodegenConsts.const: "string * typ list"} \\
-  @{index_ML CodegenConsts.norm_of_typ: "theory -> string * typ -> CodegenConsts.const"} \\
-  @{index_ML CodegenConsts.typ_of_inst: "theory -> CodegenConsts.const -> string * typ"} \\
+  @{index_ML_type CodegenConsts.const: "string * string option"} \\
+  @{index_ML CodegenConsts.const_of_cexpr: "theory -> string * typ -> CodegenConsts.const"} \\
  \end{mldecls}
 
   \begin{description}
@@ -1157,15 +1179,13 @@ text %mlref {*
   \item @{ML_type CodegenConsts.const} is the identifier type:
      the product of a \emph{string} with a list of \emph{typs}.
      The \emph{string} is the constant name as represented inside Isabelle;
-     the \emph{typs} are a type instantiation in the sense of System F,
-     with canonical names for type variables.
+     for overloaded constants, the attached \emph{string option}
+     is either @{text SOME} type constructor denoting an instance,
+     or @{text NONE} for the polymorphic constant.
 
-  \item @{ML CodegenConsts.norm_of_typ}~@{text thy}~@{text "(constname, typ)"}
-     maps a constant expression @{text "(constname, typ)"} to its canonical identifier.
-
-  \item @{ML CodegenConsts.typ_of_inst}~@{text thy}~@{text const}
-     maps a canonical identifier @{text const} to a constant
-     expression with appropriate type.
+  \item @{ML CodegenConsts.const_of_cexpr}~@{text thy}~@{text "(constname, typ)"}
+     maps a constant expression @{text "(constname, typ)"}
+     to its canonical identifier.
 
   \end{description}
 *}
@@ -1196,7 +1216,7 @@ subsubsection {* Managing executable content *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML CodegenData.add_func: "thm -> theory -> theory"} \\
+  @{index_ML CodegenData.add_func: "bool -> thm -> theory -> theory"} \\
   @{index_ML CodegenData.del_func: "thm -> theory -> theory"} \\
   @{index_ML CodegenData.add_funcl: "CodegenConsts.const * thm list Susp.T -> theory -> theory"} \\
   @{index_ML CodegenData.add_inline: "thm -> theory -> theory"} \\
@@ -1272,7 +1292,6 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML CodegenConsts.const_ord: "CodegenConsts.const * CodegenConsts.const -> order"} \\
   @{index_ML CodegenConsts.eq_const: "CodegenConsts.const * CodegenConsts.const -> bool"} \\
-  @{index_ML CodegenConsts.consts_of: "theory -> term -> CodegenConsts.const list"} \\
   @{index_ML CodegenConsts.read_const: "theory -> string -> CodegenConsts.const"} \\
   @{index_ML_structure CodegenConsts.Consttab} \\
   @{index_ML CodegenFunc.typ_func: "thm -> typ"} \\
@@ -1286,9 +1305,6 @@ text %mlref {*
 
   \item @{ML_struct CodegenConsts.Consttab}
      provides table structures with constant identifiers as keys.
-
-  \item @{ML CodegenConsts.consts_of}~@{text thy}~@{text t}
-     returns all constant identifiers mentioned in a term @{text t}.
 
   \item @{ML CodegenConsts.read_const}~@{text thy}~@{text s}
      reads a constant as a concrete term expression @{text s}.

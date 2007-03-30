@@ -172,14 +172,18 @@ Many problems in functional programming can be thought of
   continued by an application of a function \isa{g\ {\isasymColon}\ foo\ {\isasymRightarrow}\ bar},
   and so on.  As a canoncial example, take primitive functions enriching
   theories by constants and definitions:
-  \verb|Sign.add_consts_i: (string * typ * mixfix) list -> theory -> theory|
-  and \verb|Theory.add_defs_i: bool -> bool -> (bstring * term) list -> theory -> theory|.
+  \verb|Sign.add_consts_i: (string * typ * mixfix) list -> theory|\isasep\isanewline%
+\verb|-> theory|
+  and \verb|Theory.add_defs_i: bool -> bool|\isasep\isanewline%
+\verb|-> (bstring * term) list -> theory -> theory|.
   Written with naive application, an addition of a constant with
   a corresponding definition would look like:
-  \verb|Theory.add_defs_i false false [dummy_def] (Sign.add_consts_i [dummy_const] thy)|
+  \verb|Theory.add_defs_i false false [dummy_def]|\isasep\isanewline%
+\verb|  (Sign.add_consts_i [dummy_const] thy)|.
   With increasing numbers of applications, this code gets quite unreadable.
   Using composition, at least the nesting of brackets may be reduced:
-  \verb|(Theory.add_defs_i false false [dummy_def] o Sign.add_consts_i [dummy_const]) thy|
+  \verb|(Theory.add_defs_i false false [dummy_def] o Sign.add_consts_i|\isasep\isanewline%
+\verb|  [dummy_const]) thy|.
   What remains unsatisfactory is that things are written down in the opposite order
   as they actually ``happen''.%
 \end{isamarkuptext}%
@@ -209,7 +213,7 @@ At this stage, Isabelle offers some combinators which allow for more convenient
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-When iterating over a list of parameters \isa{{\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ x\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ x\isactrlisub n{\isacharbrackright}\ {\isasymColon}\ {\isacharprime}a\ list},
+\noindent When iterating over a list of parameters \isa{{\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ x\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ x\isactrlisub n{\isacharbrackright}\ {\isasymColon}\ {\isacharprime}a\ list},
   the \verb|fold| combinator lifts a single function \isa{f\ {\isasymColon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b}:
   \isa{y\ {\isacharbar}{\isachargreater}\ fold\ f\ {\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ x\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ x\isactrlisub n{\isacharbrackright}\ {\isasymequiv}\ y\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{1}}\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{2}}\ {\isacharbar}{\isachargreater}\ {\isasymdots}\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub n}%
 \end{isamarkuptext}%
@@ -240,7 +244,7 @@ When iterating over a list of parameters \isa{{\isacharbrackleft}x\isactrlisub {
 \endisadelimmlref
 %
 \begin{isamarkuptext}%
-FIXME transformations involving side results%
+\noindent FIXME transformations involving side results%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -269,7 +273,9 @@ FIXME transformations involving side results%
 \endisadelimmlref
 %
 \begin{isamarkuptext}%
-FIXME higher-order variants%
+\noindent All those linear combinators also exist in higher-order
+  variants which do not expect a value on the left hand side
+  but a function.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -293,6 +299,11 @@ FIXME higher-order variants%
 \isadelimmlref
 %
 \endisadelimmlref
+%
+\begin{isamarkuptext}%
+\noindent FIXME%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsection{Options and partiality%
 }
@@ -326,7 +337,13 @@ FIXME higher-order variants%
 \endisadelimmlref
 %
 \begin{isamarkuptext}%
-FIXME%
+Standard selector functions on \isa{option}s are provided.
+  The \verb|try| and \verb|can| functions provide a convenient
+  interface for handling exceptions -- both take as arguments
+  a function \isa{f} together with a parameter \isa{x}
+  and catch any exception during the evaluation of the application
+  of \isa{f} to \isa{x}, either return a lifted result
+  (\verb|NONE| on failure) or a boolean value (\verb|false| on failure).%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

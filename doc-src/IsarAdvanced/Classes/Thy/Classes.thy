@@ -80,7 +80,7 @@ text {*
   later additions in expressiveness}.
   As a canonical example, a polymorphic equality function
   @{text "eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} which is overloaded on different
-  types for @{text "\<alpha>"}, which is achieves by splitting introduction
+  types for @{text "\<alpha>"}, which is achieved by splitting introduction
   of the @{text eq} function from its overloaded definitions by means
   of @{text class} and @{text instance} declarations:
 
@@ -94,13 +94,13 @@ text {*
   \hspace*{4ex}@{text "eq (Suc n) (Suc m) = eq n m"}
 
   \medskip\noindent\hspace*{2ex}@{text "instance (\<alpha>\<Colon>eq, \<beta>\<Colon>eq) pair \<Colon> eq where"} \\
-  \hspace*{4ex}@{text "eq (x1, y1) (x2, y2) = eq x1 x2 && eq y1 y2"}
+  \hspace*{4ex}@{text "eq (x1, y1) (x2, y2) = eq x1 x2 \<and> eq y1 y2"}
 
   \medskip\noindent\hspace*{2ex}@{text "class ord extends eq where"} \\
   \hspace*{4ex}@{text "less_eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
   \hspace*{4ex}@{text "less \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
 
-  \medskip Type variables are annotated with (finitly many) classes;
+  \medskip\noindent Type variables are annotated with (finitly many) classes;
   these annotations are assertions that a particular polymorphic type
   provides definitions for overloaded functions.
 
@@ -113,7 +113,9 @@ text {*
   so, it is naturally desirable that type classes do not only
   provide functions (class operations) but also state specifications
   implementations must obey.  For example, the @{text "class eq"}
-  above could be given the following specification:
+  above could be given the following specification, demanding that
+  @{text "class eq"} is an equivalence relation obeying reflexivity,
+  symmetry and transitivity:
 
   \medskip\noindent\hspace*{2ex}@{text "class eq where"} \\
   \hspace*{4ex}@{text "eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
@@ -122,7 +124,7 @@ text {*
   \hspace*{4ex}@{text "sym: eq x y \<longleftrightarrow> eq x y"} \\
   \hspace*{4ex}@{text "trans: eq x y \<and> eq y z \<longrightarrow> eq x z"}
 
-  \medskip From a theoretic point of view, type classes are leightweight
+  \medskip\noindent From a theoretic point of view, type classes are leightweight
   modules; Haskell type classes may be emulated by
   SML functors \cite{classes_modules}. 
   Isabelle/Isar offers a discipline of type classes which brings
@@ -137,8 +139,8 @@ text {*
     \item with a direct link to the Isabelle module system (aka locales).
   \end{enumerate}
 
-  Isar type classes also directly support code generation
-  in as Haskell like fashion.
+  \noindent Isar type classes also directly support code generation
+  in a Haskell like fashion.
 
   This tutorial demonstrates common elements of structured specifications
   and abstract reasoning with type classes by the algebraic hierarchy of
@@ -203,7 +205,7 @@ text {*
   proof goals and should conveniently always be the first method applied
   in an instantiation proof.
 
-  Another instance of @{text "semigroup"} are the natural numbers:
+  \medskip Another instance of @{text "semigroup"} are the natural numbers:
 *}
 
     instance nat :: semigroup
@@ -214,7 +216,7 @@ text {*
     qed
 
 text {*
-  Also @{text "list"}s form a semigroup with @{const "op @"} as
+  \noindent Also @{text "list"}s form a semigroup with @{const "op @"} as
   operation:
 *}
 
@@ -319,7 +321,8 @@ text {*
     proof
       fix i :: int
       have "-i + i = 0" by simp
-      then show "i\<div> \<otimes> i = \<one>" unfolding mult_int_def and neutral_int_def and inverse_int_def .
+      then show "i\<div> \<otimes> i = \<one>"
+      unfolding mult_int_def and neutral_int_def and inverse_int_def .
     qed
 
 section {* Type classes as locales *}
@@ -340,28 +343,29 @@ class idem = type +
 text {*
   \noindent essentially introduces the locale
 *}
-
 (*<*) setup {* Sign.add_path "foo" *} (*>*)
-
 locale idem =
   fixes f :: "\<alpha> \<Rightarrow> \<alpha>"
   assumes idem: "f (f x) = f x"
 
-text {* \noindent together with corresponding constant(s) and axclass *}
+text {* \noindent together with corresponding constant(s): *}
 
 consts f :: "\<alpha> \<Rightarrow> \<alpha>"
+
+text {*
+  \noindent The connection to the type system is done by means
+  of a primitive axclass
+*}
 
 axclass idem < type
   idem: "f (f x) = f x"
 
-text {* This axclass is coupled to the locale by means of an interpretation: *}
+text {* \noindent together with a corresponding interpretation: *}
 
 interpretation idem_class:
   idem ["f \<Colon> ('a\<Colon>idem) \<Rightarrow> \<alpha>"]
 by unfold_locales (rule idem)
-
 (*<*) setup {* Sign.parent_path *} (*>*)
-
 text {*
   This give you at hand the full power of the Isabelle module system;
   conclusions in locale @{text idem} are implicitly propagated

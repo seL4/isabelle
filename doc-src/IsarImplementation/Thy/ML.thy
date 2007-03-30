@@ -128,14 +128,18 @@ text {*
   continued by an application of a function @{text "g \<Colon> foo \<Rightarrow> bar"},
   and so on.  As a canoncial example, take primitive functions enriching
   theories by constants and definitions:
-  @{ML "Sign.add_consts_i: (string * typ * mixfix) list -> theory -> theory"}
-  and @{ML "Theory.add_defs_i: bool -> bool -> (bstring * term) list -> theory -> theory"}.
+  @{ML "Sign.add_consts_i: (string * typ * mixfix) list -> theory
+-> theory"}
+  and @{ML "Theory.add_defs_i: bool -> bool
+-> (bstring * term) list -> theory -> theory"}.
   Written with naive application, an addition of a constant with
   a corresponding definition would look like:
-  @{ML "Theory.add_defs_i false false [dummy_def] (Sign.add_consts_i [dummy_const] thy)"}
+  @{ML "Theory.add_defs_i false false [dummy_def]
+  (Sign.add_consts_i [dummy_const] thy)"}.
   With increasing numbers of applications, this code gets quite unreadable.
   Using composition, at least the nesting of brackets may be reduced:
-  @{ML "(Theory.add_defs_i false false [dummy_def] o Sign.add_consts_i [dummy_const]) thy"}
+  @{ML "(Theory.add_defs_i false false [dummy_def] o Sign.add_consts_i
+  [dummy_const]) thy"}.
   What remains unsatisfactory is that things are written down in the opposite order
   as they actually ``happen''.
 *}
@@ -156,7 +160,7 @@ thy
 *}
 
 text {*
-  When iterating over a list of parameters @{text "[x\<^isub>1, x\<^isub>2, \<dots> x\<^isub>n] \<Colon> 'a list"},
+  \noindent When iterating over a list of parameters @{text "[x\<^isub>1, x\<^isub>2, \<dots> x\<^isub>n] \<Colon> 'a list"},
   the @{ML fold} combinator lifts a single function @{text "f \<Colon> 'a -> 'b -> 'b"}:
   @{text "y |> fold f [x\<^isub>1, x\<^isub>2, \<dots> x\<^isub>n] \<equiv> y |> f x\<^isub>1 |> f x\<^isub>2 |> \<dots> |> f x\<^isub>n"}
 *}
@@ -172,7 +176,7 @@ text %mlref {*
 *}
 
 text {*
-  FIXME transformations involving side results
+  \noindent FIXME transformations involving side results
 *}
 
 text %mlref {*
@@ -186,7 +190,9 @@ text %mlref {*
 *}
 
 text {*
-  FIXME higher-order variants
+  \noindent All those linear combinators also exist in higher-order
+  variants which do not expect a value on the left hand side
+  but a function.
 *}
 
 text %mlref {*
@@ -194,6 +200,10 @@ text %mlref {*
   @{index_ML "(op `)": "('b -> 'a) -> 'b -> 'a * 'b"} \\
   @{index_ML tap: "('b -> 'a) -> 'b -> 'b"} \\
   \end{mldecls}
+*}
+
+text {*
+  \noindent FIXME
 *}
 
 section {* Options and partiality *}
@@ -211,7 +221,15 @@ text %mlref {*
   \end{mldecls}
 *}
 
-text FIXME
+text {*
+  Standard selector functions on @{text option}s are provided.
+  The @{ML try} and @{ML can} functions provide a convenient
+  interface for handling exceptions -- both take as arguments
+  a function @{text f} together with a parameter @{text x}
+  and catch any exception during the evaluation of the application
+  of @{text f} to @{text x}, either return a lifted result
+  (@{ML NONE} on failure) or a boolean value (@{ML false} on failure).
+*}
 
 section {* Common data structures *}
 
