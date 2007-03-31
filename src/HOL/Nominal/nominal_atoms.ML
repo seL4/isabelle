@@ -685,6 +685,7 @@ fun create_nom_typedecls ak_names thy =
        val abs_fun_supp        = thm "Nominal.abs_fun_supp";
        val abs_fun_supp_ineq   = thm "Nominal.abs_fun_supp_ineq";
        val pt_swap_bij         = thm "Nominal.pt_swap_bij";
+       val pt_swap_bij'        = thm "Nominal.pt_swap_bij'";
        val pt_fresh_fresh      = thm "Nominal.pt_fresh_fresh";
        val pt_bij              = thm "Nominal.pt_bij";
        val pt_perm_compose     = thm "Nominal.pt_perm_compose";
@@ -783,7 +784,7 @@ fun create_nom_typedecls ak_names thy =
             thy32 
 	    |>   PureThy.add_thmss [(("alpha", inst_pt_at [abs_fun_eq]),[])]
             ||>> PureThy.add_thmss [(("alpha'", inst_pt_at [abs_fun_eq']),[])]
-            ||>> PureThy.add_thmss [(("perm_swap", inst_pt_at [pt_swap_bij]),[])]
+            ||>> PureThy.add_thmss [(("perm_swap", inst_pt_at [pt_swap_bij] @ inst_pt_at [pt_swap_bij']),[])]
             ||>> PureThy.add_thmss 
 	      let val thms1 = inst_pt_at [pt_pi_rev];
 		  val thms2 = inst_pt_at [pt_rev_pi];
@@ -813,7 +814,7 @@ fun create_nom_typedecls ak_names thy =
             ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [abs_fun_pi]
 		  and thms2 = inst_pt_pt_at_cp [abs_fun_pi_ineq]
-	      in [(("abs_perm", thms1 @ thms2),[])] end
+	      in [(("abs_perm", thms1 @ thms2),[NominalThmDecls.eqvt_add])] end
             ||>> PureThy.add_thmss
 	      let val thms1 = inst_dj [dj_perm_forget]
 		  and thms2 = inst_dj [dj_pp_forget]
