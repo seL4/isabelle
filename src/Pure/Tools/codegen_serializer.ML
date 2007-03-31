@@ -422,7 +422,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons 
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
       | pr_bind' ((NONE, SOME p), _) = p
-      | pr_bind' ((SOME v, SOME p), _) = 
+      | pr_bind' ((SOME v, SOME p), _) = concat [str v, str "as", p]
     and pr_bind fxy = gen_pr_bind pr_bind' pr_term fxy;
     fun pr_def (MLFuns (funns as (funn :: funns'))) =
           let
