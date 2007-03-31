@@ -516,7 +516,7 @@ and mk_ind_def thy defs gr dep names module modecs intrs nparms =
         | dest_prem (_ $ ((eq as Const ("op =", _)) $ t $ u)) = Prem ([t, u], eq)
         | dest_prem (_ $ t) =
             (case strip_comb t of
-               (v as Var _, ts) => Prem (ts, v)
+               (v as Var _, ts) => if v mem args then Prem (ts, v) else Sidecond t
              | (c as Const (s, _), ts) => (case get_nparms s of
                  NONE => Sidecond t
                | SOME k =>
