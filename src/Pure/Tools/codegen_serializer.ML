@@ -2004,7 +2004,8 @@ val _ = Context.add_setup (
         pr_typ (INFX (1, R)) ty2
       ]))
   (*IntInt resp. Big_int are added later when code extraction for numerals is set up*)
-  #> add_reserved "SML" "o" (*dictionary projections use it already*)
+  #> fold (add_reserved "SML") ["o" (*dictionary projections use it already*),
+      "div", "mod" (*infixes*)]
   #> fold (add_reserved "Haskell") [
       "Prelude", "Main", "Bool", "Maybe", "Either", "Ordering", "Char", "String", "Int",
       "Integer", "Float", "Double", "Rational", "IO", "Eq", "Ord", "Enum", "Bounded",
