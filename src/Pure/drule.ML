@@ -893,7 +893,8 @@ local
           handle Type.TUNIFY => raise TYPE("Ill-typed instantiation", [T,U], [t,u])
     in  (thy', tye', maxi')  end;
 in
-fun cterm_instantiate ctpairs0 th =
+fun cterm_instantiate [] th = th
+  | cterm_instantiate ctpairs0 th =
   let val (thy,tye,_) = foldr add_types (Thm.theory_of_thm th, Vartab.empty, 0) ctpairs0
       fun instT(ct,cu) =
         let val inst = cterm_of thy o Term.map_types (Envir.norm_type tye) o term_of
