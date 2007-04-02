@@ -189,7 +189,8 @@ fun instance consts (c, Ts) =
   let
     val declT = the_declaration consts c;
     val vars = map Term.dest_TVar (typargs consts (c, declT));
-  in declT |> TermSubst.instantiateT (vars ~~ Ts) end;
+  in declT |> TermSubst.instantiateT (vars ~~ Ts) end
+  handle UnequalLengths => raise TYPE ("const_instance", Ts, [Const(c,dummyT)]);
 
 
 
