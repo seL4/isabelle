@@ -31,6 +31,7 @@ sig
   val cut_inst_tac      : (string*string)list -> thm -> int -> tactic
   val datac             : thm -> int -> int -> tactic
   val defer_tac         : int -> tactic
+  val distinct_subgoal_tac      : int -> tactic
   val distinct_subgoals_tac     : tactic
   val dmatch_tac        : thm list -> int -> tactic
   val dresolve_tac      : thm list -> int -> tactic
@@ -186,26 +187,26 @@ fun dmatch_tac rls   = ematch_tac (map make_elim rls);
 val flexflex_tac = PRIMSEQ flexflex_rule;
 
 (*Remove duplicate subgoals.*)
+val perm_tac = PRIMITIVE oo Thm.permute_prems;
+
+fun distinct_tac (i, k) =
+  perm_tac 0 (i - 1) THEN
+  perm_tac 1 (k - 1) THEN
+  DETERM (PRIMSEQ (fn st =>
+    Thm.compose_no_flatten false (st, 0) 1
+      (Drule.incr_indexes st Drule.distinct_prems_rl))) THEN
+  perm_tac 1 (1 - k) THEN
+  perm_tac 0 (1 - i);
+
+fun distinct_subgoal_tac i st =
+  (case Library.drop (i - 1, Thm.prems_of st) of
+    [] => no_tac st
+  | A :: Bs =>
+      st |> EVERY (fold (fn (B, k) =>
+	if A aconv B then cons (distinct_tac (i, k)) else I) (Bs ~~ (1 upto length Bs)) []));
+
 fun distinct_subgoals_tac state =
   let
-    val perm_tac = PRIMITIVE oo Thm.permute_prems;
-
-    fun distinct_tac (i, k) =
-      perm_tac 0 (i - 1) THEN
-      perm_tac 1 (k - 1) THEN
-      DETERM (PRIMSEQ (fn st =>
-        Thm.compose_no_flatten false (st, 0) 1
-          (Drule.incr_indexes st Drule.distinct_prems_rl))) THEN
-      perm_tac 1 (1 - k) THEN
-      perm_tac 0 (1 - i);
-
-    fun distinct_subgoal_tac i st =
-      (case Library.drop (i - 1, Thm.prems_of st) of
-        [] => no_tac st
-      | A :: Bs =>
-          st |> EVERY (fold (fn (B, k) =>
-            if A aconv B then cons (distinct_tac (i, k)) else I) (Bs ~~ (1 upto length Bs)) []));
-
     val goals = Thm.prems_of state;
     val dups = distinct (eq_fst (op aconv)) (goals ~~ (1 upto length goals));
   in EVERY (rev (map (distinct_subgoal_tac o snd) dups)) state end;
