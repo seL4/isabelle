@@ -72,6 +72,7 @@ val supports_fresh_rule = thm "supports_fresh";
 fun dynamic_thms st name = PureThy.get_thms (theory_of_thm st) (Name name);
 fun dynamic_thm  st name = PureThy.get_thm  (theory_of_thm st) (Name name);
 
+fun eqvts_thms st = NominalThmDecls.get_eqvt_thms (theory_of_thm st);
 
 (* needed in the process of fully simplifying permutations *)
 val strong_congs = [thm "if_cong"]
@@ -131,7 +132,7 @@ fun perm_simproc_fun st sg ss redex =
    end
 
 (* function for simplyfying permutations *)
-fun perm_simp_gen dyn_thms ss i = 
+fun perm_simp_gen dyn_thms f ss i = 
     ("general simplification of permutations", fn st =>
     let
 
@@ -141,7 +142,7 @@ fun perm_simp_gen dyn_thms ss i =
        val perm_sp_app = Simplifier.simproc (theory_of_thm st) "perm_simproc_app" 
 	                 ["Nominal.perm pi x"] (perm_simproc_app st);
 
-       val ss' = ss addsimps (List.concat (map (dynamic_thms st) dyn_thms))
+       val ss' = ss addsimps ((List.concat (map (dynamic_thms st) dyn_thms))@(f st))
                     delcongs weak_congs
                     addcongs strong_congs
                     addsimprocs [perm_sp_fun, perm_sp_app]
@@ -150,8 +151,10 @@ fun perm_simp_gen dyn_thms ss i =
     end);
 
 (* general simplification of permutations and permutation that arose from eqvt-problems *)
-val perm_simp = perm_simp_gen ["perm_swap","perm_fresh_fresh","perm_bij","perm_pi_simp"];
-val eqvt_simp = perm_simp_gen ["perm_swap","perm_fresh_fresh","perm_pi_simp","eqvts"];
+val perm_simp = perm_simp_gen ["perm_swap","perm_fresh_fresh","perm_bij","perm_pi_simp"] (fn st => []);
+val eqvt_simp = perm_simp_gen ["perm_swap","perm_fresh_fresh","perm_pi_simp"] eqvts_thms;
+
+(* FIXME removes the name lookup for these theorems use an ml value instead *)
 
 (* main simplification tactics for permutations *)
 (* FIXME: perm_simp_tac should simplify more permutations *)
