@@ -81,10 +81,6 @@ lemma rev_eqvt:
 defs (unchecked overloaded)
   perm_fun_def: "pi\<bullet>(f::'a\<Rightarrow>'b) \<equiv> (\<lambda>x. pi\<bullet>f((rev pi)\<bullet>x))"
 
-lemma swap_fun: 
-  shows "[(a,b)]\<bullet>(f::'a\<Rightarrow>'b) \<equiv> (\<lambda>x. [(a,b)]\<bullet>f([(a,b)]\<bullet>x))"
-by (unfold perm_fun_def,auto)
-
 (* permutation on bools *)
 primrec (unchecked perm_bool)
   true_eqvt:  "pi\<bullet>True  = True"

@@ -54,7 +54,6 @@ val finite_Un     = thm "finite_Un";
 val conj_absorb   = thm "conj_absorb";
 val not_false     = thm "not_False_eq_True"
 val perm_fun_def  = thm "Nominal.perm_fun_def"
-val swap_fun      = thm "Nominal.swap_fun" (* FIXME: is this still needed? *)
 val perm_eq_app   = thm "Nominal.pt_fun_app_eq"
 val supports_def  = thm "Nominal.op supports_def";
 val fresh_def     = thm "Nominal.fresh_def";
