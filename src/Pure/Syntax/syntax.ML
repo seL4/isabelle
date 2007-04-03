@@ -313,7 +313,7 @@ val basic_syn =
 val basic_nonterms =
   (Lexicon.terminals @ [SynExt.logic, "type", "types", "sort", "classes",
     SynExt.args, SynExt.cargs, "pttrn", "pttrns", "idt", "idts", "aprop",
-    "asms", SynExt.any, SynExt.sprop, "num_const", "index", "struct"]);
+    "asms", SynExt.any_, SynExt.sprop, "num_const", "index", "struct"]);
 
 val appl_syntax =
  [("_appl", "[('b => 'a), args] => logic", Mixfix.Mixfix ("(1_/(1'(_')))", [1000, 0], 1000)),

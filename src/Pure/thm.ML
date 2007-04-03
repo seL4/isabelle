@@ -1577,13 +1577,13 @@ fun biresolution match brules i state =
         val lift = lift_rule (cprem_of state i);
         val B = Logic.strip_assums_concl Bi;
         val Hs = Logic.strip_assums_hyp Bi;
-        val comp = bicompose_aux true match (state, (stpairs, Bs, Bi, C), true);
+        val compose = bicompose_aux true match (state, (stpairs, Bs, Bi, C), true);
         fun res [] = Seq.empty
           | res ((eres_flg, rule)::brules) =
               if !Pattern.trace_unify_fail orelse
                  could_bires (Hs, B, eres_flg, rule)
               then Seq.make (*delay processing remainder till needed*)
-                  (fn()=> SOME(comp (eres_flg, lift rule, nprems_of rule),
+                  (fn()=> SOME(compose (eres_flg, lift rule, nprems_of rule),
                                res brules))
               else res brules
     in  Seq.flat (res brules)  end;

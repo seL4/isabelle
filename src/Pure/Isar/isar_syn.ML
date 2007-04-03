@@ -665,7 +665,7 @@ val alsoP =
 val finallyP =
   OuterSyntax.command "finally" "combine calculation and current facts, exhibit result"
     (K.tag_proof K.prf_chain)
-    (calc_args >> (Toplevel.proofs' o Calculation.finally));
+    (calc_args >> (Toplevel.proofs' o Calculation.finally_));
 
 val moreoverP =
   OuterSyntax.command "moreover" "augment calculation by current facts"

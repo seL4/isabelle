@@ -160,7 +160,7 @@ type locale =
     (* For locales that define predicates this is [A [A]], where A is the locale
        specification.  Otherwise [].
        Only required to generate the right witnesses for locales with predicates. *)
-  import: expr,                                                     (*dynamic import*)
+  imports: expr,                                                     (*dynamic imports*)
   elems: (Element.context_i * stamp) list,
     (* Static content, neither Fixes nor Constrains elements *)
   params: ((string * typ) * mixfix) list,                             (*all params*)
@@ -286,10 +286,10 @@ structure GlobalLocalesData = TheoryDataFun
   val extend = I;
 
   fun join_locales _
-    ({axiom, import, elems, params, lparams, decls = (decls1, decls2), regs, intros}: locale,
+    ({axiom, imports, elems, params, lparams, decls = (decls1, decls2), regs, intros}: locale,
       {elems = elems', decls = (decls1', decls2'), regs = regs', ...}: locale) =
      {axiom = axiom,
-      import = import,
+      imports = imports,
       elems = gen_merge_lists (eq_snd (op =)) elems elems',
       params = params,
       lparams = lparams,
@@ -349,12 +349,12 @@ fun the_locale thy name =
 
 fun change_locale name f thy =
   let
-    val {axiom, import, elems, params, lparams, decls, regs, intros} =
+    val {axiom, imports, elems, params, lparams, decls, regs, intros} =
         the_locale thy name;
-    val (axiom', import', elems', params', lparams', decls', regs', intros') =
-      f (axiom, import, elems, params, lparams, decls, regs, intros);
+    val (axiom', imports', elems', params', lparams', decls', regs', intros') =
+      f (axiom, imports, elems, params, lparams, decls, regs, intros);
   in
-    put_locale name {axiom = axiom', import = import', elems = elems',
+    put_locale name {axiom = axiom', imports = imports', elems = elems',
       params = params', lparams = lparams', decls = decls', regs = regs',
       intros = intros'} thy
   end;
@@ -421,8 +421,8 @@ val put_local_registration =
      gen_put_registration LocalLocalesData.map ProofContext.theory_of;
 
 fun put_registration_in_locale name id =
-  change_locale name (fn (axiom, import, elems, params, lparams, decls, regs, intros) =>
-    (axiom, import, elems, params, lparams, decls, regs @ [(id, [])], intros));
+  change_locale name (fn (axiom, imports, elems, params, lparams, decls, regs, intros) =>
+    (axiom, imports, elems, params, lparams, decls, regs @ [(id, [])], intros));
 
 
 (* add witness theorem to registration in theory or context,
@@ -437,11 +437,11 @@ fun add_global_witness id thm =
 val add_local_witness = LocalLocalesData.map oo add_witness;
 
 fun add_witness_in_locale name id thm =
-  change_locale name (fn (axiom, import, elems, params, lparams, decls, regs, intros) =>
+  change_locale name (fn (axiom, imports, elems, params, lparams, decls, regs, intros) =>
     let
       fun add (id', thms) =
         if id = id' then (id', thm :: thms) else (id', thms);
-    in (axiom, import, elems, params, lparams, decls, map add regs, intros) end);
+    in (axiom, imports, elems, params, lparams, decls, map add regs, intros) end);
 
 
 (* printing of registrations *)
@@ -678,9 +678,9 @@ fun params_of_expr ctxt fixed_params expr (prev_parms, prev_types, prev_syn) =
 
     fun params_of (expr as Locale name) =
           let
-            val {import, params, ...} = the_locale thy name;
+            val {imports, params, ...} = the_locale thy name;
             val parms = map (fst o fst) params;
-            val (parms', types', syn') = params_of import;
+            val (parms', types', syn') = params_of imports;
             val all_parms = merge_lists parms' parms;
             val all_types = merge_tenvs [] types' (params |> map fst |> Symtab.make);
             val all_syn = merge_syn expr syn' (params |> map (apfst fst) |> Symtab.make);
@@ -818,9 +818,9 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
        identify at top level (top = true);
        parms is accumulated list of parameters *)
           let
-            val {axiom, import, params, ...} = the_locale thy name;
+            val {axiom, imports, params, ...} = the_locale thy name;
             val ps = map (#1 o #1) params;
-            val (ids', parms') = identify false import;
+            val (ids', parms') = identify false imports;
                 (* acyclic import dependencies *)
 
             val (_, ids'', _) = add_with_regs ((name, map #1 params), Assumed []) ([], ids', ids');
@@ -1381,24 +1381,24 @@ fun intros thy =
       as a pair of singleton lists*)
 
 
-(* full context statements: import + elements + conclusion *)
+(* full context statements: imports + elements + conclusion *)
 
 local
 
 fun prep_context_statement prep_expr prep_elemss prep_facts
-    do_close fixed_params import elements raw_concl context =
+    do_close fixed_params imports elements raw_concl context =
   let
     val thy = ProofContext.theory_of context;
 
     val (import_params, import_tenv, import_syn) =
-      params_of_expr context fixed_params (prep_expr thy import)
+      params_of_expr context fixed_params (prep_expr thy imports)
         ([], Symtab.empty, Symtab.empty);
     val includes = map_filter (fn Expr e => SOME e | Elem _ => NONE) elements;
     val (incl_params, incl_tenv, incl_syn) = fold (params_of_expr context fixed_params)
       (map (prep_expr thy) includes) (import_params, import_tenv, import_syn);
 
     val ((import_ids, _), raw_import_elemss) =
-      flatten (context, prep_expr thy) (([], Symtab.empty), Expr import);
+      flatten (context, prep_expr thy) (([], Symtab.empty), Expr imports);
     (* CB: normalise "includes" among elements *)
     val ((ids, syn), raw_elemsss) = foldl_map (flatten (context, prep_expr thy))
       ((import_ids, incl_syn), elements);
@@ -1441,19 +1441,19 @@ fun prep_statement prep_locale prep_ctxt raw_locale elems concl ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val locale = Option.map (prep_locale thy) raw_locale;
-    val (fixed_params, import) =
+    val (fixed_params, imports) =
       (case locale of
         NONE => ([], empty)
       | SOME name =>
           let val {params = ps, ...} = the_locale thy name
           in (map fst ps, Locale name) end);
     val ((((locale_ctxt, _), (elems_ctxt, _, _)), _), concl') =
-      prep_ctxt false fixed_params import elems concl ctxt;
+      prep_ctxt false fixed_params imports elems concl ctxt;
   in (locale, locale_ctxt, elems_ctxt, concl') end;
 
-fun prep_expr prep import body ctxt =
+fun prep_expr prep imports body ctxt =
   let
-    val (((_, import_elemss), (ctxt', elemss, _)), _) = prep import body ctxt;
+    val (((_, import_elemss), (ctxt', elemss, _)), _) = prep imports body ctxt;
     val all_elems = maps snd (import_elemss @ elemss);
   in (all_elems, ctxt') end;
 
@@ -1462,8 +1462,8 @@ in
 val read_ctxt = prep_context_statement intern_expr read_elemss read_facts;
 val cert_ctxt = prep_context_statement (K I) cert_elemss cert_facts;
 
-fun read_context import body ctxt = #1 (read_ctxt true [] import (map Elem body) [] ctxt);
-fun cert_context import body ctxt = #1 (cert_ctxt true [] import (map Elem body) [] ctxt);
+fun read_context imports body ctxt = #1 (read_ctxt true [] imports (map Elem body) [] ctxt);
+fun cert_context imports body ctxt = #1 (cert_ctxt true [] imports (map Elem body) [] ctxt);
 
 val read_expr = prep_expr read_context;
 val cert_expr = prep_expr cert_context;
@@ -1484,8 +1484,8 @@ fun init loc =
 
 (* print locale *)
 
-fun print_locale thy show_facts import body =
-  let val (all_elems, ctxt) = read_expr import body (ProofContext.init thy) in
+fun print_locale thy show_facts imports body =
+  let val (all_elems, ctxt) = read_expr imports body (ProofContext.init thy) in
     Pretty.big_list "locale elements:" (all_elems
       |> (if show_facts then I else filter (fn Notes _ => false | _ => true))
       |> map (Element.pretty_ctxt ctxt) |> filter_out null
@@ -1576,8 +1576,8 @@ fun add_thmss loc kind args ctxt =
         (ctxt, [((("", []), Assumed []), [Ext (Notes (kind, args))])]);
     val ctxt'' = ctxt' |> ProofContext.theory
       (change_locale loc
-        (fn (axiom, import, elems, params, lparams, decls, regs, intros) =>
-          (axiom, import, elems @ [(Notes args', stamp ())],
+        (fn (axiom, imports, elems, params, lparams, decls, regs, intros) =>
+          (axiom, imports, elems @ [(Notes args', stamp ())],
             params, lparams, decls, regs, intros))
       #> note_thmss_registrations loc args');
   in ctxt'' end;
@@ -1592,8 +1592,8 @@ fun decl_attrib decl phi = Thm.declaration_attribute (K (decl phi));
 
 fun add_decls add loc decl =
   ProofContext.theory (change_locale loc
-    (fn (axiom, import, elems, params, lparams, decls, regs, intros) =>
-      (axiom, import, elems, params, lparams, add (decl, stamp ()) decls, regs, intros))) #>
+    (fn (axiom, imports, elems, params, lparams, decls, regs, intros) =>
+      (axiom, imports, elems, params, lparams, add (decl, stamp ()) decls, regs, intros))) #>
   add_thmss loc Thm.internalK [(("", [Attrib.internal (decl_attrib decl)]), [([dummy_thm], [])])];
 
 in  
@@ -1783,7 +1783,7 @@ fun change_defines_elemss thy elemss defns =
   in fold_map change elemss defns end;
 
 fun gen_add_locale prep_ctxt prep_expr
-    predicate_name bname raw_import raw_body thy =
+    predicate_name bname raw_imports raw_body thy =
     (* predicate_name: NONE - open locale without predicate
         SOME "" - locale with predicate named as locale
         SOME "name" - locale with predicate named "name" *)
@@ -1795,10 +1795,10 @@ fun gen_add_locale prep_ctxt prep_expr
     val thy_ctxt = ProofContext.init thy;
     val (((import_ctxt, import_elemss), (body_ctxt, body_elemss, syn)),
       text as (parms, ((_, exts'), _), defs)) =
-      prep_ctxt raw_import raw_body thy_ctxt;
+      prep_ctxt raw_imports raw_body thy_ctxt;
     val elemss = import_elemss @ body_elemss |>
         map_filter (fn ((id, Assumed axs), elems) => SOME (id, elems) | _ => NONE);
-    val import = prep_expr thy raw_import;
+    val imports = prep_expr thy raw_imports;
 
     val extraTs = foldr Term.add_term_tfrees [] exts' \\
       foldr Term.add_typ_tfrees [] (map snd parms);
@@ -1806,7 +1806,7 @@ fun gen_add_locale prep_ctxt prep_expr
       else warning ("Additional type variable(s) in locale specification " ^ quote bname);
 
     val ((((elemss', predicate as (predicate_statement, predicate_axioms), stmt'), intros),
-          pred_thy), (import, regs)) =
+          pred_thy), (imports, regs)) =
       case predicate_name
        of SOME predicate_name =>
             let
@@ -1824,7 +1824,7 @@ fun gen_add_locale prep_ctxt prep_expr
               val regs = mk_regs elemss''' axioms |>
                     map_filter (fn (("", _), _) => NONE | e => SOME e);
             in ((((elemss''', predicate, stmt'), intros), thy'), (empty, regs)) end
-        | NONE => ((((elemss, ([], []), []), ([], [])), thy), (import, []));
+        | NONE => ((((elemss, ([], []), []), ([], [])), thy), (imports, []));
 
     fun axiomify axioms elemss =
       (axioms, elemss) |> foldl_map (fn (axs, (id, elems)) => let
@@ -1847,7 +1847,7 @@ fun gen_add_locale prep_ctxt prep_expr
       |> declare_locale name
       |> put_locale name
        {axiom = axs',
-        import = import,
+        imports = imports,
         elems = map (fn e => (e, stamp ())) elems'',
         params = params_of elemss' |> map (fn (x, SOME T) => ((x, T), the (Symtab.lookup syn x))),
         lparams = map #1 (params_of' body_elemss),

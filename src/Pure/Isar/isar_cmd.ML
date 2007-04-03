@@ -459,9 +459,9 @@ val print_theorems = Toplevel.unknown_context o print_theorems_theory o print_th
 val print_locales = Toplevel.unknown_theory o
   Toplevel.keep (Locale.print_locales o Toplevel.theory_of);
 
-fun print_locale (show_facts, (import, body)) = Toplevel.unknown_theory o
+fun print_locale (show_facts, (imports, body)) = Toplevel.unknown_theory o
   Toplevel.keep (fn state =>
-    Locale.print_locale (Toplevel.theory_of state) show_facts import body);
+    Locale.print_locale (Toplevel.theory_of state) show_facts imports body);
 
 fun print_registrations show_wits name = Toplevel.unknown_context o
   Toplevel.keep (Toplevel.node_case
