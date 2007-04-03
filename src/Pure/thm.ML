@@ -24,7 +24,7 @@ signature BASIC_THM =
 
   (*certified terms*)
   type cterm
-  exception CTERM of string
+  exception CTERM of string * cterm list
   val rep_cterm: cterm ->
    {thy: theory,
     sign: theory,       (*obsolete*)
@@ -74,7 +74,6 @@ signature BASIC_THM =
     prop: cterm}
   exception THM of string * int * thm list
   val theory_of_thm: thm -> theory
-  val sign_of_thm: thm -> theory    (*obsolete*)
   val prop_of: thm -> term
   val proof_of: thm -> Proofterm.proof
   val tpairs_of: thm -> (term * term) list
@@ -112,6 +111,7 @@ signature BASIC_THM =
   val flexflex_rule: thm -> thm Seq.seq
   val generalize: string list * string list -> int -> thm -> thm
   val instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
+  val instantiate_cterm: (ctyp * ctyp) list * (cterm * cterm) list -> cterm -> cterm
   val trivial: cterm -> thm
   val class_triv: theory -> class -> thm
   val unconstrainT: ctyp -> thm -> thm
@@ -229,7 +229,7 @@ abstype cterm = Cterm of
   sorts: sort list}
 with
 
-exception CTERM of string;
+exception CTERM of string * cterm list;
 
 fun rep_cterm (Cterm {thy_ref, t, T, maxidx, sorts}) =
   let val thy =  Theory.deref thy_ref
@@ -258,34 +258,35 @@ fun merge_thys0 (Cterm {thy_ref = r1, t = t1, ...}) (Cterm {thy_ref = r2, t = t2
   Theory.merge_refs (r1, r2) handle TERM (msg, _) => raise TERM (msg, [t1, t2]);
 
 
-fun dest_comb (Cterm {t = t $ u, T, thy_ref, maxidx, sorts}) =
+fun dest_comb (ct as Cterm {t = t $ u, T, thy_ref, maxidx, sorts}) =
       let val A = Term.argument_type_of t in
         (Cterm {t = t, T = A --> T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts},
          Cterm {t = u, T = A, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts})
       end
-  | dest_comb _ = raise CTERM "dest_comb";
+  | dest_comb ct = raise CTERM ("dest_comb", [ct]);
 
-fun dest_arg (Cterm {t = t $ u, T, thy_ref, maxidx, sorts}) =
+fun dest_arg (ct as Cterm {t = t $ u, T, thy_ref, maxidx, sorts}) =
       let val A = Term.argument_type_of t in
          Cterm {t = u, T = A, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts}
       end
-  | dest_arg _ = raise CTERM "dest_arg";
+  | dest_arg ct = raise CTERM ("dest_arg", [ct]);
 
-fun dest_binop (Cterm {t = tm, T = _, thy_ref, maxidx, sorts}) =
+fun dest_binop (ct as Cterm {t = tm, T = _, thy_ref, maxidx, sorts}) =
   let fun cterm t T = Cterm {t = t, T = T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts} in
     (case tm of
       Const (_, Type ("fun", [A, Type ("fun", [B, _])])) $ a $ b => (cterm a A, cterm b B)
     |  Free (_, Type ("fun", [A, Type ("fun", [B, _])])) $ a $ b => (cterm a A, cterm b B)
     |   Var (_, Type ("fun", [A, Type ("fun", [B, _])])) $ a $ b => (cterm a A, cterm b B)
-    | _ => raise CTERM "dest_binop")
+    | _ => raise CTERM ("dest_binop", [ct]))
   end;
 
-fun dest_abs a (Cterm {t = Abs (x, T, t), T = Type ("fun", [_, U]), thy_ref, maxidx, sorts}) =
+fun dest_abs a (ct as
+        Cterm {t = Abs (x, T, t), T = Type ("fun", [_, U]), thy_ref, maxidx, sorts}) =
       let val (y', t') = Term.dest_abs (the_default x a, T, t) in
         (Cterm {t = Free (y', T), T = T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts},
           Cterm {t = t', T = U, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts})
       end
-  | dest_abs _ _ = raise CTERM "dest_abs";
+  | dest_abs _ ct = raise CTERM ("dest_abs", [ct]);
 
 fun capply
   (cf as Cterm {t = f, T = Type ("fun", [dty, rty]), maxidx = maxidx1, sorts = sorts1, ...})
@@ -296,8 +297,8 @@ fun capply
         T = rty,
         maxidx = Int.max (maxidx1, maxidx2),
         sorts = Sorts.union sorts1 sorts2}
-      else raise CTERM "capply: types don't agree"
-  | capply _ _ = raise CTERM "capply: first arg is not a function"
+      else raise CTERM ("capply: types don't agree", [cf, cx])
+  | capply cf cx = raise CTERM ("capply: first arg is not a function", [cf, cx]);
 
 fun cabs
   (ct1 as Cterm {t = t1, T = T1, maxidx = maxidx1, sorts = sorts1, ...})
@@ -340,7 +341,7 @@ val cterm_first_order_match = gen_cterm_match Pattern.first_order_match;
 
 (*Incrementing indexes*)
 fun cterm_incr_indexes i (ct as Cterm {thy_ref, t, T, maxidx, sorts}) =
-  if i < 0 then raise CTERM "negative increment"
+  if i < 0 then raise CTERM ("negative increment", [ct])
   else if i = 0 then ct
   else Cterm {thy_ref = thy_ref, t = Logic.incr_indexes ([], i) t,
     T = Logic.incr_tvar i T, maxidx = maxidx + i, sorts = sorts};
@@ -432,8 +433,6 @@ fun merge_thys2 (th1 as Thm {thy_ref = r1, ...}) (th2 as Thm {thy_ref = r2, ...}
 (* basic components *)
 
 fun theory_of_thm (Thm {thy_ref, ...}) = Theory.deref thy_ref;
-val sign_of_thm = theory_of_thm;
-
 fun maxidx_of (Thm {maxidx, ...}) = maxidx;
 fun maxidx_thm th i = Int.max (maxidx_of th, i);
 fun hyps_of (Thm {hyps, ...}) = hyps;
@@ -1024,7 +1023,7 @@ fun generalize ([], []) _ th = th
       end;
 
 
-(*Instantiation of Vars
+(*Instantiation of schematic variables
            A
   --------------------
   A[t1/v1, ..., tn/vn]
@@ -1096,6 +1095,19 @@ fun instantiate ([], []) th = th
           prop = prop'}
       end
       handle TYPE (msg, _, _) => raise THM (msg, 0, [th]);
+
+fun instantiate_cterm ([], []) ct = ct
+  | instantiate_cterm (instT, inst) ct =
+      let
+        val Cterm {thy_ref, t, T, sorts, ...} = ct;
+        val (inst', (instT', (thy_ref', sorts'))) =
+          (thy_ref, sorts) |> fold_map add_inst inst ||> fold_map add_instT instT;
+        val subst = TermSubst.instantiate_maxidx (instT', inst');
+        val substT = TermSubst.instantiateT_maxidx instT';
+        val (t', maxidx1) = subst t ~1;
+        val (T', maxidx') = substT T maxidx1;
+      in Cterm {thy_ref = thy_ref', t = t', T = T', sorts = sorts', maxidx = maxidx'} end
+      handle TYPE (msg, _, _) => raise CTERM (msg, [ct]);
 
 end;
 
