@@ -19,6 +19,10 @@ use "General/position.ML";
 use "General/path.ML";     (* used directly *)
 use "General/table.ML";
 use "General/alist.ML";
+
+val print_mode = ref ([]: string list);
+fun print_mode_active s = member (op =) (! print_mode) s;
+
 use "General/output.ML";
 use "General/scan.ML";
 use "General/source.ML";
