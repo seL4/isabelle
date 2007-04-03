@@ -113,21 +113,21 @@ val intactions = [S_pkt(true,m),R_pkt(true,m),S_ack(true),R_ack(true),
    ------------------------------------*)
 
 fun print_list (lpar, rpar, pre: 'a -> unit) (lll : 'a list) =
-  let fun prec x = (std_output ","; pre x)
+  let fun prec x = (Output.std_output ","; pre x)
   in
     (case lll of
-      [] => (std_output lpar; std_output rpar)
-    | x::lll => (std_output lpar; pre x; List.app prec lll; std_output rpar))
+      [] => (Output.std_output lpar; Output.std_output rpar)
+    | x::lll => (Output.std_output lpar; pre x; List.app prec lll; Output.std_output rpar))
    end;
 
-fun pr_bool true = std_output "true"
-|   pr_bool false = std_output "false";
+fun pr_bool true = Output.std_output "true"
+|   pr_bool false = Output.std_output "false";
 
-fun pr_msg m = std_output "m"
-|   pr_msg n = std_output "n"
-|   pr_msg l = std_output "l";
+fun pr_msg m = Output.std_output "m"
+|   pr_msg n = Output.std_output "n"
+|   pr_msg l = Output.std_output "l";
 
-fun pr_act a = std_output (case a of
+fun pr_act a = Output.std_output (case a of
       Next => "Next"|                         
       S_msg(ma) => "S_msg(ma)"  |
       R_msg(ma) => "R_msg(ma)"  |
@@ -136,17 +136,17 @@ fun pr_act a = std_output (case a of
       S_ack(b)   => "S_ack(b)" |                      
       R_ack(b)   => "R_ack(b)");
 
-fun pr_pkt (b,ma) = (std_output "<"; pr_bool b;std_output ", "; pr_msg ma; std_output ">");
+fun pr_pkt (b,ma) = (Output.std_output "<"; pr_bool b;Output.std_output ", "; pr_msg ma; Output.std_output ">");
 
 val pr_bool_list  = print_list("[","]",pr_bool);
 val pr_msg_list   = print_list("[","]",pr_msg);
 val pr_pkt_list   = print_list("[","]",pr_pkt);
 
 fun pr_tuple (env,p,a,q,b,ch1,ch2) = 
-        (std_output "{"; pr_bool env; std_output ", "; pr_msg_list p;  std_output ", ";
-         pr_bool a;  std_output ", "; pr_msg_list q; std_output ", ";
-         pr_bool b;  std_output ", "; pr_pkt_list ch1;  std_output ", ";
-         pr_bool_list ch2; std_output "}");
+        (Output.std_output "{"; pr_bool env; Output.std_output ", "; pr_msg_list p;  Output.std_output ", ";
+         pr_bool a;  Output.std_output ", "; pr_msg_list q; Output.std_output ", ";
+         pr_bool b;  Output.std_output ", "; pr_pkt_list ch1;  Output.std_output ", ";
+         pr_bool_list ch2; Output.std_output "}");
 
 
 

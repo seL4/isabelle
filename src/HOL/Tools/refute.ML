@@ -733,7 +733,7 @@ struct
           (* check this.  However, getting this really right seems   *)
           (* difficult because the user may state arbitrary axioms,  *)
           (* which could interact with overloading to create loops.  *)
-          ((*immediate_output (" unfolding: " ^ axname);*)unfold_loop rhs)
+          ((*Output.immediate_output (" unfolding: " ^ axname);*)unfold_loop rhs)
         | NONE => t)
       | Free _           => t
       | Var _            => t
@@ -772,7 +772,7 @@ struct
 
   fun collect_axioms thy t =
   let
-    val _ = immediate_output "Adding axioms..."
+    val _ = Output.immediate_output "Adding axioms..."
     (* (string * Term.term) list *)
     val axioms = Theory.all_axioms_of thy
     (* string * Term.term -> Term.term list -> Term.term list *)
@@ -783,7 +783,7 @@ struct
       if member (op aconv) axs ax' then
         axs
       else (
-        immediate_output (" " ^ axname);
+        Output.immediate_output (" " ^ axname);
         collect_term_axioms (ax' :: axs, ax')
       )
     end
@@ -1187,7 +1187,7 @@ struct
         val init_model = (universe, [])
         val init_args  = {maxvars = maxvars, def_eq = false, next_idx = 1,
           bounds = [], wellformed = True}
-        val _          = immediate_output ("Translating term (sizes: "
+        val _          = Output.immediate_output ("Translating term (sizes: "
           ^ commas (map (fn (_, n) => string_of_int n) universe) ^ ") ...")
         (* translate 'u' and all axioms *)
         val ((model, args), intrs) = foldl_map (fn ((m, a), t') =>
@@ -1205,20 +1205,20 @@ struct
         val fm_ax = PropLogic.all (map toTrue (tl intrs))
         val fm    = PropLogic.all [#wellformed args, fm_ax, fm_u]
       in
-        immediate_output " invoking SAT solver...";
+        Output.immediate_output " invoking SAT solver...";
         (case SatSolver.invoke_solver satsolver fm of
           SatSolver.SATISFIABLE assignment =>
           (writeln " model found!";
           writeln ("*** Model found: ***\n" ^ print_model thy model
             (fn i => case assignment i of SOME b => b | NONE => true)))
         | SatSolver.UNSATISFIABLE _ =>
-          (immediate_output " no model exists.\n";
+          (Output.immediate_output " no model exists.\n";
           case next_universe universe sizes minsize maxsize of
             SOME universe' => find_model_loop universe'
           | NONE           => writeln
             "Search terminated, no larger universe within the given limits.")
         | SatSolver.UNKNOWN =>
-          (immediate_output " no model found.\n";
+          (Output.immediate_output " no model found.\n";
           case next_universe universe sizes minsize maxsize of
             SOME universe' => find_model_loop universe'
           | NONE           => writeln
