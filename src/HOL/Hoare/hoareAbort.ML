@@ -81,7 +81,7 @@ fun Mset thm = let val vars = get_vars(thm);
                            Free ("P",varsT --> boolT) $ Bound 0));
                    val impl = implies $ (Mset_incl big_Collect) $ 
                                           (Mset_incl small_Collect);
-   in Goal.prove (ProofContext.init (Thm.sign_of_thm thm)) ["Mset", "P"] [] impl (K (CLASET' blast_tac 1)) end;
+   in Goal.prove (ProofContext.init (Thm.theory_of_thm thm)) ["Mset", "P"] [] impl (K (CLASET' blast_tac 1)) end;
 
 end;
 
@@ -117,18 +117,16 @@ val split_simp_tac = (simp_tac (HOL_basic_ss addsimps [split_conv]));
 (** simplification done by (split_all_tac)                                  **)
 (*****************************************************************************)
 
-fun set2pred i thm = let fun mk_string [] = ""
-                           | mk_string (x::xs) = x^" "^mk_string xs;
-                         val vars=get_vars(thm);
-                         val var_string = mk_string (map (fst o dest_Free) vars);
-      in ((before_set2pred_simp_tac i) THEN_MAYBE
-          (EVERY [rtac subsetI i, 
-                  rtac CollectI i,
-                  dtac CollectD i,
-                  (TRY(split_all_tac i)) THEN_MAYBE
-                  ((rename_tac var_string i) THEN
-                   (full_simp_tac (HOL_basic_ss addsimps [split_conv]) i)) ])) thm
-      end;
+fun set2pred i thm =
+  let val var_names = map (fst o dest_Free) (get_vars thm) in
+    ((before_set2pred_simp_tac i) THEN_MAYBE
+      (EVERY [rtac subsetI i, 
+              rtac CollectI i,
+              dtac CollectD i,
+              (TRY(split_all_tac i)) THEN_MAYBE
+              ((rename_params_tac var_names i) THEN
+               (full_simp_tac (HOL_basic_ss addsimps [split_conv]) i)) ])) thm
+  end;
 
 (*****************************************************************************)
 (** BasicSimpTac is called to simplify all verification conditions. It does **)
