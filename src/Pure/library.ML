@@ -239,7 +239,6 @@ sig
   val partition_eq: ('a * 'a -> bool) -> 'a list -> 'a list list
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
   val gensym: string -> string
-  val scanwords: (string -> bool) -> string list -> string list
   type stamp
   val stamp: unit -> stamp
   type serial
@@ -777,10 +776,11 @@ fun untabify chs =
   let
     val tab_width = 8;
 
-    fun untab pos [] ys = rev ys 
+    fun untab pos [] ys = rev ys
       | untab pos ("\n" :: xs) ys = untab 0 xs ("\n" :: ys)
       | untab pos ("\t" :: xs) ys =
-          let val d = tab_width - (pos mod tab_width) in untab (pos + d) xs (replicate d " " @ ys) end
+          let val d = tab_width - (pos mod tab_width)
+          in untab (pos + d) xs (replicate d " " @ ys) end
       | untab pos (c :: xs) ys = untab (pos + 1) xs (c :: ys);
   in
     if not (exists (fn c => c = "\t") chs) then chs
@@ -1131,7 +1131,7 @@ fun partition_eq (eq:'a * 'a -> bool) =
 (** Freshly generated identifiers; supplied prefix MUST start with a letter **)
 local
 (*Maps 0-61 to A-Z, a-z, 0-9; exclude _ or ' to avoid clash with internal/unusual indentifiers*)
-fun gensym_char i = 
+fun gensym_char i =
   if i<26 then chr (ord "A" + i)
   else if i<52 then chr (ord "a" + i - 26)
   else chr (ord "0" + i - 52);
@@ -1144,18 +1144,6 @@ val gensym_seed = ref 0;
 in
   fun gensym pre = pre ^ newid (inc gensym_seed);
 end;
-
-
-(* lexical scanning *)
-
-(*scan a list of characters into "words" composed of "letters" (recognized by
-  is_let) and separated by any number of non-"letters"*)
-fun scanwords is_let cs =
-  let fun scan1 [] = []
-        | scan1 cs =
-            let val (lets, rest) = take_prefix is_let cs
-            in implode lets :: scanwords is_let rest end;
-  in scan1 (#2 (take_prefix (not o is_let) cs)) end;
 
 
 (* stamps and serial numbers *)
