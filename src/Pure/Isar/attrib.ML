@@ -254,7 +254,7 @@ fun elim_format x = no_args (Thm.rule_attribute (K Tactic.make_elim)) x;
 fun standard x = no_args (Thm.rule_attribute (K Drule.standard)) x;
 
 fun no_vars x = no_args (Thm.rule_attribute (fn ctxt => fn th =>
-  let val ((_, [th']), _) = Variable.import true [th] (Context.proof_of ctxt)
+  let val ((_, [th']), _) = Variable.import_thms true [th] (Context.proof_of ctxt)
   in th' end)) x;
 
 fun eta_long x = no_args (Thm.rule_attribute (K (Drule.fconv_rule Drule.eta_long_conversion))) x;

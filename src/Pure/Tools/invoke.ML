@@ -63,7 +63,7 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
       Proof.map_context (fn ctxt =>
         let
           val ([res_types, res_params, res_prems], ctxt'') =
-            fold_burrow (apfst snd oo Variable.import false) results ctxt';
+            fold_burrow (apfst snd oo Variable.import_thms false) results ctxt';
 
           val types'' = map (Logic.dest_type o Thm.term_of o Drule.dest_term) res_types;
           val params'' = map (Thm.term_of o Drule.dest_term) res_params;

@@ -249,7 +249,7 @@ fun pretty_statement ctxt kind raw_th =
     val th = MetaSimplifier.norm_hhf raw_th;
     val is_elim = ObjectLogic.is_elim th;
 
-    val ((_, [th']), ctxt') = Variable.import true [th] ctxt;
+    val ((_, [th']), ctxt') = Variable.import_thms true [th] ctxt;
     val prop = Thm.prop_of th';
     val (prems, concl) = Logic.strip_horn prop;
     val concl_term = ObjectLogic.drop_judgment thy concl;

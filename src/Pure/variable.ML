@@ -50,7 +50,7 @@ sig
   val import_terms: bool -> term list -> Proof.context -> term list * Proof.context
   val importT: thm list -> Proof.context -> (ctyp list * thm list) * Proof.context
   val import_prf: bool -> Proofterm.proof -> Proof.context -> Proofterm.proof * Proof.context
-  val import: bool -> thm list -> Proof.context ->
+  val import_thms: bool -> thm list -> Proof.context ->
     ((ctyp list * cterm list) * thm list) * Proof.context
   val tradeT: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
   val trade: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
@@ -392,7 +392,7 @@ fun import_prf is_open prf ctxt =
     val (insts, ctxt') = import_inst is_open ts ctxt;
   in (Proofterm.instantiate insts prf, ctxt') end;
 
-fun import is_open ths ctxt =
+fun import_thms is_open ths ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
@@ -411,7 +411,7 @@ fun gen_trade imp exp f ctxt ths =
   in exp ctxt' ctxt (f ctxt' ths') end;
 
 val tradeT = gen_trade importT exportT;
-val trade = gen_trade (import true) export;
+val trade = gen_trade (import_thms true) export;
 
 
 (* focus on outermost parameters *)

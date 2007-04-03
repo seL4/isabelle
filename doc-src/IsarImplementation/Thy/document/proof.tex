@@ -112,7 +112,7 @@ Any variable that is not explicitly bound by \isa{{\isasymlambda}}-abstraction
   \indexml{Variable.declare-constraints}\verb|Variable.declare_constraints: term -> Proof.context -> Proof.context| \\
   \indexml{Variable.export}\verb|Variable.export: Proof.context -> Proof.context -> thm list -> thm list| \\
   \indexml{Variable.polymorphic}\verb|Variable.polymorphic: Proof.context -> term list -> term list| \\
-  \indexml{Variable.import}\verb|Variable.import: bool -> thm list -> Proof.context ->|\isasep\isanewline%
+  \indexml{Variable.import-thms}\verb|Variable.import_thms: bool -> thm list -> Proof.context ->|\isasep\isanewline%
 \verb|  ((ctyp list * cterm list) * thm list) * Proof.context| \\
   \indexml{Variable.focus}\verb|Variable.focus: cterm -> Proof.context -> (cterm list * cterm) * Proof.context| \\
   \end{mldecls}
@@ -150,7 +150,7 @@ Any variable that is not explicitly bound by \isa{{\isasymlambda}}-abstraction
   with \verb|Variable.polymorphic|: here the given terms are detached
   from the context as far as possible.
 
-  \item \verb|Variable.import|~\isa{open\ thms\ ctxt} invents fixed
+  \item \verb|Variable.import_thms|~\isa{open\ thms\ ctxt} invents fixed
   type and term variables for the schematic ones occurring in \isa{thms}.  The \isa{open} flag indicates whether the fixed names
   should be accessible to the user, otherwise newly introduced names
   are marked as ``internal'' (\secref{sec:names}).
