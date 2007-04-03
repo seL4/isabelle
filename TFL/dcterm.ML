@@ -58,23 +58,23 @@ fun ERR func mesg = U.ERR {module = "Dcterm", func = func, mesg = mesg};
 
 
 fun dest_comb t = Thm.dest_comb t
-  handle CTERM msg => raise ERR "dest_comb" msg;
+  handle CTERM (msg, _) => raise ERR "dest_comb" msg;
 
 fun dest_abs a t = Thm.dest_abs a t
-  handle CTERM msg => raise ERR "dest_abs" msg;
+  handle CTERM (msg, _) => raise ERR "dest_abs" msg;
 
 fun capply t u = Thm.capply t u
-  handle CTERM msg => raise ERR "capply" msg;
+  handle CTERM (msg, _) => raise ERR "capply" msg;
 
 fun cabs a t = Thm.cabs a t
-  handle CTERM msg => raise ERR "cabs" msg;
+  handle CTERM (msg, _) => raise ERR "cabs" msg;
 
 
 (*---------------------------------------------------------------------------
  * Some simple constructor functions.
  *---------------------------------------------------------------------------*)
 
-val mk_hol_const = Thm.cterm_of (Theory.sign_of HOL.thy) o Const;
+val mk_hol_const = Thm.cterm_of HOL.thy o Const;
 
 fun mk_exists (r as (Bvar, Body)) =
   let val ty = #T(rep_cterm Bvar)
