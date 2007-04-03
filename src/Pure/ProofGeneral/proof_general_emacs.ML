@@ -23,7 +23,7 @@ val pgasciiN = "PGASCII";                  (*plain 7-bit ASCII communication*)
 val thm_depsN = "thm_deps";                (*meta-information about theorem deps*)
 
 fun special oct =
-  if Output.has_mode pgasciiN then chr 1 ^ chr (ord (oct_char oct) - 167)
+  if print_mode_active pgasciiN then chr 1 ^ chr (ord (oct_char oct) - 167)
   else oct_char oct;
 
 
@@ -35,7 +35,7 @@ fun xsym_output "\\" = "\\\\"
   | xsym_output s = if Symbol.is_raw s then Symbol.decode_raw s else s;
 
 fun xsymbols_output s =
-  if Output.has_mode Symbol.xsymbolsN andalso exists_string (equal "\\") s then
+  if print_mode_active Symbol.xsymbolsN andalso exists_string (equal "\\") s then
     let val syms = Symbol.explode s
     in (implode (map xsym_output syms), real (Symbol.length syms)) end
   else Symbol.default_output s;
@@ -100,17 +100,16 @@ end;
 (* messages and notification *)
 
 fun decorate bg en prfx =
-  writeln_default o enclose bg en o prefix_lines prfx;
+  Output.writeln_default o enclose bg en o prefix_lines prfx;
 
 fun setup_messages () =
- (writeln_fn := (fn s => decorate "" "" "" s);
-  priority_fn := (fn s => decorate (special "360") (special "361") "" s);
-  tracing_fn := (fn s => decorate (special "360" ^ special "375") (special "361") "" s);
-  info_fn := (fn s => decorate (special "362") (special "363") "+++ " s);
-  debug_fn := (fn s => decorate (special "362") (special "363") "+++ " s);
-  warning_fn := (fn s => decorate (special "362") (special "363") "### " s);
-  error_fn := (fn s => decorate (special "364") (special "365") "*** " s);
-  panic_fn := (fn s => decorate (special "364") (special "365") "!!! " s));
+ (Output.writeln_fn := (fn s => decorate "" "" "" s);
+  Output.priority_fn := (fn s => decorate (special "360") (special "361") "" s);
+  Output.tracing_fn := (fn s => decorate (special "360" ^ special "375") (special "361") "" s);
+  Output.debug_fn := (fn s => decorate (special "362") (special "363") "+++ " s);
+  Output.warning_fn := (fn s => decorate (special "362") (special "363") "### " s);
+  Output.error_fn := (fn s => decorate (special "364") (special "365") "*** " s);
+  Output.panic_fn := (fn s => decorate (special "364") (special "365") "!!! " s));
 
 
 fun emacs_notify s = decorate (special "360") (special "361") "" s;
@@ -213,7 +212,7 @@ fun thm_deps_message (thms, deps) =
   emacs_notify ("Proof General, theorem dependencies of " ^ thms ^ " are " ^ deps);
 
 fun tell_thm_deps ths =
-  if Output.has_mode thm_depsN then
+  if print_mode_active thm_depsN then
     let
       val names = map PureThy.get_name_hint (filter PureThy.has_name_hint ths);
       val deps = Symtab.keys (fold Proofterm.thms_of_proof'
@@ -279,10 +278,10 @@ fun init false =
       Output.panic "No Proof General interface support for Isabelle/classic mode."
   | init true =
       (! initialized orelse
-        (setmp warning_fn (K ()) init_outer_syntax ();
+        (Output.no_warnings init_outer_syntax ();
           setup_xsymbols_output ();
           setup_messages ();
-          ProofGeneralPgip.init_pgip_channel (! priority_fn);
+          ProofGeneralPgip.init_pgip_channel (! Output.priority_fn);
           setup_state ();
           setup_thy_loader ();
           setup_present_hook ();

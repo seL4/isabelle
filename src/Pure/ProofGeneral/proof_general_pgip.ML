@@ -138,7 +138,7 @@ fun init_pgip_session_id () =
 
 fun matching_pgip_id id = (id = !pgip_id)
 
-val output_xml_fn = ref writeln_default
+val output_xml_fn = ref Output.writeln_default
 fun output_xml s = (!output_xml_fn) (XML.string_of_tree s);  (* TODO: string buffer *)
 
 fun issue_pgip_rawtext str =
@@ -209,14 +209,13 @@ end;
    can't be written without newlines. *)
 
 fun setup_messages () =
- (writeln_fn := (fn s => normalmsg Message Normal false s);
-  priority_fn := (fn s => normalmsg Message Normal true s);
-  tracing_fn := (fn s => normalmsg  Message Tracing false s);
-  info_fn := (fn s => errormsg Info s);
-  warning_fn := (fn s => errormsg Warning s);
-  error_fn := (fn s => errormsg Fatal s);
-  panic_fn := (fn s => errormsg Panic s);
-  debug_fn := (fn s => errormsg Debug s));
+ (Output.writeln_fn := (fn s => normalmsg Message Normal false s);
+  Output.priority_fn := (fn s => normalmsg Message Normal true s);
+  Output.tracing_fn := (fn s => normalmsg  Message Tracing false s);
+  Output.warning_fn := (fn s => errormsg Warning s);
+  Output.error_fn := (fn s => errormsg Fatal s);
+  Output.panic_fn := (fn s => errormsg Panic s);
+  Output.debug_fn := (fn s => errormsg Debug s));
 
 fun nonfatal_error s = errormsg Nonfatal s;
 fun log_msg s = errormsg Log s;
@@ -429,8 +428,8 @@ fun setup_preferences_tweak() =
     preferences :=
      (!preferences |> Preferences.set_default ("show-question-marks","false")
                    |> Preferences.remove "show-question-marks"    (* we use markup, not ?s *)
-		   |> Preferences.remove "theorem-dependencies"   (* set internally *)
-		   |> Preferences.remove "full-proofs")		  (* set internally *)
+                   |> Preferences.remove "theorem-dependencies"   (* set internally *)
+                   |> Preferences.remove "full-proofs")           (* set internally *)
 
 
 
@@ -526,28 +525,28 @@ fun set_proverflag_quiet b =
 fun set_proverflag_pgmlsymbols b =
     (pgmlsymbols_flag := b;
      change print_mode 
-	    (fn mode =>
+            (fn mode =>
                 remove (op =) Symbol.xsymbolsN mode @ (if b then [Symbol.xsymbolsN] else [])))
 
 fun set_proverflag_thmdeps b =
     (show_theorem_dependencies := b;
      proofs := (if b then 1 else 2))
 
-fun startquiet vs = set_proverflag_quiet true;		  (* TO BE REMOVED *)
+fun startquiet vs = set_proverflag_quiet true;            (* TO BE REMOVED *)
 fun stopquiet vs =  set_proverflag_quiet false;           (* TO BE REMOVED *)
 fun pgmlsymbolson vs = set_proverflag_pgmlsymbols true;   (* TO BE REMOVED *)
 fun pgmlsymbolsoff vs = set_proverflag_pgmlsymbols false; (* TO BE REMOVED *)
 
 fun setproverflag (Setproverflag vs) =
     let 
-	val flagname = #flagname vs
-	val value = #value vs
+        val flagname = #flagname vs
+        val value = #value vs
     in
-	(case flagname of
-	     "quiet"            => set_proverflag_quiet value
-	   | "pgmlsymbols"      => set_proverflag_pgmlsymbols value
-	   | "metainfo:thmdeps" => set_proverflag_thmdeps value 
-	   | _ => log_msg ("Unrecognised prover control flag: " ^ (quote flagname) ^ " ignored."))
+        (case flagname of
+             "quiet"            => set_proverflag_quiet value
+           | "pgmlsymbols"      => set_proverflag_pgmlsymbols value
+           | "metainfo:thmdeps" => set_proverflag_thmdeps value 
+           | _ => log_msg ("Unrecognised prover control flag: " ^ (quote flagname) ^ " ignored."))
     end 
 
 
@@ -604,7 +603,7 @@ fun askids (Askids vs) =
                | SOME prf => filter (String.isPrefix (unprefix (prf ^ NameSpace.separator) thy))
                                     (thms_of_thy prf))
        val qualified_thms_of_thy = (* for global query with single response *)
-	    (map fst) o NameSpace.dest_table o PureThy.theorems_of o ThyInfo.get_theory; 
+            (map fst) o NameSpace.dest_table o PureThy.theorems_of o ThyInfo.get_theory; 
 (* da: this version is equivalent to my previous, but splits up theorem sets with names
    that I can't get to access later with get_thm.  Anyway, would rather use sets.
    Is above right way to get qualified names in that case?  Filtering required again?
@@ -699,35 +698,33 @@ fun showid (Showid vs) =
 
         val topthy = Toplevel.theory_of o Toplevel.get_state
 
-        (* Decompose qualified name.  FIXME: Should be a better way of doing this *)
-	fun splitthy id =
-	    let 
-		val comps = scanwords (not o (curry op= ".")) (explode id)
-	    in case comps of
-		   (thy::(rest as _::_)) => (ThyInfo.get_theory thy, space_implode "." rest)
-		 | [plainid] => (topthy(),plainid)
-		 | _ => raise Toplevel.UNDEF (* assert false *)
-	    end 
-					    
+        fun splitthy id =
+            let val comps = NameSpace.explode id
+            in case comps of
+                   (thy::(rest as _::_)) => (ThyInfo.get_theory thy, space_implode "." rest)
+                 | [plainid] => (topthy(),plainid)
+                 | _ => raise Toplevel.UNDEF (* assert false *)
+            end 
+                                            
 
         fun idvalue strings =
             issue_pgip (Idvalue { thyname=thyname, objtype=objtype, name=name, 
-				  text=[XML.Elem("pgmltext",[],
-						 map XML.Rawtext strings)] })
+                                  text=[XML.Elem("pgmltext",[],
+                                                 map XML.Rawtext strings)] })
 
-	fun string_of_thm th = Output.output
-			       (Pretty.string_of
-				   (Display.pretty_thm_aux
-					(Sign.pp (Thm.theory_of_thm th))
-					false (* quote *)
-					false (* show hyps *)
-					[] (* asms *)
-					th))
+        fun string_of_thm th = Output.output
+                               (Pretty.string_of
+                                   (Display.pretty_thm_aux
+                                        (Sign.pp (Thm.theory_of_thm th))
+                                        false (* quote *)
+                                        false (* show hyps *)
+                                        [] (* asms *)
+                                        th))
 
         fun strings_of_thm (thy, name) = map string_of_thm (get_thms thy (Name name))
 
-	val string_of_thy = Output.output o
-				Pretty.string_of o (ProofDisplay.pretty_full_theory false)
+        val string_of_thy = Output.output o
+                                Pretty.string_of o (ProofDisplay.pretty_full_theory false)
     in
         case (thyname, objtype) of
             (_,ObjTheory) => idvalue [string_of_thy (ThyInfo.get_theory name)]
@@ -1058,7 +1055,7 @@ fun loop ready src =
              let
                  val ready' = (process_pgip_tree pgip)
                                 handle PGIP_QUIT => raise PGIP_QUIT
-				     | e => (handler (e,SOME src'); true)
+                                     | e => (handler (e,SOME src'); true)
              in
                  loop ready' src'
              end
@@ -1111,10 +1108,10 @@ fun init_pgip false =
       Output.panic "No Proof General interface support for Isabelle/classic mode."
   | init_pgip true =
       (! initialized orelse
-        (setmp warning_fn (K ()) init_outer_syntax ();
+        (Output.no_warnings init_outer_syntax ();
           PgipParser.init ();
           setup_preferences_tweak ();
-	  setup_proofgeneral_output ();
+          setup_proofgeneral_output ();
           setup_messages ();
           setup_state ();
           setup_thy_loader ();
@@ -1131,7 +1128,7 @@ fun init_pgip false =
 (** Out-of-loop PGIP commands (for Emacs hybrid mode) **)
 
 local
-    val pgip_output_channel = ref writeln_default
+    val pgip_output_channel = ref Output.writeln_default
 in
 
 (* Set recipient for PGIP results *)
