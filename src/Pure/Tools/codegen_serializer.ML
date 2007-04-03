@@ -642,7 +642,7 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_con
             val (ps, vars') = fold_map pr binds vars;
           in brackets (str "fun" :: ps @ str "->" @@ pr_term vars' NOBR t') end
       | pr_term vars fxy (INum n) =
-          if n > 0 then
+          if n > IntInf.fromInt 0 then
             brackify fxy [str "Big_int.big_int_of_int", (str o IntInf.toString) n]
           else
             brackify fxy [str "Big_int.big_int_of_int",
@@ -1156,7 +1156,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name keyword_vars 
             val (ps, vars') = fold_map pr binds vars;
           in brackets (str "\\" :: ps @ str "->" @@ pr_term vars' NOBR t') end
       | pr_term vars fxy (INum n) =
-          if n > 0 then
+          if n > IntInf.fromInt 0 then
             (str o IntInf.toString) n
           else
             (str o enclose "(" ")" o Library.prefix "-" o IntInf.toString o IntInf.~) n

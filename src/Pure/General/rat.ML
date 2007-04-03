@@ -39,33 +39,32 @@ datatype rat = Rat of bool * IntInf.int * IntInf.int;
 
 exception DIVZERO;
 
-val zero = Rat (true, 0, 1);
+val zero = Rat (true, IntInf.fromInt 0, IntInf.fromInt 1);
 
-val one = Rat (true, 1, 1);
+val one = Rat (true, IntInf.fromInt 1, IntInf.fromInt 1);
 
 fun rat_of_intinf i =
-  if i < 0
-  then Rat (false, ~i, 1)
-  else Rat (true, i, 1);
+  if i < IntInf.fromInt 0
+  then Rat (false, ~i, IntInf.fromInt 1)
+  else Rat (true, i, IntInf.fromInt 1);
 
 fun rat_of_int i = rat_of_intinf (IntInf.fromInt i);
 
-fun norm (a, 0, q) =
-      Rat (true, 0, 1)
-  | norm (a, p, q) =
-      let
-        val absp = abs p
-        val m = gcd (absp, q)
-      in Rat(a = (0 <= p), absp div m, q div m) end;
+fun norm (a, p, q) =
+  if p = IntInf.fromInt 0 then Rat (true, IntInf.fromInt 0, IntInf.fromInt 1)
+  else
+    let
+      val absp = abs p
+      val m = gcd (absp, q)
+    in Rat(a = (IntInf.fromInt 0 <= p), absp div m, q div m) end;
 
 fun common (p1, q1, p2, q2) =
   let val q' = lcm (q1, q2)
   in (p1 * (q' div q1), p2 * (q' div q2), q') end
 
-fun rat_of_quotient (p, 0) =
-      raise DIVZERO
-  | rat_of_quotient (p, q) =
-      norm (0 <= q, p, abs q);
+fun rat_of_quotient (p, q) =
+  if q = IntInf.fromInt 0 then raise DIVZERO
+  else norm (IntInf.fromInt 0 <= q, p, abs q);
 
 fun quotient_of_rat (Rat (a, p, q)) = (if a then p else ~p, q);
 
@@ -104,31 +103,34 @@ fun add (Rat (a1, p1, q1), Rat(a2, p2, q2)) =
 fun mult (Rat (a1, p1, q1), Rat (a2, p2, q2)) =
   norm (a1=a2, p1*p2, q1*q2);
 
-fun neg (r as Rat (_, 0, _)) = r
-  | neg (Rat (b, p, q)) =
-      Rat (not b, p, q);
+fun neg (r as Rat (b, p, q)) =
+  if p = IntInf.fromInt 0 then r
+  else Rat (not b, p, q);
 
-fun inv (Rat (a, 0, q)) =
-      raise DIVZERO
-  | inv (Rat (a, p, q)) =
-      Rat (a, q, p)
+fun inv (Rat (a, p, q)) =
+  if p = IntInf.fromInt 0 then raise DIVZERO
+  else Rat (a, q, p);
 
 fun ge0 (Rat (a, _, _)) = a;
-fun gt0 (Rat (a, p, _)) = a andalso p > 0;
+fun gt0 (Rat (a, p, _)) = a andalso p > IntInf.fromInt 0;
 
-fun roundup (r as Rat (_, _, 1)) = r
-  | roundup (Rat (a, p, q)) =
-      let
-        fun round true q = Rat (true, q+1, 1)
-          | round false 0 = Rat (true, 0 ,1)
-          | round false q = Rat (false, q, 1)
-      in round a (p div q) end;
+fun roundup (r as Rat (a, p, q)) =
+  if q = IntInf.fromInt 1 then r
+  else
+    let
+      fun round true q = Rat (true, q + IntInf.fromInt 1, IntInf.fromInt 1)
+        | round false q =
+            if q = IntInf.fromInt 0
+            then Rat (true, IntInf.fromInt 0, IntInf.fromInt 1)
+            else Rat (false, q, IntInf.fromInt 1);
+    in round a (p div q) end;
 
-fun rounddown (r as Rat (_, _, 1)) = r
-  | rounddown (Rat (a, p, q)) =
-      let
-        fun round true q = Rat (true, q, 1)
-          | round false q = Rat (false, q+1, 1)
-      in round a (p div q) end;
+fun rounddown (r as Rat (a, p, q)) =
+  if q = IntInf.fromInt 1 then r
+  else
+    let
+      fun round true q = Rat (true, q, IntInf.fromInt 1)
+        | round false q = Rat (false, q + IntInf.fromInt 1, IntInf.fromInt 1)
+    in round a (p div q) end;
 
 end;

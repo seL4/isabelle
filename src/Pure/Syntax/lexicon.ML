@@ -411,7 +411,7 @@ fun read_xnum str =
       | "0" :: "b" :: cs => (1, 2, cs)
       | "-" :: cs => (~1, 10, cs)
       | cs => (1, 10, cs));
-    val value = sign * #1 (Library.read_intinf radix digs);
+    val value = IntInf.fromInt sign * #1 (Library.read_intinf radix digs);
   in {radix = radix, leading_zeros = leading_zeros digs, value = value} end;
 
 end;
