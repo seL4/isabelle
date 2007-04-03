@@ -7,9 +7,6 @@ Pure Isabelle.
 val banner = "Pure Isabelle";
 val version = "Isabelle repository version";    (*filled in automatically!*)
 
-(*if true then some tools will OMIT some proofs*)
-val quick_and_dirty = ref false;
-
 print_depth 10;
 
 (*fake hiding of private structures*)
@@ -18,6 +15,12 @@ structure Hidden = struct end;
 (*basic tools*)
 use "General/basics.ML";
 use "library.ML";
+
+(*generic non-sense*)
+val quick_and_dirty = ref false;
+val print_mode = ref ([]: string list);
+fun print_mode_active s = member (op =) (! print_mode) s;
+
 cd "General"; use "ROOT.ML"; cd "..";
 
 (*fundamental structures*)
