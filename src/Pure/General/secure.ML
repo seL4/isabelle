@@ -9,7 +9,6 @@ signature SECURE =
 sig
   val set_secure: unit -> unit
   val is_secure: unit -> bool
-  val deny_secure: string -> unit
   val use_text: string -> (string -> unit) * (string -> 'a) -> bool -> string -> unit
   val use_file: (string -> unit) * (string -> 'a) -> bool -> string -> unit
   val use: string -> unit
@@ -28,7 +27,7 @@ val secure = ref false;
 fun set_secure () = secure := true;
 fun is_secure () = ! secure;
 
-fun deny_secure msg = deny (is_secure ()) msg;
+fun deny_secure msg = if is_secure () then error msg else ();
 
 
 (** critical operations **)

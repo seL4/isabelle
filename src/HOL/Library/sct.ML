@@ -101,7 +101,7 @@ fun dest_all_ex (t as (Const ("Ex",_) $ _)) =
     end
   | dest_all_ex t = ([],t)
 
-fun dist_vars [] vs = (assert (null vs) "dist_vars"; [])
+fun dist_vars [] vs = (null vs orelse error "dist_vars"; [])
   | dist_vars (T::Ts) vs = 
     case find_index (fn v => fastype_of v = T) vs of
       ~1 => Free ("", T) :: dist_vars Ts vs

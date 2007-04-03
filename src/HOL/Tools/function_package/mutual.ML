@@ -93,24 +93,24 @@ fun split_def ctxt fnames geq arities =
       val fname = fst (dest_Free head)
           handle TERM _ => error (input_error invalid_head_msg)
 
-      val _ = assert (fname mem fnames) (input_error invalid_head_msg)
+      val _ = fname mem fnames orelse error (input_error invalid_head_msg)
 
       fun add_bvs t is = add_loose_bnos (t, 0, is)
       val rvs = (add_bvs rhs [] \\ fold add_bvs args [])
                   |> map (fst o nth (rev qs))
                 
-      val _ = assert (null rvs) (input_error ("Variable" ^ plural " " "s " rvs ^ commas_quote rvs
+      val _ = null rvs orelse error (input_error ("Variable" ^ plural " " "s " rvs ^ commas_quote rvs
                                               ^ " occur" ^ plural "s" "" rvs ^ " on right hand side only:"))
 
-      val _ = assert (forall (forall_aterms (fn Free (n, _) => not (n mem fnames) | _ => true)) gs)
-                     (input_error "Recursive Calls not allowed in premises")
+      val _ = forall (forall_aterms (fn Free (n, _) => not (n mem fnames) | _ => true)) gs orelse
+                     error (input_error "Recursive Calls not allowed in premises")
 
       val k = length args
 
       val arities' = case Symtab.lookup arities fname of
                        NONE => Symtab.update (fname, k) arities
-                     | SOME i => (assert (i = k)
-                                  (input_error ("Function " ^ quote fname ^ " has different numbers of arguments in different equations"));
+                     | SOME i => (i = k orelse
+                                  error (input_error ("Function " ^ quote fname ^ " has different numbers of arguments in different equations"));
                                   arities)
     in
       ((fname, qs, gs, args, rhs), arities')

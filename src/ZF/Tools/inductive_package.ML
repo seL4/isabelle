@@ -135,8 +135,8 @@ let
 
   val fp_rhs = Fp.oper $ dom_sum $ fp_abs
 
-  val dummy = List.app (fn rec_hd => deny (Logic.occs (rec_hd, fp_rhs))
-                             "Illegal occurrence of recursion operator")
+  val dummy = List.app (fn rec_hd => (Logic.occs (rec_hd, fp_rhs) andalso
+                             error "Illegal occurrence of recursion operator"; ()))
            rec_hds;
 
   (*** Make the new theory ***)
@@ -152,12 +152,6 @@ let
     if verbose then
       writeln ((if coind then "Coind" else "Ind") ^ "uctive definition " ^ quote big_rec_name)
     else ();
-
-  (*Forbid the inductive definition structure from clashing with a theory
-    name.  This restriction may become obsolete as ML is de-emphasized.*)
-  val dummy = deny (big_rec_base_name mem (Context.names_of thy))
-               ("Definition " ^ big_rec_base_name ^
-                " would clash with the theory of the same name!");
 
   (*Big_rec... is the union of the mutually recursive sets*)
   val big_rec_tm = list_comb(Const(big_rec_name,recT), rec_params);

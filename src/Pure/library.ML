@@ -46,8 +46,6 @@ sig
   exception ERROR of string
   val error: string -> 'a
   val cat_error: string -> string -> 'a
-  val assert: bool -> string -> unit
-  val deny: bool -> string -> unit
   val assert_all: ('a -> bool) -> 'a list -> ('a -> string) -> unit
 
   (*pairs*)
@@ -326,9 +324,6 @@ fun error msg = raise ERROR msg;
 
 fun cat_error "" msg = error msg
   | cat_error msg1 msg2 = error (msg1 ^ "\n" ^ msg2);
-
-fun assert p msg = if p then () else error msg;
-fun deny p msg = if p then error msg else ();
 
 fun assert_all pred list msg =
   let

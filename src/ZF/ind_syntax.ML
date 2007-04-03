@@ -45,9 +45,9 @@ fun mk_Collect (a,D,t) = Collect_const $ D $ absfree(a, iT, t);
 fun chk_prem rec_hd (Const("op &",_) $ _ $ _) =
         error"Premises may not be conjuctive"
   | chk_prem rec_hd (Const("op :",_) $ t $ X) = 
-        deny (Logic.occs(rec_hd,t)) "Recursion term on left of member symbol"
+        (Logic.occs(rec_hd,t) andalso error "Recursion term on left of member symbol"; ())
   | chk_prem rec_hd t = 
-        deny (Logic.occs(rec_hd,t)) "Recursion term in side formula";
+        (Logic.occs(rec_hd,t) andalso error "Recursion term in side formula"; ());
 
 (*Return the conclusion of a rule, of the form t:X*)
 fun rule_concl rl = 
