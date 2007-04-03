@@ -392,7 +392,7 @@ fun wfrec_definition0 thy fid R (functional as Abs(x, Ty, _)) =
      val wfrec_R_M =  map_types poly_tvars
                           (wfrec $ map_types poly_tvars R)
                       $ functional
-     val def_term = mk_const_def (Theory.sign_of thy) (x, Ty, wfrec_R_M)
+     val def_term = mk_const_def thy (x, Ty, wfrec_R_M)
      val ([def], thy') = PureThy.add_defs_i false [Thm.no_attributes (def_name, def_term)] thy
  in (thy', def) end;
 end;
@@ -502,7 +502,7 @@ fun wfrec_eqns thy fid tflCongs eqns =
      val dummy =
            if !trace then
                writeln ("ORIGINAL PROTO_DEF: " ^
-                          Sign.string_of_term (Theory.sign_of thy) proto_def)
+                          Sign.string_of_term thy proto_def)
            else ()
      val R1 = S.rand WFR
      val corollary' = R.UNDISCH(R.UNDISCH WFREC_THM)
@@ -543,13 +543,12 @@ fun lazyR_def thy fid tflCongs eqns =
      val proto_def' = subst_free[(R1,R')] proto_def
      val dummy = if !trace then writeln ("proto_def' = " ^
                                          Sign.string_of_term
-                                         (Theory.sign_of thy) proto_def')
+                                         thy proto_def')
                            else ()
      val {lhs,rhs} = S.dest_eq proto_def'
      val (c,args) = S.strip_comb lhs
      val (name,Ty) = dest_atom c
-     val defn = mk_const_def (Theory.sign_of thy)
-                 (name, Ty, S.list_mk_abs (args,rhs))
+     val defn = mk_const_def thy (name, Ty, S.list_mk_abs (args,rhs))
      val ([def0], theory) =
        thy
        |> PureThy.add_defs_i false

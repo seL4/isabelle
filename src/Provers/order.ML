@@ -77,7 +77,7 @@ struct
 
 (* Extract subgoal with signature *)
 fun SUBGOAL goalfun i st =
-  goalfun (List.nth(prems_of st, i-1),  i, sign_of_thm st) st
+  goalfun (List.nth(prems_of st, i-1),  i, Thm.theory_of_thm st) st
                              handle Subscript => Seq.empty;
 
 (* Internal datatype for the proof *)

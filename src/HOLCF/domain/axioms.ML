@@ -14,7 +14,7 @@ infixr 0 ===>;infixr 0 ==>;infix 0 == ;
 infix 1 ===; infix 1 ~= ; infix 1 <<; infix 1 ~<<;
 infix 9 `   ; infix 9 `% ; infix 9 `%%; infixr 9 oo;
 
-fun infer_types thy' = map (inferT_axm (sign_of thy'));
+fun infer_types thy' = map (inferT_axm thy');
 
 fun calc_axioms comp_dname (eqs : eq list) n (((dname,_),cons) : eq)=
 let
@@ -120,7 +120,7 @@ fun add_defs_infer defs thy = add_defs_i (infer_types thy defs) thy;
 in (* local *)
 
 fun add_axioms (comp_dnam, eqs : eq list) thy' = let
-  val comp_dname = Sign.full_name (sign_of thy') comp_dnam;
+  val comp_dname = Sign.full_name thy' comp_dnam;
   val dnames = map (fst o fst) eqs;
   val x_name = idx_name dnames "x"; 
   fun copy_app dname = %%:(dname^"_copy")`Bound 0;

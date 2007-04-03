@@ -773,7 +773,7 @@ fun simpset_lin_arith_tac (ss : simpset) (show_ex : bool) (i : int) (st : thm) =
       val Hs     = Logic.strip_assums_hyp A
       val concl  = Logic.strip_assums_concl A
   in trace_thm ("Trying to refute subgoal " ^ string_of_int i) st;
-     case prove (Thm.sign_of_thm st) params show_ex true Hs concl of
+     case prove (Thm.theory_of_thm st) params show_ex true Hs concl of
        NONE => (trace_msg "Refutation failed."; no_tac)
      | SOME js => (trace_msg "Refutation succeeded."; refute_tac ss (i, js))
   end) i st;

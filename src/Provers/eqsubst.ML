@@ -338,7 +338,7 @@ fun prep_concl_subst i gth =
       val th = Thm.incr_indexes 1 gth;
       val tgt_term = Thm.prop_of th;
 
-      val sgn = Thm.sign_of_thm th;
+      val sgn = Thm.theory_of_thm th;
       val ctermify = Thm.cterm_of sgn;
       val trivify = Thm.trivial o ctermify;
 
@@ -448,7 +448,7 @@ fun prep_subst_in_asm i gth j =
       val th = Thm.incr_indexes 1 gth;
       val tgt_term = Thm.prop_of th;
 
-      val sgn = Thm.sign_of_thm th;
+      val sgn = Thm.theory_of_thm th;
       val ctermify = Thm.cterm_of sgn;
       val trivify = Thm.trivial o ctermify;
 

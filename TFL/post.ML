@@ -53,7 +53,7 @@ fun tgoalw thy defs rules =
   case termination_goals rules of
       [] => error "tgoalw: no termination conditions to prove"
     | L  => OldGoals.goalw_cterm defs
-              (Thm.cterm_of (Theory.sign_of thy)
+              (Thm.cterm_of thy
                         (HOLogic.mk_Trueprop(USyntax.list_mk_conj L)));
 
 fun tgoal thy = tgoalw thy [];
@@ -240,7 +240,7 @@ fun define_i strict thy cs ss congs wfs fid R eqs =
       val {induct, rules, tcs} = 
           simplify_defn strict thy cs ss congs wfs fid pats def
       val rules' = 
-          if strict then derive_init_eqs (Theory.sign_of thy) rules eqs
+          if strict then derive_init_eqs thy rules eqs
           else rules
   in (thy, {rules = rules', induct = induct, tcs = tcs}) end;
 

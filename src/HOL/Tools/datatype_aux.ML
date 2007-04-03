@@ -139,7 +139,7 @@ fun indtac indrule i st =
         NONE => let val [Free (s, T)] = add_term_frees (t2, [])
           in absfree (s, T, t2) end
       | SOME (_ $ t') => Abs ("x", fastype_of t', abstract_over (t', t2)))
-    val cert = cterm_of (Thm.sign_of_thm st);
+    val cert = cterm_of (Thm.theory_of_thm st);
     val Ps = map (cert o head_of o snd o getP) ts;
     val indrule' = cterm_instantiate (Ps ~~
       (map (cert o abstr o getP) ts')) indrule
@@ -151,7 +151,7 @@ fun indtac indrule i st =
 
 fun exh_tac exh_thm_of i state =
   let
-    val thy = Thm.sign_of_thm state;
+    val thy = Thm.theory_of_thm state;
     val prem = nth (prems_of state) (i - 1);
     val params = Logic.strip_params prem;
     val (_, Type (tname, _)) = hd (rev params);

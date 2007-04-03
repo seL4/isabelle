@@ -7,7 +7,6 @@ Logical theory content: axioms, definitions, oracles.
 
 signature BASIC_THEORY =
 sig
-  val sign_of: theory -> theory    (*obsolete*)
   val rep_theory: theory ->
    {axioms: term NameSpace.table,
     defs: Defs.T,
@@ -84,8 +83,6 @@ val copy = Context.copy_thy;
 
 
 (* signature operations *)
-
-val sign_of = I;
 
 structure SignTheory: SIGN_THEORY = Sign;
 open SignTheory;

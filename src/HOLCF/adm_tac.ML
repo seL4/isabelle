@@ -150,7 +150,7 @@ fun adm_tac tac i state =
       NONE => no_tac
     | SOME (s, T, t) =>
         let
-          val sign = sign_of_thm state;
+          val sign = Thm.theory_of_thm state;
           val prems = Logic.strip_assums_hyp goali;
           val params = Logic.strip_params goali;
           val ts = find_subterms t 0 [];

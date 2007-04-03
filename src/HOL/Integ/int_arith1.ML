@@ -101,7 +101,7 @@ structure Int_Numeral_Base_Simprocs =
   fun prove_conv_nohyps tacs sg = prove_conv tacs sg [];
 
   fun prep_simproc (name, pats, proc) =
-    Simplifier.simproc (Theory.sign_of (the_context())) name pats proc;
+    Simplifier.simproc (the_context()) name pats proc;
 
   fun is_numeral (Const("Numeral.number_of", _) $ w) = true
     | is_numeral _ = false

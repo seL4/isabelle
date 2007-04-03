@@ -55,18 +55,17 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   val dummy = assert_all is_Const rec_hds
           (fn t => "Datatype set not previously declared as constant: " ^
-                   Sign.string_of_term (sign_of thy) t);
+                   Sign.string_of_term thy t);
 
   val rec_names = map (#1 o dest_Const) rec_hds
   val rec_base_names = map Sign.base_name rec_names
   val big_rec_base_name = space_implode "_" rec_base_names
 
   val thy_path = thy |> Theory.add_path big_rec_base_name
-  val sign = sign_of thy_path
 
-  val big_rec_name = Sign.intern_const sign big_rec_base_name;
+  val big_rec_name = Sign.intern_const thy_path big_rec_base_name;
 
-  val intr_tms = Ind_Syntax.mk_all_intr_tms sign (rec_tms, con_ty_lists);
+  val intr_tms = Ind_Syntax.mk_all_intr_tms thy_path (rec_tms, con_ty_lists);
 
   val dummy =
     writeln ((if coind then "Codatatype" else "Datatype") ^ " definition " ^ quote big_rec_name);
@@ -84,7 +83,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val npart = length rec_names;  (*number of mutually recursive parts*)
 
 
-  val full_name = Sign.full_name sign;
+  val full_name = Sign.full_name thy_path;
 
   (*Make constructor definition;
     kpart is the number of this mutually recursive part*)
@@ -263,7 +262,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
     FOLogic.mk_Trueprop
       (FOLogic.mk_eq
        (case_tm $
-         (list_comb (Const (Sign.intern_const (sign_of thy1) name,T),
+         (list_comb (Const (Sign.intern_const thy1 name,T),
                      args)),
         list_comb (case_free, args)));
 
@@ -306,7 +305,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
           FOLogic.mk_Trueprop
            (FOLogic.mk_eq
             (recursor_tm $
-             (list_comb (Const (Sign.intern_const (sign_of thy1) name,T),
+             (list_comb (Const (Sign.intern_const thy1 name,T),
                          args)),
              subst_rec (Term.betapplys (recursor_case, args))));
 

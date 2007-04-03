@@ -76,7 +76,7 @@ fun ferrack_tac q i =  ObjectLogic.atomize_tac i
   THEN (fn st =>
   let
     val g = nth (prems_of st) (i - 1)
-    val thy = sign_of_thm st
+    val thy = Thm.theory_of_thm st
     (* Transform the term*)
     val (t,np,nh) = prepare_for_linr q g
     (* Some simpsets for dealing with mod div abs and nat*)

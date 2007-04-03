@@ -60,7 +60,7 @@ val bin_simps =
      arith_simps @ rel_simps;
 
 fun prep_simproc (name, pats, proc) =
-  Simplifier.simproc (Theory.sign_of (the_context ())) name pats proc;
+  Simplifier.simproc (the_context ()) name pats proc;
 
 
 (*** CancelNumerals simprocs ***)

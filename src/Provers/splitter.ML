@@ -322,7 +322,7 @@ fun exported_split_posns cmap sg Ts t =
 
 fun inst_lift Ts t (T, U, pos) state i =
   let
-    val cert = cterm_of (sign_of_thm state);
+    val cert = cterm_of (Thm.theory_of_thm state);
     val cntxt = mk_cntxt Ts t pos (T --> U) (#maxidx(rep_thm trlift));
   in cterm_instantiate [(cert P, cert cntxt)] trlift
   end;
@@ -346,7 +346,7 @@ fun inst_split Ts t tt thm TB state i =
     val thm' = Thm.lift_rule (Thm.cprem_of state i) thm;
     val (P, _) = strip_comb (fst (Logic.dest_equals
       (Logic.strip_assums_concl (#prop (rep_thm thm')))));
-    val cert = cterm_of (sign_of_thm state);
+    val cert = cterm_of (Thm.theory_of_thm state);
     val cntxt = mk_cntxt_splitthm t tt TB;
     val abss = Library.foldl (fn (t, T) => Abs ("", T, t));
   in cterm_instantiate [(cert P, cert (abss (cntxt, Ts)))] thm'

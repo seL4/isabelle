@@ -23,12 +23,6 @@
     ordering of proof, thus allowing proof attempts in parrell, but
     recording the order to apply things in.
 
-    debugging tools:
-
-    fun asm_mk t = (assume (cterm_of (Theory.sign_of (the_context())) t)); 
-    fun asm_read s =  
-      (assume (read_cterm (Theory.sign_of (Context.the_context())) (s,propT)));
-
     THINK: are we really ok with our varify name w.r.t the prop - do
     we also need to avoid names in the hidden hyps? What about
     unification contraints in flex-flex pairs - might they also have
@@ -156,7 +150,7 @@ fun allify_conditions ctermify Ts th =
     end;
 
 fun allify_conditions' Ts th = 
-    allify_conditions (Thm.cterm_of (Thm.sign_of_thm th)) Ts th;
+    allify_conditions (Thm.cterm_of (Thm.theory_of_thm th)) Ts th;
 
 (* allify types *)
 fun allify_typ ts ty = 
@@ -210,7 +204,7 @@ fun fix_tvars_to_tfrees_in_terms names ts =
     in renamings end;
 fun fix_tvars_to_tfrees th = 
     let 
-      val sign = Thm.sign_of_thm th;
+      val sign = Thm.theory_of_thm th;
       val ctypify = Thm.ctyp_of sign;
       val tpairs = Thm.terms_of_tpairs (Thm.tpairs_of th);
       val renamings = fix_tvars_to_tfrees_in_terms 
@@ -243,7 +237,7 @@ fun fix_vars_to_frees_in_terms names ts =
     in renamings end;
 fun fix_vars_to_frees th = 
     let 
-      val ctermify = Thm.cterm_of (Thm.sign_of_thm th)
+      val ctermify = Thm.cterm_of (Thm.theory_of_thm th)
       val tpairs = Thm.terms_of_tpairs (Thm.tpairs_of th);
       val renamings = fix_vars_to_frees_in_terms 
                         [] ([Thm.prop_of th] @ tpairs);
@@ -255,7 +249,7 @@ fun fix_vars_to_frees th =
 
 fun fix_tvars_upto_idx ix th = 
     let 
-      val sgn = Thm.sign_of_thm th;
+      val sgn = Thm.theory_of_thm th;
       val ctypify = Thm.ctyp_of sgn
       val tpairs = Thm.terms_of_tpairs (Thm.tpairs_of th);
       val prop = (Thm.prop_of th);
@@ -268,7 +262,7 @@ fun fix_tvars_upto_idx ix th =
     in Thm.instantiate (ctyfixes, []) th end;
 fun fix_vars_upto_idx ix th = 
     let 
-      val sgn = Thm.sign_of_thm th;
+      val sgn = Thm.theory_of_thm th;
       val ctermify = Thm.cterm_of sgn
       val tpairs = Thm.terms_of_tpairs (Thm.tpairs_of th);
       val prop = (Thm.prop_of th);
@@ -334,7 +328,7 @@ in
 fun export_back (export {fixes = vs, assumes = hprems, 
                          sgid = i, gth = gth}) newth = 
     let 
-      val sgn = Thm.sign_of_thm newth;
+      val sgn = Thm.theory_of_thm newth;
       val ctermify = Thm.cterm_of sgn;
 
       val sgs = prems_of newth;
@@ -370,7 +364,7 @@ reintroduced in allified form.
 *)
 fun prepare_goal_export (vs, cterms) th = 
     let 
-      val sgn = Thm.sign_of_thm th;
+      val sgn = Thm.theory_of_thm th;
       val ctermify = Thm.cterm_of sgn;
 
       val allfrees = map Term.dest_Free (Term.term_frees (Thm.prop_of th))
@@ -454,7 +448,7 @@ fun fix_alls_term i t =
 
 fun fix_alls_cterm i th = 
     let
-      val ctermify = Thm.cterm_of (Thm.sign_of_thm th);
+      val ctermify = Thm.cterm_of (Thm.theory_of_thm th);
       val (fixedbody, fvs) = fix_alls_term i (Thm.prop_of th);
       val cfvs = rev (map ctermify fvs);
       val ct_body = ctermify fixedbody
@@ -531,7 +525,7 @@ fun assume_prems i th =
       val prems = Logic.strip_imp_prems body;
       val concl = Logic.strip_imp_concl body;
 
-      val sgn = Thm.sign_of_thm th;
+      val sgn = Thm.theory_of_thm th;
       val ctermify = Thm.cterm_of sgn;
       val cprems = map ctermify prems;
       val aprems = map Thm.assume cprems;
@@ -585,7 +579,7 @@ fun subgoal_thms th =
 
       val prems = Logic.strip_imp_prems t;
 
-      val sgn = Thm.sign_of_thm th;
+      val sgn = Thm.theory_of_thm th;
       val ctermify = Thm.cterm_of sgn;
 
       val aprems = map (Thm.trivial o ctermify) prems;

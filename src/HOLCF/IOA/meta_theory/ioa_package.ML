@@ -55,7 +55,7 @@ param_tupel thy ((Type(_,l))::r) res = param_tupel thy (l @ r) res |
 param_tupel thy ((TFree(a,_))::r) res = 
 if (a mem res) then (param_tupel thy r res) else (param_tupel thy r (a::res)) |
 param_tupel thy (a::r) res =
-error ("one component of a statetype is a TVar: " ^ (string_of_typ (sign_of thy) a));
+error ("one component of a statetype is a TVar: " ^ (string_of_typ thy a));
 *)
 
 (* used by constr_list *)
@@ -80,7 +80,7 @@ extract_hd _ = raise malformed;
 (* delivers constructor term string from a prem of *.induct *)
 fun extract_constr thy (_ $ Abs(a,T,r)) = extract_constr thy (snd(Syntax.variant_abs(a,T,r)))|
 extract_constr thy (Const("Trueprop",_) $ r) = extract_constr thy r |
-extract_constr thy (Var(_,_) $ r) =  delete_bold_string(string_of_term (sign_of thy) r) |
+extract_constr thy (Var(_,_) $ r) =  delete_bold_string(string_of_term thy r) |
 extract_constr _ _ = raise malformed;
 in
 (extract_hd a,extract_constr thy a) :: (extract_constrs thy r)
@@ -91,7 +91,7 @@ fun constr_list thy atyp =
 let
 fun act_name thy (Type(s,_)) = s |
 act_name _ s = 
-error("malformed action type: " ^ (string_of_typ (sign_of thy) s));
+error("malformed action type: " ^ (string_of_typ thy s));
 fun afpl ("." :: a) = [] |
 afpl [] = [] |
 afpl (a::r) = a :: (afpl r);
@@ -132,7 +132,7 @@ free_vars_of _ = raise malformed;
 (* making a constructor set from a constructor term (of signature) *)
 fun constr_set_string thy atyp ctstr =
 let
-val trm = #t(rep_cterm(read_cterm (sign_of thy) (ctstr,atyp)));
+val trm = #t(rep_cterm(read_cterm thy (ctstr,atyp)));
 val l = free_vars_of trm
 in
 if (check_for_constr thy atyp trm) then
@@ -140,7 +140,7 @@ if (check_for_constr thy atyp trm) then
 else "(UN " ^ (list_elements_of l) ^ ". {" ^ ctstr ^ "})")
 else (raise malformed) 
 handle malformed => 
-error("malformed action term: " ^ (string_of_term (sign_of thy) trm))
+error("malformed action term: " ^ (string_of_term thy trm))
 end;
 
 (* extracting constructor heads *)
@@ -149,7 +149,7 @@ let
 fun hd_of (Const(a,_)) = a |
 hd_of (t $ _) = hd_of t |
 hd_of _ = raise malformed;
-val trm = #t(rep_cterm(read_cterm (sign_of thy) (s,#T(rep_ctyp(read_ctyp (sign_of thy) atypstr))) ))
+val trm = #t(rep_cterm(read_cterm thy (s,#T(rep_ctyp(read_ctyp thy atypstr))) ))
 in
 hd_of trm handle malformed =>
 error("malformed constructor of datatype " ^ atypstr ^ ": " ^ s)
@@ -177,8 +177,8 @@ poststring ((a,b)::r) l = (pstr a l) ^ " & " ^ (poststring r l);
 (where bool indicates whether there is a precondition *)
 fun extend thy atyp statetupel (actstr,r,[]) =
 let
-val trm = #t(rep_cterm(read_cterm (sign_of thy) (actstr,atyp)));
-val rtrm = #t(rep_cterm(read_cterm (sign_of thy) (r,Type("bool",[]))));
+val trm = #t(rep_cterm(read_cterm thy (actstr,atyp)));
+val rtrm = #t(rep_cterm(read_cterm thy (r,Type("bool",[]))));
 val flag = if (rtrm=Const("True",Type("bool",[]))) then false else true
 in
 if (check_for_constr thy atyp trm)
@@ -191,8 +191,8 @@ let
 fun pseudo_poststring [] = "" |
 pseudo_poststring ((a,b)::[]) = "(" ^ a ^ " = (" ^ b ^ "))" |
 pseudo_poststring ((a,b)::r) = "(" ^ a ^ " = (" ^ b ^ ")) & " ^ (pseudo_poststring r); 
-val trm = #t(rep_cterm(read_cterm (sign_of thy) (actstr,atyp)));
-val rtrm = #t(rep_cterm(read_cterm (sign_of thy) (r,Type("bool",[]))));
+val trm = #t(rep_cterm(read_cterm thy (actstr,atyp)));
+val rtrm = #t(rep_cterm(read_cterm thy (r,Type("bool",[]))));
 val flag = if (rtrm=Const("True",Type("bool",[]))) then false else true
 in
 if (check_for_constr thy atyp trm) then
@@ -237,7 +237,7 @@ error("Two specifications for action: " ^ b)
 error("Action " ^ b ^ " is not in automaton signature")
 ))) else (write_alt thy (chead,ctrm) inp out int r)
 handle malformed =>
-error ("malformed action term: " ^ (string_of_term (sign_of thy) a))
+error ("malformed action term: " ^ (string_of_term thy a))
 end;
 
 (* used by make_alt_string *)
@@ -286,16 +286,16 @@ fun left_of (( _ $ left) $ _) = left |
 left_of _ = raise malformed;
 val aut_def = concl_of (get_thm thy (Name (aut_name ^ "_def")));
 in
-(#T(rep_cterm(cterm_of (sign_of thy) (left_of aut_def))))
+(#T(rep_cterm(cterm_of thy (left_of aut_def))))
 handle malformed => error ("malformed_theorem : " ^ aut_name ^ "_def")
 end;
 
 fun act_type_of thy (Type(pair1,(Type(pair_asig,(Type(actionset,[acttyp])::_))::_))) = acttyp |
 act_type_of thy t = error ("could not extract action type of following automaton type:\n" ^
-(string_of_typ (sign_of thy) t));
+(string_of_typ thy t));
 fun st_type_of thy (Type(pair1,_::(Type(pair2,Type(initial_set,[statetyp])::_))::_)) = statetyp |
 st_type_of thy t = error ("could not extract state type of following automaton type:\n" ^
-(string_of_typ (sign_of thy) t));
+(string_of_typ thy t));
 
 fun comp_st_type_of thy [a] = st_type_of thy (aut_type_of thy a) |
 comp_st_type_of thy (a::r) = Type("*",[st_type_of thy (aut_type_of thy a), comp_st_type_of thy r]) |
@@ -330,10 +330,10 @@ fun add_ioa automaton_name action_type inp out int statetupel ini trans thy =
 (writeln("Constructing automaton " ^ automaton_name ^ " ...");
 let
 val state_type_string = type_product_of_varlist(statetupel);
-val styp = #T(rep_ctyp (read_ctyp (sign_of thy) state_type_string)) ;
+val styp = #T(rep_ctyp (read_ctyp thy state_type_string)) ;
 val state_vars_tupel = "(" ^ (comma_list_of_varlist statetupel) ^ ")";
 val state_vars_primed = "(" ^ (primed_comma_list_of_varlist statetupel) ^ ")";
-val atyp = #T(rep_ctyp (read_ctyp (sign_of thy) action_type));
+val atyp = #T(rep_ctyp (read_ctyp thy action_type));
 val inp_set_string = action_set_string thy atyp inp;
 val out_set_string = action_set_string thy atyp out;
 val int_set_string = action_set_string thy atyp int;
@@ -364,7 +364,7 @@ automaton_name ^ "_trans == {(" ^
 automaton_name ^ " == (" ^ automaton_name ^ "_asig, " ^ automaton_name ^
 "_initial, " ^ automaton_name ^ "_trans,{},{})")
 ])
-val chk_prime_list = (check_free_primed (#t(rep_cterm(read_cterm (sign_of thy2)
+val chk_prime_list = (check_free_primed (#t(rep_cterm(read_cterm thy2
 ( "case act_of_" ^ automaton_name ^ " of " ^ snd(alt_string),Type("bool",[]))))));
 in
 (

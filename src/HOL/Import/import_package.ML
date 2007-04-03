@@ -39,7 +39,7 @@ fun import_tac (thyname,thmname) =
      fn thy =>
      fn th =>
         let
-            val sg = sign_of_thm th
+            val sg = Thm.theory_of_thm th
             val prem = hd (prems_of th)
             val _ = message ("Import_tac: thyname="^thyname^", thmname="^thmname)
             val _ = message ("Import trying to prove " ^ (string_of_cterm (cterm_of sg prem)))

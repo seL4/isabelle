@@ -32,7 +32,7 @@ local
             Const("Ex",_) $ P =>
             let
                 val ctype = domain_type (type_of P)
-                val cname_full = Sign.intern_const (sign_of thy) cname
+                val cname_full = Sign.intern_const thy cname
                 val cdefname = if thname = ""
                                then Thm.def_name (Sign.base_name cname)
                                else thname
@@ -58,7 +58,7 @@ local
                     Const("Ex",_) $ P =>
                     let
                         val ctype = domain_type (type_of P)
-                        val cname_full = Sign.intern_const (sign_of thy) cname
+                        val cname_full = Sign.intern_const thy cname
                         val cdefname = if thname = ""
                                        then Thm.def_name (Sign.base_name cname)
                                        else thname
@@ -183,7 +183,8 @@ fun process_spec axiomatic cos alt_props thy =
                     in
                         thm RS spec'
                     end
-                fun remove_alls frees thm = Library.foldl (inst_all (sign_of_thm thm)) (thm,frees)
+                fun remove_alls frees thm =
+                    Library.foldl (inst_all (Thm.theory_of_thm thm)) (thm,frees)
                 fun process_single ((name,atts),rew_imp,frees) args =
                     let
                         fun undo_imps thm =

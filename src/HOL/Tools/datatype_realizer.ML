@@ -42,7 +42,6 @@ fun mk_realizes T = Const ("realizes", T --> HOLogic.boolT --> HOLogic.boolT);
 
 fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_info) (is, thy) =
   let
-    val sg = sign_of thy;
     val recTs = get_rec_types descr sorts;
     val pnames = if length descr = 1 then ["P"]
       else map (fn i => "P" ^ string_of_int i) (1 upto length descr);
@@ -115,7 +114,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
       (map (fn ((((i, _), T), U), tname) =>
         make_pred i U T (mk_proj i is r) (Free (tname, T)))
           (descr ~~ recTs ~~ rec_result_Ts ~~ tnames)));
-    val cert = cterm_of sg;
+    val cert = cterm_of thy;
     val inst = map (pairself cert) (map head_of (HOLogic.dest_conj
       (HOLogic.dest_Trueprop (concl_of induction))) ~~ ps);
 

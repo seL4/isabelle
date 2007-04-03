@@ -516,7 +516,7 @@ not touch type variables, though). *)
 
 fun close_thm th =
     let
-        val thy = sign_of_thm th
+        val thy = Thm.theory_of_thm th
         val c = prop_of th
         val vars = add_term_frees (c,add_term_vars(c,[]))
     in

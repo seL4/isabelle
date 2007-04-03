@@ -481,7 +481,6 @@ val get_fieldext = Symtab.lookup o #fieldext o RecordsData.get;
 fun add_parents thy NONE parents = parents
   | add_parents thy (SOME (types, name)) parents =
       let
-        val sign = Theory.sign_of thy;
         fun err msg = error (msg ^ " parent record " ^ quote name);
 
         val {args, parent, fields, extension, induct} =
@@ -489,7 +488,7 @@ fun add_parents thy NONE parents = parents
         val _ = if length types <> length args then err "Bad number of arguments for" else ();
 
         fun bad_inst ((x, S), T) =
-          if Sign.of_sort sign (T, S) then NONE else SOME x
+          if Sign.of_sort thy (T, S) then NONE else SOME x
         val bads = List.mapPartial bad_inst (args ~~ types);
         val _ = null bads orelse err ("Ill-sorted instantiation of " ^ commas bads ^ " in");
 
@@ -1720,11 +1719,9 @@ fun meta_to_obj_all thm =
 fun record_definition (args, bname) parent (parents: parent_info list) raw_fields thy =
   (* smlnj needs type annotation of parents *)
   let
-    val sign = Theory.sign_of thy;
-
     val alphas = map fst args;
-    val name = Sign.full_name sign bname;
-    val full = Sign.full_name_path sign bname;
+    val name = Sign.full_name thy bname;
+    val full = Sign.full_name_path thy bname;
     val base = Sign.base_name;
 
     val (bfields, field_syntax) = split_list (map (fn (x, T, mx) => ((x, T), mx)) raw_fields);
@@ -2172,15 +2169,14 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_fields thy =
   let
     val _ = Theory.requires thy "Record" "record definitions";
-    val sign = Theory.sign_of thy;
     val _ = message ("Defining record " ^ quote bname ^ " ...");
 
 
     (* parents *)
 
-    fun prep_inst T = snd (cert_typ sign ([], T));
+    fun prep_inst T = snd (cert_typ thy ([], T));
 
-    val parent = Option.map (apfst (map prep_inst) o prep_raw_parent sign) raw_parent
+    val parent = Option.map (apfst (map prep_inst) o prep_raw_parent thy) raw_parent
       handle ERROR msg => cat_error msg ("The error(s) above in parent record specification");
     val parents = add_parents thy parent [];
 
@@ -2193,7 +2189,7 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
     (* fields *)
 
     fun prep_field (env, (c, raw_T, mx)) =
-      let val (env', T) = prep_typ sign (env, raw_T) handle ERROR msg =>
+      let val (env', T) = prep_typ thy (env, raw_T) handle ERROR msg =>
         cat_error msg ("The error(s) above occured in field " ^ quote c)
       in (env', (c, T, mx)) end;
 
@@ -2203,13 +2199,13 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
 
     (* args *)
 
-    val defaultS = Sign.defaultS sign;
+    val defaultS = Sign.defaultS thy;
     val args = map (fn x => (x, AList.lookup (op =) envir x |> the_default defaultS)) params;
 
 
     (* errors *)
 
-    val name = Sign.full_name sign bname;
+    val name = Sign.full_name thy bname;
     val err_dup_record =
       if is_none (get_record thy name) then []
       else ["Duplicate definition of record " ^ quote name];

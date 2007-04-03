@@ -359,13 +359,7 @@ in NORM (IF1_TAC cong_tac) i end;
 
 datatype cntrl = STOP | MK_EQ | ASMS of int | SIMP_LHS | REW | REFL | TRUE
                | PROVE | POP_CS | POP_ARTR | IF;
-(*
-fun pr_cntrl c = case c of STOP => std_output("STOP") | MK_EQ => std_output("MK_EQ") |
-ASMS i => print_int i | POP_ARTR => std_output("POP_ARTR") |
-SIMP_LHS => std_output("SIMP_LHS") | REW => std_output("REW") | REFL => std_output("REFL") |
-TRUE => std_output("TRUE") | PROVE => std_output("PROVE") | POP_CS => std_output("POP_CS") | IF
-=> std_output("IF");
-*)
+
 fun simp_refl([],_,ss) = ss
   | simp_refl(a'::ns,a,ss) = if a'=a then simp_refl(ns,a,SIMP_LHS::REFL::ss)
         else simp_refl(ns,a,ASMS(a)::SIMP_LHS::REFL::POP_ARTR::ss);
@@ -589,23 +583,21 @@ in case find_refl refl_thms of
 end;
 
 fun mk_cong_thy thy f =
-let val sg = sign_of thy;
-    val T = case Sign.const_type sg f of
+let val T = case Sign.const_type thy f of
                 NONE => error(f^" not declared") | SOME(T) => T;
     val T' = Logic.incr_tvar 9 T;
-in mk_cong_type sg (Const(f,T'),T') end;
+in mk_cong_type thy (Const(f,T'),T') end;
 
 fun mk_congs thy = List.concat o map (mk_cong_thy thy);
 
 fun mk_typed_congs thy =
-let val sg = sign_of thy;
-    val S0 = Sign.defaultS sg;
+let val S0 = Sign.defaultS thy;
     fun readfT(f,s) =
-        let val T = Logic.incr_tvar 9 (Sign.read_typ(sg,K(SOME(S0))) s);
-            val t = case Sign.const_type sg f of
+        let val T = Logic.incr_tvar 9 (Sign.read_typ(thy, K(SOME(S0))) s);
+            val t = case Sign.const_type thy f of
                       SOME(_) => Const(f,T) | NONE => Free(f,T)
         in (t,T) end
-in List.concat o map (mk_cong_type sg o readfT) end;
+in List.concat o map (mk_cong_type thy o readfT) end;
 
 end (* local *)
 end (* SIMP *);

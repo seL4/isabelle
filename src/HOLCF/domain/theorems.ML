@@ -99,14 +99,6 @@ val all2E = prove_goal HOL.thy "[| !x y . P x y; P x y ==> R |] ==> R"
 val dist_eqI = prove_goal (the_context ()) "!!x::'a::po. ~ x << y ==> x ~= y" 
   (fn prems =>
     [blast_tac (claset () addDs [antisym_less_inverse]) 1]);
-(*
-infixr 0 y;
-val b = 0;
-fun _ y t = by t;
-fun g defs t = let val sg = sign_of thy;
-                     val ct = Thm.cterm_of sg (inferT sg t);
-                 in goalw_cterm defs ct end;
-*)
 
 in
 
@@ -201,7 +193,7 @@ local
       val (n2, t2) = cons2typ n1 cons
     in (n2, mk_ssumT (t1, t2)) end;
 in
-  fun cons2ctyp cons = ctyp_of (sign_of thy) (snd (cons2typ 1 cons));
+  fun cons2ctyp cons = ctyp_of thy (snd (cons2typ 1 cons));
 end;
 
 local 
@@ -597,7 +589,7 @@ fun comp_theorems (comp_dnam, eqs: eq list) thy =
 let
 val dnames = map (fst o fst) eqs;
 val conss  = map  snd        eqs;
-val comp_dname = Sign.full_name (sign_of thy) comp_dnam;
+val comp_dname = Sign.full_name thy comp_dnam;
 
 val d = writeln("Proving induction properties of domain "^comp_dname^" ...");
 val pg = pg' thy;
@@ -877,7 +869,7 @@ in (* local *)
     else (* infinite case *)
       let
         fun one_finite n dn =
-          read_instantiate_sg (sign_of thy)
+          read_instantiate_sg thy
             [("P",dn^"_finite "^x_name n)] excluded_middle;
         val finites = mapn one_finite 1 dnames;
 

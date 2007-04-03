@@ -900,7 +900,7 @@ fun isar_atp (ctxt, th) =
       last_watcher_pid := SOME (childin, childout, pid, files);
       Output.debug (fn () => "problem files: " ^ space_implode ", " files);
       Output.debug (fn () => "pid: " ^ string_of_pid pid);
-      watcher_call_provers (sign_of_thm th) (Thm.prems_of th) (childin, childout, pid)
+      watcher_call_provers (Thm.theory_of_thm th) (Thm.prems_of th) (childin, childout, pid)
     end;
 
 (*For ML scripts, and primarily, for debugging*)

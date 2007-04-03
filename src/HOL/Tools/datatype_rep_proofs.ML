@@ -71,7 +71,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       (if length descr' = 1 then [big_rec_name] else
         (map ((curry (op ^) (big_rec_name ^ "_")) o string_of_int)
           (1 upto (length descr'))));
-    val rep_set_names = map (Sign.full_name (Theory.sign_of thy1)) rep_set_names';
+    val rep_set_names = map (Sign.full_name thy1) rep_set_names';
 
     val tyvars = map (fn (_, (_, Ts, _)) => map dest_DtTFree Ts) (hd descr);
     val leafTs' = get_nonrec_types descr' sorts;
@@ -200,8 +200,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val rep_names = map (curry op ^ "Rep_") new_type_names;
     val rep_names' = map (fn i => big_rep_name ^ (string_of_int i))
       (1 upto (length (List.concat (tl descr))));
-    val all_rep_names = map (Sign.intern_const (Theory.sign_of thy3)) rep_names @
-      map (Sign.full_name (Theory.sign_of thy3)) rep_names';
+    val all_rep_names = map (Sign.intern_const thy3) rep_names @
+      map (Sign.full_name thy3) rep_names';
 
     (* isomorphism declarations *)
 
@@ -224,8 +224,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
         val (_, l_args, r_args) = foldr constr_arg (1, [], []) cargs;
         val constrT = (map (typ_of_dtyp descr' sorts) cargs) ---> T;
-        val abs_name = Sign.intern_const (Theory.sign_of thy) ("Abs_" ^ tname);
-        val rep_name = Sign.intern_const (Theory.sign_of thy) ("Rep_" ^ tname);
+        val abs_name = Sign.intern_const thy ("Abs_" ^ tname);
+        val rep_name = Sign.intern_const thy ("Rep_" ^ tname);
         val lhs = list_comb (Const (cname, constrT), l_args);
         val rhs = mk_univ_inj r_args n i;
         val def = equals T $ lhs $ (Const (abs_name, Univ_elT --> T) $ rhs);
@@ -245,11 +245,10 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         ((((_, (_, _, constrs)), tname), T), constr_syntax)) =
       let
         val _ $ (_ $ (cong_f $ _) $ _) = concl_of arg_cong;
-        val sg = Theory.sign_of thy;
-        val rep_const = cterm_of sg
-          (Const (Sign.intern_const sg ("Rep_" ^ tname), T --> Univ_elT));
-        val cong' = standard (cterm_instantiate [(cterm_of sg cong_f, rep_const)] arg_cong);
-        val dist = standard (cterm_instantiate [(cterm_of sg distinct_f, rep_const)] distinct_lemma);
+        val rep_const = cterm_of thy
+          (Const (Sign.intern_const thy ("Rep_" ^ tname), T --> Univ_elT));
+        val cong' = standard (cterm_instantiate [(cterm_of thy cong_f, rep_const)] arg_cong);
+        val dist = standard (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
         val (thy', defs', eqns', _) = Library.foldl ((make_constr_def tname T) (length constrs))
           ((add_path flat_names tname thy, defs, [], 1), constrs ~~ constr_syntax)
       in
@@ -570,7 +569,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
           mk_Free "x" T i;
 
         val Abs_t = if i < length newTs then
-            Const (Sign.intern_const (Theory.sign_of thy6)
+            Const (Sign.intern_const thy6
               ("Abs_" ^ (List.nth (new_type_names, i))), Univ_elT --> T)
           else Const ("Inductive.myinv", [T --> Univ_elT, Univ_elT] ---> T) $
             Const (List.nth (all_rep_names, i), T --> Univ_elT)
@@ -584,7 +583,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val (indrule_lemma_prems, indrule_lemma_concls) =
       Library.foldl mk_indrule_lemma (([], []), (descr' ~~ recTs));
 
-    val cert = cterm_of (Theory.sign_of thy6);
+    val cert = cterm_of thy6;
 
     val indrule_lemma = Goal.prove_global thy6 [] []
       (Logic.mk_implies

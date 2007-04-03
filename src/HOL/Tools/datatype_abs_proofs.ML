@@ -112,7 +112,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
       if length descr' = 1 then [big_rec_name'] else
         map ((curry (op ^) (big_rec_name' ^ "_")) o string_of_int)
           (1 upto (length descr'));
-    val rec_set_names = map (Sign.full_name (Theory.sign_of thy0)) rec_set_names';
+    val rec_set_names = map (Sign.full_name thy0) rec_set_names';
 
     val (rec_result_Ts, reccomb_fn_Ts) = DatatypeProp.make_primrec_Ts descr sorts used;
 
@@ -228,7 +228,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
     (* define primrec combinators *)
 
     val big_reccomb_name = (space_implode "_" new_type_names) ^ "_rec";
-    val reccomb_names = map (Sign.full_name (Theory.sign_of thy1))
+    val reccomb_names = map (Sign.full_name thy1)
       (if length descr' = 1 then [big_reccomb_name] else
         (map ((curry (op ^) (big_reccomb_name ^ "_")) o string_of_int)
           (1 upto (length descr'))));
@@ -294,8 +294,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
       in Const ("arbitrary", Ts @ Ts' ---> T')
       end) constrs) descr';
 
-    val case_names = map (fn s =>
-      Sign.full_name (Theory.sign_of thy1) (s ^ "_case")) new_type_names;
+    val case_names = map (fn s => Sign.full_name thy1 (s ^ "_case")) new_type_names;
 
     (* define case combinators via primrec combinators *)
 
@@ -402,7 +401,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
 
     val size_name = "Nat.size";
     val size_names = replicate (length (hd descr)) size_name @
-      map (Sign.full_name (Theory.sign_of thy1)) (DatatypeProp.indexify_names
+      map (Sign.full_name thy1) (DatatypeProp.indexify_names
         (map (fn T => name_of_typ T ^ "_size") (Library.drop (length (hd descr), recTs))));
     val def_names = map (fn s => s ^ "_def") (DatatypeProp.indexify_names
       (map (fn T => name_of_typ T ^ "_size") recTs));
@@ -499,7 +498,7 @@ fun prove_case_congs new_type_names descr sorts nchotomys case_thms thy =
       let
         val (Const ("==>", _) $ tm $ _) = t;
         val (Const ("Trueprop", _) $ (Const ("op =", _) $ _ $ Ma)) = tm;
-        val cert = cterm_of (Theory.sign_of thy);
+        val cert = cterm_of thy;
         val nchotomy' = nchotomy RS spec;
         val nchotomy'' = cterm_instantiate
           [(cert (hd (add_term_vars (concl_of nchotomy', []))), cert Ma)] nchotomy'

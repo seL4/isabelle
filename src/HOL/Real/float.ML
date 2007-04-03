@@ -424,7 +424,7 @@ val sg = ref ([]: Sign.sg list)
 fun invoke_float_op c =
     let
 	val th = (if length(!th) = 0 then th := [theory "MatrixLP"] else (); hd (!th))
-	val sg = (if length(!sg) = 0 then sg := [sign_of th] else (); hd (!sg))
+	val sg = (if length(!sg) = 0 then sg := [th] else (); hd (!sg))
     in
 	invoke_oracle th "float_op" (sg, Float_op_oracle_data c)
     end
@@ -463,7 +463,7 @@ fun nat_op_oracle (sg, exn as Nat_op_oracle_data t) =
 fun invoke_nat_op c =
     let
 	val th = (if length (!th) = 0 then th := [theory "MatrixLP"] else (); hd (!th))
-	val sg = (if length (!sg) = 0 then sg := [sign_of th] else (); hd (!sg))
+	val sg = (if length (!sg) = 0 then sg := [th] else (); hd (!sg))
     in
 	invoke_oracle th "nat_op" (sg, Nat_op_oracle_data c)
     end

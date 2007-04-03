@@ -287,7 +287,7 @@ fun finite_guess_tac tactical ss i st =
       case Logic.strip_assums_concl (term_of goal) of
           _ $ (Const ("Finite_Set.finite", _) $ (Const ("Nominal.supp", T) $ x)) =>
           let
-            val cert = Thm.cterm_of (sign_of_thm st);
+            val cert = Thm.cterm_of (Thm.theory_of_thm st);
             val ps = Logic.strip_params (term_of goal);
             val Ts = rev (map snd ps);
             val vs = collect_vars 0 x [];
@@ -327,7 +327,7 @@ fun fresh_guess_tac tactical ss i st =
       case Logic.strip_assums_concl (term_of goal) of
           _ $ (Const ("Nominal.fresh", Type ("fun", [T, _])) $ _ $ t) => 
           let
-            val cert = Thm.cterm_of (sign_of_thm st);
+            val cert = Thm.cterm_of (Thm.theory_of_thm st);
             val ps = Logic.strip_params (term_of goal);
             val Ts = rev (map snd ps);
             val vs = collect_vars 0 t [];

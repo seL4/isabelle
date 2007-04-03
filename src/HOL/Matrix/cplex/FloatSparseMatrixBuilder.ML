@@ -58,10 +58,9 @@ type float = IntInf.int*IntInf.int
 type floatfunc = float -> float
 
 val th = theory "FloatSparseMatrix"
-val sg = sign_of th
 	 
-fun readtype s = Sign.intern_type sg s
-fun readterm s = Sign.intern_const sg s
+fun readtype s = Sign.intern_type th s
+fun readterm s = Sign.intern_const th s
 		 
 val ty_list = readtype "list"
 val term_Nil = readterm "Nil"
@@ -91,7 +90,7 @@ val mk_intinf = Float.mk_intinf
 
 val mk_float  = Float.mk_float 
 
-fun float2cterm (a,b) = cterm_of sg (mk_float (a,b))
+fun float2cterm (a,b) = cterm_of th (mk_float (a,b))
 
 fun approx_value_term prec f = Float.approx_float prec (fn (x, y) => (f x, f y))
 
@@ -99,10 +98,10 @@ fun approx_value prec pprt value =
   let
     val (flower, fupper) = approx_value_term prec pprt value
   in
-    (cterm_of sg flower, cterm_of sg fupper)
+    (cterm_of th flower, cterm_of th fupper)
   end
 
-fun sign_term t = cterm_of sg t
+fun sign_term t = cterm_of th t
 
 val empty_spvec = empty_vector_const
 
@@ -161,14 +160,14 @@ fun approx_vector prec pprt vector =
     let
 	val (l, u) = approx_vector_term prec pprt vector
     in
-	(cterm_of sg l, cterm_of sg u)
+	(cterm_of th l, cterm_of th u)
     end
 
 fun approx_matrix prec pprt matrix = 
     let
 	val (l, u) = approx_matrix_term prec pprt matrix
     in
-	(cterm_of sg l, cterm_of sg u)
+	(cterm_of th l, cterm_of th u)
     end
 
 

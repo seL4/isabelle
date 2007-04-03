@@ -156,7 +156,7 @@ fun casesplit_free fv i th =
       val (subgoalth, exp) = IsaND.fix_alls i th;
       val subgoalth' = atomize_goals subgoalth;
       val gt = Data.dest_Trueprop (Logic.get_goal (Thm.prop_of subgoalth') 1);
-      val sgn = Thm.sign_of_thm th;
+      val sgn = Thm.theory_of_thm th;
 
       val splitter_thm = mk_casesplit_goal_thm sgn fv gt;
       val nsplits = Thm.nprems_of splitter_thm;
@@ -186,7 +186,7 @@ fun casesplit_name vstr i th =
       val (n,ty) = case Library.get_first getter freets
                 of SOME (n, ty) => (n, ty)
                  | _ => error ("no such variable " ^ vstr);
-      val sgn = Thm.sign_of_thm th;
+      val sgn = Thm.theory_of_thm th;
 
       val splitter_thm = mk_casesplit_goal_thm sgn (n,ty) gt;
       val nsplits = Thm.nprems_of splitter_thm;
@@ -269,7 +269,7 @@ having to (re)search for variables to split. *)
 fun splitto splitths genth =
     let
       val _ = not (null splitths) orelse error "splitto: no given splitths";
-      val sgn = Thm.sign_of_thm genth;
+      val sgn = Thm.theory_of_thm genth;
 
       (* check if we are a member of splitths - FIXME: quicker and
       more flexible with discrim net. *)

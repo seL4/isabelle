@@ -177,8 +177,6 @@ fun make_primrec_Ts descr sorts used =
 
 fun make_primrecs new_type_names descr sorts thy =
   let
-    val sign = Theory.sign_of thy;
-
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
     val used = foldr add_typ_tfree_names [] recTs;
@@ -189,7 +187,7 @@ fun make_primrecs new_type_names descr sorts thy =
       (reccomb_fn_Ts ~~ (1 upto (length reccomb_fn_Ts)));
 
     val big_reccomb_name = (space_implode "_" new_type_names) ^ "_rec";
-    val reccomb_names = map (Sign.intern_const sign)
+    val reccomb_names = map (Sign.intern_const thy)
       (if length descr' = 1 then [big_reccomb_name] else
         (map ((curry (op ^) (big_reccomb_name ^ "_")) o string_of_int)
           (1 upto (length descr'))));
@@ -241,7 +239,7 @@ fun make_case_combs new_type_names descr sorts thy fname =
         in Ts ---> T' end) constrs) (hd descr);
 
     val case_names = map (fn s =>
-      Sign.intern_const (Theory.sign_of thy) (s ^ "_case")) new_type_names
+      Sign.intern_const thy (s ^ "_case")) new_type_names
   in
     map (fn ((name, Ts), T) => list_comb
       (Const (name, Ts @ [T] ---> T'),
@@ -360,7 +358,7 @@ fun make_size descr sorts thy =
 
     val size_name = "Nat.size";
     val size_names = replicate (length (hd descr)) size_name @
-      map (Sign.intern_const (Theory.sign_of thy)) (indexify_names
+      map (Sign.intern_const thy) (indexify_names
         (map (fn T => name_of_typ T ^ "_size") (Library.drop (length (hd descr), recTs))));
     val size_consts = map (fn (s, T) =>
       Const (s, T --> HOLogic.natT)) (size_names ~~ recTs);

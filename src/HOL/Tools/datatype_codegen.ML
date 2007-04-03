@@ -65,7 +65,6 @@ fun find_nonempty (descr: DatatypeAux.descr) is i =
 
 fun add_dt_defs thy defs dep module gr (descr: DatatypeAux.descr) =
   let
-    val sg = sign_of thy;
     val tab = DatatypePackage.get_datatypes thy;
 
     val descr' = List.filter (can (map DatatypeAux.dest_DtTFree o #2 o snd)) descr;

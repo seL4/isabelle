@@ -101,7 +101,7 @@ note: assumes rule is instantiated
 (* Note, we take abstraction in the order of last abstraction first *)
 fun mk_abstractedrule TsFake Ts rule = 
     let 
-      val ctermify = Thm.cterm_of (Thm.sign_of_thm rule);
+      val ctermify = Thm.cterm_of (Thm.theory_of_thm rule);
 
       (* now we change the names of temporary free vars that represent 
          bound vars with binders outside the redex *)
@@ -225,7 +225,7 @@ first abstraction first.  FakeTs has abstractions using the fake name
 fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm = 
     let 
       (* general signature info *)
-      val target_sign = (Thm.sign_of_thm target_thm);
+      val target_sign = (Thm.theory_of_thm target_thm);
       val ctermify = Thm.cterm_of target_sign;
       val ctypeify = Thm.ctyp_of target_sign;
 

@@ -371,7 +371,7 @@ fun add_hol4_const_mapping bthy bconst internal isaconst thy =
 	val thy = case opt_get_output_thy thy of
 		      "" => thy
 		    | output_thy => if internal
-				    then add_hol4_cmove (Sign.full_name (sign_of thy) bconst) (output_thy ^ "." ^ bthy ^ "." ^ bconst) thy
+				    then add_hol4_cmove (Sign.full_name thy bconst) (output_thy ^ "." ^ bthy ^ "." ^ bconst) thy
 				    else thy
 	val _ = message ("Adding cmap " ^ bthy ^ "." ^ bconst ^ " -> " ^ isaconst ^ (if internal then " (*)" else ""))
 	val curmaps = HOL4ConstMaps.get thy
@@ -413,7 +413,7 @@ fun add_hol4_const_wt_mapping bthy bconst internal isaconst typ thy =
 	val thy = case opt_get_output_thy thy of
 		      "" => thy
 		    | output_thy => if internal
-				    then add_hol4_cmove (Sign.full_name (sign_of thy) bconst) (output_thy ^ "." ^ bthy ^ "." ^ bconst) thy
+				    then add_hol4_cmove (Sign.full_name thy bconst) (output_thy ^ "." ^ bthy ^ "." ^ bconst) thy
 				    else thy
 	val _ = message ("Adding cmap " ^ bthy ^ "." ^ bconst ^ " -> " ^ isaconst ^ (if internal then " (*)" else ""))
 	val curmaps = HOL4ConstMaps.get thy
@@ -437,7 +437,7 @@ fun add_hol4_type_mapping bthy bconst internal isaconst thy =
 
 fun add_hol4_pending bthy bthm hth thy =
     let
-	val thmname = Sign.full_name (sign_of thy) bthm
+	val thmname = Sign.full_name thy bthm
 	val _ = message ("Add pending " ^ bthy ^ "." ^ bthm)
 	val curpend = HOL4Pending.get thy
 	val newpend = StringPair.update_new ((bthy,bthm),hth) curpend

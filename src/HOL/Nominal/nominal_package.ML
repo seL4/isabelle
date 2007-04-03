@@ -142,7 +142,7 @@ fun indtac indrule indnames i st =
             [Free (s, T)] => absfree (s, T, t2)
           | _ => sys_error "indtac")
       | SOME (_ $ t') => Abs ("x", fastype_of t', abstract_over (t', t2)))
-    val cert = cterm_of (Thm.sign_of_thm st);
+    val cert = cterm_of (Thm.theory_of_thm st);
     val Ps = map (cert o head_of o snd o getP) ts;
     val indrule' = cterm_instantiate (Ps ~~
       (map (cert o abstr o getP) ts')) indrule
@@ -157,7 +157,7 @@ fun mk_subgoal i f st =
     val revcut_rl' = Thm.lift_rule cg revcut_rl;
     val v = head_of (Logic.strip_assums_concl (hd (prems_of revcut_rl')));
     val ps = Logic.strip_params g;
-    val cert = cterm_of (sign_of_thm st);
+    val cert = cterm_of (Thm.theory_of_thm st);
   in
     compose_tac (false,
       Thm.instantiate ([], [(cert v, cert (list_abs (ps,
@@ -244,8 +244,6 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       Theory.add_types (map (fn (tvs, tname, mx, _) =>
         (tname, length tvs, mx)) dts);
 
-    val sign = Theory.sign_of tmp_thy;
-
     val atoms = atoms_of thy;
     val classes = map (NameSpace.map_base (fn s => "pt_" ^ s)) atoms;
     val cp_classes = List.concat (map (fn atom1 => map (fn atom2 =>
@@ -255,7 +253,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val augment_sort_typ = map_type_tfree (fn (s, S) => TFree (s, augment_sort S));
 
     fun prep_constr ((constrs, sorts), (cname, cargs, mx)) =
-      let val (cargs', sorts') = Library.foldl (prep_typ sign) (([], sorts), cargs)
+      let val (cargs', sorts') = Library.foldl (prep_typ tmp_thy) (([], sorts), cargs)
       in (constrs @ [(cname, cargs', mx)], sorts') end
 
     fun prep_dt_spec ((dts, sorts), (tvs, tname, mx, constrs)) =
@@ -271,7 +269,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       map (fn (cname, cargs, mx) => (cname, mx)) constrs) dts';
 
     val ps = map (fn (_, n, _, _) =>
-      (Sign.full_name sign n, Sign.full_name sign (n ^ "_Rep"))) dts;
+      (Sign.full_name tmp_thy n, Sign.full_name tmp_thy (n ^ "_Rep"))) dts;
     val rps = map Library.swap ps;
 
     fun replace_types (Type ("Nominal.ABS", [T, U])) =
@@ -285,7 +283,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         map (augment_sort_typ o replace_types) cargs, NoSyn)) constrs)) dts';
 
     val new_type_names' = map (fn n => n ^ "_Rep") new_type_names;
-    val full_new_type_names' = map (Sign.full_name (sign_of thy)) new_type_names';
+    val full_new_type_names' = map (Sign.full_name thy) new_type_names';
 
     val ({induction, ...},thy1) =
       DatatypePackage.add_datatype_i err flat_names new_type_names' dts'' thy;
@@ -302,7 +300,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       let val T = nth_dtyp i
       in permT --> T --> T end) descr;
     val perm_names = replicate (length new_type_names) "Nominal.perm" @
-      DatatypeProp.indexify_names (map (fn i => Sign.full_name (sign_of thy1)
+      DatatypeProp.indexify_names (map (fn i => Sign.full_name thy1
         ("perm_" ^ name_of_typ (nth_dtyp i)))
           (length new_type_names upto length descr - 1));
     val perm_names_types = perm_names ~~ perm_types;
@@ -797,7 +795,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val newTs' = Library.take (length new_type_names, recTs');
     val newTs = Library.take (length new_type_names, recTs);
 
-    val full_new_type_names = map (Sign.full_name (sign_of thy)) new_type_names;
+    val full_new_type_names = map (Sign.full_name thy) new_type_names;
 
     fun make_constr_def tname T T' ((thy, defs, eqns),
         (((cname_rep, _), (cname, cargs)), (cname', mx))) =
@@ -820,8 +818,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           end
 
         val (_, l_args, r_args) = foldr constr_arg (1, [], []) cargs;
-        val abs_name = Sign.intern_const (Theory.sign_of thy) ("Abs_" ^ tname);
-        val rep_name = Sign.intern_const (Theory.sign_of thy) ("Rep_" ^ tname);
+        val abs_name = Sign.intern_const thy ("Abs_" ^ tname);
+        val rep_name = Sign.intern_const thy ("Rep_" ^ tname);
         val constrT = map fastype_of l_args ---> T;
         val lhs = list_comb (Const (cname, constrT), l_args);
         val rhs = list_comb (Const (cname_rep, map fastype_of r_args ---> T'), r_args);
@@ -1450,7 +1448,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       if length descr'' = 1 then [big_rec_name] else
         map ((curry (op ^) (big_rec_name ^ "_")) o string_of_int)
           (1 upto (length descr''));
-    val rec_set_names =  map (Sign.full_name (Theory.sign_of thy10)) rec_set_names';
+    val rec_set_names =  map (Sign.full_name thy10) rec_set_names';
 
     val rec_fns = map (uncurry (mk_Free "f"))
       (rec_fn_Ts ~~ (1 upto (length rec_fn_Ts)));

@@ -150,7 +150,7 @@ fun find_tname var Bi =
 
 fun infer_tname state i aterm =
   let
-    val sign = Thm.sign_of_thm state;
+    val sign = Thm.theory_of_thm state;
     val (_, _, Bi, _) = Thm.dest_state (state, i)
     val params = Logic.strip_params Bi;   (*params of subgoal i*)
     val params = rev (rename_wrt_term Bi params);   (*as they are printed*)
@@ -229,7 +229,7 @@ fun gen_case_tac inst_tac (t, SOME rule) i state =
       let val tn = infer_tname state i t in
         if tn = HOLogic.boolN then inst_tac [(("P", 0), t)] case_split_thm i state
         else case_inst_tac inst_tac t
-               (#exhaustion (the_datatype (Thm.sign_of_thm state) tn))
+               (#exhaustion (the_datatype (Thm.theory_of_thm state) tn))
                i state
       end handle THM _ => Seq.empty;
 
