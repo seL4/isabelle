@@ -2,8 +2,6 @@
     ID:         $Id$
 
 Compatibility file for Alice 1.4 (CVS version).
-val ml_system = "alice";
-use "ML-Systems/alice.ML";
 *)
 
 fun exit 0 = (OS.Process.exit OS.Process.success): unit
