@@ -1,10 +1,9 @@
 (*  Title:      Pure/ML-Systems/alice.ML
     ID:         $Id$
 
-Compatibility file for Alice 1.3.
+Compatibility file for Alice 1.4 (CVS version).
 val ml_system = "alice";
 use "ML-Systems/alice.ML";
-
 *)
 
 fun exit 0 = (OS.Process.exit OS.Process.success): unit
@@ -23,8 +22,8 @@ exception Ord;
 fun ord "" = raise Ord
   | ord s = Char.ord (String.sub (s, 0));
 
-val chr = Char.toString o chr;
-val explode = map Char.toString o String.explode;
+val chr = String.str o chr;
+val explode = map String.str o String.explode;
 val implode = String.concat;
 
 
