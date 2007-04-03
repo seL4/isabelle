@@ -89,17 +89,18 @@ fun insts_of thy algebra c ty_decl ty =
   let
     val tys_decl = Sign.const_typargs thy (c, ty_decl);
     val tys = Sign.const_typargs thy (c, ty);
-    fun classrel (x, _) _ = x;
-    fun constructor tyco xs class =
+    fun class_relation (x, _) _ = x;
+    fun type_constructor tyco xs class =
       (tyco, class) :: maps (maps fst) xs;
-    fun variable (TVar (_, sort)) = map (pair []) sort
-      | variable (TFree (_, sort)) = map (pair []) sort;
+    fun type_variable (TVar (_, sort)) = map (pair []) sort
+      | type_variable (TFree (_, sort)) = map (pair []) sort;
     fun mk_inst ty (TVar (_, sort)) = cons (ty, sort)
       | mk_inst ty (TFree (_, sort)) = cons (ty, sort)
       | mk_inst (Type (_, tys1)) (Type (_, tys2)) = fold2 mk_inst tys1 tys2;
     fun of_sort_deriv (ty, sort) =
       Sorts.of_sort_derivation (Sign.pp thy) algebra
-        { classrel = classrel, constructor = constructor, variable = variable }
+        { class_relation = class_relation, type_constructor = type_constructor,
+          type_variable = type_variable }
         (ty, sort)
   in
     flat (maps of_sort_deriv (fold2 mk_inst tys tys_decl []))

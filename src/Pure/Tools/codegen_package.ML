@@ -210,18 +210,19 @@ fun exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr strct (ty
     datatype typarg =
         Global of (class * string) * typarg list list
       | Local of (class * class) list * (string * (int * sort));
-    fun classrel (Global ((_, tyco), yss), _) class =
+    fun class_relation (Global ((_, tyco), yss), _) class =
           Global ((class, tyco), yss)
-      | classrel (Local (classrels, v), subclass) superclass =
+      | class_relation (Local (classrels, v), subclass) superclass =
           Local ((subclass, superclass) :: classrels, v);
-    fun constructor tyco yss class =
+    fun type_constructor tyco yss class =
       Global ((class, tyco), (map o map) fst yss);
-    fun variable (TFree (v, sort)) =
+    fun type_variable (TFree (v, sort)) =
       let
         val sort' = proj_sort sort;
       in map_index (fn (n, class) => (Local ([], (v, (n, sort'))), class)) sort' end;
     val typargs = Sorts.of_sort_derivation pp algebra
-      {classrel = classrel, constructor = constructor, variable = variable}
+      {class_relation = class_relation, type_constructor = type_constructor,
+       type_variable = type_variable}
       (ty_ctxt, proj_sort sort_decl);
     fun mk_dict (Global (inst, yss)) =
           ensure_def_inst thy algbr funcgr strct inst

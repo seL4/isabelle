@@ -52,9 +52,9 @@ sig
   val mg_domain: algebra -> string -> sort -> sort list   (*exception CLASS_ERROR*)
   val of_sort: algebra -> typ * sort -> bool
   val of_sort_derivation: Pretty.pp -> algebra ->
-    {classrel: 'a * class -> class -> 'a,
-     constructor: string -> ('a * class) list list -> class -> 'a,
-     variable: typ -> ('a * class) list} ->
+    {class_relation: 'a * class -> class -> 'a,
+     type_constructor: string -> ('a * class) list list -> class -> 'a,
+     type_variable: typ -> ('a * class) list} ->
     typ * sort -> 'a list   (*exception CLASS_ERROR*)
   val witness_sorts: algebra -> string list -> sort list -> sort list -> (typ * sort) list
 end;
@@ -348,11 +348,11 @@ fun of_sort algebra =
 
 (* of_sort_derivation *)
 
-fun of_sort_derivation pp algebra {classrel, constructor, variable} =
+fun of_sort_derivation pp algebra {class_relation, type_constructor, type_variable} =
   let
     val {classes, arities} = rep_algebra algebra;
     fun weaken_path (x, c1 :: c2 :: cs) =
-          weaken_path (classrel (x, c1) c2, c2 :: cs)
+          weaken_path (class_relation (x, c1) c2, c2 :: cs)
       | weaken_path (x, _) = x;
     fun weaken (x, c1) c2 =
       (case Graph.irreducible_paths classes (c1, c2) of
@@ -375,9 +375,9 @@ fun of_sort_derivation pp algebra {classrel, constructor, variable} =
               let
                 val (c0, Ss') = the (AList.lookup (op =) (Symtab.lookup_list arities a) c);
                 val dom' = map2 (fn d => fn S' => weakens d S' ~~ S') dom Ss';
-              in weaken (constructor a dom' c0, c0) c end)
+              in weaken (type_constructor a dom' c0, c0) c end)
           end
-      | derive T S = weakens (variable T) S;
+      | derive T S = weakens (type_variable T) S;
   in uncurry derive end;
 
 

@@ -436,13 +436,13 @@ fun derive_type _ (_, []) = []
         val hyps = vars
           |> map (fn (T, S) => (T, Drule.sort_triv thy (T, S) ~~ S));
         val ths = (typ, sort) |> Sorts.of_sort_derivation (Sign.pp thy) (Sign.classes_of thy)
-           {classrel =
+           {class_relation =
               fn (th, c1) => fn c2 => th RS the_classrel thy (c1, c2),
-            constructor =
+            type_constructor =
               fn a => fn dom => fn c =>
                 let val Ss = map (map snd) dom and ths = maps (map fst) dom
                 in ths MRS the_arity thy a (c, Ss) end,
-            variable =
+            type_variable =
               the_default [] o AList.lookup (op =) hyps};
       in ths end;
 
