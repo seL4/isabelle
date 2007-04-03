@@ -623,7 +623,7 @@ fun eq_hook specs =
         val const = ("op =", SOME dtco);
         val get_thms = (fn () => get_eq (Theory.deref thy_ref) dtco |> rev);
       in
-        CodegenData.add_funcl (const, CodegenData.lazy get_thms) thy
+        CodegenData.add_funcl (const, CodegenData.lazy_thms get_thms) thy
       end;
   in
     prove_codetypes_arities (ClassPackage.intro_classes_tac [])

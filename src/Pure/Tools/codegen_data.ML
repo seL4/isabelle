@@ -8,7 +8,7 @@ executable content.
 
 signature CODEGEN_DATA =
 sig
-  val lazy: (unit -> thm list) -> thm list Susp.T
+  val lazy_thms: (unit -> thm list) -> thm list Susp.T
   val eval_always: bool ref
 
   val add_func: bool -> thm -> theory -> theory
@@ -62,7 +62,7 @@ fun tracing f x = (if !trace then Output.tracing (f x) else (); x);
 
 val eval_always = ref false;
 
-fun lazy f = if !eval_always
+fun lazy_thms f = if !eval_always
   then Susp.value (f ())
   else Susp.delay f;
 
@@ -79,7 +79,7 @@ fun certificate thy f r =
    of SOME thms => (Susp.value o f thy) thms
      | NONE => let
           val thy_ref = Theory.self_ref thy;
-        in lazy (fn () => (f (Theory.deref thy_ref) o Susp.force) r) end;
+        in lazy_thms (fn () => (f (Theory.deref thy_ref) o Susp.force) r) end;
 
 fun merge' _ ([], []) = (false, [])
   | merge' _ ([], ys) = (true, ys)
@@ -100,7 +100,7 @@ fun merge_lthms (r1, r2) =
    of SOME [] => (true, r2)
     | _ => case Susp.peek r2
        of SOME [] => (true, r1)
-        | _ => (apsnd (lazy o K)) (merge_thms (Susp.force r1, Susp.force r2));
+        | _ => (apsnd (lazy_thms o K)) (merge_thms (Susp.force r1, Susp.force r2));
 
 
 
@@ -128,7 +128,7 @@ fun add_thm thm (sels, dels) =
   apfst Susp.value (add_drop_redundant thm (Susp.force sels, dels));
 
 fun add_lthms lthms (sels, []) =
-      (lazy (fn () => fold add_drop_redundant
+      (lazy_thms (fn () => fold add_drop_redundant
         (Susp.force lthms) (Susp.force sels, []) |> fst), [])
         (*FIXME*)
   | add_lthms lthms (sels, dels) =
@@ -146,7 +146,7 @@ fun merge_sdthms ((sels1, dels1), (sels2, dels2)) =
     then let
       val (_, sels) = merge_thms (Susp.force sels1, subtract Thm.eq_thm dels1 (Susp.force sels2))
       val (_, dels) = merge_thms (dels1, subtract Thm.eq_thm (Susp.force sels1) dels2)
-    in (true, ((lazy o K) sels, dels)) end
+    in (true, ((lazy_thms o K) sels, dels)) end
     else let
       val (sels_t, sels) = merge_lthms (sels1, sels2)
     in (sels_t, (sels, dels)) end
