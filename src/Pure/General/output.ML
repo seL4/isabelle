@@ -2,30 +2,15 @@
     ID:         $Id$
     Author:     Makarius, Hagia Maria Sion Abbey (Jerusalem)
 
-Output channels and diagnostic messages.
+Output channels and timing messages.
 *)
 
 signature BASIC_OUTPUT =
 sig
-  val print_mode: string list ref
-  val std_output: string -> unit
-  val std_error: string -> unit
-  val immediate_output: string -> unit
-  val writeln_default: string -> unit
-  val writeln_fn: (string -> unit) ref    (*default output (in messages window)*)
-  val priority_fn: (string -> unit) ref   (*high-priority (maybe modal/pop-up; must be displayed)*)
-  val tracing_fn: (string -> unit) ref    (*tracing message (possibly in tracing window)*)
-  val warning_fn: (string -> unit) ref    (*display warning of non-fatal situation*)
-  val error_fn: (string -> unit) ref      (*display fatal error (possibly modal msg)*)
-  val panic_fn: (string -> unit) ref      (*unrecoverable fatal error; exits system!*)
-  val info_fn: (string -> unit) ref       (*incidental information message (e.g. timing)*)
-  val debug_fn: (string -> unit) ref      (*internal debug messages*)
   val writeln: string -> unit
   val priority: string -> unit
   val tracing: string -> unit
   val warning: string -> unit
-  val debugging: bool ref
-  val no_warnings: ('a -> 'b) -> 'a -> 'b
   val timing: bool ref
   val cond_timeit: bool -> (unit -> 'a) -> 'a
   val timeit: (unit -> 'a) -> 'a
@@ -37,19 +22,30 @@ end;
 signature OUTPUT =
 sig
   include BASIC_OUTPUT
-  val has_mode: string -> bool
   val output_width: string -> string * real
   val output: string -> string
   val keyword_width: bool -> string -> string * real
   val keyword: bool -> string -> string
   val indent: string * int -> string
   val raw: string -> string
+  val std_output: string -> unit
+  val std_error: string -> unit
+  val immediate_output: string -> unit
+  val writeln_default: string -> unit
+  val writeln_fn: (string -> unit) ref
+  val priority_fn: (string -> unit) ref
+  val tracing_fn: (string -> unit) ref
+  val warning_fn: (string -> unit) ref
+  val error_fn: (string -> unit) ref
+  val panic_fn: (string -> unit) ref
+  val debug_fn: (string -> unit) ref
+  val debugging: bool ref
+  val no_warnings: ('a -> 'b) -> 'a -> 'b
   exception TOPLEVEL_ERROR
   val do_toplevel_errors: bool ref
   val toplevel_errors: ('a -> 'b) -> 'a -> 'b
   val ML_errors: ('a -> 'b) -> 'a -> 'b
   val panic: string -> unit
-  val info: string -> unit
   val debug: (unit -> string) -> unit
   val error_msg: string -> unit
   val ml_output: (string -> unit) * (string -> unit)
@@ -62,11 +58,7 @@ end;
 structure Output: OUTPUT =
 struct
 
-(** print modes **)
-
-val print_mode = ref ([]: string list);
-
-fun has_mode s = member (op =) (! print_mode) s;
+(** output functions **)
 
 type mode_fns =
  {output: string -> string * real,
@@ -114,14 +106,12 @@ val tracing_fn = ref (fn s => ! writeln_fn s);
 val warning_fn = ref (std_output o suffix "\n" o prefix_lines "### ");
 val error_fn = ref (std_output o suffix "\n" o prefix_lines "*** ");
 val panic_fn = ref (std_output o suffix "\n" o prefix_lines "!!! ");
-val info_fn = ref (std_output o suffix "\n" o prefix_lines  "+++ ");
 val debug_fn = ref (std_output o suffix "\n" o prefix_lines "::: ");
 
 fun writeln s = ! writeln_fn (output s);
 fun priority s = ! priority_fn (output s);
 fun tracing s = ! tracing_fn (output s);
 fun warning s = ! warning_fn (output s);
-fun info s = ! info_fn (output s);
 
 fun no_warnings f = setmp warning_fn (K ()) f;
 
@@ -171,7 +161,7 @@ fun cond_timeit flag f =
   if flag then
     let val start = start_timing ()
         val result = f ()
-    in info (end_timing start); result end
+    in warning (end_timing start); result end
   else f ();
 
 (*unconditional timing function*)
@@ -179,7 +169,7 @@ fun timeit x = cond_timeit true x;
 
 (*timed application function*)
 fun timeap f x = timeit (fn () => f x);
-fun timeap_msg s f x = (info s; timeap f x);
+fun timeap_msg s f x = (warning s; timeap f x);
 
 
 (* accumulated timing *)
@@ -230,7 +220,7 @@ fun time_finish ti =
     fun secs prfx time = prfx ^ Time.toString time;
     val {name, timer, sys, usr, gc, count} = time_check ti;
   in
-    info ("Total of " ^ quote name ^ ": " ^
+    warning ("Total of " ^ quote name ^ ": " ^
       secs "User " usr ^ secs "  GC " gc ^ secs "  All " (Time.+ (sys, Time.+ (usr, gc))) ^
       " secs in " ^ string_of_int count ^ " calls");
     time_reset ti
