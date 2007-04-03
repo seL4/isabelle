@@ -36,7 +36,7 @@ sig
   val fact_morphism: (thm list -> thm list) -> morphism
   val thm_morphism: (thm -> thm) -> morphism
   val identity: morphism
-  val comp: morphism -> morphism -> morphism
+  val compose: morphism -> morphism -> morphism
 end;
 
 structure Morphism: MORPHISM =
@@ -68,13 +68,13 @@ fun thm_morphism thm = morphism {name = I, var = I, typ = I, term = I, fact = ma
 
 val identity = morphism {name = I, var = I, typ = I, term = I, fact = I};
 
-fun comp
+fun compose
     (Morphism {name = name1, var = var1, typ = typ1, term = term1, fact = fact1})
     (Morphism {name = name2, var = var2, typ = typ2, term = term2, fact = fact2}) =
   morphism {name = name1 o name2, var = var1 o var2,
     typ = typ1 o typ2, term = term1 o term2, fact = fact1 o fact2};
 
-fun phi1 $> phi2 = comp phi2 phi1;
+fun phi1 $> phi2 = compose phi2 phi1;
 
 end;
 
