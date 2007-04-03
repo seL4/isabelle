@@ -666,7 +666,7 @@ fun app int (tr as Transition {trans, int_only, print, no_timing, ...}) state =
       if not int andalso int_only then warning (command_msg "Interactive-only " tr)
       else ();
 
-    fun do_timing f x = (Output.info (command_msg "" tr); timeap f x);
+    fun do_timing f x = (warning (command_msg "" tr); timeap f x);
     fun do_profiling f x = profile (! profiling) f x;
 
     val (result, opt_exn) =

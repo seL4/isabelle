@@ -622,7 +622,7 @@ fun print_witness wit =
         val tfrees = map string_of_tfree (Term.add_tfrees t []);
         val tvars = map string_of_tvar (Term.add_tvars t []);
       in term :: tfrees @ tvars end;
-  in (map Output.info (print_term t); map Output.info (print_term prop)) end;
+  in (map warning (print_term t); map warning (print_term prop)) end;
 
 fun add_def_in_class lthy class ((c, syn), ((name, atts), (rhs, eq))) thy =
   let
@@ -643,28 +643,28 @@ fun add_def_in_class lthy class ((c, syn), ((name, atts), (rhs, eq))) thy =
       thy
       |> PureThy.add_defs_i false [((name, prop), map (Attrib.attribute thy) atts)]
       |>> the_single;
-    val _ = Output.info "------ DEF ------";
-    val _ = Output.info c;
-    val _ = Output.info name;
-    val _ = (Output.info o Sign.string_of_term thy) rhs';
+    val _ = warning "------ DEF ------";
+    val _ = warning c;
+    val _ = warning name;
+    val _ = (warning o Sign.string_of_term thy) rhs';
     val eq' = Morphism.thm (LocalTheory.target_morphism lthy) eq;
-    val _ = (Output.info o string_of_thm) eq;
-    val _ = (Output.info o string_of_thm) eq';
+    val _ = (warning o string_of_thm) eq;
+    val _ = (warning o string_of_thm) eq';
     val witness = the_witness thy class;
-    val _ = Output.info "------ WIT ------";
+    val _ = warning "------ WIT ------";
     fun print_wit (t, thm) = "(" ^ Sign.string_of_term thy t ^ ", " ^ Display.string_of_thm thm ^ ")"
     fun print_raw_wit (t, thm) = "(" ^ Display.raw_string_of_term t ^ ", " ^ (Display.raw_string_of_term o Thm.prop_of) thm ^ ")"
-    val _ = (Output.info o cat_lines o map (print_wit o Element.dest_witness)) witness;
+    val _ = (warning o cat_lines o map (print_wit o Element.dest_witness)) witness;
     val _ = map print_witness witness;
-    val _ = (Output.info o string_of_thm) eq';
+    val _ = (warning o string_of_thm) eq';
     val eq'' = Element.satisfy_thm witness eq';
-    val _ = (Output.info o string_of_thm) eq'';
+    val _ = (warning o string_of_thm) eq'';
   in
     thy
     |> Sign.add_path prfx
     |> add_const (c, ty, syn')
     |-> (fn c => add_def ((name, atts), Logic.mk_equals (Const c, rhs')))
-    |-> (fn global_def_thm => tap (fn _ => (Output.info o string_of_thm) global_def_thm))
+    |-> (fn global_def_thm => tap (fn _ => (warning o string_of_thm) global_def_thm))
     |> Sign.restore_naming thy
   end;
 
