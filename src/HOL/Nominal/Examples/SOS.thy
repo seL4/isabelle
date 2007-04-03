@@ -723,24 +723,12 @@ next
   then have "e\<^isub>2[x\<^isub>2::=e'] \<Down> t\<^isub>2" using h by (simp add: trm.inject)
   thus "e'' = t\<^isub>2" using ih2 by simp
 next
-  case b_Const
-  then show ?case by force
-next
-  case b_Pr
-  then show ?case by blast
-next
   case b_Fst
   then show ?case by (force simp add: trm.inject)
 next
   case b_Snd
   then show ?case by (force simp add: trm.inject)
-next
-  case b_InL 
-  then show ?case by blast 
-next
-  case b_InR 
-  then show ?case by blast
-qed 
+qed (blast)+
 
 lemma not_val_App[simp]:
   shows 
