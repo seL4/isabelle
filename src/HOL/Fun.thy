@@ -579,7 +579,7 @@ local
     simp_tac (Simplifier.inherit_context ss current_ss) 1
 in
   val fun_upd2_simproc =
-    Simplifier.simproc (Theory.sign_of (the_context ()))
+    Simplifier.simproc @{theory}
       "fun_upd2" ["f(v := w, x := y)"]
       (fn _ => fn ss => fn t =>
         case find_double t of (T, NONE) => NONE

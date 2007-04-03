@@ -38,15 +38,14 @@ structure Hypsubst_Data =
   val imp_intr = impI
 
   (*etac rev_cut_eq moves an equality to be the last premise. *)
-  val rev_cut_eq = prove_goal (the_context ())
+  val rev_cut_eq = prove_goal @{theory}
                 "[| p:a=b;  !!x. x:a=b ==> f(x):R |] ==> ?p:R"
    (fn prems => [ REPEAT(resolve_tac prems 1) ]);
 
   val rev_mp = rev_mp
   val subst = subst
   val sym = sym
-  val thin_refl = prove_goal (the_context ())
-                  "!!X. [|p:x=x; PROP W|] ==> PROP W" (K [atac 1]);
+  val thin_refl = prove_goal @{theory} "!!X. [|p:x=x; PROP W|] ==> PROP W" (K [atac 1]);
   end;
 
 structure Hypsubst = HypsubstFun(Hypsubst_Data);
