@@ -66,7 +66,7 @@ val proof_pref =
 
 val thm_deps_pref = 
     let 
-	fun get () = PgipTypes.bool_to_pgstring (Output.has_mode thm_depsN)
+	fun get () = PgipTypes.bool_to_pgstring (print_mode_active thm_depsN)
 	fun set s = if PgipTypes.read_pgipbool s then 
 			change print_mode (insert (op =) thm_depsN)
 		    else 

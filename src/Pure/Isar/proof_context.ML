@@ -290,7 +290,7 @@ fun pretty_term' abbrevs ctxt t =
     val thy = theory_of ctxt;
     val syntax = syntax_of ctxt;
     val consts = consts_of ctxt;
-    val do_abbrevs = abbrevs andalso not (Output.has_mode "no_abbrevs");
+    val do_abbrevs = abbrevs andalso not (print_mode_active "no_abbrevs");
     val t' = t
       |> do_abbrevs ? rewrite_term true thy (Consts.abbrevs_of consts (! print_mode @ [""]))
       |> do_abbrevs ? rewrite_term false thy (Consts.abbrevs_of consts [Syntax.internalM])
