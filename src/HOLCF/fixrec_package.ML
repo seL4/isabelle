@@ -38,11 +38,7 @@ val mk_trp = HOLogic.mk_Trueprop;
 
 (* splits a cterm into the right and lefthand sides of equality *)
 fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t);
-(*
-fun dest_eqs (Const ("==", _)$lhs$rhs) = (lhs, rhs)
-  | dest_eqs (Const ("Trueprop", _)$(Const ("op =", _)$lhs$rhs)) = (lhs,rhs)
-  | dest_eqs t = fixrec_err (Sign.string_of_term (sign_of (the_context())) t);
-*)
+
 (* similar to Thm.head_of, but for continuous application *)
 fun chead_of (Const("Cfun.Rep_CFun",_)$f$t) = chead_of f
   | chead_of u = u;
