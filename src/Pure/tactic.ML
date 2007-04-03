@@ -515,6 +515,15 @@ fun rename_params_tac xs i =
              Logic.auto_rename := false)
         else (); PRIMITIVE (rename_params_rule (xs, i)));
 
+(*scan a list of characters into "words" composed of "letters" (recognized by
+  is_let) and separated by any number of non-"letters"*)
+fun scanwords is_let cs =
+  let fun scan1 [] = []
+        | scan1 cs =
+            let val (lets, rest) = take_prefix is_let cs
+            in implode lets :: scanwords is_let rest end;
+  in scan1 (#2 (take_prefix (not o is_let) cs)) end;
+
 fun rename_tac str i =
   let val cs = Symbol.explode str in
   case #2 (take_prefix (Symbol.is_letdig orf Symbol.is_blank) cs) of
