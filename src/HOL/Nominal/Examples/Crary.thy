@@ -6,7 +6,7 @@
 (* Types and Programming Languages, MIT Press 2005    *)
 
 (* The formalisation was done by Julien Narboux and   *)
-(* Christian Urban                                    *)
+(* Christian Urban.                                   *)
 
 theory Crary
   imports "../Nominal"
@@ -479,8 +479,7 @@ inductive_cases2 alg_path_equiv_Lam_right_inv_auto[elim]: "\<Gamma> \<turnstile>
 declare trm.inject [simp del]
 declare ty.inject [simp del]
 
-
-(* FIXME this lemma should not be here I am reinventing the wheel I guess *)
+(* FIXME this lemma should not be here *)
 lemma perm_basic[simp]:
  fixes x y::"name"
 shows "[(x,y)]\<bullet>y = x"
@@ -499,13 +498,14 @@ proof -
 qed
 
 (*
+Warning this lemma is false:
+
 lemma algorithmic_type_unicity:
   shows "\<lbrakk> \<Gamma> \<turnstile> s \<Leftrightarrow> t : T ; \<Gamma> \<turnstile> s \<Leftrightarrow> u : T' \<rbrakk> \<Longrightarrow> T = T'"
   and "\<lbrakk> \<Gamma> \<turnstile> s \<leftrightarrow> t : T ; \<Gamma> \<turnstile> s \<leftrightarrow> u : T' \<rbrakk> \<Longrightarrow> T = T'"
 
 Here is the counter example : 
 \<Gamma> \<turnstile> Const n \<Leftrightarrow> Const n : Tbase and \<Gamma> \<turnstile> Const n \<Leftrightarrow> Const n : TUnit
-
 *)
 
 lemma algorithmic_path_type_unicity:
@@ -947,7 +947,6 @@ proof -
   then have "\<Gamma> \<turnstile> s is t : T" by simp
   then show  "\<Gamma> \<turnstile> s \<Leftrightarrow> t : T" using main_lemma(1) val by simp
 qed
-
 
 text {* We leave soundness as an exercise - like in the book :-) \\ 
  @{prop[mode=IfThen] "\<lbrakk>\<Gamma> \<turnstile> s \<Leftrightarrow> t : T; \<Gamma> \<turnstile> t : T; \<Gamma> \<turnstile> s : T\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s \<equiv> t : T"} \\

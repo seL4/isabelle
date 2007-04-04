@@ -7,6 +7,9 @@
 (*                                                   *) 
 (* We thank Nick Benton for helping us with the      *) 
 (* termination-proof for evaluation.                 *)
+(*                                                   *)
+(* The formalisation was done by Julien Narboux and  *)
+(* Christian Urban.                                  *)
 
 theory SOS
   imports "../Nominal"
@@ -723,11 +726,17 @@ next
   then have "e\<^isub>2[x\<^isub>2::=e'] \<Down> t\<^isub>2" using h by (simp add: trm.inject)
   thus "e'' = t\<^isub>2" using ih2 by simp
 next
-  case b_Fst
-  then show ?case by (force simp add: trm.inject)
+  case (b_Fst e e\<^isub>1 e\<^isub>2 e\<^isub>2')
+  have "e \<Down> Pr e\<^isub>1 e\<^isub>2" by fact
+  have "\<And> b. e \<Down> b \<Longrightarrow> Pr e\<^isub>1 e\<^isub>2 = b" by fact
+  have "Fst e \<Down> e\<^isub>2'" by fact
+  show "e\<^isub>1 = e\<^isub>2'" using prems by (force simp add: trm.inject)
 next
-  case b_Snd
-  then show ?case by (force simp add: trm.inject)
+  case (b_Snd e e\<^isub>1 e\<^isub>2 e\<^isub>2')
+  have "e \<Down> Pr e\<^isub>1 e\<^isub>2" by fact
+  have "\<And> b. e \<Down> b \<Longrightarrow> Pr e\<^isub>1 e\<^isub>2 = b" by fact
+  have "Snd e \<Down> e\<^isub>2'" by fact
+  show "e\<^isub>2 = e\<^isub>2'" using prems by (force simp add: trm.inject)
 qed (blast)+
 
 lemma not_val_App[simp]:
