@@ -48,7 +48,7 @@ sig
     (((indexname * sort) * typ) list * ((indexname * typ) * term) list) * Proof.context
   val importT_terms: term list -> Proof.context -> term list * Proof.context
   val import_terms: bool -> term list -> Proof.context -> term list * Proof.context
-  val importT: thm list -> Proof.context -> (ctyp list * thm list) * Proof.context
+  val importT_thms: thm list -> Proof.context -> (ctyp list * thm list) * Proof.context
   val import_prf: bool -> Proofterm.proof -> Proof.context -> Proofterm.proof * Proof.context
   val import_thms: bool -> thm list -> Proof.context ->
     ((ctyp list * cterm list) * thm list) * Proof.context
@@ -377,7 +377,7 @@ fun import_terms is_open ts ctxt =
   let val (inst, ctxt') = import_inst is_open ts ctxt
   in (map (TermSubst.instantiate inst) ts, ctxt') end;
 
-fun importT ths ctxt =
+fun importT_thms ths ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val certT = Thm.ctyp_of thy;
@@ -410,7 +410,7 @@ fun gen_trade imp exp f ctxt ths =
   let val ((_, ths'), ctxt') = imp ths ctxt
   in exp ctxt' ctxt (f ctxt' ths') end;
 
-val tradeT = gen_trade importT exportT;
+val tradeT = gen_trade importT_thms exportT;
 val trade = gen_trade (import_thms true) export;
 
 
