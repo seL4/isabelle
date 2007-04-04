@@ -150,6 +150,8 @@ where
 | subcls         : "G\<turnstile>C\<preceq>C D ==> G\<turnstile>Class C \<preceq> Class D"
 | null   [intro!]:             "G\<turnstile>     NT \<preceq> RefT R"
 
+lemmas refl = HOL.refl
+
 -- "casting conversion, cf. 5.5 / 5.1.5"
 -- "left out casts on primitve types"
 inductive2
