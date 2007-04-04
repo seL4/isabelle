@@ -195,8 +195,8 @@ fun gen_induct_tac inst_tac (varss, opt_rule) i state =
           SOME r => (r, "Induction rule")
         | NONE =>
             let val tn = find_tname (hd (map_filter I (flat varss))) Bi
-                val {sign, ...} = Thm.rep_thm state
-            in (#induction (the_datatype sign tn), "Induction rule for type " ^ tn) 
+                val thy = Thm.theory_of_thm state
+            in (#induction (the_datatype thy tn), "Induction rule for type " ^ tn) 
             end
     val concls = HOLogic.dest_concls (Thm.concl_of rule);
     val insts = maps prep_inst (concls ~~ varss) handle Library.UnequalLengths =>
@@ -825,7 +825,8 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       ||>> fold_map apply_theorems raw_inject
       ||>> apply_theorems [raw_induction];
 
-    val ((_, [induction']), _) = Variable.importT [induction] (Variable.thm_context induction);
+    val ((_, [induction']), _) =
+      Variable.importT_thms [induction] (Variable.thm_context induction);
 
     fun err t = error ("Ill-formed predicate in induction rule: " ^
       Sign.string_of_term thy1 t);
