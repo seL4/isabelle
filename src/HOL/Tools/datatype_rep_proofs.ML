@@ -356,7 +356,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     fun mk_funs_inv thm =
       let
-        val {sign, prop, ...} = rep_thm thm;
+        val {thy, prop, ...} = rep_thm thm;
         val _ $ (_ $ ((S as Const (_, Type (_, [U, _]))) $ _ )) $
           (_ $ (_ $ (r $ (a $ _)) $ _)) = Type.freeze prop;
         val used = add_term_tfree_names (a, []);
@@ -366,7 +366,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
             val Ts = map (TFree o rpair HOLogic.typeS)
               (Name.variant_list used (replicate i "'t"));
             val f = Free ("f", Ts ---> U)
-          in Goal.prove_global sign [] [] (Logic.mk_implies
+          in Goal.prove_global thy [] [] (Logic.mk_implies
             (HOLogic.mk_Trueprop (HOLogic.list_all
                (map (pair "x") Ts, S $ app_bnds f i)),
              HOLogic.mk_Trueprop (HOLogic.mk_eq (list_abs (map (pair "x") Ts,

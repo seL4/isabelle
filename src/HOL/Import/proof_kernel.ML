@@ -194,9 +194,9 @@ fun quotename c =
 
 fun simple_smart_string_of_cterm ct =
     let
-	val {sign,t,T,...} = rep_cterm ct
+	val {thy,t,T,...} = rep_cterm ct
 	(* Hack to avoid parse errors with Trueprop *)
-	val ct  = (cterm_of sign (HOLogic.dest_Trueprop t)
+	val ct  = (cterm_of thy (HOLogic.dest_Trueprop t)
 			   handle TERM _ => ct)
     in
 	quote(
@@ -212,9 +212,9 @@ exception SMART_STRING
 
 fun smart_string_of_cterm ct =
     let
-	val {sign,t,T,...} = rep_cterm ct
+	val {thy,t,T,...} = rep_cterm ct
         (* Hack to avoid parse errors with Trueprop *)
-	val ct  = (cterm_of sign (HOLogic.dest_Trueprop t)
+	val ct  = (cterm_of thy (HOLogic.dest_Trueprop t)
 		   handle TERM _ => ct)
 	fun match cu = t aconv (term_of cu)
 	fun G 0 = Library.setmp show_types true (Library.setmp show_sorts true)
@@ -225,7 +225,7 @@ fun smart_string_of_cterm ct =
 	fun F n =
 	    let
 		val str = Library.setmp show_brackets false (G n string_of_cterm) ct
-		val cu  = read_cterm sign (str,T)
+		val cu  = read_cterm thy (str,T)
 	    in
 		if match cu
 		then quote str

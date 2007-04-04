@@ -1064,8 +1064,8 @@ fun evaluation_oracle (thy, Evaluation t) =
   Logic.mk_equals (t, eval_term thy t);
 
 fun evaluation_conv ct =
-  let val {sign, t, ...} = rep_cterm ct
-  in Thm.invoke_oracle_i sign "Pure.evaluation" (sign, Evaluation t) end;
+  let val {thy, t, ...} = rep_cterm ct
+  in Thm.invoke_oracle_i thy "Pure.evaluation" (thy, Evaluation t) end;
 
 val _ = Context.add_setup
   (Theory.add_oracle ("evaluation", evaluation_oracle));

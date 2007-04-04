@@ -171,17 +171,17 @@ fun LIST_CONJ [] = raise RULES_ERR "LIST_CONJ" "empty list"
 (*----------------------------------------------------------------------------
  *        Disjunction
  *---------------------------------------------------------------------------*)
-local val {prop,sign,...} = rep_thm disjI1
+local val {prop,thy,...} = rep_thm disjI1
       val [P,Q] = term_vars prop
-      val disj1 = Thm.forall_intr (Thm.cterm_of sign Q) disjI1
+      val disj1 = Thm.forall_intr (Thm.cterm_of thy Q) disjI1
 in
 fun DISJ1 thm tm = thm RS (forall_elim (D.drop_prop tm) disj1)
   handle THM (msg, _, _) => raise RULES_ERR "DISJ1" msg;
 end;
 
-local val {prop,sign,...} = rep_thm disjI2
+local val {prop,thy,...} = rep_thm disjI2
       val [P,Q] = term_vars prop
-      val disj2 = Thm.forall_intr (Thm.cterm_of sign P) disjI2
+      val disj2 = Thm.forall_intr (Thm.cterm_of thy P) disjI2
 in
 fun DISJ2 tm thm = thm RS (forall_elim (D.drop_prop tm) disj2)
   handle THM (msg, _, _) => raise RULES_ERR "DISJ2" msg;
@@ -274,14 +274,14 @@ fun DISJ_CASESL disjth thl =
  *        Universals
  *---------------------------------------------------------------------------*)
 local (* this is fragile *)
-      val {prop,sign,...} = rep_thm spec
+      val {prop,thy,...} = rep_thm spec
       val x = hd (tl (term_vars prop))
-      val cTV = ctyp_of sign (type_of x)
-      val gspec = forall_intr (cterm_of sign x) spec
+      val cTV = ctyp_of thy (type_of x)
+      val gspec = forall_intr (cterm_of thy x) spec
 in
 fun SPEC tm thm =
-   let val {sign,T,...} = rep_cterm tm
-       val gspec' = instantiate ([(cTV, ctyp_of sign T)], []) gspec
+   let val {thy,T,...} = rep_cterm tm
+       val gspec' = instantiate ([(cTV, ctyp_of thy T)], []) gspec
    in
       thm RS (forall_elim tm gspec')
    end
@@ -293,7 +293,7 @@ val ISPEC = SPEC
 val ISPECL = fold ISPEC;
 
 (* Not optimized! Too complicated. *)
-local val {prop,sign,...} = rep_thm allI
+local val {prop,thy,...} = rep_thm allI
       val [P] = add_term_vars (prop, [])
       fun cty_theta s = map (fn (i, (S, ty)) => (ctyp_of s (TVar (i, S)), ctyp_of s ty))
       fun ctm_theta s = map (fn (i, (_, tm2)) =>
@@ -306,22 +306,22 @@ local val {prop,sign,...} = rep_thm allI
 in
 fun GEN v th =
    let val gth = forall_intr v th
-       val {prop=Const("all",_)$Abs(x,ty,rst),sign,...} = rep_thm gth
+       val {prop=Const("all",_)$Abs(x,ty,rst),thy,...} = rep_thm gth
        val P' = Abs(x,ty, HOLogic.dest_Trueprop rst)  (* get rid of trueprop *)
-       val theta = Pattern.match sign (P,P') (Vartab.empty, Vartab.empty);
-       val allI2 = instantiate (certify sign theta) allI
+       val theta = Pattern.match thy (P,P') (Vartab.empty, Vartab.empty);
+       val allI2 = instantiate (certify thy theta) allI
        val thm = Thm.implies_elim allI2 gth
-       val {prop = tp $ (A $ Abs(_,_,M)),sign,...} = rep_thm thm
+       val {prop = tp $ (A $ Abs(_,_,M)),thy,...} = rep_thm thm
        val prop' = tp $ (A $ Abs(x,ty,M))
-   in ALPHA thm (cterm_of sign prop')
+   in ALPHA thm (cterm_of thy prop')
    end
 end;
 
 val GENL = fold_rev GEN;
 
 fun GEN_ALL thm =
-   let val {prop,sign,...} = rep_thm thm
-       val tycheck = cterm_of sign
+   let val {prop,thy,...} = rep_thm thm
+       val tycheck = cterm_of thy
        val vlist = map tycheck (add_term_vars (prop, []))
   in GENL vlist thm
   end;
@@ -352,20 +352,20 @@ fun CHOOSE (fvar, exth) fact =
   let
     val lam = #2 (D.dest_comb (D.drop_prop (cconcl exth)))
     val redex = D.capply lam fvar
-    val {sign, t = t$u,...} = Thm.rep_cterm redex
-    val residue = Thm.cterm_of sign (Term.betapply (t, u))
+    val {thy, t = t$u,...} = Thm.rep_cterm redex
+    val residue = Thm.cterm_of thy (Term.betapply (t, u))
   in
     GEN fvar (DISCH residue fact) RS (exth RS Thms.choose_thm)
       handle THM (msg, _, _) => raise RULES_ERR "CHOOSE" msg
   end;
 
-local val {prop,sign,...} = rep_thm exI
+local val {prop,thy,...} = rep_thm exI
       val [P,x] = term_vars prop
 in
 fun EXISTS (template,witness) thm =
-   let val {prop,sign,...} = rep_thm thm
-       val P' = cterm_of sign P
-       val x' = cterm_of sign x
+   let val {prop,thy,...} = rep_thm thm
+       val P' = cterm_of thy P
+       val x' = cterm_of thy x
        val abstr = #2 (D.dest_comb template)
    in
    thm RS (cterm_instantiate[(P',abstr), (x',witness)] exI)
@@ -396,11 +396,11 @@ fun EXISTL vlist th =
 (* Could be improved, but needs "subst_free" for certified terms *)
 
 fun IT_EXISTS blist th =
-   let val {sign,...} = rep_thm th
-       val tych = cterm_of sign
+   let val {thy,...} = rep_thm th
+       val tych = cterm_of thy
        val detype = #t o rep_cterm
        val blist' = map (fn (x,y) => (detype x, detype y)) blist
-       fun ex v M  = cterm_of sign (S.mk_exists{Bvar=v,Body = M})
+       fun ex v M  = cterm_of thy (S.mk_exists{Bvar=v,Body = M})
 
   in
   fold_rev (fn (b as (r1,r2)) => fn thm =>
@@ -413,8 +413,8 @@ fun IT_EXISTS blist th =
 (*---------------------------------------------------------------------------
  *  Faster version, that fails for some as yet unknown reason
  * fun IT_EXISTS blist th =
- *    let val {sign,...} = rep_thm th
- *        val tych = cterm_of sign
+ *    let val {thy,...} = rep_thm th
+ *        val tych = cterm_of thy
  *        fun detype (x,y) = ((#t o rep_cterm) x, (#t o rep_cterm) y)
  *   in
  *  fold (fn (b as (r1,r2), thm) =>
@@ -521,8 +521,8 @@ fun get ([],_,L) = rev L
 
 (* Note: rename_params_rule counts from 1, not 0 *)
 fun rename thm =
-  let val {prop,sign,...} = rep_thm thm
-      val tych = cterm_of sign
+  let val {prop,thy,...} = rep_thm thm
+      val tych = cterm_of thy
       val ants = Logic.strip_imp_prems prop
       val news = get (ants,1,[])
   in
@@ -681,8 +681,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
              val dummy = thm_ref := (thm :: !thm_ref)
              val dummy = ss_ref := (ss :: !ss_ref)
              (* Unquantified eliminate *)
-             fun uq_eliminate (thm,imp,sign) =
-                 let val tych = cterm_of sign
+             fun uq_eliminate (thm,imp,thy) =
+                 let val tych = cterm_of thy
                      val dummy = print_cterms "To eliminate:" [tych imp]
                      val ants = map tych (Logic.strip_imp_prems imp)
                      val eq = Logic.strip_imp_concl imp
@@ -696,13 +696,13 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                   in
                   lhs_eeq_lhs2 COMP thm
                   end
-             fun pq_eliminate (thm,sign,vlist,imp_body,lhs_eq) =
+             fun pq_eliminate (thm,thy,vlist,imp_body,lhs_eq) =
               let val ((vstrl, _, used'), args) = dest_pbeta_redex used lhs_eq (length vlist)
                   val dummy = forall (op aconv) (ListPair.zip (vlist, args))
                     orelse error "assertion failed in CONTEXT_REWRITE_RULE"
                   val imp_body1 = subst_free (ListPair.zip (args, vstrl))
                                              imp_body
-                  val tych = cterm_of sign
+                  val tych = cterm_of thy
                   val ants1 = map tych (Logic.strip_imp_prems imp_body1)
                   val eq1 = Logic.strip_imp_concl imp_body1
                   val Q = get_lhs eq1
@@ -725,13 +725,13 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                   val ant_th = U.itlist2 (PGEN tych) args vstrl impth1
               in ant_th COMP thm
               end
-             fun q_eliminate (thm,imp,sign) =
+             fun q_eliminate (thm,imp,thy) =
               let val (vlist, imp_body, used') = strip_all used imp
                   val (ants,Q) = dest_impl imp_body
               in if (pbeta_redex Q) (length vlist)
-                 then pq_eliminate (thm,sign,vlist,imp_body,Q)
+                 then pq_eliminate (thm,thy,vlist,imp_body,Q)
                  else
-                 let val tych = cterm_of sign
+                 let val tych = cterm_of thy
                      val ants1 = map tych ants
                      val ss' = MetaSimplifier.add_prems (map ASSUME ants1) ss
                      val Q_eeq_Q1 = MetaSimplifier.rewrite_cterm
@@ -746,11 +746,11 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
 
              fun eliminate thm =
                case (rep_thm thm)
-               of {prop = (Const("==>",_) $ imp $ _), sign, ...} =>
+               of {prop = (Const("==>",_) $ imp $ _), thy, ...} =>
                    eliminate
                     (if not(is_all imp)
-                     then uq_eliminate (thm,imp,sign)
-                     else q_eliminate (thm,imp,sign))
+                     then uq_eliminate (thm,imp,thy)
+                     else q_eliminate (thm,imp,thy))
                             (* Assume that the leading constant is ==,   *)
                 | _ => thm  (* if it is not a ==>                        *)
          in SOME(eliminate (rename thm)) end
@@ -761,7 +761,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               val cntxt = rev(MetaSimplifier.prems_of_ss ss)
               val dummy = print_thms "cntxt:" cntxt
               val {prop = Const("==>",_) $ (Const("Trueprop",_) $ A) $ _,
-                   sign,...} = rep_thm thm
+                   thy,...} = rep_thm thm
               fun genl tm = let val vlist = subtract (op aconv) globals
                                            (add_term_frees(tm,[]))
                             in fold_rev Forall vlist tm
@@ -781,15 +781,15 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               val antl = case rcontext of [] => []
                          | _   => [S.list_mk_conj(map cncl rcontext)]
               val TC = genl(S.list_mk_imp(antl, A))
-              val dummy = print_cterms "func:" [cterm_of sign func]
+              val dummy = print_cterms "func:" [cterm_of thy func]
               val dummy = print_cterms "TC:"
-                              [cterm_of sign (HOLogic.mk_Trueprop TC)]
+                              [cterm_of thy (HOLogic.mk_Trueprop TC)]
               val dummy = tc_list := (TC :: !tc_list)
               val nestedp = isSome (S.find_term is_func TC)
               val dummy = if nestedp then say "nested" else say "not_nested"
               val dummy = term_ref := ([func,TC]@(!term_ref))
               val th' = if nestedp then raise RULES_ERR "solver" "nested function"
-                        else let val cTC = cterm_of sign
+                        else let val cTC = cterm_of thy
                                               (HOLogic.mk_Trueprop TC)
                              in case rcontext of
                                 [] => SPEC_ALL(ASSUME cTC)

@@ -460,7 +460,7 @@ fun mkthm (sg:theory, ss:simpset) (asms:thm list) (just:injust) : thm =
       fun multn2(n,thm) =
         let val SOME(mth) =
               get_first (fn th => SOME(thm RS th) handle THM _ => NONE) mult_mono_thms
-            fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
+            fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (Thm.theory_of_thm th) var;
             val cv = cvar(mth, hd(prems_of mth));
             val ct = cterm_of sg (LA_Data.number_of(n,#T(rep_cterm cv)))
         in instantiate ([],[(cv,ct)]) mth end

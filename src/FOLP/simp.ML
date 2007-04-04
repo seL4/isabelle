@@ -381,12 +381,12 @@ fun prepare_goal i st =
 
 (*print lhs of conclusion of subgoal i*)
 fun pr_goal_lhs i st =
-    writeln (Sign.string_of_term (#sign(rep_thm st)) 
+    writeln (Sign.string_of_term (Thm.theory_of_thm st) 
              (lhs_of (prepare_goal i st)));
 
 (*print conclusion of subgoal i*)
 fun pr_goal_concl i st =
-    writeln (Sign.string_of_term (#sign(rep_thm st)) (prepare_goal i st)) 
+    writeln (Sign.string_of_term (Thm.theory_of_thm st) (prepare_goal i st)) 
 
 (*print subgoals i to j (inclusive)*)
 fun pr_goals (i,j) st =
@@ -431,7 +431,7 @@ fun simp_lhs(thm,ss,anet,ats,cs) =
       are represented by rules, generalized over their parameters*)
 fun add_asms(ss,thm,a,anet,ats,cs) =
     let val As = strip_varify(nth_subgoal i thm, a, []);
-        val thms = map (trivial o cterm_of(#sign(rep_thm(thm))))As;
+        val thms = map (trivial o cterm_of(Thm.theory_of_thm thm)) As;
         val new_rws = List.concat(map mk_rew_rules thms);
         val rwrls = map mk_trans (List.concat(map mk_rew_rules thms));
         val anet' = foldr lhs_insert_thm anet rwrls

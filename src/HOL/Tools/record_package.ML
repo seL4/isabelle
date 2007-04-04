@@ -1703,10 +1703,10 @@ fun obj_to_meta_all thm =
 
 fun meta_to_obj_all thm =
   let
-    val {sign, prop, ...} = rep_thm thm;
+    val {thy, prop, ...} = rep_thm thm;
     val params = Logic.strip_params prop;
     val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl prop);
-    val ct = cterm_of sign
+    val ct = cterm_of thy
       (HOLogic.mk_Trueprop (HOLogic.list_all (params, concl)));
     val thm' = Seq.hd (REPEAT (rtac allI 1) (Thm.trivial ct));
   in

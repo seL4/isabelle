@@ -53,14 +53,14 @@ local
 	(fn prems => [cut_facts_tac prems 1, dtac sym 1, hyp_subst_tac 1,
 		     REPEAT (resolve_tac prems 1)]);
 
-  val sig_move_thm = #sign (rep_thm move_thm);
+  val sig_move_thm = Thm.theory_of_thm move_thm;
   val bCterm = cterm_of sig_move_thm (valOf (search_var "b" (concl_of move_thm)));
   val aCterm = cterm_of sig_move_thm (valOf (search_var "a" (hd(prems_of move_thm)))); 
 
 in
 
 fun move_mus i state =
-let val sign = #sign (rep_thm state);
+let val sign = Thm.theory_of_thm state;
     val (subgoal::_) = Library.drop(i-1,prems_of state);
     val concl = Logic.strip_imp_concl subgoal; (* recursive mu's in prems? *)
     val redex = search_mu concl;

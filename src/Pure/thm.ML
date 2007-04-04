@@ -13,7 +13,6 @@ signature BASIC_THM =
   type ctyp
   val rep_ctyp: ctyp ->
    {thy: theory,
-    sign: theory,       (*obsolete*)
     T: typ,
     maxidx: int,
     sorts: sort list}
@@ -27,13 +26,11 @@ signature BASIC_THM =
   exception CTERM of string * cterm list
   val rep_cterm: cterm ->
    {thy: theory,
-    sign: theory,       (*obsolete*)
     t: term,
     T: typ,
     maxidx: int,
     sorts: sort list}
-  val crep_cterm: cterm ->
-    {thy: theory, sign: theory, t: term, T: ctyp, maxidx: int, sorts: sort list}
+  val crep_cterm: cterm -> {thy: theory, t: term, T: ctyp, maxidx: int, sorts: sort list}
   val theory_of_cterm: cterm -> theory
   val term_of: cterm -> term
   val cterm_of: theory -> term -> cterm
@@ -54,7 +51,6 @@ signature BASIC_THM =
   type attribute     (* = Context.generic * thm -> Context.generic * thm *)
   val rep_thm: thm ->
    {thy: theory,
-    sign: theory,       (*obsolete*)
     der: bool * Proofterm.proof,
     tags: tag list,
     maxidx: int,
@@ -64,7 +60,6 @@ signature BASIC_THM =
     prop: term}
   val crep_thm: thm ->
    {thy: theory,
-    sign: theory,       (*obsolete*)
     der: bool * Proofterm.proof,
     tags: tag list,
     maxidx: int,
@@ -194,7 +189,7 @@ with
 
 fun rep_ctyp (Ctyp {thy_ref, T, maxidx, sorts}) =
   let val thy = Theory.deref thy_ref
-  in {thy = thy, sign = thy, T = T, maxidx = maxidx, sorts = sorts} end;
+  in {thy = thy, T = T, maxidx = maxidx, sorts = sorts} end;
 
 fun theory_of_ctyp (Ctyp {thy_ref, ...}) = Theory.deref thy_ref;
 
@@ -233,11 +228,11 @@ exception CTERM of string * cterm list;
 
 fun rep_cterm (Cterm {thy_ref, t, T, maxidx, sorts}) =
   let val thy =  Theory.deref thy_ref
-  in {thy = thy, sign = thy, t = t, T = T, maxidx = maxidx, sorts = sorts} end;
+  in {thy = thy, t = t, T = T, maxidx = maxidx, sorts = sorts} end;
 
 fun crep_cterm (Cterm {thy_ref, t, T, maxidx, sorts}) =
   let val thy = Theory.deref thy_ref in
-   {thy = thy, sign = thy, t = t,
+   {thy = thy, t = t,
       T = Ctyp {thy_ref = thy_ref, T = T, maxidx = maxidx, sorts = sorts},
     maxidx = maxidx, sorts = sorts}
   end;
@@ -391,7 +386,7 @@ exception THM of string * int * thm list;
 
 fun rep_thm (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
   let val thy = Theory.deref thy_ref in
-   {thy = thy, sign = thy, der = der, tags = tags, maxidx = maxidx,
+   {thy = thy, der = der, tags = tags, maxidx = maxidx,
     shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop}
   end;
 
@@ -401,7 +396,7 @@ fun crep_thm (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
     val thy = Theory.deref thy_ref;
     fun cterm max t = Cterm {thy_ref = thy_ref, t = t, T = propT, maxidx = max, sorts = shyps};
   in
-   {thy = thy, sign = thy, der = der, tags = tags, maxidx = maxidx, shyps = shyps,
+   {thy = thy, der = der, tags = tags, maxidx = maxidx, shyps = shyps,
     hyps = map (cterm ~1) hyps,
     tpairs = map (pairself (cterm maxidx)) tpairs,
     prop = cterm maxidx prop}

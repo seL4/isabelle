@@ -394,10 +394,10 @@ fun skolem_of_def def =
   let val (c,rhs) = Drule.dest_equals (cprop_of (freeze_thm def))
       val (ch, frees) = c_variant_abs_multi (rhs, [])
       val (chilbert,cabs) = Thm.dest_comb ch
-      val {sign,t, ...} = rep_cterm chilbert
+      val {thy,t, ...} = rep_cterm chilbert
       val T = case t of Const ("Hilbert_Choice.Eps", Type("fun",[_,T])) => T
                       | _ => raise THM ("skolem_of_def: expected Eps", 0, [def])
-      val cex = Thm.cterm_of sign (HOLogic.exists_const T)
+      val cex = Thm.cterm_of thy (HOLogic.exists_const T)
       val ex_tm = c_mkTrueprop (Thm.capply cex cabs)
       and conc =  c_mkTrueprop (Drule.beta_conv cabs (Drule.list_comb(c,frees)));
       fun tacf [prem] = rewrite_goals_tac [def] THEN rtac (prem RS someI_ex) 1

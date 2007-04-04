@@ -187,9 +187,9 @@ val strip_disj   = rev o (op::) o strip dest_disj
  *---------------------------------------------------------------------------*)
 
 fun mk_prop ctm =
-  let val {t, sign, ...} = Thm.rep_cterm ctm in
+  let val {t, thy, ...} = Thm.rep_cterm ctm in
     if can HOLogic.dest_Trueprop t then ctm
-    else Thm.cterm_of sign (HOLogic.mk_Trueprop t)
+    else Thm.cterm_of thy (HOLogic.mk_Trueprop t)
   end
   handle TYPE (msg, _, _) => raise ERR "mk_prop" msg
     | TERM (msg, _) => raise ERR "mk_prop" msg;

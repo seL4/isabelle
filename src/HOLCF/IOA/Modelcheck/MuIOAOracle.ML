@@ -3,9 +3,9 @@
 
 (* call_sim_tac invokes oracle "Sim" *)
 fun call_sim_tac thm_list i state = 
-let val sign = #sign (rep_thm state);
+let val thy = Thm.theory_of_thm state;
         val (subgoal::_) = Library.drop(i-1,prems_of state);
-        val OraAss = sim_oracle sign (subgoal,thm_list);
+        val OraAss = sim_oracle thy (subgoal,thm_list);
 in cut_facts_tac [OraAss] i state end;
 
 

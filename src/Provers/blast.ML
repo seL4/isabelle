@@ -480,7 +480,7 @@ fun rmtac upd rl = TRACE rl (if upd then rtac rl else match_tac [rl]);
   Flag "upd" says that the inference updated the branch.
   Flag "dup" requests duplication of the affected formula.*)
 fun fromRule vars rl =
-  let val trl = rl |> rep_thm |> #prop |> fromTerm |> convertRule vars
+  let val trl = rl |> Thm.prop_of |> fromTerm |> convertRule vars
       fun tac (upd, dup,rot) i =
         emtac upd (if dup then rev_dup_elim rl else rl) i
         THEN
@@ -512,7 +512,7 @@ fun convertIntrRule vars t =
   Since haz rules are now delayed, "dup" is always FALSE for
   introduction rules.*)
 fun fromIntrRule vars rl =
-  let val trl = rl |> rep_thm |> #prop |> fromTerm |> convertIntrRule vars
+  let val trl = rl |> Thm.prop_of |> fromTerm |> convertIntrRule vars
       fun tac (upd,dup,rot) i =
          rmtac upd (if dup then Data.dup_intr rl else rl) i
          THEN
@@ -1248,7 +1248,7 @@ fun initialize thy =
  "lim" is depth limit.*)
 fun timing_depth_tac start cs lim i st0 =
   let val st = (initialize (theory_of_thm st0); ObjectLogic.atomize_goal i st0);
-      val {sign,...} = rep_thm st
+      val sign = Thm.theory_of_thm st
       val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
       val hyps  = strip_imp_prems skoprem
       and concl = strip_imp_concl skoprem
@@ -1291,7 +1291,7 @@ fun Blast_tac i = blast_tac (Data.claset()) i;
 (*Translate subgoal i from a proof state*)
 fun trygl cs lim i =
         let val st = topthm()
-                val {sign,...} = rep_thm st
+                val sign = Thm.theory_of_thm st
                 val skoprem = (initialize (theory_of_thm st);
                                fromSubgoal (List.nth(prems_of st, i-1)))
                 val hyps  = strip_imp_prems skoprem

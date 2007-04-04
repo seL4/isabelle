@@ -118,7 +118,7 @@ fun cong_tac i st = (case Logic.strip_assums_concl
         val cong' = Thm.lift_rule (Thm.cprem_of st i) cong;
         val _ $ (_ $ (f' $ x') $ (g' $ y')) =
           Logic.strip_assums_concl (prop_of cong');
-        val insts = map (pairself (cterm_of (#sign (rep_thm st))) o
+        val insts = map (pairself (cterm_of (Thm.theory_of_thm st)) o
           apsnd (curry list_abs (Logic.strip_params (concl_of cong'))) o
             apfst head_of) [(f', f), (g', g), (x', x), (y', y)]
       in compose_tac (false, cterm_instantiate insts cong', 2) i st

@@ -718,12 +718,12 @@ fun extract thms thy =
 
     fun prep_thm (thm, vs) =
       let
-        val {prop, der = (_, prf), sign, ...} = rep_thm thm;
+        val {prop, der = (_, prf), thy, ...} = rep_thm thm;
         val name = Thm.get_name thm;
         val _ = name <> "" orelse error "extraction: unnamed theorem";
         val _ = etype_of thy' vs [] prop <> nullT orelse error ("theorem " ^
           quote name ^ " has no computational content")
-      in (Reconstruct.reconstruct_proof sign prop prf, vs) end;
+      in (Reconstruct.reconstruct_proof thy prop prf, vs) end;
 
     val defs = Library.foldl (fn (defs, (prf, vs)) =>
       fst (extr 0 defs vs [] [] [] prf)) ([], map prep_thm thms);

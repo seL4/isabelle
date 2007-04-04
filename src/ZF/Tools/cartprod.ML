@@ -106,7 +106,7 @@ val remove_split = rewrite_rule [Pr.split_eq];
 fun split_rule_var (Var(v,_), Type("fun",[T1,T2]), rl) =
       let val T' = factors T1 ---> T2
           val newt = ap_split T1 T2 (Var(v,T'))
-          val cterm = Thm.cterm_of (#sign(rep_thm rl))
+          val cterm = Thm.cterm_of (Thm.theory_of_thm rl)
       in
           remove_split (instantiate ([], [(cterm (Var(v, Ind_Syntax.iT-->T2)), 
                                            cterm newt)]) rl)

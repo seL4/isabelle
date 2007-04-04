@@ -422,7 +422,7 @@ fun metahyps_split_prem prem =
 
 fun metahyps_aux_tac tacf (prem,gno) state =
   let val (insts,params,hyps,concl) = metahyps_split_prem prem 
-      val {sign,maxidx,...} = rep_thm state
+      val {thy = sign,maxidx,...} = rep_thm state
       val cterm = cterm_of sign
       val chyps = map cterm hyps
       val hypths = map assume chyps
@@ -451,7 +451,7 @@ fun metahyps_aux_tac tacf (prem,gno) state =
       fun elim Bhyp = implies_elim_list (forall_elim_list cparams Bhyp) hypths
       (*A form of lifting that discharges assumptions.*)
       fun relift st =
-        let val prop = #prop(rep_thm st)
+        let val prop = Thm.prop_of st
             val subgoal_vars = (*Vars introduced in the subgoals*)
                   foldr add_term_vars [] (Logic.strip_imp_prems prop)
             and concl_vars = add_term_vars (Logic.strip_imp_concl prop, [])
@@ -477,7 +477,7 @@ end;
 fun metahyps_thms i state =
   let val prem = Logic.nth_prem (i, Thm.prop_of state) 
       val (insts,params,hyps,concl) = metahyps_split_prem prem 
-      val cterm = cterm_of (#sign (rep_thm state))
+      val cterm = cterm_of (Thm.theory_of_thm state)
   in SOME (map (forall_elim_vars 0 o assume o cterm) hyps) end
   handle TERM ("nth_prem", [A]) => NONE;
 

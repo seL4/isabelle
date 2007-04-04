@@ -293,7 +293,7 @@ fun shorter ((_,ps,pos,_,_), (_,qs,qos,_,_)) =
 *************************************************************)
 
 fun select cmap state i =
-  let val sg = #sign(rep_thm state)
+  let val sg = Thm.theory_of_thm state
       val goali = nth_subgoal i state
       val Ts = rev(map #2 (Logic.strip_params goali))
       val _ $ t $ _ = Logic.strip_assums_concl goali;
@@ -323,7 +323,7 @@ fun exported_split_posns cmap sg Ts t =
 fun inst_lift Ts t (T, U, pos) state i =
   let
     val cert = cterm_of (Thm.theory_of_thm state);
-    val cntxt = mk_cntxt Ts t pos (T --> U) (#maxidx(rep_thm trlift));
+    val cntxt = mk_cntxt Ts t pos (T --> U) (Thm.maxidx_of trlift);
   in cterm_instantiate [(cert P, cert cntxt)] trlift
   end;
 
@@ -345,7 +345,7 @@ fun inst_split Ts t tt thm TB state i =
   let
     val thm' = Thm.lift_rule (Thm.cprem_of state i) thm;
     val (P, _) = strip_comb (fst (Logic.dest_equals
-      (Logic.strip_assums_concl (#prop (rep_thm thm')))));
+      (Logic.strip_assums_concl (Thm.prop_of thm'))));
     val cert = cterm_of (Thm.theory_of_thm state);
     val cntxt = mk_cntxt_splitthm t tt TB;
     val abss = Library.foldl (fn (t, T) => Abs ("", T, t));
