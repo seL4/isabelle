@@ -35,6 +35,7 @@ sig
   val str_of_thy: theory -> string
   val check_thy: theory -> theory
   val eq_thy: theory * theory -> bool
+  val thy_ord: theory * theory -> order
   val subthy: theory * theory -> bool
   val joinable: theory * theory -> bool
   val merge: theory * theory -> theory                     (*exception TERM*)
@@ -270,6 +271,7 @@ fun check_merge
 (* equality and inclusion *)
 
 val eq_thy = eq_id o pairself (#id o identity_of o check_thy);
+val thy_ord = int_ord o pairself (#1 o #id o identity_of);
 
 fun proper_subthy
     (Theory ({id = (i, _), ...}, _, _, _), Theory ({ids, iids, ...}, _, _, _)) =
@@ -365,15 +367,13 @@ fun merge_thys pp (thy1, thy2) =
 fun maximal_thys thys =
   thys |> filter (fn thy => not (exists (fn thy' => proper_subthy (thy, thy')) thys));
 
-val creation_order = rev_order o int_ord o pairself (#1 o #id o identity_of);
-
 fun begin_thy pp name imports =
   if name = draftN then error ("Illegal theory name: " ^ quote draftN)
   else
     let
       val parents =
         maximal_thys (distinct eq_thy (map check_thy imports));
-      val ancestors = sort_distinct creation_order (parents @ maps ancestors_of parents);
+      val ancestors = distinct eq_thy (parents @ maps ancestors_of parents);
       val Theory ({id, ids, iids, ...}, data, _, _) =
         (case parents of
           [] => error "No parent theories"
