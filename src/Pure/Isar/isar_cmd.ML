@@ -494,7 +494,8 @@ val print_antiquotations = Toplevel.imperative ThyOutput.print_antiquotations;
 val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
     val thy = Toplevel.theory_of state;
-    val gr = rev (thy :: Theory.ancestors_of thy) |> map (fn node =>
+    val all_thys = sort Context.thy_ord (thy :: Theory.ancestors_of thy);
+    val gr = all_thys |> map (fn node =>
       let
         val name = Context.theory_name node;
         val parents = map Context.theory_name (Theory.parents_of node);
