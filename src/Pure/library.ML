@@ -509,9 +509,7 @@ fun find_index pred =
 fun find_index_eq x = find_index (equal x);
 
 (*find first element satisfying predicate*)
-fun find_first _ [] = NONE
-  | find_first pred (x :: xs) =
-      if pred x then SOME x else find_first pred xs;
+val find_first = List.find;
 
 (*get first element by lookup function*)
 fun get_first _ [] = NONE
