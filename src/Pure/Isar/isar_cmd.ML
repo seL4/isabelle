@@ -494,12 +494,12 @@ val print_antiquotations = Toplevel.imperative ThyOutput.print_antiquotations;
 val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
     val thy = Toplevel.theory_of state;
-    val gr = Theory.dep_graph thy;
-    fun mk_entry (name, ((), (_, parents))) =
-      { name = name, ID = name, dir = "", unfold = true,
-        path = "", parents = parents };
-    val prgr = Graph.fold ((fn x => fn xs => xs @ [x]) o mk_entry) gr [];
-  in Present.display_graph prgr end);
+    val gr = rev (thy :: Theory.ancestors_of thy) |> map (fn node =>
+      let
+        val name = Context.theory_name node;
+        val parents = map Context.theory_name (Theory.parents_of node);
+      in {name = name, ID = name, parents = parents, dir = "", unfold = true, path = ""} end);
+  in Present.display_graph gr end);
 
 val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
