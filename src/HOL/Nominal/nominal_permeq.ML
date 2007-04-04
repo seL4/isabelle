@@ -78,6 +78,9 @@ val strong_congs = [thm "if_cong"]
 (* needed to avoid warnings about overwritten congs *)
 val weak_congs   = [thm "if_weak_cong"]
 
+(* a tactical which fails if the tactic taken as an argument generates does not solve the sub goal i *)
+
+fun SOLVEI t = t THEN_ALL_NEW (fn i => no_tac);
 
 (* debugging *)
 fun DEBUG_tac (msg,tac) = 
@@ -313,6 +316,7 @@ fun finite_guess_tac tactical ss i st =
     end
     handle Subscript => Seq.empty
 
+
 (* tactic that guesses whether an atom is fresh for an expression  *)
 (* it first collects all free variables and tries to show that the *) 
 (* support of these free variables (op supports) the goal          *)
@@ -355,18 +359,18 @@ fun fresh_guess_tac tactical ss i st =
     end
     handle Subscript => Seq.empty;
 
-
 (* setup so that the simpset is used which is active at the moment when the tactic is called *)
 fun local_simp_meth_setup tac =
   Method.only_sectioned_args (Simplifier.simp_modifiers' @ Splitter.split_modifiers)
   (Method.SIMPLE_METHOD' o tac o local_simpset_of) ;
 
-(* uses HOL_basic_ss only *)
+(* uses HOL_basic_ss only and fails if the tactic does not solve the subgoal *)
+
 fun basic_simp_meth_setup tac =
   Method.sectioned_args 
    (fn (ctxt,l) => ((),((Simplifier.map_ss (fn _ => HOL_basic_ss) ctxt),l)))
    (Simplifier.simp_modifiers' @ Splitter.split_modifiers)
-   (fn _ => Method.SIMPLE_METHOD' o tac o local_simpset_of);
+   (fn _ => Method.SIMPLE_METHOD' o (fn ss => SOLVEI (tac ss)) o local_simpset_of);
 
 
 val perm_simp_meth            = local_simp_meth_setup (perm_simp_tac NO_DEBUG_tac);
