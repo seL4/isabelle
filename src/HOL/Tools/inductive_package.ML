@@ -310,7 +310,7 @@ fun prove_mono predT fp_fun monos ctxt =
 
 (* prove introduction rules *)
 
-fun prove_intrs coind mono fp_def k intr_ts rec_preds_defs ctxt =
+fun prove_intrs coind mono fp_def k params intr_ts rec_preds_defs ctxt =
   let
     val _ = clean_message "  Proving the introduction rules ...";
 
@@ -324,8 +324,8 @@ fun prove_intrs coind mono fp_def k intr_ts rec_preds_defs ctxt =
 
     val rules = [refl, TrueI, notFalseI, exI, conjI];
 
-    val intrs = map_index (fn (i, intr) =>
-      rulify (SkipProof.prove ctxt [] [] intr (fn _ => EVERY
+    val intrs = map_index (fn (i, intr) => rulify
+      (SkipProof.prove ctxt (map (fst o dest_Free) params) [] intr (fn _ => EVERY
        [rewrite_goals_tac rec_preds_defs,
         rtac (unfold RS iffD2) 1,
         EVERY1 (select_disj (length intr_ts) (i + 1)),
@@ -342,7 +342,9 @@ fun prove_elims cs params intr_ts intr_names unfold rec_preds_defs ctxt =
   let
     val _ = clean_message "  Proving the elimination rules ...";
 
-    val ([pname], ctxt') = Variable.variant_fixes ["P"] ctxt;
+    val ([pname], ctxt') = ctxt |>
+      Variable.add_fixes (map (fst o dest_Free) params) |> snd |>
+      Variable.variant_fixes ["P"];
     val P = HOLogic.mk_Trueprop (Free (pname, HOLogic.boolT));
 
     fun dest_intr r =
@@ -464,7 +466,9 @@ fun prove_indrule cs argTs bs xs rec_const params intr_ts mono
 
     (* predicates for induction rule *)
 
-    val (pnames, ctxt') = Variable.variant_fixes (mk_names "P" (length cs)) ctxt;
+    val (pnames, ctxt') = ctxt |>
+      Variable.add_fixes (map (fst o dest_Free) params) |> snd |>
+      Variable.variant_fixes (mk_names "P" (length cs));
     val preds = map Free (pnames ~~
       map (fn c => List.drop (binder_types (fastype_of c), length params) --->
         HOLogic.boolT) cs);
@@ -616,8 +620,6 @@ fun mk_ind_def alt_name coind cs intr_ts monos
       space_implode "_" (map fst cnames_syn) else alt_name;
 
     val ((rec_const, (_, fp_def)), ctxt') = ctxt |>
-      Variable.add_fixes (map (fst o dest_Free) params) |> snd |>
-      fold Variable.declare_term intr_ts |>
       LocalTheory.def Thm.internalK
         ((rec_name, case cnames_syn of [(_, syn)] => syn | _ => NoSyn),
          (("", []), fold_rev lambda params
@@ -659,18 +661,17 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
         monos params cnames_syn ctxt;
 
     val (intrs, unfold) = prove_intrs coind mono fp_def (length bs + length xs)
-      intr_ts rec_preds_defs ctxt1;
+      params intr_ts rec_preds_defs ctxt1;
     val elims = if no_elim then [] else
-      cnames ~~ map (apfst (singleton (ProofContext.export ctxt1 ctxt)))
-        (prove_elims cs params intr_ts intr_names unfold rec_preds_defs ctxt1);
-    val raw_induct = zero_var_indexes (singleton (ProofContext.export ctxt1 ctxt)
+      cnames ~~ prove_elims cs params intr_ts intr_names unfold rec_preds_defs ctxt1;
+    val raw_induct = zero_var_indexes
       (if no_ind then Drule.asm_rl else
        if coind then ObjectLogic.rulify (rule_by_tactic
          (rewrite_tac [le_fun_def, le_bool_def] THEN
            fold_tac rec_preds_defs) (mono RS (fp_def RS def_coinduct)))
        else
          prove_indrule cs argTs bs xs rec_const params intr_ts mono fp_def
-           rec_preds_defs ctxt1));
+           rec_preds_defs ctxt1);
     val induct_cases = map (#1 o #1) intros;
     val ind_case_names = RuleCases.case_names induct_cases;
     val induct =
@@ -686,9 +687,8 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
       ctxt1 |>
       note_theorems
         (map (NameSpace.qualified rec_name) intr_names ~~
-         intr_atts ~~
-         map (fn th => [([th], [Attrib.internal (K (ContextRules.intro_query NONE))])])
-           (ProofContext.export ctxt1 ctxt intrs)) |>>
+         intr_atts ~~ map (fn th => [([th],
+           [Attrib.internal (K (ContextRules.intro_query NONE))])]) intrs) |>>
       map (hd o snd); (* FIXME? *)
     val (((_, elims'), (_, [induct'])), ctxt3) =
       ctxt2 |>
@@ -719,8 +719,8 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
     val result =
       {preds = preds,
        defs = fp_def :: rec_preds_defs,
-       mono = singleton (ProofContext.export ctxt1 ctxt) mono,
-       unfold = singleton (ProofContext.export ctxt1 ctxt) unfold,
+       mono = mono,
+       unfold = unfold,
        intrs = intrs',
        elims = elims',
        raw_induct = rulify raw_induct,
