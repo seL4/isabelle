@@ -601,12 +601,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy4) =
       setmp InductivePackage.quiet_mode false
-        (TheoryTarget.init NONE #>
-         InductivePackage.add_inductive_i false big_rep_name false true false
+        (InductivePackage.add_inductive_global false big_rep_name false true false
            (map (fn (s, T) => (s, SOME (T --> HOLogic.boolT), NoSyn))
               (rep_set_names' ~~ recTs'))
-           [] (map (fn x => (("", []), x)) intr_ts) [] #>
-         apsnd (ProofContext.theory_of o LocalTheory.exit)) thy3;
+           [] (map (fn x => (("", []), x)) intr_ts) []) thy3;
 
     (**** Prove that representing set is closed under permutation ****)
 
@@ -1528,12 +1526,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val ({intrs = rec_intrs, elims = rec_elims, raw_induct = rec_induct, ...}, thy11) =
       thy10 |>
       setmp InductivePackage.quiet_mode (!quiet_mode)
-        (TheoryTarget.init NONE #>
-         InductivePackage.add_inductive_i false big_rec_name false false false
+        (InductivePackage.add_inductive_global false big_rec_name false false false
            (map (fn (s, T) => (s, SOME T, NoSyn)) (rec_set_names' ~~ rec_set_Ts))
            (map (apsnd SOME o dest_Free) rec_fns)
-           (map (fn x => (("", []), x)) rec_intr_ts) [] #>
-         apsnd (ProofContext.theory_of o LocalTheory.exit)) ||>
+           (map (fn x => (("", []), x)) rec_intr_ts) []) ||>
       PureThy.hide_thms true [NameSpace.append
         (Sign.full_name thy10 big_rec_name) "induct"];
 
