@@ -16,10 +16,10 @@ structure InductiveRealizer : INDUCTIVE_REALIZER =
 struct
 
 (* FIXME: LocalTheory.note should return theorems with proper names! *)
-fun name_of_thm thm = (case Proofterm.strip_combt (fst (Proofterm.strip_combP
-    (Proofterm.rewrite_proof (theory_of_thm thm) ([], []) (proof_of thm)))) of
-    (PThm (name, _, _, _), _) => name
-  | _ => error "name_of_thm: bad proof");
+fun name_of_thm thm =
+  (case Symtab.dest (Proofterm.thms_of_proof' (proof_of thm) Symtab.empty) of
+     [(name, _)] => name
+   | _ => error ("name_of_thm: bad proof of theorem\n" ^ string_of_thm thm));
 
 (* infer order of variables in intro rules from order of quantifiers in elim rule *)
 fun infer_intro_vars elim arity intros =
@@ -397,13 +397,11 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     (** realizability predicate **)
 
     val (ind_info, thy3') = thy2 |>
-      TheoryTarget.init NONE |>
-      InductivePackage.add_inductive_i false "" false false false
+      InductivePackage.add_inductive_global false "" false false false
         rlzpreds rlzparams (map (fn (rintr, intr) =>
           ((Sign.base_name (name_of_thm intr), []),
            subst_atomic rlzpreds' (Logic.unvarify rintr)))
              (rintrs ~~ maps snd rss)) [] ||>
-      ProofContext.theory_of o LocalTheory.exit ||>
       Theory.absolute_path;
     val thy3 = PureThy.hide_thms false
       (map name_of_thm (#intrs ind_info)) thy3';
