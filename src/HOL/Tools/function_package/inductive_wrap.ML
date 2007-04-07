@@ -52,25 +52,17 @@ fun inductive_def defs (((R, T), mixfix), lthy) =
                                            [] (* no special monos *)
                                            lthy
 
-      val thy = ProofContext.theory_of lthy
-                
       fun inst qdef intr_gen =
           intr_gen
-            |> Thm.freezeT
             |> requantify lthy (R, T) qdef 
           
       val intrs = map2 inst qdefs intrs_gen
                   
       val elim = elim_gen
-                   |> Thm.freezeT
                    |> forall_intr_vars (* FIXME... *)
 
-      val Rdef_real = prop_of (Thm.freezeT elim_gen)
-                       |> Logic.dest_implies |> fst
-                       |> Term.strip_comb |> snd |> hd (* Trueprop *)
-                       |> Term.strip_comb |> fst
     in
-      (intrs, (Rdef_real, elim, induct, lthy))
+      (intrs, (Rdef, elim, induct, lthy))
     end
     
 end
