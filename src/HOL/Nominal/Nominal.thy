@@ -443,6 +443,14 @@ lemma at3:
 (* rules to calculate simple premutations *)
 lemmas at_calc = at2 at1 at3
 
+lemma at_swap_simps:
+  fixes a ::"'x"
+  and   b ::"'x"
+  assumes a: "at TYPE('x)"
+  shows "[(a,b)]\<bullet>a = b"
+  and   "[(a,b)]\<bullet>b = a"
+  using a by (simp_all add: at_calc)
+
 lemma at4: 
   assumes a: "at TYPE('x)"
   shows "infinite (UNIV::'x set)"
@@ -1089,20 +1097,6 @@ done
 
 section {* further lemmas for permutation types *}
 (*==============================================*)
-
-lemma swap_simp_a:
-  fixes a ::"'x"
-  and   b ::"'x"
-  assumes a: "at TYPE('x)"
-  shows "[(a,b)]\<bullet> a = b" 
-  using a by (auto simp add:at_calc)
-
-lemma swap_simp_b:
-  fixes a ::"'x"
-  and   b ::"'x"
-  assumes a: "at TYPE('x)"
-  shows "[(a,b)]\<bullet> b = a" 
-  using a by (auto simp add:at_calc)
 
 lemma pt_rev_pi:
   fixes pi :: "'x prm"
