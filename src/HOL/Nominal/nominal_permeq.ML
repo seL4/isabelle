@@ -153,7 +153,7 @@ fun perm_simp_gen dyn_thms f ss i =
     end);
 
 (* general simplification of permutations and permutation that arose from eqvt-problems *)
-val perm_simp = perm_simp_gen ["perm_swap","perm_fresh_fresh","perm_bij","perm_pi_simp"] (fn st => []);
+val perm_simp = perm_simp_gen ["perm_swap","perm_fresh_fresh","perm_bij","perm_pi_simp","swap_simp_a","swap_simp_b"] (fn st => []);
 val eqvt_simp = perm_simp_gen ["perm_swap","perm_fresh_fresh","perm_pi_simp"] eqvts_thms;
 
 (* FIXME removes the name lookup for these theorems use an ml value instead *)

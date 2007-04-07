@@ -318,8 +318,9 @@ declare ty.inject  [simp add]
 inductive_cases2 t_Lam_elim_auto[elim]: "\<Gamma> \<turnstile> Lam [x].t : T"
 inductive_cases2 t_Var_elim_auto[elim]: "\<Gamma> \<turnstile> Var x : T"
 inductive_cases2 t_App_elim_auto[elim]: "\<Gamma> \<turnstile> App x y : T"
-inductive_cases2  t_Const_elim_auto[elim]: "\<Gamma> \<turnstile> Const n : T"
-inductive_cases2  t_Unit_elim_auto[elim]: "\<Gamma> \<turnstile> Unit : TUnit"
+inductive_cases2 t_Const_elim_auto[elim]: "\<Gamma> \<turnstile> Const n : T"
+inductive_cases2 t_Unit_elim_auto[elim]: "\<Gamma> \<turnstile> Unit : TUnit"
+inductive_cases2 t_Unit_elim_auto'[elim]: "\<Gamma> \<turnstile> s : TUnit"
 
 declare trm.inject [simp del]
 declare ty.inject [simp del]
@@ -478,12 +479,6 @@ inductive_cases2 alg_path_equiv_Lam_right_inv_auto[elim]: "\<Gamma> \<turnstile>
 
 declare trm.inject [simp del]
 declare ty.inject [simp del]
-
-(* FIXME this lemma should not be here *)
-lemma perm_basic[simp]:
- fixes x y::"name"
-shows "[(x,y)]\<bullet>y = x"
-using assms using calc_atm by perm_simp
 
 lemma Q_Arrow_strong_inversion:
   assumes fs: "x\<sharp>\<Gamma>" "x\<sharp>t" "x\<sharp>u" 

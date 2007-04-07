@@ -1090,6 +1090,20 @@ done
 section {* further lemmas for permutation types *}
 (*==============================================*)
 
+lemma swap_simp_a:
+  fixes a ::"'x"
+  and   b ::"'x"
+  assumes a: "at TYPE('x)"
+  shows "[(a,b)]\<bullet> a = b" 
+  using a by (auto simp add:at_calc)
+
+lemma swap_simp_b:
+  fixes a ::"'x"
+  and   b ::"'x"
+  assumes a: "at TYPE('x)"
+  shows "[(a,b)]\<bullet> b = a" 
+  using a by (auto simp add:at_calc)
+
 lemma pt_rev_pi:
   fixes pi :: "'x prm"
   and   x  :: "'a"
