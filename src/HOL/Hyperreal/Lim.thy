@@ -557,51 +557,11 @@ by (blast intro: LIM_NSLIM NSLIM_LIM)
 
 subsubsection {* Derived theorems about @{term LIM} *}
 
-lemma LIM_mult2:
-  fixes l m :: "'a::real_normed_algebra"
-  shows "[| f -- x --> l; g -- x --> m |]
-      ==> (%x. f(x) * g(x)) -- x --> (l * m)"
-by (simp add: LIM_NSLIM_iff NSLIM_mult)
-
-lemma LIM_scaleR:
-  "[| f -- x --> l; g -- x --> m |]
-      ==> (%x. f(x) *# g(x)) -- x --> (l *# m)"
-by (simp add: LIM_NSLIM_iff NSLIM_scaleR)
-
-lemma LIM_add2:
-     "[| f -- x --> l; g -- x --> m |] ==> (%x. f(x) + g(x)) -- x --> (l + m)"
-by (simp add: LIM_NSLIM_iff NSLIM_add)
-
-lemma LIM_const2: "(%x. k) -- x --> k"
-by (simp add: LIM_NSLIM_iff)
-
-lemma LIM_minus2: "f -- a --> L ==> (%x. -f(x)) -- a --> -L"
-by (simp add: LIM_NSLIM_iff NSLIM_minus)
-
-lemma LIM_add_minus2: "[| f -- x --> l; g -- x --> m |] ==> (%x. f(x) + -g(x)) -- x --> (l + -m)"
-by (simp add: LIM_NSLIM_iff NSLIM_add_minus)
-
 lemma LIM_inverse:
   fixes L :: "'a::real_normed_div_algebra"
   shows "[| f -- a --> L; L \<noteq> 0 |]
       ==> (%x. inverse(f(x))) -- a --> (inverse L)"
 by (simp add: LIM_NSLIM_iff NSLIM_inverse)
-
-lemma LIM_zero2: "f -- a --> l ==> (%x. f(x) - l) -- a --> 0"
-by (simp add: LIM_NSLIM_iff NSLIM_zero)
-
-lemma LIM_unique2:
-  fixes a :: real
-  shows "[| f -- a --> L; f -- a --> M |] ==> L = M"
-by (simp add: LIM_NSLIM_iff NSLIM_unique)
-
-(* we can use the corresponding thm LIM_mult2 *)
-(* for standard definition of limit           *)
-
-lemma LIM_mult_zero2:
-  fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
-  shows "[| f -- x --> 0; g -- x --> 0 |] ==> (%x. f(x)*g(x)) -- x --> 0"
-by (drule LIM_mult2, auto)
 
 
 subsection {* Continuity *}

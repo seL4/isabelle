@@ -1628,7 +1628,7 @@ by (auto dest: lemma_DERIV_tan simp add: tan_def [symmetric])
 lemma LIM_cos_div_sin [simp]: "(%x. cos(x)/sin(x)) -- pi/2 --> 0"
 apply (subgoal_tac "(\<lambda>x. cos x * inverse (sin x)) -- pi * inverse 2 --> 0*1")
 apply (simp add: divide_inverse [symmetric])
-apply (rule LIM_mult2)
+apply (rule LIM_mult)
 apply (rule_tac [2] inverse_1 [THEN subst])
 apply (rule_tac [2] LIM_inverse)
 apply (simp_all add: divide_inverse [symmetric]) 

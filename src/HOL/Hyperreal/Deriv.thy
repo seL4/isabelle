@@ -122,7 +122,7 @@ proof (unfold deriv_def)
   hence "(\<lambda>h. f(x+h) * ((g(x+h) - g x) / h) +
               ((f(x+h) - f x) / h) * g x)
           -- 0 --> f x * E + D * g x"
-    by (intro LIM_add LIM_mult2 LIM_const DERIV_D f g)
+    by (intro LIM_add LIM_mult LIM_const DERIV_D f g)
   thus "(\<lambda>h. (f(x+h) * g(x+h) - f x * g x) / h)
          -- 0 --> f x * E + D * g x"
     by (simp only: DERIV_mult_lemma)
@@ -204,7 +204,7 @@ proof (unfold DERIV_iff2)
       by (unfold DERIV_iff2)
     thus "(\<lambda>z. - (inverse (f z) * ((f z - f x) / (z - x)) * inverse (f x)))
           -- x --> ?E"
-      by (intro LIM_mult2 LIM_inverse LIM_minus LIM_const lim_f neq)
+      by (intro LIM_mult LIM_inverse LIM_minus LIM_const lim_f neq)
   qed
 qed
 
