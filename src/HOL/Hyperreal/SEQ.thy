@@ -542,6 +542,86 @@ next
     by (simp add: setprod_def LIMSEQ_const)
 qed
 
+lemma LIMSEQ_add_const: "f ----> a ==> (%n.(f n + b)) ----> a + b"
+by (simp add: LIMSEQ_add LIMSEQ_const)
+
+(* FIXME: delete *)
+lemma LIMSEQ_add_minus:
+     "[| X ----> a; Y ----> b |] ==> (%n. X n + -Y n) ----> a + -b"
+by (simp only: LIMSEQ_add LIMSEQ_minus)
+
+lemma LIMSEQ_diff_const: "f ----> a ==> (%n.(f n  - b)) ----> a - b"
+by (simp add: LIMSEQ_diff LIMSEQ_const)
+
+lemma LIMSEQ_diff_approach_zero: 
+  "g ----> L ==> (%x. f x - g x) ----> 0  ==>
+     f ----> L"
+  apply (drule LIMSEQ_add)
+  apply assumption
+  apply simp
+done
+
+lemma LIMSEQ_diff_approach_zero2: 
+  "f ----> L ==> (%x. f x - g x) ----> 0  ==>
+     g ----> L";
+  apply (drule LIMSEQ_diff)
+  apply assumption
+  apply simp
+done
+
+text{*A sequence tends to zero iff its abs does*}
+lemma LIMSEQ_norm_zero: "((\<lambda>n. norm (X n)) ----> 0) = (X ----> 0)"
+by (simp add: LIMSEQ_def)
+
+lemma LIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) ----> 0) = (f ----> (0::real))"
+by (simp add: LIMSEQ_def)
+
+lemma LIMSEQ_imp_rabs: "f ----> (l::real) ==> (%n. \<bar>f n\<bar>) ----> \<bar>l\<bar>"
+by (drule LIMSEQ_norm, simp)
+
+text{*An unbounded sequence's inverse tends to 0*}
+
+text{* standard proof seems easier *}
+lemma LIMSEQ_inverse_zero:
+      "\<forall>y::real. \<exists>N. \<forall>n \<ge> N. y < f(n) ==> (%n. inverse(f n)) ----> 0"
+apply (simp add: LIMSEQ_def, safe)
+apply (drule_tac x = "inverse r" in spec, safe)
+apply (rule_tac x = N in exI, safe)
+apply (drule spec, auto)
+apply (frule positive_imp_inverse_positive)
+apply (frule order_less_trans, assumption)
+apply (frule_tac a = "f n" in positive_imp_inverse_positive)
+apply (simp add: abs_if) 
+apply (rule_tac t = r in inverse_inverse_eq [THEN subst])
+apply (auto intro: inverse_less_iff_less [THEN iffD2]
+            simp del: inverse_inverse_eq)
+done
+
+text{*The sequence @{term "1/n"} tends to 0 as @{term n} tends to infinity*}
+
+lemma LIMSEQ_inverse_real_of_nat: "(%n. inverse(real(Suc n))) ----> 0"
+apply (rule LIMSEQ_inverse_zero, safe)
+apply (cut_tac x = y in reals_Archimedean2)
+apply (safe, rule_tac x = n in exI)
+apply (auto simp add: real_of_nat_Suc)
+done
+
+text{*The sequence @{term "r + 1/n"} tends to @{term r} as @{term n} tends to
+infinity is now easily proved*}
+
+lemma LIMSEQ_inverse_real_of_nat_add:
+     "(%n. r + inverse(real(Suc n))) ----> r"
+by (cut_tac LIMSEQ_add [OF LIMSEQ_const LIMSEQ_inverse_real_of_nat], auto)
+
+lemma LIMSEQ_inverse_real_of_nat_add_minus:
+     "(%n. r + -inverse(real(Suc n))) ----> r"
+by (cut_tac LIMSEQ_add_minus [OF LIMSEQ_const LIMSEQ_inverse_real_of_nat], auto)
+
+lemma LIMSEQ_inverse_real_of_nat_add_minus_mult:
+     "(%n. r*( 1 + -inverse(real(Suc n)))) ----> r"
+by (cut_tac b=1 in
+        LIMSEQ_mult [OF LIMSEQ_const LIMSEQ_inverse_real_of_nat_add_minus], auto)
+
 subsubsection {* Purely nonstandard proofs *}
 
 lemma NSLIMSEQ_iff:
@@ -620,6 +700,49 @@ apply (induct "m")
 apply (auto simp add: power_Suc intro: NSLIMSEQ_mult NSLIMSEQ_const)
 done
 
+text{*We can now try and derive a few properties of sequences,
+     starting with the limit comparison property for sequences.*}
+
+lemma NSLIMSEQ_le:
+       "[| f ----NS> l; g ----NS> m;
+           \<exists>N. \<forall>n \<ge> N. f(n) \<le> g(n)
+        |] ==> l \<le> (m::real)"
+apply (simp add: NSLIMSEQ_def, safe)
+apply (drule starfun_le_mono)
+apply (drule HNatInfinite_whn [THEN [2] bspec])+
+apply (drule_tac x = whn in spec)
+apply (drule bex_Infinitesimal_iff2 [THEN iffD2])+
+apply clarify
+apply (auto intro: hypreal_of_real_le_add_Infininitesimal_cancel2)
+done
+
+lemma NSLIMSEQ_le_const: "[| X ----NS> (r::real); \<forall>n. a \<le> X n |] ==> a \<le> r"
+by (erule NSLIMSEQ_le [OF NSLIMSEQ_const], auto)
+
+lemma NSLIMSEQ_le_const2: "[| X ----NS> (r::real); \<forall>n. X n \<le> a |] ==> r \<le> a"
+by (erule NSLIMSEQ_le [OF _ NSLIMSEQ_const], auto)
+
+text{*Shift a convergent series by 1:
+  By the equivalence between Cauchiness and convergence and because
+  the successor of an infinite hypernatural is also infinite.*}
+
+lemma NSLIMSEQ_Suc: "f ----NS> l ==> (%n. f(Suc n)) ----NS> l"
+apply (unfold NSLIMSEQ_def, safe)
+apply (drule_tac x="N + 1" in bspec)
+apply (erule HNatInfinite_add)
+apply (simp add: starfun_shift_one)
+done
+
+lemma NSLIMSEQ_imp_Suc: "(%n. f(Suc n)) ----NS> l ==> f ----NS> l"
+apply (unfold NSLIMSEQ_def, safe)
+apply (drule_tac x="N - 1" in bspec) 
+apply (erule Nats_1 [THEN [2] HNatInfinite_diff])
+apply (simp add: starfun_shift_one one_le_HNatInfinite)
+done
+
+lemma NSLIMSEQ_Suc_iff: "((%n. f(Suc n)) ----NS> l) = (f ----NS> l)"
+by (blast intro: NSLIMSEQ_imp_Suc NSLIMSEQ_Suc)
+
 subsubsection {* Equivalence of @{term LIMSEQ} and @{term NSLIMSEQ} *}
 
 lemma LIMSEQ_NSLIMSEQ:
@@ -670,32 +793,62 @@ by (rule_tac B="{..u}" in finite_subset, auto intro: order_trans)
 
 subsubsection {* Derived theorems about @{term LIMSEQ} *}
 
-lemma LIMSEQ_add_const: "f ----> a ==> (%n.(f n + b)) ----> a + b"
-by (simp add: LIMSEQ_add LIMSEQ_const)
+lemma LIMSEQ_le:
+     "[| f ----> l; g ----> m; \<exists>N. \<forall>n \<ge> N. f(n) \<le> g(n) |]
+      ==> l \<le> (m::real)"
+by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_le)
 
-(* FIXME: delete *)
-lemma LIMSEQ_add_minus:
-     "[| X ----> a; Y ----> b |] ==> (%n. X n + -Y n) ----> a + -b"
-by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_add_minus)
+lemma LIMSEQ_le_const: "[| X ----> (r::real); \<forall>n. a \<le> X n |] ==> a \<le> r"
+by (erule LIMSEQ_le [OF LIMSEQ_const], auto)
 
-lemma LIMSEQ_diff_const: "f ----> a ==> (%n.(f n  - b)) ----> a - b"
-by (simp add: LIMSEQ_diff LIMSEQ_const)
+lemma LIMSEQ_le_const2: "[| X ----> (r::real); \<forall>n. X n \<le> a |] ==> r \<le> a"
+by (erule LIMSEQ_le [OF _ LIMSEQ_const], auto)
 
-lemma LIMSEQ_diff_approach_zero: 
-  "g ----> L ==> (%x. f x - g x) ----> 0  ==>
-     f ----> L"
-  apply (drule LIMSEQ_add)
-  apply assumption
-  apply simp
+lemma LIMSEQ_Suc: "f ----> l ==> (%n. f(Suc n)) ----> l"
+by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_Suc)
+
+lemma LIMSEQ_imp_Suc: "(%n. f(Suc n)) ----> l ==> f ----> l"
+apply (simp add: LIMSEQ_NSLIMSEQ_iff)
+apply (erule NSLIMSEQ_imp_Suc)
 done
 
-lemma LIMSEQ_diff_approach_zero2: 
-  "f ----> L ==> (%x. f x - g x) ----> 0  ==>
-     g ----> L";
-  apply (drule LIMSEQ_diff)
-  apply assumption
-  apply simp
+lemma LIMSEQ_Suc_iff: "((%n. f(Suc n)) ----> l) = (f ----> l)"
+by (blast intro: LIMSEQ_imp_Suc LIMSEQ_Suc)
+
+text{*We prove the NS version from the standard one, since the NS proof
+   seems more complicated than the standard one above!*}
+lemma NSLIMSEQ_norm_zero: "((\<lambda>n. norm (X n)) ----NS> 0) = (X ----NS> 0)"
+by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_norm_zero)
+
+lemma NSLIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) ----NS> 0) = (f ----NS> (0::real))"
+by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_rabs_zero)
+
+text{*Generalization to other limits*}
+lemma NSLIMSEQ_imp_rabs: "f ----NS> (l::real) ==> (%n. \<bar>f n\<bar>) ----NS> \<bar>l\<bar>"
+apply (simp add: NSLIMSEQ_def)
+apply (auto intro: approx_hrabs 
+            simp add: starfun_abs)
 done
+
+lemma NSLIMSEQ_inverse_zero:
+     "\<forall>y::real. \<exists>N. \<forall>n \<ge> N. y < f(n)
+      ==> (%n. inverse(f n)) ----NS> 0"
+by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_zero)
+
+lemma NSLIMSEQ_inverse_real_of_nat: "(%n. inverse(real(Suc n))) ----NS> 0"
+by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat)
+
+lemma NSLIMSEQ_inverse_real_of_nat_add:
+     "(%n. r + inverse(real(Suc n))) ----NS> r"
+by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat_add)
+
+lemma NSLIMSEQ_inverse_real_of_nat_add_minus:
+     "(%n. r + -inverse(real(Suc n))) ----NS> r"
+by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat_add_minus)
+
+lemma NSLIMSEQ_inverse_real_of_nat_add_minus_mult:
+     "(%n. r*( 1 + -inverse(real(Suc n)))) ----NS> r"
+by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat_add_minus_mult)
 
 
 subsection {* Convergence *}
@@ -1207,169 +1360,6 @@ lemma Cauchy_convergent_iff:
   fixes X :: "nat \<Rightarrow> 'a::banach"
   shows "Cauchy X = convergent X"
 by (fast intro: Cauchy_convergent convergent_Cauchy)
-
-
-subsection {* More Properties of Sequences *}
-
-text{*We can now try and derive a few properties of sequences,
-     starting with the limit comparison property for sequences.*}
-
-lemma NSLIMSEQ_le:
-       "[| f ----NS> l; g ----NS> m;
-           \<exists>N. \<forall>n \<ge> N. f(n) \<le> g(n)
-        |] ==> l \<le> (m::real)"
-apply (simp add: NSLIMSEQ_def, safe)
-apply (drule starfun_le_mono)
-apply (drule HNatInfinite_whn [THEN [2] bspec])+
-apply (drule_tac x = whn in spec)
-apply (drule bex_Infinitesimal_iff2 [THEN iffD2])+
-apply clarify
-apply (auto intro: hypreal_of_real_le_add_Infininitesimal_cancel2)
-done
-
-(* standard version *)
-lemma LIMSEQ_le:
-     "[| f ----> l; g ----> m; \<exists>N. \<forall>n \<ge> N. f(n) \<le> g(n) |]
-      ==> l \<le> (m::real)"
-by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_le)
-
-lemma LIMSEQ_le_const: "[| X ----> (r::real); \<forall>n. a \<le> X n |] ==> a \<le> r"
-apply (rule LIMSEQ_le)
-apply (rule LIMSEQ_const, auto)
-done
-
-lemma NSLIMSEQ_le_const: "[| X ----NS> (r::real); \<forall>n. a \<le> X n |] ==> a \<le> r"
-by (simp add: LIMSEQ_NSLIMSEQ_iff LIMSEQ_le_const)
-
-lemma LIMSEQ_le_const2: "[| X ----> (r::real); \<forall>n. X n \<le> a |] ==> r \<le> a"
-apply (rule LIMSEQ_le)
-apply (rule_tac [2] LIMSEQ_const, auto)
-done
-
-lemma NSLIMSEQ_le_const2: "[| X ----NS> (r::real); \<forall>n. X n \<le> a |] ==> r \<le> a"
-by (simp add: LIMSEQ_NSLIMSEQ_iff LIMSEQ_le_const2)
-
-text{*Shift a convergent series by 1:
-  By the equivalence between Cauchiness and convergence and because
-  the successor of an infinite hypernatural is also infinite.*}
-
-lemma NSLIMSEQ_Suc: "f ----NS> l ==> (%n. f(Suc n)) ----NS> l"
-apply (unfold NSLIMSEQ_def, safe)
-apply (drule_tac x="N + 1" in bspec)
-apply (erule HNatInfinite_add)
-apply (simp add: starfun_shift_one)
-done
-
-text{* standard version *}
-lemma LIMSEQ_Suc: "f ----> l ==> (%n. f(Suc n)) ----> l"
-by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_Suc)
-
-lemma NSLIMSEQ_imp_Suc: "(%n. f(Suc n)) ----NS> l ==> f ----NS> l"
-apply (unfold NSLIMSEQ_def, safe)
-apply (drule_tac x="N - 1" in bspec) 
-apply (erule Nats_1 [THEN [2] HNatInfinite_diff])
-apply (simp add: starfun_shift_one one_le_HNatInfinite)
-done
-
-lemma LIMSEQ_imp_Suc: "(%n. f(Suc n)) ----> l ==> f ----> l"
-apply (simp add: LIMSEQ_NSLIMSEQ_iff)
-apply (erule NSLIMSEQ_imp_Suc)
-done
-
-lemma LIMSEQ_Suc_iff: "((%n. f(Suc n)) ----> l) = (f ----> l)"
-by (blast intro: LIMSEQ_imp_Suc LIMSEQ_Suc)
-
-lemma NSLIMSEQ_Suc_iff: "((%n. f(Suc n)) ----NS> l) = (f ----NS> l)"
-by (blast intro: NSLIMSEQ_imp_Suc NSLIMSEQ_Suc)
-
-text{*A sequence tends to zero iff its abs does*}
-lemma LIMSEQ_norm_zero: "((\<lambda>n. norm (X n)) ----> 0) = (X ----> 0)"
-by (simp add: LIMSEQ_def)
-
-lemma LIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) ----> 0) = (f ----> (0::real))"
-by (simp add: LIMSEQ_def)
-
-text{*We prove the NS version from the standard one, since the NS proof
-   seems more complicated than the standard one above!*}
-lemma NSLIMSEQ_norm_zero: "((\<lambda>n. norm (X n)) ----NS> 0) = (X ----NS> 0)"
-by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_norm_zero)
-
-lemma NSLIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) ----NS> 0) = (f ----NS> (0::real))"
-by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_rabs_zero)
-
-text{*Generalization to other limits*}
-lemma NSLIMSEQ_imp_rabs: "f ----NS> (l::real) ==> (%n. \<bar>f n\<bar>) ----NS> \<bar>l\<bar>"
-apply (simp add: NSLIMSEQ_def)
-apply (auto intro: approx_hrabs 
-            simp add: starfun_abs)
-done
-
-text{* standard version *}
-lemma LIMSEQ_imp_rabs: "f ----> (l::real) ==> (%n. \<bar>f n\<bar>) ----> \<bar>l\<bar>"
-by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_imp_rabs)
-
-text{*An unbounded sequence's inverse tends to 0*}
-
-text{* standard proof seems easier *}
-lemma LIMSEQ_inverse_zero:
-      "\<forall>y::real. \<exists>N. \<forall>n \<ge> N. y < f(n) ==> (%n. inverse(f n)) ----> 0"
-apply (simp add: LIMSEQ_def, safe)
-apply (drule_tac x = "inverse r" in spec, safe)
-apply (rule_tac x = N in exI, safe)
-apply (drule spec, auto)
-apply (frule positive_imp_inverse_positive)
-apply (frule order_less_trans, assumption)
-apply (frule_tac a = "f n" in positive_imp_inverse_positive)
-apply (simp add: abs_if) 
-apply (rule_tac t = r in inverse_inverse_eq [THEN subst])
-apply (auto intro: inverse_less_iff_less [THEN iffD2]
-            simp del: inverse_inverse_eq)
-done
-
-lemma NSLIMSEQ_inverse_zero:
-     "\<forall>y::real. \<exists>N. \<forall>n \<ge> N. y < f(n)
-      ==> (%n. inverse(f n)) ----NS> 0"
-by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_zero)
-
-text{*The sequence @{term "1/n"} tends to 0 as @{term n} tends to infinity*}
-
-lemma LIMSEQ_inverse_real_of_nat: "(%n. inverse(real(Suc n))) ----> 0"
-apply (rule LIMSEQ_inverse_zero, safe)
-apply (cut_tac x = y in reals_Archimedean2)
-apply (safe, rule_tac x = n in exI)
-apply (auto simp add: real_of_nat_Suc)
-done
-
-lemma NSLIMSEQ_inverse_real_of_nat: "(%n. inverse(real(Suc n))) ----NS> 0"
-by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat)
-
-text{*The sequence @{term "r + 1/n"} tends to @{term r} as @{term n} tends to
-infinity is now easily proved*}
-
-lemma LIMSEQ_inverse_real_of_nat_add:
-     "(%n. r + inverse(real(Suc n))) ----> r"
-by (cut_tac LIMSEQ_add [OF LIMSEQ_const LIMSEQ_inverse_real_of_nat], auto)
-
-lemma NSLIMSEQ_inverse_real_of_nat_add:
-     "(%n. r + inverse(real(Suc n))) ----NS> r"
-by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat_add)
-
-lemma LIMSEQ_inverse_real_of_nat_add_minus:
-     "(%n. r + -inverse(real(Suc n))) ----> r"
-by (cut_tac LIMSEQ_add_minus [OF LIMSEQ_const LIMSEQ_inverse_real_of_nat], auto)
-
-lemma NSLIMSEQ_inverse_real_of_nat_add_minus:
-     "(%n. r + -inverse(real(Suc n))) ----NS> r"
-by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat_add_minus)
-
-lemma LIMSEQ_inverse_real_of_nat_add_minus_mult:
-     "(%n. r*( 1 + -inverse(real(Suc n)))) ----> r"
-by (cut_tac b=1 in
-        LIMSEQ_mult [OF LIMSEQ_const LIMSEQ_inverse_real_of_nat_add_minus], auto)
-
-lemma NSLIMSEQ_inverse_real_of_nat_add_minus_mult:
-     "(%n. r*( 1 + -inverse(real(Suc n)))) ----NS> r"
-by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat_add_minus_mult)
 
 
 subsection {* Power Sequences *}
