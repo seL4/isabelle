@@ -349,28 +349,34 @@ apply (drule_tac x="n" in spec, safe)
 apply (erule order_le_less_trans [OF norm_triangle_ineq3])
 done
 
-lemma LIMSEQ_ignore_initial_segment: "f ----> a 
-  ==> (%n. f(n + k)) ----> a"
-  apply (unfold LIMSEQ_def) 
-  apply (clarify)
-  apply (drule_tac x = r in spec)
-  apply (clarify)
-  apply (rule_tac x = "no + k" in exI)
-  by auto
-
-lemma LIMSEQ_offset: "(%x. f (x + k)) ----> a ==>
-    f ----> a"
-  apply (unfold LIMSEQ_def)
-  apply clarsimp
-  apply (drule_tac x = r in spec)
-  apply clarsimp
-  apply (rule_tac x = "no + k" in exI)
-  apply clarsimp
-  apply (drule_tac x = "n - k" in spec)
-  apply (frule mp)
-  apply arith
-  apply simp
+lemma LIMSEQ_ignore_initial_segment:
+  "f ----> a \<Longrightarrow> (\<lambda>n. f (n + k)) ----> a"
+apply (rule LIMSEQ_I)
+apply (drule (1) LIMSEQ_D)
+apply (erule exE, rename_tac N)
+apply (rule_tac x=N in exI)
+apply simp
 done
+
+lemma LIMSEQ_offset:
+  "(\<lambda>n. f (n + k)) ----> a \<Longrightarrow> f ----> a"
+apply (rule LIMSEQ_I)
+apply (drule (1) LIMSEQ_D)
+apply (erule exE, rename_tac N)
+apply (rule_tac x="N + k" in exI)
+apply clarify
+apply (drule_tac x="n - k" in spec)
+apply (simp add: le_diff_conv2)
+done
+
+lemma LIMSEQ_Suc: "f ----> l \<Longrightarrow> (\<lambda>n. f (Suc n)) ----> l"
+by (drule_tac k="1" in LIMSEQ_ignore_initial_segment, simp)
+
+lemma LIMSEQ_imp_Suc: "(\<lambda>n. f (Suc n)) ----> l \<Longrightarrow> f ----> l"
+by (rule_tac k="1" in LIMSEQ_offset, simp)
+
+lemma LIMSEQ_Suc_iff: "(\<lambda>n. f (Suc n)) ----> l = f ----> l"
+by (blast intro: LIMSEQ_imp_Suc LIMSEQ_Suc)
 
 lemma add_diff_add:
   fixes a b c d :: "'a::ab_group_add"
@@ -622,6 +628,32 @@ lemma LIMSEQ_inverse_real_of_nat_add_minus_mult:
 by (cut_tac b=1 in
         LIMSEQ_mult [OF LIMSEQ_const LIMSEQ_inverse_real_of_nat_add_minus], auto)
 
+lemma LIMSEQ_le_const:
+  "\<lbrakk>X ----> (x::real); \<exists>N. \<forall>n\<ge>N. a \<le> X n\<rbrakk> \<Longrightarrow> a \<le> x"
+apply (rule ccontr, simp only: linorder_not_le)
+apply (drule_tac r="a - x" in LIMSEQ_D, simp)
+apply clarsimp
+apply (drule_tac x="max N no" in spec, drule mp, rule le_maxI1)
+apply (drule_tac x="max N no" in spec, drule mp, rule le_maxI2)
+apply simp
+done
+
+lemma LIMSEQ_le_const2:
+  "\<lbrakk>X ----> (x::real); \<exists>N. \<forall>n\<ge>N. X n \<le> a\<rbrakk> \<Longrightarrow> x \<le> a"
+apply (subgoal_tac "- a \<le> - x", simp)
+apply (rule LIMSEQ_le_const)
+apply (erule LIMSEQ_minus)
+apply simp
+done
+
+lemma LIMSEQ_le:
+  "\<lbrakk>X ----> x; Y ----> y; \<exists>N. \<forall>n\<ge>N. X n \<le> Y n\<rbrakk> \<Longrightarrow> x \<le> (y::real)"
+apply (subgoal_tac "0 \<le> y - x", simp)
+apply (rule LIMSEQ_le_const)
+apply (erule (1) LIMSEQ_diff)
+apply (simp add: le_diff_eq)
+done
+
 subsubsection {* Purely nonstandard proofs *}
 
 lemma NSLIMSEQ_iff:
@@ -791,29 +823,7 @@ lemma NSLIMSEQ_finite_set:
      "!!(f::nat=>nat). \<forall>n. n \<le> f n ==> finite {n. f n \<le> u}"
 by (rule_tac B="{..u}" in finite_subset, auto intro: order_trans)
 
-subsubsection {* Derived theorems about @{term LIMSEQ} *}
-
-lemma LIMSEQ_le:
-     "[| f ----> l; g ----> m; \<exists>N. \<forall>n \<ge> N. f(n) \<le> g(n) |]
-      ==> l \<le> (m::real)"
-by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_le)
-
-lemma LIMSEQ_le_const: "[| X ----> (r::real); \<forall>n. a \<le> X n |] ==> a \<le> r"
-by (erule LIMSEQ_le [OF LIMSEQ_const], auto)
-
-lemma LIMSEQ_le_const2: "[| X ----> (r::real); \<forall>n. X n \<le> a |] ==> r \<le> a"
-by (erule LIMSEQ_le [OF _ LIMSEQ_const], auto)
-
-lemma LIMSEQ_Suc: "f ----> l ==> (%n. f(Suc n)) ----> l"
-by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_Suc)
-
-lemma LIMSEQ_imp_Suc: "(%n. f(Suc n)) ----> l ==> f ----> l"
-apply (simp add: LIMSEQ_NSLIMSEQ_iff)
-apply (erule NSLIMSEQ_imp_Suc)
-done
-
-lemma LIMSEQ_Suc_iff: "((%n. f(Suc n)) ----> l) = (f ----> l)"
-by (blast intro: LIMSEQ_imp_Suc LIMSEQ_Suc)
+subsubsection {* Derived theorems about @{term NSLIMSEQ} *}
 
 text{*We prove the NS version from the standard one, since the NS proof
    seems more complicated than the standard one above!*}
