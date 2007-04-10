@@ -664,4 +664,10 @@ apply (rule_tac x="1" in exI)
 apply (simp add: norm_scaleR)
 done
 
+interpretation bounded_linear_of_real:
+  bounded_linear ["\<lambda>r. of_real r"]
+apply (unfold of_real_def)
+apply (rule bounded_bilinear_scaleR.bounded_linear_left)
+done
+
 end
