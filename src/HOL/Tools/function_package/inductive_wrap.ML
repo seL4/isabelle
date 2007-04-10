@@ -19,8 +19,9 @@ struct
 
 open FundefLib
 
-fun requantify ctxt lfix (qs, t) thm =
+fun requantify ctxt lfix orig_def thm =
     let
+      val (qs, t) = dest_all_all orig_def
       val thy = theory_of_thm thm
       val frees = frees_in_term ctxt t 
                   |> remove (op =) lfix
@@ -38,10 +39,8 @@ fun requantify ctxt lfix (qs, t) thm =
 
 fun inductive_def defs (((R, T), mixfix), lthy) =
     let
-      val qdefs = map dest_all_all defs
-                  
       val ({intrs = intrs_gen, elims = [elim_gen], preds = [ Rdef ], induct, ...}, lthy) =
-          InductivePackage.add_inductive_i true (*verbose*)
+          InductivePackage.add_inductive_i (! Toplevel.debug) (*verbose*)
                                            "" (* no altname *)
                                            false (* no coind *)
                                            false (* elims, please *)
@@ -52,11 +51,7 @@ fun inductive_def defs (((R, T), mixfix), lthy) =
                                            [] (* no special monos *)
                                            lthy
 
-      fun inst qdef intr_gen =
-          intr_gen
-            |> requantify lthy (R, T) qdef 
-          
-      val intrs = map2 inst qdefs intrs_gen
+      val intrs = map2 (requantify lthy (R, T)) defs intrs_gen
                   
       val elim = elim_gen
                    |> forall_intr_vars (* FIXME... *)
