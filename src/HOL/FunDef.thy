@@ -6,7 +6,7 @@ A package for general recursive function definitions.
 *)
 
 theory FunDef
-imports Accessible_Part Datatype Recdef
+imports Accessible_Part 
 uses 
 ("Tools/function_package/sum_tools.ML")
 ("Tools/function_package/fundef_common.ML")
@@ -83,25 +83,6 @@ qed
 
 
 
-section {* Projections *}
-
-inductive2 lpg :: "('a + 'b) \<Rightarrow> 'a \<Rightarrow> bool"
-where
-  "lpg (Inl x) x"
-inductive2 rpg :: "('a + 'b) \<Rightarrow> 'b \<Rightarrow> bool"
-where
-  "rpg (Inr y) y"
-
-definition "lproj x = (THE y. lpg x y)"
-definition "rproj x = (THE y. rpg x y)"
-
-lemma lproj_inl:
-  "lproj (Inl x) = x"
-  by (auto simp:lproj_def intro: the_equality lpg.intros elim: lpg.cases)
-lemma rproj_inr:
-  "rproj (Inr x) = x"
-  by (auto simp:rproj_def intro: the_equality rpg.intros elim: rpg.cases)
-
 use "Tools/function_package/sum_tools.ML"
 use "Tools/function_package/fundef_common.ML"
 use "Tools/function_package/fundef_lib.ML"
@@ -114,6 +95,10 @@ use "Tools/function_package/auto_term.ML"
 use "Tools/function_package/fundef_package.ML"
 
 setup FundefPackage.setup
+
+lemma let_cong:
+    "M = N ==> (!!x. x = N ==> f x = g x) ==> Let M f = Let N g"
+  by (unfold Let_def) blast
 
 lemmas [fundef_cong] = 
   let_cong if_cong image_cong INT_cong UN_cong bex_cong ball_cong imp_cong

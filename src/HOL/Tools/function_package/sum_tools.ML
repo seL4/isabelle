@@ -31,12 +31,12 @@ struct
 
 val inlN = "Sum_Type.Inl"
 val inrN = "Sum_Type.Inr"
-val sumcaseN = "Datatype.sum.sum_case"
+val sumcaseN = "Sum_Type.sum_case"
 
-val projlN = "FunDef.lproj"
-val projrN = "FunDef.rproj"
-val projl_inl = thm "FunDef.lproj_inl"
-val projr_inr = thm "FunDef.rproj_inr"
+val projlN = "Sum_Type.Projl"
+val projrN = "Sum_Type.Projr"
+val projl_inl = thm "Sum_Type.Projl_Inl"
+val projr_inr = thm "Sum_Type.Projr_Inr"
 
 fun mk_sumT LT RT = Type ("+", [LT, RT])
 fun mk_sumcase TL TR T l r = Const (sumcaseN, (TL --> T) --> (TR --> T) --> mk_sumT TL TR --> T) $ l $ r

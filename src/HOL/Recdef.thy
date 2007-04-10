@@ -6,7 +6,7 @@
 header {* TFL: recursive function definitions *}
 
 theory Recdef
-imports Wellfounded_Relations
+imports Wellfounded_Relations FunDef
 uses
   ("../TFL/casesplit.ML")
   ("../TFL/utils.ML")
@@ -64,11 +64,7 @@ lemmas [recdef_simp] =
   less_Suc_eq [THEN iffD2]
 
 lemmas [recdef_cong] = 
-  if_cong image_cong INT_cong UN_cong bex_cong ball_cong imp_cong
-
-lemma let_cong [recdef_cong]:
-    "M = N ==> (!!x. x = N ==> f x = g x) ==> Let M f = Let N g"
-  by (unfold Let_def) blast
+  if_cong let_cong image_cong INT_cong UN_cong bex_cong ball_cong imp_cong
 
 lemmas [recdef_wf] =
   wf_trancl

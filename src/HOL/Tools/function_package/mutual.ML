@@ -30,7 +30,7 @@ open FundefLib
 open FundefCommon
 
 (* Theory dependencies *)
-val sum_case_rules = thms "Datatype.sum.cases"
+val sum_case_rules = thms "Sum_Type.sum_cases"
 val split_apply = thm "Product_Type.split"
 
 type qgar = string * (string * typ) list * term list * term list * term
@@ -250,7 +250,7 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs) impo
                  (HOLogic.Trueprop $ HOLogic.mk_eq (list_comb (f, args), rhs))
                  (fn _ => SIMPSET (unfold_tac all_orig_fdefs)
                           THEN EqSubst.eqsubst_tac ctxt [0] [simp] 1
-                          THEN SIMPSET' (fn ss => simp_tac (ss addsimps [@{thm "lproj_inl"}, @{thm "rproj_inr"}])) 1)
+                          THEN SIMPSET' (fn ss => simp_tac (ss addsimps [SumTools.projl_inl, SumTools.projr_inr])) 1)
         |> restore_cond 
         |> export
     end
@@ -324,7 +324,7 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {RST, parts, streeR, fq
                         termination,domintros} = result
                                                                                                                
       val all_f_defs = map (fn MutualPart {f_defthm = SOME f_def, cargTs, ...} =>
-                               mk_applied_form lthy cargTs (symmetric (Thm.freezeT f_def)))
+                               mk_applied_form lthy cargTs (symmetric f_def))
                            parts
 
       val all_orig_fdefs = map (fn MutualPart {f_defthm = SOME f_def, ...} => f_def) parts
