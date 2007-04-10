@@ -1412,10 +1412,62 @@ apply (drule approx_trans3, assumption)
 apply (auto simp del: star_of_mult simp add: star_of_mult [symmetric])
 done
 
-text{* standard version *}
+lemma LIMSEQ_inverse_realpow_zero_lemma:
+  fixes x :: real
+  assumes x: "0 \<le> x"
+  shows "real n * x + 1 \<le> (x + 1) ^ n"
+apply (induct n)
+apply simp
+apply simp
+apply (rule order_trans)
+prefer 2
+apply (erule mult_left_mono)
+apply (rule add_increasing [OF x], simp)
+apply (simp add: real_of_nat_Suc)
+apply (simp add: ring_distrib)
+apply (simp add: mult_nonneg_nonneg x)
+done
+
+lemma LIMSEQ_inverse_realpow_zero:
+  "1 < (x::real) \<Longrightarrow> (\<lambda>n. inverse (x ^ n)) ----> 0"
+proof (rule LIMSEQ_inverse_zero [rule_format])
+  fix y :: real
+  assume x: "1 < x"
+  hence "0 < x - 1" by simp
+  hence "\<forall>y. \<exists>N::nat. y < real N * (x - 1)"
+    by (rule reals_Archimedean3)
+  hence "\<exists>N::nat. y < real N * (x - 1)" ..
+  then obtain N::nat where "y < real N * (x - 1)" ..
+  also have "\<dots> \<le> real N * (x - 1) + 1" by simp
+  also have "\<dots> \<le> (x - 1 + 1) ^ N"
+    by (rule LIMSEQ_inverse_realpow_zero_lemma, cut_tac x, simp)
+  also have "\<dots> = x ^ N" by simp
+  finally have "y < x ^ N" .
+  hence "\<forall>n\<ge>N. y < x ^ n"
+    apply clarify
+    apply (erule order_less_le_trans)
+    apply (erule power_increasing)
+    apply (rule order_less_imp_le [OF x])
+    done
+  thus "\<exists>N. \<forall>n\<ge>N. y < x ^ n" ..
+qed
+
 lemma LIMSEQ_realpow_zero:
-  "[| 0 \<le> (x::real); x < 1 |] ==> (%n. x ^ n) ----> 0"
-by (simp add: NSLIMSEQ_realpow_zero LIMSEQ_NSLIMSEQ_iff)
+  "\<lbrakk>0 \<le> (x::real); x < 1\<rbrakk> \<Longrightarrow> (\<lambda>n. x ^ n) ----> 0"
+proof (cases)
+  assume "x = 0"
+  hence "(\<lambda>n. x ^ Suc n) ----> 0" by (simp add: LIMSEQ_const)
+  thus ?thesis by (rule LIMSEQ_imp_Suc)
+next
+  assume "0 \<le> x" and "x \<noteq> 0"
+  hence x0: "0 < x" by simp
+  assume x1: "x < 1"
+  from x0 x1 have "1 < inverse x"
+    by (rule real_inverse_gt_one)
+  hence "(\<lambda>n. inverse (inverse x ^ n)) ----> 0"
+    by (rule LIMSEQ_inverse_realpow_zero)
+  thus ?thesis by (simp add: power_inverse)
+qed
 
 lemma LIMSEQ_power_zero:
   fixes x :: "'a::{real_normed_div_algebra,recpower}"
