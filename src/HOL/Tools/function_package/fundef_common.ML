@@ -63,6 +63,17 @@ datatype fundef_context_data =
       termination: thm
      }
 
+fun morph_fundef_data phi (FundefCtxData {add_simps, f, R, psimps, pinducts, termination}) =
+    let
+      val term = Morphism.term phi
+      val thm = Morphism.thm phi
+      val fact = Morphism.fact phi
+    in
+      FundefCtxData { add_simps=add_simps (*FIXME ???*), 
+                      f = term f, R = term R, psimps = fact psimps, 
+                      pinducts = fact pinducts, termination = thm termination }
+    end
+
 
 structure FundefData = GenericDataFun
 (struct

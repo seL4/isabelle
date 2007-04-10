@@ -269,8 +269,9 @@ fun mk_applied_form ctxt caTs thm =
     end
     
 
-fun mutual_induct_rules thy induct all_f_defs (Mutual {RST, parts, streeA, ...}) =
+fun mutual_induct_rules lthy induct all_f_defs (Mutual {RST, parts, streeA, ...}) =
     let
+      val cert = cterm_of (ProofContext.theory_of lthy)
       val newPs = map2 (fn Pname => fn MutualPart {cargTs, ...} => 
                                        Free (Pname, cargTs ---> HOLogic.boolT))
                        (mutual_induct_Pnames (length parts))
@@ -288,7 +289,7 @@ fun mutual_induct_rules thy induct all_f_defs (Mutual {RST, parts, streeA, ...})
       val case_exp = SumTools.mk_sumcases streeA HOLogic.boolT Ps
                      
       val induct_inst =
-          forall_elim (cterm_of thy case_exp) induct
+          forall_elim (cert case_exp) induct
                       |> full_simplify (HOL_basic_ss addsimps (split_apply :: sum_case_rules))
                       |> full_simplify (HOL_basic_ss addsimps all_f_defs)
           
@@ -298,9 +299,9 @@ fun mutual_induct_rules thy induct all_f_defs (Mutual {RST, parts, streeA, ...})
             val inj = SumTools.mk_inj streeA pthA (foldr1 HOLogic.mk_prod afs)
           in
             rule
-              |> forall_elim (cterm_of thy inj)
+              |> forall_elim (cert inj)
               |> full_simplify (HOL_basic_ss addsimps (split_apply :: sum_case_rules))
-              |> fold_rev (forall_intr o cterm_of thy) (afs @ newPs)
+              |> fold_rev (forall_intr o cert) (afs @ newPs)
           end
           
     in
@@ -308,17 +309,8 @@ fun mutual_induct_rules thy induct all_f_defs (Mutual {RST, parts, streeA, ...})
     end
     
 
-
-
-
-fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {RST, parts, streeR, fqgars, ...}) proof =
+fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) proof =
     let
-      val thy = ProofContext.theory_of lthy
-                                       
-      (* FIXME !? *)
-      val expand = Assumption.export false lthy (LocalTheory.target_of lthy)
-      val expand_term = Drule.term_rule thy expand
-                        
       val result = inner_cont proof
       val FundefResult {f, G, R, cases, psimps, trsimps, subset_pinducts=[subset_pinduct],simple_pinducts=[simple_pinduct],
                         termination,domintros} = result
@@ -334,14 +326,14 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {RST, parts, streeR, fq
           
       val mpsimps = map2 mk_mpsimp fqgars psimps
       val mtrsimps = map_option (map2 mk_mpsimp fqgars) trsimps
-      val minducts = mutual_induct_rules thy simple_pinduct all_f_defs m
+      val minducts = mutual_induct_rules lthy simple_pinduct all_f_defs m
       val mtermination = full_simplify (HOL_basic_ss addsimps all_f_defs) termination
     in
-      FundefResult { f=expand_term f, G=expand_term G, R=expand_term R,
-                     psimps=map expand mpsimps, subset_pinducts=[expand subset_pinduct], simple_pinducts=map expand minducts,
-                     cases=expand cases, termination=expand mtermination,
-                     domintros=map_option (map expand) domintros,
-                     trsimps=map_option (map expand) mtrsimps}
+      FundefResult { f=f, G=G, R=R,
+                     psimps=mpsimps, subset_pinducts=[subset_pinduct], simple_pinducts=minducts,
+                     cases=cases, termination=mtermination,
+                     domintros=domintros,
+                     trsimps=mtrsimps}
     end
       
 
