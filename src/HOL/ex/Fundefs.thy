@@ -173,6 +173,41 @@ thm evn_od.pinduct
 thm evn_od.termination
 
 
+section {* Definitions in local contexts *}
+
+locale my_monoid = 
+fixes opr :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+  and un :: "'a"
+assumes assoc: "opr (opr x y) z = opr x (opr y z)"
+  and lunit: "opr un x = x"
+  and runit: "opr x un = x"
+
+
+context my_monoid
+begin
+
+fun foldR :: "'a list \<Rightarrow> 'a"
+where
+  "foldR [] = un"
+| "foldR (x#xs) = opr x (foldR xs)"
+
+fun foldL :: "'a list \<Rightarrow> 'a"
+where
+  "foldL [] = un"
+| "foldL [x] = x"
+| "foldL (x#y#ys) = foldL (opr x y # ys)" 
+
+thm foldL.simps
+
+lemma foldR_foldL: "foldR xs = foldL xs"
+by (induct xs rule: foldL.induct) (auto simp:lunit runit assoc)
+
+thm foldR_foldL
+
+end
+
+thm my_monoid.foldL.simps
+thm my_monoid.foldR_foldL
 
 
 end
