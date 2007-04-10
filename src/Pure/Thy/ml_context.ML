@@ -140,7 +140,7 @@ fun eval_antiquotes txt =
     fun expand (Antiquote.Text s) names = (("", Symbol.escape s), names)
       | expand (Antiquote.Antiq x) names =
           (case command (Antiquote.scan_arguments (! global_lexicon) antiq x) of
-            Inline s => (("", ML_Syntax.atomic s), names)
+            Inline s => (("", s), names)
           | Value (a, s) =>
               let
                 val a' = if ML_Syntax.is_identifier a then a else "val";
@@ -189,9 +189,9 @@ fun use path = eval_wrapper (Path.implode path) true (File.read path);
 
 val _ = value_antiq "context" (Scan.succeed ("context", "ML_Context.the_local_context ()"));
 
-val _ = inline_antiq "typ" (Args.typ >> ML_Syntax.print_typ);
-val _ = inline_antiq "term" (Args.term >> ML_Syntax.print_term);
-val _ = inline_antiq "prop" (Args.prop >> ML_Syntax.print_term);
+val _ = inline_antiq "typ" (Args.typ >> (ML_Syntax.atomic o ML_Syntax.print_typ));
+val _ = inline_antiq "term" (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term));
+val _ = inline_antiq "prop" (Args.prop >> (ML_Syntax.atomic o ML_Syntax.print_term));
 
 val _ = value_antiq "ctyp" (Args.typ >> (fn T =>
   ("ctyp",
