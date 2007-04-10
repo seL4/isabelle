@@ -60,29 +60,58 @@ lemma graph_ext:
   by (cases G, cases H, auto simp:split_paired_all has_edge_def)
 
 
-instance graph :: (type, times) times 
-  graph_mult_def: "G * H == grcomp G H" ..
+instance graph :: (type, type) "{comm_monoid_add}"
+  graph_zero_def: "0 == Graph {}" 
+  graph_plus_def: "G + H == Graph (dest_graph G \<union> dest_graph H)"
+proof
+  fix x y z :: "('a,'b) graph"
 
-instance graph :: (type, one) one 
-  graph_one_def: "1 == Graph { (x, 1, x) |x. True}" ..
-
-instance graph :: (type, type) zero 
-  graph_zero_def: "0 == Graph {}" ..
-
-instance graph :: (type, type) plus 
-  graph_plus_def: "G + H == Graph (dest_graph G \<union> dest_graph H)" ..
+  show "x + y + z = x + (y + z)" 
+   and "x + y = y + x" 
+   and "0 + x = x"
+  unfolding graph_plus_def graph_zero_def 
+  by auto
+qed
 
 
-subsection {* Simprules for the graph operations *}
+instance graph :: (type, type) "{distrib_lattice, complete_lattice}"
+  graph_leq_def: "G \<le> H \<equiv> dest_graph G \<subseteq> dest_graph H"
+  graph_less_def: "G < H \<equiv> dest_graph G \<subset> dest_graph H"
+  "inf G H \<equiv> Graph (dest_graph G \<inter> dest_graph H)"
+  "sup G H \<equiv> G + H"
+  Inf_graph_def: "Inf == \<lambda>Gs. Graph (\<Inter>(dest_graph ` Gs))"
+proof
+  fix x y z :: "('a,'b) graph"
 
-lemma in_grcomp:
-  "has_edge (G * H) p b q
-  = (\<exists>k e e'. has_edge G p e k \<and> has_edge H k e' q \<and> b = e * e')"
-  by (cases G, cases H) (auto simp:graph_mult_def has_edge_def image_def)
+  show "(x < y) = (x \<le> y \<and> x \<noteq> y)"
+    unfolding graph_leq_def graph_less_def
+    by (cases x, cases y) auto
 
-lemma in_grunit:
-  "has_edge 1 p b q = (p = q \<and> b = 1)"
-  by (auto simp:graph_one_def has_edge_def)
+  show "x \<le> x" unfolding graph_leq_def ..
+
+  show "\<lbrakk>x \<le> y; y \<le> x\<rbrakk> \<Longrightarrow> x = y" unfolding graph_leq_def 
+    by (cases x, cases y) simp
+
+  show "inf x y \<le> x" "inf x y \<le> y"
+    "\<lbrakk>x \<le> y; x \<le> z\<rbrakk> \<Longrightarrow> x \<le> inf y z"
+    unfolding inf_graph_def graph_leq_def by auto
+
+  show "x \<le> sup x y" "y \<le> sup x y"
+    "\<lbrakk>y \<le> x; z \<le> x\<rbrakk> \<Longrightarrow> sup y z \<le> x"
+    unfolding sup_graph_def graph_leq_def graph_plus_def by auto
+  
+  show "sup x (inf y z) = inf (sup x y) (sup x z)"
+    unfolding inf_graph_def sup_graph_def graph_leq_def graph_plus_def by auto
+
+  fix A :: "('a, 'b) graph set"
+  show "x \<in> A \<Longrightarrow> Inf A \<le> x"
+    and "(\<And>x. x \<in> A \<Longrightarrow> z \<le> x) \<Longrightarrow> z \<le> Inf A"
+    unfolding Inf_graph_def graph_leq_def by auto
+
+  from order_trans
+  show "\<lbrakk>x \<le> y; y \<le> z\<rbrakk> \<Longrightarrow> x \<le> z" 
+    unfolding graph_leq_def .
+qed auto
 
 lemma in_grplus:
   "has_edge (G + H) p b q = (has_edge G p b q \<or> has_edge H p b q)"
@@ -92,6 +121,34 @@ lemma in_grzero:
   "has_edge 0 p b q = False"
   by (simp add:graph_zero_def has_edge_def)
 
+
+
+subsection {* Multiplicative Structure *}
+
+instance graph :: (type, times) mult_zero
+  graph_mult_def: "G * H == grcomp G H" 
+proof
+  fix a :: "('a, 'b) graph"
+
+  show "0 * a = 0" 
+    unfolding graph_mult_def graph_zero_def
+    by (cases a) (simp add:grcomp.simps)
+  show "a * 0 = 0" 
+    unfolding graph_mult_def graph_zero_def
+    by (cases a) (simp add:grcomp.simps)
+qed
+
+instance graph :: (type, one) one 
+  graph_one_def: "1 == Graph { (x, 1, x) |x. True}" ..
+
+lemma in_grcomp:
+  "has_edge (G * H) p b q
+  = (\<exists>k e e'. has_edge G p e k \<and> has_edge H k e' q \<and> b = e * e')"
+  by (cases G, cases H) (auto simp:graph_mult_def has_edge_def image_def)
+
+lemma in_grunit:
+  "has_edge 1 p b q = (p = q \<and> b = 1)"
+  by (auto simp:graph_one_def has_edge_def)
 
 instance graph :: (type, semigroup_mult) semigroup_mult
 proof
@@ -112,80 +169,22 @@ proof
   qed
 qed
 
-instance graph :: (type, monoid_mult) monoid_mult
-proof
-  fix G1 G2 G3 :: "('a,'b) graph"
-  
-  show "1 * G1 = G1" 
-    by (rule graph_ext) (auto simp:in_grcomp in_grunit)
-  show "G1 * 1 = G1"
-    by (rule graph_ext) (auto simp:in_grcomp in_grunit)
-qed
-
-
-lemma grcomp_rdist:
-  fixes G :: "('a::type, 'b::semigroup_mult) graph"
-  shows "G * (H + I) = G * H + G * I"
-  by (rule graph_ext, simp add:in_grcomp in_grplus) blast
-
-lemma grcomp_ldist:
-  fixes G :: "('a::type, 'b::semigroup_mult) graph"
-  shows "(G + H) * I = G * I + H * I"
-  by (rule graph_ext, simp add:in_grcomp in_grplus) blast
-
 fun grpow :: "nat \<Rightarrow> ('a::type, 'b::monoid_mult) graph \<Rightarrow> ('a, 'b) graph"
 where
   "grpow 0 A = 1"
 | "grpow (Suc n) A = A * (grpow n A)"
 
-
-instance graph :: (type, monoid_mult) recpower 
-  graph_pow_def: "A ^ n == grpow n A" 
-  by default (simp_all add:graph_pow_def)
-
-subsection {* Order on Graphs *}
-
-instance graph :: (type, type) order
-  graph_leq_def: "G \<le> H \<equiv> dest_graph G \<subseteq> dest_graph H"
-  graph_less_def: "G < H \<equiv> dest_graph G \<subset> dest_graph H"
-proof
-  fix x y z :: "('a,'b) graph"
-
-  show "x \<le> x" unfolding graph_leq_def ..
-  
-  from order_trans
-  show "\<lbrakk>x \<le> y; y \<le> z\<rbrakk> \<Longrightarrow> x \<le> z" unfolding graph_leq_def .
-
-  show "\<lbrakk>x \<le> y; y \<le> x\<rbrakk> \<Longrightarrow> x = y" unfolding graph_leq_def 
-    by (cases x, cases y) simp
-
-  show "(x < y) = (x \<le> y \<and> x \<noteq> y)"
-    unfolding graph_leq_def graph_less_def
-    by (cases x, cases y) auto
-qed
-
-instance graph :: (type, type) distrib_lattice
-  "inf G H \<equiv> Graph (dest_graph G \<inter> dest_graph H)"
-  "sup G H \<equiv> G + H"
-  by default (auto simp add: split_graph_all graph_plus_def inf_graph_def sup_graph_def graph_leq_def graph_less_def)
-
-instance graph :: (type, type) complete_lattice
-  Inf_graph_def: "Inf == \<lambda>Gs. Graph (\<Inter>(dest_graph ` Gs))"
-  by default (auto simp: Inf_graph_def graph_leq_def le_fun_def le_bool_def in_grplus has_edge_def)
-
-instance graph :: (type, monoid_mult) semiring_1
+instance graph :: (type, monoid_mult) 
+  "{semiring_1,idem_add,recpower,star}"
+  graph_pow_def: "A ^ n == grpow n A"
+  graph_star_def: "star G == (SUP n. G ^ n)" 
 proof
   fix a b c :: "('a, 'b) graph"
-
-  show "a + b + c = a + (b + c)" 
-    and "a + b = b + a" unfolding graph_plus_def
-    by auto
-
-  show "0 + a = a" unfolding graph_zero_def graph_plus_def
-    by simp
-
-  show "0 * a = 0" "a * 0 = 0" unfolding graph_zero_def graph_mult_def
-    by (cases a, simp)+
+  
+  show "1 * a = a" 
+    by (rule graph_ext) (auto simp:in_grcomp in_grunit)
+  show "a * 1 = a"
+    by (rule graph_ext) (auto simp:in_grcomp in_grunit)
 
   show "(a + b) * c = a * c + b * c"
     by (rule graph_ext, simp add:in_grcomp in_grplus) blast
@@ -195,20 +194,12 @@ proof
 
   show "(0::('a,'b) graph) \<noteq> 1" unfolding graph_zero_def graph_one_def
     by simp
-qed
 
-instance graph :: (type, monoid_mult) idem_add
-proof
-  fix a :: "('a, 'b) graph"
   show "a + a = a" unfolding graph_plus_def by simp
+  
+  show "a ^ 0 = 1" "\<And>n. a ^ (Suc n) = a * a ^ n"
+    unfolding graph_pow_def by simp_all
 qed
-
-
-(* define star on graphs *)
-
-
-instance graph :: (type, monoid_mult) star
-  graph_star_def: "star G == (SUP n. G ^ n)" ..
 
 
 lemma graph_leqI:
@@ -227,8 +218,6 @@ lemma in_graph_plusE:
   using prems
   by (auto simp: in_grplus)
 
-
-
 lemma 
   assumes "x \<in> S k"
   shows "x \<in> (\<Union>k. S k)"
@@ -242,15 +231,13 @@ lemma graph_union_least:
 
 lemma Sup_graph_eq:
   "(SUP n. Graph (G n)) = Graph (\<Union>n. G n)"
-  unfolding SUPR_def
-  apply (rule order_antisym)
-  apply (rule Sup_least)
-  apply auto
-  apply (simp add:graph_leq_def)
-  apply auto
-  apply (rule graph_union_least)
-  apply (rule Sup_upper)
-  by auto
+proof (rule order_antisym)
+  show "(SUP n. Graph (G n)) \<le> Graph (\<Union>n. G n)"
+    by  (rule SUP_leI) (auto simp add: graph_leq_def)
+
+  show "Graph (\<Union>n. G n) \<le> (SUP n. Graph (G n))"
+  by (rule graph_union_least, rule le_SUPI', rule) 
+qed
 
 lemma has_edge_leq: "has_edge G p b q = (Graph {(p,b,q)} \<le> G)"
   unfolding has_edge_def graph_leq_def
