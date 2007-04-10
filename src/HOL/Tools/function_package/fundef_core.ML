@@ -350,7 +350,7 @@ fun mk_uniqueness_clause thy globals f compat_store clausei clausej RLj =
 
 
 
-fun mk_uniqueness_case thy globals G f ihyp ih_intro G_cases compat_store clauses rep_lemmas clausei =
+fun mk_uniqueness_case ctxt thy globals G f ihyp ih_intro G_cases compat_store clauses rep_lemmas clausei =
     let
         val Globals {x, y, ranT, fvar, ...} = globals
         val ClauseInfo {cdata = ClauseContext {lhs, rhs, qs, cqs, ags, case_hyp, ...}, lGI, RCs, ...} = clausei
@@ -403,9 +403,10 @@ fun mk_uniqueness_case thy globals G f ihyp ih_intro G_cases compat_store clause
 
 
 
-fun prove_stuff thy congs globals G f R clauses complete compat compat_store G_elim f_def =
+fun prove_stuff ctxt congs globals G f R clauses complete compat compat_store G_elim f_def =
     let
         val Globals {h, domT, ranT, x, ...} = globals
+        val thy = ProofContext.theory_of ctxt
 
         (* Inductive Hypothesis: !!z. (z,x):R ==> EX!y. (z,y):G *)
         val ihyp = all domT $ Abs ("z", domT,
@@ -423,9 +424,9 @@ fun prove_stuff thy congs globals G f R clauses complete compat compat_store G_e
 
         val _ = Output.debug (K "Proving cases for unique existence...")
         val (ex1s, values) = 
-            split_list (map (mk_uniqueness_case thy globals G f ihyp ih_intro G_elim compat_store clauses repLemmas) clauses)
+            split_list (map (mk_uniqueness_case ctxt thy globals G f ihyp ih_intro G_elim compat_store clauses repLemmas) clauses)
 
-        val _ = Output.debug (K "Proving: Graph is a function") (* FIXME: Rewrite this proof. *)
+        val _ = Output.debug (K "Proving: Graph is a function")
         val graph_is_function = complete
                                   |> forall_elim_vars 0
                                   |> fold (curry op COMP) ex1s
@@ -478,7 +479,7 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
       val f_def = 
           Abs ("x", domT, Const ("FunDef.THE_default", ranT --> (ranT --> boolT) --> ranT) $ (default $ Bound 0) $
                                 Abs ("y", ranT, G $ Bound 1 $ Bound 0))
-              |> Envir.beta_norm (* FIXME: LocalTheory.def does not work if not beta-normal *)
+              |> ProofContext.cert_term lthy
 
       val ((f, (_, f_defthm)), lthy) =
         LocalTheory.def Thm.internalK ((function_name fname, mixfix), ((fdefname, []), f_def)) lthy
@@ -911,7 +912,7 @@ fun prepare_fundef config defname (fname, fT, mixfix) abstract_qglrs default_str
 
       val compat_store = store_compat_thms n compat
 
-      val (goalstate, values) = PROFILE "prove_stuff" (prove_stuff newthy congs globals G f R xclauses complete compat compat_store G_elim) f_defthm
+      val (goalstate, values) = PROFILE "prove_stuff" (prove_stuff lthy congs globals G f R xclauses complete compat compat_store G_elim) f_defthm
 
       val mk_trsimps = mk_trsimps lthy globals f G R f_defthm R_elim G_induct xclauses
 
