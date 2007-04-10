@@ -209,18 +209,7 @@ fun define_projections fixes mutual fsum lthy =
     end
 
 
-(* Beta-reduce both sides of a meta-equality *)
-fun beta_norm_eq thm =
-    let
-      val (lhs, rhs) = dest_equals (cprop_of thm)
-      val lhs_conv = beta_conversion false lhs
-      val rhs_conv = beta_conversion false rhs
-    in
-      transitive (symmetric lhs_conv) (transitive thm rhs_conv)
-    end
-    
 fun beta_reduce thm = Thm.equal_elim (Thm.beta_conversion true (cprop_of thm)) thm
-                      
                       
 fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
     let
