@@ -291,8 +291,7 @@ lemma power_strict_increasing_iff [simp]:
 
 lemma power_le_imp_le_base:
   assumes le: "a ^ Suc n \<le> b ^ Suc n"
-      and xnonneg: "(0::'a::{ordered_semidom,recpower}) \<le> a"
-      and ynonneg: "0 \<le> b"
+      and ynonneg: "(0::'a::{ordered_semidom,recpower}) \<le> b"
   shows "a \<le> b"
  proof (rule ccontr)
    assume "~ a \<le> b"

@@ -228,7 +228,7 @@ lemma real_sq_order:
 proof -
   from sq have "x ^ Suc (Suc 0) \<le> y ^ Suc (Suc 0)"
     by (simp only: numeral_2_eq_2)
-  thus "x \<le> y" using xgt0 ygt0
+  thus "x \<le> y" using ygt0
     by (rule power_le_imp_le_base)
 qed
 
