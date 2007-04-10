@@ -163,6 +163,18 @@ by (erule LIM_imp_LIM, simp)
 lemma LIM_norm_zero_iff: "(\<lambda>x. norm (f x)) -- a --> 0 = f -- a --> 0"
 by (rule iffI [OF LIM_norm_zero_cancel LIM_norm_zero])
 
+lemma LIM_rabs: "f -- a --> (l::real) \<Longrightarrow> (\<lambda>x. \<bar>f x\<bar>) -- a --> \<bar>l\<bar>"
+by (fold real_norm_def, rule LIM_norm)
+
+lemma LIM_rabs_zero: "f -- a --> (0::real) \<Longrightarrow> (\<lambda>x. \<bar>f x\<bar>) -- a --> 0"
+by (fold real_norm_def, rule LIM_norm_zero)
+
+lemma LIM_rabs_zero_cancel: "(\<lambda>x. \<bar>f x\<bar>) -- a --> (0::real) \<Longrightarrow> f -- a --> 0"
+by (fold real_norm_def, rule LIM_norm_zero_cancel)
+
+lemma LIM_rabs_zero_iff: "(\<lambda>x. \<bar>f x\<bar>) -- a --> (0::real) = f -- a --> 0"
+by (fold real_norm_def, rule LIM_norm_zero_iff)
+
 lemma LIM_const_not_eq:
   fixes a :: "'a::real_normed_div_algebra"
   shows "k \<noteq> L ==> ~ ((%x. k) -- a --> L)"
@@ -186,38 +198,6 @@ lemma LIM_unique:
 apply (drule LIM_diff, assumption)
 apply (auto dest!: LIM_const_eq)
 done
-
-lemma LIM_mult_zero:
-  fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
-  assumes f: "f -- a --> 0" and g: "g -- a --> 0"
-  shows "(%x. f(x) * g(x)) -- a --> 0"
-proof (rule LIM_I, simp)
-  fix r :: real
-  assume r: "0<r"
-  from LIM_D [OF f zero_less_one]
-  obtain fs
-    where fs:    "0 < fs"
-      and fs_lt: "\<forall>x. x \<noteq> a & norm (x-a) < fs --> norm (f x) < 1"
-  by auto
-  from LIM_D [OF g r]
-  obtain gs
-    where gs:    "0 < gs"
-      and gs_lt: "\<forall>x. x \<noteq> a & norm (x-a) < gs --> norm (g x) < r"
-  by auto
-  show "\<exists>s. 0 < s \<and> (\<forall>x. x \<noteq> a \<and> norm (x-a) < s \<longrightarrow> norm (f x * g x) < r)"
-  proof (intro exI conjI strip)
-    show "0 < min fs gs"  by (simp add: fs gs)
-    fix x :: 'a
-    assume "x \<noteq> a \<and> norm (x-a) < min fs gs"
-    hence  "x \<noteq> a \<and> norm (x-a) < fs \<and> norm (x-a) < gs" by simp
-    with fs_lt gs_lt
-    have "norm (f x) < 1" and "norm (g x) < r" by blast+
-    hence "norm (f x) * norm (g x) < 1*r"
-      by (rule mult_strict_mono' [OF _ _ norm_ge_zero norm_ge_zero])
-    thus "norm (f x * g x) < r"
-      by (simp add: order_le_less_trans [OF norm_mult_ineq])
-  qed
-qed
 
 lemma LIM_self: "(%x. x) -- a --> a"
 by (auto simp add: LIM_def)
@@ -385,6 +365,14 @@ lemmas LIM_mult_left_zero = bounded_bilinear_mult.LIM_left_zero
 lemmas LIM_mult_right_zero = bounded_bilinear_mult.LIM_right_zero
 
 lemmas LIM_scaleR = bounded_bilinear_scaleR.LIM
+
+lemmas LIM_of_real = bounded_linear_of_real.LIM
+
+lemma LIM_power:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::{recpower,real_normed_algebra}"
+  assumes f: "f -- a --> l"
+  shows "(\<lambda>x. f x ^ n) -- a --> l ^ n"
+by (induct n, simp, simp add: power_Suc LIM_mult f)
 
 subsubsection {* Purely nonstandard proofs *}
 
@@ -583,6 +571,9 @@ lemma isCont_const [simp]: "isCont (\<lambda>x. k) a"
 lemma isCont_norm: "isCont f a \<Longrightarrow> isCont (\<lambda>x. norm (f x)) a"
   unfolding isCont_def by (rule LIM_norm)
 
+lemma isCont_rabs: "isCont f a \<Longrightarrow> isCont (\<lambda>x. \<bar>f x :: real\<bar>) a"
+  unfolding isCont_def by (rule LIM_rabs)
+
 lemma isCont_add: "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x + g x) a"
   unfolding isCont_def by (rule LIM_add)
 
@@ -620,6 +611,15 @@ lemma (in bounded_bilinear) isCont:
   unfolding isCont_def by (rule LIM)
 
 lemmas isCont_scaleR = bounded_bilinear_scaleR.isCont
+
+lemma isCont_of_real:
+  "isCont f a \<Longrightarrow> isCont (\<lambda>x. of_real (f x)) a"
+  unfolding isCont_def by (rule LIM_of_real)
+
+lemma isCont_power:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::{recpower,real_normed_algebra}"
+  shows "isCont f a \<Longrightarrow> isCont (\<lambda>x. f x ^ n) a"
+  unfolding isCont_def by (rule LIM_power)
 
 subsubsection {* Nonstandard proofs *}
 
