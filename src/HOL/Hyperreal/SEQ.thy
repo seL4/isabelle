@@ -1326,10 +1326,31 @@ apply (simp add: NSconvergent_def NSLIMSEQ_def NSCauchy_def, safe)
 apply (auto intro: approx_trans2)
 done
 
+theorem LIMSEQ_imp_Cauchy:
+  assumes X: "X ----> a" shows "Cauchy X"
+proof (rule CauchyI)
+  fix e::real assume "0 < e"
+  hence "0 < e/2" by simp
+  with X have "\<exists>N. \<forall>n\<ge>N. norm (X n - a) < e/2" by (rule LIMSEQ_D)
+  then obtain N where N: "\<forall>n\<ge>N. norm (X n - a) < e/2" ..
+  show "\<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. norm (X m - X n) < e"
+  proof (intro exI allI impI)
+    fix m assume "N \<le> m"
+    hence m: "norm (X m - a) < e/2" using N by fast
+    fix n assume "N \<le> n"
+    hence n: "norm (X n - a) < e/2" using N by fast
+    have "norm (X m - X n) = norm ((X m - a) - (X n - a))" by simp
+    also have "\<dots> \<le> norm (X m - a) + norm (X n - a)"
+      by (rule norm_triangle_ineq4)
+    also from m n have "\<dots> < e/2 + e/2" by (rule add_strict_mono)
+    also have "e/2 + e/2 = e" by simp
+    finally show "norm (X m - X n) < e" .
+  qed
+qed
+
 lemma convergent_Cauchy: "convergent X \<Longrightarrow> Cauchy X"
-apply (rule NSconvergent_NSCauchy [THEN NSCauchy_Cauchy])
-apply (simp add: convergent_NSconvergent_iff)
-done
+unfolding convergent_def
+by (erule exE, erule LIMSEQ_imp_Cauchy)
 
 lemma real_NSCauchy_NSconvergent:
   fixes X :: "nat \<Rightarrow> real"
@@ -1343,13 +1364,113 @@ apply (auto dest!: st_part_Ex simp add: SReal_iff)
 apply (blast intro: approx_trans3)
 done
 
-text{*Standard proof for free*}
+text {*
+Proof that Cauchy sequences converge based on the one from
+http://pirate.shu.edu/~wachsmut/ira/numseq/proofs/cauconv.html
+*}
+
+text {*
+  If sequence @{term "X"} is Cauchy, then its limit is the lub of
+  @{term "{r::real. \<exists>N. \<forall>n\<ge>N. r < X n}"}
+*}
+
+lemma isUb_UNIV_I: "(\<And>y. y \<in> S \<Longrightarrow> y \<le> u) \<Longrightarrow> isUb UNIV S u"
+by (simp add: isUbI setleI)
+
+lemma real_abs_diff_less_iff:
+  "(\<bar>x - a\<bar> < (r::real)) = (a - r < x \<and> x < a + r)"
+by auto
+
+locale (open) real_Cauchy =
+  fixes X :: "nat \<Rightarrow> real"
+  assumes X: "Cauchy X"
+  fixes S :: "real set"
+  defines S_def: "S \<equiv> {x::real. \<exists>N. \<forall>n\<ge>N. x < X n}"
+
+lemma (in real_Cauchy) mem_S: "\<forall>n\<ge>N. x < X n \<Longrightarrow> x \<in> S"
+by (unfold S_def, auto)
+
+lemma (in real_Cauchy) bound_isUb:
+  assumes N: "\<forall>n\<ge>N. X n < x"
+  shows "isUb UNIV S x"
+proof (rule isUb_UNIV_I)
+  fix y::real assume "y \<in> S"
+  hence "\<exists>M. \<forall>n\<ge>M. y < X n"
+    by (simp add: S_def)
+  then obtain M where "\<forall>n\<ge>M. y < X n" ..
+  hence "y < X (max M N)" by simp
+  also have "\<dots> < x" using N by simp
+  finally show "y \<le> x"
+    by (rule order_less_imp_le)
+qed
+
+lemma (in real_Cauchy) isLub_ex: "\<exists>u. isLub UNIV S u"
+proof (rule reals_complete)
+  obtain N where "\<forall>m\<ge>N. \<forall>n\<ge>N. norm (X m - X n) < 1"
+    using CauchyD [OF X zero_less_one] by fast
+  hence N: "\<forall>n\<ge>N. norm (X n - X N) < 1" by simp
+  show "\<exists>x. x \<in> S"
+  proof
+    from N have "\<forall>n\<ge>N. X N - 1 < X n"
+      by (simp add: real_abs_diff_less_iff)
+    thus "X N - 1 \<in> S" by (rule mem_S)
+  qed
+  show "\<exists>u. isUb UNIV S u"
+  proof
+    from N have "\<forall>n\<ge>N. X n < X N + 1"
+      by (simp add: real_abs_diff_less_iff)
+    thus "isUb UNIV S (X N + 1)"
+      by (rule bound_isUb)
+  qed
+qed
+
+lemma (in real_Cauchy) isLub_imp_LIMSEQ:
+  assumes x: "isLub UNIV S x"
+  shows "X ----> x"
+proof (rule LIMSEQ_I)
+  fix r::real assume "0 < r"
+  hence r: "0 < r/2" by simp
+  obtain N where "\<forall>n\<ge>N. \<forall>m\<ge>N. norm (X n - X m) < r/2"
+    using CauchyD [OF X r] by fast
+  hence "\<forall>n\<ge>N. norm (X n - X N) < r/2" by simp
+  hence N: "\<forall>n\<ge>N. X N - r/2 < X n \<and> X n < X N + r/2"
+    by (simp only: real_norm_def real_abs_diff_less_iff)
+
+  from N have "\<forall>n\<ge>N. X N - r/2 < X n" by fast
+  hence "X N - r/2 \<in> S" by (rule mem_S)
+  hence "X N - r/2 \<le> x" using x isLub_isUb isUbD by fast
+  hence 1: "X N + r/2 \<le> x + r" by simp
+
+  from N have "\<forall>n\<ge>N. X n < X N + r/2" by fast
+  hence "isUb UNIV S (X N + r/2)" by (rule bound_isUb)
+  hence "x \<le> X N + r/2" using x isLub_le_isUb by fast
+  hence 2: "x - r \<le> X N - r/2" by simp
+
+  show "\<exists>N. \<forall>n\<ge>N. norm (X n - x) < r"
+  proof (intro exI allI impI)
+    fix n assume n: "N \<le> n"
+    from N n have 3: "X n < X N + r/2" by simp
+    from N n have 4: "X N - r/2 < X n" by simp
+    show "norm (X n - x) < r"
+      using order_less_le_trans [OF 3 1]
+            order_le_less_trans [OF 2 4]
+      by (simp add: real_abs_diff_less_iff)
+  qed
+qed
+
+lemma (in real_Cauchy) LIMSEQ_ex: "\<exists>x. X ----> x"
+proof -
+  obtain x where "isLub UNIV S x"
+    using isLub_ex by fast
+  hence "X ----> x"
+    by (rule isLub_imp_LIMSEQ)
+  thus ?thesis ..
+qed
+
 lemma real_Cauchy_convergent:
   fixes X :: "nat \<Rightarrow> real"
   shows "Cauchy X \<Longrightarrow> convergent X"
-apply (drule Cauchy_NSCauchy [THEN real_NSCauchy_NSconvergent])
-apply (erule convergent_NSconvergent_iff [THEN iffD2])
-done
+unfolding convergent_def by (rule real_Cauchy.LIMSEQ_ex)
 
 instance real :: banach
 by intro_classes (rule real_Cauchy_convergent)
