@@ -68,9 +68,6 @@ fun add_simps fixes spec sort label moreatts simps lthy =
        fold2 add_for_f fnames simps_by_f lthy)
     end
 
-
-fun pr_ctxdata (x: fundef_context_data) = (Output.debug (K (PolyML.makestring x)); x)
-
 fun fundef_afterqed config fixes spec defname cont sort_cont [[proof]] lthy =
     let
       val FundefResult {f, R, psimps, trsimps, subset_pinducts, simple_pinducts, termination, domintros, cases, ...} = 
@@ -94,7 +91,7 @@ fun fundef_afterqed config fixes spec defname cont sort_cont [[proof]] lthy =
             |> morph_fundef_data (LocalTheory.target_morphism lthy)
     in
       lthy 
-        |> LocalTheory.declaration (fn phi => add_fundef_data defname (pr_ctxdata (morph_fundef_data phi cdata))) (* save in target *)
+        |> LocalTheory.declaration (fn phi => add_fundef_data defname (morph_fundef_data phi cdata)) (* save in target *)
         |> Context.proof_map (add_fundef_data defname cdata) (* also save in local context *)
     end (* FIXME: Add cases for induct and cases thm *)
 
