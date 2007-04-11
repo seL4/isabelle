@@ -209,8 +209,6 @@ fun mk_arith_tactic name tactic = ArithTactic {name = name, tactic = tactic, id 
 
 fun eq_arith_tactic (ArithTactic {id = id1, ...}, ArithTactic {id = id2, ...}) = (id1 = id2);
 
-val merge_arith_tactics = gen_merge_lists eq_arith_tactic;
-
 structure ArithTheoryData = TheoryDataFun
 (struct
   val name = "HOL/arith";
@@ -223,25 +221,25 @@ structure ArithTheoryData = TheoryDataFun
   val extend = I;
   fun merge _ ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1, tactics= tactics1},
              {splits= splits2, inj_consts= inj_consts2, discrete= discrete2, tactics= tactics2}) =
-   {splits = Drule.merge_rules (splits1, splits2),
-    inj_consts = merge_lists inj_consts1 inj_consts2,
-    discrete = merge_lists discrete1 discrete2,
-    tactics = merge_arith_tactics tactics1 tactics2};
+   {splits = Library.merge Thm.eq_thm_prop (splits1, splits2),
+    inj_consts = Library.merge (op =) (inj_consts1, inj_consts2),
+    discrete = Library.merge (op =) (discrete1, discrete2),
+    tactics = Library.merge eq_arith_tactic (tactics1, tactics2)};
   fun print _ _ = ();
 end);
 
 val arith_split_add = Thm.declaration_attribute (fn thm =>
   Context.mapping (ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
-    {splits= thm::splits, inj_consts= inj_consts, discrete= discrete, tactics= tactics})) I);
+    {splits= insert Thm.eq_thm_prop thm splits, inj_consts= inj_consts, discrete= discrete, tactics= tactics})) I);
 
 fun arith_discrete d = ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
-  {splits = splits, inj_consts = inj_consts, discrete = d :: discrete, tactics= tactics});
+  {splits = splits, inj_consts = inj_consts, discrete = insert (op =) d discrete, tactics= tactics});
 
 fun arith_inj_const c = ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
-  {splits = splits, inj_consts = c :: inj_consts, discrete = discrete, tactics= tactics});
+  {splits = splits, inj_consts = insert (op =) c inj_consts, discrete = discrete, tactics= tactics});
 
 fun arith_tactic_add tac = ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
-  {splits= splits, inj_consts= inj_consts, discrete= discrete, tactics= merge_arith_tactics tactics [tac]});
+  {splits= splits, inj_consts= inj_consts, discrete= discrete, tactics= insert eq_arith_tactic tac tactics});
 
 
 signature HOL_LIN_ARITH_DATA =

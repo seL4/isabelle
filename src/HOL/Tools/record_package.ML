@@ -299,9 +299,9 @@ structure RecordsData = TheoryDataFun
       {selectors = Symtab.merge (K true) (sels1, sels2),
         updates = Symtab.merge (K true) (upds1, upds2),
         simpset = Simplifier.merge_ss (ss1, ss2)}
-      (Symtab.merge Thm.eq_thm (equalities1, equalities2))
-      (gen_merge_lists Thm.eq_thm extinjects1 extinjects2)
-      (Symtab.merge Thm.eq_thm (extsplit1,extsplit2))
+      (Symtab.merge Thm.eq_thm_prop (equalities1, equalities2))
+      (Library.merge Thm.eq_thm_prop (extinjects1, extinjects2))
+      (Symtab.merge Thm.eq_thm_prop (extsplit1,extsplit2))
       (Symtab.merge (fn ((a,b,c,d),(w,x,y,z))
                      => Thm.eq_thm (a,w) andalso Thm.eq_thm (b,x) andalso
                         Thm.eq_thm (c,y) andalso Thm.eq_thm (d,z))
@@ -384,11 +384,11 @@ fun add_extinjects thm thy =
   let
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields,fieldext} =
           RecordsData.get thy;
-    val data = make_record_data records sel_upd equalities (extinjects@[thm]) extsplit
+    val data = make_record_data records sel_upd equalities (insert Thm.eq_thm_prop thm extinjects) extsplit
                  splits extfields fieldext;
   in RecordsData.put data thy end;
 
-fun get_extinjects thy = #extinjects (RecordsData.get thy);
+val get_extinjects = rev o #extinjects o RecordsData.get;
 
 (* access 'extsplit' *)
 

@@ -29,8 +29,7 @@ structure AlgebraData = GenericDataFun
        identifier and operations identify the structure uniquely. *)
   val empty = [];
   val extend = I;
-  fun merge _ (structs1, structs2) = gen_merge_lists
-    (fn ((s1, _), (s2, _)) => struct_eq (s1, s2)) structs1 structs2;
+  fun merge _ = AList.join struct_eq (K (Library.merge Thm.eq_thm_prop));
   fun print generic structs =
     let
       val ctxt = Context.proof_of generic;
@@ -64,14 +63,11 @@ fun algebra_tac ctxt =
 (** Attribute **)
 
 fun add_struct_thm s =
-  Thm.declaration_attribute (fn thm => fn ctxt =>
-    AlgebraData.map (fn structs =>
-      if AList.defined struct_eq structs s
-      then AList.map_entry struct_eq s (fn thms => thm :: thms) structs
-      else (s, [thm])::structs) ctxt);
+  Thm.declaration_attribute
+    (fn thm => AlgebraData.map (AList.map_default struct_eq (s, []) (insert Thm.eq_thm_prop thm)));
 fun del_struct s =
-  Thm.declaration_attribute (fn _ => fn ctxt =>
-    AlgebraData.map (AList.delete struct_eq s) ctxt);
+  Thm.declaration_attribute
+    (fn _ => AlgebraData.map (AList.delete struct_eq s));
 
 val attribute = Attrib.syntax
      (Scan.lift ((Args.add >> K true || Args.del >> K false) --| Args.colon ||
