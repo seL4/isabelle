@@ -299,16 +299,12 @@ of those of the other list and there are fewer Cons's in one than the other.
 ML_setup {*
 local
 
-val neq_if_length_neq = thm "neq_if_length_neq";
-
 fun len (Const("List.list.Nil",_)) acc = acc
   | len (Const("List.list.Cons",_) $ _ $ xs) (ts,n) = len xs (ts,n+1)
   | len (Const("List.op @",_) $ xs $ ys) acc = len xs (len ys acc)
   | len (Const("List.rev",_) $ xs) acc = len xs acc
   | len (Const("List.map",_) $ _ $ xs) acc = len xs acc
   | len t (ts,n) = (t::ts,n);
-
-val list_ss = simpset_of(the_context());
 
 fun list_eq ss (Const(_,eqT) $ lhs $ rhs) =
   let
@@ -320,8 +316,8 @@ fun list_eq ss (Const(_,eqT) $ lhs $ rhs) =
         val eq_len = HOLogic.mk_eq (size $ lhs, size $ rhs);
         val neq_len = HOLogic.mk_Trueprop (HOLogic.Not $ eq_len);
         val thm = Goal.prove (Simplifier.the_context ss) [] [] neq_len
-          (K (simp_tac (Simplifier.inherit_context ss list_ss) 1));
-      in SOME (thm RS neq_if_length_neq) end
+          (K (simp_tac (Simplifier.inherit_context ss @{simpset}) 1));
+      in SOME (thm RS @{thm neq_if_length_neq}) end
   in
     if m < n andalso gen_submultiset (op aconv) (ls,rs) orelse
        n < m andalso gen_submultiset (op aconv) (rs,ls)
@@ -331,7 +327,7 @@ fun list_eq ss (Const(_,eqT) $ lhs $ rhs) =
 in
 
 val list_neq_simproc =
-  Simplifier.simproc (the_context ()) "list_neq" ["(xs::'a list) = ys"] (K list_eq);
+  Simplifier.simproc @{theory} "list_neq" ["(xs::'a list) = ys"] (K list_eq);
 
 end;
 
@@ -441,12 +437,6 @@ Currently only tries to rearrange @{text "@"} to see if
 ML_setup {*
 local
 
-val append_assoc = thm "append_assoc";
-val append_Nil = thm "append_Nil";
-val append_Cons = thm "append_Cons";
-val append1_eq_conv = thm "append1_eq_conv";
-val append_same_eq = thm "append_same_eq";
-
 fun last (cons as Const("List.list.Cons",_) $ _ $ xs) =
   (case xs of Const("List.list.Nil",_) => cons | _ => last xs)
   | last (Const("List.op @",_) $ _ $ ys) = last ys
@@ -460,7 +450,8 @@ fun butlast ((cons as Const("List.list.Cons",_) $ x) $ xs) =
   | butlast ((app as Const("List.op @",_) $ xs) $ ys) = app $ butlast ys
   | butlast xs = Const("List.list.Nil",fastype_of xs);
 
-val rearr_ss = HOL_basic_ss addsimps [append_assoc, append_Nil, append_Cons];
+val rearr_ss = HOL_basic_ss addsimps [@{thm append_assoc},
+  @{thm append_Nil}, @{thm append_Cons}];
 
 fun list_eq ss (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
   let
@@ -478,15 +469,15 @@ fun list_eq ss (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
       in SOME ((conv RS (thm RS trans)) RS eq_reflection) end;
 
   in
-    if list1 lastl andalso list1 lastr then rearr append1_eq_conv
-    else if lastl aconv lastr then rearr append_same_eq
+    if list1 lastl andalso list1 lastr then rearr @{thm append1_eq_conv}
+    else if lastl aconv lastr then rearr @{thm append_same_eq}
     else NONE
   end;
 
 in
 
 val list_eq_simproc =
-  Simplifier.simproc (the_context ()) "list_eq" ["(xs::'a list) = ys"] (K list_eq);
+  Simplifier.simproc @{theory} "list_eq" ["(xs::'a list) = ys"] (K list_eq);
 
 end;
 
