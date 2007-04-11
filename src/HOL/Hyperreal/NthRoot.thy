@@ -128,6 +128,10 @@ apply (auto intro: mult_pos_pos
             simp add: add_assoc [symmetric] neg_less_0_iff_less)
 done
 
+lemma real_of_nat_inverse_le_iff:
+  "(inverse (real(Suc n)) \<le> r) = (1 \<le> r * real(Suc n))"
+by (simp add: inverse_eq_divide pos_divide_le_eq)
+
 lemma real_mult_add_one_minus_ge_zero:
      "0 < r ==>  0 <= r*(1 + -inverse(real (Suc n)))"
 by (simp add: zero_le_mult_iff real_of_nat_inverse_le_iff real_0_le_add_iff)

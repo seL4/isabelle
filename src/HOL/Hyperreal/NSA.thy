@@ -2188,15 +2188,6 @@ lemma lemma_real_le_Un_eq2:
 apply (auto dest: order_le_imp_less_or_eq simp add: order_less_imp_le)
 done
 
-lemma real_of_nat_inverse_le_iff:
-     "(inverse (real(Suc n)) \<le> r) = (1 \<le> r * real(Suc n))"
-apply (simp (no_asm) add: linorder_not_less [symmetric])
-apply (simp (no_asm) add: inverse_eq_divide)
-apply (subst pos_less_divide_eq)
-apply (simp (no_asm) add: real_of_nat_Suc_gt_zero)
-apply (simp (no_asm) add: real_mult_commute)
-done
-
 lemma real_of_nat_inverse_eq_iff:
      "(u = inverse (real(Suc n))) = (real(Suc n) = inverse u)"
 by (auto simp add: real_of_nat_Suc_gt_zero real_not_refl2 [THEN not_sym])
