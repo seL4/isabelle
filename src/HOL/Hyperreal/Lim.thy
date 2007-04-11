@@ -8,7 +8,7 @@
 header{* Limits and Continuity *}
 
 theory Lim
-imports SEQ
+imports HSEQ
 begin
 
 text{*Standard and Nonstandard Definitions*}
