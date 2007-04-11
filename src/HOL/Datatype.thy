@@ -763,12 +763,4 @@ code_reserved SML
 code_reserved OCaml
   option None Some
 
-
-subsection {* Basic ML bindings *}
-
-ML {*
-val not_None_eq = thm "not_None_eq";
-val not_Some_eq = thm "not_Some_eq";
-*}
-
 end
