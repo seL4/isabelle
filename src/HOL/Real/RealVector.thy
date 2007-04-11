@@ -35,10 +35,11 @@ by (simp add: diff_def add minus)
 
 subsection {* Real vector spaces *}
 
-axclass scaleR < type
+class scaleR = type +
+  fixes scaleR :: "real \<Rightarrow> 'a \<Rightarrow> 'a"
 
-consts
-  scaleR :: "real \<Rightarrow> 'a \<Rightarrow> 'a::scaleR" (infixr "*#" 75)
+notation
+  scaleR (infixr "*#" 75)
 
 abbreviation
   divideR :: "'a \<Rightarrow> real \<Rightarrow> 'a::scaleR" (infixl "'/#" 70) where
@@ -48,10 +49,8 @@ notation (xsymbols)
   scaleR (infixr "*\<^sub>R" 75) and
   divideR (infixl "'/\<^sub>R" 70)
 
-instance real :: scaleR ..
-
-defs (overloaded)
-  real_scaleR_def: "scaleR a x \<equiv> a * x"
+instance real :: scaleR
+  real_scaleR_def: "scaleR a x \<equiv> a * x" ..
 
 axclass real_vector < scaleR, ab_group_add
   scaleR_right_distrib: "scaleR a (x + y) = scaleR a x + scaleR a y"
@@ -362,13 +361,11 @@ lemma Reals_induct [case_names of_real, induct set: Reals]:
 
 subsection {* Real normed vector spaces *}
 
-axclass norm < type
-consts norm :: "'a::norm \<Rightarrow> real"
+class norm = type +
+  fixes norm :: "'a \<Rightarrow> real"
 
-instance real :: norm ..
-
-defs (overloaded)
-  real_norm_def [simp]: "norm r \<equiv> \<bar>r\<bar>"
+instance real :: norm
+  real_norm_def [simp]: "norm r \<equiv> \<bar>r\<bar>" ..
 
 axclass normed < plus, zero, norm
   norm_ge_zero [simp]: "0 \<le> norm x"
