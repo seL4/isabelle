@@ -9,7 +9,7 @@
 header{* Differentiation *}
 
 theory Deriv
-imports Lim
+imports HLim
 begin
 
 text{*Standard and Nonstandard Definitions*}
