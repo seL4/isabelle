@@ -6,7 +6,7 @@
 header{*Non-Standard Complex Analysis*}
 
 theory NSCA
-imports NSComplex
+imports NSComplex "../Hyperreal/HTranscendental"
 begin
 
 abbreviation
