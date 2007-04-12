@@ -22,9 +22,9 @@ signature RES_CLAUSE =
   type typ_var and type_literal and literal
   val literals_of_term: Term.term -> literal list * (typ_var * Term.sort) list
   val add_typs_aux : (typ_var * string list) list -> type_literal list * type_literal list
-  val arity_clause_thy: theory -> arityClause list 
   val ascii_of : string -> string
   val tptp_pack : string list -> string
+  val make_arity_clauses: theory -> (class list * arityClause list)
   val make_classrel_clauses: theory -> class list -> class list -> classrelClause list 
   val clause_prefix : string 
   val clause2tptp : clause -> string * string list
@@ -362,31 +362,30 @@ fun list_ord _ ([],[]) = EQUAL
       (case ord(x,y) of EQUAL => list_ord ord (xs,ys)
 	 	      | xy_ord => xy_ord);
 		     
-(*Make literals for sorted type variables.  FIXME: can it use map?*) 
-fun sorts_on_typs (_, [])   = ([]) 
-  | sorts_on_typs (v, "HOL.type" :: s) =
-      sorts_on_typs (v,s)                (*IGNORE sort "type"*)
-  | sorts_on_typs ((FOLTVar indx), s::ss) =
-      LTVar(make_type_class s, make_schematic_type_var indx) :: 
-      sorts_on_typs ((FOLTVar indx), ss)
-  | sorts_on_typs ((FOLTFree x), s::ss) =
-      LTFree(make_type_class s, make_fixed_type_var x) :: 
-      sorts_on_typs ((FOLTFree x), ss);
-
+(*Make literals for sorted type variables*) 
+fun sorts_on_typs (_, [])   = []
+  | sorts_on_typs (v,  s::ss) = 
+      let val sorts = sorts_on_typs (v, ss)
+      in
+          if s = "HOL.type" then sorts
+          else case v of
+              FOLTVar indx => LTVar(make_type_class s, make_schematic_type_var indx) :: sorts
+            | FOLTFree x => LTFree(make_type_class s, make_fixed_type_var x) :: sorts
+      end;
 
 fun pred_of_sort (LTVar (s,ty)) = (s,1)
-|   pred_of_sort (LTFree (s,ty)) = (s,1)
+  | pred_of_sort (LTFree (s,ty)) = (s,1)
 
 (*Given a list of sorted type variables, return two separate lists.
   The first is for TVars, the second for TFrees.*)
 fun add_typs_aux [] = ([],[])
-  | add_typs_aux ((FOLTVar indx,s)::tss) = 
+  | add_typs_aux ((FOLTVar indx, s) :: tss) = 
       let val vs = sorts_on_typs (FOLTVar indx, s)
 	  val (vss,fss) = add_typs_aux tss
       in
 	  (vs union vss, fss)
       end
-  | add_typs_aux ((FOLTFree x,s)::tss) =
+  | add_typs_aux ((FOLTFree x, s) :: tss) =
       let val fs = sorts_on_typs (FOLTFree x, s)
 	  val (vss,fss) = add_typs_aux tss
       in
@@ -442,8 +441,8 @@ exception ARCLAUSE of string;
 type class = string; 
 type tcons = string; 
 
-datatype arLit = TConsLit of bool * (class * tcons * string list)
-               | TVarLit of bool * (class * string);
+datatype arLit = TConsLit of class * tcons * string list
+               | TVarLit of class * string;
  
 datatype arityClause =  
 	 ArityClause of {axiom_name: axiom_name,
@@ -457,21 +456,16 @@ fun gen_TVars 0 = []
 
 fun pack_sort(_,[])  = []
   | pack_sort(tvar, "HOL.type"::srt) = pack_sort(tvar, srt)   (*IGNORE sort "type"*)
-  | pack_sort(tvar, cls::srt) =  (make_type_class cls, tvar) :: pack_sort(tvar, srt);
+  | pack_sort(tvar, cls::srt) =  (cls, tvar) :: pack_sort(tvar, srt);
     
-fun make_TVarLit b (cls,str) = TVarLit(b, (cls,str));
-
-fun make_TConsLit b (cls,tcons,tvars) = 
-      TConsLit(b, (make_type_class cls, make_fixed_type_const tcons, tvars));
-
 (*Arity of type constructor tcon :: (arg1,...,argN)res*)
-fun make_axiom_arity_clause (tcons, axiom_name, (res,args)) =
+fun make_axiom_arity_clause (tcons, axiom_name, (cls,args)) =
    let val tvars = gen_TVars (length args)
        val tvars_srts = ListPair.zip (tvars,args)
    in
       ArityClause {axiom_name = axiom_name, kind = Axiom, 
-                   conclLit = make_TConsLit true (res,tcons,tvars), 
-                   premLits = map (make_TVarLit false) (union_all(map pack_sort tvars_srts))}
+                   conclLit = TConsLit (cls, make_fixed_type_const tcons, tvars), 
+                   premLits = map TVarLit (union_all(map pack_sort tvars_srts))}
    end;
 
 
@@ -515,10 +509,10 @@ fun arity_clause _ _ (tcons, []) = []
 
 fun multi_arity_clause [] = []
   | multi_arity_clause ((tcons,ars) :: tc_arlists) =
-      arity_clause [] 1 (tcons, ars)  @  
-      multi_arity_clause tc_arlists 
+      arity_clause [] 1 (tcons, ars)  @  multi_arity_clause tc_arlists 
 
-(*Generate all pairs (tycon,class,sorts) such that tycon belongs to class in theory thy.*)
+(*Generate all pairs (tycon,class,sorts) such that tycon belongs to class in theory thy
+  provided its arguments have the corresponding sorts.*)
 fun type_class_pairs thy tycons classes =
   let val alg = Sign.classes_of thy
       fun domain_sorts (tycon,class) = Sorts.mg_domain alg tycon [class]
@@ -528,8 +522,19 @@ fun type_class_pairs thy tycons classes =
       fun try_classes tycon = (tycon, foldl (add_class tycon) [] classes)
   in  map try_classes tycons  end;
 
-fun arity_clause_thy thy tycons classes =
-  multi_arity_clause (type_class_pairs thy tycons classes);
+(*Proving one (tycon, class) membership may require proving others, so iterate.*)
+fun iter_type_class_pairs thy tycons [] = ([], [])
+  | iter_type_class_pairs thy tycons classes =
+      let val cpairs = type_class_pairs thy tycons classes
+          val newclasses = union_all (union_all (union_all (map (map #2 o #2) cpairs))) \\ classes \\ HOLogic.typeS
+          val _ = if null newclasses then () 
+                  else Output.debug (fn _ => "New classes: " ^ space_implode ", " newclasses)
+          val (classes', cpairs') = iter_type_class_pairs thy tycons newclasses  
+      in  (classes' union classes, cpairs' union cpairs)  end;
+      
+fun make_arity_clauses thy tycons classes =
+  let val (classes', cpairs) = iter_type_class_pairs thy tycons classes  
+  in  (classes', multi_arity_clause cpairs)  end;
 
 
 (**** Find occurrences of predicates in clauses ****)
@@ -557,11 +562,11 @@ fun add_clause_preds (Clause {literals, types_sorts, ...}, preds) =
 fun add_classrelClause_preds (ClassrelClause {subclass,superclass,...}, preds) =
   Symtab.update (subclass,1) (Symtab.update (superclass,1) preds);
 
-fun class_of_arityLit (TConsLit(_, (tclass, _, _))) = tclass
-  | class_of_arityLit (TVarLit(_, (tclass, _))) = tclass;
+fun class_of_arityLit (TConsLit (tclass, _, _)) = tclass
+  | class_of_arityLit (TVarLit (tclass, _)) = tclass;
 
 fun add_arityClause_preds (ArityClause {conclLit,premLits,...}, preds) =
-  let val classes = map class_of_arityLit (conclLit::premLits)
+  let val classes = map (make_type_class o class_of_arityLit) (conclLit::premLits)
       fun upd (class,preds) = Symtab.update (class,1) preds
   in  foldl upd preds classes  end;
 
@@ -598,7 +603,7 @@ fun add_type_sort_funcs ((FOLTVar _, _), funcs) = funcs
       Symtab.update (make_fixed_type_var a, 0) funcs
 
 fun add_arityClause_funcs (ArityClause {conclLit,...}, funcs) =
-  let val TConsLit(_, (_, tcons, tvars)) = conclLit
+  let val TConsLit (_, tcons, tvars) = conclLit
   in  Symtab.update (tcons, length tvars) funcs  end;
 
 fun add_clause_funcs (Clause {literals, types_sorts, ...}, funcs) =
@@ -708,10 +713,10 @@ fun string_of_descrip name =
 fun dfg_tfree_clause tfree_lit =
   "clause( %(negated_conjecture)\n" ^ "or( " ^ tfree_lit ^ "),\n" ^ "tfree_tcs" ^ ").\n\n"
 
-fun dfg_of_arLit (TConsLit(pol,(c,t,args))) =
-      dfg_sign pol (c ^ "(" ^ t ^ paren_pack args ^ ")")
-  | dfg_of_arLit (TVarLit(pol,(c,str))) =
-      dfg_sign pol (c ^ "(" ^ str ^ ")")
+fun dfg_of_arLit (TConsLit (c,t,args)) =
+      dfg_sign true (make_type_class c ^ "(" ^ t ^ paren_pack args ^ ")")
+  | dfg_of_arLit (TVarLit (c,str)) =
+      dfg_sign false (make_type_class c ^ "(" ^ str ^ ")")
     
 fun dfg_classrelLits sub sup =  "not(" ^ sub ^ "(T)), " ^ sup ^ "(T)";
 
@@ -722,7 +727,7 @@ fun dfg_classrelClause (ClassrelClause {axiom_name,subclass,superclass,...}) =
 fun string_of_ar axiom_name = arclause_prefix ^ ascii_of axiom_name;
 
 fun dfg_arity_clause (ArityClause{axiom_name,kind,conclLit,premLits,...}) = 
-  let val TConsLit(_, (_,_,tvars)) = conclLit
+  let val TConsLit (_,_,tvars) = conclLit
       val lits = map dfg_of_arLit (conclLit :: premLits)
   in
       "clause( %(" ^ name_of_kind kind ^ ")\n" ^ 
@@ -800,10 +805,10 @@ fun clause2tptp (cls as Clause {clause_id, axiom_name, kind, ...}) =
 fun tptp_tfree_clause tfree_lit =
     "cnf(" ^ "tfree_tcs," ^ "negated_conjecture" ^ "," ^ tptp_pack[tfree_lit] ^ ").\n";
     
-fun tptp_of_arLit (TConsLit(b,(c,t,args))) =
-      tptp_sign b (c ^ "(" ^ t ^ paren_pack args ^ ")")
-  | tptp_of_arLit (TVarLit(b,(c,str))) =
-      tptp_sign b (c ^ "(" ^ str ^ ")")
+fun tptp_of_arLit (TConsLit (c,t,args)) =
+      tptp_sign true (make_type_class c ^ "(" ^ t ^ paren_pack args ^ ")")
+  | tptp_of_arLit (TVarLit (c,str)) =
+      tptp_sign false (make_type_class c ^ "(" ^ str ^ ")")
     
 fun tptp_arity_clause (ArityClause{axiom_name,kind,conclLit,premLits,...}) = 
   "cnf(" ^ string_of_ar axiom_name ^ "," ^ name_of_kind kind ^ "," ^ 
