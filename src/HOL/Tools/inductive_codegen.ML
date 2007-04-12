@@ -30,8 +30,7 @@ fun params_of induct =
 (**** theory data ****)
 
 fun merge_rules tabs =
-  Symtab.join (fn _ => fn (ths, ths') =>
-    gen_merge_lists (Thm.eq_thm_prop o pairself fst) ths ths') tabs;
+  Symtab.join (fn _ => AList.merge (Thm.eq_thm_prop) (K true)) tabs;
 
 structure CodegenData = TheoryDataFun
 (struct
@@ -67,8 +66,8 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
       SOME (Const ("op =", _), [t, _]) => (case head_of t of
         Const (s, _) =>
           CodegenData.put {intros = intros, graph = graph,
-             eqns = eqns |> Symtab.update
-               (s, Symtab.lookup_list eqns s @ [(thm, thyname_of s)])} thy
+             eqns = eqns |> Symtab.map_default (s, [])
+               (AList.update Thm.eq_thm_prop (thm, thyname_of s))} thy
       | _ => (warn thm; thy))
     | SOME (Const (s, _), _) =>
         let
@@ -83,7 +82,8 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
             | xs => snd (snd (snd (split_last xs)))))
         in CodegenData.put
           {intros = intros |>
-           Symtab.update (s, rules @ [(thm, (thyname_of s, nparms))]),
+           Symtab.update (s, (AList.update Thm.eq_thm_prop
+             (thm, (thyname_of s, nparms)) rules)),
            graph = foldr (uncurry (Graph.add_edge o pair s))
              (Library.foldl add_node (graph, s :: cs)) cs,
            eqns = eqns} thy
@@ -98,15 +98,14 @@ fun get_clauses thy s =
         NONE => NONE
       | SOME ({names, ...}, {intrs, raw_induct, ...}) =>
           SOME (names, thyname_of_const s thy, length (params_of raw_induct),
-            preprocess thy intrs))
+            preprocess thy (rev intrs)))
     | SOME _ =>
         let
           val SOME names = find_first
-            (fn xs => s mem xs) (Graph.strong_conn graph);
-          val intrs = List.concat (map
-            (fn s => the (Symtab.lookup intros s)) names);
-          val (_, (_, (thyname, nparms))) = split_last intrs
-        in SOME (names, thyname, nparms, preprocess thy (map fst intrs)) end
+            (fn xs => member (op =) xs s) (Graph.strong_conn graph);
+          val intrs as (_, (thyname, nparms)) :: _ =
+            maps (the o Symtab.lookup intros) names;
+        in SOME (names, thyname, nparms, preprocess thy (map fst (rev intrs))) end
   end;
 
 
@@ -255,7 +254,7 @@ fun check_modes_pred thy arg_vs preds modes (p, ms) =
       p ^ " violates mode " ^ string_of_mode m); false)) ms)
   end;
 
-fun fixp f x =
+fun fixp f (x : (string * (int list option list * int list) list) list) =
   let val y = f x
   in if x = y then x else fixp f y end;
 
@@ -488,7 +487,7 @@ fun print_arities arities = message ("Arities:\n" ^
 fun prep_intrs intrs = map (rename_term o #prop o rep_thm o standard) intrs;
 
 fun constrain cs [] = []
-  | constrain cs ((s, xs) :: ys) = (s, case AList.lookup (op =) cs s of
+  | constrain cs ((s, xs) :: ys) = (s, case AList.lookup (op =) cs (s : string) of
       NONE => xs
     | SOME xs' => xs inter xs') :: constrain cs ys;
 
@@ -652,8 +651,8 @@ fun inductive_codegen thy defs gr dep module brack t = (case strip_comb t of
       | _ => NONE)
     | SOME eqns =>
         let
-          val (_, (_, thyname)) = split_last eqns;
-          val (gr', id) = mk_fun thy defs s (preprocess thy (map fst eqns))
+          val (_, thyname) :: _ = eqns;
+          val (gr', id) = mk_fun thy defs s (preprocess thy (map fst (rev eqns)))
             dep module (if_library thyname module) gr;
           val (gr'', ps) = foldl_map
             (invoke_codegen thy defs dep module true) (gr', ts);
