@@ -29,8 +29,8 @@ struct
 
 (*For running the comparison between combinators and abstractions.
   CANNOT be a ref, as the setting is used while Isabelle is built.
-  Currently FALSE, i.e. all the "abstraction" code below is unused, but so far
-  it seems to be inferior to combinators...*)
+  Currently TRUE: the combinator code cannot be used with proof reconstruction
+  because it is not performed by inference!!*)
 val abstract_lambdas = true;
 
 val trace_abs = ref false;
@@ -608,8 +608,10 @@ val clausify = Attrib.syntax (Scan.lift Args.nat
 val neg_skolemize_tac = EVERY' [rtac ccontr, ObjectLogic.atomize_tac, skolemize_tac];
 
 (*finish_cnf removes tautologies and functional reflexivity axioms, but by calling Thm.varifyT
-  it can introduce TVars, which we don't want in conjecture clauses.*)
-val neg_clausify = map Thm.freezeT o Meson.finish_cnf o assume_abstract_list o make_clauses;
+  it can introduce TVars, which are useless in conjecture clauses.*)
+val no_tvars = null o term_tvars o prop_of;
+
+val neg_clausify = filter no_tvars o Meson.finish_cnf o assume_abstract_list o make_clauses;
 
 fun neg_conjecture_clauses st0 n =
   let val st = Seq.hd (neg_skolemize_tac n st0)
