@@ -8,7 +8,7 @@
 header{*Power Series, Transcendental Functions etc.*}
 
 theory Transcendental
-imports NthRoot Fact Series EvenOdd HDeriv
+imports NthRoot Fact Series EvenOdd Deriv
 begin
 
 definition
@@ -783,6 +783,9 @@ subsection{*Properties of the Logarithmic Function*}
 lemma ln_exp[simp]: "ln(exp x) = x"
 by (simp add: ln_def)
 
+lemma exp_ln [simp]: "0 < x \<Longrightarrow> exp (ln x) = x"
+by (auto dest: exp_total)
+
 lemma exp_ln_iff[simp]: "(exp(ln x) = x) = (0 < x)"
 apply (auto dest: exp_total)
 apply (erule subst, simp) 
@@ -790,8 +793,7 @@ done
 
 lemma ln_mult: "[| 0 < x; 0 < y |] ==> ln(x * y) = ln(x) + ln(y)"
 apply (rule exp_inj_iff [THEN iffD1])
-apply (frule real_mult_order)
-apply (auto simp add: exp_add exp_ln_iff [symmetric] simp del: exp_inj_iff exp_ln_iff)
+apply (simp add: exp_add exp_ln mult_pos_pos)
 done
 
 lemma ln_inj_iff[simp]: "[| 0 < x; 0 < y |] ==> (ln x = ln y) = (x = y)"
@@ -2321,29 +2323,11 @@ lemma lemma_DERIV_ln:
      "DERIV ln z :> l ==> DERIV (%x. exp (ln x)) z :> exp (ln z) * l"
 by (erule DERIV_fun_exp)
 
-lemma STAR_exp_ln: "0 < z ==> ( *f* (%x. exp (ln x))) z = z"
-apply (cases z)
-apply (auto simp add: starfun star_n_zero_num star_n_less star_n_eq_iff)
-done
-
-lemma hypreal_add_Infinitesimal_gt_zero:
-     "[|e : Infinitesimal; 0 < x |] ==> 0 < hypreal_of_real x + e"
-apply (rule_tac c1 = "-e" in add_less_cancel_right [THEN iffD1])
-apply (auto intro: Infinitesimal_less_SReal)
-done
-
-lemma NSDERIV_exp_ln_one: "0 < z ==> NSDERIV (%x. exp (ln x)) z :> 1"
-apply (simp add: nsderiv_def NSLIM_def, auto)
-apply (rule ccontr)
-apply (subgoal_tac "0 < hypreal_of_real z + h")
-apply (drule STAR_exp_ln)
-apply (rule_tac [2] hypreal_add_Infinitesimal_gt_zero)
-apply (subgoal_tac "h/h = 1")
-apply (auto simp add: exp_ln_iff [symmetric] simp del: exp_ln_iff)
-done
-
 lemma DERIV_exp_ln_one: "0 < z ==> DERIV (%x. exp (ln x)) z :> 1"
-by (auto intro: NSDERIV_exp_ln_one simp add: NSDERIV_DERIV_iff [symmetric])
+apply (simp add: deriv_def)
+apply (rule LIM_equal2 [OF _ _ LIM_const], assumption)
+apply simp
+done
 
 lemma lemma_DERIV_ln2:
      "[| 0 < z; DERIV ln z :> l |] ==>  exp (ln z) * l = 1"
@@ -2355,12 +2339,12 @@ done
 lemma lemma_DERIV_ln3:
      "[| 0 < z; DERIV ln z :> l |] ==>  l = 1/(exp (ln z))"
 apply (rule_tac c1 = "exp (ln z)" in real_mult_left_cancel [THEN iffD1])
-apply (auto intro: lemma_DERIV_ln2)
+apply (auto intro: lemma_DERIV_ln2 simp del: exp_ln)
 done
 
 lemma lemma_DERIV_ln4: "[| 0 < z; DERIV ln z :> l |] ==>  l = 1/z"
 apply (rule_tac t = z in exp_ln_iff [THEN iffD2, THEN subst])
-apply (auto intro: lemma_DERIV_ln3)
+apply (auto intro: lemma_DERIV_ln3 simp del: exp_ln)
 done
 
 (* need to rename second isCont_inverse *)

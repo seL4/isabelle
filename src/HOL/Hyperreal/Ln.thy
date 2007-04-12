@@ -309,9 +309,6 @@ lemma exp_ge_add_one_self [simp]: "1 + x <= exp x"
   apply simp
   apply (rule ln_one_minus_pos_upper_bound) 
   apply auto
-  apply (rule sym) 
-  apply (subst exp_ln_iff)
-  apply auto
 done
 
 lemma ln_add_one_self_le_self2: "-1 < x ==> ln(1 + x) <= x"
