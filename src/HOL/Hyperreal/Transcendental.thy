@@ -8,7 +8,7 @@
 header{*Power Series, Transcendental Functions etc.*}
 
 theory Transcendental
-imports NthRoot Fact Series EvenOdd Deriv
+imports NthRoot Fact Series EvenOdd HDeriv
 begin
 
 definition
