@@ -219,9 +219,9 @@ inductive_cases2
   valid_cons_inv_auto[elim]:"valid ((x,T)#\<Gamma>)"
 
 abbreviation
-  "sub" :: "(name\<times>ty) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" ("_ \<lless> _" [55,55] 55)
+  "sub" :: "(name\<times>ty) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" ("_ \<subseteq> _" [55,55] 55)
 where
-  "\<Gamma>\<^isub>1 \<lless> \<Gamma>\<^isub>2 \<equiv> \<forall>x T. (x,T)\<in>set \<Gamma>\<^isub>1 \<longrightarrow> (x,T)\<in>set \<Gamma>\<^isub>2"
+  "\<Gamma>\<^isub>1 \<subseteq> \<Gamma>\<^isub>2 \<equiv> \<forall>x T. (x,T)\<in>set \<Gamma>\<^isub>1 \<longrightarrow> (x,T)\<in>set \<Gamma>\<^isub>2"
 
 lemma type_unicity_in_context:
   assumes asm1: "(x,t\<^isub>2) \<in> set ((x,t\<^isub>1)#\<Gamma>)" 
@@ -362,17 +362,17 @@ proof -
 qed
 
 lemma weakening: 
-  assumes "\<Gamma>\<^isub>1 \<turnstile> e: T" and "valid \<Gamma>\<^isub>2" and "\<Gamma>\<^isub>1 \<lless> \<Gamma>\<^isub>2"
+  assumes "\<Gamma>\<^isub>1 \<turnstile> e: T" and "valid \<Gamma>\<^isub>2" and "\<Gamma>\<^isub>1 \<subseteq> \<Gamma>\<^isub>2"
   shows "\<Gamma>\<^isub>2 \<turnstile> e: T"
   using assms
 proof(nominal_induct \<Gamma>\<^isub>1 e T avoiding: \<Gamma>\<^isub>2 rule: typing.strong_induct)
   case (t_Lam x \<Gamma>\<^isub>1 T\<^isub>1 t T\<^isub>2 \<Gamma>\<^isub>2)
-  have ih: "\<lbrakk>valid ((x,T\<^isub>1)#\<Gamma>\<^isub>2); (x,T\<^isub>1)#\<Gamma>\<^isub>1 \<lless> (x,T\<^isub>1)#\<Gamma>\<^isub>2\<rbrakk> \<Longrightarrow> (x,T\<^isub>1)#\<Gamma>\<^isub>2 \<turnstile> t : T\<^isub>2" by fact
+  have ih: "\<lbrakk>valid ((x,T\<^isub>1)#\<Gamma>\<^isub>2); (x,T\<^isub>1)#\<Gamma>\<^isub>1 \<subseteq> (x,T\<^isub>1)#\<Gamma>\<^isub>2\<rbrakk> \<Longrightarrow> (x,T\<^isub>1)#\<Gamma>\<^isub>2 \<turnstile> t : T\<^isub>2" by fact
   have H1: "valid \<Gamma>\<^isub>2" by fact
-  have H2: "\<Gamma>\<^isub>1 \<lless> \<Gamma>\<^isub>2" by fact
+  have H2: "\<Gamma>\<^isub>1 \<subseteq> \<Gamma>\<^isub>2" by fact
   have fs: "x\<sharp>\<Gamma>\<^isub>2" by fact
   then have "valid ((x,T\<^isub>1)#\<Gamma>\<^isub>2)" using H1 by auto
-  moreover have "(x,T\<^isub>1)#\<Gamma>\<^isub>1 \<lless> (x,T\<^isub>1)#\<Gamma>\<^isub>2" using H2 by auto
+  moreover have "(x,T\<^isub>1)#\<Gamma>\<^isub>1 \<subseteq> (x,T\<^isub>1)#\<Gamma>\<^isub>2" using H2 by auto
   ultimately have "(x,T\<^isub>1)#\<Gamma>\<^isub>2 \<turnstile> t : T\<^isub>2" using ih by simp 
   thus "\<Gamma>\<^isub>2 \<turnstile> Lam [x].t : T\<^isub>1\<rightarrow>T\<^isub>2" using fs by auto
 next
@@ -398,7 +398,7 @@ proof -
   then have "valid ((x\<^isub>2,T\<^isub>2)#(x\<^isub>1,T\<^isub>1)#\<Gamma>)"
     by (auto simp: fresh_list_cons fresh_atm)
   moreover 
-  have "(x\<^isub>1,T\<^isub>1)#(x\<^isub>2,T\<^isub>2)#\<Gamma> \<lless> (x\<^isub>2,T\<^isub>2)#(x\<^isub>1,T\<^isub>1)#\<Gamma>" by auto
+  have "(x\<^isub>1,T\<^isub>1)#(x\<^isub>2,T\<^isub>2)#\<Gamma> \<subseteq> (x\<^isub>2,T\<^isub>2)#(x\<^isub>1,T\<^isub>1)#\<Gamma>" by auto
   ultimately show "(x\<^isub>2,T\<^isub>2)#(x\<^isub>1,T\<^isub>1)#\<Gamma> \<turnstile> e : T" using a by (auto intro: weakening)
 qed
 

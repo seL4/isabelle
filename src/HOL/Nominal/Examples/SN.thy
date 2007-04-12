@@ -160,29 +160,28 @@ lemma valid_unicity:
 using a b c
 by (induct \<Gamma>) (auto dest!: fresh_context)
 
-inductive2 typing :: "(name\<times>ty) list\<Rightarrow>lam\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [80,80,80] 80)
+inductive2 typing :: "(name\<times>ty) list\<Rightarrow>lam\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ : _" [60,60,60] 60)
 where
-  t1[intro]: "\<lbrakk>valid \<Gamma>; (a,\<tau>)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> Var a : \<tau>"
-| t2[intro]: "\<lbrakk>\<Gamma> \<turnstile> t1 : \<tau>\<rightarrow>\<sigma>; \<Gamma> \<turnstile> t2 : \<tau>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> App t1 t2 : \<sigma>"
+  t1[intro]: "\<lbrakk>valid \<Gamma>; (a,\<tau>)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var a : \<tau>"
+| t2[intro]: "\<lbrakk>\<Gamma> \<turnstile> t1 : \<tau>\<rightarrow>\<sigma>; \<Gamma> \<turnstile> t2 : \<tau>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App t1 t2 : \<sigma>"
 | t3[intro]: "\<lbrakk>a\<sharp>\<Gamma>;((a,\<tau>)#\<Gamma>) \<turnstile> t : \<sigma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [a].t : \<tau>\<rightarrow>\<sigma>"
 
 nominal_inductive typing
   by (simp_all add: abs_fresh fresh_ty)
 
 abbreviation
-  "sub" :: "(name\<times>ty) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" (" _ \<lless> _ " [80,80] 80) where
-  "\<Gamma>1 \<lless> \<Gamma>2 \<equiv> \<forall>a \<sigma>. (a,\<sigma>)\<in>set \<Gamma>1 \<longrightarrow>  (a,\<sigma>)\<in>set \<Gamma>2"
+  "sub" :: "(name\<times>ty) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" ("_ \<subseteq> _" [60,60] 60) 
+where
+  "\<Gamma>1 \<subseteq> \<Gamma>2 \<equiv> \<forall>a \<sigma>. (a,\<sigma>)\<in>set \<Gamma>1 \<longrightarrow>  (a,\<sigma>)\<in>set \<Gamma>2"
 
 lemma weakening: 
   assumes a: "\<Gamma>1 \<turnstile> t : \<sigma>" 
   and     b: "valid \<Gamma>2" 
-  and     c: "\<Gamma>1 \<lless> \<Gamma>2"
-  shows "\<Gamma>2 \<turnstile> t:\<sigma>"
+  and     c: "\<Gamma>1 \<subseteq> \<Gamma>2"
+  shows "\<Gamma>2 \<turnstile> t : \<sigma>"
 using a b c
 apply(nominal_induct \<Gamma>1 t \<sigma> avoiding: \<Gamma>2 rule: typing.strong_induct)
 apply(auto | atomize)+
-(* FIXME: before using meta-connectives and the new induction *)
-(* method, this was completely automatic *)
 done
 
 lemma in_ctxt: 
@@ -208,7 +207,7 @@ apply(ind_cases2 "\<Gamma> \<turnstile> App t1 t2 : \<sigma>")
 apply(auto simp add: lam.inject lam.distinct)
 done
 
-lemma t3_elim: "\<lbrakk>\<Gamma> \<turnstile> Lam [a].t : \<sigma>;a\<sharp>\<Gamma>\<rbrakk>\<Longrightarrow> \<exists>\<tau> \<tau>'. \<sigma>=\<tau>\<rightarrow>\<tau>' \<and> ((a,\<tau>)#\<Gamma>) \<turnstile> t : \<tau>'"
+lemma t3_elim: "\<lbrakk>\<Gamma> \<turnstile> Lam [a].t : \<sigma>;a\<sharp>\<Gamma>\<rbrakk> \<Longrightarrow> \<exists>\<tau> \<tau>'. \<sigma>=\<tau>\<rightarrow>\<tau>' \<and> (a,\<tau>)#\<Gamma> \<turnstile> t : \<tau>'"
 apply(ind_cases2 "\<Gamma> \<turnstile> Lam [a].t : \<sigma>")
 apply(auto simp add: lam.distinct lam.inject alpha) 
 apply(drule_tac pi="[(a,aa)]::name prm" in typing.eqvt)
@@ -225,14 +224,14 @@ lemma typing_valid:
 using a by (induct, auto)
 
 lemma ty_subs:
-  assumes a: "((c,\<sigma>)#\<Gamma>) \<turnstile> t1:\<tau>"
+  assumes a: "(c,\<sigma>)#\<Gamma> \<turnstile> t1:\<tau>"
   and     b: "\<Gamma>\<turnstile> t2:\<sigma>"
   shows  "\<Gamma> \<turnstile> t1[c::=t2]:\<tau>"
 using a b
 proof(nominal_induct t1 avoiding: \<Gamma> \<sigma> \<tau> c t2 rule: lam.induct)
   case (Var a) 
   have a1: "\<Gamma> \<turnstile>t2:\<sigma>" by fact
-  have a2: "((c,\<sigma>)#\<Gamma>) \<turnstile> Var a:\<tau>" by fact
+  have a2: "(c,\<sigma>)#\<Gamma> \<turnstile> Var a : \<tau>" by fact
   hence a21: "(a,\<tau>)\<in>set((c,\<sigma>)#\<Gamma>)" and a22: "valid((c,\<sigma>)#\<Gamma>)" by (auto dest: t1_elim)
   from a22 have a23: "valid \<Gamma>" and a24: "c\<sharp>\<Gamma>" by (auto dest: valid_elim) 
   from a24 have a25: "\<not>(\<exists>\<tau>. (c,\<tau>)\<in>set \<Gamma>)" by (rule fresh_context)
@@ -260,7 +259,7 @@ next
   have ih_s1: "\<And>c \<sigma> \<tau> t2 \<Gamma>. ((c,\<sigma>)#\<Gamma>) \<turnstile> s1:\<tau> \<Longrightarrow> \<Gamma>\<turnstile> t2: \<sigma> \<Longrightarrow> \<Gamma> \<turnstile> s1[c::=t2]:\<tau>" by fact
   have ih_s2: "\<And>c \<sigma> \<tau> t2 \<Gamma>. ((c,\<sigma>)#\<Gamma>) \<turnstile> s2:\<tau> \<Longrightarrow> \<Gamma>\<turnstile> t2: \<sigma> \<Longrightarrow> \<Gamma> \<turnstile> s2[c::=t2]:\<tau>" by fact
   have "((c,\<sigma>)#\<Gamma>)\<turnstile>App s1 s2 : \<tau>" by fact
-  hence "\<exists>\<tau>'. ((c,\<sigma>)#\<Gamma>)\<turnstile>s1:\<tau>'\<rightarrow>\<tau> \<and> ((c,\<sigma>)#\<Gamma>)\<turnstile>s2:\<tau>'" by (rule t2_elim) 
+  hence "\<exists>\<tau>'. (c,\<sigma>)#\<Gamma> \<turnstile>s1:\<tau>'\<rightarrow>\<tau> \<and> (c,\<sigma>)#\<Gamma> \<turnstile> s2 : \<tau>'" by (rule t2_elim) 
   then obtain \<tau>' where "((c,\<sigma>)#\<Gamma>)\<turnstile>s1:\<tau>'\<rightarrow>\<tau>" and "((c,\<sigma>)#\<Gamma>)\<turnstile>s2:\<tau>'" by blast
   moreover
   have "\<Gamma> \<turnstile>t2:\<sigma>" by fact
@@ -270,23 +269,23 @@ next
   have "a\<sharp>\<Gamma>" "a\<sharp>\<sigma>" "a\<sharp>\<tau>" "a\<sharp>c" "a\<sharp>t2" by fact 
   hence f1: "a\<sharp>\<Gamma>" and f2: "a\<noteq>c" and f2': "c\<sharp>a" and f3: "a\<sharp>t2" and f4: "a\<sharp>((c,\<sigma>)#\<Gamma>)"
     by (auto simp add: fresh_atm fresh_prod fresh_list_cons)
-  have c1: "((c,\<sigma>)#\<Gamma>)\<turnstile>Lam [a].s : \<tau>" by fact
-  hence "\<exists>\<tau>1 \<tau>2. \<tau>=\<tau>1\<rightarrow>\<tau>2 \<and> ((a,\<tau>1)#(c,\<sigma>)#\<Gamma>) \<turnstile> s : \<tau>2" using f4 by (auto dest: t3_elim) 
+  have c1: "(c,\<sigma>)#\<Gamma> \<turnstile> Lam [a].s : \<tau>" by fact
+  hence "\<exists>\<tau>1 \<tau>2. \<tau>=\<tau>1\<rightarrow>\<tau>2 \<and> (a,\<tau>1)#(c,\<sigma>)#\<Gamma> \<turnstile> s : \<tau>2" using f4 by (auto dest: t3_elim) 
   then obtain \<tau>1 \<tau>2 where c11: "\<tau>=\<tau>1\<rightarrow>\<tau>2" and c12: "((a,\<tau>1)#(c,\<sigma>)#\<Gamma>) \<turnstile> s : \<tau>2" by force
   from c12 have "valid ((a,\<tau>1)#(c,\<sigma>)#\<Gamma>)" by (rule typing_valid)
   hence ca: "valid \<Gamma>" and cb: "a\<sharp>\<Gamma>" and cc: "c\<sharp>\<Gamma>" 
     by (auto simp add: fresh_list_cons) 
-  from c12 have c14: "((c,\<sigma>)#(a,\<tau>1)#\<Gamma>) \<turnstile> s : \<tau>2"
+  from c12 have c14: "(c,\<sigma>)#(a,\<tau>1)#\<Gamma> \<turnstile> s : \<tau>2"
   proof -
-    have c2: "((a,\<tau>1)#(c,\<sigma>)#\<Gamma>) \<lless> ((c,\<sigma>)#(a,\<tau>1)#\<Gamma>)" by force
+    have c2: "(a,\<tau>1)#(c,\<sigma>)#\<Gamma> \<subseteq> (c,\<sigma>)#(a,\<tau>1)#\<Gamma>" by force
     have c3: "valid ((c,\<sigma>)#(a,\<tau>1)#\<Gamma>)"
       by (rule v2, rule v2, auto simp add: fresh_list_cons fresh_prod ca cb cc f2' fresh_ty)
     from c12 c2 c3 show ?thesis by (force intro: weakening)
   qed
   assume c8: "\<Gamma> \<turnstile> t2 : \<sigma>"
-  have c81: "((a,\<tau>1)#\<Gamma>)\<turnstile>t2 :\<sigma>"
+  have c81: "(a,\<tau>1)#\<Gamma> \<turnstile> t2 :\<sigma>"
   proof -
-    have c82: "\<Gamma> \<lless> ((a,\<tau>1)#\<Gamma>)" by force
+    have c82: "\<Gamma> \<subseteq> (a,\<tau>1)#\<Gamma>" by force
     have c83: "valid ((a,\<tau>1)#\<Gamma>)" using f1 ca by force
     with c8 c82 c83 show ?thesis by (force intro: weakening)
   qed

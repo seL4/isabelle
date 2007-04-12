@@ -2309,7 +2309,6 @@ lemma pt_list_set_fresh:
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
   and     fs: "fs TYPE('a) TYPE('x)"
-  and     a: "a\<sharp>xs"
   shows "a\<sharp>(set xs) = a\<sharp>xs"
 by (simp add: fresh_def pt_list_set_supp[OF pt, OF at, OF fs])
  

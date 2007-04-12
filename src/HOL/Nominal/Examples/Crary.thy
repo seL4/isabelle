@@ -267,14 +267,14 @@ inductive_cases2
   valid_cons_elim_auto[elim]:"valid ((x,T)#\<Gamma>)"
 
 abbreviation
-  "sub_context" :: "Ctxt \<Rightarrow> Ctxt \<Rightarrow> bool" (" _ \<lless> _ " [55,55] 55)
+  "sub_context" :: "Ctxt \<Rightarrow> Ctxt \<Rightarrow> bool" (" _ \<subseteq> _ " [55,55] 55)
 where
-  "\<Gamma>\<^isub>1 \<lless> \<Gamma>\<^isub>2 \<equiv> \<forall>a T. (a,T)\<in>set \<Gamma>\<^isub>1 \<longrightarrow> (a,T)\<in>set \<Gamma>\<^isub>2"
+  "\<Gamma>\<^isub>1 \<subseteq> \<Gamma>\<^isub>2 \<equiv> \<forall>a T. (a,T)\<in>set \<Gamma>\<^isub>1 \<longrightarrow> (a,T)\<in>set \<Gamma>\<^isub>2"
 
 lemma valid_monotonicity[elim]:
- assumes a: "\<Gamma> \<lless> \<Gamma>'" 
+ assumes a: "\<Gamma> \<subseteq> \<Gamma>'" 
  and     b: "x\<sharp>\<Gamma>'"
- shows "(x,T\<^isub>1)#\<Gamma> \<lless> (x,T\<^isub>1)#\<Gamma>'"
+ shows "(x,T\<^isub>1)#\<Gamma> \<subseteq> (x,T\<^isub>1)#\<Gamma>'"
 using a b by auto
 
 lemma fresh_context: 
@@ -298,8 +298,8 @@ by (induct \<Gamma>)
 inductive2
   typing :: "Ctxt\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [60,60,60] 60) 
 where
-  t_Var[intro]:   "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
-| t_App[intro]:   "\<lbrakk>\<Gamma> \<turnstile> e\<^isub>1 : T\<^isub>1\<rightarrow>T\<^isub>2; \<Gamma> \<turnstile> e\<^isub>2 : T\<^isub>1\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> App e\<^isub>1 e\<^isub>2 : T\<^isub>2"
+  t_Var[intro]:   "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
+| t_App[intro]:   "\<lbrakk>\<Gamma> \<turnstile> e\<^isub>1 : T\<^isub>1\<rightarrow>T\<^isub>2; \<Gamma> \<turnstile> e\<^isub>2 : T\<^isub>1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App e\<^isub>1 e\<^isub>2 : T\<^isub>2"
 | t_Lam[intro]:   "\<lbrakk>x\<sharp>\<Gamma>; (x,T\<^isub>1)#\<Gamma> \<turnstile> t : T\<^isub>2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x].t : T\<^isub>1\<rightarrow>T\<^isub>2"
 | t_Const[intro]: "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Const n : TBase"
 | t_Unit[intro]:  "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Unit : TUnit"
@@ -440,16 +440,16 @@ qed (auto)
 section {* Algorithmic Term Equivalence and Algorithmic Path Equivalence *}
 
 inductive2
-  alg_equiv :: "Ctxt\<Rightarrow>trm\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ \<Leftrightarrow> _ : _" [60,60] 60) 
+  alg_equiv :: "Ctxt\<Rightarrow>trm\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ \<Leftrightarrow> _ : _" [60,60,60,60] 60) 
 and
-  alg_path_equiv :: "Ctxt\<Rightarrow>trm\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ \<leftrightarrow> _ : _" [60,60] 60) 
+  alg_path_equiv :: "Ctxt\<Rightarrow>trm\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ \<leftrightarrow> _ : _" [60,60,60,60] 60) 
 where
-  QAT_Base[intro]:  "\<lbrakk>s \<Down> p; t \<Down> q; \<Gamma> \<turnstile> p \<leftrightarrow> q : TBase \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s \<Leftrightarrow> t : TBase"
+  QAT_Base[intro]:  "\<lbrakk>s \<Down> p; t \<Down> q; \<Gamma> \<turnstile> p \<leftrightarrow> q : TBase\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s \<Leftrightarrow> t : TBase"
 | QAT_Arrow[intro]: "\<lbrakk>x\<sharp>(\<Gamma>,s,t); (x,T\<^isub>1)#\<Gamma> \<turnstile> App s (Var x) \<Leftrightarrow> App t (Var x) : T\<^isub>2\<rbrakk> 
                      \<Longrightarrow> \<Gamma> \<turnstile> s \<Leftrightarrow> t : T\<^isub>1 \<rightarrow> T\<^isub>2"
 | QAT_One[intro]:   "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> s \<Leftrightarrow> t : TUnit"
 | QAP_Var[intro]:   "\<lbrakk>valid \<Gamma>;(x,T) \<in> set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var x \<leftrightarrow> Var x : T"
-| QAP_App[intro]:   "\<lbrakk>\<Gamma> \<turnstile> p \<leftrightarrow> q : T\<^isub>1 \<rightarrow> T\<^isub>2; \<Gamma> \<turnstile> s \<Leftrightarrow> t : T\<^isub>1 \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App p s \<leftrightarrow> App q t : T\<^isub>2"
+| QAP_App[intro]:   "\<lbrakk>\<Gamma> \<turnstile> p \<leftrightarrow> q : T\<^isub>1 \<rightarrow> T\<^isub>2; \<Gamma> \<turnstile> s \<Leftrightarrow> t : T\<^isub>1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App p s \<leftrightarrow> App q t : T\<^isub>2"
 | QAP_Const[intro]: "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Const n \<leftrightarrow> Const n : TBase"
 
 nominal_inductive alg_equiv
@@ -579,17 +579,17 @@ apply(auto intro!: QAT_Arrow)
 done
 
 lemma algorithmic_monotonicity:
-  shows "\<Gamma> \<turnstile> s \<Leftrightarrow> t : T \<Longrightarrow> \<Gamma> \<lless> \<Gamma>' \<Longrightarrow> valid \<Gamma>' \<Longrightarrow> \<Gamma>' \<turnstile> s \<Leftrightarrow> t : T"
-  and   "\<Gamma> \<turnstile> s \<leftrightarrow> t : T \<Longrightarrow> \<Gamma> \<lless> \<Gamma>' \<Longrightarrow> valid \<Gamma>' \<Longrightarrow> \<Gamma>' \<turnstile> s \<leftrightarrow> t : T"
+  shows "\<Gamma> \<turnstile> s \<Leftrightarrow> t : T \<Longrightarrow> \<Gamma> \<subseteq> \<Gamma>' \<Longrightarrow> valid \<Gamma>' \<Longrightarrow> \<Gamma>' \<turnstile> s \<Leftrightarrow> t : T"
+  and   "\<Gamma> \<turnstile> s \<leftrightarrow> t : T \<Longrightarrow> \<Gamma> \<subseteq> \<Gamma>' \<Longrightarrow> valid \<Gamma>' \<Longrightarrow> \<Gamma>' \<turnstile> s \<leftrightarrow> t : T"
 proof (nominal_induct \<Gamma> s t T and \<Gamma> s t T avoiding: \<Gamma>' rule: alg_equiv_alg_path_equiv.strong_inducts)
  case (QAT_Arrow x \<Gamma> s t T\<^isub>1 T\<^isub>2 \<Gamma>')
   have fs:"x\<sharp>\<Gamma>" "x\<sharp>s" "x\<sharp>t" "x\<sharp>\<Gamma>'"by fact
-  have h2:"\<Gamma>\<lless>\<Gamma>'" by fact
-  have ih:"\<And>\<Gamma>'. \<lbrakk>(x,T\<^isub>1)#\<Gamma> \<lless> \<Gamma>'; valid \<Gamma>'\<rbrakk>  \<Longrightarrow> \<Gamma>' \<turnstile> App s (Var x) \<Leftrightarrow> App t (Var x) : T\<^isub>2" by fact
+  have h2:"\<Gamma> \<subseteq> \<Gamma>'" by fact
+  have ih:"\<And>\<Gamma>'. \<lbrakk>(x,T\<^isub>1)#\<Gamma> \<subseteq> \<Gamma>'; valid \<Gamma>'\<rbrakk>  \<Longrightarrow> \<Gamma>' \<turnstile> App s (Var x) \<Leftrightarrow> App t (Var x) : T\<^isub>2" by fact
   have "valid \<Gamma>'" by fact
   then have "valid ((x,T\<^isub>1)#\<Gamma>')" using fs by auto
   moreover
-  have sub: "(x,T\<^isub>1)#\<Gamma> \<lless> (x,T\<^isub>1)#\<Gamma>'" using h2 by auto
+  have sub: "(x,T\<^isub>1)#\<Gamma> \<subseteq> (x,T\<^isub>1)#\<Gamma>'" using h2 by auto
   ultimately have "(x,T\<^isub>1)#\<Gamma>' \<turnstile> App s (Var x) \<Leftrightarrow> App t (Var x) : T\<^isub>2" using ih by simp
   then show "\<Gamma>' \<turnstile> s \<Leftrightarrow> t : T\<^isub>1\<rightarrow>T\<^isub>2" using fs by (auto simp add: fresh_prod)
 qed (auto)
@@ -607,7 +607,7 @@ where
    "\<Gamma> \<turnstile> s is t : TUnit = True"
  | "\<Gamma> \<turnstile> s is t : TBase = \<Gamma> \<turnstile> s \<Leftrightarrow> t : TBase"
  | "\<Gamma> \<turnstile> s is t : (T\<^isub>1 \<rightarrow> T\<^isub>2) =  
-    (\<forall>\<Gamma>' s' t'. \<Gamma>\<lless>\<Gamma>' \<longrightarrow> valid \<Gamma>' \<longrightarrow> \<Gamma>' \<turnstile> s' is t' : T\<^isub>1 \<longrightarrow>  (\<Gamma>' \<turnstile> (App s s') is (App t t') : T\<^isub>2))"
+    (\<forall>\<Gamma>' s' t'. \<Gamma>\<subseteq>\<Gamma>' \<longrightarrow> valid \<Gamma>' \<longrightarrow> \<Gamma>' \<turnstile> s' is t' : T\<^isub>1 \<longrightarrow>  (\<Gamma>' \<turnstile> (App s s') is (App t t') : T\<^isub>2))"
 apply (auto simp add: ty.inject)
 apply (subgoal_tac "(\<exists>T\<^isub>1 T\<^isub>2. b=T\<^isub>1 \<rightarrow> T\<^isub>2) \<or> b=TUnit \<or> b=TBase" )
 apply (force)
@@ -621,7 +621,7 @@ done
 
 lemma logical_monotonicity :
  assumes a1: "\<Gamma> \<turnstile> s is t : T" 
- and     a2: "\<Gamma>\<lless>\<Gamma>'" 
+ and     a2: "\<Gamma> \<subseteq> \<Gamma>'" 
  and     a3: "valid \<Gamma>'"
  shows "\<Gamma>' \<turnstile> s is t : T"
 using a1 a2 a3
@@ -631,7 +631,7 @@ proof (induct arbitrary: \<Gamma>' rule: log_equiv.induct)
 next
   case (3 \<Gamma> s t T\<^isub>1 T\<^isub>2 \<Gamma>')
   have "\<Gamma> \<turnstile> s is t : T\<^isub>1\<rightarrow>T\<^isub>2" 
-  and  "\<Gamma> \<lless> \<Gamma>'" 
+  and  "\<Gamma> \<subseteq> \<Gamma>'" 
   and  "valid \<Gamma>'" by fact
   then show "\<Gamma>' \<turnstile> s is t : T\<^isub>1\<rightarrow>T\<^isub>2" by simp
 qed (auto)
@@ -661,7 +661,7 @@ proof (nominal_induct T arbitrary: \<Gamma> s t p q rule: ty.induct)
     have ih2:"\<And>\<Gamma> s t. \<lbrakk>\<Gamma> \<turnstile> s is t : T\<^isub>1; valid \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s \<Leftrightarrow> t : T\<^isub>1" by fact
     {
       fix \<Gamma>' s t
-      assume "\<Gamma>\<lless>\<Gamma>'" and hl:"\<Gamma>' \<turnstile> s is t : T\<^isub>1" and hk: "valid \<Gamma>'"
+      assume "\<Gamma> \<subseteq> \<Gamma>'" and hl:"\<Gamma>' \<turnstile> s is t : T\<^isub>1" and hk: "valid \<Gamma>'"
       then have "\<Gamma>' \<turnstile> p \<leftrightarrow> q : T\<^isub>1 \<rightarrow> T\<^isub>2" using h algorithmic_monotonicity by auto
       moreover have "\<Gamma>' \<turnstile> s \<Leftrightarrow> t : T\<^isub>1" using ih2 hl hk by auto
       ultimately have "\<Gamma>' \<turnstile> App p s \<leftrightarrow> App q t : T\<^isub>2" by auto
@@ -707,7 +707,7 @@ next
   have ih2:"\<And>\<Gamma> s t u. \<lbrakk>\<Gamma> \<turnstile> s is t : T\<^isub>2; \<Gamma> \<turnstile> t is u : T\<^isub>2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s is u : T\<^isub>2" by fact
   {
     fix \<Gamma>' s' u'
-    assume hsub:"\<Gamma>\<lless>\<Gamma>'" and hl:"\<Gamma>' \<turnstile> s' is u' : T\<^isub>1" and hk: "valid \<Gamma>'"
+    assume hsub:"\<Gamma> \<subseteq> \<Gamma>'" and hl:"\<Gamma>' \<turnstile> s' is u' : T\<^isub>1" and hk: "valid \<Gamma>'"
     then have "\<Gamma>' \<turnstile> u' is s' : T\<^isub>1" using logical_symmetry by blast
     then have "\<Gamma>' \<turnstile> u' is u' : T\<^isub>1" using ih1 hl by blast
     then have "\<Gamma>' \<turnstile> App t u' is App u u' : T\<^isub>2" using h2 hsub hk by auto
@@ -742,11 +742,11 @@ next
   have ih:"\<And>\<Gamma> s t s'. \<lbrakk>\<Gamma> \<turnstile> s is t : T\<^isub>2; s' \<leadsto> s\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s' is t : T\<^isub>2" by fact
   have h2:"\<Gamma> \<turnstile> s is t : T\<^isub>1\<rightarrow>T\<^isub>2" by fact
   then 
-  have hb:"\<forall>\<Gamma>' s' t'. \<Gamma>\<lless>\<Gamma>' \<longrightarrow> valid \<Gamma>' \<longrightarrow> \<Gamma>' \<turnstile> s' is t' : T\<^isub>1 \<longrightarrow> (\<Gamma>' \<turnstile> (App s s') is (App t t') : T\<^isub>2)" 
+  have hb:"\<forall>\<Gamma>' s' t'. \<Gamma>\<subseteq>\<Gamma>' \<longrightarrow> valid \<Gamma>' \<longrightarrow> \<Gamma>' \<turnstile> s' is t' : T\<^isub>1 \<longrightarrow> (\<Gamma>' \<turnstile> (App s s') is (App t t') : T\<^isub>2)" 
     by auto
   {
     fix \<Gamma>' s\<^isub>2 t\<^isub>2
-    assume "\<Gamma>\<lless>\<Gamma>'" and "\<Gamma>' \<turnstile> s\<^isub>2 is t\<^isub>2 : T\<^isub>1" and "valid \<Gamma>'"
+    assume "\<Gamma> \<subseteq> \<Gamma>'" and "\<Gamma>' \<turnstile> s\<^isub>2 is t\<^isub>2 : T\<^isub>1" and "valid \<Gamma>'"
     then have "\<Gamma>' \<turnstile> (App s s\<^isub>2) is (App t t\<^isub>2) : T\<^isub>2" using hb by auto
     moreover have "(App s' s\<^isub>2)  \<leadsto> (App s s\<^isub>2)" using h1 by auto  
     ultimately have "\<Gamma>' \<turnstile> App s' s\<^isub>2 is App t t\<^isub>2 : T\<^isub>2" using ih by auto
@@ -770,7 +770,7 @@ qed
 
 lemma logical_subst_monotonicity :
   assumes a: "\<Gamma>' \<turnstile> s is t over \<Gamma>" 
-  and     b: "\<Gamma>'\<lless>\<Gamma>''"
+  and     b: "\<Gamma>' \<subseteq> \<Gamma>''"
   and     c: "valid \<Gamma>''"
   shows "\<Gamma>'' \<turnstile> s is t over \<Gamma>"
 using a b c logical_monotonicity by blast
@@ -817,7 +817,7 @@ proof (nominal_induct \<Gamma> t T avoiding: \<Gamma>' \<theta> \<theta>'  rule:
   have ih:"\<And> \<Gamma>' \<theta> \<theta>'. \<lbrakk>\<Gamma>' \<turnstile> \<theta> is \<theta>' over (x,T\<^isub>1)#\<Gamma>; valid \<Gamma>'\<rbrakk> \<Longrightarrow> \<Gamma>' \<turnstile> \<theta><t\<^isub>2> is \<theta>'<t\<^isub>2> : T\<^isub>2" by fact
   {
     fix \<Gamma>'' s' t'
-    assume "\<Gamma>'\<lless>\<Gamma>''" and hl:"\<Gamma>''\<turnstile> s' is t' : T\<^isub>1" and v: "valid \<Gamma>''"
+    assume "\<Gamma>' \<subseteq> \<Gamma>''" and hl:"\<Gamma>''\<turnstile> s' is t' : T\<^isub>1" and v: "valid \<Gamma>''"
     then have "\<Gamma>'' \<turnstile> \<theta> is \<theta>' over \<Gamma>" using logical_subst_monotonicity h by blast
     then have "\<Gamma>'' \<turnstile> (x,s')#\<theta> is (x,t')#\<theta>' over (x,T\<^isub>1)#\<Gamma>" using equiv_subst_ext hl fs by blast
     then have "\<Gamma>'' \<turnstile> (x,s')#\<theta><t\<^isub>2> is (x,t')#\<theta>'<t\<^isub>2> : T\<^isub>2" using ih v by auto
@@ -869,7 +869,7 @@ next
   have ih:"\<And>\<Gamma>' \<theta> \<theta>'. \<lbrakk>\<Gamma>' \<turnstile> \<theta> is \<theta>' over (x,T\<^isub>1)#\<Gamma>; valid \<Gamma>'\<rbrakk> \<Longrightarrow> \<Gamma>' \<turnstile> \<theta><s\<^isub>2> is \<theta>'<t\<^isub>2> : T\<^isub>2" by fact
   {
     fix \<Gamma>'' s' t'
-    assume "\<Gamma>'\<lless>\<Gamma>''" and hl:"\<Gamma>''\<turnstile> s' is t' : T\<^isub>1" and hk: "valid \<Gamma>''"
+    assume "\<Gamma>' \<subseteq> \<Gamma>''" and hl:"\<Gamma>''\<turnstile> s' is t' : T\<^isub>1" and hk: "valid \<Gamma>''"
     then have "\<Gamma>'' \<turnstile> \<theta> is \<theta>' over \<Gamma>" using h2 logical_subst_monotonicity by blast
     then have "\<Gamma>'' \<turnstile> (x,s')#\<theta> is (x,t')#\<theta>' over (x,T\<^isub>1)#\<Gamma>" using equiv_subst_ext hl fs by blast
     then have "\<Gamma>'' \<turnstile> (x,s')#\<theta><s\<^isub>2> is (x,t')#\<theta>'<t\<^isub>2> : T\<^isub>2" using ih hk by blast
@@ -911,7 +911,7 @@ next
                           \<Longrightarrow> \<Gamma>' \<turnstile> \<theta><App s (Var x)> is \<theta>'<App t (Var x)> : T\<^isub>2" by fact
    {
     fix \<Gamma>'' s' t'
-    assume hsub: "\<Gamma>'\<lless>\<Gamma>''" and hl: "\<Gamma>''\<turnstile> s' is t' : T\<^isub>1" and hk: "valid \<Gamma>''"
+    assume hsub: "\<Gamma>' \<subseteq> \<Gamma>''" and hl: "\<Gamma>''\<turnstile> s' is t' : T\<^isub>1" and hk: "valid \<Gamma>''"
     then have "\<Gamma>'' \<turnstile> \<theta> is \<theta>' over \<Gamma>" using h2 logical_subst_monotonicity by blast
     then have "\<Gamma>'' \<turnstile> (x,s')#\<theta> is (x,t')#\<theta>' over (x,T\<^isub>1)#\<Gamma>" using equiv_subst_ext hl fs by blast
     then have "\<Gamma>'' \<turnstile> (x,s')#\<theta><App s (Var x)>  is (x,t')#\<theta>'<App t (Var x)> : T\<^isub>2" using ih hk by blast
