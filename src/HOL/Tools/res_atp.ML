@@ -739,8 +739,8 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
         val supers = tvar_classes_of_terms axtms
         and tycons = type_consts_of_terms thy (goal_tms@axtms)
         (*TFrees in conjecture clauses; TVars in axiom clauses*)
-        val classrel_clauses = ResClause.make_classrel_clauses thy subs supers
-        val arity_clauses = ResClause.arity_clause_thy thy tycons supers
+        val (supers',arity_clauses) = ResClause.make_arity_clauses thy tycons supers
+        val classrel_clauses = ResClause.make_classrel_clauses thy subs supers'
         val writer = if dfg then dfg_writer else tptp_writer
         and file = atp_input_file()
         and user_lemmas_names = map #1 user_rules
@@ -863,10 +863,10 @@ fun write_problem_files probfile (ctxt,th)  =
                 and supers = tvar_classes_of_terms axtms
                 and tycons = type_consts_of_terms thy (ccltms@axtms)
                 (*TFrees in conjecture clauses; TVars in axiom clauses*)
-                val classrel_clauses = ResClause.make_classrel_clauses thy subs supers
-                val _ = Output.debug (fn () => "classrel clauses = " ^ Int.toString (length classrel_clauses))
-                val arity_clauses = ResClause.arity_clause_thy thy tycons supers
+                val (supers',arity_clauses) = ResClause.make_arity_clauses thy tycons supers
                 val _ = Output.debug (fn () => "arity clauses = " ^ Int.toString (length arity_clauses))
+                val classrel_clauses = ResClause.make_classrel_clauses thy subs supers'
+                val _ = Output.debug (fn () => "classrel clauses = " ^ Int.toString (length classrel_clauses))
                 val clnames = writer logic ccls fname (axcls,classrel_clauses,arity_clauses) []
                 val thm_names = Vector.fromList clnames
                 val _ = if !Output.debugging then trace_vector fname thm_names else ()
