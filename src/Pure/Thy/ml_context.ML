@@ -29,6 +29,8 @@ sig
     (Context.generic * Args.T list -> string * (Context.generic * Args.T list)) -> unit
   val value_antiq: string ->
     (Context.generic * Args.T list -> (string * string) * (Context.generic * Args.T list)) -> unit
+  val proj_value_antiq: string -> (Context.generic * Args.T list ->
+      (string * string * string) * (Context.generic * Args.T list)) -> unit
   val use_mltext: string -> bool -> Context.generic option -> unit
   val use_mltext_update: string -> bool -> Context.generic -> Context.generic
   val use_let: string -> string -> string -> Context.generic -> Context.generic
@@ -83,7 +85,7 @@ fun add_keywords keywords =
 
 (* maintain commands *)
 
-datatype antiq = Inline of string | Value of string * string;
+datatype antiq = Inline of string | ProjValue of string * string * string;
 val global_parsers = ref (Symtab.empty:
   (Context.generic * Args.T list -> antiq * (Context.generic * Args.T list)) Symtab.table);
 
@@ -97,7 +99,8 @@ fun add_item kind name scan = change global_parsers (fn tab =>
 in
 
 val inline_antiq = add_item Inline;
-val value_antiq = add_item Value;
+val proj_value_antiq = add_item ProjValue;
+fun value_antiq name scan = proj_value_antiq name (scan >> (fn (a, s) => (a, s, "")));
 
 end;
 
@@ -141,11 +144,11 @@ fun eval_antiquotes txt =
       | expand (Antiquote.Antiq x) names =
           (case command (Antiquote.scan_arguments (! global_lexicon) antiq x) of
             Inline s => (("", s), names)
-          | Value (a, s) =>
+          | ProjValue (a, s, f) =>
               let
                 val a' = if ML_Syntax.is_identifier a then a else "val";
                 val ([b], names') = Name.variants [a'] names;
-              in (("val " ^ b ^ " = " ^ s ^ ";\n", "Isabelle." ^ b), names') end);
+              in (("val " ^ b ^ " = " ^ s ^ ";\n", f ^ " Isabelle." ^ b), names') end);
 
     val (decls, body) =
       fold_map expand ants ML_Syntax.reserved
