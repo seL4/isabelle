@@ -106,6 +106,8 @@ sleep 5
 $SSH macbroy5 "$MAKEALL $HOME/settings/mac-poly $HOME/settings/mac-sml-dev"
 sleep 5
 $SSH macbroy6 "/usr/stud/isatest/bin/isatest-makeall $HOME/settings/at-mac-poly-e"
+sleep 5
+$SSH atbroy51 "$HOME/admin/isatest/isatest-annomaly"
 
 echo ------------------- spawned tests successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
 
