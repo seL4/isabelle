@@ -725,14 +725,13 @@ fun add_ind_def verbose alt_name coind no_elim no_ind cs
        elims = elims',
        raw_induct = rulify raw_induct,
        induct = induct'};
-    val target_result = morph_result (LocalTheory.target_morphism ctxt4) result;
 
     val ctxt5 = ctxt4
       |> Context.proof_map (put_inductives names ({names = names, coind = coind}, result))
       |> LocalTheory.declaration (fn phi =>
         let
           val names' = map (LocalTheory.target_name ctxt4 o Morphism.name phi) names;
-          val result' = morph_result phi target_result;
+          val result' = morph_result phi result;
         in put_inductives names' ({names = names', coind = coind}, result') end);
   in (result, ctxt5) end;
 
