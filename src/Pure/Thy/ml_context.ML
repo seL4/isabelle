@@ -148,7 +148,11 @@ fun eval_antiquotes txt =
               let
                 val a' = if ML_Syntax.is_identifier a then a else "val";
                 val ([b], names') = Name.variants [a'] names;
-              in (("val " ^ b ^ " = " ^ s ^ ";\n", f ^ " Isabelle." ^ b), names') end);
+                val binding = "val " ^ b ^ " = " ^ s ^ ";\n";
+                val value =
+                  if f = "" then "Isabelle." ^ b
+                  else "(" ^ f ^ " Isabelle." ^ b ^ ")";
+              in ((binding, value), names') end);
 
     val (decls, body) =
       fold_map expand ants ML_Syntax.reserved
