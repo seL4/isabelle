@@ -98,7 +98,7 @@ fun get_clauses thy s =
         NONE => NONE
       | SOME ({names, ...}, {intrs, raw_induct, ...}) =>
           SOME (names, thyname_of_const s thy, length (params_of raw_induct),
-            preprocess thy (rev intrs)))
+            preprocess thy intrs))
     | SOME _ =>
         let
           val SOME names = find_first
