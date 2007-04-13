@@ -265,7 +265,7 @@ fun eta_long x = no_args (Thm.rule_attribute (K (Drule.fconv_rule Drule.eta_long
 fun internal att = Args.src (("Pure.attribute", [Args.mk_attribute att]), Position.none);
 
 fun internal_att x =
-  syntax (Scan.lift Args.internal_attribute >> (fn att => att Morphism.identity)) x;
+  syntax (Scan.lift Args.internal_attribute >> Morphism.form) x;
 
 
 (* theory setup *)

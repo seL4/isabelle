@@ -623,7 +623,7 @@ fun morph_simproc phi (Simproc {name, lhss, proc, id = (s, ths)}) =
   Simproc
    {name = name,
     lhss = map (Morphism.cterm phi) lhss,
-    proc = fn psi => proc (phi $> psi),
+    proc = Morphism.transform phi proc,
     id = (s, Morphism.fact phi ths)};
 
 fun make_simproc {name, lhss, proc, identifier} =
@@ -656,7 +656,7 @@ fun del_proc (proc as Proc {name, lhs, ...}) ss =
     (warning ("Simplification procedure " ^ quote name ^ " not in simpset"); ss);
 
 fun prep_procs (Simproc {name, lhss, proc, id}) =
-  lhss |> map (fn lhs => Proc {name = name, lhs = lhs, proc = proc Morphism.identity, id = id});
+  lhss |> map (fn lhs => Proc {name = name, lhs = lhs, proc = Morphism.form proc, id = id});
 
 in
 
