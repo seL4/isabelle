@@ -206,8 +206,8 @@ structure ExtractionData = TheoryDataFun
      typeof_eqns = merge_rules typeof_eqns1 typeof_eqns2,
      types = merge_alists types1 types2,
      realizers = Symtab.merge_list (gen_eq_set (op =) o pairself #1) (realizers1, realizers2),
-     defs = gen_merge_lists Thm.eq_thm defs1 defs2,
-     expand = merge_lists expand1 expand2,
+     defs = Library.merge Thm.eq_thm (defs1, defs2),
+     expand = Library.merge (op =) (expand1, expand2),
      prep = (case prep1 of NONE => prep2 | _ => prep1)};
 
   fun print _ _ = ();

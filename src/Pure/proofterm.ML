@@ -103,8 +103,8 @@ sig
   val get_name : term list -> term -> proof -> string
 
   (** rewriting on proof terms **)
-  val add_prf_rrules : (proof * proof) list -> theory -> theory
-  val add_prf_rprocs : (string * (Term.typ list -> proof -> proof option)) list ->
+  val add_prf_rrule : proof * proof -> theory -> theory
+  val add_prf_rproc : string * (Term.typ list -> proof -> proof option) ->
     theory -> theory
   val rewrite_proof : theory -> (proof * proof) list *
     (string * (typ list -> proof -> proof option)) list -> proof -> proof
@@ -286,14 +286,14 @@ fun map_proof_terms_option f g =
 
   in mapph end;
 
-fun same f x =
+fun same eq f x =
   let val x' = f x
-  in if x = x' then raise SAME else x' end;
+  in if eq (x, x') then raise SAME else x' end;
 
 fun map_proof_terms f g =
   map_proof_terms_option
-   (fn t => SOME (same f t) handle SAME => NONE)
-   (fn T => SOME (same g T) handle SAME => NONE);
+   (fn t => SOME (same (op =) f t) handle SAME => NONE)
+   (fn T => SOME (same (op =) g T) handle SAME => NONE);
 
 fun fold_proof_terms f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms f g prf
   | fold_proof_terms f g (Abst (_, NONE, prf)) = fold_proof_terms f g prf
@@ -366,7 +366,7 @@ fun incr_bv' inct tlev t = incr_bv (inct, tlev, t);
 fun prf_incr_bv' incP inct Plev tlev (PBound i) =
       if i >= Plev then PBound (i+incP) else raise SAME
   | prf_incr_bv' incP inct Plev tlev (AbsP (a, t, body)) =
-      (AbsP (a, apsome' (same (incr_bv' inct tlev)) t,
+      (AbsP (a, apsome' (same (op =) (incr_bv' inct tlev)) t,
          prf_incr_bv incP inct (Plev+1) tlev body) handle SAME =>
            AbsP (a, t, prf_incr_bv' incP inct (Plev+1) tlev body))
   | prf_incr_bv' incP inct Plev tlev (Abst (a, T, body)) =
@@ -376,7 +376,7 @@ fun prf_incr_bv' incP inct Plev tlev (PBound i) =
        handle SAME => prf %% prf_incr_bv' incP inct Plev tlev prf')
   | prf_incr_bv' incP inct Plev tlev (prf % t) =
       (prf_incr_bv' incP inct Plev tlev prf % Option.map (incr_bv' inct tlev) t
-       handle SAME => prf % apsome' (same (incr_bv' inct tlev)) t)
+       handle SAME => prf % apsome' (same (op =) (incr_bv' inct tlev)) t)
   | prf_incr_bv' _ _ _ _ _ = raise SAME
 and prf_incr_bv incP inct Plev tlev prf =
       (prf_incr_bv' incP inct Plev tlev prf handle SAME => prf);
@@ -683,19 +683,19 @@ fun lift_proof Bi inc prop prf =
     fun lift'' Us Ts t = strip_abs Ts (Logic.incr_indexes (Us, inc) (mk_abs Ts t));
 
     fun lift' Us Ts (Abst (s, T, prf)) =
-          (Abst (s, apsome' (same (Logic.incr_tvar inc)) T, lifth' Us (dummyT::Ts) prf)
+          (Abst (s, apsome' (same (op =) (Logic.incr_tvar inc)) T, lifth' Us (dummyT::Ts) prf)
            handle SAME => Abst (s, T, lift' Us (dummyT::Ts) prf))
       | lift' Us Ts (AbsP (s, t, prf)) =
-          (AbsP (s, apsome' (same (lift'' Us Ts)) t, lifth' Us Ts prf)
+          (AbsP (s, apsome' (same (op =) (lift'' Us Ts)) t, lifth' Us Ts prf)
            handle SAME => AbsP (s, t, lift' Us Ts prf))
       | lift' Us Ts (prf % t) = (lift' Us Ts prf % Option.map (lift'' Us Ts) t
-          handle SAME => prf % apsome' (same (lift'' Us Ts)) t)
+          handle SAME => prf % apsome' (same (op =) (lift'' Us Ts)) t)
       | lift' Us Ts (prf1 %% prf2) = (lift' Us Ts prf1 %% lifth' Us Ts prf2
           handle SAME => prf1 %% lift' Us Ts prf2)
       | lift' _ _ (PThm (s, prf, prop, Ts)) =
-          PThm (s, prf, prop, apsome' (same (map (Logic.incr_tvar inc))) Ts)
+          PThm (s, prf, prop, apsome' (same (op =) (map (Logic.incr_tvar inc))) Ts)
       | lift' _ _ (PAxm (s, prop, Ts)) =
-          PAxm (s, prop, apsome' (same (map (Logic.incr_tvar inc))) Ts)
+          PAxm (s, prop, apsome' (same (op =) (map (Logic.incr_tvar inc))) Ts)
       | lift' _ _ _ = raise SAME
     and lifth' Us Ts prf = (lift' Us Ts prf handle SAME => prf);
 
@@ -1186,20 +1186,17 @@ structure ProofData = TheoryDataFun
   val empty = ([], []);
   val copy = I;
   val extend = I;
-  fun merge _ ((rules1, procs1), (rules2, procs2)) =
-    (merge_lists rules1 rules2, merge_alists procs1 procs2);
+  fun merge _ ((rules1, procs1) : T, (rules2, procs2)) =
+    (Library.merge (op =) (rules1, rules2),
+      AList.merge (op =) (K true) (procs1, procs2));
   fun print _ _ = ();
 end);
 
 val init_data = ProofData.init;
 
-fun add_prf_rrules rs thy =
-  let val r = ProofData.get thy
-  in ProofData.put (rs @ fst r, snd r) thy end;
+fun add_prf_rrule r = (ProofData.map o apfst) (insert (op =) r);
 
-fun add_prf_rprocs ps thy =
-  let val r = ProofData.get thy
-  in ProofData.put (fst r, ps @ snd r) thy end;
+fun add_prf_rproc p = (ProofData.map o apsnd) (AList.update (op =) p);
 
 fun thm_proof thy name hyps prop prf =
   let
