@@ -375,11 +375,11 @@ fun local_simp_meth_setup tac =
 
 (* uses HOL_basic_ss only and fails if the tactic does not solve the subgoal *)
 
-fun basic_simp_meth_setup tac =
+fun basic_simp_meth_setup debug tac =
   Method.sectioned_args 
    (fn (ctxt,l) => ((),((Simplifier.map_ss (fn _ => HOL_basic_ss) ctxt),l)))
    (Simplifier.simp_modifiers' @ Splitter.split_modifiers)
-   (fn _ => Method.SIMPLE_METHOD' o (fn ss => SOLVEI (tac ss)) o local_simpset_of);
+   (fn _ => Method.SIMPLE_METHOD' o (fn ss => if debug then (tac ss) else SOLVEI (tac ss)) o local_simpset_of);
 
 
 val perm_simp_meth            = local_simp_meth_setup (perm_simp_tac NO_DEBUG_tac);
@@ -388,10 +388,10 @@ val perm_full_simp_meth       = local_simp_meth_setup (perm_full_simp_tac NO_DEB
 val perm_full_simp_meth_debug = local_simp_meth_setup (perm_full_simp_tac DEBUG_tac);
 val supports_meth             = local_simp_meth_setup (supports_tac NO_DEBUG_tac);
 val supports_meth_debug       = local_simp_meth_setup (supports_tac DEBUG_tac);
-val finite_guess_meth         = basic_simp_meth_setup (finite_guess_tac NO_DEBUG_tac);
-val finite_guess_meth_debug   = basic_simp_meth_setup (finite_guess_tac DEBUG_tac);
-val fresh_guess_meth          = basic_simp_meth_setup (fresh_guess_tac NO_DEBUG_tac);
-val fresh_guess_meth_debug    = basic_simp_meth_setup (fresh_guess_tac DEBUG_tac);
+val finite_guess_meth         = basic_simp_meth_setup false (finite_guess_tac NO_DEBUG_tac);
+val finite_guess_meth_debug   = basic_simp_meth_setup true (finite_guess_tac DEBUG_tac);
+val fresh_guess_meth          = basic_simp_meth_setup false (fresh_guess_tac NO_DEBUG_tac);
+val fresh_guess_meth_debug    = basic_simp_meth_setup true (fresh_guess_tac DEBUG_tac);
 
 val perm_simp_tac = perm_simp_tac NO_DEBUG_tac;
 val perm_full_simp_tac = perm_full_simp_tac NO_DEBUG_tac;
