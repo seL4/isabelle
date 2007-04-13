@@ -37,6 +37,8 @@ sig
   val thm_morphism: (thm -> thm) -> morphism
   val identity: morphism
   val compose: morphism -> morphism -> morphism
+  val transform: morphism -> (morphism -> 'a) -> morphism -> 'a
+  val form: (morphism -> 'a) -> 'a
 end;
 
 structure Morphism: MORPHISM =
@@ -75,6 +77,9 @@ fun compose
     typ = typ1 o typ2, term = term1 o term2, fact = fact1 o fact2};
 
 fun phi1 $> phi2 = compose phi2 phi1;
+
+fun transform phi f = fn psi => f (phi $> psi);
+fun form f = f identity;
 
 end;
 

@@ -921,7 +921,7 @@ fun target_abbrev prmode ((c, mx), rhs) phi =
     Context.mapping_result
       (Sign.add_abbrev Syntax.internalM arg') (add_abbrev Syntax.internalM arg')
     #-> (fn (lhs, _) =>
-      Term.equiv_types (rhs, rhs') ? target_notation prmode [(lhs, mx)] Morphism.identity)
+      Term.equiv_types (rhs, rhs') ? Morphism.form (target_notation prmode [(lhs, mx)]))
   end;
 
 fun local_abbrev (x, rhs) =
