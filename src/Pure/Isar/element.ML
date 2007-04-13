@@ -309,8 +309,7 @@ val refine_witness =
         (PRECISE_CONJUNCTS ~1 (TRYALL (Tactic.rtac Drule.protectI))))))))));
 
 fun pretty_witness ctxt witn =
-  let val prt_term = Pretty.quote o ProofContext.pretty_term ctxt
-  in
+  let val prt_term = Pretty.quote o ProofContext.pretty_term ctxt in
     Pretty.block (prt_term (witness_prop witn) ::
       (if ! show_hyps then [Pretty.brk 2, Pretty.list "[" "]"
          (map prt_term (witness_hyps witn))] else []))
@@ -411,8 +410,14 @@ fun instT_thm thy env th =
     let val subst = instT_subst env th
     in if null subst then th else th |> hyps_rule (instantiate_tfrees thy subst) end;
 
-fun instT_morphism thy env = Morphism.morphism
-  {name = I, var = I, typ = instT_type env, term = instT_term env, fact = map (instT_thm thy env)};
+fun instT_morphism thy env =
+  let val thy_ref = Theory.self_ref thy in
+    Morphism.morphism
+     {name = I, var = I,
+      typ = instT_type env,
+      term = instT_term env,
+      fact = map (fn th => instT_thm (Theory.deref thy_ref) env th)}
+  end;
 
 
 (* instantiate types and terms *)
@@ -454,9 +459,14 @@ fun inst_thm thy (envT, env) th =
         Drule.fconv_rule (Thm.beta_conversion true))
     end;
 
-fun inst_morphism thy envs = Morphism.morphism
-  {name = I, var = I, typ = instT_type (#1 envs), term = inst_term envs,
-    fact = map (inst_thm thy envs)};
+fun inst_morphism thy envs =
+  let val thy_ref = Theory.self_ref thy in
+    Morphism.morphism
+     {name = I, var = I,
+      typ = instT_type (#1 envs),
+      term = inst_term envs,
+      fact = map (fn th => inst_thm (Theory.deref thy_ref) envs th)}
+  end;
 
 
 (* satisfy hypotheses *)
