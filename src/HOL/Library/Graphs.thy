@@ -82,6 +82,7 @@ instance graph :: (type, type) "{distrib_lattice, complete_lattice}"
   Inf_graph_def: "Inf == \<lambda>Gs. Graph (\<Inter>(dest_graph ` Gs))"
 proof
   fix x y z :: "('a,'b) graph"
+  fix A :: "('a, 'b) graph set"
 
   show "(x < y) = (x \<le> y \<and> x \<noteq> y)"
     unfolding graph_leq_def graph_less_def
@@ -89,29 +90,37 @@ proof
 
   show "x \<le> x" unfolding graph_leq_def ..
 
-  show "\<lbrakk>x \<le> y; y \<le> x\<rbrakk> \<Longrightarrow> x = y" unfolding graph_leq_def 
-    by (cases x, cases y) simp
+  { assume "x \<le> y" "y \<le> z" 
+    with order_trans show "x \<le> z"
+      unfolding graph_leq_def . }
+
+  { assume "x \<le> y" "y \<le> x" thus "x = y" 
+      unfolding graph_leq_def 
+      by (cases x, cases y) simp }
 
   show "inf x y \<le> x" "inf x y \<le> y"
-    "\<lbrakk>x \<le> y; x \<le> z\<rbrakk> \<Longrightarrow> x \<le> inf y z"
-    unfolding inf_graph_def graph_leq_def by auto
+    unfolding inf_graph_def graph_leq_def 
+    by auto    
+  
+  { assume "x \<le> y" "x \<le> z" thus "x \<le> inf y z"
+      unfolding inf_graph_def graph_leq_def 
+      by auto }
 
   show "x \<le> sup x y" "y \<le> sup x y"
-    "\<lbrakk>y \<le> x; z \<le> x\<rbrakk> \<Longrightarrow> sup y z \<le> x"
     unfolding sup_graph_def graph_leq_def graph_plus_def by auto
+
+  { assume "y \<le> x" "z \<le> x" thus "sup y z \<le> x"
+      unfolding sup_graph_def graph_leq_def graph_plus_def by auto }
   
   show "sup x (inf y z) = inf (sup x y) (sup x z)"
     unfolding inf_graph_def sup_graph_def graph_leq_def graph_plus_def by auto
 
-  fix A :: "('a, 'b) graph set"
-  show "x \<in> A \<Longrightarrow> Inf A \<le> x"
-    and "(\<And>x. x \<in> A \<Longrightarrow> z \<le> x) \<Longrightarrow> z \<le> Inf A"
-    unfolding Inf_graph_def graph_leq_def by auto
+  { assume "x \<in> A" thus "Inf A \<le> x" 
+      unfolding Inf_graph_def graph_leq_def by auto }
 
-  from order_trans
-  show "\<lbrakk>x \<le> y; y \<le> z\<rbrakk> \<Longrightarrow> x \<le> z" 
-    unfolding graph_leq_def .
-qed auto
+  { assume "\<And>x. x \<in> A \<Longrightarrow> z \<le> x" thus "z \<le> Inf A"
+    unfolding Inf_graph_def graph_leq_def by auto }
+qed
 
 lemma in_grplus:
   "has_edge (G + H) p b q = (has_edge G p b q \<or> has_edge H p b q)"
