@@ -21,7 +21,8 @@
 \newpage
 
 \renewcommand{\isamarkupheader}[1]%
-{\section{\isabellecontext: #1}\markright{THEORY~``\isabellecontext''}}
+{\ifthenelse{\equal{#1}{}}{\section{\isabellecontext}}{\section{\isabellecontext: #1}}%
+\markright{THEORY~``\isabellecontext''}}
 \renewcommand{\isasymguillemotright}{$\gg$}
 
 \parindent 0pt \parskip 0.5ex

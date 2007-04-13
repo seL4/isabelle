@@ -3,14 +3,16 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
+header ""
+
 theory SCT_Definition
 imports Graphs Infinite_Set
 begin
 
-section {* Size-Change Graphs *}
+subsection {* Size-Change Graphs *}
 
 datatype sedge =
-  LESS ("\<down>")
+    LESS ("\<down>")
   | LEQ ("\<Down>")
 
 instance sedge :: times ..
@@ -42,7 +44,7 @@ types scg = "(nat, sedge) graph"
 types acg = "(nat, scg) graph"
 
 
-section {* Size-Change Termination *}
+subsection {* Size-Change Termination *}
 
 abbreviation (input)
   "desc P Q == ((\<exists>n.\<forall>i\<ge>n. P i) \<and> (\<exists>\<^sub>\<infinity>i. Q i))"
@@ -96,6 +98,5 @@ where
 definition SCT' :: "acg \<Rightarrow> bool"
 where
   "SCT' A = no_bad_graphs (tcl A)"
-
 
 end

@@ -7,10 +7,9 @@ header "Ramsey's Theorem"
 
 theory Ramsey imports Main Infinite_Set begin
 
+subsection {* Preliminaries *}
 
-subsection{*Preliminaries*}
-
-subsubsection{*``Axiom'' of Dependent Choice*}
+subsubsection {* ``Axiom'' of Dependent Choice *}
 
 consts choice :: "('a => bool) => ('a * 'a) set => nat => 'a"
   --{*An integer-indexed chain of choices*}
@@ -50,7 +49,7 @@ next
 qed
 
 
-subsubsection {*Partitions of a Set*}
+subsubsection {* Partitions of a Set *}
 
 definition
   part :: "nat => nat => 'a set => ('a set => nat) => bool"
@@ -72,7 +71,7 @@ lemma part_subset: "part r s YY f ==> Y \<subseteq> YY ==> part r s Y f"
   unfolding part_def by blast
   
 
-subsection {*Ramsey's Theorem: Infinitary Version*}
+subsection {* Ramsey's Theorem: Infinitary Version *}
 
 lemma Ramsey_induction: 
   fixes s and r::nat
@@ -231,9 +230,7 @@ proof -
 qed
 
 
-
-
-subsection {*Disjunctive Well-Foundedness*}
+subsection {* Disjunctive Well-Foundedness *}
 
 text {*
   An application of Ramsey's theorem to program termination. See
@@ -335,6 +332,5 @@ proof (simp only: wf_iff_no_infinite_down_chain, rule notI)
   hence "~ wf(T k)" by (force simp add: wf_iff_no_infinite_down_chain) 
   thus False using wfT less by blast
 qed
-
 
 end

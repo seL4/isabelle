@@ -3,6 +3,8 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
+header ""
+
 theory SCT_Implementation
 imports ExecutableSet SCT_Definition
 begin
@@ -119,13 +121,4 @@ code_modulename SML
 
 code_gen test_SCT (SML -)
 
-
 end
-
-
-
-
-
-
-
-

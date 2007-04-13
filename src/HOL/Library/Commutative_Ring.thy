@@ -325,6 +325,4 @@ qed
 use "comm_ring.ML"
 setup CommRing.setup
 
-thm mkPX_def mkPinj_def sub_def power_add even_def pow_if power_add [symmetric]
-
 end

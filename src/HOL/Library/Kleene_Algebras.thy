@@ -3,6 +3,8 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
+header ""
+
 theory Kleene_Algebras
 imports Main 
 begin

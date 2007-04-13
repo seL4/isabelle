@@ -2,7 +2,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Monolithic strings for ML  *}
+header {* Monolithic strings for ML *}
 
 theory MLString
 imports List

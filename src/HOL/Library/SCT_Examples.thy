@@ -3,6 +3,8 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
+header ""
+
 theory SCT_Examples
 imports Size_Change_Termination
 begin

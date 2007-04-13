@@ -9,7 +9,7 @@ theory ExecutableSet
 imports Main
 begin
 
-section {* Definitional rewrites *}
+subsection {* Definitional rewrites *}
 
 instance set :: (eq) eq ..
 
@@ -40,9 +40,9 @@ definition
 lemmas [symmetric, code inline] = filter_set_def
 
 
-section {* Operations on lists *}
+subsection {* Operations on lists *}
 
-subsection {* Basic definitions *}
+subsubsection {* Basic definitions *}
 
 definition
   flip :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c" where
@@ -107,7 +107,7 @@ lemma foldr_remove1_empty [simp]:
   by (induct xs) simp_all
 
 
-subsection {* Derived definitions *}
+subsubsection {* Derived definitions *}
 
 function unionl :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
@@ -169,7 +169,7 @@ definition
   "map_inter xs f = intersects (map f xs)"
 
 
-section {* Isomorphism proofs *}
+subsection {* Isomorphism proofs *}
 
 lemma iso_member:
   "member xs x \<longleftrightarrow> x \<in> set xs"
@@ -248,7 +248,7 @@ lemma iso_filter:
   "set (filter P xs) = filter_set P (set xs)"
   unfolding filter_set_def by (induct xs) auto
 
-section {* code generator setup *}
+subsection {* code generator setup *}
 
 ML {*
 nonfix inter;
@@ -317,7 +317,7 @@ code_abstype "'a set" "'a list" where
   filter_set \<equiv> filter
 
 
-subsection {* type serializations *}
+subsubsection {* type serializations *}
 
 types_code
   set ("_ list")
@@ -333,7 +333,7 @@ and gen_set aG i = gen_set' aG i i;
 *}
 
 
-subsection {* const serializations *}
+subsubsection {* const serializations *}
 
 consts_code
   "{}"      ("[]")

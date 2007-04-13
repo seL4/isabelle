@@ -3,6 +3,8 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
+header ""
+
 theory SCT_Misc
 imports Main
 begin
@@ -21,6 +23,7 @@ lemma index_of_member:
 lemma index_of_length:
   "(x \<in> set l) = (index_of l x < length l)"
   by (induct l) auto
+
 
 subsection {* Some reasoning tools *}
 
@@ -67,12 +70,14 @@ lemma three_cases:
   using prems
   by auto
 
-section {* Sequences *}
+
+subsection {* Sequences *}
 
 types
   'a sequence = "nat \<Rightarrow> 'a"
 
-subsection {* Increasing sequences *}
+
+subsubsection {* Increasing sequences *}
 
 definition increasing :: "(nat \<Rightarrow> nat) \<Rightarrow> bool"
 where
@@ -115,7 +120,8 @@ proof
   qed
 qed (simp add:increasing_strict)
 
-subsection {* Sections induced by an increasing sequence *}
+
+subsubsection {* Sections induced by an increasing sequence *}
 
 abbreviation
   "section s i == {s i ..< s (Suc i)}"

@@ -3,11 +3,13 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
+header ""
+
 theory SCT_Theorem
 imports Main Ramsey SCT_Misc SCT_Definition
 begin
 
-section {* The size change criterion SCT *}
+subsection {* The size change criterion SCT *}
 
 definition is_thread :: "nat \<Rightarrow> nat sequence \<Rightarrow> (nat, scg) ipath \<Rightarrow> bool"
 where
@@ -33,7 +35,8 @@ definition
   "has_desc_fth p i j n m = 
   (\<exists>\<theta>. is_desc_fthread \<theta> p i j \<and> \<theta> i = n \<and> \<theta> j = m)"
 
-section {* Bounded graphs and threads *}
+
+subsection {* Bounded graphs and threads *}
 
 definition 
   "bounded_scg (P::nat) (G::scg) = 
@@ -325,9 +328,7 @@ proof (rule finite_subset)
 qed
 
 
-
-section {* Contraction and more *}
-
+subsection {* Contraction and more *}
 
 abbreviation 
   "pdesc P == (fst P, prod P, end_node P)"
@@ -340,8 +341,6 @@ lemma pdesc_acgplus:
   apply (rule exI)
   apply (insert prems)  
   by (auto intro:sub_path_is_path[of "\<A>" p i j] simp:sub_path_def)
-
-
 
 
 lemma combine_fthreads: 
@@ -657,7 +656,7 @@ lemma eqlat_contract:
   by (auto simp:Lemma7a increasing_weak contract_def)
 
 
-subsection {* Connecting threads *}
+subsubsection {* Connecting threads *}
 
 definition
   "connect s \<theta>s = (\<lambda>k. \<theta>s (section_of s k) k)"
@@ -683,7 +682,6 @@ proof -
     thus ?thesis ..
   qed
 qed
-
 
 
 lemma connect_threads:
@@ -889,7 +887,7 @@ proof
   assume "?A"
   then obtain \<theta> n 
     where fr: "\<forall>i\<ge>n. eqlat p \<theta> i" 
-    and ds: "\<exists>\<^sub>\<infinity>i. descat p \<theta> i"
+      and ds: "\<exists>\<^sub>\<infinity>i. descat p \<theta> i"
     unfolding is_desc_thread_def 
     by auto
 
@@ -903,18 +901,18 @@ proof
     proof (intro allI impI)
       fix i assume "n \<le> i"
       also have "i \<le> s i" 
-	    using increasing_inc by auto
+	using increasing_inc by auto
       finally have "n \<le> s i" .
 
       with fr have "is_fthread \<theta> p (s i) (s (Suc i))"
-	    unfolding is_fthread_def by auto
+	unfolding is_fthread_def by auto
       hence "has_fth p (s i) (s (Suc i)) (\<theta> (s i)) (\<theta> (s (Suc i)))"
-	    unfolding has_fth_def by auto
+	unfolding has_fth_def by auto
       with less_imp_le[OF increasing_strict]
       have "eql (prod (p\<langle>s i,s (Suc i)\<rangle>)) (\<theta> (s i)) (\<theta> (s (Suc i)))"
-	    by (simp add:Lemma7a)
+	by (simp add:Lemma7a)
       thus "eqlat (contract s p) ?c\<theta> i" unfolding contract_def
-	    by auto
+	by auto
     qed
 
     show "\<exists>\<^sub>\<infinity>i. descat (contract s p) ?c\<theta> i"
@@ -924,57 +922,56 @@ proof
 
       let ?K = "section_of s (max (s (Suc i)) n)"
       from `\<exists>\<^sub>\<infinity>i. descat p \<theta> i` obtain j
-	    where "s (Suc ?K) < j" "descat p \<theta> j"
-	    unfolding INF_nat by blast
+	  where "s (Suc ?K) < j" "descat p \<theta> j"
+	unfolding INF_nat by blast
       
       let ?L = "section_of s j"
       {
-	    fix x assume r: "x \<in> section s ?L"
-
-	    have e1: "max (s (Suc i)) n < s (Suc ?K)" by (rule section_of2)
+	fix x assume r: "x \<in> section s ?L"
+	
+	have e1: "max (s (Suc i)) n < s (Suc ?K)" by (rule section_of2)
         note `s (Suc ?K) < j`
         also have "j < s (Suc ?L)"
           by (rule section_of2)
         finally have "Suc ?K \<le> ?L"
           by (simp add:increasing_bij)          
-	    with increasing_weak have "s (Suc ?K) \<le> s ?L" by simp
-	    with e1 r have "max (s (Suc i)) n < x" by simp
+	with increasing_weak have "s (Suc ?K) \<le> s ?L" by simp
+	with e1 r have "max (s (Suc i)) n < x" by simp
         
-	    hence "(s (Suc i)) < x" "n < x" by auto
+	hence "(s (Suc i)) < x" "n < x" by auto
       }
       note range_est = this
       
       have "is_desc_fthread \<theta> p (s ?L) (s (Suc ?L))"
-	    unfolding is_desc_fthread_def is_fthread_def
+	unfolding is_desc_fthread_def is_fthread_def
       proof
-	    show "\<forall>m\<in>section s ?L. eqlat p \<theta> m"
+	show "\<forall>m\<in>section s ?L. eqlat p \<theta> m"
         proof 
           fix m assume "m\<in>section s ?L"
           with range_est(2) have "n < m" . 
           with fr show "eqlat p \<theta> m" by simp
         qed
-        
 
         from in_section_of inc less_imp_le[OF `s (Suc ?K) < j`]
-	    have "j \<in> section s ?L" .
+	have "j \<in> section s ?L" .
 
-	    with `descat p \<theta> j`
-	    show "\<exists>m\<in>section s ?L. descat p \<theta> m" ..
+	with `descat p \<theta> j`
+	show "\<exists>m\<in>section s ?L. descat p \<theta> m" ..
       qed
       
       with less_imp_le[OF increasing_strict]
       have a: "descat (contract s p) ?c\<theta> ?L"
-	    unfolding contract_def Lemma7b[symmetric]
-	    by (auto simp:Lemma7b[symmetric] has_desc_fth_def)
+	unfolding contract_def Lemma7b[symmetric]
+	by (auto simp:Lemma7b[symmetric] has_desc_fth_def)
       
       have "i < ?L"
       proof (rule classical)
-	    assume "\<not> i < ?L" 
-	    hence "s ?L < s (Suc i)" 
+	assume "\<not> i < ?L" 
+	hence "s ?L < s (Suc i)" 
           by (simp add:increasing_bij)
-	    also have "\<dots> < s ?L"
-	      by (rule range_est(1)) (simp add:increasing_strict)
-	    finally show ?thesis .
+	also have "\<dots> < s ?L"
+	  by (rule range_est(1)) (simp add:increasing_strict)
+	finally show ?thesis .
       qed
       with a show "\<exists>l. i < l \<and> descat (contract s p) ?c\<theta> l"
         by blast
@@ -994,7 +991,7 @@ next
           (\<lambda>i. is_desc_fthread (\<theta>s i) p (s i) (s (Suc i))
                   \<and> \<theta>s i (s i) = \<theta> i 
                   \<and> \<theta>s i (s (Suc i)) = \<theta> (Suc i))" 
-    (is "desc ?alw ?inf") 
+      (is "desc ?alw ?inf") 
     by blast
 
   then obtain n where fr: "\<forall>i\<ge>n. ?alw i" by blast
@@ -1004,8 +1001,8 @@ next
   let ?j\<theta> = "connect s \<theta>s"
   
   from fr ths_spec have ths_spec2:
-    "\<And>i. i > n \<Longrightarrow> is_fthread (\<theta>s i) p (s i) (s (Suc i))"
-    "\<exists>\<^sub>\<infinity>i. is_desc_fthread (\<theta>s i) p (s i) (s (Suc i))"
+      "\<And>i. i > n \<Longrightarrow> is_fthread (\<theta>s i) p (s i) (s (Suc i))"
+      "\<exists>\<^sub>\<infinity>i. is_desc_fthread (\<theta>s i) p (s i) (s (Suc i))"
     by (auto intro:INF_mono)
   
   have p1: "\<And>i. i > n \<Longrightarrow> is_fthread ?j\<theta> p (s i) (s (Suc i))"
@@ -1025,7 +1022,6 @@ next
     by (rule mk_inf_desc_thread)
   with exI show "?A" .
 qed
-
 
 
 lemma repeated_edge:
@@ -1050,9 +1046,7 @@ lemma fin_from_inf:
   by auto
 
 
-
-section {* Ramsey's Theorem *}
-
+subsection {* Ramsey's Theorem *}
 
 definition 
   "set2pair S = (THE (x,y). x < y \<and> S = {x,y})"
@@ -1176,8 +1170,7 @@ proof -
 qed
 
 
-section {* Main Result *}
-
+subsection {* Main Result *}
 
 theorem LJA_Theorem4: 
   assumes "bounded_acg P \<A>"
@@ -1381,7 +1374,6 @@ next
     thus ?thesis ..
   qed
 qed
-
 
 
 lemma LJA_apply:

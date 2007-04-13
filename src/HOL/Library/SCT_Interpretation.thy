@@ -3,6 +3,8 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
+header ""
+
 theory SCT_Interpretation
 imports Main SCT_Misc SCT_Definition
 begin

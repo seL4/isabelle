@@ -3,12 +3,13 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
+header ""
+
 theory Graphs
 imports Main SCT_Misc Kleene_Algebras ExecutableSet
 begin
 
-
-section {* Basic types, Size Change Graphs *}
+subsection {* Basic types, Size Change Graphs *}
 
 datatype ('a, 'b) graph = 
   Graph "('a \<times> 'b \<times> 'a) set"
@@ -40,8 +41,7 @@ where
   "has_edge G n e n' = ((n, e, n') \<in> dest_graph G)"
 
 
-
-section {* Graph composition *}
+subsection {* Graph composition *}
 
 fun grcomp :: "('n, 'e::times) graph \<Rightarrow> ('n, 'e) graph  \<Rightarrow> ('n, 'e) graph"
 where
@@ -131,8 +131,7 @@ lemma in_grzero:
   by (simp add:graph_zero_def has_edge_def)
 
 
-
-subsection {* Multiplicative Structure *}
+subsubsection {* Multiplicative Structure *}
 
 instance graph :: (type, times) mult_zero
   graph_mult_def: "G * H == grcomp G H" 
@@ -297,8 +296,7 @@ lemma in_tcl:
   done
 
 
-
-section {* Infinite Paths *}
+subsection {* Infinite Paths *}
 
 types ('n, 'e) ipath = "('n \<times> 'e) sequence"
 
@@ -308,8 +306,7 @@ where
   (\<forall>i. has_edge G (fst (p i)) (snd (p i)) (fst (p (Suc i))))"
 
 
-
-section {* Finite Paths *}
+subsection {* Finite Paths *}
 
 types ('n, 'e) fpath = "('n \<times> ('e \<times> 'n) list)"
 
@@ -470,11 +467,7 @@ next
 qed
 
 
-
-
-
-section {* Sub-Paths *}
-
+subsection {* Sub-Paths *}
 
 definition sub_path :: "('n, 'e) ipath \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> ('n, 'e) fpath"
 ("(_\<langle>_,_\<rangle>)")

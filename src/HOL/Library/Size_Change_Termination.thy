@@ -3,12 +3,14 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
+header ""
+
 theory Size_Change_Termination
 imports SCT_Theorem SCT_Interpretation SCT_Implementation 
 uses "sct.ML"
 begin
 
-section {* Simplifier setup *}
+subsection {* Simplifier setup *}
 
 text {* This is needed to run the SCT algorithm in the simplifier: *}
 

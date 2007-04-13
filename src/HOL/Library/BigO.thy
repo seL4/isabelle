@@ -59,11 +59,11 @@ lemma bigo_pos_const: "(EX (c::'a::ordered_idom).
   apply (rule mult_right_mono)
   apply (rule abs_ge_self)
   apply (rule abs_ge_zero)
-done
+  done
 
 lemma bigo_alt_def: "O(f) = 
     {h. EX c. (0 < c & (ALL x. abs (h x) <= c * abs (f x)))}"
-by (auto simp add: bigo_def bigo_pos_const)
+  by (auto simp add: bigo_def bigo_pos_const)
 
 lemma bigo_elt_subset [intro]: "f : O(g) ==> O(f) <= O(g)"
   apply (auto simp add: bigo_alt_def)
@@ -78,25 +78,25 @@ lemma bigo_elt_subset [intro]: "f : O(g) ==> O(f) <= O(g)"
   apply (simp add: mult_ac)
   apply (rule mult_left_mono, assumption)
   apply (rule order_less_imp_le, assumption)
-done
+  done
 
 lemma bigo_refl [intro]: "f : O(f)"
   apply(auto simp add: bigo_def)
   apply(rule_tac x = 1 in exI)
   apply simp
-done
+  done
 
 lemma bigo_zero: "0 : O(g)"
   apply (auto simp add: bigo_def func_zero)
   apply (rule_tac x = 0 in exI)
   apply auto
-done
+  done
 
 lemma bigo_zero2: "O(%x.0) = {%x.0}"
   apply (auto simp add: bigo_def) 
   apply (rule ext)
   apply auto
-done
+  done
 
 lemma bigo_plus_self_subset [intro]: 
   "O(f) + O(f) <= O(f)"
@@ -116,7 +116,7 @@ lemma bigo_plus_idemp [simp]: "O(f) + O(f) = O(f)"
   apply (rule bigo_plus_self_subset)
   apply (rule set_zero_plus2) 
   apply (rule bigo_zero)
-done
+  done
 
 lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) + O(g)"
   apply (rule subsetI)
@@ -168,17 +168,17 @@ lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) + O(g)"
   apply simp
   apply (rule ext)
   apply (auto simp add: if_splits linorder_not_le)
-done
+  done
 
 lemma bigo_plus_subset2 [intro]: "A <= O(f) ==> B <= O(f) ==> A + B <= O(f)"
   apply (subgoal_tac "A + B <= O(f) + O(f)")
   apply (erule order_trans)
   apply simp
   apply (auto del: subsetI simp del: bigo_plus_idemp)
-done
+  done
 
 lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==> 
-  O(f + g) = O(f) + O(g)"
+    O(f + g) = O(f) + O(g)"
   apply (rule equalityI)
   apply (rule bigo_plus_subset)
   apply (simp add: bigo_alt_def set_plus func_plus)
@@ -211,7 +211,7 @@ lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==>
   apply (rule abs_triangle_ineq)
   apply (rule add_nonneg_nonneg)
   apply assumption+
-done
+  done
 
 lemma bigo_bounded_alt: "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==> 
     f : O(g)" 
@@ -220,13 +220,13 @@ lemma bigo_bounded_alt: "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==>
   apply auto
   apply (drule_tac x = x in spec)+
   apply (simp add: abs_mult [symmetric])
-done
+  done
 
 lemma bigo_bounded: "ALL x. 0 <= f x ==> ALL x. f x <= g x ==> 
     f : O(g)" 
   apply (erule bigo_bounded_alt [of f 1 g])
   apply simp
-done
+  done
 
 lemma bigo_bounded2: "ALL x. lb x <= f x ==> ALL x. f x <= lb x + g x ==>
     f : lb +o O(g)"
@@ -237,21 +237,21 @@ lemma bigo_bounded2: "ALL x. lb x <= f x ==> ALL x. f x <= lb x + g x ==>
   apply force
   apply (drule_tac x = x in spec)+
   apply force
-done
+  done
 
 lemma bigo_abs: "(%x. abs(f x)) =o O(f)" 
   apply (unfold bigo_def)
   apply auto
   apply (rule_tac x = 1 in exI)
   apply auto
-done
+  done
 
 lemma bigo_abs2: "f =o O(%x. abs(f x))"
   apply (unfold bigo_def)
   apply auto
   apply (rule_tac x = 1 in exI)
   apply auto
-done
+  done
 
 lemma bigo_abs3: "O(f) = O(%x. abs(f x))"
   apply (rule equalityI)
@@ -259,7 +259,7 @@ lemma bigo_abs3: "O(f) = O(%x. abs(f x))"
   apply (rule bigo_abs2)
   apply (rule bigo_elt_subset)
   apply (rule bigo_abs)
-done
+  done
 
 lemma bigo_abs4: "f =o g +o O(h) ==> 
     (%x. abs (f x)) =o (%x. abs (g x)) +o O(h)"
@@ -288,7 +288,7 @@ proof -
 qed
 
 lemma bigo_abs5: "f =o O(g) ==> (%x. abs(f x)) =o O(g)" 
-by (unfold bigo_def, auto)
+  by (unfold bigo_def, auto)
 
 lemma bigo_elt_subset2 [intro]: "f : g +o O(h) ==> O(f) <= O(g) + O(h)"
 proof -
@@ -326,7 +326,7 @@ lemma bigo_mult [intro]: "O(f)*O(g) <= O(f * g)"
   apply (rule mult_nonneg_nonneg)
   apply auto
   apply (simp add: mult_ac abs_mult)
-done
+  done
 
 lemma bigo_mult2 [intro]: "f *o O(g) <= O(f * g)"
   apply (auto simp add: bigo_def elt_set_times_def func_times abs_mult)
@@ -337,20 +337,20 @@ lemma bigo_mult2 [intro]: "f *o O(g) <= O(f * g)"
   apply (force simp add: mult_ac)
   apply (rule mult_left_mono, assumption)
   apply (rule abs_ge_zero)
-done
+  done
 
 lemma bigo_mult3: "f : O(h) ==> g : O(j) ==> f * g : O(h * j)"
   apply (rule subsetD)
   apply (rule bigo_mult)
   apply (erule set_times_intro, assumption)
-done
+  done
 
 lemma bigo_mult4 [intro]:"f : k +o O(h) ==> g * f : (g * k) +o O(g * h)"
   apply (drule set_plus_imp_minus)
   apply (rule set_minus_imp_plus)
   apply (drule bigo_mult3 [where g = g and j = g])
   apply (auto simp add: ring_eq_simps mult_ac)
-done
+  done
 
 lemma bigo_mult5: "ALL x. f x ~= 0 ==>
     O(f * g) <= (f::'a => ('b::ordered_field)) *o O(g)"
@@ -386,7 +386,7 @@ lemma bigo_mult6: "ALL x. f x ~= 0 ==>
   apply (rule equalityI)
   apply (erule bigo_mult5)
   apply (rule bigo_mult2)
-done
+  done
 
 lemma bigo_mult7: "ALL x. f x ~= 0 ==>
     O(f * g) <= O(f::'a => ('b::ordered_field)) * O(g)"
@@ -394,14 +394,14 @@ lemma bigo_mult7: "ALL x. f x ~= 0 ==>
   apply assumption
   apply (rule set_times_mono3)
   apply (rule bigo_refl)
-done
+  done
 
 lemma bigo_mult8: "ALL x. f x ~= 0 ==>
     O(f * g) = O(f::'a => ('b::ordered_field)) * O(g)"
   apply (rule equalityI)
   apply (erule bigo_mult7)
   apply (rule bigo_mult)
-done
+  done
 
 lemma bigo_minus [intro]: "f : O(g) ==> - f : O(g)"
   by (auto simp add: bigo_def func_minus)
@@ -411,7 +411,7 @@ lemma bigo_minus2: "f : g +o O(h) ==> -f : -g +o O(h)"
   apply (drule set_plus_imp_minus)
   apply (drule bigo_minus)
   apply (simp add: diff_minus)
-done
+  done
 
 lemma bigo_minus3: "O(-f) = O(f)"
   by (auto simp add: bigo_def func_minus abs_minus_cancel)
@@ -452,12 +452,12 @@ lemma bigo_plus_absorb [simp]: "f : O(g) ==> f +o O(g) = O(g)"
   apply (rule equalityI)
   apply (erule bigo_plus_absorb_lemma1)
   apply (erule bigo_plus_absorb_lemma2)
-done
+  done
 
 lemma bigo_plus_absorb2 [intro]: "f : O(g) ==> A <= O(g) ==> f +o A <= O(g)"
   apply (subgoal_tac "f +o A <= f +o O(g)")
   apply force+
-done
+  done
 
 lemma bigo_add_commute_imp: "f : g +o O(h) ==> g : f +o O(h)"
   apply (subst set_minus_plus [symmetric])
@@ -467,56 +467,56 @@ lemma bigo_add_commute_imp: "f : g +o O(h) ==> g : f +o O(h)"
   apply (subst set_minus_plus)
   apply assumption
   apply  (simp add: diff_minus add_ac)
-done
+  done
 
 lemma bigo_add_commute: "(f : g +o O(h)) = (g : f +o O(h))"
   apply (rule iffI)
   apply (erule bigo_add_commute_imp)+
-done
+  done
 
 lemma bigo_const1: "(%x. c) : O(%x. 1)"
-by (auto simp add: bigo_def mult_ac)
+  by (auto simp add: bigo_def mult_ac)
 
 lemma bigo_const2 [intro]: "O(%x. c) <= O(%x. 1)"
   apply (rule bigo_elt_subset)
   apply (rule bigo_const1)
-done
+  done
 
 lemma bigo_const3: "(c::'a::ordered_field) ~= 0 ==> (%x. 1) : O(%x. c)"
   apply (simp add: bigo_def)
   apply (rule_tac x = "abs(inverse c)" in exI)
   apply (simp add: abs_mult [symmetric])
-done
+  done
 
 lemma bigo_const4: "(c::'a::ordered_field) ~= 0 ==> O(%x. 1) <= O(%x. c)"
-by (rule bigo_elt_subset, rule bigo_const3, assumption)
+  by (rule bigo_elt_subset, rule bigo_const3, assumption)
 
 lemma bigo_const [simp]: "(c::'a::ordered_field) ~= 0 ==> 
     O(%x. c) = O(%x. 1)"
-by (rule equalityI, rule bigo_const2, rule bigo_const4, assumption)
+  by (rule equalityI, rule bigo_const2, rule bigo_const4, assumption)
 
 lemma bigo_const_mult1: "(%x. c * f x) : O(f)"
   apply (simp add: bigo_def)
   apply (rule_tac x = "abs(c)" in exI)
   apply (auto simp add: abs_mult [symmetric])
-done
+  done
 
 lemma bigo_const_mult2: "O(%x. c * f x) <= O(f)"
-by (rule bigo_elt_subset, rule bigo_const_mult1)
+  by (rule bigo_elt_subset, rule bigo_const_mult1)
 
 lemma bigo_const_mult3: "(c::'a::ordered_field) ~= 0 ==> f : O(%x. c * f x)"
   apply (simp add: bigo_def)
   apply (rule_tac x = "abs(inverse c)" in exI)
   apply (simp add: abs_mult [symmetric] mult_assoc [symmetric])
-done
+  done
 
 lemma bigo_const_mult4: "(c::'a::ordered_field) ~= 0 ==> 
     O(f) <= O(%x. c * f x)"
-by (rule bigo_elt_subset, rule bigo_const_mult3, assumption)
+  by (rule bigo_elt_subset, rule bigo_const_mult3, assumption)
 
 lemma bigo_const_mult [simp]: "(c::'a::ordered_field) ~= 0 ==> 
     O(%x. c * f x) = O(f)"
-by (rule equalityI, rule bigo_const_mult2, erule bigo_const_mult4)
+  by (rule equalityI, rule bigo_const_mult2, erule bigo_const_mult4)
 
 lemma bigo_const_mult5 [simp]: "(c::'a::ordered_field) ~= 0 ==> 
     (%x. c) *o O(f) = O(f)"
@@ -533,7 +533,7 @@ lemma bigo_const_mult5 [simp]: "(c::'a::ordered_field) ~= 0 ==>
   apply (rule mult_left_mono)
   apply (erule spec)
   apply force
-done
+  done
 
 lemma bigo_const_mult6 [intro]: "(%x. c) *o O(f) <= O(f)"
   apply (auto intro!: subsetI
@@ -547,7 +547,7 @@ lemma bigo_const_mult6 [intro]: "(%x. c) *o O(f) <= O(f)"
   apply (erule spec)
   apply simp
   apply(simp add: mult_ac)
-done
+  done
 
 lemma bigo_const_mult7 [intro]: "f =o O(g) ==> (%x. c * f x) =o O(g)"
 proof -
@@ -570,6 +570,7 @@ lemma bigo_compose2: "f =o g +o O(h) ==> (%x. f(k x)) =o (%x. g(k x)) +o
       func_plus)
   apply (erule bigo_compose1)
 done
+
 
 subsection {* Setsum *}
 
@@ -595,7 +596,7 @@ lemma bigo_setsum_main: "ALL x. ALL y : A x. 0 <= h x y ==>
   apply (rule mult_right_mono) 
   apply (rule abs_ge_self)
   apply force
-done
+  done
 
 lemma bigo_setsum1: "ALL x y. 0 <= h x y ==> 
     EX c. ALL x y. abs(f x y) <= c * (h x y) ==>
@@ -605,12 +606,12 @@ lemma bigo_setsum1: "ALL x y. 0 <= h x y ==>
   apply clarsimp
   apply (rule_tac x = c in exI)
   apply force
-done
+  done
 
 lemma bigo_setsum2: "ALL y. 0 <= h y ==> 
     EX c. ALL y. abs(f y) <= c * (h y) ==>
       (%x. SUM y : A x. f y) =o O(%x. SUM y : A x. h y)"
-by (rule bigo_setsum1, auto)  
+  by (rule bigo_setsum1, auto)  
 
 lemma bigo_setsum3: "f =o O(h) ==>
     (%x. SUM y : A x. (l x y) * f(k x y)) =o
@@ -627,7 +628,7 @@ lemma bigo_setsum3: "f =o O(h) ==>
   apply (rule mult_left_mono)
   apply (erule spec)
   apply (rule abs_ge_zero)
-done
+  done
 
 lemma bigo_setsum4: "f =o g +o O(h) ==>
     (%x. SUM y : A x. l x y * f(k x y)) =o
@@ -640,7 +641,7 @@ lemma bigo_setsum4: "f =o g +o O(h) ==>
   apply (rule bigo_setsum3)
   apply (subst func_diff [symmetric])
   apply (erule set_plus_imp_minus)
-done
+  done
 
 lemma bigo_setsum5: "f =o O(h) ==> ALL x y. 0 <= l x y ==> 
     ALL x. 0 <= h x ==>
@@ -655,7 +656,7 @@ lemma bigo_setsum5: "f =o O(h) ==> ALL x y. 0 <= l x y ==>
   apply (subst abs_of_nonneg)
   apply (rule mult_nonneg_nonneg)
   apply auto
-done
+  done
 
 lemma bigo_setsum6: "f =o g +o O(h) ==> ALL x y. 0 <= l x y ==>
     ALL x. 0 <= h x ==>
@@ -670,7 +671,8 @@ lemma bigo_setsum6: "f =o g +o O(h) ==> ALL x y. 0 <= l x y ==>
   apply (subst func_diff [symmetric])
   apply (drule set_plus_imp_minus)
   apply auto
-done
+  done
+
 
 subsection {* Misc useful stuff *}
 
@@ -679,13 +681,13 @@ lemma bigo_useful_intro: "A <= O(f) ==> B <= O(f) ==>
   apply (subst bigo_plus_idemp [symmetric])
   apply (rule set_plus_mono2)
   apply assumption+
-done
+  done
 
 lemma bigo_useful_add: "f =o O(h) ==> g =o O(h) ==> f + g =o O(h)"
   apply (subst bigo_plus_idemp [symmetric])
   apply (rule set_plus_intro)
   apply assumption+
-done
+  done
   
 lemma bigo_useful_const_mult: "(c::'a::ordered_field) ~= 0 ==> 
     (%x. c) * f =o O(h) ==> f =o O(h)"
@@ -701,7 +703,7 @@ lemma bigo_useful_const_mult: "(c::'a::ordered_field) ~= 0 ==>
   apply (subst times_divide_eq_left [symmetric])
   apply (subst divide_self)
   apply (assumption, simp)
-done
+  done
 
 lemma bigo_fix: "(%x. f ((x::nat) + 1)) =o O(%x. h(x + 1)) ==> f 0 = 0 ==>
     f =o O(h)"
@@ -718,7 +720,7 @@ lemma bigo_fix: "(%x. f ((x::nat) + 1)) =o O(%x. h(x + 1)) ==> f 0 = 0 ==>
   apply (erule ssubst) back
   apply (erule spec)
   apply simp
-done
+  done
 
 lemma bigo_fix2: 
     "(%x. f ((x::nat) + 1)) =o (%x. g(x + 1)) +o O(%x. h(x + 1)) ==> 
@@ -730,7 +732,8 @@ lemma bigo_fix2:
   apply (rule set_plus_imp_minus)
   apply simp
   apply (simp add: func_diff)
-done
+  done
+
 
 subsection {* Less than or equal to *}
 
@@ -747,7 +750,7 @@ lemma bigo_lesseq1: "f =o O(h) ==> ALL x. abs (g x) <= abs (f x) ==>
   apply (rule allI)
   apply (rule order_trans)
   apply (erule spec)+
-done
+  done
 
 lemma bigo_lesseq2: "f =o O(h) ==> ALL x. abs (g x) <= f x ==>
       g =o O(h)"
@@ -757,15 +760,15 @@ lemma bigo_lesseq2: "f =o O(h) ==> ALL x. abs (g x) <= f x ==>
   apply (rule order_trans)
   apply assumption
   apply (rule abs_ge_self)
-done
+  done
 
 lemma bigo_lesseq3: "f =o O(h) ==> ALL x. 0 <= g x ==> ALL x. g x <= f x ==>
-      g =o O(h)"
+    g =o O(h)"
   apply (erule bigo_lesseq2)
   apply (rule allI)
   apply (subst abs_of_nonneg)
   apply (erule spec)+
-done
+  done
 
 lemma bigo_lesseq4: "f =o O(h) ==>
     ALL x. 0 <= g x ==> ALL x. g x <= abs (f x) ==>
@@ -774,7 +777,7 @@ lemma bigo_lesseq4: "f =o O(h) ==>
   apply (rule allI)
   apply (subst abs_of_nonneg)
   apply (erule spec)+
-done
+  done
 
 lemma bigo_lesso1: "ALL x. f x <= g x ==> f <o g =o O(h)"
   apply (unfold lesso_def)
@@ -784,7 +787,7 @@ lemma bigo_lesso1: "ALL x. f x <= g x ==> f <o g =o O(h)"
   apply (unfold func_zero)
   apply (rule ext)
   apply (simp split: split_max)
-done
+  done
 
 lemma bigo_lesso2: "f =o g +o O(h) ==>
     ALL x. 0 <= k x ==> ALL x. k x <= f x ==>
@@ -808,7 +811,7 @@ lemma bigo_lesso2: "f =o g +o O(h) ==>
   prefer 2
   apply (rule abs_ge_zero)
   apply (simp add: compare_rls)
-done
+  done
 
 lemma bigo_lesso3: "f =o g +o O(h) ==>
     ALL x. 0 <= k x ==> ALL x. g x <= k x ==>
@@ -833,7 +836,7 @@ lemma bigo_lesso3: "f =o g +o O(h) ==>
   prefer 2
   apply (rule abs_ge_zero)
   apply (simp add: compare_rls)
-done
+  done
 
 lemma bigo_lesso4: "f <o g =o O(k::'a=>'b::ordered_field) ==>
     g =o h +o O(k) ==> f <o h =o O(k)"
@@ -847,7 +850,7 @@ lemma bigo_lesso4: "f <o g =o O(k::'a=>'b::ordered_field) ==>
   apply (rule allI)
   apply (auto simp add: func_plus func_diff compare_rls 
     split: split_max abs_split)
-done
+  done
 
 lemma bigo_lesso5: "f <o g =o O(h) ==>
     EX C. ALL x. f x <= g x + C * abs(h x)"
@@ -860,7 +863,7 @@ lemma bigo_lesso5: "f <o g =o O(h) ==>
   apply (clarsimp simp add: compare_rls add_ac) 
   apply (rule abs_of_nonneg)
   apply (rule le_maxI2)
-done
+  done
 
 lemma lesso_add: "f <o g =o O(h) ==>
       k <o l =o O(h) ==> (f + k) <o (g + l) =o O(h)"
@@ -870,6 +873,6 @@ lemma lesso_add: "f <o g =o O(h) ==>
   apply assumption
   apply (force split: split_max)
   apply (auto split: split_max simp add: func_plus)
-done
+  done
 
 end
