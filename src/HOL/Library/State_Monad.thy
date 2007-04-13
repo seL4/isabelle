@@ -218,7 +218,7 @@ syntax (xsymbols)
     ("_ \<leftarrow> _;// _" [1000, 13, 12] 12)
 
 translations
-  "_do f" => "State_Monad.run f"
+  "_do f" => "CONST run f"
   "_mbind x f g" => "f \<guillemotright>= (\<lambda>x. g)"
   "_fcomp f g" => "f \<guillemotright> g"
   "_let x t f" => "Let t (\<lambda>x. f)"
