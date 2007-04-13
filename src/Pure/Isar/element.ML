@@ -51,6 +51,7 @@ sig
   val dest_witness: witness -> term * thm
   val transfer_witness: theory -> witness -> witness
   val refine_witness: Proof.state -> Proof.state Seq.seq
+  val pretty_witness: Proof.context -> witness -> Pretty.T
   val rename: (string * (string * mixfix option)) list -> string -> string
   val rename_var: (string * (string * mixfix option)) list -> string * mixfix -> string * mixfix
   val rename_term: (string * (string * mixfix option)) list -> term -> term
@@ -306,6 +307,14 @@ val refine_witness =
     (K (ALLGOALS
       (PRECISE_CONJUNCTS ~1 (ALLGOALS
         (PRECISE_CONJUNCTS ~1 (TRYALL (Tactic.rtac Drule.protectI))))))))));
+
+fun pretty_witness ctxt witn =
+  let val prt_term = Pretty.quote o ProofContext.pretty_term ctxt
+  in
+    Pretty.block (prt_term (witness_prop witn) ::
+      (if ! show_hyps then [Pretty.brk 2, Pretty.list "[" "]"
+         (map prt_term (witness_hyps witn))] else []))
+  end;
 
 
 (* derived rules *)

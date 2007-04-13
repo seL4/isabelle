@@ -102,18 +102,22 @@ sig
     Proof.context -> Proof.context
 
   val interpretation_i: (Proof.context -> Proof.context) ->
-    (bool * string) * Attrib.src list -> expr -> typ Symtab.table * term Symtab.table ->
+    (bool * string) * Attrib.src list -> expr ->
+    (typ Symtab.table * term Symtab.table) * (term * term) list ->
     theory -> Proof.state
   val interpretation: (Proof.context -> Proof.context) ->
-    (bool * string) * Attrib.src list -> expr -> string option list ->
+    (bool * string) * Attrib.src list -> expr ->
+    string option list * (string * string) list ->
     theory -> Proof.state
   val interpretation_in_locale: (Proof.context -> Proof.context) ->
     xstring * expr -> theory -> Proof.state
   val interpret_i: (Proof.state -> Proof.state Seq.seq) ->
-    (bool * string) * Attrib.src list -> expr -> typ Symtab.table * term Symtab.table ->
+    (bool * string) * Attrib.src list -> expr ->
+    (typ Symtab.table * term Symtab.table) * (term * term) list ->
     bool -> Proof.state -> Proof.state
   val interpret: (Proof.state -> Proof.state Seq.seq) ->
-    (bool * string) * Attrib.src list -> expr -> string option list ->
+    (bool * string) * Attrib.src list -> expr ->
+    string option list * (string * string) list ->
     bool -> Proof.state -> Proof.state
 end;
 
@@ -186,18 +190,28 @@ structure Registrations :
     val empty: T
     val join: T * T -> T
     val dest: theory -> T ->
-      (term list * (((bool * string) * Attrib.src list) * Element.witness list)) list
+      (term list *
+        (((bool * string) * Attrib.src list) * Element.witness list *
+         Element.witness Termtab.table)) list
     val lookup: theory -> T * term list ->
-      (((bool * string) * Attrib.src list) * Element.witness list) option
+      (((bool * string) * Attrib.src list) * Element.witness list *
+       Element.witness Termtab.table) option
     val insert: theory -> term list * ((bool * string) * Attrib.src list) -> T ->
       T * (term list * (((bool * string) * Attrib.src list) * Element.witness list)) list
     val add_witness: term list -> Element.witness -> T -> T
+    val add_equation: term list -> Element.witness -> T -> T
   end =
 struct
-  (* a registration consists of theorems (actually, witnesses) instantiating locale
-     assumptions and prefix (boolean flag indicates full qualification)
-     and attributes, indexed by parameter instantiation *)
-  type T = (((bool * string) * Attrib.src list) * Element.witness list) Termtab.table;
+  (* A registration is indexed by parameter instantiation.  Its components are:
+     - parameters and prefix
+       (if the Boolean flag is set, only accesses containing the prefix are generated,
+        otherwise the prefix may be omitted when accessing theorems etc.) 
+     - theorems (actually witnesses) instantiating locale assumptions
+     - theorems (equations, actually witnesses) interpreting derived concepts
+       and indexed by lhs
+  *)
+  type T = (((bool * string) * Attrib.src list) * Element.witness list *
+            Element.witness Termtab.table) Termtab.table;
 
   val empty = Termtab.empty;
 
@@ -209,12 +223,17 @@ struct
           | ut (s $ t) ts = ut s (t::ts)
     in ut t [] end;
 
-  (* joining of registrations: prefix and attributes of left theory,
-     thms are equal, no attempt to subsumption testing *)
-  fun join (r1, r2) = Termtab.join (fn _ => fn (reg, _) => reg) (r1, r2);
+  (* joining of registrations:
+     - prefix and attributes of right theory;
+     - witnesses are equal, no attempt to subsumption testing;
+     - union of equalities, if conflicting (i.e. two eqns with equal lhs)
+       eqn of right theory takes precedence *)
+  fun join (r1, r2) = Termtab.join (fn _ => fn ((_, _, e1), (n, w, e2)) =>
+      (n, w, Termtab.join (fn _ => fn (_, e) => e) (e1, e2))) (r1, r2);
 
   fun dest_transfer thy regs =
-    Termtab.dest regs |> map (apsnd (apsnd (map (Element.transfer_witness thy))));
+    Termtab.dest regs |> map (apsnd (fn (n, ws, es) =>
+      (n, map (Element.transfer_witness thy) ws, Termtab.map (Element.transfer_witness thy) es)));
 
   fun dest thy regs = dest_transfer thy regs |> map (apfst untermify);
 
@@ -230,7 +249,7 @@ struct
     in
       (case subs of
         [] => NONE
-      | ((t', (attn, thms)) :: _) =>
+      | ((t', (attn, thms, eqns)) :: _) =>
           let
             val (tinst, inst) = Pattern.match thy (t', t) (Vartab.empty, Vartab.empty);
             (* thms contain Frees, not Vars *)
@@ -241,7 +260,7 @@ struct
                  |> map (fn ((x, 0), (_, t)) => (x, Logic.legacy_unvarify t))
                  |> Symtab.make;
             val inst_witness = Element.morph_witness (Element.inst_morphism thy (tinst', inst'));
-          in SOME (attn, map inst_witness thms) end)
+          in SOME (attn, map inst_witness thms, Termtab.map inst_witness eqns) end)
     end;
 
   (* add registration if not subsumed by ones already present,
@@ -254,8 +273,8 @@ struct
         [] => let
                 val sups =
                   filter (fn (t', _) => Pattern.matches thy (t, t')) (dest_transfer thy regs);
-                val sups' = map (apfst untermify) sups
-              in (Termtab.update (t, (attn, [])) regs, sups') end
+                val sups' = map (apfst untermify) sups |> map (fn (ts, (n, w, d)) => (ts, (n, w)))
+              in (Termtab.update (t, (attn, [], Termtab.empty)) regs, sups') end
       | _ => (regs, []))
     end;
 
@@ -264,10 +283,22 @@ struct
   fun add_witness ts thm regs =
     let
       val t = termify ts;
-      val (x, thms) = the (Termtab.lookup regs t);
+      val (x, thms, eqns) = the (Termtab.lookup regs t);
     in
-      Termtab.update (t, (x, thm::thms)) regs
+      Termtab.update (t, (x, thm::thms, eqns)) regs
     end;
+
+  (* add equation to registration, replaces previous equation with same lhs;
+     only if instantiation is exact, otherwise exception Option raised;
+     exception TERM raised if not a meta equality *)
+  fun add_equation ts thm regs =
+    let
+      val t = termify ts;
+      val (x, thms, eqns) = the (Termtab.lookup regs t);
+    in
+      Termtab.update (t, (x, thms, Termtab.update (thm |> Element.witness_prop |> Logic.dest_equals |> fst, thm) eqns)) regs
+    end;
+(* TODO: avoid code clone *)
 end;
 
 
@@ -364,7 +395,8 @@ fun change_locale name f thy =
 
 (* Ids of global registrations are varified,
    Ids of local registrations are not.
-   Thms of registrations are never varified. *)
+   Witness thms of registrations are never varified.
+   Varification of eqns as varification of ids. *)
 
 (* retrieve registration from theory or context *)
 
@@ -409,7 +441,7 @@ fun gen_put_registration map_data thy_of (name, ps) attn thy_ctxt =
       val _ = if not (null sups) then warning
                 ("Subsumed interpretation(s) of locale " ^
                  quote (extern thy name) ^
-                 "\nby interpretation(s) with the following prefix(es):\n" ^
+                 "\nwith the following prefix(es):" ^
                   commas_quote (map (fn (_, (((_, s), _), _)) => s) sups))
               else ();
     in Symtab.update (name, reg') regs end) thy_ctxt;
@@ -425,8 +457,7 @@ fun put_registration_in_locale name id =
     (axiom, imports, elems, params, lparams, decls, regs @ [(id, [])], intros));
 
 
-(* add witness theorem to registration in theory or context,
-   ignored if registration not present *)
+(* add witness theorem to registration, ignored if registration not present *)
 
 fun add_witness (name, ps) thm =
   Symtab.map_entry name (Registrations.add_witness ps thm);
@@ -444,33 +475,50 @@ fun add_witness_in_locale name id thm =
     in (axiom, imports, elems, params, lparams, decls, map add regs, intros) end);
 
 
+(* add equation to registration, ignored if registration not present *)
+
+fun add_equation (name, ps) thm =
+  Symtab.map_entry name (Registrations.add_equation ps thm);
+
+fun add_global_equation id thm =
+  GlobalLocalesData.map (fn (space, locs, regs) => (space, locs, add_equation id thm regs));
+
+val add_local_equation = LocalLocalesData.map oo add_equation;
+
+
 (* printing of registrations *)
 
 fun gen_print_registrations get_regs mk_ctxt msg show_wits loc thy_ctxt =
   let
     val ctxt = mk_ctxt thy_ctxt;
     val thy = ProofContext.theory_of ctxt;
-
+(* TODO: nice effect of show_wits on equations. *)
     val prt_term = Pretty.quote o ProofContext.pretty_term ctxt;
     fun prt_inst ts =
         Pretty.enclose "(" ")" (Pretty.breaks (map prt_term ts));
-    fun prt_attn ((fully_qualified, prfx), atts) =
-        if fully_qualified
-          then Pretty.breaks (Pretty.str prfx :: Pretty.str "[!]" :: Attrib.pretty_attribs ctxt atts)
-          else Pretty.breaks (Pretty.str prfx :: Attrib.pretty_attribs ctxt atts);
-    fun prt_witns witns = Pretty.enclose "[" "]"
-      (Pretty.breaks (map (prt_term o Element.witness_prop) witns));
-    fun prt_reg (ts, (((_, ""), []), witns)) =
+    fun prt_attn ((false, prfx), atts) =
+        Pretty.breaks (Pretty.str prfx :: Pretty.str "(optional)" ::
+          Attrib.pretty_attribs ctxt atts)
+      | prt_attn ((true, prfx), atts) =
+        Pretty.breaks (Pretty.str prfx :: Attrib.pretty_attribs ctxt atts);
+    fun prt_eqns [] = Pretty.str "no equations."
+      | prt_eqns eqns = Pretty.block (Pretty.str "equations:" :: Pretty.brk 1 ::
+          Pretty.breaks (map (Element.pretty_witness ctxt) eqns));
+    fun prt_core ts eqns =
+          [prt_inst ts, Pretty.fbrk, prt_eqns (Termtab.dest eqns |> map snd)];
+    fun prt_witns [] = Pretty.str "no witnesses."
+      | prt_witns witns = Pretty.block (Pretty.str "witnesses:" :: Pretty.brk 1 ::
+          Pretty.breaks (map (Element.pretty_witness ctxt) witns))
+    fun prt_reg (ts, (((_, ""), []), witns, eqns)) =
         if show_wits
-          then Pretty.block [prt_inst ts, Pretty.fbrk, prt_witns witns]
-          else prt_inst ts
-      | prt_reg (ts, (attn, witns)) =
+          then Pretty.block (prt_core ts eqns @ [Pretty.fbrk, prt_witns witns])
+          else Pretty.block (prt_core ts eqns)
+      | prt_reg (ts, (attn, witns, eqns)) =
         if show_wits
-          then Pretty.block ((prt_attn attn @
-            [Pretty.str ":", Pretty.brk 1, prt_inst ts, Pretty.fbrk,
-              prt_witns witns]))
+          then Pretty.block ((prt_attn attn @ [Pretty.str ":", Pretty.brk 1] @
+            prt_core ts eqns @ [Pretty.fbrk, prt_witns witns]))
           else Pretty.block ((prt_attn attn @
-            [Pretty.str ":", Pretty.brk 1, prt_inst ts]));
+            [Pretty.str ":", Pretty.brk 1] @ prt_core ts eqns));
 
     val loc_int = intern thy loc;
     val regs = get_regs thy_ctxt;
@@ -480,7 +528,7 @@ fun gen_print_registrations get_regs mk_ctxt msg show_wits loc thy_ctxt =
         NONE => Pretty.str ("no interpretations in " ^ msg)
       | SOME r => let
             val r' = Registrations.dest thy r;
-            val r'' = Library.sort_wrt (fn (_, (((_, prfx), _), _)) => prfx) r';
+            val r'' = Library.sort_wrt (fn (_, (((_, prfx), _), _, _)) => prfx) r';
           in Pretty.big_list ("interpretations in " ^ msg ^ ":")
             (map prt_reg r'')
           end)
@@ -1514,8 +1562,8 @@ fun local_note_prefix_i kind (fully_qualified, prfx) args ctxt =
   ||> ProofContext.restore_naming ctxt;
 
 
-(* collect witnesses for global registration;
-   requires parameters and flattened list of (assumed!) identifiers
+(* collect witnesses and equations up to a particular target for global
+   registration; requires parameters and flattened list of identifiers
    instead of recomputing it from the target *)
 
 fun collect_global_witnesses thy parms ids vts = let
@@ -1529,9 +1577,20 @@ fun collect_global_witnesses thy parms ids vts = let
     val vinst = Symtab.make (parms ~~ vts);
     fun vinst_names ps = map (the o Symtab.lookup vinst) ps;
     val inst = Symtab.make (parms ~~ ts);
-    val ids' = map (apsnd vinst_names) ids;
-    val wits = maps (snd o the o get_global_registration thy) ids';
-  in ((tinst, inst), wits) end;
+    val inst_ids = map (apfst (apsnd vinst_names)) ids;
+    val assumed_ids' = map_filter (fn (id, (_, Assumed _)) => SOME id | _ => NONE) inst_ids;
+    val wits = maps (#2 o the o get_global_registration thy) assumed_ids';
+
+    val ids' = map fst inst_ids;
+(* TODO: code duplication with activate_facts_elemss *)
+    fun add_eqns id eqns =
+      let
+        val eqns' = case get_global_registration thy id
+          of NONE => eqns
+           | SOME (_, _, eqns') => Termtab.join (fn t => fn (_, e) => e) (eqns, eqns')
+      in ((id, eqns'), eqns') end;
+    val eqns = fold_map add_eqns ids' Termtab.empty |> snd |> Termtab.dest |> map snd;
+  in ((tinst, inst), wits, eqns) end;
 
 
 (* store instantiations of args for all registered interpretations
@@ -1541,16 +1600,16 @@ fun note_thmss_registrations target (kind, args) thy =
   let
     val parms = the_locale thy target |> #params |> map fst;
     val ids = flatten (ProofContext.init thy, intern_expr thy)
-      (([], Symtab.empty), Expr (Locale target)) |> fst |> fst
-      |> map_filter (fn (id, (_, Assumed _)) => SOME id | _ => NONE)
+      (([], Symtab.empty), Expr (Locale target)) |> fst |> fst;
+(*      |> map_filter (fn (id, (_, Assumed _)) => SOME id | _ => NONE) *)
 
     val regs = get_global_registrations thy target;
 
     (* add args to thy for all registrations *)
 
-    fun activate (vts, (((fully_qualified, prfx), atts2), _)) thy =
+    fun activate (vts, (((fully_qualified, prfx), atts2), _, _)) thy =
       let
-        val (insts, prems) = collect_global_witnesses thy parms ids vts;
+        val (insts, prems, eqns) = collect_global_witnesses thy parms ids vts;
         val attrib = Attrib.attribute_i thy;
         val inst_atts = Args.morph_values
           (Morphism.name_morphism (NameSpace.qualified prfx) $>
@@ -1558,7 +1617,10 @@ fun note_thmss_registrations target (kind, args) thy =
             Element.satisfy_morphism prems $>
             Morphism.thm_morphism Drule.standard);
         val inst_thm =
-          Element.inst_thm thy insts #> Element.satisfy_thm prems #> Drule.standard;
+          Element.inst_thm thy insts #> Element.satisfy_thm prems #>
+            rewrite_rule (map Element.conclude_witness eqns) #>
+(* TODO: or better use LocalDefs.unfold? *)
+            Drule.standard;
         val args' = args |> map (fn ((name, atts), bs) =>
             ((name, map (attrib o inst_atts) atts),
               bs |> map (fn (ths, more_atts) =>
@@ -1889,7 +1951,7 @@ fun all_witnesses ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     fun get registrations = Symtab.fold (fn (_, regs) => fn thms =>
-        (Registrations.dest thy regs |> map (fn (_, (_, wits)) =>
+        (Registrations.dest thy regs |> map (fn (_, (_, wits, _)) =>
           map Element.conclude_witness wits) |> flat) @ thms)
       registrations [];
     val globals = get (#3 (GlobalLocalesData.get thy));
@@ -1933,11 +1995,20 @@ fun extract_asms_elems ((id, Assumed _), elems) = (id, maps Element.prems_of ele
 
 (* activate instantiated facts in theory or context *)
 
-fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
+structure Idtab =
+  TableFun(type key = string * term list
+    val ord = prod_ord string_ord (list_ord Term.fast_term_ord));
+
+fun gen_activate_facts_elemss mk_ctxt get_reg note attrib std put_reg add_wit add_eqn
         attn all_elemss new_elemss propss thmss thy_ctxt =
   let
-    fun activate_elem disch ((fully_qualified, prfx), atts) (Notes (kind, facts)) thy_ctxt =
+    val ctxt = mk_ctxt thy_ctxt;
+    val (propss, eq_props) = chop (length new_elemss) propss;
+    val (thmss, eq_thms) = chop (length new_elemss) thmss;
+
+    fun activate_elem eqns disch ((fully_qualified, prfx), atts) (Notes (kind, facts)) thy_ctxt =
         let
+          val ctxt = mk_ctxt thy_ctxt;
           val fact_morphism =
             Morphism.name_morphism (NameSpace.qualified prfx)
             $> Morphism.thm_morphism disch;
@@ -1948,26 +2019,31 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
             (* append interpretation attributes *)
             |> map (apfst (apsnd (fn a => a @ map (attrib thy_ctxt) atts)))
             (* discharge hyps *)
-            |> map (apsnd (map (apfst (map disch))));
+            |> map (apsnd (map (apfst (map disch))))
+            (* unfold eqns *)
+            |> map (apsnd (map (apfst (map (LocalDefs.unfold ctxt eqns)))))
+(* TODO: better use attribute to unfold? *)
         in snd (note kind (fully_qualified, prfx) facts' thy_ctxt) end
-      | activate_elem _ _ _ thy_ctxt = thy_ctxt;
+      | activate_elem _ _ _ _ thy_ctxt = thy_ctxt;
 
-    fun activate_elems disch ((id, _), elems) thy_ctxt =
+    fun activate_elems eqns disch ((id, _), elems) thy_ctxt =
       let
-        val ((prfx, atts2), _) = case get_reg thy_ctxt id
+        val (prfx_atts, _, _) = case get_reg thy_ctxt id
          of SOME x => x
           | NONE => sys_error ("Unknown registration of " ^ quote (fst id)
               ^ " while activating facts.");
-      in fold (activate_elem disch (prfx, atts2)) elems thy_ctxt end;
+      in fold (activate_elem (the (Idtab.lookup eqns id)) disch prfx_atts) elems thy_ctxt end;
 
     val thy_ctxt' = thy_ctxt
       (* add registrations *)
       |> fold (fn ((id, _), _) => put_reg id attn) new_elemss
-      (* add witnesses of Assumed elements *)
-      |> fold (fn (id, thms) => fold (add_wit id) thms) (map fst propss ~~ thmss);
+      (* add witnesses of Assumed elements (only those generate proof obligations) *)
+      |> fold (fn (id, thms) => fold (add_wit id) thms) (map fst propss ~~ thmss)
+      (* add equations *)
+      |> fold (fn (id, thms) => fold (add_eqn id) thms) (map fst eq_props ~~ eq_thms);
 
     val prems = flat (map_filter
-          (fn ((id, Assumed _), _) => Option.map snd (get_reg thy_ctxt' id)
+          (fn ((id, Assumed _), _) => Option.map #2 (get_reg thy_ctxt' id)
             | ((_, Derived _), _) => NONE) all_elemss);
     val satisfy = Element.satisfy_morphism prems;
     val thy_ctxt'' = thy_ctxt'
@@ -1976,14 +2052,34 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
          (map_filter (fn ((_, Assumed _), _) => NONE
             | ((id, Derived thms), _) => SOME (id, thms)) new_elemss)
 
+    (* Accumulate equations *)
+    fun add_eqns ((id, _), _) eqns =
+       let
+         val eqns' = case get_reg thy_ctxt'' id
+           of NONE => eqns
+            | SOME (_, _, eqns') => Termtab.join (fn t => fn (_, e) => e) (eqns, eqns')
+(*                handle Termtab.DUPS ts =>
+                  error (implode ("Conflicting equations for terms" ::
+                    map (quote o ProofContext.string_of_term ctxt) ts))
+*)
+       in ((id, eqns'), eqns') end;
+    val all_eqns = fold_map add_eqns all_elemss Termtab.empty |> fst
+      |> map (apsnd (map (Element.conclude_witness o snd) o Termtab.dest))
+      |> (fn xs => fold Idtab.update xs Idtab.empty)
+      (* Idtab.make doesn't work: can have conflicting duplicates,
+         because instantiation may equate ids and equations are accumulated! *)
+
+(* TODO: can use dest_witness here? (more efficient) *)
+
     val disch' = std o Morphism.thm satisfy;  (* FIXME *)
   in
     thy_ctxt''
     (* add facts to theory or context *)
-    |> fold (activate_elems disch') new_elemss
+    |> fold (activate_elems all_eqns disch') new_elemss
   end;
 
 fun global_activate_facts_elemss x = gen_activate_facts_elemss
+      ProofContext.init
       (fn thy => fn (name, ps) =>
         get_global_registration thy (name, map Logic.varify ps))
       global_note_prefix_i
@@ -1991,16 +2087,21 @@ fun global_activate_facts_elemss x = gen_activate_facts_elemss
       (fn (name, ps) => put_global_registration (name, map Logic.varify ps))
       (fn (n, ps) => add_global_witness (n, map Logic.varify ps) o
         Element.map_witness (fn (t, th) => (Logic.legacy_unvarify t, legacy_unvarify th))
-        (* FIXME *)) x;
+        (* FIXME *))
+      (fn (n, ps) => add_global_equation (n, map Logic.varify ps))
+      x;
 
 fun local_activate_facts_elemss x = gen_activate_facts_elemss
+      I
       get_local_registration
       local_note_prefix_i
       (Attrib.attribute_i o ProofContext.theory_of) I
       put_local_registration
-      add_local_witness x;
+      add_local_witness
+      add_local_equation
+      x;
 
-fun read_instantiations read_terms is_local parms insts =
+fun read_instantiations read_terms is_local parms (insts, eqns) =
   let
     (* user input *)
     val insts = if length parms < length insts
@@ -2009,24 +2110,32 @@ fun read_instantiations read_terms is_local parms insts =
     val (ps, pTs) = split_list parms;
     val pvTs = map Logic.legacy_varifyT pTs;
 
-    (* instantiations given by user *)
-    val given = map_filter (fn (_, (NONE, _)) => NONE
-         | (x, (SOME inst, T)) => SOME (x, (inst, T))) (ps ~~ (insts ~~ pvTs));
-    val (given_ps, given_insts) = split_list given;
+    (* context for reading terms *)
     val tvars = fold Term.add_tvarsT pvTs [];
     val tfrees = fold Term.add_tfreesT pvTs [];
     val used = map (fst o fst) tvars @ map fst tfrees;
     val sorts = AList.lookup (op =) tvars;
-    val (vs, vinst) = read_terms sorts used given_insts;
-    val vars = foldl Term.add_term_tvar_ixns [] vs
+
+    (* parameter instantiations given by user *)
+    val given = map_filter (fn (_, (NONE, _)) => NONE
+         | (x, (SOME inst, T)) => SOME (x, (inst, T))) (ps ~~ (insts ~~ pvTs));
+    val (given_ps, given_insts) = split_list given;
+
+    (* equations given by user *)
+    val (lefts, rights) = split_list eqns;
+    val max_eqs = length eqns;
+    val Ts = map (fn i => TVar (("x_", i), [])) (0 upto max_eqs - 1);
+
+    val (all_vs, vinst) =
+      read_terms sorts used (given_insts @ (lefts ~~ Ts) @ (rights ~~ Ts));
+    val vars = foldl Term.add_term_tvar_ixns [] all_vs
       |> subtract (op =) (map fst tvars)
-      |> fold Term.add_varnames vs
+      |> fold Term.add_varnames all_vs
     val _ = if null vars then ()
          else error ("Illegal schematic variable(s) in instantiation: " ^
            commas_quote (map Syntax.string_of_vname vars));
-
     (* replace new types (which are TFrees) by ones with new names *)
-    val new_Tnames = map fst (fold Term.add_tfrees vs [])
+    val new_Tnames = map fst (fold Term.add_tfrees all_vs [])
       |> Name.names (Name.make_context used) "'a"
       |> map swap;
     val renameT =
@@ -2035,16 +2144,21 @@ fun read_instantiations read_terms is_local parms insts =
         TFree ((the o AList.lookup (op =) new_Tnames) a, s));
     val rename =
       if is_local then I
-      else Term.map_types renameT
+      else Term.map_types renameT;
+    val (vs, ts) = chop (length given_insts) all_vs;
+
     val instT = Symtab.empty
       |> fold (fn ((x, 0), T) => Symtab.update (x, renameT T)) vinst;
     val inst = Symtab.empty
       |> fold2 (fn x => fn t => Symtab.update (x, rename t)) given_ps vs;
 
-  in (instT, inst) end;
+    val (lefts', rights') = chop max_eqs (map rename ts);
+
+  in ((instT, inst), lefts' ~~ rights') end;
+
 
 fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
-    prep_attr prep_expr prep_instantiations
+    prep_attr prep_expr prep_insts
     thy_ctxt raw_attn raw_expr raw_insts =
   let
     val ctxt = mk_ctxt thy_ctxt;
@@ -2064,7 +2178,15 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
 
     (** compute instantiation **)
 
-    val (instT, inst1) = prep_instantiations (read_terms thy_ctxt) is_local parms raw_insts;
+    (* consistency check: equations need to be stored in a particular locale,
+       therefore if equations are present locale expression must be a name *)
+
+    val _ = case (expr, snd raw_insts) of
+        (Locale _, _) => () | (_, []) => ()
+      | (_, _) => error "Interpretations with `where' only permitted if locale expression is a name.";
+
+    (* read or certify instantiation *)
+    val ((instT, inst1), eqns') = prep_insts (read_terms thy_ctxt) is_local parms raw_insts;
 
     (* defined params without given instantiation *)
     val not_given = filter_out (Symtab.defined inst1 o fst) parms;
@@ -2093,8 +2215,14 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
       |> apfst (fn id => (id, map_mode (map (Element.morph_witness inst_morphism)) mode)));
 
     (* remove fragments already registered with theory or context *)
-    val new_inst_elemss = filter_out (fn ((id, _), _) => test_reg thy_ctxt id) inst_elemss;
-    val propss = map extract_asms_elems new_inst_elemss;
+    val new_inst_elemss = filter_out (fn ((id, _), _) =>
+          test_reg thy_ctxt id) inst_elemss;
+(*    val new_ids = map #1 new_inst_elemss; *)
+
+    (* equations *)
+    val eqn_elems = if null eqns' then [] else [(Library.last_elem inst_elemss |> fst |> fst, map Logic.mk_equals eqns')];
+
+    val propss = map extract_asms_elems new_inst_elemss @ eqn_elems;
 
   in (propss, activate attn inst_elemss new_inst_elemss propss) end;
 
@@ -2147,8 +2275,8 @@ fun prep_registration_in_locale target expr thy =
           the target, unless already present
         - add facts of induced registrations to theory **)
 
-    val t_ids = map_filter
-        (fn (id, (_, Assumed _)) => SOME id | _ => NONE) target_ids;
+(*    val t_ids = map_filter
+        (fn (id, (_, Assumed _)) => SOME id | _ => NONE) target_ids; *)
 
     fun activate thmss thy = let
         val satisfy = Element.satisfy_thm (flat thmss);
@@ -2160,9 +2288,9 @@ fun prep_registration_in_locale target expr thy =
                 |> fold (add_witness_in_locale target id) thms
           | activate_id _ thy = thy;
 
-        fun activate_reg (vts, (((fully_qualified, prfx), atts2), _)) thy =
+        fun activate_reg (vts, (((fully_qualified, prfx), atts2), _, _)) thy =
           let
-            val (insts, wits) = collect_global_witnesses thy fixed t_ids vts;
+            val (insts, wits, _) = collect_global_witnesses thy fixed target_ids vts;
             fun inst_parms ps = map
                   (the o AList.lookup (op =) (map #1 fixed ~~ vts)) ps;
             val disch = Element.satisfy_thm wits;

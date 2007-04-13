@@ -393,7 +393,7 @@ val _ = Context.add_setup (Method.add_methods
 
 fun prove_interpretation tac prfx_atts expr insts thy =
   thy
-  |> Locale.interpretation_i I prfx_atts expr insts
+  |> Locale.interpretation_i I prfx_atts expr (insts, [])
   |> Proof.global_terminal_proof (Method.Basic (fn _ => Method.SIMPLE_METHOD tac), NONE)
   |> ProofContext.theory_of;
 
