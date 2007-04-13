@@ -23,6 +23,7 @@ time_use_thy "Fundefs";
 time_use_thy "InductiveInvariant_examples";
 time_use_thy "Primrec";
 time_use_thy "Locales";
+time_use_thy "LocaleTest2";
 time_use_thy "Records";
 time_use_thy "MonoidGroup";
 time_use_thy "BinEx";
