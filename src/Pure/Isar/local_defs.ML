@@ -100,17 +100,22 @@ fun add_defs defs ctxt =
   end;
 
 
-(* specific export -- result based on educated guessing *)
+(* specific export -- result based on educated guessing (beware of closure sizes) *)
 
-fun export inner outer th =
+fun export inner outer =
   let
-    val th' = Assumption.export false inner outer th;
-    val still_fixed = map #1 (Drule.fold_terms Term.add_frees th' []);
-    val defs = Assumption.prems_of inner |> filter_out (fn prem =>
-      (case try (head_of_def o Thm.prop_of) prem of
-        SOME x => member (op =) still_fixed x
-      | NONE => true));
-  in (map Drule.abs_def defs, th') end;
+    val exp = Assumption.export false inner outer;
+    val prems = Assumption.prems_of inner;
+  in fn th =>
+    let
+      val th' = exp th;
+      val still_fixed = map #1 (Drule.fold_terms Term.add_frees th' []);
+      val defs = prems |> filter_out (fn prem =>
+        (case try (head_of_def o Thm.prop_of) prem of
+          SOME x => member (op =) still_fixed x
+        | NONE => true));
+    in (map Drule.abs_def defs, th') end
+  end;
 
 
 (* basic transitivity reasoning -- modulo beta-eta *)

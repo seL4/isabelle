@@ -35,8 +35,6 @@ sig
   val auto_fixes: term -> Proof.context -> Proof.context
   val variant_fixes: string list -> Proof.context -> string list * Proof.context
   val invent_types: sort list -> Proof.context -> (string * sort) list * Proof.context
-  val export_inst: Proof.context -> Proof.context -> string list * string list
-  val exportT_inst: Proof.context -> Proof.context -> string list
   val export_terms: Proof.context -> Proof.context -> term list -> term list
   val exportT_terms: Proof.context -> Proof.context -> term list -> term list
   val exportT: Proof.context -> Proof.context -> thm list -> thm list
@@ -161,9 +159,11 @@ fun declare_names t =
 
 (* type occurrences *)
 
-val declare_type_occs = map_type_occs o fold_term_types
+val decl_type_occs = fold_term_types
   (fn Free (x, _) => fold_atyps (fn TFree (a, _) => Symtab.insert_list (op =) (a, x) | _ => I)
     | _ => fold_atyps (fn TFree (a, _) => Symtab.default (a, []) | _ => I));
+
+val declare_type_occs = map_type_occs o decl_type_occs;
 
 
 (* constraints *)
@@ -302,7 +302,7 @@ fun invent_types Ss ctxt =
 
 
 
-(** export -- generalize type/term variables **)
+(** export -- generalize type/term variables (beware of closure sizes) **)
 
 fun export_inst inner outer =
   let
@@ -312,37 +312,48 @@ fun export_inst inner outer =
 
     val gen_fixes = map #2 (Library.take (length fixes_inner - length fixes_outer, fixes_inner));
     val still_fixed = not o member (op =) gen_fixes;
-    val gen_fixesT =
+
+    val type_occs_inner = type_occs_of inner;
+    fun gen_fixesT ts =
       Symtab.fold (fn (a, xs) =>
         if declared_outer a orelse exists still_fixed xs
-        then I else cons a) (type_occs_of inner) [];
+        then I else cons a) (fold decl_type_occs ts type_occs_inner) [];
   in (gen_fixesT, gen_fixes) end;
 
 fun exportT_inst inner outer = #1 (export_inst inner outer);
 
-fun exportT_terms inner outer ts =
-  map (TermSubst.generalize (exportT_inst (fold declare_type_occs ts inner) outer, [])
-    (fold (Term.fold_types Term.maxidx_typ) ts ~1 + 1)) ts;
+fun exportT_terms inner outer =
+  let val mk_tfrees = exportT_inst inner outer in
+    fn ts => ts |> map
+      (TermSubst.generalize (mk_tfrees ts, [])
+        (fold (Term.fold_types Term.maxidx_typ) ts ~1 + 1))
+  end;
 
-fun export_terms inner outer ts =
-  map (TermSubst.generalize (export_inst (fold declare_type_occs ts inner) outer)
-    (fold Term.maxidx_term ts ~1 + 1)) ts;
+fun export_terms inner outer =
+  let val (mk_tfrees, tfrees) = export_inst inner outer in
+    fn ts => ts |> map
+      (TermSubst.generalize (mk_tfrees ts, tfrees)
+        (fold Term.maxidx_term ts ~1 + 1))
+  end;
 
 fun export_prf inner outer prf =
   let
-    val insts = export_inst (declare_prf prf inner) outer;
+    val (mk_tfrees, frees) = export_inst (declare_prf prf inner) outer;
+    val tfrees = mk_tfrees [];
     val idx = Proofterm.maxidx_proof prf ~1 + 1;
-    val gen_term = TermSubst.generalize_option insts idx;
-    val gen_typ = TermSubst.generalizeT_option (#1 insts) idx;
+    val gen_term = TermSubst.generalize_option (tfrees, frees) idx;
+    val gen_typ = TermSubst.generalizeT_option tfrees idx;
   in Proofterm.map_proof_terms_option gen_term gen_typ prf end;
 
-fun gen_export inst inner outer ths =
-  let
-    val inner' = fold (declare_type_occs o Thm.full_prop_of) ths inner;
-  in map (Thm.generalize (inst inner' outer) (fold Thm.maxidx_thm ths ~1 + 1)) ths end;
 
-val exportT = gen_export (rpair [] oo exportT_inst);
-val export = gen_export export_inst;
+fun gen_export (mk_tfrees, frees) ths =
+  let
+    val tfrees = mk_tfrees (map Thm.full_prop_of ths);
+    val maxidx = fold Thm.maxidx_thm ths ~1;
+  in map (Thm.generalize (tfrees, frees) (maxidx + 1)) ths end;
+
+fun exportT inner outer = gen_export (exportT_inst inner outer, []);
+fun export inner outer = gen_export (export_inst inner outer);
 
 fun export_morphism inner outer =
   let
