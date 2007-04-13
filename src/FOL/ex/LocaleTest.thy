@@ -794,4 +794,44 @@ locale Rc = Rb +
 
 print_locale! Rc
 
+
+section {* Interpretation of Defined Concepts *}
+
+text {* Naming convention for global objects: prefixes D and d *}
+
+locale Da = fixes a :: o
+  assumes true: a
+
+lemma (in Da) not_false: "~ a <-> False"
+  apply simp apply (rule true) done
+
+interpretation D1: Da ["True"]
+  where "~ True" = "False"
+  apply -
+  apply unfold_locales [1] apply rule
+  by simp
+
+thm D1.not_false
+lemma "False <-> False" apply (rule D1.not_false) done
+
+interpretation D2: Da ["x | ~ x"]
+  where "~ (x | ~ x)" = "~ x & x"
+  apply -
+  apply unfold_locales [1] apply fast
+  by simp
+
+thm D2.not_false
+lemma "~ x & x <-> False" apply (rule D2.not_false) done
+
+print_interps! Da
+
+(* Subscriptions of interpretations *)
+
+lemma (in Da) not_false2: "~a <-> False"
+  apply simp apply (rule true) done
+
+thm D1.not_false2 D2.not_false2
+lemma "False <-> False" apply (rule D1.not_false2) done
+lemma "~x & x <-> False" apply (rule D2.not_false2) done
+
 end
