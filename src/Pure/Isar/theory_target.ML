@@ -280,10 +280,19 @@ fun notes loc kind facts lthy =
 
 (* target declarations *)
 
-fun target_decl _ "" f =
-      LocalTheory.theory (Context.theory_map (f Morphism.identity)) #>
-      LocalTheory.target (Context.proof_map (f Morphism.identity))
-  | target_decl add loc f = LocalTheory.target (add loc f);
+fun target_decl add loc d lthy =
+  let
+    val d' = Morphism.transform (LocalTheory.target_morphism lthy) d;
+    val d0 = Morphism.form d';
+  in
+    if loc = "" then
+      lthy
+      |> LocalTheory.theory (Context.theory_map d0)
+      |> LocalTheory.target (Context.proof_map d0)
+    else
+      lthy
+      |> LocalTheory.target (add loc d')
+  end;
 
 val type_syntax = target_decl Locale.add_type_syntax;
 val term_syntax = target_decl Locale.add_term_syntax;
