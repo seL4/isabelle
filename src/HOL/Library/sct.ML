@@ -4,13 +4,13 @@
 
 Tactics for size change termination.
 *)
-signature SCT = 
+signature SCT =
 sig
   val abs_rel_tac : tactic
   val mk_call_graph : tactic
 end
 
-structure Sct : SCT = 
+structure Sct : SCT =
 struct
 
 fun matrix [] ys = []
@@ -18,8 +18,8 @@ fun matrix [] ys = []
 
 fun map_matrix f xss = map (map f) xss
 
-val scgT = Sign.read_typ (the_context (), K NONE) "scg"
-val acgT = Sign.read_typ (the_context (), K NONE) "acg"
+val scgT = @{typ scg}
+val acgT = @{typ acg}
 
 fun edgeT nT eT = HOLogic.mk_prodT (nT, HOLogic.mk_prodT (eT, nT))
 fun graphT nT eT = Type ("Graphs.graph", [nT, eT])
@@ -29,12 +29,12 @@ fun graph_const nT eT = Const ("Graphs.graph.Graph", HOLogic.mk_setT (edgeT nT e
 val stepP_const = "SCT_Interpretation.stepP"
 val stepP_def = thm "SCT_Interpretation.stepP.simps"
 
-fun mk_stepP RD1 RD2 M1 M2 Rel = 
+fun mk_stepP RD1 RD2 M1 M2 Rel =
     let val RDT = fastype_of RD1
       val MT = fastype_of M1
-    in 
-      Const (stepP_const, RDT --> RDT --> MT --> MT --> (fastype_of Rel) --> HOLogic.boolT) 
-            $ RD1 $ RD2 $ M1 $ M2 $ Rel 
+    in
+      Const (stepP_const, RDT --> RDT --> MT --> MT --> (fastype_of Rel) --> HOLogic.boolT)
+            $ RD1 $ RD2 $ M1 $ M2 $ Rel
     end
 
 val no_stepI = thm "SCT_Interpretation.no_stepI"
@@ -44,7 +44,7 @@ val approx_empty = thm "SCT_Interpretation.approx_empty"
 val approx_less = thm "SCT_Interpretation.approx_less"
 val approx_leq = thm "SCT_Interpretation.approx_leq"
 
-fun mk_approx G RD1 RD2 Ms1 Ms2 = 
+fun mk_approx G RD1 RD2 Ms1 Ms2 =
     let val RDT = fastype_of RD1
       val MsT = fastype_of Ms1
     in Const (approx_const, scgT --> RDT --> RDT --> MsT --> MsT --> HOLogic.boolT) $ G $ RD1 $ RD2 $ Ms1 $ Ms2 end
@@ -74,7 +74,7 @@ val all_less_Suc = thm "SCT_Interpretation.all_less_Suc"
 (* --> Library? *)
 fun del_index n [] = []
   | del_index n (x :: xs) =
-    if n>0 then x :: del_index (n - 1) xs else xs 
+    if n>0 then x :: del_index (n - 1) xs else xs
 
 (* Lists as finite multisets *)
 
@@ -91,8 +91,8 @@ fun dest_ex (Const ("Ex", _) $ Abs (a as (_,T,_))) =
       (Free (n, T), body)
     end
   | dest_ex _ = raise Match
-                         
-fun dest_all_ex (t as (Const ("Ex",_) $ _)) = 
+
+fun dest_all_ex (t as (Const ("Ex",_) $ _)) =
     let
       val (v,b) = dest_ex t
       val (vs, b') = dest_all_ex b
@@ -102,7 +102,7 @@ fun dest_all_ex (t as (Const ("Ex",_) $ _)) =
   | dest_all_ex t = ([],t)
 
 fun dist_vars [] vs = (null vs orelse error "dist_vars"; [])
-  | dist_vars (T::Ts) vs = 
+  | dist_vars (T::Ts) vs =
     case find_index (fn v => fastype_of v = T) vs of
       ~1 => Free ("", T) :: dist_vars Ts vs
     |  i => (nth vs i) :: dist_vars Ts (del_index i vs)
@@ -111,7 +111,7 @@ fun dest_case rebind t =
     let
       val (_ $ _ $ rhs :: _ $ _ $ match :: guards) = HOLogic.dest_conj t
       val guard = case guards of [] => HOLogic.true_const | gs => foldr1 HOLogic.mk_conj gs
-    in 
+    in
       foldr1 HOLogic.mk_prod [rebind guard, rebind rhs, rebind match]
     end
 
@@ -119,7 +119,7 @@ fun bind_many [] = I
   | bind_many vs = FundefLib.tupled_lambda (foldr1 HOLogic.mk_prod vs)
 
 (* Builds relation descriptions from a relation definition *)
-fun mk_reldescs (Abs a) = 
+fun mk_reldescs (Abs a) =
     let
       val (_, Abs a') = Term.dest_abs a
       val (_, b) = Term.dest_abs a'
@@ -127,7 +127,7 @@ fun mk_reldescs (Abs a) =
       val (vss, bs) = split_list (map dest_all_ex cases)
       val unionTs = fold (multi_union (op =)) (map (map fastype_of) vss) []
       val rebind = map (bind_many o dist_vars unionTs) vss
-                 
+
       val RDs = map2 dest_case rebind bs
     in
       HOLogic.mk_list (fastype_of (hd RDs)) RDs
@@ -177,7 +177,7 @@ fun tabulate_tlist thy l =
 
 val get_elem = snd o Logic.dest_equals o prop_of
 
-fun inst_nums thy i j (t:thm) = 
+fun inst_nums thy i j (t:thm) =
   instantiate' [] [NONE, NONE, NONE, SOME (cterm_of thy (mk_number i)), NONE, SOME (cterm_of thy (mk_number j))] t
 
 datatype call_fact =
@@ -204,8 +204,8 @@ fun setup_probe_goal thy domT Dtab Mtab (i, j) =
                          |> cterm_of thy
                          |> Goal.init
                          |> CLASIMPSET auto_tac |> Seq.hd
-                         
-      val no_step = saved_state 
+
+      val no_step = saved_state
                       |> forall_intr (cterm_of thy relvar)
                       |> forall_elim (cterm_of thy (Abs ("", HOLogic.natT, Abs ("", HOLogic.natT, HOLogic.false_const))))
                       |> CLASIMPSET auto_tac |> Seq.hd
@@ -216,15 +216,15 @@ fun setup_probe_goal thy domT Dtab Mtab (i, j) =
       else
         let
           fun set_m1 i =
-              let 
+              let
                 val M1 = nth Mst1 i
                 val with_m1 = saved_state
                                 |> forall_intr (cterm_of thy mvar1)
                                 |> forall_elim (cterm_of thy M1)
                                 |> CLASIMPSET auto_tac |> Seq.hd
 
-                fun set_m2 j = 
-                    let 
+                fun set_m2 j =
+                    let
                       val M2 = nth Mst2 j
                       val with_m2 = with_m1
                                       |> forall_intr (cterm_of thy mvar2)
@@ -241,10 +241,10 @@ fun setup_probe_goal thy domT Dtab Mtab (i, j) =
 
                       val thm1 = decr with_m2
                     in
-                      if Thm.no_prems thm1 
+                      if Thm.no_prems thm1
                       then ((rtac (inst_nums thy i j approx_less) 1) THEN (simp_nth_tac 1) THEN (rtac (Goal.finish thm1) 1))
                       else let val thm2 = decreq with_m2 in
-                             if Thm.no_prems thm2 
+                             if Thm.no_prems thm2
                              then ((rtac (inst_nums thy i j approx_leq) 1) THEN (simp_nth_tac 1) THEN (rtac (Goal.finish thm2) 1))
                              else all_tac end
                     end
@@ -255,7 +255,7 @@ fun setup_probe_goal thy domT Dtab Mtab (i, j) =
           val tac = (EVERY (map (fn n => EVERY (map (set_m1 n) (0 upto M - 1))) (0 upto N - 1)))
                       THEN (rtac approx_empty 1)
 
-          val approx_thm = goal 
+          val approx_thm = goal
                     |> cterm_of thy
                     |> Goal.init
                     |> tac |> Seq.hd
@@ -279,22 +279,22 @@ fun dest_set (Const ("{}", _)) = []
 val pr_graph = Sign.string_of_term
 fun pr_matrix thy = map_matrix (fn Graph (G, _) => pr_graph thy G | _ => "X")
 
-val in_graph_tac = 
+val in_graph_tac =
     simp_tac (HOL_basic_ss addsimps has_edge_simps) 1
     THEN SIMPSET (fn x => simp_tac x 1) (* FIXME reduce simpset *)
 
 fun approx_tac (NoStep thm) = rtac disjI1 1 THEN rtac thm 1
   | approx_tac (Graph (G, thm)) =
-    rtac disjI2 1 
+    rtac disjI2 1
     THEN rtac exI 1
     THEN rtac conjI 1
     THEN rtac thm 2
     THEN in_graph_tac
 
 fun all_less_tac [] = rtac all_less_zero 1
-  | all_less_tac (t :: ts) = rtac all_less_Suc 1 
+  | all_less_tac (t :: ts) = rtac all_less_Suc 1
                                   THEN simp_nth_tac 1
-                                  THEN t 
+                                  THEN t
                                   THEN all_less_tac ts
 
 
@@ -310,7 +310,7 @@ fun mk_call_graph (st : thm) =
       val _ $ _ $ RDlist $ _ = HOLogic.dest_Trueprop (hd (prems_of st))
 
       val RDs = HOLogic.dest_list RDlist
-      val n = length RDs 
+      val n = length RDs
 
       val Mss = map measures_of RDs
 
@@ -329,7 +329,7 @@ fun mk_call_graph (st : thm) =
       val indices = (n - 1 downto 0)
       val pairs = matrix indices indices
       val parts = map_matrix (fn (n,m) =>
-                                 (timeap_msg (string_of_int n ^ "," ^ string_of_int m) 
+                                 (timeap_msg (string_of_int n ^ "," ^ string_of_int m)
                                              (setup_probe_goal thy domT Dtab Mtab) (n,m))) pairs
 
 
@@ -337,7 +337,7 @@ fun mk_call_graph (st : thm) =
                                                                             pr_graph thy G ^ ",\n")
                                                      | _ => I) cs) parts ""
       val _ = Output.warning s
-  
+
 
       val ACG = map_filter (fn (Graph (G, _),(m, n)) => SOME (mk_edge (mk_number m) G (mk_number n)) | _ => NONE) (flat parts ~~ flat pairs)
                     |> mk_set (edgeT HOLogic.natT scgT)
@@ -346,15 +346,16 @@ fun mk_call_graph (st : thm) =
 
       val sound_int_goal = HOLogic.mk_Trueprop (mk_sound_int ACG RDlist mfuns)
 
-      val tac = 
+      val tac =
           (SIMPSET (unfold_tac [sound_int_def, len_simp]))
             THEN all_less_tac (map (all_less_tac o map approx_tac) parts)
     in
       tac (instantiate' [] [SOME (cterm_of thy ACG), SOME (cterm_of thy mfuns)] st)
     end
-                  
 
-end                   
+
+end
+
 
 
 

@@ -1348,7 +1348,7 @@ val record_split_wrapper = (record_split_name, fn tac => record_split_tac ORELSE
 (* prepare arguments *)
 
 fun read_raw_parent sign s =
-  (case Sign.read_typ_abbrev (sign, K NONE) s handle TYPE (msg, _, _) => error msg of
+  (case Sign.read_typ_abbrev sign s handle TYPE (msg, _, _) => error msg of
     Type (name, Ts) => (Ts, name)
   | _ => error ("Bad parent record specification: " ^ quote s));
 
@@ -1356,7 +1356,8 @@ fun read_typ sign (env, s) =
   let
     fun def_sort (x, ~1) = AList.lookup (op =) env x
       | def_sort _ = NONE;
-    val T = Type.no_tvars (Sign.read_typ (sign, def_sort) s) handle TYPE (msg, _, _) => error msg;
+    val T = Type.no_tvars (Sign.read_def_typ (sign, def_sort) s)
+      handle TYPE (msg, _, _) => error msg;
   in (Term.add_typ_tfrees (T, env), T) end;
 
 fun cert_typ sign (env, raw_T) =

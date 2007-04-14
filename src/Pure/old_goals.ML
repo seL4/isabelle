@@ -111,7 +111,7 @@ fun premises() = !curr_prems;
 fun init_mkresult _ = error "No goal has been supplied in subgoal module";
 val curr_mkresult = ref (init_mkresult: bool*thm->thm);
 
-val dummy = Thm.trivial (read_cterm ProtoPure.thy ("PROP No_goal_has_been_supplied", propT));
+val dummy = Thm.trivial (Thm.read_cterm ProtoPure.thy ("PROP No_goal_has_been_supplied", propT));
 
 (*List of previous goal stacks, for the undo operation.  Set by setstate.
   A list of lists!*)
@@ -245,7 +245,7 @@ and prove_goalw_cterm_nocheck rths chorn =
 
 (*Version taking the goal as a string*)
 fun prove_goalw thy rths agoal tacsf =
-  let val chorn = read_cterm thy (agoal, propT)
+  let val chorn = Thm.read_cterm thy (agoal, propT)
   in prove_goalw_cterm_general true rths chorn tacsf end
   handle ERROR msg => cat_error msg (*from read_cterm?*)
                 ("The error(s) above occurred for " ^ quote agoal);
@@ -359,7 +359,7 @@ val goalw_cterm = agoalw_cterm false;
 
 (*Version taking the goal as a string*)
 fun agoalw atomic thy rths agoal =
-    agoalw_cterm atomic rths (read_cterm thy (agoal, propT))
+    agoalw_cterm atomic rths (Thm.read_cterm thy (agoal, propT))
     handle ERROR msg => cat_error msg (*from type_assign, etc via prepare_proof*)
         ("The error(s) above occurred for " ^ quote agoal);
 

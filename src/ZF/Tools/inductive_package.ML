@@ -274,7 +274,7 @@ let
       (Thm.assume A RS elim)
       |> Drule.standard';
   fun mk_cases a = make_cases (*delayed evaluation of body!*)
-    (simpset ()) (read_cterm (Thm.theory_of_thm elim) (a, propT));
+    (simpset ()) (Thm.read_cterm (Thm.theory_of_thm elim) (a, propT));
 
   fun induction_rules raw_induct thy =
    let

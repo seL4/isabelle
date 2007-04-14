@@ -74,7 +74,7 @@ val inductive_rulify_fallback = thms "induct_rulify_fallback";
 val notTrueE = TrueI RSN (2, notE);
 val notFalseI = Seq.hd (atac 1 notI);
 val simp_thms' = map (fn s => mk_meta_eq (the (find_first
-  (equal (term_of (read_cterm HOL.thy (s, propT))) o prop_of) simp_thms)))
+  (equal (Sign.read_prop HOL.thy s) o prop_of) simp_thms)))
   ["(~True) = False", "(~False) = True",
    "(True --> ?P) = ?P", "(False --> ?P) = True",
    "(?P & True) = ?P", "(True & ?P) = ?P"];

@@ -103,7 +103,7 @@ let
 val meta_iffD = Data.meta_eq_to_iff RS Data.iffD;  (* (P == Q) ==> Q ==> P *)
 
 val lift =
-  let val ct = read_cterm Pure.thy
+  let val ct = Thm.read_cterm Pure.thy
            ("(!!x. (Q::('b::{})=>('c::{}))(x) == R(x)) ==> \
             \P(%x. Q(x)) == P(%x. R(x))::'a::{}",propT)
   in OldGoals.prove_goalw_cterm [] ct

@@ -80,7 +80,7 @@ fun is_contconst (_,_,NoSyn   ) = false
 
 fun gen_add_consts prep_typ raw_decls thy =
   let
-    val decls = map (upd_second (Thm.typ_of o prep_typ thy)) raw_decls;
+    val decls = map (upd_second (prep_typ thy)) raw_decls;
     val (contconst_decls, normal_decls) = List.partition is_contconst decls;
     val transformed_decls = map transform contconst_decls;
   in
@@ -91,8 +91,8 @@ fun gen_add_consts prep_typ raw_decls thy =
     |> Theory.add_trrules_i (List.concat (map third transformed_decls))
   end;
 
-val add_consts = gen_add_consts Thm.read_ctyp;
-val add_consts_i = gen_add_consts Thm.ctyp_of;
+val add_consts = gen_add_consts Sign.read_typ;
+val add_consts_i = gen_add_consts Sign.certify_typ;
 
 
 (* outer syntax *)

@@ -132,7 +132,7 @@ free_vars_of _ = raise malformed;
 (* making a constructor set from a constructor term (of signature) *)
 fun constr_set_string thy atyp ctstr =
 let
-val trm = #t(rep_cterm(read_cterm thy (ctstr,atyp)));
+val trm = Sign.simple_read_term thy atyp ctstr;
 val l = free_vars_of trm
 in
 if (check_for_constr thy atyp trm) then
@@ -149,7 +149,7 @@ let
 fun hd_of (Const(a,_)) = a |
 hd_of (t $ _) = hd_of t |
 hd_of _ = raise malformed;
-val trm = #t(rep_cterm(read_cterm thy (s,#T(rep_ctyp(read_ctyp thy atypstr))) ))
+val trm = Sign.simple_read_term thy (Sign.read_typ thy atypstr) s;
 in
 hd_of trm handle malformed =>
 error("malformed constructor of datatype " ^ atypstr ^ ": " ^ s)
@@ -177,8 +177,8 @@ poststring ((a,b)::r) l = (pstr a l) ^ " & " ^ (poststring r l);
 (where bool indicates whether there is a precondition *)
 fun extend thy atyp statetupel (actstr,r,[]) =
 let
-val trm = #t(rep_cterm(read_cterm thy (actstr,atyp)));
-val rtrm = #t(rep_cterm(read_cterm thy (r,Type("bool",[]))));
+val trm = Sign.simple_read_term thy atyp actstr;
+val rtrm = Sign.simple_read_term thy (Type("bool",[])) r;
 val flag = if (rtrm=Const("True",Type("bool",[]))) then false else true
 in
 if (check_for_constr thy atyp trm)
@@ -191,8 +191,8 @@ let
 fun pseudo_poststring [] = "" |
 pseudo_poststring ((a,b)::[]) = "(" ^ a ^ " = (" ^ b ^ "))" |
 pseudo_poststring ((a,b)::r) = "(" ^ a ^ " = (" ^ b ^ ")) & " ^ (pseudo_poststring r); 
-val trm = #t(rep_cterm(read_cterm thy (actstr,atyp)));
-val rtrm = #t(rep_cterm(read_cterm thy (r,Type("bool",[]))));
+val trm = Sign.simple_read_term thy atyp actstr;
+val rtrm = Sign.simple_read_term thy (Type("bool",[])) r;
 val flag = if (rtrm=Const("True",Type("bool",[]))) then false else true
 in
 if (check_for_constr thy atyp trm) then
@@ -330,10 +330,10 @@ fun add_ioa automaton_name action_type inp out int statetupel ini trans thy =
 (writeln("Constructing automaton " ^ automaton_name ^ " ...");
 let
 val state_type_string = type_product_of_varlist(statetupel);
-val styp = #T(rep_ctyp (read_ctyp thy state_type_string)) ;
+val styp = Sign.read_typ thy state_type_string;
 val state_vars_tupel = "(" ^ (comma_list_of_varlist statetupel) ^ ")";
 val state_vars_primed = "(" ^ (primed_comma_list_of_varlist statetupel) ^ ")";
-val atyp = #T(rep_ctyp (read_ctyp thy action_type));
+val atyp = Sign.read_typ thy action_type;
 val inp_set_string = action_set_string thy atyp inp;
 val out_set_string = action_set_string thy atyp out;
 val int_set_string = action_set_string thy atyp int;
@@ -364,8 +364,8 @@ automaton_name ^ "_trans == {(" ^
 automaton_name ^ " == (" ^ automaton_name ^ "_asig, " ^ automaton_name ^
 "_initial, " ^ automaton_name ^ "_trans,{},{})")
 ])
-val chk_prime_list = (check_free_primed (#t(rep_cterm(read_cterm thy2
-( "case act_of_" ^ automaton_name ^ " of " ^ snd(alt_string),Type("bool",[]))))));
+val chk_prime_list = (check_free_primed (Sign.simple_read_term thy2 (Type("bool",[]))
+( "case act_of_" ^ automaton_name ^ " of " ^ snd(alt_string))))
 in
 (
 if (chk_prime_list = []) then thy2

@@ -218,7 +218,7 @@ val _ = Context.add_setup ExtractionData.init;
 fun read_condeq thy =
   let val thy' = add_syntax thy
   in fn s =>
-    let val t = Logic.varify (term_of (read_cterm thy' (s, propT)))
+    let val t = Logic.varify (Sign.read_prop thy' s)
     in (map Logic.dest_equals (Logic.strip_imp_prems t),
       Logic.dest_equals (Logic.strip_imp_concl t))
     end handle TERM _ => error ("Not a (conditional) meta equality:\n" ^ s)
@@ -324,7 +324,7 @@ fun prep_realizer thy =
       val T = etype_of thy' vs [] prop;
       val (T', thw) = Type.freeze_thaw_type
         (if T = nullT then nullT else map fastype_of vars' ---> T);
-      val t = map_types thw (term_of (read_cterm thy' (s1, T')));
+      val t = map_types thw (Sign.simple_read_term thy' T' s1);
       val r' = freeze_thaw (condrew thy' eqns
         (procs @ [typeof_proc (Sign.defaultS thy') vs, rlz_proc]))
           (Const ("realizes", T --> propT --> propT) $

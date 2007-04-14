@@ -225,7 +225,7 @@ fun smart_string_of_cterm ct =
 	fun F n =
 	    let
 		val str = Library.setmp show_brackets false (G n string_of_cterm) ct
-		val cu  = read_cterm thy (str,T)
+		val cu  = Thm.read_cterm thy (str,T)
 	    in
 		if match cu
 		then quote str
@@ -473,10 +473,10 @@ fun innocent_varname s = Syntax.is_identifier s andalso not (String.isPrefix "u_
 val check_name_thy = theory "Main"
 
 fun valid_boundvarname s =
-  can (fn () => read_cterm check_name_thy ("SOME "^s^". True", TypeInfer.logicT)) ();
+  can (fn () => Thm.read_cterm check_name_thy ("SOME "^s^". True", TypeInfer.logicT)) ();
 
 fun valid_varname s =
-  can (fn () => read_cterm check_name_thy (s, TypeInfer.logicT)) ();
+  can (fn () => Thm.read_cterm check_name_thy (s, TypeInfer.logicT)) ();
 
 fun protect_varname s =
     if innocent_varname s andalso valid_varname s then s else

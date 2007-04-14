@@ -123,7 +123,7 @@ val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
 fun read_typ sign ((Ts, sorts), str) =
   let
-    val T = Type.no_tvars (Sign.read_typ (sign, (AList.lookup op =)
+    val T = Type.no_tvars (Sign.read_def_typ (sign, (AList.lookup op =)
       (map (apfst (rpair ~1)) sorts)) str) handle TYPE (msg, _, _) => error msg
   in (Ts @ [T], add_typ_tfrees (T, sorts)) end;
 

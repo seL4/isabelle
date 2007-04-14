@@ -236,9 +236,7 @@ fun read_term thy =
       |> add_proof_syntax
       |> add_proof_atom_consts
         (map (NameSpace.append "axm") axm_names @ map (NameSpace.append "thm") thm_names)
-  in
-    fn T => fn s => Thm.term_of (read_cterm thy' (s, T))
-  end;
+  in Sign.simple_read_term thy' end;
 
 fun read_proof thy =
   let val rd = read_term thy proofT

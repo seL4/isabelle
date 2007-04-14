@@ -218,7 +218,7 @@ val erg =
   fun deliver_erg sg tl _ [] = [] |
   deliver_erg sg tl typ ((c,tyl)::r) = let
                         val ft = fun_type_of (rev tyl) typ;
-                        val trm = #t(rep_cterm(read_cterm sg (c,ft)));
+                        val trm = Sign.simple_read_term sg ft c;
                         in
                         (con_term_list_of trm (arglist_of sg tl tyl))
 			@(deliver_erg sg tl typ r)
@@ -658,7 +658,7 @@ let
  val arglist = arglist_of sg tl (snd c);
  val tty = type_of_term t;
  val con_typ = fun_type_of (rev (snd c)) tty;
- val con = #t(rep_cterm(read_cterm sg (fst c,con_typ)));
+ val con = Sign.simple_read_term sg con_typ (fst c);
 in
  replace_termlist_with_args sg tl a con arglist t (l1,l2)
 end |
@@ -746,7 +746,7 @@ fun casc_if sg tl x ty (c::l) trm =
 let
  val arglist = arglist_of sg tl (snd c);
  val con_typ = fun_type_of (rev (snd c)) ty;
- val con = #t(rep_cterm(read_cterm sg (fst c,con_typ)));
+ val con = Sign.simple_read_term sg con_typ (fst c);
  fun casc_if2 sg tl x con [] ty trm [] = trm | (* should never occur *)
  casc_if2 sg tl x con [arg] ty trm [] = x_subst sg tl x (con_term_of con arg) trm |
  casc_if2 sg tl x con (a::r) ty trm cl =

@@ -591,13 +591,14 @@ in mk_cong_type thy (Const(f,T'),T') end;
 fun mk_congs thy = List.concat o map (mk_cong_thy thy);
 
 fun mk_typed_congs thy =
-let val S0 = Sign.defaultS thy;
-    fun readfT(f,s) =
-        let val T = Logic.incr_tvar 9 (Sign.read_typ(thy, K(SOME(S0))) s);
-            val t = case Sign.const_type thy f of
-                      SOME(_) => Const(f,T) | NONE => Free(f,T)
-        in (t,T) end
+let
+  fun readfT(f,s) =
+    let
+      val T = Logic.incr_tvar 9 (Sign.read_typ thy s);
+      val t = case Sign.const_type thy f of
+                  SOME(_) => Const(f,T) | NONE => Free(f,T)
+    in (t,T) end
 in List.concat o map (mk_cong_type thy o readfT) end;
 
-end (* local *)
-end (* SIMP *);
+end;
+end;
