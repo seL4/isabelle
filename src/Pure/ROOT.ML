@@ -9,9 +9,6 @@ val version = "Isabelle repository version";    (*filled in automatically!*)
 
 print_depth 10;
 
-(*fake hiding of private structures*)
-structure Hidden = struct end;
-
 (*basic tools*)
 use "General/basics.ML";
 use "library.ML";
@@ -34,13 +31,31 @@ use "context.ML";
 use "compress.ML";
 
 (*inner syntax module*)
-cd "Syntax"; use "ROOT.ML"; cd "..";
+use "Syntax/lexicon.ML";
+use "Syntax/ast.ML";
+use "Syntax/syn_ext.ML";
+use "Syntax/parser.ML";
+use "Syntax/type_ext.ML";
+use "Syntax/syn_trans.ML";
+use "Syntax/mixfix.ML";
+use "Syntax/printer.ML";
+use "Syntax/syntax.ML";
+structure Hidden = struct end;
+structure Lexicon = Hidden;
+structure Ast = Hidden;
+structure SynExt = Hidden;
+structure Parser = Hidden;
+structure TypeExt = Hidden;
+structure SynTrans = Hidden;
+structure Mixfix = Hidden;
+structure Printer = Hidden;
+
+use "type_infer.ML";
 use "General/ml_syntax.ML";
 
 (*core of tactical proof system*)
 use "envir.ML";
 use "logic.ML";
-use "type_infer.ML";
 use "consts.ML";
 use "sign.ML";
 use "pattern.ML";
