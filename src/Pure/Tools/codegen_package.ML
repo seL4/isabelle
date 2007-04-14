@@ -547,7 +547,7 @@ fun gen_constsubst prep_const raw_constsubsts thy =
 in
 
 val abstyp = gen_abstyp (K I) Sign.certify_typ;
-val abstyp_e = gen_abstyp CodegenConsts.read_const (fn thy => Sign.read_typ (thy, K NONE));
+val abstyp_e = gen_abstyp CodegenConsts.read_const Sign.read_typ;
 
 val constsubst = gen_constsubst (K I);
 val constsubst_e = gen_constsubst CodegenConsts.read_const;
@@ -606,7 +606,6 @@ fun satisfies thy t witnesses = raw_eval_term thy
 fun consts_of thy thyname =
   let
     val this_thy = Option.map theory thyname |> the_default thy;
-    val defs = (#defs o rep_theory) thy;
     val cs = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
       ((snd o #constants o Consts.dest o #consts o Sign.rep_sg) this_thy) [];
     fun classop c = case AxClass.class_of_param thy c
