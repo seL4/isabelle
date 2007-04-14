@@ -14,7 +14,7 @@ infixr 0 ===>;infixr 0 ==>;infix 0 == ;
 infix 1 ===; infix 1 ~= ; infix 1 <<; infix 1 ~<<;
 infix 9 `   ; infix 9 `% ; infix 9 `%%; infixr 9 oo;
 
-fun infer_types thy' = map (inferT_axm thy');
+fun infer_types thy' = map (Theory.inferT_axm thy');
 
 fun calc_axioms comp_dname (eqs : eq list) n (((dname,_),cons) : eq)=
 let
