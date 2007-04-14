@@ -177,13 +177,8 @@ fun cert_axm thy (name, raw_tm) =
   end;
 
 fun read_axm thy (name, str) =
-  let
-    val ts = Syntax.read (ProofContext.init thy) (Sign.is_logtype thy) (Sign.syn_of thy) propT str;
-    val (t, _) =
-      Sign.infer_types (Sign.pp thy) thy (Sign.consts_of thy)
-        (K NONE) (K NONE) Name.context true (ts, propT);
-  in cert_axm thy (name, t) end
-  handle ERROR msg => err_in_axm msg name;
+  cert_axm thy (name, Sign.read_prop thy str)
+    handle ERROR msg => err_in_axm msg name;
 
 fun inferT_axm thy (name, pre_tm) =
   let
