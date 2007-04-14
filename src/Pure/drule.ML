@@ -253,10 +253,10 @@ fun fold_terms f th =
 (** reading of instantiations **)
 
 fun absent ixn =
-  error("No such variable in term: " ^ Syntax.string_of_vname ixn);
+  error("No such variable in term: " ^ Term.string_of_vname ixn);
 
 fun inst_failure ixn =
-  error("Instantiation of " ^ Syntax.string_of_vname ixn ^ " fails");
+  error("Instantiation of " ^ Term.string_of_vname ixn ^ " fails");
 
 fun read_insts thy (rtypes,rsorts) (types,sorts) used insts =
 let
@@ -266,7 +266,7 @@ let
     fun sort_of ixn = case rsorts ixn of SOME S => S | NONE => absent ixn;
     fun readT (ixn, st) =
         let val S = sort_of ixn;
-            val T = Sign.read_typ (thy,sorts) st;
+            val T = Sign.read_def_typ (thy,sorts) st;
         in if Sign.typ_instance thy (T, TVar(ixn,S)) then (ixn,T)
            else inst_failure ixn
         end
@@ -277,7 +277,7 @@ let
     val ixnsTs = map mkty vs;
     val ixns = map fst ixnsTs
     and sTs  = map snd ixnsTs
-    val (cts,tye2) = read_def_cterms(thy,types,sorts) used false sTs;
+    val (cts,tye2) = Thm.read_def_cterms(thy,types,sorts) used false sTs;
     fun mkcVar(ixn,T) =
         let val U = typ_subst_TVars tye2 T
         in cterm_of thy (Var(ixn,U)) end
@@ -573,7 +573,7 @@ val merge_rules = Library.merge Thm.eq_thm_prop;
 
 (*** Meta-Rewriting Rules ***)
 
-fun read_prop s = read_cterm ProtoPure.thy (s, propT);
+fun read_prop s = Thm.read_cterm ProtoPure.thy (s, propT);
 
 fun store_thm name thm = hd (PureThy.smart_store_thms (name, [thm]));
 fun store_standard_thm name thm = store_thm name (standard thm);

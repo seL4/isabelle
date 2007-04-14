@@ -21,7 +21,7 @@ local
 
 fun is_tvar (x, _) = String.isPrefix "'" x;
 
-fun error_var msg xi = error (msg ^ Syntax.string_of_vname xi);
+fun error_var msg xi = error (msg ^ Term.string_of_vname xi);
 
 fun the_sort tvars xi = the (AList.lookup (op =) tvars xi)
   handle Option.Option => error_var "No such type variable in theorem: " xi;
@@ -235,15 +235,14 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         val (types, sorts) = types_sorts st;
     (* Process type insts: Tinsts_env *)
     fun absent xi = error
-          ("No such variable in theorem: " ^ Syntax.string_of_vname xi);
+          ("No such variable in theorem: " ^ Term.string_of_vname xi);
     val (rtypes, rsorts) = types_sorts thm;
     fun readT (xi, s) =
         let val S = case rsorts xi of SOME S => S | NONE => absent xi;
-            val T = Sign.read_typ (thy, sorts) s;
+            val T = Sign.read_def_typ (thy, sorts) s;
             val U = TVar (xi, S);
         in if Sign.typ_instance thy (T, U) then (U, T)
-           else error
-             ("Instantiation of " ^ Syntax.string_of_vname xi ^ " fails")
+           else error ("Instantiation of " ^ Term.string_of_vname xi ^ " fails")
         end;
     val Tinsts_env = map readT Tinsts;
     (* Preprocess rule: extract vars and their types, apply Tinsts *)
