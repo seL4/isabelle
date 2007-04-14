@@ -19,7 +19,6 @@ signature BASIC_THM =
   val theory_of_ctyp: ctyp -> theory
   val typ_of: ctyp -> typ
   val ctyp_of: theory -> typ -> ctyp
-  val read_ctyp: theory -> string -> ctyp
 
   (*certified terms*)
   type cterm
@@ -35,14 +34,6 @@ signature BASIC_THM =
   val term_of: cterm -> term
   val cterm_of: theory -> term -> cterm
   val ctyp_of_term: cterm -> ctyp
-  val read_cterm: theory -> string * typ -> cterm
-  val read_def_cterm:
-    theory * (indexname -> typ option) * (indexname -> sort option) ->
-    string list -> bool -> string * typ -> cterm * (indexname * typ) list
-  val read_def_cterms:
-    theory * (indexname -> typ option) * (indexname -> sort option) ->
-    string list -> bool -> (string * typ)list
-    -> cterm list * (indexname * typ)list
 
   type tag              (* = string * string list *)
 
@@ -201,12 +192,6 @@ fun ctyp_of thy raw_T =
       maxidx = Term.maxidx_of_typ T, sorts = may_insert_typ_sorts thy T []}
   end;
 
-fun read_ctyp thy s =
-  let val T = Sign.read_typ (thy, K NONE) s in
-    Ctyp {thy_ref = Theory.self_ref thy, T = T,
-      maxidx = Term.maxidx_of_typ T, sorts = may_insert_typ_sorts thy T []}
-  end;
-
 fun dest_ctyp (Ctyp {thy_ref, T = Type (s, Ts), maxidx, sorts}) =
       map (fn T => Ctyp {thy_ref = thy_ref, T = T, maxidx = maxidx, sorts = sorts}) Ts
   | dest_ctyp cT = raise TYPE ("dest_ctyp", [typ_of cT], []);
@@ -340,26 +325,6 @@ fun cterm_incr_indexes i (ct as Cterm {thy_ref, t, T, maxidx, sorts}) =
   else if i = 0 then ct
   else Cterm {thy_ref = thy_ref, t = Logic.incr_indexes ([], i) t,
     T = Logic.incr_tvar i T, maxidx = maxidx + i, sorts = sorts};
-
-
-
-(** read cterms **)   (*exception ERROR*)
-
-(*read terms, infer types, certify terms*)
-fun read_def_cterms (thy, types, sorts) used freeze sTs =
-  let
-    val (ts', tye) = Sign.read_def_terms (thy, types, sorts) used freeze sTs;
-    val cts = map (cterm_of thy) ts'
-      handle TYPE (msg, _, _) => error msg
-           | TERM (msg, _) => error msg;
-  in (cts, tye) end;
-
-(*read term, infer types, certify term*)
-fun read_def_cterm args used freeze aT =
-  let val ([ct],tye) = read_def_cterms args used freeze [aT]
-  in (ct,tye) end;
-
-fun read_cterm thy = #1 o read_def_cterm (thy, K NONE, K NONE) [] true;
 
 
 
@@ -531,7 +496,7 @@ fun extra_shyps (th as Thm {shyps, ...}) = Sorts.subtract (present_sorts th) shy
 fun get_axiom_i theory name =
   let
     fun get_ax thy =
-      Symtab.lookup (#2 (#axioms (Theory.rep_theory thy))) name
+      Symtab.lookup (Theory.axiom_table thy) name
       |> Option.map (fn prop =>
           Thm {thy_ref = Theory.self_ref thy,
             der = Pt.infer_derivs' I (false, Pt.axm_proof name prop),
@@ -560,8 +525,7 @@ fun get_def thy = get_axiom thy o def_name;
 
 (*return additional axioms of this theory node*)
 fun axioms_of thy =
-  map (fn (s, _) => (s, get_axiom thy s))
-    (Symtab.dest (#2 (#axioms (Theory.rep_theory thy))));
+  map (fn s => (s, get_axiom_i thy s)) (Symtab.keys (Theory.axiom_table thy));
 
 
 (* official name and additional tags *)
@@ -1601,7 +1565,7 @@ fun biresolution match brules i state =
 fun invoke_oracle_i thy1 name =
   let
     val oracle =
-      (case Symtab.lookup (#2 (#oracles (Theory.rep_theory thy1))) name of
+      (case Symtab.lookup (Theory.oracle_table thy1) name of
         NONE => raise THM ("Unknown oracle: " ^ name, 0, [])
       | SOME (f, _) => f);
     val thy_ref1 = Theory.self_ref thy1;
