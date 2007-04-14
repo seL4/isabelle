@@ -446,7 +446,7 @@ val paramify_dummies =
   in paramify end;
 
 
-(* decode sort constraints *)
+(* get sort constraints *)
 
 fun get_sort tsig def_sort map_sort raw_env =
   let
