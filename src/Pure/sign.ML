@@ -164,9 +164,10 @@ sig
     (indexname -> sort option) -> string -> typ
   val read_typ_abbrev': Syntax.syntax -> Proof.context ->
     (indexname -> sort option) -> string -> typ
-  val read_typ: theory * (indexname -> sort option) -> string -> typ
-  val read_typ_syntax: theory * (indexname -> sort option) -> string -> typ
-  val read_typ_abbrev: theory * (indexname -> sort option) -> string -> typ
+  val read_def_typ: theory * (indexname -> sort option) -> string -> typ
+  val read_typ: theory -> string -> typ
+  val read_typ_syntax: theory -> string -> typ
+  val read_typ_abbrev: theory -> string -> typ
   val read_tyname: theory -> string -> typ
   val read_const: theory -> string -> term
   val infer_types_simult: Pretty.pp -> theory -> Consts.T -> (indexname -> typ option) ->
@@ -550,9 +551,11 @@ fun no_def_sort thy = (thy: theory, K NONE);
 val read_typ'        = gen_read_typ' certify_typ;
 val read_typ_syntax' = gen_read_typ' certify_typ_syntax;
 val read_typ_abbrev' = gen_read_typ' certify_typ_abbrev;
-val read_typ         = gen_read_typ certify_typ;
-val read_typ_syntax  = gen_read_typ certify_typ_syntax;
-val read_typ_abbrev  = gen_read_typ certify_typ_abbrev;
+val read_def_typ     = gen_read_typ certify_typ;
+
+val read_typ = read_def_typ o no_def_sort;
+val read_typ_syntax  = gen_read_typ certify_typ_syntax o no_def_sort;
+val read_typ_abbrev  = gen_read_typ certify_typ_abbrev o no_def_sort;
 
 end;
 
@@ -693,7 +696,7 @@ fun gen_add_tyabbr prep_typ (a, vs, rhs, mx) thy =
       val tsig' = Type.add_abbrevs naming [abbr] tsig;
     in (naming, syn', tsig', consts) end);
 
-val add_tyabbrs = fold (gen_add_tyabbr (read_typ_syntax o no_def_sort));
+val add_tyabbrs = fold (gen_add_tyabbr read_typ_syntax);
 val add_tyabbrs_i = fold (gen_add_tyabbr certify_typ_syntax);
 
 
@@ -707,11 +710,11 @@ fun gen_syntax change_gram prep_typ mode args thy =
 
 fun gen_add_syntax x = gen_syntax Syntax.extend_const_gram x;
 
-val add_modesyntax = gen_add_syntax (read_typ_syntax o no_def_sort);
+val add_modesyntax = gen_add_syntax read_typ_syntax;
 val add_modesyntax_i = gen_add_syntax certify_typ_syntax;
 val add_syntax = add_modesyntax Syntax.default_mode;
 val add_syntax_i = add_modesyntax_i Syntax.default_mode;
-val del_modesyntax = gen_syntax Syntax.remove_const_gram (read_typ_syntax o no_def_sort);
+val del_modesyntax = gen_syntax Syntax.remove_const_gram read_typ_syntax;
 val del_modesyntax_i = gen_syntax Syntax.remove_const_gram certify_typ_syntax;
 
 fun const_syntax thy (Const (c, _), mx) = try (Consts.syntax (consts_of thy)) (c, mx)
@@ -744,7 +747,7 @@ fun gen_add_consts prep_typ authentic raw_args thy =
 
 in
 
-val add_consts = gen_add_consts (read_typ o no_def_sort) false;
+val add_consts = gen_add_consts read_typ false;
 val add_consts_i = gen_add_consts certify_typ false;
 val add_consts_authentic = gen_add_consts certify_typ true;
 
@@ -777,7 +780,7 @@ fun gen_add_constraint int_const prep_typ (raw_c, opt_T) thy =
       handle TYPE (msg, _, _) => error msg;
   in thy |> map_consts (Consts.constrain (c, Option.map prepT opt_T)) end;
 
-val add_const_constraint = gen_add_constraint intern_const (read_typ o no_def_sort);
+val add_const_constraint = gen_add_constraint intern_const read_typ;
 val add_const_constraint_i = gen_add_constraint (K I) certify_typ;
 
 
