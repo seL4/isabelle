@@ -197,7 +197,7 @@ fun set_iterations iterations ({size, default_type, ...} : test_params) =
 
 fun set_default_type s thy ({size, iterations, ...} : test_params) =
   {size = size, iterations = iterations,
-   default_type = SOME (typ_of (read_ctyp thy s))};
+   default_type = SOME (Sign.read_typ thy s)};
 
 (* data kind 'Pure/codegen' *)
 
@@ -394,7 +394,7 @@ fun gen_assoc_consts prep_type xs thy = Library.foldl (fn (thy, (s, tyopt, syn))
   end) (thy, xs);
 
 val assoc_consts_i = gen_assoc_consts (K I);
-val assoc_consts = gen_assoc_consts (typ_of oo read_ctyp);
+val assoc_consts = gen_assoc_consts Sign.read_typ;
 
 
 (**** associate types with target language types ****)
@@ -569,8 +569,7 @@ fun get_aux_code xs = map_filter (fn (m, code) =>
 
 fun mk_deftab thy =
   let
-    val axmss = map (fn thy' =>
-      (Context.theory_name thy', snd (#axioms (Theory.rep_theory thy'))))
+    val axmss = map (fn thy' => (Context.theory_name thy', Theory.axiom_table thy'))
       (thy :: Theory.ancestors_of thy);
     fun prep_def def = (case preprocess thy [def] of
       [def'] => prop_of def' | _ => error "mk_deftab: bad preprocessor");
@@ -911,9 +910,8 @@ fun gen_generate_code prep_term thy modules module =
     (code'', del_nodes ["<Top>"] gr')
   end));
 
-val generate_code_i = gen_generate_code (K I);
-val generate_code = gen_generate_code
-  (fn thy => term_of o read_cterm thy o rpair TypeInfer.logicT);
+val generate_code_i = gen_generate_code Sign.cert_term;
+val generate_code = gen_generate_code Sign.read_term;
 
 
 (**** Reflection ****)
@@ -1123,7 +1121,7 @@ val assoc_typeP =
     (Scan.repeat1 (P.xname --| P.$$$ "(" -- P.string --| P.$$$ ")" -- parse_attach) >>
      (fn xs => Toplevel.theory (fn thy => assoc_types
        (map (fn ((name, mfx), aux) => (name, (parse_mixfix
-         (typ_of o read_ctyp thy) mfx, aux))) xs) thy)));
+         (Sign.read_typ thy) mfx, aux))) xs) thy)));
 
 val assoc_constP =
   OuterSyntax.command "consts_code"
@@ -1132,9 +1130,8 @@ val assoc_constP =
        (P.xname -- (Scan.option (P.$$$ "::" |-- P.typ)) --|
         P.$$$ "(" -- P.string --| P.$$$ ")" -- parse_attach) >>
      (fn xs => Toplevel.theory (fn thy => assoc_consts
-       (map (fn (((name, optype), mfx), aux) => (name, optype, (parse_mixfix
-         (term_of o read_cterm thy o rpair TypeInfer.logicT) mfx, aux)))
-           xs) thy)));
+       (map (fn (((name, optype), mfx), aux) =>
+         (name, optype, (parse_mixfix (Sign.read_term thy) mfx, aux))) xs) thy)));
 
 fun parse_code lib =
   Scan.optional (P.$$$ "(" |-- P.enum "," P.xname --| P.$$$ ")") (!mode) --
@@ -1183,7 +1180,7 @@ val parse_test_params = P.short_ident :-- (fn s =>
 
 fun parse_tyinst xs =
   (P.type_ident --| P.$$$ "=" -- P.typ >> (fn (v, s) => fn thy =>
-    fn (x, ys) => (x, (v, typ_of (read_ctyp thy s)) :: ys))) xs;
+    fn (x, ys) => (x, (v, Sign.read_typ thy s) :: ys))) xs;
 
 fun app [] x = x
   | app (f :: fs) x = app fs (f x);
