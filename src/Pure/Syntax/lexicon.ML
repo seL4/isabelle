@@ -21,8 +21,6 @@ sig
   val scan_int: string list -> string * string list
   val scan_hex: string list -> string * string list
   val scan_bin: string list -> string * string list
-  val string_of_vname: indexname -> string
-  val string_of_vname': indexname -> string
   val read_indexname: string -> indexname
   val read_var: string -> term
   val read_variable: string -> indexname option
@@ -111,13 +109,6 @@ val scan_bin = $$ "0" ^^ $$ "b" ^^ (scan_bin1 >> implode);
 val scan_id_nat = scan_id ^^ Scan.optional ($$ "." ^^ scan_nat) "";
 val scan_var = $$ "?" ^^ scan_id_nat;
 val scan_tvar = $$ "?" ^^ $$ "'" ^^ scan_id_nat;
-
-
-
-(** string_of_vname **)
-
-val string_of_vname = Term.string_of_vname;
-val string_of_vname' = Term.string_of_vname';
 
 
 
