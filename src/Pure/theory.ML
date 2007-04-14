@@ -7,32 +7,29 @@ Logical theory content: axioms, definitions, oracles.
 
 signature BASIC_THEORY =
 sig
-  val rep_theory: theory ->
-   {axioms: term NameSpace.table,
-    defs: Defs.T,
-    oracles: ((theory * Object.T -> term) * stamp) NameSpace.table}
-  val parents_of: theory -> theory list
-  val ancestors_of: theory -> theory list
   val eq_thy: theory * theory -> bool
   val subthy: theory * theory -> bool
-  val cert_axm: theory -> string * term -> string * term
-  val read_def_axm: theory * (indexname -> typ option) * (indexname -> sort option) ->
-    string list -> string * string -> string * term
-  val read_axm: theory -> string * string -> string * term
-  val inferT_axm: theory -> string * term -> string * term
 end
 
 signature THEORY =
 sig
   include BASIC_THEORY
   include SIGN_THEORY
+  val parents_of: theory -> theory list
+  val ancestors_of: theory -> theory list
   val begin_theory: string -> theory list -> theory
   val end_theory: theory -> theory
   val checkpoint: theory -> theory
   val copy: theory -> theory
   val init_data: theory -> theory
+  val rep_theory: theory ->
+   {axioms: term NameSpace.table,
+    defs: Defs.T,
+    oracles: ((theory * Object.T -> term) * stamp) NameSpace.table}
   val axiom_space: theory -> NameSpace.T
+  val axiom_table: theory -> term Symtab.table
   val oracle_space: theory -> NameSpace.T
+  val oracle_table: theory -> ((theory * Object.T -> term) * stamp) Symtab.table
   val axioms_of: theory -> (string * term) list
   val all_axioms_of: theory -> (string * term) list
   val defs_of : theory -> Defs.T
@@ -43,6 +40,9 @@ sig
   val merge_list: theory list -> theory                    (*exception TERM*)
   val requires: theory -> string -> string -> unit
   val assert_super: theory -> theory -> theory
+  val cert_axm: theory -> string * term -> string * term
+  val read_axm: theory -> string * string -> string * term
+  val inferT_axm: theory -> string * term -> string * term
   val add_axioms: (bstring * string) list -> theory -> theory
   val add_axioms_i: (bstring * term) list -> theory -> theory
   val add_deps: string -> string * typ -> (string * typ) list -> theory -> theory
@@ -139,7 +139,10 @@ fun map_oracles f = map_thy (fn (axioms, defs, oracles) => (axioms, defs, f orac
 (* basic operations *)
 
 val axiom_space = #1 o #axioms o rep_theory;
+val axiom_table = #2 o #axioms o rep_theory;
+
 val oracle_space = #1 o #oracles o rep_theory;
+val oracle_table = #2 o #oracles o rep_theory;
 
 val axioms_of = Symtab.dest o #2 o #axioms o rep_theory;
 fun all_axioms_of thy = maps axioms_of (thy :: ancestors_of thy);
@@ -173,16 +176,14 @@ fun cert_axm thy (name, raw_tm) =
     (name, Sign.no_vars (Sign.pp thy) t)
   end;
 
-fun read_def_axm (thy, types, sorts) used (name, str) =
+fun read_axm thy (name, str) =
   let
     val ts = Syntax.read (ProofContext.init thy) (Sign.is_logtype thy) (Sign.syn_of thy) propT str;
     val (t, _) =
       Sign.infer_types (Sign.pp thy) thy (Sign.consts_of thy)
-        types sorts (Name.make_context used) true (ts, propT);
+        (K NONE) (K NONE) Name.context true (ts, propT);
   in cert_axm thy (name, t) end
   handle ERROR msg => err_in_axm msg name;
-
-fun read_axm thy name_str = read_def_axm (thy, K NONE, K NONE) [] name_str;
 
 fun inferT_axm thy (name, pre_tm) =
   let
