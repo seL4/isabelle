@@ -89,7 +89,7 @@ fun var_or_skolem s =
       (case try Name.dest_skolem x of
         NONE => tagit var_tag s
       | SOME x' => tagit skolem_tag
-          (setmp show_question_marks true Syntax.string_of_vname (x', i)))
+          (setmp show_question_marks true Term.string_of_vname (x', i)))
   | NONE => tagit var_tag s);
 
 val proof_general_trans =

@@ -460,7 +460,7 @@ fun certify_consts ctxt =
   Consts.certify (pp ctxt) (tsig_of ctxt) (consts_of ctxt);
 
 fun reject_schematic (Var (xi, _)) =
-      error ("Unbound schematic variable: " ^ Syntax.string_of_vname xi)
+      error ("Unbound schematic variable: " ^ Term.string_of_vname xi)
   | reject_schematic (Abs (_, _, t)) = reject_schematic t
   | reject_schematic (t $ u) = (reject_schematic t; reject_schematic u)
   | reject_schematic _ = ();

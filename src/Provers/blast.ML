@@ -1212,7 +1212,7 @@ fun fromSubgoal t =
                      | SOME(v,is) => if is=bounds ts then Var v
                             else raise TRANS
                                 ("Discrepancy among occurrences of "
-                                 ^ Syntax.string_of_vname ix))
+                                 ^ Term.string_of_vname ix))
             | Term.Abs (a,_,body) =>
                   if null ts then Abs(a, from (lev+1) body)
                   else raise TRANS "argument not in normal form"

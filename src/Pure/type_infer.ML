@@ -273,7 +273,7 @@ fun unify pp tsig =
           else raise NO_UNIFIER (not_of_sort x S' S)
       | meet (PTVar (xi, S'), S) =
           if Type.subsort tsig (S', S) then ()
-          else raise NO_UNIFIER (not_of_sort (Syntax.string_of_vname xi) S' S)
+          else raise NO_UNIFIER (not_of_sort (Term.string_of_vname xi) S' S)
       | meet (Param _, _) = sys_error "meet";
 
 
@@ -456,7 +456,7 @@ fun get_sort tsig def_sort map_sort raw_env =
     val env = distinct eq (map (apsnd map_sort) raw_env);
     val _ = (case duplicates (eq_fst (op =)) env of [] => ()
       | dups => error ("Inconsistent sort constraints for type variable(s) "
-          ^ commas_quote (map (Syntax.string_of_vname' o fst) dups)));
+          ^ commas_quote (map (Term.string_of_vname' o fst) dups)));
 
     fun get xi =
       (case (AList.lookup (op =) env xi, def_sort xi) of
@@ -466,7 +466,7 @@ fun get_sort tsig def_sort map_sort raw_env =
       | (SOME S, SOME S') =>
           if Type.eq_sort tsig (S, S') then S'
           else error ("Sort constraint inconsistent with default for type variable " ^
-            quote (Syntax.string_of_vname' xi)));
+            quote (Term.string_of_vname' xi)));
   in get end;
 
 

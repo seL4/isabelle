@@ -2133,7 +2133,7 @@ fun read_instantiations read_terms is_local parms (insts, eqns) =
       |> fold Term.add_varnames all_vs
     val _ = if null vars then ()
          else error ("Illegal schematic variable(s) in instantiation: " ^
-           commas_quote (map Syntax.string_of_vname vars));
+           commas_quote (map Term.string_of_vname vars));
     (* replace new types (which are TFrees) by ones with new names *)
     val new_Tnames = map fst (fold Term.add_tfrees all_vs [])
       |> Name.names (Name.make_context used) "'a"

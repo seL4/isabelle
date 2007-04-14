@@ -71,7 +71,7 @@ fun clashB binders i s =
 
 fun proj_fail thy (env,binders,F,_,is,t) =
   if !trace_unify_fail
-  then let val f = Syntax.string_of_vname F
+  then let val f = Term.string_of_vname F
            val xs = bnames binders is
            val u = string_of_term thy env binders t
            val ys = bnames binders (subtract (op =) is (loose_bnos t))
@@ -83,7 +83,7 @@ fun proj_fail thy (env,binders,F,_,is,t) =
 
 fun ocheck_fail thy (F,t,binders,env) =
   if !trace_unify_fail
-  then let val f = Syntax.string_of_vname F
+  then let val f = Term.string_of_vname F
            val u = string_of_term thy env binders t
        in tracing("Variable " ^ f ^ " occurs in term\n" ^ u ^
                   "\nCannot unify!\n")

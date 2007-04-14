@@ -74,7 +74,7 @@ fun genvar name (env,T) : env * term =
   in  (env',v)  end;
 
 fun var_clash ixn T T' = raise TYPE ("Variable " ^
-  quote (Syntax.string_of_vname ixn) ^ " has two distinct types",
+  quote (Term.string_of_vname ixn) ^ " has two distinct types",
   [T', T], []);
 
 fun gen_lookup f asol (xname, T) =
