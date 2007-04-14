@@ -27,14 +27,20 @@ sig
   val proof_attributes: attribute list -> Proof.context * thm -> Proof.context * thm
   val no_attributes: 'a -> 'a * 'b list
   val simple_fact: 'a -> ('a * 'b list) list
+  val read_def_cterms:
+    theory * (indexname -> typ option) * (indexname -> sort option) ->
+    string list -> bool -> (string * typ)list
+    -> cterm list * (indexname * typ)list
+  val read_cterm: theory -> string * typ -> cterm
 end;
 
 structure Thm: THM =
 struct
 
-(* compare theorems *)
+(** compare theorems **)
 
-(*order: ignores theory context!*)
+(* order: ignores theory context! *)
+
 fun thm_ord (th1, th2) =
   let
     val {shyps = shyps1, hyps = hyps1, tpairs = tpairs1, prop = prop1, ...} = Thm.rep_thm th1;
@@ -51,6 +57,9 @@ fun thm_ord (th1, th2) =
     | ord => ord)
   end;
 
+
+(* equality *)
+
 fun eq_thm ths =
   Context.joinable (pairself Thm.theory_of_thm ths) andalso
   thm_ord ths = EQUAL;
@@ -60,12 +69,15 @@ val eq_thms = eq_list eq_thm;
 val eq_thm_thy = eq_thy o pairself Thm.theory_of_thm;
 val eq_thm_prop = op aconv o pairself Thm.full_prop_of;
 
-(*pattern equivalence*)
+
+(* pattern equivalence *)
+
 fun equiv_thm ths =
   Pattern.equiv (Theory.merge (pairself Thm.theory_of_thm ths)) (pairself Thm.full_prop_of ths);
 
 
-(* theorem kinds *)
+
+(** theorem kinds **)
 
 val axiomK = "axiom";
 val assumptionK = "assumption";
@@ -76,7 +88,8 @@ val corollaryK = "corollary";
 val internalK = "internal";
 
 
-(* attributes *)
+
+(** attributes **)
 
 fun rule_attribute f (x, th) = (x, f x th);
 fun declaration_attribute f (x, th) = (f th x, th);
@@ -92,6 +105,21 @@ val proof_attributes = apply_attributes Context.Proof Context.the_proof;
 
 fun no_attributes x = (x, []);
 fun simple_fact x = [(x, [])];
+
+
+(** read/certify terms (obsolete) **)    (*exception ERROR*)
+
+fun read_def_cterms (thy, types, sorts) used freeze sTs =
+  let
+    val (ts', tye) = Sign.read_def_terms (thy, types, sorts) used freeze sTs;
+    val cts = map (Thm.cterm_of thy) ts'
+      handle TYPE (msg, _, _) => error msg
+           | TERM (msg, _) => error msg;
+  in (cts, tye) end;
+
+fun read_cterm thy sT =
+  let val ([ct], _) = read_def_cterms (thy, K NONE, K NONE) [] true [sT]
+  in ct end;
 
 
 open Thm;
