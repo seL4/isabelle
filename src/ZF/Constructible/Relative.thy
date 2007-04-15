@@ -1431,12 +1431,12 @@ subsection{*Relativization and Absoluteness for List Operators*}
 
 definition
   is_Nil :: "[i=>o, i] => o" where
-     --{* because @{term "[] \<equiv> Inl(0)"}*}
+     --{* because @{prop "[] \<equiv> Inl(0)"}*}
     "is_Nil(M,xs) == \<exists>zero[M]. empty(M,zero) & is_Inl(M,zero,xs)"
 
 definition
   is_Cons :: "[i=>o,i,i,i] => o" where
-     --{* because @{term "Cons(a, l) \<equiv> Inr(\<langle>a,l\<rangle>)"}*}
+     --{* because @{prop "Cons(a, l) \<equiv> Inr(\<langle>a,l\<rangle>)"}*}
     "is_Cons(M,a,l,Z) == \<exists>p[M]. pair(M,a,l,p) & is_Inr(M,p,Z)"
 
 

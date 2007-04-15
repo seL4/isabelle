@@ -84,7 +84,7 @@ done
 
 text{*If @{term r} allows well-founded induction over @{term A}
    then we have @{term "wf[A](r)"}.   Premise is equivalent to
-  @{term "!!B. ALL x:A. (ALL y. <y,x>: r --> y:B) --> x:B ==> A<=B"} *}
+  @{prop "!!B. ALL x:A. (ALL y. <y,x>: r --> y:B) --> x:B ==> A<=B"} *}
 lemma wf_onI2:
  assumes prem: "!!y B. [| ALL x:A. (ALL y:A. <y,x>:r --> y:B) --> x:B;   y:A |]
                        ==> y:B"

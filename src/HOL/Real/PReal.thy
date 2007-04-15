@@ -932,7 +932,7 @@ by (insert preal_self_less_add_left [of x y], auto)
 
 subsection{*Subtraction for Positive Reals*}
 
-text{*Gleason prop. 9-3.5(iv), page 123: proving @{term "A < B ==> \<exists>D. A + D =
+text{*Gleason prop. 9-3.5(iv), page 123: proving @{prop "A < B ==> \<exists>D. A + D =
 B"}. We define the claimed @{term D} and show that it is a positive real*}
 
 text{*Part 1 of Dedekind sections definition*}

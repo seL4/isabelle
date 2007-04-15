@@ -369,7 +369,7 @@ apply blast
 done
 
 text{*But note that the combination of @{text wf_imp_wf_on} and
- @{text wf_rvimage} gives @{term "wf(r) ==> wf[C](rvimage(A,f,r))"}*}
+ @{text wf_rvimage} gives @{prop "wf(r) ==> wf[C](rvimage(A,f,r))"}*}
 lemma wf_on_rvimage: "[| f: A->B;  wf[B](r) |] ==> wf[A](rvimage(A,f,r))"
 apply (rule wf_onI2)
 apply (subgoal_tac "ALL z:A. f`z=f`y --> z: Ba")

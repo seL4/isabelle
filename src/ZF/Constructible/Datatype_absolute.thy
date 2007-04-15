@@ -648,7 +648,7 @@ done
 
 subsection {*Absoluteness for @{term transrec}*}
 
-text{* @{term "transrec(a,H) \<equiv> wfrec(Memrel(eclose({a})), a, H)"} *}
+text{* @{prop "transrec(a,H) \<equiv> wfrec(Memrel(eclose({a})), a, H)"} *}
 
 definition
   is_transrec :: "[i=>o, [i,i,i]=>o, i, i] => o" where

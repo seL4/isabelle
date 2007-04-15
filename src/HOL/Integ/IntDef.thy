@@ -76,7 +76,7 @@ lemma [simp]: "intrel``{(x,y)} \<in> Integ"
 by (auto simp add: Integ_def intrel_def quotient_def)
 
 text{*Reduces equality on abstractions to equality on representatives:
-  @{term "\<lbrakk>x \<in> Integ; y \<in> Integ\<rbrakk> \<Longrightarrow> (Abs_Integ x = Abs_Integ y) = (x=y)"} *}
+  @{prop "\<lbrakk>x \<in> Integ; y \<in> Integ\<rbrakk> \<Longrightarrow> (Abs_Integ x = Abs_Integ y) = (x=y)"} *}
 declare Abs_Integ_inject [simp]  Abs_Integ_inverse [simp]
 
 text{*Case analysis on the representation of an integer as an equivalence

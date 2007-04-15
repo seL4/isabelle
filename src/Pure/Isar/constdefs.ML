@@ -22,7 +22,7 @@ struct
 
 (** add_constdefs(_i) **)
 
-fun gen_constdef prep_vars prep_term prep_att
+fun gen_constdef prep_vars prep_prop prep_att
     structs (raw_decl, ((raw_name, raw_atts), raw_prop)) thy =
   let
     fun err msg ts = error (cat_lines (msg :: map (Sign.string_of_term thy) ts));
@@ -36,7 +36,7 @@ fun gen_constdef prep_vars prep_term prep_att
           struct_ctxt |> prep_vars [raw_var] |-> (fn [(x, T, mx)] =>
             ProofContext.add_fixes_legacy [(x, T, mx)] #> snd #> pair (SOME x, mx)));
 
-    val prop = prep_term var_ctxt raw_prop;
+    val prop = prep_prop var_ctxt raw_prop;
     val (c, T) = #1 (LocalDefs.cert_def thy_ctxt (Logic.strip_imp_concl prop));
     val _ = (case d of NONE => () | SOME c' =>
       if c <> c' then
@@ -53,15 +53,15 @@ fun gen_constdef prep_vars prep_term prep_att
       |> PureThy.add_defs_i false [((name, def), atts)] |> snd;
   in ((c, T), thy') end;
 
-fun gen_constdefs prep_vars prep_term prep_att (raw_structs, specs) thy =
+fun gen_constdefs prep_vars prep_prop prep_att (raw_structs, specs) thy =
   let
     val ctxt = ProofContext.init thy;
     val (structs, _) = prep_vars (map (fn (x, T) => (x, T, Structure)) raw_structs) ctxt;
-    val (decls, thy') = fold_map (gen_constdef prep_vars prep_term prep_att structs) specs thy;
+    val (decls, thy') = fold_map (gen_constdef prep_vars prep_prop prep_att structs) specs thy;
   in Pretty.writeln (ProofDisplay.pretty_consts ctxt (K true) decls); thy' end;
 
 val add_constdefs = gen_constdefs ProofContext.read_vars_legacy
-  ProofContext.read_term_legacy Attrib.attribute;
-val add_constdefs_i = gen_constdefs ProofContext.cert_vars_legacy ProofContext.cert_term (K I);
+  ProofContext.read_prop_legacy Attrib.attribute;
+val add_constdefs_i = gen_constdefs ProofContext.cert_vars_legacy ProofContext.cert_prop (K I);
 
 end;
