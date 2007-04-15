@@ -214,9 +214,9 @@ fun setup_messages () =
   Output.tracing_fn := (fn s => normalmsg  Message Tracing false s);
   Output.warning_fn := (fn s => errormsg Warning s);
   Output.error_fn := (fn s => errormsg Fatal s);
-  Output.panic_fn := (fn s => errormsg Panic s);
   Output.debug_fn := (fn s => errormsg Debug s));
 
+fun panic s = (errormsg Panic ("## SYSTEM EXIT ##\n" ^ s); exit 1);
 fun nonfatal_error s = errormsg Nonfatal s;
 fun log_msg s = errormsg Log s;
 
@@ -399,8 +399,7 @@ fun send_pgip_config () =
         val wwwpage =
             (Url.explode (isabelle_www()))
             handle ERROR _ =>
-                   (Output.panic
-                        ("Error in URL in environment variable ISABELLE_HOMEPAGE.");
+                   (panic ("Error in URL in environment variable ISABELLE_HOMEPAGE.");
                         Url.explode isabellewww)
 
         val proverinfo =
@@ -415,7 +414,7 @@ fun send_pgip_config () =
             (issue_pgip proverinfo;
              issue_pgip_rawtext (File.read path);
              issue_pgip (lexicalstructure_keywords()))
-        else Output.panic ("PGIP configuration file \"" ^ config_file() ^ "\" not found")
+        else panic ("PGIP configuration file \"" ^ config_file() ^ "\" not found")
     end;
 end
 
@@ -1064,7 +1063,7 @@ fun loop ready src =
 and handler (e,srco) =
     case (e,srco) of
         (XML_PARSE,SOME src) =>
-        Output.panic "Invalid XML input, aborting" (* TODO: attempt recovery  *)
+        panic "Invalid XML input, aborting" (* TODO: attempt recovery  *)
       | (Interrupt,SOME src) =>
         (Output.error_msg "Interrupt during PGIP processing"; loop true src)
       | (Toplevel.UNDEF,SOME src) =>
@@ -1104,8 +1103,7 @@ end
 
 val initialized = ref false;
 
-fun init_pgip false =
-      Output.panic "No Proof General interface support for Isabelle/classic mode."
+fun init_pgip false = panic "No Proof General interface support for Isabelle/classic mode."
   | init_pgip true =
       (! initialized orelse
         (Output.no_warnings init_outer_syntax ();

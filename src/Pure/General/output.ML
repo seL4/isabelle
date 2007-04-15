@@ -37,7 +37,6 @@ sig
   val tracing_fn: (string -> unit) ref
   val warning_fn: (string -> unit) ref
   val error_fn: (string -> unit) ref
-  val panic_fn: (string -> unit) ref
   val debug_fn: (string -> unit) ref
   val debugging: bool ref
   val no_warnings: ('a -> 'b) -> 'a -> 'b
@@ -45,7 +44,6 @@ sig
   val do_toplevel_errors: bool ref
   val toplevel_errors: ('a -> 'b) -> 'a -> 'b
   val ML_errors: ('a -> 'b) -> 'a -> 'b
-  val panic: string -> unit
   val debug: (unit -> string) -> unit
   val error_msg: string -> unit
   val ml_output: (string -> unit) * (string -> unit)
@@ -105,7 +103,6 @@ val priority_fn = ref (fn s => ! writeln_fn s);
 val tracing_fn = ref (fn s => ! writeln_fn s);
 val warning_fn = ref (std_output o suffix "\n" o prefix_lines "### ");
 val error_fn = ref (std_output o suffix "\n" o prefix_lines "*** ");
-val panic_fn = ref (std_output o suffix "\n" o prefix_lines "!!! ");
 val debug_fn = ref (std_output o suffix "\n" o prefix_lines "::: ");
 
 fun writeln s = ! writeln_fn (output s);
@@ -119,9 +116,6 @@ val debugging = ref false;
 fun debug s = if ! debugging then ! debug_fn (output (s ())) else ()
 
 fun error_msg s = ! error_fn (output s);
-
-fun panic_msg s = ! panic_fn (output s);
-fun panic s = (panic_msg ("## SYSTEM EXIT ##\n" ^ s); exit 1);
 
 val ml_output = (writeln, error_msg);
 

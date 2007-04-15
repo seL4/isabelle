@@ -108,9 +108,10 @@ fun setup_messages () =
   Output.tracing_fn := (fn s => decorate (special "360" ^ special "375") (special "361") "" s);
   Output.debug_fn := (fn s => decorate (special "362") (special "363") "+++ " s);
   Output.warning_fn := (fn s => decorate (special "362") (special "363") "### " s);
-  Output.error_fn := (fn s => decorate (special "364") (special "365") "*** " s);
-  Output.panic_fn := (fn s => decorate (special "364") (special "365") "!!! " s));
+  Output.error_fn := (fn s => decorate (special "364") (special "365") "*** " s));
 
+fun panic s =
+  (decorate (special "364") (special "365") "!!! " ("## SYSTEM EXIT ##\n" ^ s); exit 1);
 
 fun emacs_notify s = decorate (special "360") (special "361") "" s;
 
@@ -274,8 +275,7 @@ end;
 
 val initialized = ref false;
 
-fun init false =
-      Output.panic "No Proof General interface support for Isabelle/classic mode."
+fun init false = panic "No Proof General interface support for Isabelle/classic mode."
   | init true =
       (! initialized orelse
         (Output.no_warnings init_outer_syntax ();
