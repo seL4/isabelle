@@ -163,7 +163,7 @@ fun basic_make thy raw_ths =
 
         fun thm2rule table invtable ccount th =
             let
-                val prop = Drule.plain_prop_of th
+                val prop = Thm.plain_prop_of th
                   handle THM _ => raise (Make "theorems must be plain propositions")
                 val (a, b) = Logic.dest_equals prop
                   handle TERM _ => raise (Make "theorems must be meta-level equations")

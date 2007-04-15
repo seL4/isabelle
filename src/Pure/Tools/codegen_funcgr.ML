@@ -72,7 +72,7 @@ fun pretty thy funcgr =
 
 fun fold_consts f thms =
   thms
-  |> maps (op :: o swap o apfst (snd o strip_comb) o Logic.dest_equals o Drule.plain_prop_of)
+  |> maps (op :: o swap o apfst (snd o strip_comb) o Logic.dest_equals o Thm.plain_prop_of)
   |> (fold o fold_aterms) (fn Const c => f c | _ => I);
 
 fun consts_of (const, []) = []

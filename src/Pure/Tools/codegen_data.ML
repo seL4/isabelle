@@ -113,7 +113,7 @@ type sdthms = thm list Susp.T * thm list;
 fun add_drop_redundant thm (sels, dels) =
   let
     val thy = Thm.theory_of_thm thm;
-    val args_of = snd o strip_comb o fst o Logic.dest_equals o Drule.plain_prop_of;
+    val args_of = snd o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
     val args = args_of thm;
     fun matches [] _ = true
       | matches (Var _ :: xs) [] = matches xs []
@@ -783,7 +783,7 @@ fun these_funcs thy const =
             |> map (CodegenFunc.expand_eta ~1 o snd)
         | NONE => []
     fun drop_refl thy = filter_out (is_equal o Term.fast_term_ord o Logic.dest_equals
-      o ObjectLogic.drop_judgment thy o Drule.plain_prop_of);
+      o ObjectLogic.drop_judgment thy o Thm.plain_prop_of);
     val funcs = case get_funcs thy const
      of [] => get_prim_def_funcs const
     | funcs => funcs

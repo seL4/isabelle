@@ -68,10 +68,10 @@ fun mk_rew thm =
 (* making defining equations *)
 
 val typ_func = lift_thm_thy (fn thy => snd o dest_Const o fst o strip_comb
-  o fst o Logic.dest_equals o ObjectLogic.drop_judgment thy o Drule.plain_prop_of);
+  o fst o Logic.dest_equals o ObjectLogic.drop_judgment thy o Thm.plain_prop_of);
 
 val dest_func = lift_thm_thy (fn thy => apfst dest_Const o strip_comb
-  o fst o Logic.dest_equals o ObjectLogic.drop_judgment thy o Drule.plain_prop_of
+  o fst o Logic.dest_equals o ObjectLogic.drop_judgment thy o Thm.plain_prop_of
   o Drule.fconv_rule Drule.beta_eta_conversion);
 
 val mk_head = lift_thm_thy (fn thy => fn thm =>
@@ -132,7 +132,7 @@ fun inst_thm tvars' thm =
 fun expand_eta k thm =
   let
     val thy = Thm.theory_of_thm thm;
-    val (lhs, rhs) = (Logic.dest_equals o Drule.plain_prop_of) thm;
+    val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm;
     val (head, args) = strip_comb lhs;
     val l = if k = ~1
       then (length o fst o strip_abs) rhs
@@ -176,7 +176,7 @@ fun rewrite_func rewrites thm =
 fun norm_args thms =
   let
     val num_args_of = length o snd o strip_comb o fst o Logic.dest_equals;
-    val k = fold (curry Int.max o num_args_of o Drule.plain_prop_of) thms 0;
+    val k = fold (curry Int.max o num_args_of o Thm.plain_prop_of) thms 0;
   in
     thms
     |> map (expand_eta k)
