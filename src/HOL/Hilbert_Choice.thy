@@ -13,8 +13,10 @@ begin
 
 subsection {* Hilbert's epsilon *}
 
-consts
-  Eps           :: "('a => bool) => 'a"
+axiomatization
+  Eps :: "('a => bool) => 'a"
+where
+  someI: "P x ==> P (Eps P)"
 
 syntax (epsilon)
   "_Eps"        :: "[pttrn, bool] => 'a"    ("(3\<some>_./ _)" [0, 10] 10)
@@ -23,20 +25,14 @@ syntax (HOL)
 syntax
   "_Eps"        :: "[pttrn, bool] => 'a"    ("(3SOME _./ _)" [0, 10] 10)
 translations
-  "SOME x. P" == "Eps (%x. P)"
+  "SOME x. P" == "CONST Eps (%x. P)"
 
 print_translation {*
 (* to avoid eta-contraction of body *)
-[("Eps", fn [Abs abs] =>
+[(@{const_syntax Eps}, fn [Abs abs] =>
      let val (x,t) = atomic_abs_tr' abs
      in Syntax.const "_Eps" $ x $ t end)]
 *}
-
-axioms
-  someI: "P (x::'a) ==> P (SOME x. P x)"
-finalconsts
-  Eps
-
 
 constdefs
   inv :: "('a => 'b) => ('b => 'a)"

@@ -12,12 +12,12 @@ begin
 
 typedecl ZF
 
-consts
-  Empty :: ZF
-  Elem :: "ZF \<Rightarrow> ZF \<Rightarrow> bool"
-  Sum :: "ZF \<Rightarrow> ZF"
-  Power :: "ZF \<Rightarrow> ZF"
-  Repl :: "ZF \<Rightarrow> (ZF \<Rightarrow> ZF) \<Rightarrow> ZF"
+axiomatization
+  Empty :: ZF and
+  Elem :: "ZF \<Rightarrow> ZF \<Rightarrow> bool" and
+  Sum :: "ZF \<Rightarrow> ZF" and
+  Power :: "ZF \<Rightarrow> ZF" and
+  Repl :: "ZF \<Rightarrow> (ZF \<Rightarrow> ZF) \<Rightarrow> ZF" and
   Inf :: ZF
 
 constdefs
@@ -31,9 +31,6 @@ constdefs
   "SucNat x == union x (Singleton x)"
   subset :: "ZF \<Rightarrow> ZF \<Rightarrow> bool"
   "subset A B == ! x. Elem x A \<longrightarrow> Elem x B"
-
-finalconsts 
-  Empty Elem Sum Power Repl Inf
 
 axioms
   Empty: "Not (Elem x Empty)"
