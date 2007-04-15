@@ -67,6 +67,8 @@ sig
   val cert_prop: Proof.context -> term -> term
   val cert_term_pats: typ -> Proof.context -> term list -> term list
   val cert_prop_pats: Proof.context -> term list -> term list
+  val infer_types: Proof.context -> (term * typ) list -> (term * typ) list
+  val infer_types_pat: Proof.context -> (term * typ) list -> (term * typ) list
   val infer_type: Proof.context -> string -> typ
   val inferred_param: string -> Proof.context -> (string * typ) * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
@@ -435,7 +437,7 @@ fun revert_skolems ctxt =
 (* read wrt. theory *)     (*exception ERROR*)
 
 fun read_def_termTs freeze pp syn ctxt (types, sorts, used) sTs =
-  Sign.read_def_terms' pp (Sign.is_logtype (theory_of ctxt)) syn (consts_of ctxt)
+  Sign.read_def_terms' pp (Sign.is_logtype (theory_of ctxt)) syn (consts_of ctxt) (K NONE)
     ctxt (types, sorts) used freeze sTs;
 
 fun read_def_termT freeze pp syn ctxt defaults sT =
@@ -550,15 +552,26 @@ val cert_prop_pats = map o gen_cert true true false;
 end;
 
 
+(* type inference *)
+
+local
+
+fun gen_infer_types pattern ctxt =
+  TypeInfer.infer_types (pp ctxt) (tsig_of ctxt) (try (Consts.the_constraint (consts_of ctxt)))
+    (Variable.def_type ctxt pattern) (Variable.names_of ctxt) (not pattern) #> #1;
+
+in
+
+val infer_types = gen_infer_types false;
+val infer_types_pat = gen_infer_types true;
+
+end;
+
+
 (* inferred types of parameters *)
 
 fun infer_type ctxt x =
-  (case try (fn () =>
-      Sign.infer_types (pp ctxt) (theory_of ctxt) (consts_of ctxt) (Variable.def_type ctxt false)
-        (Variable.def_sort ctxt) (Variable.names_of ctxt) true
-        ([Free (x, dummyT)], TypeInfer.logicT)) () of
-    SOME (Free (_, T), _) => T
-  | _ => error ("Failed to infer type of fixed variable " ^ quote x));
+  #2 (singleton (infer_types ctxt) (Free (x, dummyT), TypeInfer.logicT));
 
 fun inferred_param x ctxt =
   let val T = infer_type ctxt x
@@ -829,7 +842,7 @@ end;
 (* variables *)
 
 fun declare_var (x, opt_T, mx) ctxt =
-  let val T = (case opt_T of SOME T => T | NONE => TypeInfer.mixfixT mx)
+  let val T = (case opt_T of SOME T => T | NONE => Syntax.mixfixT mx)
   in ((x, T, mx), ctxt |> Variable.declare_constraints (Free (x, T))) end;
 
 local
