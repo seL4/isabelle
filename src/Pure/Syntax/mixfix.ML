@@ -33,6 +33,7 @@ sig
   val const_mixfix: string -> mixfix -> string * mixfix
   val unlocalize_mixfix: mixfix -> mixfix
   val mixfix_args: mixfix -> int
+  val mixfixT: mixfix -> typ
 end;
 
 signature MIXFIX =
@@ -152,6 +153,9 @@ fun mixfix_args NoSyn = 0
   | mixfix_args (Infixr _) = 2
   | mixfix_args (Binder _) = 1
   | mixfix_args Structure = 0;
+
+fun mixfixT (Binder _) = (TypeInfer.logicT --> TypeInfer.logicT) --> TypeInfer.logicT
+  | mixfixT mx = replicate (mixfix_args mx) TypeInfer.logicT ---> TypeInfer.logicT;
 
 
 (* syn_ext_types *)
