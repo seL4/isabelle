@@ -168,14 +168,6 @@ val declare_type_occs = map_type_occs o decl_type_occs;
 
 (* constraints *)
 
-fun redeclare_skolems ctxt = ctxt |> map_constraints (apfst (fn types =>
-  let
-    fun decl (x, x') =
-      (case default_type ctxt x' of
-        SOME T => Vartab.update ((x, ~1), T)
-      | NONE => I);
-  in fold_rev decl (fixes_of ctxt) types end));
-
 fun constrain_tvar (xi, S) =
   if S = dummyS then Vartab.delete_safe xi else Vartab.update (xi, S);
 
@@ -190,8 +182,7 @@ fun declare_constraints t = map_constraints (fn (types, sorts) =>
         | TVar v => constrain_tvar v
         | _ => I)) t sorts;
   in (types', sorts') end)
-  #> declare_type_names t
-  #> redeclare_skolems;
+  #> declare_type_names t;
 
 
 (* common declarations *)
