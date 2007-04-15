@@ -56,7 +56,7 @@ sig
   val read_termTs_schematic: Proof.context -> (string -> bool) -> (indexname -> typ option)
     -> (indexname -> sort option) -> string list -> (string * typ) list
     -> term list * (indexname * typ) list
-  val read_term_legacy: Proof.context -> string -> term
+  val read_prop_legacy: Proof.context -> string -> term
   val read_term: Proof.context -> string -> term
   val read_prop: Proof.context -> string -> term
   val read_prop_schematic: Proof.context -> string -> term
@@ -387,19 +387,6 @@ fun no_skolem internal x =
     error ("Illegal reference to internal variable: " ^ quote x)
   else x;
 
-fun intern_skolem ctxt internal =
-  let
-    fun intern (t as Free (x, T)) =
-          if internal x then t
-          else
-            (case lookup_skolem ctxt (no_skolem false x) of
-              SOME x' => Free (x', T)
-            | NONE => t)
-      | intern (t $ u) = intern t $ intern u
-      | intern (Abs (x, T, t)) = Abs (x, T, intern t)
-      | intern a = a;
-  in intern end;
-
 
 (* revert Skolem constants -- approximation only! *)
 
@@ -436,24 +423,24 @@ fun revert_skolems ctxt =
 
 (* read wrt. theory *)     (*exception ERROR*)
 
-fun read_def_termTs freeze pp syn ctxt (types, sorts, used) sTs =
-  Sign.read_def_terms' pp (Sign.is_logtype (theory_of ctxt)) syn (consts_of ctxt) (K NONE)
+fun read_def_termTs freeze pp syn ctxt (types, sorts, used) fixed sTs =
+  Sign.read_def_terms' pp (Sign.is_logtype (theory_of ctxt)) syn (consts_of ctxt) fixed
     ctxt (types, sorts) used freeze sTs;
 
-fun read_def_termT freeze pp syn ctxt defaults sT =
-  apfst hd (read_def_termTs freeze pp syn ctxt defaults [sT]);
+fun read_def_termT freeze pp syn ctxt defaults fixed sT =
+  apfst hd (read_def_termTs freeze pp syn ctxt defaults fixed [sT]);
 
-fun read_term_thy freeze pp syn thy defaults s =
-  #1 (read_def_termT freeze pp syn thy defaults (s, TypeInfer.logicT));
+fun read_term_thy freeze pp syn thy defaults fixed s =
+  #1 (read_def_termT freeze pp syn thy defaults fixed (s, dummyT));
 
-fun read_prop_thy freeze pp syn thy defaults s =
-  #1 (read_def_termT freeze pp syn thy defaults (s, propT));
+fun read_prop_thy freeze pp syn thy defaults fixed s =
+  #1 (read_def_termT freeze pp syn thy defaults fixed (s, propT));
 
-fun read_terms_thy freeze pp syn thy defaults =
-  #1 o read_def_termTs freeze pp syn thy defaults o map (rpair TypeInfer.logicT);
+fun read_terms_thy freeze pp syn thy defaults fixed =
+  #1 o read_def_termTs freeze pp syn thy defaults fixed o map (rpair dummyT);
 
-fun read_props_thy freeze pp syn thy defaults =
-  #1 o read_def_termTs freeze pp syn thy defaults o map (rpair propT);
+fun read_props_thy freeze pp syn thy defaults fixed =
+  #1 o read_def_termTs freeze pp syn thy defaults fixed o map (rpair propT);
 
 
 (* local abbreviations *)
@@ -469,6 +456,13 @@ fun reject_schematic (Var (xi, _)) =
 
 fun expand_binds ctxt schematic =
   Variable.expand_binds ctxt #> (if schematic then I else tap reject_schematic);
+
+
+(* schematic type variables *)
+
+val reject_tvars = (Term.map_types o Term.map_atyps)
+  (fn TVar (xi, _) => error ("Illegal schematic type variable: " ^ Term.string_of_vname xi)
+    | T => T);
 
 
 (* dummy patterns *)
@@ -490,6 +484,19 @@ local
 
 fun append_env e1 e2 x = (case e2 x of NONE => e1 x | some => some);
 
+fun legacy_intern_skolem ctxt internal x =
+  let
+    val sko = lookup_skolem ctxt x;
+    val is_const = can (Consts.read_const (consts_of ctxt)) x;
+    val is_free = is_some sko orelse not is_const;
+    val is_internal = internal x;
+    val is_declared = is_some (Variable.default_type ctxt x);
+  in
+    if is_free andalso not is_internal then (no_skolem false x; sko)
+    else ((no_skolem false x; ()) handle ERROR msg => warning msg;
+      if is_internal andalso is_declared then SOME x else NONE)
+  end;
+
 fun gen_read' read app pattern schematic
     ctxt internal more_types more_sorts more_used s =
   let
@@ -497,11 +504,11 @@ fun gen_read' read app pattern schematic
     val sorts = append_env (Variable.def_sort ctxt) more_sorts;
     val used = fold Name.declare more_used (Variable.names_of ctxt);
   in
-    (read (pp ctxt) (syn_of ctxt) ctxt (types, sorts, used) s
+    (read (pp ctxt) (syn_of ctxt) ctxt (types, sorts, used) (legacy_intern_skolem ctxt internal) s
       handle TERM (msg, _) => error msg)
-    |> app (intern_skolem ctxt internal)
     |> app (certify_consts ctxt)
     |> app (if pattern then I else expand_binds ctxt schematic)
+    |> app (if pattern orelse schematic then I else reject_tvars)
     |> app (if pattern then prepare_dummies else reject_dummies)
   end;
 
@@ -517,8 +524,8 @@ fun read_term_pats T ctxt =
   #1 o gen_read (read_def_termTs false) (apfst o map) true false ctxt o map (rpair T);
 val read_prop_pats = read_term_pats propT;
 
-fun read_term_legacy ctxt =
-  gen_read' (read_term_thy true) I false false ctxt (K true) (K NONE) (K NONE) [];
+fun read_prop_legacy ctxt =
+  gen_read' (read_prop_thy true) I false false ctxt (K true) (K NONE) (K NONE) [];
 
 val read_term            = gen_read (read_term_thy true) I false false;
 val read_prop            = gen_read (read_prop_thy true) I false false;
@@ -571,7 +578,7 @@ end;
 (* inferred types of parameters *)
 
 fun infer_type ctxt x =
-  #2 (singleton (infer_types ctxt) (Free (x, dummyT), TypeInfer.logicT));
+  #2 (singleton (infer_types ctxt) (Free (x, dummyT), dummyT));
 
 fun inferred_param x ctxt =
   let val T = infer_type ctxt x
@@ -962,10 +969,10 @@ fun prep_mixfix (x, T, mx) =
 
 fun gen_fixes prep raw_vars ctxt =
   let
-    val (vars, ctxt') = prep raw_vars ctxt;
-    val (xs', ctxt'') = Variable.add_fixes (map #1 vars) ctxt';
+    val (vars, _) = prep raw_vars ctxt;
+    val (xs', ctxt') = Variable.add_fixes (map #1 vars) ctxt;
   in
-    ctxt''
+    ctxt'
     |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)
     |-> (map_syntax o LocalSyntax.add_syntax (theory_of ctxt) o map prep_mixfix)
     |> pair xs'
