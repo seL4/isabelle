@@ -42,7 +42,6 @@ sig
   val assert_super: theory -> theory -> theory
   val cert_axm: theory -> string * term -> string * term
   val read_axm: theory -> string * string -> string * term
-  val inferT_axm: theory -> string * term -> string * term
   val add_axioms: (bstring * string) list -> theory -> theory
   val add_axioms_i: (bstring * term) list -> theory -> theory
   val add_deps: string -> string * typ -> (string * typ) list -> theory -> theory
@@ -179,15 +178,6 @@ fun cert_axm thy (name, raw_tm) =
 fun read_axm thy (name, str) =
   cert_axm thy (name, Sign.read_prop thy str)
     handle ERROR msg => err_in_axm msg name;
-
-fun inferT_axm thy (name, pre_tm) =
-  let
-    val pp = Sign.pp thy;
-    val (t, _) =
-      Sign.infer_types pp thy (Sign.consts_of thy)
-        (K NONE) (K NONE) Name.context true ([pre_tm], propT);
-  in (name, Sign.no_vars pp t) end
-  handle ERROR msg => err_in_axm msg name;
 
 
 (* add_axioms(_i) *)
