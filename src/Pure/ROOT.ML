@@ -29,6 +29,7 @@ use "sorts.ML";
 use "type.ML";
 use "context.ML";
 use "compress.ML";
+use "type_infer.ML";
 
 (*inner syntax module*)
 use "Syntax/lexicon.ML";
@@ -50,7 +51,6 @@ structure SynTrans = Hidden;
 structure Mixfix = Hidden;
 structure Printer = Hidden;
 
-use "type_infer.ML";
 use "General/ml_syntax.ML";
 
 (*core of tactical proof system*)
