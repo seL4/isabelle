@@ -127,7 +127,7 @@ struct
 fun legacy_unvarifyT thm =
   let
     val cT = Thm.ctyp_of (Thm.theory_of_thm thm);
-    val tvars = rev (Drule.fold_terms Term.add_tvars thm []);
+    val tvars = rev (Thm.fold_terms Term.add_tvars thm []);
     val tfrees = map (fn ((x, _), S) => SOME (cT (TFree (x, S)))) tvars;
   in Drule.instantiate' tfrees [] thm end;
 
@@ -135,7 +135,7 @@ fun legacy_unvarify raw_thm =
   let
     val thm = legacy_unvarifyT raw_thm;
     val ct = Thm.cterm_of (Thm.theory_of_thm thm);
-    val vars = rev (Drule.fold_terms Term.add_vars thm []);
+    val vars = rev (Thm.fold_terms Term.add_vars thm []);
     val frees = map (fn ((x, _), T) => SOME (ct (Free (x, T)))) vars;
   in Drule.instantiate' [] frees thm end;
 
@@ -743,7 +743,9 @@ fun params_of_expr ctxt fixed_params expr (prev_parms, prev_types, prev_syn) =
             val new_syn = fold (Symtab.insert (op =)) ren_syn Symtab.empty
                 handle Symtab.DUP x =>
                   err_in_expr ctxt ("Conflicting syntax for parameter: " ^ quote x) expr;
-            val syn_types = map (apsnd (fn mx => SOME (Type.freeze_type (#1 (TypeInfer.paramify_dummies (TypeInfer.mixfixT mx) 0))))) (Symtab.dest new_syn);
+            val syn_types = map (apsnd (fn mx =>
+                SOME (Type.freeze_type (#1 (TypeInfer.paramify_dummies (Syntax.mixfixT mx) 0)))))
+              (Symtab.dest new_syn);
             val ren_types = types' |> Symtab.dest |> map (apfst (Element.rename ren));
             val (env :: _) = unify_parms ctxt []
                 ((ren_types |> map (apsnd SOME)) :: map single syn_types);
