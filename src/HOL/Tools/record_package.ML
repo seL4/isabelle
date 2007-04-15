@@ -506,6 +506,18 @@ fun add_parents thy NONE parents = parents
 
 (** concrete syntax for records **)
 
+(* decode type *)
+
+fun decode_type thy t =
+  let
+    fun get_sort xs n = AList.lookup (op =) xs n |> the_default (Sign.defaultS thy);
+    val map_sort = Sign.intern_sort thy;
+  in
+    Syntax.typ_of_term (get_sort (Syntax.term_sorts map_sort t)) map_sort t
+    |> Sign.intern_tycons thy
+  end;
+
+
 (* parse translations *)
 
 fun gen_field_tr mark sfx (t as Const (c, _) $ Const (name, _) $ arg) =
@@ -582,12 +594,6 @@ fun gen_ext_type_tr sep mark sfx more ctxt t =
       | splitargs (_::_) [] = raise TERM (msg ^ "expecting more fields", [t])
       | splitargs _ _ = ([],[]);
 
-    fun get_sort xs n = AList.lookup (op =) xs n |> the_default (Sign.defaultS thy);
-
-    fun to_type t = Sign.certify_typ thy
-                       (Sign.intern_typ thy
-                         (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts t)) I t));
-
     fun mk_ext (fargs as (name,arg)::_) =
          (case get_fieldext thy (Sign.intern_const thy name) of
             SOME (ext,alphas) =>
@@ -597,7 +603,7 @@ fun gen_ext_type_tr sep mark sfx more ctxt t =
                        val flds' = but_last flds;
                        val types = map snd flds';
                        val (args,rest) = splitargs (map fst flds') fargs;
-                       val argtypes = map to_type args;
+                       val argtypes = map (Sign.certify_typ thy o decode_type thy) args;
                        val midx =  fold (fn T => fn i => Int.max (maxidx_of_typ T, i)) 
                                     argtypes 0;
                        val varifyT = varifyT midx;
@@ -746,8 +752,7 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt tm =
         | fixT (Type (x,xs)) = Type (x,map fixT xs)
         | fixT T = T;
 
-      val T = fixT (Sign.intern_typ thy
-                      (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts tm)) I tm));
+      val T = fixT (decode_type thy tm);
       val midx = maxidx_of_typ T;
       val varifyT = varifyT midx;
 
@@ -781,8 +786,8 @@ fun record_type_tr' sep mark record record_scheme ctxt t =
     val thy = ProofContext.theory_of ctxt;
     fun get_sort xs n = AList.lookup (op =) xs n |> the_default (Sign.defaultS thy);
 
-    val T = Sign.intern_typ thy (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts t)) I t)
-    val varifyT = varifyT (Term.maxidx_of_typ T)
+    val T = decode_type thy t;
+    val varifyT = varifyT (Term.maxidx_of_typ T);
 
     fun term_of_type T = Syntax.term_of_typ (!Syntax.show_sorts) (Sign.extern_typ thy T);
 
