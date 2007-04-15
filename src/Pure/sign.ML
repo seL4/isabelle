@@ -170,14 +170,9 @@ sig
   val read_typ_abbrev: theory -> string -> typ
   val read_tyname: theory -> string -> typ
   val read_const: theory -> string -> term
-  val infer_types_simult: Pretty.pp -> theory -> Consts.T -> (indexname -> typ option) ->
-    (indexname -> sort option) -> Name.context -> bool
-    -> (term list * typ) list -> term list * (indexname * typ) list
-  val infer_types: Pretty.pp -> theory -> Consts.T -> (indexname -> typ option) ->
-    (indexname -> sort option) -> Name.context -> bool
-    -> term list * typ -> term * (indexname * typ) list
   val read_def_terms': Pretty.pp -> (string -> bool) -> Syntax.syntax -> Consts.T ->
-    Proof.context -> (indexname -> typ option) * (indexname -> sort option) ->
+    (string -> string option) -> Proof.context ->
+    (indexname -> typ option) * (indexname -> sort option) ->
     Name.context -> bool -> (string * typ) list -> term list * (indexname * typ) list
   val read_def_terms:
     theory * (indexname -> typ option) * (indexname -> sort option) ->
@@ -193,7 +188,6 @@ end
 
 structure Sign: SIGN =
 struct
-
 
 (** datatype sign **)
 
@@ -512,7 +506,7 @@ fun read_sort' syn ctxt str =
   let
     val thy = ProofContext.theory_of ctxt;
     val _ = Context.check_thy thy;
-    val S = intern_sort thy (Syntax.read_sort ctxt syn str);
+    val S = Syntax.read_sort ctxt syn (intern_sort thy) str;
   in certify_sort thy S handle TYPE (msg, _, _) => error msg end;
 
 fun read_sort thy str = read_sort' (syn_of thy) (ProofContext.init thy) str;
@@ -530,14 +524,34 @@ val cert_arity = prep_arity (K I) certify_sort;
 
 (* types *)
 
+fun get_sort tsig def_sort raw_env =
+  let
+    fun eq ((xi, S), (xi', S')) =
+      Term.eq_ix (xi, xi') andalso Type.eq_sort tsig (S, S');
+    val env = distinct eq raw_env;
+    val _ = (case duplicates (eq_fst (op =)) env of [] => ()
+      | dups => error ("Inconsistent sort constraints for type variable(s) "
+          ^ commas_quote (map (Term.string_of_vname' o fst) dups)));
+
+    fun get xi =
+      (case (AList.lookup (op =) env xi, def_sort xi) of
+        (NONE, NONE) => Type.defaultS tsig
+      | (NONE, SOME S) => S
+      | (SOME S, NONE) => S
+      | (SOME S, SOME S') =>
+          if Type.eq_sort tsig (S, S') then S'
+          else error ("Sort constraint inconsistent with default for type variable " ^
+            quote (Term.string_of_vname' xi)));
+  in get end;
+
 local
 
 fun gen_read_typ' cert syn ctxt def_sort str =
   let
     val thy = ProofContext.theory_of ctxt;
     val _ = Context.check_thy thy;
-    val get_sort = TypeInfer.get_sort (tsig_of thy) def_sort (intern_sort thy);
-    val T = intern_tycons thy (Syntax.read_typ ctxt syn get_sort (intern_sort thy) str);
+    val T = intern_tycons thy
+      (Syntax.read_typ ctxt syn (get_sort (tsig_of thy) def_sort) (intern_sort thy) str);
   in cert thy T handle TYPE (msg, _, _) => error msg end
   handle ERROR msg => cat_error msg ("The error(s) above occurred in type " ^ quote str);
 
@@ -570,27 +584,40 @@ val read_const = Consts.read_const o consts_of;
 
 
 
-(** infer_types **)         (*exception ERROR*)
+(* read_def_terms -- read terms and infer types *)    (*exception ERROR*)
 
 (*
   def_type: partial map from indexnames to types (constrains Frees and Vars)
   def_sort: partial map from indexnames to sorts (constrains TFrees and TVars)
   used: context of already used type variables
   freeze: if true then generated parameters are turned into TFrees, else TVars
-
-  termss: lists of alternative parses (only one combination should be type-correct)
-  typs: expected types
 *)
 
-fun infer_types_simult pp thy consts def_type def_sort used freeze args =
+fun read_def_terms' pp is_logtype syn consts fixed ctxt (def_type, def_sort) used freeze sTs =
   let
-    val termss = fold_rev (multiply o fst) args [[]];
-    val typs =
-      map (fn (_, T) => certify_typ thy T handle TYPE (msg, _, _) => error msg) args;
+    val thy = ProofContext.theory_of ctxt;
+    val tsig = tsig_of thy;
 
-    fun infer ts = Result (TypeInfer.infer_types (Syntax.pp_show_brackets pp) (tsig_of thy)
-        (try (Consts.the_constraint consts)) def_type def_sort (Consts.intern consts)
-        (intern_tycons thy) (intern_sort thy) used freeze typs ts)
+    (*read terms -- potentially ambiguous*)
+    val map_const = try (#1 o Term.dest_Const o Consts.read_const consts);
+    fun map_free x =
+      (case fixed x of
+        NONE => if is_some (def_type (x, ~1)) then SOME x else NONE
+      | some => some);
+    val read =
+      Syntax.read_term (get_sort tsig def_sort) map_const map_free
+        (intern_tycons thy) (intern_sort thy) ctxt is_logtype syn;
+
+    val args = sTs |> map (fn (s, raw_T) =>
+      let val T = certify_typ thy raw_T handle TYPE (msg, _, _) => error msg
+      in (read T s, T) end);
+
+    (*brute-force disambiguation via type-inference*)
+    val termss = fold_rev (multiply o fst) args [[]];
+    val typs = map snd args;
+
+    fun infer ts = Result (TypeInfer.infer_types (Syntax.pp_show_brackets pp) tsig
+        (try (Consts.the_constraint consts)) def_type used freeze (ts ~~ typs) |>> map fst)
       handle TYPE (msg, _, _) => Exn (ERROR msg);
 
     val err_results = map infer termss;
@@ -604,29 +631,15 @@ fun infer_types_simult pp thy consts def_type def_sort used freeze args =
         \Retry with smaller Syntax.ambiguity_level for more information."
       else "";
   in
-    if null results then (cat_error (ambig_msg ()) (cat_lines errs))
+    if null results then cat_error (ambig_msg ()) (cat_lines errs)
     else if length results = 1 then
       (if ambiguity > ! Syntax.ambiguity_level then
         warning "Fortunately, only one parse tree is type correct.\n\
           \You may still want to disambiguate your grammar or your input."
       else (); hd results)
-    else (cat_error (ambig_msg ()) ("More than one term is type correct:\n" ^
-      cat_lines (map (Pretty.string_of_term pp) (maps fst results))))
+    else cat_error (ambig_msg ()) ("More than one term is type correct:\n" ^
+      cat_lines (map (Pretty.string_of_term pp) (maps fst results)))
   end;
-
-fun infer_types pp thy consts def_type def_sort used freeze tsT =
-  apfst hd (infer_types_simult pp thy consts def_type def_sort used freeze [tsT]);
-
-
-(* read_def_terms -- read terms and infer types *)    (*exception ERROR*)
-
-fun read_def_terms' pp is_logtype syn consts ctxt (types, sorts) used freeze sTs =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    fun read (s, T) =
-      let val T' = certify_typ thy T handle TYPE (msg, _, _) => error msg
-      in (Syntax.read ctxt is_logtype syn T' s, T') end;
-  in infer_types_simult pp thy consts types sorts used freeze (map read sTs) end;
 
 fun read_def_terms (thy, types, sorts) used freeze sTs =
   let
@@ -634,7 +647,7 @@ fun read_def_terms (thy, types, sorts) used freeze sTs =
     val consts = consts_of thy;
     val cert_consts = Consts.certify pp (tsig_of thy) consts;
     val (ts, inst) =
-      read_def_terms' pp (is_logtype thy) (syn_of thy) consts
+      read_def_terms' pp (is_logtype thy) (syn_of thy) consts (K NONE)
         (ProofContext.init thy) (types, sorts) (Name.make_context used) freeze sTs;
   in (map cert_consts ts, inst) end;
 
