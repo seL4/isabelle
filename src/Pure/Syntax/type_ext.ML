@@ -8,9 +8,12 @@ types, which is required to bootstrap Pure.
 
 signature TYPE_EXT0 =
 sig
-  val sort_of_term: term -> sort
-  val raw_term_sorts: term -> (indexname * sort) list
+  val sort_of_term: (sort -> sort) -> term -> sort
+  val term_sorts: (sort -> sort) -> term -> (indexname * sort) list
   val typ_of_term: (indexname -> sort) -> (sort -> sort) -> term -> typ
+  val decode_types: (((string * int) * sort) list -> string * int -> sort) ->
+    (string -> string option) -> (string -> string option) ->
+    (typ -> typ) -> (sort -> sort) -> term -> term
   val term_of_typ: bool -> typ -> term
   val no_brackets: unit -> bool
   val no_type_brackets: unit -> bool
@@ -28,12 +31,11 @@ end;
 structure TypeExt: TYPE_EXT =
 struct
 
-
 (** input utils **)
 
 (* sort_of_term *)
 
-fun sort_of_term tm =
+fun sort_of_term (map_sort: sort -> sort) tm =
   let
     fun classes (Const (c, _)) = [c]
       | classes (Free (c, _)) = [c]
@@ -47,24 +49,26 @@ fun sort_of_term tm =
       | sort (Const ("_class",_) $ Free (c, _)) = [c]
       | sort (Const ("_sort", _) $ cs) = classes cs
       | sort tm = raise TERM ("sort_of_term: bad encoding of sort", [tm]);
-  in sort tm end;
+  in map_sort (sort tm) end;
 
 
-(* raw_term_sorts *)
+(* term_sorts *)
 
-fun raw_term_sorts tm =
+fun term_sorts map_sort tm =
   let
-    fun add_env (Const ("_ofsort", _) $ Free (x, _) $ cs) env =
-          insert (op =) ((x, ~1), sort_of_term cs) env
-      | add_env (Const ("_ofsort", _) $ (Const ("_tfree",_) $ Free (x, _)) $ cs) env =
-          insert (op =) ((x, ~1), sort_of_term cs) env
-      | add_env (Const ("_ofsort", _) $ Var (xi, _) $ cs) env =
-          insert (op =) (xi, sort_of_term cs) env
-      | add_env (Const ("_ofsort", _) $ (Const ("_tvar",_) $ Var (xi, _)) $ cs) env =
-          insert (op =) (xi, sort_of_term cs) env
-      | add_env (Abs (_, _, t)) env = add_env t env
-      | add_env (t1 $ t2) env = add_env t1 (add_env t2 env)
-      | add_env _ env = env;
+    val sort_of = sort_of_term map_sort;
+
+    fun add_env (Const ("_ofsort", _) $ Free (x, _) $ cs) =
+          insert (op =) ((x, ~1), sort_of cs)
+      | add_env (Const ("_ofsort", _) $ (Const ("_tfree", _) $ Free (x, _)) $ cs) =
+          insert (op =) ((x, ~1), sort_of cs)
+      | add_env (Const ("_ofsort", _) $ Var (xi, _) $ cs) =
+          insert (op =) (xi, sort_of cs)
+      | add_env (Const ("_ofsort", _) $ (Const ("_tvar", _) $ Var (xi, _)) $ cs) =
+          insert (op =) (xi, sort_of cs)
+      | add_env (Abs (_, _, t)) = add_env t
+      | add_env (t1 $ t2) = add_env t1 #> add_env t2
+      | add_env _ = I;
   in add_env tm [] end;
 
 
@@ -84,7 +88,7 @@ fun typ_of_term get_sort map_sort t =
       | typ_of (Const ("_ofsort", _) $ Var (xi, _) $ _) = TVar (xi, get_sort xi)
       | typ_of (Const ("_ofsort", _) $ (Const ("_tvar",_) $ Var (xi, _)) $ _) =
           TVar (xi, get_sort xi)
-      | typ_of (Const ("_dummy_ofsort", _) $ t) = TFree ("'_dummy_", map_sort (sort_of_term t))
+      | typ_of (Const ("_dummy_ofsort", _) $ t) = TFree ("'_dummy_", sort_of_term map_sort t)
       | typ_of tm =
           let
             val (t, ts) = Term.strip_comb tm;
@@ -95,6 +99,34 @@ fun typ_of_term get_sort map_sort t =
               | _ => raise TERM ("typ_of_term: bad encoding of type", [tm]));
           in Type (a, map typ_of ts) end;
   in typ_of t end;
+
+
+(* decode_types -- transform parse tree into raw term *)
+
+fun decode_types get_sort map_const map_free map_type map_sort tm =
+  let
+    val sort_env = term_sorts map_sort tm;
+    val decodeT = map_type o typ_of_term (get_sort sort_env) map_sort;
+
+    fun decode (Const ("_constrain", _) $ t $ typ) =
+          TypeInfer.constrain (decode t) (decodeT typ)
+      | decode (Const ("_constrainAbs", _) $ (Abs (x, T, t)) $ typ) =
+          if T = dummyT then Abs (x, decodeT typ, decode t)
+          else TypeInfer.constrain (Abs (x, map_type T, decode t)) (decodeT typ --> dummyT)
+      | decode (Abs (x, T, t)) = Abs (x, map_type T, decode t)
+      | decode (t $ u) = decode t $ decode u
+      | decode (Const (a, T)) =
+          let val c =
+            (case try (unprefix Lexicon.constN) a of SOME c => c | NONE => perhaps map_const a)
+          in Const (c, map_type T) end
+      | decode (Free (a, T)) =
+          (case (map_free a, map_const a) of
+            (SOME x, _) => Free (x, map_type T)
+          | (_, SOME c) => Const (c, map_type T)
+          | _ => Free (a, map_type T))
+      | decode (Var (xi, T)) = Var (xi, map_type T)
+      | decode (t as Bound _) = t;
+  in decode tm end;
 
 
 
