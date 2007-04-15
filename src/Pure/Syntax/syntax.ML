@@ -74,9 +74,14 @@ sig
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
   val read: Proof.context -> (string -> bool) -> syntax -> typ -> string -> term list
+  val read_term:
+    (((string * int) * sort) list -> string * int -> Term.sort) ->
+    (string -> string option) -> (string -> string option) ->
+    (typ -> typ) -> (sort -> sort) -> Proof.context ->
+    (string -> bool) -> syntax -> typ -> string -> term list
   val read_typ: Proof.context -> syntax -> ((indexname * sort) list -> indexname -> sort) ->
     (sort -> sort) -> string -> typ
-  val read_sort: Proof.context -> syntax -> string -> sort
+  val read_sort: Proof.context -> syntax -> (sort -> sort) -> string -> sort
   val pretty_term: (string -> xstring) -> Proof.context -> syntax -> bool -> term -> Pretty.T
   val pretty_typ: Proof.context -> syntax -> typ -> Pretty.T
   val pretty_sort: Proof.context -> syntax -> sort -> Pretty.T
@@ -416,19 +421,26 @@ fun read ctxt is_logtype (syn as Syntax (tabs, _)) ty str =
   end;
 
 
+(* read terms *)
+
+fun read_term get_sort map_const map_free map_type map_sort ctxt is_logtype syn ty str =
+  map (TypeExt.decode_types get_sort map_const map_free map_type map_sort)
+    (read ctxt is_logtype syn ty str);
+
+
 (* read types *)
 
 fun read_typ ctxt syn get_sort map_sort str =
   (case read ctxt (K false) syn SynExt.typeT str of
-    [t] => TypeExt.typ_of_term (get_sort (TypeExt.raw_term_sorts t)) map_sort t
+    [t] => TypeExt.typ_of_term (get_sort (TypeExt.term_sorts map_sort t)) map_sort t
   | _ => error "read_typ: ambiguous syntax");
 
 
 (* read sorts *)
 
-fun read_sort ctxt syn str =
+fun read_sort ctxt syn map_sort str =
   (case read ctxt (K false) syn TypeExt.sortT str of
-    [t] => TypeExt.sort_of_term t
+    [t] => TypeExt.sort_of_term map_sort t
   | _ => error "read_sort: ambiguous syntax");
 
 
