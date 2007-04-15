@@ -5,7 +5,4 @@
 HOLCF -- a semantic extension of HOL by the LCF logic.
 *)
 
-val banner = "HOLCF";
-writeln banner;
-
 use_thy "HOLCF";
