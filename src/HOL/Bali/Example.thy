@@ -65,62 +65,62 @@ declare wf_fdecl_def2 [iff]
 section "type and expression names"
 
 (** unfortunately cannot simply instantiate tnam **)
-datatype tnam_  = HasFoo_ | Base_ | Ext_ | Main_
-datatype vnam_  = arr_ | vee_ | z_ | e_
-datatype label_ = lab1_
+datatype tnam'  = HasFoo' | Base' | Ext' | Main'
+datatype vnam'  = arr' | vee' | z' | e'
+datatype label' = lab1'
 
 consts
 
-  tnam_ :: "tnam_  \<Rightarrow> tnam"
-  vnam_ :: "vnam_  \<Rightarrow> vname"
-  label_:: "label_ \<Rightarrow> label"
-axioms  (** tnam_, vnam_ and label are intended to be isomorphic 
+  tnam' :: "tnam'  \<Rightarrow> tnam"
+  vnam' :: "vnam'  \<Rightarrow> vname"
+  label':: "label' \<Rightarrow> label"
+axioms  (** tnam', vnam' and label are intended to be isomorphic 
             to tnam, vname and label **)
 
-  inj_tnam_  [simp]: "(tnam_  x = tnam_  y) = (x = y)"
-  inj_vnam_  [simp]: "(vnam_  x = vnam_  y) = (x = y)"
-  inj_label_ [simp]: "(label_ x = label_ y) = (x = y)"
+  inj_tnam'  [simp]: "(tnam'  x = tnam'  y) = (x = y)"
+  inj_vnam'  [simp]: "(vnam'  x = vnam'  y) = (x = y)"
+  inj_label' [simp]: "(label' x = label' y) = (x = y)"
   
   
-  surj_tnam_:  "\<exists>m. n = tnam_  m"
-  surj_vnam_:  "\<exists>m. n = vnam_  m"
-  surj_label_:" \<exists>m. n = label_ m"
+  surj_tnam':  "\<exists>m. n = tnam'  m"
+  surj_vnam':  "\<exists>m. n = vnam'  m"
+  surj_label':" \<exists>m. n = label' m"
 
 abbreviation
   HasFoo :: qtname where
-  "HasFoo == \<lparr>pid=java_lang,tid=TName (tnam_ HasFoo_)\<rparr>"
+  "HasFoo == \<lparr>pid=java_lang,tid=TName (tnam' HasFoo')\<rparr>"
 
 abbreviation
   Base :: qtname where
-  "Base == \<lparr>pid=java_lang,tid=TName (tnam_ Base_)\<rparr>"
+  "Base == \<lparr>pid=java_lang,tid=TName (tnam' Base')\<rparr>"
 
 abbreviation
   Ext :: qtname where
-  "Ext == \<lparr>pid=java_lang,tid=TName (tnam_ Ext_)\<rparr>"
+  "Ext == \<lparr>pid=java_lang,tid=TName (tnam' Ext')\<rparr>"
 
 abbreviation
   Main :: qtname where
-  "Main == \<lparr>pid=java_lang,tid=TName (tnam_ Main_)\<rparr>"
+  "Main == \<lparr>pid=java_lang,tid=TName (tnam' Main')\<rparr>"
 
 abbreviation
   arr :: vname where
-  "arr == (vnam_ arr_)"
+  "arr == (vnam' arr')"
 
 abbreviation
   vee :: vname where
-  "vee == (vnam_ vee_)"
+  "vee == (vnam' vee')"
 
 abbreviation
   z :: vname where
-  "z == (vnam_ z_)"
+  "z == (vnam' z')"
 
 abbreviation
   e :: vname where
-  "e == (vnam_ e_)"
+  "e == (vnam' e')"
 
 abbreviation
   lab1:: label where
-  "lab1 == label_ lab1_"
+  "lab1 == label' lab1'"
 
 
 lemma neq_Base_Object [simp]: "Base\<noteq>Object"
@@ -307,9 +307,9 @@ done
 lemma not_TName_n_subcls_TName_n [rule_format (no_asm), elim!]: 
   "(\<lparr>pid=java_lang,tid=TName tn\<rparr>, \<lparr>pid=java_lang,tid=TName tn\<rparr>) 
    \<in> (subcls1 tprg)^+ \<longrightarrow> R"
-apply (rule_tac n1 = "tn" in surj_tnam_ [THEN exE])
+apply (rule_tac n1 = "tn" in surj_tnam' [THEN exE])
 apply (erule ssubst)
-apply (rule tnam_.induct)
+apply (rule tnam'.induct)
 apply  safe
 apply (auto dest!: tranclD subcls1D simp add: BaseCl_def ExtCl_def MainCl_def)
 apply (drule rtranclD)
@@ -435,13 +435,13 @@ apply (case_tac "xn = Throwable")
 apply  (simp (no_asm_simp))
 by (rule ws_tprg [THEN fields_emptyI], force+)
 
-lemmas fields_rec_ = fields_rec [OF _ ws_tprg]
+lemmas fields_rec' = fields_rec [OF _ ws_tprg]
 
 lemma fields_Base [simp]: 
 "DeclConcepts.fields tprg Base 
   = [((arr,Base), \<lparr>access=Public,static=True ,type=PrimT Boolean.[]\<rparr>),
      ((vee,Base), \<lparr>access=Public,static=False,type=Iface HasFoo    \<rparr>)]"
-apply (subst fields_rec_)
+apply (subst fields_rec')
 apply   (auto simp add: BaseCl_def)
 done
 
@@ -450,29 +450,29 @@ lemma fields_Ext [simp]:
   = [((vee,Ext), \<lparr>access=Public,static=False,type= PrimT Integer\<rparr>)] 
     @ DeclConcepts.fields tprg Base"
 apply (rule trans)
-apply (rule fields_rec_)
+apply (rule fields_rec')
 apply   (auto simp add: ExtCl_def Object_def)
 done
 
-lemmas imethds_rec_ = imethds_rec [OF _ ws_tprg]
-lemmas methd_rec_  = methd_rec  [OF _ ws_tprg]
+lemmas imethds_rec' = imethds_rec [OF _ ws_tprg]
+lemmas methd_rec'  = methd_rec  [OF _ ws_tprg]
 
 lemma imethds_HasFoo [simp]: 
   "imethds tprg HasFoo = o2s \<circ> empty(foo_sig\<mapsto>(HasFoo, foo_mhead))"
 apply (rule trans)
-apply (rule imethds_rec_)
+apply (rule imethds_rec')
 apply  (auto simp add: HasFooInt_def)
 done
 
 lemma methd_tprg_Object [simp]: "methd tprg Object = empty"
-apply (subst methd_rec_)
+apply (subst methd_rec')
 apply (auto simp add: Object_mdecls_def)
 done
 
 lemma methd_Base [simp]: 
   "methd tprg Base = table_of [(\<lambda>(s,m). (s, Base, m)) Base_foo]"
 apply (rule trans)
-apply (rule methd_rec_)
+apply (rule methd_rec')
 apply   (auto simp add: BaseCl_def)
 done
 
@@ -527,7 +527,7 @@ qed
 lemma methd_Ext [simp]: "methd tprg Ext =   
   table_of [(\<lambda>(s,m). (s, Ext, m)) Ext_foo]"
 apply (rule trans)
-apply (rule methd_rec_)
+apply (rule methd_rec')
 apply   (auto simp add: ExtCl_def Object_def Ext_method_inheritance)
 done
 
