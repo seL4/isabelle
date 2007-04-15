@@ -473,10 +473,10 @@ fun innocent_varname s = Syntax.is_identifier s andalso not (String.isPrefix "u_
 val check_name_thy = theory "Main"
 
 fun valid_boundvarname s =
-  can (fn () => Thm.read_cterm check_name_thy ("SOME "^s^". True", TypeInfer.logicT)) ();
+  can (fn () => Thm.read_cterm check_name_thy ("SOME "^s^". True", dummyT)) ();
 
 fun valid_varname s =
-  can (fn () => Thm.read_cterm check_name_thy (s, TypeInfer.logicT)) ();
+  can (fn () => Thm.read_cterm check_name_thy (s, dummyT)) ();
 
 fun protect_varname s =
     if innocent_varname s andalso valid_varname s then s else

@@ -144,7 +144,7 @@ fun process_spec axiomatic cos alt_props thy =
         val thawed_prop_consts = collect_consts (prop_thawed,[])
         val (altcos,overloaded) = Library.split_list cos
         val (names,sconsts) = Library.split_list altcos
-        val consts = map (term_of o Thm.read_cterm thy o rpair TypeInfer.logicT) sconsts
+        val consts = map (term_of o Thm.read_cterm thy o rpair dummyT) sconsts
         val _ = not (Library.exists (not o Term.is_Const) consts)
           orelse error "Specification: Non-constant found as parameter"
 

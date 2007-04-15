@@ -157,7 +157,7 @@ fun infer_tname state i aterm =
     val (types, sorts) = types_sorts state;
     fun types' (a, ~1) = (case AList.lookup (op =) params a of NONE => types(a, ~1) | sm => sm)
       | types' ixn = types ixn;
-    val ([ct], _) = Thm.read_def_cterms (sign, types', sorts) [] false [(aterm, TypeInfer.logicT)];
+    val ([ct], _) = Thm.read_def_cterms (sign, types', sorts) [] false [(aterm, dummyT)];
   in case #T (rep_cterm ct) of
        Type (tn, _) => tn
      | _ => error ("Cannot determine type of " ^ quote aterm)

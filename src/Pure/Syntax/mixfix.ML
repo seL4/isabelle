@@ -154,8 +154,8 @@ fun mixfix_args NoSyn = 0
   | mixfix_args (Binder _) = 1
   | mixfix_args Structure = 0;
 
-fun mixfixT (Binder _) = (TypeInfer.logicT --> TypeInfer.logicT) --> TypeInfer.logicT
-  | mixfixT mx = replicate (mixfix_args mx) TypeInfer.logicT ---> TypeInfer.logicT;
+fun mixfixT (Binder _) = (dummyT --> dummyT) --> dummyT
+  | mixfixT mx = replicate (mixfix_args mx) dummyT ---> dummyT;
 
 
 (* syn_ext_types *)

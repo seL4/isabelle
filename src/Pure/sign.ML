@@ -610,7 +610,7 @@ fun read_def_terms' pp is_logtype syn consts fixed ctxt (def_type, def_sort) use
 
     val args = sTs |> map (fn (s, raw_T) =>
       let val T = certify_typ thy raw_T handle TYPE (msg, _, _) => error msg
-      in (read T s, T) end);
+      in (read (#1 (TypeInfer.paramify_dummies T 0)) s, T) end);
 
     (*brute-force disambiguation via type-inference*)
     val termss = fold_rev (multiply o fst) args [[]];
@@ -655,7 +655,7 @@ fun simple_read_term thy T s =
   let val ([t], _) = read_def_terms (thy, K NONE, K NONE) [] true [(s, T)]
   in t end handle ERROR msg => cat_error msg ("The error(s) above occurred for term " ^ s);
 
-fun read_term thy = simple_read_term thy TypeInfer.logicT;
+fun read_term thy = simple_read_term thy dummyT;
 fun read_prop thy = simple_read_term thy propT;
 
 

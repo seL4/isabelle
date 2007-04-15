@@ -216,7 +216,7 @@ local
 (* FIXME *)
 fun read_terms ctxt ts =
   #1 (ProofContext.read_termTs ctxt (K false) (K NONE) (K NONE) []
-    (map (rpair TypeInfer.logicT) ts));
+    (map (rpair dummyT) ts));
 
 (* FIXME *)
 fun cert_terms ctxt ts = map (ProofContext.cert_term ctxt) ts;

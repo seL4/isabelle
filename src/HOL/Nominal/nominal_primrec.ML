@@ -388,8 +388,8 @@ fun gen_primrec note def alt_name invs fctxt eqns thy =
     val (_, eqn_ts') = OldInductivePackage.unify_consts thy rec_ts eqn_ts
   in
     gen_primrec_i note def alt_name
-      (Option.map (map (readt TypeInfer.logicT)) invs)
-      (Option.map (readt TypeInfer.logicT) fctxt)
+      (Option.map (map (readt dummyT)) invs)
+      (Option.map (readt dummyT) fctxt)
       (names ~~ eqn_ts' ~~ atts) thy
   end;
 
