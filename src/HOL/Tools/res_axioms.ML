@@ -152,7 +152,7 @@ fun assume_skofuns th =
 
 (*Returns the vars of a theorem*)
 fun vars_of_thm th =
-  map (Thm.cterm_of (theory_of_thm th) o Var) (Drule.fold_terms Term.add_vars th []);
+  map (Thm.cterm_of (theory_of_thm th) o Var) (Thm.fold_terms Term.add_vars th []);
 
 (*Make a version of fun_cong with a given variable name*)
 local

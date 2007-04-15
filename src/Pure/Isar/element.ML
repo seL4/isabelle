@@ -374,7 +374,7 @@ fun rename_term ren (Free (x, T)) = Free (rename ren x, T)
 fun rename_thm ren th =
   let
     val thy = Thm.theory_of_thm th;
-    val subst = (Drule.fold_terms o Term.fold_aterms)
+    val subst = (Thm.fold_terms o Term.fold_aterms)
       (fn Free (x, T) =>
         let val x' = rename ren x
         in if x = x' then I else insert (eq_fst (op =)) ((x, T), Free (x', T)) end
@@ -398,7 +398,7 @@ fun instT_term env =
   if Symtab.is_empty env then I
   else Term.map_types (instT_type env);
 
-fun instT_subst env th = (Drule.fold_terms o Term.fold_types o Term.fold_atyps)
+fun instT_subst env th = (Thm.fold_terms o Term.fold_types o Term.fold_atyps)
   (fn T as TFree (a, _) =>
     let val T' = the_default T (Symtab.lookup env a)
     in if T = T' then I else insert (op =) (a, T') end
@@ -443,7 +443,7 @@ fun inst_thm thy (envT, env) th =
   else
     let
       val substT = instT_subst envT th;
-      val subst = (Drule.fold_terms o Term.fold_aterms)
+      val subst = (Thm.fold_terms o Term.fold_aterms)
        (fn Free (x, T) =>
           let
             val T' = instT_type envT T;

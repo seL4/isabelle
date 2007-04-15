@@ -214,7 +214,7 @@ fun read_classrel thy raw_rel =
 fun add_classrel th thy =
   let
     fun err () = raise THM ("add_classrel: malformed class relation", 0, [th]);
-    val prop = Drule.plain_prop_of (Thm.transfer thy th);
+    val prop = Thm.plain_prop_of (Thm.transfer thy th);
     val rel = Logic.dest_classrel prop handle TERM _ => err ();
     val (c1, c2) = cert_classrel thy rel handle TYPE _ => err ();
   in
@@ -226,7 +226,7 @@ fun add_classrel th thy =
 fun add_arity th thy =
   let
     fun err () = raise THM ("add_arity: malformed type arity", 0, [th]);
-    val prop = Drule.plain_prop_of (Thm.transfer thy th);
+    val prop = Thm.plain_prop_of (Thm.transfer thy th);
     val (t, Ss, c) = Logic.dest_arity prop handle TERM _ => err ();
     val _ = if map (Sign.certify_sort thy) Ss = Ss then () else err ();
   in

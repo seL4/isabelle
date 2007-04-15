@@ -2199,9 +2199,9 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 		    [NONE, NONE, NONE, SOME (cterm_of thy' (Free ("a", aty))), SOME (cterm_of thy' (Free ("r", tT)))]
                     typedef_hol2hollight
 	    val th4 = (#type_definition typedef_info) RS typedef_hol2hollight'
-            val _ = null (Drule.fold_terms Term.add_tvars th4 []) orelse
+            val _ = null (Thm.fold_terms Term.add_tvars th4 []) orelse
               raise ERR "type_introduction" "no type variables expected any more"
-            val _ = null (Drule.fold_terms Term.add_vars th4 []) orelse
+            val _ = null (Thm.fold_terms Term.add_vars th4 []) orelse
               raise ERR "type_introduction" "no term variables expected any more"
 	    val _ = message ("step 3: thyname="^thyname^", tycname="^tycname^", fulltyname="^fulltyname)
             val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'

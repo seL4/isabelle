@@ -206,7 +206,7 @@ fun declare_term t =
 
 val declare_prf = Proofterm.fold_proof_terms declare_internal (declare_internal o Logic.mk_type);
 
-val declare_thm = Drule.fold_terms declare_internal;
+val declare_thm = Thm.fold_terms declare_internal;
 fun thm_context th = declare_thm th (ProofContext.init (Thm.theory_of_thm th));
 
 
@@ -444,7 +444,7 @@ fun focus goal ctxt =
 
 fun focus_subgoal i st =
   let
-    val all_vars = Drule.fold_terms Term.add_vars st [];
+    val all_vars = Thm.fold_terms Term.add_vars st [];
     val no_binds = map (fn (xi, _) => (xi, NONE)) all_vars;
   in
     add_binds no_binds #>

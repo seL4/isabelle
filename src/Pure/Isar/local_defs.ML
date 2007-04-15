@@ -109,7 +109,7 @@ fun export inner outer =
   in fn th =>
     let
       val th' = exp th;
-      val still_fixed = map #1 (Drule.fold_terms Term.add_frees th' []);
+      val still_fixed = map #1 (Thm.fold_terms Term.add_frees th' []);
       val defs = prems |> filter_out (fn prem =>
         (case try (head_of_def o Thm.prop_of) prem of
           SOME x => member (op =) still_fixed x
