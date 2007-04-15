@@ -131,8 +131,8 @@ fun read_instantiate ctxt mixed_insts thm =
   let
     val ctxt' = ctxt |> Variable.declare_thm thm
       |> fold (fn a => Variable.declare_internal (Logic.mk_type (TFree (a, [])))) (Drule.add_used thm []);  (* FIXME tmp *)
-    val tvars = Drule.fold_terms Term.add_tvars thm [];
-    val vars = Drule.fold_terms Term.add_vars thm [];
+    val tvars = Thm.fold_terms Term.add_tvars thm [];
+    val vars = Thm.fold_terms Term.add_vars thm [];
     val ((type_insts, term_insts), insts) = read_insts ctxt' (map snd mixed_insts) (tvars, vars);
 
     val _ = (*assign internalized values*)

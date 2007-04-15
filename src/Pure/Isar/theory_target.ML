@@ -213,8 +213,8 @@ fun import_export_proof ctxt (name, raw_th) =
     val nprems = Thm.nprems_of th' - Thm.nprems_of th;
 
     (*export fixes*)
-    val tfrees = map TFree (Drule.fold_terms Term.add_tfrees th' []);
-    val frees = map Free (Drule.fold_terms Term.add_frees th' []);
+    val tfrees = map TFree (Thm.fold_terms Term.add_tfrees th' []);
+    val frees = map Free (Thm.fold_terms Term.add_frees th' []);
     val (th'' :: vs) = (th' :: map (Drule.mk_term o cert) (map Logic.mk_type tfrees @ frees))
       |> Variable.export ctxt thy_ctxt
       |> Drule.zero_var_indexes_list;

@@ -16,6 +16,7 @@ sig
     -> theory -> thm list * theory
   val add_primrec_unchecked_i: string -> ((bstring * term) * attribute list) list
     -> theory -> thm list * theory
+  (* FIXME !? *)
   val gen_primrec: ((bstring * attribute list) * thm list -> theory -> (bstring * thm list) * theory)
     -> ((bstring * attribute list) * term -> theory -> (bstring * thm) * theory)
     -> string -> ((bstring * attribute list) * term) list
@@ -42,16 +43,16 @@ fun message s = if ! quiet_mode then () else writeln s;
 
 (* preprocessing of equations *)
 
-fun process_eqn thy eq rec_fns = 
+fun process_eqn thy eq rec_fns =
   let
-    val (lhs, rhs) = 
+    val (lhs, rhs) =
       if null (term_vars eq) then
         HOLogic.dest_eq (HOLogic.dest_Trueprop eq)
         handle TERM _ => raise RecError "not a proper equation"
       else raise RecError "illegal schematic variable(s)";
 
     val (recfun, args) = strip_comb lhs;
-    val fnameT = dest_Const recfun handle TERM _ => 
+    val fnameT = dest_Const recfun handle TERM _ =>
       raise RecError "function is not declared as constant in theory";
 
     val (ls', rest)  = take_prefix is_Free args;
@@ -73,7 +74,7 @@ fun process_eqn thy eq rec_fns =
     fun check_vars _ [] = ()
       | check_vars s vars = raise RecError (s ^ commas_quote (map fst vars))
   in
-    if length middle > 1 then 
+    if length middle > 1 then
       raise RecError "more than one non-variable in pattern"
     else
      (check_vars "repeated variable names in pattern: " (duplicates (op =) lfrees);
@@ -147,14 +148,14 @@ fun process_fun thy descr rec_eqns (i, fnameT as (fname, _)) (fnameTs, fnss) =
             let
               val recs = filter (is_rec_type o snd) (cargs' ~~ cargs);
               val rargs = map fst recs;
-              val subs = map (rpair dummyT o fst) 
+              val subs = map (rpair dummyT o fst)
                 (rev (rename_wrt_term rhs rargs));
-              val (rhs', (fnameTs'', fnss'')) = 
+              val (rhs', (fnameTs'', fnss'')) =
                   (subst (map (fn ((x, y), z) =>
                                (Free x, (body_index y, Free z)))
                           (recs ~~ subs)) rhs (fnameTs', fnss'))
                   handle RecError s => primrec_eq_err thy s eq
-            in (fnameTs'', fnss'', 
+            in (fnameTs'', fnss'',
                 (list_abs_free (cargs' @ subs @ ls @ rs, rhs'))::fns)
             end)
 
@@ -166,7 +167,7 @@ fun process_fun thy descr rec_eqns (i, fnameT as (fname, _)) (fnameTs, fnss) =
           let
             val (_, _, eqns) = the (AList.lookup (op =) rec_eqns fnameT);
             val (fnameTs', fnss', fns) = fold_rev (trans eqns) constrs
-              ((i, fnameT)::fnameTs, fnss, []) 
+              ((i, fnameT)::fnameTs, fnss, [])
           in
             (fnameTs', (i, (fname, #1 (snd (hd eqns)), fns))::fnss')
           end
@@ -200,9 +201,11 @@ fun make_def thy fs (fname, ls, rec_name, tname) =
                     ((map snd ls) @ [dummyT])
                     (list_comb (Const (rec_name, dummyT),
                                 fs @ map Bound (0 ::(length ls downto 1))))
-    val defpair = (Sign.base_name fname ^ "_" ^ Sign.base_name tname ^ "_def",
-                   Logic.mk_equals (Const (fname, dummyT), rhs))
-  in Theory.inferT_axm thy defpair end;
+    val def_name = Sign.base_name fname ^ "_" ^ Sign.base_name tname ^ "_def";
+    val def_prop =
+      singleton (ProofContext.infer_types (ProofContext.init thy))
+        (Logic.mk_equals (Const (fname, dummyT), rhs), propT) |> #1;
+  in (def_name, def_prop) end;
 
 
 (* find datatypes which contain all datatypes in tnames' *)
@@ -236,12 +239,12 @@ fun gen_primrec_i note def alt_name eqns_atts thy =
     val rec_eqns = fold_rev (process_eqn thy o snd) eqns [] ;
     val tnames = distinct (op =) (map (#1 o snd) rec_eqns);
     val dts = find_dts dt_info tnames tnames;
-    val main_fns = 
+    val main_fns =
       map (fn (tname, {index, ...}) =>
-        (index, 
+        (index,
           (fst o the o find_first (fn f => (#1 o snd) f = tname)) rec_eqns))
       dts;
-    val {descr, rec_names, rec_rewrites, ...} = 
+    val {descr, rec_names, rec_rewrites, ...} =
       if null dts then
         primrec_err ("datatypes " ^ commas_quote tnames ^ "\nare not mutually recursive")
       else snd (hd dts);
@@ -308,7 +311,7 @@ val add_primrec_unchecked_i = gen_primrec_i thy_note (thy_def true);
 fun gen_primrec note def alt_name specs =
   gen_primrec_i note def alt_name (map (fn ((name, t), atts) => ((name, atts), t)) specs);
 
-end; (*local*)
+end;
 
 
 (* outer syntax *)
@@ -334,6 +337,4 @@ val _ = OuterSyntax.add_parsers [primrecP];
 
 end;
 
-
 end;
-

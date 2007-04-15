@@ -206,10 +206,11 @@ fun make_def thy fs (fname, ls, rs, rec_name, tname) =
     val frees = ls @ x :: rs;
     val rhs = list_abs_free (frees,
       list_comb (Const (rec_name, dummyT), fs @ [Free x]))
-    val defpair = (Sign.base_name fname ^ "_" ^ Sign.base_name tname ^ "_def",
-                   Logic.mk_equals (Const (fname, dummyT), rhs));
-    val defpair' as (_, _ $ _ $ t) = Theory.inferT_axm thy defpair
-  in (defpair', subst_bounds (rev (map Free frees), strip_abs_body t)) end;
+    val def_name = Sign.base_name fname ^ "_" ^ Sign.base_name tname ^ "_def";
+    val def_prop as _ $ _ $ t =
+      singleton (ProofContext.infer_types (ProofContext.init thy))
+        (Logic.mk_equals (Const (fname, dummyT), rhs), propT) |> #1;
+  in ((def_name, def_prop), subst_bounds (rev (map Free frees), strip_abs_body t)) end;
 
 
 (* find datatypes which contain all datatypes in tnames' *)

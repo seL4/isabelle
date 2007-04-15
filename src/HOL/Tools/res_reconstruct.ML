@@ -282,12 +282,7 @@ fun fix_sorts vt =
   vt0 holds the initial sort constraints, from the conjecture clauses.*)
 fun clause_of_strees_aux ctxt vt0 ts = 
   let val (vt, dt) = lits_of_strees ctxt (vt0,[]) ts
-      val infer = Sign.infer_types (ProofContext.pp ctxt) (ProofContext.theory_of ctxt)
-                      (ProofContext.consts_of ctxt) (Variable.def_type ctxt false)
-                      (Variable.def_sort ctxt) (Variable.names_of ctxt) true
-  in 
-     #1(infer ([fix_sorts vt dt], HOLogic.boolT))
-  end; 
+  in #1 (singleton (ProofContext.infer_types ctxt) (fix_sorts vt dt, HOLogic.boolT)) end;
 
 (*Quantification over a list of Vars. FUXNE: for term.ML??*)
 fun list_all_var ([], t: term) = t
