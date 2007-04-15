@@ -54,19 +54,9 @@ infixr 9 oo;
 
 (* ----- general proof facilities ------------------------------------------- *)
 
-(* FIXME better avoid this low-level stuff *)
-fun inferT sg pre_tm =
-  let
-    val pp = Sign.pp sg;
-    val consts = Sign.consts_of sg;
-    val (t, _) =
-      Sign.infer_types pp sg consts (K NONE) (K NONE) Name.context true
-        ([pre_tm],propT);
-  in t end;
-
 fun pg'' thy defs t tacs =
   let
-    val t' = inferT thy t;
+    val t' = FixrecPackage.legacy_infer_term thy t;
     val asms = Logic.strip_imp_prems t';
     val prop = Logic.strip_imp_concl t';
     fun tac prems =

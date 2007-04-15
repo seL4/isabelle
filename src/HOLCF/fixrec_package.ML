@@ -7,6 +7,8 @@ Recursive function definition package for HOLCF.
 
 signature FIXREC_PACKAGE =
 sig
+  val legacy_infer_term: theory -> term -> term
+  val legacy_infer_prop: theory -> term -> term
   val add_fixrec: bool -> ((string * Attrib.src list) * string) list list -> theory -> theory
   val add_fixrec_i: bool -> ((string * attribute list) * term) list list -> theory -> theory
   val add_fixpat: (string * Attrib.src list) * string list -> theory -> theory
@@ -15,6 +17,15 @@ end;
 
 structure FixrecPackage: FIXREC_PACKAGE =
 struct
+
+(* legacy type inference *)
+
+fun legacy_infer_types thy (t, T) =
+  #1 (singleton (ProofContext.infer_types (ProofContext.init thy)) (Sign.intern_term thy t, T));
+
+fun legacy_infer_term thy t = legacy_infer_types thy (t, dummyT);
+fun legacy_infer_prop thy t = legacy_infer_types thy (t, propT);
+
 
 val fix_eq2 = thm "fix_eq2";
 val def_fix_ind = thm "def_fix_ind";
@@ -49,12 +60,6 @@ fun %%: s = Const(s,dummyT);
 infix 0 ==;  fun S ==  T = %%:"==" $ S $ T;
 infix 1 ===; fun S === T = %%:"op =" $ S $ T;
 infix 9 `  ; fun f ` x = %%:"Cfun.Rep_CFun" $ f $ x;
-
-(* infers the type of a term *)  (* FIXME better avoid this low-level stuff *)
-(* similar to Theory.inferT_axm, but allows any type, not just propT *)
-fun infer sg t =
-  fst (Sign.infer_types (Sign.pp sg) sg (Sign.consts_of sg) (K NONE) (K NONE) Name.context true
-    ([t],dummyT));
 
 (* builds the expression (LAM v. rhs) *)
 fun big_lambda v rhs = %%:"Cfun.Abs_CFun"$(Term.lambda v rhs);
@@ -91,12 +96,12 @@ fun add_fixdefs eqs thy =
       | defs (l::ls) r = one_def l (%%:"Cprod.cfst"`r) :: defs ls (%%:"Cprod.csnd"`r);
     val (names, pre_fixdefs) = ListPair.unzip (defs lhss fixpoint);
     
-    val fixdefs = map (Theory.inferT_axm thy) pre_fixdefs;
+    val fixdefs = map (apsnd (legacy_infer_prop thy)) pre_fixdefs;
     val (fixdef_thms, thy') =
       PureThy.add_defs_i false (map Thm.no_attributes fixdefs) thy;
     val ctuple_fixdef_thm = foldr1 (fn (x,y) => cpair_equalI OF [x,y]) fixdef_thms;
     
-    val ctuple_unfold = infer thy' (mk_trp (mk_ctuple lhss === mk_ctuple rhss));
+    val ctuple_unfold = legacy_infer_term thy' (mk_trp (mk_ctuple lhss === mk_ctuple rhss));
     val ctuple_unfold_thm = Goal.prove_global thy' [] [] ctuple_unfold
           (fn _ => EVERY [rtac (ctuple_fixdef_thm RS fix_eq2 RS trans) 1,
                     simp_tac (simpset_of thy') 1]);
@@ -232,7 +237,7 @@ fun gen_add_fixrec prep_prop prep_attrib strict blocks thy =
     fun unconcat [] _ = []
       | unconcat (n::ns) xs = List.take (xs,n) :: unconcat ns (List.drop (xs,n));
     val pattern_blocks = unconcat lengths (map Logic.strip_imp_concl eqn_ts');
-    val compiled_ts = map (infer thy o compile_pats) pattern_blocks;
+    val compiled_ts = map (legacy_infer_term thy o compile_pats) pattern_blocks;
     val (thy', cnames, fixdef_thms, unfold_thms) = add_fixdefs compiled_ts thy;
   in
     if strict then let (* only prove simp rules if strict = true *)

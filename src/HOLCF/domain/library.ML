@@ -134,6 +134,7 @@ val branchN    = "Fixrec.branch";
 val pcpoN      = "Pcpo.pcpo"
 val pcpoS      = [pcpoN];
 
+
 (* ----- support for type and mixfix expressions ----- *)
 
 infixr 5 -->;
@@ -152,20 +153,9 @@ fun mk_imp  (S,T) = imp  $ S $ T;
 fun mk_lam  (x,T) = Abs(x,dummyT,T);
 fun mk_all  (x,P) = HOLogic.mk_all (x,dummyT,P);
 fun mk_ex   (x,P) = mk_exists (x,dummyT,P);
-local 
-		    fun sg [s]     = %:s
-		    |   sg (s::ss) = %%:"_classes" $ %:s $ sg ss
-	 	    |   sg _       = Imposs "library:sg";
-		    fun sf [] = %%:"_emptysort"
-		    |   sf s  = %%:"_sort" $ sg s
-		    fun tf (Type (s,args)) = Library.foldl (op $) (%:s,map tf args)
-		    |   tf (TFree(s,sort)) = %%:"_ofsort" $ %:s $ sf sort
-		    |   tf _               = Imposs "library:tf";
-in
-fun mk_constrain      (typ,T) = %%:"_constrain" $ T $ tf typ;
-fun mk_constrainall (x,typ,P) = %%:"All" $ (%%:"_constrainAbs" $ mk_lam(x,P) $ tf typ);
-end;
-end;
+fun mk_constrain      (typ,T) = TypeInfer.constrain T typ;
+fun mk_constrainall (x,typ,P) = %%:"All" $ (TypeInfer.constrain (mk_lam(x,P)) (typ --> boolT));
+end
 
 fun mk_All  (x,P) = %%:"all" $ mk_lam(x,P); (* meta universal quantification *)
 

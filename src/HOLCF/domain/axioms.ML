@@ -14,8 +14,6 @@ infixr 0 ===>;infixr 0 ==>;infix 0 == ;
 infix 1 ===; infix 1 ~= ; infix 1 <<; infix 1 ~<<;
 infix 9 `   ; infix 9 `% ; infix 9 `%%; infixr 9 oo;
 
-fun infer_types thy' = map (Theory.inferT_axm thy');
-
 fun calc_axioms comp_dname (eqs : eq list) n (((dname,_),cons) : eq)=
 let
 
@@ -111,11 +109,13 @@ in (dnam,
     [take_def, finite_def])
 end; (* let *)
 
+fun infer_props thy = map (apsnd (FixrecPackage.legacy_infer_prop thy));
+
 fun add_axioms_i x = snd o PureThy.add_axioms_i (map Thm.no_attributes x);
-fun add_axioms_infer axms thy = add_axioms_i (infer_types thy axms) thy;
+fun add_axioms_infer axms thy = add_axioms_i (infer_props thy axms) thy;
 
 fun add_defs_i x = snd o (PureThy.add_defs_i false) (map Thm.no_attributes x);
-fun add_defs_infer defs thy = add_defs_i (infer_types thy defs) thy;
+fun add_defs_infer defs thy = add_defs_i (infer_props thy defs) thy;
 
 in (* local *)
 
