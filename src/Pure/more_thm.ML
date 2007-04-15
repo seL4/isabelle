@@ -14,6 +14,8 @@ sig
   val eq_thm_thy: thm * thm -> bool
   val eq_thm_prop: thm * thm -> bool
   val equiv_thm: thm * thm -> bool
+  val plain_prop_of: thm -> term
+  val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
   val axiomK: string
   val assumptionK: string
   val definitionK: string
@@ -37,7 +39,7 @@ end;
 structure Thm: THM =
 struct
 
-(** compare theorems **)
+(** basic operations **)
 
 (* order: ignores theory context! *)
 
@@ -74,6 +76,28 @@ val eq_thm_prop = op aconv o pairself Thm.full_prop_of;
 
 fun equiv_thm ths =
   Pattern.equiv (Theory.merge (pairself Thm.theory_of_thm ths)) (pairself Thm.full_prop_of ths);
+
+
+(* misc operations *)
+
+fun plain_prop_of raw_thm =
+  let
+    val thm = Thm.strip_shyps raw_thm;
+    fun err msg = raise THM ("plain_prop_of: " ^ msg, 0, [thm]);
+    val {hyps, prop, tpairs, ...} = Thm.rep_thm thm;
+  in
+    if not (null hyps) then
+      err "theorem may not contain hypotheses"
+    else if not (null (Thm.extra_shyps thm)) then
+      err "theorem may not contain sort hypotheses"
+    else if not (null tpairs) then
+      err "theorem may not contain flex-flex pairs"
+    else prop
+  end;
+
+fun fold_terms f th =
+  let val {tpairs, prop, hyps, ...} = Thm.rep_thm th
+  in fold (fn (t, u) => f t #> f u) tpairs #> f prop #> fold f hyps end;
 
 
 

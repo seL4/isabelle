@@ -91,8 +91,6 @@ sig
   val lhs_of: thm -> cterm
   val rhs_of: thm -> cterm
   val beta_conv: cterm -> cterm -> cterm
-  val plain_prop_of: thm -> term
-  val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
   val add_used: thm -> string list -> string list
   val flexflex_unique: thm -> thm
   val close_derivation: thm -> thm
@@ -229,25 +227,6 @@ fun strip_type cT = (case Thm.typ_of cT of
 fun beta_conv x y =
   Thm.dest_arg (cprop_of (Thm.beta_conversion false (Thm.capply x y)));
 
-fun plain_prop_of raw_thm =
-  let
-    val thm = Thm.strip_shyps raw_thm;
-    fun err msg = raise THM ("plain_prop_of: " ^ msg, 0, [thm]);
-    val {hyps, prop, tpairs, ...} = Thm.rep_thm thm;
-  in
-    if not (null hyps) then
-      err "theorem may not contain hypotheses"
-    else if not (null (Thm.extra_shyps thm)) then
-      err "theorem may not contain sort hypotheses"
-    else if not (null tpairs) then
-      err "theorem may not contain flex-flex pairs"
-    else prop
-  end;
-
-fun fold_terms f th =
-  let val {tpairs, prop, hyps, ...} = Thm.rep_thm th
-  in fold (fn (t, u) => f t #> f u) tpairs #> f prop #> fold f hyps end;
-
 
 
 (** reading of instantiations **)
@@ -296,10 +275,10 @@ end;
 
 fun types_sorts thm =
   let
-    val vars = fold_terms Term.add_vars thm [];
-    val frees = fold_terms Term.add_frees thm [];
-    val tvars = fold_terms Term.add_tvars thm [];
-    val tfrees = fold_terms Term.add_tfrees thm [];
+    val vars = Thm.fold_terms Term.add_vars thm [];
+    val frees = Thm.fold_terms Term.add_frees thm [];
+    val tvars = Thm.fold_terms Term.add_tvars thm [];
+    val tfrees = Thm.fold_terms Term.add_tfrees thm [];
     fun types (a, i) =
       if i < 0 then AList.lookup (op =) frees a else AList.lookup (op =) vars (a, i);
     fun sorts (a, i) =
@@ -307,7 +286,7 @@ fun types_sorts thm =
   in (types, sorts) end;
 
 val add_used =
-  (fold_terms o fold_types o fold_atyps)
+  (Thm.fold_terms o fold_types o fold_atyps)
     (fn TFree (a, _) => insert (op =) a
       | TVar ((a, _), _) => insert (op =) a
       | _ => I);
@@ -329,7 +308,7 @@ fun sort_triv thy (T, S) =
 
 fun unconstrainTs th =
   fold (Thm.unconstrainT o Thm.ctyp_of (Thm.theory_of_thm th) o TVar)
-    (fold_terms Term.add_tvars th []) th;
+    (Thm.fold_terms Term.add_tvars th []) th;
 
 (*Generalization over a list of variables*)
 val forall_intr_list = fold_rev forall_intr;
@@ -346,7 +325,7 @@ fun forall_intr_frees th =
 (*Generalization over Vars -- canonical order*)
 fun forall_intr_vars th =
   fold forall_intr
-    (map (Thm.cterm_of (Thm.theory_of_thm th) o Var) (fold_terms Term.add_vars th [])) th;
+    (map (Thm.cterm_of (Thm.theory_of_thm th) o Var) (Thm.fold_terms Term.add_vars th [])) th;
 
 val forall_elim_var = PureThy.forall_elim_var;
 val forall_elim_vars = PureThy.forall_elim_vars;
@@ -373,7 +352,7 @@ fun lift_all goal th =
     val ps = outer_params (Thm.term_of goal)
       |> map (fn (x, T) => Var ((x, maxidx + 1), Logic.incr_tvar (maxidx + 1) T));
     val Ts = map Term.fastype_of ps;
-    val inst = fold_terms Term.add_vars th [] |> map (fn (xi, T) =>
+    val inst = Thm.fold_terms Term.add_vars th [] |> map (fn (xi, T) =>
       (cert (Var (xi, T)), cert (Term.list_comb (Var (xi, Ts ---> T), ps))));
   in
     th |> Thm.instantiate ([], inst)
@@ -1001,11 +980,11 @@ fun instantiate' cTs cts thm =
     val thm' =
       if forall is_none cTs then thm
       else Thm.instantiate
-        (map tyinst_of (zip_vars (rev (fold_terms Term.add_tvars thm [])) cTs), []) thm;
+        (map tyinst_of (zip_vars (rev (Thm.fold_terms Term.add_tvars thm [])) cTs), []) thm;
     val thm'' =
       if forall is_none cts then thm'
       else Thm.instantiate
-        ([], map inst_of (zip_vars (rev (fold_terms Term.add_vars thm' [])) cts)) thm';
+        ([], map inst_of (zip_vars (rev (Thm.fold_terms Term.add_vars thm' [])) cts)) thm';
     in thm'' end;
 
 
