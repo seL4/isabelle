@@ -15,6 +15,8 @@ sig
   val print_data: Proof.context -> unit
   val eqvt_add: attribute
   val eqvt_del: attribute
+  val eqvt_force_add: attribute
+  val eqvt_force_del: attribute
   val setup: theory -> theory
   val get_eqvt_thms: theory -> thm list
   val get_fresh_thms: theory -> thm list
@@ -205,19 +207,22 @@ fun bij_map f th (r:Data.T)   = {eqvts = #eqvts r, freshs = #freshs r, bijs = (f
 
 val eqvt_add  = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map Drule.add_rule)); 
 val eqvt_del  = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map Drule.del_rule)); 
+val eqvt_force_add  = Thm.declaration_attribute (eqvt_force_add_del_aux (eqvt_map Drule.add_rule)); 
+val eqvt_force_del  = Thm.declaration_attribute (eqvt_force_add_del_aux (eqvt_map Drule.del_rule)); 
+
 val bij_add   = Thm.declaration_attribute (bij_add_del_aux (bij_map Drule.add_rule)); 
 val bij_del   = Thm.declaration_attribute (bij_add_del_aux (bij_map Drule.del_rule));
 val fresh_add = Thm.declaration_attribute (fresh_add_del_aux (fresh_map Drule.add_rule)); 
 val fresh_del = Thm.declaration_attribute (fresh_add_del_aux (fresh_map Drule.del_rule));
 
-val eqvt_force_add  = Thm.declaration_attribute (eqvt_force_add_del_aux (eqvt_map Drule.add_rule)); 
-val eqvt_force_del  = Thm.declaration_attribute (eqvt_force_add_del_aux (eqvt_map Drule.del_rule)); 
+
 
 val setup =
   Data.init #>
   Attrib.add_attributes 
      [("eqvt",  Attrib.add_del_args eqvt_add eqvt_del,   "equivariance theorem declaration"),
-      ("eqvt_force",  Attrib.add_del_args eqvt_force_add eqvt_force_del,"equivariance theorem declaration (without checking the form of the lemma)"),
+      ("eqvt_force", Attrib.add_del_args eqvt_force_add eqvt_force_del,
+                             "equivariance theorem declaration (without checking the form of the lemma)"),
       ("fresh", Attrib.add_del_args fresh_add fresh_del, "freshness theorem declaration"),
       ("bij",   Attrib.add_del_args bij_add bij_del,     "bijection theorem declaration")];
 

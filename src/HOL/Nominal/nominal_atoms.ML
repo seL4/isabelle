@@ -802,8 +802,8 @@ fun create_nom_typedecls ak_names thy =
             ||>> PureThy.add_thmss [(("supp_atm", (inst_at [at_supp]) @ (inst_dj [dj_supp])),[])]
             ||>> PureThy.add_thmss [(("exists_fresh", inst_at [at_exists_fresh]),[])]
             ||>> PureThy.add_thmss [(("exists_fresh'", inst_at [at_exists_fresh']),[])]
-            ||>> PureThy.add_thmss [(("all_eqvt", inst_pt_at [all_eqvt]),[NominalThmDecls.eqvt_add])] 
-            ||>> PureThy.add_thmss [(("ex_eqvt", inst_pt_at [ex_eqvt]),[NominalThmDecls.eqvt_add])]
+            ||>> PureThy.add_thmss [(("all_eqvt", inst_pt_at [all_eqvt]),[NominalThmDecls.eqvt_force_add])] 
+            ||>> PureThy.add_thmss [(("ex_eqvt", inst_pt_at [ex_eqvt]),[NominalThmDecls.eqvt_force_add])]
             ||>> PureThy.add_thmss 
 	      let val thms1 = inst_at [at_fresh]
 		  val thms2 = inst_dj [at_fresh_ineq]

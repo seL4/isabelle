@@ -1716,7 +1716,7 @@ lemma pt_all_eqvt:
   and     x :: "'a"
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
-  shows "pi\<bullet>(\<forall>(x::'a). P x) = (\<forall>(x::'a). (pi\<bullet>P) x)"
+  shows "pi\<bullet>(\<forall>(x::'a). P x) = (\<forall>(x::'a). pi\<bullet>(P ((rev pi)\<bullet>x)))"
 apply(auto simp add: perm_bool perm_fun_def)
 apply(drule_tac x="pi\<bullet>x" in spec)
 apply(simp add: pt_rev_pi[OF pt, OF at])
@@ -1727,7 +1727,7 @@ lemma pt_ex_eqvt:
   and     x :: "'a"
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
-  shows "pi\<bullet>(\<exists>(x::'a). P x) = (\<exists>(x::'a). (pi\<bullet>P) x)"
+  shows "pi\<bullet>(\<exists>(x::'a). P x) = (\<exists>(x::'a). pi\<bullet>(P ((rev pi)\<bullet>x)))"
 apply(auto simp add: perm_bool perm_fun_def)
 apply(rule_tac x="pi\<bullet>x" in exI) 
 apply(simp add: pt_rev_pi[OF pt, OF at])
