@@ -738,10 +738,11 @@ subsection {* The formula for geometric sums *}
 
 lemma geometric_sum:
   "x ~= 1 ==> (\<Sum>i=0..<n. x ^ i) =
-  (x ^ n - 1) / (x - 1::'a::{field, recpower, division_by_zero})"
+  (x ^ n - 1) / (x - 1::'a::{field, recpower})"
   apply (induct "n", auto)
   apply (rule_tac c = "x - 1" in field_mult_cancel_right_lemma)
   apply (auto simp add: mult_assoc left_distrib)
+  apply (simp add: times_divide_eq_right [symmetric] divide_self)
   apply (simp add: right_distrib diff_minus mult_commute power_Suc)
   done
 
