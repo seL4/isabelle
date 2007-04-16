@@ -19,6 +19,7 @@ sig
   val print_char: string -> string
   val print_string: string -> string
   val print_strings: string list -> string
+  val print_indexname: indexname -> string
   val print_class: class -> string
   val print_sort: sort -> string
   val print_typ: typ -> string
@@ -75,20 +76,21 @@ fun print_char s =
 val print_string = quote o translate_string print_char;
 val print_strings = print_list print_string;
 
-val print_class = print_string;
+val print_indexname = print_pair print_string print_int;
 
+val print_class = print_string;
 val print_sort = print_list print_class;
 
 fun print_typ (Type arg) = "Type " ^ print_pair print_string (print_list print_typ) arg
   | print_typ (TFree arg) = "TFree " ^ print_pair print_string print_sort arg
-  | print_typ (TVar arg) = "TVar " ^ print_pair (print_pair print_string print_int) print_sort arg;
+  | print_typ (TVar arg) = "TVar " ^ print_pair print_indexname print_sort arg;
 
 fun print_term (Const arg) = "Const " ^ print_pair print_string print_typ arg
   | print_term (Free arg) = "Free " ^ print_pair print_string print_typ arg
-  | print_term (Var arg) = "Var " ^ print_pair (print_pair print_string print_int) print_typ arg
+  | print_term (Var arg) = "Var " ^ print_pair print_indexname print_typ arg
   | print_term (Bound i) = "Bound " ^ print_int i
   | print_term (Abs (s, T, t)) =
       "Abs (" ^ print_string s ^ ", " ^ print_typ T ^ ", " ^ print_term t ^ ")"
-  | print_term (t1 $ t2) = "(" ^ print_term t1 ^ ") $ (" ^ print_term t2 ^ ")";
+  | print_term (t1 $ t2) = atomic (print_term t1) ^ " $ " ^ atomic (print_term t2);
 
 end;
