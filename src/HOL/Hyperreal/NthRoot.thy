@@ -239,6 +239,80 @@ apply (drule_tac [4] n = n in power_gt1_lemma)
 apply (auto)
 done
 
+lemma real_root_less_mono:
+     "[| 0 \<le> x; x < y |] ==> root(Suc n) x < root(Suc n) y"
+apply (frule order_le_less_trans, assumption)
+apply (frule_tac n1 = n in real_root_pow_pos2 [THEN ssubst])
+apply (rotate_tac 1, assumption)
+apply (frule_tac n1 = n in real_root_pow_pos [THEN ssubst])
+apply (rotate_tac 3, assumption)
+apply (drule_tac y = "root (Suc n) y ^ Suc n" in order_less_imp_le)
+apply (frule_tac n = n in real_root_pos_pos_le)
+apply (frule_tac n = n in real_root_pos_pos)
+apply (drule_tac x = "root (Suc n) x" and y = "root (Suc n) y" in realpow_increasing)
+apply (assumption, assumption)
+apply (drule_tac x = "root (Suc n) x" in order_le_imp_less_or_eq)
+apply auto
+apply (drule_tac f = "%x. x ^ (Suc n)" in arg_cong)
+apply (auto simp add: real_root_pow_pos2 simp del: realpow_Suc)
+done
+
+lemma real_root_le_mono:
+     "[| 0 \<le> x; x \<le> y |] ==> root(Suc n) x \<le> root(Suc n) y"
+apply (drule_tac y = y in order_le_imp_less_or_eq)
+apply (auto dest: real_root_less_mono intro: order_less_imp_le)
+done
+
+lemma real_root_less_iff [simp]:
+     "[| 0 \<le> x; 0 \<le> y |] ==> (root(Suc n) x < root(Suc n) y) = (x < y)"
+apply (auto intro: real_root_less_mono)
+apply (rule ccontr, drule linorder_not_less [THEN iffD1])
+apply (drule_tac x = y and n = n in real_root_le_mono, auto)
+done
+
+lemma real_root_le_iff [simp]:
+     "[| 0 \<le> x; 0 \<le> y |] ==> (root(Suc n) x \<le> root(Suc n) y) = (x \<le> y)"
+apply (auto intro: real_root_le_mono)
+apply (simp (no_asm) add: linorder_not_less [symmetric])
+apply auto
+apply (drule_tac x = y and n = n in real_root_less_mono, auto)
+done
+
+lemma real_root_eq_iff [simp]:
+     "[| 0 \<le> x; 0 \<le> y |] ==> (root(Suc n) x = root(Suc n) y) = (x = y)"
+apply (auto intro!: order_antisym [where 'a = real])
+apply (rule_tac n1 = n in real_root_le_iff [THEN iffD1])
+apply (rule_tac [4] n1 = n in real_root_le_iff [THEN iffD1], auto)
+done
+
+lemma real_root_pos_unique:
+     "[| 0 \<le> x; 0 \<le> y; y ^ (Suc n) = x |] ==> root (Suc n) x = y"
+by (auto dest: real_root_pos2 simp del: realpow_Suc)
+
+lemma real_root_mult:
+     "[| 0 \<le> x; 0 \<le> y |] 
+      ==> root(Suc n) (x * y) = root(Suc n) x * root(Suc n) y"
+apply (rule real_root_pos_unique)
+apply (auto intro!: real_root_pos_pos_le 
+            simp add: power_mult_distrib zero_le_mult_iff real_root_pow_pos2 
+            simp del: realpow_Suc)
+done
+
+lemma real_root_inverse:
+     "0 \<le> x ==> (root(Suc n) (inverse x) = inverse(root(Suc n) x))"
+apply (rule real_root_pos_unique)
+apply (auto intro: real_root_pos_pos_le 
+            simp add: power_inverse [symmetric] real_root_pow_pos2 
+            simp del: realpow_Suc)
+done
+
+lemma real_root_divide: 
+     "[| 0 \<le> x; 0 \<le> y |]  
+      ==> (root(Suc n) (x / y) = root(Suc n) x / root(Suc n) y)"
+apply (simp add: divide_inverse)
+apply (auto simp add: real_root_mult real_root_inverse)
+done
+
 
 subsection{*Square Root*}
 
@@ -406,5 +480,42 @@ next
                   power2_eq_square [symmetric] real_inv_sqrt_pow2 pos nz) 
   qed
 qed
+
+
+lemma real_sqrt_less_mono: "[| 0 \<le> x; x < y |] ==> sqrt(x) < sqrt(y)"
+by (simp add: sqrt_def)
+
+lemma real_sqrt_le_mono: "[| 0 \<le> x; x \<le> y |] ==> sqrt(x) \<le> sqrt(y)"
+by (simp add: sqrt_def)
+
+lemma real_sqrt_less_iff [simp]:
+     "[| 0 \<le> x; 0 \<le> y |] ==> (sqrt(x) < sqrt(y)) = (x < y)"
+by (simp add: sqrt_def)
+
+lemma real_sqrt_le_iff [simp]:
+     "[| 0 \<le> x; 0 \<le> y |] ==> (sqrt(x) \<le> sqrt(y)) = (x \<le> y)"
+by (simp add: sqrt_def)
+
+lemma real_sqrt_eq_iff [simp]:
+     "[| 0 \<le> x; 0 \<le> y |] ==> (sqrt(x) = sqrt(y)) = (x = y)"
+by (simp add: sqrt_def)
+
+lemma real_sqrt_sos_less_one_iff [simp]: "(sqrt(x\<twosuperior> + y\<twosuperior>) < 1) = (x\<twosuperior> + y\<twosuperior> < 1)"
+apply (rule real_sqrt_one [THEN subst], safe)
+apply (rule_tac [2] real_sqrt_less_mono)
+apply (drule real_sqrt_less_iff [THEN [2] rev_iffD1], auto)
+done
+
+lemma real_sqrt_sos_eq_one_iff [simp]: "(sqrt(x\<twosuperior> + y\<twosuperior>) = 1) = (x\<twosuperior> + y\<twosuperior> = 1)"
+apply (rule real_sqrt_one [THEN subst], safe)
+apply (drule real_sqrt_eq_iff [THEN [2] rev_iffD1], auto)
+done
+
+lemma real_divide_square_eq [simp]: "(((r::real) * a) / (r * r)) = a / r"
+apply (simp add: divide_inverse)
+apply (case_tac "r=0")
+apply (auto simp add: mult_ac)
+done
+
 
 end
