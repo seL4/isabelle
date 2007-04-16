@@ -340,7 +340,7 @@ text{*Sum of a geometric progression.*}
 lemmas sumr_geometric = geometric_sum [where 'a = real]
 
 lemma geometric_sums:
-  fixes x :: "'a::{real_normed_field,recpower,division_by_zero}"
+  fixes x :: "'a::{real_normed_field,recpower}"
   shows "norm x < 1 \<Longrightarrow> (\<lambda>n. x ^ n) sums (1 / (1 - x))"
 proof -
   assume less_1: "norm x < 1"
@@ -348,8 +348,7 @@ proof -
   hence neq_0: "x - 1 \<noteq> 0" by simp
   from less_1 have lim_0: "(\<lambda>n. x ^ n) ----> 0"
     by (rule LIMSEQ_power_zero)
-  hence "(\<lambda>n. x ^ n / (x - 1) - 1 / (x - 1)) ----> 0 / (x - 1) - 1 / (x
-- 1)"
+  hence "(\<lambda>n. x ^ n / (x - 1) - 1 / (x - 1)) ----> 0 / (x - 1) - 1 / (x - 1)"
     using neq_0 by (intro LIMSEQ_divide LIMSEQ_diff LIMSEQ_const)
   hence "(\<lambda>n. (x ^ n - 1) / (x - 1)) ----> 1 / (1 - x)"
     by (simp add: nonzero_minus_divide_right [OF neq_0] diff_divide_distrib)
@@ -358,7 +357,7 @@ proof -
 qed
 
 lemma summable_geometric:
-  fixes x :: "'a::{real_normed_field,recpower,division_by_zero}"
+  fixes x :: "'a::{real_normed_field,recpower}"
   shows "norm x < 1 \<Longrightarrow> summable (\<lambda>n. x ^ n)"
 by (rule geometric_sums [THEN sums_summable])
 
