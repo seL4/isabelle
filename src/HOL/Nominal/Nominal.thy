@@ -2483,6 +2483,18 @@ next
   with b show "fr = h a" by force
 qed
 
+lemma fresh_fun_app':
+  fixes h :: "'x\<Rightarrow>'a"
+  and   a :: "'x"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)" 
+  and     f1: "finite ((supp h)::'x set)"
+  and     a: "a\<sharp>h" "a\<sharp>h a"
+  shows "(fresh_fun h) = (h a)"
+apply(rule fresh_fun_app[OF pt, OF at, OF f1])
+apply(auto simp add: fresh_prod intro: a)
+done
+
 lemma fresh_fun_equiv_ineq:
   fixes h :: "'y\<Rightarrow>'a"
   and   pi:: "'x prm"
