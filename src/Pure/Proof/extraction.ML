@@ -204,7 +204,7 @@ structure ExtractionData = TheoryDataFun
        realizers = realizers2, defs = defs2, expand = expand2, prep = prep2}) : T * T) =
     {realizes_eqns = merge_rules realizes_eqns1 realizes_eqns2,
      typeof_eqns = merge_rules typeof_eqns1 typeof_eqns2,
-     types = merge_alists types1 types2,
+     types = AList.merge (op =) (K true) (types1, types2),
      realizers = Symtab.merge_list (gen_eq_set (op =) o pairself #1) (realizers1, realizers2),
      defs = Library.merge Thm.eq_thm (defs1, defs2),
      expand = Library.merge (op =) (expand1, expand2),
@@ -343,7 +343,7 @@ fun realizes_of thy vs t prop =
     val thy' = add_syntax thy;
     val {realizes_eqns, typeof_eqns, defs, types, ...} =
       ExtractionData.get thy';
-    val procs = maps (fst o snd) types;
+    val procs = maps (rev o fst o snd) types;
     val eqns = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
     val prop' = Pattern.rewrite_term thy'
       (map (Logic.dest_equals o prop_of) defs) [] prop;
@@ -390,14 +390,12 @@ val extraction_expand =
 (** types with computational content **)
 
 fun add_types tys thy =
-  let val {realizes_eqns, typeof_eqns, types, realizers,
-    defs, expand, prep} = ExtractionData.get thy;
-  in
-    ExtractionData.put
+  ExtractionData.map
+    (fn {realizes_eqns, typeof_eqns, types, realizers, defs, expand, prep} =>
       {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns,
-       types = map (apfst (Sign.intern_type thy)) tys @ types,
-       realizers = realizers, defs = defs, expand = expand, prep = prep} thy
-  end;
+       types = fold (AList.update (op =) o apfst (Sign.intern_type thy)) tys types,
+       realizers = realizers, defs = defs, expand = expand, prep = prep})
+    thy;
 
 
 (** Pure setup **)
@@ -460,7 +458,7 @@ fun extract thms thy =
     val thy' = add_syntax thy;
     val {realizes_eqns, typeof_eqns, types, realizers, defs, expand, prep} =
       ExtractionData.get thy;
-    val procs = maps (fst o snd) types;
+    val procs = maps (rev o fst o snd) types;
     val rtypes = map fst types;
     val typroc = typeof_proc (Sign.defaultS thy');
     val prep = the_default (K I) prep thy' o ProofRewriteRules.elim_defs thy' false defs o

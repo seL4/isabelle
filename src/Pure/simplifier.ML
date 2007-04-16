@@ -274,7 +274,7 @@ fun generic_simp_tac safe mode ss =
     val (_, {loop_tacs, solvers = (unsafe_solvers, solvers), ...}) = MetaSimplifier.rep_ss ss;
     val loop_tac = FIRST' (map (fn (_, tac) => tac ss) (rev loop_tacs));
     val solve_tac = FIRST' (map (MetaSimplifier.solver ss)
-      (if safe then solvers else unsafe_solvers));
+      (rev (if safe then solvers else unsafe_solvers)));
 
     fun simp_loop_tac i =
       Goal.asm_rewrite_goal_tac mode (solve_all_tac unsafe_solvers) ss i THEN
@@ -286,7 +286,7 @@ local
 fun simp rew mode ss thm =
   let
     val (_, {solvers = (unsafe_solvers, _), ...}) = MetaSimplifier.rep_ss ss;
-    val tacf = solve_all_tac unsafe_solvers;
+    val tacf = solve_all_tac (rev unsafe_solvers);
     fun prover s th = Option.map #1 (Seq.pull (tacf s th));
   in rew mode prover ss thm end;
 

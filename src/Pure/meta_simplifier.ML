@@ -247,7 +247,6 @@ fun mk_solver name solver = mk_solver' name (solver o prems_of_ss);
 fun solver_name (Solver {name, ...}) = name;
 fun solver ss (Solver {solver = tac, ...}) = tac ss;
 fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
-val merge_solvers = gen_merge_lists eq_solver;
 
 
 (* diagnostics *)
@@ -742,7 +741,7 @@ fun ss setSSolver solver = ss |> map_simpset2 (fn (congs, procs, mk_rews, termle
 
 fun ss addSSolver solver = ss |> map_simpset2 (fn (congs, procs, mk_rews, termless,
   subgoal_tac, loop_tacs, (unsafe_solvers, solvers)) => (congs, procs, mk_rews, termless,
-    subgoal_tac, loop_tacs, (unsafe_solvers, merge_solvers solvers [solver])));
+    subgoal_tac, loop_tacs, (unsafe_solvers, insert eq_solver solver solvers)));
 
 fun ss setSolver solver = ss |> map_simpset2 (fn (congs, procs, mk_rews, termless,
   subgoal_tac, loop_tacs, (_, solvers)) => (congs, procs, mk_rews, termless,
@@ -750,7 +749,7 @@ fun ss setSolver solver = ss |> map_simpset2 (fn (congs, procs, mk_rews, termles
 
 fun ss addSolver solver = ss |> map_simpset2 (fn (congs, procs, mk_rews, termless,
   subgoal_tac, loop_tacs, (unsafe_solvers, solvers)) => (congs, procs, mk_rews, termless,
-    subgoal_tac, loop_tacs, (merge_solvers unsafe_solvers [solver], solvers)));
+    subgoal_tac, loop_tacs, (insert eq_solver solver unsafe_solvers, solvers)));
 
 fun set_solvers solvers = map_simpset2 (fn (congs, procs, mk_rews, termless,
   subgoal_tac, loop_tacs, _) => (congs, procs, mk_rews, termless,
@@ -795,8 +794,8 @@ fun merge_ss (ss1, ss2) =
     val weak' = merge (op =) (weak1, weak2);
     val procs' = Net.merge eq_proc (procs1, procs2);
     val loop_tacs' = AList.merge (op =) (K true) (loop_tacs1, loop_tacs2);
-    val unsafe_solvers' = merge_solvers unsafe_solvers1 unsafe_solvers2;
-    val solvers' = merge_solvers solvers1 solvers2;
+    val unsafe_solvers' = merge eq_solver (unsafe_solvers1, unsafe_solvers2);
+    val solvers' = merge eq_solver (solvers1, solvers2);
   in
     make_simpset ((rules', prems', bounds', NONE), ((congs', weak'), procs',
       mk_rews, termless, subgoal_tac, loop_tacs', (unsafe_solvers', solvers')))
