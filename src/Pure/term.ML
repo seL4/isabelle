@@ -187,6 +187,7 @@ sig
   val variant_frees: term -> (string * 'a) list -> (string * 'a) list
   val dummy_patternN: string
   val dummy_pattern: typ -> term
+  val is_dummy_pattern: term -> bool
   val no_dummy_patterns: term -> term
   val replace_dummy_patterns: int * term -> int * term
   val is_replaced_dummy_pattern: indexname -> bool
