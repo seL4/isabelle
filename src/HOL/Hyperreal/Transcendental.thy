@@ -2244,21 +2244,7 @@ lemma isCont_inv_fun:
   shows "[| 0 < d; \<forall>z. \<bar>z - x\<bar> \<le> d --> g(f(z)) = z;  
          \<forall>z. \<bar>z - x\<bar> \<le> d --> isCont f z |]  
       ==> isCont g (f x)"
-apply (simp (no_asm) add: isCont_iff LIM_def)
-apply safe
-apply (drule_tac ?d1.0 = r in real_lbound_gt_zero)
-apply (assumption, safe)
-apply (subgoal_tac "\<forall>z. \<bar>z - x\<bar> \<le> e --> (g (f z) = z) ")
-prefer 2 apply force
-apply (subgoal_tac "\<forall>z. \<bar>z - x\<bar> \<le> e --> isCont f z")
-prefer 2 apply force
-apply (drule_tac d = e in isCont_inj_range)
-prefer 2 apply (assumption, assumption, safe)
-apply (rule_tac x = ea in exI, auto)
-apply (drule_tac x = "f (x) + xa" and P = "%y. \<bar>y - f x\<bar> \<le> ea \<longrightarrow> (\<exists>z. \<bar>z - x\<bar> \<le> e \<and> f z = y)" in spec)
-apply auto
-apply (drule sym, auto)
-done
+by (rule isCont_inverse_function)
 
 lemma isCont_inv_fun_inv:
   fixes f g :: "real \<Rightarrow> real"
