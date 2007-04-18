@@ -367,8 +367,8 @@ end end;
 
 (*For Isabelle, the lhs of a definition must be a constant.*)
 fun mk_const_def sign (c, Ty, rhs) =
-  #1 (singleton (ProofContext.infer_types (ProofContext.init sign))
-    (Const("==",dummyT) $ Const(Sign.full_name sign c,Ty) $ rhs, propT));
+  singleton (ProofContext.infer_types (ProofContext.init sign))
+    (Const("==",dummyT) $ Const(Sign.full_name sign c,Ty) $ rhs);
 
 (*Make all TVars available for instantiation by adding a ? to the front*)
 fun poly_tvars (Type(a,Ts)) = Type(a, map (poly_tvars) Ts)

@@ -209,7 +209,7 @@ fun make_def thy fs (fname, ls, rs, rec_name, tname) =
     val def_name = Sign.base_name fname ^ "_" ^ Sign.base_name tname ^ "_def";
     val def_prop as _ $ _ $ t =
       singleton (ProofContext.infer_types (ProofContext.init thy))
-        (Logic.mk_equals (Const (fname, dummyT), rhs), propT) |> #1;
+        (Logic.mk_equals (Const (fname, dummyT), rhs));
   in ((def_name, def_prop), subst_bounds (rev (map Free frees), strip_abs_body t)) end;
 
 

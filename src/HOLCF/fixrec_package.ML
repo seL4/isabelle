@@ -20,11 +20,10 @@ struct
 
 (* legacy type inference *)
 
-fun legacy_infer_types thy (t, T) =
-  #1 (singleton (ProofContext.infer_types (ProofContext.init thy)) (Sign.intern_term thy t, T));
+fun legacy_infer_term thy t =
+  singleton (ProofContext.infer_types (ProofContext.init thy)) (Sign.intern_term thy t);
 
-fun legacy_infer_term thy t = legacy_infer_types thy (t, dummyT);
-fun legacy_infer_prop thy t = legacy_infer_types thy (t, propT);
+fun legacy_infer_prop thy t = legacy_infer_term thy (TypeInfer.constrain t propT);
 
 
 val fix_eq2 = thm "fix_eq2";

@@ -148,8 +148,8 @@ fun eval_term thy funcgr t =
       error ("Illegal schematic type variables in normalized term: "
         ^ setmp show_types true (Sign.string_of_term thy) t);
     val ty = type_of t;
-    fun constrain t =          (* FIXME really pat? *)
-      #1 (singleton (ProofContext.infer_types_pat (ProofContext.init thy)) (t, ty));
+    fun constrain t =
+      singleton (ProofContext.infer_types (ProofContext.init thy)) (TypeInfer.constrain t ty);
     val _ = ensure_funs thy funcgr t;
   in
     t

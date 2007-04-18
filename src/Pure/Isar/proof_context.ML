@@ -67,8 +67,8 @@ sig
   val cert_prop: Proof.context -> term -> term
   val cert_term_pats: typ -> Proof.context -> term list -> term list
   val cert_prop_pats: Proof.context -> term list -> term list
-  val infer_types: Proof.context -> (term * typ) list -> (term * typ) list
-  val infer_types_pat: Proof.context -> (term * typ) list -> (term * typ) list
+  val infer_types: Proof.context -> term list -> term list
+  val infer_types_pats: Proof.context -> term list -> term list
   val infer_type: Proof.context -> string -> typ
   val inferred_param: string -> Proof.context -> (string * typ) * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
@@ -563,14 +563,15 @@ end;
 
 local
 
-fun gen_infer_types pattern ctxt =
+fun gen_infer_types pattern ctxt ts =
   TypeInfer.infer_types (pp ctxt) (tsig_of ctxt) (try (Consts.the_constraint (consts_of ctxt)))
-    (Variable.def_type ctxt pattern) (Variable.names_of ctxt) (not pattern) #> #1;
+    (Variable.def_type ctxt pattern) (Variable.names_of ctxt) (not pattern) (map (rpair dummyT) ts)
+  |> #1 |> map #1;
 
 in
 
 val infer_types = gen_infer_types false;
-val infer_types_pat = gen_infer_types true;
+val infer_types_pats = gen_infer_types true;
 
 end;
 
@@ -578,7 +579,7 @@ end;
 (* inferred types of parameters *)
 
 fun infer_type ctxt x =
-  #2 (singleton (infer_types ctxt) (Free (x, dummyT), dummyT));
+  Term.fastype_of (singleton (infer_types ctxt) (Free (x, dummyT)));
 
 fun inferred_param x ctxt =
   let val T = infer_type ctxt x

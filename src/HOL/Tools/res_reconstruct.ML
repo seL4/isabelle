@@ -281,8 +281,9 @@ fun fix_sorts vt =
 (*Interpret a list of syntax trees as a clause, given by "real" literals and sort constraints.
   vt0 holds the initial sort constraints, from the conjecture clauses.*)
 fun clause_of_strees_aux ctxt vt0 ts = 
-  let val (vt, dt) = lits_of_strees ctxt (vt0,[]) ts
-  in #1 (singleton (ProofContext.infer_types ctxt) (fix_sorts vt dt, HOLogic.boolT)) end;
+  let val (vt, dt) = lits_of_strees ctxt (vt0,[]) ts in
+    singleton (ProofContext.infer_types ctxt) (TypeInfer.constrain (fix_sorts vt dt) HOLogic.boolT)
+  end;
 
 (*Quantification over a list of Vars. FUXNE: for term.ML??*)
 fun list_all_var ([], t: term) = t
