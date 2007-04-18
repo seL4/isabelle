@@ -541,11 +541,6 @@ fun skolemize_prems_tac prems =
     cut_facts_tac (map (skolemize o make_nnf) prems)  THEN'
     REPEAT o (etac exE);
 
-(*Expand all definitions (presumably of Skolem functions) in a proof state.*)
-fun expand_defs_tac st =
-  let val defs = filter (can dest_equals) (#hyps (crep_thm st))
-  in  PRIMITIVE (LocalDefs.expand defs) st  end;
-
 (*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions.
   Function mkcl converts theorems to clauses.*)
 fun MESON mkcl cltac i st = 
@@ -553,9 +548,8 @@ fun MESON mkcl cltac i st =
     (EVERY [rtac ccontr 1,
 	    METAHYPS (fn negs =>
 		      EVERY1 [skolemize_prems_tac negs,
-			      METAHYPS (cltac o mkcl)]) 1,
-            expand_defs_tac]) i st
-  handle THM _ => no_tac st;	(*probably from make_meta_clause, not first-order*)		      
+			      METAHYPS (cltac o mkcl)]) 1]) i st
+  handle THM _ => no_tac st;	(*probably from make_meta_clause, not first-order*)
 
 (** Best-first search versions **)
 

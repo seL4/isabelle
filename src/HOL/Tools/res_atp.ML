@@ -718,7 +718,7 @@ fun dfg_writer logic goals filename (axioms,classrels,arities) user_lemmas =
 (*Called by the oracle-based methods declared in res_atp_methods.ML*)
 fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
     let val conj_cls = make_clauses conjectures
-                         |> ResAxioms.assume_abstract_list |> Meson.finish_cnf
+                         |> ResAxioms.assume_abstract_list true |> Meson.finish_cnf
         val hyp_cls = cnf_hyps_thms ctxt
         val goal_cls = conj_cls@hyp_cls
         val goal_tms = map prop_of goal_cls

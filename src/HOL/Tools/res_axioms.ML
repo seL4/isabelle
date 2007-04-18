@@ -17,7 +17,7 @@ sig
   val cnf_rules_pairs : (string * thm) list -> (thm * (string * int)) list
   val meson_method_setup : theory -> theory
   val setup : theory -> theory
-  val assume_abstract_list: thm list -> thm list
+  val assume_abstract_list: bool -> thm list -> thm list
   val neg_conjecture_clauses: thm -> int -> thm list * (string * typ) list
   val claset_rules_of: Proof.context -> (string * thm) list   (*FIXME DELETE*)
   val simpset_rules_of: Proof.context -> (string * thm) list  (*FIXME DELETE*)
@@ -319,9 +319,12 @@ fun name_of def = try (#1 o dest_Free o lhs_of) def;
 fun valid_name defs (Free(x,T)) = not (x mem_string (List.mapPartial name_of defs))
   | valid_name defs _ = false;
 
-fun assume_absfuns th =
+(*isgoal holds if "th" is a conjecture. Then the assumption functions are counted from 1
+  rather than produced using gensym, as they need to be repeatable.*)
+fun assume_absfuns isgoal th =
   let val thy = theory_of_thm th
       val cterm = cterm_of thy
+      val abs_count = ref 0
       fun abstract ct =
         if lambda_free (term_of ct) then (reflexive ct, [])
         else
@@ -350,7 +353,9 @@ fun assume_absfuns th =
                    | [] =>
                       let val Ts = map type_of args
                           val const_ty = Ts ---> (Tvs ---> typ_of (ctyp_of_term cu'))
-                          val c = Free (gensym "abs_", const_ty)
+                          val id = if isgoal then "abs_" ^ Int.toString (inc abs_count)
+                                   else gensym "abs_"
+                          val c = Free (id, const_ty)
                           val ax = assume (Thm.capply (cterm (equals const_ty $ c)) crhs)
                                      |> mk_object_eq |> strip_lambdas (length args)
                                      |> mk_meta_eq |> Meson.generalize
@@ -422,14 +427,14 @@ fun assert_lambda_free ths msg =
       [] => ()
      | ths' => error (msg ^ "\n" ^ space_implode "\n" (map string_of_thm ths'));
 
-fun assume_abstract th =
+fun assume_abstract isgoal th =
   if lambda_free (prop_of th) then [th]
-  else th |> Drule.eta_contraction_rule |> assume_absfuns
+  else th |> Drule.eta_contraction_rule |> assume_absfuns isgoal
           |> tap (fn ths => assert_lambda_free ths "assume_abstract: lambdas")
 
 (*Replace lambdas by assumed function definitions in the theorems*)
-fun assume_abstract_list ths =
-  if abstract_lambdas then List.concat (map assume_abstract ths)
+fun assume_abstract_list isgoal ths =
+  if abstract_lambdas then List.concat (map (assume_abstract isgoal) ths)
   else map Drule.eta_contraction_rule ths;
 
 (*Replace lambdas by declared function definitions in the theorems*)
@@ -451,7 +456,7 @@ fun declare_abstract (thy, ths) =
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
 fun skolem_thm th =
   let val nnfth = to_nnf th
-  in  Meson.make_cnf (skolem_of_nnf nnfth) nnfth |> assume_abstract_list |> Meson.finish_cnf
+  in  Meson.make_cnf (skolem_of_nnf nnfth) nnfth |> assume_abstract_list false |> Meson.finish_cnf
   end
   handle THM _ => [];
 
@@ -461,7 +466,8 @@ fun flatten_name s = space_implode "_X" (NameSpace.explode s);
 (*Declare Skolem functions for a theorem, supplied in nnf and with its name.
   It returns a modified theory, unless skolemization fails.*)
 fun skolem thy th =
-  let val cname = (case PureThy.get_name_hint th of "" => gensym "" | s => flatten_name s)
+  let val cname = (if PureThy.has_name_hint th 
+                   then flatten_name (PureThy.get_name_hint th) else gensym "")
       val _ = Output.debug (fn () => "skolemizing " ^ cname ^ ": ")
   in Option.map
         (fn nnfth =>
@@ -515,7 +521,9 @@ fun cnf_axiom th =
 	 (case Thmtab.lookup (!global_clause_cache) th of
 	   NONE => 
 	     let val cls = map Goal.close_result (skolem_thm th)
-	     in Output.debug (fn () => "inserted into cache: " ^ PureThy.get_name_hint th);
+	     in Output.debug (fn () => Int.toString (length cls) ^ " clauses inserted into cache: " ^ 
+	                         (if PureThy.has_name_hint th then PureThy.get_name_hint th
+	                          else string_of_thm th));
 		change cache (Thmtab.update (th, cls)); cls 
 	     end
 	 | SOME cls => cls)
@@ -588,9 +596,23 @@ fun clause_cache_setup thy =
 
 fun cnf_rules_of_ths ths = List.concat (map cnf_axiom ths);
 
+fun aconv_ct (t,u) = (Thm.term_of t) aconv (Thm.term_of u);
+
+(*Expand all *new* definitions (presumably of abstraction or Skolem functions) in a proof state.*)
+fun expand_defs_tac ths ths' st =
+  let val hyps = foldl (gen_union aconv_ct) [] (map (#hyps o crep_thm) ths)
+      val remove_hyps = filter (not o member aconv_ct hyps) 
+      val hyps' = foldl (gen_union aconv_ct) [] (map (remove_hyps o #hyps o crep_thm) (st::ths'))
+  in  PRIMITIVE (LocalDefs.expand (filter (can dest_equals) hyps')) st  end;
+
+fun meson_general_tac ths i =
+ let val _ = Output.debug (fn () => "Meson called with theorems " ^ cat_lines (map string_of_thm ths))
+     val ths' = cnf_rules_of_ths ths
+ in  Meson.meson_claset_tac ths' HOL_cs i THEN expand_defs_tac ths ths' end;
+
 val meson_method_setup = Method.add_methods
   [("meson", Method.thms_args (fn ths =>
-      Method.SIMPLE_METHOD' (CHANGED_PROP o Meson.meson_claset_tac (cnf_rules_of_ths ths) HOL_cs)),
+      Method.SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ths)),
     "MESON resolution proof procedure")];
 
 (** Attribute for converting a theorem into clauses **)
@@ -611,7 +633,7 @@ val neg_skolemize_tac = EVERY' [rtac ccontr, ObjectLogic.atomize_tac, skolemize_
   it can introduce TVars, which are useless in conjecture clauses.*)
 val no_tvars = null o term_tvars o prop_of;
 
-val neg_clausify = filter no_tvars o Meson.finish_cnf o assume_abstract_list o make_clauses;
+val neg_clausify = filter no_tvars o Meson.finish_cnf o assume_abstract_list true o make_clauses;
 
 fun neg_conjecture_clauses st0 n =
   let val st = Seq.hd (neg_skolemize_tac n st0)
@@ -645,7 +667,7 @@ fun conj_rule []  = TrueI
 fun skolem_attr (Context.Theory thy, th) =
       let val (cls, thy') = skolem_cache_thm (ThmCache.get thy) th thy
       in (Context.Theory thy', conj_rule cls) end
-  | skolem_attr (context, th) = (context, conj_rule (cnf_axiom th));
+  | skolem_attr (context, th) = (context, th)
 
 val setup_attrs = Attrib.add_attributes
   [("skolem", Attrib.no_args skolem_attr, "skolemization of a theorem"),
