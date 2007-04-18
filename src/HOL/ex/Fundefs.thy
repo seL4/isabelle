@@ -1,15 +1,15 @@
 (*  Title:      HOL/ex/Fundefs.thy
     ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
-
-Examples of function definitions using the new "function" package.
 *)
+
+header {* Examples of function definitions *}
 
 theory Fundefs 
 imports Main
 begin
 
-section {* Very basic *}
+subsection {* Very basic *}
 
 fun fib :: "nat \<Rightarrow> nat"
 where
@@ -29,7 +29,7 @@ text {* total simp and induction rules: *}
 thm fib.simps
 thm fib.induct
 
-section {* Currying *}
+subsection {* Currying *}
 
 fun add :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
@@ -40,7 +40,7 @@ thm add.simps
 thm add.induct -- {* Note the curried induction predicate *}
 
 
-section {* Nested recursion *}
+subsection {* Nested recursion *}
 
 function nz :: "nat \<Rightarrow> nat"
 where
@@ -89,9 +89,9 @@ qed
 
 
 
-section {* More general patterns *}
+subsection {* More general patterns *}
 
-subsection {* Overlapping patterns *}
+subsubsection {* Overlapping patterns *}
 
 text {* Currently, patterns must always be compatible with each other, since
 no automatic splitting takes place. But the following definition of
@@ -107,7 +107,7 @@ where
 thm gcd2.simps
 thm gcd2.induct
 
-subsection {* Guards *}
+subsubsection {* Guards *}
 
 text {* We can reformulate the above example using guarded patterns *}
 
@@ -157,7 +157,7 @@ thm ev.induct
 thm ev.cases
 
 
-section {* Mutual Recursion *}
+subsection {* Mutual Recursion *}
 
 fun evn od :: "nat \<Rightarrow> bool"
 where
@@ -173,7 +173,7 @@ thm evn_od.pinduct
 thm evn_od.termination
 
 
-section {* Definitions in local contexts *}
+subsection {* Definitions in local contexts *}
 
 locale my_monoid = 
 fixes opr :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
@@ -208,6 +208,156 @@ end
 
 thm my_monoid.foldL.simps
 thm my_monoid.foldR_foldL
+
+subsection {* Regression tests *}
+
+text {* The following examples mainly serve as tests for the 
+  function package *}
+
+fun listlen :: "'a list \<Rightarrow> nat"
+where
+  "listlen [] = 0"
+| "listlen (x#xs) = Suc (listlen xs)"
+
+(* Context recursion *)
+
+fun f :: "nat \<Rightarrow> nat" 
+where
+  zero: "f 0 = 0"
+| succ: "f (Suc n) = (if f n = 0 then 0 else f n)"
+
+
+(* A combination of context and nested recursion *)
+function h :: "nat \<Rightarrow> nat"
+where
+  "h 0 = 0"
+| "h (Suc n) = (if h n = 0 then h (h n) else h n)"
+  by pat_completeness auto
+
+
+(* Context, but no recursive call: *)
+fun i :: "nat \<Rightarrow> nat"
+where
+  "i 0 = 0"
+| "i (Suc n) = (if n = 0 then 0 else i n)"
+
+
+(* Tupled nested recursion *)
+fun fa :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+where
+  "fa 0 y = 0"
+| "fa (Suc n) y = (if fa n y = 0 then 0 else fa n y)"
+
+(* Let *)
+fun j :: "nat \<Rightarrow> nat"
+where
+  "j 0 = 0"
+| "j (Suc n) = (let u = n  in Suc (j u))"
+
+
+(* There were some problems with fresh names\<dots> *)
+(* FIXME: tailrec? *)
+function  k :: "nat \<Rightarrow> nat"
+where
+  "k x = (let a = x; b = x in k x)"
+  by pat_completeness auto
+
+
+(* FIXME: tailrec? *)
+function f2 :: "(nat \<times> nat) \<Rightarrow> (nat \<times> nat)"
+where
+  "f2 p = (let (x,y) = p in f2 (y,x))"
+  by pat_completeness auto
+
+
+(* abbreviations *)
+fun f3 :: "'a set \<Rightarrow> bool"
+where
+  "f3 x = finite x"
+
+
+(* Simple Higher-Order Recursion *)
+datatype 'a tree = 
+  Leaf 'a 
+  | Branch "'a tree list"
+lemma [simp]:"x \<in> set l \<Longrightarrow> size x < Suc (tree_list_size l)"
+by (induct l, auto)
+
+fun treemap :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a tree \<Rightarrow> 'a tree"
+where
+  "treemap fn (Leaf n) = (Leaf (fn n))"
+| "treemap fn (Branch l) = (Branch (map (treemap fn) l))"
+
+fun tinc :: "nat tree \<Rightarrow> nat tree"
+where
+  "tinc (Leaf n) = Leaf (Suc n)"
+| "tinc (Branch l) = Branch (map tinc l)"
+
+
+
+(* Pattern matching on records *)
+record point =
+  Xcoord :: int
+  Ycoord :: int
+
+function swp :: "point \<Rightarrow> point"
+where
+  "swp \<lparr> Xcoord = x, Ycoord = y \<rparr> = \<lparr> Xcoord = y, Ycoord = x \<rparr>"
+proof -
+  fix P x
+  assume "\<And>xa y. x = \<lparr>Xcoord = xa, Ycoord = y\<rparr> \<Longrightarrow> P"
+  thus "P"
+    by (cases x)
+qed auto
+termination by rule auto
+
+
+(* The diagonal function *)
+fun diag :: "bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> nat"
+where
+  "diag x True False = 1"
+| "diag False y True = 2"
+| "diag True False z = 3"
+| "diag True True True = 4"
+| "diag False False False = 5"
+
+
+(* Many equations (quadratic blowup) *)
+datatype DT = 
+  A | B | C | D | E | F | G | H | I | J | K | L | M | N | P
+| Q | R | S | T | U | V
+
+fun big :: "DT \<Rightarrow> nat"
+where
+  "big A = 0" 
+| "big B = 0" 
+| "big C = 0" 
+| "big D = 0" 
+| "big E = 0" 
+| "big F = 0" 
+| "big G = 0" 
+| "big H = 0" 
+| "big I = 0" 
+| "big J = 0" 
+| "big K = 0" 
+| "big L = 0" 
+| "big M = 0" 
+| "big N = 0" 
+| "big P = 0" 
+| "big Q = 0" 
+| "big R = 0" 
+| "big S = 0" 
+| "big T = 0" 
+| "big U = 0" 
+| "big V = 0"
+
+
+(* automatic pattern splitting *)
+fun
+  f4 :: "nat \<Rightarrow> nat \<Rightarrow> bool" 
+where
+  "f4 0 0 = True"
+| "f4 x y = False"
 
 
 end
