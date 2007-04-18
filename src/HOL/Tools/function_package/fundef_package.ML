@@ -140,6 +140,7 @@ fun total_termination_afterqed defname data [[totality]] lthy =
       val FundefCtxData { add_simps, psimps, pinducts, ... } = data
 
       val totality = Goal.close_result totality
+                       |> Thm.varifyT (* FIXME ! *)
 
       val remove_domain_condition = full_simplify (HOL_basic_ss addsimps [totality, True_implies_equals])
 
@@ -167,6 +168,7 @@ fun setup_termination_proof name_opt lthy =
         val FundefCtxData {termination, R, ...} = data
         val domT = domain_type (fastype_of R)
         val goal = HOLogic.mk_Trueprop (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
+                     |> Type.freeze (* FIXME ! *)
     in
       lthy
         |> ProofContext.note_thmss_i "" [(("", [ContextRules.rule_del]), [([allI], [])])] |> snd
