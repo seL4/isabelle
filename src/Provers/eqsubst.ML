@@ -65,11 +65,15 @@ sig
        int -> Thm.thm -> int -> Thm.thm -> Thm.thm Seq.seq
     val eqsubst_tac :
        Proof.context ->
-       int list -> Thm.thm list -> int -> Thm.thm -> Thm.thm Seq.seq
+       int list -> (* list of occurences to rewrite, use [0] for any *)
+       Thm.thm list -> int -> Thm.thm -> Thm.thm Seq.seq
     val eqsubst_tac' :
-       Proof.context ->
-       (searchinfo -> Term.term -> match Seq.seq) 
-       -> Thm.thm -> int -> Thm.thm -> Thm.thm Seq.seq
+       Proof.context -> (* proof context *)
+       (searchinfo -> Term.term -> match Seq.seq) (* search function *)
+       -> Thm.thm (* equation theorem to rewrite with *)
+       -> int (* subgoal number in goal theorem *)
+       -> Thm.thm (* goal theorem *)
+       -> Thm.thm Seq.seq (* rewritten goal theorem *)
 
 
     val fakefree_badbounds :
@@ -382,6 +386,11 @@ fun skip_first_occs_search occ srchf sinfo lhs =
     case (skipto_skipseq occ (srchf sinfo lhs)) of
       SkipMore _ => Seq.empty
     | SkipSeq ss => Seq.flat ss;
+
+(* The occL is a list of integers indicating which occurence
+w.r.t. the search order, to rewrite. Backtracking will also find later
+occurences, but all earlier ones are skipped. Thus you can use [0] to
+just find all rewrites. *)
 
 fun eqsubst_tac ctxt occL thms i th =
     let val nprems = Thm.nprems_of th in
