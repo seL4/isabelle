@@ -849,19 +849,19 @@ proof (neg_clausify)
     by (meson equalityI 2) 
   have 11: "!!U V. U \<notin> S | V \<notin> S | V = U"
     by (meson 10 2) 
-  have 13: "!!U V. U \<notin> S | S \<subseteq> V | U = Set_XsubsetI_sko1_ S V"
+  have 13: "!!U V. U \<notin> S | S \<subseteq> V | U = sko_Set_XsubsetI_1_ S V"
     by (meson subsetI 11)
-  have 14: "!!U V. S \<subseteq> U | S \<subseteq> V | Set_XsubsetI_sko1_ S U = Set_XsubsetI_sko1_ S V"
+  have 14: "!!U V. S \<subseteq> U | S \<subseteq> V | sko_Set_XsubsetI_1_ S U = sko_Set_XsubsetI_1_ S V"
     by (meson subsetI 13)
-  have 29: "!!U V. S \<subseteq> U |  Set_XsubsetI_sko1_ S U = Set_XsubsetI_sko1_ S {V}"
+  have 29: "!!U V. S \<subseteq> U |  sko_Set_XsubsetI_1_ S U = sko_Set_XsubsetI_1_ S {V}"
     by (meson 1 14)
-  have 58: "!!U V. Set_XsubsetI_sko1_ S {U} = Set_XsubsetI_sko1_ S {V}"
+  have 58: "!!U V. sko_Set_XsubsetI_1_ S {U} = sko_Set_XsubsetI_1_ S {V}"
     by (meson 1 29)
     (*hacked here while we wait for Metis: !!U V complicates proofs.*)
-  have 82: "Set_XsubsetI_sko1_ S {U} \<notin> {V} | S \<subseteq> {V}"
+  have 82: "sko_Set_XsubsetI_1_ S {U} \<notin> {V} | S \<subseteq> {V}"
     apply (insert 58 [of U V], erule ssubst)
     by (meson 58 subsetI)
-  have 85: "Set_XsubsetI_sko1_ S {U} \<notin> {V}"
+  have 85: "sko_Set_XsubsetI_1_ S {U} \<notin> {V}"
     by (meson 1 82)
   show False
     by (meson insertI1 85)
@@ -874,12 +874,12 @@ proof (neg_clausify)
   fix S :: "'a set set"
   assume 1: "\<And>Z. ~ (S \<subseteq> {Z})"
      and 2: "\<And>X Y. X \<notin> S | Y \<notin> S | X \<subseteq> Y"
-  have 13: "!!U V. U \<notin> S | S \<subseteq> V | U = Set_XsubsetI_sko1_ S V"
+  have 13: "!!U V. U \<notin> S | S \<subseteq> V | U = sko_Set_XsubsetI_1_ S V"
     by (meson subsetI equalityI 2)
-  have 58: "!!U V. Set_XsubsetI_sko1_ S {U} = Set_XsubsetI_sko1_ S {V}"
+  have 58: "!!U V. sko_Set_XsubsetI_1_ S {U} = sko_Set_XsubsetI_1_ S {V}"
     by (meson 1 subsetI 13)
     (*hacked here while we wait for Metis: !!U V complicates proofs.*)
-  have 82: "Set_XsubsetI_sko1_ S {U} \<notin> {V} | S \<subseteq> {V}"
+  have 82: "sko_Set_XsubsetI_1_ S {U} \<notin> {V} | S \<subseteq> {V}"
     apply (insert 58 [of U V], erule ssubst)
     by (meson 58 subsetI)
   show False
@@ -893,7 +893,7 @@ proof (neg_clausify)
   fix S :: "'a set set"
   assume 1: "\<And>Z. ~ (S \<subseteq> {Z})"
      and 2: "\<And>X Y. X \<notin> S | Y \<notin> S | X \<subseteq> Y"
-  have 58: "!!U V. Set_XsubsetI_sko1_ S {U} = Set_XsubsetI_sko1_ S {V}"
+  have 58: "!!U V. sko_Set_XsubsetI_1_ S {U} = sko_Set_XsubsetI_1_ S {V}"
     by (meson 1 subsetI_0 equalityI 2)
   show False
     by (iprover intro: subsetI_1 insertI1 1 58 elim: ssubst)  

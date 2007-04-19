@@ -186,7 +186,8 @@ fun type_of_stree t =
 
 (*Invert the table of translations between Isabelle and ATPs*)
 val const_trans_table_inv =
-      Symtab.make (map swap (Symtab.dest ResClause.const_trans_table));
+      Symtab.update ("fequal", "op =") 
+        (Symtab.make (map swap (Symtab.dest ResClause.const_trans_table)));
 
 fun invert_const c =
     case Symtab.lookup const_trans_table_inv c of
@@ -209,9 +210,7 @@ fun term_of_stree args thy t =
     | Br (a,ts) => 
         case strip_prefix ResClause.const_prefix a of
             SOME "equal" => 
-              if length ts = 2 then
-                list_comb(Const ("op =", HOLogic.typeT), List.map (term_of_stree [] thy) ts)
-              else raise STREE t  (*equality needs two arguments*)
+              list_comb(Const ("op =", HOLogic.typeT), List.map (term_of_stree [] thy) ts)
           | SOME b => 
               let val c = invert_const b
                   val nterms = length ts - num_typargs thy c
@@ -376,10 +375,10 @@ fun notequal t (_,t',_) = not (t aconv t');
 (*No "real" literals means only type information*)
 fun eq_types t = t aconv (HOLogic.mk_Trueprop HOLogic.true_const);
 
-fun replace_dep (old, new) dep = if dep=old then new else [dep];
+fun replace_dep (old:int, new) dep = if dep=old then new else [dep];
 
-fun replace_deps (old, new) (lno, t, deps) = 
-      (lno, t, List.concat (map (replace_dep (old, new)) deps));
+fun replace_deps (old:int, new) (lno, t, deps) = 
+      (lno, t, foldl (op union_int) [] (map (replace_dep (old, new)) deps));
 
 (*Discard axioms; consolidate adjacent lines that prove the same clause, since they differ
   only in type information.*)
@@ -411,6 +410,9 @@ fun add_nonnull_prfline ((lno, t, []), lines) = (*no dependencies, so a conjectu
   | add_nonnull_prfline ((lno, t, deps), lines) = (lno, t, deps) :: lines
 and delete_dep lno lines = foldr add_nonnull_prfline [] (map (replace_deps (lno, [])) lines);
 
+fun bad_free (Free (a,_)) = String.isPrefix "llabs_" a orelse String.isPrefix "sko_" a
+  | bad_free _ = false;
+
 (*TVars are forbidden in goals. Also, we don't want lines with <2 dependencies. 
   To further compress proofs, setting modulus:=n deletes every nth line, and nlines
   counts the number of proof lines processed so far.
@@ -421,7 +423,8 @@ fun add_wanted_prfline ((lno, t, []), (nlines, lines)) =
   | add_wanted_prfline (line, (nlines, [])) = (nlines, [line])   (*final line must be kept*)
   | add_wanted_prfline ((lno, t, deps), (nlines, lines)) =
       if eq_types t orelse not (null (term_tvars t)) orelse
-         length deps < 2 orelse nlines mod !modulus <> 0
+         length deps < 2 orelse nlines mod !modulus <> 0 orelse 
+         exists bad_free (term_frees t)
       then (nlines+1, map (replace_deps (lno, deps)) lines) (*Delete line*)
       else (nlines+1, (lno, t, deps) :: lines);
 
@@ -434,7 +437,7 @@ fun stringify_deps thm_names deps_map [] = []
                fun fix lno = if lno <= Vector.length thm_names  
                              then SOME(Vector.sub(thm_names,lno-1))
                              else AList.lookup op= deps_map lno;
-           in  (lname, t, List.mapPartial fix deps) ::
+           in  (lname, t, List.mapPartial fix (distinct (op=) deps)) ::
                stringify_deps thm_names ((lno,lname)::deps_map) lines
            end;
 
@@ -547,7 +550,7 @@ fun prover_lemma_list_aux getax proofstr probfile toParent ppid thm_names =
  (trace ("\n\nGetting lemma names. proofstr is " ^ proofstr ^
          " num of clauses is " ^ string_of_int (Vector.length thm_names));
   signal_success probfile toParent ppid 
-    ("Try this proof method: \n" ^ rules_to_metis (getax proofstr thm_names))
+    ("Try this command: \n  apply " ^ rules_to_metis (getax proofstr thm_names))
  )
  handle e => (*FIXME: exn handler is too general!*)
   (trace ("\nprover_lemma_list_aux: In exception handler: " ^ Toplevel.exn_message e);
