@@ -330,6 +330,8 @@ proof -
   ultimately show "X\<sharp>S \<and> X\<sharp>T" by (force simp add: supp_prod fresh_def)
 qed
 
+equivariance subtype_of
+
 nominal_inductive subtype_of  
   by (simp_all add: abs_fresh subtype_implies_fresh)
 

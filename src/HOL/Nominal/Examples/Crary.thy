@@ -304,6 +304,8 @@ where
 | t_Const[intro]: "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Const n : TBase"
 | t_Unit[intro]:  "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Unit : TUnit"
 
+equivariance typing
+
 nominal_inductive typing
   by (simp_all add: abs_fresh)
 
@@ -339,6 +341,8 @@ where
                    \<Longrightarrow>  \<Gamma> \<turnstile> App (Lam [x]. s\<^isub>1) s\<^isub>2 \<equiv> t\<^isub>1[x::=t\<^isub>2] : T\<^isub>2"
 | Q_Ext[intro]:   "\<lbrakk>x\<sharp>(\<Gamma>,s,t); (x,T\<^isub>1)#\<Gamma> \<turnstile> App s (Var x) \<equiv> App t (Var x) : T\<^isub>2\<rbrakk> 
                    \<Longrightarrow> \<Gamma> \<turnstile> s \<equiv> t : T\<^isub>1 \<rightarrow> T\<^isub>2"
+
+equivariance def_equiv
 
 nominal_inductive def_equiv
   by (simp_all add: abs_fresh fresh_subst'')
@@ -451,6 +455,8 @@ where
 | QAP_Var[intro]:   "\<lbrakk>valid \<Gamma>;(x,T) \<in> set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var x \<leftrightarrow> Var x : T"
 | QAP_App[intro]:   "\<lbrakk>\<Gamma> \<turnstile> p \<leftrightarrow> q : T\<^isub>1 \<rightarrow> T\<^isub>2; \<Gamma> \<turnstile> s \<Leftrightarrow> t : T\<^isub>1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App p s \<leftrightarrow> App q t : T\<^isub>2"
 | QAP_Const[intro]: "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Const n \<leftrightarrow> Const n : TBase"
+
+equivariance alg_equiv
 
 nominal_inductive alg_equiv
   avoids QAT_Arrow: x

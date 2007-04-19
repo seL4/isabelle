@@ -43,6 +43,8 @@ where
   | t_App[intro]: "\<lbrakk>\<Gamma> \<turnstile> t1 : T1\<rightarrow>T2; \<Gamma> \<turnstile> t2 : T1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App t1 t2 : T2"
   | t_Lam[intro]: "\<lbrakk>x\<sharp>\<Gamma>;((x,T1)#\<Gamma>) \<turnstile> t : T2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x].t : T1\<rightarrow>T2"
 
+equivariance typing
+
 (* automatically deriving the strong induction principle *)
 nominal_inductive typing
   by (simp_all add: abs_fresh ty_fresh)

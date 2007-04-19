@@ -269,6 +269,8 @@ where
                    (x\<^isub>1,Data(S\<^isub>1))#\<Gamma> \<turnstile> e\<^isub>1 : T; (x\<^isub>2,Data(S\<^isub>2))#\<Gamma> \<turnstile> e\<^isub>2 : T\<rbrakk> 
                    \<Longrightarrow> \<Gamma> \<turnstile> (Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2) : T"
 
+equivariance typing
+
 nominal_inductive typing
   by (simp_all add: abs_fresh fresh_prod fresh_atm)
 
@@ -498,6 +500,8 @@ where
                    \<Longrightarrow> Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 \<Down> e''"
 | b_CaseR[intro]: "\<lbrakk>x\<^isub>1\<sharp>(e,e\<^isub>2,e'',x\<^isub>2); x\<^isub>2\<sharp>(e,e\<^isub>1,e'',x\<^isub>1) ; e\<Down>InR e'; e\<^isub>2[x\<^isub>2::=e']\<Down>e''\<rbrakk> 
                    \<Longrightarrow> Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 \<Down> e''"
+
+equivariance big
 
 nominal_inductive big
   by (simp_all add: abs_fresh fresh_prod fresh_atm)

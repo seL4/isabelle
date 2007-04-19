@@ -155,6 +155,8 @@ where
   | b3[intro]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (Lam [a].s1)\<longrightarrow>\<^isub>\<beta> (Lam [a].s2)"
   | b4[intro]: "a\<sharp>s2 \<Longrightarrow> (App (Lam [a].s1) s2)\<longrightarrow>\<^isub>\<beta>(s1[a::=s2])"
 
+equivariance Beta
+
 nominal_inductive Beta
   by (simp_all add: abs_fresh fresh_fact')
 
@@ -182,6 +184,8 @@ where
   | o2[simp,intro!]: "\<lbrakk>t1\<longrightarrow>\<^isub>1t2;s1\<longrightarrow>\<^isub>1s2\<rbrakk> \<Longrightarrow> (App t1 s1)\<longrightarrow>\<^isub>1(App t2 s2)"
   | o3[simp,intro!]: "s1\<longrightarrow>\<^isub>1s2 \<Longrightarrow> (Lam [a].s1)\<longrightarrow>\<^isub>1(Lam [a].s2)"
   | o4[simp,intro!]: "\<lbrakk>a\<sharp>(s1,s2); s1\<longrightarrow>\<^isub>1s2;t1\<longrightarrow>\<^isub>1t2\<rbrakk> \<Longrightarrow> (App (Lam [a].t1) s1)\<longrightarrow>\<^isub>1(t2[a::=s2])"
+
+equivariance One
 
 nominal_inductive One
   by (simp_all add: abs_fresh fresh_fact')
