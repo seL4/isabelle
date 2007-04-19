@@ -3203,6 +3203,10 @@ setup "NominalAtoms.setup"
 (* various tactics for analysing permutations, supports etc *)
 use "nominal_permeq.ML";
 
+(****************************************************************)
+(* tactics for generating fresh names and simplifying fresh_fun *)
+use "nominal_fresh_fun.ML";
+
 method_setup perm_simp =
   {* NominalPermeq.perm_simp_meth *}
   {* simp rules and simprocs for analysing permutations *}
@@ -3242,6 +3246,16 @@ method_setup fresh_guess =
 method_setup fresh_guess_debug =
   {* NominalPermeq.fresh_guess_meth_debug *}
   {* tactic for deciding whether an atom is fresh for something including debugging facilities *}
+
+
+method_setup generate_fresh = 
+  {* setup_generate_fresh *} 
+  {* tactic to generate a name fresh for all the variables in the goal *}
+
+method_setup fresh_fun_simp = 
+  {* setup_fresh_fun_simp *} 
+  {* tactic to delete one inner occurence of fresh_fun *}
+
 
 (************************************************)
 (* main file for constructing nominal datatypes *)

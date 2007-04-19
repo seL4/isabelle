@@ -1,0 +1,154 @@
+(*  Title:      HOL/Nominal/nominal_fresh_fun.ML
+    ID:         $Id$
+    Authors:    Stefan Berghofer, Julien Narboux, TU Muenchen
+
+A tactic to generate fresh names.
+A tactic to get rid of the fresh_fun.
+*)
+
+(* First some functions that could be
+ in the library *)
+
+fun gen_res_inst_tac_term instf tyinst tinst elim th i st =
+  let
+    val thy = theory_of_thm st;
+    val cgoal = nth (cprems_of st) (i - 1);
+    val {maxidx, ...} = rep_cterm cgoal;
+    val j = maxidx + 1;
+    val tyinst' = map (apfst (Logic.incr_tvar j)) tyinst;
+    val ps = Logic.strip_params (term_of cgoal);
+    val Ts = map snd ps;
+    val tinst' = map (fn (t, u) =>
+      (head_of (Logic.incr_indexes (Ts, j) t),
+       list_abs (ps, u))) tinst;
+    val th' = instf
+      (map (pairself (ctyp_of thy)) tyinst')
+      (map (pairself (cterm_of thy)) tinst')
+      (Thm.lift_rule cgoal th)
+  in
+    compose_tac (elim, th', nprems_of th) i st
+  end handle Subscript => Seq.empty;
+
+val res_inst_tac_term = 
+  gen_res_inst_tac_term (curry Thm.instantiate);
+
+val res_inst_tac_term' = 
+  gen_res_inst_tac_term (K Drule.cterm_instantiate) [];
+
+fun cut_inst_tac_term' tinst th =
+  res_inst_tac_term' tinst false (Tactic.make_elim_preserve th);
+
+fun get_dyn_thm thy name atom_name = (PureThy.get_thm thy (Name name)) handle _ => raise ERROR ("The atom type "^atom_name^" is not defined."); 
+
+(* End of function waiting to be
+ in the library *)
+
+(* The theorems needed that are known at
+compile time. *)
+
+val at_exists_fresh' = thm "at_exists_fresh'";
+val fresh_fun_app = thm "fresh_fun_app";
+val fresh_prod = thm "fresh_prod";
+
+(* A tactic to generate a name fresh for 
+all the free variables and parameters of the goal *)
+
+fun generate_fresh_tac atom_name i thm =
+ let 
+   val thy = theory_of_thm thm;
+(* the parsing function returns a qualified name, we get back the base name *)
+   val atom_basename = Sign.base_name atom_name;
+   val goal = List.nth(prems_of thm, i-1);
+   val ps = Logic.strip_params goal;
+   val Ts = rev (map snd ps);
+   fun is_of_fs_name T = Type.of_sort (Sign.tsig_of thy)
+     (T, Sign.intern_sort thy ["fs_"^atom_basename]); 
+(* rebuild de bruijn indices *)
+   val bvs = map_index (Bound o fst) ps;
+(* select variables of the right class *)
+   val vs = filter (fn t => is_of_fs_name (fastype_of1 (Ts, t)))
+     (term_frees goal @ bvs);
+(* build the tuple *)
+   val s = Library.foldr1 (fn (v, s) =>
+     HOLogic.pair_const (fastype_of1 (Ts, v)) (fastype_of1 (Ts, s)) $ v $ s)
+       vs;
+   val fs_name_thm = get_dyn_thm thy ("fs_"^atom_basename^"1") atom_basename;
+   val at_name_inst_thm = get_dyn_thm thy ("at_"^atom_basename^"_inst") atom_basename;
+   val exists_fresh' = at_name_inst_thm RS at_exists_fresh';
+(* find the variable we want to instantiate *)
+   val x = hd (term_vars (prop_of exists_fresh'));
+ in 
+   (cut_inst_tac_term' [(x,s)] exists_fresh' 1 THEN
+   rtac fs_name_thm 1 THEN
+   etac exE 1) thm
+  handle Empty  => all_tac thm (* if we collected no variables then we do nothing *)
+  end;
+
+fun get_inner_fresh_fun (Bound j) = NONE
+  | get_inner_fresh_fun (v as Free _) = NONE 
+  | get_inner_fresh_fun (v as Var _)  = NONE
+  | get_inner_fresh_fun (Const _) = NONE
+  | get_inner_fresh_fun (Abs (_, _, t)) = get_inner_fresh_fun t 
+  | get_inner_fresh_fun (Const ("Nominal.fresh_fun",Type("fun",[Type ("fun",[Type (T,_),_]),_])) $ u) = SOME T 
+  | get_inner_fresh_fun (t $ u) = 
+     let val a = get_inner_fresh_fun u in
+     if a = NONE then get_inner_fresh_fun t else a 
+     end;
+
+(* This tactic generates a fresh name 
+of the atom type given by the inner most fresh_fun *)
+
+fun generate_fresh_fun_tac i thm =
+  let
+    val goal = List.nth(prems_of thm, i-1);
+    val atom_name_opt = get_inner_fresh_fun goal;
+  in
+  case atom_name_opt of 
+    NONE => all_tac thm
+  | SOME atom_name  => generate_fresh_tac atom_name i thm               
+  end
+
+(* A substitution tactic, FIXME : change the search function to get the inner occurence of fresh_fun (bottom -> up search ) *)
+
+fun subst_outer_tac ctx = EqSubst.eqsubst_tac' ctx (curry (Seq.flat o (uncurry EqSubst.searchf_lr_unify_valid)));
+
+fun fresh_fun_tac i thm = 
+  (* Find the variable we instantiate *)
+  let
+    val thy = theory_of_thm thm;
+    val ctx = Context.init_proof thy;
+    val ss = simpset_of thy;
+    val abs_fresh = PureThy.get_thms thy (Name "abs_fresh");
+    val ss' = ss addsimps fresh_prod::abs_fresh;
+    val x = hd (tl (term_vars (prop_of exI)));
+    val goal = List.nth(prems_of thm, i-1);
+    val atom_name_opt = get_inner_fresh_fun goal;
+    val n = List.length (Logic.strip_params goal);
+    (* Here we rely on the fact that the variable introduced by generate_fresh_tac is the last one in the list, the inner one *)
+  in
+  case atom_name_opt of 
+    NONE => all_tac thm
+  | SOME atom_name  =>    
+  let 
+    val atom_basename = Sign.base_name atom_name;
+    val pt_name_inst = get_dyn_thm thy ("pt_"^atom_basename^"_inst") atom_basename;
+    val at_name_inst = get_dyn_thm thy ("at_"^atom_basename^"_inst") atom_basename;
+  in
+  (generate_fresh_tac atom_name i               THEN
+   subst_outer_tac ctx fresh_fun_app i          THEN
+   rtac pt_name_inst i                          THEN
+   rtac at_name_inst i                          THEN
+   NominalPermeq.finite_guess_tac HOL_ss i      THEN
+   auto_tac (HOL_cs , HOL_ss)                   THEN
+   NominalPermeq.fresh_guess_tac HOL_ss (i+1)   THEN
+   res_inst_tac_term' [(x,Bound n)] false exI i THEN
+   asm_full_simp_tac ss' i                      THEN
+   NominalPermeq.fresh_guess_tac HOL_ss i) thm 
+  end
+  end
+
+val setup_generate_fresh =
+  Method.goal_args_ctxt' Args.tyname (fn ctxt => generate_fresh_tac) 
+
+val setup_fresh_fun_simp =
+  Method.no_args (Method.SIMPLE_METHOD (fresh_fun_tac 1)) 
