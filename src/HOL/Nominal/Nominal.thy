@@ -3167,7 +3167,8 @@ setup "NominalThmDecls.setup"
 
 lemmas [eqvt] = 
   (* connectives *)
-  if_eqvt imp_eqvt disj_eqvt conj_eqvt neg_eqvt
+  if_eqvt imp_eqvt disj_eqvt conj_eqvt neg_eqvt 
+  true_eqvt false_eqvt
   
   (* datatypes *)
   perm_unit.simps
