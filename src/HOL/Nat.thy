@@ -62,7 +62,9 @@ instance nat :: "{ord, zero, one}"
   Zero_nat_def: "0 == Abs_Nat Zero_Rep"
   One_nat_def [simp]: "1 == Suc 0"
   less_def: "m < n == (m, n) : pred_nat^+"
-  le_def: "m \<le> (n::nat) == ~ (n < m)" ..
+  le_def:   "m \<le> (n::nat) == ~ (n < m)" ..
+
+lemmas [code nofunc] = less_def le_def
 
 text {* Induction *}
 

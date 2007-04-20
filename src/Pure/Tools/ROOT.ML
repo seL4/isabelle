@@ -15,9 +15,6 @@ use "invoke.ML";
 use "../codegen.ML";
 
 (*code generator, 2nd generation*)
-use "codegen_consts.ML";
-use "codegen_func.ML";
-use "codegen_data.ML";
 use "codegen_names.ML";
 use "codegen_funcgr.ML";
 use "codegen_thingol.ML";

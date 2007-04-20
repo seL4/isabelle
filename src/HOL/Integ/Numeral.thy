@@ -32,15 +32,15 @@ datatype bit = B0 | B1
 
 definition
   Pls :: int where
-  "Pls = 0"
+  [code nofunc]:"Pls = 0"
 
 definition
   Min :: int where
-  "Min = - 1"
+  [code nofunc]:"Min = - 1"
 
 definition
   Bit :: "int \<Rightarrow> bit \<Rightarrow> int" (infixl "BIT" 90) where
-  "k BIT b = (case b of B0 \<Rightarrow> 0 | B1 \<Rightarrow> 1) + k + k"
+  [code nofunc]: "k BIT b = (case b of B0 \<Rightarrow> 0 | B1 \<Rightarrow> 1) + k + k"
 
 class number = type + -- {* for numeric types: nat, int, real, \dots *}
   fixes number_of :: "int \<Rightarrow> 'a"
@@ -68,11 +68,11 @@ lemma Let_1 [simp]: "Let 1 f = f 1"
 
 definition
   succ :: "int \<Rightarrow> int" where
-  "succ k = k + 1"
+  [code nofunc]: "succ k = k + 1"
 
 definition
   pred :: "int \<Rightarrow> int" where
-  "pred k = k - 1"
+  [code nofunc]: "pred k = k - 1"
 
 declare
  max_def[of "number_of u" "number_of v", standard, simp]

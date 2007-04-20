@@ -89,7 +89,7 @@ val axclassP =
     (P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
         P.!!! (P.list1 P.xname)) []
         -- Scan.repeat (SpecParse.thm_name ":" -- (P.prop >> single))
-      >> (fn (x, y) => Toplevel.theory (snd o AxClass.define_class x [] y)));
+      >> (fn (x, y) => Toplevel.theory (snd o ClassPackage.axclass_cmd x y)));
 
 
 (* types *)
@@ -432,11 +432,6 @@ val instanceP =
            >> (fn (arities, defs) => ClassPackage.instance_arity_cmd arities defs)
     ) >> (Toplevel.print oo Toplevel.theory_to_proof));
 
-val print_classesP =
-  OuterSyntax.improper_command "print_classes" "print classes of this theory" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory
-      o Toplevel.keep (ClassPackage.print_classes o Toplevel.theory_of)));
-
 end;
 
 
@@ -710,6 +705,16 @@ val killP =
 
 
 
+(** code generation **)
+
+val code_datatypeP =
+  OuterSyntax.command "code_datatype" "define set of code datatype constructors" K.thy_decl (
+    Scan.repeat1 P.term
+    >> (Toplevel.theory o CodegenData.add_datatype_consts_cmd)
+  );
+
+
+
 (** diagnostic commands (for interactive mode only) **)
 
 val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
@@ -751,6 +756,11 @@ val print_theoremsP =
 val print_localesP =
   OuterSyntax.improper_command "print_locales" "print locales of this theory" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_locales));
+
+val print_classesP =
+  OuterSyntax.improper_command "print_classes" "print classes of this theory" K.diag
+    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory
+      o Toplevel.keep (ClassPackage.print_classes o Toplevel.theory_of)));
 
 val print_localeP =
   OuterSyntax.improper_command "print_locale" "print locale expression in this theory" K.diag
@@ -860,6 +870,11 @@ val print_typeP =
   OuterSyntax.improper_command "typ" "read and print type" K.diag
     (opt_modes -- P.typ >> (Toplevel.no_timing oo IsarCmd.print_type));
 
+val print_codesetupP =
+  OuterSyntax.improper_command "print_codesetup" "print code generator setup of this theory" K.diag
+    (Scan.succeed
+      (Toplevel.no_timing o Toplevel.unknown_theory o Toplevel.keep
+        (CodegenData.print_codesetup o Toplevel.theory_of)));
 
 
 (** system commands (for interactive mode only) **)
@@ -994,6 +1009,8 @@ val _ = OuterSyntax.add_parsers [
   apply_endP, proofP, alsoP, finallyP, moreoverP, ultimatelyP, backP,
   cannot_undoP, redoP, undos_proofP, undoP, killP, interpretationP,
   interpretP,
+  (*code generation*)
+  code_datatypeP,
   (*diagnostic commands*)
   pretty_setmarginP, helpP, print_classesP, print_commandsP, print_contextP,
   print_theoryP, print_syntaxP, print_abbrevsP, print_factsP,
@@ -1003,7 +1020,7 @@ val _ = OuterSyntax.add_parsers [
   print_methodsP, print_antiquotationsP, thy_depsP, class_depsP, thm_depsP,
   find_theoremsP, print_bindsP, print_casesP, print_stmtsP,
   print_thmsP, print_prfsP, print_full_prfsP, print_propP,
-  print_termP, print_typeP,
+  print_termP, print_typeP, print_codesetupP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
   touch_thyP, touch_all_thysP, touch_child_thysP, remove_thyP,

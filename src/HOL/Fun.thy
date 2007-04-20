@@ -12,7 +12,7 @@ begin
 
 constdefs
   fun_upd :: "('a => 'b) => 'a => 'b => ('a => 'b)"
-   "fun_upd f a b == % x. if x=a then b else f x"
+  [code func]: "fun_upd f a b == % x. if x=a then b else f x"
 
 nonterminals
   updbinds updbind
@@ -34,15 +34,20 @@ translations
  "fun_sum" == sum_case
 *)
 
-constdefs
-  override_on :: "('a => 'b) => ('a => 'b) => 'a set => ('a => 'b)"
-  "override_on f g A == %a. if a : A then g a else f a"
+definition
+  override_on :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'b"
+where
+  "override_on f g A = (\<lambda>a. if a \<in> A then g a else f a)"
 
-  id :: "'a => 'a"
-  "id == %x. x"
+definition
+  id :: "'a \<Rightarrow> 'a"
+where
+  "id = (\<lambda>x. x)"
 
-  comp :: "['b => 'c, 'a => 'b, 'a] => 'c"   (infixl "o" 55)
-  "f o g == %x. f(g(x))"
+definition
+  comp :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "o" 55)
+where
+  "f o g = (\<lambda>x. f (g x))"
 
 notation (xsymbols)
   comp  (infixl "\<circ>" 55)
@@ -404,9 +409,10 @@ by(simp add:override_on_def)
 
 subsection{* swap *}
 
-constdefs
-  swap :: "['a, 'a, 'a => 'b] => ('a => 'b)"
-   "swap a b f == f(a := f b, b:= f a)"
+definition
+  swap :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"
+where
+  "swap a b f = f (a := f b, b:= f a)"
 
 lemma swap_self: "swap a a f = f"
 by (simp add: swap_def)
@@ -418,7 +424,7 @@ lemma swap_nilpotent [simp]: "swap a b (swap a b f) = f"
 by (rule ext, simp add: fun_upd_def swap_def)
 
 lemma inj_on_imp_inj_on_swap:
-     "[|inj_on f A; a \<in> A; b \<in> A|] ==> inj_on (swap a b f) A"
+  "[|inj_on f A; a \<in> A; b \<in> A|] ==> inj_on (swap a b f) A"
 by (simp add: inj_on_def swap_def, blast)
 
 lemma inj_on_swap_iff [simp]:
@@ -459,6 +465,8 @@ subsection {* Order and lattice on functions *}
 instance "fun" :: (type, ord) ord
   le_fun_def: "f \<le> g \<equiv> \<forall>x. f x \<le> g x"
   less_fun_def: "f < g \<equiv> f \<le> g \<and> f \<noteq> g" ..
+
+lemmas [code nofunc] = le_fun_def less_fun_def
 
 instance "fun" :: (type, preorder) preorder
   by default (auto simp add: le_fun_def less_fun_def intro: order_trans)
@@ -527,6 +535,8 @@ apply (auto dest: le_funD)
 apply (rule le_funI)
 apply (auto dest: le_funD)
 done
+
+lemmas [code nofunc] = inf_fun_eq sup_fun_eq
 
 instance "fun" :: (type, distrib_lattice) distrib_lattice
   by default (auto simp add: inf_fun_eq sup_fun_eq sup_inf_distrib1)

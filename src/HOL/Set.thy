@@ -145,8 +145,10 @@ text{*
   subscripts in Proof General. *}
 
 instance set :: (type) ord
-  subset_def:   "A <= B         == \<forall>x\<in>A. x \<in> B"
-  psubset_def:  "A < B          == (A::'a set) <= B & ~ A=B" ..
+  subset_def:  "A \<le> B \<equiv> \<forall>x\<in>A. x \<in> B"
+  psubset_def: "A < B \<equiv> A \<le> B \<and> A \<noteq> B" ..
+
+lemmas [code nofunc] = subset_def psubset_def
 
 abbreviation
   subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
@@ -343,6 +345,8 @@ defs
 instance set :: (type) minus
   Compl_def:    "- A            == {x. ~x:A}"
   set_diff_def: "A - B          == {x. x:A & ~x:B}" ..
+
+lemmas [code nofunc] = Compl_def set_diff_def
 
 defs
   Un_def:       "A Un B         == {x. x:A | x:B}"
@@ -2125,6 +2129,8 @@ instance set :: (type) distrib_lattice
   inf_set_eq: "inf A B \<equiv> A \<inter> B"
   sup_set_eq: "sup A B \<equiv> A \<union> B"
   by intro_classes (auto simp add: inf_set_eq sup_set_eq)
+
+lemmas [code nofunc] = inf_set_eq sup_set_eq
 
 
 subsection {* Basic ML bindings *}

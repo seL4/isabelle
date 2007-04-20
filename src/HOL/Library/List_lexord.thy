@@ -13,7 +13,7 @@ instance list :: (ord) ord
   list_le_def:  "(xs::('a::ord) list) \<le> ys \<equiv> (xs < ys \<or> xs = ys)"
   list_less_def: "(xs::('a::ord) list) < ys \<equiv> (xs, ys) \<in> lexord {(u,v). u < v}" ..
 
-lemmas list_ord_defs = list_less_def list_le_def
+lemmas list_ord_defs [code nofunc] = list_less_def list_le_def
 
 instance list :: (order) order
   apply (intro_classes, unfold list_ord_defs)
@@ -39,6 +39,8 @@ instance list :: (linorder) distrib_lattice
   "sup \<equiv> max"
   by intro_classes
     (auto simp add: inf_list_def sup_list_def min_max.sup_inf_distrib1)
+
+lemmas [code nofunc] = inf_list_def sup_list_def
 
 lemma not_less_Nil [simp]: "\<not> (x < [])"
   by (unfold list_less_def) simp

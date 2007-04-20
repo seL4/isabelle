@@ -84,7 +84,7 @@ primrec
   "map_of (p#ps) = (map_of ps)(fst p |-> snd p)"
 
 defs
-  map_upds_def: "m(xs [|->] ys) == m ++ map_of (rev(zip xs ys))"
+  map_upds_def [code func]: "m(xs [|->] ys) == m ++ map_of (rev(zip xs ys))"
 
 
 subsection {* @{term [source] empty} *}

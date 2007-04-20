@@ -165,7 +165,7 @@ axioms
   True_or_False:  "(P=True) | (P=False)"
 
 defs
-  Let_def:      "Let s f == f(s)"
+  Let_def [code func]: "Let s f == f(s)"
   if_def:       "If P x y == THE z::'a. (P=True --> z=x) & (P=False --> z=y)"
 
 finalconsts
@@ -177,7 +177,7 @@ finalconsts
 axiomatization
   undefined :: 'a
 
-axioms
+axiomatization where
   undefined_fun: "undefined x = undefined"
 
 
@@ -912,8 +912,8 @@ ML {*
 structure Blast = BlastFun(
 struct
   type claset = Classical.claset
-  val equality_name = "op ="
-  val not_name = "Not"
+  val equality_name = @{const_name "op ="}
+  val not_name = @{const_name "Not"}
   val notE = @{thm HOL.notE}
   val ccontr = @{thm HOL.ccontr}
   val contr_tac = Classical.contr_tac

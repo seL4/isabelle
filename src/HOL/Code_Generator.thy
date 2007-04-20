@@ -219,7 +219,7 @@ text {* lazy @{const If} *}
 
 definition
   if_delayed :: "bool \<Rightarrow> (bool \<Rightarrow> 'a) \<Rightarrow> (bool \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  "if_delayed b f g = (if b then f True else g False)"
+  [code nofunc]: "if_delayed b f g = (if b then f True else g False)"
 
 lemma [code func]:
   shows "if_delayed True f g = f True"
@@ -229,7 +229,6 @@ lemma [code func]:
 lemma [normal pre, symmetric, normal post]:
   "(if b then x else y) = if_delayed b (\<lambda>_. x) (\<lambda>_. y)"
   unfolding if_delayed_def ..
-
 
 hide (open) const if_delayed
 

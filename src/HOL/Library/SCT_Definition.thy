@@ -15,12 +15,11 @@ datatype sedge =
     LESS ("\<down>")
   | LEQ ("\<Down>")
 
-instance sedge :: times ..
-instance sedge :: one ..
+instance sedge :: one
+  one_sedge_def: "1 \<equiv> \<Down>" ..
 
-defs (overloaded)
-  one_sedge_def: "1 == \<Down>"
-  mult_sedge_def:" a * b == (if a = \<down> then \<down> else b)"
+instance sedge :: times
+  mult_sedge_def:" a * b \<equiv> if a = \<down> then \<down> else b" ..
 
 instance sedge :: comm_monoid_mult
 proof
@@ -31,13 +30,17 @@ proof
     by (cases a, simp) (cases b, auto)
 qed
 
+lemma sedge_UNIV:
+  "UNIV = { LESS, LEQ }"
+  by auto (case_tac x, auto) (*FIXME*)
+
 instance sedge :: finite
 proof
-  have a: "UNIV = { LESS, LEQ }"
-    by auto (case_tac x, auto) (* FIXME *)
   show "finite (UNIV::sedge set)"
-    by (simp add:a)
+    by (simp add: sedge_UNIV)
 qed
+
+lemmas [code func] = sedge_UNIV
 
 
 types scg = "(nat, sedge) graph"

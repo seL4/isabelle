@@ -19,10 +19,9 @@ fun connect_edges ::
 where
   "connect_edges ((n,e,m), (n', e', m')) = (n, e * e', m')"
 
-lemma grcomp_code[code]:
+lemma grcomp_code [code]:
   "grcomp (Graph G) (Graph H) = Graph (connect_edges ` { x \<in> G\<times>H. edges_match x })"
   by (rule graph_ext) (auto simp:graph_mult_def has_edge_def image_def)
-
 
 definition test_SCT :: "acg \<Rightarrow> bool"
 where
@@ -119,6 +118,6 @@ code_modulename SML
   Kleene_Algebras SCT
   SCT_Implementation SCT
 
-code_gen test_SCT (SML -)
+code_gen test_SCT (SML #)
 
 end

@@ -1069,11 +1069,12 @@ text {*
 lemma eq_number_of [code func]:
   "((number_of k)\<Colon>int) = number_of l \<longleftrightarrow> k = l"
   unfolding number_of_is_id ..
+
 lemma eq_Pls_Pls:
-  "Numeral.Pls = Numeral.Pls" ..
+  "Numeral.Pls = Numeral.Pls \<longleftrightarrow> True" by rule+
 
 lemma eq_Pls_Min:
-  "Numeral.Pls \<noteq> Numeral.Min"
+  "Numeral.Pls = Numeral.Min \<longleftrightarrow> False"
   unfolding Pls_def Min_def by auto
 
 lemma eq_Pls_Bit0:
@@ -1081,18 +1082,18 @@ lemma eq_Pls_Bit0:
   unfolding Pls_def Bit_def bit.cases by auto
 
 lemma eq_Pls_Bit1:
-  "Numeral.Pls \<noteq> Numeral.Bit k bit.B1"
+  "Numeral.Pls = Numeral.Bit k bit.B1 \<longleftrightarrow> False"
   unfolding Pls_def Bit_def bit.cases by arith
 
 lemma eq_Min_Pls:
-  "Numeral.Min \<noteq> Numeral.Pls"
+  "Numeral.Min = Numeral.Pls \<longleftrightarrow> False"
   unfolding Pls_def Min_def by auto
 
 lemma eq_Min_Min:
-  "Numeral.Min = Numeral.Min" ..
+  "Numeral.Min = Numeral.Min \<longleftrightarrow> True" by rule+
 
 lemma eq_Min_Bit0:
-  "Numeral.Min \<noteq> Numeral.Bit k bit.B0"
+  "Numeral.Min = Numeral.Bit k bit.B0 \<longleftrightarrow> False"
   unfolding Min_def Bit_def bit.cases by arith
 
 lemma eq_Min_Bit1:
@@ -1104,11 +1105,11 @@ lemma eq_Bit0_Pls:
   unfolding Pls_def Bit_def bit.cases by auto
 
 lemma eq_Bit1_Pls:
-  "Numeral.Bit k bit.B1 \<noteq>  Numeral.Pls"
+  "Numeral.Bit k bit.B1 = Numeral.Pls \<longleftrightarrow> False"
   unfolding Pls_def Bit_def bit.cases by arith
 
 lemma eq_Bit0_Min:
-  "Numeral.Bit k bit.B0 \<noteq> Numeral.Min"
+  "Numeral.Bit k bit.B0 = Numeral.Min \<longleftrightarrow> False"
   unfolding Min_def Bit_def bit.cases by arith
 
 lemma eq_Bit1_Min:
@@ -1140,10 +1141,10 @@ lemma less_eq_number_of [code func]:
   unfolding number_of_is_id ..
 
 lemma less_eq_Pls_Pls:
-  "Numeral.Pls \<le> Numeral.Pls" ..
+  "Numeral.Pls \<le> Numeral.Pls \<longleftrightarrow> True" by rule+
 
 lemma less_eq_Pls_Min:
-  "\<not> (Numeral.Pls \<le> Numeral.Min)"
+  "Numeral.Pls \<le> Numeral.Min \<longleftrightarrow> False"
   unfolding Pls_def Min_def by auto
 
 lemma less_eq_Pls_Bit:
@@ -1151,11 +1152,11 @@ lemma less_eq_Pls_Bit:
   unfolding Pls_def Bit_def by (cases v) auto
 
 lemma less_eq_Min_Pls:
-  "Numeral.Min \<le> Numeral.Pls"
+  "Numeral.Min \<le> Numeral.Pls \<longleftrightarrow> True"
   unfolding Pls_def Min_def by auto
 
 lemma less_eq_Min_Min:
-  "Numeral.Min \<le> Numeral.Min" ..
+  "Numeral.Min \<le> Numeral.Min \<longleftrightarrow> True" by rule+
 
 lemma less_eq_Min_Bit0:
   "Numeral.Min \<le> Numeral.Bit k bit.B0 \<longleftrightarrow> Numeral.Min < k"
@@ -1198,10 +1199,10 @@ lemma less_eq_number_of [code func]:
   unfolding number_of_is_id ..
 
 lemma less_Pls_Pls:
-  "\<not> (Numeral.Pls < Numeral.Pls)" by auto
+  "Numeral.Pls < Numeral.Pls \<longleftrightarrow> False" by auto
 
 lemma less_Pls_Min:
-  "\<not> (Numeral.Pls < Numeral.Min)"
+  "Numeral.Pls < Numeral.Min \<longleftrightarrow> False"
   unfolding Pls_def Min_def by auto
 
 lemma less_Pls_Bit0:
@@ -1213,11 +1214,11 @@ lemma less_Pls_Bit1:
   unfolding Pls_def Bit_def by auto
 
 lemma less_Min_Pls:
-  "Numeral.Min < Numeral.Pls"
+  "Numeral.Min < Numeral.Pls \<longleftrightarrow> True"
   unfolding Pls_def Min_def by auto
 
 lemma less_Min_Min:
-  "\<not> (Numeral.Min < Numeral.Min)" by auto
+  "Numeral.Min < Numeral.Min \<longleftrightarrow> False" by auto
 
 lemma less_Min_Bit:
   "Numeral.Min < Numeral.Bit k v \<longleftrightarrow> Numeral.Min < k"

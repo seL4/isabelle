@@ -871,9 +871,9 @@ lemma mod_add_right_eq: "(a+b) mod (c::nat) = (a + (b mod c)) mod c"
   done
 
 
-subsection {* Code generation for div and mod *}
+subsection {* Code generation for div, mod and dvd on nat *}
 
-definition
+definition [code nofunc]:
   "divmod (m\<Colon>nat) n = (m div n, m mod n)"
 
 lemma divmod_zero [code]: "divmod m 0 = (0, m)"
@@ -893,13 +893,22 @@ lemma div_divmod [code]: "m div n = fst (divmod m n)"
 lemma mod_divmod [code]: "m mod n = snd (divmod m n)"
   unfolding divmod_def by simp
 
+definition
+  dvd_nat :: "nat \<Rightarrow> nat \<Rightarrow> bool"
+where
+  "dvd_nat m n \<longleftrightarrow> n mod m = (0 \<Colon> nat)"
+
+lemma [code inline]:
+  "op dvd = dvd_nat"
+  by (auto simp add: dvd_nat_def dvd_eq_mod_eq_0 expand_fun_eq)
+
 code_modulename SML
   Divides Integer
 
 code_modulename OCaml
   Divides Integer
 
-hide (open) const divmod
+hide (open) const divmod dvd_nat
 
 subsection {* Legacy bindings *}
 

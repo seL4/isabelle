@@ -517,15 +517,16 @@ by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
 
 subsection{*The Constants @{term neg} and @{term iszero}*}
 
-constdefs
+definition
+  neg  :: "'a\<Colon>ordered_idom \<Rightarrow> bool"
+where
+  "neg Z \<longleftrightarrow> Z < 0"
 
-  neg   :: "'a::ordered_idom => bool"
-  "neg(Z) == Z < 0"
-
+definition
   (*For simplifying equalities*)
-  iszero :: "'a::comm_semiring_1_cancel => bool"
-  "iszero z == z = (0)"
-
+  iszero :: "'a\<Colon>comm_semiring_1_cancel \<Rightarrow> bool"
+where
+  "iszero z \<longleftrightarrow> z = 0"
 
 lemma not_neg_int [simp]: "~ neg(int n)"
 by (simp add: neg_def)

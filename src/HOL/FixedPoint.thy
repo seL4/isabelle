@@ -198,6 +198,8 @@ instance "fun" :: (type, complete_lattice) complete_lattice
   apply (iprover elim: le_funE)
   done
 
+lemmas [code nofunc] = Inf_fun_def
+
 theorem Sup_fun_eq: "Sup A = (\<lambda>x. Sup {y. \<exists>f\<in>A. y = f x})"
   apply (rule order_antisym)
   apply (rule Sup_least)
@@ -218,6 +220,8 @@ subsubsection {* Sets *}
 instance set :: (type) complete_lattice
   Inf_set_def: "Inf S \<equiv> \<Inter>S"
   by intro_classes (auto simp add: Inf_set_def)
+
+lemmas [code nofunc] = Inf_set_def
 
 theorem Sup_set_eq: "Sup S = \<Union>S"
   apply (rule subset_antisym)

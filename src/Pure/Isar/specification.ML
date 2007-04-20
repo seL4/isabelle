@@ -130,7 +130,8 @@ fun gen_def prep (raw_var, (raw_a, raw_prop)) lthy =
 (*    |> LocalTheory.def ((x, mx), ((name ^ "_raw", []), rhs));  FIXME *)
       |> LocalTheory.def Thm.definitionK ((x, mx), ((name, []), rhs));
     val ((b, [th']), lthy3) = lthy2
-      |> LocalTheory.note Thm.definitionK ((name, atts), [prove lthy2 th]);
+      |> LocalTheory.note Thm.definitionK
+          ((name, CodegenData.add_func_attr false :: atts), [prove lthy2 th]);
 
     val lhs' = Morphism.term (LocalTheory.target_morphism lthy3) lhs;
     val _ = print_consts lthy3 (member (op =) (Term.add_frees lhs' [])) [(x, T)];

@@ -18,13 +18,13 @@ declare zless_nat_conj [simp]
 constdefs
   quorem :: "(int*int) * (int*int) => bool"
     --{*definition of quotient and remainder*}
-    "quorem == %((a,b), (q,r)).
+    [code func]: "quorem == %((a,b), (q,r)).
                       a = b*q + r &
                       (if 0 < b then 0\<le>r & r<b else b<r & r \<le> 0)"
 
   adjust :: "[int, int*int] => int*int"
     --{*for the division algorithm*}
-    "adjust b == %(q,r). if 0 \<le> r-b then (2*q + 1, r-b)
+    [code func]: "adjust b == %(q,r). if 0 \<le> r-b then (2*q + 1, r-b)
                          else (2*q, r)"
 
 text{*algorithm for the case @{text "a\<ge>0, b>0"}*}
@@ -44,13 +44,13 @@ recdef negDivAlg "measure (%(a,b). nat(- a - b))"
 text{*algorithm for the general case @{term "b\<noteq>0"}*}
 constdefs
   negateSnd :: "int*int => int*int"
-    "negateSnd == %(q,r). (q,-r)"
+    [code func]: "negateSnd == %(q,r). (q,-r)"
 
   divAlg :: "int*int => int*int"
     --{*The full division algorithm considers all possible signs for a, b
        including the special case @{text "a=0, b<0"} because 
        @{term negDivAlg} requires @{term "a<0"}.*}
-    "divAlg ==
+    [code func]: "divAlg ==
        %(a,b). if 0\<le>a then
                   if 0\<le>b then posDivAlg (a,b)
                   else if a=0 then (0,0)
@@ -65,8 +65,8 @@ instance
 text{*The operators are defined with reference to the algorithm, which is
 proved to satisfy the specification.*}
 defs
-  div_def:   "a div b == fst (divAlg (a,b))"
-  mod_def:   "a mod b == snd (divAlg (a,b))"
+  div_def [code func]: "a div b == fst (divAlg (a,b))"
+  mod_def [code func]: "a mod b == snd (divAlg (a,b))"
 
 
 text{*

@@ -287,6 +287,12 @@ lemma [code func]:
   "image (f \<Colon> 'a \<Rightarrow> 'b\<Colon>eq) = image f" ..
 
 lemma [code func]:
+  "Union (xss \<Colon> 'a\<Colon>eq set set) = Union xss" ..
+
+lemma [code func]:
+  "Inter (xss \<Colon> 'a\<Colon>eq set set) = Inter xss" ..
+
+lemma [code func]:
   "UNION xs (f \<Colon> 'a \<Rightarrow> 'b\<Colon>eq set) = UNION xs f" ..
 
 lemma [code func]:
@@ -300,6 +306,7 @@ lemma [code func]:
 
 lemma [code func]:
   "filter_set P (xs \<Colon> 'a\<Colon>type set) = filter_set P xs" ..
+
 
 code_abstype "'a set" "'a list" where
   "{}" \<equiv> empty_list

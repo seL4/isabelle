@@ -104,10 +104,10 @@ defs
   Pair_def:     "Pair a b == Abs_Prod (Pair_Rep a b)"
   fst_def:      "fst p == THE a. EX b. p = Pair a b"
   snd_def:      "snd p == THE b. EX a. p = Pair a b"
-  split_def:    "split == (%c p. c (fst p) (snd p))"
-  curry_def:    "curry == (%c x y. c (Pair x y))"
-  prod_fun_def: "prod_fun f g == split (%x y. Pair (f x) (g y))"
-  Sigma_def:    "Sigma A B == UN x:A. UN y:B x. {Pair x y}"
+  split_def [code func]:    "split == (%c p. c (fst p) (snd p))"
+  curry_def [code func]:    "curry == (%c x y. c (Pair x y))"
+  prod_fun_def [code func]: "prod_fun f g == split (%x y. Pair (f x) (g y))"
+  Sigma_def [code func]:    "Sigma A B == UN x:A. UN y:B x. {Pair x y}"
 
 abbreviation
   Times :: "['a set, 'b set] => ('a * 'b) set"
@@ -599,17 +599,22 @@ lemma prod_fun_imageE [elim!]:
   done
 
 
-constdefs
-  upd_fst :: "('a => 'c) => 'a * 'b => 'c * 'b"
- "upd_fst f == prod_fun f id"
+definition
+  upd_fst :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'b"
+where
+  "upd_fst f = prod_fun f id"
 
-  upd_snd :: "('b => 'c) => 'a * 'b => 'a * 'c"
- "upd_snd f == prod_fun id f"
+definition
+  upd_snd :: "('b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'a \<times> 'c"
+where
+  "upd_snd f = prod_fun id f"
 
-lemma upd_fst_conv [simp]: "upd_fst f (x,y) = (f x,y)" 
+lemma upd_fst_conv [simp, code func]:
+  "upd_fst f (x, y) = (f x, y)" 
   by (simp add: upd_fst_def)
 
-lemma upd_snd_conv [simp]: "upd_snd f (x,y) = (x,f y)" 
+lemma upd_snd_conv [simp, code func]:
+  "upd_snd f (x, y) = (x, f y)" 
   by (simp add: upd_snd_def)
 
 text {*

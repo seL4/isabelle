@@ -73,13 +73,14 @@ proof
   by auto
 qed
 
+lemmas [code nofunc] = graph_plus_def
 
 instance graph :: (type, type) "{distrib_lattice, complete_lattice}"
   graph_leq_def: "G \<le> H \<equiv> dest_graph G \<subseteq> dest_graph H"
   graph_less_def: "G < H \<equiv> dest_graph G \<subset> dest_graph H"
   "inf G H \<equiv> Graph (dest_graph G \<inter> dest_graph H)"
   "sup G H \<equiv> G + H"
-  Inf_graph_def: "Inf == \<lambda>Gs. Graph (\<Inter>(dest_graph ` Gs))"
+  Inf_graph_def: "Inf \<equiv> \<lambda>Gs. Graph (\<Inter>(dest_graph ` Gs))"
 proof
   fix x y z :: "('a,'b) graph"
   fix A :: "('a, 'b) graph set"
@@ -122,6 +123,9 @@ proof
     unfolding Inf_graph_def graph_leq_def by auto }
 qed
 
+lemmas [code nofunc] = graph_leq_def graph_less_def
+  inf_graph_def sup_graph_def Inf_graph_def
+
 lemma in_grplus:
   "has_edge (G + H) p b q = (has_edge G p b q \<or> has_edge H p b q)"
   by (cases G, cases H, auto simp:has_edge_def graph_plus_def)
@@ -145,6 +149,8 @@ proof
     unfolding graph_mult_def graph_zero_def
     by (cases a) (simp add:grcomp.simps)
 qed
+
+lemmas [code nofunc] = graph_mult_def
 
 instance graph :: (type, one) one 
   graph_one_def: "1 == Graph { (x, 1, x) |x. True}" ..

@@ -102,7 +102,7 @@ defs
 
 (** apfst -- can be used in similar type definitions **)
 
-lemma apfst_conv [simp]: "apfst f (a,b) = (f(a),b)"
+lemma apfst_conv [simp, code func]: "apfst f (a, b) = (f a, b)"
 by (simp add: apfst_def)
 
 
@@ -697,10 +697,10 @@ constdefs
   option_map :: "('a => 'b) => ('a option => 'b option)"
   "option_map == %f y. case y of None => None | Some x => Some (f x)"
 
-lemma option_map_None [simp]: "option_map f None = None"
+lemma option_map_None [simp, code func]: "option_map f None = None"
   by (simp add: option_map_def)
 
-lemma option_map_Some [simp]: "option_map f (Some x) = Some (f x)"
+lemma option_map_Some [simp, code func]: "option_map f (Some x) = Some (f x)"
   by (simp add: option_map_def)
 
 lemma option_map_is_None [iff]:
