@@ -16,7 +16,7 @@ syntax
   "_Wait"      :: "'a bexp \<Rightarrow> 'a com"                       ("(0WAIT _ END)" 61)
 
 translations
-  "\<acute>\<spacespace>x := a" \<rightharpoonup> "Basic \<guillemotleft>\<acute>\<spacespace>(_update_name x (K_record a))\<guillemotright>"
+  "\<acute>\<spacespace>x := a" \<rightharpoonup> "Basic \<guillemotleft>\<acute>\<spacespace>(_update_name x (CONST K_record a))\<guillemotright>"
   "SKIP" \<rightleftharpoons> "Basic id"
   "c1;; c2" \<rightleftharpoons> "Seq c1 c2"
   "IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "Cond .{b}. c1 c2"

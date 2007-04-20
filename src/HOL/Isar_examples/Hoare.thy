@@ -228,8 +228,8 @@ syntax (xsymbols)
 
 translations
   ".{b}."                   => "Collect .(b)."
-  "B [a/\<acute>x]"                => ".{\<acute>(_update_name x (K_record a)) \<in> B}."
-  "\<acute>x := a"                 => "Basic .(\<acute>(_update_name x (K_record a)))."
+  "B [a/\<acute>x]"                => ".{\<acute>(_update_name x (CONST K_record a)) \<in> B}."
+  "\<acute>x := a"                 => "Basic .(\<acute>(_update_name x (CONST K_record a)))."
   "IF b THEN c1 ELSE c2 FI" => "Cond .{b}. c1 c2"
   "WHILE b INV i DO c OD"   => "While .{b}. i c"
   "WHILE b DO c OD"         == "WHILE b INV arbitrary DO c OD"

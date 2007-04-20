@@ -10,8 +10,8 @@ syntax
   "_AnnAssign"   :: "'a assn \<Rightarrow> idt \<Rightarrow> 'b \<Rightarrow> 'a com"    ("(_ \<acute>_ :=/ _)" [90,70,65] 61)
 
 translations
-  "\<acute>\<spacespace>x := a" \<rightharpoonup> "Basic \<guillemotleft>\<acute>\<spacespace>(_update_name x (K_record a))\<guillemotright>"
-  "r \<acute>\<spacespace>x := a" \<rightharpoonup> "AnnBasic r \<guillemotleft>\<acute>\<spacespace>(_update_name x (K_record a))\<guillemotright>"
+  "\<acute>\<spacespace>x := a" \<rightharpoonup> "Basic \<guillemotleft>\<acute>\<spacespace>(_update_name x (CONST K_record a))\<guillemotright>"
+  "r \<acute>\<spacespace>x := a" \<rightharpoonup> "AnnBasic r \<guillemotleft>\<acute>\<spacespace>(_update_name x (CONST K_record a))\<guillemotright>"
 
 syntax
   "_AnnSkip"     :: "'a assn \<Rightarrow> 'a ann_com"              ("_//SKIP" [90] 63)
@@ -105,12 +105,12 @@ print_translation {*
       | update_name_tr' (Const x) = Const (upd_tr' x)
       | update_name_tr' _ = raise Match;
 
-    fun assign_tr' (Abs (x, _, f $ (Const ("K_record",_)$t) $ Bound 0) :: ts) =
+    fun assign_tr' (Abs (x, _, f $ (Const (@{const_syntax "K_record"},_)$t) $ Bound 0) :: ts) =
           quote_tr' (Syntax.const "_Assign" $ update_name_tr' f)
             (Abs (x, dummyT, t) :: ts)
       | assign_tr' _ = raise Match;
 
-    fun annassign_tr' (r :: Abs (x, _, f $ (Const ("K_record",_)$t) $ Bound 0) :: ts) =
+    fun annassign_tr' (r :: Abs (x, _, f $ (Const (@{const_syntax "K_record"},_)$t) $ Bound 0) :: ts) =
           quote_tr' (Syntax.const "_AnnAssign" $ r $ update_name_tr' f)
             (Abs (x, dummyT, t) :: ts)
       | annassign_tr' _ = raise Match;
