@@ -21,11 +21,8 @@ sig
   val add_arity: thm -> theory -> theory
   val prove_classrel: class * class -> tactic -> theory -> theory
   val prove_arity: string * sort list * sort -> tactic -> theory -> theory
-  val define_class: bstring * xstring list -> string list ->
-    ((bstring * Attrib.src list) * string list) list -> theory -> class * theory
-  val define_class_i: bstring * class list -> string list ->
+  val define_class: bstring * class list -> string list ->
     ((bstring * attribute list) * term list) list -> theory -> class * theory
-  val read_param: theory -> string -> string
   val axiomatize_class: bstring * xstring list -> theory -> theory
   val axiomatize_class_i: bstring * class list -> theory -> theory
   val axiomatize_classrel: (xstring * xstring) list -> theory -> theory
@@ -270,18 +267,7 @@ fun prove_arity raw_arity tac thy =
 
 (** class definitions **)
 
-fun read_param thy raw_t =
-  let
-    val t = Sign.read_term thy raw_t
-  in case try dest_Const t
-   of SOME (c, _) => c
-    | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t)
-  end;
-
-local
-
-fun def_class prep_class prep_att prep_param prep_propp
-    (bclass, raw_super) raw_params raw_specs thy =
+fun define_class (bclass, raw_super) params raw_specs thy =
   let
     val ctxt = ProofContext.init thy;
     val pp = ProofContext.pp ctxt;
@@ -291,7 +277,7 @@ fun def_class prep_class prep_att prep_param prep_propp
 
     val bconst = Logic.const_of_class bclass;
     val class = Sign.full_name thy bclass;
-    val super = map (prep_class thy) raw_super |> Sign.certify_sort thy;
+    val super = Sign.certify_sort thy raw_super;
 
     fun prep_axiom t =
       (case Term.add_tfrees t [] of
@@ -305,9 +291,10 @@ fun def_class prep_class prep_att prep_param prep_propp
       |> map_types (Term.map_atyps (fn TFree _ => Term.aT [] | U => U))
       |> Logic.close_form;
 
-    val axiomss = prep_propp (ctxt, map (map (rpair []) o snd) raw_specs)
+    (*FIXME is ProofContext.cert_propp really neccessary?*)
+    val axiomss = ProofContext.cert_propp (ctxt, map (map (rpair []) o snd) raw_specs)
       |> snd |> map (map (prep_axiom o fst));
-    val name_atts = Attrib.map_specs (prep_att thy) raw_specs |> map fst;
+    val name_atts = map fst raw_specs;
 
 
     (* definition *)
@@ -336,7 +323,6 @@ fun def_class prep_class prep_att prep_param prep_propp
 
     (* params *)
 
-    val params = map (prep_param thy) raw_params;
     val params_typs = map (fn param =>
       let
         val ty = Sign.the_const_type thy param;
@@ -360,13 +346,6 @@ fun def_class prep_class prep_att prep_param prep_propp
           fold (fn x => add_param pp (x, class)) params parameters));
 
   in (class, result_thy) end;
-
-in
-
-val define_class = def_class Sign.read_class Attrib.attribute read_param ProofContext.read_propp;
-val define_class_i = def_class Sign.certify_class (K I) (K I) ProofContext.cert_propp;
-
-end;
 
 
 
