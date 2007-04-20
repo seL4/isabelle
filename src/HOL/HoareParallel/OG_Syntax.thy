@@ -10,8 +10,8 @@ syntax
   "_AnnAssign"   :: "'a assn \<Rightarrow> idt \<Rightarrow> 'b \<Rightarrow> 'a com"    ("(_ \<acute>_ :=/ _)" [90,70,65] 61)
 
 translations
-  "\<acute>\<spacespace>x := a" \<rightharpoonup> "Basic \<guillemotleft>\<acute>\<spacespace>(_update_name x (CONST K_record a))\<guillemotright>"
-  "r \<acute>\<spacespace>x := a" \<rightharpoonup> "AnnBasic r \<guillemotleft>\<acute>\<spacespace>(_update_name x (CONST K_record a))\<guillemotright>"
+  "\<acute>\<spacespace>x := a" \<rightharpoonup> "Basic \<guillemotleft>\<acute>\<spacespace>(_update_name x (K_record a))\<guillemotright>"
+  "r \<acute>\<spacespace>x := a" \<rightharpoonup> "AnnBasic r \<guillemotleft>\<acute>\<spacespace>(_update_name x (K_record a))\<guillemotright>"
 
 syntax
   "_AnnSkip"     :: "'a assn \<Rightarrow> 'a ann_com"              ("_//SKIP" [90] 63)
