@@ -164,14 +164,6 @@ text {* type itself *}
 code_datatype "TYPE('a)"
 
 
-text {* prevent unfolding of quantifier definitions *}
-
-lemma [code func]:
-  "Ex = Ex"
-  "All = All"
-  by rule+
-
-
 text {* code generation for undefined as exception *}
 
 code_const undefined
