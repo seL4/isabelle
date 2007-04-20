@@ -13,6 +13,7 @@ imports
   AssocList
   Binomial
   Commutative_Ring
+  "~~/src/HOL/ex/Commutative_Ring_Complete"
   GCD
   List_Prefix
   Nat_Infinity
