@@ -280,14 +280,11 @@ print_codesetup
 text {*
   \noindent which displays a table of constant with corresponding
   defining equations (the additional stuff displayed
-  shall not bother us for the moment). If this table does
-  not provide at least one defining
-  equation for a particular constant, the table of primitive
-  definitions is searched
-  whether it provides one.
+  shall not bother us for the moment).
 
   The typical HOL tools are already set up in a way that
-  function definitions introduced by @{text "\<FUN>"},
+  function definitions introduced by @{text "\<DEFINITION>"},
+  @{text "\<FUN>"},
   @{text "\<FUNCTION>"}, @{text "\<PRIMREC>"}
   @{text "\<RECDEF>"} are implicitly propagated
   to this defining equation table. Specific theorems may be
@@ -861,15 +858,17 @@ text {*
 *}
 
 instance * :: (ord, ord) ord
-  "p1 < p2 \<equiv> let (x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) = p1; (x2, y2) = p2 in
+  less_prod_def: "p1 < p2 \<equiv> let (x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) = p1; (x2, y2) = p2 in
     x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
-  "p1 \<le> p2 \<equiv> let (x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) = p1; (x2, y2) = p2 in
+  less_eq_prod_def: "p1 \<le> p2 \<equiv> let (x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) = p1; (x2, y2) = p2 in
     x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)" ..
+
+lemmas [code nofunc] = less_prod_def less_eq_prod_def
 
 lemma ord_prod [code func]:
   "(x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
   "(x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)"
-  unfolding "less_eq_*_def" "less_*_def" by simp_all
+  unfolding less_prod_def less_eq_prod_def by simp_all
 
 text {*
   Then code generation will fail.  Why?  The definition
@@ -883,7 +882,7 @@ text {*
 *}
 
 (*<*)
-declare ord_prod [code del]
+lemmas [code nofunc] = ord_prod
 (*>*)
 
 lemma ord_prod_code [code func]:
@@ -907,7 +906,10 @@ text {*
   restrictive sort constraints than the underlying instance relation
   between class and type constructor as long as the whole system of
   constraints is coregular; code theorems violating coregularity
-  are rejected immediately.
+  are rejected immediately.  Consequently, it might be necessary
+  to delete disturbing theorems in the code theorem table,
+  as we have done here with the original definitions @{text less_prod_def}
+  and @{text less_eq_prod_def}.
 *}
 
 subsubsection {* Haskell serialization *}
@@ -1002,7 +1004,7 @@ text {*
   expects dictionaries (namely an \emph{eq} dictionary) but
   has also been given a customary serialization.
 
-  The solution to this dilemma:
+  \fixme[needs rewrite] The solution to this dilemma:
 *}
 
 lemma [code func]:
@@ -1013,9 +1015,7 @@ code_gen dummy_set foobar_set (*<*)(SML #)(*>*)(SML "examples/dirty_set.ML")
 text {*
   \lstsml{Thy/examples/dirty_set.ML}
 
-  Reflexive defining equations by convention are dropped.
-  But their presence prevents primitive definitions to be
-  used as defining equations:
+  Reflexive defining equations by convention are dropped:
 *}
 
 code_thms insert
@@ -1201,12 +1201,12 @@ subsubsection {* Suspended theorems *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML CodegenData.lazy: "(unit -> thm list) -> thm list Susp.T"}
+  @{index_ML CodegenData.lazy_thms: "(unit -> thm list) -> thm list Susp.T"}
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML CodegenData.lazy}~@{text f} turns an abstract
+  \item @{ML CodegenData.lazy_thms}~@{text f} turns an abstract
      theorem computation @{text f} into a suspension of theorems.
 
   \end{description}
@@ -1294,7 +1294,7 @@ text %mlref {*
   @{index_ML CodegenConsts.eq_const: "CodegenConsts.const * CodegenConsts.const -> bool"} \\
   @{index_ML CodegenConsts.read_const: "theory -> string -> CodegenConsts.const"} \\
   @{index_ML_structure CodegenConsts.Consttab} \\
-  @{index_ML CodegenFunc.typ_func: "thm -> typ"} \\
+  @{index_ML CodegenFunc.head_func: "thm -> CodegenConsts.const * typ"} \\
   @{index_ML CodegenFunc.rewrite_func: "thm list -> thm -> thm"} \\
   \end{mldecls}
 
@@ -1309,8 +1309,8 @@ text %mlref {*
   \item @{ML CodegenConsts.read_const}~@{text thy}~@{text s}
      reads a constant as a concrete term expression @{text s}.
 
-  \item @{ML CodegenFunc.typ_func}~@{text thm}
-     extracts the type of a constant in a defining equation @{text thm}.
+  \item @{ML CodegenFunc.head_func}~@{text thm}
+     extracts the constant and its type from a defining equation @{text thm}.
 
   \item @{ML CodegenFunc.rewrite_func}~@{text rews}~@{text thm}
      rewrites a defining equation @{text thm} with a set of rewrite

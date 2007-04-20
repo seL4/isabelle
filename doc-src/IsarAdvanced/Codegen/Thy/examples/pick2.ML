@@ -13,7 +13,7 @@ and less_eq_nat (Suc n) m = less_nat n m
 
 fun minus_nat (Suc m) (Suc n) = minus_nat m n
   | minus_nat Zero_nat n = Zero_nat
-  | minus_nat y Zero_nat = y;
+  | minus_nat m Zero_nat = m;
 
 end; (*struct Nat*)
 

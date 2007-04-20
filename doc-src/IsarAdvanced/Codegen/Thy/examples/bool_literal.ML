@@ -6,9 +6,9 @@ struct
 
 datatype boola = True | False;
 
-fun op_and y True = y
+fun op_and x True = x
   | op_and x False = False
-  | op_and True y = y
+  | op_and True x = x
   | op_and False x = False;
 
 end; (*struct HOL*)

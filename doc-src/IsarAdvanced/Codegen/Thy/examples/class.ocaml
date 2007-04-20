@@ -14,7 +14,7 @@ struct
 type 'a null = {null : 'a};;
 let null _A = _A.null;;
 
-let rec head _A = function y :: xs -> y
+let rec head _A = function x :: xs -> x
                   | [] -> null _A;;
 
 let rec null_option = None;;

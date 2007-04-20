@@ -26,7 +26,7 @@ fun collect_duplicates A_ xs ys (z :: zs) =
     then (if List.memberl A_ z ys then collect_duplicates A_ xs ys zs
            else collect_duplicates A_ xs (z :: ys) zs)
     else collect_duplicates A_ (z :: xs) (z :: ys) zs)
-  | collect_duplicates A_ y ys [] = y;
+  | collect_duplicates A_ xs ys [] = xs;
 
 end; (*struct Codegen*)
 

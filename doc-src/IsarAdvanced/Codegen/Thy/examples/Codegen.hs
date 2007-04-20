@@ -7,7 +7,7 @@ class Null a where {
 };
 
 heada :: (Codegen.Null a) => [a] -> a;
-heada (y : xs) = y;
+heada (x : xs) = x;
 heada [] = Codegen.nulla;
 
 null_option :: Maybe a;

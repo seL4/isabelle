@@ -7,7 +7,7 @@ struct
 datatype nat = Zero_nat | Suc of nat;
 
 fun plus_nat (Suc m) n = plus_nat m (Suc n)
-  | plus_nat Zero_nat y = y;
+  | plus_nat Zero_nat n = n;
 
 fun times_nat (Suc m) n = plus_nat n (times_nat m n)
   | times_nat Zero_nat n = Zero_nat;
