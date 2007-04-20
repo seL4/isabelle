@@ -65,8 +65,12 @@ proof -
 qed
 
 lemma [code inline]:
-  "nat_case f g n = (if n = 0 then f else g (nat_of_int (int n - 1)))"
+  "nat_case = (\<lambda>f g n. if n = 0 then f else g (nat_of_int (int n - 1)))"
+proof rule+
+  fix f g n
+  show "nat_case f g n = (if n = 0 then f else g (nat_of_int (int n - 1)))"
   by (cases n) (simp_all add: nat_of_int_int)
+qed
 
 text {*
   Most standard arithmetic functions on natural numbers are implemented
@@ -368,14 +372,10 @@ fun clause_suc_preproc thy ths =
 
 end; (*local*)
 
-local
-  val meta_eq_to_obj_eq = thm "meta_eq_to_obj_eq";
-  val eq_reflection = thm "eq_reflection";
-in fun lift_obj_eq f thy =
-  map (fn thm => thm RS meta_eq_to_obj_eq)
+fun lift_obj_eq f thy =
+  map (fn thm => thm RS @{thm meta_eq_to_obj_eq})
   #> f thy
-  #> map (fn thm => thm RS eq_reflection)
-end
+  #> map (fn thm => thm RS @{thm eq_reflection});
 *}
 
 setup {*
