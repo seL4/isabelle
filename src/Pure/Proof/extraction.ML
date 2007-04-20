@@ -578,7 +578,7 @@ fun extract thms thy =
                       (proof_combt
                          (PThm (corr_name name vs', corr_prf, corr_prop,
                              SOME (map TVar (term_tvars corr_prop))), vfs_of corr_prop))
-		      (map (get_var_type corr_prop) (vfs_of prop))
+                      (map (get_var_type corr_prop) (vfs_of prop))
                   in
                     ((name, (vs', ((nullt, nullt), (corr_prf, corr_prf')))) :: defs'',
                      prf_subst_TVars tye' corr_prf')
@@ -687,7 +687,7 @@ fun extract thms thy =
                       (proof_combt
                         (PThm (corr_name s vs', corr_prf', corr_prop,
                           SOME (map TVar (term_tvars corr_prop))),  vfs_of corr_prop))
-		      (map (get_var_type corr_prop) (vfs_of prop));
+                      (map (get_var_type corr_prop) (vfs_of prop));
                   in
                     ((s, (vs', ((t', u), (corr_prf', corr_prf'')))) :: defs'',
                      subst_TVars tye' u)
@@ -733,16 +733,20 @@ fun extract thms thy =
              val corr_prop = Reconstruct.prop_of prf;
              val ft = Type.freeze t;
              val fu = Type.freeze u;
-             val thy' = if t = nullt then thy else thy |>
-               Theory.add_consts_i [(extr_name s vs, fastype_of ft, NoSyn)] |>
-               snd o PureThy.add_defs_i false [((extr_name s vs ^ "_def",
-                 Logic.mk_equals (head_of (strip_abs_body fu), ft)), [])];
+             val (def_thms, thy') = if t = nullt then ([], thy) else
+               thy
+               |> Theory.add_consts_i [(extr_name s vs, fastype_of ft, NoSyn)]
+               |> PureThy.add_defs_i false [((extr_name s vs ^ "_def",
+                    Logic.mk_equals (head_of (strip_abs_body fu), ft)), [])]
            in
-             snd (PureThy.store_thm ((corr_name s vs,
-               Thm.varifyT (funpow (length (term_vars corr_prop))
-                 (forall_elim_var 0) (forall_intr_frees
-                   (ProofChecker.thm_of_proof thy'
-                     (fst (Proofterm.freeze_thaw_prf prf)))))), []) thy')
+             thy'
+             |> PureThy.store_thm ((corr_name s vs,
+                  Thm.varifyT (funpow (length (term_vars corr_prop))
+                    (forall_elim_var 0) (forall_intr_frees
+                      (ProofChecker.thm_of_proof thy'
+                       (fst (Proofterm.freeze_thaw_prf prf)))))), [])
+             |> snd
+             |> fold (CodegenData.add_func false) def_thms
            end
        | SOME _ => thy);
 
