@@ -41,6 +41,19 @@ abbreviation (input)
 notation (input)
   greater_eq  (infix "\<^loc>\<ge>" 50)
 
+text {*
+  syntactic min/max -- these definitions reach
+  their usual semantics in class linorder ahead.
+*}
+
+definition
+  min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "min a b = (if a \<sqsubseteq> b then a else b)"
+
+definition
+  max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "max a b = (if a \<sqsubseteq> b then b else a)"
+
 end
 
 notation
@@ -67,6 +80,22 @@ abbreviation (input)
 
 notation (input)
   greater_eq  (infix "\<ge>" 50)
+
+definition
+  min :: "'a\<Colon>ord \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "min a b = (if a \<le> b then a else b)"
+
+definition
+  max :: "'a\<Colon>ord \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "max a b = (if a \<le> b then b else a)"
+
+lemma min_linorder:
+  "ord.min (op \<le> \<Colon> 'a\<Colon>ord \<Rightarrow> 'a \<Rightarrow> bool) = min"
+  by rule+ (simp add: min_def ord_class.min_def)
+
+lemma max_linorder:
+  "ord.max (op \<le> \<Colon> 'a\<Colon>ord \<Rightarrow> 'a \<Rightarrow> bool) = max"
+  by rule+ (simp add: max_def ord_class.max_def)
 
 
 subsection {* Quasiorders (preorders) *}
@@ -228,20 +257,7 @@ lemma leD: "y \<sqsubseteq> x \<Longrightarrow> \<not> x \<sqsubset> y"
 lemma not_leE: "\<not> y \<sqsubseteq> x \<Longrightarrow> x \<sqsubset> y"
   unfolding not_le .
 
-text {* min/max *}
-
-definition
-  min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "min a b = (if a \<sqsubseteq> b then a else b)"
-
-definition
-  max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "max a b = (if a \<sqsubseteq> b then b else a)"
-
-end
-
-context linorder
-begin
+text {* min/max properties *}
 
 lemma min_le_iff_disj:
   "min x y \<sqsubseteq> z \<longleftrightarrow> x \<sqsubseteq> z \<or> y \<sqsubseteq> z"
@@ -280,8 +296,6 @@ end
 
 subsection {* Name duplicates *}
 
-(*lemmas order_refl [iff] = preorder_class.order_refl
-lemmas order_trans = preorder_class.order_trans*)
 lemmas order_less_le = less_le
 lemmas order_eq_refl = preorder_class.eq_refl
 lemmas order_less_irrefl = preorder_class.less_irrefl
@@ -310,7 +324,6 @@ lemmas linorder_linear = linear
 lemmas linorder_less_linear = linorder_class.less_linear
 lemmas linorder_le_less_linear = linorder_class.le_less_linear
 lemmas linorder_le_cases = linorder_class.le_cases
-(*lemmas linorder_cases = linorder_class.linorder_cases*)
 lemmas linorder_not_less = linorder_class.not_less
 lemmas linorder_not_le = linorder_class.not_le
 lemmas linorder_neq_iff = linorder_class.neq_iff
@@ -358,10 +371,6 @@ fun decomp_gen sort thy (Trueprop $ t) =
 
 in
 
-(* The setting up of Quasi_Tac serves as a demo.  Since there is no
-   class for quasi orders, the tactics Quasi_Tac.trans_tac and
-   Quasi_Tac.quasi_tac are not of much use. *)
-
 structure Quasi_Tac = Quasi_Tac_Fun (
 struct
   val le_trans = thm "order_trans";
@@ -373,8 +382,8 @@ struct
   val le_neq_trans = thm "order_le_neq_trans";
   val neq_le_trans = thm "order_neq_le_trans";
   val less_imp_neq = thm "less_imp_neq";
-  val decomp_trans = decomp_gen ["Orderings.order"];
-  val decomp_quasi = decomp_gen ["Orderings.order"];
+  val decomp_trans = decomp_gen ["Orderings.preorder"];
+  val decomp_quasi = decomp_gen ["Orderings.preorder"];
 end);
 
 structure Order_Tac = Order_Tac_Fun (
@@ -408,11 +417,6 @@ end;
 setup {*
 let
 
-val order_antisym_conv = thm "order_antisym_conv"
-val linorder_antisym_conv1 = thm "linorder_antisym_conv1"
-val linorder_antisym_conv2 = thm "linorder_antisym_conv2"
-val linorder_antisym_conv3 = thm "linorder_antisym_conv3"
-
 fun prp t thm = (#prop (rep_thm thm) = t);
 
 fun prove_antisym_le sg ss ((le as Const(_,T)) $ r $ s) =
@@ -424,9 +428,9 @@ fun prove_antisym_le sg ss ((le as Const(_,T)) $ r $ s) =
          let val t = HOLogic.mk_Trueprop(HOLogic.Not $ (less $ r $ s))
          in case find_first (prp t) prems of
               NONE => NONE
-            | SOME thm => SOME(mk_meta_eq(thm RS linorder_antisym_conv1))
+            | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_antisym_conv1}))
          end
-     | SOME thm => SOME(mk_meta_eq(thm RS order_antisym_conv))
+     | SOME thm => SOME(mk_meta_eq(thm RS @{thm order_antisym_conv}))
   end
   handle THM _ => NONE;
 
@@ -439,9 +443,9 @@ fun prove_antisym_less sg ss (NotC $ ((less as Const(_,T)) $ r $ s)) =
          let val t = HOLogic.mk_Trueprop(NotC $ (less $ s $ r))
          in case find_first (prp t) prems of
               NONE => NONE
-            | SOME thm => SOME(mk_meta_eq(thm RS linorder_antisym_conv3))
+            | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_antisym_conv3}))
          end
-     | SOME thm => SOME(mk_meta_eq(thm RS linorder_antisym_conv2))
+     | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_antisym_conv2}))
   end
   handle THM _ => NONE;
 
@@ -853,20 +857,6 @@ lemma Least_equality:
   apply (rule the_equality)
   apply (auto intro!: order_antisym)
   done
-
-constdefs
-  min :: "['a::ord, 'a] => 'a"
-  "min a b == (if a <= b then a else b)"
-  max :: "['a::ord, 'a] => 'a"
-  "max a b == (if a <= b then b else a)"
-
-lemma min_linorder:
-  "linorder.min (op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool) = min"
-  by rule+ (simp add: min_def linorder_class.min_def)
-
-lemma max_linorder:
-  "linorder.max (op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool) = max"
-  by rule+ (simp add: max_def linorder_class.max_def)
 
 lemmas min_le_iff_disj = linorder_class.min_le_iff_disj [unfolded min_linorder]
 lemmas le_max_iff_disj = linorder_class.le_max_iff_disj [unfolded max_linorder]
