@@ -82,7 +82,9 @@ structure FundefData = GenericDataFun
   val name = "HOL/function_def/data";
   type T = (term * fundef_context_data) NetRules.T
 
-  val empty = NetRules.init (op aconv o pairself fst) fst;
+  val empty = NetRules.init
+    (op aconv o pairself fst : (term * fundef_context_data) * (term * fundef_context_data) -> bool)
+    fst;
   val copy = I;
   val extend = I;
   fun merge _ (tab1, tab2) = NetRules.merge (tab1, tab2)
