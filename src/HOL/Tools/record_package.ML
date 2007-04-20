@@ -1506,15 +1506,17 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     (* 1st stage: defs_thy *)
     fun mk_defs () =
       thy
-        |> extension_typedef name repT (alphas@[zeta])
-        ||> Theory.add_consts_i
-              (map Syntax.no_syn ((apfst base ext_decl)::dest_decls@upd_decls))
-        ||>> PureThy.add_defs_i false (map Thm.no_attributes (ext_spec::dest_specs))
-        ||>> PureThy.add_defs_i false (map Thm.no_attributes upd_specs)
-        |> swap
-    val (defs_thy, (([abs_inject, abs_inverse, abs_induct],ext_def::dest_defs),upd_defs)) =
-        timeit_msg "record extension type/selector/update defs:" mk_defs;
-
+      |> extension_typedef name repT (alphas@[zeta])
+      ||> Theory.add_consts_i
+            (map Syntax.no_syn ((apfst base ext_decl)::dest_decls@upd_decls))
+      ||>> PureThy.add_defs_i false (map Thm.no_attributes (ext_spec::dest_specs))
+      ||>> PureThy.add_defs_i false (map Thm.no_attributes upd_specs)
+      |-> (fn args as ((_, dest_defs), upd_defs) =>
+          fold (CodegenData.add_func false) dest_defs
+          #> fold (CodegenData.add_func false) upd_defs
+          #> pair args);
+    val ((([abs_inject, abs_inverse, abs_induct], ext_def :: dest_defs), upd_defs), defs_thy) =
+      timeit_msg "record extension type/selector/update defs:" mk_defs;
 
     (* prepare propositions *)
     val _ = timing_msg "record extension preparing propositions";
@@ -1898,25 +1900,29 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     fun mk_defs () =
       extension_thy
-        |> Theory.add_trfuns
-            ([],[],field_tr's, [])
-        |> Theory.add_advanced_trfuns
-            ([],[],adv_ext_tr's @ adv_record_type_tr's @ adv_record_type_abbr_tr's,[])
-        |> Theory.parent_path
-        |> Theory.add_tyabbrs_i recordT_specs
-        |> Theory.add_path bname
-        |> Theory.add_consts_i
-            (map2 (fn (x, T) => fn mx => (x, T, mx)) sel_decls (field_syntax @ [Syntax.NoSyn]))
-        |> (Theory.add_consts_i o map Syntax.no_syn)
-            (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
-        |> ((PureThy.add_defs_i false o map Thm.no_attributes) sel_specs)
-        ||>> ((PureThy.add_defs_i false o map Thm.no_attributes) upd_specs)
-        ||>> ((PureThy.add_defs_i false o map Thm.no_attributes)
-               [make_spec, fields_spec, extend_spec, truncate_spec])
-        |> swap
-    val (defs_thy,((sel_defs,upd_defs),derived_defs)) =
-        timeit_msg "record trfuns/tyabbrs/selectors/updates/make/fields/extend/truncate defs:"
-         mk_defs;
+      |> Theory.add_trfuns
+          ([],[],field_tr's, [])
+      |> Theory.add_advanced_trfuns
+          ([],[],adv_ext_tr's @ adv_record_type_tr's @ adv_record_type_abbr_tr's,[])
+      |> Theory.parent_path
+      |> Theory.add_tyabbrs_i recordT_specs
+      |> Theory.add_path bname
+      |> Theory.add_consts_i
+          (map2 (fn (x, T) => fn mx => (x, T, mx)) sel_decls (field_syntax @ [Syntax.NoSyn]))
+      |> (Theory.add_consts_i o map Syntax.no_syn)
+          (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
+      |> ((PureThy.add_defs_i false o map Thm.no_attributes) sel_specs)
+      ||>> ((PureThy.add_defs_i false o map Thm.no_attributes) upd_specs)
+      ||>> ((PureThy.add_defs_i false o map Thm.no_attributes)
+             [make_spec, fields_spec, extend_spec, truncate_spec])
+      |-> (fn defs as ((sel_defs, upd_defs), derived_defs) => 
+          fold (CodegenData.add_func false) sel_defs
+          #> fold (CodegenData.add_func false) upd_defs
+          #> fold (CodegenData.add_func false) derived_defs
+          #> pair defs)
+    val (((sel_defs, upd_defs), derived_defs), defs_thy) =
+      timeit_msg "record trfuns/tyabbrs/selectors/updates/make/fields/extend/truncate defs:"
+        mk_defs;
 
 
     (* prepare propositions *)
