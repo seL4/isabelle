@@ -10,44 +10,44 @@ imports Map
 
 begin
 
-text {* The operations preserve distinctness of keys and 
-        function @{term "clearjunk"} distributes over them. Since 
-        @{term clearjunk} enforces distinctness of keys it can be used
-        to establish the invariant, e.g. for inductive proofs.*}
-consts 
-  delete     :: "'key \<Rightarrow> ('key * 'val)list \<Rightarrow>  ('key * 'val)list"
-  update     :: "'key \<Rightarrow> 'val \<Rightarrow> ('key * 'val)list \<Rightarrow>  ('key * 'val)list"
-  updates    :: "'key list \<Rightarrow> 'val list \<Rightarrow> ('key * 'val)list \<Rightarrow>  ('key * 'val)list"
-  merge      :: "('key * 'val)list \<Rightarrow> ('key * 'val)list \<Rightarrow> ('key * 'val)list"
-  compose    :: "('key * 'a)list \<Rightarrow> ('a * 'b)list \<Rightarrow> ('key * 'b)list"
-  restrict   :: "('key set) \<Rightarrow> ('key * 'val)list \<Rightarrow> ('key * 'val)list"
-  map_ran    :: "('key \<Rightarrow> 'val \<Rightarrow> 'val) \<Rightarrow> ('key * 'val)list \<Rightarrow> ('key * 'val)list"
+text {*
+  The operations preserve distinctness of keys and 
+  function @{term "clearjunk"} distributes over them. Since 
+  @{term clearjunk} enforces distinctness of keys it can be used
+  to establish the invariant, e.g. for inductive proofs.
+*}
 
-  clearjunk  :: "('key * 'val)list \<Rightarrow> ('key * 'val)list"
+fun
+  delete :: "'key \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+where
+  "delete k [] = []"
+  | "delete k (p#ps) = (if fst p = k then delete k ps else p # delete k ps)"
 
+fun
+  update :: "'key \<Rightarrow> 'val \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+where
+    "update k v [] = [(k, v)]"
+  | "update k v (p#ps) = (if fst p = k then (k, v) # ps else p # update k v ps)"
 
-defs
-delete_def: "delete k \<equiv> filter (\<lambda>p. fst p \<noteq> k)"
+function
+  updates :: "'key list \<Rightarrow> 'val list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+where
+    "updates [] vs ps = ps"
+  | "updates (k#ks) vs ps = (case vs
+      of [] \<Rightarrow> ps
+       | (v#vs') \<Rightarrow> updates ks vs' (update k v ps))"
+by pat_completeness auto
+termination by lexicographic_order
 
-primrec
-"update k v [] = [(k,v)]"
-"update k v (p#ps) = (if fst p = k then (k,v)#ps else p # update k v ps)"
-primrec
-"updates [] vs al = al"
-"updates (k#ks) vs al = (case vs of [] \<Rightarrow> al 
-                         | (v#vs') \<Rightarrow> updates ks vs' (update k v al))"
-primrec
-"merge xs [] = xs"
-"merge xs (p#ps) = update (fst p) (snd p) (merge xs ps)"
-
-primrec
-"map_ran f [] = []"
-"map_ran f (p#ps) = (fst p, f (fst p) (snd p))#map_ran f ps"
-
+fun
+  merge :: "('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+where
+    "merge qs [] = qs"
+  | "merge qs (p#ps) = update (fst p) (snd p) (merge qs ps)"
 
 lemma length_delete_le: "length (delete k al) \<le> length al"
 proof (induct al)
-  case Nil thus ?case by (simp add: delete_def)
+  case Nil thus ?case by simp
 next
   case (Cons a al)
   note length_filter_le [of "\<lambda>p. fst p \<noteq> fst a" al] 
@@ -55,10 +55,11 @@ next
     by simp
   finally have "length [p\<in>al . fst p \<noteq> fst a] \<le> Suc (length al)" .
   with Cons show ?case
-    by (auto simp add: delete_def)
+    by auto
 qed
 
-lemma compose_hint: "length (delete k al) < Suc (length al)"
+lemma compose_hint [simp]:
+  "length (delete k al) < Suc (length al)"
 proof -
   note length_delete_le
   also have "\<And>n. n < Suc n"
@@ -66,41 +67,56 @@ proof -
   finally show ?thesis .
 qed
 
-recdef compose "measure size"
-"compose [] = (\<lambda>ys. [])"
-"compose (x#xs) = (\<lambda>ys. (case (map_of ys (snd x)) of
-                          None \<Rightarrow> compose (delete (fst x) xs) ys
-                         | Some v \<Rightarrow> (fst x,v)#compose xs ys))"
-(hints intro: compose_hint)
+function
+  compose :: "('key \<times> 'a) list \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('key \<times> 'b) list"
+where
+    "compose [] ys = []"
+  | "compose (x#xs) ys = (case map_of ys (snd x)
+       of None \<Rightarrow> compose (delete (fst x) xs) ys
+        | Some v \<Rightarrow> (fst x, v) # compose xs ys)"
+by pat_completeness auto
+termination by lexicographic_order
 
-defs  
-restrict_def: "restrict A \<equiv> filter (\<lambda>(k,v). k \<in> A)"
+fun
+  restrict :: "'key set \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+where
+  "restrict A [] = []"
+  | "restrict A (p#ps) = (if fst p \<in> A then p#restrict A ps else restrict A ps)"
 
-recdef clearjunk "measure size"
-"clearjunk [] = []"
-"clearjunk (p#ps) = p # clearjunk (delete (fst p) ps)"
-(hints intro: compose_hint)
+fun
+  map_ran :: "('key \<Rightarrow> 'val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+where
+  "map_ran f [] = []"
+  | "map_ran f (p#ps) = (fst p, f (fst p) (snd p)) # map_ran f ps"
+
+fun
+  clearjunk  :: "('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
+where
+  "clearjunk [] = []"  
+  | "clearjunk (p#ps) = p # clearjunk (delete (fst p) ps)"
+
+lemmas [simp del] = compose_hint
 
 
 (* ******************************************************************************** *)
 subsection {* Lookup *}
 (* ******************************************************************************** *)
 
-lemma lookup_simps: 
+lemma lookup_simps [code func]: 
   "map_of [] k = None"
   "map_of (p#ps) k = (if fst p = k then Some (snd p) else map_of ps k)"
   by simp_all
+
 
 (* ******************************************************************************** *)
 subsection {* @{const delete} *}
 (* ******************************************************************************** *)
 
-lemma delete_simps [simp]:
-    "delete k [] = []"
-    "delete k (p#ps) = (if fst p = k then delete k ps else p # delete k ps)"
-  by (simp_all add: delete_def)
+lemma delete_def:
+  "delete k xs = filter (\<lambda>p. fst p \<noteq> k) xs"
+  by (induct xs) auto
 
-lemma delete_id[simp]: "k \<notin> fst ` set al \<Longrightarrow> delete k al = al"
+lemma delete_id [simp]: "k \<notin> fst ` set al \<Longrightarrow> delete k al = al"
   by (induct al) auto
 
 lemma delete_conv: "map_of (delete k al) k' = ((map_of al)(k := None)) k'"
@@ -188,8 +204,8 @@ lemma length_clearjunk: "length (clearjunk al) \<le> length al"
 proof (induct al rule: clearjunk.induct [case_names Nil Cons])
   case Nil thus ?case by simp
 next
-  case (Cons k v ps)
-  from Cons have "length (clearjunk [q\<in>ps . fst q \<noteq> k]) \<le> length [q\<in>ps . fst q \<noteq> k]" 
+  case (Cons p ps)
+  from Cons have "length (clearjunk [q\<in>ps . fst q \<noteq> fst p]) \<le> length [q\<in>ps . fst q \<noteq> fst p]" 
     by (simp add: delete_def)
   also have "\<dots> \<le> length ps"
     by simp
@@ -387,7 +403,8 @@ lemma distinct_updates:
   assumes "distinct (map fst al)"
   shows "distinct (map fst (updates ks vs al))"
   using prems
-by (induct ks arbitrary: vs al) (auto simp add: distinct_update split: list.splits)
+  by (induct ks arbitrary: vs al)
+   (auto simp add: distinct_update split: list.splits)
 
 lemma clearjunk_updates:
  "clearjunk (updates ks vs al) = updates ks vs (clearjunk al)"
@@ -525,25 +542,20 @@ subsection {* @{const compose} *}
 (* ******************************************************************************** *)
 
 lemma compose_induct [case_names Nil Cons]: 
+  fixes xs ys
   assumes Nil: "P [] ys"
   assumes Cons: "\<And>x xs.
-     \<lbrakk>\<And>v. map_of ys (snd x) = Some v \<Longrightarrow> P xs ys;
-      map_of ys (snd x) = None \<Longrightarrow> P (delete (fst x) xs) ys\<rbrakk>
+     (\<And>v. map_of ys (snd x) = Some v \<Longrightarrow> P xs ys)
+     \<Longrightarrow> (map_of ys (snd x) = None \<Longrightarrow> P (delete (fst x) xs) ys)
      \<Longrightarrow> P (x # xs) ys"
   shows "P xs ys"
-apply (rule compose.induct [where ?P="\<lambda>xs. P xs ys"])
-apply (rule Nil)
-apply  (rule Cons)
-apply (erule allE, erule allE, erule impE, assumption,assumption)
-apply (erule allE, erule impE,assumption,assumption)
-done
-
+by (induct xs rule: compose.induct [where ?P="\<lambda>xs zs. P xs ys"])
+  (auto intro: Nil Cons)
 lemma compose_first_None [simp]: 
   assumes "map_of xs k = None" 
   shows "map_of (compose xs ys) k = None"
 using prems
 by (induct xs ys rule: compose_induct) (auto split: option.splits split_if_asm)
-
 
 lemma compose_conv: 
   shows "map_of (compose xs ys) k = (map_of ys \<circ>\<^sub>m map_of xs) k"
@@ -701,10 +713,13 @@ lemma map_comp_None_iff:
 subsection {* @{const restrict} *}
 (* ******************************************************************************** *)
 
-lemma restrict_simps [simp]: 
-  "restrict A [] = []"
-  "restrict A (p#ps) = (if fst p \<in> A then p#restrict A ps else restrict A ps)"
-  by (auto simp add: restrict_def)
+lemma restrict_def:
+  "restrict A = filter (\<lambda>p. fst p \<in> A)"
+proof
+  fix xs
+  show "restrict A xs = filter (\<lambda>p. fst p \<in> A) xs"
+  by (induct xs) auto
+qed
 
 lemma distinct_restr: "distinct (map fst al) \<Longrightarrow> distinct (map fst (restrict A al))"
   by (induct al) (auto simp add: restrict_def)
