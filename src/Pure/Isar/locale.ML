@@ -1603,7 +1603,6 @@ fun note_thmss_registrations target (kind, args) thy =
     val parms = the_locale thy target |> #params |> map fst;
     val ids = flatten (ProofContext.init thy, intern_expr thy)
       (([], Symtab.empty), Expr (Locale target)) |> fst |> fst;
-(*      |> map_filter (fn (id, (_, Assumed _)) => SOME id | _ => NONE) *)
 
     val regs = get_global_registrations thy target;
 
@@ -1617,11 +1616,11 @@ fun note_thmss_registrations target (kind, args) thy =
           (Morphism.name_morphism (NameSpace.qualified prfx) $>
             Element.inst_morphism thy insts $>
             Element.satisfy_morphism prems $>
-            Morphism.thm_morphism Drule.standard);
+            Morphism.term_morphism (MetaSimplifier.rewrite_term thy (map Element.conclude_witness eqns) []) $>
+            Morphism.thm_morphism (MetaSimplifier.rewrite_rule (map Element.conclude_witness eqns) #> Drule.standard));
         val inst_thm =
           Element.inst_thm thy insts #> Element.satisfy_thm prems #>
-            rewrite_rule (map Element.conclude_witness eqns) #>
-(* TODO: or better use LocalDefs.unfold? *)
+            MetaSimplifier.rewrite_rule (map Element.conclude_witness eqns) #>
             Drule.standard;
         val args' = args |> map (fn ((name, atts), bs) =>
             ((name, map (attrib o inst_atts) atts),
@@ -2013,7 +2012,9 @@ fun gen_activate_facts_elemss mk_ctxt get_reg note attrib std put_reg add_wit ad
           val ctxt = mk_ctxt thy_ctxt;
           val fact_morphism =
             Morphism.name_morphism (NameSpace.qualified prfx)
-            $> Morphism.thm_morphism disch;
+            $> Morphism.term_morphism (MetaSimplifier.rewrite_term
+                (ProofContext.theory_of ctxt) eqns [])
+            $> Morphism.thm_morphism (disch #> MetaSimplifier.rewrite_rule eqns);
           val facts' = facts
             (* discharge hyps in attributes *)
             |> Attrib.map_facts
@@ -2023,8 +2024,7 @@ fun gen_activate_facts_elemss mk_ctxt get_reg note attrib std put_reg add_wit ad
             (* discharge hyps *)
             |> map (apsnd (map (apfst (map disch))))
             (* unfold eqns *)
-            |> map (apsnd (map (apfst (map (LocalDefs.unfold ctxt eqns)))))
-(* TODO: better use attribute to unfold? *)
+            |> map (apsnd (map (apfst (map (MetaSimplifier.rewrite_rule eqns)))))
         in snd (note kind (fully_qualified, prfx) facts' thy_ctxt) end
       | activate_elem _ _ _ _ thy_ctxt = thy_ctxt;
 
@@ -2103,20 +2103,17 @@ fun local_activate_facts_elemss x = gen_activate_facts_elemss
       add_local_equation
       x;
 
-fun read_instantiations read_terms is_local parms (insts, eqns) =
+fun read_instantiations ctxt parms (insts, eqns) =
   let
     (* user input *)
     val insts = if length parms < length insts
          then error "More arguments than parameters in instantiation."
          else insts @ replicate (length parms - length insts) NONE;
     val (ps, pTs) = split_list parms;
-    val pvTs = map Logic.legacy_varifyT pTs;
+    val pvTs = map Logic.varifyT pTs;
 
     (* context for reading terms *)
     val tvars = fold Term.add_tvarsT pvTs [];
-    val tfrees = fold Term.add_tfreesT pvTs [];
-    val used = map (fst o fst) tvars @ map fst tfrees;
-    val sorts = AList.lookup (op =) tvars;
 
     (* parameter instantiations given by user *)
     val given = map_filter (fn (_, (NONE, _)) => NONE
@@ -2126,27 +2123,21 @@ fun read_instantiations read_terms is_local parms (insts, eqns) =
     (* equations given by user *)
     val (lefts, rights) = split_list eqns;
     val max_eqs = length eqns;
-    val Ts = map (fn i => TVar (("x_", i), [])) (0 upto max_eqs - 1);
+    val Ts = map (fn i => TypeInfer.param i ("x", [])) (0 upto max_eqs - 1);
 
-    val (all_vs, vinst) =
-      read_terms sorts used (given_insts @ (lefts ~~ Ts) @ (rights ~~ Ts));
+    val (all_vs, vinst) = ProofContext.read_termTs ctxt (K false) (K NONE)
+      (K NONE) [] (given_insts @ (lefts ~~ Ts) @ (rights ~~ Ts));
+    
     val vars = foldl Term.add_term_tvar_ixns [] all_vs
       |> subtract (op =) (map fst tvars)
       |> fold Term.add_varnames all_vs
     val _ = if null vars then ()
          else error ("Illegal schematic variable(s) in instantiation: " ^
            commas_quote (map Term.string_of_vname vars));
-    (* replace new types (which are TFrees) by ones with new names *)
-    val new_Tnames = map fst (fold Term.add_tfrees all_vs [])
-      |> Name.names (Name.make_context used) "'a"
-      |> map swap;
-    val renameT =
-      if is_local then I
-      else Logic.legacy_unvarifyT o Term.map_type_tfree (fn (a, s) =>
-        TFree ((the o AList.lookup (op =) new_Tnames) a, s));
-    val rename =
-      if is_local then I
-      else Term.map_types renameT;
+
+    val renameT = Logic.legacy_unvarifyT;
+    val rename = Term.map_types renameT;
+
     val (vs, ts) = chop (length given_insts) all_vs;
 
     val instT = Symtab.empty
@@ -2159,7 +2150,7 @@ fun read_instantiations read_terms is_local parms (insts, eqns) =
   in ((instT, inst), lefts' ~~ rights') end;
 
 
-fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
+fun gen_prep_registration mk_ctxt read_terms test_reg activate
     prep_attr prep_expr prep_insts
     thy_ctxt raw_attn raw_expr raw_insts =
   let
@@ -2188,7 +2179,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
       | (_, _) => error "Interpretations with `where' only permitted if locale expression is a name.";
 
     (* read or certify instantiation *)
-    val ((instT, inst1), eqns') = prep_insts (read_terms thy_ctxt) is_local parms raw_insts;
+    val ((instT, inst1), eqns') = prep_insts ctxt parms raw_insts;
 
     (* defined params without given instantiation *)
     val not_given = filter_out (Symtab.defined inst1 o fst) parms;
@@ -2228,12 +2219,12 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
 
   in (propss, activate attn inst_elemss new_inst_elemss propss) end;
 
-fun gen_prep_global_registration mk_ctxt = gen_prep_registration ProofContext.init false
+fun gen_prep_global_registration mk_ctxt = gen_prep_registration ProofContext.init
   (fn thy => fn sorts => fn used => Sign.read_def_terms (thy, K NONE, sorts) used true)
   (fn thy => fn (name, ps) => test_global_registration thy (name, map Logic.varify ps))
   global_activate_facts_elemss mk_ctxt;
 
-fun gen_prep_local_registration mk_ctxt = gen_prep_registration I true
+fun gen_prep_local_registration mk_ctxt = gen_prep_registration I
   (fn ctxt => ProofContext.read_termTs ctxt (K false) (K NONE))
   smart_test_registration
   local_activate_facts_elemss mk_ctxt;
@@ -2241,12 +2232,12 @@ fun gen_prep_local_registration mk_ctxt = gen_prep_registration I true
 val prep_global_registration = gen_prep_global_registration
   Attrib.intern_src intern_expr read_instantiations;
 val prep_global_registration_i = gen_prep_global_registration
-  (K I) (K I) ((K o K o K) I);
+  (K I) (K I) ((K o K) I);
 
 val prep_local_registration = gen_prep_local_registration
   Attrib.intern_src intern_expr read_instantiations;
 val prep_local_registration_i = gen_prep_local_registration
-  (K I) (K I) ((K o K o K) I);
+  (K I) (K I) ((K o K) I);
 
 fun prep_registration_in_locale target expr thy =
   (* target already in internal form *)
