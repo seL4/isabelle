@@ -192,8 +192,7 @@ locale IF = fixes f assumes asm_F: "f & f --> f"
 
 theorem True
 proof -
-  fix alpha::i and beta::'a and gamma::o
-  (* FIXME: omitting type of beta leads to error later at interpret i6 *)
+  fix alpha::i and beta and gamma::o
   have alpha_A: "IA(alpha)" by unfold_locales simp
   interpret i5: IA [alpha] .  (* subsumed *)
   print_interps IA  (* output: <no prefix>, i1 *)
@@ -802,6 +801,8 @@ text {* Naming convention for global objects: prefixes D and d *}
 locale Da = fixes a :: o
   assumes true: a
 
+text {* In the following examples, @{term "~ a"} is the defined concept. *}
+
 lemma (in Da) not_false: "~ a <-> False"
   apply simp apply (rule true) done
 
@@ -833,5 +834,26 @@ lemma (in Da) not_false2: "~a <-> False"
 thm D1.not_false2 D2.not_false2
 lemma "False <-> False" apply (rule D1.not_false2) done
 lemma "~x & x <-> False" apply (rule D2.not_false2) done
+
+(* Unfolding in attributes *)
+
+locale Db = Da +
+  fixes b :: o
+  assumes a_iff_b: "~a <-> b"
+
+lemmas (in Db) not_false_b = not_false [unfolded a_iff_b]
+
+interpretation D2: Db ["x | ~ x" "~ (x <-> x)"]
+  apply unfold_locales apply fast done
+
+thm D2.not_false_b
+lemma "~(x <-> x) <-> False" apply (rule D2.not_false_b) done
+
+(* Subscription and attributes *)
+
+lemmas (in Db) not_false_b2 = not_false [unfolded a_iff_b]
+
+thm D2.not_false_b2
+lemma "~(x <-> x) <-> False" apply (rule D2.not_false_b2) done
 
 end

@@ -109,14 +109,14 @@ lemma "- x \<equiv> THE y. x + y = 0 \<and> y + x = (0::int)"
 interpretation Dclass: Dmonoid ["op +" "0::'a::ab_group_add"]
   where "Dmonoid.inv (op +) (0::'a::ab_group_add)" = "uminus"
 proof -
-  show "Dmonoid (op +) (0::'b::ab_group_add)" by unfold_locales auto
+  show "Dmonoid (op +) (0::'a::ab_group_add)" by unfold_locales auto
   note Dclass = this (* should have this as an assumption in further goals *)
   {
     fix x
-    have "Dmonoid.inv (op +) (0::'b::ab_group_add) x = - x"
+    have "Dmonoid.inv (op +) (0::'a::ab_group_add) x = - x"
       by (auto simp: Dmonoid.inv_def [OF Dclass] equals_zero_I [symmetric])
   }
-  then show "Dmonoid.inv (op +) (0::'b::ab_group_add) == uminus"
+  then show "Dmonoid.inv (op +) (0::'a::ab_group_add) == uminus"
     by (rule_tac eq_reflection) (fast intro: ext)
 qed
 
