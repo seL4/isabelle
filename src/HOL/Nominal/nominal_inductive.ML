@@ -346,12 +346,11 @@ fun prove_eqvt s xatoms thy =
            Sign.string_of_term (theory_of_thm intr)
              (Logic.unvarify (prop_of intr)) ^ "\n" ^ s);
         val res = SUBPROOF (fn {prems, ...} =>
-          let val prems' = map (fn th' =>
-            if null (names inter term_consts (prop_of th')) then th' RS th
-            else th') prems
-          in (rtac intr THEN_ALL_NEW
-            (resolve_tac prems ORELSE'
-              (cut_facts_tac prems' THEN' full_simp_tac eqvt_ss))) 1
+          let val prems' = map (fn th' => Simplifier.simplify eqvt_ss
+            (if null (names inter term_consts (prop_of th')) then th' RS th
+             else th')) prems
+            (* FIXME: instantiate intr? *)
+          in (rtac intr THEN_ALL_NEW resolve_tac prems') 1
           end) ctxt 1 st
       in
         case (Seq.pull res handle THM (s, _, _) => eqvt_err s) of
