@@ -168,8 +168,8 @@ val by_pat_completeness_simp =
       (Method.Basic (K pat_completeness),
        SOME (Method.Source_i (Args.src (("HOL.simp_all", []), Position.none))))
 
-fun termination_by_lexicographic_order name =
-    FundefPackage.setup_termination_proof (SOME name)
+val termination_by_lexicographic_order =
+    FundefPackage.setup_termination_proof NONE
     #> Proof.global_terminal_proof (Method.Basic LexicographicOrder.lexicographic_order, NONE)
 
 val setup =
@@ -184,8 +184,8 @@ local structure P = OuterParse and K = OuterKeyword in
 fun fun_cmd config fixes statements lthy =
     lthy
       |> FundefPackage.add_fundef fixes statements config
-      ||> by_pat_completeness_simp
-      |-> termination_by_lexicographic_order
+      |> by_pat_completeness_simp
+      |> termination_by_lexicographic_order
 
 
 val funP =

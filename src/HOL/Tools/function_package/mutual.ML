@@ -312,12 +312,13 @@ fun mutual_induct_rules lthy induct all_f_defs (Mutual {RST, parts, streeA, ...}
 fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) proof =
     let
       val result = inner_cont proof
-      val FundefResult {f, G, R, cases, psimps, trsimps, subset_pinducts=[subset_pinduct],simple_pinducts=[simple_pinduct],
+      val FundefResult {fs=[f], G, R, cases, psimps, trsimps, subset_pinducts=[subset_pinduct],simple_pinducts=[simple_pinduct],
                         termination,domintros} = result
                                                                                                                
-      val all_f_defs = map (fn MutualPart {f_defthm = SOME f_def, cargTs, ...} =>
-                               mk_applied_form lthy cargTs (symmetric f_def))
-                           parts
+      val (all_f_defs, fs) = map (fn MutualPart {f_defthm = SOME f_def, f = SOME f, cargTs, ...} =>
+                                     (mk_applied_form lthy cargTs (symmetric f_def), f))
+                                 parts
+                             |> split_list
 
       val all_orig_fdefs = map (fn MutualPart {f_defthm = SOME f_def, ...} => f_def) parts
                            
@@ -329,7 +330,7 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) p
       val minducts = mutual_induct_rules lthy simple_pinduct all_f_defs m
       val mtermination = full_simplify (HOL_basic_ss addsimps all_f_defs) termination
     in
-      FundefResult { f=f, G=G, R=R,
+      FundefResult { fs=fs, G=G, R=R,
                      psimps=mpsimps, subset_pinducts=[subset_pinduct], simple_pinducts=minducts,
                      cases=cases, termination=mtermination,
                      domintros=domintros,

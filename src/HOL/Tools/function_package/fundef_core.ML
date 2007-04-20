@@ -941,7 +941,7 @@ fun prepare_fundef config defname (fname, fT, mixfix) abstract_qglrs default_str
             val trsimps = if tailrec then SOME (mk_trsimps psimps) else NONE
                                                                         
           in 
-            FundefResult {f=f, G=G, R=R, cases=complete_thm, 
+            FundefResult {fs=[f], G=G, R=R, cases=complete_thm, 
                           psimps=psimps, subset_pinducts=[subset_pinduct], simple_pinducts=[simple_pinduct], 
                           termination=total_intro, trsimps=trsimps,
                           domintros=dom_intros}

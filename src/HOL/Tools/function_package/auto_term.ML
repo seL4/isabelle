@@ -15,18 +15,19 @@ end
 structure FundefRelation : FUNDEF_RELATION =
 struct
 
-fun relation_tac ctxt rel =
+fun inst_thm ctxt rel st =
     let
       val cert = Thm.cterm_of (ProofContext.theory_of ctxt)
-
       val rel' = cert (singleton (Variable.polymorphic ctxt) rel)
-      val rule = FundefCommon.get_termination_rule ctxt |> the
-                  |> Thm.incr_indexes (#maxidx (Thm.rep_cterm rel') + 1)
+      val st' = Thm.incr_indexes (#maxidx (Thm.rep_cterm rel') + 1) st
+      val Rvar = cert (Var (the_single (Term.add_vars (prop_of st') [])))
+    in 
+      Drule.cterm_instantiate [(Rvar, rel')] st' 
+    end
 
-      val _ $ premise $ _ = Thm.prop_of rule
-      val Rvar = cert (Var (the_single (Term.add_vars premise [])))
-    in rtac (Drule.cterm_instantiate [(Rvar, rel')] rule) end
-
+fun relation_tac ctxt rel i = 
+    FundefCommon.apply_termination_rule ctxt i 
+    THEN PRIMITIVE (inst_thm ctxt rel)
 
 val setup = Method.add_methods
   [("relation", (Method.SIMPLE_METHOD' o (fn (rel, ctxt) => relation_tac ctxt rel)) oo (Method.syntax Args.term),

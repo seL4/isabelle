@@ -260,13 +260,11 @@ fun pr_err table thy tl measure_funs =
     end
       
 (* the main function: create table, search table, create relation,
-   and prove the subgoals *)  (* FIXME proper goal addressing -- do not hardwire 1 *)
+   and prove the subgoals *)  
 fun lexicographic_order_tac ctxt (st: thm) = 
     let
       val thy = theory_of_thm st
-      val termination_thm = the (FundefCommon.get_termination_rule ctxt)
-      val next_st = SINGLE (rtac termination_thm 1) st |> the
-      val premlist = prems_of next_st
+      val premlist = prems_of st
     in
       case premlist of 
             [] => error "invalid number of subgoals for this tactic - expecting at least 1 subgoal" 
@@ -292,7 +290,7 @@ fun lexicographic_order_tac ctxt (st: thm) =
       val _ = writeln ("Instantiating R with " ^ (string_of_cterm crelterm))
       val _ = writeln "Proving subgoals"
         in
-      next_st |> cterm_instantiate [(crel, crelterm)]
+      st |> cterm_instantiate [(crel, crelterm)]
         |> SINGLE (rtac wf_measures 1) |> the
         |> fold prove_row clean_table
         |> Seq.single
@@ -300,7 +298,9 @@ fun lexicographic_order_tac ctxt (st: thm) =
             end
     end
 
-val lexicographic_order = Method.SIMPLE_METHOD o lexicographic_order_tac
+(* FIXME goal addressing ?? *)
+val lexicographic_order = Method.SIMPLE_METHOD o (fn ctxt => FundefCommon.apply_termination_rule ctxt 1 
+                                                              THEN lexicographic_order_tac ctxt)
 
 val setup = Method.add_methods [("lexicographic_order", Method.ctxt_args lexicographic_order, "termination prover for lexicographic orderings")]
 

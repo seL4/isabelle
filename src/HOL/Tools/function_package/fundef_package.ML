@@ -13,13 +13,13 @@ sig
                       -> ((bstring * Attrib.src list) * (string * bool)) list 
                       -> FundefCommon.fundef_config
                       -> local_theory
-                      -> string * Proof.state
+                      -> Proof.state
 
     val add_fundef_i:  (string * typ option * mixfix) list
                        -> ((bstring * Attrib.src list) * (term * bool)) list
                        -> FundefCommon.fundef_config
                        -> local_theory
-                       -> string * Proof.state
+                       -> Proof.state
 
     val setup_termination_proof : string option -> local_theory -> Proof.state
 
@@ -70,7 +70,7 @@ fun add_simps fixes spec sort label moreatts simps lthy =
 
 fun fundef_afterqed config fixes spec defname cont sort_cont [[proof]] lthy =
     let
-      val FundefResult {f, R, psimps, trsimps, subset_pinducts, simple_pinducts, termination, domintros, cases, ...} = 
+      val FundefResult {fs, R, psimps, trsimps, subset_pinducts, simple_pinducts, termination, domintros, cases, ...} = 
           cont (Goal.close_result proof)
 
       val qualify = NameSpace.qualified defname
@@ -87,12 +87,12 @@ fun fundef_afterqed config fixes spec defname cont sort_cont [[proof]] lthy =
             ||> fold_option (snd oo curry note_theorem (qualify "domintros", [])) domintros
 
       val cdata = FundefCtxData { add_simps=addsmps, psimps=psimps',
-                                  pinducts=snd pinducts', termination=termination', f=f, R=R }
+                                  pinducts=snd pinducts', termination=termination', fs=fs, R=R, defname=defname }
       val cdata' = cdata |> morph_fundef_data (LocalTheory.target_morphism lthy);  (* FIXME !? *)
     in
       lthy 
-        |> LocalTheory.declaration (fn phi => add_fundef_data defname (morph_fundef_data phi cdata)) (* save in target *)
-        |> Context.proof_map (add_fundef_data defname cdata') (* also save in local context *)
+        |> LocalTheory.declaration (fn phi => add_fundef_data (morph_fundef_data phi cdata)) (* save in target *)
+        |> Context.proof_map (add_fundef_data cdata') (* also save in local context *)
     end (* FIXME: Add cases for induct and cases thm *)
 
 
@@ -129,18 +129,17 @@ fun gen_add_fundef prep_spec fixspec eqnss_flags config lthy =
 
       val afterqed = fundef_afterqed config fixes spec defname cont sort_cont
     in
-      (defname, lthy
-         |> Proof.theorem_i NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
-         |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd)
+      lthy
+        |> Proof.theorem_i NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
+        |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd
     end
 
 
-fun total_termination_afterqed defname data [[totality]] lthy =
+fun total_termination_afterqed data [[totality]] lthy =
     let
-      val FundefCtxData { add_simps, psimps, pinducts, ... } = data
+      val FundefCtxData { add_simps, psimps, pinducts, defname, ... } = data
 
       val totality = Goal.close_result totality
-                       |> Thm.varifyT (* FIXME ! *)
 
       val remove_domain_condition = full_simplify (HOL_basic_ss addsimps [totality, True_implies_equals])
 
@@ -159,16 +158,16 @@ fun total_termination_afterqed defname data [[totality]] lthy =
     end
 
 
-fun setup_termination_proof name_opt lthy =
+fun setup_termination_proof term_opt lthy =
     let
-        val defname = the_default (get_last_fundef (Context.Proof lthy)) name_opt
-        val data = the (get_fundef_data defname (Context.Proof lthy))
-                   handle Option.Option => raise ERROR ("No such function definition: " ^ defname)
+      val data = the (case term_opt of
+                        SOME t => import_fundef_data (ProofContext.read_term lthy t) (Context.Proof lthy)
+                      | NONE => import_last_fundef (Context.Proof lthy))
+          handle Option.Option => raise ERROR ("Not a function: " ^ quote (the_default "" term_opt))
 
         val FundefCtxData {termination, R, ...} = data
         val domT = domain_type (fastype_of R)
         val goal = HOLogic.mk_Trueprop (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
-                     |> Type.freeze (* FIXME ! *)
     in
       lthy
         |> ProofContext.note_thmss_i "" [(("", [ContextRules.rule_del]), [([allI], [])])] |> snd
@@ -176,8 +175,7 @@ fun setup_termination_proof name_opt lthy =
         |> ProofContext.note_thmss_i ""
           [(("termination", [ContextRules.intro_bang (SOME 0)]),
             [([Goal.norm_result termination], [])])] |> snd
-        |> set_termination_rule termination
-        |> Proof.theorem_i NONE (total_termination_afterqed defname data) [[(goal, [])]]
+        |> Proof.theorem_i NONE (total_termination_afterqed data) [[(goal, [])]]
     end
 
 
@@ -230,12 +228,12 @@ val functionP =
   OuterSyntax.command "function" "define general recursive functions" K.thy_goal
   (fundef_parser default_config
      >> (fn ((config, fixes), statements) =>
-            Toplevel.local_theory_to_proof (target_of config) (add_fundef fixes statements config #> snd)
+            Toplevel.local_theory_to_proof (target_of config) (add_fundef fixes statements config)
             #> Toplevel.print));
 
 val terminationP =
   OuterSyntax.command "termination" "prove termination of a recursive function" K.thy_goal
-  (P.opt_target -- Scan.option P.name
+  (P.opt_target -- Scan.option P.term
     >> (fn (target, name) =>
            Toplevel.print o
            Toplevel.local_theory_to_proof target (setup_termination_proof name)));

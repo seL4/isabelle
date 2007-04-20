@@ -17,7 +17,7 @@ fun PROFILE msg = if !profile then timeap_msg msg else I
 
 val acc_const_name = "Accessible_Part.acc"
 fun mk_acc domT R =
-    Const (acc_const_name, (fastype_of R) --> domT --> HOLogic.boolT) $ R 
+    Const (acc_const_name, (domT --> domT --> HOLogic.boolT) --> domT --> HOLogic.boolT) $ R 
 
 val function_name = suffix "C"
 val graph_name = suffix "_graph"
@@ -36,7 +36,7 @@ datatype ctx_tree
 datatype fundef_result =
   FundefResult of
      {
-      f: term,
+      fs: term list,
       G: term,
       R: term,
 
@@ -50,12 +50,15 @@ datatype fundef_result =
       domintros : thm list option
      }
 
+
 datatype fundef_context_data =
   FundefCtxData of
      {
+      defname : string,
+
       add_simps : string -> Attrib.src list -> thm list -> local_theory -> thm list * local_theory,
 
-      f : term,
+      fs : term list,
       R : term,
       
       psimps: thm list,
@@ -63,27 +66,26 @@ datatype fundef_context_data =
       termination: thm
      }
 
-fun morph_fundef_data phi (FundefCtxData {add_simps, f, R, psimps, pinducts, termination}) =
+fun morph_fundef_data phi (FundefCtxData {add_simps, fs, R, psimps, pinducts, termination, defname}) =
     let
-      val term = Morphism.term phi
-      val thm = Morphism.thm phi
-      val fact = Morphism.fact phi
+      val term = Morphism.term phi val thm = Morphism.thm phi val fact = Morphism.fact phi
+      val name = Morphism.name phi
     in
-      FundefCtxData { add_simps=add_simps (*FIXME ???*), 
-                      f = term f, R = term R, psimps = fact psimps, 
-                      pinducts = fact pinducts, termination = thm termination }
+      FundefCtxData { add_simps = add_simps (* contains no logical entities *), 
+                      fs = map term fs, R = term R, psimps = fact psimps, 
+                      pinducts = fact pinducts, termination = thm termination,
+                      defname = name defname }
     end
-
 
 structure FundefData = GenericDataFun
 (struct
   val name = "HOL/function_def/data";
-  type T = string * fundef_context_data Symtab.table
+  type T = (term * fundef_context_data) NetRules.T
 
-  val empty = ("", Symtab.empty);
+  val empty = NetRules.init (op aconv o pairself fst) fst;
   val copy = I;
   val extend = I;
-  fun merge _ ((l1,tab1),(l2,tab2)) = (l1, Symtab.merge (K true) (tab1, tab2))
+  fun merge _ (tab1, tab2) = NetRules.merge (tab1, tab2)
 
   fun print _ _ = ();
 end);
@@ -100,30 +102,61 @@ structure FundefCongs = GenericDataFun
 end);
 
 
-fun add_fundef_data name fundef_data =
-    FundefData.map (fn (last,tab) => (name, Symtab.update_new (name, fundef_data) tab))
+(* Generally useful?? *)
+fun lift_morphism thy f = 
+    let 
+      val term = Drule.term_rule thy f
+    in
+      Morphism.thm_morphism f $> Morphism.term_morphism term $> Morphism.typ_morphism (Logic.type_map term)
+    end
 
-fun get_fundef_data name thy = Symtab.lookup (snd (FundefData.get thy)) name
+fun import_fundef_data t ctxt =
+    let
+      val thy = Context.theory_of ctxt
+      val ct = cterm_of thy t
+      val inst_morph = lift_morphism thy o Thm.instantiate 
 
-fun set_last_fundef name = FundefData.map (apfst (K name))
-fun get_last_fundef thy = fst (FundefData.get thy)
+      fun match data = 
+          SOME (morph_fundef_data (inst_morph (Thm.cterm_match (cterm_of thy (fst data), ct))) (snd data))
+          handle Pattern.MATCH => NONE
+    in 
+      get_first match (NetRules.retrieve (FundefData.get ctxt) t)
+    end
 
+fun import_last_fundef ctxt =
+    case NetRules.rules (FundefData.get ctxt) of
+      [] => NONE
+    | (t, data) :: _ =>
+      let 
+        val ([t'], ctxt') = Variable.import_terms true [t] (Context.proof_of ctxt)
+      in
+        import_fundef_data t' (Context.Proof ctxt')
+      end
+
+val all_fundef_data = NetRules.rules o FundefData.get
 
 val map_fundef_congs = FundefCongs.map 
 val get_fundef_congs = FundefCongs.get
 
 
 
-structure TerminationRule = ProofDataFun
+structure TerminationRule = GenericDataFun
 (struct
     val name = "HOL/function_def/termination"
-    type T = thm option
-    fun init _ = NONE
+    type T = thm list
+    val empty = []
+    val extend = I
+    fun merge _ = Drule.merge_rules
     fun print  _ _ = ()
 end);
 
-val get_termination_rule = TerminationRule.get
-val set_termination_rule = TerminationRule.map o K o SOME
+val get_termination_rules = TerminationRule.get
+val store_termination_rule = TerminationRule.map o cons
+val apply_termination_rule = resolve_tac o get_termination_rules o Context.Proof
+
+fun add_fundef_data (data as FundefCtxData {fs, termination, ...}) =
+    FundefData.map (fold (fn f => NetRules.insert (f, data)) fs)
+    #> store_termination_rule termination
 
 
 
