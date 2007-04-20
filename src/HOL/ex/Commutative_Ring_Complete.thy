@@ -11,19 +11,20 @@ header {* Proof of the relative completeness of method comm-ring *}
 theory Commutative_Ring_Complete
 imports Commutative_Ring
 begin
-	
-  (* Fromalization of normal form *)
-consts isnorm :: "('a::{comm_ring,recpower}) pol \<Rightarrow> bool"
-recdef isnorm "measure size"
-  "isnorm (Pc c) = True"
-  "isnorm (Pinj i (Pc c)) = False"
-  "isnorm (Pinj i (Pinj j Q)) = False"
-  "isnorm (Pinj 0 P) = False"
-  "isnorm (Pinj i (PX Q1 j Q2)) = isnorm (PX Q1 j Q2)"
-  "isnorm (PX P 0 Q) = False"
-  "isnorm (PX (Pc c) i Q) = (c \<noteq> 0 & isnorm Q)"
-  "isnorm (PX (PX P1 j (Pc c)) i Q) = (c\<noteq>0 \<and> isnorm(PX P1 j (Pc c))\<and>isnorm Q)"
-  "isnorm (PX P i Q) = (isnorm P \<and> isnorm Q)"
+
+text {* Formalization of normal form *}
+fun
+  isnorm :: "('a::{comm_ring,recpower}) pol \<Rightarrow> bool"
+where
+    "isnorm (Pc c) \<longleftrightarrow> True"
+  | "isnorm (Pinj i (Pc c)) \<longleftrightarrow> False"
+  | "isnorm (Pinj i (Pinj j Q)) \<longleftrightarrow> False"
+  | "isnorm (Pinj 0 P) \<longleftrightarrow> False"
+  | "isnorm (Pinj i (PX Q1 j Q2)) \<longleftrightarrow> isnorm (PX Q1 j Q2)"
+  | "isnorm (PX P 0 Q) \<longleftrightarrow> False"
+  | "isnorm (PX (Pc c) i Q) \<longleftrightarrow> c \<noteq> 0 \<and> isnorm Q"
+  | "isnorm (PX (PX P1 j (Pc c)) i Q) \<longleftrightarrow> c \<noteq> 0 \<and> isnorm (PX P1 j (Pc c)) \<and> isnorm Q"
+  | "isnorm (PX P i Q) \<longleftrightarrow> isnorm P \<and> isnorm Q"
 
 (* Some helpful lemmas *)
 lemma norm_Pinj_0_False:"isnorm (Pinj 0 P) = False"
@@ -57,7 +58,6 @@ next
   case Pinj from prems show ?thesis by(cases x, auto)
 qed
  
-
 lemma norm_PXtrans2: assumes A:"isnorm (PX P x Q)" and "isnorm Q2" shows "isnorm (PX P (Suc (n+x)) Q2)"
 proof(cases P)
   case (PX p1 y p2)
@@ -70,7 +70,7 @@ next
   from prems show ?thesis by(cases x, auto)
 qed
 
-    (* mkPX conserves normalizedness (_cn)*)
+text {* mkPX conserves normalizedness (_cn) *}
 lemma mkPX_cn: 
   assumes "x \<noteq> 0" and "isnorm P" and "isnorm Q" 
   shows "isnorm (mkPX P x Q)"
@@ -87,8 +87,8 @@ next
   with prems Y0 show ?thesis by (cases x, auto simp add: mkPX_def norm_PXtrans2[of P1 y _ Q _], cases P2, auto)
 qed
 
-    (* add conserves normalizedness *)
-lemma add_cn:"\<lbrakk>isnorm P; (isnorm Q)\<rbrakk> \<Longrightarrow> isnorm (add (P, Q))"
+text {* add conserves normalizedness *}
+lemma add_cn:"isnorm P \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (P \<oplus> Q)"
 proof(induct P Q rule: add.induct)
   case (2 c i P2) thus ?case by (cases P2, simp_all, cases i, simp_all)
 next
@@ -143,32 +143,32 @@ next
   moreover
   { assume "x=1"
     from prems have "isnorm R" "isnorm P2" by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with prems have "isnorm (add (R, P2))" by simp
+    with prems have "isnorm (R \<oplus> P2)" by simp
     with prems have ?case by (simp add: norm_PXtrans[of Q2 y _]) }
   moreover
   { assume "x > 1" hence "EX d. x=Suc (Suc d)" by arith
     then obtain d where X:"x=Suc (Suc d)" ..
     from prems have NR:"isnorm R" "isnorm P2" by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
     with prems have "isnorm (Pinj (x - 1) P2)" by(cases P2, auto)
-    with prems NR have "isnorm( add (R, Pinj (x - 1) P2))" "isnorm(PX Q2 y R)" by simp
+    with prems NR have "isnorm (R \<oplus> Pinj (x - 1) P2)" "isnorm (PX Q2 y R)" by simp
     with X have ?case by (simp add: norm_PXtrans[of Q2 y _]) }
   ultimately show ?case by blast
 next
   case (8 Q2 y R x P2)
-  have "x=0 \<or> (x = 1) \<or> (x > 1)" by arith
+  have "x = 0 \<or> x = 1 \<or> x > 1" by arith
   moreover
   { assume "x=0" with prems have ?case by (auto simp add: norm_Pinj_0_False)}
   moreover
   { assume "x=1"
     from prems have "isnorm R" "isnorm P2" by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with prems have "isnorm (add (R, P2))" by simp
+    with prems have "isnorm (R \<oplus> P2)" by simp
     with prems have ?case by (simp add: norm_PXtrans[of Q2 y _]) }
   moreover
   { assume "x > 1" hence "EX d. x=Suc (Suc d)" by arith
     then obtain d where X:"x=Suc (Suc d)" ..
     from prems have NR:"isnorm R" "isnorm P2" by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
     with prems have "isnorm (Pinj (x - 1) P2)" by(cases P2, auto)
-    with prems NR have "isnorm( add (R, Pinj (x - 1) P2))" "isnorm(PX Q2 y R)" by simp
+    with prems NR have "isnorm (R \<oplus> Pinj (x - 1) P2)" "isnorm (PX Q2 y R)" by simp
     with X have ?case by (simp add: norm_PXtrans[of Q2 y _]) }
   ultimately show ?case by blast
 next
@@ -190,11 +190,11 @@ next
     next case Pc   from prems show ?thesis by(cases d, auto)
     next case Pinj from prems show ?thesis by(cases d, auto)
     qed
-    ultimately have "isnorm (add (P2, Q2))" "isnorm (add (PX P1 (x - y) (Pc 0), Q1))" by auto
+    ultimately have "isnorm (P2 \<oplus> Q2)" "isnorm (PX P1 (x - y) (Pc 0) \<oplus> Q1)" by auto
     with Y0 sm1 sm2 have ?case by (simp add: mkPX_cn)}
   moreover
   {assume "x=y"
-    from prems NP1 NP2 NQ1 NQ2 have "isnorm (add (P2, Q2))" "isnorm (add (P1, Q1))" by auto
+    from prems NP1 NP2 NQ1 NQ2 have "isnorm (P2 \<oplus> Q2)" "isnorm (P1 \<oplus> Q1)" by auto
     with Y0 prems have ?case by (simp add: mkPX_cn) }
   moreover
   {assume sm1:"x<y" hence "EX d. y=d+x" by arith
@@ -208,13 +208,13 @@ next
     next case Pc   from prems show ?thesis by(cases d, auto)
     next case Pinj from prems show ?thesis by(cases d, auto)
     qed
-    ultimately have "isnorm (add (P2, Q2))" "isnorm (add (PX Q1 (y - x) (Pc 0), P1))" by auto
+    ultimately have "isnorm (P2 \<oplus> Q2)" "isnorm (PX Q1 (y - x) (Pc 0) \<oplus> P1)" by auto
     with X0 sm1 sm2 have ?case by (simp add: mkPX_cn)}
   ultimately show ?case by blast
-qed(simp)
+qed simp
 
-    (* mul concerves normalizedness *)
-lemma mul_cn :"\<lbrakk>isnorm P; (isnorm Q)\<rbrakk> \<Longrightarrow> isnorm (mul (P, Q))"
+text {* mul concerves normalizedness *}
+lemma mul_cn :"isnorm P \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (P \<otimes> Q)"
 proof(induct P Q rule: mul.induct)
   case (2 c i P2) thus ?case 
     by (cases P2, simp_all) (cases "i",simp_all add: mkPinj_cn)
@@ -278,7 +278,7 @@ next
   moreover
   { assume "x=1"
     from prems have "isnorm R" "isnorm P2" by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with prems have "isnorm (mul (R, P2))" "isnorm Q2" by (auto simp add: norm_PX1[of Q2 y R])
+    with prems have "isnorm (R \<otimes> P2)" "isnorm Q2" by (auto simp add: norm_PX1[of Q2 y R])
     with Y0 prems have ?case by (simp add: mkPX_cn)}
   moreover
   { assume "x > 1" hence "EX d. x=Suc (Suc d)" by arith
@@ -290,7 +290,7 @@ next
     from prems have "isnorm (Pinj x P2)" by(cases P2, auto)
     moreover
     note prems
-    ultimately have "isnorm (mul (R, Pinj (x - 1) P2))" "isnorm (mul (Pinj x P2, Q2))" by auto
+    ultimately have "isnorm (R \<otimes> Pinj (x - 1) P2)" "isnorm (Pinj x P2 \<otimes> Q2)" by auto
     with Y0 X have ?case by (simp add: mkPX_cn)}
   ultimately show ?case by blast
 next
@@ -302,7 +302,7 @@ next
   moreover
   { assume "x=1"
     from prems have "isnorm R" "isnorm P2" by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
-    with prems have "isnorm (mul (R, P2))" "isnorm Q2" by (auto simp add: norm_PX1[of Q2 y R])
+    with prems have "isnorm (R \<otimes> P2)" "isnorm Q2" by (auto simp add: norm_PX1[of Q2 y R])
     with Y0 prems have ?case by (simp add: mkPX_cn) }
   moreover
   { assume "x > 1" hence "EX d. x=Suc (Suc d)" by arith
@@ -314,7 +314,7 @@ next
     from prems have "isnorm (Pinj x P2)" by(cases P2, auto)
     moreover
     note prems
-    ultimately have "isnorm (mul (R, Pinj (x - 1) P2))" "isnorm (mul (Pinj x P2, Q2))" by auto
+    ultimately have "isnorm (R \<otimes> Pinj (x - 1) P2)" "isnorm (Pinj x P2 \<otimes> Q2)" by auto
     with Y0 X have ?case by (simp add: mkPX_cn) }
   ultimately show ?case by blast
 next
@@ -326,17 +326,20 @@ next
   from prems have "isnorm P1" "isnorm P2" by (auto simp add: norm_PX1[of P1 x P2] norm_PX2[of P1 x P2])
   moreover 
   from prems have "isnorm Q1" "isnorm Q2" by (auto simp add: norm_PX1[of Q1 y Q2] norm_PX2[of Q1 y Q2])
-  ultimately have "isnorm (mul (P1, Q1))" "isnorm (mul (P2, Q2))" "isnorm (mul (P1, mkPinj 1 Q2))" "isnorm (mul (Q1, mkPinj 1 P2))" 
+  ultimately have "isnorm (P1 \<otimes> Q1)" "isnorm (P2 \<otimes> Q2)"
+    "isnorm (P1 \<otimes> mkPinj 1 Q2)" "isnorm (Q1 \<otimes> mkPinj 1 P2)" 
     by (auto simp add: mkPinj_cn)
-  with prems X0 Y0 have "isnorm (mkPX (mul (P1, Q1)) (x + y) (mul (P2, Q2)))" "isnorm (mkPX (mul (P1, mkPinj (Suc 0) Q2)) x (Pc 0))"  
-    "isnorm (mkPX (mul (Q1, mkPinj (Suc 0) P2)) y (Pc 0))" 
+  with prems X0 Y0 have
+    "isnorm (mkPX (P1 \<otimes> Q1) (x + y) (P2 \<otimes> Q2))"
+    "isnorm (mkPX (P1 \<otimes> mkPinj (Suc 0) Q2) x (Pc 0))"  
+    "isnorm (mkPX (Q1 \<otimes> mkPinj (Suc 0) P2) y (Pc 0))" 
     by (auto simp add: mkPX_cn)
   thus ?case by (simp add: add_cn)
 qed(simp)
 
-    (* neg conserves normalizedness *)
+text {* neg conserves normalizedness *}
 lemma neg_cn: "isnorm P \<Longrightarrow> isnorm (neg P)"
-proof(induct P rule: neg.induct)
+proof (induct P)
   case (Pinj i P2)
   from prems have "isnorm P2" by (simp add: norm_Pinj[of i P2])
   with prems show ?case by(cases P2, auto, cases i, auto)
@@ -353,11 +356,11 @@ next
   qed(cases x, auto)
 qed(simp)
 
-    (* sub conserves normalizedness *)
-lemma sub_cn:"\<lbrakk>isnorm p; isnorm q\<rbrakk> \<Longrightarrow> isnorm (sub p q)"
+text {* sub conserves normalizedness *}
+lemma sub_cn:"isnorm p \<Longrightarrow> isnorm q \<Longrightarrow> isnorm (p \<ominus> q)"
 by (simp add: sub_def add_cn neg_cn)
 
-  (* sqr conserves normalizizedness *)
+text {* sqr conserves normalizizedness *}
 lemma sqr_cn:"isnorm P \<Longrightarrow> isnorm (sqr P)"
 proof(induct P)
   case (Pinj i Q)
@@ -365,23 +368,25 @@ proof(induct P)
 next 
   case (PX P1 x P2)
   from prems have "x+x~=0" "isnorm P2" "isnorm P1" by (cases x,  auto simp add: norm_PX1[of P1 x P2] norm_PX2[of P1 x P2])
-  with prems have "isnorm (mkPX (mul (mul (Pc ((1\<Colon>'a) + (1\<Colon>'a)), P1), mkPinj (Suc 0) P2)) x (Pc (0\<Colon>'a)))"
-              and "isnorm (mkPX (sqr P1) (x + x) (sqr P2))" by( auto simp add: add_cn mkPX_cn mkPinj_cn mul_cn)
-  thus ?case by( auto simp add: add_cn mkPX_cn mkPinj_cn mul_cn)
-qed(simp)
+  with prems have
+    "isnorm (mkPX (Pc (1 + 1) \<otimes> P1 \<otimes> mkPinj (Suc 0) P2) x (Pc 0))"
+    and "isnorm (mkPX (sqr P1) (x + x) (sqr P2))"
+   by (auto simp add: add_cn mkPX_cn mkPinj_cn mul_cn)
+  thus ?case by (auto simp add: add_cn mkPX_cn mkPinj_cn mul_cn)
+qed simp
 
-
-    (* pow conserves normalizedness  *)
-lemma pow_cn:"!! P. \<lbrakk>isnorm P\<rbrakk> \<Longrightarrow> isnorm (pow (P, n))"
-proof(induct n rule: nat_less_induct)
+text {* pow conserves normalizedness *}
+lemma pow_cn:"isnorm P \<Longrightarrow> isnorm (pow n P)"
+proof (induct n arbitrary: P rule: nat_less_induct)
   case (1 k)
   show ?case 
-  proof(cases "k=0")
+  proof (cases "k=0")
     case False
-    hence K2:"k div 2 < k" by (cases k, auto)
+    then have K2:"k div 2 < k" by (cases k, auto)
     from prems have "isnorm (sqr P)" by (simp add: sqr_cn)
-    with prems K2 show ?thesis by(simp add: allE[of _ "(k div 2)" _] allE[of _ "(sqr P)" _], cases k, auto simp add: mul_cn)
-  qed(simp)
+    with prems K2 show ?thesis
+    by (simp add: allE[of _ "(k div 2)" _] allE[of _ "(sqr P)" _], cases k, auto simp add: mul_cn)
+  qed simp
 qed
 
 end
