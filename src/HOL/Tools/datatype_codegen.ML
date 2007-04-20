@@ -530,41 +530,6 @@ fun codetype_hook dtspecs =
 
 (* instrumentalizing the sort algebra *)
 
-(*fun assume_arities_of_sort thy arities ty_sort =
-  let
-    val pp = Sign.pp thy;
-    val algebra = Sign.classes_of thy
-      |> fold (fn (tyco, asorts, sort) =>
-           Sorts.add_arities pp (tyco, map (fn class => (class, asorts)) sort)) arities;
-  in Sorts.of_sort algebra ty_sort end;
-
-fun get_codetypes_arities thy tycos sort =
-  let
-    val algebra = Sign.classes_of thy;
-    val (vs_proto, css_proto) = the_codetypes_mut_specs thy tycos;
-    val vs = map (fn (v, vsort) => (v, Sorts.inter_sort algebra (vsort, sort))) vs_proto;
-    fun inst_type tyco (c, tys) =
-      let
-        val tys' = (map o map_atyps)
-          (fn TFree (v, _) => TFree (v, the (AList.lookup (op =) vs v))) tys
-      in (c, tys') end;
-    val css = map (fn (tyco, (_, cs)) => (tyco, (map (inst_type tyco) cs))) css_proto;
-    fun mk_arity tyco = (tyco, map snd vs, sort);
-    fun typ_of_sort ty =
-      let
-        val arities = map (fn (tyco, _) => (tyco, map snd vs, sort)) css;
-      in assume_arities_of_sort thy arities (ty, sort) end;
-    fun mk_cons tyco (c, tys) =
-      let
-        val ts = Name.names Name.context "a" tys;
-        val ty = tys ---> Type (tyco, map TFree vs);
-      in list_comb (Const (c, ty), map Free ts) end;
-  in if forall (fn (_, cs) => forall (fn (_, tys) => forall typ_of_sort tys) cs) css
-    then SOME (
-      map (fn (tyco, cs) => (tyco, (mk_arity tyco, map (mk_cons tyco) cs))) css
-    ) else NONE
-  end;*)
-
 fun get_codetypes_arities thy tycos sort =
   let
     val pp = Sign.pp thy;
