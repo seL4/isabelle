@@ -9,6 +9,14 @@ A tactic to get rid of the fresh_fun.
 (* First some functions that could be
  in the library *)
 
+(* A tactical which implements Coq's T;[a,b,c] *)
+
+infix 1 THENL
+
+fun THENL (tac,tacs) =
+ tac THEN
+  (EVERY (map  (fn (tac,i) => tac i) (rev tacs ~~ (length tacs downto 1))))
+
 fun gen_res_inst_tac_term instf tyinst tinst elim th i st =
   let
     val thy = theory_of_thm st;
@@ -133,17 +141,20 @@ fun fresh_fun_tac i thm =
     val atom_basename = Sign.base_name atom_name;
     val pt_name_inst = get_dyn_thm thy ("pt_"^atom_basename^"_inst") atom_basename;
     val at_name_inst = get_dyn_thm thy ("at_"^atom_basename^"_inst") atom_basename;
+    fun tac_a i = 
+      res_inst_tac_term' [(x,Bound n)] false exI i THEN
+      asm_full_simp_tac ss' i                      THEN 
+      NominalPermeq.fresh_guess_tac HOL_ss i;
   in
-  (generate_fresh_tac atom_name i               THEN
-   subst_outer_tac ctx fresh_fun_app i          THEN
-   rtac pt_name_inst i                          THEN
-   rtac at_name_inst i                          THEN
-   NominalPermeq.finite_guess_tac HOL_ss i      THEN
-   auto_tac (HOL_cs , HOL_ss)                   THEN
-   NominalPermeq.fresh_guess_tac HOL_ss (i+1)   THEN
-   res_inst_tac_term' [(x,Bound n)] false exI i THEN
-   asm_full_simp_tac ss' i                      THEN
-   NominalPermeq.fresh_guess_tac HOL_ss i) thm 
+  (generate_fresh_tac atom_name i      THEN 
+   subst_outer_tac ctx fresh_fun_app i THENL 
+   [rtac pt_name_inst,
+    rtac at_name_inst, 
+    (fn i => TRY (NominalPermeq.finite_guess_tac HOL_ss i)),   
+    tac_a, 
+    (fn i => TRY (NominalPermeq.fresh_guess_tac  HOL_ss i)),
+    (fn i => auto_tac (HOL_cs, HOL_ss)) 
+]) thm 
   end
   end
 
