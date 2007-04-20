@@ -201,6 +201,8 @@ fun set_default_type s thy ({size, iterations, ...} : test_params) =
 
 (* data kind 'Pure/codegen' *)
 
+structure CodeData = CodegenData;
+
 structure CodegenData = TheoryDataFun
 (struct
   val name = "Pure/codegen";
@@ -297,30 +299,6 @@ fun add_tycodegen name f thy =
   end;
 
 
-(**** code attribute ****)
-
-fun add_attribute name att thy =
-  let val {codegens, tycodegens, consts, types, attrs, preprocs, modules, test_params} =
-    CodegenData.get thy
-  in (case AList.lookup (op =) attrs name of
-      NONE => CodegenData.put {tycodegens = tycodegens,
-        codegens = codegens, consts = consts, types = types,
-        attrs = if name = "" then attrs @ [(name, att)] else (name, att) :: attrs,
-        preprocs = preprocs, modules = modules,
-        test_params = test_params} thy
-    | SOME _ => error ("Code attribute " ^ name ^ " already declared"))
-  end;
-
-fun mk_parser (a, p) = (if a = "" then Scan.succeed "" else Args.$$$ a) |-- p;
-
-val code_attr =
-  Attrib.syntax (Scan.peek (fn context => foldr op || Scan.fail (map mk_parser
-    (#attrs (CodegenData.get (Context.theory_of context))))));
-
-val _ = Context.add_setup
-  (Attrib.add_attributes [("code", code_attr, "declare theorems for code generation")]);
-
-
 (**** preprocessors ****)
 
 fun add_preprocessor p thy =
@@ -350,16 +328,56 @@ fun preprocess_term thy t =
 
 fun add_unfold eqn =
   let
-    val names = term_consts (fst (Logic.dest_equals (prop_of eqn)));
+    val thy = Thm.theory_of_thm eqn;
+    val ctxt = ProofContext.init thy;
+    val eqn' = LocalDefs.meta_rewrite_rule ctxt eqn;
+    val names = term_consts (fst (Logic.dest_equals (prop_of eqn')));
     fun prep thy = map (fn th =>
       let val prop = prop_of th
       in
         if forall (fn name => exists_Const (equal name o fst) prop) names
-        then rewrite_rule [eqn] (Thm.transfer thy th)
+        then rewrite_rule [eqn'] (Thm.transfer thy th)
         else th
       end)
   in add_preprocessor prep end;
 
+
+(**** code attribute ****)
+
+fun add_attribute name att thy =
+  let val {codegens, tycodegens, consts, types, attrs, preprocs, modules, test_params} =
+    CodegenData.get thy
+  in (case AList.lookup (op =) attrs name of
+      NONE => CodegenData.put {tycodegens = tycodegens,
+        codegens = codegens, consts = consts, types = types,
+        attrs = if name = "" then attrs @ [(name, att)] else (name, att) :: attrs,
+        preprocs = preprocs, modules = modules,
+        test_params = test_params} thy
+    | SOME _ => error ("Code attribute " ^ name ^ " already declared"))
+  end;
+
+fun mk_parser (a, p) = (if a = "" then Scan.succeed "" else Args.$$$ a) |-- p;
+
+val code_attr =
+  Attrib.syntax (Scan.peek (fn context => foldr op || Scan.fail (map mk_parser
+    (#attrs (CodegenData.get (Context.theory_of context))))));
+
+val _ = Context.add_setup
+  (Attrib.add_attributes [("code", code_attr, "declare theorems for code generation")]);
+
+local
+  fun add_simple_attribute (name, f) =
+    (add_attribute name o (Scan.succeed o Thm.declaration_attribute))
+      (fn th => Context.mapping (f th) I);
+in
+  val _ = map (Context.add_setup o add_simple_attribute) [
+    ("func", CodeData.add_func true),
+    ("nofunc", CodeData.del_func),
+    ("unfold", (fn thm => add_unfold thm #> CodeData.add_inline thm)),
+    ("inline", CodeData.add_inline),
+    ("noinline", CodeData.del_inline)
+  ]
+end; (*local*)
 
 
 (**** associate constants with target language code ****)
