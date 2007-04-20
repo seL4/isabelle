@@ -752,11 +752,14 @@ The other framework generates code from functional programs
 (including overloading using type classes) to SML \cite{SML},
 OCaml \cite{OCaml} and Haskell \cite{haskell-revised-report}.
 Conceptually, code generation is split up in three steps: \emph{selection}
-of code theorems, \emph{extraction} into an abstract executable view
+of code theorems, \emph{translation} into an abstract executable view
 and \emph{serialization} to a specific \emph{target language}.
 See \cite{isabelle-codegen} for an introduction on how to use it.
 
 \indexisarcmd{code-gen}
+\indexisarcmd{code-thms}
+\indexisarcmd{code-deps}
+\indexisarcmd{code-datatype}
 \indexisarcmd{code-const}
 \indexisarcmd{code-type}
 \indexisarcmd{code-class}
@@ -767,7 +770,6 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
 \indexisarcmd{code-moduleprolog}
 \indexisarcmd{code-axioms}
 \indexisarcmd{code-abstype}
-\indexisarcmd{code-thms}
 \indexisarcmd{print-codesetup}
 \indexisaratt{code func}
 \indexisaratt{code nofunc}
@@ -776,6 +778,9 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
 
 \begin{matharray}{rcl}
   \isarcmd{code_gen}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{code_thms}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{code_deps}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{code_datatype} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_const} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_type} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_class} & : & \isartrans{theory}{theory} \\
@@ -786,7 +791,6 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
   \isarcmd{code_moduleprolog} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_axioms} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_abstype} & : & \isartrans{theory}{theory} \\
-  \isarcmd{code_thms}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{print_codesetup}^* & : & \isarkeep{theory~|~proof} \\
   code\ func & : & \isaratt \\
   code\ nofunc & : & \isaratt \\
@@ -795,9 +799,15 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
 \end{matharray}
 
 \begin{rail}
-'code\_gen' ( ( const | 'name.*' | '*' ) + ) ? ( seri + ) ?;
+'code\_gen' ( constexpr + ) ? ( seri + ) ?;
+
+'code\_thms' ( constexpr + ) ?;
+
+'code\_deps' ( constexpr + ) ?;
 
 const : term;
+
+constexpr : ( const | 'name.*' | '*' );
 
 typeconstructor : nameref;
 
@@ -806,6 +816,8 @@ class : nameref;
 seri : target | 'SML' ( string | '-' ) | 'OCaml' ( string | '-' ) | 'Haskell' ( 'root:' string ) ? 'string\_classes' ? string;
 
 target : 'OCaml' | 'SML' | 'Haskell';
+
+'code\_datatype' const +;
 
 'code\_const' (const + 'and') \\
   ( ( '(' target ( syntax + 'and' ) ')' ) + );
@@ -834,8 +846,6 @@ target : 'OCaml' | 'SML' | 'Haskell';
 
 syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
 
-'code\_thms' ( const + ) ?;
-
 'print\_codesetup';
 
 ('code\ func' | 'code\ nofunc' | 'code\ inline' | 'code\ noinline');
@@ -851,7 +861,7 @@ syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
 
   Constants may be specified by giving them literally, referring
   to all exeuctable contants within a certain theory named ``name''
-  by giving (``name.*''), or referring to \emph{all} exeuctable
+  by giving (``name.*''), or referring to \emph{all} executable
   constants currently available (``*'').
 
   The \emph{SML} serializer takes either a filename or an ``-'' or ``*''
@@ -869,6 +879,16 @@ syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
   ``string\_classes'' adds a ``deriving (Read, Show)'' clause
   to each appropriate datatype declaration.
   A ``-'' instead of a directory name prints code to standard output.
+
+\item [$\isarcmd{code_thms}$] prints a list of theorems representing the
+  corresponding program containing all given constants; if no constants are
+  given, the current cache of code theorems in printed.
+
+\item [$\isarcmd{code_deps}$] visualizes dependencies of theorems representing the
+  corresponding program containing all given constants; if no constants are
+  given, the current cache os visualized.
+
+\item [$\isarcmd{code_datatype}$] specifies a constructor set for a logical type.
 
 \item [$\isarcmd{code_const}$] associates a list of constants
   with target-specific serializations.
@@ -892,11 +912,11 @@ syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
   as reserved for a given target, preventing it to be shadowed
   by any generated code.
 
-\item [$\isarcmd{code_modulename}$] declares aliassings a module name
-  to another.
+\item [$\isarcmd{code_modulename}$] declares aliasings from one module name
+  onto another.
 
 \item [$\isarcmd{code_moduleprolog}$] adds any content (''prolog``)
-  to a specified module. A ``-'' will remove any already specified prolog.
+  to a specified module. A ``-'' will remove an already given prolog.
 
 \item [$\isarcmd{code_axioms}$] uses the given equations for code generation
   whenever possible. Both sides are required to be constants which are
@@ -908,17 +928,9 @@ syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
 \item [$code\ func$ and $code\ nofunc$] select or deselect explicitly
   a defining equation for code generation.  Usually packages introducing
   defining equations provide a resonable default setup for selection.
-  If no theorem has been selected explicitly
-  for a constant, its primitive definition
-  is used as defining equations if possible.
 
 \item [$code\ inline$ and $code\ noinline$] select or deselect
   inlining theorems which are applied as rewrite rules to any defining equation.
-
-\item [$\isarcmd{code_thms}$] lists currently cached defining equations
-  (i.e.~\emph{after} any preprocessing step has been carried out);
-  when constants are given, it adds the defining equations
-  for those constants, too.
 
 \item [$\isarcmd{print_codesetup}$] gives an overview on selected
   defining equations, code generator datatypes and inlining theorems.
