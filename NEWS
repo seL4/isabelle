@@ -66,7 +66,7 @@ arguments may be given on the LHS.)
 * code generator: 
   - Isar "definition"s and primitive instance definitions are added explicitly
     to the table of defining equations
-  - primitive definitions are not unfolded by default any longer
+  - primitive definitions are not used as defining equations by default any longer
   - defining equations are now definitly restricted to meta "==" and object
         equality "="
   - HOL theories have been adopted accordingly
