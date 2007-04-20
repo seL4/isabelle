@@ -63,6 +63,14 @@ arguments may be given on the LHS.)
 
 *** Pure ***
 
+* code generator: 
+  - Isar "definition"s and primitive instance definitions are added explicitly
+    to the table of defining equations
+  - primitive definitions are not unfolded by default any longer
+  - defining equations are now definitly restricted to meta "==" and object
+        equality "="
+  - HOL theories have been adopted accordingly
+
 * class_package.ML offers a combination of axclasses and locales to
 achieve Haskell-like type classes in Isabelle. See
 HOL/ex/Classpackage.thy for examples.
@@ -74,6 +82,8 @@ code for ML and Haskell (including "class"es). A short usage sketch:
         code_gen <list of constants (term syntax)> (SML #)
     writing SML code to a file:
         code_gen <list of constants (term syntax)> (SML <filename>)
+    writing OCaml code to a file:
+        code_gen <list of constants (term syntax)> (OCaml <filename>)
     writing Haskell code to a bunch of files:
         code_gen <list of constants (term syntax)> (Haskell <filename>)
 
@@ -86,7 +96,7 @@ Theorem attributs for selecting and transforming function equations theorems:
     [code inline]:    select an equation theorem for unfolding (inlining) in place
     [code noinline]:  deselect an equation theorem for unfolding (inlining) in place
 
-User-defined serializations (target in {SML, Haskell}):
+User-defined serializations (target in {SML, OCaml, Haskell}):
 
     code_const <and-list of constants (term syntax)>
       {(target) <and-list of const target syntax>}+
@@ -102,10 +112,10 @@ User-defined serializations (target in {SML, Haskell}):
       {(target) <and-list of class target syntax>}+
         where class target syntax ::= <class name> {where {<classop> == <target syntax>}+}?
 
-For code_instance and code_class, target SML is silently ignored.
+code_instance and code_class only apply to target Haskell.
 
-See HOL theories and HOL/ex/Code*.thy for usage examples.  Doc/Isar/Advanced/Codegen/
-provides a tutorial.
+See HOL theories and HOL/ex/Codegenerator*.thy for usage examples.
+Doc/Isar/Advanced/Codegen/ provides a tutorial.
 
 * Command 'no_translations' removes translation rules from theory
 syntax.
@@ -504,6 +514,9 @@ the graph browser tool.
 
 
 *** HOL ***
+
+* Library/Commutative_Ring.thy: switched from recdef to function package;
+    constants add, mul, pow now curried.  Infix syntax for algebraic operations.
 
 * Some steps towards more uniform lattice theory development in HOL.
 
