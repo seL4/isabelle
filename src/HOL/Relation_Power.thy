@@ -40,7 +40,8 @@ text {*
 *}
 
 definition
-  funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
+  funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
+where
   funpow_def: "funpow n f = f ^ n"
 
 lemmas [code inline] = funpow_def [symmetric]

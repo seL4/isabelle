@@ -13,18 +13,20 @@ subsection{* Lattices *}
 
 text{*
   This theory of lattices only defines binary sup and inf
-  operations. The extension to (finite) sets is done in theories @{text FixedPoint}
-  and @{text Finite_Set}.
+  operations. The extension to (finite) sets is done in theories
+  @{text FixedPoint} and @{text Finite_Set}.
 *}
 
 class lower_semilattice = order +
   fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
-  assumes inf_le1 [simp]: "x \<sqinter> y \<sqsubseteq> x" and inf_le2 [simp]: "x \<sqinter> y \<sqsubseteq> y"
+  assumes inf_le1 [simp]: "x \<sqinter> y \<sqsubseteq> x"
+  and inf_le2 [simp]: "x \<sqinter> y \<sqsubseteq> y"
   and inf_greatest: "x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<sqinter> z"
 
 class upper_semilattice = order +
   fixes sup :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
-  assumes sup_ge1 [simp]: "x \<sqsubseteq> x \<squnion> y" and sup_ge2 [simp]: "y \<sqsubseteq> x \<squnion> y"
+  assumes sup_ge1 [simp]: "x \<sqsubseteq> x \<squnion> y"
+  and sup_ge2 [simp]: "y \<sqsubseteq> x \<squnion> y"
   and sup_least: "y \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> x \<Longrightarrow> y \<squnion> z \<sqsubseteq> x"
 
 class lattice = lower_semilattice + upper_semilattice
@@ -251,28 +253,28 @@ end
 
 subsection {* Uniqueness of inf and sup *}
 
-lemma inf_unique:
+lemma (in lower_semilattice) inf_unique:
   fixes f (infixl "\<triangle>" 70)
-  assumes le1: "\<And>x y. x \<triangle> y \<le> x" and le2: "\<And>x y. x \<triangle> y \<le> y"
-  and greatest: "\<And>x y z. x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> y \<triangle> z"
-  shows "inf x y = f x y"
+  assumes le1: "\<And>x y. x \<triangle> y \<^loc>\<le> x" and le2: "\<And>x y. x \<triangle> y \<^loc>\<le> y"
+  and greatest: "\<And>x y z. x \<^loc>\<le> y \<Longrightarrow> x \<^loc>\<le> z \<Longrightarrow> x \<^loc>\<le> y \<triangle> z"
+  shows "x \<sqinter> y = x \<triangle> y"
 proof (rule antisym)
-  show "x \<triangle> y \<le> inf x y" by (rule le_infI) (rule le1 le2)
+  show "x \<triangle> y \<^loc>\<le> x \<sqinter> y" by (rule le_infI) (rule le1 le2)
 next
-  have leI: "\<And>x y z. x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> y \<triangle> z" by (blast intro: greatest)
-  show "inf x y \<le> x \<triangle> y" by (rule leI) simp_all
+  have leI: "\<And>x y z. x \<^loc>\<le> y \<Longrightarrow> x \<^loc>\<le> z \<Longrightarrow> x \<^loc>\<le> y \<triangle> z" by (blast intro: greatest)
+  show "x \<sqinter> y \<^loc>\<le> x \<triangle> y" by (rule leI) simp_all
 qed
 
-lemma sup_unique:
+lemma (in upper_semilattice) sup_unique:
   fixes f (infixl "\<nabla>" 70)
-  assumes ge1 [simp]: "\<And>x y. x \<le> x \<nabla> y" and ge2: "\<And>x y. y \<le> x \<nabla> y"
-  and least: "\<And>x y z. y \<le> x \<Longrightarrow> z \<le> x \<Longrightarrow> y \<nabla> z \<le> x"
-  shows "sup x y = f x y"
+  assumes ge1 [simp]: "\<And>x y. x \<^loc>\<le> x \<nabla> y" and ge2: "\<And>x y. y \<^loc>\<le> x \<nabla> y"
+  and least: "\<And>x y z. y \<^loc>\<le> x \<Longrightarrow> z \<^loc>\<le> x \<Longrightarrow> y \<nabla> z \<^loc>\<le> x"
+  shows "x \<squnion> y = x \<nabla> y"
 proof (rule antisym)
-  show "sup x y \<le> x \<nabla> y" by (rule le_supI) (rule ge1 ge2)
+  show "x \<squnion> y \<^loc>\<le> x \<nabla> y" by (rule le_supI) (rule ge1 ge2)
 next
-  have leI: "\<And>x y z. x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> x \<nabla> y \<le> z" by (blast intro: least)
-  show "x \<nabla> y \<le> sup x y" by (rule leI) simp_all
+  have leI: "\<And>x y z. x \<^loc>\<le> z \<Longrightarrow> y \<^loc>\<le> z \<Longrightarrow> x \<nabla> y \<^loc>\<le> z" by (blast intro: least)
+  show "x \<nabla> y \<^loc>\<le> x \<squnion> y" by (rule leI) simp_all
 qed
   
 

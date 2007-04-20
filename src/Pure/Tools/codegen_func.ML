@@ -8,12 +8,12 @@ Basic handling of defining equations ("func"s) for code generator framework.
 signature CODEGEN_FUNC =
 sig
   val assert_rew: thm -> thm
-  val mk_rew: thm -> thm list
-  val assert_func: bool -> thm -> thm option
-  val mk_func: bool -> thm -> (CodegenConsts.const * thm) list
-  val mk_head: thm -> CodegenConsts.const * thm
-  val dest_func: thm -> (string * typ) * term list
-  val typ_func: thm -> typ
+  val mk_rew: thm -> thm
+  val mk_func: thm -> thm
+  val head_func: thm -> CodegenConsts.const * typ
+  val bad_thm: string -> 'a
+  val error_thm: (thm -> thm) -> thm -> thm
+  val warning_thm: (thm -> thm) -> thm -> thm option
 
   val inst_thm: sort Vartab.table -> thm -> thm
   val expand_eta: int -> thm -> thm
@@ -25,10 +25,14 @@ end;
 structure CodegenFunc : CODEGEN_FUNC =
 struct
 
-fun lift_thm_thy f thm = f (Thm.theory_of_thm thm) thm;
 
-fun bad_thm msg thm =
-  error (msg ^ ": " ^ string_of_thm thm);
+(* auxiliary *)
+
+exception BAD_THM of string;
+fun bad_thm msg = raise BAD_THM msg;
+fun error_thm f thm = f thm handle BAD_THM msg => error msg;
+fun warning_thm f thm = SOME (f thm) handle BAD_THM msg
+  => (warning msg; NONE);
 
 
 (* making rewrite theorems *)
@@ -36,85 +40,82 @@ fun bad_thm msg thm =
 fun assert_rew thm =
   let
     val thy = Thm.theory_of_thm thm;
-    val (lhs, rhs) = (Logic.dest_equals o Thm.prop_of) thm;
+    val (lhs, rhs) = (Logic.dest_equals o Thm.prop_of) thm
+      handle TERM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm);
     fun vars_of t = fold_aterms
      (fn Var (v, _) => insert (op =) v
-       | Free _ => bad_thm "Illegal free variable in rewrite theorem" thm
+       | Free _ => bad_thm ("Illegal free variable in rewrite theorem\n"
+           ^ Display.string_of_thm thm)
        | _ => I) t [];
     fun tvars_of t = fold_term_types
      (fn _ => fold_atyps (fn TVar (v, _) => insert (op =) v
-                          | TFree _ => bad_thm "Illegal free type variable in rewrite theorem" thm)) t [];
+                          | TFree _ => bad_thm 
+      ("Illegal free type variable in rewrite theorem\n" ^ Display.string_of_thm thm))) t [];
     val lhs_vs = vars_of lhs;
     val rhs_vs = vars_of rhs;
     val lhs_tvs = tvars_of lhs;
     val rhs_tvs = tvars_of lhs;
     val _ = if null (subtract (op =) lhs_vs rhs_vs)
       then ()
-      else bad_thm "Free variables on right hand side of rewrite theorems" thm
+      else bad_thm ("Free variables on right hand side of rewrite theorem\n"
+        ^ Display.string_of_thm thm);
     val _ = if null (subtract (op =) lhs_tvs rhs_tvs)
       then ()
-      else bad_thm "Free type variables on right hand side of rewrite theorems" thm
+      else bad_thm ("Free type variables on right hand side of rewrite theorem\n"
+        ^ Display.string_of_thm thm)
   in thm end;
 
 fun mk_rew thm =
   let
     val thy = Thm.theory_of_thm thm;
-    val thms = (#mk o #mk_rews o snd o MetaSimplifier.rep_ss o Simplifier.simpset_of) thy thm;
+    val ctxt = ProofContext.init thy;
   in
-    map assert_rew thms
+    thm
+    |> LocalDefs.meta_rewrite_rule ctxt
+    |> assert_rew
   end;
 
 
 (* making defining equations *)
 
-val typ_func = lift_thm_thy (fn thy => snd o dest_Const o fst o strip_comb
-  o fst o Logic.dest_equals o ObjectLogic.drop_judgment thy o Thm.plain_prop_of);
+fun assert_func thm =
+  let
+    val thy = Thm.theory_of_thm thm;
+    val args = (snd o strip_comb o fst o Logic.dest_equals
+      o ObjectLogic.drop_judgment thy o Thm.plain_prop_of) thm;
+    val _ =
+      if has_duplicates (op =)
+        ((fold o fold_aterms) (fn Var (v, _) => cons v
+          | _ => I
+        ) args [])
+      then bad_thm ("Duplicated variables on left hand side of equation\n"
+        ^ Display.string_of_thm thm)
+      else ()
+    fun check _ (Abs _) = bad_thm
+          ("Abstraction on left hand side of equation\n"
+            ^ Display.string_of_thm thm)
+      | check 0 (Var _) = ()
+      | check _ (Var _) = bad_thm
+          ("Variable with application on left hand side of defining equation\n"
+            ^ Display.string_of_thm thm)
+      | check n (t1 $ t2) = (check (n+1) t1; check 0 t2)
+      | check n (Const (_, ty)) = if n <> (length o fst o strip_type) ty
+          then bad_thm
+            ("Partially applied constant on left hand side of equation"
+               ^ Display.string_of_thm thm)
+          else ();
+    val _ = map (check 0) args;
+  in thm end;
 
-val dest_func = lift_thm_thy (fn thy => apfst dest_Const o strip_comb
-  o fst o Logic.dest_equals o ObjectLogic.drop_judgment thy o Thm.plain_prop_of
-  o Drule.fconv_rule Drule.beta_eta_conversion);
+val mk_func = assert_func o Drule.fconv_rule Drule.beta_eta_conversion o mk_rew;
 
-val mk_head = lift_thm_thy (fn thy => fn thm =>
-  ((CodegenConsts.const_of_cexpr thy o fst o dest_func) thm, thm));
-
-local
-
-exception BAD of string;
-
-fun handle_bad strict thm msg =
-  if strict then error (msg ^ ": " ^ string_of_thm thm)
-    else (warning (msg ^ ": " ^ string_of_thm thm); NONE);
-
-in
-
-fun assert_func strict thm = case try dest_func thm
- of SOME (c_ty as (c, ty), args) => (
-      let
-        val thy = Thm.theory_of_thm thm;
-        val _ =
-          if has_duplicates (op =)
-            ((fold o fold_aterms) (fn Var (v, _) => cons v
-              | _ => I
-            ) args [])
-          then raise BAD "Repeated variables on left hand side of defining equation"
-          else ()
-        fun check _ (Abs _) = raise BAD
-              "Abstraction on left hand side of defining equation"
-          | check 0 (Var _) = ()
-          | check _ (Var _) = raise BAD
-              "Variable with application on left hand side of defining equation"
-          | check n (t1 $ t2) = (check (n+1) t1; check 0 t2)
-          | check n (Const (_, ty)) = if n <> (length o fst o strip_type) ty
-              then raise BAD
-                ("Partially applied constant on left hand side of defining equation")
-              else ();
-        val _ = map (check 0) args;
-      in SOME thm end handle BAD msg => handle_bad strict thm msg)
-  | NONE => handle_bad strict thm "Not a defining equation";
-
-end;
-
-fun mk_func strict = map_filter (Option.map mk_head o assert_func strict) o mk_rew;
+fun head_func thm =
+  let
+    val thy = Thm.theory_of_thm thm;
+    val (Const (c_ty as (_, ty))) = (fst o strip_comb o fst o Logic.dest_equals
+      o ObjectLogic.drop_judgment thy o Thm.plain_prop_of) thm;
+    val const = CodegenConsts.const_of_cexpr thy c_ty;
+  in (const, ty) end;
 
 
 (* utilities *)

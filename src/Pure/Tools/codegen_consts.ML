@@ -16,6 +16,8 @@ sig
   val string_of_typ: theory -> typ -> string
   val string_of_const: theory -> const -> string
   val read_const: theory -> string -> const
+  val read_const_exprs: theory -> (const list -> const list)
+    -> string list -> const list
 
   val co_of_const: theory -> const
     -> string * ((string * sort) list * (string * typ list))
@@ -68,7 +70,7 @@ fun string_of_const thy (c, NONE) = Sign.extern_const thy c
       ^ " " ^ enclose "[" "]" (Sign.extern_type thy tyco);
 
 
-(* reading constants as terms *)
+(* reading constants as terms and wildcards pattern *)
 
 fun read_const thy raw_t =
   let
@@ -78,6 +80,47 @@ fun read_const thy raw_t =
     | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t)
   end;
 
+local
+
+fun consts_of thy some_thyname =
+  let
+    val this_thy = Option.map theory some_thyname |> the_default thy;
+    val cs = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
+      ((snd o #constants o Consts.dest o #consts o Sign.rep_sg) this_thy) [];
+    fun classop c = case AxClass.class_of_param thy c
+     of NONE => [(c, NONE)]
+      | SOME class => Symtab.fold
+          (fn (tyco, classes) => if AList.defined (op =) classes class
+            then cons (c, SOME tyco) else I)
+          ((#arities o Sorts.rep_algebra o Sign.classes_of) this_thy)
+          [(c, NONE)];
+    val consts = maps classop cs;
+    fun test_instance thy (class, tyco) =
+      can (Sorts.mg_domain (Sign.classes_of thy) tyco) [class]
+    fun belongs_here thyname (c, NONE) =
+          not (exists (fn thy' => Sign.declared_const thy' c) (Theory.parents_of this_thy))
+      | belongs_here thyname (c, SOME tyco) =
+          let
+            val SOME class = AxClass.class_of_param thy c
+          in not (exists (fn thy' => test_instance thy' (class, tyco))
+            (Theory.parents_of this_thy))
+          end;
+  in case some_thyname
+   of NONE => consts
+    | SOME thyname => filter (belongs_here thyname) consts
+  end;
+
+fun read_const_expr thy "*" = ([], consts_of thy NONE)
+  | read_const_expr thy s = if String.isSuffix ".*" s
+      then ([], consts_of thy (SOME (unsuffix ".*" s)))
+      else ([read_const thy s], []);
+
+in
+
+fun read_const_exprs thy select =
+  (op @) o apsnd select o pairself flat o split_list o map (read_const_expr thy);
+
+end; (*local*)
 
 (* conversion between constants, constant expressions and datatype constructors *)
 

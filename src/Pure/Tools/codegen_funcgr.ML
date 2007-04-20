@@ -157,9 +157,9 @@ fun resort_funcss thy algebra funcgr =
     fun resort_rec tap_typ (const, []) = (true, (const, []))
       | resort_rec tap_typ (const, thms as thm :: _) =
           let
-            val ty = CodegenFunc.typ_func thm;
+            val (_, ty) = CodegenFunc.head_func thm;
             val thms' as thm' :: _ = resort_thms algebra tap_typ thms
-            val ty' = CodegenFunc.typ_func thm';
+            val (_, ty') = CodegenFunc.head_func thm';
           in (Sign.typ_equiv thy (ty, ty'), (const, thms')) end;
     fun resort_recs funcss =
       let
@@ -167,7 +167,7 @@ fun resort_funcss thy algebra funcgr =
          of SOME const => AList.lookup (CodegenConsts.eq_const) funcss const
               |> these
               |> try hd
-              |> Option.map CodegenFunc.typ_func
+              |> Option.map (snd o CodegenFunc.head_func)
           | NONE => NONE;
         val (unchangeds, funcss') = split_list (map (resort_rec tap_typ) funcss);
         val unchanged = fold (fn x => fn y => x andalso y) unchangeds true;
@@ -241,10 +241,10 @@ fun merge_funcss rewrites thy algebra raw_funcss funcgr =
       |> resort_funcss thy algebra funcgr
       |> filter_out (can (Constgraph.get_node funcgr) o fst);
     fun typ_func const [] = CodegenData.default_typ thy const
-      | typ_func (_, NONE) (thm :: _) = CodegenFunc.typ_func thm
+      | typ_func (_, NONE) (thm :: _) = (snd o CodegenFunc.head_func) thm
       | typ_func (const as (c, SOME tyco)) (thms as (thm :: _)) =
           let
-            val ty = CodegenFunc.typ_func thm;
+            val (_, ty) = CodegenFunc.head_func thm;
             val SOME class = AxClass.class_of_param thy c;
             val sorts_decl = Sorts.mg_domain algebra tyco [class];
             val tys = CodegenConsts.typargs thy (c, ty);

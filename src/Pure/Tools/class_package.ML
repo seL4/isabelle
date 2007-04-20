@@ -9,6 +9,8 @@ signature CLASS_PACKAGE =
 sig
   val fork_mixfix: bool -> string option -> mixfix -> mixfix * mixfix
 
+  val axclass_cmd: bstring * xstring list
+    -> ((bstring * Attrib.src list) * string list) list -> theory -> class * theory
   val class: bstring -> class list -> Element.context_i Locale.element list
     -> string list -> theory -> string * Proof.context
   val class_cmd: bstring -> string list -> Element.context Locale.element list
@@ -45,9 +47,20 @@ struct
 fun fork_mixfix is_loc some_class mx =
   let
     val mx' = Syntax.unlocalize_mixfix mx;
-    val mx_global = if is_some some_class orelse (is_loc andalso mx = mx') then NoSyn else mx';
+    val mx_global = if is_some some_class orelse (is_loc andalso mx = mx')
+      then NoSyn else mx';
     val mx_local = if is_loc then mx else NoSyn;
   in (mx_global, mx_local) end;
+
+fun axclass_cmd (class, raw_superclasses) raw_specs thy =
+  let
+    val ctxt = ProofContext.init thy;
+    val superclasses = map (Sign.read_class thy) raw_superclasses;
+    val name_atts = map ((apsnd o map) (Attrib.attribute thy) o fst) raw_specs;
+    val axiomss = ProofContext.read_propp (ctxt, map (map (rpair []) o snd) raw_specs)
+      |> snd
+      |> (map o map) fst;
+  in AxClass.define_class (class, superclasses) [] (name_atts ~~ axiomss) thy end;
 
 
 (** AxClasses with implicit parameter handling **)
@@ -95,7 +108,7 @@ fun axclass_params (name, raw_superclasses) raw_consts raw_dep_axioms other_cons
     thy
     |> fold_map add_const consts
     |-> (fn cs => mk_axioms cs
-    #-> (fn axioms_prop => AxClass.define_class_i (name, superclasses) (map fst cs @ other_consts) axioms_prop
+    #-> (fn axioms_prop => AxClass.define_class (name, superclasses) (map fst cs @ other_consts) axioms_prop
     #-> (fn class => `(fn thy => AxClass.get_definition thy class)
     #-> (fn {intro, axioms, ...} => fold (add_constraint class) cs
     #> pair (class, ((intro, (map Thm.prop_of axioms, axioms)), cs))))))
@@ -177,14 +190,15 @@ fun gen_instance_arity prep_arity read_def do_proof raw_arities raw_defs theory 
       thy
       |> PureThy.add_defs_i true (map ((apsnd o map) (Attrib.attribute thy) o snd) defs)
       |-> (fn thms => pair (map fst defs ~~ thms));
-    fun after_qed cs thy =
+    fun after_qed cs defs thy =
       thy
-      |> fold Sign.add_const_constraint_i (map (apsnd SOME) cs);
+      |> fold Sign.add_const_constraint_i (map (apsnd SOME) cs)
+      |> fold (CodegenData.add_func false o snd) defs;
   in
     theory
     |> fold_map get_remove_contraint (map fst cs |> distinct (op =))
     ||>> add_defs defs
-    |-> (fn (cs, _) => do_proof (after_qed cs) arities)
+    |-> (fn (cs, defs) => do_proof (after_qed cs defs) arities)
   end;
 
 fun instance_arity_e' do_proof = gen_instance_arity Sign.read_arity read_def_cmd do_proof;
@@ -343,20 +357,6 @@ val global_term = snd oo globalize
 
 (* tactics and methods *)
 
-(*FIXME adjust these when minimal intro rules are at hand*)
-fun intro_classes_tac' facts st =
-  let
-    val thy = Thm.theory_of_thm st;
-    val ctxt = ProofContext.init thy;
-    val intro_classes_tac = ALLGOALS
-      (Method.insert_tac facts THEN' REPEAT_ALL_NEW (resolve_tac (AxClass.class_intros thy)))
-        THEN Tactic.distinct_subgoals_tac;
-    val intro_locales_tac = SOMEGOAL (SELECT_GOAL (Locale.intro_locales_tac true ctxt facts))
-      THEN Tactic.distinct_subgoals_tac;
-  in
-    (intro_classes_tac THEN REPEAT (intro_locales_tac ORELSE intro_locales_tac)) st
-  end;
-
 fun intro_classes_tac facts st =
   let
     val thy = Thm.theory_of_thm st;
@@ -381,9 +381,7 @@ fun default_tac rules ctxt facts =
     default_intro_classes_tac facts;
 
 val _ = Context.add_setup (Method.add_methods
- [("intro_classes2", Method.no_args (Method.METHOD intro_classes_tac'),
-    "back-chain introduction rules of classes"),
-  ("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
+ [("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
     "back-chain introduction rules of classes"),
   ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac),
     "apply some intro/elim rule")]);
@@ -481,6 +479,14 @@ fun class_intro thy locale class sups =
 
 local
 
+fun read_param thy raw_t =
+  let
+    val t = Sign.read_term thy raw_t
+  in case try dest_Const t
+   of SOME (c, _) => c
+    | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t)
+  end;
+
 fun gen_class add_locale prep_class prep_param bname
     raw_supclasses raw_elems raw_other_consts thy =
   let
@@ -573,7 +579,7 @@ fun gen_class add_locale prep_class prep_param bname
 
 in
 
-val class_cmd = gen_class Locale.add_locale Sign.intern_class AxClass.read_param;
+val class_cmd = gen_class Locale.add_locale Sign.intern_class read_param;
 val class = gen_class Locale.add_locale_i Sign.certify_class (K I);
 
 end; (*local*)
@@ -643,7 +649,7 @@ fun add_def_in_class lthy class ((c, syn), ((name, atts), (rhs, eq))) thy =
       thy
       |> PureThy.add_defs_i false [((name, prop), map (Attrib.attribute thy) atts)]
       |>> the_single;
-    val _ = warning "------ DEF ------";
+    (*val _ = warning "------ DEF ------";
     val _ = warning c;
     val _ = warning name;
     val _ = (warning o Sign.string_of_term thy) rhs';
@@ -658,14 +664,14 @@ fun add_def_in_class lthy class ((c, syn), ((name, atts), (rhs, eq))) thy =
     val _ = map print_witness witness;
     val _ = (warning o string_of_thm) eq';
     val eq'' = Element.satisfy_thm witness eq';
-    val _ = (warning o string_of_thm) eq'';
+    val _ = (warning o string_of_thm) eq'';*)
   in
     thy
-    |> Sign.add_path prfx
+    (* |> Sign.add_path prfx
     |> add_const (c, ty, syn')
     |-> (fn c => add_def ((name, atts), Logic.mk_equals (Const c, rhs')))
     |-> (fn global_def_thm => tap (fn _ => (warning o string_of_thm) global_def_thm))
-    |> Sign.restore_naming thy
+    |> Sign.restore_naming thy *)
   end;
 
 end;

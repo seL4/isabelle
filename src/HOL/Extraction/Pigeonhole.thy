@@ -5,7 +5,9 @@
 
 header {* The pigeonhole principle *}
 
-theory Pigeonhole imports EfficientNat begin
+theory Pigeonhole
+imports EfficientNat
+begin
 
 text {*
 We formalize two proofs of the pigeonhole principle, which lead

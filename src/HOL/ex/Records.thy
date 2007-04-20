@@ -35,17 +35,21 @@ text {*
   'a point_scheme = \<lparr>xpos :: nat, ypos :: nat, ... :: 'a\<rparr>  = 'a point_ext_type"}
 *}
 
-consts foo1 :: point
 consts foo2 :: "(| xpos :: nat, ypos :: nat |)"
-consts foo3 :: "'a => 'a point_scheme"
 consts foo4 :: "'a => (| xpos :: nat, ypos :: nat, ... :: 'a |)"
 
 
 subsubsection {* Introducing concrete records and record schemes *}
 
-defs
-  foo1_def: "foo1 == (| xpos = 1, ypos = 0 |)"
-  foo3_def: "foo3 ext == (| xpos = 1, ypos = 0, ... = ext |)"
+definition
+  foo1 :: point
+where
+  foo1_def: "foo1 = (| xpos = 1, ypos = 0 |)"
+
+definition
+  foo3 :: "'a => 'a point_scheme"
+where
+  foo3_def: "foo3 ext = (| xpos = 1, ypos = 0, ... = ext |)"
 
 
 subsubsection {* Record selection and record update *}

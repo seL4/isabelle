@@ -71,12 +71,22 @@ structure Funcgr = CodegenFuncgrRetrieval (
   fun rewrites thy = [];
 );
 
-fun print_codethms thy =
-  Pretty.writeln o CodegenFuncgr.pretty thy o Funcgr.make thy;
+fun code_depgr thy [] = Funcgr.make thy []
+  | code_depgr thy consts =
+      let
+        val gr = Funcgr.make thy consts;
+        val select = CodegenFuncgr.Constgraph.all_succs gr consts;
+      in
+        CodegenFuncgr.Constgraph.subgraph
+          (member CodegenConsts.eq_const select) gr
+      end;
+
+fun code_thms thy =
+  Pretty.writeln o CodegenFuncgr.pretty thy o code_depgr thy;
 
 fun code_deps thy consts =
   let
-    val gr = Funcgr.make thy consts;
+    val gr = code_depgr thy consts;
     fun mk_entry (const, (_, (_, parents))) =
       let
         val name = CodegenConsts.string_of_const thy const;
@@ -113,7 +123,7 @@ val _ = Context.add_setup (CodegenPackageData.init #> Funcgr.init #> Code.init);
 
 fun prep_eqs thy (thms as thm :: _) =
   let
-    val ty = (Logic.unvarifyT o CodegenFunc.typ_func) thm;
+    val ty = (Logic.unvarifyT o snd o CodegenFunc.head_func) thm;
     val thms' = if (null o Term.typ_tfrees) ty orelse (null o fst o strip_type) ty
       then thms
       else map (CodegenFunc.expand_eta 1) thms;
@@ -600,34 +610,6 @@ fun eval_term thy t = raw_eval_term thy t [];
 fun satisfies thy t witnesses = raw_eval_term thy
   (("CodegenPackage.satisfies_ref", satisfies_ref), t) witnesses;
 
-
-(* constant specifications with wildcards *)
-
-fun consts_of thy thyname =
-  let
-    val this_thy = Option.map theory thyname |> the_default thy;
-    val cs = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
-      ((snd o #constants o Consts.dest o #consts o Sign.rep_sg) this_thy) [];
-    fun classop c = case AxClass.class_of_param thy c
-     of NONE => [(c, NONE)]
-      | SOME class => Symtab.fold
-          (fn (tyco, classes) => if AList.defined (op =) classes class
-            then cons (c, SOME tyco) else I)
-          ((#arities o Sorts.rep_algebra o Sign.classes_of) this_thy)
-          [(c, NONE)];
-    val consts = maps classop cs;
-    fun test_instance thy (class, tyco) =
-      can (Sorts.mg_domain (Sign.classes_of thy) tyco) [class]
-    fun belongs_here thyname (c, NONE) =
-          not (exists (fn thy => Sign.declared_const thy c) (Theory.parents_of this_thy))
-      | belongs_here thyname (c, SOME tyco) =
-          not (exists (fn thy => test_instance thy ((the o AxClass.class_of_param thy) c, tyco))
-            (Theory.parents_of this_thy))
-  in case thyname
-   of NONE => consts
-    | SOME thyname => filter (belongs_here thyname) consts
-  end;
-
 fun filter_generatable thy targets consts =
   let
     val (consts', funcgr) = Funcgr.make_consts thy consts;
@@ -635,11 +617,6 @@ fun filter_generatable thy targets consts =
     val consts''' = map_filter (fn (const, SOME _) => SOME const | (_, NONE) => NONE)
       (consts' ~~ consts'');
   in consts''' end;
-
-fun read_constspec thy targets "*" = filter_generatable thy targets (consts_of thy NONE)
-  | read_constspec thy targets s = if String.isSuffix ".*" s
-      then filter_generatable thy targets (consts_of thy (SOME (unsuffix ".*" s)))
-      else [CodegenConsts.read_const thy s];
 
 
 (** toplevel interface and setup **)
@@ -655,7 +632,8 @@ fun code raw_cs seris thy =
           (target, SOME (CodegenSerializer.get_serializer thy target args CodegenNames.labelled_name))
       | (target, []) => (CodegenSerializer.assert_serializer thy target, NONE)) seris;
     val targets = case map fst seris' of [] => NONE | xs => SOME xs;
-    val cs = maps (read_constspec thy targets) raw_cs;
+    val cs = CodegenConsts.read_const_exprs thy
+      (filter_generatable thy targets) raw_cs;
     fun generate' thy = case cs
      of [] => []
       | _ =>
@@ -671,11 +649,11 @@ fun code raw_cs seris thy =
     (map (serialize' cs code) (map_filter snd seris'); ())
   end;
 
-fun print_codethms_cmd thy =
-  print_codethms thy o map (CodegenConsts.read_const thy);
+fun code_thms_cmd thy =
+  code_thms thy o CodegenConsts.read_const_exprs thy (fst o Funcgr.make_consts thy);
 
 fun code_deps_cmd thy =
-  code_deps thy o map (CodegenConsts.read_const thy);
+  code_deps thy o CodegenConsts.read_const_exprs thy (fst o Funcgr.make_consts thy);
 
 val code_exprP = (
     (Scan.repeat P.term
@@ -713,13 +691,13 @@ val code_axiomsP =
   );
 
 val code_thmsP =
-  OuterSyntax.improper_command code_thmsK "print cached defining equations" OuterKeyword.diag
+  OuterSyntax.improper_command code_thmsK "print system of defining equations for code" OuterKeyword.diag
     (Scan.repeat P.term
       >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
-        o Toplevel.keep ((fn thy => print_codethms_cmd thy cs) o Toplevel.theory_of)));
+        o Toplevel.keep ((fn thy => code_thms_cmd thy cs) o Toplevel.theory_of)));
 
 val code_depsP =
-  OuterSyntax.improper_command code_depsK "visualize dependencies of defining equations" OuterKeyword.diag
+  OuterSyntax.improper_command code_depsK "visualize dependencies of defining equations for code" OuterKeyword.diag
     (Scan.repeat P.term
       >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
         o Toplevel.keep ((fn thy => code_deps_cmd thy cs) o Toplevel.theory_of)));
