@@ -122,8 +122,18 @@ proof (intro iffI strip)
     by (unfold wf_def, 
         blast dest: spec [of _ "%x. x\<in>Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y,z) \<in> r \<longrightarrow> y\<notin>Q)"]) 
 next
-  assume "\<forall>Q x. x \<in> Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q)"
-  thus "wf r" by (unfold wf_def, force)
+  assume 1: "\<forall>Q x. x \<in> Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q)"
+  show "wf r"
+  proof (rule wfUNIVI)
+    fix P :: "'a \<Rightarrow> bool" and x
+    assume 2: "\<forall>x. (\<forall>y. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x"
+    let ?Q = "{x. \<not> P x}"
+    have "x \<in> ?Q \<longrightarrow> (\<exists>z\<in>?Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> ?Q)"
+      by (rule 1 [THEN spec, THEN spec])
+    hence "\<not> P x \<longrightarrow> (\<exists>z. \<not> P z \<and> (\<forall>y. (y, z) \<in> r \<longrightarrow> P y))" by simp
+    with 2 have "\<not> P x \<longrightarrow> (\<exists>z. \<not> P z \<and> P z)" by fast
+    thus "P x" by simp
+  qed
 qed
 
 lemmas wfP_eq_minimal = wf_eq_minimal [to_pred]
