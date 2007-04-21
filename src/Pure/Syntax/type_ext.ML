@@ -11,7 +11,7 @@ sig
   val sort_of_term: (sort -> sort) -> term -> sort
   val term_sorts: (sort -> sort) -> term -> (indexname * sort) list
   val typ_of_term: (indexname -> sort) -> (sort -> sort) -> term -> typ
-  val decode_types: (((string * int) * sort) list -> string * int -> sort) ->
+  val decode_term: (((string * int) * sort) list -> string * int -> sort) ->
     (string -> string option) -> (string -> string option) ->
     (typ -> typ) -> (sort -> sort) -> term -> term
   val term_of_typ: bool -> typ -> term
@@ -101,9 +101,9 @@ fun typ_of_term get_sort map_sort t =
   in typ_of t end;
 
 
-(* decode_types -- transform parse tree into raw term *)
+(* decode_term -- transform parse tree into raw term *)
 
-fun decode_types get_sort map_const map_free map_type map_sort tm =
+fun decode_term get_sort map_const map_free map_type map_sort tm =
   let
     val sort_env = term_sorts map_sort tm;
     val decodeT = map_type o typ_of_term (get_sort sort_env) map_sort;

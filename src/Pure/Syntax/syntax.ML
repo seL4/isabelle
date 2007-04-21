@@ -424,7 +424,7 @@ fun read ctxt is_logtype (syn as Syntax (tabs, _)) ty str =
 (* read terms *)
 
 fun read_term get_sort map_const map_free map_type map_sort ctxt is_logtype syn ty str =
-  map (TypeExt.decode_types get_sort map_const map_free map_type map_sort)
+  map (TypeExt.decode_term get_sort map_const map_free map_type map_sort)
     (read ctxt is_logtype syn ty str);
 
 
