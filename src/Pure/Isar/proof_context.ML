@@ -50,6 +50,7 @@ sig
   val get_skolem: Proof.context -> string -> string
   val revert_skolem: Proof.context -> string -> string
   val revert_skolems: Proof.context -> term -> term
+  val decode_term: Proof.context -> term -> term
   val read_termTs: Proof.context -> (string -> bool) -> (indexname -> typ option)
     -> (indexname -> sort option) -> string list -> (string * typ) list
     -> term list * (indexname * typ) list
@@ -478,24 +479,37 @@ fun reject_dummies t = Term.no_dummy_patterns t
   handle TERM _ => error "Illegal dummy pattern(s) in term";
 
 
-(* read terms *)
+(* decoding raw terms (syntax trees) *)
 
-local
-
-fun append_env e1 e2 x = (case e2 x of NONE => e1 x | some => some);
-
-fun legacy_intern_skolem ctxt internal x =
+fun legacy_intern_skolem ctxt internal def_type x =    (* FIXME cleanup this mess *)
   let
     val sko = lookup_skolem ctxt x;
     val is_const = can (Consts.read_const (consts_of ctxt)) x;
     val is_free = is_some sko orelse not is_const;
     val is_internal = internal x;
-    val is_declared = is_some (Variable.default_type ctxt x);
-  in
-    if is_free andalso not is_internal then (no_skolem false x; sko)
-    else ((no_skolem false x; ()) handle ERROR msg => warning msg;
-      if is_internal andalso is_declared then SOME x else NONE)
-  end;
+    val is_declared = is_some (def_type (x, ~1));
+    val res =
+      if is_free andalso not is_internal then (no_skolem false x; sko)
+      else ((no_skolem false x; ()) handle ERROR msg => warning msg;
+        if is_internal andalso is_declared then SOME x else NONE);
+  in if is_some res then res else if is_declared then SOME x else NONE end;
+
+fun decode_term ctxt =
+  let
+    val thy = theory_of ctxt;
+    val get_sort = Sign.get_sort thy (Variable.def_sort ctxt);
+    val map_const = try (#1 o Term.dest_Const o Consts.read_const (consts_of ctxt));
+    val map_free = legacy_intern_skolem ctxt (K false) (Variable.def_type ctxt false);
+    val map_type = Sign.intern_tycons thy;
+    val map_sort = Sign.intern_sort thy;
+  in Syntax.decode_term get_sort map_const map_free map_type map_sort end;
+
+
+(* read terms *)
+
+local
+
+fun append_env e1 e2 x = (case e2 x of NONE => e1 x | some => some);
 
 fun gen_read' read app pattern schematic
     ctxt internal more_types more_sorts more_used s =
@@ -504,7 +518,8 @@ fun gen_read' read app pattern schematic
     val sorts = append_env (Variable.def_sort ctxt) more_sorts;
     val used = fold Name.declare more_used (Variable.names_of ctxt);
   in
-    (read (pp ctxt) (syn_of ctxt) ctxt (types, sorts, used) (legacy_intern_skolem ctxt internal) s
+    (read (pp ctxt) (syn_of ctxt) ctxt (types, sorts, used)
+        (legacy_intern_skolem ctxt internal types) s
       handle TERM (msg, _) => error msg)
     |> app (certify_consts ctxt)
     |> app (if pattern then I else expand_binds ctxt schematic)
