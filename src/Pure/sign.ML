@@ -159,6 +159,8 @@ sig
   val read_sort: theory -> string -> sort
   val read_arity: theory -> xstring * string list * string -> arity
   val cert_arity: theory -> arity -> arity
+  val get_sort: theory ->
+    (indexname -> sort option) -> (indexname * sort) list -> indexname -> sort
   val read_typ': Syntax.syntax -> Proof.context -> (indexname -> sort option) -> string -> typ
   val read_typ_syntax': Syntax.syntax -> Proof.context ->
     (indexname -> sort option) -> string -> typ
@@ -524,8 +526,10 @@ val cert_arity = prep_arity (K I) certify_sort;
 
 (* types *)
 
-fun get_sort tsig def_sort raw_env =
+fun get_sort thy def_sort raw_env =
   let
+    val tsig = tsig_of thy;
+
     fun eq ((xi, S), (xi', S')) =
       Term.eq_ix (xi, xi') andalso Type.eq_sort tsig (S, S');
     val env = distinct eq raw_env;
@@ -551,7 +555,7 @@ fun gen_read_typ' cert syn ctxt def_sort str =
     val thy = ProofContext.theory_of ctxt;
     val _ = Context.check_thy thy;
     val T = intern_tycons thy
-      (Syntax.read_typ ctxt syn (get_sort (tsig_of thy) def_sort) (intern_sort thy) str);
+      (Syntax.read_typ ctxt syn (get_sort thy def_sort) (intern_sort thy) str);
   in cert thy T handle TYPE (msg, _, _) => error msg end
   handle ERROR msg => cat_error msg ("The error(s) above occurred in type " ^ quote str);
 
@@ -593,19 +597,14 @@ val read_const = Consts.read_const o consts_of;
   freeze: if true then generated parameters are turned into TFrees, else TVars
 *)
 
-fun read_def_terms' pp is_logtype syn consts fixed ctxt (def_type, def_sort) used freeze sTs =
+fun read_def_terms' pp is_logtype syn consts map_free ctxt (def_type, def_sort) used freeze sTs =
   let
     val thy = ProofContext.theory_of ctxt;
-    val tsig = tsig_of thy;
 
     (*read terms -- potentially ambiguous*)
     val map_const = try (#1 o Term.dest_Const o Consts.read_const consts);
-    fun map_free x =
-      (case fixed x of
-        NONE => if is_some (def_type (x, ~1)) then SOME x else NONE
-      | some => some);
     val read =
-      Syntax.read_term (get_sort tsig def_sort) map_const map_free
+      Syntax.read_term (get_sort thy def_sort) map_const map_free
         (intern_tycons thy) (intern_sort thy) ctxt is_logtype syn;
 
     val args = sTs |> map (fn (s, raw_T) =>
@@ -616,7 +615,7 @@ fun read_def_terms' pp is_logtype syn consts fixed ctxt (def_type, def_sort) use
     val termss = fold_rev (multiply o fst) args [[]];
     val typs = map snd args;
 
-    fun infer ts = Result (TypeInfer.infer_types (Syntax.pp_show_brackets pp) tsig
+    fun infer ts = Result (TypeInfer.infer_types (Syntax.pp_show_brackets pp) (tsig_of thy)
         (try (Consts.the_constraint consts)) def_type used freeze (ts ~~ typs) |>> map fst)
       handle TYPE (msg, _, _) => Exn (ERROR msg);
 
@@ -646,8 +645,9 @@ fun read_def_terms (thy, types, sorts) used freeze sTs =
     val pp = pp thy;
     val consts = consts_of thy;
     val cert_consts = Consts.certify pp (tsig_of thy) consts;
+    fun map_free x = if is_some (types (x, ~1)) then SOME x else NONE;
     val (ts, inst) =
-      read_def_terms' pp (is_logtype thy) (syn_of thy) consts (K NONE)
+      read_def_terms' pp (is_logtype thy) (syn_of thy) consts map_free
         (ProofContext.init thy) (types, sorts) (Name.make_context used) freeze sTs;
   in (map cert_consts ts, inst) end;
 
