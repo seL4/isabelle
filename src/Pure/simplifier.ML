@@ -213,14 +213,6 @@ val _ = ML_Context.value_antiq "simproc" (Scan.lift Args.name >> (fn name =>
 
 local
 
-(* FIXME *)
-fun read_terms ctxt ts =
-  #1 (ProofContext.read_termTs ctxt (K false) (K NONE) (K NONE) []
-    (map (rpair dummyT) ts));
-
-(* FIXME *)
-fun cert_terms ctxt ts = map (ProofContext.cert_term ctxt) ts;
-
 fun gen_simproc prep {name, lhss, proc, identifier} lthy =
   let
     val naming = LocalTheory.full_naming lthy;
@@ -253,8 +245,8 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
 
 in
 
-val def_simproc = gen_simproc read_terms;
-val def_simproc_i = gen_simproc cert_terms;
+val def_simproc = gen_simproc ProofContext.read_terms;
+val def_simproc_i = gen_simproc ProofContext.cert_terms;
 
 end;
 
