@@ -78,6 +78,12 @@ lemma rev_eqvt:
   shows "pi\<bullet>(rev l) = rev (pi\<bullet>l)"
   by (induct l) (simp_all add: append_eqvt)
 
+lemma set_eqvt:
+  fixes pi :: "'x prm"
+  and   xs :: "'a list"
+  shows "pi\<bullet>(set xs) = set (pi\<bullet>xs)"
+by (induct xs, auto simp add: empty_eqvt insert_eqvt)
+
 (* permutation on functions *)
 defs (unchecked overloaded)
   perm_fun_def: "pi\<bullet>(f::'a\<Rightarrow>'b) \<equiv> (\<lambda>x. pi\<bullet>f((rev pi)\<bullet>x))"
@@ -2279,13 +2285,6 @@ using a1 a2
 apply(simp add: fresh_fin_insert[OF pt, OF at, OF fs, OF f])
 done
 
-lemma pt_set_eqvt:
-  fixes pi :: "'x prm"
-  and   xs :: "'a list"
-  assumes pt: "pt TYPE('a) TYPE('x)"
-  shows "pi\<bullet>(set xs) = set (pi\<bullet>xs)"
-by (induct xs, auto simp add: perm_set_def pt1[OF pt])
-
 lemma pt_list_set_supp:
   fixes xs :: "'a list"
   assumes pt: "pt TYPE('a) TYPE('x)"
@@ -3187,7 +3186,7 @@ lemmas [eqvt] =
   plus_int_eqvt minus_int_eqvt mult_int_eqvt div_int_eqvt
   
   (* sets *)
-  union_eqvt empty_eqvt insert_eqvt
+  union_eqvt empty_eqvt insert_eqvt set_eqvt
   
  
 (* the lemmas numeral_nat_eqvt numeral_int_eqvt do not conform with the *)
