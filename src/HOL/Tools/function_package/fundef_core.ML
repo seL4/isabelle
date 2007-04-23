@@ -866,7 +866,7 @@ fun prepare_fundef config defname (fname, fT, mixfix) abstract_qglrs default_str
       val domT = domain_type fT
       val ranT = range_type fT
                             
-      val [default] = fst (Variable.importT_terms (fst (ProofContext.read_termTs lthy (K false) (K NONE) (K NONE) [] [(default_str, fT)])) lthy) (* FIXME *)
+      val default = singleton (ProofContext.read_termTs lthy) (default_str, fT)
 
       val congs = get_fundef_congs (Context.Proof lthy)
       val (globals, ctxt') = fix_globals domT ranT fvar lthy
