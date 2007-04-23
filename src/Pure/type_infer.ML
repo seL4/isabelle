@@ -12,6 +12,7 @@ sig
   val polymorphicT: typ -> typ
   val constrain: term -> typ -> term
   val param: int -> string * sort -> typ
+  val paramify_vars: typ -> typ
   val paramify_dummies: typ -> int -> typ * int
   val appl_error: Pretty.pp -> string -> term -> typ -> term -> typ -> string list
   val infer_types: Pretty.pp -> Type.tsig ->
@@ -40,6 +41,8 @@ fun constrain t T =
 
 fun is_param_default (x, _) = size x > 0 andalso ord x = ord "?";
 fun param i (x, S) = TVar (("?" ^ x, i), S);
+
+val paramify_vars = Term.map_atyps (fn TVar ((x, i), S) => param i (x, S) | T => T);
 
 val paramify_dummies =
   let
@@ -402,17 +405,16 @@ fun infer_types pp tsig const_type var_type used freeze args =
     val tTs' = ListPair.map Constraint (ts', Ts');
     val _ = List.app (fn t => (infer pp tsig t; ())) tTs';
 
-    (*collect result unifier*)
-    fun ch_var (xi, Link (r as ref (Param S))) = (r := PTVar (xi, S); NONE)
-      | ch_var xi_T = SOME xi_T;
-    val env = map_filter ch_var (Vartab.dest Tps);
-
     (*convert back to terms/typs*)
     val mk_var =
       if freeze then PTFree
       else (fn (x, S) => PTVar ((x, 0), S));
     val (final_Ts, final_ts) = typs_terms_of used mk_var "" (Ts', ts');
-    val final_env = map (apsnd simple_typ_of) env;
-  in (final_ts ~~ final_Ts, final_env) end;
+
+    (*collect result unifier*)
+    val redundant = fn (xi, TVar (yi, _)) => xi = yi | _ => false;
+    val env = filter_out redundant (map (apsnd simple_typ_of) (Vartab.dest Tps));
+
+  in (final_ts ~~ final_Ts, env) end;
 
 end;
