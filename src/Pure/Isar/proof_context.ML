@@ -51,9 +51,6 @@ sig
   val revert_skolem: Proof.context -> string -> string
   val revert_skolems: Proof.context -> term -> term
   val decode_term: Proof.context -> term -> term
-  val read_termTs: Proof.context -> (string -> bool) -> (indexname -> typ option)
-    -> (indexname -> sort option) -> string list -> (string * typ) list
-    -> term list * (indexname * typ) list
   val read_termTs_schematic: Proof.context -> (string -> bool) -> (indexname -> typ option)
     -> (indexname -> sort option) -> string list -> (string * typ) list
     -> term list * (indexname * typ) list
@@ -61,10 +58,13 @@ sig
   val read_term: Proof.context -> string -> term
   val read_prop: Proof.context -> string -> term
   val read_prop_schematic: Proof.context -> string -> term
+  val read_termTs: Proof.context -> (string * typ) list -> term list
+  val read_terms: Proof.context -> string list -> term list
   val read_term_pats: typ -> Proof.context -> string list -> term list
   val read_prop_pats: Proof.context -> string list -> term list
   val read_term_abbrev: Proof.context -> string -> term
   val cert_term: Proof.context -> term -> term
+  val cert_terms: Proof.context -> term list -> term list
   val cert_prop: Proof.context -> term -> term
   val cert_term_pats: typ -> Proof.context -> term list -> term list
   val cert_prop_pats: Proof.context -> term list -> term list
@@ -438,7 +438,7 @@ fun read_prop_thy freeze pp syn thy defaults fixed s =
   #1 (read_def_termT freeze pp syn thy defaults fixed (s, propT));
 
 fun read_terms_thy freeze pp syn thy defaults fixed =
-  #1 o read_def_termTs freeze pp syn thy defaults fixed o map (rpair dummyT);
+  #1 o read_def_termTs freeze pp syn thy defaults fixed;
 
 fun read_props_thy freeze pp syn thy defaults fixed =
   #1 o read_def_termTs freeze pp syn thy defaults fixed o map (rpair propT);
@@ -532,7 +532,6 @@ fun gen_read read app pattern schematic ctxt =
 
 in
 
-val read_termTs           = gen_read' (read_def_termTs false) (apfst o map) false false;
 val read_termTs_schematic = gen_read' (read_def_termTs false) (apfst o map) false true;
 
 fun read_term_pats T ctxt =
@@ -545,7 +544,8 @@ fun read_prop_legacy ctxt =
 val read_term            = gen_read (read_term_thy true) I false false;
 val read_prop            = gen_read (read_prop_thy true) I false false;
 val read_prop_schematic  = gen_read (read_prop_thy true) I false true;
-val read_terms           = gen_read (read_terms_thy true) map false false;
+val read_termTs          = gen_read (read_terms_thy true) map false false;
+fun read_terms ctxt      = read_termTs ctxt o map (rpair dummyT);
 fun read_props schematic = gen_read (read_props_thy true) map false schematic;
 
 end;
@@ -565,6 +565,7 @@ fun gen_cert prop pattern schematic ctxt t = t
 in
 
 val cert_term = gen_cert false false false;
+val cert_terms = map o cert_term;
 val cert_prop = gen_cert true false false;
 val cert_props = map oo gen_cert true false;
 
@@ -695,7 +696,7 @@ fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
 in
 
 val match_bind = gen_binds read_terms read_term_pats;
-val match_bind_i = gen_binds (map o cert_term) cert_term_pats;
+val match_bind_i = gen_binds cert_terms cert_term_pats;
 
 end;
 
