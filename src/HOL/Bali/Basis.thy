@@ -216,7 +216,7 @@ hide const In0 In1
 syntax
   fun_sum :: "('a => 'c) => ('b => 'c) => (('a+'b) => 'c)" (infixr "'(+')"80)
 translations
- "fun_sum" == "sum_case"
+ "fun_sum" == "CONST sum_case"
 
 consts    the_Inl  :: "'a + 'b \<Rightarrow> 'a"
           the_Inr  :: "'a + 'b \<Rightarrow> 'b"
