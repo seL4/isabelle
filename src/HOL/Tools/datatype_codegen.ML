@@ -65,8 +65,6 @@ fun find_nonempty (descr: DatatypeAux.descr) is i =
 
 fun add_dt_defs thy defs dep module gr (descr: DatatypeAux.descr) =
   let
-    val tab = DatatypePackage.get_datatypes thy;
-
     val descr' = List.filter (can (map DatatypeAux.dest_DtTFree o #2 o snd)) descr;
     val rtnames = map (#1 o snd) (List.filter (fn (_, (_, _, cs)) =>
       exists (exists DatatypeAux.is_rec_type o snd) cs) descr');
@@ -285,27 +283,26 @@ fun pretty_constr thy defs gr dep module brack args (c as Const (s, T)) ts =
 
 fun datatype_codegen thy defs gr dep module brack t = (case strip_comb t of
    (c as Const (s, T), ts) =>
-       (case Library.find_first (fn (_, {index, descr, case_name, ...}) =>
-         s = case_name orelse
-           AList.defined (op =) ((#3 o the o AList.lookup (op =) descr) index) s)
-             (Symtab.dest (DatatypePackage.get_datatypes thy)) of
-          NONE => NONE
-        | SOME (tname, {index, descr, ...}) =>
-           if is_some (get_assoc_code thy s T) then NONE else
-           let val SOME (_, _, constrs) = AList.lookup (op =) descr index
-           in (case (AList.lookup (op =) constrs s, strip_type T) of
-               (NONE, _) => SOME (pretty_case thy defs gr dep module brack
-                 ((#3 o the o AList.lookup (op =) descr) index) c ts)
-             | (SOME args, (_, Type _)) => SOME (pretty_constr thy defs
-                 (fst (invoke_tycodegen thy defs dep module false
-                    (gr, snd (strip_type T))))
-                 dep module brack args c ts)
-             | _ => NONE)
-           end)
- |  _ => NONE);
+     (case DatatypePackage.datatype_of_case thy s of
+        SOME {index, descr, ...} =>
+          if is_some (get_assoc_code thy s T) then NONE else
+          SOME (pretty_case thy defs gr dep module brack
+            (#3 (the (AList.lookup op = descr index))) c ts)
+      | NONE => case (DatatypePackage.datatype_of_constr thy s, strip_type T) of
+        (SOME {index, descr, ...}, (_, U as Type _)) =>
+          if is_some (get_assoc_code thy s T) then NONE else
+          let val SOME args = AList.lookup op =
+            (#3 (the (AList.lookup op = descr index))) s
+          in
+            SOME (pretty_constr thy defs
+              (fst (invoke_tycodegen thy defs dep module false (gr, U)))
+              dep module brack args c ts)
+          end
+      | _ => NONE)
+ | _ => NONE);
 
 fun datatype_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
-      (case Symtab.lookup (DatatypePackage.get_datatypes thy) s of
+      (case DatatypePackage.get_datatype thy s of
          NONE => NONE
        | SOME {descr, ...} =>
            if isSome (get_assoc_type thy s) then NONE else
@@ -325,8 +322,8 @@ fun datatype_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
 (** datatypes for code 2nd generation **)
 
 fun dtyp_of_case_const thy c =
-  get_first (fn (dtco, { case_name, ... }) => if case_name = c then SOME dtco else NONE)
-    ((Symtab.dest o DatatypePackage.get_datatypes) thy);
+  Option.map (fn {descr, index, ...} => #1 (the (AList.lookup op = descr index)))
+    (DatatypePackage.datatype_of_case thy c);
 
 fun dest_case_app cs ts tys =
   let
