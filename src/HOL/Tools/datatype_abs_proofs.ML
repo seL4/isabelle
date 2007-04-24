@@ -324,7 +324,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
                 fns2 @ (List.concat (Library.drop (i + 1, case_dummy_fns))) )));
           val ([def_thm], thy') =
             thy
-            |> Theory.add_consts_i [decl]
+            |> Sign.add_consts_authentic [decl]
             |> (PureThy.add_defs_i false o map Thm.no_attributes) [def];
 
         in (defs @ [def_thm], thy')
