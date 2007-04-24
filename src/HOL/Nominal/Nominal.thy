@@ -3044,6 +3044,39 @@ lemma perm_eq_lam:
   shows "((pi\<bullet>(\<lambda>x. f x))=y) = ((\<lambda>x. (pi\<bullet>(f ((rev pi)\<bullet>x))))=y)"
   by (simp add: perm_fun_def)
 
+lemma pt_perm_fresh_app:
+  fixes pi :: "'x prm" 
+  and   a  :: "'x"
+  and   x  :: "'y"
+  assumes at: "at TYPE('x)"
+  and     pt: "pt TYPE('y) TYPE('x)"
+  and     h1: "a \<sharp> pi"
+  and     h2: "a \<sharp> x"
+  shows "a \<sharp> (pi \<bullet> x)"
+using assms
+proof -
+  have "a \<sharp> rev pi"using h1 by (simp add: fresh_list_rev)
+  then have "(rev pi) \<bullet> a = a" by (simp add: at_prm_fresh[OF at])
+  then have "((rev pi) \<bullet> a) \<sharp> x" using h2 by simp
+  thus "a \<sharp> (pi \<bullet> x)"  by (simp add: pt_fresh_right[OF pt, OF at])
+qed
+
+lemma pt_perm_fresh_app_ineq:
+  fixes pi :: "'x prm" 
+  and   a  :: "'y"
+  and   x  :: "'z"
+  assumes pta: "pt TYPE('z) TYPE('x)" 
+  and     ptb: "pt TYPE('y) TYPE('x)"
+  and     at:  "at TYPE('x)"
+  and     cp:  "cp TYPE('z) TYPE('x) TYPE('y)"
+  and     dj:  "disjoint TYPE('y) TYPE('x)"
+  assumes h:"a \<sharp> x"
+  shows "a \<sharp> pi \<bullet> x"
+  apply -
+  apply (rule pt_fresh_left_ineq[THEN iffD2],assumption+)
+  apply (simp add: dj_perm_forget[OF dj],assumption)
+done
+
 section {* test *}
 lemma at_prm_eq_compose:
   fixes pi1 :: "'x prm"
