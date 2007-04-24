@@ -1578,6 +1578,7 @@ qed
 
 (* the next two lemmas are needed in the proof *)
 (* of the structural induction principle       *)
+
 lemma pt_fresh_aux:
   fixes a::"'x"
   and   b::"'x"
@@ -1589,7 +1590,24 @@ lemma pt_fresh_aux:
   shows "c\<sharp>([(a,b)]\<bullet>x)"
 using a1 a2 a3 by (simp_all add: pt_fresh_left[OF pt, OF at] at_calc[OF at])
 
-lemma pt_fresh_aux_ineq:
+lemma pt_fresh_perm_app:
+  fixes pi :: "'x prm" 
+  and   a  :: "'x"
+  and   x  :: "'y"
+  assumes pt: "pt TYPE('y) TYPE('x)"
+  and     at: "at TYPE('x)"
+  and     h1: "a \<sharp> pi"
+  and     h2: "a \<sharp> x"
+  shows "a \<sharp> (pi \<bullet> x)"
+using assms
+proof -
+  have "a \<sharp> rev pi"using h1 by (simp add: fresh_list_rev)
+  then have "(rev pi) \<bullet> a = a" by (simp add: at_prm_fresh[OF at])
+  then have "((rev pi) \<bullet> a) \<sharp> x" using h2 by simp
+  thus "a \<sharp> (pi \<bullet> x)"  by (simp add: pt_fresh_right[OF pt, OF at])
+qed
+
+lemma pt_fresh_perm_app_ineq:
   fixes pi::"'x prm"
   and   c::"'y"
   and   x::"'a"
@@ -3043,39 +3061,6 @@ lemma perm_eq_lam:
   and   pi :: "'x prm"
   shows "((pi\<bullet>(\<lambda>x. f x))=y) = ((\<lambda>x. (pi\<bullet>(f ((rev pi)\<bullet>x))))=y)"
   by (simp add: perm_fun_def)
-
-lemma pt_perm_fresh_app:
-  fixes pi :: "'x prm" 
-  and   a  :: "'x"
-  and   x  :: "'y"
-  assumes at: "at TYPE('x)"
-  and     pt: "pt TYPE('y) TYPE('x)"
-  and     h1: "a \<sharp> pi"
-  and     h2: "a \<sharp> x"
-  shows "a \<sharp> (pi \<bullet> x)"
-using assms
-proof -
-  have "a \<sharp> rev pi"using h1 by (simp add: fresh_list_rev)
-  then have "(rev pi) \<bullet> a = a" by (simp add: at_prm_fresh[OF at])
-  then have "((rev pi) \<bullet> a) \<sharp> x" using h2 by simp
-  thus "a \<sharp> (pi \<bullet> x)"  by (simp add: pt_fresh_right[OF pt, OF at])
-qed
-
-lemma pt_perm_fresh_app_ineq:
-  fixes pi :: "'x prm" 
-  and   a  :: "'y"
-  and   x  :: "'z"
-  assumes pta: "pt TYPE('z) TYPE('x)" 
-  and     ptb: "pt TYPE('y) TYPE('x)"
-  and     at:  "at TYPE('x)"
-  and     cp:  "cp TYPE('z) TYPE('x) TYPE('y)"
-  and     dj:  "disjoint TYPE('y) TYPE('x)"
-  assumes h:"a \<sharp> x"
-  shows "a \<sharp> pi \<bullet> x"
-  apply -
-  apply (rule pt_fresh_left_ineq[THEN iffD2],assumption+)
-  apply (simp add: dj_perm_forget[OF dj],assumption)
-done
 
 section {* test *}
 lemma at_prm_eq_compose:

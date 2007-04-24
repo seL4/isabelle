@@ -703,8 +703,6 @@ fun create_nom_typedecls ak_names thy =
        val fresh_right         = thm "Nominal.pt_fresh_right";
        val fresh_bij_ineq      = thm "Nominal.pt_fresh_bij_ineq";
        val fresh_bij           = thm "Nominal.pt_fresh_bij";
-       val fresh_aux_ineq      = thm "Nominal.pt_fresh_aux_ineq";
-       val fresh_aux           = thm "Nominal.pt_fresh_aux";
        val fresh_eqvt          = thm "Nominal.pt_fresh_eqvt";
        val fresh_eqvt_ineq     = thm "Nominal.pt_fresh_eqvt_ineq";
        val set_diff_eqvt       = thm "Nominal.pt_set_diff_eqvt";
@@ -716,9 +714,10 @@ fun create_nom_typedecls ak_names thy =
        val pt_rev_pi           = thm "Nominal.pt_rev_pi";
        val at_exists_fresh     = thm "Nominal.at_exists_fresh";
        val at_exists_fresh'    = thm "Nominal.at_exists_fresh'";
-       val fresh_perm_app_ineq = thm "pt_fresh_perm_app_ineq";
-       val fresh_perm_app      = thm "pt_fresh_perm_app";	
-  
+       val fresh_perm_app_ineq = thm "Nominal.pt_fresh_perm_app_ineq";
+       val fresh_perm_app      = thm "Nominal.pt_fresh_perm_app";	
+       val fresh_aux           = thm "Nominal.pt_fresh_aux";  
+
        (* Now we collect and instantiate some lemmas w.r.t. all atom      *)
        (* types; this allows for example to use abs_perm (which is a      *)
        (* collection of theorems) instead of thm abs_fun_pi with explicit *)
@@ -858,12 +857,12 @@ fun create_nom_typedecls ak_names thy =
 	      in [(("set_diff_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
             ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [fresh_aux]
-		  and thms2 = inst_pt_pt_at_cp_dj [fresh_aux_ineq]
-	      in [(("fresh_aux", thms1 @ thms2),[])] end  
+		  and thms2 = inst_pt_pt_at_cp_dj [fresh_perm_app_ineq] 
+	      in  [(("fresh_aux", thms1 @ thms2),[])] end  
             ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [fresh_perm_app]
-		  and thms2 = inst_pt_pt_at_cp_dj [fresh_perm_app_ineq]
-	      in [(("fresh_perm_app", thms1 @ thms2),[])] end
+		  and thms2 = inst_pt_pt_at_cp_dj [fresh_perm_app_ineq] 
+	      in  [(("fresh_perm_app", thms1 @ thms2),[])] end  
             ||>> PureThy.add_thmss [(("fin_supp",fs_axs),[])]
 	   end;
 
