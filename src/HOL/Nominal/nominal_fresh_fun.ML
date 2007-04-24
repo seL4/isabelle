@@ -9,11 +9,13 @@ A tactic to get rid of the fresh_fun.
 (* First some functions that could be
  in the library *)
 
-(* A tactical which implements Coq's T;[a,b,c] *)
+(* A tactical which applies a list of int -> tactic to the corresponding subgoals present after the application of another tactic. 
+T THENL [A,B,C] is equivalent to T THEN (C 3 THEN B 2 THEN A 1) 
+*)
 
 infix 1 THENL
 
-fun THENL (tac,tacs) =
+fun (op THENL) (tac,tacs) =
  tac THEN
   (EVERY (map  (fn (tac,i) => tac i) (rev tacs ~~ (length tacs downto 1))))
 

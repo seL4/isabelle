@@ -634,6 +634,11 @@ lemma at_prm_rev_eq1:
   shows "pi1 \<triangleq> pi2 \<Longrightarrow> (rev pi1) \<triangleq> (rev pi2)"
   by (simp add: at_prm_rev_eq[OF at])
 
+lemma at_perm_fresh_fresh:
+  fixes a  :: "'x"
+  assumes 
+
+
 lemma at_ds1:
   fixes a  :: "'x"
   assumes at: "at TYPE('x)"
