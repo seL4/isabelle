@@ -107,7 +107,7 @@ proof -
     next
       case (Some p)
       then have "LList_corec x f = CONS (fst p) (LList_corec (snd p) f)"
-        by (simp add: split_def LList_corec)
+        by (simp add: LList_corec split: prod.split)
       with L have ?CONS by auto
       then show ?thesis ..
     qed
@@ -244,7 +244,7 @@ proof (unfold llist_def)
       case (Some p)
       then have "?corec x =
           CONS (Datatype.Leaf (fst p)) (?corec (snd p))"
-        by (simp add: split_def LList_corec)
+        by (simp add: LList_corec split: prod.split)
       with L have ?CONS by auto
       then show ?thesis ..
     qed
@@ -271,12 +271,12 @@ next
     by (simp only: llist_corec_def)
   also from Some have "?rep_corec a =
       CONS (Datatype.Leaf (fst p)) (?rep_corec (snd p))"
-    by (simp add: split_def LList_corec)
+    by (simp add: LList_corec split: prod.split)
   also have "?rep_corec (snd p) = Rep_llist (?corec (snd p))"
     by (simp only: llist_corec_def Abs_llist_inverse LList_corec_type2)
   finally have "?corec a = LCons (fst p) (?corec (snd p))"
     by (simp only: LCons_def)
-  with Some show ?thesis by (simp add: split_def)
+  with Some show ?thesis by (simp split: prod.split)
 qed
 
 
@@ -457,7 +457,7 @@ proof -
       case (Some p)
       with h h' q have "q =
           (CONS (fst p) (h (snd p)), CONS (fst p) (h' (snd p)))"
-        by (simp add: split_def)
+        by (simp split: prod.split)
       then have ?EqCONS by (auto iff: diag_iff)
       then show ?thesis ..
     qed

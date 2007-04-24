@@ -981,13 +981,13 @@ lemma bc_mt_corresp_zero [simp]: "\<lbrakk> length (mt_of (f sttp)) = length bc;
   \<Longrightarrow> bc_mt_corresp bc f sttp cG rT mxr 0"
 apply (simp add: bc_mt_corresp_def start_sttp_resp_def split_beta)
 apply (erule disjE)
-apply (simp add: max_ssize_def max_of_list_def ssize_sto_def split_beta)
+apply (simp add: max_ssize_def max_of_list_def ssize_sto_def split: prod.split)
 apply (intro strip)
 apply (simp add: start_sttp_resp_cons_def split_beta)
 apply (drule_tac x=sttp in spec, erule exE)
 apply simp
 apply (rule check_type_mono, assumption)
-apply (simp add: max_ssize_def max_of_list_def ssize_sto_def max_def split_beta)
+apply (simp add: max_ssize_def max_of_list_def ssize_sto_def max_def split: prod.split)
 done
 
   (* ********************************************************************** *)
