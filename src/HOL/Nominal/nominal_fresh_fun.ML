@@ -57,7 +57,7 @@ fun get_dyn_thm thy name atom_name = (PureThy.get_thm thy (Name name)) handle _ 
 compile time. *)
 
 val at_exists_fresh' = thm "at_exists_fresh'";
-val fresh_fun_app = thm "fresh_fun_app";
+val fresh_fun_app' = thm "fresh_fun_app'";
 val fresh_prod = thm "fresh_prod";
 
 (* A tactic to generate a name fresh for 
@@ -131,7 +131,7 @@ fun fresh_fun_tac i thm =
     val abs_fresh = PureThy.get_thms thy (Name "abs_fresh");
     val ss' = ss addsimps fresh_prod::abs_fresh;
     val x = hd (tl (term_vars (prop_of exI)));
-    val goal = List.nth(prems_of thm, i-1);
+    val goal = nth (prems_of thm) (i-1);
     val atom_name_opt = get_inner_fresh_fun goal;
     val n = List.length (Logic.strip_params goal);
     (* Here we rely on the fact that the variable introduced by generate_fresh_tac is the last one in the list, the inner one *)
@@ -143,20 +143,27 @@ fun fresh_fun_tac i thm =
     val atom_basename = Sign.base_name atom_name;
     val pt_name_inst = get_dyn_thm thy ("pt_"^atom_basename^"_inst") atom_basename;
     val at_name_inst = get_dyn_thm thy ("at_"^atom_basename^"_inst") atom_basename;
-    fun tac_a i = 
-      res_inst_tac_term' [(x,Bound n)] false exI i THEN
-      asm_full_simp_tac ss' i                      THEN 
-      NominalPermeq.fresh_guess_tac HOL_ss i;
+    fun inst_fresh vars params i st =
+   let val vars' = term_vars (prop_of st);
+       val thy = theory_of_thm st;
+   in case vars' \\ vars of 
+     [x] => Seq.single (Thm.instantiate ([],[(cterm_of thy x,cterm_of thy (list_abs (params,Bound 0)))]) st)
+    | _ => error "fresh_fun_simp: Too many variables, please report."
+  end
   in
-  (generate_fresh_tac atom_name i      THEN 
-   subst_outer_tac ctx fresh_fun_app i THENL 
+  ( (* generate_fresh_tac atom_name i      THEN *) 
+  (fn st =>
+  let 
+    val vars = term_vars (prop_of st);
+    val params = Logic.strip_params (nth (prems_of st) (i-1))
+  in
+   (subst_outer_tac ctx fresh_fun_app' i THENL 
    [rtac pt_name_inst,
-    rtac at_name_inst, 
-    (fn i => TRY (NominalPermeq.finite_guess_tac HOL_ss i)),   
-    tac_a, 
-    (fn i => TRY (NominalPermeq.fresh_guess_tac  HOL_ss i)),
-    (fn i => auto_tac (HOL_cs, HOL_ss)) 
-]) thm 
+    rtac at_name_inst,
+    (K all_tac),
+    inst_fresh vars params]) st
+  end)) thm
+  
   end
   end
 
