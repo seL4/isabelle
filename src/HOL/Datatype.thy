@@ -553,6 +553,26 @@ rep_datatype prod
   inject Pair_eq
   induction prod_induct
 
+lemmas prod_caseI = prod.cases [THEN iffD2, standard]
+
+lemma prod_caseI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> prod_case c p"
+  by auto
+
+lemma prod_caseI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> prod_case c p x"
+  by (auto simp: split_tupled_all)
+
+lemma prod_caseE: "prod_case c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
+  by (induct p) auto
+
+lemma prod_caseE': "prod_case c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
+  by (induct p) auto
+
+lemma prod_case_unfold: "prod_case = (%c p. c (fst p) (snd p))"
+  by (simp add: expand_fun_eq)
+
+declare prod_caseI2' [intro!] prod_caseI2 [intro!] prod_caseI [intro!]
+declare prod_caseE' [elim!] prod_caseE [elim!]
+
 rep_datatype sum
   distinct Inl_not_Inr Inr_not_Inl
   inject Inl_eq Inr_eq
