@@ -717,6 +717,8 @@ fun create_nom_typedecls ak_names thy =
        val fresh_perm_app_ineq = thm "Nominal.pt_fresh_perm_app_ineq";
        val fresh_perm_app      = thm "Nominal.pt_fresh_perm_app";	
        val fresh_aux           = thm "Nominal.pt_fresh_aux";  
+       val pt_perm_supp_ineq   = thm "Nominal.pt_perm_supp_ineq";
+       val pt_perm_supp        = thm "Nominal.pt_perm_supp";
 
        (* Now we collect and instantiate some lemmas w.r.t. all atom      *)
        (* types; this allows for example to use abs_perm (which is a      *)
@@ -862,7 +864,11 @@ fun create_nom_typedecls ak_names thy =
             ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [fresh_perm_app]
 		  and thms2 = inst_pt_pt_at_cp_dj [fresh_perm_app_ineq] 
-	      in  [(("fresh_perm_app", thms1 @ thms2),[])] end  
+	      in  [(("fresh_perm_app", thms1 @ thms2),[])] end 
+            ||>> PureThy.add_thmss
+	      let val thms1 = inst_pt_at [pt_perm_supp]
+		  and thms2 = inst_pt_pt_at_cp [pt_perm_supp_ineq] 
+	      in  [(("supp_eqvt", thms1 @ thms2),[NominalThmDecls.eqvt_add])] end  
             ||>> PureThy.add_thmss [(("fin_supp",fs_axs),[])]
 	   end;
 
