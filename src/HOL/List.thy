@@ -2200,6 +2200,12 @@ by simp
 
 declare splice.simps(2) [simp del, code del]
 
+lemma length_splice[simp]: "!!ys. length(splice xs ys) = length xs + length ys"
+apply(induct xs) apply simp
+apply(case_tac ys)
+ apply auto
+done
+
 subsubsection{*Sets of Lists*}
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}
