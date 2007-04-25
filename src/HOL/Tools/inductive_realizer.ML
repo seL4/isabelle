@@ -21,46 +21,6 @@ fun name_of_thm thm =
      [(name, _)] => name
    | _ => error ("name_of_thm: bad proof of theorem\n" ^ string_of_thm thm));
 
-(* infer order of variables in intro rules from order of quantifiers in elim rule *)
-fun infer_intro_vars elim arity intros =
-  let
-    val thy = theory_of_thm elim;
-    val _ :: cases = prems_of elim;
-    val used = map (fst o fst) (Term.add_vars (prop_of elim) []);
-    fun mtch (t, u) =
-      let
-        val params = Logic.strip_params t;
-        val vars = map (Var o apfst (rpair 0))
-          (Name.variant_list used (map fst params) ~~ map snd params);
-        val ts = map (curry subst_bounds (rev vars))
-          (List.drop (Logic.strip_assums_hyp t, arity));
-        val us = Logic.strip_imp_prems u;
-        val tab = fold (Pattern.first_order_match thy) (ts ~~ us)
-          (Vartab.empty, Vartab.empty);
-      in
-        map (Envir.subst_vars tab) vars
-      end
-  in
-    map (mtch o apsnd prop_of) (cases ~~ intros)
-  end;
-
-(* read off arities of inductive predicates from raw induction rule *)
-fun arities_of induct =
-  map (fn (_ $ t $ u) =>
-      (fst (dest_Const (head_of t)), length (snd (strip_comb u))))
-    (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
-
-(* read off parameters of inductive predicate from raw induction rule *)
-fun params_of induct =
-  let
-    val (_ $ t $ u :: _) =
-      HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct));
-    val (_, ts) = strip_comb t;
-    val (_, us) = strip_comb u
-  in
-    List.take (ts, length ts - length us)
-  end;
-
 val all_simps = map (symmetric o mk_meta_eq) (thms "HOL.all_simps");
 
 fun prf_of thm =
@@ -311,16 +271,6 @@ fun mk_realizer thy vs (name, rule, rrule, rlz, rt) =
       (foldr forall_intr_prf (prf_of rrule) (vs2 @ rs))))
   end;
 
-fun partition_rules induct intrs =
-  let
-    fun name_of t = fst (dest_Const (head_of t));
-    val ts = HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct));
-    val sets = map (name_of o fst o HOLogic.dest_imp) ts;
-  in
-    map (fn s => (s, filter
-      (equal s o name_of o HOLogic.dest_Trueprop o concl_of) intrs)) sets
-  end;
-
 fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
   let
     val qualifier = NameSpace.qualifier (name_of_thm induct);
@@ -328,13 +278,14 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
       (NameSpace.qualified qualifier "inducts"));
     val iTs = term_tvars (prop_of (hd intrs));
     val ar = length vs + length iTs;
-    val params = params_of raw_induct;
-    val arities = arities_of raw_induct;
+    val params = InductivePackage.params_of raw_induct;
+    val arities = InductivePackage.arities_of raw_induct;
     val nparms = length params;
     val params' = map dest_Var params;
-    val rss = partition_rules raw_induct intrs;
+    val rss = InductivePackage.partition_rules raw_induct intrs;
     val rss' = map (fn (((s, rs), (_, arity)), elim) =>
-      (s, (infer_intro_vars elim arity rs ~~ rs))) (rss ~~ arities ~~ elims);
+      (s, (InductivePackage.infer_intro_vars elim arity rs ~~ rs)))
+        (rss ~~ arities ~~ elims);
     val (prfx, _) = split_last (NameSpace.explode (fst (hd rss)));
     val tnames = map (fn s => space_implode "_" (s ^ "T" :: vs)) rsets;
 
