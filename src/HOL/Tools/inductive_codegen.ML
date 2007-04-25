@@ -16,17 +16,6 @@ struct
 
 open Codegen;
 
-(* read off parameters of inductive predicate from raw induction rule *)
-fun params_of induct =
-  let
-    val (_ $ t $ u :: _) =
-      HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct));
-    val (_, ts) = strip_comb t;
-    val (_, us) = strip_comb u
-  in
-    List.take (ts, length ts - length us)
-  end;
-
 (**** theory data ****)
 
 fun merge_rules tabs =
@@ -77,7 +66,8 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
             SOME k => k
           | NONE => (case rules of
              [] => (case try (InductivePackage.the_inductive (ProofContext.init thy)) s of
-                 SOME (_, {raw_induct, ...}) => length (params_of raw_induct)
+                 SOME (_, {raw_induct, ...}) =>
+                   length (InductivePackage.params_of raw_induct)
                | NONE => 0)
             | xs => snd (snd (snd (split_last xs)))))
         in CodegenData.put
@@ -97,7 +87,8 @@ fun get_clauses thy s =
       NONE => (case try (InductivePackage.the_inductive (ProofContext.init thy)) s of
         NONE => NONE
       | SOME ({names, ...}, {intrs, raw_induct, ...}) =>
-          SOME (names, thyname_of_const s thy, length (params_of raw_induct),
+          SOME (names, thyname_of_const s thy,
+            length (InductivePackage.params_of raw_induct),
             preprocess thy intrs))
     | SOME _ =>
         let
