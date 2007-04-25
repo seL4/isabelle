@@ -49,6 +49,11 @@ sig
   val add_inductive_global: bool -> bstring -> bool -> bool -> bool ->
     (string * typ option * mixfix) list -> (string * typ option) list ->
     ((bstring * Attrib.src list) * term) list -> thm list -> theory -> inductive_result * theory
+  val arities_of: thm -> (string * int) list
+  val params_of: thm -> term list
+  val partition_rules: thm -> thm list -> (string * thm list) list
+  val unpartition_rules: thm list -> (string * 'a list) list -> 'a list
+  val infer_intro_vars: thm -> int -> thm list -> term list list
   val setup: theory -> theory
 end;
 
@@ -825,6 +830,59 @@ fun add_inductive_global verbose alt_name coind no_elim no_ind cnames_syn pnames
     (#2 (the_inductive (LocalTheory.target_of lthy)
       (LocalTheory.target_name lthy (#1 (hd cnames_syn)))),
     ProofContext.theory_of (LocalTheory.exit lthy)));
+
+
+(* read off arities of inductive predicates from raw induction rule *)
+fun arities_of induct =
+  map (fn (_ $ t $ u) =>
+      (fst (dest_Const (head_of t)), length (snd (strip_comb u))))
+    (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
+
+(* read off parameters of inductive predicate from raw induction rule *)
+fun params_of induct =
+  let
+    val (_ $ t $ u :: _) =
+      HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct));
+    val (_, ts) = strip_comb t;
+    val (_, us) = strip_comb u
+  in
+    List.take (ts, length ts - length us)
+  end;
+
+val pname_of_intr =
+  concl_of #> HOLogic.dest_Trueprop #> head_of #> dest_Const #> fst;
+
+(* partition introduction rules according to predicate name *)
+fun partition_rules induct intros =
+  fold_rev (fn r => AList.map_entry op = (pname_of_intr r) (cons r)) intros
+    (map (rpair [] o fst) (arities_of induct));
+
+fun unpartition_rules intros xs =
+  fold_map (fn r => AList.map_entry_yield op = (pname_of_intr r)
+    (fn x :: xs => (x, xs)) #>> the) intros xs |> fst;
+
+(* infer order of variables in intro rules from order of quantifiers in elim rule *)
+fun infer_intro_vars elim arity intros =
+  let
+    val thy = theory_of_thm elim;
+    val _ :: cases = prems_of elim;
+    val used = map (fst o fst) (Term.add_vars (prop_of elim) []);
+    fun mtch (t, u) =
+      let
+        val params = Logic.strip_params t;
+        val vars = map (Var o apfst (rpair 0))
+          (Name.variant_list used (map fst params) ~~ map snd params);
+        val ts = map (curry subst_bounds (rev vars))
+          (List.drop (Logic.strip_assums_hyp t, arity));
+        val us = Logic.strip_imp_prems u;
+        val tab = fold (Pattern.first_order_match thy) (ts ~~ us)
+          (Vartab.empty, Vartab.empty);
+      in
+        map (Envir.subst_vars tab) vars
+      end
+  in
+    map (mtch o apsnd prop_of) (cases ~~ intros)
+  end;
 
 
 (** package setup **)
