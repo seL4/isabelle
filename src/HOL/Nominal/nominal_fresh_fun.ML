@@ -15,7 +15,7 @@ T THENL [A,B,C] is equivalent to T THEN (C 3 THEN B 2 THEN A 1)
 
 infix 1 THENL
 
-fun (op THENL) (tac,tacs) =
+fun tac THENL tacs =
  tac THEN
   (EVERY (map  (fn (tac,i) => tac i) (rev tacs ~~ (length tacs downto 1))))
 
