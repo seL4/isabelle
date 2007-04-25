@@ -54,6 +54,11 @@ fun prove_strong_ind s avoids thy =
     val ctxt = ProofContext.init thy;
     val ({names, ...}, {raw_induct, ...}) =
       InductivePackage.the_inductive ctxt (Sign.intern_const thy s);
+    val eqvt_thms = NominalThmDecls.get_eqvt_thms thy;
+    val _ = (case names \\ foldl (apfst prop_of #> add_term_consts) [] eqvt_thms of
+        [] => ()
+      | xs => error ("Missing equivariance theorem for predicate(s): " ^
+          commas_quote xs));
     val induct_cases = map fst (fst (RuleCases.get (the
       (InductAttrib.lookup_inductS ctxt (hd names)))));
     val raw_induct' = Logic.unvarify (prop_of raw_induct);
@@ -168,7 +173,7 @@ fun prove_strong_ind s avoids thy =
            (Const ("Nominal.fresh", U --> T --> HOLogic.boolT) $ u $ t)) bvars)
              (ts ~~ binder_types (fastype_of p)))) prems;
 
-    val eqvt_ss = HOL_basic_ss addsimps NominalThmDecls.get_eqvt_thms thy;
+    val eqvt_ss = HOL_basic_ss addsimps eqvt_thms;
     val fresh_bij = PureThy.get_thms thy (Name "fresh_bij");
     val perm_bij = PureThy.get_thms thy (Name "perm_bij");
     val fs_atoms = map (fn aT => PureThy.get_thm thy
@@ -319,8 +324,13 @@ fun prove_strong_ind s avoids thy =
 fun prove_eqvt s xatoms thy =
   let
     val ctxt = ProofContext.init thy;
-    val ({names, ...}, {raw_induct, intrs, ...}) =
+    val ({names, ...}, {raw_induct, intrs, elims, ...}) =
       InductivePackage.the_inductive ctxt (Sign.intern_const thy s);
+    val intrs' = InductivePackage.unpartition_rules intrs
+      (map (fn (((s, ths), (_, k)), th) =>
+           (s, ths ~~ InductivePackage.infer_intro_vars th k ths))
+         (InductivePackage.partition_rules raw_induct intrs ~~
+          InductivePackage.arities_of raw_induct ~~ elims));
     val atoms' = NominalAtoms.atoms_of thy;
     val atoms =
       if null xatoms then atoms' else
@@ -339,18 +349,21 @@ fun prove_eqvt s xatoms thy =
     val pi = Name.variant (add_term_names (t, [])) "pi";
     val ps = map (fst o HOLogic.dest_imp)
       (HOLogic.dest_conj (HOLogic.dest_Trueprop t));
-    fun eqvt_tac th intr st =
+    fun eqvt_tac th pi (intr, vs) st =
       let
         fun eqvt_err s = error
           ("Could not prove equivariance for introduction rule\n" ^
            Sign.string_of_term (theory_of_thm intr)
              (Logic.unvarify (prop_of intr)) ^ "\n" ^ s);
-        val res = SUBPROOF (fn {prems, ...} =>
-          let val prems' = map (fn th' => Simplifier.simplify eqvt_ss
-            (if null (names inter term_consts (prop_of th')) then th' RS th
-             else th')) prems
-            (* FIXME: instantiate intr? *)
-          in (rtac intr THEN_ALL_NEW resolve_tac prems') 1
+        val res = SUBPROOF (fn {prems, params, ...} =>
+          let
+            val prems' = map (fn th' => Simplifier.simplify eqvt_ss
+              (if null (names inter term_consts (prop_of th')) then th' RS th
+               else th')) prems;
+            val intr' = Drule.cterm_instantiate (map (cterm_of thy) vs ~~
+               map (cterm_of thy o NominalPackage.mk_perm [] pi o term_of) params)
+               intr
+          in (rtac intr' THEN_ALL_NEW (TRY o resolve_tac prems')) 1
           end) ctxt 1 st
       in
         case (Seq.pull res handle THM (s, _, _) => eqvt_err s) of
@@ -368,8 +381,9 @@ fun prove_eqvt s xatoms thy =
           (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map (fn p =>
             HOLogic.mk_imp (p, list_comb
              (apsnd (map (NominalPackage.mk_perm [] pi')) (strip_comb p)))) ps)))
-          (fn _ => EVERY (rtac raw_induct 1 :: map (fn intr =>
-              full_simp_tac eqvt_ss 1 THEN eqvt_tac perm_boolI' intr) intrs))))
+          (fn _ => EVERY (rtac raw_induct 1 :: map (fn intr_vs =>
+              full_simp_tac eqvt_ss 1 THEN
+              eqvt_tac perm_boolI' pi' intr_vs) intrs'))))
       end) atoms
   in
     fold (fn (name, ths) =>
