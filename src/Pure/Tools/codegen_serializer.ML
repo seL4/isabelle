@@ -18,12 +18,15 @@ sig
   val add_syntax_constP: string -> string -> OuterParse.token list
     -> (theory -> theory) * OuterParse.token list;
 
-  val add_pretty_list: string -> string -> string -> (Pretty.T list -> Pretty.T)
-   -> ((string -> string) * (string -> string)) option -> int * string
-   -> theory -> theory;
-  val add_pretty_ml_string: string -> string -> string -> string
-   -> (string -> string) -> (string -> string) -> string -> theory -> theory;
   val add_undefined: string -> string -> string -> theory -> theory;
+  val add_pretty_list: string -> string -> string -> theory -> theory;
+  val add_pretty_list_string: string -> string -> string
+    -> string -> string list -> theory -> theory;
+  val add_pretty_char: string -> string -> string list -> theory -> theory
+  val add_pretty_numeral: string -> string * typ -> string -> string -> string
+    -> string -> string -> theory -> theory;
+  val add_pretty_ml_string: string -> string -> string list -> string
+    -> string -> string -> theory -> theory;
   val add_pretty_imperative_monad_bind: string -> string -> theory -> theory;
 
   type serializer;
@@ -187,7 +190,7 @@ fun gen_pr_bind pr_bind' pr_term fxy ((v, pat), ty) vars =
   in (pr_bind' ((v', pat'), ty), vars'') end;
 
 
-(* list, string and monad serializers *)
+(* list, char, string, numeral and monad abstract syntax transformations *)
 
 fun implode_list c_nil c_cons t =
   let
@@ -202,10 +205,42 @@ fun implode_list c_nil c_cons t =
     | _ => NONE
   end;
 
-fun implode_string mk_char mk_string ts =
-  if forall (fn IChar _ => true | _ => false) ts
-  then (SOME o str o mk_string o implode o map (fn IChar c => mk_char c)) ts
-  else NONE;
+fun decode_char c_nibbles (IConst (c1, _), IConst (c2, _)) =
+      let
+        fun idx c = find_index (curry (op =) c) c_nibbles;
+        fun decode ~1 _ = NONE
+          | decode _ ~1 = NONE
+          | decode n m = SOME (chr (n * 16 + m));
+      in decode (idx c1) (idx c2) end
+  | decode_char _ _ = NONE;
+
+fun implode_string c_char c_nibbles mk_char mk_string ts =
+  let
+    fun implode_char (IConst (c, _) `$ t1 `$ t2) =
+          if c = c_char then decode_char c_nibbles (t1, t2) else NONE
+      | implode_char _ = NONE;
+    val ts' = map implode_char ts;
+  in if forall is_some ts'
+    then (SOME o str o mk_string o implode o map_filter I) ts'
+    else NONE
+  end;
+
+fun implode_numeral c_bit0 c_bit1 c_pls c_min c_bit =
+  let
+    fun dest_bit (IConst (c, _)) = if c = c_bit0 then SOME 0
+          else if c = c_bit1 then SOME 1
+          else NONE
+      | dest_bit _ = NONE;
+    fun dest_numeral (IConst (c, _)) = if c = c_pls then SOME 0
+          else if c = c_min then SOME ~1
+          else NONE
+      | dest_numeral (IConst (c, _) `$ t1 `$ t2) =
+          if c = c_bit then case (dest_numeral t1, dest_bit t2)
+           of (SOME n, SOME b) => SOME (2 * n + IntInf.fromInt b)
+            | _ => NONE
+          else NONE
+      | dest_numeral _ = NONE;
+  in dest_numeral end;
 
 fun implode_monad c_mbind c_kbind t =
   let
@@ -221,53 +256,6 @@ fun implode_monad c_mbind c_kbind t =
            of SOME (((pat, ty), tbind), t') => SOME ((SOME (((NONE, SOME pat), ty), false), tbind), t')
             | NONE => NONE;
   in CodegenThingol.unfoldr dest_monad t end;
-
-fun pretty_ml_string c_nil c_cons mk_char mk_string target_implode =
-  let
-    fun pretty pr vars fxy [(t, _)] =
-      case implode_list c_nil c_cons t
-       of SOME ts => (case implode_string mk_char mk_string ts
-           of SOME p => p
-            | NONE => Pretty.block [str target_implode, Pretty.brk 1, pr vars BR t])
-        | NONE => Pretty.block [str target_implode, Pretty.brk 1, pr vars BR t]
-  in (1, pretty) end;
-
-fun pretty_list c_nil c_cons mk_list mk_char_string (target_fxy, target_cons) =
-  let
-    fun default pr fxy t1 t2 =
-      brackify_infix (target_fxy, R) fxy [
-        pr (INFX (target_fxy, X)) t1,
-        str target_cons,
-        pr (INFX (target_fxy, R)) t2
-      ];
-    fun pretty pr vars fxy [(t1, _), (t2, _)] =
-      case Option.map (cons t1) (implode_list c_nil c_cons t2)
-       of SOME ts =>
-            (case mk_char_string
-             of SOME (mk_char, mk_string) =>
-                  (case implode_string mk_char mk_string ts
-                   of SOME p => p
-                    | NONE => mk_list (map (pr vars NOBR) ts))
-              | NONE => mk_list (map (pr vars NOBR) ts))
-        | NONE => default (pr vars) fxy t1 t2;
-  in (2, pretty) end;
-
-val pretty_imperative_monad_bind =
-  let
-    fun pretty (pr : CodegenNames.var_ctxt -> fixity -> iterm -> Pretty.T)
-          vars fxy [(t1, _), ((v, ty) `|-> t2, _)] =
-            pr vars fxy (ICase ((t1, ty), ([(IVar v, t2)])))
-      | pretty pr vars fxy [(t1, _), (t2, ty2)] =
-          let
-            (*this code suffers from the lack of a proper concept for bindings*)
-            val vs = CodegenThingol.fold_varnames cons t2 [];
-            val v = Name.variant vs "x";
-            val vars' = CodegenNames.intro_vars [v] vars;
-            val var = IVar v;
-            val ty = (hd o fst o CodegenThingol.unfold_fun) ty2;
-          in pr vars' fxy (ICase ((t1, ty), ([(var, t2 `$ var)]))) end;
-  in (2, pretty) end;
-
 
 
 (** name auxiliary **)
@@ -372,10 +360,6 @@ fun pr_sml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons 
               #>> (fn p => concat [str "fn", p, str "=>"]);
             val (ps, vars') = fold_map pr binds vars;
           in brackets (ps @ [pr_term vars' NOBR t']) end
-      | pr_term vars fxy (INum n) =
-          brackets [(str o IntInf.toString) n, str ":", str "IntInf.int"]
-      | pr_term vars _ (IChar c) =
-          (str o prefix "#" o quote o ML_Syntax.print_char) c
       | pr_term vars fxy (t as ICase (_, [_])) =
           let
             val (binds, t') = CodegenThingol.unfold_let t;
@@ -641,19 +625,6 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_con
             fun pr ((v, pat), ty) = pr_bind BR ((SOME v, pat), ty);
             val (ps, vars') = fold_map pr binds vars;
           in brackets (str "fun" :: ps @ str "->" @@ pr_term vars' NOBR t') end
-      | pr_term vars fxy (INum n) =
-          if n > IntInf.fromInt 0 then
-            brackify fxy [str "Big_int.big_int_of_int", (str o IntInf.toString) n]
-          else
-            brackify fxy [str "Big_int.big_int_of_int",
-              (str o enclose "(" ")" o prefix "-" o IntInf.toString o op ~) n]
-      | pr_term vars _ (IChar c) =
-          (str o enclose "'" "'")
-            (let val i = ord c
-              in if i < 32 orelse i = 39 orelse i = 92
-                then prefix "\\" (string_of_int i)
-                else c
-              end)
       | pr_term vars fxy (t as ICase (_, [_])) =
           let
             val (binds, t') = CodegenThingol.unfold_let t;
@@ -976,10 +947,9 @@ fun seri_ml pr_def pr_modl reserved_ml output labelled_name reserved_user module
           |> fold (fold (insert (op =)) o Graph.imm_succs code) names
           |> subtract (op =) names;
         val (modls, _) = (split_list o map dest_name) names;
-        val modl = (the_single o distinct (op =)) modls
+        val modl' = (the_single o distinct (op =) o map name_modl) modls
           handle Empty =>
             error ("Illegal mutual dependencies: " ^ commas (map labelled_name names));
-        val modl' = name_modl modl;
         val modl_explode = NameSpace.explode modl';
         fun add_dep name name'' =
           let
@@ -988,13 +958,14 @@ fun seri_ml pr_def pr_modl reserved_ml output labelled_name reserved_user module
             map_node modl_explode
               (Graph.add_edge (name, name''))
           else let
-            val (common, (diff1::_, diff2::_)) = chop_prefix (op =) (modl_explode, NameSpace.explode modl'');
+            val (common, (diff1::_, diff2::_)) = chop_prefix (op =)
+              (modl_explode, NameSpace.explode modl'');
           in
             map_node common
               (fn gr => Graph.add_edge_acyclic (diff1, diff2) gr
                 handle Graph.CYCLES _ => error ("Dependency "
-                  ^ quote name
-                  ^ " -> " ^ quote name'' ^ " would result in module dependency cycle"))
+                  ^ quote name ^ " -> " ^ quote name''
+                  ^ " would result in module dependency cycle"))
           end end;
       in
         nsp_nodes
@@ -1155,18 +1126,6 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name keyword_vars 
             fun pr ((v, pat), ty) = pr_bind BR ((SOME v, pat), ty);
             val (ps, vars') = fold_map pr binds vars;
           in brackets (str "\\" :: ps @ str "->" @@ pr_term vars' NOBR t') end
-      | pr_term vars fxy (INum n) =
-          if n > IntInf.fromInt 0 then
-            (str o IntInf.toString) n
-          else
-            (str o enclose "(" ")" o Library.prefix "-" o IntInf.toString o IntInf.~) n
-      | pr_term vars fxy (IChar c) =
-          (str o enclose "'" "'")
-            (let val i = (Char.ord o the o Char.fromString) c
-              in if i < 32 orelse i = 39 orelse i = 92
-                then Library.prefix "\\" (string_of_int i)
-                else c
-              end)
       | pr_term vars fxy (t as ICase (_, [_])) =
           let
             val (binds, t) = CodegenThingol.unfold_let t;
@@ -1354,7 +1313,7 @@ fun seri_haskell module_prefix destination string_classes labelled_name reserved
   let
     val _ = Option.map File.check destination;
     val empty_names = Name.make_context (reserved_haskell @ reserved_user);
-    val name_modl = mk_modl_name_tab empty_names module_prefix module_alias code
+    val name_modl = mk_modl_name_tab empty_names module_prefix module_alias code;
     fun add_def (name, (def, deps)) =
       let
         val (modl, base) = dest_name name;
@@ -1389,7 +1348,7 @@ fun seri_haskell module_prefix destination string_classes labelled_name reserved
             | _ => cons (name, ((NameSpace.append modlname' base', base'), SOME def));
       in
         Symtab.map_default (modlname', ([], ([], (empty_names, empty_names))))
-              (apfst (fold (insert (op =)) deps))
+              (apfst (fold (insert (op = : string * string -> bool)) deps))
         #> `(fn code => add_name ((snd o snd o the o Symtab.lookup code) modlname'))
         #-> (fn (base', names) =>
               (Symtab.map_entry modlname' o apsnd) (fn (defs, _) =>
@@ -1500,10 +1459,10 @@ fun seri_diagnosis labelled_name _ _ _ _ _ code =
 (** theory data **)
 
 datatype syntax_expr = SyntaxExpr of {
-  class: ((string * (string -> string option)) * serial) Symtab.table,
+  class: (string * (string -> string option)) Symtab.table,
   inst: unit Symtab.table,
-  tyco: (typ_syntax * serial) Symtab.table,
-  const: (term_syntax * serial) Symtab.table
+  tyco: typ_syntax Symtab.table,
+  const: term_syntax Symtab.table
 };
 
 fun mk_syntax_expr ((class, inst), (tyco, const)) =
@@ -1513,10 +1472,10 @@ fun map_syntax_expr f (SyntaxExpr { class, inst, tyco, const }) =
 fun merge_syntax_expr (SyntaxExpr { class = class1, inst = inst1, tyco = tyco1, const = const1 },
     SyntaxExpr { class = class2, inst = inst2, tyco = tyco2, const = const2 }) =
   mk_syntax_expr (
-    (Symtab.merge (eq_snd (op =)) (class1, class2),
-       Symtab.merge (op =) (inst1, inst2)),
-    (Symtab.merge (eq_snd (op =)) (tyco1, tyco2),
-       Symtab.merge (eq_snd (op =)) (const1, const2))
+    (Symtab.join (K snd) (class1, class2),
+       Symtab.join (K snd) (inst1, inst2)),
+    (Symtab.join (K snd) (tyco1, tyco2),
+       Symtab.join (K snd) (const1, const2))
   );
 
 datatype syntax_modl = SyntaxModl of {
@@ -1585,6 +1544,11 @@ fun the_reserved (Target { reserved, ... }) = reserved;
 fun the_syntax_expr (Target { syntax_expr = SyntaxExpr x, ... }) = x;
 fun the_syntax_modl (Target { syntax_modl = SyntaxModl x, ... }) = x;
 
+fun assert_serializer thy target =
+  case Symtab.lookup (CodegenSerializerData.get thy) target
+   of SOME data => target
+    | NONE => error ("Unknown code target language: " ^ quote target);
+
 fun add_serializer (target, seri) thy =
   let
     val _ = case Symtab.lookup (CodegenSerializerData.get thy) target
@@ -1601,9 +1565,7 @@ fun add_serializer (target, seri) thy =
 
 fun map_seri_data target f thy =
   let
-    val _ = if is_some (Symtab.lookup (CodegenSerializerData.get thy) target)
-      then ()
-      else error ("Unknown code target language: " ^ quote target);
+    val _ = assert_serializer thy target;
   in
     thy
     |> (CodegenSerializerData.map o Symtab.map_entry target o map_target) f
@@ -1631,13 +1593,12 @@ fun get_serializer thy target args labelled_name = fn cs =>
     val reserved = the_reserved data;
     val { alias, prolog } = the_syntax_modl data;
     val { class, inst, tyco, const } = the_syntax_expr data;
-    fun fun_of sys = (Option.map fst oo Symtab.lookup) sys;
     val project = if target = target_diag then I
       else CodegenThingol.project_code
         (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const) cs;
   in
     project #> seri args (labelled_name thy) reserved (Symtab.lookup alias) (Symtab.lookup prolog)
-      (fun_of class) (fun_of tyco) (fun_of const)
+      (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
   end;
 
 val eval_verbose = ref false;
@@ -1651,7 +1612,6 @@ fun eval_term thy labelled_name code ((ref_name, reff), t) args =
     val reserved = the_reserved data;
     val { alias, prolog } = the_syntax_modl data;
     val { class, inst, tyco, const } = the_syntax_expr data;
-    fun fun_of sys = (Option.map fst oo Symtab.lookup) sys;
     fun eval p = (
       reff := NONE;
       if !eval_verbose then Pretty.writeln p else ();
@@ -1672,35 +1632,158 @@ fun eval_term thy labelled_name code ((ref_name, reff), t) args =
           (SOME [val_name])
     |> seri_ml pr_sml pr_sml_modl ML_Syntax.reserved I (labelled_name thy) reserved
         (Symtab.lookup alias) (Symtab.lookup prolog)
-        (fun_of class) (fun_of tyco) (fun_of const)
+        (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
     |> eval
   end;
 
-fun assert_serializer thy target =
-  case Symtab.lookup (CodegenSerializerData.get thy) target
-   of SOME data => target
-    | NONE => error ("Unknown code target language: " ^ quote target);
-
-fun has_serialization f thy targets name =
+fun const_has_serialization thy targets name =
   forall (
-    is_some o (fn tab => Symtab.lookup tab name) o f o the_syntax_expr o the
+    is_some o (fn tab => Symtab.lookup tab name) o #const o the_syntax_expr o the
       o Symtab.lookup (CodegenSerializerData.get thy)
   ) targets;
 
-val const_has_serialization = has_serialization #const;
 
+(** optional pretty serialization **)
 
+local
 
-(** ML and toplevel interface **)
+val pretty : (string * {
+    pretty_char: string -> string,
+    pretty_string: string -> string,
+    pretty_numeral: IntInf.int -> string,
+    pretty_list: Pretty.T list -> Pretty.T,
+    infix_cons: int * string
+  }) list = [
+  ("SML", { pretty_char = prefix "#" o quote o ML_Syntax.print_char,
+      pretty_string = ML_Syntax.print_string,
+      pretty_numeral = fn k => "(" ^ IntInf.toString k ^ " : IntInf.int)",
+      pretty_list = Pretty.enum "," "[" "]",
+      infix_cons = (7, "::")}),
+  ("OCaml", { pretty_char = fn c => enclose "'" "'"
+        (let val i = ord c
+          in if i < 32 orelse i = 39 orelse i = 92
+            then prefix "\\" (string_of_int i)
+            else c
+          end),
+      pretty_string = (fn _ => error "OCaml: no pretty strings"),
+      pretty_numeral = fn k => if k >= IntInf.fromInt 0 then
+            "(Big_int.big_int_of_int " ^ IntInf.toString k ^ ")"
+          else
+            "(Big_int.big_int_of_int " ^ (enclose "(" ")" o prefix "-"
+              o IntInf.toString o op ~) k ^ ")",
+      pretty_list = Pretty.enum ";" "[" "]",
+      infix_cons = (6, "::")}),
+  ("Haskell", { pretty_char = fn c => enclose "'" "'"
+        (let val i = ord c
+          in if i < 32 orelse i = 39 orelse i = 92
+            then Library.prefix "\\" (string_of_int i)
+            else c
+          end),
+      pretty_string = ML_Syntax.print_string,
+      pretty_numeral = fn k => if k >= IntInf.fromInt 0 then
+            IntInf.toString k
+          else
+            (enclose "(" ")" o Library.prefix "-" o IntInf.toString o IntInf.~) k,
+      pretty_list = Pretty.enum "," "[" "]",
+      infix_cons = (5, ":")})
+];
+
+in
+
+fun pr_pretty target = case AList.lookup (op =) pretty target
+ of SOME x => x
+  | NONE => error ("Unknown code target language: " ^ quote target);
+
+fun default_list (target_fxy, target_cons) pr fxy t1 t2 =
+  brackify_infix (target_fxy, R) fxy [
+    pr (INFX (target_fxy, X)) t1,
+    str target_cons,
+    pr (INFX (target_fxy, R)) t2
+  ];
+
+fun pretty_list c_nil c_cons target =
+  let
+    val pretty_ops = pr_pretty target;
+    val mk_list = #pretty_list pretty_ops;
+    fun pretty pr vars fxy [(t1, _), (t2, _)] =
+      case Option.map (cons t1) (implode_list c_nil c_cons t2)
+       of SOME ts => mk_list (map (pr vars NOBR) ts)
+        | NONE => default_list (#infix_cons pretty_ops) (pr vars) fxy t1 t2;
+  in (2, pretty) end;
+
+fun pretty_list_string c_nil c_cons c_char c_nibbles target =
+  let
+    val pretty_ops = pr_pretty target;
+    val mk_list = #pretty_list pretty_ops;
+    val mk_char = #pretty_char pretty_ops;
+    val mk_string = #pretty_string pretty_ops;
+    fun pretty pr vars fxy [(t1, _), (t2, _)] =
+      case Option.map (cons t1) (implode_list c_nil c_cons t2)
+       of SOME ts => case implode_string c_char c_nibbles mk_char mk_string ts
+           of SOME p => p
+            | NONE => mk_list (map (pr vars NOBR) ts)
+        | NONE => default_list (#infix_cons pretty_ops) (pr vars) fxy t1 t2;
+  in (2, pretty) end;
+
+fun pretty_char c_char c_nibbles target =
+  let
+    val mk_char = #pretty_char (pr_pretty target);
+    fun pretty _ _ _ [(t1, _), (t2, _)] =
+      case decode_char c_nibbles (t1, t2)
+       of SOME c => (str o mk_char) c
+        | NONE => error "Illegal character expression";
+  in (2, pretty) end;
+
+fun pretty_numeral c_bit0 c_bit1 c_pls c_min c_bit target =
+  let
+    val mk_numeral = #pretty_numeral (pr_pretty target);
+    fun pretty _ _ _ [(t, _)] =
+      case implode_numeral c_bit0 c_bit1 c_pls c_min c_bit t
+       of SOME k => (str o mk_numeral) k
+        | NONE => error "Illegal numeral expression";
+  in (1, pretty) end;
+
+fun pretty_ml_string c_char c_nibbles c_nil c_cons target =
+  let
+    val pretty_ops = pr_pretty target;
+    val mk_char = #pretty_char pretty_ops;
+    val mk_string = #pretty_string pretty_ops;
+    fun pretty pr vars fxy [(t, _)] =
+      case implode_list c_nil c_cons t
+       of SOME ts => (case implode_string c_char c_nibbles mk_char mk_string ts
+           of SOME p => p
+            | NONE => error "Illegal ml_string expression")
+        | NONE => error "Illegal ml_string expression";
+  in (1, pretty) end;
+
+val pretty_imperative_monad_bind =
+  let
+    fun pretty (pr : CodegenNames.var_ctxt -> fixity -> iterm -> Pretty.T)
+          vars fxy [(t1, _), ((v, ty) `|-> t2, _)] =
+            pr vars fxy (ICase ((t1, ty), ([(IVar v, t2)])))
+      | pretty pr vars fxy [(t1, _), (t2, ty2)] =
+          let
+            (*this code suffers from the lack of a proper concept for bindings*)
+            val vs = CodegenThingol.fold_varnames cons t2 [];
+            val v = Name.variant vs "x";
+            val vars' = CodegenNames.intro_vars [v] vars;
+            val var = IVar v;
+            val ty = (hd o fst o CodegenThingol.unfold_fun) ty2;
+          in pr vars' fxy (ICase ((t1, ty), ([(var, t2 `$ var)]))) end;
+  in (2, pretty) end;
+
+end; (*local*)
+
+(** ML and Isar interface **)
 
 local
 
 fun map_syntax_exprs target =
-  map_seri_data target o (apsnd o apsnd o apfst o map_syntax_expr);
+  map_seri_data target o apsnd o apsnd o apfst o map_syntax_expr;
 fun map_syntax_modls target =
-  map_seri_data target o (apsnd o apsnd o apsnd o map_syntax_modl);
+  map_seri_data target o apsnd o apsnd o apsnd o map_syntax_modl;
 fun map_reserveds target =
-  map_seri_data target o (apsnd o apfst o apsnd);
+  map_seri_data target o apsnd o apfst o apsnd;
 
 fun gen_add_syntax_class prep_class prep_const target raw_class raw_syn thy =
   let
@@ -1716,7 +1799,7 @@ fun gen_add_syntax_class prep_class prep_const target raw_class raw_syn thy =
    of SOME (syntax, raw_ops) =>
       thy
       |> (map_syntax_exprs target o apfst o apfst)
-           (Symtab.update (class, ((syntax, mk_syntax_ops raw_ops), serial ())))
+           (Symtab.update (class, (syntax, mk_syntax_ops raw_ops)))
     | NONE =>
       thy
       |> (map_syntax_exprs target o apfst o apfst)
@@ -1747,7 +1830,7 @@ fun gen_add_syntax_tyco prep_tyco target raw_tyco raw_syn thy =
    of SOME syntax =>
       thy
       |> (map_syntax_exprs target o apsnd o apfst)
-           (Symtab.update (tyco', (check_args syntax, serial ())))
+           (Symtab.update (tyco', check_args syntax))
    | NONE =>
       thy
       |> (map_syntax_exprs target o apsnd o apfst)
@@ -1765,7 +1848,7 @@ fun gen_add_syntax_const prep_const target raw_c raw_syn thy =
    of SOME syntax =>
       thy
       |> (map_syntax_exprs target o apsnd o apsnd)
-           (Symtab.update (c', (check_args syntax, serial ())))
+           (Symtab.update (c', check_args syntax))
    | NONE =>
       thy
       |> (map_syntax_exprs target o apsnd o apsnd)
@@ -1881,27 +1964,6 @@ val add_syntax_const_cmd = gen_add_syntax_const CodegenConsts.read_const;
 fun add_syntax_tycoP target tyco = parse_syntax I >> add_syntax_tyco_cmd target tyco;
 fun add_syntax_constP target c = parse_syntax fst >> (add_syntax_const_cmd target c o no_bindings);
 
-fun add_pretty_list target nill cons mk_list mk_char_string target_cons thy =
-  let
-    val (_, nil'') = idfs_of_const thy nill;
-    val (cons', cons'') = idfs_of_const thy cons;
-    val pr = pretty_list nil'' cons'' mk_list mk_char_string target_cons;
-  in
-    thy
-    |> add_syntax_const target cons' (SOME pr)
-  end;
-
-fun add_pretty_ml_string target nill cons str mk_char mk_string target_implode thy =
-  let
-    val (_, nil'') = idfs_of_const thy nill;
-    val (_, cons'') = idfs_of_const thy cons;
-    val (str', _) = idfs_of_const thy str;
-    val pr = pretty_ml_string nil'' cons'' mk_char mk_string target_implode;
-  in
-    thy
-    |> add_syntax_const target str' (SOME pr)
-  end;
-
 fun add_undefined target undef target_undefined thy =
   let
     val (undef', _) = idfs_of_const thy undef;
@@ -1909,6 +1971,65 @@ fun add_undefined target undef target_undefined thy =
   in
     thy
     |> add_syntax_const target undef' (SOME (~1, pr))
+  end;
+
+fun add_pretty_list target nill cons thy =
+  let
+    val (_, nil'') = idfs_of_const thy nill;
+    val (cons', cons'') = idfs_of_const thy cons;
+    val pr = pretty_list nil'' cons'' target;
+  in
+    thy
+    |> add_syntax_const target cons' (SOME pr)
+  end;
+
+fun add_pretty_list_string target nill cons charr nibbles thy =
+  let
+    val (_, nil'') = idfs_of_const thy nill;
+    val (cons', cons'') = idfs_of_const thy cons;
+    val (_, charr'') = idfs_of_const thy charr;
+    val (_, nibbles'') = split_list (map (idfs_of_const thy) nibbles);
+    val pr = pretty_list_string nil'' cons'' charr'' nibbles'' target;
+  in
+    thy
+    |> add_syntax_const target cons' (SOME pr)
+  end;
+
+fun add_pretty_char target charr nibbles thy =
+  let
+    val (charr', charr'') = idfs_of_const thy charr;
+    val (_, nibbles'') = split_list (map (idfs_of_const thy) nibbles);
+    val pr = pretty_char charr'' nibbles'' target;
+  in
+    thy
+    |> add_syntax_const target charr' (SOME pr)
+  end;
+
+fun add_pretty_numeral target number_of b0 b1 pls min bit thy =
+  let
+    val number_of' = CodegenConsts.const_of_cexpr thy number_of;
+    val (_, b0'') = idfs_of_const thy b0;
+    val (_, b1'') = idfs_of_const thy b1;
+    val (_, pls'') = idfs_of_const thy pls;
+    val (_, min'') = idfs_of_const thy min;
+    val (_, bit'') = idfs_of_const thy bit;
+    val pr = pretty_numeral b0'' b1'' pls'' min'' bit'' target;
+  in
+    thy
+    |> add_syntax_const target number_of' (SOME pr)
+  end;
+
+fun add_pretty_ml_string target charr nibbles nill cons str thy =
+  let
+    val (_, charr'') = idfs_of_const thy charr;
+    val (_, nibbles'') = split_list (map (idfs_of_const thy) nibbles);
+    val (_, nil'') = idfs_of_const thy nill;
+    val (_, cons'') = idfs_of_const thy cons;
+    val (str', _) = idfs_of_const thy str;
+    val pr = pretty_ml_string charr'' nibbles'' nil'' cons'' target;
+  in
+    thy
+    |> add_syntax_const target str' (SOME pr)
   end;
 
 fun add_pretty_imperative_monad_bind target bind thy =

@@ -18,9 +18,7 @@ text {*
   be represented as list of characters which
   is awkward to read. This theory provides a distinguished
   datatype for strings which then by convention
-  are serialized as monolithic ML strings. Note
-  that in Haskell these strings are identified
-  with Haskell strings.
+  are serialized as monolithic ML strings.
 *}
 
 
@@ -28,11 +26,10 @@ subsection {* Datatype of monolithic strings *}
 
 datatype ml_string = STR string
 
-fun
-  explode :: "ml_string \<Rightarrow> string"
-where
-  "explode (STR s) = s"
+lemmas [code nofunc] = ml_string.recs ml_string.cases
 
+lemma [code func]: "size (s\<Colon>ml_string) = 0"
+  by (cases s) simp_all
 
 subsection {* ML interface *}
 
@@ -50,34 +47,27 @@ subsection {* Code serialization *}
 
 code_type ml_string
   (SML "string")
-  (Haskell "String")
-
-code_const STR
-  (Haskell "_")
 
 setup {*
+let
+  val charr = @{const_name Char}
+  val nibbles = [@{const_name Nibble0}, @{const_name Nibble1},
+    @{const_name Nibble2}, @{const_name Nibble3},
+    @{const_name Nibble4}, @{const_name Nibble5},
+    @{const_name Nibble6}, @{const_name Nibble7},
+    @{const_name Nibble8}, @{const_name Nibble9},
+    @{const_name NibbleA}, @{const_name NibbleB},
+    @{const_name NibbleC}, @{const_name NibbleD},
+    @{const_name NibbleE}, @{const_name NibbleF}];
+in
   CodegenSerializer.add_pretty_ml_string "SML"
-    @{const_name Nil} @{const_name Cons} @{const_name STR}
-    ML_Syntax.print_char ML_Syntax.print_string "String.implode"
+    charr nibbles @{const_name Nil} @{const_name Cons} @{const_name STR}
+end
 *}
 
-code_const explode
-  (SML "String.explode")
-  (Haskell "_")
-
-code_reserved SML string explode
+code_reserved SML string
 
 code_const "op = \<Colon> ml_string \<Rightarrow> ml_string \<Rightarrow> bool"
   (SML "!((_ : string) = _)")
-  (Haskell infixl 4 "==")
-
-code_instance ml_string :: eq (Haskell -)
-
-text {* disable something ugly *}
-
-code_const "ml_string_rec" and "ml_string_case" and "size \<Colon> ml_string \<Rightarrow> nat"
-  (SML "!((_); (_); raise Fail \"ml'_string'_rec\")"
-    and "!((_); (_); raise Fail \"ml'_string'_case\")"
-    and "!((_); raise Fail \"size'_ml'_string\")")
 
 end

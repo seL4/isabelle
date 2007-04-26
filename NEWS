@@ -515,6 +515,12 @@ the graph browser tool.
 
 *** HOL ***
 
+* Library/Pretty_Int.thy: maps HOL numerals on target language integer literals
+    when generating code.
+
+* Library/Pretty_Char.thy: maps HOL characters on target language character literals
+    when generating code.
+
 * Library/Commutative_Ring.thy: switched from recdef to function package;
     constants add, mul, pow now curried.  Infix syntax for algebraic operations.
 

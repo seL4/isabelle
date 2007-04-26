@@ -24,6 +24,8 @@ imports
   OptionalSugar
   Parity
   Permutation
+  Pretty_Char_chr
+  Pretty_Int
   Primes
   Quotient
   Ramsey

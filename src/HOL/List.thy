@@ -6,7 +6,7 @@
 header {* The datatype of finite lists *}
 
 theory List
-imports PreList
+imports PreList Recdef
 uses "Tools/string_syntax.ML"
 begin
 
@@ -2653,54 +2653,28 @@ code_type list
   (OCaml "_ list")
   (Haskell "![_]")
 
+code_reserved SML
+  list
+
+code_reserved OCaml
+  list
+
 code_const Nil
   (SML "[]")
   (OCaml "[]")
   (Haskell "[]")
 
-code_type char
-  (SML "char")
-  (OCaml "char")
-  (Haskell "Char")
-
-code_const Char and char_rec
-    and char_case and "size \<Colon> char \<Rightarrow> nat"
-  (Haskell "error/ \"Char\""
-    and "error/ \"char_rec\"" and "error/ \"char_case\"" and "error/ \"size_char\"")
-
 setup {*
-  fold (uncurry (CodegenSerializer.add_undefined "SML")) [
-      ("List.char.Char", "(raise Fail \"Char\")"),
-      ("List.char.char_rec", "(raise Fail \"char_rec\")"),
-      ("List.char.char_case", "(raise Fail \"char_case\")")
-    ]
-  #> fold (uncurry (CodegenSerializer.add_undefined "OCaml")) [
-      ("List.char.Char", "(failwith \"Char\")"),
-      ("List.char.char_rec", "(failwith \"char_rec\")"),
-      ("List.char.char_case", "(failwith \"char_case\")")
-    ]    
+  fold (fn target => CodegenSerializer.add_pretty_list target
+    @{const_name Nil} @{const_name Cons}
+  ) ["SML", "OCaml", "Haskell"]
 *}
 
-code_const "size \<Colon> char \<Rightarrow> nat"
-  (SML "!(_;/ raise Fail \"size'_char\")")
-  (OCaml "!(_;/ failwith \"size'_char\")")
-
-code_instance list :: eq and char :: eq
-  (Haskell - and -)
+code_instance list :: eq
+  (Haskell -)
 
 code_const "op = \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> bool"
   (Haskell infixl 4 "==")
-
-code_const "op = \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
-  (SML "!((_ : char) = _)")
-  (OCaml "!((_ : char) = _)")
-  (Haskell infixl 4 "==")
-
-code_reserved SML
-  list char nil
-
-code_reserved OCaml
-  list char
 
 setup {*
 let
@@ -2716,18 +2690,8 @@ fun char_codegen thy defs gr dep thyname b t =
     | NONE => NONE;
 
 in
-
   Codegen.add_codegen "list_codegen" list_codegen
   #> Codegen.add_codegen "char_codegen" char_codegen
-  #> CodegenSerializer.add_pretty_list "SML" "List.list.Nil" "List.list.Cons"
-       (Pretty.enum "," "[" "]") NONE (7, "::")
-  #> CodegenSerializer.add_pretty_list "OCaml" "List.list.Nil" "List.list.Cons"
-       (Pretty.enum ";" "[" "]") NONE (6, "::")
-  #> CodegenSerializer.add_pretty_list "Haskell" "List.list.Nil" "List.list.Cons"
-       (Pretty.enum "," "[" "]") (SOME (ML_Syntax.print_char, ML_Syntax.print_string)) (5, ":")
-  #> CodegenPackage.add_appconst
-       ("List.char.Char", CodegenPackage.appgen_char (try HOLogic.dest_char))
-
 end;
 *}
 
@@ -2801,8 +2765,7 @@ lemma mem_iff [normal post]:
   "x mem xs \<longleftrightarrow> x \<in> set xs"
   by (induct xs) auto
 
-lemmas in_set_code [code unfold] =
-  mem_iff [symmetric, THEN eq_reflection]
+lemmas in_set_code [code unfold] = mem_iff [symmetric]
 
 lemma empty_null [code inline]:
   "xs = [] \<longleftrightarrow> null xs"
@@ -2819,8 +2782,7 @@ lemma list_all_iff [normal post]:
   "list_all P xs \<longleftrightarrow> (\<forall>x \<in> set xs. P x)"
   by (induct xs) auto
 
-lemmas list_ball_code [code unfold] =
-  list_all_iff [symmetric, THEN eq_reflection]
+lemmas list_ball_code [code unfold] = list_all_iff [symmetric]
 
 lemma list_all_append [simp]:
   "list_all P (xs @ ys) \<longleftrightarrow> (list_all P xs \<and> list_all P ys)"
@@ -2839,7 +2801,7 @@ lemma list_ex_iff [normal post]:
   by (induct xs) simp_all
 
 lemmas list_bex_code [code unfold] =
-  list_ex_iff [symmetric, THEN eq_reflection]
+  list_ex_iff [symmetric]
 
 lemma list_ex_length:
   "list_ex P xs \<longleftrightarrow> (\<exists>n < length xs. P (xs ! n))"
@@ -2857,60 +2819,51 @@ lemma map_filter_conv [simp]:
   "map_filter f P xs = map f (filter P xs)"
   by (induct xs) auto
 
-lemma rev_code [code func, code unfold, code noinline]:
-  "rev xs == itrev xs []"
+lemma rev_code [code func]:
+  "rev xs = itrev xs []"
   by simp
+
 
 text {* code for bounded quantification over nats *}
 
-lemma atMost_upto [code inline]:
+lemma atMost_upto [code unfold]:
   "{..n} = set [0..n]"
   by auto
-lemmas atMost_upto' [code unfold] = atMost_upto [THEN eq_reflection]
 
-lemma atLeast_upt [code inline]:
+lemma atLeast_upt [code unfold]:
   "{..<n} = set [0..<n]"
   by auto
-lemmas atLeast_upt' [code unfold] = atLeast_upt [THEN eq_reflection]
 
-lemma greaterThanLessThan_upd [code inline]:
+lemma greaterThanLessThan_upd [code unfold]:
   "{n<..<m} = set [Suc n..<m]"
   by auto
-lemmas greaterThanLessThan_upd' [code unfold] = greaterThanLessThan_upd [THEN eq_reflection]
 
-lemma atLeastLessThan_upd [code inline]:
+lemma atLeastLessThan_upd [code unfold]:
   "{n..<m} = set [n..<m]"
   by auto
-lemmas atLeastLessThan_upd' [code unfold] = atLeastLessThan_upd [THEN eq_reflection]
 
-lemma greaterThanAtMost_upto [code inline]:
+lemma greaterThanAtMost_upto [code unfold]:
   "{n<..m} = set [Suc n..m]"
   by auto
-lemmas greaterThanAtMost_upto' [code unfold] = greaterThanAtMost_upto [THEN eq_reflection]
 
-lemma atLeastAtMost_upto [code inline]:
+lemma atLeastAtMost_upto [code unfold]:
   "{n..m} = set [n..m]"
   by auto
-lemmas atLeastAtMost_upto' [code unfold] = atLeastAtMost_upto [THEN eq_reflection]
 
-lemma all_nat_less_eq [code inline]:
+lemma all_nat_less_eq [code unfold]:
   "(\<forall>m<n\<Colon>nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..<n}. P m)"
   by auto
-lemmas all_nat_less_eq' [code unfold] = all_nat_less_eq [THEN eq_reflection]
 
-lemma ex_nat_less_eq [code inline]:
+lemma ex_nat_less_eq [code unfold]:
   "(\<exists>m<n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..<n}. P m)"
   by auto
-lemmas ex_nat_less_eq' [code unfold] = ex_nat_less_eq [THEN eq_reflection]
 
-lemma all_nat_less [code inline]:
+lemma all_nat_less [code unfold]:
   "(\<forall>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..n}. P m)"
   by auto
-lemmas all_nat_less' [code unfold] =  all_nat_less [THEN eq_reflection]
 
-lemma ex_nat_less [code inline]:
+lemma ex_nat_less [code unfold]:
   "(\<exists>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)"
   by auto
-lemmas ex_nat_less' [code unfold] = ex_nat_less [THEN eq_reflection]
 
 end

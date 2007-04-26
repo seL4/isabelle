@@ -7,7 +7,7 @@
 header {* Weak normalization for simply-typed lambda calculus *}
 
 theory WeakNorm
-imports Type
+imports Type Pretty_Int
 begin
 
 text {*

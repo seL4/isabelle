@@ -5,7 +5,7 @@
 header {* A simple random engine *}
 
 theory Random
-imports State_Monad
+imports State_Monad Pretty_Int
 begin
 
 fun

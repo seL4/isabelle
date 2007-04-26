@@ -204,7 +204,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL \
   Library/Nested_Environment.thy Library/Zorn.thy\
   Library/Library/ROOT.ML Library/Library/document/root.tex \
   Library/Library/document/root.bib Library/While_Combinator.thy \
-  Library/Product_ord.thy Library/Char_ord.thy \
+  Library/Product_ord.thy Library/Char_nat.thy Library/Char_ord.thy \
   Library/List_lexord.thy Library/Commutative_Ring.thy Library/comm_ring.ML \
   Library/Coinductive_List.thy Library/AssocList.thy \
   Library/Parity.thy Library/GCD.thy Library/Binomial.thy \
@@ -212,7 +212,8 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL \
   Library/SCT_Definition.thy Library/SCT_Theorem.thy Library/SCT_Interpretation.thy \
   Library/SCT_Implementation.thy Library/Size_Change_Termination.thy \
   Library/SCT_Examples.thy Library/sct.ML \
-  Library/Pure_term.thy Library/Eval.thy
+  Library/Pure_term.thy Library/Eval.thy Library/Pretty_Int.thy \
+  Library/Pretty_Char.thy Library/Pretty_Char_chr.thy
 	@cd Library; $(ISATOOL) usedir $(OUT)/HOL Library
 
 

@@ -27,8 +27,6 @@ sig
     | IVar of vname
     | `$ of iterm * iterm
     | `|-> of (vname * itype) * iterm
-    | INum of IntInf.int
-    | IChar of string (*length one!*)
     | ICase of (iterm * itype) * (iterm * iterm) list;
         (*(discriminendum term (td), discriminendum type (ty)),
                 [(selector pattern (p), body term (t))] (bs))*)
@@ -128,8 +126,6 @@ datatype iterm =
   | IVar of vname
   | `$ of iterm * iterm
   | `|-> of (vname * itype) * iterm
-  | INum of IntInf.int
-  | IChar of string
   | ICase of (iterm * itype) * (iterm * iterm) list;
     (*see also signature*)
 
@@ -198,10 +194,6 @@ fun fold_aiterms f (t as IConst _) =
       fold_aiterms f t1 #> fold_aiterms f t2
   | fold_aiterms f (t as _ `|-> t') =
       f t #> fold_aiterms f t'
-  | fold_aiterms f (t as INum _) =
-      f t
-  | fold_aiterms f (t as IChar _) =
-      f t
   | fold_aiterms f (ICase ((td, _), bs)) =
       fold_aiterms f td #> fold (fn (p, t) => fold_aiterms f p #> fold_aiterms f t) bs;
 
@@ -228,10 +220,6 @@ fun fold_unbound_varnames f =
           add vs t1 #> add vs t2
       | add vs ((v, _) `|-> t) =
           add (insert (op =) v vs) t
-      | add vs (INum _) =
-          I
-      | add vs (IChar _) =
-          I
       | add vs (ICase ((td, _), bs)) =
           add vs td #> fold (fn (p, t) => add vs p #> add vs t) bs;
   in add [] end;

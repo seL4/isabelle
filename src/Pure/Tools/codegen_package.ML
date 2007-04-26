@@ -16,8 +16,6 @@ sig
 
   type appgen;
   val add_appconst: string * appgen -> theory -> theory;
-  val appgen_numeral: (term -> IntInf.int option) -> appgen;
-  val appgen_char: (term -> int option) -> appgen;
   val appgen_case: (theory -> term
     -> ((string * typ) list * ((term * typ) * (term * term) list)) option)
     -> appgen;
@@ -431,27 +429,6 @@ fun exprgen_term' thy algbr funcgr strct t trns =
 
 (* parametrized application generators, for instantiation in object logic *)
 (* (axiomatic extensions of extraction kernel *)
-
-fun appgen_numeral int_of_numeral thy algbr funcgr strct (app as (c, ts)) trns =
-  case int_of_numeral (list_comb (Const c, ts))
-   of SOME i =>
-        trns
-        |> pair (CodegenThingol.INum i)
-    | NONE =>
-        trns
-        |> appgen_default thy algbr funcgr strct app;
-
-fun appgen_char char_to_index thy algbr funcgr strct (app as ((_, ty), _)) trns =
-  case (char_to_index o list_comb o apfst Const) app
-   of SOME i =>
-        trns
-        |> exprgen_type thy algbr funcgr strct ty
-        |>> (fn _ => IChar (chr i))
-    | NONE =>
-        trns
-        |> appgen_default thy algbr funcgr strct app;
-
-val debug_term = ref (Bound 0);
 
 fun appgen_case dest_case_expr thy algbr funcgr strct (app as (c_ty, ts)) trns =
   let
