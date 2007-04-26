@@ -6,7 +6,7 @@
 header {* Implementation of natural numbers by integers *}
 
 theory EfficientNat
-imports Main
+imports Main Pretty_Int
 begin
 
 text {*
@@ -34,7 +34,7 @@ definition
 lemma nat_of_int_of_number_of:
   fixes k
   assumes "k \<ge> 0"
-  shows "number_of k = nat_of_int k"
+  shows "number_of k = nat_of_int (number_of k)"
   unfolding nat_of_int_def [OF prems] nat_number_of_def number_of_is_id ..
 
 lemma nat_of_int_of_number_of_aux:
@@ -154,15 +154,15 @@ text {*
 
 code_datatype nat_of_int
 
-code_const "0::nat"
-  (SML "!(0 : IntInf.int)")
-  (OCaml "Big'_int.big'_int'_of'_int/ 0")
-  (Haskell "0")
+lemma [code func]: "0 = nat_of_int 0"
+  by (auto simp add: nat_of_int_def)
+lemma [code func]: "Suc n = nat_of_int (int n + 1)"
+  by (auto simp add: nat_of_int_def)
 
-code_const "Suc"
-  (SML "IntInf.+ ((_), 1)")
-  (OCaml "Big_int.succ'_big'_int")
-  (Haskell "!((_) + 1)")
+code_type nat
+  (SML "IntInf.int")
+  (OCaml "Big'_int.big'_int")
+  (Haskell "Integer")
 
 types_code
   nat ("int")
@@ -172,11 +172,6 @@ val term_of_nat = HOLogic.mk_number HOLogic.natT o IntInf.fromInt;
 attach (test) {*
 fun gen_nat i = random_range 0 i;
 *}
-
-code_type nat
-  (SML "IntInf.int")
-  (OCaml "Big'_int.big'_int")
-  (Haskell "Integer")
 
 consts_code
   "HOL.zero" :: nat ("0")

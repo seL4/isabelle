@@ -81,8 +81,10 @@ fun mk_rew thm =
 fun assert_func thm =
   let
     val thy = Thm.theory_of_thm thm;
-    val args = (snd o strip_comb o fst o Logic.dest_equals
+    val (head, args) = (strip_comb o fst o Logic.dest_equals
       o ObjectLogic.drop_judgment thy o Thm.plain_prop_of) thm;
+    val _ = case head of Const _ => () | _ =>
+      bad_thm ("Equation not headed by constant\n" ^ Display.string_of_thm thm);
     val _ =
       if has_duplicates (op =)
         ((fold o fold_aterms) (fn Var (v, _) => cons v

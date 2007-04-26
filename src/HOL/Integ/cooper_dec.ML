@@ -512,16 +512,13 @@ val evalc = onatoms evalc_atom;
 (*list_disj[conj] makes a disj[conj] of a given list. used with conjucts or disjuncts 
 it liearises iterated conj[disj]unctions. *) 
  
-fun disj_help p q = HOLogic.disj $ p $ q ; 
- 
-fun list_disj l = 
-  if l = [] then HOLogic.false_const else Utils.end_itlist disj_help l; 
-   
-fun conj_help p q = HOLogic.conj $ p $ q ; 
- 
-fun list_conj l = 
-  if l = [] then HOLogic.true_const else Utils.end_itlist conj_help l; 
-   
+fun list_disj [] = HOLogic.false_const
+  | list_disj ps = foldr1 (fn (p, q) => HOLogic.disj $ p $ q) ps;
+
+fun list_conj [] = HOLogic.true_const
+  | list_conj ps = foldr1 (fn (p, q) => HOLogic.conj $ p $ q) ps;
+
+
 (*Simplification of Formulas *) 
  
 (*Function q_bnd_chk checks if a quantified Formula makes sens : Means if in 

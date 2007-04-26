@@ -109,28 +109,20 @@ let
 in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
 *}
 
-text {* Disable for @{typ char}acters and @{typ ml_string}s *}
+text {* Adaption for @{typ ml_string}s *}
 
-code_const "typ_of \<Colon> char itself \<Rightarrow> typ" and "term_of \<Colon> char \<Rightarrow> term"
-  (SML "!((_); raise Fail \"typ'_of'_char\")"
-    and "!((_); raise Fail \"term'_of'_char\")")
-  (OCaml "!((_); failwith \"typ'_of'_char\")"
-    and "!((_); failwith \"term'_of'_char\")")
-  (Haskell "error/ \"typ'_of'_char\""
-    and "error/ \"term'_of'_char\"")
+lemmas [code func, code nofunc] = term_of_ml_string_def
 
-code_const "term_of \<Colon> ml_string \<Rightarrow> term"
-  (SML "!((_); raise Fail \"term'_of'_ml'_string\")")
-  (OCaml "!((_); failwith \"term'_of'_ml'_string\")")
 
 subsection {* Evaluation infrastructure *}
 
 ML {*
 signature EVAL =
 sig
-  val eval_term: theory -> term -> term
-  val term: string -> unit
   val eval_ref: term option ref
+  val eval_term: theory -> term -> term
+  val print: (theory -> term -> term) -> string
+    -> Toplevel.transition -> Toplevel.transition
 end;
 
 structure Eval : EVAL =
@@ -142,13 +134,29 @@ fun eval_term thy t =
   CodegenPackage.eval_term
     thy (("Eval.eval_ref", eval_ref), TermOf.mk_term_of t);
 
-fun term t =
+fun print eval s = Toplevel.keep (fn state =>
   let
-    val thy = the_context ();
-    val t = eval_term thy (Sign.read_term thy t);
-  in (writeln o Sign.string_of_term thy) t end;
+    val ctxt = Toplevel.context_of state;
+    val thy = ProofContext.theory_of ctxt;
+    val t = eval thy (ProofContext.read_term ctxt s);
+    val T = Term.type_of t;
+  in
+    writeln (Pretty.string_of
+      (Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt T)]))
+  end);
 
 end;
+*}
+
+ML {*
+val valueP =
+  OuterSyntax.improper_command "value" "read, evaluate and print term" OuterKeyword.diag
+    ((OuterParse.opt_keyword "overloaded" -- OuterParse.term)
+      >> (fn (b, t) => (Toplevel.no_timing o Eval.print
+            (if b then Eval.eval_term else Codegen.eval_term) t)));
+
+val _ = OuterSyntax.add_parsers [valueP];
 *}
 
 end

@@ -15,10 +15,11 @@ lemma "\<not> (Suc 0 = Suc 1)" by eval
 
 text {* term evaluation *}
 
-ML {* Eval.term "(Suc 2 + 1) * 4" *}
-ML {* Eval.term "(Suc 2 + Suc 0) * Suc 3" *}
-ML {* Eval.term "[]::nat list" *}
-ML {* Eval.term "fst ([]::nat list, Suc 0) = []" *}
+value (overloaded) "(Suc 2 + 1) * 4"
+value (overloaded) "(Suc 2 + 1) * 4"
+value (overloaded) "(Suc 2 + Suc 0) * Suc 3"
+value (overloaded) "[]::nat list"
+value (overloaded) "fst ([]::nat list, Suc 0) = []"
 
 text {* a fancy datatype *}
 
@@ -29,6 +30,6 @@ datatype ('a, 'b) bair =
 and ('a, 'b) cair =
     Cair 'a 'b
 
-ML {* Eval.term "Shift (Cair (4::nat) [Suc 0])" *}
+value (overloaded) "Shift (Cair (4::nat) [Suc 0])"
 
 end

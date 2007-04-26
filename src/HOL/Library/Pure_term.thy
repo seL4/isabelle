@@ -90,15 +90,10 @@ lemma Abs_Absp [code inline, code func]:
   "(op \<mapsto>) (v, ty) = Absp v ty"
   by rule (auto simp add: Absp_def)
 
-definition
-  "term_case' f g h k l = term_case f g h (\<lambda>(v, ty). k v ty) (\<lambda>n. l (int n))"
-
-lemma term_case' [code inline, code func]:
-  "term_case = (\<lambda>f g h k l. term_case' f g h (\<lambda>v ty. k (v, ty)) (\<lambda>v. l (nat v)))"
-  unfolding term_case'_def by auto
-  
 code_datatype Const App Fix Absp Bound
 lemmas [code func] = Bnd_Bound Abs_Absp
+lemmas [code nofunc] = term.recs term.cases term.size
+lemma [code func, code nofunc]: "(t1\<Colon>term) = t2 \<longleftrightarrow> t1 = t2" ..
 
 code_type "typ" and "term"
   (SML "Term.typ" and "Term.term")
@@ -109,23 +104,8 @@ code_const Type and TFix
 code_const Const and App and Fix
   and Absp and Bound
   (SML "Term.Const/ (_, _)" and "Term.$/ (_, _)" and "Term.Free/ (_, _)"
-    and "Term.Abs/ (_, _, _)" and "Term.Bound/ (IntInf.toInt/ _)")
-
-code_const term_rec and term_case and "size \<Colon> term \<Rightarrow> nat"
-    and "op = \<Colon> term \<Rightarrow> term \<Rightarrow> bool"
-  (SML "!(_; _; _; _; _; raise Fail \"term'_rec\")"
-    and "!(_; _; _; _; _; raise Fail \"term'_case\")"
-    and "!(_; raise Fail \"size'_term\")"
-    and "!(_; _; raise Fail \"eq'_term\")")
-  (OCaml "!(_; _; _; _; _; failwith \"term'_rec\")"
-    and "!(_; _; _; _; _; failwith \"term'_case\")"
-    and "!(_; failwith \"size'_term\")"
-    and "!(_; _; failwith \"eq'_term\")")
-  (Haskell "error/ \"term'_rec\""
-    and "error/ \"term'_case\""
-    and "error/ \"size'_term\""
-    and "error/ \"eq'_term\"")
-
+    and "Term.Abs/ (_, _, _)" and "!((_); Term.Bound/ (raise Fail \"Bound\"))")
+ 
 code_reserved SML Term
 
 end
