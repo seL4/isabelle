@@ -23,11 +23,6 @@ sig
   val del_modesyntax_i: Syntax.mode -> (bstring * typ * mixfix) list -> theory -> theory
   val add_consts: (bstring * string * mixfix) list -> theory -> theory
   val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
-  val add_const_constraint: xstring * string option -> theory -> theory
-  val add_const_constraint_i: string * typ option -> theory -> theory
-  val primitive_class: string * class list -> theory -> theory
-  val primitive_classrel: class * class -> theory -> theory
-  val primitive_arity: arity -> theory -> theory
   val add_trfuns:
     (string * (ast list -> ast)) list *
     (string * (term list -> term)) list *
@@ -178,6 +173,11 @@ sig
   val add_notation: Syntax.mode -> (term * mixfix) list -> theory -> theory
   val add_abbrev: string -> bstring * term -> theory -> (term * term) * theory
   include SIGN_THEORY
+  val add_const_constraint: xstring * string option -> theory -> theory
+  val add_const_constraint_i: string * typ option -> theory -> theory
+  val primitive_class: string * class list -> theory -> theory
+  val primitive_classrel: class * class -> theory -> theory
+  val primitive_arity: arity -> theory -> theory
   val hide_classes: bool -> xstring list -> theory -> theory
   val hide_classes_i: bool -> string list -> theory -> theory
   val hide_types: bool -> xstring list -> theory -> theory
