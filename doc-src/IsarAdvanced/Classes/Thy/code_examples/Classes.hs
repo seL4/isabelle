@@ -1,51 +1,61 @@
 module Classes where {
 
-import Nat;
-import Integer;
+import qualified Integer;
+import qualified Nat;
 
 class Semigroup a where {
   mult :: a -> a -> a;
 };
 
-class (Semigroup a) => Monoidl a where {
+class (Classes.Semigroup a) => Monoidl a where {
   neutral :: a;
 };
 
-class (Monoidl a) => Group a where {
+class (Classes.Monoidl a) => Group a where {
   inverse :: a -> a;
 };
 
-inverse_int :: Integer -> Integer;
-inverse_int i = negate i;
+inverse_int :: Integer.Inta -> Integer.Inta;
+inverse_int i = Integer.uminus_int i;
 
-neutral_int :: Integer;
-neutral_int = 0;
+neutral_int :: Integer.Inta;
+neutral_int = Integer.Number_of_int Integer.Pls;
 
-mult_int :: Integer -> Integer -> Integer;
-mult_int i j = i + j;
+mult_int :: Integer.Inta -> Integer.Inta -> Integer.Inta;
+mult_int i j = Integer.plus_int i j;
 
-instance Semigroup Integer where {
-  mult = mult_int;
+instance Classes.Semigroup Integer.Inta where {
+  mult = Classes.mult_int;
 };
 
-instance Monoidl Integer where {
-  neutral = neutral_int;
+instance Classes.Monoidl Integer.Inta where {
+  neutral = Classes.neutral_int;
 };
 
-instance Group Integer where {
-  inverse = inverse_int;
+instance Classes.Group Integer.Inta where {
+  inverse = Classes.inverse_int;
 };
 
-pow_nat :: (Monoidl a) => Nat -> a -> a;
-pow_nat (Suc n) x = mult x (pow_nat n x);
-pow_nat Zero_nat x = neutral;
+pow_nat :: (Classes.Monoidl b) => Nat.Nat -> b -> b;
+pow_nat (Nat.Suc n) x = Classes.mult x (Classes.pow_nat n x);
+pow_nat Nat.Zero_nat x = Classes.neutral;
 
-pow_int :: (Group a) => Integer -> a -> a;
+pow_int :: (Classes.Group a) => Integer.Inta -> a -> a;
 pow_int k x =
-  (if 0 <= k then pow_nat (nat k) x
-    else inverse (pow_nat (nat (negate k)) x));
+  (if Integer.less_eq_int (Integer.Number_of_int Integer.Pls) k
+    then Classes.pow_nat (Integer.nat k) x
+    else Classes.inverse
+           (Classes.pow_nat (Integer.nat (Integer.uminus_int k)) x));
 
-example :: Integer;
-example = pow_int 10 (-2);
+example :: Integer.Inta;
+example =
+  Classes.pow_int
+    (Integer.Number_of_int
+      (Integer.Bit
+        (Integer.Bit
+          (Integer.Bit (Integer.Bit Integer.Pls Integer.B1) Integer.B0)
+          Integer.B1)
+        Integer.B0))
+    (Integer.Number_of_int (Integer.Bit Integer.Min Integer.B0));
 
 }
