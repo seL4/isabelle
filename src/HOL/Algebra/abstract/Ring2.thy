@@ -15,7 +15,7 @@ section {* Constants *}
 text {* Most constants are already declared by HOL. *}
 
 consts
-  assoc         :: "['a::times, 'a] => bool"              (infixl 50)
+  assoc         :: "['a::times, 'a] => bool"              (infixl "assoc" 50)
   irred         :: "'a::{zero, one, times} => bool"
   prime         :: "'a::{zero, one, times} => bool"
 

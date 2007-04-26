@@ -23,20 +23,20 @@ primrec
 subsection{*Arithmetic Operations on Polynomials*}
 
 text{*addition*}
-consts "+++" :: "[real list, real list] => real list"  (infixl 65)
+consts padd :: "[real list, real list] => real list"  (infixl "+++" 65)
 primrec
   padd_Nil:  "[] +++ l2 = l2"
   padd_Cons: "(h#t) +++ l2 = (if l2 = [] then h#t
                             else (h + hd l2)#(t +++ tl l2))"
 
 text{*Multiplication by a constant*}
-consts "%*" :: "[real, real list] => real list"  (infixl 70)
+consts cmult :: "[real, real list] => real list"  (infixl "%*" 70)
 primrec
    cmult_Nil:  "c %* [] = []"
    cmult_Cons: "c %* (h#t) = (c * h)#(c %* t)"
 
 text{*Multiplication by a polynomial*}
-consts "***" :: "[real list, real list] => real list"  (infixl 70)
+consts pmult :: "[real list, real list] => real list"  (infixl "***" 70)
 primrec
    pmult_Nil:  "[] *** l2 = []"
    pmult_Cons: "(h#t) *** l2 = (if t = [] then h %* l2
@@ -50,7 +50,7 @@ primrec
 
 
 text{*Exponential*}
-consts "%^" :: "[real list, nat] => real list"  (infixl 80)
+consts pexp :: "[real list, nat] => real list"  (infixl "%^" 80)
 primrec
    pexp_0:   "p %^ 0 = [1]"
    pexp_Suc: "p %^ (Suc n) = p *** (p %^ n)"

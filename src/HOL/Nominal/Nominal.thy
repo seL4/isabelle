@@ -176,7 +176,7 @@ constdefs
    fresh :: "'x \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sharp> _" [80,80] 80)
    "a \<sharp> x \<equiv> a \<notin> supp x"
 
-   supports :: "'x set \<Rightarrow> 'a \<Rightarrow> bool" (infixl 80)
+   supports :: "'x set \<Rightarrow> 'a \<Rightarrow> bool" (infixl "supports" 80)
    "S supports x \<equiv> \<forall>a b. (a\<notin>S \<and> b\<notin>S \<longrightarrow> [(a,b)]\<bullet>x=x)"
 
 lemma supp_fresh_iff: 
@@ -1770,7 +1770,7 @@ lemma supports_subset:
   and      b: "S1 \<subseteq> S2"
   shows "S2 supports x"
   using a b
-  by (force simp add: "op supports_def")
+  by (force simp add: supports_def)
 
 lemma supp_is_subset:
   fixes S :: "'x set"
@@ -1782,7 +1782,7 @@ proof (rule ccontr)
   assume "\<not>(supp x \<subseteq> S)"
   hence "\<exists>a. a\<in>(supp x) \<and> a\<notin>S" by force
   then obtain a where b1: "a\<in>supp x" and b2: "a\<notin>S" by force
-  from a1 b2 have "\<forall>b. (b\<notin>S \<longrightarrow> ([(a,b)]\<bullet>x = x))" by (unfold "op supports_def", force)
+  from a1 b2 have "\<forall>b. (b\<notin>S \<longrightarrow> ([(a,b)]\<bullet>x = x))" by (unfold supports_def, force)
   hence "{b. [(a,b)]\<bullet>x \<noteq> x}\<subseteq>S" by force
   with a2 have "finite {b. [(a,b)]\<bullet>x \<noteq> x}" by (simp add: finite_subset)
   hence "a\<notin>(supp x)" by (unfold supp_def, auto)
@@ -1794,7 +1794,7 @@ lemma supp_supports:
   assumes  pt: "pt TYPE('a) TYPE('x)"
   and      at: "at TYPE ('x)"
   shows "((supp x)::'x set) supports x"
-proof (unfold "op supports_def", intro strip)
+proof (unfold supports_def, intro strip)
   fix a b
   assume "(a::'x)\<notin>(supp x) \<and> (b::'x)\<notin>(supp x)"
   hence "a\<sharp>x" and "b\<sharp>x" by (auto simp add: fresh_def)
@@ -1860,7 +1860,7 @@ lemma supports_set:
   and      a: "\<forall>x\<in>X. (\<forall>(a::'x) (b::'x). a\<notin>S\<and>b\<notin>S \<longrightarrow> ([(a,b)]\<bullet>x)\<in>X)"
   shows  "S supports X"
 using a
-apply(auto simp add: "op supports_def")
+apply(auto simp add: supports_def)
 apply(simp add: pt_set_bij1a[OF pt, OF at])
 apply(force simp add: pt_swap_bij[OF pt, OF at])
 apply(simp add: pt_set_bij1a[OF pt, OF at])
@@ -1885,7 +1885,7 @@ lemma at_fin_set_supports:
   shows "X supports X"
 proof -
   have "\<forall>a b. a\<notin>X \<and> b\<notin>X \<longrightarrow> [(a,b)]\<bullet>X = X" by (auto simp add: perm_set_def at_calc[OF at])
-  then show ?thesis by (simp add: "op supports_def")
+  then show ?thesis by (simp add: supports_def)
 qed
 
 lemma infinite_Collection:
@@ -2076,7 +2076,7 @@ lemma pt_supp_fun_subset:
   shows "supp (f x) \<subseteq> (((supp f)\<union>(supp x))::'x set)"
 proof -
   have s1: "((supp f)\<union>((supp x)::'x set)) supports (f x)"
-  proof (simp add: "op supports_def", fold fresh_def, auto)
+  proof (simp add: supports_def, fold fresh_def, auto)
     fix a::"'x" and b::"'x"
     assume "a\<sharp>f" and "b\<sharp>f"
     hence a1: "[(a,b)]\<bullet>f = f" 
@@ -2171,7 +2171,7 @@ lemma Union_supports_set:
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
   shows "(\<Union>x\<in>X. ((supp x)::'x set)) supports X"
-  apply(simp add: "op supports_def" fresh_def[symmetric])
+  apply(simp add: supports_def fresh_def[symmetric])
   apply(rule allI)+
   apply(rule impI)
   apply(erule conjE)
@@ -2592,7 +2592,7 @@ lemma fresh_fun_supports:
   and     f1: "finite ((supp h)::'x set)"
   and     a: "\<exists>(a::'x). a\<sharp>(h,h a)"
   shows "((supp h)::'x set) supports (fresh_fun h)"
-  apply(simp add: "op supports_def" fresh_def[symmetric])
+  apply(simp add: supports_def fresh_def[symmetric])
   apply(auto)
   apply(simp add: fresh_fun_equiv[OF pt, OF at, OF f1, OF a])
   apply(simp add: pt_fresh_fresh[OF pt_fun_inst[OF at_pt_inst[OF at], OF pt], OF at, OF at])

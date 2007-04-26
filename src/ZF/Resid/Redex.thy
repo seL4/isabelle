@@ -19,21 +19,19 @@ consts
   Ssub  :: "i"
   Scomp :: "i"
   Sreg  :: "i"
-  union_aux        :: "i=>i"
-  regular          :: "i=>o"
-  
-(*syntax??*)
-  un               :: "[i,i]=>i"  (infixl 70)
-  "<=="            :: "[i,i]=>o"  (infixl 70)
-  "~"              :: "[i,i]=>o"  (infixl 70)
 
+abbreviation
+  Ssub_rel  (infixl "<==" 70) where
+  "a<==b == <a,b> \<in> Ssub"
 
-translations
-  "a<==b"        == "<a,b> \<in> Ssub"
-  "a ~ b"        == "<a,b> \<in> Scomp"
-  "regular(a)"   == "a \<in> Sreg"
+abbreviation
+  Scomp_rel  (infixl "~" 70) where
+  "a ~ b == <a,b> \<in> Scomp"
 
+abbreviation
+  "regular(a) == a \<in> Sreg"
 
+consts union_aux        :: "i=>i"
 primrec (*explicit lambda is required because both arguments of "un" vary*)
   "union_aux(Var(n)) =
      (\<lambda>t \<in> redexes. redexes_case(%j. Var(n), %x. 0, %b x y.0, t))"
@@ -47,13 +45,15 @@ primrec (*explicit lambda is required because both arguments of "un" vary*)
         redexes_case(%j. 0, %y. 0,
 		     %c z u. App(b or c, union_aux(f)`z, union_aux(a)`u), t))"
 
-defs
-  union_def:  "u un v == union_aux(u)`v"
+definition
+  union  (infixl "un" 70) where
+  "u un v == union_aux(u)`v"
 
-syntax (xsymbols)
-  "op un"             :: "[i,i]=>i"  (infixl "\<squnion>" 70)
-  "op <=="            :: "[i,i]=>o"  (infixl "\<Longleftarrow>" 70)
-  "op ~"              :: "[i,i]=>o"  (infixl "\<sim>" 70)
+notation (xsymbols)
+  union  (infixl "\<squnion>" 70) and
+  Ssub_rel  (infixl "\<Longleftarrow>" 70) and
+  Scomp_rel  (infixl "\<sim>" 70)
+
 
 inductive
   domains       "Ssub" <= "redexes*redexes"

@@ -9,7 +9,7 @@ theory Stream
 imports HOLCF Nat_Infinity
 begin
 
-domain 'a stream = "&&" (ft::'a) (lazy rt::"'a stream") (infixr 65)
+domain 'a stream = scons (ft::'a) (lazy rt::"'a stream") (infixr "&&" 65)
 
 definition
   smap :: "('a \<rightarrow> 'b) \<rightarrow> 'a stream \<rightarrow> 'b stream" where

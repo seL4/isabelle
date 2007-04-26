@@ -45,8 +45,8 @@ datatype \<subseteq> "univ(aexp \<union> ((nat \<times> nat)->bool))"
        | false
        | ROp  ("f \<in> (nat \<times> nat)->bool", "a0 \<in> aexp", "a1 \<in> aexp")
        | noti ("b \<in> bexp")
-       | andi ("b0 \<in> bexp", "b1 \<in> bexp")      (infixl 60)
-       | ori  ("b0 \<in> bexp", "b1 \<in> bexp")      (infixl 60)
+       | andi ("b0 \<in> bexp", "b1 \<in> bexp")      (infixl "andi" 60)
+       | ori  ("b0 \<in> bexp", "b1 \<in> bexp")      (infixl "ori" 60)
 
 
 consts evalb :: i

@@ -41,12 +41,13 @@ constdefs
     "QSigma(A,B)  ==  \<Union>x\<in>A. \<Union>y\<in>B(x). {<x;y>}"
 
 syntax
-  "@QSUM"   :: "[idt, i, i] => i"               ("(3QSUM _:_./ _)" 10)
-  "<*>"     :: "[i, i] => i"                      (infixr 80)
-
+  "_QSUM"   :: "[idt, i, i] => i"               ("(3QSUM _:_./ _)" 10)
 translations
   "QSUM x:A. B"  => "QSigma(A, %x. B)"
-  "A <*> B"      => "QSigma(A, %_. B)"
+
+abbreviation
+  qprod  (infixr "<*>" 80) where
+  "A <*> B == QSigma(A, %_. B)"
 
 constdefs
   qsum    :: "[i,i]=>i"                         (infixr "<+>" 65)
@@ -60,9 +61,6 @@ constdefs
 
   qcase     :: "[i=>i, i=>i, i]=>i"
     "qcase(c,d)   == qsplit(%y z. cond(y, d(z), c(z)))"
-
-
-print_translation {* [("QSigma", dependent_tr' ("@QSUM", "op <*>"))] *}
 
 
 subsection{*Quine ordered pairing*}
@@ -386,4 +384,3 @@ val qsum_mono = thm "qsum_mono";
 *}
 
 end
-

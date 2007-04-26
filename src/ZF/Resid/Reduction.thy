@@ -74,16 +74,22 @@ consts
   Sred      :: "i"
   Spar_red1 :: "i"
   Spar_red  :: "i"
-  "-1->"    :: "[i,i]=>o"  (infixl 50)
-  "--->"    :: "[i,i]=>o"  (infixl 50)
-  "=1=>"    :: "[i,i]=>o"  (infixl 50)
-  "===>"    :: "[i,i]=>o"  (infixl 50)
 
-translations
-  "a -1-> b" == "<a,b> \<in> Sred1"
-  "a ---> b" == "<a,b> \<in> Sred"
-  "a =1=> b" == "<a,b> \<in> Spar_red1"
-  "a ===> b" == "<a,b> \<in> Spar_red"
+abbreviation
+  Sred1_rel (infixl "-1->" 50) where
+  "a -1-> b == <a,b> \<in> Sred1"
+
+abbreviation
+  Sred_rel (infixl "--->" 50) where
+  "a ---> b == <a,b> \<in> Sred"
+
+abbreviation
+  Spar_red1_rel (infixl "=1=>" 50) where
+  "a =1=> b == <a,b> \<in> Spar_red1"
+
+abbreviation
+  Spar_red_rel (infixl "===>" 50) where
+  "a ===> b == <a,b> \<in> Spar_red"
   
   
 inductive

@@ -37,7 +37,7 @@ consts
   (*General Product and Function Space*)
   Prod      :: "[t, i=>t]=>t"
   (*Types*)
-  "+"       :: "[t,t]=>t"           (infixr 40)
+  Plus      :: "[t,t]=>t"           (infixr "+" 40)
   (*Equality type*)
   Eq        :: "[t,i,i]=>t"
   eq        :: "i"
@@ -51,7 +51,7 @@ consts
 
   (*Functions*)
   lambda    :: "(i => i) => i"      (binder "lam " 10)
-  "`"       :: "[i,i]=>i"           (infixl 60)
+  app       :: "[i,i]=>i"           (infixl "`" 60)
   (*Natural numbers*)
   "0"       :: "i"                  ("0")
   (*Pairing*)

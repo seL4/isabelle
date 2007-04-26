@@ -58,7 +58,7 @@ consts
   fairtraces     ::"('a,'s)ioa => 'a trace set"
 
   (* Notions of implementation *)
-  "=<|" :: "[('a,'s1)ioa, ('a,'s2)ioa] => bool"   (infixr 12)
+  ioa_implements :: "[('a,'s1)ioa, ('a,'s2)ioa] => bool"   (infixr "=<|" 12)
   fair_implements  :: "('a,'s1)ioa => ('a,'s2)ioa => bool"
 
   (* Execution, schedule and trace modules *)

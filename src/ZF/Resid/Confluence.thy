@@ -66,13 +66,15 @@ lemmas confluence_beta_reduction =
 
 consts
   Sconv1        :: "i"
-  "<-1->"       :: "[i,i]=>o"   (infixl 50)
   Sconv         :: "i"
-  "<--->"       :: "[i,i]=>o"   (infixl 50)
 
-translations
-  "a<-1->b"    == "<a,b> \<in> Sconv1"
-  "a<--->b"    == "<a,b> \<in> Sconv"
+abbreviation
+  Sconv1_rel (infixl "<-1->" 50) where
+  "a<-1->b == <a,b> \<in> Sconv1"
+
+abbreviation
+  Sconv_rel (infixl "<--->" 50) where
+  "a<--->b == <a,b> \<in> Sconv"
   
 inductive
   domains       "Sconv1" <= "lambda*lambda"

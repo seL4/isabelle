@@ -9,7 +9,7 @@ theory Seq
 imports HOLCF
 begin
 
-domain 'a seq = nil | "##" (HD :: 'a) (lazy TL :: "'a seq")  (infixr 65)
+domain 'a seq = nil | cons (HD :: 'a) (lazy TL :: "'a seq")  (infixr "##" 65)
 
 consts
    sfilter       :: "('a -> tr) -> 'a seq -> 'a seq"
@@ -30,14 +30,13 @@ consts
    nproj        :: "nat => 'a seq => 'a"
    sproj        :: "nat => 'a seq => 'a seq"
 
-syntax
-   "@@"         :: "'a seq => 'a seq => 'a seq" (infixr 65)
-   "Finite"     :: "'a seq => bool"
+abbreviation
+  sconc_syn :: "'a seq => 'a seq => 'a seq"  (infixr "@@" 65) where
+  "xs @@ ys == sconc $ xs $ ys"
 
-translations
-   "xs @@ ys" == "sconc $ xs $ ys"
-   "Finite x" == "x:sfinite"
-   "~(Finite x)" =="x~:sfinite"
+abbreviation
+  Finite :: "'a seq => bool" where
+  "Finite x == x:sfinite"
 
 defs
 

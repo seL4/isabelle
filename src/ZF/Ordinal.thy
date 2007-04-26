@@ -26,16 +26,15 @@ constdefs
   Limit         :: "i=>o"
     "Limit(i)    == Ord(i) & 0<i & (ALL y. y<i --> succ(y)<i)"
 
-syntax
-  "le"          :: "[i,i] => o"  (infixl 50)   (*less-than or equals*)
+abbreviation
+  le  (infixl "le" 50) where
+  "x le y == x < succ(y)"
 
-translations
-  "x le y"      == "x < succ(y)"
+notation (xsymbols)
+  le  (infixl "\<le>" 50)
 
-syntax (xsymbols)
-  "op le"       :: "[i,i] => o"  (infixl "\<le>" 50)  (*less-than or equals*)
-syntax (HTML output)
-  "op le"       :: "[i,i] => o"  (infixl "\<le>" 50)  (*less-than or equals*)
+notation (HTML output)
+  le  (infixl "\<le>" 50)
 
 
 subsection{*Rules for Transset*}

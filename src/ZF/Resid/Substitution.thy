@@ -11,7 +11,7 @@ consts
   lift_aux      :: "i=>i"
   lift          :: "i=>i"
   subst_aux     :: "i=>i"
-  "'/"          :: "[i,i]=>i"  (infixl 70)  (*subst*)
+  subst         :: "[i,i]=>i"  (infixl "'/" 70)
 
 constdefs
   lift_rec      :: "[i,i]=> i"
@@ -269,5 +269,3 @@ lemma subst_rec_preserve_reg [simp]:
 by (erule Sreg.induct, simp_all add: subst_Var lift_rec_preserve_reg)
 
 end
-
-

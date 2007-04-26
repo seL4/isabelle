@@ -57,7 +57,7 @@ consts
   (* binary composition of action signatures and automata *)
   asig_comp    ::"['a signature, 'a signature] => 'a signature"
   compatible   ::"[('a,'s)ioa, ('a,'t)ioa] => bool"
-  "||"         ::"[('a,'s)ioa, ('a,'t)ioa] => ('a,'s*'t)ioa"  (infixr 10)
+  par          ::"[('a,'s)ioa, ('a,'t)ioa] => ('a,'s*'t)ioa"  (infixr "||" 10)
 
   (* hiding and restricting *)
   hide_asig     :: "['a signature, 'a set] => 'a signature"
@@ -86,7 +86,9 @@ syntax (xsymbols)
 
   "_trans_of"  :: "'s => 'a => ('a,'s)ioa => 's => bool"
                   ("_ \<midarrow>_\<midarrow>_\<longrightarrow> _" [81,81,81,81] 100)
-  "op ||"         ::"[('a,'s)ioa, ('a,'t)ioa] => ('a,'s*'t)ioa"  (infixr "\<parallel>" 10)
+
+notation (xsymbols)
+  par  (infixr "\<parallel>" 10)
 
 
 inductive "reachable C"

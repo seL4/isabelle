@@ -10,11 +10,10 @@ theory Residuals imports Substitution begin
 
 consts
   Sres          :: "i"
-  residuals     :: "[i,i,i]=>i"
-  "|>"          :: "[i,i]=>i"     (infixl 70)
+  res_func      :: "[i,i]=>i"     (infixl "|>" 70)
 
-translations
-  "residuals(u,v,w)"  == "<u,v,w> \<in> Sres"
+abbreviation
+  "residuals(u,v,w) == <u,v,w> \<in> Sres"
 
 inductive
   domains       "Sres" <= "redexes*redexes*redexes"
