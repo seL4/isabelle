@@ -1,3 +1,7 @@
+(*  Title:      Cube/Cube.thy
+    ID:         $Id$
+    Author:     Tobias Nipkow
+*)
 
 header {* Barendregt's Lambda-Cube *}
 
