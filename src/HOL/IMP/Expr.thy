@@ -48,8 +48,8 @@ datatype
        | false
        | ROp  "nat => nat => bool" aexp aexp
        | noti bexp
-       | andi bexp bexp         (infixl 60)
-       | ori  bexp bexp         (infixl 60)
+       | andi bexp bexp         (infixl "andi" 60)
+       | ori  bexp bexp         (infixl "ori" 60)
 
 subsection "Evaluation of boolean expressions"
 consts evalb    :: "((bexp*state) * bool)set"
