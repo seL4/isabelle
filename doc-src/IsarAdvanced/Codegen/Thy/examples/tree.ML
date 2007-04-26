@@ -47,6 +47,8 @@ datatype nibble = Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 |
   Nibble5 | Nibble6 | Nibble7 | Nibble8 | Nibble9 | NibbleA | NibbleB |
   NibbleC | NibbleD | NibbleE | NibbleF;
 
+datatype char = Char of nibble * nibble;
+
 end; (*struct List*)
 
 structure Codegen = 
@@ -55,19 +57,26 @@ struct
 datatype ('a, 'b) searchtree = Leaf of 'a * 'b |
   Branch of ('a, 'b) searchtree * 'a * ('a, 'b) searchtree;
 
-fun update (A1_, A2_) (it, entry) (Branch (t1, key, t2)) =
-  (if Orderings.less_eq A2_ it key
-    then Branch (update (A1_, A2_) (it, entry) t1, key, t2)
-    else Branch (t1, key, update (A1_, A2_) (it, entry) t2))
-  | update (A1_, A2_) (it, entry) (Leaf (key, vala)) =
-    (if Code_Generator.op_eq A1_ it key then Leaf (key, entry)
-      else (if Orderings.less_eq A2_ it key
+fun update (C1_, C2_) (it, entry) (Branch (t1, key, t2)) =
+  (if Orderings.less_eq C2_ it key
+    then Branch (update (C1_, C2_) (it, entry) t1, key, t2)
+    else Branch (t1, key, update (C1_, C2_) (it, entry) t2))
+  | update (C1_, C2_) (it, entry) (Leaf (key, vala)) =
+    (if Code_Generator.op_eq C1_ it key then Leaf (key, entry)
+      else (if Orderings.less_eq C2_ it key
              then Branch (Leaf (it, entry), it, Leaf (key, vala))
              else Branch (Leaf (key, vala), it, Leaf (it, entry))));
 
 fun example n =
-  update (Nat.eq_nat, Nat.ord_nat) (n, [#"b", #"a", #"r"])
-    (Leaf (Nat.Zero_nat, [#"f", #"o", #"o"]));
+  update (Nat.eq_nat, Nat.ord_nat)
+    (n, [List.Char (List.Nibble6, List.Nibble2),
+          List.Char (List.Nibble6, List.Nibble1),
+          List.Char (List.Nibble7, List.Nibble2)])
+    (Leaf
+      (Nat.Zero_nat,
+        [List.Char (List.Nibble6, List.Nibble6),
+          List.Char (List.Nibble6, List.NibbleF),
+          List.Char (List.Nibble6, List.NibbleF)]));
 
 end; (*struct Codegen*)
 

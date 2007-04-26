@@ -168,7 +168,7 @@ text {*
   \emph{type classes}. A defining equation as a first approximation
   is a theorem of the form @{text "f t\<^isub>1 t\<^isub>2 \<dots> t\<^isub>n \<equiv> t"}
   (an equation headed by a constant @{text f} with arguments
-  @{text "t\<^isub>1 t\<^isub>2 \<dots> t\<^isub>n"} and right hand side @{text t}.
+  @{text "t\<^isub>1 t\<^isub>2 \<dots> t\<^isub>n"} and right hand side @{text t}).
   Code generation aims to turn defining equations
   into a functional program by running through
   a process (see figure \ref{fig:process}):
@@ -245,15 +245,12 @@ text {*
   a defining equation (e.g.~the Hilbert choice
   operation @{text "SOME"}):
 *}
-
 (*<*)
 setup {* Sign.add_path "foo" *}
 (*>*)
-
 definition
   pick_some :: "'a list \<Rightarrow> 'a" where
   "pick_some xs = (SOME x. x \<in> set xs)"
-
 (*<*)
 hide const pick_some
 
@@ -263,7 +260,6 @@ definition
   pick_some :: "'a list \<Rightarrow> 'a" where
   "pick_some = hd"
 (*>*)
-
 code_gen pick_some (SML "examples/fail_const.ML")
 
 text {* \noindent will fail. *}
@@ -285,7 +281,7 @@ text {*
   The typical HOL tools are already set up in a way that
   function definitions introduced by @{text "\<DEFINITION>"},
   @{text "\<FUN>"},
-  @{text "\<FUNCTION>"}, @{text "\<PRIMREC>"}
+  @{text "\<FUNCTION>"}, @{text "\<PRIMREC>"},
   @{text "\<RECDEF>"} are implicitly propagated
   to this defining equation table. Specific theorems may be
   selected using an attribute: \emph{code func}. As example,
@@ -300,7 +296,7 @@ primrec
     if n < k then v else pick xs (n - k))"
 
 text {*
-  We want to eliminate the explicit destruction
+  \noindent We want to eliminate the explicit destruction
   of @{term x} to @{term "(k, v)"}:
 *}
 
@@ -311,11 +307,11 @@ lemma [code func]:
 code_gen pick (*<*)(SML #)(*>*)(SML "examples/pick1.ML")
 
 text {*
-  This theorem is now added to the defining equation table:
+  \noindent This theorem now is used for generating code:
 
   \lstsml{Thy/examples/pick1.ML}
 
-  It might be convenient to remove the pointless original
+  \noindent It might be convenient to remove the pointless original
   equation, using the \emph{nofunc} attribute:
 *}
 
@@ -326,7 +322,7 @@ code_gen pick (*<*)(SML #)(*>*)(SML "examples/pick2.ML")
 text {*
   \lstsml{Thy/examples/pick2.ML}
 
-  Syntactic redundancies are implicitly dropped. For example,
+  \noindent Syntactic redundancies are implicitly dropped. For example,
   using a modified version of the @{const fac} function
   as defining equation, the then redundant (since
   syntactically subsumed) original defining equations
@@ -358,7 +354,7 @@ text {*
   here we just illustrate its impact on code generation.
 
   In a target language, type classes may be represented
-  natively (as in the case of Haskell). For languages
+  natively (as in the case of Haskell).  For languages
   like SML, they are implemented using \emph{dictionaries}.
   Our following example specifies a class \qt{null},
   assigning to each of its inhabitants a \qt{null} value:
@@ -367,12 +363,11 @@ text {*
 class null = type +
   fixes null :: 'a
 
-consts
+fun
   head :: "'a\<Colon>null list \<Rightarrow> 'a"
-
-primrec
+where
   "head [] = null"
-  "head (x#xs) = x"
+  | "head (x#xs) = x"
 
 text {*
   We provide some instances for our @{text null}:
@@ -406,8 +401,9 @@ code_gen dummy (Haskell "examples/")
 
 text {*
   \lsthaskell{Thy/examples/Codegen.hs}
+  \noindent (we have left out all other modules).
 
-  (we have left out all other modules).
+  \medskip
 
   The whole code in SML with explicit dictionary passing:
 *}
@@ -416,50 +412,20 @@ code_gen dummy (*<*)(SML #)(*>*)(SML "examples/class.ML")
 
 text {*
   \lstsml{Thy/examples/class.ML}
-*}
 
-text {*
-  or in OCaml:
+  \medskip
+
+  \noindent or in OCaml:
 *}
 
 code_gen dummy (OCaml "examples/class.ocaml")
 
 text {*
   \lstsml{Thy/examples/class.ocaml}
+
+  \medskip The explicit association of constants
+  to classes can be inspected using the @{text "\<PRINTCLASSES>"}
 *}
-
-subsection {* Incremental code generation *}
-
-text {*
-  Code generation is \emph{incremental}: theorems
-  and abstract intermediate code are cached and extended on demand.
-  The cache may be partially or fully dropped if the underlying
-  executable content of the theory changes.
-  Implementation of caching is supposed to transparently
-  hid away the details from the user.  Anyway, caching
-  reaches the surface by using a slightly more general form
-  of the @{text "\<CODEGEN>"}: either the list of constants or the
-  list of serialization expressions may be dropped.  If no
-  serialization expressions are given, only abstract code
-  is generated and cached; if no constants are given, the
-  current cache is serialized.
-
-  For explorative purpose, the
-  @{text "\<CODETHMS>"} command may prove useful:
-*}
-
-code_thms
-
-text {*
-  \noindent print all cached defining equations (i.e.~\emph{after}
-  any applied transformation).  A
-  list of constants may be given; their function
-  equations are added to the cache if not already present.
-
-  Similarly, the @{text "\<CODEDEPS>"} command shows a graph
-  visualizing dependencies between defining equations.
-*}
-
 
 
 section {* Recipes and advanced topics \label{sec:advanced} *}
@@ -481,7 +447,7 @@ text {*
   \end{itemize}
 *}
 
-subsection {* Library theories *}
+subsection {* Library theories \label{sec:library} *}
 
 text {*
   The HOL \emph{Main} theory already provides a code generator setup
@@ -492,6 +458,13 @@ text {*
 
   \begin{description}
 
+    \item[@{text "Pretty_Int"}] represents HOL integers by big
+       integer literals in target languages.
+    \item[@{text "Pretty_Char"}] represents HOL characters by 
+       character literals in target languages.
+    \item[@{text "Pretty_Char_chr"}] like @{text "Pretty_Char_chr"},
+       but also offers treatment of character codes; includes
+       @{text "Pretty_Int"}.
     \item[@{text "ExecutableSet"}] allows to generate code
        for finite sets using lists.
     \item[@{text "ExecutableRat"}] \label{exec_rat} implements rational
@@ -499,10 +472,10 @@ text {*
     \item[@{text "EfficientNat"}] \label{eff_nat} implements natural numbers by integers,
        which in general will result in higher efficency; pattern
        matching with @{const "0\<Colon>nat"} / @{const "Suc"}
-       is eliminated.
+       is eliminated;  includes @{text "Pretty_Int"}.
     \item[@{text "MLString"}] provides an additional datatype @{text "mlstring"};
        in the HOL default setup, strings in HOL are mapped to list
-       of chars in SML; values of type @{text "mlstring"} are
+       of HOL characters in SML; values of type @{text "mlstring"} are
        mapped to strings in SML.
 
   \end{description}
@@ -524,7 +497,6 @@ text {*
   equation, but never to the constant heading the left hand side.
   Inline theorems may be declared an undeclared using the
   \emph{code inline} or \emph{code noinline} attribute respectively.
-
   Some common applications:
 *}
 
@@ -585,7 +557,147 @@ text {*
   \end{warn}
 *}
 
+
+subsection {* Concerning operational equality *}
+
+text {*
+  Surely you have already noticed how equality is treated
+  by the code generator:
+*}
+
+fun
+  collect_duplicates :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+    "collect_duplicates xs ys [] = xs"
+  | "collect_duplicates xs ys (z#zs) = (if z \<in> set xs
+      then if z \<in> set ys
+        then collect_duplicates xs ys zs
+        else collect_duplicates xs (z#ys) zs
+      else collect_duplicates (z#xs) (z#ys) zs)"
+
+text {*
+  The membership test during preprocessing is rewritten,
+  resulting in @{const List.memberl}, which itself
+  performs an explicit equality check.
+*}
+
+code_gen collect_duplicates (*<*)(SML #)(*>*)(SML "examples/collect_duplicates.ML")
+
+text {*
+  \lstsml{Thy/examples/collect_duplicates.ML}
+*}
+
+text {*
+  Obviously, polymorphic equality is implemented the Haskell
+  way using a type class.  How is this achieved?  By an
+  almost trivial definition in the HOL setup:
+*}
+(*<*)
+setup {* Sign.add_path "foo" *}
+consts "op =" :: "'a"
+(*>*)
+class eq (attach "op =") = type
+
+text {*
+  This merely introduces a class @{text eq} with corresponding
+  operation @{text "op ="};
+  the preprocessing framework does the rest.
+  For datatypes, instances of @{text eq} are implicitly derived
+  when possible.
+
+  Though this @{text eq} class is designed to get rarely in
+  the way, a subtlety
+  enters the stage when definitions of overloaded constants
+  are dependent on operational equality.  For example, let
+  us define a lexicographic ordering on tuples:
+*}
+(*<*)
+hide (open) "class" eq
+hide (open) const "op ="
+setup {* Sign.parent_path *}
+(*>*)
+instance * :: (ord, ord) ord
+  less_prod_def:
+    "p1 < p2 \<equiv> let (x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) = p1; (x2, y2) = p2 in
+    x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
+  less_eq_prod_def:
+    "p1 \<le> p2 \<equiv> let (x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) = p1; (x2, y2) = p2 in
+    x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)" ..
+
+lemmas [code nofunc] = less_prod_def less_eq_prod_def
+
+lemma ord_prod [code func(*<*), code nofunc(*>*)]:
+  "(x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
+  "(x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)"
+  unfolding less_prod_def less_eq_prod_def by simp_all
+
+text {*
+  Then code generation will fail.  Why?  The definition
+  of @{const "op \<le>"} depends on equality on both arguments,
+  which are polymorphic and impose an additional @{text eq}
+  class constraint, thus violating the type discipline
+  for class operations.
+
+  The solution is to add @{text eq} explicitly to the first sort arguments in the
+  code theorems:
+*}
+
+lemma ord_prod_code [code func]:
+  "(x1 \<Colon> 'a\<Colon>{ord, eq}, y1 \<Colon> 'b\<Colon>ord) < (x2, y2) \<longleftrightarrow>
+    x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
+  "(x1 \<Colon> 'a\<Colon>{ord, eq}, y1 \<Colon> 'b\<Colon>ord) \<le> (x2, y2) \<longleftrightarrow>
+    x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)"
+  unfolding ord_prod by rule+
+
+text {*
+  \noindent Then code generation succeeds:
+*}
+
+code_gen "op \<le> \<Colon> 'a\<Colon>{eq, ord} \<times> 'b\<Colon>ord \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
+  (*<*)(SML #)(*>*)(SML "examples/lexicographic.ML")
+
+text {*
+  \lstsml{Thy/examples/lexicographic.ML}
+*}
+
+text {*
+  In general, code theorems for overloaded constants may have more
+  restrictive sort constraints than the underlying instance relation
+  between class and type constructor as long as the whole system of
+  constraints is coregular; code theorems violating coregularity
+  are rejected immediately.  Consequently, it might be necessary
+  to delete disturbing theorems in the code theorem table,
+  as we have done here with the original definitions @{text less_prod_def}
+  and @{text less_eq_prod_def}.
+*}
+
+
+subsection {* Programs as sets of theorems *}
+
+text {*
+  As told in \secref{sec:concept}, code generation is based
+  on a structured collection of code theorems.
+  For explorative purpose, this collection
+  may be inspected using the @{text "\<CODETHMS>"} command:
+*}
+
+code_thms "op mod :: nat \<Rightarrow> nat \<Rightarrow> nat"
+
+text {*
+  \noindent prints a table with \emph{all} defining equations
+  for @{const "op mod :: nat \<Rightarrow> nat \<Rightarrow> nat"}, including
+  \emph{all} defining equations those equations depend
+  on recursivly.  @{text "\<CODETHMS>"} provides a convenient
+  mechanism to inspect the impact of a preprocessor setup
+  on defining equations.
+  
+  Similarly, the @{text "\<CODEDEPS>"} command shows a graph
+  visualizing dependencies between defining equations.
+*}
+
+
 subsection {* Customizing serialization  *}
+
+subsubsection {* Basics *}
 
 text {*
   Consider the following function and its corresponding
@@ -595,20 +707,18 @@ text {*
 fun
   in_interval :: "nat \<times> nat \<Rightarrow> nat \<Rightarrow> bool" where
   "in_interval (k, l) n \<longleftrightarrow> k \<le> n \<and> n \<le> l"
-
 (*<*)
 code_type %tt bool
   (SML)
 code_const %tt True and False and "op \<and>" and Not
   (SML and and and)
 (*>*)
-
 code_gen in_interval (*<*)(SML #)(*>*)(SML "examples/bool_literal.ML")
 
 text {*
   \lstsml{Thy/examples/bool_literal.ML}
 
-  Though this is correct code, it is a little bit unsatisfactory:
+  \noindent Though this is correct code, it is a little bit unsatisfactory:
   boolean values and operators are materialized as distinguished
   entities with have nothing to do with the SML-builtin notion
   of \qt{bool}.  This results in less readable code;
@@ -651,7 +761,7 @@ code_gen in_interval (*<*)(SML #)(*>*)(SML "examples/bool_mlbool.ML")
 text {*
   \lstsml{Thy/examples/bool_mlbool.ML}
 
-  This still is not perfect: the parentheses
+  \noindent This still is not perfect: the parentheses
   around the \qt{andalso} expression are superfluous.
   Though the serializer
   by no means attempts to imitate the rich Isabelle syntax
@@ -667,20 +777,19 @@ code_gen in_interval (*<*)(SML #)(*>*)(SML "examples/bool_infix.ML")
 text {*
   \lstsml{Thy/examples/bool_infix.ML}
 
+  \medskip
+
   Next, we try to map HOL pairs to SML pairs, using the
   infix ``@{verbatim "*"}'' type constructor and parentheses:
 *}
-
 (*<*)
 code_type *
   (SML)
 code_const Pair
   (SML)
 (*>*)
-
 code_type %tt *
   (SML infix 2 "*")
-
 code_const %tt Pair
   (SML "!((_),/ (_))")
 
@@ -693,44 +802,7 @@ text {*
   inserts a space which may be used as a break if necessary
   during pretty printing.
 
-  So far, we did only provide more idiomatic serializations for
-  constructs which would be executable on their own.  Target-specific
-  serializations may also be used to \emph{implement} constructs
-  which have no explicit notion of executability.  For example,
-  take the HOL integers:
-*}
-
-definition
-  double_inc :: "int \<Rightarrow> int" where
-  "double_inc k = 2 * k + 1"
-
-code_gen double_inc (SML "examples/integers.ML")
-
-text {*
-  will fail: @{typ int} in HOL is implemented using a quotient
-  type, which does not provide any notion of executability.
-  \footnote{Eventually, we also want to provide executability
-  for quotients.}.  However, we could use the SML builtin
-  integers:
-*}
-
-code_type %tt int
-  (SML "IntInf.int")
-
-code_const %tt "op + \<Colon> int \<Rightarrow> int \<Rightarrow> int"
-    and "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
-  (SML "IntInf.+ (_, _)" and "IntInf.* (_, _)")
-
-code_gen double_inc (*<*)(SML #)(*>*)(SML "examples/integers.ML")
-
-text {*
-  resulting in:
-
-  \lstsml{Thy/examples/integers.ML}
-*}
-
-text {*
-  These examples give a glimpse what powerful mechanisms
+  These examples give a glimpse what mechanisms
   custom serializations provide; however their usage
   requires careful thinking in order not to introduce
   inconsistencies -- or, in other words:
@@ -748,169 +820,6 @@ text {*
   a recommended tutorial on how to use them properly.
 *}
 
-subsection {* Concerning operational equality *}
-
-text {*
-  Surely you have already noticed how equality is treated
-  by the code generator:
-*}
-
-fun
-  collect_duplicates :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-    "collect_duplicates xs ys [] = xs"
-  | "collect_duplicates xs ys (z#zs) = (if z \<in> set xs
-      then if z \<in> set ys
-        then collect_duplicates xs ys zs
-        else collect_duplicates xs (z#ys) zs
-      else collect_duplicates (z#xs) (z#ys) zs)"
-
-text {*
-  The membership test during preprocessing is rewritten,
-  resulting in @{const List.memberl}, which itself
-  performs an explicit equality check.
-*}
-
-code_gen collect_duplicates (*<*)(SML #)(*>*)(SML "examples/collect_duplicates.ML")
-
-text {*
-  \lstsml{Thy/examples/collect_duplicates.ML}
-*}
-
-text {*
-  Obviously, polymorphic equality is implemented the Haskell
-  way using a type class.  How is this achieved?  By an
-  almost trivial definition in the HOL setup:
-*}
-
-(*<*)
-setup {* Sign.add_path "foo" *}
-consts "op =" :: "'a"
-(*>*)
-
-class eq (attach "op =") = type
-
-text {*
-  This merely introduces a class @{text eq} with corresponding
-  operation @{text "op ="};
-  the preprocessing framework does the rest.
-*}
-
-(*<*)
-hide (open) "class" eq
-hide (open) const "op ="
-setup {* Sign.parent_path *}
-(*>*)
-
-text {*
-  For datatypes, instances of @{text eq} are implicitly derived
-  when possible.
-
-  Though this class is designed to get rarely in the way, there
-  are some cases when it suddenly comes to surface:
-*}
-
-subsubsection {* typedecls interpreted by customary serializations *}
-
-text {*
-  A common idiom is to use unspecified types for formalizations
-  and interpret them for a specific target language:
-*}
-
-typedecl key
-
-fun
-  lookup :: "(key \<times> 'a) list \<Rightarrow> key \<Rightarrow> 'a option" where
-    "lookup [] l = None"
-  | "lookup ((k, v) # xs) l = (if k = l then Some v else lookup xs l)"
-
-code_type %tt key
-  (SML "string")
-
-text {*
-  This, though, is not sufficient: @{typ key} is no instance
-  of @{text eq} since @{typ key} is no datatype; the instance
-  has to be declared manually, including a serialization
-  for the particular instance of @{const "op ="}:
-*}
-
-instance key :: eq ..
-
-code_const %tt "op = \<Colon> key \<Rightarrow> key \<Rightarrow> bool"
-  (SML "!((_ : string) = _)")
-
-text {*
-  Then everything goes fine:
-*}
-
-code_gen lookup (*<*)(SML #)(*>*)(SML "examples/lookup.ML")
-
-text {*
-  \lstsml{Thy/examples/lookup.ML}
-*}
-
-subsubsection {* lexicographic orderings *}
-
-text {*
-  Another subtlety
-  enters the stage when definitions of overloaded constants
-  are dependent on operational equality.  For example, let
-  us define a lexicographic ordering on tuples:
-*}
-
-instance * :: (ord, ord) ord
-  less_prod_def: "p1 < p2 \<equiv> let (x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) = p1; (x2, y2) = p2 in
-    x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
-  less_eq_prod_def: "p1 \<le> p2 \<equiv> let (x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) = p1; (x2, y2) = p2 in
-    x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)" ..
-
-lemmas [code nofunc] = less_prod_def less_eq_prod_def
-
-lemma ord_prod [code func]:
-  "(x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
-  "(x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)"
-  unfolding less_prod_def less_eq_prod_def by simp_all
-
-text {*
-  Then code generation will fail.  Why?  The definition
-  of @{const "op \<le>"} depends on equality on both arguments,
-  which are polymorphic and impose an additional @{text eq}
-  class constraint, thus violating the type discipline
-  for class operations.
-
-  The solution is to add @{text eq} explicitly to the first sort arguments in the
-  code theorems:
-*}
-
-(*<*)
-lemmas [code nofunc] = ord_prod
-(*>*)
-
-lemma ord_prod_code [code func]:
-  "(x1 \<Colon> 'a\<Colon>{ord, eq}, y1 \<Colon> 'b\<Colon>ord) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
-  "(x1 \<Colon> 'a\<Colon>{ord, eq}, y1 \<Colon> 'b\<Colon>ord) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)"
-  unfolding ord_prod by rule+
-
-text {*
-  Then code generation succeeds:
-*}
-
-code_gen "op \<le> \<Colon> 'a\<Colon>{eq, ord} \<times> 'b\<Colon>ord \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
-  (*<*)(SML #)(*>*)(SML "examples/lexicographic.ML")
-
-text {*
-  \lstsml{Thy/examples/lexicographic.ML}
-*}
-
-text {*
-  In general, code theorems for overloaded constants may have more
-  restrictive sort constraints than the underlying instance relation
-  between class and type constructor as long as the whole system of
-  constraints is coregular; code theorems violating coregularity
-  are rejected immediately.  Consequently, it might be necessary
-  to delete disturbing theorems in the code theorem table,
-  as we have done here with the original definitions @{text less_prod_def}
-  and @{text less_eq_prod_def}.
-*}
 
 subsubsection {* Haskell serialization *}
 
@@ -921,22 +830,11 @@ text {*
   for the class (@{text "\<CODECLASS>"}) and its operation:
 *}
 
-(*<*)
-setup {* Sign.add_path "bar" *}
-class eq = type + fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-(*>*)
-
 code_class %tt eq
-  (Haskell "Eq" where eq \<equiv> "(==)")
+  (Haskell "Eq" where "op =" \<equiv> "(==)")
 
-code_const %tt eq
+code_const %tt "op ="
   (Haskell infixl 4 "==")
-
-(*<*)
-hide "class" eq
-hide const eq
-setup {* Sign.parent_path *}
-(*>*)
 
 text {*
   A problem now occurs whenever a type which
@@ -962,86 +860,57 @@ text {*
 code_instance %tt bar :: eq
   (Haskell -)
 
-subsection {* Types matter *}
+
+subsubsection {* Pretty printing *}
 
 text {*
-  Imagine the following quick-and-dirty setup for implementing
-  some kind of sets as lists in SML:
+  The serializer provides ML interfaces to set up
+  pretty serializations for expressions like lists, numerals
+  and characters;  these are
+  monolithic stubs and should only be used with the
+  theories introduces in \secref{sec:library}.
 *}
-
-code_type %tt set
-  (SML "_ list")
-
-code_const %tt "{}" and insert
-  (SML "![]" and infixl 7 "::")
-
-definition
-  dummy_set :: "(nat \<Rightarrow> nat) set" where
-  "dummy_set = {Suc}"
-
-text {*
-  Then code generation for @{const dummy_set} will fail.
-  Why? A glimpse at the defining equations will offer:
-*}
-
-code_thms insert
-
-text {*
-  This reveals the defining equation @{thm insert_def}
-  for @{const insert}, which is operationally meaningless
-  but forces an equality constraint on the set members
-  (which is not satisfiable if the set members are functions).
-  Even when using set of natural numbers (which are an instance
-  of \emph{eq}), we run into a problem:
-*}
-
-definition
-  foobar_set :: "nat set" where
-  "foobar_set = {0, 1, 2}"
-
-text {*
-  In this case the serializer would complain that @{const insert}
-  expects dictionaries (namely an \emph{eq} dictionary) but
-  has also been given a customary serialization.
-
-  \fixme[needs rewrite] The solution to this dilemma:
-*}
-
-lemma [code func]:
-  "insert = insert" ..
-
-code_gen dummy_set foobar_set (*<*)(SML #)(*>*)(SML "examples/dirty_set.ML")
-
-text {*
-  \lstsml{Thy/examples/dirty_set.ML}
-
-  Reflexive defining equations by convention are dropped:
-*}
-
-code_thms insert
-
-text {*
-  will show \emph{no} defining equations for insert.
-
-  Note that the sort constraints of reflexive equations
-  are considered; so
-*}
-
-lemma [code func]:
-  "(insert \<Colon> 'a\<Colon>eq \<Rightarrow> 'a set \<Rightarrow> 'a set) = insert" ..
-
-text {*
-  would mean nothing else than to introduce the evil
-  sort constraint by hand.
-*}
-
 
 subsection {* Constructor sets for datatypes *}
 
 text {*
-  \fixme
+  Conceptually, any datatype is spanned by a set of
+  \emph{constructors} of type @{text "\<tau> = \<dots> \<Rightarrow> \<kappa> \<alpha>\<^isub>1 \<dots> \<alpha>\<^isub>n"}
+  where @{text "{\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>n}"} is excactly the set of \emph{all}
+  type variables in @{text "\<tau>"}.  The HOL datatype package
+  by default registers any new datatype in the table
+  of datatypes, which may be inspected using
+  the @{text "\<PRINTCODESETUP>"} command.
+
+  In some cases, it may be convenient to alter or
+  extend this table;  as an example, we show
+  how to implement finite sets by lists
+  using the conversion @{term [source] "set \<Colon> 'a list \<Rightarrow> 'a set"}
+  as constructor:
 *}
 
+code_datatype set
+
+lemma [code func]: "{} = set []" by simp
+
+lemma [code func]: "insert x (set xs) = set (x#xs)" by simp
+
+lemma [code func]: "x \<in> set xs \<longleftrightarrow> x mem xs" by (induct xs) simp_all
+
+lemma [code func]: "xs \<union> set ys = foldr insert ys xs" by (induct ys) simp_all
+
+lemma [code func]: "\<Union>set xs = foldr (op \<union>) xs {}" by (induct xs) simp_all
+
+code_gen "{}" insert "op \<in>" "op \<union>" "Union" (*<*)(SML #)(*>*)(SML "examples/set_list.ML")
+
+text {*
+  \lstsml{Thy/examples/set_list.ML}
+
+  \medskip
+
+  Changing the representation of existing datatypes requires
+  some care with respect to pattern matching and such.
+*}
 
 subsection {* Cyclic module dependencies *}
 
@@ -1067,6 +936,22 @@ text {*
   we explicitly map all those modules on \emph{ABC},
   resulting in an ad-hoc merge of this three modules
   at serialization time.
+*}
+
+subsection {* Incremental code generation *}
+
+text {*
+  Code generation is \emph{incremental}: theorems
+  and abstract intermediate code are cached and extended on demand.
+  The cache may be partially or fully dropped if the underlying
+  executable content of the theory changes.
+  Implementation of caching is supposed to transparently
+  hid away the details from the user.  Anyway, caching
+  reaches the surface by using a slightly more general form
+  of the @{text "\<CODETHMS>"}, @{text "\<CODEDEPS>"}
+  and @{text "\<CODEGEN>"} commands: the list of constants
+  may be omitted.  Then, all constants with code theorems
+  in the current cache are referred to.
 *}
 
 subsection {* Axiomatic extensions *}
@@ -1144,6 +1029,8 @@ code_gen dummy_option (*<*)(SML #)(*>*)(SML "examples/arbitrary.ML")
 
 text {*
   \lstsml{Thy/examples/arbitrary.ML}
+
+  \medskip
 
   Another axiomatic extension is code generation
   for abstracted types.  For this, the  
@@ -1370,13 +1257,13 @@ text {*
 
   \item @{text merge} merging two data slots.
 
-  \item @{text purge}~@{text thy}~@{text cs} propagates changes in executable content;
+  \item @{text purge}~@{text thy}~@{text consts} propagates changes in executable content;
     if possible, the current theory context is handed over
     as argument @{text thy} (if there is no current theory context (e.g.~during
-    theory merge, @{ML NONE}); @{text cs} indicates the kind
+    theory merge, @{ML NONE}); @{text consts} indicates the kind
     of change: @{ML NONE} stands for a fundamental change
-    which invalidates any existing code, @{text "SOME cs"}
-    hints that executable content for constants @{text cs}
+    which invalidates any existing code, @{text "SOME consts"}
+    hints that executable content for constants @{text consts}
     has changed.
 
   \end{description}
@@ -1406,19 +1293,61 @@ text {*
   \end{description}
 *}
 
-(* subsubsection {* Building implementable systems fo defining equations *}
+subsubsection {* Building implementable systems fo defining equations *}
 
 text {*
   Out of the executable content of a theory, a normalized
   defining equation systems may be constructed containing
   function definitions for constants.  The system is cached
   until its underlying executable content changes.
+
+  Defining equations are retrieved by instantiation
+  of the functor @{ML_functor CodegenFuncgrRetrieval}
+  which takes two arguments:
+
+  \medskip
+  \begin{tabular}{l}
+  @{text "val name: string"} \\
+  @{text "val rewrites: theory \<rightarrow> thm list"}
+  \end{tabular}
+
+  \begin{description}
+
+  \item @{text name} is a system-wide unique name identifying
+    this particular system of defining equations.
+
+  \item @{text rewrites} specifies a set of theory-dependent
+    rewrite rules which are added to the preprocessor setup;
+    if no additional preprocessing is required, pass
+    a function returning an empty list.
+
+  \end{description}
+
+  An instance of @{ML_functor CodegenFuncgrRetrieval} in essence
+  provides the following interface:
+
+  \medskip
+  \begin{tabular}{l}
+  @{text "make: theory \<rightarrow> CodegenConsts.const list \<rightarrow> CodegenFuncgr.T"} \\
+  \end{tabular}
+
+  \begin{description}
+
+  \item @{text make}~@{text thy}~@{text consts} returns
+    a system of defining equations which is guaranteed
+    to contain all defining equations for constants @{text consts}
+    including all defining equations any defining equation
+    for any constant in @{text consts} depends on.
+
+  \end{description}
+
+  Systems of defining equations are graphs accesible by the
+  following operations:
 *}
 
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type CodegenFuncgr.T} \\
-  @{index_ML CodegenFuncgr.make: "theory -> CodegenConsts.const list -> CodegenFuncgr.T"} \\
   @{index_ML CodegenFuncgr.funcs: "CodegenFuncgr.T -> CodegenConsts.const -> thm list"} \\
   @{index_ML CodegenFuncgr.typ: "CodegenFuncgr.T -> CodegenConsts.const -> typ"} \\
   @{index_ML CodegenFuncgr.deps: "CodegenFuncgr.T
@@ -1431,20 +1360,15 @@ text %mlref {*
   \item @{ML_type CodegenFuncgr.T} represents
     a normalized defining equation system.
 
-  \item @{ML CodegenFuncgr.make}~@{text thy}~@{text cs}
-    returns a normalized defining equation system,
-    with the assertion that it contains any function
-    definition for constants @{text cs} (if existing).
+  \item @{ML CodegenFuncgr.funcs}~@{text funcgr}~@{text const}
+    retrieves defining equiations for constant @{text const}.
 
-  \item @{ML CodegenFuncgr.funcs}~@{text funcgr}~@{text c}
-    retrieves function definition for constant @{text c}.
+  \item @{ML CodegenFuncgr.typ}~@{text funcgr}~@{text const}
+    retrieves function type for constant @{text const}.
 
-  \item @{ML CodegenFuncgr.typ}~@{text funcgr}~@{text c}
-    retrieves function type for constant @{text c}.
-
-  \item @{ML CodegenFuncgr.deps}~@{text funcgr}~@{text cs}
+  \item @{ML CodegenFuncgr.deps}~@{text funcgr}~@{text consts}
     returns the transitive closure of dependencies for
-    constants @{text cs} as a partitioning where each partition
+    constants @{text consts} as a partitioning where each partition
     corresponds to a strongly connected component of
     dependencies and any partition does \emph{not}
     depend on partitions further left.
@@ -1453,7 +1377,7 @@ text %mlref {*
     returns all currently represented constants.
 
   \end{description}
-*} *)
+*}
 
 subsubsection {* Datatype hooks *}
 

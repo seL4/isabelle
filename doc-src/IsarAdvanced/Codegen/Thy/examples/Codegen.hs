@@ -6,7 +6,7 @@ class Null a where {
   nulla :: a;
 };
 
-heada :: (Codegen.Null a) => [a] -> a;
+heada :: (Codegen.Null b) => [b] -> b;
 heada (x : xs) = x;
 heada [] = Codegen.nulla;
 
