@@ -469,11 +469,10 @@ $(LOG)/HOL-ZF.gz: $(OUT)/HOL ZF/ROOT.ML  \
 HOL-Modelcheck: HOL $(LOG)/HOL-Modelcheck.gz
 
 $(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL Modelcheck/CTL.thy \
-  Modelcheck/EindhovenExample.thy Modelcheck/EindhovenSyn.ML \
-  Modelcheck/EindhovenSyn.thy Modelcheck/MuCalculus.thy \
-  Modelcheck/MuckeExample1.thy Modelcheck/MuckeExample2.thy \
-  Modelcheck/MuckeSyn.ML Modelcheck/MuckeSyn.thy Modelcheck/ROOT.ML \
-  Modelcheck/mucke_oracle.ML
+  Modelcheck/EindhovenExample.thy Modelcheck/EindhovenSyn.thy \
+  Modelcheck/MuCalculus.thy Modelcheck/MuckeExample1.thy \
+  Modelcheck/MuckeExample2.thy Modelcheck/MuckeSyn.thy \
+  Modelcheck/ROOT.ML Modelcheck/mucke_oracle.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Modelcheck
 
 

@@ -116,9 +116,8 @@ $(LOG)/IOA-NTP.gz: $(OUT)/IOA \
 IOA-Modelcheck: IOA $(LOG)/IOA-Modelcheck.gz
 
 $(LOG)/IOA-Modelcheck.gz: $(OUT)/IOA IOA/Modelcheck/ROOT.ML \
-  IOA/Modelcheck/Cockpit.thy IOA/Modelcheck/MuIOA.ML IOA/Modelcheck/MuIOA.thy \
-  IOA/Modelcheck/MuIOAOracle.ML IOA/Modelcheck/MuIOAOracle.thy \
-  IOA/Modelcheck/Ring3.thy 
+  IOA/Modelcheck/Cockpit.thy IOA/Modelcheck/MuIOA.thy \
+  IOA/Modelcheck/MuIOAOracle.thy IOA/Modelcheck/Ring3.thy
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA Modelcheck
 
 
