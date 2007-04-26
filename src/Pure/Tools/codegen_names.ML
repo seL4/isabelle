@@ -217,13 +217,13 @@ fun instance_policy thy = policy thy (fn (class, tyco) =>
   NameSpace.base class ^ "_" ^ NameSpace.base tyco) thyname_of_instance;
 
 fun force_thyname thy (const as (c, opt_tyco)) =
-  case AxClass.class_of_param thy c
-   of SOME class => (case opt_tyco
-       of SOME tyco => SOME (thyname_of_instance thy (class, tyco))
-        | NONE => SOME (thyname_of_class thy class))
-    | NONE => (case CodegenData.get_datatype_of_constr thy const
+  case CodegenData.get_datatype_of_constr thy const
    of SOME dtco => SOME (thyname_of_tyco thy dtco)
-    | NONE => NONE);
+    | NONE => (case AxClass.class_of_param thy c
+       of SOME class => (case opt_tyco
+           of SOME tyco => SOME (thyname_of_instance thy (class, tyco))
+            | NONE => SOME (thyname_of_class thy class))
+        | NONE => NONE);
 
 fun const_policy thy (const as (c, opt_tyco)) =
   case force_thyname thy const
