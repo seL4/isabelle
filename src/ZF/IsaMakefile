@@ -28,24 +28,18 @@ ZF: FOL $(OUT)/ZF$(ML_SUFFIX)
 FOL:
 	@cd $(SRC)/FOL; $(ISATOOL) make FOL
 
-$(OUT)/ZF$(ML_SUFFIX): $(OUT)/FOL$(ML_SUFFIX) AC.thy Arith.thy \
-  ArithSimp.thy Bool.thy Cardinal.thy		\
-  CardinalArith.thy Cardinal_AC.thy \
-  Datatype.ML Datatype.thy Epsilon.thy Finite.thy	\
-  Fixedpt.thy Inductive.ML Inductive.thy 	\
-  InfDatatype.thy Integ/Bin.thy \
-  Integ/EquivClass.thy Integ/Int.thy Integ/IntArith.thy	\
-  Integ/IntDiv.thy Integ/int_arith.ML			\
-  List.thy Main.ML Main.thy	\
-  Main_ZFC.ML Main_ZFC.thy Nat.thy Order.thy OrderArith.thy	\
-  OrderType.thy Ordinal.thy OrdQuant.thy Perm.thy	\
-  QPair.thy QUniv.thy ROOT.ML	\
-  Sum.thy Tools/cartprod.ML Tools/datatype_package.ML			\
-  Tools/ind_cases.ML Tools/induct_tacs.ML Tools/inductive_package.ML	\
-  Tools/numeral_syntax.ML Tools/primrec_package.ML Tools/typechk.ML	\
-  Trancl.thy Univ.thy \
-  WF.thy ZF.thy Zorn.thy arith_data.ML equalities.thy func.thy	\
-  ind_syntax.ML pair.thy simpdata.ML upair.thy
+$(OUT)/ZF$(ML_SUFFIX): $(OUT)/FOL$(ML_SUFFIX) AC.thy Arith.thy			\
+  ArithSimp.thy Bool.thy Cardinal.thy CardinalArith.thy Cardinal_AC.thy		\
+  Datatype.thy Epsilon.thy Finite.thy Fixedpt.thy Inductive.thy			\
+  InfDatatype.thy Integ/Bin.thy Integ/EquivClass.thy Integ/Int.thy		\
+  Integ/IntArith.thy Integ/IntDiv.thy Integ/int_arith.ML List.thy		\
+  Main.thy Main_ZFC.thy Nat.thy OrdQuant.thy Order.thy OrderArith.thy		\
+  OrderType.thy Ordinal.thy Perm.thy QPair.thy QUniv.thy ROOT.ML Sum.thy	\
+  Tools/cartprod.ML Tools/datatype_package.ML Tools/ind_cases.ML		\
+  Tools/induct_tacs.ML Tools/inductive_package.ML				\
+  Tools/numeral_syntax.ML Tools/primrec_package.ML Tools/typechk.ML		\
+  Trancl.thy Univ.thy WF.thy ZF.thy Zorn.thy arith_data.ML			\
+  equalities.thy func.thy ind_syntax.ML pair.thy simpdata.ML upair.thy
 	@$(ISATOOL) usedir -b -r $(OUT)/FOL ZF
 
 

@@ -5,8 +5,8 @@ header{*Theory Main: Everything Except AC*}
 theory Main imports List IntDiv CardinalArith begin
 
 (*The theory of "iterates" logically belongs to Nat, but can't go there because
-  primrec isn't available into after Datatype.  The only theories defined
-  after Datatype are List and the Integ theories.*)
+  primrec isn't available into after Datatype.*)
+
 subsection{* Iteration of the function @{term F} *}
 
 consts  iterates :: "[i=>i,i,i] => i"   ("(_^_ '(_'))" [60,1000,1000] 60)
