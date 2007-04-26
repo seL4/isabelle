@@ -769,6 +769,20 @@ theorem mod_div_equality': "(m::nat) mod n = m - (m div n) * n"
   apply arith
   done
 
+lemma div_mod_equality':
+  fixes m n :: nat
+  shows "m div n * n = m - m mod n"
+proof -
+  have "m mod n \<le> m mod n" ..
+  from div_mod_equality have 
+    "m div n * n + m mod n - m mod n = m - m mod n" by simp
+  with diff_add_assoc [OF `m mod n \<le> m mod n`, of "m div n * n"] have
+    "m div n * n + (m mod n - m mod n) = m - m mod n"
+    by simp
+  then show ?thesis by simp
+qed
+
+
 subsection {*An ``induction'' law for modulus arithmetic.*}
 
 lemma mod_induct_0:
@@ -869,6 +883,17 @@ lemma mod_add_right_eq: "(a+b) mod (c::nat) = (a + (b mod c)) mod c"
    apply (rule mod_add1_eq, simp)
   apply (rule mod_add1_eq [symmetric])
   done
+
+lemma mod_div_decomp:
+  fixes n k :: nat
+  obtains m q where "m = n div k" and "q = n mod k"
+    and "n = m * k + q"
+proof -
+  from mod_div_equality have "n = n div k * k + n mod k" by auto
+  moreover have "n div k = n div k" ..
+  moreover have "n mod k = n mod k" ..
+  note that ultimately show thesis by blast
+qed
 
 
 subsection {* Code generation for div, mod and dvd on nat *}
