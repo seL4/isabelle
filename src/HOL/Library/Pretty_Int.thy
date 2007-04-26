@@ -1,4 +1,5 @@
-(*  ID:         $Id$
+(*  Title:      HOL/Library/Pretty_Int.thy
+    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 *)
 

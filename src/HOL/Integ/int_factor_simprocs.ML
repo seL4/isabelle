@@ -24,7 +24,7 @@ val rel_number_of = [eq_number_of_eq, less_number_of_eq_neg, le_number_of_eq];
 (** Factor cancellation theorems for integer division (div, not /) **)
 
 Goal "!!k::int. k~=0 ==> (k*m) div (k*n) = (m div n)";
-by (stac zdiv_zmult_zmult1 1);
+by (stac @{thm zdiv_zmult_zmult1} 1);
 by Auto_tac;
 qed "int_mult_div_cancel1";
 
@@ -236,7 +236,7 @@ fun find_first_t past u []         = raise TERM ("find_first_t", [])
 
 (** Final simplification for the CancelFactor simprocs **)
 val simplify_one = Int_Numeral_Simprocs.simplify_meta_eq  
-  [@{thm mult_1_left}, mult_1_right, zdiv_1, numeral_1_eq_1];
+  [@{thm mult_1_left}, mult_1_right, @{thm zdiv_1}, numeral_1_eq_1];
 
 fun cancel_simplify_meta_eq cancel_th ss th =
     simplify_one ss (([th, cancel_th]) MRS trans);

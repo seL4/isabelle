@@ -15,7 +15,7 @@ text {*
 *}
 
 instance nat :: number
-  nat_number_of_def: "number_of v == nat (number_of (v\<Colon>int))" ..
+  nat_number_of_def [code inline]: "number_of v == nat (number_of (v\<Colon>int))" ..
 
 abbreviation (xsymbols)
   square :: "'a::power => 'a"  ("(_\<twosuperior>)" [1000] 999) where
@@ -811,11 +811,6 @@ lemma nat_mult_div_cancel_disj:
 by (simp add: nat_mult_div_cancel1)
 
 
-subsection {* code generator setup *}
-
-lemmas [code inline] = nat_number_of_def
-
-
 subsection {* legacy ML bindings *}
 
 ML
@@ -832,7 +827,6 @@ val power2_abs = thm "power2_abs";
 val power2_minus = thm "power2_minus";
 val power_minus1_even = thm "power_minus1_even";
 val power_minus_even = thm "power_minus_even";
-(* val zero_le_even_power = thm "zero_le_even_power"; *)
 val odd_power_less_zero = thm "odd_power_less_zero";
 val odd_0_le_power_imp_0_le = thm "odd_0_le_power_imp_0_le";
 
@@ -889,7 +883,6 @@ val nat_mult_eq_cancel_disj = thm"nat_mult_eq_cancel_disj";
 val nat_mult_div_cancel_disj = thm"nat_mult_div_cancel_disj";
 
 val power_minus_even = thm"power_minus_even";
-(* val zero_le_even_power = thm"zero_le_even_power"; *)
 *}
 
 end

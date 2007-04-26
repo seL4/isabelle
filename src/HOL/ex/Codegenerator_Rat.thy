@@ -6,7 +6,7 @@
 header {* Simple example for executable rational numbers *}
 
 theory Codegenerator_Rat
-imports EfficientNat ExecutableRat
+imports ExecutableRat EfficientNat
 begin
 
 definition
@@ -29,7 +29,7 @@ definition
 definition
   "foobar = (foo R1 1 R3, bar R2 0 R3, foo R1 R3 R2)"
 
-code_gen foobar (SML #) (SML -)
+code_gen foobar (SML #) (OCaml -) (Haskell -)
 ML {* ROOT.Codegenerator_Rat.foobar *}
 
 code_module Foo

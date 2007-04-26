@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/While.thy
+(*  Title:      HOL/Library/While_Combinator.thy
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2000 TU Muenchen

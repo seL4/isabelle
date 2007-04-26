@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Library.thy
+(*  Title:      HOL/Library/AssocList.thy
     ID:         $Id$
     Author:     Norbert Schirmer, Tobias Nipkow, Martin Wildmoser
 *)

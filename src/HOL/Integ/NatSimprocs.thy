@@ -383,10 +383,9 @@ lemma nat_dvd_not_less:
   "[| 0 < m; m < n |] ==> \<not> n dvd (m::nat)"
   by (unfold dvd_def) auto
 
-ML
-{*
-val divide_minus1 = thm "divide_minus1";
-val minus1_divide = thm "minus1_divide";
+ML {*
+val divide_minus1 = @{thm divide_minus1};
+val minus1_divide = @{thm minus1_divide};
 *}
 
 end

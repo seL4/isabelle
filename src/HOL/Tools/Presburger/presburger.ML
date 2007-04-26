@@ -93,13 +93,13 @@ val conj_le_cong = thm "conj_le_cong";
 val nat_mod_add_eq = mod_add1_eq RS sym;
 val nat_mod_add_left_eq = mod_add_left_eq RS sym;
 val nat_mod_add_right_eq = mod_add_right_eq RS sym;
-val int_mod_add_eq = zmod_zadd1_eq RS sym;
-val int_mod_add_left_eq = zmod_zadd_left_eq RS sym;
-val int_mod_add_right_eq = zmod_zadd_right_eq RS sym;
-val nat_div_add_eq = div_add1_eq RS sym;
-val int_div_add_eq = zdiv_zadd1_eq RS sym;
-val ZDIVISION_BY_ZERO_MOD = DIVISION_BY_ZERO RS conjunct2;
-val ZDIVISION_BY_ZERO_DIV = DIVISION_BY_ZERO RS conjunct1;
+val int_mod_add_eq = @{thm zmod_zadd1_eq} RS sym;
+val int_mod_add_left_eq = @{thm zmod_zadd_left_eq} RS sym;
+val int_mod_add_right_eq = @{thm zmod_zadd_right_eq} RS sym;
+val nat_div_add_eq = @{thm div_add1_eq} RS sym;
+val int_div_add_eq = @{thm zdiv_zadd1_eq} RS sym;
+val ZDIVISION_BY_ZERO_MOD = @{thm DIVISION_BY_ZERO} RS conjunct2;
+val ZDIVISION_BY_ZERO_DIV = @{thm DIVISION_BY_ZERO} RS conjunct1;
 
 
 (* extract all the constants in a term*)
@@ -292,11 +292,11 @@ fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
                                   nat_mod_add_right_eq, int_mod_add_eq,
                                   int_mod_add_right_eq, int_mod_add_left_eq,
                                   nat_div_add_eq, int_div_add_eq,
-                                  mod_self, zmod_self,
+                                  mod_self, @{thm zmod_self},
                                   DIVISION_BY_ZERO_MOD,DIVISION_BY_ZERO_DIV,
                                   ZDIVISION_BY_ZERO_MOD,ZDIVISION_BY_ZERO_DIV,
-                                  zdiv_zero,zmod_zero,div_0,mod_0,
-                                  zdiv_1,zmod_1,div_1,mod_1,
+                                  @{thm zdiv_zero}, @{thm zmod_zero}, div_0,mod_0,
+                                  @{thm zdiv_1}, @{thm zmod_1}, @{thm div_1}, @{thm mod_1},
                                   Suc_plus1]
                         addsimps add_ac
                         addsimprocs [cancel_div_mod_proc]
