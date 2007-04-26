@@ -43,7 +43,7 @@ consts
  VOID   :: "void"               ("'(')")
  PAIR   :: "['a,'b] => 'a*'b"   ("(1<_,/_>)" [0,0] 100)
  COND   :: "[tr,'a,'a] => 'a"   ("(_ =>/ (_ |/ _))" [60,60,60] 60)
- "<<"   :: "['a,'a] => o"       (infixl 50)
+ less   :: "['a,'a] => o"       (infixl "<<" 50)
 
 axioms
   (** DOMAIN THEORY **)
@@ -316,13 +316,9 @@ lemmas adm_lemmas =
 
 
 ML {*
-local
-  val adm_lemmas = thms "adm_lemmas"
-  val induct = thm "induct"
-in
   fun induct_tac v i =
-    res_inst_tac[("f",v)] induct i THEN REPEAT (resolve_tac adm_lemmas i)
-end
+    res_inst_tac[("f",v)] @{thm induct} i THEN
+    REPEAT (resolve_tac @{thms adm_lemmas} i)
 *}
 
 lemma least_FIX: "f(p) = p ==> FIX(f) << p"
@@ -379,16 +375,9 @@ lemma induct2:
   done
 
 ML {*
-local
-  val induct2 = thm "induct2"
-  val adm_lemmas = thms "adm_lemmas"
-in
-
 fun induct2_tac (f,g) i =
-  res_inst_tac[("f",f),("g",g)] induct2 i THEN
-  REPEAT(resolve_tac adm_lemmas i)
-
-end
+  res_inst_tac[("f",f),("g",g)] @{thm induct2} i THEN
+  REPEAT(resolve_tac @{thms adm_lemmas} i)
 *}
 
 end
