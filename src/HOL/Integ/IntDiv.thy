@@ -5,11 +5,10 @@
 
 *)
 
-
 header{*The Division Operators div and mod; the Divides Relation dvd*}
 
 theory IntDiv
-imports "../Divides" "../SetInterval" "../Recdef"
+imports IntArith "../Divides" "../FunDef"
 uses ("IntDiv_setup.ML")
 begin
 
@@ -28,46 +27,47 @@ constdefs
                          else (2*q, r)"
 
 text{*algorithm for the case @{text "a\<ge>0, b>0"}*}
-consts posDivAlg :: "int*int => int*int"
-recdef posDivAlg "measure (%(a,b). nat(a - b + 1))"
-    "posDivAlg (a,b) =
-       (if (a<b | b\<le>0) then (0,a)
-        else adjust b (posDivAlg(a, 2*b)))"
+function
+  posDivAlg :: "int \<Rightarrow> int \<Rightarrow> int \<times> int"
+where
+  "posDivAlg a b =
+     (if (a<b | b\<le>0) then (0,a)
+        else adjust b (posDivAlg a (2*b)))"
+by auto
+termination by (relation "measure (%(a,b). nat(a - b + 1))") auto
 
 text{*algorithm for the case @{text "a<0, b>0"}*}
-consts negDivAlg :: "int*int => int*int"
-recdef negDivAlg "measure (%(a,b). nat(- a - b))"
-    "negDivAlg (a,b) =
-       (if (0\<le>a+b | b\<le>0) then (-1,a+b)
-        else adjust b (negDivAlg(a, 2*b)))"
+function
+  negDivAlg :: "int \<Rightarrow> int \<Rightarrow> int \<times> int"
+where
+  "negDivAlg a b  =
+     (if (0\<le>a+b | b\<le>0) then (-1,a+b)
+      else adjust b (negDivAlg a (2*b)))"
+by auto
+termination by (relation "measure (%(a,b). nat(- a - b))") auto
 
 text{*algorithm for the general case @{term "b\<noteq>0"}*}
 constdefs
   negateSnd :: "int*int => int*int"
     [code func]: "negateSnd == %(q,r). (q,-r)"
 
-  divAlg :: "int*int => int*int"
+definition
+  divAlg :: "int \<times> int \<Rightarrow> int \<times> int"
     --{*The full division algorithm considers all possible signs for a, b
        including the special case @{text "a=0, b<0"} because 
        @{term negDivAlg} requires @{term "a<0"}.*}
-    [code func]: "divAlg ==
-       %(a,b). if 0\<le>a then
-                  if 0\<le>b then posDivAlg (a,b)
-                  else if a=0 then (0,0)
-                       else negateSnd (negDivAlg (-a,-b))
+where
+  "divAlg = (\<lambda>(a, b). (if 0\<le>a then
+                  if 0\<le>b then posDivAlg a b
+                  else if a=0 then (0, 0)
+                       else negateSnd (negDivAlg (-a) (-b))
                else 
-                  if 0<b then negDivAlg (a,b)
-                  else         negateSnd (posDivAlg (-a,-b))"
+                  if 0<b then negDivAlg a b
+                  else negateSnd (posDivAlg (-a) (-b))))"
 
-instance
-  int :: "Divides.div" ..       --{*avoid clash with 'div' token*}
-
-text{*The operators are defined with reference to the algorithm, which is
-proved to satisfy the specification.*}
-defs
-  div_def [code func]: "a div b == fst (divAlg (a,b))"
-  mod_def [code func]: "a mod b == snd (divAlg (a,b))"
-
+instance int :: Divides.div
+  div_def: "a div b == fst (divAlg (a, b))"
+  mod_def: "a mod b == snd (divAlg (a, b))" ..
 
 text{*
 Here is the division algorithm in ML:
@@ -155,18 +155,19 @@ declare posDivAlg.simps [simp del]
 text{*use with a simproc to avoid repeatedly proving the premise*}
 lemma posDivAlg_eqn:
      "0 < b ==>  
-      posDivAlg (a,b) = (if a<b then (0,a) else adjust b (posDivAlg(a, 2*b)))"
+      posDivAlg a b = (if a<b then (0,a) else adjust b (posDivAlg a (2*b)))"
 by (rule posDivAlg.simps [THEN trans], simp)
 
 text{*Correctness of @{term posDivAlg}: it computes quotients correctly*}
-theorem posDivAlg_correct [rule_format]:
-     "0 \<le> a --> 0 < b --> quorem ((a, b), posDivAlg (a, b))"
-apply (induct_tac a b rule: posDivAlg.induct, auto)
- apply (simp_all add: quorem_def)
- (*base case: a<b*)
- apply (simp add: posDivAlg_eqn)
-(*main argument*)
-apply (subst posDivAlg_eqn, simp_all)
+theorem posDivAlg_correct:
+  assumes "0 \<le> a" and "0 < b"
+  shows "quorem ((a, b), posDivAlg a b)"
+using prems apply (induct a b rule: posDivAlg.induct)
+apply auto
+apply (simp add: quorem_def)
+apply (subst posDivAlg_eqn, simp add: right_distrib)
+apply (case_tac "a < b")
+apply simp_all
 apply (erule splitE)
 apply (auto simp add: right_distrib Let_def)
 done
@@ -181,20 +182,21 @@ declare negDivAlg.simps [simp del]
 text{*use with a simproc to avoid repeatedly proving the premise*}
 lemma negDivAlg_eqn:
      "0 < b ==>  
-      negDivAlg (a,b) =       
-       (if 0\<le>a+b then (-1,a+b) else adjust b (negDivAlg(a, 2*b)))"
+      negDivAlg a b =       
+       (if 0\<le>a+b then (-1,a+b) else adjust b (negDivAlg a (2*b)))"
 by (rule negDivAlg.simps [THEN trans], simp)
 
 (*Correctness of negDivAlg: it computes quotients correctly
   It doesn't work if a=0 because the 0/b equals 0, not -1*)
-lemma negDivAlg_correct [rule_format]:
-     "a < 0 --> 0 < b --> quorem ((a, b), negDivAlg (a, b))"
-apply (induct_tac a b rule: negDivAlg.induct, auto)
- apply (simp_all add: quorem_def)
- (*base case: 0\<le>a+b*)
- apply (simp add: negDivAlg_eqn)
-(*main argument*)
+lemma negDivAlg_correct:
+  assumes "a < 0" and "b > 0"
+  shows "quorem ((a, b), negDivAlg a b)"
+using prems apply (induct a b rule: negDivAlg.induct)
+apply (auto simp add: linorder_not_le)
+apply (simp add: quorem_def)
 apply (subst negDivAlg_eqn, assumption)
+apply (case_tac "a + b < (0\<Colon>int)")
+apply simp_all
 apply (erule splitE)
 apply (auto simp add: right_distrib Let_def)
 done
@@ -206,10 +208,10 @@ subsection{*Existence Shown by Proving the Division Algorithm to be Correct*}
 lemma quorem_0: "b \<noteq> 0 ==> quorem ((0,b), (0,0))"
 by (auto simp add: quorem_def linorder_neq_iff)
 
-lemma posDivAlg_0 [simp]: "posDivAlg (0, b) = (0, 0)"
+lemma posDivAlg_0 [simp]: "posDivAlg 0 b = (0, 0)"
 by (subst posDivAlg.simps, auto)
 
-lemma negDivAlg_minus1 [simp]: "negDivAlg (-1, b) = (-1, b - 1)"
+lemma negDivAlg_minus1 [simp]: "negDivAlg -1 b = (-1, b - 1)"
 by (subst negDivAlg.simps, auto)
 
 lemma negateSnd_eq [simp]: "negateSnd(q,r) = (q,-r)"
@@ -218,7 +220,7 @@ by (simp add: negateSnd_def)
 lemma quorem_neg: "quorem ((-a,-b), qr) ==> quorem ((a,b), negateSnd qr)"
 by (auto simp add: split_ifs quorem_def)
 
-lemma divAlg_correct: "b \<noteq> 0 ==> quorem ((a,b), divAlg(a,b))"
+lemma divAlg_correct: "b \<noteq> 0 ==> quorem ((a,b), divAlg (a, b))"
 by (force simp add: linorder_neq_iff quorem_0 divAlg_def quorem_neg
                     posDivAlg_correct negDivAlg_correct)
 
@@ -250,19 +252,16 @@ apply (cut_tac a = a and b = b in divAlg_correct)
 apply (auto simp add: quorem_def mod_def)
 done
 
-lemmas pos_mod_sign  = pos_mod_conj [THEN conjunct1, standard]
-   and pos_mod_bound = pos_mod_conj [THEN conjunct2, standard]
-
-declare pos_mod_sign[simp] pos_mod_bound[simp]
+lemmas pos_mod_sign  [simp] = pos_mod_conj [THEN conjunct1, standard]
+   and pos_mod_bound [simp] = pos_mod_conj [THEN conjunct2, standard]
 
 lemma neg_mod_conj : "b < (0::int) ==> a mod b \<le> 0 & b < a mod b"
 apply (cut_tac a = a and b = b in divAlg_correct)
 apply (auto simp add: quorem_def div_def mod_def)
 done
 
-lemmas neg_mod_sign  = neg_mod_conj [THEN conjunct1, standard]
-   and neg_mod_bound = neg_mod_conj [THEN conjunct2, standard]
-declare neg_mod_sign[simp] neg_mod_bound[simp]
+lemmas neg_mod_sign  [simp] = neg_mod_conj [THEN conjunct1, standard]
+   and neg_mod_bound [simp] = neg_mod_conj [THEN conjunct2, standard]
 
 
 
@@ -423,84 +422,73 @@ by (simp add: mod_def divAlg_def)
 
 text{*a positive, b positive *}
 
-lemma div_pos_pos: "[| 0 < a;  0 \<le> b |] ==> a div b = fst (posDivAlg(a,b))"
+lemma div_pos_pos: "[| 0 < a;  0 \<le> b |] ==> a div b = fst (posDivAlg a b)"
 by (simp add: div_def divAlg_def)
 
-lemma mod_pos_pos: "[| 0 < a;  0 \<le> b |] ==> a mod b = snd (posDivAlg(a,b))"
+lemma mod_pos_pos: "[| 0 < a;  0 \<le> b |] ==> a mod b = snd (posDivAlg a b)"
 by (simp add: mod_def divAlg_def)
 
 text{*a negative, b positive *}
 
-lemma div_neg_pos: "[| a < 0;  0 < b |] ==> a div b = fst (negDivAlg(a,b))"
+lemma div_neg_pos: "[| a < 0;  0 < b |] ==> a div b = fst (negDivAlg a b)"
 by (simp add: div_def divAlg_def)
 
-lemma mod_neg_pos: "[| a < 0;  0 < b |] ==> a mod b = snd (negDivAlg(a,b))"
+lemma mod_neg_pos: "[| a < 0;  0 < b |] ==> a mod b = snd (negDivAlg a b)"
 by (simp add: mod_def divAlg_def)
 
 text{*a positive, b negative *}
 
 lemma div_pos_neg:
-     "[| 0 < a;  b < 0 |] ==> a div b = fst (negateSnd(negDivAlg(-a,-b)))"
+     "[| 0 < a;  b < 0 |] ==> a div b = fst (negateSnd (negDivAlg (-a) (-b)))"
 by (simp add: div_def divAlg_def)
 
 lemma mod_pos_neg:
-     "[| 0 < a;  b < 0 |] ==> a mod b = snd (negateSnd(negDivAlg(-a,-b)))"
+     "[| 0 < a;  b < 0 |] ==> a mod b = snd (negateSnd (negDivAlg (-a) (-b)))"
 by (simp add: mod_def divAlg_def)
 
 text{*a negative, b negative *}
 
 lemma div_neg_neg:
-     "[| a < 0;  b \<le> 0 |] ==> a div b = fst (negateSnd(posDivAlg(-a,-b)))"
+     "[| a < 0;  b \<le> 0 |] ==> a div b = fst (negateSnd (posDivAlg (-a) (-b)))"
 by (simp add: div_def divAlg_def)
 
 lemma mod_neg_neg:
-     "[| a < 0;  b \<le> 0 |] ==> a mod b = snd (negateSnd(posDivAlg(-a,-b)))"
+     "[| a < 0;  b \<le> 0 |] ==> a mod b = snd (negateSnd (posDivAlg (-a) (-b)))"
 by (simp add: mod_def divAlg_def)
 
 text {*Simplify expresions in which div and mod combine numerical constants*}
 
-lemmas div_pos_pos_number_of =
+lemmas div_pos_pos_number_of [simp] =
     div_pos_pos [of "number_of v" "number_of w", standard]
-declare div_pos_pos_number_of [simp]
 
-lemmas div_neg_pos_number_of =
+lemmas div_neg_pos_number_of [simp] =
     div_neg_pos [of "number_of v" "number_of w", standard]
-declare div_neg_pos_number_of [simp]
 
-lemmas div_pos_neg_number_of =
+lemmas div_pos_neg_number_of [simp] =
     div_pos_neg [of "number_of v" "number_of w", standard]
-declare div_pos_neg_number_of [simp]
 
-lemmas div_neg_neg_number_of =
+lemmas div_neg_neg_number_of [simp] =
     div_neg_neg [of "number_of v" "number_of w", standard]
-declare div_neg_neg_number_of [simp]
 
 
-lemmas mod_pos_pos_number_of =
+lemmas mod_pos_pos_number_of [simp] =
     mod_pos_pos [of "number_of v" "number_of w", standard]
-declare mod_pos_pos_number_of [simp]
 
-lemmas mod_neg_pos_number_of =
+lemmas mod_neg_pos_number_of [simp] =
     mod_neg_pos [of "number_of v" "number_of w", standard]
-declare mod_neg_pos_number_of [simp]
 
-lemmas mod_pos_neg_number_of =
+lemmas mod_pos_neg_number_of [simp] =
     mod_pos_neg [of "number_of v" "number_of w", standard]
-declare mod_pos_neg_number_of [simp]
 
-lemmas mod_neg_neg_number_of =
+lemmas mod_neg_neg_number_of [simp] =
     mod_neg_neg [of "number_of v" "number_of w", standard]
-declare mod_neg_neg_number_of [simp]
 
 
-lemmas posDivAlg_eqn_number_of =
+lemmas posDivAlg_eqn_number_of [simp] =
     posDivAlg_eqn [of "number_of v" "number_of w", standard]
-declare posDivAlg_eqn_number_of [simp]
 
-lemmas negDivAlg_eqn_number_of =
+lemmas negDivAlg_eqn_number_of [simp] =
     negDivAlg_eqn [of "number_of v" "number_of w", standard]
-declare negDivAlg_eqn_number_of [simp]
-
 
 
 text{*Special-case simplification *}
@@ -526,30 +514,24 @@ by (cut_tac a = a and b = "-1" in zmod_zdiv_equality, auto)
 (** The last remaining special cases for constant arithmetic:
     1 div z and 1 mod z **)
 
-lemmas div_pos_pos_1_number_of =
+lemmas div_pos_pos_1_number_of [simp] =
     div_pos_pos [OF int_0_less_1, of "number_of w", standard]
-declare div_pos_pos_1_number_of [simp]
 
-lemmas div_pos_neg_1_number_of =
+lemmas div_pos_neg_1_number_of [simp] =
     div_pos_neg [OF int_0_less_1, of "number_of w", standard]
-declare div_pos_neg_1_number_of [simp]
 
-lemmas mod_pos_pos_1_number_of =
+lemmas mod_pos_pos_1_number_of [simp] =
     mod_pos_pos [OF int_0_less_1, of "number_of w", standard]
-declare mod_pos_pos_1_number_of [simp]
 
-lemmas mod_pos_neg_1_number_of =
+lemmas mod_pos_neg_1_number_of [simp] =
     mod_pos_neg [OF int_0_less_1, of "number_of w", standard]
-declare mod_pos_neg_1_number_of [simp]
 
 
-lemmas posDivAlg_eqn_1_number_of =
+lemmas posDivAlg_eqn_1_number_of [simp] =
     posDivAlg_eqn [of concl: 1 "number_of w", standard]
-declare posDivAlg_eqn_1_number_of [simp]
 
-lemmas negDivAlg_eqn_1_number_of =
+lemmas negDivAlg_eqn_1_number_of [simp] =
     negDivAlg_eqn [of concl: 1 "number_of w", standard]
-declare negDivAlg_eqn_1_number_of [simp]
 
 
 
@@ -685,8 +667,7 @@ next
   thus "m mod d = 0" by auto
 qed
 
-lemmas zmod_eq_0D = zmod_eq_0_iff [THEN iffD1]
-declare zmod_eq_0D [dest!]
+lemmas zmod_eq_0D [dest!] = zmod_eq_0_iff [THEN iffD1]
 
 text{*proving (a+b) div c = a div c + b div c + ((a mod c + b mod c) div c) *}
 
@@ -1047,10 +1028,8 @@ subsection {* The Divides Relation *}
 lemma zdvd_iff_zmod_eq_0: "(m dvd n) = (n mod m = (0::int))"
 by(simp add:dvd_def zmod_eq_0_iff)
 
-lemmas zdvd_iff_zmod_eq_0_number_of =
+lemmas zdvd_iff_zmod_eq_0_number_of [simp] =
   zdvd_iff_zmod_eq_0 [of "number_of x" "number_of y", standard]
-
-declare zdvd_iff_zmod_eq_0_number_of [simp]
 
 lemma zdvd_0_right [iff]: "(m::int) dvd 0"
 by (simp add: dvd_def)
@@ -1380,115 +1359,15 @@ apply (subgoal_tac "k ^ m = k ^ ((m - 1) + 1)")
  apply simp_all
 done
 
-ML
-{*
-val quorem_def = thm "quorem_def";
+text {* code serializer setup *}
 
-val unique_quotient = thm "unique_quotient";
-val unique_remainder = thm "unique_remainder";
-val adjust_eq = thm "adjust_eq";
-val posDivAlg_eqn = thm "posDivAlg_eqn";
-val posDivAlg_correct = thm "posDivAlg_correct";
-val negDivAlg_eqn = thm "negDivAlg_eqn";
-val negDivAlg_correct = thm "negDivAlg_correct";
-val quorem_0 = thm "quorem_0";
-val posDivAlg_0 = thm "posDivAlg_0";
-val negDivAlg_minus1 = thm "negDivAlg_minus1";
-val negateSnd_eq = thm "negateSnd_eq";
-val quorem_neg = thm "quorem_neg";
-val divAlg_correct = thm "divAlg_correct";
-val DIVISION_BY_ZERO = thm "DIVISION_BY_ZERO";
-val zmod_zdiv_equality = thm "zmod_zdiv_equality";
-val pos_mod_conj = thm "pos_mod_conj";
-val pos_mod_sign = thm "pos_mod_sign";
-val neg_mod_conj = thm "neg_mod_conj";
-val neg_mod_sign = thm "neg_mod_sign";
-val quorem_div_mod = thm "quorem_div_mod";
-val quorem_div = thm "quorem_div";
-val quorem_mod = thm "quorem_mod";
-val div_pos_pos_trivial = thm "div_pos_pos_trivial";
-val div_neg_neg_trivial = thm "div_neg_neg_trivial";
-val div_pos_neg_trivial = thm "div_pos_neg_trivial";
-val mod_pos_pos_trivial = thm "mod_pos_pos_trivial";
-val mod_neg_neg_trivial = thm "mod_neg_neg_trivial";
-val mod_pos_neg_trivial = thm "mod_pos_neg_trivial";
-val zdiv_zminus_zminus = thm "zdiv_zminus_zminus";
-val zmod_zminus_zminus = thm "zmod_zminus_zminus";
-val zdiv_zminus1_eq_if = thm "zdiv_zminus1_eq_if";
-val zmod_zminus1_eq_if = thm "zmod_zminus1_eq_if";
-val zdiv_zminus2 = thm "zdiv_zminus2";
-val zmod_zminus2 = thm "zmod_zminus2";
-val zdiv_zminus2_eq_if = thm "zdiv_zminus2_eq_if";
-val zmod_zminus2_eq_if = thm "zmod_zminus2_eq_if";
-val self_quotient = thm "self_quotient";
-val self_remainder = thm "self_remainder";
-val zdiv_self = thm "zdiv_self";
-val zmod_self = thm "zmod_self";
-val zdiv_zero = thm "zdiv_zero";
-val div_eq_minus1 = thm "div_eq_minus1";
-val zmod_zero = thm "zmod_zero";
-val zdiv_minus1 = thm "zdiv_minus1";
-val zmod_minus1 = thm "zmod_minus1";
-val div_pos_pos = thm "div_pos_pos";
-val mod_pos_pos = thm "mod_pos_pos";
-val div_neg_pos = thm "div_neg_pos";
-val mod_neg_pos = thm "mod_neg_pos";
-val div_pos_neg = thm "div_pos_neg";
-val mod_pos_neg = thm "mod_pos_neg";
-val div_neg_neg = thm "div_neg_neg";
-val mod_neg_neg = thm "mod_neg_neg";
-val zmod_1 = thm "zmod_1";
-val zdiv_1 = thm "zdiv_1";
-val zmod_minus1_right = thm "zmod_minus1_right";
-val zdiv_minus1_right = thm "zdiv_minus1_right";
-val zdiv_mono1 = thm "zdiv_mono1";
-val zdiv_mono1_neg = thm "zdiv_mono1_neg";
-val zdiv_mono2 = thm "zdiv_mono2";
-val zdiv_mono2_neg = thm "zdiv_mono2_neg";
-val zdiv_zmult1_eq = thm "zdiv_zmult1_eq";
-val zmod_zmult1_eq = thm "zmod_zmult1_eq";
-val zmod_zmult1_eq' = thm "zmod_zmult1_eq'";
-val zmod_zmult_distrib = thm "zmod_zmult_distrib";
-val zdiv_zmult_self1 = thm "zdiv_zmult_self1";
-val zdiv_zmult_self2 = thm "zdiv_zmult_self2";
-val zmod_zmult_self1 = thm "zmod_zmult_self1";
-val zmod_zmult_self2 = thm "zmod_zmult_self2";
-val zmod_eq_0_iff = thm "zmod_eq_0_iff";
-val zdiv_zadd1_eq = thm "zdiv_zadd1_eq";
-val zmod_zadd1_eq = thm "zmod_zadd1_eq";
-val mod_div_trivial = thm "mod_div_trivial";
-val mod_mod_trivial = thm "mod_mod_trivial";
-val zmod_zadd_left_eq = thm "zmod_zadd_left_eq";
-val zmod_zadd_right_eq = thm "zmod_zadd_right_eq";
-val zdiv_zadd_self1 = thm "zdiv_zadd_self1";
-val zdiv_zadd_self2 = thm "zdiv_zadd_self2";
-val zmod_zadd_self1 = thm "zmod_zadd_self1";
-val zmod_zadd_self2 = thm "zmod_zadd_self2";
-val zdiv_zmult2_eq = thm "zdiv_zmult2_eq";
-val zmod_zmult2_eq = thm "zmod_zmult2_eq";
-val zdiv_zmult_zmult1 = thm "zdiv_zmult_zmult1";
-val zdiv_zmult_zmult2 = thm "zdiv_zmult_zmult2";
-val zmod_zmult_zmult1 = thm "zmod_zmult_zmult1";
-val zmod_zmult_zmult2 = thm "zmod_zmult_zmult2";
-val pos_zdiv_mult_2 = thm "pos_zdiv_mult_2";
-val neg_zdiv_mult_2 = thm "neg_zdiv_mult_2";
-val zdiv_number_of_BIT = thm "zdiv_number_of_BIT";
-val pos_zmod_mult_2 = thm "pos_zmod_mult_2";
-val neg_zmod_mult_2 = thm "neg_zmod_mult_2";
-val zmod_number_of_BIT = thm "zmod_number_of_BIT";
-val div_neg_pos_less0 = thm "div_neg_pos_less0";
-val div_nonneg_neg_le0 = thm "div_nonneg_neg_le0";
-val pos_imp_zdiv_nonneg_iff = thm "pos_imp_zdiv_nonneg_iff";
-val neg_imp_zdiv_nonneg_iff = thm "neg_imp_zdiv_nonneg_iff";
-val pos_imp_zdiv_neg_iff = thm "pos_imp_zdiv_neg_iff";
-val neg_imp_zdiv_neg_iff = thm "neg_imp_zdiv_neg_iff";
+code_modulename SML
+  IntDiv Integer
 
-val zpower_zmod = thm "zpower_zmod";
-val zpower_zadd_distrib = thm "zpower_zadd_distrib";
-val zpower_zpower = thm "zpower_zpower";
-val zero_less_zpower_abs_iff = thm "zero_less_zpower_abs_iff";
-val zero_le_zpower_abs = thm "zero_le_zpower_abs";
-val zpower_int = thm "zpower_int";
-*}
+code_modulename OCaml
+  IntDiv Integer
+
+code_modulename Haskell
+  IntDiv Divides
 
 end
