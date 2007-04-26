@@ -3,6 +3,8 @@
     Author:     Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel, TU Muenchen
 *)
 
+header {* Extensible records with structural subtyping *}
+
 theory Record
 imports Product_Type
 uses ("Tools/record_package.ML")
@@ -26,6 +28,7 @@ lemma K_record_comp [simp]: "(K_record c \<circ> f) = K_record c"
 
 lemma K_record_cong [cong]: "K_record c x = K_record c x"
   by (rule refl)
+
 
 subsection {* Concrete record syntax *}
 
@@ -64,4 +67,3 @@ use "Tools/record_package.ML"
 setup RecordPackage.setup
 
 end
-
