@@ -1551,10 +1551,10 @@ fun print_locale thy show_facts imports body =
 
 fun global_note_prefix_i kind (fully_qualified, prfx) args thy =
   thy
-  |> Theory.qualified_names
-  |> (if fully_qualified then Theory.sticky_prefix prfx else Theory.add_path prfx)
+  |> Sign.qualified_names
+  |> (if fully_qualified then Sign.sticky_prefix prfx else Sign.add_path prfx)
   |> PureThy.note_thmss_i kind args
-  ||> Theory.restore_naming thy;
+  ||> Sign.restore_naming thy;
 
 fun local_note_prefix_i kind (fully_qualified, prfx) args ctxt =
   ctxt
@@ -1726,8 +1726,8 @@ fun def_pred bname parms defs ts norm_ts thy =
     val ([pred_def], defs_thy) =
       thy
       |> (if bodyT <> propT then I else
-        Theory.add_trfuns ([], [], map (aprop_tr' (length args)) (NameSpace.accesses' name), []))
-      |> Theory.add_consts_i [(bname, predT, NoSyn)]
+        Sign.add_trfuns ([], [], map (aprop_tr' (length args)) (NameSpace.accesses' name), []))
+      |> Sign.add_consts_i [(bname, predT, NoSyn)]
       |> PureThy.add_defs_i false [((Thm.def_name bname, Logic.mk_equals (head, body)), [])];
     val defs_ctxt = ProofContext.init defs_thy |> Variable.declare_term head;
 

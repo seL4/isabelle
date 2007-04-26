@@ -41,18 +41,18 @@ val aT = TFree ("'a", []);
 
 fun add_proof_atom_consts names thy =
   thy
-  |> Theory.absolute_path
-  |> Theory.add_consts_i (map (fn name => (name, proofT, NoSyn)) names);
+  |> Sign.absolute_path
+  |> Sign.add_consts_i (map (fn name => (name, proofT, NoSyn)) names);
 
 (** constants for application and abstraction **)
 
 fun add_proof_syntax thy =
   thy
   |> Theory.copy
-  |> Theory.root_path
-  |> Theory.add_defsort_i []
-  |> Theory.add_types [("proof", 0, NoSyn)]
-  |> Theory.add_consts_i
+  |> Sign.root_path
+  |> Sign.add_defsort_i []
+  |> Sign.add_types [("proof", 0, NoSyn)]
+  |> Sign.add_consts_i
       [("Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ %/ _)", [4, 5], 4)),
        ("AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ %%/ _)", [4, 5], 4)),
        ("Abst", (aT --> proofT) --> proofT, NoSyn),
@@ -60,8 +60,8 @@ fun add_proof_syntax thy =
        ("Hyp", propT --> proofT, NoSyn),
        ("Oracle", propT --> proofT, NoSyn),
        ("MinProof", proofT, Delimfix "?")]
-  |> Theory.add_nonterminals ["param", "params"]
-  |> Theory.add_syntax_i
+  |> Sign.add_nonterminals ["param", "params"]
+  |> Sign.add_syntax_i
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1Lam _./ _)", [0, 3], 3)),
        ("_Lam0", [paramT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
        ("_Lam0", [idtT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
@@ -69,13 +69,13 @@ fun add_proof_syntax thy =
        ("", paramT --> paramT, Delimfix "'(_')"),
        ("", idtT --> paramsT, Delimfix "_"),
        ("", paramT --> paramsT, Delimfix "_")]
-  |> Theory.add_modesyntax_i ("xsymbols", true)
+  |> Sign.add_modesyntax_i ("xsymbols", true)
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\\<Lambda>_./ _)", [0, 3], 3)),
        ("Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ \\<cdot>/ _)", [4, 5], 4)),
        ("AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \\<bullet>/ _)", [4, 5], 4))]
-  |> Theory.add_modesyntax_i ("latex", false)
+  |> Sign.add_modesyntax_i ("latex", false)
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\\<^bold>\\<lambda>_./ _)", [0, 3], 3))]
-  |> Theory.add_trrules_i (map Syntax.ParsePrintRule
+  |> Sign.add_trrules_i (map Syntax.ParsePrintRule
       [(Syntax.mk_appl (Constant "_Lam")
           [Syntax.mk_appl (Constant "_Lam0") [Variable "l", Variable "m"], Variable "A"],
         Syntax.mk_appl (Constant "_Lam")

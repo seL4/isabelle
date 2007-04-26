@@ -82,7 +82,7 @@ val classrelP =
 
 val defaultsortP =
   OuterSyntax.command "defaultsort" "declare default sort" K.thy_decl
-    (P.sort >> (Toplevel.theory o Theory.add_defsort));
+    (P.sort >> (Toplevel.theory o Sign.add_defsort));
 
 val axclassP =
   OuterSyntax.command "axclass" "define axiomatic type class" K.thy_decl
@@ -97,18 +97,18 @@ val axclassP =
 val typedeclP =
   OuterSyntax.command "typedecl" "type declaration" K.thy_decl
     (P.type_args -- P.name -- P.opt_infix >> (fn ((args, a), mx) =>
-      Toplevel.theory (Theory.add_typedecls [(a, args, mx)])));
+      Toplevel.theory (Sign.add_typedecls [(a, args, mx)])));
 
 val typeabbrP =
   OuterSyntax.command "types" "declare type abbreviations" K.thy_decl
     (Scan.repeat1
       (P.type_args -- P.name -- (P.$$$ "=" |-- P.!!! (P.typ -- P.opt_infix')))
-      >> (Toplevel.theory o Theory.add_tyabbrs o
+      >> (Toplevel.theory o Sign.add_tyabbrs o
         map (fn ((args, a), (T, mx)) => (a, args, T, mx))));
 
 val nontermP =
   OuterSyntax.command "nonterminals" "declare types treated as grammar nonterminal symbols"
-    K.thy_decl (Scan.repeat1 P.name >> (Toplevel.theory o Theory.add_nonterminals));
+    K.thy_decl (Scan.repeat1 P.name >> (Toplevel.theory o Sign.add_nonterminals));
 
 val aritiesP =
   OuterSyntax.command "arities" "state type arities (axiomatic!)" K.thy_decl
@@ -123,7 +123,7 @@ val judgmentP =
 
 val constsP =
   OuterSyntax.command "consts" "declare constants" K.thy_decl
-    (Scan.repeat1 P.const >> (Toplevel.theory o Theory.add_consts));
+    (Scan.repeat1 P.const >> (Toplevel.theory o Sign.add_consts));
 
 val opt_overloaded = P.opt_keyword "overloaded";
 
@@ -139,11 +139,11 @@ val opt_mode =
 
 val syntaxP =
   OuterSyntax.command "syntax" "declare syntactic constants" K.thy_decl
-    (opt_mode -- Scan.repeat1 P.const >> (Toplevel.theory o uncurry Theory.add_modesyntax));
+    (opt_mode -- Scan.repeat1 P.const >> (Toplevel.theory o uncurry Sign.add_modesyntax));
 
 val no_syntaxP =
   OuterSyntax.command "no_syntax" "delete syntax declarations" K.thy_decl
-    (opt_mode -- Scan.repeat1 P.const >> (Toplevel.theory o uncurry Theory.del_modesyntax));
+    (opt_mode -- Scan.repeat1 P.const >> (Toplevel.theory o uncurry Sign.del_modesyntax));
 
 
 (* translations *)
@@ -162,11 +162,11 @@ val trans_line =
 
 val translationsP =
   OuterSyntax.command "translations" "declare syntax translation rules" K.thy_decl
-    (Scan.repeat1 trans_line >> (Toplevel.theory o Theory.add_trrules));
+    (Scan.repeat1 trans_line >> (Toplevel.theory o Sign.add_trrules));
 
 val no_translationsP =
   OuterSyntax.command "no_translations" "remove syntax translation rules" K.thy_decl
-    (Scan.repeat1 trans_line >> (Toplevel.theory o Theory.del_trrules));
+    (Scan.repeat1 trans_line >> (Toplevel.theory o Sign.del_trrules));
 
 
 (* axioms and definitions *)

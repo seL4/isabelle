@@ -144,7 +144,7 @@ let
 in thy'' |> ContConsts.add_consts_i (List.concat (map fst ctt) @ 
 				    (if length eqs'>1 then [const_copy] else[])@
 				    [const_bisim])
-	 |> Theory.add_trrules_i (List.concat(map snd ctt))
+	 |> Sign.add_trrules_i (List.concat(map snd ctt))
 end; (* let *)
 
 end; (* local *)

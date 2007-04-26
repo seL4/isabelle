@@ -85,10 +85,10 @@ fun gen_add_consts prep_typ raw_decls thy =
     val transformed_decls = map transform contconst_decls;
   in
     thy
-    |> Theory.add_consts_i normal_decls
-    |> Theory.add_consts_i (map first transformed_decls)
-    |> Theory.add_syntax_i (map second transformed_decls)
-    |> Theory.add_trrules_i (List.concat (map third transformed_decls))
+    |> Sign.add_consts_i normal_decls
+    |> Sign.add_consts_i (map first transformed_decls)
+    |> Sign.add_syntax_i (map second transformed_decls)
+    |> Sign.add_trrules_i (List.concat (map third transformed_decls))
   end;
 
 val add_consts = gen_add_consts Sign.read_typ;

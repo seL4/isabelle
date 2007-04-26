@@ -408,10 +408,10 @@ end;
 
 fun note_thmss_qualified k path facts thy =
   thy
-  |> Theory.add_path path
-  |> Theory.no_base_names
+  |> Sign.add_path path
+  |> Sign.no_base_names
   |> note_thmss_i k facts
-  ||> Theory.restore_naming thy;
+  ||> Sign.restore_naming thy;
 
 
 (* store_thm *)
@@ -487,12 +487,12 @@ in
   val add_axioms_i         = add_singles Theory.add_axioms_i;
   val add_axiomss          = add_multis Theory.add_axioms;
   val add_axiomss_i        = add_multis Theory.add_axioms_i;
-  val add_defs             = add_singles o (Theory.add_defs false);
-  val add_defs_i           = add_singles o (Theory.add_defs_i false);
-  val add_defs_unchecked   = add_singles o (Theory.add_defs true);
-  val add_defs_unchecked_i = add_singles o (Theory.add_defs_i true);
-  val add_defss            = add_multis o (Theory.add_defs false);
-  val add_defss_i          = add_multis o (Theory.add_defs_i false);
+  val add_defs             = add_singles o Theory.add_defs false;
+  val add_defs_i           = add_singles o Theory.add_defs_i false;
+  val add_defs_unchecked   = add_singles o Theory.add_defs true;
+  val add_defs_unchecked_i = add_singles o Theory.add_defs_i true;
+  val add_defss            = add_multis o Theory.add_defs false;
+  val add_defss_i          = add_multis o Theory.add_defs_i false;
 end;
 
 
@@ -509,13 +509,13 @@ val proto_pure =
   |> Theory.init_data
   |> Proofterm.init_data
   |> TheoremsData.init
-  |> Theory.add_types
+  |> Sign.add_types
    [("fun", 2, NoSyn),
     ("prop", 0, NoSyn),
     ("itself", 1, NoSyn),
     ("dummy", 0, NoSyn)]
-  |> Theory.add_nonterminals Syntax.basic_nonterms
-  |> Theory.add_syntax
+  |> Sign.add_nonterminals Syntax.basic_nonterms
+  |> Sign.add_syntax
    [("_lambda",     "[pttrns, 'a] => logic",     Mixfix ("(3%_./ _)", [0, 3], 3)),
     ("_abs",        "'a",                        NoSyn),
     ("",            "'a => args",                Delimfix "_"),
@@ -553,8 +553,8 @@ val proto_pure =
     ("_struct",     "index => logic",            Mixfix ("\\<struct>_", [1000], 1000)),
     ("==>",         "prop => prop => prop",      Delimfix "op ==>"),
     (Term.dummy_patternN, "aprop",               Delimfix "'_")]
-  |> Theory.add_syntax Syntax.appl_syntax
-  |> Theory.add_modesyntax (Symbol.xsymbolsN, true)
+  |> Sign.add_syntax Syntax.appl_syntax
+  |> Sign.add_modesyntax (Symbol.xsymbolsN, true)
    [("fun",      "[type, type] => type",  Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
     ("_bracket", "[types, type] => type", Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
     ("_ofsort",  "[tid, sort] => type",   Mixfix ("_\\<Colon>_", [1000, 0], 1000)),
@@ -569,13 +569,13 @@ val proto_pure =
     ("_DDDOT",   "aprop",                 Delimfix "\\<dots>"),
     ("_bigimpl", "[asms, prop] => prop",  Mixfix ("((1\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
     ("_DDDOT",   "logic",                 Delimfix "\\<dots>")]
-  |> Theory.add_modesyntax ("", false)
+  |> Sign.add_modesyntax ("", false)
    [("prop", "prop => prop", Mixfix ("_", [0], 0)),
     ("ProtoPure.term", "'a => prop", Delimfix "TERM _"),
     ("ProtoPure.conjunction", "prop => prop => prop", InfixrName ("&&", 2))]
-  |> Theory.add_modesyntax ("HTML", false)
+  |> Sign.add_modesyntax ("HTML", false)
    [("_lambda",  "[pttrns, 'a] => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
-  |> Theory.add_consts
+  |> Sign.add_consts
    [("==", "'a => 'a => prop", InfixrName ("==", 2)),
     ("==>", "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
@@ -588,10 +588,10 @@ val proto_pure =
      Const ("all", (aT --> propT) --> propT),
      Const ("TYPE", Term.a_itselfT),
      Const (Term.dummy_patternN, aT)]
-  |> Theory.add_trfuns Syntax.pure_trfuns
-  |> Theory.add_trfunsT Syntax.pure_trfunsT
+  |> Sign.add_trfuns Syntax.pure_trfuns
+  |> Sign.add_trfunsT Syntax.pure_trfunsT
   |> Sign.local_path
-  |> Theory.add_consts
+  |> Sign.add_consts
    [("term", "'a => prop", NoSyn),
     ("conjunction", "prop => prop => prop", NoSyn)]
   |> (add_defs false o map Thm.no_attributes)

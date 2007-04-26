@@ -49,7 +49,7 @@ fun gen_constdef prep_vars prep_prop prep_att
 
     val thy' =
       thy
-      |> Theory.add_consts_i [(c, T, mx)]
+      |> Sign.add_consts_i [(c, T, mx)]
       |> PureThy.add_defs_i false [((name, def), atts)]
       |-> (fn [thm] => CodegenData.add_func false thm);
   in ((c, T), thy') end;

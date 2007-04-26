@@ -101,8 +101,8 @@ use_thy "Pure";
 structure Pure = struct val thy = theory "Pure" end;
 
 Context.add_setup
- (Theory.del_modesyntax Syntax.default_mode Syntax.appl_syntax #>
-  Theory.add_syntax Syntax.applC_syntax);
+ (Sign.del_modesyntax Syntax.default_mode Syntax.appl_syntax #>
+  Sign.add_syntax Syntax.applC_syntax);
 use_thy "CPure";
 structure CPure = struct val thy = theory "CPure" end;
 

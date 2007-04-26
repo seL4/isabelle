@@ -61,14 +61,6 @@ sig
   val set_policy: (string -> bstring -> string) * (string list -> string list list) ->
     theory -> theory
   val restore_naming: theory -> theory -> theory
-  val hide_classes: bool -> xstring list -> theory -> theory
-  val hide_classes_i: bool -> string list -> theory -> theory
-  val hide_types: bool -> xstring list -> theory -> theory
-  val hide_types_i: bool -> string list -> theory -> theory
-  val hide_consts: bool -> xstring list -> theory -> theory
-  val hide_consts_i: bool -> string list -> theory -> theory
-  val hide_names: bool -> string * xstring list -> theory -> theory
-  val hide_names_i: bool -> string * string list -> theory -> theory
 end
 
 signature SIGN =
@@ -186,6 +178,14 @@ sig
   val add_notation: Syntax.mode -> (term * mixfix) list -> theory -> theory
   val add_abbrev: string -> bstring * term -> theory -> (term * term) * theory
   include SIGN_THEORY
+  val hide_classes: bool -> xstring list -> theory -> theory
+  val hide_classes_i: bool -> string list -> theory -> theory
+  val hide_types: bool -> xstring list -> theory -> theory
+  val hide_types_i: bool -> string list -> theory -> theory
+  val hide_consts: bool -> xstring list -> theory -> theory
+  val hide_consts_i: bool -> string list -> theory -> theory
+  val hide_names: bool -> string * xstring list -> theory -> theory
+  val hide_names_i: bool -> string * string list -> theory -> theory
 end
 
 structure Sign: SIGN =

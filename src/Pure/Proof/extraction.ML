@@ -38,8 +38,8 @@ fun add_syntax thy =
   thy
   |> Theory.copy
   |> Theory.root_path
-  |> Theory.add_types [("Type", 0, NoSyn), ("Null", 0, NoSyn)]
-  |> Theory.add_consts
+  |> Sign.add_types [("Type", 0, NoSyn), ("Null", 0, NoSyn)]
+  |> Sign.add_consts
       [("typeof", "'b::{} => Type", NoSyn),
        ("Type", "'a::{} itself => Type", NoSyn),
        ("Null", "Null", NoSyn),
@@ -735,7 +735,7 @@ fun extract thms thy =
              val fu = Type.freeze u;
              val (def_thms, thy') = if t = nullt then ([], thy) else
                thy
-               |> Theory.add_consts_i [(extr_name s vs, fastype_of ft, NoSyn)]
+               |> Sign.add_consts_i [(extr_name s vs, fastype_of ft, NoSyn)]
                |> PureThy.add_defs_i false [((extr_name s vs ^ "_def",
                     Logic.mk_equals (head_of (strip_abs_body fu), ft)), [])]
            in
@@ -752,9 +752,9 @@ fun extract thms thy =
 
   in
     thy
-    |> Theory.absolute_path
+    |> Sign.absolute_path
     |> fold_rev add_def defs
-    |> Theory.restore_naming thy
+    |> Sign.restore_naming thy
   end;
 
 
