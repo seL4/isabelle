@@ -126,7 +126,7 @@ fun add_drop_redundant thm (sels, dels) =
     fun drop thm' = not (matches args (args_of thm'))
       orelse (warning ("Dropping redundant defining equation\n" ^ string_of_thm thm'); false);
     val (keeps, drops) = List.partition drop sels;
-  in (thm :: keeps, dels |> fold (insert Thm.eq_thm_prop) drops |> remove Thm.eq_thm_prop thm) end;
+  in (thm :: keeps, dels |> remove Thm.eq_thm_prop thm |> fold (insert Thm.eq_thm_prop) drops) end;
 
 fun add_thm thm (sels, dels) =
   apfst Susp.value (add_drop_redundant thm (Susp.force sels, dels));
@@ -148,11 +148,13 @@ fun merge_sdthms ((sels1, dels1), (sels2, dels2)) =
     val (dels_t, dels) = merge_thms (dels1, dels2);
   in if dels_t
     then let
-      val (_, sels) = merge_thms (Susp.force sels1, subtract Thm.eq_thm_prop dels1 (Susp.force sels2))
-      val (_, dels) = merge_thms (dels1, subtract Thm.eq_thm_prop (Susp.force sels1) dels2)
+      val (_, sels) = merge_thms
+        (subtract Thm.eq_thm_prop dels2 (Susp.force sels1), Susp.force sels2);
+      val (_, dels) = merge_thms
+        (subtract Thm.eq_thm_prop (Susp.force sels2) dels1, dels2);
     in (true, ((lazy_thms o K) sels, dels)) end
     else let
-      val (sels_t, sels) = merge_lthms (sels1, sels2)
+      val (sels_t, sels) = merge_lthms (sels1, sels2);
     in (sels_t, (sels, dels)) end
   end;
 
@@ -191,9 +193,9 @@ fun join_func_thms (tabs as (tab1, tab2)) =
       (if touched then cs''' := cons c (!cs''') else (); thms') end;
   in (cs'' @ !cs''', Consttab.join merge tabs) end;
 fun merge_funcs (thms1, thms2) =
-    let
-      val (consts, thms) = join_func_thms (thms1, thms2);
-    in (SOME consts, thms) end;
+  let
+    val (consts, thms) = join_func_thms (thms1, thms2);
+  in (SOME consts, thms) end;
 
 val eq_string = op = : string * string -> bool;
 val eq_co = eq_pair eq_string (eq_list (is_equal o Term.typ_ord));
@@ -209,7 +211,9 @@ fun merge_dtyps (tabs as (tab1, tab2)) =
     val diff_types = not (gen_eq_set (eq_pair (op =) eq_dtyp)
       (AList.make (the o Symtab.lookup tab1) tycos',
        AList.make (the o Symtab.lookup tab2) tycos'));
-  in ((new_types, diff_types), Symtab.merge (K true) tabs) end;
+    fun join _ (cos as (_, cos2)) = if eq_dtyp cos
+      then raise Symtab.SAME else cos2;
+  in ((new_types, diff_types), Symtab.join join tabs) end;
 
 datatype spec = Spec of {
   funcs: sdthms Consttab.table,
