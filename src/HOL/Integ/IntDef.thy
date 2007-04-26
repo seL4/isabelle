@@ -11,47 +11,50 @@ theory IntDef
 imports Equiv_Relations Nat
 begin
 
-constdefs
-  intrel :: "((nat * nat) * (nat * nat)) set"
-    --{*the equivalence relation underlying the integers*}
-    "intrel == {((x,y),(u,v)) | x y u v. x+v = u+y}"
+text {* the equivalence relation underlying the integers *}
+
+definition
+  intrel :: "((nat \<times> nat) \<times> (nat \<times> nat)) set"
+where
+  "intrel = {((x, y), (u, v)) | x y u v. x + v = u +y }"
 
 typedef (Integ)
   int = "UNIV//intrel"
-    by (auto simp add: quotient_def)
+  by (auto simp add: quotient_def)
 
-instance int :: "{ord, zero, one, plus, times, minus}" ..
+definition
+  int :: "nat \<Rightarrow> int"
+where
+  [code nofunc]: "int m = Abs_Integ (intrel `` {(m, 0)})"
 
-constdefs
-  int :: "nat => int"
-  "int m == Abs_Integ(intrel `` {(m,0)})"
+instance int :: zero
+  Zero_int_def: "0 \<equiv> int 0" ..
 
+instance int :: one
+  One_int_def: "1 \<equiv> int 1" ..
 
-defs (overloaded)
+instance int :: plus
+  add_int_def: "z + w \<equiv> Abs_Integ
+    (\<Union>(x, y) \<in> Rep_Integ z. \<Union>(u, v) \<in> Rep_Integ w.
+      intrel `` {(x + u, y + v)})" ..
 
-  Zero_int_def:  "0 == int 0"
-  One_int_def:   "1 == int 1"
-
+instance int :: minus
   minus_int_def:
-    "- z == Abs_Integ (\<Union>(x,y) \<in> Rep_Integ z. intrel``{(y,x)})"
+    "- z \<equiv> Abs_Integ (\<Union>(x, y) \<in> Rep_Integ z. intrel `` {(y, x)})"
+  diff_int_def:  "z - w \<equiv> z + (-w)" ..
 
-  add_int_def:
-   "z + w ==
-       Abs_Integ (\<Union>(x,y) \<in> Rep_Integ z. \<Union>(u,v) \<in> Rep_Integ w.
-		 intrel``{(x+u, y+v)})"
+instance int :: times
+  mult_int_def: "z * w \<equiv>  Abs_Integ
+    (\<Union>(x, y) \<in> Rep_Integ z. \<Union>(u,v ) \<in> Rep_Integ w.
+      intrel `` {(x*u + y*v, x*v + y*u)})" ..
 
-  diff_int_def:  "z - (w::int) == z + (-w)"
-
-  mult_int_def:
-   "z * w ==
-       Abs_Integ (\<Union>(x,y) \<in> Rep_Integ z. \<Union>(u,v) \<in> Rep_Integ w.
-		  intrel``{(x*u + y*v, x*v + y*u)})"
-
+instance int :: ord
   le_int_def:
-   "z \<le> (w::int) == 
-    \<exists>x y u v. x+v \<le> u+y & (x,y) \<in> Rep_Integ z & (u,v) \<in> Rep_Integ w"
+   "z \<le> w \<equiv> \<exists>x y u v. x+v \<le> u+y \<and> (x, y) \<in> Rep_Integ z \<and> (u, v) \<in> Rep_Integ w"
+  less_int_def: "z < w \<equiv> z \<le> w \<and> z \<noteq> w" ..
 
-  less_int_def: "(z < (w::int)) == (z \<le> w & z \<noteq> w)"
+lemmas [code nofunc] = Zero_int_def One_int_def add_int_def
+  minus_int_def mult_int_def le_int_def less_int_def
 
 
 subsection{*Construction of the Integers*}
@@ -66,10 +69,7 @@ by (simp add: intrel_def equiv_def refl_def sym_def trans_def)
 
 text{*Reduces equality of equivalence classes to the @{term intrel} relation:
   @{term "(intrel `` {x} = intrel `` {y}) = ((x,y) \<in> intrel)"} *}
-lemmas equiv_intrel_iff = eq_equiv_class_iff [OF equiv_intrel UNIV_I UNIV_I]
-
-declare equiv_intrel_iff [simp]
-
+lemmas equiv_intrel_iff [simp] = eq_equiv_class_iff [OF equiv_intrel UNIV_I UNIV_I]
 
 text{*All equivalence classes belong to set of representatives*}
 lemma [simp]: "intrel``{(x,y)} \<in> Integ"
@@ -153,9 +153,6 @@ lemma zadd_int: "(int m) + (int n) = int (m + n)"
 
 lemma zadd_int_left: "(int m) + (int n + z) = int (m + n) + z"
   by (simp add: zadd_int zadd_assoc [symmetric])
-
-lemma int_Suc: "int (Suc m) = 1 + (int m)"
-  by (simp add: One_int_def zadd_int)
 
 (*also for the instance declaration int :: comm_monoid_add*)
 lemma zadd_0: "(0::int) + z = z"
@@ -268,13 +265,11 @@ instance int :: order
     (assumption |
       rule zle_refl zle_trans zle_anti_sym less_int_def [THEN meta_eq_to_obj_eq])+
 
-(* Axiom 'linorder_linear' of class 'linorder': *)
-lemma zle_linear: "(z::int) \<le> w | w \<le> z"
+lemma zle_linear: "(z::int) \<le> w \<or> w \<le> z"
 by (cases z, cases w) (simp add: le linorder_linear)
 
 instance int :: linorder
   by intro_classes (rule zle_linear)
-
 
 lemmas zless_linear = linorder_less_linear [where 'a = int]
 
@@ -314,6 +309,9 @@ by (simp add: One_int_def)
 
 lemma int_Suc0_eq_1: "int (Suc 0) = 1"
 by (simp add: One_int_def One_nat_def)
+
+lemma int_Suc: "int (Suc m) = 1 + (int m)"
+by (simp add: One_int_def zadd_int)
 
 
 subsection{*Monotonicity results*}
@@ -355,7 +353,7 @@ apply (auto simp add: zmult_zless_mono2_lemma)
 done
 
 instance int :: minus
-  zabs_def:  "abs(i::int) == if i < 0 then -i else i" ..
+  zabs_def: "\<bar>i\<Colon>int\<bar> \<equiv> if i < 0 then - i else i" ..
 
 instance int :: distrib_lattice
   "inf \<equiv> min"
@@ -379,9 +377,10 @@ done
 
 subsection{*Magnitide of an Integer, as a Natural Number: @{term nat}*}
 
-constdefs
-   nat  :: "int => nat"
-    "nat z == contents (\<Union>(x,y) \<in> Rep_Integ z. { x-y })"
+definition
+  nat :: "int \<Rightarrow> nat"
+where
+  [code nofunc]: "nat z = contents (\<Union>(x, y) \<in> Rep_Integ z. {x-y})"
 
 lemma nat: "nat (Abs_Integ (intrel``{(x,y)})) = x-y"
 proof -
@@ -514,16 +513,14 @@ lemma abs_split [arith_split]:
 by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
 
 
-
-subsection{*The Constants @{term neg} and @{term iszero}*}
+subsection {* Constants @{term neg} and @{term iszero} *}
 
 definition
   neg  :: "'a\<Colon>ordered_idom \<Rightarrow> bool"
 where
-  "neg Z \<longleftrightarrow> Z < 0"
+  [code inline]: "neg Z \<longleftrightarrow> Z < 0"
 
-definition
-  (*For simplifying equalities*)
+definition (*for simplifying equalities*)
   iszero :: "'a\<Colon>comm_semiring_1_cancel \<Rightarrow> bool"
 where
   "iszero z \<longleftrightarrow> z = 0"
@@ -658,20 +655,18 @@ apply (simp add: compare_rls of_int le diff_int_def add minus
 done
 
 text{*Special cases where either operand is zero*}
-lemmas of_int_0_le_iff = of_int_le_iff [of 0, simplified]
-lemmas of_int_le_0_iff = of_int_le_iff [of _ 0, simplified]
-declare of_int_0_le_iff [simp]
-declare of_int_le_0_iff [simp]
+lemmas of_int_0_le_iff [simp] = of_int_le_iff [of 0, simplified]
+lemmas of_int_le_0_iff [simp] = of_int_le_iff [of _ 0, simplified]
+
 
 lemma of_int_less_iff [simp]:
      "(of_int w < (of_int z::'a::ordered_idom)) = (w < z)"
 by (simp add: linorder_not_le [symmetric])
 
 text{*Special cases where either operand is zero*}
-lemmas of_int_0_less_iff = of_int_less_iff [of 0, simplified]
-lemmas of_int_less_0_iff = of_int_less_iff [of _ 0, simplified]
-declare of_int_0_less_iff [simp]
-declare of_int_less_0_iff [simp]
+lemmas of_int_0_less_iff [simp] = of_int_less_iff [of 0, simplified]
+lemmas of_int_less_0_iff [simp] = of_int_less_iff [of _ 0, simplified]
+
 
 text{*The ordering on the @{text ring_1} is necessary.
  See @{text of_nat_eq_iff} above.*}
@@ -680,10 +675,8 @@ lemma of_int_eq_iff [simp]:
 by (simp add: order_eq_iff)
 
 text{*Special cases where either operand is zero*}
-lemmas of_int_0_eq_iff = of_int_eq_iff [of 0, simplified]
-lemmas of_int_eq_0_iff = of_int_eq_iff [of _ 0, simplified]
-declare of_int_0_eq_iff [simp]
-declare of_int_eq_0_iff [simp]
+lemmas of_int_0_eq_iff [simp] = of_int_eq_iff [of 0, simplified]
+lemmas of_int_eq_0_iff [simp] = of_int_eq_iff [of _ 0, simplified]
 
 lemma of_int_eq_id [simp]: "of_int = (id :: int => int)"
 proof
@@ -762,7 +755,7 @@ lemma Ints_induct [case_names of_int, induct set: Ints]:
 
 
 (* int (Suc n) = 1 + int n *)
-declare int_Suc [simp]
+
 
 
 subsection{*More Properties of @{term setsum} and  @{term setprod}*}
@@ -813,6 +806,8 @@ lemma setprod_zero_eq_int:
   by (rule setprod_zero_eq, auto)
 
 
+subsection {* Further properties *}
+
 text{*Now we replace the case analysis rule by a more conventional one:
 whether an integer is negative or not.*}
 
@@ -833,7 +828,7 @@ done
 
 theorem int_cases [cases type: int, case_names nonneg neg]:
      "[|!! n. z = int n ==> P;  !! n. z =  - (int (Suc n)) ==> P |] ==> P"
-apply (case_tac "z < 0", blast dest!: negD)
+apply (cases "z < 0", blast dest!: negD)
 apply (simp add: linorder_not_less)
 apply (blast dest: nat_0_le [THEN sym])
 done
@@ -857,248 +852,33 @@ done
 
 lemmas zless_le = less_int_def [THEN meta_eq_to_obj_eq]
 
-subsection {* Configuration of the code generator *}
+lemmas [simp] = int_Suc
 
-(*FIXME: the IntInf.fromInt below hides a dependence on fixed-precision ints!*)
 
-types_code
-  "int" ("int")
-attach (term_of) {*
-val term_of_int = HOLogic.mk_number HOLogic.intT o IntInf.fromInt;
-*}
-attach (test) {*
-fun gen_int i = one_of [~1, 1] * random_range 0 i;
-*}
-
-definition
-  int_aux :: "int \<Rightarrow> nat \<Rightarrow> int" where
-  "int_aux i n = (i + int n)"
-
-definition
-  nat_aux :: "nat \<Rightarrow> int \<Rightarrow> nat" where
-  "nat_aux n i = (n + nat i)"
-
-lemma [code]:
-  "int_aux i 0 = i"
-  "int_aux i (Suc n) = int_aux (i + 1) n" -- {* tail recursive *}
-  "int n = int_aux 0 n"
-  by (simp add: int_aux_def)+
-
-lemma [code]: "nat_aux n i = (if i <= 0 then n else nat_aux (Suc n) (i - 1))"
-  -- {* tail recursive *}
-  by (auto simp add: nat_aux_def nat_eq_iff linorder_not_le order_less_imp_le
-    dest: zless_imp_add1_zle)
-lemma [code]: "nat i = nat_aux 0 i"
-  by (simp add: nat_aux_def)
-
-lemma [code inline]:
-  "neg k \<longleftrightarrow> k < 0"
-  unfolding neg_def ..
-
-lemma [code func]:
-  "\<bar>k\<Colon>int\<bar> = (if k < 0 then - k else k)"
-  unfolding zabs_def ..
-
-consts_code
-  "HOL.zero" :: "int"                ("0")
-  "HOL.one" :: "int"                 ("1")
-  "HOL.uminus" :: "int => int"       ("~")
-  "HOL.plus" :: "int => int => int"  ("(_ +/ _)")
-  "HOL.times" :: "int => int => int" ("(_ */ _)")
-  "Orderings.less" :: "int => int => bool" ("(_ </ _)")
-  "Orderings.less_eq" :: "int => int => bool" ("(_ <=/ _)")
-  "neg"                              ("(_ < 0)")
-
-instance int :: eq ..
-
-code_type int
-  (SML "IntInf.int")
-  (OCaml "Big'_int.big'_int")
-  (Haskell "Integer")
-
-code_instance int :: eq
-  (Haskell -)
-
-code_const "op = \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
-  (SML "!((_ : IntInf.int) = _)")
-  (OCaml "Big'_int.eq'_big'_int")
-  (Haskell infixl 4 "==")
-
-code_const "op \<le> \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
-  (SML "IntInf.<= (_, _)")
-  (OCaml "Big'_int.le'_big'_int")
-  (Haskell infix 4 "<=")
-
-code_const "op < \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
-  (SML "IntInf.< (_, _)")
-  (OCaml "Big'_int.lt'_big'_int")
-  (Haskell infix 4 "<")
-
-code_const "op + \<Colon> int \<Rightarrow> int \<Rightarrow> int"
-  (SML "IntInf.+ (_, _)")
-  (OCaml "Big'_int.add'_big'_int")
-  (Haskell infixl 6 "+")
-
-code_const "op - \<Colon> int \<Rightarrow> int \<Rightarrow> int"
-  (SML "IntInf.- (_, _)")
-  (OCaml "Big'_int.sub'_big'_int")
-  (Haskell infixl 6 "-")
-
-code_const "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
-  (SML "IntInf.* (_, _)")
-  (OCaml "Big'_int.mult'_big'_int")
-  (Haskell infixl 7 "*")
-
-code_const "uminus \<Colon> int \<Rightarrow> int"
-  (SML "IntInf.~")
-  (OCaml "Big'_int.minus'_big'_int")
-  (Haskell "negate")
-
-code_reserved SML IntInf
-code_reserved OCaml Big_int
-
-code_modulename SML
-  IntDef Integer
-
-code_modulename Haskell
-  IntDef Integer
+subsection {* Legacy ML bindings *}
 
 ML {*
-fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of", Type ("fun", [_, T])) $ t) =
-      if T = HOLogic.intT then
-        (SOME (fst (Codegen.invoke_tycodegen thy defs dep module false (gr, T)),
-          (Pretty.str o IntInf.toString o HOLogic.dest_numeral) t) handle TERM _ => NONE)
-      else if T = HOLogic.natT then
-        SOME (Codegen.invoke_codegen thy defs dep module b (gr,
-          Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT) $
-            (Const ("Numeral.number_of", HOLogic.intT --> HOLogic.intT) $ t)))
-      else NONE
-  | number_of_codegen _ _ _ _ _ _ _ = NONE;
-*}
-
-setup {*
-  Codegen.add_codegen "number_of_codegen" number_of_codegen
-*}
-
-quickcheck_params [default_type = int]
-
-
-(*Legacy ML bindings, but no longer the structure Int.*)
-ML
-{*
-val zabs_def = thm "zabs_def"
-
-val int_0 = thm "int_0";
-val int_1 = thm "int_1";
-val int_Suc0_eq_1 = thm "int_Suc0_eq_1";
-val neg_eq_less_0 = thm "neg_eq_less_0";
-val not_neg_eq_ge_0 = thm "not_neg_eq_ge_0";
-val not_neg_0 = thm "not_neg_0";
-val not_neg_1 = thm "not_neg_1";
-val iszero_0 = thm "iszero_0";
-val not_iszero_1 = thm "not_iszero_1";
-val int_0_less_1 = thm "int_0_less_1";
-val int_0_neq_1 = thm "int_0_neq_1";
-val negative_zless = thm "negative_zless";
-val negative_zle = thm "negative_zle";
-val not_zle_0_negative = thm "not_zle_0_negative";
-val not_int_zless_negative = thm "not_int_zless_negative";
-val negative_eq_positive = thm "negative_eq_positive";
-val zle_iff_zadd = thm "zle_iff_zadd";
-val abs_int_eq = thm "abs_int_eq";
-val abs_split = thm"abs_split";
-val nat_int = thm "nat_int";
-val nat_zminus_int = thm "nat_zminus_int";
-val nat_zero = thm "nat_zero";
-val not_neg_nat = thm "not_neg_nat";
-val neg_nat = thm "neg_nat";
-val zless_nat_eq_int_zless = thm "zless_nat_eq_int_zless";
-val nat_0_le = thm "nat_0_le";
-val nat_le_0 = thm "nat_le_0";
-val zless_nat_conj = thm "zless_nat_conj";
-val int_cases = thm "int_cases";
-
-val int_def = thm "int_def";
-val Zero_int_def = thm "Zero_int_def";
-val One_int_def = thm "One_int_def";
-val diff_int_def = thm "diff_int_def";
-
-val inj_int = thm "inj_int";
-val zminus_zminus = thm "zminus_zminus";
-val zminus_0 = thm "zminus_0";
-val zminus_zadd_distrib = thm "zminus_zadd_distrib";
-val zadd_commute = thm "zadd_commute";
-val zadd_assoc = thm "zadd_assoc";
-val zadd_left_commute = thm "zadd_left_commute";
-val zadd_ac = thms "zadd_ac";
-val zmult_ac = thms "zmult_ac";
-val zadd_int = thm "zadd_int";
-val zadd_int_left = thm "zadd_int_left";
-val int_Suc = thm "int_Suc";
-val zadd_0 = thm "zadd_0";
-val zadd_0_right = thm "zadd_0_right";
-val zmult_zminus = thm "zmult_zminus";
-val zmult_commute = thm "zmult_commute";
-val zmult_assoc = thm "zmult_assoc";
-val zadd_zmult_distrib = thm "zadd_zmult_distrib";
-val zadd_zmult_distrib2 = thm "zadd_zmult_distrib2";
-val zdiff_zmult_distrib = thm "zdiff_zmult_distrib";
-val zdiff_zmult_distrib2 = thm "zdiff_zmult_distrib2";
-val int_distrib = thms "int_distrib";
-val zmult_int = thm "zmult_int";
-val zmult_1 = thm "zmult_1";
-val zmult_1_right = thm "zmult_1_right";
-val int_int_eq = thm "int_int_eq";
-val int_eq_0_conv = thm "int_eq_0_conv";
-val zless_int = thm "zless_int";
-val int_less_0_conv = thm "int_less_0_conv";
-val zero_less_int_conv = thm "zero_less_int_conv";
-val zle_int = thm "zle_int";
-val zero_zle_int = thm "zero_zle_int";
-val int_le_0_conv = thm "int_le_0_conv";
-val zle_refl = thm "zle_refl";
-val zle_linear = thm "zle_linear";
-val zle_trans = thm "zle_trans";
-val zle_anti_sym = thm "zle_anti_sym";
-
-val Ints_def = thm "Ints_def";
-val Nats_def = thm "Nats_def";
-
-val of_nat_0 = thm "of_nat_0";
-val of_nat_Suc = thm "of_nat_Suc";
-val of_nat_1 = thm "of_nat_1";
-val of_nat_add = thm "of_nat_add";
-val of_nat_mult = thm "of_nat_mult";
-val zero_le_imp_of_nat = thm "zero_le_imp_of_nat";
-val less_imp_of_nat_less = thm "less_imp_of_nat_less";
-val of_nat_less_imp_less = thm "of_nat_less_imp_less";
-val of_nat_less_iff = thm "of_nat_less_iff";
-val of_nat_le_iff = thm "of_nat_le_iff";
-val of_nat_eq_iff = thm "of_nat_eq_iff";
-val Nats_0 = thm "Nats_0";
-val Nats_1 = thm "Nats_1";
-val Nats_add = thm "Nats_add";
-val Nats_mult = thm "Nats_mult";
-val int_eq_of_nat = thm"int_eq_of_nat";
-val of_int = thm "of_int";
-val of_int_0 = thm "of_int_0";
-val of_int_1 = thm "of_int_1";
-val of_int_add = thm "of_int_add";
-val of_int_minus = thm "of_int_minus";
-val of_int_diff = thm "of_int_diff";
-val of_int_mult = thm "of_int_mult";
-val of_int_le_iff = thm "of_int_le_iff";
-val of_int_less_iff = thm "of_int_less_iff";
-val of_int_eq_iff = thm "of_int_eq_iff";
-val Ints_0 = thm "Ints_0";
-val Ints_1 = thm "Ints_1";
-val Ints_add = thm "Ints_add";
-val Ints_minus = thm "Ints_minus";
-val Ints_diff = thm "Ints_diff";
-val Ints_mult = thm "Ints_mult";
-val of_int_of_nat_eq = thm"of_int_of_nat_eq";
-val Ints_cases = thm "Ints_cases";
-val Ints_induct = thm "Ints_induct";
+val of_nat_0 = @{thm of_nat_0};
+val of_nat_1 = @{thm of_nat_1};
+val of_nat_Suc = @{thm of_nat_Suc};
+val of_nat_add = @{thm of_nat_add};
+val of_nat_mult = @{thm of_nat_mult};
+val of_int_0 = @{thm of_int_0};
+val of_int_1 = @{thm of_int_1};
+val of_int_add = @{thm of_int_add};
+val of_int_mult = @{thm of_int_mult};
+val int_eq_of_nat = @{thm int_eq_of_nat};
+val zle_int = @{thm zle_int};
+val int_int_eq = @{thm int_int_eq};
+val diff_int_def = @{thm diff_int_def};
+val zadd_ac = @{thms zadd_ac};
+val zless_int = @{thm zless_int};
+val zadd_int = @{thm zadd_int};
+val zmult_int = @{thm zmult_int};
+val nat_0_le = @{thm nat_0_le};
+val int_0 = @{thm int_0};
+val int_1 = @{thm int_1};
+val abs_split = @{thm abs_split};
 *}
 
 end

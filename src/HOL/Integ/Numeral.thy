@@ -7,9 +7,11 @@
 header {* Arithmetic on Binary Integers *}
 
 theory Numeral
-imports IntDef Datatype
+imports IntDef
 uses "../Tools/numeral_syntax.ML"
 begin
+
+subsection {* Binary representation *}
 
 text {*
   This formalization defines binary arithmetic in terms of the integers
@@ -23,12 +25,12 @@ text {*
   @{text "-5 = (-3)*2 + 1"}.
 *}
 
+datatype bit = B0 | B1
+
 text{*
-  This type avoids the use of type @{typ bool}, which would make
+  Type @{typ bit} avoids the use of type @{typ bool}, which would make
   all of the rewrite rules higher-order.
 *}
-
-datatype bit = B0 | B1
 
 definition
   Pls :: int where
@@ -74,9 +76,12 @@ definition
   pred :: "int \<Rightarrow> int" where
   [code nofunc]: "pred k = k - 1"
 
-declare
- max_def[of "number_of u" "number_of v", standard, simp]
- min_def[of "number_of u" "number_of v", standard, simp]
+lemmas
+  max_number_of [simp] = max_def
+    [of "number_of u" "number_of v", standard, simp]
+and
+  min_number_of [simp] = min_def 
+    [of "number_of u" "number_of v", standard, simp]
   -- {* unfolding @{text minx} and @{text max} on numerals *}
 
 lemmas numeral_simps = 
@@ -84,11 +89,11 @@ lemmas numeral_simps =
 
 text {* Removal of leading zeroes *}
 
-lemma Pls_0_eq [simp, code func]:
+lemma Pls_0_eq [simp, normal post]:
   "Pls BIT B0 = Pls"
   unfolding numeral_simps by simp
 
-lemma Min_1_eq [simp, code func]:
+lemma Min_1_eq [simp, normal post]:
   "Min BIT B1 = Min"
   unfolding numeral_simps by simp
 
@@ -199,6 +204,18 @@ subsection {* Converting Numerals to Rings: @{term number_of} *}
 
 axclass number_ring \<subseteq> number, comm_ring_1
   number_of_eq: "number_of k = of_int k"
+
+text {* self-embedding of the intergers *}
+
+instance int :: number_ring
+  int_number_of_def: "number_of w \<equiv> of_int w"
+  by intro_classes (simp only: int_number_of_def)
+
+lemmas [code nofunc] = int_number_of_def
+
+lemma number_of_is_id:
+  "number_of (k::int) = k"
+  unfolding int_number_of_def by simp
 
 lemma number_of_succ:
   "number_of (succ k) = (1 + number_of k ::'a::number_ring)"
@@ -483,7 +500,7 @@ lemma number_of_reorient:
 
 subsection {* Simplification of arithmetic operations on integer constants. *}
 
-lemmas arith_extra_simps [standard] =
+lemmas arith_extra_simps [standard, simp] =
   number_of_add [symmetric]
   number_of_minus [symmetric] numeral_m1_eq_minus_1 [symmetric]
   number_of_mult [symmetric]
@@ -507,16 +524,13 @@ lemmas arith_simps =
 
 text {* Simplification of relational operations *}
 
-lemmas rel_simps = 
+lemmas rel_simps [simp] = 
   eq_number_of_eq iszero_number_of_Pls nonzero_number_of_Min
   iszero_number_of_0 iszero_number_of_1
   less_number_of_eq_neg
   not_neg_number_of_Pls not_neg_0 not_neg_1 not_iszero_1
   neg_number_of_Min neg_number_of_BIT
   le_number_of_eq
-
-declare arith_extra_simps [simp]
-declare rel_simps [simp]
 
 
 subsection {* Simplification of arithmetic when nested to the right. *}
@@ -543,6 +557,109 @@ apply (subst diff_number_of_eq [symmetric])
 apply (simp only: compare_rls)
 done
 
+
+subsection {* Configuration of the code generator *}
+
+instance int :: eq ..
+
+code_datatype Pls Min Bit "number_of \<Colon> int \<Rightarrow> int"
+
+definition
+  int_aux :: "int \<Rightarrow> nat \<Rightarrow> int" where
+  "int_aux i n = (i + int n)"
+
+lemma [code]:
+  "int_aux i 0 = i"
+  "int_aux i (Suc n) = int_aux (i + 1) n" -- {* tail recursive *}
+  by (simp add: int_aux_def)+
+
+lemma [code]:
+  "int n = int_aux 0 n"
+  by (simp add: int_aux_def)
+
+definition
+  nat_aux :: "nat \<Rightarrow> int \<Rightarrow> nat" where
+  "nat_aux n i = (n + nat i)"
+
+lemma [code]: "nat_aux n i = (if i <= 0 then n else nat_aux (Suc n) (i - 1))"
+  -- {* tail recursive *}
+  by (auto simp add: nat_aux_def nat_eq_iff linorder_not_le order_less_imp_le
+    dest: zless_imp_add1_zle)
+
+lemma [code]: "nat i = nat_aux 0 i"
+  by (simp add: nat_aux_def)
+
+lemma zero_is_num_zero [code func, code inline, symmetric, normal post]:
+  "(0\<Colon>int) = number_of Numeral.Pls" 
+  by simp
+
+lemma one_is_num_one [code func, code inline, symmetric, normal post]:
+  "(1\<Colon>int) = number_of (Numeral.Pls BIT bit.B1)" 
+  by simp 
+
+code_modulename SML
+  IntDef Integer
+
+code_modulename OCaml
+  IntDef Integer
+
+code_modulename Haskell
+  IntDef Integer
+
+code_modulename SML
+  Numeral Integer
+
+code_modulename OCaml
+  Numeral Integer
+
+code_modulename Haskell
+  Numeral Integer
+
+(*FIXME: the IntInf.fromInt below hides a dependence on fixed-precision ints!*)
+
+types_code
+  "int" ("int")
+attach (term_of) {*
+val term_of_int = HOLogic.mk_number HOLogic.intT o IntInf.fromInt;
+*}
+attach (test) {*
+fun gen_int i = one_of [~1, 1] * random_range 0 i;
+*}
+
+setup {*
+let
+
+fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of", Type ("fun", [_, T])) $ t) =
+      if T = HOLogic.intT then
+        (SOME (fst (Codegen.invoke_tycodegen thy defs dep module false (gr, T)),
+          (Pretty.str o IntInf.toString o HOLogic.dest_numeral) t) handle TERM _ => NONE)
+      else if T = HOLogic.natT then
+        SOME (Codegen.invoke_codegen thy defs dep module b (gr,
+          Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT) $
+            (Const ("Numeral.number_of", HOLogic.intT --> HOLogic.intT) $ t)))
+      else NONE
+  | number_of_codegen _ _ _ _ _ _ _ = NONE;
+
+in
+
+Codegen.add_codegen "number_of_codegen" number_of_codegen
+
+end
+*}
+
+consts_code
+  "HOL.zero" :: "int"                ("0")
+  "HOL.one" :: "int"                 ("1")
+  "HOL.uminus" :: "int => int"       ("~")
+  "HOL.plus" :: "int => int => int"  ("(_ +/ _)")
+  "HOL.times" :: "int => int => int" ("(_ */ _)")
+  "Orderings.less" :: "int => int => bool" ("(_ </ _)")
+  "Orderings.less_eq" :: "int => int => bool" ("(_ <=/ _)")
+  "neg"                              ("(_ < 0)")
+
+quickcheck_params [default_type = int]
+
+(* setup continues in theory Presburger *)
 
 hide (open) const Pls Min B0 B1 succ pred
 

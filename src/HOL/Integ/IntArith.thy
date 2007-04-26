@@ -14,13 +14,6 @@ text{*Duplicate: can't understand why it's necessary*}
 declare numeral_0_eq_0 [simp]
 
 
-subsection{*Instantiating Binary Arithmetic for the Integers*}
-
-instance int :: number_ring
-  int_number_of_def: "number_of w \<equiv> of_int w"
-  by intro_classes (simp only: int_number_of_def)
-
-
 subsection{*Inequality Reasoning for the Arithmetic Simproc*}
 
 lemma add_numeral_0: "Numeral0 + a = (a::'a::number_ring)"
@@ -191,8 +184,7 @@ done
 
 text{*This simplifies expressions of the form @{term "int n = z"} where
       z is an integer literal.*}
-lemmas int_eq_iff_number_of = int_eq_iff [of _ "number_of v", standard]
-declare int_eq_iff_number_of [simp]
+lemmas int_eq_iff_number_of [simp] = int_eq_iff [of _ "number_of v", standard]
 
 
 lemma split_nat [arith_split]:
@@ -217,7 +209,7 @@ lemma zdiff_int: "n \<le> m ==> int m - int n = int (m-n)"
 by (induct m n rule: diff_induct, simp_all)
 
 lemma nat_mult_distrib: "(0::int) \<le> z ==> nat (z*z') = nat z * nat z'"
-apply (case_tac "0 \<le> z'")
+apply (cases "0 \<le> z'")
 apply (rule inj_int [THEN injD])
 apply (simp add: int_mult zero_le_mult_iff)
 apply (simp add: mult_le_0_iff)
@@ -229,7 +221,7 @@ apply (rule_tac [2] nat_mult_distrib, auto)
 done
 
 lemma nat_abs_mult_distrib: "nat (abs (w * z)) = nat (abs w) * nat (abs z)"
-apply (case_tac "z=0 | w=0")
+apply (cases "z=0 | w=0")
 apply (auto simp add: abs_if nat_mult_distrib [symmetric] 
                       nat_mult_distrib_neg [symmetric] mult_less_0_iff)
 done
@@ -375,7 +367,7 @@ lemma zabs_less_one_iff [simp]: "(\<bar>z\<bar> < 1) = (z = (0::int))"
 by arith
 
 lemma abs_zmult_eq_1: "(\<bar>m * n\<bar> = 1) ==> \<bar>m\<bar> = (1::int)"
-apply (case_tac "\<bar>n\<bar>=1") 
+apply (cases "\<bar>n\<bar>=1") 
 apply (simp add: abs_mult) 
 apply (rule ccontr) 
 apply (auto simp add: linorder_neq_iff abs_mult) 
@@ -402,110 +394,12 @@ apply (rule iffI)
 done
 
 
-subsection {* code generator setup *}
+subsection {* Legavy ML bindings *}
 
-code_modulename SML
-  Numeral Integer
-
-code_modulename OCaml
-  Numeral Integer
-
-lemma Numeral_Pls_refl [code func]:
-  "Numeral.Pls = Numeral.Pls" ..
-
-lemma Numeral_Min_refl [code func]:
-  "Numeral.Min = Numeral.Min" ..
-
-lemma zero_int_refl [code func]:
-  "(0\<Colon>int) = 0" ..
-
-lemma one_int_refl [code func]:
-  "(1\<Colon>int) = 1" ..
-
-lemma number_of_int_refl [code func]:
-  "(number_of \<Colon> int \<Rightarrow> int) = number_of" ..
-
-lemma number_of_is_id:
-  "number_of (k::int) = k"
-  unfolding int_number_of_def by simp
-
-lemma zero_is_num_zero [code inline, symmetric, normal post]:
-  "(0::int) = number_of Numeral.Pls" 
-  by simp
-
-lemma one_is_num_one [code inline, symmetric, normal post]:
-  "(1::int) = number_of  (Numeral.Pls BIT bit.B1)" 
-  by simp 
-
-lemmas int_code_rewrites =
-  arith_simps(5-27)
-  arith_extra_simps(1-5) [where 'a = int]
-
-declare int_code_rewrites [code func]
-
-code_type bit
-  (SML "bool")
-  (OCaml "bool")
-  (Haskell "Bool")
-code_const "Numeral.bit.B0" and "Numeral.bit.B1"
-  (SML "false" and "true")
-  (OCaml "false" and "true")
-  (Haskell "False" and "True")
-
-code_const "number_of \<Colon> int \<Rightarrow> int"
-  and "Numeral.Pls" and "Numeral.Min" and "Numeral.Bit"
-  and "Numeral.succ" and "Numeral.pred"
-  (SML "_"
-     and "0/ :/ IntInf.int"
-     and "~1/ :/ IntInf.int"
-     and "!(_; _; raise Fail \"BIT\")"
-     and "IntInf.+/ (_,/ 1)"
-     and "IntInf.-/ (_,/ 1))")
-  (OCaml "_"
-     and "Big'_int.big'_int'_of'_int/ 0"
-     and "Big'_int.big'_int'_of'_int/ (-1)"
-     and "!(_; _; failwith \"BIT\")"
-     and "Big'_int.succ'_big'_int"
-     and "Big'_int.pred'_big'_int")
-  (Haskell "_"
-     and "0"
-     and "!(-1)"
-     and "error/ \"BIT\""
-     and "(+)/ 1"
-     and "(-)/ _/ 1")
-
-setup {*
-  CodegenPackage.add_appconst ("Numeral.Bit", CodegenPackage.appgen_numeral (try HOLogic.dest_numeral))
-*}
-
-
-subsection {* legacy ML bindings *}
-
-ML
-{*
-val zle_diff1_eq = thm "zle_diff1_eq";
-val zle_add1_eq_le = thm "zle_add1_eq_le";
-val nonneg_eq_int = thm "nonneg_eq_int";
-val abs_minus_one = thm "abs_minus_one";
-val of_int_number_of_eq = thm"of_int_number_of_eq";
-val nat_eq_iff = thm "nat_eq_iff";
-val nat_eq_iff2 = thm "nat_eq_iff2";
-val nat_less_iff = thm "nat_less_iff";
-val int_eq_iff = thm "int_eq_iff";
-val nat_0 = thm "nat_0";
-val nat_1 = thm "nat_1";
-val nat_2 = thm "nat_2";
-val nat_less_eq_zless = thm "nat_less_eq_zless";
-val nat_le_eq_zle = thm "nat_le_eq_zle";
-
-val nat_intermed_int_val = thm "nat_intermed_int_val";
-val pos_zmult_eq_1_iff = thm "pos_zmult_eq_1_iff";
-val zmult_eq_1_iff = thm "zmult_eq_1_iff";
-val nat_add_distrib = thm "nat_add_distrib";
-val nat_diff_distrib = thm "nat_diff_distrib";
-val nat_mult_distrib = thm "nat_mult_distrib";
-val nat_mult_distrib_neg = thm "nat_mult_distrib_neg";
-val nat_abs_mult_distrib = thm "nat_abs_mult_distrib";
+ML {*
+val of_int_number_of_eq = @{thm of_int_number_of_eq};
+val nat_0 = @{thm nat_0};
+val nat_1 = @{thm nat_1};
 *}
 
 end

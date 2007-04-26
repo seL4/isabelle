@@ -9,7 +9,7 @@ generation for Cooper Algorithm
 header {* Presburger Arithmetic: Cooper's Algorithm *}
 
 theory Presburger
-imports NatSimprocs
+imports NatSimprocs "../SetInterval"
 uses
   ("cooper_dec.ML") ("cooper_proof.ML") ("qelim.ML") 
   ("reflected_presburger.ML") ("reflected_cooper.ML") ("presburger.ML")
@@ -1059,16 +1059,13 @@ use "presburger.ML"
 
 setup "Presburger.setup"
 
-text {* Code generator setup *}
+
+subsection {* Code generator setup *}
 
 text {*
-  Presburger arithmetic is necessary (at least convenient) to prove some
-  of the following code lemmas on integer numerals.
+  Presburger arithmetic is convenient to prove some
+  of the following code lemmas on integer numerals:
 *}
-
-lemma eq_number_of [code func]:
-  "((number_of k)\<Colon>int) = number_of l \<longleftrightarrow> k = l"
-  unfolding number_of_is_id ..
 
 lemma eq_Pls_Pls:
   "Numeral.Pls = Numeral.Pls \<longleftrightarrow> True" by rule+
@@ -1131,14 +1128,10 @@ lemma eq_Bit_Bit:
   apply auto
 done
 
-lemmas eq_numeral_code [code func] =
-  eq_Pls_Pls eq_Pls_Min eq_Pls_Bit0 eq_Pls_Bit1
-  eq_Min_Pls eq_Min_Min eq_Min_Bit0 eq_Min_Bit1
-  eq_Bit0_Pls eq_Bit1_Pls eq_Bit0_Min eq_Bit1_Min eq_Bit_Bit
-
-lemma less_eq_number_of [code func]:
-  "(number_of k \<Colon> int) \<le> number_of l \<longleftrightarrow> k \<le> l"
+lemma eq_number_of:
+  "(number_of k \<Colon> int) = number_of l \<longleftrightarrow> k = l"
   unfolding number_of_is_id ..
+
 
 lemma less_eq_Pls_Pls:
   "Numeral.Pls \<le> Numeral.Pls \<longleftrightarrow> True" by rule+
@@ -1190,13 +1183,10 @@ lemma less_eq_Bit1_Bit0:
   "Numeral.Bit k1 bit.B1 \<le> Numeral.Bit k2 bit.B0 \<longleftrightarrow> k1 < k2"
   unfolding Bit_def by (auto split: bit.split)
 
-lemmas less_eq_numeral_code [code func] = less_eq_Pls_Pls less_eq_Pls_Min less_eq_Pls_Bit
-  less_eq_Min_Pls less_eq_Min_Min less_eq_Min_Bit0 less_eq_Min_Bit1
-  less_eq_Bit0_Pls less_eq_Bit1_Pls less_eq_Bit_Min less_eq_Bit0_Bit less_eq_Bit_Bit1 less_eq_Bit1_Bit0
-
-lemma less_eq_number_of [code func]:
-  "(number_of k \<Colon> int) < number_of l \<longleftrightarrow> k < l"
+lemma less_eq_number_of:
+  "(number_of k \<Colon> int) \<le> number_of l \<longleftrightarrow> k \<le> l"
   unfolding number_of_is_id ..
+
 
 lemma less_Pls_Pls:
   "Numeral.Pls < Numeral.Pls \<longleftrightarrow> False" by auto
@@ -1248,8 +1238,42 @@ lemma less_Bit0_Bit1:
   "Numeral.Bit k1 bit.B0 < Numeral.Bit k2 bit.B1 \<longleftrightarrow> k1 \<le> k2"
   unfolding Bit_def bit.cases by auto
 
+lemma less_number_of:
+  "(number_of k \<Colon> int) < number_of l \<longleftrightarrow> k < l"
+  unfolding number_of_is_id ..
+
+
+lemmas pred_succ_numeral_code [code func] =
+  arith_simps(5-12)
+
+lemmas plus_numeral_code [code func] =
+  arith_simps(13-17)
+  arith_simps(26-27)
+  arith_extra_simps(1) [where 'a = int]
+
+lemmas minus_numeral_code [code func] =
+  arith_simps(18-21)
+  arith_extra_simps(2) [where 'a = int]
+  arith_extra_simps(5) [where 'a = int]
+
+lemmas times_numeral_code [code func] =
+  arith_simps(22-25)
+  arith_extra_simps(4) [where 'a = int]
+
+lemmas eq_numeral_code [code func] =
+  eq_Pls_Pls eq_Pls_Min eq_Pls_Bit0 eq_Pls_Bit1
+  eq_Min_Pls eq_Min_Min eq_Min_Bit0 eq_Min_Bit1
+  eq_Bit0_Pls eq_Bit1_Pls eq_Bit0_Min eq_Bit1_Min eq_Bit_Bit
+  eq_number_of
+
+lemmas less_eq_numeral_code [code func] = less_eq_Pls_Pls less_eq_Pls_Min less_eq_Pls_Bit
+  less_eq_Min_Pls less_eq_Min_Min less_eq_Min_Bit0 less_eq_Min_Bit1
+  less_eq_Bit0_Pls less_eq_Bit1_Pls less_eq_Bit_Min less_eq_Bit0_Bit less_eq_Bit_Bit1 less_eq_Bit1_Bit0
+  less_eq_number_of
+
 lemmas less_numeral_code [code func] = less_Pls_Pls less_Pls_Min less_Pls_Bit0
   less_Pls_Bit1 less_Min_Pls less_Min_Min less_Min_Bit less_Bit_Pls
   less_Bit0_Min less_Bit1_Min less_Bit_Bit0 less_Bit1_Bit less_Bit0_Bit1
+  less_number_of
 
 end
