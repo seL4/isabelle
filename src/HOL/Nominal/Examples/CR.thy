@@ -247,6 +247,16 @@ next
   qed
 qed
 
+lemma one_fresh_preserv_automatic:
+  fixes a :: "name"
+  assumes a: "t\<longrightarrow>\<^isub>1s"
+  and     b: "a\<sharp>t"
+  shows "a\<sharp>s"
+using a b
+apply(nominal_induct avoiding: a rule: One.strong_induct)
+apply(auto simp add: abs_fresh fresh_atm fresh_fact)
+done
+
 lemma subst_rename: 
   assumes a: "c\<sharp>t1"
   shows "t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2]"
@@ -263,20 +273,15 @@ lemma one_abs:
   using a
   apply -
   apply(ind_cases2 "(Lam [a].t)\<longrightarrow>\<^isub>1t'")
-  apply(auto simp add: lam.distinct lam.inject alpha)
+  apply(auto simp add: lam.inject alpha)
   apply(rule_tac x="[(a,aa)]\<bullet>s2" in exI)
   apply(rule conjI)
-  apply(rule pt_bij2[OF pt_name_inst, OF at_name_inst, symmetric])
-  apply(simp)
-  apply(rule pt_name3)
-  apply(rule at_ds5[OF at_name_inst])
-  apply(frule_tac a="a" in one_fresh_preserv)
-  apply(assumption)
-  apply(rule conjI)
-  apply(simp add: pt_fresh_left[OF pt_name_inst, OF at_name_inst])
-  apply(simp add: calc_atm)
-  apply(force intro!: One.eqvt)
-  done
+  apply(perm_simp)
+  apply(simp add: fresh_left calc_atm)
+  apply(simp add: One.eqvt)
+  apply(simp add: one_fresh_preserv)
+done  
+
 
 lemma one_app: 
   assumes a: "App t1 t2 \<longrightarrow>\<^isub>1 t'"
