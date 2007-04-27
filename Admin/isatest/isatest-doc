@@ -28,7 +28,7 @@ SETTINGS=~/settings/$SHORT
 ISATOOL=$ISABELLE_DEVEL/bin/isatool
     
 
-MAIL=~/afp/release/admin/mail-attach
+MAIL=$HOME/bin/pmail
 
 TMP=/tmp/isatest-doc.mail.tmp
 while [ -e $TMP ]; do TMP=$TMP.x; done
