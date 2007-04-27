@@ -275,11 +275,6 @@ val Delsplits        = Splitter.Delsplits;
 
 (*** Standard simpsets ***)
 
-structure Induction = InductionFun(struct val spec = spec end);
-
-open Induction;
-
-
 bind_thms ("meta_simps",
  [triv_forall_equality,   (* prunes params *)
   thm "True_implies_equals"]);  (* prune asms `True' *)

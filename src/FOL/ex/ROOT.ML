@@ -30,10 +30,6 @@ time_use     "quant.ML";
 
 time_use_thy "NatClass";
 
-writeln"\n** Simplification examples **\n";
-time_use_thy "Nat2";
-time_use_thy "List";
-
 time_use_thy "IffOracle";
 
 (*regression test for locales -- sets several global flags!*)

@@ -35,7 +35,7 @@ $(OUT)/FOL$(ML_SUFFIX): $(OUT)/Pure$(ML_SUFFIX) $(SRC)/Provers/blast.ML	\
   $(SRC)/Provers/IsaPlanner/rw_tools.ML	\
   $(SRC)/Provers/IsaPlanner/rw_inst.ML \
   $(SRC)/Provers/eqsubst.ML $(SRC)/Provers/hypsubst.ML			\
-  $(SRC)/Provers/ind.ML $(SRC)/Provers/induct_method.ML			\
+  $(SRC)/Provers/induct_method.ML			\
   $(SRC)/Provers/project_rule.ML $(SRC)/Provers/quantifier1.ML		\
   $(SRC)/Provers/splitter.ML FOL.thy IFOL.thy ROOT.ML blastdata.ML cladata.ML 		\
   document/root.tex fologic.ML hypsubstdata.ML intprover.ML simpdata.ML
@@ -47,8 +47,8 @@ $(OUT)/FOL$(ML_SUFFIX): $(OUT)/Pure$(ML_SUFFIX) $(SRC)/Provers/blast.ML	\
 FOL-ex: FOL $(LOG)/FOL-ex.gz
 
 $(LOG)/FOL-ex.gz: $(OUT)/FOL$(ML_SUFFIX) ex/First_Order_Logic.thy \
-  ex/If.thy ex/IffOracle.thy ex/List.ML ex/List.thy ex/LocaleTest.thy \
-  ex/Nat.thy ex/Nat2.ML ex/Nat2.thy ex/Natural_Numbers.thy ex/Miniscope.thy \
+  ex/If.thy ex/IffOracle.thy ex/LocaleTest.thy \
+  ex/Nat.thy ex/Natural_Numbers.thy ex/Miniscope.thy \
   ex/Prolog.thy ex/ROOT.ML ex/Classical.thy ex/document/root.tex \
   ex/Foundation.thy ex/Intuitionistic.thy ex/Intro.thy ex/prop.ML ex/quant.ML
 	@$(ISATOOL) usedir $(OUT)/FOL ex

@@ -9,7 +9,6 @@ val banner = "First-Order Logic with Natural Deduction";
 writeln banner;
 
 use "~~/src/Provers/splitter.ML";
-use "~~/src/Provers/ind.ML";
 use "~~/src/Provers/hypsubst.ML";
 use "~~/src/Provers/IsaPlanner/zipper.ML";
 use "~~/src/Provers/IsaPlanner/isand.ML";
