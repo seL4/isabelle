@@ -268,7 +268,7 @@ fun try_ml_file name time =
     if is_none (ThyLoad.check_file NONE path) then ()
     else
       let
-        val _ = warning ("Loading legacy ML script " ^ quote (Path.implode path));
+        val _ = legacy_feature ("loading attached ML script " ^ quote (Path.implode path));
         val tr = Toplevel.imperative (fn () => ThyInfo.load_file time path);
         val tr_name = if time then "time_use" else "use";
       in Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr] end

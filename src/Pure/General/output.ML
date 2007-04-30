@@ -11,6 +11,8 @@ sig
   val priority: string -> unit
   val tracing: string -> unit
   val warning: string -> unit
+  val tolerate_legacy_features: bool ref
+  val legacy_feature: string -> unit
   val timing: bool ref
   val cond_timeit: bool -> (unit -> 'a) -> 'a
   val timeit: (unit -> 'a) -> 'a
@@ -109,6 +111,10 @@ fun writeln s = ! writeln_fn (output s);
 fun priority s = ! priority_fn (output s);
 fun tracing s = ! tracing_fn (output s);
 fun warning s = ! warning_fn (output s);
+
+val tolerate_legacy_features = ref true;
+fun legacy_feature s =
+  (if ! tolerate_legacy_features then warning else error) ("Legacy feature: " ^ s);
 
 fun no_warnings f = setmp warning_fn (K ()) f;
 

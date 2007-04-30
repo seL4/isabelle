@@ -95,7 +95,7 @@ fun trace_rules _ kind [] = error ("Unable to figure out " ^ kind ^ " rule")
 fun make_cases is_open rule =
   RuleCases.make_common is_open (Thm.theory_of_thm rule, Thm.prop_of rule);
 
-fun warn_open true = warning "Encountered open rule cases -- deprecated"
+fun warn_open true = legacy_feature "open rule cases in proof method"
   | warn_open false = ();
 
 

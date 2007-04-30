@@ -105,7 +105,7 @@ fun strip ("'" :: c :: cs) = c :: strip cs
 
 val strip_esc = implode o strip o Symbol.explode;
 
-fun deprecated c = (warning ("Unnamed infix operator " ^ quote c ^ " -- deprecated"); c);
+fun deprecated c = (legacy_feature ("unnamed infix operator " ^ quote c); c);
 
 fun type_name t (InfixName _) = t
   | type_name t (InfixlName _) = t

@@ -6,6 +6,10 @@ New in this Isabelle version
 
 *** General ***
 
+* More uniform information about legacy features, notably a
+warning/error of "Legacy feature: ...", depending on the state of the
+tolerate_legacy_features flag (default true).
+
 * Theory syntax: the header format ``theory A = B + C:'' has been
 discontinued in favour of ``theory A imports B C begin''.  Use isatool
 fixheaders to convert existing theory files.  INCOMPATIBILITY.
