@@ -31,11 +31,6 @@ sig
   val atp_method: (Proof.context -> thm list -> int -> tactic) ->
     Method.src -> Proof.context -> Proof.method
   val cond_rm_tmp: string -> unit
-  val hol_full_types: unit -> unit
-  val hol_partial_types: unit -> unit
-  val hol_const_types_only: unit -> unit
-  val hol_no_types: unit -> unit
-  val hol_typ_level: unit -> ResHolClause.type_level
   val include_all: bool ref
   val run_relevance_filter: bool ref
   val run_blacklist_filter: bool ref
@@ -133,17 +128,6 @@ fun run_spass time =
 fun vampireLimit () = !vampire_time;
 fun eproverLimit () = !eprover_time;
 fun spassLimit () = !spass_time;
-
-val hol_full_types = ResHolClause.full_types;
-val hol_partial_types = ResHolClause.partial_types;
-val hol_const_types_only = ResHolClause.const_types_only;
-val hol_no_types = ResHolClause.no_types;
-fun hol_typ_level () = ResHolClause.find_typ_level ();
-fun is_typed_hol () =
-    let val tp_level = hol_typ_level()
-    in
-        not (tp_level = ResHolClause.T_NONE)
-    end;
 
 fun atp_input_file () =
     let val file = !problem_name
