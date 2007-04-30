@@ -569,7 +569,6 @@ sig
   val init: theory -> theory
   val print: theory -> unit
   val get: theory -> T
-  val get_sg: theory -> T    (*obsolete*)
   val put: T -> theory -> theory
   val map: (T -> T) -> theory -> theory
 end;
