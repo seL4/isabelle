@@ -6,9 +6,10 @@ begin
 
 atom_decl name
 
-nominal_datatype lam = Var "name"
-                     | App "lam" "lam"
-                     | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
+nominal_datatype lam = 
+    Var "name"
+  | App "lam" "lam"
+  | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
 text {* depth of a lambda-term *}
 

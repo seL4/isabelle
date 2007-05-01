@@ -4,15 +4,19 @@ theory CR_Takahashi
 imports Lam_Funs
 begin
 
-text {* The Church-Rosser proof from a paper by Masako Takahashi;
-        our formalisation follows with some slight exceptions the one 
-        done by Randy Pollack and James McKinna from their 1993 
-        TLCA-paper; the proof is simpler by using an auxiliary
-        reduction relation called complete development reduction.
-      
-        Authors: Mathilde Arnaud and Christian Urban
-     *}
+text {* Authors: Mathilde Arnaud and Christian Urban
 
+        The Church-Rosser proof from a paper by Masako Takahashi.
+        This formalisation follows with some very slight exceptions 
+        the one  given by Randy Pollack in his paper:
+
+             Polishing Up the Tait-Martin Löf Proof of the 
+             Church-Rosser Theorem (1995).
+
+  *}
+
+section {* Lemmas about Capture-Avoiding Substitution *}
+ 
 lemma forget:
   assumes asm: "x\<sharp>L"
   shows "L[x::=P] = L"
@@ -43,6 +47,14 @@ lemma substitution_lemma:
 by (nominal_induct M avoiding: x y N L rule: lam.induct)
    (auto simp add: fresh_fact forget)
 
+lemma subst_rename: 
+  assumes a: "c\<sharp>t1"
+  shows "t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2]"
+using a
+by (nominal_induct t1 avoiding: a c t2 rule: lam.induct)
+   (auto simp add: calc_atm fresh_atm abs_fresh)
+
+
 section {* Beta Reduction *}
 
 inductive2
@@ -58,10 +70,12 @@ equivariance Beta
 nominal_inductive Beta
   by (simp_all add: abs_fresh fresh_fact')
 
+section {* Transitive Closure of Beta *}
+
 inductive2
   "Beta_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta>\<^sup>* _" [80,80] 80)
 where
-    bs1[intro, simp]: "M \<longrightarrow>\<^isub>\<beta>\<^sup>* M"
+    bs1[intro,simp]: "M \<longrightarrow>\<^isub>\<beta>\<^sup>* M"
   | bs2[intro]: "\<lbrakk>M1\<longrightarrow>\<^isub>\<beta>\<^sup>* M2; M2 \<longrightarrow>\<^isub>\<beta> M3\<rbrakk> \<Longrightarrow> M1 \<longrightarrow>\<^isub>\<beta>\<^sup>* M3"
 
 equivariance Beta_star
@@ -103,6 +117,8 @@ using a b
 by (nominal_induct M M' avoiding: N N' x rule: One.strong_induct)
    (auto simp add: one_subst_aux substitution_lemma fresh_atm fresh_fact)
 
+section {* Transitive Closure of One *}
+
 inductive2
   "One_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>1\<^sup>* _" [80,80] 80)
 where
@@ -127,33 +143,22 @@ using a b
 by (nominal_induct avoiding: a rule: One.strong_induct)
    (auto simp add: abs_fresh fresh_atm fresh_fact)
 
-lemma subst_rename: 
-  assumes a: "c\<sharp>t1"
-  shows "t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2]"
-using a
-by (nominal_induct t1 avoiding: a c t2 rule: lam.induct)
-   (auto simp add: calc_atm fresh_atm abs_fresh)
+section {* Elimination Rules for One *}
 
 lemma one_var:
   assumes a: "Var x \<longrightarrow>\<^isub>1 t"
   shows "t = Var x"
 using a
-by - (ind_cases2 "Var x \<longrightarrow>\<^isub>1 t", simp)
+by (erule_tac One.cases) (simp_all) 
 
 lemma one_abs: 
-  fixes    t :: "lam"
-  and      t':: "lam"
-  and      a :: "name"
   assumes a: "(Lam [a].t)\<longrightarrow>\<^isub>1t'"
   shows "\<exists>t''. t'=Lam [a].t'' \<and> t\<longrightarrow>\<^isub>1t''"
-  using a
-  apply -
-  apply(ind_cases2 "(Lam [a].t)\<longrightarrow>\<^isub>1t'")
+using a
+  apply(erule_tac One.cases)
   apply(auto simp add: lam.inject alpha)
   apply(rule_tac x="[(a,aa)]\<bullet>s2" in exI)
-  apply(rule conjI)
-  apply(perm_simp)
-  apply(simp add: fresh_left calc_atm)
+  apply(perm_simp add: fresh_left calc_atm)
   apply(simp add: One.eqvt)
   apply(simp add: one_fresh_preserv)
 done  
@@ -163,8 +168,7 @@ lemma one_app:
   shows "(\<exists>s1 s2. t' = App s1 s2 \<and> t1 \<longrightarrow>\<^isub>1 s1 \<and> t2 \<longrightarrow>\<^isub>1 s2) \<or> 
          (\<exists>a s s1 s2. t1 = Lam [a].s \<and> a\<sharp>(t2,s2) \<and> t' = s1[a::=s2] \<and> s \<longrightarrow>\<^isub>1 s1 \<and> t2 \<longrightarrow>\<^isub>1 s2)" 
   using a
-  apply -
-  apply(ind_cases2 "App t1 t2 \<longrightarrow>\<^isub>1 t'")
+  apply(erule_tac One.cases)
   apply(auto simp add: lam.distinct lam.inject)
   done
 
@@ -173,8 +177,7 @@ lemma one_red:
   shows "(\<exists>s1 s2. M = App (Lam [a].s1) s2 \<and> t1 \<longrightarrow>\<^isub>1 s1 \<and> t2 \<longrightarrow>\<^isub>1 s2) \<or> 
          (\<exists>s1 s2. M = s1[a::=s2] \<and> t1 \<longrightarrow>\<^isub>1 s1 \<and> t2 \<longrightarrow>\<^isub>1 s2)" 
   using a
-  apply -
-  apply(ind_cases2 "App (Lam [a].t1) t2 \<longrightarrow>\<^isub>1 M")
+  apply(erule_tac One.cases)
   apply(simp_all add: lam.inject)
   apply(force)
   apply(erule conjE)
@@ -201,7 +204,7 @@ lemma one_red:
   apply(simp add: One.eqvt)
   done
 
-text {* complete development reduction *}
+text {* Complete Development Reduction *}
 
 inductive2
   cd1 :: "lam \<Rightarrow> lam \<Rightarrow> bool" (" _ >c _" [80,80]80)
@@ -227,12 +230,9 @@ proof -
   obtain c::"name" where fs: "c\<sharp>(a,t1,s1,t2,s2)" by (rule exists_fresh, rule fin_supp,blast)
   have eq1: "Lam [a].t1 = Lam [c].([(c,a)]\<bullet>t1)" using fs
     by (rule_tac sym, auto simp add: lam.inject alpha fresh_prod fresh_atm)
-  have "App (Lam [a].t1) s1 = App (Lam [c].([(c,a)]\<bullet>t1)) s1"
-    using eq1 by simp
-  also have "\<dots> >c  ([(c,a)]\<bullet>t2)[c::=s2]" using fs a b
-    by (rule_tac cd1r, simp_all add: cd1.eqvt)
-  also have "\<dots> = t2[a::=s2]" using fs 
-    by (rule_tac subst_rename[symmetric], simp)
+  have "App (Lam [a].t1) s1 = App (Lam [c].([(c,a)]\<bullet>t1)) s1" using eq1 by simp
+  also have "\<dots> >c  ([(c,a)]\<bullet>t2)[c::=s2]" using fs a b by (simp_all add: cd1.eqvt)
+  also have "\<dots> = t2[a::=s2]" using fs  by (rule_tac subst_rename[symmetric], simp)
   finally show "App (Lam [a].t1) s1 >c (t2[a::=s2])" by simp
 qed
 
@@ -242,19 +242,15 @@ lemma cd1_fresh_preserve:
   and     b: "s1 >c s2"
   shows "a\<sharp>s2"
 using b a
-by (induct) (auto simp add: abs_fresh fresh_fact fresh_fact')
-
+ by (induct) (auto simp add: abs_fresh fresh_fact fresh_fact')
   
 lemma cd1_lam:
-  fixes c::"'a::fs_name"
   assumes a: "Lam [a].t >c t'"
   shows "\<exists>s. t'=Lam [a].s \<and> t >c s"
 using a
 apply -
 apply(erule cd1.cases)
-apply(simp_all)
-apply(simp add: lam.inject)
-apply(simp add: alpha)
+apply(simp_all add: lam.inject alpha)
 apply(auto)
 apply(rule_tac x="[(a,aa)]\<bullet>s2" in exI)
 apply(perm_simp add: fresh_left cd1.eqvt cd1_fresh_preserve)
@@ -289,32 +285,19 @@ lemma one_lam_cong:
   assumes a: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" 
   shows "(Lam [a].t1)\<longrightarrow>\<^isub>\<beta>\<^sup>*(Lam [a].t2)"
   using a
-proof induct
-  case bs1 thus ?case by simp
-next
-  case (bs2 y z) 
-  thus ?case by (blast dest: b3)
-qed
+by (induct) (blast)+
 
 lemma one_app_congL: 
   assumes a: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" 
   shows "App t1 s\<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s"
   using a
-proof induct
-  case bs1 thus ?case by simp
-next
-  case bs2 thus ?case by (blast dest: b1)
-qed
+by (induct) (blast)+
   
 lemma one_app_congR: 
   assumes a: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" 
   shows "App s t1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App s t2"
 using a
-proof induct
-  case bs1 thus ?case by simp
-next 
-  case bs2 thus ?case by (blast dest: b2)
-qed
+by (induct) (blast)+
 
 lemma one_app_cong: 
   assumes a1: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" 
@@ -324,7 +307,7 @@ proof -
   have "App t1 s1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s1" using a1 by (rule one_app_congL)
   moreover
   have "App t2 s1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s2" using a2 by (rule one_app_congR)
-  ultimately show ?thesis by (rule beta_star_trans)
+  ultimately show "App t1 s1\<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s2" by (rule beta_star_trans)
 qed
 
 lemma one_beta_star: 

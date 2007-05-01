@@ -1,6 +1,6 @@
 (* $Id$ *)
 
-(* A challenge suggested by Adam Chlipala *)
+(* The definitions for a challenge suggested by Adam Chlipala *)
 
 theory Compile
 imports "../Nominal"
@@ -8,51 +8,58 @@ begin
 
 atom_decl name 
 
-nominal_datatype data = DNat
-                      | DProd "data" "data"
-                      | DSum "data" "data"
+nominal_datatype data = 
+    DNat
+  | DProd "data" "data"
+  | DSum "data" "data"
 
-nominal_datatype ty = Data "data"
-                    | Arrow "ty" "ty" ("_\<rightarrow>_" [100,100] 100)
+nominal_datatype ty = 
+    Data "data"
+  | Arrow "ty" "ty" ("_\<rightarrow>_" [100,100] 100)
 
-nominal_datatype trm = Var "name"
-                     | Lam "\<guillemotleft>name\<guillemotright>trm" ("Lam [_]._" [100,100] 100)
-                     | App "trm" "trm"
-                     | Const "nat"
-                     | Pr "trm" "trm"
-                     | Fst "trm"
-                     | Snd "trm"
-                     | InL "trm"
-                     | InR "trm"
-                     | Case "trm" "\<guillemotleft>name\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm" 
-                             ("Case _ of inl _ \<rightarrow> _ | inr _ \<rightarrow> _" [100,100,100,100,100] 100)
+nominal_datatype trm = 
+  Var "name"
+  | Lam "\<guillemotleft>name\<guillemotright>trm" ("Lam [_]._" [100,100] 100)
+  | App "trm" "trm"
+  | Const "nat"
+  | Pr "trm" "trm"
+  | Fst "trm"
+  | Snd "trm"
+  | InL "trm"
+  | InR "trm"
+  | Case "trm" "\<guillemotleft>name\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm" 
+          ("Case _ of inl _ \<rightarrow> _ | inr _ \<rightarrow> _" [100,100,100,100,100] 100)
 
 nominal_datatype dataI = OneI | NatI
 
-nominal_datatype tyI = DataI "dataI"
-                     | ArrowI "tyI" "tyI" ("_\<rightarrow>_" [100,100] 100)
+nominal_datatype tyI = 
+    DataI "dataI"
+  | ArrowI "tyI" "tyI" ("_\<rightarrow>_" [100,100] 100)
 
-nominal_datatype trmI = IVar "name"
-                      | ILam "\<guillemotleft>name\<guillemotright>trmI" ("ILam [_]._" [100,100] 100)
-                      | IApp "trmI" "trmI"
-                      | IUnit
-                      | INat "nat"
-                      | ISucc "trmI"
-                      | IAss "trmI" "trmI" ("_\<mapsto>_" [100,100] 100)
-                      | IRef "trmI" 
-                      | ISeq "trmI" "trmI" ("_;;_" [100,100] 100)
-                      | Iif "trmI" "trmI" "trmI"
+nominal_datatype trmI = 
+    IVar "name"
+  | ILam "\<guillemotleft>name\<guillemotright>trmI" ("ILam [_]._" [100,100] 100)
+  | IApp "trmI" "trmI"
+  | IUnit
+  | INat "nat"
+  | ISucc "trmI"
+  | IAss "trmI" "trmI" ("_\<mapsto>_" [100,100] 100)
+  | IRef "trmI" 
+  | ISeq "trmI" "trmI" ("_;;_" [100,100] 100)
+  | Iif "trmI" "trmI" "trmI"
 
 text {* valid contexts *}
 
-inductive2 valid :: "(name\<times>'a::pt_name) list \<Rightarrow> bool"
+inductive2 
+  valid :: "(name\<times>'a::pt_name) list \<Rightarrow> bool"
 where
   v1[intro]: "valid []"
 | v2[intro]: "\<lbrakk>valid \<Gamma>;a\<sharp>\<Gamma>\<rbrakk>\<Longrightarrow> valid ((a,\<sigma>)#\<Gamma>)" (* maybe dom of \<Gamma> *)
 
 text {* typing judgements for trms *}
 
-inductive2 typing :: "(name\<times>ty) list\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [80,80,80] 80)
+inductive2 
+  typing :: "(name\<times>ty) list\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [80,80,80] 80)
 where
   t0[intro]: "\<lbrakk>valid \<Gamma>; (x,\<tau>)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> Var x : \<tau>"
 | t1[intro]: "\<lbrakk>\<Gamma> \<turnstile> e1 : \<tau>1\<rightarrow>\<tau>2; \<Gamma> \<turnstile> e2 : \<tau>1\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> App e1 e2 : \<tau>2"
@@ -69,7 +76,8 @@ where
 
 text {* typing judgements for Itrms *}
 
-inductive2 Ityping :: "(name\<times>tyI) list\<Rightarrow>trmI\<Rightarrow>tyI\<Rightarrow>bool" (" _ I\<turnstile> _ : _ " [80,80,80] 80)
+inductive2 
+  Ityping :: "(name\<times>tyI) list\<Rightarrow>trmI\<Rightarrow>tyI\<Rightarrow>bool" (" _ I\<turnstile> _ : _ " [80,80,80] 80)
 where
   t0[intro]: "\<lbrakk>valid \<Gamma>; (x,\<tau>)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> I\<turnstile> IVar x : \<tau>"
 | t1[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e1 : \<tau>1\<rightarrow>\<tau>2; \<Gamma> I\<turnstile> e2 : \<tau>1\<rbrakk>\<Longrightarrow> \<Gamma> I\<turnstile> IApp e1 e2 : \<tau>2"
@@ -159,7 +167,8 @@ done
 
 text {* big-step evaluation for trms *}
 
-inductive2 big :: "trm\<Rightarrow>trm\<Rightarrow>bool" ("_ \<Down> _" [80,80] 80)
+inductive2 
+  big :: "trm\<Rightarrow>trm\<Rightarrow>bool" ("_ \<Down> _" [80,80] 80)
 where
   b0[intro]: "Lam [x].e \<Down> Lam [x].e"
 | b1[intro]: "\<lbrakk>e1\<Down>Lam [x].e; e2\<Down>e2'; e[x::=e2']\<Down>e'\<rbrakk> \<Longrightarrow> App e1 e2 \<Down> e'"
@@ -172,7 +181,8 @@ where
 | b8[intro]: "\<lbrakk>e\<Down>InL e'; e1[x::=e']\<Down>e''\<rbrakk> \<Longrightarrow> Case e of inl x1 \<rightarrow> e1 | inr x2 \<rightarrow> e2 \<Down> e''"
 | b9[intro]: "\<lbrakk>e\<Down>InR e'; e2[x::=e']\<Down>e''\<rbrakk> \<Longrightarrow> Case e of inl x1 \<rightarrow> e1 | inr x2 \<rightarrow> e2 \<Down> e''"
 
-inductive2 Ibig :: "((nat\<Rightarrow>nat)\<times>trmI)\<Rightarrow>((nat\<Rightarrow>nat)\<times>trmI)\<Rightarrow>bool" ("_ I\<Down> _" [80,80] 80)
+inductive2 
+  Ibig :: "((nat\<Rightarrow>nat)\<times>trmI)\<Rightarrow>((nat\<Rightarrow>nat)\<times>trmI)\<Rightarrow>bool" ("_ I\<Down> _" [80,80] 80)
 where
   m0[intro]: "(m,ILam [x].e) I\<Down> (m,ILam [x].e)"
 | m1[intro]: "\<lbrakk>(m,e1)I\<Down>(m',ILam [x].e); (m',e2)I\<Down>(m'',e3); (m'',e[x::=e3])I\<Down>(m''',e4)\<rbrakk> 

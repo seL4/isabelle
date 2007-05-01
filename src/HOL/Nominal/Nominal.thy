@@ -31,7 +31,7 @@ constdefs
 
 (* permutation on sets *)
 defs (unchecked overloaded)
-  perm_set_def:  "pi\<bullet>(X::'a set) \<equiv> {pi\<bullet>a | a. a\<in>X}"
+  perm_set_def:  "pi\<bullet>(X::'a set) \<equiv> {pi\<bullet>x | x. x\<in>X}"
 
 lemma empty_eqvt:
   shows "pi\<bullet>{} = {}"
@@ -50,7 +50,7 @@ primrec (unchecked perm_unit)
   "pi\<bullet>()    = ()"
   
 primrec (unchecked perm_prod)
-  "pi\<bullet>(a,b) = (pi\<bullet>a,pi\<bullet>b)"
+  "pi\<bullet>(x,y) = (pi\<bullet>x,pi\<bullet>y)"
 
 lemma fst_eqvt:
   "pi\<bullet>(fst x) = fst (pi\<bullet>x)"
@@ -1171,7 +1171,7 @@ lemma pt_eq_eqvt:
   and   y  :: "'a"
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
-  shows "pi \<bullet> (x=y) = (pi\<bullet>x = pi\<bullet>y)"
+  shows "pi\<bullet>(x=y) = (pi\<bullet>x = pi\<bullet>y)"
 using assms
 by (auto simp add: pt_bij perm_bool)
 
@@ -1309,9 +1309,18 @@ lemma pt_set_diff_eqvt:
   and   pi::"'x prm"
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
-  shows "pi \<bullet> (X - Y) = (pi \<bullet> X) - (pi \<bullet> Y)"
+  shows "pi\<bullet>(X - Y) = (pi\<bullet>X) - (pi\<bullet>Y)"
   by (auto simp add: perm_set_def pt_bij[OF pt, OF at])
 
+lemma pt_Collect_eqvt:
+  fixes pi::"'x prm"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "pi\<bullet>{x::'a. P x} = {x. P ((rev pi)\<bullet>x)}"
+apply(auto simp add: perm_set_def  pt_rev_pi[OF pt, OF at])
+apply(rule_tac x="(rev pi)\<bullet>x" in exI)
+apply(simp add: pt_pi_rev[OF pt, OF at])
+done
 
 -- "some helper lemmas for the pt_perm_supp_ineq lemma"
 lemma Collect_permI: 
@@ -1596,15 +1605,15 @@ lemma pt_fresh_perm_app:
   and   x  :: "'y"
   assumes pt: "pt TYPE('y) TYPE('x)"
   and     at: "at TYPE('x)"
-  and     h1: "a \<sharp> pi"
-  and     h2: "a \<sharp> x"
-  shows "a \<sharp> (pi \<bullet> x)"
+  and     h1: "a\<sharp>pi"
+  and     h2: "a\<sharp>x"
+  shows "a\<sharp>(pi\<bullet>x)"
 using assms
 proof -
-  have "a \<sharp> rev pi"using h1 by (simp add: fresh_list_rev)
-  then have "(rev pi) \<bullet> a = a" by (simp add: at_prm_fresh[OF at])
-  then have "((rev pi) \<bullet> a) \<sharp> x" using h2 by simp
-  thus "a \<sharp> (pi \<bullet> x)"  by (simp add: pt_fresh_right[OF pt, OF at])
+  have "a\<sharp>(rev pi)"using h1 by (simp add: fresh_list_rev)
+  then have "(rev pi)\<bullet>a = a" by (simp add: at_prm_fresh[OF at])
+  then have "((rev pi)\<bullet>a)\<sharp>x" using h2 by simp
+  thus "a\<sharp>(pi\<bullet>x)"  by (simp add: pt_fresh_right[OF pt, OF at])
 qed
 
 lemma pt_fresh_perm_app_ineq:
@@ -2127,11 +2136,11 @@ proof -
     case goal1
     show "pi\<bullet>(\<Union>x\<in>X. f x) \<subseteq> (\<Union>x\<in>(pi\<bullet>X). (pi\<bullet>f) x)"
       apply(auto simp add: perm_set_def)
-      apply(rule_tac x="pi\<bullet>xa" in exI)
+      apply(rule_tac x="pi\<bullet>xb" in exI)
       apply(rule conjI)
-      apply(rule_tac x="xa" in exI)
+      apply(rule_tac x="xb" in exI)
       apply(simp)
-      apply(subgoal_tac "(pi\<bullet>f) (pi\<bullet>xa) = pi\<bullet>(f xa)")(*A*)
+      apply(subgoal_tac "(pi\<bullet>f) (pi\<bullet>xb) = pi\<bullet>(f xb)")(*A*)
       apply(simp)
       apply(rule pt_set_bij2[OF pt_x, OF at])
       apply(assumption)
@@ -2146,7 +2155,7 @@ proof -
       apply(rule_tac x="(rev pi)\<bullet>x" in exI)
       apply(rule conjI)
       apply(simp add: pt_pi_rev[OF pt_x, OF at])
-      apply(rule_tac x="a" in bexI)
+      apply(rule_tac x="xb" in bexI)
       apply(simp add: pt_set_bij1[OF pt_x, OF at])
       apply(simp add: pt_fun_app_eq[OF pt, OF at])
       apply(assumption)
@@ -2177,7 +2186,7 @@ lemma Union_supports_set:
   apply(erule conjE)
   apply(simp add: perm_set_def)
   apply(auto)
-  apply(subgoal_tac "[(a,b)]\<bullet>aa = aa")(*A*)
+  apply(subgoal_tac "[(a,b)]\<bullet>xa = xa")(*A*)
   apply(simp)
   apply(rule pt_fresh_fresh[OF pt, OF at])
   apply(force)
@@ -2351,7 +2360,7 @@ using c1
 apply(simp add: cp_def)
 apply(auto)
 apply(auto simp add: perm_set_def)
-apply(rule_tac x="pi2\<bullet>aa" in exI)
+apply(rule_tac x="pi2\<bullet>xc" in exI)
 apply(auto)
 done
 

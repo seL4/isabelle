@@ -14,15 +14,17 @@ begin
 
 atom_decl name 
 
-nominal_datatype ty = TBase 
-                    | TUnit 
-                    | Arrow "ty" "ty" ("_\<rightarrow>_" [100,100] 100)
+nominal_datatype ty = 
+    TBase 
+  | TUnit 
+  | Arrow "ty" "ty" ("_\<rightarrow>_" [100,100] 100)
 
-nominal_datatype trm = Unit
-                     | Var "name"
-                     | Lam "\<guillemotleft>name\<guillemotright>trm" ("Lam [_]._" [100,100] 100)
-                     | App "trm" "trm"
-                     | Const "nat"
+nominal_datatype trm = 
+    Unit
+  | Var "name"
+  | Lam "\<guillemotleft>name\<guillemotright>trm" ("Lam [_]._" [100,100] 100)
+  | App "trm" "trm"
+  | Const "nat"
 
 types Ctxt  = "(name\<times>ty) list"
 types Subst = "(name\<times>trm) list" 
