@@ -42,7 +42,7 @@ consts
   "distinct":: "'a list => bool"
   replicate :: "nat => 'a => 'a list"
   splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
-  allpairs :: "'a list \<Rightarrow> 'b list \<Rightarrow> ('a * 'b)list"
+  allpairs :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
 
 abbreviation
   upto:: "nat => nat => nat list"  ("(1[_../_])") where
@@ -211,8 +211,8 @@ primrec
     -- {*Warning: simpset does not contain the second eqn but a derived one. *}
 
 primrec
-"allpairs [] ys = []"
-"allpairs (x # xs) ys = map (Pair x) ys @ allpairs xs ys"
+"allpairs f [] ys = []"
+"allpairs f (x # xs) ys = map (f x) ys @ allpairs f xs ys"
 
 subsubsection {* @{const Nil} and @{const Cons} *}
 
@@ -250,7 +250,7 @@ lemma length_tl [simp]: "length (tl xs) = length xs - 1"
 by (cases xs) auto
 
 lemma length_allpairs[simp]:
- "length(allpairs xs ys) = length xs * length ys"
+ "length(allpairs f xs ys) = length xs * length ys"
 by(induct xs) auto
 
 lemma length_0_conv [iff]: "(length xs = 0) = (xs = [])"
@@ -685,7 +685,7 @@ lemma set_map [simp]: "set (map f xs) = f`(set xs)"
 by (induct xs) auto
 
 lemma set_allpairs[simp]:
- "set(allpairs xs ys) = {(x,y). x : set xs & y : set ys}"
+ "set(allpairs f xs ys) = {z. EX x : set xs. EX y : set ys. z = f x y}"
 by(induct xs) auto
 
 lemma set_filter [simp]: "set (filter P xs) = {x. x : set xs \<and> P x}"
@@ -2222,7 +2222,7 @@ done
 subsubsection {* @{const allpairs} *}
 
 lemma allpairs_append:
- "allpairs (xs @ ys) zs = allpairs xs zs @ allpairs ys zs"
+ "allpairs f (xs @ ys) zs = allpairs f xs zs @ allpairs f ys zs"
 by(induct xs) auto
 
 
