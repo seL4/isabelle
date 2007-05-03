@@ -67,9 +67,6 @@ done
 
 lemma subst_eqvt[eqvt]:
   fixes pi:: "name prm"
-  and   t1:: "lam"
-  and   t2:: "lam"
-  and   a :: "name"
   shows "pi\<bullet>(t1[b::=t2]) = (pi\<bullet>t1)[(pi\<bullet>b)::=(pi\<bullet>t2)]"
 apply(nominal_induct t1 avoiding: b t2 rule: lam.induct)
 apply(auto simp add: perm_bij fresh_prod fresh_atm fresh_bij)
@@ -95,8 +92,6 @@ where
 
 lemma lookup_eqvt[eqvt]:
   fixes pi::"name prm"
-  and   \<theta>::"(name\<times>lam) list"
-  and   x::"name"
   shows "pi\<bullet>(lookup \<theta> x) = lookup (pi\<bullet>\<theta>) (pi\<bullet>x)"
 by (induct \<theta>) (auto simp add: perm_bij)
 
