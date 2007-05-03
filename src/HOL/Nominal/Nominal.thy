@@ -323,43 +323,43 @@ lemma fresh_list_rev:
 lemma fresh_none:
   fixes a :: "'x"
   shows "a\<sharp>None"
-  apply(simp add: fresh_def supp_none)
-  done
+  by (simp add: fresh_def supp_none)
 
 lemma fresh_some:
   fixes a :: "'x"
   and   x :: "'a"
   shows "a\<sharp>(Some x) = a\<sharp>x"
-  apply(simp add: fresh_def supp_some)
-  done
+  by (simp add: fresh_def supp_some)
 
 lemma fresh_int:
   fixes a :: "'x"
   and   i :: "int"
   shows "a\<sharp>i"
-  apply(simp add: fresh_def supp_int)
-  done
+  by (simp add: fresh_def supp_int)
 
 lemma fresh_nat:
   fixes a :: "'x"
   and   n :: "nat"
   shows "a\<sharp>n"
-  apply(simp add: fresh_def supp_nat)
-  done
+  by (simp add: fresh_def supp_nat)
 
 lemma fresh_char:
   fixes a :: "'x"
   and   c :: "char"
   shows "a\<sharp>c"
-  apply(simp add: fresh_def supp_char)
-  done
+  by (simp add: fresh_def supp_char)
 
 lemma fresh_string:
   fixes a :: "'x"
   and   s :: "string"
   shows "a\<sharp>s"
-  apply(simp add: fresh_def supp_string)
-  done
+  by (simp add: fresh_def supp_string)
+
+lemma fresh_bool:
+  fixes a :: "'x"
+  and   b :: "bool"
+  shows "a\<sharp>b"
+  by (simp add: fresh_def supp_bool)
 
 text {* Normalization of freshness results; cf.\ @{text nominal_induct} *}
 
