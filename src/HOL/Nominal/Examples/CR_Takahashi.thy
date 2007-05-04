@@ -1,437 +1,373 @@
 (* $Id$ *)
 
 theory CR_Takahashi
-imports Lam_Funs
+imports "../Nominal"
 begin
 
 text {* Authors: Mathilde Arnaud and Christian Urban
 
         The Church-Rosser proof from a paper by Masako Takahashi.
         This formalisation follows with some very slight exceptions 
-        the one  given by Randy Pollack in his paper:
+        the one given by Randy Pollack in the paper:
 
-             Polishing Up the Tait-Martin Löf Proof of the 
-             Church-Rosser Theorem (1995).
+           Polishing Up the Tait-Martin Löf Proof of the 
+           Church-Rosser Theorem (1995).
 
   *}
 
+atom_decl name
+
+nominal_datatype lam = 
+    Var "name"
+  | App "lam" "lam"
+  | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
+
+consts subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
+
+nominal_primrec
+  "(Var x)[y::=t'] = (if x=y then t' else (Var x))"
+  "(App t1 t2)[y::=t'] = App (t1[y::=t']) (t2[y::=t'])"
+  "x\<sharp>(y,t') \<Longrightarrow> (Lam [x].t)[y::=t'] = Lam [x].(t[y::=t'])"
+apply(finite_guess)+
+apply(rule TrueI)+
+apply(simp add: abs_fresh)
+apply(fresh_guess)+
+done
+
 section {* Lemmas about Capture-Avoiding Substitution *}
  
+lemma subst_eqvt[eqvt]:
+  fixes pi:: "name prm"
+  shows "pi\<bullet>(t1[b::=t2]) = (pi\<bullet>t1)[(pi\<bullet>b)::=(pi\<bullet>t2)]"
+by (nominal_induct t1 avoiding: b t2 rule: lam.induct)
+   (auto simp add: perm_bij fresh_atm fresh_bij)
+
 lemma forget:
-  assumes asm: "x\<sharp>L"
+  assumes a: "x\<sharp>L"
   shows "L[x::=P] = L"
-  using asm 
-by (nominal_induct L avoiding: x P rule: lam.induct)
-   (auto simp add: abs_fresh fresh_atm)
+using a by (nominal_induct L avoiding: x P rule: lam.induct)
+           (auto simp add: abs_fresh fresh_atm)
 
 lemma fresh_fact:
   fixes z::"name"
-  assumes asms: "z\<sharp>N" "z\<sharp>L"
+  assumes a: "z\<sharp>N" "z\<sharp>L"
   shows "z\<sharp>(N[y::=L])"
-  using asms 
-by (nominal_induct N avoiding: z y L rule: lam.induct)
-   (auto simp add: abs_fresh fresh_atm)
+using a by (nominal_induct N avoiding: z y L rule: lam.induct)
+           (auto simp add: abs_fresh fresh_atm)
 
 lemma fresh_fact': 
-  fixes a::"name"
-  assumes a: "a\<sharp>t2"
-  shows "a\<sharp>t1[a::=t2]"
-using a 
-by (nominal_induct t1 avoiding: a t2 rule: lam.induct)
-   (auto simp add: abs_fresh fresh_atm)
+  fixes x::"name"
+  assumes a: "x\<sharp>N"
+  shows "x\<sharp>M[x::=N]"
+using a by (nominal_induct M avoiding: x N rule: lam.induct)
+           (auto simp add: abs_fresh fresh_atm)
 
 lemma substitution_lemma:  
-  assumes asm: "x\<noteq>y" "x\<sharp>L"
+  assumes a: "x\<noteq>y" "x\<sharp>L"
   shows "M[x::=N][y::=L] = M[y::=L][x::=N[y::=L]]"
-  using asm 
-by (nominal_induct M avoiding: x y N L rule: lam.induct)
-   (auto simp add: fresh_fact forget)
+using a by (nominal_induct M avoiding: x y N L rule: lam.induct)
+           (auto simp add: fresh_fact forget)
 
 lemma subst_rename: 
-  assumes a: "c\<sharp>t1"
-  shows "t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2]"
-using a
-by (nominal_induct t1 avoiding: a c t2 rule: lam.induct)
-   (auto simp add: calc_atm fresh_atm abs_fresh)
+  assumes a: "y\<sharp>M"
+  shows "M[x::=N] = ([(y,x)]\<bullet>M)[y::=N]"
+using a by (nominal_induct M avoiding: x y N rule: lam.induct)
+           (auto simp add: calc_atm fresh_atm abs_fresh)
 
-
-section {* Beta Reduction *}
+section {* Beta-Reduction *}
 
 inductive2
   "Beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta> _" [80,80] 80)
 where
-    b1[intro]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (App s1 t)\<longrightarrow>\<^isub>\<beta>(App s2 t)"
-  | b2[intro]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (App t s1)\<longrightarrow>\<^isub>\<beta>(App t s2)"
-  | b3[intro]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (Lam [a].s1)\<longrightarrow>\<^isub>\<beta> (Lam [a].s2)"
-  | b4[intro]: "a\<sharp>s2 \<Longrightarrow> (App (Lam [a].s1) s2)\<longrightarrow>\<^isub>\<beta>(s1[a::=s2])"
-
-equivariance Beta
-
-nominal_inductive Beta
-  by (simp_all add: abs_fresh fresh_fact')
+  b1[intro]: "M1\<longrightarrow>\<^isub>\<beta>M2 \<Longrightarrow> (App M1 N)\<longrightarrow>\<^isub>\<beta>(App M2 N)"
+| b2[intro]: "N1\<longrightarrow>\<^isub>\<beta>N2 \<Longrightarrow> (App M N1)\<longrightarrow>\<^isub>\<beta>(App M N2)"
+| b3[intro]: "M1\<longrightarrow>\<^isub>\<beta>M2 \<Longrightarrow> (Lam [x].M1)\<longrightarrow>\<^isub>\<beta> (Lam [x].M2)"
+| b4[intro]: "(App (Lam [x].M) N)\<longrightarrow>\<^isub>\<beta>(M[x::=N])"
 
 section {* Transitive Closure of Beta *}
 
 inductive2
   "Beta_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta>\<^sup>* _" [80,80] 80)
 where
-    bs1[intro,simp]: "M \<longrightarrow>\<^isub>\<beta>\<^sup>* M"
-  | bs2[intro]: "\<lbrakk>M1\<longrightarrow>\<^isub>\<beta>\<^sup>* M2; M2 \<longrightarrow>\<^isub>\<beta> M3\<rbrakk> \<Longrightarrow> M1 \<longrightarrow>\<^isub>\<beta>\<^sup>* M3"
+  bs1[intro]: "M \<longrightarrow>\<^isub>\<beta>\<^sup>* M"
+| bs2[intro]: "\<lbrakk>M1\<longrightarrow>\<^isub>\<beta>\<^sup>* M2; M2 \<longrightarrow>\<^isub>\<beta> M3\<rbrakk> \<Longrightarrow> M1 \<longrightarrow>\<^isub>\<beta>\<^sup>* M3"
 
-equivariance Beta_star
-
-lemma beta_star_trans:
+lemma Beta_star_trans[trans]:
   assumes a1: "M1\<longrightarrow>\<^isub>\<beta>\<^sup>* M2"
   and     a2: "M2\<longrightarrow>\<^isub>\<beta>\<^sup>* M3"
   shows "M1 \<longrightarrow>\<^isub>\<beta>\<^sup>* M3"
-using a2 a1
-by (induct) (auto)
+using a2 a1 by (induct) (auto)
 
 section {* One-Reduction *}
 
 inductive2
   One :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>1 _" [80,80] 80)
 where
-    o1[intro!]:      "M\<longrightarrow>\<^isub>1M"
-  | o2[simp,intro!]: "\<lbrakk>t1\<longrightarrow>\<^isub>1t2;s1\<longrightarrow>\<^isub>1s2\<rbrakk> \<Longrightarrow> (App t1 s1)\<longrightarrow>\<^isub>1(App t2 s2)"
-  | o3[simp,intro!]: "s1\<longrightarrow>\<^isub>1s2 \<Longrightarrow> (Lam [a].s1)\<longrightarrow>\<^isub>1(Lam [a].s2)"
-  | o4[simp,intro!]: "\<lbrakk>a\<sharp>(s1,s2); s1\<longrightarrow>\<^isub>1s2;t1\<longrightarrow>\<^isub>1t2\<rbrakk> \<Longrightarrow> (App (Lam [a].t1) s1)\<longrightarrow>\<^isub>1(t2[a::=s2])"
+  o1[intro]: "M\<longrightarrow>\<^isub>1M"
+| o2[intro]: "\<lbrakk>M1\<longrightarrow>\<^isub>1M2; N1\<longrightarrow>\<^isub>1N2\<rbrakk> \<Longrightarrow> (App M1 N1)\<longrightarrow>\<^isub>1(App M2 N2)"
+| o3[intro]: "M1\<longrightarrow>\<^isub>1M2 \<Longrightarrow> (Lam [x].M1)\<longrightarrow>\<^isub>1(Lam [x].M2)"
+| o4[intro]: "\<lbrakk>x\<sharp>(N1,N2); M1\<longrightarrow>\<^isub>1M2; N1\<longrightarrow>\<^isub>1N2\<rbrakk> \<Longrightarrow> (App (Lam [x].M1) N1)\<longrightarrow>\<^isub>1(M2[x::=N2])"
 
 equivariance One
 
-nominal_inductive One
-  by (simp_all add: abs_fresh fresh_fact')
+nominal_inductive One by (simp_all add: abs_fresh fresh_fact')
 
-lemma one_subst_aux:
+lemma One_subst_aux:
   assumes a: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N] \<longrightarrow>\<^isub>1 M[x::=N']"
-using a
-by (nominal_induct M avoiding: x N N' rule: lam.induct)
-   (auto simp add: fresh_prod fresh_atm)
+using a by (nominal_induct M avoiding: x N N' rule: lam.induct)
+           (auto simp add: fresh_atm)
 
-lemma one_subst: 
-  assumes a: "M\<longrightarrow>\<^isub>1M'" 
-  and     b: "N\<longrightarrow>\<^isub>1N'"
+lemma One_subst: 
+  assumes a: "M\<longrightarrow>\<^isub>1M'" "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N]\<longrightarrow>\<^isub>1M'[x::=N']" 
-using a b
-by (nominal_induct M M' avoiding: N N' x rule: One.strong_induct)
-   (auto simp add: one_subst_aux substitution_lemma fresh_atm fresh_fact)
+using a by (nominal_induct M M' avoiding: N N' x rule: One.strong_induct)
+           (auto simp add: One_subst_aux substitution_lemma fresh_atm fresh_fact)
+
+lemma better_o4_intro:
+  assumes a: "M1 \<longrightarrow>\<^isub>1 M2" "N1 \<longrightarrow>\<^isub>1 N2"
+  shows "App (Lam [x].M1) N1 \<longrightarrow>\<^isub>1 M2[x::=N2]"
+proof -
+  obtain y::"name" where fs: "y\<sharp>(x,M1,N1,M2,N2)" by (rule exists_fresh, rule fin_supp,blast)
+  have "App (Lam [x].M1) N1 = App (Lam [y].([(y,x)]\<bullet>M1)) N1" using fs
+    by (rule_tac sym, auto simp add: lam.inject alpha fresh_prod fresh_atm)
+  also have "\<dots> \<longrightarrow>\<^isub>1  ([(y,x)]\<bullet>M2)[y::=N2]" using fs a by (auto simp add: One.eqvt)
+  also have "\<dots> = M2[x::=N2]" using fs by (simp add: subst_rename[symmetric])
+  finally show "App (Lam [x].M1) N1 \<longrightarrow>\<^isub>1 M2[x::=N2]" by simp
+qed
+
+lemma One_fresh_preserved:
+  fixes a :: "name"
+  assumes a: "M\<longrightarrow>\<^isub>1N" 
+  shows "a\<sharp>M \<Longrightarrow> a\<sharp>N"
+using a by (nominal_induct avoiding: a rule: One.strong_induct)
+           (auto simp add: abs_fresh fresh_atm fresh_fact)
+
+lemma One_Var:
+  assumes a: "Var x \<longrightarrow>\<^isub>1 M"
+  shows "M = Var x"
+using a by (erule_tac One.cases) (simp_all) 
+
+lemma One_Lam: 
+  assumes a: "(Lam [x].N)\<longrightarrow>\<^isub>1 M"
+  shows "\<exists>M'. M = Lam [x].M' \<and> N \<longrightarrow>\<^isub>1 M'"
+using a
+  apply(erule_tac One.cases)
+  apply(auto simp add: lam.inject alpha)
+  apply(rule_tac x="[(x,xa)]\<bullet>M2" in exI)
+  apply(perm_simp add: fresh_left calc_atm)
+  apply(auto simp add: One.eqvt One_fresh_preserved)
+done  
+
+lemma One_App: 
+  assumes a: "App M N \<longrightarrow>\<^isub>1 R"
+  shows "(\<exists>M' N'. R = App M' N' \<and> M \<longrightarrow>\<^isub>1 M' \<and> N \<longrightarrow>\<^isub>1 N') \<or> 
+         (\<exists>x P P' N'. M = Lam [x].P \<and> x\<sharp>(N,N') \<and> R = P'[x::=N'] \<and> P \<longrightarrow>\<^isub>1 P' \<and> N \<longrightarrow>\<^isub>1 N')" 
+using a by (erule_tac One.cases) (auto simp add: lam.inject)
+
+lemma One_Redex: 
+  assumes a: "App (Lam [x].M) N \<longrightarrow>\<^isub>1 R"
+  shows "(\<exists>M' N'. R = App (Lam [x].M') N' \<and> M \<longrightarrow>\<^isub>1 M' \<and> N \<longrightarrow>\<^isub>1 N') \<or> 
+         (\<exists>M' N'. R = M'[x::=N'] \<and> M \<longrightarrow>\<^isub>1 M' \<and> N \<longrightarrow>\<^isub>1 N')" 
+  using a
+  apply(erule_tac One.cases)
+  apply(simp_all)
+  apply(force)
+  apply(rule disjI1)
+  apply(auto simp add: lam.inject)[1]
+  apply(drule One_Lam)
+  apply(simp)
+  apply(rule disjI2)
+  apply(auto simp add: lam.inject alpha)
+  apply(rule_tac x="[(x,xa)]\<bullet>M2" in exI)
+  apply(rule_tac x="N2" in exI)
+  apply(simp add: subst_rename One_fresh_preserved One.eqvt)
+  done
 
 section {* Transitive Closure of One *}
 
 inductive2
   "One_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>1\<^sup>* _" [80,80] 80)
 where
-    os1[intro, simp]: "M \<longrightarrow>\<^isub>1\<^sup>* M"
-  | os2[intro]: "\<lbrakk>M1\<longrightarrow>\<^isub>1\<^sup>* M2; M2 \<longrightarrow>\<^isub>1 M3\<rbrakk> \<Longrightarrow> M1 \<longrightarrow>\<^isub>1\<^sup>* M3"
+  os1[intro]: "M \<longrightarrow>\<^isub>1\<^sup>* M"
+| os2[intro]: "\<lbrakk>M1\<longrightarrow>\<^isub>1\<^sup>* M2; M2 \<longrightarrow>\<^isub>1 M3\<rbrakk> \<Longrightarrow> M1 \<longrightarrow>\<^isub>1\<^sup>* M3"
 
-equivariance One_star 
-
-lemma one_star_trans:
+lemma One_star_trans:
   assumes a1: "M1\<longrightarrow>\<^isub>1\<^sup>* M2" 
   and     a2: "M2\<longrightarrow>\<^isub>1\<^sup>* M3"
   shows "M1\<longrightarrow>\<^isub>1\<^sup>* M3"
-using a2 a1
-by (induct) (auto)
-
-lemma one_fresh_preserv:
-  fixes a :: "name"
-  assumes a: "t\<longrightarrow>\<^isub>1s"
-  and     b: "a\<sharp>t"
-  shows "a\<sharp>s"
-using a b
-by (nominal_induct avoiding: a rule: One.strong_induct)
-   (auto simp add: abs_fresh fresh_atm fresh_fact)
-
-section {* Elimination Rules for One *}
-
-lemma one_var:
-  assumes a: "Var x \<longrightarrow>\<^isub>1 t"
-  shows "t = Var x"
-using a
-by (erule_tac One.cases) (simp_all) 
-
-lemma one_abs: 
-  assumes a: "(Lam [a].t)\<longrightarrow>\<^isub>1t'"
-  shows "\<exists>t''. t'=Lam [a].t'' \<and> t\<longrightarrow>\<^isub>1t''"
-using a
-  apply(erule_tac One.cases)
-  apply(auto simp add: lam.inject alpha)
-  apply(rule_tac x="[(a,aa)]\<bullet>s2" in exI)
-  apply(perm_simp add: fresh_left calc_atm)
-  apply(simp add: One.eqvt)
-  apply(simp add: one_fresh_preserv)
-done  
-
-lemma one_app: 
-  assumes a: "App t1 t2 \<longrightarrow>\<^isub>1 t'"
-  shows "(\<exists>s1 s2. t' = App s1 s2 \<and> t1 \<longrightarrow>\<^isub>1 s1 \<and> t2 \<longrightarrow>\<^isub>1 s2) \<or> 
-         (\<exists>a s s1 s2. t1 = Lam [a].s \<and> a\<sharp>(t2,s2) \<and> t' = s1[a::=s2] \<and> s \<longrightarrow>\<^isub>1 s1 \<and> t2 \<longrightarrow>\<^isub>1 s2)" 
-  using a
-  apply(erule_tac One.cases)
-  apply(auto simp add: lam.distinct lam.inject)
-  done
-
-lemma one_red: 
-  assumes a: "App (Lam [a].t1) t2 \<longrightarrow>\<^isub>1 M"
-  shows "(\<exists>s1 s2. M = App (Lam [a].s1) s2 \<and> t1 \<longrightarrow>\<^isub>1 s1 \<and> t2 \<longrightarrow>\<^isub>1 s2) \<or> 
-         (\<exists>s1 s2. M = s1[a::=s2] \<and> t1 \<longrightarrow>\<^isub>1 s1 \<and> t2 \<longrightarrow>\<^isub>1 s2)" 
-  using a
-  apply(erule_tac One.cases)
-  apply(simp_all add: lam.inject)
-  apply(force)
-  apply(erule conjE)
-  apply(drule sym[of "Lam [a].t1"])
-  apply(simp)
-  apply(drule one_abs)
-  apply(erule exE)
-  apply(simp)
-  apply(force simp add: alpha)
-  apply(erule conjE)
-  apply(simp add: lam.inject alpha)
-  apply(erule disjE)
-  apply(simp)
-  apply(force)
-  apply(simp)
-  apply(rule disjI2)
-  apply(rule_tac x="[(a,aa)]\<bullet>t2a" in exI)
-  apply(rule_tac x="s2" in exI)
-  apply(auto)
-  apply(subgoal_tac "a\<sharp>t2a")(*A*)
-  apply(simp add: subst_rename)
-  (*A*)
-  apply(force intro: one_fresh_preserv)
-  apply(simp add: One.eqvt)
-  done
+using a2 a1 by (induct) (auto)
 
 text {* Complete Development Reduction *}
 
 inductive2
-  cd1 :: "lam \<Rightarrow> lam \<Rightarrow> bool" (" _ >c _" [80,80]80)
+  Dev :: "lam \<Rightarrow> lam \<Rightarrow> bool" (" _ \<longrightarrow>\<^isub>d _" [80,80]80)
 where
-  cd1v[intro!]:      "Var x >c Var x"
-  | cd1l[simp,intro!]: "s1 >c s2 \<Longrightarrow> Lam [a].s1 >c Lam[a].s2"
-  | cd1a[simp,intro!]: "\<lbrakk>\<not>(\<exists> a s. s1 = Lam [a].s); s1 >c s2; t1 >c t2\<rbrakk> \<Longrightarrow> App s1 t1 >c App s2 t2"
-  | cd1r[simp,intro!]: "\<lbrakk>a\<sharp>(s1,s2); s1 >c s2; t1 >c t2\<rbrakk> \<Longrightarrow> App (Lam [a].t1) s1 >c (t2[a::=s2])"
+    d1[intro]: "Var x \<longrightarrow>\<^isub>d Var x"
+  | d2[intro]: "M \<longrightarrow>\<^isub>d N \<Longrightarrow> Lam [x].M \<longrightarrow>\<^isub>d Lam[x].N"
+  | d3[intro]: "\<lbrakk>\<not>(\<exists>y M'. M1 = Lam [y].M'); M1 \<longrightarrow>\<^isub>d M2; N1 \<longrightarrow>\<^isub>d N2\<rbrakk> \<Longrightarrow> App M1 N1 \<longrightarrow>\<^isub>d App M2 N2"
+  | d4[intro]: "\<lbrakk>x\<sharp>(N1,N2); M1 \<longrightarrow>\<^isub>d M2; N1 \<longrightarrow>\<^isub>d N2\<rbrakk> \<Longrightarrow> App (Lam [x].M1) N1 \<longrightarrow>\<^isub>d (M2[x::=N2])"
 
 (* FIXME: needs to be in nominal_inductive *)
 declare perm_pi_simp[eqvt_force]
 
-equivariance cd1
+equivariance Dev
 
-nominal_inductive cd1
-  by (simp_all add: abs_fresh fresh_fact')
+nominal_inductive Dev by (simp_all add: abs_fresh fresh_fact')
 
-lemma better_cd1r_intro[intro]:
-  assumes a: "s1 >c s2"
-  and     b: "t1 >c t2"
-  shows "App (Lam [a].t1) s1 >c (t2[a::=s2])"
+lemma better_d4_intro:
+  assumes a: "M1 \<longrightarrow>\<^isub>d M2" "N1 \<longrightarrow>\<^isub>d N2"
+  shows "App (Lam [x].M1) N1 \<longrightarrow>\<^isub>d M2[x::=N2]"
 proof -
-  obtain c::"name" where fs: "c\<sharp>(a,t1,s1,t2,s2)" by (rule exists_fresh, rule fin_supp,blast)
-  have eq1: "Lam [a].t1 = Lam [c].([(c,a)]\<bullet>t1)" using fs
+  obtain y::"name" where fs: "y\<sharp>(x,M1,N1,M2,N2)" by (rule exists_fresh, rule fin_supp,blast)
+  have "App (Lam [x].M1) N1 = App (Lam [y].([(y,x)]\<bullet>M1)) N1" using fs
     by (rule_tac sym, auto simp add: lam.inject alpha fresh_prod fresh_atm)
-  have "App (Lam [a].t1) s1 = App (Lam [c].([(c,a)]\<bullet>t1)) s1" using eq1 by simp
-  also have "\<dots> >c  ([(c,a)]\<bullet>t2)[c::=s2]" using fs a b by (simp_all add: cd1.eqvt)
-  also have "\<dots> = t2[a::=s2]" using fs  by (rule_tac subst_rename[symmetric], simp)
-  finally show "App (Lam [a].t1) s1 >c (t2[a::=s2])" by simp
+  also have "\<dots> \<longrightarrow>\<^isub>d  ([(y,x)]\<bullet>M2)[y::=N2]" using fs a by (auto simp add: Dev.eqvt)
+  also have "\<dots> = M2[x::=N2]" using fs by (simp add: subst_rename[symmetric])
+  finally show "App (Lam [x].M1) N1 \<longrightarrow>\<^isub>d M2[x::=N2]" by simp
 qed
 
-lemma cd1_fresh_preserve:
-  fixes a::"name"
-  assumes a: "a\<sharp>s1" 
-  and     b: "s1 >c s2"
-  shows "a\<sharp>s2"
-using b a
- by (induct) (auto simp add: abs_fresh fresh_fact fresh_fact')
+lemma Dev_fresh_preserved:
+  fixes x::"name"
+  assumes a: "M\<longrightarrow>\<^isub>d N"  
+  shows "x\<sharp>M \<Longrightarrow> x\<sharp>N"
+using a by (induct) (auto simp add: abs_fresh fresh_fact fresh_fact')
   
-lemma cd1_lam:
-  assumes a: "Lam [a].t >c t'"
-  shows "\<exists>s. t'=Lam [a].s \<and> t >c s"
+lemma Dev_Lam:
+  assumes a: "Lam [x].M \<longrightarrow>\<^isub>d N"
+  shows "\<exists>N'. N = Lam [x].N' \<and> M \<longrightarrow>\<^isub>d N'"
 using a
-apply -
-apply(erule cd1.cases)
-apply(simp_all add: lam.inject alpha)
-apply(auto)
-apply(rule_tac x="[(a,aa)]\<bullet>s2" in exI)
-apply(perm_simp add: fresh_left cd1.eqvt cd1_fresh_preserve)
+apply(erule_tac Dev.cases)
+apply(auto simp add: lam.inject alpha)
+apply(rule_tac x="[(x,xa)]\<bullet>N" in exI)
+apply(perm_simp add: fresh_left Dev.eqvt Dev_fresh_preserved)
 done
 
-lemma develop_existence:
-  shows "\<exists>M'. M >c M'"
+lemma Development_existence:
+  shows "\<exists>M'. M \<longrightarrow>\<^isub>d M'"
 by (nominal_induct M rule: lam.induct)
-   (auto dest!: cd1_lam)
+   (auto dest!: Dev_Lam intro: better_d4_intro)
 
-lemma triangle:
-  assumes a: "M >c M'"
-  and     b: "M \<longrightarrow>\<^isub>1 M''"
-  shows "M'' \<longrightarrow>\<^isub>1 M'"
-using a b
-by (nominal_induct avoiding: M'' rule: cd1.strong_induct)
-   (auto dest!: one_var one_app one_abs one_red intro: one_subst)
+lemma Triangle:
+  assumes a: "M \<longrightarrow>\<^isub>d M1" "M \<longrightarrow>\<^isub>1 M2"
+  shows "M2 \<longrightarrow>\<^isub>1 M1"
+using a by (nominal_induct avoiding: M2 rule: Dev.strong_induct)
+           (auto dest!: One_Var One_App One_Redex One_Lam intro: One_subst)
+(* Remark: we could here get away with a normal induction and appealing to One_fresh_preserved *)
 
-lemma diamond:
-  assumes a: "M1 \<longrightarrow>\<^isub>1 M2"
-  and     b: "M1 \<longrightarrow>\<^isub>1 M3"
-  shows "\<exists>M4. M2 \<longrightarrow>\<^isub>1 M4 \<and> M3 \<longrightarrow>\<^isub>1 M4"
+lemma Diamond_for_One:
+  assumes a: "M \<longrightarrow>\<^isub>1 M1" "M \<longrightarrow>\<^isub>1 M2"
+  shows "\<exists>M3. M1 \<longrightarrow>\<^isub>1 M3 \<and> M2 \<longrightarrow>\<^isub>1 M3"
 proof -
-  obtain Mc where c: "M1 >c Mc" using develop_existence by blast
-  have "M2 \<longrightarrow>\<^isub>1 Mc" using a c by (simp add: triangle)
-  moreover
-  have "M3 \<longrightarrow>\<^isub>1 Mc" using b c by (simp add: triangle)
-  ultimately show "\<exists>M4. M2 \<longrightarrow>\<^isub>1 M4 \<and> M3 \<longrightarrow>\<^isub>1 M4" by blast
-qed
-  
-lemma one_lam_cong: 
-  assumes a: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" 
-  shows "(Lam [a].t1)\<longrightarrow>\<^isub>\<beta>\<^sup>*(Lam [a].t2)"
-  using a
-by (induct) (blast)+
-
-lemma one_app_congL: 
-  assumes a: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" 
-  shows "App t1 s\<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s"
-  using a
-by (induct) (blast)+
-  
-lemma one_app_congR: 
-  assumes a: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" 
-  shows "App s t1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App s t2"
-using a
-by (induct) (blast)+
-
-lemma one_app_cong: 
-  assumes a1: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" 
-  and     a2: "s1\<longrightarrow>\<^isub>\<beta>\<^sup>*s2" 
-  shows "App t1 s1\<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s2"
-proof -
-  have "App t1 s1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s1" using a1 by (rule one_app_congL)
-  moreover
-  have "App t2 s1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s2" using a2 by (rule one_app_congR)
-  ultimately show "App t1 s1\<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s2" by (rule beta_star_trans)
+  obtain Mc where "M \<longrightarrow>\<^isub>d Mc" using Development_existence by blast
+  with a have "M1 \<longrightarrow>\<^isub>1 Mc" and "M2 \<longrightarrow>\<^isub>1 Mc" by (simp_all add: Triangle)
+  then show "\<exists>M3. M1 \<longrightarrow>\<^isub>1 M3 \<and> M2 \<longrightarrow>\<^isub>1 M3" by blast
 qed
 
-lemma one_beta_star: 
-  assumes a: "(t1\<longrightarrow>\<^isub>1t2)" 
-  shows "(t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2)"
+lemma Rectangle_for_One:
+  assumes a: "M\<longrightarrow>\<^isub>1\<^sup>*M1" "M\<longrightarrow>\<^isub>1M2"
+  shows "\<exists>M3. M1\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1\<^sup>*M3"
   using a
-proof(nominal_induct rule: One.strong_induct)
-  case (o4 a s1 s2 t1 t2)
-  have vc: "a\<sharp>s1" "a\<sharp>s2" by fact
-  have a1: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" and a2: "s1\<longrightarrow>\<^isub>\<beta>\<^sup>*s2" by fact
-  have c1: "(App (Lam [a].t2) s2) \<longrightarrow>\<^isub>\<beta> (t2 [a::= s2])" using vc by (simp add: b4)
-  from a1 a2 have c2: "App (Lam [a].t1 ) s1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App (Lam [a].t2 ) s2" 
-    by (blast intro!: one_app_cong one_lam_cong)
-  show ?case using c2 c1 by (blast intro: beta_star_trans)
-qed (auto intro!: one_app_cong one_lam_cong)
+proof (induct arbitrary: M2)
+  case (os2 M1 M2 M3 M')  
+  have a1: "M1 \<longrightarrow>\<^isub>1 M'" by fact
+  have a2: "M2 \<longrightarrow>\<^isub>1 M3" by fact
+  have ih: "M1 \<longrightarrow>\<^isub>1 M' \<Longrightarrow> (\<exists>M3'. M2 \<longrightarrow>\<^isub>1 M3' \<and> M' \<longrightarrow>\<^isub>1\<^sup>* M3')" by fact
+  from a1 ih obtain M3' where b1: "M2 \<longrightarrow>\<^isub>1 M3'" and b2: "M' \<longrightarrow>\<^isub>1\<^sup>* M3'" by blast
+  from a2 b1 obtain M4 where c1: "M3 \<longrightarrow>\<^isub>1 M4" and c2: "M3' \<longrightarrow>\<^isub>1 M4" by (auto dest: Diamond_for_One)  
+  from b2 c2 have "M' \<longrightarrow>\<^isub>1\<^sup>* M4" by (blast intro: One_star.os2)
+  then show "\<exists>M4. M3 \<longrightarrow>\<^isub>1 M4 \<and>  M' \<longrightarrow>\<^isub>1\<^sup>* M4" using c1 by blast 
+qed (auto)
+  
+lemma CR_for_One_star: 
+  assumes a: "M\<longrightarrow>\<^isub>1\<^sup>*M1" "M\<longrightarrow>\<^isub>1\<^sup>*M2"
+    shows "\<exists>M3. M1\<longrightarrow>\<^isub>1\<^sup>*M3 \<and> M2\<longrightarrow>\<^isub>1\<^sup>*M3"
+using a 
+proof (induct arbitrary: M2)
+  case (os2 M1 M2 M3 M')
+  have a1: "M1 \<longrightarrow>\<^isub>1\<^sup>* M'" by fact
+  have a2: "M2 \<longrightarrow>\<^isub>1 M3" by fact
+  have ih: "M1 \<longrightarrow>\<^isub>1\<^sup>* M' \<Longrightarrow> (\<exists>M3'. M2 \<longrightarrow>\<^isub>1\<^sup>* M3' \<and> M' \<longrightarrow>\<^isub>1\<^sup>* M3')" by fact
+  from a1 ih obtain M3' where b1: "M2 \<longrightarrow>\<^isub>1\<^sup>* M3'" and b2: "M' \<longrightarrow>\<^isub>1\<^sup>* M3'" by blast
+  from a2 b1 obtain M4 where c1: "M3 \<longrightarrow>\<^isub>1\<^sup>* M4" and c2: "M3' \<longrightarrow>\<^isub>1 M4" by (auto dest: Rectangle_for_One)  
+  from b2 c2 have "M' \<longrightarrow>\<^isub>1\<^sup>* M4" by (blast intro: One_star.os2)
+  then show "\<exists>M4. M3 \<longrightarrow>\<^isub>1\<^sup>* M4 \<and>  M' \<longrightarrow>\<^isub>1\<^sup>* M4" using c1 by blast 
+qed (auto)
 
-lemma one_star_lam_cong: 
-  assumes a: "t1\<longrightarrow>\<^isub>1\<^sup>*t2" 
-  shows "(Lam  [a].t1)\<longrightarrow>\<^isub>1\<^sup>* (Lam [a].t2)"
-  using a
-by (induct) (auto intro: one_star_trans)
+section {* Establishing the Equivalence of Beta-star and One-star *}
 
-lemma one_star_app_congL: 
-  assumes a: "t1\<longrightarrow>\<^isub>1\<^sup>*t2" 
-  shows "App t1 s\<longrightarrow>\<^isub>1\<^sup>* App t2 s"
-  using a
-by (induct) (auto intro: one_star_trans)
+lemma Beta_Lam_cong: 
+  assumes a: "M1\<longrightarrow>\<^isub>\<beta>\<^sup>*M2" 
+  shows "(Lam [x].M1)\<longrightarrow>\<^isub>\<beta>\<^sup>*(Lam [x].M2)"
+using a by (induct) (blast)+
 
-lemma one_star_app_congR: 
+lemma Beta_App_congL: 
+  assumes a: "M1\<longrightarrow>\<^isub>\<beta>\<^sup>*M2" 
+  shows "App M1 N\<longrightarrow>\<^isub>\<beta>\<^sup>* App M2 N"
+using a by (induct) (blast)+
+  
+lemma Beta_App_congR: 
+  assumes a: "N1\<longrightarrow>\<^isub>\<beta>\<^sup>*N2" 
+  shows "App M N1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App M N2"
+using a by (induct) (blast)+
+
+lemma Beta_App_cong: 
+  assumes a: "M1\<longrightarrow>\<^isub>\<beta>\<^sup>*M2" "N1\<longrightarrow>\<^isub>\<beta>\<^sup>*N2" 
+  shows "App M1 N1\<longrightarrow>\<^isub>\<beta>\<^sup>* App M2 N2"
+proof -
+  have "App M1 N1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App M2 N1" using a by (rule_tac Beta_App_congL)
+  also have "\<dots> \<longrightarrow>\<^isub>\<beta>\<^sup>* App M2 N2" using a by (rule_tac Beta_App_congR)
+  finally show "App M1 N1\<longrightarrow>\<^isub>\<beta>\<^sup>* App M2 N2" by simp
+qed
+
+lemmas Beta_congs = Beta_Lam_cong Beta_App_cong
+
+lemma One_implies_Beta_star: 
+  assumes a: "M\<longrightarrow>\<^isub>1N" 
+  shows "M\<longrightarrow>\<^isub>\<beta>\<^sup>*N"
+using a by (induct) (auto intro: Beta_congs)
+
+lemma One_star_Lam_cong: 
+  assumes a: "M1\<longrightarrow>\<^isub>1\<^sup>*M2" 
+  shows "(Lam  [x].M1)\<longrightarrow>\<^isub>1\<^sup>* (Lam [x].M2)"
+using a by (induct) (auto intro: One_star_trans)
+
+lemma One_star_App_congL: 
+  assumes a: "M1\<longrightarrow>\<^isub>1\<^sup>*M2" 
+  shows "App M1 N\<longrightarrow>\<^isub>1\<^sup>* App M2 N"
+using a by (induct) (auto intro: One_star_trans)
+
+lemma One_star_App_congR: 
   assumes a: "t1\<longrightarrow>\<^isub>1\<^sup>*t2" 
   shows "App s t1 \<longrightarrow>\<^isub>1\<^sup>* App s t2"
-  using a
-by (induct) (auto intro: one_star_trans)
+using a by (induct) (auto intro: One_star_trans)
 
-lemma beta_one_star: 
+lemmas One_congs = One_star_App_congL One_star_App_congR One_star_Lam_cong
+
+lemma Beta_implies_One_star: 
   assumes a: "t1\<longrightarrow>\<^isub>\<beta>t2" 
   shows "t1\<longrightarrow>\<^isub>1\<^sup>*t2"
-  using a
-by (induct)
-   (auto intro!: one_star_app_congL one_star_app_congR one_star_lam_cong)
+using a by (induct) (auto intro: One_congs better_o4_intro)
 
-lemma rectangle_for_one:
-  assumes a: "t\<longrightarrow>\<^isub>1\<^sup>*t1" 
-  and     b: "t\<longrightarrow>\<^isub>1t2"
-  shows "\<exists>t3. t1\<longrightarrow>\<^isub>1t3 \<and> t2\<longrightarrow>\<^isub>1\<^sup>*t3"
-  using a b
-proof (induct arbitrary: t2)
-  case os1 thus ?case by force
-next
-  case (os2 t s1 s2 t2)  
-  have b: "s1 \<longrightarrow>\<^isub>1 s2" by fact
-  have h: "\<And>t2. t \<longrightarrow>\<^isub>1 t2 \<Longrightarrow> (\<exists>t3. s1 \<longrightarrow>\<^isub>1 t3 \<and> t2 \<longrightarrow>\<^isub>1\<^sup>* t3)" by fact
-  have c: "t \<longrightarrow>\<^isub>1 t2" by fact
-  show "\<exists>t3. s2 \<longrightarrow>\<^isub>1 t3 \<and>  t2 \<longrightarrow>\<^isub>1\<^sup>* t3" 
-  proof -
-    from c h have "\<exists>t3. s1 \<longrightarrow>\<^isub>1 t3 \<and> t2 \<longrightarrow>\<^isub>1\<^sup>* t3" by blast
-    then obtain t3 where c1: "s1 \<longrightarrow>\<^isub>1 t3" and c2: "t2 \<longrightarrow>\<^isub>1\<^sup>* t3" by blast
-    have "\<exists>t4. s2 \<longrightarrow>\<^isub>1 t4 \<and> t3 \<longrightarrow>\<^isub>1 t4" using b c1 by (blast intro: diamond)
-    thus ?thesis using c2 by (blast intro: one_star_trans)
-  qed
-qed
-
-lemma cr_for_one_star: 
-  assumes a: "t\<longrightarrow>\<^isub>1\<^sup>*t2"
-      and b: "t\<longrightarrow>\<^isub>1\<^sup>*t1"
-    shows "\<exists>t3. t1\<longrightarrow>\<^isub>1\<^sup>*t3\<and>t2\<longrightarrow>\<^isub>1\<^sup>*t3"
-using a b
-proof (induct arbitrary: t1)
-  case (os1 t) then show ?case by force
-next 
-  case (os2 t s1 s2 t1)
-  have c: "t \<longrightarrow>\<^isub>1\<^sup>* s1" by fact
-  have c': "t \<longrightarrow>\<^isub>1\<^sup>* t1" by fact
-  have d: "s1 \<longrightarrow>\<^isub>1 s2" by fact
-  have "t \<longrightarrow>\<^isub>1\<^sup>* t1 \<Longrightarrow> (\<exists>t3.  t1 \<longrightarrow>\<^isub>1\<^sup>* t3 \<and> s1 \<longrightarrow>\<^isub>1\<^sup>* t3)" by fact
-  then obtain t3 where f1: "t1 \<longrightarrow>\<^isub>1\<^sup>* t3"
-                   and f2: "s1 \<longrightarrow>\<^isub>1\<^sup>* t3" using c' by blast
-  from rectangle_for_one d f2 have "\<exists>t4. t3\<longrightarrow>\<^isub>1t4 \<and> s2\<longrightarrow>\<^isub>1\<^sup>*t4" by blast
-  then obtain t4 where g1: "t3\<longrightarrow>\<^isub>1t4"
-                   and g2: "s2\<longrightarrow>\<^isub>1\<^sup>*t4" by blast
-  have "t1\<longrightarrow>\<^isub>1\<^sup>*t4" using f1 g1 by (blast intro: one_star_trans)
-  thus ?case using g2 by blast
-qed
-
-lemma beta_star_and_one_star: 
-  shows "(M1\<longrightarrow>\<^isub>1\<^sup>*M2) = (M1\<longrightarrow>\<^isub>\<beta>\<^sup>*M2)"
+lemma Beta_star_equals_One_star: 
+  shows "M1\<longrightarrow>\<^isub>1\<^sup>*M2 = M1\<longrightarrow>\<^isub>\<beta>\<^sup>*M2"
 proof
   assume "M1 \<longrightarrow>\<^isub>1\<^sup>* M2"
-  then show "M1\<longrightarrow>\<^isub>\<beta>\<^sup>*M2"
-  proof induct
-    case (os1 M1) thus "M1\<longrightarrow>\<^isub>\<beta>\<^sup>*M1" by simp
-  next
-    case (os2 M1 M2 M3)
-    have "M2\<longrightarrow>\<^isub>1M3" by fact
-    then have "M2\<longrightarrow>\<^isub>\<beta>\<^sup>*M3" by (rule one_beta_star)
-    moreover have "M1\<longrightarrow>\<^isub>\<beta>\<^sup>*M2" by fact
-    ultimately show "M1\<longrightarrow>\<^isub>\<beta>\<^sup>*M3" by (auto intro: beta_star_trans)
-  qed
+  then show "M1\<longrightarrow>\<^isub>\<beta>\<^sup>*M2" by (induct) (auto intro: One_implies_Beta_star Beta_star_trans)
 next
   assume "M1 \<longrightarrow>\<^isub>\<beta>\<^sup>* M2" 
-  then show "M1\<longrightarrow>\<^isub>1\<^sup>*M2"
-  proof induct
-    case (bs1 M1) thus  "M1\<longrightarrow>\<^isub>1\<^sup>*M1" by simp
-  next
-    case (bs2 M1 M2 M3) 
-    have "M2\<longrightarrow>\<^isub>\<beta>M3" by fact
-    then have "M2\<longrightarrow>\<^isub>1\<^sup>*M3" by (rule beta_one_star)
-    moreover have "M1\<longrightarrow>\<^isub>1\<^sup>*M2" by fact
-    ultimately show "M1\<longrightarrow>\<^isub>1\<^sup>*M3" by (auto intro: one_star_trans)
-  qed
+  then show "M1\<longrightarrow>\<^isub>1\<^sup>*M2" by (induct) (auto intro: Beta_implies_One_star One_star_trans)
 qed
 
-lemma cr_for_beta_star: 
-  assumes a1: "t\<longrightarrow>\<^isub>\<beta>\<^sup>*t1" 
-  and     a2: "t\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" 
-  shows "\<exists>t3. t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t3\<and>t2\<longrightarrow>\<^isub>\<beta>\<^sup>*t3"
+section {* The Church-Rosser Theorem *}
+
+theorem CR_for_Beta_star: 
+  assumes a: "M\<longrightarrow>\<^isub>\<beta>\<^sup>*M1" "M\<longrightarrow>\<^isub>\<beta>\<^sup>*M2" 
+  shows "\<exists>M3. M1\<longrightarrow>\<^isub>\<beta>\<^sup>*M3 \<and> M2\<longrightarrow>\<^isub>\<beta>\<^sup>*M3"
 proof -
-  from a1 have "t\<longrightarrow>\<^isub>1\<^sup>*t1" by (simp only: beta_star_and_one_star)
-  moreover
-  from a2 have "t\<longrightarrow>\<^isub>1\<^sup>*t2" by (simp only: beta_star_and_one_star)
-  ultimately have "\<exists>t3. t1\<longrightarrow>\<^isub>1\<^sup>*t3 \<and> t2\<longrightarrow>\<^isub>1\<^sup>*t3" by (blast intro: cr_for_one_star) 
-  then obtain t3 where "t1\<longrightarrow>\<^isub>1\<^sup>*t3" and "t2\<longrightarrow>\<^isub>1\<^sup>*t3" by (blast intro: cr_for_one_star)
-  hence "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t3" and "t2\<longrightarrow>\<^isub>\<beta>\<^sup>*t3" by (simp_all only: beta_star_and_one_star)
-  then show "\<exists>t3. t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t3\<and>t2\<longrightarrow>\<^isub>\<beta>\<^sup>*t3" by blast
+  from a have "M\<longrightarrow>\<^isub>1\<^sup>*M1" and "M\<longrightarrow>\<^isub>1\<^sup>*M2" by (simp_all only: Beta_star_equals_One_star)
+  then have "\<exists>M3. M1\<longrightarrow>\<^isub>1\<^sup>*M3 \<and> M2\<longrightarrow>\<^isub>1\<^sup>*M3" by (rule_tac CR_for_One_star) 
+  then show "\<exists>M3. M1\<longrightarrow>\<^isub>\<beta>\<^sup>*M3 \<and> M2\<longrightarrow>\<^isub>\<beta>\<^sup>*M3" by (simp only: Beta_star_equals_One_star)
 qed
 
 end
