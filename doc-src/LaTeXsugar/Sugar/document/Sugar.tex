@@ -118,6 +118,11 @@ If you prefer more space around the $\cdot$ you have to redefine
 \item \isa{xs\ensuremath{_{[\mathit{n}]}}} instead of \isa{nth\ xs\ n},
       the $n$th element of \isa{xs}.
 
+\item Human readers are good at converting automatically from lists to
+sets. Hence \texttt{OptionalSugar} contains syntax for supressing the
+conversion function \isa{set}: for example, \isa{{\isachardoublequote}x\ {\isasymin}\ set\ xs{\isachardoublequote}}
+becomes \isa{x\ {\isasymin}\ xs}.
+
 \item The \isa{{\isacharat}} operation associates implicitly to the right,
 which leads to unpleasant line breaks if the term is too long for one
 line. To avoid this, \texttt{OptionalSugar} contains syntax to group

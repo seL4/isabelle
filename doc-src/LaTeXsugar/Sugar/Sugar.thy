@@ -90,6 +90,11 @@ If you prefer more space around the $\cdot$ you have to redefine
 \item @{term"nth xs n"} instead of @{text"nth xs n"},
       the $n$th element of @{text xs}.
 
+\item Human readers are good at converting automatically from lists to
+sets. Hence \texttt{OptionalSugar} contains syntax for supressing the
+conversion function @{const set}: for example, @{prop[source]"x \<in> set xs"}
+becomes @{prop"x \<in> set xs"}.
+
 \item The @{text"@"} operation associates implicitly to the right,
 which leads to unpleasant line breaks if the term is too long for one
 line. To avoid this, \texttt{OptionalSugar} contains syntax to group
