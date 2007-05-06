@@ -2067,4 +2067,24 @@ proof -
   then show ?thesis by simp
 qed
 
+subsection {* Theorems for proof tools *}
+
+lemma add_mono_thms_ordered_semiring:
+  fixes i j k :: "'a\<Colon>pordered_ab_semigroup_add"
+  shows "i \<le> j \<and> k \<le> l \<Longrightarrow> i + k \<le> j + l"
+    and "i = j \<and> k \<le> l \<Longrightarrow> i + k \<le> j + l"
+    and "i \<le> j \<and> k = l \<Longrightarrow> i + k \<le> j + l"
+    and "i = j \<and> k = l \<Longrightarrow> i + k = j + l"
+by (rule add_mono, clarify+)+
+
+lemma add_mono_thms_ordered_field:
+  fixes i j k :: "'a\<Colon>pordered_cancel_ab_semigroup_add"
+  shows "i < j \<and> k = l \<Longrightarrow> i + k < j + l"
+    and "i = j \<and> k < l \<Longrightarrow> i + k < j + l"
+    and "i < j \<and> k \<le> l \<Longrightarrow> i + k < j + l"
+    and "i \<le> j \<and> k < l \<Longrightarrow> i + k < j + l"
+    and "i < j \<and> k < l \<Longrightarrow> i + k < j + l"
+by (auto intro: add_strict_right_mono add_strict_left_mono
+  add_less_le_mono add_le_less_mono add_strict_mono)
+
 end
