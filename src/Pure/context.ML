@@ -3,7 +3,7 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Generic theory contexts with unique identity, arbitrarily typed data,
-development graph and history support. Generic proof contexts with
+development graph and history support.  Generic proof contexts with
 arbitrarily typed data.
 *)
 
@@ -45,7 +45,6 @@ sig
   val copy_thy: theory -> theory
   val checkpoint_thy: theory -> theory
   val finish_thy: theory -> theory
-  val theory_data_of: theory -> string list
   val pre_pure_thy: theory
   val begin_thy: (theory -> Pretty.pp) -> string -> theory list -> theory
   (*proof context*)
@@ -53,7 +52,6 @@ sig
   val theory_of_proof: proof -> theory
   val transfer_proof: theory -> proof -> proof
   val init_proof: theory -> proof
-  val proof_data_of: theory -> string list
   (*generic context*)
   datatype generic = Theory of theory | Proof of proof
   val cases: (theory -> 'a) -> (proof -> 'a) -> generic -> 'a
@@ -77,16 +75,14 @@ sig
   include CONTEXT
   structure TheoryData:
   sig
-    val declare: string -> Object.T -> (Object.T -> Object.T) -> (Object.T -> Object.T) ->
+    val declare: Object.T -> (Object.T -> Object.T) -> (Object.T -> Object.T) ->
       (Pretty.pp -> Object.T * Object.T -> Object.T) -> serial
-    val init: serial -> theory -> theory
     val get: serial -> (Object.T -> 'a) -> theory -> 'a
     val put: serial -> ('a -> Object.T) -> 'a -> theory -> theory
   end
   structure ProofData:
   sig
-    val declare: string -> (theory -> Object.T) -> serial
-    val init: serial -> theory -> theory
+    val declare: (theory -> Object.T) -> serial
     val get: serial -> (Object.T -> 'a) -> proof -> 'a
     val put: serial -> ('a -> Object.T) -> 'a -> proof -> proof
   end
@@ -107,36 +103,29 @@ structure Datatab = TableFun(type key = int val ord = int_ord);
 local
 
 type kind =
- {name: string,
-  empty: Object.T,
+ {empty: Object.T,
   copy: Object.T -> Object.T,
   extend: Object.T -> Object.T,
   merge: Pretty.pp -> Object.T * Object.T -> Object.T};
 
 val kinds = ref (Datatab.empty: kind Datatab.table);
 
-fun invoke meth_name meth_fn k =
+fun invoke f k =
   (case Datatab.lookup (! kinds) k of
-    SOME kind => meth_fn kind |> transform_failure (fn exn =>
-      EXCEPTION (exn, "Theory data method " ^ #name kind ^ "." ^ meth_name ^ " failed"))
-  | NONE => sys_error ("Invalid theory data identifier " ^ string_of_int k));
+    SOME kind => f kind
+  | NONE => sys_error "Invalid theory data identifier");
 
 in
 
-fun invoke_name k    = invoke "name" (K o #name) k ();
-fun invoke_empty k   = invoke "empty" (K o #empty) k ();
-val invoke_copy      = invoke "copy" #copy;
-val invoke_extend    = invoke "extend" #extend;
-fun invoke_merge pp  = invoke "merge" (fn kind => #merge kind pp);
+fun invoke_empty k   = invoke (K o #empty) k ();
+val invoke_copy      = invoke #copy;
+val invoke_extend    = invoke #extend;
+fun invoke_merge pp  = invoke (fn kind => #merge kind pp);
 
-fun declare_theory_data name empty copy extend merge =
+fun declare_theory_data empty copy extend merge =
   let
     val k = serial ();
-    val kind = {name = name, empty = empty, copy = copy, extend = extend, merge = merge};
-    val _ =
-      if Datatab.exists (equal name o #name o #2) (! kinds) then
-        warning ("Duplicate declaration of theory data " ^ quote name)
-      else ();
+    val kind = {empty = empty, copy = copy, extend = extend, merge = merge};
     val _ = change kinds (Datatab.update (k, kind));
   in k end;
 
@@ -158,8 +147,7 @@ datatype theory =
     ids: string Inttab.table,           (*identifiers of ancestors*)
     iids: string Inttab.table} *        (*identifiers of intermediate checkpoints*)
    (*data*)
-   {theory: Object.T Datatab.table,     (*theory data record*)
-    proof: unit Datatab.table} *        (*proof data kinds*)
+   Object.T Datatab.table *
    (*ancestry*)
    {parents: theory list,               (*immediate predecessors*)
     ancestors: theory list} *           (*all predecessors*)
@@ -178,12 +166,8 @@ val ancestry_of = #3 o rep_theory;
 val history_of  = #4 o rep_theory;
 
 fun make_identity self id ids iids = {self = self, id = id, ids = ids, iids = iids};
-fun make_data theory proof = {theory = theory, proof = proof};
 fun make_ancestry parents ancestors = {parents = parents, ancestors = ancestors};
 fun make_history name vers ints = {name = name, version = vers, intermediates = ints};
-
-fun map_theory_data f {theory, proof} = make_data (f theory) proof;
-fun map_proof_data f {theory, proof} = make_data theory (f proof);
 
 val the_self = the o #self o identity_of;
 val parents_of = #parents o ancestry_of;
@@ -330,8 +314,8 @@ fun change_thy name f (thy as Theory ({self, id, ids, iids}, data, ancestry, his
     val (self', data', ancestry') =
       if is_draft thy then (self, data, ancestry)    (*destructive change!*)
       else if #version history > 0
-      then (NONE, map_theory_data copy_data data, ancestry)
-      else (NONE, map_theory_data extend_data data,
+      then (NONE, copy_data data, ancestry)
+      else (NONE, extend_data data,
         make_ancestry [thy] (thy :: #ancestors ancestry));
     val data'' = f data';
   in create_thy name self' id ids iids data'' ancestry' history end;
@@ -341,11 +325,10 @@ val modify_thy = change_thy draftN;
 val extend_thy = modify_thy I;
 
 fun copy_thy (thy as Theory ({id, ids, iids, ...}, data, ancestry, history)) =
-  (check_thy thy;
-    create_thy draftN NONE id ids iids (map_theory_data copy_data data) ancestry history);
+  (check_thy thy; create_thy draftN NONE id ids iids (copy_data data) ancestry history);
 
 val pre_pure_thy = create_thy draftN NONE (serial (), draftN) Inttab.empty Inttab.empty
-  (make_data Datatab.empty Datatab.empty) (make_ancestry [] []) (make_history ProtoPureN 0 []);
+  Datatab.empty (make_ancestry [] []) (make_history ProtoPureN 0 []);
 
 
 (* named theory nodes *)
@@ -356,10 +339,7 @@ fun merge_thys pp (thy1, thy2) =
   else
     let
       val (ids, iids) = check_merge thy1 thy2;
-      val data1 = data_of thy1 and data2 = data_of thy2;
-      val data = make_data
-        (merge_data (pp thy1) (#theory data1, #theory data2))
-        (Datatab.merge (K true) (#proof data1, #proof data2));
+      val data = merge_data (pp thy1) (data_of thy1, data_of thy2);
       val ancestry = make_ancestry [] [];
       val history = make_history "" 0 [];
     in create_thy draftN NONE (serial (), draftN) ids iids data ancestry history end;
@@ -410,27 +390,17 @@ fun finish_thy thy =
 
 (* theory data *)
 
-fun dest_data name_of tab =
-  map name_of (Datatab.keys tab)
-  |> map (rpair ()) |> Symtab.make_list |> Symtab.dest
-  |> map (apsnd length)
-  |> map (fn (name, 1) => name | (name, n) => name ^ enclose "[" "]" (string_of_int n));
-
-val theory_data_of = dest_data invoke_name o #theory o data_of;
-
 structure TheoryData =
 struct
 
 val declare = declare_theory_data;
 
 fun get k dest thy =
-  (case Datatab.lookup (#theory (data_of thy)) k of
-    SOME x => (dest x handle Match =>
-      error ("Failed to access theory data " ^ quote (invoke_name k)))
-  | NONE => error ("Uninitialized theory data " ^ quote (invoke_name k)));
+  dest ((case Datatab.lookup (data_of thy) k of
+    SOME x => x
+  | NONE => invoke_copy k (invoke_empty k)));   (*adhoc value*)
 
-fun put k mk x = modify_thy (map_theory_data (Datatab.update (k, mk x)));
-fun init k = put k I (invoke_empty k);
+fun put k mk x = modify_thy (Datatab.update (k, mk x));
 
 end;
 
@@ -446,59 +416,47 @@ fun theory_of_proof (Proof (thy_ref, _)) = deref thy_ref;
 fun data_of_proof (Proof (_, data)) = data;
 fun map_prf f (Proof (thy_ref, data)) = Proof (thy_ref, f data);
 
-fun transfer_proof thy' (prf as Proof (thy_ref, data)) =
-  if not (subthy (deref thy_ref, thy')) then
-    error "transfer proof context: not a super theory"
-  else Proof (self_ref thy', data);
-
 
 (* proof data kinds *)
 
 local
 
-type kind =
- {name: string,
-  init: theory -> Object.T};
+val kinds = ref (Datatab.empty: (theory -> Object.T) Datatab.table);
 
-val kinds = ref (Datatab.empty: kind Datatab.table);
-
-fun invoke meth_name meth_fn k =
+fun invoke_init k =
   (case Datatab.lookup (! kinds) k of
-    SOME kind => meth_fn kind |> transform_failure (fn exn =>
-      EXCEPTION (exn, "Proof data method " ^ #name kind ^ "." ^ meth_name ^ " failed"))
-  | NONE => sys_error ("Invalid proof data identifier " ^ string_of_int k));
+    SOME init => init
+  | NONE => sys_error "Invalid proof data identifier");
 
-fun invoke_name k = invoke "name" (K o #name) k ();
-val invoke_init   = invoke "init" #init;
+fun init_data thy =
+  Datatab.map' (fn k => fn _ => invoke_init k thy) (! kinds);
+
+fun init_new_data data thy =
+  Datatab.merge (K true) (data, init_data thy);
 
 in
 
-val proof_data_of = dest_data invoke_name o #proof o data_of;
+fun init_proof thy = Proof (self_ref thy, init_data thy);
 
-fun init_proof thy =
-  Proof (self_ref thy, Datatab.map' (fn k => fn _ => invoke_init k thy) (#proof (data_of thy)));
+fun transfer_proof thy' (prf as Proof (thy_ref, data)) =
+  if not (subthy (deref thy_ref, thy')) then
+    error "transfer proof context: not a super theory"
+  else Proof (self_ref thy', init_new_data data thy');
+
 
 structure ProofData =
 struct
 
-fun declare name init =
+fun declare init =
   let
     val k = serial ();
-    val kind = {name = name, init = init};
-    val _ =
-      if Datatab.exists (equal name o #name o #2) (! kinds) then
-        warning ("Duplicate declaration of proof data " ^ quote name)
-      else ();
-    val _ = change kinds (Datatab.update (k, kind));
+    val _ = change kinds (Datatab.update (k, init));
   in k end;
 
-fun init k = modify_thy (map_proof_data (Datatab.update (k, ())));
-
 fun get k dest prf =
-  (case Datatab.lookup (data_of_proof prf) k of
-    SOME x => (dest x handle Match =>
-      error ("Failed to access proof data " ^ quote (invoke_name k)))
-  | NONE => error ("Uninitialized proof data " ^ quote (invoke_name k)));
+  dest (case Datatab.lookup (data_of_proof prf) k of
+    SOME x => x
+  | NONE => invoke_init k (theory_of_proof prf));   (*adhoc value*)
 
 fun put k mk x = map_prf (Datatab.update (k, mk x));
 
@@ -554,23 +512,20 @@ open BasicContext;
 
 signature THEORY_DATA_ARGS =
 sig
-  val name: string
   type T
   val empty: T
   val copy: T -> T
   val extend: T -> T
   val merge: Pretty.pp -> T * T -> T
-  val print: theory -> T -> unit
 end;
 
 signature THEORY_DATA =
 sig
   type T
-  val init: theory -> theory
-  val print: theory -> unit
   val get: theory -> T
   val put: T -> theory -> theory
   val map: (T -> T) -> theory -> theory
+  val init: theory -> theory
 end;
 
 functor TheoryDataFun(Data: THEORY_DATA_ARGS): THEORY_DATA =
@@ -581,18 +536,17 @@ structure TheoryData = Context.TheoryData;
 type T = Data.T;
 exception Data of T;
 
-val kind = TheoryData.declare Data.name
+val kind = TheoryData.declare
   (Data Data.empty)
   (fn Data x => Data (Data.copy x))
   (fn Data x => Data (Data.extend x))
   (fn pp => fn (Data x1, Data x2) => Data (Data.merge pp (x1, x2)));
 
-val init = TheoryData.init kind;
 val get = TheoryData.get kind (fn Data x => x);
-val get_sg = get;
-fun print thy = Data.print thy (get thy);
 val put = TheoryData.put kind Data;
 fun map f thy = put (f (get thy)) thy;
+
+fun init thy = map I thy;
 
 end;
 
@@ -602,17 +556,13 @@ end;
 
 signature PROOF_DATA_ARGS =
 sig
-  val name: string
   type T
   val init: theory -> T
-  val print: Context.proof -> T -> unit
 end;
 
 signature PROOF_DATA =
 sig
   type T
-  val init: theory -> theory
-  val print: Context.proof -> unit
   val get: Context.proof -> T
   val put: T -> Context.proof -> Context.proof
   val map: (T -> T) -> Context.proof -> Context.proof
@@ -626,11 +576,9 @@ structure ProofData = Context.ProofData;
 type T = Data.T;
 exception Data of T;
 
-val kind = ProofData.declare Data.name (Data o Data.init);
+val kind = ProofData.declare (Data o Data.init);
 
-val init = ProofData.init kind;
 val get = ProofData.get kind (fn Data x => x);
-fun print prf = Data.print prf (get prf);
 val put = ProofData.put kind Data;
 fun map f prf = put (f (get prf)) prf;
 
@@ -642,33 +590,27 @@ end;
 
 signature GENERIC_DATA_ARGS =
 sig
-  val name: string
   type T
   val empty: T
   val extend: T -> T
   val merge: Pretty.pp -> T * T -> T
-  val print: Context.generic -> T -> unit
 end;
 
 signature GENERIC_DATA =
 sig
   type T
-  val init: theory -> theory
   val get: Context.generic -> T
   val put: T -> Context.generic -> Context.generic
   val map: (T -> T) -> Context.generic -> Context.generic
-  val print: Context.generic -> unit
 end;
 
 functor GenericDataFun(Data: GENERIC_DATA_ARGS): GENERIC_DATA =
 struct
 
-structure ThyData = TheoryDataFun(open Data val copy = I fun print _ _ = ());
-structure PrfData =
-  ProofDataFun(val name = Data.name type T = Data.T val init = ThyData.get fun print _ _ = ());
+structure ThyData = TheoryDataFun(open Data val copy = I);
+structure PrfData = ProofDataFun(type T = Data.T val init = ThyData.get);
 
 type T = Data.T;
-val init = ThyData.init #> PrfData.init;
 
 fun get (Context.Theory thy) = ThyData.get thy
   | get (Context.Proof prf) = PrfData.get prf;
@@ -677,8 +619,6 @@ fun put x (Context.Theory thy) = Context.Theory (ThyData.put x thy)
   | put x (Context.Proof prf) = Context.Proof (PrfData.put x prf);
 
 fun map f ctxt = put (f (get ctxt)) ctxt;
-
-fun print ctxt = Data.print ctxt (get ctxt);
 
 end;
 
