@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML-Systems/alice.ML
     ID:         $Id$
 
-Compatibility file for Alice 1.4 (CVS version).
+Compatibility file for Alice 1.4.
 *)
 
 fun exit 0 = (OS.Process.exit OS.Process.success): unit
