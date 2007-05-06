@@ -857,7 +857,7 @@ val pushes = thms "pushes";
   concerns  Crypt K X \<notin> Key`shrK`bad  and cannot be proved by rewriting
   alone.*)
 fun prove_simple_subgoals_tac i = 
-    force_tac (claset(), simpset() addsimps [image_eq_UN]) i THEN
+    force_tac (claset(), simpset() addsimps [@{thm image_eq_UN}]) i THEN
     ALLGOALS Asm_simp_tac
 
 (*Analysis of Fake cases.  Also works for messages that forward unknown parts,
