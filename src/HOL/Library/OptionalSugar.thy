@@ -8,6 +8,10 @@ theory OptionalSugar
 imports LaTeXsugar
 begin
 
+(* set *)
+translations
+  "xs" <= "set xs"
+
 (* append *)
 syntax (latex output)
   "appendL" :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixl "\<^raw:\isacharat>" 65)
