@@ -8,7 +8,6 @@ Wrapper module for Konrad Slind's TFL package.
 signature RECDEF_PACKAGE =
 sig
   val quiet_mode: bool ref
-  val print_recdefs: theory -> unit
   val get_recdef: theory -> string
     -> {simps: thm list, rules: thm list list, induct: thm, tcs: term list} option
   val get_hints: Proof.context -> {simps: thm list, congs: (string * thm) list, wfs: thm list}
@@ -97,10 +96,8 @@ end;
 type recdef_info = {simps: thm list, rules: thm list list, induct: thm, tcs: term list};
 
 structure GlobalRecdefData = TheoryDataFun
-(struct
-  val name = "HOL/recdef";
+(
   type T = recdef_info Symtab.table * hints;
-
   val empty = (Symtab.empty, mk_hints ([], [], [])): T;
   val copy = I;
   val extend = I;
@@ -111,14 +108,7 @@ structure GlobalRecdefData = TheoryDataFun
         mk_hints (Drule.merge_rules (simps1, simps2),
           AList.merge (op =) Thm.eq_thm (congs1, congs2),
           Drule.merge_rules (wfs1, wfs2)));
-
-  fun print thy (tab, hints) =
-    (Pretty.strs ("recdefs:" :: map #1 (NameSpace.extern_table (Sign.const_space thy, tab))) ::
-      pretty_hints hints) |> Pretty.chunks |> Pretty.writeln;
-end);
-
-val print_recdefs = GlobalRecdefData.print;
-
+);
 
 val get_recdef = Symtab.lookup o #1 o GlobalRecdefData.get;
 
@@ -135,12 +125,10 @@ val get_global_hints = #2 o GlobalRecdefData.get;
 (* proof data *)
 
 structure LocalRecdefData = ProofDataFun
-(struct
-  val name = "HOL/recdef";
+(
   type T = hints;
   val init = get_global_hints;
-  fun print _ hints = pretty_hints hints |> Pretty.chunks |> Pretty.writeln;
-end);
+);
 
 val get_hints = LocalRecdefData.get;
 fun map_hints f = Context.mapping (GlobalRecdefData.map (apsnd f)) (LocalRecdefData.map f);
@@ -297,8 +285,6 @@ val recdef_tc_i = gen_recdef_tc (K I) (K I);
 (* setup theory *)
 
 val setup =
-  GlobalRecdefData.init #>
-  LocalRecdefData.init #>
   Attrib.add_attributes
    [(recdef_simpN, Attrib.add_del_args simp_add simp_del, "declaration of recdef simp rule"),
     (recdef_congN, Attrib.add_del_args cong_add cong_del, "declaration of recdef cong rule"),

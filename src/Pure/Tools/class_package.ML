@@ -237,19 +237,14 @@ fun rep_classdata (ClassData c) = c;
 
 fun merge_pair f1 f2 ((x1, y1), (x2, y2)) = (f1 (x1, x2), f2 (y1, y2));
 
-structure ClassData = TheoryDataFun (
-  struct
-    val name = "Pure/classes";
-    type T = class_data Graph.T * class Symtab.table (*locale name ~> class name*);
-    val empty = (Graph.empty, Symtab.empty);
-    val copy = I;
-    val extend = I;
-    fun merge _ = merge_pair (Graph.merge (K true)) (Symtab.merge (K true));
-    fun print _ _ = ();
-  end
+structure ClassData = TheoryDataFun
+(
+  type T = class_data Graph.T * class Symtab.table (*locale name ~> class name*);
+  val empty = (Graph.empty, Symtab.empty);
+  val copy = I;
+  val extend = I;
+  fun merge _ = merge_pair (Graph.merge (K true)) (Symtab.merge (K true));
 );
-
-val _ = Context.add_setup ClassData.init;
 
 
 (* queries *)

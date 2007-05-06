@@ -26,19 +26,14 @@ fun tracing f x = if !trace then (Output.tracing (f x); x) else x;
 (* preproc and postproc attributes *)
 
 structure NBE_Rewrite = TheoryDataFun
-(struct
-  val name = "Pure/nbe";
+(
   type T = thm list * thm list
-
-  val empty = ([],[])
+  val empty = ([], []);
   val copy = I;
   val extend = I;
-
   fun merge _ ((pres1,posts1), (pres2,posts2)) =
     (Library.merge Thm.eq_thm (pres1,pres2), Library.merge Thm.eq_thm (posts1,posts2))
-
-  fun print _ _ = ()
-end);
+);
 
 val _ =
   let
@@ -51,8 +46,7 @@ val _ =
       || Args.$$$ "post" >> K attr_post));
   in
     Context.add_setup (
-      NBE_Rewrite.init
-      #> Attrib.add_attributes
+      Attrib.add_attributes
           [("normal", attr, "declare rewrite theorems for normalization")]
     )
   end;

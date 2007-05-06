@@ -94,49 +94,43 @@ fun pretty_rules ctxt kind rs =
 
 (* context data *)
 
-fun dest ((casesT, casesS), (inductT, inductS), (coinductT, coinductS)) =
-  {type_cases = NetRules.rules casesT,
-   set_cases = NetRules.rules casesS,
-   type_induct = NetRules.rules inductT,
-   set_induct = NetRules.rules inductS,
-   type_coinduct = NetRules.rules coinductT,
-   set_coinduct = NetRules.rules coinductS};
-
 structure Induct = GenericDataFun
 (
-  val name = "Isar/induct";
   type T = (rules * rules) * (rules * rules) * (rules * rules);
-
   val empty =
     ((init_rules (left_var_prem o #2), init_rules (Thm.major_prem_of o #2)),
      (init_rules (right_var_concl o #2), init_rules (Thm.major_prem_of o #2)),
      (init_rules (left_var_concl o #2), init_rules (Thm.concl_of o #2)));
-
   val extend = I;
-
   fun merge _ (((casesT1, casesS1), (inductT1, inductS1), (coinductT1, coinductS1)),
       ((casesT2, casesS2), (inductT2, inductS2), (coinductT2, coinductS2))) =
     ((NetRules.merge (casesT1, casesT2), NetRules.merge (casesS1, casesS2)),
       (NetRules.merge (inductT1, inductT2), NetRules.merge (inductS1, inductS2)),
       (NetRules.merge (coinductT1, coinductT2), NetRules.merge (coinductS1, coinductS2)));
-
-  fun print generic ((casesT, casesS), (inductT, inductS), (coinductT, coinductS)) =
-    let val ctxt = Context.proof_of generic in
-     [pretty_rules ctxt "coinduct type:" coinductT,
-      pretty_rules ctxt "coinduct set:" coinductS,
-      pretty_rules ctxt "induct type:" inductT,
-      pretty_rules ctxt "induct set:" inductS,
-      pretty_rules ctxt "cases type:" casesT,
-      pretty_rules ctxt "cases set:" casesS]
-     |> Pretty.chunks |> Pretty.writeln
-    end
 );
 
-val _ = Context.add_setup Induct.init;
-val print_rules = Induct.print o Context.Proof;
-val dest_rules = dest o Induct.get o Context.Proof;
-
 val get_local = Induct.get o Context.Proof;
+
+fun dest_rules ctxt =
+  let val ((casesT, casesS), (inductT, inductS), (coinductT, coinductS)) = get_local ctxt in
+    {type_cases = NetRules.rules casesT,
+     set_cases = NetRules.rules casesS,
+     type_induct = NetRules.rules inductT,
+     set_induct = NetRules.rules inductS,
+     type_coinduct = NetRules.rules coinductT,
+     set_coinduct = NetRules.rules coinductS}
+  end;
+
+fun print_rules ctxt =
+  let val ((casesT, casesS), (inductT, inductS), (coinductT, coinductS)) = get_local ctxt in
+   [pretty_rules ctxt "coinduct type:" coinductT,
+    pretty_rules ctxt "coinduct set:" coinductS,
+    pretty_rules ctxt "induct type:" inductT,
+    pretty_rules ctxt "induct set:" inductS,
+    pretty_rules ctxt "cases type:" casesT,
+    pretty_rules ctxt "cases set:" casesS]
+    |> Pretty.chunks |> Pretty.writeln
+  end;
 
 
 (* access rules *)

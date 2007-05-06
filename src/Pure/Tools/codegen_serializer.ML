@@ -1539,15 +1539,13 @@ fun merge_target target (Target { serial = serial1, serializer = serializer, res
     error ("Incompatible serializers: " ^ quote target);
 
 structure CodegenSerializerData = TheoryDataFun
-(struct
-  val name = "Pure/codegen_serializer";
+(
   type T = target Symtab.table;
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
   fun merge _ = Symtab.join merge_target;
-  fun print _ _ = ();
-end);
+);
 
 fun the_serializer (Target { serializer, ... }) = serializer;
 fun the_reserved (Target { reserved, ... }) = reserved;
@@ -1587,8 +1585,7 @@ val target_Haskell = "Haskell";
 val target_diag = "diag";
 
 val _ = Context.add_setup (
-  CodegenSerializerData.init
-  #> add_serializer (target_SML, isar_seri_sml)
+  add_serializer (target_SML, isar_seri_sml)
   #> add_serializer (target_OCaml, isar_seri_ocaml)
   #> add_serializer (target_Haskell, isar_seri_haskell)
   #> add_serializer (target_diag, (fn _ => fn _ => fn _ => seri_diagnosis))

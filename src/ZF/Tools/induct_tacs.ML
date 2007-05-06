@@ -31,19 +31,14 @@ type datatype_info =
    exhaustion : thm};
 
 structure DatatypesData = TheoryDataFun
-(struct
-  val name = "ZF/datatypes";
+(
   type T = datatype_info Symtab.table;
-
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
   fun merge _ tabs : T = Symtab.merge (K true) tabs;
+);
 
-  fun print thy tab =
-    Pretty.writeln (Pretty.strs ("datatypes:" ::
-      map #1 (NameSpace.extern_table (Sign.type_space thy, tab))));
-end);
 
 
 (** Constructor information: needed to map constructors to datatypes **)
@@ -56,15 +51,13 @@ type constructor_info =
 
 
 structure ConstructorsData = TheoryDataFun
-(struct
-  val name = "ZF/constructors"
+(
   type T = constructor_info Symtab.table
   val empty = Symtab.empty
   val copy = I;
   val extend = I
   fun merge _ tabs: T = Symtab.merge (K true) tabs;
-  fun print _ _= ();
-end);
+);
 
 structure DatatypeTactics : DATATYPE_TACTICS =
 struct
@@ -185,13 +178,11 @@ fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =
 (* theory setup *)
 
 val setup =
- (DatatypesData.init #>
-  ConstructorsData.init #>
   Method.add_methods
     [("induct_tac", Method.goal_args Args.name induct_tac,
       "induct_tac emulation (dynamic instantiation!)"),
      ("case_tac", Method.goal_args Args.name exhaust_tac,
-      "datatype case_tac emulation (dynamic instantiation!)")]);
+      "datatype case_tac emulation (dynamic instantiation!)")];
 
 
 (* outer syntax *)

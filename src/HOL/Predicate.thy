@@ -152,14 +152,12 @@ val rules1 = [split_predicate, split_predicate2, member_eq, member2_eq];
 val rules2 = [split_set, mk_meta_eq mem_Collect_eq, mem_Collect2_eq];
 
 structure PredSetConvData = GenericDataFun
-(struct
-  val name = "HOL/pred_set_conv";
+(
   type T = thm list;
   val empty = [];
   val extend = I;
   fun merge _ = Drule.merge_rules;
-  fun print _ _ = ()
-end)
+);
 
 fun mk_attr ths1 ths2 f = Attrib.syntax (Attrib.thms >> (fn ths =>
   Thm.rule_attribute (fn ctxt => rew ths1 (map (f o Simpdata.mk_eq)
@@ -170,7 +168,7 @@ val pred_set_conv_att = Attrib.no_args (Thm.declaration_attribute
 
 in
 
-val _ = ML_Context.>> (PredSetConvData.init #>
+val _ = ML_Context.>> (
   Attrib.add_attributes
     [("pred_set_conv", pred_set_conv_att,
         "declare rules for converting between predicate and set notation"),

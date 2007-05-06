@@ -171,11 +171,10 @@ fun get_var_type t =
 
 (**** theory data ****)
 
-(* data kind 'Pure/extraction' *)
+(* theory data *)
 
 structure ExtractionData = TheoryDataFun
-(struct
-  val name = "Pure/extraction";
+(
   type T =
     {realizes_eqns : rules,
      typeof_eqns : rules,
@@ -209,11 +208,7 @@ structure ExtractionData = TheoryDataFun
      defs = Library.merge Thm.eq_thm (defs1, defs2),
      expand = Library.merge (op =) (expand1, expand2),
      prep = (case prep1 of NONE => prep2 | _ => prep1)};
-
-  fun print _ _ = ();
-end);
-
-val _ = Context.add_setup ExtractionData.init;
+);
 
 fun read_condeq thy =
   let val thy' = add_syntax thy

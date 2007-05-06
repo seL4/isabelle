@@ -3226,7 +3226,6 @@ lemmas [eqvt_force] = numeral_nat_eqvt numeral_int_eqvt
 (* setup for the individial atom-kinds *)
 (* and nominal datatypes               *)
 use "nominal_atoms.ML"
-setup "NominalAtoms.setup"
 
 (************************************************************)
 (* various tactics for analysing permutations, supports etc *)
@@ -3288,7 +3287,6 @@ method_setup fresh_fun_simp =
 (************************************************)
 (* main file for constructing nominal datatypes *)
 use "nominal_package.ML"
-setup "NominalPackage.setup"
 
 (******************************************************)
 (* primitive recursive functions on nominal datatypes *)

@@ -312,8 +312,7 @@ end; (*local*)
 type data = Object.T Datatab.table;
 
 structure CodeData = TheoryDataFun
-(struct
-  val name = "Pure/codegen_data";
+(
   type T = exec * data ref;
   val empty = (empty_exec, ref Datatab.empty : data ref);
   fun copy (exec, data) = (exec, ref (! data));
@@ -325,67 +324,67 @@ structure CodeData = TheoryDataFun
       val data2' = Datatab.map' (invoke_purge NONE touched) (! data2);
       val data = Datatab.join (invoke_merge pp) (data1', data2');
     in (exec, ref data) end;
-  fun print thy (exec, _) =
-    let
-      val ctxt = ProofContext.init thy;
-      fun pretty_func (s, lthms) =
-        (Pretty.block o Pretty.fbreaks) (
-          Pretty.str s :: pretty_sdthms ctxt lthms
-        );
-      fun pretty_dtyp (s, []) =
-            Pretty.str s
-        | pretty_dtyp (s, cos) =
-            (Pretty.block o Pretty.breaks) (
-              Pretty.str s
-              :: Pretty.str "="
-              :: separate (Pretty.str "|") (map (fn (c, []) => Pretty.str c
-                   | (c, tys) =>
-                       (Pretty.block o Pretty.breaks)
-                          (Pretty.str c :: Pretty.str "of" :: map (Pretty.quote o Sign.pretty_typ thy) tys)) cos)
-            );
-      val inlines = (#inlines o the_preproc) exec;
-      val inline_procs = (map fst o #inline_procs o the_preproc) exec;
-      val preprocs = (map fst o #preprocs o the_preproc) exec;
-      val funs = the_funcs exec
-        |> Consttab.dest
-        |> (map o apfst) (CodegenConsts.string_of_const thy)
-        |> sort (string_ord o pairself fst);
-      val dtyps = the_dtyps exec
-        |> Symtab.dest
-        |> map (fn (dtco, (vs, cos)) => (Sign.string_of_typ thy (Type (dtco, map TFree vs)), cos))
-        |> sort (string_ord o pairself fst)
-    in
-      (Pretty.writeln o Pretty.chunks) [
-        Pretty.block (
-          Pretty.str "defining equations:"
-          :: Pretty.fbrk
-          :: (Pretty.fbreaks o map pretty_func) funs
-        ),
-        Pretty.block (
-          Pretty.str "inlining theorems:"
-          :: Pretty.fbrk
-          :: (Pretty.fbreaks o map (ProofContext.pretty_thm ctxt)) inlines
-        ),
-        Pretty.block (
-          Pretty.str "inlining procedures:"
-          :: Pretty.fbrk
-          :: (Pretty.fbreaks o map Pretty.str) inline_procs
-        ),
-        Pretty.block (
-          Pretty.str "preprocessors:"
-          :: Pretty.fbrk
-          :: (Pretty.fbreaks o map Pretty.str) preprocs
-        ),
-        Pretty.block (
-          Pretty.str "datatypes:"
-          :: Pretty.fbrk
-          :: (Pretty.fbreaks o map pretty_dtyp) dtyps
-        )
-      ]
-    end;
-end);
+);
 
-val print_codesetup = CodeData.print;
+fun print_codesetup thy =
+  let
+    val ctxt = ProofContext.init thy;
+    val (exec, _) = CodeData.get thy;
+    fun pretty_func (s, lthms) =
+      (Pretty.block o Pretty.fbreaks) (
+        Pretty.str s :: pretty_sdthms ctxt lthms
+      );
+    fun pretty_dtyp (s, []) =
+          Pretty.str s
+      | pretty_dtyp (s, cos) =
+          (Pretty.block o Pretty.breaks) (
+            Pretty.str s
+            :: Pretty.str "="
+            :: separate (Pretty.str "|") (map (fn (c, []) => Pretty.str c
+                 | (c, tys) =>
+                     (Pretty.block o Pretty.breaks)
+                        (Pretty.str c :: Pretty.str "of" :: map (Pretty.quote o Sign.pretty_typ thy) tys)) cos)
+          );
+    val inlines = (#inlines o the_preproc) exec;
+    val inline_procs = (map fst o #inline_procs o the_preproc) exec;
+    val preprocs = (map fst o #preprocs o the_preproc) exec;
+    val funs = the_funcs exec
+      |> Consttab.dest
+      |> (map o apfst) (CodegenConsts.string_of_const thy)
+      |> sort (string_ord o pairself fst);
+    val dtyps = the_dtyps exec
+      |> Symtab.dest
+      |> map (fn (dtco, (vs, cos)) => (Sign.string_of_typ thy (Type (dtco, map TFree vs)), cos))
+      |> sort (string_ord o pairself fst)
+  in
+    (Pretty.writeln o Pretty.chunks) [
+      Pretty.block (
+        Pretty.str "defining equations:"
+        :: Pretty.fbrk
+        :: (Pretty.fbreaks o map pretty_func) funs
+      ),
+      Pretty.block (
+        Pretty.str "inlining theorems:"
+        :: Pretty.fbrk
+        :: (Pretty.fbreaks o map (ProofContext.pretty_thm ctxt)) inlines
+      ),
+      Pretty.block (
+        Pretty.str "inlining procedures:"
+        :: Pretty.fbrk
+        :: (Pretty.fbreaks o map Pretty.str) inline_procs
+      ),
+      Pretty.block (
+        Pretty.str "preprocessors:"
+        :: Pretty.fbrk
+        :: (Pretty.fbreaks o map Pretty.str) preprocs
+      ),
+      Pretty.block (
+        Pretty.str "datatypes:"
+        :: Pretty.fbrk
+        :: (Pretty.fbreaks o map pretty_dtyp) dtyps
+      )
+    ]
+  end;
 
 fun init k = CodeData.map
   (fn (exec, data) => (exec, ref (Datatab.update (k, invoke_empty k) (! data))));

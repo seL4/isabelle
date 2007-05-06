@@ -198,16 +198,12 @@ val local_naming = NameSpace.default_naming |> NameSpace.add_path "local";
 
 structure ContextData = ProofDataFun
 (
-  val name = "Isar/context";
   type T = ctxt;
   fun init thy =
     make_ctxt (false, local_naming, LocalSyntax.init thy,
       (Sign.consts_of thy, Sign.consts_of thy),
       (NameSpace.empty_table, FactIndex.empty), []);
-  fun print _ _ = ();
 );
-
-val _ = Context.add_setup ContextData.init;
 
 fun rep_context ctxt = ContextData.get ctxt |> (fn Ctxt args => args);
 

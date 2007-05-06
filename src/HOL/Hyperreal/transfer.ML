@@ -16,8 +16,7 @@ structure Transfer: TRANSFER =
 struct
 
 structure TransferData = GenericDataFun
-(struct
-  val name = "HOL/transfer";
+(
   type T = {
     intros: thm list,
     unfolds: thm list,
@@ -35,8 +34,7 @@ structure TransferData = GenericDataFun
     unfolds = Drule.merge_rules (unfolds1, unfolds2),
     refolds = Drule.merge_rules (refolds1, refolds2),
     consts = Library.merge (op =) (consts1, consts2)} : T;
-  fun print _ _ = ();
-end);
+);
 
 val transfer_start = thm "transfer_start"
 
@@ -109,7 +107,6 @@ fun add_const c = Context.theory_map (TransferData.map
     {intros=intros, unfolds=unfolds, refolds=refolds, consts=c::consts}))
 
 val setup =
-  TransferData.init #>
   Attrib.add_attributes
     [("transfer_intro", Attrib.add_del_args intro_add intro_del,
       "declaration of transfer introduction rule"),

@@ -49,29 +49,24 @@ type src = Args.src;
 (* theory data *)
 
 structure AttributesData = TheoryDataFun
-(struct
-  val name = "Isar/attributes";
+(
   type T = (((src -> attribute) * string) * stamp) NameSpace.table;
-
   val empty = NameSpace.empty_table;
   val copy = I;
   val extend = I;
-
   fun merge _ tables = NameSpace.merge_tables (eq_snd (op =)) tables handle Symtab.DUPS dups =>
     error ("Attempt to merge different versions of attribute(s) " ^ commas_quote dups);
+);
 
-  fun print _ attribs =
-    let
-      fun prt_attr (name, ((_, comment), _)) = Pretty.block
-        [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
-    in
-      [Pretty.big_list "attributes:" (map prt_attr (NameSpace.extern_table attribs))]
-      |> Pretty.chunks |> Pretty.writeln
-    end;
-end);
-
-val _ = Context.add_setup AttributesData.init;
-val print_attributes = AttributesData.print;
+fun print_attributes thy =
+  let
+    val attribs = AttributesData.get thy;
+    fun prt_attr (name, ((_, comment), _)) = Pretty.block
+      [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
+  in
+    [Pretty.big_list "attributes:" (map prt_attr (NameSpace.extern_table attribs))]
+    |> Pretty.chunks |> Pretty.writeln
+  end;
 
 
 (* name space *)

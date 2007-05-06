@@ -85,11 +85,10 @@ open DatatypeAux;
 val quiet_mode = quiet_mode;
 
 
-(* data kind 'HOL/datatypes' *)
+(* theory data *)
 
 structure DatatypesData = TheoryDataFun
-(struct
-  val name = "HOL/datatypes";
+(
   type T =
     {types: datatype_info Symtab.table,
      constrs: datatype_info Symtab.table,
@@ -105,15 +104,14 @@ structure DatatypesData = TheoryDataFun
     {types = Symtab.merge (K true) (types1, types2),
      constrs = Symtab.merge (K true) (constrs1, constrs2),
      cases = Symtab.merge (K true) (cases1, cases2)};
-
-  fun print sg ({types, ...} : T) =
-    Pretty.writeln (Pretty.strs ("datatypes:" ::
-      map #1 (NameSpace.extern_table (Sign.type_space sg, types))));
-end);
+);
 
 val get_datatypes = #types o DatatypesData.get;
 val map_datatypes = DatatypesData.map;
-val print_datatypes = DatatypesData.print;
+
+fun print_datatypes thy =
+  Pretty.writeln (Pretty.strs ("datatypes:" ::
+    map #1 (NameSpace.extern_table (Sign.type_space thy, get_datatypes thy))));
 
 
 (** theory information about datatypes **)
@@ -933,7 +931,7 @@ val add_datatype = gen_add_datatype read_typ true;
 (* setup theory *)
 
 val setup =
-  DatatypesData.init #> Method.add_methods tactic_emulations #> simproc_setup #> trfun_setup;
+  Method.add_methods tactic_emulations #> simproc_setup #> trfun_setup;
 
 
 (* outer syntax *)

@@ -94,9 +94,7 @@ fun del_rule th (rs as Rules {next, rules, netpairs, wrappers}) =
 
 structure Rules = GenericDataFun
 (
-  val name = "Pure/rules";
   type T = T;
-
   val empty = make_rules ~1 [] empty_netpairs ([], []);
   val extend = I;
 
@@ -112,20 +110,17 @@ structure Rules = GenericDataFun
           nth_map i (curry insert_tagged_brl ((w, n), (b, th))))
         (next upto ~1 ~~ rules) empty_netpairs;
     in make_rules (next - 1) rules netpairs wrappers end
-
-  fun print generic (Rules {rules, ...}) =
-    let
-      val ctxt = Context.proof_of generic;
-      fun prt_kind (i, b) =
-        Pretty.big_list ((the o AList.lookup (op =) kind_names) (i, b) ^ ":")
-          (map_filter (fn (_, (k, th)) =>
-              if k = (i, b) then SOME (ProofContext.pretty_thm ctxt th) else NONE)
-            (sort (int_ord o pairself fst) rules));
-    in Pretty.writeln (Pretty.chunks (map prt_kind rule_kinds)) end;
 );
 
-val _ = Context.add_setup Rules.init;
-val print_rules = Rules.print o Context.Proof;
+fun print_rules ctxt =
+  let
+    val Rules {rules, ...} = Rules.get (Context.Proof ctxt);
+    fun prt_kind (i, b) =
+      Pretty.big_list ((the o AList.lookup (op =) kind_names) (i, b) ^ ":")
+        (map_filter (fn (_, (k, th)) =>
+            if k = (i, b) then SOME (ProofContext.pretty_thm ctxt th) else NONE)
+          (sort (int_ord o pairself fst) rules));
+  in Pretty.writeln (Pretty.chunks (map prt_kind rule_kinds)) end;
 
 
 (* access data *)

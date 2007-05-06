@@ -17,7 +17,6 @@ sig
   val perm_of_pair: term * term -> term
   val mk_not_sym: thm list -> thm list
   val perm_simproc: simproc
-  val setup: theory -> theory
 end
 
 structure NominalPackage : NOMINAL_PACKAGE =
@@ -68,7 +67,7 @@ fun mk_case_names_exhausts descr new =
 
 end;
 
-(* data kind 'HOL/nominal_datatypes' *)
+(* theory data *)
 
 type descr = (int * (string * dtyp list * (string * (dtyp list * dtyp) list) list)) list;
 
@@ -83,25 +82,19 @@ type nominal_datatype_info =
    inject : thm list};
 
 structure NominalDatatypesData = TheoryDataFun
-(struct
-  val name = "HOL/nominal_datatypes";
+(
   type T = nominal_datatype_info Symtab.table;
-
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
   fun merge _ tabs : T = Symtab.merge (K true) tabs;
-
-  fun print sg tab =
-    Pretty.writeln (Pretty.strs ("nominal datatypes:" ::
-      map #1 (NameSpace.extern_table (Sign.type_space sg, tab))));
-end);
+);
 
 val get_nominal_datatypes = NominalDatatypesData.get;
 val put_nominal_datatypes = NominalDatatypesData.put;
 val map_nominal_datatypes = NominalDatatypesData.map;
 val get_nominal_datatype = Symtab.lookup o get_nominal_datatypes;
-val setup = NominalDatatypesData.init;
+
 
 (**** make datatype info ****)
 

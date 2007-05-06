@@ -7,49 +7,29 @@ Hooks for datatype introduction.
 
 signature DATATYPE_HOOKS =
 sig
-  type hook = string list -> theory -> theory;
-  val add: hook -> theory -> theory;
-  val all: hook;
-  val setup: theory -> theory;
+  type hook = string list -> theory -> theory
+  val add: hook -> theory -> theory
+  val all: hook
 end;
 
 structure DatatypeHooks : DATATYPE_HOOKS =
 struct
 
-
-(* theory data *)
-
 type hook = string list -> theory -> theory;
-datatype T = T of (serial * hook) list;
-
-fun map_T f (T hooks) = T (f hooks);
-fun merge_T pp (T hooks1, T hooks2) =
-  T (AList.merge (op =) (K true) (hooks1, hooks2));
 
 structure DatatypeHooksData = TheoryDataFun
-(struct
-  val name = "HOL/datatype_hooks";
-  type T = T;
-  val empty = T [];
+(
+  type T = (serial * hook) list;
+  val empty = [];
   val copy = I;
   val extend = I;
-  val merge = merge_T;
-  fun print _ _ = ();
-end);
-
-
-(* interface *)
+  fun merge _ hooks : T = AList.merge (op =) (K true) hooks;
+);
 
 fun add hook =
-  DatatypeHooksData.map (map_T (cons (serial (), hook)));
+  DatatypeHooksData.map (cons (serial (), hook));
 
 fun all dtcos thy =
-  fold (fn (_, f) => f dtcos) ((fn T hooks => hooks) (DatatypeHooksData.get thy)) thy;
-
-
-(* theory setup *)
-
-val setup = DatatypeHooksData.init;
+  fold (fn (_, f) => f dtcos) (DatatypeHooksData.get thy) thy;
 
 end;
-

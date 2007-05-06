@@ -292,18 +292,16 @@ in
 end; (*local*)
 
 structure CodeName = TheoryDataFun
-(struct
-  val name = "Pure/codegen_names";
+(
   type T = names ref;
   val empty = ref empty_names;
   fun copy (ref names) = ref names;
   val extend = copy;
   fun merge _ (ref names1, ref names2) = ref (merge_names (names1, names2));
-  fun print _ _ = ();
-end);
+);
 
 structure ConstName = CodeDataFun
-(struct
+(
   val name = "Pure/codegen_names";
   type T = const Consttab.table * (string * string option) Symtab.table;
   val empty = (Consttab.empty, Symtab.empty);
@@ -313,7 +311,7 @@ structure ConstName = CodeDataFun
   fun purge _ NONE _ = empty
     | purge _ (SOME cs) (const, constrev) = (fold Consttab.delete_safe cs const,
         fold Symtab.delete (map_filter (Consttab.lookup const) cs) constrev);
-end);
+);
 
 val _ = Context.add_setup (CodeName.init #> ConstName.init);
 

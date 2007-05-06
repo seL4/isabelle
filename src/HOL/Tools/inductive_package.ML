@@ -86,7 +86,7 @@ val simp_thms' = map (fn s => mk_meta_eq (the (find_first
 
 
 
-(** theory data **)
+(** context data **)
 
 type inductive_result =
   {preds: term list, defs: thm list, elims: thm list, raw_induct: thm,
@@ -106,28 +106,25 @@ type inductive_info =
   {names: string list, coind: bool} * inductive_result;
 
 structure InductiveData = GenericDataFun
-(struct
-  val name = "HOL/inductive";
+(
   type T = inductive_info Symtab.table * thm list;
-
   val empty = (Symtab.empty, []);
   val extend = I;
   fun merge _ ((tab1, monos1), (tab2, monos2)) =
     (Symtab.merge (K true) (tab1, tab2), Drule.merge_rules (monos1, monos2));
-
-  fun print context (tab, monos) =
-    let
-      val ctxt = Context.proof_of context;
-      val space = Consts.space_of (ProofContext.consts_of ctxt);
-    in
-      [Pretty.strs ("(co)inductives:" :: map #1 (NameSpace.extern_table (space, tab))),
-       Pretty.big_list "monotonicity rules:" (map (ProofContext.pretty_thm ctxt) monos)]
-      |> Pretty.chunks |> Pretty.writeln
-    end;
-end);
+);
 
 val get_inductives = InductiveData.get o Context.Proof;
-val print_inductives = InductiveData.print o Context.Proof;
+
+fun print_inductives ctxt =
+  let
+    val (tab, monos) = get_inductives ctxt;
+    val space = Consts.space_of (ProofContext.consts_of ctxt);
+  in
+    [Pretty.strs ("(co)inductives:" :: map #1 (NameSpace.extern_table (space, tab))),
+     Pretty.big_list "monotonicity rules:" (map (ProofContext.pretty_thm ctxt) monos)]
+    |> Pretty.chunks |> Pretty.writeln
+  end;
 
 
 (* get and put data *)
@@ -156,7 +153,7 @@ fun mk_mono thm =
           (_ $ (_ $ (Const ("Not", _) $ _) $ _)) => []
         | _ => [thm' RS (thm' RS eq_to_mono2)]);
     fun dest_less_concl thm = dest_less_concl (thm RS le_funD)
-      handle THM _ => thm RS le_boolD      
+      handle THM _ => thm RS le_boolD
   in
     case concl of
       Const ("==", _) $ _ $ _ => eq2mono (thm RS meta_eq_to_obj_eq)
@@ -892,7 +889,6 @@ fun infer_intro_vars elim arity intros =
 (* setup theory *)
 
 val setup =
-  InductiveData.init #>
   Method.add_methods [("ind_cases2", ind_cases,   (* FIXME "ind_cases" (?) *)
     "dynamic case analysis on predicates")] #>
   Attrib.add_attributes [("mono2", Attrib.add_del_args mono_add mono_del,   (* FIXME "mono" *)

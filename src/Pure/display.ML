@@ -234,9 +234,6 @@ fun pretty_full_theory verbose thy =
     val rests = restricts |> map (apfst (apfst extern_const)) |> sort_wrt (#1 o #1);
   in
     [Pretty.strs ("names:" :: Context.names_of thy)] @
-    (if verbose then
-      [Pretty.strs ("theory data:" :: Context.theory_data_of thy),
-       Pretty.strs ("proof data:" :: Context.proof_data_of thy)] else []) @
     [Pretty.strs ["name prefix:", NameSpace.path_of naming],
       Pretty.big_list "classes:" (map pretty_classrel clsses),
       pretty_default default,

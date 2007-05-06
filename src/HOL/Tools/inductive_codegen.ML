@@ -22,8 +22,7 @@ fun merge_rules tabs =
   Symtab.join (fn _ => AList.merge (Thm.eq_thm_prop) (K true)) tabs;
 
 structure CodegenData = TheoryDataFun
-(struct
-  val name = "HOL/inductive_codegen";
+(
   type T =
     {intros : (thm * (string * int)) list Symtab.table,
      graph : unit Graph.T,
@@ -37,8 +36,7 @@ structure CodegenData = TheoryDataFun
     {intros = merge_rules (intros1, intros2),
      graph = Graph.merge (K true) (graph1, graph2),
      eqns = merge_rules (eqns1, eqns2)};
-  fun print _ _ = ();
-end);
+);
 
 
 fun warn thm = warning ("InductiveCodegen: Not a proper clause:\n" ^
@@ -653,7 +651,6 @@ fun inductive_codegen thy defs gr dep module brack t = (case strip_comb t of
 
 val setup =
   add_codegen "inductive" inductive_codegen #>
-  CodegenData.init #>
   add_attribute "ind" (Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) --
     Scan.option (Args.$$$ "params" |-- Args.colon |-- Args.nat) >> uncurry add);
 

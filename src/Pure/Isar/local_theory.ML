@@ -88,12 +88,9 @@ fun make_lthy (theory_prefix, operations, target) =
 
 structure Data = ProofDataFun
 (
-  val name = "Pure/local_theory";
   type T = lthy option;
   fun init _ = NONE;
-  fun print _ _ = ();
 );
-val _ = Context.add_setup Data.init;
 
 fun get_lthy lthy =
   (case Data.get lthy of

@@ -118,7 +118,6 @@ use "Tools/datatype_case.ML"
 use "Tools/datatype_realizer.ML"
 
 use "Tools/datatype_hooks.ML"
-setup DatatypeHooks.setup
 
 use "Tools/datatype_package.ML"
 setup DatatypePackage.setup

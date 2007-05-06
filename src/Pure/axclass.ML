@@ -95,18 +95,14 @@ fun merge_instances ((classrel1, arities1): instances, (classrel2, arities2)) =
 (* setup data *)
 
 structure AxClassData = TheoryDataFun
-(struct
-  val name = "Pure/axclass";
+(
   type T = axclasses * instances;
-  val empty : T = ((Symtab.empty, []), ([], Symtab.empty));
+  val empty = ((Symtab.empty, []), ([], Symtab.empty));
   val copy = I;
   val extend = I;
   fun merge pp ((axclasses1, instances1), (axclasses2, instances2)) =
     (merge_axclasses pp (axclasses1, axclasses2), (merge_instances (instances1, instances2)));
-  fun print _ _ = ();
-end);
-
-val _ = Context.add_setup AxClassData.init;
+);
 
 
 (* maintain axclasses *)

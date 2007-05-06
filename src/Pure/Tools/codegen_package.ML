@@ -51,18 +51,17 @@ fun merge_abstypes ((typs1, consts1) : abstypes, (typs2, consts2) : abstypes) =
     Consttab.merge CodegenConsts.eq_const (consts1, consts2));
 
 structure CodegenPackageData = TheoryDataFun
-(struct
-  val name = "Pure/codegen_package_setup";
+(
   type T = appgens * abstypes;
   val empty = (Symtab.empty, (Symtab.empty, Consttab.empty));
   val copy = I;
   val extend = I;
   fun merge _ ((appgens1, abstypes1), (appgens2, abstypes2)) =
     (merge_appgens (appgens1, appgens2), merge_abstypes (abstypes1, abstypes2));
-  fun print _ _ = ();
-end);
+);
 
-structure Funcgr = CodegenFuncgrRetrieval (
+structure Funcgr = CodegenFuncgrRetrieval
+(
   val name = "Pure/codegen_package_thms";
   fun rewrites thy = [];
 );
@@ -94,7 +93,7 @@ fun code_deps thy consts =
   in Present.display_graph prgr end;
 
 structure Code = CodeDataFun
-(struct
+(
   val name = "Pure/codegen_package_code";
   type T = CodegenThingol.code;
   val empty = CodegenThingol.empty_code;
@@ -110,9 +109,9 @@ structure Code = CodeDataFun
               o filter (member CodegenConsts.eq_const cs_exisiting)
             ) cs;
         in Graph.del_nodes dels code end;
-end);
+);
 
-val _ = Context.add_setup (CodegenPackageData.init #> Funcgr.init #> Code.init);
+val _ = Context.add_setup (Funcgr.init #> Code.init);
 
 
 (* preparing defining equations *)

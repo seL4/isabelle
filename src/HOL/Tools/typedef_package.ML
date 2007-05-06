@@ -24,7 +24,6 @@ sig
     * (string * string) option -> theory -> Proof.state
   val typedef_i: (bool * string) * (bstring * string list * mixfix) * term
     * (string * string) option -> theory -> Proof.state
-  val setup: theory -> theory
 end;
 
 structure TypedefPackage: TYPEDEF_PACKAGE =
@@ -77,15 +76,13 @@ type info =
   Abs_cases: thm, Rep_induct: thm, Abs_induct: thm};
 
 structure TypedefData = TheoryDataFun
-(struct
-  val name = "HOL/typedef";
+(
   type T = info Symtab.table;
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
   fun merge _ tabs : T = Symtab.merge (K true) tabs;
-  fun print _ _ = ();
-end);
+);
 
 val get_info = Symtab.lookup o TypedefData.get;
 fun put_info name info = TypedefData.map (Symtab.update (name, info));
@@ -269,8 +266,6 @@ val typedef = gen_typedef ProofContext.read_term;
 val typedef_i = gen_typedef ProofContext.cert_term;
 
 end;
-
-val setup = TypedefData.init;
 
 
 

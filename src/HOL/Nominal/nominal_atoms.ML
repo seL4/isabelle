@@ -13,7 +13,6 @@ sig
   val get_atom_info : theory -> string -> atom_info option
   val atoms_of : theory -> string list
   val mk_permT : typ -> typ
-  val setup : theory -> theory
 end
 
 structure NominalAtoms : NOMINAL_ATOMS =
@@ -23,27 +22,21 @@ val finite_emptyI = thm "finite.emptyI";
 val Collect_const = thm "Collect_const";
 
 
-(* data kind 'HOL/nominal' *)
+(* theory data *)
 
 type atom_info =
   {pt_class : string,
    fs_class : string,
    cp_classes : (string * string) list};
 
-structure NominalArgs =
-struct
-  val name = "HOL/nominal";
+structure NominalData = TheoryDataFun
+(
   type T = atom_info Symtab.table;
-
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
   fun merge _ x = Symtab.merge (K true) x;
-
-  fun print sg tab = ();
-end;
-
-structure NominalData = TheoryDataFun(NominalArgs);
+);
 
 fun make_atom_info ((pt_class, fs_class), cp_classes) =
   {pt_class = pt_class,
@@ -888,7 +881,5 @@ val atom_declP =
     (Scan.repeat1 P.name >> (Toplevel.theory o create_nom_typedecls));
 
 val _ = OuterSyntax.add_parsers [atom_declP];
-
-val setup = NominalData.init;
 
 end;

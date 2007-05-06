@@ -19,16 +19,13 @@ struct
 (* theory data *)
 
 structure IndCasesData = TheoryDataFun
-(struct
-  val name = "ZF/ind_cases";
+(
   type T = (simpset -> cterm -> thm) Symtab.table;
-
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
   fun merge _ tabs : T = Symtab.merge (K true) tabs;
-  fun print _ _ = ();
-end);
+);
 
 
 fun declare name f = IndCasesData.map (Symtab.update (name, f));
@@ -72,9 +69,8 @@ val mk_cases_args = Method.syntax (Scan.lift (Scan.repeat1 Args.name));
 (* package setup *)
 
 val setup =
- (IndCasesData.init #>
-  Method.add_methods [("ind_cases", mk_cases_meth oo mk_cases_args,
-    "dynamic case analysis on sets")]);
+  Method.add_methods
+    [("ind_cases", mk_cases_meth oo mk_cases_args, "dynamic case analysis on sets")];
 
 
 (* outer syntax *)

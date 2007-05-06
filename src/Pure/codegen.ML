@@ -199,13 +199,13 @@ fun set_default_type s thy ({size, iterations, ...} : test_params) =
   {size = size, iterations = iterations,
    default_type = SOME (Sign.read_typ thy s)};
 
-(* data kind 'Pure/codegen' *)
+
+(* theory data *)
 
 structure CodeData = CodegenData;
 
 structure CodegenData = TheoryDataFun
-(struct
-  val name = "Pure/codegen";
+(
   type T =
     {codegens : (string * term codegen) list,
      tycodegens : (string * typ codegen) list,
@@ -237,15 +237,15 @@ structure CodegenData = TheoryDataFun
      preprocs = AList.merge (op =) (K true) (preprocs1, preprocs2),
      modules = Symtab.merge (K true) (modules1, modules2),
      test_params = merge_test_params test_params1 test_params2};
+);
 
-  fun print _ ({codegens, tycodegens, ...} : T) =
+fun print_codegens thy =
+  let val {codegens, tycodegens, ...} = CodegenData.get thy in
     Pretty.writeln (Pretty.chunks
       [Pretty.strs ("term code generators:" :: map fst codegens),
-       Pretty.strs ("type code generators:" :: map fst tycodegens)]);
-end);
+       Pretty.strs ("type code generators:" :: map fst tycodegens)])
+  end;
 
-val _ = Context.add_setup CodegenData.init;
-val print_codegens = CodegenData.print;
 
 
 (**** access parameters for random testing ****)

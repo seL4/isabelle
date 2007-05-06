@@ -152,7 +152,6 @@ val is_internal = has_internal o Thm.get_tags;
 
 structure TheoremsData = TheoryDataFun
 (struct
-  val name = "Pure/theorems";
   type T =
    {theorems: thm list NameSpace.table,
     index: FactIndex.T} ref;
@@ -505,9 +504,6 @@ val A = Free ("A", propT);
 val proto_pure =
   Context.pre_pure_thy
   |> Compress.init_data
-  |> Sign.init_data
-  |> Theory.init_data
-  |> Proofterm.init_data
   |> TheoremsData.init
   |> Sign.add_types
    [("fun", 2, NoSyn),

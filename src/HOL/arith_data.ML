@@ -206,8 +206,7 @@ fun mk_arith_tactic name tactic = ArithTactic {name = name, tactic = tactic, id 
 fun eq_arith_tactic (ArithTactic {id = id1, ...}, ArithTactic {id = id2, ...}) = (id1 = id2);
 
 structure ArithTheoryData = TheoryDataFun
-(struct
-  val name = "HOL/arith";
+(
   type T = {splits: thm list,
             inj_consts: (string * typ) list,
             discrete: string list,
@@ -221,8 +220,7 @@ structure ArithTheoryData = TheoryDataFun
     inj_consts = Library.merge (op =) (inj_consts1, inj_consts2),
     discrete = Library.merge (op =) (discrete1, discrete2),
     tactics = Library.merge eq_arith_tactic (tactics1, tactics2)};
-  fun print _ _ = ();
-end);
+);
 
 val arith_split_add = Thm.declaration_attribute (fn thm =>
   Context.mapping (ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
@@ -922,7 +920,6 @@ val fast_arith_split_limit = LA_Data_Ref.fast_arith_split_limit;
    Most of the work is done by the cancel tactics. *)
 
 val init_lin_arith_data =
- Fast_Arith.setup #>
  Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, ...} =>
    {add_mono_thms = add_mono_thms @
     @{thms add_mono_thms_ordered_semiring} @ @{thms add_mono_thms_ordered_field},
@@ -940,7 +937,6 @@ val init_lin_arith_data =
       addsimprocs [ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv]
        (*abel_cancel helps it work in abstract algebraic domains*)
       addsimprocs nat_cancel_sums_add}) #>
-  ArithTheoryData.init #>
   arith_discrete "nat";
 
 val fast_nat_arith_simproc =

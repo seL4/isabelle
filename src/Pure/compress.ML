@@ -21,8 +21,7 @@ struct
 (* theory data *)
 
 structure CompressData = TheoryDataFun
-(struct
-  val name = "Pure/compress";
+(
   type T = typ Typtab.table ref * term Termtab.table ref;
   val empty : T = (ref Typtab.empty, ref Termtab.empty);
   fun copy (ref typs, ref terms) : T = (ref typs, ref terms);
@@ -30,8 +29,7 @@ structure CompressData = TheoryDataFun
   fun merge _ ((ref typs1, ref terms1), (ref typs2, ref terms2)) : T =
    (ref (Typtab.merge (K true) (typs1, typs2)),
     ref (Termtab.merge (K true) (terms1, terms2)));
-  fun print _ _ = ();
-end);
+);
 
 val init_data = CompressData.init;
 

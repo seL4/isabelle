@@ -78,30 +78,24 @@ fun morph_fundef_data phi (FundefCtxData {add_simps, fs, R, psimps, pinducts, te
     end
 
 structure FundefData = GenericDataFun
-(struct
-  val name = "HOL/function_def/data";
-  type T = (term * fundef_context_data) NetRules.T
-
+(
+  type T = (term * fundef_context_data) NetRules.T;
   val empty = NetRules.init
     (op aconv o pairself fst : (term * fundef_context_data) * (term * fundef_context_data) -> bool)
     fst;
   val copy = I;
   val extend = I;
   fun merge _ (tab1, tab2) = NetRules.merge (tab1, tab2)
-
-  fun print _ _ = ();
-end);
+);
 
 
 structure FundefCongs = GenericDataFun
-(struct
-    val name = "HOL/function_def/congs"
-    type T = thm list
-    val empty = []
-    val extend = I
-    fun merge _ = Drule.merge_rules
-    fun print  _ _ = ()
-end);
+(
+  type T = thm list
+  val empty = []
+  val extend = I
+  fun merge _ = Drule.merge_rules
+);
 
 
 (* Generally useful?? *)
@@ -143,14 +137,12 @@ val get_fundef_congs = FundefCongs.get
 
 
 structure TerminationRule = GenericDataFun
-(struct
-    val name = "HOL/function_def/termination"
-    type T = thm list
-    val empty = []
-    val extend = I
-    fun merge _ = Drule.merge_rules
-    fun print  _ _ = ()
-end);
+(
+  type T = thm list
+  val empty = []
+  val extend = I
+  fun merge _ = Drule.merge_rules
+);
 
 val get_termination_rules = TerminationRule.get
 val store_termination_rule = TerminationRule.map o cons

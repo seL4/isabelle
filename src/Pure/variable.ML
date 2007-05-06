@@ -79,14 +79,10 @@ fun make_data (is_body, names, fixes, binds, type_occs, constraints) =
 
 structure Data = ProofDataFun
 (
-  val name = "Pure/variable";
   type T = data;
   fun init thy =
     make_data (false, Name.context, [], Vartab.empty, Symtab.empty, (Vartab.empty, Vartab.empty));
-  fun print _ _ = ();
 );
-
-val _ = Context.add_setup Data.init;
 
 fun map_data f =
   Data.map (fn Data {is_body, names, fixes, binds, type_occs, constraints} =>

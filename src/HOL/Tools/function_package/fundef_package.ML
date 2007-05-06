@@ -208,13 +208,11 @@ val setup_case_cong_hook =
 (* setup *)
 
 val setup =
-    FundefData.init
-      #> FundefCongs.init
-      #> TerminationRule.init
-      #>  Attrib.add_attributes
-            [("fundef_cong", Attrib.add_del_args cong_add cong_del, "declaration of congruence rule for function definitions")]
-      #> setup_case_cong_hook
-      #> FundefRelation.setup
+  Attrib.add_attributes
+    [("fundef_cong", Attrib.add_del_args cong_add cong_del,
+      "declaration of congruence rule for function definitions")]
+  #> setup_case_cong_hook
+  #> FundefRelation.setup
 
 val get_congs = FundefCommon.get_fundef_congs o Context.Theory
 

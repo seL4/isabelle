@@ -60,7 +60,6 @@ end
 
 signature SIGN =
 sig
-  val init_data: theory -> theory
   val rep_sg: theory ->
    {naming: NameSpace.naming,
     syn: Syntax.syntax,
@@ -203,8 +202,7 @@ fun make_sign (naming, syn, tsig, consts) =
   Sign {naming = naming, syn = syn, tsig = tsig, consts = consts};
 
 structure SignData = TheoryDataFun
-(struct
-  val name = "Pure/sign";
+(
   type T = sign;
   val copy = I;
   fun extend (Sign {syn, tsig, consts, ...}) =
@@ -223,11 +221,7 @@ structure SignData = TheoryDataFun
       val tsig = Type.merge_tsigs pp (tsig1, tsig2);
       val consts = Consts.merge (consts1, consts2);
     in make_sign (naming, syn, tsig, consts) end;
-
-  fun print _ _ = ();
-end);
-
-val init_data = SignData.init;
+);
 
 fun rep_sg thy = SignData.get thy |> (fn Sign args => args);
 

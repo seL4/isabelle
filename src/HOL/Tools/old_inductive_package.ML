@@ -37,7 +37,6 @@ sig
     {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
      intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}) option
   val the_mk_cases: theory -> string -> string -> thm
-  val print_inductives: theory -> unit
   val mono_add: attribute
   val mono_del: attribute
   val get_monos: theory -> thm list
@@ -88,27 +87,14 @@ type inductive_info =
     induct: thm, intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm};
 
 structure InductiveData = TheoryDataFun
-(struct
-  val name = "HOL/inductive";
+(
   type T = inductive_info Symtab.table * thm list;
-
   val empty = (Symtab.empty, []);
   val copy = I;
   val extend = I;
   fun merge _ ((tab1, monos1), (tab2, monos2)) =
     (Symtab.merge (K true) (tab1, tab2), Drule.merge_rules (monos1, monos2));
-
-  fun print thy (tab, monos) =
-    [Pretty.strs ("(co)inductives:" ::
-      map #1 (NameSpace.extern_table (Sign.const_space thy, tab))),
-     Pretty.big_list "monotonicity rules:" (map (Display.pretty_thm_sg thy) monos)]
-    |> Pretty.chunks |> Pretty.writeln;
-end);
-
-val print_inductives = InductiveData.print;
-
-
-(* get and put data *)
+);
 
 val get_inductive = Symtab.lookup o #1 o InductiveData.get;
 
@@ -871,7 +857,6 @@ fun add_inductive verbose coind c_strings intro_srcs raw_monos thy =
 (* setup theory *)
 
 val setup =
-  InductiveData.init #>
   Method.add_methods [("ind_cases", mk_cases_meth oo mk_cases_args,
     "dynamic case analysis on sets")] #>
   Attrib.add_attributes [("mono", Attrib.add_del_args mono_add mono_del,

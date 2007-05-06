@@ -186,9 +186,8 @@ struct
     };
 
 
-  structure RefuteDataArgs =
-  struct
-    val name = "HOL/refute";
+  structure RefuteData = TheoryDataFun
+  (
     type T =
       {interpreters: (string * (theory -> model -> arguments -> Term.term ->
         (interpretation * model * arguments) option)) list,
@@ -204,15 +203,7 @@ struct
       {interpreters = AList.merge (op =) (K true) (in1, in2),
        printers = AList.merge (op =) (K true) (pr1, pr2),
        parameters = Symtab.merge (op=) (pa1, pa2)};
-    fun print sg {interpreters, printers, parameters} =
-      Pretty.writeln (Pretty.chunks
-        [Pretty.strs ("default parameters:" :: List.concat (map
-          (fn (name, value) => [name, "=", value]) (Symtab.dest parameters))),
-         Pretty.strs ("interpreters:" :: map fst interpreters),
-         Pretty.strs ("printers:" :: map fst printers)]);
-  end;
-
-  structure RefuteData = TheoryDataFun(RefuteDataArgs);
+  );
 
 
 (* ------------------------------------------------------------------------- *)
@@ -3210,7 +3201,6 @@ struct
   (* (theory -> theory) list *)
 
   val setup =
-     RefuteData.init #>
      add_interpreter "stlc"    stlc_interpreter #>
      add_interpreter "Pure"    Pure_interpreter #>
      add_interpreter "HOLogic" HOLogic_interpreter #>

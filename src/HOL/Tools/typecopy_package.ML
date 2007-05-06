@@ -23,7 +23,7 @@ sig
   val add_hook: hook -> theory -> theory
   val get_spec: theory -> string -> (string * sort) list * (string * typ list) list
   val get_eq: theory -> string -> thm
-  val print: theory -> unit
+  val print_typecopies: theory -> unit
   val setup: theory -> theory
 end;
 
@@ -44,33 +44,30 @@ type info = {
 type hook = string * info -> theory -> theory;
 
 structure TypecopyData = TheoryDataFun
-(struct
-  val name = "HOL/typecopy_package";
+(
   type T = info Symtab.table * (serial * hook) list;
   val empty = (Symtab.empty, []);
   val copy = I;
   val extend = I;
   fun merge _ ((tab1, hooks1), (tab2, hooks2) : T) =
     (Symtab.merge (K true) (tab1, tab2), AList.merge (op =) (K true) (hooks1, hooks2));
-  fun print thy (tab, _) =
-    let
-      fun mk (tyco, { vs, constr, typ, proj = (proj, _), ... } : info) =
-        (Pretty.block o Pretty.breaks) [
-          Sign.pretty_typ thy (Type (tyco, map TFree vs)),
-          Pretty.str "=",
-          (Pretty.str o Sign.extern_const thy) constr,
-          Sign.pretty_typ thy typ,
-          Pretty.block [Pretty.str "(", (Pretty.str o Sign.extern_const thy) proj, Pretty.str  ")"]
-        ];
-    in
-      (Pretty.writeln o Pretty.block o Pretty.fbreaks) (
-        Pretty.str "type copies:"
-        :: map mk (Symtab.dest tab)
-      )
-    end;
-end);
+);
 
-val print = TypecopyData.print;
+fun print_typecopies thy =
+  let
+    val (tab, _) = TypecopyData.get thy;
+    fun mk (tyco, { vs, constr, typ, proj = (proj, _), ... } : info) =
+      (Pretty.block o Pretty.breaks) [
+        Sign.pretty_typ thy (Type (tyco, map TFree vs)),
+        Pretty.str "=",
+        (Pretty.str o Sign.extern_const thy) constr,
+        Sign.pretty_typ thy typ,
+        Pretty.block [Pretty.str "(", (Pretty.str o Sign.extern_const thy) proj, Pretty.str  ")"]];
+    in
+      (Pretty.writeln o Pretty.block o Pretty.fbreaks)
+        (Pretty.str "type copies:" :: map mk (Symtab.dest tab))
+    end;
+
 val get_typecopies = Symtab.keys o fst o TypecopyData.get;
 val get_typecopy_info = Symtab.lookup o fst o TypecopyData.get;
 
@@ -128,7 +125,7 @@ in
 
 val add_typecopy = gen_add_typecopy Sign.certify_typ;
 
-end; (*local*)
+end;
 
 
 (* equality function equation and datatype specification *)
@@ -147,8 +144,6 @@ fun get_spec thy tyco =
 fun add_project (_ , {proj_def, ...} : info) =
   CodegenData.add_func true proj_def;
 
-val setup =
-  TypecopyData.init
-  #> add_hook add_project;
+val setup = add_hook add_project;
 
-end; (*struct*)
+end;

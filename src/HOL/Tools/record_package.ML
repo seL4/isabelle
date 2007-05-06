@@ -243,7 +243,8 @@ type parent_info =
 fun make_parent_info name fields extension induct =
  {name = name, fields = fields, extension = extension, induct = induct}: parent_info;
 
-(* data kind 'HOL/record' *)
+
+(* theory data *)
 
 type record_data =
  {records: record_info Symtab.table,
@@ -266,10 +267,8 @@ fun make_record_data
   extfields = extfields, fieldext = fieldext }: record_data;
 
 structure RecordsData = TheoryDataFun
-(struct
-  val name = "HOL/record"; 
+(
   type T = record_data;
-
   val empty =
     make_record_data Symtab.empty
       {selectors = Symtab.empty, updates = Symtab.empty, simpset = HOL_basic_ss}
@@ -308,27 +307,26 @@ structure RecordsData = TheoryDataFun
                     (splits1, splits2))
       (Symtab.merge (K true) (extfields1,extfields2))
       (Symtab.merge (K true) (fieldext1,fieldext2));
+);
 
-  fun print thy ({records = recs, ...}: record_data) =
-    let
-      val prt_typ = Sign.pretty_typ thy;
+fun print_records thy =
+  let
+    val {records = recs, ...} = RecordsData.get thy;
+    val prt_typ = Sign.pretty_typ thy;
 
-      fun pretty_parent NONE = []
-        | pretty_parent (SOME (Ts, name)) =
-            [Pretty.block [prt_typ (Type (name, Ts)), Pretty.str " +"]];
+    fun pretty_parent NONE = []
+      | pretty_parent (SOME (Ts, name)) =
+          [Pretty.block [prt_typ (Type (name, Ts)), Pretty.str " +"]];
 
-      fun pretty_field (c, T) = Pretty.block
-        [Pretty.str (Sign.extern_const thy c), Pretty.str " ::",
-          Pretty.brk 1, Pretty.quote (prt_typ T)];
+    fun pretty_field (c, T) = Pretty.block
+      [Pretty.str (Sign.extern_const thy c), Pretty.str " ::",
+        Pretty.brk 1, Pretty.quote (prt_typ T)];
 
-      fun pretty_record (name, {args, parent, fields, ...}: record_info) =
-        Pretty.block (Pretty.fbreaks (Pretty.block
-          [prt_typ (Type (name, map TFree args)), Pretty.str " = "] ::
-          pretty_parent parent @ map pretty_field fields));
-    in map pretty_record (Symtab.dest recs) |> Pretty.chunks |> Pretty.writeln end;
-end);
-
-val print_records = RecordsData.print;
+    fun pretty_record (name, {args, parent, fields, ...}: record_info) =
+      Pretty.block (Pretty.fbreaks (Pretty.block
+        [prt_typ (Type (name, map TFree args)), Pretty.str " = "] ::
+        pretty_parent parent @ map pretty_field fields));
+  in map pretty_record (Symtab.dest recs) |> Pretty.chunks |> Pretty.writeln end;
 
 
 (* access 'records' *)
@@ -342,6 +340,7 @@ fun put_record name info thy =
     val data = make_record_data (Symtab.update (name, info) records)
       sel_upd equalities extinjects extsplit splits extfields fieldext;
   in RecordsData.put data thy end;
+
 
 (* access 'sel_upd' *)
 
@@ -365,6 +364,7 @@ fun put_sel_upd names simps thy =
        equalities extinjects extsplit splits extfields fieldext;
   in RecordsData.put data thy end;
 
+
 (* access 'equalities' *)
 
 fun add_record_equalities name thm thy =
@@ -378,17 +378,20 @@ fun add_record_equalities name thm thy =
 
 val get_equalities =Symtab.lookup o #equalities o RecordsData.get;
 
+
 (* access 'extinjects' *)
 
 fun add_extinjects thm thy =
   let
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields,fieldext} =
           RecordsData.get thy;
-    val data = make_record_data records sel_upd equalities (insert Thm.eq_thm_prop thm extinjects) extsplit
-                 splits extfields fieldext;
+    val data =
+      make_record_data records sel_upd equalities (insert Thm.eq_thm_prop thm extinjects) extsplit
+        splits extfields fieldext;
   in RecordsData.put data thy end;
 
 val get_extinjects = rev o #extinjects o RecordsData.get;
+
 
 (* access 'extsplit' *)
 
@@ -2263,7 +2266,6 @@ val add_record_i = gen_add_record cert_typ (K I);
 (* setup theory *)
 
 val setup =
-  RecordsData.init #>
   Theory.add_trfuns ([], parse_translation, [], []) #>
   Theory.add_advanced_trfuns ([], adv_parse_translation, [], []) #>
   (fn thy => (Simplifier.change_simpset_of thy

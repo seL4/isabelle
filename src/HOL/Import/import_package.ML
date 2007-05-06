@@ -10,18 +10,14 @@ sig
     val debug      : bool ref
 end
 
-structure ImportDataArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/import_data"
-type T = ProofKernel.thm option array option
-val empty = NONE
-val copy = I
-val extend = I
-fun merge _ _ = NONE
-fun print _ _ = ()
-end
-
-structure ImportData = TheoryDataFun(ImportDataArgs)
+structure ImportData = TheoryDataFun
+(
+  type T = ProofKernel.thm option array option
+  val empty = NONE
+  val copy = I
+  val extend = I
+  fun merge _ _ = NONE
+)
 
 structure ImportPackage :> IMPORT_PACKAGE =
 struct
@@ -80,6 +76,6 @@ val import_meth = Method.simple_args (Args.name -- Args.name)
                           Method.SIMPLE_METHOD (import_tac arg thy)
                       end)
 
-val setup = Method.add_method("import",import_meth,"Import HOL4 theorem") #> ImportData.init
+val setup = Method.add_method("import",import_meth,"Import HOL4 theorem")
 end
 

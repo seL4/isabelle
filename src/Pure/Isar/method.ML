@@ -378,28 +378,24 @@ fun finish_text (NONE, immed) = Basic (close immed)
 (* method definitions *)
 
 structure MethodsData = TheoryDataFun
-(struct
-  val name = "Isar/methods";
+(
   type T = (((src -> Proof.context -> method) * string) * stamp) NameSpace.table;
-
   val empty = NameSpace.empty_table;
   val copy = I;
   val extend = I;
   fun merge _ tables = NameSpace.merge_tables (eq_snd (op =)) tables handle Symtab.DUPS dups =>
     error ("Attempt to merge different versions of method(s) " ^ commas_quote dups);
+);
 
-  fun print _ meths =
-    let
-      fun prt_meth (name, ((_, comment), _)) = Pretty.block
-        [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
-    in
-      [Pretty.big_list "methods:" (map prt_meth (NameSpace.extern_table meths))]
-      |> Pretty.chunks |> Pretty.writeln
-    end;
-end);
-
-val _ = Context.add_setup MethodsData.init;
-val print_methods = MethodsData.print;
+fun print_methods thy =
+  let
+    val meths = MethodsData.get thy;
+    fun prt_meth (name, ((_, comment), _)) = Pretty.block
+      [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
+  in
+    [Pretty.big_list "methods:" (map prt_meth (NameSpace.extern_table meths))]
+    |> Pretty.chunks |> Pretty.writeln
+  end;
 
 
 (* get methods *)

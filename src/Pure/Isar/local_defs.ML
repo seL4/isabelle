@@ -147,19 +147,15 @@ end;
 
 structure Rules = GenericDataFun
 (
-  val name = "Pure/derived_defs";
   type T = thm list;
   val empty = []
   val extend = I;
   fun merge _ = Drule.merge_rules;
-  fun print context rules =
-    Pretty.writeln (Pretty.big_list "definitional transformations:"
-      (map (ProofContext.pretty_thm (Context.proof_of context)) rules));
 );
 
-val _ = Context.add_setup Rules.init;
-
-val print_rules = Rules.print o Context.Proof;
+fun print_rules ctxt =
+  Pretty.writeln (Pretty.big_list "definitional transformations:"
+    (map (ProofContext.pretty_thm ctxt) (Rules.get (Context.Proof ctxt))));
 
 val defn_add = Thm.declaration_attribute (Rules.map o Drule.add_rule);
 val defn_del = Thm.declaration_attribute (Rules.map o Drule.del_rule);

@@ -500,12 +500,10 @@ local
 
 structure Data = GenericDataFun
 (
-  val name = "CCL/eval";
   type T = thm list;
   val empty = [];
   val extend = I;
   fun merge _ = Drule.merge_rules;
-  fun print _ _ = ();
 );
 
 in
@@ -518,7 +516,6 @@ fun eval_tac ctxt ths =
     DEPTH_SOLVE_1 (resolve_tac (ths @ prems @ Data.get (Context.Proof ctxt)) 1)) 1;
 
 val eval_setup =
-  Data.init #>
   Attrib.add_attributes
     [("eval", Attrib.add_del_args eval_add eval_del, "declaration of evaluation rule")] #>
   Method.add_methods [("eval", Method.thms_ctxt_args (fn ths => fn ctxt =>

@@ -140,9 +140,9 @@ sig
   val add_context_unsafe_wrapper: string * (Proof.context -> wrapper) -> theory -> theory
   val del_context_unsafe_wrapper: string -> theory -> theory
   val get_claset: theory -> claset
-  val print_local_claset: Proof.context -> unit
   val get_local_claset: Proof.context -> claset
   val put_local_claset: claset -> Proof.context -> Proof.context
+  val print_local_claset: Proof.context -> unit
   val safe_dest: int option -> attribute
   val safe_elim: int option -> attribute
   val safe_intro: int option -> attribute
@@ -857,19 +857,16 @@ fun merge_context_cs (ctxt_cs1, ctxt_cs2) =
 (* global claset *)
 
 structure GlobalClaset = TheoryDataFun
-(struct
-  val name = "Provers/claset";
+(
   type T = claset ref * context_cs;
-
   val empty = (ref empty_cs, empty_context_cs);
   fun copy (ref cs, ctxt_cs) = (ref cs, ctxt_cs): T;
   val extend = copy;
   fun merge _ ((ref cs1, ctxt_cs1), (ref cs2, ctxt_cs2)) =
     (ref (merge_cs (cs1, cs2)), merge_context_cs (ctxt_cs1, ctxt_cs2));
-  fun print _ (ref cs, _) = print_cs cs;
-end);
+);
 
-val print_claset = GlobalClaset.print;
+val print_claset = print_cs o ! o #1 o GlobalClaset.get;
 val get_claset = ! o #1 o GlobalClaset.get;
 
 val get_context_cs = #2 o GlobalClaset.get o ProofContext.theory_of;
@@ -912,19 +909,18 @@ fun del_context_unsafe_wrapper name = (map_context_cs o apsnd)
 (* local claset *)
 
 structure LocalClaset = ProofDataFun
-(struct
-  val name = "Provers/claset";
+(
   type T = claset;
   val init = get_claset;
-  fun print ctxt cs = print_cs (context_cs ctxt cs (get_context_cs ctxt));
-end);
+);
 
-val print_local_claset = LocalClaset.print;
 val get_local_claset = LocalClaset.get;
 val put_local_claset = LocalClaset.put;
 
 fun local_claset_of ctxt =
   context_cs ctxt (get_local_claset ctxt) (get_context_cs ctxt);
+
+val print_local_claset = print_cs o local_claset_of;
 
 
 (* attributes *)
@@ -1061,7 +1057,7 @@ val setup_methods = Method.add_methods
 
 (** theory setup **)
 
-val setup = GlobalClaset.init #> LocalClaset.init #> setup_attrs #> setup_methods;
+val setup = GlobalClaset.init #> setup_attrs #> setup_methods;
 
 
 

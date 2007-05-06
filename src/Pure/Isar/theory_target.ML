@@ -22,13 +22,10 @@ struct
 
 structure Data = ProofDataFun
 (
-  val name = "Isar/theory_target";
   type T = string option;
   fun init _ = NONE;
-  fun print _ _ = ();
 );
 
-val _ = Context.add_setup Data.init;
 val peek = Data.get;
 
 

@@ -30,25 +30,21 @@ struct
 
 structure CalculationData = GenericDataFun
 (
-  val name = "Isar/calculation";
   type T = (thm NetRules.T * thm list) * (thm list * int) option;
   val empty = ((NetRules.elim, []), NONE);
   val extend = I;
 
   fun merge _ (((trans1, sym1), _), ((trans2, sym2), _)) =
     ((NetRules.merge (trans1, trans2), Drule.merge_rules (sym1, sym2)), NONE);
-
-  fun print generic ((trans, sym), _) =
-    let val ctxt = Context.proof_of generic in
-      [Pretty.big_list "transitivity rules:"
-          (map (ProofContext.pretty_thm ctxt) (NetRules.rules trans)),
-        Pretty.big_list "symmetry rules:" (map (ProofContext.pretty_thm ctxt) sym)]
-      |> Pretty.chunks |> Pretty.writeln
-    end;
 );
 
-val _ = Context.add_setup CalculationData.init;
-val print_rules = CalculationData.print o Context.Proof;
+fun print_rules ctxt =
+  let val ((trans, sym), _) = CalculationData.get (Context.Proof ctxt) in
+    [Pretty.big_list "transitivity rules:"
+        (map (ProofContext.pretty_thm ctxt) (NetRules.rules trans)),
+      Pretty.big_list "symmetry rules:" (map (ProofContext.pretty_thm ctxt) sym)]
+    |> Pretty.chunks |> Pretty.writeln
+  end;
 
 
 (* access calculation *)

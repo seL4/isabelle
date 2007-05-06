@@ -21,7 +21,6 @@ sig
   val end_theory: theory -> theory
   val checkpoint: theory -> theory
   val copy: theory -> theory
-  val init_data: theory -> theory
   val rep_theory: theory ->
    {axioms: term NameSpace.table,
     defs: Defs.T,
@@ -101,8 +100,7 @@ fun err_dup_axms dups = error ("Duplicate axiom(s): " ^ commas_quote dups);
 fun err_dup_oras dups = error ("Duplicate oracle(s): " ^ commas_quote dups);
 
 structure ThyData = TheoryDataFun
-(struct
-  val name = "Pure/theory";
+(
   type T = thy;
   val empty = make_thy (NameSpace.empty_table, Defs.empty, NameSpace.empty_table);
   val copy = I;
@@ -119,11 +117,7 @@ structure ThyData = TheoryDataFun
       val oracles = NameSpace.merge_tables (eq_snd (op =)) (oracles1, oracles2)
         handle Symtab.DUPS dups => err_dup_oras dups;
     in make_thy (axioms, defs, oracles) end;
-
-  fun print _ _ = ();
-end);
-
-val init_data = ThyData.init;
+);
 
 fun rep_theory thy = ThyData.get thy |> (fn Thy args => args);
 

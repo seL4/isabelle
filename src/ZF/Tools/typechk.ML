@@ -44,7 +44,6 @@ fun del_rule th (tcs as TC {rules, net}) =
 
 structure Data = GenericDataFun
 (
-  val name = "ZF/type-checking";
   type T = tcset
   val empty = TC {rules = [], net = Net.empty};
   val extend = I;
@@ -52,18 +51,18 @@ structure Data = GenericDataFun
   fun merge _ (TC {rules, net}, TC {rules = rules', net = net'}) =
     TC {rules = Drule.merge_rules (rules, rules'),
         net = Net.merge Thm.eq_thm_prop (net, net')};
-
-  fun print context (TC {rules, ...}) =
-    Pretty.writeln (Pretty.big_list "type-checking rules:"
-      (map (ProofContext.pretty_thm (Context.proof_of context)) rules));
 );
-
-val print_tcset = Data.print o Context.Proof;
 
 val TC_add = Thm.declaration_attribute (Data.map o add_rule);
 val TC_del = Thm.declaration_attribute (Data.map o del_rule);
 
 val tcset_of = Data.get o Context.Proof;
+
+fun print_tcset ctxt =
+  let val TC {rules, ...} = tcset_of ctxt in
+    Pretty.writeln (Pretty.big_list "type-checking rules:"
+      (map (ProofContext.pretty_thm ctxt) rules))
+  end;
 
 
 (* tactics *)
@@ -128,7 +127,6 @@ val _ = OuterSyntax.add_parsers
 (* theory setup *)
 
 val setup =
-  Data.init #>
   Attrib.add_attributes [("TC", TC_att, "declaration of type-checking rule")] #>
   Method.add_methods [("typecheck", typecheck_meth, "ZF type-checking")] #>
   (fn thy => (change_simpset_of thy (fn ss => ss setSolver type_solver); thy));

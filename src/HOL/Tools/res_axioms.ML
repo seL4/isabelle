@@ -481,15 +481,13 @@ fun skolem thy th =
       (SOME (to_nnf th, fake_name th)  handle THM _ => NONE);
 
 structure ThmCache = TheoryDataFun
-(struct
-  val name = "ATP/thm_cache";
+(
   type T = (thm list) Thmtab.table ref;
   val empty : T = ref Thmtab.empty;
   fun copy (ref tab) : T = ref tab;
   val extend = copy;
   fun merge _ (ref tab1, ref tab2) : T = ref (Thmtab.merge (K true) (tab1, tab2));
-  fun print _ _ = ();
-end);
+);
 
 (*The cache prevents repeated clausification of a theorem, and also repeated declaration of 
   Skolem functions. The global one holds theorems proved prior to this point. Theory data

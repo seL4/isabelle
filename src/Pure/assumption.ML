@@ -62,13 +62,9 @@ fun make_data (assms, prems) = Data {assms = assms, prems = prems};
 
 structure Data = ProofDataFun
 (
-  val name = "Pure/assumption";
   type T = data;
   fun init _ = make_data ([], []);
-  fun print _ _ = ();
 );
-
-val _ = Context.add_setup Data.init;
 
 fun map_data f = Data.map (fn Data {assms, prems} => make_data (f (assms, prems)));
 fun rep_data ctxt = Data.get ctxt |> (fn Data args => args);

@@ -75,20 +75,18 @@ fun mk_obj_eq th =
        | _ => raise THM("Not an equality",0,[th]))
     handle _ => raise THM("Couldn't make object equality",0,[th])
 
-structure ShuffleDataArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL/shuffles"
-type T = thm list
-val empty = []
-val copy = I
-val extend = I
-fun merge _ = Library.gen_union Thm.eq_thm
-fun print _ thms =
-    Pretty.writeln (Pretty.big_list "Shuffle theorems:"
-                                    (map Display.pretty_thm thms))
-end
+structure ShuffleData = TheoryDataFun
+(
+  type T = thm list
+  val empty = []
+  val copy = I
+  val extend = I
+  fun merge _ = Library.gen_union Thm.eq_thm
+)
 
-structure ShuffleData = TheoryDataFun(ShuffleDataArgs)
+fun print_shuffles thy =
+  Pretty.writeln (Pretty.big_list "Shuffle theorems:"
+    (map Display.pretty_thm (ShuffleData.get thy)))
 
 val weaken =
     let
@@ -667,8 +665,6 @@ fun search_meth ctxt =
         Method.SIMPLE_METHOD' (gen_shuffle_tac thy true (map (pair "premise") prems))
     end
 
-val print_shuffles = ShuffleData.print
-
 fun add_shuffle_rule thm thy =
     let
         val shuffles = ShuffleData.get thy
@@ -682,9 +678,10 @@ fun add_shuffle_rule thm thy =
 val shuffle_attr = Thm.declaration_attribute (fn th => Context.mapping (add_shuffle_rule th) I);
 
 val setup =
-  Method.add_method ("shuffle_tac",Method.thms_ctxt_args shuffle_meth,"solve goal by shuffling terms around") #>
-  Method.add_method ("search_tac",Method.ctxt_args search_meth,"search for suitable theorems") #>
-  ShuffleData.init #>
+  Method.add_method ("shuffle_tac",
+    Method.thms_ctxt_args shuffle_meth,"solve goal by shuffling terms around") #>
+  Method.add_method ("search_tac",
+    Method.ctxt_args search_meth,"search for suitable theorems") #>
   add_shuffle_rule weaken #>
   add_shuffle_rule equiv_comm #>
   add_shuffle_rule imp_comm #>

@@ -97,19 +97,16 @@ open MetaSimplifier;
 (* global simpsets *)
 
 structure GlobalSimpset = TheoryDataFun
-(struct
-  val name = "Pure/simpset";
+(
   type T = simpset ref;
-
   val empty = ref empty_ss;
-  fun copy (ref ss) = ref ss: T;            (*create new reference!*)
+  fun copy (ref ss) = ref ss: T;
   fun extend (ref ss) = ref (MetaSimplifier.inherit_context empty_ss ss);
   fun merge _ (ref ss1, ref ss2) = ref (merge_ss (ss1, ss2));
-  fun print _ (ref ss) = print_ss ss;
-end);
+);
 
 val _ = Context.add_setup GlobalSimpset.init;
-val print_simpset = GlobalSimpset.print;
+fun print_simpset thy = print_ss (! (GlobalSimpset.get thy));
 val get_simpset = ! o GlobalSimpset.get;
 
 val change_simpset_of = change o GlobalSimpset.get;
@@ -133,15 +130,12 @@ fun Delcongs args = change_simpset (fn ss => ss delcongs args);
 (* local simpsets *)
 
 structure LocalSimpset = ProofDataFun
-(struct
-  val name = "Pure/simpset";
+(
   type T = simpset;
   val init = get_simpset;
-  fun print _ ss = print_ss ss;
-end);
+);
 
-val _ = Context.add_setup LocalSimpset.init;
-val print_local_simpset = LocalSimpset.print;
+val print_local_simpset = print_ss o LocalSimpset.get;
 val get_local_simpset = LocalSimpset.get;
 val put_local_simpset = LocalSimpset.put;
 
@@ -181,15 +175,12 @@ fun err_dup_simprocs ds =
 
 structure Simprocs = GenericDataFun
 (
-  val name = "Pure/simprocs";
   type T = simproc NameSpace.table;
   val empty = NameSpace.empty_table;
   val extend = I;
   fun merge _ simprocs = NameSpace.merge_tables eq_simproc simprocs
     handle Symtab.DUPS ds => err_dup_simprocs ds;
-  fun print _ _ = ();
 );
-val _ = Context.add_setup Simprocs.init;
 
 
 (* get simprocs *)

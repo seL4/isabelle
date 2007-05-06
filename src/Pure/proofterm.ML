@@ -110,8 +110,6 @@ sig
     (string * (typ list -> proof -> proof option)) list -> proof -> proof
   val rewrite_proof_notypes : (proof * proof) list *
     (string * (typ list -> proof -> proof option)) list -> proof -> proof
-  val init_data: theory -> theory
-
 end
 
 structure Proofterm : PROOFTERM =
@@ -1178,10 +1176,8 @@ fun rewrite_proof_notypes rews = rewrite_prf fst rews;
 (**** theory data ****)
 
 structure ProofData = TheoryDataFun
-(struct
-  val name = "Pure/proof";
-  type T = ((proof * proof) list *
-    (string * (typ list -> proof -> proof option)) list);
+(
+  type T = (proof * proof) list * (string * (typ list -> proof -> proof option)) list;
 
   val empty = ([], []);
   val copy = I;
@@ -1189,10 +1185,7 @@ structure ProofData = TheoryDataFun
   fun merge _ ((rules1, procs1) : T, (rules2, procs2)) =
     (Library.merge (op =) (rules1, rules2),
       AList.merge (op =) (K true) (procs1, procs2));
-  fun print _ _ = ();
-end);
-
-val init_data = ProofData.init;
+);
 
 fun add_prf_rrule r = (ProofData.map o apfst) (insert (op =) r);
 

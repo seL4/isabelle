@@ -305,8 +305,7 @@ end;
 (** theory data **)
 
 structure GlobalLocalesData = TheoryDataFun
-(struct
-  val name = "Isar/locales";
+(
   type T = NameSpace.T * locale Symtab.table * Registrations.T Symtab.table;
     (* 1st entry: locale namespace,
        2nd entry: locales of the theory,
@@ -332,33 +331,26 @@ structure GlobalLocalesData = TheoryDataFun
   fun merge _ ((space1, locs1, regs1), (space2, locs2, regs2)) =
     (NameSpace.merge (space1, space2), Symtab.join join_locales (locs1, locs2),
      Symtab.join (K Registrations.join) (regs1, regs2));
-
-  fun print _ (space, locs, _) =
-    Pretty.strs ("locales:" :: map #1 (NameSpace.extern_table (space, locs)))
-    |> Pretty.writeln;
-end);
-
-val _ = Context.add_setup GlobalLocalesData.init;
+);
 
 
 
 (** context data **)
 
 structure LocalLocalesData = ProofDataFun
-(struct
-  val name = "Isar/locales";
-  type T = Registrations.T Symtab.table;
-    (* registrations, indexed by locale name *)
+(
+  type T = Registrations.T Symtab.table;  (*registrations, indexed by locale name*)
   fun init _ = Symtab.empty;
-  fun print _ _ = ();
-end);
-
-val _ = Context.add_setup LocalLocalesData.init;
+);
 
 
 (* access locales *)
 
-val print_locales = GlobalLocalesData.print;
+fun print_locales thy =
+  let val (space, locs, _) = GlobalLocalesData.get thy in
+    Pretty.strs ("locales:" :: map #1 (NameSpace.extern_table (space, locs)))
+    |> Pretty.writeln
+  end;
 
 val intern = NameSpace.intern o #1 o GlobalLocalesData.get;
 val extern = NameSpace.extern o #1 o GlobalLocalesData.get;

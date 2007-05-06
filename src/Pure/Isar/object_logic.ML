@@ -38,11 +38,9 @@ struct
 (** theory data **)
 
 structure ObjectLogicData = TheoryDataFun
-(struct
-  val name = "Pure/object_logic";
+(
   type T = string option * (thm list * thm list);
-
-  val empty = (NONE, ([], [Drule.norm_hhf_eq]));
+  val empty = (NONE, ([], []));
   val copy = I;
   val extend = I;
 
@@ -53,11 +51,7 @@ structure ObjectLogicData = TheoryDataFun
   fun merge _ ((judgment1, (atomize1, rulify1)), (judgment2, (atomize2, rulify2))) =
     (merge_judgment (judgment1, judgment2),
       (Drule.merge_rules (atomize1, atomize2), Drule.merge_rules (rulify1, rulify2)));
-
-  fun print _ _ = ();
-end);
-
-val _ = Context.add_setup ObjectLogicData.init;
+);
 
 
 
@@ -136,11 +130,13 @@ fun is_elim rule =
 val get_atomize = #1 o #2 o ObjectLogicData.get;
 val get_rulify = #2 o #2 o ObjectLogicData.get;
 
-val declare_atomize = Thm.declaration_attribute (fn th =>
-  Context.mapping (ObjectLogicData.map (apsnd (apfst (Drule.add_rule th)))) I);
+val add_atomize = ObjectLogicData.map o apsnd o apfst o Drule.add_rule;
+val add_rulify = ObjectLogicData.map o apsnd o apsnd o Drule.add_rule;
 
-val declare_rulify = Thm.declaration_attribute (fn th =>
-  Context.mapping (ObjectLogicData.map (apsnd (apsnd (Drule.add_rule th)))) I);
+val declare_atomize = Thm.declaration_attribute (fn th => Context.mapping (add_atomize th) I);
+val declare_rulify = Thm.declaration_attribute (fn th => Context.mapping (add_rulify th) I);
+
+val _ = Context.add_setup (add_rulify Drule.norm_hhf_eq);
 
 
 (* atomize *)

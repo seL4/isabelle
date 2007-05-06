@@ -12,102 +12,70 @@ datatype ImportStatus =
        | Generating of string
        | Replaying of string
 
-structure HOL4DefThyArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/import_status"
-type T = ImportStatus
-val empty = NoImport
-val copy = I
-val extend = I
-fun merge _ (NoImport,NoImport) = NoImport
-  | merge _ _ = (warning "Import status set during merge"; NoImport)
-fun print _ import_status =
-    Pretty.writeln (Pretty.str (case import_status of NoImport => "No current import" | Generating thyname => ("Generating " ^ thyname) | Replaying thyname => ("Replaying " ^ thyname)))
-end;
+structure HOL4DefThy = TheoryDataFun
+(
+  type T = ImportStatus
+  val empty = NoImport
+  val copy = I
+  val extend = I
+  fun merge _ (NoImport,NoImport) = NoImport
+    | merge _ _ = (warning "Import status set during merge"; NoImport)
+)
 
-structure HOL4DefThy = TheoryDataFun(HOL4DefThyArgs);
-
-structure ImportSegmentArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/import_segment"
-type T = string
-val empty = ""
-val copy = I
-val extend = I
-fun merge _ ("",arg) = arg
-  | merge _ (arg,"") = arg
-  | merge _ (s1,s2) =
-    if s1 = s2
-    then s1
-    else error "Trying to merge two different import segments"
-fun print _ import_segment =
-    Pretty.writeln (Pretty.str ("Import segment: " ^ import_segment))
-end;
-
-structure ImportSegment = TheoryDataFun(ImportSegmentArgs);
+structure ImportSegment = TheoryDataFun
+(
+  type T = string
+  val empty = ""
+  val copy = I
+  val extend = I
+  fun merge _ ("",arg) = arg
+    | merge _ (arg,"") = arg
+    | merge _ (s1,s2) =
+      if s1 = s2
+      then s1
+      else error "Trying to merge two different import segments"
+)
 
 val get_import_segment = ImportSegment.get
 val set_import_segment = ImportSegment.put
 
-structure HOL4UNamesArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/used_names"
-type T = string list
-val empty = []
-val copy = I
-val extend = I
-fun merge _ ([],[]) = []
-  | merge _ _ = error "Used names not empty during merge"
-fun print _ used_names =
-    Pretty.writeln (Pretty.str "Printing of HOL4/used_names Not implemented")
-end;
+structure HOL4UNames = TheoryDataFun
+(
+  type T = string list
+  val empty = []
+  val copy = I
+  val extend = I
+  fun merge _ ([],[]) = []
+    | merge _ _ = error "Used names not empty during merge"
+)
 
-structure HOL4UNames = TheoryDataFun(HOL4UNamesArgs);
+structure HOL4Dump = TheoryDataFun
+(
+  type T = string * string * string list
+  val empty = ("","",[])
+  val copy = I
+  val extend = I
+  fun merge _ (("","",[]),("","",[])) = ("","",[])
+    | merge _ _ = error "Dump data not empty during merge"
+)
 
-structure HOL4DumpArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/dump_data"
-type T = string * string * string list
-val empty = ("","",[])
-val copy = I
-val extend = I
-fun merge _ (("","",[]),("","",[])) = ("","",[])
-  | merge _ _ = error "Dump data not empty during merge"
-fun print _ dump_data =
-    Pretty.writeln (Pretty.str "Printing of HOL4/dump_data Not implemented")
-end;
+structure HOL4Moves = TheoryDataFun
+(
+  type T = string Symtab.table
+  val empty = Symtab.empty
+  val copy = I
+  val extend = I
+  fun merge _ : T * T -> T = Symtab.merge (K true)
+)
 
-structure HOL4Dump = TheoryDataFun(HOL4DumpArgs);
-
-structure HOL4MovesArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/moves"
-type T = string Symtab.table
-val empty = Symtab.empty
-val copy = I
-val extend = I
-fun merge _ : T * T -> T = Symtab.merge (K true)
-fun print _ tab =
-  Pretty.writeln (Pretty.big_list "HOL4 moves:"
-    (Symtab.fold (fn (bef, aft) => fn xl => (Pretty.str (bef ^ " --> " ^ aft) :: xl)) tab []))
-end;
-
-structure HOL4Moves = TheoryDataFun(HOL4MovesArgs);
-
-structure HOL4ImportsArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/imports"
-type T = string Symtab.table
-val empty = Symtab.empty
-val copy = I
-val extend = I
-fun merge _ : T * T -> T = Symtab.merge (K true)
-fun print _ tab =
-  Pretty.writeln (Pretty.big_list "HOL4 imports:"
-    (Symtab.fold (fn (thyname, segname) => fn xl => (Pretty.str (thyname ^ " imported from segment " ^ segname) :: xl)) tab []))
-end;
-
-structure HOL4Imports = TheoryDataFun(HOL4ImportsArgs);
+structure HOL4Imports = TheoryDataFun
+(
+  type T = string Symtab.table
+  val empty = Symtab.empty
+  val copy = I
+  val extend = I
+  fun merge _ : T * T -> T = Symtab.merge (K true)
+)
 
 fun get_segment2 thyname thy =
   Symtab.lookup (HOL4Imports.get thy) thyname
@@ -120,143 +88,86 @@ fun set_segment thyname segname thy =
 	HOL4Imports.put imps' thy
     end
 
-structure HOL4CMovesArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/constant_moves"
-type T = string Symtab.table
-val empty = Symtab.empty
-val copy = I
-val extend = I
-fun merge _ : T * T -> T = Symtab.merge (K true)
-fun print _ tab =
-  Pretty.writeln (Pretty.big_list "HOL4 constant moves:"
-    (Symtab.fold (fn (bef, aft) => fn xl => (Pretty.str (bef ^ " --> " ^ aft) :: xl)) tab []))
-end;
+structure HOL4CMoves = TheoryDataFun
+(
+  type T = string Symtab.table
+  val empty = Symtab.empty
+  val copy = I
+  val extend = I
+  fun merge _ : T * T -> T = Symtab.merge (K true)
+)
 
-structure HOL4CMoves = TheoryDataFun(HOL4CMovesArgs);
+structure HOL4Maps = TheoryDataFun
+(
+  type T = (string option) StringPair.table
+  val empty = StringPair.empty
+  val copy = I
+  val extend = I
+  fun merge _ : T * T -> T = StringPair.merge (K true)
+)
 
-structure HOL4MapsArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/mappings"
-type T = (string option) StringPair.table
-val empty = StringPair.empty
-val copy = I
-val extend = I
-fun merge _ : T * T -> T = StringPair.merge (K true)
-fun print _ tab =
-  Pretty.writeln (Pretty.big_list "HOL4 mappings:"
-    (StringPair.fold (fn ((bthy, bthm), isathm) => fn xl =>
-      (Pretty.str (bthy ^ "." ^ bthm ^ (case isathm of SOME th => " --> " ^ th | NONE => "IGNORED")) :: xl)) tab []))
-end;
+structure HOL4Thms = TheoryDataFun
+(
+  type T = holthm StringPair.table
+  val empty = StringPair.empty
+  val copy = I
+  val extend = I
+  fun merge _ : T * T -> T = StringPair.merge (K true)
+)
 
-structure HOL4Maps = TheoryDataFun(HOL4MapsArgs);
+structure HOL4ConstMaps = TheoryDataFun
+(
+  type T = (bool * string * typ option) StringPair.table
+  val empty = StringPair.empty
+  val copy = I
+  val extend = I
+  fun merge _ : T * T -> T = StringPair.merge (K true)
+)
 
-structure HOL4ThmsArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/theorems"
-type T = holthm StringPair.table
-val empty = StringPair.empty
-val copy = I
-val extend = I
-fun merge _ : T * T -> T = StringPair.merge (K true)
-fun print _ tab =
-  Pretty.writeln (Pretty.big_list "HOL4 mappings:"
-    (StringPair.fold (fn ((bthy, bthm), (_, thm)) => fn xl => (Pretty.str (bthy ^ "." ^ bthm ^ ":") :: Display.pretty_thm thm :: xl)) tab []))
-end;
+structure HOL4Rename = TheoryDataFun
+(
+  type T = string StringPair.table
+  val empty = StringPair.empty
+  val copy = I
+  val extend = I
+  fun merge _ : T * T -> T = StringPair.merge (K true)
+)
 
-structure HOL4Thms = TheoryDataFun(HOL4ThmsArgs);
+structure HOL4DefMaps = TheoryDataFun
+(
+  type T = string StringPair.table
+  val empty = StringPair.empty
+  val copy = I
+  val extend = I
+  fun merge _ : T * T -> T = StringPair.merge (K true)
+)
 
-structure HOL4ConstMapsArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/constmappings"
-type T = (bool * string * typ option) StringPair.table
-val empty = StringPair.empty
-val copy = I
-val extend = I
-fun merge _ : T * T -> T = StringPair.merge (K true)
-fun print _ tab =
-  Pretty.writeln (Pretty.big_list "HOL4 constant mappings:"
-    (StringPair.fold (fn ((bthy, bconst), (internal, isaconst, _)) => fn xl =>
-      (Pretty.str (bthy ^ "." ^ bconst ^ " --> " ^ isaconst ^ (if internal then " (*)" else "")) :: xl)) tab []))
-end;
+structure HOL4TypeMaps = TheoryDataFun
+(
+  type T = (bool * string) StringPair.table
+  val empty = StringPair.empty
+  val copy = I
+  val extend = I
+  fun merge _ : T * T -> T = StringPair.merge (K true)
+)
 
-structure HOL4ConstMaps = TheoryDataFun(HOL4ConstMapsArgs);
+structure HOL4Pending = TheoryDataFun
+(
+  type T = ((term * term) list * thm) StringPair.table
+  val empty = StringPair.empty
+  val copy = I
+  val extend = I
+  fun merge _ : T * T -> T = StringPair.merge (K true)
+)
 
-structure HOL4RenameArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/renamings"
-type T = string StringPair.table
-val empty = StringPair.empty
-val copy = I
-val extend = I
-fun merge _ : T * T -> T = StringPair.merge (K true)
-fun print _ tab =
-  Pretty.writeln (Pretty.big_list "HOL4 constant renamings:"
-    (StringPair.fold (fn ((bthy,bconst),newname) => fn xl => (Pretty.str (bthy ^ "." ^ bconst ^ " --> " ^ newname)::xl)) tab []))
-end;
-
-structure HOL4Rename = TheoryDataFun(HOL4RenameArgs);
-
-structure HOL4DefMapsArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/def_maps"
-type T = string StringPair.table
-val empty = StringPair.empty
-val copy = I
-val extend = I
-fun merge _ : T * T -> T = StringPair.merge (K true)
-fun print _ tab =
-  Pretty.writeln (Pretty.big_list "HOL4 constant definitions:"
-    (StringPair.fold (fn ((bthy,bconst),newname) => fn xl => (Pretty.str (bthy ^ "." ^ bconst ^ ": " ^ newname)::xl)) tab []))
-end;
-
-structure HOL4DefMaps = TheoryDataFun(HOL4DefMapsArgs);
-
-structure HOL4TypeMapsArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/typemappings"
-type T = (bool * string) StringPair.table
-val empty = StringPair.empty
-val copy = I
-val extend = I
-fun merge _ : T * T -> T = StringPair.merge (K true)
-fun print _ tab =
-  Pretty.writeln (Pretty.big_list "HOL4 type mappings:"
-    (StringPair.fold (fn ((bthy, bconst), (internal, isaconst)) => fn xl =>
-      (Pretty.str (bthy ^ "." ^ bconst ^ " --> " ^ isaconst ^ (if internal then " (*)" else "")) :: xl)) tab []))
-end;
-
-structure HOL4TypeMaps = TheoryDataFun(HOL4TypeMapsArgs);
-
-structure HOL4PendingArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/pending"
-type T = ((term * term) list * thm) StringPair.table
-val empty = StringPair.empty
-val copy = I
-val extend = I
-fun merge _ : T * T -> T = StringPair.merge (K true)
-fun print _ tab =
-    Pretty.writeln (Pretty.big_list "HOL4 pending theorems:"
-	(StringPair.fold (fn ((bthy,bthm),(_,th)) => fn xl => (Pretty.chunks [Pretty.str (bthy ^ "." ^ bthm ^ ":"),Display.pretty_thm th]::xl)) tab []))
-end;
-
-structure HOL4Pending = TheoryDataFun(HOL4PendingArgs);
-
-structure HOL4RewritesArgs: THEORY_DATA_ARGS =
-struct
-val name = "HOL4/rewrites"
-type T = thm list
-val empty = []
-val copy = I
-val extend = I
-fun merge _ = Library.gen_union Thm.eq_thm
-fun print _ thms =
-    Pretty.writeln (Pretty.big_list "HOL4 rewrite rules:"
-				    (map Display.pretty_thm thms))
-end;
-
-structure HOL4Rewrites = TheoryDataFun(HOL4RewritesArgs);
+structure HOL4Rewrites = TheoryDataFun
+(
+  type T = thm list
+  val empty = []
+  val copy = I
+  val extend = I
+  fun merge _ = Library.gen_union Thm.eq_thm
+)
 
 val hol4_debug = ref false
 fun message s = if !hol4_debug then writeln s else ()
@@ -677,7 +588,7 @@ fun set_used_names names thy =
 	  | _ => error "hol4rews.set_used_names called on initialized data!"
     end
 
-val clear_used_names = HOL4UNames.put HOL4UNamesArgs.empty
+val clear_used_names = HOL4UNames.put [];
 
 fun get_defmap thyname const thy =
     let
@@ -737,21 +648,6 @@ local
 	    |> add_hol4_const_mapping "min" "@" false "Hilbert_Choice.Eps"
 in
 val hol4_setup =
-  HOL4Rewrites.init #>
-  HOL4Maps.init #>
-  HOL4UNames.init #>
-  HOL4DefMaps.init #>
-  HOL4Moves.init #>
-  HOL4CMoves.init #>
-  HOL4ConstMaps.init #>
-  HOL4Rename.init #>
-  HOL4TypeMaps.init #>
-  HOL4Pending.init #>
-  HOL4Thms.init #>
-  HOL4Dump.init #>
-  HOL4DefThy.init #>
-  HOL4Imports.init #>
-  ImportSegment.init #>
   initial_maps #>
   Attrib.add_attributes
     [("hol4rew", Attrib.no_args add_hol4_rewrite, "HOL4 rewrite rule")]

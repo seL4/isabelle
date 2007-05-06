@@ -18,15 +18,13 @@ struct
 open Codegen;
 
 structure RecCodegenData = TheoryDataFun
-(struct
-  val name = "HOL/recfun_codegen";
+(
   type T = (thm * string option) list Symtab.table;
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
   fun merge _ = Symtab.merge_list (Thm.eq_thm_prop o pairself fst);
-  fun print _ _ = ();
-end);
+);
 
 
 val dest_eqn = HOLogic.dest_eq o HOLogic.dest_Trueprop;
@@ -172,7 +170,6 @@ fun recfun_codegen thy defs gr dep module brack t = (case strip_comb t of
 
 
 val setup =
-  RecCodegenData.init #>
   add_codegen "recfun" recfun_codegen #>
   add_attribute ""
     (Args.del |-- Scan.succeed del
