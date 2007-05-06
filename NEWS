@@ -902,6 +902,10 @@ polymorphic versions (INCOMPATIBILITY):
 
 *** ML ***
 
+* Context data interfaces (Theory/Proof/GenericDataFun): removed
+name/print, use adhoc value for uninitialized data, init only required
+for impure data.
+
 * ML within Isar: antiquotations allow to embed statically-checked
 formal entities in the source, referring to the context available at
 compile-time.  For example:
