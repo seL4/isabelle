@@ -23,7 +23,7 @@ constdefs
 global
 
 typedef (Sum)
-  ('a, 'b) "+"          (infixr 10)
+  ('a, 'b) "+"          (infixr "+" 10)
     = "{f. (? a. f = Inl_Rep(a::'a)) | (? b. f = Inr_Rep(b::'b))}"
   by auto
 

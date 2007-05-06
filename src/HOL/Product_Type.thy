@@ -70,7 +70,7 @@ constdefs
 global
 
 typedef (Prod)
-  ('a, 'b) "*"    (infixr 20)
+  ('a, 'b) "*"    (infixr "*" 20)
     = "{f. EX a b. f = Pair_Rep (a::'a) (b::'b)}"
 proof
   fix a b show "Pair_Rep a b : ?Prod"

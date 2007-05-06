@@ -102,13 +102,10 @@ let
 
 val meta_iffD = Data.meta_eq_to_iff RS Data.iffD;  (* (P == Q) ==> Q ==> P *)
 
-val lift =
-  let val ct = Thm.read_cterm Pure.thy
-           ("(!!x. (Q::('b::{})=>('c::{}))(x) == R(x)) ==> \
-            \P(%x. Q(x)) == P(%x. R(x))::'a::{}",propT)
-  in OldGoals.prove_goalw_cterm [] ct
-     (fn [prem] => [rewtac prem, rtac reflexive_thm 1])
-  end;
+val lift = Goal.prove_global Pure.thy ["P", "Q", "R"]
+  [Sign.read_prop Pure.thy "!!x :: 'b. Q(x) == R(x) :: 'c"]
+  (Sign.read_prop Pure.thy "P(%x. Q(x)) == P(%x. R(x))")
+  (fn [prem] => rewtac prem THEN rtac reflexive_thm 1)
 
 val trlift = lift RS transitive_thm;
 val _ $ (P $ _) $ _ = concl_of trlift;

@@ -100,22 +100,21 @@ use "Tools/function_package/fundef_package.ML"
 
 setup FundefPackage.setup
 
-lemma let_cong:
-    "M = N ==> (!!x. x = N ==> f x = g x) ==> Let M f = Let N g"
+lemma let_cong [fundef_cong]:
+  "M = N \<Longrightarrow> (\<And>x. x = N \<Longrightarrow> f x = g x) \<Longrightarrow> Let M f = Let N g"
   unfolding Let_def by blast
 
 lemmas [fundef_cong] =
-  let_cong if_cong image_cong INT_cong UN_cong bex_cong ball_cong imp_cong
-
+  if_cong image_cong INT_cong UN_cong
+  bex_cong ball_cong imp_cong
 
 lemma split_cong [fundef_cong]:
-  "\<lbrakk> \<And>x y. (x, y) = q \<Longrightarrow> f x y = g x y; p = q \<rbrakk>
+  "(\<And>x y. (x, y) = q \<Longrightarrow> f x y = g x y) \<Longrightarrow> p = q
     \<Longrightarrow> split f p = split g q"
   by (auto simp: split_def)
 
 lemma comp_cong [fundef_cong]:
-  "f (g x) = f' (g' x')
-    ==>  (f o g) x = (f' o g') x'"
+  "f (g x) = f' (g' x') \<Longrightarrow> (f o g) x = (f' o g') x'"
   unfolding o_apply .
 
 end

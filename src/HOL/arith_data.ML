@@ -51,17 +51,12 @@ fun prove_conv expand_tac norm_tac ss tu =  (* FIXME avoid standard *)
       (HOLogic.mk_Trueprop (HOLogic.mk_eq tu))
     (K (EVERY [expand_tac, norm_tac ss]))));
 
-val subst_equals = prove_goal HOL.thy "[| t = s; u = t |] ==> u = s"
-  (fn prems => [cut_facts_tac prems 1, SIMPSET' asm_simp_tac 1]);
 
 (* rewriting *)
 
 fun simp_all_tac rules =
   let val ss0 = HOL_ss addsimps rules
   in fn ss => ALLGOALS (simp_tac (Simplifier.inherit_context ss ss0)) end;
-
-val add_rules = [thm "add_Suc", thm "add_Suc_right", thm "add_0", thm "add_0_right"];
-val mult_rules = [thm "mult_Suc", thm "mult_Suc_right", thm "mult_0", thm "mult_0_right"];
 
 fun prep_simproc (name, pats, proc) =
   Simplifier.simproc (the_context ()) name pats proc;
@@ -88,13 +83,14 @@ struct
   val mk_sum = mk_norm_sum;
   val dest_sum = dest_sum;
   val prove_conv = prove_conv;
-  val norm_tac1 = simp_all_tac add_rules;
+  val norm_tac1 = simp_all_tac [@{thm "add_Suc"}, @{thm "add_Suc_right"},
+    @{thm "add_0"}, @{thm "add_0_right"}];
   val norm_tac2 = simp_all_tac @{thms add_ac};
   fun norm_tac ss = norm_tac1 ss THEN norm_tac2 ss;
 end;
 
 fun gen_uncancel_tac rule ct =
-  rtac (instantiate' [] [NONE, SOME ct] (rule RS subst_equals)) 1;
+  rtac (instantiate' [] [NONE, SOME ct] (rule RS @{thm subst_equals})) 1;
 
 (* nat eq *)
 
@@ -103,7 +99,7 @@ structure EqCancelSums = CancelSumsFun
   open Sum;
   val mk_bal = HOLogic.mk_eq;
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT;
-  val uncancel_tac = gen_uncancel_tac (thm "nat_add_left_cancel");
+  val uncancel_tac = gen_uncancel_tac @{thm "nat_add_left_cancel"};
 end);
 
 (* nat less *)
@@ -113,7 +109,7 @@ structure LessCancelSums = CancelSumsFun
   open Sum;
   val mk_bal = HOLogic.mk_binrel "Orderings.less";
   val dest_bal = HOLogic.dest_bin "Orderings.less" HOLogic.natT;
-  val uncancel_tac = gen_uncancel_tac (thm "nat_add_left_cancel_less");
+  val uncancel_tac = gen_uncancel_tac @{thm "nat_add_left_cancel_less"};
 end);
 
 (* nat le *)
@@ -123,7 +119,7 @@ structure LeCancelSums = CancelSumsFun
   open Sum;
   val mk_bal = HOLogic.mk_binrel "Orderings.less_eq";
   val dest_bal = HOLogic.dest_bin "Orderings.less_eq" HOLogic.natT;
-  val uncancel_tac = gen_uncancel_tac (thm "nat_add_left_cancel_le");
+  val uncancel_tac = gen_uncancel_tac @{thm "nat_add_left_cancel_le"};
 end);
 
 (* nat diff *)
@@ -133,7 +129,7 @@ structure DiffCancelSums = CancelSumsFun
   open Sum;
   val mk_bal = HOLogic.mk_binop "HOL.minus";
   val dest_bal = HOLogic.dest_bin "HOL.minus" HOLogic.natT;
-  val uncancel_tac = gen_uncancel_tac (thm "diff_cancel");
+  val uncancel_tac = gen_uncancel_tac @{thm "diff_cancel"};
 end);
 
 (** prepare nat_cancel simprocs **)
@@ -922,60 +918,30 @@ val trace_arith            = Fast_Arith.trace;
 val fast_arith_neq_limit   = Fast_Arith.fast_arith_neq_limit;
 val fast_arith_split_limit = LA_Data_Ref.fast_arith_split_limit;
 
-local
-
 (* reduce contradictory <= to False.
-   Most of the work is done by the cancel tactics.
-*)
-val add_rules =
- [thm "add_zero_left", thm "add_zero_right", thm "Zero_not_Suc", thm "Suc_not_Zero",
-  thm "le_0_eq", thm "One_nat_def", thm "order_less_irrefl", thm "zero_neq_one",
-  thm "zero_less_one", thm "zero_le_one", thm "zero_neq_one" RS not_sym, thm "not_one_le_zero",
-  thm "not_one_less_zero"];
-
-val add_mono_thms_ordered_semiring = map (fn s => prove_goal (the_context ()) s
- (fn prems => [cut_facts_tac prems 1,
-               blast_tac (claset() addIs [@{thm add_mono}]) 1]))
-["(i <= j) & (k <= l) ==> i + k <= j + (l::'a::pordered_ab_semigroup_add)",
- "(i  = j) & (k <= l) ==> i + k <= j + (l::'a::pordered_ab_semigroup_add)",
- "(i <= j) & (k  = l) ==> i + k <= j + (l::'a::pordered_ab_semigroup_add)",
- "(i  = j) & (k  = l) ==> i + k  = j + (l::'a::pordered_ab_semigroup_add)"
-];
-
-val mono_ss = simpset() addsimps
-  [@{thm add_mono}, @{thm add_strict_mono},
-     @{thm add_less_le_mono}, @{thm add_le_less_mono}];
-
-val add_mono_thms_ordered_field =
-  map (fn s => prove_goal (the_context ()) s
-                 (fn prems => [cut_facts_tac prems 1, asm_simp_tac mono_ss 1]))
-    ["(i<j) & (k=l)   ==> i+k < j+(l::'a::pordered_cancel_ab_semigroup_add)",
-     "(i=j) & (k<l)   ==> i+k < j+(l::'a::pordered_cancel_ab_semigroup_add)",
-     "(i<j) & (k<=l)  ==> i+k < j+(l::'a::pordered_cancel_ab_semigroup_add)",
-     "(i<=j) & (k<l)  ==> i+k < j+(l::'a::pordered_cancel_ab_semigroup_add)",
-     "(i<j) & (k<l)   ==> i+k < j+(l::'a::pordered_cancel_ab_semigroup_add)"];
-
-in
+   Most of the work is done by the cancel tactics. *)
 
 val init_lin_arith_data =
  Fast_Arith.setup #>
  Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, ...} =>
    {add_mono_thms = add_mono_thms @
-    add_mono_thms_ordered_semiring @ add_mono_thms_ordered_field,
+    @{thms add_mono_thms_ordered_semiring} @ @{thms add_mono_thms_ordered_field},
     mult_mono_thms = mult_mono_thms,
     inj_thms = inj_thms,
     lessD = lessD @ [thm "Suc_leI"],
     neqE = [@{thm linorder_neqE_nat},
       get_thm (theory "Ring_and_Field") (Name "linorder_neqE_ordered_idom")],
-    simpset = HOL_basic_ss addsimps add_rules
-                   addsimprocs [ab_group_add_cancel.sum_conv,
-                                ab_group_add_cancel.rel_conv]
-                   (*abel_cancel helps it work in abstract algebraic domains*)
-                   addsimprocs nat_cancel_sums_add}) #>
+    simpset = HOL_basic_ss
+      addsimps [@{thm "add_zero_left"}, @{thm "add_zero_right"},
+        @{thm "Zero_not_Suc"}, @{thm "Suc_not_Zero"}, @{thm "le_0_eq"}, @{thm "One_nat_def"},
+        @{thm "order_less_irrefl"}, @{thm "zero_neq_one"}, @{thm "zero_less_one"},
+        @{thm "zero_le_one"}, @{thm "zero_neq_one"} RS not_sym, @{thm "not_one_le_zero"},
+        @{thm "not_one_less_zero"}]
+      addsimprocs [ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv]
+       (*abel_cancel helps it work in abstract algebraic domains*)
+      addsimprocs nat_cancel_sums_add}) #>
   ArithTheoryData.init #>
   arith_discrete "nat";
-
-end;
 
 val fast_nat_arith_simproc =
   Simplifier.simproc (the_context ()) "fast_nat_arith"

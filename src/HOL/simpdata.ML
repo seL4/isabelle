@@ -55,6 +55,7 @@ fun mk_eq_True r =
 (* Produce theorems of the form
   (P1 =simp=> ... =simp=> Pn => x == y) ==> (P1 =simp=> ... =simp=> Pn => x = y)
 *)
+
 fun lift_meta_eq_to_obj_eq i st =
   let
     fun count_imp (Const ("HOL.simp_implies", _) $ P $ Q) = 1 + count_imp Q
@@ -116,6 +117,7 @@ fun unsafe_solver_tac prems =
     etac @{thm FalseE}];
 
 val unsafe_solver = mk_solver "HOL unsafe" unsafe_solver_tac;
+
 
 (*No premature instantiation of variables during simplification*)
 fun safe_solver_tac prems =
@@ -227,7 +229,7 @@ in
 
 val let_simproc =
   Simplifier.simproc @{theory} "let_simp" ["Let x f"]
-   (fn sg => fn ss => fn t =>
+   (fn thy => fn ss => fn t =>
      let val ctxt = Simplifier.the_context ss;
          val ([t'], ctxt') = Variable.import_terms false [t] ctxt;
      in Option.map (hd o Variable.export ctxt' ctxt o single)
@@ -238,9 +240,9 @@ val let_simproc =
          else
           let
              val n = case f of (Abs (x,_,_)) => x | _ => "x";
-             val cx = cterm_of sg x;
+             val cx = cterm_of thy x;
              val {T=xT,...} = rep_cterm cx;
-             val cf = cterm_of sg f;
+             val cf = cterm_of thy f;
              val fx_g = Simplifier.rewrite ss (Thm.capply cf cx);
              val (_$_$g) = prop_of fx_g;
              val g' = abstract_over (x,g);
@@ -254,10 +256,10 @@ val let_simproc =
                else let
                      val abs_g'= Abs (n,xT,g');
                      val g'x = abs_g'$x;
-                     val g_g'x = symmetric (beta_conversion false (cterm_of sg g'x));
+                     val g_g'x = symmetric (beta_conversion false (cterm_of thy g'x));
                      val rl = cterm_instantiate
-                               [(f_Let_folded,cterm_of sg f),(x_Let_folded,cx),
-                                (g_Let_folded,cterm_of sg abs_g')]
+                               [(f_Let_folded,cterm_of thy f),(x_Let_folded,cx),
+                                (g_Let_folded,cterm_of thy abs_g')]
                                @{thm Let_folded};
                    in SOME (rl OF [transitive fx_g g_g'x])
                    end)

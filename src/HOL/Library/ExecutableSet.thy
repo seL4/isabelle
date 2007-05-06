@@ -347,7 +347,7 @@ consts_code
   "insert"  ("{*insertl*}")
   "op Un"   ("{*unionl*}")
   "op Int"  ("{*intersect*}")
-  "HOL.minus" :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
+  "minus" :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
             ("{*flip subtract*}")
   "image"   ("{*map_distinct*}")
   "Union"   ("{*unions*}")

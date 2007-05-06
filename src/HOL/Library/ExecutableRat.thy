@@ -92,7 +92,7 @@ subsection {* Code generator setup *}
 subsubsection {* code lemmas *}
 
 lemma number_of_rat [code unfold]:
-  "(number_of k \<Colon> rat) \<equiv> Fract k 1"
+  "(number_of k \<Colon> rat) = Fract k 1"
   unfolding Fract_of_int_eq rat_number_of_def by simp
 
 lemma rat_minus [code func]:

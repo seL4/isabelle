@@ -397,7 +397,9 @@ fun prove_elims cs params intr_ts intr_names unfold rec_preds_defs ctxt =
 local
 
 (*delete needless equality assumptions*)
-val refl_thin = prove_goal HOL.thy "!!P. a = a ==> P ==> P" (fn _ => [assume_tac 1]);
+val refl_thin = Goal.prove_global HOL.thy [] []
+  (Sign.read_prop HOL.thy "!!P. a = a ==> P ==> P")
+  (fn _ => assume_tac 1);
 val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE];
 val elim_tac = REPEAT o Tactic.eresolve_tac elim_rls;
 
