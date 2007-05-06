@@ -6,7 +6,7 @@
 header {* The datatype of finite lists *}
 
 theory List
-imports PreList Recdef
+imports PreList
 uses "Tools/string_syntax.ML"
 begin
 
