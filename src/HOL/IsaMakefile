@@ -85,7 +85,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   $(SRC)/TFL/thms.ML $(SRC)/TFL/thry.ML $(SRC)/TFL/usyntax.ML			\
   $(SRC)/TFL/utils.ML ATP_Linkup.thy Accessible_Part.thy			\
   Code_Generator.thy Datatype.thy Divides.thy Equiv_Relations.thy		\
-  Extraction.thy Finite_Set.thy FixedPoint.thy Fun.thy FunDef.thy HOL.ML	\
+  Extraction.thy Finite_Set.thy FixedPoint.thy Fun.thy FunDef.thy	\
   HOL.thy Hilbert_Choice.thy Inductive.thy Integ/IntArith.thy			\
   Integ/IntDef.thy Integ/IntDiv.thy Integ/NatBin.thy				\
   Integ/NatSimprocs.thy Integ/Numeral.thy Integ/Presburger.thy			\
