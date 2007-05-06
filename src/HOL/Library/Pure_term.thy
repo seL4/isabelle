@@ -92,8 +92,8 @@ lemma Abs_Absp [code inline, code func]:
 
 code_datatype Const App Fix Absp Bound
 lemmas [code func] = Bnd_Bound Abs_Absp
-lemmas [code nofunc] = term.recs term.cases term.size
-lemma [code func, code nofunc]: "(t1\<Colon>term) = t2 \<longleftrightarrow> t1 = t2" ..
+lemmas [code func del] = term.recs term.cases term.size
+lemma [code func, code func del]: "(t1\<Colon>term) = t2 \<longleftrightarrow> t1 = t2" ..
 
 code_type "typ" and "term"
   (SML "Term.typ" and "Term.term")

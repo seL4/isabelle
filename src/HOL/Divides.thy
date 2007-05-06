@@ -898,7 +898,7 @@ qed
 
 subsection {* Code generation for div, mod and dvd on nat *}
 
-definition [code nofunc]:
+definition [code func del]:
   "divmod (m\<Colon>nat) n = (m div n, m mod n)"
 
 lemma divmod_zero [code]: "divmod m 0 = (0, m)"

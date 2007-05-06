@@ -338,7 +338,6 @@ definition "x1 = X (1::nat) 2 3"
 definition "x2 = X (1::int) 2 3"
 definition "y2 = Y (1::int) 2 3"
 
-code_gen "op \<otimes>" \<one> inv X Y
-code_gen x1 x2 y2 (SML #) (OCaml -) (Haskell -)
+code_gen x1 x2 y2 in SML in OCaml file - in Haskell file -
 
 end

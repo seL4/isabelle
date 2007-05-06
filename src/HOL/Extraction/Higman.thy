@@ -406,7 +406,7 @@ code_axioms
   arbitrary_LT \<equiv> arbitrary_LT'
   arbitrary_TT \<equiv> arbitrary_TT'
 
-code_gen higman_idx (SML #)
+code_gen higman_idx in SML
 
 ML {*
 local

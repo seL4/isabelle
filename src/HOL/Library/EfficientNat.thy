@@ -20,7 +20,7 @@ integers. To do this, just include this theory.
 subsection {* Logical rewrites *}
 
 text {*
-  A int-to-nat conversion with domain
+  An int-to-nat conversion
   restricted to non-negative ints (in contrast to @{const nat}).
   Note that this restriction has no logical relevance and
   is just a kind of proof hint -- nothing prevents you from 
@@ -52,7 +52,8 @@ text {*
   expression:
 *}
 
-lemma [code unfold, code noinline]: "nat_case \<equiv> (\<lambda>f g n. if n = 0 then f else g (n - 1))"
+lemma [code unfold, code inline del]:
+  "nat_case \<equiv> (\<lambda>f g n. if n = 0 then f else g (n - 1))"
 proof -
   have rewrite: "\<And>f g n. nat_case f g n = (if n = 0 then f else g (n - 1))"
   proof -
@@ -66,7 +67,7 @@ qed
 
 lemma [code inline]:
   "nat_case = (\<lambda>f g n. if n = 0 then f else g (nat_of_int (int n - 1)))"
-proof rule+
+proof (rule ext)+
   fix f g n
   show "nat_case f g n = (if n = 0 then f else g (nat_of_int (int n - 1)))"
   by (cases n) (simp_all add: nat_of_int_int)
@@ -81,8 +82,8 @@ lemma [code func]: "0 = nat_of_int 0"
   by (simp add: nat_of_int_def)
 lemma [code func, code inline]:  "1 = nat_of_int 1"
   by (simp add: nat_of_int_def)
-lemma [code func]: "Suc n = n + 1"
-  by simp
+lemma [code func]: "Suc n = nat_of_int (int n + 1)"
+  by (simp add: nat_of_int_def)
 lemma [code]: "m + n = nat (int m + int n)"
   by arith
 lemma [code func, code inline]: "m + n = nat_of_int (int m + int n)"
@@ -154,11 +155,6 @@ text {*
 
 code_datatype nat_of_int
 
-lemma [code func]: "0 = nat_of_int 0"
-  by (auto simp add: nat_of_int_def)
-lemma [code func]: "Suc n = nat_of_int (int n + 1)"
-  by (auto simp add: nat_of_int_def)
-
 code_type nat
   (SML "IntInf.int")
   (OCaml "Big'_int.big'_int")
@@ -212,7 +208,7 @@ text {*
   Natural numerals should be expressed using @{const nat_of_int}.
 *}
 
-lemmas [code noinline] = nat_number_of_def
+lemmas [code inline del] = nat_number_of_def
 
 ML {*
 fun nat_of_int_of_number_of thy cts =

@@ -172,7 +172,7 @@ When writing executable specifications, it is convenient to use
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ example\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}tree{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\ example\ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}tree{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent which looks like:
   \lstsml{Thy/examples/tree.ML}%
@@ -255,14 +255,13 @@ Thanks to a reasonable setup of the HOL theories, in
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ fac\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}fac{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\ fac\ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}fac{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent  The \isa{{\isasymCODEGEN}} command takes a space-separated list of
   constants together with \qn{serialization directives}
-  in parentheses. These start with a \qn{target language}
-  identifier, followed by arguments, their semantics
-  depending on the target. In the SML case, a filename
-  is given where to write the generated code to.
+  These start with a \qn{target language}
+  identifier, followed by a file specification
+  where to write the generated code to.
 
   Internally, the defining equations for all selected
   constants are taken, including any transitively required
@@ -309,7 +308,7 @@ Thanks to a reasonable setup of the HOL theories, in
 %
 \endisadelimML
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ pick{\isacharunderscore}some\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}fail{\isacharunderscore}const{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\ pick{\isacharunderscore}some\ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}fail{\isacharunderscore}const{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent will fail.%
 \end{isamarkuptext}%
@@ -374,21 +373,21 @@ The list of all defining equations in a theory may be inspected
 \endisadelimproof
 \isanewline
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ pick\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}pick{\isadigit{1}}{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\ pick\ \ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}pick{\isadigit{1}}{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent This theorem now is used for generating code:
 
   \lstsml{Thy/examples/pick1.ML}
 
   \noindent It might be convenient to remove the pointless original
-  equation, using the \emph{nofunc} attribute:%
+  equation, using the \emph{func del} attribute:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemmas}\isamarkupfalse%
-\ {\isacharbrackleft}code\ nofunc{\isacharbrackright}\ {\isacharequal}\ pick{\isachardot}simps\ \isanewline
+\ {\isacharbrackleft}code\ func\ del{\isacharbrackright}\ {\isacharequal}\ pick{\isachardot}simps\ \isanewline
 \isanewline
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ pick\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}pick{\isadigit{2}}{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\ pick\ \ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}pick{\isadigit{2}}{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lstsml{Thy/examples/pick2.ML}
 
@@ -419,7 +418,7 @@ The list of all defining equations in a theory may be inspected
 \endisadelimproof
 \isanewline
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ fac\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}fac{\isacharunderscore}case{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\ fac\ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}fac{\isacharunderscore}case{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lstsml{Thy/examples/fac_case.ML}
 
@@ -427,7 +426,7 @@ The list of all defining equations in a theory may be inspected
     The attributes \emph{code} and \emph{code del}
     associated with the existing code generator also apply to
     the new one: \emph{code} implies \emph{code func},
-    and \emph{code del} implies \emph{code nofunc}.
+    and \emph{code del} implies \emph{code func del}.
   \end{warn}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -510,11 +509,11 @@ Type classes offer a suitable occasion to introduce
   as SML, but, in accordance with conventions
   some Haskell systems enforce, each module ends
   up in a single file. The module hierarchy is reflected in
-  the file system, with root given by the user.%
+  the file system, with root directory given as file specification.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ dummy\ {\isacharparenleft}Haskell\ {\isachardoublequoteopen}examples{\isacharslash}{\isachardoublequoteclose}{\isacharparenright}%
+\ dummy\ \isakeyword{in}\ Haskell\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lsthaskell{Thy/examples/Codegen.hs}
   \noindent (we have left out all other modules).
@@ -525,7 +524,7 @@ Type classes offer a suitable occasion to introduce
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ dummy\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}class{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\ dummy\ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}class{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lstsml{Thy/examples/class.ML}
 
@@ -535,12 +534,13 @@ Type classes offer a suitable occasion to introduce
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ dummy\ {\isacharparenleft}OCaml\ {\isachardoublequoteopen}examples{\isacharslash}class{\isachardot}ocaml{\isachardoublequoteclose}{\isacharparenright}%
+\ dummy\ \isakeyword{in}\ OCaml\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}class{\isachardot}ocaml{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lstsml{Thy/examples/class.ocaml}
 
   \medskip The explicit association of constants
-  to classes can be inspected using the \isa{{\isasymPRINTCLASSES}}%
+  to classes can be inspected using the \isa{{\isasymPRINTCLASSES}}
+  command.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -620,16 +620,20 @@ Before selected function theorems are turned into abstract
   hand side and the arguments of the left hand side of an
   equation, but never to the constant heading the left hand side.
   Inline theorems may be declared an undeclared using the
-  \emph{code inline} or \emph{code noinline} attribute respectively.
+  \emph{code inline} or \emph{code inline del} attribute respectively.
   Some common applications:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
 \begin{itemize}
-     \item replacing non-executable constructs by executable ones: \\
-\isacommand{lemma}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\item replacing non-executable constructs by executable ones:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ \isacommand{lemma}\isamarkupfalse%
 \ {\isacharbrackleft}code\ inline{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}x\ {\isasymin}\ set\ xs\ {\isasymlongleftrightarrow}\ x\ mem\ xs{\isachardoublequoteclose}%
+\ \ \ \ {\isachardoublequoteopen}x\ {\isasymin}\ set\ xs\ {\isasymlongleftrightarrow}\ x\ mem\ xs{\isachardoublequoteclose}%
 \isadelimproof
 \ %
 \endisadelimproof
@@ -644,10 +648,13 @@ Before selected function theorems are turned into abstract
 %
 \endisadelimproof
 %
-\item eliminating superfluous constants: \\
-\isacommand{lemma}\isamarkupfalse%
+\begin{isamarkuptext}%
+\item eliminating superfluous constants:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ \isacommand{lemma}\isamarkupfalse%
 \ {\isacharbrackleft}code\ inline{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}{\isadigit{1}}\ {\isacharequal}\ Suc\ {\isadigit{0}}{\isachardoublequoteclose}%
+\ \ \ \ {\isachardoublequoteopen}{\isadigit{1}}\ {\isacharequal}\ Suc\ {\isadigit{0}}{\isachardoublequoteclose}%
 \isadelimproof
 \ %
 \endisadelimproof
@@ -662,10 +669,13 @@ Before selected function theorems are turned into abstract
 %
 \endisadelimproof
 %
-\item replacing executable but inconvenient constructs: \\
-\isacommand{lemma}\isamarkupfalse%
+\begin{isamarkuptext}%
+\item replacing executable but inconvenient constructs:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ \isacommand{lemma}\isamarkupfalse%
 \ {\isacharbrackleft}code\ inline{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongleftrightarrow}\ List{\isachardot}null\ xs{\isachardoublequoteclose}%
+\ \ \ \ {\isachardoublequoteopen}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongleftrightarrow}\ List{\isachardot}null\ xs{\isachardoublequoteclose}%
 \isadelimproof
 \ %
 \endisadelimproof
@@ -683,7 +693,7 @@ Before selected function theorems are turned into abstract
 \end{itemize}
 %
 \begin{isamarkuptext}%
-The current set of inline theorems may be inspected using
+\noindent The current set of inline theorems may be inspected using
   the \isa{{\isasymPRINTCODESETUP}} command.
 
   \emph{Inline procedures} are a generalized version of inline
@@ -739,7 +749,7 @@ The membership test during preprocessing is rewritten,
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ collect{\isacharunderscore}duplicates\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}collect{\isacharunderscore}duplicates{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\ collect{\isacharunderscore}duplicates\ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}collect{\isacharunderscore}duplicates{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lstsml{Thy/examples/collect_duplicates.ML}%
 \end{isamarkuptext}%
@@ -817,7 +827,7 @@ This merely introduces a class \isa{eq} with corresponding
 \isanewline
 \isanewline
 \isacommand{lemmas}\isamarkupfalse%
-\ {\isacharbrackleft}code\ nofunc{\isacharbrackright}\ {\isacharequal}\ less{\isacharunderscore}prod{\isacharunderscore}def\ less{\isacharunderscore}eq{\isacharunderscore}prod{\isacharunderscore}def\isanewline
+\ {\isacharbrackleft}code\ func\ del{\isacharbrackright}\ {\isacharequal}\ less{\isacharunderscore}prod{\isacharunderscore}def\ less{\isacharunderscore}eq{\isacharunderscore}prod{\isacharunderscore}def\isanewline
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
 \ ord{\isacharunderscore}prod\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\isanewline
@@ -878,7 +888,7 @@ Then code generation will fail.  Why?  The definition
 \isamarkuptrue%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
 \ {\isachardoublequoteopen}op\ {\isasymle}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}eq{\isacharcomma}\ ord{\isacharbraceright}\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}ord\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}lexicographic{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\ \ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}lexicographic{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lstsml{Thy/examples/lexicographic.ML}%
 \end{isamarkuptext}%
@@ -952,7 +962,7 @@ Consider the following function and its corresponding
 %
 \endisadelimtt
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ in{\isacharunderscore}interval\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}bool{\isacharunderscore}literal{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\ in{\isacharunderscore}interval\ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}bool{\isacharunderscore}literal{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lstsml{Thy/examples/bool_literal.ML}
 
@@ -1009,7 +1019,7 @@ To assert that the existing \qt{bool}, \qt{true} and \qt{false}
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ in{\isacharunderscore}interval\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}bool{\isacharunderscore}mlbool{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\ in{\isacharunderscore}interval\ \ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}bool{\isacharunderscore}mlbool{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lstsml{Thy/examples/bool_mlbool.ML}
 
@@ -1039,7 +1049,7 @@ To assert that the existing \qt{bool}, \qt{true} and \qt{false}
 \isanewline
 \isanewline
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ in{\isacharunderscore}interval\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}bool{\isacharunderscore}infix{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\ in{\isacharunderscore}interval\ \ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}bool{\isacharunderscore}infix{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lstsml{Thy/examples/bool_infix.ML}
 
@@ -1315,7 +1325,7 @@ Conceptually, any datatype is spanned by a set of
 \isanewline
 \isanewline
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\ insert\ {\isachardoublequoteopen}op\ {\isasymin}{\isachardoublequoteclose}\ {\isachardoublequoteopen}op\ {\isasymunion}{\isachardoublequoteclose}\ {\isachardoublequoteopen}Union{\isachardoublequoteclose}\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}set{\isacharunderscore}list{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\ {\isachardoublequoteopen}{\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\ insert\ {\isachardoublequoteopen}op\ {\isasymin}{\isachardoublequoteclose}\ {\isachardoublequoteopen}op\ {\isasymunion}{\isachardoublequoteclose}\ {\isachardoublequoteopen}Union{\isachardoublequoteclose}\ \ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}set{\isacharunderscore}list{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lstsml{Thy/examples/set_list.ML}
 
@@ -1449,7 +1459,7 @@ A dummy example:%
 \ \ {\isacharbar}\ {\isachardoublequoteopen}dummy{\isacharunderscore}option\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ arbitrary{\isachardoublequoteclose}\isanewline
 \isanewline
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ dummy{\isacharunderscore}option\ {\isacharparenleft}SML\ {\isachardoublequoteopen}examples{\isacharslash}arbitrary{\isachardot}ML{\isachardoublequoteclose}{\isacharparenright}%
+\ dummy{\isacharunderscore}option\ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}arbitrary{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lstsml{Thy/examples/arbitrary.ML}
 

@@ -13,7 +13,7 @@ lemma "x = x" by normalization
 lemma "p \<longrightarrow> True" by normalization
 declare disj_assoc [code func]
 lemma "((P | Q) | R) = (P | (Q | R))" by normalization
-declare disj_assoc [code nofunc]
+declare disj_assoc [code func del]
 lemma "0 + (n::nat) = n" by normalization
 lemma "0 + Suc n = Suc n" by normalization
 lemma "Suc n + Suc m = n + Suc (Suc m)" by normalization

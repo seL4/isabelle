@@ -7,8 +7,6 @@ Code generator extraction kernel. Code generator Isar setup.
 
 signature CODEGEN_PACKAGE =
 sig
-  include BASIC_CODEGEN_THINGOL;
-  val codegen_term: theory -> term -> iterm;
   val eval_term: theory -> (string (*reference name!*) * 'a option ref) * term -> 'a;
   val satisfies_ref: bool option ref;
   val satisfies: theory -> term -> string list -> bool;
@@ -605,9 +603,9 @@ and K = OuterKeyword
 
 fun code raw_cs seris thy =
   let
-    val seris' = map (fn (target, args as _ :: _) =>
-          (target, SOME (CodegenSerializer.get_serializer thy target args CodegenNames.labelled_name))
-      | (target, []) => (CodegenSerializer.assert_serializer thy target, NONE)) seris;
+    val seris' = map (fn ((target, file), args) =>
+      (target, SOME (CodegenSerializer.get_serializer thy target file args
+        CodegenNames.labelled_name))) seris;
     val targets = case map fst seris' of [] => NONE | xs => SOME xs;
     val cs = CodegenConsts.read_const_exprs thy
       (filter_generatable thy targets) raw_cs;
@@ -632,13 +630,12 @@ fun code_thms_cmd thy =
 fun code_deps_cmd thy =
   code_deps thy o CodegenConsts.read_const_exprs thy (fst o Funcgr.make_consts thy);
 
-val code_exprP = (
-    (Scan.repeat P.term
-    -- Scan.repeat (P.$$$ "(" |--
-        P.name -- P.arguments
-        --| P.$$$ ")"))
-    >> (fn (raw_cs, seris) => code raw_cs seris)
-  );
+val code_exprP =
+  (Scan.repeat P.term
+  -- Scan.repeat (P.$$$ "in" |-- P.name
+     -- Scan.option (P.$$$ "file" |-- P.name)
+     -- Scan.optional (P.$$$ "(" |-- P.arguments --| P.$$$ ")") []
+  ) >> (fn (raw_cs, seris) => code raw_cs seris));
 
 val (codeK, code_abstypeK, code_axiomsK, code_thmsK, code_depsK) =
   ("code_gen", "code_abstype", "code_axioms", "code_thms", "code_deps");
@@ -646,7 +643,7 @@ val (codeK, code_abstypeK, code_axiomsK, code_thmsK, code_depsK) =
 in
 
 val codeP =
-  OuterSyntax.improper_command codeK "generate and serialize executable code for constants"
+  OuterSyntax.improper_command codeK "generate executable code for constants"
     K.diag (P.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
 
 fun codegen_command thy cmd =

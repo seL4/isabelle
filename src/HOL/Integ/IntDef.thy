@@ -25,7 +25,7 @@ typedef (Integ)
 definition
   int :: "nat \<Rightarrow> int"
 where
-  [code nofunc]: "int m = Abs_Integ (intrel `` {(m, 0)})"
+  [code func del]: "int m = Abs_Integ (intrel `` {(m, 0)})"
 
 instance int :: zero
   Zero_int_def: "0 \<equiv> int 0" ..
@@ -53,7 +53,7 @@ instance int :: ord
    "z \<le> w \<equiv> \<exists>x y u v. x+v \<le> u+y \<and> (x, y) \<in> Rep_Integ z \<and> (u, v) \<in> Rep_Integ w"
   less_int_def: "z < w \<equiv> z \<le> w \<and> z \<noteq> w" ..
 
-lemmas [code nofunc] = Zero_int_def One_int_def add_int_def
+lemmas [code func del] = Zero_int_def One_int_def add_int_def
   minus_int_def mult_int_def le_int_def less_int_def
 
 
@@ -380,7 +380,7 @@ subsection{*Magnitide of an Integer, as a Natural Number: @{term nat}*}
 definition
   nat :: "int \<Rightarrow> nat"
 where
-  [code nofunc]: "nat z = contents (\<Union>(x, y) \<in> Rep_Integ z. {x-y})"
+  [code func del]: "nat z = contents (\<Union>(x, y) \<in> Rep_Integ z. {x-y})"
 
 lemma nat: "nat (Abs_Integ (intrel``{(x,y)})) = x-y"
 proof -

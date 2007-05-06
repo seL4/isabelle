@@ -13,7 +13,7 @@ fun
 where
   pick_undef: "pick [] n = undefined"
   | pick_simp: "pick ((k, v)#xs) n = (if n < k then v else pick xs (n - k))"
-lemmas [code nofunc] = pick_undef
+lemmas [code func del] = pick_undef
 
 typedecl randseed
 
@@ -179,8 +179,5 @@ code_const random_int
 
 code_const run_random
   (SML "case _ (Random.seed ()) of (x, '_) => x")
-
-code_gen select select_weight
-  (SML #)
 
 end

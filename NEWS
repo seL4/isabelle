@@ -95,10 +95,10 @@ Reasonable default setup of framework in HOL/Main.
 
 Theorem attributs for selecting and transforming function equations theorems:
 
-    [code fun]:       select a theorem as function equation for a specific constant
-    [code nofun]:     deselect a theorem as function equation for a specific constant
-    [code inline]:    select an equation theorem for unfolding (inlining) in place
-    [code noinline]:  deselect an equation theorem for unfolding (inlining) in place
+    [code fun]:        select a theorem as function equation for a specific constant
+    [code fun del]:    deselect a theorem as function equation for a specific constant
+    [code inline]:     select an equation theorem for unfolding (inlining) in place
+    [code inline del]: deselect an equation theorem for unfolding (inlining) in place
 
 User-defined serializations (target in {SML, OCaml, Haskell}):
 
@@ -519,6 +519,13 @@ the graph browser tool.
 
 *** HOL ***
 
+* case expressions and primrec: missing cases now mapped to "undefined"
+instead of "arbitrary"
+
+* new constant "undefined" with axiom "undefined x = undefined"
+
+* new class "default" with associated constant "default"
+
 * Library/Pretty_Int.thy: maps HOL numerals on target language integer literals
     when generating code.
 
@@ -639,11 +646,11 @@ the graph browser tool.
     meet_min                ~> inf_min
     join_max                ~> sup_max
 
-* Class (axclass + locale) "preorder" and "linear": facts "refl", "trans" and
+* Classes "order" and "linorder": facts "refl", "trans" and
 "cases" renamed ro "order_refl", "order_trans" and "linorder_cases", to
 avoid clashes with HOL "refl" and "trans". INCOMPATIBILITY.
 
-* Addes class (axclass + locale) "preorder" as superclass of "order";
+* Classes "order" and "linorder": 
 potential INCOMPATIBILITY: order of proof goals in order/linorder instance
 proofs changed.
 

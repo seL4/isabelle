@@ -78,7 +78,7 @@ text {* operational equality for code generation *}
 class eq (attach "op =") = type
 
 
-text {* equality for Haskell *}
+text {* using built-in Haskell equality *}
 
 code_class eq
   (Haskell "Eq" where "op =" \<equiv> "(==)")
@@ -114,16 +114,10 @@ lemmas [code func] = if_True if_False
 instance bool :: eq ..
 
 lemma [code func]:
-  "True = P \<longleftrightarrow> P" by simp
-
-lemma [code func]:
-  "False = P \<longleftrightarrow> \<not> P" by simp
-
-lemma [code func]:
-  "P = True \<longleftrightarrow> P" by simp
-
-lemma [code func]:
-  "P = False \<longleftrightarrow> \<not> P" by simp
+  shows "True = P \<longleftrightarrow> P"
+    and "False = P \<longleftrightarrow> \<not> P"
+    and "P = True \<longleftrightarrow> P"
+    and "P = False \<longleftrightarrow> \<not> P" by simp_all
 
 code_type bool
   (SML "bool")
@@ -211,7 +205,7 @@ text {* lazy @{const If} *}
 
 definition
   if_delayed :: "bool \<Rightarrow> (bool \<Rightarrow> 'a) \<Rightarrow> (bool \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  [code nofunc]: "if_delayed b f g = (if b then f True else g False)"
+  [code func del]: "if_delayed b f g = (if b then f True else g False)"
 
 lemma [code func]:
   shows "if_delayed True f g = f True"

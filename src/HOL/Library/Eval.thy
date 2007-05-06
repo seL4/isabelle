@@ -111,7 +111,7 @@ in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
 
 text {* Adaption for @{typ ml_string}s *}
 
-lemmas [code func, code nofunc] = term_of_ml_string_def
+lemmas [code func, code func del] = term_of_ml_string_def
 
 
 subsection {* Evaluation infrastructure *}

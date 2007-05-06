@@ -118,6 +118,6 @@ code_modulename SML
   Kleene_Algebras SCT
   SCT_Implementation SCT
 
-code_gen test_SCT (SML #)
+code_gen test_SCT in SML
 
 end

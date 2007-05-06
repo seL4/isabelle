@@ -459,7 +459,7 @@ text {*
   \noindent This maps to Haskell as:
 *}
 
-code_gen example (Haskell "code_examples/")
+code_gen example in Haskell file "code_examples/"
   (* NOTE: you may use Haskell only once in this document, otherwise
   you have to work in distinct subdirectories *)
 
@@ -471,7 +471,7 @@ text {*
   \noindent The whole code in SML with explicit dictionary passing:
 *}
 
-code_gen example (*<*)(SML #)(*>*)(SML "code_examples/classes.ML")
+code_gen example (*<*)in SML(*>*)in SML file "code_examples/classes.ML"
 
 text {*
   \lstsml{Thy/code_examples/classes.ML}

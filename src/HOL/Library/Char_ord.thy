@@ -47,7 +47,7 @@ instance char :: linorder
     n1 < n2 \<or> n1 = n2 \<and> m1 < m2"
   by default (auto simp: char_less_eq_def char_less_def split: char.splits)
 
-lemmas [code nofunc] = char_less_eq_def char_less_def
+lemmas [code func del] = char_less_eq_def char_less_def
 
 instance char :: distrib_lattice
   "inf \<equiv> min"

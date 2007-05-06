@@ -24,8 +24,8 @@ consts
   UNIV          :: "'a set"
   insert        :: "'a => 'a set => 'a set"
   Collect       :: "('a => bool) => 'a set"              -- "comprehension"
-  Int           :: "'a set => 'a set => 'a set"          (infixl 70)
-  Un            :: "'a set => 'a set => 'a set"          (infixl 65)
+  "op Int"      :: "'a set => 'a set => 'a set"          (infixl "Int" 70)
+  "op Un"       :: "'a set => 'a set => 'a set"          (infixl "Un" 65)
   UNION         :: "'a set => ('a => 'b set) => 'b set"  -- "general union"
   INTER         :: "'a set => ('a => 'b set) => 'b set"  -- "general intersection"
   Union         :: "'a set set => 'a set"                -- "union of a set"
@@ -148,7 +148,7 @@ instance set :: (type) ord
   subset_def:  "A \<le> B \<equiv> \<forall>x\<in>A. x \<in> B"
   psubset_def: "A < B \<equiv> A \<le> B \<and> A \<noteq> B" ..
 
-lemmas [code nofunc] = subset_def psubset_def
+lemmas [code func del] = subset_def psubset_def
 
 abbreviation
   subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
@@ -346,7 +346,7 @@ instance set :: (type) minus
   Compl_def:    "- A            == {x. ~x:A}"
   set_diff_def: "A - B          == {x. x:A & ~x:B}" ..
 
-lemmas [code nofunc] = Compl_def set_diff_def
+lemmas [code func del] = Compl_def set_diff_def
 
 defs
   Un_def:       "A Un B         == {x. x:A | x:B}"
@@ -2130,7 +2130,7 @@ instance set :: (type) distrib_lattice
   sup_set_eq: "sup A B \<equiv> A \<union> B"
   by intro_classes (auto simp add: inf_set_eq sup_set_eq)
 
-lemmas [code nofunc] = inf_set_eq sup_set_eq
+lemmas [code func del] = inf_set_eq sup_set_eq
 
 
 subsection {* Basic ML bindings *}

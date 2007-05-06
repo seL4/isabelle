@@ -35,7 +35,7 @@ constdefs
      (ALL z. (z, x) : R --> f z = g z) --> F f x = F g x"
 
   wfrec :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => 'a => 'b"
-  "wfrec R F == %x. THE y. wfrec_rel R (%f x. F (cut f R x) x) x y"
+  [code func del]: "wfrec R F == %x. THE y. wfrec_rel R (%f x. F (cut f R x) x) x y"
 
 abbreviation acyclicP :: "('a => 'a => bool) => bool" where
   "acyclicP r == acyclic (Collect2 r)"

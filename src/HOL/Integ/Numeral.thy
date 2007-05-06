@@ -34,15 +34,15 @@ text{*
 
 definition
   Pls :: int where
-  [code nofunc]:"Pls = 0"
+  [code func del]:"Pls = 0"
 
 definition
   Min :: int where
-  [code nofunc]:"Min = - 1"
+  [code func del]:"Min = - 1"
 
 definition
   Bit :: "int \<Rightarrow> bit \<Rightarrow> int" (infixl "BIT" 90) where
-  [code nofunc]: "k BIT b = (case b of B0 \<Rightarrow> 0 | B1 \<Rightarrow> 1) + k + k"
+  [code func del]: "k BIT b = (case b of B0 \<Rightarrow> 0 | B1 \<Rightarrow> 1) + k + k"
 
 class number = type + -- {* for numeric types: nat, int, real, \dots *}
   fixes number_of :: "int \<Rightarrow> 'a"
@@ -70,11 +70,11 @@ lemma Let_1 [simp]: "Let 1 f = f 1"
 
 definition
   succ :: "int \<Rightarrow> int" where
-  [code nofunc]: "succ k = k + 1"
+  [code func del]: "succ k = k + 1"
 
 definition
   pred :: "int \<Rightarrow> int" where
-  [code nofunc]: "pred k = k - 1"
+  [code func del]: "pred k = k - 1"
 
 lemmas
   max_number_of [simp] = max_def
@@ -211,7 +211,7 @@ instance int :: number_ring
   int_number_of_def: "number_of w \<equiv> of_int w"
   by intro_classes (simp only: int_number_of_def)
 
-lemmas [code nofunc] = int_number_of_def
+lemmas [code func del] = int_number_of_def
 
 lemma number_of_is_id:
   "number_of (k::int) = k"

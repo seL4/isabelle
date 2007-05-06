@@ -73,7 +73,7 @@ proof
   by auto
 qed
 
-lemmas [code nofunc] = graph_plus_def
+lemmas [code func del] = graph_plus_def
 
 instance graph :: (type, type) "{distrib_lattice, complete_lattice}"
   graph_leq_def: "G \<le> H \<equiv> dest_graph G \<subseteq> dest_graph H"
@@ -123,7 +123,7 @@ proof
     unfolding Inf_graph_def graph_leq_def by auto }
 qed
 
-lemmas [code nofunc] = graph_leq_def graph_less_def
+lemmas [code func del] = graph_leq_def graph_less_def
   inf_graph_def sup_graph_def Inf_graph_def
 
 lemma in_grplus:
@@ -150,7 +150,7 @@ proof
     by (cases a) (simp add:grcomp.simps)
 qed
 
-lemmas [code nofunc] = graph_mult_def
+lemmas [code func del] = graph_mult_def
 
 instance graph :: (type, one) one 
   graph_one_def: "1 == Graph { (x, 1, x) |x. True}" ..

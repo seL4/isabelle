@@ -772,9 +772,7 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
 \indexisarcmd{code-abstype}
 \indexisarcmd{print-codesetup}
 \indexisaratt{code func}
-\indexisaratt{code nofunc}
 \indexisaratt{code inline}
-\indexisaratt{code noinline}
 
 \begin{matharray}{rcl}
   \isarcmd{code_gen}^* & : & \isarkeep{theory~|~proof} \\
@@ -793,13 +791,12 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
   \isarcmd{code_abstype} & : & \isartrans{theory}{theory} \\
   \isarcmd{print_codesetup}^* & : & \isarkeep{theory~|~proof} \\
   code\ func & : & \isaratt \\
-  code\ nofunc & : & \isaratt \\
   code\ inline & : & \isaratt \\
-  code\ noinline & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
-'code\_gen' ( constexpr + ) ? ( seri + ) ?;
+'code\_gen' ( constexpr + ) ? \\
+  ( ( 'in' target ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?;
 
 'code\_thms' ( constexpr + ) ?;
 
@@ -813,24 +810,23 @@ typeconstructor : nameref;
 
 class : nameref;
 
-seri : target | 'SML' ( string | '-' ) | 'OCaml' ( string | '-' ) | 'Haskell' ( 'root:' string ) ? 'string\_classes' ? string;
-
 target : 'OCaml' | 'SML' | 'Haskell';
 
 'code\_datatype' const +;
 
 'code\_const' (const + 'and') \\
-  ( ( '(' target ( syntax + 'and' ) ')' ) + );
+  ( ( '(' target ( syntax ? + 'and' ) ')' ) + );
 
 'code\_type' (typeconstructor + 'and') \\
-  ( ( '(' target ( syntax + 'and' ) ')' ) + );
+  ( ( '(' target ( syntax ? + 'and' ) ')' ) + );
 
 'code\_class' (class + 'and') \\
   ( ( '(' target \\
-    ( ( string ('where' ( const ( '==' | equiv ) string ) + ) ? ) + 'and' ) ')' ) + );
+    ( ( string ('where' \\
+      ( const ( '==' | equiv ) string ) + ) ? ) ? + 'and' ) ')' ) + );
 
 'code\_instance' (( typeconstructor '::' class ) + 'and') \\
-  ( ( '(' target ( '-' + 'and' ) ')' ) + );
+  ( ( '(' target ( '-' ? + 'and' ) ')' ) + );
 
 'code\_monad' term term term;
 
@@ -848,7 +844,9 @@ syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
 
 'print\_codesetup';
 
-('code\ func' | 'code\ nofunc' | 'code\ inline' | 'code\ noinline');
+'code\ func' ( 'del' ) ?;
+
+'code\ inline' ( 'del' ) ?;
 \end{rail}
 
 \begin{descr}
@@ -856,7 +854,7 @@ syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
 \item [$\isarcmd{code_gen}$] is the canonical interface for generating and
   serializing code: for a given list of constants, code is generated for the specified
   target language(s).  Abstract code is cached incrementally.  If no constant is given,
-  the whole current cache is serialized.  If no serialization instruction
+  the currently cached code is serialized.  If no serialization instruction
   is given, only abstract code is cached.
 
   Constants may be specified by giving them literally, referring
@@ -864,45 +862,45 @@ syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
   by giving (``name.*''), or referring to \emph{all} executable
   constants currently available (``*'').
 
-  The \emph{SML} serializer takes either a filename or an ``-'' or ``*''
-  as argument.  In the first case, code is written to the specified file,
-  in the second to standard output and in the last case
-  it is compiled internally in the context of the current ML session.
+  For \emph{SML} and \emph{OCaml}, the file specification refers to
+  a single file;  for \emph{Haskell}, it refers to a whole directory,
+  where code is generated in multiple files reflecting the module hierarchy.
+  The file specification ``-'' denotes standard output.  For \emph{SML},
+  omitting the file specification compiles code internally
+  in the context of the current ML session.
 
-  The \emph{OCaml} serializer is like the \emph{SML} serializer
-  but it produces code for OCaml and does not support internal compilation.
-
-  For \emph{Haskell}, a directory name is specified; different modules
-  are serialized to different files in this directory or
-  subdirectories, reflecting the module hierarchy. Additionally
-  a module name prefix may be given using the ``root:'' argument;
-  ``string\_classes'' adds a ``deriving (Read, Show)'' clause
+  Serializers take an optional list of arguments in parentheses. 
+  For \emph{Haskell} a module name prefix may be given using the ``root:''
+  argument;  ``string\_classes'' adds a ``deriving (Read, Show)'' clause
   to each appropriate datatype declaration.
-  A ``-'' instead of a directory name prints code to standard output.
 
 \item [$\isarcmd{code_thms}$] prints a list of theorems representing the
   corresponding program containing all given constants; if no constants are
-  given, the current cache of code theorems in printed.
+  given, the currently cached code theorems in printed.
 
 \item [$\isarcmd{code_deps}$] visualizes dependencies of theorems representing the
   corresponding program containing all given constants; if no constants are
-  given, the current cache os visualized.
+  given, the currently cached code theorems are visualized.
 
 \item [$\isarcmd{code_datatype}$] specifies a constructor set for a logical type.
 
 \item [$\isarcmd{code_const}$] associates a list of constants
-  with target-specific serializations.
+  with target-specific serializations; omitting a serialization
+  deletes an existing serialization.
 
 \item [$\isarcmd{code_type}$] associates a list of type constructors
-  with target-specific serializations.
+  with target-specific serializations; omitting a serialization
+  deletes an existing serialization.
 
 \item [$\isarcmd{code_class}$] associates a list of classes
   with target-specific class names; in addition, constants associated
   with this class may be given target-specific names used for instance
-  declarations.  Applies only to \emph{Haskell}.
+  declarations; omitting a serialization
+  deletes an existing serialization.  Applies only to \emph{Haskell}.
 
 \item [$\isarcmd{code_instance}$] declares a list of type constructor / class
   instance relations as ``already present'' for a given target.
+  Omitting a ``-'' deletes an existing ``already present'' declaration.
   Applies only to \emph{Haskell}.
 
 \item [$\isarcmd{code_monad}$] provides an auxiliary mechanism
@@ -925,15 +923,16 @@ syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
 \item [$\isarcmd{code_abstype}$] offers an interface for implementing
   an abstract type plus operations by executable counterparts.
 
-\item [$code\ func$ and $code\ nofunc$] select or deselect explicitly
+\item [$code\ func$] selects (or with option ''del``, deselects) explicitly
   a defining equation for code generation.  Usually packages introducing
   defining equations provide a resonable default setup for selection.
 
-\item [$code\ inline$ and $code\ noinline$] select or deselect
-  inlining theorems which are applied as rewrite rules to any defining equation.
+\item [$code\ inline$] declares (or with option ''del``, removes)
+  inlining theorems which are applied as rewrite rules to any defining equation
+  during preprocessing.
 
 \item [$\isarcmd{print_codesetup}$] gives an overview on selected
-  defining equations, code generator datatypes and inlining theorems.
+  defining equations, code generator datatypes and preprocessor setup.
 
 \end{descr}
 

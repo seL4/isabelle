@@ -13,7 +13,7 @@ instance "*" :: (ord, ord) ord
   prod_le_def: "(x \<le> y) \<equiv> (fst x < fst y) \<or> (fst x = fst y \<and> snd x \<le> snd y)"
   prod_less_def: "(x < y) \<equiv> (fst x < fst y) \<or> (fst x = fst y \<and> snd x < snd y)" ..
 
-lemmas prod_ord_defs [code nofunc] = prod_less_def prod_le_def
+lemmas prod_ord_defs [code func del] = prod_less_def prod_le_def
 
 lemma [code func]:
   "(x1\<Colon>'a\<Colon>{ord, eq}, y1) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 = x2 \<and> y1 \<le> y2"

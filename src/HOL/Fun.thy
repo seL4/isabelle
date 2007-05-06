@@ -466,13 +466,12 @@ instance "fun" :: (type, ord) ord
   le_fun_def: "f \<le> g \<equiv> \<forall>x. f x \<le> g x"
   less_fun_def: "f < g \<equiv> f \<le> g \<and> f \<noteq> g" ..
 
-lemmas [code nofunc] = le_fun_def less_fun_def
-
-instance "fun" :: (type, preorder) preorder
-  by default (auto simp add: le_fun_def less_fun_def intro: order_trans)
+lemmas [code func del] = le_fun_def less_fun_def
 
 instance "fun" :: (type, order) order
-  by default (rule ext, auto simp add: le_fun_def less_fun_def intro: order_antisym)
+  by default
+    (auto simp add: le_fun_def less_fun_def expand_fun_eq
+       intro: order_trans order_antisym)
 
 lemma le_funI: "(\<And>x. f x \<le> g x) \<Longrightarrow> f \<le> g"
   unfolding le_fun_def by simp
@@ -536,10 +535,43 @@ apply (rule le_funI)
 apply (auto dest: le_funD)
 done
 
-lemmas [code nofunc] = inf_fun_eq sup_fun_eq
+lemmas [code func del] = inf_fun_eq sup_fun_eq
 
 instance "fun" :: (type, distrib_lattice) distrib_lattice
   by default (auto simp add: inf_fun_eq sup_fun_eq sup_inf_distrib1)
+
+
+subsection {* Proof tool setup *} 
+
+text {* simplifies terms of the form
+  f(...,x:=y,...,x:=z,...) to f(...,x:=z,...) *}
+
+ML {*
+let
+  fun gen_fun_upd NONE T _ _ = NONE
+    | gen_fun_upd (SOME f) T x y = SOME (Const (@{const_name fun_upd},T) $ f $ x $ y)
+  fun dest_fun_T1 (Type (_, T :: Ts)) = T
+  fun find_double (t as Const (@{const_name fun_upd},T) $ f $ x $ y) =
+    let
+      fun find (Const (@{const_name fun_upd},T) $ g $ v $ w) =
+            if v aconv x then SOME g else gen_fun_upd (find g) T v w
+        | find t = NONE
+    in (dest_fun_T1 T, gen_fun_upd (find f) T x y) end
+  fun fun_upd_prover ss =
+    rtac eq_reflection 1 THEN rtac ext 1 THEN
+    simp_tac (Simplifier.inherit_context ss @{simpset}) 1
+  val fun_upd2_simproc =
+    Simplifier.simproc @{theory}
+      "fun_upd2" ["f(v := w, x := y)"]
+      (fn _ => fn ss => fn t =>
+        case find_double t of (T, NONE) => NONE
+        | (T, SOME rhs) =>
+            SOME (Goal.prove (Simplifier.the_context ss) [] []
+              (Term.equals T $ t $ rhs) (K (fun_upd_prover ss))))
+in
+  Addsimprocs [fun_upd2_simproc]
+end;
+*}
 
 
 subsection {* Code generator setup *}
@@ -554,115 +586,20 @@ code_const "id"
 
 subsection {* ML legacy bindings *} 
 
-text{*The ML section includes some compatibility bindings and a simproc
-for function updates, in addition to the usual ML-bindings of theorems.*}
-ML
-{*
-val id_def = thm "id_def";
-val inj_on_def = thm "inj_on_def";
-val surj_def = thm "surj_def";
-val bij_def = thm "bij_def";
-val fun_upd_def = thm "fun_upd_def";
+ML {*
+val set_cs = claset() delrules [equalityI]
+*}
 
-val o_def = thm "comp_def";
-val injI = thm "inj_onI";
-val inj_inverseI = thm "inj_on_inverseI";
-val set_cs = claset() delrules [equalityI];
-
-val print_translation = [("Pi", dependent_tr' ("@Pi", "op funcset"))];
-
-(* simplifies terms of the form f(...,x:=y,...,x:=z,...) to f(...,x:=z,...) *)
-local
-  fun gen_fun_upd NONE T _ _ = NONE
-    | gen_fun_upd (SOME f) T x y = SOME (Const ("Fun.fun_upd",T) $ f $ x $ y)
-  fun dest_fun_T1 (Type (_, T :: Ts)) = T
-  fun find_double (t as Const ("Fun.fun_upd",T) $ f $ x $ y) =
-    let
-      fun find (Const ("Fun.fun_upd",T) $ g $ v $ w) =
-            if v aconv x then SOME g else gen_fun_upd (find g) T v w
-        | find t = NONE
-    in (dest_fun_T1 T, gen_fun_upd (find f) T x y) end
-
-  val current_ss = simpset ()
-  fun fun_upd_prover ss =
-    rtac eq_reflection 1 THEN rtac ext 1 THEN
-    simp_tac (Simplifier.inherit_context ss current_ss) 1
-in
-  val fun_upd2_simproc =
-    Simplifier.simproc @{theory}
-      "fun_upd2" ["f(v := w, x := y)"]
-      (fn _ => fn ss => fn t =>
-        case find_double t of (T, NONE) => NONE
-        | (T, SOME rhs) =>
-            SOME (Goal.prove (Simplifier.the_context ss) [] []
-              (Term.equals T $ t $ rhs) (K (fun_upd_prover ss))))
-end;
-Addsimprocs[fun_upd2_simproc];
-
-val expand_fun_eq = thm "expand_fun_eq";
-val apply_inverse = thm "apply_inverse";
-val id_apply = thm "id_apply";
-val o_apply = thm "o_apply";
-val o_assoc = thm "o_assoc";
-val id_o = thm "id_o";
-val o_id = thm "o_id";
-val image_compose = thm "image_compose";
-val image_eq_UN = thm "image_eq_UN";
-val UN_o = thm "UN_o";
-val datatype_injI = thm "datatype_injI";
-val injD = thm "injD";
-val inj_eq = thm "inj_eq";
-val inj_onI = thm "inj_onI";
-val inj_on_inverseI = thm "inj_on_inverseI";
-val inj_onD = thm "inj_onD";
-val inj_on_iff = thm "inj_on_iff";
-val comp_inj_on = thm "comp_inj_on";
-val inj_on_contraD = thm "inj_on_contraD";
-val inj_singleton = thm "inj_singleton";
-val subset_inj_on = thm "subset_inj_on";
-val surjI = thm "surjI";
-val surj_range = thm "surj_range";
-val surjD = thm "surjD";
-val surjE = thm "surjE";
-val comp_surj = thm "comp_surj";
-val bijI = thm "bijI";
-val bij_is_inj = thm "bij_is_inj";
-val bij_is_surj = thm "bij_is_surj";
-val image_ident = thm "image_ident";
-val image_id = thm "image_id";
-val vimage_ident = thm "vimage_ident";
-val vimage_id = thm "vimage_id";
-val vimage_image_eq = thm "vimage_image_eq";
-val image_vimage_subset = thm "image_vimage_subset";
-val image_vimage_eq = thm "image_vimage_eq";
-val surj_image_vimage_eq = thm "surj_image_vimage_eq";
-val inj_vimage_image_eq = thm "inj_vimage_image_eq";
-val vimage_subsetD = thm "vimage_subsetD";
-val vimage_subsetI = thm "vimage_subsetI";
-val vimage_subset_eq = thm "vimage_subset_eq";
-val image_Int_subset = thm "image_Int_subset";
-val image_diff_subset = thm "image_diff_subset";
-val inj_on_image_Int = thm "inj_on_image_Int";
-val inj_on_image_set_diff = thm "inj_on_image_set_diff";
-val image_Int = thm "image_Int";
-val image_set_diff = thm "image_set_diff";
-val inj_image_mem_iff = thm "inj_image_mem_iff";
-val inj_image_subset_iff = thm "inj_image_subset_iff";
-val inj_image_eq_iff = thm "inj_image_eq_iff";
-val image_UN = thm "image_UN";
-val image_INT = thm "image_INT";
-val bij_image_INT = thm "bij_image_INT";
-val surj_Compl_image_subset = thm "surj_Compl_image_subset";
-val inj_image_Compl_subset = thm "inj_image_Compl_subset";
-val bij_image_Compl_eq = thm "bij_image_Compl_eq";
-val fun_upd_idem_iff = thm "fun_upd_idem_iff";
-val fun_upd_idem = thm "fun_upd_idem";
-val fun_upd_apply = thm "fun_upd_apply";
-val fun_upd_same = thm "fun_upd_same";
-val fun_upd_other = thm "fun_upd_other";
-val fun_upd_upd = thm "fun_upd_upd";
-val fun_upd_twist = thm "fun_upd_twist";
-val range_ex1_eq = thm "range_ex1_eq";
+ML {*
+val id_apply = @{thm id_apply}
+val id_def = @{thm id_def}
+val o_apply = @{thm o_apply}
+val o_assoc = @{thm o_assoc}
+val o_def = @{thm o_def}
+val injD = @{thm injD}
+val datatype_injI = @{thm datatype_injI}
+val range_ex1_eq = @{thm range_ex1_eq}
+val expand_fun_eq = @{thm expand_fun_eq}
 *}
 
 end

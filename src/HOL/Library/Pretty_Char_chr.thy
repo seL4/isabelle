@@ -23,7 +23,7 @@ lemma [code func]:
   "char_of_nat = char_of_int o int"
   unfolding char_of_int_def by (simp add: expand_fun_eq)
 
-lemmas [code nofunc] = char.recs char.cases char.size
+lemmas [code func del] = char.recs char.cases char.size
 
 lemma [code func, code inline]:
   "char_rec f c = split f (nibble_pair_of_nat (nat_of_char c))"

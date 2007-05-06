@@ -366,17 +366,19 @@ val _ = Context.add_setup
   (Attrib.add_attributes [("code", code_attr, "declare theorems for code generation")]);
 
 local
+  fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
   fun add_simple_attribute (name, f) =
-    (add_attribute name o (Scan.succeed o Thm.declaration_attribute))
-      (fn th => Context.mapping (f th) I);
+    add_attribute name (Scan.succeed (mk_attribute f));
+  fun add_del_attribute (name, (add, del)) =
+    add_attribute name (Args.del |-- Scan.succeed (mk_attribute del)
+      || Scan.succeed (mk_attribute add))
 in
-  val _ = map (Context.add_setup o add_simple_attribute) [
-    ("func", CodeData.add_func true),
-    ("nofunc", CodeData.del_func),
-    ("unfold", (fn thm => add_unfold thm #> CodeData.add_inline thm)),
-    ("inline", CodeData.add_inline),
-    ("noinline", CodeData.del_inline)
-  ]
+  val _ = Context.add_setup (add_simple_attribute ("unfold",
+    fn thm => add_unfold thm #> CodeData.add_inline thm));
+  val _ = map (Context.add_setup o add_del_attribute) [
+    ("func", (CodeData.add_func true, CodeData.del_func)),
+    ("inline", (CodeData.add_inline, CodeData.del_inline))
+  ];
 end; (*local*)
 
 

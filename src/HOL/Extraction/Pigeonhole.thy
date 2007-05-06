@@ -309,7 +309,7 @@ contains
   test' = test'
   test'' = test''
 
-code_gen test test' test'' (SML #)
+code_gen test test' test'' in SML
 
 ML "timeit (fn () => PH.test 10)"
 ML "timeit (fn () => ROOT.Pigeonhole.test 10)"

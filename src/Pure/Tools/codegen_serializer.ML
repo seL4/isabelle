@@ -31,7 +31,7 @@ sig
 
   type serializer;
   val add_serializer: string * serializer -> theory -> theory;
-  val get_serializer: theory -> string -> Args.T list -> (theory -> string -> string)
+  val get_serializer: theory -> string -> string option -> Args.T list -> (theory -> string -> string)
     -> string list option -> CodegenThingol.code -> unit;
   val assert_serializer: theory -> string -> string;
 
@@ -1026,16 +1026,15 @@ fun seri_ml pr_def pr_modl reserved_ml output labelled_name reserved_user module
       (pr_node [] o Graph.get_node nodes) o rev o flat o Graph.strong_conn) nodes))
   in output p end;
 
-val isar_seri_sml =
+fun isar_seri_sml file =
   let
-    fun output_file file = File.write (Path.explode file) o code_output;
-    val output_diag = writeln o code_output;
-    val output_internal = use_text "generated code" Output.ml_output false o code_output;
+    val output = case file
+     of NONE => use_text "generated code" Output.ml_output false o code_output
+      | SOME "-" => writeln o code_output
+      | SOME file => File.write (Path.explode file) o code_output;
   in
-    parse_args ((Args.$$$ "-" >> K output_diag
-      || Args.$$$ "#" >> K output_internal
-      || Args.name >> output_file)
-    >> (fn output => seri_ml pr_sml pr_sml_modl ML_Syntax.reserved output))
+    parse_args (Scan.succeed ())
+    #> (fn () => seri_ml pr_sml pr_sml_modl ML_Syntax.reserved output)
   end;
 
 val reserved_ocaml = Name.make_context ["and", "as", "assert", "begin", "class",
@@ -1046,14 +1045,17 @@ val reserved_ocaml = Name.make_context ["and", "as", "assert", "begin", "class",
   "sig", "struct", "then", "to", "true", "try", "type", "val",
   "virtual", "when", "while", "with", "mod"];
 
-val isar_seri_ocaml =
+fun isar_seri_ocaml file =
   let
+    val output = case file
+     of NONE => error "OCaml: no internal compilation"
+      | SOME "-" => writeln o code_output
+      | SOME file => File.write (Path.explode file) o code_output;
     fun output_file file = File.write (Path.explode file) o code_output;
     val output_diag = writeln o code_output;
   in
-    parse_args ((Args.$$$ "-" >> K output_diag
-      || Args.name >> output_file)
-    >> (fn output => seri_ml pr_ocaml pr_ocaml_modl reserved_ocaml output))
+    parse_args (Scan.succeed ())
+    #> (fn () => seri_ml pr_ocaml pr_ocaml_modl reserved_ocaml output)
   end;
 
 
@@ -1425,12 +1427,18 @@ fun seri_haskell module_prefix destination string_classes labelled_name reserved
       end;
   in Symtab.fold (fn modl => fn () => seri_module modl) code' () end;
 
-val isar_seri_haskell =
-  parse_args (Scan.option (Args.$$$ "root" -- Args.colon |-- Args.name)
-    -- Scan.optional (Args.$$$ "string_classes" >> K true) false
-    -- (Args.$$$ "-" >> K NONE || Args.name >> SOME)
-    >> (fn ((module_prefix, string_classes), destination) =>
-      seri_haskell module_prefix (Option.map Path.explode destination) string_classes));
+fun isar_seri_haskell file =
+  let
+    val destination = case file
+     of NONE => error ("Haskell: no internal compilation")
+      | SOME "-" => NONE
+      | SOME file => SOME (Path.explode file)
+  in
+    parse_args (Scan.option (Args.$$$ "root" -- Args.colon |-- Args.name)
+      -- Scan.optional (Args.$$$ "string_classes" >> K true) false
+      >> (fn (module_prefix, string_classes) =>
+        seri_haskell module_prefix destination string_classes))
+  end;
 
 
 (** diagnosis serializer **)
@@ -1494,7 +1502,9 @@ fun merge_syntax_modl (SyntaxModl { alias = alias1, prolog = prolog1 },
     Symtab.merge (op =) (prolog1, prolog2)
   );
 
-type serializer = Args.T list
+type serializer =
+  string option
+  -> Args.T list
   -> (string -> string)
   -> string list
   -> (string -> string option)
@@ -1581,10 +1591,10 @@ val _ = Context.add_setup (
   #> add_serializer (target_SML, isar_seri_sml)
   #> add_serializer (target_OCaml, isar_seri_ocaml)
   #> add_serializer (target_Haskell, isar_seri_haskell)
-  #> add_serializer (target_diag, (fn _ => fn _ => seri_diagnosis))
+  #> add_serializer (target_diag, (fn _ => fn _ => fn _ => seri_diagnosis))
 );
 
-fun get_serializer thy target args labelled_name = fn cs =>
+fun get_serializer thy target file args labelled_name = fn cs =>
   let
     val data = case Symtab.lookup (CodegenSerializerData.get thy) target
      of SOME data => data
@@ -1597,7 +1607,7 @@ fun get_serializer thy target args labelled_name = fn cs =>
       else CodegenThingol.project_code
         (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const) cs;
   in
-    project #> seri args (labelled_name thy) reserved (Symtab.lookup alias) (Symtab.lookup prolog)
+    project #> seri file args (labelled_name thy) reserved (Symtab.lookup alias) (Symtab.lookup prolog)
       (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
   end;
 

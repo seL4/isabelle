@@ -14,18 +14,19 @@ begin
 subsection {* Complete lattices *}
 
 class complete_lattice = lattice +
-  fixes Inf :: "'a set \<Rightarrow> 'a"
-  assumes Inf_lower: "x \<in> A \<Longrightarrow> Inf A \<sqsubseteq> x"
-  assumes Inf_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> Inf A"
+  fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [90] 90)
+  assumes Inf_lower: "x \<in> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> x"
+  assumes Inf_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> \<Sqinter>A"
 
 definition
-  Sup :: "'a\<Colon>complete_lattice set \<Rightarrow> 'a" where
+  Sup :: "'a\<Colon>complete_lattice set \<Rightarrow> 'a"
+where
   "Sup A = Inf {b. \<forall>a \<in> A. a \<le> b}"
 
-theorem Sup_upper: "(x::'a::complete_lattice) \<in> A \<Longrightarrow> x <= Sup A"
+theorem Sup_upper: "(x::'a::complete_lattice) \<in> A \<Longrightarrow> x \<le> Sup A"
   by (auto simp: Sup_def intro: Inf_greatest)
 
-theorem Sup_least: "(\<And>x::'a::complete_lattice. x \<in> A \<Longrightarrow> x <= z) \<Longrightarrow> Sup A <= z"
+theorem Sup_least: "(\<And>x::'a::complete_lattice. x \<in> A \<Longrightarrow> x \<le> z) \<Longrightarrow> Sup A \<le> z"
   by (auto simp: Sup_def intro: Inf_lower)
 
 definition
@@ -198,7 +199,7 @@ instance "fun" :: (type, complete_lattice) complete_lattice
   apply (iprover elim: le_funE)
   done
 
-lemmas [code nofunc] = Inf_fun_def
+lemmas [code func del] = Inf_fun_def
 
 theorem Sup_fun_eq: "Sup A = (\<lambda>x. Sup {y. \<exists>f\<in>A. y = f x})"
   apply (rule order_antisym)
@@ -221,7 +222,7 @@ instance set :: (type) complete_lattice
   Inf_set_def: "Inf S \<equiv> \<Inter>S"
   by intro_classes (auto simp add: Inf_set_def)
 
-lemmas [code nofunc] = Inf_set_def
+lemmas [code func del] = Inf_set_def
 
 theorem Sup_set_eq: "Sup S = \<Union>S"
   apply (rule subset_antisym)

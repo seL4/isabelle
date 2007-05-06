@@ -29,7 +29,7 @@ definition
 definition
   "foobar = (foo R1 1 R3, bar R2 0 R3, foo R1 R3 R2)"
 
-code_gen foobar (SML #) (OCaml -) (Haskell -)
+code_gen foobar in SML in OCaml file - in Haskell file -
 ML {* ROOT.Codegenerator_Rat.foobar *}
 
 code_module Foo

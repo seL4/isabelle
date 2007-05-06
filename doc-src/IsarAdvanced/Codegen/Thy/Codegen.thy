@@ -143,7 +143,7 @@ text {*
   \noindent Then we generate code
 *}
 
-code_gen example (*<*)(SML #)(*>*)(SML "examples/tree.ML")
+code_gen example (*<*)in SML(*>*)in SML file "examples/tree.ML"
 
 text {*
   \noindent which looks like:
@@ -221,15 +221,14 @@ text {*
   \noindent This executable specification is now turned to SML code:
 *}
 
-code_gen fac (*<*)(SML #)(*>*)(SML "examples/fac.ML")
+code_gen fac (*<*)in SML(*>*)in SML file "examples/fac.ML"
 
 text {*
   \noindent  The @{text "\<CODEGEN>"} command takes a space-separated list of
   constants together with \qn{serialization directives}
-  in parentheses. These start with a \qn{target language}
-  identifier, followed by arguments, their semantics
-  depending on the target. In the SML case, a filename
-  is given where to write the generated code to.
+  These start with a \qn{target language}
+  identifier, followed by a file specification
+  where to write the generated code to.
 
   Internally, the defining equations for all selected
   constants are taken, including any transitively required
@@ -260,7 +259,7 @@ definition
   pick_some :: "'a list \<Rightarrow> 'a" where
   "pick_some = hd"
 (*>*)
-code_gen pick_some (SML "examples/fail_const.ML")
+code_gen pick_some in SML file "examples/fail_const.ML"
 
 text {* \noindent will fail. *}
 
@@ -304,7 +303,7 @@ lemma [code func]:
   "pick ((k, v)#xs) n = (if n < k then v else pick xs (n - k))"
   by simp
 
-code_gen pick (*<*)(SML #)(*>*)(SML "examples/pick1.ML")
+code_gen pick (*<*)in SML(*>*) in SML file "examples/pick1.ML"
 
 text {*
   \noindent This theorem now is used for generating code:
@@ -312,12 +311,12 @@ text {*
   \lstsml{Thy/examples/pick1.ML}
 
   \noindent It might be convenient to remove the pointless original
-  equation, using the \emph{nofunc} attribute:
+  equation, using the \emph{func del} attribute:
 *}
 
-lemmas [code nofunc] = pick.simps 
+lemmas [code func del] = pick.simps 
 
-code_gen pick (*<*)(SML #)(*>*)(SML "examples/pick2.ML")
+code_gen pick (*<*)in SML(*>*) in SML file "examples/pick2.ML"
 
 text {*
   \lstsml{Thy/examples/pick2.ML}
@@ -333,7 +332,7 @@ lemma [code func]:
   "fac n = (case n of 0 \<Rightarrow> 1 | Suc m \<Rightarrow> n * fac m)"
   by (cases n) simp_all
 
-code_gen fac (*<*)(SML #)(*>*)(SML "examples/fac_case.ML")
+code_gen fac (*<*)in SML(*>*)in SML file "examples/fac_case.ML"
 
 text {*
   \lstsml{Thy/examples/fac_case.ML}
@@ -342,7 +341,7 @@ text {*
     The attributes \emph{code} and \emph{code del}
     associated with the existing code generator also apply to
     the new one: \emph{code} implies \emph{code func},
-    and \emph{code del} implies \emph{code nofunc}.
+    and \emph{code del} implies \emph{code func del}.
   \end{warn}
 *}
 
@@ -392,10 +391,10 @@ text {*
   as SML, but, in accordance with conventions
   some Haskell systems enforce, each module ends
   up in a single file. The module hierarchy is reflected in
-  the file system, with root given by the user.
+  the file system, with root directory given as file specification.
 *}
 
-code_gen dummy (Haskell "examples/")
+code_gen dummy in Haskell file "examples/"
   (* NOTE: you may use Haskell only once in this document, otherwise
   you have to work in distinct subdirectories *)
 
@@ -408,7 +407,7 @@ text {*
   The whole code in SML with explicit dictionary passing:
 *}
 
-code_gen dummy (*<*)(SML #)(*>*)(SML "examples/class.ML")
+code_gen dummy (*<*)in SML(*>*)in SML file "examples/class.ML"
 
 text {*
   \lstsml{Thy/examples/class.ML}
@@ -418,13 +417,14 @@ text {*
   \noindent or in OCaml:
 *}
 
-code_gen dummy (OCaml "examples/class.ocaml")
+code_gen dummy in OCaml file "examples/class.ocaml"
 
 text {*
   \lstsml{Thy/examples/class.ocaml}
 
   \medskip The explicit association of constants
   to classes can be inspected using the @{text "\<PRINTCLASSES>"}
+  command.
 *}
 
 
@@ -496,38 +496,41 @@ text {*
   hand side and the arguments of the left hand side of an
   equation, but never to the constant heading the left hand side.
   Inline theorems may be declared an undeclared using the
-  \emph{code inline} or \emph{code noinline} attribute respectively.
+  \emph{code inline} or \emph{code inline del} attribute respectively.
   Some common applications:
 *}
 
 text_raw {*
   \begin{itemize}
-     \item replacing non-executable constructs by executable ones: \\
+*}
+
+text {*
+     \item replacing non-executable constructs by executable ones:
 *}     
 
-lemma [code inline]:
-  "x \<in> set xs \<longleftrightarrow> x mem xs" by (induct xs) simp_all
+  lemma [code inline]:
+    "x \<in> set xs \<longleftrightarrow> x mem xs" by (induct xs) simp_all
 
-text_raw {*
-     \item eliminating superfluous constants: \\
+text {*
+     \item eliminating superfluous constants:
 *}
 
-lemma [code inline]:
-  "1 = Suc 0" by simp
+  lemma [code inline]:
+    "1 = Suc 0" by simp
 
-text_raw {*
-     \item replacing executable but inconvenient constructs: \\
+text {*
+     \item replacing executable but inconvenient constructs:
 *}
 
-lemma [code inline]:
-  "xs = [] \<longleftrightarrow> List.null xs" by (induct xs) simp_all
+  lemma [code inline]:
+    "xs = [] \<longleftrightarrow> List.null xs" by (induct xs) simp_all
 
 text_raw {*
   \end{itemize}
 *}
 
 text {*
-  The current set of inline theorems may be inspected using
+  \noindent The current set of inline theorems may be inspected using
   the @{text "\<PRINTCODESETUP>"} command.
 
   \emph{Inline procedures} are a generalized version of inline
@@ -580,7 +583,7 @@ text {*
   performs an explicit equality check.
 *}
 
-code_gen collect_duplicates (*<*)(SML #)(*>*)(SML "examples/collect_duplicates.ML")
+code_gen collect_duplicates (*<*)in SML(*>*)in SML file "examples/collect_duplicates.ML"
 
 text {*
   \lstsml{Thy/examples/collect_duplicates.ML}
@@ -623,9 +626,9 @@ instance * :: (ord, ord) ord
     "p1 \<le> p2 \<equiv> let (x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) = p1; (x2, y2) = p2 in
     x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)" ..
 
-lemmas [code nofunc] = less_prod_def less_eq_prod_def
+lemmas [code func del] = less_prod_def less_eq_prod_def
 
-lemma ord_prod [code func(*<*), code nofunc(*>*)]:
+lemma ord_prod [code func(*<*), code func del(*>*)]:
   "(x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
   "(x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)"
   unfolding less_prod_def less_eq_prod_def by simp_all
@@ -653,7 +656,7 @@ text {*
 *}
 
 code_gen "op \<le> \<Colon> 'a\<Colon>{eq, ord} \<times> 'b\<Colon>ord \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
-  (*<*)(SML #)(*>*)(SML "examples/lexicographic.ML")
+  (*<*)in SML(*>*)in SML file "examples/lexicographic.ML"
 
 text {*
   \lstsml{Thy/examples/lexicographic.ML}
@@ -713,7 +716,7 @@ code_type %tt bool
 code_const %tt True and False and "op \<and>" and Not
   (SML and and and)
 (*>*)
-code_gen in_interval (*<*)(SML #)(*>*)(SML "examples/bool_literal.ML")
+code_gen in_interval (*<*)in SML(*>*)in SML file "examples/bool_literal.ML"
 
 text {*
   \lstsml{Thy/examples/bool_literal.ML}
@@ -756,7 +759,7 @@ text {*
   After this setup, code looks quite more readable:
 *}
 
-code_gen in_interval (*<*)(SML #)(*>*)(SML "examples/bool_mlbool.ML")
+code_gen in_interval (*<*)in SML(*>*) in SML file "examples/bool_mlbool.ML"
 
 text {*
   \lstsml{Thy/examples/bool_mlbool.ML}
@@ -772,7 +775,7 @@ text {*
 code_const %tt "op \<and>"
   (SML infixl 1 "andalso")
 
-code_gen in_interval (*<*)(SML #)(*>*)(SML "examples/bool_infix.ML")
+code_gen in_interval (*<*)in SML(*>*) in SML file "examples/bool_infix.ML"
 
 text {*
   \lstsml{Thy/examples/bool_infix.ML}
@@ -901,7 +904,7 @@ lemma [code func]: "xs \<union> set ys = foldr insert ys xs" by (induct ys) simp
 
 lemma [code func]: "\<Union>set xs = foldr (op \<union>) xs {}" by (induct xs) simp_all
 
-code_gen "{}" insert "op \<in>" "op \<union>" "Union" (*<*)(SML #)(*>*)(SML "examples/set_list.ML")
+code_gen "{}" insert "op \<in>" "op \<union>" "Union" (*<*)in SML(*>*) in SML file "examples/set_list.ML"
 
 text {*
   \lstsml{Thy/examples/set_list.ML}
@@ -1025,7 +1028,7 @@ fun
     "dummy_option (x#xs) = Some x"
   | "dummy_option [] = arbitrary"
 
-code_gen dummy_option (*<*)(SML #)(*>*)(SML "examples/arbitrary.ML")
+code_gen dummy_option (*<*)in SML(*>*)in SML file "examples/arbitrary.ML"
 
 text {*
   \lstsml{Thy/examples/arbitrary.ML}

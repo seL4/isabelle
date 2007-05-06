@@ -64,7 +64,7 @@ instance nat :: "{ord, zero, one}"
   less_def: "m < n == (m, n) : pred_nat^+"
   le_def:   "m \<le> (n::nat) == ~ (n < m)" ..
 
-lemmas [code nofunc] = less_def le_def
+lemmas [code func del] = less_def le_def
 
 text {* Induction *}
 
@@ -1099,6 +1099,11 @@ lemma [code func]:
 
 
 subsection {* Further Arithmetic Facts Concerning the Natural Numbers *}
+
+lemma subst_equals:
+  assumes 1: "t = s" and 2: "u = t"
+  shows "u = s"
+  using 2 1 by (rule trans)
 
 use "arith_data.ML"
 setup arith_setup

@@ -573,8 +573,7 @@ setup {*
   CodegenSerializer.add_undefined "SML" "arbitrary" "(raise Fail \"arbitrary\")"
 *}
 
-code_gen
-  type_NF nat int (SML #)
+code_gen type_NF nat int in SML
 
 ML {*
 structure Norm = ROOT.WeakNorm;
