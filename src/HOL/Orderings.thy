@@ -48,11 +48,11 @@ text {*
 
 definition
   min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "min a b = (if a \<sqsubseteq> b then a else b)"
+  "min a b = (if a \<^loc>\<le> b then a else b)"
 
 definition
   max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "max a b = (if a \<sqsubseteq> b then b else a)"
+  "max a b = (if a \<^loc>\<le> b then b else a)"
 
 end
 
@@ -98,104 +98,99 @@ lemma max_linorder:
   by rule+ (simp add: max_def ord_class.max_def)
 
 
-subsection {* Quasiorders (preorders) *}
+subsection {* Partial orders *}
 
-class preorder = ord +
+class order = ord +
   assumes less_le: "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<noteq> y"
   and order_refl [iff]: "x \<sqsubseteq> x"
   and order_trans: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
+  assumes antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
+
 begin
 
 text {* Reflexivity. *}
 
-lemma eq_refl: "x = y \<Longrightarrow> x \<sqsubseteq> y"
+lemma eq_refl: "x = y \<Longrightarrow> x \<^loc>\<le> y"
     -- {* This form is useful with the classical reasoner. *}
   by (erule ssubst) (rule order_refl)
 
-lemma less_irrefl [iff]: "\<not> x \<sqsubset> x"
+lemma less_irrefl [iff]: "\<not> x \<^loc>< x"
   by (simp add: less_le)
 
-lemma le_less: "x \<sqsubseteq> y \<longleftrightarrow> x \<sqsubset> y \<or> x = y"
+lemma le_less: "x \<^loc>\<le> y \<longleftrightarrow> x \<^loc>< y \<or> x = y"
     -- {* NOT suitable for iff, since it can cause PROOF FAILED. *}
   by (simp add: less_le) blast
 
-lemma le_imp_less_or_eq: "x \<sqsubseteq> y \<Longrightarrow> x \<sqsubset> y \<or> x = y"
+lemma le_imp_less_or_eq: "x \<^loc>\<le> y \<Longrightarrow> x \<^loc>< y \<or> x = y"
   unfolding less_le by blast
 
-lemma less_imp_le: "x \<sqsubset> y \<Longrightarrow> x \<sqsubseteq> y"
+lemma less_imp_le: "x \<^loc>< y \<Longrightarrow> x \<^loc>\<le> y"
   unfolding less_le by blast
 
-lemma less_imp_neq: "x \<sqsubset> y \<Longrightarrow> x \<noteq> y"
+lemma less_imp_neq: "x \<^loc>< y \<Longrightarrow> x \<noteq> y"
   by (erule contrapos_pn, erule subst, rule less_irrefl)
 
 
 text {* Useful for simplification, but too risky to include by default. *}
 
-lemma less_imp_not_eq: "x \<sqsubset> y \<Longrightarrow> (x = y) \<longleftrightarrow> False"
+lemma less_imp_not_eq: "x \<^loc>< y \<Longrightarrow> (x = y) \<longleftrightarrow> False"
   by auto
 
-lemma less_imp_not_eq2: "x \<sqsubset> y \<Longrightarrow> (y = x) \<longleftrightarrow> False"
+lemma less_imp_not_eq2: "x \<^loc>< y \<Longrightarrow> (y = x) \<longleftrightarrow> False"
   by auto
 
 
 text {* Transitivity rules for calculational reasoning *}
 
-lemma neq_le_trans: "\<lbrakk> a \<noteq> b; a \<sqsubseteq> b \<rbrakk> \<Longrightarrow> a \<sqsubset> b"
+lemma neq_le_trans: "a \<noteq> b \<Longrightarrow> a \<^loc>\<le> b \<Longrightarrow> a \<^loc>< b"
   by (simp add: less_le)
 
-lemma le_neq_trans: "\<lbrakk> a \<sqsubseteq> b; a \<noteq> b \<rbrakk> \<Longrightarrow> a \<sqsubset> b"
+lemma le_neq_trans: "a \<^loc>\<le> b \<Longrightarrow> a \<noteq> b \<Longrightarrow> a \<^loc>< b"
   by (simp add: less_le)
 
-end
-
-subsection {* Partial orderings *}
-
-class order = preorder + 
-  assumes antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
-begin
 
 text {* Asymmetry. *}
 
-lemma less_not_sym: "x \<sqsubset> y \<Longrightarrow> \<not> (y \<sqsubset> x)"
+lemma less_not_sym: "x \<^loc>< y \<Longrightarrow> \<not> (y \<^loc>< x)"
   by (simp add: less_le antisym)
 
-lemma less_asym: "x \<sqsubset> y \<Longrightarrow> (\<not> P \<Longrightarrow> y \<sqsubset> x) \<Longrightarrow> P"
+lemma less_asym: "x \<^loc>< y \<Longrightarrow> (\<not> P \<Longrightarrow> y \<^loc>< x) \<Longrightarrow> P"
   by (drule less_not_sym, erule contrapos_np) simp
 
-lemma eq_iff: "x = y \<longleftrightarrow> x \<sqsubseteq> y \<and> y \<sqsubseteq> x"
+lemma eq_iff: "x = y \<longleftrightarrow> x \<^loc>\<le> y \<and> y \<^loc>\<le> x"
   by (blast intro: antisym)
 
-lemma antisym_conv: "y \<sqsubseteq> x \<Longrightarrow> x \<sqsubseteq> y \<longleftrightarrow> x = y"
+lemma antisym_conv: "y \<^loc>\<le> x \<Longrightarrow> x \<^loc>\<le> y \<longleftrightarrow> x = y"
   by (blast intro: antisym)
 
-lemma less_imp_neq: "x \<sqsubset> y \<Longrightarrow> x \<noteq> y"
+lemma less_imp_neq: "x \<^loc>< y \<Longrightarrow> x \<noteq> y"
   by (erule contrapos_pn, erule subst, rule less_irrefl)
 
 
 text {* Transitivity. *}
 
-lemma less_trans: "\<lbrakk> x \<sqsubset> y; y \<sqsubset> z \<rbrakk> \<Longrightarrow> x \<sqsubset> z"
+lemma less_trans: "x \<^loc>< y \<Longrightarrow> y \<^loc>< z \<Longrightarrow> x \<^loc>< z"
   by (simp add: less_le) (blast intro: order_trans antisym)
 
-lemma le_less_trans: "\<lbrakk> x \<sqsubseteq> y; y \<sqsubset> z \<rbrakk> \<Longrightarrow> x \<sqsubset> z"
+lemma le_less_trans: "x \<^loc>\<le> y \<Longrightarrow> y \<^loc>< z \<Longrightarrow> x \<^loc>< z"
   by (simp add: less_le) (blast intro: order_trans antisym)
 
-lemma less_le_trans: "\<lbrakk> x \<sqsubset> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubset> z"
+lemma less_le_trans: "x \<^loc>< y \<Longrightarrow> y \<^loc>\<le> z \<Longrightarrow> x \<^loc>< z"
   by (simp add: less_le) (blast intro: order_trans antisym)
 
 
 text {* Useful for simplification, but too risky to include by default. *}
 
-lemma less_imp_not_less: "x \<sqsubset> y \<Longrightarrow> (\<not> y \<sqsubset> x) \<longleftrightarrow> True"
+lemma less_imp_not_less: "x \<^loc>< y \<Longrightarrow> (\<not> y \<^loc>< x) \<longleftrightarrow> True"
   by (blast elim: less_asym)
 
-lemma less_imp_triv: "x \<sqsubset> y \<Longrightarrow> (y \<sqsubset> x \<longrightarrow> P) \<longleftrightarrow> True"
+lemma less_imp_triv: "x \<^loc>< y \<Longrightarrow> (y \<^loc>< x \<longrightarrow> P) \<longleftrightarrow> True"
   by (blast elim: less_asym)
 
 
 text {* Transitivity rules for calculational reasoning *}
 
-lemma less_asym': "\<lbrakk> a \<sqsubset> b; b \<sqsubset> a \<rbrakk> \<Longrightarrow> P"
+lemma less_asym': "a \<^loc>< b \<Longrightarrow> b \<^loc>< a \<Longrightarrow> P"
   by (rule less_asym)
 
 end
@@ -207,88 +202,88 @@ class linorder = order +
   assumes linear: "x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
 begin
 
-lemma less_linear: "x \<sqsubset> y \<or> x = y \<or> y \<sqsubset> x"
+lemma less_linear: "x \<^loc>< y \<or> x = y \<or> y \<^loc>< x"
   unfolding less_le using less_le linear by blast 
 
-lemma le_less_linear: "x \<sqsubseteq> y \<or> y \<sqsubset> x"
+lemma le_less_linear: "x \<^loc>\<le> y \<or> y \<^loc>< x"
   by (simp add: le_less less_linear)
 
 lemma le_cases [case_names le ge]:
-  "\<lbrakk> x \<sqsubseteq> y \<Longrightarrow> P; y \<sqsubseteq> x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  "(x \<^loc>\<le> y \<Longrightarrow> P) \<Longrightarrow> (y \<^loc>\<le> x \<Longrightarrow> P) \<Longrightarrow> P"
   using linear by blast
 
 lemma linorder_cases [case_names less equal greater]:
-    "\<lbrakk> x \<sqsubset> y \<Longrightarrow> P; x = y \<Longrightarrow> P; y \<sqsubset> x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+    "(x \<^loc>< y \<Longrightarrow> P) \<Longrightarrow> (x = y \<Longrightarrow> P) \<Longrightarrow> (y \<^loc>< x \<Longrightarrow> P) \<Longrightarrow> P"
   using less_linear by blast
 
-lemma not_less: "\<not> x \<sqsubset> y \<longleftrightarrow> y \<sqsubseteq> x"
+lemma not_less: "\<not> x \<^loc>< y \<longleftrightarrow> y \<^loc>\<le> x"
   apply (simp add: less_le)
   using linear apply (blast intro: antisym)
   done
 
-lemma not_le: "\<not> x \<sqsubseteq> y \<longleftrightarrow> y \<sqsubset> x"
+lemma not_le: "\<not> x \<^loc>\<le> y \<longleftrightarrow> y \<^loc>< x"
   apply (simp add: less_le)
   using linear apply (blast intro: antisym)
   done
 
-lemma neq_iff: "x \<noteq> y \<longleftrightarrow> x \<sqsubset> y \<or> y \<sqsubset> x"
+lemma neq_iff: "x \<noteq> y \<longleftrightarrow> x \<^loc>< y \<or> y \<^loc>< x"
   by (cut_tac x = x and y = y in less_linear, auto)
 
-lemma neqE: "\<lbrakk> x \<noteq> y; x \<sqsubset> y \<Longrightarrow> R; y \<sqsubset> x \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
+lemma neqE: "x \<noteq> y \<Longrightarrow> (x \<^loc>< y \<Longrightarrow> R) \<Longrightarrow> (y \<^loc>< x \<Longrightarrow> R) \<Longrightarrow> R"
   by (simp add: neq_iff) blast
 
-lemma antisym_conv1: "\<not> x \<sqsubset> y \<Longrightarrow> x \<sqsubseteq> y \<longleftrightarrow> x = y"
+lemma antisym_conv1: "\<not> x \<^loc>< y \<Longrightarrow> x \<^loc>\<le> y \<longleftrightarrow> x = y"
   by (blast intro: antisym dest: not_less [THEN iffD1])
 
-lemma antisym_conv2: "x \<sqsubseteq> y \<Longrightarrow> \<not> x \<sqsubset> y \<longleftrightarrow> x = y"
+lemma antisym_conv2: "x \<^loc>\<le> y \<Longrightarrow> \<not> x \<^loc>< y \<longleftrightarrow> x = y"
   by (blast intro: antisym dest: not_less [THEN iffD1])
 
-lemma antisym_conv3: "\<not> y \<sqsubset> x \<Longrightarrow> \<not> x \<sqsubset> y \<longleftrightarrow> x = y"
+lemma antisym_conv3: "\<not> y \<^loc>< x \<Longrightarrow> \<not> x \<^loc>< y \<longleftrightarrow> x = y"
   by (blast intro: antisym dest: not_less [THEN iffD1])
 
 text{*Replacing the old Nat.leI*}
-lemma leI: "\<not> x \<sqsubset> y \<Longrightarrow> y \<sqsubseteq> x"
+lemma leI: "\<not> x \<^loc>< y \<Longrightarrow> y \<^loc>\<le> x"
   unfolding not_less .
 
-lemma leD: "y \<sqsubseteq> x \<Longrightarrow> \<not> x \<sqsubset> y"
+lemma leD: "y \<^loc>\<le> x \<Longrightarrow> \<not> x \<^loc>< y"
   unfolding not_less .
 
 (*FIXME inappropriate name (or delete altogether)*)
-lemma not_leE: "\<not> y \<sqsubseteq> x \<Longrightarrow> x \<sqsubset> y"
+lemma not_leE: "\<not> y \<^loc>\<le> x \<Longrightarrow> x \<^loc>< y"
   unfolding not_le .
 
 text {* min/max properties *}
 
 lemma min_le_iff_disj:
-  "min x y \<sqsubseteq> z \<longleftrightarrow> x \<sqsubseteq> z \<or> y \<sqsubseteq> z"
+  "min x y \<^loc>\<le> z \<longleftrightarrow> x \<^loc>\<le> z \<or> y \<^loc>\<le> z"
   unfolding min_def using linear by (auto intro: order_trans)
 
 lemma le_max_iff_disj:
-  "z \<sqsubseteq> max x y \<longleftrightarrow> z \<sqsubseteq> x \<or> z \<sqsubseteq> y"
+  "z \<^loc>\<le> max x y \<longleftrightarrow> z \<^loc>\<le> x \<or> z \<^loc>\<le> y"
   unfolding max_def using linear by (auto intro: order_trans)
 
 lemma min_less_iff_disj:
-  "min x y \<sqsubset> z \<longleftrightarrow> x \<sqsubset> z \<or> y \<sqsubset> z"
+  "min x y \<^loc>< z \<longleftrightarrow> x \<^loc>< z \<or> y \<^loc>< z"
   unfolding min_def le_less using less_linear by (auto intro: less_trans)
 
 lemma less_max_iff_disj:
-  "z \<sqsubset> max x y \<longleftrightarrow> z \<sqsubset> x \<or> z \<sqsubset> y"
+  "z \<^loc>< max x y \<longleftrightarrow> z \<^loc>< x \<or> z \<^loc>< y"
   unfolding max_def le_less using less_linear by (auto intro: less_trans)
 
 lemma min_less_iff_conj [simp]:
-  "z \<sqsubset> min x y \<longleftrightarrow> z \<sqsubset> x \<and> z \<sqsubset> y"
+  "z \<^loc>< min x y \<longleftrightarrow> z \<^loc>< x \<and> z \<^loc>< y"
   unfolding min_def le_less using less_linear by (auto intro: less_trans)
 
 lemma max_less_iff_conj [simp]:
-  "max x y \<sqsubset> z \<longleftrightarrow> x \<sqsubset> z \<and> y \<sqsubset> z"
+  "max x y \<^loc>< z \<longleftrightarrow> x \<^loc>< z \<and> y \<^loc>< z"
   unfolding max_def le_less using less_linear by (auto intro: less_trans)
 
 lemma split_min:
-  "P (min i j) \<longleftrightarrow> (i \<sqsubseteq> j \<longrightarrow> P i) \<and> (\<not> i \<sqsubseteq> j \<longrightarrow> P j)"
+  "P (min i j) \<longleftrightarrow> (i \<^loc>\<le> j \<longrightarrow> P i) \<and> (\<not> i \<^loc>\<le> j \<longrightarrow> P j)"
   by (simp add: min_def)
 
 lemma split_max:
-  "P (max i j) \<longleftrightarrow> (i \<sqsubseteq> j \<longrightarrow> P j) \<and> (\<not> i \<sqsubseteq> j \<longrightarrow> P i)"
+  "P (max i j) \<longleftrightarrow> (i \<^loc>\<le> j \<longrightarrow> P j) \<and> (\<not> i \<^loc>\<le> j \<longrightarrow> P i)"
   by (simp add: max_def)
 
 end
@@ -297,15 +292,15 @@ end
 subsection {* Name duplicates *}
 
 lemmas order_less_le = less_le
-lemmas order_eq_refl = preorder_class.eq_refl
-lemmas order_less_irrefl = preorder_class.less_irrefl
-lemmas order_le_less = preorder_class.le_less
-lemmas order_le_imp_less_or_eq = preorder_class.le_imp_less_or_eq
-lemmas order_less_imp_le = preorder_class.less_imp_le
-lemmas order_less_imp_not_eq = preorder_class.less_imp_not_eq
-lemmas order_less_imp_not_eq2 = preorder_class.less_imp_not_eq2
-lemmas order_neq_le_trans = preorder_class.neq_le_trans
-lemmas order_le_neq_trans = preorder_class.le_neq_trans
+lemmas order_eq_refl = order_class.eq_refl
+lemmas order_less_irrefl = order_class.less_irrefl
+lemmas order_le_less = order_class.le_less
+lemmas order_le_imp_less_or_eq = order_class.le_imp_less_or_eq
+lemmas order_less_imp_le = order_class.less_imp_le
+lemmas order_less_imp_not_eq = order_class.less_imp_not_eq
+lemmas order_less_imp_not_eq2 = order_class.less_imp_not_eq2
+lemmas order_neq_le_trans = order_class.neq_le_trans
+lemmas order_le_neq_trans = order_class.le_neq_trans
 
 lemmas order_antisym = antisym
 lemmas order_less_not_sym = order_class.less_not_sym
@@ -371,6 +366,7 @@ fun decomp_gen sort thy (Trueprop $ t) =
 
 in
 
+(* sorry - there is no preorder class
 structure Quasi_Tac = Quasi_Tac_Fun (
 struct
   val le_trans = thm "order_trans";
@@ -384,7 +380,7 @@ struct
   val less_imp_neq = thm "less_imp_neq";
   val decomp_trans = decomp_gen ["Orderings.preorder"];
   val decomp_quasi = decomp_gen ["Orderings.preorder"];
-end);
+end);*)
 
 structure Order_Tac = Order_Tac_Fun (
 struct
