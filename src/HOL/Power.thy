@@ -302,6 +302,18 @@ lemma power_le_imp_le_base:
       by (simp add: linorder_not_less [symmetric])
  qed
 
+lemma power_less_imp_less_base:
+  fixes a b :: "'a::{ordered_semidom,recpower}"
+  assumes less: "a ^ n < b ^ n"
+  assumes nonneg: "0 \<le> b"
+  shows "a < b"
+proof (rule contrapos_pp [OF less])
+  assume "~ a < b"
+  hence "b \<le> a" by (simp only: linorder_not_less)
+  hence "b ^ n \<le> a ^ n" using nonneg by (rule power_mono)
+  thus "~ a ^ n < b ^ n" by (simp only: linorder_not_less)
+qed
+
 lemma power_inject_base:
      "[| a ^ Suc n = b ^ Suc n; 0 \<le> a; 0 \<le> b |]
       ==> a = (b::'a::{ordered_semidom,recpower})"
