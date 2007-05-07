@@ -56,7 +56,7 @@ fun min_arity_of c = getOpt (Symtab.lookup(!const_min_arity) c, 0);
 
 (*True if the constant ever appears outside of the top-level position in literals.
   If false, the constant always receives all of its arguments and is used as a predicate.*)
-fun needs_hBOOL c = not (!minimize_applies) orelse !typ_level<>T_CONST orelse
+fun needs_hBOOL c = not (!minimize_applies) orelse !typ_level=T_PARTIAL orelse
                     getOpt (Symtab.lookup(!const_needs_hBOOL) c, false);
 
 fun init thy = 
@@ -292,17 +292,6 @@ val make_conjecture_clauses = make_conjecture_clauses_aux 0;
 (* DFG used by SPASS                                                  *)
 (**********************************************************************)
 
-val type_wrapper = "ti";
-
-fun wrap_type (c,tp) = case !typ_level of
-	T_FULL => type_wrapper ^ RC.paren_pack [c, RC.string_of_fol_type tp]
-      | _ => c;
-    
-
-val bool_tp = RC.make_fixed_type_const "bool";
-
-val app_str = "hAPP";
-
 (*Result of a function type; no need to check that the argument type matches.*)
 fun result_type (RC.Comp ("tc_fun", [_, tp2])) = tp2
   | result_type _ = raise ERROR "result_type"
@@ -318,7 +307,19 @@ fun strip_comb u =
         |   stripc  x =  x
     in  stripc(u,[])  end;
 
-(*Full and partial-typed transations*)
+val type_wrapper = "ti";
+
+fun head_needs_hBOOL (CombConst(c,_,_)) = needs_hBOOL c
+  | head_needs_hBOOL _ = true;
+
+fun wrap_type (s, tp) = 
+  if !typ_level=T_FULL then
+      type_wrapper ^ RC.paren_pack [s, RC.string_of_fol_type tp]
+  else s;
+    
+fun apply ss = "hAPP" ^ RC.paren_pack ss;
+
+(*Full (non-optimized) and partial-typed transations*)
 fun string_of_combterm1 (CombConst(c,tp,_)) = 
       let val c' = if c = "equal" then "c_fequal" else c
       in  wrap_type (c',tp)  end
@@ -329,45 +330,50 @@ fun string_of_combterm1 (CombConst(c,tp,_)) =
 	  and s2 = string_of_combterm1 t2
       in
 	  case !typ_level of
-	      T_FULL => type_wrapper ^ 
-	                RC.paren_pack 
-	                  [app_str ^ RC.paren_pack [s1,s2], 
-	                   RC.string_of_fol_type (result_type (type_of_combterm t1))]
-	    | T_PARTIAL => app_str ^ RC.paren_pack 
-	                     [s1,s2, RC.string_of_fol_type (type_of_combterm t1)]
+	      T_FULL => wrap_type (apply [s1,s2], result_type (type_of_combterm t1))
+	    | T_PARTIAL => apply [s1,s2, RC.string_of_fol_type (type_of_combterm t1)]
 	    | T_CONST => raise ERROR "string_of_combterm1"
       end;
 
 fun rev_apply (v, []) = v
-  | rev_apply (v, arg::args) = app_str ^ RC.paren_pack [rev_apply (v, args), arg];
+  | rev_apply (v, arg::args) = apply [rev_apply (v, args), arg];
 
 fun string_apply (v, args) = rev_apply (v, rev args);
 
 (*Apply an operator to the argument strings, using either the "apply" operator or
   direct function application.*)
-fun string_of_applic (CombConst(c,_,tvars), args) =
+fun string_of_applic (CombConst(c,tp,tvars), args) =
       let val c = if c = "equal" then "c_fequal" else c
           val nargs = min_arity_of c
-          val args1 = List.take(args, nargs) @ (map RC.string_of_fol_type tvars)
+          val args1 = List.take(args, nargs)
             handle Subscript => raise ERROR ("string_of_applic: " ^ c ^ " has arity " ^
 					     Int.toString nargs ^ " but is applied to " ^ 
 					     space_implode ", " args) 
           val args2 = List.drop(args, nargs)
+          val targs = if !typ_level = T_CONST then map RC.string_of_fol_type tvars
+                      else []
       in
-	  string_apply (c ^ RC.paren_pack args1, args2)
+	  string_apply (c ^ RC.paren_pack (args1@targs), args2)
       end
-  | string_of_applic (CombFree(v,_), args) = string_apply (v, args)
-  | string_of_applic (CombVar(v,_), args) = string_apply (v, args)  
+  | string_of_applic (CombFree(v,tp), args) = string_apply (v, args)
+  | string_of_applic (CombVar(v,tp), args) = string_apply (v, args)
   | string_of_applic _ = raise ERROR "string_of_applic";
 
-(*Constant-typed transation*)
+fun wrap_type_if (head, s, tp) = if head_needs_hBOOL head then wrap_type (s, tp) else s;
+    
+(*Full (if optimized) and constant-typed transations*)
 fun string_of_combterm2 t = 
   let val (head, args) = strip_comb t
-  in  string_of_applic (head, map string_of_combterm2 args)  end;
+  in  wrap_type_if (head, 
+                    string_of_applic (head, map string_of_combterm2 args), 
+                    type_of_combterm t)
+  end;
 
 fun string_of_combterm t = 
-    case !typ_level of T_CONST => string_of_combterm2 t
-		           | _ => string_of_combterm1 t;
+    case (!typ_level,!minimize_applies) of
+         (T_PARTIAL, _) => string_of_combterm1 t
+       | (T_FULL, false) => string_of_combterm1 t
+       | _ => string_of_combterm2 t;
 
 (*Boolean-valued terms are here converted to literals.*)
 fun boolify t = "hBOOL" ^ RC.paren_pack [string_of_combterm t];
@@ -457,14 +463,15 @@ fun add_decls (CombConst(c,tp,tvars), (funcs,preds)) =
       if c = "equal" then (addtypes tvars funcs, preds)
       else
 	(case !typ_level of
-	     T_CONST => 
-               let val arity = min_arity_of c + length tvars
-                   val addit = Symtab.update(c,arity) 
+            T_PARTIAL => (RC.add_foltype_funcs (tp, Symtab.update(c,0) funcs), preds)
+	  | _ => 
+               let val arity = min_arity_of c 
+                   val ntys = if !typ_level = T_CONST then length tvars else 0
+                   val addit = Symtab.update(c, arity+ntys) 
                in
                    if needs_hBOOL c then (addtypes tvars (addit funcs), preds)
                    else (addtypes tvars funcs, addit preds)
-               end
-           | _ => (RC.add_foltype_funcs (tp, Symtab.update(c,0) funcs), preds))
+               end)
   | add_decls (CombFree(v,ctp), (funcs,preds)) = 
       (RC.add_foltype_funcs (ctp,Symtab.update (v,0) funcs), preds)
   | add_decls (CombVar(_,ctp), (funcs,preds)) = 
@@ -582,7 +589,7 @@ fun display_arity (c,n) =
                 (if needs_hBOOL c then " needs hBOOL" else ""));
 
 fun count_constants (conjectures, axclauses, helper_clauses) = 
-  if !minimize_applies andalso !typ_level=T_CONST then
+  if !minimize_applies andalso !typ_level<>T_PARTIAL then
     (List.app count_constants_clause conjectures;
      List.app count_constants_clause axclauses;
      List.app count_constants_clause helper_clauses;
