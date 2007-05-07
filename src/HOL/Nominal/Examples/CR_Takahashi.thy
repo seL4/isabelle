@@ -79,10 +79,10 @@ section {* Beta-Reduction *}
 inductive2
   "Beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta> _" [80,80] 80)
 where
-  b1[intro]: "M1\<longrightarrow>\<^isub>\<beta>M2 \<Longrightarrow> (App M1 N)\<longrightarrow>\<^isub>\<beta>(App M2 N)"
-| b2[intro]: "N1\<longrightarrow>\<^isub>\<beta>N2 \<Longrightarrow> (App M N1)\<longrightarrow>\<^isub>\<beta>(App M N2)"
-| b3[intro]: "M1\<longrightarrow>\<^isub>\<beta>M2 \<Longrightarrow> (Lam [x].M1)\<longrightarrow>\<^isub>\<beta> (Lam [x].M2)"
-| b4[intro]: "(App (Lam [x].M) N)\<longrightarrow>\<^isub>\<beta>(M[x::=N])"
+  b1[intro]: "M1\<longrightarrow>\<^isub>\<beta>M2 \<Longrightarrow> App M1 N \<longrightarrow>\<^isub>\<beta> App M2 N"
+| b2[intro]: "N1\<longrightarrow>\<^isub>\<beta>N2 \<Longrightarrow> App M N1 \<longrightarrow>\<^isub>\<beta> App M N2"
+| b3[intro]: "M1\<longrightarrow>\<^isub>\<beta>M2 \<Longrightarrow> Lam [x].M1 \<longrightarrow>\<^isub>\<beta> Lam [x].M2"
+| b4[intro]: "(App (Lam [x].M) N)\<longrightarrow>\<^isub>\<beta> M[x::=N]"
 
 section {* Transitive Closure of Beta *}
 
@@ -103,26 +103,24 @@ section {* One-Reduction *}
 inductive2
   One :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>1 _" [80,80] 80)
 where
-  o1[intro]: "M\<longrightarrow>\<^isub>1M"
+  o1[intro]: "Var x\<longrightarrow>\<^isub>1 Var x"
 | o2[intro]: "\<lbrakk>M1\<longrightarrow>\<^isub>1M2; N1\<longrightarrow>\<^isub>1N2\<rbrakk> \<Longrightarrow> (App M1 N1)\<longrightarrow>\<^isub>1(App M2 N2)"
 | o3[intro]: "M1\<longrightarrow>\<^isub>1M2 \<Longrightarrow> (Lam [x].M1)\<longrightarrow>\<^isub>1(Lam [x].M2)"
-| o4[intro]: "\<lbrakk>x\<sharp>(N1,N2); M1\<longrightarrow>\<^isub>1M2; N1\<longrightarrow>\<^isub>1N2\<rbrakk> \<Longrightarrow> (App (Lam [x].M1) N1)\<longrightarrow>\<^isub>1(M2[x::=N2])"
+| o4[intro]: "\<lbrakk>x\<sharp>(N1,N2); M1\<longrightarrow>\<^isub>1M2; N1\<longrightarrow>\<^isub>1N2\<rbrakk> \<Longrightarrow> (App (Lam [x].M1) N1)\<longrightarrow>\<^isub>1M2[x::=N2]"
 
 equivariance One
 
 nominal_inductive One by (simp_all add: abs_fresh fresh_fact')
 
-lemma One_subst_aux:
-  assumes a: "N\<longrightarrow>\<^isub>1N'"
-  shows "M[x::=N] \<longrightarrow>\<^isub>1 M[x::=N']"
-using a by (nominal_induct M avoiding: x N N' rule: lam.induct)
-           (auto simp add: fresh_atm)
+lemma One_refl:
+  shows "M\<longrightarrow>\<^isub>1M"
+by (nominal_induct M rule: lam.induct) (auto)
 
 lemma One_subst: 
   assumes a: "M\<longrightarrow>\<^isub>1M'" "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N]\<longrightarrow>\<^isub>1M'[x::=N']" 
 using a by (nominal_induct M M' avoiding: N N' x rule: One.strong_induct)
-           (auto simp add: One_subst_aux substitution_lemma fresh_atm fresh_fact)
+           (auto simp add: substitution_lemma fresh_atm fresh_fact)
 
 lemma better_o4_intro:
   assumes a: "M1 \<longrightarrow>\<^isub>1 M2" "N1 \<longrightarrow>\<^isub>1 N2"
@@ -172,7 +170,6 @@ lemma One_Redex:
   using a
   apply(erule_tac One.cases)
   apply(simp_all)
-  apply(force)
   apply(rule disjI1)
   apply(auto simp add: lam.inject)[1]
   apply(drule One_Lam)
@@ -206,7 +203,7 @@ where
     d1[intro]: "Var x \<longrightarrow>\<^isub>d Var x"
   | d2[intro]: "M \<longrightarrow>\<^isub>d N \<Longrightarrow> Lam [x].M \<longrightarrow>\<^isub>d Lam[x].N"
   | d3[intro]: "\<lbrakk>\<not>(\<exists>y M'. M1 = Lam [y].M'); M1 \<longrightarrow>\<^isub>d M2; N1 \<longrightarrow>\<^isub>d N2\<rbrakk> \<Longrightarrow> App M1 N1 \<longrightarrow>\<^isub>d App M2 N2"
-  | d4[intro]: "\<lbrakk>x\<sharp>(N1,N2); M1 \<longrightarrow>\<^isub>d M2; N1 \<longrightarrow>\<^isub>d N2\<rbrakk> \<Longrightarrow> App (Lam [x].M1) N1 \<longrightarrow>\<^isub>d (M2[x::=N2])"
+  | d4[intro]: "\<lbrakk>x\<sharp>(N1,N2); M1 \<longrightarrow>\<^isub>d M2; N1 \<longrightarrow>\<^isub>d N2\<rbrakk> \<Longrightarrow> App (Lam [x].M1) N1 \<longrightarrow>\<^isub>d M2[x::=N2]"
 
 (* FIXME: needs to be in nominal_inductive *)
 declare perm_pi_simp[eqvt_force]
@@ -335,19 +332,20 @@ using a by (induct) (auto intro: One_star_trans)
 lemma One_star_App_congL: 
   assumes a: "M1\<longrightarrow>\<^isub>1\<^sup>*M2" 
   shows "App M1 N\<longrightarrow>\<^isub>1\<^sup>* App M2 N"
-using a by (induct) (auto intro: One_star_trans)
+using a 
+by (induct) (auto intro: One_star_trans One_refl)
 
 lemma One_star_App_congR: 
   assumes a: "t1\<longrightarrow>\<^isub>1\<^sup>*t2" 
   shows "App s t1 \<longrightarrow>\<^isub>1\<^sup>* App s t2"
-using a by (induct) (auto intro: One_star_trans)
+using a by (induct) (auto intro: One_refl One_star_trans)
 
 lemmas One_congs = One_star_App_congL One_star_App_congR One_star_Lam_cong
 
 lemma Beta_implies_One_star: 
   assumes a: "t1\<longrightarrow>\<^isub>\<beta>t2" 
   shows "t1\<longrightarrow>\<^isub>1\<^sup>*t2"
-using a by (induct) (auto intro: One_congs better_o4_intro)
+using a by (induct) (auto intro: One_refl One_congs better_o4_intro)
 
 lemma Beta_star_equals_One_star: 
   shows "M1\<longrightarrow>\<^isub>1\<^sup>*M2 = M1\<longrightarrow>\<^isub>\<beta>\<^sup>*M2"
