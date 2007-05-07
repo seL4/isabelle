@@ -326,6 +326,16 @@ lemma power2_minus:
      "(- a)\<twosuperior> = (a\<twosuperior>::'a::{comm_ring_1,recpower})"
   by (simp add: power2_eq_square)
 
+lemma power2_le_imp_le:
+  fixes x y :: "'a::{ordered_semidom,recpower}"
+  shows "\<lbrakk>x\<twosuperior> \<le> y\<twosuperior>; 0 \<le> y\<rbrakk> \<Longrightarrow> x \<le> y"
+unfolding numeral_2_eq_2 by (rule power_le_imp_le_base)
+
+lemma power2_less_imp_less:
+  fixes x y :: "'a::{ordered_semidom,recpower}"
+  shows "\<lbrakk>x\<twosuperior> < y\<twosuperior>; 0 \<le> y\<rbrakk> \<Longrightarrow> x < y"
+by (rule power_less_imp_less_base)
+
 lemma power_minus1_even: "(- 1) ^ (2*n) = (1::'a::{comm_ring_1,recpower})"
 apply (induct "n")
 apply (auto simp add: power_Suc power_add power2_minus)
