@@ -367,56 +367,59 @@ class norm = type +
 instance real :: norm
   real_norm_def [simp]: "norm r \<equiv> \<bar>r\<bar>" ..
 
-axclass normed < plus, zero, norm
+axclass real_normed_vector < real_vector, norm
   norm_ge_zero [simp]: "0 \<le> norm x"
   norm_eq_zero [simp]: "(norm x = 0) = (x = 0)"
   norm_triangle_ineq: "norm (x + y) \<le> norm x + norm y"
-
-axclass real_normed_vector < real_vector, normed
   norm_scaleR: "norm (scaleR a x) = \<bar>a\<bar> * norm x"
 
 axclass real_normed_algebra < real_algebra, real_normed_vector
   norm_mult_ineq: "norm (x * y) \<le> norm x * norm y"
 
-axclass real_normed_div_algebra < real_div_algebra, normed
-  norm_of_real: "norm (of_real r) = abs r"
+axclass real_normed_algebra_1 < real_algebra_1, real_normed_algebra
+  norm_one [simp]: "norm 1 = 1"
+
+axclass real_normed_div_algebra < real_div_algebra, real_normed_vector
   norm_mult: "norm (x * y) = norm x * norm y"
 
 axclass real_normed_field < real_field, real_normed_div_algebra
 
-instance real_normed_div_algebra < real_normed_algebra
+instance real_normed_div_algebra < real_normed_algebra_1
 proof
-  fix a :: real and x :: 'a
-  have "norm (scaleR a x) = norm (of_real a * x)"
-    by (simp add: of_real_def)
-  also have "\<dots> = abs a * norm x"
-    by (simp add: norm_mult norm_of_real)
-  finally show "norm (scaleR a x) = abs a * norm x" .
-next
   fix x y :: 'a
   show "norm (x * y) \<le> norm x * norm y"
     by (simp add: norm_mult)
+next
+  have "norm (1 * 1::'a) = norm (1::'a) * norm (1::'a)"
+    by (rule norm_mult)
+  thus "norm (1::'a) = 1" by simp
 qed
 
 instance real :: real_normed_field
-apply (intro_classes, unfold real_norm_def)
+apply (intro_classes, unfold real_norm_def real_scaleR_def)
 apply (rule abs_ge_zero)
 apply (rule abs_eq_0)
 apply (rule abs_triangle_ineq)
-apply simp
+apply (rule abs_mult)
 apply (rule abs_mult)
 done
 
-lemma norm_zero [simp]: "norm (0::'a::normed) = 0"
+lemma norm_zero [simp]: "norm (0::'a::real_normed_vector) = 0"
 by simp
 
-lemma zero_less_norm_iff [simp]: "(0 < norm x) = (x \<noteq> (0::'a::normed))"
+lemma zero_less_norm_iff [simp]:
+  fixes x :: "'a::real_normed_vector"
+  shows "(0 < norm x) = (x \<noteq> 0)"
 by (simp add: order_less_le)
 
-lemma norm_not_less_zero [simp]: "\<not> norm (x::'a::normed) < 0"
+lemma norm_not_less_zero [simp]:
+  fixes x :: "'a::real_normed_vector"
+  shows "\<not> norm x < 0"
 by (simp add: linorder_not_less)
 
-lemma norm_le_zero_iff [simp]: "(norm x \<le> 0) = (x = (0::'a::normed))"
+lemma norm_le_zero_iff [simp]:
+  fixes x :: "'a::real_normed_vector"
+  shows "(norm x \<le> 0) = (x = 0)"
 by (simp add: order_le_less)
 
 lemma norm_minus_cancel [simp]:
@@ -485,12 +488,8 @@ proof -
   finally show ?thesis .
 qed
 
-lemma norm_one [simp]: "norm (1::'a::real_normed_div_algebra) = 1"
-proof -
-  have "norm (of_real 1 :: 'a) = abs 1"
-    by (rule norm_of_real)
-  thus ?thesis by simp
-qed
+lemma norm_of_real: "norm (of_real r :: 'a::real_normed_algebra_1) = \<bar>r\<bar>"
+unfolding of_real_def by (simp add: norm_scaleR)
 
 lemma nonzero_norm_inverse:
   fixes a :: "'a::real_normed_div_algebra"
@@ -515,6 +514,21 @@ lemma norm_divide:
   fixes a b :: "'a::{real_normed_field,division_by_zero}"
   shows "norm (a / b) = norm a / norm b"
 by (simp add: divide_inverse norm_mult norm_inverse)
+
+lemma norm_power_ineq:
+  fixes x :: "'a::{real_normed_algebra_1,recpower}"
+  shows "norm (x ^ n) \<le> norm x ^ n"
+proof (induct n)
+  case 0 show "norm (x ^ 0) \<le> norm x ^ 0" by simp
+next
+  case (Suc n)
+  have "norm (x * x ^ n) \<le> norm x * norm (x ^ n)"
+    by (rule norm_mult_ineq)
+  also from Suc have "\<dots> \<le> norm x * norm x ^ n"
+    using norm_ge_zero by (rule mult_left_mono)
+  finally show "norm (x ^ Suc n) \<le> norm x ^ Suc n"
+    by (simp add: power_Suc)
+qed
 
 lemma norm_power:
   fixes x :: "'a::{real_normed_div_algebra,recpower}"

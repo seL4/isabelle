@@ -485,6 +485,11 @@ apply (auto intro:  order_trans [OF _ complex_mod_ge_zero]
             simp add: add_increasing power2_eq_square [symmetric])
 done
 
+lemma complex_norm_scaleR:
+  "norm (scaleR a x) = \<bar>a\<bar> * norm (x::complex)"
+by (simp only:
+    scaleR_conv_of_real complex_mod_mult complex_mod_complex_of_real)
+
 instance complex :: real_normed_field
 proof
   fix r :: real
@@ -495,8 +500,8 @@ proof
     by (rule complex_mod_eq_zero_cancel)
   show "cmod (x + y) \<le> cmod x + cmod y"
     by (rule complex_mod_triangle_ineq)
-  show "cmod (of_real r) = abs r"
-    by (rule complex_mod_complex_of_real)
+  show "cmod (scaleR r x) = \<bar>r\<bar> * cmod x"
+    by (rule complex_norm_scaleR)
   show "cmod (x * y) = cmod x * cmod y"
     by (rule complex_mod_mult)
 qed

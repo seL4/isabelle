@@ -508,7 +508,7 @@ by (fold real_norm_def, rule summable_norm)
 subsection{* The Ratio Test*}
 
 lemma norm_ratiotest_lemma:
-  fixes x y :: "'a::normed"
+  fixes x y :: "'a::real_normed_vector"
   shows "\<lbrakk>c \<le> 0; norm x \<le> c * norm y\<rbrakk> \<Longrightarrow> x = 0"
 apply (subgoal_tac "norm x \<le> 0", simp)
 apply (erule order_trans)
