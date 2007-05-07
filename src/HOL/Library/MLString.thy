@@ -26,7 +26,7 @@ subsection {* Datatype of monolithic strings *}
 
 datatype ml_string = STR string
 
-lemmas [code nofunc] = ml_string.recs ml_string.cases
+lemmas [code func del] = ml_string.recs ml_string.cases
 
 lemma [code func]: "size (s\<Colon>ml_string) = 0"
   by (cases s) simp_all
