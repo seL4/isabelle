@@ -13,7 +13,7 @@ val priK_neq_pubK = thm "priK_neq_pubK";
 
 (*** Basic properties of pubK & priK ***)
 
-AddIffs [inj_pubK RS inj_eq];
+AddIffs [inj_pubK RS @{thm inj_eq}];
 
 Goal "(priK A = priK B) = (A=B)";
 by Safe_tac;
