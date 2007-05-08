@@ -493,6 +493,18 @@ lemma abs_norm_cancel [simp]:
   shows "\<bar>norm a\<bar> = norm a"
 by (rule abs_of_nonneg [OF norm_ge_zero])
 
+lemma norm_add_less:
+  fixes x y :: "'a::real_normed_vector"
+  shows "\<lbrakk>norm x < r; norm y < s\<rbrakk> \<Longrightarrow> norm (x + y) < r + s"
+by (rule order_le_less_trans [OF norm_triangle_ineq add_strict_mono])
+
+lemma norm_mult_less:
+  fixes x y :: "'a::real_normed_algebra"
+  shows "\<lbrakk>norm x < r; norm y < s\<rbrakk> \<Longrightarrow> norm (x * y) < r * s"
+apply (rule order_le_less_trans [OF norm_mult_ineq])
+apply (simp add: mult_strict_mono')
+done
+
 lemma norm_of_real [simp]:
   "norm (of_real r :: 'a::real_normed_algebra_1) = \<bar>r\<bar>"
 unfolding of_real_def by (simp add: norm_scaleR)
