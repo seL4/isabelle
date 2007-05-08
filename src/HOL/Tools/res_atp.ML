@@ -5,7 +5,6 @@
 ATPs with TPTP format input.
 *)
 
-(*Currently unused, during debugging*)
 signature RES_ATP =
 sig
   val prover: string ref
@@ -48,7 +47,7 @@ sig
   val is_fol_thms : thm list -> bool
 end;
 
-structure ResAtp =
+structure ResAtp: RES_ATP =
 struct
 
 fun timestamp s = Output.debug (fn () => ("At " ^ Time.toString (Time.now()) ^ ": " ^ s));
@@ -508,7 +507,7 @@ fun get_relevant_clauses thy cls_thms white_cls goals =
 
 fun all_valid_thms ctxt =
   let
-    val banned_tab = foldl setinsert Symtab.empty (!blacklist) 
+    val banned_tab = foldl setinsert Symtab.empty (!blacklist)
     fun blacklisted s = !run_blacklist_filter andalso
                         (isSome (Symtab.lookup banned_tab s) orelse is_package_def s)
 
@@ -712,7 +711,7 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
                           | Fol => FOL
                           | Hol => HOL
         val (included_thms,user_rules) = get_clasimp_atp_lemmas ctxt user_thms
-        val cla_simp_atp_clauses = included_thms 
+        val cla_simp_atp_clauses = included_thms
                                      |> ResAxioms.cnf_rules_pairs |> make_unique
                                      |> restrict_to_logic thy logic
                                      |> remove_unwanted_clauses
@@ -813,7 +812,7 @@ fun write_problem_files probfile (ctxt,th)  =
       val _ = Output.debug (fn () => "number of subgoals = " ^ Int.toString (length goals))
       val thy = ProofContext.theory_of ctxt
       fun get_neg_subgoals [] _ = []
-        | get_neg_subgoals (gl::gls) n = #1 (ResAxioms.neg_conjecture_clauses th n) :: 
+        | get_neg_subgoals (gl::gls) n = #1 (ResAxioms.neg_conjecture_clauses th n) ::
                                          get_neg_subgoals gls (n+1)
       val goal_cls = get_neg_subgoals goals 1
       val logic = case !linkup_logic_mode of
@@ -902,10 +901,12 @@ val isar_atp_writeonly = setmp print_mode []
          in ignore (write_problem_files probfile (ctxt,th)) end);
 
 
-(** the Isar toplevel hook **)
+(** the Isar toplevel command **)
 
-fun invoke_atp_ml (ctxt, goal) =
-  let val thy = ProofContext.theory_of ctxt;
+fun sledgehammer state =
+  let
+    val (ctxt, (_, goal)) = Proof.get_goal (Toplevel.proof_of state);
+    val thy = ProofContext.theory_of ctxt;
   in
     Output.debug (fn () => "subgoals in isar_atp:\n" ^
                   Pretty.string_of (ProofContext.pretty_term ctxt
@@ -916,22 +917,12 @@ fun invoke_atp_ml (ctxt, goal) =
     ResClause.init thy;
     ResHolClause.init thy;
     if !time_limit > 0 then isar_atp (ctxt, goal)
-    else (warning ("Writing problem file only: " ^ !problem_name); 
+    else (warning ("Writing problem file only: " ^ !problem_name);
           isar_atp_writeonly (ctxt, goal))
   end;
 
-val invoke_atp = Toplevel.no_timing o Toplevel.unknown_proof o Toplevel.keep
- (fn state =>
-  let val (ctxt, (_, goal)) = Proof.get_goal (Toplevel.proof_of state)
-  in  invoke_atp_ml (ctxt, goal)  end);
-
-val call_atpP =
-  OuterSyntax.command
-    "ProofGeneral.call_atp"
-    "call automatic theorem provers"
-    OuterKeyword.diag
-    (Scan.succeed invoke_atp);
-
-val _ = OuterSyntax.add_parsers [call_atpP];
+val _ = OuterSyntax.add_parsers
+  [OuterSyntax.command "sledgehammer" "call automatic theorem provers" OuterKeyword.diag
+    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_proof o Toplevel.keep sledgehammer))];
 
 end;
