@@ -389,15 +389,17 @@ val interpretationP =
     "prove and register interpretation of locale expression in theory or locale" K.thy_goal
     (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! SpecParse.locale_expr
       >> (Toplevel.print oo (Toplevel.theory_to_proof o Locale.interpretation_in_locale I)) ||
-      SpecParse.opt_thm_name ":" -- SpecParse.locale_expr -- SpecParse.locale_insts >> (fn ((x, y), z) =>
-        Toplevel.print o Toplevel.theory_to_proof (Locale.interpretation I (apfst (pair true) x) y z)));
+      SpecParse.opt_thm_name ":" -- SpecParse.locale_expr -- SpecParse.locale_insts
+        >> (fn ((x, y), z) => Toplevel.print o
+            Toplevel.theory_to_proof (Locale.interpretation I (apfst (pair true) x) y z)));
 
 val interpretP =
   OuterSyntax.command "interpret"
     "prove and register interpretation of locale expression in proof context"
     (K.tag_proof K.prf_goal)
     (SpecParse.opt_thm_name ":" -- SpecParse.locale_expr -- SpecParse.locale_insts
-      >> (fn ((x, y), z) => Toplevel.print o Toplevel.proof' (Locale.interpret Seq.single (apfst (pair true) x) y z)));
+      >> (fn ((x, y), z) => Toplevel.print o
+          Toplevel.proof' (Locale.interpret Seq.single (apfst (pair true) x) y z)));
 
 
 (* classes *)
@@ -427,12 +429,19 @@ val instanceP =
       P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
            >> ClassPackage.instance_class_cmd
       || P.$$$ "advanced" |-- P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
-           >> ClassPackage.instance_sort_cmd (*experimental: by interpretation of locales*)
+           >> ClassPackage.instance_sort_cmd
       || P.and_list1 P.arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
            >> (fn (arities, defs) => ClassPackage.instance_arity_cmd arities defs)
     ) >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 end;
+
+
+(* code generation *)
+
+val code_datatypeP =
+  OuterSyntax.command "code_datatype" "define set of code datatype constructors" K.thy_decl
+    (Scan.repeat1 P.term >> (Toplevel.theory o CodegenData.add_datatype_consts_cmd));
 
 
 
@@ -697,21 +706,11 @@ val undos_proofP =
 
 val undoP =
   OuterSyntax.improper_command "undo" "undo last command" K.control
-    (Scan.succeed ((Toplevel.no_timing o Toplevel.print) o IsarCmd.undo));
+    (Scan.succeed (Toplevel.no_timing o Toplevel.print o IsarCmd.undo));
 
 val killP =
   OuterSyntax.improper_command "kill" "kill current history node" K.control
-    (Scan.succeed ((Toplevel.no_timing o Toplevel.print) o IsarCmd.kill));
-
-
-
-(** code generation **)
-
-val code_datatypeP =
-  OuterSyntax.command "code_datatype" "define set of code datatype constructors" K.thy_decl (
-    Scan.repeat1 P.term
-    >> (Toplevel.theory o CodegenData.add_datatype_consts_cmd)
-  );
+    (Scan.succeed (Toplevel.no_timing o Toplevel.print o IsarCmd.kill));
 
 
 
@@ -812,6 +811,8 @@ val thm_depsP =
   OuterSyntax.improper_command "thm_deps" "visualize theorem dependencies"
     K.diag (SpecParse.xthms1 >> (Toplevel.no_timing oo IsarCmd.thm_deps));
 
+local
+
 val criterion =
   P.reserved "name" |-- P.!!! (P.$$$ ":" |-- P.xname) >> FindTheorems.Name ||
   P.reserved "intro" >> K FindTheorems.Intro ||
@@ -820,15 +821,19 @@ val criterion =
   P.reserved "simp" |-- P.!!! (P.$$$ ":" |-- P.term) >> FindTheorems.Simp ||
   P.term >> FindTheorems.Pattern;
 
+val options =
+  Scan.optional
+    (P.$$$ "(" |--
+      P.!!! (Scan.option P.nat -- Scan.optional (P.reserved "with_dups" >> K false) true
+        --| P.$$$ ")")) (NONE, true);
+in
+
 val find_theoremsP =
-  OuterSyntax.improper_command "find_theorems"
-    "print theorems meeting specified criteria" K.diag
-    (Scan.optional (P.$$$ "(" |-- P.!!!
-                        (Scan.option P.nat --
-                         Scan.optional (P.reserved "with_dups" >> K false) true
-                         --| P.$$$ ")")) (NONE, true) --
-     Scan.repeat (((Scan.option P.minus >> is_none) -- criterion))
+  OuterSyntax.improper_command "find_theorems" "print theorems meeting specified criteria" K.diag
+    (options -- Scan.repeat (((Scan.option P.minus >> is_none) -- criterion))
       >> (Toplevel.no_timing oo IsarCmd.find_theorems));
+
+end;
 
 val print_bindsP =
   OuterSyntax.improper_command "print_binds" "print term bindings of proof context" K.diag
@@ -852,7 +857,8 @@ val print_thmsP =
 
 val print_prfsP =
   OuterSyntax.improper_command "prf" "print proof terms of theorems" K.diag
-    (opt_modes -- Scan.option SpecParse.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_prfs false));
+    (opt_modes -- Scan.option SpecParse.xthms1
+      >> (Toplevel.no_timing oo IsarCmd.print_prfs false));
 
 val print_full_prfsP =
   OuterSyntax.improper_command "full_prf" "print full proof terms of theorems" K.diag
@@ -970,8 +976,8 @@ val welcomeP =
 
 (** the Pure outer syntax **)
 
-(*keep keywords consistent with the parsers, including those in
-  outer_parse.ML, otherwise be prepared for unexpected errors*)
+(*keep keywords consistent with the parsers, otherwise be prepared for
+  unexpected errors*)
 
 val _ = OuterSyntax.add_keywords
  ["!!", "!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
@@ -999,7 +1005,7 @@ val _ = OuterSyntax.add_parsers [
   simproc_setupP, parse_ast_translationP, parse_translationP,
   print_translationP, typed_print_translationP,
   print_ast_translationP, token_translationP, oracleP, contextP,
-  localeP, classP, instanceP,
+  localeP, classP, instanceP, code_datatypeP,
   (*proof commands*)
   theoremP, lemmaP, corollaryP, haveP, henceP, showP, thusP, fixP,
   assumeP, presumeP, defP, obtainP, guessP, letP, caseP, thenP, fromP,
@@ -1009,16 +1015,14 @@ val _ = OuterSyntax.add_parsers [
   apply_endP, proofP, alsoP, finallyP, moreoverP, ultimatelyP, backP,
   cannot_undoP, redoP, undos_proofP, undoP, killP, interpretationP,
   interpretP,
-  (*code generation*)
-  code_datatypeP,
   (*diagnostic commands*)
-  pretty_setmarginP, helpP, print_classesP, print_commandsP, print_contextP,
-  print_theoryP, print_syntaxP, print_abbrevsP, print_factsP,
-  print_theoremsP, print_localesP, print_localeP,
+  pretty_setmarginP, helpP, print_classesP, print_commandsP,
+  print_contextP, print_theoryP, print_syntaxP, print_abbrevsP,
+  print_factsP, print_theoremsP, print_localesP, print_localeP,
   print_registrationsP, print_attributesP, print_simpsetP,
   print_rulesP, print_induct_rulesP, print_trans_rulesP,
-  print_methodsP, print_antiquotationsP, thy_depsP, class_depsP, thm_depsP,
-  find_theoremsP, print_bindsP, print_casesP, print_stmtsP,
+  print_methodsP, print_antiquotationsP, thy_depsP, class_depsP,
+  thm_depsP, find_theoremsP, print_bindsP, print_casesP, print_stmtsP,
   print_thmsP, print_prfsP, print_full_prfsP, print_propP,
   print_termP, print_typeP, print_codesetupP,
   (*system commands*)
