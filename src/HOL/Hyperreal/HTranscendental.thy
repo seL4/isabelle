@@ -131,7 +131,7 @@ apply (auto simp add: st_hrabs st_zero_le star_sqrt_HFinite)
 done
 
 lemma hypreal_sqrt_sum_squares_ge1 [simp]: "!!x y. x \<le> ( *f* sqrt)(x ^ 2 + y ^ 2)"
-by (transfer, simp)
+by transfer (rule real_sqrt_sum_squares_ge1)
 
 lemma HFinite_hypreal_sqrt:
      "[| 0 \<le> x; x \<in> HFinite |] ==> ( *f* sqrt) x \<in> HFinite"
