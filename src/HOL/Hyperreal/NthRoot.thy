@@ -487,4 +487,32 @@ apply (subst real_sqrt_one [symmetric])
 apply (rule real_sqrt_eq_iff, auto)
 done
 
+lemma power2_sum:
+  fixes x y :: "'a::{number_ring,recpower}"
+  shows "(x + y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> + 2 * x * y"
+by (simp add: left_distrib right_distrib power2_eq_square)
+
+lemma power2_diff:
+  fixes x y :: "'a::{number_ring,recpower}"
+  shows "(x - y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> - 2 * x * y"
+by (simp add: left_diff_distrib right_diff_distrib power2_eq_square)
+
+lemma real_sqrt_sum_squares_triangle_ineq:
+  "sqrt ((a + c)\<twosuperior> + (b + d)\<twosuperior>) \<le> sqrt (a\<twosuperior> + b\<twosuperior>) + sqrt (c\<twosuperior> + d\<twosuperior>)"
+apply (rule power2_le_imp_le, simp)
+apply (simp add: power2_sum)
+apply (simp only: mult_assoc right_distrib [symmetric])
+apply (rule mult_left_mono)
+apply (rule power2_le_imp_le)
+apply (simp add: power2_sum power_mult_distrib)
+apply (simp add: ring_distrib)
+apply (subgoal_tac "0 \<le> b\<twosuperior> * c\<twosuperior> + a\<twosuperior> * d\<twosuperior> - 2 * (a * c) * (b * d)", simp)
+apply (rule_tac b="(a * d - b * c)\<twosuperior>" in ord_le_eq_trans)
+apply (rule zero_le_power2)
+apply (simp add: power2_diff power_mult_distrib)
+apply (simp add: mult_nonneg_nonneg)
+apply simp
+apply (simp add: add_increasing)
+done
+
 end
