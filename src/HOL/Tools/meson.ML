@@ -240,7 +240,7 @@ fun resop nf [prem] = resolve_tac (nf prem) 1;
 (*Any need to extend this list with 
   "HOL.type_class","Code_Generator.eq_class","ProtoPure.term"?*)
 val has_meta_conn = 
-    exists_Const (fn (c,_) => c mem_string ["==", "==>", "all", "prop"]);
+    exists_Const (member (op =) ["==", "==>", "all", "prop"] o #1);
 
 fun apply_skolem_ths (th, rls) = 
   let fun tryall [] = raise THM("apply_skolem_ths", 0, th::rls)

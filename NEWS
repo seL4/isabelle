@@ -19,8 +19,9 @@ discontinued altogether.  Note that ML proof scripts may still be used
 with Isar theories; migration is usually quite simple with the ML
 function use_legacy_bindings.  INCOMPATIBILITY.
 
-* Theory syntax: some popular names (e.g. "class", "fun", "help",
-"if") are now keywords.  INCOMPATIBILITY, use double quotes.
+* Theory syntax: some popular names (e.g. 'class', 'declaration',
+'fun', 'help', 'if') are now keywords.  INCOMPATIBILITY, use double
+quotes.
 
 * Legacy goal package: reduced interface to the bare minimum required
 to keep existing proof scripts running.  Most other user-level
