@@ -429,6 +429,10 @@ definition
   hyperpow_def [transfer_unfold]:
   "R pow N = ( *f2* op ^) R N"
 
+lemma Standard_hyperpow [simp]:
+  "\<lbrakk>r \<in> Standard; n \<in> Standard\<rbrakk> \<Longrightarrow> r pow n \<in> Standard"
+unfolding hyperpow_def by simp
+
 lemma hyperpow: "star_n X pow star_n Y = star_n (%n. X n ^ Y n)"
 by (simp add: hyperpow_def starfun2_star_n)
 
@@ -537,7 +541,7 @@ by transfer (rule refl)
 
 lemma hyperpow_SReal [simp]:
      "(hypreal_of_real r) pow (hypnat_of_nat n) \<in> Reals"
-by (simp add: hyperpow_def Reals_eq_Standard)
+by (simp add: Reals_eq_Standard)
 
 lemma hyperpow_zero_HNatInfinite [simp]:
      "N \<in> HNatInfinite ==> (0::hypreal) pow N = 0"
