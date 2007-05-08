@@ -32,7 +32,7 @@ sig
   val pretty_classrel: Proof.context -> class list -> Pretty.T
   val pretty_arity: Proof.context -> arity -> Pretty.T
   val pp: Proof.context -> Pretty.pp
-  val pretty_thm_legacy: bool -> thm -> Pretty.T
+  val pretty_thm_legacy: thm -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
   val pretty_thms: Proof.context -> thm list -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
@@ -312,21 +312,13 @@ fun pretty_arity ctxt ar = Sign.pretty_arity (theory_of ctxt) ar;
 fun pp ctxt = Pretty.pp (pretty_term ctxt, pretty_typ ctxt, pretty_sort ctxt,
   pretty_classrel ctxt, pretty_arity ctxt);
 
-fun pretty_thm_legacy quote th =
-  let
-    val thy = Thm.theory_of_thm th;
-    val pp =
-      if Theory.eq_thy (thy, ProtoPure.thy) then Sign.pp thy
-      else pp (init thy);
-  in Display.pretty_thm_aux pp quote false [] th end;
+fun pretty_thm_legacy th =
+  let val thy = Thm.theory_of_thm th
+  in Display.pretty_thm_aux (pp (init thy)) true false [] th end;
 
 fun pretty_thm ctxt th =
-  let
-    val thy = theory_of ctxt;
-    val (pp, asms) =
-      if Theory.eq_thy (thy, ProtoPure.thy) then (Sign.pp thy, [])
-      else (pp ctxt, map Thm.term_of (Assumption.assms_of ctxt));
-  in Display.pretty_thm_aux pp false true asms th end;
+  let val asms = map Thm.term_of (Assumption.assms_of ctxt)
+  in Display.pretty_thm_aux (pp ctxt) false true asms th end;
 
 fun pretty_thms ctxt [th] = pretty_thm ctxt th
   | pretty_thms ctxt ths = Pretty.blk (0, Pretty.fbreaks (map (pretty_thm ctxt) ths));
