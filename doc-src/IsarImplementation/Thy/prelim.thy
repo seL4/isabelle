@@ -318,49 +318,46 @@ text {*
   instances of destructive theory data are merely historical relics
   (e.g.\ the destructive theorem storage, and destructive hints for
   the Simplifier and Classical rules).}  A theory data declaration
-  needs to implement the following specification (depending on type
-  @{text "T"}):
+  needs to implement the following SML signature:
 
   \medskip
   \begin{tabular}{ll}
-  @{text "name: string"} \\
-  @{text "empty: T"} & initial value \\
-  @{text "copy: T \<rightarrow> T"} & refresh impure data \\
-  @{text "extend: T \<rightarrow> T"} & re-initialize on import \\
-  @{text "merge: T \<times> T \<rightarrow> T"} & join on import \\
-  @{text "print: T \<rightarrow> unit"} & diagnostic output \\
+  @{text "\<type> T"} & representing type \\
+  @{text "\<val> empty: T"} & empty default value \\
+  @{text "\<val> copy: T \<rightarrow> T"} & refresh impure data \\
+  @{text "\<val> extend: T \<rightarrow> T"} & re-initialize on import \\
+  @{text "\<val> merge: T \<times> T \<rightarrow> T"} & join on import \\
   \end{tabular}
   \medskip
 
-  \noindent The @{text "name"} acts as a comment for diagnostic
-  messages; @{text "copy"} is just the identity for pure data; @{text
-  "extend"} is acts like a unitary version of @{text "merge"}, both
-  should also include the functionality of @{text "copy"} for impure
-  data.
+  \noindent The @{text "empty"} value acts as initial default for
+  \emph{any} theory that does not declare actual data content; @{text
+  "copy"} maintains persistent integrity for impure data, it is just
+  the identity for pure values; @{text "extend"} is acts like a
+  unitary version of @{text "merge"}, both operations should also
+  include the functionality of @{text "copy"} for impure data.
 
   \paragraph{Proof context data} is purely functional.  A declaration
-  needs to implement the following specification:
+  needs to implement the following SML signature:
 
   \medskip
   \begin{tabular}{ll}
-  @{text "name: string"} \\
-  @{text "init: theory \<rightarrow> T"} & produce initial value \\
-  @{text "print: T \<rightarrow> unit"} & diagnostic output \\
+  @{text "\<type> T"} & representing type \\
+  @{text "\<val> init: theory \<rightarrow> T"} & produce initial value \\
   \end{tabular}
   \medskip
 
   \noindent The @{text "init"} operation is supposed to produce a pure
-  value from the given background theory.  The remainder is analogous
-  to theory data.
+  value from the given background theory.
 
   \paragraph{Generic data} provides a hybrid interface for both theory
   and proof data.  The declaration is essentially the same as for
-  (pure) theory data, without @{text "copy"}, though.  The @{text
-  "init"} operation for proof contexts merely selects the current data
-  value from the background theory.
+  (pure) theory data, without @{text "copy"}.  The @{text "init"}
+  operation for proof contexts merely selects the current data value
+  from the background theory.
 
-  \bigskip In any case, a data declaration of type @{text "T"} results
-  in the following interface:
+  \bigskip A data declaration of type @{text "T"} results in the
+  following interface:
 
   \medskip
   \begin{tabular}{ll}
@@ -368,18 +365,17 @@ text {*
   @{text "get: context \<rightarrow> T"} \\
   @{text "put: T \<rightarrow> context \<rightarrow> context"} \\
   @{text "map: (T \<rightarrow> T) \<rightarrow> context \<rightarrow> context"} \\
-  @{text "print: context \<rightarrow> unit"}
   \end{tabular}
   \medskip
 
-  \noindent Here @{text "init"} needs to be applied to the current
-  theory context once, in order to register the initial setup.  The
-  other operations provide access for the particular kind of context
-  (theory, proof, or generic context).  Note that this is a safe
-  interface: there is no other way to access the corresponding data
-  slot of a context.  By keeping these operations private, a component
-  may maintain abstract values authentically, without other components
-  interfering.
+  \noindent Here @{text "init"} is only applicable to impure theory
+  data to install a fresh copy persistently (destructive update on
+  uninitialized has no permanent effect).  The other operations provide
+  access for the particular kind of context (theory, proof, or generic
+  context).  Note that this is a safe interface: there is no other way
+  to access the corresponding data slot of a context.  By keeping
+  these operations private, a component may maintain abstract values
+  authentically, without other components interfering.
 *}
 
 text %mlref {*
