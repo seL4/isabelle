@@ -432,7 +432,7 @@ fun pretty_setmargin n = Toplevel.imperative (fn () => Pretty.setmargin n);
 val print_context = Toplevel.keep Toplevel.print_state_context;
 
 fun print_theory verbose = Toplevel.unknown_theory o
-  Toplevel.keep (ProofDisplay.print_full_theory verbose o Toplevel.theory_of);
+  Toplevel.keep (Pretty.writeln o ProofDisplay.pretty_full_theory verbose o Toplevel.theory_of);
 
 val print_syntax = Toplevel.unknown_context o
   Toplevel.keep (ProofContext.print_syntax o Toplevel.context_of);

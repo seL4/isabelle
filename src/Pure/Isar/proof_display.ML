@@ -21,14 +21,14 @@ sig
   val pprint_cterm: cterm -> pprint_args -> unit
   val pprint_thm: thm -> pprint_args -> unit
   val print_theorems_diff: theory -> theory -> unit
-  val print_full_theory: bool -> theory -> unit
   val pretty_full_theory: bool -> theory -> Pretty.T
   val string_of_rule: Proof.context -> string -> thm -> string
   val print_results: bool -> Proof.context ->
     ((string * string) * (string * thm list) list) -> unit
   val present_results: Proof.context ->
     ((string * string) * (string * thm list) list) -> unit
-  val pretty_consts: Proof.context -> (string * typ -> bool) -> (string * typ) list -> Pretty.T
+  val pretty_consts: Proof.context ->
+    (string * typ -> bool) -> (string * typ) list -> Pretty.T
 end
 
 structure ProofDisplay: PROOF_DISPLAY =
@@ -47,7 +47,7 @@ val pprint_typ = pprint ProofContext.pretty_typ;
 val pprint_term = pprint ProofContext.pretty_term;
 fun pprint_ctyp cT = pprint_typ (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
 fun pprint_cterm ct = pprint_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
-val pprint_thm = Pretty.pprint o ProofContext.pretty_thm_legacy true;
+val pprint_thm = Pretty.pprint o ProofContext.pretty_thm_legacy;
 
 
 (* theorems and theory *)
@@ -68,13 +68,10 @@ fun pretty_theorems thy = pretty_theorems_diff Symtab.empty thy;
 
 val print_theorems = Pretty.writeln o pretty_theorems;
 
-fun print_full_theory verbose thy =
-  Pretty.writeln (Pretty.chunks (Display.pretty_full_theory verbose thy @ [pretty_theorems thy]));
-
-val print_theory = print_full_theory false;
-
 fun pretty_full_theory verbose thy =
-    Pretty.chunks (Display.pretty_full_theory verbose thy @ [pretty_theorems thy]);
+  Pretty.chunks (Display.pretty_full_theory verbose thy @ [pretty_theorems thy]);
+
+val print_theory = Pretty.writeln o pretty_full_theory false;
 
 
 (* refinement rule *)
