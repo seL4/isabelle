@@ -80,7 +80,7 @@ fun pretty_thm_aux pp quote show_hyps' asms raw_th =
     val tags = Thm.get_tags th;
 
     val q = if quote then Pretty.quote else I;
-    val prt_term = q o (Pretty.term pp);
+    val prt_term = q o Pretty.term pp;
 
     val hyps' = if ! show_hyps then hyps else subtract (op aconv) asms hyps;
     val ora' = ora andalso (! show_hyps orelse not (! quick_and_dirty));
