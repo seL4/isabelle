@@ -497,6 +497,21 @@ lemma norm_of_real [simp]:
   "norm (of_real r :: 'a::real_normed_algebra_1) = \<bar>r\<bar>"
 unfolding of_real_def by (simp add: norm_scaleR)
 
+lemma norm_number_of [simp]:
+  "norm (number_of w::'a::{number_ring,real_normed_algebra_1})
+    = \<bar>number_of w\<bar>"
+by (subst of_real_number_of_eq [symmetric], rule norm_of_real)
+
+lemma norm_of_int [simp]:
+  "norm (of_int z::'a::real_normed_algebra_1) = \<bar>of_int z\<bar>"
+by (subst of_real_of_int_eq [symmetric], rule norm_of_real)
+
+lemma norm_of_nat [simp]:
+  "norm (of_nat n::'a::real_normed_algebra_1) = of_nat n"
+apply (subst of_real_of_nat_eq [symmetric])
+apply (subst norm_of_real, simp)
+done
+
 lemma nonzero_norm_inverse:
   fixes a :: "'a::real_normed_div_algebra"
   shows "a \<noteq> 0 \<Longrightarrow> norm (inverse a) = inverse (norm a)"
