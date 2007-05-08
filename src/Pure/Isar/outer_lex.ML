@@ -204,6 +204,7 @@ fun is_symid str =
 
 fun is_sid "begin" = false
   | is_sid ":" = true
+  | is_sid "::" = true
   | is_sid s = is_symid s orelse Syntax.is_identifier s;
 
 
