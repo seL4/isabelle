@@ -272,14 +272,6 @@ by (simp add: i_def complex_of_real_def)
 lemma complex_of_real_i [simp]: "complex_of_real r * ii = Complex 0 r"
 by (simp add: i_def complex_of_real_def)
 
-lemma complex_of_real_inverse:
-     "complex_of_real(inverse x) = inverse(complex_of_real x)"
-by (rule of_real_inverse)
-
-lemma complex_of_real_divide:
-      "complex_of_real(x/y) = complex_of_real x / complex_of_real y"
-by (rule of_real_divide)
-
 
 subsection{*The Functions @{term Re} and @{term Im}*}
 
@@ -707,7 +699,7 @@ lemma cis_inverse [simp]: "inverse(cis a) = cis (-a)"
 by (simp add: cis_def complex_inverse_complex_split diff_minus)
 
 lemma rcis_inverse: "inverse(rcis r a) = rcis (1/r) (-a)"
-by (simp add: divide_inverse rcis_def complex_of_real_inverse)
+by (simp add: divide_inverse rcis_def)
 
 lemma cis_divide: "cis a / cis b = cis (a - b)"
 by (simp add: complex_divide_def cis_mult real_diff_def)
@@ -738,7 +730,7 @@ by (simp add: expi_def)
 
 lemma complex_expi_Ex: "\<exists>a r. z = complex_of_real r * expi a"
 apply (insert rcis_Ex [of z])
-apply (auto simp add: expi_def rcis_def complex_mult_assoc [symmetric] of_real_mult)
+apply (auto simp add: expi_def rcis_def complex_mult_assoc [symmetric])
 apply (rule_tac x = "ii * complex_of_real a" in exI, auto)
 done
 
