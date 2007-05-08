@@ -67,6 +67,9 @@ by (simp add: complex_zero_def)
 lemma complex_Im_zero [simp]: "Im 0 = 0"
 by (simp add: complex_zero_def)
 
+lemma complex_zero_iff [simp]: "(Complex x y = 0) = (x = 0 \<and> y = 0)"
+unfolding complex_zero_def by simp
+
 lemma complex_Re_one [simp]: "Re 1 = 1"
 by (simp add: complex_one_def)
 
@@ -379,125 +382,46 @@ by (induct z, simp add: complex_cnj complex_of_real_def power2_eq_square)
 
 subsection{*Modulus*}
 
-instance complex :: norm ..
-
-defs (overloaded)
-  complex_norm_def: "norm z == sqrt(Re(z) ^ 2 + Im(z) ^ 2)"
+instance complex :: norm
+  complex_norm_def: "norm z \<equiv> sqrt ((Re z)\<twosuperior> + (Im z)\<twosuperior>)" ..
 
 abbreviation
-  cmod :: "complex => real" where
-  "cmod == norm"
+  cmod :: "complex \<Rightarrow> real" where
+  "cmod \<equiv> norm"
 
 lemmas cmod_def = complex_norm_def
 
-lemma complex_mod [simp]: "cmod (Complex x y) = sqrt(x ^ 2 + y ^ 2)"
+lemma complex_mod [simp]: "cmod (Complex x y) = sqrt (x\<twosuperior> + y\<twosuperior>)"
 by (simp add: cmod_def)
 
-lemma complex_mod_zero [simp]: "cmod(0) = 0"
-by (simp add: cmod_def)
-
-lemma complex_mod_one [simp]: "cmod(1) = 1"
-by (simp add: cmod_def power2_eq_square)
-
-lemma complex_mod_complex_of_real [simp]: "cmod(complex_of_real x) = abs x"
-by (simp add: complex_of_real_def power2_eq_square)
-
-lemma complex_of_real_abs:
-     "complex_of_real (abs x) = complex_of_real(cmod(complex_of_real x))"
-by simp
-
-lemma complex_mod_eq_zero_cancel [simp]: "(cmod x = 0) = (x = 0)"
-apply (induct x)
-apply (auto iff: real_0_le_add_iff 
-            intro: real_sum_squares_cancel real_sum_squares_cancel2
-            simp add: complex_mod complex_zero_def power2_eq_square)
+lemma complex_mod_triangle_ineq [simp]: "cmod (x + y) \<le> cmod x + cmod y"
+apply (simp add: cmod_def)
+apply (rule real_sqrt_sum_squares_triangle_ineq)
 done
 
-lemma complex_mod_complex_of_real_of_nat [simp]:
-     "cmod (complex_of_real(real (n::nat))) = real n"
-by simp
-
-lemma complex_mod_minus [simp]: "cmod (-x) = cmod(x)"
-by (induct x, simp add: power2_eq_square)
-
-lemma complex_mod_cnj [simp]: "cmod (cnj z) = cmod z"
-by (induct z, simp add: complex_cnj power2_eq_square)
-
-lemma complex_mod_mult_cnj: "cmod(z * cnj(z)) = cmod(z) ^ 2"
-apply (induct z, simp add: complex_mod complex_cnj complex_mult)
-apply (simp add: power2_eq_square abs_if linorder_not_less real_0_le_add_iff)
-done
-
-lemma complex_mod_squared: "cmod(Complex x y) ^ 2 = x ^ 2 + y ^ 2"
-by (simp add: cmod_def)
-
-lemma complex_mod_ge_zero [simp]: "0 \<le> cmod x"
-by (simp add: cmod_def)
-
-lemma abs_cmod_cancel [simp]: "abs(cmod x) = cmod x"
-by (simp add: abs_if linorder_not_less)
-
-lemma complex_mod_mult: "cmod(x*y) = cmod(x) * cmod(y)"
+lemma complex_mod_mult: "cmod (x * y) = cmod x * cmod y"
 apply (induct x, induct y)
-apply (auto simp add: complex_mult complex_mod real_sqrt_mult_distrib2[symmetric])
-apply (rule_tac n = 1 in power_inject_base)
-apply (auto simp add: power2_eq_square [symmetric] simp del: realpow_Suc)
-apply (auto simp add: real_diff_def power2_eq_square right_distrib left_distrib 
-                      add_ac mult_ac)
+apply (simp add: real_sqrt_mult_distrib [symmetric])
+apply (rule_tac f=sqrt in arg_cong)
+apply (simp add: power2_sum power2_diff power_mult_distrib ring_distrib)
 done
 
-lemma cmod_unit_one [simp]: "cmod (Complex (cos a) (sin a)) = 1"
-by (simp add: cmod_def) 
-
-lemma cmod_complex_polar [simp]:
-     "cmod (complex_of_real r * Complex (cos a) (sin a)) = abs r"
-by (simp only: cmod_unit_one complex_mod_mult, simp) 
-
-lemma complex_mod_add_squared_eq:
-     "cmod(x + y) ^ 2 = cmod(x) ^ 2 + cmod(y) ^ 2 + 2 * Re(x * cnj y)"
-apply (induct x, induct y)
-apply (auto simp add: complex_mod_squared complex_cnj real_diff_def simp del: realpow_Suc)
-apply (auto simp add: right_distrib left_distrib power2_eq_square mult_ac add_ac)
-done
-
-lemma complex_Re_mult_cnj_le_cmod [simp]: "Re(x * cnj y) \<le> cmod(x * cnj y)"
-apply (induct x, induct y)
-apply (auto simp add: complex_mod complex_cnj diff_def simp del: realpow_Suc)
-done
-
-lemma complex_Re_mult_cnj_le_cmod2 [simp]: "Re(x * cnj y) \<le> cmod(x * y)"
-by (insert complex_Re_mult_cnj_le_cmod [of x y], simp add: complex_mod_mult)
-
-lemma real_sum_squared_expand:
-     "((x::real) + y) ^ 2 = x ^ 2 + y ^ 2 + 2 * x * y"
-by (simp add: left_distrib right_distrib power2_eq_square)
-
-lemma complex_mod_triangle_squared [simp]:
-     "cmod (x + y) ^ 2 \<le> (cmod(x) + cmod(y)) ^ 2"
-by (simp add: real_sum_squared_expand complex_mod_add_squared_eq real_mult_assoc complex_mod_mult [symmetric])
-
-lemma complex_mod_minus_le_complex_mod [simp]: "- cmod x \<le> cmod x"
-by (rule order_trans [OF _ complex_mod_ge_zero], simp)
-
-lemma complex_mod_triangle_ineq [simp]: "cmod (x + y) \<le> cmod(x) + cmod(y)"
-apply (rule_tac n = 1 in realpow_increasing)
-apply (auto intro:  order_trans [OF _ complex_mod_ge_zero]
-            simp add: add_increasing power2_eq_square [symmetric])
-done
+lemma complex_mod_complex_of_real: "cmod (complex_of_real x) = \<bar>x\<bar>"
+by (simp add: complex_of_real_def)
 
 lemma complex_norm_scaleR:
   "norm (scaleR a x) = \<bar>a\<bar> * norm (x::complex)"
-by (simp only:
-    scaleR_conv_of_real complex_mod_mult complex_mod_complex_of_real)
+unfolding scaleR_conv_of_real
+by (simp only: complex_mod_mult complex_mod_complex_of_real)
 
 instance complex :: real_normed_field
 proof
   fix r :: real
   fix x y :: complex
   show "0 \<le> cmod x"
-    by (rule complex_mod_ge_zero)
+    by (induct x) simp
   show "(cmod x = 0) = (x = 0)"
-    by (rule complex_mod_eq_zero_cancel)
+    by (induct x) simp
   show "cmod (x + y) \<le> cmod x + cmod y"
     by (rule complex_mod_triangle_ineq)
   show "cmod (scaleR r x) = \<bar>r\<bar> * cmod x"
@@ -506,11 +430,30 @@ proof
     by (rule complex_mod_mult)
 qed
 
-lemma complex_mod_triangle_ineq2 [simp]: "cmod(b + a) - cmod b \<le> cmod a"
-by (insert complex_mod_triangle_ineq [THEN add_right_mono, of b a"-cmod b"], simp)
+lemma complex_mod_cnj [simp]: "cmod (cnj z) = cmod z"
+by (induct z, simp add: complex_cnj)
 
-lemma complex_mod_diff_commute: "cmod (x - y) = cmod (y - x)"
-by (rule norm_minus_commute)
+lemma complex_mod_mult_cnj: "cmod (z * cnj z) = (cmod z)\<twosuperior>"
+by (simp add: complex_mod_mult power2_eq_square)
+
+lemma cmod_unit_one [simp]: "cmod (Complex (cos a) (sin a)) = 1"
+by simp
+
+lemma cmod_complex_polar [simp]:
+     "cmod (complex_of_real r * Complex (cos a) (sin a)) = abs r"
+apply (simp only: cmod_unit_one complex_mod_mult)
+apply (simp add: complex_mod_complex_of_real)
+done
+
+lemma complex_Re_le_cmod: "Re x \<le> cmod x"
+unfolding complex_norm_def
+by (rule real_sqrt_sum_squares_ge1)
+
+lemma complex_mod_minus_le_complex_mod [simp]: "- cmod x \<le> cmod x"
+by (rule order_trans [OF _ norm_ge_zero], simp)
+
+lemma complex_mod_triangle_ineq2 [simp]: "cmod(b + a) - cmod b \<le> cmod a"
+by (rule ord_le_eq_trans [OF norm_triangle_ineq2], simp)
 
 lemma complex_mod_add_less:
      "[| cmod x < r; cmod y < s |] ==> cmod (x + y) < r + s"
@@ -521,6 +464,7 @@ lemma complex_mod_mult_less:
 by (auto intro: real_mult_less_mono' simp add: complex_mod_mult)
 
 lemma complex_mod_diff_ineq [simp]: "cmod(a) - cmod(b) \<le> cmod(a + b)"
+(* TODO: generalize *)
 proof -
   have "cmod a - cmod b = cmod a - cmod (- b)" by simp
   also have "\<dots> \<le> cmod (a - - b)" by (rule norm_triangle_ineq2)
@@ -528,17 +472,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma complex_Re_le_cmod [simp]: "Re z \<le> cmod z"
-by (induct z, simp)
-
-lemma complex_mod_gt_zero: "z \<noteq> 0 ==> 0 < cmod z"
-by (rule zero_less_norm_iff [THEN iffD2])
-
-lemma complex_mod_inverse: "cmod(inverse x) = inverse(cmod x)"
-by (rule norm_inverse)
-
-lemma complex_mod_divide: "cmod(x/y) = cmod(x)/(cmod y)"
-by (rule norm_divide)
+lemmas real_sum_squared_expand = power2_sum [where 'a=real]
 
 
 subsection{*Exponentiation*}
