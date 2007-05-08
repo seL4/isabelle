@@ -396,7 +396,7 @@ by transfer (rule complex_mult_cnj)
 subsection{*More Theorems about the Function @{term hcmod}*}
 
 lemma hcomplex_hcmod_eq_zero_cancel [simp]: "!!x. (hcmod x = 0) = (x = 0)"
-by transfer (rule complex_mod_eq_zero_cancel)
+by transfer (rule norm_eq_zero)
 
 lemma hcmod_hcomplex_of_hypreal_of_nat [simp]:
      "hcmod (hcomplex_of_hypreal(hypreal_of_nat n)) = hypreal_of_nat n"
@@ -407,35 +407,19 @@ lemma hcmod_hcomplex_of_hypreal_of_hypnat [simp]:
 by simp
 
 lemma hcmod_minus [simp]: "!!x. hcmod (-x) = hcmod(x)"
-by transfer (rule complex_mod_minus)
+by transfer (rule norm_minus_cancel)
 
 lemma hcmod_mult_hcnj: "!!z. hcmod(z * hcnj(z)) = hcmod(z) ^ 2"
 by transfer (rule complex_mod_mult_cnj)
 
 lemma hcmod_ge_zero [simp]: "!!x. (0::hypreal) \<le> hcmod x"
-by transfer (rule complex_mod_ge_zero)
+by transfer (rule norm_ge_zero)
 
 lemma hrabs_hcmod_cancel [simp]: "abs(hcmod x) = hcmod x"
 by (simp add: abs_if linorder_not_less)
 
 lemma hcmod_mult: "!!x y. hcmod(x*y) = hcmod(x) * hcmod(y)"
 by transfer (rule complex_mod_mult)
-
-lemma hcmod_add_squared_eq:
-  "!!x y. hcmod(x + y) ^ 2 = hcmod(x) ^ 2 + hcmod(y) ^ 2 + 2 * hRe(x * hcnj y)"
-by transfer (rule complex_mod_add_squared_eq)
-
-lemma hcomplex_hRe_mult_hcnj_le_hcmod [simp]:
-  "!!x y. hRe(x * hcnj y) \<le> hcmod(x * hcnj y)"
-by transfer (rule complex_Re_mult_cnj_le_cmod)
-
-lemma hcomplex_hRe_mult_hcnj_le_hcmod2 [simp]:
-  "!!x y. hRe(x * hcnj y) \<le> hcmod(x * y)"
-by transfer (rule complex_Re_mult_cnj_le_cmod2)
-
-lemma hcmod_triangle_squared [simp]:
-  "!!x y. hcmod (x + y) ^ 2 \<le> (hcmod(x) + hcmod(y)) ^ 2"
-by transfer (rule complex_mod_triangle_squared)
 
 lemma hcmod_triangle_ineq [simp]:
   "!!x y. hcmod (x + y) \<le> hcmod(x) + hcmod(y)"
@@ -446,7 +430,7 @@ lemma hcmod_triangle_ineq2 [simp]:
 by transfer (rule complex_mod_triangle_ineq2)
 
 lemma hcmod_diff_commute: "!!x y. hcmod (x - y) = hcmod (y - x)"
-by transfer (rule complex_mod_diff_commute)
+by transfer (rule norm_minus_commute)
 
 lemma hcmod_add_less:
   "!!x y r s. [| hcmod x < r; hcmod y < s |] ==> hcmod (x + y) < r + s"
@@ -470,7 +454,7 @@ lemma hcmod_hcpow: "!!x n. hcmod(x pow n) = hcmod(x) pow n"
 by transfer (rule complex_mod_complexpow)
 
 lemma hcmod_hcomplex_inverse: "!!x. hcmod(inverse x) = inverse(hcmod x)"
-by transfer (rule complex_mod_inverse)
+by transfer (rule norm_inverse)
 
 lemma hcmod_divide: "!!x y. hcmod(x/y) = hcmod(x)/(hcmod y)"
 by transfer (rule norm_divide)
