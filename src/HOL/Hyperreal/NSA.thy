@@ -131,6 +131,14 @@ lemma hnorm_triangle_ineq4:
   "\<And>a b::'a::real_normed_vector star. hnorm (a - b) \<le> hnorm a + hnorm b"
 by transfer (rule norm_triangle_ineq4)
 
+lemma abs_hnorm_cancel [simp]:
+  "\<And>a::'a::real_normed_vector star. \<bar>hnorm a\<bar> = hnorm a"
+by transfer (rule abs_norm_cancel)
+
+lemma hnorm_of_hypreal [simp]:
+  "\<And>r. hnorm (of_hypreal r::'a::real_normed_algebra_1 star) = \<bar>r\<bar>"
+by transfer (rule norm_of_real)
+
 lemma nonzero_hnorm_inverse:
   "\<And>a::'a::real_normed_div_algebra star.
    a \<noteq> 0 \<Longrightarrow> hnorm (inverse a) = inverse (hnorm a)"
@@ -146,16 +154,14 @@ lemma hypreal_hnorm_def [simp]:
 by transfer (rule real_norm_def)
 
 lemma hnorm_add_less:
-  fixes x y :: "'a::real_normed_vector star"
-  shows "\<lbrakk>hnorm x < r; hnorm y < s\<rbrakk> \<Longrightarrow> hnorm (x + y) < r + s"
-by (rule order_le_less_trans [OF hnorm_triangle_ineq add_strict_mono])
+  "\<And>(x::'a::real_normed_vector star) y r s.
+   \<lbrakk>hnorm x < r; hnorm y < s\<rbrakk> \<Longrightarrow> hnorm (x + y) < r + s"
+by transfer (rule norm_add_less)
 
 lemma hnorm_mult_less:
-  fixes x y :: "'a::real_normed_algebra star"
-  shows "\<lbrakk>hnorm x < r; hnorm y < s\<rbrakk> \<Longrightarrow> hnorm (x * y) < r * s"
-apply (rule order_le_less_trans [OF hnorm_mult_ineq])
-apply (simp add: mult_strict_mono')
-done
+  "\<And>(x::'a::real_normed_algebra star) y r s.
+   \<lbrakk>hnorm x < r; hnorm y < s\<rbrakk> \<Longrightarrow> hnorm (x * y) < r * s"
+by transfer (rule norm_mult_less)
 
 lemma hnorm_scaleHR_less:
   "\<lbrakk>\<bar>x\<bar> < r; hnorm y < s\<rbrakk> \<Longrightarrow> hnorm (scaleHR x y) < r * s"
