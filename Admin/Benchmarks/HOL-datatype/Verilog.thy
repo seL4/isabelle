@@ -14,7 +14,7 @@ datatype
      | Source_textMeta string
 and
   Module_item
-     = declaration Declaration
+     = "declaration" Declaration
      | initial Statement
      | always Statement
      | assign Lvalue Expression
