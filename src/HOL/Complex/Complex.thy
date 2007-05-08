@@ -455,14 +455,6 @@ by (rule order_trans [OF _ norm_ge_zero], simp)
 lemma complex_mod_triangle_ineq2 [simp]: "cmod(b + a) - cmod b \<le> cmod a"
 by (rule ord_le_eq_trans [OF norm_triangle_ineq2], simp)
 
-lemma complex_mod_add_less:
-     "[| cmod x < r; cmod y < s |] ==> cmod (x + y) < r + s"
-by (auto intro: order_le_less_trans complex_mod_triangle_ineq)
-
-lemma complex_mod_mult_less:
-     "[| cmod x < r; cmod y < s |] ==> cmod (x * y) < r * s"
-by (auto intro: real_mult_less_mono' simp add: complex_mod_mult)
-
 lemma complex_mod_diff_ineq [simp]: "cmod(a) - cmod(b) \<le> cmod(a + b)"
 (* TODO: generalize *)
 proof -

@@ -22,50 +22,22 @@ definition
 
 subsection{*Closure Laws for SComplex, the Standard Complex Numbers*}
 
-lemma SComplex_add: "[| x \<in> SComplex; y \<in> SComplex |] ==> x + y \<in> SComplex"
-by (rule Standard_add)
-
-lemma SComplex_mult: "[| x \<in> SComplex; y \<in> SComplex |] ==> x * y \<in> SComplex"
-by (rule Standard_mult)
-
-lemma SComplex_inverse: "x \<in> SComplex ==> inverse x \<in> SComplex"
-by (rule Standard_inverse)
-
-lemma SComplex_divide: "[| x \<in> SComplex;  y \<in> SComplex |] ==> x/y \<in> SComplex"
-by (rule Standard_divide)
-
-lemma SComplex_minus: "x \<in> SComplex ==> -x \<in> SComplex"
-by (rule Standard_minus)
-
 lemma SComplex_minus_iff [simp]: "(-x \<in> SComplex) = (x \<in> SComplex)"
-apply auto
-apply (drule SComplex_minus, auto)
-done
-
-lemma SComplex_diff: "[| x \<in> SComplex; y \<in> SComplex |] ==> x - y \<in> SComplex"
-by (rule Standard_diff)
+by (auto, drule Standard_minus, auto)
 
 lemma SComplex_add_cancel:
      "[| x + y \<in> SComplex; y \<in> SComplex |] ==> x \<in> SComplex"
-by (drule SComplex_diff, assumption, simp)
+by (drule (1) Standard_diff, simp)
 
 lemma SReal_hcmod_hcomplex_of_complex [simp]:
      "hcmod (hcomplex_of_complex r) \<in> Reals"
 by (simp add: Reals_eq_Standard)
 
 lemma SReal_hcmod_number_of [simp]: "hcmod (number_of w ::hcomplex) \<in> Reals"
-apply (subst star_of_number_of [symmetric])
-apply (rule SReal_hcmod_hcomplex_of_complex)
-done
+by (simp add: Reals_eq_Standard)
 
 lemma SReal_hcmod_SComplex: "x \<in> SComplex ==> hcmod x \<in> Reals"
 by (simp add: Reals_eq_Standard)
-
-lemma SComplex_hcomplex_of_complex: "hcomplex_of_complex x \<in> SComplex"
-by (rule Standard_star_of)
-
-lemma SComplex_number_of: "(number_of w ::hcomplex) \<in> SComplex"
-by (rule Standard_number_of)
 
 lemma SComplex_divide_number_of:
      "r \<in> SComplex ==> r/(number_of w::hcomplex) \<in> SComplex"
@@ -102,12 +74,6 @@ lemma SComplex_hcmod_SReal:
       "z \<in> SComplex ==> hcmod z \<in> Reals"
 by (simp add: Reals_eq_Standard)
 
-lemma SComplex_zero: "0 \<in> SComplex"
-by (rule Standard_zero)
-
-lemma SComplex_one: "1 \<in> SComplex"
-by (rule Standard_one)
-
 (*
 Goalw [SComplex_def,SReal_def] "hcmod z \<in> Reals ==> z \<in> SComplex"
 by (res_inst_tac [("z","z")] eq_Abs_hcomplex 1);
@@ -118,15 +84,9 @@ by (auto_tac (claset(),simpset() addsimps [hcmod,hypreal_of_real_def,
 
 subsection{*The Finite Elements form a Subring*}
 
-lemma SComplex_subset_HFinite [simp]: "SComplex \<le> HFinite"
-by (auto simp add: Standard_def)
-
 lemma HFinite_hcmod_hcomplex_of_complex [simp]:
      "hcmod (hcomplex_of_complex r) \<in> HFinite"
 by (auto intro!: SReal_subset_HFinite [THEN subsetD])
-
-lemma HFinite_hcomplex_of_complex: "hcomplex_of_complex x \<in> HFinite"
-by (rule HFinite_star_of)
 
 lemma HFinite_hcmod_iff: "(x \<in> HFinite) = (hcmod x \<in> HFinite)"
 by (simp add: HFinite_def)
@@ -182,31 +142,17 @@ Goalw [capprox_def,approx_def] "(z @c= w) = (hcmod z @= hcmod w)"
 by (auto_tac (claset(),simpset() addsimps [Infinitesimal_hcmod_iff]));
 *)
 
-lemma approx_mult_subst_SComplex:
-     "[| u @= x*hcomplex_of_complex v; x @= y |] 
-      ==> u @= y*hcomplex_of_complex v"
-by (rule approx_mult_subst_star_of)
-
-lemma approx_hcomplex_of_complex_HFinite:
-     "x @= hcomplex_of_complex D ==> x \<in> HFinite"
-by (rule approx_star_of_HFinite)
-
-lemma approx_mult_hcomplex_of_complex:
-     "[|a @= hcomplex_of_complex b; c @= hcomplex_of_complex d |]  
-      ==> a*c @= hcomplex_of_complex b * hcomplex_of_complex d"
-by (rule approx_mult_star_of)
-
 lemma approx_SComplex_mult_cancel_zero:
      "[| a \<in> SComplex; a \<noteq> 0; a*x @= 0 |] ==> x @= 0"
-apply (drule SComplex_inverse [THEN SComplex_subset_HFinite [THEN subsetD]])
+apply (drule Standard_inverse [THEN Standard_subset_HFinite [THEN subsetD]])
 apply (auto dest: approx_mult2 simp add: mult_assoc [symmetric])
 done
 
 lemma approx_mult_SComplex1: "[| a \<in> SComplex; x @= 0 |] ==> x*a @= 0"
-by (auto dest: SComplex_subset_HFinite [THEN subsetD] approx_mult1)
+by (auto dest: Standard_subset_HFinite [THEN subsetD] approx_mult1)
 
 lemma approx_mult_SComplex2: "[| a \<in> SComplex; x @= 0 |] ==> a*x @= 0"
-by (auto dest: SComplex_subset_HFinite [THEN subsetD] approx_mult2)
+by (auto dest: Standard_subset_HFinite [THEN subsetD] approx_mult2)
 
 lemma approx_mult_SComplex_zero_cancel_iff [simp]:
      "[|a \<in> SComplex; a \<noteq> 0 |] ==> (a*x @= 0) = (x @= 0)"
@@ -214,19 +160,19 @@ by (blast intro: approx_SComplex_mult_cancel_zero approx_mult_SComplex2)
 
 lemma approx_SComplex_mult_cancel:
      "[| a \<in> SComplex; a \<noteq> 0; a* w @= a*z |] ==> w @= z"
-apply (drule SComplex_inverse [THEN SComplex_subset_HFinite [THEN subsetD]])
+apply (drule Standard_inverse [THEN Standard_subset_HFinite [THEN subsetD]])
 apply (auto dest: approx_mult2 simp add: mult_assoc [symmetric])
 done
 
 lemma approx_SComplex_mult_cancel_iff1 [simp]:
      "[| a \<in> SComplex; a \<noteq> 0|] ==> (a* w @= a*z) = (w @= z)"
-by (auto intro!: approx_mult2 SComplex_subset_HFinite [THEN subsetD]
+by (auto intro!: approx_mult2 Standard_subset_HFinite [THEN subsetD]
             intro: approx_SComplex_mult_cancel)
 
 (* TODO: generalize following theorems: hcmod -> hnorm *)
 
 lemma approx_hcmod_approx_zero: "(x @= y) = (hcmod (y - x) @= 0)"
-apply (subst hcmod_diff_commute)
+apply (subst hnorm_minus_commute)
 apply (simp add: approx_def Infinitesimal_hcmod_iff diff_minus)
 done
 
@@ -250,9 +196,6 @@ apply (rule approx_minus_iff [THEN iffD2])
 apply (auto intro: Infinitesimal_hcmod_add_diff simp add: mem_infmal_iff [symmetric] diff_minus [symmetric])
 done
 
-lemma approx_hcmod_approx: "x @= y ==> hcmod x @= hcmod y"
-by (rule approx_hnorm)
-
 
 subsection{*Zero is the Only Infinitesimal Complex Number*}
 
@@ -269,20 +212,16 @@ by (cut_tac SComplex_Int_Infinitesimal_zero, blast)
 
 lemma SComplex_HFinite_diff_Infinitesimal:
      "[| x \<in> SComplex; x \<noteq> 0 |] ==> x \<in> HFinite - Infinitesimal"
-by (auto dest: SComplex_Infinitesimal_zero SComplex_subset_HFinite [THEN subsetD])
+by (auto dest: SComplex_Infinitesimal_zero Standard_subset_HFinite [THEN subsetD])
 
 lemma hcomplex_of_complex_HFinite_diff_Infinitesimal:
      "hcomplex_of_complex x \<noteq> 0 
       ==> hcomplex_of_complex x \<in> HFinite - Infinitesimal"
 by (rule SComplex_HFinite_diff_Infinitesimal, auto)
 
-lemma hcomplex_of_complex_Infinitesimal_iff_0:
-     "(hcomplex_of_complex x \<in> Infinitesimal) = (x=0)"
-by (rule star_of_Infinitesimal_iff_0)
-
 lemma number_of_not_Infinitesimal [simp]:
      "number_of w \<noteq> (0::hcomplex) ==> (number_of w::hcomplex) \<notin> Infinitesimal"
-by (fast dest: SComplex_number_of [THEN SComplex_Infinitesimal_zero])
+by (fast dest: Standard_number_of [THEN SComplex_Infinitesimal_zero])
 
 lemma approx_SComplex_not_zero:
      "[| y \<in> SComplex; x @= y; y\<noteq> 0 |] ==> x \<noteq> 0"
@@ -296,17 +235,9 @@ lemma number_of_Infinitesimal_iff [simp]:
      "((number_of w :: hcomplex) \<in> Infinitesimal) =
       (number_of w = (0::hcomplex))"
 apply (rule iffI)
-apply (fast dest: SComplex_number_of [THEN SComplex_Infinitesimal_zero])
+apply (fast dest: Standard_number_of [THEN SComplex_Infinitesimal_zero])
 apply (simp (no_asm_simp))
 done
-
-lemma hcomplex_of_complex_approx_iff:
-     "(hcomplex_of_complex k @= hcomplex_of_complex m) = (k = m)"
-by (rule star_of_approx_iff)
-
-lemma hcomplex_of_complex_approx_number_of_iff [simp]:
-     "(hcomplex_of_complex k @= number_of w) = (k = number_of w)"
-by (subst hcomplex_of_complex_approx_iff [symmetric], auto)
 
 lemma approx_unique_complex:
      "[| r \<in> SComplex; s \<in> SComplex; r @= x; s @= x|] ==> r = s"
@@ -474,10 +405,10 @@ apply (auto intro: approx_sym)
 done
 
 lemma stc_HFinite: "x \<in> HFinite ==> stc x \<in> HFinite"
-by (erule stc_SComplex [THEN SComplex_subset_HFinite [THEN subsetD]])
+by (erule stc_SComplex [THEN Standard_subset_HFinite [THEN subsetD]])
 
 lemma stc_unique: "\<lbrakk>y \<in> SComplex; y \<approx> x\<rbrakk> \<Longrightarrow> stc x = y"
-apply (frule SComplex_subset_HFinite [THEN subsetD])
+apply (frule Standard_subset_HFinite [THEN subsetD])
 apply (drule (1) approx_HFinite)
 apply (unfold stc_def)
 apply (rule some_equality)
@@ -524,10 +455,10 @@ by (blast dest!: stc_approx_self [THEN approx_sym] bex_Infinitesimal_iff2 [THEN 
 
 lemma stc_add:
      "[| x \<in> HFinite; y \<in> HFinite |] ==> stc (x + y) = stc(x) + stc(y)"
-by (simp add: stc_unique stc_SComplex stc_approx_self approx_add SComplex_add)
+by (simp add: stc_unique stc_SComplex stc_approx_self approx_add)
 
 lemma stc_number_of [simp]: "stc (number_of w) = number_of w"
-by (rule SComplex_number_of [THEN stc_SComplex_eq])
+by (rule Standard_number_of [THEN stc_SComplex_eq])
 
 lemma stc_zero [simp]: "stc 0 = 0"
 by simp
@@ -540,12 +471,12 @@ by (simp add: stc_unique stc_SComplex stc_approx_self approx_minus)
 
 lemma stc_diff: 
      "[| x \<in> HFinite; y \<in> HFinite |] ==> stc (x-y) = stc(x) - stc(y)"
-by (simp add: stc_unique stc_SComplex stc_approx_self approx_diff SComplex_diff)
+by (simp add: stc_unique stc_SComplex stc_approx_self approx_diff)
 
 lemma stc_mult:
      "[| x \<in> HFinite; y \<in> HFinite |]  
                ==> stc (x * y) = stc(x) * stc(y)"
-by (simp add: stc_unique stc_SComplex stc_approx_self approx_mult_HFinite SComplex_mult)
+by (simp add: stc_unique stc_SComplex stc_approx_self approx_mult_HFinite)
 
 lemma stc_Infinitesimal: "x \<in> Infinitesimal ==> stc x = 0"
 by (simp add: stc_unique mem_infmal_iff)
@@ -557,7 +488,7 @@ lemma stc_inverse:
      "[| x \<in> HFinite; stc x \<noteq> 0 |]  
       ==> stc(inverse x) = inverse (stc x)"
 apply (drule stc_not_Infinitesimal)
-apply (simp add: stc_unique stc_SComplex stc_approx_self approx_inverse SComplex_inverse)
+apply (simp add: stc_unique stc_SComplex stc_approx_self approx_inverse)
 done
 
 lemma stc_divide [simp]:
@@ -574,8 +505,9 @@ by (simp add: hcomplex_HFinite_iff)
 
 lemma SComplex_SReal_hcomplex_of_hypreal:
      "x \<in> Reals ==>  hcomplex_of_hypreal x \<in> SComplex"
-by (auto simp add: SReal_def Standard_def hcomplex_of_hypreal_def
-         simp del: star_of_of_real)
+apply (rule Standard_of_hypreal)
+apply (simp add: Reals_eq_Standard)
+done
 
 lemma stc_hcomplex_of_hypreal: 
  "z \<in> HFinite ==> stc(hcomplex_of_hypreal z) = hcomplex_of_hypreal (st z)"

@@ -134,7 +134,7 @@ by (rule NSLIM_h_iff)
 subsection{*Functions from Complex to Reals*}
 
 lemma isNSContCR_cmod [simp]: "isNSCont cmod (a)"
-by (auto intro: approx_hcmod_approx 
+by (auto intro: approx_hnorm
          simp add: starfunCR_cmod hcmod_hcomplex_of_complex [symmetric] 
                     isNSCont_def)
 
