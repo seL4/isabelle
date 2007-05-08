@@ -488,7 +488,13 @@ proof -
   finally show ?thesis .
 qed
 
-lemma norm_of_real: "norm (of_real r :: 'a::real_normed_algebra_1) = \<bar>r\<bar>"
+lemma abs_norm_cancel [simp]:
+  fixes a :: "'a::real_normed_vector"
+  shows "\<bar>norm a\<bar> = norm a"
+by (rule abs_of_nonneg [OF norm_ge_zero])
+
+lemma norm_of_real [simp]:
+  "norm (of_real r :: 'a::real_normed_algebra_1) = \<bar>r\<bar>"
 unfolding of_real_def by (simp add: norm_scaleR)
 
 lemma nonzero_norm_inverse:
