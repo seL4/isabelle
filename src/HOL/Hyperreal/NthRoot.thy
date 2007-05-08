@@ -241,20 +241,12 @@ done
 
 lemma real_root_less_mono:
      "[| 0 \<le> x; x < y |] ==> root(Suc n) x < root(Suc n) y"
-apply (frule order_le_less_trans, assumption)
-apply (frule_tac n1 = n in real_root_pow_pos2 [THEN ssubst])
-apply (rotate_tac 1, assumption)
-apply (frule_tac n1 = n in real_root_pow_pos [THEN ssubst])
-apply (rotate_tac 3, assumption)
-apply (drule_tac y = "root (Suc n) y ^ Suc n" in order_less_imp_le)
-apply (frule_tac n = n in real_root_pos_pos_le)
-apply (frule_tac n = n in real_root_pos_pos)
-apply (drule_tac x = "root (Suc n) x" and y = "root (Suc n) y" in realpow_increasing)
-apply (assumption, assumption)
-apply (drule_tac x = "root (Suc n) x" in order_le_imp_less_or_eq)
-apply auto
-apply (drule_tac f = "%x. x ^ (Suc n)" in arg_cong)
-apply (auto simp add: real_root_pow_pos2 simp del: realpow_Suc)
+apply (subgoal_tac "0 \<le> y")
+apply (rule_tac n="Suc n" in power_less_imp_less_base)
+apply (simp only: real_root_pow_pos2)
+apply (erule real_root_pos_pos_le)
+apply (erule order_trans)
+apply (erule order_less_imp_le)
 done
 
 lemma real_root_le_mono:
@@ -318,8 +310,7 @@ subsection{*Square Root*}
 
 text{*needed because 2 is a binary numeral!*}
 lemma root_2_eq [simp]: "root 2 = root (Suc (Suc 0))"
-by (simp del: nat_numeral_0_eq_0 nat_numeral_1_eq_1 
-         add: nat_numeral_0_eq_0 [symmetric])
+by (simp only: numeral_2_eq_2)
 
 lemma real_sqrt_zero [simp]: "sqrt 0 = 0"
 by (simp add: sqrt_def)
@@ -327,40 +318,40 @@ by (simp add: sqrt_def)
 lemma real_sqrt_one [simp]: "sqrt 1 = 1"
 by (simp add: sqrt_def)
 
-lemma real_sqrt_pow2_iff [iff]: "((sqrt x)\<twosuperior> = x) = (0 \<le> x)"
-apply (simp add: sqrt_def)
-apply (rule iffI) 
- apply (cut_tac r = "root 2 x" in realpow_two_le)
- apply (simp add: numeral_2_eq_2)
-apply (subst numeral_2_eq_2)
-apply (erule real_root_pow_pos2)
-done
-
-lemma [simp]: "(sqrt(u2\<twosuperior> + v2\<twosuperior>))\<twosuperior> = u2\<twosuperior> + v2\<twosuperior>"
-by (rule realpow_two_le_add_order [THEN real_sqrt_pow2_iff [THEN iffD2]])
-
 lemma real_sqrt_pow2 [simp]: "0 \<le> x ==> (sqrt x)\<twosuperior> = x"
-by (simp)
+unfolding sqrt_def numeral_2_eq_2
+by (rule real_root_pow_pos2)
 
-lemma real_sqrt_abs_abs [simp]: "sqrt\<bar>x\<bar> ^ 2 = \<bar>x\<bar>"
-by (rule real_sqrt_pow2_iff [THEN iffD2], arith)
+lemma real_sqrt_pow2_iff [iff]: "((sqrt x)\<twosuperior> = x) = (0 \<le> x)"
+apply (rule iffI)
+apply (erule subst)
+apply (rule zero_le_power2)
+apply (erule real_sqrt_pow2)
+done
 
-lemma real_pow_sqrt_eq_sqrt_pow: 
+lemma real_sqrt_abs_abs [simp]: "(sqrt \<bar>x\<bar>)\<twosuperior> = \<bar>x\<bar>" (* TODO: delete *)
+by simp
+
+lemma sqrt_eqI: "\<lbrakk>r\<twosuperior> = a; 0 \<le> r\<rbrakk> \<Longrightarrow> sqrt a = r"
+unfolding sqrt_def numeral_2_eq_2
+by (erule subst, erule real_root_pos2)
+
+lemma real_sqrt_abs [simp]: "sqrt (x\<twosuperior>) = \<bar>x\<bar>"
+apply (rule sqrt_eqI)
+apply (rule power2_abs)
+apply (rule abs_ge_zero)
+done
+
+lemma real_pow_sqrt_eq_sqrt_pow: (* TODO: delete *)
       "0 \<le> x ==> (sqrt x)\<twosuperior> = sqrt(x\<twosuperior>)"
-apply (simp add: sqrt_def)
-apply (simp only: numeral_2_eq_2 real_root_pow_pos2 real_root_pos2)
-done
+by simp
 
-lemma real_pow_sqrt_eq_sqrt_abs_pow2:
+lemma real_pow_sqrt_eq_sqrt_abs_pow2: (* TODO: delete *)
      "0 \<le> x ==> (sqrt x)\<twosuperior> = sqrt(\<bar>x\<bar> ^ 2)" 
-by (simp add: real_pow_sqrt_eq_sqrt_pow [symmetric])
+by simp
 
-lemma real_sqrt_pow_abs: "0 \<le> x ==> (sqrt x)\<twosuperior> = \<bar>x\<bar>"
-apply (rule real_sqrt_abs_abs [THEN subst])
-apply (rule_tac x1 = x in real_pow_sqrt_eq_sqrt_abs_pow2 [THEN ssubst])
-apply (rule_tac [2] real_pow_sqrt_eq_sqrt_pow [symmetric])
-apply (assumption, arith)
-done
+lemma real_sqrt_pow_abs: "0 \<le> x ==> (sqrt x)\<twosuperior> = \<bar>x\<bar>" (* TODO: delete *)
+by simp
 
 lemma not_real_square_gt_zero [simp]: "(~ (0::real) < x*x) = (x = 0)"
 apply auto
@@ -374,9 +365,6 @@ by (simp add: sqrt_def real_root_gt_zero)
 lemma real_sqrt_ge_zero: "0 \<le> x ==> 0 \<le> sqrt(x)"
 by (auto intro: real_sqrt_gt_zero simp add: order_le_less)
 
-lemma real_sqrt_mult_self_sum_ge_zero [simp]: "0 \<le> sqrt(x*x + y*y)"
-by (rule real_sqrt_ge_zero [OF real_mult_self_sum_ge_zero]) 
-
 
 (*we need to prove something like this:
 lemma "[|r ^ n = a; 0<n; 0 < a \<longrightarrow> 0 < r|] ==> root n a = r"
@@ -386,44 +374,15 @@ apply (rule someI2 [of _ r], safe)
 apply (auto simp del: realpow_Suc dest: power_inject_base)
 *)
 
-lemma sqrt_eqI: "[|r\<twosuperior> = a; 0 \<le> r|] ==> sqrt a = r"
-apply (erule subst)
-apply (simp add: sqrt_def numeral_2_eq_2 del: realpow_Suc)
-apply (erule real_root_pos2)
-done
-
 lemma real_sqrt_mult_distrib: 
      "[| 0 \<le> x; 0 \<le> y |] ==> sqrt(x*y) = sqrt(x) * sqrt(y)"
-apply (rule sqrt_eqI)
-apply (simp add: power_mult_distrib)  
-apply (simp add: zero_le_mult_iff real_sqrt_ge_zero) 
-done
+unfolding sqrt_def numeral_2_eq_2
+by (rule real_root_mult)
 
-lemma real_sqrt_mult_distrib2:
-     "[|0\<le>x; 0\<le>y |] ==> sqrt(x*y) =  sqrt(x) * sqrt(y)"
-by (auto intro: real_sqrt_mult_distrib simp add: order_le_less)
-
-lemma real_sqrt_sum_squares_ge_zero [simp]: "0 \<le> sqrt (x\<twosuperior> + y\<twosuperior>)"
-by (auto intro!: real_sqrt_ge_zero)
-
-lemma real_sqrt_sum_squares_mult_ge_zero [simp]:
-     "0 \<le> sqrt ((x\<twosuperior> + y\<twosuperior>)*(xa\<twosuperior> + ya\<twosuperior>))"
-by (auto intro!: real_sqrt_ge_zero simp add: zero_le_mult_iff)
-
-lemma real_sqrt_sum_squares_mult_squared_eq [simp]:
-     "sqrt ((x\<twosuperior> + y\<twosuperior>) * (xa\<twosuperior> + ya\<twosuperior>)) ^ 2 = (x\<twosuperior> + y\<twosuperior>) * (xa\<twosuperior> + ya\<twosuperior>)"
-by (auto simp add: zero_le_mult_iff simp del: realpow_Suc)
-
-lemma real_sqrt_abs [simp]: "sqrt(x\<twosuperior>) = \<bar>x\<bar>"
-apply (rule abs_realpow_two [THEN subst])
-apply (rule real_sqrt_abs_abs [THEN subst])
-apply (subst real_pow_sqrt_eq_sqrt_pow)
-apply (auto simp add: numeral_2_eq_2)
-done
+lemmas real_sqrt_mult_distrib2 = real_sqrt_mult_distrib
 
 lemma real_sqrt_abs2 [simp]: "sqrt(x*x) = \<bar>x\<bar>"
-apply (rule realpow_two [THEN subst])
-apply (subst numeral_2_eq_2 [symmetric])
+apply (subst power2_eq_square [symmetric])
 apply (rule real_sqrt_abs)
 done
 
@@ -436,7 +395,7 @@ apply (auto simp add: numeral_2_eq_2)
 done
 
 lemma real_inv_sqrt_pow2: "0 < x ==> inverse (sqrt(x)) ^ 2 = inverse x"
-by (cut_tac n = 2 and a = "sqrt x" in power_inverse [symmetric], auto)
+by (simp add: power_inverse [symmetric])
 
 lemma real_sqrt_eq_zero_cancel: "[| 0 \<le> x; sqrt(x) = 0|] ==> x = 0"
 apply (drule real_le_imp_less_or_eq)
@@ -446,22 +405,9 @@ done
 lemma real_sqrt_eq_zero_cancel_iff [simp]: "0 \<le> x ==> ((sqrt x = 0) = (x=0))"
 by (auto simp add: real_sqrt_eq_zero_cancel)
 
-lemma real_sqrt_sum_squares_ge1 [simp]: "x \<le> sqrt(x\<twosuperior> + y\<twosuperior>)"
-apply (subgoal_tac "x \<le> 0 | 0 \<le> x", safe)
-apply (rule real_le_trans)
-apply (auto simp del: realpow_Suc)
-apply (rule_tac n = 1 in realpow_increasing)
-apply (auto simp add: numeral_2_eq_2 [symmetric] simp del: realpow_Suc)
-done
-
-lemma real_sqrt_sum_squares_ge2 [simp]: "y \<le> sqrt(z\<twosuperior> + y\<twosuperior>)"
-apply (simp (no_asm) add: real_add_commute del: realpow_Suc)
-done
-
 lemma real_sqrt_ge_one: "1 \<le> x ==> 1 \<le> sqrt x"
-apply (rule_tac n = 1 in realpow_increasing)
-apply (auto simp add: numeral_2_eq_2 [symmetric] real_sqrt_ge_zero simp 
-            del: realpow_Suc)
+apply (rule power2_le_imp_le, simp)
+apply (simp add: real_sqrt_ge_zero)
 done
 
 lemma sqrt_divide_self_eq:
@@ -500,22 +446,45 @@ lemma real_sqrt_eq_iff [simp]:
      "[| 0 \<le> x; 0 \<le> y |] ==> (sqrt(x) = sqrt(y)) = (x = y)"
 by (simp add: sqrt_def)
 
-lemma real_sqrt_sos_less_one_iff [simp]: "(sqrt(x\<twosuperior> + y\<twosuperior>) < 1) = (x\<twosuperior> + y\<twosuperior> < 1)"
-apply (rule real_sqrt_one [THEN subst], safe)
-apply (rule_tac [2] real_sqrt_less_mono)
-apply (drule real_sqrt_less_iff [THEN [2] rev_iffD1], auto)
-done
-
-lemma real_sqrt_sos_eq_one_iff [simp]: "(sqrt(x\<twosuperior> + y\<twosuperior>) = 1) = (x\<twosuperior> + y\<twosuperior> = 1)"
-apply (rule real_sqrt_one [THEN subst], safe)
-apply (drule real_sqrt_eq_iff [THEN [2] rev_iffD1], auto)
-done
-
 lemma real_divide_square_eq [simp]: "(((r::real) * a) / (r * r)) = a / r"
 apply (simp add: divide_inverse)
 apply (case_tac "r=0")
 apply (auto simp add: mult_ac)
 done
 
+subsection {* Square Root of Sum of Squares *}
+
+lemma "(sqrt (x\<twosuperior> + y\<twosuperior>))\<twosuperior> = x\<twosuperior> + y\<twosuperior>"
+by (rule realpow_two_le_add_order [THEN real_sqrt_pow2_iff [THEN iffD2]])
+
+lemma real_sqrt_mult_self_sum_ge_zero [simp]: "0 \<le> sqrt(x*x + y*y)"
+by (rule real_sqrt_ge_zero [OF real_mult_self_sum_ge_zero]) 
+
+lemma real_sqrt_sum_squares_ge_zero [simp]: "0 \<le> sqrt (x\<twosuperior> + y\<twosuperior>)"
+by (auto intro!: real_sqrt_ge_zero)
+
+lemma real_sqrt_sum_squares_mult_ge_zero [simp]:
+     "0 \<le> sqrt ((x\<twosuperior> + y\<twosuperior>)*(xa\<twosuperior> + ya\<twosuperior>))"
+by (auto intro!: real_sqrt_ge_zero simp add: zero_le_mult_iff)
+
+lemma real_sqrt_sum_squares_mult_squared_eq [simp]:
+     "sqrt ((x\<twosuperior> + y\<twosuperior>) * (xa\<twosuperior> + ya\<twosuperior>)) ^ 2 = (x\<twosuperior> + y\<twosuperior>) * (xa\<twosuperior> + ya\<twosuperior>)"
+by (auto simp add: zero_le_mult_iff simp del: realpow_Suc)
+
+lemma real_sqrt_sum_squares_ge1 [simp]: "x \<le> sqrt(x\<twosuperior> + y\<twosuperior>)"
+by (rule power2_le_imp_le, simp_all)
+
+lemma real_sqrt_sum_squares_ge2 [simp]: "y \<le> sqrt(x\<twosuperior> + y\<twosuperior>)"
+by (rule power2_le_imp_le, simp_all)
+
+lemma real_sqrt_sos_less_one_iff [simp]: "(sqrt(x\<twosuperior> + y\<twosuperior>) < 1) = (x\<twosuperior> + y\<twosuperior> < 1)"
+apply (subst real_sqrt_one [symmetric])
+apply (rule real_sqrt_less_iff, auto)
+done
+
+lemma real_sqrt_sos_eq_one_iff [simp]: "(sqrt(x\<twosuperior> + y\<twosuperior>) = 1) = (x\<twosuperior> + y\<twosuperior> = 1)"
+apply (subst real_sqrt_one [symmetric])
+apply (rule real_sqrt_eq_iff, auto)
+done
 
 end
