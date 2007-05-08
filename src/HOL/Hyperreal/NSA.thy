@@ -149,6 +149,11 @@ lemma hnorm_inverse:
    hnorm (inverse a) = inverse (hnorm a)"
 by transfer (rule norm_inverse)
 
+lemma hnorm_divide:
+  "\<And>a b::'a::{real_normed_field,division_by_zero} star.
+   hnorm (a / b) = hnorm a / hnorm b"
+by transfer (rule norm_divide)
+
 lemma hypreal_hnorm_def [simp]:
   "\<And>r::hypreal. hnorm r \<equiv> \<bar>r\<bar>"
 by transfer (rule real_norm_def)
