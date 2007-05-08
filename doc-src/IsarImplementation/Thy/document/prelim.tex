@@ -375,47 +375,45 @@ The main purpose of theory and proof contexts is to manage arbitrary
   instances of destructive theory data are merely historical relics
   (e.g.\ the destructive theorem storage, and destructive hints for
   the Simplifier and Classical rules).}  A theory data declaration
-  needs to implement the following specification (depending on type
-  \isa{T}):
+  needs to implement the following SML signature:
 
   \medskip
   \begin{tabular}{ll}
-  \isa{name{\isacharcolon}\ string} \\
-  \isa{empty{\isacharcolon}\ T} & initial value \\
-  \isa{copy{\isacharcolon}\ T\ {\isasymrightarrow}\ T} & refresh impure data \\
-  \isa{extend{\isacharcolon}\ T\ {\isasymrightarrow}\ T} & re-initialize on import \\
-  \isa{merge{\isacharcolon}\ T\ {\isasymtimes}\ T\ {\isasymrightarrow}\ T} & join on import \\
-  \isa{print{\isacharcolon}\ T\ {\isasymrightarrow}\ unit} & diagnostic output \\
+  \isa{{\isasymtype}\ T} & representing type \\
+  \isa{{\isasymval}\ empty{\isacharcolon}\ T} & empty default value \\
+  \isa{{\isasymval}\ copy{\isacharcolon}\ T\ {\isasymrightarrow}\ T} & refresh impure data \\
+  \isa{{\isasymval}\ extend{\isacharcolon}\ T\ {\isasymrightarrow}\ T} & re-initialize on import \\
+  \isa{{\isasymval}\ merge{\isacharcolon}\ T\ {\isasymtimes}\ T\ {\isasymrightarrow}\ T} & join on import \\
   \end{tabular}
   \medskip
 
-  \noindent The \isa{name} acts as a comment for diagnostic
-  messages; \isa{copy} is just the identity for pure data; \isa{extend} is acts like a unitary version of \isa{merge}, both
-  should also include the functionality of \isa{copy} for impure
-  data.
+  \noindent The \isa{empty} value acts as initial default for
+  \emph{any} theory that does not declare actual data content; \isa{copy} maintains persistent integrity for impure data, it is just
+  the identity for pure values; \isa{extend} is acts like a
+  unitary version of \isa{merge}, both operations should also
+  include the functionality of \isa{copy} for impure data.
 
   \paragraph{Proof context data} is purely functional.  A declaration
-  needs to implement the following specification:
+  needs to implement the following SML signature:
 
   \medskip
   \begin{tabular}{ll}
-  \isa{name{\isacharcolon}\ string} \\
-  \isa{init{\isacharcolon}\ theory\ {\isasymrightarrow}\ T} & produce initial value \\
-  \isa{print{\isacharcolon}\ T\ {\isasymrightarrow}\ unit} & diagnostic output \\
+  \isa{{\isasymtype}\ T} & representing type \\
+  \isa{{\isasymval}\ init{\isacharcolon}\ theory\ {\isasymrightarrow}\ T} & produce initial value \\
   \end{tabular}
   \medskip
 
   \noindent The \isa{init} operation is supposed to produce a pure
-  value from the given background theory.  The remainder is analogous
-  to theory data.
+  value from the given background theory.
 
   \paragraph{Generic data} provides a hybrid interface for both theory
   and proof data.  The declaration is essentially the same as for
-  (pure) theory data, without \isa{copy}, though.  The \isa{init} operation for proof contexts merely selects the current data
-  value from the background theory.
+  (pure) theory data, without \isa{copy}.  The \isa{init}
+  operation for proof contexts merely selects the current data value
+  from the background theory.
 
-  \bigskip In any case, a data declaration of type \isa{T} results
-  in the following interface:
+  \bigskip A data declaration of type \isa{T} results in the
+  following interface:
 
   \medskip
   \begin{tabular}{ll}
@@ -423,18 +421,17 @@ The main purpose of theory and proof contexts is to manage arbitrary
   \isa{get{\isacharcolon}\ context\ {\isasymrightarrow}\ T} \\
   \isa{put{\isacharcolon}\ T\ {\isasymrightarrow}\ context\ {\isasymrightarrow}\ context} \\
   \isa{map{\isacharcolon}\ {\isacharparenleft}T\ {\isasymrightarrow}\ T{\isacharparenright}\ {\isasymrightarrow}\ context\ {\isasymrightarrow}\ context} \\
-  \isa{print{\isacharcolon}\ context\ {\isasymrightarrow}\ unit}
   \end{tabular}
   \medskip
 
-  \noindent Here \isa{init} needs to be applied to the current
-  theory context once, in order to register the initial setup.  The
-  other operations provide access for the particular kind of context
-  (theory, proof, or generic context).  Note that this is a safe
-  interface: there is no other way to access the corresponding data
-  slot of a context.  By keeping these operations private, a component
-  may maintain abstract values authentically, without other components
-  interfering.%
+  \noindent Here \isa{init} is only applicable to impure theory
+  data to install a fresh copy persistently (destructive update on
+  uninitialized has no permanent effect).  The other operations provide
+  access for the particular kind of context (theory, proof, or generic
+  context).  Note that this is a safe interface: there is no other way
+  to access the corresponding data slot of a context.  By keeping
+  these operations private, a component may maintain abstract values
+  authentically, without other components interfering.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
