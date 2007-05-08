@@ -102,6 +102,58 @@ lemma Reals_eq_Standard: "(Reals :: hypreal set) = Standard"
 by (simp add: Reals_def Standard_def)
 
 
+subsection {* Injection from @{typ hypreal} *}
+
+definition
+  of_hypreal :: "hypreal \<Rightarrow> 'a::real_algebra_1 star" where
+  "of_hypreal = *f* of_real"
+
+declare of_hypreal_def [transfer_unfold]
+
+lemma Standard_of_hypreal [simp]:
+  "r \<in> Standard \<Longrightarrow> of_hypreal r \<in> Standard"
+by (simp add: of_hypreal_def)
+
+lemma of_hypreal_0 [simp]: "of_hypreal 0 = 0"
+by transfer (rule of_real_0)
+
+lemma of_hypreal_1 [simp]: "of_hypreal 1 = 1"
+by transfer (rule of_real_1)
+
+lemma of_hypreal_add [simp]:
+  "\<And>x y. of_hypreal (x + y) = of_hypreal x + of_hypreal y"
+by transfer (rule of_real_add)
+
+lemma of_hypreal_minus [simp]: "\<And>x. of_hypreal (- x) = - of_hypreal x"
+by transfer (rule of_real_minus)
+
+lemma of_hypreal_diff [simp]:
+  "\<And>x y. of_hypreal (x - y) = of_hypreal x - of_hypreal y"
+by transfer (rule of_real_diff)
+
+lemma of_hypreal_mult [simp]:
+  "\<And>x y. of_hypreal (x * y) = of_hypreal x * of_hypreal y"
+by transfer (rule of_real_mult)
+
+lemma of_hypreal_inverse [simp]:
+  "\<And>x. of_hypreal (inverse x) =
+   inverse (of_hypreal x :: 'a::{real_div_algebra,division_by_zero} star)"
+by transfer (rule of_real_inverse)
+
+lemma of_hypreal_divide [simp]:
+  "\<And>x y. of_hypreal (x / y) =
+   (of_hypreal x / of_hypreal y :: 'a::{real_field,division_by_zero} star)"
+by transfer (rule of_real_divide)
+
+lemma of_hypreal_eq_iff [simp]:
+  "\<And>x y. (of_hypreal x = of_hypreal y) = (x = y)"
+by transfer (rule of_real_eq_iff)
+
+lemma of_hypreal_eq_0_iff [simp]:
+  "\<And>x. (of_hypreal x = 0) = (x = 0)"
+by transfer (rule of_real_eq_0_iff)
+
+
 subsection{*Properties of @{term starrel}*}
 
 lemma lemma_starrel_refl [simp]: "x \<in> starrel `` {x}"
