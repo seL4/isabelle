@@ -10,16 +10,11 @@ Borrows from the DC simplifier of Soren Heilmann.
 
 (*** Rewrite rules ***)
 
-local
-  val subst = thm "subst"
-in
-
 fun prove_fun s =
  (writeln s;
   prove_goal (the_context ()) s
    (fn prems => [ (cut_facts_tac prems 1),
-                  (fast_tac (LK_pack add_safes [subst]) 1) ]));
-end;
+                  (fast_tac (LK_pack add_safes @{thms subst}) 1) ]));
 
 val conj_simps = map prove_fun
  ["|- P & True <-> P",      "|- True & P <-> P",
@@ -88,12 +83,6 @@ val distrib_simps  = map prove_fun
 
 (** Conversion into rewrite rules **)
 
-local
-  val mp_R = thm "mp_R";
-  val conjunct1 = thm "conjunct1";
-  val conjunct2 = thm "conjunct2";
-  val spec = thm "spec";
-in
 (*Make atomic rewrite rules*)
 fun atomize r =
  case concl_of r of
@@ -101,35 +90,30 @@ fun atomize r =
      (case (forms_of_seq a, forms_of_seq c) of
         ([], [p]) =>
           (case p of
-               Const("op -->",_)$_$_ => atomize(r RS mp_R)
-             | Const("op &",_)$_$_   => atomize(r RS conjunct1) @
-                   atomize(r RS conjunct2)
-             | Const("All",_)$_      => atomize(r RS spec)
+               Const("imp",_)$_$_ => atomize(r RS @{thm mp_R})
+             | Const("conj",_)$_$_   => atomize(r RS @{thm conjunct1}) @
+                   atomize(r RS @{thm conjunct2})
+             | Const("All",_)$_      => atomize(r RS @{thm spec})
              | Const("True",_)       => []    (*True is DELETED*)
              | Const("False",_)      => []    (*should False do something?*)
              | _                     => [r])
       | _ => [])  (*ignore theorem unless it has precisely one conclusion*)
  | _ => [r];
-end;
 
 Goal "|- ~P ==> |- (P <-> False)";
-by (etac (thm "thinR" RS (thm "cut")) 1);
+by (etac (@{thm thinR} RS @{thm cut}) 1);
 by (fast_tac LK_pack 1);
 qed "P_iff_F";
 
-bind_thm ("iff_reflection_F", thm "P_iff_F" RS thm "iff_reflection");
+bind_thm ("iff_reflection_F", P_iff_F RS @{thm iff_reflection});
 
 Goal "|- P ==> |- (P <-> True)";
-by (etac (thm "thinR" RS (thm "cut")) 1);
+by (etac (@{thm thinR} RS @{thm cut}) 1);
 by (fast_tac LK_pack 1);
 qed "P_iff_T";
 
-bind_thm ("iff_reflection_T", thm "P_iff_T" RS thm "iff_reflection");
+bind_thm ("iff_reflection_T", P_iff_T RS @{thm iff_reflection});
 
-local
-  val eq_reflection = thm "eq_reflection"
-  val iff_reflection = thm "iff_reflection"
-in
 (*Make meta-equalities.*)
 fun mk_meta_eq th = case concl_of th of
     Const("==",_)$_$_           => th
@@ -137,18 +121,17 @@ fun mk_meta_eq th = case concl_of th of
         (case (forms_of_seq a, forms_of_seq c) of
              ([], [p]) =>
                  (case p of
-                      (Const("op =",_)$_$_)   => th RS eq_reflection
-                    | (Const("op <->",_)$_$_) => th RS iff_reflection
+                      (Const("equal",_)$_$_)   => th RS @{thm eq_reflection}
+                    | (Const("iff",_)$_$_) => th RS @{thm iff_reflection}
                     | (Const("Not",_)$_)      => th RS iff_reflection_F
                     | _                       => th RS iff_reflection_T)
            | _ => error ("addsimps: unable to use theorem\n" ^
                          string_of_thm th));
-end;
 
 (*Replace premises x=y, X<->Y by X==Y*)
 val mk_meta_prems =
     rule_by_tactic
-      (REPEAT_FIRST (resolve_tac [thm "meta_eq_to_obj_eq", thm "def_imp_iff"]));
+      (REPEAT_FIRST (resolve_tac [@{thm meta_eq_to_obj_eq}, @{thm def_imp_iff}]));
 
 (*Congruence rules for = or <-> (instead of ==)*)
 fun mk_meta_cong rl =
@@ -194,9 +177,9 @@ val [p1,p2] = Goal
     "[| |- P <-> P';  |- P' ==> |- Q <-> Q' |] ==> |- (P-->Q) <-> (P'-->Q')";
 by (lemma_tac p1 1);
 by (safe_tac LK_pack 1);
-by (REPEAT (rtac (thm "cut") 1
+by (REPEAT (rtac @{thm cut} 1
             THEN
-            DEPTH_SOLVE_1 (resolve_tac [thm "thinL", thm "thinR", p2 COMP thm "monotonic"] 1)
+            DEPTH_SOLVE_1 (resolve_tac [@{thm thinL}, @{thm thinR}, p2 COMP @{thm monotonic}] 1)
             THEN
             safe_tac LK_pack 1));
 qed "imp_cong";
@@ -205,15 +188,15 @@ val [p1,p2] = Goal
     "[| |- P <-> P';  |- P' ==> |- Q <-> Q' |] ==> |- (P&Q) <-> (P'&Q')";
 by (lemma_tac p1 1);
 by (safe_tac LK_pack 1);
-by (REPEAT (rtac (thm "cut") 1
+by (REPEAT (rtac @{thm cut} 1
             THEN
-            DEPTH_SOLVE_1 (resolve_tac [thm "thinL", thm "thinR", p2 COMP thm "monotonic"] 1)
+            DEPTH_SOLVE_1 (resolve_tac [@{thm thinL}, @{thm thinR}, p2 COMP @{thm monotonic}] 1)
             THEN
             safe_tac LK_pack 1));
 qed "conj_cong";
 
 Goal "|- (x=y) <-> (y=x)";
-by (fast_tac (LK_pack add_safes [thm "subst"]) 1);
+by (fast_tac (LK_pack add_safes @{thms subst}) 1);
 qed "eq_sym_conv";
 
 
@@ -240,7 +223,7 @@ val LK_basic_ss =
 
 val LK_simps =
    [triv_forall_equality, (* prunes params *)
-    thm "refl" RS P_iff_T] @
+    @{thm refl} RS P_iff_T] @
     conj_simps @ disj_simps @ not_simps @
     imp_simps @ iff_simps @quant_simps @ all_simps @ ex_simps @
     [de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2] @

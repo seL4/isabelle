@@ -15,7 +15,7 @@ arities nat :: "term"
 consts  "0" :: nat      ("0")
         Suc :: "nat=>nat"
         rec :: "[nat, 'a, [nat,'a]=>'a] => 'a"
-        "+" :: "[nat, nat] => nat"                (infixl 60)
+        add :: "[nat, nat] => nat"                (infixl "+" 60)
 
 axioms
   induct:  "[| $H |- $E, P(0), $F;
@@ -35,8 +35,8 @@ lemma Suc_inject_rule: "$H, $G, m = n |- $E \<Longrightarrow> $H, Suc(m) = Suc(n
 
 lemma Suc_n_not_n: "|- Suc(k) ~= k"
   apply (rule_tac n = k in induct)
-  apply (tactic {* simp_tac (LK_ss addsimps [thm "Suc_neq_0"]) 1 *})
-  apply (tactic {* fast_tac (LK_pack add_safes [thm "Suc_inject_rule"]) 1 *})
+  apply (tactic {* simp_tac (LK_ss addsimps @{thms Suc_neq_0}) 1 *})
+  apply (tactic {* fast_tac (LK_pack add_safes @{thms Suc_inject_rule}) 1 *})
   done
 
 lemma add_0: "|- 0+n = n"
@@ -53,26 +53,26 @@ declare add_0 [simp] add_Suc [simp]
 
 lemma add_assoc: "|- (k+m)+n = k+(m+n)"
   apply (rule_tac n = "k" in induct)
-  apply (tactic {* simp_tac (LK_ss addsimps [thm "add_0"]) 1 *})
-  apply (tactic {* simp_tac (LK_ss addsimps [thm "add_Suc"]) 1 *})
+  apply (tactic {* simp_tac (LK_ss addsimps @{thms add_0}) 1 *})
+  apply (tactic {* simp_tac (LK_ss addsimps @{thms add_Suc}) 1 *})
   done
 
 lemma add_0_right: "|- m+0 = m"
   apply (rule_tac n = "m" in induct)
-  apply (tactic {* simp_tac (LK_ss addsimps [thm "add_0"]) 1 *})
-  apply (tactic {* simp_tac (LK_ss addsimps [thm "add_Suc"]) 1 *})
+  apply (tactic {* simp_tac (LK_ss addsimps @{thms add_0}) 1 *})
+  apply (tactic {* simp_tac (LK_ss addsimps @{thms add_Suc}) 1 *})
   done
 
 lemma add_Suc_right: "|- m+Suc(n) = Suc(m+n)"
   apply (rule_tac n = "m" in induct)
-  apply (tactic {* simp_tac (LK_ss addsimps [thm "add_0"]) 1 *})
-  apply (tactic {* simp_tac (LK_ss addsimps [thm "add_Suc"]) 1 *})
+  apply (tactic {* simp_tac (LK_ss addsimps @{thms add_0}) 1 *})
+  apply (tactic {* simp_tac (LK_ss addsimps @{thms add_Suc}) 1 *})
   done
 
 lemma "(!!n. |- f(Suc(n)) = Suc(f(n))) ==> |- f(i+j) = i+f(j)"
   apply (rule_tac n = "i" in induct)
-  apply (tactic {* simp_tac (LK_ss addsimps [thm "add_0"]) 1 *})
-  apply (tactic {* asm_simp_tac (LK_ss addsimps [thm "add_Suc"]) 1 *})
+  apply (tactic {* simp_tac (LK_ss addsimps @{thms add_0}) 1 *})
+  apply (tactic {* asm_simp_tac (LK_ss addsimps @{thms add_Suc}) 1 *})
   done
 
 end

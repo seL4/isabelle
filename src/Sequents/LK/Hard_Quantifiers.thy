@@ -216,7 +216,7 @@ text "Problems (mainly) involving equality or functions"
 
 text "Problem 48"
 lemma "|- (a=b | c=d) & (a=c | b=d) --> a=d | b=c"
-  by (tactic {* fast_tac (LK_pack add_safes [thm "subst"]) 1 *})
+  by (tactic {* fast_tac (LK_pack add_safes @{thms subst}) 1 *})
 
 text "Problem 50"
 lemma "|- (ALL x. P(a,x) | (ALL y. P(x,y))) --> (EX x. ALL y. P(x,y))"
@@ -225,16 +225,16 @@ lemma "|- (ALL x. P(a,x) | (ALL y. P(x,y))) --> (EX x. ALL y. P(x,y))"
 text "Problem 51"
 lemma "|- (EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->   
          (EX z. ALL x. EX w. (ALL y. P(x,y) <-> y=w) <-> x=z)"
-  by (tactic {* fast_tac (LK_pack add_safes [thm "subst"]) 1 *})
+  by (tactic {* fast_tac (LK_pack add_safes @{thms subst}) 1 *})
 
 text "Problem 52"  (*Almost the same as 51. *)
 lemma "|- (EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->
          (EX w. ALL y. EX z. (ALL x. P(x,y) <-> x=z) <-> y=w)"
-  by (tactic {* fast_tac (LK_pack add_safes [thm "subst"]) 1 *})
+  by (tactic {* fast_tac (LK_pack add_safes @{thms subst}) 1 *})
 
 text "Problem 56"
 lemma "|- (ALL x.(EX y. P(y) & x=f(y)) --> P(x)) <-> (ALL x. P(x) --> P(f(x)))"
-  by (tactic {* best_tac (LK_pack add_unsafes [thm "symL", thm "subst"]) 1 *})
+  by (tactic {* best_tac (LK_pack add_unsafes [@{thm symL}, @{thm subst}]) 1 *})
   (*requires tricker to orient the equality properly*)
 
 text "Problem 57"
@@ -244,7 +244,7 @@ lemma "|- P(f(a,b), f(b,c)) & P(f(b,c), f(a,c)) &
 
 text "Problem 58!"
 lemma "|- (ALL x y. f(x)=g(y)) --> (ALL x y. f(f(x))=f(g(y)))"
-  by (tactic {* fast_tac (LK_pack add_safes [thm "subst"]) 1 *})
+  by (tactic {* fast_tac (LK_pack add_safes @{thms subst}) 1 *})
 
 text "Problem 59"
 (*Unification works poorly here -- the abstraction %sobj prevents efficient
