@@ -902,7 +902,71 @@ In general, code theorems for overloaded constants may have more
   are rejected immediately.  Consequently, it might be necessary
   to delete disturbing theorems in the code theorem table,
   as we have done here with the original definitions \isa{less{\isacharunderscore}prod{\isacharunderscore}def}
-  and \isa{less{\isacharunderscore}eq{\isacharunderscore}prod{\isacharunderscore}def}.%
+  and \isa{less{\isacharunderscore}eq{\isacharunderscore}prod{\isacharunderscore}def}.
+
+  In some cases, the automatically derived defining equations
+  for equality on a particular type may not be appropriate.
+  As example, watch the following datatype representing
+  monomorphic parametric types:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ monotype\ {\isacharequal}\ Mono\ string\ {\isachardoublequoteopen}monotype\ list{\isachardoublequoteclose}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Then code generation for SML would fail with a message
+  that the generated code conains illegal mutual dependencies:
+  the theorem \isa{Mono\ {\isacharquery}tyco{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharquery}typargs{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharequal}\ Mono\ {\isacharquery}tyco{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isacharquery}typargs{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isasymequiv}\ {\isacharquery}tyco{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharequal}\ {\isacharquery}tyco{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isasymand}\ {\isacharquery}typargs{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharequal}\ {\isacharquery}typargs{\isadigit{2}}{\isachardot}{\isadigit{0}}} already requires the
+  instance \isa{monotype\ {\isasymColon}\ eq}, which itself requires
+  \isa{Mono\ {\isacharquery}tyco{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharquery}typargs{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharequal}\ Mono\ {\isacharquery}tyco{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isacharquery}typargs{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isasymequiv}\ {\isacharquery}tyco{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharequal}\ {\isacharquery}tyco{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isasymand}\ {\isacharquery}typargs{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharequal}\ {\isacharquery}typargs{\isadigit{2}}{\isachardot}{\isadigit{0}}};  Haskell has no problem with mutually
+  recursive \isa{instance} and \isa{function} definitions,
+  but the SML serializer does not support this.
+
+  In such cases, you have to provide you own equality equations
+  involving auxiliary constants.  In our case,
+  \isa{list{\isacharunderscore}all{\isadigit{2}}} can do the job:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ monotype{\isacharunderscore}eq{\isacharunderscore}list{\isacharunderscore}all{\isadigit{2}}\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}Mono\ tyco{\isadigit{1}}\ typargs{\isadigit{1}}\ {\isacharequal}\ Mono\ tyco{\isadigit{2}}\ typargs{\isadigit{2}}\ {\isasymlongleftrightarrow}\isanewline
+\ \ \ \ \ tyco{\isadigit{1}}\ {\isacharequal}\ tyco{\isadigit{2}}\ {\isasymand}\ list{\isacharunderscore}all{\isadigit{2}}\ {\isacharparenleft}op\ {\isacharequal}{\isacharparenright}\ typargs{\isadigit{1}}\ typargs{\isadigit{2}}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ list{\isacharunderscore}all{\isadigit{2}}{\isacharunderscore}eq\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+does not depend on instance \isa{monotype\ {\isasymColon}\ eq}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
+\ {\isachardoublequoteopen}op\ {\isacharequal}\ {\isacharcolon}{\isacharcolon}\ monotype\ {\isasymRightarrow}\ monotype\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}monotype{\isachardot}ML{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\lstsml{Thy/examples/monotype.ML}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

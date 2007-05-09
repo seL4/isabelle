@@ -671,8 +671,49 @@ text {*
   to delete disturbing theorems in the code theorem table,
   as we have done here with the original definitions @{text less_prod_def}
   and @{text less_eq_prod_def}.
+
+  In some cases, the automatically derived defining equations
+  for equality on a particular type may not be appropriate.
+  As example, watch the following datatype representing
+  monomorphic parametric types:
 *}
 
+datatype monotype = Mono string "monotype list"
+(*<*)
+lemma monotype_eq:
+  "Mono tyco1 typargs1 = Mono tyco2 typargs2 \<equiv> 
+     tyco1 = tyco2 \<and> typargs1 = typargs2" by simp
+(*>*)
+
+text {*
+  Then code generation for SML would fail with a message
+  that the generated code conains illegal mutual dependencies:
+  the theorem @{thm monotype_eq} already requires the
+  instance @{text "monotype \<Colon> eq"}, which itself requires
+  @{thm monotype_eq};  Haskell has no problem with mutually
+  recursive @{text instance} and @{text function} definitions,
+  but the SML serializer does not support this.
+
+  In such cases, you have to provide you own equality equations
+  involving auxiliary constants.  In our case,
+  @{const [show_types] list_all2} can do the job:
+*}
+
+lemma monotype_eq_list_all2 [code func]:
+  "Mono tyco1 typargs1 = Mono tyco2 typargs2 \<longleftrightarrow>
+     tyco1 = tyco2 \<and> list_all2 (op =) typargs1 typargs2"
+  by (simp add: list_all2_eq [symmetric])
+
+text {*
+  does not depend on instance @{text "monotype \<Colon> eq"}:
+*}
+
+code_gen "op = :: monotype \<Rightarrow> monotype \<Rightarrow> bool"
+  (*<*)in SML(*>*)in SML file "examples/monotype.ML"
+
+text {*
+  \lstsml{Thy/examples/monotype.ML}
+*}
 
 subsection {* Programs as sets of theorems *}
 
